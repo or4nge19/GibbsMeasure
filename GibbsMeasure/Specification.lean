@@ -1,5 +1,6 @@
 module
 
+public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.Cylinders
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.GiryMonad
 public import GibbsMeasure.Prereqs.Filtration.Consistent
 public import GibbsMeasure.Prereqs.Juxt
@@ -170,7 +171,7 @@ lemma measurable_isssdFun (Λ : Finset S) :
   rw [MeasurableSpace.pi_eq_generateFrom_projections]
   refine @MeasurableSpace.generateFrom_induction _ _ _ ?_ ?_ ?_ ?_
   · rintro _ ⟨s, A, hA, rfl⟩ _
-    have hA' : MeasurableSet (Function.eval s ⁻¹' A : Set (S → E)) := sorry
+    have hA' : MeasurableSet (Function.eval s ⁻¹' A : Set (S → E)) := measurable_pi_apply s hA
     have come_on η := Measure.map_apply (α := ((Λ : Set S)) → E) (β := S → E)
       (f := juxt (Λ : Set S) η) (μ := Measure.pi fun _ : Λ ↦ ν) Measurable.juxt hA'
     stop
@@ -221,12 +222,28 @@ lemma isssd_comp_isssd [DecidableEq S] (Λ₁ Λ₂ : Finset S) :
         (measurable_id'' <| by gcongr; exact Finset.subset_union_right) := isssdFun_comp_isssdFun ..
 
 protected lemma IsProper.isssd : (isssd (S := S) ν).IsProper := by
-  refine IsProper.of_inter_eq_indicator_mul fun Λ A hA B hB x ↦ ?_
+  refine .of_inter_eq_indicator_mul fun Λ A hA B hB x ↦ ?_
   simp only [isssd_apply, isssdFun_apply, Finset.coe_sort_coe]
-  sorry
+  rw [Measure.map_apply .juxt (hA.inter (cylinderEvents_le_pi _ hB)), Measure.map_apply .juxt hA,
+    Set.preimage_inter]
+  by_cases hx : x ∈ B
+  · have : juxt (↑Λ) x ⁻¹' B = Set.univ := by
+      ext ζ
+      simp only [mem_preimage, mem_univ, iff_true]
+      exact (mem_congr_of_measurableSet_cylinderEvents hB
+        fun _ hi ↦ juxt_apply_of_not_mem hi ζ).mpr hx
+    rw [this, inter_univ, indicator_of_mem hx, Pi.one_apply, one_mul]
+  · have : juxt (↑Λ) x ⁻¹' B = ∅ := by
+      ext ζ
+      simp only [mem_preimage, mem_empty_iff_false, iff_false]
+      exact fun h ↦ hx ((mem_congr_of_measurableSet_cylinderEvents hB
+        fun _ hi ↦ juxt_apply_of_not_mem hi ζ).mp h)
+    rw [this, inter_empty, measure_empty, indicator_of_notMem hx, zero_mul]
 
-instance isssd.instIsMarkov : (isssd (S := S) ν).IsMarkov where
-  isMarkovKernel := sorry
+instance isssd.instIsMarkov [IsProbabilityMeasure ν] : (isssd (S := S) ν).IsMarkov where
+  isMarkovKernel Λ := ⟨fun _ ↦ by
+    simp only [isssd_apply]
+    exact Measure.isProbabilityMeasure_map Measurable.juxt.aemeasurable⟩
 
 end ISSSD
 
@@ -321,11 +338,18 @@ lemma modification_apply (γ : Specification S E) (ρ : Finset S → (S → E) �
     (hρ : γ.IsModifier ρ) (Λ : Finset S) (η : S → E) :
     γ.modification ρ hρ Λ η = (γ Λ η).withDensity (ρ Λ) := rfl
 
+@[simp]
+lemma modificationKer_modification {ρ₁ ρ₂ : Finset S → (S → E) → ℝ≥0∞}
+    (hρ₁ : γ.IsModifier ρ₁) (hρ₂ : ∀ Λ, Measurable (ρ₂ Λ)) :
+    modificationKer (γ.modification ρ₁ hρ₁) ρ₂ hρ₂ =
+      modificationKer γ (ρ₁ * ρ₂) (fun Λ ↦ (hρ₁.measurable Λ).mul (hρ₂ Λ)) := by
+  ext Λ η; simp [withDensity_mul, hρ₁.measurable, hρ₂]
+
 @[simp] lemma IsModifier.mul {ρ₁ ρ₂ : Finset S → (S → E) → ℝ≥0∞}
     (hρ₁ : γ.IsModifier ρ₁) (hρ₂ : (γ.modification ρ₁ hρ₁).IsModifier ρ₂) :
     γ.IsModifier (ρ₁ * ρ₂) where
   measurable Λ := (hρ₁.measurable _).mul (hρ₂.measurable _)
-  isConsistent := sorry
+  isConsistent := by simpa using hρ₂.isConsistent
 
 @[simp] lemma modification_one' (γ : Specification S E) :
     γ.modification (fun _Λ _η ↦ 1) .one' = γ := by ext; simp
