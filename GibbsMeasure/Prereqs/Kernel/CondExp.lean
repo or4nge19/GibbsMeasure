@@ -1,30 +1,68 @@
 module
 
+public import GibbsMeasure.Prereqs.Kernel.CondExpClass
+public import GibbsMeasure.Prereqs.Kernel.CondExpBind
 public import Mathlib.Probability.Kernel.Proper
+public import Mathlib.Probability.Kernel.MeasurableIntegral
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
 
 public section
 
-open MeasureTheory ENNReal NNReal Set
+open MeasureTheory ENNReal NNReal Set Filter
 
 namespace ProbabilityTheory.Kernel
 variable {X : Type*} {𝓑 𝓧 : MeasurableSpace X} {π : Kernel[𝓑, 𝓧] X X} {μ : Measure[𝓧] X}
   {A B : Set X} {f g : X → ℝ≥0∞} {x₀ : X}
 
-@[mk_iff]
-class IsCondExp (π : Kernel[𝓑, 𝓧] X X) (μ : Measure[𝓧] X) : Prop where
-  condExp_ae_eq_kernel_apply ⦃A : Set X⦄ : MeasurableSet[𝓧] A →
-    μ[A.indicator 1| 𝓑] =ᵐ[μ] fun a ↦ (π a A).toReal
-
-lemma isCondExp_iff_bind_eq_left (hπ : π.IsProper) (h𝓑𝓧 : 𝓑 ≤ 𝓧) [IsFiniteMeasure μ] :
+lemma isCondExp_iff_bind_eq_left [IsFiniteMeasure μ] [IsMarkovKernel π]
+    (hπ : π.IsProper) (h𝓑𝓧 : 𝓑 ≤ 𝓧) [SigmaFinite (μ.trim h𝓑𝓧)] :
     IsCondExp π μ ↔ μ.bind π = μ := by
-  simp_rw [isCondExp_iff, Filter.eventuallyEq_comm,
-    toReal_ae_eq_indicator_condExp_iff_forall_meas_inter_eq h𝓑𝓧, Measure.ext_iff]
-  refine ⟨fun h A hA ↦ ?_, fun h A hA B hB ↦ ?_⟩
-  · rw [eq_comm, Measure.bind_apply hA (π.measurable.mono h𝓑𝓧 le_rfl).aemeasurable]
-    simpa using h hA _ .univ
-  · rw [hπ.setLIntegral_eq_comp h𝓑𝓧 hA hB, eq_comm]
-    exact h _ (by measurability)
+  have h_iff_A (A : Set X) (hA : MeasurableSet[𝓧] A) :
+      (μ[A.indicator 1|𝓑] =ᵐ[μ] fun a ↦ (π a A).toReal) ↔
+        (∀ t, MeasurableSet[𝓑] t → μ (A ∩ t) = ∫⁻ a in t, π a A ∂μ) := by
+    have hgm : AEStronglyMeasurable[𝓑] (fun a ↦ π a A) μ :=
+      (Kernel.measurable_coe π hA).aestronglyMeasurable
+    have hg_fin : ∀ᵐ a ∂ μ, π a A ≠ ⊤ := by
+      filter_upwards with a
+      exact measure_ne_top (π a) A
+    simpa [Filter.eventuallyEq_comm] using
+      (toReal_ae_eq_indicator_condExp_iff_forall_meas_inter_eq
+        (m := 𝓑) (m0 := 𝓧) (μ := μ)
+        h𝓑𝓧 hA (measure_ne_top μ A) hgm hg_fin)
+  rw [isCondExp_iff, Measure.ext_iff]
+  constructor
+  · intro h A hA
+    rw [Measure.bind_apply hA (π.measurable.mono h𝓑𝓧 le_rfl).aemeasurable]
+    rw [← setLIntegral_univ]
+    have hforall := (h_iff_A A hA).mp (h hA)
+    have h_univ := hforall Set.univ MeasurableSet.univ
+    simpa using h_univ.symm
+  · intro h A hA
+    refine (h_iff_A A hA).mpr ?_
+    intro t ht
+    have hAt_meas : MeasurableSet[𝓧] (A ∩ t) := hA.inter (h𝓑𝓧 _ ht)
+    have hμ_bind : μ (A ∩ t) = (μ.bind π) (A ∩ t) := by
+      simpa [eq_comm] using h (A ∩ t) hAt_meas
+    have h_bind_apply :
+        (μ.bind π) (A ∩ t)
+          = ∫⁻ a, π a (A ∩ t) ∂ μ :=
+      Measure.bind_apply hAt_meas (π.measurable.mono h𝓑𝓧 le_rfl).aemeasurable
+    have h_prop := hπ.inter_eq_indicator_mul h𝓑𝓧 hA ht
+    have h_integrand :
+        (fun a => t.indicator 1 a * π a A)
+          = t.indicator (fun a => π a A) := by
+      ext a; by_cases ha : a ∈ t <;> simp [ha]
+    have hmeas : Measurable[𝓧] (fun a => π a A) :=
+      (Kernel.measurable_coe π hA).mono h𝓑𝓧 le_rfl
+    calc
+      μ (A ∩ t)
+          = (μ.bind π) (A ∩ t) := by simpa using hμ_bind
+      _ = ∫⁻ a, π a (A ∩ t) ∂ μ := h_bind_apply
+      _ = ∫⁻ a, t.indicator 1 a * π a A ∂ μ := by
+            simp_rw [h_prop]
+      _ = ∫⁻ a, t.indicator (fun a => π a A) a ∂ μ := by
+            simp_rw [h_integrand]
+      _ = ∫⁻ a in t, π a A ∂ μ := by rw [lintegral_indicator (h𝓑𝓧 t ht) fun a ↦ (π a) A]
 
 lemma condExp_ae_eq_kernel_apply
     (h : ∀ (f : X → ℝ), Bornology.IsBounded (Set.range f) → Measurable[𝓧] f →
@@ -54,49 +92,56 @@ private lemma condExp_indicator_ae_eq_integral_kernel (A_mble : MeasurableSet[�
 
 variable [IsFiniteMeasure μ] [IsFiniteKernel π]
 
-private lemma condExp_const_indicator_ae_eq_integral_kernel (c : ℝ) (A_mble : MeasurableSet[𝓧] A)
-    (h : condExp 𝓑 μ (A.indicator (fun _ ↦ (1 : ℝ))) =ᵐ[μ] (fun x ↦ (π x A).toReal)) :
+private lemma condExp_const_indicator_ae_eq_integral_kernel (c : ℝ) (A_mble : MeasurableSet[𝓧] A) :
     condExp 𝓑 μ (A.indicator (fun _ ↦ (c : ℝ)))
       =ᵐ[μ] (fun x₀ ↦ ∫ x, A.indicator (fun _ ↦ (c : ℝ)) x ∂(π x₀)) := by
   have smul_eq : A.indicator (fun _ ↦ (c : ℝ)) = c • A.indicator (fun _ ↦ (1 : ℝ)) := by
-    apply funext
-    intro x
-    have hidentityc :
-      (c • A.indicator (fun _ ↦ (1 : ℝ))) x = c * (A.indicator (fun _ ↦ (1 : ℝ)) x) := rfl
-    rw [hidentityc]
-    if hinA : x ∈ A then
-      rw [indicator_of_mem hinA, indicator_of_mem hinA]
-      exact Eq.symm (MulOneClass.mul_one c)
-    else
-      rw [indicator_of_notMem hinA, indicator_of_notMem hinA]
-      exact Eq.symm (CommMonoidWithZero.mul_zero c)
+    funext x
+    by_cases hx : x ∈ A <;> simp [hx, smul_eq_mul]
   have foo : c • condExp 𝓑 μ (A.indicator (fun _ ↦ (1 : ℝ)))
      =ᵐ[μ] condExp 𝓑 μ (A.indicator (fun _ ↦ (c : ℝ))) := by
-    rw [smul_eq]
-    exact (condExp_smul (μ := μ) c (A.indicator (fun _ ↦ (1 : ℝ))) 𝓑).symm
-  nth_rw 2 [smul_eq]
-  simp only [Pi.smul_apply, smul_eq_mul, integral_const_mul]
+    rw [smul_eq]; exact (condExp_smul (μ := μ) c (A.indicator (fun _ ↦ (1 : ℝ))) 𝓑).symm
   apply foo.symm.trans
-  have : c • (fun x₀ ↦ ∫ (a : X), A.indicator (fun x ↦ (1 : ℝ)) a ∂π x₀)
-     = fun x₀ ↦ c * ∫ (a : X), A.indicator (fun x ↦ (1 : ℝ)) a ∂π x₀ := by
-    ext; simp [smul_eq_mul]
-  rw [← this]
-  have := condExp_indicator_ae_eq_integral_kernel (μ := μ) (π := π) A_mble
-  exact this.const_smul c
+  have h_smul_integral :
+      c • (fun x₀ ↦ ∫ (a : X), A.indicator (fun _ ↦ (1 : ℝ)) a ∂π x₀)
+        = (fun x₀ ↦ ∫ (a : X), A.indicator (fun _ ↦ (c : ℝ)) a ∂π x₀) := by
+    funext x₀
+    have h1 :
+        ∫ (a : X), A.indicator (fun _ : X ↦ (1 : ℝ)) a ∂(π x₀) = (π x₀).real A := by
+      simpa [Set.inter_univ] using
+        (MeasureTheory.setIntegral_indicator_one (μ := π x₀) (s := A)
+          (hs := by simpa using A_mble) (t := Set.univ))
+    have h2 :
+        ∫ (a : X), A.indicator (fun _ : X ↦ (c : ℝ)) a ∂(π x₀) = (π x₀).real A • c := by
+      simpa [Set.inter_univ] using
+        (MeasureTheory.setIntegral_indicator_const (μ := π x₀) (E := ℝ)
+          (s := A) (t := Set.univ) (c := c) (hs := by simpa using A_mble))
+    simp [h1, h2, smul_eq_mul, mul_comm]
+  rw [← h_smul_integral]
+  have h_ind1 := condExp_indicator_ae_eq_integral_kernel (μ := μ) (π := π) A_mble
+  exact Filter.EventuallyEq.const_smul h_ind1 c
 
+/-- Simple functions satisfy the kernel integral representation; see
+`ProbabilityTheory.Kernel.condExp_ae_eq_integral_kernel` in `CondExpBind.lean` for the general
+Fubini-bind statement under `IsMarkovKernel` and integrability hypotheses. -/
 private lemma condExp_simpleFunc_ae_eq_integral_kernel (f : @SimpleFunc X 𝓧 ℝ) :
     condExp 𝓑 μ f =ᵐ[μ] (fun x₀ ↦ ∫ x, f x ∂(π x₀)) := by
-  induction f using SimpleFunc.induction with
-  | @const c _s hs =>
-    exact condExp_const_indicator_ae_eq_integral_kernel c hs
-      (IsCondExp.condExp_ae_eq_kernel_apply hs)
-  | @add f g _disj hf hg =>
-    simp only [SimpleFunc.coe_add]
-    exact (condExp_add (by fun_prop) (by fun_prop) 𝓑).trans
-      ((hf.add hg).trans (.of_forall fun x₀ ↦
-        (integral_add (by fun_prop) (by fun_prop)).symm))
-
-lemma condExp_ae_eq_integral_kernel (f : X → ℝ) :
-    condExp 𝓑 μ f =ᵐ[μ] (fun x₀ ↦ ∫ x, f x ∂(π x₀)) := sorry
+  classical
+  letI : MeasurableSpace X := 𝓧
+  refine @SimpleFunc.induction _ _ _ _ (fun f => condExp 𝓑 μ f =ᵐ[μ]
+    (fun x₀ => ∫ x, f x ∂(π x₀))) ?_ ?_ f
+  · intro c s hs
+    simp [SimpleFunc.coe_piecewise, SimpleFunc.coe_const]
+    simpa using
+      (condExp_const_indicator_ae_eq_integral_kernel (μ := μ) (π := π) (A := s) c hs)
+  · intro f g _disj hf hg
+    have hf_int : Integrable f μ := SimpleFunc.integrable_of_isFiniteMeasure f
+    have hg_int : Integrable g μ := SimpleFunc.integrable_of_isFiniteMeasure g
+    have h_add_condExp := condExp_add hf_int hg_int 𝓑
+    filter_upwards [h_add_condExp, hf, hg] with x₀ h_add hf_eq hg_eq
+    rw [SimpleFunc.coe_add, h_add, Pi.add_apply, hf_eq, hg_eq, ← integral_add, ← SimpleFunc.coe_add]
+    · exact rfl
+    · exact SimpleFunc.integrable_of_isFiniteMeasure f
+    exact SimpleFunc.integrable_of_isFiniteMeasure g
 
 end ProbabilityTheory.Kernel

@@ -20,3 +20,11 @@ public import GibbsMeasure.Prereqs.Juxt
 public import GibbsMeasure.Prereqs.Kernel.CondExp
 public import GibbsMeasure.Prereqs.LebesgueCondExp
 public import GibbsMeasure.Specification
+public import GibbsMeasure.KolmogorovExtension4.ProductMeasure
+public import GibbsMeasure.Potential
+public import GibbsMeasure.Specification.Existence
+public import GibbsMeasure.Observables.Correlations
+public import GibbsMeasure.Examples.IsingNN
+public import GibbsMeasure.Examples.SpinGlass
+public import GibbsMeasure.Examples.Arithmetic
+public import GibbsMeasure.Specification.ChoquetLaw
