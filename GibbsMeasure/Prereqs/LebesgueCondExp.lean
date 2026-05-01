@@ -6,6 +6,8 @@ public import Mathlib.MeasureTheory.Integral.Lebesgue.Add
 public import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
 public import Mathlib.MeasureTheory.Measure.Trim
 public import Mathlib.MeasureTheory.MeasurableSpace.Defs
+public import GibbsMeasure.Mathlib.Data.ENNReal.Basic
+public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.Bot
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Unique
 public section
 
@@ -234,48 +236,25 @@ lemma ae_eq_lcondExp_of_forall_setLIntegral_eq (hm : m ≤ m₀) [SigmaFinite (�
     (measurable_lcondExp (μ := μ) (m := m) (m₀ := m₀) (f := f)).aestronglyMeasurable
   rw [hg_eq s hs hμs, setLIntegral_lcondExp hm hs]
 
-lemma lcondExp_bot' [hμ : NeZero μ] (f : α → ℝ≥0∞) :
+lemma lcondExp_bot'_of_not_isFiniteMeasure [hμ : NeZero μ] (f : α → ℝ≥0∞)
+    (hμ_finite : ¬IsFiniteMeasure μ) :
     μ⁻[f|⊥] = fun _ => (μ Set.univ).toNNReal⁻¹ • ∫⁻ x, f x ∂μ := by
-  by_cases hμ_finite : IsFiniteMeasure μ
-  swap
-  · have h : ¬SigmaFinite (μ.trim bot_le) := by rwa [sigmaFinite_trim_bot_iff]
-    rw [not_isFiniteMeasure_iff] at hμ_finite
-    rw [lcondExp_of_not_sigmaFinite bot_le h]
-    funext x
-    simp_rw [Pi.zero_apply, hμ_finite, ENNReal.toNNReal_top]
-    simp [ENNReal.smul_def, smul_eq_mul]
+  have h : ¬SigmaFinite (μ.trim bot_le) := by rwa [sigmaFinite_trim_bot_iff]
+  rw [not_isFiniteMeasure_iff] at hμ_finite
+  rw [lcondExp_of_not_sigmaFinite bot_le h]
+  funext x
+  simp_rw [Pi.zero_apply, hμ_finite, ENNReal.toNNReal_top]
+  simp [ENNReal.smul_def, smul_eq_mul]
+
+lemma lcondExp_bot'_of_isFiniteMeasure [hμ : NeZero μ] (f : α → ℝ≥0∞) (hμ_finite : IsFiniteMeasure μ) :
+    μ⁻[f|⊥] = fun _ => (μ Set.univ).toNNReal⁻¹ • ∫⁻ x, f x ∂μ := by
   haveI : IsFiniteMeasure μ := hμ_finite
   haveI : SigmaFinite (μ.trim (bot_le : (⊥ : MeasurableSpace α) ≤ m₀)) :=
     (sigmaFinite_trim_bot_iff (μ := μ)).2 (by infer_instance)
   have h_meas : Measurable[⊥] (μ⁻[f|⊥]) :=
     measurable_lcondExp (μ := μ) (m := (⊥ : MeasurableSpace α)) (m₀ := m₀) (f := f)
-  obtain ⟨c, hc⟩ : ∃ c : ℝ≥0∞, μ⁻[f|⊥] = fun _ => c := by
-    classical
-    cases isEmpty_or_nonempty α with
-    | inl hα =>
-        refine ⟨0, ?_⟩
-        funext x
-        exact (hα.elim x)
-    | inr hα =>
-        let x0 : α := Classical.choice hα
-        let c : ℝ≥0∞ := (μ⁻[f|⊥]) x0
-        refine ⟨c, ?_⟩
-        funext x
-        have hpre : MeasurableSet[⊥] ((μ⁻[f|⊥]) ⁻¹' ({c} : Set ℝ≥0∞)) :=
-          h_meas (measurableSet_singleton c)
-        have hbot :
-            ((μ⁻[f|⊥]) ⁻¹' ({c} : Set ℝ≥0∞) = ∅) ∨
-              ((μ⁻[f|⊥]) ⁻¹' ({c} : Set ℝ≥0∞) = Set.univ) :=
-          (MeasurableSpace.measurableSet_bot_iff (s := (μ⁻[f|⊥]) ⁻¹' ({c} : Set ℝ≥0∞))).1 hpre
-        have hx0 : x0 ∈ (μ⁻[f|⊥]) ⁻¹' ({c} : Set ℝ≥0∞) := by
-          simp [c]
-        have huniv : (μ⁻[f|⊥]) ⁻¹' ({c} : Set ℝ≥0∞) = Set.univ := by
-          rcases hbot with h0 | huniv
-          · have : x0 ∈ (∅ : Set α) := by simp [h0] at hx0
-            cases this
-          · exact huniv
-        have hx : x ∈ (μ⁻[f|⊥]) ⁻¹' ({c} : Set ℝ≥0∞) := by simp [huniv]
-        simpa [Set.mem_preimage, Set.mem_singleton_iff] using hx
+  obtain ⟨c, hc⟩ : ∃ c : ℝ≥0∞, μ⁻[f|⊥] = fun _ => c :=
+    exists_eq_const_of_measurable_bot h_meas
   have h_int :
       ∫⁻ x, (μ⁻[f|⊥]) x ∂μ = ∫⁻ x, f x ∂μ :=
     lintegral_lcondExp (μ := μ) (m := (⊥ : MeasurableSpace α)) (m₀ := m₀) (f := f) bot_le
@@ -284,23 +263,13 @@ lemma lcondExp_bot' [hμ : NeZero μ] (f : α → ℝ≥0∞) :
   have hμuniv_ne_zero : μ Set.univ ≠ 0 := by
     haveI : NeZero (μ Set.univ) := by infer_instance
     exact NeZero.ne (μ Set.univ)
-  have hinv : μ Set.univ * (μ Set.univ)⁻¹ = (1 : ℝ≥0∞) :=
-    ENNReal.mul_inv_cancel hμuniv_ne_zero hμuniv_ne_top
   have hc_eq :
       c = (∫⁻ x, f x ∂μ) * (μ Set.univ)⁻¹ := by
     have hconst : ∫⁻ x, (μ⁻[f|⊥]) x ∂μ = c * μ Set.univ := by
       simp [hc, lintegral_const]
     have hcmul : c * μ Set.univ = ∫⁻ x, f x ∂μ := by
       simpa [hconst] using h_int
-    have : c = (c * μ Set.univ) * (μ Set.univ)⁻¹ := by
-      symm
-      calc
-        (c * μ Set.univ) * (μ Set.univ)⁻¹ = c * (μ Set.univ * (μ Set.univ)⁻¹) := by ac_rfl
-        _ = c * 1 := by simp [hinv]
-        _ = c := by simp
-    calc
-      c = (c * μ Set.univ) * (μ Set.univ)⁻¹ := this
-      _ = (∫⁻ x, f x ∂μ) * (μ Set.univ)⁻¹ := by simp [hcmul]
+    exact eq_mul_inv_of_mul_eq hμuniv_ne_zero hμuniv_ne_top hcmul
   have h_toNN : ((μ Set.univ).toNNReal : ℝ≥0∞) = μ Set.univ := by
     simp [hμuniv_ne_top]
   have h_toNN_ne_zero : (μ Set.univ).toNNReal ≠ 0 := by
@@ -314,8 +283,14 @@ lemma lcondExp_bot' [hμ : NeZero μ] (f : α → ℝ≥0∞) :
   have hc_final :
       c = (μ Set.univ).toNNReal⁻¹ • ∫⁻ x, f x ∂μ := by
     rw [hc_eq, ENNReal.smul_def, smul_eq_mul, mul_comm, ← h_inv_toNN]
-    aesop
+    simp [ENNReal.coe_inv h_toNN_ne_zero]
   simp [hc, hc_final]
+
+lemma lcondExp_bot' [hμ : NeZero μ] (f : α → ℝ≥0∞) :
+    μ⁻[f|⊥] = fun _ => (μ Set.univ).toNNReal⁻¹ • ∫⁻ x, f x ∂μ := by
+  by_cases hμ_finite : IsFiniteMeasure μ
+  · exact lcondExp_bot'_of_isFiniteMeasure f hμ_finite
+  · exact lcondExp_bot'_of_not_isFiniteMeasure f hμ_finite
 
 lemma lcondExp_bot_ae_eq (f : α → ℝ≥0∞) :
     μ⁻[f|⊥] =ᵐ[μ] fun _ => (μ Set.univ).toNNReal⁻¹ • ∫⁻ x, f x ∂μ := by
