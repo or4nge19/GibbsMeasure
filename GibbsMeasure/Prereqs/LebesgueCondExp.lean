@@ -170,6 +170,14 @@ lemma lcondExp_of_aemeasurable (hm : m ≤ m₀) [hμm : SigmaFinite (μ.trim hm
   exact (lcondExp_of_measurable (μ := μ) (m := m) (m₀ := m₀) (f := hf.mk f) hm hf.measurable_mk).trans
     hfg.symm
 
+omit [SigmaFinite μ] in
+lemma setLIntegral_trim_eq (hm : m ≤ m₀) (hs : MeasurableSet[m] s) (hf : Measurable[m] f) :
+    ∫⁻ x in s, f x ∂(μ.trim hm) = ∫⁻ x in s, f x ∂μ := by
+  have hs₀ : MeasurableSet[m₀] s := hm s hs
+  have h_ind : Measurable[m] (s.indicator f) := hf.indicator hs
+  simpa [MeasureTheory.lintegral_indicator, hs, hs₀] using
+    (lintegral_trim (μ := μ) (hm := hm) (f := s.indicator f) h_ind)
+
 /-- The lintegral of the conditional expectation `μ⁻[f|hm]` over an `m`-measurable set is equal to
 the lintegral of `f` on that set. -/
 lemma setLIntegral_lcondExp (hm : m ≤ m₀) [SigmaFinite (μ.trim hm)] (hs : MeasurableSet[m] s) :
@@ -185,21 +193,7 @@ lemma setLIntegral_lcondExp (hm : m ≤ m₀) [SigmaFinite (μ.trim hm)] (hs : M
   have hmeas_ce : Measurable[m] (μ⁻[f|m]) := measurable_lcondExp (μ := μ) (m := m) (m₀ := m₀) (f := f)
   have htrim :
       (∫⁻ x in s, (μ⁻[f|m]) x ∂ν) = ∫⁻ x in s, (μ⁻[f|m]) x ∂μ := by
-    have h_ind : Measurable[m] (s.indicator fun x ↦ (μ⁻[f|m]) x) :=
-      (hmeas_ce.indicator hs)
-    have hs₀ : MeasurableSet[m₀] s := hm s hs
-    calc
-      (∫⁻ x in s, (μ⁻[f|m]) x ∂ν)
-          = ∫⁻ x, s.indicator (fun x ↦ (μ⁻[f|m]) x) x ∂ν := by
-              simpa [MeasureTheory.lintegral_indicator] using
-                (MeasureTheory.lintegral_indicator (μ := ν) (s := s) (hs := hs)
-                  (f := fun x ↦ (μ⁻[f|m]) x)).symm
-      _ = ∫⁻ x, s.indicator (fun x ↦ (μ⁻[f|m]) x) x ∂μ := by
-            simpa using (lintegral_trim (μ := μ) hm h_ind)
-      _ = (∫⁻ x in s, (μ⁻[f|m]) x ∂μ) := by
-            simpa [MeasureTheory.lintegral_indicator] using
-              (MeasureTheory.lintegral_indicator (μ := μ) (s := s) (hs := hs₀)
-                (f := fun x ↦ (μ⁻[f|m]) x))
+    exact setLIntegral_trim_eq (μ := μ) (m := m) (m₀ := m₀) (f := μ⁻[f|m]) hm hs hmeas_ce
   have h_eval :
       ∫⁻ x in s, (μf.rnDeriv ν) x ∂ν = μf s := by
     simpa [MeasureTheory.withDensity_apply _ hs] using congrArg (fun m' : Measure[m] α => m' s) hμf
@@ -236,7 +230,8 @@ lemma ae_eq_lcondExp_of_forall_setLIntegral_eq (hm : m ≤ m₀) [SigmaFinite (�
     (measurable_lcondExp (μ := μ) (m := m) (m₀ := m₀) (f := f)).aestronglyMeasurable
   rw [hg_eq s hs hμs, setLIntegral_lcondExp hm hs]
 
-lemma lcondExp_bot'_of_not_isFiniteMeasure [hμ : NeZero μ] (f : α → ℝ≥0∞)
+omit [SigmaFinite μ] in
+lemma lcondExp_bot'_of_not_isFiniteMeasure [NeZero μ] (f : α → ℝ≥0∞)
     (hμ_finite : ¬IsFiniteMeasure μ) :
     μ⁻[f|⊥] = fun _ => (μ Set.univ).toNNReal⁻¹ • ∫⁻ x, f x ∂μ := by
   have h : ¬SigmaFinite (μ.trim bot_le) := by rwa [sigmaFinite_trim_bot_iff]
@@ -301,6 +296,45 @@ lemma lcondExp_bot_ae_eq (f : α → ℝ≥0∞) :
 lemma lcondExp_bot [IsProbabilityMeasure μ] (f : α → ℝ≥0∞) : μ⁻[f|⊥] = fun _ => ∫⁻ x, f x ∂μ := by
   refine (lcondExp_bot' f).trans ?_; rw [measure_univ, ENNReal.toNNReal_one, inv_one, one_smul]
 
+omit [SigmaFinite μ] in
+lemma setLIntegral_add_left' (hs : MeasurableSet s) (hf : AEMeasurable f μ) :
+    ∫⁻ x in s, (f + g) x ∂μ = ∫⁻ x in s, f x ∂μ + ∫⁻ x in s, g x ∂μ := by
+  have h_indicator : s.indicator (fun x => (f + g) x) = s.indicator f + s.indicator g := by
+    funext x
+    by_cases hx : x ∈ s <;> simp [hx]
+  have h_add_indicator :
+      ∫⁻ x, (s.indicator f + s.indicator g) x ∂μ =
+        ∫⁻ x, s.indicator f x ∂μ + ∫⁻ x, s.indicator g x ∂μ := by
+    simpa [Pi.add_apply] using
+      lintegral_add_left' (μ := μ) (hf := hf.indicator hs) (g := fun x => s.indicator g x)
+  calc
+    ∫⁻ x in s, (f + g) x ∂μ
+        = ∫⁻ x, s.indicator (fun x => (f + g) x) x ∂μ := by
+            simp [MeasureTheory.lintegral_indicator, hs]
+    _ = ∫⁻ x, (s.indicator f + s.indicator g) x ∂μ := by
+            exact lintegral_congr fun x => congrFun h_indicator x
+    _ = ∫⁻ x, s.indicator f x ∂μ + ∫⁻ x, s.indicator g x ∂μ := h_add_indicator
+    _ = ∫⁻ x in s, f x ∂μ + ∫⁻ x in s, g x ∂μ := by
+            simp [MeasureTheory.lintegral_indicator, hs]
+
+omit [SigmaFinite μ] in
+lemma setLIntegral_const_mul' {c : ℝ≥0∞} (hc : c ≠ ∞) (hs : MeasurableSet s) :
+    ∫⁻ x in s, c * f x ∂μ = c * ∫⁻ x in s, f x ∂μ := by
+  have h_indicator :
+      s.indicator (fun x => c * f x) = fun x => c * s.indicator f x := by
+    funext x
+    by_cases hx : x ∈ s <;> simp [hx]
+  calc
+    ∫⁻ x in s, c * f x ∂μ
+        = ∫⁻ x, s.indicator (fun x => c * f x) x ∂μ := by
+            simp [MeasureTheory.lintegral_indicator, hs]
+    _ = ∫⁻ x, c * s.indicator f x ∂μ := by
+            exact lintegral_congr fun x => congrFun h_indicator x
+    _ = c * ∫⁻ x, s.indicator f x ∂μ := by
+            exact lintegral_const_mul' (μ := μ) (r := c) (f := fun x => s.indicator f x) hc
+    _ = c * ∫⁻ x in s, f x ∂μ := by
+            simp [MeasureTheory.lintegral_indicator, hs]
+
 lemma lcondExp_add (hf : AEMeasurable f μ) (_ : AEMeasurable g μ) :
     μ⁻[f + g|m] =ᵐ[μ] μ⁻[f|m] + μ⁻[g|m] := by
   by_cases hm : m ≤ m₀
@@ -322,63 +356,23 @@ lemma lcondExp_add (hf : AEMeasurable f μ) (_ : AEMeasurable g μ) :
         (f := f + g) (g := hfgFun) hm ?_ hsum_aestr).symm.trans ?_
   · intro s hs hμs
     have hs₀ : MeasurableSet s := hm s hs
-    have hindicator :
-        s.indicator hfgFun =
-          s.indicator (μ⁻[f|m]) + s.indicator (μ⁻[g|m]) := by
-      funext x
-      by_cases hx : x ∈ s
-      · simp [Set.indicator_of_mem, hx, hfgFun_def]
-      · simp [Set.indicator_of_notMem, hx, hfgFun_def]
-    have h_add_indicator :
-        ∫⁻ x, s.indicator hfgFun x ∂μ =
-            ∫⁻ x, s.indicator (μ⁻[f|m]) x ∂μ +
-              ∫⁻ x, s.indicator (μ⁻[g|m]) x ∂μ := by
-      have hmeas_ind_f : Measurable fun x => s.indicator (μ⁻[f|m]) x :=
-        (hmeas_f.indicator hs).mono hm le_rfl
-      have hmeas_ind_g : Measurable fun x => s.indicator (μ⁻[g|m]) x :=
-        (hmeas_g.indicator hs).mono hm le_rfl
-      simpa [hindicator] using
-        (lintegral_add_left (μ := μ) (hf := hmeas_ind_f)
-          (g := fun x => s.indicator (μ⁻[g|m]) x))
     have h_add :
         ∫⁻ x in s, hfgFun x ∂μ =
             ∫⁻ x in s, (μ⁻[f|m]) x ∂μ + ∫⁻ x in s, (μ⁻[g|m]) x ∂μ := by
-      simpa [MeasureTheory.lintegral_indicator, hs₀] using h_add_indicator
-    have h_indicator_fg :
-        s.indicator (fun x => (f + g) x) = s.indicator f + s.indicator g := by
-      funext x
-      by_cases hx : x ∈ s
-      · simp [Set.indicator_of_mem, hx]
-      · simp [Set.indicator_of_notMem, hx]
+      simpa [hfgFun_def] using
+        setLIntegral_add_left' (μ := μ) (s := s) (f := μ⁻[f|m]) (g := μ⁻[g|m]) hs₀
+          ((hmeas_f.mono hm le_rfl).aemeasurable)
     have h_int_fg :
         ∫⁻ x in s, (f + g) x ∂μ =
             ∫⁻ x in s, f x ∂μ + ∫⁻ x in s, g x ∂μ := by
-      have hf_ind : AEMeasurable (s.indicator f) μ := hf.indicator hs₀
-      have h_add_indicator :
-          ∫⁻ x, (s.indicator f + s.indicator g) x ∂μ =
-              ∫⁻ x, s.indicator f x ∂μ + ∫⁻ x, s.indicator g x ∂μ := by
-        simpa [Pi.add_apply] using
-          (lintegral_add_left' (μ := μ) (hf := hf_ind)
-            (g := fun x => s.indicator g x))
-      calc
-        ∫⁻ x in s, (f + g) x ∂μ
-            = ∫⁻ x, s.indicator (fun x => (f + g) x) x ∂μ := by
-                symm
-                simp [MeasureTheory.lintegral_indicator, hs₀]
-        _ = ∫⁻ x, (s.indicator f + s.indicator g) x ∂μ := by
-                -- rewrite the integrand using `h_indicator_fg`
-                refine lintegral_congr (fun x => ?_)
-                simpa using congrFun h_indicator_fg x
-        _ = ∫⁻ x, s.indicator f x ∂μ + ∫⁻ x, s.indicator g x ∂μ := h_add_indicator
-        _ = ∫⁻ x in s, f x ∂μ + ∫⁻ x in s, g x ∂μ := by
-                simp [MeasureTheory.lintegral_indicator, hs₀]
+      exact setLIntegral_add_left' (μ := μ) (s := s) (f := f) (g := g) hs₀ hf
     calc
       ∫⁻ x in s, hfgFun x ∂μ =
           ∫⁻ x in s, (μ⁻[f|m]) x ∂μ + ∫⁻ x in s, (μ⁻[g|m]) x ∂μ := h_add
       _ = ∫⁻ x in s, f x ∂μ + ∫⁻ x in s, g x ∂μ := by
           simp [setLIntegral_lcondExp (μ := μ) (m := m) (m₀ := m₀) (hm := hm) hs]
       _ = ∫⁻ x in s, (f + g) x ∂μ := h_int_fg.symm
-  · show (∀ᵐ x ∂μ, (hfgFun x) = (μ⁻[f|m] + μ⁻[g|m]) x)
+  · change ∀ᵐ x ∂μ, hfgFun x = (μ⁻[f|m] + μ⁻[g|m]) x
     simp [hfgFun_def]
 
 lemma lcondExp_finset_sum {ι : Type*} {s : Finset ι} {f : ι → α → ℝ≥0∞}
@@ -417,54 +411,17 @@ lemma lcondExp_smul (c : ℝ≥0) (_ : AEMeasurable f μ) :
         (f := c • f) (g := fun x => c • (μ⁻[f|m]) x) hm ?_ h_smul_aestr).symm
   intro s hs hμs
   have hs₀ : MeasurableSet s := hm s hs
-  have h_indicator_smul :
-      s.indicator (fun x => (c • μ⁻[f|m]) x) =
-        fun x => (c : ℝ≥0∞) * s.indicator (μ⁻[f|m]) x := by
-    funext x
-    by_cases hx : x ∈ s
-    · simp [Set.indicator_of_mem, hx, ENNReal.smul_def]
-    · simp [Set.indicator_of_notMem, hx, ENNReal.smul_def]
-  have h_integral_indicator :
-      ∫⁻ x, s.indicator (fun x => (c • μ⁻[f|m]) x) x ∂μ =
-          (c : ℝ≥0∞) * ∫⁻ x, s.indicator (μ⁻[f|m]) x ∂μ := by
-    have hc : ((c : ℝ≥0∞)) ≠ ∞ := by simp
-    calc
-      ∫⁻ x, s.indicator (fun x => (c • μ⁻[f|m]) x) x ∂μ =
-          ∫⁻ x, (c : ℝ≥0∞) * s.indicator (μ⁻[f|m]) x ∂μ := by
-            refine lintegral_congr (fun x => ?_)
-            simpa using congrFun h_indicator_smul x
-      _ = (c : ℝ≥0∞) * ∫⁻ x, s.indicator (μ⁻[f|m]) x ∂μ := by
-            simpa using
-              (lintegral_const_mul' (μ := μ) (r := (c : ℝ≥0∞))
-                (f := fun x => s.indicator (μ⁻[f|m]) x) (hr := by simp))
   have h_set :
       ∫⁻ x in s, (c • μ⁻[f|m]) x ∂μ =
           (c : ℝ≥0∞) * ∫⁻ x in s, (μ⁻[f|m]) x ∂μ := by
-    simpa [MeasureTheory.lintegral_indicator, hs₀] using h_integral_indicator
+    simpa [ENNReal.smul_def, smul_eq_mul] using
+      setLIntegral_const_mul' (μ := μ) (s := s) (f := μ⁻[f|m]) (c := (c : ℝ≥0∞))
+        (by simp) hs₀
   have h_fg :
       ∫⁻ x in s, (c • f) x ∂μ =
           (c : ℝ≥0∞) * ∫⁻ x in s, f x ∂μ := by
-    have hc : ((c : ℝ≥0∞)) ≠ ∞ := by simp
-    have hind :
-        s.indicator (fun x => (c • f) x) =
-          fun x => (c : ℝ≥0∞) * s.indicator f x := by
-      funext x
-      by_cases hx : x ∈ s
-      · simp [Set.indicator_of_mem, hx, ENNReal.smul_def, mul_comm]
-      · simp [Set.indicator_of_notMem, hx, ENNReal.smul_def]
-    have h_integral_indicator_fg :
-        ∫⁻ x, s.indicator (fun x => (c • f) x) x ∂μ =
-            (c : ℝ≥0∞) * ∫⁻ x, s.indicator f x ∂μ := by
-      calc
-        ∫⁻ x, s.indicator (fun x => (c • f) x) x ∂μ =
-            ∫⁻ x, (c : ℝ≥0∞) * s.indicator f x ∂μ := by
-              refine lintegral_congr (fun x => ?_)
-              simpa using congrFun hind x
-        _ = (c : ℝ≥0∞) * ∫⁻ x, s.indicator f x ∂μ := by
-              simpa using
-                (lintegral_const_mul' (μ := μ) (r := (c : ℝ≥0∞))
-                  (f := fun x => s.indicator f x) (hr := by simp))
-    simpa [MeasureTheory.lintegral_indicator, hs₀] using h_integral_indicator_fg
+    simpa [ENNReal.smul_def, smul_eq_mul] using
+      setLIntegral_const_mul' (μ := μ) (s := s) (f := f) (c := (c : ℝ≥0∞)) (by simp) hs₀
   calc
     ∫⁻ x in s, (c • μ⁻[f|m]) x ∂μ
         = (c : ℝ≥0∞) * ∫⁻ x in s, (μ⁻[f|m]) x ∂μ := h_set
@@ -482,13 +439,13 @@ lemma lcondExp_mono (_ : AEMeasurable f μ) (_ : AEMeasurable g μ)
   swap; ·
     simp [lcondExp_of_not_le (m := m) (m₀ := m₀) (μ := μ) (f := f) hm,
       lcondExp_of_not_le (m := m) (m₀ := m₀) (μ := μ) (f := g) hm]
-    show (∀ᵐ x ∂μ, (0 : ℝ≥0∞) ≤ 0)
+    change ∀ᵐ x ∂μ, (0 : ℝ≥0∞) ≤ 0
     exact Filter.Eventually.of_forall (fun _ => le_rfl)
   by_cases hμm : SigmaFinite (μ.trim hm)
   swap; ·
     simp [lcondExp_of_not_sigmaFinite (m := m) (m₀ := m₀) (μ := μ) (f := f) hm hμm,
       lcondExp_of_not_sigmaFinite (m := m) (m₀ := m₀) (μ := μ) (f := g) hm hμm]
-    show (∀ᵐ x ∂μ, (0 : ℝ≥0∞) ≤ 0)
+    change ∀ᵐ x ∂μ, (0 : ℝ≥0∞) ≤ 0
     exact Filter.Eventually.of_forall (fun _ => le_rfl)
   haveI : SigmaFinite (μ.trim hm) := hμm
   have hmeas_f : Measurable[m] (μ⁻[f|m]) := measurable_lcondExp
@@ -504,21 +461,11 @@ lemma lcondExp_mono (_ : AEMeasurable f μ) (_ : AEMeasurable g μ)
     have h_int_f :
         ∫⁻ x in s, (μ⁻[f|m]) x ∂μ.trim hm =
           ∫⁻ x in s, (μ⁻[f|m]) x ∂μ := by
-      have h_ind_meas :
-          Measurable[m] (s.indicator fun x => (μ⁻[f|m]) x) :=
-        hmeas_f.indicator hs
-      simpa [MeasureTheory.lintegral_indicator, hs, hs₀] using
-        (lintegral_trim (μ := μ) (hm := hm)
-          (f := s.indicator (fun x => (μ⁻[f|m]) x)) h_ind_meas)
+      exact setLIntegral_trim_eq (μ := μ) (m := m) (m₀ := m₀) (f := μ⁻[f|m]) hm hs hmeas_f
     have h_int_g :
         ∫⁻ x in s, (μ⁻[g|m]) x ∂μ.trim hm =
           ∫⁻ x in s, (μ⁻[g|m]) x ∂μ := by
-      have h_ind_meas :
-          Measurable[m] (s.indicator fun x => (μ⁻[g|m]) x) :=
-        hmeas_g.indicator hs
-      simpa [MeasureTheory.lintegral_indicator, hs, hs₀] using
-        (lintegral_trim (μ := μ) (hm := hm)
-          (f := s.indicator (fun x => (μ⁻[g|m]) x)) h_ind_meas)
+      exact setLIntegral_trim_eq (μ := μ) (m := m) (m₀ := m₀) (f := μ⁻[g|m]) hm hs hmeas_g
     have h_fg_set :
         ∫⁻ x in s, f x ∂μ ≤ ∫⁻ x in s, g x ∂μ :=
       setLIntegral_mono_ae' hs₀ (hfg.mono fun _ hx _ => hx)

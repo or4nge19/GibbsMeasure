@@ -6,6 +6,8 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Function.SimpleFuncDenseLp
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.StronglyMeasurable.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.Bochner.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.Basic
+public import Mathlib.MeasureTheory.Function.L1Space.Integrable
+public import Mathlib.MeasureTheory.Function.SimpleFuncDenseLp
 public import Mathlib.MeasureTheory.Integral.DominatedConvergence
 public import Mathlib.Probability.Kernel.Proper
 
@@ -84,63 +86,96 @@ private lemma IsProper.integral_bdd_mul_indicator (h𝓑𝓧 : 𝓑 ≤ 𝓧) (h
         (norm_indicator_le_norm_self 1 _)
   · exact .mul_const _ <| hg.tendsto_approxBounded_of_norm_le <| hC _
 
+omit [IsFiniteKernel π] in
+private lemma l1_mul_sub_ae {m : MeasurableSpace X} {μ : Measure[m] X} (g : X → ℝ)
+    (a b : X →₁[μ] ℝ) :
+    (fun x ↦ g x * a x - g x * b x) =ᵐ[μ] fun x ↦ g x * (a - b) x := by
+  filter_upwards [Lp.coeFn_sub a b] with x hx
+  have hmul : g x * (a - b) x = g x * (a x - b x) := by
+    simpa [hx] using congrArg (fun t ↦ g x * t) hx
+  calc
+    g x * a x - g x * b x = g x * (a x - b x) := by simp [mul_sub]
+    _ = g x * (a - b) x := by simp [hmul.symm]
+
+omit [IsFiniteKernel π] in
+private lemma integrable_l1_bdd_mul {C : ℝ} (h𝓑𝓧 : 𝓑 ≤ 𝓧) (hg : StronglyMeasurable[𝓑] g)
+    (hC : ∀ x, ‖g x‖ ≤ C) (a : X →₁[π x₀] ℝ) :
+    Integrable (fun x ↦ g x * a x) (π x₀) :=
+  (L1.integrable_coeFn a).bdd_mul (hg.mono h𝓑𝓧).aestronglyMeasurable <| .of_forall hC
+
+omit [IsFiniteKernel π] in
+private lemma norm_integral_l1_bdd_mul_le {C : ℝ} (h𝓑𝓧 : 𝓑 ≤ 𝓧)
+    (hg : StronglyMeasurable[𝓑] g)
+    (hC : ∀ x, ‖g x‖ ≤ C) (a : X →₁[π x₀] ℝ) :
+    ‖∫ x, g x * a x ∂π x₀‖ ≤ C * ‖a‖ := by
+  have hInt : Integrable (fun x ↦ g x * a x) (π x₀) := integrable_l1_bdd_mul h𝓑𝓧 hg hC a
+  have hdInt : Integrable (fun x ↦ C * ‖a x‖) (π x₀) := (L1.integrable_coeFn a).norm.smul C
+  have hle_ae : (fun x ↦ ‖g x * a x‖) ≤ᵐ[π x₀] fun x ↦ C * ‖a x‖ :=
+    .of_forall fun x ↦ by simpa using mul_le_mul_of_nonneg_right (hC x) (norm_nonneg (a x))
+  calc
+    ‖∫ x, g x * a x ∂π x₀‖ ≤ ∫ x, ‖g x * a x‖ ∂π x₀ :=
+      norm_integral_le_integral_norm _
+    _ ≤ ∫ x, C * ‖a x‖ ∂π x₀ := integral_mono_ae hInt.norm hdInt hle_ae
+    _ = C * ∫ x, ‖a x‖ ∂π x₀ := by simp [integral_const_mul]
+    _ = C * ‖a‖ := by rw [(L1.norm_eq_integral_norm a (μ := π x₀)).symm]
+
+omit [IsFiniteKernel π] in
+private lemma norm_integral_l1_bdd_mul_sub_le {C : ℝ} (h𝓑𝓧 : 𝓑 ≤ 𝓧)
+    (hg : StronglyMeasurable[𝓑] g) (hC : ∀ x, ‖g x‖ ≤ C) (a b : X →₁[π x₀] ℝ) :
+    ‖∫ x, g x * a x ∂π x₀ - ∫ x, g x * b x ∂π x₀‖ ≤ C * ‖a - b‖ := by
+  have hInt1 : Integrable (fun x ↦ g x * a x) (π x₀) := integrable_l1_bdd_mul h𝓑𝓧 hg hC a
+  have hInt2 : Integrable (fun x ↦ g x * b x) (π x₀) := integrable_l1_bdd_mul h𝓑𝓧 hg hC b
+  have hsub :
+      ‖∫ x, g x * a x ∂π x₀ - ∫ x, g x * b x ∂π x₀‖ =
+        ‖∫ x, g x * a x - g x * b x ∂π x₀‖ := by
+    simp [integral_sub hInt1 hInt2]
+  have hdiff : ‖∫ x, g x * a x - g x * b x ∂π x₀‖ =
+      ‖∫ x, g x * (a - b) x ∂π x₀‖ := by
+    rw [integral_congr_ae (l1_mul_sub_ae g a b)]
+  rw [hsub, hdiff]
+  exact norm_integral_l1_bdd_mul_le h𝓑𝓧 hg hC (a - b)
+
+omit [IsFiniteKernel π] in
+private lemma continuous_integral_l1_bdd_mul {C : ℝ} (h𝓑𝓧 : 𝓑 ≤ 𝓧)
+    (hg : StronglyMeasurable[𝓑] g) (hpC : 0 < C) (hC : ∀ x, ‖g x‖ ≤ C) :
+    Continuous fun a : X →₁[π x₀] ℝ ↦ ∫ x, g x * a x ∂π x₀ := by
+  refine Metric.continuous_iff.mpr fun b ε hε ↦ ⟨ε / C, div_pos hε hpC, fun a ha ↦ ?_⟩
+  have hle := norm_integral_l1_bdd_mul_sub_le h𝓑𝓧 hg hC a b
+  have hlt : C * ‖a - b‖ < ε := by
+    have hdist : ‖a - b‖ < ε / C := by simpa [dist_eq_norm] using ha
+    simpa [mul_div, mul_div_cancel_left₀ ε (ne_of_gt hpC)] using
+      mul_lt_mul_of_pos_left hdist hpC
+  exact lt_of_le_of_lt hle hlt
+
 lemma IsProper.integral_bdd_mul (h𝓑𝓧 : 𝓑 ≤ 𝓧) (hπ : IsProper π) (hf : Integrable[𝓧] f (π x₀))
     (hg : StronglyMeasurable[𝓑] g) (hgbdd : ∃ C > 0, ∀ x, ‖g x‖ ≤ C) :
     ∫ x, g x * f x ∂(π x₀) = g x₀ * ∫ x, f x ∂(π x₀) := by
   obtain ⟨C, hpC, hC⟩ := hgbdd
-  induction f, hf using Integrable.induction' with
-  | indicator c s hs _ =>
+  refine (Integrable.induction (μ := π x₀) (E := ℝ)
+      (P := fun k => ∫ x, g x * k x ∂(π x₀) = g x₀ * ∫ x, k x ∂(π x₀)) ?_ ?_ ?_ ?_) hf
+  · intro c s hs hμs
     simp [← smul_indicator_one_apply, mul_left_comm, integral_const_mul,
       hπ.integral_bdd_mul_indicator h𝓑𝓧 hs hg ⟨C, hC⟩]
-  | add f₁ f₂ hf₁ hf₂ _ hgf₁ hgf₂ =>
+  · intro f₁ f₂ hdisj hf₁ hf₂ hgf₁ hgf₂
     have : Integrable (fun x ↦ g x * f₁ x) (π x₀) :=
       hf₁.bdd_mul (hg.mono h𝓑𝓧).aestronglyMeasurable <| .of_forall hC
     have : Integrable (fun x ↦ g x * f₂ x) (π x₀) :=
       hf₂.bdd_mul (hg.mono h𝓑𝓧).aestronglyMeasurable <| .of_forall hC
     simp [mul_add, integral_add, *]
-  | isClosed =>
-    refine isClosed_eq ?_ <| by fun_prop
-    refine Metric.continuous_iff.mpr fun f2 ε hε ↦ ⟨ε / C, div_pos hε hpC, fun a ha ↦ ?_⟩
-    have hInt1 : Integrable (fun x ↦ g x * a x) (π x₀) :=
-      (L1.integrable_coeFn a).bdd_mul (hg.mono h𝓑𝓧).aestronglyMeasurable <| .of_forall hC
-    have hInt2 : Integrable (fun x ↦ g x * f2 x) (π x₀) :=
-      (L1.integrable_coeFn f2).bdd_mul (hg.mono h𝓑𝓧).aestronglyMeasurable <| .of_forall hC
-    have hsub :
-        ‖∫ x, g x * a x ∂π x₀ - ∫ x, g x * f2 x ∂π x₀‖ = ‖∫ x, g x * a x - g x * f2 x ∂π x₀‖ := by
-      simp [integral_sub hInt1 hInt2]
-    have hdiff_ae : (fun x ↦ g x * a x - g x * f2 x) =ᵐ[π x₀] (fun x ↦ g x * (a - f2) x) := by
-      filter_upwards [Lp.coeFn_sub a f2] with x hx
-      have hmul : g x * (a - f2) x = g x * (a x - f2 x) := by
-        simpa [hx] using congrArg (fun t ↦ g x * t) hx
-      calc
-        g x * a x - g x * f2 x
-            = g x * (a x - f2 x) := by simp [mul_sub]
-        _ = g x * (a - f2) x := by simp [hmul.symm]
-    have hIntDiff : Integrable (fun x ↦ g x * (a - f2) x) (π x₀) :=
-      (L1.integrable_coeFn (a - f2)).bdd_mul ((hg.mono h𝓑𝓧).aestronglyMeasurable) <| .of_forall hC
-    have hdInt : Integrable (fun x ↦ C * ‖(a - f2) x‖) (π x₀) :=
-      ((L1.integrable_coeFn (a - f2)).norm.smul C)
-    have hle_ae : (fun x ↦ ‖g x * (a - f2) x‖) ≤ᵐ[π x₀] (fun x ↦ C * ‖(a - f2) x‖) :=
-      .of_forall fun x ↦ by simpa using mul_le_mul_of_nonneg_right (hC x) (norm_nonneg ((a - f2) x))
-    have hle_int : ‖∫ x, g x * (a - f2) x ∂π x₀‖ ≤ C * ‖a - f2‖ := by
-      calc
-        ‖∫ x, g x * (a - f2) x ∂π x₀‖
-            ≤ ∫ x, ‖g x * (a - f2) x‖ ∂π x₀ := norm_integral_le_integral_norm _
-        _ ≤ ∫ x, C * ‖(a - f2) x‖ ∂π x₀ := integral_mono_ae hIntDiff.norm hdInt hle_ae
-        _ = C * ∫ x, ‖(a - f2) x‖ ∂π x₀ := by simp [integral_const_mul]
-        _ = C * ‖a - f2‖ := by rw [(L1.norm_eq_integral_norm (a - f2) (μ := π x₀)).symm]
-    have hle : ‖∫ x, g x * a x ∂π x₀ - ∫ x, g x * f2 x ∂π x₀‖ ≤ C * ‖a - f2‖ := by
-      have hdiffint : ‖∫ x, g x * a x ∂π x₀ - ∫ x, g x * f2 x ∂π x₀‖
-           = ‖∫ x, g x * (a - f2) x ∂π x₀‖ := by
-        simpa [integral_congr_ae hdiff_ae,integral_sub hInt1 hInt2] using hsub
-      simpa [hdiffint] using hle_int
-    have hlt : C * ‖a - f2‖ < ε := by
-      have hdist : ‖a - f2‖ < ε / C := by simpa [dist_eq_norm] using ha
-      simpa [mul_div,mul_div_cancel_left₀ ε (ne_of_gt hpC)] using (mul_lt_mul_of_pos_left hdist hpC)
-    exact lt_of_le_of_lt hle hlt
-  | ae_congr f₁ f₂ hf₁ hf hgf₁ =>
-    have : (fun x ↦ g x * f₁ x) =ᵐ[π x₀] (fun x ↦ g x * f₂ x) := by
-      filter_upwards [hf] with x hx; simp [hx]
-    simpa [integral_congr_ae this, integral_congr_ae hf] using hgf₁
+  · exact isClosed_eq (continuous_integral_l1_bdd_mul h𝓑𝓧 hg hpC hC)
+      (continuous_const.mul continuous_integral)
+  · intro f₁ f₂ hfg hf₁ hPf₁
+    have hmul : (fun x ↦ g x * f₁ x) =ᵐ[π x₀] (fun x ↦ g x * f₂ x) := by
+      filter_upwards [hfg] with x hx; simp [hx]
+    simpa [integral_congr_ae hmul, integral_congr_ae hfg.symm] using hPf₁
+
+lemma IsProper.integral_indicator_mul (h𝓑𝓧 : 𝓑 ≤ 𝓧) (hπ : IsProper π)
+    (hf : Integrable[𝓧] f (π x₀)) (hB : MeasurableSet[𝓑] B) :
+    ∫ x, B.indicator 1 x * f x ∂(π x₀) =
+      B.indicator 1 x₀ * ∫ x, f x ∂(π x₀) := by
+  exact hπ.integral_bdd_mul h𝓑𝓧 hf (stronglyMeasurable_one.indicator hB)
+    ⟨1, zero_lt_one, fun x ↦ by
+      simpa using
+        norm_indicator_le_norm_self (s := B) (f := fun _ : X ↦ (1 : ℝ)) (a := x)⟩
 
 end ProbabilityTheory.Kernel

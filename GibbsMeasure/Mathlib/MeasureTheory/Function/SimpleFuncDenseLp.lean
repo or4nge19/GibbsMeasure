@@ -1,32 +1,28 @@
 module
 
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.SimpleFunc
+public import Mathlib.Analysis.Normed.Group.Basic
+public import Mathlib.MeasureTheory.Function.L1Space.HasFiniteIntegral
 public import Mathlib.MeasureTheory.Function.SimpleFuncDenseLp
+public import Mathlib.MeasureTheory.Function.StronglyMeasurable.Basic
 public import Mathlib.MeasureTheory.Integral.IntegrableOn
 
 public section
 
-open ENNReal Function
+open MeasureTheory NNReal
 
-namespace MeasureTheory
-variable {α E : Type*} {mα : MeasurableSpace α} [NormedAddCommGroup E] {μ : Measure α}
+namespace MeasureTheory.SimpleFunc
+variable {α E : Type*} {mα mα₀ : MeasurableSpace α} [NormedAddCommGroup E] {μ : Measure[mα] α}
 
--- TODO: Replace in mathlib
-@[elab_as_elim]
-lemma Integrable.induction' (P : ∀ f : α → E, Integrable f μ → Prop)
-    (indicator : ∀ c s (hs : MeasurableSet s) (hμs : μ s ≠ ∞),
-      P (s.indicator fun _ ↦ c) ((integrable_indicator_iff hs).2 integrableOn_const))
-    (add : ∀ (f g : α → E) (hf : Integrable f μ) (hg : Integrable g μ),
-        Disjoint (support f) (support g) → P f hf → P g hg → P (f + g) (hf.add hg))
-    (isClosed : IsClosed {f : α →₁[μ] E | P f (L1.integrable_coeFn f)})
-    (ae_congr : ∀ (f g) (hf : Integrable f μ) (hfg : f =ᵐ[μ] g), P f hf → P g (hf.congr hfg)) :
-    ∀ (f : α → E) (hf : Integrable f μ), P f hf := by
-  sorry
-
-namespace SimpleFunc
-variable {mα₀ : MeasurableSpace α}
-
+/-- A simple function measurable for a smaller σ-algebra is integrable on a finite measure space. -/
 lemma integrable_of_isFiniteMeasure' (hα : mα₀ ≤ mα) [IsFiniteMeasure μ] (f : α →ₛ[mα₀] E) :
-    Integrable f μ := sorry
+    Integrable f μ := by
+  classical
+  refine ⟨(SimpleFunc.stronglyMeasurable f).mono hα |>.aestronglyMeasurable, ?_⟩
+  let C : ℝ≥0 := Finset.sup f.range fun y => ‖y‖₊
+  have hC : ∀ x, ‖f x‖ ≤ (C : ℝ) := fun x => by
+    rw [← coe_nnnorm (f x)]
+    exact_mod_cast Finset.le_sup (f.mem_range_self x)
+  exact HasFiniteIntegral.of_bounded (μ := μ) (ae_of_all _ hC)
 
 end MeasureTheory.SimpleFunc
