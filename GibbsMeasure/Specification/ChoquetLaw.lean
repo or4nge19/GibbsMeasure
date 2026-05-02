@@ -285,7 +285,7 @@ open ProbabilityTheory
 variable [Countable S] [StandardBorelSpace E]
 local notation3 (prettyPrint := false) "Ω" => (S → E)
 
-variable (γ : Specification S E) [γ.IsMarkov]
+variable (γ : Specification S E)
 
 -- `Ω` is countably generated (needed for `natGeneratingSequence` on the product σ-algebra).
 local instance : MeasurableSpace.CountablyGenerated Ω := by infer_instance
@@ -297,7 +297,6 @@ def IsGibbsCore (γ : Specification S E) (μ : Measure Ω) : Prop :=
     ∀ (Λ : Finset S) (t : Finset ℕ),
       (μ.bind (γ Λ)) (piNatGen (t := t)) = μ (piNatGen (t := t))
 
-omit [γ.IsMarkov] in
 lemma measurableSet_isGibbsCore :
     MeasurableSet {μ : Measure Ω | IsGibbsCore (γ := γ) μ} := by
   have h_univ : MeasurableSet {μ : Measure Ω | μ Set.univ = (1 : ℝ≥0∞)} :=
@@ -323,7 +322,7 @@ lemma measurableSet_isGibbsCore :
         (MeasurableSet.iInter (fun (t : Finset ℕ) => hEq' (Λ := Λ) (t := t)))))
   simpa [IsGibbsCore, Set.setOf_and, Set.setOf_forall] using h_univ.inter hAll
 
-theorem isGibbsMeasure_of_isGibbsCore (hγ : γ.IsProper) {μ : Measure Ω}
+theorem isGibbsMeasure_of_isGibbsCore {μ : Measure Ω}
     (hcore : IsGibbsCore (γ := γ) μ) :
     _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ μ := by
   have hμ_univ : μ Set.univ = 1 := hcore.1
@@ -351,15 +350,15 @@ theorem isGibbsMeasure_of_isGibbsCore (hγ : γ.IsProper) {μ : Measure Ω}
     exact
       MeasureTheory.Measure.ext_of_generate_finite_of_isProbabilityMeasure (C := C)
         (μ := (μ.bind (γ Λ))) (ν := μ) (hA := hA) (hC := hC) hμν
-  exact (Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (S := S) (E := E) (γ := γ) hγ).2 hfix
+  exact (Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (S := S) (E := E) (γ := γ)).2 hfix
 
-theorem isGibbsCore_of_isGibbsMeasure (hγ : γ.IsProper) {μ : Measure Ω} [IsProbabilityMeasure μ]
+theorem isGibbsCore_of_isGibbsMeasure {μ : Measure Ω} [IsProbabilityMeasure μ]
     (hμ : _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ μ) :
     IsGibbsCore (γ := γ) μ := by
   refine ⟨by simp, ?_⟩
   have hfix :
       ∀ Λ : Finset S, μ.bind (γ Λ) = μ := by
-    exact (Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (S := S) (E := E) (γ := γ) hγ).1 hμ
+    exact (Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (S := S) (E := E) (γ := γ)).1 hμ
   intro Λ t
   simpa using congrArg (fun m : Measure Ω => m (piNatGen (t := t))) (hfix Λ)
 
@@ -373,7 +372,7 @@ open ProbabilityTheory
 
 variable [Countable S] [StandardBorelSpace E]
 
-variable {γ : Specification S E} [γ.IsMarkov]
+variable {γ : Specification S E}
 variable (μ : Measure (S → E)) [IsProbabilityMeasure μ]
 
 -- The tail disintegration (and `tailKernelLaw`) is built under these standard assumptions.
@@ -387,7 +386,7 @@ extremal Gibbs measures”. -/
 def goodSet (γ : Specification S E) : Set (Measure (S → E)) :=
   {ν | IsGibbsCore (S := S) (E := E) (γ := γ) ν ∧ IsTailTrivialCore (S := S) (E := E) ν}
 
-lemma measurableSet_goodSet (γ : Specification S E) [γ.IsMarkov] :
+lemma measurableSet_goodSet (γ : Specification S E) :
     MeasurableSet (goodSet (S := S) (E := E) γ) := by
   have hg : MeasurableSet {ν : Measure (S → E) | IsGibbsCore (S := S) (E := E) (γ := γ) ν} :=
     measurableSet_isGibbsCore (S := S) (E := E) (γ := γ)
@@ -397,7 +396,7 @@ lemma measurableSet_goodSet (γ : Specification S E) [γ.IsMarkov] :
 
 /-- The law of tail-conditionals is concentrated on extremal Gibbs measures. -/
 theorem ae_mem_extremePoints_G_tailKernelLaw
-    (hγ : γ.IsProper) (hμ : γ.IsGibbsMeasure μ) :
+    (hμ : γ.IsGibbsMeasure μ) :
     ∀ᵐ ν ∂tailKernelLaw (S := S) (E := E) (μ := μ),
       ν ∈ (G (γ := γ)).extremePoints ENNReal := by
   have hgood_meas : MeasurableSet (goodSet (S := S) (E := E) γ) :=
@@ -406,13 +405,13 @@ theorem ae_mem_extremePoints_G_tailKernelLaw
       ∀ᵐ ω ∂μ.trim (tailSigmaAlgebra_le_pi (S := S) (E := E)),
         goodSet (S := S) (E := E) γ (tailKernel (S := S) (E := E) (μ := μ) ω) := by
     have haeG := ae_isGibbsMeasure_tailKernel (S := S) (E := E) (γ := γ) (μ := μ)
-      (hγ := hγ) (hμ := hμ)
+      (hμ := hμ)
     have haeT := ae_isTailTrivial_tailKernel (S := S) (E := E) (μ := μ)
     filter_upwards [haeG, haeT] with ω hG hT
     have hGcore :
         IsGibbsCore (S := S) (E := E) (γ := γ) (tailKernel (S := S) (E := E) (μ := μ) ω) := by
       haveI : IsProbabilityMeasure (tailKernel (S := S) (E := E) (μ := μ) ω) := by infer_instance
-      exact isGibbsCore_of_isGibbsMeasure (S := S) (E := E) (γ := γ) (hγ := hγ)
+      exact isGibbsCore_of_isGibbsMeasure (S := S) (E := E) (γ := γ)
         (μ := tailKernel (S := S) (E := E) (μ := μ) ω) hG
     have hTcore :
         IsTailTrivialCore (S := S) (E := E) (tailKernel (S := S) (E := E) (μ := μ) ω) := by
@@ -436,13 +435,13 @@ theorem ae_mem_extremePoints_G_tailKernelLaw
         ν ∈ (G (γ := γ)).extremePoints ENNReal := by
     filter_upwards [hae_law] with ν hν
     have hνGibbs : _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ ν :=
-      isGibbsMeasure_of_isGibbsCore (S := S) (E := E) (γ := γ) (hγ := hγ) hν.1
+      isGibbsMeasure_of_isGibbsCore (S := S) (E := E) (γ := γ) hν.1
     haveI : IsProbabilityMeasure ν := ⟨hν.1.1⟩
     have hν_memG : ν ∈ G (γ := γ) := by
       exact ⟨by infer_instance, hνGibbs⟩
     have hν_tail : IsTailTrivial (S := S) (E := E) (⟨ν, inferInstance⟩ : ProbabilityMeasure (S → E)) :=
       isTailTrivial_of_isTailTrivialCore (S := S) (E := E) (ν := ν) hν.2
-    exact mem_extremePoints_G_of_isTailTrivial (S := S) (E := E) (γ := γ) (hγ := hγ)
+    exact mem_extremePoints_G_of_isTailTrivial (S := S) (E := E) (γ := γ)
       (hμG := hν_memG) (hμtail := hν_tail)
   simpa [tailKernelLaw] using hae_ext
 
@@ -450,7 +449,7 @@ theorem ae_mem_extremePoints_G_tailKernelLaw
 
 /-- The representing law gives full mass to the measurable `goodSet γ`. -/
 theorem tailKernelLaw_goodSet_eq_one
-    (hγ : γ.IsProper) (hμ : γ.IsGibbsMeasure μ) :
+    (hμ : γ.IsGibbsMeasure μ) :
     tailKernelLaw (S := S) (E := E) (μ := μ) (goodSet (S := S) (E := E) γ) = 1 := by
   have hgood_meas : MeasurableSet (goodSet (S := S) (E := E) γ) :=
     measurableSet_goodSet (S := S) (E := E) (γ := γ)
@@ -458,13 +457,13 @@ theorem tailKernelLaw_goodSet_eq_one
       ∀ᵐ ω ∂μ.trim (tailSigmaAlgebra_le_pi (S := S) (E := E)),
         goodSet (S := S) (E := E) γ (tailKernel (S := S) (E := E) (μ := μ) ω) := by
     have haeG := ae_isGibbsMeasure_tailKernel (S := S) (E := E) (γ := γ) (μ := μ)
-      (hγ := hγ) (hμ := hμ)
+      (hμ := hμ)
     have haeT := ae_isTailTrivial_tailKernel (S := S) (E := E) (μ := μ)
     filter_upwards [haeG, haeT] with ω hG hT
     have hGcore :
         IsGibbsCore (S := S) (E := E) (γ := γ) (tailKernel (S := S) (E := E) (μ := μ) ω) := by
       haveI : IsProbabilityMeasure (tailKernel (S := S) (E := E) (μ := μ) ω) := by infer_instance
-      exact isGibbsCore_of_isGibbsMeasure (S := S) (E := E) (γ := γ) (hγ := hγ)
+      exact isGibbsCore_of_isGibbsMeasure (S := S) (E := E) (γ := γ)
         (μ := tailKernel (S := S) (E := E) (μ := μ) ω) hG
     have hTcore :
         IsTailTrivialCore (S := S) (E := E) (tailKernel (S := S) (E := E) (μ := μ) ω) := by
@@ -492,32 +491,32 @@ theorem tailKernelLaw_goodSet_eq_one
 
 /-- Any measure in `goodSet γ` is an extreme point of `G(γ)`. -/
 theorem mem_extremePoints_G_of_mem_goodSet
-    (hγ : γ.IsProper) {ν : Measure (S → E)}
+    {ν : Measure (S → E)}
     (hν : ν ∈ goodSet (S := S) (E := E) (γ := γ)) :
     ν ∈ (G (γ := γ)).extremePoints ENNReal := by
   have hνGibbs : _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ ν :=
-    isGibbsMeasure_of_isGibbsCore (S := S) (E := E) (γ := γ) (hγ := hγ) hν.1
+    isGibbsMeasure_of_isGibbsCore (S := S) (E := E) (γ := γ) hν.1
   haveI : IsProbabilityMeasure ν := ⟨hν.1.1⟩
   have hν_memG : ν ∈ G (γ := γ) := ⟨by infer_instance, hνGibbs⟩
   have hν_tail : IsTailTrivial (S := S) (E := E) (⟨ν, inferInstance⟩ : ProbabilityMeasure (S → E)) :=
     isTailTrivial_of_isTailTrivialCore (S := S) (E := E) (ν := ν) hν.2
-  exact mem_extremePoints_G_of_isTailTrivial (S := S) (E := E) (γ := γ) (hγ := hγ)
+  exact mem_extremePoints_G_of_isTailTrivial (S := S) (E := E) (γ := γ)
     (hμG := hν_memG) (hμtail := hν_tail)
 
 /-- Existence of an extreme Gibbs measure from any Gibbs measure, via tail disintegration
 (Georgii: extremal decomposition implies existence of extremal states). -/
 theorem exists_mem_extremePoints_G_of_isGibbsMeasure
-    (hγ : γ.IsProper) (hμ : γ.IsGibbsMeasure μ) :
+    (hμ : γ.IsGibbsMeasure μ) :
     ∃ ν : Measure (S → E), ν ∈ (G (γ := γ)).extremePoints ENNReal := by
   let m : Measure (Measure (S → E)) := tailKernelLaw (S := S) (E := E) (μ := μ)
   have hm1 : m (goodSet (S := S) (E := E) (γ := γ)) = 1 :=
-    tailKernelLaw_goodSet_eq_one (S := S) (E := E) (γ := γ) (μ := μ) (hγ := hγ) hμ
+    tailKernelLaw_goodSet_eq_one (S := S) (E := E) (γ := γ) (μ := μ) hμ
   have hm_ne0 : m (goodSet (S := S) (E := E) (γ := γ)) ≠ 0 := by
     simp [hm1]
   rcases MeasureTheory.Measure.exists_mem_of_measure_ne_zero_of_ae
       (μ := m) (s := goodSet (S := S) (E := E) (γ := γ)) hm_ne0
       (p := fun _ => True) (by simp) with ⟨ν, hν, _⟩
-  exact ⟨ν, mem_extremePoints_G_of_mem_goodSet (S := S) (E := E) (γ := γ) (hγ := hγ) hν⟩
+  exact ⟨ν, mem_extremePoints_G_of_mem_goodSet (S := S) (E := E) (γ := γ) hν⟩
 
 end LawLevelExtremal
 
@@ -529,7 +528,7 @@ open ProbabilityTheory
 
 variable {S E : Type*} [MeasurableSpace E]
 variable [Countable S] [StandardBorelSpace E]
-variable {γ : Specification S E} [γ.IsMarkov]
+variable {γ : Specification S E}
 
 variable (μ : Measure (S → E)) [IsProbabilityMeasure μ]
 variable
@@ -544,21 +543,21 @@ This is the Mathlib-idiomatic package corresponding to Georgii Ch. 7 (extremal d
 tail disintegration).
 -/
 theorem choquetDecomposition_tailKernelLaw
-    (hγ : γ.IsProper) (hμ : γ.IsGibbsMeasure μ) :
+    (hμ : γ.IsGibbsMeasure μ) :
     MeasureTheory.Measure.join (tailKernelLaw (S := S) (E := E) (μ := μ)) = μ
       ∧
     tailKernelLaw (S := S) (E := E) (μ := μ) (goodSet (S := S) (E := E) (γ := γ)) = 1 := by
   refine ⟨?_, ?_⟩
   · simpa using (join_tailKernelLaw (S := S) (E := E) (μ := μ))
-  · exact tailKernelLaw_goodSet_eq_one (S := S) (E := E) (γ := γ) (μ := μ) hγ hμ
+  · exact tailKernelLaw_goodSet_eq_one (S := S) (E := E) (γ := γ) (μ := μ) hμ
 
 /-- Corollary of `choquetDecomposition_tailKernelLaw`: the representing law is a.e. supported on
 extreme points of `G(γ)`. -/
 theorem choquetDecomposition_tailKernelLaw_ae_extremePoints
-    (hγ : γ.IsProper) (hμ : γ.IsGibbsMeasure μ) :
+    (hμ : γ.IsGibbsMeasure μ) :
     ∀ᵐ ν ∂tailKernelLaw (S := S) (E := E) (μ := μ),
       ν ∈ (G (γ := γ)).extremePoints ENNReal :=
-  ae_mem_extremePoints_G_tailKernelLaw (S := S) (E := E) (γ := γ) (μ := μ) hγ hμ
+  ae_mem_extremePoints_G_tailKernelLaw (S := S) (E := E) (γ := γ) (μ := μ) hμ
 
 end ChoquetDecomposition
 
@@ -568,7 +567,7 @@ open ProbabilityTheory
 
 variable {S E : Type*} [MeasurableSpace E]
 variable [Countable S] [StandardBorelSpace E]
-variable {γ : Specification S E} [γ.IsMarkov]
+variable {γ : Specification S E}
 
 variable (μ : ProbabilityMeasure (S → E))
 variable
@@ -576,27 +575,27 @@ variable
 
 /-- `ProbabilityMeasure`-packaged version of `ae_mem_extremePoints_G_tailKernelLaw`. -/
 theorem ae_mem_extremePoints_G_tailKernelLawPM
-    (hγ : γ.IsProper) (hμ : γ.IsGibbsMeasure (μ : Measure (S → E))) :
+    (hμ : γ.IsGibbsMeasure (μ : Measure (S → E))) :
     ∀ᵐ ν ∂(tailKernelLawPM (S := S) (E := E) μ : Measure (Measure (S → E))),
       ν ∈ (G (γ := γ)).extremePoints ENNReal := by
   simpa [tailKernelLawPM] using
     (ae_mem_extremePoints_G_tailKernelLaw (S := S) (E := E) (γ := γ)
-      (μ := (μ : Measure (S → E))) hγ hμ)
+      (μ := (μ : Measure (S → E))) hμ)
 
 /-- `ProbabilityMeasure`-packaged version of `choquetDecomposition_tailKernelLaw`. -/
 theorem choquetDecomposition_tailKernelLawPM
-    (hγ : γ.IsProper) (hμ : γ.IsGibbsMeasure (μ : Measure (S → E))) :
+    (hμ : γ.IsGibbsMeasure (μ : Measure (S → E))) :
     MeasureTheory.Measure.join (tailKernelLaw (S := S) (E := E) (μ := (μ : Measure (S → E))))
         = (μ : Measure (S → E)) ∧
     (∀ᵐ ν ∂(tailKernelLawPM (S := S) (E := E) μ : Measure (Measure (S → E))),
       ν ∈ (G (γ := γ)).extremePoints ENNReal) := by
   refine ⟨?_, ?_⟩
   · simpa using (join_tailKernelLaw (S := S) (E := E) (μ := (μ : Measure (S → E))))
-  · exact ae_mem_extremePoints_G_tailKernelLawPM (S := S) (E := E) (γ := γ) (μ := μ) hγ hμ
+  · exact ae_mem_extremePoints_G_tailKernelLawPM (S := S) (E := E) (γ := γ) (μ := μ) hμ
 
 /-- `ProbabilityMeasure`-bundled `goodSet` concentration statement. -/
 theorem choquetDecomposition_tailKernelLawPM_goodSet
-    (hγ : γ.IsProper) (hμ : γ.IsGibbsMeasure (μ : Measure (S → E))) :
+    (hμ : γ.IsGibbsMeasure (μ : Measure (S → E))) :
     MeasureTheory.Measure.join (tailKernelLaw (S := S) (E := E) (μ := (μ : Measure (S → E))))
         = (μ : Measure (S → E))
       ∧
@@ -604,7 +603,7 @@ theorem choquetDecomposition_tailKernelLawPM_goodSet
         (goodSet (S := S) (E := E) (γ := γ)) = 1 := by
   refine ⟨?_, ?_⟩
   · simpa using (join_tailKernelLaw (S := S) (E := E) (μ := (μ : Measure (S → E))))
-  · exact tailKernelLaw_goodSet_eq_one (S := S) (E := E) (γ := γ) (μ := (μ : Measure (S → E))) hγ hμ
+  · exact tailKernelLaw_goodSet_eq_one (S := S) (E := E) (γ := γ) (μ := (μ : Measure (S → E))) hμ
 
 end ChoquetDecompositionPM
 
@@ -616,7 +615,7 @@ open ProbabilityTheory
 
 variable {S E : Type*} [MeasurableSpace E]
 variable [Countable S] [StandardBorelSpace E]
-variable {γ : Specification S E} [γ.IsMarkov]
+variable {γ : Specification S E}
 
 local notation3 (prettyPrint := false) "Ω" => (S → E)
 
@@ -624,11 +623,11 @@ omit [StandardBorelSpace E] in
 /-- Under the Gibbs assumption, extremality in `G(γ)` is equivalent to tail-triviality
 (Georgii Thm. 7.7). -/
 theorem mem_extremePoints_G_iff_isTailTrivial
-    (hγ : γ.IsProper) (μ : ProbabilityMeasure Ω) (hμG : (μ : Measure Ω) ∈ G (γ := γ)) :
+    (μ : ProbabilityMeasure Ω) (hμG : (μ : Measure Ω) ∈ G (γ := γ)) :
     ((μ : Measure Ω) ∈ (G (γ := γ)).extremePoints ENNReal) ↔ IsTailTrivial (S := S) (E := E) μ := by
   constructor
   · intro hμext
-    exact isTailTrivial_of_mem_extremePoints_G (S := S) (E := E) (γ := γ) (hγ := hγ) μ hμext
+    exact isTailTrivial_of_mem_extremePoints_G (S := S) (E := E) (γ := γ) μ hμext
   · intro htail
     have hμ_eq : (⟨(μ : Measure Ω), hμG.1⟩ : ProbabilityMeasure Ω) = μ := by
       ext s hs
@@ -636,7 +635,7 @@ theorem mem_extremePoints_G_iff_isTailTrivial
     have htail' :
         IsTailTrivial (S := S) (E := E) (⟨(μ : Measure Ω), hμG.1⟩ : ProbabilityMeasure Ω) := by
       simpa [hμ_eq] using htail
-    exact mem_extremePoints_G_of_isTailTrivial (S := S) (E := E) (γ := γ) (hγ := hγ)
+    exact mem_extremePoints_G_of_isTailTrivial (S := S) (E := E) (γ := γ)
       (hμG := hμG) (hμtail := htail')
 
 end ExtremeIffTailTrivial
