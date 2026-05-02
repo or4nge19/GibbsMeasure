@@ -42,10 +42,9 @@ lemma measurableSet_cylinderEvents_compl_of_measurableSet_tail
 
 section Restrict
 
-variable (γ : Specification S E) [γ.IsMarkov]
+variable (γ : Specification S E)
 
-omit [γ.IsMarkov] in
-lemma bind_restrict_eq_of_measurableSet_boundary (hγ : γ.IsProper) (Λ : Finset S)
+lemma bind_restrict_eq_of_measurableSet_boundary (Λ : Finset S)
     {A : Set (S → E)}
     (hA : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) ((Λ : Set S)ᶜ)] A)
     (μ : Measure (S → E)) :
@@ -64,7 +63,7 @@ lemma bind_restrict_eq_of_measurableSet_boundary (hγ : γ.IsProper) (Λ : Finse
       ∀ x : S → E, γ Λ x (s ∩ A) = A.indicator 1 x * γ Λ x s := by
     intro x
     simpa [Set.inter_assoc, Set.inter_left_comm, Set.inter_comm] using
-      (_root_.Specification.IsProper.inter_eq_indicator_mul (γ := γ) hγ Λ (A := s) (B := A) (η := x)
+      (_root_.Specification.IsProper.inter_eq_indicator_mul (γ := γ) γ.isProper Λ (A := s) (B := A) (η := x)
         hs hA)
   calc
     ((μ.restrict A).bind (γ Λ)) s
@@ -92,33 +91,32 @@ lemma bind_restrict_eq_of_measurableSet_boundary (hγ : γ.IsProper) (Λ : Finse
     _ = ((μ.bind (γ Λ)).restrict A) s := by
           simp [Measure.restrict_apply, hs, hA_pi, Set.inter_comm]
 
-omit [γ.IsMarkov] in
-lemma bind_restrict_eq_of_measurableSet_tail (hγ : γ.IsProper) (Λ : Finset S)
+lemma bind_restrict_eq_of_measurableSet_tail (Λ : Finset S)
     {A : Set (S → E)} (hA : MeasurableSet[@tailSigmaAlgebra S E _] A)
     (μ : Measure (S → E)) :
     (μ.restrict A).bind (γ Λ) = (μ.bind (γ Λ)).restrict A := by
-  exact bind_restrict_eq_of_measurableSet_boundary (γ := γ) (hγ := hγ) (Λ := Λ)
+  exact bind_restrict_eq_of_measurableSet_boundary (γ := γ) (Λ := Λ)
     (hA := measurableSet_cylinderEvents_compl_of_measurableSet_tail (S := S) (E := E) Λ hA) μ
 
 /-- If `μ` is Gibbs for `γ`, then the restriction of `μ` to a tail event is also Gibbs. -/
 lemma isGibbsMeasure_restrict_of_measurableSet_tail
-    (hγ : γ.IsProper) {μ : Measure (S → E)} [IsProbabilityMeasure μ]
+    {μ : Measure (S → E)} [IsProbabilityMeasure μ]
     (hμ : _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ μ)
     {A : Set (S → E)} (hA : MeasurableSet[@tailSigmaAlgebra S E _] A) :
     _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ (μ.restrict A) := by
   have hfix : ∀ Λ : Finset S, μ.bind (γ Λ) = μ := by
-    simpa [_root_.Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ) hγ] using hμ
+    simpa [_root_.Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ)] using hμ
   have hfix_restrict : ∀ Λ : Finset S, (μ.restrict A).bind (γ Λ) = μ.restrict A := by
     intro Λ
     calc
       (μ.restrict A).bind (γ Λ)
           = (μ.bind (γ Λ)).restrict A :=
-            bind_restrict_eq_of_measurableSet_tail (γ := γ) (hγ := hγ) (Λ := Λ) (hA := hA) μ
+            bind_restrict_eq_of_measurableSet_tail (γ := γ) (Λ := Λ) (hA := hA) μ
       _ = μ.restrict A := by simp [hfix Λ]
   -- `μ.restrict A` is not a probability measure in general, so use the finite-measure fixed-point lemma.
   haveI : IsFiniteMeasure μ := by infer_instance
   haveI : IsFiniteMeasure (μ.restrict A) := by infer_instance
-  exact (_root_.Specification.isGibbsMeasure_iff_forall_bind_eq (γ := γ) (μ := μ.restrict A) hγ).2 hfix_restrict
+  exact (_root_.Specification.isGibbsMeasure_iff_forall_bind_eq (γ := γ) (μ := μ.restrict A)).2 hfix_restrict
 
 end Restrict
 
@@ -149,7 +147,6 @@ end G
 section
 
 variable {γ}
-variable [γ.IsMarkov]
 
 local notation3 "Ω" => (S → E)
 
@@ -175,8 +172,7 @@ lemma bind_add (μ ν : Measure Ω) (κ : Ω → Measure Ω) (hκ : Measurable �
 
 /-! ### Proper kernels commute with `withDensity` for boundary-measurable densities -/
 
-omit [γ.IsMarkov] in
-lemma withDensity_bind_eq_bind_withDensity (Λ : Finset S) (hγ : γ.IsProper)
+lemma withDensity_bind_eq_bind_withDensity (Λ : Finset S)
     (μ : Measure[cylinderEvents (X := fun _ : S ↦ E) ((Λ : Set S)ᶜ)] Ω)
     (f : Ω → ℝ≥0∞) (hf : Measurable[cylinderEvents (X := fun _ : S ↦ E) ((Λ : Set S)ᶜ)] f) :
     (μ.bind (γ Λ)).withDensity f = (μ.withDensity f).bind (γ Λ) := by
@@ -204,8 +200,7 @@ lemma withDensity_bind_eq_bind_withDensity (Λ : Finset S) (hγ : γ.IsProper)
           (∫⁻ x, f x * A.indicator (1 : Ω → ℝ≥0∞) x ∂(γ Λ η))
             =
             f η * ∫⁻ x, A.indicator (1 : Ω → ℝ≥0∞) x ∂(γ Λ η) :=
-        Specification.IsProper.lintegral_mul (γ := γ) (hγ := hγ) (Λ := Λ)
-          (η₀ := η)
+        Specification.lintegral_mul γ (Λ := Λ) (η₀ := η)
           (f := fun x : Ω => A.indicator (1 : Ω → ℝ≥0∞) x)
           (g := f)
           (hf := (measurable_one.indicator hA))
@@ -255,7 +250,7 @@ lemma isProbabilityMeasure_normRestrict
   simpa [normRestrict, Measure.restrict_apply, smul_smul, smul_eq_mul] using
     (inferInstance : IsProbabilityMeasure (((μ.restrict A) Set.univ)⁻¹ • (μ.restrict A)))
 
-lemma isGibbsMeasure_normRestrict_of_tail (hγ : γ.IsProper)
+lemma isGibbsMeasure_normRestrict_of_tail
     (μ : Measure Ω) [IsProbabilityMeasure μ]
     (hμ : _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ μ)
     {A : Set Ω} (hA_tail : MeasurableSet[@tailSigmaAlgebra S E _] A) (hA0 : μ A ≠ 0) :
@@ -263,14 +258,14 @@ lemma isGibbsMeasure_normRestrict_of_tail (hγ : γ.IsProper)
   -- Use the fixed-point characterization `μ.bind (γ Λ) = μ`.
   have hfix : ∀ Λ : Finset S, μ.bind (γ Λ) = μ := by
     haveI : IsFiniteMeasure μ := by infer_instance
-    exact (_root_.Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ) hγ).1 hμ
+    exact (_root_.Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ)).1 hμ
   have hfix_restrict : ∀ Λ : Finset S, (μ.restrict A).bind (γ Λ) = μ.restrict A := by
     intro Λ
     calc
       (μ.restrict A).bind (γ Λ)
           = (μ.bind (γ Λ)).restrict A := by
               simpa using
-                (bind_restrict_eq_of_measurableSet_tail (γ := γ) (hγ := hγ) (Λ := Λ) (hA := hA_tail) μ)
+                (bind_restrict_eq_of_measurableSet_tail (γ := γ) (Λ := Λ) (hA := hA_tail) μ)
       _ = μ.restrict A := by simp [hfix Λ]
   have hfix_norm : ∀ Λ : Finset S,
       (normRestrict (μ := μ) A).bind (γ Λ) = normRestrict (μ := μ) A := by
@@ -290,7 +285,7 @@ lemma isGibbsMeasure_normRestrict_of_tail (hγ : γ.IsProper)
     infer_instance
   haveI : IsProbabilityMeasure (normRestrict (μ := μ) A) :=
     isProbabilityMeasure_normRestrict (μ := μ) (A := A) hA0
-  exact (_root_.Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ) hγ).2 hfix_norm
+  exact (_root_.Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ)).2 hfix_norm
 
 /-! #### Conditioning a Gibbs probability measure on a tail event stays Gibbs -/
 
@@ -310,7 +305,7 @@ noncomputable def normRestrict (μ : ProbabilityMeasure Ω) (A : Set Ω) (hA0 : 
       MeasureTheory.GibbsMeasure.normRestrict (μ := (μ : Measure Ω)) A :=
   rfl
 
-lemma mem_GP_normRestrict_of_tail (hγ : γ.IsProper) {μ : ProbabilityMeasure Ω}
+lemma mem_GP_normRestrict_of_tail {μ : ProbabilityMeasure Ω}
     (hμ : μ ∈ GP (S := S) (E := E) γ)
     {A : Set Ω} (hA_tail : MeasurableSet[@tailSigmaAlgebra S E _] A) (hA0 : (μ : Measure Ω) A ≠ 0) :
     normRestrict (μ := μ) A hA0 ∈ GP (S := S) (E := E) γ := by
@@ -318,7 +313,7 @@ lemma mem_GP_normRestrict_of_tail (hγ : γ.IsProper) {μ : ProbabilityMeasure �
   have hcond_gibbs :
       _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ
         (MeasureTheory.GibbsMeasure.normRestrict (μ := (μ : Measure Ω)) A) :=
-    isGibbsMeasure_normRestrict_of_tail (γ := γ) (hγ := hγ) (μ := (μ : Measure Ω)) hμ_gibbs
+    isGibbsMeasure_normRestrict_of_tail (γ := γ) (μ := (μ : Measure Ω)) hμ_gibbs
       (A := A) hA_tail hA0
   exact hcond_gibbs
 
@@ -327,7 +322,6 @@ end ProbabilityMeasure
 /-- If a Gibbs probability measure assigns a tail event probability strictly between `0` and `1`,
 then it is **not** an extreme point of `G(γ)`. -/
 theorem not_mem_extremePoints_G_of_tail_prob
-    (hγ : γ.IsProper)
     (μ : Measure Ω) [IsProbabilityMeasure μ]
     (hμ : _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ μ)
     {A : Set Ω} (hA_tail : MeasurableSet[@tailSigmaAlgebra S E _] A)
@@ -351,11 +345,11 @@ theorem not_mem_extremePoints_G_of_tail_prob
   have hμA_prob : IsProbabilityMeasure μA := isProbabilityMeasure_normRestrict (μ := μ) (A := A) hA0'
   have hμAc_prob : IsProbabilityMeasure μAc := isProbabilityMeasure_normRestrict (μ := μ) (A := Aᶜ) hAc0'
   have hμA_gibbs : _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ μA :=
-    isGibbsMeasure_normRestrict_of_tail (γ := γ) (hγ := hγ) (μ := μ) hμ (A := A) hA_tail hA0'
+    isGibbsMeasure_normRestrict_of_tail (γ := γ) (μ := μ) hμ (A := A) hA_tail hA0'
   have hμAc_gibbs : _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ μAc := by
     have hA_tail' : MeasurableSet[@tailSigmaAlgebra S E _] Aᶜ := by
       simpa using (MeasurableSet.compl hA_tail)
-    exact isGibbsMeasure_normRestrict_of_tail (γ := γ) (hγ := hγ) (μ := μ) hμ (A := Aᶜ) hA_tail' hAc0'
+    exact isGibbsMeasure_normRestrict_of_tail (γ := γ) (μ := μ) hμ (A := Aᶜ) hA_tail' hAc0'
   have hμA_mem : μA ∈ G (γ := γ) := ⟨hμA_prob, hμA_gibbs⟩
   have hμAc_mem : μAc ∈ G (γ := γ) := ⟨hμAc_prob, hμAc_gibbs⟩
   have hμ_mem : μ ∈ G (γ := γ) := ⟨inferInstance, hμ⟩
@@ -400,7 +394,7 @@ theorem not_mem_extremePoints_G_of_tail_prob
 /-- **Extreme** Gibbs probability measures are **tail-trivial** (Georgii Thm. 7.7, direction
 `extreme → tail-trivial`). -/
 theorem tailTrivial_of_mem_extremePoints_G
-    (hγ : γ.IsProper) {μ : Measure Ω}
+    {μ : Measure Ω}
     (hμext : μ ∈ (G (γ := γ)).extremePoints ENNReal) :
     ∀ A, MeasurableSet[@tailSigmaAlgebra S E _] A → μ A = 0 ∨ μ A = 1 := by
   intro A hA_tail
@@ -419,17 +413,17 @@ theorem tailTrivial_of_mem_extremePoints_G
     have : μ A ≤ μ (Set.univ : Set Ω) := measure_mono (subset_univ A)
     simpa [IsProbabilityMeasure.measure_univ (μ := μ)] using this
   have hlt : μ A < 1 := lt_of_le_of_ne hle hne1
-  exact (not_mem_extremePoints_G_of_tail_prob (γ := γ) (hγ := hγ) (μ := μ) hμ_gibbs
+  exact (not_mem_extremePoints_G_of_tail_prob (γ := γ) (μ := μ) hμ_gibbs
       (hA_tail := hA_tail) hpos hlt) hμext
 
 /-- Probability-measure version of `tailTrivial_of_mem_extremePoints_G`. -/
 theorem isTailTrivial_of_mem_extremePoints_G
-    (hγ : γ.IsProper) (μ : ProbabilityMeasure Ω)
+    (μ : ProbabilityMeasure Ω)
     (hμext : (μ : Measure Ω) ∈ (G (γ := γ)).extremePoints ENNReal) :
     IsTailTrivial (S := S) (E := E) μ := by
   intro A hA
   simpa using
-    tailTrivial_of_mem_extremePoints_G (γ := γ) (hγ := hγ) (μ := (μ : Measure Ω)) hμext A hA
+    tailTrivial_of_mem_extremePoints_G (γ := γ) (μ := (μ : Measure Ω)) hμext A hA
 
 /-! ### Tail-triviality implies extremality (Georgii Thm. 7.7, hard direction) -/
 
@@ -604,7 +598,7 @@ lemma tailSigmaAlgebra_eq_iInf_exhaustion :
     exact (iInf_le (fun n : ℕ => m (exhaustionVolumes (S := S) n)) n).trans hmmono
   simpa [tailSigmaAlgebra, m] using le_antisymm hle hge
 
-omit [γ.IsMarkov] [Countable S] in
+omit [Countable S] in
 lemma bind_eq_bind_trim (Λ : Finset S) (μ : Measure Ω) {A : Set Ω} (hA : MeasurableSet A) :
     (μ.trim (MeasureTheory.cylinderEvents_le_pi (X := fun _ : S ↦ E) (Δ := ((Λ : Set S)ᶜ)))).bind (γ Λ) A
       =
@@ -625,7 +619,6 @@ lemma bind_eq_bind_trim (Λ : Finset S) (μ : Measure Ω) {A : Set Ω} (hA : Mea
 
 omit [Countable S] in
 lemma exists_withDensity_of_absolutelyContinuous_gibbs
-    (hγ : γ.IsProper)
     {μ ν : Measure Ω}
     [IsFiniteMeasure μ] [IsFiniteMeasure ν]
     (hμ : _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ μ)
@@ -649,10 +642,10 @@ lemma exists_withDensity_of_absolutelyContinuous_gibbs
   have hμb : μb.withDensity g = νb := by
     simpa [g] using (Measure.withDensity_rnDeriv_eq (μ := νb) (ν := μb) hνbμb)
   have hbindμ : μ.bind (γ Λ) = μ := by
-    have := (_root_.Specification.isGibbsMeasure_iff_forall_bind_eq (S := S) (E := E) (γ := γ) (μ := μ) hγ).1 hμ
+    have := (_root_.Specification.isGibbsMeasure_iff_forall_bind_eq (S := S) (E := E) (γ := γ) (μ := μ)).1 hμ
     simpa using this Λ
   have hbindν : ν.bind (γ Λ) = ν := by
-    have := (_root_.Specification.isGibbsMeasure_iff_forall_bind_eq (S := S) (E := E) (γ := γ) (μ := ν) hγ).1 hν
+    have := (_root_.Specification.isGibbsMeasure_iff_forall_bind_eq (S := S) (E := E) (γ := γ) (μ := ν)).1 hν
     simpa using this Λ
   have hμb_bind : μb.bind (γ Λ) = μ := by
     ext A hA
@@ -664,7 +657,7 @@ lemma exists_withDensity_of_absolutelyContinuous_gibbs
     simpa [νb, hbindν] using this
   have hcomm :
       (μb.bind (γ Λ)).withDensity g = (μb.withDensity g).bind (γ Λ) :=
-    withDensity_bind_eq_bind_withDensity (γ := γ) (Λ := Λ) hγ μb g hg
+    withDensity_bind_eq_bind_withDensity (γ := γ) (Λ := Λ) μb g hg
   refine ⟨g, hg, ?_⟩
   calc
     μ.withDensity g = (μb.bind (γ Λ)).withDensity g := by simp [hμb_bind]
@@ -673,7 +666,6 @@ lemma exists_withDensity_of_absolutelyContinuous_gibbs
     _ = ν := hνb_bind
 
 lemma ae_eq_tailMeasurable_of_forall_boundary
-    (hγ : γ.IsProper)
     {μ ν : Measure Ω}
     [IsFiniteMeasure μ] [IsFiniteMeasure ν]
     (hμ : _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ μ)
@@ -697,7 +689,7 @@ lemma ae_eq_tailMeasurable_of_forall_boundary
     exact MeasureTheory.cylinderEvents_mono (X := fun _ : S ↦ E) (h := hcompl)
   choose g hgmeas hμg using
     fun n =>
-      exists_withDensity_of_absolutelyContinuous_gibbs (S := S) (E := E) (γ := γ) hγ
+      exists_withDensity_of_absolutelyContinuous_gibbs (S := S) (E := E) (γ := γ)
         (hμ := hμ) (hν := hν) (hνμ := hνμ) (Λ := Λn n)
   have hfg : ∀ n, (ν.rnDeriv μ) =ᵐ[μ] g n := by
     intro n
@@ -736,7 +728,6 @@ lemma ae_eq_tailMeasurable_of_forall_boundary
 
 This is the key analytic step in Georgii Thm. 7.7, direction `tail-trivial → extreme`. -/
 theorem eq_of_absolutelyContinuous_of_isTailTrivial
-    (hγ : γ.IsProper)
     {μ ν : Measure Ω}
     (hμG : _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ μ)
     (hνG : _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ ν)
@@ -745,7 +736,7 @@ theorem eq_of_absolutelyContinuous_of_isTailTrivial
     (hνμ : ν ≪ μ) :
     ν = μ := by
   obtain ⟨g, hg_tail, hfg⟩ :=
-    ae_eq_tailMeasurable_of_forall_boundary (S := S) (E := E) (γ := γ) hγ hμG hνG hνμ
+    ae_eq_tailMeasurable_of_forall_boundary (S := S) (E := E) (γ := γ) hμG hνG hνμ
   haveI : MeasurableSpace.CountablySeparated ℝ≥0∞ := by infer_instance
   haveI : Nonempty ℝ≥0∞ := by infer_instance
   obtain ⟨c, hgc⟩ :=
@@ -775,7 +766,6 @@ theorem eq_of_absolutelyContinuous_of_isTailTrivial
 /-- **Tail-trivial** Gibbs probability measures are **extreme** (Georgii Thm. 7.7, direction
 `tail-trivial → extreme`). -/
 theorem mem_extremePoints_G_of_isTailTrivial
-    (hγ : γ.IsProper)
     {μ : Measure Ω}
     (hμG : μ ∈ G (γ := γ))
     (hμtail : IsTailTrivial (S := S) (E := E) (⟨μ, hμG.1⟩ : ProbabilityMeasure Ω)) :
@@ -802,7 +792,7 @@ theorem mem_extremePoints_G_of_isTailTrivial
   have hμ_gibbs : _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ μ := hμG.2
   have hν₁_gibbs : _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ ν₁ := hν₁.2
   have hEq : ν₁ = μ :=
-    eq_of_absolutelyContinuous_of_isTailTrivial (S := S) (E := E) (γ := γ) (hγ := hγ)
+    eq_of_absolutelyContinuous_of_isTailTrivial (S := S) (E := E) (γ := γ)
       (μ := μ) (ν := ν₁) hμ_gibbs hν₁_gibbs (hμtail := hμtail) hν₁μ
   simp [hEq]
 
