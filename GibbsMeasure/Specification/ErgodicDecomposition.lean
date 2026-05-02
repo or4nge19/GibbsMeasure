@@ -348,10 +348,7 @@ lemma tailKernelTail_ae_eq_id
         have hmap :
             (tailKernelTail (S := S) (E := E) μ ω) B =
               (tailKernel (S := S) (E := E) μ ω) B := by
-          simpa [tailKernelTail, ProbabilityTheory.Kernel.map_apply', hid, hB'] using
-            (ProbabilityTheory.Kernel.map_apply'
-              (κ := tailKernel (S := S) (E := E) μ)
-              (f := (id : (S → E) → (S → E))) hid ω hB')
+          simp [tailKernelTail, ProbabilityTheory.Kernel.map_apply', hid, hB']
         simpa [hmap] using hω
       exact MeasureTheory.ae_restrict_of_ae (μ := μT) (s := A) hB_val'
     have hI :
@@ -509,7 +506,7 @@ This is the right starting point for the (harder) a.e.-Gibbsness of the conditio
 
 section GibbsComp
 
-variable {γ : Specification S E} [γ.IsMarkov]
+variable {γ : Specification S E}
 
 variable (Λ : Finset S)
 
@@ -519,12 +516,12 @@ omit [Countable S] [StandardBorelSpace E] in
 /-- If `μ` is Gibbs for `γ`, then for a tail event `B` (hence also `Λᶜ`-measurable),
 the DLR identity reads `μ(A ∩ B) = ∫⁻ ω in B, γ Λ ω A ∂μ`. -/
 lemma isGibbsMeasure_measure_inter_eq_setLIntegral
-    (hγ : γ.IsProper) (hμ : γ.IsGibbsMeasure μ)
+    (hμ : γ.IsGibbsMeasure μ)
     {A B : Set (S → E)} (hA : MeasurableSet A) (hB : MeasurableSet[@tailSigmaAlgebra S E _] B) :
     μ (A ∩ B) = ∫⁻ ω in B, (γ Λ ω) A ∂μ := by
   -- Use the fixed point `μ.bind (γ Λ) = μ`.
   have hfix : μ.bind (γ Λ) = μ :=
-    ((Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ) hγ).1 hμ) Λ
+    ((Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ)).1 hμ) Λ
   have hB_pi : MeasurableSet B :=
     (tailSigmaAlgebra_le_pi (S := S) (E := E)) B hB
   have hB_cyl : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) ((Λ : Set S)ᶜ)] B :=
@@ -538,7 +535,7 @@ lemma isGibbsMeasure_measure_inter_eq_setLIntegral
   have hprop : ∀ ω, (γ Λ ω) (A ∩ B) =
       (B.indicator (fun _ : (S → E) => (1 : ℝ≥0∞)) ω) * (γ Λ ω) A := by
     intro ω
-    simpa using (hγ.inter_eq_indicator_mul (Λ := Λ) (A := A) (B := B) hA hB_cyl ω)
+    simpa using (γ.isProper.inter_eq_indicator_mul (Λ := Λ) (A := A) (B := B) hA hB_cyl ω)
   have hind :
       (fun ω => (B.indicator (fun _ : (S → E) => (1 : ℝ≥0∞)) ω) * (γ Λ ω) A)
         =
@@ -612,7 +609,7 @@ private lemma ae_lintegral_indicator_eq_indicator_lintegral
 /-- For a fixed finite volume `Λ`, the tail kernel is `μ.trim 𝓣`-a.e. a fixed point for `γ Λ`. -/
 lemma ae_comp_comap_tailKernel_eq_tailKernel
     [@MeasurableSpace.CountableOrCountablyGenerated (S → E) (S → E) (@tailSigmaAlgebra S E _)]
-    (hγ : γ.IsProper) (hμ : γ.IsGibbsMeasure μ) :
+    (hμ : γ.IsGibbsMeasure μ) :
     ∀ᵐ ω ∂μ.trim (tailSigmaAlgebra_le_pi (S := S) (E := E)),
       ((γ Λ).comap id cylinderEvents_le_pi ∘ₖ tailKernel (S := S) (E := E) μ) ω
         = tailKernel (S := S) (E := E) μ ω := by
@@ -745,7 +742,7 @@ lemma ae_comp_comap_tailKernel_eq_tailKernel
           ∫⁻ x, B.indicator (fun x => (γ Λ x) A) x ∂μ = μ (A ∩ B) := by
         have h :=
           isGibbsMeasure_measure_inter_eq_setLIntegral (S := S) (E := E) (μ := μ)
-            (γ := γ) (Λ := Λ) hγ hμ (A := A) (B := B) hA' hB'
+            (γ := γ) (Λ := Λ) hμ (A := A) (B := B) hA' hB'
         simpa [hB_pi] using h.symm
       calc
         (∫⁻ ω in B, κ₁ ω A ∂μT) = ∫⁻ ω, B.indicator (fun ω => κ₁ ω A) ω ∂μT := by
@@ -773,7 +770,7 @@ lemma ae_comp_comap_tailKernel_eq_tailKernel
 
 lemma ae_forall_bind_eq_tailKernel
     [@MeasurableSpace.CountableOrCountablyGenerated (S → E) (S → E) (@tailSigmaAlgebra S E _)]
-    (hγ : γ.IsProper) (hμ : γ.IsGibbsMeasure μ) :
+    (hμ : γ.IsGibbsMeasure μ) :
     ∀ᵐ ω ∂μ.trim (tailSigmaAlgebra_le_pi (S := S) (E := E)),
       ∀ Λ : Finset S, (tailKernel (S := S) (E := E) μ ω).bind (γ Λ) = tailKernel (S := S) (E := E) μ ω := by
   have hΛ :
@@ -783,7 +780,7 @@ lemma ae_forall_bind_eq_tailKernel
             = tailKernel (S := S) (E := E) μ ω := by
     intro Λ
     have hcomp :=
-      ae_comp_comap_tailKernel_eq_tailKernel (S := S) (E := E) (μ := μ) (γ := γ) (Λ := Λ) hγ hμ
+      ae_comp_comap_tailKernel_eq_tailKernel (S := S) (E := E) (μ := μ) (γ := γ) (Λ := Λ) hμ
     filter_upwards [hcomp] with ω hω
     simpa [ProbabilityTheory.Kernel.comp_apply] using hω
   have hΛ' :
@@ -813,14 +810,14 @@ lemma ae_forall_bind_eq_tailKernel
 /-- **Georgii step:** if `μ` is Gibbs, then its tail conditional measures are Gibbs `μ.trim 𝓣`-a.e. -/
 theorem ae_isGibbsMeasure_tailKernel
     [@MeasurableSpace.CountableOrCountablyGenerated (S → E) (S → E) (@tailSigmaAlgebra S E _)]
-    (hγ : γ.IsProper) (hμ : γ.IsGibbsMeasure μ) :
+    (hμ : γ.IsGibbsMeasure μ) :
     ∀ᵐ ω ∂μ.trim (tailSigmaAlgebra_le_pi (S := S) (E := E)),
       γ.IsGibbsMeasure (tailKernel (S := S) (E := E) μ ω) := by
-  filter_upwards [ae_forall_bind_eq_tailKernel (S := S) (E := E) (μ := μ) (γ := γ) hγ hμ] with ω hω
+  filter_upwards [ae_forall_bind_eq_tailKernel (S := S) (E := E) (μ := μ) (γ := γ) hμ] with ω hω
   haveI : IsProbabilityMeasure (tailKernel (S := S) (E := E) μ ω) :=
     ProbabilityTheory.IsMarkovKernel.isProbabilityMeasure
       (κ := tailKernel (S := S) (E := E) μ) ω
-  exact (Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ) hγ).2 hω
+  exact (Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ)).2 hω
 
 /-!
 ### Extremal (ergodic) components (Georgii Thm 7.7 + tail disintegration)
@@ -836,12 +833,12 @@ open scoped Convex
 
 theorem ae_mem_extremePoints_G_tailKernel
     [@MeasurableSpace.CountableOrCountablyGenerated (S → E) (S → E) (@tailSigmaAlgebra S E _)]
-    (hγ : γ.IsProper) (hμ : γ.IsGibbsMeasure μ) :
+    (hμ : γ.IsGibbsMeasure μ) :
     ∀ᵐ ω ∂μ.trim (tailSigmaAlgebra_le_pi (S := S) (E := E)),
       (tailKernel (S := S) (E := E) μ ω) ∈ (G (γ := γ)).extremePoints ENNReal := by
   classical
   have hGibbs :=
-    ae_isGibbsMeasure_tailKernel (S := S) (E := E) (μ := μ) (γ := γ) hγ hμ
+    ae_isGibbsMeasure_tailKernel (S := S) (E := E) (μ := μ) (γ := γ) hμ
   have hTail :=
     ae_isTailTrivial_tailKernel (S := S) (E := E) (μ := μ)
   filter_upwards [hGibbs, hTail] with ω hωGibbs hωTail
@@ -854,15 +851,15 @@ theorem ae_mem_extremePoints_G_tailKernel
           infer_instance⟩ : ProbabilityMeasure (S → E)) := hωTail
   exact
     mem_extremePoints_G_of_isTailTrivial (S := S) (E := E) (γ := γ)
-      (hγ := hγ) (μ := tailKernel (S := S) (E := E) μ ω) hμG htail'
+      (μ := tailKernel (S := S) (E := E) μ ω) hμG htail'
 
 omit [Countable S] [StandardBorelSpace E] in
 /-- A Gibbs measure is a fixed point for `((γ Λ).comap id cylinderEvents_le_pi) ∘ₘ ·`. -/
-lemma compMeasure_comap_eq_of_isGibbsMeasure (hγ : γ.IsProper) (hμ : γ.IsGibbsMeasure μ) :
+lemma compMeasure_comap_eq_of_isGibbsMeasure (hμ : γ.IsGibbsMeasure μ) :
     ((γ Λ).comap id cylinderEvents_le_pi) ∘ₘ μ = μ := by
   have hfix :
       μ.bind (γ Λ) = μ := by
-    simpa using ((Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ) hγ).1 hμ) Λ
+    simpa using ((Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ)).1 hμ) Λ
   have hsame : μ.bind ((γ Λ).comap id cylinderEvents_le_pi) = μ.bind (γ Λ) := by
     ext A hA
     have hAEM : AEMeasurable (γ Λ : (S → E) → Measure (S → E)) μ :=
@@ -873,7 +870,7 @@ lemma compMeasure_comap_eq_of_isGibbsMeasure (hγ : γ.IsProper) (hμ : γ.IsGib
   exact (hsame.trans hfix)
 
 /-- Push the DLR fixed-point property through the tail disintegration identity. -/
-lemma comp_assoc_tailKernel_of_isGibbsMeasure (hγ : γ.IsProper) (hμ : γ.IsGibbsMeasure μ) :
+lemma comp_assoc_tailKernel_of_isGibbsMeasure (hμ : γ.IsGibbsMeasure μ) :
     ((γ Λ).comap id cylinderEvents_le_pi ∘ₖ tailKernel (S := S) (E := E) μ)
         ∘ₘ (μ.trim (tailSigmaAlgebra_le_pi (S := S) (E := E)))
       =
@@ -892,7 +889,7 @@ lemma comp_assoc_tailKernel_of_isGibbsMeasure (hγ : γ.IsProper) (hμ : γ.IsGi
         ∘ₘ (μ.trim (tailSigmaAlgebra_le_pi (S := S) (E := E))) := by
     have hfix0 :
         ((γ Λ).comap id cylinderEvents_le_pi) ∘ₘ μ = μ :=
-      compMeasure_comap_eq_of_isGibbsMeasure (S := S) (E := E) (μ := μ) (γ := γ) (Λ := Λ) hγ hμ
+      compMeasure_comap_eq_of_isGibbsMeasure (S := S) (E := E) (μ := μ) (γ := γ) (Λ := Λ) hμ
     simpa [hdis] using hfix0
   have hassoc :
       ((γ Λ).comap id cylinderEvents_le_pi)
