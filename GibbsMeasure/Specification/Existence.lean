@@ -38,13 +38,13 @@ def volumeLimit (S : Type*) : Filter (Finset S) :=
   Filter.atTop
 
 /-- The net of finite-volume Gibbs distributions with boundary condition `η`. -/
-noncomputable def finiteVolumeDistributions [γ.IsMarkov] (η : S → E) :
+noncomputable def finiteVolumeDistributions (η : S → E) :
     (Finset S) → ProbabilityMeasure (S → E) :=
   fun Λ => ⟨γ Λ η, inferInstance⟩
 
 /-- A probability measure `μ` is a thermodynamic limit (for boundary condition `η`) if it is a
 cluster point of the net `Λ ↦ γ Λ η` in the topology of local convergence. -/
-def IsThermodynamicLimit [γ.IsMarkov] (η : S → E) (μ : ProbabilityMeasure (S → E)) : Prop :=
+def IsThermodynamicLimit (η : S → E) (μ : ProbabilityMeasure (S → E)) : Prop :=
   letI : TopologicalSpace (ProbabilityMeasure (S → E)) :=
     ProbabilityMeasure.localConvergence S E
   ClusterPt μ (Filter.map (finiteVolumeDistributions (γ := γ) η) (volumeLimit S))
@@ -63,9 +63,9 @@ variable [OpensMeasurableSpace (S → E)]
 
 variable (γ : Specification S E)
 
- /-- Thermodynamic limit defined using the **weak topology** on `ProbabilityMeasure (S → E)`
+/-- Thermodynamic limit defined using the **weak topology** on `ProbabilityMeasure (S → E)`
 (`MeasureTheory.ProbabilityMeasure`'s default topology instance). -/
-def IsThermodynamicLimitWeak [γ.IsMarkov] (η : S → E) (μ : ProbabilityMeasure (S → E)) : Prop :=
+def IsThermodynamicLimitWeak (η : S → E) (μ : ProbabilityMeasure (S → E)) : Prop :=
   ClusterPt μ (Filter.map (finiteVolumeDistributions (γ := γ) η) (volumeLimit S))
 
 namespace Specification
@@ -73,9 +73,8 @@ namespace Specification
 open ProbabilityTheory
 
 variable {γ}
-variable [γ.IsMarkov]
 
-omit [TopologicalSpace E] [OpensMeasurableSpace (S → E)] [γ.IsMarkov] in
+omit [TopologicalSpace E] [OpensMeasurableSpace (S → E)] in
 -- kernels of a specification are measurable as functions into measures for the *full*
 -- product σ-algebra (even though they are defined with `cylinderEvents (Λᶜ)` as source σ-algebra).
 lemma measurable_kernel_toMeasure (Λ : Finset S) :
@@ -149,14 +148,14 @@ end Specification
 
 open Specification
 
-variable [γ.IsMarkov] [γ.IsFeller]
+variable [γ.IsFeller]
 --variable [T2Space E] [OpensMeasurableSpace (S → E)]
 variable [T2Space (ProbabilityMeasure (S → E))]
 
 /-- Any **weak** thermodynamic limit of finite-volume distributions is a Gibbs measure (compact case
 uses this with existence of a cluster point). -/
 theorem isGibbsMeasure_of_isThermodynamicLimitWeak
-    (hγ : γ.IsProper) (η : S → E) {μ : ProbabilityMeasure (S → E)}
+    (η : S → E) {μ : ProbabilityMeasure (S → E)}
     (hμ : IsThermodynamicLimitWeak (γ := γ) η μ) :
     μ ∈ GP (S := S) (E := E) γ := by
   -- Use the fixed-point characterization `μ.bind (γ Λ) = μ`.
@@ -195,7 +194,7 @@ theorem isGibbsMeasure_of_isThermodynamicLimitWeak
     have : Specification.bindPM (γ := γ) Λ μ = μ := tendsto_nhds_unique hbind_to_bindμ hbind_to_μ
     simpa [Specification.bindPM, Specification.coe_bindPM] using
       congrArg (fun ν : ProbabilityMeasure (S → E) => (ν : Measure (S → E))) this
-  simpa [GP, Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ) hγ] using hfix
+  simpa [GP, Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ)] using hfix
 
 section Compact
 
@@ -204,7 +203,7 @@ variable [BorelSpace E] [SecondCountableTopology E] [Countable S]
 variable [T2Space E]
 /-- Existence of a Gibbs measure on a **compact** single-spin space, via compactness of
 `ProbabilityMeasure (S → E)` (Prokhorov) and the previous limit-closure lemma. -/
-theorem existence_of_gibbsMeasure_compact (hγ : γ.IsProper) (η : S → E) :
+theorem existence_of_gibbsMeasure_compact (η : S → E) :
     (GP (S := S) (E := E) γ).Nonempty := by
   classical
   haveI : CompactSpace (ProbabilityMeasure (S → E)) := by infer_instance
@@ -216,7 +215,7 @@ theorem existence_of_gibbsMeasure_compact (hγ : γ.IsProper) (η : S → E) :
   obtain ⟨μ, hμ⟩ : ∃ μ : ProbabilityMeasure (S → E), ClusterPt μ F :=
     exists_clusterPt_of_compactSpace F
   refine ⟨μ, ?_⟩
-  exact isGibbsMeasure_of_isThermodynamicLimitWeak (γ := γ) (hγ := hγ) (η := η) hμ
+  exact isGibbsMeasure_of_isThermodynamicLimitWeak (γ := γ) (η := η) hμ
 
 end Compact
 
@@ -229,7 +228,7 @@ variable [T2Space (S → E)] [BorelSpace (S → E)]
 /-- Existence of a Gibbs measure from **tightness** of the finite-volume distributions, using
 Prokhorov compactness of the closure of a tight set. -/
 theorem existence_of_gibbsMeasure_of_isTight
-    (hγ : γ.IsProper) (η : S → E)
+    (η : S → E)
     (hT :
       IsTightMeasureSet
         {x : Measure (S → E) |
@@ -263,7 +262,7 @@ theorem existence_of_gibbsMeasure_of_isTight
   obtain ⟨μ, _hμ_mem, hμ⟩ : ∃ μ ∈ closure Sset, ClusterPt μ F :=
     hcompact.exists_clusterPt (f := F) hF_le
   refine ⟨μ, ?_⟩
-  exact isGibbsMeasure_of_isThermodynamicLimitWeak (γ := γ) (hγ := hγ) (η := η) hμ
+  exact isGibbsMeasure_of_isThermodynamicLimitWeak (γ := γ) (η := η) hμ
 
 end Tight
 
@@ -277,20 +276,20 @@ variable {S E : Type*} [MeasurableSpace E] [TopologicalSpace E]
 variable [OpensMeasurableSpace (S → E)]
 
 variable (γ : Specification S E)
-variable [γ.IsMarkov] [γ.IsFeller]
+variable [γ.IsFeller]
 variable [T2Space (ProbabilityMeasure (S → E))]
 
 omit [TopologicalSpace
   E] [OpensMeasurableSpace (S → E)] [γ.IsFeller] [T2Space (ProbabilityMeasure (S → E))] in
 /-- Fixed-point characterization of Gibbs probability measures, expressed using `bindPM`. -/
-lemma mem_GP_iff_forall_bindPM_eq (hγ : γ.IsProper) (μ : ProbabilityMeasure (S → E)) :
+lemma mem_GP_iff_forall_bindPM_eq (μ : ProbabilityMeasure (S → E)) :
     μ ∈ GP (S := S) (E := E) γ ↔ ∀ Λ : Finset S, Specification.bindPM (γ := γ) Λ μ = μ := by
   constructor
   · intro hμ
     have hμ' :
         ∀ Λ : Finset S, (μ : Measure (S → E)).bind (γ Λ) = (μ : Measure (S → E)) := by
       have hGibbs : γ.IsGibbsMeasure (μ : Measure (S → E)) := hμ
-      simpa [_root_.Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ) hγ] using hGibbs
+      simpa [_root_.Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ)] using hGibbs
     intro Λ
     apply Subtype.ext
     simpa [Specification.coe_bindPM] using hμ' Λ
@@ -301,18 +300,18 @@ lemma mem_GP_iff_forall_bindPM_eq (hγ : γ.IsProper) (μ : ProbabilityMeasure (
       have := congrArg (fun ν : ProbabilityMeasure (S → E) => (ν : Measure (S → E))) (hfix Λ)
       simpa [Specification.coe_bindPM] using this
     have : γ.IsGibbsMeasure (μ : Measure (S → E)) := by
-      simpa [_root_.Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ) hγ] using hfix'
+      simpa [_root_.Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ)] using hfix'
     exact this
 
-/-- `GP(γ)` is closed in the weak topology, provided `γ` is Feller and proper. -/
-theorem isClosed_GP (hγ : γ.IsProper) :
+/-- `GP(γ)` is closed in the weak topology, provided `γ` is Feller. -/
+theorem isClosed_GP :
     IsClosed (GP (S := S) (E := E) γ) := by
   classical
   have hGP :
       GP (S := S) (E := E) γ =
         ⋂ Λ : Finset S, {μ : ProbabilityMeasure (S → E) | Specification.bindPM (γ := γ) Λ μ = μ} := by
     ext μ
-    simp [mem_GP_iff_forall_bindPM_eq (γ := γ) hγ μ]
+    simp [mem_GP_iff_forall_bindPM_eq (γ := γ) μ]
   have hclosed :
       ∀ Λ : Finset S,
         IsClosed {μ : ProbabilityMeasure (S → E) | Specification.bindPM (γ := γ) Λ μ = μ} := by
@@ -325,9 +324,9 @@ theorem isClosed_GP (hγ : γ.IsProper) :
 
 /-- If the ambient space of probability measures is compact, then `GP(γ)` is compact
 (`GP(γ)` is closed by `isClosed_GP`). -/
-theorem isCompact_GP [CompactSpace (ProbabilityMeasure (S → E))] (hγ : γ.IsProper) :
+theorem isCompact_GP [CompactSpace (ProbabilityMeasure (S → E))] :
     IsCompact (GP (S := S) (E := E) γ) :=
-  (isClosed_GP (γ := γ) hγ).isCompact
+  (isClosed_GP (γ := γ)).isCompact
 
 end GPTopology
 
