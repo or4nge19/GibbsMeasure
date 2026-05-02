@@ -71,18 +71,18 @@ lemma bind_smul (c : NNReal) (μ : Measure α) (f : α → Measure β) (hf : Mea
 
 end Measure
 
-lemma convexCombo_mem_GP (γ : Specification S E) (hγ : γ.IsProper) [γ.IsMarkov]
+lemma convexCombo_mem_GP (γ : Specification S E)
     (μ ν : ProbabilityMeasure (S → E)) (hμ : μ ∈ GP γ) (hν : ν ∈ GP γ) (p : unitInterval) :
     ProbabilityMeasure.convexCombo (p := p) μ ν ∈ GP γ := by
   -- Use the fixed-point characterization `μ.bind (γ Λ) = μ`.
   have hμ' :
       ∀ Λ : Finset S, (μ : Measure (S → E)).bind (γ Λ) = (μ : Measure (S → E)) := by
     have : γ.IsGibbsMeasure (μ : Measure (S → E)) := hμ
-    simpa [Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (S := S) (E := E) (γ := γ) hγ] using this
+    simpa [Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (S := S) (E := E) (γ := γ)] using this
   have hν' :
       ∀ Λ : Finset S, (ν : Measure (S → E)).bind (γ Λ) = (ν : Measure (S → E)) := by
     have : γ.IsGibbsMeasure (ν : Measure (S → E)) := hν
-    simpa [Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (S := S) (E := E) (γ := γ) hγ] using this
+    simpa [Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (S := S) (E := E) (γ := γ)] using this
   have hfix :
       ∀ Λ : Finset S,
         ((ProbabilityMeasure.convexCombo (Ω := (S → E)) (p := p) μ ν :
@@ -110,13 +110,14 @@ lemma convexCombo_mem_GP (γ : Specification S E) (hγ : γ.IsProper) [γ.IsMark
       ((ProbabilityMeasure.convexCombo (Ω := (S → E)) (p := p) μ ν :
           ProbabilityMeasure (S → E)) :
         Measure (S → E)) := by
-    simpa [Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (S := S) (E := E) (γ := γ) hγ] using hfix
+    simpa [Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (S := S) (E := E) (γ := γ)] using hfix
   exact this
 
 /-! ### Tail σ-algebra -/
 
 /-- The **tail σ-algebra** `𝓣`: information at infinity, defined as the infimum of the
 σ-algebras `cylinderEvents (Λᶜ)` over finite volumes `Λ`. -/
+@[reducible]
 def tailSigmaAlgebra (S E : Type*) [MeasurableSpace E] : MeasurableSpace (S → E) :=
   ⨅ (Λ : Finset S), cylinderEvents (X := fun _ : S ↦ E) ((Λ : Set S)ᶜ)
 
