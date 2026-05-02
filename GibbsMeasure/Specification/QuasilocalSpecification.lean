@@ -10,9 +10,9 @@ public import Mathlib.Topology.Continuous
 
 This file links the *functional-analytic* notion of quasilocal observables to specifications.
 
-Assuming a specification `γ` is **Markov** and its kernels are **Feller** (in the sense of
+Assuming a specification `γ` has **Feller** kernels (in the sense of
 `ProbabilityTheory.Kernel.IsFeller`), we can define the induced action on bounded continuous
-observables:
+observables. Markovness is already bundled in `Specification`:
 
 `f ↦ (η ↦ ∫ x, f x ∂(γ Λ η))`.
 
@@ -54,7 +54,7 @@ end IsFeller
 section Action
 
 variable (γ : Specification S E)
-variable [γ.IsMarkov] [γ.IsFeller]
+variable [γ.IsFeller]
 
 /-- The (Feller) action of `γ(Λ)` on bounded continuous observables. -/
 noncomputable def continuousAction (Λ : Finset S) : Obs → Obs :=
@@ -84,7 +84,7 @@ end Action
 section Quasilocal
 
 variable (γ : Specification S E)
-variable [γ.IsMarkov] [γ.IsFeller]
+variable [γ.IsFeller]
 
 open BoundedContinuousFunction
 
