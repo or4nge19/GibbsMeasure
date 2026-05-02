@@ -217,11 +217,138 @@ end IsGibbsMeasure
 noncomputable section ISSSD
 variable (ν : Measure E) [IsProbabilityMeasure ν] (η : S → E)
 
+/-- The outside-volume constraint of a finite square cylinder is measurable with respect to the
+outside-volume cylinder σ-algebra. -/
+lemma measurableSet_forall_mem_not_mem
+    (Λ s : Finset S) {t : S → Set E} (ht : ∀ i, MeasurableSet (t i)) :
+    MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)ᶜ]
+      {η : S → E | ∀ i ∈ (s : Set S), i ∉ (Λ : Set S) → η i ∈ t i} := by
+  classical
+  have hset :
+      {η : S → E | ∀ i ∈ (s : Set S), i ∉ (Λ : Set S) → η i ∈ t i} =
+        ⋂ i ∈ s, if i ∈ (Λ : Set S) then Set.univ else (fun η : S → E => η i) ⁻¹' t i := by
+    ext η
+    simp [Set.mem_iInter, Set.mem_preimage]
+  rw [hset]
+  refine Finset.measurableSet_biInter s (fun i hi => ?_)
+  by_cases hiΛ : i ∈ (Λ : Set S)
+  · simp [hiΛ]
+  · have hiΛc : i ∈ (Λ : Set S)ᶜ := by simpa [Set.mem_compl_iff] using hiΛ
+    have hproj : Measurable[cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)ᶜ]
+        (fun η : S → E => η i) :=
+      measurable_cylinderEvent_apply (i := i) (X := fun _ : S ↦ E) hiΛc
+    simpa [hiΛ] using (ht i).preimage hproj
+
+/-- If the boundary satisfies all outside-volume constraints, the pullback of a square cylinder
+under `juxt` is the corresponding finite-coordinate box. -/
+lemma preimage_juxt_squareCylinder_eq_univ_pi_of_forall
+    [DecidableEq S] {Λ s : Finset S} {t : S → Set E} {η : S → E}
+    (hP : ∀ i ∈ (s : Set S), i ∉ (Λ : Set S) → η i ∈ t i) :
+    (juxt (Λ : Set S) η) ⁻¹' ((s : Set S).pi t) =
+      Set.univ.pi (fun j : Λ => if (j : S) ∈ (s : Set S) then t j else Set.univ) := by
+  ext ζ
+  constructor
+  · intro hζ
+    have hcond : ∀ i, i ∈ (s : Set S) → juxt (Λ : Set S) η ζ i ∈ t i := by
+      simpa [Set.mem_preimage, Set.mem_pi] using hζ
+    refine Set.mem_univ_pi.2 (fun j => ?_)
+    by_cases hjs : (j : S) ∈ (s : Set S)
+    · have : juxt (Λ : Set S) η ζ (j : S) ∈ t (j : S) := hcond (j : S) hjs
+      simpa [hjs, juxt_apply_of_mem (Λ := (Λ : Set S)) (η := η) (ζ := ζ) j.property]
+        using this
+    · simp [hjs]
+  · intro hζ
+    have hζ' : ∀ j : Λ, ζ j ∈ (if (j : S) ∈ (s : Set S) then t j else Set.univ) := by
+      simpa [Set.mem_univ_pi] using hζ
+    refine Set.mem_pi.2 (fun i hi => ?_)
+    by_cases hiΛ : i ∈ (Λ : Set S)
+    · let j : Λ := ⟨i, hiΛ⟩
+      have hjs : (j : S) ∈ (s : Set S) := by simpa using hi
+      simpa [j, hjs, juxt_apply_of_mem (Λ := (Λ : Set S)) (η := η) (ζ := ζ) hiΛ]
+        using hζ' j
+    · simpa [juxt_apply_of_not_mem (Λ := (Λ : Set S)) (η := η) (ζ := ζ) hiΛ]
+        using hP i hi hiΛ
+
+/-- If the boundary violates an outside-volume constraint, the pullback of a square cylinder under
+`juxt` is empty. -/
+lemma preimage_juxt_squareCylinder_eq_empty_of_not_forall
+    {Λ s : Finset S} {t : S → Set E} {η : S → E}
+    (hP : ¬ ∀ i ∈ (s : Set S), i ∉ (Λ : Set S) → η i ∈ t i) :
+    (juxt (Λ : Set S) η) ⁻¹' ((s : Set S).pi t) = (∅ : Set (Λ → E)) := by
+  ext ζ
+  constructor
+  · intro hζ
+    simp only [not_forall] at hP
+    rcases hP with ⟨i, hi_s, hi_Λ, hi_not⟩
+    have hcond : ∀ j, j ∈ (s : Set S) → juxt (Λ : Set S) η ζ j ∈ t j := by
+      simpa [Set.mem_preimage, Set.mem_pi] using hζ
+    have : η i ∈ t i := by
+      simpa [juxt_apply_of_not_mem (Λ := (Λ : Set S)) (η := η) (ζ := ζ) hi_Λ]
+        using hcond i hi_s
+    exact (hi_not this).elim
+  · intro hζ
+    simp at hζ
+
+omit [IsProbabilityMeasure ν] in
+/-- Raw evaluation of a `juxt`-mapped product measure on a finite square cylinder. -/
+lemma map_juxt_apply_squareCylinder
+    [DecidableEq S] (Λ s : Finset S) (t : S → Set E)
+    (ht : ∀ i, MeasurableSet (t i)) (η : S → E) :
+    (Measure.map (juxt (Λ := (Λ : Set S)) η) (Measure.pi fun _ : Λ ↦ ν))
+        ((s : Set S).pi t) =
+      (by
+        classical
+        exact ite (∀ i ∈ (s : Set S), i ∉ (Λ : Set S) → η i ∈ t i)
+          ((Measure.pi fun _ : Λ ↦ ν)
+            (Set.univ.pi (fun j : Λ =>
+              if (j : S) ∈ (s : Set S) then t j else Set.univ)))
+          0) := by
+  classical
+  have hmeas_rect : MeasurableSet ((s : Set S).pi t) :=
+    MeasurableSet.pi s.countable_toSet (fun i _ => ht i)
+  rw [Measure.map_apply (Measurable.juxt (Λ := (Λ : Set S)) (η := η) (𝓔 := mE)) hmeas_rect]
+  by_cases hP : ∀ i ∈ (s : Set S), i ∉ (Λ : Set S) → η i ∈ t i
+  · rw [preimage_juxt_squareCylinder_eq_univ_pi_of_forall (S := S) (E := E) hP]
+    rw [if_pos hP]
+  · rw [preimage_juxt_squareCylinder_eq_empty_of_not_forall (S := S) (E := E) hP]
+    have hP' : ¬ ∀ i ∈ s, i ∉ Λ → η i ∈ t i := by
+      intro h
+      exact hP (fun i hi hiΛ => h i (by simpa using hi) (by simpa using hiΛ))
+    simp [hP']
+
+/-- Measurability, as a function of the boundary condition, of a `juxt`-mapped product measure
+applied to a finite square cylinder. -/
+lemma measurable_map_juxt_apply_squareCylinder
+    (Λ s : Finset S) (t : S → Set E)
+    (ht : ∀ i, MeasurableSet (t i)) :
+    Measurable[cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)ᶜ]
+      fun η : S → E =>
+        (Measure.map (juxt (Λ := (Λ : Set S)) η) (Measure.pi fun _ : Λ ↦ ν))
+          ((s : Set S).pi t) := by
+  classical
+  let P : (S → E) → Prop := fun η =>
+    ∀ i ∈ (s : Set S), i ∉ (Λ : Set S) → η i ∈ t i
+  let c : ℝ≥0∞ :=
+    (Measure.pi fun _ : Λ ↦ ν)
+      (Set.univ.pi (fun j : Λ => if (j : S) ∈ (s : Set S) then t j else Set.univ))
+  have h_eval :
+      (fun η : S → E =>
+          (Measure.map (juxt (Λ := (Λ : Set S)) η) (Measure.pi fun _ : Λ ↦ ν))
+            ((s : Set S).pi t)) =
+        fun η => ite (P η) c 0 := by
+    funext η
+    simpa [P, c] using map_juxt_apply_squareCylinder (S := S) (E := E) ν Λ s t ht η
+  have hP : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)ᶜ] {η | P η} := by
+    simpa [P] using measurableSet_forall_mem_not_mem (S := S) (E := E) Λ s ht
+  letI : MeasurableSpace (S → E) := cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)ᶜ
+  haveI : DecidablePred P := fun η => Classical.propDecidable (P η)
+  simpa [h_eval] using
+    (Measurable.ite (p := P) (hp := by simpa using hP) measurable_const measurable_const)
+
 lemma measurable_isssdFun (Λ : Finset S) :
     Measurable[cylinderEvents Λᶜ]
       fun η : S → E ↦ (Measure.pi fun _ : Λ ↦ ν).map (juxt Λ η) := by
   classical -- needed for decidability
-  -- We use a π-system generating the product σ-algebra on `S → E` (measurable rectangles).
   let C : Set (Set (S → E)) := squareCylindersMeas S E
   have hC_pi : IsPiSystem C := by
     simpa [C] using (isPiSystem_squareCylindersMeas S E)
@@ -241,120 +368,8 @@ lemma measurable_isssdFun (Λ : Finset S) :
   rcases hA with ⟨s, t, ht, rfl⟩
   have ht_meas : ∀ i : S, MeasurableSet (t i) := by
     simpa [Set.mem_pi, Set.mem_univ, true_implies] using ht
-  have h_rect_meas :
-      Measurable[cylinderEvents (Λ : Set S)ᶜ] fun η : S → E =>
-        (μ' η) ((s : Set S).pi t) := by
-    let P : (S → E) → Prop := fun η => ∀ i ∈ (s : Set S), i ∉ (Λ : Set S) → η i ∈ t i
-    have hP : MeasurableSet[cylinderEvents (Λ : Set S)ᶜ] {η | P η} := by
-      have :
-          {η | P η} =
-            ⋂ i ∈ (s : Finset S),
-              (if hi : i ∈ (Λ : Set S) then Set.univ else (fun η : S → E => η i) ⁻¹' (t i)) := by
-        ext η
-        simp [P, Set.mem_iInter, Set.mem_preimage]
-      rw [this]
-      refine Finset.measurableSet_biInter s (fun i hi => ?_)
-      by_cases hΛi : i ∈ (Λ : Set S)
-      · simp [hΛi]
-      · have hi' : i ∈ (Λ : Set S)ᶜ := by simpa [Set.mem_compl_iff] using hΛi
-        have hproj : Measurable[cylinderEvents (Λ : Set S)ᶜ] (fun η : S → E => η i) :=
-          measurable_cylinderEvent_apply (i := i) (X := fun _ : S ↦ E) hi'
-        simpa [hΛi] using (ht_meas i).preimage hproj
-    let tΛ : Λ → Set E := fun j =>
-      if hjs : (j : S) ∈ s then t j else Set.univ
-    have htΛ_meas : ∀ j : Λ, MeasurableSet (tΛ j) := by
-      intro j
-      by_cases hjs : (j : S) ∈ s
-      · simpa [tΛ, hjs] using ht_meas j
-      · simp [tΛ, hjs]
-    let c : ℝ≥0∞ := (Measure.pi fun _ : Λ ↦ ν) (Set.univ.pi tΛ)
-    have h_eval :
-        (fun η : S → E => (μ' η) ((s : Set S).pi t))
-          = fun η => ite (P η) c 0 := by
-      funext η
-      have hmeas_rect : MeasurableSet ((s : Set S).pi t) :=
-        MeasurableSet.pi s.countable_toSet (fun i _ => ht_meas i)
-      have : (μ' η) ((s : Set S).pi t)
-          = (Measure.pi fun _ : Λ ↦ ν) ((juxt (Λ : Set S) η) ⁻¹' ((s : Set S).pi t)) := by
-        simp [μ',
-          Measure.map_apply
-            (Measurable.juxt (Λ := (Λ : Set S)) (η := η) (𝓔 := mE)) hmeas_rect]
-      rw [this]
-      by_cases hPη : P η
-      · have hpre :
-            (juxt (Λ : Set S) η) ⁻¹' ((s : Set S).pi t) = Set.univ.pi tΛ := by
-          ext ζ
-          constructor
-          · intro hζ
-            have hζ' : juxt (Λ : Set S) η ζ ∈ (s : Set S).pi t := hζ
-            have hcond :
-                ∀ i, i ∈ (s : Set S) → juxt (Λ : Set S) η ζ i ∈ t i := by
-              simpa [Set.mem_pi] using hζ'
-            refine Set.mem_univ_pi.2 ?_
-            intro j
-            by_cases hj_s : (j : S) ∈ s
-            · have hj_s' : (j : S) ∈ (s : Set S) := by
-                exact (Finset.mem_coe.2 hj_s)
-              have hjΛ : (j : S) ∈ (Λ : Set S) := by
-                exact (Finset.mem_coe.2 j.2)
-              have : juxt (Λ : Set S) η ζ (j : S) = ζ j :=
-                (juxt_apply_of_mem (Λ := (Λ : Set S)) (η := η) (x := (j : S)) hjΛ (ζ := ζ)).trans
-                  (congrArg ζ (Subtype.ext rfl))
-              have : ζ j ∈ t (j : S) := by
-                simpa [this] using hcond (j : S) hj_s'
-              simpa [tΛ, hj_s] using this
-            · simp [tΛ, hj_s]
-          · intro hζ
-            have hζ' : ∀ j : Λ, ζ j ∈ tΛ j := by
-              simpa [Set.mem_univ_pi] using hζ
-            refine Set.mem_pi.2 ?_
-            intro i hi_s'
-            have hi_s : i ∈ s := by
-              simpa using hi_s'
-            by_cases hiΛ : i ∈ Λ
-            · let j : Λ := ⟨i, hiΛ⟩
-              have : ζ j ∈ t i := by
-                -- `tΛ j = t i`  `i ∈ s`.
-                have hj_s : (j : S) ∈ s := by simpa [j] using hi_s
-                have hζj : ζ j ∈ tΛ j := hζ' j
-                have hζj' : (j : S) ∈ s → ζ j ∈ t (j : S) := by
-                  simpa [tΛ] using hζj
-                have : ζ j ∈ t (j : S) := hζj' hj_s
-                simpa [j] using this
-              have hiΛ' : i ∈ (Λ : Set S) := Finset.mem_coe.2 hiΛ
-              simpa [juxt_apply_of_mem hiΛ', j] using this
-            · have hiΛ' : i ∉ (Λ : Set S) := by
-                simpa [Finset.mem_coe] using hiΛ
-              have : η i ∈ t i := hPη i hi_s' hiΛ'
-              simp [juxt_apply_of_not_mem hiΛ', this]
-        simp [hPη, hpre, c]
-      · have hpre_empty :
-            (juxt (Λ : Set S) η) ⁻¹' ((s : Set S).pi t) = ∅ := by
-          ext ζ
-          constructor
-          · intro hζ
-            have : ¬ (∀ i ∈ (s : Set S), i ∉ (Λ : Set S) → η i ∈ t i) := hPη
-            simp only [SetLike.mem_coe, not_forall] at this
-            rcases this with ⟨i, hi_s, hi_Λ, hi_not⟩
-            have hi_s' : i ∈ (s : Set S) := hi_s
-            have hi_Λ' : i ∉ (Λ : Set S) := hi_Λ
-            have hcond :
-                ∀ j, j ∈ (s : Set S) → juxt (Λ : Set S) η ζ j ∈ t j := by
-              simpa [Set.mem_preimage, Set.mem_pi] using hζ
-            have : juxt (Λ : Set S) η ζ i ∈ t i := hcond i hi_s'
-            have : η i ∈ t i := by
-              simpa [juxt_apply_of_not_mem (Λ := (Λ : Set S)) (η := η) (ζ := ζ) hi_Λ'] using this
-            exact (hi_not this).elim
-          · intro hζ
-            simp at hζ
-        simp [hPη, hpre_empty, c]
-    letI : MeasurableSpace (S → E) := cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)ᶜ
-    have hp : MeasurableSet {η : S → E | P η} := by simpa using hP
-    haveI : DecidablePred P := fun η => Classical.propDecidable (P η)
-    have h_ite : Measurable (fun η : S → E => ite (P η) c (0 : ℝ≥0∞)) :=
-      Measurable.ite (p := P) (hp := hp) measurable_const measurable_const
-    simpa [h_eval, P] using h_ite
-  simpa [μ'] using h_rect_meas
+  simpa [μ'] using
+    measurable_map_juxt_apply_squareCylinder (S := S) (E := E) ν Λ s t ht_meas
 
 /-- Auxiliary definition for `Specification.isssd`. -/
 @[simps -fullyApplied]
@@ -410,29 +425,7 @@ lemma preimage_juxt_squareCylinder_of_forall
     (hP : ∀ i ∈ (s : Set S), i ∉ (Λ : Set S) → η i ∈ t i) :
     (juxt (Λ : Set S) η) ⁻¹' ((s : Set S).pi t) =
       Set.univ.pi (fun j : Λ => if (j : S) ∈ (s : Set S) then t j else Set.univ) := by
-  ext ζ
-  constructor
-  · intro hζ
-    have hζ' : ∀ i, i ∈ (s : Set S) → juxt (Λ : Set S) η ζ i ∈ t i := by
-      simpa [Set.mem_preimage, Set.mem_pi] using hζ
-    refine Set.mem_pi.2 (fun j _ => ?_)
-    by_cases hjs : (j : S) ∈ (s : Set S)
-    · have : juxt (Λ : Set S) η ζ (j : S) ∈ t (j : S) := hζ' (j : S) hjs
-      simpa [hjs, juxt_apply_of_mem (Λ := (Λ : Set S)) (η := η) (ζ := ζ) j.property] using this
-    · simp [hjs]
-  · intro hζ
-    have hζ' : ∀ j : Λ, ζ j ∈ (if (j : S) ∈ (s : Set S) then t j else Set.univ) := by
-      simpa [Set.mem_univ_pi] using hζ
-    refine Set.mem_pi.2 (fun i hi => ?_)
-    by_cases hiΛ : i ∈ (Λ : Set S)
-    · let j : Λ := ⟨i, hiΛ⟩
-      have hjs : (j : S) ∈ (s : Set S) := by simpa using hi
-      have : ζ j ∈ t i := by
-        have : ζ j ∈ (if (j : S) ∈ (s : Set S) then t j else Set.univ) := hζ' j
-        simpa [hjs] using this
-      simpa [juxt_apply_of_mem (Λ := (Λ : Set S)) (η := η) (ζ := ζ) hiΛ] using this
-    · have : η i ∈ t i := hP i hi hiΛ
-      simpa [juxt_apply_of_not_mem (Λ := (Λ : Set S)) (η := η) (ζ := ζ) hiΛ] using this
+  exact preimage_juxt_squareCylinder_eq_univ_pi_of_forall (S := S) (E := E) hP
 
 /-- If the boundary condition violates an outside-volume constraint, the pullback of the square
 cylinder under `juxt` is empty. -/
@@ -440,19 +433,7 @@ lemma preimage_juxt_squareCylinder_of_not_forall
     {Λ s : Finset S} {t : S → Set E} {η : S → E}
     (hP : ¬ ∀ i ∈ (s : Set S), i ∉ (Λ : Set S) → η i ∈ t i) :
     (juxt (Λ : Set S) η) ⁻¹' ((s : Set S).pi t) = (∅ : Set (Λ → E)) := by
-  ext ζ
-  constructor
-  · intro hζ
-    simp only [not_forall] at hP
-    rcases hP with ⟨i, hi_s, hi_Λ, hi_not⟩
-    have hcond : ∀ j, j ∈ (s : Set S) → juxt (Λ : Set S) η ζ j ∈ t j := by
-      simpa [Set.mem_preimage, Set.mem_pi] using hζ
-    have : juxt (Λ : Set S) η ζ i ∈ t i := hcond i hi_s
-    have : η i ∈ t i := by
-      simpa [juxt_apply_of_not_mem (Λ := (Λ : Set S)) (η := η) (ζ := ζ) hi_Λ] using this
-    exact (hi_not this).elim
-  · intro hζ
-    simp at hζ
+  exact preimage_juxt_squareCylinder_eq_empty_of_not_forall (S := S) (E := E) hP
 
 lemma isssdFun_apply_squareCylinder
     [DecidableEq S] (Λ s : Finset S) (t : S → Set E) (ht : ∀ i, MeasurableSet (t i)) (η : S → E) :
@@ -461,25 +442,18 @@ lemma isssdFun_apply_squareCylinder
         classical -- needed
         exact ite (∀ i ∈ s, i ∉ Λ → η i ∈ t i)
           (∏ i ∈ s ∩ Λ, ν (t i)) 0) := by
-  classical -- needed
-  have hmeas_rect : MeasurableSet ((s : Set S).pi t) :=
-    MeasurableSet.pi s.countable_toSet (fun i _ => ht i)
-  simp only [isssdFun_apply,
-    Measure.map_apply (Measurable.juxt (Λ := (Λ : Set S)) (η := η) (𝓔 := mE))
-      hmeas_rect]
-  let P : Prop := ∀ i ∈ (s : Set S), i ∉ (Λ : Set S) → η i ∈ t i
-  have hP_iff : P ↔ ∀ i ∈ s, i ∉ Λ → η i ∈ t i := by
-    simp [P]
-  by_cases hP : P
-  · rw [preimage_juxt_squareCylinder_of_forall (S := S) (E := E) hP]
-    rw [measure_pi_univ_pi_if_mem_eq_prod_inter (S := S) (E := E) ν Λ s t]
-    have hP' : (∀ i ∈ s, i ∉ Λ → η i ∈ t i) := (hP_iff.mp hP)
-    rw [if_pos hP']
-  · rw [preimage_juxt_squareCylinder_of_not_forall (S := S) (E := E) hP]
-    have hP' : ¬ (∀ i ∈ s, i ∉ Λ → η i ∈ t i) := by
-      intro h
-      exact hP (hP_iff.mpr h)
-    simp [hP']
+  rw [isssdFun_apply]
+  rw [map_juxt_apply_squareCylinder (S := S) (E := E) ν Λ s t ht η]
+  rw [measure_pi_univ_pi_if_mem_eq_prod_inter (S := S) (E := E) ν Λ s t]
+  have hP_iff :
+      (∀ i ∈ (s : Set S), i ∉ (Λ : Set S) → η i ∈ t i) ↔
+        ∀ i ∈ s, i ∉ Λ → η i ∈ t i := by
+    simp
+  by_cases hP : ∀ i ∈ (s : Set S), i ∉ (Λ : Set S) → η i ∈ t i
+  · have hP' : ∀ i ∈ s, i ∉ Λ → η i ∈ t i := hP_iff.mp hP
+    rw [if_pos hP, if_pos hP']
+  · have hP' : ¬ ∀ i ∈ s, i ∉ Λ → η i ∈ t i := fun h => hP (hP_iff.mpr h)
+    rw [if_neg hP, if_neg hP']
 
 /-- A square-cylinder event depending only outside `Λ` can be written as a coordinate box with
 unconstrained coordinates on `Λ`. -/
@@ -631,17 +605,30 @@ lemma isssdFun_apply_forall_not_mem
       · simp [hi1]
       · simp [hi1, h i (by simpa using hi)
           (fun hiU => (Finset.mem_union.1 hiU).elim hi1 hi2)]
-  have hswap :
-      (∀ i ∈ s, i ∉ Λ₂ → i ∉ Λ₁ → η i ∈ t i) ↔
-        ∀ i ∈ s, i ∉ Λ₁ → i ∉ Λ₂ → η i ∈ t i := by
-    constructor <;> intro h i hi hi1 hi2
-    · exact h i hi hi2 hi1
-    · exact h i hi hi2 hi1
   have hprod :
       (∏ x ∈ s ∩ Λ₂, ν (if x ∈ Λ₁ then (Set.univ : Set E) else t x)) =
         ∏ i ∈ s ∩ (Λ₂ \ Λ₁), ν (t i) := by
     simpa using prod_measure_if_mem_univ_eq_prod_inter_sdiff (ν := ν) s Λ₁ Λ₂ t
-  simpa [hpred, hswap, hprod] using hbase
+  have hprodSet :
+      (∏ x ∈ s ∩ Λ₂, ν (if x ∈ (Λ₁ : Set S) then (Set.univ : Set E) else t x)) =
+        ∏ i ∈ s ∩ (Λ₂ \ Λ₁), ν (t i) := by
+    simpa using hprod
+  calc
+    (isssdFun ν Λ₂ η)
+        (((s : Set S).pi fun i => if i ∈ (Λ₁ : Set S) then Set.univ else t i)) =
+        ite (∀ i ∈ s, i ∉ Λ₂ → η i ∈ (if i ∈ (Λ₁ : Set S) then Set.univ else t i))
+          (∏ i ∈ s ∩ Λ₂, ν (if i ∈ (Λ₁ : Set S) then Set.univ else t i)) 0 := hbase
+    _ = ite (∀ i ∈ (s : Set S), i ∉ (Λ₁ ∪ Λ₂ : Finset S) → η i ∈ t i)
+        (∏ i ∈ s ∩ (Λ₂ \ Λ₁), ν (t i)) 0 := by
+          by_cases hU :
+              ∀ i ∈ (s : Set S), i ∉ (Λ₁ ∪ Λ₂ : Finset S) → η i ∈ t i
+          · have hleft := hpred.mpr hU
+            rw [if_pos hleft, if_pos hU, hprodSet]
+          · have hleft : ¬
+                (∀ i ∈ s, i ∉ Λ₂ →
+                  η i ∈ (if i ∈ (Λ₁ : Set S) then Set.univ else t i)) :=
+              fun h => hU (hpred.mp h)
+            rw [if_neg hleft, if_neg hU]
 
 /-- Integral of a constant on a measurable predicate, written with an `if`. -/
 lemma lintegral_ite_const_eq_mul
