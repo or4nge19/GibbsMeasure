@@ -15,9 +15,13 @@ This file introduces the basic objects used to state *existence* results for Gib
 
 - the directed system of finite volumes `Λ : Finset S` with the filter `atTop`;
 - the net of finite-volume Gibbs distributions `Λ ↦ γ Λ η`;
-- the predicate `IsThermodynamicLimit` (cluster point along `atTop`), using the topology of
-  **local convergence** from `GibbsMeasure/Topology/LocalConvergence.lean`.
-We prove Existence of a Gibbs measure on a **compact** single-spin space.
+- the predicate `IsLocalThermodynamicLimit` (cluster point along `atTop`), using the topology
+  of **local convergence** from `GibbsMeasure/Topology/LocalConvergence.lean`.
+
+Georgii's thermodynamic-limit existence theorem is a **local/quasilocal** statement. The compact
+and tightness results below currently use the default weak topology on `ProbabilityMeasure`;
+their hypotheses and names therefore explicitly say `Weak`. This separation is intentional:
+weak compactness is not silently identified with Georgii-local convergence.
 
 -/
 
@@ -42,12 +46,25 @@ noncomputable def finiteVolumeDistributions (η : S → E) :
     (Finset S) → ProbabilityMeasure (S → E) :=
   fun Λ => ⟨γ Λ η, inferInstance⟩
 
-/-- A probability measure `μ` is a thermodynamic limit (for boundary condition `η`) if it is a
-cluster point of the net `Λ ↦ γ Λ η` in the topology of local convergence. -/
-def IsThermodynamicLimit (η : S → E) (μ : ProbabilityMeasure (S → E)) : Prop :=
+/-- A probability measure `μ` is a **local** thermodynamic limit for boundary condition `η` if it is
+a cluster point of the net `Λ ↦ γ Λ η` in the topology of local convergence. This is the topology
+used in Georgii's quasilocal existence theorem. -/
+def IsLocalThermodynamicLimit (η : S → E) (μ : ProbabilityMeasure (S → E)) : Prop :=
   letI : TopologicalSpace (ProbabilityMeasure (S → E)) :=
     ProbabilityMeasure.localConvergence S E
   ClusterPt μ (Filter.map (finiteVolumeDistributions (γ := γ) η) (volumeLimit S))
+
+/-- Compatibility alias for the Georgii/local notion of thermodynamic limit. Prefer the explicit
+name `IsLocalThermodynamicLimit` in new statements. -/
+abbrev IsThermodynamicLimit (η : S → E) (μ : ProbabilityMeasure (S → E)) : Prop :=
+  IsLocalThermodynamicLimit (γ := γ) η μ
+
+/-- The legacy name `IsThermodynamicLimit` is definitionally the local thermodynamic-limit
+predicate. -/
+lemma isThermodynamicLimit_iff_isLocalThermodynamicLimit
+    (η : S → E) (μ : ProbabilityMeasure (S → E)) :
+    IsThermodynamicLimit (γ := γ) η μ ↔ IsLocalThermodynamicLimit (γ := γ) η μ :=
+  Iff.rfl
 
 /-! ### Existence on compact spaces via Prokhorov + Feller continuity (weak topology) -/
 
@@ -58,15 +75,27 @@ open BoundedContinuousFunction
 
 variable {S E : Type*} [MeasurableSpace E] [TopologicalSpace E]
 
--- Weak topology on probability measures requires measurability of open sets in the configuration space.
+-- Weak topology on probability measures requires measurable open sets in configuration space.
 variable [OpensMeasurableSpace (S → E)]
 
 variable (γ : Specification S E)
 
-/-- Thermodynamic limit defined using the **weak topology** on `ProbabilityMeasure (S → E)`
-(`MeasureTheory.ProbabilityMeasure`'s default topology instance). -/
-def IsThermodynamicLimitWeak (η : S → E) (μ : ProbabilityMeasure (S → E)) : Prop :=
+/-- A **weak** thermodynamic limit: a cluster point of the finite-volume net in the default topology
+on `ProbabilityMeasure (S → E)`. This is not the Georgii local-convergence notion unless additional
+hypotheses identify the two topologies. -/
+def IsWeakThermodynamicLimit (η : S → E) (μ : ProbabilityMeasure (S → E)) : Prop :=
   ClusterPt μ (Filter.map (finiteVolumeDistributions (γ := γ) η) (volumeLimit S))
+
+/-- Compatibility alias for the weak-topology cluster-point predicate. Prefer
+`IsWeakThermodynamicLimit` in new statements. -/
+abbrev IsThermodynamicLimitWeak (η : S → E) (μ : ProbabilityMeasure (S → E)) : Prop :=
+  IsWeakThermodynamicLimit (γ := γ) η μ
+
+/-- The legacy weak-limit name is definitionally the explicit weak thermodynamic-limit predicate. -/
+lemma isThermodynamicLimitWeak_iff_isWeakThermodynamicLimit
+    (η : S → E) (μ : ProbabilityMeasure (S → E)) :
+    IsThermodynamicLimitWeak (γ := γ) η μ ↔ IsWeakThermodynamicLimit (γ := γ) η μ :=
+  Iff.rfl
 
 namespace Specification
 
@@ -103,7 +132,8 @@ variable [γ.IsFeller]
 --variable [T2Space E] [OpensMeasurableSpace (S → E)]
 
 
-/-- Feller continuity: `μ ↦ μ.bind (γ Λ)` is continuous for the weak topology on probability measures. -/
+/-- Feller continuity: `μ ↦ μ.bind (γ Λ)` is continuous for the weak topology on probability
+measures. -/
 theorem continuous_bindPM (Λ : Finset S) :
     Continuous (bindPM (γ := γ) Λ :
       ProbabilityMeasure (S → E) → ProbabilityMeasure (S → E)) := by
@@ -152,11 +182,11 @@ variable [γ.IsFeller]
 --variable [T2Space E] [OpensMeasurableSpace (S → E)]
 variable [T2Space (ProbabilityMeasure (S → E))]
 
-/-- Any **weak** thermodynamic limit of finite-volume distributions is a Gibbs measure (compact case
-uses this with existence of a cluster point). -/
-theorem isGibbsMeasure_of_isThermodynamicLimitWeak
+/-- Any **weak** thermodynamic limit of finite-volume distributions is a Gibbs measure. This is a
+weak-topology closure theorem, not the full Georgii local/quasilocal existence theorem. -/
+theorem isGibbsMeasure_of_isWeakThermodynamicLimit
     (η : S → E) {μ : ProbabilityMeasure (S → E)}
-    (hμ : IsThermodynamicLimitWeak (γ := γ) η μ) :
+    (hμ : IsWeakThermodynamicLimit (γ := γ) η μ) :
     μ ∈ GP (S := S) (E := E) γ := by
   -- Use the fixed-point characterization `μ.bind (γ Λ) = μ`.
   have hfix : ∀ Λ : Finset S, (μ : Measure (S → E)).bind (γ Λ) = (μ : Measure (S → E)) := by
@@ -196,14 +226,23 @@ theorem isGibbsMeasure_of_isThermodynamicLimitWeak
       congrArg (fun ν : ProbabilityMeasure (S → E) => (ν : Measure (S → E))) this
   simpa [GP, Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ)] using hfix
 
+/-- Compatibility alias for the old theorem name. Prefer
+`isGibbsMeasure_of_isWeakThermodynamicLimit` in new code. -/
+theorem isGibbsMeasure_of_isThermodynamicLimitWeak
+    (η : S → E) {μ : ProbabilityMeasure (S → E)}
+    (hμ : IsThermodynamicLimitWeak (γ := γ) η μ) :
+    μ ∈ GP (S := S) (E := E) γ :=
+  isGibbsMeasure_of_isWeakThermodynamicLimit (γ := γ) η hμ
+
 section Compact
 
 variable [CompactSpace E]
 variable [BorelSpace E] [SecondCountableTopology E] [Countable S]
 variable [T2Space E]
-/-- Existence of a Gibbs measure on a **compact** single-spin space, via compactness of
-`ProbabilityMeasure (S → E)` (Prokhorov) and the previous limit-closure lemma. -/
-theorem existence_of_gibbsMeasure_compact (η : S → E) :
+/-- Existence of a Gibbs measure on a **compact** single-spin space, via weak compactness of
+`ProbabilityMeasure (S → E)` and weak closure of the Gibbs fixed-point equations. This is a
+weak-topology existence route; it is not a replacement for Georgii's local/quasilocal theorem. -/
+theorem existence_of_gibbsMeasure_compact_weak (η : S → E) :
     (GP (S := S) (E := E) γ).Nonempty := by
   classical
   haveI : CompactSpace (ProbabilityMeasure (S → E)) := by infer_instance
@@ -215,7 +254,13 @@ theorem existence_of_gibbsMeasure_compact (η : S → E) :
   obtain ⟨μ, hμ⟩ : ∃ μ : ProbabilityMeasure (S → E), ClusterPt μ F :=
     exists_clusterPt_of_compactSpace F
   refine ⟨μ, ?_⟩
-  exact isGibbsMeasure_of_isThermodynamicLimitWeak (γ := γ) (η := η) hμ
+  exact isGibbsMeasure_of_isWeakThermodynamicLimit (γ := γ) (η := η) hμ
+
+/-- Compatibility alias for the original compact existence theorem name. Prefer
+`existence_of_gibbsMeasure_compact_weak` in new code. -/
+theorem existence_of_gibbsMeasure_compact (η : S → E) :
+    (GP (S := S) (E := E) γ).Nonempty :=
+  existence_of_gibbsMeasure_compact_weak (γ := γ) η
 
 end Compact
 
@@ -225,9 +270,9 @@ section Tight
 
 variable [T2Space (S → E)] [BorelSpace (S → E)]
 
-/-- Existence of a Gibbs measure from **tightness** of the finite-volume distributions, using
-Prokhorov compactness of the closure of a tight set. -/
-theorem existence_of_gibbsMeasure_of_isTight
+/-- Existence of a Gibbs measure from **tightness** of the finite-volume distributions, using weak
+Prokhorov compactness of the closure of a tight set. This is explicitly a weak-topology route. -/
+theorem existence_of_gibbsMeasure_of_isTight_weak
     (η : S → E)
     (hT :
       IsTightMeasureSet
@@ -262,7 +307,19 @@ theorem existence_of_gibbsMeasure_of_isTight
   obtain ⟨μ, _hμ_mem, hμ⟩ : ∃ μ ∈ closure Sset, ClusterPt μ F :=
     hcompact.exists_clusterPt (f := F) hF_le
   refine ⟨μ, ?_⟩
-  exact isGibbsMeasure_of_isThermodynamicLimitWeak (γ := γ) (η := η) hμ
+  exact isGibbsMeasure_of_isWeakThermodynamicLimit (γ := γ) (η := η) hμ
+
+/-- Compatibility alias for the original tightness theorem name. Prefer
+`existence_of_gibbsMeasure_of_isTight_weak` in new code. -/
+theorem existence_of_gibbsMeasure_of_isTight
+    (η : S → E)
+    (hT :
+      IsTightMeasureSet
+        {x : Measure (S → E) |
+          ∃ μ ∈ Set.range (finiteVolumeDistributions (γ := γ) η),
+            (μ : Measure (S → E)) = x}) :
+    (GP (S := S) (E := E) γ).Nonempty :=
+  existence_of_gibbsMeasure_of_isTight_weak (γ := γ) η hT
 
 end Tight
 
@@ -309,7 +366,8 @@ theorem isClosed_GP :
   classical
   have hGP :
       GP (S := S) (E := E) γ =
-        ⋂ Λ : Finset S, {μ : ProbabilityMeasure (S → E) | Specification.bindPM (γ := γ) Λ μ = μ} := by
+        ⋂ Λ : Finset S,
+          {μ : ProbabilityMeasure (S → E) | Specification.bindPM (γ := γ) Λ μ = μ} := by
     ext μ
     simp [mem_GP_iff_forall_bindPM_eq (γ := γ) μ]
   have hclosed :
