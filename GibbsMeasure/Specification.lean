@@ -479,6 +479,167 @@ lemma isssdFun_apply_squareCylinder
       exact hP (hP_iff.mpr h)
     simp [hP']
 
+/-- A square-cylinder event depending only outside `Λ` can be written as a coordinate box with
+unconstrained coordinates on `Λ`. -/
+lemma setOf_forall_not_mem_eq_pi_if_univ [DecidableEq S]
+    (Λ s : Finset S) (t : S → Set E) :
+    {ω : S → E | ∀ i ∈ (s : Set S), i ∉ (Λ : Set S) → ω i ∈ t i} =
+      ((s : Set S).pi fun i => if i ∈ (Λ : Set S) then Set.univ else t i) := by
+  ext ω
+  simp [Set.mem_pi]
+
+/-- Measurability of the outside-`Λ` part of a finite square-cylinder event. -/
+lemma measurableSet_forall_not_mem
+    [DecidableEq S] (Λ s : Finset S) {t : S → Set E} (ht : ∀ i, MeasurableSet (t i)) :
+    MeasurableSet {ω : S → E | ∀ i ∈ (s : Set S), i ∉ (Λ : Set S) → ω i ∈ t i} := by
+  rw [setOf_forall_not_mem_eq_pi_if_univ (S := S) (E := E) Λ s t]
+  refine MeasurableSet.pi s.countable_toSet ?_
+  intro i hi
+  by_cases hiΛ : i ∈ (Λ : Set S)
+  · simp [hiΛ]
+  · simpa [hiΛ] using ht i
+
+/-- Outside both finite volumes is the same as outside their finite union. -/
+lemma forall_mem_not_mem_union_iff
+    [DecidableEq S] (Λ₁ Λ₂ s : Finset S) (t : S → Set E) (η : S → E) :
+    (∀ i ∈ (s : Set S), i ∉ (Λ₁ ∪ Λ₂ : Finset S) → η i ∈ t i) ↔
+      ∀ i ∈ s, i ∉ Λ₁ → i ∉ Λ₂ → η i ∈ t i := by
+  constructor
+  · intro h i hi hi1 hi2
+    exact h i (by simpa using hi) (fun hiU =>
+      (Finset.mem_union.1 hiU).elim hi1 hi2)
+  · intro h i hi hiU
+    exact h i (by simpa using hi)
+      (fun hi1 => hiU (Finset.mem_union.2 (Or.inl hi1)))
+      (fun hi2 => hiU (Finset.mem_union.2 (Or.inr hi2)))
+
+/-- Splitting a product over `s ∩ Λ₂` by removing the coordinates already in `Λ₁`. -/
+lemma prod_inter_if_mem_eq_prod_inter_sdiff
+    [DecidableEq S] {M : Type*} [CommMonoid M] (s Λ₁ Λ₂ : Finset S) (f : S → M) :
+    (∏ i ∈ s ∩ Λ₂, (if i ∈ Λ₁ then 1 else f i)) =
+      ∏ i ∈ s ∩ (Λ₂ \ Λ₁), f i := by
+  have hite :
+      (∏ i ∈ s ∩ Λ₂, (if i ∈ Λ₁ then 1 else f i)) =
+        ∏ i ∈ s ∩ Λ₂, (if i ∈ (s ∩ Λ₂) \ Λ₁ then f i else 1) := by
+    refine Finset.prod_congr rfl ?_
+    intro i hi
+    by_cases hiΛ1 : i ∈ Λ₁
+    · have : i ∉ (s ∩ Λ₂) \ Λ₁ := fun hi' => (Finset.mem_sdiff.1 hi').2 hiΛ1
+      simp [hiΛ1, this]
+    · have : i ∈ (s ∩ Λ₂) \ Λ₁ := Finset.mem_sdiff.2 ⟨hi, hiΛ1⟩
+      simp [hiΛ1, this]
+  have hsub : (s ∩ Λ₂) \ Λ₁ ⊆ s ∩ Λ₂ := fun _ hi => (Finset.mem_sdiff.1 hi).1
+  calc
+    (∏ i ∈ s ∩ Λ₂, (if i ∈ Λ₁ then 1 else f i)) =
+        ∏ i ∈ s ∩ Λ₂, (if i ∈ (s ∩ Λ₂) \ Λ₁ then f i else 1) := hite
+    _ = ∏ i ∈ (s ∩ Λ₂) ∩ ((s ∩ Λ₂) \ Λ₁), f i := by
+          simpa using Finset.prod_ite_mem (s ∩ Λ₂) ((s ∩ Λ₂) \ Λ₁) f
+    _ = ∏ i ∈ (s ∩ Λ₂) \ Λ₁, f i := by
+          simp [Finset.inter_eq_right.2 hsub]
+    _ = ∏ i ∈ s ∩ (Λ₂ \ Λ₁), f i := by
+          congr 1
+          ext i
+          constructor
+          · intro hi
+            rcases Finset.mem_sdiff.1 hi with ⟨hi12, hi1⟩
+            exact Finset.mem_inter.2
+              ⟨(Finset.mem_inter.1 hi12).1,
+                Finset.mem_sdiff.2 ⟨(Finset.mem_inter.1 hi12).2, hi1⟩⟩
+          · intro hi
+            rcases Finset.mem_inter.1 hi with ⟨his, hi21⟩
+            exact Finset.mem_sdiff.2
+              ⟨Finset.mem_inter.2 ⟨his, (Finset.mem_sdiff.1 hi21).1⟩,
+                (Finset.mem_sdiff.1 hi21).2⟩
+
+/-- Product decomposition for the disjoint split `Λ₁` and `Λ₂ \ Λ₁` inside `s`. -/
+lemma prod_inter_mul_prod_inter_sdiff_eq_prod_inter_union
+    [DecidableEq S] {M : Type*} [CommMonoid M] (s Λ₁ Λ₂ : Finset S) (f : S → M) :
+    (∏ i ∈ s ∩ Λ₁, f i) * (∏ i ∈ s ∩ (Λ₂ \ Λ₁), f i) =
+      ∏ i ∈ s ∩ (Λ₁ ∪ Λ₂), f i := by
+  have hdisj : Disjoint (s ∩ Λ₁) (s ∩ (Λ₂ \ Λ₁)) := by
+    refine Finset.disjoint_left.2 ?_
+    intro i hi1 hi2
+    exact (Finset.mem_sdiff.1 (Finset.mem_inter.1 hi2).2).2 (Finset.mem_inter.1 hi1).2
+  have hunion : (s ∩ Λ₁) ∪ (s ∩ (Λ₂ \ Λ₁)) = s ∩ (Λ₁ ∪ Λ₂) := by
+    ext i
+    constructor
+    · intro hi
+      rcases Finset.mem_union.1 hi with hi | hi
+      · exact Finset.mem_inter.2
+          ⟨(Finset.mem_inter.1 hi).1, Finset.mem_union.2 (Or.inl (Finset.mem_inter.1 hi).2)⟩
+      · exact Finset.mem_inter.2
+          ⟨(Finset.mem_inter.1 hi).1,
+            Finset.mem_union.2 (Or.inr (Finset.mem_sdiff.1 (Finset.mem_inter.1 hi).2).1)⟩
+    · intro hi
+      rcases Finset.mem_inter.1 hi with ⟨his, hiU⟩
+      rcases Finset.mem_union.1 hiU with hi1 | hi2
+      · exact Finset.mem_union.2 (Or.inl (Finset.mem_inter.2 ⟨his, hi1⟩))
+      · by_cases hi1 : i ∈ Λ₁
+        · exact Finset.mem_union.2 (Or.inl (Finset.mem_inter.2 ⟨his, hi1⟩))
+        · exact Finset.mem_union.2
+            (Or.inr (Finset.mem_inter.2 ⟨his, Finset.mem_sdiff.2 ⟨hi2, hi1⟩⟩))
+  simpa [hunion] using
+    (Finset.prod_union (s₁ := s ∩ Λ₁) (s₂ := s ∩ (Λ₂ \ Λ₁)) (f := f) hdisj).symm
+
+/-- Single-site factors with unconstrained coordinates on `Λ₁` collapse to the coordinates in
+`Λ₂ \ Λ₁`. -/
+lemma prod_measure_if_mem_univ_eq_prod_inter_sdiff
+    [DecidableEq S] (s Λ₁ Λ₂ : Finset S) (t : S → Set E) :
+    (∏ i ∈ s ∩ Λ₂, ν (if i ∈ (Λ₁ : Set S) then (Set.univ : Set E) else t i)) =
+      ∏ i ∈ s ∩ (Λ₂ \ Λ₁), ν (t i) := by
+  have hrewrite :
+      (∏ i ∈ s ∩ Λ₂, ν (if i ∈ (Λ₁ : Set S) then (Set.univ : Set E) else t i)) =
+        ∏ i ∈ s ∩ Λ₂, (if i ∈ Λ₁ then (1 : ℝ≥0∞) else ν (t i)) := by
+    refine Finset.prod_congr rfl ?_
+    intro i hi
+    by_cases hiΛ1 : i ∈ Λ₁
+    · simp [hiΛ1]
+    · simp [hiΛ1]
+  rw [hrewrite]
+  exact prod_inter_if_mem_eq_prod_inter_sdiff (s := s) (Λ₁ := Λ₁)
+    (Λ₂ := Λ₂) (f := fun i => ν (t i))
+
+/-- Evaluation of `isssdFun` on a finite cylinder that constrains only the sites outside another
+finite volume. -/
+lemma isssdFun_apply_forall_not_mem
+    [DecidableEq S] (Λ₁ Λ₂ s : Finset S) (t : S → Set E)
+    (ht : ∀ i, MeasurableSet (t i)) (η : S → E) :
+    isssdFun ν Λ₂ η
+        {ω : S → E | ∀ i ∈ (s : Set S), i ∉ (Λ₁ : Set S) → ω i ∈ t i} =
+      (by
+        classical
+        exact ite (∀ i ∈ (s : Set S), i ∉ (Λ₁ ∪ Λ₂ : Finset S) → η i ∈ t i)
+          (∏ i ∈ s ∩ (Λ₂ \ Λ₁), ν (t i)) 0) := by
+  classical
+  rw [setOf_forall_not_mem_eq_pi_if_univ (S := S) (E := E) Λ₁ s t]
+  have hbase := isssdFun_apply_squareCylinder (ν := ν) (mE := mE) Λ₂ s
+    (fun i => if i ∈ (Λ₁ : Set S) then Set.univ else t i)
+    (fun i => by by_cases hiΛ : i ∈ (Λ₁ : Set S) <;> simp [hiΛ, ht i]) η
+  have hpred :
+      (∀ i ∈ s, i ∉ Λ₂ → η i ∈ (if i ∈ (Λ₁ : Set S) then Set.univ else t i)) ↔
+        ∀ i ∈ (s : Set S), i ∉ (Λ₁ ∪ Λ₂ : Finset S) → η i ∈ t i := by
+    constructor
+    · intro h i hi hiU
+      have hi1 : i ∉ Λ₁ := fun hi1 => hiU (Finset.mem_union.2 (Or.inl hi1))
+      simpa [hi1] using
+        h i (by simpa using hi) (fun hi2 => hiU (Finset.mem_union.2 (Or.inr hi2)))
+    · intro h i hi hi2
+      by_cases hi1 : i ∈ Λ₁
+      · simp [hi1]
+      · simp [hi1, h i (by simpa using hi)
+          (fun hiU => (Finset.mem_union.1 hiU).elim hi1 hi2)]
+  have hswap :
+      (∀ i ∈ s, i ∉ Λ₂ → i ∉ Λ₁ → η i ∈ t i) ↔
+        ∀ i ∈ s, i ∉ Λ₁ → i ∉ Λ₂ → η i ∈ t i := by
+    constructor <;> intro h i hi hi1 hi2
+    · exact h i hi hi2 hi1
+    · exact h i hi hi2 hi1
+  have hprod :
+      (∏ x ∈ s ∩ Λ₂, ν (if x ∈ Λ₁ then (Set.univ : Set E) else t x)) =
+        ∏ i ∈ s ∩ (Λ₂ \ Λ₁), ν (t i) := by
+    simpa using prod_measure_if_mem_univ_eq_prod_inter_sdiff (ν := ν) s Λ₁ Λ₂ t
+  simpa [hpred, hswap, hprod] using hbase
+
 /-- The ISSSD of a measure is strongly consistent. -/
 lemma isssdFun_comp_isssdFun [DecidableEq S] (Λ₁ Λ₂ : Finset S) :
     (isssdFun ν Λ₁).comap id cylinderEvents_le_pi ∘ₖ isssdFun ν Λ₂ =
