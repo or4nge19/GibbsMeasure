@@ -5,7 +5,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.Cylinders
 /-!
 # Square cylinders (measurable rectangles) on configuration spaces
 
-This file packages the recurring π-system `squareCylinders (measurableSet)` on `S → E` and
+This file defines the recurring π-system `squareCylinders (measurableSet)` on `S → E` and
 its basic properties (π-system + generates the product σ-algebra). It is used throughout the
 Vol II / DLR development to avoid repeating boilerplate.
 -/
@@ -41,6 +41,12 @@ lemma univ_mem_squareCylindersMeas (S E : Type*) [MeasurableSpace E] :
   refine ⟨∅, (fun _ : S ↦ (Set.univ : Set E)), ?_, ?_⟩
   · simp [Set.mem_pi, MeasurableSet.univ]
   · ext x; simp
+
+/-- A finite square cylinder with measurable sides is measurable in the product space. -/
+lemma measurableSet_finset_pi
+    (s : Finset S) (t : S → Set E) (ht : ∀ i, MeasurableSet (t i)) :
+    MeasurableSet ((s : Set S).pi t) :=
+  MeasurableSet.pi s.countable_toSet (fun i _ => ht i)
 
 end MeasureTheory
 

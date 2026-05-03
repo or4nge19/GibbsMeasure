@@ -20,7 +20,7 @@ namespace SimpleFunc
 open MeasureTheory Filter Set
 
 /-- Pointwise a.e. convergence of the canonical simple-function approximation `approxOn` on
-`range f ∪ {0}`. This packages the standard `tendsto_approxOn` with the trivial membership
+`range f ∪ {0}`. This specializes `tendsto_approxOn` with the trivial membership
 assumption `f x ∈ closure (range f ∪ {0})`. -/
 lemma tendsto_approxOn_range_ae
     {α : Type*} [MeasurableSpace α]

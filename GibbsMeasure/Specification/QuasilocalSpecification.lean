@@ -6,7 +6,7 @@ public import GibbsMeasure.Specification.Quasilocal
 public import Mathlib.Topology.Continuous
 
 /-!
-# Quasilocal specifications (Georgii, Def. 2.23)
+# Continuous/Feller quasilocal specifications
 
 This file links the *functional-analytic* notion of quasilocal observables to specifications.
 
@@ -16,8 +16,14 @@ observables. Markovness is already bundled in `Specification`:
 
 `f ↦ (η ↦ ∫ x, f x ∂(γ Λ η))`.
 
-A specification is **quasilocal** (Georgii, Def. 2.23) if this action preserves the submodule of
-quasilocal observables (uniform closure of cylinder observables).
+A specification is **Feller-quasilocal** if this action preserves the submodule of continuous
+Feller-quasilocal observables (uniform closure of bounded continuous cylinder observables).
+
+This is a continuous/Feller version of Georgii's Definition 2.23. Georgii's full definition is
+formulated using bounded local measurable functions and their uniform closure, not only bounded
+continuous observables. The old `IsQuasilocal` name is kept as a compatibility alias, but new
+statements should use `IsFellerQuasilocal` unless the full measurable Georgii algebra has been
+formalized.
 
 We also record the convenient “dense-check” formulation: it suffices to verify quasilocality on
 cylinder observables, since the action is continuous in the sup-norm.
@@ -46,7 +52,8 @@ class IsFeller (γ : Specification S E) : Prop where
 
 namespace IsFeller
 
-instance (γ : Specification S E) [γ.IsFeller] (Λ : Finset S) : ProbabilityTheory.Kernel.IsFeller (γ Λ) :=
+instance (γ : Specification S E) [γ.IsFeller] (Λ : Finset S) :
+    ProbabilityTheory.Kernel.IsFeller (γ Λ) :=
   IsFeller.isFellerKernel (γ := γ) Λ
 
 end IsFeller
@@ -79,7 +86,7 @@ lemma continuous_continuousAction (Λ : Finset S) :
 
 end Action
 
-/-! ### Quasilocality (Georgii Def. 2.23) -/
+/-! ### Continuous/Feller quasilocality -/
 
 section Quasilocal
 
@@ -88,27 +95,41 @@ variable [γ.IsFeller]
 
 open BoundedContinuousFunction
 
-/-- A specification is **quasilocal** if its Feller action preserves quasilocal observables. -/
-def IsQuasilocal : Prop :=
+/-- A specification is **Feller-quasilocal** if its Feller action preserves continuous
+Feller-quasilocal observables. -/
+def IsFellerQuasilocal : Prop :=
   ∀ (Λ : Finset S) (f : Obs),
-    f ∈ quasilocalFunctions (S := S) (E := E) (F := ℝ) →
-      continuousAction γ Λ f ∈ quasilocalFunctions (S := S) (E := E) (F := ℝ)
+    f ∈ fellerQuasilocalFunctions (S := S) (E := E) (F := ℝ) →
+      continuousAction γ Λ f ∈ fellerQuasilocalFunctions (S := S) (E := E) (F := ℝ)
 
-/-- Dense-check version: it suffices to verify quasilocality on cylinder observables. -/
-def IsQuasilocal' : Prop :=
+/-- Compatibility alias for the current continuous/Feller quasilocality predicate. Prefer
+`IsFellerQuasilocal` in new statements. -/
+abbrev IsQuasilocal : Prop :=
+  IsFellerQuasilocal γ
+
+/-- Dense-check version: it suffices to verify Feller-quasilocality on cylinder observables. -/
+def IsFellerQuasilocalOnCylinder : Prop :=
   ∀ (Λ : Finset S) (f : Obs),
     f ∈ cylinderFunctions (S := S) (E := E) (F := ℝ) →
-      continuousAction γ Λ f ∈ quasilocalFunctions (S := S) (E := E) (F := ℝ)
+      continuousAction γ Λ f ∈ fellerQuasilocalFunctions (S := S) (E := E) (F := ℝ)
 
-lemma IsQuasilocal.of_IsQuasilocal' (h : IsQuasilocal' γ) : IsQuasilocal γ := by
+/-- Compatibility alias for the dense-check predicate. Prefer
+`IsFellerQuasilocalOnCylinder` in new statements. -/
+abbrev IsQuasilocal' : Prop :=
+  IsFellerQuasilocalOnCylinder γ
+
+lemma IsFellerQuasilocal.of_onCylinder
+    (h : IsFellerQuasilocalOnCylinder γ) : IsFellerQuasilocal γ := by
   intro Λ f hf
   have hf' : f ∈ closure (cylinderFunctions (S := S) (E := E) (F := ℝ) : Set Obs) := by
-    simpa [quasilocalFunctions, Submodule.topologicalClosure_coe] using hf
+    simpa [fellerQuasilocalFunctions, Submodule.topologicalClosure_coe] using hf
   have h_cont : Continuous (continuousAction γ Λ : Obs → Obs) :=
     continuous_continuousAction γ Λ
   have himage :
       continuousAction γ Λ f ∈
-        closure ((continuousAction γ Λ) '' (cylinderFunctions (S := S) (E := E) (F := ℝ) : Set Obs)) :=
+        closure
+          ((continuousAction γ Λ) ''
+            (cylinderFunctions (S := S) (E := E) (F := ℝ) : Set Obs)) :=
     by
       let s : Set Obs := (cylinderFunctions (S := S) (E := E) (F := ℝ) : Set Obs)
       have hx : continuousAction γ Λ f ∈ (continuousAction γ Λ) '' closure s :=
@@ -116,29 +137,36 @@ lemma IsQuasilocal.of_IsQuasilocal' (h : IsQuasilocal' γ) : IsQuasilocal γ := 
       exact (image_closure_subset_closure_image h_cont (s := s)) hx
   have hsubset :
       (continuousAction γ Λ) '' (cylinderFunctions (S := S) (E := E) (F := ℝ) : Set Obs) ⊆
-        (quasilocalFunctions (S := S) (E := E) (F := ℝ) : Set Obs) := by
+        (fellerQuasilocalFunctions (S := S) (E := E) (F := ℝ) : Set Obs) := by
     intro g hg
     rcases hg with ⟨f0, hf0, rfl⟩
     exact h Λ f0 hf0
   have hclosed :
-      IsClosed (quasilocalFunctions (S := S) (E := E) (F := ℝ) : Set Obs) :=
+      IsClosed (fellerQuasilocalFunctions (S := S) (E := E) (F := ℝ) : Set Obs) :=
     Submodule.isClosed_topologicalClosure _
   have :
       continuousAction γ Λ f ∈
-        closure (quasilocalFunctions (S := S) (E := E) (F := ℝ) : Set Obs) :=
+        closure (fellerQuasilocalFunctions (S := S) (E := E) (F := ℝ) : Set Obs) :=
     closure_mono hsubset himage
-  simpa [hclosed.closure_eq, quasilocalFunctions] using this
+  simpa [hclosed.closure_eq, fellerQuasilocalFunctions] using this
+
+lemma IsQuasilocal.of_IsQuasilocal' (h : IsQuasilocal' γ) : IsQuasilocal γ :=
+  IsFellerQuasilocal.of_onCylinder γ h
+
+lemma IsFellerQuasilocal_iff_onCylinder :
+    IsFellerQuasilocal γ ↔ IsFellerQuasilocalOnCylinder γ := by
+  constructor
+  · intro h Λ f hf
+    -- Cylinder observables are Feller-quasilocal by definition.
+    have hf' : f ∈ fellerQuasilocalFunctions (S := S) (E := E) (F := ℝ) :=
+      cylinderFunctions_le_fellerQuasilocalFunctions (S := S) (E := E) (F := ℝ) hf
+    exact h Λ f hf'
+  · intro h
+    exact IsFellerQuasilocal.of_onCylinder γ h
 
 lemma IsQuasilocal_iff_IsQuasilocal' :
     IsQuasilocal γ ↔ IsQuasilocal' γ := by
-  constructor
-  · intro h Λ f hf
-    -- Cylinder observables are quasilocal by definition.
-    have hf' : f ∈ quasilocalFunctions (S := S) (E := E) (F := ℝ) :=
-      cylinderFunctions_le_quasilocalFunctions (S := S) (E := E) (F := ℝ) hf
-    exact h Λ f hf'
-  · intro h
-    exact IsQuasilocal.of_IsQuasilocal' γ h
+  exact IsFellerQuasilocal_iff_onCylinder γ
 
 end Quasilocal
 

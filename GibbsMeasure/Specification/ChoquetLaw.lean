@@ -520,7 +520,7 @@ theorem exists_mem_extremePoints_G_of_isGibbsMeasure
 
 end LawLevelExtremal
 
-/-! ## Georgii-style Choquet decomposition package -/
+/-! ## Choquet decomposition via the tail σ-algebra -/
 
 section ChoquetDecomposition
 
@@ -539,8 +539,7 @@ variable
 If `μ` is Gibbs, then the law `tailKernelLaw μ` has barycenter `μ` and is concentrated on the
 measurable `goodSet γ` (hence, in particular, yields `tailKernelLaw μ`-a.e. extremality).
 
-This is the Mathlib-idiomatic package corresponding to Georgii Ch. 7 (extremal decomposition via
-tail disintegration).
+This is the tail-disintegration form of Georgii's extremal decomposition theorem.
 -/
 theorem choquetDecomposition_tailKernelLaw
     (hμ : γ.IsGibbsMeasure μ) :
@@ -573,7 +572,7 @@ variable (μ : ProbabilityMeasure (S → E))
 variable
     [@MeasurableSpace.CountableOrCountablyGenerated (S → E) (S → E) (@tailSigmaAlgebra S E _)]
 
-/-- `ProbabilityMeasure`-packaged version of `ae_mem_extremePoints_G_tailKernelLaw`. -/
+/-- `ProbabilityMeasure` version of `ae_mem_extremePoints_G_tailKernelLaw`. -/
 theorem ae_mem_extremePoints_G_tailKernelLawPM
     (hμ : γ.IsGibbsMeasure (μ : Measure (S → E))) :
     ∀ᵐ ν ∂(tailKernelLawPM (S := S) (E := E) μ : Measure (Measure (S → E))),
@@ -582,7 +581,7 @@ theorem ae_mem_extremePoints_G_tailKernelLawPM
     (ae_mem_extremePoints_G_tailKernelLaw (S := S) (E := E) (γ := γ)
       (μ := (μ : Measure (S → E))) hμ)
 
-/-- `ProbabilityMeasure`-packaged version of `choquetDecomposition_tailKernelLaw`. -/
+/-- `ProbabilityMeasure` version of `choquetDecomposition_tailKernelLaw`. -/
 theorem choquetDecomposition_tailKernelLawPM
     (hμ : γ.IsGibbsMeasure (μ : Measure (S → E))) :
     MeasureTheory.Measure.join (tailKernelLaw (S := S) (E := E) (μ := (μ : Measure (S → E))))
@@ -607,7 +606,7 @@ theorem choquetDecomposition_tailKernelLawPM_goodSet
 
 end ChoquetDecompositionPM
 
-/-! ## Extremal ⇔ tail-trivial (Georgii Thm. 7.7 packaged) -/
+/-! ## Extremal iff tail-trivial (Georgii Thm. 7.7) -/
 
 section ExtremeIffTailTrivial
 

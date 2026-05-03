@@ -182,8 +182,8 @@ theorem ae_eq_const_of_measurable {X : Type*} [MeasurableSpace X] [MeasurableSpa
 
 /-!
 `MeasureTheory.AEMeasurable` is tied to the *ambient* measurable space on the domain.  In our use
-case, we want “a.e. equal to a `𝓣`-measurable function” measured w.r.t. `μ`. We package this
-explicitly.
+case, we want “a.e. equal to a `𝓣`-measurable function” measured w.r.t. `μ`. We state that
+condition explicitly.
 -/
 
 /-- If `f` is a.e. equal (w.r.t. `μ`) to a **tail-measurable** function, then it is a.e. constant

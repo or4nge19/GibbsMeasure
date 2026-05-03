@@ -8,7 +8,7 @@ public import Mathlib.Analysis.Normed.Operator.ContinuousLinearMap
 /-!
 # Feller kernels and their action on bounded continuous functions
 
-This file adds the minimal infrastructure we need for Georgii-style *quasilocality*:
+This file adds the minimal infrastructure needed for the Feller version of quasilocality:
 
 - `ProbabilityTheory.Kernel.IsFeller κ`: a (Markov) kernel is **Feller** if it sends bounded
   continuous observables `f` to continuous observables via `x ↦ ∫ f d(κ x)`.

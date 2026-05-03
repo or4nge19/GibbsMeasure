@@ -159,7 +159,7 @@ theorem continuous_bindPM (Λ : Finset S) :
     have hcomp : (ηpi ∘ₖ κ0) () = (μ : Measure (S → E)).bind (γ Λ) := by
       simp [ηpi, κ0]
     haveI : IsProbabilityMeasure ((μ : Measure (S → E)).bind (γ Λ)) := by
-      -- `bindPM` is the same operation, packaged as a `ProbabilityMeasure`.
+      -- `bindPM` is the same measure, viewed as a `ProbabilityMeasure`.
       simpa [coe_bindPM] using
         (inferInstance :
           IsProbabilityMeasure
@@ -241,7 +241,7 @@ variable [BorelSpace E] [SecondCountableTopology E] [Countable S]
 variable [T2Space E]
 /-- Existence of a Gibbs measure on a **compact** single-spin space, via weak compactness of
 `ProbabilityMeasure (S → E)` and weak closure of the Gibbs fixed-point equations. This is a
-weak-topology existence route; it is not a replacement for Georgii's local/quasilocal theorem. -/
+weak-topology argument; it is not a replacement for Georgii's local/quasilocal theorem. -/
 theorem existence_of_gibbsMeasure_compact_weak (η : S → E) :
     (GP (S := S) (E := E) γ).Nonempty := by
   classical
@@ -271,7 +271,8 @@ section Tight
 variable [T2Space (S → E)] [BorelSpace (S → E)]
 
 /-- Existence of a Gibbs measure from **tightness** of the finite-volume distributions, using weak
-Prokhorov compactness of the closure of a tight set. This is explicitly a weak-topology route. -/
+Prokhorov compactness of the closure of a tight set. This statement is explicitly formulated in
+the weak topology. -/
 theorem existence_of_gibbsMeasure_of_isTight_weak
     (η : S → E)
     (hT :

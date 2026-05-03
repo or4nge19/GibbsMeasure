@@ -9,7 +9,7 @@ public import Mathlib.MeasureTheory.PiSystem
 /-!
 # Measure ext lemmas for generated σ-algebras
 
-This file packages the most common “π-system + generateFrom + finiteness-on-univ” ext arguments
+This file collects the most common “π-system + generateFrom + finiteness-on-univ” ext arguments
 used in the Gibbs/Specification development.
 -/
 
