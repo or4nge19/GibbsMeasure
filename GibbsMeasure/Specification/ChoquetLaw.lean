@@ -261,7 +261,7 @@ lemma isTailTrivial_of_isTailTrivialCore {ν : Measure Ω}
             have : νt (⋃ i, f i) ≤ ∑' i, νt (f i) := by
               simpa using (measure_iUnion_le (μ := νt) (s := f))
             simp [h0]
-          exact (le_antisymm hle (zero_le _)))
+          exact (le_antisymm hle bot_le))
       A hA
   simpa [νt, MeasureTheory.trim_measurableSet_eq (μ := ν) hm hA] using h01_t
 
@@ -486,7 +486,9 @@ theorem tailKernelLaw_goodSet_eq_one
   have hcompl0 : tailKernelLaw (S := S) (E := E) (μ := μ) (goodSet (S := S) (E := E) γ)ᶜ = 0 := by
     have : tailKernelLaw (S := S) (E := E) (μ := μ) {ν | ¬ ν ∈ goodSet (S := S) (E := E) γ} = 0 :=
       (MeasureTheory.ae_iff).1 (by simpa [tailKernelLaw] using hae_law)
-    simpa using this
+    convert this
+    ext ν
+    simp [Set.mem_compl]
   exact (prob_compl_eq_zero_iff (μ := tailKernelLaw (S := S) (E := E) (μ := μ)) hgood_meas).1 hcompl0
 
 /-- Any measure in `goodSet γ` is an extreme point of `G(γ)`. -/
@@ -684,13 +686,18 @@ theorem ae_tailKernel_eq_of_isTailTrivial
         rcases h01 with h0 | h1
         · right
           have : ∀ᵐ ω ∂μt, ω ∉ B := by
-            have : μt B = 0 := h0
-            simpa [B, MeasureTheory.ae_iff] using this
+            refine (MeasureTheory.ae_iff (μ := μt) (p := fun ω => ω ∉ B)).2 ?_
+            convert h0
+            ext a
+            simp [B]
           simpa [B] using this
         · left
           have hcompl0 : μt Bᶜ = 0 := (prob_compl_eq_zero_iff (μ := μt) (hs := hB_tail)).2 h1
           have : ∀ᵐ ω ∂μt, ω ∈ B := by
-            simpa [MeasureTheory.ae_iff, B, Set.preimage, Set.mem_preimage] using hcompl0
+            refine (MeasureTheory.ae_iff (μ := μt) (p := fun ω => ω ∈ B)).2 ?_
+            convert hcompl0
+            ext a
+            simp [B, Set.mem_compl, Set.mem_preimage]
           simpa [B] using this
       have : ∃ c : ℝ≥0∞, g =ᶠ[ae μt] fun _ => c :=
         Filter.exists_eventuallyEq_const_of_forall_separating (l := ae μt)

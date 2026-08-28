@@ -30,6 +30,9 @@ These lemmas are the starting point for the ergodic (extremal) decomposition of 
 
 @[expose] public section
 
+-- Lean 4.34 does not unfold non-exposed mathlib defs (e.g. `Kernel.comap`) during `isDefEq`.
+set_option backward.isDefEq.respectTransparency false
+
 open Set
 open scoped ENNReal ProbabilityTheory
 open ProbabilityTheory
@@ -243,7 +246,7 @@ lemma tailKernelTail_apply_eq_tailKernel_apply {A : Set (S → E)}
   have hid :
       @Measurable (S → E) (S → E) MeasurableSpace.pi (@tailSigmaAlgebra S E _) id :=
     measurable_id.mono le_rfl (tailSigmaAlgebra_le_pi (S := S) (E := E))
-  simp [tailKernelTail, ProbabilityTheory.Kernel.map_apply', hid, hA]
+  rw [tailKernelTail_apply, Measure.map_apply hid hA, Set.preimage_id]
 
 /-- A tail event has conditional probability equal to its indicator, `μ.trim 𝓣`-a.e. -/
 lemma tailKernel_apply_eq_indicator_ae_of_measurableSet {A : Set (S → E)}
@@ -378,12 +381,14 @@ lemma tailKernelTail_ae_eq_id
     infer_instance
   haveI : MeasurableSpace.CountablyGenerated (S → E) :=
     countablyGenerated_of_standardBorel
-  simpa [μT, hm] using
-    (ProbabilityTheory.Kernel.ae_eq_of_compProd_eq (μ := μT)
+  have h :=
+    ProbabilityTheory.Kernel.ae_eq_of_compProd_eq (μ := μT)
       (κ := tailKernelTail (S := S) (E := E) μ)
       (η := (ProbabilityTheory.Kernel.id :
         Kernel[@tailSigmaAlgebra S E _, @tailSigmaAlgebra S E _] (S → E) (S → E)))
-      hcompProd)
+      hcompProd
+  filter_upwards [h] with ω hω
+  simpa using hω
 
 /-! ### Pointwise tail determinism (0–1 law for tail events) -/
 
@@ -470,7 +475,9 @@ lemma ae_tailKernel_inter_eq_indicator_mul
             (κ := tailKernel (S := S) (E := E) μ) ω
         simp [h_one, hB_pi]
       refine (MeasureTheory.ae_iff (μ := tailKernel (S := S) (E := E) μ ω) (p := fun x => x ∈ B)).2 ?_
-      simpa using h_zero
+      convert h_zero
+      ext a
+      simp [Set.mem_compl]
     have h_inter : (tailKernel (S := S) (E := E) μ ω) (B ∩ A) = (tailKernel (S := S) (E := E) μ ω) A :=
       Measure.measure_inter_eq_of_ae (μ := tailKernel (S := S) (E := E) μ ω) (s := A) (t := B) h_ae
     have : (tailKernel (S := S) (E := E) μ ω) (A ∩ B) = (tailKernel (S := S) (E := E) μ ω) A := by
@@ -479,7 +486,7 @@ lemma ae_tailKernel_inter_eq_indicator_mul
   · have h_zero : (tailKernel (S := S) (E := E) μ ω) B = 0 := by
       simpa [Set.indicator_of_notMem, hωB] using (hω B hB)
     have : (tailKernel (S := S) (E := E) μ ω) (A ∩ B) = 0 := by
-      exact le_antisymm (le_trans (measure_mono (by intro x hx; exact hx.2)) (le_of_eq h_zero)) (zero_le _)
+      exact le_antisymm (le_trans (measure_mono (by intro x hx; exact hx.2)) (le_of_eq h_zero)) bot_le
     simp [this, Set.indicator_of_notMem, hωB]
 
 /-- Tail disintegration computes conditional integrals over tail events as intersections under the
@@ -508,9 +515,9 @@ lemma setLIntegral_tailKernel_eq_measure_inter
   have hAE :
       (fun ω => κ ω (A ∩ B)) =ᵐ[μT]
         fun ω => (B.indicator (fun _ : (S → E) => (1 : ℝ≥0∞)) ω) * κ ω A := by
-    simpa [κ, μT, hm] using
-      (ae_tailKernel_inter_eq_indicator_mul (S := S) (E := E) (μ := μ)
-        (A := A) (B := B) hB)
+    filter_upwards [ae_tailKernel_inter_eq_indicator_mul (S := S) (E := E) (μ := μ)
+        (A := A) (B := B) hB] with ω hω
+    simpa [κ] using hω
   have hind :
       (fun ω => (B.indicator (fun _ : (S → E) => (1 : ℝ≥0∞)) ω) * κ ω A)
         = fun ω => B.indicator (fun ω => κ ω A) ω := by
@@ -590,7 +597,8 @@ lemma isGibbsMeasure_measure_inter_eq_setLIntegral
   have hprop : ∀ ω, (γ Λ ω) (A ∩ B) =
       (B.indicator (fun _ : (S → E) => (1 : ℝ≥0∞)) ω) * (γ Λ ω) A := by
     intro ω
-    simpa using (γ.isProper.inter_eq_indicator_mul (Λ := Λ) (A := A) (B := B) hA hB_cyl ω)
+    convert (γ.isProper.inter_eq_indicator_mul (Λ := Λ) (A := A) (B := B) hA hB_cyl ω)
+    simp [Pi.one_def]
   have hind :
       (fun ω => (B.indicator (fun _ : (S → E) => (1 : ℝ≥0∞)) ω) * (γ Λ ω) A)
         =
@@ -636,7 +644,9 @@ private lemma ae_lintegral_indicator_eq_indicator_lintegral
             (κ := tailKernel (S := S) (E := E) μ) ω
         simp [h_one, hB_pi]
       refine (MeasureTheory.ae_iff (μ := tailKernel (S := S) (E := E) μ ω) (p := fun x => x ∈ B)).2 ?_
-      simpa using h_zero
+      convert h_zero
+      ext a
+      simp [Set.mem_compl]
     have hind :
         (fun x => B.indicator g x) =ᵐ[(tailKernel (S := S) (E := E) μ ω)] g := by
       filter_upwards [h_aeB] with x hx
@@ -651,7 +661,9 @@ private lemma ae_lintegral_indicator_eq_indicator_lintegral
       simpa [Set.indicator_of_notMem, hωB] using hω B hB
     have h_aeB : ∀ᵐ x ∂(tailKernel (S := S) (E := E) μ ω), x ∉ B := by
       refine (MeasureTheory.ae_iff (μ := tailKernel (S := S) (E := E) μ ω) (p := fun x => x ∉ B)).2 ?_
-      simpa using h_zero
+      convert h_zero
+      ext a
+      simp [Set.mem_compl]
     have hind :
         (fun x => B.indicator g x) =ᵐ[(tailKernel (S := S) (E := E) μ ω)] 0 := by
       filter_upwards [h_aeB] with x hx
@@ -789,7 +801,8 @@ lemma ae_comp_comap_tailKernel_eq_tailKernel
     MeasurableSpace.instCountableOrCountablyGeneratedOfCountablyGenerated
   have hkernel : κ₁ =ᵐ[μT] κ₂ :=
     ProbabilityTheory.Kernel.ae_eq_of_compProd_eq (μ := μT) (κ := κ₁) (η := κ₂) hcompProd
-  simpa [μT, hm, κ₁, κ₂] using hkernel
+  filter_upwards [hkernel] with ω hω
+  simpa [κ₁, κ₂] using hω
 
 lemma ae_forall_bind_eq_tailKernel
     [@MeasurableSpace.CountableOrCountablyGenerated (S → E) (S → E) (@tailSigmaAlgebra S E _)]

@@ -348,7 +348,7 @@ lemma lcondExp_add (hf : AEMeasurable f μ) (_ : AEMeasurable g μ) :
   have hfgFun_def :
       hfgFun = fun x => (μ⁻[f|m]) x + (μ⁻[g|m]) x := rfl
   have hsum_meas : Measurable[m] hfgFun := by
-    simpa [hfgFun_def] using (hmeas_f.add hmeas_g)
+    simpa [hfgFun, Pi.add_def] using (hmeas_f.add hmeas_g)
   have hsum_aestr : AEStronglyMeasurable[m] hfgFun μ :=
     hsum_meas.aestronglyMeasurable
   refine

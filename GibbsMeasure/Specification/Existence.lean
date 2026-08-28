@@ -27,6 +27,9 @@ weak compactness is not silently identified with Georgii-local convergence.
 
 @[expose] public section
 
+-- Lean 4.34 does not unfold non-exposed mathlib defs (e.g. `Kernel.comap`) during `isDefEq`.
+set_option backward.isDefEq.respectTransparency false
+
 open Filter
 
 namespace MeasureTheory
@@ -157,7 +160,7 @@ theorem continuous_bindPM (Λ : Finset S) :
       (γ Λ).comap id (MeasureTheory.cylinderEvents_le_pi (X := fun _ : S ↦ E) (Δ := ((Λ : Set S)ᶜ)))
     let κ0 : Kernel Unit (S → E) := Kernel.const Unit (μ : Measure (S → E))
     have hcomp : (ηpi ∘ₖ κ0) () = (μ : Measure (S → E)).bind (γ Λ) := by
-      simp [ηpi, κ0]
+      simp [ηpi, κ0, Kernel.coe_comap, Kernel.const_apply]
     haveI : IsProbabilityMeasure ((μ : Measure (S → E)).bind (γ Λ)) := by
       -- `bindPM` is the same measure, viewed as a `ProbabilityMeasure`.
       simpa [coe_bindPM] using
@@ -208,7 +211,7 @@ theorem isGibbsMeasure_of_isWeakThermodynamicLimit
         refine ⟨Λ, ?_⟩
         intro Λ' hΛ
         apply Subtype.ext
-        simpa [μs, finiteVolumeDistributions, Specification.coe_bindPM] using
+        simpa [μs, finiteVolumeDistributions, Specification.bindPM, Specification.coe_bindPM] using
           (_root_.Specification.bind (γ := γ) (hΛ := hΛ) (η := η))
       simpa [F, μs] using h_event_atTop
     have h_event :

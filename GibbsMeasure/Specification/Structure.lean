@@ -162,7 +162,9 @@ theorem ae_eq_const_of_measurable {X : Type*} [MeasurableSpace X] [MeasurableSpa
     · right
       have : (∀ᵐ ω ∂(μ : Measure (S → E)), ¬ f ω ∈ U) := by
         have : (μ : Measure (S → E)) {ω | ¬ (¬ f ω ∈ U)} = 0 := by
-          simpa using h0
+          convert h0
+          ext ω
+          simp [Set.mem_preimage]
         simpa [ae_iff] using this
       exact this
     · left

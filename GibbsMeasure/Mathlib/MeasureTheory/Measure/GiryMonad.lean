@@ -37,4 +37,14 @@ lemma measurable_setLIntegral {f : α → ℝ≥0∞} (hf : Measurable f) (hs : 
     Measurable fun μ : Measure α ↦ ∫⁻ x in s, f x ∂μ :=
   (measurable_lintegral hf).comp (measurable_restrict hs)
 
+/-- Two-sided version of `MeasureTheory.Measure.ae_ae_of_ae_bind`. -/
+theorem ae_bind_iff {β : Type*} {mβ : MeasurableSpace β} {m : Measure α} {f : α → Measure β}
+    (hf : Measurable f) {p : β → Prop} (hp : MeasurableSet {b | p b}) :
+    (∀ᵐ b ∂m.bind f, p b) ↔ ∀ᵐ a ∂m, ∀ᵐ b ∂f a, p b := by
+  have hpc : MeasurableSet {b | ¬ p b} := by
+    simpa [Set.compl_setOf] using hp.compl
+  have hmeas : Measurable fun a ↦ f a {b | ¬ p b} := (measurable_coe hpc).comp hf
+  rw [ae_iff, bind_apply hpc hf.aemeasurable, lintegral_eq_zero_iff hmeas]
+  simp only [Filter.EventuallyEq, Pi.zero_apply, ae_iff]
+
 end MeasureTheory.Measure

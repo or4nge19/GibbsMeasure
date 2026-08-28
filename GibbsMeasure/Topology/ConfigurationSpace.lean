@@ -1,5 +1,6 @@
 module
 
+public import GibbsMeasure.Mathlib.Logic.Function.DependsOn
 public import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
 public import Mathlib.Topology.Basic
 
@@ -25,63 +26,59 @@ namespace GibbsMeasure
 
 namespace ConfigurationSpace
 
-open scoped BigOperators
+open Function
 
 variable {S E : Type*}
 
 /-! ### Cylinder (local) observables -/
 
-/-- A function `f : (S → E) → F` is a **cylinder function** if it depends only on finitely many
-coordinates. -/
+/-- A function on `S → E` is a *cylinder function* if it depends on only finitely many coordinates,
+i.e. `Function.DependsOn f ↑Λ` for some `Λ : Finset S`. -/
 def IsCylinderFunction {F : Type*} (f : (S → E) → F) : Prop :=
-  ∃ Λ : Finset S, ∀ σ₁ σ₂ : S → E, (∀ x ∈ Λ, σ₁ x = σ₂ x) → f σ₁ = f σ₂
+  ∃ Λ : Finset S, DependsOn f (Λ : Set S)
 
 namespace IsCylinderFunction
 
-variable {F : Type*}
+variable {F : Type*} {f g : (S → E) → F}
 
-lemma congr {f g : (S → E) → F} (hf : IsCylinderFunction (S := S) (E := E) f) (hfg : f = g) :
-    IsCylinderFunction (S := S) (E := E) g := by
-  simpa [hfg] using hf
+lemma congr (hf : IsCylinderFunction (S := S) (E := E) f) (hfg : f = g) :
+    IsCylinderFunction (S := S) (E := E) g := hfg ▸ hf
 
-lemma const (c : F) : IsCylinderFunction (S := S) (E := E) (fun _ : S → E ↦ c) := by
-  refine ⟨∅, ?_⟩
-  intro _ _ _; rfl
+lemma const (c : F) : IsCylinderFunction (S := S) (E := E) fun _ ↦ c :=
+  ⟨∅, by simpa using (dependsOn_const (α := fun _ : S ↦ E) c).mono (Set.empty_subset _)⟩
 
-lemma add {F : Type*} [Add F] {f g : (S → E) → F}
+lemma comp {G : Type*} (F' : F → G) (hf : IsCylinderFunction (S := S) (E := E) f) :
+    IsCylinderFunction (S := S) (E := E) fun σ ↦ F' (f σ) :=
+  hf.imp fun _ h ↦ DependsOn.comp F' h
+
+lemma comp₂ {G H : Type*} (F' : F → G → H) {g : (S → E) → G}
     (hf : IsCylinderFunction (S := S) (E := E) f)
     (hg : IsCylinderFunction (S := S) (E := E) g) :
-    IsCylinderFunction (S := S) (E := E) (fun σ ↦ f σ + g σ) := by
+    IsCylinderFunction (S := S) (E := E) fun σ ↦ F' (f σ) (g σ) := by
   classical
-  rcases hf with ⟨Λf, hf⟩
-  rcases hg with ⟨Λg, hg⟩
-  refine ⟨Λf ∪ Λg, ?_⟩
-  intro σ₁ σ₂ hσ
-  have hf' : f σ₁ = f σ₂ := hf σ₁ σ₂ (fun x hx ↦ hσ x (Finset.mem_union_left _ hx))
-  have hg' : g σ₁ = g σ₂ := hg σ₁ σ₂ (fun x hx ↦ hσ x (Finset.mem_union_right _ hx))
-  simp [hf', hg']
+  obtain ⟨Λf, hf⟩ := hf
+  obtain ⟨Λg, hg⟩ := hg
+  exact ⟨Λf ∪ Λg, DependsOn.comp₂ F'
+    (hf.mono (by simpa using Set.subset_union_left))
+    (hg.mono (by simpa using Set.subset_union_right))⟩
 
-lemma smul {𝕜 F : Type*} [SMul 𝕜 F] {c : 𝕜} {f : (S → E) → F}
-    (hf : IsCylinderFunction (S := S) (E := E) f) :
-    IsCylinderFunction (S := S) (E := E) (fun σ ↦ c • f σ) := by
-  rcases hf with ⟨Λ, hf⟩
-  refine ⟨Λ, ?_⟩
-  intro σ₁ σ₂ hσ
-  simp [hf σ₁ σ₂ hσ]
-
-lemma neg {F : Type*} [Neg F] {f : (S → E) → F}
-    (hf : IsCylinderFunction (S := S) (E := E) f) :
-    IsCylinderFunction (S := S) (E := E) (fun σ ↦ - f σ) := by
-  rcases hf with ⟨Λ, hf⟩
-  refine ⟨Λ, ?_⟩
-  intro σ₁ σ₂ hσ
-  simp [hf σ₁ σ₂ hσ]
-
-lemma sub {F : Type*} [AddGroup F] {f g : (S → E) → F}
-    (hf : IsCylinderFunction (S := S) (E := E) f)
+lemma add [Add F] (hf : IsCylinderFunction (S := S) (E := E) f)
     (hg : IsCylinderFunction (S := S) (E := E) g) :
-    IsCylinderFunction (S := S) (E := E) (fun σ ↦ f σ - g σ) := by
-  simpa [sub_eq_add_neg] using (add (S := S) (E := E) hf (neg (S := S) (E := E) hg))
+    IsCylinderFunction (S := S) (E := E) fun σ ↦ f σ + g σ := comp₂ (· + ·) hf hg
+
+lemma mul [Mul F] (hf : IsCylinderFunction (S := S) (E := E) f)
+    (hg : IsCylinderFunction (S := S) (E := E) g) :
+    IsCylinderFunction (S := S) (E := E) fun σ ↦ f σ * g σ := comp₂ (· * ·) hf hg
+
+lemma smul {𝕜 : Type*} [SMul 𝕜 F] {c : 𝕜} (hf : IsCylinderFunction (S := S) (E := E) f) :
+    IsCylinderFunction (S := S) (E := E) fun σ ↦ c • f σ := comp _ hf
+
+lemma neg [Neg F] (hf : IsCylinderFunction (S := S) (E := E) f) :
+    IsCylinderFunction (S := S) (E := E) fun σ ↦ -f σ := comp _ hf
+
+lemma sub [Sub F] (hf : IsCylinderFunction (S := S) (E := E) f)
+    (hg : IsCylinderFunction (S := S) (E := E) g) :
+    IsCylinderFunction (S := S) (E := E) fun σ ↦ f σ - g σ := comp₂ (· - ·) hf hg
 
 end IsCylinderFunction
 

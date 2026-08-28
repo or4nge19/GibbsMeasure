@@ -101,7 +101,7 @@ lemma rect_of_marg_snd_dirac_of_mem
     simpa only [Set.univ_prod] using this
   have h_stcompl_zero : μ (s ×ˢ tᶜ) = 0 := by
     refine measure_mono_null ?_ h_univ_tcompl_zero
-    exact prod_mono (fun ⦃a⦄ _ => trivial) fun ⦃a⦄ a => a
+    exact Set.prod_mono (subset_univ _) subset_rfl
   have h_disj : Disjoint (s ×ˢ t) (s ×ˢ tᶜ) := by
     refine disjoint_left.mpr ?_
     intro p hp1 hp2; rcases p with ⟨x, z⟩
@@ -137,7 +137,7 @@ lemma rect_of_marg_snd_dirac_of_not_mem
     simpa [Set.univ_prod] using this
   have h_st_zero : μ (s ×ˢ t) = 0 := by
     refine measure_mono_null ?_ h_univ_t_zero
-    exact prod_mono (fun ⦃a⦄ _ => trivial) fun ⦃a⦄ a => a
+    exact Set.prod_mono (subset_univ _) subset_rfl
   simp [h_st_zero, (dirac_eq_zero_iff_not_mem ht).mpr hyt, mul_zero]
 
 lemma rect_of_marg_snd_dirac

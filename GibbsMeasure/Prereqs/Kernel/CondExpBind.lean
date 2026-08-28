@@ -162,8 +162,8 @@ lemma integrable_of_lintegral_ofReal_abs_lt_top
     Integrable f μ := by
   refine ⟨hf, ?_⟩
   have h' : (∫⁻ x, ENNReal.ofReal ‖f x‖ ∂μ) < ∞ := by
-    convert h using 2
-  exact (hasFiniteIntegral_iff_norm f).mpr h
+    simpa [Real.norm_eq_abs] using h
+  exact (hasFiniteIntegral_iff_norm f).mpr h'
 
 /-- The bind of a finite measure by a Markov kernel is finite. -/
 private lemma isFiniteMeasure_bind
@@ -320,7 +320,7 @@ private lemma tendsto_setIntegral_integral_approxOn
           (∫⁻ x in s, ∫⁻ y, ‖f y‖ₑ ∂(π x) ∂μ)
             = ∫⁻ y, ‖f y‖ₑ ∂((μ.restrict s).bind π) := by
         rw [Measure.lintegral_bind hκ hf.enorm.aemeasurable]
-      simpa [h_eq] using hf_int.2
+      simpa [h_eq] using (hasFiniteIntegral_iff_enorm.mp hf_int.2)
     haveI : IsSFiniteKernel π := inferInstance
     have hf_enorm : Measurable fun y : X => ‖f y‖ₑ := hf.enorm
     have h_meas : Measurable (fun x => ∫⁻ y, ‖f y‖ₑ ∂(π x)) :=

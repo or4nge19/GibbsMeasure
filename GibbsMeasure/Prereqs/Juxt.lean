@@ -2,7 +2,7 @@ module
 
 public import Mathlib.MeasureTheory.Constructions.Cylinders
 
-public section
+@[expose] public section
 
 open MeasureTheory
 

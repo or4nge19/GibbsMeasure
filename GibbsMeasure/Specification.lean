@@ -24,6 +24,10 @@ This file defines Gibbs measures.
 
 @[expose] public section
 
+-- Lean 4.34's module system does not unfold non-exposed mathlib defs (e.g. `Kernel.comap`)
+-- during `isDefEq`. Several existing proofs rely on that unfolding.
+set_option backward.isDefEq.respectTransparency false
+
 open ProbabilityTheory Set MeasureTheory ENNReal NNReal
 
 variable {S E : Type*} {mE : MeasurableSpace E} {Λ₁ Λ₂ : Finset S}
@@ -36,6 +40,38 @@ order and with the harmless `comap` needed because the source σ-algebras are ne
 σ-algebras. -/
 def IsConsistent (γ : ∀ Λ : Finset S, Kernel[cylinderEvents Λᶜ] (S → E) (S → E)) : Prop :=
   ∀ ⦃Λ₁ Λ₂⦄, Λ₁ ⊆ Λ₂ → (γ Λ₁).comap id cylinderEvents_le_pi ∘ₖ γ Λ₂ = γ Λ₂
+
+/-- A family of boundary-condition kernels is *strongly consistent* if `γ Λ₁ ∘ₖ γ Λ₂ = γ (Λ₁ ∪ Λ₂)`
+for all `Λ₁, Λ₂`, i.e. `Λ ↦ γ Λ` is a join-semilattice homomorphism into the kernels under
+composition.
+
+This is Georgii's identity `λ_Δ λ_Λ = λ_{Δ ∪ Λ}` (1.25). It implies `IsConsistent` and is strictly
+stronger. -/
+def IsStronglyConsistent [DecidableEq S]
+    (γ : ∀ Λ : Finset S, Kernel[cylinderEvents Λᶜ] (S → E) (S → E)) : Prop :=
+  ∀ Λ₁ Λ₂ : Finset S, (γ Λ₁).comap id cylinderEvents_le_pi ∘ₖ γ Λ₂ =
+    (γ (Λ₁ ∪ Λ₂)).comap id
+      (measurable_id'' <| by
+        gcongr
+        exact Finset.subset_union_right)
+
+/-- Strong consistency implies consistency. -/
+lemma IsStronglyConsistent.isConsistent [DecidableEq S]
+    {γ : ∀ Λ : Finset S, Kernel[cylinderEvents Λᶜ] (S → E) (S → E)}
+    (hγ : IsStronglyConsistent γ) : IsConsistent γ := by
+  intro Λ₁ Λ₂ hΛ
+  rw [hγ Λ₁ Λ₂]
+  ext a s _
+  simp only [Kernel.comap_apply, id_eq]
+  rw [Finset.union_eq_right.2 hΛ]
+
+/-- Strong consistency, evaluated at a boundary condition. -/
+lemma IsStronglyConsistent.bind_eq [DecidableEq S]
+    {γ : ∀ Λ : Finset S, Kernel[cylinderEvents Λᶜ] (S → E) (S → E)}
+    (hγ : IsStronglyConsistent γ) (Λ₁ Λ₂ : Finset S) (η : S → E) :
+    (γ Λ₂ η).bind (γ Λ₁) = γ (Λ₁ ∪ Λ₂) η := by
+  have := DFunLike.congr_fun (hγ Λ₁ Λ₂) η
+  simpa [Kernel.comp_apply, Kernel.comap_apply] using this
 
 lemma isConsistentKernel_cylinderEventsCompl
     {γ : ∀ Λ : Finset S, Kernel[cylinderEvents Λᶜ] (S → E) (S → E)} :
@@ -67,7 +103,7 @@ instance instDFunLike :
     DFunLike (PreSpecification S E) (Finset S)
       fun Λ ↦ Kernel[cylinderEvents Λᶜ] (S → E) (S → E) where
   coe := toFun
-  coe_injective' γ₁ γ₂ h := by cases γ₁; cases γ₂; congr
+  coe_injective γ₁ γ₂ h := by cases γ₁; cases γ₂; congr
 
 /-- The boundary condition kernels of a raw specification are consistent. -/
 lemma isConsistent (γ : PreSpecification S E) : IsConsistent γ := γ.isConsistent'
@@ -98,7 +134,7 @@ instance instDFunLike :
     DFunLike (Specification S E) (Finset S) fun Λ ↦ Kernel[cylinderEvents Λᶜ] (S → E) (S → E)
     where
   coe γ := γ.toPreSpecification
-  coe_injective' γ₁ γ₂ h := by
+  coe_injective γ₁ γ₂ h := by
     have hpre : γ₁.toPreSpecification = γ₂.toPreSpecification :=
       PreSpecification.ext fun Λ => congrFun h Λ
     cases γ₁
@@ -117,18 +153,6 @@ variable {γ γ₁ γ₂ : Specification S E} {Λ Λ₁ Λ₂ : Finset S}
 
 protected lemma bind (hΛ : Λ₁ ⊆ Λ₂) (η : S → E) : (γ Λ₂ η).bind (γ Λ₁) = γ Λ₂ η :=
   DFunLike.congr_fun (γ.isConsistent hΛ) η
-
-section IsIndep
-
-/-- An independent specification is a specification `γ` where `γ Λ₁ ∘ₖ γ Λ₂ = γ (Λ₁ ∪ Λ₂)` for all
-`Λ₁ Λ₂`. -/
-def IsIndep (γ : Specification S E) : Prop :=
-  ∀ ⦃Λ₁ Λ₂⦄ [DecidableEq S], (γ Λ₁).comap id cylinderEvents_le_pi ∘ₖ γ Λ₂ = (γ (Λ₁ ∪ Λ₂)).comap id
-      (measurable_id'' <| by
-        gcongr
-        exact Finset.subset_union_right)
-
-end IsIndep
 
 instance instIsMarkovKernel (γ : Specification S E) {Λ : Finset S} : IsMarkovKernel (γ Λ) :=
   γ.isMarkovKernel' Λ
@@ -313,11 +337,13 @@ lemma map_juxt_apply_squareCylinder_of_measure
   by_cases hP : ∀ i ∈ (s : Set S), i ∉ (Λ : Set S) → η i ∈ t i
   · rw [preimage_juxt_squareCylinder_eq_univ_pi_of_forall (S := S) (E := E) hP]
     rw [if_pos hP]
+    rfl
   · rw [preimage_juxt_squareCylinder_eq_empty_of_not_forall (S := S) (E := E) hP]
     have hP' : ¬ ∀ i ∈ s, i ∉ Λ → η i ∈ t i := by
       intro h
       exact hP (fun i hi hiΛ => h i (by simpa using hi) (by simpa using hiΛ))
     simp [hP']
+    exact measure_empty
 
 omit [IsProbabilityMeasure ν] in
 /-- Raw evaluation of a `juxt`-mapped product measure on a finite square cylinder. -/
@@ -1122,6 +1148,7 @@ lemma map_juxt_inter_restrict_compl_preimage_of_measure
       Measure.map_apply (Measurable.juxt (Λ := (Λ : Set S)) (η := x) (𝓔 := mE)) hAB,
       Measure.map_apply (Measurable.juxt (Λ := (Λ : Set S)) (η := x) (𝓔 := mE)) hA,
       preimage_inter]
+    exact measure_empty
 
 omit [IsProbabilityMeasure ν] in
 /-- A product-measure map by `juxt` factors outside-volume events as an indicator of the boundary
@@ -1147,7 +1174,7 @@ lemma isProper_juxtMapKernel {Λ : Finset S} (μΛ : Measure (Λ → E)) [IsFini
   let Δ : Set S := (Λ : Set S)ᶜ
   have hBcomap :
       MeasurableSet[
-          MeasurableSpace.comap (Set.restrict (π := fun _ : S ↦ E) Δ)
+          MeasurableSpace.comap (Set.domRestrict Δ)
             (inferInstance : MeasurableSpace (Δ → E))] B := by
     rw [← MeasureTheory.cylinderEvents_eq_comap_restrict (S := S) (E := E) (Δ := Δ)]
     exact hB
@@ -1175,7 +1202,7 @@ lemma isProper_sigmaFiniteLambdaFun
   let Δ : Set S := (Λ : Set S)ᶜ
   have hBcomap :
       MeasurableSet[
-          MeasurableSpace.comap (Set.restrict (π := fun _ : S ↦ E) Δ)
+          MeasurableSpace.comap (Set.domRestrict Δ)
             (inferInstance : MeasurableSpace (Δ → E))] B := by
     rw [← MeasureTheory.cylinderEvents_eq_comap_restrict (S := S) (E := E) (Δ := Δ)]
     exact hB
@@ -1216,6 +1243,15 @@ lemma isssd_comp_isssd [DecidableEq S] (Λ₁ Λ₂ : Finset S) :
         (measurable_id'' <| by
           gcongr
           exact Finset.subset_union_right) := isssdFun_comp_isssdFun ..
+
+/-- Georgii (1.25): the independent specification is strongly consistent. -/
+lemma isStronglyConsistent_isssdFun [DecidableEq S] :
+    IsStronglyConsistent (isssdFun (S := S) (E := E) ν) :=
+  fun Λ₁ Λ₂ ↦ isssdFun_comp_isssdFun (ν := ν) Λ₁ Λ₂
+
+lemma isStronglyConsistent_isssd [DecidableEq S] :
+    IsStronglyConsistent (isssd (S := S) (E := E) ν) :=
+  isStronglyConsistent_isssdFun (S := S) (E := E) ν
 
 protected lemma IsProper.isssd : (isssd (S := S) ν).IsProper := by
   exact (isssd (S := S) (E := E) ν).isProper
@@ -1459,15 +1495,11 @@ structure IsModifier (γ : Specification S E) (ρ : Finset S → (S → E) → �
   measurable _ := measurable_const
   isConsistent := by simpa using γ.isConsistent
   isMarkovKernel Λ := by
-    have hker : modificationKer γ (fun _Λ _η ↦ 1) (fun _Λ ↦ measurable_const) Λ = γ Λ := by
-      ext η A hA
-      simp [modificationKer]
-    simpa [hker] using γ.isMarkovKernel' Λ
+    simp only [modificationKer_one']
+    infer_instance
   isProper Λ := by
-    have hker : modificationKer γ (fun _Λ _η ↦ 1) (fun _Λ ↦ measurable_const) Λ = γ Λ := by
-      ext η A hA
-      simp [modificationKer]
-    simpa [hker] using γ.isProper' Λ
+    simp only [modificationKer_one']
+    exact γ.isProper Λ
 
 @[simp] lemma IsModifier.one : γ.IsModifier 1 := .one'
 
@@ -1477,23 +1509,197 @@ lemma IsModifier.comp_eq (hρ : γ.IsModifier ρ) ⦃Λ₁ Λ₂⦄ (hΛ : Λ₁
   simpa [IsConsistent, modificationKer, Kernel.ext_iff, Kernel.comp_apply, Measure.ext_iff]
     using DFunLike.congr_fun (hρ.isConsistent hΛ) η
 
-set_option backward.isDefEq.respectTransparency false in
-lemma isModifier_iff_ae_eq (hγ : γ.IsProper) :
-    γ.IsModifier ρ ↔ (∀ Λ, Measurable (ρ Λ)) ∧ ∀ ⦃Λ₁ Λ₂⦄, Λ₁ ⊆ Λ₂ → ∀ η,
-      ρ Λ₂ =ᵐ[γ Λ₂ η] fun η ↦ ∫⁻ ζ, ρ Λ₂ ζ ∂(γ Λ₁ η).withDensity (ρ Λ₁) := by
-  simp only [isModifier_iff, IsConsistent, modificationKer, Kernel.ext_iff, Kernel.comp_apply,
-    Kernel.coe_mk, Kernel.coe_comap, CompTriple.comp_eq, Measure.ext_iff, exists_prop,
-    and_congr_right_iff]
-  refine fun hρ ↦ forall₄_congr fun Λ₁ Λ₂ hΛ η ↦ ?_
-  sorry
+/-- Evaluate the composition of two density-modified kernels on a measurable set.
 
-lemma isModifier_iff_ae_comm [DecidableEq S] :
-    γ.IsModifier ρ ↔ (∀ Λ, Measurable (ρ Λ)) ∧
-    ∀ ⦃Λ₁ Λ₂⦄, Λ₁ ⊆ Λ₂ → ∀ η₁, ∀ᵐ η₂ ∂γ (Λ₂ \ Λ₁) η₁, ∀ᵐ ζ ∂(γ Λ₁ η₂).prod (γ Λ₂ η₂),
-      ρ Λ₂ ζ.1 * ρ Λ₁ ζ.2 = ρ Λ₂ ζ.2 * ρ Λ₁ ζ.1 := by
-  -- simp only [isModifier_iff_ae_eq, and_congr_right_iff]
-  -- refine fun hρ ↦ forall₄_congr fun Λ₁ Λ₂ hΛ η ↦ ?_
-  sorry
+`γ` is only a dependent family of kernels; probability-kernel hypotheses are irrelevant for this
+Fubini calculation. -/
+lemma modificationKer_comp_apply_eq_lintegral_mul
+    {γ : ∀ Λ : Finset S, Kernel[cylinderEvents Λᶜ] (S → E) (S → E)}
+    {ρ : Finset S → (S → E) → ℝ≥0∞} (hρ : ∀ Λ, Measurable (ρ Λ))
+    {Λ₁ Λ₂ : Finset S} {η : S → E} {A : Set (S → E)} (hA : MeasurableSet A) :
+    (((modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₁).comap id
+          cylinderEvents_le_pi ∘ₖ modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₂) η) A =
+      ∫⁻ x, ρ Λ₂ x * ((γ Λ₁ x).withDensity (ρ Λ₁)) A ∂(γ Λ₂ η) := by
+  let kA : (S → E) → ℝ≥0∞ := fun x => ((γ Λ₁ x).withDensity (ρ Λ₁)) A
+  have hkA_meas : Measurable kA := by
+    let K₁ : Kernel[cylinderEvents (Λ₁ : Set S)ᶜ] (S → E) (S → E) :=
+      modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₁
+    have hmeas_dom : Measurable[cylinderEvents (Λ₁ : Set S)ᶜ] (fun x : S → E => (K₁ x) A) :=
+      Kernel.measurable_coe K₁ hA
+    simpa [kA, K₁, modificationKer] using hmeas_dom.mono cylinderEvents_le_pi le_rfl
+  have hcomp :
+      (((modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₁).comap id
+            cylinderEvents_le_pi ∘ₖ modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₂) η) A =
+        ∫⁻ x, (((modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₁).comap id
+            cylinderEvents_le_pi) x) A ∂(modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₂ η) := by
+    simpa using
+      (Kernel.comp_apply' ((modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₁).comap id
+          cylinderEvents_le_pi) (modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₂) η hA)
+  have h_integrand :
+      (fun x : S → E => (((modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₁).comap id
+          cylinderEvents_le_pi) x) A) = kA := by
+    funext x
+    simp [kA, modificationKer, Kernel.comap_apply]
+  calc
+    (((modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₁).comap id
+          cylinderEvents_le_pi ∘ₖ modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₂) η) A
+        = ∫⁻ x, (((modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₁).comap id
+            cylinderEvents_le_pi) x) A ∂(modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₂ η) := hcomp
+    _ = ∫⁻ x, kA x ∂(modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₂ η) := by
+          rw [h_integrand]
+    _ = ∫⁻ x, ρ Λ₂ x * kA x ∂(γ Λ₂ η) := by
+          simpa [kA, modificationKer] using
+            (lintegral_withDensity_eq_lintegral_mul (μ := γ Λ₂ η) (f := ρ Λ₂)
+              (h_mf := hρ Λ₂) (g := kA) hkA_meas)
+
+/-! ### Georgii's Proposition (1.30)
+
+`Λ₁` is Georgii's `Λ` and `Λ₂` his `Δ`, with `Λ₁ ⊆ Λ₂`. Condition (a) ↔ (b) needs only properness and
+consistency of the base specification; (b) ↔ (c) needs strong consistency.
+-/
+
+/-- Composing two density-modified kernels is again a density change of the base specification, with
+density `ρ Λ₁ * γ_{Λ₁} ρ Λ₂`. Georgii (1.30), step 1. -/
+lemma comp_modificationKer_apply (hρ : ∀ Λ, Measurable (ρ Λ))
+    (hΛ : Λ₁ ⊆ Λ₂) (η : S → E) :
+    ((modificationKer (γ := ⇑γ) ρ hρ Λ₁).comap id cylinderEvents_le_pi
+        ∘ₖ modificationKer (γ := ⇑γ) ρ hρ Λ₂) η
+      = (γ Λ₂ η).withDensity (fun ω ↦ ρ Λ₁ ω * ∫⁻ ζ, ρ Λ₂ ζ ∂(γ Λ₁ ω)) := by
+  classical
+  set G : (S → E) → ℝ≥0∞ := fun ω ↦ ∫⁻ ζ, ρ Λ₂ ζ ∂(γ Λ₁ ω) with hGdef
+  have hGmeas : Measurable[cylinderEvents (Λ₁ : Set S)ᶜ] G := (hρ Λ₂).lintegral_kernel
+  have hGmeas' : Measurable G := hGmeas.mono cylinderEvents_le_pi le_rfl
+  -- Consistency of `γ`, in integral form.
+  have hbind : ∀ f : (S → E) → ℝ≥0∞, Measurable f →
+      ∫⁻ x, f x ∂(γ Λ₂ η) = ∫⁻ ζ, (∫⁻ x, f x ∂(γ Λ₁ ζ)) ∂(γ Λ₂ η) := by
+    intro f hf
+    conv_lhs => rw [← Specification.bind (γ := γ) hΛ η]
+    exact Measure.lintegral_bind
+      ((Kernel.measurable (γ Λ₁)).mono cylinderEvents_le_pi le_rfl).aemeasurable hf.aemeasurable
+  ext A hA
+  set F : (S → E) → ℝ≥0∞ := fun ζ ↦ ∫⁻ ω in A, ρ Λ₁ ω ∂(γ Λ₁ ζ) with hFdef
+  have hFmeas : Measurable[cylinderEvents (Λ₁ : Set S)ᶜ] F := (hρ Λ₁).setLIntegral_kernel hA
+  have hFmeas' : Measurable F := hFmeas.mono cylinderEvents_le_pi le_rfl
+  -- The left-hand side is `∫⁻ ζ, F ζ * ρ Λ₂ ζ ∂(γ Λ₂ η)`.
+  have hL : ((modificationKer (γ := ⇑γ) ρ hρ Λ₁).comap id cylinderEvents_le_pi
+        ∘ₖ modificationKer (γ := ⇑γ) ρ hρ Λ₂) η A = ∫⁻ ζ, F ζ * ρ Λ₂ ζ ∂(γ Λ₂ η) := by
+    rw [modificationKer_comp_apply_eq_lintegral_mul hρ hA]
+    exact lintegral_congr fun ζ ↦ by rw [withDensity_apply _ hA, mul_comm]
+  -- The right-hand side is `∫⁻ ζ, G ζ * F ζ ∂(γ Λ₂ η)`, by properness of `γ Λ₁`.
+  have hR : ((γ Λ₂ η).withDensity (fun ω ↦ ρ Λ₁ ω * G ω)) A
+      = ∫⁻ ζ, G ζ * F ζ ∂(γ Λ₂ η) := by
+    rw [withDensity_apply _ hA, ← lintegral_indicator hA]
+    have hrw : (A.indicator fun ω ↦ ρ Λ₁ ω * G ω) = fun ω ↦ G ω * A.indicator (ρ Λ₁) ω := by
+      funext ω
+      by_cases hω : ω ∈ A <;> simp [Set.indicator_of_mem, Set.indicator_of_notMem, hω, mul_comm]
+    rw [hrw, hbind (fun ω ↦ G ω * A.indicator (ρ Λ₁) ω)
+      (hGmeas'.fun_mul ((hρ Λ₁).indicator hA))]
+    refine lintegral_congr fun ζ ↦ ?_
+    rw [(γ.isProper Λ₁).lintegral_mul cylinderEvents_le_pi ((hρ Λ₁).indicator hA) hGmeas ζ,
+      lintegral_indicator hA]
+  -- Both sides equal `∫⁻ ζ, F ζ * G ζ ∂(γ Λ₂ η)`, again by properness of `γ Λ₁`.
+  rw [hL, hR, hbind (fun ζ ↦ F ζ * ρ Λ₂ ζ) (hFmeas'.fun_mul (hρ Λ₂))]
+  refine lintegral_congr fun ζ ↦ ?_
+  rw [(γ.isProper Λ₁).lintegral_mul cylinderEvents_le_pi (hρ Λ₂) hFmeas ζ, mul_comm]
+
+/-- **Georgii, Proposition (1.30), (a) ↔ (b).** -/
+lemma isModifier_iff_ae_eq :
+    γ.IsModifier ρ ↔
+      (∀ Λ, Measurable (ρ Λ)) ∧
+      (∀ (Λ : Finset S) (η : S → E), ∫⁻ ζ, ρ Λ ζ ∂(γ Λ η) = 1) ∧
+      ∀ ⦃Λ₁ Λ₂ : Finset S⦄, Λ₁ ⊆ Λ₂ → ∀ η : S → E,
+        ρ Λ₂ =ᵐ[γ Λ₂ η] fun ω ↦ ρ Λ₁ ω * ∫⁻ ζ, ρ Λ₂ ζ ∂(γ Λ₁ ω) := by
+  constructor
+  · rintro h
+    have hnorm : ∀ (Λ : Finset S) (η : S → E), ∫⁻ ζ, ρ Λ ζ ∂(γ Λ η) = 1 := by
+      intro Λ η
+      have := h.isMarkovKernel Λ
+      have huniv := measure_univ (μ := modificationKer (⇑γ) ρ h.measurable Λ η)
+      rwa [modificationKer_apply, withDensity_apply _ MeasurableSet.univ,
+        setLIntegral_univ] at huniv
+    refine ⟨h.measurable, hnorm, fun Λ₁ Λ₂ hΛ η ↦ ?_⟩
+    have hcomp := DFunLike.congr_fun (h.isConsistent hΛ) η
+    rw [comp_modificationKer_apply h.measurable hΛ η, modificationKer_apply] at hcomp
+    exact (withDensity_eq_iff_of_sigmaFinite (h.measurable Λ₂).aemeasurable
+      ((h.measurable Λ₁).fun_mul
+        ((h.measurable Λ₂).lintegral_kernel.mono cylinderEvents_le_pi le_rfl)).aemeasurable).1
+      hcomp.symm
+  · rintro ⟨hmeas, hnorm, hb⟩
+    have hmk : ∀ Λ, IsMarkovKernel (modificationKer (⇑γ) ρ hmeas Λ) := by
+      intro Λ
+      refine ⟨fun η ↦ ⟨?_⟩⟩
+      rw [modificationKer_apply, withDensity_apply _ MeasurableSet.univ, setLIntegral_univ]
+      exact hnorm Λ η
+    refine ⟨hmeas, hmk, isProper_modificationKer hmeas, fun Λ₁ Λ₂ hΛ ↦ Kernel.ext fun η ↦ ?_⟩
+    rw [comp_modificationKer_apply hmeas hΛ η, modificationKer_apply]
+    exact (withDensity_congr_ae (hb hΛ η)).symm
+
+/-- Georgii (1.30), (b) ↔ (c) on a single fibre. -/
+lemma ae_eq_iff_ae_comm (hmeas : ∀ Λ, Measurable (ρ Λ))
+    (η₂ : S → E) (hnorm : ∫⁻ ζ, ρ Λ₁ ζ ∂(γ Λ₁ η₂) = 1) :
+    (ρ Λ₂ =ᵐ[γ Λ₁ η₂] fun ω ↦ ρ Λ₁ ω * ∫⁻ ζ, ρ Λ₂ ζ ∂(γ Λ₁ ω))
+      ↔ ∀ᵐ z ∂((γ Λ₁ η₂).prod (γ Λ₁ η₂)),
+          ρ Λ₂ z.1 * ρ Λ₁ z.2 = ρ Λ₂ z.2 * ρ Λ₁ z.1 := by
+  classical
+  have hGmeas : Measurable[cylinderEvents (Λ₁ : Set S)ᶜ]
+      (fun ω ↦ ∫⁻ ζ, ρ Λ₂ ζ ∂(γ Λ₁ ω)) := (hmeas Λ₂).lintegral_kernel
+  -- Properness freezes the boundary observable `ω ↦ γ_{Λ₁} ρ_{Λ₂} (ω)` on the fibre.
+  have hGconst : ∀ᵐ ω ∂(γ Λ₁ η₂),
+      (∫⁻ ζ, ρ Λ₂ ζ ∂(γ Λ₁ ω)) = ∫⁻ ζ, ρ Λ₂ ζ ∂(γ Λ₁ η₂) :=
+    (γ.isProper Λ₁).ae_eq_const cylinderEvents_le_pi hGmeas η₂
+  constructor
+  · intro h
+    have h' : ρ Λ₂ =ᵐ[γ Λ₁ η₂] fun ω ↦ ρ Λ₁ ω * ∫⁻ ζ, ρ Λ₂ ζ ∂(γ Λ₁ η₂) := by
+      filter_upwards [h, hGconst] with ω hω hGω using hω.trans (by rw [hGω])
+    have h1 : ∀ᵐ z ∂((γ Λ₁ η₂).prod (γ Λ₁ η₂)),
+        ρ Λ₂ z.1 = ρ Λ₁ z.1 * ∫⁻ ζ, ρ Λ₂ ζ ∂(γ Λ₁ η₂) :=
+      Measure.quasiMeasurePreserving_fst.ae h'
+    have h2 : ∀ᵐ z ∂((γ Λ₁ η₂).prod (γ Λ₁ η₂)),
+        ρ Λ₂ z.2 = ρ Λ₁ z.2 * ∫⁻ ζ, ρ Λ₂ ζ ∂(γ Λ₁ η₂) :=
+      Measure.quasiMeasurePreserving_snd.ae h'
+    filter_upwards [h1, h2] with z hz1 hz2
+    rw [hz1, hz2]; ring
+  · intro h
+    have h' : ∀ᵐ ζ ∂(γ Λ₁ η₂), ∀ᵐ ξ ∂(γ Λ₁ η₂), ρ Λ₂ ζ * ρ Λ₁ ξ = ρ Λ₂ ξ * ρ Λ₁ ζ :=
+      Measure.ae_ae_of_ae_prod h
+    filter_upwards [h', hGconst] with ζ hζ hGζ
+    have hint : ∫⁻ ξ, ρ Λ₂ ζ * ρ Λ₁ ξ ∂(γ Λ₁ η₂) = ∫⁻ ξ, ρ Λ₂ ξ * ρ Λ₁ ζ ∂(γ Λ₁ η₂) :=
+      lintegral_congr_ae hζ
+    rw [lintegral_const_mul _ (hmeas Λ₁), lintegral_mul_const _ (hmeas Λ₂), hnorm, mul_one] at hint
+    rw [hint, hGζ, mul_comm]
+
+/-- Georgii's condition (b) for `Λ₂` splits along `Λ₂ \ Λ₁`. -/
+lemma ae_eq_iff_ae_ae_eq [DecidableEq S] (hγ : IsStronglyConsistent ⇑γ)
+    (hmeas : ∀ Λ, Measurable (ρ Λ)) (hΛ : Λ₁ ⊆ Λ₂) (η₁ : S → E) :
+    (ρ Λ₂ =ᵐ[γ Λ₂ η₁] fun ω ↦ ρ Λ₁ ω * ∫⁻ ζ, ρ Λ₂ ζ ∂(γ Λ₁ ω))
+      ↔ ∀ᵐ η₂ ∂γ (Λ₂ \ Λ₁) η₁,
+          ρ Λ₂ =ᵐ[γ Λ₁ η₂] fun ω ↦ ρ Λ₁ ω * ∫⁻ ζ, ρ Λ₂ ζ ∂(γ Λ₁ ω) := by
+  classical
+  have hbind : (γ (Λ₂ \ Λ₁) η₁).bind (γ Λ₁) = γ Λ₂ η₁ := by
+    rw [hγ.bind_eq Λ₁ (Λ₂ \ Λ₁) η₁, Finset.union_sdiff_of_subset hΛ]
+  have hGmeas : Measurable (fun ω : S → E ↦ ∫⁻ ζ, ρ Λ₂ ζ ∂(γ Λ₁ ω)) :=
+    ((hmeas Λ₂).lintegral_kernel).mono cylinderEvents_le_pi le_rfl
+  have hset : MeasurableSet {ω : S → E | ρ Λ₂ ω = ρ Λ₁ ω * ∫⁻ ζ, ρ Λ₂ ζ ∂(γ Λ₁ ω)} :=
+    measurableSet_eq_fun (hmeas Λ₂) ((hmeas Λ₁).mul hGmeas)
+  rw [← hbind]
+  exact Measure.ae_bind_iff
+    ((Kernel.measurable (γ Λ₁)).mono cylinderEvents_le_pi le_rfl) hset
+
+/-- **Georgii, Proposition (1.30), (a) ↔ (c).** Compare `Specification.IsPremodifier`, the
+everywhere-version of the same symmetry (Georgii (1.31)). -/
+lemma isModifier_iff_ae_comm [DecidableEq S] (hγ : IsStronglyConsistent ⇑γ) :
+    γ.IsModifier ρ ↔
+      (∀ Λ, Measurable (ρ Λ)) ∧
+      (∀ (Λ : Finset S) (η : S → E), ∫⁻ ζ, ρ Λ ζ ∂(γ Λ η) = 1) ∧
+      ∀ ⦃Λ₁ Λ₂ : Finset S⦄, Λ₁ ⊆ Λ₂ → ∀ η₁ : S → E,
+        ∀ᵐ η₂ ∂γ (Λ₂ \ Λ₁) η₁, ∀ᵐ z ∂((γ Λ₁ η₂).prod (γ Λ₁ η₂)),
+          ρ Λ₂ z.1 * ρ Λ₁ z.2 = ρ Λ₂ z.2 * ρ Λ₁ z.1 := by
+  rw [isModifier_iff_ae_eq]
+  refine and_congr_right fun hmeas ↦ and_congr_right fun hnorm ↦ ?_
+  refine forall_congr' fun Λ₁ ↦ forall_congr' fun Λ₂ ↦ forall_congr' fun hΛ ↦
+    forall_congr' fun η₁ ↦ ?_
+  rw [ae_eq_iff_ae_ae_eq hγ hmeas hΛ η₁]
+  exact Filter.eventually_congr (.of_forall fun η₂ ↦ ae_eq_iff_ae_comm hmeas η₂ (hnorm Λ₁ η₂))
 
 /-- Modification specification.
 
@@ -1596,6 +1802,18 @@ noncomputable def premodifierZ
     (ρ : Finset S → (S → E) → ℝ≥0∞) (Λ : Finset S) (η : S → E) : ℝ≥0∞ :=
   ∫⁻ x, ρ Λ x ∂(isssd (S := S) (E := E) ν Λ η)
 
+lemma measurable_premodifierZ (hρ : IsPremodifier ρ) (Λ : Finset S) :
+    Measurable[cylinderEvents (Λ : Set S)ᶜ]
+      (premodifierZ (S := S) (E := E) ν ρ Λ) := by
+  have h :
+      premodifierZ (S := S) (E := E) ν ρ Λ =
+        fun a ↦ ∫⁻ b, ρ Λ b ∂(isssd (S := S) (E := E) ν Λ a) := by
+    funext a
+    rfl
+  rw [h]
+  exact Measurable.lintegral_kernel (κ := (isssd (S := S) (E := E) ν Λ))
+    (f := ρ Λ) (hρ.measurable Λ)
+
 omit [IsProbabilityMeasure ν] in
 /-- The σ-finite-reference partition function associated to `sigmaFiniteLambdaFun`.
 
@@ -1619,8 +1837,13 @@ lemma sigmaFinitePremodifierNorm_measurable
     (ν : Measure E) [SigmaFinite ν] (hρ : IsPremodifier ρ) :
     ∀ Λ, Measurable (sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ) := by
   intro Λ
-  simpa [sigmaFinitePremodifierNorm, sigmaFiniteLambdaZ] using
-    (hρ.measurable_div_sigmaFiniteLambda (S := S) (E := E) (ρ := ρ) ν Λ)
+  have h :
+      sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ =
+        fun σ ↦ ρ Λ σ / ∫⁻ x, ρ Λ x ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ σ) := by
+    funext σ
+    simp [sigmaFinitePremodifierNorm, sigmaFiniteLambdaZ]
+  rw [h]
+  exact hρ.measurable_div_sigmaFiniteLambda (S := S) (E := E) (ρ := ρ) ν Λ
 
 omit [IsProbabilityMeasure ν] in
 /-- σ-finite-reference admissibility: all finite-volume partition functions are nonzero and finite.
@@ -1700,8 +1923,13 @@ noncomputable def premodifierNorm
 lemma premodifierNorm_measurable (hρ : IsPremodifier ρ) :
     ∀ Λ, Measurable (premodifierNorm (S := S) (E := E) ν ρ Λ) := by
   intro Λ
-  simpa [premodifierNorm, premodifierZ] using
-    (hρ.measurable_div_isssd (S := S) (E := E) (ρ := ρ) ν Λ)
+  have h :
+      premodifierNorm (S := S) (E := E) ν ρ Λ =
+        fun σ ↦ ρ Λ σ / ∫⁻ x, ρ Λ x ∂(isssd (S := S) (E := E) ν Λ σ) := by
+    funext σ
+    simp [premodifierNorm, premodifierZ]
+  rw [h]
+  exact hρ.measurable_div_isssd (S := S) (E := E) (ρ := ρ) ν Λ
 
 /-- For probability reference measures, `premodifierNorm` is the σ-finite normalized premodifier. -/
 lemma premodifierNorm_eq_sigmaFinitePremodifierNorm
@@ -1747,9 +1975,13 @@ lemma lintegral_sigmaFinitePremodifierNorm_mul_eq
   let Z : Finset S → (S → E) → ℝ≥0∞ :=
     sigmaFiniteLambdaZ (S := S) (E := E) ν ρ
   have hZmeas : Measurable[cylinderEvents (Λ : Set S)ᶜ] (Z Λ) := by
-    simpa [Z, sigmaFiniteLambdaZ] using
-      (Measurable.lintegral_kernel (κ := sigmaFiniteLambdaFun (S := S) (E := E) ν Λ)
-        (f := ρ Λ) (hρ.measurable Λ))
+    have h :
+        Z Λ = fun a ↦ ∫⁻ b, ρ Λ b ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ a) := by
+      funext a
+      simp [Z, sigmaFiniteLambdaZ]
+    rw [h]
+    exact Measurable.lintegral_kernel (κ := sigmaFiniteLambdaFun (S := S) (E := E) ν Λ)
+      (f := ρ Λ) (hρ.measurable Λ)
   have hpull :=
     (isProper_sigmaFiniteLambdaFun (S := S) (E := E) ν Λ).lintegral_mul cylinderEvents_le_pi
       (hf := (hρ.measurable Λ).mul hf) (hg := hZmeas.inv) η
@@ -2238,9 +2470,7 @@ lemma lintegral_premodifierNorm_eq_one (hρ : IsPremodifier ρ)
       ∂(isssd (S := S) (E := E) ν Λ ξ) = 1 := by
   let Z : Finset S → (S → E) → ℝ≥0∞ := premodifierZ (S := S) (E := E) ν ρ
   have hZmeasΛ : Measurable[cylinderEvents (Λ : Set S)ᶜ] (Z Λ) := by
-    simpa [Z, premodifierZ] using
-      (Measurable.lintegral_kernel (κ := (isssd (S := S) (E := E) ν Λ))
-        (f := ρ Λ) (hρ.measurable Λ))
+    exact measurable_premodifierZ (S := S) (E := E) (ν := ν) hρ Λ
   have hpull :=
     Specification.lintegral_mul (isssd (S := S) (E := E) ν)
       (Λ := Λ) (η₀ := ξ) (f := ρ Λ) (g := fun x : S → E => (Z Λ x)⁻¹)
@@ -2264,9 +2494,7 @@ lemma withDensity_premodifierNorm_apply (hρ : IsPremodifier ρ) {Λ : Finset S}
         ∫⁻ y in A, ρ Λ y ∂(isssd (S := S) (E := E) ν Λ η) := by
   let Z : Finset S → (S → E) → ℝ≥0∞ := premodifierZ (S := S) (E := E) ν ρ
   have hZmeas : Measurable[cylinderEvents (Λ : Set S)ᶜ] (Z Λ) := by
-    simpa [Z, premodifierZ] using
-      (Measurable.lintegral_kernel (κ := (isssd (S := S) (E := E) ν Λ))
-        (f := ρ Λ) (hρ.measurable Λ))
+    exact measurable_premodifierZ (S := S) (E := E) (ν := ν) hρ Λ
   have hpull :
       ∫⁻ y, (fun y : S → E => (Z Λ y)⁻¹) y *
           (A.indicator fun y : S → E => ρ Λ y) y
@@ -2301,9 +2529,7 @@ lemma lintegral_premodifierNorm_mul_eq (hρ : IsPremodifier ρ) {Λ : Finset S}
         ∫⁻ x, ρ Λ x * f x ∂(isssd (S := S) (E := E) ν Λ η) := by
   let Z : Finset S → (S → E) → ℝ≥0∞ := premodifierZ (S := S) (E := E) ν ρ
   have hZmeas : Measurable[cylinderEvents (Λ : Set S)ᶜ] (Z Λ) := by
-    simpa [Z, premodifierZ] using
-      (Measurable.lintegral_kernel (κ := (isssd (S := S) (E := E) ν Λ))
-        (f := ρ Λ) (hρ.measurable Λ))
+    exact measurable_premodifierZ (S := S) (E := E) (ν := ν) hρ Λ
   have hpull :=
     Specification.lintegral_mul (isssd (S := S) (E := E) ν)
       (Λ := Λ) (η₀ := η) (f := fun x : S → E => ρ Λ x * f x)
@@ -2440,49 +2666,6 @@ lemma premodifierNorm_withDensity_rearrange (hρ : IsPremodifier ρ)
     _ = (Z Λ₁ ξ)⁻¹ * (ρ Λ₂ ξ * I₁ ξ) := by simp [mul_left_comm]
     _ = (Z Λ₁ ξ)⁻¹ * (ρ Λ₁ ξ * H ξ) := by simp [hcocycle]
     _ = ρ' Λ₁ ξ * H ξ := by simp [ρ', premodifierNorm, Z, div_eq_mul_inv, mul_assoc, mul_left_comm]
-
-/-- Evaluate the composition of two density-modified kernels on a measurable set.
-
-`γ` is only a dependent family of kernels; probability-kernel hypotheses are irrelevant for this
-Fubini calculation. -/
-lemma modificationKer_comp_apply_eq_lintegral_mul
-    {γ : ∀ Λ : Finset S, Kernel[cylinderEvents Λᶜ] (S → E) (S → E)}
-    {ρ : Finset S → (S → E) → ℝ≥0∞} (hρ : ∀ Λ, Measurable (ρ Λ))
-    {Λ₁ Λ₂ : Finset S} {η : S → E} {A : Set (S → E)} (hA : MeasurableSet A) :
-    (((modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₁).comap id
-          cylinderEvents_le_pi ∘ₖ modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₂) η) A =
-      ∫⁻ x, ρ Λ₂ x * ((γ Λ₁ x).withDensity (ρ Λ₁)) A ∂(γ Λ₂ η) := by
-  let kA : (S → E) → ℝ≥0∞ := fun x => ((γ Λ₁ x).withDensity (ρ Λ₁)) A
-  have hkA_meas : Measurable kA := by
-    let K₁ : Kernel[cylinderEvents (Λ₁ : Set S)ᶜ] (S → E) (S → E) :=
-      modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₁
-    have hmeas_dom : Measurable[cylinderEvents (Λ₁ : Set S)ᶜ] (fun x : S → E => (K₁ x) A) :=
-      Kernel.measurable_coe K₁ hA
-    simpa [kA, K₁, modificationKer] using hmeas_dom.mono cylinderEvents_le_pi le_rfl
-  have hcomp :
-      (((modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₁).comap id
-            cylinderEvents_le_pi ∘ₖ modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₂) η) A =
-        ∫⁻ x, (((modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₁).comap id
-            cylinderEvents_le_pi) x) A ∂(modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₂ η) := by
-    simpa using
-      (Kernel.comp_apply' ((modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₁).comap id
-          cylinderEvents_le_pi) (modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₂) η hA)
-  have h_integrand :
-      (fun x : S → E => (((modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₁).comap id
-          cylinderEvents_le_pi) x) A) = kA := by
-    funext x
-    simp [kA, modificationKer, Kernel.comap_apply]
-  calc
-    (((modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₁).comap id
-          cylinderEvents_le_pi ∘ₖ modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₂) η) A
-        = ∫⁻ x, (((modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₁).comap id
-            cylinderEvents_le_pi) x) A ∂(modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₂ η) := hcomp
-    _ = ∫⁻ x, kA x ∂(modificationKer (γ := γ) (ρ := ρ) (hρ := hρ) Λ₂ η) := by
-          rw [h_integrand]
-    _ = ∫⁻ x, ρ Λ₂ x * kA x ∂(γ Λ₂ η) := by
-          simpa [kA, modificationKer] using
-            (lintegral_withDensity_eq_lintegral_mul (μ := γ Λ₂ η) (f := ρ Λ₂)
-              (h_mf := hρ Λ₂) (g := kA) hkA_meas)
 
 omit [IsProbabilityMeasure ν] in
 lemma IsPremodifier.isConsistent_modificationKer_sigmaFinitePremodifierNorm

@@ -111,9 +111,9 @@ noncomputable def continuousActionCLM (κ : Kernel[mα] α β) [IsMarkovKernel �
         ext a
         have hf : Integrable (fun b : β => f b) (κ a) := integrable_boundedContinuousFunction (κ := κ) f a
         simpa [continuousAction] using (integral_smul c (fun b : β => f b) (μ := κ a)) }
-  (T.mkContinuous 1 (by
-    intro f
-    simpa [one_mul] using (norm_continuousAction_le (κ := κ) f)))
+  (T.mkContinuous 1 fun f => by
+    change ‖continuousAction (κ := κ) f‖ ≤ 1 * ‖f‖
+    simpa [one_mul] using (norm_continuousAction_le (κ := κ) f))
 
 @[simp] lemma continuousActionCLM_apply (f : β →ᵇ ℝ) :
     continuousActionCLM (κ := κ) f = continuousAction (κ := κ) f :=

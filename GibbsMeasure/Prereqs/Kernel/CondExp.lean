@@ -131,9 +131,8 @@ private lemma condExp_simpleFunc_ae_eq_integral_kernel (f : @SimpleFunc X 𝓧 �
   refine @SimpleFunc.induction _ _ _ _ (fun f => condExp 𝓑 μ f =ᵐ[μ]
     (fun x₀ => ∫ x, f x ∂(π x₀))) ?_ ?_ f
   · intro c s hs
-    simp [SimpleFunc.coe_piecewise, SimpleFunc.coe_const]
-    simpa using
-      (condExp_const_indicator_ae_eq_integral_kernel (μ := μ) (π := π) (A := s) c hs)
+    simp [SimpleFunc.coe_piecewise, SimpleFunc.coe_const, Function.const]
+    exact condExp_const_indicator_ae_eq_integral_kernel (μ := μ) (π := π) (A := s) c hs
   · intro f g _disj hf hg
     have hf_int : Integrable f μ := SimpleFunc.integrable_of_isFiniteMeasure f
     have hg_int : Integrable g μ := SimpleFunc.integrable_of_isFiniteMeasure g
@@ -171,10 +170,11 @@ lemma condExp_ae_eq_integral (hπ : π.IsProper) (h𝓑𝓧 : 𝓑 ≤ 𝓧) (f 
     filter_upwards [ae_lt_top' ((hkm).mono h𝓑𝓧 le_rfl).aemeasurable hfin, hmk_eq]
       with x₀ hx₀ heq₀ using .congr ⟨by fun_prop, hx₀⟩ heq₀.symm
   suffices h : ∀ g : X → ℝ, Integrable g μ → condExp 𝓑 μ g =ᵐ[μ] T g from h f hf
-  refine Integrable.induction' (fun g _ ↦ condExp 𝓑 μ g =ᵐ[μ] T g) (fun c _ hs _ ↦
-    condExp_const_indicator_ae_eq_integral_kernel _ hs)
-    (fun _ _ hh₁ hh₂ _ ih₁ ih₂ ↦ (condExp_add hh₁ hh₂ 𝓑).trans ((ih₁.add ih₂).trans ?_)) ?_
-    (fun h₁ h₂ _ h12 ih ↦ (condExp_congr_ae h12).symm.trans (ih.trans (hT_congr h12)))
+  refine Integrable.induction (P := fun g ↦ condExp 𝓑 μ g =ᵐ[μ] T g)
+    (fun c s hs _ ↦ condExp_const_indicator_ae_eq_integral_kernel c hs)
+    (fun _ _ _ hh₁ hh₂ ih₁ ih₂ ↦ (condExp_add hh₁ hh₂ 𝓑).trans ((ih₁.add ih₂).trans ?_))
+    ?_
+    (fun _ _ h12 _ ih ↦ (condExp_congr_ae h12).symm.trans (ih.trans (hT_congr h12)))
   · filter_upwards [hT_ae_int hh₁, hT_ae_int hh₂] with _ hx₁ hx₂ using (integral_add hx₁ hx₂).symm
   · let Φ (f : X →₁[μ] ℝ) : X →₁[μ] ℝ := condExpL1CLM ℝ h𝓑𝓧 μ f
     let Ψ (f : X →₁[μ] ℝ) : X →₁[μ] ℝ := (hT_int (L1.integrable_coeFn f)).toL1 (T f)

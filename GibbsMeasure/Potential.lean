@@ -81,32 +81,12 @@ lemma IsPotential.eq_of_eqOn [IsPotential Φ] {Δ : Finset S} {η ζ : S → E}
   have hf :
       Measurable[cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)] (Φ Δ) :=
     IsPotential.measurable (Φ := Φ) Δ
-  have hA :
-      MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)]
-        ((Φ Δ) ⁻¹' {Φ Δ η}) := by
-    exact hf (measurableSet_singleton _)
-  have hA' :
-      MeasurableSet[
-          MeasurableSpace.comap (Set.restrict (π := fun _ : S ↦ E) (Δ : Set S))
-            (inferInstance : MeasurableSpace (Δ → E))]
-        ((Φ Δ) ⁻¹' {Φ Δ η}) := by
-    rw [← MeasureTheory.cylinderEvents_eq_comap_restrict (S := S) (E := E) (Δ := (Δ : Set S))]
-    exact hA
-  rcases hA' with ⟨B, hB, hpreim⟩
-  have hη_mem : η ∈ (Set.restrict (π := fun _ : S ↦ E) (Δ : Set S)) ⁻¹' B := by
-    have : η ∈ ((Φ Δ) ⁻¹' {Φ Δ η}) := by simp
-    simp [hpreim]
-  have hre : Set.restrict (π := fun _ : S ↦ E) (Δ : Set S) η =
-      Set.restrict (π := fun _ : S ↦ E) (Δ : Set S) ζ := by
-    funext x
-    exact h x x.2
-  have hζ_mem : ζ ∈ (Set.restrict (π := fun _ : S ↦ E) (Δ : Set S)) ⁻¹' B := by
-    simpa [Set.mem_preimage, hre] using (show Set.restrict (π := fun _ : S ↦ E) (Δ : Set S) η ∈ B by
-      simpa [Set.mem_preimage] using hη_mem)
-  have : ζ ∈ ((Φ Δ) ⁻¹' {Φ Δ η}) := by
-    simpa [hpreim] using hζ_mem
-  exact (by
-    simpa [Set.mem_preimage] using this : Φ Δ ζ = Φ Δ η).symm
+  have hdet :=
+    MeasureTheory.measurableSet_cylinderEvents_iff_determined_by_coords (S := S) (E := E)
+      (Δ := (Δ : Set S)) ((Φ Δ) ⁻¹' {Φ Δ η}) (hf (measurableSet_singleton _))
+  have hη : η ∈ (Φ Δ) ⁻¹' {Φ Δ η} := by simp
+  have hζ : ζ ∈ (Φ Δ) ⁻¹' {Φ Δ η} := (hdet η ζ h).mp hη
+  exact (by simpa [Set.mem_preimage] using hζ : Φ Δ ζ = Φ Δ η).symm
 
 end Locality
 
@@ -156,7 +136,7 @@ lemma measurable_interactingHamiltonian [IsLocallyFinitary Φ] [IsPotential Φ] 
     have ha_meas : Measurable (fun η : S → E => Φ a η) :=
       (IsPotential.measurable (Φ := Φ) a).mono
         (cylinderEvents_le_pi (X := fun _ : S ↦ E) (Δ := (a : Set S))) le_rfl
-    simpa [Finset.sum_insert ha] using ha_meas.add hs_meas
+    simpa [Finset.sum_insert ha, Pi.add_def] using ha_meas.add hs_meas
 
 /-! ### Boltzmann weights and the cocycle identity -/
 
@@ -169,8 +149,13 @@ lemma measurable_boltzmannWeight [IsLocallyFinitary Φ] [IsPotential Φ] (β : �
     Measurable (boltzmannWeight (Φ := Φ) β Λ) := by
   have hH : Measurable fun η : S → E => interactingHamiltonian (Φ := Φ) Λ η :=
     measurable_interactingHamiltonian (Φ := Φ) Λ
-  simpa [boltzmannWeight] using
-    (((measurable_const.mul hH).exp).ennreal_ofReal)
+  have h :
+      boltzmannWeight (Φ := Φ) β Λ =
+        fun x ↦ ENNReal.ofReal (Real.exp (-β * interactingHamiltonian (Φ := Φ) Λ x)) := by
+    funext x
+    rfl
+  rw [h]
+  exact ((measurable_const.mul hH).exp).ennreal_ofReal
 
 omit [DecidableEq S] in
 lemma interactingHamiltonian_sub_eq_sum_sub [IsLocallyFinitary Φ]
@@ -333,11 +318,14 @@ lemma measurable_partitionFunction (Φ : Potential S E) [IsLocallyFinitary Φ] [
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν] (Λ : Finset S) :
     Measurable[cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)ᶜ]
       (partitionFunction (S := S) (E := E) Φ β ν Λ) := by
-  simpa [partitionFunction, Specification.premodifierZ] using
-    (Measurable.lintegral_kernel
-      (κ := (Specification.isssd (S := S) (E := E) ν Λ))
-      (f := boltzmannWeight (Φ := Φ) β Λ)
-      (measurable_boltzmannWeight (S := S) (E := E) (Φ := Φ) β Λ))
+  have h :
+      partitionFunction (S := S) (E := E) Φ β ν Λ =
+        Specification.premodifierZ (S := S) (E := E) ν (boltzmannWeight (Φ := Φ) β) Λ := by
+    funext η
+    rfl
+  rw [h]
+  exact Specification.measurable_premodifierZ
+    (S := S) (E := E) (ν := ν) (isPremodifier_boltzmannWeight (Φ := Φ) β) Λ
 
 /-- The (normalized) Gibbs modifier associated to the Boltzmann weights, i.e.
 \(\rho'_Λ(η) = \rho_Λ(η) / \int \rho_Λ \, d(\text{isssd}_Λ(η))\). -/
@@ -357,10 +345,15 @@ omit [DecidableEq S] in
 lemma measurable_gibbsModifier (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν] (Λ : Finset S) :
     Measurable (gibbsModifier (S := S) (E := E) Φ β ν Λ) := by
-  have hpre : Specification.IsPremodifier (S := S) (E := E) (boltzmannWeight (Φ := Φ) β) :=
-    isPremodifier_boltzmannWeight (Φ := Φ) β
-  simpa [gibbsModifier, partitionFunction, Specification.premodifierZ, div_eq_mul_inv] using
-    (hpre.measurable_div_isssd (ρ := boltzmannWeight (Φ := Φ) β) ν Λ)
+  have h :
+      gibbsModifier (S := S) (E := E) Φ β ν Λ =
+        Specification.premodifierNorm (S := S) (E := E) ν (boltzmannWeight (Φ := Φ) β) Λ := by
+    funext η
+    simp [gibbsModifier, partitionFunction, Specification.premodifierNorm,
+      Specification.premodifierZ]
+  rw [h]
+  exact Specification.premodifierNorm_measurable
+    (S := S) (E := E) (ν := ν) (isPremodifier_boltzmannWeight (Φ := Φ) β) Λ
 
 omit [DecidableEq S] in
 /-- Measurability of the σ-finite normalized Boltzmann density. -/
@@ -368,12 +361,17 @@ lemma measurable_sigmaFiniteGibbsModifier
     (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [SigmaFinite ν] (Λ : Finset S) :
     Measurable (sigmaFiniteGibbsModifier (S := S) (E := E) Φ β ν Λ) := by
-  have hpre : Specification.IsPremodifier (S := S) (E := E) (boltzmannWeight (Φ := Φ) β) :=
-    isPremodifier_boltzmannWeight (Φ := Φ) β
-  simpa [sigmaFiniteGibbsModifier, sigmaFinitePartitionFunction,
-    Specification.sigmaFiniteLambdaZ, div_eq_mul_inv] using
-    (Specification.sigmaFinitePremodifierNorm_measurable
-      (S := S) (E := E) (ρ := boltzmannWeight (Φ := Φ) β) ν hpre Λ)
+  have h :
+      sigmaFiniteGibbsModifier (S := S) (E := E) Φ β ν Λ =
+        Specification.sigmaFinitePremodifierNorm
+          (S := S) (E := E) ν (boltzmannWeight (Φ := Φ) β) Λ := by
+    funext η
+    simp [sigmaFiniteGibbsModifier, sigmaFinitePartitionFunction,
+      Specification.sigmaFinitePremodifierNorm, Specification.sigmaFiniteLambdaZ]
+  rw [h]
+  exact Specification.sigmaFinitePremodifierNorm_measurable
+    (S := S) (E := E) (ρ := boltzmannWeight (Φ := Φ) β) ν
+    (isPremodifier_boltzmannWeight (Φ := Φ) β) Λ
 
 omit [DecidableEq S] in
 /-- `gibbsModifier` is definitionally the normalized premodifier `premodifierNorm` applied to the
@@ -487,12 +485,22 @@ lemma isConsistent_sigmaFiniteGibbsKernel
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν]
     (hZ : IsSigmaFiniteBoltzmannAdmissible (S := S) (E := E) Φ β ν) :
     IsConsistent (sigmaFiniteGibbsKernel (S := S) (E := E) Φ β ν) := by
-  classical
-  simpa [sigmaFiniteGibbsKernel] using
-    Specification.IsPremodifier.isConsistent_modificationKer_sigmaFinitePremodifierNorm
-      (S := S) (E := E)
-      (ρ := boltzmannWeight (Φ := Φ) β)
-      (isPremodifier_boltzmannWeight (Φ := Φ) β) hZ
+  have h :
+      sigmaFiniteGibbsKernel (S := S) (E := E) Φ β ν =
+        Specification.modificationKer
+          (γ := Specification.sigmaFiniteLambdaFun (S := S) (E := E) ν)
+          (ρ := Specification.sigmaFinitePremodifierNorm
+            (S := S) (E := E) ν (boltzmannWeight (Φ := Φ) β))
+          (Specification.sigmaFinitePremodifierNorm_measurable
+            (S := S) (E := E) (ρ := boltzmannWeight (Φ := Φ) β) ν
+            (isPremodifier_boltzmannWeight (Φ := Φ) β)) := by
+    funext Λ
+    rfl
+  rw [h]
+  exact Specification.IsPremodifier.isConsistent_modificationKer_sigmaFinitePremodifierNorm
+    (S := S) (E := E)
+    (ρ := boltzmannWeight (Φ := Φ) β)
+    (isPremodifier_boltzmannWeight (Φ := Φ) β) hZ
 
 omit [DecidableEq S] in
 /-- The Σ-finite–reference Gibbs kernels form a Georgii specification once σ-finite Boltzmann
