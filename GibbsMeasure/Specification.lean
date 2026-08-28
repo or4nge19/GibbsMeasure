@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2024 Yaël Dillies. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yaël Dillies
+-/
 module
 
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.GiryMonad
@@ -1417,6 +1422,7 @@ noncomputable def modificationKer (γ : ∀ Λ : Finset S, Kernel[cylinderEvents
 @[simp] lemma modificationKer_one' (γ : ∀ Λ : Finset S, Kernel[cylinderEvents Λᶜ] (S → E) (S → E)) :
     modificationKer γ (fun _Λ _η ↦ 1) (fun _Λ ↦ measurable_const) = γ := by ext Λ; simp
 
+set_option backward.isDefEq.respectTransparency false in
 @[simp] lemma modificationKer_one (γ : ∀ Λ : Finset S, Kernel[cylinderEvents Λᶜ] (S → E) (S → E)) :
     modificationKer γ 1 (fun _Λ ↦ measurable_const) = γ := by ext Λ; simp
 
@@ -1470,6 +1476,24 @@ lemma IsModifier.comp_eq (hρ : γ.IsModifier ρ) ⦃Λ₁ Λ₂⦄ (hΛ : Λ₁
       = (γ Λ₂ η).withDensity (ρ Λ₂) := by
   simpa [IsConsistent, modificationKer, Kernel.ext_iff, Kernel.comp_apply, Measure.ext_iff]
     using DFunLike.congr_fun (hρ.isConsistent hΛ) η
+
+set_option backward.isDefEq.respectTransparency false in
+lemma isModifier_iff_ae_eq (hγ : γ.IsProper) :
+    γ.IsModifier ρ ↔ (∀ Λ, Measurable (ρ Λ)) ∧ ∀ ⦃Λ₁ Λ₂⦄, Λ₁ ⊆ Λ₂ → ∀ η,
+      ρ Λ₂ =ᵐ[γ Λ₂ η] fun η ↦ ∫⁻ ζ, ρ Λ₂ ζ ∂(γ Λ₁ η).withDensity (ρ Λ₁) := by
+  simp only [isModifier_iff, IsConsistent, modificationKer, Kernel.ext_iff, Kernel.comp_apply,
+    Kernel.coe_mk, Kernel.coe_comap, CompTriple.comp_eq, Measure.ext_iff, exists_prop,
+    and_congr_right_iff]
+  refine fun hρ ↦ forall₄_congr fun Λ₁ Λ₂ hΛ η ↦ ?_
+  sorry
+
+lemma isModifier_iff_ae_comm [DecidableEq S] :
+    γ.IsModifier ρ ↔ (∀ Λ, Measurable (ρ Λ)) ∧
+    ∀ ⦃Λ₁ Λ₂⦄, Λ₁ ⊆ Λ₂ → ∀ η₁, ∀ᵐ η₂ ∂γ (Λ₂ \ Λ₁) η₁, ∀ᵐ ζ ∂(γ Λ₁ η₂).prod (γ Λ₂ η₂),
+      ρ Λ₂ ζ.1 * ρ Λ₁ ζ.2 = ρ Λ₂ ζ.2 * ρ Λ₁ ζ.1 := by
+  -- simp only [isModifier_iff_ae_eq, and_congr_right_iff]
+  -- refine fun hρ ↦ forall₄_congr fun Λ₁ Λ₂ hΛ η ↦ ?_
+  sorry
 
 /-- Modification specification.
 

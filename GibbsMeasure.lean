@@ -11,7 +11,6 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Function.SimpleFuncDenseLp
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.StronglyMeasurable.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.Bochner.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.IntegrableOn
-public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.Bot
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.AEMeasurable
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.GiryMonad
