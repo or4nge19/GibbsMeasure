@@ -1,5 +1,6 @@
 module
 
+public import GibbsMeasure.Mathlib.Analysis.Normed.Algebra.ClosedSubalgebra
 public import GibbsMeasure.Mathlib.Data.ENNReal.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.Cylinders
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
@@ -35,6 +36,8 @@ public import GibbsMeasure.Prereqs.MeasureExt
 public import GibbsMeasure.Prereqs.SquareCylinders
 public import GibbsMeasure.Potential
 public import GibbsMeasure.Potential.Summable
+public import GibbsMeasure.Potential.Quasilocal
+public import GibbsMeasure.Potential.QuasilocalSpecification
 public import GibbsMeasure.Specification
 public import GibbsMeasure.Specification.ChoquetLaw
 public import GibbsMeasure.Specification.ErgodicDecomposition

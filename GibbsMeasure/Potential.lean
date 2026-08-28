@@ -7,24 +7,16 @@ public import Mathlib.Algebra.BigOperators.Ring.Finset
 public import Mathlib.Data.Set.Finite.Lattice
 
 /-!
-# Interaction Potentials
-
-This file introduces **interaction potentials** for lattice systems.
+# Interaction potentials
 
 ## Main definitions
 
-- `Potential S E`: a family `Φ Δ : (S → E) → ℝ` indexed by finite interaction supports
-  `Δ : Finset S`.
-- `Potential.IsPotential`: locality/measurability of each `Φ Δ` w.r.t. `cylinderEvents Δ`.
-- `Potential.IsFinitary`: only finitely many interaction terms are non-zero.
-- `Potential.IsLocallyFinitary`: for every finite volume `Λ`, only finitely many interaction
-  terms with nonzero strength have support intersecting `Λ`.
+* `Potential S E`: a family `Φ Δ : (S → E) → ℝ` indexed by the finite interaction supports.
+* `Potential.IsPotential`: Georgii (2.2)(i), measurability of `Φ Δ` for `cylinderEvents Δ`.
+* `Potential.IsFiniteRange`: Georgii (2.15).
 
-## Main results
-
-- `IsPotential.eq_of_eqOn`: if a potential is admissible, then each interaction term depends only
-  on the coordinates in its support.
-- Every `IsFinitary` potential is automatically `IsLocallyFinitary`.
+Georgii (2.2)(ii), convergence of the Hamiltonian series, is `Potential.IsSummable` in
+`GibbsMeasure/Potential/Summable.lean`.
 -/
 
 @[expose] public section
@@ -50,25 +42,21 @@ class IsPotential (Φ : Potential S E) : Prop where
   measurable (Δ : Finset S) :
     Measurable[cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)] (Φ Δ)
 
-/-- A potential is *finitary* if only finitely many interaction terms are non-zero. This avoids any
-analytic summability issues: all Hamiltonians we define are finite sums. -/
-class IsFinitary (Φ : Potential S E) : Prop where
-  finite_support : ( {Δ : Finset S | Φ Δ ≠ 0} ).Finite
+/-- Georgii (2.15): `Φ` has *finite range* if for each site `i` there is a finite `Δ` containing
+every interaction support that contains `i` and carries a nonzero term. -/
+class IsFiniteRange (Φ : Potential S E) : Prop where
+  exists_finset (i : S) : ∃ Δ : Finset S, ∀ A : Finset S, i ∈ A → Φ A ≠ 0 → A ⊆ Δ
 
-/-- A potential is *locally finitary* if, for every finite volume `Λ`, only finitely many
-interaction terms with nonzero strength have support intersecting `Λ`.
-
-This is the natural weakening of `IsFinitary`: infinitely many interaction terms are allowed
-globally, but any fixed finite volume sees only finitely many of them. -/
-class IsLocallyFinitary (Φ : Potential S E) : Prop where
-  finite_support (Λ : Finset S) :
-    ({Δ : Finset S | ((Δ : Set S) ∩ (Λ : Set S)).Nonempty ∧ Φ Δ ≠ 0} : Set (Finset S)).Finite
-
-instance (Φ : Potential S E) [IsFinitary Φ] : IsLocallyFinitary Φ where
-  finite_support Λ :=
-    (IsFinitary.finite_support (Φ := Φ)).subset <| by
-      intro Δ hΔ
-      exact hΔ.2
+/-- A finite range potential has, in each finite volume, only finitely many interacting terms. -/
+lemma IsFiniteRange.finite_support (Φ : Potential S E) [IsFiniteRange Φ] (Λ : Finset S) :
+    ({Δ : Finset S | ((Δ : Set S) ∩ (Λ : Set S)).Nonempty ∧ Φ Δ ≠ 0} : Set (Finset S)).Finite := by
+  classical
+  choose Δ hΔ using IsFiniteRange.exists_finset (Φ := Φ)
+  refine Set.Finite.subset (Set.Finite.biUnion Λ.finite_toSet
+    fun i _ ↦ (Δ i).powerset.finite_toSet) ?_
+  rintro A ⟨⟨x, hxA, hxΛ⟩, hΦ⟩
+  exact Set.mem_biUnion (by simpa using hxΛ)
+    (by simpa using hΔ x A (by simpa using hxA) hΦ)
 
 section Locality
 
@@ -91,17 +79,17 @@ variable [DecidableEq S]
 variable {Φ}
 
 /-- The finite set of interaction supports that meet `Λ` and carry a nonzero interaction term. -/
-noncomputable def interactingSupport [IsLocallyFinitary Φ] (Λ : Finset S) : Finset (Finset S) :=
-  (IsLocallyFinitary.finite_support (Φ := Φ) Λ).toFinset
+noncomputable def interactingSupport [IsFiniteRange Φ] (Λ : Finset S) : Finset (Finset S) :=
+  (IsFiniteRange.finite_support (Φ := Φ) Λ).toFinset
 
 omit [DecidableEq S] in
-lemma mem_interactingSupport [IsLocallyFinitary Φ] {Λ Δ : Finset S} :
+lemma mem_interactingSupport [IsFiniteRange Φ] {Λ Δ : Finset S} :
     Δ ∈ interactingSupport (Φ := Φ) Λ ↔
       ((Δ : Set S) ∩ (Λ : Set S)).Nonempty ∧ Φ Δ ≠ 0 := by
   simp [interactingSupport]
 
 omit [DecidableEq S] in
-lemma interactingSupport_subset_of_subset [IsLocallyFinitary Φ] {Λ₁ Λ₂ : Finset S}
+lemma interactingSupport_subset_of_subset [IsFiniteRange Φ] {Λ₁ Λ₂ : Finset S}
     (hΛ : Λ₁ ⊆ Λ₂) :
     interactingSupport (Φ := Φ) Λ₁ ⊆ interactingSupport (Φ := Φ) Λ₂ := by
   intro Δ hΔ
@@ -116,11 +104,11 @@ lemma interactingSupport_subset_of_subset [IsLocallyFinitary Φ] {Λ₁ Λ₂ : 
 
 This is the standard finite-volume Hamiltonian \(H^{int}_Λ(η) = \sum_{Δ : Δ ∩ Λ ≠ ∅} Φ_Δ(η)\).
 The local finiteness assumption ensures this is a finite sum. -/
-noncomputable def interactingHamiltonian [IsLocallyFinitary Φ] (Λ : Finset S) (η : S → E) : ℝ :=
+noncomputable def interactingHamiltonian [IsFiniteRange Φ] (Λ : Finset S) (η : S → E) : ℝ :=
   Finset.sum (interactingSupport (Φ := Φ) Λ) (fun Δ => Φ Δ η)
 
 omit [DecidableEq S] in
-lemma measurable_interactingHamiltonian [IsLocallyFinitary Φ] [IsPotential Φ] (Λ : Finset S) :
+lemma measurable_interactingHamiltonian [IsFiniteRange Φ] [IsPotential Φ] (Λ : Finset S) :
     Measurable (interactingHamiltonian (Φ := Φ) Λ) := by
   classical
   set t : Finset (Finset S) := interactingSupport (Φ := Φ) Λ with ht
@@ -136,11 +124,11 @@ lemma measurable_interactingHamiltonian [IsLocallyFinitary Φ] [IsPotential Φ] 
 /-! ### Boltzmann weights and the cocycle identity -/
 
 /-- Unnormalized Boltzmann weight `ρ_Λ(η) = exp (-β H^{int}_Λ(η))`, valued in `ℝ≥0∞`. -/
-noncomputable def boltzmannWeight [IsLocallyFinitary Φ] (β : ℝ) (Λ : Finset S) (η : S → E) : ℝ≥0∞ :=
+noncomputable def boltzmannWeight [IsFiniteRange Φ] (β : ℝ) (Λ : Finset S) (η : S → E) : ℝ≥0∞ :=
   ENNReal.ofReal (Real.exp (-β * interactingHamiltonian (Φ := Φ) Λ η))
 
 omit [DecidableEq S] in
-lemma measurable_boltzmannWeight [IsLocallyFinitary Φ] [IsPotential Φ] (β : ℝ) (Λ : Finset S) :
+lemma measurable_boltzmannWeight [IsFiniteRange Φ] [IsPotential Φ] (β : ℝ) (Λ : Finset S) :
     Measurable (boltzmannWeight (Φ := Φ) β Λ) := by
   have hH : Measurable fun η : S → E => interactingHamiltonian (Φ := Φ) Λ η :=
     measurable_interactingHamiltonian (Φ := Φ) Λ
@@ -153,7 +141,7 @@ lemma measurable_boltzmannWeight [IsLocallyFinitary Φ] [IsPotential Φ] (β : �
   exact ((measurable_const.mul hH).exp).ennreal_ofReal
 
 omit [DecidableEq S] in
-lemma interactingHamiltonian_sub_eq_sum_sub [IsLocallyFinitary Φ]
+lemma interactingHamiltonian_sub_eq_sum_sub [IsFiniteRange Φ]
     (Λ : Finset S) (η ζ : S → E) :
     interactingHamiltonian (Φ := Φ) Λ η - interactingHamiltonian (Φ := Φ) Λ ζ =
       Finset.sum (interactingSupport (Φ := Φ) Λ) (fun Δ => Φ Δ η - Φ Δ ζ) := by
@@ -161,7 +149,7 @@ lemma interactingHamiltonian_sub_eq_sum_sub [IsLocallyFinitary Φ]
 
 omit [DecidableEq S] in
 lemma interactingHamiltonian_sub_eq_of_subset_eqOn_compl
-    [IsLocallyFinitary Φ] [IsPotential Φ] {Λ₁ Λ₂ : Finset S}
+    [IsFiniteRange Φ] [IsPotential Φ] {Λ₁ Λ₂ : Finset S}
     (hΛ : Λ₁ ⊆ Λ₂) {η ζ : S → E} (hrestrict : ∀ s ∉ Λ₁, ζ s = η s) :
     interactingHamiltonian (Φ := Φ) Λ₁ η - interactingHamiltonian (Φ := Φ) Λ₁ ζ =
       interactingHamiltonian (Φ := Φ) Λ₂ η - interactingHamiltonian (Φ := Φ) Λ₂ ζ := by
@@ -184,7 +172,7 @@ lemma interactingHamiltonian_sub_eq_of_subset_eqOn_compl
   simp [hΦΔ]
 
 omit [DecidableEq S] in
-lemma boltzmannWeight_mul_comm_of_hamiltonian_sum_eq [IsLocallyFinitary Φ]
+lemma boltzmannWeight_mul_comm_of_hamiltonian_sum_eq [IsFiniteRange Φ]
     (β : ℝ) {Λ₁ Λ₂ : Finset S} {η ζ : S → E}
     (hsum :
       interactingHamiltonian (Φ := Φ) Λ₂ ζ + interactingHamiltonian (Φ := Φ) Λ₁ η =
@@ -223,7 +211,7 @@ lemma boltzmannWeight_mul_comm_of_hamiltonian_sum_eq [IsLocallyFinitary Φ]
           exact ENNReal.ofReal_mul (Real.exp_pos _).le
 
 omit [DecidableEq S] in
-lemma boltzmannWeight_mul_comm_of_hamiltonian_sub_eq [IsLocallyFinitary Φ]
+lemma boltzmannWeight_mul_comm_of_hamiltonian_sub_eq [IsFiniteRange Φ]
     (β : ℝ) {Λ₁ Λ₂ : Finset S} {η ζ : S → E}
     (hH :
       interactingHamiltonian (Φ := Φ) Λ₁ η - interactingHamiltonian (Φ := Φ) Λ₁ ζ =
@@ -243,7 +231,7 @@ lemma boltzmannWeight_mul_comm_of_hamiltonian_sub_eq [IsLocallyFinitary Φ]
 omit [DecidableEq S] in
 /-- The cocycle identity for interacting Boltzmann weights (Georgii identity 4.6), expressed as
 `Specification.IsPremodifier`. -/
-lemma isPremodifier_boltzmannWeight (β : ℝ) [IsLocallyFinitary Φ] [IsPotential Φ] :
+lemma isPremodifier_boltzmannWeight (β : ℝ) [IsFiniteRange Φ] [IsPotential Φ] :
     Specification.IsPremodifier (S := S) (E := E) (boltzmannWeight (Φ := Φ) β) := by
   refine ⟨?_, ?_⟩
   · intro Λ
@@ -259,7 +247,7 @@ section Normalization
 /-- The **partition function** (normalizing factor) for the Boltzmann weights in volume `Λ` with
 boundary condition `η`. This is just `Specification.premodifierZ` specialized to the Boltzmann
 premodifier. -/
-noncomputable def partitionFunction (Φ : Potential S E) [IsLocallyFinitary Φ]
+noncomputable def partitionFunction (Φ : Potential S E) [IsFiniteRange Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν] (Λ : Finset S) (η : S → E) : ℝ≥0∞ :=
   Specification.premodifierZ (S := S) (E := E) ν (boltzmannWeight (Φ := Φ) β) Λ η
 
@@ -268,20 +256,20 @@ omit [DecidableEq S] in
 
 This is the λ-partition function appearing in Georgii's admissibility condition for σ-finite
 reference measures. -/
-noncomputable def sigmaFinitePartitionFunction (Φ : Potential S E) [IsLocallyFinitary Φ]
+noncomputable def sigmaFinitePartitionFunction (Φ : Potential S E) [IsFiniteRange Φ]
     (β : ℝ) (ν : Measure E) [SigmaFinite ν] (Λ : Finset S) (η : S → E) : ℝ≥0∞ :=
   Specification.sigmaFiniteLambdaZ (S := S) (E := E) ν (boltzmannWeight (Φ := Φ) β) Λ η
 
 /-- Admissibility of the Boltzmann premodifier for the reference measure `ν`: every finite-volume
 partition function is nonzero and finite. The nonzero part follows automatically for the finite
 Hamiltonians in this file; the predicate matches the normalized premodifier API. -/
-abbrev IsBoltzmannAdmissible (Φ : Potential S E) [IsLocallyFinitary Φ]
+abbrev IsBoltzmannAdmissible (Φ : Potential S E) [IsFiniteRange Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν] : Prop :=
   Specification.IsPremodifierAdmissible (S := S) (E := E) ν (boltzmannWeight (Φ := Φ) β)
 
 omit [DecidableEq S] in
 /-- σ-finite-reference admissibility of the Boltzmann premodifier. -/
-abbrev IsSigmaFiniteBoltzmannAdmissible (Φ : Potential S E) [IsLocallyFinitary Φ]
+abbrev IsSigmaFiniteBoltzmannAdmissible (Φ : Potential S E) [IsFiniteRange Φ]
     (β : ℝ) (ν : Measure E) [SigmaFinite ν] : Prop :=
   Specification.IsSigmaFiniteLambdaAdmissible
     (S := S) (E := E) ν (boltzmannWeight (Φ := Φ) β)
@@ -290,7 +278,7 @@ omit [DecidableEq S] in
 /-- For probability reference measures, the σ-finite-reference and probability partition functions
 agree. -/
 lemma partitionFunction_eq_sigmaFinitePartitionFunction
-    (Φ : Potential S E) [IsLocallyFinitary Φ]
+    (Φ : Potential S E) [IsFiniteRange Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν] (Λ : Finset S) (η : S → E) :
     partitionFunction (S := S) (E := E) Φ β ν Λ η =
       sigmaFinitePartitionFunction (S := S) (E := E) Φ β ν Λ η := by
@@ -301,7 +289,7 @@ omit [DecidableEq S] in
 /-- For probability reference measures, the probability and σ-finite Boltzmann admissibility
 predicates agree. -/
 lemma isBoltzmannAdmissible_iff_isSigmaFiniteBoltzmannAdmissible
-    (Φ : Potential S E) [IsLocallyFinitary Φ] (β : ℝ) (ν : Measure E)
+    (Φ : Potential S E) [IsFiniteRange Φ] (β : ℝ) (ν : Measure E)
     [IsProbabilityMeasure ν] :
     IsBoltzmannAdmissible (S := S) (E := E) Φ β ν ↔
       IsSigmaFiniteBoltzmannAdmissible (S := S) (E := E) Φ β ν := by
@@ -309,7 +297,7 @@ lemma isBoltzmannAdmissible_iff_isSigmaFiniteBoltzmannAdmissible
     (S := S) (E := E) (ν := ν) (ρ := boltzmannWeight (Φ := Φ) β)
 
 omit [DecidableEq S] in
-lemma measurable_partitionFunction (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+lemma measurable_partitionFunction (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν] (Λ : Finset S) :
     Measurable[cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)ᶜ]
       (partitionFunction (S := S) (E := E) Φ β ν Λ) := by
@@ -324,20 +312,20 @@ lemma measurable_partitionFunction (Φ : Potential S E) [IsLocallyFinitary Φ] [
 
 /-- The (normalized) Gibbs modifier associated to the Boltzmann weights, i.e.
 \(\rho'_Λ(η) = \rho_Λ(η) / \int \rho_Λ \, d(\text{isssd}_Λ(η))\). -/
-noncomputable def gibbsModifier (Φ : Potential S E) [IsLocallyFinitary Φ]
+noncomputable def gibbsModifier (Φ : Potential S E) [IsFiniteRange Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν] (Λ : Finset S) (η : S → E) : ℝ≥0∞ :=
   boltzmannWeight (Φ := Φ) β Λ η /
     partitionFunction (S := S) (E := E) Φ β ν Λ η
 
 omit [DecidableEq S] in
 /-- The normalized Boltzmann density relative to a σ-finite reference measure. -/
-noncomputable def sigmaFiniteGibbsModifier (Φ : Potential S E) [IsLocallyFinitary Φ]
+noncomputable def sigmaFiniteGibbsModifier (Φ : Potential S E) [IsFiniteRange Φ]
     (β : ℝ) (ν : Measure E) [SigmaFinite ν] (Λ : Finset S) (η : S → E) : ℝ≥0∞ :=
   boltzmannWeight (Φ := Φ) β Λ η /
     sigmaFinitePartitionFunction (S := S) (E := E) Φ β ν Λ η
 
 omit [DecidableEq S] in
-lemma measurable_gibbsModifier (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+lemma measurable_gibbsModifier (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν] (Λ : Finset S) :
     Measurable (gibbsModifier (S := S) (E := E) Φ β ν Λ) := by
   have h :
@@ -353,7 +341,7 @@ lemma measurable_gibbsModifier (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPo
 omit [DecidableEq S] in
 /-- Measurability of the σ-finite normalized Boltzmann density. -/
 lemma measurable_sigmaFiniteGibbsModifier
-    (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+    (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [SigmaFinite ν] (Λ : Finset S) :
     Measurable (sigmaFiniteGibbsModifier (S := S) (E := E) Φ β ν Λ) := by
   have h :
@@ -371,7 +359,7 @@ lemma measurable_sigmaFiniteGibbsModifier
 omit [DecidableEq S] in
 /-- `gibbsModifier` is definitionally the normalized premodifier `premodifierNorm` applied to the
 Boltzmann weights. -/
-lemma gibbsModifier_eq_premodifierNorm (Φ : Potential S E) [IsLocallyFinitary Φ]
+lemma gibbsModifier_eq_premodifierNorm (Φ : Potential S E) [IsFiniteRange Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν] :
     gibbsModifier (S := S) (E := E) Φ β ν
       = Specification.premodifierNorm (S := S) (E := E) ν (boltzmannWeight (Φ := Φ) β) := by
@@ -382,7 +370,7 @@ omit [DecidableEq S] in
 /-- `sigmaFiniteGibbsModifier` is definitionally the σ-finite normalized premodifier applied to the
 Boltzmann weights. -/
 lemma sigmaFiniteGibbsModifier_eq_sigmaFinitePremodifierNorm
-    (Φ : Potential S E) [IsLocallyFinitary Φ] (β : ℝ) (ν : Measure E) [SigmaFinite ν] :
+    (Φ : Potential S E) [IsFiniteRange Φ] (β : ℝ) (ν : Measure E) [SigmaFinite ν] :
     sigmaFiniteGibbsModifier (S := S) (E := E) Φ β ν =
       Specification.sigmaFinitePremodifierNorm
         (S := S) (E := E) ν (boltzmannWeight (Φ := Φ) β) := by
@@ -394,7 +382,7 @@ omit [DecidableEq S] in
 /-- For probability reference measures, the probability and σ-finite normalized Boltzmann densities
 agree. -/
 lemma gibbsModifier_eq_sigmaFiniteGibbsModifier
-    (Φ : Potential S E) [IsLocallyFinitary Φ] (β : ℝ) (ν : Measure E)
+    (Φ : Potential S E) [IsFiniteRange Φ] (β : ℝ) (ν : Measure E)
     [IsProbabilityMeasure ν] :
     gibbsModifier (S := S) (E := E) Φ β ν =
       sigmaFiniteGibbsModifier (S := S) (E := E) Φ β ν := by
@@ -405,7 +393,7 @@ lemma gibbsModifier_eq_sigmaFiniteGibbsModifier
 omit [DecidableEq S] in
 /-- The σ-finite normalized Gibbs modifier has partition function `1` in every finite volume. -/
 lemma lintegral_sigmaFiniteGibbsModifier_eq_one
-    (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+    (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [SigmaFinite ν]
     (hZ : IsSigmaFiniteBoltzmannAdmissible (S := S) (E := E) Φ β ν)
     (Λ : Finset S) (ξ : S → E) :
@@ -431,7 +419,7 @@ Its value at a boundary condition `η` is the σ-finite λ-kernel with density
 `sigmaFiniteGibbsModifier`. These kernels are proper, and under
 `IsSigmaFiniteBoltzmannAdmissible` each finite-volume kernel is Markov. -/
 noncomputable def sigmaFiniteGibbsKernel
-    (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+    (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [SigmaFinite ν] (Λ : Finset S) :
     Kernel[cylinderEvents Λᶜ] (S → E) (S → E) :=
   Specification.sigmaFinitePremodifierKernel
@@ -441,7 +429,7 @@ noncomputable def sigmaFiniteGibbsKernel
 omit [DecidableEq S] in
 /-- Evaluation of `sigmaFiniteGibbsKernel`. -/
 lemma sigmaFiniteGibbsKernel_apply
-    (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+    (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [SigmaFinite ν] (Λ : Finset S) (η : S → E) :
     sigmaFiniteGibbsKernel (S := S) (E := E) Φ β ν Λ η =
       (Specification.sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η).withDensity
@@ -452,7 +440,7 @@ lemma sigmaFiniteGibbsKernel_apply
 omit [DecidableEq S] in
 /-- Under admissibility, each σ-finite Gibbs finite-volume kernel is a probability kernel. -/
 lemma isMarkovKernel_sigmaFiniteGibbsKernel
-    (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+    (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [SigmaFinite ν]
     (hZ : IsSigmaFiniteBoltzmannAdmissible (S := S) (E := E) Φ β ν)
     (Λ : Finset S) :
@@ -465,7 +453,7 @@ omit [DecidableEq S] in
 /-- Each σ-finite Gibbs finite-volume kernel is proper with respect to the outside-volume
 σ-algebra. -/
 lemma isProper_sigmaFiniteGibbsKernel
-    (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+    (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [SigmaFinite ν] (Λ : Finset S) :
     (sigmaFiniteGibbsKernel (S := S) (E := E) Φ β ν Λ).IsProper := by
   exact Specification.isProper_sigmaFinitePremodifierKernel
@@ -476,7 +464,7 @@ omit [DecidableEq S] in
 /-- For a probability spin law, admissible Boltzmann premodifiers yield Georgii-consistent
 normalized σ-finite Gibbs kernels (DLR projective family). -/
 lemma isConsistent_sigmaFiniteGibbsKernel
-    (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+    (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν]
     (hZ : IsSigmaFiniteBoltzmannAdmissible (S := S) (E := E) Φ β ν) :
     IsConsistent (sigmaFiniteGibbsKernel (S := S) (E := E) Φ β ν) := by
@@ -504,7 +492,7 @@ kernels
 (`sigmaFiniteGibbsSpecificationOfAdmissible_eq_gibbsSpecificationOfAdmissible`). -/
 @[simps! -fullyApplied]
 noncomputable def sigmaFiniteGibbsSpecificationOfAdmissible
-    (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+    (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν]
     (hZ : IsSigmaFiniteBoltzmannAdmissible (S := S) (E := E) Φ β ν) :
     Specification S E :=
@@ -519,7 +507,7 @@ noncomputable def sigmaFiniteGibbsSpecificationOfAdmissible
 omit [DecidableEq S] in
 /-- The partition function for Boltzmann weights is never `0` (since the weight is strictly
 positive everywhere and `isssd` is a probability measure). -/
-lemma premodifierZ_boltzmannWeight_ne_zero (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+lemma premodifierZ_boltzmannWeight_ne_zero (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν] (Λ : Finset S) (η : S → E) :
     Specification.premodifierZ (S := S) (E := E) ν (boltzmannWeight (Φ := Φ) β) Λ η ≠ 0 := by
   let μ : Measure (S → E) := Specification.isssd (S := S) (E := E) ν Λ η
@@ -541,7 +529,7 @@ lemma premodifierZ_boltzmannWeight_ne_zero (Φ : Potential S E) [IsLocallyFinita
 
 omit [DecidableEq S] in
 /-- The partition function for Boltzmann weights is never `0`. -/
-lemma partitionFunction_ne_zero (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+lemma partitionFunction_ne_zero (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν] (Λ : Finset S) (η : S → E) :
     partitionFunction (S := S) (E := E) Φ β ν Λ η ≠ 0 := by
   simpa [partitionFunction] using
@@ -552,7 +540,7 @@ omit [DecidableEq S] in
 function finite. This is a basic reusable criterion for concrete finite-volume models to discharge
 the `Z ≠ ⊤` hypothesis in `gibbsSpecification`. -/
 lemma partitionFunction_ne_top_of_boltzmannWeight_le
-    (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+    (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν] (Λ : Finset S) (η : S → E)
     {C : ℝ≥0∞} (hC : C ≠ ⊤)
     (hbound : ∀ σ : S → E, boltzmannWeight (Φ := Φ) β Λ σ ≤ C) :
@@ -572,7 +560,7 @@ omit [DecidableEq S] in
 /-- Boltzmann admissibility follows from finiteness of the partition functions; strict positivity of
 the Boltzmann weights supplies the `Z ≠ 0` half. -/
 lemma isBoltzmannAdmissible_of_premodifierZ_ne_top
-    (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+    (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν]
     (hZ : ∀ (Λ : Finset S) (η : S → E),
       Specification.premodifierZ (S := S) (E := E) ν
@@ -589,7 +577,7 @@ omit [DecidableEq S] in
 for probability reference measures, strict positivity is inherited from the corresponding
 `isssd` partition function. -/
 lemma isSigmaFiniteBoltzmannAdmissible_of_sigmaFinitePartitionFunction_ne_top
-    (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+    (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν]
     (hZ : ∀ (Λ : Finset S) (η : S → E),
       sigmaFinitePartitionFunction (S := S) (E := E) Φ β ν Λ η ≠ ⊤) :
@@ -607,7 +595,7 @@ omit [DecidableEq S] in
 /-- Pointwise **`Z ≠ ⊤`** for the σ-finite λ-partition function yields the normalized
 σ-finite-reference Gibbs specification. This constructor uses the λ-partition function directly. -/
 noncomputable def sigmaFiniteGibbsSpecificationOfSigmaFinitePartitionFunctionFinite
-    (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+    (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν]
     (hZ : ∀ (Λ : Finset S) (η : S → E),
       sigmaFinitePartitionFunction (S := S) (E := E) Φ β ν Λ η ≠ ⊤) :
@@ -624,7 +612,7 @@ This is a compatibility constructor for probability-reference APIs stated with `
 For a hypothesis stated in terms of the λ-partition function, use
 `sigmaFiniteGibbsSpecificationOfSigmaFinitePartitionFunctionFinite`. -/
 noncomputable def sigmaFiniteGibbsSpecification
-    (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+    (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν]
     (hZ : ∀ (Λ : Finset S) (η : S → E),
       Specification.premodifierZ (S := S) (E := E) ν (boltzmannWeight (Φ := Φ) β) Λ η ≠ ⊤) :
@@ -637,7 +625,7 @@ omit [DecidableEq S] in
 /-- Under Boltzmann admissibility, the normalized Gibbs density is an actual modifier for `isssd`
 (consistency holds). -/
 lemma isModifier_gibbsModifier_of_admissible
-    (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+    (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν]
     (hZ : IsBoltzmannAdmissible (S := S) (E := E) Φ β ν) :
     (Specification.isssd (S := S) (E := E) ν).IsModifier
@@ -655,7 +643,7 @@ lemma isModifier_gibbsModifier_of_admissible
 omit [DecidableEq S] in
 /-- Under the finiteness assumption `Z ≠ ⊤`, the Gibbs modifier is an actual modifier for `isssd`
 (consistency holds). The missing `Z ≠ 0` half is automatic for Boltzmann weights. -/
-lemma isModifier_gibbsModifier (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+lemma isModifier_gibbsModifier (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν]
     (hZ : ∀ (Λ : Finset S) (η : S → E),
       Specification.premodifierZ (S := S) (E := E) ν
@@ -669,7 +657,7 @@ lemma isModifier_gibbsModifier (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPo
 /-- The Gibbs specification associated to an admissible Boltzmann premodifier: the modification of
 the independent specification by the *normalized* Boltzmann weights. -/
 noncomputable def gibbsSpecificationOfAdmissible
-    (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+    (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν]
     (hZ : IsBoltzmannAdmissible (S := S) (E := E) Φ β ν) :
     Specification S E :=
@@ -681,7 +669,7 @@ omit [DecidableEq S] in
 /-- For probability `ν`, σ-finite normalized Gibbs kernels coincide with kernels of the
 `isssd` modification **`gibbsSpecificationOfAdmissible`**. -/
 lemma sigmaFiniteGibbsKernel_eq_gibbsSpecificationOfAdmissible_apply
-    (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+    (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν]
     (hZ : IsBoltzmannAdmissible (S := S) (E := E) Φ β ν)
     (Λ : Finset S) (η : S → E) :
@@ -705,7 +693,7 @@ omit [DecidableEq S] in
 /-- For probability `ν`, the σ-finite Gibbs specification is equal to the `isssd` modification by
 normalized Boltzmann weights. -/
 lemma sigmaFiniteGibbsSpecificationOfAdmissible_eq_gibbsSpecificationOfAdmissible
-    (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+    (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν]
     (hZ : IsBoltzmannAdmissible (S := S) (E := E) Φ β ν) :
     sigmaFiniteGibbsSpecificationOfAdmissible (S := S) (E := E) Φ β ν
@@ -721,7 +709,7 @@ lemma sigmaFiniteGibbsSpecificationOfAdmissible_eq_gibbsSpecificationOfAdmissibl
 specification by the *normalized* Boltzmann weights.
 
 We must assume the partition functions are finite (`Z ≠ ⊤`) to normalize in `ℝ≥0∞`. -/
-noncomputable def gibbsSpecification (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+noncomputable def gibbsSpecification (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν]
     (hZ : ∀ (Λ : Finset S) (η : S → E),
       Specification.premodifierZ (S := S) (E := E) ν (boltzmannWeight (Φ := Φ) β) Λ η ≠ ⊤) :
@@ -734,7 +722,7 @@ omit [DecidableEq S] in
 /-- For probability `ν`, the σ-finite specification built from `premodifierZ` finiteness agrees
 with `gibbsSpecification`. -/
 lemma sigmaFiniteGibbsSpecification_eq_gibbsSpecification
-    (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+    (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν]
     (hZ : ∀ (Λ : Finset S) (η : S → E),
       Specification.premodifierZ (S := S) (E := E) ν (boltzmannWeight (Φ := Φ) β) Λ η ≠ ⊤) :
@@ -750,7 +738,7 @@ lemma sigmaFiniteGibbsSpecification_eq_gibbsSpecification
 This constructor reduces the finiteness hypothesis for concrete models to a finite upper bound on
 the Boltzmann weight in each volume. -/
 noncomputable def gibbsSpecificationOfBoltzmannWeightBounded
-    (Φ : Potential S E) [IsLocallyFinitary Φ] [IsPotential Φ]
+    (Φ : Potential S E) [IsFiniteRange Φ] [IsPotential Φ]
     (β : ℝ) (ν : Measure E) [IsProbabilityMeasure ν]
     (hbound : ∀ (Λ : Finset S), ∃ C : ℝ≥0∞,
       C ≠ ⊤ ∧ ∀ σ : S → E, boltzmannWeight (Φ := Φ) β Λ σ ≤ C) :

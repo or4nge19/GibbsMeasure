@@ -1453,6 +1453,71 @@ lemma isGibbsMeasure_isssd_infinitePi (ν : Measure E) [IsProbabilityMeasure ν]
       hπ (cylinderEvents_le_pi (X := fun _ : S ↦ E) (Δ := (Λ : Set S)ᶜ))).2 h_bind
   simpa [μ] using this
 
+/-- On a square cylinder supported in `Λ`, the independent kernel does not depend on the boundary
+condition. -/
+lemma isssd_apply_squareCylinder_of_subset (ν : Measure E) [IsProbabilityMeasure ν]
+    {Λ s : Finset S} (hs : s ⊆ Λ)
+    (t : S → Set E) (ht : ∀ i, MeasurableSet (t i)) (η : S → E) :
+    isssd ν Λ η ((s : Set S).pi t) = ∏ i ∈ s, ν (t i) := by
+  classical
+  have hcond : ∀ i ∈ s, i ∉ Λ → η i ∈ t i := fun i hi hiΛ ↦ absurd (hs hi) hiΛ
+  have hinter : s ∩ Λ = s := Finset.inter_eq_left.2 hs
+  have h := isssdFun_apply_squareCylinder (ν := ν) (mE := mE) Λ s t ht η
+  rw [hinter] at h
+  rw [show (isssd ν Λ) η = isssdFun ν Λ η from rfl, h]
+  exact if_pos hcond
+
+/-- Any probability measure pushed through the independent kernel on `Λ` agrees with the product
+measure on square cylinders supported in `Λ`. -/
+lemma bind_isssd_apply_squareCylinder_of_subset (ν : Measure E)
+    [IsProbabilityMeasure ν] (μ : Measure (S → E))
+    {Λ s : Finset S} (hs : s ⊆ Λ)
+    (t : S → Set E) (ht : ∀ i, MeasurableSet (t i)) :
+    (μ.bind (isssd ν Λ)) ((s : Set S).pi t) = μ Set.univ * ∏ i ∈ s, ν (t i) := by
+  classical
+  have hmeas : MeasurableSet ((s : Set S).pi t) :=
+    MeasurableSet.pi s.countable_toSet fun i _ ↦ ht i
+  have hker : AEMeasurable (isssd ν Λ : (S → E) → Measure (S → E)) μ :=
+    (((isssd ν Λ).measurable).mono cylinderEvents_le_pi le_rfl).aemeasurable
+  rw [Measure.bind_apply hmeas hker,
+    lintegral_congr fun a ↦ isssd_apply_squareCylinder_of_subset (ν := ν) hs t ht a,
+    lintegral_const, mul_comm]
+
+/-- The finite-measure form of Georgii Remark (1.25). -/
+theorem isGibbsMeasure_isssd_iff_of_isFiniteMeasure (ν : Measure E) [IsProbabilityMeasure ν]
+    (μ : Measure (S → E)) [IsFiniteMeasure μ] :
+    (isssd ν).IsGibbsMeasure μ ↔ μ = μ Set.univ • Measure.infinitePi fun _ : S ↦ ν := by
+  classical
+  constructor
+  · intro hμ
+    have hbind : ∀ Λ : Finset S, μ.bind (isssd ν Λ) = μ :=
+      (isGibbsMeasure_iff_forall_bind_eq (γ := isssd ν) (μ := μ)).1 hμ
+    refine MeasureTheory.Measure.ext_of_generateFrom_of_iUnion_univ
+      (C := squareCylindersMeas S E) (hA := generateFrom_squareCylindersMeas S E)
+      (hC := isPiSystem_squareCylindersMeas S E) (huniv := univ_mem_squareCylindersMeas S E)
+      (hμ_univ := measure_ne_top _ _) ?_
+    rintro A ⟨s, t, ht, rfl⟩
+    have ht' : ∀ i : S, MeasurableSet (t i) := by
+      simpa [Set.mem_pi, Set.mem_univ, true_implies] using ht
+    calc μ ((s : Set S).pi t)
+        = (μ.bind (isssd ν s)) ((s : Set S).pi t) := by rw [hbind s]
+      _ = μ Set.univ * ∏ i ∈ s, ν (t i) :=
+          bind_isssd_apply_squareCylinder_of_subset ν μ (le_refl s) t ht'
+      _ = (μ Set.univ • Measure.infinitePi (fun _ : S ↦ ν)) ((s : Set S).pi t) := by
+          rw [Measure.smul_apply, smul_eq_mul,
+            infinitePi_apply_squareCylinder (S := S) (E := E) ν s t ht']
+  · intro h
+    refine (isGibbsMeasure_iff_forall_bind_eq (γ := isssd ν) (μ := μ)).2 fun Λ ↦ ?_
+    conv_lhs => rw [h]
+    rw [Measure.bind_smul, infinitePi_bind_isssd (S := S) (E := E) ν Λ, ← h]
+
+/-- **Georgii, Remark (1.25).** `G(λ_·) = {λ^S}`. -/
+theorem isGibbsMeasure_isssd_iff (ν : Measure E) [IsProbabilityMeasure ν]
+    (μ : Measure (S → E)) [IsProbabilityMeasure μ] :
+    (isssd ν).IsGibbsMeasure μ ↔ μ = Measure.infinitePi fun _ : S ↦ ν := by
+  rw [isGibbsMeasure_isssd_iff_of_isFiniteMeasure ν μ, measure_univ, one_smul]
+
+
 end InfinitePi
 
 section Modifier

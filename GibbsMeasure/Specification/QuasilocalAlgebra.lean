@@ -8,6 +8,7 @@ module
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.BoundedMeasurable
 public import GibbsMeasure.Mathlib.Logic.Function.DependsOn
 public import GibbsMeasure.Prereqs.CylinderEvents
+public import GibbsMeasure.Mathlib.Analysis.Normed.Algebra.ClosedSubalgebra
 public import GibbsMeasure.Mathlib.Topology.MetricSpace.DependsOn
 public import GibbsMeasure.Mathlib.Topology.UniformSpace.Pi
 public import Mathlib.Topology.UniformSpace.HeineCantor
@@ -298,5 +299,12 @@ theorem mem_quasilocalFunctions_iff_continuous [DiscreteTopology E] [CompactSpac
 end UniformContinuity
 
 end Criterion
+
+/-! ### Closure under the exponential -/
+
+/-- The exponential of a quasilocal observable is quasilocal. -/
+theorem exp_mem_quasilocalFunctions {f : lp (fun _ : S → E ↦ ℝ) ∞}
+    (hf : f ∈ quasilocalFunctions S E) : NormedSpace.exp f ∈ quasilocalFunctions S E :=
+  Subalgebra.exp_mem (Subalgebra.isClosed_topologicalClosure _) hf
 
 end GibbsMeasure

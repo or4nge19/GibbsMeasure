@@ -27,7 +27,7 @@ to quasilocal observables. No topology on `E` is involved.
 set_option backward.isDefEq.respectTransparency false
 
 open Filter Function MeasureTheory ProbabilityTheory Set
-open scoped ENNReal Topology
+open scoped ENNReal NNReal Topology
 
 noncomputable section
 
@@ -83,6 +83,7 @@ lemma dist_action_le {f g : lp (fun _ : S → E ↦ ℝ) ∞}
     rwa [lp.coeFn_sub, Pi.sub_apply] at this
   simpa using h
 
+
 end Specification
 
 namespace Specification
@@ -115,5 +116,78 @@ theorem isQuasilocal_iff_forall_mem_localFunctions :
   have hgmeas : Measurable (⇑g) :=
     measurable_of_mem_quasilocalFunctions (localFunctions_le_quasilocalFunctions hg)
   exact ⟨action γ Λ g, h Λ g hg, lt_of_le_of_lt (dist_action_le hfmeas hgmeas) hfg⟩
+
+/-! ### The independent specification, and modifications of it -/
+
+section Isssd
+
+variable (ν : Measure E) [IsProbabilityMeasure ν]
+
+/-- Integrating out `Λ` against the independent kernel sends a `Δ`-local observable to a
+`Δ \ Λ`-local one. -/
+lemma dependsOn_action_isssd [DecidableEq S] {f : (S → E) → ℝ} (hfm : Measurable f)
+    {Δ : Finset S} (hf : DependsOn f (Δ : Set S)) (Λ : Finset S) :
+    DependsOn (fun η ↦ ∫ x, f x ∂(isssd ν Λ η)) (((Δ \ Λ : Finset S) : Set S)) := by
+  intro η η' hηη'
+  have hint : ∀ ξ : S → E, ∫ x, f x ∂(isssd ν Λ ξ)
+      = ∫ ζ, f (juxt (Λ : Set S) ξ ζ) ∂(Measure.pi fun _ : (Λ : Set S) ↦ ν) := by
+    intro ξ
+    show ∫ x, f x ∂(Measure.map (juxt (Λ : Set S) ξ) (Measure.pi fun _ : (Λ : Set S) ↦ ν)) = _
+    rw [integral_map (Measurable.juxt).aemeasurable hfm.aestronglyMeasurable]
+  dsimp only
+  rw [hint η, hint η']
+  refine integral_congr_ae (.of_forall fun ζ ↦ hf fun i hi ↦ ?_)
+  by_cases hiΛ : i ∈ Λ
+  · simp [juxt_apply_of_mem (Λ := (Λ : Set S)) (by exact_mod_cast hiΛ)]
+  · have hmem : i ∈ ((Δ \ Λ : Finset S) : Set S) := by
+      simpa using Finset.mem_sdiff.2 ⟨by exact_mod_cast hi, hiΛ⟩
+    simp [juxt_apply_of_not_mem (Λ := (Λ : Set S)) (by exact_mod_cast hiΛ), hηη' i hmem]
+
+/-- The independent specification maps `Δ`-local observables to `Δ \ Λ`-local ones. -/
+theorem action_isssd_mem_localFunctionsOn [DecidableEq S] [Nonempty E] (Λ Δ : Finset S)
+    {f : lp (fun _ : S → E ↦ ℝ) ∞} (hf : f ∈ localFunctionsOn S E Δ) :
+    action (isssd ν) Λ f ∈ localFunctionsOn S E (Δ \ Λ) := by
+  have hfm : Measurable (⇑f) := (mem_localFunctionsOn.1 hf).mono cylinderEvents_le_pi le_rfl
+  have hdep : DependsOn (⇑f) (Δ : Set S) :=
+    (mem_localFunctionsOn.1 hf).dependsOn_of_cylinderEvents
+  rw [mem_localFunctionsOn, measurable_cylinderEvents_iff_dependsOn]
+  exact ⟨measurable_action (γ := isssd ν) hfm, dependsOn_action_isssd ν hfm hdep Λ⟩
+
+/-- Georgii, after (2.23): every independent specification is quasilocal. -/
+theorem isQuasilocal_isssd [DecidableEq S] [Nonempty E] :
+    (isssd (S := S) (E := E) ν).IsQuasilocal := by
+  refine isQuasilocal_iff_forall_mem_localFunctions.2 fun Λ f hf ↦ ?_
+  obtain ⟨Δ, hΔ⟩ := mem_localFunctions.1 hf
+  exact localFunctions_le_quasilocalFunctions
+    (mem_localFunctions.2 ⟨Δ \ Λ, action_isssd_mem_localFunctionsOn ν Λ Δ hΔ⟩)
+
+/-- **Georgii (2.24)(a).** A modification of the independent specification by quasilocal densities
+is quasilocal. -/
+theorem isQuasilocal_modification_isssd [DecidableEq S] [Nonempty E]
+    {ρ : Finset S → (S → E) → ℝ≥0∞} (hρ : (isssd ν).IsModifier ρ)
+    {r : Finset S → lp (fun _ : S → E ↦ ℝ) ∞}
+    (hr : ∀ Λ, r Λ ∈ quasilocalFunctions S E)
+    (hrnn : ∀ Λ η, 0 ≤ (⇑(r Λ)) η)
+    (hrρ : ∀ Λ η, ρ Λ η = ENNReal.ofReal ((⇑(r Λ)) η)) :
+    ((isssd ν).modification ρ hρ).IsQuasilocal := by
+  refine isQuasilocal_iff_forall_mem_localFunctions.2 fun Λ f hf ↦ ?_
+  have key : action ((isssd ν).modification ρ hρ) Λ f = action (isssd ν) Λ (r Λ * f) := by
+    refine lp.ext (funext fun η ↦ ?_)
+    have hmeas : Measurable fun x ↦ ((⇑(r Λ)) x).toNNReal :=
+      (measurable_of_mem_quasilocalFunctions (hr Λ)).real_toNNReal
+    have hden : ρ Λ = fun x ↦ ((((⇑(r Λ)) x).toNNReal : ℝ≥0) : ℝ≥0∞) := by
+      funext x; rw [hrρ Λ x]; rfl
+    show ∫ x, (⇑f) x ∂((isssd ν Λ η).withDensity (ρ Λ)) = _
+    rw [hden, integral_withDensity_eq_integral_smul hmeas, action_apply]
+    refine integral_congr_ae (.of_forall fun x ↦ ?_)
+    show ((⇑(r Λ)) x).toNNReal • (⇑f) x = _
+    rw [NNReal.smul_def, Real.coe_toNNReal _ (hrnn Λ x), lp.infty_coeFn_mul]
+    rfl
+  rw [key]
+  exact isQuasilocal_isssd ν Λ (r Λ * f)
+    (Subalgebra.mul_mem _ (hr Λ) (localFunctions_le_quasilocalFunctions hf))
+
+end Isssd
+
 
 end Specification

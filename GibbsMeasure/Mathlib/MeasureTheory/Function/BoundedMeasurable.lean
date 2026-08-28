@@ -88,13 +88,12 @@ lemma boundedMeasurable_mono {m₁ m₂ : MeasurableSpace α} (h : m₁ ≤ m₂
   fun _ hf ↦ hf.mono h le_rfl
 
 /-- Convergence in `ℓ^∞` implies pointwise convergence. -/
-lemma lp.tendsto_apply_of_tendsto {ι : Type*} {l : Filter ι}
+lemma _root_.lp.tendsto_apply_of_tendsto {ι : Type*} {l : Filter ι}
     {f : ι → lp (fun _ : α ↦ ℝ) ∞} {g : lp (fun _ : α ↦ ℝ) ∞} (h : Tendsto f l (𝓝 g)) (x : α) :
     Tendsto (fun n ↦ (f n : α → ℝ) x) l (𝓝 ((g : α → ℝ) x)) := by
   rw [tendsto_iff_norm_sub_tendsto_zero] at h ⊢
   refine squeeze_zero (fun n ↦ norm_nonneg _) (fun n ↦ ?_) h
-  simpa [_root_.lp.coeFn_sub] using
-    _root_.lp.norm_apply_le_norm ENNReal.top_ne_zero (f n - g) x
+  simpa [lp.coeFn_sub] using lp.norm_apply_le_norm ENNReal.top_ne_zero (f n - g) x
 
 /-- **Uniform limits of measurable functions are measurable**: the bounded `m`-measurable functions
 form a *closed* subalgebra of the bounded functions. -/

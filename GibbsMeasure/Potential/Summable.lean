@@ -17,17 +17,20 @@ Georgii's Definition (2.2) of an interaction potential: each `Φ A` is `𝓕_A`-
 (`Potential.IsPotential`) and the Hamiltonian series `H_Λ = ∑_{A ∩ Λ ≠ ∅} Φ_A` converges in the sense
 of Convention (2.1) (`Potential.IsSummable`).
 
-`Potential.IsLocallyFinitary` is the special case in which the series has finite support.
+`Potential.IsFiniteRange` is the special case in which the series has finite support.
 
 ## Main results
 
 * `Potential.dependsOn_hamiltonian_sub`: Georgii (2.6).
 * `Potential.isPremodifier_boltzmannFactor`: Georgii Proposition (2.5).
+* `Potential.IsAbsolutelySummable`: the space `ℬ` of Georgii (2.11), with `‖Φ‖ᵢ` of (2.12); it
+  implies `IsSummable` and bounds the Hamiltonian by Georgii (2.14).
+* `Potential.gibbsSpecificationOfAbsolutelySummable`: Georgii Definition (2.9) for `Φ ∈ ℬ`.
 -/
 
 @[expose] public section
 
-open Filter Function MeasureTheory Set
+open Filter Function MeasureTheory ProbabilityTheory Set
 open scoped Topology ENNReal
 
 noncomputable section
@@ -59,14 +62,14 @@ lemma hasSum_hamiltonian [IsSummable Φ] (Λ : Finset S) (η : S → E) :
     HasSum (Φ.hamiltonianTerms Λ η) (Φ.hamiltonian Λ η) (SummationFilter.volume S) :=
   (IsSummable.summable Λ η).hasSum
 
-/-- Unconditional summability of the interaction terms suffices; Georgii (2.11) ⇒ (2.2)(ii). -/
+/-- Unconditional summability of the interaction terms suffices. -/
 lemma IsSummable.of_summable (h : ∀ (Λ : Finset S) (η : S → E), Summable (Φ.hamiltonianTerms Λ η)) :
     IsSummable Φ where
   summable Λ η := (h Λ η).volume
 
 /-! ### The locally finitary case -/
 
-lemma hamiltonianTerms_eq_zero_of_notMem_interactingSupport [IsLocallyFinitary Φ]
+lemma hamiltonianTerms_eq_zero_of_notMem_interactingSupport [IsFiniteRange Φ]
     (η : S → E) {A : Finset S} (hA : A ∉ interactingSupport (Φ := Φ) Λ) :
     Φ.hamiltonianTerms Λ η A = 0 := by
   by_cases hdisj : Disjoint A Λ
@@ -78,7 +81,7 @@ lemma hamiltonianTerms_eq_zero_of_notMem_interactingSupport [IsLocallyFinitary �
       exact hA ((mem_interactingSupport (Φ := Φ)).2 ⟨hne, hΦ⟩)
     simp [hamiltonianTerms, this]
 
-lemma hasSum_interactingHamiltonian [IsLocallyFinitary Φ] (Λ : Finset S) (η : S → E) :
+lemma hasSum_interactingHamiltonian [IsFiniteRange Φ] (Λ : Finset S) (η : S → E) :
     HasSum (Φ.hamiltonianTerms Λ η) (interactingHamiltonian (Φ := Φ) Λ η)
       (SummationFilter.volume S) := by
   have h : HasSum (Φ.hamiltonianTerms Λ η)
@@ -93,10 +96,10 @@ lemma hasSum_interactingHamiltonian [IsLocallyFinitary Φ] (Λ : Finset S) (η :
       (Finset.not_disjoint_iff.2 ⟨x, by simpa using hxA, by simpa using hxΛ⟩) η
   exact hsum ▸ h.volume
 
-instance (priority := 100) IsLocallyFinitary.isSummable [IsLocallyFinitary Φ] : IsSummable Φ where
+instance (priority := 100) IsFiniteRange.isSummable [IsFiniteRange Φ] : IsSummable Φ where
   summable Λ η := ⟨_, hasSum_interactingHamiltonian (Φ := Φ) Λ η⟩
 
-@[simp] lemma hamiltonian_eq_interactingHamiltonian [IsLocallyFinitary Φ]
+@[simp] lemma hamiltonian_eq_interactingHamiltonian [IsFiniteRange Φ]
     (Λ : Finset S) (η : S → E) :
     Φ.hamiltonian Λ η = interactingHamiltonian (Φ := Φ) Λ η :=
   (hasSum_interactingHamiltonian (Φ := Φ) Λ η).tsum_eq
@@ -206,9 +209,155 @@ theorem isPremodifier_boltzmannFactor [Countable S] [IsPotential Φ] [IsSummable
         = Φ.hamiltonian Λ₁ ζ + Φ.hamiltonian Λ₂ η := by linarith
     linear_combination (-β) * hsum
 
-@[simp] lemma boltzmannFactor_eq_boltzmannWeight [DecidableEq S] [IsLocallyFinitary Φ]
+@[simp] lemma boltzmannFactor_eq_boltzmannWeight [DecidableEq S] [IsFiniteRange Φ]
     (β : ℝ) (Λ : Finset S) (η : S → E) :
     Φ.boltzmannFactor β Λ η = boltzmannWeight (Φ := Φ) β Λ η := by
   rw [boltzmannFactor, boltzmannWeight, hamiltonian_eq_interactingHamiltonian]
+
+/-! ### Absolutely summable potentials -/
+
+/-- Georgii (2.12): `‖Φ‖ᵢ`, the total sup-norm of the interaction terms containing `i`. -/
+def normAt (Φ : Potential S E) (i : S) : ℝ≥0∞ :=
+  ∑' A : Finset S, {A : Finset S | i ∈ A}.indicator (fun A ↦ ⨆ η, ‖Φ A η‖ₑ) A
+
+/-- Georgii (2.11): `Φ` is absolutely summable. -/
+class IsAbsolutelySummable (Φ : Potential S E) : Prop where
+  normAt_ne_top (i : S) : Φ.normAt i ≠ ⊤
+
+variable (Φ) in
+/-- The sup-norms of the interaction terms entering `H_Λ`, extended by zero. -/
+def termNorm (Λ : Finset S) : Finset S → ℝ≥0∞ :=
+  {A : Finset S | ¬ Disjoint A Λ}.indicator fun A ↦ ⨆ η, ‖Φ A η‖ₑ
+
+lemma enorm_hamiltonianTerms_le_termNorm (Λ : Finset S) (η : S → E) (A : Finset S) :
+    ‖Φ.hamiltonianTerms Λ η A‖ₑ ≤ Φ.termNorm Λ A := by
+  by_cases h : Disjoint A Λ
+  · have hnm : A ∉ {B : Finset S | ¬ Disjoint B Λ} := by simpa using h
+    simp [hamiltonianTerms_of_disjoint h, termNorm, Set.indicator_of_notMem hnm]
+  · rw [hamiltonianTerms_of_not_disjoint h, termNorm,
+      Set.indicator_of_mem (show A ∈ {B : Finset S | ¬ Disjoint B Λ} from h)]
+    exact le_iSup (fun η ↦ ‖Φ A η‖ₑ) η
+
+lemma termNorm_le_sum (Λ : Finset S) (A : Finset S) :
+    Φ.termNorm Λ A ≤ ∑ i ∈ Λ, {A : Finset S | i ∈ A}.indicator (fun A ↦ ⨆ η, ‖Φ A η‖ₑ) A := by
+  by_cases h : Disjoint A Λ
+  · have hnm : A ∉ {B : Finset S | ¬ Disjoint B Λ} := by simpa using h
+    simp [termNorm, Set.indicator_of_notMem hnm]
+  · obtain ⟨i, hiA, hiΛ⟩ := Finset.not_disjoint_iff.1 h
+    refine le_trans ?_ (Finset.single_le_sum (f := fun i ↦
+      {A : Finset S | i ∈ A}.indicator (fun A ↦ ⨆ η, ‖Φ A η‖ₑ) A) (fun _ _ ↦ bot_le) hiΛ)
+    rw [termNorm, Set.indicator_of_mem (show A ∈ {B : Finset S | ¬ Disjoint B Λ} from h),
+      Set.indicator_of_mem (show A ∈ {B : Finset S | i ∈ B} from hiA)]
+
+lemma tsum_termNorm_le (Λ : Finset S) : ∑' A : Finset S, Φ.termNorm Λ A ≤ ∑ i ∈ Λ, Φ.normAt i := by
+  refine le_trans (ENNReal.tsum_le_tsum (termNorm_le_sum (Φ := Φ) Λ)) ?_
+  rw [Summable.tsum_finsetSum fun _ _ ↦ ENNReal.summable]
+  exact le_of_eq (Finset.sum_congr rfl fun i _ ↦ rfl)
+
+lemma sum_normAt_ne_top [IsAbsolutelySummable Φ] (Λ : Finset S) :
+    (∑ i ∈ Λ, Φ.normAt i) ≠ ⊤ :=
+  (ENNReal.sum_lt_top.2 fun i _ ↦
+    lt_top_iff_ne_top.2 (IsAbsolutelySummable.normAt_ne_top (Φ := Φ) i)).ne
+
+lemma tsum_termNorm_ne_top [IsAbsolutelySummable Φ] (Λ : Finset S) :
+    ∑' A : Finset S, Φ.termNorm Λ A ≠ ⊤ :=
+  ne_of_lt (lt_of_le_of_lt (tsum_termNorm_le (Φ := Φ) Λ)
+    (lt_top_iff_ne_top.2 (sum_normAt_ne_top (Φ := Φ) Λ)))
+
+lemma termNorm_ne_top [IsAbsolutelySummable Φ] (Λ A : Finset S) : Φ.termNorm Λ A ≠ ⊤ :=
+  ENNReal.ne_top_of_tsum_ne_top (tsum_termNorm_ne_top (Φ := Φ) Λ) A
+
+/-- The total variation of the Hamiltonian series in `Λ` is bounded by `∑_{i ∈ Λ} ‖Φ‖ᵢ`. -/
+lemma tsum_enorm_hamiltonianTerms_le (Λ : Finset S) (η : S → E) :
+    ∑' A : Finset S, ‖Φ.hamiltonianTerms Λ η A‖ₑ ≤ ∑ i ∈ Λ, Φ.normAt i :=
+  le_trans (ENNReal.tsum_le_tsum (enorm_hamiltonianTerms_le_termNorm (Φ := Φ) Λ η))
+    (tsum_termNorm_le (Φ := Φ) Λ)
+
+/-- **Georgii (2.11) ⇒ (2.2)(ii).** An absolutely summable potential is summable. -/
+lemma summable_hamiltonianTerms [IsAbsolutelySummable Φ] (Λ : Finset S) (η : S → E) :
+    Summable (Φ.hamiltonianTerms Λ η) := by
+  exact Summable.of_enorm (ne_of_lt (lt_of_le_of_lt (tsum_enorm_hamiltonianTerms_le Λ η)
+    (lt_top_iff_ne_top.2 (sum_normAt_ne_top (Φ := Φ) Λ))))
+
+instance (priority := 100) IsAbsolutelySummable.isSummable [IsAbsolutelySummable Φ] :
+    IsSummable Φ where
+  summable Λ η := (summable_hamiltonianTerms (Φ := Φ) Λ η).volume
+
+/-- The Hamiltonian of an absolutely summable potential is the unconditional sum. -/
+lemma hamiltonian_eq_tsum [IsAbsolutelySummable Φ] (Λ : Finset S) (η : S → E) :
+    Φ.hamiltonian Λ η = ∑' A : Finset S, Φ.hamiltonianTerms Λ η A :=
+  ((summable_hamiltonianTerms (Φ := Φ) Λ η).hasSum.volume).tsum_eq
+
+/-- **Georgii (2.14).** `‖H_Λ^Φ‖ ≤ ∑_{i ∈ Λ} ‖Φ‖ᵢ`. -/
+theorem enorm_hamiltonian_le [IsAbsolutelySummable Φ] (Λ : Finset S) (η : S → E) :
+    ‖Φ.hamiltonian Λ η‖ₑ ≤ ∑ i ∈ Λ, Φ.normAt i := by
+  rw [hamiltonian_eq_tsum (Φ := Φ) Λ η]
+  exact le_trans enorm_tsum_le_tsum_enorm (tsum_enorm_hamiltonianTerms_le Λ η)
+
+/-- **Georgii (2.14)** in sup-norm form. -/
+theorem iSup_enorm_hamiltonian_le [IsAbsolutelySummable Φ] (Λ : Finset S) :
+    ⨆ η, ‖Φ.hamiltonian Λ η‖ₑ ≤ ∑ i ∈ Λ, Φ.normAt i :=
+  iSup_le fun η ↦ enorm_hamiltonian_le (Φ := Φ) Λ η
+
+/-! ### The Gibbsian specification of an absolutely summable potential -/
+
+/-- Georgii (2.14) in real form. -/
+lemma abs_hamiltonian_le [IsAbsolutelySummable Φ] (Λ : Finset S) (η : S → E) :
+    |Φ.hamiltonian Λ η| ≤ (∑ i ∈ Λ, Φ.normAt i).toReal := by
+  have h := enorm_hamiltonian_le (Φ := Φ) Λ η
+  rw [← ENNReal.toReal_le_toReal (by simp) (sum_normAt_ne_top (Φ := Φ) Λ)] at h
+  simpa [Real.enorm_eq_ofReal_abs, ENNReal.toReal_ofReal (abs_nonneg _)] using h
+
+variable (Φ) in
+/-- The uniform bound `∑_{i ∈ Λ} ‖Φ‖ᵢ` on the Hamiltonian in `Λ`, as a real number. -/
+def hamiltonianBound (Λ : Finset S) : ℝ := (∑ i ∈ Λ, Φ.normAt i).toReal
+
+lemma boltzmannFactor_le [IsAbsolutelySummable Φ] (β : ℝ) (Λ : Finset S) (η : S → E) :
+    Φ.boltzmannFactor β Λ η ≤ ENNReal.ofReal (Real.exp (|β| * Φ.hamiltonianBound Λ)) := by
+  refine ENNReal.ofReal_le_ofReal (Real.exp_le_exp.2 ?_)
+  calc -β * Φ.hamiltonian Λ η ≤ |(-β) * Φ.hamiltonian Λ η| := le_abs_self _
+    _ = |β| * |Φ.hamiltonian Λ η| := by rw [abs_mul, abs_neg]
+    _ ≤ |β| * Φ.hamiltonianBound Λ := by
+        exact mul_le_mul_of_nonneg_left (abs_hamiltonian_le Λ η) (abs_nonneg _)
+
+lemma le_boltzmannFactor [IsAbsolutelySummable Φ] (β : ℝ) (Λ : Finset S) (η : S → E) :
+    ENNReal.ofReal (Real.exp (-(|β| * Φ.hamiltonianBound Λ))) ≤ Φ.boltzmannFactor β Λ η := by
+  refine ENNReal.ofReal_le_ofReal (Real.exp_le_exp.2 ?_)
+  have h : -(|β| * Φ.hamiltonianBound Λ) ≤ -|(-β) * Φ.hamiltonian Λ η| := by
+    rw [abs_mul, abs_neg]
+    exact neg_le_neg (mul_le_mul_of_nonneg_left (abs_hamiltonian_le Λ η) (abs_nonneg _))
+  exact h.trans (neg_abs_le _)
+
+variable (ν : Measure E) [IsProbabilityMeasure ν]
+
+/-- **Georgii (2.14) ⇒ λ-admissibility.** An absolutely summable potential is `ν`-admissible for
+every probability measure `ν`: the partition functions are finite and non-zero. -/
+theorem isPremodifierAdmissible_boltzmannFactor [IsAbsolutelySummable Φ] (β : ℝ) :
+    Specification.IsPremodifierAdmissible (S := S) (E := E) ν (Φ.boltzmannFactor β) := by
+  intro Λ η
+  have : IsProbabilityMeasure (Specification.isssd (S := S) (E := E) ν Λ η) := inferInstance
+  have hle : Specification.premodifierZ (S := S) (E := E) ν (Φ.boltzmannFactor β) Λ η
+      ≤ ENNReal.ofReal (Real.exp (|β| * Φ.hamiltonianBound Λ)) := by
+    refine le_trans (lintegral_mono fun x ↦ boltzmannFactor_le (Φ := Φ) β Λ x) ?_
+    rw [lintegral_const, measure_univ, mul_one]
+  have hge : ENNReal.ofReal (Real.exp (-(|β| * Φ.hamiltonianBound Λ)))
+      ≤ Specification.premodifierZ (S := S) (E := E) ν (Φ.boltzmannFactor β) Λ η := by
+    refine le_trans ?_ (lintegral_mono fun x ↦ le_boltzmannFactor (Φ := Φ) β Λ x)
+    rw [lintegral_const, measure_univ, mul_one]
+  refine ⟨fun h0 ↦ ?_, fun htop ↦ ?_⟩
+  · rw [h0] at hge
+    exact absurd (le_antisymm hge bot_le).symm (by simp [Real.exp_pos])
+  · rw [htop] at hle
+    exact absurd (top_le_iff.1 hle) (by simp)
+
+/-- **Georgii Definition (2.9) for `Φ ∈ ℬ`.** The Gibbsian specification of an absolutely summable
+potential and a single-spin probability measure. -/
+def gibbsSpecificationOfAbsolutelySummable [Countable S] [IsPotential Φ] [IsAbsolutelySummable Φ]
+    (β : ℝ) : Specification S E :=
+  (Specification.isssd (S := S) (E := E) ν).modification
+    (Specification.premodifierNorm (S := S) (E := E) ν (Φ.boltzmannFactor β))
+    (Specification.IsPremodifier.isModifier_premodifierNorm (ν := ν)
+      (isPremodifier_boltzmannFactor (Φ := Φ) β)
+      (isPremodifierAdmissible_boltzmannFactor (Φ := Φ) ν β))
 
 end Potential
