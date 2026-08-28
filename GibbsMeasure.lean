@@ -2,7 +2,9 @@ module
 
 public import GibbsMeasure.Mathlib.Analysis.Normed.Algebra.ClosedSubalgebra
 public import GibbsMeasure.Mathlib.Data.ENNReal.Basic
+public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.CompactSystemCylinders
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.Cylinders
+public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.KolmogorovExtension
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Unique
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalLExpectation
@@ -22,7 +24,10 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Integral.IntegrableOn
 public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.Bot
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.AEMeasurable
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.GiryMonad
+public import GibbsMeasure.Mathlib.MeasureTheory.Measure.RegularContent
+public import GibbsMeasure.Mathlib.MeasureTheory.Measure.WithSetwiseTopology
 public import GibbsMeasure.Mathlib.Probability.ConditionalProbability
+public import GibbsMeasure.Mathlib.Probability.Kernel.Composition.MeasureComp
 public import GibbsMeasure.Mathlib.Probability.Kernel.Condexp
 public import GibbsMeasure.Mathlib.Probability.Kernel.Proper
 public import GibbsMeasure.Prereqs.CylinderEvents
@@ -45,6 +50,7 @@ public import GibbsMeasure.Specification.Existence
 public import GibbsMeasure.Specification.Extremal
 public import GibbsMeasure.Specification.Quasilocal
 public import GibbsMeasure.Specification.QuasilocalAlgebra
+public import GibbsMeasure.Specification.LocalContinuity
 public import GibbsMeasure.Specification.Quasilocality
 public import GibbsMeasure.Specification.QuasilocalSpecification
 public import GibbsMeasure.Specification.Structure

@@ -51,13 +51,17 @@ theorem _root_.Measurable.dependsOn_of_cylinderEvents [MeasurableSingletonClass 
     rw [cylinderEvents_eq_comap_domRestrict] at hf; exact hf.factorsThrough
 
 /-- A measurable function depending only on the coordinates in `Δ` is measurable for the cylinder
-σ-algebra of `Δ`.
-
-The nonemptiness hypothesis provides a measurable section of the restriction map. -/
-theorem _root_.Measurable.cylinderEvents_of_dependsOn [∀ i, Nonempty (X i)]
+σ-algebra of `Δ`. -/
+theorem _root_.Measurable.cylinderEvents_of_dependsOn
     (hf : Measurable f) (hdep : DependsOn f Δ) : Measurable[cylinderEvents Δ] f := by
   classical
-  set x₀ : ∀ i, X i := fun i ↦ Classical.arbitrary (X i) with hx₀
+  by_cases hne : Nonempty (∀ i, X i)
+  swap
+  · have : IsEmpty (∀ i, X i) := not_nonempty_iff.1 hne
+    intro s _
+    have hempty : f ⁻¹' s = ∅ := Set.eq_empty_of_isEmpty _
+    simp [hempty]
+  obtain ⟨x₀⟩ := hne
   set e : (∀ i : Δ, X i) → ∀ i, X i :=
     fun y i ↦ if h : i ∈ Δ then y ⟨i, h⟩ else x₀ i with he
   have hemeas : Measurable e := by
@@ -77,7 +81,7 @@ the coordinates in `Δ`.**
 
 This is the general form of Georgii's Definition (2.20)(a); Mathlib's
 `Measurable.dependsOn_of_piFinset` is the `Finset`-indexed, one-directional special case. -/
-theorem measurable_cylinderEvents_iff_dependsOn [MeasurableSingletonClass Z] [∀ i, Nonempty (X i)] :
+theorem measurable_cylinderEvents_iff_dependsOn [MeasurableSingletonClass Z] :
     Measurable[cylinderEvents Δ] f ↔ Measurable f ∧ DependsOn f Δ :=
   ⟨fun h ↦ ⟨h.mono cylinderEvents_le_pi le_rfl, h.dependsOn_of_cylinderEvents⟩,
     fun h ↦ h.1.cylinderEvents_of_dependsOn h.2⟩

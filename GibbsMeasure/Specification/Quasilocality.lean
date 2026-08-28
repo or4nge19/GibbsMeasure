@@ -144,7 +144,7 @@ lemma dependsOn_action_isssd [DecidableEq S] {f : (S → E) → ℝ} (hfm : Meas
     simp [juxt_apply_of_not_mem (Λ := (Λ : Set S)) (by exact_mod_cast hiΛ), hηη' i hmem]
 
 /-- The independent specification maps `Δ`-local observables to `Δ \ Λ`-local ones. -/
-theorem action_isssd_mem_localFunctionsOn [DecidableEq S] [Nonempty E] (Λ Δ : Finset S)
+theorem action_isssd_mem_localFunctionsOn [DecidableEq S] (Λ Δ : Finset S)
     {f : lp (fun _ : S → E ↦ ℝ) ∞} (hf : f ∈ localFunctionsOn S E Δ) :
     action (isssd ν) Λ f ∈ localFunctionsOn S E (Δ \ Λ) := by
   have hfm : Measurable (⇑f) := (mem_localFunctionsOn.1 hf).mono cylinderEvents_le_pi le_rfl
@@ -154,40 +154,134 @@ theorem action_isssd_mem_localFunctionsOn [DecidableEq S] [Nonempty E] (Λ Δ : 
   exact ⟨measurable_action (γ := isssd ν) hfm, dependsOn_action_isssd ν hfm hdep Λ⟩
 
 /-- Georgii, after (2.23): every independent specification is quasilocal. -/
-theorem isQuasilocal_isssd [DecidableEq S] [Nonempty E] :
+theorem isQuasilocal_isssd [DecidableEq S] :
     (isssd (S := S) (E := E) ν).IsQuasilocal := by
   refine isQuasilocal_iff_forall_mem_localFunctions.2 fun Λ f hf ↦ ?_
   obtain ⟨Δ, hΔ⟩ := mem_localFunctions.1 hf
   exact localFunctions_le_quasilocalFunctions
     (mem_localFunctions.2 ⟨Δ \ Λ, action_isssd_mem_localFunctionsOn ν Λ Δ hΔ⟩)
 
-/-- **Georgii (2.24)(a).** A modification of the independent specification by quasilocal densities
-is quasilocal. -/
-theorem isQuasilocal_modification_isssd [DecidableEq S] [Nonempty E]
-    {ρ : Finset S → (S → E) → ℝ≥0∞} (hρ : (isssd ν).IsModifier ρ)
+end Isssd
+
+/-! ### Georgii (2.24) -/
+
+/-- **Georgii (2.24)(a).** A modification of a quasilocal specification by quasilocal densities is
+quasilocal. -/
+theorem IsQuasilocal.modification {γ : Specification S E} (hγ : γ.IsQuasilocal)
+    {ρ : Finset S → (S → E) → ℝ≥0∞} (hρ : γ.IsModifier ρ)
     {r : Finset S → lp (fun _ : S → E ↦ ℝ) ∞}
     (hr : ∀ Λ, r Λ ∈ quasilocalFunctions S E)
-    (hrnn : ∀ Λ η, 0 ≤ (⇑(r Λ)) η)
-    (hrρ : ∀ Λ η, ρ Λ η = ENNReal.ofReal ((⇑(r Λ)) η)) :
-    ((isssd ν).modification ρ hρ).IsQuasilocal := by
+    (hrρ : ∀ Λ η, (⇑(r Λ)) η = (ρ Λ η).toReal)
+    (hfin : ∀ Λ η, ρ Λ η ≠ ∞) :
+    (γ.modification ρ hρ).IsQuasilocal := by
   refine isQuasilocal_iff_forall_mem_localFunctions.2 fun Λ f hf ↦ ?_
-  have key : action ((isssd ν).modification ρ hρ) Λ f = action (isssd ν) Λ (r Λ * f) := by
+  have key : action (γ.modification ρ hρ) Λ f = action γ Λ (r Λ * f) := by
     refine lp.ext (funext fun η ↦ ?_)
     have hmeas : Measurable fun x ↦ ((⇑(r Λ)) x).toNNReal :=
       (measurable_of_mem_quasilocalFunctions (hr Λ)).real_toNNReal
     have hden : ρ Λ = fun x ↦ ((((⇑(r Λ)) x).toNNReal : ℝ≥0) : ℝ≥0∞) := by
-      funext x; rw [hrρ Λ x]; rfl
-    show ∫ x, (⇑f) x ∂((isssd ν Λ η).withDensity (ρ Λ)) = _
+      funext x
+      rw [hrρ Λ x, ← ENNReal.ofReal, ENNReal.ofReal_toReal (hfin Λ x)]
+    change ∫ x, (⇑f) x ∂((γ Λ η).withDensity (ρ Λ)) = _
     rw [hden, integral_withDensity_eq_integral_smul hmeas, action_apply]
     refine integral_congr_ae (.of_forall fun x ↦ ?_)
-    show ((⇑(r Λ)) x).toNNReal • (⇑f) x = _
-    rw [NNReal.smul_def, Real.coe_toNNReal _ (hrnn Λ x), lp.infty_coeFn_mul]
+    change ((⇑(r Λ)) x).toNNReal • (⇑f) x = _
+    rw [NNReal.smul_def, Real.coe_toNNReal _ (by rw [hrρ Λ x]; exact ENNReal.toReal_nonneg),
+      lp.infty_coeFn_mul]
     rfl
   rw [key]
-  exact isQuasilocal_isssd ν Λ (r Λ * f)
-    (Subalgebra.mul_mem _ (hr Λ) (localFunctions_le_quasilocalFunctions hf))
+  exact hγ Λ (r Λ * f) (Subalgebra.mul_mem _ (hr Λ) (localFunctions_le_quasilocalFunctions hf))
 
-end Isssd
+section Boltzmann
+
+/-- The Boltzmann factor of a bounded observable. -/
+noncomputable def boltzmann (H : lp (fun _ : S → E ↦ ℝ) ∞) : lp (fun _ : S → E ↦ ℝ) ∞ :=
+  ⟨fun η ↦ Real.exp (-(⇑H) η), memℓp_infty ⟨Real.exp ‖H‖, by
+    rintro _ ⟨η, rfl⟩
+    change ‖Real.exp (-(⇑H) η)‖ ≤ Real.exp ‖H‖
+    rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+    exact Real.exp_le_exp.2 (le_trans (neg_le_abs _) (lp.norm_apply_le_norm_top H η))⟩⟩
+
+@[simp] lemma coeFn_boltzmann (H : lp (fun _ : S → E ↦ ℝ) ∞) :
+    ⇑(boltzmann H) = fun η ↦ Real.exp (-(⇑H) η) := rfl
+
+lemma boltzmann_mem_quasilocalFunctions {H : lp (fun _ : S → E ↦ ℝ) ∞}
+    (hH : H ∈ quasilocalFunctions S E) : boltzmann H ∈ quasilocalFunctions S E :=
+  Subalgebra.comp_mem_lp (Subalgebra.isClosed_topologicalClosure _) hH
+    (a := -‖H‖) (b := ‖H‖)
+    (fun x ↦ abs_le.1 (le_trans (le_abs_self _) (by simpa using lp.norm_apply_le_norm_top H x)))
+    (F := fun t ↦ Real.exp (-t)) (Real.continuous_exp.comp continuous_neg).continuousOn
+    (fun _ ↦ rfl)
+
+lemma le_boltzmann (H : lp (fun _ : S → E ↦ ℝ) ∞) (η : S → E) :
+    Real.exp (-‖H‖) ≤ (⇑(boltzmann H)) η :=
+  Real.exp_le_exp.2 (neg_le_neg (le_trans (le_abs_self _) (lp.norm_apply_le_norm_top H η)))
+
+variable (ν : Measure E) [IsProbabilityMeasure ν]
+
+lemma integrable_boltzmann {H : lp (fun _ : S → E ↦ ℝ) ∞} (hH : H ∈ quasilocalFunctions S E)
+    (Λ : Finset S) (η : S → E) :
+    Integrable (⇑(boltzmann H)) (isssd ν Λ η) := by
+  have hpm := Specification.isProbabilityMeasure_isssdFun_apply (S := S) (E := E) ν Λ η
+  exact Integrable.mono' (integrable_const ‖boltzmann H‖)
+    (measurable_of_mem_quasilocalFunctions
+      (boltzmann_mem_quasilocalFunctions hH)).aestronglyMeasurable
+    (.of_forall fun x ↦ by simpa using lp.norm_apply_le_norm_top (boltzmann H) x)
+
+lemma le_action_isssd_boltzmann (H : lp (fun _ : S → E ↦ ℝ) ∞)
+    (hH : H ∈ quasilocalFunctions S E) (Λ : Finset S) (η : S → E) :
+    Real.exp (-‖H‖) ≤ (⇑(action (isssd ν) Λ (boltzmann H))) η := by
+  have hpm := Specification.isProbabilityMeasure_isssdFun_apply (S := S) (E := E) ν Λ η
+  rw [action_apply]
+  calc Real.exp (-‖H‖)
+      = ∫ _ : S → E, Real.exp (-‖H‖) ∂(isssd ν Λ η) := by
+        rw [integral_const, measureReal_def, measure_univ, ENNReal.toReal_one, one_smul]
+    _ ≤ _ := integral_mono (integrable_const _) (integrable_boltzmann ν hH Λ η)
+        fun x ↦ le_boltzmann H x
+
+/-- **Georgii (2.24)(b).** If every Hamiltonian is a quasilocal observable, the Gibbsian
+specification is quasilocal. -/
+theorem isQuasilocal_modification_premodifierNorm [DecidableEq S]
+    {H : Finset S → lp (fun _ : S → E ↦ ℝ) ∞} (hH : ∀ Λ, H Λ ∈ quasilocalFunctions S E)
+    (hρ : (isssd ν).IsModifier
+      (premodifierNorm ν fun Λ η ↦ ENNReal.ofReal ((⇑(boltzmann (H Λ))) η))) :
+    ((isssd ν).modification _ hρ).IsQuasilocal := by
+  set h : Finset S → lp (fun _ : S → E ↦ ℝ) ∞ := fun Λ ↦ boltzmann (H Λ) with hh
+  set Z : Finset S → lp (fun _ : S → E ↦ ℝ) ∞ := fun Λ ↦ action (isssd ν) Λ (h Λ) with hZ
+  have hZpos : ∀ Λ η, 0 < (⇑(Z Λ)) η := fun Λ η ↦
+    lt_of_lt_of_le (Real.exp_pos _) (le_action_isssd_boltzmann ν (H Λ) (hH Λ) Λ η)
+  have hZql : ∀ Λ, Z Λ ∈ quasilocalFunctions S E := fun Λ ↦
+    isQuasilocal_isssd ν Λ _ (boltzmann_mem_quasilocalFunctions (hH Λ))
+  have hZmem : ∀ Λ, (fun η ↦ ((⇑(Z Λ)) η)⁻¹) ∈ lp (fun _ : S → E ↦ ℝ) ∞ := fun Λ ↦
+    memℓp_infty ⟨(Real.exp (-‖H Λ‖))⁻¹, by
+      rintro _ ⟨η, rfl⟩
+      change ‖((⇑(Z Λ)) η)⁻¹‖ ≤ _
+      rw [Real.norm_eq_abs, abs_of_pos (inv_pos.2 (hZpos Λ η))]
+      exact inv_anti₀ (Real.exp_pos _) (le_action_isssd_boltzmann ν (H Λ) (hH Λ) Λ η)⟩
+  set W : Finset S → lp (fun _ : S → E ↦ ℝ) ∞ := fun Λ ↦ ⟨_, hZmem Λ⟩ with hW
+  have hWql : ∀ Λ, W Λ ∈ quasilocalFunctions S E := fun Λ ↦
+    Subalgebra.inv_mem_lp (Subalgebra.isClosed_topologicalClosure _) (hZql Λ)
+      (Real.exp_pos (-‖H Λ‖)) (le_action_isssd_boltzmann ν (H Λ) (hH Λ) Λ) fun _ ↦ rfl
+  have hZof : ∀ Λ η, premodifierZ ν (fun Λ η ↦ ENNReal.ofReal ((⇑(h Λ)) η)) Λ η
+      = ENNReal.ofReal ((⇑(Z Λ)) η) := by
+    intro Λ η
+    rw [hZ, action_apply, premodifierZ,
+      ofReal_integral_eq_lintegral_ofReal (integrable_boltzmann ν (hH Λ) Λ η)
+        (.of_forall fun x ↦ le_of_lt (Real.exp_pos _))]
+  refine (isQuasilocal_isssd ν).modification hρ (r := fun Λ ↦ h Λ * W Λ)
+    (fun Λ ↦ Subalgebra.mul_mem _ (boltzmann_mem_quasilocalFunctions (hH Λ)) (hWql Λ))
+    (fun Λ η ↦ ?_) (fun Λ η ↦ ?_)
+  · have hmul : (⇑(h Λ * W Λ)) η = (⇑(h Λ)) η * ((⇑(Z Λ)) η)⁻¹ := by
+      rw [lp.infty_coeFn_mul]; rfl
+    rw [hmul, premodifierNorm, hZof Λ η, ← ENNReal.ofReal_div_of_pos (hZpos Λ η),
+      ENNReal.toReal_ofReal (le_of_lt (div_pos
+        (lt_of_lt_of_le (Real.exp_pos (-‖H Λ‖)) (le_boltzmann (H Λ) η)) (hZpos Λ η))),
+      div_eq_mul_inv]
+  · rw [premodifierNorm, hZof Λ η]
+    exact ENNReal.div_ne_top ENNReal.ofReal_ne_top (by simpa using hZpos Λ η)
+
+end Boltzmann
+
 
 
 end Specification

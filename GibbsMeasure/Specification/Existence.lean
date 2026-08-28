@@ -40,34 +40,17 @@ variable {S E : Type*} [MeasurableSpace E]
 
 variable (γ : Specification S E)
 
-/-- The filter corresponding to the limit `Λ → S` along the directed set of finite subsets. -/
-def volumeLimit (S : Type*) : Filter (Finset S) :=
-  Filter.atTop
-
 /-- The net of finite-volume Gibbs distributions with boundary condition `η`. -/
 noncomputable def finiteVolumeDistributions (η : S → E) :
     (Finset S) → ProbabilityMeasure (S → E) :=
   fun Λ => ⟨γ Λ η, inferInstance⟩
 
-/-- A probability measure `μ` is a **local** thermodynamic limit for boundary condition `η` if it is
-a cluster point of the net `Λ ↦ γ Λ η` in the topology of local convergence. This is the topology
-used in Georgii's quasilocal existence theorem. -/
+/-- **Georgii (4.2)/(4.16).** A probability measure is a thermodynamic limit for boundary condition
+`η` if it is a cluster point of the net `Λ ↦ γ Λ η` in the topology of local convergence. -/
 def IsLocalThermodynamicLimit (η : S → E) (μ : ProbabilityMeasure (S → E)) : Prop :=
-  letI : TopologicalSpace (ProbabilityMeasure (S → E)) :=
-    ProbabilityMeasure.localConvergence S E
-  ClusterPt μ (Filter.map (finiteVolumeDistributions (γ := γ) η) (volumeLimit S))
-
-/-- Compatibility alias for the Georgii/local notion of thermodynamic limit. Prefer the explicit
-name `IsLocalThermodynamicLimit` in new statements. -/
-abbrev IsThermodynamicLimit (η : S → E) (μ : ProbabilityMeasure (S → E)) : Prop :=
-  IsLocalThermodynamicLimit (γ := γ) η μ
-
-/-- The legacy name `IsThermodynamicLimit` is definitionally the local thermodynamic-limit
-predicate. -/
-lemma isThermodynamicLimit_iff_isLocalThermodynamicLimit
-    (η : S → E) (μ : ProbabilityMeasure (S → E)) :
-    IsThermodynamicLimit (γ := γ) η μ ↔ IsLocalThermodynamicLimit (γ := γ) η μ :=
-  Iff.rfl
+  ClusterPt (WithSetwiseTopology.ofMeasure μ : MeasureTheory.ProbabilityMeasure.WithLocalConvergence S E)
+    (Filter.map (fun Λ ↦ (WithSetwiseTopology.ofMeasure (finiteVolumeDistributions (γ := γ) η Λ) :
+      MeasureTheory.ProbabilityMeasure.WithLocalConvergence S E)) Filter.atTop)
 
 /-! ### Existence on compact spaces via Prokhorov + Feller continuity (weak topology) -/
 
@@ -83,22 +66,10 @@ variable [OpensMeasurableSpace (S → E)]
 
 variable (γ : Specification S E)
 
-/-- A **weak** thermodynamic limit: a cluster point of the finite-volume net in the default topology
-on `ProbabilityMeasure (S → E)`. This is not the Georgii local-convergence notion unless additional
-hypotheses identify the two topologies. -/
+/-- A weak-topology cluster point of the finite-volume net; not Georgii's local-convergence
+notion. -/
 def IsWeakThermodynamicLimit (η : S → E) (μ : ProbabilityMeasure (S → E)) : Prop :=
-  ClusterPt μ (Filter.map (finiteVolumeDistributions (γ := γ) η) (volumeLimit S))
-
-/-- Compatibility alias for the weak-topology cluster-point predicate. Prefer
-`IsWeakThermodynamicLimit` in new statements. -/
-abbrev IsThermodynamicLimitWeak (η : S → E) (μ : ProbabilityMeasure (S → E)) : Prop :=
-  IsWeakThermodynamicLimit (γ := γ) η μ
-
-/-- The legacy weak-limit name is definitionally the explicit weak thermodynamic-limit predicate. -/
-lemma isThermodynamicLimitWeak_iff_isWeakThermodynamicLimit
-    (η : S → E) (μ : ProbabilityMeasure (S → E)) :
-    IsThermodynamicLimitWeak (γ := γ) η μ ↔ IsWeakThermodynamicLimit (γ := γ) η μ :=
-  Iff.rfl
+  ClusterPt μ (Filter.map (finiteVolumeDistributions (γ := γ) η) Filter.atTop)
 
 namespace Specification
 
@@ -196,7 +167,7 @@ theorem isGibbsMeasure_of_isWeakThermodynamicLimit
     intro Λ
     -- Work with the cluster-point filter `𝓝 μ ⊓ F`.
     let μs : Finset S → ProbabilityMeasure (S → E) := finiteVolumeDistributions (γ := γ) η
-    let F : Filter (ProbabilityMeasure (S → E)) := Filter.map μs (volumeLimit S)
+    let F : Filter (ProbabilityMeasure (S → E)) := Filter.map μs (Filter.atTop)
     have h_ne : NeBot (𝓝 μ ⊓ F) := hμ
     have hcont :
         Continuous (Specification.bindPM (γ := γ) Λ :
@@ -205,7 +176,7 @@ theorem isGibbsMeasure_of_isWeakThermodynamicLimit
     have h_event_F :
         ∀ᶠ ν in F, Specification.bindPM (γ := γ) Λ ν = ν := by
       have h_event_atTop :
-          ∀ᶠ Λ' in (volumeLimit S : Filter (Finset S)),
+          ∀ᶠ Λ' in (Filter.atTop : Filter (Finset S)),
             Specification.bindPM (γ := γ) Λ (μs Λ') = μs Λ' := by
         refine Filter.eventually_atTop.2 ?_
         refine ⟨Λ, ?_⟩
@@ -229,14 +200,6 @@ theorem isGibbsMeasure_of_isWeakThermodynamicLimit
       congrArg (fun ν : ProbabilityMeasure (S → E) => (ν : Measure (S → E))) this
   simpa [GP, Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ)] using hfix
 
-/-- Compatibility alias for the old theorem name. Prefer
-`isGibbsMeasure_of_isWeakThermodynamicLimit` in new code. -/
-theorem isGibbsMeasure_of_isThermodynamicLimitWeak
-    (η : S → E) {μ : ProbabilityMeasure (S → E)}
-    (hμ : IsThermodynamicLimitWeak (γ := γ) η μ) :
-    μ ∈ GP (S := S) (E := E) γ :=
-  isGibbsMeasure_of_isWeakThermodynamicLimit (γ := γ) η hμ
-
 section Compact
 
 variable [CompactSpace E]
@@ -250,20 +213,14 @@ theorem existence_of_gibbsMeasure_compact_weak (η : S → E) :
   classical
   haveI : CompactSpace (ProbabilityMeasure (S → E)) := by infer_instance
   let μs : Finset S → ProbabilityMeasure (S → E) := finiteVolumeDistributions (γ := γ) η
-  let F : Filter (ProbabilityMeasure (S → E)) := Filter.map μs (volumeLimit S)
-  haveI : NeBot (volumeLimit S : Filter (Finset S)) := by
-    simpa [volumeLimit] using (Filter.atTop_neBot (α := Finset S))
+  let F : Filter (ProbabilityMeasure (S → E)) := Filter.map μs (Filter.atTop)
+  haveI : NeBot (Filter.atTop : Filter (Finset S)) := by
+    simpa [Filter.atTop] using (Filter.atTop_neBot (α := Finset S))
   haveI : NeBot F := by infer_instance
   obtain ⟨μ, hμ⟩ : ∃ μ : ProbabilityMeasure (S → E), ClusterPt μ F :=
     exists_clusterPt_of_compactSpace F
   refine ⟨μ, ?_⟩
   exact isGibbsMeasure_of_isWeakThermodynamicLimit (γ := γ) (η := η) hμ
-
-/-- Compatibility alias for the original compact existence theorem name. Prefer
-`existence_of_gibbsMeasure_compact_weak` in new code. -/
-theorem existence_of_gibbsMeasure_compact (η : S → E) :
-    (GP (S := S) (E := E) γ).Nonempty :=
-  existence_of_gibbsMeasure_compact_weak (γ := γ) η
 
 end Compact
 
@@ -293,9 +250,9 @@ theorem existence_of_gibbsMeasure_of_isTight_weak
     simpa [Sset] using
       (isCompact_closure_of_isTightMeasureSet (E := (S → E)) (S := Sset) (hS := hT))
   -- Extract a cluster point of the net `Λ ↦ μs Λ` in the compact set `closure Sset`.
-  let F : Filter (ProbabilityMeasure (S → E)) := Filter.map μs (volumeLimit S)
-  haveI : NeBot (volumeLimit S : Filter (Finset S)) := by
-    simpa [volumeLimit] using (Filter.atTop_neBot (α := Finset S))
+  let F : Filter (ProbabilityMeasure (S → E)) := Filter.map μs (Filter.atTop)
+  haveI : NeBot (Filter.atTop : Filter (Finset S)) := by
+    simpa [Filter.atTop] using (Filter.atTop_neBot (α := Finset S))
   haveI : NeBot F := by infer_instance
   have hF_le : F ≤ 𝓟 (closure Sset) := by
     have hF_range : F ≤ 𝓟 (Set.range μs) := by
@@ -312,18 +269,6 @@ theorem existence_of_gibbsMeasure_of_isTight_weak
     hcompact.exists_clusterPt (f := F) hF_le
   refine ⟨μ, ?_⟩
   exact isGibbsMeasure_of_isWeakThermodynamicLimit (γ := γ) (η := η) hμ
-
-/-- Compatibility alias for the original tightness theorem name. Prefer
-`existence_of_gibbsMeasure_of_isTight_weak` in new code. -/
-theorem existence_of_gibbsMeasure_of_isTight
-    (η : S → E)
-    (hT :
-      IsTightMeasureSet
-        {x : Measure (S → E) |
-          ∃ μ ∈ Set.range (finiteVolumeDistributions (γ := γ) η),
-            (μ : Measure (S → E)) = x}) :
-    (GP (S := S) (E := E) γ).Nonempty :=
-  existence_of_gibbsMeasure_of_isTight_weak (γ := γ) η hT
 
 end Tight
 

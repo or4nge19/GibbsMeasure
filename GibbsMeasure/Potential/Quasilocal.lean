@@ -6,7 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Potential.Summable
-public import GibbsMeasure.Specification.QuasilocalAlgebra
+public import GibbsMeasure.Specification.Quasilocality
 
 /-!
 # Quasilocality of the Hamiltonian of an absolutely summable potential
@@ -101,19 +101,19 @@ theorem hamiltonianLp_mem_quasilocalFunctions [IsPotential Φ] [IsAbsolutelySumm
 variable (Φ) in
 /-- The Boltzmann factor `h_Λ^Φ = exp(-β H_Λ^Φ)` as a bounded observable. -/
 def boltzmannLp [IsAbsolutelySummable Φ] (β : ℝ) (Λ : Finset S) : lp (fun _ : S → E ↦ ℝ) ∞ :=
-  NormedSpace.exp ((-β) • Φ.hamiltonianLp Λ)
+  Specification.boltzmann (β • Φ.hamiltonianLp Λ)
 
 @[simp] lemma coeFn_boltzmannLp [IsAbsolutelySummable Φ] (β : ℝ) (Λ : Finset S) :
     ⇑(Φ.boltzmannLp β Λ) = fun η ↦ Real.exp (-β * Φ.hamiltonian Λ η) := by
-  rw [boltzmannLp, lp.infty_coeFn_exp]
+  rw [boltzmannLp, Specification.coeFn_boltzmann]
   funext η
   rw [lp.coeFn_smul]
-  rfl
+  norm_num [hamiltonianLp]
 
 /-- The Boltzmann factor of an absolutely summable potential is quasilocal. -/
 theorem boltzmannLp_mem_quasilocalFunctions [IsPotential Φ] [IsAbsolutelySummable Φ]
     (β : ℝ) (Λ : Finset S) : Φ.boltzmannLp β Λ ∈ quasilocalFunctions S E :=
-  exp_mem_quasilocalFunctions (Subalgebra.smul_mem _
+  Specification.boltzmann_mem_quasilocalFunctions (Subalgebra.smul_mem _
     (hamiltonianLp_mem_quasilocalFunctions (Φ := Φ) Λ) _)
 
 end Potential

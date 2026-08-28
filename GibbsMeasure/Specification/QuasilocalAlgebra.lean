@@ -170,12 +170,18 @@ theorem tendsto_oscOutside_of_mem_quasilocalFunctions {f : lp (fun _ : S → E �
 
 
 /-- Georgii (2.21)(1), reverse direction. -/
-theorem mem_quasilocalFunctions_of_tendsto_oscOutside [Nonempty E]
+theorem mem_quasilocalFunctions_of_tendsto_oscOutside
     {f : lp (fun _ : S → E ↦ ℝ) ∞} (hmeas : Measurable (⇑f))
     (hosc : Tendsto (fun Λ : Finset S ↦ oscOutside Λ (⇑f)) atTop (𝓝 0)) :
     f ∈ quasilocalFunctions S E := by
   classical
-  set η₀ : S → E := fun _ ↦ Classical.arbitrary E with hη₀
+  by_cases hne : Nonempty (S → E)
+  swap
+  · have : Subsingleton (lp (fun _ : S → E ↦ ℝ) ∞) := by
+      have : IsEmpty (S → E) := not_nonempty_iff.1 hne
+      exact ⟨fun a b ↦ lp.ext (funext fun x ↦ absurd (Nonempty.intro x) hne)⟩
+    exact Subsingleton.elim f 0 ▸ Subalgebra.zero_mem _
+  obtain ⟨η₀⟩ := hne
   set T : Finset S → (S → E) → (S → E) := fun Λ ω i ↦ if i ∈ Λ then ω i else η₀ i with hT
   have hTagree : ∀ (Λ : Finset S) (ω : S → E), ∀ i ∈ Λ, T Λ ω i = ω i := by
     intro Λ ω i hi; simp [hT, hi]
@@ -224,7 +230,7 @@ theorem mem_quasilocalFunctions_of_tendsto_oscOutside [Nonempty E]
   exact mem_closure_of_tendsto htend (.of_forall fun Λ ↦ hGmem Λ)
 
 /-- **Georgii, Remark (2.21)(1).** -/
-theorem mem_quasilocalFunctions_iff [Nonempty E] {f : lp (fun _ : S → E ↦ ℝ) ∞} :
+theorem mem_quasilocalFunctions_iff {f : lp (fun _ : S → E ↦ ℝ) ∞} :
     f ∈ quasilocalFunctions S E ↔
       Measurable (⇑f) ∧ Tendsto (fun Λ : Finset S ↦ oscOutside Λ (⇑f)) atTop (𝓝 0) :=
   ⟨fun h ↦ ⟨measurable_of_mem_quasilocalFunctions h,
@@ -239,7 +245,7 @@ section UniformContinuity
 variable [UniformSpace E]
 
 /-- Georgii (2.21)(2): a bounded uniformly continuous observable is quasilocal. -/
-theorem mem_quasilocalFunctions_of_uniformContinuous [Nonempty E]
+theorem mem_quasilocalFunctions_of_uniformContinuous
     {f : lp (fun _ : S → E ↦ ℝ) ∞} (hmeas : Measurable (⇑f))
     (hf : UniformContinuous (⇑f : (S → E) → ℝ)) :
     f ∈ quasilocalFunctions S E := by
@@ -287,7 +293,7 @@ lemma isClosed_continuous_lp :
 
 /-- **Georgii (2.21)(3).** For a compact discrete spin space, the quasilocal observables are exactly
 the continuous ones. -/
-theorem mem_quasilocalFunctions_iff_continuous [DiscreteTopology E] [CompactSpace E] [Nonempty E]
+theorem mem_quasilocalFunctions_iff_continuous [DiscreteTopology E] [CompactSpace E]
     {f : lp (fun _ : S → E ↦ ℝ) ∞} (hmeas : Measurable (⇑f)) :
     f ∈ quasilocalFunctions S E ↔ Continuous (⇑f : (S → E) → ℝ) := by
   refine ⟨fun hf ↦ ?_, fun hf ↦ ?_⟩
@@ -305,6 +311,6 @@ end Criterion
 /-- The exponential of a quasilocal observable is quasilocal. -/
 theorem exp_mem_quasilocalFunctions {f : lp (fun _ : S → E ↦ ℝ) ∞}
     (hf : f ∈ quasilocalFunctions S E) : NormedSpace.exp f ∈ quasilocalFunctions S E :=
-  Subalgebra.exp_mem (Subalgebra.isClosed_topologicalClosure _) hf
+  NormedSpace.exp_mem (Subalgebra.isClosed_topologicalClosure _) hf
 
 end GibbsMeasure
