@@ -179,6 +179,7 @@ lemma IsProper.integral_indicator_mul (h𝓑𝓧 : 𝓑 ≤ 𝓧) (hπ : IsPrope
 
 /-! ### Proper kernels freeze the source-measurable observables -/
 
+omit [IsFiniteKernel π] in
 /-- A proper kernel evaluates source-measurable sets through the indicator at the base point. -/
 lemma IsProper.apply_eq_indicator_mul_univ (hπ : IsProper π) (h𝓑𝓧 : 𝓑 ≤ 𝓧)
     (hB : MeasurableSet[𝓑] B) (x₀ : X) :
@@ -186,15 +187,15 @@ lemma IsProper.apply_eq_indicator_mul_univ (hπ : IsProper π) (h𝓑𝓧 : 𝓑
   simpa using (isProper_iff_inter_eq_indicator_mul h𝓑𝓧).1 hπ MeasurableSet.univ hB x₀
 
 /-- A `𝓑`-measurable function is `π x₀`-a.e. equal to `g x₀`, for `π` a proper Markov kernel. -/
-lemma IsProper.ae_eq_const [IsMarkovKernel π] (hπ : IsProper π) (h𝓑𝓧 : 𝓑 ≤ 𝓧)
+lemma IsProper.ae_eq_const (hπ : IsProper π) (h𝓑𝓧 : 𝓑 ≤ 𝓧)
     {Y : Type*} [MeasurableSpace Y] [MeasurableSingletonClass Y] {g : X → Y}
     (hg : Measurable[𝓑] g) (x₀ : X) :
     ∀ᵐ x ∂(π x₀), g x = g x₀ := by
   have hB : MeasurableSet[𝓑] (g ⁻¹' {g x₀}) := hg (measurableSet_singleton _)
-  have hfull : π x₀ (g ⁻¹' {g x₀}) = 1 := by
+  have hfull : π x₀ (g ⁻¹' {g x₀}) = π x₀ Set.univ := by
     rw [hπ.apply_eq_indicator_mul_univ h𝓑𝓧 hB x₀]; simp
   have hcompl : π x₀ (g ⁻¹' {g x₀})ᶜ = 0 := by
-    rw [measure_compl (h𝓑𝓧 _ hB) (measure_ne_top _ _), hfull, measure_univ, tsub_self]
+    rw [measure_compl (h𝓑𝓧 _ hB) (measure_ne_top _ _), hfull, tsub_self]
   rw [ae_iff]
   simpa [Set.compl_def, Set.preimage, eq_comm] using hcompl
 

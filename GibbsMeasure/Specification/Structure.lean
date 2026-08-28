@@ -55,21 +55,6 @@ noncomputable def convexCombo (p : I) (μ ν : ProbabilityMeasure Ω) : Probabil
 
 end ProbabilityMeasure
 
-namespace Measure
-
-variable {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
-
-lemma bind_add (μ ν : Measure α) (f : α → Measure β) (hf : Measurable f) :
-    (μ + ν).bind f = μ.bind f + ν.bind f := by
-  ext s hs
-  simp [Measure.bind_apply hs hf.aemeasurable, lintegral_add_measure]
-
-lemma bind_smul (c : NNReal) (μ : Measure α) (f : α → Measure β) (hf : Measurable f) :
-    (c • μ).bind f = c • (μ.bind f) := by
-  ext s hs
-  simp [Measure.bind_apply hs hf.aemeasurable, lintegral_smul_measure]
-
-end Measure
 
 lemma convexCombo_mem_GP (γ : Specification S E)
     (μ ν : ProbabilityMeasure (S → E)) (hμ : μ ∈ GP γ) (hν : ν ∈ GP γ) (p : unitInterval) :
@@ -101,10 +86,9 @@ lemma convexCombo_mem_GP (γ : Specification S E)
     rw [Measure.bind_add (μ := unitInterval.toNNReal p • (μ : Measure (S → E)))
       (ν := unitInterval.toNNReal (unitInterval.symm p) • (ν : Measure (S → E)))
       (f := γ Λ) hmeas]
-    rw [Measure.bind_smul (c := unitInterval.toNNReal p) (μ := (μ : Measure (S → E)))
-      (f := γ Λ) hmeas]
-    rw [Measure.bind_smul (c := unitInterval.toNNReal (unitInterval.symm p))
-      (μ := (ν : Measure (S → E))) (f := γ Λ) hmeas]
+    rw [Measure.bind_smul (unitInterval.toNNReal p) (μ : Measure (S → E)) (γ Λ)]
+    rw [Measure.bind_smul (unitInterval.toNNReal (unitInterval.symm p))
+      (ν : Measure (S → E)) (γ Λ)]
     simp [hμ' Λ, hν' Λ]
   have : γ.IsGibbsMeasure
       ((ProbabilityMeasure.convexCombo (Ω := (S → E)) (p := p) μ ν :

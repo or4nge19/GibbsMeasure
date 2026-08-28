@@ -9,13 +9,8 @@ open scoped ENNReal
 namespace MeasureTheory.Measure
 variable {α β : Type*} [MeasurableSpace β]
 
-/--
-Measurability of `μ : β → Measure[.generateFrom t] α` when each `μ b` is a probability measure,
-assuming `t` is a π-system generating the σ-algebra on `α`.
-
-Without `IsPiSystem t`, the naive “generateFrom induction” predicate is not closed under
-intersections, so this π-system hypothesis is genuinely needed.
--/
+/-- A family of probability measures on `.generateFrom t` is measurable as soon as `b ↦ μ b s` is
+measurable for every `s` in the π-system `t`. -/
 theorem measurable_of_isPiSystem_generateFrom
     (t : Set (Set α)) (μ : β → Measure[.generateFrom t] α)
     [∀ b, IsProbabilityMeasure (μ b)]
@@ -37,14 +32,9 @@ lemma measurable_setLIntegral {f : α → ℝ≥0∞} (hf : Measurable f) (hs : 
     Measurable fun μ : Measure α ↦ ∫⁻ x in s, f x ∂μ :=
   (measurable_lintegral hf).comp (measurable_restrict hs)
 
-/-- Two-sided version of `MeasureTheory.Measure.ae_ae_of_ae_bind`. -/
-theorem ae_bind_iff {β : Type*} {mβ : MeasurableSpace β} {m : Measure α} {f : α → Measure β}
-    (hf : Measurable f) {p : β → Prop} (hp : MeasurableSet {b | p b}) :
-    (∀ᵐ b ∂m.bind f, p b) ↔ ∀ᵐ a ∂m, ∀ᵐ b ∂f a, p b := by
-  have hpc : MeasurableSet {b | ¬ p b} := by
-    simpa [Set.compl_setOf] using hp.compl
-  have hmeas : Measurable fun a ↦ f a {b | ¬ p b} := (measurable_coe hpc).comp hf
-  rw [ae_iff, bind_apply hpc hf.aemeasurable, lintegral_eq_zero_iff hmeas]
-  simp only [Filter.EventuallyEq, Pi.zero_apply, ae_iff]
+lemma bind_add {β : Type*} {_ : MeasurableSpace β} (μ ν : Measure α) (f : α → Measure β)
+    (hf : Measurable f) : (μ + ν).bind f = μ.bind f + ν.bind f := by
+  ext s hs
+  simp [Measure.bind_apply hs hf.aemeasurable, lintegral_add_measure]
 
 end MeasureTheory.Measure

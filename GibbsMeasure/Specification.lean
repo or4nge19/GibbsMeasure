@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2024 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yaël Dillies
+Authors: Yaël Dillies, Matteo Cipollina
 -/
 module
 
@@ -64,6 +64,27 @@ lemma IsStronglyConsistent.isConsistent [DecidableEq S]
   ext a s _
   simp only [Kernel.comap_apply, id_eq]
   rw [Finset.union_eq_right.2 hΛ]
+
+/-- Georgii (1.26): `γ Λ₁ ∘ₖ γ Λ₂ = γ (Λ₁ ∪ Λ₂)` for *disjoint* volumes. This is what Georgii's
+Proposition (1.30) (b) ↔ (c) uses. -/
+def IsDisjointlyConsistent [DecidableEq S]
+    (γ : ∀ Λ : Finset S, Kernel[cylinderEvents Λᶜ] (S → E) (S → E)) : Prop :=
+  ∀ ⦃Λ₁ Λ₂ : Finset S⦄, Disjoint Λ₁ Λ₂ → (γ Λ₁).comap id cylinderEvents_le_pi ∘ₖ γ Λ₂ =
+    (γ (Λ₁ ∪ Λ₂)).comap id
+      (measurable_id'' <| by
+        gcongr
+        exact Finset.subset_union_right)
+
+lemma IsStronglyConsistent.isDisjointlyConsistent [DecidableEq S]
+    {γ : ∀ Λ : Finset S, Kernel[cylinderEvents Λᶜ] (S → E) (S → E)}
+    (hγ : IsStronglyConsistent γ) : IsDisjointlyConsistent γ := fun Λ₁ Λ₂ _ ↦ hγ Λ₁ Λ₂
+
+/-- Disjoint consistency, evaluated at a boundary condition. -/
+lemma IsDisjointlyConsistent.bind_eq [DecidableEq S]
+    {γ : ∀ Λ : Finset S, Kernel[cylinderEvents Λᶜ] (S → E) (S → E)}
+    (hγ : IsDisjointlyConsistent γ) {Λ₁ Λ₂ : Finset S} (h : Disjoint Λ₁ Λ₂) (η : S → E) :
+    (γ Λ₂ η).bind (γ Λ₁) = γ (Λ₁ ∪ Λ₂) η := by
+  simpa [Kernel.comp_apply, Kernel.comap_apply] using DFunLike.congr_fun (hγ h) η
 
 /-- Strong consistency, evaluated at a boundary condition. -/
 lemma IsStronglyConsistent.bind_eq [DecidableEq S]
@@ -1669,25 +1690,26 @@ lemma ae_eq_iff_ae_comm (hmeas : ∀ Λ, Measurable (ρ Λ))
     rw [hint, hGζ, mul_comm]
 
 /-- Georgii's condition (b) for `Λ₂` splits along `Λ₂ \ Λ₁`. -/
-lemma ae_eq_iff_ae_ae_eq [DecidableEq S] (hγ : IsStronglyConsistent ⇑γ)
+lemma ae_eq_iff_ae_ae_eq [DecidableEq S] (hγ : IsDisjointlyConsistent ⇑γ)
     (hmeas : ∀ Λ, Measurable (ρ Λ)) (hΛ : Λ₁ ⊆ Λ₂) (η₁ : S → E) :
     (ρ Λ₂ =ᵐ[γ Λ₂ η₁] fun ω ↦ ρ Λ₁ ω * ∫⁻ ζ, ρ Λ₂ ζ ∂(γ Λ₁ ω))
       ↔ ∀ᵐ η₂ ∂γ (Λ₂ \ Λ₁) η₁,
           ρ Λ₂ =ᵐ[γ Λ₁ η₂] fun ω ↦ ρ Λ₁ ω * ∫⁻ ζ, ρ Λ₂ ζ ∂(γ Λ₁ ω) := by
   classical
   have hbind : (γ (Λ₂ \ Λ₁) η₁).bind (γ Λ₁) = γ Λ₂ η₁ := by
-    rw [hγ.bind_eq Λ₁ (Λ₂ \ Λ₁) η₁, Finset.union_sdiff_of_subset hΛ]
+    rw [hγ.bind_eq disjoint_sdiff_self_right η₁, Finset.union_sdiff_of_subset hΛ]
   have hGmeas : Measurable (fun ω : S → E ↦ ∫⁻ ζ, ρ Λ₂ ζ ∂(γ Λ₁ ω)) :=
     ((hmeas Λ₂).lintegral_kernel).mono cylinderEvents_le_pi le_rfl
   have hset : MeasurableSet {ω : S → E | ρ Λ₂ ω = ρ Λ₁ ω * ∫⁻ ζ, ρ Λ₂ ζ ∂(γ Λ₁ ω)} :=
     measurableSet_eq_fun (hmeas Λ₂) ((hmeas Λ₁).mul hGmeas)
-  rw [← hbind]
-  exact Measure.ae_bind_iff
-    ((Kernel.measurable (γ Λ₁)).mono cylinderEvents_le_pi le_rfl) hset
+  have hcomp : (γ (Λ₂ \ Λ₁) η₁).bind (γ Λ₁)
+      = ((γ Λ₁).comap id cylinderEvents_le_pi) ∘ₘ (γ (Λ₂ \ Λ₁) η₁) := rfl
+  rw [← hbind, hcomp]
+  exact Measure.ae_comp_iff hset
 
 /-- **Georgii, Proposition (1.30), (a) ↔ (c).** Compare `Specification.IsPremodifier`, the
 everywhere-version of the same symmetry (Georgii (1.31)). -/
-lemma isModifier_iff_ae_comm [DecidableEq S] (hγ : IsStronglyConsistent ⇑γ) :
+lemma isModifier_iff_ae_comm [DecidableEq S] (hγ : IsDisjointlyConsistent ⇑γ) :
     γ.IsModifier ρ ↔
       (∀ Λ, Measurable (ρ Λ)) ∧
       (∀ (Λ : Finset S) (η : S → E), ∫⁻ ζ, ρ Λ ζ ∂(γ Λ η) = 1) ∧

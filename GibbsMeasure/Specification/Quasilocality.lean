@@ -1,6 +1,7 @@
 /-
-Copyright (c) 2026 Yaël Dillies. All rights reserved.
+Copyright (c) 2026 Matteo Cipollina. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Matteo Cipollina
 -/
 module
 
@@ -45,7 +46,7 @@ def action (γ : Specification S E) (Λ : Finset S) (f : lp (fun _ : S → E ↦
     rintro _ ⟨η, rfl⟩
     have h : ‖∫ x, (f : (S → E) → ℝ) x ∂(γ Λ η)‖ ≤ ‖f‖ * (γ Λ η).real univ :=
       norm_integral_le_of_norm_le_const
-        (.of_forall fun x ↦ apply_le_norm f x)
+        (.of_forall fun x ↦ lp.norm_apply_le_norm_top f x)
     simpa using h⟩
 
 @[simp] lemma action_apply (γ : Specification S E) (Λ : Finset S)
@@ -65,7 +66,7 @@ lemma measurable_action (hf : Measurable (⇑f)) : Measurable ((action γ Λ f :
 private lemma integrable_of_measurable {f : lp (fun _ : S → E ↦ ℝ) ∞} (hf : Measurable (⇑f))
     (η : S → E) : Integrable (⇑f) (γ Λ η) :=
   Integrable.mono' (integrable_const ‖f‖) hf.aestronglyMeasurable
-    (.of_forall fun x ↦ by simpa using apply_le_norm f x)
+    (.of_forall fun x ↦ by simpa using lp.norm_apply_le_norm_top f x)
 
 /-- The action is a contraction on measurable observables. -/
 lemma dist_action_le {f g : lp (fun _ : S → E ↦ ℝ) ∞}
@@ -78,8 +79,8 @@ lemma dist_action_le {f g : lp (fun _ : S → E ↦ ℝ) ∞}
   have h : ‖∫ x, ((f : (S → E) → ℝ) x - (g : (S → E) → ℝ) x) ∂(γ Λ η)‖
       ≤ ‖f - g‖ * (γ Λ η).real univ := by
     refine norm_integral_le_of_norm_le_const (.of_forall fun x ↦ ?_)
-    have := apply_le_norm (f - g) x
-    rwa [lp.coeFn_sub, Pi.sub_apply, ← Real.norm_eq_abs] at this
+    have := lp.norm_apply_le_norm_top (f - g) x
+    rwa [lp.coeFn_sub, Pi.sub_apply] at this
   simpa using h
 
 end Specification

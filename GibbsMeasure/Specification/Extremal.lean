@@ -1,5 +1,6 @@
 module
 
+public import GibbsMeasure.Mathlib.Probability.ConditionalProbability
 public import GibbsMeasure.Specification.Structure
 public import Mathlib.Analysis.Convex.Extreme
 public import Mathlib.Data.Set.Countable
@@ -160,16 +161,6 @@ lemma measurableSet_of_measurableSet_tail {A : Set Ω}
     simp
   exact hle_tail_pi _ hA
 
-lemma bind_smul (c : ENNReal) (μ : Measure Ω) (κ : Ω → Measure Ω) (hκ : Measurable κ) :
-    (c • μ).bind κ = c • (μ.bind κ) := by
-  ext s hs
-  simp [Measure.bind_apply hs hκ.aemeasurable, lintegral_smul_measure]
-
-lemma bind_add (μ ν : Measure Ω) (κ : Ω → Measure Ω) (hκ : Measurable κ) :
-    (μ + ν).bind κ = μ.bind κ + ν.bind κ := by
-  ext s hs
-  simp [Measure.bind_apply hs hκ.aemeasurable, lintegral_add_measure]
-
 /-! ### Proper kernels commute with `withDensity` for boundary-measurable densities -/
 
 lemma lintegral_bind_indicator_boundary_eq (Λ : Finset S)
@@ -240,28 +231,6 @@ lemma withDensity_bind_eq_bind_withDensity (Λ : Finset S)
     _ = ((μ.withDensity f).bind (γ Λ)) A := by
           simp [Measure.bind_apply hA (ProbabilityTheory.Kernel.measurable (γ Λ)).aemeasurable]
 
-/-- Normalized restriction of a probability measure to an event `A` (as a measure). -/
-noncomputable def normRestrict (μ : Measure Ω) (A : Set Ω) : Measure Ω :=
-  (μ A)⁻¹ • μ.restrict A
-
-lemma normRestrict_apply (μ : Measure Ω) (A s : Set Ω) :
-    normRestrict (μ := μ) A s = (μ A)⁻¹ * (μ.restrict A) s := by
-  simp [normRestrict, Measure.smul_apply, smul_eq_mul]
-
-lemma isProbabilityMeasure_normRestrict
-    (μ : Measure Ω) [IsProbabilityMeasure μ] {A : Set Ω} (hA0 : μ A ≠ 0) :
-    IsProbabilityMeasure (normRestrict (μ := μ) A) := by
-  haveI : IsFiniteMeasure (μ.restrict A) := by infer_instance
-  have hne : μ.restrict A ≠ 0 := by
-    intro h
-    have : (μ.restrict A) Set.univ = 0 := by simp [h]
-    have : μ A = 0 := by simpa [Measure.restrict_apply] using this
-    exact hA0 this
-  haveI : NeZero (μ.restrict A) := ⟨hne⟩
-  haveI : IsProbabilityMeasure (((μ.restrict A) Set.univ)⁻¹ • (μ.restrict A)) := by infer_instance
-  simpa [normRestrict, Measure.restrict_apply, smul_smul, smul_eq_mul] using
-    (inferInstance : IsProbabilityMeasure (((μ.restrict A) Set.univ)⁻¹ • (μ.restrict A)))
-
 /-- If a probability measure gives an event mass strictly below `1`, then the complement has
 non-zero mass. -/
 lemma measure_compl_ne_zero_of_lt_one
@@ -278,32 +247,11 @@ lemma measure_compl_ne_zero_of_lt_one
     exact le_antisymm hμA_le ((tsub_eq_zero_iff_le).1 this)
   exact (ne_of_lt hA1) hμA
 
-/-- Rescaling the normalized restriction by the original event mass gives the restriction. -/
-lemma smul_normRestrict_eq_restrict
-    (μ : Measure Ω) [IsProbabilityMeasure μ] {A : Set Ω} (hA0 : μ A ≠ 0) :
-    (μ A) • normRestrict (μ := μ) A = μ.restrict A := by
-  have hA_ne_top : μ A ≠ ∞ := measure_ne_top μ A
-  have hmul : μ A * (μ A)⁻¹ = (1 : ENNReal) := by
-    simpa [mul_comm] using ENNReal.inv_mul_cancel hA0 hA_ne_top
-  simp [normRestrict, smul_smul, hmul]
-
-/-- The normalized restriction gives mass `1` to the event being conditioned on. -/
-lemma normRestrict_apply_self
-    (μ : Measure Ω) [IsProbabilityMeasure μ] {A : Set Ω}
-    (hA : MeasurableSet A) (hA0 : μ A ≠ 0) :
-    normRestrict (μ := μ) A A = 1 := by
-  have hA_ne_top : μ A ≠ ∞ := measure_ne_top μ A
-  calc
-    normRestrict (μ := μ) A A = (μ A)⁻¹ * (μ.restrict A) A := by
-      simp [normRestrict, Measure.smul_apply, smul_eq_mul]
-    _ = (μ A)⁻¹ * μ A := by simp [Measure.restrict_apply hA, Set.inter_self]
-    _ = 1 := ENNReal.inv_mul_cancel hA0 hA_ne_top
-
-lemma isGibbsMeasure_normRestrict_of_tail
+lemma isGibbsMeasure_cond_of_tail
     (μ : Measure Ω) [IsProbabilityMeasure μ]
     (hμ : _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ μ)
     {A : Set Ω} (hA_tail : MeasurableSet[@tailSigmaAlgebra S E _] A) (hA0 : μ A ≠ 0) :
-    _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ (normRestrict (μ := μ) A) := by
+    _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ ((ProbabilityTheory.cond μ A)) := by
   -- Use the fixed-point characterization `μ.bind (γ Λ) = μ`.
   have hfix : ∀ Λ : Finset S, μ.bind (γ Λ) = μ := by
     haveI : IsFiniteMeasure μ := by infer_instance
@@ -317,59 +265,25 @@ lemma isGibbsMeasure_normRestrict_of_tail
                 (bind_restrict_eq_of_measurableSet_tail (γ := γ) (Λ := Λ) (hA := hA_tail) μ)
       _ = μ.restrict A := by simp [hfix Λ]
   have hfix_norm : ∀ Λ : Finset S,
-      (normRestrict (μ := μ) A).bind (γ Λ) = normRestrict (μ := μ) A := by
+      ((ProbabilityTheory.cond μ A)).bind (γ Λ) = (ProbabilityTheory.cond μ A) := by
     intro Λ
     have hκ : Measurable (γ Λ) :=
       (ProbabilityTheory.Kernel.measurable (γ Λ)).mono
         (MeasureTheory.cylinderEvents_le_pi (X := fun _ : S ↦ E) (Δ := ((Λ : Set S)ᶜ))) le_rfl
     calc
-      (normRestrict (μ := μ) A).bind (γ Λ)
+      ((ProbabilityTheory.cond μ A)).bind (γ Λ)
           = ((μ A)⁻¹ • (μ.restrict A)).bind (γ Λ) := rfl
       _ = (μ A)⁻¹ • ((μ.restrict A).bind (γ Λ)) := by
-            simpa [normRestrict] using (bind_smul (c := (μ A)⁻¹) (μ := μ.restrict A) (κ := γ Λ) hκ)
+            simpa [ProbabilityTheory.cond] using (Measure.bind_smul ((μ A)⁻¹) (μ.restrict A) (γ Λ))
       _ = (μ A)⁻¹ • (μ.restrict A) := by simp [hfix_restrict Λ]
-      _ = normRestrict (μ := μ) A := rfl
-  haveI : IsFiniteMeasure (normRestrict (μ := μ) A) := by
-    haveI : IsProbabilityMeasure (normRestrict (μ := μ) A) :=
-      isProbabilityMeasure_normRestrict (μ := μ) (A := A) hA0
+      _ = (ProbabilityTheory.cond μ A) := rfl
+  haveI : IsFiniteMeasure ((ProbabilityTheory.cond μ A)) := by
+    haveI : IsProbabilityMeasure ((ProbabilityTheory.cond μ A)) :=
+      ProbabilityTheory.cond_isProbabilityMeasure hA0
     infer_instance
-  haveI : IsProbabilityMeasure (normRestrict (μ := μ) A) :=
-    isProbabilityMeasure_normRestrict (μ := μ) (A := A) hA0
+  haveI : IsProbabilityMeasure ((ProbabilityTheory.cond μ A)) :=
+    ProbabilityTheory.cond_isProbabilityMeasure hA0
   exact (_root_.Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ)).2 hfix_norm
-
-/-! #### Conditioning a Gibbs probability measure on a tail event stays Gibbs -/
-
-namespace ProbabilityMeasure
-
-/-- Normalize the restriction of a probability measure to an event with positive mass. -/
-noncomputable def normRestrict
-    (μ : ProbabilityMeasure Ω) (A : Set Ω) (hA0 : (μ : Measure Ω) A ≠ 0) :
-    ProbabilityMeasure Ω :=
-  ⟨MeasureTheory.GibbsMeasure.normRestrict (μ := (μ : Measure Ω)) A, by
-    -- `MeasureTheory.GibbsMeasure.normRestrict` is a probability measure once we know `μ A ≠ 0`.
-    haveI : IsProbabilityMeasure (μ : Measure Ω) := by infer_instance
-    exact isProbabilityMeasure_normRestrict (μ := (μ : Measure Ω)) (A := A) hA0⟩
-
-@[simp] lemma coe_normRestrict
-    (μ : ProbabilityMeasure Ω) (A : Set Ω) (hA0 : (μ : Measure Ω) A ≠ 0) :
-    ((normRestrict (μ := μ) A hA0 : ProbabilityMeasure Ω) : Measure Ω)
-      =
-      MeasureTheory.GibbsMeasure.normRestrict (μ := (μ : Measure Ω)) A :=
-  rfl
-
-lemma mem_GP_normRestrict_of_tail {μ : ProbabilityMeasure Ω}
-    (hμ : μ ∈ GP (S := S) (E := E) γ)
-    {A : Set Ω} (hA_tail : MeasurableSet[@tailSigmaAlgebra S E _] A) (hA0 : (μ : Measure Ω) A ≠ 0) :
-    normRestrict (μ := μ) A hA0 ∈ GP (S := S) (E := E) γ := by
-  have hμ_gibbs : _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ (μ : Measure Ω) := hμ
-  have hcond_gibbs :
-      _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ
-        (MeasureTheory.GibbsMeasure.normRestrict (μ := (μ : Measure Ω)) A) :=
-    isGibbsMeasure_normRestrict_of_tail (γ := γ) (μ := (μ : Measure Ω)) hμ_gibbs
-      (A := A) hA_tail hA0
-  exact hcond_gibbs
-
-end ProbabilityMeasure
 
 /-- If a Gibbs probability measure assigns a tail event probability strictly between `0` and `1`,
 then it is **not** an extreme point of `G(γ)`. -/
@@ -379,21 +293,21 @@ theorem not_mem_extremePoints_G_of_tail_prob
     {A : Set Ω} (hA_tail : MeasurableSet[@tailSigmaAlgebra S E _] A)
     (hA0 : 0 < μ A) (hA1 : μ A < 1) :
     μ ∉ (G (γ := γ)).extremePoints ENNReal := by
-  let μA : Measure Ω := normRestrict (μ := μ) A
-  let μAc : Measure Ω := normRestrict (μ := μ) Aᶜ
+  let μA : Measure Ω := (ProbabilityTheory.cond μ A)
+  let μAc : Measure Ω := (ProbabilityTheory.cond μ Aᶜ)
   have hA0' : μ A ≠ 0 := ne_of_gt hA0
   have hA_meas : MeasurableSet A := measurableSet_of_measurableSet_tail (S := S) (E := E) hA_tail
   have hAc0' : μ Aᶜ ≠ 0 := measure_compl_ne_zero_of_lt_one (μ := μ) hA_meas hA1
   have hμA_prob : IsProbabilityMeasure μA :=
-    isProbabilityMeasure_normRestrict (μ := μ) (A := A) hA0'
+    ProbabilityTheory.cond_isProbabilityMeasure hA0'
   have hμAc_prob : IsProbabilityMeasure μAc :=
-    isProbabilityMeasure_normRestrict (μ := μ) (A := Aᶜ) hAc0'
+    ProbabilityTheory.cond_isProbabilityMeasure hAc0'
   have hμA_gibbs : _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ μA :=
-    isGibbsMeasure_normRestrict_of_tail (γ := γ) (μ := μ) hμ (A := A) hA_tail hA0'
+    isGibbsMeasure_cond_of_tail (γ := γ) (μ := μ) hμ (A := A) hA_tail hA0'
   have hμAc_gibbs : _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ μAc := by
     have hA_tail' : MeasurableSet[@tailSigmaAlgebra S E _] Aᶜ := by
       simpa using (MeasurableSet.compl hA_tail)
-    exact isGibbsMeasure_normRestrict_of_tail (γ := γ) (μ := μ) hμ (A := Aᶜ) hA_tail' hAc0'
+    exact isGibbsMeasure_cond_of_tail (γ := γ) (μ := μ) hμ (A := Aᶜ) hA_tail' hAc0'
   have hμA_mem : μA ∈ G (γ := γ) := ⟨hμA_prob, hμA_gibbs⟩
   have hμAc_mem : μAc ∈ G (γ := γ) := ⟨hμAc_prob, hμAc_gibbs⟩
   have hμ_mem : μ ∈ G (γ := γ) := ⟨inferInstance, hμ⟩
@@ -403,9 +317,9 @@ theorem not_mem_extremePoints_G_of_tail_prob
     · have : μ Aᶜ ≠ 0 := hAc0'
       exact pos_iff_ne_zero.2 this
     · have hmulA : (μ A) • μA = μ.restrict A := by
-        simpa [μA] using smul_normRestrict_eq_restrict (μ := μ) (A := A) hA0'
+        simpa [μA] using ProbabilityTheory.measure_smul_cond hA0' (measure_ne_top _ _)
       have hmulAc : (μ Aᶜ) • μAc = μ.restrict Aᶜ := by
-        simpa [μAc] using smul_normRestrict_eq_restrict (μ := μ) (A := Aᶜ) hAc0'
+        simpa [μAc] using ProbabilityTheory.measure_smul_cond hAc0' (measure_ne_top _ _)
       have : (μ A) • μA + (μ Aᶜ) • μAc = μ := by
         simp [hmulA, hmulAc, Measure.restrict_add_restrict_compl hA_meas]
       simp [this]
@@ -414,7 +328,7 @@ theorem not_mem_extremePoints_G_of_tail_prob
       (A := G (γ := γ)) (x := μ)).1 hext with ⟨_hμ_in, hleft⟩
   have hEq : μA = μ := hleft μA hμA_mem μAc hμAc_mem hseg
   have hμA_A : μA A = 1 := by
-    simpa [μA] using normRestrict_apply_self (μ := μ) (A := A) hA_meas hA0'
+    simpa [μA] using ProbabilityTheory.cond_apply_self hA0' (measure_ne_top _ _)
   have : μ A = 1 := by simpa [hEq] using hμA_A
   exact (ne_of_lt hA1) this
 

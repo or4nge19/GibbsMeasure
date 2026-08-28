@@ -1,6 +1,7 @@
 module
 
 public import GibbsMeasure.Specification
+public import GibbsMeasure.Mathlib.Logic.Function.DependsOn
 public import Mathlib.Analysis.SpecialFunctions.Exp
 public import Mathlib.Algebra.BigOperators.Ring.Finset
 public import Mathlib.Data.Set.Finite.Lattice
@@ -73,20 +74,14 @@ section Locality
 
 variable {Φ}
 
-/-- If a real-valued function is measurable w.r.t. `cylinderEvents Δ`, then it depends only on the
-coordinates in `Δ`. -/
+/-- An interaction term depends only on the coordinates in its support. -/
+lemma IsPotential.dependsOn [IsPotential Φ] (Δ : Finset S) :
+    DependsOn (Φ Δ) (Δ : Set S) :=
+  (IsPotential.measurable (Φ := Φ) Δ).dependsOn_of_cylinderEvents
+
 lemma IsPotential.eq_of_eqOn [IsPotential Φ] {Δ : Finset S} {η ζ : S → E}
-    (h : ∀ x ∈ Δ, η x = ζ x) :
-    Φ Δ η = Φ Δ ζ := by
-  have hf :
-      Measurable[cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)] (Φ Δ) :=
-    IsPotential.measurable (Φ := Φ) Δ
-  have hdet :=
-    MeasureTheory.measurableSet_cylinderEvents_iff_determined_by_coords (S := S) (E := E)
-      (Δ := (Δ : Set S)) ((Φ Δ) ⁻¹' {Φ Δ η}) (hf (measurableSet_singleton _))
-  have hη : η ∈ (Φ Δ) ⁻¹' {Φ Δ η} := by simp
-  have hζ : ζ ∈ (Φ Δ) ⁻¹' {Φ Δ η} := (hdet η ζ h).mp hη
-  exact (by simpa [Set.mem_preimage] using hζ : Φ Δ ζ = Φ Δ η).symm
+    (h : ∀ x ∈ Δ, η x = ζ x) : Φ Δ η = Φ Δ ζ :=
+  IsPotential.dependsOn (Φ := Φ) Δ fun x hx ↦ h x (by exact_mod_cast hx)
 
 end Locality
 

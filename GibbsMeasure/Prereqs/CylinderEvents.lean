@@ -82,17 +82,4 @@ theorem measurable_cylinderEvents_iff_dependsOn [MeasurableSingletonClass Z] [�
   ⟨fun h ↦ ⟨h.mono cylinderEvents_le_pi le_rfl, h.dependsOn_of_cylinderEvents⟩,
     fun h ↦ h.1.cylinderEvents_of_dependsOn h.2⟩
 
-/-! ### Sets -/
-
-/-- A cylinder event depends only on the coordinates in `Δ`. -/
-lemma measurableSet_cylinderEvents_iff_determined_by_coords {S E : Type*} [MeasurableSpace E]
-    (Δ : Set S) (B : Set (S → E)) :
-    MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) Δ] B →
-      (∀ σ₁ σ₂ : S → E, (∀ x ∈ Δ, σ₁ x = σ₂ x) → (σ₁ ∈ B ↔ σ₂ ∈ B)) := by
-  intro hB σ₁ σ₂ hEq
-  rw [cylinderEvents_eq_comap_restrict (S := S) (E := E) (Δ := Δ)] at hB
-  obtain ⟨C, -, hpreim⟩ := hB
-  have hrestrict : Set.domRestrict Δ σ₁ = Set.domRestrict Δ σ₂ := funext fun x ↦ hEq x x.2
-  simp only [← hpreim, Set.mem_preimage, hrestrict]
-
 end MeasureTheory

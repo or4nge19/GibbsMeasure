@@ -1,6 +1,7 @@
 /-
-Copyright (c) 2026 Yaël Dillies. All rights reserved.
+Copyright (c) 2026 Matteo Cipollina. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Matteo Cipollina
 -/
 module
 
@@ -18,8 +19,6 @@ lemmas here reduce to `Function.DependsOn.comp` and `Function.DependsOn.comp₂`
 -/
 
 public section
-
-namespace Function
 
 variable {ι : Type*} {α : ι → Type*} {β γ δ : Type*} {s : Set ι}
   {f g : (Π i, α i) → β}
@@ -78,4 +77,3 @@ theorem DependsOn.of_tendsto {κ : Type*} {l : Filter κ} [l.NeBot] [Topological
   intro x y hxy
   exact tendsto_nhds_unique (by simpa only [hF _ hxy] using hlim x) (hlim y)
 
-end Function

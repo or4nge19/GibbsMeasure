@@ -1,12 +1,17 @@
 /-
-Copyright (c) 2026 Yaël Dillies. All rights reserved.
+Copyright (c) 2026 Matteo Cipollina. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Matteo Cipollina
 -/
 module
 
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.BoundedMeasurable
 public import GibbsMeasure.Mathlib.Logic.Function.DependsOn
 public import GibbsMeasure.Prereqs.CylinderEvents
+public import GibbsMeasure.Mathlib.Topology.MetricSpace.DependsOn
+public import GibbsMeasure.Mathlib.Topology.UniformSpace.Pi
+public import Mathlib.Topology.UniformSpace.HeineCantor
+public import Mathlib.Topology.UniformSpace.UniformApproximation
 public import Mathlib.Algebra.Algebra.Subalgebra.Directed
 
 /-!
@@ -95,40 +100,30 @@ lemma measurable_of_mem_quasilocalFunctions {f : lp (fun _ : S → E ↦ ℝ) �
 
 section Oscillation
 
-/-- Georgii (2.22): the oscillation of `f` under variation of the coordinates outside `Λ`. -/
-noncomputable def oscOutside (Λ : Finset S) (f : (S → E) → ℝ) : ℝ≥0∞ :=
-  ⨆ ζ : S → E, ⨆ η : S → E, ⨆ _ : ∀ i ∈ Λ, ζ i = η i, ENNReal.ofReal |f ζ - f η|
+/-- Georgii's oscillation (2.22), as a function of the finite volume. -/
+noncomputable abbrev oscOutside (Λ : Finset S) (f : (S → E) → ℝ) : ℝ≥0∞ :=
+  _root_.oscOutside (Λ : Set S) f
 
 lemma le_oscOutside {Λ : Finset S} {f : (S → E) → ℝ} {ζ η : S → E}
     (h : ∀ i ∈ Λ, ζ i = η i) : ENNReal.ofReal |f ζ - f η| ≤ oscOutside Λ f := by
-  exact le_iSup_of_le ζ (le_iSup_of_le η (le_iSup_of_le h le_rfl))
+  rw [← Real.dist_eq, ← edist_dist]
+  exact _root_.le_oscOutside fun i hi ↦ h i (by exact_mod_cast hi)
 
 lemma oscOutside_le {Λ : Finset S} {f : (S → E) → ℝ} {c : ℝ≥0∞}
     (h : ∀ ζ η : S → E, (∀ i ∈ Λ, ζ i = η i) → ENNReal.ofReal |f ζ - f η| ≤ c) :
     oscOutside Λ f ≤ c :=
-  iSup_le fun ζ ↦ iSup_le fun η ↦ iSup_le fun hζη ↦ h ζ η hζη
+  _root_.oscOutside_le fun ζ η hζη ↦ by
+    rw [edist_dist, Real.dist_eq]
+    exact h ζ η fun i hi ↦ hζη i (by exact_mod_cast hi)
 
-lemma oscOutside_antitone {f : (S → E) → ℝ} : Antitone fun Λ : Finset S ↦ oscOutside Λ f := by
-  intro Λ₁ Λ₂ h
-  exact oscOutside_le fun ζ η hζη ↦ le_oscOutside (fun i hi ↦ hζη i (h hi))
-
-/-- A function depending only on `Λ` has zero oscillation outside `Λ`. -/
-lemma oscOutside_eq_zero_of_dependsOn {Λ : Finset S} {f : (S → E) → ℝ}
-    (hf : DependsOn f (Λ : Set S)) : oscOutside Λ f = 0 := by
-  refine le_antisymm (oscOutside_le fun ζ η hζη ↦ ?_) bot_le
-  simp [hf (fun i hi ↦ hζη i (by exact_mod_cast hi))]
-
+lemma oscOutside_antitone {f : (S → E) → ℝ} : Antitone fun Λ : Finset S ↦ oscOutside Λ f :=
+  fun _ _ h ↦ _root_.oscOutside_antitone (by exact_mod_cast h)
 
 end Oscillation
 
 section Criterion
 
 variable {S E : Type*} [MeasurableSpace E]
-
-/-- Values of an `ℓ^∞` element are bounded by its norm. -/
-lemma apply_le_norm {S E : Type*} (g : lp (fun _ : S → E ↦ ℝ) ∞) (x : S → E) :
-    |(g : (S → E) → ℝ) x| ≤ ‖g‖ :=
-  lp.norm_apply_le_norm ENNReal.top_ne_zero g x
 
 /-- Georgii (2.21)(1), forward direction. -/
 theorem tendsto_oscOutside_of_mem_quasilocalFunctions {f : lp (fun _ : S → E ↦ ℝ) ∞}
@@ -148,7 +143,7 @@ theorem tendsto_oscOutside_of_mem_quasilocalFunctions {f : lp (fun _ : S → E �
     have hbound : ∀ x : S → E, |(f : (S → E) → ℝ) x - (g : (S → E) → ℝ) x| ≤ δ := by
       intro x
       have h1 : |(f : (S → E) → ℝ) x - (g : (S → E) → ℝ) x| ≤ ‖f - g‖ := by
-        have := apply_le_norm (f - g) x
+        have := lp.norm_apply_le_norm_top (f - g) x
         rwa [lp.coeFn_sub, Pi.sub_apply] at this
       have h2 : ‖f - g‖ < δ := by rwa [← dist_eq_norm]
       exact h1.trans h2.le
@@ -200,7 +195,7 @@ theorem mem_quasilocalFunctions_of_tendsto_oscOutside [Nonempty E]
     intro Λ
     refine memℓp_infty ⟨‖f‖, ?_⟩
     rintro _ ⟨x, rfl⟩
-    exact apply_le_norm f (T Λ x)
+    exact lp.norm_apply_le_norm_top f (T Λ x)
   set G : Finset S → lp (fun _ : S → E ↦ ℝ) ∞ := fun Λ ↦ ⟨(⇑f) ∘ T Λ, hgmem Λ⟩ with hG
   have hGmem : ∀ Λ : Finset S, G Λ ∈ localFunctions S E := by
     intro Λ
@@ -235,6 +230,72 @@ theorem mem_quasilocalFunctions_iff [Nonempty E] {f : lp (fun _ : S → E ↦ �
       tendsto_oscOutside_of_mem_quasilocalFunctions h⟩,
     fun h ↦ mem_quasilocalFunctions_of_tendsto_oscOutside h.1 h.2⟩
 
+
+/-! ### Uniformly continuous observables -/
+
+section UniformContinuity
+
+variable [UniformSpace E]
+
+/-- Georgii (2.21)(2): a bounded uniformly continuous observable is quasilocal. -/
+theorem mem_quasilocalFunctions_of_uniformContinuous [Nonempty E]
+    {f : lp (fun _ : S → E ↦ ℝ) ∞} (hmeas : Measurable (⇑f))
+    (hf : UniformContinuous (⇑f : (S → E) → ℝ)) :
+    f ∈ quasilocalFunctions S E := by
+  refine mem_quasilocalFunctions_of_tendsto_oscOutside hmeas ?_
+  have key : ∀ δ : ℝ, 0 < δ → ∀ᶠ Λ : Finset S in atTop,
+      oscOutside Λ (⇑f) ≤ ENNReal.ofReal δ := by
+    intro δ hδ
+    obtain ⟨Λ₀, hΛ₀⟩ := hf.exists_finset_forall_mem (Metric.dist_mem_uniformity hδ)
+    filter_upwards [eventually_ge_atTop Λ₀] with Λ hΛ
+    refine oscOutside_le fun ζ η hζη ↦ ENNReal.ofReal_le_ofReal ?_
+    exact le_of_lt (by simpa [Real.dist_eq] using hΛ₀ ζ η fun i hi ↦ hζη i (hΛ hi))
+  rw [ENNReal.tendsto_nhds_zero]
+  intro ε hε
+  rcases eq_or_ne ε ⊤ with rfl | hεtop
+  · exact (key 1 one_pos).mono fun _ _ ↦ le_top
+  · have hpos : 0 < ε.toReal := ENNReal.toReal_pos hε.ne' hεtop
+    exact (key ε.toReal hpos).mono fun Λ h ↦ by rwa [ENNReal.ofReal_toReal hεtop] at h
+
+/-- A local observable is continuous when the spin space is discrete. -/
+lemma continuous_of_mem_localFunctions [DiscreteTopology E]
+    {f : lp (fun _ : S → E ↦ ℝ) ∞} (hf : f ∈ localFunctions S E) :
+    Continuous (⇑f : (S → E) → ℝ) := by
+  obtain ⟨Λ, hΛ⟩ := mem_localFunctions.1 hf
+  have hdep : DependsOn (⇑f : (S → E) → ℝ) (Λ : Set S) :=
+    (mem_localFunctionsOn.1 hΛ).dependsOn_of_cylinderEvents
+  obtain ⟨g, hg⟩ := (dependsOn_iff_exists_comp (β := ℝ)).1 hdep
+  rw [hg]
+  exact (continuous_of_discreteTopology (α := ∀ i : (Λ : Set S), E)).comp
+    (continuous_pi fun i ↦ continuous_apply _)
+
+/-- Uniform limits of continuous observables are continuous. -/
+lemma isClosed_continuous_lp :
+    IsClosed {f : lp (fun _ : S → E ↦ ℝ) ∞ | Continuous (⇑f : (S → E) → ℝ)} := by
+  refine IsSeqClosed.isClosed fun F g hF hFg ↦ ?_
+  refine TendstoUniformly.continuous (F := fun n ↦ (F n : (S → E) → ℝ))
+    (p := (atTop : Filter ℕ)) (Metric.tendstoUniformly_iff.2 fun ε hε ↦ ?_) (.of_forall hF)
+  obtain ⟨N, hN⟩ := Metric.tendsto_atTop.1 hFg ε hε
+  refine eventually_atTop.2 ⟨N, fun n hn x ↦ ?_⟩
+  have hb : |(g : (S → E) → ℝ) x - (F n : (S → E) → ℝ) x| ≤ ‖F n - g‖ := by
+    have h2 := lp.norm_apply_le_norm_top (F n - g) x
+    rw [lp.coeFn_sub, Pi.sub_apply] at h2
+    rwa [abs_sub_comm]
+  have hlt : ‖F n - g‖ < ε := by simpa [dist_eq_norm] using hN n hn
+  simpa [Real.dist_eq] using lt_of_le_of_lt hb hlt
+
+/-- **Georgii (2.21)(3).** For a compact discrete spin space, the quasilocal observables are exactly
+the continuous ones. -/
+theorem mem_quasilocalFunctions_iff_continuous [DiscreteTopology E] [CompactSpace E] [Nonempty E]
+    {f : lp (fun _ : S → E ↦ ℝ) ∞} (hmeas : Measurable (⇑f)) :
+    f ∈ quasilocalFunctions S E ↔ Continuous (⇑f : (S → E) → ℝ) := by
+  refine ⟨fun hf ↦ ?_, fun hf ↦ ?_⟩
+  · exact closure_minimal (fun g hg ↦ continuous_of_mem_localFunctions hg)
+      isClosed_continuous_lp hf
+  · exact mem_quasilocalFunctions_of_uniformContinuous hmeas
+      (CompactSpace.uniformContinuous_of_continuous hf)
+
+end UniformContinuity
 
 end Criterion
 
