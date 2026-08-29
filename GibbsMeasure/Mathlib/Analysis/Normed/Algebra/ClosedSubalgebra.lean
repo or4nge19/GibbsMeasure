@@ -90,7 +90,7 @@ theorem inv_mem_lp {A : Subalgebra ℝ (lp (fun _ : α ↦ ℝ) ∞)}
     {f g : lp (fun _ : α ↦ ℝ) ∞} (hf : f ∈ A) {m : ℝ} (hm : 0 < m)
     (hmf : ∀ x, m ≤ (⇑f) x) (hg : ∀ x, (⇑g) x = ((⇑f) x)⁻¹) : g ∈ A := by
   refine Subalgebra.comp_mem_lp hA hf (a := m) (b := ‖f‖)
-    (fun x ↦ ⟨hmf x, le_trans (le_abs_self _) (lp.norm_apply_le_norm_top f x)⟩)
+    (fun x ↦ ⟨hmf x, le_trans (le_abs_self _) (lp.norm_apply_le_norm ENNReal.top_ne_zero f x)⟩)
     (F := (·⁻¹)) ?_ hg
   exact ContinuousOn.inv₀ continuousOn_id fun x hx ↦ ne_of_gt (lt_of_lt_of_le hm hx.1)
 

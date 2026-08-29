@@ -20,7 +20,7 @@ absolutely summable potential.
 
 set_option backward.isDefEq.respectTransparency false
 
-open Filter Function GibbsMeasure MeasureTheory ProbabilityTheory Set
+open Filter Function MeasureTheory MeasureTheory.GibbsMeasure ProbabilityTheory Set
 open scoped Topology ENNReal NNReal
 
 noncomputable section

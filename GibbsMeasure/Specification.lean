@@ -1467,6 +1467,35 @@ lemma isssd_apply_squareCylinder_of_subset (ν : Measure E) [IsProbabilityMeasur
   rw [show (isssd ν Λ) η = isssdFun ν Λ η from rfl, h]
   exact if_pos hcond
 
+/-- On events measurable inside the finite volume `Λ`, the independent kernel with any boundary
+condition `η` gives the same mass as the infinite product measure `ν^S`. -/
+lemma isssd_apply_of_mem_cylinderEvents (ν : Measure E) [IsProbabilityMeasure ν]
+    (Λ : Finset S) (η : S → E) {A : Set (S → E)}
+    (hA : MeasurableSet[cylinderEvents (Λ : Set S)] A) :
+    isssd (S := S) (E := E) ν Λ η A = Measure.infinitePi (fun _ : S ↦ ν) A := by
+  rw [cylinderEvents_eq_comap_finsetRestrict] at hA
+  obtain ⟨B, hB, rfl⟩ := MeasurableSpace.measurableSet_comap.1 hA
+  have hmeasA : MeasurableSet (Λ.restrict (π := fun _ : S ↦ E) ⁻¹' B) :=
+    Λ.measurable_restrict hB
+  have hcomp : ∀ ζ : Π _ : Λ, E,
+      Λ.restrict (π := fun _ : S ↦ E) (juxt (Λ : Set S) η ζ) = ζ := by
+    intro ζ
+    funext i
+    exact juxt_apply_of_mem (by simp) ζ
+  have h1 : isssd (S := S) (E := E) ν Λ η (Λ.restrict (π := fun _ : S ↦ E) ⁻¹' B)
+      = Measure.pi (fun _ : Λ ↦ ν) B := by
+    rw [show (isssd (S := S) (E := E) ν Λ) η
+        = Measure.map (juxt (Λ : Set S) η) (Measure.pi fun _ : Λ ↦ ν) from rfl]
+    rw [Measure.map_apply Measurable.juxt hmeasA]
+    congr 1
+    ext ζ
+    simp [Set.mem_preimage, hcomp ζ]
+  have h2 : Measure.infinitePi (fun _ : S ↦ ν) (Λ.restrict (π := fun _ : S ↦ E) ⁻¹' B) =
+      Measure.pi (fun _ : Λ ↦ ν) B := by
+    rw [← Measure.infinitePi_map_restrict (μ := fun _ : S ↦ ν) (I := Λ),
+      Measure.map_apply Λ.measurable_restrict hB]
+  rw [h1, h2]
+
 /-- Any probability measure pushed through the independent kernel on `Λ` agrees with the product
 measure on square cylinders supported in `Λ`. -/
 lemma bind_isssd_apply_squareCylinder_of_subset (ν : Measure E)
@@ -1812,6 +1841,30 @@ lemma coe_modification (γ : Specification S E) (ρ : Finset S → (S → E) →
 lemma modification_apply (γ : Specification S E) (ρ : Finset S → (S → E) → ℝ≥0∞)
     (hρ : γ.IsModifier ρ) (Λ : Finset S) (η : S → E) :
     γ.modification ρ hρ Λ η = (γ Λ η).withDensity (ρ Λ) := rfl
+
+/-- Set-restricted version of `Specification.modification_apply_le`: a pointwise bound on the
+density **on `B` only** bounds the modified kernel on `A ∩ B` against the base kernel on `A`.
+This is the estimate `∫_{A ∩ B} ρ_Λ dγ_Λ ≤ C · γ_Λ(A)` in Georgii's proof of (4.12). -/
+lemma modification_apply_inter_le (γ : Specification S E) (ρ : Finset S → (S → E) → ℝ≥0∞)
+    (hρ : γ.IsModifier ρ) (Λ : Finset S) (η : S → E) {A B : Set (S → E)}
+    (hA : MeasurableSet A) (hB : MeasurableSet B) {c : ℝ≥0∞}
+    (hc : ∀ ω ∈ B, ρ Λ ω ≤ c) :
+    γ.modification ρ hρ Λ η (A ∩ B) ≤ c * γ Λ η A := by
+  rw [modification_apply, withDensity_apply _ (hA.inter hB)]
+  calc ∫⁻ x in A ∩ B, ρ Λ x ∂(γ Λ η)
+      ≤ ∫⁻ _ in A ∩ B, c ∂(γ Λ η) :=
+        setLIntegral_mono' (hA.inter hB) fun x hx ↦ hc x hx.2
+    _ = c * γ Λ η (A ∩ B) := setLIntegral_const _ _
+    _ ≤ c * γ Λ η A := mul_le_mul' le_rfl (measure_mono inter_subset_left)
+
+/-- A pointwise bound on the densities bounds the modified kernel against the base kernel. -/
+lemma modification_apply_le (γ : Specification S E) (ρ : Finset S → (S → E) → ℝ≥0∞)
+    (hρ : γ.IsModifier ρ) (Λ : Finset S) (η : S → E) {A : Set (S → E)} (hA : MeasurableSet A)
+    {c : ℝ≥0∞} (hc : ∀ ω, ρ Λ ω ≤ c) :
+    γ.modification ρ hρ Λ η A ≤ c * γ Λ η A := by
+  simpa [Set.inter_univ] using modification_apply_inter_le γ ρ hρ Λ η hA MeasurableSet.univ
+    (fun ω _ ↦ hc ω)
+
 
 @[simp] lemma IsModifier.mul {ρ₁ ρ₂ : Finset S → (S → E) → ℝ≥0∞}
     (hρ₁ : γ.IsModifier ρ₁) (hρ₂ : (γ.modification ρ₁ hρ₁).IsModifier ρ₂) :

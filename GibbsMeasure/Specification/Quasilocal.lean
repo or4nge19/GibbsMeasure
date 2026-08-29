@@ -37,7 +37,7 @@ open scoped Topology
 
 namespace BoundedContinuousFunction
 
-open GibbsMeasure.ConfigurationSpace
+open MeasureTheory.GibbsMeasure.ConfigurationSpace
 
 variable {S E F : Type*}
 variable [TopologicalSpace E]
@@ -50,14 +50,14 @@ noncomputable def cylinderFunctions
   carrier := {f | IsCylinderFunction (S := S) (E := E) (fun σ => f σ)}
   zero_mem' := by
     simpa using
-      (GibbsMeasure.ConfigurationSpace.IsCylinderFunction.const (S := S) (E := E) (F := F) 0)
+      (MeasureTheory.GibbsMeasure.ConfigurationSpace.IsCylinderFunction.const (S := S) (E := E) (F := F) 0)
   add_mem' := by
     intro f g hf hg
     -- Stability under addition is a property of cylinder functions on `(S → E)`.
-    exact GibbsMeasure.ConfigurationSpace.IsCylinderFunction.add (S := S) (E := E) hf hg
+    exact MeasureTheory.GibbsMeasure.ConfigurationSpace.IsCylinderFunction.add (S := S) (E := E) hf hg
   smul_mem' := by
     intro c f hf
-    exact GibbsMeasure.ConfigurationSpace.IsCylinderFunction.smul (S := S) (E := E) (c := c) hf
+    exact MeasureTheory.GibbsMeasure.ConfigurationSpace.IsCylinderFunction.smul (S := S) (E := E) (c := c) hf
 
 /-- The submodule of **continuous/Feller quasilocal functions**: the uniform closure of
 `cylinderFunctions` inside `C_b(S → E, F)`. -/

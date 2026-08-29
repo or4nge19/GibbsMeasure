@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Mathlib.Analysis.Normed.Lp.lpSpace
 public import GibbsMeasure.Specification.QuasilocalAlgebra
 public import GibbsMeasure.Topology.LocalConvergence
 
@@ -19,21 +20,14 @@ volume are finite sums of evaluations, quasilocal observables are their uniform 
 
 @[expose] public section
 
-open Filter MeasureTheory MeasureTheory.ProbabilityMeasure Set Topology
+open Filter MeasureTheory Set Topology
 open scoped ENNReal Topology
 
 noncomputable section
 
-namespace GibbsMeasure
+namespace MeasureTheory.GibbsMeasure
 
 variable {S E : Type*} [MeasurableSpace E]
-
-/-- A bounded measurable observable is integrable against any finite measure. -/
-lemma _root_.lp.integrable_of_measurable {α : Type*} [MeasurableSpace α]
-    {f : lp (fun _ : α ↦ ℝ) ∞} (hf : Measurable (⇑f)) (μ : Measure α) [IsFiniteMeasure μ] :
-    Integrable (⇑f) μ :=
-  Integrable.mono' (integrable_const ‖f‖) hf.aestronglyMeasurable
-    (.of_forall fun x ↦ by simpa using lp.norm_apply_le_norm_top f x)
 
 /-- The observables whose integral is continuous for the topology of local convergence. -/
 def LContinuous (f : lp (fun _ : S → E ↦ ℝ) ∞) : Prop :=
@@ -63,7 +57,7 @@ theorem isClosed_lContinuous :
     have := norm_integral_le_of_norm_le_const (μ := (μ.toMeasure : Measure (S → E)))
       (C := ‖g - F n‖) (f := fun x ↦ (g : (S → E) → ℝ) x - (F n : (S → E) → ℝ) x)
       (.of_forall fun x ↦ by
-        have := lp.norm_apply_le_norm_top (g - F n) x
+        have := lp.norm_apply_le_norm ENNReal.top_ne_zero (g - F n) x
         rwa [lp.coeFn_sub, Pi.sub_apply] at this)
     simpa using this
   have hlt : ‖g - F n‖ < ε / 2 := by
@@ -101,8 +95,8 @@ theorem lContinuous_of_mem_simpleFunctions (Λ : Finset S)
   simp only [smul_eq_mul]
   refine Continuous.mul ?_ continuous_const
   refine WithSetwiseTopology.continuous_apply_real (𝒞 := localEvents S E) ?_
-  exact ⟨Λ, @SimpleFunc.measurableSet_fiber _ _
-    (cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)) g y⟩
+  exact mem_localEvents_of_cylinderEvents Λ (@SimpleFunc.measurableSet_fiber _ _
+    (cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)) g y)
 
 /-- Integration against a quasilocal observable is `L`-continuous. -/
 theorem lContinuous_of_mem_quasilocalFunctions {f : lp (fun _ : S → E ↦ ℝ) ∞}
@@ -140,7 +134,7 @@ def indicatorLp (A : Set (S → E)) : lp (fun _ : S → E ↦ ℝ) ∞ :=
 
 lemma indicatorLp_mem_localFunctions {A : Set (S → E)} (hA : A ∈ localEvents S E) :
     indicatorLp A ∈ localFunctions S E := by
-  obtain ⟨Λ, hΛ⟩ := hA
+  obtain ⟨Λ, hΛ⟩ := mem_localEvents_iff_cylinderEvents.1 hA
   exact mem_localFunctions.2 ⟨Λ, by
     rw [mem_localFunctionsOn, coeFn_indicatorLp]; exact measurable_const.indicator hΛ⟩
 
@@ -160,7 +154,7 @@ theorem tendsto_iff_forall_localFunctions {ι : Type*} {l : Filter ι}
     rw [(WithSetwiseTopology.isInducing_evalProb
       (𝒞 := localEvents S E)).tendsto_nhds_iff, tendsto_pi_nhds]
     rintro ⟨A, hA⟩
-    obtain ⟨Λ, hΛ⟩ := hA
+    obtain ⟨Λ, hΛ⟩ := mem_localEvents_iff_cylinderEvents.1 hA
     have hAmeas : MeasurableSet A := cylinderEvents_le_pi (X := fun _ : S ↦ E) A hΛ
     have hint : ∀ ν : WithLocalConvergence S E,
         (∫ x, (indicatorLp (S := S) (E := E) A : (S → E) → ℝ) x
@@ -169,8 +163,8 @@ theorem tendsto_iff_forall_localFunctions {ι : Type*} {l : Filter ι}
       intro ν
       rw [coeFn_indicatorLp, integral_indicator_const (1 : ℝ) hAmeas]
       simp [measureReal_def]
-    have hconv := h (indicatorLp A) (indicatorLp_mem_localFunctions ⟨Λ, hΛ⟩)
+    have hconv := h (indicatorLp A) (indicatorLp_mem_localFunctions hA)
     simp only [hint] at hconv
     exact (ENNReal.tendsto_toReal_iff (fun i ↦ measure_ne_top _ _) (measure_ne_top _ _)).1 hconv
 
-end GibbsMeasure
+end MeasureTheory.GibbsMeasure

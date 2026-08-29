@@ -23,9 +23,11 @@ noncomputable
 def IsCompactSystem.support (hp : IsCompactSystem p) (hC : ∀ i, p (C i)) (hC_empty : ⋂ i, C i = ∅) :
     ℕ := (hp C hC hC_empty).choose
 
-lemma IsCompactSystem.iInter_eq_empty (hp : IsCompactSystem p) (hC : ∀ i, p (C i))
+/-- For a countable family in a compact system with empty intersection, the finite subfamily
+selected by `IsCompactSystem.support` is already empty. -/
+lemma IsCompactSystem.dissipate_support_eq_empty (hp : IsCompactSystem p) (hC : ∀ i, p (C i))
     (hC_empty : ⋂ i, C i = ∅) :
-    ⋂ i ≤ hp.support hC hC_empty, C i = ∅ :=
+    Set.dissipate C (hp.support hC hC_empty) = ∅ :=
   (hp C hC hC_empty).choose_spec
 
 end definition

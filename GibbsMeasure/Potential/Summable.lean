@@ -330,25 +330,50 @@ lemma le_boltzmannFactor [IsAbsolutelySummable Φ] (β : ℝ) (Λ : Finset S) (�
 
 variable (ν : Measure E) [IsProbabilityMeasure ν]
 
+/-- Upper bound `Z_Λ ≤ e^{|β| ∑_{i ∈ Λ} ‖Φ‖ᵢ}` on the partition function. -/
+lemma premodifierZ_boltzmannFactor_le [IsAbsolutelySummable Φ] (β : ℝ) (Λ : Finset S)
+    (η : S → E) :
+    Specification.premodifierZ (S := S) (E := E) ν (Φ.boltzmannFactor β) Λ η
+      ≤ ENNReal.ofReal (Real.exp (|β| * Φ.hamiltonianBound Λ)) := by
+  have : IsProbabilityMeasure (Specification.isssd (S := S) (E := E) ν Λ η) := inferInstance
+  refine le_trans (lintegral_mono fun x ↦ boltzmannFactor_le (Φ := Φ) β Λ x) ?_
+  rw [lintegral_const, measure_univ, mul_one]
+
+/-- Lower bound `e^{-|β| ∑_{i ∈ Λ} ‖Φ‖ᵢ} ≤ Z_Λ` on the partition function. -/
+lemma le_premodifierZ_boltzmannFactor [IsAbsolutelySummable Φ] (β : ℝ) (Λ : Finset S)
+    (η : S → E) :
+    ENNReal.ofReal (Real.exp (-(|β| * Φ.hamiltonianBound Λ)))
+      ≤ Specification.premodifierZ (S := S) (E := E) ν (Φ.boltzmannFactor β) Λ η := by
+  have : IsProbabilityMeasure (Specification.isssd (S := S) (E := E) ν Λ η) := inferInstance
+  refine le_trans ?_ (lintegral_mono fun x ↦ le_boltzmannFactor (Φ := Φ) β Λ x)
+  rw [lintegral_const, measure_univ, mul_one]
+
 /-- **Georgii (2.14) ⇒ λ-admissibility.** An absolutely summable potential is `ν`-admissible for
 every probability measure `ν`: the partition functions are finite and non-zero. -/
 theorem isPremodifierAdmissible_boltzmannFactor [IsAbsolutelySummable Φ] (β : ℝ) :
     Specification.IsPremodifierAdmissible (S := S) (E := E) ν (Φ.boltzmannFactor β) := by
   intro Λ η
-  have : IsProbabilityMeasure (Specification.isssd (S := S) (E := E) ν Λ η) := inferInstance
-  have hle : Specification.premodifierZ (S := S) (E := E) ν (Φ.boltzmannFactor β) Λ η
-      ≤ ENNReal.ofReal (Real.exp (|β| * Φ.hamiltonianBound Λ)) := by
-    refine le_trans (lintegral_mono fun x ↦ boltzmannFactor_le (Φ := Φ) β Λ x) ?_
-    rw [lintegral_const, measure_univ, mul_one]
-  have hge : ENNReal.ofReal (Real.exp (-(|β| * Φ.hamiltonianBound Λ)))
-      ≤ Specification.premodifierZ (S := S) (E := E) ν (Φ.boltzmannFactor β) Λ η := by
-    refine le_trans ?_ (lintegral_mono fun x ↦ le_boltzmannFactor (Φ := Φ) β Λ x)
-    rw [lintegral_const, measure_univ, mul_one]
   refine ⟨fun h0 ↦ ?_, fun htop ↦ ?_⟩
-  · rw [h0] at hge
+  · have hge := le_premodifierZ_boltzmannFactor (Φ := Φ) ν β Λ η
+    rw [h0] at hge
     exact absurd (le_antisymm hge bot_le).symm (by simp [Real.exp_pos])
-  · rw [htop] at hle
+  · have hle := premodifierZ_boltzmannFactor_le (Φ := Φ) ν β Λ η
+    rw [htop] at hle
     exact absurd (top_le_iff.1 hle) (by simp)
+
+/-- The normalized Boltzmann density is uniformly bounded:
+`ρ_Λ = h_Λ/Z_Λ ≤ e^{2|β| ∑_{i ∈ Λ} ‖Φ‖ᵢ}` (Georgii (4.14)(1), the domination input to the
+existence theorem (4.23)). -/
+lemma premodifierNorm_boltzmannFactor_le [IsAbsolutelySummable Φ] (β : ℝ) (Λ : Finset S)
+    (η : S → E) :
+    Specification.premodifierNorm (S := S) (E := E) ν (Φ.boltzmannFactor β) Λ η
+      ≤ ENNReal.ofReal (Real.exp (2 * |β| * Φ.hamiltonianBound Λ)) := by
+  rw [Specification.premodifierNorm]
+  refine le_trans (ENNReal.div_le_div (boltzmannFactor_le (Φ := Φ) β Λ η)
+    (le_premodifierZ_boltzmannFactor (Φ := Φ) ν β Λ η)) ?_
+  rw [← ENNReal.ofReal_div_of_pos (Real.exp_pos _), ← Real.exp_sub]
+  refine ENNReal.ofReal_le_ofReal (Real.exp_le_exp.2 (le_of_eq ?_))
+  ring
 
 /-- **Georgii Definition (2.9) for `Φ ∈ ℬ`.** The Gibbsian specification of an absolutely summable
 potential and a single-spin probability measure. -/
@@ -359,5 +384,23 @@ def gibbsSpecificationOfAbsolutelySummable [Countable S] [IsPotential Φ] [IsAbs
     (Specification.IsPremodifier.isModifier_premodifierNorm (ν := ν)
       (isPremodifier_boltzmannFactor (Φ := Φ) β)
       (isPremodifierAdmissible_boltzmannFactor (Φ := Φ) ν β))
+
+/-- **Domination of the Gibbsian specification (the estimate in Georgii (4.23)(a)).** On
+`𝓕_Λ`-events, the Gibbsian specification of an absolutely summable potential is dominated by a
+constant multiple of the free measure `ν^S`. -/
+lemma gibbsSpecificationOfAbsolutelySummable_apply_le [Countable S] [IsPotential Φ]
+    [IsAbsolutelySummable Φ] (β : ℝ) (Λ : Finset S) (η : S → E) {A : Set (S → E)}
+    (hA : MeasurableSet[cylinderEvents (Λ : Set S)] A) :
+    gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β Λ η A ≤
+      ENNReal.ofReal (Real.exp (2 * |β| * Φ.hamiltonianBound Λ)) *
+        Measure.infinitePi (fun _ : S ↦ ν) A := by
+  calc gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β Λ η A
+      ≤ ENNReal.ofReal (Real.exp (2 * |β| * Φ.hamiltonianBound Λ)) *
+        Specification.isssd (S := S) (E := E) ν Λ η A :=
+      Specification.modification_apply_le _ _ _ Λ η (cylinderEvents_le_pi _ hA)
+        fun ω ↦ premodifierNorm_boltzmannFactor_le (Φ := Φ) ν β Λ ω
+    _ = ENNReal.ofReal (Real.exp (2 * |β| * Φ.hamiltonianBound Λ)) *
+        Measure.infinitePi (fun _ : S ↦ ν) A := by
+      rw [Specification.isssd_apply_of_mem_cylinderEvents ν Λ η hA]
 
 end Potential

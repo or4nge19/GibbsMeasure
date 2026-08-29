@@ -34,15 +34,6 @@ open Filter
 
 noncomputable section
 
-namespace lp
-
-variable {α : Type*} {E : α → Type*} [∀ i, NormedAddCommGroup (E i)]
-
-lemma norm_apply_le_norm_top (f : lp E ∞) (i : α) : ‖f i‖ ≤ ‖f‖ :=
-  lp.norm_apply_le_norm ENNReal.top_ne_zero f i
-
-end lp
-
 namespace MeasureTheory
 
 variable {α : Type*}

@@ -161,15 +161,24 @@ end Polish
 section StandardBorel
 
 /-- **Kolmogorov extension theorem, standard Borel version.** A projective family of finite
-measures on a family of standard Borel spaces has a projective limit. -/
-theorem exists_isProjectiveLimit_of_standardBorel {α : ι → Type*} [∀ i, MeasurableSpace (α i)]
-    [∀ i, StandardBorelSpace (α i)] {P : ∀ J : Finset ι, Measure (Π j : J, α j)}
+measures on a family of standard Borel spaces has a unique projective limit. -/
+theorem existsUnique_isProjectiveLimit_of_standardBorel {α : ι → Type*}
+    [∀ i, MeasurableSpace (α i)] [∀ i, StandardBorelSpace (α i)]
+    {P : ∀ J : Finset ι, Measure (Π j : J, α j)}
     [∀ I, IsFiniteMeasure (P I)] (hP : IsProjectiveMeasureFamily P) :
-    ∃ μ : Measure (Π i, α i), IsProjectiveLimit μ P := by
+    ∃! μ : Measure (Π i, α i), IsProjectiveLimit μ P := by
   letI : ∀ i, TopologicalSpace (α i) := fun i ↦ (upgradeStandardBorel (α i)).toTopologicalSpace
   have h1 : ∀ i, BorelSpace (α i) := fun i ↦ (upgradeStandardBorel (α i)).toBorelSpace
   have h2 : ∀ i, PolishSpace (α i) := fun i ↦ (upgradeStandardBorel (α i)).toPolishSpace
-  exact ⟨projectiveLimit P hP, isProjectiveLimit_projectiveLimit hP⟩
+  exact ⟨projectiveLimit P hP, isProjectiveLimit_projectiveLimit hP,
+    fun ν hν ↦ hν.unique (isProjectiveLimit_projectiveLimit hP)⟩
+
+/-- Existence form of `existsUnique_isProjectiveLimit_of_standardBorel`. -/
+theorem exists_isProjectiveLimit_of_standardBorel {α : ι → Type*} [∀ i, MeasurableSpace (α i)]
+    [∀ i, StandardBorelSpace (α i)] {P : ∀ J : Finset ι, Measure (Π j : J, α j)}
+    [∀ I, IsFiniteMeasure (P I)] (hP : IsProjectiveMeasureFamily P) :
+    ∃ μ : Measure (Π i, α i), IsProjectiveLimit μ P :=
+  (existsUnique_isProjectiveLimit_of_standardBorel hP).exists
 
 end StandardBorel
 

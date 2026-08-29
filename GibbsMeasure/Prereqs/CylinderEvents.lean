@@ -38,6 +38,19 @@ lemma cylinderEvents_eq_comap_restrict {S E : Type*} [MeasurableSpace E] (Δ : S
         (inferInstance : MeasurableSpace (Δ → E)) :=
   cylinderEvents_eq_comap_domRestrict (X := fun _ : S ↦ E) Δ
 
+/-- The finite-volume σ-algebra is the pullback of the product σ-algebra along
+`Finset.restrict`. `Finset` analogue of `cylinderEvents_eq_comap_domRestrict`. -/
+lemma cylinderEvents_eq_comap_finsetRestrict (Λ : Finset ι) :
+    cylinderEvents (X := X) (Λ : Set ι) =
+      MeasurableSpace.comap (Λ.restrict (π := X))
+        (inferInstance : MeasurableSpace (Π i : Λ, X i)) := by
+  refine le_antisymm (iSup₂_le fun i hi ↦ ?_) ?_
+  · exact MeasurableSpace.comap_le_comap_of_eq_comp (fun x : Π i : Λ, X i ↦ x ⟨i, hi⟩)
+      (measurable_pi_apply _) rfl
+  · refine Measurable.comap_le ?_
+    rw [@measurable_pi_iff]
+    exact fun j ↦ measurable_cylinderEvent_apply j.2
+
 /-! ### Cylinder measurability versus dependence on coordinates -/
 
 variable {Z : Type*} [MeasurableSpace Z] {f : (∀ i, X i) → Z}

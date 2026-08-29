@@ -1,82 +1,68 @@
+/-
+Copyright (c) 2026 Matteo Cipollina. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Matteo Cipollina
+-/
 module
 
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.WithSetwiseTopology
-public import GibbsMeasure.Prereqs.MeasureExt
 public import GibbsMeasure.Prereqs.CylinderEvents
-public import GibbsMeasure.Prereqs.SquareCylinders
+public import Mathlib.MeasureTheory.Constructions.Cylinders
 public import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
 
 /-!
 # Topology of local convergence on probability measures
 
-This file introduces the **topology of local convergence** on `ProbabilityMeasure (S → E)`.
-
-Informally, local convergence is the coarsest topology for which the maps
-
-`μ ↦ μ A`
-
-are continuous for all finite-volume cylinder events `A`, i.e. events measurable with respect to
-`cylinderEvents Λ` for some finite `Λ : Finset S`.
-
-Square cylinders are kept as a generating π-system for separation and measure extensionality, but
-the topology itself is induced by all local events.
+The **topology of local convergence** on `ProbabilityMeasure (S → E)` (Georgii (4.2)) is the
+coarsest topology for which `μ ↦ μ A` is continuous for every finite-volume cylinder event `A`.
+The cylinder events are Mathlib's `measurableCylinders`; `localEvents` is Georgii's name `𝓕⁰`
+for them.
 -/
 
 @[expose] public section
 
 open Set Filter Topology
-open scoped Topology
-open scoped ENNReal
+open scoped Topology ENNReal
 
 namespace MeasureTheory
 
-namespace ProbabilityMeasure
-
 variable {S E : Type*} [MeasurableSpace E]
 
-/-- Evaluation of a probability measure on a square cylinder. -/
-def evalSquareCylinder (S E : Type*) [MeasurableSpace E] :
-    ProbabilityMeasure (S → E) → (squareCylindersMeas S E) → ℝ≥0∞ :=
-  fun μ A ↦ (μ : Measure (S → E)) A.1
+/-- **Georgii's algebra `𝓕⁰`** of finite-volume cylinder events: Mathlib's
+`measurableCylinders`. -/
+abbrev localEvents (S E : Type*) [MeasurableSpace E] : Set (Set (S → E)) :=
+  measurableCylinders (fun _ : S ↦ E)
 
-/-- The finite-volume local events in configuration space. -/
-def localEvents (S E : Type*) [MeasurableSpace E] : Set (Set (S → E)) :=
-  {A | ∃ Λ : Finset S, MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)] A}
+/-- A set is a local event iff it is `cylinderEvents`-measurable for some finite volume. -/
+lemma mem_localEvents_iff_cylinderEvents {A : Set (S → E)} :
+    A ∈ localEvents S E ↔
+      ∃ Λ : Finset S, MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)] A := by
+  rw [localEvents, mem_measurableCylinders]
+  constructor
+  · rintro ⟨Λ, B, hB, rfl⟩
+    refine ⟨Λ, ?_⟩
+    rw [cylinderEvents_eq_comap_finsetRestrict]
+    exact ⟨B, hB, rfl⟩
+  · rintro ⟨Λ, hA⟩
+    rw [cylinderEvents_eq_comap_finsetRestrict] at hA
+    obtain ⟨B, hB, rfl⟩ := hA
+    exact ⟨Λ, B, hB, rfl⟩
 
-/-- Evaluation of a probability measure on all finite-volume local events. -/
-def evalLocalEvent (S E : Type*) [MeasurableSpace E] :
-    ProbabilityMeasure (S → E) → (localEvents S E) → ℝ≥0∞ :=
-  fun μ A ↦ (μ : Measure (S → E)) A.1
+/-- A set is a local event iff it is the `Finset.restrict`-preimage of a measurable set of some
+finite-volume configuration space. -/
+lemma mem_localEvents_iff_exists_finsetRestrict_preimage {A : Set (S → E)} :
+    A ∈ localEvents S E ↔
+      ∃ (Λ : Finset S) (B : Set (Π _ : Λ, E)), MeasurableSet B ∧ A = Λ.restrict ⁻¹' B :=
+  mem_measurableCylinders A
 
-lemma squareCylinder_mem_localEvents {A : Set (S → E)}
-    (hA : A ∈ squareCylindersMeas S E) : A ∈ localEvents S E := by
-  classical
-  rcases hA with ⟨Λ, t, ht, rfl⟩
-  refine ⟨Λ, ?_⟩
-  rw [cylinderEvents_eq_comap_restrict (S := S) (E := E) (Δ := (Λ : Set S))]
-  let C : Set (↥(Λ : Set S) → E) :=
-    (Set.univ : Set ↥(Λ : Set S)).pi (fun i : ↥(Λ : Set S) ↦ t i)
-  refine ⟨C, ?_, ?_⟩
-  · have hC : C ∈ squareCylindersMeas (Λ : Set S) E := by
-      refine ⟨Finset.univ, fun i : ↥(Λ : Set S) ↦ t i, ?_, ?_⟩
-      · intro i _hi
-        exact ht i (by simp)
-      · ext ζ
-        simp [C, Set.mem_pi]
-    have hgen :
-        (inferInstance : MeasurableSpace (↥(Λ : Set S) → E))
-          = MeasurableSpace.generateFrom (squareCylindersMeas ↥(Λ : Set S) E) :=
-      generateFrom_squareCylindersMeas ↥(Λ : Set S) E
-    rw [hgen]
-    exact MeasurableSpace.measurableSet_generateFrom hC
-  · ext η
-    change ((Set.restrict (π := fun _ : S ↦ E) (Λ : Set S) η) ∈ C) ↔
-      η ∈ (Λ : Set S).pi t
-    constructor
-    · intro h i hi
-      exact h ⟨i, hi⟩ (by simp)
-    · intro h i _hi
-      exact h i i.property
+lemma finsetRestrict_preimage_mem_localEvents (Λ : Finset S) {B : Set (Π _ : Λ, E)}
+    (hB : MeasurableSet B) : Λ.restrict ⁻¹' B ∈ localEvents S E :=
+  mem_localEvents_iff_exists_finsetRestrict_preimage.2 ⟨Λ, B, hB, rfl⟩
+
+lemma mem_localEvents_of_cylinderEvents {A : Set (S → E)} (Λ : Finset S)
+    (hA : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)] A) :
+    A ∈ localEvents S E :=
+  mem_localEvents_iff_cylinderEvents.2 ⟨Λ, hA⟩
 
 /-! ### The topology of local convergence -/
 
@@ -88,10 +74,8 @@ abbrev WithLocalConvergence (S E : Type*) [MeasurableSpace E] : Type _ :=
 /-- The local events separate probability measures. -/
 lemma separatesOn_localEvents :
     WithSetwiseTopology.SeparatesOn (localEvents S E) (fun μ ↦ IsProbabilityMeasure μ) :=
-  WithSetwiseTopology.SeparatesOn.mono
-    (WithSetwiseTopology.separatesOn_of_isPiSystem_of_generateFrom
-      (isPiSystem_squareCylindersMeas S E) (generateFrom_squareCylindersMeas S E))
-    fun A hA ↦ squareCylinder_mem_localEvents hA
+  WithSetwiseTopology.separatesOn_of_isPiSystem_of_generateFrom
+    isPiSystem_measurableCylinders generateFrom_measurableCylinders.symm
 
 /-- **Georgii (4.3)(1).** The topology of local convergence is Hausdorff. -/
 instance : T2Space (WithLocalConvergence S E) :=
@@ -105,7 +89,5 @@ lemma tendsto_withLocalConvergence_iff {ι : Type*} {l : Filter ι}
         Filter.Tendsto (fun i ↦ ((μs i).toMeasure : Measure (S → E)) A) l
           (𝓝 ((μ.toMeasure : Measure (S → E)) A)) :=
   WithSetwiseTopology.tendsto_prob_iff
-
-end ProbabilityMeasure
 
 end MeasureTheory

@@ -26,10 +26,10 @@ second being the topological closure of the first. No topology on `E` is involve
 
 ## Main declarations
 
-* `GibbsMeasure.localFunctionsOn`, `GibbsMeasure.localFunctions`,
-  `GibbsMeasure.quasilocalFunctions`: Georgii's `𝓛_Λ`, `𝓛`, `𝓛̄`.
-* `GibbsMeasure.oscOutside`: the oscillation of Georgii's eq. (2.22).
-* `GibbsMeasure.mem_quasilocalFunctions_iff`: Georgii Remark (2.21)(1).
+* `MeasureTheory.GibbsMeasure.localFunctionsOn`, `MeasureTheory.GibbsMeasure.localFunctions`,
+  `MeasureTheory.GibbsMeasure.quasilocalFunctions`: Georgii's `𝓛_Λ`, `𝓛`, `𝓛̄`.
+* `MeasureTheory.GibbsMeasure.oscOutside`: the oscillation of Georgii's eq. (2.22).
+* `MeasureTheory.GibbsMeasure.mem_quasilocalFunctions_iff`: Georgii Remark (2.21)(1).
 -/
 
 @[expose] public section
@@ -39,7 +39,7 @@ open scoped ENNReal Topology
 
 noncomputable section
 
-namespace GibbsMeasure
+namespace MeasureTheory.GibbsMeasure
 
 variable (S E : Type*) [MeasurableSpace E]
 
@@ -144,7 +144,7 @@ theorem tendsto_oscOutside_of_mem_quasilocalFunctions {f : lp (fun _ : S → E �
     have hbound : ∀ x : S → E, |(f : (S → E) → ℝ) x - (g : (S → E) → ℝ) x| ≤ δ := by
       intro x
       have h1 : |(f : (S → E) → ℝ) x - (g : (S → E) → ℝ) x| ≤ ‖f - g‖ := by
-        have := lp.norm_apply_le_norm_top (f - g) x
+        have := lp.norm_apply_le_norm ENNReal.top_ne_zero (f - g) x
         rwa [lp.coeFn_sub, Pi.sub_apply] at this
       have h2 : ‖f - g‖ < δ := by rwa [← dist_eq_norm]
       exact h1.trans h2.le
@@ -202,7 +202,7 @@ theorem mem_quasilocalFunctions_of_tendsto_oscOutside
     intro Λ
     refine memℓp_infty ⟨‖f‖, ?_⟩
     rintro _ ⟨x, rfl⟩
-    exact lp.norm_apply_le_norm_top f (T Λ x)
+    exact lp.norm_apply_le_norm ENNReal.top_ne_zero f (T Λ x)
   set G : Finset S → lp (fun _ : S → E ↦ ℝ) ∞ := fun Λ ↦ ⟨(⇑f) ∘ T Λ, hgmem Λ⟩ with hG
   have hGmem : ∀ Λ : Finset S, G Λ ∈ localFunctions S E := by
     intro Λ
@@ -285,7 +285,7 @@ lemma isClosed_continuous_lp :
   obtain ⟨N, hN⟩ := Metric.tendsto_atTop.1 hFg ε hε
   refine eventually_atTop.2 ⟨N, fun n hn x ↦ ?_⟩
   have hb : |(g : (S → E) → ℝ) x - (F n : (S → E) → ℝ) x| ≤ ‖F n - g‖ := by
-    have h2 := lp.norm_apply_le_norm_top (F n - g) x
+    have h2 := lp.norm_apply_le_norm ENNReal.top_ne_zero (F n - g) x
     rw [lp.coeFn_sub, Pi.sub_apply] at h2
     rwa [abs_sub_comm]
   have hlt : ‖F n - g‖ < ε := by simpa [dist_eq_norm] using hN n hn
@@ -313,4 +313,4 @@ theorem exp_mem_quasilocalFunctions {f : lp (fun _ : S → E ↦ ℝ) ∞}
     (hf : f ∈ quasilocalFunctions S E) : NormedSpace.exp f ∈ quasilocalFunctions S E :=
   NormedSpace.exp_mem (Subalgebra.isClosed_topologicalClosure _) hf
 
-end GibbsMeasure
+end MeasureTheory.GibbsMeasure

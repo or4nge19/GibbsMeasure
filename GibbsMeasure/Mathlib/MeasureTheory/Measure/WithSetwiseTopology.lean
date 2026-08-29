@@ -12,7 +12,8 @@ public import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
 
 `WithSetwiseTopology 𝒞 α` is a type synonym for a space of measures `α`, equipped with the topology
 induced by evaluation on a family `𝒞` of sets. Following the pattern of
-`MeasureTheory.LevyProkhorov`.
+`MeasureTheory.LevyProkhorov`, the topology on `Measure Ω` is the source of truth; the topologies
+on `FiniteMeasure Ω` and `ProbabilityMeasure Ω` are induced through the coercion to `Measure Ω`.
 
 For probability measures the topology is Hausdorff as soon as `𝒞` separates
 (`WithSetwiseTopology.t2Space_probabilityMeasure`), e.g. for a generating π-system.
@@ -27,9 +28,6 @@ namespace MeasureTheory
 
 variable {Ω : Type*} [MeasurableSpace Ω]
 
-/-- Evaluation of a measure on a family `𝒞` of sets. -/
-def setwiseEval (𝒞 : Set (Set Ω)) (μ : Measure Ω) : 𝒞 → ℝ≥0∞ := fun A ↦ μ A.1
-
 /-- A type synonym, to be used for `Measure Ω`, `FiniteMeasure Ω` or `ProbabilityMeasure Ω` when
 they are to be equipped with the topology of setwise convergence along a family `𝒞`. -/
 structure WithSetwiseTopology {Ω : Type*} (𝒞 : Set (Set Ω)) (α : Type*) where
@@ -40,6 +38,7 @@ namespace WithSetwiseTopology
 
 variable {𝒞 : Set (Set Ω)} {α : Type*}
 
+omit [MeasurableSpace Ω] in
 lemma toMeasure_injective : Function.Injective (toMeasure : WithSetwiseTopology 𝒞 α → α) :=
   fun ⟨_⟩ ⟨_⟩ ↦ by congr!
 
@@ -51,21 +50,40 @@ def toMeasureEquiv : WithSetwiseTopology 𝒞 α ≃ α where
 
 /-- Evaluation on `𝒞`. -/
 def eval (𝒞 : Set (Set Ω)) : WithSetwiseTopology 𝒞 (Measure Ω) → 𝒞 → ℝ≥0∞ :=
-  fun μ ↦ setwiseEval 𝒞 μ.toMeasure
-
-/-- Evaluation on `𝒞`, for probability measures. -/
-def evalProb (𝒞 : Set (Set Ω)) :
-    WithSetwiseTopology 𝒞 (ProbabilityMeasure Ω) → 𝒞 → ℝ≥0∞ :=
-  fun μ ↦ setwiseEval 𝒞 (μ.toMeasure : Measure Ω)
+  fun μ A ↦ μ.toMeasure A.1
 
 instance instTopologicalSpaceMeasure :
     TopologicalSpace (WithSetwiseTopology 𝒞 (Measure Ω)) := .induced (eval 𝒞) inferInstance
 
+instance instTopologicalSpaceFiniteMeasure :
+    TopologicalSpace (WithSetwiseTopology 𝒞 (FiniteMeasure Ω)) :=
+  .induced (fun μ ↦ (ofMeasure (μ.toMeasure : Measure Ω) : WithSetwiseTopology 𝒞 (Measure Ω)))
+    inferInstance
+
 instance instTopologicalSpaceProbabilityMeasure :
     TopologicalSpace (WithSetwiseTopology 𝒞 (ProbabilityMeasure Ω)) :=
-  .induced (evalProb 𝒞) inferInstance
+  .induced (fun μ ↦ (ofMeasure (μ.toMeasure : Measure Ω) : WithSetwiseTopology 𝒞 (Measure Ω)))
+    inferInstance
 
-lemma isInducing_evalProb : Topology.IsInducing (evalProb (Ω := Ω) 𝒞) := ⟨rfl⟩
+lemma isInducing_eval : Topology.IsInducing (eval (Ω := Ω) 𝒞) := ⟨rfl⟩
+
+/-- Evaluation on `𝒞`, for probability measures. -/
+def evalProb (𝒞 : Set (Set Ω)) :
+    WithSetwiseTopology 𝒞 (ProbabilityMeasure Ω) → 𝒞 → ℝ≥0∞ :=
+  fun μ A ↦ (μ.toMeasure : Measure Ω) A.1
+
+lemma isInducing_evalProb : Topology.IsInducing (evalProb (Ω := Ω) 𝒞) :=
+  ⟨induced_compose (g := eval 𝒞)
+    (f := fun μ : WithSetwiseTopology 𝒞 (ProbabilityMeasure Ω) ↦
+      ofMeasure (μ.toMeasure : Measure Ω))⟩
+
+/-- Convergence in the setwise topology is evaluation-wise convergence on `𝒞`. -/
+lemma tendsto_iff {ι : Type*} {l : Filter ι} {μs : ι → WithSetwiseTopology 𝒞 (Measure Ω)}
+    {μ : WithSetwiseTopology 𝒞 (Measure Ω)} :
+    Tendsto μs l (𝓝 μ) ↔
+      ∀ A ∈ 𝒞, Tendsto (fun i ↦ (μs i).toMeasure A) l (𝓝 (μ.toMeasure A)) := by
+  rw [isInducing_eval.tendsto_nhds_iff, tendsto_pi_nhds]
+  exact ⟨fun h A hA ↦ h ⟨A, hA⟩, fun h A ↦ h A.1 A.2⟩
 
 /-- Convergence in the setwise topology is evaluation-wise convergence on `𝒞`. -/
 lemma tendsto_prob_iff {ι : Type*} {l : Filter ι}

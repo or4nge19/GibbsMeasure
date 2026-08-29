@@ -22,7 +22,7 @@ on finitely many coordinates.
 
 @[expose] public section
 
-namespace GibbsMeasure
+namespace MeasureTheory.GibbsMeasure
 
 namespace ConfigurationSpace
 
@@ -95,4 +95,4 @@ lemma measurableSpace_pi_eq_borel
 
 end ConfigurationSpace
 
-end GibbsMeasure
+end MeasureTheory.GibbsMeasure

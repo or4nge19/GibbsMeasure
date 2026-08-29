@@ -34,7 +34,8 @@ lemma tendsto_zero_of_regular_addContent (hR : IsSetRing R) (m : AddContent ℝ�
   rw [Filter.eventually_atTop]
   have ht_empty : ⋂ n, t n = ∅ := Set.subset_eq_empty (Set.iInter_mono ht_subset) hs_Inter
   let S := hC.support ht_mem_C ht_empty
-  have hS := hC.iInter_eq_empty ht_mem_C ht_empty
+  have hS : ⋂ i ≤ S, t i = ∅ := by
+    rw [← Set.dissipate_def]; exact hC.dissipate_support_eq_empty ht_mem_C ht_empty
   have hS_nonempty : Finset.Nonempty (Finset.Iic S) := by simp
   let N := Finset.max' (Finset.Iic S) hS_nonempty
   have ht_empty' : ∀ n, N ≤ n → ⋂ i ≤ n, t i = ∅ := by

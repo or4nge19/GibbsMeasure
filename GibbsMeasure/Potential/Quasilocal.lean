@@ -20,7 +20,7 @@ Proposition (2.24)(b).
 
 set_option backward.isDefEq.respectTransparency false
 
-open Filter Function GibbsMeasure MeasureTheory Set
+open Filter Function MeasureTheory MeasureTheory.GibbsMeasure Set
 open scoped Topology ENNReal
 
 noncomputable section
