@@ -7,15 +7,7 @@ module
 
 public import Mathlib.MeasureTheory.Function.ConditionalLExpectation
 
-/-!
-# Tower property and subtraction for the Lebesgue conditional expectation
-
-Mathlib (`condLExp`, [mathlib#33064](https://github.com/leanprover-community/mathlib4/pull/33064))
-replaces the local `lcondExp` stub. These two lemmas are still missing from
-`Mathlib.MeasureTheory.Function.ConditionalLExpectation`.
--/
-
-@[expose] public section
+public section
 
 open scoped ENNReal
 
@@ -23,8 +15,7 @@ namespace MeasureTheory
 
 variable {Ω : Type*} {mΩ₀ mΩ : MeasurableSpace Ω} {P : Measure[mΩ₀] Ω} {X Y : Ω → ℝ≥0∞}
 
-/-- Subtraction rule, given that `Y ≤ X` and `P⁻[Y|mΩ]` is a.e. finite. -/
-theorem condLExp_sub (hY : AEMeasurable[mΩ₀] Y P)
+lemma condLExp_sub (hY : AEMeasurable[mΩ₀] Y P)
     (hYX : Y ≤ᵐ[P] X) (hY_ne_top : ∀ᵐ ω ∂P, P⁻[Y|mΩ] ω ≠ ∞) :
     P⁻[X - Y|mΩ] =ᵐ[P] P⁻[X|mΩ] - P⁻[Y|mΩ] := by
   have hXeq : X =ᵐ[P] (X - Y) + Y :=
@@ -35,7 +26,6 @@ theorem condLExp_sub (hY : AEMeasurable[mΩ₀] Y P)
   refine (ENNReal.sub_eq_of_eq_add_rev hω ?_).symm
   simpa [add_comm] using hx
 
-/-- Tower property. -/
 theorem condLExp_condLExp_of_le {mΩ₁ mΩ₂ : MeasurableSpace Ω} (hm₁₂ : mΩ₁ ≤ mΩ₂)
     (hm₂ : mΩ₂ ≤ mΩ₀) (P : Measure[mΩ₀] Ω) [SigmaFinite (P.trim hm₂)] (X : Ω → ℝ≥0∞) :
     P⁻[P⁻[X|mΩ₂]|mΩ₁] =ᵐ[P] P⁻[X|mΩ₁] := by

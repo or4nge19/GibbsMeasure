@@ -6,33 +6,23 @@ Authors: Matteo Cipollina
 module
 
 public import Mathlib.Probability.Kernel.Composition.IntegralCompProd
-public import Mathlib.Probability.Kernel.Composition.MeasureComp
 
-/-!
-# Bochner integral against the composition of a kernel with a measure
--/
-
-@[expose] public section
+public section
 
 open MeasureTheory ProbabilityTheory
 
 namespace MeasureTheory.Measure
 
-variable {α β : Type*} {mα : MeasurableSpace α} {mβ : MeasurableSpace β}
-  {μ : Measure α} {κ : Kernel α β} {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+variable {α β E : Type*} {mα : MeasurableSpace α} {mβ : MeasurableSpace β}
+  {μ : Measure α} {κ : Kernel α β} [NormedAddCommGroup E] [NormedSpace ℝ E]
 
-lemma integral_comp' [SFinite μ] [IsSFiniteKernel κ] {f : β → E}
-    (hf : Integrable f (κ ∘ₘ μ)) :
+lemma integral_comp {f : β → E} (hf : Integrable f (κ ∘ₘ μ)) :
     ∫ b, f b ∂(κ ∘ₘ μ) = ∫ a, ∫ b, f b ∂(κ a) ∂μ := by
-  rw [← Measure.snd_compProd, Measure.snd] at hf ⊢
-  rw [integral_map measurable_snd.aemeasurable hf.aestronglyMeasurable,
-    Measure.integral_compProd]
-  exact (integrable_map_measure hf.aestronglyMeasurable measurable_snd.aemeasurable).1 hf
+  rw [comp_eq_comp_const_apply] at hf ⊢
+  simpa [Kernel.const_apply] using Kernel.integral_comp hf
 
-/-- `Measure.bind` form of `Measure.integral_comp'`. -/
-lemma integral_bind [SFinite μ] [IsSFiniteKernel κ] {f : β → E}
-    (hf : Integrable f (μ.bind κ)) :
+lemma integral_bind {f : β → E} (hf : Integrable f (μ.bind κ)) :
     ∫ b, f b ∂(μ.bind κ) = ∫ a, ∫ b, f b ∂(κ a) ∂μ :=
-  integral_comp' hf
+  integral_comp hf
 
 end MeasureTheory.Measure
