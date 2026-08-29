@@ -10,7 +10,9 @@ public import Mathlib.MeasureTheory.Function.ConditionalLExpectation
 /-!
 # Tower property and subtraction for the Lebesgue conditional expectation
 
-Two lemmas missing from `Mathlib.MeasureTheory.Function.ConditionalLExpectation`.
+Mathlib (`condLExp`, [mathlib#33064](https://github.com/leanprover-community/mathlib4/pull/33064))
+replaces the local `lcondExp` stub. These two lemmas are still missing from
+`Mathlib.MeasureTheory.Function.ConditionalLExpectation`.
 -/
 
 @[expose] public section
@@ -22,7 +24,7 @@ namespace MeasureTheory
 variable {Ω : Type*} {mΩ₀ mΩ : MeasurableSpace Ω} {P : Measure[mΩ₀] Ω} {X Y : Ω → ℝ≥0∞}
 
 /-- Subtraction rule, given that `Y ≤ X` and `P⁻[Y|mΩ]` is a.e. finite. -/
-theorem condLExp_sub (hX : AEMeasurable[mΩ₀] X P) (hY : AEMeasurable[mΩ₀] Y P)
+theorem condLExp_sub (hY : AEMeasurable[mΩ₀] Y P)
     (hYX : Y ≤ᵐ[P] X) (hY_ne_top : ∀ᵐ ω ∂P, P⁻[Y|mΩ] ω ≠ ∞) :
     P⁻[X - Y|mΩ] =ᵐ[P] P⁻[X|mΩ] - P⁻[Y|mΩ] := by
   have hXeq : X =ᵐ[P] (X - Y) + Y :=
