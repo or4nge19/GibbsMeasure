@@ -79,34 +79,6 @@ omit [MeasurableSpace E]
 
 variable {f g : (S → E) → ℝ} {j : S} {c : ℝ≥0∞}
 
-lemma le_oscD (ζ η : S → E) : ENNReal.ofReal |f ζ - f η| ≤ osc f :=
-  le_iSup₂ (f := fun ζ η ↦ ENNReal.ofReal |f ζ - f η|) ζ η
-
-lemma osc_le (h : ∀ ζ η : S → E, ENNReal.ofReal |f ζ - f η| ≤ c) : osc f ≤ c := iSup₂_le h
-
-lemma le_oscAt {ζ η : S → E} (h : ∀ k, k ≠ j → ζ k = η k) :
-    ENNReal.ofReal |f ζ - f η| ≤ oscAt f j :=
-  le_iSup_of_le ζ (le_iSup_of_le η (le_iSup_of_le h le_rfl))
-
-lemma oscAt_le (h : ∀ ζ η : S → E, (∀ k, k ≠ j → ζ k = η k) → ENNReal.ofReal |f ζ - f η| ≤ c) :
-    oscAt f j ≤ c := iSup₂_le fun ζ η ↦ iSup_le (h ζ η)
-
-/-- Georgii (8.14): the single-site oscillation is dominated by the global oscillation. -/
-lemma oscAt_le_osc : oscAt f j ≤ osc f := oscAt_le fun ζ η _ ↦ le_oscD ζ η
-
-@[simp] lemma osc_const (r : ℝ) : osc (fun _ : S → E ↦ r) = 0 :=
-  le_antisymm (osc_le fun _ _ ↦ by simp) bot_le
-
-@[simp] lemma oscAt_const (r : ℝ) (j : S) : oscAt (fun _ : S → E ↦ r) j = 0 :=
-  le_antisymm (oscAt_le fun _ _ _ ↦ by simp) bot_le
-
-lemma osc_comm (ζ η : S → E) : |f ζ - f η| = |f η - f ζ| := abs_sub_comm _ _
-
-/-- A function that only depends on the coordinates in `Δ` has no oscillation at sites off `Δ`. -/
-lemma oscAt_eq_zero_of_dependsOn {Δ : Set S} (hf : DependsOn f Δ) (hj : j ∉ Δ) :
-    oscAt f j = 0 :=
-  le_antisymm (oscAt_le fun ζ η h ↦ by
-    rw [hf fun k hk ↦ h k (fun hkj ↦ hj (hkj ▸ hk))]; simp) bot_le
 
 lemma osc_le_ofReal_two_mul {C : ℝ} (hC : ∀ ζ, |f ζ| ≤ C) : osc f ≤ ENNReal.ofReal (2 * C) :=
   osc_le fun ζ η ↦ ENNReal.ofReal_le_ofReal <| by
@@ -128,7 +100,7 @@ lemma osc_add_le : osc (f + g) ≤ osc f + osc g := by
         simpa [Pi.add_apply, add_sub_add_comm] using abs_add_le (f ζ - f η) (g ζ - g η)
     _ = ENNReal.ofReal |f ζ - f η| + ENNReal.ofReal |g ζ - g η| :=
         ENNReal.ofReal_add (abs_nonneg _) (abs_nonneg _)
-    _ ≤ osc f + osc g := add_le_add (le_oscD _ _) (le_oscD _ _)
+    _ ≤ osc f + osc g := add_le_add (le_osc _ _ _) (le_osc _ _ _)
 
 lemma oscAt_add_le : oscAt (f + g) j ≤ oscAt f j + oscAt g j := by
   refine oscAt_le fun ζ η h ↦ ?_
@@ -646,7 +618,7 @@ lemma IsEstimate.mono (h : IsEstimate μ ν a) (hab : ∀ j, a j ≤ b j) : IsEs
   fun f hf ↦ (h f hf).trans (ENNReal.tsum_le_tsum fun j ↦ by gcongr; exact hab j)
 
 lemma oscOutside_le_osc {Λ : Finset S} {f : (S → E) → ℝ} : oscOutside Λ f ≤ osc f :=
-  oscOutside_le fun ζ η _ ↦ le_oscD ζ η
+  oscOutside_le fun ζ η _ ↦ le_osc _ ζ η
 
 /-- Georgii, Remark (8.17)(3): an estimate obtained by improving finitely many coordinates at a
 time is an estimate. -/
@@ -741,7 +713,7 @@ theorem isEstimate_one [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] :
   have hDeq : ENNReal.ofReal D = osc (⇑f) := ENNReal.ofReal_toReal hoscne
   have hDb : ∀ x y : S → E, |(f : (S → E) → ℝ) x - (f : (S → E) → ℝ) y| ≤ D := by
     intro x y
-    have h := le_oscD (f := (⇑f)) x y
+    have h := le_osc (⇑f) x y
     rw [← hDeq] at h
     exact (ENNReal.ofReal_le_ofReal_iff (by positivity)).1 h
   have hkey := ofReal_abs_integral_sub_leD (α₁ := μ) (α₂ := ν) (f := (⇑f)) hfmeas hCb hDb
@@ -1069,7 +1041,7 @@ theorem eq_of_isDobrushin [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
     (hγq : γ.IsQuasilocal) (hd : IsDobrushin γ)
     (hμ : ∀ i : S, μ.bind (γ {i}) = μ) (hν : ∀ i : S, ν.bind (γ {i}) = ν) : μ = ν := by
   classical
-  obtain ⟨c, hc1, hc⟩ := hd
+  obtain ⟨-, c, hc1, hc⟩ := hd
   refine eq_of_forall_localFunctions_integral_eq fun f hfloc ↦ ?_
   have hfq : f ∈ quasilocalFunctions S E := localFunctions_le_quasilocalFunctions hfloc
   set T : ℝ≥0∞ := ∑' j, oscAt (⇑f) j with hT
@@ -1205,7 +1177,7 @@ theorem comparison [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
     (hb : ∀ i ω, unifDist (proj γ i ω) (proj γ' i ω) ≤ b i ω) :
     IsEstimateOn μ ν (interdepSeries γ fun j ↦ ∫⁻ ω, b j ω ∂ν) := by
   classical
-  obtain ⟨c, hc1, hc⟩ := hd
+  obtain ⟨-, c, hc1, hc⟩ := hd
   intro f hfloc
   have hfq : f ∈ quasilocalFunctions S E := localFunctions_le_quasilocalFunctions hfloc
   set bt : S → ℝ≥0∞ := fun j ↦ ∫⁻ ω, b j ω ∂ν with hbt
@@ -1238,6 +1210,679 @@ theorem comparison [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
   exact ge_of_tendsto htend (Filter.Eventually.of_forall hbound)
 
 end Comparison820
+
+/-! ### Georgii (8.22): conditioning a specification on part of the volume -/
+
+section CondSpec
+
+variable [DecidableEq S]
+
+open scoped Classical in
+/-- Georgii (8.22): the configuration `ω_V ζ_{S∖V}` which agrees with `ω` on `V` and with `ζ`
+off `V`. -/
+noncomputable def condCfg (V : Finset S) (ω ζ : S → E) : S → E :=
+  fun k ↦ if k ∈ V then ω k else ζ k
+
+variable {V W Δ Λ : Finset S} {ω ζ : S → E} {k : S}
+
+omit [MeasurableSpace E] in
+@[simp] lemma condCfg_apply_of_mem {k : S} (hk : k ∈ V) : condCfg V ω ζ k = ω k := by
+  simp [condCfg, hk]
+
+omit [MeasurableSpace E] in
+@[simp] lemma condCfg_apply_of_notMem {k : S} (hk : k ∉ V) : condCfg V ω ζ k = ζ k := by
+  simp [condCfg, hk]
+
+omit [MeasurableSpace E] in
+@[simp] lemma condCfg_empty (ω ζ : S → E) : condCfg (∅ : Finset S) ω ζ = ζ := by
+  funext k; simp
+
+omit [MeasurableSpace E] in
+lemma condCfg_congr_left {ω ω' : S → E} (h : ∀ k ∈ V, ω k = ω' k) :
+    condCfg V ω = condCfg V ω' := by
+  funext ζ k
+  by_cases hk : k ∈ V
+  · simp [hk, h k hk]
+  · simp [hk]
+
+lemma measurable_condCfg (V : Finset S) (ω : S → E) : Measurable (condCfg V ω) := by
+  refine measurable_pi_lambda _ fun k ↦ ?_
+  by_cases hk : k ∈ V
+  · simp [hk]
+  · simpa [hk] using measurable_pi_apply (X := fun _ : S ↦ E) k
+
+/-- The conditioning map is measurable from the `Λ`-boundary σ-algebra to the `Δ`-boundary
+σ-algebra as soon as every site of `Λ` outside `Δ` is frozen. -/
+lemma measurable_condCfg_cylinderEvents (h : ∀ k ∈ Λ, k ∉ Δ → k ∈ W) (ω : S → E) :
+    Measurable[cylinderEvents (X := fun _ : S ↦ E) ((Λ : Set S))ᶜ,
+      cylinderEvents (X := fun _ : S ↦ E) ((Δ : Set S))ᶜ] (condCfg W ω) := by
+  refine measurable_cylinderEvents_iff.2 fun k hk ↦ ?_
+  simp only [Set.mem_compl_iff, Finset.mem_coe] at hk
+  by_cases hkW : k ∈ W
+  · simp [hkW]
+  · have hkΛ : k ∉ Λ := fun hkΛ ↦ hkW (h k hkΛ hk)
+    simpa [hkW] using
+      measurable_cylinderEvent_apply (X := fun _ : S ↦ E) (Δ := ((Λ : Set S))ᶜ) (i := k) hkΛ
+
+/-! #### Properness: a specification kernel does not move the sites outside its volume -/
+
+/-- Georgii's properness, in the form used in the proof of (8.22): `γ_Δ(·|ξ)` is carried by the
+configurations agreeing with `ξ` off `Δ`, so freezing any set of sites disjoint from `Δ` back to
+`ξ` does not change the measure. -/
+theorem map_condCfg_eq_self (γ : Specification S E) (hWΔ : Disjoint W Δ) (ξ : S → E) :
+    (γ Δ ξ).map (condCfg W ξ) = γ Δ ξ := by
+  classical
+  have hT : Measurable (condCfg W ξ) := measurable_condCfg W ξ
+  have : IsProbabilityMeasure ((γ Δ ξ).map (condCfg W ξ)) :=
+    Measure.isProbabilityMeasure_map hT.aemeasurable
+  have hprop : Specification.IsProper γ := γ.isProper
+  have hWΔ' : ∀ k, k ∈ W → k ∉ Δ := fun k hk hk' ↦
+    (Finset.disjoint_left.1 hWΔ hk) hk'
+  refine ext_of_generate_finite (squareCylindersMeas S E)
+      (generateFrom_squareCylindersMeas S E) (isPiSystem_squareCylindersMeas S E) ?_ ?_
+  · rintro C ⟨J, t, ht, rfl⟩
+    have htm : ∀ j, MeasurableSet (t j) := fun j ↦ Set.mem_univ_pi.1 ht j
+    set A' : Set (S → E) := (((J \ W : Finset S) : Finset S) : Set S).pi t with hA'def
+    set B : Set (S → E) := (((J ∩ W : Finset S) : Finset S) : Set S).pi t with hBdef
+    have hmemA' : ∀ σ : S → E, σ ∈ A' ↔ ∀ j ∈ J, j ∉ W → σ j ∈ t j := by
+      intro σ
+      simp only [hA'def, Set.mem_pi, Finset.mem_coe, Finset.mem_sdiff]
+      exact ⟨fun h j hj hjW ↦ h j ⟨hj, hjW⟩, fun h j hj ↦ h j hj.1 hj.2⟩
+    have hmemB : ∀ σ : S → E, σ ∈ B ↔ ∀ j ∈ J, j ∈ W → σ j ∈ t j := by
+      intro σ
+      simp only [hBdef, Set.mem_pi, Finset.mem_coe, Finset.mem_inter]
+      exact ⟨fun h j hj hjW ↦ h j ⟨hj, hjW⟩, fun h j hj ↦ h j hj.1 hj.2⟩
+    have hmemJ : ∀ σ : S → E, σ ∈ (J : Set S).pi t ↔ ∀ j ∈ J, σ j ∈ t j := by
+      intro σ; simp only [Set.mem_pi, Finset.mem_coe]
+    have hsplit : ((J : Set S).pi t) = A' ∩ B := by
+      ext σ
+      rw [Set.mem_inter_iff, hmemJ, hmemA', hmemB]
+      refine ⟨fun h ↦ ⟨fun j hj _ ↦ h j hj, fun j hj _ ↦ h j hj⟩, fun h j hj ↦ ?_⟩
+      by_cases hjW : j ∈ W
+      · exact h.2 j hj hjW
+      · exact h.1 j hj hjW
+    have hBmeas :
+        MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) ((Δ : Set S)ᶜ)] B := by
+      have hBeq : B = ⋂ j ∈ (J ∩ W : Finset S), (fun σ : S → E ↦ σ j) ⁻¹' (t j) := by
+        ext σ
+        simp only [hBdef, Set.mem_pi, Finset.mem_coe, Set.mem_iInter, Set.mem_preimage]
+      rw [hBeq]
+      refine Finset.measurableSet_biInter _ fun j hj ↦ ?_
+      have hjW : j ∈ W := (Finset.mem_inter.1 hj).2
+      exact (htm j).preimage
+        (measurable_cylinderEvent_apply (i := j) (X := fun _ : S ↦ E)
+          (by simpa using hWΔ' j hjW))
+    have hA'meas : MeasurableSet A' := measurableSet_finset_pi _ t htm
+    have hmemT : ∀ σ : S → E,
+        (condCfg W ξ σ) ∈ (J : Set S).pi t ↔ (σ ∈ A' ∧ ξ ∈ B) := by
+      intro σ
+      rw [hmemJ, hmemA', hmemB]
+      constructor
+      · intro h
+        refine ⟨fun j hj hjW ↦ ?_, fun j hj hjW ↦ ?_⟩
+        · simpa [condCfg_apply_of_notMem hjW] using h j hj
+        · simpa [condCfg_apply_of_mem hjW] using h j hj
+      · rintro ⟨h1, h2⟩ j hj
+        by_cases hjW : j ∈ W
+        · simpa [condCfg_apply_of_mem hjW] using h2 j hj hjW
+        · simpa [condCfg_apply_of_notMem hjW] using h1 j hj hjW
+    have hpre : (condCfg W ξ) ⁻¹' ((J : Set S).pi t)
+        = if ξ ∈ B then A' else (∅ : Set (S → E)) := by
+      ext σ
+      by_cases hξB : ξ ∈ B <;> simp [Set.mem_preimage, hmemT σ, hξB]
+    rw [Measure.map_apply hT (measurableSet_finset_pi J t htm), hpre, hsplit,
+      hprop.inter_eq_indicator_mul Δ hA'meas hBmeas ξ]
+    by_cases hξB : ξ ∈ B
+    · simp [hξB, Set.indicator_of_mem]
+    · simp [hξB, Set.indicator_of_notMem]
+  · rw [Measure.map_apply hT MeasurableSet.univ]
+    simp
+
+/-- Set form of `map_condCfg_eq_self`. -/
+theorem measure_preimage_condCfg (γ : Specification S E) (hWΔ : Disjoint W Δ) (ξ : S → E)
+    {A : Set (S → E)} (hA : MeasurableSet A) :
+    γ Δ ξ (condCfg W ξ ⁻¹' A) = γ Δ ξ A := by
+  conv_rhs => rw [← map_condCfg_eq_self γ hWΔ ξ]
+  rw [Measure.map_apply (measurable_condCfg W ξ) hA]
+
+omit [DecidableEq S] in
+/-- Georgii (8.21): the empty-volume kernel of a specification is the Dirac kernel. -/
+lemma apply_empty_eq_dirac (γ : Specification S E) (ξ : S → E) :
+    γ ∅ ξ = Measure.dirac ξ := by
+  ext A hA
+  have hcyl : cylinderEvents (X := fun _ : S ↦ E) (((∅ : Finset S) : Set S))ᶜ
+      = MeasurableSpace.pi := by
+    rw [Finset.coe_empty, compl_empty, cylinderEvents_univ]
+  have hA' : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (((∅ : Finset S) : Set S))ᶜ] A := by
+    rw [hcyl]; exact hA
+  have h := (γ.isProper ∅).inter_eq_indicator_mul cylinderEvents_le_pi MeasurableSet.univ hA' ξ
+  rw [Set.univ_inter] at h
+  rw [h, measure_univ, mul_one, Measure.dirac_apply' _ hA]
+
+/-! #### The conditioned specification `γ^{(V,ω)}` -/
+
+/-- The measurability of the conditioning map used to define `γ^{(V,ω)}_Λ`. -/
+lemma measurable_condCfg_condSpec (V Λ : Finset S) (ω : S → E) :
+    Measurable[cylinderEvents (X := fun _ : S ↦ E) ((Λ : Set S))ᶜ,
+      cylinderEvents (X := fun _ : S ↦ E) (((Λ ∩ V : Finset S) : Set S))ᶜ]
+      (condCfg (Λ \ V) ω) :=
+  measurable_condCfg_cylinderEvents (by
+    intro k hk hk'
+    simp only [Finset.mem_inter, not_and] at hk'
+    simp [Finset.mem_sdiff, hk, hk' hk]) ω
+
+/-- Properness of the conditioned kernels. -/
+lemma isProper_comap_condCfg (γ : Specification S E) {Δ Λ W : Finset S} (ω : S → E)
+    (hΔΛ : Δ ⊆ Λ) (hWΛ : W ⊆ Λ)
+    (hmeas : Measurable[cylinderEvents (X := fun _ : S ↦ E) ((Λ : Set S))ᶜ,
+      cylinderEvents (X := fun _ : S ↦ E) ((Δ : Set S))ᶜ] (condCfg W ω)) :
+    Kernel.IsProper ((γ Δ).comap (condCfg W ω) hmeas) := by
+  rw [Kernel.isProper_iff_inter_eq_indicator_mul cylinderEvents_le_pi]
+  intro A hA B hB ζ
+  have hBle : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) ((Δ : Set S))ᶜ] B :=
+    cylinderEvents_mono (Set.compl_subset_compl.2 (by exact_mod_cast hΔΛ)) _ hB
+  have hind : B.indicator (1 : (S → E) → ℝ≥0∞) (condCfg W ω ζ) = B.indicator 1 ζ :=
+    (measurable_const.indicator hB).dependsOn_of_cylinderEvents fun k hk ↦
+      condCfg_apply_of_notMem fun h ↦ hk (by simpa using hWΛ h)
+  simp only [Kernel.comap_apply]
+  rw [(γ.isProper Δ).inter_eq_indicator_mul cylinderEvents_le_pi hA hBle (condCfg W ω ζ), hind]
+
+/-- The key computation behind Georgii's Lemma (8.22): since `γ_{Δ₂}(·|ξ)` does not move the sites
+outside `Δ₂`, freezing the sites of `W` back to `ξ` before applying `γ_{Δ₁}` changes nothing. -/
+lemma bind_comap_condCfg (γ : Specification S E) {Δ₁ Δ₂ W : Finset S} (hΔ : Δ₁ ⊆ Δ₂)
+    (hdisj : Disjoint W Δ₂) (ξ : S → E) :
+    (γ Δ₂ ξ).bind (fun η ↦ γ Δ₁ (condCfg W ξ η)) = γ Δ₂ ξ := by
+  have h1 : (fun η ↦ γ Δ₁ (condCfg W ξ η)) = (⇑(γ Δ₁)) ∘ (condCfg W ξ) := rfl
+  rw [h1, ← Measure.bind_map (measurable_condCfg W ξ) (γ.measurable_kernel_toMeasure Δ₁),
+    map_condCfg_eq_self γ hdisj ξ]
+  exact Specification.bind (γ := γ) hΔ ξ
+
+/-- **Georgii, Lemma (8.22).** The conditioned kernels are consistent. -/
+lemma isConsistent_comap_condCfg (γ : Specification S E) (V : Finset S) (ω : S → E) :
+    IsConsistent (fun Λ ↦ (γ (Λ ∩ V)).comap (condCfg (Λ \ V) ω)
+      (measurable_condCfg_condSpec V Λ ω)) := by
+  intro Λ₁ Λ₂ hΛ
+  refine Kernel.ext fun ζ ↦ ?_
+  set ξ : S → E := condCfg (Λ₂ \ V) ω ζ with hξ
+  have hω : condCfg (Λ₁ \ V) ω = condCfg (Λ₁ \ V) ξ := by
+    refine condCfg_congr_left fun k hk ↦ ?_
+    have hk' : k ∈ Λ₂ \ V := by
+      simp only [Finset.mem_sdiff] at hk ⊢
+      exact ⟨hΛ hk.1, hk.2⟩
+    rw [hξ, condCfg_apply_of_mem hk']
+  have hdisj : Disjoint (Λ₁ \ V) (Λ₂ ∩ V) :=
+    Finset.disjoint_left.2 fun a ha ha' ↦ (Finset.mem_sdiff.1 ha).2 (Finset.mem_inter.1 ha').2
+  have key : (γ (Λ₂ ∩ V) ξ).bind (fun η ↦ γ (Λ₁ ∩ V) (condCfg (Λ₁ \ V) ω η))
+      = γ (Λ₂ ∩ V) ξ := by
+    rw [hω]
+    exact bind_comap_condCfg γ (Finset.inter_subset_inter hΛ (Finset.Subset.refl V)) hdisj ξ
+  rw [Kernel.comp_apply]
+  exact key
+
+/-- **Georgii, Lemma (8.22).** The specification `γ^{(V,ω)}` obtained from `γ` by conditioning on
+the configuration `ω` outside `V`: `γ^{(V,ω)}_Λ(A|ζ) = γ_{Λ∩V}(A | ω_Λ ζ_{S∖Λ})`.
+
+Since `γ_{Λ∩V}(A|·)` does not depend on the sites of `Λ ∩ V`, only the sites of `Λ \ V` need to be
+frozen, which is the form used here. -/
+noncomputable def condSpec (γ : Specification S E) (V : Finset S) (ω : S → E) :
+    Specification S E where
+  toFun Λ := (γ (Λ ∩ V)).comap (condCfg (Λ \ V) ω) (measurable_condCfg_condSpec V Λ ω)
+  isConsistent' := isConsistent_comap_condCfg γ V ω
+  isMarkovKernel' Λ := Kernel.IsMarkovKernel.comap _ (measurable_condCfg_condSpec V Λ ω)
+  isProper' Λ :=
+    isProper_comap_condCfg γ ω Finset.inter_subset_left Finset.sdiff_subset
+      (measurable_condCfg_condSpec V Λ ω)
+
+@[simp] lemma condSpec_apply (γ : Specification S E) (V : Finset S) (ω : S → E) (Λ : Finset S)
+    (ζ : S → E) : condSpec γ V ω Λ ζ = γ (Λ ∩ V) (condCfg (Λ \ V) ω ζ) :=
+  Kernel.comap_apply (γ (Λ ∩ V)) (measurable_condCfg_condSpec V Λ ω) ζ
+
+/-- Georgii (8.22)(i): `γ^{(S,ω)} = γ` on every finite volume contained in `V`. -/
+lemma condSpec_apply_of_subset (γ : Specification S E) {V Λ : Finset S} (h : Λ ⊆ V) (ω ζ : S → E) :
+    condSpec γ V ω Λ ζ = γ Λ ζ := by
+  rw [condSpec_apply, Finset.inter_eq_left.2 h, Finset.sdiff_eq_empty_iff_subset.2 h, condCfg_empty]
+
+/-- Georgii (8.22), the frozen sites: if `i ∉ V` then `γ^{(V,ω)}_i(·|ζ) = δ_{ω_i ζ_{S∖i}}`. -/
+lemma condSpec_singleton_of_notMem (γ : Specification S E) {V : Finset S} {i : S} (hi : i ∉ V)
+    (ω ζ : S → E) :
+    condSpec γ V ω {i} ζ = Measure.dirac (condCfg {i} ω ζ) := by
+  rw [condSpec_apply, Finset.singleton_inter_of_notMem hi,
+    Finset.sdiff_eq_self_of_disjoint (Finset.disjoint_singleton_left.2 hi), apply_empty_eq_dirac]
+
+/-! #### Precomposition of observables with a configuration map -/
+
+/-- Precomposition of a bounded observable with a map of configurations. -/
+noncomputable def precompLp (T : (S → E) → (S → E)) (f : lp (fun _ : S → E ↦ ℝ) ∞) :
+    lp (fun _ : S → E ↦ ℝ) ∞ :=
+  ⟨(⇑f) ∘ T, memℓp_infty ⟨‖f‖, by
+    rintro _ ⟨x, rfl⟩; exact lp.norm_apply_le_norm ENNReal.top_ne_zero f _⟩⟩
+
+omit [MeasurableSpace E] [DecidableEq S] in
+@[simp] lemma precompLp_apply (T : (S → E) → (S → E)) (f : lp (fun _ : S → E ↦ ℝ) ∞)
+    (σ : S → E) : (precompLp T f : (S → E) → ℝ) σ = (f : (S → E) → ℝ) (T σ) := rfl
+
+omit [MeasurableSpace E] [DecidableEq S] in
+lemma dist_precompLp_le (T : (S → E) → (S → E)) (f g : lp (fun _ : S → E ↦ ℝ) ∞) :
+    dist (precompLp T f) (precompLp T g) ≤ dist f g := by
+  rw [dist_eq_norm, dist_eq_norm]
+  refine lp.norm_le_of_forall_le (norm_nonneg _) fun σ ↦ ?_
+  rw [lp.coeFn_sub, Pi.sub_apply, precompLp_apply, precompLp_apply]
+  have h := lp.norm_apply_le_norm ENNReal.top_ne_zero (f - g) (T σ)
+  rwa [lp.coeFn_sub, Pi.sub_apply] at h
+
+omit [DecidableEq S] in
+lemma precompLp_mem_localFunctions {T : (S → E) → (S → E)} (hT : Measurable T)
+    (hTdep : ∀ (Δ : Set S) (x y : S → E), (∀ k ∈ Δ, x k = y k) → ∀ k ∈ Δ, T x k = T y k)
+    {f : lp (fun _ : S → E ↦ ℝ) ∞} (hf : f ∈ localFunctions S E) :
+    precompLp T f ∈ localFunctions S E := by
+  obtain ⟨Λ₀, hΛ₀⟩ := mem_localFunctions.1 hf
+  have hmeas : Measurable (⇑f) := (mem_localFunctionsOn.1 hΛ₀).mono cylinderEvents_le_pi le_rfl
+  have hdep : DependsOn (⇑f) (Λ₀ : Set S) :=
+    (mem_localFunctionsOn.1 hΛ₀).dependsOn_of_cylinderEvents
+  refine mem_localFunctions.2 ⟨Λ₀, Measurable.cylinderEvents_of_dependsOn (hmeas.comp hT) ?_⟩
+  intro x y hxy
+  exact hdep (hTdep _ x y hxy)
+
+omit [DecidableEq S] in
+lemma precompLp_mem_quasilocalFunctions {T : (S → E) → (S → E)} (hT : Measurable T)
+    (hTdep : ∀ (Δ : Set S) (x y : S → E), (∀ k ∈ Δ, x k = y k) → ∀ k ∈ Δ, T x k = T y k)
+    {f : lp (fun _ : S → E ↦ ℝ) ∞} (hf : f ∈ quasilocalFunctions S E) :
+    precompLp T f ∈ quasilocalFunctions S E := by
+  rw [mem_quasilocalFunctions_iff_mem_closure, Metric.mem_closure_iff] at hf ⊢
+  intro ε hε
+  obtain ⟨g, hg, hfg⟩ := hf ε hε
+  exact ⟨precompLp T g, precompLp_mem_localFunctions hT hTdep hg,
+    lt_of_le_of_lt (dist_precompLp_le T f g) hfg⟩
+
+/-- **Georgii (8.22)(iv).** `C_{ij}(γ^{(V,ω)}) = 1_V(i) C_{ij}(γ)`. -/
+theorem interdep_condSpec (γ : Specification S E) (V : Finset S) (ω : S → E) (i j : S) :
+    interdep (condSpec γ V ω) i j = if i ∈ V then interdep γ i j else 0 := by
+  split_ifs with hi
+  · have hker : ∀ ζ : S → E, proj (condSpec γ V ω) i ζ = proj γ i ζ := fun ζ ↦ by
+      rw [proj, proj, condSpec_apply_of_subset γ (Finset.singleton_subset_iff.2 hi) ω ζ]
+    simp only [interdep_eq, hker]
+  · have hmi : Measurable (fun σ : S → E ↦ σ i) := measurable_pi_apply i
+    have hker : ∀ ζ : S → E, proj (condSpec γ V ω) i ζ = Measure.dirac (ω i) := fun ζ ↦ by
+      rw [proj, condSpec_singleton_of_notMem γ hi ω ζ, Measure.map_dirac' hmi,
+        condCfg_apply_of_mem (Finset.mem_singleton_self i)]
+    simp only [interdep_eq, hker, unifDist_self]
+    exact le_antisymm (iSup₂_le fun _ _ ↦ iSup_le fun _ ↦ le_rfl) bot_le
+
+lemma interdep_condSpec_le (γ : Specification S E) (V : Finset S) (ω : S → E) (i j : S) :
+    interdep (condSpec γ V ω) i j ≤ interdep γ i j := by
+  rw [interdep_condSpec]; split <;> simp
+
+/-- **Georgii (8.22)(iii).** `γ^{(V,ω)}` inherits quasilocality. -/
+theorem isQuasilocal_condSpec {γ : Specification S E} (hγq : γ.IsQuasilocal) (V : Finset S)
+    (ω : S → E) :
+    (condSpec γ V ω).IsQuasilocal := by
+  intro Λ f hf
+  have heq : Specification.action (condSpec γ V ω) Λ f
+      = precompLp (condCfg (Λ \ V) ω) (Specification.action γ (Λ ∩ V) f) := by
+    refine Subtype.ext (funext fun η ↦ ?_)
+    have : (Specification.action (condSpec γ V ω) Λ f : (S → E) → ℝ) η
+        = ∫ x, (f : (S → E) → ℝ) x ∂(condSpec γ V ω Λ η) := rfl
+    rw [this, condSpec_apply]
+    rfl
+  rw [heq]
+  refine precompLp_mem_quasilocalFunctions (measurable_condCfg _ _) ?_ (hγq (Λ ∩ V) f hf)
+  intro Δ x y hxy k hk
+  by_cases hkW : k ∈ Λ \ V
+  · simp [hkW]
+  · simp [hkW, hxy k hk]
+
+/-- **Georgii (8.22)(iv).** `γ^{(V,ω)}` inherits Dobrushin's condition. -/
+theorem isDobrushin_condSpec {γ : Specification S E} (hd : IsDobrushin γ) (V : Finset S)
+    (ω : S → E) :
+    IsDobrushin (condSpec γ V ω) := by
+  obtain ⟨hq, c, hc, hle⟩ := hd
+  exact ⟨isQuasilocal_condSpec hq V ω, c, hc, fun i ↦ (ENNReal.tsum_le_tsum fun j ↦ interdep_condSpec_le γ V ω i j).trans (hle i)⟩
+
+/-- **Georgii (8.22)(ii).** For finite `V`, `γ_V(·|ω)` is a Gibbs measure for `γ^{(V,ω)}`. -/
+theorem bind_condSpec_eq (γ : Specification S E) (V : Finset S) (ω : S → E) (Λ : Finset S) :
+    (γ V ω).bind (condSpec γ V ω Λ) = γ V ω := by
+  have h : ⇑(condSpec γ V ω Λ) = fun η ↦ γ (Λ ∩ V) (condCfg (Λ \ V) ω η) :=
+    funext fun η ↦ condSpec_apply γ V ω Λ η
+  rw [h]
+  exact bind_comap_condCfg γ Finset.inter_subset_right
+    (Finset.disjoint_left.2 fun a ha ha' ↦ (Finset.mem_sdiff.1 ha).2 ha') ω
+
+end CondSpec
+
+/-! ### Georgii (8.23): the Cauchy estimate for the finite-volume Gibbs distributions -/
+
+section Cauchy
+
+variable [DecidableEq S] {γ : Specification S E}
+
+omit [DecidableEq S] in
+/-- `C(γ)^n` is monotone in the interdependence matrix. -/
+lemma interdepIter_mono_matrix {γ' : Specification S E}
+    (h : ∀ i j, interdep γ' i j ≤ interdep γ i j) (n : ℕ) (a : S → ℝ≥0∞) (i : S) :
+    interdepIter γ' n a i ≤ interdepIter γ n a i := by
+  induction n generalizing i with
+  | zero => exact le_rfl
+  | succ n ih => exact ENNReal.tsum_le_tsum fun j ↦ mul_le_mul' (h i j) (ih j)
+
+omit [DecidableEq S] in
+lemma interdepSeries_mono_matrix {γ' : Specification S E}
+    (h : ∀ i j, interdep γ' i j ≤ interdep γ i j) (a : S → ℝ≥0∞) (i : S) :
+    interdepSeries γ' a i ≤ interdepSeries γ a i :=
+  ENNReal.tsum_le_tsum fun n ↦ interdepIter_mono_matrix h n a i
+
+omit [DecidableEq S] in
+lemma interdepIter_mono_vec (γ : Specification S E) {a b : S → ℝ≥0∞} (hab : ∀ j, a j ≤ b j)
+    (n : ℕ) (i : S) : interdepIter γ n a i ≤ interdepIter γ n b i := by
+  induction n generalizing i with
+  | zero => exact hab i
+  | succ n ih => exact ENNReal.tsum_le_tsum fun j ↦ mul_le_mul' le_rfl (ih j)
+
+omit [DecidableEq S] in
+lemma interdepSeries_mono_vec (γ : Specification S E) {a b : S → ℝ≥0∞} (hab : ∀ j, a j ≤ b j)
+    (i : S) : interdepSeries γ a i ≤ interdepSeries γ b i :=
+  ENNReal.tsum_le_tsum fun n ↦ interdepIter_mono_vec γ hab n i
+
+omit [DecidableEq S] in
+lemma interdepIter_add (γ : Specification S E) (a b : S → ℝ≥0∞) (n : ℕ) (i : S) :
+    interdepIter γ n (a + b) i = interdepIter γ n a i + interdepIter γ n b i := by
+  induction n generalizing i with
+  | zero => rfl
+  | succ n ih =>
+      simp only [interdepIter_succ]
+      rw [← ENNReal.tsum_add]
+      exact tsum_congr fun j ↦ by rw [ih j, mul_add]
+
+variable (γ) in
+/-- Georgii's `∑_{j ∈ V∖Δ} D_{ij}(γ)`, for `V = S`: the total weight `D(γ)` puts on the sites
+outside the finite volume `Δ`. -/
+noncomputable def interdepTail (Δ : Finset S) (i : S) : ℝ≥0∞ :=
+  interdepSeries γ (fun j ↦ if j ∈ Δ then 0 else 1) i
+
+lemma interdepTail_antitone (γ : Specification S E) {Δ Δ' : Finset S} (h : Δ ⊆ Δ') (i : S) :
+    interdepTail γ Δ' i ≤ interdepTail γ Δ i :=
+  interdepSeries_mono_vec γ (fun j ↦ by
+    by_cases hj : j ∈ Δ
+    · simp [hj, h hj]
+    · by_cases hj' : j ∈ Δ' <;> simp [hj, hj']) i
+
+/-! #### Tail estimates for `D(γ) = ∑_n C(γ)^n` -/
+
+omit [DecidableEq S] in
+/-- Splitting a `tsum` at a finite set: the terms indexed by `J` are bounded by `δ`, the others
+by `h`. -/
+lemma tsum_le_card_mul_add {ι : Type*} [DecidableEq ι] (g h : ι → ℝ≥0∞) (J : Finset ι)
+    (δ : ℝ≥0∞)
+    (h1 : ∀ j ∈ J, g j ≤ δ) (h2 : ∀ j, j ∉ J → g j ≤ h j) :
+    ∑' j, g j ≤ J.card * δ + ∑' j, (if j ∈ J then 0 else h j) := by
+  classical
+  have hstep : ∀ j, g j ≤ (if j ∈ J then δ else 0) + (if j ∈ J then 0 else h j) := by
+    intro j
+    by_cases hj : j ∈ J
+    · simpa [hj] using h1 j hj
+    · simpa [hj] using h2 j hj
+  have hsum : ∑ j ∈ J, (if j ∈ J then δ else 0) = ∑ _j ∈ J, δ :=
+    Finset.sum_congr rfl fun j hj ↦ by simp [hj]
+  calc ∑' j, g j ≤ ∑' j, ((if j ∈ J then δ else 0) + (if j ∈ J then 0 else h j)) :=
+        ENNReal.tsum_le_tsum hstep
+    _ = (∑' j, if j ∈ J then δ else 0) + ∑' j, (if j ∈ J then 0 else h j) := ENNReal.tsum_add
+    _ = J.card * δ + ∑' j, (if j ∈ J then 0 else h j) := by
+        congr 1
+        rw [tsum_eq_sum (s := J) fun b hb ↦ by simp [hb], hsum, Finset.sum_const, nsmul_eq_mul]
+
+omit [DecidableEq S] in
+lemma tsum_ite_compl_eq {ι : Type*} [DecidableEq ι] (f : ι → ℝ≥0∞) (J : Finset ι) :
+    ∑' j, (if j ∈ J then 0 else f j) = ∑' j : {x : ι // x ∉ J}, f j := by
+  have hsub : ∑' j : {x : ι // x ∉ J}, f j = ∑' j, Set.indicator {x : ι | x ∉ J} f j :=
+    tsum_subtype {x : ι | x ∉ J} f
+  rw [hsub]
+  exact tsum_congr fun j ↦ by by_cases hj : j ∈ J <;> simp [hj]
+
+omit [DecidableEq S] in
+/-- The tail of a finite `ℝ≥0∞`-valued sum can be made arbitrarily small. -/
+lemma exists_tsum_ite_compl_le {ι : Type*} [DecidableEq ι] {f : ι → ℝ≥0∞}
+    (hf : ∑' j, f j ≠ ⊤) {ε : ℝ≥0∞} (hε : 0 < ε) :
+    ∃ J : Finset ι, ∑' j, (if j ∈ J then 0 else f j) ≤ ε := by
+  have h := ENNReal.tendsto_tsum_compl_atTop_zero hf
+  rw [ENNReal.tendsto_nhds_zero] at h
+  obtain ⟨J, hJ⟩ := (h ε hε).exists
+  exact ⟨J, by rw [tsum_ite_compl_eq]; exact hJ⟩
+
+/-- For each fixed number of steps, `C(γ)^n 1_{S∖Δ}` can be made arbitrarily small by taking `Δ`
+large. -/
+theorem exists_interdepIter_compl_le (hd : IsDobrushin γ) (n : ℕ) (i : S) {ε : ℝ≥0∞}
+    (hε : 0 < ε) :
+    ∃ Δ : Finset S, interdepIter γ n (fun j ↦ if j ∈ Δ then 0 else 1) i ≤ ε := by
+  classical
+  obtain ⟨-, c, hc1, hc⟩ := hd
+  have hcne : c ≠ ⊤ := ne_top_of_lt hc1
+  have hbdd : ∀ (Δ : Finset S) (m : ℕ) (j : S),
+      interdepIter γ m (fun k ↦ if k ∈ Δ then 0 else 1) j ≤ 1 := by
+    intro Δ m j
+    refine (interdepIter_le γ hc (M := 1) (fun k ↦ by split <;> simp) m j).trans ?_
+    simpa using pow_le_one₀ (by simp : (0 : ℝ≥0∞) ≤ c) hc1.le
+  have hfin : ∀ i : S, ∑' j, interdep γ i j ≠ ⊤ := fun i ↦ ne_top_of_le_ne_top hcne (hc i)
+  suffices H : ∀ (n : ℕ) (i : S) (ε : ℝ≥0∞), 0 < ε →
+      ∃ Δ : Finset S, interdepIter γ n (fun j ↦ if j ∈ Δ then 0 else 1) i ≤ ε from H n i ε hε
+  intro n
+  induction n with
+  | zero => exact fun i ε _ ↦ ⟨{i}, by simp⟩
+  | succ n ih =>
+    intro i ε hε
+    obtain ⟨J, hJ⟩ := exists_tsum_ite_compl_le (hfin i) (ENNReal.half_pos hε.ne')
+    set δ : ℝ≥0∞ := (ε / 2) / (J.card + 1) with hδ
+    have hδpos : 0 < δ := ENNReal.div_pos (ENNReal.half_pos hε.ne').ne' (by simp)
+    choose Δf hΔf using fun j : S ↦ ih j δ hδpos
+    refine ⟨J.sup Δf, ?_⟩
+    have hsub : ∀ j ∈ J, Δf j ⊆ J.sup Δf := fun j hj ↦ Finset.le_sup hj
+    have hmono : ∀ j ∈ J,
+        interdepIter γ n (fun k ↦ if k ∈ J.sup Δf then 0 else 1) j ≤ δ := by
+      intro j hj
+      refine le_trans (interdepIter_mono_vec γ (fun k ↦ ?_) n j) (hΔf j)
+      by_cases hk : k ∈ Δf j
+      · simp [hk, hsub j hj hk]
+      · by_cases hk' : k ∈ J.sup Δf <;> simp [hk, hk']
+    have hstep := tsum_le_card_mul_add
+      (g := fun j ↦ interdep γ i j * interdepIter γ n (fun k ↦ if k ∈ J.sup Δf then 0 else 1) j)
+      (h := fun j ↦ interdep γ i j) J δ
+      (fun j hj ↦ le_trans (mul_le_mul' (interdep_le_one γ i j) (hmono j hj)) (by simp))
+      (fun j _ ↦ by
+        refine le_trans (mul_le_mul' le_rfl (hbdd _ n j)) (by simp))
+    have hcard : (J.card : ℝ≥0∞) * δ ≤ ε / 2 := by
+      calc (J.card : ℝ≥0∞) * δ ≤ ((J.card : ℝ≥0∞) + 1) * δ := by gcongr; exact le_self_add
+        _ = ε / 2 := ENNReal.mul_div_cancel' (by simp) (by simp)
+    calc interdepIter γ (n + 1) (fun k ↦ if k ∈ J.sup Δf then 0 else 1) i
+        = ∑' j, interdep γ i j
+            * interdepIter γ n (fun k ↦ if k ∈ J.sup Δf then 0 else 1) j := rfl
+      _ ≤ (J.card : ℝ≥0∞) * δ + ∑' j, (if j ∈ J then 0 else interdep γ i j) := hstep
+      _ ≤ ε / 2 + ε / 2 := add_le_add hcard hJ
+      _ = ε := ENNReal.add_halves ε
+
+/-- **Georgii (8.23), step 1.** `∑_{j ∉ Δ} D_{ij}(γ) → 0` as `Δ ↑ S`; this is the finiteness
+`∑_{j ∈ S} D_{ij}(γ) < ∞` used by Georgii to make the net `(γ_Δ)` Cauchy. -/
+theorem tendsto_interdepTail (hd : IsDobrushin γ) (i : S) :
+    Tendsto (fun Δ : Finset S ↦ interdepTail γ Δ i) atTop (𝓝 0) := by
+  classical
+  rw [ENNReal.tendsto_nhds_zero]
+  intro ε hε
+  obtain ⟨hq, c, hc1, hc⟩ := hd
+  have hgeom : ∑' n : ℕ, c ^ n ≠ ⊤ := by
+    rw [ENNReal.tsum_geometric]
+    exact ENNReal.inv_ne_top.2 (tsub_pos_of_lt hc1).ne'
+  obtain ⟨J, hJ⟩ := exists_tsum_ite_compl_le (f := fun n : ℕ ↦ c ^ n) hgeom
+    (ENNReal.half_pos hε.ne')
+  set δ : ℝ≥0∞ := (ε / 2) / (J.card + 1) with hδ
+  have hδpos : 0 < δ := ENNReal.div_pos (ENNReal.half_pos hε.ne').ne' (by simp)
+  choose Δf hΔf using fun n : ℕ ↦ exists_interdepIter_compl_le ⟨hq, c, hc1, hc⟩ n i hδpos
+  set Δ₀ : Finset S := J.sup Δf with hΔ₀
+  have hsub : ∀ n ∈ J, Δf n ⊆ Δ₀ := fun n hn ↦ Finset.le_sup hn
+  have hmono : ∀ n ∈ J, interdepIter γ n (fun k ↦ if k ∈ Δ₀ then 0 else 1) i ≤ δ := by
+    intro n hn
+    refine le_trans (interdepIter_mono_vec γ (fun k ↦ ?_) n i) (hΔf n)
+    by_cases hk : k ∈ Δf n
+    · simp [hk, hsub n hn hk]
+    · by_cases hk' : k ∈ Δ₀ <;> simp [hk, hk']
+  have hbound : interdepTail γ Δ₀ i ≤ ε := by
+    have hstep := tsum_le_card_mul_add
+      (g := fun n : ℕ ↦ interdepIter γ n (fun k ↦ if k ∈ Δ₀ then 0 else 1) i)
+      (h := fun n : ℕ ↦ c ^ n) J δ hmono
+      (fun n _ ↦ by
+        simpa using interdepIter_le γ hc (M := 1) (fun k ↦ by split <;> simp) n i)
+    have hcard : (J.card : ℝ≥0∞) * δ ≤ ε / 2 := by
+      calc (J.card : ℝ≥0∞) * δ ≤ ((J.card : ℝ≥0∞) + 1) * δ := by gcongr; exact le_self_add
+        _ = ε / 2 := ENNReal.mul_div_cancel' (by simp) (by simp)
+    calc interdepTail γ Δ₀ i
+        = ∑' n : ℕ, interdepIter γ n (fun k ↦ if k ∈ Δ₀ then 0 else 1) i := rfl
+      _ ≤ (J.card : ℝ≥0∞) * δ + ∑' n : ℕ, (if n ∈ J then 0 else c ^ n) := hstep
+      _ ≤ ε / 2 + ε / 2 := add_le_add hcard hJ
+      _ = ε := ENNReal.add_halves ε
+  filter_upwards [Filter.eventually_ge_atTop Δ₀] with Δ hΔ
+  exact (interdepTail_antitone γ hΔ i).trans hbound
+
+/-- **Georgii (8.23), step 1**, the Cauchy estimate: for `A` a `Λ`-local event and `Δ ⊆ Δ'`,
+`|γ_Δ(A|ω) - γ_{Δ'}(A|ω)| ≤ ∑_{i ∈ Λ, j ∈ Δ'∖Δ} D_{ij}(γ) ≤ ∑_{i ∈ Λ, j ∉ Δ} D_{ij}(γ)`. -/
+private lemma le_add_of_ofReal_abs_toReal_sub_le {x y c : ℝ≥0∞} (hx : x ≠ ⊤) (hy : y ≠ ⊤)
+    (h : ENNReal.ofReal |x.toReal - y.toReal| ≤ c) : y ≤ x + c := by
+  rcases eq_or_ne c ⊤ with rfl | hc
+  · simp
+  have h1 : ENNReal.ofReal (y.toReal - x.toReal) ≤ c :=
+    le_trans (ENNReal.ofReal_le_ofReal (by
+      rw [abs_sub_comm]; exact le_abs_self _)) h
+  have h2 : y.toReal - x.toReal ≤ c.toReal := (ENNReal.ofReal_le_iff_le_toReal hc).1 h1
+  have h3 : y.toReal ≤ x.toReal + c.toReal := by linarith
+  calc y = ENNReal.ofReal y.toReal := (ENNReal.ofReal_toReal hy).symm
+    _ ≤ ENNReal.ofReal (x.toReal + c.toReal) := ENNReal.ofReal_le_ofReal h3
+    _ = ENNReal.ofReal x.toReal + ENNReal.ofReal c.toReal :=
+        ENNReal.ofReal_add ENNReal.toReal_nonneg ENNReal.toReal_nonneg
+    _ = x + c := by rw [ENNReal.ofReal_toReal hx, ENNReal.ofReal_toReal hc]
+
+theorem measure_le_add_interdepTail (hγq : γ.IsQuasilocal) (hd : IsDobrushin γ)
+    {Λ Δ Δ' : Finset S} (hΔ : Δ ⊆ Δ') (ω : S → E) {A : Set (S → E)}
+    (hA : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)] A) :
+    γ Δ' ω A ≤ γ Δ ω A + ∑ i ∈ Λ, interdepTail γ Δ i := by
+  classical
+  have hAm : MeasurableSet A := cylinderEvents_le_pi _ hA
+  set bt : S → ℝ≥0∞ := fun j ↦ if j ∈ Δ then 0 else 1 with hbt
+  set b : S → (S → E) → ℝ≥0∞ := fun j _ ↦ bt j with hbdef
+  have hbm : ∀ i, Measurable (b i) := fun _ ↦ measurable_const
+  have hbb : ∀ i ζ, unifDist (proj (condSpec γ Δ ω) i ζ) (proj (condSpec γ Δ' ω) i ζ)
+      ≤ b i ζ := by
+    intro i ζ
+    by_cases hi : i ∈ Δ
+    · have h1 : condSpec γ Δ ω {i} ζ = γ {i} ζ :=
+        condSpec_apply_of_subset γ (Finset.singleton_subset_iff.2 hi) ω ζ
+      have h2 : condSpec γ Δ' ω {i} ζ = γ {i} ζ :=
+        condSpec_apply_of_subset γ (Finset.singleton_subset_iff.2 (hΔ hi)) ω ζ
+      simp [proj, h1, h2]
+    · simpa [hbdef, hbt, hi] using
+        unifDist_le_one (α₁ := proj (condSpec γ Δ ω) i ζ)
+          (α₂ := proj (condSpec γ Δ' ω) i ζ)
+  have hvec : (fun j ↦ ∫⁻ ζ, b j ζ ∂(γ Δ' ω)) = bt := by
+    funext j; simp [hbdef]
+  have hcomp := comparison (γ := condSpec γ Δ ω) (γ' := condSpec γ Δ' ω)
+      (μ := γ Δ ω) (ν := γ Δ' ω)
+      (isQuasilocal_condSpec hγq Δ ω) (isDobrushin_condSpec hd Δ ω)
+      (fun i ↦ bind_condSpec_eq γ Δ ω {i}) (fun i ↦ bind_condSpec_eq γ Δ' ω {i}) hbm hbb
+  rw [hvec] at hcomp
+  have hloc : (indicatorLp A : lp (fun _ : S → E ↦ ℝ) ∞) ∈ localFunctions S E :=
+    indicatorLp_mem_localFunctions (mem_localEvents_of_cylinderEvents Λ hA)
+  have hest := hcomp (indicatorLp A) hloc
+  have hint : ∀ (μ : Measure (S → E)), IsProbabilityMeasure μ →
+      ∫ σ, (indicatorLp (S := S) (E := E) A : (S → E) → ℝ) σ ∂μ = (μ A).toReal := by
+    intro μ _
+    rw [show ⇑(indicatorLp (S := S) (E := E) A) = A.indicator (fun _ ↦ (1 : ℝ)) from rfl,
+      integral_indicator_const (1 : ℝ) hAm]
+    simp [measureReal_def]
+  rw [hint _ inferInstance, hint _ inferInstance] at hest
+  have hoscz : ∀ i, i ∉ Λ → oscAt (⇑(indicatorLp (S := S) (E := E) A)) i = 0 := by
+    intro i hi
+    refine oscAt_eq_zero_of_dependsOn ?_ (fun hmem ↦ hi (Finset.mem_coe.1 hmem))
+    exact (measurable_const.indicator hA).dependsOn_of_cylinderEvents
+  have hosc1 : ∀ i, oscAt (⇑(indicatorLp (S := S) (E := E) A)) i ≤ 1 := by
+    intro i
+    refine oscAt_le fun ζ η _ ↦ ENNReal.ofReal_le_one.2 ?_
+    rw [show ⇑(indicatorLp (S := S) (E := E) A) = A.indicator (fun _ ↦ (1 : ℝ)) from rfl]
+    by_cases h1 : ζ ∈ A <;> by_cases h2 : η ∈ A <;> simp [h1, h2]
+  have hRHS : (∑' i, interdepSeries (condSpec γ Δ ω) bt i
+        * oscAt (⇑(indicatorLp (S := S) (E := E) A)) i)
+      ≤ ∑ i ∈ Λ, interdepTail γ Δ i := by
+    rw [tsum_eq_sum (s := Λ) fun i hi ↦ by rw [hoscz i hi, mul_zero]]
+    refine Finset.sum_le_sum fun i _ ↦ ?_
+    calc interdepSeries (condSpec γ Δ ω) bt i
+            * oscAt (⇑(indicatorLp (S := S) (E := E) A)) i
+        ≤ interdepSeries (condSpec γ Δ ω) bt i * 1 := by gcongr; exact hosc1 i
+      _ = interdepSeries (condSpec γ Δ ω) bt i := mul_one _
+      _ ≤ interdepSeries γ bt i :=
+          interdepSeries_mono_matrix (interdep_condSpec_le γ Δ ω) bt i
+      _ = interdepTail γ Δ i := rfl
+  exact le_add_of_ofReal_abs_toReal_sub_le (measure_ne_top _ _) (measure_ne_top _ _)
+    (hest.trans hRHS)
+
+end Cauchy
+
+/-! ### Georgii (8.7), (8.23): existence of the Gibbs measure -/
+
+section Existence
+
+variable {γ : Specification S E}
+
+/-- **Georgii (8.23), step 1.** Under Dobrushin's condition the net of finite-volume Gibbs
+distributions with a fixed boundary condition is locally equicontinuous: this is the
+Cauchy property of Georgii's proof, in the form of Georgii (4.6). -/
+theorem locallyEquicontinuous_finiteVolumeDistributions_of_isDobrushin
+    (hγq : γ.IsQuasilocal) (hd : IsDobrushin γ) (η : S → E) :
+    LocallyEquicontinuous atTop (finiteVolumeDistributions γ η) := by
+  classical
+  intro Λ A hAm hanti hempty
+  rw [ENNReal.tendsto_nhds_zero]
+  intro ε hε
+  have htail : Tendsto (fun Δ : Finset S ↦ ∑ i ∈ Λ, interdepTail γ Δ i) atTop (𝓝 0) := by
+    have h := tendsto_finsetSum (f := fun (i : S) (Δ : Finset S) ↦ interdepTail γ Δ i)
+      (a := fun _ : S ↦ (0 : ℝ≥0∞)) Λ fun i _ ↦ tendsto_interdepTail hd i
+    simpa using h
+  obtain ⟨Δ₀, hΔ₀⟩ := ((ENNReal.tendsto_nhds_zero.1 htail) (ε / 2)
+    (ENNReal.half_pos hε.ne')).exists
+  have hlim : ∀ m, limsup (fun Δ : Finset S ↦
+      ((finiteVolumeDistributions γ η Δ : ProbabilityMeasure (S → E)) :
+        Measure (S → E)) (A m)) atTop ≤ γ Δ₀ η (A m) + ε / 2 := by
+    intro m
+    refine Filter.limsup_le_of_le (by isBoundedDefault) ?_
+    filter_upwards [Filter.eventually_ge_atTop Δ₀] with Δ hΔ
+    exact le_trans (measure_le_add_interdepTail hγq hd hΔ η (hAm m))
+      (add_le_add (le_refl _) hΔ₀)
+  have hmeas : Tendsto (fun m ↦ γ Δ₀ η (A m)) atTop (𝓝 0) := by
+    have h := tendsto_measure_iInter_atTop (μ := γ Δ₀ η)
+      (fun m ↦ ((cylinderEvents_le_pi _ (hAm m)).nullMeasurableSet)) hanti
+      ⟨0, measure_ne_top _ _⟩
+    rw [hempty] at h
+    simpa [Function.comp_def] using h
+  have hev : ∀ᶠ m in atTop, γ Δ₀ η (A m) ≤ ε / 2 :=
+    (ENNReal.tendsto_nhds_zero.1 hmeas) (ε / 2) (ENNReal.half_pos hε.ne')
+  filter_upwards [hev] with m hm
+  calc limsup (fun Δ : Finset S ↦
+        ((finiteVolumeDistributions γ η Δ : ProbabilityMeasure (S → E)) :
+          Measure (S → E)) (A m)) atTop
+      ≤ γ Δ₀ η (A m) + ε / 2 := hlim m
+    _ ≤ ε / 2 + ε / 2 := add_le_add hm (le_refl _)
+    _ = ε := ENNReal.add_halves ε
+
+/-- **Georgii, Theorem (8.7)**, existence part (restated and proved as Georgii (8.23)): over a
+standard Borel state space a quasilocal specification satisfying Dobrushin's condition has at
+least one Gibbs measure. -/
+theorem GP_nonempty_of_isDobrushin [Nonempty E] [StandardBorelSpace E]
+    (hγq : γ.IsQuasilocal) (hd : IsDobrushin γ) :
+    (GP (S := S) (E := E) γ).Nonempty := by
+  obtain ⟨μ, hμ, -⟩ := exists_isLocalThermodynamicLimit_mem_GP hγq (fun _ ↦ Classical.arbitrary E)
+    (locallyEquicontinuous_finiteVolumeDistributions_of_isDobrushin hγq hd _)
+  exact ⟨μ, hμ⟩
+
+/-- **Georgii, Theorem (8.7).** If `γ` is a quasilocal specification satisfying Dobrushin's
+condition and `(E, ℰ)` is a standard Borel space, then `|𝒢(γ)| = 1`. -/
+theorem existsUnique_mem_GP_of_isDobrushin_of_standardBorel [Nonempty E] [StandardBorelSpace E]
+    (hγq : γ.IsQuasilocal) (hd : IsDobrushin γ) :
+    ∃! μ : ProbabilityMeasure (S → E), μ ∈ GP (S := S) (E := E) γ :=
+  existsUnique_mem_GP_of_isDobrushin hγq hd (GP_nonempty_of_isDobrushin hγq hd)
+
+end Existence
 
 end MeasureTheory.GibbsMeasure.Dobrushin
 

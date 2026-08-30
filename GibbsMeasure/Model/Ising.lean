@@ -119,8 +119,8 @@ def latticeGraph (d : ℕ) : SimpleGraph (Fin d → ℤ) where
     exact Finset.sum_congr rfl fun i _ ↦ by omega⟩
   loopless := ⟨fun x hx ↦ by simp at hx⟩
 
-/-- An `ℓ¹`-neighbour of `x` is `x` shifted by `±1` in exactly one coordinate. -/
-private lemma latticeGraph_adj_decomp {d : ℕ} {x y : Fin d → ℤ}
+/-- An `ℓ¹`-neighbour of `x` in `ℤ^d` is `x` shifted by `±1` in exactly one coordinate. -/
+lemma latticeGraph_adj_decomp {d : ℕ} {x y : Fin d → ℤ}
     (hxy : (latticeGraph d).Adj x y) :
     ∃ (j : Fin d) (s : ℤ), (s = 1 ∨ s = -1) ∧ y = Function.update x j (x j + s) := by
   classical

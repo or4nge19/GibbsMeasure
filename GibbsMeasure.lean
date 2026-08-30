@@ -60,6 +60,7 @@ public import GibbsMeasure.Model.PeierlsEstimate
 public import GibbsMeasure.Model.PhaseTransition
 public import GibbsMeasure.Model.ShiftAverage
 public import GibbsMeasure.Potential.Existence
+public import GibbsMeasure.Potential.GibbsRepresentation
 public import GibbsMeasure.Potential.NearestNeighbour
 public import GibbsMeasure.Potential.Periodic
 public import GibbsMeasure.Potential.Space

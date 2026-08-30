@@ -9,6 +9,7 @@ public import GibbsMeasure.Model.Ising
 public import GibbsMeasure.Potential.Existence
 public import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 public import Mathlib.MeasureTheory.Integral.Layercake
+public import Mathlib.MeasureTheory.VectorMeasure.Decomposition.Jordan
 
 /-!
 # Georgii §8.1: Dobrushin's condition of weak dependence
@@ -23,18 +24,19 @@ open scoped ENNReal NNReal BigOperators
 
 noncomputable section
 
-
-
-open MeasureTheory ProbabilityTheory Set
-open scoped ENNReal NNReal BigOperators
-
-noncomputable section
-
 namespace MeasureTheory.GibbsMeasure.Dobrushin
 
 variable {S E : Type*} [MeasurableSpace E]
 
-/-- Georgii (8.1): the uniform distance of two probability measures, half the total variation. -/
+/-- Georgii (8.1): the uniform distance `‖α₁ − α₂‖ = sup_{A ∈ ℰ} (α₁(A) − α₂(A))`, the
+subtraction being the truncated subtraction of `ℝ≥0∞`.
+
+Because of that truncation this is *not* a distance for general measures: it is asymmetric, and
+it is Georgii's `‖α₁ − α₂‖` only when `α₁` and `α₂` are probability measures. In that case it is
+symmetric (`unifDist_comm`) and equals half the total variation of the signed measure
+`α₁ − α₂` (`unifDist_eq_totalVariation_div_two`), which is Georgii's own description of (8.1).
+Every lemma below that expresses (8.1) as a distance carries `IsProbabilityMeasure`
+hypotheses. -/
 def unifDist (α₁ α₂ : Measure E) : ℝ≥0∞ := ⨆ (A) (_ : MeasurableSet A), α₁ A - α₂ A
 
 /-- Georgii (8.5): Dobrushin's interdependence matrix. -/
@@ -42,17 +44,93 @@ def interdep (γ : Specification S E) (i j : S) : ℝ≥0∞ :=
   ⨆ (ζ : S → E) (η : S → E) (_ : ∀ k, k ≠ j → ζ k = η k),
     unifDist ((γ {i} ζ).map (fun ω ↦ ω i)) ((γ {i} η).map (fun ω ↦ ω i))
 
-/-- Georgii (8.6): Dobrushin's condition of weak dependence. -/
+/-- **Georgii (8.6)**: Dobrushin's condition of weak dependence. Georgii's definition has *two*
+conjuncts: `γ` is quasilocal, and `c(γ) = sup_i ∑_j C_ij(γ) < 1`.
+
+The quasilocality conjunct carries real content and is not implied by the second one: the sum
+`∑_j C_ij(γ)` says nothing about the dependence of `γ_i^0(·|ω)` on the behaviour of `ω` at
+infinity, so a tail dependence has to be excluded separately. Georgii's Example (2.27) exhibits
+the gap: there `E = {0,1}`, `S = ℕ`, and `γ_Λ(·|ω) = γ_Λ^{ξ(ω)}(·|ω)` is glued out of the
+independent specifications `γ^x` of the Bernoulli(`x`) measures along the *tail* function
+`ξ = liminf_n n⁻¹ ∑_{i ≤ n} σ_i`. Every `γ_i^0(·|ω) = λ^{ξ(ω)}` is then unchanged by a
+single-site modification of `ω`, so `C_ij(γ) = 0` for all `i, j` and `c(γ) = 0 < 1`; yet
+`𝒢(γ)` is the whole (uncountable) set of exchangeable random fields, very far from a singleton.
+Dropping the quasilocality conjunct would therefore make Theorem (8.7) below false. -/
 def IsDobrushin (γ : Specification S E) : Prop :=
-  ∃ c : ℝ≥0∞, c < 1 ∧ ∀ i, ∑' j, interdep γ i j ≤ c
+  γ.IsQuasilocal ∧ ∃ c : ℝ≥0∞, c < 1 ∧ ∀ i, ∑' j, interdep γ i j ≤ c
 
-/-- Georgii (8.2): the oscillation of a function on the configuration space, and the single-site
-oscillation. -/
-def osc (f : (S → E) → ℝ) : ℝ≥0∞ := ⨆ ζ, ⨆ η, ENNReal.ofReal |f ζ - f η|
+/-- Georgii (8.2): the oscillation `δ(f) = sup_{ζ,η} |f(ζ) − f(η)|` of a function on the
+configuration space.
 
-@[inherit_doc osc]
-def oscAt (f : (S → E) → ℝ) (j : S) : ℝ≥0∞ :=
-  ⨆ (ζ) (η) (_ : ∀ k, k ≠ j → ζ k = η k), ENNReal.ofReal |f ζ - f η|
+It is the oscillation `oscOutside ∅ f` of `f` under variation of *all* coordinates; the two
+agree because the `ℝ≥0∞`-valued distance of `ℝ` is `edist a b = ENNReal.ofReal |a − b|`
+(`le_osc`, `osc_le`). -/
+def osc (f : (S → E) → ℝ) : ℝ≥0∞ := _root_.oscOutside (∅ : Set S) f
+
+/-- Georgii (8.14): the single-site oscillation `δ_j(f)`, the oscillation of `f` under variation
+of the coordinate `j` alone, i.e. `oscOutside {j}ᶜ f`. -/
+def oscAt (f : (S → E) → ℝ) (j : S) : ℝ≥0∞ := _root_.oscOutside ({j}ᶜ : Set S) f
+
+/-! ### Georgii (8.2), (8.14): the basic oscillation API
+
+`osc` and `oscAt` are the two instances `∅` and `{j}ᶜ` of the general `oscOutside` of
+`GibbsMeasure/Mathlib/Topology/MetricSpace/DependsOn.lean`, so everything below is one line of
+that API together with the bridge `edist_ofReal_abs_sub` between the `edist` of `ℝ` and
+`ENNReal.ofReal |·|`. -/
+
+section OscBasic
+
+omit [MeasurableSpace E]
+
+variable {f : (S → E) → ℝ} {j : S} {c : ℝ≥0∞}
+
+lemma osc_eq_oscOutside_empty (f : (S → E) → ℝ) :
+    osc f = _root_.oscOutside (∅ : Set S) f := rfl
+
+lemma oscAt_eq_oscOutside_compl (f : (S → E) → ℝ) (j : S) :
+    oscAt f j = _root_.oscOutside ({j}ᶜ : Set S) f := rfl
+
+/-- The bridge between the value type of `oscOutside` on `ℝ` and Georgii's `|f(ζ) − f(η)|`: the
+extended distance of two reals is `ENNReal.ofReal` of their absolute difference. -/
+lemma edist_ofReal_abs_sub (a b : ℝ) : edist a b = ENNReal.ofReal |a - b| := by
+  rw [edist_dist, Real.dist_eq]
+
+lemma le_osc (f : (S → E) → ℝ) (ζ η : S → E) : ENNReal.ofReal |f ζ - f η| ≤ osc f := by
+  rw [← edist_ofReal_abs_sub]
+  exact _root_.le_oscOutside (by simp)
+
+lemma osc_le (h : ∀ ζ η : S → E, ENNReal.ofReal |f ζ - f η| ≤ c) : osc f ≤ c :=
+  _root_.oscOutside_le fun ζ η _ ↦ (edist_ofReal_abs_sub (f ζ) (f η)).trans_le (h ζ η)
+
+lemma le_oscAt {ζ η : S → E} (h : ∀ k, k ≠ j → ζ k = η k) :
+    ENNReal.ofReal |f ζ - f η| ≤ oscAt f j := by
+  rw [← edist_ofReal_abs_sub]
+  exact _root_.le_oscOutside fun k hk ↦ h k (by simpa using hk)
+
+lemma oscAt_le (h : ∀ ζ η : S → E, (∀ k, k ≠ j → ζ k = η k) → ENNReal.ofReal |f ζ - f η| ≤ c) :
+    oscAt f j ≤ c :=
+  _root_.oscOutside_le fun ζ η hζη ↦
+    (edist_ofReal_abs_sub (f ζ) (f η)).trans_le (h ζ η fun k hk ↦ hζη k (by simpa using hk))
+
+/-- Georgii (8.14): the single-site oscillation is dominated by the global oscillation. More
+generally `oscOutside s f ≤ osc f` for every `s`, by `oscOutside_antitone`. -/
+lemma oscAt_le_osc : oscAt f j ≤ osc f := _root_.oscOutside_antitone (Set.empty_subset _)
+
+@[simp] lemma osc_const (r : ℝ) : osc (fun _ : S → E ↦ r) = 0 :=
+  _root_.DependsOn.oscOutside_eq_zero (dependsOn_const r)
+
+@[simp] lemma oscAt_const (r : ℝ) (j : S) : oscAt (fun _ : S → E ↦ r) j = 0 :=
+  _root_.DependsOn.oscOutside_eq_zero ((dependsOn_const r).mono (Set.empty_subset _))
+
+/-- A function that only depends on the coordinates in `Δ` has no oscillation at sites off `Δ`. -/
+lemma oscAt_eq_zero_of_dependsOn {Δ : Set S} (hf : DependsOn f Δ) (hj : j ∉ Δ) :
+    oscAt f j = 0 :=
+  _root_.DependsOn.oscOutside_eq_zero <| hf.mono fun k hk ↦ by
+    simp only [Set.mem_compl_iff, Set.mem_singleton_iff]
+    rintro rfl
+    exact hj hk
+
+end OscBasic
 
 /-! ### M1: the uniform distance (Georgii (8.1)) -/
 
@@ -133,6 +211,83 @@ lemma unifDist_map_le {F : Type*} [MeasurableSpace F] {f : E → F} (hf : Measur
   refine unifDist_le fun A hA ↦ ?_
   rw [Measure.map_apply hf hA, Measure.map_apply hf hA]
   exact le_unifDist (hf hA)
+
+/-! #### Georgii (8.1) is half the total variation
+
+`unifDist` is defined with the truncated subtraction of `ℝ≥0∞`; the following identifies it, for
+probability measures, with Mathlib's total variation of the signed measure `α₁ − α₂`, which is
+what Georgii calls `‖α₁ − α₂‖`. -/
+
+private lemma tsub_eq_ofReal_toReal_sub {x y : ℝ≥0∞} (hx : x ≠ ⊤) (hy : y ≠ ⊤) :
+    x - y = ENNReal.ofReal (x.toReal - y.toReal) := by
+  rcases le_total y x with h | h
+  · rw [← ENNReal.toReal_sub_of_le h hx,
+      ENNReal.ofReal_toReal (ne_top_of_le_ne_top hx tsub_le_self)]
+  · rw [tsub_eq_zero_of_le h, ENNReal.ofReal_eq_zero.2 (by
+      have := ENNReal.toReal_mono hy h; linarith)]
+
+/-- **Georgii (8.1) is half the total variation.** For probability measures the truncated
+`ℝ≥0∞`-subtraction defining `unifDist` computes Georgii's `‖α₁ − α₂‖`: twice it is the total
+variation `|α₁ − α₂|(E)` of the signed measure `α₁ − α₂` in the sense of
+`MeasureTheory.SignedMeasure.totalVariation`. -/
+theorem two_mul_unifDist_eq_totalVariation (α₁ α₂ : Measure E)
+    [IsProbabilityMeasure α₁] [IsProbabilityMeasure α₂] :
+    2 * unifDist α₁ α₂
+      = (α₁.toSignedMeasure - α₂.toSignedMeasure).totalVariation univ := by
+  have hsapp : ∀ A : Set E, MeasurableSet A →
+      (α₁.toSignedMeasure - α₂.toSignedMeasure) A = (α₁ A).toReal - (α₂ A).toReal := by
+    intro A hA
+    rw [Measure.toSignedMeasure_sub_apply hA]
+    simp [measureReal_def]
+  set s : SignedMeasure E := α₁.toSignedMeasure - α₂.toSignedMeasure with hs
+  obtain ⟨i, hi₁, hi₂, hi₃, hpos, hneg⟩ := s.toJordanDecomposition_spec
+  -- a Hahn set `i` maximises `s`, so the supremum defining `unifDist` is attained at `i`
+  have hmax : ∀ A : Set E, MeasurableSet A → s A ≤ s i := by
+    intro A hA
+    have h1 : s (A ∩ i) + s (A \ (A ∩ i)) = s A :=
+      VectorMeasure.of_add_of_sdiff (hA.inter hi₁) hA Set.inter_subset_left
+    have h2 : s (A ∩ i) + s (i \ (A ∩ i)) = s i :=
+      VectorMeasure.of_add_of_sdiff (hA.inter hi₁) hi₁ Set.inter_subset_right
+    have hlo : s (A \ (A ∩ i)) ≤ 0 := by
+      have := VectorMeasure.subset_le_of_restrict_le_restrict s 0 hi₁.compl hi₃
+        (show A \ (A ∩ i) ⊆ iᶜ from fun _ hx hxi ↦ hx.2 ⟨hx.1, hxi⟩)
+      simpa using this
+    have hhi : 0 ≤ s (i \ (A ∩ i)) := by
+      have := VectorMeasure.subset_le_of_restrict_le_restrict 0 s hi₁ hi₂
+        (show i \ (A ∩ i) ⊆ i from Set.sdiff_subset)
+      simpa using this
+    linarith
+  -- the two Jordan parts, evaluated on the whole space
+  have hposUniv : s.toJordanDecomposition.posPart univ = ENNReal.ofReal (s i) := by
+    have hreal : (s.toJordanDecomposition.posPart).real univ = s i := by
+      rw [hpos, s.toMeasureOfZeroLE_real_apply hi₂ hi₁ MeasurableSet.univ, Set.inter_univ]
+    rw [← hreal, measureReal_def, ENNReal.ofReal_toReal (measure_ne_top _ _)]
+  have hnegUniv : s.toJordanDecomposition.negPart univ = ENNReal.ofReal (-s iᶜ) := by
+    have hreal : (s.toJordanDecomposition.negPart).real univ = -s iᶜ := by
+      rw [hneg, s.toMeasureOfLEZero_real_apply hi₃ hi₁.compl MeasurableSet.univ, Set.inter_univ]
+    rw [← hreal, measureReal_def, ENNReal.ofReal_toReal (measure_ne_top _ _)]
+  -- both measures are probability measures, so `s univ = 0` and the two parts have equal mass
+  have hsuniv : s univ = 0 := by rw [hsapp univ MeasurableSet.univ]; simp
+  have hsplit : s i + s iᶜ = s univ := by
+    rw [Set.compl_eq_univ_sdiff]
+    exact VectorMeasure.of_add_of_sdiff hi₁ MeasurableSet.univ (Set.subset_univ i)
+  have hcompl : -s iᶜ = s i := by rw [hsuniv] at hsplit; linarith
+  -- and the supremum defining `unifDist` is `s i`
+  have hunif : unifDist α₁ α₂ = ENNReal.ofReal (s i) := by
+    refine le_antisymm (unifDist_le fun A hA ↦ ?_) ?_
+    · rw [tsub_eq_ofReal_toReal_sub (measure_ne_top _ _) (measure_ne_top _ _), ← hsapp A hA]
+      exact ENNReal.ofReal_le_ofReal (hmax A hA)
+    · rw [hsapp i hi₁, ← tsub_eq_ofReal_toReal_sub (measure_ne_top _ _) (measure_ne_top _ _)]
+      exact le_unifDist hi₁
+  rw [SignedMeasure.totalVariation, Measure.add_apply, hposUniv, hnegUniv, hcompl, hunif, two_mul]
+
+/-- **Georgii (8.1).** For probability measures the uniform distance is half the total variation
+of the signed measure `α₁ − α₂`. -/
+theorem unifDist_eq_totalVariation_div_two (α₁ α₂ : Measure E)
+    [IsProbabilityMeasure α₁] [IsProbabilityMeasure α₂] :
+    unifDist α₁ α₂ = (α₁.toSignedMeasure - α₂.toSignedMeasure).totalVariation univ / 2 :=
+  (ENNReal.eq_div_iff (by norm_num) (by norm_num)).2
+    (two_mul_unifDist_eq_totalVariation α₁ α₂)
 
 end UnifDist
 
@@ -454,11 +609,19 @@ lemma interdep_eq_zero (h : ∀ ζ η : S → E, (∀ k, k ≠ j → ζ k = η k
     (γ {i} ζ).map (fun ω ↦ ω i) = (γ {i} η).map (fun ω ↦ ω i)) : interdep γ i j = 0 :=
   le_antisymm (interdep_le fun ζ η hζη ↦ by rw [h ζ η hζη]; simp) bot_le
 
-/-- Georgii's own form of (8.6), `sup_i ∑_j C_ij(γ) < 1`, is equivalent to the existential
-form used here. -/
+/-- The quasilocality half of Georgii (8.6). -/
+lemma IsDobrushin.isQuasilocal {γ : Specification S E} (hd : IsDobrushin γ) :
+    γ.IsQuasilocal := hd.1
+
+/-- The `c(γ) < 1` half of Georgii (8.6). -/
+lemma IsDobrushin.exists_lt_one {γ : Specification S E} (hd : IsDobrushin γ) :
+    ∃ c : ℝ≥0∞, c < 1 ∧ ∀ i, ∑' j, interdep γ i j ≤ c := hd.2
+
+/-- Georgii's own form of (8.6): `γ` is quasilocal and `c(γ) = sup_i ∑_j C_ij(γ) < 1`. The
+second conjunct is equivalent to the existential form used in `IsDobrushin`. -/
 lemma isDobrushin_iff_iSup_lt_one (γ : Specification S E) :
-    IsDobrushin γ ↔ ⨆ i, ∑' j, interdep γ i j < 1 := by
-  constructor
+    IsDobrushin γ ↔ γ.IsQuasilocal ∧ ⨆ i, ∑' j, interdep γ i j < 1 := by
+  refine and_congr_right fun _ ↦ ⟨?_, ?_⟩
   · rintro ⟨c, hc, h⟩
     exact lt_of_le_of_lt (iSup_le h) hc
   · intro h
@@ -673,12 +836,8 @@ end GibbsSingleSite
 section Osc
 
 omit [MeasurableSpace E] in
-lemma le_osc (f : (S → E) → ℝ) (ζ η : S → E) : ENNReal.ofReal |f ζ - f η| ≤ osc f :=
-  le_iSup_of_le ζ (le_iSup_of_le η le_rfl)
-
-omit [MeasurableSpace E] in
 lemma osc_le_two_mul_iSup (f : (S → E) → ℝ) : osc f ≤ 2 * ⨆ ζ, ‖f ζ‖ₑ := by
-  refine iSup₂_le fun ζ η ↦ ?_
+  refine osc_le fun ζ η ↦ ?_
   have habs : |f ζ - f η| ≤ |f ζ| + |f η| := by
     rw [abs_le]
     constructor <;>
@@ -892,11 +1051,15 @@ variable [Countable S] {Φ : Potential S E} [Potential.IsPotential Φ]
   [Potential.IsAbsolutelySummable Φ] (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ)
 
 /-- **Georgii, Proposition (8.8).** If `sup_i |β| ∑_{A ∋ i} (|A| − 1) δ(Φ_A) < 2`, the Gibbsian
-specification of `βΦ` satisfies Dobrushin's condition of weak dependence. -/
+specification of `βΦ` satisfies Dobrushin's condition of weak dependence — *both* conjuncts of
+(8.6). Quasilocality is the first step of Georgii's proof of (8.8) and is discharged here by
+`Potential.isQuasilocal_gibbsSpecificationOfAbsolutelySummable` (Georgii Example (2.25)(ii), the
+instance of Proposition (2.24)(b) at the quasilocal Hamiltonians of an absolutely summable
+potential); the bound on `c(γ^Φ)` is the rest. -/
 theorem isDobrushin_gibbsSpecification {c : ℝ≥0∞} (hc : c < 2)
     (hΦ : ∀ i, ENNReal.ofReal |β| * interactionStrength Φ i ≤ c) :
     IsDobrushin (Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) := by
-  refine ⟨c / 2, ?_, fun i ↦ ?_⟩
+  refine ⟨Potential.isQuasilocal_gibbsSpecificationOfAbsolutelySummable ν β, c / 2, ?_, fun i ↦ ?_⟩
   · rw [ENNReal.div_lt_iff (by norm_num) (by norm_num), one_mul]
     exact hc
   · set γ := Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β with hγ
@@ -967,7 +1130,7 @@ omit [DecidableEq S] in
 lemma osc_isingPotential_le (G : SimpleGraph S) (J h : ℝ) {A : Finset S}
     (h2 : A.card = 2 ∧ ∃ a ∈ A, ∃ b ∈ A, G.Adj a b) :
     osc (isingPotential G J h A) ≤ ENNReal.ofReal (2 * |J|) := by
-  refine iSup₂_le fun ζ η ↦ ENNReal.ofReal_le_ofReal ?_
+  refine osc_le fun ζ η ↦ ENNReal.ofReal_le_ofReal ?_
   obtain ⟨hζ1, hζ2⟩ := abs_le.1 (abs_isingPotential_pair_le G J h h2 ζ)
   obtain ⟨hη1, hη2⟩ := abs_le.1 (abs_isingPotential_pair_le G J h h2 η)
   rw [abs_le]
@@ -1018,7 +1181,7 @@ lemma interactionStrength_isingPotential_le (G : SimpleGraph S) [G.LocallyFinite
     · have hΦ0 : isingPotential G J h A = 0 :=
         funext fun η ↦ Potential.nearestNeighbourPair_apply_eq_zero hcard hedge η
       have hosc0 : osc (0 : (S → Bool) → ℝ) = 0 := by
-        refine le_antisymm (iSup₂_le fun _ _ ↦ ?_) bot_le
+        refine le_antisymm (osc_le fun _ _ ↦ ?_) bot_le
         simp
       rw [hΦ0, hosc0, mul_zero]
   have hterm : ∀ A ∈ T, f A ≤ ENNReal.ofReal (2 * |J|) := by
@@ -1039,38 +1202,6 @@ lemma interactionStrength_isingPotential_le (G : SimpleGraph S) [G.LocallyFinite
         gcongr
         exact_mod_cast Finset.card_image_le
 
-/-- An `ℓ¹`-neighbour of `x` in `ℤ^d` is `x` shifted by `±1` in exactly one coordinate.
-(A copy of the private `latticeGraph_adj_decomp` of `GibbsMeasure/Model/Ising.lean`.) -/
-private lemma latticeGraph_adj_decomp' {d : ℕ} {x y : Fin d → ℤ}
-    (hxy : (latticeGraph d).Adj x y) :
-    ∃ (j : Fin d) (s : ℤ), (s = 1 ∨ s = -1) ∧ y = Function.update x j (x j + s) := by
-  classical
-  have h1 : ∑ i, (x i - y i).natAbs = 1 := hxy
-  obtain ⟨j, -, hj⟩ := Finset.exists_ne_zero_of_sum_ne_zero
-    (by rw [h1]; exact one_ne_zero)
-  have hj1 : (x j - y j).natAbs = 1 := by
-    have hle : (x j - y j).natAbs ≤ 1 := by
-      rw [← h1]
-      exact Finset.single_le_sum (f := fun i ↦ (x i - y i).natAbs)
-        (fun i _ ↦ Nat.zero_le _) (Finset.mem_univ j)
-    omega
-  have herase : ∑ i ∈ Finset.univ.erase j, (x i - y i).natAbs = 0 := by
-    have hadd := Finset.add_sum_erase Finset.univ (fun i ↦ (x i - y i).natAbs)
-      (Finset.mem_univ j)
-    omega
-  have hrest : ∀ k, k ≠ j → y k = x k := by
-    intro k hk
-    have hle : (x k - y k).natAbs ≤ ∑ i ∈ Finset.univ.erase j, (x i - y i).natAbs :=
-      Finset.single_le_sum (f := fun i ↦ (x i - y i).natAbs)
-        (fun i _ ↦ Nat.zero_le _) (Finset.mem_erase.2 ⟨hk, Finset.mem_univ k⟩)
-    omega
-  refine ⟨j, y j - x j, by omega, funext fun k ↦ ?_⟩
-  rcases eq_or_ne k j with rfl | hk
-  · rw [Function.update_self]
-    ring
-  · rw [Function.update_of_ne hk]
-    exact hrest k hk
-
 /-- Each site of `ℤ^d` has at most `2d` nearest neighbours. -/
 lemma card_neighborFinset_latticeGraph_le (d : ℕ) (v : Fin d → ℤ) :
     ((latticeGraph d).neighborFinset v).card ≤ 2 * d := by
@@ -1080,7 +1211,7 @@ lemma card_neighborFinset_latticeGraph_le (d : ℕ) (v : Fin d → ℤ) :
   have hsub : (latticeGraph d).neighborFinset v ⊆ Finset.image g Finset.univ := by
     intro y hy
     have hadj : (latticeGraph d).Adj v y := (SimpleGraph.mem_neighborFinset _ _ _).1 hy
-    obtain ⟨j, t, ht, rfl⟩ := latticeGraph_adj_decomp' hadj
+    obtain ⟨j, t, ht, rfl⟩ := latticeGraph_adj_decomp hadj
     rcases ht with rfl | rfl
     · exact Finset.mem_image.2 ⟨(j, true), Finset.mem_univ _, by simp [hg]⟩
     · exact Finset.mem_image.2 ⟨(j, false), Finset.mem_univ _, by simp [hg]⟩

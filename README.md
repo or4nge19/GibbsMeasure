@@ -165,8 +165,12 @@ the large-`β` Peierls argument.
 **Chapter 8, Dobrushin's uniqueness condition.** Dobrushin's interdependence matrix `C(γ)`
 ((8.5)) and his condition of weak dependence ((8.6)); the oscillation calculus (8.14)/(8.15),
 the estimates (8.16)/(8.17) and Lemma (8.18); the **comparison theorem (8.20)**; and
-**Theorem (8.7)**: under Dobrushin's condition `|𝒢(γ)| ≤ 1`, hence `= 1` over a standard Borel
-state space (`GibbsMeasure/Specification/DobrushinUniqueness.lean`). The criterion **(8.8)** —
+**Theorem (8.7)** in full: under Dobrushin's condition `|𝒢(γ)| ≤ 1`, and `= 1` over a standard
+Borel state space — the existence half coming from Georgii's conditioned specification (8.22) and
+the Cauchy argument of (8.23) (`GibbsMeasure/Specification/DobrushinUniqueness.lean`:
+`existsUnique_mem_GP_of_isDobrushin_of_standardBorel`). Dobrushin's condition is formalised as
+Georgii states it in (8.6) — quasilocality *and* `c(γ) < 1`; his Example (2.27) has `C(γ) ≡ 0`
+yet uncountably many Gibbs measures, so the first conjunct is not decorative. The criterion **(8.8)** —
 `sup_i ∑_{A ∋ i} (|A| − 1) δ(Φ_A) < 2` implies Dobrushin's condition, with Georgii's sharp
 constant 2 — and its instance for the Ising model, `isDobrushin_isingSpecification`
 (`GibbsMeasure/Specification/Dobrushin.lean`). Together with (6.9) this brackets the critical
@@ -190,8 +194,14 @@ its **unique** Gibbs measure — `𝒢(γ_P) = {μ_P}` (`GibbsMeasure/Model/Mark
 The correspondence `g ↔ P` uses the Perron–Frobenius theorem and Doeblin's ergodic theorem, both
 of which had to be built (`GibbsMeasure/Mathlib/LinearAlgebra/Matrix/`).
 
-Not yet done: the Gibbs representation theorem (2.30), the inhomogeneous Ising chains of §6.1,
-Shlosman's random staircases of §6.3 (Theorem (6.21)), and Chapters 9–20.
+**Theorem (2.30), the Gibbs representation theorem** (`GibbsMeasure/Potential/GibbsRepresentation.lean`):
+every positive quasilocal pre-modification is Gibbsian for a unique `a`-normalised gas potential,
+so the DLR and Hamiltonian frameworks agree.
+
+Not yet done: the inhomogeneous Ising chains of §6.1, Shlosman's random staircases of §6.3
+(Theorem (6.21)), the long-range 1D uniqueness theorem (8.39), Mermin–Wagner (9.20), and
+Chapters 10–20 (Markov fields on trees, Gaussian fields, the variational principle, the Poulsen
+simplex, reflection positivity, and the infrared bound).
 
 ### Code organisation
 

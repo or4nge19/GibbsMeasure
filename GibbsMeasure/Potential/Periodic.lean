@@ -5,6 +5,8 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import Mathlib.Algebra.Order.Group.PiLex
+public import Mathlib.Data.Fintype.Pi
 public import GibbsMeasure.Potential.FreeBoundary
 public import GibbsMeasure.Potential.Transformation
 public import GibbsMeasure.Topology.Subsequence
@@ -15,6 +17,12 @@ public import GibbsMeasure.Topology.Subsequence
 Georgii Example (4.20)(2): the `Δ`-periodic modification `Φ̃^Δ` of a shift-invariant potential,
 and the fact that every cluster point of the finite-volume Gibbs distributions with periodic
 boundary condition is a Gibbs measure for `Φ`.
+
+The general theory is developed for an arbitrary additive group of sites, and then instantiated
+twice: on `ℤ`, with the boxes `intBox` and the least-site anchor `minAnchor`; and, as in the
+book, on the lattice `S = ℤ^d`, with the rectangular boxes `piBox` seen as tori through the
+coordinatewise reduction `piIntReduce`, the lexicographic anchor `lexAnchor`, and Georgii's net
+`𝒮_□` of cubes `latticeBox d n = [-(n+1), n+1)^d`.
 -/
 
 @[expose] public section
@@ -717,16 +725,18 @@ variable {S E : Type*} [Countable S] [MeasurableSpace E] [AddCommGroup S] [Decid
 /-- **Georgii (4.19) for the periodic modifications**: `γ^{Φ̃^Δ} → γ^Φ` uniformly in the
 𝓛-topology as `Δ ↑ S`, with `D`-function `2 · tail Δ Λ`. -/
 theorem tendsto_dist_action_periodicModification
-    [∀ i, IsPotential (periodicModification Φ (Δ i) (π i) anchor)]
-    [∀ i, IsAbsolutelySummable (periodicModification Φ (Δ i) (π i) anchor)]
     (hπ : ∀ i, IsTorusReduction (G i) (Δ i) (π i)) (ha : IsAnchor anchor)
     (hΦ : IsShiftInvariantOn Φ) (hΔ : Tendsto Δ l atTop) :
+    haveI := fun i ↦ isPotential_periodicModification (Φ := Φ) (hπ i) ha hΦ
+    haveI := fun i ↦ isAbsolutelySummable_periodicModification (Φ := Φ) (hπ i) ha hΦ
     ∀ (Λ : Finset S) ⦃f : lp (fun _ : S → E ↦ ℝ) ∞⦄, f ∈ localFunctions S E →
       Tendsto (fun i ↦ dist
         ((gibbsSpecificationOfAbsolutelySummable
           (Φ := periodicModification Φ (Δ i) (π i) anchor) ν β).action Λ f)
-        ((gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β).action Λ f)) l (𝓝 0) :=
-  tendsto_dist_action_gibbsSpecification_of_mem_localFunctions ν β
+        ((gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β).action Λ f)) l (𝓝 0) := by
+  have := fun i ↦ isPotential_periodicModification (Φ := Φ) (hπ i) ha hΦ
+  have := fun i ↦ isAbsolutelySummable_periodicModification (Φ := Φ) (hπ i) ha hΦ
+  exact tendsto_dist_action_gibbsSpecification_of_mem_localFunctions ν β
     (Φs := fun i ↦ periodicModification Φ (Δ i) (π i) anchor)
     (D := fun i Λ ↦ 2 * Φ.tail (Δ i) Λ)
     (fun i Λ η ↦ abs_hamiltonian_periodicModification_sub_le (hπ i) ha hΦ Λ η)
@@ -735,33 +745,37 @@ theorem tendsto_dist_action_periodicModification
 /-- **Georgii Example (4.20)(2).** Every cluster point of the periodic-boundary net
 `Δ ↦ ν_Δ γ^{Φ̃^Δ}_Δ`, `Δ ↑ S`, is a Gibbs measure for the shift-invariant potential `Φ ∈ ℬ`. -/
 theorem mem_GP_of_mapClusterPt_periodicModification [l.NeBot]
-    [∀ i, IsPotential (periodicModification Φ (Δ i) (π i) anchor)]
-    [∀ i, IsAbsolutelySummable (periodicModification Φ (Δ i) (π i) anchor)]
     (hπ : ∀ i, IsTorusReduction (G i) (Δ i) (π i)) (ha : IsAnchor anchor)
     (hΦ : IsShiftInvariantOn Φ) (hΔ : Tendsto Δ l atTop)
     (νs : ι → ProbabilityMeasure (S → E)) {μ : ProbabilityMeasure (S → E)}
-    (hcp : MapClusterPt (WithSetwiseTopology.ofMeasure μ : WithLocalConvergence S E) l
+    (hcp : haveI := fun i ↦ isPotential_periodicModification (Φ := Φ) (hπ i) ha hΦ
+      haveI := fun i ↦ isAbsolutelySummable_periodicModification (Φ := Φ) (hπ i) ha hΦ
+      MapClusterPt (WithSetwiseTopology.ofMeasure μ : WithLocalConvergence S E) l
       fun i ↦ WithSetwiseTopology.ofMeasure
         ((gibbsSpecificationOfAbsolutelySummable
           (Φ := periodicModification Φ (Δ i) (π i) anchor) ν β).bindPM (Δ i) (νs i))) :
-    μ ∈ GP (gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) :=
-  mem_GP_of_mapClusterPt (isQuasilocal_gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β)
+    μ ∈ GP (gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) := by
+  have := fun i ↦ isPotential_periodicModification (Φ := Φ) (hπ i) ha hΦ
+  have := fun i ↦ isAbsolutelySummable_periodicModification (Φ := Φ) (hπ i) ha hΦ
+  exact mem_GP_of_mapClusterPt (isQuasilocal_gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β)
     hΔ (tendsto_dist_action_periodicModification ν β hπ ha hΦ hΔ) hcp
 
 /-- **Georgii Example (4.20)(2)** for a configurational boundary condition: every cluster point
 of the net `(γ^{Φ̃^Δ}_Δ(·|ω))_Δ` of Gibbs distributions with periodic boundary condition belongs
 to `𝒢(Φ)`. -/
 theorem mem_GP_of_mapClusterPt_periodicModification_finiteVolumeDistributions [l.NeBot]
-    [∀ i, IsPotential (periodicModification Φ (Δ i) (π i) anchor)]
-    [∀ i, IsAbsolutelySummable (periodicModification Φ (Δ i) (π i) anchor)]
     (hπ : ∀ i, IsTorusReduction (G i) (Δ i) (π i)) (ha : IsAnchor anchor)
     (hΦ : IsShiftInvariantOn Φ) (hΔ : Tendsto Δ l atTop) (ω : S → E)
     {μ : ProbabilityMeasure (S → E)}
-    (hcp : MapClusterPt (WithSetwiseTopology.ofMeasure μ : WithLocalConvergence S E) l
+    (hcp : haveI := fun i ↦ isPotential_periodicModification (Φ := Φ) (hπ i) ha hΦ
+      haveI := fun i ↦ isAbsolutelySummable_periodicModification (Φ := Φ) (hπ i) ha hΦ
+      MapClusterPt (WithSetwiseTopology.ofMeasure μ : WithLocalConvergence S E) l
       fun i ↦ WithSetwiseTopology.ofMeasure
         (finiteVolumeDistributions (gibbsSpecificationOfAbsolutelySummable
           (Φ := periodicModification Φ (Δ i) (π i) anchor) ν β) ω (Δ i))) :
     μ ∈ GP (gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) := by
+  have := fun i ↦ isPotential_periodicModification (Φ := Φ) (hπ i) ha hΦ
+  have := fun i ↦ isAbsolutelySummable_periodicModification (Φ := Φ) (hπ i) ha hΦ
   refine mem_GP_of_mapClusterPt_periodicModification ν β hπ ha hΦ hΔ
     (fun _ ↦ ⟨Measure.dirac ω, inferInstance⟩) ?_
   have h : ∀ i : ι,
@@ -904,21 +918,227 @@ lemma isAbsolutelySummable_periodicModification_intBox (hΦ : IsShiftInvariantOn
 `(γ^{Φ̃^{Δ_n}}_{Δ_n})_n` over the boxes `Δ_n = [-(n+1), n+1)` is a Gibbs measure for the
 shift-invariant potential `Φ ∈ ℬ`. -/
 theorem mem_GP_of_mapClusterPt_intPeriodic
-    [∀ n, IsPotential (periodicModification Φ (intBox n) (intTorus n) minAnchor)]
-    [∀ n, IsAbsolutelySummable (periodicModification Φ (intBox n) (intTorus n) minAnchor)]
     (hΦ : IsShiftInvariantOn Φ) (νs : ℕ → ProbabilityMeasure (ℤ → E))
     {μ : ProbabilityMeasure (ℤ → E)}
-    (hcp : MapClusterPt (WithSetwiseTopology.ofMeasure μ : WithLocalConvergence ℤ E) atTop
+    (hcp : haveI := fun n ↦ isPotential_periodicModification_intBox (Φ := Φ) hΦ n
+      haveI := fun n ↦ isAbsolutelySummable_periodicModification_intBox (Φ := Φ) hΦ n
+      MapClusterPt (WithSetwiseTopology.ofMeasure μ : WithLocalConvergence ℤ E) atTop
       fun n : ℕ ↦ WithSetwiseTopology.ofMeasure
         ((gibbsSpecificationOfAbsolutelySummable
           (Φ := periodicModification Φ (intBox n) (intTorus n) minAnchor) ν β).bindPM
             (intBox n) (νs n))) :
-    μ ∈ GP (gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) :=
-  mem_GP_of_mapClusterPt_periodicModification ν β
+    μ ∈ GP (gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) := by
+  have := fun n ↦ isPotential_periodicModification_intBox (Φ := Φ) hΦ n
+  have := fun n ↦ isAbsolutelySummable_periodicModification_intBox (Φ := Φ) hΦ n
+  exact mem_GP_of_mapClusterPt_periodicModification ν β
     (G := fun n ↦ AddSubgroup.zmultiples (intBoxLen n)) isTorusReduction_intTorus
     isAnchor_minAnchor hΦ tendsto_intBox_atTop νs hcp
 
 end IntPeriodicBoundary
+
+/-! ### The boxes of `ℤ^d` as tori: Georgii's identification `Δ ≃ S / p·S` -/
+
+section PiIntBoxes
+
+variable {d : ℕ}
+
+/-- **Georgii (4.20)(2) on `ℤ^d`.** The group of periods `p · S = ∏_k p_k ℤ`; two sites of
+`ℤ^d` are congruent, `i ≡ j`, exactly when `i - j ∈ piPeriods p`, i.e. `i_k ≡ j_k (mod p_k)`
+for every coordinate `k`. -/
+def piPeriods (p : Fin d → ℤ) : AddSubgroup (Fin d → ℤ) :=
+  AddSubgroup.pi Set.univ fun k ↦ AddSubgroup.zmultiples (p k)
+
+@[simp] lemma mem_piPeriods {p g : Fin d → ℤ} :
+    g ∈ piPeriods p ↔ ∀ k, g k ∈ AddSubgroup.zmultiples (p k) := by
+  simp [piPeriods, AddSubgroup.mem_pi]
+
+/-- **Georgii (4.20)(2) on `ℤ^d`.** The rectangular box `Δ = ∏_k [m_k, m_k + p_k)`, a member of
+Georgii's directed set `𝒮_□`. -/
+def piBox (m p : Fin d → ℤ) : Finset (Fin d → ℤ) :=
+  Fintype.piFinset fun k ↦ Finset.Ico (m k) (m k + p k)
+
+@[simp] lemma mem_piBox {m p i : Fin d → ℤ} :
+    i ∈ piBox m p ↔ ∀ k, i k ∈ Finset.Ico (m k) (m k + p k) := Fintype.mem_piFinset
+
+/-- Coordinatewise reduction of `ℤ^d` modulo `∏_k p_k ℤ` onto the box `∏_k [m_k, m_k + p_k)`:
+Georgii's map `i ↦ j(i)`. -/
+def piIntReduce (m p : Fin d → ℤ) : (Fin d → ℤ) → Fin d → ℤ :=
+  fun i k ↦ intReduce (m k) (p k) (i k)
+
+@[simp] lemma piIntReduce_apply (m p i : Fin d → ℤ) (k : Fin d) :
+    piIntReduce m p i k = intReduce (m k) (p k) (i k) := rfl
+
+/-- **Georgii (4.20)(2) on `ℤ^d`.** The box `∏_k [m_k, m_k + p_k)` is a fundamental domain for
+the period group `∏_k p_k ℤ`, with reduction `piIntReduce m p`: all four defining properties of
+a torus reduction hold coordinatewise, by `isTorusReduction_intReduce` in each coordinate. -/
+lemma isTorusReduction_piIntReduce {p : Fin d → ℤ} (hp : ∀ k, 0 < p k) (m : Fin d → ℤ) :
+    IsTorusReduction (piPeriods p) (piBox m p) (piIntReduce m p) where
+  mapsTo i := mem_piBox.2 fun k ↦ (isTorusReduction_intReduce (hp k) (m k)).mapsTo (i k)
+  eq_self i hi :=
+    funext fun k ↦ (isTorusReduction_intReduce (hp k) (m k)).eq_self (i k) (mem_piBox.1 hi k)
+  sub_mem i := mem_piPeriods.2 fun k ↦ (isTorusReduction_intReduce (hp k) (m k)).sub_mem (i k)
+  reduce_eq i j h := funext fun k ↦
+    (isTorusReduction_intReduce (hp k) (m k)).reduce_eq (i k) (j k) (mem_piPeriods.1 h k)
+
+/-! ### The lexicographic anchor on `ℤ^d` -/
+
+variable (d) in
+/-- The identification of `ℤ^d` with its lexicographically ordered copy, as an embedding of
+site sets. The lexicographic order on `ℤ^d` is a translation-invariant linear order, so its
+least element is a translation-equivariant anchor. -/
+def toLexEmb : (Fin d → ℤ) ↪ Lex (Fin d → ℤ) := (toLex (α := Fin d → ℤ)).toEmbedding
+
+@[simp] lemma toLexEmb_apply (i : Fin d → ℤ) : toLexEmb d i = toLex i := rfl
+
+lemma map_toLexEmb_nonempty {B : Finset (Fin d → ℤ)} (hB : B.Nonempty) :
+    (B.map (toLexEmb d)).Nonempty := by simpa using hB
+
+/-- **Georgii (4.20)(2) on `ℤ^d`.** The lexicographically least site of a nonempty finite
+volume; it selects one representative in each class of translates. -/
+def lexAnchor (B : Finset (Fin d → ℤ)) : Fin d → ℤ :=
+  if h : B.Nonempty then ofLex ((B.map (toLexEmb d)).min' (map_toLexEmb_nonempty h)) else 0
+
+lemma lexAnchor_of_nonempty {B : Finset (Fin d → ℤ)} (hB : B.Nonempty)
+    (h : (B.map (toLexEmb d)).Nonempty) :
+    lexAnchor B = ofLex ((B.map (toLexEmb d)).min' h) := dite_eq_left hB
+
+lemma lexAnchor_mem {B : Finset (Fin d → ℤ)} (hB : B.Nonempty) : lexAnchor B ∈ B := by
+  obtain ⟨a, ha, hEq⟩ :=
+    Finset.mem_map.1 ((B.map (toLexEmb d)).min'_mem (map_toLexEmb_nonempty hB))
+  have hval : lexAnchor B = a := by
+    rw [lexAnchor_of_nonempty hB (map_toLexEmb_nonempty hB), ← hEq]
+    simp
+  rwa [hval]
+
+/-- The lexicographic order on `ℤ^d` is translation invariant, so the lexicographic anchor is
+translation equivariant: `anchor (B + j) = anchor B + j`. -/
+lemma lexAnchor_translate {B : Finset (Fin d → ℤ)} (hB : B.Nonempty) (g : Fin d → ℤ) :
+    lexAnchor (translate B g) = lexAnchor B + g := by
+  have hBg : (translate B g).Nonempty := translate_nonempty.2 hB
+  have h1 := map_toLexEmb_nonempty hB
+  have h2 := map_toLexEmb_nonempty hBg
+  have key : ((translate B g).map (toLexEmb d)).min' h2
+      = (B.map (toLexEmb d)).min' h1 + toLex g := by
+    refine le_antisymm (Finset.min'_le _ _ ?_) ?_
+    · obtain ⟨a, ha, hEq⟩ := Finset.mem_map.1 ((B.map (toLexEmb d)).min'_mem h1)
+      refine Finset.mem_map.2 ⟨a + g, mem_translate_of_mem ha, ?_⟩
+      rw [← hEq]
+      rfl
+    · obtain ⟨c, hc, hEq⟩ := Finset.mem_map.1 (((translate B g).map (toLexEmb d)).min'_mem h2)
+      have hle : (B.map (toLexEmb d)).min' h1 ≤ toLex (c - g) :=
+        Finset.min'_le _ _ (Finset.mem_map.2 ⟨c - g, mem_translate.1 hc, rfl⟩)
+      have hcg : c - g + g = c := by abel
+      calc (B.map (toLexEmb d)).min' h1 + toLex g ≤ toLex (c - g) + toLex g :=
+            add_le_add hle le_rfl
+        _ = toLexEmb d c := by
+            show toLex (c - g + g) = toLex c
+            rw [hcg]
+        _ = ((translate B g).map (toLexEmb d)).min' h2 := hEq
+  rw [lexAnchor_of_nonempty hBg h2, lexAnchor_of_nonempty hB h1, key]
+  rfl
+
+/-- **Georgii (4.20)(2) on `ℤ^d`.** `lexAnchor` is an anchor, so the representative sets
+`ℛ(A)` exist on the lattice `ℤ^d`. -/
+lemma isAnchor_lexAnchor : IsAnchor (lexAnchor (d := d)) where
+  mem _ hB := lexAnchor_mem hB
+  map_translate _ hB g := lexAnchor_translate hB g
+
+end PiIntBoxes
+
+/-! ### Georgii Example (4.20)(2) on `ℤ^d`: the net of cubes -/
+
+section LatticePeriodicBoundary
+
+variable {d : ℕ}
+
+/-- Georgii's net `𝒮_□` in dimension `d`: the cubes `Δ_n = [-(n+1), n+1)^d`. -/
+def latticeBox (d n : ℕ) : Finset (Fin d → ℤ) :=
+  piBox (fun _ ↦ intBoxLeft n) fun _ ↦ intBoxLen n
+
+/-- The `n`-th cube of `ℤ^d`, viewed as the torus `ℤ^d / 2(n+1)·ℤ^d`. -/
+def latticeTorus (d n : ℕ) : (Fin d → ℤ) → Fin d → ℤ :=
+  piIntReduce (fun _ ↦ intBoxLeft n) fun _ ↦ intBoxLen n
+
+@[simp] lemma mem_latticeBox {n : ℕ} {x : Fin d → ℤ} :
+    x ∈ latticeBox d n ↔ ∀ k, x k ∈ Finset.Ico (intBoxLeft n) (intBoxLeft n + intBoxLen n) :=
+  mem_piBox
+
+lemma isTorusReduction_latticeTorus (d n : ℕ) :
+    IsTorusReduction (piPeriods fun _ : Fin d ↦ intBoxLen n) (latticeBox d n)
+      (latticeTorus d n) :=
+  isTorusReduction_piIntReduce (fun _ ↦ intBoxLen_pos n) _
+
+/-- **`Δ_n ↑ ℤ^d`**: the cubes exhaust the lattice. -/
+lemma tendsto_latticeBox_atTop : Tendsto (latticeBox d) atTop atTop := by
+  refine Filter.tendsto_atTop_atTop.2 fun Λ ↦
+    ⟨Λ.sup fun y ↦ Finset.univ.sup fun k ↦ (y k).natAbs, fun n hn x hx ↦ ?_⟩
+  refine mem_latticeBox.2 fun k ↦ ?_
+  have h1 : (x k).natAbs ≤ Finset.univ.sup fun k ↦ (x k).natAbs :=
+    Finset.le_sup (f := fun k ↦ (x k).natAbs) (Finset.mem_univ k)
+  have h2 : (Finset.univ.sup fun k ↦ (x k).natAbs)
+      ≤ Λ.sup fun y : Fin d → ℤ ↦ Finset.univ.sup fun k ↦ (y k).natAbs :=
+    Finset.le_sup (f := fun y : Fin d → ℤ ↦ Finset.univ.sup fun k ↦ (y k).natAbs) hx
+  have h3 : (x k).natAbs ≤ n := (h1.trans h2).trans hn
+  rw [Finset.mem_Ico, intBoxLeft, intBoxLen]
+  omega
+
+variable {E : Type*} [MeasurableSpace E] {Φ : Potential (Fin d → ℤ) E} [IsPotential Φ]
+  [IsAbsolutelySummable Φ] (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ)
+
+lemma isPotential_periodicModification_latticeBox (hΦ : Φ.IsShiftInvariant) (n : ℕ) :
+    IsPotential (periodicModification Φ (latticeBox d n) (latticeTorus d n) lexAnchor) :=
+  isPotential_periodicModification (isTorusReduction_latticeTorus d n) isAnchor_lexAnchor
+    (isShiftInvariantOn_of_isShiftInvariant hΦ)
+
+omit [IsPotential Φ] in
+lemma isAbsolutelySummable_periodicModification_latticeBox (hΦ : Φ.IsShiftInvariant) (n : ℕ) :
+    IsAbsolutelySummable (periodicModification Φ (latticeBox d n) (latticeTorus d n) lexAnchor) :=
+  isAbsolutelySummable_periodicModification (isTorusReduction_latticeTorus d n)
+    isAnchor_lexAnchor (isShiftInvariantOn_of_isShiftInvariant hΦ)
+
+/-- **Georgii Example (4.20)(2) on `ℤ^d`.** Every cluster point of the periodic-boundary net
+`(ν_n γ^{Φ̃^{Δ_n}}_{Δ_n})_n` over Georgii's cubes `Δ_n = [-(n+1), n+1)^d` is a Gibbs measure for
+the shift-invariant potential `Φ ∈ ℬ`. -/
+theorem mem_GP_of_mapClusterPt_latticePeriodic (hΦ : Φ.IsShiftInvariant)
+    (νs : ℕ → ProbabilityMeasure ((Fin d → ℤ) → E))
+    {μ : ProbabilityMeasure ((Fin d → ℤ) → E)}
+    (hcp : haveI := fun n ↦ isPotential_periodicModification_latticeBox (Φ := Φ) hΦ n
+      haveI := fun n ↦ isAbsolutelySummable_periodicModification_latticeBox (Φ := Φ) hΦ n
+      MapClusterPt (WithSetwiseTopology.ofMeasure μ : WithLocalConvergence (Fin d → ℤ) E) atTop
+      fun n : ℕ ↦ WithSetwiseTopology.ofMeasure
+        ((gibbsSpecificationOfAbsolutelySummable
+          (Φ := periodicModification Φ (latticeBox d n) (latticeTorus d n) lexAnchor)
+            ν β).bindPM (latticeBox d n) (νs n))) :
+    μ ∈ GP (gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) := by
+  have := fun n ↦ isPotential_periodicModification_latticeBox (Φ := Φ) hΦ n
+  have := fun n ↦ isAbsolutelySummable_periodicModification_latticeBox (Φ := Φ) hΦ n
+  exact mem_GP_of_mapClusterPt_periodicModification ν β
+    (G := fun n ↦ piPeriods fun _ : Fin d ↦ intBoxLen n)
+    (fun n ↦ isTorusReduction_latticeTorus d n) isAnchor_lexAnchor
+    (isShiftInvariantOn_of_isShiftInvariant hΦ) tendsto_latticeBox_atTop νs hcp
+
+/-- **Georgii Example (4.20)(2) on `ℤ^d`, the statement of the book.** For every boundary
+condition `ω`, each cluster point of the net `(γ^{Φ̃^{Δ_n}}_{Δ_n}(·|ω))_n` of Gibbs distributions
+with periodic boundary condition over the cubes `Δ_n ↑ ℤ^d` belongs to `𝒢(Φ)`. -/
+theorem mem_GP_of_mapClusterPt_latticePeriodic_finiteVolumeDistributions
+    (hΦ : Φ.IsShiftInvariant) (ω : (Fin d → ℤ) → E)
+    {μ : ProbabilityMeasure ((Fin d → ℤ) → E)}
+    (hcp : haveI := fun n ↦ isPotential_periodicModification_latticeBox (Φ := Φ) hΦ n
+      haveI := fun n ↦ isAbsolutelySummable_periodicModification_latticeBox (Φ := Φ) hΦ n
+      MapClusterPt (WithSetwiseTopology.ofMeasure μ : WithLocalConvergence (Fin d → ℤ) E) atTop
+      fun n : ℕ ↦ WithSetwiseTopology.ofMeasure
+        (finiteVolumeDistributions (gibbsSpecificationOfAbsolutelySummable
+          (Φ := periodicModification Φ (latticeBox d n) (latticeTorus d n) lexAnchor) ν β)
+            ω (latticeBox d n))) :
+    μ ∈ GP (gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) := by
+  have := fun n ↦ isPotential_periodicModification_latticeBox (Φ := Φ) hΦ n
+  have := fun n ↦ isAbsolutelySummable_periodicModification_latticeBox (Φ := Φ) hΦ n
+  exact mem_GP_of_mapClusterPt_periodicModification_finiteVolumeDistributions ν β
+    (G := fun n ↦ piPeriods fun _ : Fin d ↦ intBoxLen n)
+    (fun n ↦ isTorusReduction_latticeTorus d n) isAnchor_lexAnchor
+    (isShiftInvariantOn_of_isShiftInvariant hΦ) tendsto_latticeBox_atTop ω hcp
+
+end LatticePeriodicBoundary
 
 /-! ### Georgii (4.20): the finite-volume Gibbs distribution with free / periodic boundary
 condition -/

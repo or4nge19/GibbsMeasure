@@ -42,13 +42,15 @@ open MeasureTheory.GibbsMeasure.Peierls (Site r)
 /-- **Georgii (8.7)+(8.8) for the `ℤ^d` Ising model.** If `4d|βJ| < 2`, then the Ising
 specification on `ℤ^d` has at most one Gibbs measure.
 
-Quasilocality of the Ising specification — the second hypothesis of Georgii's Theorem (8.7) — is
-supplied by `Potential.isQuasilocal_gibbsSpecificationOfAbsolutelySummable`, the Ising potential
-being absolutely summable on a locally finite graph. -/
+Quasilocality of the Ising specification — the first conjunct of Georgii's Definition (8.6),
+without which Theorem (8.7) is false (Example (2.27)) — is part of
+`Dobrushin.isDobrushin_isingSpecification`, which obtains it from
+`Potential.isQuasilocal_gibbsSpecificationOfAbsolutelySummable`, the Ising potential being
+absolutely summable on a locally finite graph. -/
 theorem subsingleton_GP_isingSpecification_of_lt (d : ℕ) (J h β : ℝ) (hβ : 4 * d * |β * J| < 2) :
     (GP (S := Fin d → ℤ) (E := Bool) (isingSpecification (latticeGraph d) J h β)).Subsingleton :=
   Dobrushin.subsingleton_GP_of_isDobrushin
-    (Potential.isQuasilocal_gibbsSpecificationOfAbsolutelySummable uniformSpinMeasure β)
+    (Dobrushin.isDobrushin_isingSpecification d J h β hβ).1
     (Dobrushin.isDobrushin_isingSpecification d J h β hβ)
 
 /-- **Georgii (8.7)+(8.8) for the `ℤ^d` Ising model**, existence and uniqueness combined:
@@ -59,7 +61,7 @@ theorem existsUnique_mem_GP_isingSpecification_of_lt (d : ℕ) (J h β : ℝ)
     ∃! μ : ProbabilityMeasure ((Fin d → ℤ) → Bool),
       μ ∈ GP (S := Fin d → ℤ) (E := Bool) (isingSpecification (latticeGraph d) J h β) :=
   Dobrushin.existsUnique_mem_GP_of_isDobrushin
-    (Potential.isQuasilocal_gibbsSpecificationOfAbsolutelySummable uniformSpinMeasure β)
+    (Dobrushin.isDobrushin_isingSpecification d J h β hβ).1
     (Dobrushin.isDobrushin_isingSpecification d J h β hβ)
     (isingGibbsMeasure_nonempty (latticeGraph d) J h β)
 
