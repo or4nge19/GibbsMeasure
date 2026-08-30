@@ -87,6 +87,50 @@ status:
       file: "GibbsMeasure/Model/SharpCriticalTemperature.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.ising_sharp_phase_transition"
+      file: "GibbsMeasure/Model/SharpCriticalTemperature.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.nontrivial_GP_ising2D_iff_spontaneousMagnetisation_pos"
+      file: "GibbsMeasure/Model/LebowitzMartinLof.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.plusState_mem_GP"
+      file: "GibbsMeasure/Model/PlusPhase.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.stochasticallyLE_isingSpecification_of_le"
+      file: "GibbsMeasure/Model/IsingFKG.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.ae_tendsto_iSup_ofReal_abs_sub_of_mem_extremePoints_G"
+      file: "GibbsMeasure/Specification/UniformLocalLimits.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.subsingleton_G_of_isUniformlyDominated"
+      file: "GibbsMeasure/Specification/OneDimensionalUniqueness.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.subsingleton_G_lambdaSpecification_of_iSup_oscSpan_ne_top"
+      file: "GibbsMeasure/Specification/OneDimensionalUniqueness.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.subsingleton_G_of_pair_rpow_le"
+      file: "GibbsMeasure/Specification/OneDimensionalUniqueness.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.mem_GP_and_forall_measurePreserving_of_mapClusterPt_average"
+      file: "GibbsMeasure/Specification/InvariantExistence.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Exchangeable.exists_not_countable_gibbsMeasures_of_tsum_interdep_lt_one"
+      file: "GibbsMeasure/Model/Exchangeable.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.PeierlsSharp.isBrokenSymmetry_spinFlip"
+      file: "GibbsMeasure/Model/SymmetryBreaking.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
 
 automation:
   methods:
@@ -136,18 +180,41 @@ fidelity:
     (b) Proposition (4.15) now assumes nothing about the state space, via Georgii's Radon-Nikodym
     seed algebra.
     (c) Theorem (7.12)(b), weak convergence, is proved for a compact metrizable state space.
-    (d) The critical inverse temperature beta_c is defined, with 1/4 <= beta_c <= log 3 and
-    uniqueness below beta_c proved unconditionally. Non-uniqueness strictly above beta_c is stated
-    with the single hypothesis that the non-uniqueness set is upward closed; that follows from the
-    Griffiths/GKS monotonicity proved here together with the Lebowitz-Martin-Loef/Ruelle
-    equivalence, which Georgii himself cites without proof.
+    (d) The critical inverse temperature beta_c is defined, with 1/4 <= beta_c <= log 3, and BOTH
+    halves are now unconditional: uniqueness for every 0 <= beta < beta_c and non-uniqueness for
+    every beta_c < beta (`Model/SharpCriticalTemperature.lean`, `ising_sharp_phase_transition`).
+    The Lebowitz-Martin-Loef/Ruelle equivalence |G(beta Phi)| > 1 <-> mu_plus(sigma_0) > 0, which
+    Georgii cites without proving it, is proved here (`Model/LebowitzMartinLof.lean`,
+    `nontrivial_GP_ising2D_iff_spontaneousMagnetisation_pos`), so the upward-closedness of the
+    non-uniqueness set is a theorem (`isUpperSet_isingNonUniqueness`) rather than a hypothesis.
+    Nothing is asserted at beta = beta_c. Onsager's exact value of beta_c is not proved; Georgii
+    does not prove it either, and does not state it in the digitised text.
+    (e) Theorem (8.39). Its first half, |G(Phi)| <= 1, is proved at Georgii's own hypotheses:
+    Definition (2.2) summability rather than absolute summability, any sigma-finite non-zero
+    lambda-admissible a priori measure, and both S = Z and S = N (through an abstraction of the
+    one-dimensional input, `HasBoundedBoundary`). Its second half, |G(Phi)| = 1, is proved only for
+    an absolutely summable potential over a probability a priori measure, because the existence
+    half rests on Theorem (4.23)(a), which is available only there. Georgii's own argument for the
+    second half passes to a family of per-site a priori measures lambda_i = exp(-Phi_{i}) lambda;
+    that extension of (4.23) is not formalized. This is the one place where a stated result is
+    weaker than the book.
   notes: >-
     Two differences from the book are deliberate improvements. Lemma (6.14) is proved by an
     explicit Z/2 coboundary argument, including the case n_c(u) = 4 where Georgii appeals to the
     Jordan curve theorem; the Lean proof uses no topology, which matters because the Jordan curve
     theorem is not available in Mathlib. In Theorem (6.9), mu_plus is obtained as a cluster point
-    of cube-averaged plus-boundary distributions, which is Georgii's own construction; the FKG
-    limit appears only in his surrounding remarks, citing other papers.
+    of cube-averaged plus-boundary distributions, which is Georgii's own construction. Separately,
+    `Model/PlusPhase.lean` builds the plus state as a genuine monotone LIMIT of the finite-volume
+    distributions with all-plus boundary condition — via Holley's inequality, which gives
+    stochastic monotonicity in the boundary condition and hence antitonicity in the volume — and
+    proves the sandwich mu_minus <= mu <= mu_plus for every Gibbs measure. That is the route
+    Georgii describes only in his surrounding remarks, citing other papers, and it is what makes
+    the Lebowitz-Martin-Loef equivalence available. The equivalence is proved without any coupling
+    theorem: two stochastically comparable finite measures of equal mass that agree on a family of
+    measurable upper sets generating the sigma-algebra are equal, because the family of upper sets
+    on which they agree is closed under intersection
+    (`Mathlib/MeasureTheory/Order/StochasticDomination.lean`). Strassen's theorem is neither used
+    nor present in Mathlib.
 
 review:
   status: "agent-reviewed"

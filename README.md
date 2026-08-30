@@ -88,9 +88,17 @@ random site — with **no Gibbs measure**; it is not quasilocal (`not_isQuasiloc
 so quasilocality cannot be dropped from (4.17)/(4.22).
 
 Chapter 5, §5.1 and most of §5.2: everything in (5.1)–(5.13) and (5.17)(1)/(5.18)/(5.20)(1) is
-formalised; still missing are Theorem (5.15) and its Corollary (5.16) (invariant Gibbs measures
-for a pair of commuting subgroups of `T`), Theorem (5.19) (the general boundary-condition
-criterion for `𝒢_I(γ) ≠ ∅`) and Definition (5.21) (broken symmetry). In detail: Georgii's
+formalised; Theorem **(5.19)**, Georgii's counterpart to the general
+existence theorem (4.22) — a locally equicontinuous net of Cesàro averages of `I`-invariant
+finite-volume distributions has a cluster point in `𝒢_I(γ)` — is
+`GibbsMeasure/Specification/InvariantExistence.lean`, and the finite-`E` shift-invariant existence
+of (5.17)(1)/(5.20)(1) is now derived from it rather than proved directly. Definition **(5.21)**,
+broken symmetries, is `GibbsMeasure/Specification/BrokenSymmetry.lean`, with the two-dimensional
+phase transition as an instance in `GibbsMeasure/Model/SymmetryBreaking.lean`: at `β ≥ log 3` the
+spin flip is a symmetry of the zero-field specification and is broken, which by Georgii's remark
+after (5.21) gives non-uniqueness without going through the two explicit phases. Still missing are
+Theorem (5.15) and its Corollary (5.16), which need a Følner net for an abelian group — Mathlib has
+`IsFoelner` but no theorem producing one, and no amenability definition. In detail: Georgii's
 transformation group `T` of configuration space ((5.1),
 `GibbsMeasure/Prereqs/Transformation.lean`), its action on potentials ((5.3), `Potential.map`,
 with the Hamiltonian/norm/Boltzmann-factor transport of (5.6)(c)), on specifications ((5.4),
@@ -202,8 +210,14 @@ the estimates (8.16)/(8.17) and Lemma (8.18); the **comparison theorem (8.20)**;
 Borel state space — the existence half coming from Georgii's conditioned specification (8.22) and
 the Cauchy argument of (8.23) (`GibbsMeasure/Specification/DobrushinUniqueness.lean`:
 `existsUnique_mem_GP_of_isDobrushin_of_standardBorel`). Dobrushin's condition is formalised as
-Georgii states it in (8.6) — quasilocality *and* `c(γ) < 1`; his Example (2.27) has `C(γ) ≡ 0`
-yet uncountably many Gibbs measures, so the first conjunct is not decorative. The criterion **(8.8)** —
+Georgii states it in (8.6) — quasilocality *and* `c(γ) < 1`; his Example (2.27) — now formalised — has `C(γ) ≡ 0`
+yet uncountably many Gibbs measures, so the first conjunct is not decorative:
+`GibbsMeasure/Specification/GluedFamily.lean` builds Remark (2.26), the specification glued from a
+measurable family along a tail-measurable parameter, and `GibbsMeasure/Model/Exchangeable.lean`
+gives the Bernoulli instance with `interdep_gammaEx i j = 0`, `not_countable_gibbsMeasures` and
+`not_isQuasilocal_gammaEx`, packaged as
+`exists_not_countable_gibbsMeasures_of_tsum_interdep_lt_one`. Deleting quasilocality from (8.6)
+would therefore make (8.7) false. The criterion **(8.8)** —
 `sup_i ∑_{A ∋ i} (|A| − 1) δ(Φ_A) < 2` implies Dobrushin's condition, with Georgii's sharp
 constant 2 — and its instance for the Ising model, `isDobrushin_isingSpecification`
 (`GibbsMeasure/Specification/Dobrushin.lean`). Together with (6.9) this brackets the critical
@@ -212,14 +226,45 @@ temperature, non-uniqueness at low temperature. Griffiths' monotonicity — the 
 (`GibbsMeasure/Model/GKSInequalities.lean`: `corr_nonneg`, `corr_mul_corr_le`, `corr_mono`,
 `corr_mono_beta`, `plusMagnetisation_mono`) — turns the bracket into a critical inverse
 temperature: `β_c := inf {β ≥ 0 : |𝒢(βΦ)| > 1}` is a well-defined real number with
-`1/4 ≤ β_c ≤ log 3`, and uniqueness for `0 ≤ β < β_c` is unconditional
-(`GibbsMeasure/Model/SharpCriticalTemperature.lean`: `isingBetaC`, `isingBetaC_mem_Icc`,
-`existsUnique_of_lt_isingBetaC`, `ising_critical_temperature`). Non-uniqueness *strictly above*
-`β_c` is proved only conditionally, on `IsUpperSet isingNonUniqueness`
-(`nontrivial_of_isingBetaC_lt`, `ising_sharp_phase_transition`): that upper-set property is the
-Lebowitz–Martin-Löf/Ruelle equivalence `|𝒢(βΦ)| > 1 ↔ μ₊^β(σ₀) > 0`, which Georgii cites without
-proving it. Onsager's exact value of `β_c` is not proved here, and Georgii does not prove it
-either.
+`1/4 ≤ β_c ≤ log 3`, and **both** halves are unconditional: uniqueness for every `0 ≤ β < β_c` and
+non-uniqueness for every `β_c < β` (`GibbsMeasure/Model/SharpCriticalTemperature.lean`:
+`isingBetaC`, `isingBetaC_mem_Icc`, `existsUnique_of_lt_isingBetaC`, `nontrivial_of_isingBetaC_lt`,
+`ising_sharp_phase_transition`). What used to be the hypothesis `IsUpperSet isingNonUniqueness` is
+now the theorem `isUpperSet_isingNonUniqueness`, because the **Lebowitz–Martin-Löf/Ruelle
+equivalence** `|𝒢(βΦ)| > 1 ↔ μ₊^β(σ₀) > 0` — which Georgii cites without proving it — is proved in
+`GibbsMeasure/Model/LebowitzMartinLof.lean`
+(`nontrivial_GP_ising2D_iff_spontaneousMagnetisation_pos`). Nothing is asserted at `β = β_c`.
+Onsager's exact value is not proved here, and Georgii does not prove it either — the digitised text
+does not state it.
+
+That equivalence rests on two new pieces. **Holley's inequality for the Ising ferromagnet**
+(`GibbsMeasure/Model/IsingFKG.lean`): the finite-volume distribution is stochastically increasing
+in the boundary condition, hence decreasing in the volume under the all-plus condition. It reduces
+to submodularity of the Hamiltonian, `H_Λ(η ⊓ ζ) + H_Λ(η ⊔ ζ) ≤ H_Λ(η) + H_Λ(ζ)`, because
+`juxt Λ ω ζ ⊓ juxt Λ ω' ξ = juxt Λ ω (ζ ⊓ ξ)` for `ω ≤ ω'` collapses the boundary bonds into the
+interior ones. And the **plus state as a genuine monotone limit** — not a compactness cluster point
+— with the sandwich `μ₋ ≼ μ ≼ μ₊` for every Gibbs measure (`GibbsMeasure/Model/PlusPhase.lean`:
+`plusState`, `tendsto_measure_plusState`, `plusState_mem_GP`, `stochasticallyLE_plusState`). No
+coupling theorem is used: two stochastically comparable measures of equal mass that agree on a
+generating family of upper sets are equal
+(`GibbsMeasure/Mathlib/MeasureTheory/Order/StochasticDomination.lean`), so Strassen's theorem —
+absent from Mathlib — is not needed.
+
+**Chapter 8 beyond Dobrushin.** Proposition **(8.38)** is a uniqueness criterion for an *arbitrary*
+specification: if some `c > 0` makes every cylinder event `A` admit a volume `Λ` with
+`γ_Λ(A|ζ) ≥ c γ_Λ(A|η)` for all boundary conditions, then `|𝒢(γ)| ≤ 1`
+(`GibbsMeasure/Specification/OneDimensionalUniqueness.lean`,
+`subsingleton_G_of_isUniformlyDominated`). Theorem **(8.39)**, uniqueness in one dimension under
+decay of the interaction, is its corollary, at Georgii's own hypotheses: Definition (2.2)
+summability rather than absolute summability, any σ-finite non-zero λ-admissible a priori measure,
+and both `S = ℤ` and `S = ℕ` — through `HasBoundedBoundary`, an abstraction of "exhausted by
+intervals with a bounded number of boundary sites". Georgii's Comments (8.41) come with it, ending
+in `subsingleton_G_of_pair_rpow_le`: a shift-invariant pair potential on `ℤ` with
+`δ(Φ_{0,n}) ≤ c n^{-p}`, `p > 2`, has at most one Gibbs measure — uniqueness far past the
+nearest-neighbour Markov case of (3.5). The second half of (8.39), `|𝒢(Φ)| = 1` rather than `≤ 1`,
+is proved only for an absolutely summable potential over a probability a priori measure, because
+existence (4.23)(a) is available only there; that is the one place where a stated result is weaker
+than the book.
 
 Chapter 4 is complete: Proposition **(4.15)** (a cluster point of a locally equicontinuous
 sequence is a subsequential limit, `GibbsMeasure/Topology/Subsequence.lean`) and Example
