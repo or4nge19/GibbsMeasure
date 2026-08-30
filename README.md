@@ -159,8 +159,13 @@ coboundary argument (Timár's cycle-space step made elementary) instead of Georg
 the Jordan curve theorem; and (`GibbsMeasure/Model/PeierlsEstimate.lean`) the Ising
 energy–contour identity `H_Λ(ζ) = -(|B_Λ| - 2|B_Λ ∩ B*(ζ)|)`, the flip estimate (6.15) in
 edge-boundary form `γ_Λ^{βΦ}(∂D ⊆ B*(·) | ω) ≤ e^{-2β|∂D|}` (for every real `β`), and the
-contour counting (6.13) with the explicit bound `4096^ℓ` on connected bond sets, sufficient for
-the large-`β` Peierls argument.
+contour counting (6.13).
+
+Georgii's **own** contour count is proved in `GibbsMeasure/Model/SharpContours.lean`: the
+degree-two property `n_c(u) = 2` for the outer boundary of a finite connected set — all four
+cases, including the one Georgii settles with the Jordan curve theorem, here by a mod-2 argument
+with no topology — the resulting circuit structure, and hence `ℓ · 3^{ℓ−1}` circuits of length
+`ℓ` through a fixed bond, against the crude `4096^ℓ` for arbitrary plaquette-connected bond sets.
 
 **Chapter 8, Dobrushin's uniqueness condition.** Dobrushin's interdependence matrix `C(γ)`
 ((8.5)) and his condition of weak dependence ((8.6)); the oscillation calculus (8.14)/(8.15),

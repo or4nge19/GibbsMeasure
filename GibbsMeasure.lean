@@ -58,6 +58,7 @@ public import GibbsMeasure.Model.LowTemperatureLimit
 public import GibbsMeasure.Model.MarkovChain
 public import GibbsMeasure.Model.PeierlsEstimate
 public import GibbsMeasure.Model.PhaseTransition
+public import GibbsMeasure.Model.SharpContours
 public import GibbsMeasure.Model.ShiftAverage
 public import GibbsMeasure.Potential.Existence
 public import GibbsMeasure.Potential.GibbsRepresentation
