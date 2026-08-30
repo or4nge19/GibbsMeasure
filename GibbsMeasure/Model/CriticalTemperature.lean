@@ -23,6 +23,11 @@ ferromagnet on `ℤ²` with coupling `J = 1` and no external field:
 It also closes the `r(β) → 0` gap in `GibbsMeasure/Model/PhaseTransition.lean` and proves
 Georgii's `μ₊(σ_Λ ≠ ω⁺_Λ) ≤ |Λ| r(β)` together with the resulting local convergence
 `μ₊ → δ_{ω⁺}` as `β → ∞`.
+
+The sharp critical inverse temperature `β_c` itself — Georgii's `0 < β_c < ∞` as a statement
+about a well-defined number — is `GibbsMeasure/Model/SharpCriticalTemperature.lean`, which
+builds on the Griffiths/GKS correlation inequalities of
+`GibbsMeasure/Model/GKSInequalities.lean`.
 -/
 
 @[expose] public section
@@ -110,11 +115,15 @@ in the honest two-sided form.
 Since `1/4 < 8 log 2`, the two ranges are disjoint and the statement is not vacuous: the model
 has a genuine phase transition somewhere in `[1/4, 8 log 2]`.
 
-**Caveat.** This does *not* assert the existence of a sharp critical inverse temperature `β_c`
-with uniqueness below and non-uniqueness above. That requires monotonicity of the phase diagram
-in `β` (Griffiths'/GKS correlation inequalities, or the FKG-based monotonicity of the `+`-phase
-magnetisation), which is **not** formalized in this development. What is proved here is exactly
-Georgii's assertion that the transition point is strictly between `0` and `∞`. -/
+**Sharp form.** This statement is the two-sided bracket. The *sharp* form — a well-defined
+critical inverse temperature `β_c` with `1/4 ≤ β_c ≤ 8 log 2` (hence `0 < β_c < ∞`),
+uniqueness for every `0 ≤ β < β_c`, and non-uniqueness above `β_c` — is
+`ising_critical_temperature` and `ising_sharp_phase_transition` in
+`GibbsMeasure/Model/SharpCriticalTemperature.lean`. The Griffiths/GKS correlation
+inequalities underlying Georgii's monotonicity of `μ₊^β(σ₀)` are proved in
+`GibbsMeasure/Model/GKSInequalities.lean`; the only ingredient still missing for the
+unconditional sharp dichotomy is the Lebowitz–Martin-Löf/Ruelle equivalence
+`|𝒢(βΦ)| > 1 ↔ μ₊^β(σ₀) > 0`, which Georgii himself only cites. -/
 theorem ising_two_dimensional_phase_transition :
     (∀ β : ℝ, 0 ≤ β → β < 1 / 4 →
         ∃! μ : ProbabilityMeasure (Site → Bool),

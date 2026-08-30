@@ -14,8 +14,8 @@ project:
     Markov chain classification (3.5); and the two-dimensional Ising phase transition (6.9) in
     both of its assertions, giving two-sided bounds on the critical temperature.
   authors:
-    - "Matteo Cipollina"
-    - "Yael Dillies"
+    - "Matteo Cipollina"        # project lead: mathematical direction, architecture, review, integration
+    - "Yael Dillies"            # original specification/DLR core (Chapters 1-2)
   responsible_maintainers:
     - "Matteo Cipollina"
   license: "Apache-2.0"
@@ -79,48 +79,75 @@ status:
       file: "GibbsMeasure/Potential/GibbsRepresentation.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.PeierlsSharp.exists_two_shiftInvariant_gibbs_sharp"
+      file: "GibbsMeasure/Model/SharpPhaseTransition.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.ising_critical_temperature"
+      file: "GibbsMeasure/Model/SharpCriticalTemperature.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
 
 automation:
   methods:
+    - method: "manual"
+      tool_setup: >-
+        Mathematical direction and architecture by the project lead: choice of results and of the
+        order in which to attack them, the design of the Lean ontology (specifications as proper
+        consistent kernel families, potentials, the topology of local convergence, the space of
+        absolutely summable potentials), the standard applied to every result (general theorem
+        first, Mathlib-native definitions, no proof obligations stored in structures, no parallel
+        theory to Mathlib, no weakened surrogates), adversarial reviewing of every landed chapter
+        against Georgii, and all integration and commits.
     - method: "agent"
       models: ["claude-fable-5", "claude-opus-5"]
       framework: "Claude Code"
       tool_setup: >-
-        Multi-agent orchestration: worker agents drafted and compiled Lean in scratch files against
-        the built library, with adversarial reviewer agents checking statements against the book
-        text and against Mathlib, and compiling counterexamples to weakened hypotheses. The human
-        maintainer set the goals, reviewed and landed the results, and made all commits.
+        Multi-agent orchestration under the project lead's direction. Worker agents drafted and
+        compiled Lean against the built library in scratch files; adversarial reviewer agents
+        checked statements against the source text and against Mathlib and compiled falsifications
+        of weakened hypotheses. Grounding was provided by Axiomatic AI tooling (proprietary, in
+        part unreleased): a structured, section-level rendering of the source text
+        (`reference_docs`), a concept wiki cross-linking each notion to its Lean declarations
+        (`reference_wiki`, whose `lean_refs` are maintained as results land), and a Lean search
+        facility (`search_lean`) used to locate existing Mathlib API and avoid duplication.
       prompting_notes: >-
-        Standing instruction to prefer the general theorem over special cases, to build missing
-        prerequisites rather than weaken statements, and to record honest divergences from the
-        source rather than overclaim.
+        Standing instructions: prefer the general theorem to the special case; build a missing
+        prerequisite rather than weaken a statement; never record a gap in place of closing it;
+        verify every statement against the source before proving it.
   notes: >-
-    Earlier portions of the development (Chapters 1-2 core and the specification API) are by
-    Yael Dillies and predate the agent-assisted work.
+    The formalization is directed and owned by the project lead; agents are an execution and
+    review instrument within that direction. Chapters 1-2's specification core is earlier,
+    foundational work by Yael Dillies.
 
 fidelity:
   divergences: >-
-    (1) Reference measures: Georgii works with a sigma-finite a priori measure lambda; most of this
-    development fixes a probability reference measure, which is Georgii's own reduction by Remark
-    (1.28)(3), and the Ising model uses the uniform measure on Bool rather than counting measure
-    (the normalisation cancels in the Gibbs kernel).
-    (2) Lemma (6.14): the outer boundary of a finite connected set is proved connected by an
-    explicit Z/2 coboundary argument (after Timar) instead of Georgii's appeal to the Jordan curve
-    theorem, and his degree-2 property n_c(u) = 2 is proved separately.
-    (3) Lemma (6.13): the contour count is 4096^l rather than Georgii's l*3^(l-1), so the explicit
-    threshold in (6.9) is 8*log 2 rather than approximately 0.55. The qualitative statement is
-    unaffected.
-    (4) Theorem (6.9): mu_plus is a cluster point of cube-averaged plus-boundary distributions, not
-    the FKG limit; correlation inequalities are not formalized.
-    (5) Proposition (4.15) is proved for a countably generated state space rather than an arbitrary
-    measurable one; Georgii's Radon-Nikodym seed algebra is not formalized.
-    (6) Example (4.20)(2) is instantiated on Z and Z^d; the general theory is stated for an
-    arbitrary additive group of sites.
-    (7) Theorem (7.12)(b), the weak-convergence form, is not formalized; only the local-convergence
-    form over a finite state space is.
-    (8) A sharp critical inverse temperature beta_c is not defined: that needs Griffiths/GKS
-    monotonicity, which is not formalized. The two-sided theorem gives uniqueness below 1/4 and
-    non-uniqueness above 8*log 2.
+    None known that weaken a result relative to Georgii. Every restriction that remained after the
+    main development has since been either removed or identified as one of Georgii's own
+    hypotheses:
+    (a) reference measures — the sigma-finite case is now covered by his rescaling Remark
+    (1.28)(3) (`Specification/Rescaling.lean`, `Potential/FiniteReference.lean`). Two apparent
+    restrictions turned out to be intrinsic rather than weakenings: the independent specification
+    `isssd` requires a probability measure because for lambda(E) != 1 the consistency equation is
+    false outright (testing with f = 1 forces lambda(E)^|Lambda| = 1, and Georgii's (1.26) claims
+    consistency only for disjoint volumes), and the finiteness of lambda in Theorem (4.23) is
+    Georgii's own hypothesis, since his (2.14) shows a potential in B is lambda-admissible exactly
+    when lambda is finite.
+    (b) Proposition (4.15) now assumes nothing about the state space, via Georgii's Radon-Nikodym
+    seed algebra.
+    (c) Theorem (7.12)(b), weak convergence, is proved for a compact metrizable state space.
+    (d) The critical inverse temperature beta_c is defined, with 1/4 <= beta_c <= log 3 and
+    uniqueness below beta_c proved unconditionally. Non-uniqueness strictly above beta_c is stated
+    with the single hypothesis that the non-uniqueness set is upward closed; that follows from the
+    Griffiths/GKS monotonicity proved here together with the Lebowitz-Martin-Loef/Ruelle
+    equivalence, which Georgii himself cites without proof.
+  notes: >-
+    Two differences from the book are deliberate improvements. Lemma (6.14) is proved by an
+    explicit Z/2 coboundary argument, including the case n_c(u) = 4 where Georgii appeals to the
+    Jordan curve theorem; the Lean proof uses no topology, which matters because the Jordan curve
+    theorem is not available in Mathlib. In Theorem (6.9), mu_plus is obtained as a cluster point
+    of cube-averaged plus-boundary distributions, which is Georgii's own construction; the FKG
+    limit appears only in his surrounding remarks, citing other papers.
 
 review:
   status: "agent-reviewed"

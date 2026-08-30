@@ -1,14 +1,15 @@
-import Mathlib
+import Comparator.Defs_Ising
 import GibbsMeasure
 
 /-!
 # Comparator solution: the two-dimensional Ising phase transition (Georgii, Theorem (6.9))
 
-This is the *solution* file matching `Comparator/Challenge.lean`.  Every declaration of the
-challenge file is reproduced **verbatim**; the only differences are the extra
+This is the *solution* file matching `Comparator/Challenge.lean`.  Both files take their
+definitions from the same Mathlib-only module `Comparator.Defs_Ising`, so the statements of the
+two theorems below are literally the challenge's statements; the only differences are the extra
 `import GibbsMeasure`, this module docstring, an auxiliary `namespace Bridge` block translating
-between the challenge's from-scratch definitions and the `GibbsMeasure` library, and the proof
-terms of the two final theorems.
+between `Comparator.Defs_Ising`'s from-scratch definitions and the `GibbsMeasure` library, and the
+proof terms of the two final theorems.
 
 The bridge establishes, for every inverse temperature `β`, that the challenge's explicitly written
 finite-volume Gibbs distribution `gibbsMeasure β Λ ω` is *literally the same measure* as the
@@ -25,102 +26,10 @@ noncomputable section
 
 namespace IsingChallenge
 
-/-! ### The lattice and the configuration space -/
-
-/-- The sites of the two-dimensional lattice `ℤ²`. -/
-abbrev Site : Type := Fin 2 → ℤ
-
-/-- A spin configuration: a `Bool`, i.e. a sign, attached to every site of `ℤ²`. Being a product
-of copies of the discrete space `Bool`, this carries the product σ-algebra. -/
-abbrev Config : Type := Site → Bool
-
-/-- The `±1`-valued spin attached to a `Bool`: `true ↦ +1`, `false ↦ -1`. -/
-def spin (b : Bool) : ℝ := if b then 1 else -1
-
-/-- The `k`-th unit vector of the lattice `ℤ²`. -/
-def e (k : Fin 2) : Site := fun l ↦ if l = k then 1 else 0
-
-/-! ### The nearest-neighbour bonds meeting a finite volume
-
-A nearest-neighbour bond of `ℤ²` is an unordered pair `{i, i + e k}` with `k : Fin 2`; we encode
-it by the ordered pair `(i, k)`, so that each bond has exactly one encoding. -/
-
-/-- An auxiliary finite set of sites containing every left endpoint of a bond meeting `Λ`: the
-volume `Λ` itself together with all of its translates by `-e k`. -/
-def bondBase (Λ : Finset Site) : Finset Site :=
-  Λ ∪ (Finset.univ : Finset (Fin 2)).biUnion fun k ↦ Λ.image fun i ↦ i - e k
-
-/-- The set of nearest-neighbour bonds `{i, i + e k}` of `ℤ²` that *meet* the finite volume `Λ`,
-encoded as ordered pairs `(i, k)`. It is finite because the left endpoint `i` of such a bond lies
-either in `Λ` or in one of the two translates `Λ - e k`. -/
-def bonds (Λ : Finset Site) : Finset (Site × Fin 2) :=
-  (bondBase Λ ×ˢ (Finset.univ : Finset (Fin 2))).filter fun p ↦ p.1 ∈ Λ ∨ p.1 + e p.2 ∈ Λ
-
-/-- The promised characterisation: `(i, k)` belongs to `bonds Λ` exactly when the nearest-neighbour
-bond `{i, i + e k}` meets `Λ`. -/
-theorem mem_bonds (Λ : Finset Site) (i : Site) (k : Fin 2) :
-    (i, k) ∈ bonds Λ ↔ (i ∈ Λ ∨ i + e k ∈ Λ) := by
-  refine ⟨fun h ↦ (Finset.mem_filter.mp h).2, fun h ↦ Finset.mem_filter.mpr ⟨?_, h⟩⟩
-  refine Finset.mem_product.mpr ⟨?_, Finset.mem_univ _⟩
-  rcases h with h | h
-  · exact Finset.mem_union_left _ h
-  · refine Finset.mem_union_right _ (Finset.mem_biUnion.mpr ⟨k, Finset.mem_univ _, ?_⟩)
-    exact Finset.mem_image.mpr ⟨i + e k, h, by simp⟩
-
-/-! ### The Ising Hamiltonian -/
-
-/-- The energy of the configuration `σ` in the finite volume `Λ`: minus the sum of the products of
-neighbouring spins, over all nearest-neighbour bonds meeting `Λ`. This is the ferromagnetic Ising
-Hamiltonian with coupling constant `1` and zero external field. -/
-def hamiltonian (Λ : Finset Site) (σ : Config) : ℝ :=
-  -∑ p ∈ bonds Λ, spin (σ p.1) * spin (σ (p.1 + e p.2))
-
-/-! ### The finite-volume Gibbs distribution -/
-
-/-- `glue Λ ζ ω` follows `ζ` inside `Λ` and the boundary condition `ω` outside `Λ`. -/
-def glue (Λ : Finset Site) (ζ ω : Config) : Config := fun i ↦ if i ∈ Λ then ζ i else ω i
-
-/-- Extend an inner configuration `ζ : Λ → Bool` to all of `ℤ²`, using `ω` outside `Λ`. -/
-def extend (Λ : Finset Site) (ζ : Λ → Bool) (ω : Config) : Config :=
-  fun i ↦ if h : i ∈ Λ then ζ ⟨i, h⟩ else ω i
-
-/-- The unnormalised Boltzmann weight `exp (-β * H)` of the inner configuration `ζ` in the volume
-`Λ` with boundary condition `ω`. -/
-def weight (β : ℝ) (Λ : Finset Site) (ω : Config) (ζ : Λ → Bool) : ℝ :=
-  Real.exp (-β * hamiltonian Λ (glue Λ (extend Λ ζ ω) ω))
-
-/-- The partition function in the volume `Λ` with boundary condition `ω`: the sum of the Boltzmann
-weights over the `2 ^ #Λ` inner configurations. -/
-def partitionFunction (β : ℝ) (Λ : Finset Site) (ω : Config) : ℝ :=
-  ∑ ζ : Λ → Bool, weight β Λ ω ζ
-
-/-- The finite-volume Gibbs distribution in `Λ` at inverse temperature `β` with boundary condition
-`ω`, written out explicitly as a normalised finite sum of Dirac measures: the configuration that
-agrees with `ζ` on `Λ` and with `ω` off `Λ` gets probability `exp (-β * H) / Z`. -/
-def gibbsMeasure (β : ℝ) (Λ : Finset Site) (ω : Config) : Measure Config :=
-  (ENNReal.ofReal (partitionFunction β Λ ω))⁻¹ •
-    ∑ ζ : Λ → Bool,
-      ENNReal.ofReal (weight β Λ ω ζ) • Measure.dirac (glue Λ (extend Λ ζ ω) ω)
-
-/-! ### Gibbs measures (the DLR equation) -/
-
-/-- `μ` is a Gibbs measure for the two-dimensional Ising model at inverse temperature `β`: it is a
-probability measure on `Config` whose conditional distribution in every finite volume `Λ`, given
-the configuration outside `Λ`, is the finite-volume Gibbs distribution. This is the
-Dobrushin–Lanford–Ruelle equation, written in the elementary integrated form
-`μ A = ∫⁻ ω, gibbsMeasure β Λ ω A ∂μ` for measurable `A`. -/
-def IsGibbs (β : ℝ) (μ : Measure Config) : Prop :=
-  IsProbabilityMeasure μ ∧
-    ∀ Λ : Finset Site, ∀ A : Set Config, MeasurableSet A →
-      μ A = ∫⁻ ω, gibbsMeasure β Λ ω A ∂μ
-
-/-- Translation of a configuration by the lattice vector `j`. -/
-def shift (j : Site) (σ : Config) : Config := fun i ↦ σ (i - j)
-
 /-! ### The bridge to the `GibbsMeasure` library
 
-Everything in this namespace is auxiliary: it identifies the definitions above with those of the
-`GibbsMeasure` library.  None of the statements of the challenge is touched. -/
+Everything in this namespace is auxiliary: it identifies the definitions of `Comparator.Defs_Ising`
+with those of the `GibbsMeasure` library.  None of the statements of the challenge is touched. -/
 
 namespace Bridge
 

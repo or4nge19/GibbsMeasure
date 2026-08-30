@@ -8,6 +8,7 @@ public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.Doeblin
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PerronFrobenius
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.CompactSystemCylinders
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.Cylinders
+public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.PiWithDensity
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.KolmogorovExtension
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalLExpectation
@@ -54,6 +55,8 @@ public import GibbsMeasure.Potential.UniformConvergence
 public import GibbsMeasure.Model.Ising
 public import GibbsMeasure.Model.Contours
 public import GibbsMeasure.Model.CriticalTemperature
+public import GibbsMeasure.Model.GKSInequalities
+public import GibbsMeasure.Model.SharpCriticalTemperature
 public import GibbsMeasure.Model.LowTemperatureLimit
 public import GibbsMeasure.Model.MarkovChain
 public import GibbsMeasure.Model.PeierlsEstimate
@@ -62,6 +65,7 @@ public import GibbsMeasure.Model.SharpContours
 public import GibbsMeasure.Model.SharpPhaseTransition
 public import GibbsMeasure.Model.ShiftAverage
 public import GibbsMeasure.Potential.Existence
+public import GibbsMeasure.Potential.FiniteReference
 public import GibbsMeasure.Potential.GibbsRepresentation
 public import GibbsMeasure.Potential.NearestNeighbour
 public import GibbsMeasure.Potential.Periodic
@@ -88,6 +92,7 @@ public import GibbsMeasure.Specification.LocalContinuity
 public import GibbsMeasure.Specification.LocalLimits
 public import GibbsMeasure.Specification.NetEquicontinuity
 public import GibbsMeasure.Specification.Quasilocality
+public import GibbsMeasure.Specification.Rescaling
 public import GibbsMeasure.Specification.QuasilocalSpecification
 public import GibbsMeasure.Specification.Singleton
 public import GibbsMeasure.Specification.Structure
