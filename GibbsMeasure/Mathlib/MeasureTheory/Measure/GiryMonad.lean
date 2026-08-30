@@ -72,3 +72,4 @@ lemma bind_finset_sum {ι : Type*} (s : Finset ι) (m : ι → Measure α) (f : 
     rw [Finset.sum_insert ha, Finset.sum_insert ha, Measure.bind_add _ _ _ hf, ih]
 
 end MeasureTheory.Measure
+

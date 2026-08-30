@@ -91,6 +91,7 @@ public import GibbsMeasure.Specification.Quasilocal
 public import GibbsMeasure.Specification.QuasilocalAlgebra
 public import GibbsMeasure.Specification.LocalContinuity
 public import GibbsMeasure.Specification.LocalLimits
+public import GibbsMeasure.Specification.UniformLocalLimits
 public import GibbsMeasure.Specification.NetEquicontinuity
 public import GibbsMeasure.Specification.Quasilocality
 public import GibbsMeasure.Specification.Rescaling

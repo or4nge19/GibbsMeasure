@@ -44,8 +44,8 @@ exhaustion `Λ_n = exhaustionVolumes n`:
   (`ofMeasure_mem_limitGibbs_of_mem_extremePoints_G`) and `G_lim(γ) ⊆ G(γ)` for a quasilocal `γ`
   (`limitGibbs_subset_GP`, Theorem (4.17)).
 
-Of (7.12)(c) only the local-convergence form over a finite state space is proved here; the
-uniform (total-variation on each finite volume) form of (c) is not formalized.
+The uniform (total-variation on each finite volume) form of (7.12)(c), for a λ-specification over
+an arbitrary state space, is `GibbsMeasure/Specification/UniformLocalLimits.lean`.
 -/
 
 @[expose] public section
