@@ -1817,6 +1817,15 @@ lemma isModifier_iff_ae_comm [DecidableEq S] (hγ : IsDisjointlyConsistent ⇑γ
   rw [ae_eq_iff_ae_ae_eq hγ hmeas hΛ η₁]
   exact Filter.eventually_congr (.of_forall fun η₂ ↦ ae_eq_iff_ae_comm hmeas η₂ (hnorm Λ₁ η₂))
 
+/-- The empty-volume kernel of any specification is the identity: properness and the Markov
+property force `γ ∅ x = δ_x`. -/
+@[simp] lemma apply_empty (γ : Specification S E) (x : S → E) : γ ∅ x = Measure.dirac x := by
+  refine Measure.ext fun A hA ↦ ?_
+  have hA' : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) ((∅ : Finset S) : Set S)ᶜ] A := by
+    rw [Finset.coe_empty, Set.compl_empty, cylinderEvents_univ]; exact hA
+  rw [Measure.dirac_apply' _ hA,
+    (γ.isProper ∅).apply_eq_indicator_mul_univ cylinderEvents_le_pi hA', measure_univ, mul_one]
+
 /-- Modification specification.
 
 Modifying the specification `γ` by a family indexed by finsets `Λ : Finset S` of densities

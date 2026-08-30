@@ -1,0 +1,13 @@
+{
+    "challenge_module": "Comparator.Challenge",
+    "solution_module": "Comparator.Solution",
+    "theorem_names": [
+        "IsingChallenge.ising_phase_transition",
+        "IsingChallenge.ising_uniqueness_at_high_temperature"
+    ],
+    "permitted_axioms": [
+        "propext",
+        "Quot.sound",
+        "Classical.choice"
+    ]
+}

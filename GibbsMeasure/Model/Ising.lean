@@ -7,6 +7,8 @@ module
 
 public import GibbsMeasure.Potential.Existence
 public import GibbsMeasure.Potential.NearestNeighbour
+public import GibbsMeasure.Potential.Transformation
+public import GibbsMeasure.Potential.GibbsTransformation
 
 /-!
 # The Ising model, and existence of its Gibbs measures
@@ -18,10 +20,12 @@ uniform a-priori spin measure, and, as instances of Georgii Theorem (4.23)(a), *
 **compactness** of the set of Ising Gibbs measures on any countable locally finite graph, in
 particular on the lattice `ℤ^d`.
 
-What is *not* proved here: uniqueness on `ℤ` (Georgii (3.15), from Theorem (3.5) via the transfer matrix)
-and non-uniqueness on `ℤ^d`, `d ≥ 2`, at low temperature (Georgii Theorem (6.9), the ± phases);
-the compact set below is not known (in this development) to be a simplex — that is the
-representation theory of Chapter 7.
+Non-uniqueness at low temperature on `ℤ²` (Georgii Theorem (6.9)) is proved in
+`GibbsMeasure/Model/PhaseTransition.lean`, uniqueness at high temperature (Dobrushin's condition,
+Georgii (8.7)/(8.8)) in `GibbsMeasure/Specification/Dobrushin.lean`, and the simplex structure
+(Georgii (7.26)) in `GibbsMeasure/Specification/ExtremeDecomposition.lean`.
+
+What is *not* proved here: uniqueness on `ℤ` (Georgii (3.15), from Theorem (3.5)).
 -/
 
 @[expose] public section
@@ -171,5 +175,96 @@ theorem isCompact_setOf_latticeIsingGibbsMeasure (d : ℕ) (J h β : ℝ) :
       μ.toMeasure ∈ GP (S := Fin d → ℤ) (E := Bool)
         (isingSpecification (latticeGraph d) J h β)} :=
   isCompact_setOf_isingGibbsMeasure (latticeGraph d) J h β
+
+/-! ### Shift-invariance (Georgii (5.8)) -/
+
+section Shift
+variable {d : ℕ}
+
+lemma latticeGraph_adj_sub_iff (j : Fin d → ℤ) {a b : Fin d → ℤ} :
+    (latticeGraph d).Adj (a - j) (b - j) ↔ (latticeGraph d).Adj a b := by
+  show (∑ i, ((a - j) i - (b - j) i).natAbs = 1) ↔ (∑ i, (a i - b i).natAbs = 1)
+  simp only [Pi.sub_apply, sub_sub_sub_cancel_right]
+
+/-- **Georgii (5.8) for the Ising model**: the Ising potential on `ℤ^d` is shift-invariant. -/
+theorem isingPotential_isShiftInvariant (J h : ℝ) :
+    (isingPotential (latticeGraph d) J h).IsShiftInvariant := by
+  classical
+  intro j
+  funext A η
+  rw [Potential.map_apply]
+  simp only [isingPotential, Potential.nearestNeighbourPair]
+  have hcard : (A.map (shift Bool j).sites.symm.toEmbedding).card = A.card :=
+    Finset.card_map _
+  have hadj : (∃ a ∈ A.map (shift Bool j).sites.symm.toEmbedding,
+        ∃ b ∈ A.map (shift Bool j).sites.symm.toEmbedding, (latticeGraph d).Adj a b)
+      ↔ ∃ a ∈ A, ∃ b ∈ A, (latticeGraph d).Adj a b := by
+    simp only [Finset.mem_map_equiv]
+    constructor
+    · rintro ⟨a, ha, b, hb, hab⟩
+      refine ⟨(shift Bool j).sites.symm.symm a, ha, (shift Bool j).sites.symm.symm b,
+        hb, ?_⟩
+      have : (shift Bool j).sites.symm.symm a - j = a := by
+        simp [shift, Equiv.coe_addRight]
+      have h2 : (shift Bool j).sites.symm.symm b - j = b := by
+        simp [shift, Equiv.coe_addRight]
+      rw [← latticeGraph_adj_sub_iff j, this, h2]; exact hab
+    · rintro ⟨a, ha, b, hb, hab⟩
+      refine ⟨(shift Bool j).sites.symm a, by simpa using ha,
+        (shift Bool j).sites.symm b, by simpa using hb, ?_⟩
+      have : (shift Bool j).sites.symm a = a - j := by
+        simp [shift, Equiv.addRight_symm, Equiv.coe_addRight, sub_eq_add_neg]
+      have h2 : (shift Bool j).sites.symm b = b - j := by
+        simp [shift, Equiv.addRight_symm, Equiv.coe_addRight, sub_eq_add_neg]
+      rw [this, h2, latticeGraph_adj_sub_iff]; exact hab
+  have hsum : ∑ i ∈ A.map (shift Bool j).sites.symm.toEmbedding,
+      spin ((shift Bool j).inv.toFun η i) = ∑ i ∈ A, spin (η i) := by
+    rw [Finset.sum_map]
+    refine Finset.sum_congr rfl fun i _ ↦ ?_
+    simp [shift, Transformation.inv, Transformation.toFun, Equiv.addRight_symm, Equiv.coe_addRight]
+  have hprod : ∏ i ∈ A.map (shift Bool j).sites.symm.toEmbedding,
+      spin ((shift Bool j).inv.toFun η i) = ∏ i ∈ A, spin (η i) := by
+    rw [Finset.prod_map]
+    refine Finset.prod_congr rfl fun i _ ↦ ?_
+    simp [shift, Transformation.inv, Transformation.toFun, Equiv.addRight_symm, Equiv.coe_addRight]
+  simp only [hcard, hadj, hsum, hprod]
+
+end Shift
+
+/-! ### Shift-invariance of the Ising specification (Georgii (5.8), (5.9)(b), (5.11)) -/
+
+section ShiftSpecification
+variable {E : Type*} [MeasurableSpace E] {d : ℕ}
+
+/-- The shift `θ_j` preserves every single-spin measure (Georgii, remark after (5.9)). -/
+lemma measurePreserving_shift_spin (j : Fin d → ℤ) (ν : Measure E) (i : Fin d → ℤ) :
+    MeasurePreserving ((shift E j).spin i) ν ν :=
+  MeasurePreserving.id ν
+
+/-- **Georgii (5.9)(b) for the shift.** The Gibbsian specification of a shift-invariant `Φ ∈ ℬ`
+on `ℤ^d` is shift-invariant (Georgii (5.8)). -/
+theorem isInvariant_shift_gibbsSpecification {Φ : Potential (Fin d → ℤ) E}
+    [Potential.IsPotential Φ] [Potential.IsAbsolutelySummable Φ] (hΦ : Φ.IsShiftInvariant)
+    (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ) (j : Fin d → ℤ) :
+    Specification.IsInvariant (shift E j)
+      (Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) :=
+  Potential.isInvariant_gibbsSpecification (shift E j) Φ ν β (measurePreserving_shift_spin j ν)
+    (hΦ j)
+
+/-- **The Ising specification on `ℤ^d` is shift-invariant** (Georgii (5.8), (5.9)(b)). -/
+theorem isInvariant_shift_isingSpecification (d : ℕ) (J h β : ℝ) (j : Fin d → ℤ) :
+    Specification.IsInvariant (shift Bool j) (isingSpecification (latticeGraph d) J h β) :=
+  isInvariant_shift_gibbsSpecification (isingPotential_isShiftInvariant J h) uniformSpinMeasure
+    β j
+
+/-- **Georgii (5.11) for the Ising model.** A unique Ising Gibbs measure on `ℤ^d` is
+shift-invariant. -/
+theorem measurePreserving_shift_of_GP_isingSpecification_eq_singleton (d : ℕ) (J h β : ℝ)
+    {μ : ProbabilityMeasure ((Fin d → ℤ) → Bool)}
+    (hGP : GP (isingSpecification (latticeGraph d) J h β) = {μ}) (j : Fin d → ℤ) :
+    MeasurePreserving (shift Bool j).toFun (μ : Measure ((Fin d → ℤ) → Bool)) μ :=
+  (isInvariant_shift_isingSpecification d J h β j).measurePreserving_of_GP_eq_singleton hGP
+
+end ShiftSpecification
 
 end MeasureTheory.GibbsMeasure

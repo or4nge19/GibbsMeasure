@@ -390,7 +390,8 @@ lemma normAt_sub_truncation (Δ : Finset S) (i : S) :
 /-- The truncations `Φ^Δ` of `Φ ∈ ℬ`, as elements of `ℬ`. -/
 noncomputable def truncationB (Φ : absolutelySummable S E) (Δ : Finset S) :
     absolutelySummable S E :=
-  ⟨(Φ : Potential S E).truncation Δ, inferInstance, truncation_empty (coe_apply_empty Φ) Δ⟩
+  ⟨(Φ : Potential S E).truncation Δ, inferInstance, truncation_empty (coe_apply_empty Φ) Δ,
+    inferInstance⟩
 
 @[simp] lemma coe_truncationB (Φ : absolutelySummable S E) (Δ : Finset S) :
     (truncationB Φ Δ : Potential S E) = (Φ : Potential S E).truncation Δ := rfl

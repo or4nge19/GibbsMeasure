@@ -26,3 +26,10 @@ rev = "v4.34.0-rc2"
 
 [[lean_lib]]
 name = "GibbsMeasure"
+
+# Statements for the `comparator` proof judge (https://github.com/leanprover/comparator).
+# Not in `defaultTargets`: built explicitly by `lake build Comparator.Challenge` /
+# `Comparator.Solution`, which is what `comparator` itself invokes.
+[[lean_lib]]
+name = "Comparator"
+globs = ["Comparator.+"]

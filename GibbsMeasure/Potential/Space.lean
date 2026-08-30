@@ -13,13 +13,11 @@ public import Mathlib.Topology.Algebra.UniformFilterBasis
 
 Georgii (2.11) and Theorem (4.23)(c)–(d).
 
-* `Potential.absolutelySummable`: the `ℝ`-submodule of absolutely summable potentials with no
-  `∅`-interaction — Georgii indexes potentials by the *nonempty* finite sets, so `Φ ∅ = 0` renders
-  his indexing on the type `Potential S E` — with the per-site seminorms `Potential.seminormAt`
-  and their `WithSeminorms` topology. The seminorms separate, so the space is `T1`, and for
-  countable `S` it is metrizable (Georgii (2.11)).
-* `Potential.BSpace`: the measurable locus (measurability of the interactions is part of
-  Georgii's Definition (2.2)(i)), carrying the Gibbsian specifications.
+* `Potential.absolutelySummable`: Georgii's space `ℬ` — the `ℝ`-submodule of absolutely summable
+  measurable potentials indexed by nonempty volumes (`Φ ∅ = 0`, `IsPotential Φ`) — with the
+  per-site seminorms `Potential.seminormAt` and their `WithSeminorms` topology. The seminorms
+  separate, so the space is `T1`, and for countable `S` it is metrizable and complete
+  (Georgii (2.11)). `Potential.BSpace` is an abbreviation for it.
 * `Potential.BSpace.isClosed_graph_GP`: **Georgii (4.23)(c)** — the graph of the Gibbs
   correspondence `𝒢` is closed (no standard Borel hypothesis, matching the book's remark).
 * `Potential.BSpace.isClosed_setOf_exists_mem_GP`: **Georgii (4.23)(d)** — `𝒢⁻¹(F)` is closed
@@ -124,30 +122,36 @@ instance : IsAbsolutelySummable (0 : Potential S E) := ⟨fun i ↦ by simp⟩
 /-! ### (B1) Georgii (2.11): the submodule `ℬ` of absolutely summable potentials -/
 
 variable (S E) in
-/-- **Georgii (2.11).** The `ℝ`-submodule of absolutely summable potentials, the linear part of
-Georgii's space `ℬ`.  (Named after its membership predicate `Potential.IsAbsolutelySummable`,
-following the Mathlib pattern `MeasureTheory.Memℒp` / `MeasureTheory.Lp`.) -/
+/-- **Georgii (2.11).** The space `ℬ` of absolutely summable potentials (indexed by nonempty
+volumes: `Φ ∅ = 0`), an `ℝ`-submodule of `Potential S E`. -/
 def absolutelySummable : Submodule ℝ (Potential S E) where
-  carrier := {Φ | Φ.IsAbsolutelySummable ∧ Φ ∅ = 0}
-  add_mem' hΦ hΨ := ⟨hΦ.1.add hΨ.1, funext fun η ↦ by
-    rw [add_apply, hΦ.2, hΨ.2]; simp⟩
-  zero_mem' := ⟨inferInstanceAs (IsAbsolutelySummable (0 : Potential S E)), rfl⟩
-  smul_mem' c _ hΦ := ⟨hΦ.1.smul c, funext fun η ↦ by
-    rw [smul_apply, hΦ.2]; simp⟩
+  carrier := {Φ | Φ.IsAbsolutelySummable ∧ Φ ∅ = 0 ∧ IsPotential Φ}
+  add_mem' {Φ Ψ} hΦ hΨ := by
+    refine ⟨hΦ.1.add hΨ.1, funext fun η ↦ ?_, ⟨fun Δ ↦ ?_⟩⟩
+    · rw [add_apply, hΦ.2.1, hΨ.2.1]; simp
+    · letI : MeasurableSpace (S → E) := cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)
+      exact (hΦ.2.2.measurable Δ).add (hΨ.2.2.measurable Δ)
+  zero_mem' := ⟨inferInstanceAs (IsAbsolutelySummable (0 : Potential S E)), rfl,
+    ⟨fun Δ ↦ @measurable_const _ _ _ (cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)) _⟩⟩
+  smul_mem' c {Φ} hΦ := by
+    refine ⟨hΦ.1.smul c, funext fun η ↦ ?_, ⟨fun Δ ↦ ?_⟩⟩
+    · rw [smul_apply, hΦ.2.1]; simp
+    · letI : MeasurableSpace (S → E) := cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)
+      exact (hΦ.2.2.measurable Δ).const_mul c
 
 @[simp] lemma mem_absolutelySummable {Φ : Potential S E} :
-    Φ ∈ absolutelySummable S E ↔ Φ.IsAbsolutelySummable ∧ Φ ∅ = 0 := Iff.rfl
+    Φ ∈ absolutelySummable S E ↔ Φ.IsAbsolutelySummable ∧ Φ ∅ = 0 ∧ IsPotential Φ := Iff.rfl
 
 instance (Φ : absolutelySummable S E) : IsAbsolutelySummable (Φ : Potential S E) := Φ.2.1
 
-lemma coe_apply_empty (Φ : absolutelySummable S E) : (Φ : Potential S E) ∅ = 0 := Φ.2.2
+lemma coe_apply_empty (Φ : absolutelySummable S E) : (Φ : Potential S E) ∅ = 0 := Φ.2.2.1
+
+instance (Φ : absolutelySummable S E) : IsPotential (Φ : Potential S E) := Φ.2.2.2
 
 /-! ### (B2) Georgii (2.11): the seminorms `‖·‖ᵢ` and the locally convex topology -/
 
 variable (S E) in
-/-- **Georgii (2.12) as a seminorm on `ℬ`**: `Φ ↦ ‖Φ‖ᵢ = (normAt Φ i).toReal`.  The triangle
-inequality descends from the `ℝ≥0∞`-inequality `normAt_add_le` by `toReal` monotonicity;
-finiteness of all the quantities involved comes from membership in the submodule. -/
+/-- Georgii (2.12): the seminorm `Φ ↦ ‖Φ‖ᵢ = (normAt Φ i).toReal` on `ℬ`. -/
 def seminormAt (i : S) : Seminorm ℝ (absolutelySummable S E) :=
   Seminorm.of (fun Φ ↦ ((Φ : Potential S E).normAt i).toReal)
     (fun Φ Ψ ↦ by
@@ -218,6 +222,9 @@ instance : T1Space (absolutelySummable S E) :=
     push Not at h
     exact hΦ (eq_zero_of_forall_seminormAt_eq_zero fun i ↦ h i)
 
+instance : LocallyConvexSpace ℝ (absolutelySummable S E) :=
+  (withSeminorms_seminormFamily S E).toLocallyConvexSpace
+
 instance : IsTopologicalAddGroup (absolutelySummable S E) :=
   (seminormFamily S E).addGroupFilterBasis.isTopologicalAddGroup
 
@@ -265,7 +272,8 @@ lemma normAt_le_liminf {Φs : ℕ → Potential S E} {Ψ : Potential S E}
   set F : ℕ → Finset S → ℝ≥0∞ :=
     fun n A ↦ ({A : Finset S | i ∈ A}.indicator (fun A ↦ ⨆ η, ‖Φs n A η‖ₑ)) A with hF
   have hind : ∀ A : Finset S,
-      ({A : Finset S | i ∈ A}.indicator (fun A ↦ ⨆ η, ‖Ψ A η‖ₑ)) A ≤ liminf (fun n ↦ F n A) atTop := by
+      ({A : Finset S | i ∈ A}.indicator (fun A ↦ ⨆ η, ‖Ψ A η‖ₑ)) A
+        ≤ liminf (fun n ↦ F n A) atTop := by
     intro A
     by_cases hA : A ∈ {A : Finset S | i ∈ A}
     · simp only [hF, Set.indicator_of_mem hA]; exact hterm A
@@ -379,7 +387,16 @@ instance [Countable S] : CompleteSpace (absolutelySummable S E) := by
     refine ne_top_of_le_ne_top hC ?_
     refine (normAt_le_liminf hconv i).trans ?_
     exact liminf_le_of_frequently_le' hev.frequently
-  set Ψ' : absolutelySummable S E := ⟨Ψ, hΨ_summable, hΨ_empty⟩ with hΨ'
+  have hΨ_pot : IsPotential Ψ := by
+    constructor
+    intro Δ
+    rcases Δ.eq_empty_or_nonempty with rfl | _
+    · rw [hΨ_empty]
+      exact @measurable_const _ _ _ (cylinderEvents (X := fun _ : S ↦ E) (∅ : Finset S)) _
+    · letI : MeasurableSpace (S → E) := cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)
+      exact measurable_of_tendsto_metrizable (fun n ↦ (u n).2.2.2.measurable Δ)
+        (tendsto_pi_nhds.2 fun η ↦ hconv Δ η)
+  set Ψ' : absolutelySummable S E := ⟨Ψ, hΨ_summable, hΨ_empty, hΨ_pot⟩ with hΨ'
   refine ⟨Ψ', ?_⟩
   rw [tendsto_iff_tendsto_seminormAt]
   intro i
@@ -434,21 +451,6 @@ lemma tendsto_apply_of_tendsto {u : ℕ → absolutelySummable S E} {Φ : absolu
     _ ≤ seminormAt S E i (u n - Φ) := abs_apply_le_seminormAt _ hi η
     _ < ε := this
 
-/-- Measurability of the interaction terms is closed under convergence in `ℬ`: Georgii's
-measurable locus `BSpace` is a closed subspace. -/
-lemma isClosed_setOf_isPotential [Countable S] :
-    IsClosed {Φ : absolutelySummable S E | IsPotential (Φ : Potential S E)} := by
-  rw [← isSeqClosed_iff_isClosed]
-  intro u Φ hu hlim
-  constructor
-  intro Δ
-  rcases Δ.eq_empty_or_nonempty with rfl | ⟨i, hi⟩
-  · rw [coe_apply_empty]
-    exact @measurable_const _ _ _ (cylinderEvents (X := fun _ : S ↦ E) (∅ : Finset S)) _
-  · letI : MeasurableSpace (S → E) := cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)
-    exact measurable_of_tendsto_metrizable (fun n ↦ (hu n).measurable Δ)
-      (tendsto_pi_nhds.2 fun η ↦ tendsto_apply_of_tendsto hlim hi η)
-
 /-! ### The bridge to Georgii (4.19): Hamiltonians are additive in the potential on `ℬ`
 
 Georgii (2.14) applied to a *difference* of potentials bounds the Hamiltonian difference
@@ -498,9 +500,7 @@ lemma hamiltonianBound_coe (Φ : absolutelySummable S E) (Λ : Finset S) :
     ENNReal.toReal_sum fun i _ ↦ IsAbsolutelySummable.normAt_ne_top (Φ := (Φ : Potential S E)) i]
   simp
 
-/-- **The bridge to Georgii (4.19).**  Along a net converging in `ℬ`, the uniform Hamiltonian
-bounds `D x Λ := hamiltonianBound (Φₓ − Φ) Λ` of the difference potentials tend to `0` for
-every volume `Λ`. -/
+/-- Along a net converging in `ℬ`, the Hamiltonian bounds of the differences tend to `0`. -/
 theorem tendsto_hamiltonianBound_sub {ι : Type*} {l : Filter ι}
     {Φs : ι → absolutelySummable S E} {Φ : absolutelySummable S E}
     (h : Tendsto Φs l (𝓝 Φ)) (Λ : Finset S) :
@@ -514,60 +514,23 @@ theorem tendsto_hamiltonianBound_sub {ι : Type*} {l : Filter ι}
     (a := fun _ ↦ (0 : ℝ)) fun i _ ↦ h' i
   simpa using hsum
 
-/-! ### (B3 prelude) Georgii's `ℬ` proper: measurable absolutely summable potentials
-
-Georgii's Definition (2.2)(i) makes measurability of the interaction terms part of the notion
-of a potential, so the domain of the Gibbs correspondence `𝒢` of (4.23) is the set of elements
-of `absolutelySummable S E` satisfying `Potential.IsPotential`.  (Measurability cannot be
-carried along limits of the seminorm topology — the `∅`-indexed term is invisible to every
-`‖·‖ᵢ` — so it is part of the ambient space, with the subspace topology, exactly as in
-Georgii, where all elements of `ℬ` are potentials by definition.) -/
+/-! ### (B3) Georgii's `ℬ` as the domain of the Gibbs correspondence `𝒢` of (4.23) -/
 
 variable (S E) in
-/-- **Georgii's space `ℬ` of (2.11)**: absolutely summable potentials with measurable
-interaction terms, topologized as a subspace of the seminormed module
-`absolutelySummable S E`. -/
-def BSpace : Type _ :=
-  {Φ : absolutelySummable S E // IsPotential (Φ : Potential S E)}
+/-- Georgii's space `ℬ` of (2.11), the domain of the Gibbs correspondence. -/
+abbrev BSpace := absolutelySummable S E
 
 namespace BSpace
-
-instance : TopologicalSpace (BSpace S E) :=
-  inferInstanceAs (TopologicalSpace
-    {Φ : absolutelySummable S E // IsPotential (Φ : Potential S E)})
-
-noncomputable instance : UniformSpace (BSpace S E) :=
-  inferInstanceAs (UniformSpace
-    ↥{Φ : absolutelySummable S E | IsPotential (Φ : Potential S E)})
-
-/-- Georgii's `ℬ` is complete: a closed subspace of the Fréchet space of absolutely summable
-potentials. -/
-instance [Countable S] : CompleteSpace (BSpace S E) :=
-  (isClosed_setOf_isPotential (S := S) (E := E)).completeSpace_coe
-
-instance [Countable S] : TopologicalSpace.MetrizableSpace (BSpace S E) :=
-  inferInstanceAs (TopologicalSpace.MetrizableSpace
-    ↥{Φ : absolutelySummable S E | IsPotential (Φ : Potential S E)})
-
-
-/-- The underlying interaction potential. -/
-def toPotential (Φ : BSpace S E) : Potential S E := (Φ.1 : Potential S E)
-
-instance (Φ : BSpace S E) : IsPotential Φ.toPotential := Φ.2
-
-instance (Φ : BSpace S E) : IsAbsolutelySummable Φ.toPotential := Φ.1.2.1
-
-lemma continuous_val : Continuous (fun Φ : BSpace S E ↦ Φ.1) := continuous_subtype_val
 
 variable [Countable S] (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ)
 
 /-- The Gibbsian specification of an element of `ℬ` (Georgii Definition (2.9)); total on
 `BSpace S E`. -/
 def gibbsSpecification (Φ : BSpace S E) : Specification S E :=
-  gibbsSpecificationOfAbsolutelySummable (Φ := Φ.toPotential) ν β
+  gibbsSpecificationOfAbsolutelySummable (Φ := (Φ : Potential S E)) ν β
 
 lemma isQuasilocal_gibbsSpecification (Φ : BSpace S E) :
-    (Φ.gibbsSpecification ν β).IsQuasilocal :=
+    (BSpace.gibbsSpecification ν β Φ).IsQuasilocal :=
   isQuasilocal_gibbsSpecificationOfAbsolutelySummable ν β
 
 /-- Georgii (4.14)(1) for elements of `ℬ`: the kernels are dominated by
@@ -575,53 +538,45 @@ lemma isQuasilocal_gibbsSpecification (Φ : BSpace S E) :
 lemma gibbsSpecification_apply_le (Φ : BSpace S E) (Λ : Finset S) (η : S → E)
     {A : Set (S → E)}
     (hA : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)] A) :
-    Φ.gibbsSpecification ν β Λ η A ≤
-      ENNReal.ofReal (Real.exp (2 * |β| * Φ.toPotential.hamiltonianBound Λ)) *
+    BSpace.gibbsSpecification ν β Φ Λ η A ≤
+      ENNReal.ofReal (Real.exp (2 * |β| * (Φ : Potential S E).hamiltonianBound Λ)) *
         Measure.infinitePi (fun _ : S ↦ ν) A :=
-  gibbsSpecificationOfAbsolutelySummable_apply_le (Φ := Φ.toPotential) ν β Λ η hA
+  gibbsSpecificationOfAbsolutelySummable_apply_le (Φ := (Φ : Potential S E)) ν β Λ η hA
 
-/-- **Georgii Proposition (4.19) on `ℬ`.**  Along a net of potentials converging in `ℬ`, the
-Gibbsian specifications converge uniformly on every volume and every bounded measurable
-observable — verbatim the `hunif` hypothesis of Georgii (4.17)/(4.22). -/
+/-- Georgii Proposition (4.19) on `ℬ`: along a convergent net of potentials the Gibbsian
+specifications converge uniformly on every volume and bounded observable. -/
 theorem tendsto_dist_action_gibbsSpecification {ι : Type*} {l : Filter ι}
     {Φs : ι → BSpace S E} {Φ : BSpace S E} (h : Tendsto Φs l (𝓝 Φ)) (Λ : Finset S)
     {f : lp (fun _ : S → E ↦ ℝ) ∞} (hf : Measurable ⇑f) :
-    Tendsto (fun x ↦ dist (((Φs x).gibbsSpecification ν β).action Λ f)
-      ((Φ.gibbsSpecification ν β).action Λ f)) l (𝓝 0) := by
-  have hcoe : Tendsto (fun x ↦ (Φs x).1) l (𝓝 Φ.1) :=
-    (continuous_val.tendsto Φ).comp h
+    Tendsto (fun x ↦ dist ((BSpace.gibbsSpecification ν β (Φs x)).action Λ f)
+      ((BSpace.gibbsSpecification ν β Φ).action Λ f)) l (𝓝 0) := by
+  have hcoe : Tendsto (fun x ↦ Φs x) l (𝓝 Φ) := h
   exact Potential.tendsto_dist_action_gibbsSpecification ν β
-    (Φs := fun x ↦ (Φs x).toPotential) (Φ := Φ.toPotential)
-    (D := fun x Λ ↦ (((Φs x).1 - Φ.1 : absolutelySummable S E) :
+    (Φs := fun x ↦ ((Φs x) : Potential S E)) (Φ := (Φ : Potential S E))
+    (D := fun x Λ ↦ ((Φs x - Φ : absolutelySummable S E) :
       Potential S E).hamiltonianBound Λ)
-    (fun x Λ' η ↦ abs_hamiltonian_sub_le' ((Φs x).1) Φ.1 Λ' η)
+    (fun x Λ' η ↦ abs_hamiltonian_sub_le' (Φs x) Φ Λ' η)
     (fun Λ' ↦ tendsto_hamiltonianBound_sub hcoe Λ') Λ hf
 
 /-! ### (B3) Georgii Theorem (4.23)(c): the graph of the Gibbs correspondence is closed -/
 
-/-- **Georgii Theorem (4.23)(c).**  The graph `{(Φ, μ) : Φ ∈ ℬ, μ ∈ 𝒢(Φ)}` of the Gibbs
-correspondence is closed in `ℬ × 𝒫(Ω, 𝓕)` (with the topology of local convergence on the
-second factor).  As in Georgii, no standard Borel hypothesis on `E` is needed.
-
-The proof is the product-net architecture of `isClosed_setOf_mem_GP`, with *varying*
-specifications: along the directed set `D̄ = D × 𝒮`, the potentials converge in `ℬ`, so by
-(4.19) the specifications `γ^{Φᵅ}` converge uniformly to `γ^Φ`, and Georgii (4.17)
-(`mem_GP_of_tendsto_withLocalConvergence`) identifies the limit as a Gibbs measure for `Φ`. -/
+/-- Georgii Theorem (4.23)(c): the graph of the Gibbs correspondence `Φ ↦ 𝒢(Φ)` is closed in
+`ℬ × 𝒫(Ω, 𝓕)`. -/
 theorem isClosed_graph_GP :
     IsClosed {p : BSpace S E × WithLocalConvergence S E |
-      p.2.toMeasure ∈ GP (S := S) (E := E) (p.1.gibbsSpecification ν β)} := by
+      p.2.toMeasure ∈ GP (S := S) (E := E) (BSpace.gibbsSpecification ν β p.1)} := by
   rw [isClosed_iff_clusterPt]
   intro q hq
   set G := {p : BSpace S E × WithLocalConvergence S E |
-    p.2.toMeasure ∈ GP (S := S) (E := E) (p.1.gibbsSpecification ν β)} with hG
+    p.2.toMeasure ∈ GP (S := S) (E := E) (BSpace.gibbsSpecification ν β p.1)} with hG
   have hne : NeBot (𝓝 q ⊓ 𝓟 G) := hq
   have : NeBot ((𝓝 q ⊓ 𝓟 G) ×ˢ (atTop : Filter (Finset S))) :=
     Filter.prod_neBot.2 ⟨hne, inferInstance⟩
-  show q.2.toMeasure ∈ GP (S := S) (E := E) (q.1.gibbsSpecification ν β)
+  show q.2.toMeasure ∈ GP (S := S) (E := E) (BSpace.gibbsSpecification ν β q.1)
   refine mem_GP_of_tendsto_withLocalConvergence
     (l := (𝓝 q ⊓ 𝓟 G) ×ˢ (atTop : Filter (Finset S)))
     (BSpace.isQuasilocal_gibbsSpecification ν β q.1)
-    (γs := fun r ↦ r.1.1.gibbsSpecification ν β) (Λs := Prod.snd)
+    (γs := fun r ↦ BSpace.gibbsSpecification ν β r.1.1) (Λs := Prod.snd)
     (νs := fun r ↦ (r.1.2).toMeasure) tendsto_snd ?_ ?_
   · -- (4.19): uniform convergence of the varying specifications
     intro Λ f hf
@@ -634,12 +589,12 @@ theorem isClosed_graph_GP :
     have hev : ∀ᶠ r : (BSpace S E × WithLocalConvergence S E) × Finset S in
         (𝓝 q ⊓ 𝓟 G) ×ˢ (atTop : Filter (Finset S)),
         (WithSetwiseTopology.ofMeasure
-          ((r.1.1.gibbsSpecification ν β).bindPM r.2 (r.1.2).toMeasure) :
+          ((BSpace.gibbsSpecification ν β r.1.1).bindPM r.2 (r.1.2).toMeasure) :
             WithLocalConvergence S E) = r.1.2 := by
       have h1 : ∀ᶠ p in 𝓝 q ⊓ 𝓟 G, p ∈ G :=
         (inf_le_right : 𝓝 q ⊓ 𝓟 G ≤ 𝓟 G) (Filter.mem_principal_self G)
       filter_upwards [h1.prod_inl (atTop : Filter (Finset S))] with r hr
-      rw [(mem_GP_iff_forall_bindPM_eq (γ := r.1.1.gibbsSpecification ν β)
+      rw [(mem_GP_iff_forall_bindPM_eq (γ := BSpace.gibbsSpecification ν β r.1.1)
         (r.1.2).toMeasure).1 hr r.2]
     have hsnd : Tendsto (fun r : (BSpace S E × WithLocalConvergence S E) × Finset S ↦ r.1.2)
         ((𝓝 q ⊓ 𝓟 G) ×ˢ (atTop : Filter (Finset S))) (𝓝 q.2) :=
@@ -648,68 +603,59 @@ theorem isClosed_graph_GP :
 
 /-! ### (B4) Georgii Theorem (4.23)(d): the Gibbs correspondence is upper semicontinuous -/
 
-/-- **Georgii Theorem (4.23)(d).**  Over a standard Borel state space the Gibbs correspondence
-`𝒢` is upper semicontinuous: for every closed `F ⊆ 𝒫(Ω, 𝓕)` (topology of local convergence)
-the set `𝒢⁻¹(F) = {Φ ∈ ℬ : 𝒢(Φ) ∩ F ≠ ∅}` is closed in `ℬ`.
-
-Net proof, avoiding Georgii's metrizability reduction (4.15): for a filter on `𝒢⁻¹(F)`
-clustering at `Φ`, choose witnesses `μ_Ψ ∈ 𝒢(Ψ) ∩ F`; eventual seminorm boundedness along the
-filter (`‖Ψ‖ᵢ ≤ ‖Φ‖ᵢ + 1` for `i ∈ Λ`) dominates the witnesses by the finite measures
-`e^{2|β|(‖Φ‖_Λ + |Λ|)} ν^S` (Georgii (4.14)(1)), so they are locally equicontinuous; by
-Georgii (4.9) they converge along an ultrafilter to some `μ`, which lies in `F` (closed) and,
-by the closed graph (c), in `𝒢(Φ)`. -/
+/-- Georgii Theorem (4.23)(d): the Gibbs correspondence is upper semicontinuous: `𝒢⁻¹(F)` is
+closed in `ℬ` for every closed `F ⊆ 𝒫(Ω, 𝓕)`. -/
 theorem isClosed_setOf_exists_mem_GP [StandardBorelSpace E]
     {F : Set (WithLocalConvergence S E)} (hF : IsClosed F) :
     IsClosed {Φ : BSpace S E | ∃ μ ∈ F,
-      μ.toMeasure ∈ GP (S := S) (E := E) (Φ.gibbsSpecification ν β)} := by
+      μ.toMeasure ∈ GP (S := S) (E := E) (BSpace.gibbsSpecification ν β Φ)} := by
   rw [isClosed_iff_clusterPt]
   intro Φ hΦ
   set A := {Φ : BSpace S E | ∃ μ ∈ F,
-    μ.toMeasure ∈ GP (S := S) (E := E) (Φ.gibbsSpecification ν β)} with hA
+    μ.toMeasure ∈ GP (S := S) (E := E) (BSpace.gibbsSpecification ν β Φ)} with hA
   have hne : NeBot (𝓝 Φ ⊓ 𝓟 A) := hΦ
   set l : Filter (BSpace S E) := 𝓝 Φ ⊓ 𝓟 A with hl
   have : Nonempty (WithLocalConvergence S E) :=
     ⟨WithSetwiseTopology.ofMeasure ⟨Measure.infinitePi (fun _ : S ↦ ν), inferInstance⟩⟩
   -- choose witnesses `μ_Ψ ∈ 𝒢(Ψ) ∩ F` (total function, junk off `A`)
   have hwit : ∀ Ψ : BSpace S E, ∃ μ : WithLocalConvergence S E,
-      Ψ ∈ A → μ ∈ F ∧ μ.toMeasure ∈ GP (S := S) (E := E) (Ψ.gibbsSpecification ν β) := by
+      Ψ ∈ A → μ ∈ F ∧ μ.toMeasure ∈ GP (S := S) (E := E) (BSpace.gibbsSpecification ν β Ψ) := by
     intro Ψ
     by_cases h : Ψ ∈ A
     · obtain ⟨μ, hμF, hμGP⟩ := h
       exact ⟨μ, fun _ ↦ ⟨hμF, hμGP⟩⟩
     · exact ⟨Classical.arbitrary _, fun h' ↦ absurd h' h⟩
   choose w hw using hwit
-  have hevA : ∀ᶠ Ψ in l, Ψ ∈ A := (inf_le_right : l ≤ 𝓟 A) (mem_principal_self A)
+  have hevA : ∀ᶠ Ψ : BSpace S E in l, Ψ ∈ A := (inf_le_right : l ≤ 𝓟 A) (mem_principal_self A)
   have hid : Tendsto (fun Ψ : BSpace S E ↦ Ψ) l (𝓝 Φ) := tendsto_id'.2 inf_le_left
-  have hval : Tendsto (fun Ψ : BSpace S E ↦ Ψ.1) l (𝓝 Φ.1) :=
-    (BSpace.continuous_val.tendsto Φ).comp hid
+  have hval : Tendsto (fun Ψ : BSpace S E ↦ Ψ) l (𝓝 Φ) := hid
   have hsem := tendsto_iff_tendsto_seminormAt.1 hval
   -- eventual seminorm boundedness: `‖Ψ‖_Λ ≤ ‖Φ‖_Λ + |Λ|` eventually along `l`
-  have hboundEv : ∀ Λ : Finset S, ∀ᶠ Ψ in l,
-      (BSpace.toPotential Ψ).hamiltonianBound Λ
-        ≤ (BSpace.toPotential Φ).hamiltonianBound Λ + Λ.card := by
+  have hboundEv : ∀ Λ : Finset S, ∀ᶠ Ψ : BSpace S E in l,
+      ((Ψ : Potential S E)).hamiltonianBound Λ
+        ≤ ((Φ : Potential S E)).hamiltonianBound Λ + Λ.card := by
     intro Λ
-    have h1 : ∀ᶠ Ψ in l, ∀ i ∈ Λ, seminormAt S E i (Ψ.1 - Φ.1) < 1 :=
+    have h1 : ∀ᶠ Ψ : BSpace S E in l, ∀ i ∈ Λ, seminormAt S E i (Ψ - Φ) < 1 :=
       Λ.eventually_all.2 fun i _ ↦ (hsem i).eventually_lt_const one_pos
     filter_upwards [h1] with Ψ hΨ
-    have hcalc : ∀ i ∈ Λ, seminormAt S E i Ψ.1 ≤ seminormAt S E i Φ.1 + 1 := by
+    have hcalc : ∀ i ∈ Λ, seminormAt S E i Ψ ≤ seminormAt S E i Φ + 1 := by
       intro i hi
-      have htri := map_add_le_add (seminormAt S E i) (Ψ.1 - Φ.1) Φ.1
+      have htri := map_add_le_add (seminormAt S E i) (Ψ - Φ) Φ
       rw [sub_add_cancel] at htri
       have := (hΨ i hi).le
       linarith
-    rw [show (BSpace.toPotential Ψ).hamiltonianBound Λ
-        = ∑ i ∈ Λ, seminormAt S E i Ψ.1 from hamiltonianBound_coe Ψ.1 Λ,
-      show (BSpace.toPotential Φ).hamiltonianBound Λ
-        = ∑ i ∈ Λ, seminormAt S E i Φ.1 from hamiltonianBound_coe Φ.1 Λ]
-    calc ∑ i ∈ Λ, seminormAt S E i Ψ.1
-        ≤ ∑ i ∈ Λ, (seminormAt S E i Φ.1 + 1) := Finset.sum_le_sum hcalc
-      _ = ∑ i ∈ Λ, seminormAt S E i Φ.1 + Λ.card := by
+    rw [show ((Ψ : Potential S E)).hamiltonianBound Λ
+        = ∑ i ∈ Λ, seminormAt S E i Ψ from hamiltonianBound_coe Ψ Λ,
+      show ((Φ : Potential S E)).hamiltonianBound Λ
+        = ∑ i ∈ Λ, seminormAt S E i Φ from hamiltonianBound_coe Φ Λ]
+    calc ∑ i ∈ Λ, seminormAt S E i Ψ
+        ≤ ∑ i ∈ Λ, (seminormAt S E i Φ + 1) := Finset.sum_le_sum hcalc
+      _ = ∑ i ∈ Λ, seminormAt S E i Φ + Λ.card := by
           rw [Finset.sum_add_distrib, Finset.sum_const, nsmul_eq_mul, mul_one]
   -- the dominating measures `e^{2|β|(‖Φ‖_Λ + |Λ|)} ν^S` (Georgii (4.14)(1))
   set νdom : Finset S → Measure (S → E) := fun Λ ↦
     ENNReal.ofReal (Real.exp (2 * |β| *
-      ((BSpace.toPotential Φ).hamiltonianBound Λ + Λ.card))) •
+      (((Φ : Potential S E)).hamiltonianBound Λ + Λ.card))) •
       Measure.infinitePi (fun _ : S ↦ ν) with hνdom
   have : ∀ Λ, IsFiniteMeasure (νdom Λ) := fun Λ ↦ ⟨by
     rw [hνdom, Measure.smul_apply, smul_eq_mul, measure_univ, mul_one]
@@ -721,9 +667,9 @@ theorem isClosed_setOf_exists_mem_GP [StandardBorelSpace E]
     intro A' hA'
     refine apply_le_of_mem_GP (hw Ψ hΨA).2 Λ
       (cylinderEvents_le_pi (X := fun _ : S ↦ E) _ hA') fun ω ↦ ?_
-    calc (Ψ.gibbsSpecification ν β) Λ ω A'
+    calc (BSpace.gibbsSpecification ν β Ψ) Λ ω A'
         ≤ ENNReal.ofReal
-            (Real.exp (2 * |β| * (BSpace.toPotential Ψ).hamiltonianBound Λ)) *
+            (Real.exp (2 * |β| * ((Ψ : Potential S E)).hamiltonianBound Λ)) *
           Measure.infinitePi (fun _ : S ↦ ν) A' :=
         BSpace.gibbsSpecification_apply_le ν β Ψ Λ ω hA'
       _ ≤ νdom Λ A' := by
@@ -739,7 +685,7 @@ theorem isClosed_setOf_exists_mem_GP [StandardBorelSpace E]
   have hpair : Tendsto (fun Ψ ↦ (Ψ, w Ψ)) (U : Filter (BSpace S E)) (𝓝 (Φ, μlim)) :=
     (hid.mono_left hU).prodMk_nhds hμlim
   have hgraph : (Φ, μlim) ∈ {p : BSpace S E × WithLocalConvergence S E |
-      p.2.toMeasure ∈ GP (S := S) (E := E) (p.1.gibbsSpecification ν β)} :=
+      p.2.toMeasure ∈ GP (S := S) (E := E) (BSpace.gibbsSpecification ν β p.1)} :=
     (isClosed_graph_GP ν β).mem_of_tendsto hpair (hevAU.mono fun Ψ h ↦ (hw Ψ h).2)
   exact ⟨μlim, hμlimF, hgraph⟩
 

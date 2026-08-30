@@ -38,3 +38,37 @@ lemma bind_add {β : Type*} {_ : MeasurableSpace β} (μ ν : Measure α) (f : �
   simp [Measure.bind_apply hs hf.aemeasurable, lintegral_add_measure]
 
 end MeasureTheory.Measure
+
+namespace MeasureTheory.Measure
+
+variable {α β γ : Type*} {mα : MeasurableSpace α} {mβ : MeasurableSpace β} {mγ : MeasurableSpace γ}
+
+/-- Binding after pushing forward: `(g_* μ) ⋙ f = μ ⋙ (f ∘ g)`. -/
+lemma bind_map {μ : Measure α} {g : α → β} {f : β → Measure γ} (hg : Measurable g)
+    (hf : Measurable f) : (μ.map g).bind f = μ.bind (f ∘ g) := by
+  rw [bind, bind, map_map hf hg]
+
+/-- Pushing forward a bind: `g_* (μ ⋙ f) = μ ⋙ (g_* ∘ f)`. -/
+lemma map_bind {μ : Measure α} {f : α → Measure β} {g : β → γ} (hf : Measurable f)
+    (hg : Measurable g) : (μ.bind f).map g = μ.bind fun a ↦ (f a).map g := by
+  ext s hs
+  rw [map_apply hg hs, bind_apply (hg hs) hf.aemeasurable,
+    bind_apply (f := fun a ↦ (f a).map g) hs ((measurable_map g hg).comp hf).aemeasurable]
+  simp_rw [map_apply hg hs]
+
+end MeasureTheory.Measure
+
+namespace MeasureTheory.Measure
+
+variable {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+
+/-- Binding a finite sum of measures. -/
+lemma bind_finset_sum {ι : Type*} (s : Finset ι) (m : ι → Measure α) (f : α → Measure β)
+    (hf : Measurable f) : (∑ i ∈ s, m i).bind f = ∑ i ∈ s, (m i).bind f := by
+  classical
+  induction s using Finset.induction_on with
+  | empty => simp [Measure.bind_zero_left]
+  | insert a s ha ih =>
+    rw [Finset.sum_insert ha, Finset.sum_insert ha, Measure.bind_add _ _ _ hf, ih]
+
+end MeasureTheory.Measure

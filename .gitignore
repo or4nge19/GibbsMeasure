@@ -10,3 +10,7 @@
 *.pdf
 *.synctex(busy)
 *.synctex.gz
+.claude/skills/octo*
+
+# Local reference material (book text, concept wiki) — not part of the repository
+/.axiomatic

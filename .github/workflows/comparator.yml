@@ -1,0 +1,120 @@
+name: Comparator
+
+# Independently re-checks the milestone — Georgii Theorem (6.9), the 2D Ising phase transition —
+# with https://github.com/leanprover/comparator: `Comparator/Challenge.lean` states the three
+# headline theorems with `sorry`, `Comparator/Solution.lean` states them identically and proves
+# them from `GibbsMeasure/Model/PhaseTransition.lean`, and comparator confirms, via `lean4export`
+# and a kernel replay inside a `landrun` sandbox, that the statements match, that only
+# `propext` / `Quot.sound` / `Classical.choice` are used, and that the kernel accepts the proofs.
+#
+# Linux only: `landrun` is built on the kernel's Landlock LSM, which does not exist on macOS.
+# That is why this check lives in CI rather than in a developer's local loop.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  comparator:
+    name: Judge the Ising phase transition proof
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout GibbsMeasure
+        uses: actions/checkout@v5
+        with:
+          path: GibbsMeasure
+
+      - name: Checkout comparator
+        uses: actions/checkout@v5
+        with:
+          repository: leanprover/comparator
+          path: comparator
+
+      # `lean4export` must match the toolchain in `lean-toolchain`; the tag below is exactly
+      # `leanprover/lean4:v4.34.0-rc2`, the toolchain this repository pins.
+      - name: Checkout lean4export
+        uses: actions/checkout@v5
+        with:
+          repository: leanprover/lean4export
+          ref: v4.34.0-rc2
+          path: lean4export
+
+      - name: Checkout landrun
+        uses: actions/checkout@v5
+        with:
+          repository: Zouuup/landrun
+          ref: main
+          path: landrun
+
+      # landrun requires Go >= 1.24 (see its README).
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+          cache-dependency-path: landrun/go.sum
+
+      - name: Build landrun
+        working-directory: landrun
+        run: go build -o landrun cmd/landrun/main.go
+
+      # Installs elan + the toolchain from GibbsMeasure/lean-toolchain, runs `lake exe cache get`
+      # and `lake build`. Pre-building matters: comparator rebuilds `Comparator.Challenge` and
+      # `Comparator.Solution` inside the landrun sandbox, and only those two modules should be
+      # left to build there. Note `Comparator` is not in `defaultTargets`, so this step builds
+      # the development itself, not the challenge.
+      - name: Build GibbsMeasure
+        uses: leanprover/lean-action@f807b338d95de7813c5c50d018f1c23c9b93b4ec # v1.2.0
+        with:
+          lake-package-directory: GibbsMeasure
+          build: "true"
+          test: "false"
+          lint: "false"
+          use-mathlib-cache: "true"
+
+      - name: Build lean4export
+        working-directory: lean4export
+        run: |
+          export PATH="$HOME/.elan/bin:$PATH"
+          lake build
+
+      - name: Build comparator
+        working-directory: comparator
+        run: |
+          export PATH="$HOME/.elan/bin:$PATH"
+          lake build
+
+      - name: Run comparator on Comparator/config.json
+        working-directory: GibbsMeasure
+        run: |
+          set -euo pipefail
+          # comparator looks up `landrun` and `lean4export` on PATH (or via COMPARATOR_LANDRUN /
+          # COMPARATOR_LEAN4EXPORT), and shells out to `lake`, `lean` and `git`.
+          export PATH="$GITHUB_WORKSPACE/landrun:$GITHUB_WORKSPACE/lean4export/.lake/build/bin:$HOME/.elan/bin:$PATH"
+          command -v landrun
+          command -v lean4export
+          command -v lake
+
+          COMPARATOR_BIN="$GITHUB_WORKSPACE/comparator/.lake/build/bin/comparator"
+          export COMPARATOR_BIN
+
+          # The comparator README prescribes running the judge under
+          #   systemd-run --property=RestrictAddressFamilies=~AF_UNIX --user --pty \
+          #     -E PATH="$PATH" --working-directory $(pwd) -- \
+          #     bash -c 'lake env path/to/comparator Comparator/config.json'
+          # to block AF_UNIX and so guard against the landrun escape fixed in Linux 7.1.
+          # `systemd-run --user` needs a per-user systemd instance, which GitHub-hosted runners
+          # do not provide, so we probe for it and otherwise fall back to the plain form (which
+          # is what comparator's own CI uses). ON A MACHINE WITH SYSTEMD, ADD THE systemd-run
+          # HARDENING BACK -- the plain form performs the full check minus that one mitigation.
+          if command -v systemd-run >/dev/null 2>&1 \
+             && systemd-run --user --quiet --pipe --wait true >/dev/null 2>&1; then
+            echo "Running comparator under systemd-run (AF_UNIX restricted)"
+            systemd-run --property=RestrictAddressFamilies=~AF_UNIX --user --pipe --wait \
+              -E PATH="$PATH" -E COMPARATOR_BIN="$COMPARATOR_BIN" \
+              --working-directory "$(pwd)" -- \
+              bash -c 'lake env "$COMPARATOR_BIN" Comparator/config.json'
+          else
+            echo "::warning::systemd-run --user is unavailable on this runner; running comparator without the systemd AF_UNIX hardening"
+            lake env "$COMPARATOR_BIN" Comparator/config.json
+          fi
