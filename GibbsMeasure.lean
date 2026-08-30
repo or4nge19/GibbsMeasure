@@ -22,6 +22,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Function.SimpleFunc
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.SimpleFuncDenseLp
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.StronglyMeasurable.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import GibbsMeasure.Mathlib.MeasureTheory.Integral.DominatedConvergence
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.IntegrableOn
 public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.Bot
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.AEMeasurable
