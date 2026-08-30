@@ -11,6 +11,9 @@ name: Comparator
 # That is why this check lives in CI rather than in a developer's local loop.
 
 on:
+  push:
+    branches: [mc3, main]
+  pull_request:
   workflow_dispatch:
 
 jobs:

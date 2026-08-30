@@ -14,10 +14,13 @@ sum over nearest-neighbour bonds meeting a finite volume, the finite-volume Gibb
 a normalised finite sum of Dirac measures, the DLR equations as
 `μ A = ∫⁻ ω, γ_Λ(A | ω) ∂μ`, and the shift as `σ ↦ σ(· − j)`.
 
-`Solution.lean` must restate those definitions verbatim and prove the two theorems from this
-development. **That bridge is the remaining work**: it requires showing that the kernels of
-`isingSpecification (latticeGraph 2) 1 0 β` coincide with the challenge's explicit finite sum of
-Diracs. Until it lands, `.github/workflows/comparator.yml` runs on `workflow_dispatch` only.
+`Solution.lean` restates those definitions verbatim (the definition block is byte-identical to the
+challenge's) and proves both theorems from this development. The bridge is in its `Bridge`
+namespace: `Bridge.hamiltonian_P_eq` identifies the library's `Potential.hamiltonian` for the Ising
+potential with the challenge's explicit bond sum, `Bridge.spec_eq` then identifies the kernels
+`isingSpecification (latticeGraph 2) 1 0 β Λ ω = gibbsMeasure β Λ ω` (the `2^{-|Λ|}` from the
+a-priori measure cancelling against the partition function), and `Bridge.dlr_iff` converts the
+challenge's integral form of the DLR equations into membership in `GP`.
 
 ## Running it
 
