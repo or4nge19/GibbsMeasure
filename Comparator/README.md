@@ -18,20 +18,30 @@ axioms beyond a permitted list, and that the result is accepted by the Lean kern
 
 ## Entries
 
-| entry `X` | config | Georgii result |
-| --- | --- | --- |
-| — (`Challenge.lean`/`Solution.lean`) | `config.json` | (6.9), the "in particular" half: the two-dimensional Ising phase transition |
-| `Existence` | `config_Existence.json` | (4.22), (4.23)(a): existence and compactness of Gibbs measures |
-| `Simplex` | `config_Simplex.json` | (7.7)(a), (7.26): the simplex of Gibbs measures and its extreme points |
-| `Dobrushin` | `config_Dobrushin.json` | (8.7), (8.20): Dobrushin's uniqueness theorem |
-| `MarkovChain` | `config_MarkovChain.json` | (3.5): Markov chains as Gibbs measures on `ℤ` |
-| `LowTemperature` | `config_LowTemperature.json` | (6.9), first assertion: the low-temperature limit |
-| `NoGibbs` | `config_NoGibbs.json` | (4.16): a specification with no Gibbs measure |
-| `Representation` | `config_Representation.json` | **(2.30)**: the Gibbs representation theorem — a positive quasilocal pre-modification `ρ` normalised by `λ_Λ ρ_Λ = 1` is `ρ^{Φ^a}` for a *unique* `λ`-admissible gas potential `Φ^a` with vacuum state `a`; plus its converse (2.5), (2.8), (1.32) |
+| entry `X` | config | thms | Georgii result |
+| --- | --- | ---: | --- |
+| — (`Challenge.lean`/`Solution.lean`) | `config.json` | 9 | **(6.9)** at the explicit threshold `log 3`; the critical inverse temperature `β_c` with `1/4 ≤ β_c ≤ log 3`, uniqueness for `0 ≤ β < β_c` and non-uniqueness for `β_c < β`; the plus and minus phases as genuine local limits with the sandwich `μ₋ ≼ μ ≼ μ₊`; and the **Lebowitz–Martin-Löf/Ruelle** equivalence `|𝒢(β)| > 1 ↔ 0 < μ₊(σ₀)` |
+| `OneDim` | `config_OneDim.json` | 9 | **(8.38)**, a uniqueness criterion for an arbitrary specification, and **(8.39)** on `ℤ` and `ℕ`, ending in uniqueness for pair potentials with `δ(Φ_{0,n}) ≤ c n^{-p}`, `p > 2` |
+| `Simplex` | `config_Simplex.json` | 7 | (7.7)(a), **(7.26)**, and (7.29): distinct extreme Gibbs measures are mutually singular, and `|ex 𝒢(γ)| ≥ n` is detected by an `n`-fold splitting of the tail |
+| `Dobrushin` | `config_Dobrushin.json` | 7 | **(8.7)** in `∃!` form, (8.20), (8.23): under Dobrushin's condition the finite-volume distributions *converge*, so uniqueness is a construction |
+| `Existence` | `config_Existence.json` | 6 | (4.22), **(4.23)(a),(c),(d)**: existence, compactness, and closedness of the Gibbs correspondence along a net of potentials |
+| `LocalLimit` | `config_LocalLimit.json` | 5 | **(7.12)(a)** and **(7.12)(c)**: for an extreme Gibbs measure of a λ-specification over an arbitrary state space, `γ_{Λₙ}(·\|ω) → μ` in total variation on every finite volume |
+| `NoGibbs` | `config_NoGibbs.json` | 5 | **(4.16)**: a specification with no Gibbs measure — quasilocality cannot be dropped from (4.17)/(4.22) |
+| `Representation` | `config_Representation.json` | 5 | **(2.30)**: the Gibbs representation theorem, plus its converse (2.5), (2.8), (1.32) |
+| `LowTemperature` | `config_LowTemperature.json` | 3 | **(6.9)**, first assertion: the low-temperature limit |
+| `MarkovChain` | `config_MarkovChain.json` | 3 | **(3.5)**: Markov chains as Gibbs measures on `ℤ`, the unique one being the stationary chain |
+| `Sharpness` | `config_Sharpness.json` | 2 | **(2.27)**: a specification with `C(γ) ≡ 0` — hence `c(γ) = 0 < 1` — and uncountably many Gibbs measures. It carries `¬ IsDobrushin γ` explicitly: it does *not* contradict (8.7), it shows (8.7)'s quasilocality hypothesis cannot be removed |
 
-The entries are `Challenge.lean`/`Solution.lean` (Georgii (6.9), the "in particular" half) and
-`Challenge_X.lean`/`Solution_X.lean` for
-`X ∈ {Existence, Simplex, Dobrushin, MarkovChain, LowTemperature, NoGibbs, Representation}`.
+Eleven entries, 61 theorems. Each was checked to be `sorry` in its challenge, proved in its
+solution, byte-identical in statement text between the two, and to depend on no axiom beyond
+`propext`, `Classical.choice` and `Quot.sound` — entry by entry, which is how comparator runs them.
+
+Two conventions are worth stating because they are what keeps the suite honest. **Nothing is
+claimed at `β = β_c`**, and Onsager's exact value appears nowhere: it is not proved here, and
+Georgii does not prove it either. And the second half of (8.39) (`|𝒢(Φ)| = 1` rather than `≤ 1`)
+is stated at the hypotheses the library actually has — an absolutely summable potential over a
+probability a priori measure — not at Georgii's, because the existence half rests on (4.23)(a),
+which is available only there.
 
 `Challenge_Representation.lean` states exactly Georgii (2.30) and nothing more: the potential it
 produces is a potential in the sense of (2.2) — its Hamiltonians exist as limits of the partial

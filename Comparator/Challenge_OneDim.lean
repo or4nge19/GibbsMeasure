@@ -32,6 +32,8 @@ contain the dictionary.
 ## Main statements
 
 * `subsingleton_isGibbs_of_isUniformlyDominated`: **Georgii, Proposition (8.38)**.
+* `exists_isSpecification_isUniformlyDominated`: a witness that the hypothesis of (8.38) is
+  realized by a genuine specification.
 * `hasBoundedBoundary_int`, `hasBoundedBoundary_nat`: the chain structures of `ℤ` and `ℕ`;
   witnesses that the hypothesis of (8.39) is non-empty.
 * `subsingleton_isGibbs_of_iSup_oscSpan_ne_top`: **Georgii, Theorem (8.39)**, first half.
@@ -69,6 +71,18 @@ theorem subsingleton_isGibbs_of_isUniformlyDominated [Countable S]
     (γ : Finset S → Config S E → Measure (Config S E)) (hγ : IsSpecification γ)
     {c : ℝ≥0∞} (hc : c ≠ 0) (hdom : IsUniformlyDominated γ c) :
     {μ : Measure (Config S E) | IsGibbs γ μ}.Subsingleton := by
+  sorry
+
+/-- **Non-vacuity of Proposition (8.38).** Its hypothesis is realized by a genuine specification:
+the Gibbsian specification of the zero potential over a probability a priori measure — the
+*independent* specification, which resamples the spins inside `Λ` from `λ` — is uniformly
+dominated with the constant `c = 1`.  For a `Δ`-local event `A` the volume `Δ` itself works, since
+`γ_Δ(A|ω)` then does not depend on the boundary condition `ω` at all. -/
+theorem exists_isSpecification_isUniformlyDominated (lam : Measure E) [IsProbabilityMeasure lam]
+    (β : ℝ) :
+    ∃ γ : Finset ℤ → Config ℤ E → Measure (Config ℤ E),
+      IsSpecification γ ∧ IsUniformlyDominated γ 1 ∧
+      ∀ (Λ : Finset ℤ) (ω : Config ℤ E), γ Λ ω = freeMeasure lam Λ ω := by
   sorry
 
 /-- **Georgii's chain structure for `S = ℤ`.** The integers are exhausted by the intervals

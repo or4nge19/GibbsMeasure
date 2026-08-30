@@ -102,6 +102,66 @@ theorem boltzmannFactor_eq [Potential.IsAbsolutelySummable (Φ : Potential S E)]
   funext σ
   rw [boltzmannFactor, Potential.boltzmannFactor, hamiltonian_eq]
 
+
+/-! ### Georgii's index set `𝒮` of non-empty volumes
+
+Georgii's potentials are indexed by the *non-empty* finite volumes, and the library's space `ℬ`
+records this by demanding `Φ ∅ = 0`.  The challenge imposes no such normalisation, so the bridge
+truncates: `trunc Φ` is `Φ` with its value at `∅` replaced by `0`.  Nothing is lost, because the
+value at `∅` enters neither the interaction norms `‖·‖ᵢ` nor the Hamiltonians, hence neither the
+Gibbsian specification: `potentialNormAt_congr`, `gibbsKernel_congr` below. -/
+
+open Classical in
+/-- `Φ` with its value at the empty volume set to `0`. -/
+def trunc (Φ : Finset S → Config S E → ℝ) : Finset S → Config S E → ℝ :=
+  fun A ω ↦ if A = ∅ then 0 else Φ A ω
+
+omit [MeasurableSpace E] in
+theorem trunc_apply_of_ne {Φ : Finset S → Config S E → ℝ} {A : Finset S} (hA : A ≠ ∅) :
+    trunc Φ A = Φ A := by
+  funext ω; simp [trunc, hA]
+
+omit [MeasurableSpace E] in
+@[simp] theorem trunc_empty (Φ : Finset S → Config S E → ℝ) :
+    trunc Φ (∅ : Finset S) = 0 := by
+  funext ω; simp [trunc]
+
+omit [MeasurableSpace E] in
+/-- The interaction norms do not see the value at `∅`. -/
+theorem potentialNormAt_congr {Φ Ψ : Finset S → Config S E → ℝ}
+    (h : ∀ A : Finset S, A ≠ ∅ → Φ A = Ψ A) (i : S) :
+    potentialNormAt Φ i = potentialNormAt Ψ i := by
+  refine tsum_congr fun A ↦ ?_
+  by_cases hA : A ∈ {A : Finset S | i ∈ A}
+  · have hne : A ≠ ∅ := by
+      rintro rfl
+      simp at hA
+    rw [Set.indicator_of_mem hA, Set.indicator_of_mem hA, h A hne]
+  · rw [Set.indicator_of_notMem hA, Set.indicator_of_notMem hA]
+
+omit [MeasurableSpace E] in
+/-- The Hamiltonians do not see the value at `∅`. -/
+theorem hamiltonian_congr {Φ Ψ : Finset S → Config S E → ℝ}
+    (h : ∀ A : Finset S, A ≠ ∅ → Φ A = Ψ A) (Λ : Finset S) (ω : Config S E) :
+    hamiltonian Φ Λ ω = hamiltonian Ψ Λ ω := by
+  refine tsum_congr fun A ↦ ?_
+  by_cases hA : A ∈ {A : Finset S | ∃ i ∈ A, i ∈ Λ}
+  · have hne : A ≠ ∅ := by
+      obtain ⟨i, hiA, -⟩ := hA
+      rintro rfl
+      simp at hiA
+    rw [Set.indicator_of_mem hA, Set.indicator_of_mem hA, h A hne]
+  · rw [Set.indicator_of_notMem hA, Set.indicator_of_notMem hA]
+
+/-- The Gibbsian specification does not see the value at `∅`. -/
+theorem gibbsKernel_congr {Φ Ψ : Finset S → Config S E → ℝ}
+    (h : ∀ A : Finset S, A ≠ ∅ → Φ A = Ψ A) (ν : Measure E) (β : ℝ) (Λ : Finset S)
+    (ω : Config S E) : gibbsKernel Φ ν β Λ ω = gibbsKernel Ψ ν β Λ ω := by
+  have hb : boltzmannFactor Φ β Λ = boltzmannFactor Ψ β Λ := by
+    funext σ
+    rw [boltzmannFactor, boltzmannFactor, hamiltonian_congr h]
+  rw [gibbsKernel, gibbsKernel, partitionFunction, partitionFunction, hb]
+
 /-! ### The finite-volume kernels
 
 Georgii's Notation (1.26) attaches to *any* `λ ∈ 𝓜(E, ℰ)` the proper kernels
@@ -277,6 +337,90 @@ theorem isCompact_image_closure_iUnion_gibbsSet {ι : Type*}
 
 end Bridge
 
+
+namespace Bridge
+
+open MeasureTheory MeasureTheory.GibbsMeasure ProbabilityTheory Filter Topology
+open scoped ENNReal Topology
+
+variable {S E : Type*} [MeasurableSpace E] [Countable S]
+
+/-- Truncating at `∅` preserves absolute summability. -/
+theorem isAbsolutelySummablePotential_trunc {Φ : Finset S → Config S E → ℝ}
+    (hΦ : IsAbsolutelySummablePotential Φ) : IsAbsolutelySummablePotential (trunc Φ) where
+  measurable_inside A := by
+    by_cases hA : A = ∅
+    · subst hA
+      rw [trunc_empty]
+      exact measurable_const
+    · rw [trunc_apply_of_ne hA]
+      exact hΦ.measurable_inside A
+  normAt_ne_top i := by
+    rw [potentialNormAt_congr (fun A hA ↦ trunc_apply_of_ne hA) i]
+    exact hΦ.normAt_ne_top i
+
+/-- An absolutely summable potential of the challenge, as an element of Georgii's Fréchet space
+`ℬ` of (2.11).  Its value at the empty volume is discarded — Georgii's index set `𝒮` consists of
+the non-empty finite volumes. -/
+def toBSpace {Φ : Finset S → Config S E → ℝ} (hΦ : IsAbsolutelySummablePotential Φ) :
+    Potential.BSpace S E :=
+  ⟨(trunc Φ : Potential S E), isAbsolutelySummable (isAbsolutelySummablePotential_trunc hΦ),
+    trunc_empty Φ, isPotential (isAbsolutelySummablePotential_trunc hΦ)⟩
+
+@[simp] theorem coe_toBSpace {Φ : Finset S → Config S E → ℝ}
+    (hΦ : IsAbsolutelySummablePotential Φ) :
+    ((toBSpace hΦ : Potential.BSpace S E) : Potential S E) = trunc Φ := rfl
+
+/-- The DLR equations of the challenge are membership in the library's `𝒢(Φ)`. -/
+theorem isGibbs_iff_isGibbsMeasure {Φ : Finset S → Config S E → ℝ}
+    (hΦ : IsAbsolutelySummablePotential Φ) (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν] (β : ℝ)
+    (μ : Measure (Config S E)) [IsProbabilityMeasure μ] :
+    IsGibbs (gibbsKernel Φ ν β) μ ↔
+      Specification.IsGibbsMeasure
+        (Potential.BSpace.gibbsSpecificationOfFiniteReference ν β (toBSpace hΦ)) μ := by
+  haveI := isPotential (isAbsolutelySummablePotential_trunc hΦ)
+  haveI := isAbsolutelySummable (isAbsolutelySummablePotential_trunc hΦ)
+  have hk : gibbsKernel Φ ν β = gibbsKernel (trunc Φ) ν β :=
+    funext fun Λ ↦ funext fun ω ↦
+      (gibbsKernel_congr (fun A hA ↦ trunc_apply_of_ne hA) ν β Λ ω).symm
+  rw [hk]
+  exact isGibbs_iff (trunc Φ) ν β μ
+
+/-- Convergence of the interaction norms is convergence in Georgii's Fréchet space `ℬ`. -/
+theorem tendsto_toBSpace {ι : Type*} {l : Filter ι} {Φs : ι → Finset S → Config S E → ℝ}
+    {Φ : Finset S → Config S E → ℝ} (hΦs : ∀ x, IsAbsolutelySummablePotential (Φs x))
+    (hΦ : IsAbsolutelySummablePotential Φ)
+    (hconv : ∀ a : S,
+      Tendsto (fun x ↦ potentialNormAt (fun A ω ↦ Φs x A ω - Φ A ω) a) l (nhds 0)) :
+    Tendsto (fun x ↦ toBSpace (hΦs x)) l (nhds (toBSpace hΦ)) := by
+  rw [Potential.tendsto_iff_tendsto_seminormAt]
+  intro a
+  have heq : ∀ x, Potential.seminormAt S E a (toBSpace (hΦs x) - toBSpace hΦ)
+      = (potentialNormAt (fun A ω ↦ Φs x A ω - Φ A ω) a).toReal := by
+    intro x
+    rw [Potential.seminormAt_apply, Submodule.coe_sub, coe_toBSpace, coe_toBSpace,
+      ← normAt_eq]
+    congr 1
+    refine potentialNormAt_congr (fun A hA ↦ ?_) a
+    funext ω
+    show trunc (Φs x) A ω - trunc Φ A ω = Φs x A ω - Φ A ω
+    rw [trunc_apply_of_ne hA, trunc_apply_of_ne hA]
+  simp only [heq]
+  exact (ENNReal.tendsto_toReal ENNReal.zero_ne_top).comp (hconv a)
+
+omit [Countable S] in
+/-- Local convergence of probability measures is convergence in the library's space
+`WithLocalConvergence`. -/
+theorem tendsto_ofMeasure {ι : Type*} {l : Filter ι} (μs : ι → Measure (Config S E))
+    (hμs : ∀ x, IsProbabilityMeasure (μs x)) (μ : Measure (Config S E))
+    (hμ : IsProbabilityMeasure μ) (hloc : TendstoLocally μs l μ) :
+    Tendsto (fun x ↦ (WithSetwiseTopology.ofMeasure ⟨μs x, hμs x⟩ : WithLocalConvergence S E)) l
+      (nhds (WithSetwiseTopology.ofMeasure ⟨μ, hμ⟩ : WithLocalConvergence S E)) := by
+  rw [tendsto_withLocalConvergence_iff]
+  exact fun A hA ↦ hloc A (isLocalEvent_iff.2 hA)
+
+end Bridge
+
 /-! ## The theorems -/
 
 /-- **Georgii (2.9)/(2.10).** The Gibbsian specification of an absolutely summable potential really
@@ -358,6 +502,76 @@ theorem exists_isCompact_superset_iUnion_setOf_isGibbs [Countable S] [StandardBo
   obtain ⟨i, hi⟩ := Set.mem_iUnion.1 hμ
   obtain ⟨P, hP, rfl⟩ := Bridge.mem_image_of_isGibbs (Φs i) ν β hi
   exact ⟨P, subset_closure (Set.mem_iUnion.2 ⟨i, hP⟩), rfl⟩
+
+/-- **Georgii, Theorem (4.23)(c): the graph of the Gibbs correspondence is closed.** Let `(Φ_x)` be
+a net of absolutely summable potentials converging to `Φ` in Georgii's Fréchet space `ℬ`, i.e.
+`‖Φ_x − Φ‖_a → 0` for every site `a`, and let `μ_x ∈ 𝒢(Φ_x)` converge to a probability measure `μ`
+in the topology of local convergence.  Then `μ ∈ 𝒢(Φ)`.  (This is closedness of the graph
+`{(Φ, μ) : μ ∈ 𝒢(Φ)} ⊆ ℬ × 𝒫(Ω, 𝓕)` in net form; as Georgii remarks, it does not need the state
+space to be standard Borel.) -/
+theorem isGibbs_of_tendsto_potentialNormAt_of_tendstoLocally [Countable S] {ι : Type*}
+    {l : Filter ι} [l.NeBot] (Φs : ι → Finset S → Config S E → ℝ)
+    (Φ : Finset S → Config S E → ℝ) (hΦs : ∀ x, IsAbsolutelySummablePotential (Φs x))
+    (hΦ : IsAbsolutelySummablePotential Φ)
+    (hconv : ∀ a : S,
+      Tendsto (fun x ↦ potentialNormAt (fun A ω ↦ Φs x A ω - Φ A ω) a) l (nhds 0))
+    (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν] (β : ℝ)
+    (μs : ι → Measure (Config S E)) (hμs : ∀ x, IsGibbs (gibbsKernel (Φs x) ν β) (μs x))
+    (μ : Measure (Config S E)) (hμ : IsProbabilityMeasure μ)
+    (hloc : TendstoLocally μs l μ) :
+    IsGibbs (gibbsKernel Φ ν β) μ := by
+  haveI : ∀ x, IsProbabilityMeasure (μs x) := fun x ↦ (hμs x).1
+  haveI := hμ
+  set G : Set (Potential.BSpace S E × WithLocalConvergence S E) :=
+    {p | p.2.toMeasure ∈ MeasureTheory.GibbsMeasure.GP (S := S) (E := E)
+      (Potential.BSpace.gibbsSpecificationOfFiniteReference ν β p.1)} with hG
+  have hclosed : IsClosed G := Potential.BSpace.isClosed_graph_GP_ofFiniteReference ν β
+  have htend : Tendsto (fun x ↦ ((Bridge.toBSpace (hΦs x) : Potential.BSpace S E),
+      (WithSetwiseTopology.ofMeasure ⟨μs x, inferInstance⟩ : WithLocalConvergence S E))) l
+      (nhds ((Bridge.toBSpace hΦ : Potential.BSpace S E),
+        (WithSetwiseTopology.ofMeasure ⟨μ, hμ⟩ : WithLocalConvergence S E))) :=
+    (Bridge.tendsto_toBSpace hΦs hΦ hconv).prodMk_nhds
+      (Bridge.tendsto_ofMeasure μs (fun x ↦ inferInstance) μ hμ hloc)
+  have hmem : ∀ x, ((Bridge.toBSpace (hΦs x) : Potential.BSpace S E),
+      (WithSetwiseTopology.ofMeasure ⟨μs x, inferInstance⟩ : WithLocalConvergence S E)) ∈ G :=
+    fun x ↦ (Bridge.isGibbs_iff_isGibbsMeasure (hΦs x) ν β (μs x)).1 (hμs x)
+  have hlim := hclosed.mem_of_tendsto htend (Filter.Eventually.of_forall hmem)
+  exact (Bridge.isGibbs_iff_isGibbsMeasure hΦ ν β μ).2 hlim
+
+/-- **Georgii, Theorem (4.23)(d): the Gibbs correspondence is upper semicontinuous.** Let `F` be a
+set of measures which is closed in the topology of local convergence, and let `(Φ_x)` be a net of
+absolutely summable potentials converging to `Φ` in `ℬ`.  If every `𝒢(Φ_x)` meets `F`, then so
+does `𝒢(Φ)`.  This is Georgii's statement that `𝒢⁻¹(F) = {Φ : 𝒢(Φ) ∩ F ≠ ∅}` is closed. -/
+theorem exists_mem_isGibbs_of_tendsto_potentialNormAt [Countable S] [StandardBorelSpace E]
+    {ι : Type*} {l : Filter ι} [l.NeBot] (Φs : ι → Finset S → Config S E → ℝ)
+    (Φ : Finset S → Config S E → ℝ) (hΦs : ∀ x, IsAbsolutelySummablePotential (Φs x))
+    (hΦ : IsAbsolutelySummablePotential Φ)
+    (hconv : ∀ a : S,
+      Tendsto (fun x ↦ potentialNormAt (fun A ω ↦ Φs x A ω - Φ A ω) a) l (nhds 0))
+    (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν] (β : ℝ)
+    (F : Set (Measure (Config S E))) (hF : @IsClosed (Measure (Config S E)) localTopology F)
+    (hmeet : ∀ x, ∃ ρ ∈ F, IsGibbs (gibbsKernel (Φs x) ν β) ρ) :
+    ∃ ρ ∈ F, IsGibbs (gibbsKernel Φ ν β) ρ := by
+  set F' : Set (WithLocalConvergence S E) := Bridge.coeMeasure ⁻¹' F with hF'
+  have hF'closed : IsClosed F' := by
+    letI : TopologicalSpace (Measure (Config S E)) := localTopology
+    exact hF.preimage Bridge.continuous_coeMeasure
+  set A : Set (Potential.BSpace S E) :=
+    {Ψ | ∃ ρ ∈ F', ρ.toMeasure ∈ MeasureTheory.GibbsMeasure.GP (S := S) (E := E)
+      (Potential.BSpace.gibbsSpecificationOfFiniteReference ν β Ψ)} with hA
+  have hclosed : IsClosed A :=
+    Potential.BSpace.isClosed_setOf_exists_mem_GP_ofFiniteReference ν β hF'closed
+  have hmem : ∀ x, Bridge.toBSpace (hΦs x) ∈ A := by
+    intro x
+    obtain ⟨ρ, hρF, hρG⟩ := hmeet x
+    haveI : IsProbabilityMeasure ρ := hρG.1
+    exact ⟨WithSetwiseTopology.ofMeasure ⟨ρ, inferInstance⟩, hρF,
+      (Bridge.isGibbs_iff_isGibbsMeasure (hΦs x) ν β ρ).1 hρG⟩
+  have hlim := hclosed.mem_of_tendsto (Bridge.tendsto_toBSpace hΦs hΦ hconv)
+    (Filter.Eventually.of_forall hmem)
+  obtain ⟨ρ, hρF, hρG⟩ := hlim
+  exact ⟨Bridge.coeMeasure ρ, hρF, (Bridge.isGibbs_iff_isGibbsMeasure hΦ ν β
+    (Bridge.coeMeasure ρ)).2 hρG⟩
 
 end GibbsChallenge
 

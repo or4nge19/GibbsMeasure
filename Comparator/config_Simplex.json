@@ -6,6 +6,8 @@
         "GibbsChallenge.exists_isExtremeIn",
         "GibbsChallenge.existsUnique_weight_isExtremeIn",
         "GibbsChallenge.georgii_7_26",
+        "GibbsChallenge.mutuallySingular_of_isExtremeIn",
+        "GibbsChallenge.le_encard_setOf_isExtremeIn_iff",
         "GibbsChallenge.gibbsSet_indepSpec_nonempty"
     ],
     "permitted_axioms": [

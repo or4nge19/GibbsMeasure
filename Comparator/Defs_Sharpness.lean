@@ -37,9 +37,10 @@ assumes. Without that, the sharpness claim would compare two unrelated notions.
 ## Non-degeneracy
 
 `bern` and `bernoulliField` are exercised on examples, so that the statements they occur in cannot
-be true for a degenerate reason: `isProbabilityMeasure_bern` and `isProbabilityMeasure_bernoulliField`
-(they are probability measures for `x ∈ [0,1]`), `bern_zero`, `bern_one` (the two extreme
-parameters give the Dirac measures at the constant configurations), `bernoulliField_map_eval` and
+be true for a degenerate reason: `isProbabilityMeasure_bern` and
+`isProbabilityMeasure_bernoulliField` (they are probability measures for `x ∈ [0,1]`),
+`bern_zero`, `bern_one` (the two extreme parameters give the Dirac measures at the constant
+configurations), `bernoulliField_map_eval` and
 `bernoulliField_apply_eq_true` (each spin `σ_i` really is Bernoulli(`x`) under `μ^x`), and
 `bernoulliField_ne` (distinct parameters give distinct random fields).
 -/

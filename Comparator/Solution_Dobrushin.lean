@@ -89,6 +89,15 @@ theorem isGibbsMeasure (hγ : IsSpecification γ) {μ : Measure (Config S E)} (h
   rw [Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob]
   exact fun Λ ↦ comp_eq hγ hμ Λ
 
+theorem isGibbs_of_mem_GP (hγ : IsSpecification γ) {μ : Measure (Config S E)}
+    [IsProbabilityMeasure μ] (h : Specification.IsGibbsMeasure (spec γ hγ) μ) : IsGibbs γ μ := by
+  rw [Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob] at h
+  refine ⟨inferInstance, fun Λ A hA ↦ ?_⟩
+  have h2 : (⇑(spec γ hγ Λ) ∘ₘ μ) A = μ A := by rw [h Λ]
+  rw [Measure.bind_apply hA
+    (((spec γ hγ Λ).measurable.mono cylinderEvents_le_pi le_rfl).aemeasurable)] at h2
+  exact h2.symm
+
 /-! ### Georgii (8.1): the two uniform distances agree -/
 
 theorem unifDist_eq (α₁ α₂ : Measure E) [IsProbabilityMeasure α₁] [IsProbabilityMeasure α₂] :
@@ -144,6 +153,10 @@ theorem interdepIter_eq (hγ : IsSpecification γ) (n : ℕ) (b : S → ℝ≥0�
 theorem interdepSeries_eq (hγ : IsSpecification γ) (b : S → ℝ≥0∞) (i : S) :
     interdepSeries γ b i = GibbsMeasure.Dobrushin.interdepSeries (spec γ hγ) b i :=
   tsum_congr fun n ↦ interdepIter_eq hγ n b i
+
+theorem interdepTail_eq [DecidableEq S] (hγ : IsSpecification γ) (Δ : Finset S) (i : S) :
+    interdepTail γ Δ i = GibbsMeasure.Dobrushin.interdepTail (spec γ hγ) Δ i :=
+  interdepSeries_eq hγ _ i
 
 /-! ### Local and quasilocal observables -/
 
@@ -221,6 +234,15 @@ theorem isDobrushin_spec (hγ : IsSpecification γ) (hd : IsDobrushin γ) :
     ⟨isQuasilocal_spec hγ hd.1, lt_of_le_of_lt (le_of_eq ?_) hd.2⟩
   exact iSup_congr fun i ↦ tsum_congr fun j ↦ (interdep_eq hγ i j).symm
 
+/-- Georgii (8.23), step 1, transported to the challenge's vocabulary: under Dobrushin's condition
+the net of finite-volume Gibbs distributions has a Gibbs cluster point. -/
+theorem exists_isLocalThermodynamicLimit [StandardBorelSpace E] (hγ : IsSpecification γ)
+    (hd : IsDobrushin γ) (ω : Config S E) :
+    ∃ μ ∈ GP (S := S) (E := E) (spec γ hγ), IsLocalThermodynamicLimit (spec γ hγ) ω μ :=
+  exists_isLocalThermodynamicLimit_mem_GP (isQuasilocal_spec hγ hd.1) ω
+    (Dobrushin.locallyEquicontinuous_finiteVolumeDistributions_of_isDobrushin
+      (isQuasilocal_spec hγ hd.1) (isDobrushin_spec hγ hd) ω)
+
 end Bridge
 
 /-! ## The theorems -/
@@ -278,6 +300,196 @@ theorem ofReal_abs_integral_sub_le_interdepSeries
   simp only [Bridge.coe_toLp] at h2
   refine h2.trans_eq (tsum_congr fun i ↦ ?_)
   rw [Bridge.interdepSeries_eq hγ, Bridge.oscAt_eq]
+
+/-- **Georgii, Theorem (8.7), in full.** Over a standard Borel state space, a specification
+satisfying Dobrushin's condition of weak dependence has *exactly one* Gibbs measure: Dobrushin's
+condition gives existence as well as uniqueness. -/
+theorem existsUnique_isGibbs_of_isDobrushin [Nonempty E] [StandardBorelSpace E]
+    (γ : Finset S → Config S E → Measure (Config S E))
+    (hγ : IsSpecification γ) (hd : IsDobrushin γ) :
+    ∃! μ : Measure (Config S E), IsGibbs γ μ := by
+  have hq : (Bridge.spec γ hγ).IsQuasilocal := Bridge.isQuasilocal_spec hγ hd.1
+  have hD : MeasureTheory.GibbsMeasure.Dobrushin.IsDobrushin (Bridge.spec γ hγ) :=
+    Bridge.isDobrushin_spec hγ hd
+  obtain ⟨μ, hμ, huniq⟩ :=
+    MeasureTheory.GibbsMeasure.Dobrushin.existsUnique_mem_GP_of_isDobrushin_of_standardBorel hq hD
+  refine ⟨(μ : Measure (Config S E)), Bridge.isGibbs_of_mem_GP hγ hμ, fun ν hν ↦ ?_⟩
+  have hprob : IsProbabilityMeasure ν := hν.1
+  have h := huniq (⟨ν, hprob⟩ : ProbabilityMeasure (Config S E)) (Bridge.isGibbsMeasure hγ hν)
+  exact congrArg (fun x : ProbabilityMeasure (Config S E) ↦ (x : Measure (Config S E))) h
+
+/-- **Georgii (8.23), the Cauchy estimate.** Fix a boundary condition `ω`. For a `Λ`-local event
+`A` and finite volumes `Δ ⊆ Δ'`, the finite-volume Gibbs distributions differ by at most the tail
+of Dobrushin's series:
+`|γ_Δ(A|ω) − γ_{Δ'}(A|ω)| ≤ ∑_{i ∈ Λ} ∑_{j ∉ Δ} D_ij(γ)`. -/
+theorem ofReal_abs_toReal_sub_le_interdepTail [DecidableEq S]
+    (γ : Finset S → Config S E → Measure (Config S E))
+    (hγ : IsSpecification γ) (hd : IsDobrushin γ) {Λ Δ Δ' : Finset S} (hΔ : Δ ⊆ Δ')
+    (ω : Config S E) {A : Set (Config S E)} (hA : MeasurableSet[inside Λ] A) :
+    ENNReal.ofReal |(γ Δ ω A).toReal - (γ Δ' ω A).toReal| ≤ ∑ i ∈ Λ, interdepTail γ Δ i := by
+  have hq : (Bridge.spec γ hγ).IsQuasilocal := Bridge.isQuasilocal_spec hγ hd.1
+  have hD : MeasureTheory.GibbsMeasure.Dobrushin.IsDobrushin (Bridge.spec γ hγ) :=
+    Bridge.isDobrushin_spec hγ hd
+  have hTeq : (∑ i ∈ Λ, interdepTail γ Δ i)
+      = ∑ i ∈ Λ, MeasureTheory.GibbsMeasure.Dobrushin.interdepTail (Bridge.spec γ hγ) Δ i :=
+    Finset.sum_congr rfl fun i _ ↦ Bridge.interdepTail_eq hγ Δ i
+  rw [hTeq]
+  set T : ℝ≥0∞ :=
+    ∑ i ∈ Λ, MeasureTheory.GibbsMeasure.Dobrushin.interdepTail (Bridge.spec γ hγ) Δ i with hTdef
+  rcases eq_or_ne T ⊤ with hT | hT
+  · simp [hT]
+  have hprobΔ : IsProbabilityMeasure (γ Δ ω) := hγ.isProbabilityMeasure Δ ω
+  have hprobΔ' : IsProbabilityMeasure (γ Δ' ω) := hγ.isProbabilityMeasure Δ' ω
+  have hAm : MeasurableSet A := measurableSet_of_inside hA
+  have h1 : γ Δ' ω A ≤ γ Δ ω A + T :=
+    MeasureTheory.GibbsMeasure.Dobrushin.measure_le_add_interdepTail hq hD hΔ ω hA
+  have h1c : γ Δ' ω Aᶜ ≤ γ Δ ω Aᶜ + T :=
+    MeasureTheory.GibbsMeasure.Dobrushin.measure_le_add_interdepTail hq hD hΔ ω hA.compl
+  have hcompl : ∀ ρ : Measure (Config S E), IsProbabilityMeasure ρ →
+      (ρ Aᶜ).toReal = 1 - (ρ A).toReal := by
+    intro ρ _
+    rw [prob_compl_eq_one_sub hAm, ENNReal.toReal_sub_of_le prob_le_one ENNReal.one_ne_top,
+      ENNReal.toReal_one]
+  have hr1 : (γ Δ' ω A).toReal ≤ (γ Δ ω A).toReal + T.toReal := by
+    have h := ENNReal.toReal_mono (ENNReal.add_ne_top.2 ⟨measure_ne_top _ _, hT⟩) h1
+    rwa [ENNReal.toReal_add (measure_ne_top _ _) hT] at h
+  have hr2 : 1 - (γ Δ' ω A).toReal ≤ (1 - (γ Δ ω A).toReal) + T.toReal := by
+    have h := ENNReal.toReal_mono (ENNReal.add_ne_top.2 ⟨measure_ne_top _ _, hT⟩) h1c
+    rwa [ENNReal.toReal_add (measure_ne_top _ _) hT, hcompl _ hprobΔ', hcompl _ hprobΔ] at h
+  have habs : |(γ Δ ω A).toReal - (γ Δ' ω A).toReal| ≤ T.toReal :=
+    abs_le.2 ⟨by linarith, by linarith⟩
+  calc ENNReal.ofReal |(γ Δ ω A).toReal - (γ Δ' ω A).toReal|
+      ≤ ENNReal.ofReal T.toReal := ENNReal.ofReal_le_ofReal habs
+    _ = T := ENNReal.ofReal_toReal hT
+
+/-- **Georgii (8.23).** Under Dobrushin's condition the error term of the Cauchy estimate tends to
+`0` as the volume `Δ` exhausts `S`; this is the finiteness `∑_j D_ij(γ) < ∞`.  Together with
+`ofReal_abs_toReal_sub_le_interdepTail` it says that the net of finite-volume Gibbs distributions
+with a fixed boundary condition is Cauchy on every local event. -/
+theorem tendsto_interdepTail [DecidableEq S]
+    (γ : Finset S → Config S E → Measure (Config S E))
+    (hγ : IsSpecification γ) (hd : IsDobrushin γ) (i : S) :
+    Tendsto (fun Δ : Finset S ↦ interdepTail γ Δ i) atTop (nhds 0) := by
+  have hD0 : MeasureTheory.GibbsMeasure.Dobrushin.IsDobrushin (Bridge.spec γ hγ) :=
+    Bridge.isDobrushin_spec hγ hd
+  have heq : (fun Δ : Finset S ↦ interdepTail γ Δ i)
+      = fun Δ ↦ MeasureTheory.GibbsMeasure.Dobrushin.interdepTail (Bridge.spec γ hγ) Δ i :=
+    funext fun Δ ↦ Bridge.interdepTail_eq hγ Δ i
+  rw [heq]
+  exact MeasureTheory.GibbsMeasure.Dobrushin.tendsto_interdepTail hD0 i
+
+/-- **Georgii (8.23): Dobrushin's condition *constructs* the Gibbs measure.** Over a standard
+Borel state space a specification satisfying Dobrushin's condition has exactly one Gibbs measure
+`μ`, and for **every** boundary condition `ω` the net of finite-volume Gibbs distributions
+`(γ_Δ(·|ω))_{Δ ∈ 𝓢}` converges to `μ` in the topology of local convergence, Georgii (4.2).  This
+is what the Cauchy estimate `ofReal_abs_toReal_sub_le_interdepTail` is for. -/
+theorem exists_isGibbs_tendstoLocally_of_isDobrushin [DecidableEq S] [Nonempty E]
+    [StandardBorelSpace E] (γ : Finset S → Config S E → Measure (Config S E))
+    (hγ : IsSpecification γ) (hd : IsDobrushin γ) :
+    ∃ μ : Measure (Config S E), IsGibbs γ μ ∧
+      (∀ ν : Measure (Config S E), IsGibbs γ ν → ν = μ) ∧
+      ∀ ω : Config S E, TendstoLocally (fun Δ : Finset S ↦ γ Δ ω) atTop μ := by
+  have hq : (Bridge.spec γ hγ).IsQuasilocal := Bridge.isQuasilocal_spec hγ hd.1
+  have hD : MeasureTheory.GibbsMeasure.Dobrushin.IsDobrushin (Bridge.spec γ hγ) :=
+    Bridge.isDobrushin_spec hγ hd
+  obtain ⟨μ, hμ, huniq⟩ := existsUnique_isGibbs_of_isDobrushin γ hγ hd
+  refine ⟨μ, hμ, huniq, fun ω A hA ↦ ?_⟩
+  obtain ⟨Λ, hAΛ⟩ := hA
+  have hAm : MeasurableSet A := measurableSet_of_inside hAΛ
+  -- (1) the net of finite-volume probabilities of `A` is Cauchy, by the estimate (8.23)
+  have htail : Tendsto (fun Δ : Finset S ↦ ∑ i ∈ Λ, interdepTail γ Δ i) atTop (nhds 0) := by
+    have h := tendsto_finsetSum (f := fun (i : S) (Δ : Finset S) ↦ interdepTail γ Δ i)
+      (a := fun _ : S ↦ (0 : ℝ≥0∞)) Λ fun i _ ↦ tendsto_interdepTail γ hγ hd i
+    simpa using h
+  have hcauchy : Cauchy (Filter.map (fun Δ : Finset S ↦ (γ Δ ω A).toReal) atTop) := by
+    rw [Metric.cauchy_iff]
+    refine ⟨Filter.map_neBot, fun ε hε ↦ ?_⟩
+    have hpos : (0 : ℝ≥0∞) < ENNReal.ofReal (ε / 4) := by
+      simpa using ENNReal.ofReal_pos.2 (by linarith)
+    obtain ⟨Δ₀, hΔ₀⟩ :=
+      ((ENNReal.tendsto_nhds_zero.1 htail) (ENNReal.ofReal (ε / 4)) hpos).exists
+    set t : ℝ≥0∞ := ∑ i ∈ Λ, interdepTail γ Δ₀ i with htdef
+    have httop : t ≠ ⊤ := ne_top_of_le_ne_top ENNReal.ofReal_ne_top hΔ₀
+    have htle : t.toReal ≤ ε / 4 := by
+      have := ENNReal.toReal_mono ENNReal.ofReal_ne_top hΔ₀
+      rwa [ENNReal.toReal_ofReal (by linarith)] at this
+    have hbnd : ∀ Δ : Finset S, Δ₀ ≤ Δ →
+        |(γ Δ₀ ω A).toReal - (γ Δ ω A).toReal| ≤ t.toReal := by
+      intro Δ hΔ
+      have h := ofReal_abs_toReal_sub_le_interdepTail γ hγ hd hΔ ω hAΛ
+      have h2 := ENNReal.toReal_mono httop h
+      rwa [ENNReal.toReal_ofReal (abs_nonneg _)] at h2
+    refine ⟨(fun Δ : Finset S ↦ (γ Δ ω A).toReal) '' {Δ : Finset S | Δ₀ ≤ Δ}, ?_, ?_⟩
+    · exact Filter.image_mem_map (Filter.eventually_ge_atTop Δ₀)
+    · rintro x ⟨Δ, hΔ, rfl⟩ y ⟨Δ', hΔ', rfl⟩
+      have h1 := hbnd Δ hΔ
+      have h2 := hbnd Δ' hΔ'
+      rw [Real.dist_eq]
+      have : |(γ Δ ω A).toReal - (γ Δ' ω A).toReal| ≤ t.toReal + t.toReal := by
+        calc |(γ Δ ω A).toReal - (γ Δ' ω A).toReal|
+            ≤ |(γ Δ ω A).toReal - (γ Δ₀ ω A).toReal|
+              + |(γ Δ₀ ω A).toReal - (γ Δ' ω A).toReal| := abs_sub_le _ _ _
+          _ ≤ t.toReal + t.toReal := by
+              rw [abs_sub_comm ((γ Δ ω A).toReal)]
+              exact add_le_add h1 h2
+      linarith
+  obtain ⟨L, hL⟩ := CompleteSpace.complete hcauchy
+  have hLtend : Tendsto (fun Δ : Finset S ↦ (γ Δ ω A).toReal) atTop (nhds L) := hL
+  have htend : Tendsto (fun Δ : Finset S ↦ γ Δ ω A) atTop (nhds (ENNReal.ofReal L)) := by
+    have h1 : Tendsto (fun Δ : Finset S ↦ ENNReal.ofReal ((γ Δ ω A).toReal)) atTop
+        (nhds (ENNReal.ofReal L)) := (ENNReal.continuous_ofReal.tendsto L).comp hLtend
+    have heq : (fun Δ : Finset S ↦ γ Δ ω A)
+        = fun Δ : Finset S ↦ ENNReal.ofReal ((γ Δ ω A).toReal) := by
+      funext Δ
+      have := hγ.isProbabilityMeasure Δ ω
+      exact (ENNReal.ofReal_toReal (measure_ne_top _ _)).symm
+    rw [heq]
+    exact h1
+  -- (2) the unique Gibbs measure is a cluster point of that net
+  obtain ⟨μ0, hμ0GP, hltl⟩ := Bridge.exists_isLocalThermodynamicLimit hγ hd ω
+  have hμ0 : (μ0 : Measure (Config S E)) = μ := huniq _ (Bridge.isGibbs_of_mem_GP hγ hμ0GP)
+  have hcont : Continuous fun ρ : MeasureTheory.WithLocalConvergence S E ↦
+      ((ρ.toMeasure : Measure (Config S E)) A) :=
+    MeasureTheory.WithSetwiseTopology.continuous_apply_enn
+      (MeasureTheory.mem_localEvents_of_cylinderEvents Λ hAΛ)
+  have hcl : ClusterPt ((μ0 : Measure (Config S E)) A)
+      (Filter.map (fun Δ : Finset S ↦ γ Δ ω A) atTop) := by
+    have h := hltl.map hcont.continuousAt Filter.tendsto_map
+    rw [Filter.map_map] at h
+    exact h
+  -- (3) a cluster point of a convergent net is its limit
+  have hfin : (μ0 : Measure (Config S E)) A = ENNReal.ofReal L :=
+    eq_of_nhds_neBot (hcl.mono htend)
+  rw [hμ0] at hfin
+  rw [hfin]
+  exact htend
+
+/-- **Non-vacuity: Dobrushin's condition is satisfiable.** For a single-spin distribution `ν` on a
+standard Borel state space, and an arbitrary — in particular infinite — site set `S`, the
+independent specification of the preamble is a specification satisfying Dobrushin's condition:
+its interdependence matrix vanishes identically, so `c(γ) = 0 < 1`.  Consequently its Gibbs
+measures are exactly the single product measure `ν^S`, and the finite-volume Gibbs distributions
+converge locally to `ν^S` from every boundary condition. -/
+theorem isDobrushin_indepSpec [DecidableEq S] [StandardBorelSpace E] (ν : Measure E)
+    [IsProbabilityMeasure ν] :
+    IsSpecification (indepSpec (S := S) ν) ∧ IsDobrushin (indepSpec (S := S) ν) ∧
+      (∀ i j : S, interdep (indepSpec (S := S) ν) i j = 0) ∧
+      (∀ μ : Measure (Config S E),
+        IsGibbs (indepSpec (S := S) ν) μ ↔ μ = Measure.infinitePi fun _ : S ↦ ν) ∧
+      ∀ ω : Config S E, TendstoLocally (fun Δ : Finset S ↦ indepSpec ν Δ ω) atTop
+        (Measure.infinitePi fun _ : S ↦ ν) := by
+  have hE : Nonempty E := GibbsChallenge.nonempty_of_isProbabilityMeasure ν
+  have hspec : IsSpecification (indepSpec (S := S) ν) := isSpecification_indep ν
+  have hdob : IsDobrushin (indepSpec (S := S) ν) := Indep.isDobrushin_indepSpec ν
+  obtain ⟨μ, hμ, huniq, hconv⟩ :=
+    exists_isGibbs_tendstoLocally_of_isDobrushin (indepSpec (S := S) ν) hspec hdob
+  have hprod : (Measure.infinitePi fun _ : S ↦ ν) = μ := huniq _ (isGibbs_indep ν)
+  refine ⟨hspec, hdob, Indep.interdep_indepSpec ν,
+    fun ρ ↦ ⟨fun hρ ↦ by rw [huniq ρ hρ, hprod], fun hρ ↦ ?_⟩, fun ω ↦ ?_⟩
+  · rw [hρ]
+    exact isGibbs_indep ν
+  · rw [hprod]
+    exact hconv ω
 
 end DobrushinChallenge
 

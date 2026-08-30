@@ -125,6 +125,20 @@ i.e. `inf_{μ ∈ F} d(μ, ν)`. -/
 def localDistSet (A : ℕ → Set Config) (F : Set (Measure Config)) (ν : Measure Config) : ℝ :=
   sInf ((fun μ ↦ localDist A μ ν) '' F)
 
+/-! ### The Peierls bound -/
+
+/-- **Georgii's Peierls series.**  The bound produced by the Peierls contour argument on the
+probability that, in the plus phase at inverse temperature `β`, the spin at a given site is `−1`:
+`r(β) = ∑_{ℓ ≥ 1} ℓ · 4096^ℓ · e^{-2βℓ}`.
+
+The combinatorial factor `4096^ℓ` is the crude count of contours of length `ℓ` used here; it is
+much larger than the `3^ℓ` of Georgii's own count, and **no smaller constant is claimed**.  All
+that matters for Theorem (6.9) is that `r(β) → 0` as `β → ∞`, which
+`ising_low_temperature_peierls` asserts. -/
+def peierlsBound (β : ℝ) : ℝ≥0∞ :=
+  ∑' l : ℕ, ((l : ℝ≥0∞) + 1) * 4096 ^ (l + 1) *
+    ENNReal.ofReal (Real.exp (-2 * β * ((l : ℝ) + 1)))
+
 /-! #### `localDist` is a pseudometric, and `localDistSet` is the associated distance to a set -/
 
 theorem abs_toReal_sub_le_one {μ ν : Measure Config} [IsProbabilityMeasure μ]

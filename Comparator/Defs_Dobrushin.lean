@@ -26,6 +26,7 @@ by eye against the book.
 | `δ_j(f)`, the single-site oscillation, (8.14) | `oscAt` |
 | `C(γ)^n b` | `interdepIter` |
 | `D(γ) b = ∑_{n ≥ 0} C(γ)^n b`, (8.19) | `interdepSeries` |
+| `∑_{j ∉ Δ} D_ij(γ)`, the tail of (8.19), used in (8.23) | `interdepTail` |
 -/
 
 set_option autoImplicit false
@@ -214,6 +215,135 @@ def interdepIter (γ : Finset S → Config S E → Measure (Config S E)) :
 /-- **Georgii (8.19)**: `D(γ) b = ∑_{n ≥ 0} C(γ)^n b`. -/
 def interdepSeries (γ : Finset S → Config S E → Measure (Config S E)) (b : S → ℝ≥0∞) (i : S) :
     ℝ≥0∞ := ∑' n : ℕ, interdepIter γ n b i
+
+/-- The tail `∑_{j ∉ Δ} D_ij(γ)` of Georgii's series (8.19): the weight `D(γ)` puts on the sites
+outside the finite volume `Δ`.  It is the error term of Georgii's Cauchy estimate (8.23). -/
+def interdepTail [DecidableEq S] (γ : Finset S → Config S E → Measure (Config S E))
+    (Δ : Finset S) (i : S) : ℝ≥0∞ :=
+  interdepSeries γ (fun j ↦ if j ∈ Δ then 0 else 1) i
+
+
+/-! ## The `inside` σ-algebra: locality
+
+The preamble records that events measurable *outside* `Λ` do not depend on the coordinates inside
+`Λ` (`mem_iff_mem_of_outside`, `measurable_outside_of_local`).  The mirror statements for `inside`
+are what is needed to recognise a function as *local* in the sense of Georgii (2.20)(a); they are
+proved here exactly as their `outside` counterparts.
+-/
+
+/-- The restriction of a configuration to `Λ`. -/
+def restrictInside (Λ : Finset S) (ω : Config S E) : {i : S // i ∈ Λ} → E := fun i ↦ ω i.1
+
+theorem measurable_restrictInside (Λ : Finset S) :
+    Measurable[inside Λ] (restrictInside (E := E) Λ) :=
+  measurable_pi_of _ fun i ↦ Measurable.of_comap_le (comap_le_inside i.2)
+
+/-- `𝓕_Λ` is the σ-algebra pulled back along the restriction map `ω ↦ ω|_Λ`. -/
+theorem inside_eq_comap (Λ : Finset S) :
+    inside (E := E) Λ = MeasurableSpace.comap (restrictInside Λ) inferInstance := by
+  refine le_antisymm ?_ (measurable_restrictInside Λ).comap_le
+  refine iSup₂_le fun i hi ↦ ?_
+  have h1 : Measurable[MeasurableSpace.comap (restrictInside (E := E) Λ) inferInstance]
+      (restrictInside Λ) := Measurable.of_comap_le le_rfl
+  exact ((measurable_pi_apply (⟨i, hi⟩ : {i : S // i ∈ Λ})).comp h1).comap_le
+
+/-- **Events measurable inside `Λ` do not depend on the coordinates off `Λ`.** -/
+theorem mem_iff_mem_of_inside {Λ : Finset S} {B : Set (Config S E)}
+    (hB : MeasurableSet[inside Λ] B) {ω ω' : Config S E} (h : ∀ i ∈ Λ, ω i = ω' i) :
+    ω ∈ B ↔ ω' ∈ B := by
+  rw [inside_eq_comap] at hB
+  obtain ⟨C, -, rfl⟩ := hB
+  have hr : restrictInside Λ ω = restrictInside Λ ω' := funext fun i ↦ h i.1 i.2
+  simp only [Set.mem_preimage, hr]
+
+/-- A `𝓕_Λ`-measurable real function does not depend on the coordinates off `Λ`. -/
+theorem eq_of_measurable_inside {Λ : Finset S} {f : Config S E → ℝ}
+    (hf : Measurable[inside Λ] f) {ω ω' : Config S E} (h : ∀ i ∈ Λ, ω i = ω' i) : f ω = f ω' := by
+  have hB : MeasurableSet[inside Λ] (f ⁻¹' {f ω}) := hf (measurableSet_singleton (f ω))
+  have hmem : ω' ∈ f ⁻¹' {f ω} := (mem_iff_mem_of_inside hB h).1 (by simp)
+  simpa using hmem.symm
+
+/-- Conversely, a measurable function which does not depend on the coordinates off `Λ` is
+`𝓕_Λ`-measurable. -/
+theorem measurable_inside_of_local [Nonempty E] {α : Type*} [MeasurableSpace α] (Λ : Finset S)
+    {f : Config S E → α} (hf : Measurable f)
+    (hloc : ∀ ω ω' : Config S E, (∀ i ∈ Λ, ω i = ω' i) → f ω = f ω') :
+    Measurable[inside Λ] f := by
+  set ζ : Config S E := fun _ ↦ Classical.arbitrary E with hζ
+  have hg : Measurable[inside Λ] fun ω : Config S E ↦ glue Λ ω ζ := by
+    refine measurable_pi_of _ fun i ↦ ?_
+    by_cases hi : i ∈ Λ
+    · simp only [glue_of_mem hi]
+      exact Measurable.of_comap_le (comap_le_inside hi)
+    · simp only [glue_of_notMem hi]
+      exact measurable_const
+  have hfg : f = f ∘ fun ω : Config S E ↦ glue Λ ω ζ :=
+    funext fun ω ↦ hloc _ _ fun i hi ↦ (glue_of_mem hi ω ζ).symm
+  rw [hfg]
+  exact hf.comp hg
+
+/-! ## Non-vacuity: the independent specification satisfies Dobrushin's condition -/
+
+namespace Indep
+
+variable (ν : Measure E) [IsProbabilityMeasure ν]
+
+/-- Under the independent specification the single-site distribution `γ_i^0(·|ζ)` is the `i`-th
+marginal of `ν^S`; in particular it does not depend on the boundary condition `ζ` at all. -/
+theorem proj_indepSpec (i : S) (ζ : Config S E) :
+    proj (indepSpec (S := S) ν) i ζ
+      = Measure.map (fun σ : Config S E ↦ σ i) (Measure.infinitePi fun _ : S ↦ ν) := by
+  rw [proj, indepSpec, Measure.map_map (measurable_pi_apply i)
+    (measurable_glue_left ({i} : Finset S) ζ)]
+  congr 1
+  funext σ
+  simp [Function.comp_def, glue_of_mem (Finset.mem_singleton_self i)]
+
+/-- **Dobrushin's interdependence matrix of the independent specification vanishes.** -/
+theorem interdep_indepSpec (i j : S) : interdep (indepSpec (S := S) ν) i j = 0 :=
+  le_antisymm (interdep_le fun ζ η _ ↦ by
+    rw [proj_indepSpec, proj_indepSpec, unifDist_self]) bot_le
+
+/-- Averaging a local observable over the independent specification gives a local observable. -/
+theorem isLocalFn_integral_indepSpec {f : Config S E → ℝ} (hf : IsLocalFn f) (Λ : Finset S) :
+    IsLocalFn fun ω ↦ ∫ x, f x ∂(indepSpec (S := S) ν Λ ω) := by
+  have hE : Nonempty E := GibbsChallenge.nonempty_of_isProbabilityMeasure ν
+  obtain ⟨⟨C, hC⟩, Λ', hΛ'⟩ := hf
+  have hfm : Measurable f := hΛ'.mono (inside_le Λ') le_rfl
+  have heq : ∀ ω : Config S E, ∫ x, f x ∂(indepSpec (S := S) ν Λ ω)
+      = ∫ σ, f (glue Λ σ ω) ∂(Measure.infinitePi fun _ : S ↦ ν) := by
+    intro ω
+    rw [indepSpec, integral_map (measurable_glue_left Λ ω).aemeasurable
+      hfm.aestronglyMeasurable]
+  have hmeas : Measurable fun ω : Config S E ↦ ∫ x, f x ∂(indepSpec (S := S) ν Λ ω) := by
+    rw [funext heq]
+    exact (MeasureTheory.StronglyMeasurable.integral_prod_right'
+      (f := fun p : Config S E × Config S E ↦ f (glue Λ p.2 p.1))
+      (hfm.comp (measurable_glue_swap Λ)).stronglyMeasurable).measurable
+  refine ⟨⟨C, fun ω ↦ ?_⟩, Λ', measurable_inside_of_local Λ' hmeas fun ω ω' hω ↦ ?_⟩
+  · have hprob : IsProbabilityMeasure (indepSpec (S := S) ν Λ ω) := inferInstance
+    have h := norm_integral_le_of_norm_le_const (μ := indepSpec (S := S) ν Λ ω) (f := f)
+      (C := C) (Filter.Eventually.of_forall fun x ↦ by simpa [Real.norm_eq_abs] using hC x)
+    simpa [Real.norm_eq_abs, measureReal_def] using h
+  · rw [heq, heq]
+    refine integral_congr_ae (Filter.Eventually.of_forall fun σ ↦ ?_)
+    refine eq_of_measurable_inside hΛ' fun i hi ↦ ?_
+    by_cases hiΛ : i ∈ Λ
+    · rw [glue_of_mem hiΛ, glue_of_mem hiΛ]
+    · rw [glue_of_notMem hiΛ, glue_of_notMem hiΛ]
+      exact hω i hi
+
+/-- **The independent specification is quasilocal** in the sense of Georgii (2.23). -/
+theorem isQuasilocalSpec_indepSpec : IsQuasilocalSpec (indepSpec (S := S) ν) :=
+  fun Λ _ hf ↦ (isLocalFn_integral_indepSpec ν hf Λ).isQuasilocalFn
+
+/-- **The independent specification satisfies Dobrushin's condition**, with `c(γ) = 0`. -/
+theorem isDobrushin_indepSpec : IsDobrushin (indepSpec (S := S) ν) := by
+  refine ⟨isQuasilocalSpec_indepSpec ν, ?_⟩
+  refine lt_of_le_of_lt (iSup_le fun i ↦ ?_) (by norm_num : (0 : ℝ≥0∞) < 1)
+  simp [interdep_indepSpec]
+
+end Indep
 
 end DobrushinChallenge
 

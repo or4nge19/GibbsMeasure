@@ -18,7 +18,7 @@ finite-volume Gibbs distribution `gibbsMeasure β Λ ω` is *literally the same 
 
 * `nonUniqueness` with `MeasureTheory.GibbsMeasure.isingNonUniqueness`, hence `betaC` with
   `MeasureTheory.GibbsMeasure.isingBetaC`;
-* `IsLocalEvent` with membership of `localEvents`, i.e. of Mathlib's `measurableCylinders`;
+* `IsLocal` with membership of `localEvents`, i.e. of Mathlib's `measurableCylinders`;
 * any measure that is the all-`+` local limit with `MeasureTheory.GibbsMeasure.plusState`, and
   `∫ σ, spin (σ 0)` against it with
   `MeasureTheory.GibbsMeasure.spontaneousMagnetisation`.
@@ -380,7 +380,7 @@ lemma betaC_eq : betaC = MeasureTheory.GibbsMeasure.isingBetaC :=
 
 /-! #### Local events -/
 
-lemma isLocalEvent_iff {A : Set Config} : IsLocalEvent A ↔ A ∈ localEvents Site Bool := by
+lemma isLocalEvent_iff {A : Set Config} : IsLocal A ↔ A ∈ localEvents Site Bool := by
   constructor
   · rintro ⟨Λ, hΛ⟩
     refine mem_localEvents_iff_exists_finsetRestrict_preimage.2
@@ -394,15 +394,15 @@ lemma isLocalEvent_iff {A : Set Config} : IsLocalEvent A ↔ A ∈ localEvents S
       simp only [Set.mem_preimage]
       rw [show Λ.restrict σ = Λ.restrict τ from funext fun i ↦ h i i.2]⟩
 
-lemma measurableSet_of_isLocalEvent {A : Set Config} (hA : IsLocalEvent A) : MeasurableSet A :=
+lemma measurableSet_of_isLocalEvent {A : Set Config} (hA : IsLocal A) : MeasurableSet A :=
   MeasurableSet.of_mem_measurableCylinders (isLocalEvent_iff.1 hA)
 
-lemma isLocalEvent_univ : IsLocalEvent (Set.univ : Set Config) := ⟨∅, fun _ _ _ ↦ Iff.rfl⟩
+lemma isLocalEvent_univ : IsLocal (Set.univ : Set Config) := ⟨∅, fun _ _ _ ↦ Iff.rfl⟩
 
 /-! #### The plus and the minus phase -/
 
 open Filter Topology in
-lemma tendsto_plus (β : ℝ) (hβ : 0 ≤ β) {A : Set Config} (hA : IsLocalEvent A) :
+lemma tendsto_plus (β : ℝ) (hβ : 0 ≤ β) {A : Set Config} (hA : IsLocal A) :
     Tendsto (fun Λ : Finset Site ↦ gibbsMeasure β Λ (fun _ ↦ true) A) atTop
       (𝓝 ((MeasureTheory.GibbsMeasure.plusState (latticeGraph 2) 1 0 β : Measure Config) A)) := by
   have h := MeasureTheory.GibbsMeasure.tendsto_measure_plusState (latticeGraph 2) 1 0 β
@@ -411,7 +411,7 @@ lemma tendsto_plus (β : ℝ) (hβ : 0 ≤ β) {A : Set Config} (hA : IsLocalEve
   exact spec_apply β Λ _ (measurableSet_of_isLocalEvent hA)
 
 open Filter Topology in
-lemma tendsto_minus (β : ℝ) (hβ : 0 ≤ β) {A : Set Config} (hA : IsLocalEvent A) :
+lemma tendsto_minus (β : ℝ) (hβ : 0 ≤ β) {A : Set Config} (hA : IsLocal A) :
     Tendsto (fun Λ : Finset Site ↦ gibbsMeasure β Λ (fun _ ↦ false) A) atTop
       (𝓝 ((MeasureTheory.GibbsMeasure.minusState (latticeGraph 2) 1 0 β : Measure Config) A)) := by
   have h := MeasureTheory.GibbsMeasure.tendsto_measure_minusState (latticeGraph 2) 1 0 β
@@ -422,7 +422,7 @@ lemma tendsto_minus (β : ℝ) (hβ : 0 ≤ β) {A : Set Config} (hA : IsLocalEv
 open Filter Topology in
 /-- A measure agreeing with the all-`+` local limit on every local event *is* the plus phase. -/
 lemma eq_plusState (β : ℝ) (hβ : 0 ≤ β) (μ : Measure Config)
-    (hμ : ∀ A : Set Config, IsLocalEvent A →
+    (hμ : ∀ A : Set Config, IsLocal A →
       Tendsto (fun Λ : Finset Site ↦ gibbsMeasure β Λ (fun _ ↦ true) A) atTop (𝓝 (μ A))) :
     μ = (MeasureTheory.GibbsMeasure.plusState (latticeGraph 2) 1 0 β : Measure Config) := by
   have key : ∀ A ∈ localEvents Site Bool, μ A =
@@ -436,6 +436,30 @@ lemma eq_plusState (β : ℝ) (hβ : 0 ≤ β) (μ : Measure Config)
     isPiSystem_measurableCylinders key ?_
   · exact generateFrom_measurableCylinders.symm
   · rw [huniv, measure_univ]
+
+lemma isGibbs_plusState (β : ℝ) (hβ : 0 ≤ β) :
+    IsGibbs β (MeasureTheory.GibbsMeasure.plusState (latticeGraph 2) 1 0 β : Measure Config) :=
+  isGibbs_of_mem_GP β _
+    (MeasureTheory.GibbsMeasure.plusState_mem_GP (latticeGraph 2) 1 0 β zero_le_one hβ)
+
+lemma isGibbs_minusState (β : ℝ) (hβ : 0 ≤ β) :
+    IsGibbs β (MeasureTheory.GibbsMeasure.minusState (latticeGraph 2) 1 0 β : Measure Config) :=
+  isGibbs_of_mem_GP β _
+    (MeasureTheory.GibbsMeasure.minusState_mem_GP (latticeGraph 2) 1 0 β zero_le_one hβ)
+
+/-- Every Gibbs measure is dominated by the plus phase on measurable increasing events. -/
+lemma le_plusState (β : ℝ) (hβ : 0 ≤ β) {μ : Measure Config} (hμ : IsGibbs β μ)
+    {A : Set Config} (hA : MeasurableSet A) (hup : IsUpperSet A) :
+    μ A ≤ (MeasureTheory.GibbsMeasure.plusState (latticeGraph 2) 1 0 β : Measure Config) A :=
+  MeasureTheory.GibbsMeasure.stochasticallyLE_plusState (latticeGraph 2) 1 0 β zero_le_one hβ
+    (mem_GP_of_isGibbs β μ hμ) hA hup
+
+/-- The minus phase is dominated by every Gibbs measure on measurable increasing events. -/
+lemma minusState_le (β : ℝ) (hβ : 0 ≤ β) {μ : Measure Config} (hμ : IsGibbs β μ)
+    {A : Set Config} (hA : MeasurableSet A) (hup : IsUpperSet A) :
+    (MeasureTheory.GibbsMeasure.minusState (latticeGraph 2) 1 0 β : Measure Config) A ≤ μ A :=
+  MeasureTheory.GibbsMeasure.minusState_stochasticallyLE (latticeGraph 2) 1 0 β zero_le_one hβ
+    (mem_GP_of_isGibbs β μ hμ) hA hup
 
 /-! #### The spontaneous magnetisation -/
 
@@ -534,28 +558,20 @@ theorem ising_plus_minus_phases (β : ℝ) (hβ : 0 ≤ β) :
     ∃ μp μm : Measure Config,
       IsGibbs β μp ∧
       IsGibbs β μm ∧
-      (∀ A : Set Config, IsLocalEvent A →
+      (∀ A : Set Config, IsLocal A →
         Filter.Tendsto (fun Λ : Finset Site ↦ gibbsMeasure β Λ (fun _ ↦ true) A)
           Filter.atTop (nhds (μp A))) ∧
-      (∀ A : Set Config, IsLocalEvent A →
+      (∀ A : Set Config, IsLocal A →
         Filter.Tendsto (fun Λ : Finset Site ↦ gibbsMeasure β Λ (fun _ ↦ false) A)
           Filter.atTop (nhds (μm A))) ∧
       (∀ μ : Measure Config, IsGibbs β μ →
         ∀ A : Set Config, MeasurableSet A → IsUpperSet A → μ A ≤ μp A) ∧
       (∀ μ : Measure Config, IsGibbs β μ →
         ∀ A : Set Config, MeasurableSet A → IsUpperSet A → μm A ≤ μ A) := by
-  refine ⟨(MeasureTheory.GibbsMeasure.plusState (MeasureTheory.GibbsMeasure.latticeGraph 2) 1 0 β : Measure Config),
-    (MeasureTheory.GibbsMeasure.minusState (MeasureTheory.GibbsMeasure.latticeGraph 2) 1 0 β : Measure Config),
-    Bridge.isGibbs_of_mem_GP β _
-      (MeasureTheory.GibbsMeasure.plusState_mem_GP (MeasureTheory.GibbsMeasure.latticeGraph 2) 1 0 β zero_le_one hβ),
-    Bridge.isGibbs_of_mem_GP β _
-      (MeasureTheory.GibbsMeasure.minusState_mem_GP (MeasureTheory.GibbsMeasure.latticeGraph 2) 1 0 β zero_le_one hβ),
+  exact ⟨_, _, Bridge.isGibbs_plusState β hβ, Bridge.isGibbs_minusState β hβ,
     fun A hA ↦ Bridge.tendsto_plus β hβ hA, fun A hA ↦ Bridge.tendsto_minus β hβ hA,
-    fun μ hμ A hA hup ↦ ?_, fun μ hμ A hA hup ↦ ?_⟩
-  · exact MeasureTheory.GibbsMeasure.stochasticallyLE_plusState (MeasureTheory.GibbsMeasure.latticeGraph 2) 1 0 β
-      zero_le_one hβ (Bridge.mem_GP_of_isGibbs β μ hμ) hA hup
-  · exact MeasureTheory.GibbsMeasure.minusState_stochasticallyLE (MeasureTheory.GibbsMeasure.latticeGraph 2) 1 0 β
-      zero_le_one hβ (Bridge.mem_GP_of_isGibbs β μ hμ) hA hup
+    fun μ hμ A hA hup ↦ Bridge.le_plusState β hβ hμ hA hup,
+    fun μ hμ A hA hup ↦ Bridge.minusState_le β hβ hμ hA hup⟩
 
 /-- **The Lebowitz–Martin-Löf/Ruelle criterion** (Georgii, Section 6.2, the paragraph after (6.9),
 where it is cited without proof). For `β ≥ 0` the two-dimensional Ising ferromagnet has more than
@@ -564,7 +580,7 @@ expected spin at the origin under the plus phase `μ₊` is strictly positive. H
 down by being the limit of the finite-volume distributions with all-`+` boundary condition; such a
 measure exists by `ising_plus_minus_phases`. -/
 theorem ising_lebowitz_martin_lof (β : ℝ) (hβ : 0 ≤ β) (μp : Measure Config)
-    (hμp : ∀ A : Set Config, IsLocalEvent A →
+    (hμp : ∀ A : Set Config, IsLocal A →
       Filter.Tendsto (fun Λ : Finset Site ↦ gibbsMeasure β Λ (fun _ ↦ true) A)
         Filter.atTop (nhds (μp A))) :
     (∃ μ ν : Measure Config, IsGibbs β μ ∧ IsGibbs β ν ∧ μ ≠ ν)

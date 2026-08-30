@@ -250,13 +250,13 @@ theorem mutuallySingular_of_isExtremeIn [Countable S] [StandardBorelSpace E]
     (hν : IsExtremeIn (GibbsSet γ) ν) (hne : μ ≠ ν) :
     μ.MutuallySingular ν := by
   have hμ' : μ ∈ (MeasureTheory.GibbsMeasure.G (SimplexBridge.spec hγ)).extremePoints ℝ≥0∞ := by
-    have := (SimplexBridge.setOf_isExtremeIn_eq hγ) ▸ hμ
-    exact this
+    rw [← SimplexBridge.gibbsSet_eq_G hγ, ← SimplexBridge.isExtremeIn_iff_mem_extremePoints]
+    exact hμ
   have hν' : ν ∈ (MeasureTheory.GibbsMeasure.G (SimplexBridge.spec hγ)).extremePoints ℝ≥0∞ := by
-    have := (SimplexBridge.setOf_isExtremeIn_eq hγ) ▸ hν
-    exact this
+    rw [← SimplexBridge.gibbsSet_eq_G hγ, ← SimplexBridge.isExtremeIn_iff_mem_extremePoints]
+    exact hν
   exact MeasureTheory.GibbsMeasure.mutuallySingular_of_mem_extremePoints
-    ⟨μ, Set.extremePoints_subset hμ'⟩ hμ' hν' hne
+    ⟨μ, extremePoints_subset hμ'⟩ hμ' hν' hne
 
 /-- **Georgii, Corollary (7.29).** For a specification with at least one Gibbs measure, the number
 of *extreme* Gibbs measures is at least `N` if and only if `𝓖(γ)` contains `N` measures which are

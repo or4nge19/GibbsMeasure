@@ -31,7 +31,7 @@ physics without having to trust anything else.
 * `IsGibbs β μ` is the Dobrushin–Lanford–Ruelle condition: `μ` is a probability measure and, for
   every finite volume `Λ` and every measurable set `A`, `μ A = ∫⁻ ω, gibbsMeasure β Λ ω A ∂μ`.
 * `shift j` translates a configuration by the lattice vector `j`.
-* `IsLocalEvent A` says that `A` depends on the spins in a finite volume only — Georgii's
+* `IsLocal A` says that `A` depends on the spins in a finite volume only — Georgii's
   algebra `𝓕⁰` of local events.
 * `nonUniqueness` is the set of `β ≥ 0` carrying two distinct Gibbs measures, and
   `betaC = sInf nonUniqueness` is the critical inverse temperature.
@@ -145,7 +145,7 @@ only: there is a finite `Λ` such that any two configurations agreeing on `Λ` a
 the event or both outside it. -/
 
 /-- `A` depends on the spins in a finite volume only. -/
-def IsLocalEvent (A : Set Config) : Prop :=
+def IsLocal (A : Set Config) : Prop :=
   ∃ Λ : Finset Site, ∀ σ τ : Config, (∀ i ∈ Λ, σ i = τ i) → (σ ∈ A ↔ τ ∈ A)
 
 /-! ### The critical inverse temperature -/

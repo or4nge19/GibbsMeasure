@@ -42,6 +42,10 @@ in `Comparator/Defs_Existence.lean` as `gibbsKernel_apply`, `gibbsKernel_smul` a
   absolutely summable potentials that is bounded in the sense `sup_i ‖Φ_i‖_a < ∞` for every site
   `a`, the union `⋃_i 𝒢(Φ_i)` is relatively compact in the topology of local convergence, i.e. it
   is contained in a locally compact set.
+* `isGibbs_of_tendsto_potentialNormAt_of_tendstoLocally`: **Georgii Theorem (4.23)(c)**, the graph
+  of the Gibbs correspondence `Φ ↦ 𝒢(Φ)` is closed in `ℬ × 𝒫(Ω, 𝓕)`.
+* `exists_mem_isGibbs_of_tendsto_potentialNormAt`: **Georgii Theorem (4.23)(d)**, the Gibbs
+  correspondence is upper semicontinuous: `𝒢⁻¹(F)` is closed for every closed `F`.
 -/
 
 set_option autoImplicit false
@@ -103,6 +107,41 @@ theorem exists_isCompact_superset_iUnion_setOf_isGibbs [Countable S] [StandardBo
     ∃ K : Set (Measure (Config S E)), @IsCompact (Measure (Config S E)) localTopology K ∧
       (∀ μ ∈ K, IsProbabilityMeasure μ) ∧
       (⋃ i, {μ : Measure (Config S E) | IsGibbs (gibbsKernel (Φs i) ν β) μ}) ⊆ K :=
+  sorry
+
+/-- **Georgii, Theorem (4.23)(c): the graph of the Gibbs correspondence is closed.** Let `(Φ_x)` be
+a net of absolutely summable potentials converging to `Φ` in Georgii's Fréchet space `ℬ`, i.e.
+`‖Φ_x − Φ‖_a → 0` for every site `a`, and let `μ_x ∈ 𝒢(Φ_x)` converge to a probability measure `μ`
+in the topology of local convergence.  Then `μ ∈ 𝒢(Φ)`.  (This is closedness of the graph
+`{(Φ, μ) : μ ∈ 𝒢(Φ)} ⊆ ℬ × 𝒫(Ω, 𝓕)` in net form; as Georgii remarks, it does not need the state
+space to be standard Borel.) -/
+theorem isGibbs_of_tendsto_potentialNormAt_of_tendstoLocally [Countable S] {ι : Type*}
+    {l : Filter ι} [l.NeBot] (Φs : ι → Finset S → Config S E → ℝ)
+    (Φ : Finset S → Config S E → ℝ) (hΦs : ∀ x, IsAbsolutelySummablePotential (Φs x))
+    (hΦ : IsAbsolutelySummablePotential Φ)
+    (hconv : ∀ a : S,
+      Tendsto (fun x ↦ potentialNormAt (fun A ω ↦ Φs x A ω - Φ A ω) a) l (nhds 0))
+    (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν] (β : ℝ)
+    (μs : ι → Measure (Config S E)) (hμs : ∀ x, IsGibbs (gibbsKernel (Φs x) ν β) (μs x))
+    (μ : Measure (Config S E)) (hμ : IsProbabilityMeasure μ)
+    (hloc : TendstoLocally μs l μ) :
+    IsGibbs (gibbsKernel Φ ν β) μ := by
+  sorry
+
+/-- **Georgii, Theorem (4.23)(d): the Gibbs correspondence is upper semicontinuous.** Let `F` be a
+set of measures which is closed in the topology of local convergence, and let `(Φ_x)` be a net of
+absolutely summable potentials converging to `Φ` in `ℬ`.  If every `𝒢(Φ_x)` meets `F`, then so
+does `𝒢(Φ)`.  This is Georgii's statement that `𝒢⁻¹(F) = {Φ : 𝒢(Φ) ∩ F ≠ ∅}` is closed. -/
+theorem exists_mem_isGibbs_of_tendsto_potentialNormAt [Countable S] [StandardBorelSpace E]
+    {ι : Type*} {l : Filter ι} [l.NeBot] (Φs : ι → Finset S → Config S E → ℝ)
+    (Φ : Finset S → Config S E → ℝ) (hΦs : ∀ x, IsAbsolutelySummablePotential (Φs x))
+    (hΦ : IsAbsolutelySummablePotential Φ)
+    (hconv : ∀ a : S,
+      Tendsto (fun x ↦ potentialNormAt (fun A ω ↦ Φs x A ω - Φ A ω) a) l (nhds 0))
+    (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν] (β : ℝ)
+    (F : Set (Measure (Config S E))) (hF : @IsClosed (Measure (Config S E)) localTopology F)
+    (hmeet : ∀ x, ∃ ρ ∈ F, IsGibbs (gibbsKernel (Φs x) ν β) ρ) :
+    ∃ ρ ∈ F, IsGibbs (gibbsKernel Φ ν β) ρ := by
   sorry
 
 end GibbsChallenge

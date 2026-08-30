@@ -91,14 +91,17 @@ status:
       file: "GibbsMeasure/Model/SharpCriticalTemperature.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "Comparator/config.json"
     - declaration: "MeasureTheory.GibbsMeasure.nontrivial_GP_ising2D_iff_spontaneousMagnetisation_pos"
       file: "GibbsMeasure/Model/LebowitzMartinLof.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "Comparator/config.json"
     - declaration: "MeasureTheory.GibbsMeasure.plusState_mem_GP"
       file: "GibbsMeasure/Model/PlusPhase.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "Comparator/config.json"
     - declaration: "MeasureTheory.GibbsMeasure.stochasticallyLE_isingSpecification_of_le"
       file: "GibbsMeasure/Model/IsingFKG.lean"
       sorry_count: 0
@@ -107,18 +110,22 @@ status:
       file: "GibbsMeasure/Specification/UniformLocalLimits.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "Comparator/config_LocalLimit.json"
     - declaration: "MeasureTheory.GibbsMeasure.subsingleton_G_of_isUniformlyDominated"
       file: "GibbsMeasure/Specification/OneDimensionalUniqueness.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "Comparator/config_OneDim.json"
     - declaration: "MeasureTheory.GibbsMeasure.subsingleton_G_lambdaSpecification_of_iSup_oscSpan_ne_top"
       file: "GibbsMeasure/Specification/OneDimensionalUniqueness.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "Comparator/config_OneDim.json"
     - declaration: "MeasureTheory.GibbsMeasure.subsingleton_G_of_pair_rpow_le"
       file: "GibbsMeasure/Specification/OneDimensionalUniqueness.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "Comparator/config_OneDim.json"
     - declaration: "MeasureTheory.GibbsMeasure.mem_GP_and_forall_measurePreserving_of_mapClusterPt_average"
       file: "GibbsMeasure/Specification/InvariantExistence.lean"
       sorry_count: 0
@@ -127,6 +134,7 @@ status:
       file: "GibbsMeasure/Model/Exchangeable.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "Comparator/config_Sharpness.json"
     - declaration: "MeasureTheory.GibbsMeasure.PeierlsSharp.isBrokenSymmetry_spinFlip"
       file: "GibbsMeasure/Model/SymmetryBreaking.lean"
       sorry_count: 0

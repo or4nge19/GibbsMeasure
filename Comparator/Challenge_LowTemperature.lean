@@ -34,6 +34,8 @@ and in the sense of `localDist`) to `δ₊` and `δ₋`.  The displayed form
   established by Georgii's proof.
 * `ising_low_temperature_localDistSet`: the same, in the displayed form
   `lim_{β → ∞} d(𝒢_Θ(βΦ), δ₊) = lim_{β → ∞} d(𝒢_Θ(βΦ), δ₋) = 0`.
+* `ising_low_temperature_peierls`: the quantitative form, the Peierls estimate
+  `|μ_±^β(A) − δ_±(A)| ≤ |Λ| r(β)` for `Λ`-local `A` and `β ≥ 8 log 2`, with `r(β) → 0`.
 -/
 
 set_option autoImplicit false
@@ -85,6 +87,34 @@ theorem ising_low_temperature_localDistSet (A : ℕ → Set Config)
         (Measure.dirac fun _ : Site ↦ true)) atTop (𝓝 0) ∧
       Tendsto (fun β : ℝ ↦ localDistSet A (shiftInvariantGibbs β)
         (Measure.dirac fun _ : Site ↦ false)) atTop (𝓝 0) :=
+  sorry
+
+/-- **Georgii, Theorem (6.9), first assertion, in quantitative form: the Peierls estimate.**
+There are shift-invariant Gibbs measures `μ₊^β, μ₋^β` of the two-dimensional Ising ferromagnet
+such that for every inverse temperature `β ≥ 8 log 2` and every event `A` depending only on the
+spins inside a finite volume `Λ`,
+`|μ₊^β(A) − δ₊(A)| ≤ |Λ| r(β)` and `|μ₋^β(A) − δ₋(A)| ≤ |Λ| r(β)`,
+where `r(β)` is the Peierls series `peierlsBound`, which tends to `0` as `β → ∞`.  This is the
+estimate from which the qualitative statement `ising_low_temperature_limit` is deduced.
+
+Note what is **not** claimed: `8 log 2` and the combinatorial constant inside `peierlsBound` are
+the constants this development actually proves; they are not sharp, and nothing whatever is
+asserted about the critical inverse temperature. -/
+theorem ising_low_temperature_peierls :
+    Tendsto (fun β : ℝ ↦ (peierlsBound β).toReal) atTop (𝓝 0) ∧
+      ∃ μp μm : ℝ → Measure Config,
+        (∀ β : ℝ, μp β ∈ shiftInvariantGibbs β) ∧
+        (∀ β : ℝ, μm β ∈ shiftInvariantGibbs β) ∧
+        (∀ β : ℝ, 8 * Real.log 2 ≤ β → ∀ (Λ : Finset Site) (A : Set Config), MeasurableSet A →
+          (∀ ζ ζ' : Config, (∀ a ∈ Λ, ζ a = ζ' a) → (ζ ∈ A ↔ ζ' ∈ A)) →
+            |(μp β A).toReal
+                - (((Measure.dirac fun _ : Site ↦ true) : Measure Config) A).toReal|
+              ≤ Λ.card * (peierlsBound β).toReal) ∧
+        ∀ β : ℝ, 8 * Real.log 2 ≤ β → ∀ (Λ : Finset Site) (A : Set Config), MeasurableSet A →
+          (∀ ζ ζ' : Config, (∀ a ∈ Λ, ζ a = ζ' a) → (ζ ∈ A ↔ ζ' ∈ A)) →
+            |(μm β A).toReal
+                - (((Measure.dirac fun _ : Site ↦ false) : Measure Config) A).toReal|
+              ≤ Λ.card * (peierlsBound β).toReal := by
   sorry
 
 end IsingChallenge

@@ -99,10 +99,10 @@ theorem ising_plus_minus_phases (β : ℝ) (hβ : 0 ≤ β) :
     ∃ μp μm : Measure Config,
       IsGibbs β μp ∧
       IsGibbs β μm ∧
-      (∀ A : Set Config, IsLocalEvent A →
+      (∀ A : Set Config, IsLocal A →
         Filter.Tendsto (fun Λ : Finset Site ↦ gibbsMeasure β Λ (fun _ ↦ true) A)
           Filter.atTop (nhds (μp A))) ∧
-      (∀ A : Set Config, IsLocalEvent A →
+      (∀ A : Set Config, IsLocal A →
         Filter.Tendsto (fun Λ : Finset Site ↦ gibbsMeasure β Λ (fun _ ↦ false) A)
           Filter.atTop (nhds (μm A))) ∧
       (∀ μ : Measure Config, IsGibbs β μ →
@@ -118,7 +118,7 @@ expected spin at the origin under the plus phase `μ₊` is strictly positive. H
 down by being the limit of the finite-volume distributions with all-`+` boundary condition; such a
 measure exists by `ising_plus_minus_phases`. -/
 theorem ising_lebowitz_martin_lof (β : ℝ) (hβ : 0 ≤ β) (μp : Measure Config)
-    (hμp : ∀ A : Set Config, IsLocalEvent A →
+    (hμp : ∀ A : Set Config, IsLocal A →
       Filter.Tendsto (fun Λ : Finset Site ↦ gibbsMeasure β Λ (fun _ ↦ true) A)
         Filter.atTop (nhds (μp A))) :
     (∃ μ ν : Measure Config, IsGibbs β μ ∧ IsGibbs β ν ∧ μ ≠ ν)

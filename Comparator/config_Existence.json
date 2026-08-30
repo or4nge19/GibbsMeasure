@@ -5,7 +5,9 @@
         "GibbsChallenge.isSpecification_gibbsKernel",
         "GibbsChallenge.exists_isGibbs_gibbsKernel",
         "GibbsChallenge.isCompact_setOf_isGibbs_gibbsKernel",
-        "GibbsChallenge.exists_isCompact_superset_iUnion_setOf_isGibbs"
+        "GibbsChallenge.exists_isCompact_superset_iUnion_setOf_isGibbs",
+        "GibbsChallenge.isGibbs_of_tendsto_potentialNormAt_of_tendstoLocally",
+        "GibbsChallenge.exists_mem_isGibbs_of_tendsto_potentialNormAt"
     ],
     "permitted_axioms": [
         "propext",

@@ -170,7 +170,7 @@ theorem not_isGibbs_gamma [Infinite S] (μ : Measure (Config S Bool)) :
 
 /-- The explicit witness of non-quasilocality: for the local observable `1_{σ_a = 1}` the function
 `ω ↦ γ_{a}(σ_a = 1 | ω)` is the indicator of `{ω = 0 off {a}}`, whose oscillation off **every**
-finite volume `Δ` is `1`. -/
+finite volume `Δ` is at least `1`. -/
 theorem one_le_oscOutside_gamma [Infinite S] (a : S) (Δ : Finset S) :
     1 ≤ oscOutside Δ fun ω => (gamma ({a} : Finset S) ω {σ : Config S Bool | σ a = true}).toReal := by
   obtain ⟨b, hb⟩ := Infinite.exists_notMem_finset (insert a Δ)

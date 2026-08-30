@@ -143,7 +143,7 @@ instance instIsProbabilityMeasureProj (i : ℕ) (ζ : Config ℕ Bool) :
 /-- **Georgii, Example (2.27)**: `C_ij(γ) = 0` for all `i, j` — via
 `Exchangeable.interdep_gammaEx`. -/
 theorem interdep_gam (i j : ℕ) : interdep gam i j = 0 := by
-  refine le_antisymm (interdep_le fun ζ η h ↦ ?_) (zero_le _)
+  refine le_antisymm (interdep_le fun ζ η h ↦ ?_) (by simp)
   rw [unifDist_eq, proj_eq, proj_eq]
   have hle := MeasureTheory.GibbsMeasure.Dobrushin.unifDist_proj_le_interdep
     MeasureTheory.GibbsMeasure.Exchangeable.gammaEx i j h

@@ -427,6 +427,25 @@ lemma tendsto_toReal_muM {A : Set Config} (hA : IsLocalEvent A) :
       (c := (r b).toReal) (Λ := Λ) hAm hdep fun a _ ↦ minusPhase_real_ne_le hb a
   · simpa using tendsto_toReal_r_atTop.const_mul (Λ.card : ℝ)
 
+/-- The Peierls estimate for the plus phase, in the challenge's vocabulary. -/
+lemma abs_muP_sub_dirac_le {b : ℝ} (hb : 8 * Real.log 2 ≤ b) (Λ : Finset Site) {A : Set Config}
+    (hAm : MeasurableSet A) (hdep : ∀ ζ ζ' : Config, (∀ a ∈ Λ, ζ a = ζ' a) → (ζ ∈ A ↔ ζ' ∈ A)) :
+    |(muP b A).toReal - (((Measure.dirac fun _ : Site ↦ true) : Measure Config) A).toReal|
+      ≤ Λ.card * (r b).toReal :=
+  abs_measureReal_sub_dirac_le (μ := muP b) (ω := fun _ : Site ↦ true) (c := (r b).toReal)
+    (Λ := Λ) hAm hdep fun a _ ↦ plusPhase_real_ne_le hb a
+
+/-- The Peierls estimate for the minus phase. -/
+lemma abs_muM_sub_dirac_le {b : ℝ} (hb : 8 * Real.log 2 ≤ b) (Λ : Finset Site) {A : Set Config}
+    (hAm : MeasurableSet A) (hdep : ∀ ζ ζ' : Config, (∀ a ∈ Λ, ζ a = ζ' a) → (ζ ∈ A ↔ ζ' ∈ A)) :
+    |(muM b A).toReal - (((Measure.dirac fun _ : Site ↦ false) : Measure Config) A).toReal|
+      ≤ Λ.card * (r b).toReal :=
+  abs_measureReal_sub_dirac_le (μ := muM b) (ω := fun _ : Site ↦ false) (c := (r b).toReal)
+    (Λ := Λ) hAm hdep fun a _ ↦ minusPhase_real_ne_le hb a
+
+/-- The challenge's Peierls series is the library's. -/
+lemma peierlsBound_eq (β : ℝ) : peierlsBound β = r β := rfl
+
 /-- `μ_+^β → δ_+` locally, in the `ℝ≥0∞`-valued form of the preamble's `TendstoLocally`. -/
 lemma tendsto_muP_apply {A : Set Config} (hA : IsLocalEvent A) :
     Tendsto (fun b : ℝ ↦ muP b A) atTop
@@ -545,6 +564,42 @@ theorem ising_low_temperature_localDistSet (A : ℕ → Set Config)
   obtain ⟨hdp, hdm⟩ := hd A hA
   exact ⟨squeeze_zero (fun _ ↦ localDistSet_nonneg A _ _) (fun b ↦ localDistSet_le A (hp b)) hdp,
     squeeze_zero (fun _ ↦ localDistSet_nonneg A _ _) (fun b ↦ localDistSet_le A (hm b)) hdm⟩
+
+/-- **Georgii, Theorem (6.9), first assertion, in quantitative form: the Peierls estimate.**
+There are shift-invariant Gibbs measures `μ₊^β, μ₋^β` of the two-dimensional Ising ferromagnet
+such that for every inverse temperature `β ≥ 8 log 2` and every event `A` depending only on the
+spins inside a finite volume `Λ`,
+`|μ₊^β(A) − δ₊(A)| ≤ |Λ| r(β)` and `|μ₋^β(A) − δ₋(A)| ≤ |Λ| r(β)`,
+where `r(β)` is the Peierls series `peierlsBound`, which tends to `0` as `β → ∞`.  This is the
+estimate from which the qualitative statement `ising_low_temperature_limit` is deduced.
+
+Note what is **not** claimed: `8 log 2` and the combinatorial constant inside `peierlsBound` are
+the constants this development actually proves; they are not sharp, and nothing whatever is
+asserted about the critical inverse temperature. -/
+theorem ising_low_temperature_peierls :
+    Tendsto (fun β : ℝ ↦ (peierlsBound β).toReal) atTop (𝓝 0) ∧
+      ∃ μp μm : ℝ → Measure Config,
+        (∀ β : ℝ, μp β ∈ shiftInvariantGibbs β) ∧
+        (∀ β : ℝ, μm β ∈ shiftInvariantGibbs β) ∧
+        (∀ β : ℝ, 8 * Real.log 2 ≤ β → ∀ (Λ : Finset Site) (A : Set Config), MeasurableSet A →
+          (∀ ζ ζ' : Config, (∀ a ∈ Λ, ζ a = ζ' a) → (ζ ∈ A ↔ ζ' ∈ A)) →
+            |(μp β A).toReal
+                - (((Measure.dirac fun _ : Site ↦ true) : Measure Config) A).toReal|
+              ≤ Λ.card * (peierlsBound β).toReal) ∧
+        ∀ β : ℝ, 8 * Real.log 2 ≤ β → ∀ (Λ : Finset Site) (A : Set Config), MeasurableSet A →
+          (∀ ζ ζ' : Config, (∀ a ∈ Λ, ζ a = ζ' a) → (ζ ∈ A ↔ ζ' ∈ A)) →
+            |(μm β A).toReal
+                - (((Measure.dirac fun _ : Site ↦ false) : Measure Config) A).toReal|
+              ≤ Λ.card * (peierlsBound β).toReal := by
+  refine ⟨?_, LowTempBridge.muP, LowTempBridge.muM, LowTempBridge.muP_mem,
+    LowTempBridge.muM_mem, fun β hβ Λ A hAm hdep ↦ ?_, fun β hβ Λ A hAm hdep ↦ ?_⟩
+  · simpa only [LowTempBridge.peierlsBound_eq] using
+      MeasureTheory.GibbsMeasure.Peierls.tendsto_toReal_r_atTop
+  · rw [LowTempBridge.peierlsBound_eq]
+    exact LowTempBridge.abs_muP_sub_dirac_le hβ Λ hAm hdep
+  · rw [LowTempBridge.peierlsBound_eq]
+    exact LowTempBridge.abs_muM_sub_dirac_le hβ Λ hAm hdep
+
 
 end IsingChallenge
 

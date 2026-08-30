@@ -28,7 +28,8 @@ by eye against the book.
 | `Z_Λ^Φ(ω) = λ_Λ(h_Λ^Φ\|ω)`, (2.7) | `partitionFunction` |
 | `λ`-admissibility, Definition (2.8) | `IsAdmissible` |
 | `γ_Λ^Φ(A\|ω)`, Definition (2.9)/(1.27) | `gibbsKernel` |
-| `‖Φ‖_i = ∑_{A ∋ i} sup\|Φ_A\|`, (2.12); `Φ ∈ ℬ`, (2.11) | `potentialNormAt`, `IsAbsolutelySummable` |
+| `‖Φ‖_i = ∑_{A ∋ i} sup\|Φ_A\|`, (2.12) | `potentialNormAt` |
+| `Φ ∈ ℬ`, (2.11) | `IsAbsolutelySummable` |
 | the hypothesis of Proposition (8.38) | `IsUniformlyDominated` |
 | `min A ≤ i < max A` | `Spans` |
 | `∑_{A : min A ≤ i < max A} δ(Φ_A)`, the sum in (8.40) | `oscSpan` |
@@ -206,6 +207,51 @@ def IsUniformlyDominated (γ : Finset S → Config S E → Measure (Config S E))
   ∀ A : Set (Config S E), IsLocalEvent A →
     ∃ Λ : Finset S, ∀ ζ η : Config S E, c * γ Λ η A ≤ γ Λ ζ A
 
+/-! ## Events inside a finite volume
+
+The dual of `Comparator.Defs`'s `mem_iff_mem_of_outside`: an event measurable *inside* `Λ` depends
+only on the coordinates in `Λ`.  This is what makes the hypothesis of Proposition (8.38)
+verifiable: for a local event `A ∈ 𝓕_Δ` the finite-volume distribution `γ_Δ(A|ω)` of the
+independent specification does not depend on the boundary condition `ω` at all. -/
+
+/-- The restriction of a configuration to `Δ`. -/
+def restrictInside (Δ : Finset S) (ω : Config S E) : {i : S // i ∈ Δ} → E := fun i ↦ ω i.1
+
+theorem measurable_restrictInside (Δ : Finset S) :
+    Measurable[inside Δ] (restrictInside (E := E) Δ) :=
+  measurable_pi_of _ fun i ↦ Measurable.of_comap_le (comap_le_inside i.2)
+
+/-- `𝓕_Δ` is the σ-algebra pulled back along the restriction map `ω ↦ ω|_Δ`. -/
+theorem inside_eq_comap (Δ : Finset S) :
+    inside (E := E) Δ = MeasurableSpace.comap (restrictInside Δ) inferInstance := by
+  refine le_antisymm ?_ (measurable_restrictInside Δ).comap_le
+  refine iSup₂_le fun i hi ↦ ?_
+  have h1 : Measurable[MeasurableSpace.comap (restrictInside (E := E) Δ) inferInstance]
+      (restrictInside Δ) := Measurable.of_comap_le le_rfl
+  exact ((measurable_pi_apply (⟨i, by simpa using hi⟩ : {i : S // i ∈ Δ})).comp h1).comap_le
+
+/-- **Events measurable inside `Δ` do not depend on the coordinates outside `Δ`.** -/
+theorem mem_iff_mem_of_inside {Δ : Finset S} {B : Set (Config S E)}
+    (hB : MeasurableSet[inside Δ] B) {ω ω' : Config S E} (h : ∀ i ∈ Δ, ω i = ω' i) :
+    ω ∈ B ↔ ω' ∈ B := by
+  rw [inside_eq_comap] at hB
+  obtain ⟨C, -, rfl⟩ := hB
+  have hr : restrictInside Δ ω = restrictInside Δ ω' := funext fun i ↦ h i.1 i.2
+  simp only [Set.mem_preimage, hr]
+
+/-- The finite-volume a priori measure of a `Δ`-local event does not depend on the boundary
+condition, as soon as `Δ ⊆ Λ`. -/
+theorem freeMeasure_apply_congr (lam : Measure E) {Δ Λ : Finset S} (hΔΛ : Δ ⊆ Λ)
+    {A : Set (Config S E)} (hA : MeasurableSet[inside Δ] A) (ω ω' : Config S E) :
+    freeMeasure lam Λ ω A = freeMeasure lam Λ ω' A := by
+  have hAm : MeasurableSet A := measurableSet_of_inside hA
+  rw [freeMeasure, freeMeasure, Measure.map_apply (measurable_extend Λ ω) hAm,
+    Measure.map_apply (measurable_extend Λ ω') hAm]
+  congr 1
+  ext ζ
+  simp only [Set.mem_preimage]
+  exact mem_iff_mem_of_inside hA fun i hi ↦ by simp [extend, hΔΛ hi]
+
 /-! ## Georgii (8.40): the spanning sum -/
 
 section Order
@@ -304,6 +350,17 @@ theorem gibbsKernel_zero (lam : Measure E) [IsProbabilityMeasure lam] (β : ℝ)
       = freeMeasure lam Λ ω := by
   rw [gibbsKernel, partitionFunction_zero, boltzmannFactor_zero, withDensity_one, inv_one,
     one_smul]
+
+/-- **Non-vacuity of the hypothesis of Proposition (8.38).** The Gibbsian specification of the
+zero potential — the independent specification — is uniformly dominated with the constant `c = 1`:
+for a `Δ`-local event `A` the volume `Δ` itself works, since `γ_Δ(A|ω)` does not depend on `ω`. -/
+theorem isUniformlyDominated_gibbsKernel_zero (lam : Measure E) [IsProbabilityMeasure lam]
+    (β : ℝ) :
+    IsUniformlyDominated (gibbsKernel (fun (_ : Finset S) (_ : Config S E) ↦ (0 : ℝ)) lam β) 1 := by
+  rintro A ⟨Δ, hΔ⟩
+  refine ⟨Δ, fun ζ η ↦ ?_⟩
+  rw [one_mul, gibbsKernel_zero, gibbsKernel_zero]
+  exact le_of_eq (freeMeasure_apply_congr lam le_rfl hΔ η ζ)
 
 variable [Preorder S]
 

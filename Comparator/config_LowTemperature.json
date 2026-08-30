@@ -3,7 +3,8 @@
     "solution_module": "Comparator.Solution_LowTemperature",
     "theorem_names": [
         "IsingChallenge.ising_low_temperature_limit",
-        "IsingChallenge.ising_low_temperature_localDistSet"
+        "IsingChallenge.ising_low_temperature_localDistSet",
+        "IsingChallenge.ising_low_temperature_peierls"
     ],
     "permitted_axioms": [
         "propext",

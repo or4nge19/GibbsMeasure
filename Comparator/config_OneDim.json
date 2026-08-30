@@ -1,0 +1,21 @@
+{
+    "challenge_module": "Comparator.Challenge_OneDim",
+    "solution_module": "Comparator.Solution_OneDim",
+    "theorem_names": [
+        "OneDimChallenge.subsingleton_isGibbs_of_isUniformlyDominated",
+        "OneDimChallenge.exists_isSpecification_isUniformlyDominated",
+        "OneDimChallenge.hasBoundedBoundary_int",
+        "OneDimChallenge.hasBoundedBoundary_nat",
+        "OneDimChallenge.subsingleton_isGibbs_of_iSup_oscSpan_ne_top",
+        "OneDimChallenge.existsUnique_isGibbs_of_iSup_oscSpan_ne_top",
+        "OneDimChallenge.subsingleton_isGibbs_of_pair_rpow_le",
+        "OneDimChallenge.existsUnique_isGibbs_of_pair_rpow_le",
+        "OneDimChallenge.exists_potential_of_forall_hypotheses"
+    ],
+    "permitted_axioms": [
+        "propext",
+        "Quot.sound",
+        "Classical.choice"
+    ],
+    "enable_nanoda": true
+}

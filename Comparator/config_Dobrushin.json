@@ -3,7 +3,12 @@
     "solution_module": "Comparator.Solution_Dobrushin",
     "theorem_names": [
         "DobrushinChallenge.subsingleton_isGibbs_of_isDobrushin",
-        "DobrushinChallenge.ofReal_abs_integral_sub_le_interdepSeries"
+        "DobrushinChallenge.ofReal_abs_integral_sub_le_interdepSeries",
+        "DobrushinChallenge.existsUnique_isGibbs_of_isDobrushin",
+        "DobrushinChallenge.ofReal_abs_toReal_sub_le_interdepTail",
+        "DobrushinChallenge.tendsto_interdepTail",
+        "DobrushinChallenge.exists_isGibbs_tendstoLocally_of_isDobrushin",
+        "DobrushinChallenge.isDobrushin_indepSpec"
     ],
     "permitted_axioms": [
         "propext",
