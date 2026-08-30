@@ -1,0 +1,175 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/mathlib-initiative/formalization.yaml/main/schema/formalization.schema.json
+version: "v0.4"
+
+project:
+  name: "GibbsMeasure"
+  description: >-
+    A formalization of the theory of Gibbs measures on infinite-volume lattice systems following
+    Georgii, Gibbs Measures and Phase Transitions (2nd ed.). Specifications and the DLR equations;
+    the Gibbs representation theorem (2.30); existence, compactness and semicontinuity of the set
+    of Gibbs measures over the Frechet space of absolutely summable potentials (4.22)-(4.23); the
+    extreme decomposition, tail triviality and the simplex structure (7.7), (7.12), (7.26),
+    (7.28)-(7.30); transformations and invariant Gibbs measures (Chapter 5); Dobrushin's
+    uniqueness theory including the comparison theorem (8.20) and (8.7)-(8.8); the one-dimensional
+    Markov chain classification (3.5); and the two-dimensional Ising phase transition (6.9) in
+    both of its assertions, giving two-sided bounds on the critical temperature.
+  authors:
+    - "Matteo Cipollina"
+    - "Yael Dillies"
+  responsible_maintainers:
+    - "Matteo Cipollina"
+  license: "Apache-2.0"
+
+sources:
+  - title: "Gibbs Measures and Phase Transitions, 2nd edition"
+    authors: ["Hans-Otto Georgii"]
+    id: "ISBN 978-3-11-025029-9; de Gruyter Studies in Mathematics 9"
+    type: "book"
+    location: "Chapters 1-8 (principally 2.30, 3.5, 4.15-4.23, 5.1-5.20, 6.9, 7.7-7.30, 8.5-8.23)"
+    relationship: "formalizes"
+    author_endorsement: "not-contacted"
+
+related_formalizations:
+  - id: "https://github.com/RemyDegenne/kolmogorov_extension4"
+    note: "Kolmogorov extension; material was ported into GibbsMeasure/Mathlib/MeasureTheory."
+  - id: "https://github.com/or4nge19/MCMC"
+    note: >-
+      Perron-Frobenius theory for positive/irreducible matrices. This project proves only the
+      strictly positive case it needs (Collatz-Wielandt); MCMC has the fuller development.
+
+classification:
+  arxiv: ["math.PR", "math-ph", "math.DS"]
+  msc2020: ["82B20", "60K35", "82B05", "37D35"]
+
+status:
+  scope: >-
+    Georgii Chapters 1-8, complete for the results listed under main_results, with the exceptions
+    recorded in fidelity.divergences. Chapters 9-20 are not formalized.
+  sorry_count: 0
+  sorry_in_definitions: 0
+  axioms: ["propext", "Classical.choice", "Quot.sound"]
+  main_results:
+    - declaration: "MeasureTheory.GibbsMeasure.Peierls.exists_two_shiftInvariant_gibbs"
+      file: "GibbsMeasure/Model/PhaseTransition.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "Comparator/config.json"
+    - declaration: "MeasureTheory.GibbsMeasure.Peierls.tendsto_localDistSet_shiftInvariantGibbs_dirac"
+      file: "GibbsMeasure/Model/LowTemperatureLimit.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.ising_two_dimensional_phase_transition"
+      file: "GibbsMeasure/Model/CriticalTemperature.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "Comparator/config.json"
+    - declaration: "MeasureTheory.GibbsMeasure.exists_unique_weight_extremePoints"
+      file: "GibbsMeasure/Specification/ExtremeDecomposition.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Dobrushin.existsUnique_mem_GP_of_isDobrushin_of_standardBorel"
+      file: "GibbsMeasure/Specification/DobrushinUniqueness.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Markov.gibbsMeasure_eq_singleton"
+      file: "GibbsMeasure/Model/MarkovChain.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "Potential.exists_unique_isGasPotential_sigmaFinitePremodifierNorm_eq"
+      file: "GibbsMeasure/Potential/GibbsRepresentation.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+
+automation:
+  methods:
+    - method: "agent"
+      models: ["claude-fable-5", "claude-opus-5"]
+      framework: "Claude Code"
+      tool_setup: >-
+        Multi-agent orchestration: worker agents drafted and compiled Lean in scratch files against
+        the built library, with adversarial reviewer agents checking statements against the book
+        text and against Mathlib, and compiling counterexamples to weakened hypotheses. The human
+        maintainer set the goals, reviewed and landed the results, and made all commits.
+      prompting_notes: >-
+        Standing instruction to prefer the general theorem over special cases, to build missing
+        prerequisites rather than weaken statements, and to record honest divergences from the
+        source rather than overclaim.
+  notes: >-
+    Earlier portions of the development (Chapters 1-2 core and the specification API) are by
+    Yael Dillies and predate the agent-assisted work.
+
+fidelity:
+  divergences: >-
+    (1) Reference measures: Georgii works with a sigma-finite a priori measure lambda; most of this
+    development fixes a probability reference measure, which is Georgii's own reduction by Remark
+    (1.28)(3), and the Ising model uses the uniform measure on Bool rather than counting measure
+    (the normalisation cancels in the Gibbs kernel).
+    (2) Lemma (6.14): the outer boundary of a finite connected set is proved connected by an
+    explicit Z/2 coboundary argument (after Timar) instead of Georgii's appeal to the Jordan curve
+    theorem, and his degree-2 property n_c(u) = 2 is proved separately.
+    (3) Lemma (6.13): the contour count is 4096^l rather than Georgii's l*3^(l-1), so the explicit
+    threshold in (6.9) is 8*log 2 rather than approximately 0.55. The qualitative statement is
+    unaffected.
+    (4) Theorem (6.9): mu_plus is a cluster point of cube-averaged plus-boundary distributions, not
+    the FKG limit; correlation inequalities are not formalized.
+    (5) Proposition (4.15) is proved for a countably generated state space rather than an arbitrary
+    measurable one; Georgii's Radon-Nikodym seed algebra is not formalized.
+    (6) Example (4.20)(2) is instantiated on Z and Z^d; the general theory is stated for an
+    arbitrary additive group of sites.
+    (7) Theorem (7.12)(b), the weak-convergence form, is not formalized; only the local-convergence
+    form over a finite state space is.
+    (8) A sharp critical inverse temperature beta_c is not defined: that needs Griffiths/GKS
+    monotonicity, which is not formalized. The two-sided theorem gives uniqueness below 1/4 and
+    non-uniqueness above 8*log 2.
+
+review:
+  status: "agent-reviewed"
+  notes: >-
+    Each landed chapter was checked by adversarial reviewer agents against the book text and
+    Mathlib, verifying statement fidelity, absence of vacuity (by instantiating hypotheses at
+    concrete models and by compiling falsifications of weakened hypotheses), axiom cleanliness,
+    and duplication against Mathlib. No human expert review has taken place.
+
+alignment:
+  namespace: "MeasureTheory.GibbsMeasure"
+  statements:
+    - source: "Theorem (2.30)"
+      lean: "Potential.exists_unique_isGasPotential_sigmaFinitePremodifierNorm_eq"
+      module: "GibbsMeasure/Potential/GibbsRepresentation.lean"
+      status: "proved"
+    - source: "Theorem (3.5)"
+      lean: "MeasureTheory.GibbsMeasure.Markov.gibbsMeasure_eq_singleton"
+      module: "GibbsMeasure/Model/MarkovChain.lean"
+      status: "proved"
+    - source: "Theorem (4.23)"
+      lean: "MeasureTheory.GibbsMeasure.Potential.BSpace.isClosed_graph_GP"
+      module: "GibbsMeasure/Potential/Space.lean"
+      status: "proved"
+    - source: "Theorem (6.9), first assertion"
+      lean: "MeasureTheory.GibbsMeasure.Peierls.tendsto_localDistSet_shiftInvariantGibbs_dirac"
+      module: "GibbsMeasure/Model/LowTemperatureLimit.lean"
+      status: "proved"
+    - source: "Theorem (6.9), second assertion"
+      lean: "MeasureTheory.GibbsMeasure.Peierls.exists_two_shiftInvariant_gibbs"
+      module: "GibbsMeasure/Model/PhaseTransition.lean"
+      status: "proved"
+    - source: "Theorem (7.26)"
+      lean: "MeasureTheory.GibbsMeasure.exists_unique_weight_extremePoints"
+      module: "GibbsMeasure/Specification/ExtremeDecomposition.lean"
+      status: "proved"
+    - source: "Theorem (8.7)"
+      lean: "MeasureTheory.GibbsMeasure.Dobrushin.existsUnique_mem_GP_of_isDobrushin_of_standardBorel"
+      module: "GibbsMeasure/Specification/DobrushinUniqueness.lean"
+      status: "proved"
+    - source: "Theorem (8.20)"
+      lean: "MeasureTheory.GibbsMeasure.Dobrushin.comparison"
+      module: "GibbsMeasure/Specification/DobrushinUniqueness.lean"
+      status: "proved"
+    - source: "Theorem (8.39), Theorem (9.20), Chapters 10-20"
+      lean: ""
+      module: ""
+      status: "not-formalized"
+
+acknowledgements: >-
+  Builds on Mathlib. Kolmogorov extension material adapted from RemyDegenne/kolmogorov_extension4.
+  The Perron-Frobenius development is the positive-matrix case of or4nge19/MCMC.
