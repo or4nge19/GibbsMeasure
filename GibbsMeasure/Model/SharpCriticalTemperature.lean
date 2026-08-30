@@ -7,6 +7,7 @@ module
 
 public import GibbsMeasure.Model.CriticalTemperature
 public import GibbsMeasure.Model.GKSInequalities
+public import GibbsMeasure.Model.LebowitzMartinLof
 public import GibbsMeasure.Model.SharpPhaseTransition
 
 /-!
@@ -29,10 +30,14 @@ explicitly disclaiming the existence of a sharp `β_c`.  This file removes that 
 * `le_isingBetaC`, `isingBetaC_le` give `1/4 ≤ β_c ≤ 8 log 2`, i.e. Georgii's `0 < β_c < ∞`
   *as a statement about a well-defined number*;
 * `existsUnique_of_lt_isingBetaC` gives `|𝒢(βΦ)| = 1` for every `0 ≤ β < β_c`
-  — the "uniqueness below `β_c`" half, **unconditionally**;
-* `nontrivial_of_isingBetaC_lt` gives `|𝒢(βΦ)| > 1` for every `β > β_c` from the single
-  remaining input `IsUpperSet isingNonUniqueness`, i.e. from the fact that non-uniqueness is
-  monotone in `β`.
+  — the "uniqueness below `β_c`" half;
+* `isUpperSet_isingNonUniqueness` records that non-uniqueness is monotone in `β`, and
+  `nontrivial_of_isingBetaC_lt` deduces `|𝒢(βΦ)| > 1` for every `β > β_c`.
+
+Both halves are now **unconditional**: the monotonicity of non-uniqueness is proved in
+`GibbsMeasure/Model/LebowitzMartinLof.lean`, which supplies the Lebowitz–Martin-Löf/Ruelle
+equivalence `|𝒢(βΦ)| > 1 ↔ μ₊^β(σ₀) > 0` (Georgii states it without proof) together with
+Griffiths' monotonicity of `β ↦ μ₊^β(σ₀)`.
 
 The monotonicity input is exactly what the Griffiths/GKS inequalities of
 `GibbsMeasure/Model/GKSInequalities.lean` supply at finite volume: `betaCOf`,
@@ -42,17 +47,10 @@ infinite-volume magnetisation obtained as a limit of the finite-volume `+`-bound
 magnetisations `GKS.magnetisation` inherits nonnegativity and monotonicity in `β`.  Thus
 Georgii's order parameter `β ↦ μ₊^β(σ₀)` has a sharp threshold (`exists_betaC_of_monotone`).
 
-## What is still missing, precisely
-
 Transferring the sharp threshold from the order parameter `μ₊^β(σ₀)` to the cardinality of
-`𝒢(βΦ)` needs the equivalence `|𝒢(βΦ)| > 1 ↔ μ₊^β(σ₀) > 0` of Lebowitz–Martin-Löf (1972) and
-Ruelle (1972), which Georgii states without proof (he only cites it), together with the
-existence of the local limit `μ₊^β = lim_Λ γ_Λ^{βΦ}(·|ω⁺)`.  Neither is formalized here.
-`IsUpperSet isingNonUniqueness` is exactly the consequence of those two results that the
-sharp statement needs, and it is isolated as the hypothesis of
-`nontrivial_of_isingBetaC_lt` and `ising_sharp_phase_transition`.  Everything else —
-Griffiths' inequality, the monotonicity of the magnetisation, the definition of `β_c`, the
-bounds `1/4 ≤ β_c ≤ 8 log 2`, and uniqueness strictly below `β_c` — is proved.
+`𝒢(βΦ)` uses the equivalence `|𝒢(βΦ)| > 1 ↔ μ₊^β(σ₀) > 0` of Lebowitz–Martin-Löf (1972) and
+Ruelle (1972), together with the local limit `μ₊^β = lim_Λ γ_Λ^{βΦ}(·|ω⁺)`; both are supplied
+by `GibbsMeasure/Model/LebowitzMartinLof.lean` and `GibbsMeasure/Model/PlusPhase.lean`.
 -/
 
 set_option autoImplicit false
@@ -272,17 +270,18 @@ theorem existsUnique_of_lt_isingBetaC {β : ℝ} (h0 : 0 ≤ β) (h : β < ising
   obtain ⟨μ, hμ⟩ := isingGibbsMeasure_nonempty (latticeGraph 2) 1 0 β
   exact ⟨μ, hμ, fun ν hν ↦ hsub hν hμ⟩
 
-/-- **Non-uniqueness strictly above `β_c`**, from the monotonicity of non-uniqueness in `β`.
+/-- **Non-uniqueness is monotone in the inverse temperature.**  This is the combination of the
+Lebowitz–Martin-Löf/Ruelle equivalence `|𝒢(βΦ)| > 1 ↔ μ₊^β(σ₀) > 0` with Griffiths'
+monotonicity of `β ↦ μ₊^β(σ₀)`; both are proved in
+`GibbsMeasure/Model/LebowitzMartinLof.lean`. -/
+theorem isUpperSet_isingNonUniqueness : IsUpperSet isingNonUniqueness := fun _ _ h12 hβ ↦
+  ⟨hβ.1.trans h12, nontrivial_GP_ising2D_of_nontrivial_of_le hβ.1 h12 hβ.2⟩
 
-`IsUpperSet isingNonUniqueness` is the one remaining input: it is what the Griffiths/GKS
-monotonicity of the magnetisation (`GKS.magnetisation_mono`) gives once combined with the
-Lebowitz–Martin-Löf/Ruelle equivalence `|𝒢(βΦ)| > 1 ↔ μ₊^β(σ₀) > 0`, which Georgii cites
-without proof and which is not formalized here. -/
-theorem nontrivial_of_isingBetaC_lt (hup : IsUpperSet isingNonUniqueness) {β : ℝ}
-    (h : isingBetaC < β) :
+/-- **Non-uniqueness strictly above `β_c`**, from the monotonicity of non-uniqueness in `β`. -/
+theorem nontrivial_of_isingBetaC_lt {β : ℝ} (h : isingBetaC < β) :
     (GP (S := Fin 2 → ℤ) (E := Bool)
       (isingSpecification (latticeGraph 2) 1 0 β)).Nontrivial :=
-  (mem_of_csInf_lt isingNonUniqueness_nonempty hup h).2
+  (mem_of_csInf_lt isingNonUniqueness_nonempty isUpperSet_isingNonUniqueness h).2
 
 /-- **Georgii's `0 < β_c < ∞` for the two-dimensional Ising ferromagnet, sharpened.**
 
@@ -302,12 +301,12 @@ theorem ising_critical_temperature :
   ⟨le_isingBetaC, isingBetaC_le, fun _ h0 h ↦ existsUnique_of_lt_isingBetaC h0 h,
     fun _ hβ ↦ nontrivial_GP_ising2D_of_le hβ⟩
 
-/-- **Georgii's sharp dichotomy.**  Given that non-uniqueness is monotone in `β` — the
-consequence of Griffiths' inequality (`GKS.magnetisation_mono`) plus the
-Lebowitz–Martin-Löf/Ruelle equivalence — the critical inverse temperature `β_c` of the
-two-dimensional Ising ferromagnet satisfies `0 < β_c < ∞`, `|𝒢(βΦ)| = 1` for `β < β_c`, and
-`|𝒢(βΦ)| > 1` for `β > β_c`. -/
-theorem ising_sharp_phase_transition (hup : IsUpperSet isingNonUniqueness) :
+/-- **Georgii's sharp dichotomy**, unconditionally.  The critical inverse temperature `β_c` of
+the two-dimensional Ising ferromagnet satisfies `0 < β_c < ∞`, `|𝒢(βΦ)| = 1` for `β < β_c`, and
+`|𝒢(βΦ)| > 1` for `β > β_c`.  The last assertion rests on the monotonicity of non-uniqueness in
+`β`, i.e. on Griffiths' inequality together with the Lebowitz–Martin-Löf/Ruelle equivalence
+`|𝒢(βΦ)| > 1 ↔ μ₊^β(σ₀) > 0` of `GibbsMeasure/Model/LebowitzMartinLof.lean`. -/
+theorem ising_sharp_phase_transition :
     (1 : ℝ) / 4 ≤ isingBetaC ∧ isingBetaC ≤ Real.log 3 ∧
       (∀ β : ℝ, 0 ≤ β → β < isingBetaC → ∃! μ : ProbabilityMeasure (Site → Bool),
         μ ∈ GP (S := Fin 2 → ℤ) (E := Bool)
@@ -315,7 +314,7 @@ theorem ising_sharp_phase_transition (hup : IsUpperSet isingNonUniqueness) :
       (∀ β : ℝ, isingBetaC < β → (GP (S := Fin 2 → ℤ) (E := Bool)
         (isingSpecification (latticeGraph 2) 1 0 β)).Nontrivial) :=
   ⟨le_isingBetaC, isingBetaC_le, fun _ h0 h ↦ existsUnique_of_lt_isingBetaC h0 h,
-    fun _ h ↦ nontrivial_of_isingBetaC_lt hup h⟩
+    fun _ h ↦ nontrivial_of_isingBetaC_lt h⟩
 
 end MeasureTheory.GibbsMeasure
 

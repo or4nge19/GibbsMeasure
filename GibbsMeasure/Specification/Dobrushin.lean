@@ -54,7 +54,7 @@ the gap: there `E = {0,1}`, `S = ℕ`, and `γ_Λ(·|ω) = γ_Λ^{ξ(ω)}(·|ω)
 independent specifications `γ^x` of the Bernoulli(`x`) measures along the *tail* function
 `ξ = liminf_n n⁻¹ ∑_{i ≤ n} σ_i`. Every `γ_i^0(·|ω) = λ^{ξ(ω)}` is then unchanged by a
 single-site modification of `ω`, so `C_ij(γ) = 0` for all `i, j` and `c(γ) = 0 < 1`; yet
-`𝒢(γ)` is the whole (uncountable) set of exchangeable random fields, very far from a singleton.
+`𝒢(γ) = {∫ w(dx) μ^x : w ∈ 𝓟([0,1])}` is uncountable, very far from a singleton.
 Dropping the quasilocality conjunct would therefore make Theorem (8.7) below false. -/
 def IsDobrushin (γ : Specification S E) : Prop :=
   γ.IsQuasilocal ∧ ∃ c : ℝ≥0∞, c < 1 ∧ ∀ i, ∑' j, interdep γ i j ≤ c

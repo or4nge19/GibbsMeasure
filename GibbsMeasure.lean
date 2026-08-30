@@ -56,9 +56,14 @@ public import GibbsMeasure.Potential.FreeBoundary
 public import GibbsMeasure.Potential.GibbsTransformation
 public import GibbsMeasure.Potential.UniformConvergence
 public import GibbsMeasure.Model.Ising
+public import GibbsMeasure.Model.IsingFKG
+public import GibbsMeasure.Model.PlusPhase
 public import GibbsMeasure.Model.Contours
 public import GibbsMeasure.Model.CriticalTemperature
 public import GibbsMeasure.Model.GKSInequalities
+public import GibbsMeasure.Model.LebowitzMartinLof
+public import GibbsMeasure.Model.SymmetryBreaking
+public import GibbsMeasure.Model.Exchangeable
 public import GibbsMeasure.Model.SharpCriticalTemperature
 public import GibbsMeasure.Model.LowTemperatureLimit
 public import GibbsMeasure.Model.MarkovChain
@@ -93,6 +98,10 @@ public import GibbsMeasure.Specification.Quasilocal
 public import GibbsMeasure.Specification.QuasilocalAlgebra
 public import GibbsMeasure.Specification.LocalContinuity
 public import GibbsMeasure.Specification.LocalLimits
+public import GibbsMeasure.Specification.BrokenSymmetry
+public import GibbsMeasure.Specification.GluedFamily
+public import GibbsMeasure.Specification.InvariantExistence
+public import GibbsMeasure.Specification.OneDimensionalUniqueness
 public import GibbsMeasure.Specification.UniformLocalLimits
 public import GibbsMeasure.Specification.NetEquicontinuity
 public import GibbsMeasure.Specification.Quasilocality

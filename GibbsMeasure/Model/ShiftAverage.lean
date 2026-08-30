@@ -5,7 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
-public import GibbsMeasure.Specification.Average
+public import GibbsMeasure.Specification.InvariantExistence
 public import GibbsMeasure.Model.Ising
 
 /-!
@@ -155,6 +155,21 @@ lemma tendsto_nat_sqrt_div_self : Tendsto (fun N : ℕ ↦ (Nat.sqrt N : ℝ) / 
   have hN' : (0 : ℝ) < N := by exact_mod_cast hN
   rw [div_le_iff₀ hN', inv_mul_eq_div, le_div_iff₀ hs']
   exact_mod_cast Nat.sqrt_le N
+
+/-- `N - √N → ∞`, for the choice `k(N) = N - √N` in Georgii (5.20)(1). -/
+lemma tendsto_sub_nat_sqrt_atTop : Tendsto (fun N ↦ N - Nat.sqrt N) atTop atTop := by
+  refine Filter.tendsto_atTop_atTop.2 fun b ↦ ⟨(b + 2) ^ 2, fun N hN ↦ ?_⟩
+  have hs : b + 2 ≤ Nat.sqrt N := by
+    have h := Nat.sqrt_le_sqrt hN
+    rwa [Nat.sqrt_eq'] at h
+  have h1 : Nat.sqrt N * (b + 2) ≤ Nat.sqrt N * Nat.sqrt N :=
+    Nat.mul_le_mul_left _ hs
+  have h2 : Nat.sqrt N * Nat.sqrt N ≤ N := by
+    have h := Nat.sqrt_le' N
+    rwa [pow_two] at h
+  have hb : b ≤ Nat.sqrt N * b := Nat.le_mul_of_pos_left b (by omega)
+  have h3 : Nat.sqrt N + b ≤ Nat.sqrt N * (b + 2) := by rw [Nat.mul_add]; omega
+  omega
 
 
 /-- Georgii (5.20)(1): the translates `{Λ_N + i : i ∈ Λ_k}` of the cube `Λ_N`. -/
@@ -341,16 +356,36 @@ theorem exists_mem_GP_forall_measurePreserving_shift [Finite E] [MeasurableSingl
     [Nonempty E] (hγq : γ.IsQuasilocal) (hγ : ∀ j, Specification.IsInvariant (shift E j) γ) :
     ∃ μ ∈ GP (S := Fin d → ℤ) (E := E) γ,
       ∀ j, MeasurePreserving (shift E j).toFun (μ : Measure ((Fin d → ℤ) → E)) μ := by
+  classical
   obtain ⟨e⟩ := ‹Nonempty E›
-  set μs : ℕ → ProbabilityMeasure ((Fin d → ℤ) → E) := fun N ↦
-    ⟨γ.average (Measure.dirac fun _ ↦ e) (cubeTranslates d N N),
-      γ.isProbabilityMeasure_average _ (cubeTranslates_nonempty d N N)⟩ with hμs
-  obtain ⟨μ, hμ⟩ := exists_clusterPt_of_compactSpace
-    (map (fun N ↦ (WithSetwiseTopology.ofMeasure (μs N) : WithLocalConvergence (Fin d → ℤ) E))
-      atTop)
-  exact ⟨μ.toMeasure,
-    mem_GP_and_measurePreserving_shift_of_mapClusterPt_average_cubeTranslates_dirac hγq hγ e
-      (μs := μs) (fun N ↦ rfl) hμ⟩
+  -- Georgii (5.20)(1): `𝓡_N = {Λ_N + i : i ∈ Λ_{k(N)}}` with `k(N) = N - √N`, so that
+  -- `Λ_{√N} ⊆ ⋂ 𝓡_N ↑ S`; the boundary condition is the shift-invariant `δ_ω`, `ω ≡ e`.
+  have hRne : ∀ N : ℕ, (cubeTranslates d N (N - Nat.sqrt N)).Nonempty := fun N ↦
+    cubeTranslates_nonempty d N (N - Nat.sqrt N)
+  have hΛ : Tendsto (fun N ↦ (cubeTranslates d N (N - Nat.sqrt N)).inf' (hRne N) id)
+      atTop atTop := by
+    refine tendsto_atTop_mono (fun N ↦ ?_) (tendsto_cube_atTop.comp tendsto_nat_sqrt_atTop)
+    refine Finset.le_inf' _ _ fun Λ hΛ ↦ ?_
+    have h := cube_sub_subset_of_mem_cubeTranslates (Nat.sub_le N (Nat.sqrt N)) hΛ
+    rwa [Nat.sub_sub_self (Nat.sqrt_le_self N)] at h
+  have hsymm : ∀ τ ∈ Set.range (shift E (d := d)), Tendsto (fun N ↦
+      (((cubeTranslates d N (N - Nat.sqrt N)).map
+          (Finset.mapEmbedding τ.sites.toEmbedding).toEmbedding ∆
+        cubeTranslates d N (N - Nat.sqrt N)).card : ℝ) /
+          (cubeTranslates d N (N - Nat.sqrt N)).card) atTop (𝓝 0) := by
+    rintro τ ⟨j, rfl⟩
+    simp only [card_symmDiff_map_cubeTranslates_shift, card_cubeTranslates]
+    exact (tendsto_card_symmDiff_map_addRight_cube_div j).comp tendsto_sub_nat_sqrt_atTop
+  obtain ⟨μ, hμGP, hμinv, -⟩ := exists_mem_GP_and_forall_measurePreserving
+    (I := Set.range (shift E (d := d))) (γs := fun _ : ℕ ↦ γ)
+    (νs := fun _ : ℕ ↦ (⟨Measure.dirac fun _ ↦ e, inferInstance⟩ :
+      ProbabilityMeasure ((Fin d → ℤ) → E)))
+    (μs := fun N ↦ ⟨γ.average (Measure.dirac fun _ ↦ e)
+      (cubeTranslates d N (N - Nat.sqrt N)), γ.isProbabilityMeasure_average _ (hRne N)⟩)
+    hγq (by rintro τ ⟨j, rfl⟩ N; exact hγ j) (fun Λ f _ ↦ by simp) hRne hΛ hsymm
+    (by rintro τ ⟨j, rfl⟩ N; exact measurePreserving_shift_dirac_const e j) (fun N ↦ rfl)
+    (locallyEquicontinuous_of_finite _ _)
+  exact ⟨μ, hμGP, fun j ↦ hμinv _ ⟨j, rfl⟩⟩
 
 /-- **Shift-invariant Gibbs measures for the Ising model on `ℤ^d`** (Georgii (5.20)(1)). -/
 theorem exists_latticeIsing_mem_GP_forall_measurePreserving_shift (d : ℕ) (J h β : ℝ) :
