@@ -165,7 +165,11 @@ Georgii's **own** contour count is proved in `GibbsMeasure/Model/SharpContours.l
 degree-two property `n_c(u) = 2` for the outer boundary of a finite connected set — all four
 cases, including the one Georgii settles with the Jordan curve theorem, here by a mod-2 argument
 with no topology — the resulting circuit structure, and hence `ℓ · 3^{ℓ−1}` circuits of length
-`ℓ` through a fixed bond, against the crude `4096^ℓ` for arbitrary plaquette-connected bond sets.
+`ℓ` through a fixed bond, against the crude `4096^ℓ` for arbitrary plaquette-connected bond
+sets. With it, `GibbsMeasure/Model/SharpPhaseTransition.lean` re-derives (6.9) at
+**`β ≥ log 3 ≈ 1.099`** instead of `8 log 2 ≈ 5.545`
+(`exists_two_shiftInvariant_gibbs_sharp`, `ising_two_dimensional_phase_transition_sharp`), the
+two temperature ranges remaining disjoint since `1/4 < log 3`.
 
 **Chapter 8, Dobrushin's uniqueness condition.** Dobrushin's interdependence matrix `C(γ)`
 ((8.5)) and his condition of weak dependence ((8.6)); the oscillation calculus (8.14)/(8.15),
