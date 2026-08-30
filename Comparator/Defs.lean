@@ -376,8 +376,6 @@ theorem not_measurableSet_outside :
 
 section Independent
 
-variable [Fintype S]
-
 theorem nonempty_of_isProbabilityMeasure (ν : Measure E) [IsProbabilityMeasure ν] : Nonempty E := by
   by_contra h
   rw [not_nonempty_iff] at h
@@ -390,7 +388,7 @@ variable (ν : Measure E) [IsProbabilityMeasure ν]
 /-- **The independent specification**: inside `Λ` the spins are resampled i.i.d. from `ν`, outside
 `Λ` the boundary condition `ω` is kept. -/
 def indepSpec (Λ : Finset S) (ω : Config S E) : Measure (Config S E) :=
-  Measure.map (fun σ => glue Λ σ ω) (Measure.pi fun _ : S => ν)
+  Measure.map (fun σ => glue Λ σ ω) (Measure.infinitePi fun _ : S => ν)
 
 instance instIsProbabilityMeasureIndepSpec (Λ : Finset S) (ω : Config S E) :
     IsProbabilityMeasure (indepSpec ν Λ ω) :=
@@ -399,7 +397,7 @@ instance instIsProbabilityMeasureIndepSpec (Λ : Finset S) (ω : Config S E) :
 omit [IsProbabilityMeasure ν] in
 theorem indepSpec_apply (Λ : Finset S) (ω : Config S E) {A : Set (Config S E)}
     (hA : MeasurableSet A) :
-    indepSpec ν Λ ω A = ∫⁻ σ, A.indicator 1 (glue Λ σ ω) ∂(Measure.pi fun _ : S => ν) := by
+    indepSpec ν Λ ω A = ∫⁻ σ, A.indicator 1 (glue Λ σ ω) ∂(Measure.infinitePi fun _ : S => ν) := by
   have h : (fun σ : Config S E => A.indicator (1 : Config S E → ℝ≥0∞) (glue Λ σ ω))
       = ((fun σ : Config S E => glue Λ σ ω) ⁻¹' A).indicator 1 := by
     funext σ
@@ -411,50 +409,50 @@ theorem indepSpec_apply (Λ : Finset S) (ω : Config S E) {A : Set (Config S E)}
 independently resampling the coordinates inside a finite volume `Λ`. -/
 theorem map_glue_prod (Λ : Finset S) :
     Measure.map (fun p : Config S E × Config S E => glue Λ p.2 p.1)
-        ((Measure.pi fun _ : S => ν).prod (Measure.pi fun _ : S => ν))
-      = Measure.pi fun _ : S => ν := by
+        ((Measure.infinitePi fun _ : S => ν).prod (Measure.infinitePi fun _ : S => ν))
+      = Measure.infinitePi fun _ : S => ν := by
   classical
-  refine (Measure.pi_eq fun s hs => ?_).symm
-  rw [Measure.map_apply (measurable_glue_swap Λ) (MeasurableSet.univ_pi hs)]
-  have hpre : (fun p : Config S E × Config S E => glue Λ p.2 p.1) ⁻¹' (Set.univ.pi s)
-      = (Set.univ.pi fun i => if i ∈ Λ then Set.univ else s i) ×ˢ
-        (Set.univ.pi fun i => if i ∈ Λ then s i else Set.univ) := by
+  refine Measure.eq_infinitePi (fun _ : S => ν) fun s t ht => ?_
+  rw [Measure.map_apply (measurable_glue_swap Λ)
+    (MeasurableSet.pi s.countable_toSet fun i _ => ht i)]
+  have hpre : (fun p : Config S E × Config S E => glue Λ p.2 p.1) ⁻¹' (Set.pi (s : Set S) t)
+      = (Set.pi ((s \ Λ : Finset S) : Set S) t) ×ˢ (Set.pi ((s ∩ Λ : Finset S) : Set S) t) := by
     ext p
-    simp only [Set.mem_preimage, Set.mem_univ_pi, Set.mem_prod]
+    simp only [Set.mem_preimage, Set.mem_pi, Set.mem_prod, Finset.coe_sdiff, Finset.coe_inter,
+      Set.mem_sdiff, Set.mem_inter_iff, Finset.mem_coe]
     constructor
-    · refine fun h => ⟨fun i => ?_, fun i => ?_⟩
-      · by_cases hi : i ∈ Λ
-        · simp [hi]
-        · simpa [hi, glue_of_notMem hi] using h i
-      · by_cases hi : i ∈ Λ
-        · simpa [hi, glue_of_mem hi] using h i
-        · simp [hi]
-    · rintro ⟨h1, h2⟩ i
-      by_cases hi : i ∈ Λ
-      · rw [glue_of_mem hi]; simpa [hi] using h2 i
-      · rw [glue_of_notMem hi]; simpa [hi] using h1 i
-  rw [hpre, Measure.prod_prod, Measure.pi_pi, Measure.pi_pi, ← Finset.prod_mul_distrib]
-  refine Finset.prod_congr rfl fun i _ => ?_
-  by_cases hi : i ∈ Λ <;> simp [hi]
+    · refine fun h => ⟨fun i hi => ?_, fun i hi => ?_⟩
+      · simpa [glue_of_notMem hi.2] using h i hi.1
+      · simpa [glue_of_mem hi.2] using h i hi.1
+    · rintro ⟨h1, h2⟩ i hi
+      by_cases hiΛ : i ∈ Λ
+      · rw [glue_of_mem hiΛ]; exact h2 i ⟨hi, hiΛ⟩
+      · rw [glue_of_notMem hiΛ]; exact h1 i ⟨hi, hiΛ⟩
+  have hsdiff : s \ (s ∩ Λ) = s \ Λ := by
+    ext i; simp only [Finset.mem_sdiff, Finset.mem_inter]; tauto
+  rw [hpre, Measure.prod_prod,
+    Measure.infinitePi_pi (μ := fun _ : S => ν) (fun i _ => ht i),
+    Measure.infinitePi_pi (μ := fun _ : S => ν) (fun i _ => ht i), ← hsdiff,
+    Finset.prod_sdiff (Finset.inter_subset_left (s₁ := s) (s₂ := Λ))]
 
 /-- The integrated form of the resampling identity. -/
 theorem lintegral_glue (Λ : Finset S) {F : Config S E → ℝ≥0∞} (hF : Measurable F) :
-    ∫⁻ ω, (∫⁻ σ, F (glue Λ σ ω) ∂(Measure.pi fun _ : S => ν)) ∂(Measure.pi fun _ : S => ν)
-      = ∫⁻ τ, F τ ∂(Measure.pi fun _ : S => ν) := by
-  calc ∫⁻ ω, (∫⁻ σ, F (glue Λ σ ω) ∂(Measure.pi fun _ : S => ν)) ∂(Measure.pi fun _ : S => ν)
+    ∫⁻ ω, (∫⁻ σ, F (glue Λ σ ω) ∂(Measure.infinitePi fun _ : S => ν)) ∂(Measure.infinitePi fun _ : S => ν)
+      = ∫⁻ τ, F τ ∂(Measure.infinitePi fun _ : S => ν) := by
+  calc ∫⁻ ω, (∫⁻ σ, F (glue Λ σ ω) ∂(Measure.infinitePi fun _ : S => ν)) ∂(Measure.infinitePi fun _ : S => ν)
       = ∫⁻ p, F (glue Λ p.2 p.1)
-          ∂((Measure.pi fun _ : S => ν).prod (Measure.pi fun _ : S => ν)) :=
+          ∂((Measure.infinitePi fun _ : S => ν).prod (Measure.infinitePi fun _ : S => ν)) :=
         (lintegral_prod _ (hF.comp (measurable_glue_swap Λ)).aemeasurable).symm
     _ = ∫⁻ τ, F τ ∂(Measure.map (fun p : Config S E × Config S E => glue Λ p.2 p.1)
-          ((Measure.pi fun _ : S => ν).prod (Measure.pi fun _ : S => ν))) :=
+          ((Measure.infinitePi fun _ : S => ν).prod (Measure.infinitePi fun _ : S => ν))) :=
         (lintegral_map hF (measurable_glue_swap Λ)).symm
-    _ = ∫⁻ τ, F τ ∂(Measure.pi fun _ : S => ν) := by rw [map_glue_prod]
+    _ = ∫⁻ τ, F τ ∂(Measure.infinitePi fun _ : S => ν) := by rw [map_glue_prod]
 
 theorem measurable_indepSpec_apply (Λ : Finset S) {A : Set (Config S E)} (hA : MeasurableSet A) :
     Measurable[outside Λ] fun ω => indepSpec ν Λ ω A := by
   have : Nonempty E := nonempty_of_isProbabilityMeasure ν
   have heq : (fun ω : Config S E => indepSpec ν Λ ω A)
-      = fun ω => ∫⁻ σ, A.indicator 1 (glue Λ σ ω) ∂(Measure.pi fun _ : S => ν) :=
+      = fun ω => ∫⁻ σ, A.indicator 1 (glue Λ σ ω) ∂(Measure.infinitePi fun _ : S => ν) :=
     funext fun ω => indepSpec_apply ν Λ ω hA
   refine measurable_outside_of_local Λ ?_ ?_
   · rw [heq]
@@ -511,7 +509,7 @@ theorem isSpecification_indep : IsSpecification (indepSpec (S := S) ν) := by
 
 /-- **And its set of Gibbs measures is non-empty**: the i.i.d. product measure `ν^S` is a Gibbs
 measure for the independent specification. -/
-theorem isGibbs_indep : IsGibbs (indepSpec (S := S) ν) (Measure.pi fun _ : S => ν) := by
+theorem isGibbs_indep : IsGibbs (indepSpec (S := S) ν) (Measure.infinitePi fun _ : S => ν) := by
   refine ⟨inferInstance, fun Λ A hA => ?_⟩
   simp only [indepSpec_apply ν Λ _ hA]
   rw [lintegral_glue ν Λ (measurable_one.indicator hA), lintegral_indicator_one hA]

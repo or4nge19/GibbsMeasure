@@ -196,11 +196,22 @@ theorem mem_quasilocalFunctions_of_isQuasilocalFn {f : lp (fun _ : S → E ↦ �
   rw [dist_eq_norm]
   linarith
 
-/-! ### Georgii (2.23): the two notions of quasilocality agree -/
+/-! ### Georgii (2.23): the two notions of quasilocality agree
+
+The challenge's `IsQuasilocalSpec` is Georgii's own formulation of (2.23): it quantifies over
+**local** `f` only. The library's `Specification.IsQuasilocal` quantifies over **quasilocal** `f`.
+So the hypothesis available here is the *weaker* one, and the passage from it to the library's
+notion is a real analytic step, not a matter of unfolding: one has to know that `γ_Λ` is a
+contraction for the sup-norm and that `𝓛̄`, being a uniform closure, is closed, so that
+`γ_Λ(𝓛) ⊆ 𝓛̄` propagates from `𝓛` to its closure `𝓛̄`. That is exactly Georgii's remark
+immediately after (2.23), and the library supplies it as
+`Specification.isQuasilocal_iff_forall_mem_localFunctions`; we *invoke* that theorem here rather
+than assuming the stronger hypothesis. -/
 
 theorem isQuasilocal_spec (hγ : IsSpecification γ) (hq : IsQuasilocalSpec γ) :
-    (spec γ hγ).IsQuasilocal := fun Λ f hf ↦
-  mem_quasilocalFunctions_of_isQuasilocalFn (hq Λ (⇑f) (isQuasilocalFn_coe hf))
+    (spec γ hγ).IsQuasilocal :=
+  Specification.isQuasilocal_iff_forall_mem_localFunctions.2 fun Λ f hf ↦
+    mem_quasilocalFunctions_of_isQuasilocalFn (hq Λ (⇑f) (isLocalFn_coe hf))
 
 /-! ### Georgii (8.6): the two forms of Dobrushin's condition agree -/
 

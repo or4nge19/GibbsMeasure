@@ -16,9 +16,40 @@ axioms beyond a permitted list, and that the result is accepted by the Lean kern
 | `Solution_X.lean` | `Comparator.Defs_X` and `GibbsMeasure` | the *same* statements — byte-identical text — with a `Bridge` namespace and real proofs |
 | `config_X.json` | — | the comparator entry: challenge module, solution module, theorem names, permitted axioms |
 
+## Entries
+
+| entry `X` | config | Georgii result |
+| --- | --- | --- |
+| — (`Challenge.lean`/`Solution.lean`) | `config.json` | (6.9), the "in particular" half: the two-dimensional Ising phase transition |
+| `Existence` | `config_Existence.json` | (4.22), (4.23)(a): existence and compactness of Gibbs measures |
+| `Simplex` | `config_Simplex.json` | (7.7)(a), (7.26): the simplex of Gibbs measures and its extreme points |
+| `Dobrushin` | `config_Dobrushin.json` | (8.7), (8.20): Dobrushin's uniqueness theorem |
+| `MarkovChain` | `config_MarkovChain.json` | (3.5): Markov chains as Gibbs measures on `ℤ` |
+| `LowTemperature` | `config_LowTemperature.json` | (6.9), first assertion: the low-temperature limit |
+| `NoGibbs` | `config_NoGibbs.json` | (4.16): a specification with no Gibbs measure |
+| `Representation` | `config_Representation.json` | **(2.30)**: the Gibbs representation theorem — a positive quasilocal pre-modification `ρ` normalised by `λ_Λ ρ_Λ = 1` is `ρ^{Φ^a}` for a *unique* `λ`-admissible gas potential `Φ^a` with vacuum state `a`; plus its converse (2.5), (2.8), (1.32) |
+
 The entries are `Challenge.lean`/`Solution.lean` (Georgii (6.9), the "in particular" half) and
 `Challenge_X.lean`/`Solution_X.lean` for
-`X ∈ {Existence, Simplex, Dobrushin, MarkovChain, LowTemperature, NoGibbs}`.
+`X ∈ {Existence, Simplex, Dobrushin, MarkovChain, LowTemperature, NoGibbs, Representation}`.
+
+`Challenge_Representation.lean` states exactly Georgii (2.30) and nothing more: the potential it
+produces is a potential in the sense of (2.2) — its Hamiltonians exist as limits of the partial
+sums (2.13) — and is **not** claimed to be absolutely summable (2.11) or uniformly convergent.
+Georgii's second sentence in (2.30) obtains uniform convergence only under the additional
+hypothesis that `log ρ_Λ` be bounded, and "every quasilocal specification comes from an absolutely
+summable potential" is the separate Kozlov–Sullivan theorem, which §2.3 does not prove.
+
+## Hypotheses
+
+The challenges state Georgii's hypotheses, not the ones that happen to be convenient.  The
+quasilocality premise of `Defs_Dobrushin.lean` quantifies over **local** observables, which is
+Georgii's own formulation of (2.23) and the weaker demand on `γ` — the passage to quasilocal
+observables is a genuine analytic step, and the solution invokes it from the library rather than
+assuming it.  The a priori measure of `Defs_Existence.lean` is **finite and non-zero**, as in (2.9)
+and (4.23), not normalised; the `λ(E)^{|Λ|}` factors cancel, which is Remark (1.28)(3) and is
+proved in the challenge itself.  The parameter set of `Defs.lean`'s independent specification is an
+**arbitrary countable** `S`, its Gibbs measure being `Measure.infinitePi`.
 
 ## Why the `Defs*` modules may never import `GibbsMeasure`
 

@@ -1,0 +1,17 @@
+{
+    "challenge_module": "Comparator.Challenge_Representation",
+    "solution_module": "Comparator.Solution_Representation",
+    "theorem_names": [
+        "GibbsChallenge.Representation.existsUnique_gasPotential",
+        "GibbsChallenge.Representation.eq_of_isGasPotential",
+        "GibbsChallenge.Representation.isPreModification_boltzmann",
+        "GibbsChallenge.Representation.lambdaInt_gibbsModification_eq_one",
+        "GibbsChallenge.Representation.isPreModification_gibbsModification"
+    ],
+    "permitted_axioms": [
+        "propext",
+        "Quot.sound",
+        "Classical.choice"
+    ],
+    "enable_nanoda": true
+}

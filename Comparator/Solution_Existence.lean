@@ -11,6 +11,21 @@ statements; the only differences are the extra `import GibbsMeasure`, this modul
 auxiliary `namespace Bridge` block translating between those from-scratch definitions and the
 `GibbsMeasure` library, and the proof terms.
 
+## The a priori measure is an arbitrary finite `λ ∈ 𝓜(E, ℰ)`
+
+Georgii's Theorem (4.23) is stated for a finite, non-zero, **un-normalized** a priori measure, and
+by his (2.14) finiteness of `λ` is exactly `λ`-admissibility of a potential `Φ ∈ ℬ`.  The
+`GibbsMeasure` library supports this generality directly, in
+`GibbsMeasure/Potential/FiniteReference.lean`, which is built on Georgii's rescaling Remark
+(1.28)(3) as formalized in `GibbsMeasure/Specification/Rescaling.lean`.  The bridge below therefore
+identifies the challenge's `gibbsKernel` with `Potential.gibbsSpecificationOfFiniteReference`, and
+the four theorems are discharged by
+
+* `Potential.GP_gibbsSpecificationOfFiniteReference_nonempty` — (4.22)/(4.23)(a), existence;
+* `Potential.isCompact_setOf_mem_GP_gibbsSpecificationOfFiniteReference` — (4.23)(a), compactness;
+* `Potential.isCompact_closure_iUnion_setOf_mem_GP_of_iSup_normAt_lt_top_ofFiniteReference` —
+  (4.23)(b).
+
 ## The bridge to the `GibbsMeasure` library
 
 The `Bridge` namespace below is the only part of this file that is absent from
@@ -19,9 +34,11 @@ the from-scratch objects of `Comparator.Defs` and `Comparator.Defs_Existence` wi
 corresponding objects of the `GibbsMeasure` library:
 
 * `Bridge.hamiltonian_eq`: `H_Λ` is `Potential.hamiltonian`;
-* `Bridge.freeMeasure_eq`: `λ_Λ^ω` is `Specification.isssd`;
+* `Bridge.freeMeasure_eq`: `λ_Λ^ω` is `Specification.sigmaFiniteLambdaFun`, the kernel of Georgii's
+  Notation (1.26) for a general — here finite — a priori measure;
+* `Bridge.partitionFunction_eq`: `Z_Λ(ω)` is `Specification.sigmaFiniteLambdaZ`, Georgii (2.7);
 * `Bridge.gibbsKernel_eq`: **the finite-volume Gibbs distribution written out there is literally
-  the `Λ`-kernel of `Potential.gibbsSpecificationOfAbsolutelySummable`**;
+  the `Λ`-kernel of `Potential.gibbsSpecificationOfFiniteReference`**;
 * `Bridge.isGibbs_iff`: consequently those DLR equations are the library's
   `Specification.IsGibbsMeasure`;
 * `Bridge.continuous_coeMeasure`: the library's topology of local convergence on
@@ -85,11 +102,17 @@ theorem boltzmannFactor_eq [Potential.IsAbsolutelySummable (Φ : Potential S E)]
   funext σ
   rw [boltzmannFactor, Potential.boltzmannFactor, hamiltonian_eq]
 
-/-! ### The finite-volume kernels -/
+/-! ### The finite-volume kernels
 
-theorem freeMeasure_eq (ν : Measure E) [IsProbabilityMeasure ν] (Λ : Finset S)
-    (ω : Config S E) : freeMeasure ν Λ ω = Specification.isssd (S := S) (E := E) ν Λ ω := by
-  rw [freeMeasure]
+Georgii's Notation (1.26) attaches to *any* `λ ∈ 𝓜(E, ℰ)` the proper kernels
+`λ_Λ(·|ω) = λ^Λ × δ_{ω_{S∖Λ}}`.  In the library these are `Specification.sigmaFiniteLambdaFun`;
+`Specification.isssd` is their special case for a probability measure, which we do **not** use
+here, since Theorem (4.23) allows an arbitrary finite `λ`. -/
+
+theorem freeMeasure_eq (ν : Measure E) [SigmaFinite ν] (Λ : Finset S)
+    (ω : Config S E) :
+    freeMeasure ν Λ ω = Specification.sigmaFiniteLambdaFun (S := S) (E := E) ν Λ ω := by
+  rw [Specification.sigmaFiniteLambdaFun_apply_eq_map]
   show Measure.map (fun ζ : Λ → E => extend Λ ζ ω) (Measure.pi fun _ : Λ => ν)
       = Measure.map (juxt (Λ : Set S) ω) (Measure.pi fun _ : Λ ↦ ν)
   congr 1
@@ -109,28 +132,30 @@ theorem partitionFunction_extend (ν : Measure E) (β : ℝ) (Λ : Finset S) (ω
   rw [partitionFunction, partitionFunction, freeMeasure_extend]
 
 theorem partitionFunction_eq [Potential.IsAbsolutelySummable (Φ : Potential S E)]
-    (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ) (Λ : Finset S) (ω : Config S E) :
+    (ν : Measure E) [SigmaFinite ν] (β : ℝ) (Λ : Finset S) (ω : Config S E) :
     partitionFunction Φ ν β Λ ω
-      = Specification.premodifierZ (S := S) (E := E) ν
+      = Specification.sigmaFiniteLambdaZ (S := S) (E := E) ν
           (Potential.boltzmannFactor (Φ : Potential S E) β) Λ ω := by
-  rw [partitionFunction, Specification.premodifierZ, boltzmannFactor_eq, freeMeasure_eq]
+  rw [partitionFunction, Specification.sigmaFiniteLambdaZ, boltzmannFactor_eq, freeMeasure_eq]
 
 variable [Countable S] [Potential.IsPotential (Φ : Potential S E)]
   [Potential.IsAbsolutelySummable (Φ : Potential S E)]
 
-/-- The library's Gibbsian specification of `Φ`. -/
-def libSpec (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ) : Specification S E :=
-  Potential.gibbsSpecificationOfAbsolutelySummable (Φ := (Φ : Potential S E)) ν β
+/-- The library's Gibbsian specification of `Φ` over an arbitrary finite non-zero a priori
+measure, Georgii Definition (2.9). -/
+def libSpec (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν] (β : ℝ) : Specification S E :=
+  Potential.gibbsSpecificationOfFiniteReference (Φ := (Φ : Potential S E)) ν β
 
 /-- **The key identification.** The finite-volume Gibbs distribution written out from first
-principles above is exactly the `Λ`-kernel of the library's Gibbsian specification. -/
-theorem gibbsKernel_eq (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ)
+principles above is exactly the `Λ`-kernel of the library's Gibbsian specification for the same
+un-normalized a priori measure. -/
+theorem gibbsKernel_eq (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν] (β : ℝ)
     (Λ : Finset S) (ω : Config S E) :
     gibbsKernel Φ ν β Λ ω = libSpec Φ ν β Λ ω := by
   have hbfmeas : Measurable (Potential.boltzmannFactor (Φ : Potential S E) β Λ) :=
     Potential.measurable_boltzmannFactor (Φ := (Φ : Potential S E)) β Λ
-  show _ = (Specification.isssd (S := S) (E := E) ν Λ ω).withDensity
-      (Specification.premodifierNorm (S := S) (E := E) ν
+  show _ = (Specification.sigmaFiniteLambdaFun (S := S) (E := E) ν Λ ω).withDensity
+      (Specification.sigmaFinitePremodifierNorm (S := S) (E := E) ν
         (Potential.boltzmannFactor (Φ : Potential S E) β) Λ)
   rw [← freeMeasure_eq ν Λ ω]
   refine Measure.ext fun A hA => ?_
@@ -141,20 +166,21 @@ theorem gibbsKernel_eq (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ)
     ← lintegral_const_mul _ ?_]
   · refine lintegral_congr fun ζ => ?_
     by_cases hmem : extend Λ ζ ω ∈ A
-    · rw [Set.indicator_of_mem hmem, Set.indicator_of_mem hmem, Specification.premodifierNorm,
+    · rw [Set.indicator_of_mem hmem, Set.indicator_of_mem hmem,
+        Specification.sigmaFinitePremodifierNorm,
         ← partitionFunction_eq, partitionFunction_extend, boltzmannFactor_eq,
         partitionFunction_eq, ENNReal.div_eq_inv_mul]
     · rw [Set.indicator_of_notMem hmem, Set.indicator_of_notMem hmem, mul_zero]
   · rw [boltzmannFactor_eq]
     exact (hbfmeas.indicator hA).comp (measurable_extend Λ ω)
-  · exact (Specification.premodifierNorm_measurable ν
+  · exact (Specification.sigmaFinitePremodifierNorm_measurable ν
       (Potential.isPremodifier_boltzmannFactor (Φ := (Φ : Potential S E)) β) Λ).indicator hA
   · rw [boltzmannFactor_eq]
     exact hbfmeas.indicator hA
 
 /-! ### The DLR equations -/
 
-theorem isGibbs_iff (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ)
+theorem isGibbs_iff (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν] (β : ℝ)
     (μ : Measure (Config S E)) [IsProbabilityMeasure μ] :
     IsGibbs (gibbsKernel Φ ν β) μ ↔ Specification.IsGibbsMeasure (libSpec Φ ν β) μ := by
   have hmeas : ∀ Λ : Finset S, AEMeasurable (libSpec Φ ν β Λ) μ := fun Λ =>
@@ -200,10 +226,11 @@ theorem continuous_coeMeasure :
 
 /-- The library's set of Gibbs measures for `Φ`, inside the space of probability measures carrying
 the topology of local convergence. -/
-def gibbsSet (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ) : Set (WithLocalConvergence S E) :=
+def gibbsSet (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν] (β : ℝ) :
+    Set (WithLocalConvergence S E) :=
   {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP (S := S) (E := E) (libSpec Φ ν β)}
 
-theorem setOf_isGibbs_eq_image (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ) :
+theorem setOf_isGibbs_eq_image (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν] (β : ℝ) :
     {μ : Measure (Config S E) | IsGibbs (gibbsKernel Φ ν β) μ}
       = coeMeasure '' gibbsSet Φ ν β := by
   ext μ
@@ -214,17 +241,17 @@ theorem setOf_isGibbs_eq_image (ν : Measure E) [IsProbabilityMeasure ν] (β : 
   · rintro ⟨P, hP, rfl⟩
     exact (isGibbs_iff Φ ν β (coeMeasure P)).2 hP
 
-theorem mem_image_of_isGibbs (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ)
+theorem mem_image_of_isGibbs (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν] (β : ℝ)
     {μ : Measure (Config S E)} (hμ : IsGibbs (gibbsKernel Φ ν β) μ) :
     μ ∈ coeMeasure '' gibbsSet Φ ν β := by
   rw [← setOf_isGibbs_eq_image]
   exact hμ
 
-theorem isCompact_image_gibbsSet [StandardBorelSpace E] (ν : Measure E) [IsProbabilityMeasure ν]
-    (β : ℝ) :
+theorem isCompact_image_gibbsSet [StandardBorelSpace E] (ν : Measure E) [IsFiniteMeasure ν]
+    [NeZero ν] (β : ℝ) :
     @IsCompact (Measure (Config S E)) localTopology (coeMeasure '' gibbsSet Φ ν β) := by
   letI : TopologicalSpace (Measure (Config S E)) := localTopology
-  exact (Potential.isCompact_setOf_mem_GP_gibbsSpecification
+  exact (Potential.isCompact_setOf_mem_GP_gibbsSpecificationOfFiniteReference
     (Φ := (Φ : Potential S E)) ν β).image continuous_coeMeasure
 
 end Bridge
@@ -240,12 +267,12 @@ theorem isCompact_image_closure_iUnion_gibbsSet {ι : Type*}
     (Φs : ι → Finset S → Config S E → ℝ)
     [∀ i, Potential.IsPotential ((Φs i : Potential S E))]
     [∀ i, Potential.IsAbsolutelySummable ((Φs i : Potential S E))]
-    (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ)
+    (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν] (β : ℝ)
     (hb : ∀ a : S, (⨆ i, Potential.normAt ((Φs i : Potential S E)) a) < ⊤) :
     @IsCompact (Measure (Config S E)) localTopology
       (coeMeasure '' closure (⋃ i, gibbsSet (Φs i) ν β)) := by
   letI : TopologicalSpace (Measure (Config S E)) := localTopology
-  exact (Potential.isCompact_closure_iUnion_setOf_mem_GP_of_iSup_normAt_lt_top
+  exact (Potential.isCompact_closure_iUnion_setOf_mem_GP_of_iSup_normAt_lt_top_ofFiniteReference
     (fun i => (Φs i : Potential S E)) ν β hb).image continuous_coeMeasure
 
 end Bridge
@@ -254,9 +281,12 @@ end Bridge
 
 /-- **Georgii (2.9)/(2.10).** The Gibbsian specification of an absolutely summable potential really
 is a specification in the sense of the preamble: a consistent family of proper probability kernels
-from the exterior σ-algebra `𝓣_Λ`. -/
+from the exterior σ-algebra `𝓣_Λ`.  The a priori measure is an arbitrary finite non-zero
+`λ ∈ 𝓜(E, ℰ)`, as in Georgii's Definition (2.9); by (2.14) finiteness is exactly `λ`-admissibility
+of `Φ ∈ ℬ`. -/
 theorem isSpecification_gibbsKernel [Countable S] (Φ : Finset S → Config S E → ℝ)
-    (hΦ : IsAbsolutelySummablePotential Φ) (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ) :
+    (hΦ : IsAbsolutelySummablePotential Φ) (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν]
+    (β : ℝ) :
     IsSpecification (gibbsKernel Φ ν β) := by
   haveI := Bridge.isPotential hΦ
   haveI := Bridge.isAbsolutelySummable hΦ
@@ -274,21 +304,26 @@ theorem isSpecification_gibbsKernel [Countable S] (Φ : Finset S → Config S E 
       Specification.bind hΛΔ ω]
 
 /-- **Georgii, Theorem (4.22).** Over a standard Borel state space, and for an absolutely summable
-potential, the set of Gibbs measures of the Gibbsian specification is non-empty. -/
+potential and a finite non-zero a priori measure, the set of Gibbs measures of the Gibbsian
+specification is non-empty. -/
 theorem exists_isGibbs_gibbsKernel [Countable S] [StandardBorelSpace E]
     (Φ : Finset S → Config S E → ℝ)
-    (hΦ : IsAbsolutelySummablePotential Φ) (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ) :
+    (hΦ : IsAbsolutelySummablePotential Φ) (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν]
+    (β : ℝ) :
     ∃ μ : Measure (Config S E), IsGibbs (gibbsKernel Φ ν β) μ := by
   haveI := Bridge.isPotential hΦ
   haveI := Bridge.isAbsolutelySummable hΦ
-  obtain ⟨μ, hμ⟩ := Potential.GP_gibbsSpecification_nonempty (Φ := (Φ : Potential S E)) ν β
+  obtain ⟨μ, hμ⟩ :=
+    Potential.GP_gibbsSpecificationOfFiniteReference_nonempty (Φ := (Φ : Potential S E)) ν β
   exact ⟨(μ : Measure (Config S E)), (Bridge.isGibbs_iff Φ ν β _).2 hμ⟩
 
-/-- **Georgii, Theorem (4.23)(a).** The set of Gibbs measures of an absolutely summable potential
-is compact in the topology of local convergence. -/
+/-- **Georgii, Theorem (4.23)(a).** For a standard Borel `(E, ℰ)` and a finite `λ ∈ 𝓜(E, ℰ)`, the
+set of Gibbs measures of an absolutely summable potential is compact in the topology of local
+convergence. -/
 theorem isCompact_setOf_isGibbs_gibbsKernel [Countable S] [StandardBorelSpace E]
     (Φ : Finset S → Config S E → ℝ)
-    (hΦ : IsAbsolutelySummablePotential Φ) (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ) :
+    (hΦ : IsAbsolutelySummablePotential Φ) (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν]
+    (β : ℝ) :
     @IsCompact (Measure (Config S E)) localTopology {μ | IsGibbs (gibbsKernel Φ ν β) μ} := by
   haveI := Bridge.isPotential hΦ
   haveI := Bridge.isAbsolutelySummable hΦ
@@ -297,13 +332,14 @@ theorem isCompact_setOf_isGibbs_gibbsKernel [Countable S] [StandardBorelSpace E]
 
 /-- **Georgii, Theorem (4.23)(b).** If a family `(Φ_i)` of absolutely summable potentials is
 bounded in `ℬ`, i.e. `sup_i ‖Φ_i‖_a < ∞` for every site `a`, then the union of the corresponding
-sets of Gibbs measures is relatively compact in the topology of local convergence: it is contained
-in a compact set of probability measures. -/
+sets of Gibbs measures — taken with respect to one and the same finite `λ ∈ 𝓜(E, ℰ)` — is
+relatively compact in the topology of local convergence: it is contained in a compact set of
+probability measures. -/
 theorem exists_isCompact_superset_iUnion_setOf_isGibbs [Countable S] [StandardBorelSpace E]
     {ι : Type*} (Φs : ι → Finset S → Config S E → ℝ)
     (hΦs : ∀ i, IsAbsolutelySummablePotential (Φs i))
     (hbdd : ∀ a : S, (⨆ i, potentialNormAt (Φs i) a) < ⊤)
-    (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ) :
+    (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν] (β : ℝ) :
     ∃ K : Set (Measure (Config S E)), @IsCompact (Measure (Config S E)) localTopology K ∧
       (∀ μ ∈ K, IsProbabilityMeasure μ) ∧
       (⋃ i, {μ : Measure (Config S E) | IsGibbs (gibbsKernel (Φs i) ν β) μ}) ⊆ K := by

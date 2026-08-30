@@ -91,14 +91,14 @@ theorem georgii_7_26 [Countable S] [StandardBorelSpace E]
 
 /-! ### Non-degeneracy -/
 
-/-- **Non-degeneracy: the hypotheses above are not vacuous.** For a finite parameter set `S` and a
-single-spin distribution `ν` on a standard Borel state space, the independent specification
-`indepSpec ν` of the preamble has a nonempty set of Gibbs measures — the product measure `ν^S` is
-one — and hence, by `georgii_7_26`, a nonempty set of *extreme* Gibbs measures, each Gibbs measure
-being the barycentre of a unique weight carried by them. -/
-theorem gibbsSet_indepSpec_nonempty [Fintype S] [StandardBorelSpace E]
+/-- **Non-degeneracy: the hypotheses above are not vacuous.** For a single-spin distribution `ν` on
+a standard Borel state space and an arbitrary — in particular infinite — parameter set `S`, the
+independent specification `indepSpec ν` of the preamble has a nonempty set of Gibbs measures — the
+infinite product measure `ν^S` is one — and hence, by `georgii_7_26`, a nonempty set of *extreme*
+Gibbs measures, each Gibbs measure being the barycentre of a unique weight carried by them. -/
+theorem gibbsSet_indepSpec_nonempty [Countable S] [StandardBorelSpace E]
     (ν : Measure E) [IsProbabilityMeasure ν] :
-    (Measure.pi fun _ : S ↦ ν) ∈ GibbsSet (indepSpec (S := S) ν) ∧
+    (Measure.infinitePi fun _ : S ↦ ν) ∈ GibbsSet (indepSpec (S := S) ν) ∧
       (∃ ρ : Measure (Config S E), IsExtremeIn (GibbsSet (indepSpec (S := S) ν)) ρ) ∧
       ∀ μ ∈ GibbsSet (indepSpec (S := S) ν), ∃! w : Measure (Measure (Config S E)),
         IsProbabilityMeasure w ∧

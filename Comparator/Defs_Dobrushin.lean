@@ -21,7 +21,7 @@ by eye against the book.
 | `C_ij(γ)`, Dobrushin's interdependence matrix, (8.5) | `interdep` |
 | `𝓛_Λ`, `𝓛`: bounded local observables, (2.20)(a) | `IsLocalFn` |
 | `𝓛̄`: quasilocal observables, (2.20)(b) | `IsQuasilocalFn` |
-| quasilocal specification, (2.23) | `IsQuasilocalSpec` |
+| quasilocal specification, (2.23): `f ∈ 𝓛` implies `γ_Λ f ∈ 𝓛̄` | `IsQuasilocalSpec` |
 | Dobrushin's condition `c(γ) = sup_i ∑_j C_ij(γ) < 1`, (8.6) | `IsDobrushin` |
 | `δ_j(f)`, the single-site oscillation, (8.14) | `oscAt` |
 | `C(γ)^n b` | `interdepIter` |
@@ -132,7 +132,8 @@ theorem IsLocalFn.isQuasilocalFn {f : Config S E → ℝ} (hf : IsLocalFn f) : I
   ⟨hf.1, fun ε hε ↦ ⟨f, hf, fun ω ↦ by simp [le_of_lt hε]⟩⟩
 
 /-- Sanity check: quasilocal observables are measurable, being uniform limits of measurable
-functions; so the integrals appearing in `IsQuasilocalSpec` below are meaningful. -/
+functions; so the conclusion of `IsQuasilocalSpec` below is a statement about a genuine
+observable. -/
 theorem IsQuasilocalFn.measurable {f : Config S E → ℝ} (hf : IsQuasilocalFn f) : Measurable f := by
   have hex : ∀ n : ℕ, ∃ g : Config S E → ℝ, IsLocalFn g ∧ ∀ ω, |f ω - g ω| ≤ 1 / (n + 1) :=
     fun n ↦ hf.2 (1 / (n + 1)) (by positivity)
@@ -154,11 +155,33 @@ theorem IsQuasilocalFn.measurable {f : Config S E → ℝ} (hf : IsQuasilocalFn 
     _ ≤ 1 / (N + 1) := hmono
     _ < ε := hN
 
-/-- **Georgii, Definition (2.23)**: the specification `γ` is *quasilocal* if every kernel `γ_Λ`
-maps quasilocal observables to quasilocal observables, `(γ_Λ f)(ω) = ∫ f dγ_Λ(·|ω)`. -/
+/-- **Georgii, Definition (2.23)**: the specification `γ` is *quasilocal* if for each `Λ ∈ 𝓢`,
+`f ∈ 𝓛` implies `γ_Λ f ∈ 𝓛̄`, where `(γ_Λ f)(ω) = ∫ f dγ_Λ(·|ω)`.
+
+Note that the premise is that `f` be **local**, not merely quasilocal — this is Georgii's own
+formulation: "to verify that a given specification `γ` is quasilocal we only need to check that
+`γ_Λ f ∈ 𝓛̄` when `Λ ∈ 𝓢` and `f ∈ 𝓛`" (the remark immediately following (2.23)). The extension
+from local to quasilocal `f` is automatic, because `γ_Λ` is a contraction for the sup-norm and
+`𝓛̄` is the uniform closure of `𝓛`; but it is a genuine analytic step, and it is *not* assumed
+here. Since `IsLocalFn.isQuasilocalFn` says every local observable is quasilocal, requiring the
+conclusion only for local `f` is the **weaker** demand on `γ`. Hence `IsDobrushin` below is a
+weaker hypothesis, and the uniqueness theorem that consumes it is correspondingly stronger. -/
 def IsQuasilocalSpec (γ : Finset S → Config S E → Measure (Config S E)) : Prop :=
-  ∀ (Λ : Finset S) (f : Config S E → ℝ), IsQuasilocalFn f →
+  ∀ (Λ : Finset S) (f : Config S E → ℝ), IsLocalFn f →
     IsQuasilocalFn fun ω ↦ ∫ x, f x ∂(γ Λ ω)
+
+/-- Sanity check that `IsQuasilocalSpec` is indeed the weaker of the two readings of (2.23):
+demanding `γ_Λ f ∈ 𝓛̄` for every *quasilocal* `f` implies demanding it for every *local* `f`,
+because local observables are quasilocal. Consequently `IsDobrushin` below is implied by (and is
+not equivalent to) the condition one gets by substituting the quasilocal-premise reading, so any
+theorem taking `IsDobrushin` as a hypothesis is at least as strong as its counterpart under that
+reading. -/
+theorem isQuasilocalSpec_of_forall_isQuasilocalFn
+    {γ : Finset S → Config S E → Measure (Config S E)}
+    (h : ∀ (Λ : Finset S) (f : Config S E → ℝ), IsQuasilocalFn f →
+      IsQuasilocalFn fun ω ↦ ∫ x, f x ∂(γ Λ ω)) :
+    IsQuasilocalSpec γ :=
+  fun Λ f hf ↦ h Λ f hf.isQuasilocalFn
 
 /-! ## Georgii (8.6): Dobrushin's condition of weak dependence -/
 
