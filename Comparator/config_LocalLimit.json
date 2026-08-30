@@ -1,0 +1,15 @@
+{
+    "challenge_module": "Comparator.Challenge_LocalLimit",
+    "solution_module": "Comparator.Solution_LocalLimit",
+    "theorem_names": [
+        "GibbsChallenge.georgii_7_12_a",
+        "GibbsChallenge.georgii_7_12_c",
+        "GibbsChallenge.exists_isLambdaSpec_isExtremeGibbs"
+    ],
+    "permitted_axioms": [
+        "propext",
+        "Quot.sound",
+        "Classical.choice"
+    ],
+    "enable_nanoda": true
+}

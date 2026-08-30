@@ -3,7 +3,14 @@
     "solution_module": "Comparator.Solution",
     "theorem_names": [
         "IsingChallenge.ising_phase_transition",
-        "IsingChallenge.ising_uniqueness_at_high_temperature"
+        "IsingChallenge.quarter_le_betaC",
+        "IsingChallenge.betaC_le_log_three",
+        "IsingChallenge.ising_existsUnique_gibbs_of_lt_betaC",
+        "IsingChallenge.ising_nonuniqueness_of_betaC_lt",
+        "IsingChallenge.ising_uniqueness_at_high_temperature",
+        "IsingChallenge.ising_uniqueness_of_lt_quarter",
+        "IsingChallenge.ising_plus_minus_phases",
+        "IsingChallenge.ising_lebowitz_martin_lof"
     ],
     "permitted_axioms": [
         "propext",

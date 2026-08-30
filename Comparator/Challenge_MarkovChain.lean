@@ -20,6 +20,9 @@ whose theorems are being certified.  The shared Mathlib-only vocabulary (`Config
   `μ(σ_a = x_a, …, σ_{a+n} = x_{a+n}) = α(x_a) P(x_a, x_{a+1}) ⋯ P(x_{a+n-1}, x_{a+n})`
   for the (strictly positive) stationary distribution `α` of `P`.
 * `georgii_3_5_uniqueness`: the uniqueness half, packaged as `∃!`.
+* `exists_isSpecification_determiningFun`: **non-vacuity**, a specification with the prescribed
+  singleton kernels really exists, so the two theorems above are not statements about an empty
+  class of specifications.
 -/
 
 set_option autoImplicit false
@@ -75,6 +78,19 @@ theorem georgii_3_5_uniqueness (P : E → E → ℝ) (hpos : ∀ x y, 0 < P x y)
       γ {i} ω {σ : Config ℤ E | σ i = y}
         = ENNReal.ofReal (determiningFun P (ω (i - 1)) y (ω (i + 1)))) :
     ∃! μ : MeasureTheory.Measure (Config ℤ E), IsGibbs γ μ :=
+  sorry
+
+/-- **Non-vacuity of Theorem (3.5).** For every strictly positive stochastic matrix `P` on a finite
+state space there really is a specification on `ℤ` whose singleton kernels are given by Georgii's
+determining function (3.11).  So the hypotheses of `georgii_3_5_markovChain` and
+`georgii_3_5_uniqueness` are satisfiable, and those theorems are not statements about an empty
+class of specifications. -/
+theorem exists_isSpecification_determiningFun (P : E → E → ℝ) (hpos : ∀ x y, 0 < P x y)
+    (hstoch : ∀ x, ∑ y, P x y = 1) :
+    ∃ γ : Finset ℤ → Config ℤ E → MeasureTheory.Measure (Config ℤ E), IsSpecification γ ∧
+      ∀ (i : ℤ) (y : E) (ω : Config ℤ E),
+        γ {i} ω {σ : Config ℤ E | σ i = y}
+          = ENNReal.ofReal (determiningFun P (ω (i - 1)) y (ω (i + 1))) :=
   sorry
 
 end MarkovChainChallenge

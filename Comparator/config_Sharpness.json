@@ -1,0 +1,14 @@
+{
+    "challenge_module": "Comparator.Challenge_Sharpness",
+    "solution_module": "Comparator.Solution_Sharpness",
+    "theorem_names": [
+        "SharpnessChallenge.exists_isSpecification_interdep_eq_zero_not_isQuasilocalSpec",
+        "SharpnessChallenge.not_subsingleton_isGibbs_of_iSup_tsum_interdep_lt_one"
+    ],
+    "permitted_axioms": [
+        "propext",
+        "Quot.sound",
+        "Classical.choice"
+    ],
+    "enable_nanoda": true
+}

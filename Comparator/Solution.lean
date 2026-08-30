@@ -6,15 +6,22 @@ import GibbsMeasure
 
 This is the *solution* file matching `Comparator/Challenge.lean`.  Both files take their
 definitions from the same Mathlib-only module `Comparator.Defs_Ising`, so the statements of the
-two theorems below are literally the challenge's statements; the only differences are the extra
+theorems below are literally the challenge's statements; the only differences are the extra
 `import GibbsMeasure`, this module docstring, an auxiliary `namespace Bridge` block translating
 between `Comparator.Defs_Ising`'s from-scratch definitions and the `GibbsMeasure` library, and the
-proof terms of the two final theorems.
+proof terms of the final theorems.
 
 The bridge establishes, for every inverse temperature `β`, that the challenge's explicitly written
 finite-volume Gibbs distribution `gibbsMeasure β Λ ω` is *literally the same measure* as the
 `Λ`-kernel of the library's `isingSpecification (latticeGraph 2) 1 0 β`, whence
-`IsGibbs β μ ↔ μ ∈ GP (isingSpecification (latticeGraph 2) 1 0 β)`.
+`IsGibbs β μ ↔ μ ∈ GP (isingSpecification (latticeGraph 2) 1 0 β)`.  It then identifies
+
+* `nonUniqueness` with `MeasureTheory.GibbsMeasure.isingNonUniqueness`, hence `betaC` with
+  `MeasureTheory.GibbsMeasure.isingBetaC`;
+* `IsLocalEvent` with membership of `localEvents`, i.e. of Mathlib's `measurableCylinders`;
+* any measure that is the all-`+` local limit with `MeasureTheory.GibbsMeasure.plusState`, and
+  `∫ σ, spin (σ 0)` against it with
+  `MeasureTheory.GibbsMeasure.spontaneousMagnetisation`.
 -/
 
 set_option autoImplicit false
@@ -352,17 +359,105 @@ lemma shift_eq (j : Site) : (MeasureTheory.GibbsMeasure.shift Bool j).toFun = sh
 lemma spinFlip_eq :
     MeasureTheory.GibbsMeasure.Peierls.spinFlip.toFun = fun (σ : Config) (i : Site) ↦ !σ i := rfl
 
+/-! #### Non-uniqueness and the critical inverse temperature -/
+
+lemma exists_two_iff_nontrivial (β : ℝ) :
+    (∃ μ ν : Measure Config, IsGibbs β μ ∧ IsGibbs β ν ∧ μ ≠ ν)
+      ↔ (GP (S := Site) (E := Bool) (isingSpecification (latticeGraph 2) 1 0 β)).Nontrivial := by
+  constructor
+  · rintro ⟨μ, ν, hμ, hν, hμν⟩
+    exact ⟨⟨μ, hμ.1⟩, mem_GP_of_isGibbs β μ hμ, ⟨ν, hν.1⟩, mem_GP_of_isGibbs β ν hν,
+      fun h ↦ hμν (congrArg Subtype.val h)⟩
+  · rintro ⟨x, hx, y, hy, hxy⟩
+    exact ⟨(x : Measure Config), (y : Measure Config), isGibbs_of_mem_GP β x hx,
+      isGibbs_of_mem_GP β y hy, fun h ↦ hxy (ProbabilityMeasure.toMeasure_injective h)⟩
+
+lemma nonUniqueness_eq : nonUniqueness = MeasureTheory.GibbsMeasure.isingNonUniqueness :=
+  Set.ext fun β ↦ and_congr_right fun _ ↦ exists_two_iff_nontrivial β
+
+lemma betaC_eq : betaC = MeasureTheory.GibbsMeasure.isingBetaC :=
+  congrArg sInf nonUniqueness_eq
+
+/-! #### Local events -/
+
+lemma isLocalEvent_iff {A : Set Config} : IsLocalEvent A ↔ A ∈ localEvents Site Bool := by
+  constructor
+  · rintro ⟨Λ, hΛ⟩
+    refine mem_localEvents_iff_exists_finsetRestrict_preimage.2
+      ⟨Λ, Λ.restrict '' A, (Set.toFinite _).measurableSet, Set.ext fun σ ↦ ?_⟩
+    refine ⟨fun hσ ↦ ⟨σ, hσ, rfl⟩, ?_⟩
+    rintro ⟨τ, hτ, hres⟩
+    exact (hΛ τ σ fun i hi ↦ congrFun hres ⟨i, hi⟩).1 hτ
+  · intro hA
+    obtain ⟨Λ, B, -, rfl⟩ := mem_localEvents_iff_exists_finsetRestrict_preimage.1 hA
+    exact ⟨Λ, fun σ τ h ↦ by
+      simp only [Set.mem_preimage]
+      rw [show Λ.restrict σ = Λ.restrict τ from funext fun i ↦ h i i.2]⟩
+
+lemma measurableSet_of_isLocalEvent {A : Set Config} (hA : IsLocalEvent A) : MeasurableSet A :=
+  MeasurableSet.of_mem_measurableCylinders (isLocalEvent_iff.1 hA)
+
+lemma isLocalEvent_univ : IsLocalEvent (Set.univ : Set Config) := ⟨∅, fun _ _ _ ↦ Iff.rfl⟩
+
+/-! #### The plus and the minus phase -/
+
+open Filter Topology in
+lemma tendsto_plus (β : ℝ) (hβ : 0 ≤ β) {A : Set Config} (hA : IsLocalEvent A) :
+    Tendsto (fun Λ : Finset Site ↦ gibbsMeasure β Λ (fun _ ↦ true) A) atTop
+      (𝓝 ((MeasureTheory.GibbsMeasure.plusState (latticeGraph 2) 1 0 β : Measure Config) A)) := by
+  have h := MeasureTheory.GibbsMeasure.tendsto_measure_plusState (latticeGraph 2) 1 0 β
+    zero_le_one hβ (isLocalEvent_iff.1 hA)
+  refine h.congr fun Λ ↦ ?_
+  exact spec_apply β Λ _ (measurableSet_of_isLocalEvent hA)
+
+open Filter Topology in
+lemma tendsto_minus (β : ℝ) (hβ : 0 ≤ β) {A : Set Config} (hA : IsLocalEvent A) :
+    Tendsto (fun Λ : Finset Site ↦ gibbsMeasure β Λ (fun _ ↦ false) A) atTop
+      (𝓝 ((MeasureTheory.GibbsMeasure.minusState (latticeGraph 2) 1 0 β : Measure Config) A)) := by
+  have h := MeasureTheory.GibbsMeasure.tendsto_measure_minusState (latticeGraph 2) 1 0 β
+    zero_le_one hβ (isLocalEvent_iff.1 hA)
+  refine h.congr fun Λ ↦ ?_
+  exact spec_apply β Λ _ (measurableSet_of_isLocalEvent hA)
+
+open Filter Topology in
+/-- A measure agreeing with the all-`+` local limit on every local event *is* the plus phase. -/
+lemma eq_plusState (β : ℝ) (hβ : 0 ≤ β) (μ : Measure Config)
+    (hμ : ∀ A : Set Config, IsLocalEvent A →
+      Tendsto (fun Λ : Finset Site ↦ gibbsMeasure β Λ (fun _ ↦ true) A) atTop (𝓝 (μ A))) :
+    μ = (MeasureTheory.GibbsMeasure.plusState (latticeGraph 2) 1 0 β : Measure Config) := by
+  have key : ∀ A ∈ localEvents Site Bool, μ A =
+      (MeasureTheory.GibbsMeasure.plusState (latticeGraph 2) 1 0 β : Measure Config) A :=
+    fun A hA ↦ tendsto_nhds_unique (hμ A (isLocalEvent_iff.2 hA))
+      (tendsto_plus β hβ (isLocalEvent_iff.2 hA))
+  have huniv : μ Set.univ = 1 := by
+    rw [key _ (isLocalEvent_iff.1 isLocalEvent_univ), measure_univ]
+  have : IsFiniteMeasure μ := ⟨by rw [huniv]; exact ENNReal.one_lt_top⟩
+  refine MeasureTheory.ext_of_generate_finite (localEvents Site Bool) ?_
+    isPiSystem_measurableCylinders key ?_
+  · exact generateFrom_measurableCylinders.symm
+  · rw [huniv, measure_univ]
+
+/-! #### The spontaneous magnetisation -/
+
+lemma integral_spin_plusState (β : ℝ) :
+    ∫ σ, spin (σ 0) ∂(MeasureTheory.GibbsMeasure.plusState (latticeGraph 2) 1 0 β :
+        Measure Config)
+      = MeasureTheory.GibbsMeasure.spontaneousMagnetisation β := by
+  rw [spin_eq, MeasureTheory.GibbsMeasure.Peierls.integral_spin_eq
+    (MeasureTheory.GibbsMeasure.plusState (latticeGraph 2) 1 0 β)]
+  rfl
+
 end Bridge
 
 /-! ### The theorems -/
 
-/-- **Georgii, Theorem (6.9), the "in particular" half: the two-dimensional Ising phase
-transition.** There is an inverse temperature `β₀` such that for every `β ≥ β₀` the two-dimensional
-Ising ferromagnet admits two *distinct* Gibbs measures `μ₊` and `μ₋`, both invariant under all
-lattice translations, exchanged by the global spin flip, and exhibiting spontaneous magnetisation:
-the expected spin at the origin is strictly negative under `μ₋` and strictly positive under `μ₊`. -/
-theorem ising_phase_transition :
-    ∃ β₀ : ℝ, ∀ β ≥ β₀, ∃ μp μm : Measure Config,
+/-- **Georgii, Theorem (6.9), the "in particular" half, at the explicit threshold `log 3`.**
+For every inverse temperature `β ≥ log 3` the two-dimensional Ising ferromagnet admits two
+*distinct* Gibbs measures `μ₊` and `μ₋`, both invariant under all lattice translations, exchanged
+by the global spin flip, and exhibiting spontaneous magnetisation: the expected spin at the origin
+is strictly negative under `μ₋` and strictly positive under `μ₊`. -/
+theorem ising_phase_transition (β : ℝ) (hβ : Real.log 3 ≤ β) :
+    ∃ μp μm : Measure Config,
       IsGibbs β μp ∧
       IsGibbs β μm ∧
       μp ≠ μm ∧
@@ -371,9 +466,11 @@ theorem ising_phase_transition :
       μm = μp.map (fun σ i ↦ !σ i) ∧
       ∫ σ, spin (σ 0) ∂μm < 0 ∧
       0 < ∫ σ, spin (σ 0) ∂μp := by
-  obtain ⟨b₀, h⟩ := MeasureTheory.GibbsMeasure.Peierls.exists_spontaneous_magnetisation
-  refine ⟨b₀, fun β hβ ↦ ?_⟩
-  obtain ⟨mp, mm, hne, hp, hm, hsp, hsm, hmap, hlt, hgt⟩ := h β hβ
+  have hb : Real.log 9 ≤ 2 * β := by
+    rw [← MeasureTheory.GibbsMeasure.PeierlsSharp.log_nine_div_two] at hβ
+    linarith
+  obtain ⟨mp, mm, hne, hp, hm, hsp, hsm, hmap, -, hgt, hgtT⟩ :=
+    MeasureTheory.GibbsMeasure.PeierlsSharp.exists_two_shiftInvariant_gibbs_sharp β hb
   refine ⟨(mp : Measure Config), (mm : Measure Config),
     Bridge.isGibbs_of_mem_GP β mp hp, Bridge.isGibbs_of_mem_GP β mm hm,
     fun hcon ↦ hne (ProbabilityMeasure.toMeasure_injective hcon), ?_, ?_, ?_, ?_, ?_⟩
@@ -384,19 +481,97 @@ theorem ising_phase_transition :
     rw [← Bridge.shift_eq j]
     exact (hsm j).map_eq
   · rw [hmap, ← Bridge.spinFlip_eq]
-  · exact hlt
-  · exact hgt
+  · exact MeasureTheory.GibbsMeasure.Peierls.integral_spin_neg hgt
+  · exact MeasureTheory.GibbsMeasure.Peierls.integral_spin_pos hgtT
 
-/-- **The Dobrushin half: uniqueness at high temperature.** When the inverse temperature is small
-enough — Dobrushin's condition holds for the two-dimensional Ising model as soon as `β < 1 / 4`,
-since every site has four neighbours — the Gibbs measure is unique. -/
+/-- **`β_c ≥ 1/4`** — Dobrushin's uniqueness condition, Georgii (8.7) with (8.8). -/
+theorem quarter_le_betaC : (1 : ℝ) / 4 ≤ betaC := by
+  rw [Bridge.betaC_eq]
+  exact MeasureTheory.GibbsMeasure.le_isingBetaC
+
+/-- **`β_c ≤ log 3`** — the Peierls argument at Georgii's own contour count. -/
+theorem betaC_le_log_three : betaC ≤ Real.log 3 := by
+  rw [Bridge.betaC_eq]
+  exact MeasureTheory.GibbsMeasure.isingBetaC_le
+
+/-- **Uniqueness strictly below the critical inverse temperature.** For every `0 ≤ β < β_c` there
+is exactly one Gibbs measure. -/
+theorem ising_existsUnique_gibbs_of_lt_betaC (β : ℝ) (hβ₀ : 0 ≤ β) (hβ : β < betaC) :
+    ∃! μ : Measure Config, IsGibbs β μ := by
+  rw [Bridge.betaC_eq] at hβ
+  obtain ⟨m, hm, huniq⟩ := MeasureTheory.GibbsMeasure.existsUnique_of_lt_isingBetaC hβ₀ hβ
+  refine ⟨(m : Measure Config), Bridge.isGibbs_of_mem_GP β m hm, fun ν hν ↦ ?_⟩
+  exact congrArg (fun x : ProbabilityMeasure Config ↦ (x : Measure Config))
+    (huniq ⟨ν, hν.1⟩ (Bridge.mem_GP_of_isGibbs β ν hν))
+
+/-- **Non-uniqueness strictly above the critical inverse temperature.** For every `β > β_c` there
+are two distinct Gibbs measures. -/
+theorem ising_nonuniqueness_of_betaC_lt (β : ℝ) (hβ : betaC < β) :
+    ∃ μ ν : Measure Config, IsGibbs β μ ∧ IsGibbs β ν ∧ μ ≠ ν := by
+  rw [Bridge.betaC_eq] at hβ
+  exact (Bridge.exists_two_iff_nontrivial β).2
+    (MeasureTheory.GibbsMeasure.nontrivial_of_isingBetaC_lt hβ)
+
+/-- **Uniqueness at high temperature**, up to the critical inverse temperature. -/
 theorem ising_uniqueness_at_high_temperature :
-    ∀ β : ℝ, 0 ≤ β → β < 1 / 4 → ∀ μ ν : Measure Config, IsGibbs β μ → IsGibbs β ν → μ = ν := by
-  intro β hβ0 hβ μ ν hμ hν
-  have habs : |β| < 1 / 4 := by rwa [abs_of_nonneg hβ0]
-  have h := MeasureTheory.GibbsMeasure.subsingleton_GP_ising2D_of_abs_lt habs
-    (Bridge.mem_GP_of_isGibbs β μ hμ) (Bridge.mem_GP_of_isGibbs β ν hν)
-  exact congrArg (fun m : ProbabilityMeasure Config ↦ (m : Measure Config)) h
+    ∀ β : ℝ, 0 ≤ β → β < betaC → ∀ μ ν : Measure Config, IsGibbs β μ → IsGibbs β ν → μ = ν := by
+  intro β hβ₀ hβ μ ν hμ hν
+  exact (ising_existsUnique_gibbs_of_lt_betaC β hβ₀ hβ).unique hμ hν
+
+/-- **The Dobrushin bound.** Dobrushin's condition holds for the two-dimensional Ising model as
+soon as `β < 1 / 4`, since every site has four neighbours; a fortiori the Gibbs measure is then
+unique. -/
+theorem ising_uniqueness_of_lt_quarter :
+    ∀ β : ℝ, 0 ≤ β → β < 1 / 4 → ∀ μ ν : Measure Config, IsGibbs β μ → IsGibbs β ν → μ = ν :=
+  fun β hβ₀ hβ ↦ ising_uniqueness_at_high_temperature β hβ₀ (hβ.trans_le quarter_le_betaC)
+
+/-- **The plus and minus phases as genuine limits** (Georgii, Section 6.2, after (6.9)). For every
+`β ≥ 0` the finite-volume Gibbs distributions with the all-`+` boundary condition converge, on
+every local event, to a Gibbs measure `μ₊`, and those with the all-`-` boundary condition converge
+to a Gibbs measure `μ₋`; every Gibbs measure `μ` is sandwiched between them in the stochastic
+order, `μ₋ ≤ μ ≤ μ₊` on measurable increasing events. -/
+theorem ising_plus_minus_phases (β : ℝ) (hβ : 0 ≤ β) :
+    ∃ μp μm : Measure Config,
+      IsGibbs β μp ∧
+      IsGibbs β μm ∧
+      (∀ A : Set Config, IsLocalEvent A →
+        Filter.Tendsto (fun Λ : Finset Site ↦ gibbsMeasure β Λ (fun _ ↦ true) A)
+          Filter.atTop (nhds (μp A))) ∧
+      (∀ A : Set Config, IsLocalEvent A →
+        Filter.Tendsto (fun Λ : Finset Site ↦ gibbsMeasure β Λ (fun _ ↦ false) A)
+          Filter.atTop (nhds (μm A))) ∧
+      (∀ μ : Measure Config, IsGibbs β μ →
+        ∀ A : Set Config, MeasurableSet A → IsUpperSet A → μ A ≤ μp A) ∧
+      (∀ μ : Measure Config, IsGibbs β μ →
+        ∀ A : Set Config, MeasurableSet A → IsUpperSet A → μm A ≤ μ A) := by
+  refine ⟨(MeasureTheory.GibbsMeasure.plusState (MeasureTheory.GibbsMeasure.latticeGraph 2) 1 0 β : Measure Config),
+    (MeasureTheory.GibbsMeasure.minusState (MeasureTheory.GibbsMeasure.latticeGraph 2) 1 0 β : Measure Config),
+    Bridge.isGibbs_of_mem_GP β _
+      (MeasureTheory.GibbsMeasure.plusState_mem_GP (MeasureTheory.GibbsMeasure.latticeGraph 2) 1 0 β zero_le_one hβ),
+    Bridge.isGibbs_of_mem_GP β _
+      (MeasureTheory.GibbsMeasure.minusState_mem_GP (MeasureTheory.GibbsMeasure.latticeGraph 2) 1 0 β zero_le_one hβ),
+    fun A hA ↦ Bridge.tendsto_plus β hβ hA, fun A hA ↦ Bridge.tendsto_minus β hβ hA,
+    fun μ hμ A hA hup ↦ ?_, fun μ hμ A hA hup ↦ ?_⟩
+  · exact MeasureTheory.GibbsMeasure.stochasticallyLE_plusState (MeasureTheory.GibbsMeasure.latticeGraph 2) 1 0 β
+      zero_le_one hβ (Bridge.mem_GP_of_isGibbs β μ hμ) hA hup
+  · exact MeasureTheory.GibbsMeasure.minusState_stochasticallyLE (MeasureTheory.GibbsMeasure.latticeGraph 2) 1 0 β
+      zero_le_one hβ (Bridge.mem_GP_of_isGibbs β μ hμ) hA hup
+
+/-- **The Lebowitz–Martin-Löf/Ruelle criterion** (Georgii, Section 6.2, the paragraph after (6.9),
+where it is cited without proof). For `β ≥ 0` the two-dimensional Ising ferromagnet has more than
+one Gibbs measure if and only if the spontaneous magnetisation is strictly positive, i.e. the
+expected spin at the origin under the plus phase `μ₊` is strictly positive. Here `μ₊` is pinned
+down by being the limit of the finite-volume distributions with all-`+` boundary condition; such a
+measure exists by `ising_plus_minus_phases`. -/
+theorem ising_lebowitz_martin_lof (β : ℝ) (hβ : 0 ≤ β) (μp : Measure Config)
+    (hμp : ∀ A : Set Config, IsLocalEvent A →
+      Filter.Tendsto (fun Λ : Finset Site ↦ gibbsMeasure β Λ (fun _ ↦ true) A)
+        Filter.atTop (nhds (μp A))) :
+    (∃ μ ν : Measure Config, IsGibbs β μ ∧ IsGibbs β ν ∧ μ ≠ ν)
+      ↔ 0 < ∫ σ, spin (σ 0) ∂μp := by
+  rw [Bridge.eq_plusState β hβ μp hμp, Bridge.integral_spin_plusState,
+    Bridge.exists_two_iff_nontrivial β]
+  exact MeasureTheory.GibbsMeasure.nontrivial_GP_ising2D_iff_spontaneousMagnetisation_pos β hβ
 
 end IsingChallenge
 

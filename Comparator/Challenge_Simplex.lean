@@ -21,6 +21,10 @@ the dictionary.
 * `existsUnique_weight_isExtremeIn`: **Georgii, Theorem (7.26), second half.** Every `μ ∈ 𝓖(γ)` is
   the barycentre of a *unique* probability weight `w` concentrated on `ex 𝓖(γ)`.
 * `georgii_7_26`: the two halves packaged together.
+* `mutuallySingular_of_isExtremeIn`: **Georgii, Theorem (7.7)(d).** Distinct extreme Gibbs
+  measures are mutually singular.
+* `le_encard_setOf_isExtremeIn_iff`: **Georgii, Corollary (7.29).** `𝓖(γ)` has at least `N`
+  extreme points iff it contains `N` measures which are linearly independent over `ℝ≥0∞`.
 * `gibbsSet_indepSpec_nonempty`: **non-degeneracy.** The hypotheses of `georgii_7_26` are
   satisfiable: the independent specification of the preamble, over a standard Borel state
   space, has a nonempty set of Gibbs measures, so the decomposition theorem says something.
@@ -87,6 +91,27 @@ theorem georgii_7_26 [Countable S] [StandardBorelSpace E]
         IsProbabilityMeasure w ∧
           w {ν : Measure (Config S E) | IsExtremeIn (GibbsSet γ) ν}ᶜ = 0 ∧
           Measure.join w = μ :=
+  sorry
+
+/-! ### Georgii, Theorem (7.7)(d) and Corollary (7.29) -/
+
+/-- **Georgii, Theorem (7.7)(d).** Two *distinct* extreme Gibbs measures are mutually singular:
+they are carried by disjoint measurable sets. -/
+theorem mutuallySingular_of_isExtremeIn [Countable S] [StandardBorelSpace E]
+    {γ : Finset S → Config S E → Measure (Config S E)} (hγ : IsSpecification γ)
+    {μ ν : Measure (Config S E)} (hμ : IsExtremeIn (GibbsSet γ) μ)
+    (hν : IsExtremeIn (GibbsSet γ) ν) (hne : μ ≠ ν) :
+    μ.MutuallySingular ν :=
+  sorry
+
+/-- **Georgii, Corollary (7.29).** For a specification with at least one Gibbs measure, the number
+of *extreme* Gibbs measures is at least `N` if and only if `𝓖(γ)` contains `N` measures which are
+linearly independent over `ℝ≥0∞`. -/
+theorem le_encard_setOf_isExtremeIn_iff [Countable S] [StandardBorelSpace E]
+    {γ : Finset S → Config S E → Measure (Config S E)} (hγ : IsSpecification γ)
+    (hne : (GibbsSet γ).Nonempty) (N : ℕ) :
+    (N : ℕ∞) ≤ {ν : Measure (Config S E) | IsExtremeIn (GibbsSet γ) ν}.encard ↔
+      ∃ μ : Fin N → Measure (Config S E), (∀ i, IsGibbs γ (μ i)) ∧ LinearIndependent ℝ≥0∞ μ :=
   sorry
 
 /-! ### Non-degeneracy -/

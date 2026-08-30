@@ -240,6 +240,39 @@ theorem georgii_7_26 [Countable S] [StandardBorelSpace E]
           Measure.join w = μ :=
   ⟨exists_isExtremeIn hγ hne, fun _ hμ ↦ existsUnique_weight_isExtremeIn hγ hμ⟩
 
+/-! ### Georgii, Theorem (7.7)(d) and Corollary (7.29) -/
+
+/-- **Georgii, Theorem (7.7)(d).** Two *distinct* extreme Gibbs measures are mutually singular:
+they are carried by disjoint measurable sets. -/
+theorem mutuallySingular_of_isExtremeIn [Countable S] [StandardBorelSpace E]
+    {γ : Finset S → Config S E → Measure (Config S E)} (hγ : IsSpecification γ)
+    {μ ν : Measure (Config S E)} (hμ : IsExtremeIn (GibbsSet γ) μ)
+    (hν : IsExtremeIn (GibbsSet γ) ν) (hne : μ ≠ ν) :
+    μ.MutuallySingular ν := by
+  have hμ' : μ ∈ (MeasureTheory.GibbsMeasure.G (SimplexBridge.spec hγ)).extremePoints ℝ≥0∞ := by
+    have := (SimplexBridge.setOf_isExtremeIn_eq hγ) ▸ hμ
+    exact this
+  have hν' : ν ∈ (MeasureTheory.GibbsMeasure.G (SimplexBridge.spec hγ)).extremePoints ℝ≥0∞ := by
+    have := (SimplexBridge.setOf_isExtremeIn_eq hγ) ▸ hν
+    exact this
+  exact MeasureTheory.GibbsMeasure.mutuallySingular_of_mem_extremePoints
+    ⟨μ, Set.extremePoints_subset hμ'⟩ hμ' hν' hne
+
+/-- **Georgii, Corollary (7.29).** For a specification with at least one Gibbs measure, the number
+of *extreme* Gibbs measures is at least `N` if and only if `𝓖(γ)` contains `N` measures which are
+linearly independent over `ℝ≥0∞`. -/
+theorem le_encard_setOf_isExtremeIn_iff [Countable S] [StandardBorelSpace E]
+    {γ : Finset S → Config S E → Measure (Config S E)} (hγ : IsSpecification γ)
+    (hne : (GibbsSet γ).Nonempty) (N : ℕ) :
+    (N : ℕ∞) ≤ {ν : Measure (Config S E) | IsExtremeIn (GibbsSet γ) ν}.encard ↔
+      ∃ μ : Fin N → Measure (Config S E), (∀ i, IsGibbs γ (μ i)) ∧ LinearIndependent ℝ≥0∞ μ := by
+  have hG : (MeasureTheory.GibbsMeasure.G (SimplexBridge.spec hγ)).Nonempty := by
+    rwa [← SimplexBridge.gibbsSet_eq_G hγ]
+  rw [SimplexBridge.setOf_isExtremeIn_eq hγ,
+    MeasureTheory.GibbsMeasure.le_encard_extremePoints_iff hG N]
+  exact ⟨fun ⟨μ, hμ, hLI⟩ ↦ ⟨μ, fun i ↦ (SimplexBridge.isGibbs_iff_mem_G hγ (μ i)).2 (hμ i), hLI⟩,
+    fun ⟨μ, hμ, hLI⟩ ↦ ⟨μ, fun i ↦ (SimplexBridge.isGibbs_iff_mem_G hγ (μ i)).1 (hμ i), hLI⟩⟩
+
 /-! ### Non-degeneracy -/
 
 /-- **Non-degeneracy: the hypotheses above are not vacuous.** For a single-spin distribution `ν` on

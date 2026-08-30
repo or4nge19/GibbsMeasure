@@ -3,7 +3,8 @@
     "solution_module": "Comparator.Solution_MarkovChain",
     "theorem_names": [
         "MarkovChainChallenge.georgii_3_5_markovChain",
-        "MarkovChainChallenge.georgii_3_5_uniqueness"
+        "MarkovChainChallenge.georgii_3_5_uniqueness",
+        "MarkovChainChallenge.exists_isSpecification_determiningFun"
     ],
     "permitted_axioms": [
         "propext",

@@ -113,6 +113,28 @@ theorem isGibbs_iff (hγ : IsSpecification γ) (ν : Measure (Config ℤ E)) :
       (((toSpec γ hγ) Λ).measurable.mono cylinderEvents_le_pi le_rfl).aemeasurable] at h
     exact h.symm
 
+/-- Conversely, a library `Specification ℤ E` satisfies the preamble's axioms. -/
+theorem ofSpec (Γ : Specification ℤ E) :
+    IsSpecification (fun Λ (ω : Config ℤ E) ↦ Γ Λ ω) where
+  isProbabilityMeasure Λ ω := inferInstance
+  measurable_apply Λ A hA := Kernel.measurable_coe (Γ Λ) hA
+  proper Λ := by
+    intro A B hA hB ω
+    have h := (Kernel.isProper_iff_inter_eq_indicator_mul cylinderEvents_le_pi).1
+      (Γ.isProper Λ) hA hB ω
+    by_cases hω : ω ∈ B
+    · rw [Set.indicator_of_mem hω, Pi.one_apply, one_mul] at h
+      rw [Set.indicator_of_mem hω]
+      exact h
+    · rw [Set.indicator_of_notMem hω, zero_mul] at h
+      rw [Set.indicator_of_notMem hω]
+      exact h
+  consistent Λ Δ hsub ω A hA := by
+    have h := _root_.Specification.bind (γ := Γ) (hΛ := hsub) (η := ω)
+    have h2 : ((Γ Δ ω).bind (Γ Λ)) A = Γ Δ ω A := by rw [h]
+    rwa [Measure.bind_apply hA
+      (((Γ Λ).measurable.mono cylinderEvents_le_pi le_rfl)).aemeasurable] at h2
+
 /-! #### The matrix side -/
 
 /-- `P : E → E → ℝ` viewed as a matrix. -/
@@ -229,6 +251,22 @@ theorem georgii_3_5_uniqueness (P : E → E → ℝ) (hpos : ∀ x y, 0 < P x y)
   by
     obtain ⟨μ, α, -, -, -, -, huniq⟩ := georgii_3_5_markovChain P hpos hstoch γ hγ hsingle
     exact ⟨μ, (huniq μ).2 rfl, fun ν hν => (huniq ν).1 hν⟩
+
+/-- **Non-vacuity of Theorem (3.5).** For every strictly positive stochastic matrix `P` on a finite
+state space there really is a specification on `ℤ` whose singleton kernels are given by Georgii's
+determining function (3.11).  So the hypotheses of `georgii_3_5_markovChain` and
+`georgii_3_5_uniqueness` are satisfiable, and those theorems are not statements about an empty
+class of specifications. -/
+theorem exists_isSpecification_determiningFun (P : E → E → ℝ) (hpos : ∀ x y, 0 < P x y)
+    (hstoch : ∀ x, ∑ y, P x y = 1) :
+    ∃ γ : Finset ℤ → Config ℤ E → MeasureTheory.Measure (Config ℤ E), IsSpecification γ ∧
+      ∀ (i : ℤ) (y : E) (ω : Config ℤ E),
+        γ {i} ω {σ : Config ℤ E | σ i = y}
+          = ENNReal.ofReal (determiningFun P (ω (i - 1)) y (ω (i + 1))) :=
+  ⟨fun Λ ω ↦ MeasureTheory.GibbsMeasure.Markov.markovSpecification (Bridge.toMatrix P) Λ ω,
+    Bridge.ofSpec _, fun i y ω ↦ by
+      rw [MeasureTheory.GibbsMeasure.Markov.markovSpecification_singleton_apply
+        (P := Bridge.toMatrix P) hpos i y ω, Bridge.determiningFun_eq P]⟩
 
 end MarkovChainChallenge
 
