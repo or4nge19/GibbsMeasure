@@ -1,0 +1,14 @@
+{
+    "challenge_module": "Comparator.Challenge_MarkovChain",
+    "solution_module": "Comparator.Solution_MarkovChain",
+    "theorem_names": [
+        "MarkovChainChallenge.georgii_3_5_markovChain",
+        "MarkovChainChallenge.georgii_3_5_uniqueness"
+    ],
+    "permitted_axioms": [
+        "propext",
+        "Quot.sound",
+        "Classical.choice"
+    ],
+    "enable_nanoda": true
+}

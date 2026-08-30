@@ -1,0 +1,17 @@
+{
+    "challenge_module": "Comparator.Challenge_Simplex",
+    "solution_module": "Comparator.Solution_Simplex",
+    "theorem_names": [
+        "GibbsChallenge.isExtremeIn_iff_isTailTrivialOn",
+        "GibbsChallenge.exists_isExtremeIn",
+        "GibbsChallenge.existsUnique_weight_isExtremeIn",
+        "GibbsChallenge.georgii_7_26",
+        "GibbsChallenge.gibbsSet_indepSpec_nonempty"
+    ],
+    "permitted_axioms": [
+        "propext",
+        "Quot.sound",
+        "Classical.choice"
+    ],
+    "enable_nanoda": true
+}

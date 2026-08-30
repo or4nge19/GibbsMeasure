@@ -1,0 +1,17 @@
+{
+    "challenge_module": "Comparator.Challenge_NoGibbs",
+    "solution_module": "Comparator.Solution_NoGibbs",
+    "theorem_names": [
+        "SingleParticle.isSpecification_gamma",
+        "SingleParticle.not_isGibbs_gamma",
+        "SingleParticle.one_le_oscOutside_gamma",
+        "SingleParticle.not_isQuasilocal_gamma",
+        "SingleParticle.isGibbs_spikeMeasure_of_finite"
+    ],
+    "permitted_axioms": [
+        "propext",
+        "Quot.sound",
+        "Classical.choice"
+    ],
+    "enable_nanoda": true
+}

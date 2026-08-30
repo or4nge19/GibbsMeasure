@@ -1,0 +1,16 @@
+{
+    "challenge_module": "Comparator.Challenge_Existence",
+    "solution_module": "Comparator.Solution_Existence",
+    "theorem_names": [
+        "GibbsChallenge.isSpecification_gibbsKernel",
+        "GibbsChallenge.exists_isGibbs_gibbsKernel",
+        "GibbsChallenge.isCompact_setOf_isGibbs_gibbsKernel",
+        "GibbsChallenge.exists_isCompact_superset_iUnion_setOf_isGibbs"
+    ],
+    "permitted_axioms": [
+        "propext",
+        "Quot.sound",
+        "Classical.choice"
+    ],
+    "enable_nanoda": true
+}

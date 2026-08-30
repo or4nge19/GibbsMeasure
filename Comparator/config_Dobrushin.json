@@ -1,0 +1,14 @@
+{
+    "challenge_module": "Comparator.Challenge_Dobrushin",
+    "solution_module": "Comparator.Solution_Dobrushin",
+    "theorem_names": [
+        "DobrushinChallenge.subsingleton_isGibbs_of_isDobrushin",
+        "DobrushinChallenge.ofReal_abs_integral_sub_le_interdepSeries"
+    ],
+    "permitted_axioms": [
+        "propext",
+        "Quot.sound",
+        "Classical.choice"
+    ],
+    "enable_nanoda": true
+}

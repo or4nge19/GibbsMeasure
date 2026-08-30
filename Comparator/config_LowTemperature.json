@@ -1,0 +1,14 @@
+{
+    "challenge_module": "Comparator.Challenge_LowTemperature",
+    "solution_module": "Comparator.Solution_LowTemperature",
+    "theorem_names": [
+        "IsingChallenge.ising_low_temperature_limit",
+        "IsingChallenge.ising_low_temperature_localDistSet"
+    ],
+    "permitted_axioms": [
+        "propext",
+        "Quot.sound",
+        "Classical.choice"
+    ],
+    "enable_nanoda": true
+}
