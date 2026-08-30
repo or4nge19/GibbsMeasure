@@ -87,7 +87,11 @@ Example (4.16): a genuine (proper, consistent) specification — a single partic
 random site — with **no Gibbs measure**; it is not quasilocal (`not_isQuasilocal_specification`),
 so quasilocality cannot be dropped from (4.17)/(4.22).
 
-Chapter 5 (in progress): Georgii's transformation group `T` of configuration space ((5.1),
+Chapter 5, §5.1 and most of §5.2: everything in (5.1)–(5.13) and (5.17)(1)/(5.18)/(5.20)(1) is
+formalised; still missing are Theorem (5.15) and its Corollary (5.16) (invariant Gibbs measures
+for a pair of commuting subgroups of `T`), Theorem (5.19) (the general boundary-condition
+criterion for `𝒢_I(γ) ≠ ∅`) and Definition (5.21) (broken symmetry). In detail: Georgii's
+transformation group `T` of configuration space ((5.1),
 `GibbsMeasure/Prereqs/Transformation.lean`), its action on potentials ((5.3), `Potential.map`,
 with the Hamiltonian/norm/Boltzmann-factor transport of (5.6)(c)), on specifications ((5.4),
 (5.5), `Specification.map`, `GibbsMeasure/Specification/Transformation.lean`) and on Gibbs
@@ -115,6 +119,17 @@ ergodic theorem for positive stochastic matrices (`.../Doeblin.lean`) and Georgi
 (1.33) — a specification is determined by its singleton kernels
 (`GibbsMeasure/Specification/Singleton.lean`).
 
+Two further Mathlib shims: **Pratt's lemma** (dominated convergence against a *varying* `L¹`
+bound) and **Scheffé's lemma**
+(`GibbsMeasure/Mathlib/MeasureTheory/Integral/DominatedConvergence.lean`), used for (7.12)(c);
+and **stochastic domination** of measures — `Measure.StochasticallyLE`, monotone observables
+integrate monotonically, and two comparable measures of equal mass agreeing on a generating
+family of upper sets are equal
+(`GibbsMeasure/Mathlib/MeasureTheory/Order/StochasticDomination.lean`) — together with the form
+of **Holley's inequality** in which correlation inequalities are applied to boundary conditions
+(`GibbsMeasure/Mathlib/MeasureTheory/Order/Holley.lean`, `sum_indicator_le_of_holley`, built on
+Mathlib's `holley` in `Mathlib/Combinatorics/SetFamily/FourFunctions.lean`).
+
 **Theorem (7.26), the extreme decomposition**: over a standard Borel state space, every Gibbs
 measure is the barycentre of a unique probability weight on the extreme Gibbs measures, and
 `μ ↦ w_μ` is an affine bijection `𝒢(γ) ≃ 𝒫(ex 𝒢(γ))`
@@ -132,6 +147,15 @@ and quasilocal `γ`, `𝒢(γ)` is the closed convex hull of the limiting Gibbs 
 **Theorem (7.12)**: for an extreme Gibbs measure `μ` the finite-volume distributions
 `γ_{Λ_n}(·|ω)` converge to `μ` for `μ`-a.e. `ω` (setwise, and in the topology of local
 convergence for finite `E`), so `ex 𝒢(γ) ⊆ 𝒢_lim(γ) ⊆ 𝒢(γ)` (`GibbsMeasure/Specification/LocalLimits.lean`).
+**Theorem (7.12)(c)**, the uniform form, is proved too, over an arbitrary measurable state space
+(`GibbsMeasure/Specification/UniformLocalLimits.lean`): for a λ-specification `γ = ρ λ` and
+`μ ∈ ex 𝒢(γ)`, the convergence `γ_{Λ_n}(·|ω) → μ` holds for `μ`-a.e. `ω` **in total variation on
+the events of each finite volume `Δ`**, `sup {|γ_{Λ_n}(A|ω) − μ(A)| : A ∈ 𝓕_Δ} → 0`
+(`ae_tendsto_iSup_ofReal_abs_sub`,
+`GibbsMeasure.ae_tendsto_iSup_ofReal_abs_sub_of_mem_extremePoints_G`, and
+`ae_tendsto_iSup_ofReal_abs_sub_lambdaSpecification` for the λ-specifications of Definition
+(1.27)) — Georgii's own argument, run through the densities via Lévy's downward theorem and
+Scheffé's lemma.
 
 **Theorem (6.9), the two-dimensional Ising phase transition** — the theorem the book is named
 for. Both assertions of the numbered theorem are proved.
@@ -184,8 +208,18 @@ yet uncountably many Gibbs measures, so the first conjunct is not decorative. Th
 constant 2 — and its instance for the Ising model, `isDobrushin_isingSpecification`
 (`GibbsMeasure/Specification/Dobrushin.lean`). Together with (6.9) this brackets the critical
 temperature of the two-dimensional Ising ferromagnet from both sides: uniqueness at high
-temperature, non-uniqueness at low temperature. (The *existence* of a sharp `β_c` needs
-Griffiths' monotonicity, which is not formalized; Onsager's value is not proved.)
+temperature, non-uniqueness at low temperature. Griffiths' monotonicity — the GKS inequalities
+(`GibbsMeasure/Model/GKSInequalities.lean`: `corr_nonneg`, `corr_mul_corr_le`, `corr_mono`,
+`corr_mono_beta`, `plusMagnetisation_mono`) — turns the bracket into a critical inverse
+temperature: `β_c := inf {β ≥ 0 : |𝒢(βΦ)| > 1}` is a well-defined real number with
+`1/4 ≤ β_c ≤ log 3`, and uniqueness for `0 ≤ β < β_c` is unconditional
+(`GibbsMeasure/Model/SharpCriticalTemperature.lean`: `isingBetaC`, `isingBetaC_mem_Icc`,
+`existsUnique_of_lt_isingBetaC`, `ising_critical_temperature`). Non-uniqueness *strictly above*
+`β_c` is proved only conditionally, on `IsUpperSet isingNonUniqueness`
+(`nontrivial_of_isingBetaC_lt`, `ising_sharp_phase_transition`): that upper-set property is the
+Lebowitz–Martin-Löf/Ruelle equivalence `|𝒢(βΦ)| > 1 ↔ μ₊^β(σ₀) > 0`, which Georgii cites without
+proving it. Onsager's exact value of `β_c` is not proved here, and Georgii does not prove it
+either.
 
 Chapter 4 is complete: Proposition **(4.15)** (a cluster point of a locally equicontinuous
 sequence is a subsequential limit, `GibbsMeasure/Topology/Subsequence.lean`) and Example
