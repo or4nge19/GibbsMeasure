@@ -27,7 +27,7 @@ on:
 
 jobs:
   comparator:
-    name: Judge the Ising phase transition proof
+    name: Judge every comparator entry
     runs-on: ubuntu-latest
     timeout-minutes: 180
 
