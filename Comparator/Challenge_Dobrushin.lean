@@ -1,35 +1,21 @@
 import Comparator.Defs_Dobrushin
 
 /-!
-# Comparator challenge: Dobrushin's uniqueness theorem (Georgii, Theorem (8.7))
-
-This file is the *challenge* file for [comparator](https://github.com/leanprover/comparator).
-Its only import is `Comparator.Defs_Dobrushin`, whose transitive imports are `Comparator.Defs` and
-`Mathlib` and nothing else; in particular nothing here depends on the `GibbsMeasure` library whose
-theorems are being certified.  The shared Mathlib-only vocabulary (`Config`, `outside`, `tail`,
-`IsSpecification`, `IsGibbs`, …) is defined in `Comparator/Defs.lean`, and Georgii's Section 8.1
-(`unifDist`, `proj`, `interdep`, `IsDobrushin`, `oscAt`, `interdepSeries`, …) in
-`Comparator/Defs_Dobrushin.lean`; both module docstrings contain the dictionary.
+# Dobrushin's uniqueness theorem (Georgii, Theorem (8.7))
 
 ## Main statements
 
-* `subsingleton_isGibbs_of_isDobrushin`: **Georgii, Theorem (8.7)**. If the specification `γ`
-  satisfies Dobrushin's condition of weak dependence then `𝓖(γ)` contains at most one element.
-* `ofReal_abs_integral_sub_le_interdepSeries`: **Georgii, Theorem (8.20)**, the Dobrushin
-  comparison theorem.
-* `existsUnique_isGibbs_of_isDobrushin`: **Georgii, Theorem (8.7)** in full. Over a standard Borel
-  state space Dobrushin's condition gives *existence as well as* uniqueness: `|𝓖(γ)| = 1`.
-* `ofReal_abs_toReal_sub_le_interdepTail`: **Georgii (8.23)**, the Cauchy estimate: for a
-  `Λ`-local event `A` and `Δ ⊆ Δ'` the finite-volume Gibbs distributions with a common boundary
-  condition satisfy `|γ_Δ(A|ω) − γ_{Δ'}(A|ω)| ≤ ∑_{i ∈ Λ} ∑_{j ∉ Δ} D_ij(γ)`.
-* `tendsto_interdepTail`: **Georgii (8.23)**, the error term of that estimate tends to `0` as
-  `Δ ↑ S`.  Together the two say that the net `(γ_Δ(·|ω))_Δ` is Cauchy on every local event, which
-  is what turns Dobrushin's uniqueness theorem into a *construction* of the Gibbs measure.
-* `exists_isGibbs_tendstoLocally_of_isDobrushin`: **Georgii (8.23)** itself — the unique Gibbs
-  measure is the local limit of the finite-volume Gibbs distributions, for every boundary
-  condition.
-* `isDobrushin_indepSpec`: **non-vacuity.** Dobrushin's condition is satisfiable — the independent
-  specification of the preamble satisfies it, with `c(γ) = 0`.
+* `subsingleton_isGibbs_of_isDobrushin`: Georgii (8.7), Dobrushin's condition of weak dependence
+  gives at most one Gibbs measure.
+* `ofReal_abs_integral_sub_le_interdepSeries`: Georgii (8.20), the Dobrushin comparison theorem.
+* `existsUnique_isGibbs_of_isDobrushin`: Georgii (8.7) over a standard Borel state space, where
+  Dobrushin's condition gives existence as well as uniqueness.
+* `ofReal_abs_toReal_sub_le_interdepTail`, `tendsto_interdepTail`: Georgii (8.23), the Cauchy
+  estimate on local events and the decay of its error term.
+* `exists_isGibbs_tendstoLocally_of_isDobrushin`: Georgii (8.23), the unique Gibbs measure is the
+  local limit of the finite-volume Gibbs distributions, from every boundary condition.
+* `isDobrushin_indepSpec`: non-vacuity — the independent specification satisfies Dobrushin's
+  condition, with `c(γ) = 0`.
 -/
 
 set_option autoImplicit false
@@ -72,19 +58,16 @@ theorem ofReal_abs_integral_sub_le_interdepSeries
       ≤ ∑' i, interdepSeries γ (fun j ↦ ∫⁻ ω, b j ω ∂ν) i * oscAt f i := by
   sorry
 
-/-- **Georgii, Theorem (8.7), in full.** Over a standard Borel state space, a specification
-satisfying Dobrushin's condition of weak dependence has *exactly one* Gibbs measure: Dobrushin's
-condition gives existence as well as uniqueness. -/
+/-- **Georgii, Theorem (8.7), in full**: over a standard Borel state space a specification
+satisfying Dobrushin's condition has *exactly one* Gibbs measure, existence included. -/
 theorem existsUnique_isGibbs_of_isDobrushin [Nonempty E] [StandardBorelSpace E]
     (γ : Finset S → Config S E → Measure (Config S E))
     (hγ : IsSpecification γ) (hd : IsDobrushin γ) :
     ∃! μ : Measure (Config S E), IsGibbs γ μ := by
   sorry
 
-/-- **Georgii (8.23), the Cauchy estimate.** Fix a boundary condition `ω`. For a `Λ`-local event
-`A` and finite volumes `Δ ⊆ Δ'`, the finite-volume Gibbs distributions differ by at most the tail
-of Dobrushin's series:
-`|γ_Δ(A|ω) − γ_{Δ'}(A|ω)| ≤ ∑_{i ∈ Λ} ∑_{j ∉ Δ} D_ij(γ)`. -/
+/-- **Georgii (8.23), the Cauchy estimate**: for a `Λ`-local event `A` and finite volumes
+`Δ ⊆ Δ'`, `|γ_Δ(A|ω) − γ_{Δ'}(A|ω)| ≤ ∑_{i ∈ Λ} ∑_{j ∉ Δ} D_ij(γ)`. -/
 theorem ofReal_abs_toReal_sub_le_interdepTail [DecidableEq S]
     (γ : Finset S → Config S E → Measure (Config S E))
     (hγ : IsSpecification γ) (hd : IsDobrushin γ) {Λ Δ Δ' : Finset S} (hΔ : Δ ⊆ Δ')
@@ -92,21 +75,18 @@ theorem ofReal_abs_toReal_sub_le_interdepTail [DecidableEq S]
     ENNReal.ofReal |(γ Δ ω A).toReal - (γ Δ' ω A).toReal| ≤ ∑ i ∈ Λ, interdepTail γ Δ i := by
   sorry
 
-/-- **Georgii (8.23).** Under Dobrushin's condition the error term of the Cauchy estimate tends to
-`0` as the volume `Δ` exhausts `S`; this is the finiteness `∑_j D_ij(γ) < ∞`.  Together with
-`ofReal_abs_toReal_sub_le_interdepTail` it says that the net of finite-volume Gibbs distributions
-with a fixed boundary condition is Cauchy on every local event. -/
+/-- **Georgii (8.23)**: under Dobrushin's condition the error term of the Cauchy estimate tends
+to `0` as `Δ ↑ S`, so the finite-volume Gibbs distributions with a fixed boundary condition are
+Cauchy on every local event. -/
 theorem tendsto_interdepTail [DecidableEq S]
     (γ : Finset S → Config S E → Measure (Config S E))
     (hγ : IsSpecification γ) (hd : IsDobrushin γ) (i : S) :
     Tendsto (fun Δ : Finset S ↦ interdepTail γ Δ i) atTop (nhds 0) := by
   sorry
 
-/-- **Georgii (8.23): Dobrushin's condition *constructs* the Gibbs measure.** Over a standard
-Borel state space a specification satisfying Dobrushin's condition has exactly one Gibbs measure
-`μ`, and for **every** boundary condition `ω` the net of finite-volume Gibbs distributions
-`(γ_Δ(·|ω))_{Δ ∈ 𝓢}` converges to `μ` in the topology of local convergence, Georgii (4.2).  This
-is what the Cauchy estimate `ofReal_abs_toReal_sub_le_interdepTail` is for. -/
+/-- **Georgii (8.23)**: over a standard Borel state space Dobrushin's condition *constructs* the
+Gibbs measure — there is exactly one, and `(γ_Δ(·|ω))_Δ` converges to it in the topology of local
+convergence, Georgii (4.2), for every boundary condition `ω`. -/
 theorem exists_isGibbs_tendstoLocally_of_isDobrushin [DecidableEq S] [Nonempty E]
     [StandardBorelSpace E] (γ : Finset S → Config S E → Measure (Config S E))
     (hγ : IsSpecification γ) (hd : IsDobrushin γ) :
@@ -115,12 +95,10 @@ theorem exists_isGibbs_tendstoLocally_of_isDobrushin [DecidableEq S] [Nonempty E
       ∀ ω : Config S E, TendstoLocally (fun Δ : Finset S ↦ γ Δ ω) atTop μ := by
   sorry
 
-/-- **Non-vacuity: Dobrushin's condition is satisfiable.** For a single-spin distribution `ν` on a
-standard Borel state space, and an arbitrary — in particular infinite — site set `S`, the
-independent specification of the preamble is a specification satisfying Dobrushin's condition:
-its interdependence matrix vanishes identically, so `c(γ) = 0 < 1`.  Consequently its Gibbs
-measures are exactly the single product measure `ν^S`, and the finite-volume Gibbs distributions
-converge locally to `ν^S` from every boundary condition. -/
+/-- **Non-vacuity**: for a single-spin distribution `ν` and an arbitrary — in particular infinite
+— site set `S`, the independent specification satisfies Dobrushin's condition with `c(γ) = 0`, its
+Gibbs measures are exactly `ν^S`, and the finite-volume Gibbs distributions converge locally to
+`ν^S` from every boundary condition. -/
 theorem isDobrushin_indepSpec [DecidableEq S] [StandardBorelSpace E] (ν : Measure E)
     [IsProbabilityMeasure ν] :
     IsSpecification (indepSpec (S := S) ν) ∧ IsDobrushin (indepSpec (S := S) ν) ∧

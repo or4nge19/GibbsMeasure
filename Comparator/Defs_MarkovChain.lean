@@ -1,28 +1,15 @@
 import Comparator.Defs
 
 /-!
-# Definitions: the determining function of a Markov chain on `ℤ` (Georgii (3.11))
+# Markov chains as Gibbs measures on `ℤ`: definitions
 
-This module extends the shared preamble `Comparator.Defs` with the two notions specific to
-Georgii's Theorem (3.5): the determining function `g(x,y,z) = P(x,y)P(y,z)/P²(x,z)` of (3.11) and
-the interval cylinder events.  It holds the definitions used by
-`Comparator/Challenge_MarkovChain.lean` and `Comparator/Solution_MarkovChain.lean`.
+The two notions specific to Georgii's Theorem (3.5), on top of the shared preamble.
 
-**It imports `Comparator.Defs` — which imports `Mathlib` and nothing else — and nothing further.**
-Everything is spelled out from first principles: the configuration space `Config ℤ E = ℤ → E`, the
-notion of a specification (`IsSpecification`, from the preamble), the DLR equations (`IsGibbs`,
-from the preamble), and here the determining function and the cylinder events.
+## Main definitions
 
-## Dictionary
-
-| Georgii | here |
-| --- | --- |
-| stochastic matrix `P` with `P(x,y) > 0` | `P : E → E → ℝ`, `hstoch`, `hpos` |
-| `g(x,y,z) = P(x,y)P(y,z)/P²(x,z)`, (3.11) | `determiningFun P` |
-| positive homogeneous Markov specification, (3.1) | `IsSpecification γ` + `hsingle` |
-| `α_P`, the stationary distribution, (3.3) | the `α` produced by the theorem |
-| `μ_P(σ_a = x_a, …, σ_b = x_b)`, (3.3) | `μ (cylinder a b x)` |
-| `𝒢(γ) = {μ_P}` | the final `∀ ν, IsGibbs γ ν ↔ ν = μ` |
+* `determiningFun`: Georgii (3.11), the determining function `g(x,y,z) = P(x,y)P(y,z)/P²(x,z)` of
+  a strictly positive stochastic matrix `P`.
+* `cylinder`: the interval cylinder event `{σ_a = x_a, …, σ_b = x_b}`.
 -/
 
 set_option autoImplicit false

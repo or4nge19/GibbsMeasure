@@ -2,28 +2,18 @@ import Comparator.Defs_Ising
 import GibbsMeasure
 
 /-!
-# Comparator solution: the two-dimensional Ising phase transition (Georgii, Theorem (6.9))
+# Comparator solution: the two-dimensional Ising phase transition
 
-This is the *solution* file matching `Comparator/Challenge.lean`.  Both files take their
-definitions from the same Mathlib-only module `Comparator.Defs_Ising`, so the statements of the
-theorems below are literally the challenge's statements; the only differences are the extra
-`import GibbsMeasure`, this module docstring, an auxiliary `namespace Bridge` block translating
-between `Comparator.Defs_Ising`'s from-scratch definitions and the `GibbsMeasure` library, and the
-proof terms of the final theorems.
+The solution file matching `Comparator/Challenge.lean`, whose statements it repeats verbatim over
+the same from-scratch definitions of `Comparator.Defs_Ising`.
 
-The bridge establishes, for every inverse temperature `β`, that the challenge's explicitly written
-finite-volume Gibbs distribution `gibbsMeasure β Λ ω` is *literally the same measure* as the
-`Λ`-kernel of the library's `isingSpecification (latticeGraph 2) 1 0 β`, whence
-`IsGibbs β μ ↔ μ ∈ GP (isingSpecification (latticeGraph 2) 1 0 β)`.  It then identifies
-
-* `nonUniqueness` with `MeasureTheory.GibbsMeasure.isingNonUniqueness`, hence `betaC` with
-  `MeasureTheory.GibbsMeasure.isingBetaC`;
-* `IsLocal` with membership of `localEvents`, i.e. of Mathlib's `measurableCylinders`;
-* any measure that is the all-`+` local limit with `MeasureTheory.GibbsMeasure.plusState`, and
-  `∫ σ, spin (σ 0)` against it with
-  `MeasureTheory.GibbsMeasure.spontaneousMagnetisation`.
+The auxiliary `Bridge` namespace identifies those definitions with the `GibbsMeasure` library's:
+`gibbsMeasure β Λ ω` is literally the `Λ`-kernel of `isingSpecification (latticeGraph 2) 1 0 β`,
+whence `IsGibbs β μ ↔ μ ∈ GP (isingSpecification (latticeGraph 2) 1 0 β)`; `nonUniqueness` and
+`betaC` are `isingNonUniqueness` and `isingBetaC`; `IsLocal` is membership of `localEvents`; the
+all-`+` local limit is `plusState`, and `∫ σ, spin (σ 0)` against it is
+`spontaneousMagnetisation`.
 -/
-
 set_option autoImplicit false
 set_option relaxedAutoImplicit false
 
@@ -33,10 +23,7 @@ noncomputable section
 
 namespace IsingChallenge
 
-/-! ### The bridge to the `GibbsMeasure` library
-
-Everything in this namespace is auxiliary: it identifies the definitions of `Comparator.Defs_Ising`
-with those of the `GibbsMeasure` library.  None of the statements of the challenge is touched. -/
+/-! ### The bridge to the `GibbsMeasure` library -/
 
 namespace Bridge
 
@@ -420,7 +407,7 @@ lemma tendsto_minus (β : ℝ) (hβ : 0 ≤ β) {A : Set Config} (hA : IsLocal A
   exact spec_apply β Λ _ (measurableSet_of_isLocalEvent hA)
 
 open Filter Topology in
-/-- A measure agreeing with the all-`+` local limit on every local event *is* the plus phase. -/
+/-- A measure agreeing with the all-`+` local limit on every local event is the plus phase. -/
 lemma eq_plusState (β : ℝ) (hβ : 0 ≤ β) (μ : Measure Config)
     (hμ : ∀ A : Set Config, IsLocal A →
       Tendsto (fun Λ : Finset Site ↦ gibbsMeasure β Λ (fun _ ↦ true) A) atTop (𝓝 (μ A))) :
@@ -475,11 +462,9 @@ end Bridge
 
 /-! ### The theorems -/
 
-/-- **Georgii, Theorem (6.9), the "in particular" half, at the explicit threshold `log 3`.**
-For every inverse temperature `β ≥ log 3` the two-dimensional Ising ferromagnet admits two
-*distinct* Gibbs measures `μ₊` and `μ₋`, both invariant under all lattice translations, exchanged
-by the global spin flip, and exhibiting spontaneous magnetisation: the expected spin at the origin
-is strictly negative under `μ₋` and strictly positive under `μ₊`. -/
+/-- **Georgii (6.9)**, the "in particular" half at the explicit threshold `log 3`: for `β ≥ log 3`
+the two-dimensional Ising ferromagnet admits two distinct shift-invariant Gibbs measures, exchanged
+by the global spin flip, with spontaneous magnetisations of opposite sign. -/
 theorem ising_phase_transition (β : ℝ) (hβ : Real.log 3 ≤ β) :
     ∃ μp μm : Measure Config,
       IsGibbs β μp ∧
@@ -508,18 +493,17 @@ theorem ising_phase_transition (β : ℝ) (hβ : Real.log 3 ≤ β) :
   · exact MeasureTheory.GibbsMeasure.Peierls.integral_spin_neg hgt
   · exact MeasureTheory.GibbsMeasure.Peierls.integral_spin_pos hgtT
 
-/-- **`β_c ≥ 1/4`** — Dobrushin's uniqueness condition, Georgii (8.7) with (8.8). -/
+/-- **Georgii (8.7) with (8.8)**, Dobrushin's uniqueness condition: `β_c ≥ 1/4`. -/
 theorem quarter_le_betaC : (1 : ℝ) / 4 ≤ betaC := by
   rw [Bridge.betaC_eq]
   exact MeasureTheory.GibbsMeasure.le_isingBetaC
 
-/-- **`β_c ≤ log 3`** — the Peierls argument at Georgii's own contour count. -/
+/-- `β_c ≤ log 3`, by the Peierls argument at Georgii's own contour count. -/
 theorem betaC_le_log_three : betaC ≤ Real.log 3 := by
   rw [Bridge.betaC_eq]
   exact MeasureTheory.GibbsMeasure.isingBetaC_le
 
-/-- **Uniqueness strictly below the critical inverse temperature.** For every `0 ≤ β < β_c` there
-is exactly one Gibbs measure. -/
+/-- For every `0 ≤ β < β_c` there is exactly one Gibbs measure. -/
 theorem ising_existsUnique_gibbs_of_lt_betaC (β : ℝ) (hβ₀ : 0 ≤ β) (hβ : β < betaC) :
     ∃! μ : Measure Config, IsGibbs β μ := by
   rw [Bridge.betaC_eq] at hβ
@@ -528,32 +512,28 @@ theorem ising_existsUnique_gibbs_of_lt_betaC (β : ℝ) (hβ₀ : 0 ≤ β) (hβ
   exact congrArg (fun x : ProbabilityMeasure Config ↦ (x : Measure Config))
     (huniq ⟨ν, hν.1⟩ (Bridge.mem_GP_of_isGibbs β ν hν))
 
-/-- **Non-uniqueness strictly above the critical inverse temperature.** For every `β > β_c` there
-are two distinct Gibbs measures. -/
+/-- For every `β > β_c` there are two distinct Gibbs measures. -/
 theorem ising_nonuniqueness_of_betaC_lt (β : ℝ) (hβ : betaC < β) :
     ∃ μ ν : Measure Config, IsGibbs β μ ∧ IsGibbs β ν ∧ μ ≠ ν := by
   rw [Bridge.betaC_eq] at hβ
   exact (Bridge.exists_two_iff_nontrivial β).2
     (MeasureTheory.GibbsMeasure.nontrivial_of_isingBetaC_lt hβ)
 
-/-- **Uniqueness at high temperature**, up to the critical inverse temperature. -/
+/-- Uniqueness at high temperature, up to the critical inverse temperature. -/
 theorem ising_uniqueness_at_high_temperature :
     ∀ β : ℝ, 0 ≤ β → β < betaC → ∀ μ ν : Measure Config, IsGibbs β μ → IsGibbs β ν → μ = ν := by
   intro β hβ₀ hβ μ ν hμ hν
   exact (ising_existsUnique_gibbs_of_lt_betaC β hβ₀ hβ).unique hμ hν
 
-/-- **The Dobrushin bound.** Dobrushin's condition holds for the two-dimensional Ising model as
-soon as `β < 1 / 4`, since every site has four neighbours; a fortiori the Gibbs measure is then
-unique. -/
+/-- **Georgii (8.7) with (8.8)**: since every site has four neighbours, Dobrushin's condition
+holds as soon as `β < 1 / 4`, so the Gibbs measure is then unique. -/
 theorem ising_uniqueness_of_lt_quarter :
     ∀ β : ℝ, 0 ≤ β → β < 1 / 4 → ∀ μ ν : Measure Config, IsGibbs β μ → IsGibbs β ν → μ = ν :=
   fun β hβ₀ hβ ↦ ising_uniqueness_at_high_temperature β hβ₀ (hβ.trans_le quarter_le_betaC)
 
-/-- **The plus and minus phases as genuine limits** (Georgii, Section 6.2, after (6.9)). For every
-`β ≥ 0` the finite-volume Gibbs distributions with the all-`+` boundary condition converge, on
-every local event, to a Gibbs measure `μ₊`, and those with the all-`-` boundary condition converge
-to a Gibbs measure `μ₋`; every Gibbs measure `μ` is sandwiched between them in the stochastic
-order, `μ₋ ≤ μ ≤ μ₊` on measurable increasing events. -/
+/-- **Georgii, Section 6.2, after (6.9)**: for `β ≥ 0` the finite-volume Gibbs distributions with
+constant boundary conditions converge on every local event to Gibbs measures `μ₊` and `μ₋`, which
+sandwich every Gibbs measure in the stochastic order. -/
 theorem ising_plus_minus_phases (β : ℝ) (hβ : 0 ≤ β) :
     ∃ μp μm : Measure Config,
       IsGibbs β μp ∧
@@ -573,12 +553,10 @@ theorem ising_plus_minus_phases (β : ℝ) (hβ : 0 ≤ β) :
     fun μ hμ A hA hup ↦ Bridge.le_plusState β hβ hμ hA hup,
     fun μ hμ A hA hup ↦ Bridge.minusState_le β hβ hμ hA hup⟩
 
-/-- **The Lebowitz–Martin-Löf/Ruelle criterion** (Georgii, Section 6.2, the paragraph after (6.9),
-where it is cited without proof). For `β ≥ 0` the two-dimensional Ising ferromagnet has more than
-one Gibbs measure if and only if the spontaneous magnetisation is strictly positive, i.e. the
-expected spin at the origin under the plus phase `μ₊` is strictly positive. Here `μ₊` is pinned
-down by being the limit of the finite-volume distributions with all-`+` boundary condition; such a
-measure exists by `ising_plus_minus_phases`. -/
+/-- **Georgii, Section 6.2** (the Lebowitz–Martin-Löf/Ruelle criterion, cited there without
+proof): for `β ≥ 0` the model has more than one Gibbs measure iff the spontaneous magnetisation is
+strictly positive. Here `μ₊` is pinned down as the all-`+` local limit, which exists by
+`ising_plus_minus_phases`. -/
 theorem ising_lebowitz_martin_lof (β : ℝ) (hβ : 0 ≤ β) (μp : Measure Config)
     (hμp : ∀ A : Set Config, IsLocal A →
       Filter.Tendsto (fun Λ : Finset Site ↦ gibbsMeasure β Λ (fun _ ↦ true) A)

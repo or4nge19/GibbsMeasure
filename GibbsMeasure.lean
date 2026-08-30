@@ -11,6 +11,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.Cylinders
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.PiWithDensity
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.KolmogorovExtension
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
+public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Unique
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalLExpectation
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.L1Space.Integrable
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.LpSeminorm.Basic
@@ -101,6 +102,7 @@ public import GibbsMeasure.Specification.LocalLimits
 public import GibbsMeasure.Specification.BrokenSymmetry
 public import GibbsMeasure.Specification.GluedFamily
 public import GibbsMeasure.Specification.InvariantExistence
+public import GibbsMeasure.Specification.InhomogeneousReference
 public import GibbsMeasure.Specification.OneDimensionalUniqueness
 public import GibbsMeasure.Specification.UniformLocalLimits
 public import GibbsMeasure.Specification.NetEquicontinuity

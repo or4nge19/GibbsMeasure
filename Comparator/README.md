@@ -32,9 +32,28 @@ axioms beyond a permitted list, and that the result is accepted by the Lean kern
 | `MarkovChain` | `config_MarkovChain.json` | 3 | **(3.5)**: Markov chains as Gibbs measures on `ℤ`, the unique one being the stationary chain |
 | `Sharpness` | `config_Sharpness.json` | 2 | **(2.27)**: a specification with `C(γ) ≡ 0` — hence `c(γ) = 0 < 1` — and uncountably many Gibbs measures. It carries `¬ IsDobrushin γ` explicitly: it does *not* contradict (8.7), it shows (8.7)'s quasilocality hypothesis cannot be removed |
 
-Eleven entries, 61 theorems. Each was checked to be `sorry` in its challenge, proved in its
-solution, byte-identical in statement text between the two, and to depend on no axiom beyond
-`propext`, `Classical.choice` and `Quot.sound` — entry by entry, which is how comparator runs them.
+Eleven entries, 61 theorems.
+
+> [!IMPORTANT]
+> **These entries have not yet been judged by comparator.** Every run of the `Comparator` workflow
+> to date has failed before executing a step, with
+> `The job was not started because your account is locked due to a billing issue`. Until a run
+> completes, the only evidence for this suite is the checking described in the next paragraph,
+> which is performed *by this project on itself* and is therefore exactly the kind of self-report
+> comparator exists to replace. Do not cite this suite as independently certified.
+
+What has been checked here, entry by entry, is that each theorem is `sorry` in its challenge and
+proved in its solution; that the statement text is byte-identical between the two; that no axiom
+beyond `propext`, `Classical.choice` and `Quot.sound` is used; that no `Defs*` module imports
+anything but Mathlib and other `Defs*` modules; and that no solution imports its challenge. That
+is a re-implementation of comparator's checks, not comparator: it shares this project's Lean
+toolchain and `.lake` directory, runs no sandbox, and performs no independent kernel replay.
+
+A third party reproducing this must start from a clean checkout. comparator's assumption 2 is that
+the checker "has not previously tried to compile the `Solution` file", since doing so could
+compromise the `Challenge`. Our CI pre-builds the *library* deliberately, so that only the
+challenge and solution modules are compiled inside the sandbox — that is the intended
+arrangement, but it is sound only because we control both sides.
 
 Two conventions are worth stating because they are what keeps the suite honest. **Nothing is
 claimed at `β = β_c`**, and Onsager's exact value appears nowhere: it is not proved here, and

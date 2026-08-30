@@ -2,47 +2,24 @@ import Comparator.Defs_Existence
 import GibbsMeasure
 
 /-!
-# Comparator solution: existence and compactness of Gibbs measures (Georgii (4.22), (4.23))
+# Existence and compactness of Gibbs measures
 
-This is the *solution* file matching `Comparator/Challenge_Existence.lean`.  Both files take their
-definitions from the same modules `Comparator.Defs` and `Comparator.Defs_Existence`, which import
-`Mathlib` and nothing else, so the statements of the theorems below are literally the challenge's
-statements; the only differences are the extra `import GibbsMeasure`, this module docstring, an
-auxiliary `namespace Bridge` block translating between those from-scratch definitions and the
-`GibbsMeasure` library, and the proof terms.
+Solution file matching `Comparator/Challenge_Existence.lean`; the statements below are the
+challenge's statements verbatim, and the extra `namespace Bridge` translates the from-scratch
+definitions of `Comparator.Defs_Existence` into the `GibbsMeasure` library.
 
-## The a priori measure is an arbitrary finite `λ ∈ 𝓜(E, ℰ)`
+Georgii's Theorem (4.23) is stated for a finite, non-zero, un-normalized a priori measure — by his
+(2.14) finiteness of `λ` is exactly `λ`-admissibility of a potential `Φ ∈ ℬ` — so the bridge
+identifies `gibbsKernel` with `Potential.gibbsSpecificationOfFiniteReference` rather than with the
+probability-measure special case.
 
-Georgii's Theorem (4.23) is stated for a finite, non-zero, **un-normalized** a priori measure, and
-by his (2.14) finiteness of `λ` is exactly `λ`-admissibility of a potential `Φ ∈ ℬ`.  The
-`GibbsMeasure` library supports this generality directly, in
-`GibbsMeasure/Potential/FiniteReference.lean`, which is built on Georgii's rescaling Remark
-(1.28)(3) as formalized in `GibbsMeasure/Specification/Rescaling.lean`.  The bridge below therefore
-identifies the challenge's `gibbsKernel` with `Potential.gibbsSpecificationOfFiniteReference`, and
-the four theorems are discharged by
+## Main statements
 
-* `Potential.GP_gibbsSpecificationOfFiniteReference_nonempty` — (4.22)/(4.23)(a), existence;
-* `Potential.isCompact_setOf_mem_GP_gibbsSpecificationOfFiniteReference` — (4.23)(a), compactness;
-* `Potential.isCompact_closure_iUnion_setOf_mem_GP_of_iSup_normAt_lt_top_ofFiniteReference` —
-  (4.23)(b).
-
-## The bridge to the `GibbsMeasure` library
-
-The `Bridge` namespace below is the only part of this file that is absent from
-`Comparator/Challenge_Existence.lean`. It identifies, for every absolutely summable potential `Φ`,
-the from-scratch objects of `Comparator.Defs` and `Comparator.Defs_Existence` with the
-corresponding objects of the `GibbsMeasure` library:
-
-* `Bridge.hamiltonian_eq`: `H_Λ` is `Potential.hamiltonian`;
-* `Bridge.freeMeasure_eq`: `λ_Λ^ω` is `Specification.sigmaFiniteLambdaFun`, the kernel of Georgii's
-  Notation (1.26) for a general — here finite — a priori measure;
-* `Bridge.partitionFunction_eq`: `Z_Λ(ω)` is `Specification.sigmaFiniteLambdaZ`, Georgii (2.7);
-* `Bridge.gibbsKernel_eq`: **the finite-volume Gibbs distribution written out there is literally
-  the `Λ`-kernel of `Potential.gibbsSpecificationOfFiniteReference`**;
-* `Bridge.isGibbs_iff`: consequently those DLR equations are the library's
-  `Specification.IsGibbsMeasure`;
-* `Bridge.continuous_coeMeasure`: the library's topology of local convergence on
-  `ProbabilityMeasure` maps continuously onto the preamble's `localTopology`.
+* `Bridge.gibbsKernel_eq`: the finite-volume Gibbs distribution written out from first principles
+  is the `Λ`-kernel of the library's Gibbsian specification
+* `Bridge.isGibbs_iff`: the challenge's DLR equations are `Specification.IsGibbsMeasure`
+* `Bridge.continuous_coeMeasure`: the library's topology of local convergence maps continuously
+  onto the preamble's `localTopology`
 -/
 
 set_option autoImplicit false
@@ -105,11 +82,9 @@ theorem boltzmannFactor_eq [Potential.IsAbsolutelySummable (Φ : Potential S E)]
 
 /-! ### Georgii's index set `𝒮` of non-empty volumes
 
-Georgii's potentials are indexed by the *non-empty* finite volumes, and the library's space `ℬ`
-records this by demanding `Φ ∅ = 0`.  The challenge imposes no such normalisation, so the bridge
-truncates: `trunc Φ` is `Φ` with its value at `∅` replaced by `0`.  Nothing is lost, because the
-value at `∅` enters neither the interaction norms `‖·‖ᵢ` nor the Hamiltonians, hence neither the
-Gibbsian specification: `potentialNormAt_congr`, `gibbsKernel_congr` below. -/
+Georgii's potentials are indexed by the non-empty finite volumes, and the library's `ℬ` records
+this by demanding `Φ ∅ = 0`.  The challenge imposes no such normalisation, so the bridge truncates;
+nothing is lost, since the value at `∅` enters neither the interaction norms nor the Hamiltonians. -/
 
 open Classical in
 /-- `Φ` with its value at the empty volume set to `0`. -/
@@ -164,10 +139,9 @@ theorem gibbsKernel_congr {Φ Ψ : Finset S → Config S E → ℝ}
 
 /-! ### The finite-volume kernels
 
-Georgii's Notation (1.26) attaches to *any* `λ ∈ 𝓜(E, ℰ)` the proper kernels
-`λ_Λ(·|ω) = λ^Λ × δ_{ω_{S∖Λ}}`.  In the library these are `Specification.sigmaFiniteLambdaFun`;
-`Specification.isssd` is their special case for a probability measure, which we do **not** use
-here, since Theorem (4.23) allows an arbitrary finite `λ`. -/
+Georgii's Notation (1.26) kernels `λ_Λ(·|ω) = λ^Λ × δ_{ω_{S∖Λ}}` are the library's
+`Specification.sigmaFiniteLambdaFun`, not the probability-measure special case
+`Specification.isssd`, since (4.23) allows an arbitrary finite `λ`. -/
 
 theorem freeMeasure_eq (ν : Measure E) [SigmaFinite ν] (Λ : Finset S)
     (ω : Config S E) :
@@ -206,9 +180,8 @@ measure, Georgii Definition (2.9). -/
 def libSpec (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν] (β : ℝ) : Specification S E :=
   Potential.gibbsSpecificationOfFiniteReference (Φ := (Φ : Potential S E)) ν β
 
-/-- **The key identification.** The finite-volume Gibbs distribution written out from first
-principles above is exactly the `Λ`-kernel of the library's Gibbsian specification for the same
-un-normalized a priori measure. -/
+/-- The finite-volume Gibbs distribution written out from first principles is the `Λ`-kernel of the
+library's Gibbsian specification for the same un-normalized a priori measure. -/
 theorem gibbsKernel_eq (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν] (β : ℝ)
     (Λ : Finset S) (ω : Config S E) :
     gibbsKernel Φ ν β Λ ω = libSpec Φ ν β Λ ω := by
@@ -423,11 +396,8 @@ end Bridge
 
 /-! ## The theorems -/
 
-/-- **Georgii (2.9)/(2.10).** The Gibbsian specification of an absolutely summable potential really
-is a specification in the sense of the preamble: a consistent family of proper probability kernels
-from the exterior σ-algebra `𝓣_Λ`.  The a priori measure is an arbitrary finite non-zero
-`λ ∈ 𝓜(E, ℰ)`, as in Georgii's Definition (2.9); by (2.14) finiteness is exactly `λ`-admissibility
-of `Φ ∈ ℬ`. -/
+/-- **Georgii (2.9)/(2.10)**: the Gibbsian specification of an absolutely summable potential is a
+specification, i.e. a consistent family of proper probability kernels from `𝓣_Λ`. -/
 theorem isSpecification_gibbsKernel [Countable S] (Φ : Finset S → Config S E → ℝ)
     (hΦ : IsAbsolutelySummablePotential Φ) (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν]
     (β : ℝ) :
@@ -447,9 +417,8 @@ theorem isSpecification_gibbsKernel [Countable S] (Φ : Finset S → Config S E 
       ((Bridge.libSpec Φ ν β).measurable_kernel_toMeasure Λ).aemeasurable,
       Specification.bind hΛΔ ω]
 
-/-- **Georgii, Theorem (4.22).** Over a standard Borel state space, and for an absolutely summable
-potential and a finite non-zero a priori measure, the set of Gibbs measures of the Gibbsian
-specification is non-empty. -/
+/-- **Georgii (4.22)**: over a standard Borel state space, the set of Gibbs measures of the
+Gibbsian specification of an absolutely summable potential is non-empty. -/
 theorem exists_isGibbs_gibbsKernel [Countable S] [StandardBorelSpace E]
     (Φ : Finset S → Config S E → ℝ)
     (hΦ : IsAbsolutelySummablePotential Φ) (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν]
@@ -461,9 +430,8 @@ theorem exists_isGibbs_gibbsKernel [Countable S] [StandardBorelSpace E]
     Potential.GP_gibbsSpecificationOfFiniteReference_nonempty (Φ := (Φ : Potential S E)) ν β
   exact ⟨(μ : Measure (Config S E)), (Bridge.isGibbs_iff Φ ν β _).2 hμ⟩
 
-/-- **Georgii, Theorem (4.23)(a).** For a standard Borel `(E, ℰ)` and a finite `λ ∈ 𝓜(E, ℰ)`, the
-set of Gibbs measures of an absolutely summable potential is compact in the topology of local
-convergence. -/
+/-- **Georgii (4.23)(a)**: the set of Gibbs measures of an absolutely summable potential is compact
+in the topology of local convergence. -/
 theorem isCompact_setOf_isGibbs_gibbsKernel [Countable S] [StandardBorelSpace E]
     (Φ : Finset S → Config S E → ℝ)
     (hΦ : IsAbsolutelySummablePotential Φ) (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν]
@@ -474,11 +442,9 @@ theorem isCompact_setOf_isGibbs_gibbsKernel [Countable S] [StandardBorelSpace E]
   rw [Bridge.setOf_isGibbs_eq_image Φ ν β]
   exact Bridge.isCompact_image_gibbsSet Φ ν β
 
-/-- **Georgii, Theorem (4.23)(b).** If a family `(Φ_i)` of absolutely summable potentials is
-bounded in `ℬ`, i.e. `sup_i ‖Φ_i‖_a < ∞` for every site `a`, then the union of the corresponding
-sets of Gibbs measures — taken with respect to one and the same finite `λ ∈ 𝓜(E, ℰ)` — is
-relatively compact in the topology of local convergence: it is contained in a compact set of
-probability measures. -/
+/-- **Georgii (4.23)(b)**: if `sup_i ‖Φ_i‖_a < ∞` for every site `a`, then `⋃_i 𝒢(Φ_i)`, taken with
+respect to one and the same a priori measure, is relatively compact in the topology of local
+convergence. -/
 theorem exists_isCompact_superset_iUnion_setOf_isGibbs [Countable S] [StandardBorelSpace E]
     {ι : Type*} (Φs : ι → Finset S → Config S E → ℝ)
     (hΦs : ∀ i, IsAbsolutelySummablePotential (Φs i))
@@ -503,12 +469,9 @@ theorem exists_isCompact_superset_iUnion_setOf_isGibbs [Countable S] [StandardBo
   obtain ⟨P, hP, rfl⟩ := Bridge.mem_image_of_isGibbs (Φs i) ν β hi
   exact ⟨P, subset_closure (Set.mem_iUnion.2 ⟨i, hP⟩), rfl⟩
 
-/-- **Georgii, Theorem (4.23)(c): the graph of the Gibbs correspondence is closed.** Let `(Φ_x)` be
-a net of absolutely summable potentials converging to `Φ` in Georgii's Fréchet space `ℬ`, i.e.
-`‖Φ_x − Φ‖_a → 0` for every site `a`, and let `μ_x ∈ 𝒢(Φ_x)` converge to a probability measure `μ`
-in the topology of local convergence.  Then `μ ∈ 𝒢(Φ)`.  (This is closedness of the graph
-`{(Φ, μ) : μ ∈ 𝒢(Φ)} ⊆ ℬ × 𝒫(Ω, 𝓕)` in net form; as Georgii remarks, it does not need the state
-space to be standard Borel.) -/
+/-- **Georgii (4.23)(c)**: the graph `{(Φ, μ) : μ ∈ 𝒢(Φ)}` is closed, in net form — if `Φ_x → Φ`
+in `ℬ` and `μ_x ∈ 𝒢(Φ_x)` converges locally to a probability measure `μ`, then `μ ∈ 𝒢(Φ)`.  As
+Georgii remarks, this does not need the state space to be standard Borel. -/
 theorem isGibbs_of_tendsto_potentialNormAt_of_tendstoLocally [Countable S] {ι : Type*}
     {l : Filter ι} [l.NeBot] (Φs : ι → Finset S → Config S E → ℝ)
     (Φ : Finset S → Config S E → ℝ) (hΦs : ∀ x, IsAbsolutelySummablePotential (Φs x))
@@ -538,10 +501,8 @@ theorem isGibbs_of_tendsto_potentialNormAt_of_tendstoLocally [Countable S] {ι :
   have hlim := hclosed.mem_of_tendsto htend (Filter.Eventually.of_forall hmem)
   exact (Bridge.isGibbs_iff_isGibbsMeasure hΦ ν β μ).2 hlim
 
-/-- **Georgii, Theorem (4.23)(d): the Gibbs correspondence is upper semicontinuous.** Let `F` be a
-set of measures which is closed in the topology of local convergence, and let `(Φ_x)` be a net of
-absolutely summable potentials converging to `Φ` in `ℬ`.  If every `𝒢(Φ_x)` meets `F`, then so
-does `𝒢(Φ)`.  This is Georgii's statement that `𝒢⁻¹(F) = {Φ : 𝒢(Φ) ∩ F ≠ ∅}` is closed. -/
+/-- **Georgii (4.23)(d)**: the Gibbs correspondence is upper semicontinuous, i.e.
+`𝒢⁻¹(F) = {Φ : 𝒢(Φ) ∩ F ≠ ∅}` is closed for every locally closed `F`. -/
 theorem exists_mem_isGibbs_of_tendsto_potentialNormAt [Countable S] [StandardBorelSpace E]
     {ι : Type*} {l : Filter ι} [l.NeBot] (Φs : ι → Finset S → Config S E → ℝ)
     (Φ : Finset S → Config S E → ℝ) (hΦs : ∀ x, IsAbsolutelySummablePotential (Φs x))

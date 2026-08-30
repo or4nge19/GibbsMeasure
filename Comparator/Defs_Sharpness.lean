@@ -1,48 +1,16 @@
 import Comparator.Defs_Dobrushin
 
 /-!
-# Definitions: Georgii, Example (2.27) — why Dobrushin's condition needs quasilocality
+# Georgii, Example (2.27): the Bernoulli measures
 
-This module extends `Comparator.Defs_Dobrushin` with the two objects of Georgii's Example (2.27)
-that are not already part of Section 8.1: the single spin distributions `λ^x = x δ_1 + (1-x) δ_0`
-on `E = {0,1}` and the Bernoulli random fields `μ^x = (λ^x)^ℕ` on `Ω = {0,1}^ℕ`. It holds the
-definitions used by `Comparator/Challenge_Sharpness.lean` and
-`Comparator/Solution_Sharpness.lean`.
+The two objects of Georgii's Example (2.27) that are not already part of Section 8.1. Section 8.1
+is imported rather than copied, so that the `interdep` and `IsQuasilocalSpec` appearing in the
+sharpness statements are literally those used to state Dobrushin's uniqueness theorem (8.7).
 
-**Its imports are `Comparator.Defs_Dobrushin`, `Comparator.Defs` and `Mathlib`, and nothing
-else.** Every notion is spelled out from first principles, so a skeptical reader can check the
-statements by eye against the book.
+## Main definitions
 
-Georgii's Section 8.1 is imported rather than copied *on purpose*: the interdependence matrix
-`C_ij(γ)` occurring in the statements below is then literally the same `DobrushinChallenge.interdep`
-that `Comparator/Challenge_Dobrushin.lean` uses to state Dobrushin's uniqueness theorem (8.7), and
-the quasilocality that fails here is literally the `DobrushinChallenge.IsQuasilocalSpec` that (8.7)
-assumes. Without that, the sharpness claim would compare two unrelated notions.
-
-## Dictionary
-
-| Georgii | here |
-| --- | --- |
-| `Ω = E^S` with the product σ-algebra, §1.1 | `GibbsChallenge.Config` |
-| specification, (1.23) | `GibbsChallenge.IsSpecification` |
-| `𝓖(γ)`, the DLR equations | `GibbsChallenge.IsGibbs` |
-| `‖α₁ − α₂‖ = sup_A \|α₁(A) − α₂(A)\|`, (8.1) | `DobrushinChallenge.unifDist` |
-| `γ_i^0(·\|ζ)`, the single-site kernel of (8.4) | `DobrushinChallenge.proj` |
-| `C_ij(γ)`, Dobrushin's interdependence matrix, (8.5) | `DobrushinChallenge.interdep` |
-| quasilocal specification, (2.23) | `DobrushinChallenge.IsQuasilocalSpec` |
-| Dobrushin's condition, (8.6) | `DobrushinChallenge.IsDobrushin` |
-| `λ^x = x δ_1 + (1 − x) δ_0`, (2.27) | `bern` |
-| `μ^x = (λ^x)^S`, (2.27) | `bernoulliField` |
-
-## Non-degeneracy
-
-`bern` and `bernoulliField` are exercised on examples, so that the statements they occur in cannot
-be true for a degenerate reason: `isProbabilityMeasure_bern` and
-`isProbabilityMeasure_bernoulliField` (they are probability measures for `x ∈ [0,1]`),
-`bern_zero`, `bern_one` (the two extreme parameters give the Dirac measures at the constant
-configurations), `bernoulliField_map_eval` and
-`bernoulliField_apply_eq_true` (each spin `σ_i` really is Bernoulli(`x`) under `μ^x`), and
-`bernoulliField_ne` (distinct parameters give distinct random fields).
+* `bern`: Georgii (2.27), the single spin distribution `λ^x = x δ_1 + (1 − x) δ_0` on `E = {0,1}`.
+* `bernoulliField`: Georgii (2.27), the Bernoulli random field `μ^x = (λ^x)^ℕ`.
 -/
 
 set_option autoImplicit false
@@ -102,13 +70,13 @@ theorem isProbabilityMeasure_bernoulliField {x : ℝ} (hx0 : 0 ≤ x) (hx1 : x �
   rw [bernoulliField]
   infer_instance
 
-/-- Sanity check: under `μ^x` each single spin `σ_i` really is `λ^x`-distributed. -/
+/-- Under `μ^x` each single spin `σ_i` is `λ^x`-distributed. -/
 theorem bernoulliField_map_eval {x : ℝ} (hx0 : 0 ≤ x) (hx1 : x ≤ 1) (i : ℕ) :
     (bernoulliField x).map (fun ω : Config ℕ Bool ↦ ω i) = bern x := by
   exact @Measure.infinitePi_map_eval ℕ (fun _ ↦ Bool) (fun _ ↦ inferInstance)
     (fun _ ↦ bern x) (fun _ ↦ isProbabilityMeasure_bern hx0 hx1) i
 
-/-- Sanity check: `μ^x(σ_i = 1) = x`. In particular `μ^x` is not a degenerate object. -/
+/-- `μ^x(σ_i = 1) = x`; in particular `μ^x` is not a degenerate object. -/
 theorem bernoulliField_apply_eq_true {x : ℝ} (hx0 : 0 ≤ x) (hx1 : x ≤ 1) (i : ℕ) :
     bernoulliField x {ω : Config ℕ Bool | ω i = true} = ENNReal.ofReal x := by
   have hmeas : Measurable fun ω : Config ℕ Bool ↦ ω i := measurable_pi_apply i
@@ -116,7 +84,7 @@ theorem bernoulliField_apply_eq_true {x : ℝ} (hx0 : 0 ≤ x) (hx1 : x ≤ 1) (
   rw [h, ← Measure.map_apply hmeas (measurableSet_singleton true),
     bernoulliField_map_eval hx0 hx1 i, bern_apply_true]
 
-/-- Sanity check: distinct parameters in `[0,1]` give distinct Bernoulli fields. -/
+/-- Distinct parameters in `[0,1]` give distinct Bernoulli fields. -/
 theorem bernoulliField_ne {x y : ℝ} (hx : x ∈ Set.Icc (0 : ℝ) 1) (hy : y ∈ Set.Icc (0 : ℝ) 1)
     (hxy : x ≠ y) : bernoulliField x ≠ bernoulliField y := by
   intro h

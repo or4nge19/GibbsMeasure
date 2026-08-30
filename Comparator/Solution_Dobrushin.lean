@@ -2,14 +2,11 @@ import Comparator.Defs_Dobrushin
 import GibbsMeasure
 
 /-!
-# Comparator solution: Dobrushin's uniqueness theorem (Georgii, Theorem (8.7))
+# Dobrushin's uniqueness theorem: solution (Georgii, Theorem (8.7))
 
-This is the *solution* file matching `Comparator/Challenge_Dobrushin.lean`.  Both files take their
-definitions from the same modules `Comparator.Defs` and `Comparator.Defs_Dobrushin`, which import
-`Mathlib` and nothing else, so the statements of the two theorems below are literally the
-challenge's statements; the only differences are the extra `import GibbsMeasure`, this module
-docstring, an auxiliary `namespace Bridge` block translating between those from-scratch definitions
-and the `GibbsMeasure` library, and the proof terms.
+The solution file matching `Comparator/Challenge_Dobrushin.lean`. It differs from the challenge
+only by `import GibbsMeasure`, the auxiliary `namespace Bridge` translating the from-scratch
+definitions into the `GibbsMeasure` library, and the proof terms.
 -/
 
 set_option autoImplicit false
@@ -29,9 +26,8 @@ variable {S E : Type*} [MeasurableSpace E]
 
 /-! ## The bridge to the `GibbsMeasure` library
 
-Everything in this section is auxiliary: it identifies the notions of `Comparator.Defs` and
-`Comparator.Defs_Dobrushin` with those of the `GibbsMeasure` library, whose theorems are then
-quoted. **None of the statements of the challenge is touched.** -/
+Auxiliary: identifies the notions of `Comparator.Defs` and `Comparator.Defs_Dobrushin` with those
+of the `GibbsMeasure` library, whose theorems are then quoted. -/
 
 namespace Bridge
 
@@ -211,15 +207,10 @@ theorem mem_quasilocalFunctions_of_isQuasilocalFn {f : lp (fun _ : S → E ↦ �
 
 /-! ### Georgii (2.23): the two notions of quasilocality agree
 
-The challenge's `IsQuasilocalSpec` is Georgii's own formulation of (2.23): it quantifies over
-**local** `f` only. The library's `Specification.IsQuasilocal` quantifies over **quasilocal** `f`.
-So the hypothesis available here is the *weaker* one, and the passage from it to the library's
-notion is a real analytic step, not a matter of unfolding: one has to know that `γ_Λ` is a
-contraction for the sup-norm and that `𝓛̄`, being a uniform closure, is closed, so that
-`γ_Λ(𝓛) ⊆ 𝓛̄` propagates from `𝓛` to its closure `𝓛̄`. That is exactly Georgii's remark
-immediately after (2.23), and the library supplies it as
-`Specification.isQuasilocal_iff_forall_mem_localFunctions`; we *invoke* that theorem here rather
-than assuming the stronger hypothesis. -/
+The challenge's `IsQuasilocalSpec` quantifies over **local** `f` only, whereas the library's
+`Specification.IsQuasilocal` quantifies over **quasilocal** `f`; the hypothesis available here is
+therefore the weaker one, and the passage between them is a genuine analytic step supplied by
+`Specification.isQuasilocal_iff_forall_mem_localFunctions`, which we invoke rather than assume. -/
 
 theorem isQuasilocal_spec (hγ : IsSpecification γ) (hq : IsQuasilocalSpec γ) :
     (spec γ hγ).IsQuasilocal :=
@@ -301,9 +292,8 @@ theorem ofReal_abs_integral_sub_le_interdepSeries
   refine h2.trans_eq (tsum_congr fun i ↦ ?_)
   rw [Bridge.interdepSeries_eq hγ, Bridge.oscAt_eq]
 
-/-- **Georgii, Theorem (8.7), in full.** Over a standard Borel state space, a specification
-satisfying Dobrushin's condition of weak dependence has *exactly one* Gibbs measure: Dobrushin's
-condition gives existence as well as uniqueness. -/
+/-- **Georgii, Theorem (8.7), in full**: over a standard Borel state space a specification
+satisfying Dobrushin's condition has *exactly one* Gibbs measure, existence included. -/
 theorem existsUnique_isGibbs_of_isDobrushin [Nonempty E] [StandardBorelSpace E]
     (γ : Finset S → Config S E → Measure (Config S E))
     (hγ : IsSpecification γ) (hd : IsDobrushin γ) :
@@ -318,10 +308,8 @@ theorem existsUnique_isGibbs_of_isDobrushin [Nonempty E] [StandardBorelSpace E]
   have h := huniq (⟨ν, hprob⟩ : ProbabilityMeasure (Config S E)) (Bridge.isGibbsMeasure hγ hν)
   exact congrArg (fun x : ProbabilityMeasure (Config S E) ↦ (x : Measure (Config S E))) h
 
-/-- **Georgii (8.23), the Cauchy estimate.** Fix a boundary condition `ω`. For a `Λ`-local event
-`A` and finite volumes `Δ ⊆ Δ'`, the finite-volume Gibbs distributions differ by at most the tail
-of Dobrushin's series:
-`|γ_Δ(A|ω) − γ_{Δ'}(A|ω)| ≤ ∑_{i ∈ Λ} ∑_{j ∉ Δ} D_ij(γ)`. -/
+/-- **Georgii (8.23), the Cauchy estimate**: for a `Λ`-local event `A` and finite volumes
+`Δ ⊆ Δ'`, `|γ_Δ(A|ω) − γ_{Δ'}(A|ω)| ≤ ∑_{i ∈ Λ} ∑_{j ∉ Δ} D_ij(γ)`. -/
 theorem ofReal_abs_toReal_sub_le_interdepTail [DecidableEq S]
     (γ : Finset S → Config S E → Measure (Config S E))
     (hγ : IsSpecification γ) (hd : IsDobrushin γ) {Λ Δ Δ' : Finset S} (hΔ : Δ ⊆ Δ')
@@ -362,10 +350,9 @@ theorem ofReal_abs_toReal_sub_le_interdepTail [DecidableEq S]
       ≤ ENNReal.ofReal T.toReal := ENNReal.ofReal_le_ofReal habs
     _ = T := ENNReal.ofReal_toReal hT
 
-/-- **Georgii (8.23).** Under Dobrushin's condition the error term of the Cauchy estimate tends to
-`0` as the volume `Δ` exhausts `S`; this is the finiteness `∑_j D_ij(γ) < ∞`.  Together with
-`ofReal_abs_toReal_sub_le_interdepTail` it says that the net of finite-volume Gibbs distributions
-with a fixed boundary condition is Cauchy on every local event. -/
+/-- **Georgii (8.23)**: under Dobrushin's condition the error term of the Cauchy estimate tends
+to `0` as `Δ ↑ S`, so the finite-volume Gibbs distributions with a fixed boundary condition are
+Cauchy on every local event. -/
 theorem tendsto_interdepTail [DecidableEq S]
     (γ : Finset S → Config S E → Measure (Config S E))
     (hγ : IsSpecification γ) (hd : IsDobrushin γ) (i : S) :
@@ -378,11 +365,9 @@ theorem tendsto_interdepTail [DecidableEq S]
   rw [heq]
   exact MeasureTheory.GibbsMeasure.Dobrushin.tendsto_interdepTail hD0 i
 
-/-- **Georgii (8.23): Dobrushin's condition *constructs* the Gibbs measure.** Over a standard
-Borel state space a specification satisfying Dobrushin's condition has exactly one Gibbs measure
-`μ`, and for **every** boundary condition `ω` the net of finite-volume Gibbs distributions
-`(γ_Δ(·|ω))_{Δ ∈ 𝓢}` converges to `μ` in the topology of local convergence, Georgii (4.2).  This
-is what the Cauchy estimate `ofReal_abs_toReal_sub_le_interdepTail` is for. -/
+/-- **Georgii (8.23)**: over a standard Borel state space Dobrushin's condition *constructs* the
+Gibbs measure — there is exactly one, and `(γ_Δ(·|ω))_Δ` converges to it in the topology of local
+convergence, Georgii (4.2), for every boundary condition `ω`. -/
 theorem exists_isGibbs_tendstoLocally_of_isDobrushin [DecidableEq S] [Nonempty E]
     [StandardBorelSpace E] (γ : Finset S → Config S E → Measure (Config S E))
     (hγ : IsSpecification γ) (hd : IsDobrushin γ) :
@@ -464,12 +449,10 @@ theorem exists_isGibbs_tendstoLocally_of_isDobrushin [DecidableEq S] [Nonempty E
   rw [hfin]
   exact htend
 
-/-- **Non-vacuity: Dobrushin's condition is satisfiable.** For a single-spin distribution `ν` on a
-standard Borel state space, and an arbitrary — in particular infinite — site set `S`, the
-independent specification of the preamble is a specification satisfying Dobrushin's condition:
-its interdependence matrix vanishes identically, so `c(γ) = 0 < 1`.  Consequently its Gibbs
-measures are exactly the single product measure `ν^S`, and the finite-volume Gibbs distributions
-converge locally to `ν^S` from every boundary condition. -/
+/-- **Non-vacuity**: for a single-spin distribution `ν` and an arbitrary — in particular infinite
+— site set `S`, the independent specification satisfies Dobrushin's condition with `c(γ) = 0`, its
+Gibbs measures are exactly `ν^S`, and the finite-volume Gibbs distributions converge locally to
+`ν^S` from every boundary condition. -/
 theorem isDobrushin_indepSpec [DecidableEq S] [StandardBorelSpace E] (ν : Measure E)
     [IsProbabilityMeasure ν] :
     IsSpecification (indepSpec (S := S) ν) ∧ IsDobrushin (indepSpec (S := S) ν) ∧

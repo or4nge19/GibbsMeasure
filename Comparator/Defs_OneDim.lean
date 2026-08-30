@@ -3,48 +3,30 @@ import Comparator.Defs
 /-!
 # Definitions: uniqueness in one dimension (Georgii, Section 8.3)
 
-This module extends the shared preamble `Comparator.Defs` with the vocabulary of Georgii's
-Section 8.3: the oscillation `δ(f)` of (8.2), potentials in the sense of Definition (2.2), the
-Hamiltonian of (2.3) as a *limit of partial sums over increasing volumes*, the Boltzmann factor
-(2.4), the finite-volume Gibbs distribution (2.9) against an arbitrary σ-finite a priori measure,
-the uniform domination hypothesis of Proposition (8.38), the spanning sum of condition (8.40) and
-the chain structure that condition exploits.
+Vocabulary for Georgii's Section 8.3: the oscillation of (8.2), potentials in the sense of
+Definition (2.2), the Hamiltonian (2.3), the Boltzmann factor (2.4), the finite-volume Gibbs
+distribution (2.9) against an arbitrary σ-finite a priori measure, the uniform domination
+hypothesis of Proposition (8.38), the spanning sum of condition (8.40) and the chain structure
+that condition exploits.
 
-**It imports `Comparator.Defs` — which imports `Mathlib` and nothing else — and nothing further.**
-Every notion is spelled out from first principles, so a skeptical reader can check the statements
-by eye against the book.
+## Main definitions
 
-## Dictionary
+* `osc`: the oscillation `δ(f) = sup f - inf f` of (8.2)
+* `IsPotential`, `hamiltonian`, `boltzmannFactor`: Georgii (2.2)-(2.4)
+* `freeMeasure`, `partitionFunction`, `IsAdmissible`, `gibbsKernel`: Georgii (1.26), (2.7)-(2.9)
+* `IsAbsolutelySummable`: Georgii's class `ℬ` of (2.11)
+* `IsUniformlyDominated`: the hypothesis of Proposition (8.38)
+* `Spans`, `oscSpan`: the sum of condition (8.40)
+* `HasBoundedBoundary`: the chain structure of `ℤ` and `ℕ` exploited in (8.39)
 
-| Georgii | here |
-| --- | --- |
-| `δ(f) = sup f − inf f`, (8.2) | `osc` |
-| `Φ_A`, the interaction terms of `H_Λ`, (2.3) | `hamiltonianTerm` |
-| Convention (2.1): `∑_A` is `lim_{Δ↑S} ∑_{A ⊆ Δ}` | `HasHamiltonian` |
-| potential, Definition (2.2)(i) + (ii) | `IsPotential` |
-| `H_Λ^Φ`, (2.3) | `hamiltonian` |
-| `h_Λ^Φ = e^{−β H_Λ^Φ}`, (2.4) | `boltzmannFactor` |
-| `λ_Λ(·\|ω) = λ^Λ × δ_{ω_{S∖Λ}}`, Notation (1.26) | `freeMeasure` |
-| `Z_Λ^Φ(ω) = λ_Λ(h_Λ^Φ\|ω)`, (2.7) | `partitionFunction` |
-| `λ`-admissibility, Definition (2.8) | `IsAdmissible` |
-| `γ_Λ^Φ(A\|ω)`, Definition (2.9)/(1.27) | `gibbsKernel` |
-| `‖Φ‖_i = ∑_{A ∋ i} sup\|Φ_A\|`, (2.12) | `potentialNormAt` |
-| `Φ ∈ ℬ`, (2.11) | `IsAbsolutelySummable` |
-| the hypothesis of Proposition (8.38) | `IsUniformlyDominated` |
-| `min A ≤ i < max A` | `Spans` |
-| `∑_{A : min A ≤ i < max A} δ(Φ_A)`, the sum in (8.40) | `oscSpan` |
-| the chain structure of `ℤ` and `ℕ` exploited in (8.39) | `HasBoundedBoundary` |
-| the translate `A + n` used in Comments (8.41) | `shiftFinset` |
+Following Convention (2.1), `HasHamiltonian` is the convergence of the net of partial sums
+`∑_{A ⊆ Δ} Φ_A` over finite volumes ordered by inclusion, which is strictly weaker than absolute
+summability; Theorem (8.39) is stated at exactly this generality. `IsAbsolutelySummable` is used
+only where Georgii uses it, namely for the existence half of (8.39).
 
-## The Hamiltonian is a limit of partial sums, not a `tsum`
+## References
 
-Georgii's Definition (2.2)(ii) asks that the net of partial sums `∑_{A ⊆ Δ} Φ_A`, indexed by the
-finite volumes `Δ` ordered by inclusion, converge — Convention (2.1).  This is *strictly weaker*
-than unconditional (absolute) summability, and Theorem (8.39) is stated at exactly this
-generality.  Accordingly `HasHamiltonian` is the convergence of that net and `hamiltonian` is its
-limit; nothing below assumes absolute convergence.  `IsAbsolutelySummable` — Georgii's space `ℬ`
-of (2.11) — is introduced separately, and used only where Georgii uses it, namely for the
-*existence* half of (8.39), which rests on Theorem (4.23)(a).
+* [Georgii, *Gibbs Measures and Phase Transitions*][georgii2011], Section 8.3
 -/
 
 set_option autoImplicit false
@@ -64,9 +46,8 @@ variable {S E : Type*} [MeasurableSpace E]
 
 /-! ## Georgii (8.2): the oscillation -/
 
-/-- **Georgii (8.2)**: the oscillation `δ(f) = sup f − inf f = sup_{ζ,η} |f(ζ) − f(η)|` of a
-function on the configuration space, recorded in `[0, ∞]` so that no boundedness has to be
-assumed in order to write it down. -/
+/-- **Georgii (8.2)**: the oscillation `δ(f) = sup f − inf f = sup_{ζ,η} |f(ζ) − f(η)|`, valued in
+`[0, ∞]` so that no boundedness need be assumed. -/
 def osc (f : Config S E → ℝ) : ℝ≥0∞ :=
   ⨆ (ζ : Config S E) (η : Config S E), ENNReal.ofReal |f ζ - f η|
 
@@ -99,27 +80,21 @@ def HasHamiltonian (Φ : Finset S → Config S E → ℝ) (Λ : Finset S) (ω : 
     Prop :=
   Tendsto (fun Δ : Finset S ↦ ∑ A ∈ Δ.powerset, hamiltonianTerm Φ Λ ω A) atTop (𝓝 h)
 
-/-- **A potential**, Georgii Definition (2.2): a family `Φ` of interaction terms indexed by the
-finite subsets `A` of the parameter set `S` such that
-
-* (i) `Φ_A` is `𝓕_A`-measurable, i.e. depends only on the coordinates inside `A`;
-* (ii) for every finite volume `Λ` the Hamiltonian series `∑_{A ∩ Λ ≠ ∅} Φ_A` converges in the
-  sense of Convention (2.1).
-
-No *absolute* convergence is assumed; that is Georgii's separate class `ℬ` of (2.11), see
-`IsAbsolutelySummable` below. -/
+/-- **Georgii, Definition (2.2)**: a family `Φ` indexed by the finite subsets of `S` with each
+`Φ_A` being `𝓕_A`-measurable and each Hamiltonian series convergent in the sense of Convention
+(2.1).  No *absolute* convergence is assumed; that is the separate class `ℬ` of (2.11), see
+`IsAbsolutelySummable`. -/
 structure IsPotential (Φ : Finset S → Config S E → ℝ) : Prop where
   /-- Georgii (2.2)(i): `Φ_A` is `𝓕_A`-measurable. -/
   measurable_inside : ∀ A : Finset S, Measurable[inside A] (Φ A)
   /-- Georgii (2.2)(ii): the Hamiltonian series converges in the sense of Convention (2.1). -/
   exists_hasHamiltonian : ∀ (Λ : Finset S) (ω : Config S E), ∃ h : ℝ, HasHamiltonian Φ Λ ω h
 
-/-- **The Hamiltonian**, Georgii (2.3): `H_Λ^Φ = ∑_{A ∩ Λ ≠ ∅} Φ_A`, the limit of the partial sums
+/-- **Georgii (2.3)**: the Hamiltonian `H_Λ^Φ = ∑_{A ∩ Λ ≠ ∅} Φ_A`, the limit of the partial sums
 of `hamiltonianTerm` over increasing volumes. -/
 def hamiltonian (Φ : Finset S → Config S E → ℝ) (Λ : Finset S) (ω : Config S E) : ℝ :=
   limUnder atTop (fun Δ : Finset S ↦ ∑ A ∈ Δ.powerset, hamiltonianTerm Φ Λ ω A)
 
-/-- The limit in Georgii (2.3) is attained by `hamiltonian`. -/
 theorem hasHamiltonian_hamiltonian {Φ : Finset S → Config S E → ℝ} (hΦ : IsPotential Φ)
     (Λ : Finset S) (ω : Config S E) : HasHamiltonian Φ Λ ω (hamiltonian Φ Λ ω) := by
   obtain ⟨h, hh⟩ := hΦ.exists_hasHamiltonian Λ ω
@@ -155,9 +130,7 @@ theorem measurable_extend (Λ : Finset S) (ω : Config S E) :
     rw [h]; exact measurable_const
 
 /-- **Georgii, Notation (1.26)**: the finite-volume a priori measure
-`λ_Λ(·|ω) = λ^Λ × δ_{ω_{S∖Λ}}` — the coordinates inside `Λ` are resampled independently from the
-single-spin measure `λ`, while the boundary condition `ω` is kept outside `Λ`.  No normalization
-of `λ` is assumed. -/
+`λ_Λ(·|ω) = λ^Λ × δ_{ω_{S∖Λ}}`.  No normalization of `λ` is assumed. -/
 def freeMeasure (lam : Measure E) (Λ : Finset S) (ω : Config S E) : Measure (Config S E) :=
   Measure.map (fun ζ : Λ → E ↦ extend Λ ζ ω) (Measure.pi fun _ : Λ ↦ lam)
 
@@ -172,10 +145,9 @@ def IsAdmissible (Φ : Finset S → Config S E → ℝ) (lam : Measure E) (β : 
   ∀ (Λ : Finset S) (ω : Config S E),
     partitionFunction Φ lam β Λ ω ≠ 0 ∧ partitionFunction Φ lam β Λ ω ≠ ⊤
 
-/-- **The finite-volume Gibbs distribution**, Georgii Definition (2.9):
-`γ_Λ^Φ(A | ω) = Z_Λ^Φ(ω)⁻¹ ∫ 1_A(σ) e^{−β H_Λ^Φ(σ)} λ_Λ(dσ|ω)`.  Both the measure integrated
-against and the normalizing partition function are built from the same, un-normalized, a priori
-measure `λ`, so the total mass `λ(E)^{|Λ|}` of `λ_Λ(·|ω)` cancels. -/
+/-- **Georgii, Definition (2.9)**: the finite-volume Gibbs distribution
+`γ_Λ^Φ(A | ω) = Z_Λ^Φ(ω)⁻¹ ∫ 1_A(σ) e^{−β H_Λ^Φ(σ)} λ_Λ(dσ|ω)`.  Numerator and normalization use
+the same un-normalized `λ`, so the total mass `λ(E)^{|Λ|}` cancels. -/
 def gibbsKernel (Φ : Finset S → Config S E → ℝ) (lam : Measure E) (β : ℝ) (Λ : Finset S)
     (ω : Config S E) : Measure (Config S E) :=
   (partitionFunction Φ lam β Λ ω)⁻¹ • (freeMeasure lam Λ ω).withDensity (boltzmannFactor Φ β Λ)
@@ -207,14 +179,8 @@ def IsUniformlyDominated (γ : Finset S → Config S E → Measure (Config S E))
   ∀ A : Set (Config S E), IsLocalEvent A →
     ∃ Λ : Finset S, ∀ ζ η : Config S E, c * γ Λ η A ≤ γ Λ ζ A
 
-/-! ## Events inside a finite volume
+/-! ## Events inside a finite volume -/
 
-The dual of `Comparator.Defs`'s `mem_iff_mem_of_outside`: an event measurable *inside* `Λ` depends
-only on the coordinates in `Λ`.  This is what makes the hypothesis of Proposition (8.38)
-verifiable: for a local event `A ∈ 𝓕_Δ` the finite-volume distribution `γ_Δ(A|ω)` of the
-independent specification does not depend on the boundary condition `ω` at all. -/
-
-/-- The restriction of a configuration to `Δ`. -/
 def restrictInside (Δ : Finset S) (ω : Config S E) : {i : S // i ∈ Δ} → E := fun i ↦ ω i.1
 
 theorem measurable_restrictInside (Δ : Finset S) :
@@ -230,7 +196,7 @@ theorem inside_eq_comap (Δ : Finset S) :
       (restrictInside Δ) := Measurable.of_comap_le le_rfl
   exact ((measurable_pi_apply (⟨i, by simpa using hi⟩ : {i : S // i ∈ Δ})).comp h1).comap_le
 
-/-- **Events measurable inside `Δ` do not depend on the coordinates outside `Δ`.** -/
+/-- Events measurable inside `Δ` do not depend on the coordinates outside `Δ`. -/
 theorem mem_iff_mem_of_inside {Δ : Finset S} {B : Set (Config S E)}
     (hB : MeasurableSet[inside Δ] B) {ω ω' : Config S E} (h : ∀ i ∈ Δ, ω i = ω' i) :
     ω ∈ B ↔ ω' ∈ B := by
@@ -239,8 +205,8 @@ theorem mem_iff_mem_of_inside {Δ : Finset S} {B : Set (Config S E)}
   have hr : restrictInside Δ ω = restrictInside Δ ω' := funext fun i ↦ h i.1 i.2
   simp only [Set.mem_preimage, hr]
 
-/-- The finite-volume a priori measure of a `Δ`-local event does not depend on the boundary
-condition, as soon as `Δ ⊆ Λ`. -/
+/-- For `Δ ⊆ Λ`, the measure of a `Δ`-local event under `freeMeasure lam Λ ω` does not depend on
+the boundary condition `ω`. -/
 theorem freeMeasure_apply_congr (lam : Measure E) {Δ Λ : Finset S} (hΔΛ : Δ ⊆ Λ)
     {A : Set (Config S E)} (hA : MeasurableSet[inside Δ] A) (ω ω' : Config S E) :
     freeMeasure lam Λ ω A = freeMeasure lam Λ ω' A := by
@@ -262,18 +228,15 @@ variable [Preorder S]
 `> i`.  (For `A = ∅` this is false, matching `min ∅ = ∞`.) -/
 def Spans (A : Finset S) (i : S) : Prop := (∃ a ∈ A, a ≤ i) ∧ ∃ b ∈ A, i < b
 
-/-- **The sum appearing in Georgii (8.40)**: `∑_{A ∈ 𝓢, min A ≤ i < max A} δ(Φ_A)`. -/
+/-- **Georgii (8.40)**: the sum `∑_{A ∈ 𝓢, min A ≤ i < max A} δ(Φ_A)`. -/
 def oscSpan (Φ : Finset S → Config S E → ℝ) (i : S) : ℝ≥0∞ :=
   ∑' A : Finset S, {B : Finset S | Spans B i}.indicator (fun B ↦ osc (Φ B)) A
 
 variable (S) in
-/-- **Georgii's one-dimensional input** (the paragraph opening Section 8.3): `S` is exhausted by
-intervals with at most `m` boundary sites.  Formally: every finite `Λ₀` is contained in a volume
-`Λ` admitting a set `D` of at most `m` sites such that every interaction support meeting `Λ` and
-leaving `Λ` spans a site of `D`.
-
-Georgii's two cases are `S = ℤ` with `Λ = ]−n, n]` and `D = {−n, n}` (`m = 2`) and `S = ℕ` with
-`Λ = [0, n]` and `D = {n}` (`m = 1`). -/
+/-- **Georgii, Section 8.3**: `S` is exhausted by intervals with at most `m` boundary sites, i.e.
+every finite `Λ₀` sits inside a volume `Λ` admitting `D` with `|D| ≤ m` such that every support
+meeting `Λ` and leaving `Λ` spans a site of `D`.  Georgii's cases are `S = ℤ` with `Λ = ]−n, n]`,
+`D = {−n, n}` (`m = 2`) and `S = ℕ` with `Λ = [0, n]`, `D = {n}` (`m = 1`). -/
 def HasBoundedBoundary (m : ℕ) : Prop :=
   ∀ Λ₀ : Finset S, ∃ Λ : Finset S, Λ₀ ⊆ Λ ∧ ∃ D : Finset S, D.card ≤ m ∧
     ∀ A : Finset S, ¬ Disjoint A Λ → ¬ A ⊆ Λ → ∃ k ∈ D, Spans A k
@@ -282,19 +245,14 @@ end Order
 
 /-! ## Georgii (8.41): translates on `ℤ` -/
 
-/-- The translate `A + n` of a finite set of integers, used in Comments (8.41). -/
+/-- **Georgii, Comments (8.41)**: the translate `A + n` of a finite set of integers. -/
 def shiftFinset (n : ℤ) (A : Finset ℤ) : Finset ℤ := A.map (Equiv.addRight n).toEmbedding
 
 @[simp] theorem mem_shiftFinset {n x : ℤ} {A : Finset ℤ} : x ∈ shiftFinset n A ↔ x - n ∈ A := by
   simp only [shiftFinset, Finset.mem_map, Equiv.coe_toEmbedding, Equiv.coe_addRight]
   exact ⟨by rintro ⟨a, ha, rfl⟩; simpa using ha, fun h ↦ ⟨x - n, h, by ring⟩⟩
 
-/-! ## Non-vacuity: the zero potential
-
-The zero potential is a potential in the sense of Definition (2.2), is absolutely summable, is
-`λ`-admissible over any probability a priori measure, satisfies (8.40) with the value `0`, and its
-Gibbsian specification is the independent one — so none of the hypotheses assembled above is
-empty. -/
+/-! ## Non-vacuity: the zero potential -/
 
 section Zero
 
@@ -343,7 +301,7 @@ theorem isAdmissible_zero (lam : Measure E) [IsProbabilityMeasure lam] (β : ℝ
   rw [partitionFunction_zero]
   exact ⟨one_ne_zero, ENNReal.one_ne_top⟩
 
-/-- **The Gibbsian specification of the zero potential is the independent one.** -/
+/-- The Gibbsian specification of the zero potential is the independent one. -/
 theorem gibbsKernel_zero (lam : Measure E) [IsProbabilityMeasure lam] (β : ℝ) (Λ : Finset S)
     (ω : Config S E) :
     gibbsKernel (fun (_ : Finset S) (_ : Config S E) ↦ (0 : ℝ)) lam β Λ ω
@@ -351,9 +309,8 @@ theorem gibbsKernel_zero (lam : Measure E) [IsProbabilityMeasure lam] (β : ℝ)
   rw [gibbsKernel, partitionFunction_zero, boltzmannFactor_zero, withDensity_one, inv_one,
     one_smul]
 
-/-- **Non-vacuity of the hypothesis of Proposition (8.38).** The Gibbsian specification of the
-zero potential — the independent specification — is uniformly dominated with the constant `c = 1`:
-for a `Δ`-local event `A` the volume `Δ` itself works, since `γ_Δ(A|ω)` does not depend on `ω`. -/
+/-- Non-vacuity of the hypothesis of Proposition (8.38): the independent specification is
+uniformly dominated with `c = 1`. -/
 theorem isUniformlyDominated_gibbsKernel_zero (lam : Measure E) [IsProbabilityMeasure lam]
     (β : ℝ) :
     IsUniformlyDominated (gibbsKernel (fun (_ : Finset S) (_ : Config S E) ↦ (0 : ℝ)) lam β) 1 := by

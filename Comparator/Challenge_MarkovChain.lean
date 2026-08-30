@@ -1,28 +1,15 @@
 import Comparator.Defs_MarkovChain
 
 /-!
-# Comparator challenge: Markov chains as Gibbs measures on `ℤ` (Georgii, Theorem (3.5))
-
-This file is the *challenge* file for [comparator](https://github.com/leanprover/comparator).
-Its only import is `Comparator.Defs_MarkovChain`, whose transitive imports are `Comparator.Defs`
-and `Mathlib` and nothing else; in particular nothing here depends on the `GibbsMeasure` library
-whose theorems are being certified.  The shared Mathlib-only vocabulary (`Config`,
-`IsSpecification`, `IsGibbs`, …) is defined in `Comparator/Defs.lean`, and `determiningFun` and
-`cylinder` in `Comparator/Defs_MarkovChain.lean`; both module docstrings contain the dictionary.
+# Markov chains as Gibbs measures on `ℤ` (Georgii, Theorem (3.5))
 
 ## Main statements
 
-* `georgii_3_5_markovChain`: for a strictly positive stochastic matrix `P` on a finite state
-  space `E`, **every** specification on `ℤ` whose singleton kernels are
-  `γ_{i}(σ_i = y | ω) = P(ω_{i-1}, y) P(y, ω_{i+1}) / P²(ω_{i-1}, ω_{i+1})`
-  has exactly one Gibbs measure, and that Gibbs measure is the stationary Markov chain: its
-  cylinder probabilities are
-  `μ(σ_a = x_a, …, σ_{a+n} = x_{a+n}) = α(x_a) P(x_a, x_{a+1}) ⋯ P(x_{a+n-1}, x_{a+n})`
-  for the (strictly positive) stationary distribution `α` of `P`.
+* `georgii_3_5_markovChain`: Georgii (3.5), a specification on `ℤ` whose singleton kernels come
+  from a strictly positive stochastic matrix `P` via (3.11) has exactly one Gibbs measure, the
+  stationary Markov chain with transition matrix `P`.
 * `georgii_3_5_uniqueness`: the uniqueness half, packaged as `∃!`.
-* `exists_isSpecification_determiningFun`: **non-vacuity**, a specification with the prescribed
-  singleton kernels really exists, so the two theorems above are not statements about an empty
-  class of specifications.
+* `exists_isSpecification_determiningFun`: non-vacuity — such a specification exists.
 -/
 
 set_option autoImplicit false
@@ -41,15 +28,11 @@ open GibbsChallenge
 variable {E : Type*} [Fintype E] [DecidableEq E] [MeasurableSpace E]
   [MeasurableSingletonClass E] [Nonempty E]
 
-/-- **Georgii, Theorem (3.5).** Let `E` be a finite state space and `P` a stochastic matrix on `E`
-with all entries strictly positive. Let `γ` be *any* specification on the parameter set `ℤ` whose
-singleton kernels are given by Georgii's determining function (3.11),
-`γ_{i}(σ_i = y | ω) = P(ω_{i-1}, y) P(y, ω_{i+1}) / P²(ω_{i-1}, ω_{i+1})`.
-
-Then `γ` has **exactly one** Gibbs measure `μ`, and `μ` is the stationary Markov chain `μ_P` with
-transition matrix `P`: there is a strictly positive probability vector `α` on `E`, invariant under
-`P`, such that the cylinder probabilities of `μ` are
-
+/-- **Georgii, Theorem (3.5)**: for a strictly positive stochastic matrix `P` on a finite state
+space `E`, *any* specification `γ` on `ℤ` whose singleton kernels are given by the determining
+function (3.11), `γ_{i}(σ_i = y | ω) = P(ω_{i-1}, y) P(y, ω_{i+1}) / P²(ω_{i-1}, ω_{i+1})`, has
+exactly one Gibbs measure, namely the stationary Markov chain `μ_P`: for the strictly positive
+`P`-invariant probability vector `α`,
 `μ(σ_a = x_a, …, σ_{a+n} = x_{a+n}) = α(x_a) P(x_a, x_{a+1}) ⋯ P(x_{a+n-1}, x_{a+n})`. -/
 theorem georgii_3_5_markovChain (P : E → E → ℝ) (hpos : ∀ x y, 0 < P x y)
     (hstoch : ∀ x, ∑ y, P x y = 1)
@@ -80,11 +63,9 @@ theorem georgii_3_5_uniqueness (P : E → E → ℝ) (hpos : ∀ x y, 0 < P x y)
     ∃! μ : MeasureTheory.Measure (Config ℤ E), IsGibbs γ μ :=
   sorry
 
-/-- **Non-vacuity of Theorem (3.5).** For every strictly positive stochastic matrix `P` on a finite
-state space there really is a specification on `ℤ` whose singleton kernels are given by Georgii's
-determining function (3.11).  So the hypotheses of `georgii_3_5_markovChain` and
-`georgii_3_5_uniqueness` are satisfiable, and those theorems are not statements about an empty
-class of specifications. -/
+/-- **Non-vacuity of Theorem (3.5)**: for every strictly positive stochastic matrix `P` on a
+finite state space there really is a specification on `ℤ` whose singleton kernels are given by the
+determining function (3.11). -/
 theorem exists_isSpecification_determiningFun (P : E → E → ℝ) (hpos : ∀ x y, 0 < P x y)
     (hstoch : ∀ x, ∑ y, P x y = 1) :
     ∃ γ : Finset ℤ → Config ℤ E → MeasureTheory.Measure (Config ℤ E), IsSpecification γ ∧

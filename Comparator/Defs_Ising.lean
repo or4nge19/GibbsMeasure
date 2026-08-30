@@ -1,42 +1,25 @@
 import Mathlib
 
 /-!
-# The two-dimensional Ising model, spelled out from first principles
+# The two-dimensional Ising model, from first principles
 
-This module holds the Mathlib-only definition of the two-dimensional Ising ferromagnet shared by
-the `comparator` challenge files `Comparator/Challenge.lean` (Georgii, Theorem (6.9), the "in
-particular" half) and `Comparator/Challenge_LowTemperature.lean` (Theorem (6.9), first assertion).
+The Mathlib-only definition of the two-dimensional Ising ferromagnet used by the comparator
+challenge files for Georgii, Theorem (6.9).
 
-**It imports `Mathlib` and nothing else.** In particular it does *not* import the `GibbsMeasure`
-library whose theorems are being certified: every notion appearing in the final statements — the
-lattice `ℤ²`, the spin variables, the nearest-neighbour bonds, the Hamiltonian, the finite-volume
-Gibbs distribution, the DLR equation, the lattice shifts — is spelled out here from first
-principles using only `Mathlib`. A skeptical reader can check each definition by eye against the
-physics without having to trust anything else.
+## Main definitions
 
-## Dictionary
-
-* `Site := Fin 2 → ℤ` is the lattice `ℤ²`, and `Config := Site → Bool` is the configuration space
-  `{-1, +1} ^ (ℤ²)`, carrying the product σ-algebra (`Bool` is discrete).
-* `spin b = if b then 1 else -1` turns a `Bool` into a `±1` spin.
-* `e k` is the `k`-th unit vector of `ℤ²`. The nearest-neighbour bonds are the pairs
-  `{i, i + e k}` for `i : Site` and `k : Fin 2`, encoded as ordered pairs `(i, k)` so that every
-  bond has exactly one encoding.
-* `bonds Λ` is the (finite) set of bonds *meeting* the finite volume `Λ`, i.e. those `(i, k)` with
-  `i ∈ Λ ∨ i + e k ∈ Λ`; `mem_bonds` is the membership characterisation.
-* `hamiltonian Λ σ = -∑ bonds meeting Λ, spin (σ i) * spin (σ (i + e k))` is the ferromagnetic
-  Ising energy with coupling constant `1` and zero external field.
-* `gibbsMeasure β Λ ω` is the finite-volume Gibbs distribution in `Λ` at inverse temperature `β`
-  with boundary condition `ω`, written out as an explicit normalised finite sum of Dirac measures.
-* `IsGibbs β μ` is the Dobrushin–Lanford–Ruelle condition: `μ` is a probability measure and, for
-  every finite volume `Λ` and every measurable set `A`, `μ A = ∫⁻ ω, gibbsMeasure β Λ ω A ∂μ`.
-* `shift j` translates a configuration by the lattice vector `j`.
-* `IsLocal A` says that `A` depends on the spins in a finite volume only — Georgii's
-  algebra `𝓕⁰` of local events.
-* `nonUniqueness` is the set of `β ≥ 0` carrying two distinct Gibbs measures, and
-  `betaC = sInf nonUniqueness` is the critical inverse temperature.
+* `Site`, `Config`: the lattice `ℤ²` and the configuration space `{-1, +1} ^ (ℤ²)`, with `spin`
+  turning a `Bool` into a `±1` spin and `e k` the `k`-th unit vector.
+* `bonds Λ`: the nearest-neighbour bonds `{i, i + e k}` meeting the finite volume `Λ`, encoded as
+  ordered pairs `(i, k)` so that each bond has exactly one encoding.
+* `hamiltonian Λ`: the ferromagnetic Ising energy with coupling constant `1` and no external field.
+* `gibbsMeasure β Λ ω`: the finite-volume Gibbs distribution, an explicit normalised finite sum of
+  Dirac measures.
+* `IsGibbs β`: the Dobrushin–Lanford–Ruelle equation `μ A = ∫⁻ ω, gibbsMeasure β Λ ω A ∂μ`.
+* `shift j`, `IsLocal`: lattice translations and Georgii's algebra `𝓕⁰` of local events.
+* `nonUniqueness`, `betaC`: the set of `β ≥ 0` carrying two distinct Gibbs measures, and its
+  infimum, the critical inverse temperature.
 -/
-
 set_option autoImplicit false
 set_option relaxedAutoImplicit false
 
@@ -51,8 +34,8 @@ namespace IsingChallenge
 /-- The sites of the two-dimensional lattice `ℤ²`. -/
 abbrev Site : Type := Fin 2 → ℤ
 
-/-- A spin configuration: a `Bool`, i.e. a sign, attached to every site of `ℤ²`. Being a product
-of copies of the discrete space `Bool`, this carries the product σ-algebra. -/
+/-- A spin configuration: a sign attached to every site of `ℤ²`. Being a product of copies of the
+discrete space `Bool`, it carries the product σ-algebra. -/
 abbrev Config : Type := Site → Bool
 
 /-- The `±1`-valued spin attached to a `Bool`: `true ↦ +1`, `false ↦ -1`. -/
@@ -71,14 +54,12 @@ volume `Λ` itself together with all of its translates by `-e k`. -/
 def bondBase (Λ : Finset Site) : Finset Site :=
   Λ ∪ (Finset.univ : Finset (Fin 2)).biUnion fun k ↦ Λ.image fun i ↦ i - e k
 
-/-- The set of nearest-neighbour bonds `{i, i + e k}` of `ℤ²` that *meet* the finite volume `Λ`,
-encoded as ordered pairs `(i, k)`. It is finite because the left endpoint `i` of such a bond lies
-either in `Λ` or in one of the two translates `Λ - e k`. -/
+/-- The nearest-neighbour bonds `{i, i + e k}` meeting the finite volume `Λ`, encoded as ordered
+pairs `(i, k)`. -/
 def bonds (Λ : Finset Site) : Finset (Site × Fin 2) :=
   (bondBase Λ ×ˢ (Finset.univ : Finset (Fin 2))).filter fun p ↦ p.1 ∈ Λ ∨ p.1 + e p.2 ∈ Λ
 
-/-- The promised characterisation: `(i, k)` belongs to `bonds Λ` exactly when the nearest-neighbour
-bond `{i, i + e k}` meets `Λ`. -/
+/-- `(i, k) ∈ bonds Λ` exactly when the bond `{i, i + e k}` meets `Λ`. -/
 theorem mem_bonds (Λ : Finset Site) (i : Site) (k : Fin 2) :
     (i, k) ∈ bonds Λ ↔ (i ∈ Λ ∨ i + e k ∈ Λ) := by
   refine ⟨fun h ↦ (Finset.mem_filter.mp h).2, fun h ↦ Finset.mem_filter.mpr ⟨?_, h⟩⟩
@@ -90,9 +71,8 @@ theorem mem_bonds (Λ : Finset Site) (i : Site) (k : Fin 2) :
 
 /-! ### The Ising Hamiltonian -/
 
-/-- The energy of the configuration `σ` in the finite volume `Λ`: minus the sum of the products of
-neighbouring spins, over all nearest-neighbour bonds meeting `Λ`. This is the ferromagnetic Ising
-Hamiltonian with coupling constant `1` and zero external field. -/
+/-- The ferromagnetic Ising energy of `σ` in `Λ` with coupling constant `1` and zero external
+field: minus the sum of the products of neighbouring spins over the bonds meeting `Λ`. -/
 def hamiltonian (Λ : Finset Site) (σ : Config) : ℝ :=
   -∑ p ∈ bonds Λ, spin (σ p.1) * spin (σ (p.1 + e p.2))
 
@@ -116,8 +96,8 @@ def partitionFunction (β : ℝ) (Λ : Finset Site) (ω : Config) : ℝ :=
   ∑ ζ : Λ → Bool, weight β Λ ω ζ
 
 /-- The finite-volume Gibbs distribution in `Λ` at inverse temperature `β` with boundary condition
-`ω`, written out explicitly as a normalised finite sum of Dirac measures: the configuration that
-agrees with `ζ` on `Λ` and with `ω` off `Λ` gets probability `exp (-β * H) / Z`. -/
+`ω`: the configuration agreeing with `ζ` on `Λ` and with `ω` off `Λ` gets probability
+`exp (-β * H) / Z`. -/
 def gibbsMeasure (β : ℝ) (Λ : Finset Site) (ω : Config) : Measure Config :=
   (ENNReal.ofReal (partitionFunction β Λ ω))⁻¹ •
     ∑ ζ : Λ → Bool,
@@ -125,11 +105,9 @@ def gibbsMeasure (β : ℝ) (Λ : Finset Site) (ω : Config) : Measure Config :=
 
 /-! ### Gibbs measures (the DLR equation) -/
 
-/-- `μ` is a Gibbs measure for the two-dimensional Ising model at inverse temperature `β`: it is a
-probability measure on `Config` whose conditional distribution in every finite volume `Λ`, given
-the configuration outside `Λ`, is the finite-volume Gibbs distribution. This is the
-Dobrushin–Lanford–Ruelle equation, written in the elementary integrated form
-`μ A = ∫⁻ ω, gibbsMeasure β Λ ω A ∂μ` for measurable `A`. -/
+/-- `μ` is a Gibbs measure for the two-dimensional Ising model at inverse temperature `β`, i.e. a
+probability measure satisfying the Dobrushin–Lanford–Ruelle equation, written in the elementary
+integrated form `μ A = ∫⁻ ω, gibbsMeasure β Λ ω A ∂μ` for measurable `A`. -/
 def IsGibbs (β : ℝ) (μ : Measure Config) : Prop :=
   IsProbabilityMeasure μ ∧
     ∀ Λ : Finset Site, ∀ A : Set Config, MeasurableSet A →
@@ -138,13 +116,9 @@ def IsGibbs (β : ℝ) (μ : Measure Config) : Prop :=
 /-- Translation of a configuration by the lattice vector `j`. -/
 def shift (j : Site) (σ : Config) : Config := fun i ↦ σ (i - j)
 
-/-! ### Local events
+/-! ### Local events -/
 
-An event is *local* — Georgii's algebra `𝓕⁰` — when it depends on the spins in a finite volume
-only: there is a finite `Λ` such that any two configurations agreeing on `Λ` are either both in
-the event or both outside it. -/
-
-/-- `A` depends on the spins in a finite volume only. -/
+/-- `A` belongs to Georgii's algebra `𝓕⁰`: it depends on the spins in a finite volume only. -/
 def IsLocal (A : Set Config) : Prop :=
   ∃ Λ : Finset Site, ∀ σ τ : Config, (∀ i ∈ Λ, σ i = τ i) → (σ ∈ A ↔ τ ∈ A)
 
@@ -154,8 +128,7 @@ def IsLocal (A : Set Config) : Prop :=
 def nonUniqueness : Set ℝ :=
   {β : ℝ | 0 ≤ β ∧ ∃ μ ν : Measure Config, IsGibbs β μ ∧ IsGibbs β ν ∧ μ ≠ ν}
 
-/-- The **critical inverse temperature** of the two-dimensional Ising ferromagnet: the infimum of
-the inverse temperatures at which the Gibbs measure fails to be unique. -/
+/-- The critical inverse temperature of the two-dimensional Ising ferromagnet. -/
 def betaC : ℝ := sInf nonUniqueness
 
 end IsingChallenge

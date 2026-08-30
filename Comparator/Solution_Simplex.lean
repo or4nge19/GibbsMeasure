@@ -2,14 +2,11 @@ import Comparator.Defs_Simplex
 import GibbsMeasure
 
 /-!
-# Comparator solution: the simplex of Gibbs measures (Georgii, Theorems (7.7)(a) and (7.26))
+# The simplex of Gibbs measures
 
-This is the *solution* file matching `Comparator/Challenge_Simplex.lean`.  Both files take their
-definitions from the same modules `Comparator.Defs` and `Comparator.Defs_Simplex`, which import
-`Mathlib` and nothing else, so the statements of the theorems below are literally the challenge's
-statements; the only differences are the extra `import GibbsMeasure`, this module docstring, an
-auxiliary `namespace SimplexBridge` block translating between those from-scratch definitions and
-the `GibbsMeasure` library, and the proof terms.
+Solution file matching `Comparator/Challenge_Simplex.lean`; the statements below are the
+challenge's statements verbatim, and the extra `namespace SimplexBridge` translates the
+from-scratch definitions of `Comparator.Defs_Simplex` into the `GibbsMeasure` library.
 -/
 
 set_option autoImplicit false
@@ -27,11 +24,7 @@ section Simplex
 
 variable {S E : Type*} [MeasurableSpace E]
 
-/-! ### The bridge to the `GibbsMeasure` library
-
-Everything in this namespace is auxiliary: it translates between the from-scratch definitions of
-`Comparator.Defs` and `Comparator.Defs_Simplex` and the `GibbsMeasure` library.  None of the
-statements of the challenge is touched. -/
+/-! ### The bridge to the `GibbsMeasure` library -/
 
 namespace SimplexBridge
 
@@ -40,8 +33,8 @@ open scoped ENNReal
 
 variable {S E : Type*} [MeasurableSpace E]
 
-/-- The preamble's external σ-algebra `𝓣_Λ` is Mathlib's cylinder σ-algebra of `Λᶜ`, which is what
-the library uses as the source σ-algebra of the `Λ`-kernel of a specification. -/
+/-- The preamble's external σ-algebra `𝓣_Λ` is the cylinder σ-algebra of `Λᶜ`, the library's source
+σ-algebra for the `Λ`-kernel of a specification. -/
 lemma outside_eq_cylinderEvents (Λ : Finset S) :
     outside (S := S) (E := E) Λ
       = MeasureTheory.cylinderEvents (X := fun _ : S ↦ E) ((Λ : Set S)ᶜ) := rfl
@@ -95,7 +88,7 @@ def spec (hγ : IsSpecification γ) : Specification S E :=
 lemma coe_spec (hγ : IsSpecification γ) (Λ : Finset S) :
     ⇑(spec hγ Λ) = γ Λ := rfl
 
-/-- **The DLR equations of the preamble are the library's Gibbs property.** -/
+/-- The DLR equations of the preamble are the library's Gibbs property. -/
 lemma isGibbs_iff_mem_G (hγ : IsSpecification γ) (μ : Measure (Config S E)) :
     IsGibbs γ μ ↔ μ ∈ MeasureTheory.GibbsMeasure.G (spec hγ) := by
   constructor
@@ -119,7 +112,7 @@ lemma gibbsSet_eq_G (hγ : IsSpecification γ) :
     GibbsSet γ = MeasureTheory.GibbsMeasure.G (spec hγ) :=
   Set.ext fun μ ↦ isGibbs_iff_mem_G hγ μ
 
-/-- **The from-scratch notion of extremality is Mathlib's `Set.extremePoints`.** -/
+/-- The from-scratch notion of extremality is Mathlib's `Set.extremePoints`. -/
 lemma isExtremeIn_iff_mem_extremePoints (P : Set (Measure (Config S E)))
     (μ : Measure (Config S E)) :
     IsExtremeIn P μ ↔ μ ∈ P.extremePoints ℝ≥0∞ := by
@@ -140,9 +133,7 @@ lemma setOf_isExtremeIn_eq (hγ : IsSpecification γ) :
   exact Set.ext fun ν ↦ isExtremeIn_iff_mem_extremePoints _ ν
 
 /-- The representing weight of Georgii (7.26) is the library's `weightOf`: it is carried by the
-extreme Gibbs measures (`weightOf_extremePoints_compl`), it represents `μ` (`join_weightOf`), and
-any weight carried by the extreme Gibbs measures which represents `μ` is equal to it
-(`eq_weightOf_of_join_eq`). -/
+extreme Gibbs measures, it represents `μ`, and it is the only such weight. -/
 lemma weightOf_spec [Countable S] [StandardBorelSpace E] (hγ : IsSpecification γ)
     {μ : Measure (Config S E)} (hμ : IsGibbs γ μ)
     (hG : (MeasureTheory.GibbsMeasure.G (spec hγ)).Nonempty) :
@@ -167,7 +158,7 @@ lemma existsUnique_weight_library [Countable S] [StandardBorelSpace E] (hγ : Is
   MeasureTheory.GibbsMeasure.exists_unique_weight_extremePoints
     ⟨μ, (isGibbs_iff_mem_G hγ μ).1 hμ⟩ ((isGibbs_iff_mem_G hγ μ).1 hμ)
 
-/-- **The from-scratch notion of tail-triviality is the library's.** -/
+/-- The from-scratch notion of tail-triviality is the library's. -/
 lemma isTailTrivialOn_iff (μ : Measure (Config S E)) (hμ : IsProbabilityMeasure μ) :
     IsTailTrivialOn μ
       ↔ MeasureTheory.GibbsMeasure.IsTailTrivial
@@ -177,9 +168,8 @@ end SimplexBridge
 
 /-! ### Georgii, Theorem (7.7)(a) -/
 
-/-- **Georgii, Theorem (7.7)(a).** Let `γ` be a specification on `E^S` with `S` countable. A Gibbs
-measure `μ ∈ 𝓖(γ)` is an *extreme point* of `𝓖(γ)` if and only if it is *trivial on the tail
-σ-algebra*. -/
+/-- **Georgii (7.7)(a)**: a Gibbs measure is an extreme point of `𝓖(γ)` iff it is trivial on the
+tail σ-algebra. -/
 theorem isExtremeIn_iff_isTailTrivialOn [Countable S]
     {γ : Finset S → Config S E → Measure (Config S E)} (hγ : IsSpecification γ)
     {μ : Measure (Config S E)} (hμ : IsGibbs γ μ) :
@@ -193,9 +183,8 @@ theorem isExtremeIn_iff_isTailTrivialOn [Countable S]
 
 /-! ### Georgii, Theorem (7.26) -/
 
-/-- **Georgii, Theorem (7.26), first half.** Over a standard Borel state space and a countable
-parameter set, if a specification admits at least one Gibbs measure then it admits at least one
-*extreme* Gibbs measure. -/
+/-- **Georgii (7.26)**, first half: over a standard Borel state space, a specification admitting a
+Gibbs measure admits an extreme one. -/
 theorem exists_isExtremeIn [Countable S] [StandardBorelSpace E]
     {γ : Finset S → Config S E → Measure (Config S E)} (hγ : IsSpecification γ)
     (hne : (GibbsSet γ).Nonempty) :
@@ -207,10 +196,8 @@ theorem exists_isExtremeIn [Countable S] [StandardBorelSpace E]
   rw [SimplexBridge.isExtremeIn_iff_mem_extremePoints, SimplexBridge.gibbsSet_eq_G hγ]
   exact hν
 
-/-- **Georgii, Theorem (7.26), second half: the extremal decomposition.** Over a standard Borel
-state space and a countable parameter set, every Gibbs measure `μ` is the barycentre
-`μ = ∫ ν w(dν)` of a **unique** probability measure `w` on the space of measures which is
-concentrated on the set of extreme Gibbs measures. -/
+/-- **Georgii (7.26)**, second half, the extremal decomposition: every Gibbs measure `μ` is the
+barycentre `μ = ∫ ν w(dν)` of a unique probability weight `w` concentrated on `ex 𝓖(γ)`. -/
 theorem existsUnique_weight_isExtremeIn [Countable S] [StandardBorelSpace E]
     {γ : Finset S → Config S E → Measure (Config S E)} (hγ : IsSpecification γ)
     {μ : Measure (Config S E)} (hμ : IsGibbs γ μ) :
@@ -227,9 +214,8 @@ theorem existsUnique_weight_isExtremeIn [Countable S] [StandardBorelSpace E]
   exact ⟨MeasureTheory.GibbsMeasure.weightOf hG μ, ⟨inferInstance, hcarrier, hbary⟩,
     fun w hw ↦ huniq w hw.2.1 hw.2.2⟩
 
-/-- **Georgii, Theorem (7.26)**, both halves together: over a standard Borel state space and a
-countable parameter set, a nonempty set of Gibbs measures is a simplex whose extreme points are
-nonempty and represent every one of its elements uniquely. -/
+/-- **Georgii (7.26)**, both halves: a nonempty `𝓖(γ)` is a simplex, with nonempty extreme set
+representing each of its elements uniquely. -/
 theorem georgii_7_26 [Countable S] [StandardBorelSpace E]
     {γ : Finset S → Config S E → Measure (Config S E)} (hγ : IsSpecification γ)
     (hne : (GibbsSet γ).Nonempty) :
@@ -242,8 +228,7 @@ theorem georgii_7_26 [Countable S] [StandardBorelSpace E]
 
 /-! ### Georgii, Theorem (7.7)(d) and Corollary (7.29) -/
 
-/-- **Georgii, Theorem (7.7)(d).** Two *distinct* extreme Gibbs measures are mutually singular:
-they are carried by disjoint measurable sets. -/
+/-- **Georgii (7.7)(d)**: distinct extreme Gibbs measures are mutually singular. -/
 theorem mutuallySingular_of_isExtremeIn [Countable S] [StandardBorelSpace E]
     {γ : Finset S → Config S E → Measure (Config S E)} (hγ : IsSpecification γ)
     {μ ν : Measure (Config S E)} (hμ : IsExtremeIn (GibbsSet γ) μ)
@@ -258,9 +243,8 @@ theorem mutuallySingular_of_isExtremeIn [Countable S] [StandardBorelSpace E]
   exact MeasureTheory.GibbsMeasure.mutuallySingular_of_mem_extremePoints
     ⟨μ, extremePoints_subset hμ'⟩ hμ' hν' hne
 
-/-- **Georgii, Corollary (7.29).** For a specification with at least one Gibbs measure, the number
-of *extreme* Gibbs measures is at least `N` if and only if `𝓖(γ)` contains `N` measures which are
-linearly independent over `ℝ≥0∞`. -/
+/-- **Georgii (7.29)**: `𝓖(γ)` has at least `N` extreme points iff it contains `N` measures that
+are linearly independent over `ℝ≥0∞`. -/
 theorem le_encard_setOf_isExtremeIn_iff [Countable S] [StandardBorelSpace E]
     {γ : Finset S → Config S E → Measure (Config S E)} (hγ : IsSpecification γ)
     (hne : (GibbsSet γ).Nonempty) (N : ℕ) :
@@ -275,11 +259,8 @@ theorem le_encard_setOf_isExtremeIn_iff [Countable S] [StandardBorelSpace E]
 
 /-! ### Non-degeneracy -/
 
-/-- **Non-degeneracy: the hypotheses above are not vacuous.** For a single-spin distribution `ν` on
-a standard Borel state space and an arbitrary — in particular infinite — parameter set `S`, the
-independent specification `indepSpec ν` of the preamble has a nonempty set of Gibbs measures — the
-infinite product measure `ν^S` is one — and hence, by `georgii_7_26`, a nonempty set of *extreme*
-Gibbs measures, each Gibbs measure being the barycentre of a unique weight carried by them. -/
+/-- Non-degeneracy: the independent specification `indepSpec ν` has `ν^S` as a Gibbs measure, so
+the hypotheses of `georgii_7_26` are satisfiable even for infinite `S`. -/
 theorem gibbsSet_indepSpec_nonempty [Countable S] [StandardBorelSpace E]
     (ν : Measure E) [IsProbabilityMeasure ν] :
     (Measure.infinitePi fun _ : S ↦ ν) ∈ GibbsSet (indepSpec (S := S) ν) ∧

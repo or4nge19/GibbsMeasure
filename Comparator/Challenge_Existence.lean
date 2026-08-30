@@ -1,51 +1,25 @@
 import Comparator.Defs_Existence
 
 /-!
-# Comparator challenge: existence and compactness of Gibbs measures (Georgii (4.22), (4.23))
+# Existence and compactness of Gibbs measures
 
-Georgii, *Gibbs Measures and Phase Transitions*, 2nd ed., Theorem (4.22) and Theorem (4.23)(a),
-(b).
+Georgii, *Gibbs Measures and Phase Transitions*, 2nd ed., Theorems (4.22) and (4.23).
 
-This file is the *challenge* file for [comparator](https://github.com/leanprover/comparator).
-Its only import is `Comparator.Defs_Existence`, whose transitive imports are `Comparator.Defs` and
-`Mathlib` and nothing else; in particular nothing here depends on the `GibbsMeasure` library whose
-theorems are being certified.  The Mathlib-only vocabulary (`Config`, `outside`, `tail`,
-`IsSpecification`, `IsGibbs`, `localTopology`, …) is defined in `Comparator/Defs.lean` and the
-absolutely summable potentials, the Hamiltonian and the Gibbsian specification in
-`Comparator/Defs_Existence.lean`; both module docstrings contain the dictionary.
-
-## The a priori measure
-
-Georgii states Theorem (4.23) for an arbitrary **finite** a priori measure
-`λ ∈ 𝓜(E, ℰ)` — a finite, non-zero, but *not* normalized single-spin measure — and his (2.14)
-shows that this is exactly the right hypothesis: a potential `Φ ∈ ℬ` is `λ`-admissible if and only
-if `λ` is finite.  Accordingly the hypothesis below is `[IsFiniteMeasure ν] [NeZero ν]`, which is
-Georgii's `λ ∈ 𝓜(E, ℰ)` finite verbatim.
-
-Nothing renormalizes `λ` behind the scenes: `partitionFunction` (Georgii (2.7)) is the integral of
-the Boltzmann factor against the un-normalized `λ_Λ^ω`, whose total mass is `λ(E)^{|Λ|}` and not
-`1` (`freeMeasure_univ`), and `gibbsKernel` (Georgii (2.9)) divides by that partition function.
-The `λ(E)^{|Λ|}` occurring in the numerator and in the denominator therefore cancel, which is what
-makes the un-normalized statement equivalent to the normalized one; that cancellation is recorded
-in `Comparator/Defs_Existence.lean` as `gibbsKernel_apply`, `gibbsKernel_smul` and
-`gibbsKernel_probNormalize`, and it is Georgii's Remark (1.28)(3).
+The a priori measure is an arbitrary finite non-zero `λ ∈ 𝓜(E, ℰ)`, hypothesised as
+`[IsFiniteMeasure ν] [NeZero ν]`; by Georgii (2.14) finiteness is exactly `λ`-admissibility of a
+potential `Φ ∈ ℬ`, and nothing renormalizes `λ` behind the scenes.
 
 ## Main statements
 
-* `isSpecification_gibbsKernel`: **Georgii (2.9)/(2.10)**, the family `γ^Φ` really is a
-  specification in the sense of the preamble (proper Markov kernels from `𝓣_Λ`, consistent).
-* `exists_isGibbs_gibbsKernel`: **Georgii Theorem (4.22)**, over a standard Borel state space and
-  for an absolutely summable potential, `𝓖(γ^Φ) ≠ ∅`.
-* `isCompact_setOf_isGibbs_gibbsKernel`: **Georgii Theorem (4.23)(a)**, `𝓖(γ^Φ)` is compact in the
-  topology of local convergence.
-* `exists_isCompact_superset_iUnion_setOf_isGibbs`: **Georgii Theorem (4.23)(b)**, for a family of
-  absolutely summable potentials that is bounded in the sense `sup_i ‖Φ_i‖_a < ∞` for every site
-  `a`, the union `⋃_i 𝒢(Φ_i)` is relatively compact in the topology of local convergence, i.e. it
-  is contained in a locally compact set.
-* `isGibbs_of_tendsto_potentialNormAt_of_tendstoLocally`: **Georgii Theorem (4.23)(c)**, the graph
-  of the Gibbs correspondence `Φ ↦ 𝒢(Φ)` is closed in `ℬ × 𝒫(Ω, 𝓕)`.
-* `exists_mem_isGibbs_of_tendsto_potentialNormAt`: **Georgii Theorem (4.23)(d)**, the Gibbs
-  correspondence is upper semicontinuous: `𝒢⁻¹(F)` is closed for every closed `F`.
+* `isSpecification_gibbsKernel`: Georgii (2.9)/(2.10), `γ^Φ` is a specification
+* `exists_isGibbs_gibbsKernel`: Georgii (4.22), `𝓖(γ^Φ) ≠ ∅`
+* `isCompact_setOf_isGibbs_gibbsKernel`: Georgii (4.23)(a), `𝓖(γ^Φ)` is compact
+* `exists_isCompact_superset_iUnion_setOf_isGibbs`: Georgii (4.23)(b), `⋃ᵢ 𝒢(Φᵢ)` is relatively
+  compact for a bounded family
+* `isGibbs_of_tendsto_potentialNormAt_of_tendstoLocally`: Georgii (4.23)(c), the graph of `Φ ↦ 𝒢(Φ)`
+  is closed
+* `exists_mem_isGibbs_of_tendsto_potentialNormAt`: Georgii (4.23)(d), `Φ ↦ 𝒢(Φ)` is upper
+  semicontinuous
 -/
 
 set_option autoImplicit false
@@ -63,20 +37,16 @@ variable {S E : Type*} [MeasurableSpace E]
 
 /-! ## The theorems -/
 
-/-- **Georgii (2.9)/(2.10).** The Gibbsian specification of an absolutely summable potential really
-is a specification in the sense of the preamble: a consistent family of proper probability kernels
-from the exterior σ-algebra `𝓣_Λ`.  The a priori measure is an arbitrary finite non-zero
-`λ ∈ 𝓜(E, ℰ)`, as in Georgii's Definition (2.9); by (2.14) finiteness is exactly `λ`-admissibility
-of `Φ ∈ ℬ`. -/
+/-- **Georgii (2.9)/(2.10)**: the Gibbsian specification of an absolutely summable potential is a
+specification, i.e. a consistent family of proper probability kernels from `𝓣_Λ`. -/
 theorem isSpecification_gibbsKernel [Countable S] (Φ : Finset S → Config S E → ℝ)
     (hΦ : IsAbsolutelySummablePotential Φ) (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν]
     (β : ℝ) :
     IsSpecification (gibbsKernel Φ ν β) :=
   sorry
 
-/-- **Georgii, Theorem (4.22).** Over a standard Borel state space, and for an absolutely summable
-potential and a finite non-zero a priori measure, the set of Gibbs measures of the Gibbsian
-specification is non-empty. -/
+/-- **Georgii (4.22)**: over a standard Borel state space, the set of Gibbs measures of the
+Gibbsian specification of an absolutely summable potential is non-empty. -/
 theorem exists_isGibbs_gibbsKernel [Countable S] [StandardBorelSpace E]
     (Φ : Finset S → Config S E → ℝ)
     (hΦ : IsAbsolutelySummablePotential Φ) (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν]
@@ -84,9 +54,8 @@ theorem exists_isGibbs_gibbsKernel [Countable S] [StandardBorelSpace E]
     ∃ μ : Measure (Config S E), IsGibbs (gibbsKernel Φ ν β) μ :=
   sorry
 
-/-- **Georgii, Theorem (4.23)(a).** For a standard Borel `(E, ℰ)` and a finite `λ ∈ 𝓜(E, ℰ)`, the
-set of Gibbs measures of an absolutely summable potential is compact in the topology of local
-convergence. -/
+/-- **Georgii (4.23)(a)**: the set of Gibbs measures of an absolutely summable potential is compact
+in the topology of local convergence. -/
 theorem isCompact_setOf_isGibbs_gibbsKernel [Countable S] [StandardBorelSpace E]
     (Φ : Finset S → Config S E → ℝ)
     (hΦ : IsAbsolutelySummablePotential Φ) (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν]
@@ -94,11 +63,9 @@ theorem isCompact_setOf_isGibbs_gibbsKernel [Countable S] [StandardBorelSpace E]
     @IsCompact (Measure (Config S E)) localTopology {μ | IsGibbs (gibbsKernel Φ ν β) μ} :=
   sorry
 
-/-- **Georgii, Theorem (4.23)(b).** If a family `(Φ_i)` of absolutely summable potentials is
-bounded in `ℬ`, i.e. `sup_i ‖Φ_i‖_a < ∞` for every site `a`, then the union of the corresponding
-sets of Gibbs measures — taken with respect to one and the same finite `λ ∈ 𝓜(E, ℰ)` — is
-relatively compact in the topology of local convergence: it is contained in a compact set of
-probability measures. -/
+/-- **Georgii (4.23)(b)**: if `sup_i ‖Φ_i‖_a < ∞` for every site `a`, then `⋃_i 𝒢(Φ_i)`, taken with
+respect to one and the same a priori measure, is relatively compact in the topology of local
+convergence. -/
 theorem exists_isCompact_superset_iUnion_setOf_isGibbs [Countable S] [StandardBorelSpace E]
     {ι : Type*} (Φs : ι → Finset S → Config S E → ℝ)
     (hΦs : ∀ i, IsAbsolutelySummablePotential (Φs i))
@@ -109,12 +76,9 @@ theorem exists_isCompact_superset_iUnion_setOf_isGibbs [Countable S] [StandardBo
       (⋃ i, {μ : Measure (Config S E) | IsGibbs (gibbsKernel (Φs i) ν β) μ}) ⊆ K :=
   sorry
 
-/-- **Georgii, Theorem (4.23)(c): the graph of the Gibbs correspondence is closed.** Let `(Φ_x)` be
-a net of absolutely summable potentials converging to `Φ` in Georgii's Fréchet space `ℬ`, i.e.
-`‖Φ_x − Φ‖_a → 0` for every site `a`, and let `μ_x ∈ 𝒢(Φ_x)` converge to a probability measure `μ`
-in the topology of local convergence.  Then `μ ∈ 𝒢(Φ)`.  (This is closedness of the graph
-`{(Φ, μ) : μ ∈ 𝒢(Φ)} ⊆ ℬ × 𝒫(Ω, 𝓕)` in net form; as Georgii remarks, it does not need the state
-space to be standard Borel.) -/
+/-- **Georgii (4.23)(c)**: the graph `{(Φ, μ) : μ ∈ 𝒢(Φ)}` is closed, in net form — if `Φ_x → Φ`
+in `ℬ` and `μ_x ∈ 𝒢(Φ_x)` converges locally to a probability measure `μ`, then `μ ∈ 𝒢(Φ)`.  As
+Georgii remarks, this does not need the state space to be standard Borel. -/
 theorem isGibbs_of_tendsto_potentialNormAt_of_tendstoLocally [Countable S] {ι : Type*}
     {l : Filter ι} [l.NeBot] (Φs : ι → Finset S → Config S E → ℝ)
     (Φ : Finset S → Config S E → ℝ) (hΦs : ∀ x, IsAbsolutelySummablePotential (Φs x))
@@ -128,10 +92,8 @@ theorem isGibbs_of_tendsto_potentialNormAt_of_tendstoLocally [Countable S] {ι :
     IsGibbs (gibbsKernel Φ ν β) μ := by
   sorry
 
-/-- **Georgii, Theorem (4.23)(d): the Gibbs correspondence is upper semicontinuous.** Let `F` be a
-set of measures which is closed in the topology of local convergence, and let `(Φ_x)` be a net of
-absolutely summable potentials converging to `Φ` in `ℬ`.  If every `𝒢(Φ_x)` meets `F`, then so
-does `𝒢(Φ)`.  This is Georgii's statement that `𝒢⁻¹(F) = {Φ : 𝒢(Φ) ∩ F ≠ ∅}` is closed. -/
+/-- **Georgii (4.23)(d)**: the Gibbs correspondence is upper semicontinuous, i.e.
+`𝒢⁻¹(F) = {Φ : 𝒢(Φ) ∩ F ≠ ∅}` is closed for every locally closed `F`. -/
 theorem exists_mem_isGibbs_of_tendsto_potentialNormAt [Countable S] [StandardBorelSpace E]
     {ι : Type*} {l : Filter ι} [l.NeBot] (Φs : ι → Finset S → Config S E → ℝ)
     (Φ : Finset S → Config S E → ℝ) (hΦs : ∀ x, IsAbsolutelySummablePotential (Φs x))

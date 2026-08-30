@@ -2,14 +2,11 @@ import Comparator.Defs_Sharpness
 import GibbsMeasure
 
 /-!
-# Comparator solution: Georgii, Example (2.27)
+# Georgii, Example (2.27): solution
 
-This is the *solution* file matching `Comparator/Challenge_Sharpness.lean`. Both files take their
-definitions from the same modules `Comparator.Defs`, `Comparator.Defs_Dobrushin` and
-`Comparator.Defs_Sharpness`, which import `Mathlib` and nothing else, so the statements of the two
-theorems below are literally the challenge's statements; the only differences are the extra
-`import GibbsMeasure`, this module docstring, an auxiliary `namespace Bridge` block translating
-between those from-scratch definitions and the `GibbsMeasure` library, and the proof terms.
+The solution file matching `Comparator/Challenge_Sharpness.lean`. It differs from the challenge
+only by `import GibbsMeasure`, the auxiliary `namespace Bridge` translating the from-scratch
+definitions into the `GibbsMeasure` library, and the proof terms.
 -/
 
 set_option autoImplicit false
@@ -27,9 +24,9 @@ open GibbsChallenge DobrushinChallenge
 
 /-! ## The bridge to the `GibbsMeasure` library
 
-Everything in this section is auxiliary: it identifies the notions of `Comparator.Defs`,
-`Comparator.Defs_Dobrushin` and `Comparator.Defs_Sharpness` with those of the `GibbsMeasure`
-library, whose theorems are then quoted. **None of the statements of the challenge is touched.** -/
+Auxiliary: identifies the notions of `Comparator.Defs`, `Comparator.Defs_Dobrushin` and
+`Comparator.Defs_Sharpness` with those of the `GibbsMeasure` library, whose theorems are then
+quoted. -/
 
 namespace Bridge
 
@@ -218,15 +215,11 @@ end Bridge
 
 /-! ## The theorems -/
 
-/-- **Georgii, Example (2.27)**, the sharpness of Dobrushin's condition (8.6): there is a
-specification `γ` on `Ω = {0,1}^ℕ` whose interdependence matrix vanishes identically, so that
-`c(γ) = 0 < 1`, which has *every* Bernoulli random field `μ^x`, `x ∈ [0,1]`, among its Gibbs
-measures — in particular `𝓖(γ)` is uncountable — and which is **not** quasilocal.
-
-This does not contradict Dobrushin's uniqueness theorem (8.7), and the last conjunct says exactly
-why: `γ` fails Dobrushin's condition (8.6), and it fails it *only* through the quasilocality
-conjunct. What the statement does show is that the quasilocality conjunct of (8.6) cannot be
-dropped: with it removed, (8.7) would assert that this `𝓖(γ)` is a singleton. -/
+/-- **Georgii, Example (2.27)**: there is a specification `γ` on `Ω = {0,1}^ℕ` whose
+interdependence matrix vanishes identically, which has every Bernoulli random field `μ^x`,
+`x ∈ [0,1]`, among its Gibbs measures — so `𝓖(γ)` is uncountable — and which is **not**
+quasilocal. It fails Dobrushin's condition (8.6) only through the quasilocality conjunct, which is
+therefore not droppable from Theorem (8.7). -/
 theorem exists_isSpecification_interdep_eq_zero_not_isQuasilocalSpec :
     ∃ γ : Finset ℕ → Config ℕ Bool → Measure (Config ℕ Bool),
       IsSpecification γ ∧ (∀ i j, interdep γ i j = 0) ∧
@@ -239,10 +232,8 @@ theorem exists_isSpecification_interdep_eq_zero_not_isQuasilocalSpec :
   exact fun hd ↦ Bridge.not_isQuasilocalSpec_gam hd.1
 
 /-- **Georgii, Example (2.27)**, stated against Theorem (8.7): the second conjunct of Dobrushin's
-condition (8.6), `c(γ) = sup_i ∑_j C_ij(γ) < 1`, does **not** by itself imply that `𝓖(γ)` has at
-most one element. So the quasilocality conjunct of (8.6) is not decorative: dropping it from the
-hypothesis of `DobrushinChallenge.subsingleton_isGibbs_of_isDobrushin` would make that theorem
-false. -/
+condition, `c(γ) = sup_i ∑_j C_ij(γ) < 1`, does not by itself imply that `𝓖(γ)` has at most one
+element. -/
 theorem not_subsingleton_isGibbs_of_iSup_tsum_interdep_lt_one :
     ∃ γ : Finset ℕ → Config ℕ Bool → Measure (Config ℕ Bool),
       IsSpecification γ ∧ ⨆ i, ∑' j, interdep γ i j < 1 ∧

@@ -1,11 +1,12 @@
 name: Comparator
 
-# Independently re-checks the milestone — Georgii Theorem (6.9), the 2D Ising phase transition —
-# with https://github.com/leanprover/comparator: `Comparator/Challenge.lean` states the three
-# headline theorems with `sorry`, `Comparator/Solution.lean` states them identically and proves
-# them from `GibbsMeasure/Model/PhaseTransition.lean`, and comparator confirms, via `lean4export`
-# and a kernel replay inside a `landrun` sandbox, that the statements match, that only
-# `propext` / `Quot.sound` / `Classical.choice` are used, and that the kernel accepts the proofs.
+# Independently re-checks every entry of the comparator suite with
+# https://github.com/leanprover/comparator. For each `Comparator/config*.json`, the challenge
+# states the theorems with `sorry`, the solution states them identically and proves them from the
+# library, and comparator confirms — via `lean4export` and a kernel replay inside a `landrun`
+# sandbox — that the exported statements match, that no axiom beyond `propext` / `Quot.sound` /
+# `Classical.choice` is used, and that the kernel accepts the proofs. `enable_nanoda` in each
+# config asks for a second, independent kernel replay, so `nanoda_bin` must be on `PATH`.
 #
 # Linux only: `landrun` is built on the kernel's Landlock LSM, which does not exist on macOS.
 # That is why this check lives in CI rather than in a developer's local loop.
@@ -15,6 +16,14 @@ on:
     branches: [mc3, main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      allow_unhardened:
+        description: >-
+          Run even if the systemd AF_UNIX restriction cannot be applied. Off by default: without
+          it the sandbox is weaker than comparator's README prescribes, so the result is not a
+          full adversarial check.
+        type: boolean
+        default: false
 
 jobs:
   comparator:
@@ -32,6 +41,8 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: leanprover/comparator
+          # Pinned: an unpinned judge is a mutable link in the trust chain. Bump deliberately.
+          ref: 2312244ac716564a61cc0bf4e107d9abf1757a61
           path: comparator
 
       # `lean4export` must match the toolchain in `lean-toolchain`; the tag below is exactly
@@ -40,15 +51,31 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: leanprover/lean4export
-          ref: v4.34.0-rc2
+          # Tag v4.34.0-rc2, resolved to its commit: a tag can be moved, a SHA cannot.
+          ref: cacf989bd75f608700820f6afc595f32e7a99a4d
           path: lean4export
 
       - name: Checkout landrun
         uses: actions/checkout@v5
         with:
           repository: Zouuup/landrun
-          ref: main
+          # Pinned; `main` is mutable and this is the sandbox the whole check rests on.
+          ref: 811cfff51ceaf3d9843708aa6d22e9b84ccac8b4
           path: landrun
+
+      - name: Checkout nanoda
+        uses: actions/checkout@v5
+        with:
+          repository: ammkrn/nanoda_lib
+          ref: 05055695879dfebb6628a67da88ceca6cd6b0421
+          path: nanoda_lib
+
+      # Every `Comparator/config*.json` sets `enable_nanoda: true`, which makes comparator replay
+      # the export through a second, independent kernel. Without `nanoda_bin` on `PATH` that
+      # request cannot be honoured, so this step is not optional given those configs.
+      - name: Build nanoda
+        working-directory: nanoda_lib
+        run: cargo build --release
 
       # landrun requires Go >= 1.24 (see its README).
       - name: Set up Go
@@ -87,16 +114,21 @@ jobs:
           export PATH="$HOME/.elan/bin:$PATH"
           lake build
 
-      - name: Run comparator on Comparator/config.json
+      # Every entry, not just the flagship: the suite advertises eleven configs, so all eleven
+      # must be judged. `fail-fast` is off in spirit — the loop records each failure and exits
+      # non-zero at the end, so one bad entry does not hide the status of the others.
+      - name: Run comparator on every entry
         working-directory: GibbsMeasure
         run: |
-          set -euo pipefail
-          # comparator looks up `landrun` and `lean4export` on PATH (or via COMPARATOR_LANDRUN /
-          # COMPARATOR_LEAN4EXPORT), and shells out to `lake`, `lean` and `git`.
-          export PATH="$GITHUB_WORKSPACE/landrun:$GITHUB_WORKSPACE/lean4export/.lake/build/bin:$HOME/.elan/bin:$PATH"
+          set -uo pipefail
+          # comparator looks up `landrun`, `lean4export` and `nanoda_bin` on PATH (or via
+          # COMPARATOR_LANDRUN / COMPARATOR_LEAN4EXPORT / COMPARATOR_NANODA), and shells out to
+          # `lake`, `lean` and `git`.
+          export PATH="$GITHUB_WORKSPACE/landrun:$GITHUB_WORKSPACE/lean4export/.lake/build/bin:$GITHUB_WORKSPACE/nanoda_lib/target/release:$HOME/.elan/bin:$PATH"
           command -v landrun
           command -v lean4export
           command -v lake
+          command -v nanoda_bin
 
           COMPARATOR_BIN="$GITHUB_WORKSPACE/comparator/.lake/build/bin/comparator"
           export COMPARATOR_BIN
@@ -110,14 +142,59 @@ jobs:
           # do not provide, so we probe for it and otherwise fall back to the plain form (which
           # is what comparator's own CI uses). ON A MACHINE WITH SYSTEMD, ADD THE systemd-run
           # HARDENING BACK -- the plain form performs the full check minus that one mitigation.
-          if command -v systemd-run >/dev/null 2>&1 \
-             && systemd-run --user --quiet --pipe --wait true >/dev/null 2>&1; then
-            echo "Running comparator under systemd-run (AF_UNIX restricted)"
-            systemd-run --property=RestrictAddressFamilies=~AF_UNIX --user --pipe --wait \
-              -E PATH="$PATH" -E COMPARATOR_BIN="$COMPARATOR_BIN" \
-              --working-directory "$(pwd)" -- \
-              bash -c 'lake env "$COMPARATOR_BIN" Comparator/config.json'
+          # comparator's README prescribes running the judge under
+          #   systemd-run --property=RestrictAddressFamilies=~AF_UNIX --user --pty \
+          #     -E PATH="$PATH" --working-directory $(pwd) -- \
+          #     bash -c 'lake env path/to/comparator Comparator/config.json'
+          # to block AF_UNIX and so guard against the landrun escape fixed in Linux 7.1.
+          # This used to warn and continue when that was unavailable, which made the check FAIL
+          # OPEN: a run could go green having applied strictly weaker sandboxing than the one
+          # documented. It is now fatal unless the operator explicitly opts out, and the opt-out
+          # is recorded in the log.
+          HARDEN=""
+          if systemd-run --user --quiet --pipe --wait true >/dev/null 2>&1; then
+            HARDEN="user"
+            echo "AF_UNIX hardening: systemd-run --user"
+          elif sudo -n systemd-run --uid="$(id -u)" --quiet --pipe --wait true >/dev/null 2>&1; then
+            # System instance, still running the judge as the unprivileged user: comparator's
+            # assumption 6 is "you are not running this under a privileged user".
+            HARDEN="system"
+            echo "AF_UNIX hardening: sudo systemd-run --uid=$(id -u)"
+          elif [ "${{ inputs.allow_unhardened }}" = "true" ]; then
+            echo "::warning::No systemd instance available; proceeding WITHOUT the AF_UNIX"\
+                 "restriction because allow_unhardened was set. This run is NOT a full"\
+                 "adversarial check."
           else
-            echo "::warning::systemd-run --user is unavailable on this runner; running comparator without the systemd AF_UNIX hardening"
-            lake env "$COMPARATOR_BIN" Comparator/config.json
+            echo "::error::Neither systemd-run --user nor sudo systemd-run is available, so the"\
+                 "AF_UNIX restriction prescribed by comparator's README cannot be applied."\
+                 "Refusing to report a green check under weaker sandboxing than documented."\
+                 "Re-run via workflow_dispatch with allow_unhardened=true to override, or use a"\
+                 "runner with systemd."
+            exit 1
           fi
+
+          failed=""
+          for cfg in Comparator/config*.json; do
+            echo "::group::comparator $cfg"
+            case "$HARDEN" in
+              user)
+                systemd-run --property=RestrictAddressFamilies=~AF_UNIX --user --pipe --wait \
+                  -E PATH="$PATH" -E COMPARATOR_BIN="$COMPARATOR_BIN" -E CFG="$cfg" \
+                  --working-directory "$(pwd)" -- \
+                  bash -c 'lake env "$COMPARATOR_BIN" "$CFG"' || failed="$failed $cfg" ;;
+              system)
+                sudo systemd-run --property=RestrictAddressFamilies=~AF_UNIX --uid="$(id -u)" \
+                  --pipe --wait -E PATH="$PATH" -E COMPARATOR_BIN="$COMPARATOR_BIN" -E CFG="$cfg" \
+                  --working-directory "$(pwd)" -- \
+                  bash -c 'lake env "$COMPARATOR_BIN" "$CFG"' || failed="$failed $cfg" ;;
+              *)
+                lake env "$COMPARATOR_BIN" "$cfg" || failed="$failed $cfg" ;;
+            esac
+            echo "::endgroup::"
+          done
+
+          if [ -n "$failed" ]; then
+            echo "::error::comparator rejected:$failed"
+            exit 1
+          fi
+          echo "comparator accepted all $(ls Comparator/config*.json | wc -l) entries"

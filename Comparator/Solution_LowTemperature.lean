@@ -4,13 +4,16 @@ import GibbsMeasure
 /-!
 # Comparator solution: Georgii Theorem (6.9), first assertion — the low-temperature limit
 
-This is the *solution* file matching `Comparator/Challenge_LowTemperature.lean`.  Both files take
-their definitions from the same modules `Comparator.Defs`, `Comparator.Defs_Ising` and
-`Comparator.Defs_LowTemperature`, which import `Mathlib` and nothing else, so the statements of the
-two theorems below are literally the challenge's statements; the only differences are the extra
-`import GibbsMeasure`, this module docstring, the auxiliary `Bridge` and `LowTempBridge` namespaces
-translating between those from-scratch definitions and the `GibbsMeasure` library, and the proof
-terms.
+The solution file matching `Comparator/Challenge_LowTemperature.lean`.  The `Bridge` namespace
+identifies the from-scratch Ising model of `Comparator.Defs_Ising` with the library's
+`isingSpecification`, and `LowTempBridge` identifies Georgii's phases `μ_±^β` with the library's
+`Peierls.plusPhase` and `Peierls.minusPhase`, transporting the Peierls estimate
+`μ_±^β(σ_a ≠ ω_a^±) ≤ r(β) → 0` to the challenge's notions of local event, local convergence and
+Georgii metric.
+
+## References
+
+* [Georgii, *Gibbs Measures and Phase Transitions*][georgii2011], Theorem (6.9)
 -/
 
 set_option autoImplicit false
@@ -25,11 +28,7 @@ noncomputable section
 
 namespace IsingChallenge
 
-/-! ### The bridge to the `GibbsMeasure` library
-
-Everything in these namespaces is auxiliary: it identifies the definitions of `Comparator.Defs`,
-`Comparator.Defs_Ising` and `Comparator.Defs_LowTemperature` with those of the `GibbsMeasure`
-library.  None of the statements of the challenge is touched. -/
+/-! ### The bridge to the `GibbsMeasure` library -/
 
 namespace Bridge
 
@@ -355,12 +354,7 @@ lemma spinFlip_eq :
 end Bridge
 
 
-/-! ### The bridge for the low-temperature limit
-
-This namespace identifies Georgii's phases `μ_+^β`, `μ_-^β` with the library's `Peierls.plusPhase`
-and `Peierls.minusPhase`, and transports the library's Peierls estimate
-`μ_±^β(σ_a ≠ ω_a^±) ≤ r(β) → 0` to the challenge's from-scratch notions of local event, local
-convergence and Georgii metric. -/
+/-! ### The bridge for the low-temperature limit -/
 
 namespace LowTempBridge
 
@@ -392,8 +386,7 @@ lemma muM_mem (b : ℝ) : muM b ∈ shiftInvariantGibbs b := by
   rw [← Bridge.shift_eq j]
   exact (minusPhase_measurePreserving_shift b j).map_eq
 
-/-- Georgii's estimate `|μ_+^β(A) − δ_+(A)| ≤ |Λ| r(β)` for a local event `A`, together with
-`r(β) → 0`, gives real-valued convergence `μ_+^β(A) → δ_+(A)`. -/
+/-- The Peierls estimate together with `r(β) → 0` gives `μ_+^β(A) → δ_+(A)` for a local `A`. -/
 lemma tendsto_toReal_muP {A : Set Config} (hA : IsLocalEvent A) :
     Tendsto (fun b : ℝ ↦ (muP b A).toReal) atTop
       (𝓝 (((Measure.dirac fun _ : Site ↦ true) : Measure Config) A).toReal) := by
@@ -521,16 +514,10 @@ end LowTempBridge
 
 /-! ### The theorems -/
 
-/-- **Georgii, Theorem (6.9), first assertion**, in the form produced by Georgii's proof: at low
-temperature the shift-invariant Gibbs measures of the two-dimensional Ising ferromagnet are
-attracted by the two ground states.
-
-Explicitly, there are families `β ↦ μ₊^β` and `β ↦ μ₋^β` of *shift-invariant Gibbs measures* for
-the two-dimensional Ising ferromagnet at inverse temperature `β` such that, as `β → ∞`,
-`μ₊^β → δ₊` and `μ₋^β → δ₋` in the topology of local convergence (Georgii (4.2)), equivalently
-`d(μ₊^β, δ₊) → 0` and `d(μ₋^β, δ₋) → 0` for Georgii's metric `d` of Remark (4.3)(3) — here for
-*every* metric obtained from a sequence of local events, in particular for every enumeration of
-the algebra `𝓕⁰`. -/
+/-- **Georgii, Theorem (6.9), first assertion**, in the form produced by Georgii's proof: there
+are families `β ↦ μ₊^β`, `β ↦ μ₋^β` of shift-invariant Gibbs measures of the two-dimensional Ising
+ferromagnet with `μ₊^β → δ₊` and `μ₋^β → δ₋` as `β → ∞`, both in the topology of local convergence
+(4.2) and in every metric `d` of Remark (4.3)(3) built from a sequence of local events. -/
 theorem ising_low_temperature_limit :
     ∃ μp μm : ℝ → Measure Config,
       (∀ β : ℝ, μp β ∈ shiftInvariantGibbs β) ∧
@@ -549,11 +536,8 @@ theorem ising_low_temperature_limit :
       LowTempBridge.tendsto_localDist_muM A hA⟩⟩
 
 /-- **Georgii, Theorem (6.9), first assertion**, in the displayed form
-`lim_{β → ∞} d(𝒢_Θ(βΦ), δ₊) = lim_{β → ∞} d(𝒢_Θ(βΦ), δ₋) = 0`,
-where `d` is Georgii's metric of Remark (4.3)(3) for the topology of local convergence — built
-here from an arbitrary sequence `A` of local events, so that the statement covers every such
-metric — and `𝒢_Θ(βΦ)` is the set of shift-invariant Gibbs measures of the two-dimensional Ising
-ferromagnet at inverse temperature `β`. -/
+`lim_{β → ∞} d(𝒢_Θ(βΦ), δ₊) = lim_{β → ∞} d(𝒢_Θ(βΦ), δ₋) = 0`, for the metric `d` of Remark
+(4.3)(3) built from an arbitrary sequence `A` of local events. -/
 theorem ising_low_temperature_localDistSet (A : ℕ → Set Config)
     (hA : ∀ n : ℕ, IsLocalEvent (A n)) :
     Tendsto (fun β : ℝ ↦ localDistSet A (shiftInvariantGibbs β)
@@ -565,17 +549,11 @@ theorem ising_low_temperature_localDistSet (A : ℕ → Set Config)
   exact ⟨squeeze_zero (fun _ ↦ localDistSet_nonneg A _ _) (fun b ↦ localDistSet_le A (hp b)) hdp,
     squeeze_zero (fun _ ↦ localDistSet_nonneg A _ _) (fun b ↦ localDistSet_le A (hm b)) hdm⟩
 
-/-- **Georgii, Theorem (6.9), first assertion, in quantitative form: the Peierls estimate.**
-There are shift-invariant Gibbs measures `μ₊^β, μ₋^β` of the two-dimensional Ising ferromagnet
-such that for every inverse temperature `β ≥ 8 log 2` and every event `A` depending only on the
-spins inside a finite volume `Λ`,
-`|μ₊^β(A) − δ₊(A)| ≤ |Λ| r(β)` and `|μ₋^β(A) − δ₋(A)| ≤ |Λ| r(β)`,
-where `r(β)` is the Peierls series `peierlsBound`, which tends to `0` as `β → ∞`.  This is the
-estimate from which the qualitative statement `ising_low_temperature_limit` is deduced.
-
-Note what is **not** claimed: `8 log 2` and the combinatorial constant inside `peierlsBound` are
-the constants this development actually proves; they are not sharp, and nothing whatever is
-asserted about the critical inverse temperature. -/
+/-- **Georgii, Theorem (6.9), first assertion** in quantitative form: shift-invariant Gibbs
+measures `μ₊^β, μ₋^β` with `|μ_±^β(A) − δ_±(A)| ≤ |Λ| r(β)` for `β ≥ 8 log 2` and every `Λ`-local
+`A`, where `r(β)` is `peierlsBound` and `r(β) → 0`.  `8 log 2` and the constant inside
+`peierlsBound` are what this development proves; they are not sharp, and nothing is asserted about
+the critical inverse temperature. -/
 theorem ising_low_temperature_peierls :
     Tendsto (fun β : ℝ ↦ (peierlsBound β).toReal) atTop (𝓝 0) ∧
       ∃ μp μm : ℝ → Measure Config,

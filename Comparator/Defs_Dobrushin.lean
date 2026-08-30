@@ -1,32 +1,21 @@
 import Comparator.Defs
 
 /-!
-# Definitions: Dobrushin's uniqueness theorem (Georgii, Section 8.1)
+# Dobrushin's uniqueness theorem: definitions
 
-This module extends the shared preamble `Comparator.Defs` with Georgii's Section 8.1: the uniform
-distance (8.1), Dobrushin's interdependence matrix (8.5), Dobrushin's condition of weak dependence
-(8.6), the single-site oscillation (8.14) and the series (8.19).  It holds the definitions used by
-`Comparator/Challenge_Dobrushin.lean` and `Comparator/Solution_Dobrushin.lean`.
+Georgii's Section 8.1: the uniform distance, Dobrushin's interdependence matrix and his condition
+of weak dependence, the single-site oscillation, and the series `D(γ)`.
 
-**It imports `Comparator.Defs` — which imports `Mathlib` and nothing else — and nothing further.**
-Every notion is spelled out from first principles, so a skeptical reader can check the statements
-by eye against the book.
+## Main definitions
 
-## Dictionary
-
-| Georgii | here |
-| --- | --- |
-| `‖α₁ − α₂‖ = sup_A \|α₁(A) − α₂(A)\|`, (8.1) | `unifDist` |
-| `γ_i^0(·\|ζ)`, the law of `σ_i` under `γ_{i}(·\|ζ)`, (8.4) | `proj` |
-| `C_ij(γ)`, Dobrushin's interdependence matrix, (8.5) | `interdep` |
-| `𝓛_Λ`, `𝓛`: bounded local observables, (2.20)(a) | `IsLocalFn` |
-| `𝓛̄`: quasilocal observables, (2.20)(b) | `IsQuasilocalFn` |
-| quasilocal specification, (2.23): `f ∈ 𝓛` implies `γ_Λ f ∈ 𝓛̄` | `IsQuasilocalSpec` |
-| Dobrushin's condition `c(γ) = sup_i ∑_j C_ij(γ) < 1`, (8.6) | `IsDobrushin` |
-| `δ_j(f)`, the single-site oscillation, (8.14) | `oscAt` |
-| `C(γ)^n b` | `interdepIter` |
-| `D(γ) b = ∑_{n ≥ 0} C(γ)^n b`, (8.19) | `interdepSeries` |
-| `∑_{j ∉ Δ} D_ij(γ)`, the tail of (8.19), used in (8.23) | `interdepTail` |
+* `unifDist`: Georgii (8.1), the uniform distance `‖α₁ − α₂‖` between probability measures.
+* `proj`: Georgii (8.4), the law of the single spin `σ_i` under `γ_{i}(·|ζ)`.
+* `interdep`: Georgii (8.5), Dobrushin's interdependence matrix `C_ij(γ)`.
+* `IsLocalFn`, `IsQuasilocalFn`: Georgii (2.20), local and quasilocal observables.
+* `IsQuasilocalSpec`: Georgii (2.23), quasilocality of a specification.
+* `IsDobrushin`: Georgii (8.6), Dobrushin's condition of weak dependence.
+* `oscAt`: Georgii (8.14), the single-site oscillation `δ_j(f)`.
+* `interdepSeries`, `interdepTail`: Georgii (8.19), the series `D(γ) b = ∑_{n ≥ 0} C(γ)^n b`.
 -/
 
 set_option autoImplicit false
@@ -47,10 +36,8 @@ variable {S E : Type*} [MeasurableSpace E]
 /-! ## Georgii (8.1): the uniform distance -/
 
 /-- **Georgii (8.1)**: the uniform distance `‖α₁ − α₂‖ = sup_A |α₁(A) − α₂(A)|` between two
-probability measures on `E`, the supremum ranging over all measurable `A ⊆ E`. The values
-`α_k A` of a probability measure are finite, so `(α_k A).toReal` loses no information, and the
-result is recorded in `ℝ≥0∞` purely so that the suprema and series below need no boundedness
-side conditions. -/
+probability measures on `E`. The value is recorded in `ℝ≥0∞` purely so that the suprema and series
+below need no boundedness side conditions. -/
 def unifDist (α₁ α₂ : Measure E) : ℝ≥0∞ :=
   ⨆ (A : Set E) (_ : MeasurableSet A), ENNReal.ofReal |(α₁ A).toReal - (α₂ A).toReal|
 
@@ -63,14 +50,12 @@ theorem unifDist_le {α₁ α₂ : Measure E} {c : ℝ≥0∞}
     (h : ∀ A : Set E, MeasurableSet A → ENNReal.ofReal |(α₁ A).toReal - (α₂ A).toReal| ≤ c) :
     unifDist α₁ α₂ ≤ c := iSup₂_le h
 
-/-- The uniform distance is symmetric. -/
 theorem unifDist_comm (α₁ α₂ : Measure E) : unifDist α₁ α₂ = unifDist α₂ α₁ := by
   simp only [unifDist, abs_sub_comm]
 
 @[simp] theorem unifDist_self (α : Measure E) : unifDist α α = 0 := by
   simp [unifDist]
 
-/-- Sanity check: the uniform distance of two probability measures is at most `1`. -/
 theorem unifDist_le_one (α₁ α₂ : Measure E) [IsProbabilityMeasure α₁] [IsProbabilityMeasure α₂] :
     unifDist α₁ α₂ ≤ 1 := by
   have key : ∀ (α : Measure E) (_ : IsProbabilityMeasure α) (A : Set E),
@@ -114,12 +99,10 @@ theorem interdep_le {γ : Finset S → Config S E → Measure (Config S E)} {i j
 def IsBddFn (f : Config S E → ℝ) : Prop := ∃ C : ℝ, ∀ ω, |f ω| ≤ C
 
 /-- **Georgii (2.20)(a)**: a *local* observable, i.e. an element of `𝓛 = ⋃_Λ 𝓛_Λ`: a bounded
-function of the configuration which is `𝓕_Λ`-measurable for some finite volume `Λ`, i.e. which
-depends on finitely many coordinates only. -/
+function that is `𝓕_Λ`-measurable for some finite volume `Λ`. -/
 def IsLocalFn (f : Config S E → ℝ) : Prop :=
   IsBddFn f ∧ ∃ Λ : Finset S, Measurable[inside Λ] f
 
-/-- Sanity check: local observables are measurable. -/
 theorem IsLocalFn.measurable {f : Config S E → ℝ} (hf : IsLocalFn f) : Measurable f := by
   obtain ⟨Λ, hΛ⟩ := hf.2
   exact hΛ.mono (inside_le Λ) le_rfl
@@ -132,9 +115,6 @@ def IsQuasilocalFn (f : Config S E → ℝ) : Prop :=
 theorem IsLocalFn.isQuasilocalFn {f : Config S E → ℝ} (hf : IsLocalFn f) : IsQuasilocalFn f :=
   ⟨hf.1, fun ε hε ↦ ⟨f, hf, fun ω ↦ by simp [le_of_lt hε]⟩⟩
 
-/-- Sanity check: quasilocal observables are measurable, being uniform limits of measurable
-functions; so the conclusion of `IsQuasilocalSpec` below is a statement about a genuine
-observable. -/
 theorem IsQuasilocalFn.measurable {f : Config S E → ℝ} (hf : IsQuasilocalFn f) : Measurable f := by
   have hex : ∀ n : ℕ, ∃ g : Config S E → ℝ, IsLocalFn g ∧ ∀ ω, |f ω - g ω| ≤ 1 / (n + 1) :=
     fun n ↦ hf.2 (1 / (n + 1)) (by positivity)
@@ -156,27 +136,18 @@ theorem IsQuasilocalFn.measurable {f : Config S E → ℝ} (hf : IsQuasilocalFn 
     _ ≤ 1 / (N + 1) := hmono
     _ < ε := hN
 
-/-- **Georgii, Definition (2.23)**: the specification `γ` is *quasilocal* if for each `Λ ∈ 𝓢`,
-`f ∈ 𝓛` implies `γ_Λ f ∈ 𝓛̄`, where `(γ_Λ f)(ω) = ∫ f dγ_Λ(·|ω)`.
+/-- **Georgii, Definition (2.23)**: the specification `γ` is *quasilocal* if `f ∈ 𝓛` implies
+`γ_Λ f ∈ 𝓛̄` for every `Λ ∈ 𝓢`, where `(γ_Λ f)(ω) = ∫ f dγ_Λ(·|ω)`.
 
-Note that the premise is that `f` be **local**, not merely quasilocal — this is Georgii's own
-formulation: "to verify that a given specification `γ` is quasilocal we only need to check that
-`γ_Λ f ∈ 𝓛̄` when `Λ ∈ 𝓢` and `f ∈ 𝓛`" (the remark immediately following (2.23)). The extension
-from local to quasilocal `f` is automatic, because `γ_Λ` is a contraction for the sup-norm and
-`𝓛̄` is the uniform closure of `𝓛`; but it is a genuine analytic step, and it is *not* assumed
-here. Since `IsLocalFn.isQuasilocalFn` says every local observable is quasilocal, requiring the
-conclusion only for local `f` is the **weaker** demand on `γ`. Hence `IsDobrushin` below is a
-weaker hypothesis, and the uniqueness theorem that consumes it is correspondingly stronger. -/
+The premise is that `f` be **local**, not merely quasilocal, following Georgii's remark after
+(2.23); this is the weaker demand on `γ`, so `IsDobrushin` below is a weaker hypothesis and the
+uniqueness theorem consuming it is correspondingly stronger. -/
 def IsQuasilocalSpec (γ : Finset S → Config S E → Measure (Config S E)) : Prop :=
   ∀ (Λ : Finset S) (f : Config S E → ℝ), IsLocalFn f →
     IsQuasilocalFn fun ω ↦ ∫ x, f x ∂(γ Λ ω)
 
-/-- Sanity check that `IsQuasilocalSpec` is indeed the weaker of the two readings of (2.23):
-demanding `γ_Λ f ∈ 𝓛̄` for every *quasilocal* `f` implies demanding it for every *local* `f`,
-because local observables are quasilocal. Consequently `IsDobrushin` below is implied by (and is
-not equivalent to) the condition one gets by substituting the quasilocal-premise reading, so any
-theorem taking `IsDobrushin` as a hypothesis is at least as strong as its counterpart under that
-reading. -/
+/-- `IsQuasilocalSpec` is the weaker of the two readings of (2.23): the quasilocal-premise reading
+implies it, since local observables are quasilocal. -/
 theorem isQuasilocalSpec_of_forall_isQuasilocalFn
     {γ : Finset S → Config S E → Measure (Config S E)}
     (h : ∀ (Λ : Finset S) (f : Config S E → ℝ), IsQuasilocalFn f →
@@ -186,11 +157,9 @@ theorem isQuasilocalSpec_of_forall_isQuasilocalFn
 
 /-! ## Georgii (8.6): Dobrushin's condition of weak dependence -/
 
-/-- **Georgii (8.6)**: Dobrushin's condition of weak dependence. It has *two* conjuncts: `γ` is
-quasilocal, and `c(γ) = sup_i ∑_j C_ij(γ) < 1`. The quasilocality conjunct carries real content:
-the row sums say nothing about the dependence of `γ_i^0(·|ω)` on the behaviour of `ω` at
-infinity, and Georgii's Example (2.27) has `C_ij(γ) = 0` for all `i, j` while `𝓖(γ)` is
-uncountable. -/
+/-- **Georgii (8.6)**: Dobrushin's condition of weak dependence: `γ` is quasilocal and
+`c(γ) = sup_i ∑_j C_ij(γ) < 1`. The quasilocality conjunct carries real content — Georgii's
+Example (2.27) has `C_ij(γ) = 0` for all `i, j` while `𝓖(γ)` is uncountable. -/
 def IsDobrushin (γ : Finset S → Config S E → Measure (Config S E)) : Prop :=
   IsQuasilocalSpec γ ∧ ⨆ i, ∑' j, interdep γ i j < 1
 
@@ -216,8 +185,8 @@ def interdepIter (γ : Finset S → Config S E → Measure (Config S E)) :
 def interdepSeries (γ : Finset S → Config S E → Measure (Config S E)) (b : S → ℝ≥0∞) (i : S) :
     ℝ≥0∞ := ∑' n : ℕ, interdepIter γ n b i
 
-/-- The tail `∑_{j ∉ Δ} D_ij(γ)` of Georgii's series (8.19): the weight `D(γ)` puts on the sites
-outside the finite volume `Δ`.  It is the error term of Georgii's Cauchy estimate (8.23). -/
+/-- The tail `∑_{j ∉ Δ} D_ij(γ)` of Georgii's series (8.19), the error term of the Cauchy
+estimate (8.23). -/
 def interdepTail [DecidableEq S] (γ : Finset S → Config S E → Measure (Config S E))
     (Δ : Finset S) (i : S) : ℝ≥0∞ :=
   interdepSeries γ (fun j ↦ if j ∈ Δ then 0 else 1) i
@@ -225,10 +194,8 @@ def interdepTail [DecidableEq S] (γ : Finset S → Config S E → Measure (Conf
 
 /-! ## The `inside` σ-algebra: locality
 
-The preamble records that events measurable *outside* `Λ` do not depend on the coordinates inside
-`Λ` (`mem_iff_mem_of_outside`, `measurable_outside_of_local`).  The mirror statements for `inside`
-are what is needed to recognise a function as *local* in the sense of Georgii (2.20)(a); they are
-proved here exactly as their `outside` counterparts.
+Mirrors of the preamble's `outside` lemmas, used to recognise a function as *local* in the sense
+of Georgii (2.20)(a).
 -/
 
 /-- The restriction of a configuration to `Λ`. -/
@@ -263,7 +230,7 @@ theorem eq_of_measurable_inside {Λ : Finset S} {f : Config S E → ℝ}
   have hmem : ω' ∈ f ⁻¹' {f ω} := (mem_iff_mem_of_inside hB h).1 (by simp)
   simpa using hmem.symm
 
-/-- Conversely, a measurable function which does not depend on the coordinates off `Λ` is
+/-- Conversely, a measurable function not depending on the coordinates off `Λ` is
 `𝓕_Λ`-measurable. -/
 theorem measurable_inside_of_local [Nonempty E] {α : Type*} [MeasurableSpace α] (Λ : Finset S)
     {f : Config S E → α} (hf : Measurable f)
@@ -288,8 +255,8 @@ namespace Indep
 
 variable (ν : Measure E) [IsProbabilityMeasure ν]
 
-/-- Under the independent specification the single-site distribution `γ_i^0(·|ζ)` is the `i`-th
-marginal of `ν^S`; in particular it does not depend on the boundary condition `ζ` at all. -/
+/-- Under the independent specification `γ_i^0(·|ζ)` is the `i`-th marginal of `ν^S`; in
+particular it does not depend on the boundary condition `ζ`. -/
 theorem proj_indepSpec (i : S) (ζ : Config S E) :
     proj (indepSpec (S := S) ν) i ζ
       = Measure.map (fun σ : Config S E ↦ σ i) (Measure.infinitePi fun _ : S ↦ ν) := by

@@ -2,22 +2,15 @@ import Comparator.Defs_Representation
 import GibbsMeasure
 
 /-!
-# Comparator solution: Georgii Theorem (2.30) — the Gibbs representation theorem
+# The Gibbs representation theorem
 
-This is the *solution* file matching `Comparator/Challenge_Representation.lean`.  Both files take
-their definitions from the same modules `Comparator.Defs` and `Comparator.Defs_Representation`,
-which import `Mathlib` and nothing else, so the statements of the five theorems below are literally
-the challenge's statements; the only differences are the extra `import GibbsMeasure`, this module
-docstring, an auxiliary `namespace Bridge` block translating between those from-scratch definitions
-and the `GibbsMeasure` library, and the proof terms.
+Solution file matching `Comparator/Challenge_Representation.lean`; the statements below are the
+challenge's statements verbatim, and the extra `namespace Bridge` translates the from-scratch
+definitions of `Comparator.Defs_Representation` into the `GibbsMeasure` library.
 
-The library results used are `Potential.exists_unique_isGasPotential_sigmaFinitePremodifierNorm_eq`
-and `Potential.eq_of_isGasPotential_of_sigmaFinitePremodifierNorm_eq` of
-`GibbsMeasure/Potential/GibbsRepresentation.lean`, `Potential.isPremodifier_boltzmannFactor`
-(Georgii (2.5)) of `GibbsMeasure/Potential/Summable.lean`, and
-`Specification.lintegral_sigmaFinitePremodifierNorm_eq_one`,
-`Specification.sigmaFiniteLambdaZ_congr_of_eqOn_compl` and
-`Specification.sigmaFinitePremodifierNorm_measurable` of `GibbsMeasure/Specification.lean`.
+Georgii (2.30) is `Potential.exists_unique_isGasPotential_sigmaFinitePremodifierNorm_eq` and
+`Potential.eq_of_isGasPotential_of_sigmaFinitePremodifierNorm_eq`, and (2.5) is
+`Potential.isPremodifier_boltzmannFactor`.
 -/
 
 set_option autoImplicit false
@@ -37,22 +30,9 @@ variable {S E : Type*} [Countable S] [DecidableEq S] [MeasurableSpace E]
 
 /-! ### Bridge to the `GibbsMeasure` library
 
-The block below is the only thing the solution file adds to the challenge file (besides
-`import GibbsMeasure`): it identifies the from-scratch notions of `Comparator.Defs_Representation`
-with their `GibbsMeasure` counterparts —
-
-* `inside A` is the library's `cylinderEvents ↑A`, and `paste Λ η` is its `juxt ↑Λ η`;
-* `lambdaInt ν Λ` is integration against the σ-finite reference kernel
-  `Specification.sigmaFiniteLambdaFun ν Λ`;
-* Georgii's convergence convention (2.1) for `H^Φ_Λ` is the library's summation filter
-  `SummationFilter.volume S`, so `IsPotential` is `Potential.IsPotential` together with
-  `Potential.IsSummable`, and `hamiltonian` is `Potential.hamiltonian`;
-* `boltzmann Φ` is `Φ.boltzmannFactor 1`, `partitionFunction ν Φ` is
-  `Specification.sigmaFiniteLambdaZ ν (Φ.boltzmannFactor 1)`, and `gibbsModification ν Φ` is
-  `Specification.sigmaFinitePremodifierNorm ν (Φ.boltzmannFactor 1)`.
-
-The statements of the five theorems are then byte-identical to the ones in
-`Challenge_Representation.lean`. -/
+Georgii's convergence convention (2.1) for `H^Φ_Λ` is the library's summation filter
+`SummationFilter.volume S`, so `IsPotential` is `Potential.IsPotential` together with
+`Potential.IsSummable`. -/
 
 namespace Bridge
 
@@ -87,7 +67,7 @@ theorem lambdaInt_eq (ν : Measure E) [SigmaFinite ν] {f : Config S E → ℝ�
   exact lintegral_congr fun ζ => by rw [paste_eq]
 
 omit [Countable S] in
-/-- The partial Hamiltonians `H^Φ_{Λ,Δ}` of Georgii (2.13) are the partial sums of the library's
+/-- The partial Hamiltonians of Georgii (2.13) are the partial sums of the library's
 `Potential.hamiltonianTerms` over the powerset of `Δ`. -/
 theorem sum_powerset_hamiltonianTerms (Φ : Potential S E) (Λ Δ : Finset S) (η : Config S E) :
     ∑ A ∈ Δ.powerset, _root_.Potential.hamiltonianTerms Φ Λ η A = partialHamiltonian Φ Λ Δ η := by
@@ -198,22 +178,15 @@ end Bridge
 
 /-! ### The statements -/
 
-/-- **Georgii, Theorem (2.30): the Gibbs representation theorem.**
+/-- **Georgii (2.30)**, the Gibbs representation theorem: a positive quasilocal pre-modification
+`ρ` with `λ_Λ ρ_Λ = 1` is, for each vacuum state `a ∈ E`, the `λ`-modification of a unique
+`λ`-admissible gas potential `Φ^a` with vacuum state `a`.
 
-Let `λ = ν` be an a priori measure on the single-spin space `(E, 𝓔)`, and let `ρ = (ρ_Λ)` be a
-positive quasilocal pre-modification with `λ_Λ ρ_Λ = 1` for every finite volume `Λ`.  Then for each
-`a ∈ E` there is a **unique** `λ`-admissible **gas potential** `Φ^a` with vacuum state `a` such
-that `ρ = ρ^{Φ^a}`.
-
-Uniqueness is asserted on Georgii's index set `𝒮 = {A : 0 < |A| < ∞}`: the value of a potential at
-`A = ∅` enters no Hamiltonian and is therefore not determined by `ρ`.
-
-Note what is **not** claimed.  `Φ^a` is a potential in the sense of Georgii (2.2) — its
-Hamiltonians exist as limits of the partial sums (2.13) — and nothing more.  It is **not** asserted
-to be absolutely summable (2.11), nor even uniformly convergent: Georgii obtains a uniformly
-convergent representative only under the extra hypothesis that `log ρ_Λ` be bounded, and the
-statement that every quasilocal specification comes from an absolutely summable potential is the
-separate Kozlov–Sullivan theorem, which Georgii does not prove in §2.3. -/
+Uniqueness is asserted on Georgii's index set `𝒮 = {A : 0 < |A| < ∞}`, the value at `A = ∅`
+entering no Hamiltonian.  `Φ^a` is claimed to be a potential in the sense of (2.2) and nothing
+more: not absolutely summable (2.11), not even uniformly convergent — Georgii gets a uniformly
+convergent representative only when `log ρ_Λ` is bounded, and absolute summability is the separate
+Kozlov–Sullivan theorem, not proved in §2.3. -/
 theorem existsUnique_gasPotential (ν : Measure E) [SigmaFinite ν]
     (ρ : Finset S → Config S E → ℝ≥0∞) (hρ : IsPreModification ρ) (hpos : IsPositive ρ)
     (hql : ∀ Λ : Finset S, IsQuasilocalFun fun η => (ρ Λ η).toReal)
@@ -251,9 +224,8 @@ theorem existsUnique_gasPotential (ν : Measure E) [SigmaFinite ν]
     exact congrFun (huniq Ψ inferInstance inferInstance hΨgas
       ((Bridge.isAdmissible_iff ν).1 hΨadm) hΨρ' A hA) η
 
-/-- **Georgii (2.30), the uniqueness half** (his step 5).  Two `λ`-admissible gas potentials with
-the same vacuum state `a` which define the same `λ`-modification agree on every non-empty
-interaction support. -/
+/-- **Georgii (2.30)**, the uniqueness half (his step 5): two `λ`-admissible gas potentials with the
+same vacuum state defining the same `λ`-modification agree on every non-empty support. -/
 theorem eq_of_isGasPotential (ν : Measure E) [SigmaFinite ν] {a : E} {Φ Ψ : Potential S E}
     (hΦ : IsPotential Φ) (hΨ : IsPotential Ψ)
     (hΦgas : IsGasPotential a Φ) (hΨgas : IsGasPotential a Ψ)
@@ -272,8 +244,8 @@ theorem eq_of_isGasPotential (ν : Measure E) [SigmaFinite ν] {a : E} {Φ Ψ : 
     ((Bridge.gibbsModification_eq (Φ := Φ) ν Λ ξ).symm.trans (heq Λ ξ)).trans
       (Bridge.gibbsModification_eq (Φ := Ψ) ν Λ ξ)
 
-/-- **Georgii, Proposition (2.5)**: the Boltzmann factors `h^Φ_Λ = exp(-H^Φ_Λ)` of a potential
-form a *positive* pre-modification. -/
+/-- **Georgii (2.5)**: the Boltzmann factors `h^Φ_Λ = exp(-H^Φ_Λ)` of a potential form a positive
+pre-modification. -/
 theorem isPreModification_boltzmann {Φ : Potential S E} (hΦ : IsPotential Φ) :
     IsPreModification (boltzmann Φ) ∧ IsPositive (boltzmann Φ) := by
   have := (Bridge.toLibrary hΦ).1
@@ -311,11 +283,8 @@ theorem lambdaInt_gibbsModification_eq_one (ν : Measure E) [SigmaFinite ν] {Φ
   exact Specification.lintegral_sigmaFinitePremodifierNorm_eq_one (S := S) (E := E) ν hb
     ((Bridge.isAdmissible_iff ν).1 hadm) Λ η
 
-/-- **Georgii (2.5) and (1.32) combined**, the converse direction of Theorem (2.30): the
-`λ`-modification `ρ^Φ = h^Φ / Z^Φ` of a `λ`-admissible potential is itself a positive
-pre-modification.  Together with `lambdaInt_gibbsModification_eq_one` this says that the families
-`ρ` fed to Theorem (2.30) are — quasilocality apart — exactly the `λ`-modifications of
-`λ`-admissible potentials, so its hypotheses are not vacuous. -/
+/-- **Georgii (2.5) and (1.32)**, the converse direction of (2.30): the `λ`-modification
+`ρ^Φ = h^Φ / Z^Φ` of a `λ`-admissible potential is itself a positive pre-modification. -/
 theorem isPreModification_gibbsModification (ν : Measure E) [SigmaFinite ν] {Φ : Potential S E}
     (hΦ : IsPotential Φ) (hadm : IsAdmissible ν Φ) :
     IsPreModification (gibbsModification ν Φ) ∧ IsPositive (gibbsModification ν Φ) := by

@@ -4,12 +4,13 @@ import GibbsMeasure
 /-!
 # Comparator solution: Georgii Example (4.16) — a specification with no Gibbs measure
 
-This is the *solution* file matching `Comparator/Challenge_NoGibbs.lean`.  Both files take their
-definitions from the same modules `Comparator.Defs` and `Comparator.Defs_NoGibbs`, which import
-`Mathlib` and nothing else, so the statements of the five theorems below are literally the
-challenge's statements; the only differences are the extra `import GibbsMeasure`, this module
-docstring, an auxiliary `namespace Bridge` block translating between those from-scratch
-definitions and the `GibbsMeasure` library, and the proof terms.
+The solution file matching `Comparator/Challenge_NoGibbs.lean`.  The `Bridge` namespace identifies
+the kernels `gamma` of `Comparator.Defs_NoGibbs` with `MeasureTheory.GibbsMeasure.Example416.kernel`
+and transports the library results across.
+
+## References
+
+* [Georgii, *Gibbs Measures and Phase Transitions*][georgii2011], Example (4.16)
 -/
 
 set_option autoImplicit false
@@ -27,13 +28,7 @@ namespace SingleParticle
 
 variable {S : Type*} [Countable S] [DecidableEq S]
 
-/-! ### Bridge to the `GibbsMeasure` library
-
-The block below is the only thing the solution file adds to the challenge file (besides
-`import GibbsMeasure`): it identifies the kernels `gamma` of `Comparator.Defs_NoGibbs` with
-`MeasureTheory.GibbsMeasure.Example416.kernel`, i.e. with the `Λ`-kernel of the library's
-`Example416.specification`, and transports the library results across. The statements of the five
-theorems are then byte-identical to the ones in `Challenge_NoGibbs.lean`. -/
+/-! ### Bridge to the `GibbsMeasure` library -/
 
 namespace Bridge
 
@@ -53,8 +48,7 @@ theorem vanishOff_eq (Λ : Finset S) : vanishOff Λ = Example416.vanishOff Λ :=
 omit [Countable S] in
 theorem spikeMeasure_eq (Λ : Finset S) : spikeMeasure Λ = Example416.spikeMeasure Λ := rfl
 
-/-- **The kernel identification.** The measure `gamma Λ ω` written down from first principles is
-literally the `Λ`-kernel of `Example416.specification`, evaluated at the boundary condition `ω`. -/
+/-- `gamma Λ ω` is the `Λ`-kernel of `Example416.specification` at the boundary condition `ω`. -/
 theorem gamma_eq (Λ : Finset S) (ω : Config S Bool) :
     gamma Λ ω = Example416.kernel Λ ω := by
   have hz : ∀ ω : Config S Bool, zeroOn (∅ : Finset S) ω = ω := by
@@ -82,7 +76,6 @@ theorem aemeasurable_specification (Λ : Finset S) (μ : Measure (Config S Bool)
     AEMeasurable (fun ω : Config S Bool ↦ Example416.specification (S := S) Λ ω) μ :=
   (((Example416.specification (S := S) Λ).measurable).mono cylinderEvents_le_pi le_rfl).aemeasurable
 
-/-- The DLR equation of the challenge and the library's `Measure.bind` equation agree. -/
 theorem bind_eq_iff (μ : Measure (Config S Bool)) (Λ : Finset S) :
     μ.bind (Example416.specification (S := S) Λ) = μ ↔
       ∀ A : Set (Config S Bool), MeasurableSet A → μ A = ∫⁻ ω, gamma Λ ω A ∂μ := by
@@ -168,9 +161,8 @@ theorem not_isGibbs_gamma [Infinite S] (μ : Measure (Config S Bool)) :
     ¬ IsGibbs (gamma (S := S)) μ := by
   exact Bridge.not_isGibbs_gamma μ
 
-/-- The explicit witness of non-quasilocality: for the local observable `1_{σ_a = 1}` the function
-`ω ↦ γ_{a}(σ_a = 1 | ω)` is the indicator of `{ω = 0 off {a}}`, whose oscillation off **every**
-finite volume `Δ` is at least `1`. -/
+/-- The explicit witness of non-quasilocality: `ω ↦ γ_{a}(σ_a = 1 | ω)` is the indicator of
+`{ω = 0 off {a}}`, whose oscillation off every finite volume is at least `1`. -/
 theorem one_le_oscOutside_gamma [Infinite S] (a : S) (Δ : Finset S) :
     1 ≤ oscOutside Δ fun ω => (gamma ({a} : Finset S) ω {σ : Config S Bool | σ a = true}).toReal := by
   obtain ⟨b, hb⟩ := Infinite.exists_notMem_finset (insert a Δ)
@@ -195,9 +187,9 @@ theorem one_le_oscOutside_gamma [Infinite S] (a : S) (Δ : Finset S) :
   rw [Set.indicator_of_mem hmem, Set.indicator_of_notMem hnot]
   simp
 
-/-- **Georgii (4.16) is not quasilocal.** Together with `isSpecification_gamma` and
-`not_isGibbs_gamma` this shows that quasilocality cannot be dropped from the existence theorems
-(4.17) and (4.22). -/
+/-- **Georgii, Example (4.16)** is not quasilocal; with `isSpecification_gamma` and
+`not_isGibbs_gamma` this shows quasilocality cannot be dropped from the existence theorems (4.17)
+and (4.22). -/
 theorem not_isQuasilocal_gamma [Infinite S] : ¬ IsQuasilocal (gamma (S := S)) := by
   intro hql
   obtain ⟨a⟩ := (inferInstance : Nonempty S)
@@ -233,8 +225,8 @@ theorem not_isQuasilocal_gamma [Infinite S] : ¬ IsQuasilocal (gamma (S := S)) :
   obtain ⟨Δ, hΔ⟩ := ((ENNReal.tendsto_nhds_zero.1 h') 2⁻¹ (by simp)).exists
   exact absurd (ENNReal.one_le_inv.1 ((one_le_oscOutside_gamma a Δ).trans hΔ)) (by norm_num)
 
-/-- **Infinitude of `S` is essential.** On a finite site set the same formulas do have a Gibbs
-measure, namely the uniform distribution on the one-particle configurations. -/
+/-- Infinitude of `S` is essential: on a finite site set the same formulas do have a Gibbs
+measure, the uniform distribution on the one-particle configurations. -/
 theorem isGibbs_spikeMeasure_of_finite {S : Type*} [Fintype S] [Nonempty S] [DecidableEq S] :
     IsGibbs (gamma (S := S)) (spikeMeasure (Finset.univ : Finset S)) := by
   exact Bridge.isGibbs_spikeMeasure_univ

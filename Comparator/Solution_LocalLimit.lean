@@ -4,12 +4,15 @@ import GibbsMeasure
 /-!
 # Comparator solution: local limits of extreme Gibbs measures (Georgii, Theorem (7.12))
 
-This is the *solution* file matching `Comparator/Challenge_LocalLimit.lean`.  Both files take
-their definitions from the same modules `Comparator.Defs` and `Comparator.Defs_LocalLimit`, which
-import `Mathlib` and nothing else, so the statements of the theorems below are literally the
-challenge's statements; the only differences are the extra `import GibbsMeasure`, this module
-docstring, an auxiliary `namespace LocalLimitBridge` block translating between those from-scratch
-definitions and the `GibbsMeasure` library, and the proof terms.
+The solution file matching `Comparator/Challenge_LocalLimit.lean`.  The `LocalLimitBridge`
+namespace identifies the from-scratch definitions of `Comparator.Defs_LocalLimit` with those of
+the `GibbsMeasure` library — a family satisfying the preamble's specification axioms with a
+library `Specification`, `IsExtremeGibbs` with `(G γ').extremePoints ℝ≥0∞`, and a λ-specification
+with a modification of the ISSSD — after which the theorems are quoted from the library.
+
+## References
+
+* [Georgii, *Gibbs Measures and Phase Transitions*][georgii2011], Theorem (7.12)
 -/
 
 set_option autoImplicit false
@@ -27,11 +30,7 @@ section LocalLimit
 
 variable {S E : Type*} [MeasurableSpace E]
 
-/-! ### The bridge to the `GibbsMeasure` library
-
-Everything in this namespace is auxiliary: it translates between the from-scratch definitions of
-`Comparator.Defs` and `Comparator.Defs_LocalLimit` and the `GibbsMeasure` library.  None of the
-statements of the challenge is touched. -/
+/-! ### The bridge to the `GibbsMeasure` library -/
 
 namespace LocalLimitBridge
 
@@ -40,8 +39,7 @@ open scoped ENNReal
 
 variable {S E : Type*} [MeasurableSpace E]
 
-/-- The preamble's `𝓕_Δ` is Mathlib's cylinder σ-algebra of `Δ`, which is what the library uses
-for the events of a finite volume. -/
+/-- The preamble's `𝓕_Δ` is Mathlib's cylinder σ-algebra of `Δ`. -/
 lemma inside_eq_cylinderEvents (Δ : Finset S) :
     inside (S := S) (E := E) Δ = cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S) := rfl
 
@@ -49,8 +47,7 @@ lemma inside_eq_cylinderEvents (Δ : Finset S) :
 lemma outside_eq_cylinderEvents (Λ : Finset S) :
     outside (S := S) (E := E) Λ = cylinderEvents (X := fun _ : S ↦ E) ((Λ : Set S)ᶜ) := rfl
 
-/-- **The preamble's independent kernel `λ_Λ` is the library's ISSSD kernel.**  Both resample the
-coordinates inside `Λ` independently from `ν` and keep the boundary condition outside `Λ`. -/
+/-- The preamble's independent kernel `λ_Λ` is the library's ISSSD kernel. -/
 lemma indepSpec_eq_isssd (ν : Measure E) [IsProbabilityMeasure ν] (Λ : Finset S)
     (ω : Config S E) : indepSpec ν Λ ω = Specification.isssd ν Λ ω := by
   have hcomp : (fun σ : Config S E ↦ glue Λ σ ω)
@@ -110,7 +107,7 @@ lemma coe_spec (hγ : IsSpecification γ) (Λ : Finset S) : ⇑(spec hγ Λ) = �
 lemma measurable_coe (γ' : Specification S E) (Λ : Finset S) : Measurable (⇑(γ' Λ)) :=
   (γ' Λ).measurable.mono cylinderEvents_le_pi le_rfl
 
-/-- **The DLR equations of the preamble are the library's Gibbs property**, for any library
+/-- The DLR equations of the preamble are the library's Gibbs property, for any library
 specification `γ'` whose kernels agree pointwise with `γ`. -/
 lemma isGibbs_iff_mem_G {γ' : Specification S E} (h : ∀ (Λ : Finset S) (ω : Config S E),
     γ Λ ω = γ' Λ ω) (μ : Measure (Config S E)) : IsGibbs γ μ ↔ μ ∈ G γ' := by
@@ -132,8 +129,7 @@ lemma isGibbs_iff_mem_G {γ' : Specification S E} (h : ∀ (Λ : Finset S) (ω :
     rw [Measure.bind_apply hA (measurable_coe γ' Λ).aemeasurable, ← hfun Λ] at h2
     exact h2.symm
 
-/-- **The from-scratch notion of an extreme Gibbs measure is the library's
-`(G γ').extremePoints ℝ≥0∞`.** -/
+/-- `IsExtremeGibbs` is the library's `(G γ').extremePoints ℝ≥0∞`. -/
 lemma isExtremeGibbs_iff_mem_extremePoints {γ' : Specification S E}
     (h : ∀ (Λ : Finset S) (ω : Config S E), γ Λ ω = γ' Λ ω) (μ : Measure (Config S E)) :
     IsExtremeGibbs γ μ ↔ μ ∈ (G γ').extremePoints ℝ≥0∞ := by
@@ -165,7 +161,7 @@ lemma modificationKer_eq_ker (hγ : IsLambdaSpec ν ρ γ) (h : ∀ Λ : Finset 
   Kernel.ext fun ω ↦ by
     rw [Specification.modificationKer_apply, ker_apply, ← eq_withDensity hγ]
 
-/-- **A λ-specification in the sense of Georgii (1.27) is a modification of the ISSSD.** -/
+/-- A λ-specification in the sense of Georgii (1.27) is a modification of the ISSSD. -/
 lemma isModifier (hγ : IsLambdaSpec ν ρ γ) : (Specification.isssd ν).IsModifier ρ where
   measurable Λ := hγ.measurable_density Λ
   isMarkovKernel Λ := by
@@ -188,10 +184,9 @@ lemma eq_modification (hγ : IsLambdaSpec ν ρ γ) (Λ : Finset S) (ω : Config
 
 end LocalLimitBridge
 
-/-- **Georgii, Theorem (7.12)(a).**  Let `γ` be a specification, let `μ` be an *extreme* Gibbs
-measure of `γ`, and let `(Λ n)` be an increasing cofinal sequence of finite volumes.  Then for
-every bounded measurable `f : Ω → ℝ` the finite-volume expectations `γ_{Λ n} f` converge to `μ(f)`,
-for `μ`-almost every boundary condition. -/
+/-- **Georgii, Theorem (7.12)(a)**: for an extreme Gibbs measure `μ` of `γ` and an increasing
+cofinal sequence of volumes, `γ_{Λ n} f → μ(f)` `μ`-almost surely, for every bounded measurable
+`f`. -/
 theorem georgii_7_12_a [Countable S]
     {γ : Finset S → Config S E → Measure (Config S E)} (hγ : IsSpecification γ)
     {μ : Measure (Config S E)} (hμ : IsExtremeGibbs γ μ)
@@ -209,9 +204,8 @@ theorem georgii_7_12_a [Countable S]
   exact MeasureTheory.GibbsMeasure.tendsto_ae_integral_kernel_of_mem_extremePoints_G hμ' hmono
     hcof hint
 
-/-- **Georgii, Theorem (7.12)(a)**, in the form used for the tail-triviality argument: for an
-extreme Gibbs measure `μ` and an increasing cofinal sequence of volumes, `γ_{Λ n}(A | ω) → μ(A)`
-for `μ`-almost every `ω`, for every measurable event `A`. -/
+/-- **Georgii, Theorem (7.12)(a)** in the form used for the tail-triviality argument:
+`γ_{Λ n}(A | ω) → μ(A)` for `μ`-almost every `ω`, for every measurable event `A`. -/
 theorem georgii_7_12_a_measure [Countable S]
     {γ : Finset S → Config S E → Measure (Config S E)} (hγ : IsSpecification γ)
     {μ : Measure (Config S E)} (hμ : IsExtremeGibbs γ μ)
@@ -242,14 +236,9 @@ theorem georgii_7_12_a_measure [Countable S]
   · exact (measure_lt_top (γ (Λ n) ω) A).ne
   · exact (measure_lt_top μ A).ne
 
-/-- **Georgii, Theorem (7.12)(c).**  Let `ν` be a single-spin distribution on an *arbitrary*
-measurable state space `E`, let `γ = ρ λ` be a λ-specification in the sense of Georgii (1.27), let
-`μ` be an *extreme* Gibbs measure of `γ`, and let `(Λ n)` be an increasing cofinal sequence of
-finite volumes.  Then for `μ`-almost every boundary condition `ω` — one single full-measure set of
-`ω`'s serving *all* finite volumes at once — and for every finite volume `Δ`, the finite-volume
-Gibbs distribution `γ_{Λ n}(· | ω)` converges to `μ` in total variation on the events of `Δ`:
-
-`sup {|γ_{Λ n}(A | ω) - μ(A)| : A ∈ 𝓕_Δ} → 0`. -/
+/-- **Georgii, Theorem (7.12)(c)**: for a λ-specification over an arbitrary measurable state space
+and `μ ∈ ex 𝓖(γ)`, `sup {|γ_{Λ n}(A | ω) − μ(A)| : A ∈ 𝓕_Δ} → 0` for every finite volume `Δ`, for
+`μ`-almost every `ω` — one single full-measure set of `ω`'s serving all volumes at once. -/
 theorem georgii_7_12_c [Countable S]
     {ν : Measure E} [IsProbabilityMeasure ν] {ρ : Finset S → Config S E → ℝ≥0∞}
     {γ : Finset S → Config S E → Measure (Config S E)} (hγ : IsLambdaSpec ν ρ γ)
@@ -281,9 +270,8 @@ theorem georgii_7_12_c [Countable S]
   simp only [tvOn, ← hEq]
   rfl
 
-/-- **Georgii, Theorem (7.12)(c)**, the conclusion Georgii draws from the total-variation estimate:
-for `μ`-almost every boundary condition `ω`, the finite-volume Gibbs distributions
-`γ_{Λ n}(· | ω)` converge to `μ` in the topology of local convergence of Georgii (4.2). -/
+/-- **Georgii, Theorem (7.12)(c)**, the conclusion drawn from the total-variation estimate:
+`γ_{Λ n}(· | ω) → μ` in the topology of local convergence of (4.2), for `μ`-almost every `ω`. -/
 theorem georgii_7_12_c_tendstoLocally [Countable S]
     {ν : Measure E} [IsProbabilityMeasure ν] {ρ : Finset S → Config S E → ℝ≥0∞}
     {γ : Finset S → Config S E → Measure (Config S E)} (hγ : IsLambdaSpec ν ρ γ)
@@ -311,9 +299,7 @@ theorem georgii_7_12_c_tendstoLocally [Countable S]
   · exact (measure_lt_top (γ (Λ n) ω) A).ne
   · exact (measure_lt_top μ A).ne
 
-/-- **Non-degeneracy: the hypotheses of `georgii_7_12_c` are not vacuous.**  For a single-spin
-distribution `ν` on an arbitrary measurable state space and an arbitrary — in particular infinite —
-countable parameter set `S`, the independent specification `indepSpec ν` of the preamble is a
+/-- Non-degeneracy of the hypotheses of `georgii_7_12_c`: the independent specification is a
 λ-specification with density `ρ ≡ 1`, and its Gibbs measure `ν^S` is extreme. -/
 theorem exists_isLambdaSpec_isExtremeGibbs [Countable S] (ν : Measure E)
     [IsProbabilityMeasure ν] :

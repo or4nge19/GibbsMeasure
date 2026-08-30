@@ -287,7 +287,7 @@ every positive quasilocal pre-modification is Gibbsian for a unique `a`-normalis
 so the DLR and Hamiltonian frameworks agree.
 
 Not yet done: the inhomogeneous Ising chains of §6.1, Shlosman's random staircases of §6.3
-(Theorem (6.21)), the long-range 1D uniqueness theorem (8.39), Mermin–Wagner (9.20), and
+(Theorem (6.21)), Theorem (5.15) and Corollary (5.16), Mermin–Wagner (9.20), and
 Chapters 10–20 (Markov fields on trees, Gaussian fields, the variational principle, the Poulsen
 simplex, reflection positivity, and the infrared bound).
 

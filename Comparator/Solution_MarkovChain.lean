@@ -2,14 +2,11 @@ import Comparator.Defs_MarkovChain
 import GibbsMeasure
 
 /-!
-# Comparator solution: Markov chains as Gibbs measures on `ℤ` (Georgii, Theorem (3.5))
+# Markov chains as Gibbs measures on `ℤ`: solution (Georgii, Theorem (3.5))
 
-This is the *solution* file matching `Comparator/Challenge_MarkovChain.lean`.  Both files take
-their definitions from the same modules `Comparator.Defs` and `Comparator.Defs_MarkovChain`,
-whose only transitive import is `Mathlib`, so the statements of the two theorems below are
-literally the challenge's statements; the only differences are the extra `import GibbsMeasure`,
-this module docstring, an auxiliary `namespace Bridge` block translating between those
-from-scratch definitions and the `GibbsMeasure` library, and the proof terms.
+The solution file matching `Comparator/Challenge_MarkovChain.lean`. It differs from the challenge
+only by `import GibbsMeasure`, the auxiliary `namespace Bridge` translating the from-scratch
+definitions into the `GibbsMeasure` library, and the proof terms.
 -/
 
 set_option autoImplicit false
@@ -30,11 +27,10 @@ variable {E : Type*} [Fintype E] [DecidableEq E] [MeasurableSpace E]
 
 /-! ### Bridge to the `GibbsMeasure` development
 
-Everything below this point is *not* part of the challenge statement: it translates the
-from-scratch notions of `Comparator.Defs` and `Comparator.Defs_MarkovChain` into the vocabulary of
-the `GibbsMeasure` library, so that the two theorems can be discharged by
-`MeasureTheory.GibbsMeasure.Markov.gibbsMeasure_eq_singleton` and
-`MeasureTheory.GibbsMeasure.Markov.markovChain_cylinder`. -/
+Auxiliary: translates the from-scratch notions of `Comparator.Defs` and
+`Comparator.Defs_MarkovChain` into the vocabulary of the `GibbsMeasure` library, so that the
+theorems below can be discharged by `Markov.gibbsMeasure_eq_singleton` and
+`Markov.markovChain_cylinder`. -/
 
 namespace Bridge
 
@@ -186,15 +182,11 @@ set_option linter.unusedSectionVars true
 
 end Bridge
 
-/-- **Georgii, Theorem (3.5).** Let `E` be a finite state space and `P` a stochastic matrix on `E`
-with all entries strictly positive. Let `γ` be *any* specification on the parameter set `ℤ` whose
-singleton kernels are given by Georgii's determining function (3.11),
-`γ_{i}(σ_i = y | ω) = P(ω_{i-1}, y) P(y, ω_{i+1}) / P²(ω_{i-1}, ω_{i+1})`.
-
-Then `γ` has **exactly one** Gibbs measure `μ`, and `μ` is the stationary Markov chain `μ_P` with
-transition matrix `P`: there is a strictly positive probability vector `α` on `E`, invariant under
-`P`, such that the cylinder probabilities of `μ` are
-
+/-- **Georgii, Theorem (3.5)**: for a strictly positive stochastic matrix `P` on a finite state
+space `E`, *any* specification `γ` on `ℤ` whose singleton kernels are given by the determining
+function (3.11), `γ_{i}(σ_i = y | ω) = P(ω_{i-1}, y) P(y, ω_{i+1}) / P²(ω_{i-1}, ω_{i+1})`, has
+exactly one Gibbs measure, namely the stationary Markov chain `μ_P`: for the strictly positive
+`P`-invariant probability vector `α`,
 `μ(σ_a = x_a, …, σ_{a+n} = x_{a+n}) = α(x_a) P(x_a, x_{a+1}) ⋯ P(x_{a+n-1}, x_{a+n})`. -/
 theorem georgii_3_5_markovChain (P : E → E → ℝ) (hpos : ∀ x y, 0 < P x y)
     (hstoch : ∀ x, ∑ y, P x y = 1)
@@ -252,11 +244,9 @@ theorem georgii_3_5_uniqueness (P : E → E → ℝ) (hpos : ∀ x y, 0 < P x y)
     obtain ⟨μ, α, -, -, -, -, huniq⟩ := georgii_3_5_markovChain P hpos hstoch γ hγ hsingle
     exact ⟨μ, (huniq μ).2 rfl, fun ν hν => (huniq ν).1 hν⟩
 
-/-- **Non-vacuity of Theorem (3.5).** For every strictly positive stochastic matrix `P` on a finite
-state space there really is a specification on `ℤ` whose singleton kernels are given by Georgii's
-determining function (3.11).  So the hypotheses of `georgii_3_5_markovChain` and
-`georgii_3_5_uniqueness` are satisfiable, and those theorems are not statements about an empty
-class of specifications. -/
+/-- **Non-vacuity of Theorem (3.5)**: for every strictly positive stochastic matrix `P` on a
+finite state space there really is a specification on `ℤ` whose singleton kernels are given by the
+determining function (3.11). -/
 theorem exists_isSpecification_determiningFun (P : E → E → ℝ) (hpos : ∀ x y, 0 < P x y)
     (hstoch : ∀ x, ∑ y, P x y = 1) :
     ∃ γ : Finset ℤ → Config ℤ E → MeasureTheory.Measure (Config ℤ E), IsSpecification γ ∧

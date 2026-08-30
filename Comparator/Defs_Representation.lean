@@ -1,62 +1,29 @@
 import Comparator.Defs
 
 /-!
-# Definitions: potentials, pre-modifications, and Georgii's Theorem (2.30)
+# Potentials, pre-modifications, and the Gibbs representation theorem
 
-This module extends the shared preamble `Comparator.Defs` with the vocabulary needed to state
-Georgii's **Gibbs representation theorem (2.30)**.  It holds the definitions used by
-`Comparator/Challenge_Representation.lean` and `Comparator/Solution_Representation.lean`.
+Vocabulary for Georgii's Theorem (2.30), spelled out from first principles.
 
-**It imports `Comparator.Defs` — which imports `Mathlib` and nothing else — and nothing further**,
-and every notion is spelled out from first principles.
+## Main definitions
 
-## Dictionary
+* `oscOutside`, `IsQuasilocalFun`: Georgii (2.21)(1)/(2.22)
+* `paste`, `lambdaInt`: the a priori kernels `λ_Λ(·|η) = λ^Λ × δ_{η_{S∖Λ}}` of Georgii (1.26), used
+  only through the integrals `λ_Λ f (η) = ∫ λ^Λ(dζ) f(ζ η_{S∖Λ})` they define, so no infinite
+  product measure is needed
+* `IsPreModification`, `IsPositive`: Georgii (1.31) and (1.27)
+* `Potential`, `partialHamiltonian`, `HasHamiltonian`, `IsPotential`, `hamiltonian`: Georgii (2.2),
+  (2.13), (2.3), with Georgii's summation convention (2.1) rendered as a limit along
+  `atTop : Filter (Finset S)`.  No summability, absolute or otherwise, is assumed
+* `boltzmann`, `partitionFunction`, `IsAdmissible`, `gibbsModification`: Georgii (2.4), (2.7), (2.8)
+* `IsGasPotential`: Georgii (2.28)/(2.29)(1)
 
-| Georgii | here |
-| --- | --- |
-| `λ^Λ × δ_{ω_{S∖Λ}}`, the a priori kernel (1.26) | `lambdaInt` (in integrated form), `paste` |
-| pre-modification, (1.31) | `IsPreModification` |
-| positivity of a `λ`-modification, (1.27) | `IsPositive` |
-| quasilocal function, (2.21)(1)/(2.22) | `oscOutside`, `IsQuasilocalFun` |
-| potential `Φ = (Φ_A)`, (2.2) | `Potential`, `IsPotential` |
-| `H^Φ_{Λ,Δ}`, (2.13) | `partialHamiltonian` |
-| `H^Φ_Λ`, (2.3) | `HasHamiltonian`, `hamiltonian` |
-| `h^Φ_Λ = exp(-H^Φ_Λ)`, (2.4) | `boltzmann` |
-| `Z^Φ_Λ = λ_Λ h^Φ_Λ`, (2.7) | `partitionFunction` |
-| `λ`-admissible, (2.7) | `IsAdmissible` |
-| `ρ^Φ_Λ = h^Φ_Λ / Z^Φ_Λ`, (2.8) | `gibbsModification` |
-| gas potential with vacuum state `a`, (2.28)/(2.29)(1) | `IsGasPotential` |
+Two places where the Lean statement differs from the book's letter: `IsPositive` conjoins Georgii's
+`ρ_Λ > 0` with the finiteness built into his `[0,∞[`-valued densities, and `IsAdmissible` asks
+`0 < Z^Φ_Λ < ∞` where (2.7) writes only "finite", `Z^Φ_Λ ≠ 0` being implicit in the quotient (2.8).
 
-## Design notes
-
-* Georgii's a priori kernels `λ_Λ(·|ω) = λ^Λ × δ_{ω_{S∖Λ}}` of (1.26) are used here only through
-  the integrals `λ_Λ f (ω) = ∫ λ^Λ(dζ) f(ζ ω_{S∖Λ})` they define, so instead of building the
-  kernels we define `lambdaInt` directly as the lower Lebesgue integral of `f ∘ paste Λ ω` against
-  the finite product measure `λ^Λ = Measure.pi (fun _ : Λ => ν)`.  This needs no infinite product
-  measure, and `paste Λ ω ζ` is literally Georgii's `ζ ω_{S∖Λ}`.
-* Georgii's summation convention (2.1) — the net of the partial sums over `{A : A ⊆ Δ}`, indexed by
-  the directed set of finite volumes `Δ` — is rendered as the limit along `atTop : Filter (Finset S)`
-  of `partialHamiltonian Φ Λ Δ`, which is exactly `H^Φ_{Λ,Δ} = ∑_{A ⊆ Δ, A ∩ Λ ≠ ∅} Φ_A` of (2.13).
-  `IsPotential` therefore says precisely: each `Φ_A` is `𝓕_A`-measurable, and each of these nets
-  converges — Georgii (2.2)(i) and (ii).  **No summability, absolute or otherwise, is assumed.**
-* `hamiltonian` is the limit of that net, picked out with `Filter.limUnder`; under `IsPotential` it
-  is the honest limit (`HasHamiltonian.hamiltonian_eq`).
-* Georgii's densities `ρ_Λ : Ω → [0,∞[` of (1.27) are `ℝ≥0∞`-valued here so that they can be
-  integrated without side conditions; `IsPositive` is then the conjunction of Georgii's positivity
-  `ρ_Λ > 0` with the finiteness `ρ_Λ < ∞` that is built into his `[0,∞[`.
-* `IsAdmissible` asks `0 < Z^Φ_Λ < ∞`.  Georgii (2.7) only writes "finite", but `Z^Φ_Λ ≠ 0` is
-  implicit in the quotient (2.8) that defines `ρ^Φ`.
-
-## Non-degeneracy
-
-* `isQuasilocalFun_iff` proves that the net formulation (2.22) of quasilocality is equivalent to the
-  `ε`-formulation, so the definition is the intended one.
-* `isPreModification_one`, `isPositive_one`, `isQuasilocalFun_one`, `lambdaInt_one`: the constant
-  family `ρ_Λ ≡ 1` satisfies **all** the hypotheses of Theorem (2.30) for any single-spin
-  probability measure, so they are not contradictory.
-* `isPotential_zero`, `isGasPotential_zero`, `isAdmissible_zero`, `gibbsModification_zero`: the zero
-  potential is a `λ`-admissible gas potential (for every vacuum state) whose modification is that
-  `ρ_Λ ≡ 1`, so the conclusion of Theorem (2.30) is realisable.
+The `Non-degeneracy` section shows the hypotheses and the conclusion of (2.30) are both realisable:
+`ρ_Λ ≡ 1` satisfies every hypothesis, and it is the modification of the zero potential.
 -/
 
 set_option autoImplicit false
@@ -78,8 +45,8 @@ section Quasilocal
 
 variable {S E : Type*}
 
-/-- The **oscillation of `f` off the finite volume `Δ`**: how much `f` can still change when the
-configuration is modified outside `Δ` only.  This is the supremum appearing in Georgii (2.22). -/
+/-- The oscillation of `f` off the finite volume `Δ`, i.e. the supremum in Georgii (2.22): how much
+`f` can change when the configuration is modified outside `Δ` only. -/
 def oscOutside (Δ : Finset S) (f : Config S E → ℝ) : ℝ≥0∞ :=
   ⨆ ζ : Config S E, ⨆ η : Config S E, ⨆ _ : ∀ i ∈ Δ, ζ i = η i, ENNReal.ofReal |f ζ - f η|
 
@@ -88,11 +55,8 @@ theorem le_oscOutside {Δ : Finset S} {f : Config S E → ℝ} {ζ η : Config S
   le_iSup_of_le ζ (le_iSup_of_le η (le_iSup (fun _ : ∀ i ∈ Δ, ζ i = η i =>
     ENNReal.ofReal |f ζ - f η|) h))
 
-/-- **Quasilocal function**, Georgii (2.21)(1) / (2.22):
-
-`lim_{Δ ∈ 𝒮} sup {|f(ζ) - f(η)| : ζ_Δ = η_Δ} = 0`,
-
-the limit being taken along the directed set of finite volumes. -/
+/-- **Georgii (2.21)(1)/(2.22)**: `f` is quasilocal, i.e.
+`lim_{Δ ∈ 𝒮} sup {|f(ζ) - f(η)| : ζ_Δ = η_Δ} = 0`. -/
 def IsQuasilocalFun (f : Config S E → ℝ) : Prop :=
   Tendsto (fun Δ : Finset S => oscOutside Δ f) atTop (nhds 0)
 
@@ -120,8 +84,7 @@ theorem isQuasilocalFun_iff (f : Config S E → ℝ) :
       refine (iSup₂_le fun ζ η => iSup_le fun hζη => ?_).trans_eq (ENNReal.ofReal_toReal htop)
       exact ENNReal.ofReal_le_ofReal (hΔ₀ ζ η fun i hi => hζη i (hΔ hi))
 
-/-- A function depending on finitely many coordinates only is quasilocal, so the notion is not
-vacuous. -/
+/-- A function depending on finitely many coordinates only is quasilocal. -/
 theorem isQuasilocalFun_of_local {f : Config S E → ℝ} {Δ₀ : Finset S}
     (hf : ∀ ζ η : Config S E, (∀ i ∈ Δ₀, ζ i = η i) → f ζ = f η) : IsQuasilocalFun f := by
   rw [isQuasilocalFun_iff]
@@ -168,16 +131,15 @@ def lambdaInt (ν : Measure E) (Λ : Finset S) (f : Config S E → ℝ≥0∞) (
 
 /-! ## Pre-modifications, Georgii (1.31) -/
 
-/-- **Pre-modification**, Georgii (1.31): a family `(ρ_Λ)` of measurable densities with
-
+/-- **Georgii (1.31)**: a pre-modification, i.e. a family `(ρ_Λ)` of measurable densities with
 `ρ_Δ(ζ) ρ_Λ(η) = ρ_Λ(ζ) ρ_Δ(η)` for `Λ ⊆ Δ` and `ζ_{S∖Λ} = η_{S∖Λ}`. -/
 structure IsPreModification (ρ : Finset S → Config S E → ℝ≥0∞) : Prop where
   measurable : ∀ Λ : Finset S, Measurable (ρ Λ)
   mul_comm_of_subset : ∀ ⦃Λ Δ : Finset S⦄, Λ ⊆ Δ → ∀ ⦃ζ η : Config S E⦄,
     (∀ i ∉ Λ, ζ i = η i) → ρ Δ ζ * ρ Λ η = ρ Λ ζ * ρ Δ η
 
-/-- **Positivity**, Georgii (1.27): every `ρ_Λ` takes values in `]0,∞[`.  (Georgii's densities are
-`[0,∞[`-valued by definition, and *positive* means `ρ_Λ > 0`.) -/
+/-- **Georgii (1.27)**: every `ρ_Λ` takes values in `]0,∞[`, the finiteness being built into
+Georgii's `[0,∞[`-valued densities and the positivity being his `ρ_Λ > 0`. -/
 def IsPositive (ρ : Finset S → Config S E → ℝ≥0∞) : Prop :=
   ∀ (Λ : Finset S) (η : Config S E), ρ Λ η ≠ 0 ∧ ρ Λ η ≠ ⊤
 
@@ -189,17 +151,16 @@ section Potentials
 
 variable {S E : Type*} [MeasurableSpace E] [DecidableEq S]
 
-/-- **Interaction potential**, Georgii (2.2): a family `Φ = (Φ_A)` of real functions on `Ω`
-indexed by the finite subsets of `S`. -/
+/-- **Georgii (2.2)**: a family `Φ = (Φ_A)` of real functions on `Ω` indexed by the finite subsets
+of `S`. -/
 abbrev Potential (S E : Type*) := Finset S → Config S E → ℝ
 
 /-- **Georgii (2.13)**: the partial Hamiltonian `H^Φ_{Λ,Δ} = ∑_{A ⊆ Δ, A ∩ Λ ≠ ∅} Φ_A`. -/
 def partialHamiltonian (Φ : Potential S E) (Λ Δ : Finset S) (η : Config S E) : ℝ :=
   ∑ A ∈ Δ.powerset.filter (fun A => (A ∩ Λ).Nonempty), Φ A η
 
-/-- **Georgii (2.2)(ii), (2.3)**: `H` is the energy of `η` in `Λ` for `Φ`, i.e. the sum
-`∑_{A ∩ Λ ≠ ∅} Φ_A(η)` in the sense of Georgii's convention (2.1): the net of the partial sums
-`H^Φ_{Λ,Δ}` over the directed set of finite volumes `Δ` converges to `H`. -/
+/-- **Georgii (2.2)(ii), (2.3)**: `H` is the energy `∑_{A ∩ Λ ≠ ∅} Φ_A(η)` of `η` in `Λ`, in the
+sense of Georgii's convention (2.1) that the net of partial sums `H^Φ_{Λ,Δ}` converges to `H`. -/
 def HasHamiltonian (Φ : Potential S E) (Λ : Finset S) (η : Config S E) (H : ℝ) : Prop :=
   Tendsto (fun Δ : Finset S => partialHamiltonian Φ Λ Δ η) atTop (nhds H)
 
@@ -227,8 +188,8 @@ def boltzmann (Φ : Potential S E) (Λ : Finset S) (η : Config S E) : ℝ≥0�
 def partitionFunction (ν : Measure E) (Φ : Potential S E) (Λ : Finset S) (η : Config S E) : ℝ≥0∞ :=
   lambdaInt ν Λ (boltzmann Φ Λ) η
 
-/-- **Georgii (2.7)**: `Φ` is `λ`-admissible, i.e. all its partition functions are finite (and
-nonzero, as is implicit in the quotient (2.8)). -/
+/-- **Georgii (2.7)**: `Φ` is `λ`-admissible, i.e. all its partition functions are finite, and
+nonzero as is implicit in the quotient (2.8). -/
 def IsAdmissible (ν : Measure E) (Φ : Potential S E) : Prop :=
   ∀ (Λ : Finset S) (η : Config S E),
     partitionFunction ν Φ Λ η ≠ 0 ∧ partitionFunction ν Φ Λ η ≠ ⊤
@@ -238,9 +199,8 @@ potential. -/
 def gibbsModification (ν : Measure E) (Φ : Potential S E) (Λ : Finset S) (η : Config S E) : ℝ≥0∞ :=
   boltzmann Φ Λ η / partitionFunction ν Φ Λ η
 
-/-- **Gas potential with vacuum state `a`**, Georgii (2.28) and (2.29)(1): `Φ` is normalized by the
-Dirac measure `δ_a`, which by (2.29)(1) means exactly that `Φ_A(ω) = 0` whenever `ω_i = a` for
-some `i ∈ A`. -/
+/-- **Georgii (2.28)/(2.29)(1)**: `Φ` is a gas potential with vacuum state `a`, i.e. normalized by
+`δ_a`, which by (2.29)(1) means `Φ_A(ω) = 0` whenever `ω_i = a` for some `i ∈ A`. -/
 def IsGasPotential (a : E) (Φ : Potential S E) : Prop :=
   ∀ (A : Finset S) (η : Config S E), (∃ i ∈ A, η i = a) → Φ A η = 0
 
@@ -313,8 +273,7 @@ theorem isAdmissible_zero (ν : Measure E) [IsProbabilityMeasure ν] :
   rw [partitionFunction_zero]
   exact ⟨one_ne_zero, ENNReal.one_ne_top⟩
 
-/-- The `λ`-modification of the zero potential is the constant family `ρ_Λ ≡ 1`: the conclusion of
-Theorem (2.30) is realisable. -/
+/-- The `λ`-modification of the zero potential is the constant family `ρ_Λ ≡ 1`. -/
 theorem gibbsModification_zero (ν : Measure E) [IsProbabilityMeasure ν] (Λ : Finset S)
     (η : Config S E) :
     gibbsModification ν (fun _ _ => (0 : ℝ)) Λ η = 1 := by
