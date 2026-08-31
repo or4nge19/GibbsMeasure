@@ -78,6 +78,7 @@ public import GibbsMeasure.Potential.FiniteReference
 public import GibbsMeasure.Potential.GibbsRepresentation
 public import GibbsMeasure.Potential.Equivalence
 public import GibbsMeasure.Potential.NearestNeighbour
+public import GibbsMeasure.Potential.PerSiteExistence
 public import GibbsMeasure.Potential.Periodic
 public import GibbsMeasure.Potential.Space
 public import GibbsMeasure.Potential.Transformation
