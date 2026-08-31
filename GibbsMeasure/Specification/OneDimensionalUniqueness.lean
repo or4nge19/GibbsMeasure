@@ -37,13 +37,17 @@ public import Mathlib.MeasureTheory.Measure.MeasuredSets
   go into the a priori measure (`Potential.GP_lambdaSpecification_nonempty`).
 * `MeasureTheory.GibbsMeasure.existsUnique_mem_GP_of_iSup_oscSpan_ne_top`: the same for an
   absolutely summable potential, where existence is (4.23)(a) directly.
-* `MeasureTheory.GibbsMeasure.iSup_oscSpan_ne_top_of_oscSpanDiam_ne_top`: Georgii Comment
-  (8.41)(1). For a potential on `ℤ` with shift-invariant oscillations, Georgii's simpler condition
-  (8.42), `∑_{A : min A = 0} diam A · δ(Φ_A) < ∞` (`oscSpanDiam`), implies (8.40).
+* `MeasureTheory.GibbsMeasure.oscSpan_eq_oscSpanDiam`: Georgii Comment (8.41)(1). For a potential
+  on `ℤ` with shift-invariant oscillations, the sum (8.40) at any site *equals* Georgii's simpler
+  sum (8.42), `∑_{A : min A = 0} diam A · δ(Φ_A)` (`oscSpanDiam`) — the two conditions are
+  equivalent.
 * `MeasureTheory.GibbsMeasure.oscSpanDiam_eq_tsum_pair` and
   `MeasureTheory.GibbsMeasure.subsingleton_G_of_pair_rpow_le`: Georgii Comment (8.41)(2). For a
   pair potential, (8.42) reads `∑_{n ≥ 1} n · δ(Φ_{{0,n}})`, so `δ(Φ_{{0,n}}) ≤ c n^{-p}` with
   `p > 2` gives uniqueness — far past nearest-neighbour interactions.
+* `MeasureTheory.GibbsMeasure.existsUnique_mem_GP_lambdaSpecification_of_nearestNeighbour`:
+  Georgii Comment (8.41)(3). A nearest-neighbour potential with `δ(Φ_{{0,1}}) < ∞` satisfies
+  (8.42), so (8.39) reproves the uniqueness statement of Theorem (3.5).
 
 The one-dimensional input is `MeasureTheory.GibbsMeasure.HasBoundedBoundary`: `S` is exhausted by
 intervals with a bounded number `m` of boundary sites, so the Hamiltonian `H_Λ` varies by at most
@@ -982,6 +986,79 @@ theorem oscSpan_le_oscSpanDiam {Φ : Potential ℤ E}
         ENNReal.tsum_comp_le_tsum_of_injective normalizeSite_injective _
     _ = oscSpanDiam Φ := tsum_spanBox Φ i
 
+/-- **Georgii, Comment (8.41)(1), the reverse inequality.** For shift-invariant oscillations the
+sum (8.42) is also at most the sum (8.40) at any site: the `diam A` translates of each normalized
+`A` all span `i`, and they are distinct spanning sets. -/
+theorem oscSpanDiam_le_oscSpan {Φ : Potential ℤ E}
+    (hshift : ∀ (n : ℤ) (A : Finset ℤ),
+      Dobrushin.osc (Φ (shiftFinset n A)) = Dobrushin.osc (Φ A))
+    (i : ℤ) : oscSpanDiam Φ ≤ oscSpan Φ i := by
+  classical
+  rw [← tsum_spanBox Φ i, ← tsum_subtype_eq_of_support_subset
+    (s := spanBoxSet i) (by
+      refine Function.support_subset_iff.2 fun p hp ↦ by_contra fun hmem ↦ ?_
+      rw [spanBox_apply, Set.indicator_of_notMem hmem] at hp
+      exact hp rfl)]
+  -- each pair `(A₀, n)` of the span box denotes the spanning set `A₀ + n`
+  set q : spanBoxSet i → Finset ℤ := fun p ↦ shiftFinset p.1.2 p.1.1 with hq
+  have hne : ∀ p : spanBoxSet i, p.1.1.Nonempty := by
+    rintro ⟨⟨A₀, n⟩, hp⟩
+    obtain ⟨hmin, hIoc⟩ := mem_spanBoxSet.1 hp
+    rcases Finset.eq_empty_or_nonempty A₀ with rfl | hA₀
+    · simp [diamSite, minSite, maxSite] at hIoc
+    · exact hA₀
+  have hinj : Function.Injective q := by
+    rintro ⟨⟨A₀, n⟩, hp⟩ ⟨⟨B₀, m⟩, hr⟩ h
+    have hA₀ : A₀.Nonempty := hne ⟨(A₀, n), hp⟩
+    have hB₀ : B₀.Nonempty := hne ⟨(B₀, m), hr⟩
+    have hminA : minSite A₀ = 0 := (mem_spanBoxSet.1 hp).1
+    have hminB : minSite B₀ = 0 := (mem_spanBoxSet.1 hr).1
+    have h' : shiftFinset n A₀ = shiftFinset m B₀ := h
+    have hnm : n = m := by
+      have := congrArg minSite h'
+      rwa [minSite_shiftFinset hA₀, minSite_shiftFinset hB₀, hminA, hminB, zero_add,
+        zero_add] at this
+    subst hnm
+    have hAB : A₀ = B₀ := by
+      have := congrArg (shiftFinset (-n)) h'
+      rwa [shiftFinset_shiftFinset, shiftFinset_shiftFinset, add_neg_cancel,
+        show shiftFinset 0 A₀ = A₀ from Finset.ext fun x ↦ by simp,
+        show shiftFinset 0 B₀ = B₀ from Finset.ext fun x ↦ by simp] at this
+    simp [hAB]
+  have hle : ∀ p : spanBoxSet i,
+      spanBox Φ i p ≤ {A : Finset ℤ | Spans A i}.indicator
+        (fun A ↦ Dobrushin.osc (Φ A)) (q p) := by
+    rintro ⟨⟨A₀, n⟩, hp⟩
+    obtain ⟨hmin, hIoc⟩ := mem_spanBoxSet.1 hp
+    have hA₀ : A₀.Nonempty := hne ⟨(A₀, n), hp⟩
+    have hmin' : minSite A₀ = 0 := hmin
+    have hIoc' : i - (diamSite A₀ : ℤ) < n ∧ n ≤ i := Finset.mem_Ioc.1 hIoc
+    obtain ⟨hIoc1, hIoc2⟩ := hIoc'
+    have hspan : Spans (shiftFinset n A₀) i := by
+      have hdiam : (diamSite A₀ : ℤ) = maxSite A₀ - minSite A₀ := by
+        rw [diamSite, Int.toNat_of_nonneg (by have := minSite_le_maxSite hA₀; omega)]
+      refine ⟨⟨minSite A₀ + n, mem_shiftFinset.2 (by simpa using minSite_mem hA₀), by omega⟩,
+        ⟨maxSite A₀ + n, mem_shiftFinset.2 (by simpa using maxSite_mem hA₀), by omega⟩⟩
+    rw [spanBox_apply, Set.indicator_of_mem hp, hq,
+      Set.indicator_of_mem (show shiftFinset n A₀ ∈ {A : Finset ℤ | Spans A i} from hspan),
+      hshift n A₀]
+  calc ∑' p : spanBoxSet i, spanBox Φ i p.1
+      ≤ ∑' p : spanBoxSet i, {A : Finset ℤ | Spans A i}.indicator
+          (fun A ↦ Dobrushin.osc (Φ A)) (q p) := ENNReal.tsum_le_tsum hle
+    _ ≤ ∑' A : Finset ℤ, {A : Finset ℤ | Spans A i}.indicator
+          (fun A ↦ Dobrushin.osc (Φ A)) A :=
+        ENNReal.tsum_comp_le_tsum_of_injective hinj _
+    _ = oscSpan Φ i := rfl
+
+/-- **Georgii, Comment (8.41)(1), in full.** For shift-invariant oscillations the sum (8.40) at
+any site equals the sum (8.42): conditions (8.40) and (8.42) are equivalent, not merely
+comparable. -/
+theorem oscSpan_eq_oscSpanDiam {Φ : Potential ℤ E}
+    (hshift : ∀ (n : ℤ) (A : Finset ℤ),
+      Dobrushin.osc (Φ (shiftFinset n A)) = Dobrushin.osc (Φ A))
+    (i : ℤ) : oscSpan Φ i = oscSpanDiam Φ :=
+  le_antisymm (oscSpan_le_oscSpanDiam hshift i) (oscSpanDiam_le_oscSpan hshift i)
+
 /-- **Georgii, Comment (8.41)(1).** For a potential on `ℤ` with shift-invariant oscillations,
 condition (8.42) implies condition (8.40). -/
 theorem iSup_oscSpan_ne_top_of_oscSpanDiam_ne_top {Φ : Potential ℤ E}
@@ -989,6 +1066,45 @@ theorem iSup_oscSpan_ne_top_of_oscSpanDiam_ne_top {Φ : Potential ℤ E}
       Dobrushin.osc (Φ (shiftFinset n A)) = Dobrushin.osc (Φ A))
     (h842 : oscSpanDiam Φ ≠ ⊤) : ⨆ i : ℤ, oscSpan Φ i ≠ ⊤ :=
   ne_top_of_le_ne_top h842 (iSup_le fun i ↦ oscSpan_le_oscSpanDiam hshift i)
+
+/-! #### Comment (8.41)(3): nearest-neighbour potentials -/
+
+/-- **Georgii, Comment (8.41)(3), computation.** For a nearest-neighbour potential on `ℤ` — one
+whose interaction terms oscillate only on the pairs `{a, a+1}` — the sum (8.42) is the single
+oscillation `δ(Φ_{{0,1}})`. -/
+theorem oscSpanDiam_eq_osc_of_nearestNeighbour {Φ : Potential ℤ E}
+    (hnn : ∀ A : Finset ℤ, (∀ a : ℤ, A ≠ {a, a + 1}) → Dobrushin.osc (Φ A) = 0) :
+    oscSpanDiam Φ = Dobrushin.osc (Φ {0, 1}) := by
+  have hpair : ∀ A : Finset ℤ, (∀ a b : ℤ, a < b → A ≠ {a, b}) → Dobrushin.osc (Φ A) = 0 :=
+    fun A hA ↦ hnn A fun a ↦ hA a (a + 1) (by omega)
+  rw [oscSpanDiam_eq_tsum_pair hpair]
+  rw [show Dobrushin.osc (Φ {0, 1}) = (1 : ℕ) * Dobrushin.osc (Φ {0, ((1 : ℕ) : ℤ)}) by
+    norm_num]
+  refine tsum_eq_single 1 fun n hn ↦ ?_
+  rcases Nat.eq_zero_or_pos n with rfl | hpos
+  · simp
+  · have h0 : Dobrushin.osc (Φ {0, (n : ℤ)}) = 0 := by
+      refine hnn _ fun a h ↦ ?_
+      have h0mem : (0 : ℤ) ∈ ({a, a + 1} : Finset ℤ) := by rw [← h]; simp
+      have hnmem : (n : ℤ) ∈ ({a, a + 1} : Finset ℤ) := by rw [← h]; simp
+      simp only [Finset.mem_insert, Finset.mem_singleton] at h0mem hnmem
+      have hne : (n : ℤ) ≠ 0 := by exact_mod_cast hpos.ne'
+      have hn1 : n ≠ 1 := hn
+      omega
+    rw [h0, mul_zero]
+
+/-- **Georgii, Comment (8.41)(3).** A nearest-neighbour potential on `ℤ` with shift-invariant
+oscillations and `δ(Φ_{{0,1}}) < ∞` — in particular any bounded `Φ_{{0,1}}`, e.g. over a finite
+state space — satisfies (8.40). Theorem (8.39) then gives a second proof of the uniqueness
+statement in Theorem (3.5). -/
+theorem iSup_oscSpan_ne_top_of_nearestNeighbour {Φ : Potential ℤ E}
+    (hshift : ∀ (n : ℤ) (A : Finset ℤ),
+      Dobrushin.osc (Φ (shiftFinset n A)) = Dobrushin.osc (Φ A))
+    (hnn : ∀ A : Finset ℤ, (∀ a : ℤ, A ≠ {a, a + 1}) → Dobrushin.osc (Φ A) = 0)
+    (hbd : Dobrushin.osc (Φ {0, 1}) ≠ ⊤) :
+    ⨆ i : ℤ, oscSpan Φ i ≠ ⊤ :=
+  iSup_oscSpan_ne_top_of_oscSpanDiam_ne_top hshift
+    ((oscSpanDiam_eq_osc_of_nearestNeighbour hnn).trans_ne hbd)
 
 /-! #### Comment (8.41)(2) at Georgii's own hypotheses -/
 
@@ -1053,6 +1169,25 @@ theorem existsUnique_mem_GP_lambdaSpecification_of_pair_rpow_le [StandardBorelSp
         (Φ.boltzmannFactor β) (Potential.isPremodifier_boltzmannFactor (Φ := Φ) β) hZ) :=
   existsUnique_mem_GP_lambdaSpecification_of_iSup_oscSpan_ne_top hasBoundedBoundary_int lam β hZ
     h.iSup_oscSpan_ne_top
+
+/-- **Georgii, Comment (8.41)(3), the uniqueness statement.** Over a standard Borel state space, a
+`λ`-admissible nearest-neighbour potential on `ℤ` with shift-invariant oscillations and
+`δ(Φ_{{0,1}}) < ∞` has exactly one Gibbs measure: the second proof of the uniqueness half of
+Theorem (3.5). -/
+theorem existsUnique_mem_GP_lambdaSpecification_of_nearestNeighbour [StandardBorelSpace E]
+    {Φ : Potential ℤ E} [Potential.IsPotential Φ] [Potential.IsSummable Φ]
+    (lam : Measure E) [SigmaFinite lam] [NeZero lam] (β : ℝ)
+    (hZ : _root_.Specification.IsSigmaFiniteLambdaAdmissible (S := ℤ) (E := E) lam
+      (Φ.boltzmannFactor β))
+    (hshift : ∀ (n : ℤ) (A : Finset ℤ),
+      Dobrushin.osc (Φ (shiftFinset n A)) = Dobrushin.osc (Φ A))
+    (hnn : ∀ A : Finset ℤ, (∀ a : ℤ, A ≠ {a, a + 1}) → Dobrushin.osc (Φ A) = 0)
+    (hbd : Dobrushin.osc (Φ {0, 1}) ≠ ⊤) :
+    ∃! μ : ProbabilityMeasure (ℤ → E),
+      μ ∈ GP (_root_.Specification.lambdaSpecification (S := ℤ) (E := E) lam
+        (Φ.boltzmannFactor β) (Potential.isPremodifier_boltzmannFactor (Φ := Φ) β) hZ) :=
+  existsUnique_mem_GP_lambdaSpecification_of_iSup_oscSpan_ne_top hasBoundedBoundary_int lam β hZ
+    (iSup_oscSpan_ne_top_of_nearestNeighbour hshift hnn hbd)
 
 end PairPotential
 
