@@ -1,0 +1,647 @@
+\section{Existence and topological properties of Gibbs measures}
+
+Throughout this section $S$ is countable, $(E,\mathcal E)$ is a measurable space,
+$\Cfg = E^S$, and $\gamma$ is a specification. Georgii's \S4.4 combines the compactness
+results of \S4.2 with the continuity results of \S4.3 into an existence theorem (4.22),
+and then specialises it to Gibbsian specifications of absolutely summable potentials
+(Theorem (4.23)). All topological statements below are for the topology $\mathcal L$ of
+\emph{local convergence} on $\Prob(\Cfg,\mathcal F)$, not for the weak topology; see
+Remark~\ref{rmk:exg-weak-topology}.
+
+\subsection*{Finite-volume Gibbs distributions and the fixed-point equation}
+
+\begin{definition}[Finite-volume Gibbs distribution $\nu\gamma_\Lambda$]
+    \label{def:exg-finite-volume-distribution}
+    \uses{def:spec, def:kernel}
+    \lean{Specification.bindPM, MeasureTheory.GibbsMeasure.finiteVolumeDistributions}
+    \leanok
+
+    For $\nu\in\Prob(\Cfg,\mathcal F)$ and $\Lambda\in\Fin$, the measure
+    \[\nu\gamma_\Lambda(A) \;=\; \int \gamma_\Lambda(A\mid\eta)\,\nu(d\eta)\]
+    is again a probability measure. Writing $\delta_\eta$ for the Dirac field at
+    $\eta\in\Cfg$, the net $\Lambda\mapsto\gamma_\Lambda(\cdot\mid\eta)
+    = \delta_\eta\gamma_\Lambda$ indexed by $\Fin$ is the net of \textbf{finite-volume Gibbs
+    distributions with boundary condition $\eta$}.
+\end{definition}
+
+\begin{lemma}[Gibbs measures as fixed points]
+    \label{lem:exg-mem-gp-iff}
+    \uses{def:gibbs-meas, def:exg-finite-volume-distribution}
+    \lean{MeasureTheory.GibbsMeasure.mem_GP_iff_forall_bindPM_eq}
+    \leanok
+
+    For a probability measure $\mu$ on $(\Cfg,\mathcal F)$ we have
+    $\mu\in\Gibbs{\gamma}$ if and only if $\mu\gamma_\Lambda = \mu$ for all $\Lambda\in\Fin$.
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    This is the DLR equation read as a fixed-point equation: $\mu\gamma_\Lambda = \mu$ is
+    exactly $\mu(A\mid\mathcal F_{S\setminus\Lambda}) = \gamma_\Lambda(A\mid\cdot)$
+    $\mu$-a.s. for all $A\in\mathcal F$, because $\gamma_\Lambda$ is proper and
+    $\mathcal F_{S\setminus\Lambda}$-measurable.
+\end{proof}
+
+\begin{definition}[Local thermodynamic limit, Comment (4.18)]
+    \label{def:exg-local-thermo-limit}
+    \uses{def:exg-finite-volume-distribution}
+    \lean{MeasureTheory.GibbsMeasure.IsLocalThermodynamicLimit}
+    \leanok
+
+    A probability measure $\mu$ is a \textbf{local thermodynamic limit} for the boundary
+    condition $\eta$ if $\mu$ is a cluster point of the net
+    $(\gamma_\Lambda(\cdot\mid\eta))_{\Lambda\in\Fin}$ in the topology of local convergence.
+\end{definition}
+
+\subsection*{Georgii (4.17), (4.18), (4.22): existence}
+
+\begin{theorem}[Georgii (4.17)]
+    \label{thm:exg-4-17}
+    \uses{def:gibbs-meas, def:exg-finite-volume-distribution, lem:exg-mem-gp-iff}
+    \lean{MeasureTheory.GibbsMeasure.mem_GP_of_tendsto_withLocalConvergence,
+      MeasureTheory.GibbsMeasure.mem_GP_of_mapClusterPt}
+    \leanok
+
+    Let $\gamma$ be a quasilocal specification, $(\gamma^i)_{i}$ a net of specifications with
+    $\gamma^i\to\gamma$ uniformly on local observables, $(\Lambda_i)_i$ a net in $\Fin$ with
+    $\Lambda_i\to S$, and $(\nu_i)_i$ an arbitrary net in $\Prob(\Cfg,\mathcal F)$. If
+    $\nu_i\gamma^i_{\Lambda_i}\to\mu$ in the topology of local convergence, then
+    $\mu\in\Gibbs{\gamma}$. The same conclusion holds for every \emph{cluster point} $\mu$
+    of the net $(\nu_i\gamma^i_{\Lambda_i})_i$.
+\end{theorem}
+\begin{proof}
+    \uses{lem:exg-mem-gp-iff}
+    \leanok
+
+    Fix $\Lambda\in\Fin$ and a local event $A$. The observable $g=\gamma_\Lambda \mathbf 1_A$
+    is quasilocal, hence $\mathcal L$-continuous, so $\int g\,d(\nu_i\gamma^i_{\Lambda_i})
+    \to\int g\,d\mu$. Uniform convergence $\gamma^i\to\gamma$ replaces $g$ by
+    $\gamma^i_\Lambda\mathbf 1_A$ with an error tending to $0$, and once
+    $\Lambda\subseteq\Lambda_i$ consistency gives
+    $\int\gamma^i_\Lambda\mathbf 1_A\,d(\nu_i\gamma^i_{\Lambda_i})
+    = (\nu_i\gamma^i_{\Lambda_i})(A)\to\mu(A)$. Hence
+    $\int\gamma_\Lambda\mathbf1_A\,d\mu=\mu(A)$, i.e. $\mu\gamma_\Lambda=\mu$ on local
+    events, and local events separate probability measures. The cluster-point form follows
+    by passing to an ultrafilter refining the index filter.
+\end{proof}
+
+\begin{corollary}[Georgii, Comment (4.18)]
+    \label{cor:exg-4-18}
+    \uses{thm:exg-4-17, def:exg-local-thermo-limit}
+    \lean{MeasureTheory.GibbsMeasure.IsLocalThermodynamicLimit.mem_GP}
+    \leanok
+
+    Every local thermodynamic limit of a quasilocal specification $\gamma$ is a Gibbs measure
+    for $\gamma$.
+\end{corollary}
+\begin{proof}
+    \uses{thm:exg-4-17}
+    \leanok
+
+    Apply Theorem \ref{thm:exg-4-17} with the constant net $\gamma^i=\gamma$,
+    $\nu_i=\delta_\eta$ and $\Lambda_i=\Lambda$, using $\delta_\eta\gamma_\Lambda
+    = \gamma_\Lambda(\cdot\mid\eta)$.
+\end{proof}
+
+\begin{theorem}[Georgii (4.22)]
+    \label{thm:exg-4-22}
+    \uses{thm:exg-4-17, def:exg-local-thermo-limit}
+    \lean{MeasureTheory.GibbsMeasure.exists_mem_GP_mapClusterPt,
+      MeasureTheory.GibbsMeasure.exists_isLocalThermodynamicLimit_mem_GP}
+    \leanok
+
+    Let $(E,\mathcal E)$ be a standard Borel space and $\gamma$ a quasilocal specification.
+    Suppose there is a locally equicontinuous net $(\mu_i)_i$ of random fields of the form
+    $\mu_i=\nu_i\gamma^i_{\Lambda_i}$ with $\gamma^i\to\gamma$ uniformly on local observables
+    and $\Lambda_i\to S$. Then $\Gibbs{\gamma}$ contains a cluster point of $(\mu_i)_i$, and
+    is in particular non-empty. In the single-specification case
+    $\gamma^i\equiv\gamma$, $\nu_i=\delta_\eta$, the Gibbs measure produced is a local
+    thermodynamic limit for $\eta$.
+\end{theorem}
+\begin{proof}
+    \uses{thm:exg-4-17}
+    \leanok
+
+    By Georgii (4.9), a locally equicontinuous net of random fields over a standard Borel
+    state space has a cluster point $\mu$ in $\Prob(\Cfg,\mathcal F)$; concretely, $\mu$ is
+    obtained as the limit along an ultrafilter refining the index filter. Applying
+    Theorem \ref{thm:exg-4-17} along that ultrafilter gives $\mu\in\Gibbs{\gamma}$.
+\end{proof}
+
+\subsection*{Topological properties of $\Gibbs{\gamma}$}
+
+\begin{lemma}[$\Gibbs{\gamma}$ is $\mathcal L$-closed]
+    \label{lem:exg-gp-closed}
+    \uses{thm:exg-4-17, def:gibbs-meas}
+    \lean{MeasureTheory.GibbsMeasure.isClosed_setOf_mem_GP}
+    \leanok
+
+    If $\gamma$ is quasilocal then $\Gibbs{\gamma}$ is closed in the topology of local
+    convergence. Georgii derives the closedness of $\Gibbs{\Phi}$ in (4.23)(a) from part (c),
+    for Gibbsian specifications only; the Lean statement is at the level of an arbitrary
+    quasilocal specification and is therefore stronger than the book's.
+\end{lemma}
+\begin{proof}
+    \uses{thm:exg-4-17, lem:exg-mem-gp-iff}
+    \leanok
+
+    Let $\mu$ be a cluster point of $\Gibbs{\gamma}$. Index by the product directed set
+    $\bar D = (\mathcal N(\mu)\cap\Gibbs{\gamma})\times\Fin$ of Georgii's proof of (4.23)(c),
+    putting $\gamma^{(\nu,\Lambda)}=\gamma$, $\nu_{(\nu,\Lambda)}=\nu$ and
+    $\Lambda_{(\nu,\Lambda)}=\Lambda$. Since every $\nu$ in the net is Gibbs,
+    $\nu\gamma_\Lambda=\nu\to\mu$, and Theorem \ref{thm:exg-4-17} gives
+    $\mu\in\Gibbs{\gamma}$.
+\end{proof}
+
+\begin{lemma}[Uniform kernel bounds pass to Gibbs measures]
+    \label{lem:exg-gp-dominated}
+    \uses{lem:exg-mem-gp-iff}
+    \lean{MeasureTheory.GibbsMeasure.apply_le_of_mem_GP}
+    \leanok
+
+    If $\mu\in\Gibbs{\gamma}$, $A\in\mathcal F$, $\Lambda\in\Fin$ and
+    $\gamma_\Lambda(A\mid\omega)\le c$ for all $\omega$, then $\mu(A)\le c$.
+\end{lemma}
+\begin{proof}
+    \uses{lem:exg-mem-gp-iff}
+    \leanok
+
+    $\mu(A)=(\mu\gamma_\Lambda)(A)=\int\gamma_\Lambda(A\mid\omega)\,\mu(d\omega)\le c$.
+\end{proof}
+
+\begin{example}[Georgii, Example (4.11)(1)]
+    \label{ex:exg-4-11-1}
+    \uses{def:isssd-spec, def:modif, lem:exg-gp-dominated, lem:exg-gp-closed}
+    \lean{MeasureTheory.GibbsMeasure.isCompact_closure_setOf_mem_GP_modification}
+    \leanok
+
+    Let $\nu$ be a single-spin probability measure and $\rho$ a modifier of $\ISSSD(\nu)$
+    with $\rho_\Lambda\le C_\Lambda<\infty$ for every $\Lambda\in\Fin$. Then
+    $\Gibbs{\rho\,\ISSSD(\nu)}$ is relatively compact in the topology of local convergence.
+\end{example}
+\begin{proof}
+    \uses{lem:exg-gp-dominated}
+    \leanok
+
+    On $\mathcal F_\Lambda$-events the kernel is dominated by
+    $C_\Lambda\,\nu^S$, hence by Lemma \ref{lem:exg-gp-dominated} every Gibbs measure lies in
+    the set of random fields dominated by the finite measures $C_\Lambda\,\nu^S$, which is
+    $\mathcal L$-compact over a standard Borel state space by Georgii (4.9)--(4.11).
+\end{proof}
+
+\subsection*{Georgii (2.11): the space $\Bspace$ of absolutely summable potentials}
+
+\begin{definition}[Georgii (2.11)--(2.12): $\Bspace$ and the seminorms $\|\cdot\|_i$]
+    \label{def:exg-b-space}
+    \lean{Potential.absolutelySummable, Potential.seminormAt, Potential.seminormFamily,
+      Potential.withSeminorms_seminormFamily}
+    \leanok
+
+    $\Bspace$ is the $\R$-submodule of potentials $\Phi$ with $\Phi_\emptyset=0$,
+    $\Phi_A$ being $\mathcal F_A$-measurable, and
+    \[\|\Phi\|_i \;=\; \sum_{A\ni i}\ \sup_{\eta}|\Phi_A(\eta)| \;<\;\infty
+      \qquad(i\in S),\]
+    equipped with the locally convex topology generated by the seminorms
+    $(\|\cdot\|_i)_{i\in S}$. Convergence $\Phi^x\to\Phi$ in $\Bspace$ means
+    $\|\Phi^x-\Phi\|_i\to0$ for every site $i$.
+\end{definition}
+
+\begin{proposition}[Georgii (2.11): $\Bspace$ is a Fréchet space]
+    \label{prop:exg-b-frechet}
+    \uses{def:exg-b-space}
+    \lean{Potential.eq_zero_of_forall_seminormAt_eq_zero, Potential.normAt_le_liminf,
+      Potential.instT1SpaceSubtypeMemSubmoduleRealAbsolutelySummable,
+      Potential.instMetrizableSpaceSubtypeMemSubmoduleRealAbsolutelySummableOfCountable,
+      Potential.instCompleteSpaceSubtypeMemSubmoduleRealAbsolutelySummableOfCountable}
+    \leanok
+
+    The seminorms $\|\cdot\|_i$ separate the points of $\Bspace$, so $\Bspace$ is Hausdorff;
+    for countable $S$ the family is countable, hence $\Bspace$ is metrizable, and it is
+    complete.
+\end{proposition}
+\begin{proof}
+    \uses{def:exg-b-space}
+    \leanok
+
+    Separation: if $\|\Phi\|_i=0$ for all $i$ then $\Phi_A=0$ for every nonempty $A$ (pick
+    $i\in A$), and $\Phi_\emptyset=0$ by definition of $\Bspace$. Completeness: a Cauchy
+    sequence is Cauchy in each $\|\cdot\|_i$, hence termwise Cauchy in $\R$ by
+    $|\Phi_A(\eta)|\le\|\Phi\|_i$ for $i\in A$; the termwise limit $\Psi$ is absolutely
+    summable because $\|\cdot\|_i$ is lower semicontinuous along termwise convergence
+    (Fatou for the counting measure) and the sequence is $\|\cdot\|_i$-bounded, and the same
+    lower semicontinuity applied to $\Phi^n-\Phi^m$ gives $\|\Phi^n-\Psi\|_i\le\varepsilon$.
+\end{proof}
+
+\subsection*{Georgii (4.23): the Gibbs correspondence $\Gibbs{\cdot}$ on $\Bspace$}
+
+Fix a finite a priori measure $\lambda\in\Meas(E,\mathcal E)$ and $\beta\in\R$, and let
+$\gamma^\Phi$ denote the Gibbsian specification of $\Phi\in\Bspace$.
+
+\begin{lemma}[Georgii, Comment (4.14)(1)]
+    \label{lem:exg-4-14-1}
+    \uses{def:exg-b-space, def:exg-finite-volume-distribution}
+    \lean{Potential.dominatingMeasure, Potential.locallyEquicontinuous_finiteVolumeDistributions}
+    \leanok
+
+    For $\Phi\in\Bspace$ the density of $\gamma^\Phi_\Lambda$ against the free measure is
+    bounded by $e^{2|\beta|\,\|\Phi\|_\Lambda}$, where
+    $\|\Phi\|_\Lambda = \sum_{i\in\Lambda}\|\Phi\|_i$. Consequently the net
+    $(\gamma^\Phi_\Lambda(\cdot\mid\eta))_{\Lambda\in\Fin}$ is locally equicontinuous, for
+    every boundary condition $\eta$.
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    Georgii (2.14) gives $|H^\Phi_\Lambda|\le\|\Phi\|_\Lambda$, so the normalized Boltzmann
+    density $\rho^\Phi_\Lambda = e^{-\beta H^\Phi_\Lambda}/Z^\Phi_\Lambda$ satisfies
+    $\rho^\Phi_\Lambda\le e^{2|\beta|\,\|\Phi\|_\Lambda}$. This is the bounded-density case
+    ($B=\Cfg$) of the general net criterion Georgii (4.12).
+\end{proof}
+
+\begin{theorem}[Georgii (4.23)(a)]
+    \label{thm:exg-4-23-a}
+    \uses{thm:exg-4-22, lem:exg-4-14-1, lem:exg-gp-closed, lem:exg-gp-dominated, def:exg-b-space}
+    \lean{Potential.GP_gibbsSpecification_nonempty,
+      Potential.isCompact_setOf_mem_GP_gibbsSpecification}
+    \leanok
+
+    Let $(E,\mathcal E)$ be standard Borel and $\lambda$ finite. For every $\Phi\in\Bspace$
+    the set $\Gibbs{\Phi}$ is non-empty and $\mathcal L$-compact.
+\end{theorem}
+\begin{proof}
+    \uses{thm:exg-4-22, lem:exg-4-14-1, lem:exg-gp-closed, lem:exg-gp-dominated}
+    \leanok
+
+    Non-emptiness: $\gamma^\Phi$ is quasilocal (Georgii, Example (2.25)) and the net
+    $(\gamma^\Phi_\Lambda(\cdot\mid\omega))_\Lambda$ is locally equicontinuous by
+    Lemma \ref{lem:exg-4-14-1}, so Theorem \ref{thm:exg-4-22} applies. Compactness:
+    $\Gibbs{\Phi}$ is closed by Lemma \ref{lem:exg-gp-closed}, and by
+    Lemma \ref{lem:exg-gp-dominated} together with the density bound of
+    Lemma \ref{lem:exg-4-14-1} it is contained in the $\mathcal L$-compact set of random
+    fields dominated by the finite measures $e^{2|\beta|\,\|\Phi\|_\Lambda}\lambda^S$.
+\end{proof}
+
+\begin{theorem}[Georgii (4.23)(b)]
+    \label{thm:exg-4-23-b}
+    \uses{lem:exg-gp-dominated, lem:exg-4-14-1, def:exg-b-space}
+    \lean{Potential.isCompact_closure_iUnion_setOf_mem_GP_of_iSup_normAt_lt_top,
+      Potential.isCompact_closure_iUnion_setOf_mem_GP}
+    \leanok
+
+    If $M\subseteq\Bspace$ is bounded, i.e. $\sup_{\Phi\in M}\|\Phi\|_i<\infty$ for every
+    $i\in S$, then $\Gibbs{M}=\bigcup_{\Phi\in M}\Gibbs{\Phi}$ is relatively compact in the
+    topology of local convergence.
+\end{theorem}
+\begin{proof}
+    \uses{lem:exg-gp-dominated, lem:exg-4-14-1}
+    \leanok
+
+    Boundedness of $M$ gives one finite bound $B_\Lambda\ge\|\Phi\|_\Lambda$ valid for all
+    $\Phi\in M$, so by Lemma \ref{lem:exg-4-14-1} and Lemma \ref{lem:exg-gp-dominated} the
+    whole union is contained in the set of random fields dominated by the finite measures
+    $e^{2|\beta|B_\Lambda}\lambda^S$, which is $\mathcal L$-compact.
+\end{proof}
+
+\begin{theorem}[Georgii (4.23)(c)]
+    \label{thm:exg-4-23-c}
+    \uses{thm:exg-4-17, def:exg-b-space}
+    \lean{Potential.BSpace.gibbsSpecification,
+      Potential.BSpace.tendsto_dist_action_gibbsSpecification,
+      Potential.BSpace.isClosed_graph_GP}
+    \leanok
+
+    The graph $\{(\Phi,\mu):\Phi\in\Bspace,\ \mu\in\Gibbs{\Phi}\}$ of the Gibbs
+    correspondence is closed in $\Bspace\times\Prob(\Cfg,\mathcal F)$. As Georgii remarks,
+    this statement does not use the standard Borel hypothesis, and the Lean statement indeed
+    carries no such assumption.
+\end{theorem}
+\begin{proof}
+    \uses{thm:exg-4-17, lem:exg-mem-gp-iff}
+    \leanok
+
+    Let $(\Phi^\alpha,\mu_\alpha)\to(\Phi,\mu)$ in the graph. Index by
+    $\bar D = D\times\Fin$ with the product ordering, setting
+    $\Phi^{(\alpha,\Lambda)}=\Phi^\alpha$, $\mu_{(\alpha,\Lambda)}=\mu_\alpha$ and
+    $\Lambda_{(\alpha,\Lambda)}=\Lambda$. Then $\Lambda_{(\alpha,\Lambda)}\to S$, and by
+    Georgii (4.19) --- the estimate $|H^{\Phi^\alpha}_\Lambda-H^\Phi_\Lambda|
+    \le\|\Phi^\alpha-\Phi\|_\Lambda\to0$ --- the specifications $\gamma^{\Phi^\alpha}$
+    converge to $\gamma^\Phi$ uniformly on local observables. Since each $\mu_\alpha$ is
+    Gibbs, $\mu_\alpha\gamma^{\Phi^\alpha}_\Lambda=\mu_\alpha\to\mu$, and
+    Theorem \ref{thm:exg-4-17} yields $\mu\in\Gibbs{\Phi}$.
+\end{proof}
+
+\begin{theorem}[Georgii (4.23)(d)]
+    \label{thm:exg-4-23-d}
+    \uses{thm:exg-4-23-c, lem:exg-4-14-1, lem:exg-gp-dominated, prop:exg-b-frechet}
+    \lean{Potential.BSpace.isClosed_setOf_exists_mem_GP}
+    \leanok
+
+    Over a standard Borel state space the Gibbs correspondence is upper semicontinuous: for
+    every closed $F\subseteq\Prob(\Cfg,\mathcal F)$ the set
+    $\Gibbs{\cdot}^{-1}(F)=\{\Phi\in\Bspace:\Gibbs{\Phi}\cap F\neq\emptyset\}$ is closed in
+    $\Bspace$. Georgii argues with sequences, using metrizability of $\Bspace$; the Lean
+    proof argues with the cluster-point filter directly, so it does not need
+    Proposition \ref{prop:exg-b-frechet}.
+\end{theorem}
+\begin{proof}
+    \uses{thm:exg-4-23-c, lem:exg-4-14-1, lem:exg-gp-dominated}
+    \leanok
+
+    Let $\Phi$ be a cluster point of $\Gibbs{\cdot}^{-1}(F)$ and choose, for each $\Psi$ in
+    that set, a witness $\mu_\Psi\in\Gibbs{\Psi}\cap F$. Along the cluster-point filter one
+    eventually has $\|\Psi\|_\Lambda\le\|\Phi\|_\Lambda+|\Lambda|$, so by
+    Lemma \ref{lem:exg-4-14-1} and Lemma \ref{lem:exg-gp-dominated} the witnesses are
+    dominated by one fixed family of finite measures and are therefore locally
+    equicontinuous. By Georgii (4.9) they converge along an ultrafilter to some $\mu$, which
+    lies in $F$ since $F$ is closed, and in $\Gibbs{\Phi}$ since the graph is closed
+    (Theorem \ref{thm:exg-4-23-c}).
+\end{proof}
+
+\begin{proposition}[Georgii (4.23) for an arbitrary finite a priori measure]
+    \label{prop:exg-4-23-finite-lambda}
+    \uses{thm:exg-4-23-a, thm:exg-4-23-b, thm:exg-4-23-c, thm:exg-4-23-d, def:premodif}
+    \lean{Specification.lambdaSpecification,
+      MeasureTheory.Measure.probNormalize,
+      MeasureTheory.Measure.exists_measurable_pos_isProbabilityMeasure_withDensity,
+      Potential.gibbsSpecificationOfSigmaFiniteAdmissible,
+      Potential.gibbsSpecificationOfFiniteReference,
+      Potential.gibbsSpecificationOfFiniteReference_eq_gibbsSpecificationOfAbsolutelySummable,
+      Potential.GP_gibbsSpecificationOfFiniteReference_nonempty,
+      Potential.isCompact_setOf_mem_GP_gibbsSpecificationOfFiniteReference,
+      Potential.BSpace.isClosed_graph_GP_ofFiniteReference,
+      Potential.BSpace.isClosed_setOf_exists_mem_GP_ofFiniteReference}
+    \leanok
+
+    Georgii states Theorem (4.23) for an arbitrary \emph{finite} $\lambda\in\Meas(E,\mathcal E)$,
+    not only for a probability measure; by (2.14) an absolutely summable potential is
+    $\lambda$-admissible exactly when $\lambda$ is finite, so this hypothesis cannot be
+    dropped. All four parts (a)--(d) hold verbatim for every finite non-zero $\lambda$.
+\end{proposition}
+\begin{proof}
+    \uses{thm:exg-4-23-a, thm:exg-4-23-b, thm:exg-4-23-c, thm:exg-4-23-d}
+    \leanok
+
+    By Georgii's Remark (1.28)(3), replacing $\lambda$ by $r\cdot\lambda$ with $r>0$
+    measurable and finite, and $\rho_\Lambda$ by
+    $\rho_\Lambda/\prod_{i\in\Lambda}r(\omega_i)$, leaves the $\lambda$-specification
+    unchanged; for a finite $\lambda$ one may take the constant
+    $r\equiv\lambda(E)^{-1}$, and then the normalization absorbs the constant, so the density
+    family need not be changed at all. Hence $\gamma^\Phi$ computed with $\lambda$ coincides
+    with $\gamma^\Phi$ computed with $\lambda(E)^{-1}\lambda$, and (a)--(d) transport.
+\end{proof}
+
+\subsection*{Georgii Corollary (4.13) in Gibbsian form}
+
+\begin{corollary}[Georgii (4.13), Hamiltonian form]
+    \label{cor:exg-4-13}
+    \uses{lem:exg-4-14-1, def:exg-b-space}
+    \lean{Potential.premodifierNorm_le_of_abs_hamiltonian_le,
+      Potential.locallyEquicontinuous_of_confinement_hamiltonian}
+    \leanok
+
+    Let $(K_\ell)_{\ell\ge1}$ be measurable subsets of $E$ with $\lambda(K_\ell)>0$, and let
+    $\mu_a=\nu_a\gamma^{\Phi^a}_{\Lambda_a}$ with $\Lambda_a\to S$. Suppose
+    \begin{enumerate}
+        \item $\lim_{\ell\to\infty}\limsup_a\mu_a(\{\omega:\omega_i\notin K_\ell\})=0$ for
+              every site $i$, and
+        \item for every $\Lambda\in\Fin$ there is $\Delta\supseteq\Lambda$ such that for every
+              $\ell$ the Hamiltonians $H^{\Phi^a}_\Lambda$ are eventually uniformly bounded on
+              the confinement box $\{\omega:\omega_i\in K_\ell\ \forall i\in\Delta\}$.
+    \end{enumerate}
+    Then $(\mu_a)_a$ is locally equicontinuous.
+\end{corollary}
+\begin{proof}
+    \leanok
+
+    Hypothesis (ii) gives $|H^{\Phi^a}_\Lambda|\le c$ on the box, whence the normalized
+    density obeys Georgii's estimate
+    $\rho^{\Phi^a}_\Lambda\le e^{|\beta|c}\big/\big(e^{-|\beta|c}\lambda(K_\ell)^{|\Lambda|}\big)$
+    there: the numerator is bounded above by $e^{|\beta|c}$, and properness of the
+    independent specification evaluates the partition function on the box from below by
+    $e^{-|\beta|c}\lambda(K_\ell)^{|\Lambda|}$. This is exactly the density hypothesis of the
+    general criterion Georgii (4.13), and (i) is its escape-of-mass hypothesis.
+\end{proof}
+
+\subsection*{Georgii Example (4.20): free and periodic boundary conditions}
+
+\begin{example}[Georgii, Example (4.20)(1): free boundary conditions]
+    \label{ex:exg-4-20-1}
+    \uses{thm:exg-4-17, def:exg-b-space}
+    \lean{Potential.truncation, Potential.tail, Potential.abs_hamiltonian_truncation_sub_le,
+      Potential.tendsto_tail_atTop, Potential.tendsto_truncationB,
+      Potential.tendsto_dist_action_truncation,
+      Potential.mem_GP_of_mapClusterPt_truncation,
+      Potential.mem_GP_of_mapClusterPt_truncation_finiteVolumeDistributions}
+    \leanok
+
+    For $\Phi\in\Bspace$ and $\Delta\in\Fin$ let $\Phi^\Delta_A=\Phi_A$ if $A\subseteq\Delta$
+    and $\Phi^\Delta_A=0$ otherwise. Then
+    \[\big|H^{\Phi^\Delta}_\Lambda-H^\Phi_\Lambda\big|\ \le\
+      \sum_{A\cap\Lambda\neq\emptyset,\ A\not\subseteq\Delta}\ \sup_\eta|\Phi_A(\eta)|
+      \ \xrightarrow[\ \Delta\uparrow S\ ]{}\ 0,\]
+    so $\Phi^\Delta\to\Phi$ in $\Bspace$ and $\gamma^{\Phi^\Delta}\to\gamma^\Phi$ uniformly.
+    Every cluster point of the free-boundary net
+    $\Delta\mapsto\nu_\Delta\gamma^{\Phi^\Delta}_\Delta$ --- in particular of
+    $(\gamma^{\Phi^\Delta}_\Delta(\cdot\mid\omega))_\Delta$ --- belongs to $\Gibbs{\Phi}$.
+\end{example}
+\begin{proof}
+    \uses{thm:exg-4-17}
+    \leanok
+
+    The termwise estimate is immediate: the Hamiltonians differ only in the terms $\Phi_A$
+    with $A\cap\Lambda\neq\emptyset$ and $A\not\subseteq\Delta$. The tail of the absolutely
+    convergent interaction series over $\{A:A\not\subseteq\Delta\}$ tends to $0$ along
+    $\Delta\uparrow S$. Georgii (4.19) turns this into uniform $\mathcal L$-convergence
+    $\gamma^{\Phi^\Delta}\to\gamma^\Phi$, and the cluster-point form of
+    Theorem \ref{thm:exg-4-17} concludes.
+\end{proof}
+
+\begin{corollary}[Free-boundary existence]
+    \label{cor:exg-free-boundary-existence}
+    \uses{ex:exg-4-20-1, thm:exg-4-22, lem:exg-4-14-1}
+    \lean{Potential.locallyEquicontinuous_truncation_bindPM,
+      Potential.exists_mem_GP_mapClusterPt_truncation}
+    \leanok
+
+    Over a standard Borel state space the free-boundary net of any $\Phi\in\Bspace$
+    \emph{has} a cluster point, for any choice of boundary fields $(\nu_\Delta)_\Delta$, and
+    every such cluster point is a Gibbs measure for $\Phi$. Georgii's Example (4.20)(1)
+    asserts only that cluster points, when they exist, are Gibbs; the existence half here is
+    stronger, and it is unconditional because $\|\Phi^\Delta\|_i\le\|\Phi\|_i$ makes the
+    density bound of Lemma \ref{lem:exg-4-14-1} uniform in $\Delta$.
+\end{corollary}
+\begin{proof}
+    \uses{ex:exg-4-20-1, thm:exg-4-22, lem:exg-4-14-1}
+    \leanok
+
+    $\|\Phi^\Delta\|_i\le\|\Phi\|_i$, so on $\mathcal F_\Lambda$-events every
+    $\gamma^{\Phi^\Delta}_\Lambda$ is dominated by the single finite measure
+    $e^{2|\beta|\|\Phi\|_\Lambda}\lambda^S$; by consistency the same bound passes to
+    $\nu_\Delta\gamma^{\Phi^\Delta}_\Delta$ once $\Lambda\subseteq\Delta$. Local
+    equicontinuity follows, and Theorem \ref{thm:exg-4-22} applies with the uniform
+    convergence of Example \ref{ex:exg-4-20-1}.
+\end{proof}
+
+\begin{example}[Georgii, Example (4.20)(2): periodic boundary conditions]
+    \label{ex:exg-4-20-2}
+    \uses{thm:exg-4-17, ex:exg-4-20-1, def:exg-b-space}
+    \lean{Potential.IsTorusReduction, Potential.IsAnchor, Potential.periodicExtend,
+      Potential.periodicModification, Potential.normAt_periodicModification_le,
+      Potential.isAbsolutelySummable_periodicModification,
+      Potential.abs_hamiltonian_periodicModification_sub_le,
+      Potential.mem_GP_of_mapClusterPt_periodicModification,
+      Potential.mem_GP_of_mapClusterPt_latticePeriodic_finiteVolumeDistributions}
+    \leanok
+
+    Let $\Phi\in\Bspace$ be shift invariant and let $\Delta$ be a box identified with the
+    torus $S/p\!\cdot\!S$ through the reduction $\pi$ and periodic continuation
+    $\tilde\sigma_\Delta(\omega)_i=\omega_{\pi(i)}$. The $\Delta$-periodic modification
+    $\tilde\Phi^\Delta_A=\sum_{B\in\mathcal R(A)}\Phi_B\circ\tilde\sigma_\Delta$ satisfies
+    $\|\tilde\Phi^\Delta\|_i\le\|\Phi\|_i$, hence lies in $\Bspace$, and
+    \[\big|H^{\tilde\Phi^\Delta}_\Lambda-H^\Phi_\Lambda\big|\ \le\ 2
+      \sum_{A\cap\Lambda\neq\emptyset,\ A\not\subseteq\Delta}\ \sup_\eta|\Phi_A(\eta)| .\]
+    Consequently every cluster point of the periodic-boundary net
+    $\Delta\mapsto\nu_\Delta\gamma^{\tilde\Phi^\Delta}_\Delta$, $\Delta\uparrow S$, belongs
+    to $\Gibbs{\Phi}$.
+\end{example}
+\begin{proof}
+    \uses{thm:exg-4-17, ex:exg-4-20-1}
+    \leanok
+
+    The class $\mathcal R(A)$ of representatives, one per class of translates modulo the
+    periods, is selected by a translation-equivariant anchor; reindexing along it gives
+    $\|\tilde\Phi^\Delta\|_i\le\|\Phi\|_i$. In the difference of Hamiltonians the terms with
+    $A\subseteq\Delta$ cancel against the representative $B=A$, leaving two sums, each
+    dominated by the tail of Example \ref{ex:exg-4-20-1}; this is the factor $2$. Georgii
+    (4.19) then gives uniform $\mathcal L$-convergence, and the cluster-point form of
+    Theorem \ref{thm:exg-4-17} concludes. The Lean development instantiates the hypotheses
+    twice: on $\mathbb Z$ with the boxes $[-(n+1),n+1)$ and the least-site anchor, and on
+    $\mathbb Z^d$ with the cubes $[-(n+1),n+1)^d$, the coordinatewise reduction and the
+    lexicographic anchor. Georgii takes the net over his whole directed set of rectangular
+    boxes; the lattice statement is proved for the cofinal sequence of cubes, the general net
+    form being \texttt{mem\_GP\_of\_mapClusterPt\_periodicModification}.
+\end{proof}
+
+\begin{remark}[Georgii (4.20): the boundary condition drops out]
+    \label{rmk:exg-4-20-supported}
+    \uses{ex:exg-4-20-1, ex:exg-4-20-2}
+    \lean{Potential.gibbsSpecificationOfAbsolutelySummable_apply_eq_of_supported,
+      Potential.gibbsSpecification_truncation_apply_eq,
+      Potential.gibbsSpecification_periodicModification_apply_eq}
+    \leanok
+
+    For a potential $\Psi$ supported in $\Delta$ --- the truncation $\Phi^\Delta$ as well as
+    the periodic modification $\tilde\Phi^\Delta$ --- the restriction of
+    $\gamma^\Psi_\Delta(\cdot\mid\omega)$ to $\mathcal F_\Delta$ does not depend on $\omega$.
+    This is what makes ``free'' and ``periodic'' boundary conditions well posed.
+\end{remark}
+
+\subsection*{Per-site a priori measures}
+
+\begin{definition}[Inhomogeneous independent specification]
+    \label{def:exg-isssd-family}
+    \uses{def:isssd, def:isssd-spec, def:juxtaposition, def:markov-spec, def:proper-spec}
+    \lean{Specification.isssdFamilyFun, Specification.isssdFamily,
+      Specification.isssdFamily_const, Specification.hasFreeMeasure_isssdFamily}
+    \leanok
+
+    Given a family $(\lambda_i)_{i\in S}$ of single-spin probability measures, the kernel
+    resampling the sites of $\Lambda$ independently, site $i$ from $\lambda_i$, and keeping
+    the boundary condition outside $\Lambda$, is a specification; a constant family recovers
+    $\ISSSD(\lambda)$, and on $\mathcal F_\Lambda$-events the kernel gives the mass of the
+    product measure $\bigotimes_i\lambda_i$ regardless of the boundary condition.
+\end{definition}
+
+\begin{theorem}[Georgii (4.23)(a) over per-site a priori measures]
+    \label{thm:exg-4-23-a-family}
+    \uses{def:exg-isssd-family, thm:exg-4-22, thm:exg-4-23-a, lem:exg-gp-dominated}
+    \lean{Potential.gibbsSpecificationFamily,
+      Potential.isQuasilocal_gibbsSpecificationFamily,
+      Potential.GP_gibbsSpecificationFamily_nonempty,
+      Potential.isCompact_setOf_mem_GP_gibbsSpecificationFamily}
+    \leanok
+
+    Over a standard Borel state space, the Gibbsian specification of an absolutely summable
+    potential relative to a family $(\lambda_i)_{i\in S}$ of per-site a priori probability
+    measures has a non-empty and $\mathcal L$-compact set of Gibbs measures. This is the
+    generality Georgii announces in the proof of Theorem (8.39): ``its proof extends without
+    difficulties to the case when the single a priori measure $\lambda$ is replaced by a
+    family $(\tilde\lambda_i)$ of separate finite a priori measures for each site.''
+\end{theorem}
+\begin{proof}
+    \uses{def:exg-isssd-family, thm:exg-4-22, lem:exg-gp-dominated}
+    \leanok
+
+    Georgii's proof of (4.23)(a) uses only two properties of the reference specification:
+    that it resamples volumes (which gives quasilocality of the modification) and that it
+    forgets the boundary condition on $\mathcal F_\Lambda$-events (which gives the density
+    bound $e^{2|\beta|\|\Phi\|_\Lambda}$ against $\bigotimes_i\lambda_i$, hence local
+    equicontinuity). Both hold for the inhomogeneous independent specification of
+    Definition \ref{def:exg-isssd-family}, so Theorem \ref{thm:exg-4-22} and
+    Lemma \ref{lem:exg-gp-dominated} apply verbatim.
+\end{proof}
+
+\begin{corollary}[Absorbing the self-energies: the existence half of Georgii (8.39)]
+    \label{cor:exg-self-energy}
+    \uses{thm:exg-4-23-a-family, def:exg-isssd-family, def:premodif}
+    \lean{Potential.selfEnergyWeight, Potential.selfEnergyMeasure,
+      Potential.lambdaSpecification_eq_gibbsSpecificationFamily,
+      Potential.lintegral_selfEnergyWeight_ne_top,
+      Potential.GP_lambdaSpecification_nonempty}
+    \leanok
+
+    Let $\Phi$ be $\lambda$-admissible with $\lambda$ $\sigma$-finite and non-zero, and let
+    $\eta_0$ be a reference configuration. If the recentred many-body part
+    $(\Phi^{\mathrm{many}})^{\eta_0}$ of $\Phi$ is absolutely summable, then the
+    $\lambda$-specification of $\Phi$ has a Gibbs measure. Georgii obtains condition (8.40)
+    on $\mathbb Z$ or $\mathbb N$ as a sufficient criterion for that summability; the Lean
+    statement isolates the summability itself as the hypothesis.
+\end{corollary}
+\begin{proof}
+    \uses{thm:exg-4-23-a-family}
+    \leanok
+
+    Split $\Phi$ into its one-body part $(\Phi_{\{i\}})_i$ and its many-body part, and
+    recentre the latter at $\eta_0$. The Boltzmann factor then factorises as a constant times
+    the Boltzmann factor of the recentred many-body part times
+    $\prod_{i\in\Lambda}e^{-\beta\Phi_{\{i\}}}$; by Remark (1.28)(3) the last factor is
+    exactly the weight by which the reference kernel changes when $\lambda$ is replaced at
+    site $i$ by the normalized measure $c_i^{-1}e^{-\beta\Phi_{\{i\}}}\lambda$. The
+    normalizing constants $c_i$ are finite because $\lambda$-admissibility at the single-site
+    volumes bounds $\lambda(e^{-\beta\Phi_{\{i\}}})$ from above. Hence the
+    $\lambda$-specification of $\Phi$ \emph{is} the Gibbsian specification of the recentred
+    many-body part over the per-site measures, and
+    Theorem \ref{thm:exg-4-23-a-family} applies.
+\end{proof}
+
+\subsection*{Two remarks}
+
+\begin{remark}[The weak topology is kept separate]
+    \label{rmk:exg-weak-topology}
+    \uses{lem:exg-mem-gp-iff}
+    \lean{Specification.continuous_bindPM,
+      MeasureTheory.GibbsMeasure.isClosed_GP,
+      MeasureTheory.GibbsMeasure.isCompact_GP,
+      MeasureTheory.GibbsMeasure.existence_of_gibbsMeasure_compact_weak,
+      MeasureTheory.GibbsMeasure.existence_of_gibbsMeasure_of_isTight_weak}
+    \leanok
+
+    Besides Georgii's local-convergence route, the library also carries the classical
+    Feller/Prokhorov route in the \emph{weak} topology: if $\gamma$ is Feller then
+    $\mu\mapsto\mu\gamma_\Lambda$ is weakly continuous, so $\Gibbs{\gamma}$ is weakly closed,
+    and weak compactness --- from compactness of $E$, or from tightness of the finite-volume
+    distributions --- produces a Gibbs measure. These statements are deliberately named
+    ``weak'' in the library: weak compactness is not Georgii's local-convergence compactness,
+    and they are not a substitute for Theorem \ref{thm:exg-4-22}.
+\end{remark}
+
+\begin{remark}[Not formalized: the Appendix 4.A]
+    \label{rmk:exg-appendix-4a}
+
+    Georgii's Appendix 4.A (the isomorphism theorem (4.A6) for standard Borel spaces, the
+    notion (4.A9) of a countable core, Theorem (4.A11) and Corollary (4.A13)) is not
+    formalized in this development. Mathlib's \texttt{StandardBorelSpace} typeclass and its
+    API are used in place of (4.A6), and the compactness arguments of \S4.2 are carried out
+    directly rather than through a countable core. The results of the appendix are not used
+    in Chapter 4 itself; they are needed for Georgii's Chapters 7, 14 and 15.
+\end{remark}

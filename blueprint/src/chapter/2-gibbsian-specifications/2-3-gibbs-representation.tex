@@ -1,0 +1,507 @@
+\section{Gibbs representation of pre-modifications}
+
+Throughout this section $S$ is a countably infinite set, $(E,\mathcal{E})$ a measurable
+space, $\Cfg = E^S$ the configuration space, and $\lambda \in \Meas(E,\mathcal{E})$ an
+a priori measure (in Lean: a $\sigma$-finite $\nu$).  We fix a $\lambda$-specification
+$\gamma = \rho\lambda$ and study its $\lambda$-modification $\rho = (\rho_\Lambda)_{\Lambda \in \Fin}$.
+Georgii's aim is a converse to \S2.1: a positive quasilocal pre-modification is
+\emph{necessarily} Gibbsian, and the potential may be normalized.
+
+The whole section is formalized in \texttt{GibbsMeasure/Potential/GibbsRepresentation.lean}
+in the namespace \texttt{Potential}, for the Dirac normalization $\alpha = \delta_a$ only;
+see Remark~\ref{rmk:grep-not-formalized}.
+
+% ---------------------------------------------------------------------------
+\begin{definition}[Georgii (2.28), $\alpha$-normalized potential]
+    \label{def:grep-alpha-normalized}
+
+    Let $\alpha \in \Prob(E,\mathcal{E})$ and let $\alpha_B$ ($B \subset S$) be the probability
+    kernels from $\Tail_B$ to $\mathcal{F}$ of Georgii's Remark (1.25), so that
+    \[
+        \alpha_B f(\omega) = \int \alpha^B(\mathrm{d}\zeta)\, f(\zeta_B \omega_{S \setminus B}).
+    \]
+    A potential $\Phi$ is \textbf{$\alpha$-normalized} if
+    \[
+        \alpha_B \Phi_A = \int \alpha^B(\mathrm{d}\zeta)\, \Phi_A(\zeta_B \sigma_{S\setminus B}) = 0
+        \qquad \text{whenever } \emptyset \neq B \subset A \in \Fin .
+    \]
+    For $\alpha = \delta_a$, the Dirac measure at $a \in E$, such a $\Phi$ is called a
+    \textbf{gas potential with vacuum state $a$}.
+
+    The general $\alpha$-normalization is not formalized: the library carries only the case
+    $\alpha = \delta_a$ (Definition~\ref{def:grep-gas-potential}).
+\end{definition}
+
+\begin{definition}[Vacuum configurations]
+    \label{def:grep-vacuum}
+    \lean{Potential.vacuum, Potential.vacuumOn}
+    \leanok
+
+    For $a \in E$, $C \in \Finset(S)$ and $\eta \in \Cfg$ set
+    \[
+        (\text{\texttt{vacuum}}\ a\ C\ \eta)_i = \begin{cases} \eta_i & i \in C \\ a & i \notin C\end{cases}
+        \qquad
+        (\text{\texttt{vacuumOn}}\ a\ \Lambda\ \eta)_i = \begin{cases} a & i \in \Lambda \\ \eta_i & i \notin \Lambda .\end{cases}
+    \]
+    These are Georgii's $\omega_C a_{S\setminus C}$ and $a_\Lambda \omega_{S\setminus\Lambda}$.
+    For $\alpha = \delta_a$ the kernel of Definition~\ref{def:grep-alpha-normalized} acts by
+    $\alpha_{S\setminus C} f(\eta) = f(\eta_C a_{S\setminus C})$, so all occurrences of
+    $\alpha_{S \setminus C}$ below are evaluations at a vacuum configuration.
+\end{definition}
+
+\begin{definition}[Georgii (2.29)(1), gas potential]
+    \label{def:grep-gas-potential}
+    \uses{def:grep-alpha-normalized}
+    \lean{Potential.IsGasPotential}
+    \leanok
+
+    $\Phi$ is a gas potential with vacuum state $a$ if and only if
+    \[
+        \Phi_A(\omega) = 0 \quad \text{whenever } \omega_i = a \text{ for some } i \in A .
+    \]
+    This characterisation --- Georgii's Comment (2.29)(1) --- is what the library takes as the
+    \emph{definition}, so no measure-theoretic normalization condition has to be carried around.
+    Georgii's Comment (2.29)(2) explains the name: reading $\{\sigma_i = a\}$ as ``$i$ is empty''
+    and $\{\sigma_i = x\}$, $x \neq a$, as ``$i$ carries a particle of type $x$'', a gas potential
+    is one in which empty sites do not interact.
+\end{definition}
+
+\begin{definition}[Georgii (2.22), quasilocal function]
+    \label{def:grep-quasilocal-fun}
+    \lean{MeasureTheory.GibbsMeasure.IsQuasilocalFun}
+    \leanok
+
+    $f : \Cfg \to \R$ is \textbf{quasilocal} if for every $\varepsilon > 0$ there is
+    $\Delta \in \Finset(S)$ with $|f(\zeta) - f(\eta)| \leq \varepsilon$ whenever
+    $\zeta_\Delta = \eta_\Delta$.  A family $(\rho_\Lambda)_{\Lambda \in \Fin}$ is quasilocal
+    if each $\rho_\Lambda$ is.  In the library $\rho_\Lambda$ takes values in
+    $[0,\infty]$, so quasilocality is required of its real part, the function
+    $\eta \mapsto \rho_\Lambda(\eta)$ read through \texttt{ENNReal.toReal}.
+\end{definition}
+
+% ---------------------------------------------------------------------------
+\begin{definition}[Georgii, proof of (2.30), step 1: the operator $p_A$]
+    \label{def:grep-mobius}
+    \uses{def:grep-vacuum}
+    \lean{Potential.mobius}
+    \leanok
+
+    For $A \in \Fin \union \set{\emptyset}$ and $f : \Cfg \to \R$ put
+    \[
+        p_A f = \sum_{C \subset A} (-1)^{|A \setminus C|}\, \alpha_{S \setminus C} f ,
+    \]
+    which for $\alpha = \delta_a$ reads
+    $p_A f(\eta) = \sum_{C \subset A} (-1)^{|A\setminus C|} f(\eta_C a_{S \setminus C})$.
+    This is a M\"obius (inclusion--exclusion) inversion over the Boolean lattice of subsets of $A$.
+\end{definition}
+
+\begin{lemma}[Georgii, proof of (2.30), step 1 (i)--(iii)]
+    \label{lem:grep-mobius-properties}
+    \uses{def:grep-mobius, def:grep-gas-potential, def:grep-vacuum}
+    \lean{Potential.dependsOn_mobius, Potential.mobius_eq_zero, Potential.sum_powerset_mobius}
+    \leanok
+
+    \begin{enumerate}
+        \item $p_A f$ is $\mathcal{F}_A$-measurable; in the library, $p_A f$ depends on the
+        configuration only through the coordinates in $A$.
+        \item For all $\Lambda \in \Fin \union \set{\emptyset}$,
+        $\displaystyle \alpha_{S\setminus\Lambda} f = \sum_{A \subset \Lambda} p_A f$.
+        \item $\alpha_B(p_A f) = 0$ for all $\emptyset \neq B \subset A$; for $\alpha = \delta_a$
+        this says $p_A f(\eta) = 0$ as soon as $\eta_i = a$ for some $i \in A$.
+    \end{enumerate}
+    The three statements hold for \emph{every} $f : \Cfg \to \R$ --- no measurability, positivity
+    or pre-modification hypothesis on $f$ is used, which is slightly more than Georgii needs.
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    (i) Each summand $f(\eta_C a_{S\setminus C})$ with $C \subset A$ reads only the coordinates
+    in $C \subset A$.  (ii) Is the inclusion--exclusion principle; concretely, exchanging the two
+    sums gives $\sum_{C \subset A \subset \Lambda}(-1)^{|A \setminus C|} = \delta_{C,\Lambda}$,
+    so only the term $C = \Lambda$ survives.  (iii) It suffices to treat $B = \set{i}$.  Pairing
+    each $C \not\ni i$ with $C \union \set{i}$ and using $\alpha_{\set i}\alpha_{S\setminus C}
+    = \alpha_{S \setminus C} = \alpha_{\set i}\alpha_{S \setminus (C \union \set i)}$
+    (for $\alpha = \delta_a$: the two vacuum configurations coincide when $\eta_i = a$) makes the
+    two contributions cancel, since the exponents $|A \setminus C|$ differ by one.
+\end{proof}
+
+% ---------------------------------------------------------------------------
+\begin{definition}[$u_\Lambda = \log \rho_\Lambda$]
+    \label{def:grep-log-density}
+    \lean{Potential.logDensity}
+    \leanok
+
+    For a family $\rho$ of $[0,\infty]$-valued densities put $u_\Lambda = \log \rho_\Lambda$
+    (in Lean, $\log$ of the real part of $\rho_\Lambda$).
+\end{definition}
+
+\begin{lemma}[Georgii (1.31) in logarithmic form]
+    \label{lem:grep-log-density-premod}
+    \uses{def:premodif, def:grep-log-density}
+    \lean{Potential.logDensity_sub_comm}
+    \leanok
+
+    Let $\rho$ be a pre-modification with $0 < \rho_\Lambda < \infty$ everywhere.  Then for
+    $\Lambda_1 \subset \Lambda_2$ and $\zeta,\omega$ agreeing off $\Lambda_1$,
+    \[
+        u_{\Lambda_2}(\zeta) - u_{\Lambda_2}(\omega) = u_{\Lambda_1}(\zeta) - u_{\Lambda_1}(\omega).
+    \]
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    This is the pre-modification identity
+    $\rho_{\Lambda_2}(\zeta)\rho_{\Lambda_1}(\omega) = \rho_{\Lambda_1}(\zeta)\rho_{\Lambda_2}(\omega)$
+    of Definition \ref{def:premodif}, after taking logarithms; all four factors are strictly
+    positive and finite, so $\log$ of a product splits.
+\end{proof}
+
+\begin{definition}[The gas potential of a pre-modification, Georgii (2.30) step 2]
+    \label{def:grep-gas-potential-of-premod}
+    \uses{def:grep-mobius, def:grep-log-density}
+    \lean{Potential.gasPotential}
+    \leanok
+
+    With $u_A = \log \rho_A$ set $\Phi^a_A = -p_A u_A$, i.e.
+    \[
+        \Phi^a_A(\omega) = -\sum_{C \subset A} (-1)^{|A \setminus C|} \log \rho_A(\omega_C a_{S\setminus C}).
+    \]
+\end{definition}
+
+\begin{lemma}[Georgii (2.30), step 2]
+    \label{lem:grep-gas-potential-step2}
+    \uses{def:grep-gas-potential-of-premod, lem:grep-mobius-properties, def:grep-gas-potential}
+    \lean{Potential.isGasPotential_gasPotential, Potential.isPotential_gasPotential}
+    \leanok
+
+    $\Phi^a$ is a potential in the sense of Georgii (2.2)(i) --- each $\Phi^a_A$ is
+    $\mathcal{F}_A$-measurable --- and it is a gas potential with vacuum state $a$.
+    Measurability needs $\rho_\Lambda$ measurable; the gas property needs nothing at all.
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    Both are Lemma~\ref{lem:grep-mobius-properties}(i) and (iii) applied to $f = u_A$, up to sign.
+    Measurability of $\Phi^a_A$ follows since $\eta \mapsto \eta_C a_{S \setminus C}$ is
+    measurable and $\log$ is measurable on $(0,\infty)$; $\mathcal{F}_A$-measurability then comes
+    from the dependence statement (i).
+\end{proof}
+
+\begin{lemma}[Georgii (2.30), step 3]
+    \label{lem:grep-gas-potential-step3}
+    \uses{def:grep-gas-potential-of-premod, lem:grep-log-density-premod}
+    \lean{Potential.gasPotential_eq_neg_mobius}
+    \leanok
+
+    For a positive finite pre-modification $\rho$ and $\emptyset \neq A \subset \Delta \in \Fin$,
+    \[
+        \Phi^a_A = -p_A u_\Delta .
+    \]
+    In particular the potential may be computed from $u_\Delta$ for any large enough $\Delta$.
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    By Lemma~\ref{lem:grep-log-density-premod}, $u_A - u_\Delta$ takes the same value at every
+    configuration of the form $\omega_C a_{S \setminus C}$ with $C \subset A$ --- all of them
+    agree off $A$ with the constant configuration $\mathbf{a}$.  Hence
+    $p_A u_A - p_A u_\Delta = (u_A(\mathbf a) - u_\Delta(\mathbf a)) \sum_{C \subset A}(-1)^{|A\setminus C|}$,
+    and the alternating sum over the powerset of a \emph{nonempty} $A$ vanishes.
+\end{proof}
+
+% ---------------------------------------------------------------------------
+\begin{lemma}[Georgii (2.30), step 4: the partial Hamiltonians]
+    \label{lem:grep-partial-hamiltonian}
+    \uses{lem:grep-gas-potential-step3, def:grep-vacuum}
+    \lean{Potential.sum_powerset_hamiltonianTerms_gasPotential}
+    \leanok
+
+    For $\Lambda \subset \Delta \in \Fin$, writing $H^\Phi_{\Lambda,\Delta} = \sum_{A \cap \Lambda \neq \emptyset,\ A \subset \Delta} \Phi^a_A$
+    for Georgii's partial Hamiltonian (2.13),
+    \[
+        H^{\Phi^a}_{\Lambda,\Delta} = \alpha_{S\setminus\Delta}\bigl(\alpha_\Lambda u_\Lambda - u_\Lambda\bigr),
+        \qquad\text{explicitly}\qquad
+        H^{\Phi^a}_{\Lambda,\Delta}(\omega) = \log \frac{\rho_\Lambda(\omega_{\Delta \setminus \Lambda} a_{S \setminus (\Delta \setminus \Lambda)})}{\rho_\Lambda(\omega_\Delta a_{S \setminus \Delta})} .
+    \]
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    Split $\sum_{\emptyset \neq A \subset \Delta}\Phi^a_A - \sum_{\emptyset \neq A \subset \Delta\setminus\Lambda}\Phi^a_A$
+    and replace each $\Phi^a_A$ by $-p_A u_\Delta$ (Lemma \ref{lem:grep-gas-potential-step3}).
+    Inclusion--exclusion, Lemma~\ref{lem:grep-mobius-properties}(ii), collapses the two full
+    powerset sums to $-\alpha_{S\setminus\Delta}u_\Delta + \alpha_{S\setminus(\Delta\setminus\Lambda)}u_\Delta
+    = \alpha_{S\setminus\Delta}(\alpha_\Lambda u_\Delta - u_\Delta)$.  Finally
+    $\alpha_\Lambda u_\Delta - u_\Delta = \alpha_\Lambda u_\Lambda - u_\Lambda$ by
+    Lemma~\ref{lem:grep-log-density-premod}.
+\end{proof}
+
+\begin{theorem}[Georgii (2.30), step 4: the Hamiltonian exists]
+    \label{thm:grep-hamiltonian-gas}
+    \uses{lem:grep-partial-hamiltonian, def:grep-quasilocal-fun}
+    \lean{Potential.hasSum_hamiltonianTerms_gasPotential, Potential.isSummable_gasPotential, Potential.hamiltonian_gasPotential}
+    \leanok
+
+    If in addition $\rho$ is quasilocal, then $\Phi^a$ satisfies Georgii (2.2)(ii): the limit
+    $H^{\Phi^a}_\Lambda = \lim_\Delta H^{\Phi^a}_{\Lambda,\Delta}$ along the net of finite volumes
+    exists for every $\Lambda \in \Fin$, and
+    \[
+        H^{\Phi^a}_\Lambda = v_\Lambda := \alpha_\Lambda u_\Lambda - u_\Lambda
+        = \log \rho_\Lambda(a_\Lambda \omega_{S\setminus\Lambda}) - \log \rho_\Lambda(\omega).
+    \]
+    The Lean statement is convergence in the summation filter along $\Delta \uparrow S$, which is
+    exactly Georgii's Convention (2.1); it is not unconditional summability.
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    By Lemma~\ref{lem:grep-partial-hamiltonian} the partial sum over the powerset of $\Delta$
+    equals $\log \rho_\Lambda(\omega_{\Delta\setminus\Lambda}a_{S\setminus(\Delta\setminus\Lambda)})
+    - \log \rho_\Lambda(\omega_\Delta a_{S\setminus\Delta})$ as soon as $\Delta \supset \Lambda$.
+    Quasilocality of $\rho_\Lambda$ makes $\rho_\Lambda(\omega_\Delta a_{S\setminus\Delta}) \to \rho_\Lambda(\omega)$
+    and $\rho_\Lambda(\omega_{\Delta\setminus\Lambda}a_{\cdots}) \to \rho_\Lambda(a_\Lambda\omega_{S\setminus\Lambda})$;
+    positivity and finiteness let one compose with the continuity of $\log$ on $(0,\infty)$.
+\end{proof}
+
+\begin{lemma}[Georgii (2.30), step 4: Boltzmann factor and partition function]
+    \label{lem:grep-partition-function}
+    \uses{thm:grep-hamiltonian-gas}
+    \lean{Potential.boltzmannFactor_gasPotential, Potential.sigmaFiniteLambdaZ_gasPotential, Potential.isSigmaFiniteLambdaAdmissible_gasPotential}
+    \leanok
+
+    Assume moreover $\lambda_\Lambda \rho_\Lambda = 1$ for all $\Lambda \in \Fin$.  Then
+    \[
+        h^{\Phi^a}_\Lambda = \rho_\Lambda \exp(-\alpha_\Lambda u_\Lambda),
+        \qquad
+        Z^{\Phi^a}_\Lambda = \lambda_\Lambda h^{\Phi^a}_\Lambda = \exp(-\alpha_\Lambda u_\Lambda),
+    \]
+    and consequently $\Phi^a$ is $\lambda$-admissible: $0 < Z^{\Phi^a}_\Lambda < \infty$ everywhere.
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    The first identity is $h^\Phi_\Lambda = \exp(-H^\Phi_\Lambda)$ together with
+    Theorem~\ref{thm:grep-hamiltonian-gas}.  The factor $\exp(-\alpha_\Lambda u_\Lambda)$ is
+    $\Tail_\Lambda$-measurable (it only reads the configuration off $\Lambda$), so it comes out of
+    the $\lambda_\Lambda$-integral, leaving $\lambda_\Lambda \rho_\Lambda = 1$.  The resulting
+    value $\exp(-\alpha_\Lambda u_\Lambda)$ is a strictly positive real, hence admissibility.
+\end{proof}
+
+\begin{proposition}[Georgii (2.30): $\rho = \rho^{\Phi^a}$]
+    \label{prop:grep-rho-eq}
+    \uses{lem:grep-partition-function}
+    \lean{Potential.sigmaFinitePremodifierNorm_gasPotential}
+    \leanok
+
+    Under the hypotheses of Lemma~\ref{lem:grep-partition-function},
+    $\rho^{\Phi^a}_\Lambda = h^{\Phi^a}_\Lambda / Z^{\Phi^a}_\Lambda = \rho_\Lambda$
+    for every $\Lambda \in \Fin$.
+\end{proposition}
+\begin{proof}
+    \leanok
+
+    Divide the two displayed identities of Lemma~\ref{lem:grep-partition-function}: the common
+    factor $\exp(-\alpha_\Lambda u_\Lambda)$ is nonzero and finite, so it cancels.
+\end{proof}
+
+% ---------------------------------------------------------------------------
+\begin{lemma}[Georgii (2.36) for $\alpha = \delta_a$]
+    \label{lem:grep-hamiltonian-vacuum}
+    \uses{def:grep-gas-potential, def:grep-vacuum}
+    \lean{Potential.sum_powerset_hamiltonianTerms_vacuum, Potential.hamiltonian_vacuum}
+    \leanok
+
+    Let $\Theta$ be any summable gas potential with vacuum state $a$.  Then for $\Lambda \subset \Delta$
+    the partial Hamiltonians at the configuration $\omega_\Lambda a_{S\setminus\Lambda}$ are already
+    constant in $\Delta$, and
+    \[
+        \alpha_{S\setminus\Lambda} H^\Theta_\Lambda
+        = H^\Theta_\Lambda(\omega_\Lambda a_{S\setminus\Lambda})
+        = \sum_{\emptyset \neq A \subset \Lambda} \Theta_A(\omega).
+    \]
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    A term $\Theta_A(\omega_\Lambda a_{S\setminus\Lambda})$ with $A \not\subset \Lambda$ carries a
+    site $i \in A \setminus \Lambda$ at which the configuration takes the vacuum value, hence
+    vanishes because $\Theta$ is a gas potential; a term with $A \cap \Lambda = \emptyset$ is
+    dropped by the definition of the partial Hamiltonian.  What is left is the finite sum over
+    $\emptyset \neq A \subset \Lambda$, on which $\Theta_A$ only reads coordinates inside $\Lambda$
+    and therefore sees $\omega$.
+\end{proof}
+
+\begin{theorem}[Georgii (2.35)(a) for $\alpha = \delta_a$]
+    \label{thm:grep-gas-potential-vanishes}
+    \uses{lem:grep-hamiltonian-vacuum}
+    \lean{Potential.eq_zero_of_isGasPotential}
+    \leanok
+
+    Let $\Theta$ be a summable gas potential with vacuum state $a$ all of whose Hamiltonians
+    $H^\Theta_\Lambda$ are $\Tail_\Lambda$-measurable.  Then $\Theta_A = 0$ for every
+    $A \in \Fin$ (i.e. every nonempty finite $A$).
+
+    Note that Georgii's index set is $\Fin = \set{A \subset S : 0 < |A| < \infty}$, so nothing is
+    claimed at $A = \emptyset$; in the Lean type of potentials the value at $\emptyset$ exists but
+    enters no Hamiltonian, and is therefore invisible to the hypothesis.
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    By $\Tail_\Lambda$-measurability, $H^\Theta_\Lambda$ takes the same value at
+    $\omega_\Lambda a_{S \setminus \Lambda}$ and at the constant configuration $\mathbf a$, where
+    it is $0$ (every term vanishes).  Lemma~\ref{lem:grep-hamiltonian-vacuum} then gives
+    $\sum_{\emptyset \neq A \subset B} \Theta_A(\omega) = 0$ for all finite $B$ and all $\omega$.
+    Induction on $|B|$ peels off the top term $\Theta_B(\omega)$, so $\Theta_B = 0$.
+\end{proof}
+
+\begin{proposition}[Georgii (2.34), (ii) $\Rightarrow$ (i)]
+    \label{prop:grep-2-34-ii-i}
+    \uses{prop:grep-rho-eq}
+    \lean{Potential.hamiltonian_sub_eq_log_sigmaFiniteLambdaZ, Potential.dependsOn_hamiltonian_sub_of_sigmaFinitePremodifierNorm_eq}
+    \leanok
+
+    Let $\Phi,\Psi$ be $\lambda$-admissible potentials with $\rho^\Phi = \rho^\Psi$.  Then
+    \[
+        H^\Phi_\Lambda - H^\Psi_\Lambda = \log \frac{Z^\Psi_\Lambda}{Z^\Phi_\Lambda},
+    \]
+    and the right-hand side is $\Tail_\Lambda$-measurable; hence $\Phi$ and $\Psi$ are equivalent
+    in the sense of Georgii (2.33).
+
+    The first identity is proved in Lean for an arbitrary index set $S$; the $\Tail_\Lambda$
+    conclusion is stated as a \texttt{DependsOn} statement at inverse temperature $\beta = 1$.
+\end{proposition}
+\begin{proof}
+    \leanok
+
+    From $h^\Phi_\Lambda / Z^\Phi_\Lambda = h^\Psi_\Lambda / Z^\Psi_\Lambda$ and
+    $h^\Phi_\Lambda = \exp(-H^\Phi_\Lambda)$, take logarithms; all four quantities are strictly
+    positive and finite by admissibility.  The partition functions $Z^\Phi_\Lambda, Z^\Psi_\Lambda$
+    are $\Tail_\Lambda$-measurable, since $\lambda_\Lambda(\cdot \mid \eta)$ only depends on
+    $\eta$ off $\Lambda$.
+\end{proof}
+
+\begin{corollary}[Georgii (2.30), step 5: uniqueness]
+    \label{cor:grep-uniqueness-step5}
+    \uses{thm:grep-gas-potential-vanishes, prop:grep-2-34-ii-i, def:grep-gas-potential}
+    \lean{Potential.eq_of_isGasPotential_of_sigmaFinitePremodifierNorm_eq}
+    \leanok
+
+    Two $\lambda$-admissible gas potentials $\Phi,\Psi$ with the same vacuum state $a$ and
+    $\rho^\Phi = \rho^\Psi$ agree: $\Phi_A = \Psi_A$ for every $A \in \Fin$.
+\end{corollary}
+\begin{proof}
+    \leanok
+
+    The difference $\Phi - \Psi$ is again a gas potential with vacuum state $a$ (Georgii (2.29)(1)),
+    and it is summable.  By Proposition~\ref{prop:grep-2-34-ii-i} its Hamiltonians are
+    $\Tail_\Lambda$-measurable, so Theorem~\ref{thm:grep-gas-potential-vanishes} makes it vanish
+    on every nonempty $A$.
+\end{proof}
+
+% ---------------------------------------------------------------------------
+\begin{theorem}[Georgii (2.30), the Gibbs representation theorem]
+    \label{thm:grep-2-30}
+    \uses{def:premodif, def:grep-quasilocal-fun, def:grep-gas-potential, def:grep-gas-potential-of-premod, prop:grep-rho-eq, cor:grep-uniqueness-step5, lem:grep-gas-potential-step2, thm:grep-hamiltonian-gas}
+    \lean{Potential.exists_unique_isGasPotential_sigmaFinitePremodifierNorm_eq}
+    \leanok
+
+    Let $\lambda \in \Meas(E,\mathcal{E})$ be an a priori measure and let $\rho$ be a positive
+    quasilocal pre-modification with $\lambda_\Lambda \rho_\Lambda = 1$ for all $\Lambda \in \Fin$.
+    Then for each $a \in E$ there is a \emph{unique} $\lambda$-admissible gas potential $\Phi^a$
+    with vacuum state $a$ such that $\rho = \rho^{\Phi^a}$; it is the explicit M\"obius expression
+    of Definition~\ref{def:grep-gas-potential-of-premod}.
+
+    Differences from the book's hypotheses.  Georgii's $\rho_\Lambda$ is $[0,\infty)$-valued, so
+    finiteness is automatic; the library's $\rho_\Lambda$ is $[0,\infty]$-valued and carries
+    $\rho_\Lambda \neq \infty$ as an explicit hypothesis alongside $\rho_\Lambda \neq 0$.  Georgii's
+    $\lambda \in \Meas(E,\mathcal{E})$ is realized as a $\sigma$-finite measure $\nu$ on $E$;
+    $S$ is required to be countable (as in Georgii \S1.1) with decidable equality, and the
+    normalization $\lambda_\Lambda \rho_\Lambda = 1$ is stated for the $\sigma$-finite reference
+    kernel of Georgii's Notation (1.26).  Uniqueness is asserted on Georgii's index set $\Fin$
+    only, for the reason given in Theorem~\ref{thm:grep-gas-potential-vanishes}.
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    Existence: take $\Phi^a_A = -p_A u_A$.  It is a potential and a gas potential
+    (Lemma~\ref{lem:grep-gas-potential-step2}), its Hamiltonians converge with
+    $H^{\Phi^a}_\Lambda = \alpha_\Lambda u_\Lambda - u_\Lambda$
+    (Theorem~\ref{thm:grep-hamiltonian-gas}), it is $\lambda$-admissible with
+    $Z^{\Phi^a}_\Lambda = \exp(-\alpha_\Lambda u_\Lambda)$
+    (Lemma~\ref{lem:grep-partition-function}), and $\rho^{\Phi^a} = \rho$
+    (Proposition~\ref{prop:grep-rho-eq}).  Uniqueness is
+    Corollary~\ref{cor:grep-uniqueness-step5}.
+\end{proof}
+
+\begin{corollary}[Georgii (2.30): positive quasilocal $\lambda$-specifications are Gibbsian]
+    \label{cor:grep-gibbsian-spec}
+    \uses{thm:grep-2-30, def:premodif, lem:premodif-modif}
+    \lean{Potential.sigmaFinitePremodifierKernel_gasPotential}
+    \leanok
+
+    Under the hypotheses of Theorem~\ref{thm:grep-2-30}, the Gibbsian kernels of $\Phi^a$ are
+    literally the kernels of the given $\lambda$-specification $\gamma = \rho\lambda$:
+    \[
+        \gamma^{\Phi^a}_\Lambda(\cdot \mid \eta) = \lambda_\Lambda(\cdot \mid \eta)\,\rho_\Lambda .
+    \]
+\end{corollary}
+\begin{proof}
+    \leanok
+
+    Both sides are the measure $\lambda_\Lambda(\cdot\mid\eta)$ with a density; the densities agree
+    by Proposition~\ref{prop:grep-rho-eq}.
+\end{proof}
+
+% ---------------------------------------------------------------------------
+\begin{remark}[What is not formalized in \S2.3]
+    \label{rmk:grep-not-formalized}
+    \uses{thm:grep-2-30, def:grep-alpha-normalized}
+
+    Theorem (2.30) has a second half, not in the library: if in addition $\log \rho_\Lambda$ is
+    bounded for every $\Lambda \in \Fin$, then for \emph{each} $\alpha \in \Prob(E,\mathcal{E})$
+    there is a unique uniformly convergent $\alpha$-normalized $\lambda$-admissible potential
+    $\Phi^\alpha$ with $\rho = \rho^{\Phi^\alpha}$.  The library instantiates the operator $p_A$
+    at $\alpha = \delta_a$ only (Definition~\ref{def:grep-mobius}), so neither the general
+    $\alpha$-normalization of Definition~\ref{def:grep-alpha-normalized} nor the uniform-convergence
+    estimate
+    $\lim_\Delta \|H^\Phi_{\Lambda,\Delta} - v_\Lambda\| \leq \lim_\Delta \int \alpha^{S\setminus\Delta}(\mathrm{d}\zeta)\sup_\omega |v_\Lambda(\omega_\Delta \zeta_{S\setminus\Delta}) - v_\Lambda(\omega)| = 0$
+    is available.  Georgii also observes that quasilocality may be weakened to
+    $\lim_\Delta \sup_{\zeta} |\rho_\Lambda(\omega_\Delta \zeta_{S\setminus\Delta}) - \rho_\Lambda(\omega)| = 0$
+    for each $\omega$ and $\Lambda$; the Lean proof assumes the (stronger) quasilocality of
+    Definition~\ref{def:grep-quasilocal-fun}.
+\end{remark}
+
+\begin{corollary}[Georgii (2.31)]
+    \label{cor:grep-2-31}
+    \uses{thm:grep-2-30, rmk:grep-not-formalized}
+
+    Suppose $E$ is finite, $\lambda$ is counting measure, and $\gamma$ is a positive quasilocal
+    specification.  Then for each $\alpha \in \Prob(E,\mathcal{E})$ there is a unique
+    $\alpha$-normalized $\lambda$-admissible potential $\Phi$ with $\gamma = \gamma^\Phi$; it is
+    uniformly convergent and $H^\Phi_\Lambda \in \overline{\mathcal{L}}$ for all $\Lambda \in \Fin$.
+
+    Not formalized: it consumes the $\alpha$-normalized half of (2.30)
+    (Remark~\ref{rmk:grep-not-formalized}).  Its ingredients --- the unique $\lambda$-modification
+    $\rho$ of $\gamma$, its being a pre-modification, quasilocality via Georgii (2.24)(c), and
+    boundedness of $\log \rho_\Lambda$ by continuity on the compact $\Cfg = E^S$ --- are the only
+    extra inputs.
+\end{corollary}
+
+\begin{corollary}[Georgii (2.32)]
+    \label{cor:grep-2-32}
+    \uses{thm:grep-2-30}
+
+    Let $\rho$ and $\alpha$ satisfy the hypotheses of Theorem~\ref{thm:grep-2-30} and let $\Phi$ be
+    the corresponding normalized potential.  Suppose $S$ is the vertex set of a simple graph with
+    bond set $B$ and that $\rho$ is Markovian, i.e. $\rho_{\set i}$ is
+    $\mathcal{F}_{B(i)}$-measurable for every $i \in S$, where
+    $B(i) = \set i \union \set{j \in S : \set{i,j} \in B}$.  Then $\Phi$ is a nearest-neighbour
+    potential in the sense of Georgii (2.17): $\Phi_A = 0$ unless $A$ is a complete subgraph.
+
+    Not formalized.  Georgii's argument groups the subsets $C \subset A$ into quadruples
+    $D, D \union \set i, D \union \set j, D \union \set{i,j}$ for a non-adjacent pair $i,j \in A$,
+    rewrites each group using $\alpha_{\set i}u_A - u_A = \alpha_{\set i}u_{\set i} - u_{\set i}$,
+    and observes that $B(i) \setminus D_1 = B(i) \setminus D_3$ and
+    $B(i) \setminus D_2 = B(i)\setminus D_4$, so each group cancels.
+\end{corollary}

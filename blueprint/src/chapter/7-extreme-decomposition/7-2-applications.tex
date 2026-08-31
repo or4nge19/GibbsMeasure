@@ -1,0 +1,577 @@
+\section{Some applications}
+
+Georgii \S7.2 applies the results of \S7.1 to four examples: Kolmogorov's zero-one law
+(7.14), stationary Markov chains (7.15), exchangeability together with the zero-one law of
+Hewitt and Savage (7.16)--(7.17), and product specifications (7.18)--(7.19).  Three of them
+are classical topics of probability theory rather than statements about Gibbs measures, and
+they are reached through Georgii's Remark (7.13): Theorem (7.7) and Theorem (7.12)(a) hold
+verbatim when $(\Cfg, \mathcal{F})$ is an arbitrary measurable space, the finite volumes are
+replaced by a countable index set $\iota$ directed upwards, the σ-algebras
+$\mathcal{F}_{S \setminus \Lambda}$ by a decreasing family $(\mathcal{T}_i)_{i \in \iota}$ with
+$\Tail = \bigcap_i \mathcal{T}_i$, and $\gamma$ by any consistent family of proper probability
+kernels $\gamma_i$ from $\mathcal{T}_i$ to $\mathcal{F}$; the set $\Gibbs{\gamma}$ is replaced
+by the convex set $\Prob_\gamma$ of $\gamma$-invariant probability measures.
+
+In the library that abstract framework is
+\texttt{GibbsMeasure/Specification/Abstract.lean} and
+\texttt{GibbsMeasure/Specification/AbstractPAKernel.lean}; the exchangeability example
+(7.16)--(7.17) is \texttt{GibbsMeasure/Specification/HewittSavage.lean} and
+\texttt{GibbsMeasure/Specification/DeFinetti.lean}, the latter also carrying the forward
+reference (7.31) to de Finetti's theorem in the version of Dynkin.  Examples (7.14), (7.15)
+and (7.18)--(7.19) are not formalised; what is present of them is recorded below.
+
+\subsection*{The abstract setting of Remark (7.13)}
+
+\begin{definition}[Abstract specification, Georgii, Remark (7.13)]
+    \label{def:app-abstract-spec}
+    \uses{def:kernel, def:proper-ker, def:markov-ker}
+    \lean{MeasureTheory.GibbsMeasure.AbstractSpecification,
+          MeasureTheory.GibbsMeasure.AbstractSpecification.tail,
+          MeasureTheory.GibbsMeasure.AbstractSpecification.invariant}
+    \leanok
+
+    Let $(\Cfg, \mathcal{F})$ be a measurable space and $\iota$ a preorder.  An
+    \textbf{abstract specification} is the data of a family $(\mathcal{T}_i)_{i \in \iota}$ of
+    sub-σ-algebras of $\mathcal{F}$ which is decreasing, together with proper probability
+    kernels $\gamma_i$ from $(\Cfg, \mathcal{T}_i)$ to $(\Cfg, \mathcal{F})$ satisfying the
+    consistency relation
+    \[\gamma_i \gamma_j = \gamma_j \qquad (i \le j).\]
+    Its \textbf{tail σ-algebra} is $\Tail = \bigwedge_{i} \mathcal{T}_i$ and its
+    \textbf{invariant set} is
+    \[\Prob_\gamma = \set{\mu \in \Prob(\Cfg, \mathcal{F}) : \mu\gamma_i = \mu \text{ for all } i}.\]
+
+    Georgii assumes throughout that $\iota$ is countable and directed upwards.  The Lean
+    structure carries no such assumption: \texttt{Countable}, \texttt{Nonempty} and
+    \texttt{IsDirected} are hypotheses of the individual theorems that need them, so that each
+    statement is at its own weakest hypotheses.
+\end{definition}
+
+\begin{lemma}[Specifications are abstract specifications]
+    \label{lem:app-spec-toabstract}
+    \uses{def:app-abstract-spec, def:spec, def:gibbs-meas, def:cylinder-event}
+    \lean{Specification.toAbstract, Specification.toAbstract_tail,
+          Specification.toAbstract_invariant}
+    \leanok
+
+    Every specification $\gamma$ on $E^S$ is an abstract specification, indexed by
+    $\iota = \Finset(S)$ with $\mathcal{T}_\Lambda = \mathcal{F}_{S \setminus \Lambda}$ and
+    $\gamma_\Lambda$ the given kernels.  Its tail σ-algebra is the tail σ-algebra $\Tail$ of
+    $\Cfg = E^S$, and its invariant set is $\Gibbs{\gamma}$, the set of Gibbs probability
+    measures for $\gamma$.
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    Consistency, properness and Markov-ness are the defining data of a specification; the
+    family $\Lambda \mapsto \mathcal{F}_{S\setminus\Lambda}$ is decreasing because
+    $\Lambda_1 \subseteq \Lambda_2$ gives
+    $S \setminus \Lambda_2 \subseteq S \setminus \Lambda_1$.  The tail σ-algebra is
+    definitionally $\bigwedge_\Lambda \mathcal{F}_{S\setminus\Lambda}$, and
+    $\mu \gamma_\Lambda = \mu$ for all $\Lambda$ is the definition of a Gibbs measure for a
+    probability measure $\mu$.
+\end{proof}
+
+\begin{theorem}[Georgii (7.7)(a), in the generality of Remark (7.13)]
+    \label{thm:app-extreme-iff-tail-trivial}
+    \uses{def:app-abstract-spec}
+    \lean{MeasureTheory.GibbsMeasure.AbstractSpecification.mem_extremePoints_iff_mem_trivialOn,
+          MeasureTheory.GibbsMeasure.AbstractSpecification.cond_mem_invariant,
+          MeasureTheory.GibbsMeasure.AbstractSpecification.eq_of_absolutelyContinuous}
+    \leanok
+
+    Let $\gamma$ be an abstract specification over a countable nonempty index set directed
+    upwards, and $\mu \in \Prob_\gamma$.  Then $\mu$ is extreme in $\Prob_\gamma$ if and only
+    if $\mu$ is trivial on $\Tail$, i.e.\ $\mu(A) \in \set{0,1}$ for every $A \in \Tail$.
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    If $A \in \Tail$ has $0 < \mu(A) < 1$, then properness lets $A$ be pulled out of
+    $\mu \gamma_i$, so both conditional measures $\mu(\cdot \mid A)$ and
+    $\mu(\cdot \mid A^{c})$ are again $\gamma$-invariant (Georgii (7.7)(b)), and $\mu$ is
+    their proper convex combination, hence not extreme.  Conversely, if $\mu$ is trivial on
+    $\Tail$ and $\nu \in \Prob_\gamma$ with $\nu \ll \mu$, then for each $i$ the density
+    $\mathrm{d}\nu/\mathrm{d}\mu$ may be chosen $\mathcal{T}_i$-measurable, because
+    $\mathrm{withDensity}$ commutes with $\mu \mapsto \mu\gamma_i$ for proper $\gamma_i$;
+    taking a $\limsup$ along a cofinal sequence produces a $\Tail$-measurable version, which
+    tail triviality forces to be a.e.\ constant, so $\nu = \mu$.  A proper convex
+    decomposition of $\mu$ has both parts absolutely continuous with respect to $\mu$, so
+    $\mu$ is extreme.
+\end{proof}
+
+\begin{proposition}[Georgii (7.25), in the generality of Remark (7.13)]
+    \label{prop:app-pa-kernel}
+    \uses{def:app-abstract-spec, thm:app-extreme-iff-tail-trivial, def:cond-exp-ker,
+          def:lebesgue-cond-exp}
+    \lean{MeasureTheory.GibbsMeasure.IsPAKernel,
+          MeasureTheory.GibbsMeasure.AbstractSpecification.paKernel,
+          MeasureTheory.GibbsMeasure.AbstractSpecification.isPAKernel_paKernel,
+          MeasureTheory.GibbsMeasure.AbstractSpecification.exists_isPAKernel_invariant}
+    \leanok
+
+    Let $\gamma$ be an abstract specification over a countable nonempty index set directed
+    upwards, with $\Cfg$ standard Borel and countably generated.  If
+    $\Prob_\gamma \neq \emptyset$ then there is a probability kernel $\pi$ from
+    $(\Cfg, \Tail)$ to $(\Cfg, \mathcal{F})$ which is a version of $\mu(\cdot \mid \Tail)$
+    \emph{simultaneously} for every $\mu \in \Prob_\gamma$, and which takes all its values in
+    $\Prob_\gamma$: a $(\Prob_\gamma, \Tail)$-kernel in the sense of Georgii's Definition
+    (7.21).
+\end{proposition}
+\begin{proof}
+    \leanok
+
+    Along a cofinal sequence $(i_n)$, Lévy's downward theorem together with the invariance
+    equation identifies $\lim_n \gamma_{i_n}(A \mid \cdot)$ with $\mu(A \mid \Tail)$ for every
+    $\mu \in \Prob_\gamma$; the limit does not involve $\mu$.  Applying this to the half-lines
+    $\set{e \le q}$, $q \in \mathbb{Q}$, where $e$ is a Borel embedding of $\Cfg$ into $\R$,
+    gives a $\Tail$-measurable rational CDF, which the Stieltjes construction turns into a
+    kernel to $\R$; pulling it back along $e$ and correcting on the two bad tail events (the
+    kernel not carried by the range of $e$, or its value not $\gamma$-invariant) by a fixed
+    $\nu_0 \in \Prob_\gamma$ gives $\pi$.  Both bad sets are $\Tail$-measurable because
+    invariance can be tested on a countable generating π-system.
+\end{proof}
+
+\subsection*{Kolmogorov's zero-one law and Markov chains}
+
+\begin{example}[Georgii (7.14), Kolmogorov's zero-one law]
+    \label{ex:app-kolmogorov}
+    \uses{def:isssd, def:isssd-spec, lem:isssd-gibbs-meas-existence,
+          lem:isssd-gibbs-meas-uniqueness, thm:app-extreme-iff-tail-trivial}
+
+    Let $(E, \mathcal{E})$ be a measurable space, $S$ countably infinite,
+    $(\Cfg, \mathcal{F}) = (E, \mathcal{E})^S$, and $\lambda \in \Prob(E, \mathcal{E})$.  Then
+    the product measure $\lambda^S$ is trivial on $\Tail$.  Indeed $\lambda^S$ is by Remark
+    (1.25) the unique element of $\Gibbs{\ISSSD(\lambda)}$, hence extreme in it, hence trivial
+    on $\Tail$ by Theorem \ref{thm:app-extreme-iff-tail-trivial}.  More generally
+    $\mu = \prod_{i \in S} \alpha_i$ is trivial on $\Tail$ for arbitrary
+    $\alpha_i \in \Prob(E, \mathcal{E})$, being the unique element of $\Gibbs{\gamma}$ for
+    \[\gamma_\Lambda f(\omega) = \int \Big(\prod_{i \in \Lambda} \alpha_i\Big)(\mathrm{d}\zeta)\,
+      f(\zeta\omega_{S \setminus \Lambda}).\]
+
+    Not formalised.  The two ingredients are in the tree --- Remark (1.25) as
+    \texttt{Specification.isGibbsMeasure\_isssd\_iff}, and the inhomogeneous specification
+    $\gamma$ above as \texttt{Specification.isssdFamily} --- but neither the passage
+    ``unique $\Rightarrow$ extreme'' nor the resulting tail triviality of $\lambda^S$ is
+    recorded as a declaration, and $\Gibbs{\texttt{isssdFamily}}$ has not been computed.
+\end{example}
+
+\begin{example}[Georgii (7.15), stationary Markov chains]
+    \label{ex:app-markov}
+    \uses{thm:app-extreme-iff-tail-trivial, def:markov-spec}
+
+    Let $E$ be finite, $P$ a positive stochastic matrix on $E$, and $\mu_P$ the distribution
+    of the stationary Markov chain with transition matrix $P$ and parameter set $\mathbb{Z}$,
+    as in Georgii (3.3).  By Theorem (3.5), $\mu_P$ is the unique element of
+    $\Gibbs{\gamma_P}$, hence extreme, hence trivial on $\Tail$; in particular $\mu_P$ is
+    trivial on the right-sided tail $\bigcap_{n} \mathcal{F}_{\mathbb{Z} \cap [n, \infty[}$,
+    a special case of the zero-one law of Blackwell and Freedman.  Moreover
+    $|P^n(x,y) - \alpha(y)| \to 0$, where $\alpha P = \alpha$, follows from Georgii (7.9) or
+    (7.11)(b) applied to $\set{\sigma_{-n} = x} \in \Tail_{\mathbb{Z} \cap ]-n,n[}$.
+
+    Not formalised.  Theorem (3.5) itself is in the tree
+    (\texttt{MeasureTheory.GibbsMeasure.Markov.gibbsMeasure\_eq\_singleton},
+    \texttt{MeasureTheory.GibbsMeasure.Markov.existsUnique\_isGibbsMeasure}), but neither the
+    tail triviality of $\mu_P$ nor the derivation of the ergodic theorem for $P$ from it is
+    recorded.
+\end{example}
+
+\subsection*{Exchangeability: Georgii (7.16)}
+
+Throughout this subsection $(E, \mathcal{E})$ is a measurable space and
+$(\Cfg, \mathcal{F}) = (E, \mathcal{E})^{\mathbb{N}}$.  This example is a digression from the
+theory of Gibbs measures and lives entirely inside the framework of Remark (7.13).
+
+\begin{definition}[Finitary permutations and symmetric events, Georgii (7.16)]
+    \label{def:app-symm-sigma}
+    \lean{MeasureTheory.GibbsMeasure.finPerm, MeasureTheory.GibbsMeasure.finitaryPerm,
+          MeasureTheory.GibbsMeasure.permute, MeasureTheory.GibbsMeasure.symmSub,
+          MeasureTheory.GibbsMeasure.symmetricSigmaAlgebra}
+    \leanok
+
+    For $n \ge 1$ let $I_n$ be the group of permutations $\tau_*$ of $\mathbb{N}$ with
+    $\tau_* i = i$ for $i > n$, acting on $\Cfg$ by
+    $\tau : \omega \mapsto (\omega_{\tau_* i})_{i \ge 1}$; then $|I_n| = n!$ and $I_n$
+    increases with $n$.  Its union $I = \bigcup_n I_n$ is the group of permutations of finitely
+    many coordinates.  Put
+    \[\mathcal{I}_n = \set{A \in \mathcal{F} : \tau^{-1}A = A \text{ for all } \tau \in I_n},
+      \qquad \mathcal{I} = \bigcap_{n \ge 1} \mathcal{I}_n,\]
+    the σ-algebra of \textbf{symmetric events}.
+
+    In Lean the indices run over all of $\mathbb{N}$ (so $I_n$ fixes every $i \ge n$ rather
+    than every $i > n$); the family $(\mathcal{I}_n)$ is decreasing and $\mathcal{I}$ is its
+    infimum, exactly as in the book.
+\end{definition}
+
+\begin{definition}[The symmetrisation kernels $\gamma_n$, Georgii (7.16)]
+    \label{def:app-symm-kernel}
+    \uses{def:app-symm-sigma, def:kernel, def:markov-ker}
+    \lean{MeasureTheory.GibbsMeasure.symmKernel, MeasureTheory.GibbsMeasure.symmMeasure,
+          MeasureTheory.GibbsMeasure.symmSum}
+    \leanok
+
+    For $n \ge 1$, $A \in \mathcal{F}$ and $\omega \in \Cfg$ set
+    \[\gamma_n(A \mid \omega) = \frac{1}{|I_n|} \sum_{\tau \in I_n} 1_A(\tau\omega),\]
+    the uniform average of the Dirac measures at the $I_n$-permutations of $\omega$.
+\end{definition}
+
+\begin{lemma}[$(\gamma_n)$ is a proper consistent family of probability kernels]
+    \label{lem:app-symm-kernel-proper}
+    \uses{def:app-symm-kernel, def:proper-ker, def:markov-ker}
+    \lean{MeasureTheory.GibbsMeasure.isMarkovKernel_symmKernel,
+          MeasureTheory.GibbsMeasure.isProper_symmKernel,
+          MeasureTheory.GibbsMeasure.isConsistent_symmKernel}
+    \leanok
+
+    Each $\gamma_n$ is a probability kernel from $(\Cfg, \mathcal{I}_n)$ to
+    $(\Cfg, \mathcal{F})$, it is proper, and $\gamma_m \gamma_n = \gamma_n$ for $m \le n$.
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    Markov-ness is $\gamma_n(\Cfg \mid \omega) = |I_n|^{-1}|I_n| = 1$.  Properness holds
+    because for $B \in \mathcal{I}_n$ the indicator $1_B$ is constant along the $I_n$-orbit of
+    $\omega$, so $1_{A \inter B}(\tau\omega) = 1_B(\omega)1_A(\tau\omega)$ for all
+    $\tau \in I_n$.  Consistency for $m \le n$ is the count
+    $\sum_{\tau \in I_n} \sum_{\sigma \in I_m} 1_A(\sigma\tau\omega)
+      = |I_m| \sum_{\rho \in I_n} 1_A(\rho\omega)$, obtained by translating the inner sum by
+    $\tau \in I_n \supseteq I_m$.
+\end{proof}
+
+\begin{definition}[The exchangeable abstract specification]
+    \label{def:app-exchangeable-spec}
+    \uses{def:app-abstract-spec, lem:app-symm-kernel-proper}
+    \lean{MeasureTheory.GibbsMeasure.exchangeableSpec,
+          MeasureTheory.GibbsMeasure.exchangeableSpec_tail}
+    \leanok
+
+    The data $((\mathcal{I}_n)_n, (\gamma_n)_n)$ is an abstract specification in the sense of
+    Definition \ref{def:app-abstract-spec}, indexed by $\iota = \mathbb{N}$, whose tail
+    σ-algebra is $\mathcal{I}$.
+\end{definition}
+
+\begin{definition}[Exchangeable distributions]
+    \label{def:app-is-exchangeable}
+    \lean{MeasureTheory.GibbsMeasure.IsExchangeable}
+    \leanok
+
+    A measure $\mu$ on $(\Cfg, \mathcal{F})$ is \textbf{exchangeable} (or \emph{symmetric}) if
+    $\mu \circ \tau^{-1} = \mu$ for every $\tau \in I$.  We write $\Prob_I$ for the set of
+    exchangeable probability measures.
+\end{definition}
+
+\begin{theorem}[Georgii (7.16)]
+    \label{thm:app-exchangeable-invariant}
+    \uses{def:app-exchangeable-spec, def:app-is-exchangeable}
+    \lean{MeasureTheory.GibbsMeasure.mem_exchangeableSpec_invariant_iff,
+          MeasureTheory.GibbsMeasure.exchangeableSpec_invariant}
+    \leanok
+
+    $\Prob_I = \set{\mu \in \Prob(\Cfg, \mathcal{F}) : \mu\gamma_n = \mu \text{ for all }
+    n \ge 1}$.  In other words the exchangeable probability measures are exactly the invariant
+    measures of the abstract specification of Definition \ref{def:app-exchangeable-spec}.
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    Unfolding, $\mu\gamma_n(A) = |I_n|^{-1}\sum_{\tau \in I_n} \mu(\tau^{-1}A)$.  If $\mu$ is
+    exchangeable each summand is $\mu(A)$, whence $\mu\gamma_n = \mu$.  Conversely, given
+    $\mu\gamma_n = \mu$ and $\tau \in I_n$, apply the identity to $\tau^{-1}A$ and translate
+    the sum over $I_n$ on the right by $\tau$; the two sums coincide, so
+    $\mu(\tau^{-1}A) = \mu(A)$.  Every $\tau \in I$ lies in some $I_n$.
+\end{proof}
+
+\begin{corollary}[Extreme exchangeable measures are trivial on $\mathcal{I}$]
+    \label{cor:app-extreme-exchangeable}
+    \uses{thm:app-exchangeable-invariant, thm:app-extreme-iff-tail-trivial}
+    \lean{MeasureTheory.GibbsMeasure.mem_extremePoints_iff_mem_trivialOn_symmetric}
+    \leanok
+
+    $\mathrm{ex}\,\Prob_I$ consists exactly of those $\mu \in \Prob_I$ which are trivial on
+    the σ-algebra $\mathcal{I}$ of symmetric events.
+\end{corollary}
+\begin{proof}
+    \leanok
+
+    This is Theorem \ref{thm:app-extreme-iff-tail-trivial} applied to the abstract
+    specification of Definition \ref{def:app-exchangeable-spec}, whose tail σ-algebra is
+    $\mathcal{I}$, combined with Theorem \ref{thm:app-exchangeable-invariant}.
+\end{proof}
+
+\subsection*{The zero-one law of Hewitt and Savage}
+
+\begin{lemma}[Product measures are exchangeable]
+    \label{lem:app-iid-exchangeable}
+    \uses{def:app-is-exchangeable, def:product-probability-measure}
+    \lean{MeasureTheory.GibbsMeasure.isExchangeable_infinitePi}
+    \leanok
+
+    For $\lambda \in \Prob(E, \mathcal{E})$ the product measure $\lambda^{\mathbb{N}}$ is
+    exchangeable.
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    Reindexing an infinite product measure along an injection of the index set into itself
+    leaves it invariant, and a permutation is injective.
+\end{proof}
+
+\begin{theorem}[The zero-one law of Hewitt and Savage (1955), Georgii (7.16)]
+    \label{thm:app-hewitt-savage}
+    \uses{def:app-symm-sigma, lem:app-iid-exchangeable, def:product-probability-measure}
+    \lean{MeasureTheory.GibbsMeasure.measure_symmetric_eq_zero_or_one,
+          MeasureTheory.GibbsMeasure.mem_trivialOn_symmetricSigmaAlgebra_infinitePi}
+    \leanok
+
+    For $\lambda \in \Prob(E, \mathcal{E})$ the product measure $\lambda^{\mathbb{N}}$ is
+    trivial on the σ-algebra $\mathcal{I}$ of symmetric events:
+    $\lambda^{\mathbb{N}}(A) \in \set{0,1}$ for every $A \in \mathcal{I}$.
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    The Lean proof is direct, and does not follow Georgii's route.  Write
+    $\mu = \lambda^{\mathbb{N}}$ and let $A \in \mathcal{I}$.  Approximate $A$ in measure by an
+    event $B$ depending only on the coordinates $[0,k)$ (the events depending on finitely many
+    coordinates form a set ring generating $\mathcal{F}$).  The block swap
+    $\tau \in I_{2k}$ exchanging $[0,k)$ with $[k,2k)$ fixes $A$ and carries $B$ to an event on
+    $[k,2k)$, independent of $B$ under the product measure, so
+    $\mu(A) \approx \mu(B)^2 \approx \mu(A)^2$ up to $O(\varepsilon)$; letting
+    $\varepsilon \to 0$ gives $\mu(A) = \mu(A)^2$.
+
+    Georgii instead deduces this from Kolmogorov's zero-one law (Example (7.14)) together with
+    the identity $\mathcal{I} = \Tail$ $\mu$-almost surely, which he proves from
+    $\gamma_n(\prod_i f_i \circ \sigma_i) - \prod_i \gamma_n(f_i \circ \sigma_1) \to 0$ and a
+    Dynkin-system argument.  That intermediate identity is \emph{not} in the library.
+\end{proof}
+
+\begin{corollary}[i.i.d.\ product measures are extreme]
+    \label{cor:app-iid-extreme}
+    \uses{thm:app-hewitt-savage, cor:app-extreme-exchangeable, lem:app-iid-exchangeable}
+    \lean{MeasureTheory.GibbsMeasure.infinitePi_mem_extremePoints}
+    \leanok
+
+    $\lambda^{\mathbb{N}} \in \mathrm{ex}\,\Prob_I$ for every
+    $\lambda \in \Prob(E, \mathcal{E})$.
+\end{corollary}
+\begin{proof}
+    \leanok
+
+    $\lambda^{\mathbb{N}}$ is exchangeable by Lemma \ref{lem:app-iid-exchangeable} and trivial
+    on $\mathcal{I}$ by Theorem \ref{thm:app-hewitt-savage}; apply Corollary
+    \ref{cor:app-extreme-exchangeable}.
+\end{proof}
+
+\subsection*{The symmetrisation estimate and Georgii (7.17)}
+
+\begin{definition}[Symmetrised product, empirical average, error term]
+    \label{def:app-symm-avg}
+    \lean{MeasureTheory.GibbsMeasure.symmAvg, MeasureTheory.GibbsMeasure.empAvg,
+          MeasureTheory.GibbsMeasure.symmErr}
+    \leanok
+
+    For $a : \mathbb{N} \times \mathbb{N} \to [0,\infty]$ put
+    \[\mathrm{symmAvg}(k) = \frac{1}{|I_n|}\sum_{\tau \in I_n} \prod_{i < k} a(i, \tau i),
+      \qquad \mathrm{empAvg}(i) = \frac{1}{n}\sum_{j < n} a(i,j),
+      \qquad \mathrm{symmErr}(k) = \sum_{j < k} \frac{j}{n - j}.\]
+\end{definition}
+
+\begin{theorem}[The symmetrisation estimate; Georgii's $|M_1(k,n)|/|M(k,n)| \to 1$]
+    \label{thm:app-symm-estimate}
+    \uses{def:app-symm-avg}
+    \lean{MeasureTheory.GibbsMeasure.symmAvg_le_prod_add,
+          MeasureTheory.GibbsMeasure.prod_le_symmAvg_add}
+    \leanok
+
+    If $a(i,j) \le 1$ for all $i,j$ and $k \le n$, then
+    \[\mathrm{symmAvg}(k) \le \prod_{i<k}\mathrm{empAvg}(i) + \mathrm{symmErr}(k)
+      \qquad\text{and}\qquad
+      \prod_{i<k}\mathrm{empAvg}(i) \le \mathrm{symmAvg}(k) + \mathrm{symmErr}(k),\]
+    and $\mathrm{symmErr}(k) \le k^2/(n-k) \to 0$ as $n \to \infty$ for fixed $k$.
+
+    This is stronger than what Georgii states.  He argues that the difference between the
+    symmetrised product and the product of the empirical averages tends to $0$ because
+    $|M_1(k,n)|/|M(k,n)| = (n!/(n-k)!)/n^k \to 1$, where $M(k,n)$ are the maps
+    $\set{1,\dots,k} \to \set{1,\dots,n}$ and $M_1(k,n)$ the injective ones.  The Lean form is
+    a two-sided bound with the explicit rate $\sum_{j<k} j/(n-j)$, valid for every $n$, and it
+    is proved without counting injections: only translations of the sum over the subgroup $I_n$
+    by transpositions are used, so the statement stays subtraction-free and holds in
+    $[0,\infty]$.
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    Induction on $k$ from the exact one-step identity
+    \[(n-k)\sum_{\tau \in I_n}\prod_{i<k+1} a(i,\tau i)
+      = \sum_{\tau \in I_n}\Big(\prod_{i<k} a(i,\tau i)\Big)\sum_{k \le j < n} a(k, \tau j),\]
+    obtained by translating the left-hand sum by the transpositions $(k\ j)$, $k \le j < n$.
+    Bounding $\sum_{k \le j < n} a(k,\tau j)$ above by $\sum_{j<n} a(k,j)$ gives the upper
+    step, and bounding $\sum_{j<k} a(k,\tau j) \le k$ gives the lower step; the accumulated
+    errors telescope to $\mathrm{symmErr}$.
+\end{proof}
+
+\begin{theorem}[Georgii (7.17), the substantial half, in coordinates]
+    \label{thm:app-boxes}
+    \uses{thm:app-symm-estimate, cor:app-extreme-exchangeable, def:app-symm-kernel}
+    \lean{MeasureTheory.GibbsMeasure.measure_rangePi_eq_prod_of_mem_extremePoints}
+    \leanok
+
+    Let $\mu \in \mathrm{ex}\,\Prob_I$.  Then for all $A_0, \dots, A_{k-1} \in \mathcal{E}$
+    \[\mu\big(A_0 \times \cdots \times A_{k-1} \times E^{\set{k, k+1, \dots}}\big)
+      = \prod_{i<k} \mu(\sigma_0 \in A_i).\]
+    No hypothesis on the state space $(E, \mathcal{E})$.
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    Under $\gamma_n$ a box is exactly the symmetrised product of the indicator rows
+    $a(i,j) = 1_{A_i}(\omega_j)$, and $\gamma_n(\sigma_0 \in A_i \mid \omega)$ is exactly the
+    empirical average of the $i$-th row.  Since $\mu$ is extreme it is trivial on
+    $\mathcal{I}$ (Corollary \ref{cor:app-extreme-exchangeable}), so by Lévy's downward theorem
+    $\gamma_n(B \mid \cdot) \to \mu(B)$ $\mu$-a.s.\ for every measurable $B$.  Integrating the
+    two-sided estimate of Theorem \ref{thm:app-symm-estimate} against $\mu$, using
+    $\mu\gamma_n = \mu$ on the left and dominated convergence on the right, and letting
+    $n \to \infty$ with $k$ fixed, squeezes the two sides together.
+\end{proof}
+
+\begin{theorem}[Georgii (7.17), the substantial half]
+    \label{thm:app-extreme-eq-iid}
+    \uses{thm:app-boxes, def:product-probability-measure}
+    \lean{MeasureTheory.GibbsMeasure.eq_infinitePi_of_mem_extremePoints}
+    \leanok
+
+    Every $\mu \in \mathrm{ex}\,\Prob_I$ equals $\sigma_1(\mu)^{\mathbb{N}}$, the i.i.d.\
+    product of its one-dimensional marginal.  Again no hypothesis on $(E, \mathcal{E})$.
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    Two probability measures on $E^{\mathbb{N}}$ agreeing on all finite-dimensional boxes are
+    equal; Theorem \ref{thm:app-boxes} says $\mu$ agrees on boxes with the product of its
+    marginal, after padding a finite index set with $E$ in the unused coordinates.
+\end{proof}
+
+\begin{theorem}[Georgii (7.17)]
+    \label{thm:app-7-17}
+    \uses{thm:app-extreme-eq-iid, cor:app-iid-extreme, def:app-is-exchangeable}
+    \lean{MeasureTheory.GibbsMeasure.mem_extremePoints_exchangeable_iff}
+    \leanok
+
+    \[\mathrm{ex}\,\Prob_I = \set{\lambda^{\mathbb{N}} : \lambda \in \Prob(E, \mathcal{E})}.\]
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    ``$\subseteq$'' is Theorem \ref{thm:app-extreme-eq-iid}, ``$\supseteq$'' is Corollary
+    \ref{cor:app-iid-extreme}.
+\end{proof}
+
+\subsection*{De Finetti's theorem, Georgii (7.31)}
+
+\begin{theorem}[Georgii (7.31), de Finetti's theorem in the version of Dynkin]
+    \label{thm:app-de-finetti}
+    \uses{thm:app-7-17, prop:app-pa-kernel, thm:app-exchangeable-invariant,
+          def:app-is-exchangeable}
+    \lean{MeasureTheory.GibbsMeasure.existsUnique_mixing_of_isExchangeable}
+    \leanok
+
+    Let $(E, \mathcal{E})$ be standard Borel.  Then every exchangeable probability measure
+    $\mu$ on $(E, \mathcal{E})^{\mathbb{N}}$ admits a representation
+    \[\mu = \int_{\Prob(E, \mathcal{E})} \lambda^{\mathbb{N}}\, m(\mathrm{d}\lambda)\]
+    with a \emph{unique} probability measure $m$ on $\Prob(E, \mathcal{E})$.
+
+    The Lean statement adds the hypothesis that $E$ be nonempty (needed for the standard Borel
+    machinery behind Proposition \ref{prop:app-pa-kernel}), and phrases $m$ as a probability
+    measure on the space of all measures on $E$ which gives the complement of the probability
+    measures mass $0$; that is the same datum as a probability measure on
+    $\Prob(E, \mathcal{E})$.
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    $\Prob_I$ is the invariant set of the abstract specification of Definition
+    \ref{def:app-exchangeable-spec} (Theorem \ref{thm:app-exchangeable-invariant}), so
+    Proposition \ref{prop:app-pa-kernel} supplies a $(\Prob_I, \mathcal{I})$-kernel $\pi$ and
+    with it, by Georgii (7.22), a unique probability weight $w$ on $\Prob_I$ carried by
+    $\Prob_I \inter \Prob_{\mathcal{I}} = \mathrm{ex}\,\Prob_I$ and with barycentre $\mu$.  By
+    Theorem \ref{thm:app-7-17} every measure carried by $w$ is $\nu = (\sigma_1\nu)^{\mathbb{N}}$,
+    so pushing $w$ forward along $\nu \mapsto \sigma_1\nu$ gives $m$, and pushing $m$ forward
+    along $\lambda \mapsto \lambda^{\mathbb{N}}$ recovers $w$; the two maps are mutually
+    inverse on the relevant carriers, so uniqueness of $w$ transfers to uniqueness of $m$.
+\end{proof}
+
+\begin{lemma}[Converse: mixtures of i.i.d.\ measures are exchangeable]
+    \label{lem:app-mixture-exchangeable}
+    \uses{def:app-is-exchangeable, lem:app-iid-exchangeable}
+    \lean{MeasureTheory.GibbsMeasure.isExchangeable_bind_infinitePi}
+    \leanok
+
+    If $m$ is a measure on the measures on $E$ giving mass $0$ to the complement of the
+    probability measures, then $\int \lambda^{\mathbb{N}} m(\mathrm{d}\lambda)$ is
+    exchangeable.  Hence the representation of Theorem \ref{thm:app-de-finetti}
+    \emph{characterises} exchangeability.  Georgii does not state this converse; it is the
+    sanity check that the map $m \mapsto \int \lambda^{\mathbb{N}} m(\mathrm{d}\lambda)$ lands
+    in $\Prob_I$.
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    Permuting coordinates commutes with the integral over $\lambda$, and each
+    $\lambda^{\mathbb{N}}$ is exchangeable by Lemma \ref{lem:app-iid-exchangeable}.
+\end{proof}
+
+\subsection*{Product specifications: Georgii (7.18)--(7.19)}
+
+\begin{example}[Georgii (7.18)--(7.19), product specifications]
+    \label{ex:app-product-spec}
+    \uses{def:spec, def:gibbs-meas, thm:app-extreme-iff-tail-trivial}
+
+    Let $S = S_1 \union S_2$ be a partition of a countably infinite $S$ into two non-empty
+    disjoint parts, and let $\gamma^k$ be a specification with state space $E$ and parameter
+    set $S_k$.  The \textbf{product specification} $\gamma = \gamma^1 \times \gamma^2$ is
+    defined by
+    \[\gamma_{\Lambda_1 \union \Lambda_2}(\cdot \mid \omega^1\omega^2)
+      = \gamma^1_{\Lambda_1}(\cdot \mid \omega^1) \times
+        \gamma^2_{\Lambda_2}(\cdot \mid \omega^2),\]
+    with $\gamma^k_{\emptyset}(\cdot \mid \omega^k) = \delta_{\omega^k}$.  Then
+    $\set{\mu^1 \times \mu^2 : \mu^k \in \Gibbs{\gamma^k}} \subseteq \Gibbs{\gamma}$, with
+    strict inclusion as soon as both $|\Gibbs{\gamma^k}| > 1$, and
+    \[\mathrm{ex}\,\Gibbs{\gamma}
+      = \set{\mu^1 \times \mu^2 : \mu^k \in \mathrm{ex}\,\Gibbs{\gamma^k}, \ k = 1,2},
+      \qquad
+      |\mathrm{ex}\,\Gibbs{\gamma}| = |\mathrm{ex}\,\Gibbs{\gamma^1}|\,
+        |\mathrm{ex}\,\Gibbs{\gamma^2}|.\]
+    As a complement, $\Tail = \Tail^1 \times \Tail^2$ $\mu$-a.s.\ for every
+    $\mu \in \Gibbs{\gamma}$.
+
+    Not formalised.  There is no product specification in the tree, and none of (7.19) or its
+    complement is available; the ``$\subseteq$'' half would follow from the definitions, but
+    the identification of the extreme points uses Theorem (7.12)(a) in a form that is applied
+    to the two factors separately.  This is the one construction of \S7.2 for which the library
+    has nothing.
+\end{example}
+
+\begin{remark}[Where (7.31) is used: Georgii's Example (2.27)]
+    \label{rmk:app-two-27}
+    \uses{def:gibbs-meas, def:isssd, thm:app-de-finetti}
+    \lean{MeasureTheory.GibbsMeasure.Exchangeable.gammaEx,
+          MeasureTheory.GibbsMeasure.Exchangeable.bernoulliField,
+          MeasureTheory.GibbsMeasure.Exchangeable.isGibbsMeasure_bernoulliField,
+          MeasureTheory.GibbsMeasure.Exchangeable.not_countable_gibbsMeasures}
+    \leanok
+
+    Georgii's Example (2.27) takes $E = \set{0,1}$, $S = \mathbb{N}$,
+    $\lambda^y = y\delta_1 + (1-y)\delta_0$, $\mu^y = (\lambda^y)^{\mathbb{N}}$, and glues the
+    independent specifications $\ISSSD(\lambda^y)$ along the tail function
+    $\xi = \liminf_n n^{-1}\sum_{i<n}\sigma_i$ into a single specification $\gamma$.  Every
+    $\mu^x$, $x \in [0,1]$, is a Gibbs measure for $\gamma$, and since $\xi$ separates their
+    supports, $\Gibbs{\gamma}$ is uncountable.  All of this is formalised in
+    \texttt{GibbsMeasure/Model/Exchangeable.lean} and is the reason the quasilocality conjunct
+    of Georgii's Definition (8.6) is not decorative.
+
+    Georgii's further identification
+    $\Gibbs{\gamma} = \set{\int w(\mathrm{d}x)\,\mu^x : w \in \Prob([0,1])}$ follows from
+    $\mu\gamma_\Lambda = \mu$ alone and is \emph{not} formalised; de Finetti's theorem,
+    Theorem \ref{thm:app-de-finetti}, is needed only for the further identification of that set
+    with the set of all exchangeable random fields on $\set{0,1}^{\mathbb{N}}$, and that
+    identification is not formalised either.
+\end{remark}

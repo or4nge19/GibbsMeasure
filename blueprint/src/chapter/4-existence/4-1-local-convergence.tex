@@ -1,0 +1,483 @@
+\section{Local convergence of random fields}
+
+Throughout, $(E, \mathcal{E})$ is a measurable space, $S$ is a set of sites,
+$(\Cfg, \mathcal{F}) = (E^S, \mathcal{E}^S)$ is the configuration space, and
+$\Prob(\Cfg, \mathcal{F})$ is the set of probability measures on it. Georgii takes $S$
+countably infinite throughout Chapter~4; the Lean development does \emph{not} assume this.
+Countability of $S$ and finiteness of $E$ are hypotheses only of the metrizability results
+(Lemma~\ref{lem:lc-countable-local-events} onwards), so everything before that is proved
+under strictly weaker hypotheses than Georgii's standing assumption.
+
+A specification $\gamma$ constrains a Gibbs measure $\mu$ only on the cylinder $\sigma$-algebras
+$\mathcal{F}_\Lambda$, $\Lambda \in \Fin$; it says nothing about tail events. The topology used
+for existence proofs must therefore depend only on the local behaviour of measures.
+
+\subsection*{The algebra of local events}
+
+\begin{definition}[Local events $\mathcal{F}^0$, Georgii (4.1)]
+    \label{def:lc-local-events}
+    \uses{def:cylinder-event}
+    \lean{MeasureTheory.localEvents}
+    \leanok
+
+    The \textbf{algebra of local events} is
+    \[
+        \mathcal{F}^0 \;=\; \bigcup_{\Lambda \in \Fin} \mathcal{F}_\Lambda,
+    \]
+    the collection of all cylinder events of $\Cfg = E^S$ depending on finitely many
+    coordinates. In Lean this is not a new definition: \texttt{localEvents S E} is an
+    \texttt{abbrev} for Mathlib's \texttt{measurableCylinders (fun \_ : S $\mapsto$ E)},
+    so that Mathlib's API for cylinders ($\pi$-system, set ring, generation) applies verbatim.
+\end{definition}
+
+\begin{lemma}[Two descriptions of $\mathcal{F}^0$]
+    \label{lem:lc-mem-local-events}
+    \uses{def:lc-local-events, def:cylinder-event}
+    \lean{MeasureTheory.mem_localEvents_iff_cylinderEvents,
+      MeasureTheory.mem_localEvents_iff_exists_finsetRestrict_preimage,
+      MeasureTheory.mem_localEvents_of_cylinderEvents,
+      MeasureTheory.finsetRestrict_preimage_mem_localEvents}
+    \leanok
+
+    For $A \subseteq \Cfg$ the following are equivalent:
+    \begin{enumerate}
+        \item $A \in \mathcal{F}^0$;
+        \item $A \in \mathcal{F}_\Lambda$ for some $\Lambda \in \Fin$;
+        \item $A = \pi_\Lambda^{-1}(B)$ for some $\Lambda \in \Fin$ and some measurable
+        $B \subseteq E^\Lambda$, where $\pi_\Lambda : E^S \to E^\Lambda$ is the restriction map.
+    \end{enumerate}
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    (ii)$\Leftrightarrow$(iii) is the identification of $\mathcal{F}_\Lambda$ with the
+    $\sigma$-algebra pulled back along $\pi_\Lambda$; (i)$\Leftrightarrow$(iii) is Mathlib's
+    membership criterion for \texttt{measurableCylinders}. The last two names in the
+    \texttt{\textbackslash lean} list are the two constructor directions, stated separately for
+    convenience of use.
+\end{proof}
+
+\subsection*{The topology of local convergence}
+
+\begin{definition}[Topology of local convergence, Georgii (4.2)]
+    \label{def:lc-topology}
+    \uses{def:lc-local-events}
+    \lean{MeasureTheory.WithLocalConvergence, MeasureTheory.WithSetwiseTopology}
+    \leanok
+
+    The \textbf{topology of local convergence} ($\mathcal{L}$-topology) on
+    $\Prob(\Cfg, \mathcal{F})$ is the coarsest topology making every evaluation map
+    $\nu \mapsto \nu(A)$, $A \in \mathcal{F}^0$, continuous; equivalently, the sets
+    \[
+        \Big\{ \nu \in \Prob(\Cfg, \mathcal{F}) : \max_{1 \le k \le n} |\nu(A_k) - \mu(A_k)|
+        < \varepsilon \Big\},
+        \qquad A_1, \dots, A_n \in \mathcal{F}^0,\ \varepsilon > 0,
+    \]
+    form a neighbourhood base at $\mu$.
+
+    In Lean this is the type synonym \texttt{WithLocalConvergence S E} $=$
+    \texttt{WithSetwiseTopology (localEvents S E) (ProbabilityMeasure (S $\to$ E))}, whose
+    topology is by construction the initial topology of the evaluation map
+    $\mu \mapsto (\mu(A))_{A \in \mathcal{F}^0}$ into $\overline{\R}_{\ge 0}^{\,\mathcal{F}^0}$.
+    The general construction \texttt{WithSetwiseTopology} is stated for an arbitrary family
+    $\mathcal{C}$ of sets and for \texttt{Measure}, \texttt{FiniteMeasure} and
+    \texttt{ProbabilityMeasure} alike, so the $\mathcal{L}$-topology is an instance of a
+    Mathlib-shaped construction rather than a bespoke definition.
+\end{definition}
+
+\begin{lemma}[Convergence in the $\mathcal{L}$-topology, Georgii (4.2)]
+    \label{lem:lc-tendsto-iff}
+    \uses{def:lc-topology, def:lc-local-events}
+    \lean{MeasureTheory.tendsto_withLocalConvergence_iff,
+      MeasureTheory.WithSetwiseTopology.tendsto_prob_iff}
+    \leanok
+
+    A net $(\mu_\alpha)_{\alpha \in D}$ in $\Prob(\Cfg, \mathcal{F})$ converges locally to $\mu$
+    if and only if $\lim_D \mu_\alpha(A) = \mu(A)$ for every $A \in \mathcal{F}^0$.
+
+    The Lean statement is more general than Georgii's: it is stated for the limit of an arbitrary
+    family $(\mu_i)_{i \in \iota}$ along an arbitrary filter $l$ on $\iota$, of which convergence
+    of a net along a directed set is the special case $l = \mathrm{atTop}$.
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    Immediate from the definition of the initial topology: convergence in a topology induced by a
+    map into a product is convergence of each coordinate of the image.
+\end{proof}
+
+\begin{lemma}[Evaluation on a local event is continuous]
+    \label{lem:lc-continuous-eval}
+    \uses{def:lc-topology, def:lc-local-events}
+    \lean{MeasureTheory.WithSetwiseTopology.continuous_apply_enn,
+      MeasureTheory.WithSetwiseTopology.continuous_apply_real}
+    \leanok
+
+    For $A \in \mathcal{F}^0$, both $\mu \mapsto \mu(A) \in \overline{\R}_{\ge 0}$ and
+    $\mu \mapsto \mu(A) \in \R$ are continuous on $\Prob(\Cfg, \mathcal{F})$.
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    The first is a coordinate of the inducing evaluation map. The second follows since
+    $\mu(A) \le 1 < \infty$ for a probability measure and $\overline{\R}_{\ge 0} \to \R$ is
+    continuous away from $\infty$.
+\end{proof}
+
+\begin{lemma}[Local events separate probability measures]
+    \label{lem:lc-separates}
+    \uses{def:lc-local-events}
+    \lean{MeasureTheory.separatesOn_localEvents,
+      MeasureTheory.WithSetwiseTopology.separatesOn_of_isPiSystem_of_generateFrom}
+    \leanok
+
+    If $\mu, \nu \in \Prob(\Cfg, \mathcal{F})$ satisfy $\mu(A) = \nu(A)$ for all
+    $A \in \mathcal{F}^0$, then $\mu = \nu$.
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    $\mathcal{F}^0$ is a $\pi$-system (indeed an algebra) generating $\mathcal{F}$, and both
+    measures are finite with the same total mass; the uniqueness part of the extension theorem
+    (Dynkin's $\pi$--$\lambda$ argument) gives $\mu = \nu$.
+\end{proof}
+
+\begin{proposition}[Georgii (4.3)(1): the $\mathcal{L}$-topology is Hausdorff]
+    \label{prop:lc-hausdorff}
+    \uses{lem:lc-separates, def:lc-topology}
+    \lean{MeasureTheory.instT2SpaceWithLocalConvergence,
+      MeasureTheory.WithSetwiseTopology.t2Space_probabilityMeasure}
+    \leanok
+
+    $\Prob(\Cfg, \mathcal{F})$ with the $\mathcal{L}$-topology is a Hausdorff space.
+\end{proposition}
+\begin{proof}
+    \leanok
+
+    By Lemma~\ref{lem:lc-separates} the evaluation map
+    $\mu \mapsto (\mu(A))_{A \in \mathcal{F}^0}$ is injective, and by construction it is
+    inducing; an inducing injection into a Hausdorff space (here the product
+    $\overline{\R}_{\ge 0}^{\,\mathcal{F}^0}$) is an embedding, so the source is Hausdorff.
+\end{proof}
+
+\begin{remark}[Georgii (4.3)(1): the $\mathcal{L}$-topology is an initial topology]
+    \label{rmk:lc-initial-topology}
+    \uses{def:lc-topology}
+    \lean{MeasureTheory.WithSetwiseTopology.isInducing_evalProb,
+      MeasureTheory.WithSetwiseTopology.evalProb}
+    \leanok
+
+    The restriction map $p : \mu \mapsto \mu | \mathcal{F}^0$, viewed as the evaluation map into
+    $\overline{\R}_{\ge 0}^{\,\mathcal{F}^0}$ with the product (setwise-convergence) topology, is
+    topology-inducing: the $\mathcal{L}$-topology is exactly the initial topology of $p$. Together
+    with Proposition~\ref{prop:lc-hausdorff} this makes $p$ a homeomorphism onto its image.
+\end{remark}
+
+\begin{remark}[Georgii (4.3)(1): surjectivity of $p$ is not formalized]
+    \label{rmk:lc-caratheodory}
+    \uses{rmk:lc-initial-topology}
+
+    Georgii states, via Carath\'eodory's extension theorem, that $p$ is a \emph{bijection} from
+    $\Prob(\Cfg, \mathcal{F})$ onto the set $\Prob(\Cfg, \mathcal{F}^0)$ of all $\sigma$-additive
+    normalized nonnegative set functions on the algebra $\mathcal{F}^0$. Only injectivity
+    (Lemma~\ref{lem:lc-separates}) and the inducing property
+    (Remark~\ref{rmk:lc-initial-topology}) are formalized; the surjectivity statement, i.e.\ the
+    identification of the image of $p$ with $\Prob(\Cfg, \mathcal{F}^0)$, is not in the library.
+\end{remark}
+
+\subsection*{Georgii (4.3)(2): the $\mathcal{L}$-topology is the topology of local observables}
+
+\begin{definition}[Local and quasilocal observables, Georgii (2.20)]
+    \label{def:lc-local-functions}
+    \uses{def:cylinder-event}
+    \lean{MeasureTheory.GibbsMeasure.localFunctionsOn,
+      MeasureTheory.GibbsMeasure.localFunctions,
+      MeasureTheory.GibbsMeasure.quasilocalFunctions}
+    \leanok
+
+    $\mathcal{L}_\Lambda$ is the algebra of bounded $\mathcal{F}_\Lambda$-measurable functions
+    $\Cfg \to \R$, $\mathcal{L} = \bigcup_{\Lambda \in \Fin} \mathcal{L}_\Lambda$ is the algebra
+    of bounded local observables, and $\overline{\mathcal{L}}$ is its closure in the supremum
+    norm, the quasilocal observables. In Lean these are \texttt{Subalgebra}s of
+    $\ell^\infty(\Cfg; \R)$, and the union is a supremum of a directed family.
+\end{definition}
+
+\begin{definition}[$\mathcal{L}$-continuous observables]
+    \label{def:lc-lcontinuous}
+    \uses{def:lc-topology}
+    \lean{MeasureTheory.GibbsMeasure.LContinuous}
+    \leanok
+
+    A bounded observable $f$ is \textbf{$\mathcal{L}$-continuous} if
+    $\mu \mapsto \mu(f) = \int f \, d\mu$ is continuous on $\Prob(\Cfg, \mathcal{F})$ for the
+    $\mathcal{L}$-topology.
+\end{definition}
+
+\begin{lemma}[The $\mathcal{L}$-continuous observables are uniformly closed]
+    \label{lem:lc-isclosed-lcontinuous}
+    \uses{def:lc-lcontinuous}
+    \lean{MeasureTheory.GibbsMeasure.isClosed_lContinuous}
+    \leanok
+
+    The set of bounded measurable $\mathcal{L}$-continuous observables is closed in
+    $\ell^\infty(\Cfg; \R)$.
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    If $f_n \to g$ uniformly then for every probability measure $\nu$ one has
+    $|\nu(g) - \nu(f_n)| \le \|g - f_n\|_\infty$, a bound uniform in $\nu$. Hence
+    $\nu \mapsto \nu(f_n)$ converges uniformly to $\nu \mapsto \nu(g)$, and a uniform limit of
+    continuous functions is continuous. Boundedness and measurability pass to the limit as well.
+\end{proof}
+
+\begin{lemma}[Finite-volume simple observables are $\mathcal{L}$-continuous]
+    \label{lem:lc-simple}
+    \uses{def:lc-lcontinuous, lem:lc-continuous-eval, lem:lc-mem-local-events}
+    \lean{MeasureTheory.GibbsMeasure.lContinuous_of_mem_simpleFunctions}
+    \leanok
+
+    If $\Lambda \in \Fin$ and $g = \sum_{k=1}^n a_k \mathbf{1}_{A_k}$ is a simple
+    $\mathcal{F}_\Lambda$-measurable function, then $g$ is $\mathcal{L}$-continuous.
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    Writing the integral over the fibres of $g$ gives
+    $\nu(g) = \sum_{y \in \mathrm{ran}\, g} y \cdot \nu(g^{-1}\{y\})$, a finite sum. Each fibre
+    $g^{-1}\{y\}$ lies in $\mathcal{F}_\Lambda \subseteq \mathcal{F}^0$, so each summand is
+    continuous by Lemma~\ref{lem:lc-continuous-eval}, and finite sums and products with constants
+    preserve continuity.
+\end{proof}
+
+\begin{proposition}[Quasilocal observables have continuous integral]
+    \label{prop:lc-quasilocal-continuous}
+    \uses{lem:lc-isclosed-lcontinuous, lem:lc-simple, def:lc-local-functions,
+      def:lc-lcontinuous}
+    \lean{MeasureTheory.GibbsMeasure.lContinuous_of_mem_quasilocalFunctions}
+    \leanok
+
+    Every $f \in \overline{\mathcal{L}}$ is $\mathcal{L}$-continuous.
+
+    This is stronger than what Georgii proves in Remark (4.3)(2), where continuity of
+    $\nu \mapsto \nu(f)$ is established for $f \in \mathcal{L}$: here it is established on the
+    uniform closure $\overline{\mathcal{L}}$, i.e.\ for all quasilocal observables.
+\end{proposition}
+\begin{proof}
+    \leanok
+
+    For fixed $\Lambda$, $\mathcal{L}_\Lambda$ is the uniform closure of the simple
+    $\mathcal{F}_\Lambda$-measurable functions, which are $\mathcal{L}$-continuous by
+    Lemma~\ref{lem:lc-simple}; since the $\mathcal{L}$-continuous bounded measurable observables
+    form a uniformly closed set (Lemma~\ref{lem:lc-isclosed-lcontinuous}), the closure
+    $\mathcal{L}_\Lambda$ is contained in it. Taking the union over $\Lambda$ gives
+    $\mathcal{L}$, and one more application of Lemma~\ref{lem:lc-isclosed-lcontinuous} gives
+    $\overline{\mathcal{L}}$. (This is Georgii's explicit $\varepsilon/4$ approximation argument,
+    packaged as: the property is closed and holds on a dense subalgebra.)
+\end{proof}
+
+\begin{definition}[Indicator of a set as a bounded observable]
+    \label{def:lc-indicator}
+    \lean{MeasureTheory.GibbsMeasure.indicatorLp, MeasureTheory.GibbsMeasure.coeFn_indicatorLp}
+    \leanok
+
+    For $A \subseteq \Cfg$, $\mathbf{1}_A$ regarded as an element of $\ell^\infty(\Cfg; \R)$.
+\end{definition}
+
+\begin{lemma}[Indicators of local events are local observables]
+    \label{lem:lc-indicator-local}
+    \uses{def:lc-indicator, def:lc-local-events, def:lc-local-functions}
+    \lean{MeasureTheory.GibbsMeasure.indicatorLp_mem_localFunctions}
+    \leanok
+
+    If $A \in \mathcal{F}^0$ then $\mathbf{1}_A \in \mathcal{L}$.
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    By Lemma~\ref{lem:lc-mem-local-events}, $A \in \mathcal{F}_\Lambda$ for some
+    $\Lambda \in \Fin$; then $\mathbf{1}_A$ is bounded and $\mathcal{F}_\Lambda$-measurable, i.e.\
+    $\mathbf{1}_A \in \mathcal{L}_\Lambda$.
+\end{proof}
+
+\begin{theorem}[Georgii (4.3)(2)]
+    \label{thm:lc-tendsto-iff-localFunctions}
+    \uses{prop:lc-quasilocal-continuous, lem:lc-indicator-local, lem:lc-tendsto-iff,
+      def:lc-local-functions, def:lc-topology}
+    \lean{MeasureTheory.GibbsMeasure.tendsto_iff_forall_localFunctions}
+    \leanok
+
+    The $\mathcal{L}$-topology is the coarsest topology for which $\nu \mapsto \nu(f)$ is
+    continuous for every $f \in \mathcal{L}$. Concretely, a net $(\mu_\alpha)$ converges to $\mu$
+    in the $\mathcal{L}$-topology if and only if $\lim_D \mu_\alpha(f) = \mu(f)$ for every
+    $f \in \mathcal{L}$. (This is what justifies the name ``$\mathcal{L}$-topology''.)
+
+    As in Lemma~\ref{lem:lc-tendsto-iff}, the Lean statement is for convergence along an arbitrary
+    filter, not only along a directed set.
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    ($\Rightarrow$) A local observable is quasilocal, so $\nu \mapsto \nu(f)$ is continuous by
+    Proposition~\ref{prop:lc-quasilocal-continuous}; compose with the convergence.
+    ($\Leftarrow$) For $A \in \mathcal{F}^0$ apply the hypothesis to $f = \mathbf{1}_A$
+    (Lemma~\ref{lem:lc-indicator-local}); since $\nu(\mathbf{1}_A) = \nu(A)$ and all values are
+    finite, convergence of the real numbers $\mu_\alpha(A)$ gives convergence in
+    $\overline{\R}_{\ge 0}$, which is local convergence by Lemma~\ref{lem:lc-tendsto-iff}.
+\end{proof}
+
+\subsection*{Georgii (4.3)(3): metrizability for a finite state space}
+
+\begin{lemma}[Countability of $\mathcal{F}^0$]
+    \label{lem:lc-countable-local-events}
+    \uses{def:lc-local-events, lem:lc-mem-local-events}
+    \lean{MeasureTheory.countable_localEvents,
+      MeasureTheory.instCountableElemSetForallLocalEventsOfFinite}
+    \leanok
+
+    If $S$ is countable and $E$ is finite, then $\mathcal{F}^0$ is countable.
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    By Lemma~\ref{lem:lc-mem-local-events} every local event is $\pi_\Lambda^{-1}(B)$ for some
+    $\Lambda \in \Fin$ and $B \subseteq E^\Lambda$. There are countably many $\Lambda$ (as $S$ is
+    countable) and, for each, finitely many $B$ (as $E^\Lambda$ is finite). So $\mathcal{F}^0$ is
+    covered by a countable union of countable sets.
+\end{proof}
+
+\begin{proposition}[Georgii (4.3)(3): metrizability]
+    \label{prop:lc-metrizable}
+    \uses{lem:lc-countable-local-events, rmk:lc-initial-topology, prop:lc-hausdorff,
+      def:lc-topology}
+    \lean{MeasureTheory.instPseudoMetrizableSpaceWithLocalConvergenceOfCountableOfFinite,
+      MeasureTheory.instMetrizableSpaceWithLocalConvergenceOfCountableOfFinite}
+    \leanok
+
+    If $S$ is countable and $E$ is finite, then the $\mathcal{L}$-topology on
+    $\Prob(\Cfg, \mathcal{F})$ is metrizable.
+\end{proposition}
+\begin{proof}
+    \leanok
+
+    By Remark~\ref{rmk:lc-initial-topology} the space is inducing-embedded in the product
+    $\overline{\R}_{\ge 0}^{\,\mathcal{F}^0}$, and by
+    Lemma~\ref{lem:lc-countable-local-events} the index set $\mathcal{F}^0$ is countable, so this
+    product is metrizable; an inducing map into a pseudometrizable space makes the source
+    pseudometrizable. Combined with the Hausdorff property
+    (Proposition~\ref{prop:lc-hausdorff}), pseudometrizable upgrades to metrizable.
+\end{proof}
+
+\begin{remark}[What Georgii (4.3)(3) says that the library does not]
+    \label{rmk:lc-metrizability-converse}
+    \uses{prop:lc-metrizable}
+
+    Georgii asserts an equivalence: the $\mathcal{L}$-topology is metrizable \emph{only if}
+    $\mathcal{F}^0$ is countable, which happens only if $E$ is finite. Only the ``if'' direction
+    is formalized (Proposition~\ref{prop:lc-metrizable}); the converse --- non-metrizability for
+    infinite $E$ --- is not in the library. Nor is Georgii's explicit metric
+    \[
+        d(\mu, \nu) \;=\; \sum_{n \ge 1} 2^{-n} \sum_{\zeta \in E^{\Lambda(n)}}
+        |\mu(\sigma_{\Lambda(n)} = \zeta) - \nu(\sigma_{\Lambda(n)} = \zeta)|
+    \]
+    for a cofinal sequence $(\Lambda(n))_{n \ge 1}$ in $\Fin$: the Lean proof produces
+    \emph{some} metric, via the general metrizability of a countable product, rather than this
+    one.
+\end{remark}
+
+\begin{corollary}[Random fields over a finite state space form a Polish space]
+    \label{cor:lc-polish}
+    \uses{prop:lc-metrizable}
+    \lean{MeasureTheory.compactSpace_and_metrizableSpace_withLocalConvergence,
+      MeasureTheory.instIsCompletelyMetrizableSpaceWithLocalConvergenceOfCountableOfFiniteOfMeasurableSingletonClass,
+      MeasureTheory.instPolishSpaceWithLocalConvergenceOfCountableOfFiniteOfMeasurableSingletonClass}
+    \leanok
+
+    If $S$ is countable and $E$ is finite and discrete, then $\Prob(\Cfg, \mathcal{F})$ with the
+    $\mathcal{L}$-topology is compact metrizable, hence completely metrizable, hence Polish.
+
+    The compactness half is Georgii (4.11)(2) and belongs to the next section; the statement is
+    recorded here because it is where metrizability is used. The Polish conclusion is stronger
+    than anything Georgii states in (4.3)(3), which stops at metrizability.
+\end{corollary}
+\begin{proof}
+    \leanok
+
+    Compactness is (4.11)(2); metrizability is Proposition~\ref{prop:lc-metrizable}. A compact
+    metrizable space is complete for any compatible metric, hence completely metrizable, and
+    a separable completely metrizable space is Polish.
+\end{proof}
+
+\begin{remark}[Comparison with the weak topology, Georgii (4.3)(3)]
+    \label{rmk:lc-weak-topology}
+    \uses{thm:lc-tendsto-iff-localFunctions}
+
+    Georgii also records that if $E$ is a metric space and $\Cfg$ carries the product topology,
+    then the $\mathcal{L}$-topology is finer than the weak topology, and that the two coincide
+    when $E$ is countable and discrete (every local function is then continuous). Neither
+    comparison is formalized: the library has no statement relating
+    \texttt{WithLocalConvergence} to Mathlib's weak topology on \texttt{ProbabilityMeasure}.
+\end{remark}
+
+\subsection*{Cylinder functions on the configuration space}
+
+\begin{definition}[Cylinder function]
+    \label{def:lc-cylinder-function}
+    \lean{MeasureTheory.GibbsMeasure.ConfigurationSpace.IsCylinderFunction}
+    \leanok
+
+    A function $f : \Cfg \to F$ is a \textbf{cylinder function} if it depends on only finitely
+    many coordinates, i.e.\ there is $\Lambda \in \Fin$ with $f(\zeta) = f(\eta)$ whenever
+    $\zeta$ and $\eta$ agree on $\Lambda$.
+
+    This is deliberately weaker than membership in $\mathcal{L}$
+    (Definition~\ref{def:lc-local-functions}): no boundedness, no measurability, and the
+    codomain $F$ is arbitrary. It is the raw dependency notion; $\mathcal{L}_\Lambda$ is the
+    bounded measurable one, and the two must not be conflated.
+\end{definition}
+
+\begin{lemma}[Cylinder functions are stable under the algebraic operations]
+    \label{lem:lc-cylinder-function-algebra}
+    \uses{def:lc-cylinder-function}
+    \lean{MeasureTheory.GibbsMeasure.ConfigurationSpace.IsCylinderFunction.const,
+      MeasureTheory.GibbsMeasure.ConfigurationSpace.IsCylinderFunction.comp,
+      MeasureTheory.GibbsMeasure.ConfigurationSpace.IsCylinderFunction.comp₂,
+      MeasureTheory.GibbsMeasure.ConfigurationSpace.IsCylinderFunction.add,
+      MeasureTheory.GibbsMeasure.ConfigurationSpace.IsCylinderFunction.mul,
+      MeasureTheory.GibbsMeasure.ConfigurationSpace.IsCylinderFunction.smul,
+      MeasureTheory.GibbsMeasure.ConfigurationSpace.IsCylinderFunction.neg,
+      MeasureTheory.GibbsMeasure.ConfigurationSpace.IsCylinderFunction.sub}
+    \leanok
+
+    Constants are cylinder functions; post-composition with an arbitrary map preserves the
+    property; and if $f, g$ are cylinder functions so are $F(f, g)$ for any binary $F$, and in
+    particular $f + g$, $f \cdot g$, $c \cdot f$, $-f$ and $f - g$.
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    A constant depends on $\emptyset$. Post-composition preserves the dependency set. For two
+    functions depending on $\Lambda_f$ and $\Lambda_g$, the pair depends on
+    $\Lambda_f \cup \Lambda_g$, still a finite set; the algebraic cases are instances of this.
+\end{proof}
+
+\begin{lemma}[Product measurable structure is the Borel structure]
+    \label{lem:lc-borel}
+    \lean{MeasureTheory.GibbsMeasure.ConfigurationSpace.measurableSpace_pi_eq_borel}
+    \leanok
+
+    If $S$ is countable and $E$ is a second-countable Borel space, then the product
+    $\sigma$-algebra $\mathcal{E}^S$ on $\Cfg = E^S$ coincides with the Borel $\sigma$-algebra of
+    the product topology.
+
+    This is not in Georgii's §4.1; it is the compatibility fact needed whenever a topological
+    argument on $\Cfg$ (compactness, tightness) is to be read as a statement about
+    $(\Cfg, \mathcal{F})$.
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    Mathlib's \texttt{Pi.borelSpace} instance: a countable product of second-countable Borel
+    spaces is a Borel space, and \texttt{BorelSpace.measurable\_eq} then identifies the two
+    $\sigma$-algebras.
+\end{proof}
