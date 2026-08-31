@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Potential.Equivalence
 public import GibbsMeasure.Specification.Dobrushin
 public import GibbsMeasure.Specification.Extremal
 public import GibbsMeasure.Specification.Rescaling
@@ -599,6 +600,62 @@ theorem hasBoundedBoundary_nat : HasBoundedBoundary ℕ 1 := by
   simpa [Finset.mem_Iic] using hpΛ
 
 end Chains
+
+/-! ### Georgii (8.39), existence: the many-body part is absolutely summable
+
+Georgii's first step in the existence half of (8.39) is to replace `Φ` by an equivalent potential
+whose interaction terms are centred, and to absorb the self-energies `Φ_{i}` into the a priori
+measure. Condition (8.40) makes what is left absolutely summable: a volume of at least two sites
+containing `i` spans `i` or spans its predecessor, so `∑_{A ∋ i, |A| ≥ 2} δ(Φ_A) ≤ 2s`. -/
+
+section ManyBody
+
+variable {S E : Type*} [MeasurableSpace E] [LinearOrder S] [PredOrder S] {Φ : Potential S E}
+
+/-- A volume of at least two sites containing `i` spans `i` or spans its predecessor. -/
+lemma spans_or_spans_pred {A : Finset S} {i : S} (hi : i ∈ A) (hcard : 1 < A.card) :
+    Spans A i ∨ Spans A (Order.pred i) := by
+  obtain ⟨a, ha, b, hb, hab⟩ := Finset.one_lt_card.1 hcard
+  obtain ⟨j, hj, hji⟩ : ∃ j ∈ A, j ≠ i := by
+    rcases eq_or_ne a i with rfl | h
+    · exact ⟨b, hb, hab.symm⟩
+    · exact ⟨a, ha, h⟩
+  rcases hji.lt_or_gt with hlt | hlt
+  · exact Or.inr ⟨⟨j, hj, Order.le_pred_of_lt hlt⟩,
+      ⟨i, hi, Order.pred_lt_of_not_isMin (not_isMin_of_lt hlt)⟩⟩
+  · exact Or.inl ⟨⟨i, hi, le_rfl⟩, ⟨j, hj, hlt⟩⟩
+
+/-- **Georgii (8.40) bounds the many-body oscillation.** -/
+lemma oscNormAt_manyBody_le (Φ : Potential S E) (i : S) :
+    Φ.manyBody.oscNormAt i ≤ oscSpan Φ i + oscSpan Φ (Order.pred i) := by
+  rw [Potential.oscNormAt, oscSpan, oscSpan, ← ENNReal.tsum_add]
+  refine ENNReal.tsum_le_tsum fun A ↦ ?_
+  by_cases hiA : A ∈ ({A : Finset S | i ∈ A} : Set (Finset S))
+  swap
+  · rw [Set.indicator_of_notMem hiA]; exact zero_le'
+  rw [Set.indicator_of_mem hiA]
+  rcases le_or_gt A.card 1 with hcard | hcard
+  · have h0 : _root_.oscOutside (∅ : Set S) (Φ.manyBody A) = 0 := by
+      rw [Potential.manyBody_of_card_le hcard]; exact Dobrushin.osc_const 0
+    rw [h0]; exact zero_le'
+  rw [Potential.manyBody_of_one_lt_card hcard]
+  rcases spans_or_spans_pred hiA hcard with hs | hs
+  · rw [Set.indicator_of_mem (show A ∈ ({A : Finset S | Spans A i} : Set (Finset S)) from hs)]
+    exact self_le_add_right _ _
+  · rw [Set.indicator_of_mem
+      (show A ∈ ({A : Finset S | Spans A (Order.pred i)} : Set (Finset S)) from hs)]
+    exact self_le_add_left _ _
+
+/-- **Georgii (8.39), the reduction to `ℬ`.** Under (8.40) the many-body part of `Φ`, recentred at
+any configuration, is absolutely summable — an element of Georgii's space `ℬ` equivalent to
+`Φ.manyBody`. -/
+theorem isAbsolutelySummable_centre_manyBody (h840 : ⨆ i : S, oscSpan Φ i ≠ ⊤) (η₀ : S → E) :
+    (Φ.manyBody.centre η₀).IsAbsolutelySummable := by
+  refine ⟨fun i ↦ ne_top_of_le_ne_top ?_ (Potential.normAt_centre_le η₀ i)⟩
+  exact ne_top_of_le_ne_top (ENNReal.add_ne_top.2 ⟨h840 ∘ (eq_top_mono (le_iSup _ i)),
+    h840 ∘ (eq_top_mono (le_iSup _ (Order.pred i)))⟩) (oscNormAt_manyBody_le Φ i)
+
+end ManyBody
 
 /-! ### Georgii, Comments (8.41): the shift-invariant reformulation and pair potentials -/
 

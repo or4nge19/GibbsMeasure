@@ -62,6 +62,118 @@ instance : Module ℝ (Potential S E) :=
 
 @[simp] lemma zero_apply (A : Finset S) (η : S → E) : (0 : Potential S E) A η = 0 := rfl
 
+/-! ### The one-body and many-body parts of a potential
+
+Georgii absorbs the single-site terms `Φ_{i}` of a potential into the a priori measure in the
+proof of Theorem (8.39). The two complementary projections of `Potential S E` involved are
+`Potential.oneBody` and `Potential.manyBody`. -/
+
+section BodySplit
+
+variable {Φ : Potential S E}
+
+variable (Φ) in
+/-- The part of `Φ` carried by the volumes of at most one site. -/
+def oneBody : Potential S E := fun A η ↦ if A.card ≤ 1 then Φ A η else 0
+
+variable (Φ) in
+/-- The part of `Φ` carried by the volumes of at least two sites. -/
+def manyBody : Potential S E := fun A η ↦ if 1 < A.card then Φ A η else 0
+
+lemma oneBody_apply (A : Finset S) (η : S → E) :
+    Φ.oneBody A η = if A.card ≤ 1 then Φ A η else 0 := rfl
+
+lemma manyBody_apply (A : Finset S) (η : S → E) :
+    Φ.manyBody A η = if 1 < A.card then Φ A η else 0 := rfl
+
+lemma oneBody_of_card_le {A : Finset S} (h : A.card ≤ 1) : Φ.oneBody A = Φ A :=
+  funext fun η ↦ by simp [oneBody_apply, h]
+
+lemma oneBody_of_one_lt_card {A : Finset S} (h : 1 < A.card) : Φ.oneBody A = 0 :=
+  funext fun η ↦ by simp [oneBody_apply, not_le.2 h]
+
+lemma manyBody_of_card_le {A : Finset S} (h : A.card ≤ 1) : Φ.manyBody A = 0 :=
+  funext fun η ↦ by simp [manyBody_apply, Nat.not_lt.2 h]
+
+lemma manyBody_of_one_lt_card {A : Finset S} (h : 1 < A.card) : Φ.manyBody A = Φ A :=
+  funext fun η ↦ by simp [manyBody_apply, h]
+
+@[simp] lemma oneBody_add_manyBody : Φ.oneBody + Φ.manyBody = Φ := by
+  funext A η
+  rcases le_or_gt A.card 1 with h | h
+  · simp [oneBody_apply, manyBody_apply, h, Nat.not_lt.2 h]
+  · simp [oneBody_apply, manyBody_apply, h, not_le.2 h]
+
+instance [IsPotential Φ] : IsPotential Φ.oneBody :=
+  ⟨fun Δ ↦ by
+    rcases le_or_gt Δ.card 1 with h | h
+    · rw [oneBody_of_card_le h]; exact IsPotential.measurable (Φ := Φ) Δ
+    · rw [oneBody_of_one_lt_card h]; exact measurable_const⟩
+
+instance [IsPotential Φ] : IsPotential Φ.manyBody :=
+  ⟨fun Δ ↦ by
+    rcases le_or_gt Δ.card 1 with h | h
+    · rw [manyBody_of_card_le h]; exact measurable_const
+    · rw [manyBody_of_one_lt_card h]; exact IsPotential.measurable (Φ := Φ) Δ⟩
+
+/-- Only the singletons of `Λ` carry a self-energy term meeting `Λ`. -/
+instance : IsFiniteRange Φ.oneBody :=
+  ⟨fun i ↦ ⟨{i}, fun A hiA hA ↦ by
+    by_contra hsub
+    refine hA (oneBody_of_one_lt_card ?_)
+    by_contra hcard
+    exact hsub (Finset.eq_singleton_iff_unique_mem.2
+      ⟨hiA, fun b hb ↦ Finset.card_le_one.1 (not_lt.1 hcard) b hb i hiA⟩ ▸ Finset.Subset.refl _)⟩⟩
+
+lemma hasSum_hamiltonianTerms_oneBody (Λ : Finset S) (η : S → E) :
+    HasSum (Φ.oneBody.hamiltonianTerms Λ η) (∑ i ∈ Λ, Φ {i} η) (SummationFilter.volume S) := by
+  classical
+  have hzero : ∀ A ∉ Λ.image (fun i ↦ ({i} : Finset S)),
+      Φ.oneBody.hamiltonianTerms Λ η A = 0 := by
+    intro A hA
+    by_cases hdisj : Disjoint A Λ
+    · exact hamiltonianTerms_of_disjoint hdisj η
+    · obtain ⟨x, hxA, hxΛ⟩ := Finset.not_disjoint_iff.1 hdisj
+      have hcard : 1 < A.card := by
+        by_contra hcard
+        exact hA (Finset.mem_image.2 ⟨x, hxΛ, (Finset.eq_singleton_iff_unique_mem.2
+          ⟨hxA, fun b hb ↦ Finset.card_le_one.1 (not_lt.1 hcard) b hb x hxA⟩).symm⟩)
+      rw [hamiltonianTerms_of_not_disjoint hdisj η, oneBody_of_one_lt_card hcard, Pi.zero_apply]
+  have h := (hasSum_sum_of_ne_finset_zero hzero).volume
+  rwa [Finset.sum_image (fun a _ b _ hab ↦ by simpa using hab),
+    Finset.sum_congr rfl fun i hi ↦ show Φ.oneBody.hamiltonianTerms Λ η {i} = Φ {i} η by
+      rw [hamiltonianTerms_of_not_disjoint
+          (Finset.not_disjoint_iff.2 ⟨i, Finset.mem_singleton_self i, hi⟩) η,
+        oneBody_of_card_le (by simp)]] at h
+
+@[simp] lemma hamiltonian_oneBody (Λ : Finset S) (η : S → E) :
+    Φ.oneBody.hamiltonian Λ η = ∑ i ∈ Λ, Φ {i} η :=
+  (hasSum_hamiltonianTerms_oneBody Λ η).tsum_eq
+
+lemma hamiltonianTerms_manyBody (Λ : Finset S) (η : S → E) :
+    Φ.manyBody.hamiltonianTerms Λ η
+      = Φ.hamiltonianTerms Λ η - Φ.oneBody.hamiltonianTerms Λ η := by
+  funext A
+  by_cases hdisj : Disjoint A Λ
+  · simp [hamiltonianTerms_of_disjoint hdisj]
+  · rcases le_or_gt A.card 1 with h | h <;>
+      simp [hamiltonianTerms_of_not_disjoint hdisj, oneBody_apply, manyBody_apply, h,
+        Nat.not_lt.2, not_le.2]
+
+instance [IsSummable Φ] : IsSummable Φ.manyBody :=
+  ⟨fun Λ η ↦ by
+    rw [hamiltonianTerms_manyBody]
+    exact (IsSummable.summable (Φ := Φ) Λ η).sub (hasSum_hamiltonianTerms_oneBody Λ η).summable⟩
+
+/-- The many-body Hamiltonian is the full one with the self-energies of `Λ` removed. -/
+lemma hamiltonian_manyBody [IsSummable Φ] (Λ : Finset S) (η : S → E) :
+    Φ.manyBody.hamiltonian Λ η = Φ.hamiltonian Λ η - ∑ i ∈ Λ, Φ {i} η := by
+  refine HasSum.tsum_eq ?_
+  rw [hamiltonianTerms_manyBody]
+  exact (hasSum_hamiltonian Λ η).sub (hasSum_hamiltonianTerms_oneBody Λ η)
+
+end BodySplit
+
 /-! ### `‖·‖ᵢ` under the module operations -/
 
 @[simp] lemma normAt_zero (i : S) : (0 : Potential S E).normAt i = 0 := by
