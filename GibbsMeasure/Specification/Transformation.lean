@@ -179,6 +179,18 @@ theorem IsInvariant.map_mem_GP {τ : Transformation S E} {γ : Specification S E
   have h := Specification.map_mem_GP τ hμ
   rwa [show γ.map τ = γ from hγ] at h
 
+/-- **Georgii (5.10)**, `Measure` form: a symmetry of `γ` carries Gibbs measures to Gibbs
+measures. -/
+theorem IsInvariant.map_isGibbsMeasure {τ : Transformation S E} {γ : Specification S E}
+    (hγ : IsInvariant τ γ) {μ : Measure (S → E)} [IsProbabilityMeasure μ]
+    (hμ : γ.IsGibbsMeasure μ) : γ.IsGibbsMeasure (μ.map τ.toFun) := by
+  set P : ProbabilityMeasure (S → E) := ⟨μ, inferInstance⟩ with hP
+  have h := hγ.map_mem_GP (μ := P) hμ
+  have hcoe : ((ProbabilityMeasure.map P τ.measurable_toFun.aemeasurable :
+      ProbabilityMeasure (S → E)) : Measure (S → E)) = μ.map τ.toFun :=
+    ProbabilityMeasure.toMeasure_map _ _
+  exact hcoe ▸ h
+
 /-- **Georgii (5.11).** If `𝒢(γ) = {μ}` then `μ` is preserved by every symmetry of `γ`. -/
 theorem IsInvariant.measurePreserving_of_GP_eq_singleton {τ : Transformation S E}
     {γ : Specification S E} (hγ : IsInvariant τ γ) {μ : ProbabilityMeasure (S → E)}

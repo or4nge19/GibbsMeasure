@@ -102,8 +102,11 @@ branch of Theorem **(5.15)(ii)** and Corollary **(5.16)** — an `I`-invariant s
 `GibbsMeasure/Specification/InvariantExistenceGroup.lean`
 (`exists_mem_GP_and_forall_measurePreserving_of_commute`), by Følner averaging over the abelian
 group (`GibbsMeasure/Mathlib/GroupTheory/Foelner.lean` supplies the Følner sets Mathlib's
-`IsFoelner` lacks a producer for). The compact-topological-group branch (5.15)(i), and the
-general `I₁ ∘ I₀` iteration, remain open. In detail: Georgii's
+`IsFoelner` lacks a producer for). The other branch **(5.15)(i)** is proved in the same file at
+the hypothesis its proof actually uses — a *left-invariant probability measure* on the acting
+group, `exists_mem_GP_and_forall_measurePreserving_of_invariantWeight` — with the compact-group
+case (`..._of_compactGroup`) as the corollary in which Haar measure supplies the weight; neither
+needs `𝒢(γ)` compact. Only the general `I₁ ∘ I₀` iteration remains open. In detail: Georgii's
 transformation group `T` of configuration space ((5.1),
 `GibbsMeasure/Prereqs/Transformation.lean`), its action on potentials ((5.3), `Potential.map`,
 with the Hamiltonian/norm/Boltzmann-factor transport of (5.6)(c)), on specifications ((5.4),
@@ -329,7 +332,7 @@ every positive quasilocal pre-modification is Gibbsian for a unique `a`-normalis
 so the DLR and Hamiltonian frameworks agree.
 
 Not yet done: the inhomogeneous Ising chains of §6.1, Shlosman's random staircases of §6.3
-(Theorem (6.21)), the compact-group branch of Theorem (5.15), Mermin–Wagner (9.20), and
+(Theorem (6.21)), the general `I₁ ∘ I₀` form of Theorem (5.15), Mermin–Wagner (9.20), and
 Chapters 10–20 (Markov fields on trees, Gaussian fields, the variational principle, the Poulsen
 simplex, reflection positivity, and the infrared bound).
 

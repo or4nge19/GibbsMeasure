@@ -322,9 +322,15 @@ alignment:
       lean: "MeasureTheory.GibbsMeasure.exists_mem_GP_and_forall_measurePreserving_of_commute"
       module: "GibbsMeasure/Specification/InvariantExistenceGroup.lean"
       status: "proved"
+    - source: "Theorem (5.15)(i) with I0 = {id}; Corollary (5.16), compact branch"
+      lean: "MeasureTheory.GibbsMeasure.exists_mem_GP_and_forall_measurePreserving_of_compactGroup"
+      module: "GibbsMeasure/Specification/InvariantExistenceGroup.lean"
+      status: "proved"
       note: >-
-        The compact-topological-group branch (5.15)(i) and the general I1 o I0 iteration are not
-        formalized.
+        Proved from the general
+        exists_mem_GP_and_forall_measurePreserving_of_invariantWeight, which asks only for a
+        left-invariant probability measure on the acting group; compactness enters only to supply
+        Haar. The general I1 o I0 form of (5.15) is not formalized.
     - source: "Theorem (7.12)(c)"
       lean: "MeasureTheory.GibbsMeasure.ae_tendsto_iSup_ofReal_abs_sub_of_mem_extremePoints_G"
       module: "GibbsMeasure/Specification/UniformLocalLimits.lean"
@@ -349,7 +355,11 @@ alignment:
       lean: "Potential.dependsOn_hamiltonian_sub_of_sigmaFinitePremodifierNorm_eq"
       module: "GibbsMeasure/Potential/GibbsRepresentation.lean"
       status: "proved"
-    - source: "Theorem (5.15), Corollary (5.16), Theorem (9.20), Chapters 10-20"
+    - source: "Theorem (5.15), general I1 o I0 form"
+      lean: ""
+      module: ""
+      status: "not-formalized"
+    - source: "Theorem (9.20), Chapters 10-20"
       lean: ""
       module: ""
       status: "not-formalized"
