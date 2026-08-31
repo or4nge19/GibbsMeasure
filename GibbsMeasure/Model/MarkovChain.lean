@@ -68,6 +68,8 @@ stationary Markov chain with transition matrix `P`. Georgii's defining equation 
 
 ## The full theorem
 
+* `isCondExp_markovSpecification_stationaryChain`: Georgii (3.6), `γ_Λ` is a version of the
+  conditional distribution of `μ_P` given the exterior of `Λ`.
 * `gibbsMeasure_eq_singleton`: `𝒢(markovSpecification P) = {μ_P}`.
 * `georgii_3_5`: the packaged statement of Theorem (3.5).
 -/
@@ -2983,6 +2985,17 @@ theorem isGibbsMeasure_markovSpecification_stationaryChain :
 end GibbsMeasure
 
 /-! ### Georgii, Theorem (3.5): `𝒢(γ_P) = {μ_P}` -/
+
+/-- **Georgii (3.6).** The finite-volume kernel of the Markov specification is a version of the
+conditional distribution of the stationary chain given the configuration outside `Λ`:
+`γ_Λ(σ_Λ = ζ | ω) = μ_P(σ_Λ = ζ | σ_{Λᶜ} = ω_{Λᶜ})`. Together with
+`isPositiveHomogeneousMarkovWith_markovSpecification`, which exhibits the singleton kernels as
+functions of the two boundary sites `i ± 1` alone, this is the equation determining `γ` from `P`
+in Theorem (3.5). -/
+theorem isCondExp_markovSpecification_stationaryChain (P : Matrix E E ℝ)
+    (hP : P ∈ Matrix.rowStochastic ℝ E) (hpos : ∀ x y, 0 < P x y) (Λ : Finset ℤ) :
+    (markovSpecification P Λ).IsCondExp (stationaryChain P hP hpos) :=
+  isGibbsMeasure_markovSpecification_stationaryChain P hP hpos Λ
 
 /-- **Georgii, Theorem (3.5).** For a positive stochastic matrix `P` the Markov specification
 `γ_P = markovSpecification P` has exactly one Gibbs measure, namely the stationary Markov chain
