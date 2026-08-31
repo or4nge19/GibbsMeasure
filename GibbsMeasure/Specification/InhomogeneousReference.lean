@@ -5,7 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
-public import GibbsMeasure.Specification
+public import GibbsMeasure.Specification.Rescaling
 
 /-!
 # Inhomogeneous independent specifications
@@ -31,6 +31,8 @@ priori measure `ν i`:
   family.
 * `Specification.isssdFamily_apply_of_mem_cylinderEvents`: on inside-volume events the kernel is
   the infinite product measure `⨂ i, ν i`; `Specification.hasFreeMeasure_isssdFamily`.
+* `Specification.isssdFamilyFun_withDensity`: Georgii Remark (1.28)(3) per site — rescaling the a
+  priori measure at each site multiplies the kernel by `Specification.lambdaWeight`.
 -/
 
 @[expose] public section
@@ -65,6 +67,27 @@ lemma isssdFamilyFun_const (ν : Measure E) [IsProbabilityMeasure ν] (Λ : Fins
     isssdFamilyFun (S := S) (E := E) (fun _ ↦ ν) Λ = isssdFun (S := S) (E := E) ν Λ := by
   ext η A hA
   rfl
+
+/-- **Georgii, Remark (1.28)(3), per site.** Replacing the a priori measure at each site `i` by
+`w_i · λ` multiplies the independent kernel by the weight `∏_{i ∈ Λ} w_i(ω_i)`. -/
+lemma isssdFamilyFun_withDensity (lam : Measure E) [IsProbabilityMeasure lam]
+    {w : S → E → ℝ≥0∞} (hw : ∀ i, Measurable (w i))
+    [∀ i, IsProbabilityMeasure (lam.withDensity (w i))] (Λ : Finset S) (η : S → E) :
+    isssdFamilyFun (S := S) (E := E) (fun i ↦ lam.withDensity (w i)) Λ η
+      = (isssdFun (S := S) (E := E) lam Λ η).withDensity
+          (lambdaWeight (S := S) (E := E) w Λ) := by
+  classical
+  rw [isssdFamilyFun_apply, show isssdFun (S := S) (E := E) lam Λ η
+    = Measure.map (juxt (Λ : Set S) η) (Measure.pi fun _ : Λ ↦ lam) from rfl]
+  have hpi : (Measure.pi fun i : Λ ↦ lam.withDensity (w i))
+      = (Measure.pi fun _ : Λ ↦ lam).withDensity (fun ζ : Λ → E ↦ ∏ i : Λ, w i (ζ i)) :=
+    Measure.pi_withDensity (fun _ : Λ ↦ lam) (fun i : Λ ↦ hw i)
+  have hfun : (fun ζ : Λ → E ↦ ∏ i : Λ, w i (ζ i))
+      = fun ζ : Λ → E ↦ lambdaWeight (S := S) (E := E) w Λ (juxt (Λ : Set S) η ζ) :=
+    funext fun ζ ↦ (lambdaWeight_juxt (S := S) (E := E) (r := w) Λ η ζ).symm
+  rw [hpi, hfun, MeasureTheory.map_withDensity_comp (Measure.pi fun _ : Λ ↦ lam)
+    (Measurable.juxt (Λ := (Λ : Set S)) (η := η) (𝓔 := mE))
+    (measurable_lambdaWeight (S := S) (E := E) hw Λ)]
 
 /-! ### Evaluation on square cylinders -/
 

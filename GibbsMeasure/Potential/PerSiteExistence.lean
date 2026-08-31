@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Potential.Equivalence
 public import GibbsMeasure.Potential.Existence
 public import GibbsMeasure.Specification.InhomogeneousReference
 
@@ -25,6 +26,9 @@ quasilocality) and to forget the boundary condition on inside-volume events
 * `Potential.gibbsSpecificationFamily`: Georgii Definition (2.9) over `Specification.isssdFamily`.
 * `Potential.GP_gibbsSpecificationFamily_nonempty`: Georgii (4.23)(a).
 * `Potential.isCompact_setOf_mem_GP_gibbsSpecificationFamily`: its compactness half.
+* `Potential.selfEnergyWeight`, `Potential.lambdaSpecification_eq_gibbsSpecificationFamily`: the
+  transport of Georgii's reduction — the λ-specification of `Φ` is the specification of the
+  recentred many-body part of `Φ` over the per-site measures `e^{-β Φ_{i}} λ`, normalized.
 -/
 
 @[expose] public section
@@ -35,6 +39,8 @@ open scoped ENNReal Topology
 noncomputable section
 
 namespace Potential
+
+section Family
 
 variable {S E : Type*} [Countable S] [MeasurableSpace E] {Φ : Potential S E}
   [IsPotential Φ] [IsAbsolutelySummable Φ]
@@ -144,5 +150,219 @@ theorem isCompact_setOf_mem_GP_gibbsSpecificationFamily :
   (isCompact_dominatedBy (dominatingMeasureFamily Φ ν β)).of_isClosed_subset
     (isClosed_setOf_mem_GP (isQuasilocal_gibbsSpecificationFamily (Φ := Φ) ν β))
     (setOf_mem_GP_gibbsSpecificationFamily_subset_dominatedBy (Φ := Φ) ν β)
+
+end Family
+
+/-! ### Absorbing the self-energies into the a priori measure
+
+Georgii's reduction in the proof of Theorem (8.39): the single-site terms `Φ_{i}` of a potential
+are moved into the a priori measure, leaving the many-body part `Potential.manyBody`, which
+`Potential.centre` normalizes so that condition (8.40) puts it in `ℬ`. -/
+
+section SelfEnergy
+
+variable {S E : Type*} [MeasurableSpace E] {Φ : Potential S E} [IsPotential Φ] {β : ℝ}
+  {η₀ : S → E}
+
+variable (Φ β η₀) in
+/-- The single-site Boltzmann weight `e^{-β Φ_{i}}`, read off at the reference configuration `η₀`.
+Since `Φ_{i}` is `𝓕_{i}`-measurable this does not depend on `η₀`
+(`Potential.selfEnergyWeight_apply`). -/
+noncomputable def selfEnergyWeight [DecidableEq S] (i : S) (x : E) : ℝ≥0∞ :=
+  ENNReal.ofReal (Real.exp (-β * Φ {i} (Function.update η₀ i x)))
+
+variable [DecidableEq S]
+
+lemma selfEnergyWeight_apply (i : S) (σ : S → E) :
+    selfEnergyWeight Φ β η₀ i (σ i) = ENNReal.ofReal (Real.exp (-β * Φ {i} σ)) := by
+  have h : Φ {i} (Function.update η₀ i (σ i)) = Φ {i} σ := by
+    refine IsPotential.eq_of_eqOn (Φ := Φ) fun x hx ↦ ?_
+    obtain rfl := Finset.mem_singleton.1 hx
+    simp
+  rw [selfEnergyWeight, h]
+
+lemma measurable_selfEnergyWeight (i : S) : Measurable (selfEnergyWeight Φ β η₀ i) := by
+  refine ENNReal.measurable_ofReal.comp (Real.continuous_exp.measurable.comp ?_)
+  exact measurable_const.mul
+    (((IsPotential.measurable (Φ := Φ) {i}).mono cylinderEvents_le_pi le_rfl).comp
+      (measurable_update η₀ (a := i)))
+
+omit [IsPotential Φ] in
+lemma selfEnergyWeight_ne_zero (i : S) (x : E) : selfEnergyWeight Φ β η₀ i x ≠ 0 := by
+  simp [selfEnergyWeight, Real.exp_pos]
+
+omit [IsPotential Φ] in
+lemma selfEnergyWeight_ne_top (i : S) (x : E) : selfEnergyWeight Φ β η₀ i x ≠ ⊤ := by
+  simp [selfEnergyWeight]
+
+/-- **The factorization behind Georgii's reduction.** The Boltzmann factor of `Φ` splits into that
+of the recentred many-body part, the product of the single-site weights, and a constant. -/
+lemma boltzmannFactor_eq_mul_lambdaWeight [IsSummable Φ] (Λ : Finset S) (σ : S → E) :
+    Φ.boltzmannFactor β Λ σ
+      = ENNReal.ofReal (Real.exp (-β * (manyBody Φ).hamiltonian Λ η₀))
+        * (((manyBody Φ).centre η₀).boltzmannFactor β Λ σ
+            * Specification.lambdaWeight (selfEnergyWeight Φ β η₀) Λ σ) := by
+  have hcentre : (manyBody Φ).hamiltonian Λ σ
+      = ((manyBody Φ).centre η₀).hamiltonian Λ σ + (manyBody Φ).hamiltonian Λ η₀ := by
+    have h := hamiltonian_sub' (Φ := manyBody Φ) (Ψ := (manyBody Φ).centre η₀) Λ σ
+    rw [hamiltonian_sub_centre (Φ := manyBody Φ) η₀ Λ σ] at h
+    linarith
+  have hsplit : Φ.hamiltonian Λ σ
+      = ((manyBody Φ).centre η₀).hamiltonian Λ σ + (manyBody Φ).hamiltonian Λ η₀
+        + ∑ i ∈ Λ, Φ {i} σ := by
+    rw [← hcentre, hamiltonian_manyBody (Φ := Φ) Λ σ]; ring
+  have hweight : Specification.lambdaWeight (selfEnergyWeight Φ β η₀) Λ σ
+      = ENNReal.ofReal (Real.exp (-β * ∑ i ∈ Λ, Φ {i} σ)) := by
+    rw [Specification.lambdaWeight,
+      Finset.prod_congr rfl fun i _ ↦ selfEnergyWeight_apply (Φ := Φ) (β := β) (η₀ := η₀) i σ,
+      ← ENNReal.ofReal_prod_of_nonneg fun _ _ ↦ (Real.exp_pos _).le, ← Real.exp_sum,
+      Finset.mul_sum]
+  rw [boltzmannFactor, boltzmannFactor, hweight, hsplit,
+    ← ENNReal.ofReal_mul (Real.exp_pos _).le, ← ENNReal.ofReal_mul (Real.exp_pos _).le,
+    ← Real.exp_add, ← Real.exp_add]
+  congr 2
+  ring
+
+/-! ### The transport -/
+
+variable (Φ β η₀) in
+/-- The a priori measure at site `i` in Georgii's reduction: `e^{-β Φ_{i}} λ`, normalized. -/
+noncomputable def selfEnergyMeasure (lam : Measure E) (i : S) : Measure E :=
+  (lam.withDensity (selfEnergyWeight Φ β η₀ i)).probNormalize
+
+variable {lam : Measure E} [IsProbabilityMeasure lam]
+
+lemma withDensity_selfEnergyWeight_univ (i : S) :
+    lam.withDensity (selfEnergyWeight Φ β η₀ i) Set.univ
+      = ∫⁻ x, selfEnergyWeight Φ β η₀ i x ∂lam := by
+  rw [withDensity_apply _ MeasurableSet.univ, setLIntegral_univ]
+
+lemma withDensity_selfEnergyWeight_univ_ne_zero (i : S) :
+    lam.withDensity (selfEnergyWeight Φ β η₀ i) Set.univ ≠ 0 := by
+  rw [withDensity_selfEnergyWeight_univ]
+  intro h
+  have hae := (lintegral_eq_zero_iff' (measurable_selfEnergyWeight (Φ := Φ) i).aemeasurable).1 h
+  have : lam Set.univ = 0 :=
+    measure_mono_null (fun x _ ↦ selfEnergyWeight_ne_zero (Φ := Φ) (β := β) (η₀ := η₀) i x) hae
+  simp at this
+
+/-- The per-site measures are the densities `c_i⁻¹ e^{-β Φ_{i}}` against `λ`. -/
+lemma selfEnergyMeasure_eq_withDensity (i : S) :
+    selfEnergyMeasure Φ β η₀ lam i
+      = lam.withDensity fun x ↦ (∫⁻ y, selfEnergyWeight Φ β η₀ i y ∂lam)⁻¹
+          * selfEnergyWeight Φ β η₀ i x := by
+  rw [selfEnergyMeasure, Measure.probNormalize_def, withDensity_selfEnergyWeight_univ,
+    ← withDensity_smul _ (measurable_selfEnergyWeight (Φ := Φ) i)]
+  rfl
+
+lemma isProbabilityMeasure_selfEnergyMeasure
+    (hfin : ∀ i, ∫⁻ x, selfEnergyWeight Φ β η₀ i x ∂lam ≠ ⊤) (i : S) :
+    IsProbabilityMeasure (selfEnergyMeasure Φ β η₀ lam i) := by
+  have : IsFiniteMeasure (lam.withDensity (selfEnergyWeight Φ β η₀ i)) :=
+    ⟨by rw [withDensity_selfEnergyWeight_univ]; exact lt_top_iff_ne_top.2 (hfin i)⟩
+  have : NeZero (lam.withDensity (selfEnergyWeight Φ β η₀ i)) :=
+    ⟨fun h ↦ withDensity_selfEnergyWeight_univ_ne_zero (Φ := Φ) (β := β) (η₀ := η₀) (lam := lam) i
+      (by rw [h]; simp)⟩
+  exact Measure.isProbabilityMeasure_probNormalize _
+
+/-- **Georgii's reduction in the proof of Theorem (8.39).** Moving the self-energies `Φ_{i}` into
+the a priori measure does not change the specification: over the per-site measures
+`c_i⁻¹ e^{-β Φ_{i}} λ`, the recentred many-body part of `Φ` defines the λ-specification of `Φ`. -/
+theorem lambdaSpecification_eq_gibbsSpecificationFamily [Countable S] [IsSummable Φ]
+    [IsAbsolutelySummable ((manyBody Φ).centre η₀)]
+    (ν : S → Measure E) [∀ i, IsProbabilityMeasure (ν i)]
+    {c : S → ℝ≥0∞} (hc0 : ∀ i, c i ≠ 0) (hctop : ∀ i, c i ≠ ⊤)
+    (hν : ∀ i, ν i = lam.withDensity fun x ↦ (c i)⁻¹ * selfEnergyWeight Φ β η₀ i x)
+    {hρ : Specification.IsPremodifier (S := S) (E := E) (Φ.boltzmannFactor β)}
+    {hZ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) lam
+      (Φ.boltzmannFactor β)} :
+    gibbsSpecificationFamily ((manyBody Φ).centre η₀) ν β
+      = Specification.lambdaSpecification (S := S) (E := E) lam (Φ.boltzmannFactor β) hρ hZ := by
+  classical
+  set w : S → E → ℝ≥0∞ := fun i x ↦ (c i)⁻¹ * selfEnergyWeight Φ β η₀ i x with hw
+  set Ψ : Potential S E := (manyBody Φ).centre η₀ with hΨ
+  set κ : Finset S → ℝ≥0∞ := fun Λ ↦
+    ENNReal.ofReal (Real.exp (-β * (manyBody Φ).hamiltonian Λ η₀)) * ∏ i ∈ Λ, c i with hκ
+  have hwmeas : ∀ i, Measurable (w i) :=
+    fun i ↦ measurable_const.mul (measurable_selfEnergyWeight (Φ := Φ) i)
+  have hw0 : ∀ i x, w i x ≠ 0 := fun i x ↦
+    mul_ne_zero (ENNReal.inv_ne_zero.2 (hctop i))
+      (selfEnergyWeight_ne_zero (Φ := Φ) (β := β) (η₀ := η₀) i x)
+  have hwtop : ∀ i x, w i x ≠ ⊤ := fun i x ↦
+    ENNReal.mul_ne_top (ENNReal.inv_ne_top.2 (hc0 i))
+      (selfEnergyWeight_ne_top (Φ := Φ) (β := β) (η₀ := η₀) i x)
+  set W : Finset S → (S → E) → ℝ≥0∞ := Specification.lambdaWeight w with hW
+  have hWmeas : ∀ Λ, Measurable (W Λ) := Specification.measurable_lambdaWeight hwmeas
+  have hW0 : ∀ Λ ω, W Λ ω ≠ 0 := Specification.lambdaWeight_ne_zero hw0
+  have hWtop : ∀ Λ ω, W Λ ω ≠ ⊤ := Specification.lambdaWeight_ne_top hwtop
+  have href : ∀ (Λ : Finset S) (η : S → E),
+      Specification.isssdFamily ν Λ η
+        = (Specification.isssd (S := S) (E := E) lam Λ η).withDensity (W Λ) := by
+    intro Λ η
+    have hν' : ν = fun i ↦ lam.withDensity (w i) := funext hν
+    subst hν'
+    exact Specification.isssdFamilyFun_withDensity lam hwmeas Λ η
+  have hfactor : ∀ (Λ : Finset S) (σ : S → E),
+      Φ.boltzmannFactor β Λ σ = κ Λ * Ψ.boltzmannFactor β Λ σ * W Λ σ := by
+    intro Λ σ
+    have hprod : W Λ σ = (∏ i ∈ Λ, (c i)⁻¹)
+        * Specification.lambdaWeight (selfEnergyWeight Φ β η₀) Λ σ := by
+      rw [hW, Specification.lambdaWeight, Specification.lambdaWeight, ← Finset.prod_mul_distrib]
+    have hcancel : (∏ i ∈ Λ, c i) * ∏ i ∈ Λ, (c i)⁻¹ = 1 := by
+      rw [← Finset.prod_mul_distrib]
+      exact Finset.prod_eq_one fun i _ ↦ ENNReal.mul_inv_cancel (hc0 i) (hctop i)
+    rw [boltzmannFactor_eq_mul_lambdaWeight (Φ := Φ) (β := β) (η₀ := η₀) Λ σ, hprod, hκ,
+      show ENNReal.ofReal (Real.exp (-β * (manyBody Φ).hamiltonian Λ η₀)) * (∏ i ∈ Λ, c i)
+          * Ψ.boltzmannFactor β Λ σ * ((∏ i ∈ Λ, (c i)⁻¹)
+            * Specification.lambdaWeight (selfEnergyWeight Φ β η₀) Λ σ)
+        = ENNReal.ofReal (Real.exp (-β * (manyBody Φ).hamiltonian Λ η₀))
+          * (((∏ i ∈ Λ, c i) * ∏ i ∈ Λ, (c i)⁻¹) * (Ψ.boltzmannFactor β Λ σ
+            * Specification.lambdaWeight (selfEnergyWeight Φ β η₀) Λ σ)) from by ring,
+      hcancel, one_mul]
+  have hdiv : (fun Λ ω ↦ Φ.boltzmannFactor β Λ ω / W Λ ω)
+      = fun Λ ω ↦ κ Λ * Ψ.boltzmannFactor β Λ ω := by
+    funext Λ ω
+    rw [hfactor Λ ω, ENNReal.mul_div_cancel_right (hW0 Λ ω) (hWtop Λ ω)]
+  have hκ0 : ∀ Λ, κ Λ ≠ 0 := fun Λ ↦ mul_ne_zero
+    (by simp [Real.exp_pos]) (Finset.prod_ne_zero_iff.2 fun i _ ↦ hc0 i)
+  have hκtop : ∀ Λ, κ Λ ≠ ⊤ := fun Λ ↦
+    ENNReal.mul_ne_top (by simp) (ENNReal.prod_ne_top fun i _ ↦ hctop i)
+  refine Specification.ext fun Λ ↦ Kernel.ext fun η ↦ ?_
+  have hZ' : Specification.IsPremodifierAdmissible (S := S) (E := E) lam (Φ.boltzmannFactor β) :=
+    (Specification.isPremodifierAdmissible_iff_isSigmaFiniteLambdaAdmissible lam _).2 hZ
+  have key := Specification.withDensity_relNorm_div (γ := Specification.isssd lam)
+    (γ' := Specification.isssdFamily ν) (ρ := Φ.boltzmannFactor β) (W := W)
+    href hWmeas hW0 hWtop hρ.measurable Λ η
+  rw [hdiv, Specification.relNorm_const_mul hκ0 hκtop] at key
+  rw [gibbsSpecificationFamily, Specification.premodification, Specification.modification_apply,
+    Specification.lambdaSpecification_eq_modification_isssd lam hρ hZ hZ',
+    Specification.modification_apply, ← Specification.relNorm_isssd lam]
+  exact key
+
+/-- **Georgii Theorem (4.23)(a) after the reduction.** A `λ`-admissible potential whose
+self-energies are `λ`-integrable and whose recentred many-body part is absolutely summable has a
+Gibbs measure. This is the existence half of Theorem (8.39), with condition (8.40) entering only
+through `Potential.IsAbsolutelySummable ((manyBody Φ).centre η₀)`. -/
+theorem GP_lambdaSpecification_nonempty_of_lintegral_selfEnergyWeight_ne_top
+    [Countable S] [StandardBorelSpace E] [IsSummable Φ]
+    [IsAbsolutelySummable ((manyBody Φ).centre η₀)]
+    (hfin : ∀ i, ∫⁻ x, selfEnergyWeight Φ β η₀ i x ∂lam ≠ ⊤)
+    {hρ : Specification.IsPremodifier (S := S) (E := E) (Φ.boltzmannFactor β)}
+    {hZ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) lam
+      (Φ.boltzmannFactor β)} :
+    (GP (S := S) (E := E)
+      (Specification.lambdaSpecification lam (Φ.boltzmannFactor β) hρ hZ)).Nonempty := by
+  haveI : ∀ i, IsProbabilityMeasure (selfEnergyMeasure Φ β η₀ lam i) :=
+    isProbabilityMeasure_selfEnergyMeasure hfin
+  rw [← lambdaSpecification_eq_gibbsSpecificationFamily (Φ := Φ) (β := β) (η₀ := η₀)
+    (selfEnergyMeasure Φ β η₀ lam)
+    (c := fun i ↦ ∫⁻ x, selfEnergyWeight Φ β η₀ i x ∂lam)
+    (fun i ↦ by
+      rw [← withDensity_selfEnergyWeight_univ]
+      exact withDensity_selfEnergyWeight_univ_ne_zero (Φ := Φ) i)
+    hfin (fun i ↦ selfEnergyMeasure_eq_withDensity (Φ := Φ) i)]
+  exact GP_gibbsSpecificationFamily_nonempty _ _
+
+end SelfEnergy
 
 end Potential
