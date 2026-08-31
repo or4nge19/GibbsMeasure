@@ -1,0 +1,16 @@
+{
+    "challenge_module": "Comparator.Challenge_DeFinetti",
+    "solution_module": "Comparator.Solution_DeFinetti",
+    "theorem_names": [
+        "DeFinettiChallenge.hewittSavage_zero_one",
+        "DeFinettiChallenge.mem_extremePoints_iff_exists_iid",
+        "DeFinettiChallenge.existsUnique_iidMix",
+        "DeFinettiChallenge.isExchangeable_iidMix"
+    ],
+    "permitted_axioms": [
+        "propext",
+        "Quot.sound",
+        "Classical.choice"
+    ],
+    "enable_nanoda": true
+}

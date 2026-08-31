@@ -755,6 +755,33 @@ theorem existsUnique_mixing_of_isExchangeable (hμ : IsExchangeable μ) :
     calc m = (m.map iid).map marg := (hrec m hmcompl).symm
       _ = w.map marg := by rw [← hw']
 
+omit [StandardBorelSpace E] [Nonempty E] [IsProbabilityMeasure μ] in
+/-- The converse sanity check to de Finetti: every mixture of i.i.d. product measures under a
+weight carried by the probability measures is exchangeable, so the representation of
+`existsUnique_mixing_of_isExchangeable` characterises exchangeability. -/
+theorem isExchangeable_bind_infinitePi {m : Measure (Measure E)}
+    (hm : m {lam : Measure E | IsProbabilityMeasure lam}ᶜ = 0) :
+    IsExchangeable (m.bind fun lam ↦ Measure.infinitePi fun _ : ℕ ↦ lam) := by
+  intro σ hσ
+  have hiid : Measurable fun lam : Measure E ↦ Measure.infinitePi fun _ : ℕ ↦ lam :=
+    Measure.measurable_infinitePi_const
+  refine Measure.ext fun B hB ↦ ?_
+  rw [Measure.map_apply (measurable_permute σ) hB,
+    Measure.bind_apply (measurable_permute σ hB) hiid.aemeasurable,
+    Measure.bind_apply hB hiid.aemeasurable]
+  refine lintegral_congr_ae ?_
+  have hae : ∀ᵐ lam ∂m, IsProbabilityMeasure lam := by
+    rw [ae_iff]
+    convert hm using 2
+    ext lam
+    simp
+  filter_upwards [hae] with lam hlam
+  haveI := hlam
+  calc Measure.infinitePi (fun _ : ℕ ↦ lam) (permute σ ⁻¹' B)
+      = (Measure.infinitePi fun _ : ℕ ↦ lam).map (permute σ) B :=
+        (Measure.map_apply (measurable_permute σ) hB).symm
+    _ = Measure.infinitePi (fun _ : ℕ ↦ lam) B := by rw [isExchangeable_infinitePi σ hσ]
+
 end DeFinetti
 
 end MeasureTheory.GibbsMeasure

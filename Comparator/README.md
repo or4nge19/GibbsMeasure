@@ -31,8 +31,9 @@ axioms beyond a permitted list, and that the result is accepted by the Lean kern
 | `LowTemperature` | `config_LowTemperature.json` | 3 | **(6.9)**, first assertion: the low-temperature limit |
 | `MarkovChain` | `config_MarkovChain.json` | 3 | **(3.5)**: Markov chains as Gibbs measures on `ℤ`, the unique one being the stationary chain |
 | `Sharpness` | `config_Sharpness.json` | 2 | **(2.27)**: a specification with `C(γ) ≡ 0` — hence `c(γ) = 0 < 1` — and uncountably many Gibbs measures. It carries `¬ IsDobrushin γ` explicitly: it does *not* contradict (8.7), it shows (8.7)'s quasilocality hypothesis cannot be removed |
+| `DeFinetti` | `config_DeFinetti.json` | 4 | **(7.17)** — the Hewitt–Savage zero-one law and `ex 𝒫_I` = the i.i.d. product measures, the substantial half over an **arbitrary** state space — and **(7.31)**, de Finetti's theorem in the version of Dynkin: a unique mixing weight on `𝒫(E, ℰ)`, with exchangeability of every mixture as the converse |
 
-Eleven entries, 61 theorems.
+Twelve entries, 65 theorems.
 
 > [!NOTE]
 > Judged by comparator on 2026-08-30:
@@ -44,13 +45,9 @@ Eleven entries, 61 theorems.
 >
 > Since that run, three (8.39) statements of `OneDim` have been **strengthened** — the `∃!` and
 > the two pair theorems now assume `λ`-admissibility over a σ-finite non-zero `λ` instead of
-> absolute summability over a probability measure. Run 33340000915 certifies the weaker
-> statements it saw; the strengthened ones await the next run.
->
-> Before that date the workflow had never executed a step — every run died in seconds with
-> `The job was not started because your account is locked due to a billing issue`. Anything
-> written about this suite before 2026-08-30 rested on a re-implementation of comparator's checks
-> by this project on itself, which is the self-report comparator exists to replace.
+> absolute summability over a probability measure — and the `DeFinetti` entry is new. Run
+> 33340000915 certifies the eleven entries it saw, at the statements it saw; the strengthened
+> statements and the new entry await the next run.
 
 For each entry comparator builds the challenge from its Mathlib-only `Defs`, exports the named
 theorems together with `propext`, `Quot.sound` and `Classical.choice` and nothing else, builds the
@@ -64,10 +61,7 @@ arrangement, but it is sound only because we control both sides.
 
 One convention is worth stating because it is what keeps the suite honest. **Nothing is
 claimed at `β = β_c`**, and Onsager's exact value appears nowhere: it is not proved here, and
-Georgii does not prove it either. (An earlier weakening — the second half of (8.39) stated only
-for an absolutely summable potential over a probability a priori measure — is gone: both halves
-now stand at Georgii's own hypotheses, existence going through his reduction to the recentred
-many-body part over per-site a priori measures.)
+Georgii does not prove it either.
 
 `Challenge_Representation.lean` states exactly Georgii (2.30) and nothing more: the potential it
 produces is a potential in the sense of (2.2) — its Hamiltonians exist as limits of the partial
