@@ -291,6 +291,18 @@ alignment:
       lean: "Potential.GP_gibbsSpecificationFamily_nonempty"
       module: "GibbsMeasure/Potential/PerSiteExistence.lean"
       status: "proved"
+    - source: "Comments (8.41)(1), all three forms"
+      lean: "MeasureTheory.GibbsMeasure.oscSpan_eq_oscSpanDiam"
+      module: "GibbsMeasure/Specification/OneDimensionalUniqueness.lean"
+      status: "proved"
+      note: >-
+        (8.40) at any site equals (8.42) equals the third form
+        sum_{A ni 0} (diam A / |A|) delta(Phi_A) (oscSpanDiamDiv_eq_oscSpanDiam); Georgii states
+        these as equivalences, they are proved here as equalities.
+    - source: "Comments (8.41)(3), nearest-neighbour potentials"
+      lean: "MeasureTheory.GibbsMeasure.existsUnique_mem_GP_lambdaSpecification_of_nearestNeighbour"
+      module: "GibbsMeasure/Specification/OneDimensionalUniqueness.lean"
+      status: "proved"
     - source: "Example (7.17), the Hewitt-Savage zero-one law"
       lean: "MeasureTheory.GibbsMeasure.measure_symmetric_eq_zero_or_one"
       module: "GibbsMeasure/Specification/HewittSavage.lean"

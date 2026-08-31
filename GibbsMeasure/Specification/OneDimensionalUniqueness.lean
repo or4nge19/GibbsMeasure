@@ -40,7 +40,8 @@ public import Mathlib.MeasureTheory.Measure.MeasuredSets
 * `MeasureTheory.GibbsMeasure.oscSpan_eq_oscSpanDiam`: Georgii Comment (8.41)(1). For a potential
   on `ℤ` with shift-invariant oscillations, the sum (8.40) at any site *equals* Georgii's simpler
   sum (8.42), `∑_{A : min A = 0} diam A · δ(Φ_A)` (`oscSpanDiam`) — the two conditions are
-  equivalent.
+  equivalent. `MeasureTheory.GibbsMeasure.oscSpanDiamDiv_eq_oscSpanDiam` adds his third form,
+  `∑_{A ∋ 0} (diam A / |A|) δ(Φ_A)`, also as an equality.
 * `MeasureTheory.GibbsMeasure.oscSpanDiam_eq_tsum_pair` and
   `MeasureTheory.GibbsMeasure.subsingleton_G_of_pair_rpow_le`: Georgii Comment (8.41)(2). For a
   pair potential, (8.42) reads `∑_{n ≥ 1} n · δ(Φ_{{0,n}})`, so `δ(Φ_{{0,n}}) ≤ c n^{-p}` with
@@ -1066,6 +1067,125 @@ theorem iSup_oscSpan_ne_top_of_oscSpanDiam_ne_top {Φ : Potential ℤ E}
       Dobrushin.osc (Φ (shiftFinset n A)) = Dobrushin.osc (Φ A))
     (h842 : oscSpanDiam Φ ≠ ⊤) : ⨆ i : ℤ, oscSpan Φ i ≠ ⊤ :=
   ne_top_of_le_ne_top h842 (iSup_le fun i ↦ oscSpan_le_oscSpanDiam hshift i)
+
+/-! #### Comment (8.41)(1): the per-site normalisation `diam A / |A|` -/
+
+@[simp] lemma card_shiftFinset (n : ℤ) (A : Finset ℤ) : (shiftFinset n A).card = A.card :=
+  Finset.card_map _
+
+variable (Φ) in
+/-- Georgii, Comment (8.41)(1), third form: `∑_{A ∋ 0} (diam A / |A|) δ(Φ_A)`. -/
+noncomputable def oscSpanDiamDiv (Φ : Potential ℤ E) : ℝ≥0∞ :=
+  ∑' A : Finset ℤ, {A : Finset ℤ | (0 : ℤ) ∈ A}.indicator
+    (fun A ↦ (diamSite A : ℝ≥0∞) / (A.card : ℝ≥0∞) * Dobrushin.osc (Φ A)) A
+
+/-- The pairs `(B, j)` with `min B = 0` and `j ∈ B`: a set normalized to the origin, together with
+the element of it that is to be translated there. -/
+def rootedSet : Set (Finset ℤ × ℤ) := {p | minSite p.1 = 0 ∧ p.2 ∈ p.1}
+
+lemma mem_rootedSet {p : Finset ℤ × ℤ} :
+    p ∈ rootedSet ↔ minSite p.1 = 0 ∧ p.2 ∈ p.1 := Iff.rfl
+
+/-- The summand of the third form of (8.41)(1), spread over `rootedSet`. -/
+noncomputable def rootedBox (Φ : Potential ℤ E) (p : Finset ℤ × ℤ) : ℝ≥0∞ :=
+  rootedSet.indicator
+    (fun q ↦ (diamSite q.1 : ℝ≥0∞) / (q.1.card : ℝ≥0∞) * Dobrushin.osc (Φ q.1)) p
+
+/-- The rooting map `A ↦ (A − min A, −min A)`: normalize `A` to the origin, remembering where the
+origin came from. It is a bijection from the sets containing `0` onto `rootedSet`. -/
+noncomputable def rootSite (A : Finset ℤ) : Finset ℤ × ℤ :=
+  (shiftFinset (-minSite A) A, -minSite A)
+
+lemma rootSite_injective : Function.Injective rootSite := by
+  intro A B h
+  have h2 : minSite A = minSite B := by
+    have h' : -minSite A = -minSite B := congrArg Prod.snd h
+    omega
+  have h1 : shiftFinset (-minSite A) A = shiftFinset (-minSite B) B := congrArg Prod.fst h
+  rw [h2] at h1
+  have := congrArg (shiftFinset (minSite B)) h1
+  rwa [shiftFinset_shiftFinset, shiftFinset_shiftFinset, neg_add_cancel, shiftFinset_zero,
+    shiftFinset_zero] at this
+
+lemma rootSite_mem_rootedSet_iff {A : Finset ℤ} : rootSite A ∈ rootedSet ↔ (0 : ℤ) ∈ A := by
+  rcases Finset.eq_empty_or_nonempty A with rfl | hA
+  · simp [rootSite, rootedSet, mem_shiftFinset]
+  · rw [mem_rootedSet]
+    simp only [rootSite, minSite_shiftFinset hA, mem_shiftFinset, sub_neg_eq_add,
+      neg_add_cancel]
+    exact ⟨fun h ↦ h.2, fun h ↦ ⟨by omega, h⟩⟩
+
+/-- Summing the `rootedSet` summand over the `|B|` roots of each normalized set `B` restores the
+factor `diam B` of (8.42). -/
+lemma tsum_rootedBox (Φ : Potential ℤ E) :
+    ∑' p : Finset ℤ × ℤ, rootedBox Φ p = oscSpanDiam Φ := by
+  classical
+  rw [ENNReal.tsum_prod', oscSpanDiam]
+  refine tsum_congr fun B ↦ ?_
+  rcases Finset.eq_empty_or_nonempty B with rfl | hB
+  · have hz : ∀ j : ℤ, rootedBox Φ (∅, j) = 0 := fun j ↦
+      Set.indicator_of_notMem (fun h ↦ absurd (mem_rootedSet.1 h).2 (by simp)) _
+    rw [tsum_congr hz, tsum_zero]
+    have hmin : minSite (∅ : Finset ℤ) = 0 := by simp [minSite]
+    rw [Set.indicator_of_mem (show (∅ : Finset ℤ) ∈ {A : Finset ℤ | minSite A = 0} from hmin)]
+    simp [diamSite, minSite, maxSite]
+  by_cases hmin : minSite B = 0
+  · have hcard0 : (B.card : ℝ≥0∞) ≠ 0 := by
+      simpa using Finset.card_ne_zero_of_mem hB.choose_spec
+    have hcardtop : (B.card : ℝ≥0∞) ≠ ⊤ := by simp
+    have hz : ∀ j ∉ B, rootedBox Φ (B, j) = 0 := fun j hj ↦
+      Set.indicator_of_notMem (fun h ↦ hj (mem_rootedSet.1 h).2) _
+    have hval : ∀ j ∈ B, rootedBox Φ (B, j)
+        = (diamSite B : ℝ≥0∞) / (B.card : ℝ≥0∞) * Dobrushin.osc (Φ B) := fun j hj ↦
+      Set.indicator_of_mem (mem_rootedSet.2 ⟨hmin, hj⟩) _
+    rw [tsum_eq_sum hz, Finset.sum_congr rfl hval, Finset.sum_const, nsmul_eq_mul,
+      Set.indicator_of_mem (show B ∈ {A : Finset ℤ | minSite A = 0} from hmin), ← mul_assoc,
+      ENNReal.mul_div_cancel hcard0 hcardtop]
+  · have hz : ∀ j : ℤ, rootedBox Φ (B, j) = 0 := fun j ↦
+      Set.indicator_of_notMem (fun h ↦ hmin (mem_rootedSet.1 h).1) _
+    rw [tsum_congr hz, tsum_zero,
+      Set.indicator_of_notMem (show B ∉ {A : Finset ℤ | minSite A = 0} from hmin)]
+
+/-- **Georgii, Comment (8.41)(1), third form.** For shift-invariant oscillations the sum (8.42)
+equals `∑_{A ∋ 0} (diam A / |A|) δ(Φ_A)`: the `|A|` translates of a set that contain the origin
+each carry the fraction `1/|A|` of the weight that (8.42) assigns to the one with `min A = 0`. -/
+theorem oscSpanDiamDiv_eq_oscSpanDiam {Φ : Potential ℤ E}
+    (hshift : ∀ (n : ℤ) (A : Finset ℤ),
+      Dobrushin.osc (Φ (shiftFinset n A)) = Dobrushin.osc (Φ A)) :
+    oscSpanDiamDiv Φ = oscSpanDiam Φ := by
+  classical
+  have hsupp : Function.support (rootedBox Φ) ⊆ Set.range rootSite := by
+    refine Function.support_subset_iff.2 fun p hp ↦ ?_
+    by_cases hmem : p ∈ rootedSet
+    · obtain ⟨hmin, hj⟩ := mem_rootedSet.1 hmem
+      have hne : p.1.Nonempty := ⟨p.2, hj⟩
+      refine ⟨shiftFinset (-p.2) p.1, ?_⟩
+      have hne' : (shiftFinset (-p.2) p.1).Nonempty := nonempty_shiftFinset.2 hne
+      have hmin' : minSite (shiftFinset (-p.2) p.1) = -p.2 := by
+        rw [minSite_shiftFinset hne, hmin, zero_add]
+      rw [rootSite, hmin', neg_neg, shiftFinset_shiftFinset, neg_add_cancel, shiftFinset_zero]
+    · exact absurd (Set.indicator_of_notMem hmem _) hp
+  have hcomp : ∀ A : Finset ℤ, rootedBox Φ (rootSite A)
+      = {A : Finset ℤ | (0 : ℤ) ∈ A}.indicator
+          (fun A ↦ (diamSite A : ℝ≥0∞) / (A.card : ℝ≥0∞) * Dobrushin.osc (Φ A)) A := by
+    intro A
+    by_cases h0 : (0 : ℤ) ∈ A
+    · have hA : A.Nonempty := ⟨0, h0⟩
+      rw [Set.indicator_of_mem (show A ∈ {A : Finset ℤ | (0 : ℤ) ∈ A} from h0),
+        rootedBox, Set.indicator_of_mem (rootSite_mem_rootedSet_iff.2 h0)]
+      simp only [rootSite, diamSite_shiftFinset hA, card_shiftFinset, hshift]
+    · rw [Set.indicator_of_notMem (show A ∉ {A : Finset ℤ | (0 : ℤ) ∈ A} from h0), rootedBox,
+        Set.indicator_of_notMem (fun h ↦ h0 (rootSite_mem_rootedSet_iff.1 h))]
+  rw [oscSpanDiamDiv, ← tsum_rootedBox Φ, ← rootSite_injective.tsum_eq hsupp]
+  exact tsum_congr fun A ↦ (hcomp A).symm
+
+/-- **Georgii, Comment (8.41)(1), third form.** For shift-invariant oscillations, condition (8.42)
+holds iff `∑_{A ∋ 0} (diam A / |A|) δ(Φ_A) < ∞`. -/
+theorem oscSpanDiamDiv_ne_top_iff {Φ : Potential ℤ E}
+    (hshift : ∀ (n : ℤ) (A : Finset ℤ),
+      Dobrushin.osc (Φ (shiftFinset n A)) = Dobrushin.osc (Φ A)) :
+    oscSpanDiamDiv Φ ≠ ⊤ ↔ oscSpanDiam Φ ≠ ⊤ := by
+  rw [oscSpanDiamDiv_eq_oscSpanDiam hshift]
 
 /-! #### Comment (8.41)(3): nearest-neighbour potentials -/
 
