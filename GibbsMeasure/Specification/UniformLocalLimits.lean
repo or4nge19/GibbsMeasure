@@ -38,6 +38,9 @@ Writing `ρ_Δ^Λ = λ_{Λ ∖ Δ} ρ_Λ` (`Specification.condDensity`) and
 ## Main results
 
 * `Specification.ae_tendsto_iSup_ofReal_abs_sub`;
+* `MeasureTheory.GibbsMeasure.ae_forall_tendsto_iSup_ofReal_abs_sub_of_mem_extremePoints_G`:
+  (7.12)(c) as Georgii states it — one `μ`-full set of boundary conditions works for *every*
+  finite volume `Δ`, along any monotone cofinal exhaustion.
 * `MeasureTheory.GibbsMeasure.ae_tendsto_iSup_ofReal_abs_sub_of_mem_extremePoints_G`, for
   `μ ∈ ex 𝒢(γ)`;
 * `MeasureTheory.GibbsMeasure.ae_tendsto_iSup_ofReal_abs_sub_lambdaSpecification`, stated for
@@ -822,6 +825,44 @@ theorem ae_tendsto_iSup_ofReal_abs_sub [Countable S]
   · exact iSup_le fun A ↦ iSup_le fun hA ↦
       ENNReal.ofReal_le_ofReal (abs_toReal_modification_sub_le hmod hμ (hΔ n) ω hA)
 
+omit [DecidableEq S] in
+/-- **Georgii, Theorem (7.12)(c)**, without the hypothesis `Δ ⊆ Λ n` for *every* `n`. That
+hypothesis forces `Δ ⊆ Λ 0`, which Georgii does not assume: cofinality and monotonicity already
+give `Δ ⊆ Λ n` for all large `n`, and convergence along `atTop` does not see finitely many initial
+terms. Obtained from `ae_tendsto_iSup_ofReal_abs_sub` by shifting the exhaustion. -/
+theorem ae_tendsto_iSup_ofReal_abs_sub_of_cofinal [Countable S]
+    (htail : ∀ A, MeasurableSet[@tailSigmaAlgebra S E _] A → μ A = 0 ∨ μ A = 1)
+    {Δ : Finset S} {Λ : ℕ → Finset S} (hmono : Monotone Λ)
+    (hcof : ∀ Θ : Finset S, ∃ n, Θ ⊆ Λ n) :
+    ∀ᵐ ω ∂μ, Tendsto (fun n ↦ ⨆ (A : Set (S → E))
+        (_ : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) ((Δ : Finset S) : Set S)] A),
+        ENNReal.ofReal |((((isssd ν).modification ρ hmod) (Λ n) ω) A).toReal - (μ A).toReal|)
+      atTop (𝓝 0) := by
+  obtain ⟨n₀, hn₀⟩ := hcof Δ
+  have hmono' : Monotone fun n ↦ Λ (n + n₀) := fun _ _ hab ↦ hmono (by omega)
+  have hcof' : ∀ Θ : Finset S, ∃ n, Θ ⊆ Λ (n + n₀) := fun Θ ↦ by
+    obtain ⟨m, hm⟩ := hcof Θ
+    exact ⟨m, hm.trans (hmono (by omega))⟩
+  have hΔ' : ∀ n, Δ ⊆ Λ (n + n₀) := fun n ↦ hn₀.trans (hmono (by omega))
+  filter_upwards [ae_tendsto_iSup_ofReal_abs_sub hmod hμ htail (Λ := fun n ↦ Λ (n + n₀))
+    hmono' hcof' hΔ'] with ω hω
+  exact (Filter.tendsto_add_atTop_iff_nat n₀).1 hω
+
+omit [DecidableEq S] in
+/-- **Georgii, Theorem (7.12)(c)** as the book states it: one `μ`-full set of boundary conditions
+`ω` works simultaneously for **every** finite volume `Δ`. The exceptional set of
+`ae_tendsto_iSup_ofReal_abs_sub_of_cofinal` may depend on `Δ`; since `Finset S` is countable the
+quantifiers may be swapped. -/
+theorem ae_forall_tendsto_iSup_ofReal_abs_sub [Countable S]
+    (htail : ∀ A, MeasurableSet[@tailSigmaAlgebra S E _] A → μ A = 0 ∨ μ A = 1)
+    {Λ : ℕ → Finset S} (hmono : Monotone Λ) (hcof : ∀ Θ : Finset S, ∃ n, Θ ⊆ Λ n) :
+    ∀ᵐ ω ∂μ, ∀ Δ : Finset S, Tendsto (fun n ↦ ⨆ (A : Set (S → E))
+        (_ : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) ((Δ : Finset S) : Set S)] A),
+        ENNReal.ofReal |((((isssd ν).modification ρ hmod) (Λ n) ω) A).toReal - (μ A).toReal|)
+      atTop (𝓝 0) :=
+  ae_all_iff.2 fun Δ ↦
+    ae_tendsto_iSup_ofReal_abs_sub_of_cofinal hmod hμ htail (Δ := Δ) hmono hcof
+
 end Uniform
 
 end Specification
@@ -871,5 +912,42 @@ theorem ae_tendsto_iSup_ofReal_abs_sub_lambdaSpecification
   classical
   rw [Specification.lambdaSpecification_eq_modification_isssd (S := S) (E := E) ν hρ hZ hZ'] at hμ ⊢
   exact ae_tendsto_iSup_ofReal_abs_sub_of_mem_extremePoints_G _ hμ hmono hcof hΔ
+
+omit [DecidableEq S] in
+/-- **Georgii, Theorem (7.12)(c)** for an extreme Gibbs measure, as the book states it: a single
+`μ`-full set of boundary conditions serves **every** finite volume `Δ` at once, and the exhaustion
+is only required to be monotone and cofinal. -/
+theorem ae_forall_tendsto_iSup_ofReal_abs_sub_of_mem_extremePoints_G
+    (hmod : (Specification.isssd ν).IsModifier ρ) {μ : Measure (S → E)}
+    (hμ : μ ∈ (G ((Specification.isssd ν).modification ρ hmod)).extremePoints ℝ≥0∞)
+    {Λ : ℕ → Finset S} (hmono : Monotone Λ) (hcof : ∀ Θ : Finset S, ∃ n, Θ ⊆ Λ n) :
+    ∀ᵐ ω ∂μ, ∀ Δ : Finset S, Filter.Tendsto (fun n ↦ ⨆ (A : Set (S → E))
+        (_ : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) ((Δ : Finset S) : Set S)] A),
+        ENNReal.ofReal
+          |((((Specification.isssd ν).modification ρ hmod) (Λ n) ω) A).toReal - (μ A).toReal|)
+      Filter.atTop (nhds 0) := by
+  classical
+  have : IsProbabilityMeasure μ := hμ.1.1
+  exact Specification.ae_forall_tendsto_iSup_ofReal_abs_sub hmod hμ.1.2
+    (tailTrivial_of_mem_extremePoints_G hμ) hmono hcof
+
+omit [DecidableEq S] in
+/-- **Georgii, Theorem (7.12)(c)** for a λ-specification, with one `μ`-full set for all `Δ`. -/
+theorem ae_forall_tendsto_iSup_ofReal_abs_sub_lambdaSpecification
+    (hρ : Specification.IsPremodifier (S := S) (E := E) ρ)
+    (hZ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
+    (hZ' : Specification.IsPremodifierAdmissible (S := S) (E := E) ν ρ) {μ : Measure (S → E)}
+    (hμ : μ ∈ (G (Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ)).extremePoints
+      ℝ≥0∞)
+    {Λ : ℕ → Finset S} (hmono : Monotone Λ) (hcof : ∀ Θ : Finset S, ∃ n, Θ ⊆ Λ n) :
+    ∀ᵐ ω ∂μ, ∀ Δ : Finset S, Filter.Tendsto (fun n ↦ ⨆ (A : Set (S → E))
+        (_ : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) ((Δ : Finset S) : Set S)] A),
+        ENNReal.ofReal
+          |((Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ (Λ n) ω) A).toReal
+            - (μ A).toReal|)
+      Filter.atTop (nhds 0) := by
+  classical
+  rw [Specification.lambdaSpecification_eq_modification_isssd (S := S) (E := E) ν hρ hZ hZ'] at hμ ⊢
+  exact ae_forall_tendsto_iSup_ofReal_abs_sub_of_mem_extremePoints_G _ hμ hmono hcof
 
 end MeasureTheory.GibbsMeasure

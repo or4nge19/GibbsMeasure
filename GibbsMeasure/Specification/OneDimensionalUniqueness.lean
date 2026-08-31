@@ -49,7 +49,9 @@ public import Mathlib.MeasureTheory.Measure.MeasuredSets
   `p > 2` gives uniqueness — far past nearest-neighbour interactions.
 * `MeasureTheory.GibbsMeasure.existsUnique_mem_GP_lambdaSpecification_of_nearestNeighbour`:
   Georgii Comment (8.41)(3). A nearest-neighbour potential with `δ(Φ_{{0,1}}) < ∞` satisfies
-  (8.42), so (8.39) reproves the uniqueness statement of Theorem (3.5).
+  (8.42), so (8.39) reproves the uniqueness statement of Theorem (3.5). The hypothesis constrains
+  only sets of at least two sites: singletons neither `Spans` any site nor have positive
+  `diamSite`, so the self-energy `Φ_{{i}}` is unrestricted, as in Georgii's (3.9).
 
 The one-dimensional input is `MeasureTheory.GibbsMeasure.HasBoundedBoundary`: `S` is exhausted by
 intervals with a bounded number `m` of boundary sites, so the Hamiltonian `H_Λ` varies by at most
@@ -840,7 +842,8 @@ other than the two-point ones have vanishing oscillation — the sum (8.42) is
 `∑_{n ≥ 1} n · δ(Φ_{{0,n}})`. In Georgii's example `δ(Φ_{{i,j}}) = |i − j|^{-p} δ(φ)` this is
 `δ(φ) ∑_{n ≥ 1} n^{1-p}`. -/
 theorem oscSpanDiam_eq_tsum_pair {Φ : Potential ℤ E}
-    (hpair : ∀ A : Finset ℤ, (∀ a b : ℤ, a < b → A ≠ {a, b}) → Dobrushin.osc (Φ A) = 0) :
+    (hpair : ∀ A : Finset ℤ, 2 ≤ A.card → (∀ a b : ℤ, a < b → A ≠ {a, b}) →
+      Dobrushin.osc (Φ A) = 0) :
     oscSpanDiam Φ = ∑' n : ℕ, (n : ℝ≥0∞) * Dobrushin.osc (Φ {0, (n : ℤ)}) := by
   classical
   have hsupp : Function.support
@@ -851,9 +854,22 @@ theorem oscSpanDiam_eq_tsum_pair {Φ : Potential ℤ E}
     by_cases hmem : minSite A = 0
     · rw [Set.indicator_of_mem (show A ∈ {A : Finset ℤ | minSite A = 0} from hmem)] at hA
       have hosc : Dobrushin.osc (Φ A) ≠ 0 := fun h ↦ hA (by rw [h, mul_zero])
+      have hdiam : diamSite A ≠ 0 := fun h ↦ hA (by rw [h]; simp)
+      have hne : A.Nonempty := by
+        rcases Finset.eq_empty_or_nonempty A with rfl | h
+        · exact absurd (by simp [diamSite, minSite, maxSite]) hdiam
+        · exact h
+      have hlt : minSite A < maxSite A := by
+        rcases lt_or_ge (minSite A) (maxSite A) with h | h
+        · exact h
+        · exact absurd (by
+            have := minSite_le_maxSite hne
+            simp [diamSite, Int.toNat_eq_zero]; omega) hdiam
+      have hcard : 2 ≤ A.card :=
+        Finset.one_lt_card.2 ⟨minSite A, minSite_mem hne, maxSite A, maxSite_mem hne, hlt.ne⟩
       obtain ⟨a, b, hab, rfl⟩ : ∃ a b : ℤ, a < b ∧ A = {a, b} := by
         by_contra hcon
-        exact hosc (hpair A fun a b hab hA' ↦ hcon ⟨a, b, hab, hA'⟩)
+        exact hosc (hpair A hcard fun a b hab hA' ↦ hcon ⟨a, b, hab, hA'⟩)
       have ha : a = 0 := by rw [minSite_pair hab] at hmem; exact hmem
       subst ha
       refine ⟨b.toNat, ?_⟩
@@ -879,7 +895,8 @@ theorem oscSpanDiam_eq_tsum_pair {Φ : Potential ℤ E}
 If the two-point oscillations decay as `δ(Φ_{{0,n}}) ≤ c n^{-p}` with `p > 2`, then the sum (8.42)
 is finite, since it is `∑_{n ≥ 1} n · δ(Φ_{{0,n}}) ≤ c ∑_{n ≥ 1} n^{1-p} < ∞`. -/
 theorem oscSpanDiam_ne_top_of_pair_rpow_le {Φ : Potential ℤ E}
-    (hpair : ∀ A : Finset ℤ, (∀ a b : ℤ, a < b → A ≠ {a, b}) → Dobrushin.osc (Φ A) = 0)
+    (hpair : ∀ A : Finset ℤ, 2 ≤ A.card → (∀ a b : ℤ, a < b → A ≠ {a, b}) →
+      Dobrushin.osc (Φ A) = 0)
     {c p : ℝ} (hp : 2 < p)
     (hbd : ∀ n : ℕ, 0 < n →
       Dobrushin.osc (Φ {0, (n : ℤ)}) ≤ ENNReal.ofReal (c * (n : ℝ) ^ (-p))) :
@@ -1194,10 +1211,11 @@ theorem oscSpanDiamDiv_ne_top_iff {Φ : Potential ℤ E}
 whose interaction terms oscillate only on the pairs `{a, a+1}` — the sum (8.42) is the single
 oscillation `δ(Φ_{{0,1}})`. -/
 theorem oscSpanDiam_eq_osc_of_nearestNeighbour {Φ : Potential ℤ E}
-    (hnn : ∀ A : Finset ℤ, (∀ a : ℤ, A ≠ {a, a + 1}) → Dobrushin.osc (Φ A) = 0) :
+    (hnn : ∀ A : Finset ℤ, 2 ≤ A.card → (∀ a : ℤ, A ≠ {a, a + 1}) → Dobrushin.osc (Φ A) = 0) :
     oscSpanDiam Φ = Dobrushin.osc (Φ {0, 1}) := by
-  have hpair : ∀ A : Finset ℤ, (∀ a b : ℤ, a < b → A ≠ {a, b}) → Dobrushin.osc (Φ A) = 0 :=
-    fun A hA ↦ hnn A fun a ↦ hA a (a + 1) (by omega)
+  have hpair : ∀ A : Finset ℤ, 2 ≤ A.card → (∀ a b : ℤ, a < b → A ≠ {a, b}) →
+      Dobrushin.osc (Φ A) = 0 :=
+    fun A hcard hA ↦ hnn A hcard fun a ↦ hA a (a + 1) (by omega)
   rw [oscSpanDiam_eq_tsum_pair hpair]
   rw [show Dobrushin.osc (Φ {0, 1}) = (1 : ℕ) * Dobrushin.osc (Φ {0, ((1 : ℕ) : ℤ)}) by
     norm_num]
@@ -1205,7 +1223,10 @@ theorem oscSpanDiam_eq_osc_of_nearestNeighbour {Φ : Potential ℤ E}
   rcases Nat.eq_zero_or_pos n with rfl | hpos
   · simp
   · have h0 : Dobrushin.osc (Φ {0, (n : ℤ)}) = 0 := by
-      refine hnn _ fun a h ↦ ?_
+      have hne0 : (0 : ℤ) ≠ (n : ℤ) := by
+        have : (n : ℤ) ≠ 0 := by exact_mod_cast hpos.ne'
+        omega
+      refine hnn _ (by rw [Finset.card_pair hne0]) fun a h ↦ ?_
       have h0mem : (0 : ℤ) ∈ ({a, a + 1} : Finset ℤ) := by rw [← h]; simp
       have hnmem : (n : ℤ) ∈ ({a, a + 1} : Finset ℤ) := by rw [← h]; simp
       simp only [Finset.mem_insert, Finset.mem_singleton] at h0mem hnmem
@@ -1221,7 +1242,7 @@ statement in Theorem (3.5). -/
 theorem iSup_oscSpan_ne_top_of_nearestNeighbour {Φ : Potential ℤ E}
     (hshift : ∀ (n : ℤ) (A : Finset ℤ),
       Dobrushin.osc (Φ (shiftFinset n A)) = Dobrushin.osc (Φ A))
-    (hnn : ∀ A : Finset ℤ, (∀ a : ℤ, A ≠ {a, a + 1}) → Dobrushin.osc (Φ A) = 0)
+    (hnn : ∀ A : Finset ℤ, 2 ≤ A.card → (∀ a : ℤ, A ≠ {a, a + 1}) → Dobrushin.osc (Φ A) = 0)
     (hbd : Dobrushin.osc (Φ {0, 1}) ≠ ⊤) :
     ⨆ i : ℤ, oscSpan Φ i ≠ ⊤ :=
   iSup_oscSpan_ne_top_of_oscSpanDiam_ne_top hshift
@@ -1241,7 +1262,8 @@ structure HasPairDecay (c p : ℝ) : Prop where
   /-- The oscillations are shift invariant. -/
   shift (n : ℤ) (A : Finset ℤ) : Dobrushin.osc (Φ (shiftFinset n A)) = Dobrushin.osc (Φ A)
   /-- Only pairs oscillate. -/
-  pair (A : Finset ℤ) : (∀ a b : ℤ, a < b → A ≠ {a, b}) → Dobrushin.osc (Φ A) = 0
+  pair (A : Finset ℤ) : 2 ≤ A.card → (∀ a b : ℤ, a < b → A ≠ {a, b}) →
+    Dobrushin.osc (Φ A) = 0
   /-- The decay exponent exceeds `2`. -/
   two_lt : 2 < p
   /-- The two-point oscillations decay. -/
@@ -1302,7 +1324,7 @@ theorem existsUnique_mem_GP_lambdaSpecification_of_nearestNeighbour [StandardBor
       (Φ.boltzmannFactor β))
     (hshift : ∀ (n : ℤ) (A : Finset ℤ),
       Dobrushin.osc (Φ (shiftFinset n A)) = Dobrushin.osc (Φ A))
-    (hnn : ∀ A : Finset ℤ, (∀ a : ℤ, A ≠ {a, a + 1}) → Dobrushin.osc (Φ A) = 0)
+    (hnn : ∀ A : Finset ℤ, 2 ≤ A.card → (∀ a : ℤ, A ≠ {a, a + 1}) → Dobrushin.osc (Φ A) = 0)
     (hbd : Dobrushin.osc (Φ {0, 1}) ≠ ⊤) :
     ∃! μ : ProbabilityMeasure (ℤ → E),
       μ ∈ GP (_root_.Specification.lambdaSpecification (S := ℤ) (E := E) lam
@@ -1368,7 +1390,8 @@ theorem subsingleton_G_of_pair_rpow_le
     (lam : Measure E) [IsProbabilityMeasure lam] (β : ℝ)
     (hshift : ∀ (n : ℤ) (A : Finset ℤ),
       Dobrushin.osc (Φ (shiftFinset n A)) = Dobrushin.osc (Φ A))
-    (hpair : ∀ A : Finset ℤ, (∀ a b : ℤ, a < b → A ≠ {a, b}) → Dobrushin.osc (Φ A) = 0)
+    (hpair : ∀ A : Finset ℤ, 2 ≤ A.card → (∀ a b : ℤ, a < b → A ≠ {a, b}) →
+      Dobrushin.osc (Φ A) = 0)
     {c p : ℝ} (hp : 2 < p)
     (hbd : ∀ n : ℕ, 0 < n →
       Dobrushin.osc (Φ {0, (n : ℤ)}) ≤ ENNReal.ofReal (c * (n : ℝ) ^ (-p))) :

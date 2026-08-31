@@ -30,7 +30,8 @@ temperature** (Georgii, Definition (5.21) for the model of Theorem (6.9)). -/
 theorem isBrokenSymmetry_spinFlip {b : ℝ} (hb : Real.log 9 ≤ 2 * b) :
     (isingSpecification (latticeGraph 2) 1 0 b).IsBrokenSymmetry Peierls.spinFlip := by
   obtain ⟨mp, mm, hne, hp, -, -, -, hflip, -, -, -⟩ := exists_two_shiftInvariant_gibbs_sharp b hb
-  refine ⟨mp, hp, fun h ↦ hne (ProbabilityMeasure.toMeasure_injective ?_)⟩
+  refine ⟨Peierls.isInvariant_spinFlip b, mp, hp, fun h ↦
+    hne (ProbabilityMeasure.toMeasure_injective ?_)⟩
   rw [hflip, ← ProbabilityMeasure.toMeasure_map (hf := Peierls.spinFlip.measurable_toFun.aemeasurable), h]
 
 /-- **Georgii (6.9) as a symmetry breaking.** At `β ≥ log 3` the spin flip is a symmetry of the
@@ -40,12 +41,17 @@ theorem ising_symmetry_breaking {b : ℝ} (hb : Real.log 9 ≤ 2 * b) :
       (isingSpecification (latticeGraph 2) 1 0 b).IsBrokenSymmetry Peierls.spinFlip :=
   ⟨Peierls.isInvariant_spinFlip b, isBrokenSymmetry_spinFlip hb⟩
 
+/-- The invariance conjunct of `IsBrokenSymmetry` is not an extra assumption here: the spin flip
+is a symmetry of the zero-field Ising specification (`Peierls.isInvariant_spinFlip`). -/
+example {b : ℝ} (hb : Real.log 9 ≤ 2 * b) :
+    Specification.IsInvariant Peierls.spinFlip (isingSpecification (latticeGraph 2) 1 0 b) :=
+  (isBrokenSymmetry_spinFlip hb).1
+
 /-- Non-uniqueness re-derived from the broken symmetry, through Georgii's remark after (5.21)
 rather than through the two explicit phases. -/
 theorem nontrivial_GP_of_symmetry_breaking {b : ℝ} (hb : Real.log 9 ≤ 2 * b) :
     (GP (S := Fin 2 → ℤ) (E := Bool)
       (isingSpecification (latticeGraph 2) 1 0 b)).Nontrivial :=
-  Specification.nontrivial_GP_of_isBrokenSymmetry (Peierls.isInvariant_spinFlip b)
-    (isBrokenSymmetry_spinFlip hb)
+  Specification.nontrivial_GP_of_isBrokenSymmetry (isBrokenSymmetry_spinFlip hb)
 
 end MeasureTheory.GibbsMeasure.PeierlsSharp

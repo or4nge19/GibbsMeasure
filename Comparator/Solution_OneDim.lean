@@ -472,9 +472,12 @@ theorem subsingleton_isGibbs_of_pair_rpow_le
     intro n A
     rw [← Bridge.shiftFinset_eq, ← Bridge.osc_eq, ← Bridge.osc_eq]
     exact hshift n A
-  have hpair' : ∀ A : Finset ℤ, (∀ a b : ℤ, a < b → A ≠ {a, b}) →
+  -- the library criterion only constrains sets of at least two sites (Georgii's
+  -- nearest-neighbour potentials may carry an arbitrary self-energy), so the challenge's
+  -- hypothesis, which also kills the singletons, is more than enough
+  have hpair' : ∀ A : Finset ℤ, 2 ≤ A.card → (∀ a b : ℤ, a < b → A ≠ {a, b}) →
       MeasureTheory.GibbsMeasure.Dobrushin.osc ((Φ : Potential ℤ E) A) = 0 := by
-    intro A hA
+    intro A _ hA
     rw [← Bridge.osc_eq]
     exact hpair A hA
   have hbd' : ∀ n : ℕ, 0 < n →
@@ -513,9 +516,12 @@ theorem existsUnique_isGibbs_of_pair_rpow_le [StandardBorelSpace E]
     intro n A
     rw [← Bridge.shiftFinset_eq, ← Bridge.osc_eq, ← Bridge.osc_eq]
     exact hshift n A
-  have hpair' : ∀ A : Finset ℤ, (∀ a b : ℤ, a < b → A ≠ {a, b}) →
+  -- the library criterion only constrains sets of at least two sites (Georgii's
+  -- nearest-neighbour potentials may carry an arbitrary self-energy), so the challenge's
+  -- hypothesis, which also kills the singletons, is more than enough
+  have hpair' : ∀ A : Finset ℤ, 2 ≤ A.card → (∀ a b : ℤ, a < b → A ≠ {a, b}) →
       MeasureTheory.GibbsMeasure.Dobrushin.osc ((Φ : Potential ℤ E) A) = 0 := by
-    intro A hA
+    intro A _ hA
     rw [← Bridge.osc_eq]
     exact hpair A hA
   have hbd' : ∀ n : ℕ, 0 < n →
