@@ -10,13 +10,14 @@ public import GibbsMeasure.Specification.Existence
 /-!
 # Georgii Theorems (4.12) and (4.13): local equicontinuity of nets of Gibbs distributions
 
-General forms of Georgii §4.2, Theorems (4.12) and (4.13), for a **probability** reference
-measure `ν` (Georgii's finite-`λ` case; WLOG by Georgii (1.28)(3) one can normalize a finite
-`λ`). This simplifies Georgii's hypotheses:
+General forms of Georgii §4.2, Theorems (4.12) and (4.13), over any reference specification with
+a **probability** free measure `μ₀` (Georgii's finite-`λ` case; WLOG by Georgii (1.28)(3) one can
+normalize a finite `λ`). Both `Specification.isssd` and, for the second half of Georgii (8.39),
+the inhomogeneous `Specification.isssdFamily` qualify. This simplifies Georgii's hypotheses:
 
 * Georgii (4.12) additionally requires a set `B_Λ ∈ 𝓔^Λ` with `B ⊆ {σ_Λ ∈ B_Λ}` and
-  `λ^Λ(B_Λ) < ∞`. For a probability reference measure we may take `B_Λ = E^Λ`, whose
-  `ν^Λ`-measure is `1 < ∞`; the hypothesis is vacuous and is dropped.
+  `λ^Λ(B_Λ) < ∞`. For a probability free measure we may take `B_Λ = E^Λ`, of measure `1 < ∞`;
+  the hypothesis is vacuous and is dropped.
 * Georgii's `limsup_α sup_{ω ∈ B} ρ^α_Λ(ω) < ∞` is stated as the (equivalent, directly usable)
   eventual bound `∀ᶠ a, ∀ ω ∈ B, ρs a Λ ω ≤ C` for a finite `C`, with the `limsup`-`iSup` form
   derived (`locallyEquicontinuous_of_limsup_iSup_ne_top`).
@@ -44,14 +45,14 @@ variable {S E ι : Type*} [MeasurableSpace E] {l : Filter ι}
 `Λₐ ↑ S` is locally equicontinuous if, for each volume and `ε > 0`, the densities are eventually
 bounded on a set of eventual measure `≥ 1 - ε`. -/
 theorem locallyEquicontinuous_of_eventually_boundedOn
-    (ν : Measure E) [IsProbabilityMeasure ν]
+    {γ₀ : Specification S E} {μ₀ : Measure (S → E)} [IsProbabilityMeasure μ₀]
+    (hγ₀ : γ₀.HasFreeMeasure μ₀)
     (ρs : ι → Finset S → (S → E) → ℝ≥0∞)
-    (hρs : ∀ a, (Specification.isssd ν).IsModifier (ρs a))
+    (hρs : ∀ a, γ₀.IsModifier (ρs a))
     (Λs : ι → Finset S) (hΛs : Tendsto Λs l atTop)
     (νs : ι → ProbabilityMeasure (S → E))
     (μs : ι → ProbabilityMeasure (S → E))
-    (hμs : ∀ a, μs a
-      = ((Specification.isssd ν).modification (ρs a) (hρs a)).bindPM (Λs a) (νs a))
+    (hμs : ∀ a, μs a = (γ₀.modification (ρs a) (hρs a)).bindPM (Λs a) (νs a))
     (hBC : ∀ (Λ : Finset S) (ε : ℝ≥0∞), 0 < ε →
       ∃ (B : Set (S → E)) (C : ℝ≥0∞), MeasurableSet B ∧ C ≠ ∞ ∧
         (∀ᶠ a in l, ∀ ω ∈ B, ρs a Λ ω ≤ C) ∧
@@ -62,8 +63,8 @@ theorem locallyEquicontinuous_of_eventually_boundedOn
   have hAfull : ∀ m, MeasurableSet (A m) := fun m ↦
     cylinderEvents_le_pi (X := fun _ : S ↦ E) _ (hmeas m)
   -- the free measure `ν^S` of the events tends to `0`
-  have hν0 : Tendsto (fun m ↦ Measure.infinitePi (fun _ : S ↦ ν) (A m)) atTop (𝓝 0) := by
-    have h := tendsto_measure_iInter_atTop (μ := Measure.infinitePi (fun _ : S ↦ ν))
+  have hν0 : Tendsto (fun m ↦ μ₀ (A m)) atTop (𝓝 0) := by
+    have h := tendsto_measure_iInter_atTop (μ := μ₀)
       (fun m ↦ (hAfull m).nullMeasurableSet) hanti ⟨0, measure_ne_top _ _⟩
     rwa [hempty, measure_empty] at h
   rw [ENNReal.tendsto_nhds_zero]
@@ -72,96 +73,96 @@ theorem locallyEquicontinuous_of_eventually_boundedOn
   -- Georgii's estimate, for every event of the sequence:
   -- `limsup_a μs a (A m) ≤ C · ν^S(A m) + ε/2`.
   have key : ∀ m, limsup (fun a ↦ (μs a : Measure (S → E)) (A m)) l
-      ≤ C * Measure.infinitePi (fun _ : S ↦ ν) (A m) + ε / 2 := by
+      ≤ C * μ₀ (A m) + ε / 2 := by
     intro m
     have hev : ∀ᶠ a in l, (μs a : Measure (S → E)) (A m)
-        ≤ C * Measure.infinitePi (fun _ : S ↦ ν) (A m) + (μs a : Measure (S → E)) Bᶜ := by
+        ≤ C * μ₀ (A m) + (μs a : Measure (S → E)) Bᶜ := by
       filter_upwards [hΛs.eventually_ge_atTop Λ, hCbound] with a hΛa hCa
       rw [hμs a, Specification.coe_bindPM]
       -- `μs a = νs a γᵃ_{Λs a}`; split `A m` along `B`
       have h1 : ((νs a : Measure (S → E)).bind
-            ((Specification.isssd ν).modification (ρs a) (hρs a) (Λs a))) (A m)
+            (γ₀.modification (ρs a) (hρs a) (Λs a))) (A m)
           ≤ ((νs a : Measure (S → E)).bind
-              ((Specification.isssd ν).modification (ρs a) (hρs a) (Λs a))) (A m ∩ B)
+              (γ₀.modification (ρs a) (hρs a) (Λs a))) (A m ∩ B)
             + ((νs a : Measure (S → E)).bind
-                ((Specification.isssd ν).modification (ρs a) (hρs a) (Λs a))) Bᶜ := by
+                (γ₀.modification (ρs a) (hρs a) (Λs a))) Bᶜ := by
         refine (measure_mono fun x hx ↦ ?_).trans (measure_union_le _ _)
         by_cases hxB : x ∈ B
         · exact Or.inl ⟨hx, hxB⟩
         · exact Or.inr hxB
       -- consistency `μs a γᵃ_Λ = μs a` for `Λ ⊆ Λs a` and the density bound on `B`
       have h2 : ((νs a : Measure (S → E)).bind
-            ((Specification.isssd ν).modification (ρs a) (hρs a) (Λs a))) (A m ∩ B)
-          ≤ C * Measure.infinitePi (fun _ : S ↦ ν) (A m) := by
+            (γ₀.modification (ρs a) (hρs a) (Λs a))) (A m ∩ B)
+          ≤ C * μ₀ (A m) := by
         have hbind : (((νs a : Measure (S → E)).bind
-              ((Specification.isssd ν).modification (ρs a) (hρs a) (Λs a))).bind
-                ((Specification.isssd ν).modification (ρs a) (hρs a) Λ))
+              (γ₀.modification (ρs a) (hρs a) (Λs a))).bind
+                (γ₀.modification (ρs a) (hρs a) Λ))
             = (νs a : Measure (S → E)).bind
-                ((Specification.isssd ν).modification (ρs a) (hρs a) (Λs a)) :=
-          ((Specification.isssd ν).modification (ρs a) (hρs a)).bind_bind_of_subset hΛa _
+                (γ₀.modification (ρs a) (hρs a) (Λs a)) :=
+          (γ₀.modification (ρs a) (hρs a)).bind_bind_of_subset hΛa _
         have : IsProbabilityMeasure ((νs a : Measure (S → E)).bind
-            ((Specification.isssd ν).modification (ρs a) (hρs a) (Λs a))) :=
-          ((Specification.isssd ν).modification (ρs a) (hρs a)).isProbabilityMeasure_bind
+            (γ₀.modification (ρs a) (hρs a) (Λs a))) :=
+          (γ₀.modification (ρs a) (hρs a)).isProbabilityMeasure_bind
             (Λs a) _
         calc ((νs a : Measure (S → E)).bind
-              ((Specification.isssd ν).modification (ρs a) (hρs a) (Λs a))) (A m ∩ B)
+              (γ₀.modification (ρs a) (hρs a) (Λs a))) (A m ∩ B)
             = (((νs a : Measure (S → E)).bind
-                ((Specification.isssd ν).modification (ρs a) (hρs a) (Λs a))).bind
-                  ((Specification.isssd ν).modification (ρs a) (hρs a) Λ)) (A m ∩ B) := by
+                (γ₀.modification (ρs a) (hρs a) (Λs a))).bind
+                  (γ₀.modification (ρs a) (hρs a) Λ)) (A m ∩ B) := by
               rw [hbind]
-          _ = ∫⁻ ω, (Specification.isssd ν).modification (ρs a) (hρs a) Λ ω (A m ∩ B)
+          _ = ∫⁻ ω, γ₀.modification (ρs a) (hρs a) Λ ω (A m ∩ B)
                 ∂((νs a : Measure (S → E)).bind
-                  ((Specification.isssd ν).modification (ρs a) (hρs a) (Λs a))) :=
+                  (γ₀.modification (ρs a) (hρs a) (Λs a))) :=
               Measure.bind_apply ((hAfull m).inter hBmeas)
-                (((Specification.isssd ν).modification (ρs a)
+                ((γ₀.modification (ρs a)
                   (hρs a)).measurable_kernel_toMeasure Λ).aemeasurable
-          _ ≤ ∫⁻ _, C * Measure.infinitePi (fun _ : S ↦ ν) (A m)
+          _ ≤ ∫⁻ _, C * μ₀ (A m)
                 ∂((νs a : Measure (S → E)).bind
-                  ((Specification.isssd ν).modification (ρs a) (hρs a) (Λs a))) := by
+                  (γ₀.modification (ρs a) (hρs a) (Λs a))) := by
               refine lintegral_mono fun ω ↦ ?_
-              calc (Specification.isssd ν).modification (ρs a) (hρs a) Λ ω (A m ∩ B)
-                  ≤ C * Specification.isssd ν Λ ω (A m) :=
+              calc γ₀.modification (ρs a) (hρs a) Λ ω (A m ∩ B)
+                  ≤ C * γ₀ Λ ω (A m) :=
                     Specification.modification_apply_inter_le _ _ _ Λ ω (hAfull m) hBmeas hCa
-                _ = C * Measure.infinitePi (fun _ : S ↦ ν) (A m) := by
-                    rw [Specification.isssd_apply_of_mem_cylinderEvents ν Λ ω (hmeas m)]
-          _ = C * Measure.infinitePi (fun _ : S ↦ ν) (A m) := by
+                _ = C * μ₀ (A m) := by
+                    rw [hγ₀ Λ ω (hmeas m)]
+          _ = C * μ₀ (A m) := by
               rw [lintegral_const, measure_univ, mul_one]
       exact h1.trans (add_le_add h2 le_rfl)
     calc limsup (fun a ↦ (μs a : Measure (S → E)) (A m)) l
-        ≤ limsup (fun a ↦ C * Measure.infinitePi (fun _ : S ↦ ν) (A m)
+        ≤ limsup (fun a ↦ C * μ₀ (A m)
             + (μs a : Measure (S → E)) Bᶜ) l := limsup_le_limsup hev
-      _ ≤ C * Measure.infinitePi (fun _ : S ↦ ν) (A m) + ε / 2 := by
+      _ ≤ C * μ₀ (A m) + ε / 2 := by
           rcases l.eq_or_neBot with rfl | hne
           · simp
           · rw [limsup_const_add l (fun a ↦ (μs a : Measure (S → E)) Bᶜ)
-              (C * Measure.infinitePi (fun _ : S ↦ ν) (A m))
+              (C * μ₀ (A m))
               ⟨⊤, Eventually.of_forall fun _ ↦ le_top⟩ ⟨0, fun _ _ ↦ zero_le⟩]
             exact add_le_add le_rfl hBc
   -- `C · ν^S(A m) → 0`, so eventually `limsup_a μs a (A m) ≤ ε/2 + ε/2 = ε`
-  have hK0 : Tendsto (fun m ↦ C * Measure.infinitePi (fun _ : S ↦ ν) (A m)) atTop (𝓝 0) := by
+  have hK0 : Tendsto (fun m ↦ C * μ₀ (A m)) atTop (𝓝 0) := by
     simpa using ENNReal.Tendsto.const_mul (a := C) hν0 (Or.inr hCne)
   filter_upwards [hK0.eventually_lt_const (ENNReal.half_pos hε.ne')] with m hm
   calc limsup (fun a ↦ (μs a : Measure (S → E)) (A m)) l
-      ≤ C * Measure.infinitePi (fun _ : S ↦ ν) (A m) + ε / 2 := key m
+      ≤ C * μ₀ (A m) + ε / 2 := key m
     _ ≤ ε / 2 + ε / 2 := add_le_add hm.le le_rfl
     _ = ε := ENNReal.add_halves ε
 
 /-- Georgii Theorem (4.12), with the density hypothesis in the literal form
 `limsup_a ⨆ ω ∈ B, ρₐ(ω) ≠ ∞`. -/
 theorem locallyEquicontinuous_of_limsup_iSup_ne_top
-    (ν : Measure E) [IsProbabilityMeasure ν]
+    {γ₀ : Specification S E} {μ₀ : Measure (S → E)} [IsProbabilityMeasure μ₀]
+    (hγ₀ : γ₀.HasFreeMeasure μ₀)
     (ρs : ι → Finset S → (S → E) → ℝ≥0∞)
-    (hρs : ∀ a, (Specification.isssd ν).IsModifier (ρs a))
+    (hρs : ∀ a, γ₀.IsModifier (ρs a))
     (Λs : ι → Finset S) (hΛs : Tendsto Λs l atTop)
     (νs μs : ι → ProbabilityMeasure (S → E))
-    (hμs : ∀ a, μs a
-      = ((Specification.isssd ν).modification (ρs a) (hρs a)).bindPM (Λs a) (νs a))
+    (hμs : ∀ a, μs a = (γ₀.modification (ρs a) (hρs a)).bindPM (Λs a) (νs a))
     (hBC : ∀ (Λ : Finset S) (ε : ℝ≥0∞), 0 < ε →
       ∃ B : Set (S → E), MeasurableSet B ∧
         limsup (fun a ↦ ⨆ ω ∈ B, ρs a Λ ω) l ≠ ∞ ∧
         limsup (fun a ↦ (μs a : Measure (S → E)) Bᶜ) l ≤ ε) :
     LocallyEquicontinuous l μs := by
-  refine locallyEquicontinuous_of_eventually_boundedOn ν ρs hρs Λs hΛs νs μs hμs
+  refine locallyEquicontinuous_of_eventually_boundedOn hγ₀ ρs hρs Λs hΛs νs μs hμs
     fun Λ ε hε ↦ ?_
   obtain ⟨B, hBmeas, hBsup, hBc⟩ := hBC Λ ε hε
   refine ⟨B, limsup (fun a ↦ ⨆ ω ∈ B, ρs a Λ ω) l + 1, hBmeas,
@@ -198,20 +199,20 @@ at each site vanishes along the net, and the densities are eventually bounded on
 `K_ℓ^Δ × E^{S∖Δ}`, then the finite-volume Gibbs distributions are locally equicontinuous. -/
 theorem locallyEquicontinuous_of_confinement
     {S E ι : Type*} [MeasurableSpace E] {l : Filter ι}
-    (ν : Measure E) [IsProbabilityMeasure ν]
+    {γ₀ : Specification S E} {μ₀ : Measure (S → E)} [IsProbabilityMeasure μ₀]
+    (hγ₀ : γ₀.HasFreeMeasure μ₀)
     (ρs : ι → Finset S → (S → E) → ℝ≥0∞)
-    (hρs : ∀ a, (Specification.isssd ν).IsModifier (ρs a))
+    (hρs : ∀ a, γ₀.IsModifier (ρs a))
     (Λs : ι → Finset S) (hΛs : Tendsto Λs l atTop)
     (νs μs : ι → ProbabilityMeasure (S → E))
-    (hμs : ∀ a, μs a
-      = ((Specification.isssd ν).modification (ρs a) (hρs a)).bindPM (Λs a) (νs a))
+    (hμs : ∀ a, μs a = (γ₀.modification (ρs a) (hρs a)).bindPM (Λs a) (νs a))
     (K : ℕ → Set E) (hK : ∀ ℓ, MeasurableSet (K ℓ))
     (hii : ∀ i : S, Tendsto
       (fun ℓ ↦ limsup (fun a ↦ (μs a : Measure (S → E)) {ω | ω i ∉ K ℓ}) l) atTop (𝓝 0))
     (hiii : ∀ Λ : Finset S, ∃ Δ : Finset S, Λ ⊆ Δ ∧ ∀ ℓ : ℕ, ∃ C : ℝ≥0∞, C ≠ ∞ ∧
       ∀ᶠ a in l, ∀ ω ∈ {x : S → E | ∀ i ∈ Δ, x i ∈ K ℓ}, ρs a Λ ω ≤ C) :
     LocallyEquicontinuous l μs := by
-  refine locallyEquicontinuous_of_eventually_boundedOn ν ρs hρs Λs hΛs νs μs hμs
+  refine locallyEquicontinuous_of_eventually_boundedOn hγ₀ ρs hρs Λs hΛs νs μs hμs
     fun Λ ε hε ↦ ?_
   obtain ⟨Δ, hΛΔ, hΔ⟩ := hiii Λ
   -- measurability of the confinement boxes

@@ -30,7 +30,7 @@ priori measure `ν i`:
 * `Specification.isStronglyConsistent_isssdFamilyFun`: Georgii (1.25) for the inhomogeneous
   family.
 * `Specification.isssdFamily_apply_of_mem_cylinderEvents`: on inside-volume events the kernel is
-  the infinite product measure `⨂ i, ν i`.
+  the infinite product measure `⨂ i, ν i`; `Specification.hasFreeMeasure_isssdFamily`.
 -/
 
 @[expose] public section
@@ -331,152 +331,12 @@ lemma isssdFamily_apply_of_mem_cylinderEvents (Λ : Finset S) (η : S → E) {A 
       Measure.map_apply Λ.measurable_restrict hB]
   rw [h1, h2]
 
-/-!
-### Resampling specifications
-
-Georgii's Notation (1.26) writes the reference kernel as `λ_Λ(dω | η) = λ^Λ(dω_Λ) δ_{η_{S∖Λ}}`:
-the volume `Λ` is resampled, the exterior is frozen. `Specification.IsResampling` records exactly
-this shape, and is all that the normalization of a premodifier (Georgii (1.31) ⇒ (1.30)) uses
-about the reference kernels. Both `Specification.isssd` and `Specification.isssdFamily` are
-resampling specifications.
--/
-
-section Resampling
-
-variable {S E : Type*} {mE : MeasurableSpace E} {γ : Specification S E}
-  {ρ : Finset S → (S → E) → ℝ≥0∞}
-
-variable (γ) in
-/-- A specification *resamples volumes* if each finite-volume kernel is the image, under
-juxtaposition with the boundary condition, of a measure on the configurations of that volume.
-
-This is the shape of Georgii's reference kernels `λ_Λ` in Notation (1.26). -/
-def IsResampling : Prop :=
-  ∀ Λ : Finset S, ∃ μ : Measure (Λ → E), ∀ η : S → E, γ Λ η = μ.map (juxt (Λ : Set S) η)
-
 lemma isResampling_isssdFamily (ν : S → Measure E) [∀ i, IsProbabilityMeasure (ν i)] :
     IsResampling (isssdFamily (S := S) (E := E) ν) :=
   fun Λ ↦ ⟨Measure.pi fun i : Λ ↦ ν i, fun _ ↦ rfl⟩
 
-lemma isResampling_isssd (ν : Measure E) [IsProbabilityMeasure ν] :
-    IsResampling (isssd (S := S) (E := E) ν) :=
-  fun Λ ↦ ⟨Measure.pi fun _ : Λ ↦ ν, fun _ ↦ rfl⟩
-
-/-- Under a resampling kernel, integrands that agree with each other on the configurations
-matching the boundary condition off `Λ` have the same integral. -/
-lemma IsResampling.lintegral_congr (hγ : IsResampling γ) {Λ : Finset S} {η : S → E}
-    {F G : (S → E) → ℝ≥0∞} (hF : Measurable F) (hG : Measurable G)
-    (h : ∀ ζ : S → E, (∀ s ∉ Λ, ζ s = η s) → F ζ = G ζ) :
-    ∫⁻ ζ, F ζ ∂(γ Λ η) = ∫⁻ ζ, G ζ ∂(γ Λ η) := by
-  obtain ⟨μ, hμ⟩ := hγ Λ
-  rw [hμ η, lintegral_map hF Measurable.juxt, lintegral_map hG Measurable.juxt]
-  refine MeasureTheory.lintegral_congr fun ζ ↦ ?_
-  exact h _ (juxt_agree_on_compl Λ η ζ)
-
-/-! ### Normalizing a premodifier against an arbitrary reference specification -/
-
-variable (γ ρ) in
-/-- The partition function of a density family `ρ` relative to a reference specification `γ`:
-`Z_Λ(η) = γ_Λ(ρ_Λ | η)`. For `γ = Specification.isssd ν` this is
-`Specification.premodifierZ`. -/
-noncomputable def relZ (Λ : Finset S) (η : S → E) : ℝ≥0∞ := ∫⁻ x, ρ Λ x ∂(γ Λ η)
-
-variable (γ ρ) in
-/-- The normalized density `ρ'_Λ = ρ_Λ / Z_Λ` relative to a reference specification `γ`.
-For `γ = Specification.isssd ν` this is `Specification.premodifierNorm`. -/
-noncomputable def relNorm (Λ : Finset S) (η : S → E) : ℝ≥0∞ := ρ Λ η / relZ γ ρ Λ η
-
-variable (γ ρ) in
-/-- Georgii's λ-admissibility relative to a reference specification: every finite-volume
-partition function is nonzero and finite. -/
-def IsRelAdmissible : Prop := ∀ (Λ : Finset S) (η : S → E), relZ γ ρ Λ η ≠ 0 ∧ relZ γ ρ Λ η ≠ ⊤
-
-lemma relZ_isssd (ν : Measure E) [IsProbabilityMeasure ν] :
-    relZ (isssd (S := S) (E := E) ν) ρ = premodifierZ (S := S) (E := E) ν ρ := rfl
-
-lemma relNorm_isssd (ν : Measure E) [IsProbabilityMeasure ν] :
-    relNorm (isssd (S := S) (E := E) ν) ρ = premodifierNorm (S := S) (E := E) ν ρ := rfl
-
-lemma isRelAdmissible_isssd_iff (ν : Measure E) [IsProbabilityMeasure ν] :
-    IsRelAdmissible (isssd (S := S) (E := E) ν) ρ ↔
-      IsPremodifierAdmissible (S := S) (E := E) ν ρ := Iff.rfl
-
-lemma measurable_relZ (hρ : ∀ Λ, Measurable (ρ Λ)) (Λ : Finset S) :
-    Measurable[cylinderEvents (Λ : Set S)ᶜ] (relZ γ ρ Λ) :=
-  Measurable.lintegral_kernel (κ := γ Λ) (f := ρ Λ) (hρ Λ)
-
-lemma measurable_relNorm (hρ : ∀ Λ, Measurable (ρ Λ)) (Λ : Finset S) :
-    Measurable (relNorm γ ρ Λ) :=
-  (hρ Λ).div ((measurable_relZ (γ := γ) hρ Λ).mono cylinderEvents_le_pi le_rfl)
-
-/-- The partition function is constant on the fibres of the reference kernel. -/
-lemma relZ_ae_eq (hρ : ∀ Λ, Measurable (ρ Λ)) {Λ₁ Λ₂ : Finset S} (hΛ : Λ₁ ⊆ Λ₂) (η : S → E) :
-    ∀ᵐ ζ ∂(γ Λ₁ η), relZ γ ρ Λ₂ ζ = relZ γ ρ Λ₂ η := by
-  refine (γ.isProper Λ₁).ae_eq_const cylinderEvents_le_pi ?_ η
-  refine (measurable_relZ (γ := γ) hρ Λ₂).mono (cylinderEvents_mono ?_) le_rfl
-  exact Set.compl_subset_compl.2 (by exact_mod_cast hΛ)
-
-/-- Normalizing against the reference kernel gives total mass one. -/
-lemma lintegral_relNorm (hρ : ∀ Λ, Measurable (ρ Λ)) (hZ : IsRelAdmissible γ ρ)
-    (Λ : Finset S) (η : S → E) : ∫⁻ ζ, relNorm γ ρ Λ ζ ∂(γ Λ η) = 1 := by
-  have hae : ∀ᵐ ζ ∂(γ Λ η), relNorm γ ρ Λ ζ = (relZ γ ρ Λ η)⁻¹ * ρ Λ ζ := by
-    filter_upwards [relZ_ae_eq (γ := γ) hρ (Finset.Subset.refl Λ) η] with ζ hζ
-    rw [relNorm, hζ, ENNReal.div_eq_inv_mul]
-  rw [lintegral_congr_ae hae, lintegral_const_mul _ (hρ Λ)]
-  exact ENNReal.inv_mul_cancel (hZ Λ η).1 (hZ Λ η).2
-
-/-- Georgii's cocycle (1.31) integrated against the reference kernel: the premodifier identity
-holds with one argument averaged over the resampled volume. -/
-lemma IsPremodifier.mul_relZ (hγ : IsResampling γ) (hρ : IsPremodifier ρ) {Λ₁ Λ₂ : Finset S}
-    (hΛ : Λ₁ ⊆ Λ₂) (η : S → E) :
-    ρ Λ₂ η * relZ γ ρ Λ₁ η = ρ Λ₁ η * ∫⁻ ζ, ρ Λ₂ ζ ∂(γ Λ₁ η) := by
-  rw [relZ, ← lintegral_const_mul _ (hρ.measurable Λ₁), ← lintegral_const_mul _ (hρ.measurable Λ₂)]
-  refine hγ.lintegral_congr (measurable_const.mul (hρ.measurable Λ₁))
-    (measurable_const.mul (hρ.measurable Λ₂)) fun ζ hζ ↦ ?_
-  have := hρ.comm_of_subset (Λ₁ := Λ₁) (Λ₂ := Λ₂) (ζ := ζ) (η := η) hΛ hζ
-  rw [mul_comm (ρ Λ₂ η), mul_comm (ρ Λ₁ η)]
-  exact this.symm
-
-/-- **Georgii (1.31) ⇒ (1.30).** Normalizing a premodifier against a resampling reference
-specification produces a modifier, hence a specification.
-
-This is `Specification.IsPremodifier.isModifier_premodifierNorm` with the independent
-specification `Specification.isssd ν` replaced by an arbitrary resampling reference — in
-particular by the inhomogeneous `Specification.isssdFamily ν`. -/
-theorem IsPremodifier.isModifier_relNorm (hγ : IsResampling γ) (hρ : IsPremodifier ρ)
-    (hZ : IsRelAdmissible γ ρ) : γ.IsModifier (relNorm γ ρ) := by
-  refine (isModifier_iff_ae_eq (γ := γ)).2
-    ⟨measurable_relNorm (γ := γ) hρ.measurable,
-      lintegral_relNorm (γ := γ) hρ.measurable hZ, fun Λ₁ Λ₂ hΛ η ↦ .of_forall fun ω ↦ ?_⟩
-  have hinner : ∫⁻ ζ, relNorm γ ρ Λ₂ ζ ∂(γ Λ₁ ω)
-      = (relZ γ ρ Λ₂ ω)⁻¹ * ∫⁻ ζ, ρ Λ₂ ζ ∂(γ Λ₁ ω) := by
-    have hae : ∀ᵐ ζ ∂(γ Λ₁ ω), relNorm γ ρ Λ₂ ζ = (relZ γ ρ Λ₂ ω)⁻¹ * ρ Λ₂ ζ := by
-      filter_upwards [relZ_ae_eq (γ := γ) hρ.measurable hΛ ω] with ζ hζ
-      rw [relNorm, hζ, ENNReal.div_eq_inv_mul]
-    rw [lintegral_congr_ae hae, lintegral_const_mul _ (hρ.measurable Λ₂)]
-  change relNorm γ ρ Λ₂ ω = relNorm γ ρ Λ₁ ω * ∫⁻ ζ, relNorm γ ρ Λ₂ ζ ∂(γ Λ₁ ω)
-  rw [hinner, relNorm, relNorm, ENNReal.div_eq_inv_mul, ENNReal.div_eq_inv_mul]
-  have hcancel : (relZ γ ρ Λ₁ ω)⁻¹ * relZ γ ρ Λ₁ ω = 1 :=
-    ENNReal.inv_mul_cancel (hZ Λ₁ ω).1 (hZ Λ₁ ω).2
-  calc (relZ γ ρ Λ₂ ω)⁻¹ * ρ Λ₂ ω
-      = (relZ γ ρ Λ₂ ω)⁻¹ * (ρ Λ₂ ω * ((relZ γ ρ Λ₁ ω)⁻¹ * relZ γ ρ Λ₁ ω)) := by
-        rw [hcancel, mul_one]
-    _ = (relZ γ ρ Λ₁ ω)⁻¹ * ((relZ γ ρ Λ₂ ω)⁻¹ * (ρ Λ₂ ω * relZ γ ρ Λ₁ ω)) := by ring
-    _ = (relZ γ ρ Λ₁ ω)⁻¹ * ((relZ γ ρ Λ₂ ω)⁻¹ * (ρ Λ₁ ω * ∫⁻ ζ, ρ Λ₂ ζ ∂(γ Λ₁ ω))) := by
-        rw [hρ.mul_relZ hγ hΛ ω]
-    _ = (relZ γ ρ Λ₁ ω)⁻¹ * ρ Λ₁ ω * ((relZ γ ρ Λ₂ ω)⁻¹ * ∫⁻ ζ, ρ Λ₂ ζ ∂(γ Λ₁ ω)) := by ring
-
-variable (γ ρ) in
-/-- The specification obtained by normalizing a premodifier against a resampling reference
-specification: Georgii's `γ = ρ' γ₀` with `ρ'_Λ = ρ_Λ / γ₀_Λ(ρ_Λ)`. -/
-noncomputable def premodification (hγ : IsResampling γ) (hρ : IsPremodifier ρ)
-    (hZ : IsRelAdmissible γ ρ) : Specification S E :=
-  γ.modification (relNorm γ ρ) (hρ.isModifier_relNorm hγ hZ)
-
-lemma premodification_apply (hγ : IsResampling γ) (hρ : IsPremodifier ρ)
-    (hZ : IsRelAdmissible γ ρ) (Λ : Finset S) (η : S → E) :
-    premodification γ ρ hγ hρ hZ Λ η = (γ Λ η).withDensity (relNorm γ ρ Λ) := rfl
-
-end Resampling
+lemma hasFreeMeasure_isssdFamily (ν : S → Measure E) [∀ i, IsProbabilityMeasure (ν i)] :
+    HasFreeMeasure (isssdFamily (S := S) (E := E) ν) (Measure.infinitePi ν) :=
+  isssdFamily_apply_of_mem_cylinderEvents ν
 
 end Specification

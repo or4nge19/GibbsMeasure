@@ -66,7 +66,7 @@ general Theorem (4.12). -/
 theorem locallyEquicontinuous_finiteVolumeDistributions (η : S → E) :
     LocallyEquicontinuous atTop
       (finiteVolumeDistributions (gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) η) := by
-  refine locallyEquicontinuous_of_eventually_boundedOn ν
+  refine locallyEquicontinuous_of_eventually_boundedOn (Specification.hasFreeMeasure_isssd ν)
     (fun _ ↦ Specification.premodifierNorm (S := S) (E := E) ν (Φ.boltzmannFactor β))
     (fun _ ↦ Specification.IsPremodifier.isModifier_premodifierNorm (ν := ν)
       (isPremodifier_boltzmannFactor (Φ := Φ) β)
@@ -278,7 +278,7 @@ theorem locallyEquicontinuous_of_confinement_hamiltonian
       ∀ᶠ a in l, ∀ ω ∈ {x : S → E | ∀ i ∈ Δ, x i ∈ K ℓ},
         |(Φs a).hamiltonian Λ ω| ≤ c) :
     LocallyEquicontinuous l μs := by
-  refine locallyEquicontinuous_of_confinement ν
+  refine locallyEquicontinuous_of_confinement (Specification.hasFreeMeasure_isssd ν)
     (fun a ↦ Specification.premodifierNorm (S := S) (E := E) ν ((Φs a).boltzmannFactor β))
     (fun a ↦ Specification.IsPremodifier.isModifier_premodifierNorm (ν := ν)
       (isPremodifier_boltzmannFactor (Φ := Φs a) β)
