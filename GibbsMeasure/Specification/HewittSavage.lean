@@ -511,11 +511,11 @@ theorem measure_symmetric_eq_zero_or_one {A : Set (ℕ → E)}
               + μ ((B ∆ A) ∪ ((permute (blockSwap k) ⁻¹' B) ∆ A)) := measure_union_le _ _
           _ ≤ μ B * μ B + (μ (B ∆ A) + μ ((permute (blockSwap k) ⁻¹' B) ∆ A)) := by
               rw [hBC]; gcongr; exact measure_union_le _ _
-          _ ≤ μ B * μ B + (ε + ε) := add_le_add_left (add_le_add hBA.le hCA.le) _
+          _ ≤ μ B * μ B + (ε + ε) := by gcongr
       have hsubB : B ⊆ A ∪ (B ∆ A) := by
         intro x hx; simp only [mem_union, Set.mem_symmDiff]; tauto
       have hb : μ B ≤ μ A + ε :=
-        (measure_mono hsubB).trans ((measure_union_le _ _).trans (add_le_add_left hBA.le _))
+        (measure_mono hsubB).trans ((measure_union_le _ _).trans (by gcongr))
       calc μ A ≤ μ B * μ B + (ε + ε) := h4
         _ ≤ (μ A * μ A + 3 * ε) + (ε + ε) := by
             gcongr; exact mul_self_le_of_le_add hb hA1 hε1
@@ -523,13 +523,13 @@ theorem measure_symmetric_eq_zero_or_one {A : Set (ℕ → E)}
     · have hsubA : A ⊆ B ∪ (B ∆ A) := by
         intro x hx; simp only [mem_union, Set.mem_symmDiff]; tauto
       have ha : μ A ≤ μ B + ε :=
-        (measure_mono hsubA).trans ((measure_union_le _ _).trans (add_le_add_left hBA.le _))
+        (measure_mono hsubA).trans ((measure_union_le _ _).trans (by gcongr))
       have hsubBC : B ∩ permute (blockSwap k) ⁻¹' B ⊆ A ∪ (B ∆ A) := by
         intro x hx; simp only [mem_union, mem_inter_iff, Set.mem_symmDiff] at *; tauto
       have hbb : μ B * μ B ≤ μ A + ε := by
         rw [← hBC]
         exact (measure_mono hsubBC).trans
-          ((measure_union_le _ _).trans (add_le_add_left hBA.le _))
+          ((measure_union_le _ _).trans (by gcongr))
       calc μ A * μ A ≤ μ B * μ B + 3 * ε := mul_self_le_of_le_add ha hB1 hε1
         _ ≤ (μ A + ε) + 3 * ε := by gcongr
         _ = μ A + 4 * ε := by ring
@@ -548,15 +548,15 @@ theorem measure_symmetric_eq_zero_or_one {A : Set (ℕ → E)}
   have hle₁ : μ A ≤ μ A * μ A := by
     refine ENNReal.le_of_forall_pos_le_add fun δ hδ _ ↦ ?_
     obtain ⟨ε, hε, hε1, h5, -⟩ := hsmall δ hδ
-    exact (key ε hε hε1).1.trans (add_le_add_left h5 _)
+    exact (key ε hε hε1).1.trans (by gcongr)
   have hle₂ : μ A * μ A ≤ μ A := by
     refine ENNReal.le_of_forall_pos_le_add fun δ hδ _ ↦ ?_
     obtain ⟨ε, hε, hε1, -, h4⟩ := hsmall δ hδ
-    exact (key ε hε hε1).2.trans (add_le_add_left h4 _)
+    exact (key ε hε hε1).2.trans (by gcongr)
   have heq : μ A * 1 = μ A * μ A := by rw [mul_one]; exact le_antisymm hle₁ hle₂
   by_cases h0 : μ A = 0
   · exact Or.inl h0
-  · exact Or.inr (ENNReal.mul_left_cancel h0 (measure_ne_top _ _) heq).symm
+  · exact Or.inr ((ENNReal.mul_right_inj h0 (measure_ne_top _ _)).1 heq).symm
 
 theorem mem_trivialOn_symmetricSigmaAlgebra_infinitePi :
     Measure.infinitePi (fun _ : ℕ ↦ ν) ∈ trivialOn (symmetricSigmaAlgebra E) :=

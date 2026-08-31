@@ -34,6 +34,8 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Measure.RegularContent
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.WithSetwiseTopology
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.WithDensity
 public import GibbsMeasure.Mathlib.Probability.ConditionalProbability
+public import GibbsMeasure.Mathlib.GroupTheory.Foelner
+public import GibbsMeasure.Mathlib.Probability.ProductMeasure
 public import GibbsMeasure.Mathlib.Probability.Kernel.Composition.MeasureComp
 public import GibbsMeasure.Mathlib.Probability.Kernel.Composition.MapComap
 public import GibbsMeasure.Mathlib.Probability.Kernel.Condexp
@@ -84,6 +86,7 @@ public import GibbsMeasure.Potential.Space
 public import GibbsMeasure.Potential.Transformation
 public import GibbsMeasure.Specification
 public import GibbsMeasure.Specification.ChoquetLaw
+public import GibbsMeasure.Specification.DeFinetti
 public import GibbsMeasure.Specification.Dobrushin
 public import GibbsMeasure.Specification.DobrushinUniqueness
 public import GibbsMeasure.Specification.Average
@@ -92,6 +95,8 @@ public import GibbsMeasure.Specification.ExtremeCorollaries
 public import GibbsMeasure.Specification.ExtremeDecomposition
 public import GibbsMeasure.Specification.GibbsKernel
 public import GibbsMeasure.Specification.PAKernel
+public import GibbsMeasure.Specification.Abstract
+public import GibbsMeasure.Specification.AbstractPAKernel
 public import GibbsMeasure.Specification.Existence
 public import GibbsMeasure.Specification.InvariantFields
 public import GibbsMeasure.Specification.NoGibbsMeasure
@@ -104,7 +109,9 @@ public import GibbsMeasure.Specification.LocalLimits
 public import GibbsMeasure.Specification.BrokenSymmetry
 public import GibbsMeasure.Specification.GluedFamily
 public import GibbsMeasure.Specification.InvariantExistence
+public import GibbsMeasure.Specification.HewittSavage
 public import GibbsMeasure.Specification.InhomogeneousReference
+public import GibbsMeasure.Specification.InvariantExistenceGroup
 public import GibbsMeasure.Specification.OneDimensionalUniqueness
 public import GibbsMeasure.Specification.UniformLocalLimits
 public import GibbsMeasure.Specification.NetEquicontinuity

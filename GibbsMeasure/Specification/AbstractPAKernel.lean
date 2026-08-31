@@ -319,6 +319,13 @@ lemma isInvariantCore_of_mem_invariant {μ : Measure Ω} (hμ : μ ∈ γ.invari
   have : IsProbabilityMeasure μ := hμ.1
   exact ⟨measure_univ, fun i t ↦ by rw [hμ.2 i]⟩
 
+lemma measurableSet_invariant [Nonempty ι] [IsDirected ι (· ≤ ·)] :
+    MeasurableSet γ.invariant := by
+  have h : γ.invariant = {μ | γ.IsInvariantCore μ} :=
+    Set.ext fun μ ↦ ⟨isInvariantCore_of_mem_invariant γ, mem_invariant_of_isInvariantCore γ⟩
+  rw [h]
+  exact measurableSet_isInvariantCore γ
+
 end Core
 
 /-! ### The `(𝒢(γ), 𝓣)`-kernel -/
