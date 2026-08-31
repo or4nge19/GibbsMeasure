@@ -197,15 +197,15 @@ fidelity:
     non-uniqueness set is a theorem (`isUpperSet_isingNonUniqueness`) rather than a hypothesis.
     Nothing is asserted at beta = beta_c. Onsager's exact value of beta_c is not proved; Georgii
     does not prove it either, and does not state it in the digitised text.
-    (e) Theorem (8.39). Its first half, |G(Phi)| <= 1, is proved at Georgii's own hypotheses:
-    Definition (2.2) summability rather than absolute summability, any sigma-finite non-zero
-    lambda-admissible a priori measure, and both S = Z and S = N (through an abstraction of the
-    one-dimensional input, `HasBoundedBoundary`). Its second half, |G(Phi)| = 1, is proved only for
-    an absolutely summable potential over a probability a priori measure, because the existence
-    half rests on Theorem (4.23)(a), which is available only there. Georgii's own argument for the
-    second half passes to a family of per-site a priori measures lambda_i = exp(-Phi_{i}) lambda;
-    that extension of (4.23) is not formalized. This is the one place where a stated result is
-    weaker than the book.
+    (e) Theorem (8.39) is proved in full at Georgii's own hypotheses: Definition (2.2)
+    summability rather than absolute summability, and both S = Z and S = N (through an abstraction
+    of the one-dimensional input, `HasBoundedBoundary`). The uniqueness half holds over any
+    sigma-finite non-zero lambda-admissible a priori measure; the existence half, following
+    Georgii's own reduction, is stated over a probability a priori measure on a standard Borel
+    state space, which is where (4.23)(a) lives and is what Georgii assumes there. The reduction
+    itself is formalized: §2.4 (equivalence of potentials), the recentred many-body part and its
+    absolute summability under (8.40), the transport into the per-site a priori measures
+    lambda_i = exp(-beta Phi_{i}) lambda, and (4.23)(a) over such a family.
   notes: >-
     Two differences from the book are deliberate improvements. Lemma (6.14) is proved by an
     explicit Z/2 coboundary argument, including the case n_c(u) = 4 where Georgii appeals to the
@@ -276,12 +276,20 @@ alignment:
       module: "GibbsMeasure/Specification/OneDimensionalUniqueness.lean"
       status: "proved"
     - source: "Theorem (8.39), second half"
-      lean: "MeasureTheory.GibbsMeasure.existsUnique_mem_GP_of_iSup_oscSpan_ne_top"
+      lean: >-
+        MeasureTheory.GibbsMeasure.existsUnique_mem_GP_lambdaSpecification_of_iSup_oscSpan_ne_top
       module: "GibbsMeasure/Specification/OneDimensionalUniqueness.lean"
-      status: "proved-weaker"
+      status: "proved"
       note: >-
-        Proved for an absolutely summable potential over a probability a priori measure, not at
-        Georgii's lambda-admissibility. See fidelity.divergences (e).
+        Existence follows Georgii's reduction: `isAbsolutelySummable_centre_manyBody` puts the
+        recentred many-body part in B under (8.40), and
+        `Potential.GP_lambdaSpecification_nonempty` absorbs the self-energies into per-site a
+        priori measures. `existsUnique_mem_GP_of_iSup_oscSpan_ne_top` is the special case of an
+        absolutely summable potential, where existence is (4.23)(a) directly.
+    - source: "Theorem (4.23)(a) over per-site a priori measures"
+      lean: "Potential.GP_gibbsSpecificationFamily_nonempty"
+      module: "GibbsMeasure/Potential/PerSiteExistence.lean"
+      status: "proved"
     - source: "Theorem (7.12)(c)"
       lean: "MeasureTheory.GibbsMeasure.ae_tendsto_iSup_ofReal_abs_sub_of_mem_extremePoints_G"
       module: "GibbsMeasure/Specification/UniformLocalLimits.lean"

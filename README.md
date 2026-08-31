@@ -270,10 +270,19 @@ and both `S = ℤ` and `S = ℕ` — through `HasBoundedBoundary`, an abstractio
 intervals with a bounded number of boundary sites". Georgii's Comments (8.41) come with it, ending
 in `subsingleton_G_of_pair_rpow_le`: a shift-invariant pair potential on `ℤ` with
 `δ(Φ_{0,n}) ≤ c n^{-p}`, `p > 2`, has at most one Gibbs measure — uniqueness far past the
-nearest-neighbour Markov case of (3.5). The second half of (8.39), `|𝒢(Φ)| = 1` rather than `≤ 1`,
-is proved only for an absolutely summable potential over a probability a priori measure, because
-existence (4.23)(a) is available only there; that is the one place where a stated result is weaker
-than the book.
+nearest-neighbour Markov case of (3.5). The second half of (8.39), `|𝒢(Φ)| = 1` rather than
+`≤ 1`, follows Georgii's own reduction and is proved at his hypotheses
+(`existsUnique_mem_GP_lambdaSpecification_of_iSup_oscSpan_ne_top`). It needs three things that
+were missing. §2.4, equivalence of potentials, is `GibbsMeasure/Potential/Equivalence.lean`, with
+`isAbsolutelySummable_centre_iff`: the class of `Φ` meets `ℬ` exactly when `∑_{A ∋ i} δ(Φ_A) < ∞`
+at every site — the sharp form of Georgii's normalisation `‖Φ_A‖ = δ(Φ_A)/2`. Under (8.40) that
+holds for the many-body part, since a volume of at least two sites containing `i` spans `i` or its
+predecessor. And the self-energies `Φ_{i}` are absorbed into per-site a priori measures
+`λ_i = e^{-β Φ_{i}} λ`, over which (4.23)(a) is re-proved
+(`GibbsMeasure/Potential/PerSiteExistence.lean`); their integrability is λ-admissibility at
+`Λ = {i}`. Getting there generalised the existence machinery off the homogeneous reference
+measure: `Specification.IsResampling` for quasilocality, `Specification.HasFreeMeasure` for local
+equicontinuity.
 
 Chapter 4 is complete: Proposition **(4.15)** (a cluster point of a locally equicontinuous
 sequence is a subsequential limit, `GibbsMeasure/Topology/Subsequence.lean`) and Example

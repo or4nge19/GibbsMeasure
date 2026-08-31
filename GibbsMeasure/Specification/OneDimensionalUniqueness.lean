@@ -6,6 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Potential.Equivalence
+public import GibbsMeasure.Potential.PerSiteExistence
 public import GibbsMeasure.Specification.Dobrushin
 public import GibbsMeasure.Specification.Extremal
 public import GibbsMeasure.Specification.Rescaling
@@ -28,8 +29,14 @@ public import Mathlib.MeasureTheory.Measure.MeasuredSets
   Thm. (8.39), first half, at Georgii's own hypotheses: `Φ` is a potential in the sense of
   Definition (2.2) over an arbitrary σ-finite non-zero a priori measure `λ`, `λ`-admissible, and
   (8.40) holds: `s := sup_i ∑_{A : min A ≤ i < max A} δ(Φ_A) < ∞` (`oscSpan`). Then `|𝒢(Φ)| ≤ 1`.
-* `MeasureTheory.GibbsMeasure.existsUnique_mem_GP_of_iSup_oscSpan_ne_top`: Georgii Thm. (8.39),
-  second half, over a standard Borel state space.
+* `MeasureTheory.GibbsMeasure.existsUnique_mem_GP_lambdaSpecification_of_iSup_oscSpan_ne_top`:
+  Georgii Thm. (8.39) in full, at his own hypotheses — a potential in the sense of (2.2),
+  `λ`-admissible over a probability a priori measure on a standard Borel state space, with (8.40),
+  has exactly one Gibbs measure. Existence is Georgii's reduction: (8.40) makes the recentred
+  many-body part absolutely summable (`isAbsolutelySummable_centre_manyBody`) and the self-energies
+  go into the a priori measure (`Potential.GP_lambdaSpecification_nonempty`).
+* `MeasureTheory.GibbsMeasure.existsUnique_mem_GP_of_iSup_oscSpan_ne_top`: the same for an
+  absolutely summable potential, where existence is (4.23)(a) directly.
 * `MeasureTheory.GibbsMeasure.iSup_oscSpan_ne_top_of_oscSpanDiam_ne_top`: Georgii Comment
   (8.41)(1). For a potential on `ℤ` with shift-invariant oscillations, Georgii's simpler condition
   (8.42), `∑_{A : min A = 0} diam A · δ(Φ_A) < ∞` (`oscSpanDiam`), implies (8.40).
@@ -654,6 +661,31 @@ theorem isAbsolutelySummable_centre_manyBody (h840 : ⨆ i : S, oscSpan Φ i ≠
   refine ⟨fun i ↦ ne_top_of_le_ne_top ?_ (Potential.normAt_centre_le η₀ i)⟩
   exact ne_top_of_le_ne_top (ENNReal.add_ne_top.2 ⟨h840 ∘ (eq_top_mono (le_iSup _ i)),
     h840 ∘ (eq_top_mono (le_iSup _ (Order.pred i)))⟩) (oscNormAt_manyBody_le Φ i)
+
+/-- **Georgii, Theorem (8.39)**, at his own hypotheses: a potential in the sense of Definition
+(2.2), `λ`-admissible over a probability a priori measure on a standard Borel state space, whose
+oscillations satisfy (8.40), has exactly one Gibbs measure. No absolute summability is assumed:
+(8.40) makes the recentred many-body part absolutely summable, and the self-energies go into the a
+priori measure. -/
+theorem existsUnique_mem_GP_lambdaSpecification_of_iSup_oscSpan_ne_top [Countable S]
+    [StandardBorelSpace E] {m : ℕ} (hexh : HasBoundedBoundary S m)
+    [Potential.IsPotential Φ] [Potential.IsSummable Φ]
+    (lam : Measure E) [IsProbabilityMeasure lam] (β : ℝ)
+    (hZ : _root_.Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) lam
+      (Φ.boltzmannFactor β))
+    (h840 : ⨆ i : S, oscSpan Φ i ≠ ⊤) :
+    ∃! μ : ProbabilityMeasure (S → E),
+      μ ∈ GP (_root_.Specification.lambdaSpecification (S := S) (E := E) lam
+        (Φ.boltzmannFactor β) (Potential.isPremodifier_boltzmannFactor (Φ := Φ) β) hZ) := by
+  classical
+  have hE : Nonempty E := lam.nonempty_of_neZero
+  set η₀ : S → E := fun _ ↦ Classical.arbitrary E with hη₀
+  haveI : Potential.IsAbsolutelySummable ((Potential.manyBody Φ).centre η₀) :=
+    isAbsolutelySummable_centre_manyBody h840 η₀
+  obtain ⟨μ, hμ⟩ := Potential.GP_lambdaSpecification_nonempty (Φ := Φ) (β := β) (η₀ := η₀)
+    (lam := lam)
+  exact ⟨μ, hμ, fun ν hν ↦ subsingleton_GP_lambdaSpecification_of_iSup_oscSpan_ne_top hexh lam β
+    hZ h840 hν hμ⟩
 
 end ManyBody
 
