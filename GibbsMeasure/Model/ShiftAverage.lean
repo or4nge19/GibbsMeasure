@@ -368,7 +368,7 @@ theorem exists_mem_GP_forall_measurePreserving_shift [Finite E] [MeasurableSingl
     refine Finset.le_inf' _ _ fun Λ hΛ ↦ ?_
     have h := cube_sub_subset_of_mem_cubeTranslates (Nat.sub_le N (Nat.sqrt N)) hΛ
     rwa [Nat.sub_sub_self (Nat.sqrt_le_self N)] at h
-  have hsymm : ∀ τ ∈ Set.range (shift E (d := d)), Tendsto (fun N ↦
+  have hsymm : ∀ τ ∈ Set.range (shift (S := Fin d → ℤ) E), Tendsto (fun N ↦
       (((cubeTranslates d N (N - Nat.sqrt N)).map
           (Finset.mapEmbedding τ.sites.toEmbedding).toEmbedding ∆
         cubeTranslates d N (N - Nat.sqrt N)).card : ℝ) /
@@ -377,7 +377,7 @@ theorem exists_mem_GP_forall_measurePreserving_shift [Finite E] [MeasurableSingl
     simp only [card_symmDiff_map_cubeTranslates_shift, card_cubeTranslates]
     exact (tendsto_card_symmDiff_map_addRight_cube_div j).comp tendsto_sub_nat_sqrt_atTop
   obtain ⟨μ, hμGP, hμinv, -⟩ := exists_mem_GP_and_forall_measurePreserving
-    (I := Set.range (shift E (d := d))) (γs := fun _ : ℕ ↦ γ)
+    (I := Set.range (shift (S := Fin d → ℤ) E)) (γs := fun _ : ℕ ↦ γ)
     (νs := fun _ : ℕ ↦ (⟨Measure.dirac fun _ ↦ e, inferInstance⟩ :
       ProbabilityMeasure ((Fin d → ℤ) → E)))
     (μs := fun N ↦ ⟨γ.average (Measure.dirac fun _ ↦ e)

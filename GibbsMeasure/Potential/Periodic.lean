@@ -187,27 +187,42 @@ lemma dependsOn_apply_periodicExtend [IsPotential Φ] (π : S → S) (B : Finset
     exact_mod_cast mem_starImage.2 ⟨x, hx, rfl⟩
   exact h (π x) hmem
 
-/-- **Georgii (5.8)** for a general additive group of sites: `Φ_{A+g}(η) = Φ_A(η(· + g))`. -/
-def IsShiftInvariantOn (Φ : Potential S E) : Prop :=
-  ∀ (g : S) (A : Finset S) (η : S → E), Φ (translate A g) η = Φ A fun i ↦ η (i + g)
+omit [DecidableEq S] in
+/-- **Georgii (5.8)** in translated form: `Φ_{A+g}(η) = Φ_A(η(· + g))`. This is
+`Potential.IsShiftInvariant` unfolded along `translate`; the shift and the invariance predicate
+themselves are defined for an arbitrary additive group of sites in
+`GibbsMeasure/Potential/Transformation.lean`. -/
+lemma IsShiftInvariant.translate_apply {Φ : Potential S E} (hΦ : Φ.IsShiftInvariant)
+    (g : S) (A : Finset S) (η : S → E) : Φ (translate A g) η = Φ A fun i ↦ η (i + g) := by
+  have h := congrFun (congrFun (hΦ g) (translate A g)) η
+  rw [Potential.map_apply] at h
+  have hmap : (translate A g).map
+      (MeasureTheory.GibbsMeasure.shift E g).sites.symm.toEmbedding = A := by
+    ext x
+    simp [translate, MeasureTheory.GibbsMeasure.shift]
+  have hinv : (MeasureTheory.GibbsMeasure.shift E g).inv.toFun η = fun i ↦ η (i + g) := by
+    funext i
+    simp
+  rw [hmap, hinv] at h
+  exact h.symm
 
 omit [DecidableEq S] in
 /-- A shift-invariant potential has translation-invariant sup-norms. -/
-lemma iSup_enorm_translate (hΦ : IsShiftInvariantOn Φ) (A : Finset S) (g : S) :
+lemma iSup_enorm_translate (hΦ : Φ.IsShiftInvariant) (A : Finset S) (g : S) :
     ⨆ η, ‖Φ (translate A g) η‖ₑ = ⨆ η, ‖Φ A η‖ₑ := by
   refine le_antisymm (iSup_le fun η ↦ ?_) (iSup_le fun η ↦ ?_)
-  · rw [hΦ g A η]
+  · rw [hΦ.translate_apply g A η]
     exact le_iSup (fun ζ ↦ ‖Φ A ζ‖ₑ) _
   · refine le_trans (le_of_eq ?_) (le_iSup (fun ζ ↦ ‖Φ (translate A g) ζ‖ₑ) (fun i ↦ η (i - g)))
-    rw [hΦ g A (fun i ↦ η (i - g))]
+    rw [hΦ.translate_apply g A (fun i ↦ η (i - g))]
     simp
 
 omit [DecidableEq S] in
 /-- Shift-invariance and periodicity: `Φ_{B+g} ∘ σ̃_Δ = Φ_B ∘ σ̃_Δ` for a period `g`. -/
 lemma apply_periodicExtend_translate (hπ : IsTorusReduction G Δ π)
-    (hΦ : IsShiftInvariantOn Φ) (hg : g ∈ G) (B : Finset S) (η : S → E) :
+    (hΦ : Φ.IsShiftInvariant) (hg : g ∈ G) (B : Finset S) (η : S → E) :
     Φ (translate B g) (periodicExtend π η) = Φ B (periodicExtend π η) := by
-  rw [hΦ g B (periodicExtend π η)]
+  rw [hΦ.translate_apply g B (periodicExtend π η)]
   congr 1
   funext i
   simp [hπ.add_mem i hg]
@@ -425,7 +440,7 @@ lemma iSup_enorm_periodicModification_le (Φ : Potential S E) (Δ : Finset S) (�
 
 /-- The weight of `ℛ(A)` is bounded by `‖Φ‖ᵢ` for any site `i` of `A`: Georgii's reindexing. -/
 lemma repWeight_le_normAt (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor)
-    (hΦ : IsShiftInvariantOn Φ) (hi : i ∈ A) :
+    (hΦ : Φ.IsShiftInvariant) (hi : i ∈ A) :
     repWeight Φ Δ π anchor A ≤ Φ.normAt i := by
   refine le_trans (ENNReal.tsum_le_tsum fun B ↦ ?_)
     (tsum_indicator_isRep_le_of_mem hπ ha i (fun B ↦ ⨆ η, ‖Φ B η‖ₑ)
@@ -438,7 +453,7 @@ lemma repWeight_le_normAt (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor
     exact zero_le
 
 lemma repWeight_ne_top [IsAbsolutelySummable Φ] (hπ : IsTorusReduction G Δ π)
-    (ha : IsAnchor anchor) (hΦ : IsShiftInvariantOn Φ) (A : Finset S) :
+    (ha : IsAnchor anchor) (hΦ : Φ.IsShiftInvariant) (A : Finset S) :
     repWeight Φ Δ π anchor A ≠ ⊤ := by
   rcases A.eq_empty_or_nonempty with rfl | ⟨i, hi⟩
   · have h0 : ∀ B : Finset S,
@@ -454,7 +469,7 @@ lemma repWeight_ne_top [IsAbsolutelySummable Φ] (hπ : IsTorusReduction G Δ π
 /-- **Georgii (4.20)(2).** The periodic modification of a shift-invariant `Φ ∈ ℬ` has interaction
 norms bounded by those of `Φ`: `‖Φ̃^Δ‖ᵢ ≤ ‖Φ‖ᵢ`. -/
 lemma normAt_periodicModification_le (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor)
-    (hΦ : IsShiftInvariantOn Φ) (i : S) :
+    (hΦ : Φ.IsShiftInvariant) (i : S) :
     (periodicModification Φ Δ π anchor).normAt i ≤ Φ.normAt i := by
   classical
   set w : Finset S → ℝ≥0∞ := fun B ↦ ⨆ η, ‖Φ B η‖ₑ with hw
@@ -505,7 +520,7 @@ lemma normAt_periodicModification_le (hπ : IsTorusReduction G Δ π) (ha : IsAn
 absolutely summable, hence `λ`-admissible for every *finite* a priori measure `λ`: by Georgii
 (2.14), a `Φ ∈ ℬ` is `λ`-admissible if and only if `λ` is finite. -/
 lemma isAbsolutelySummable_periodicModification [IsAbsolutelySummable Φ]
-    (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor) (hΦ : IsShiftInvariantOn Φ) :
+    (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor) (hΦ : Φ.IsShiftInvariant) :
     IsAbsolutelySummable (periodicModification Φ Δ π anchor) where
   normAt_ne_top i := ne_top_of_le_ne_top (IsAbsolutelySummable.normAt_ne_top (Φ := Φ) i)
     (normAt_periodicModification_le hπ ha hΦ i)
@@ -517,7 +532,7 @@ lemma measurable_periodicExtend (π : S → S) :
 
 /-- The representative series defining `Φ̃^Δ_A` converges absolutely. -/
 lemma summable_periodicModification_terms [IsAbsolutelySummable Φ]
-    (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor) (hΦ : IsShiftInvariantOn Φ)
+    (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor) (hΦ : Φ.IsShiftInvariant)
     (A : Finset S) (η : S → E) :
     Summable fun B : Finset S ↦
       {C : Finset S | IsRep Δ anchor C ∧ starImage π C = A}.indicator
@@ -534,7 +549,7 @@ lemma summable_periodicModification_terms [IsAbsolutelySummable Φ]
 /-- **Georgii (4.20)(2).** The periodic modification is a potential: `Φ̃^Δ_A` is
 `𝓕_A`-measurable. -/
 lemma isPotential_periodicModification [Countable S] [IsPotential Φ] [IsAbsolutelySummable Φ]
-    (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor) (hΦ : IsShiftInvariantOn Φ) :
+    (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor) (hΦ : Φ.IsShiftInvariant) :
     IsPotential (periodicModification Φ Δ π anchor) where
   measurable A := by
     have hdep : DependsOn (periodicModification Φ Δ π anchor A) (A : Set S) := by
@@ -568,7 +583,7 @@ lemma isPotential_periodicModification [Countable S] [IsPotential Φ] [IsAbsolut
 /-- For `∅ ≠ A ⊆ Δ`, the term `B = A` of the representative series is `Φ_A` itself; the rest is
 Georgii's error term. -/
 lemma periodicModification_sub_eq [IsPotential Φ] [IsAbsolutelySummable Φ]
-    (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor) (hΦ : IsShiftInvariantOn Φ)
+    (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor) (hΦ : Φ.IsShiftInvariant)
     (hA : A.Nonempty) (hAΔ : A ⊆ Δ) (η : S → E) :
     periodicModification Φ Δ π anchor A η - Φ A η
       = ∑' B : Finset S, {C : Finset S | IsRep Δ anchor C ∧ starImage π C = A ∧ C ≠ A}.indicator
@@ -613,7 +628,7 @@ def periodicTermBound (Φ : Potential S E) (Δ : Finset S) (π : S → S) (ancho
           (fun C ↦ ⨆ η, ‖Φ C η‖ₑ) B
 
 lemma enorm_hamiltonianTerms_periodicModification_sub_le [IsPotential Φ] [IsAbsolutelySummable Φ]
-    (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor) (hΦ : IsShiftInvariantOn Φ)
+    (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor) (hΦ : Φ.IsShiftInvariant)
     (Λ A : Finset S) (η : S → E) :
     ‖(periodicModification Φ Δ π anchor).hamiltonianTerms Λ η A - Φ.hamiltonianTerms Λ η A‖ₑ
       ≤ periodicTermBound Φ Δ π anchor Λ A := by
@@ -649,7 +664,7 @@ lemma enorm_hamiltonianTerms_periodicModification_sub_le [IsPotential Φ] [IsAbs
       exact le_iSup (fun ζ ↦ ‖Φ A ζ‖ₑ) η
 
 lemma tsum_periodicTermBound_le (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor)
-    (hΦ : IsShiftInvariantOn Φ) (Λ : Finset S) :
+    (hΦ : Φ.IsShiftInvariant) (Λ : Finset S) :
     ∑' A : Finset S, periodicTermBound Φ Δ π anchor Λ A ≤ 2 * Φ.tailWeight Δ Λ := by
   classical
   set w : Finset S → ℝ≥0∞ := fun B ↦ ⨆ η, ‖Φ B η‖ₑ with hw
@@ -685,7 +700,7 @@ lemma tsum_periodicTermBound_le (hπ : IsTorusReduction G Δ π) (ha : IsAnchor 
 `‖H^{Φ̃^Δ − Φ}_Λ‖ ≤ 2 ∑_{A ∩ Λ ≠ ∅, A ⊄ Δ} ‖Φ_A‖`, in `ℝ≥0∞`. -/
 theorem enorm_hamiltonian_periodicModification_sub_le [Countable S] [IsPotential Φ]
     [IsAbsolutelySummable Φ] (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor)
-    (hΦ : IsShiftInvariantOn Φ) (Λ : Finset S) (η : S → E) :
+    (hΦ : Φ.IsShiftInvariant) (Λ : Finset S) (η : S → E) :
     ‖(periodicModification Φ Δ π anchor).hamiltonian Λ η - Φ.hamiltonian Λ η‖ₑ
       ≤ 2 * Φ.tailWeight Δ Λ := by
   have := isAbsolutelySummable_periodicModification (Φ := Φ) hπ ha hΦ
@@ -707,7 +722,7 @@ theorem enorm_hamiltonian_periodicModification_sub_le [Countable S] [IsPotential
 `|H^{Φ̃^Δ}_Λ(η) − H^Φ_Λ(η)| ≤ 2 ∑_{A ∩ Λ ≠ ∅, A ⊄ Δ} ‖Φ_A‖ = 2 · tail Δ Λ`. -/
 theorem abs_hamiltonian_periodicModification_sub_le [Countable S] [IsPotential Φ]
     [IsAbsolutelySummable Φ] (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor)
-    (hΦ : IsShiftInvariantOn Φ) (Λ : Finset S) (η : S → E) :
+    (hΦ : Φ.IsShiftInvariant) (Λ : Finset S) (η : S → E) :
     |(periodicModification Φ Δ π anchor).hamiltonian Λ η - Φ.hamiltonian Λ η|
       ≤ 2 * Φ.tail Δ Λ := by
   have h := enorm_hamiltonian_periodicModification_sub_le hπ ha hΦ Λ η
@@ -732,7 +747,7 @@ variable {S E : Type*} [Countable S] [MeasurableSpace E] [AddCommGroup S] [Decid
 𝓛-topology as `Δ ↑ S`, with `D`-function `2 · tail Δ Λ`. -/
 theorem tendsto_dist_action_periodicModification
     (hπ : ∀ i, IsTorusReduction (G i) (Δ i) (π i)) (ha : IsAnchor anchor)
-    (hΦ : IsShiftInvariantOn Φ) (hΔ : Tendsto Δ l atTop) :
+    (hΦ : Φ.IsShiftInvariant) (hΔ : Tendsto Δ l atTop) :
     haveI := fun i ↦ isPotential_periodicModification (Φ := Φ) (hπ i) ha hΦ
     haveI := fun i ↦ isAbsolutelySummable_periodicModification (Φ := Φ) (hπ i) ha hΦ
     ∀ (Λ : Finset S) ⦃f : lp (fun _ : S → E ↦ ℝ) ∞⦄, f ∈ localFunctions S E →
@@ -752,7 +767,7 @@ theorem tendsto_dist_action_periodicModification
 `Δ ↦ ν_Δ γ^{Φ̃^Δ}_Δ`, `Δ ↑ S`, is a Gibbs measure for the shift-invariant potential `Φ ∈ ℬ`. -/
 theorem mem_GP_of_mapClusterPt_periodicModification [l.NeBot]
     (hπ : ∀ i, IsTorusReduction (G i) (Δ i) (π i)) (ha : IsAnchor anchor)
-    (hΦ : IsShiftInvariantOn Φ) (hΔ : Tendsto Δ l atTop)
+    (hΦ : Φ.IsShiftInvariant) (hΔ : Tendsto Δ l atTop)
     (νs : ι → ProbabilityMeasure (S → E)) {μ : ProbabilityMeasure (S → E)}
     (hcp : haveI := fun i ↦ isPotential_periodicModification (Φ := Φ) (hπ i) ha hΦ
       haveI := fun i ↦ isAbsolutelySummable_periodicModification (Φ := Φ) (hπ i) ha hΦ
@@ -771,7 +786,7 @@ of the net `(γ^{Φ̃^Δ}_Δ(·|ω))_Δ` of Gibbs distributions with periodic bo
 to `𝒢(Φ)`. -/
 theorem mem_GP_of_mapClusterPt_periodicModification_finiteVolumeDistributions [l.NeBot]
     (hπ : ∀ i, IsTorusReduction (G i) (Δ i) (π i)) (ha : IsAnchor anchor)
-    (hΦ : IsShiftInvariantOn Φ) (hΔ : Tendsto Δ l atTop) (ω : S → E)
+    (hΦ : Φ.IsShiftInvariant) (hΔ : Tendsto Δ l atTop) (ω : S → E)
     {μ : ProbabilityMeasure (S → E)}
     (hcp : haveI := fun i ↦ isPotential_periodicModification (Φ := Φ) (hπ i) ha hΦ
       haveI := fun i ↦ isAbsolutelySummable_periodicModification (Φ := Φ) (hπ i) ha hΦ
@@ -860,21 +875,6 @@ section ShiftBridge
 
 variable {E : Type*} [MeasurableSpace E] {d : ℕ}
 
-/-- Shift-invariance of a potential on `ℤ^d` in the sense of Georgii (5.8) implies the
-translation-invariance `IsShiftInvariantOn` that Georgii (4.20)(2) requires. -/
-lemma isShiftInvariantOn_of_isShiftInvariant {Φ : Potential (Fin d → ℤ) E}
-    (hΦ : Φ.IsShiftInvariant) : IsShiftInvariantOn Φ := by
-  intro g A η
-  have h := congrFun (congrFun (hΦ g) (translate A g)) η
-  rw [Potential.map_apply] at h
-  have hmap : (translate A g).map (shift E g).sites.symm.toEmbedding = A := by
-    ext x
-    simp [translate, shift]
-  have hinv : (shift E g).inv.toFun η = fun i ↦ η (i + g) := by
-    funext i
-    simp
-  rw [hmap, hinv] at h
-  exact h.symm
 
 end ShiftBridge
 
@@ -912,12 +912,12 @@ lemma tendsto_intBox_atTop : Filter.Tendsto intBox Filter.atTop Filter.atTop := 
 variable {E : Type*} [MeasurableSpace E] {Φ : Potential ℤ E} [IsPotential Φ]
   [IsAbsolutelySummable Φ] (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ)
 
-lemma isPotential_periodicModification_intBox (hΦ : IsShiftInvariantOn Φ) (n : ℕ) :
+lemma isPotential_periodicModification_intBox (hΦ : Φ.IsShiftInvariant) (n : ℕ) :
     IsPotential (periodicModification Φ (intBox n) (intTorus n) minAnchor) :=
   isPotential_periodicModification (isTorusReduction_intTorus n) isAnchor_minAnchor hΦ
 
 omit [IsPotential Φ] in
-lemma isAbsolutelySummable_periodicModification_intBox (hΦ : IsShiftInvariantOn Φ) (n : ℕ) :
+lemma isAbsolutelySummable_periodicModification_intBox (hΦ : Φ.IsShiftInvariant) (n : ℕ) :
     IsAbsolutelySummable (periodicModification Φ (intBox n) (intTorus n) minAnchor) :=
   isAbsolutelySummable_periodicModification (isTorusReduction_intTorus n) isAnchor_minAnchor hΦ
 
@@ -925,7 +925,7 @@ lemma isAbsolutelySummable_periodicModification_intBox (hΦ : IsShiftInvariantOn
 `(γ^{Φ̃^{Δ_n}}_{Δ_n})_n` over the boxes `Δ_n = [-(n+1), n+1)` is a Gibbs measure for the
 shift-invariant potential `Φ ∈ ℬ`. -/
 theorem mem_GP_of_mapClusterPt_intPeriodic
-    (hΦ : IsShiftInvariantOn Φ) (νs : ℕ → ProbabilityMeasure (ℤ → E))
+    (hΦ : Φ.IsShiftInvariant) (νs : ℕ → ProbabilityMeasure (ℤ → E))
     {μ : ProbabilityMeasure (ℤ → E)}
     (hcp : haveI := fun n ↦ isPotential_periodicModification_intBox (Φ := Φ) hΦ n
       haveI := fun n ↦ isAbsolutelySummable_periodicModification_intBox (Φ := Φ) hΦ n
@@ -1096,13 +1096,13 @@ variable {E : Type*} [MeasurableSpace E] {Φ : Potential (Fin d → ℤ) E} [IsP
 lemma isPotential_periodicModification_latticeBox (hΦ : Φ.IsShiftInvariant) (n : ℕ) :
     IsPotential (periodicModification Φ (latticeBox d n) (latticeTorus d n) lexAnchor) :=
   isPotential_periodicModification (isTorusReduction_latticeTorus d n) isAnchor_lexAnchor
-    (isShiftInvariantOn_of_isShiftInvariant hΦ)
+    hΦ
 
 omit [IsPotential Φ] in
 lemma isAbsolutelySummable_periodicModification_latticeBox (hΦ : Φ.IsShiftInvariant) (n : ℕ) :
     IsAbsolutelySummable (periodicModification Φ (latticeBox d n) (latticeTorus d n) lexAnchor) :=
   isAbsolutelySummable_periodicModification (isTorusReduction_latticeTorus d n)
-    isAnchor_lexAnchor (isShiftInvariantOn_of_isShiftInvariant hΦ)
+    isAnchor_lexAnchor hΦ
 
 /-- **Georgii Example (4.20)(2) on `ℤ^d`.** Every cluster point of the periodic-boundary net
 `(ν_n γ^{Φ̃^{Δ_n}}_{Δ_n})_n` over Georgii's cubes `Δ_n = [-(n+1), n+1)^d` is a Gibbs measure for
@@ -1123,7 +1123,7 @@ theorem mem_GP_of_mapClusterPt_latticePeriodic (hΦ : Φ.IsShiftInvariant)
   exact mem_GP_of_mapClusterPt_periodicModification ν β
     (G := fun n ↦ piPeriods fun _ : Fin d ↦ intBoxLen n)
     (fun n ↦ isTorusReduction_latticeTorus d n) isAnchor_lexAnchor
-    (isShiftInvariantOn_of_isShiftInvariant hΦ) tendsto_latticeBox_atTop νs hcp
+    hΦ tendsto_latticeBox_atTop νs hcp
 
 /-- **Georgii Example (4.20)(2) on `ℤ^d`, with a configurational boundary condition.** For
 every `ω`, each cluster point of the sequence `(γ^{Φ̃^{Δ_n}}_{Δ_n}(·|ω))_n` of Gibbs
@@ -1146,7 +1146,7 @@ theorem mem_GP_of_mapClusterPt_latticePeriodic_finiteVolumeDistributions
   exact mem_GP_of_mapClusterPt_periodicModification_finiteVolumeDistributions ν β
     (G := fun n ↦ piPeriods fun _ : Fin d ↦ intBoxLen n)
     (fun n ↦ isTorusReduction_latticeTorus d n) isAnchor_lexAnchor
-    (isShiftInvariantOn_of_isShiftInvariant hΦ) tendsto_latticeBox_atTop ω hcp
+    hΦ tendsto_latticeBox_atTop ω hcp
 
 end LatticePeriodicBoundary
 

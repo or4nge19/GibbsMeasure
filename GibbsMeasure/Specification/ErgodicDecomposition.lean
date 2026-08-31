@@ -633,7 +633,7 @@ lemma isGibbsMeasure_measure_inter_eq_setLIntegral
 private lemma ae_lintegral_indicator_eq_indicator_lintegral
     [@MeasurableSpace.CountableOrCountablyGenerated (S → E) (S → E) (@tailSigmaAlgebra S E _)]
     {B : Set (S → E)} (hB : MeasurableSet[@tailSigmaAlgebra S E _] B)
-    (g : (S → E) → ℝ≥0∞) (_hg : Measurable g) :
+    (g : (S → E) → ℝ≥0∞) :
     ∀ᵐ ω ∂μ.trim (tailSigmaAlgebra_le_pi (S := S) (E := E)),
       (∫⁻ x, B.indicator g x ∂(tailKernel (S := S) (E := E) μ ω))
         =
@@ -758,7 +758,7 @@ lemma ae_comp_comap_tailKernel_eq_tailKernel
           fun ω => B.indicator (fun ω => κ₁ ω A) ω := by
         have hpoint :=
           ae_lintegral_indicator_eq_indicator_lintegral (S := S) (E := E) (μ := μ)
-            (B := B) hB' (g := fun x => (γ Λ x) A) hgA
+            (B := B) hB' (g := fun x => (γ Λ x) A)
         filter_upwards [hpoint] with ω hω
         have hrew :
             B.indicator (fun ω => ∫⁻ x, (γ Λ x) A ∂(κ₂ ω)) ω

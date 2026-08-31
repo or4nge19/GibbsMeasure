@@ -380,9 +380,9 @@ lemma pathWeight_pos (hpos : ∀ x y, 0 < P x y) (a c : ℤ) (σ : ℤ → E) :
   Finset.prod_pos fun _ _ ↦ hpos _ _
 
 omit [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
-lemma pathWeight_le_one (hP : P ∈ Matrix.rowStochastic ℝ E) (hpos : ∀ x y, 0 < P x y)
+lemma pathWeight_le_one (hP : P ∈ Matrix.rowStochastic ℝ E)
     (a c : ℤ) (σ : ℤ → E) : pathWeight P a c σ ≤ 1 :=
-  Finset.prod_le_one (fun _ _ ↦ (hpos _ _).le)
+  Finset.prod_le_one (fun _ _ ↦ Matrix.nonneg_of_mem_rowStochastic hP)
     (fun _ _ ↦ Matrix.le_one_of_mem_rowStochastic hP)
 
 omit [DecidableEq E] [Nonempty E] in

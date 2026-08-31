@@ -149,8 +149,7 @@ private lemma toReal_sub_toReal_eq_integral_simpleFunc
 the anonymous-constructor form of `Integrable`. -/
 lemma integrable_of_lintegral_ennnorm_lt_top
     {α E : Type*} [MeasurableSpace α] {μ : Measure α}
-    [NormedAddCommGroup E] [NormedSpace ℝ E]
-    {f : α → E}
+    [NormedAddCommGroup E] {f : α → E}
     (hf : AEStronglyMeasurable f μ)
     (h : ∫⁻ x, ‖f x‖ₑ ∂μ < ∞) :
     Integrable f μ :=

@@ -57,23 +57,28 @@ instance (τ : Transformation S E) (Φ : Potential S E) [IsPotential Φ] :
 
 end Potential
 
-/-! ### The shift on `ℤ^d` (Georgii (5.2)(1)) -/
+/-! ### The shift (Georgii (5.2)(1))
+
+Georgii's shift is stated on `ℤ^d`, but nothing in it uses more than the additive group structure
+of the site set: `Equiv.addRight` needs only `[AddGroup S]`, and `Transformation S E` is already
+generic in `S`. It is therefore defined here for an arbitrary additive group of sites, `ℤ^d` being
+the instance Georgii uses. -/
 
 namespace MeasureTheory.GibbsMeasure
 
-variable {E : Type*} [MeasurableSpace E] {d : ℕ}
+variable {S E : Type*} [MeasurableSpace E] [AddGroup S]
 
 variable (E) in
-/-- **Georgii (5.2)(1).** The shift `θ_j : ω ↦ (ω_{i - j})_i` on the lattice `ℤ^d`. -/
-def shift (j : Fin d → ℤ) : Transformation (Fin d → ℤ) E where
+/-- **Georgii (5.2)(1).** The shift `θ_j : ω ↦ (ω_{i - j})_i` on an additive group of sites. -/
+def shift (j : S) : Transformation S E where
   sites := Equiv.addRight j
   spin _ := MeasurableEquiv.refl E
 
-@[simp] lemma shift_toFun_apply (j : Fin d → ℤ) (ω : (Fin d → ℤ) → E) (i : Fin d → ℤ) :
+@[simp] lemma shift_toFun_apply (j : S) (ω : S → E) (i : S) :
     (shift E j).toFun ω i = ω (i - j) := by
   simp [shift, Transformation.toFun, sub_eq_add_neg]
 
-@[simp] lemma shift_inv_toFun_apply (j : Fin d → ℤ) (ω : (Fin d → ℤ) → E) (i : Fin d → ℤ) :
+@[simp] lemma shift_inv_toFun_apply (j : S) (ω : S → E) (i : S) :
     (shift E j).inv.toFun ω i = ω (i + j) := by
   simp [shift, Transformation.inv, Transformation.toFun]
 
@@ -81,10 +86,10 @@ end MeasureTheory.GibbsMeasure
 
 namespace Potential
 
-variable {E : Type*} [MeasurableSpace E] {d : ℕ}
+variable {S E : Type*} [MeasurableSpace E] [AddGroup S]
 
-/-- **Georgii (5.8).** A potential on `ℤ^d` is shift-invariant if `Φ_{A + j} ∘ θ_j = Φ_A`. -/
-def IsShiftInvariant (Φ : Potential (Fin d → ℤ) E) : Prop :=
+/-- **Georgii (5.8).** A potential is shift-invariant if `Φ_{A + j} ∘ θ_j = Φ_A`. -/
+def IsShiftInvariant (Φ : Potential S E) : Prop :=
   ∀ j, Potential.map (shift E j) Φ = Φ
 
 end Potential
@@ -286,11 +291,11 @@ end Map
 
 section Shift
 
-variable {d : ℕ}
+variable {S : Type*} [AddGroup S]
 
 /-- **Georgii (5.8).** `Φ` is shift-invariant iff `Φ_{A + j} ∘ θ_j = Φ_A` for all `A`, `j`. -/
-lemma isShiftInvariant_iff (Φ : Potential (Fin d → ℤ) E) :
-    Φ.IsShiftInvariant ↔ ∀ (j : Fin d → ℤ) (A : Finset (Fin d → ℤ)) (η : (Fin d → ℤ) → E),
+lemma isShiftInvariant_iff (Φ : Potential S E) :
+    Φ.IsShiftInvariant ↔ ∀ (j : S) (A : Finset S) (η : S → E),
       Φ (A.map (Equiv.addRight j).toEmbedding) ((shift E j).toFun η) = Φ A η :=
   forall_congr' fun j ↦ map_eq_iff (shift E j) Φ
 
