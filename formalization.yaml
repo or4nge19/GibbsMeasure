@@ -291,6 +291,28 @@ alignment:
       lean: "Potential.GP_gibbsSpecificationFamily_nonempty"
       module: "GibbsMeasure/Potential/PerSiteExistence.lean"
       status: "proved"
+    - source: "Example (7.17), the Hewitt-Savage zero-one law"
+      lean: "MeasureTheory.GibbsMeasure.measure_symmetric_eq_zero_or_one"
+      module: "GibbsMeasure/Specification/HewittSavage.lean"
+      status: "proved"
+    - source: "Example (7.17), ex P_I = the i.i.d. product measures"
+      lean: "MeasureTheory.GibbsMeasure.mem_extremePoints_exchangeable_iff"
+      module: "GibbsMeasure/Specification/DeFinetti.lean"
+      status: "proved"
+      note: >-
+        The substantial half (extreme implies product) holds over an arbitrary state space,
+        where Georgii assumes standard Borel for the whole example.
+    - source: "Example (7.31), de Finetti's theorem in the version of Dynkin"
+      lean: "MeasureTheory.GibbsMeasure.existsUnique_mixing_of_isExchangeable"
+      module: "GibbsMeasure/Specification/DeFinetti.lean"
+      status: "proved"
+    - source: "Theorem (5.15)(ii) with I0 = {id}; Corollary (5.16), abelian branch"
+      lean: "MeasureTheory.GibbsMeasure.exists_mem_GP_and_forall_measurePreserving_of_commute"
+      module: "GibbsMeasure/Specification/InvariantExistenceGroup.lean"
+      status: "proved"
+      note: >-
+        The compact-topological-group branch (5.15)(i) and the general I1 o I0 iteration are not
+        formalized.
     - source: "Theorem (7.12)(c)"
       lean: "MeasureTheory.GibbsMeasure.ae_tendsto_iSup_ofReal_abs_sub_of_mem_extremePoints_G"
       module: "GibbsMeasure/Specification/UniformLocalLimits.lean"

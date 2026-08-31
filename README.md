@@ -96,9 +96,14 @@ of (5.17)(1)/(5.20)(1) is now derived from it rather than proved directly. Defin
 broken symmetries, is `GibbsMeasure/Specification/BrokenSymmetry.lean`, with the two-dimensional
 phase transition as an instance in `GibbsMeasure/Model/SymmetryBreaking.lean`: at `β ≥ log 3` the
 spin flip is a symmetry of the zero-field specification and is broken, which by Georgii's remark
-after (5.21) gives non-uniqueness without going through the two explicit phases. Still missing are
-Theorem (5.15) and its Corollary (5.16), which need a Følner net for an abelian group — Mathlib has
-`IsFoelner` but no theorem producing one, and no amenability definition. In detail: Georgii's
+after (5.21) gives non-uniqueness without going through the two explicit phases. The abelian
+branch of Theorem **(5.15)(ii)** and Corollary **(5.16)** — an `I`-invariant specification with
+`𝒢(γ)` non-empty and compact and `I` abelian has an `I`-invariant Gibbs measure — is
+`GibbsMeasure/Specification/InvariantExistenceGroup.lean`
+(`exists_mem_GP_and_forall_measurePreserving_of_commute`), by Følner averaging over the abelian
+group (`GibbsMeasure/Mathlib/GroupTheory/Foelner.lean` supplies the Følner sets Mathlib's
+`IsFoelner` lacks a producer for). The compact-topological-group branch (5.15)(i), and the
+general `I₁ ∘ I₀` iteration, remain open. In detail: Georgii's
 transformation group `T` of configuration space ((5.1),
 `GibbsMeasure/Prereqs/Transformation.lean`), its action on potentials ((5.3), `Potential.map`,
 with the Hamiltonian/norm/Boltzmann-factor transport of (5.6)(c)), on specifications ((5.4),
@@ -152,6 +157,23 @@ of `γ` commutes with the decomposition (`w_{τ(μ)} = τ(w_μ)`, and `μ` is `�
 is); **(7.7)(d)/(7.29)** distinct extreme Gibbs measures are mutually singular, and
 `|ex 𝒢(γ)| ≥ N` iff `𝒢(γ)` contains `N` linearly independent measures; **(7.30)** for finite `E`
 and quasilocal `γ`, `𝒢(γ)` is the closed convex hull of the limiting Gibbs measures `𝒢_lim(γ)`.
+Georgii's abstract setting of Remark **(7.13)** is `GibbsMeasure/Specification/Abstract.lean` and
+`GibbsMeasure/Specification/AbstractPAKernel.lean`: an `AbstractSpecification` is any consistent
+family of proper probability kernels from a decreasing family of sub-σ-algebras, with (7.7)(a)/(b)
+and the `(𝒫, 𝓣)`-kernel of (7.25) proved at that level. Its payoff is §7.2–7.3 on exchangeability
+(`GibbsMeasure/Specification/HewittSavage.lean`, `GibbsMeasure/Specification/DeFinetti.lean`):
+Example **(7.16)**, the exchangeable distributions as the invariant measures of the symmetrisation
+kernels; the **Hewitt–Savage zero-one law (7.17)** (`measure_symmetric_eq_zero_or_one`); the
+identification `ex 𝒫_I` = i.i.d. product measures (`mem_extremePoints_exchangeable_iff`) — the
+substantial half over an *arbitrary* state space, via a subtraction-free symmetrisation estimate
+obtained from group translations alone, with no counting of injections; and **de Finetti's theorem
+in the version of Dynkin (7.31)** (`existsUnique_mixing_of_isExchangeable`): over a standard Borel
+state space every exchangeable probability measure on `E^ℕ` is `∫ λ^ℕ m(dλ)` for a unique
+probability measure `m` on `𝒫(E, ℰ)`, the mixture taken as `Measure.bind`. Mathlib has neither
+exchangeability nor de Finetti; the new Mathlib-facing prerequisite is
+`Measure.measurable_infinitePi` (`GibbsMeasure/Mathlib/Probability/ProductMeasure.lean`), the
+measurability of the infinite product measure in its parameters.
+
 **Theorem (7.12)**: for an extreme Gibbs measure `μ` the finite-volume distributions
 `γ_{Λ_n}(·|ω)` converge to `μ` for `μ`-a.e. `ω` (setwise, and in the topology of local
 convergence for finite `E`), so `ex 𝒢(γ) ⊆ 𝒢_lim(γ) ⊆ 𝒢(γ)` (`GibbsMeasure/Specification/LocalLimits.lean`).
@@ -307,7 +329,7 @@ every positive quasilocal pre-modification is Gibbsian for a unique `a`-normalis
 so the DLR and Hamiltonian frameworks agree.
 
 Not yet done: the inhomogeneous Ising chains of §6.1, Shlosman's random staircases of §6.3
-(Theorem (6.21)), Theorem (5.15) and Corollary (5.16), Mermin–Wagner (9.20), and
+(Theorem (6.21)), the compact-group branch of Theorem (5.15), Mermin–Wagner (9.20), and
 Chapters 10–20 (Markov fields on trees, Gaussian fields, the variational principle, the Poulsen
 simplex, reflection positivity, and the infrared bound).
 
