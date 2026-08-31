@@ -245,7 +245,7 @@ alignment:
       module: "GibbsMeasure/Model/MarkovChain.lean"
       status: "proved"
     - source: "Theorem (4.23)"
-      lean: "MeasureTheory.GibbsMeasure.Potential.BSpace.isClosed_graph_GP"
+      lean: "Potential.BSpace.isClosed_graph_GP"
       module: "GibbsMeasure/Potential/Space.lean"
       status: "proved"
     - source: "Theorem (6.9), first assertion"
