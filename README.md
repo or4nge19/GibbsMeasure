@@ -282,7 +282,10 @@ predecessor. And the self-energies `Φ_{i}` are absorbed into per-site a priori 
 (`GibbsMeasure/Potential/PerSiteExistence.lean`); their integrability is λ-admissibility at
 `Λ = {i}`. Getting there generalised the existence machinery off the homogeneous reference
 measure: `Specification.IsResampling` for quasilocality, `Specification.HasFreeMeasure` for local
-equicontinuity.
+equicontinuity. The existence half is currently stated for a *probability* a priori measure, where
+Georgii allows any `λ ∈ 𝓜(E,ℰ)`; his own (4.23) assumes `λ` finite and he reaches the σ-finite case
+because the measures `e^{-βΦ_{i}}λ` are finite, which is also how it is done here — so the
+restriction is on the starting measure only.
 
 Chapter 4 is complete: Proposition **(4.15)** (a cluster point of a locally equicontinuous
 sequence is a subsequential limit, `GibbsMeasure/Topology/Subsequence.lean`) and Example
