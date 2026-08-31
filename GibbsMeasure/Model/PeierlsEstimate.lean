@@ -27,14 +27,14 @@ Georgii, *Gibbs Measures and Phase Transitions*, Section 6.2, towards Theorem (6
   (`exists_spanning_closed_walk`, `support_mem_walkLists`).
 * `exists_dual_potential`: **planar duality on `ℤ²` mod two** — a bond labelling whose vertex
   sums all vanish (a mod-two cycle) is the coboundary of a labelling of the plaquettes, i.e. of
-  the indicator of the "inside" of the cycle.  This is `Contours.exists_potential` transported
+  the indicator of the "inside" of the cycle.  This is `exists_potential` transported
   to the dual lattice by the ninety-degree rotation `rot`.
 * `no_crossing_diag`, `no_crossing_antidiag`: **Georgii's excluded case `n_c(u) = 4`**, proved
   *without* the Jordan curve theorem.  Two diagonally opposite corners of a unit square cannot
   lie in a finite connected `D ⊆ ℤ²` while the other two lie in the infinite component of `Dᶜ`:
   the lattice path inside `D` joining the two corners of `D`, closed up through one of the outer
   corners (`crossChain`), is a mod-two cycle, and its dual potential separates the two outer
-  corners, contradicting `Contours.reachIn_of_mem_outside`.
+  corners, contradicting `reachIn_of_mem_outside` (`GibbsMeasure/Model/Contours.lean`).
 * `plaquetteDeg_outerBoundary_eq_two`: **Georgii Lemma (6.14), the circuit property.**  For a
   finite, nonempty, connected `D ⊆ ℤ²`, every plaquette met by the outer boundary of `D`
   contains exactly two of its bonds — Georgii's `n_c(u) = 2`.  `n_c(u) = 1` is excluded because
@@ -47,13 +47,13 @@ The counting bound `ncard_connectedBondSets_le_pow` is `4096 ^ ℓ`, weaker than
 threshold `β₀`. The estimate is indexed by `edgeBoundary D` while the counting is indexed by
 `outerBoundary D`; `GibbsMeasure/Model/PhaseTransition.lean` bridges them through `interiorOf`.
 
-Together with `Contours.outerBoundary_connected`, `plaquetteDeg_outerBoundary_eq_two` says that
+Together with `outerBoundary_connected`, `plaquetteDeg_outerBoundary_eq_two` says that
 the outer boundary of a finite connected `D` is a *circuit* in Georgii's sense: it is connected
 in the plaquette-adjacency graph and every dual site it meets lies on exactly two of its bonds.
-The remaining step towards Georgii's `ℓ · 3 ^ (ℓ - 1)` is to turn that circuit into a
-Hamiltonian traversal of `bondGraph.induce (outerBoundary D)` — a connected `2`-regular graph —
-and to encode each of its `ℓ - 1` steps by one of the three bonds of the next plaquette other
-than the current one; the anchor bond is `Contours.exists_anchor_bond`.
+`GibbsMeasure/Model/SharpContours.lean` completes the step to Georgii's `ℓ · 3 ^ (ℓ - 1)`
+(`PeierlsSharp.ncard_anchored_circuits_le`): it traverses that circuit one plaquette at a time,
+with at most three continuations per step, anchored on the horizontal half-line from `a` by
+`exists_anchor_bond` (`GibbsMeasure/Model/Contours.lean`).
 -/
 
 @[expose] public section
@@ -666,13 +666,15 @@ lemma connectedBondSets_subset_image (e₀ : Sym2 Site) (ℓ : ℕ) :
     rw [List.mem_toFinset]
     exact hsupp x
 
-/-- **Georgii (6.13), finiteness**: there are finitely many connected sets of `ℓ` bonds
-containing a given bond. -/
+/-- Finiteness for the surrogate of Georgii (6.13) used here: there are finitely many
+`bondGraph`-connected sets of `ℓ` bonds containing a given bond.  Georgii counts circuits, not
+arbitrary connected bond sets; that count is `PeierlsSharp.ncard_circuitSets_le`. -/
 lemma finite_connectedBondSets (e₀ : Sym2 Site) (ℓ : ℕ) : (connectedBondSets e₀ ℓ).Finite :=
   Set.Finite.subset (Finset.finite_toSet _) (connectedBondSets_subset_image e₀ ℓ)
 
-/-- **Georgii (6.13), counting**: at most `(2ℓ - 1)·32^(2ℓ - 2)` connected sets of `ℓ` bonds
-contain a given bond. -/
+/-- A coarse surrogate for Georgii (6.13): at most `(2ℓ - 1)·32^(2ℓ - 2)` `bondGraph`-connected
+sets of `ℓ` bonds contain a given bond.  Georgii's own count is over *circuits*, of which at most
+`3 ^ (ℓ - 1)` of length `ℓ` contain a given bond (`PeierlsSharp.ncard_circuitSets_le`). -/
 theorem ncard_connectedBondSets_le (e₀ : Sym2 Site) (ℓ : ℕ) :
     (connectedBondSets e₀ ℓ).ncard ≤ (2 * ℓ - 1) * 32 ^ (2 * ℓ - 2) := by
   refine le_trans (Set.ncard_le_ncard (connectedBondSets_subset_image e₀ ℓ)
@@ -685,8 +687,9 @@ theorem ncard_connectedBondSets_le (e₀ : Sym2 Site) (ℓ : ℕ) :
     omega
   · rw [Finset.card_range]
 
-/-- **Georgii (6.13) in exponential form**: at most `4096^ℓ` connected sets of `ℓ` bonds
-contain a given bond. -/
+/-- The surrogate count in exponential form: at most `4096^ℓ` `bondGraph`-connected sets of `ℓ`
+bonds contain a given bond.  Only a constant to the `ℓ` is needed for (6.9); Georgii's sharper
+`3 ^ (ℓ - 1)` over circuits is `PeierlsSharp.ncard_circuitSets_le`. -/
 theorem ncard_connectedBondSets_le_pow (e₀ : Sym2 Site) (ℓ : ℕ) :
     (connectedBondSets e₀ ℓ).ncard ≤ 4096 ^ ℓ := by
   refine le_trans (ncard_connectedBondSets_le e₀ ℓ) ?_

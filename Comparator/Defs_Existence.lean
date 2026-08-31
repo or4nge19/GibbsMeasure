@@ -142,7 +142,8 @@ theorem freeMeasure_smul (c : ℝ≥0∞) (hc : c ≠ ⊤) (ν : Measure E) [IsF
   rw [hpi, Measure.map_smul]
 
 /-- **Georgii's Remark (1.28)(3)**: the Gibbs distribution is homogeneous of degree zero in the a
-priori measure, which is why (2.9) and (4.23) need `λ` finite but not normalized. -/
+priori measure, which is why (4.23) needs `λ` finite but not normalized — and why (2.9), which
+asks only for a σ-finite non-zero `λ`, needs no normalization at all. -/
 theorem gibbsKernel_smul (Φ : Finset S → Config S E → ℝ) (c : ℝ≥0∞) (hc0 : c ≠ 0) (hc : c ≠ ⊤)
     (ν : Measure E) [IsFiniteMeasure ν] (β : ℝ) (Λ : Finset S) (ω : Config S E) :
     gibbsKernel Φ (c • ν) β Λ ω = gibbsKernel Φ ν β Λ ω := by

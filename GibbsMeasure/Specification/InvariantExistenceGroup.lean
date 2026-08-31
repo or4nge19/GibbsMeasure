@@ -20,10 +20,9 @@ evaluation map.
 Georgii's proof averages a Gibbs measure `ν` over larger and larger finite subsets of the abelian
 group and passes to a cluster point. Where `GibbsMeasure/Specification/Average.lean` averages the
 finite-volume Gibbs distributions `ν γ_Λ` over a finite family of **volumes** (Georgii (5.18)),
-this file averages the **images** `τ(ν)` over a finite family of transformations; the two
-constructions are genuinely different objects, so the API is deliberately parallel rather than
-shared. Both are instances of the uniform average `uniformAverage m F = |F|⁻¹ ∑_{i ∈ F} m i` of a
-finite family of measures, which is defined here together with the total-variation estimate
+this file averages the **images** `τ(ν)` over a finite family of transformations. Both are
+instances of the uniform average `uniformAverage m F = |F|⁻¹ ∑_{i ∈ F} m i` of a finite
+family of measures, which is defined here together with the total-variation estimate
 `|avg_F(A) - avg_{F'}(A)| ≤ |F ∆ F'| / |F|` for `|F| = |F'|`.
 
 ## Main results

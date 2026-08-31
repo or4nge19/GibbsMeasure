@@ -1,7 +1,7 @@
 import Comparator.Defs_DeFinetti
 
 /-!
-# Comparator challenge: de Finetti's theorem (Georgii, Examples (7.16), (7.17), (7.31))
+# Comparator challenge: de Finetti's theorem (Georgii, Examples (7.16) and (7.31))
 
 The Hewitt–Savage zero-one law, the identification of the extreme exchangeable measures with the
 i.i.d. product measures, and de Finetti's theorem in the version of Dynkin: over a standard Borel
@@ -10,7 +10,7 @@ measures under a unique probability weight on `𝒫(E, ℰ)`.
 
 ## Main statements
 
-* `hewittSavage_zero_one`: Georgii (7.17), the zero-one law of Hewitt and Savage
+* `hewittSavage_zero_one`: Georgii, Example (7.16), the zero-one law of Hewitt and Savage
 * `mem_extremePoints_iff_exists_iid`: Georgii (7.17), `ex 𝒫_I` = the i.i.d. product measures —
   the substantial half holds over an **arbitrary** state space
 * `existsUnique_iidMix`: Georgii (7.31), de Finetti's theorem in the version of Dynkin
@@ -37,8 +37,8 @@ variable {E : Type*} [MeasurableSpace E]
 
 /-! ## The theorems -/
 
-/-- **The Hewitt–Savage zero-one law (Georgii (7.17))**: an i.i.d. product measure gives every
-symmetric event probability zero or one. -/
+/-- **The Hewitt–Savage zero-one law (Georgii, Example (7.16))**: an i.i.d. product measure gives
+every symmetric event probability zero or one. -/
 theorem hewittSavage_zero_one (ν : Measure E) [IsProbabilityMeasure ν] {A : Set (Config ℕ E)}
     (hA : IsSymmetric A) :
     Measure.infinitePi (fun _ : ℕ ↦ ν) A = 0 ∨ Measure.infinitePi (fun _ : ℕ ↦ ν) A = 1 := by

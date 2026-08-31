@@ -209,8 +209,8 @@ theorem mem_quasilocalFunctions_of_isQuasilocalFn {f : lp (fun _ : S → E ↦ �
 
 The challenge's `IsQuasilocalSpec` quantifies over **local** `f` only, whereas the library's
 `Specification.IsQuasilocal` quantifies over **quasilocal** `f`; the hypothesis available here is
-therefore the weaker one, and the passage between them is a genuine analytic step supplied by
-`Specification.isQuasilocal_iff_forall_mem_localFunctions`, which we invoke rather than assume. -/
+therefore the weaker one, and `Specification.isQuasilocal_iff_forall_mem_localFunctions` supplies
+the passage between them. -/
 
 theorem isQuasilocal_spec (hγ : IsSpecification γ) (hq : IsQuasilocalSpec γ) :
     (spec γ hγ).IsQuasilocal :=

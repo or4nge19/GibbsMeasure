@@ -3,7 +3,7 @@ import Comparator.Defs
 /-!
 # Definitions: quasilocality, and Georgii Example (4.16)
 
-Quasilocality (Georgii (2.23) / (4.15)) and the single-particle kernels of Georgii Example (4.16):
+Quasilocality (Georgii (2.20)–(2.23)) and the single-particle kernels of Georgii Example (4.16):
 a single particle at a uniformly random site of a countably infinite `S`, with single-site state
 space `Bool`.  For a finite volume `Λ` the kernel `γ_Λ(· | ω)` is the uniform distribution on the
 `|Λ|` one-particle configurations inside `Λ` when `ω` carries no particle outside `Λ`, and the
@@ -11,7 +11,8 @@ Dirac mass at `0_Λ ω` otherwise.
 
 ## Main definitions
 
-* `oscOutside`, `IsLocalFun`, `IsQuasilocalFun`, `IsQuasilocal`: Georgii (2.23) / (4.15)
+* `oscOutside`, `IsLocalFun`, `IsQuasilocalFun`: Georgii (2.20), (2.21)(1)/(2.22); `IsQuasilocal`:
+  Georgii (2.23)
 * `spike`, `zeroOn`, `vanishOff`, `spikeMeasure`, `gamma`: Georgii Example (4.16)
 
 ## References
@@ -36,7 +37,7 @@ section Quasilocal
 
 variable {S E : Type*} [MeasurableSpace E]
 
-/-- **Georgii (2.23)**: the oscillation of `f` off the finite volume `Δ`, i.e. how much `f` can
+/-- **Georgii (2.22)**: the oscillation of `f` off the finite volume `Δ`, i.e. how much `f` can
 still change when the configuration is modified outside `Δ` only. -/
 def oscOutside (Δ : Finset S) (f : Config S E → ℝ) : ℝ≥0∞ :=
   ⨆ ω : Config S E, ⨆ ω' : Config S E, ⨆ _ : ∀ i ∈ Δ, ω i = ω' i, ENNReal.ofReal |f ω - f ω'|
@@ -51,8 +52,8 @@ theorem le_oscOutside {Δ : Finset S} {f : Config S E → ℝ} {ω ω' : Config 
 def IsLocalFun (f : Config S E → ℝ) : Prop :=
   ∃ Δ : Finset S, ∀ ω ω' : Config S E, (∀ i ∈ Δ, ω i = ω' i) → f ω = f ω'
 
-/-- **Georgii (2.23)**: `f` is a uniform limit of local functions, equivalently its oscillation
-off `Δ` tends to `0` along the net of finite volumes `Δ ↑ S`. -/
+/-- **Georgii (2.20)(b) with Remark (2.21)(1)**: `f` is a uniform limit of local functions,
+equivalently its oscillation off `Δ` tends to `0` along the net of finite volumes `Δ ↑ S`. -/
 def IsQuasilocalFun (f : Config S E → ℝ) : Prop :=
   Filter.Tendsto (fun Δ : Finset S => oscOutside Δ f) Filter.atTop (nhds 0)
 

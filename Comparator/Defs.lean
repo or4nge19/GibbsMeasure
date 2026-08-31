@@ -191,7 +191,9 @@ theorem measurable_outside_of_local [Nonempty E] {α : Type*} [MeasurableSpace �
   rw [hfg]
   exact hf.comp hg
 
-/-- Nothing is measurable outside `Λ = ∅`, i.e. `𝓣_∅ = 𝓕`. -/
+/-- Everything is measurable outside `Λ = ∅`, i.e. `𝓣_∅ = 𝓕`.  (Georgii's index set (1.7) admits
+only non-empty finite volumes; the empty volume is admitted here, and
+`eq_dirac_of_isSpecification` forces `γ_∅ ω = δ_ω` for it.) -/
 theorem outside_empty :
     outside (S := S) (E := E) ∅ = (inferInstance : MeasurableSpace (Config S E)) := by
   refine le_antisymm (outside_le _) ?_
@@ -293,8 +295,9 @@ theorem consistent_dirac (ω : Config S E) {A : Set (Config S E)} (hA : Measurab
   exact congrFun (dirac_apply_eq hA).symm ω
 
 /-- Every probability measure satisfies the DLR equations of the family `γ_Λ ω = δ_ω`. This family
-is not a specification for `Λ ≠ ∅`, since `ω ↦ δ_ω A` is not `outside Λ`-measurable; that is what
-the measurability field of `IsSpecification` rules out. -/
+is not a specification once `outside Λ` is a proper sub-σ-algebra: for `S = ℕ`, `E = Bool` and
+`Λ = {0}` the map `ω ↦ δ_ω A` is not `outside Λ`-measurable (`not_measurableSet_outside`), which
+is what the measurability field of `IsSpecification` rules out. -/
 theorem dirac_isGibbs (μ : Measure (Config S E)) [IsProbabilityMeasure μ] :
     IsGibbs (fun (_ : Finset S) (ω : Config S E) => Measure.dirac ω) μ := by
   refine ⟨inferInstance, fun Λ A hA => ?_⟩

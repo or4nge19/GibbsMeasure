@@ -11,8 +11,9 @@ public import GibbsMeasure.Prereqs.Transformation
 /-!
 # Invariant random fields
 
-Georgii (5.12), (5.13): the `I`-invariant random fields are closed in the topology of local
-convergence, and so is the set of `I`-invariant Gibbs measures of a quasilocal specification.
+Georgii, remark after (5.12): the `I`-invariant random fields `𝒫_I(Ω, 𝓕)` are closed in the
+topology of local convergence, and so is the set `𝒢_I(γ)` of (5.13) of `I`-invariant Gibbs
+measures of a quasilocal specification.
 -/
 
 @[expose] public section
@@ -54,10 +55,10 @@ lemma continuous_map_withLocalConvergence (τ : Transformation S E) :
 
 end Transformation
 
-/-! ### Georgii (5.12): invariant random fields are `L`-closed -/
+/-! ### Georgii, remark after (5.12): invariant random fields are `L`-closed -/
 
-/-- **Georgii (5.12).** The `τ`-invariant random fields `{μ : τ(μ) = μ}` are closed in the
-topology of local convergence. -/
+/-- **Georgii, remark after (5.12).** The `τ`-invariant random fields `{μ : τ(μ) = μ}` are closed
+in the topology of local convergence.  ((5.12) itself is the *definition* of `𝒫_I(Ω, 𝓕)`.) -/
 theorem isClosed_setOf_measurePreserving (τ : Transformation S E) :
     IsClosed {μ : WithLocalConvergence S E |
       MeasurePreserving τ.toFun (μ.toMeasure : Measure (S → E)) μ.toMeasure} := by
@@ -68,8 +69,8 @@ theorem isClosed_setOf_measurePreserving (τ : Transformation S E) :
     ← ProbabilityMeasure.toMeasure_injective.eq_iff]
   exact ⟨fun h ↦ h.map_eq, fun h ↦ ⟨τ.measurable_toFun, h⟩⟩
 
-/-- **Georgii (5.12).** The `I`-invariant random fields `𝒫_I` are closed in the topology of local
-convergence. -/
+/-- **Georgii, remark after (5.12).** The `I`-invariant random fields `𝒫_I` are closed in the
+topology of local convergence. -/
 theorem isClosed_setOf_forall_measurePreserving (I : Set (Transformation S E)) :
     IsClosed {μ : WithLocalConvergence S E |
       ∀ τ ∈ I, MeasurePreserving τ.toFun (μ.toMeasure : Measure (S → E)) μ.toMeasure} := by
@@ -81,18 +82,18 @@ theorem isClosed_setOf_forall_measurePreserving (I : Set (Transformation S E)) :
   rw [this]
   exact isClosed_biInter fun τ _ ↦ isClosed_setOf_measurePreserving τ
 
-/-! ### Georgii (5.13): `𝒢_I(γ) = 𝒢(γ) ∩ 𝒫_I` is `L`-closed -/
+/-! ### The set `𝒢_I(γ)` of Georgii (5.13) is `L`-closed -/
 
-/-- **Georgii (5.13).** For a quasilocal specification, the `I`-invariant Gibbs measures
-`𝒢_I(γ) = 𝒢(γ) ∩ 𝒫_I` form a closed set in the topology of local convergence. -/
+/-- The set `𝒢_I(γ) = 𝒢(γ) ∩ 𝒫_I` of Georgii (5.13) is closed in the topology of local
+convergence, by the remark after (5.12) together with the closedness of `𝒢(γ)` for a quasilocal
+`γ` (`isClosed_setOf_mem_GP`).  No `I`-invariance of `γ` is needed, although Georgii introduces
+`𝒢_I(γ)` for an `I`-invariant `γ`. -/
 theorem isClosed_setOf_mem_GP_and_measurePreserving {γ : Specification S E}
     (hγ : γ.IsQuasilocal) (I : Set (Transformation S E)) :
     IsClosed {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP (S := S) (E := E) γ ∧
       ∀ τ ∈ I, MeasurePreserving τ.toFun (μ.toMeasure : Measure (S → E)) μ.toMeasure} := by
   rw [ofPred_and]
   exact (isClosed_setOf_mem_GP hγ).inter (isClosed_setOf_forall_measurePreserving I)
-
-/-! ### Georgii (5.6)(a): the independent specification is invariant under `λ`-preserving `τ` -/
 
 end MeasureTheory.GibbsMeasure
 

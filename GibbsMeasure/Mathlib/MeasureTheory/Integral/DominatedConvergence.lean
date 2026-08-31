@@ -22,8 +22,8 @@ together with convergence of the norms upgrades itself to `L¹` convergence.
 * `MeasureTheory.tendsto_integral_of_dominated_convergence_of_tendsto`: Pratt's lemma,
   `∫ Fᵢ → ∫ f`.
 * `MeasureTheory.tendsto_integral_norm_sub_zero_of_tendsto_integral_norm`: Scheffé's lemma.
-* `MeasureTheory.tendsto_eLpNorm_sub_zero_of_tendsto_integral_norm`: Scheffé's lemma, phrased with
-  `eLpNorm _ 1`.
+* `MeasureTheory.tendsto_eLpNorm_one_sub_zero_of_tendsto_integral_norm`: Scheffé's lemma, phrased
+  with `eLpNorm _ 1`.
 -/
 
 @[expose] public section

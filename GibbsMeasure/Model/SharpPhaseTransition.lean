@@ -404,8 +404,9 @@ Since `1/4 < log 9 / 2` (`quarter_lt_log_nine_div_two`) the two ranges are disjo
 statement is not vacuous: the transition point lies in `[1/4, log 3]`, a window some five times
 narrower than the `[1/4, 8 log 2]` of `ising_two_dimensional_phase_transition`.
 
-The same caveat applies: this does *not* assert the existence of a sharp `β_c` with uniqueness
-below and non-uniqueness above, which needs monotonicity of the phase diagram in `β`. -/
+This is the two-sided bracket only; the sharp form, with a `β_c` satisfying uniqueness below and
+non-uniqueness above, is `ising_sharp_phase_transition` in
+`GibbsMeasure/Model/SharpCriticalTemperature.lean`. -/
 theorem ising_two_dimensional_phase_transition_sharp :
     (∀ β : ℝ, |β| < 1 / 4 →
         (GP (S := Fin 2 → ℤ) (E := Bool)

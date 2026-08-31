@@ -139,8 +139,9 @@ def partitionFunction (Φ : Finset S → Config S E → ℝ) (lam : Measure E) (
     (ω : Config S E) : ℝ≥0∞ :=
   ∫⁻ σ, boltzmannFactor Φ β Λ σ ∂(freeMeasure lam Λ ω)
 
-/-- **`λ`-admissibility**, Georgii Definition (2.8): every finite-volume partition function is
-non-zero and finite. -/
+/-- **`λ`-admissibility**, Georgii (2.7): every finite-volume partition function is non-zero and
+finite — Georgii asks only that `Z_Λ^Φ(ω)` be finite, the non-vanishing being implicit in the
+quotient (2.8). -/
 def IsAdmissible (Φ : Finset S → Config S E → ℝ) (lam : Measure E) (β : ℝ) : Prop :=
   ∀ (Λ : Finset S) (ω : Config S E),
     partitionFunction Φ lam β Λ ω ≠ 0 ∧ partitionFunction Φ lam β Λ ω ≠ ⊤

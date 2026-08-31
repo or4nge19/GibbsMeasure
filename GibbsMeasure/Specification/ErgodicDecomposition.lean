@@ -13,12 +13,13 @@ public import Mathlib.Probability.Kernel.Composition.MeasureComp
 public import Mathlib.MeasureTheory.Measure.Real
 
 /-!
-# Tail disintegration and ergodic decomposition setup (Georgii, Ch. 7 — setup)
+# Tail disintegration and the extreme decomposition (Georgii §7.3 — setup)
 
 This file introduces the **tail conditional kernel** using Mathlib's `ProbabilityTheory.condExpKernel`.
 
-For a finite measure `μ` on the configuration space `S → E`, we define the kernel
-`tailKernel μ : Kernel[𝓣] (S → E) (S → E)` (domain σ-algebra is the tail σ-algebra `𝓣`).
+For a probability measure `μ` on the configuration space `S → E`, with `S` countable and `E`
+standard Borel, we define the kernel `tailKernel μ : Kernel[𝓣] (S → E) (S → E)` (domain
+σ-algebra is the tail σ-algebra `𝓣`): a regular conditional distribution of the identity given `𝓣`.
 
 We record:
 
@@ -128,8 +129,9 @@ lemma tailKernel_real_eq_indicator_of_measurableSet (A : Set (S → E))
 
 /-! ## The law of the tail-conditional measures and a barycenter identity -/
 
-/-- The **law** of the tail-conditional measures: pushforward of `μ.trim (𝓣 ≤ pi)` under the map
-`ω ↦ tailKernel μ ω`. -/
+/-- The **law** of the tail-conditional measures: the pushforward of `μ` under the map
+`ω ↦ tailKernel μ ω`.  Since that map is `𝓣`-measurable, it agrees with the pushforward of
+`μ.trim (𝓣 ≤ pi)`. -/
 noncomputable def tailKernelLaw : Measure (Measure (S → E)) :=
   μ.map (tailKernel (S := S) (E := E) μ)
 
@@ -274,6 +276,14 @@ lemma tailKernel_apply_eq_indicator_ae_of_measurableSet {A : Set (S → E)}
   exact (ENNReal.toReal_eq_toReal_iff' hleft_ne_top hright_ne_top).1
     (by simpa [hright_toReal] using hω')
 
+/-- The tail kernel, read as a kernel into the tail σ-algebra, is `μ.trim 𝓣`-a.e. the identity
+kernel: the tail is deterministic under the disintegration.
+
+Proof sketch: the two kernels have the same composition-product with `μ.trim 𝓣`.  On a rectangle
+`A ×ˢ B` with both sides tail-measurable, the right-hand side is evaluated by
+`kernel_id_tail_apply_eq_indicator` and the left-hand side by
+`tailKernel_apply_eq_indicator_ae_of_measurableSet`; such rectangles form a π-system generating
+the product σ-algebra, so `Kernel.ae_eq_of_compProd_eq` gives the a.e. equality. -/
 lemma tailKernelTail_ae_eq_id
     [@MeasurableSpace.CountableOrCountablyGenerated (S → E) (S → E) (@tailSigmaAlgebra S E _)] :
     ∀ᵐ ω ∂μ.trim (tailSigmaAlgebra_le_pi (S := S) (E := E)),
@@ -559,11 +569,9 @@ theorem ae_isTailTrivial_tailKernel
 /-!
 ### Gibbs fixed-point transported to the tail disintegration (measure-level)
 
-This is a clean “bookkeeping” lemma: from the DLR fixed point `μ.bind (γ Λ) = μ` and the
-disintegration identity `tailKernel μ ∘ₘ μ.trim = μ`, we get an equality of composed measures after
-pushing `γ Λ` through the tail-kernel disintegration.
-
-This is the right starting point for the (harder) a.e.-Gibbsness of the conditional measures.
+From the DLR fixed point `μ.bind (γ Λ) = μ` and the disintegration identity
+`tailKernel μ ∘ₘ μ.trim = μ`: the tail-conditional measures are `μ.trim 𝓣`-a.e. fixed points of
+`γ Λ` (`ae_comp_comap_tailKernel_eq_tailKernel`), hence Gibbs (`ae_isGibbsMeasure_tailKernel`).
 -/
 
 section GibbsComp
@@ -673,7 +681,13 @@ private lemma ae_lintegral_indicator_eq_indicator_lintegral
       simpa using (MeasureTheory.lintegral_congr_ae hind)
     simp [Set.indicator_of_notMem, hωB, hlintegral]
 
-/-- For a fixed finite volume `Λ`, the tail kernel is `μ.trim 𝓣`-a.e. a fixed point for `γ Λ`. -/
+/-- For a fixed finite volume `Λ`, the tail kernel is `μ.trim 𝓣`-a.e. a fixed point for `γ Λ`.
+
+Proof sketch: the two kernels have the same composition-product with `μ.trim 𝓣`.  On a rectangle
+`B ×ˢ A` with `B` tail-measurable and `A` measurable, the right-hand side is `μ (A ∩ B)` by
+`setLIntegral_tailKernel_eq_measure_inter` and the left-hand side is `μ (A ∩ B)` by the DLR
+identity `isGibbsMeasure_measure_inter_eq_setLIntegral`; such rectangles form a π-system
+generating the product σ-algebra, so `Kernel.ae_eq_of_compProd_eq` gives the a.e. equality. -/
 lemma ae_comp_comap_tailKernel_eq_tailKernel
     [@MeasurableSpace.CountableOrCountablyGenerated (S → E) (S → E) (@tailSigmaAlgebra S E _)]
     (hμ : γ.IsGibbsMeasure μ) :
@@ -856,7 +870,7 @@ theorem ae_isGibbsMeasure_tailKernel
   exact (Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ)).2 hω
 
 /-!
-### Extremal (ergodic) components (Georgii Thm 7.7 + tail disintegration)
+### Extreme components (Georgii (7.7)(a) + tail disintegration)
 
 Using:
 - `ae_isGibbsMeasure_tailKernel` (DLR fixed point transported to components),

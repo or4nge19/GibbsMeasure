@@ -11,8 +11,8 @@ potential `Φ ∈ ℬ`, and nothing renormalizes `λ` behind the scenes.
 
 ## Main statements
 
-* `isSpecification_gibbsKernel`: Georgii (2.9)/(2.10), `γ^Φ` is a specification
-* `exists_isGibbs_gibbsKernel`: Georgii (4.22), `𝓖(γ^Φ) ≠ ∅`
+* `isSpecification_gibbsKernel`: Georgii (2.5), (1.32), (2.9), `γ^Φ` is a specification
+* `exists_isGibbs_gibbsKernel`: Georgii (4.23)(a) via (4.22), `𝓖(γ^Φ) ≠ ∅`
 * `isCompact_setOf_isGibbs_gibbsKernel`: Georgii (4.23)(a), `𝓖(γ^Φ)` is compact
 * `exists_isCompact_superset_iUnion_setOf_isGibbs`: Georgii (4.23)(b), `⋃ᵢ 𝒢(Φᵢ)` is relatively
   compact for a bounded family
@@ -37,16 +37,17 @@ variable {S E : Type*} [MeasurableSpace E]
 
 /-! ## The theorems -/
 
-/-- **Georgii (2.9)/(2.10)**: the Gibbsian specification of an absolutely summable potential is a
-specification, i.e. a consistent family of proper probability kernels from `𝓣_Λ`. -/
+/-- **Georgii (2.5), (1.32), (2.9)**: the Gibbsian specification of an absolutely summable
+potential is a specification, i.e. a consistent family of proper probability kernels from
+`𝓣_Λ`. -/
 theorem isSpecification_gibbsKernel [Countable S] (Φ : Finset S → Config S E → ℝ)
     (hΦ : IsAbsolutelySummablePotential Φ) (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν]
     (β : ℝ) :
     IsSpecification (gibbsKernel Φ ν β) :=
   sorry
 
-/-- **Georgii (4.22)**: over a standard Borel state space, the set of Gibbs measures of the
-Gibbsian specification of an absolutely summable potential is non-empty. -/
+/-- **Georgii (4.23)(a), via (4.22)**: over a standard Borel state space, the set of Gibbs
+measures of the Gibbsian specification of an absolutely summable potential is non-empty. -/
 theorem exists_isGibbs_gibbsKernel [Countable S] [StandardBorelSpace E]
     (Φ : Finset S → Config S E → ℝ)
     (hΦ : IsAbsolutelySummablePotential Φ) (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν]
@@ -93,7 +94,8 @@ theorem isGibbs_of_tendsto_potentialNormAt_of_tendstoLocally [Countable S] {ι :
   sorry
 
 /-- **Georgii (4.23)(d)**: the Gibbs correspondence is upper semicontinuous, i.e.
-`𝒢⁻¹(F) = {Φ : 𝒢(Φ) ∩ F ≠ ∅}` is closed for every locally closed `F`. -/
+`𝒢⁻¹(F) = {Φ : 𝒢(Φ) ∩ F ≠ ∅}` is closed for every `F` closed in the topology of local
+convergence. -/
 theorem exists_mem_isGibbs_of_tendsto_potentialNormAt [Countable S] [StandardBorelSpace E]
     {ι : Type*} {l : Filter ι} [l.NeBot] (Φs : ι → Finset S → Config S E → ℝ)
     (Φ : Finset S → Config S E → ℝ) (hΦs : ∀ x, IsAbsolutelySummablePotential (Φs x))

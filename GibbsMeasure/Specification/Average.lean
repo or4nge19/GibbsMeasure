@@ -227,7 +227,7 @@ theorem measurePreserving_of_mapClusterPt_average {τ : Transformation S E}
   rw [sub_eq_zero] at h3
   exact (ENNReal.toReal_eq_toReal_iff' (measure_ne_top _ _) (measure_ne_top _ _)).1 h3
 
-/-! ### Cubes on `ℤ^d` (Georgii (5.17), (5.20)) -/
+/-! ### Cluster points of two nets that agree asymptotically on local events -/
 
 
 lemma mapClusterPt_of_tendsto_real_sub {ι : Type*} {l : Filter ι}
@@ -246,9 +246,6 @@ lemma mapClusterPt_of_tendsto_real_sub {ι : Type*} {l : Filter ι}
   have h1 := (ENNReal.tendsto_toReal (measure_ne_top _ _)).comp (hU A hA)
   have h2 := h1.sub ((h A hA).mono_left hUle)
   simpa [measureReal_def, sub_sub_cancel, Function.comp_def] using h2
-
-/-! ### Georgii (5.20)(1): translates of cubes -/
-
 
 end MeasureTheory.GibbsMeasure
 

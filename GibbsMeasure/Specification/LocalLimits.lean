@@ -20,8 +20,8 @@ For an extreme Gibbs measure `μ ∈ ex G(γ)` (equivalently, by Theorem (7.7)(a
 Gibbs measure) and an increasing cofinal sequence of volumes `(Λ_n)` — in particular the canonical
 exhaustion `Λ_n = exhaustionVolumes n`:
 
-* (a) `γ_{Λ_n}(A | ω) → μ(A)` for `μ`-a.e. `ω`, for every measurable `A`
-  (`tendsto_ae_kernel_exhaustion_of_tailTrivial`,
+* (a) along the canonical exhaustion only: `γ_{exhaustionVolumes n}(A | ω) → μ(A)` for `μ`-a.e.
+  `ω`, for every measurable `A` (`tendsto_ae_kernel_exhaustion_of_tailTrivial`,
   `tendsto_ae_kernel_exhaustion_of_mem_extremePoints_G`): the DLR equation identifies
   `γ_{Λ_n}(A | ·)` with `μ(A | 𝓕_{Λ_nᶜ})`, Lévy's downward theorem gives a.e. convergence to
   `μ(A | 𝓣)`, and tail triviality makes the latter a.e. equal to `μ(A)`;
@@ -233,8 +233,8 @@ lemma antitone_cylinderEvents_compl {Λ : ℕ → Finset S} (hmono : Monotone Λ
   cylinderEvents_mono (X := fun _ : S ↦ E) (compl_subset_compl.2 (Finset.coe_subset.2 (hmono hmn)))
 
 omit [Countable S] in
-/-- **Georgii (2.19)**: the tail σ-field is the intersection of the outside-volume σ-algebras
-along any cofinal sequence of volumes. -/
+/-- The tail σ-field `𝓣` of Georgii (2.19) — an intersection over *all* finite volumes — is
+already the intersection of the `𝓕_{Λ_nᶜ}` along any cofinal sequence `(Λ_n)`. -/
 lemma tailSigmaAlgebra_eq_iInf_of_cofinal {Λ : ℕ → Finset S}
     (hcof : ∀ Δ : Finset S, ∃ n, Δ ⊆ Λ n) :
     (@tailSigmaAlgebra S E _ : MeasurableSpace (S → E))

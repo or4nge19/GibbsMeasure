@@ -38,8 +38,10 @@ lemma sum_vecMul_of_mem_rowStochastic (hP : P ∈ rowStochastic ℝ n) (d : n �
   rw [Finset.sum_comm]
   simp_rw [← Finset.mul_sum, sum_row_of_mem_rowStochastic hP, mul_one]
 
-/-- `ℓ¹`-contraction (Georgii, Appendix 3.A): if every entry of the row-stochastic matrix `P` is
-at least `ε`, then `d ↦ d ᵥ* P` contracts sum-zero vectors by the factor `1 - card n * ε`. -/
+/-- `ℓ¹`-contraction: if every entry of the row-stochastic matrix `P` is at least `ε`, then
+`d ↦ d ᵥ* P` contracts sum-zero vectors by the factor `1 - card n * ε`. This is the Dobrushin
+coefficient bound; Georgii's Appendix 3.A instead proves the ergodic theorem (3.A3) by a
+relative-entropy argument. -/
 lemma sum_abs_vecMul_le_of_sum_eq_zero (hP : P ∈ rowStochastic ℝ n) {ε : ℝ}
     (hε : ∀ i j, ε ≤ P i j) {d : n → ℝ} (hd : ∑ i, d i = 0) :
     ∑ j, |(d ᵥ* P) j| ≤ (1 - Fintype.card n * ε) * ∑ i, |d i| := by
@@ -240,7 +242,7 @@ theorem tendsto_pow_apply (hP : P ∈ rowStochastic ℝ n) (hpos : ∀ i j, 0 < 
   simpa [single_vecMul, row_apply] using h
 
 /-- The stationary distribution of a positive stochastic matrix is strictly positive
-(Georgii (3.3): `α_P ∈ ]0, 1[^E`). -/
+(Georgii, Remark (3.A2)(b)). -/
 lemma pos_of_vecMul_eq_self (hpos : ∀ i j, 0 < P i j) {α : n → ℝ} (hα : α ∈ stdSimplex ℝ n)
     (hαP : α ᵥ* P = α) (j : n) : 0 < α j := by
   obtain ⟨i, hi⟩ : ∃ i, α i ≠ 0 := by

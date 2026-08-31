@@ -6,12 +6,14 @@ import Comparator.Defs_OneDim
 Georgii's Proposition (8.38), Theorem (8.39) and Comments (8.41).
 
 Proposition (8.38) is stated for an arbitrary specification on an arbitrary countable parameter
-set.  Theorem (8.39) is stated at Georgii's own hypotheses throughout, in both halves: a potential
+set.  Theorem (8.39) is stated at Georgii's potential and a priori-measure hypotheses: a potential
 in the sense of Definition (2.2) — summable in the sense of Convention (2.1), *not* absolutely
 summable — that is `λ`-admissible over an arbitrary σ-finite non-zero a priori measure, with the
-state space standard Borel for the existence half only, exactly as in the book.  Nothing is
-claimed for the pair decay exponent `p ≤ 2`, where Georgii records that a phase transition can
-occur.
+state space standard Borel for the existence half only.  Georgii states both halves for `S = ℤ`
+or `ℕ`; the uniqueness half here is stated for any countable parameter set carrying a
+bounded-boundary exhaustion, which covers both, while the existence half is stated on `ℤ`
+only.  Nothing is claimed for the pair decay exponent `p ≤ 2`, where Georgii records that a
+phase transition can occur.
 
 ## Main statements
 

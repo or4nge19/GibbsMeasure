@@ -12,7 +12,7 @@ public import Mathlib.MeasureTheory.Measure.WithDensity
 /-!
 # Finite products and densities
 
-Two general-purpose measure-theoretic facts used to rescale the a priori measure of a
+Three general-purpose measure-theoretic facts used to rescale the a priori measure of a
 `λ`-specification (Georgii, *Gibbs Measures and Phase Transitions*, Remark (1.28)(3)).
 
 ## Main results

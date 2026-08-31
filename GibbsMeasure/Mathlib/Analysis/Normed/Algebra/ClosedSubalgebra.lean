@@ -13,10 +13,10 @@ public import Mathlib.Topology.ContinuousMap.Weierstrass
 /-!
 # Functional calculus on a closed subalgebra of a Banach algebra
 
-A closed subalgebra is closed under any limit of polynomials in its elements: under the
-exponential, under the inverse of an element `x` with `‖1 - c⁻¹ • x‖ < 1`, and — for
-`lp (fun _ ↦ ℝ) ∞`, by Weierstrass approximation — under composition with any function continuous
-on a compact interval containing the range (`Subalgebra.comp_mem_lp`).
+A closed subalgebra of `lp (fun _ ↦ ℝ) ∞` is closed, by Weierstrass approximation, under
+composition with any function continuous on a compact interval containing the range
+(`Subalgebra.comp_mem_lp`); in particular it contains the pointwise inverse of any of its elements
+that is bounded below by a positive constant (`Subalgebra.inv_mem_lp`).
 -/
 
 @[expose] public section

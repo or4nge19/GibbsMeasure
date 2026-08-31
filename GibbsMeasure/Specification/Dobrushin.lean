@@ -1174,7 +1174,15 @@ specification of `βΦ` satisfies Dobrushin's condition of weak dependence — *
 (8.6). Quasilocality is the first step of Georgii's proof of (8.8) and is discharged here by
 `Potential.isQuasilocal_gibbsSpecificationOfAbsolutelySummable` (Georgii Example (2.25)(ii), the
 instance of Proposition (2.24)(b) at the quasilocal Hamiltonians of an absolutely summable
-potential); the bound on `c(γ^Φ)` is the rest. -/
+potential); the bound on `c(γ^Φ)` is the rest.
+
+Hypotheses. Georgii states (8.8) for an arbitrary a-priori measure `λ ∈ 𝓜(E, ℰ)` and any
+`λ`-admissible potential, and notes that "up to `λ`-admissibility, there are no restrictions on
+the self-potential part of `Φ`". What is proved here is the special case of a probability
+a-priori measure `ν` and an absolutely summable `Φ` — the hypotheses of
+`gibbsSpecificationOfAbsolutelySummable` — which does restrict the self-potential: by Georgii
+§2.1 (after (2.14)), an absolutely summable potential is `λ`-admissible iff `λ` is finite.
+Generalising needs the Gibbsian specification of a merely `λ`-admissible potential. -/
 theorem isDobrushin_gibbsSpecification {c : ℝ≥0∞} (hc : c < 2)
     (hΦ : ∀ i, ENNReal.ofReal |β| * interactionStrength Φ i ≤ c) :
     IsDobrushin (Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) := by

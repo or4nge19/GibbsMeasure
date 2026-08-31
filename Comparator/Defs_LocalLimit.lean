@@ -12,9 +12,10 @@ Vocabulary for Georgii's Theorem (7.12), extending the preamble `Comparator.Defs
 * `IsLambdaSpec`: a λ-specification `γ = ρ λ_·`, Georgii Definition (1.27), for a single-spin
   *probability* measure `ν` — no restriction for a finite a priori measure by Remark (1.28)(3),
   and the case Georgii reduces to at the start of the proof of (7.12)(c)
-* `tvOn Δ`: `sup {|μ A − μ' A| : A ∈ 𝓕_Δ}`, the total variation distance of the restrictions to
-  `𝓕_Δ`.  Georgii writes the quantity converging in (7.12)(c) as
-  `sup {|γ_Λ(f|ω) − μ(f)| : f ∈ 𝓛_Δ, ‖f‖ ≤ 1}` and remarks that it is this distance.
+* `tvOn Δ`: `sup {|μ A − μ' A| : A ∈ 𝓕_Δ}`, Georgii's uniform distance (8.1) between the
+  restrictions to `𝓕_Δ`, i.e. one half of their total variation distance.  Georgii writes the
+  quantity converging in (7.12)(c) as `sup {|γ_Λ(f|ω) − μ(f)| : f ∈ 𝓛_Δ, ‖f‖ ≤ 1}`, which is
+  `2 · tvOn Δ`; the two vanish together.
 
 ## References
 
@@ -61,8 +62,10 @@ structure IsLambdaSpec (ν : Measure E) [IsProbabilityMeasure ν]
   /-- `ρ λ_·` is a specification, i.e. `ρ` is a λ-modification -/
   isSpecification : IsSpecification γ
 
-/-- `sup {|μ A − μ' A| : A ∈ 𝓕_Δ}`, the total variation distance of the restrictions of `μ` and
-`μ'` to `𝓕_Δ`; this is the quantity Georgii proves converges to `0` in Theorem (7.12)(c). -/
+/-- `sup {|μ A − μ' A| : A ∈ 𝓕_Δ}`, Georgii's uniform distance (8.1) between the restrictions of
+`μ` and `μ'` to `𝓕_Δ`, i.e. one half of their total variation distance.  The quantity Georgii
+proves converges to `0` in Theorem (7.12)(c) is `sup {|γ_Λ(f|ω) − μ(f)| : f ∈ 𝓛_Δ, ‖f‖ ≤ 1}`,
+which is twice this; the two vanish together. -/
 def tvOn (Δ : Finset S) (μ μ' : Measure (Config S E)) : ℝ≥0∞ :=
   ⨆ (A : Set (Config S E)) (_ : MeasurableSet[inside Δ] A),
     ENNReal.ofReal |(μ A).toReal - (μ' A).toReal|

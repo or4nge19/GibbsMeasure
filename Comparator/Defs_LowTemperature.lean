@@ -16,10 +16,11 @@ local convergence.
   `d(F, ν) = inf_{μ ∈ F} d(μ, ν)`
 * `peierlsBound`: the Peierls series `r(β) = ∑_{ℓ ≥ 1} ℓ · 4096^ℓ · e^{-2βℓ}`
 
-Georgii lets `d` be *any* metric for the `𝓛`-topology, and Remark (4.3)(3) builds one from any
-enumeration of the countable algebra `𝓕⁰`.  Rather than fixing one enumeration, `localDist A` is
-defined for an arbitrary sequence `A : ℕ → Set Config` and the theorems are asserted for every
-such sequence of local events, which is strictly stronger.
+Georgii lets `d` be *any* metric for the `𝓛`-topology; Remark (4.3)(3) exhibits one, built from a
+cofinal sequence of finite volumes, and an enumeration of the countable algebra `𝓕⁰` gives
+another.  Rather than fixing one enumeration, `localDist A` is defined for an arbitrary sequence
+`A : ℕ → Set Config` and the theorems are asserted for every such sequence of local events, which
+is strictly stronger.
 
 ## References
 
@@ -88,9 +89,11 @@ abbrev IsLocalEvent (A : Set Config) : Prop :=
 abbrev TendstoLocally (μ : ℝ → Measure Config) (L : Filter ℝ) (ν : Measure Config) : Prop :=
   GibbsChallenge.TendstoLocally (S := Site) (E := Bool) μ L ν
 
-/-- **Georgii, Remark (4.3)(3)**: the metric `d(μ, ν) = ∑_{n ≥ 1} 2⁻ⁿ |μ(Aₙ) − ν(Aₙ)|` for the
-topology of local convergence, built from a sequence `A` of local events.  Any enumeration of `𝓕⁰`
-yields Georgii's metric; the theorems below are stated for every such sequence. -/
+/-- A metric `d(μ, ν) = ∑_{n ≥ 1} 2⁻ⁿ |μ(Aₙ) − ν(Aₙ)|` for the topology of local convergence,
+built from a sequence `A` of local events.  **Georgii, Remark (4.3)(3)** exhibits instead the
+metric built from a cofinal sequence `(Λ(n))` of finite volumes; (6.9) is stated for *any* metric
+of the `𝓛`-topology, and `localDist A` is one whenever `A` enumerates `𝓕⁰`.  The theorems below
+are stated for every such sequence. -/
 def localDist (A : ℕ → Set Config) (μ ν : Measure Config) : ℝ :=
   ∑' n : ℕ, (2 : ℝ)⁻¹ ^ (n + 1) * |(μ (A n)).toReal - (ν (A n)).toReal|
 

@@ -16,7 +16,7 @@ satisfy the lattice condition `f a * g b ≤ f (a ⊓ b) * g (a ⊔ b)`: monoton
 `g`-average than `f`-average.
 
 Here it is put in the form in which correlation inequalities are used for Gibbs measures: an
-*upper set* `A` of a target preorder `Ω`, pulled back along two monotone maps `F ≤ G`, is more
+*upper set* `A` of a target preorder `Ω`, pulled back along maps `F ≤ G` with `G` monotone, is more
 likely under `g ∘ G` than under `f ∘ F`. Taking `Ω = S → E` and `F`, `G` the two boundary
 conditions of a finite-volume Gibbs distribution, this is the statement that the distribution is
 stochastically increasing in the boundary condition.

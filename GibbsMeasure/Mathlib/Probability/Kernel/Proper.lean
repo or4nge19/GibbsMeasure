@@ -13,7 +13,10 @@ public import Mathlib.Probability.Kernel.Proper
 /-!
 # Proper kernels
 
-We define the notion of properness for measure kernels and highlight important consequences.
+Consequences of properness (`ProbabilityTheory.Kernel.IsProper`, defined in Mathlib) for
+integration: a bounded `𝓑`-measurable factor pulls out of an integral against a proper kernel
+(`IsProper.integral_bdd_mul`), and a `𝓑`-measurable function agrees `π x₀`-a.e. with its value at
+`x₀` (`IsProper.ae_eq_const`).
 -/
 
 public section

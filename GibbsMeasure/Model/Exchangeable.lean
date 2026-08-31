@@ -43,8 +43,10 @@ it Theorem (8.7) would be false.
 * `exists_not_countable_gibbsMeasures_of_tsum_interdep_lt_one`: the two previous items packaged as
   the justification for the quasilocality conjunct of Definition (8.6).
 
-Georgii's full identification `𝒢(γ) = {∫ w(dx) μ^x : w ∈ 𝓟([0,1])}` rests on de Finetti's
-theorem, his Example (7.31), and is not formalised here.
+Georgii's full identification `𝒢(γ) = {∫ w(dx) μ^x : w ∈ 𝓟([0,1])}` follows from `μ γ_Λ = μ`
+alone and is not formalised here; de Finetti's theorem, his Example (7.31), is needed only for
+the further identification of that set with the set of all exchangeable random fields, and is
+formalised in `GibbsMeasure/Specification/DeFinetti.lean` (`existsUnique_mixing_of_isExchangeable`).
 -/
 
 @[expose] public section

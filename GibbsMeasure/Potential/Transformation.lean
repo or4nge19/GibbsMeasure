@@ -298,7 +298,8 @@ end Shift
 
 section Closed
 
-/-- The symmetry locus of `τ` is closed in `ℬ` (Georgii (5.8)). -/
+/-- The fixed-point set `{Φ ∈ ℬ : τ(Φ) = Φ}` of a transformation is closed in `ℬ`; cf. Georgii
+(5.8), which states this for the shift group. -/
 theorem isClosed_setOf_map_eq [Countable S] (τ : Transformation S E) :
     IsClosed {Φ : absolutelySummable S E | Potential.map τ (Φ : Potential S E) = Φ} := by
   rw [← isSeqClosed_iff_isClosed]

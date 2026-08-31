@@ -25,7 +25,7 @@ sources:
     authors: ["Hans-Otto Georgii"]
     id: "ISBN 978-3-11-025029-9; de Gruyter Studies in Mathematics 9"
     type: "book"
-    location: "Chapters 1-8 (principally 2.30, 3.5, 4.15-4.23, 5.1-5.20, 6.9, 7.7-7.30, 8.5-8.23)"
+    location: "Chapters 1-8 (principally 2.30, 2.33-2.34, 3.5, 4.15-4.23, 5.1-5.21, 6.9, 7.7-7.31, 8.5-8.23, 8.38-8.42)"
     relationship: "formalizes"
     author_endorsement: "not-contacted"
 
@@ -174,9 +174,11 @@ automation:
 
 fidelity:
   divergences: >-
-    None known that weaken a result relative to Georgii. Every restriction that remained after the
-    main development has since been either removed or identified as one of Georgii's own
-    hypotheses:
+    One known weakening: Corollary (7.30) is proved for a finite state space
+    (`Specification/ExtremeCorollaries.lean`, `setOf_mem_GP_eq_closure_convexCombosLimitGibbs`),
+    where Georgii states it for a standard Borel state space and a quasilocal lambda-specification.
+    Every other restriction that remained after the main development has been either removed or
+    identified as one of Georgii's own hypotheses:
     (a) reference measures — the sigma-finite case is now covered by his rescaling Remark
     (1.28)(3) (`Specification/Rescaling.lean`, `Potential/FiniteReference.lean`). Two apparent
     restrictions turned out to be intrinsic rather than weakenings: the independent specification
@@ -195,8 +197,8 @@ fidelity:
     Georgii cites without proving it, is proved here (`Model/LebowitzMartinLof.lean`,
     `nontrivial_GP_ising2D_iff_spontaneousMagnetisation_pos`), so the upward-closedness of the
     non-uniqueness set is a theorem (`isUpperSet_isingNonUniqueness`) rather than a hypothesis.
-    Nothing is asserted at beta = beta_c. Onsager's exact value of beta_c is not proved; Georgii
-    does not prove it either, and does not state it in the digitised text.
+    Nothing is asserted at beta = beta_c. Onsager's exact value of beta_c is not proved here;
+    Georgii states it in the remarks after (6.9), beta_c = 1/2 log(1 + sqrt 2), without proof.
     (e) Theorem (8.39) is proved in full at Georgii's own hypotheses: Definition (2.2)
     summability rather than absolute summability, and both S = Z and S = N (through an abstraction
     of the one-dimensional input, `HasBoundedBoundary`). The uniqueness half holds over any
@@ -236,16 +238,32 @@ review:
 alignment:
   namespace: "MeasureTheory.GibbsMeasure"
   statements:
-    - source: "Theorem (2.30)"
+    - source: "Theorem (2.30), first assertion: the unique lambda-admissible gas potential with vacuum state a"
       lean: "Potential.exists_unique_isGasPotential_sigmaFinitePremodifierNorm_eq"
       module: "GibbsMeasure/Potential/GibbsRepresentation.lean"
       status: "proved"
+    - source: "Theorem (2.30), second assertion: the unique uniformly convergent alpha-normalized potential when log rho_Lambda is bounded"
+      lean: ""
+      module: ""
+      status: "not-formalized"
     - source: "Theorem (3.5)"
       lean: "MeasureTheory.GibbsMeasure.Markov.gibbsMeasure_eq_singleton"
       module: "GibbsMeasure/Model/MarkovChain.lean"
       status: "proved"
-    - source: "Theorem (4.23)"
+    - source: "Theorem (4.23)(a)"
+      lean: "Potential.GP_gibbsSpecification_nonempty"
+      module: "GibbsMeasure/Potential/Existence.lean"
+      status: "proved"
+    - source: "Theorem (4.23)(b)"
+      lean: "Potential.isCompact_closure_iUnion_setOf_mem_GP"
+      module: "GibbsMeasure/Potential/Existence.lean"
+      status: "proved"
+    - source: "Theorem (4.23)(c)"
       lean: "Potential.BSpace.isClosed_graph_GP"
+      module: "GibbsMeasure/Potential/Space.lean"
+      status: "proved"
+    - source: "Theorem (4.23)(d)"
+      lean: "Potential.BSpace.isClosed_setOf_exists_mem_GP"
       module: "GibbsMeasure/Potential/Space.lean"
       status: "proved"
     - source: "Theorem (6.9), first assertion"
@@ -315,17 +333,17 @@ alignment:
         (2d tanh|beta J| < 1), strictly weaker than 4d|beta J| < 2 since tanh x < x
         (Dobrushin.tanh_lt_self), and it sharpens the critical-temperature bracket to
         artanh(1/4) <= beta_c <= log 3 (isingBetaC_mem_Icc_artanh).
-    - source: "Example (7.17), the Hewitt-Savage zero-one law"
+    - source: "Example (7.16), the Hewitt-Savage zero-one law"
       lean: "MeasureTheory.GibbsMeasure.measure_symmetric_eq_zero_or_one"
       module: "GibbsMeasure/Specification/HewittSavage.lean"
       status: "proved"
-    - source: "Example (7.17), ex P_I = the i.i.d. product measures"
+    - source: "Example (7.16), equation (7.17): ex P_I = the i.i.d. product measures"
       lean: "MeasureTheory.GibbsMeasure.mem_extremePoints_exchangeable_iff"
       module: "GibbsMeasure/Specification/DeFinetti.lean"
       status: "proved"
       note: >-
-        The substantial half (extreme implies product) holds over an arbitrary state space,
-        where Georgii assumes standard Borel for the whole example.
+        Proved over an arbitrary measurable state space, as in Georgii's (7.16); the standard
+        Borel hypothesis enters only at Example (7.31).
     - source: "Example (7.31), de Finetti's theorem in the version of Dynkin"
       lean: "MeasureTheory.GibbsMeasure.existsUnique_mixing_of_isExchangeable"
       module: "GibbsMeasure/Specification/DeFinetti.lean"

@@ -27,7 +27,7 @@ namespace MeasureTheory.GibbsMeasure
 
 variable {S E : Type*} [MeasurableSpace E] {d : ℕ}
 
-/-- Georgii (5.17): the cube `Λ_N = ℤ^d ∩ [-N, N]^d`. -/
+/-- Georgii (5.20)(1): the cube `Λ_N = ℤ^d ∩ [-N, N]^d`. -/
 def cube (d N : ℕ) : Finset (Fin d → ℤ) := Fintype.piFinset fun _ ↦ Finset.Icc (-(N : ℤ)) N
 
 lemma mem_cube {N : ℕ} {i : Fin d → ℤ} : i ∈ cube d N ↔ ∀ k, (i k).natAbs ≤ N := by

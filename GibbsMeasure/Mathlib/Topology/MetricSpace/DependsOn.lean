@@ -11,8 +11,9 @@ public import Mathlib.Topology.EMetricSpace.Defs
 /-!
 # Oscillation of a function on a product outside a set of coordinates
 
-`Function.oscOutside s f` is the supremum of `edist (f ζ) (f η)` over pairs agreeing on `s`. It
-vanishes exactly when `f` depends only on `s`.
+`oscOutside s f` is the supremum of `edist (f ζ) (f η)` over pairs `ζ, η` agreeing on `s`. It
+vanishes whenever `f` depends only on `s`, and conversely when the target is an `EMetricSpace`
+(`oscOutside_eq_zero_iff_dependsOn`).
 -/
 
 @[expose] public section

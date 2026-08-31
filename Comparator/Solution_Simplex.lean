@@ -228,7 +228,10 @@ theorem georgii_7_26 [Countable S] [StandardBorelSpace E]
 
 /-! ### Georgii, Theorem (7.7)(d) and Corollary (7.29) -/
 
-/-- **Georgii (7.7)(d)**: distinct extreme Gibbs measures are mutually singular. -/
+/-- **Georgii (7.7)(d)**: distinct extreme Gibbs measures are mutually singular.  Georgii states
+(7.7)(d) for an arbitrary specification over an arbitrary state space; `[StandardBorelSpace E]`
+here is an artefact of the proof route through the regular conditional probability `gibbsKernel`,
+not a hypothesis of the book. -/
 theorem mutuallySingular_of_isExtremeIn [Countable S] [StandardBorelSpace E]
     {γ : Finset S → Config S E → Measure (Config S E)} (hγ : IsSpecification γ)
     {μ ν : Measure (Config S E)} (hμ : IsExtremeIn (GibbsSet γ) μ)

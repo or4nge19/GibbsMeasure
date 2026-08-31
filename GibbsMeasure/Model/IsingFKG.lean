@@ -18,7 +18,7 @@ condition `ω`, and, under the all-`+` boundary condition, stochastically decrea
 `false < true`, configurations by the product order.
 
 The route is Holley's inequality in the form `sum_indicator_le_of_holley`.  Writing
-`γ_Λ(A | ω) = ∑_ζ f_ω(ζ) 1_A(ζ ∨ ω)` for the normalised Boltzmann weights `f_ω` on the finitely
+`γ_Λ(A | ω) = ∑_ζ f_ω(ζ) 1_A(juxt Λ ω ζ)` for the normalised Boltzmann weights `f_ω` on the finitely
 many inner configurations `ζ : Λ → Bool` (`isingSpecification_apply_eq`), the lattice condition
 `f_ω(ζ) f_{ω'}(ξ) ≤ f_ω(ζ ⊓ ξ) f_{ω'}(ζ ⊔ ξ)` reduces, since the partition functions cancel and
 `β ≥ 0`, to submodularity of the Ising Hamiltonian,

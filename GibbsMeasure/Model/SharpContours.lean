@@ -12,10 +12,10 @@ public import GibbsMeasure.Model.PhaseTransition
 
 Georgii, *Gibbs Measures and Phase Transitions*, 2nd ed., Section 6.2.
 
-The landed development bounds the number of contours of length `ℓ` through a fixed bond by
-`4096 ^ ℓ`, because it counts arbitrary `bondGraph`-connected bond sets.  Georgii instead
-counts *circuits*: closed cycles of dual bonds in which every dual vertex meets exactly two
-bonds, whence `ℓ · 3 ^ (ℓ - 1)`.  This file supplies the missing circuit structure.
+`GibbsMeasure/Model/PeierlsEstimate.lean` bounds the number of contours of length `ℓ` through a
+fixed bond by `4096 ^ ℓ`, because it counts arbitrary `bondGraph`-connected bond sets.  Georgii
+instead counts *circuits*: closed cycles of dual bonds in which every dual vertex meets exactly
+two bonds, whence `ℓ · 3 ^ (ℓ - 1)`.  This file develops that circuit structure.
 -/
 
 @[expose] public section
@@ -1093,9 +1093,11 @@ lemma finite_circuitSets (e₀ : Sym2 Site) (x₀ : Site) (hx₀ : e₀ ∈ plaq
 
 /-! ### The outer boundary of a connected set is a circuit -/
 
-/-- **Georgii Lemma (6.14) in full.**  For a finite, nonempty, connected set of sites `D ⊆ ℤ²`,
-the outer boundary of `D` is a circuit: it is connected in the plaquette-adjacency graph and
-every dual vertex it meets meets exactly two of its bonds. -/
+/-- **Georgii Lemma (6.14), the circuit property of the outer boundary.**  For a finite,
+nonempty, connected set of sites `D ⊆ ℤ²`, the outer boundary of `D` is a circuit: it is
+connected in the plaquette-adjacency graph and every dual vertex it meets meets exactly two of
+its bonds.  Georgii's own statement of (6.14) — the existence of a contour *surrounding* `a` —
+is `exists_circuit_contour`. -/
 theorem isCircuit_outerBoundary {D : Set Site} (hD : D.Finite) (hne : D.Nonempty)
     (hconn : ((latticeGraph 2).induce D).Connected) :
     IsCircuit (outerBoundary_finite hD).toFinset := by
@@ -1122,9 +1124,11 @@ lemma anchor_bond_eq (a : Site) (k : ℕ) :
     exact ⟨by push_cast; ring, rfl⟩
   rw [add_nsmul_e0_eq, h2, hBond]
 
-/-- **Georgii Lemma (6.13)**: at most `ℓ · 3^(ℓ-1)` circuits of length `ℓ` cross the horizontal
-half-line to the right of `a` at one of its first `ℓ` bonds — in particular, at most
-`ℓ · 3^(ℓ-1)` circuits of length `ℓ` surround `a`.  Compare the landed bound `4096 ^ ℓ`. -/
+/-- **Georgii Lemma (6.13), in anchored form**: at most `ℓ · 3^(ℓ-1)` circuits of length `ℓ`
+cross the horizontal half-line to the right of `a` at one of its first `ℓ` bonds.  (Georgii
+reads off his count for the circuits *surrounding* `a` from this; that every such circuit is
+anchored in this way is his first proof step, and is not formalised here.)  Compare the
+`4096 ^ ℓ` bound of `GibbsMeasure/Model/PeierlsEstimate.lean`. -/
 theorem ncard_anchored_circuits_le (a : Site) (ℓ : ℕ) :
     {C : Finset (Sym2 Site) | IsCircuit C ∧ C.card = ℓ ∧
         ∃ k < ℓ, s(a + k • e0, a + (k + 1) • e0) ∈ C}.ncard ≤ ℓ * 3 ^ (ℓ - 1) := by
@@ -1196,8 +1200,8 @@ lemma tsum_succ_mul_pow (z : ℝ≥0∞) :
     _ = (1 - z)⁻¹ * (1 - z)⁻¹ := hprod
 
 /-- **Georgii's Peierls series with his own contour count** (6.13):
-`r'(β) = ∑_{ℓ ≥ 1} ℓ · 3^(ℓ-1) · e^{-2βℓ}`.  The landed series uses `4096 ^ ℓ` in place of
-`3 ^ (ℓ - 1)`. -/
+`r'(β) = ∑_{ℓ ≥ 1} ℓ · 3^(ℓ-1) · e^{-2βℓ}`.  The series `Peierls.r` of
+`GibbsMeasure/Model/PhaseTransition.lean` uses `4096 ^ ℓ` in place of `3 ^ (ℓ - 1)`. -/
 def r' (b : ℝ) : ℝ≥0∞ :=
   ∑' l : ℕ, ((l : ℝ≥0∞) + 1) * 3 ^ l * ENNReal.ofReal (Real.exp (-2 * b * ((l : ℝ) + 1)))
 
@@ -1221,8 +1225,9 @@ theorem r'_eq (b : ℝ) :
   rw [r', tsum_congr hterm, ENNReal.tsum_mul_left, tsum_succ_mul_pow]
 
 /-- **The sharpened Peierls bound.**  With Georgii's own contour count `ℓ · 3^(ℓ-1)`, the
-Peierls series is at most `1/4` as soon as `β ≥ log 3 ≈ 1.0986`.  The landed threshold, forced
-by the crude count `4096 ^ ℓ`, is `8 log 2 ≈ 5.5452`. -/
+Peierls series is at most `1/4` as soon as `β ≥ log 3 ≈ 1.0986`.  The threshold of
+`Peierls.r_le_quarter` in `GibbsMeasure/Model/PhaseTransition.lean`, forced by the crude count
+`4096 ^ ℓ`, is `8 log 2 ≈ 5.5452`. -/
 theorem r'_le_quarter {b : ℝ} (hb : Real.log 9 ≤ 2 * b) : r' b ≤ 4⁻¹ := by
   set y := ENNReal.ofReal (Real.exp (-2 * b)) with hy
   have hexp : Real.exp (-2 * b) ≤ 1 / 9 := by
@@ -1255,9 +1260,10 @@ theorem r'_le_quarter {b : ℝ} (hb : Real.log 9 ≤ 2 * b) : r' b ≤ 4⁻¹ :=
           ENNReal.ofReal_inv_of_pos (by norm_num : (0:ℝ) < 4)]
         norm_num
 
-/-- **Georgii's own requirement** in the proof of (6.9), `r(β) < 1/2`, holds already for
-`β ≥ (1/2) log (20/3) ≈ 0.9486`.  (The exact analytic threshold for this series is
-`(1/2) log (9/(4-√7)) ≈ 0.9470`.) -/
+/-- The analogue, for the sharpened series `r'`, of Georgii's requirement `r(β) < 1/2` in the
+proof of (6.9): `r' β < 1/2` as soon as `β ≥ (1/2) log (20/3) ≈ 0.9486`.  (Georgii's own
+`r(β) = 1 ∧ ∑_{ℓ ≥ 1} ℓ (3 e^{-2β})^ℓ` equals `1 ∧ 3 r'(β)`, hence is still `1` at that `β`;
+the exact analytic threshold for `r'` itself is `(1/2) log (9/(4-√7)) ≈ 0.9470`.) -/
 theorem r'_lt_half {b : ℝ} (hb : Real.log (20 / 3) ≤ 2 * b) : r' b < 2⁻¹ := by
   set y := ENNReal.ofReal (Real.exp (-2 * b)) with hy
   have hexp : Real.exp (-2 * b) ≤ 3 / 20 := by

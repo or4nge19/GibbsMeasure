@@ -50,10 +50,14 @@ section Net
 
 variable [DecidableEq S]
 
-/-- **Georgii Proposition (5.18)**, for a net indexed by an arbitrary filter and with varying
-specifications and boundary conditions: if `γ^α` and `ν_α` are `τ`-invariant and
-`|τ_* 𝓡_α ∆ 𝓡_α| / |𝓡_α| → 0`, then every cluster point of the averages
-`μ_α = |𝓡_α|⁻¹ ∑_{Λ ∈ 𝓡_α} ν_α γ^α_Λ` is `τ`-invariant. -/
+/-- **Georgii Proposition (5.18)** for a constant transformation `τ_α ≡ τ`, on a net indexed by an
+arbitrary filter and with varying specifications and boundary conditions: if `γ^α` and `ν_α` are
+`τ`-invariant and `|τ_* 𝓡_α ∆ 𝓡_α| / |𝓡_α| → 0`, then every cluster point of the averages
+`μ_α = |𝓡_α|⁻¹ ∑_{Λ ∈ 𝓡_α} ν_α γ^α_Λ` is `τ`-invariant.
+
+Georgii also lets the transformation vary, assuming only `‖f ∘ τ_α - f ∘ τ‖ → 0` for all `f ∈ 𝓛`;
+that generality, which his Example (5.20)(3) (periodic boundary conditions) uses, is not covered
+here. -/
 theorem measurePreserving_of_mapClusterPt_average_net {τ : Transformation S E}
     {γs : ι → Specification S E} {νs : ι → ProbabilityMeasure (S → E)}
     (hγ : ∀ a, Specification.IsInvariant τ (γs a))
@@ -181,11 +185,12 @@ theorem exists_mem_GP_and_forall_measurePreserving [StandardBorelSpace E] [l.NeB
 
 end Invariant
 
-/-! ### Georgii Example (4.11)(2): local equicontinuity over a finite state space -/
+/-! ### Local equicontinuity over a finite state space (cf. Georgii Example (4.11)(2)) -/
 
-/-- **Georgii Example (4.11)(2).** Over a finite state space every family of random fields is
-locally equicontinuous: a finite volume carries only finitely many local events, so an antitone
-sequence of them decreasing to `∅` is eventually empty. -/
+/-- Over a finite state space every family of random fields is locally equicontinuous: a finite
+volume carries only finitely many local events, so an antitone sequence of them decreasing to `∅`
+is eventually empty. This is the equicontinuity input behind Georgii's Example (4.11)(2)
+(compactness of `𝒫(Ω, 𝓕)` for finite `E`), which he deduces from Corollary (4.10). -/
 theorem locallyEquicontinuous_of_finite [Finite E] [Nonempty E]
     (l : Filter ι) (μs : ι → ProbabilityMeasure (S → E)) : LocallyEquicontinuous l μs := by
   classical

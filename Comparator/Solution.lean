@@ -532,8 +532,10 @@ theorem ising_uniqueness_of_lt_quarter :
   fun β hβ₀ hβ ↦ ising_uniqueness_at_high_temperature β hβ₀ (hβ.trans_le quarter_le_betaC)
 
 /-- **Georgii, Section 6.2, after (6.9)**: for `β ≥ 0` the finite-volume Gibbs distributions with
-constant boundary conditions converge on every local event to Gibbs measures `μ₊` and `μ₋`, which
-sandwich every Gibbs measure in the stochastic order. -/
+constant boundary conditions converge on every local event to Gibbs measures `μ₊` and `μ₋`.
+Georgii records there only that the magnetisation of `μ₊^β` is maximal; the stochastic sandwich
+`μ₋ ≼ μ ≼ μ₊` on increasing events stated here is the FKG strengthening from which that
+follows. -/
 theorem ising_plus_minus_phases (β : ℝ) (hβ : 0 ≤ β) :
     ∃ μp μm : Measure Config,
       IsGibbs β μp ∧

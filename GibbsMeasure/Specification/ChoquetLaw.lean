@@ -114,6 +114,9 @@ local notation3 (prettyPrint := false) "Ω" => (S → E)
 
 -- Build the countable π-system inside the tail σ-algebra without changing the ambient `pi`-structure
 -- on `Ω` (since our measures live on `MeasurableSpace.pi`).
+/-- The finite intersection `⋂ n ∈ t, natGeneratingSequence n` of a countable generating sequence
+for the tail σ-algebra, computed in the tail instance while leaving the ambient
+`MeasurableSpace.pi` structure on `S → E` untouched. -/
 noncomputable def tailPiNatGen (t : Finset ℕ) : Set Ω := by
   letI : MeasurableSpace Ω := (@tailSigmaAlgebra S E _)
   haveI : MeasurableSpace.CountablyGenerated Ω := by

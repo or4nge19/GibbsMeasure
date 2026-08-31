@@ -12,10 +12,11 @@ public import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 public import Mathlib.Topology.Separation.Hausdorff
 
 /-!
-# Closure properties of `Function.DependsOn`
+# Closure properties of `DependsOn`
 
-Functions depending on a fixed set of coordinates are closed under the pointwise operations. All
-lemmas here reduce to `Function.DependsOn.comp` and `Function.DependsOn.comp₂`.
+Functions depending on a fixed set of coordinates are closed under the pointwise algebraic
+operations; those lemmas reduce to `DependsOn.comp` and `DependsOn.comp₂`. Finite sums and
+pointwise limits are also covered (`DependsOn.sum`, `DependsOn.of_tendsto`).
 -/
 
 public section

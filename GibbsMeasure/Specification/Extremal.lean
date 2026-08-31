@@ -10,11 +10,13 @@ public import Mathlib.MeasureTheory.Measure.Restrict
 public import Mathlib.MeasureTheory.Measure.Typeclasses.Probability
 
 /-!
-# Extremality and tail events (Georgii, Ch. 7 — first step)
+# Extremality and tail triviality (Georgii, Thm. (7.7)(a))
 
-This file proves the first implication toward Georgii Thm. 7.7 (extreme points ↔ tail triviality):
-if a Gibbs measure is **not** tail-trivial, then it admits a nontrivial convex
-decomposition into two Gibbs measures obtained by conditioning on a tail event.
+A Gibbs measure `μ ∈ G(γ)` is extreme in `G(γ)` if and only if it is trivial on the tail σ-algebra
+`𝓣`. The forward direction conditions `μ` on a tail event of probability strictly between `0` and
+`1`, which exhibits `μ` as a nontrivial convex combination of two Gibbs measures. The converse (for
+countable `S`) identifies the Radon–Nikodym derivative of an absolutely continuous Gibbs measure
+with a tail-measurable function, along the exhaustion `exhaustionVolumes`.
 -/
 
 @[expose] public section
@@ -455,6 +457,10 @@ lemma measurable_limsup_of_antitone_measurableSpace
     simpa [h_limsup, h_drop, h] using h_meas_drop
   exact this
 
+/-- A monotone exhaustion of a countable `S` by finite volumes: the images of `Finset.range n`
+under a fixed surjection `ℕ → S` (the constant empty family when `S` is empty). It is cofinal by
+`exhaustionVolumes_cofinal`, so `⨅ n, cylinderEvents (exhaustionVolumes n)ᶜ` is the tail σ-algebra
+(`tailSigmaAlgebra_eq_iInf_exhaustion`). -/
 noncomputable def exhaustionVolumes : ℕ → Finset S := by
   classical
   by_cases hS : Nonempty S

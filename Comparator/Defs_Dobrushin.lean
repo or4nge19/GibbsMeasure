@@ -136,12 +136,13 @@ theorem IsQuasilocalFn.measurable {f : Config S E → ℝ} (hf : IsQuasilocalFn 
     _ ≤ 1 / (N + 1) := hmono
     _ < ε := hN
 
-/-- **Georgii, Definition (2.23)**: the specification `γ` is *quasilocal* if `f ∈ 𝓛` implies
-`γ_Λ f ∈ 𝓛̄` for every `Λ ∈ 𝓢`, where `(γ_Λ f)(ω) = ∫ f dγ_Λ(·|ω)`.
+/-- **Georgii, Definition (2.23)**, in the form of the remark that immediately follows it: the
+specification `γ` is *quasilocal* if `f ∈ 𝓛` implies `γ_Λ f ∈ 𝓛̄` for every `Λ ∈ 𝓢`, where
+`(γ_Λ f)(ω) = ∫ f dγ_Λ(·|ω)`.
 
-The premise is that `f` be **local**, not merely quasilocal, following Georgii's remark after
-(2.23); this is the weaker demand on `γ`, so `IsDobrushin` below is a weaker hypothesis and the
-uniqueness theorem consuming it is correspondingly stronger. -/
+Definition (2.23) itself quantifies over *quasilocal* `f`; Georgii remarks immediately afterwards
+that for a specification it suffices to check local `f`, so the two readings agree wherever
+`IsSpecification γ` is also assumed — as it is in every statement mentioning `IsDobrushin`. -/
 def IsQuasilocalSpec (γ : Finset S → Config S E → Measure (Config S E)) : Prop :=
   ∀ (Λ : Finset S) (f : Config S E → ℝ), IsLocalFn f →
     IsQuasilocalFn fun ω ↦ ∫ x, f x ∂(γ Λ ω)

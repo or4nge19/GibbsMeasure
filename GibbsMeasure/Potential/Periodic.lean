@@ -21,8 +21,13 @@ boundary condition is a Gibbs measure for `Φ`.
 The general theory is developed for an arbitrary additive group of sites, and then instantiated
 twice: on `ℤ`, with the boxes `intBox` and the least-site anchor `minAnchor`; and, as in the
 book, on the lattice `S = ℤ^d`, with the rectangular boxes `piBox` seen as tori through the
-coordinatewise reduction `piIntReduce`, the lexicographic anchor `lexAnchor`, and Georgii's net
-`𝒮_□` of cubes `latticeBox d n = [-(n+1), n+1)^d`.
+coordinatewise reduction `piIntReduce`, the lexicographic anchor `lexAnchor`, and the cofinal
+sequence of cubes `latticeBox d n = [-(n+1), n+1)^d` in Georgii's directed set `𝒮_□` of
+rectangular boxes.
+
+The final section proves Georgii (4.20)'s statement that for a potential supported in `Δ` — the
+free-boundary truncation `Φ^Δ` of Example (4.20)(1) as well as the periodic modification `Φ̃^Δ` —
+the restriction of `γ^Ψ_Δ(·|ω)` to `𝓕_Δ` does not depend on `ω`.
 -/
 
 @[expose] public section
@@ -496,8 +501,9 @@ lemma normAt_periodicModification_le (hπ : IsTorusReduction G Δ π) (ha : IsAn
         tsum_indicator_isRep_le_of_mem hπ ha i w fun B g hg ↦ iSup_enorm_translate hΦ B g
     _ = Φ.normAt i := rfl
 
-/-- **Georgii (4.20)(2).** The periodic modification of a shift-invariant `Φ ∈ ℬ` is
-absolutely summable, hence `λ`-admissible. -/
+/-- **Georgii (4.20)(2).** The periodic modification of a shift-invariant `Φ ∈ ℬ` is again
+absolutely summable, hence `λ`-admissible for every *finite* a priori measure `λ`: by Georgii
+(2.14), a `Φ ∈ ℬ` is `λ`-admissible if and only if `λ` is finite. -/
 lemma isAbsolutelySummable_periodicModification [IsAbsolutelySummable Φ]
     (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor) (hΦ : IsShiftInvariantOn Φ) :
     IsAbsolutelySummable (periodicModification Φ Δ π anchor) where
@@ -848,14 +854,14 @@ lemma isAnchor_minAnchor : IsAnchor minAnchor where
 
 end IntBoxes
 
-/-! ### The lattice `ℤ^d`: Georgii (5.8) is the translation-invariance used above -/
+/-! ### Shift-invariance on `ℤ^d` -/
 
 section ShiftBridge
 
 variable {E : Type*} [MeasurableSpace E] {d : ℕ}
 
-/-- The repo's shift-invariance on `ℤ^d` (Georgii (5.8)) is the translation-invariance
-`IsShiftInvariantOn` used in Georgii (4.20)(2). -/
+/-- Shift-invariance of a potential on `ℤ^d` in the sense of Georgii (5.8) implies the
+translation-invariance `IsShiftInvariantOn` that Georgii (4.20)(2) requires. -/
 lemma isShiftInvariantOn_of_isShiftInvariant {Φ : Potential (Fin d → ℤ) E}
     (hΦ : Φ.IsShiftInvariant) : IsShiftInvariantOn Φ := by
   intro g A η
@@ -885,7 +891,8 @@ def intBoxLen (n : ℕ) : ℤ := 2 * ((n : ℤ) + 1)
 lemma intBoxLen_pos (n : ℕ) : 0 < intBoxLen n := by
   rw [intBoxLen]; positivity
 
-/-- Georgii's net `𝒮_□` in dimension one: the boxes `Δ_n = [-(n+1), n+1)`. -/
+/-- A cofinal sequence in Georgii's directed set `𝒮_□` in dimension one: the boxes
+`Δ_n = [-(n+1), n+1)`. -/
 def intBox (n : ℕ) : Finset ℤ := Finset.Ico (intBoxLeft n) (intBoxLeft n + intBoxLen n)
 
 /-- The `n`-th box of `ℤ`, viewed as the torus `ℤ / (2(n+1))ℤ`. -/
@@ -1051,7 +1058,8 @@ section LatticePeriodicBoundary
 
 variable {d : ℕ}
 
-/-- Georgii's net `𝒮_□` in dimension `d`: the cubes `Δ_n = [-(n+1), n+1)^d`. -/
+/-- A cofinal sequence in Georgii's directed set `𝒮_□` in dimension `d`: the cubes
+`Δ_n = [-(n+1), n+1)^d`. -/
 def latticeBox (d n : ℕ) : Finset (Fin d → ℤ) :=
   piBox (fun _ ↦ intBoxLeft n) fun _ ↦ intBoxLen n
 
@@ -1117,9 +1125,11 @@ theorem mem_GP_of_mapClusterPt_latticePeriodic (hΦ : Φ.IsShiftInvariant)
     (fun n ↦ isTorusReduction_latticeTorus d n) isAnchor_lexAnchor
     (isShiftInvariantOn_of_isShiftInvariant hΦ) tendsto_latticeBox_atTop νs hcp
 
-/-- **Georgii Example (4.20)(2) on `ℤ^d`, the statement of the book.** For every boundary
-condition `ω`, each cluster point of the net `(γ^{Φ̃^{Δ_n}}_{Δ_n}(·|ω))_n` of Gibbs distributions
-with periodic boundary condition over the cubes `Δ_n ↑ ℤ^d` belongs to `𝒢(Φ)`. -/
+/-- **Georgii Example (4.20)(2) on `ℤ^d`, with a configurational boundary condition.** For
+every `ω`, each cluster point of the sequence `(γ^{Φ̃^{Δ_n}}_{Δ_n}(·|ω))_n` of Gibbs
+distributions with periodic boundary condition over the cubes `Δ_n ↑ ℤ^d` belongs to `𝒢(Φ)`.
+Georgii states this for the net over his whole directed set `𝒮_□` of rectangular boxes; that
+form is `mem_GP_of_mapClusterPt_periodicModification_finiteVolumeDistributions`. -/
 theorem mem_GP_of_mapClusterPt_latticePeriodic_finiteVolumeDistributions
     (hΦ : Φ.IsShiftInvariant) (ω : (Fin d → ℤ) → E)
     {μ : ProbabilityMeasure ((Fin d → ℤ) → E)}

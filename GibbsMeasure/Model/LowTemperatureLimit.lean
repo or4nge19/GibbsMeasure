@@ -14,8 +14,9 @@ public import Mathlib.Analysis.Normed.Group.Tannery
 
 Georgii Remark (4.3)(3) gives a metric for the topology of local convergence when the state
 space is finite; with it, the Peierls bound of `GibbsMeasure/Model/PhaseTransition.lean` yields
-the first assertion of Theorem (6.9): the shift-invariant Gibbs measures of the two-dimensional
-Ising ferromagnet converge to the two ground states as the temperature tends to zero,
+the first assertion of Theorem (6.9): the set of shift-invariant Gibbs measures of the
+two-dimensional Ising ferromagnet approaches each of the two ground states as the temperature
+tends to zero,
 `lim_{β → ∞} d(𝒢_Θ(βΦ), δ_±) = 0`.
 -/
 
@@ -71,9 +72,11 @@ lemma abs_measureReal_sub_le_one (μ ν : ProbabilityMeasure (S → E)) (A : Set
 
 variable [Countable S] [Finite E]
 
-/-- **Georgii Remark (4.3)(3).** The standard metric for the topology of local convergence:
+/-- A metric for the topology of local convergence:
 `d(μ, ν) = ∑_{n ≥ 1} 2⁻ⁿ |μ(A_n) − ν(A_n)|`, where `(A_n)` enumerates the countable algebra
-`𝓕⁰` of local events. -/
+`𝓕⁰` of local events.  Georgii Remark (4.3)(3) records metrisability for finite `E` with the
+different choice `d(μ,ν) = ∑_{n≥1} 2⁻ⁿ ∑_{ζ ∈ E^{Λ(n)}} |μ(σ_{Λ(n)} = ζ) − ν(σ_{Λ(n)} = ζ)|`
+along a cofinal sequence `(Λ(n))`; Theorem (6.9) is stated for any metric of the 𝓛-topology. -/
 def localDist (μ ν : ProbabilityMeasure (S → E)) : ℝ :=
   ∑' n : ℕ, (2 : ℝ)⁻¹ ^ (n + 1) *
     |(μ : Measure (S → E)).real (localEnum S E n) - (ν : Measure (S → E)).real (localEnum S E n)|
@@ -743,8 +746,9 @@ theorem tendsto_localDist_minusPhase :
 /-- **Georgii Theorem (6.9), first half.** In the ferromagnetic Ising model on `ℤ²` with coupling
 constant `1` and vanishing external field,
 `lim_{β → ∞} d(𝒢_Θ(βΦ), δ₊) = lim_{β → ∞} d(𝒢_Θ(βΦ), δ₋) = 0`,
-where `d` is any metric for the `𝓛`-topology (here Georgii's standard choice `localDist` of
-Remark (4.3)(3)), `𝒢_Θ(βΦ)` is the set of shift-invariant Gibbs measures, and `δ_±` are the Dirac
+where `d` is any metric for the `𝓛`-topology (here `localDist`, one of the metrics whose
+existence is Remark (4.3)(3)), `𝒢_Θ(βΦ)` is the set of shift-invariant Gibbs measures, and
+`δ_±` are the Dirac
 measures at the two ground states `ω^±`. -/
 theorem tendsto_localDistSet_shiftInvariantGibbs_dirac :
     Tendsto (fun b : ℝ ↦ localDistSet (shiftInvariantGibbs b)

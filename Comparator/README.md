@@ -20,10 +20,10 @@ used, and that the Lean kernel accepts the proofs — inside a `landrun` sandbox
 | entry `X` | config | thms | Georgii result |
 | --- | --- | ---: | --- |
 | — (`Challenge.lean`/`Solution.lean`) | `config.json` | 9 | **(6.9)** at the explicit threshold `log 3`; the critical inverse temperature `β_c` with `1/4 ≤ β_c ≤ log 3`, uniqueness for `0 ≤ β < β_c` and non-uniqueness for `β_c < β`; the plus and minus phases as local limits with the sandwich `μ₋ ≼ μ ≼ μ₊`; the **Lebowitz–Martin-Löf/Ruelle** equivalence `\|𝒢(β)\| > 1 ↔ 0 < μ₊(σ₀)` |
-| `OneDim` | `config_OneDim.json` | 9 | **(8.38)**, a uniqueness criterion for an arbitrary specification, and **(8.39)** at Georgii's hypotheses in both halves — `∃!` over any σ-finite non-zero `λ`-admissible a priori measure, no absolute summability — on `ℤ` and `ℕ`, ending in uniqueness for pair potentials with `δ(Φ_{0,n}) ≤ c n^{-p}`, `p > 2` |
-| `Simplex` | `config_Simplex.json` | 7 | (7.7)(a), **(7.26)**, (7.29): distinct extreme Gibbs measures are mutually singular, and `\|ex 𝒢(γ)\| ≥ n` is detected by an `n`-fold splitting of the tail |
+| `OneDim` | `config_OneDim.json` | 9 | **(8.38)**, a uniqueness criterion for an arbitrary specification, and **(8.39)** at Georgii's hypotheses in both halves — any σ-finite non-zero `λ`-admissible a priori measure, no absolute summability — with the uniqueness half on any parameter set with a chain structure, `ℤ` and `ℕ` included, and the `∃!` half on `ℤ`, ending in uniqueness for pair potentials with `δ(Φ_{0,n}) ≤ c n^{-p}`, `p > 2` |
+| `Simplex` | `config_Simplex.json` | 7 | (7.7)(a),(d), **(7.26)**, (7.29): extremality is tail-triviality, distinct extreme Gibbs measures are mutually singular, every Gibbs measure is the barycentre of a unique weight on `ex 𝒢(γ)`, and `\|ex 𝒢(γ)\| ≥ N` iff `𝒢(γ)` contains `N` linearly independent measures |
 | `Dobrushin` | `config_Dobrushin.json` | 7 | **(8.7)** in `∃!` form, (8.20), (8.23): under Dobrushin's condition the finite-volume distributions *converge*, so uniqueness is a construction |
-| `Existence` | `config_Existence.json` | 6 | (4.22), **(4.23)(a),(c),(d)**: existence, compactness, and closedness of the Gibbs correspondence along a net of potentials |
+| `Existence` | `config_Existence.json` | 6 | (4.22), **(4.23)(a),(b),(c),(d)**: existence, compactness, relative compactness over a bounded family, and closedness of the Gibbs correspondence along a net of potentials |
 | `LocalLimit` | `config_LocalLimit.json` | 5 | **(7.12)(a)** and **(7.12)(c)**: for an extreme Gibbs measure of a λ-specification over an arbitrary state space, `γ_{Λₙ}(·\|ω) → μ` in total variation on every finite volume |
 | `NoGibbs` | `config_NoGibbs.json` | 5 | **(4.16)**: a specification with no Gibbs measure — quasilocality cannot be dropped from (4.17)/(4.22) |
 | `Representation` | `config_Representation.json` | 5 | **(2.30)**: the Gibbs representation theorem, plus its converse (2.5), (2.8), (1.32) |
@@ -63,10 +63,11 @@ challenge and solution modules are compiled inside the sandbox.
 
 The challenges state Georgii's hypotheses, not the ones that happen to be convenient. The
 quasilocality premise of `Defs_Dobrushin.lean` quantifies over **local** observables, which is
-Georgii's own formulation of (2.23) and the weaker demand on `γ`; the passage to quasilocal
-observables is a genuine analytic step, and the solution invokes it from the library rather than
-assuming it. The a priori measure of `Defs_Existence.lean` is **finite and non-zero**, as in (2.9)
-and (4.23), not normalised; the `λ(E)^{|Λ|}` factors cancel, which is Remark (1.28)(3) and is
+the form of (2.23) Georgii gives in the remark following the definition; Definition (2.23) itself
+quantifies over quasilocal observables, and Georgii notes that for a specification the two agree.
+The passage from local to quasilocal observables is carried out in the solution, not assumed. The
+a priori measure of `Defs_Existence.lean` is **finite and non-zero**, as (4.23) requires and (2.9)
+permits, not normalised; the `λ(E)^{|Λ|}` factors cancel, which is Remark (1.28)(3) and is
 proved in the challenge itself. The a priori measure of `Defs_OneDim.lean` is **σ-finite, non-zero
 and `λ`-admissible**, and its potentials are summable in the sense of Convention (2.1), not
 absolutely summable — Georgii's hypotheses for (8.39), in the existence half as well as the

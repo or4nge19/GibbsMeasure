@@ -33,8 +33,8 @@ Følner *sequence*.
 * `AddCommGroup.exists_finset_transDist_le`: the ε-form of the Følner property, for an arbitrary
   abelian group and an arbitrary finite set of directions.
 * `AddCommGroup.exists_foelner_seq`: a Følner sequence for a countable abelian group.
-* `AddCommGroup.isAddFoelner_count`: the same statement in Mathlib's `IsAddFoelner` form, for the
-  translation action of `G` on itself with the counting measure.
+* `AddCommGroup.exists_isAddFoelner_count`: the same statement in Mathlib's `IsAddFoelner` form,
+  for the translation action of `G` on itself with the counting measure.
 * `AddCommGroup.exists_invariant_finitelyAdditive`: consequently a countable abelian group carries
   a translation-invariant finitely additive probability measure.
 

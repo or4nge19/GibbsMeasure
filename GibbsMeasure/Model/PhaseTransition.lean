@@ -259,7 +259,9 @@ lemma mem_contourFinset {Λ : Finset Site} {e₀ : Sym2 Site} {m : ℕ} {c : Fin
     c ∈ contourFinset Λ e₀ m ↔ c ∈ contourCandidates Λ e₀ m :=
   Set.Finite.mem_toFinset _
 
-/-- **Georgii (6.13)**: at most `4096^m` contour candidates of `m` bonds through a given bond. -/
+/-- A weakening of Georgii (6.13) (`ℓ · 3 ^ (ℓ - 1)` circuits of length `ℓ` surrounding `a`): at
+most `4096 ^ m` plaquette-connected bond sets of `m` bonds contain a given bond.  Georgii's own
+count is `PeierlsSharp.ncard_anchored_circuits_le`. -/
 lemma card_contourFinset_le (Λ : Finset Site) (e₀ : Sym2 Site) (m : ℕ) :
     (contourFinset Λ e₀ m).card ≤ 4096 ^ m := by
   have h1 : ((contourFinset Λ e₀ m : Finset (Finset (Sym2 Site))) : Set (Finset (Sym2 Site)))
@@ -275,8 +277,11 @@ def contourUnion (N : ℕ) (a : Site) (l : ℕ) : Set (Site → Bool) :=
     ⋃ c ∈ contourFinset (cube 2 N) s(a + k • e0, a + (k + 1) • e0) (l + 1),
       {ζ : Site → Bool | (↑c : Set (Sym2 Site)) ⊆ discordant ζ}
 
-/-- **Georgii (6.14)**: if `ζ` is `+1` off the cube and `-1` at `a`, then `a` is surrounded by a
-contour of `ζ`: the event is covered by the contour events. -/
+/-- A weakening of Georgii (6.14): if `ζ` is `+1` off the cube and `-1` at `a`, the outer
+boundary of the minus cluster of `a` is a connected set of discordant bonds anchored on the
+horizontal half-line from `a`, so the event is covered by the contour events.  That this bond
+set is a *circuit*, which is Georgii's actual conclusion, is
+`PeierlsSharp.sharp_minus_event_subset_iUnion`. -/
 theorem minus_event_subset_iUnion (N : ℕ) (a : Site) :
     {ζ : Site → Bool | ζ a = false ∧ ∀ i ∉ cube 2 N, ζ i = true} ⊆
       ⋃ l : ℕ, contourUnion N a l := by
@@ -312,7 +317,7 @@ theorem minus_event_subset_iUnion (N : ℕ) (a : Site) :
     rw [hccoe]
     exact outerBoundary_minusCluster_subset_discordant a ζ
 
-/-! ### M5: the Peierls sum -/
+/-! ### The Peierls sum -/
 
 /-- The kernel with a `+1` boundary condition gives no mass to a minus spin outside `Λ`. -/
 lemma isingSpecification_eq_false_null (b : ℝ) (L : Finset Site) {i : Site} (hi : i ∉ L)
@@ -346,7 +351,10 @@ lemma isingSpecification_boundary_null (b : ℝ) (L : Finset Site) :
   exact measure_mono_null hsub
     (measure_iUnion_null fun i ↦ isingSpecification_eq_false_null b L i.2 rfl)
 
-/-- **Georgii's Peierls series** `r(β) = ∑_{ℓ ≥ 1} ℓ · 4096^ℓ · e^{-2βℓ}`. -/
+/-- The Peierls series `r(β) = ∑_{ℓ ≥ 1} ℓ · 4096^ℓ · e^{-2βℓ}` for the contour count of
+`card_contourFinset_le`.  Georgii's own series is `r(β) = 1 ∧ ∑_{ℓ ≥ 1} ℓ (3 e^{-2β})^ℓ`; the
+truncation at `1` is unnecessary here because the bound is only used above the threshold, where
+the series converges — below it, `r b = ⊤`. -/
 def r (b : ℝ) : ℝ≥0∞ :=
   ∑' l : ℕ, ((l : ℝ≥0∞) + 1) * 4096 ^ (l + 1) *
     ENNReal.ofReal (Real.exp (-2 * b * ((l : ℝ) + 1)))

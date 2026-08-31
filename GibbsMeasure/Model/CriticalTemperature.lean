@@ -165,7 +165,7 @@ theorem nontrivial_GP_ising2D_of_le {β : ℝ} (hβ : 8 * Real.log 2 ≤ β) :
 /-! ### M3: the two-sided theorem -/
 
 /-- **Georgii's `0 < β_c < ∞` for the two-dimensional Ising ferromagnet** (`J = 1`, `h = 0`),
-in the honest two-sided form.
+in two-sided form.
 
 * At high temperature (`0 ≤ β < 1/4`) the Gibbs measure is unique — Dobrushin's condition of
   weak dependence (8.8) together with Dobrushin's uniqueness theorem (8.7), plus existence
@@ -177,13 +177,13 @@ has a genuine phase transition somewhere in `[1/4, 8 log 2]`.
 
 **Sharp form.** This statement is the two-sided bracket. The *sharp* form — a well-defined
 critical inverse temperature `β_c` with `1/4 ≤ β_c ≤ 8 log 2` (hence `0 < β_c < ∞`),
-uniqueness for every `0 ≤ β < β_c`, and non-uniqueness above `β_c` — is
-`ising_critical_temperature` and `ising_sharp_phase_transition` in
+uniqueness for every `0 ≤ β < β_c`, and non-uniqueness for every `β > β_c` — is
+`ising_sharp_phase_transition` in
 `GibbsMeasure/Model/SharpCriticalTemperature.lean`. The Griffiths/GKS correlation
 inequalities underlying Georgii's monotonicity of `μ₊^β(σ₀)` are proved in
-`GibbsMeasure/Model/GKSInequalities.lean`; the only ingredient still missing for the
-unconditional sharp dichotomy is the Lebowitz–Martin-Löf/Ruelle equivalence
-`|𝒢(βΦ)| > 1 ↔ μ₊^β(σ₀) > 0`, which Georgii himself only cites. -/
+`GibbsMeasure/Model/GKSInequalities.lean`, and the Lebowitz–Martin-Löf/Ruelle equivalence
+`|𝒢(βΦ)| > 1 ↔ μ₊^β(σ₀) > 0`, which Georgii only cites, in
+`GibbsMeasure/Model/LebowitzMartinLof.lean`. -/
 theorem ising_two_dimensional_phase_transition :
     (∀ β : ℝ, 0 ≤ β → β < 1 / 4 →
         ∃! μ : ProbabilityMeasure (Site → Bool),
@@ -219,8 +219,10 @@ lemma r_le_of_eight_log_two_le {b : ℝ} (hb : 8 * Real.log 2 ≤ b) :
   exact Peierls.r_le_of_ofReal_exp_le
     (le_trans h8 (ENNReal.inv_le_inv.2 (by norm_num)))
 
-/-- **The `r(β) → 0` claim of the `M5` section header of `Model/PhaseTransition.lean`.**
-Georgii's Peierls series `r(β) = ∑_{ℓ ≥ 1} ℓ 4096^ℓ e^{-2βℓ}` tends to `0` as `β → ∞`.
+/-- **The Peierls series tends to `0` as `β → ∞`.**
+The repository's series `r(β) = ∑_{ℓ ≥ 1} ℓ 4096^ℓ e^{-2βℓ}`, for the contour count of
+`card_contourFinset_le`, tends to `0` as `β → ∞`.  (Georgii's own series in the proof of (6.9)
+is `r(β) = 1 ∧ ∑_{ℓ ≥ 1} ℓ (3 e^{-2β})^ℓ`.)
 
 Consequently every threshold `r(β) ≤ c` with `c > 0` — in particular `r_le_quarter`'s `1/4` —
 holds for all large `β`, and the `+`-phase gives full mass to the all-`+1` configuration in the

@@ -57,7 +57,8 @@ namespace HasSum
 variable {ι α : Type*} [AddCommMonoid α] [TopologicalSpace α] {f : Finset ι → α} {a : α}
 
 /-- Unconditional summability implies summability along `SummationFilter.volume`, with the same sum.
-Georgii, (2.11) ⇒ (2.2)(ii). -/
+This is the step from unconditional convergence to convergence of the net of Georgii's Convention
+(2.1); it is what makes an absolutely summable potential (2.11) satisfy (2.2)(ii). -/
 lemma volume (h : HasSum f a) : HasSum f a (SummationFilter.volume ι) :=
   h.mono_left (SummationFilter.le_atTop (L := SummationFilter.volume ι))
 

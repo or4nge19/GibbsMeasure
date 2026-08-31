@@ -27,7 +27,8 @@ namespace MeasureTheory.GibbsMeasure
 -- `𝒜` is declared before the ambient `m` so that `m` is the default instance on `Ω`.
 variable {Ω : Type*} {𝒜 : MeasurableSpace Ω} [m : MeasurableSpace Ω]
 
-/-- Georgii's `P_𝒜`: the measures that are trivial (0-1 valued) on the sub-σ-algebra `𝒜`. -/
+/-- The measures that are trivial (0-1 valued) on the sub-σ-algebra `𝒜`. Georgii's `P_𝒜` is
+`P ∩ trivialOn 𝒜`. -/
 def trivialOn (𝒜 : MeasurableSpace Ω) : Set (Measure[m] Ω) :=
   {μ | ∀ A, MeasurableSet[𝒜] A → μ A = 0 ∨ μ A = 1}
 
@@ -43,7 +44,9 @@ lemma isTailTrivial_iff_mem_trivialOn {S E : Type*} [MeasurableSpace E]
 
 /-- Georgii Definition (7.21): a `(P, 𝒜)`-kernel is a probability kernel from `(Ω, 𝒜)` to
 `(Ω, m)` which is a version of `μ(· | 𝒜)` for every `μ ∈ P`, and whose values lie in `P`
-(Georgii's normalisation `Ω_P = Ω`). -/
+(Georgii's normalisation `Ω_P = Ω`). This predicate records only the last two conditions;
+Markov-ness of `π` is carried separately, by the `[IsMarkovKernel π]` hypothesis of the lemmas
+below. -/
 def IsPAKernel (P : Set (Measure[m] Ω)) (𝒜 : MeasurableSpace Ω) (π : Kernel[𝒜, m] Ω Ω) : Prop :=
   (∀ μ ∈ P, ∀ A, MeasurableSet[m] A →
       (fun ω ↦ (π ω).real A) =ᵐ[μ] μ[A.indicator (fun _ ↦ (1 : ℝ)) | 𝒜]) ∧

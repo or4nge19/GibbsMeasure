@@ -62,6 +62,3 @@ theorem MeasurableEquiv.map_withDensity {α β : Type*} [MeasurableSpace α] [Me
   rw [e.map_apply, withDensity_apply _ (e.measurable hs), withDensity_apply _ hs, e.restrict_map,
     lintegral_map_equiv]
   simp only [Function.comp_apply, e.symm_apply_apply]
-
-/-! ### Georgii (5.6)(b): transport of `λ`-modifications -/
-

@@ -396,8 +396,9 @@ end Bridge
 
 /-! ## The theorems -/
 
-/-- **Georgii (2.9)/(2.10)**: the Gibbsian specification of an absolutely summable potential is a
-specification, i.e. a consistent family of proper probability kernels from `𝓣_Λ`. -/
+/-- **Georgii (2.5), (1.32), (2.9)**: the Gibbsian specification of an absolutely summable
+potential is a specification, i.e. a consistent family of proper probability kernels from
+`𝓣_Λ`. -/
 theorem isSpecification_gibbsKernel [Countable S] (Φ : Finset S → Config S E → ℝ)
     (hΦ : IsAbsolutelySummablePotential Φ) (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν]
     (β : ℝ) :
@@ -417,8 +418,8 @@ theorem isSpecification_gibbsKernel [Countable S] (Φ : Finset S → Config S E 
       ((Bridge.libSpec Φ ν β).measurable_kernel_toMeasure Λ).aemeasurable,
       Specification.bind hΛΔ ω]
 
-/-- **Georgii (4.22)**: over a standard Borel state space, the set of Gibbs measures of the
-Gibbsian specification of an absolutely summable potential is non-empty. -/
+/-- **Georgii (4.23)(a), via (4.22)**: over a standard Borel state space, the set of Gibbs
+measures of the Gibbsian specification of an absolutely summable potential is non-empty. -/
 theorem exists_isGibbs_gibbsKernel [Countable S] [StandardBorelSpace E]
     (Φ : Finset S → Config S E → ℝ)
     (hΦ : IsAbsolutelySummablePotential Φ) (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν]
@@ -502,7 +503,8 @@ theorem isGibbs_of_tendsto_potentialNormAt_of_tendstoLocally [Countable S] {ι :
   exact (Bridge.isGibbs_iff_isGibbsMeasure hΦ ν β μ).2 hlim
 
 /-- **Georgii (4.23)(d)**: the Gibbs correspondence is upper semicontinuous, i.e.
-`𝒢⁻¹(F) = {Φ : 𝒢(Φ) ∩ F ≠ ∅}` is closed for every locally closed `F`. -/
+`𝒢⁻¹(F) = {Φ : 𝒢(Φ) ∩ F ≠ ∅}` is closed for every `F` closed in the topology of local
+convergence. -/
 theorem exists_mem_isGibbs_of_tendsto_potentialNormAt [Countable S] [StandardBorelSpace E]
     {ι : Type*} {l : Filter ι} [l.NeBot] (Φs : ι → Finset S → Config S E → ℝ)
     (Φ : Finset S → Config S E → ℝ) (hΦs : ∀ x, IsAbsolutelySummablePotential (Φs x))

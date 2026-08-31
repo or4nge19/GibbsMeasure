@@ -178,7 +178,8 @@ lemma measurable_symmSum {n : ℕ} {A : Set (ℕ → E)} (hA : MeasurableSet A) 
     symmSum E n (univ : Set (ℕ → E)) ω = Fintype.card (finPerm n) := by
   simp [symmSum, Finset.card_univ]
 
-/-- Composing symmetrisations: `γₘ` averaged over `Iₙ` is `|Iₘ|` times `γₙ`, for `m ≤ n`. -/
+/-- For `m ≤ n`, summing the unnormalised symmetrisation `symmSum m` over the `Iₙ`-translates of
+`ω` gives `|Iₘ| · symmSum n`; equivalently `γₘ` averaged over `Iₙ` is `γₙ`. -/
 lemma sum_symmSum {m n : ℕ} (hmn : m ≤ n) (A : Set (ℕ → E)) (ω : ℕ → E) :
     ∑ τ : finPerm n, symmSum E m A (permute (τ : Equiv.Perm ℕ) ω)
       = (Fintype.card (finPerm m) : ℝ≥0∞) * symmSum E n A ω := by
@@ -457,8 +458,8 @@ lemma indep_cylinderEvents_infinitePi {J K : Set ℕ} (hJK : Disjoint J K) :
     (iIndepFun_infinitePi (P := fun _ : ℕ ↦ ν) (X := fun (_ : ℕ) (x : E) ↦ x)
       fun _ ↦ measurable_id) hJK
 
-/-- **The Hewitt-Savage zero-one law (Georgii (7.17))**: an i.i.d. product measure on `Eᴺ` is
-trivial on the σ-algebra of symmetric events. -/
+/-- **The Hewitt-Savage zero-one law (Georgii, Example (7.16))**: an i.i.d. product measure on
+`Eᴺ` is trivial on the σ-algebra of symmetric events. -/
 theorem measure_symmetric_eq_zero_or_one {A : Set (ℕ → E)}
     (hA : MeasurableSet[symmetricSigmaAlgebra E] A) :
     Measure.infinitePi (fun _ : ℕ ↦ ν) A = 0 ∨ Measure.infinitePi (fun _ : ℕ ↦ ν) A = 1 := by
@@ -467,6 +468,10 @@ theorem measure_symmetric_eq_zero_or_one {A : Set (ℕ → E)}
   have hAn : ∀ n, MeasurableSet[symmSub E n] A := measurableSet_symmetricSigmaAlgebra_iff.1 hA
   have hAm : MeasurableSet A := (hAn 0).1
   have hA1 : μ A ≤ 1 := prob_le_one
+  -- Sketch: approximate `A` in measure by a cylinder `B` on the coordinates `[0, k)`. The block
+  -- swap `blockSwap k ∈ finPerm (2 * k)` fixes `A` and carries `B` to a cylinder on `[k, 2k)`,
+  -- independent of `B` under the product measure, so `μ A ≈ μ B * μ B ≈ μ A * μ A` up to `O(ε)`.
+  -- Letting `ε → 0` gives `μ A = μ A * μ A`, hence `μ A ∈ {0, 1}`.
   have key : ∀ ε : ℝ≥0∞, 0 < ε → ε ≤ 1 →
       μ A ≤ μ A * μ A + 5 * ε ∧ μ A * μ A ≤ μ A + 4 * ε := by
     intro ε hε hε1

@@ -18,8 +18,8 @@ under the all-`+` boundary condition is stochastically decreasing in the volume
 (`stochasticallyLE_isingSpecification_plus`).  We show that it converges in the topology of local
 convergence to a Gibbs measure `plusState`, the **plus phase**, and dually that the all-`-` net
 converges to the **minus phase** `minusState`.  The plus phase is the largest element of the set
-of Gibbs measures for the stochastic order, the minus phase the smallest (Georgii, Section 6.2,
-after (6.9)).
+of Gibbs measures for the stochastic order, the minus phase the smallest; Georgii, Section 6.2,
+after (6.9), states only the weaker `μ₊^β(σ₀) ≥ μ(σ₀)` for all `μ ∈ 𝒢(βΦ)`.
 
 ## Main declarations
 
@@ -213,8 +213,8 @@ lemma directed_upHull (K : Set (S → Bool)) :
   refine fun Δ Δ' ↦ ⟨Δ ∪ Δ', ?_, ?_⟩ <;>
     rintro σ ⟨κ, hκ, hle⟩ <;> exact ⟨κ, hκ, fun i hi ↦ hle i (by simp [hi])⟩
 
-/-- **Compactness of the configuration space.** A configuration dominating, on every finite
-volume, some element of a compact set `K` dominates an element of `K`. -/
+/-- A configuration dominating, on every finite volume, some element of a compact set `K`
+dominates an element of `K`. -/
 lemma exists_le_of_forall_mem_upHull {K : Set (S → Bool)} (hK : IsCompact K) {σ : S → Bool}
     (hσ : ∀ Δ : Finset S, σ ∈ upHull Δ K) : ∃ κ ∈ K, κ ≤ σ := by
   classical
@@ -421,8 +421,9 @@ theorem stochasticallyLE_isingSpecification_minus_of_mem_GP (hJ : 0 ≤ J) (hβ 
         (Measure.bind_apply hA hmeas.aemeasurable).symm
     _ = (μ : Measure (S → Bool)) A := by rw [hbind]
 
-/-- **The plus phase is the largest Gibbs measure for the stochastic order** (Georgii,
-Section 6.2, the paragraph after (6.9)). -/
+/-- **The plus phase is the largest Gibbs measure for the stochastic order.**  Georgii,
+Section 6.2, the paragraph after (6.9), states only the weaker maximality of the
+magnetisation, `μ₊^β(σ₀) ≥ μ(σ₀)` for all `μ ∈ 𝒢(βΦ)`. -/
 theorem stochasticallyLE_plusState (hJ : 0 ≤ J) (hβ : 0 ≤ β)
     {μ : ProbabilityMeasure (S → Bool)}
     (hμ : μ ∈ GP (S := S) (E := Bool) (isingSpecification G J h β)) :
@@ -432,8 +433,9 @@ theorem stochasticallyLE_plusState (hJ : 0 ≤ J) (hβ : 0 ≤ β)
   exact stochasticallyLE_isingSpecification_plus_of_mem_GP G J h β hJ hβ hμ Λ
     (MeasurableSet.of_mem_measurableCylinders hA) hup
 
-/-- **The minus phase is the smallest Gibbs measure for the stochastic order** (Georgii,
-Section 6.2, the paragraph after (6.9)). -/
+/-- **The minus phase is the smallest Gibbs measure for the stochastic order.**  Georgii,
+Section 6.2, the paragraph after (6.9), records only the maximality of the magnetisation of
+`μ₊`; the dual statement for `μ₋` is not made there. -/
 theorem minusState_stochasticallyLE (hJ : 0 ≤ J) (hβ : 0 ≤ β)
     {μ : ProbabilityMeasure (S → Bool)}
     (hμ : μ ∈ GP (S := S) (E := Bool) (isingSpecification G J h β)) :
@@ -470,7 +472,7 @@ lemma isProbabilityMeasure_map_transformation {E : Type*} [MeasurableSpace E]
     measure_univ]⟩
 
 omit [Countable S] [G.LocallyFinite] in
-/-- **Georgii (5.9)(a).** The push-forward of a Gibbs measure by a symmetry of the specification
+/-- **Georgii (5.10).** The push-forward of a Gibbs measure by a symmetry of the specification
 is again a Gibbs measure. -/
 lemma isGibbsMeasure_map_of_isInvariant {E : Type*} [MeasurableSpace E]
     {γ : Specification S E} {τ : Transformation S E} (hτ : Specification.IsInvariant τ γ)
@@ -535,7 +537,9 @@ theorem le_measure_preimage_minusState (hJ : 0 ≤ J) (hβ : 0 ≤ β) {τ : Tra
       (map_mem_GP_isingSpecification G J h β hτ (minusState_mem_GP G J h β hJ hβ)) hA hup
   rwa [Measure.map_apply τ.measurable_toFun hA] at hle
 
-/-- **Every monotone symmetry of the Ising specification fixes the plus phase.** -/
+/-- **A monotone symmetry of the Ising specification whose right inverse `σ` is again a
+symmetry fixes the plus phase.**  (Taking `σ = τ.inv` requires
+`Specification.IsInvariant τ.inv (isingSpecification G J h β)`.) -/
 theorem map_plusState (hJ : 0 ≤ J) (hβ : 0 ≤ β) {τ σ : Transformation S Bool}
     (hτ : Specification.IsInvariant τ (isingSpecification G J h β))
     (hσ : Specification.IsInvariant σ (isingSpecification G J h β))
@@ -558,7 +562,8 @@ theorem map_plusState (hJ : 0 ≤ J) (hβ : 0 ≤ β) {τ σ : Transformation S 
     simp only [Set.mem_preimage, hcomp ω]
   rwa [h2] at h1
 
-/-- **Every monotone symmetry of the Ising specification fixes the minus phase.** -/
+/-- **A monotone symmetry of the Ising specification whose right inverse `σ` is again a
+symmetry fixes the minus phase.** -/
 theorem map_minusState (hJ : 0 ≤ J) (hβ : 0 ≤ β) {τ σ : Transformation S Bool}
     (hτ : Specification.IsInvariant τ (isingSpecification G J h β))
     (hσ : Specification.IsInvariant σ (isingSpecification G J h β))
@@ -581,8 +586,9 @@ theorem map_minusState (hJ : 0 ≤ J) (hβ : 0 ≤ β) {τ σ : Transformation S
     simp only [Set.mem_preimage, hcomp ω]
   rwa [h2] at h1
 
-/-- **Spin-flip duality.** An order-reversing symmetry of the Ising specification maps the plus
-phase to the minus phase (Georgii, Section 6.2). -/
+/-- **Spin-flip duality.** An order-reversing symmetry `τ` of the Ising specification whose
+right inverse `σ` is again a symmetry maps the plus phase to the minus phase.  (Georgii,
+Section 6.2, *defines* `μ₋^β = τ(μ₊^β)`; here both phases are boundary-condition limits.) -/
 theorem map_plusState_eq_minusState (hJ : 0 ≤ J) (hβ : 0 ≤ β) {τ σ : Transformation S Bool}
     (hτ : Specification.IsInvariant τ (isingSpecification G J h β))
     (hσ : Specification.IsInvariant σ (isingSpecification G J h β))

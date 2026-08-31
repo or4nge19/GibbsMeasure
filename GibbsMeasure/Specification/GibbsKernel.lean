@@ -14,8 +14,9 @@ public import Mathlib.Probability.CDF
 # Georgii, Proposition (7.25): a `(G(γ), 𝓣)`-kernel
 
 For a specification `γ` on `S → E` (`S` countable, `E` standard Borel) with `G(γ) ≠ ∅`, we build
-a probability kernel `gibbsKernel γ ν₀ : Kernel[𝓣] (S → E) (S → E)` which does not depend on any
-Gibbs measure and is a version of `μ(· | 𝓣)` for every `μ ∈ G(γ)` (Definition (7.21)), with all
+a probability kernel `gibbsKernel γ ν₀ : Kernel[𝓣] (S → E) (S → E)` depending only on `γ` and on a
+fixed `ν₀ ∈ G(γ)` (Georgii's fallback value off the good tail set), and not on the measure it
+disintegrates: it is a version of `μ(· | 𝓣)` for every `μ ∈ G(γ)` (Definition (7.21)), with all
 its values in `G(γ)`.
 
 Instead of Georgii's countable core we use Mathlib's disintegration toolkit: along the exhaustion

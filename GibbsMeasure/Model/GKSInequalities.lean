@@ -11,7 +11,7 @@ public import GibbsMeasure.Model.Ising
 # The GKS (Griffiths–Kelly–Sherman) correlation inequalities
 
 Georgii, *Gibbs Measures and Phase Transitions*, 2nd ed., the discussion following
-Theorem (6.9) (p. 100), and Section 9.1 (p. 365):
+Theorem (6.9) (p. 100):
 
 > "By an inequality of Griffiths (1967a), `μ₊^β(σ₀)` is a nonnegative nondecreasing function
 > of `β`.  Consequently, there exists a critical inverse temperature `0 ≤ β_c ≤ ∞` such that

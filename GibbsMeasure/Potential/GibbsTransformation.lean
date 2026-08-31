@@ -66,7 +66,7 @@ lemma premodifierNorm_map (hτ : ∀ i, MeasurePreserving (τ.spin i) ν ν)
       premodifierNorm (S := S) (E := E) ν ρ (Λ.map τ.sites.symm.toEmbedding) (τ.inv.toFun η) := by
   rw [premodifierNorm, premodifierNorm, premodifierZ_map ν τ hτ]
 
-/-- `λ`-admissibility (Georgii (2.8)) is transported by (5.3): `Z^{τ(ρ)}_{τ_* Λ} ∘ τ = Z^ρ_Λ`. -/
+/-- `λ`-admissibility (Georgii (2.7)) is transported by (5.3): `Z^{τ(ρ)}_{τ_* Λ} ∘ τ = Z^ρ_Λ`. -/
 lemma IsPremodifierAdmissible.map (hτ : ∀ i, MeasurePreserving (τ.spin i) ν ν)
     {ρ : Finset S → (S → E) → ℝ≥0∞} (hρ : IsPremodifierAdmissible (S := S) (E := E) ν ρ) :
     IsPremodifierAdmissible (S := S) (E := E) ν

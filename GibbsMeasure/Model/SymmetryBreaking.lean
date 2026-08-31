@@ -15,7 +15,8 @@ Georgii's Definition (5.21) calls a symmetry `τ` of a specification *broken* wh
 measure is not `τ`-invariant, and observes that a broken symmetry forces `|𝒢(γ)| > 1`. Chapter 6's
 phase transition is of exactly this kind: at `β ≥ log 3` the plus and minus phases of the
 two-dimensional Ising ferromagnet in zero field are exchanged by the spin flip and are distinct,
-so the spin flip — a symmetry of the specification by (5.8)/(5.11) — is broken.
+so the spin flip — a symmetry of the specification by (5.6)(c)/(5.9)(b), the Ising potential in
+zero field being spin-flip invariant — is broken.
 -/
 
 @[expose] public section

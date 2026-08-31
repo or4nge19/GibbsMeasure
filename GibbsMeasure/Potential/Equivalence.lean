@@ -22,8 +22,9 @@ a potential may be replaced by any convenient representative of its class.
 * `Potential.sigmaFinitePremodifierNorm_eq_of_isEquivalent`: Georgii (2.34), (i) ⇒ (ii).
 * `Potential.lambdaSpecification_eq_of_isEquivalent`: Georgii (2.34), (i) ⇒ (iii).
 * `Potential.centre`, `Potential.oscNormAt`: recentring a potential, and the per-site total
-  oscillation `∑_{A ∋ i} δ(Φ_A)` that decides whether the class of `Φ` meets `ℬ`
-  (`Potential.isAbsolutelySummable_centre_iff`).
+  oscillation `∑_{A ∋ i} δ(Φ_A)`, finite exactly when some recentring of `Φ` is absolutely
+  summable (`Potential.isAbsolutelySummable_centre_iff`). Finiteness is sufficient, not necessary,
+  for the class of `Φ` to meet `ℬ`.
 
 The converse (2.34), (ii) ⇒ (i) — in `DependsOn` form, and at inverse temperature `β = 1` — is
 `Potential.dependsOn_hamiltonian_sub_of_sigmaFinitePremodifierNorm_eq`; with

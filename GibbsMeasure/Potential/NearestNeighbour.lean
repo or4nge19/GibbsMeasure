@@ -31,7 +31,7 @@ namespace Potential
 
 variable {S E : Type*} [MeasurableSpace E]
 
-/-! ### B1: the nearest-neighbour pair potential on a graph -/
+/-! ### The nearest-neighbour pair potential on a graph -/
 
 open Classical in
 /-- The nearest-neighbour pair potential of a graph `G` with coupling `J`, external field `h`
@@ -67,7 +67,7 @@ sets). -/
     nearestNeighbourPair G J h σ ∅ = 0 :=
   funext fun η ↦ nearestNeighbourPair_apply_eq_zero (by simp) (by simp) η
 
-/-! ### B2: measurability (`IsPotential`) -/
+/-! ### Measurability (`IsPotential`) -/
 
 lemma isPotential_nearestNeighbourPair (G : SimpleGraph S) (J h : ℝ) {σ : E → ℝ}
     (hσ : Measurable σ) : IsPotential (nearestNeighbourPair G J h σ) := by
@@ -90,7 +90,7 @@ lemma isPotential_nearestNeighbourPair (G : SimpleGraph S) (J h : ℝ) {σ : E �
       rw [hval]
       exact measurable_const
 
-/-! ### B3: finite range (`IsFiniteRange`) -/
+/-! ### Finite range (`IsFiniteRange`) -/
 
 /-- On a locally finite graph, a nonzero interaction support containing `i` is either `{i}`
 or an edge at `i`; in both cases it lies in `insert i (G.neighborFinset i)`. -/

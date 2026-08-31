@@ -18,8 +18,12 @@ of each finite volume `Δ`**, for `μ`-almost every boundary condition:
 
 `sup {|γ_{Λ_n}(A | ω) - μ(A)| : A ∈ 𝓕_Δ} → 0`.
 
-This is stronger than the local convergence of Theorem (7.12)(b); it is Georgii's argument, run
-through the densities. Writing `ρ_Δ^Λ = λ_{Λ ∖ Δ} ρ_Λ` (`Specification.condDensity`) and
+Theorem (7.12)(b) is weak convergence for a compact metric state space; local convergence is the
+second conclusion of (7.12)(c) and is proved, for a finite state space, in
+`Specification/LocalLimits.lean`. Total-variation convergence on each `𝓕_Δ` is stronger; this is
+Georgii's argument, run through the densities.
+
+Writing `ρ_Δ^Λ = λ_{Λ ∖ Δ} ρ_Λ` (`Specification.condDensity`) and
 `ρ̄_Δ(σ) = ∫ μ(dη) ρ_Δ(σ_Δ η_{S∖Δ})` (`Specification.avgDensity`), and `v = μ λ_Δ`:
 
 * `Specification.lintegral_modificationKer_isssd`: `γ_Λ f = λ_Δ(ρ_Δ^Λ f)` for `f ∈ 𝓕_{(Λ∖Δ)ᶜ}`;

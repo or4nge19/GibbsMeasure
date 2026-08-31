@@ -13,7 +13,8 @@ public import GibbsMeasure.Specification.GibbsKernel
 
 For an `AbstractSpecification γ` on a standard Borel space `Ω`, indexed by a countable nonempty
 preorder directed upwards, we build a probability kernel `paKernel γ ν₀ : Kernel[γ.tail] Ω Ω`
-which does not depend on any invariant measure, is a version of `μ(· | 𝓣)` for every
+which does not depend on the measure whose tail conditional distribution it is (only on a fixed
+fallback `ν₀ ∈ 𝒢(γ)`, used on the bad tail set): it is a version of `μ(· | 𝓣)` for every
 `μ ∈ 𝒢(γ)`, and takes all its values in `𝒢(γ)`; that is, it is a `(𝒢(γ), 𝓣)`-kernel in the sense
 of `IsPAKernel` (Georgii's Definition (7.21)).
 

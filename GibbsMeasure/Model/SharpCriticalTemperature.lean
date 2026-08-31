@@ -23,8 +23,8 @@ Theorem (6.9) (p. 100):
 > `β_c < ∞`.  Thus `0 < β_c < ∞`."
 
 `GibbsMeasure/Model/CriticalTemperature.lean` proves the two "phases" — uniqueness for
-`|β| < 1/4` and non-uniqueness for `β ≥ 8 log 2` — but states them as a two-sided bracket,
-explicitly disclaiming the existence of a sharp `β_c`.  This file removes that disclaimer:
+`|β| < 1/4` and non-uniqueness for `β ≥ 8 log 2` — as a two-sided bracket.  This file defines
+`β_c` and states the dichotomy at it:
 
 * `isingBetaC` **defines** Georgii's `β_c` for the two-dimensional Ising ferromagnet;
 * `le_isingBetaC`, `isingBetaC_le` give `1/4 ≤ β_c ≤ 8 log 2`, i.e. Georgii's `0 < β_c < ∞`
@@ -39,13 +39,13 @@ Both halves are now **unconditional**: the monotonicity of non-uniqueness is pro
 equivalence `|𝒢(βΦ)| > 1 ↔ μ₊^β(σ₀) > 0` (Georgii states it without proof) together with
 Griffiths' monotonicity of `β ↦ μ₊^β(σ₀)`.
 
-The monotonicity input is exactly what the Griffiths/GKS inequalities of
-`GibbsMeasure/Model/GKSInequalities.lean` supply at finite volume: `betaCOf`,
-`eq_zero_of_lt_betaCOf` and `pos_of_betaCOf_lt` below turn any nonnegative nondecreasing
-order parameter into a sharp threshold, and `monotoneOn_of_tendsto` shows that *any*
-infinite-volume magnetisation obtained as a limit of the finite-volume `+`-boundary
-magnetisations `GKS.magnetisation` inherits nonnegativity and monotonicity in `β`.  Thus
-Georgii's order parameter `β ↦ μ₊^β(σ₀)` has a sharp threshold (`exists_betaC_of_monotone`).
+`isingBetaC` is the infimum of the non-uniqueness set, so uniqueness below it is immediate;
+non-uniqueness above it comes from `isUpperSet_isingNonUniqueness`, i.e. from
+`LebowitzMartinLof.nontrivial_GP_ising2D_of_nontrivial_of_le`.  Sections M7-M8b record the same
+threshold construction for an abstract nonnegative nondecreasing order parameter (`betaCOf`,
+`eq_zero_of_lt_betaCOf`, `pos_of_betaCOf_lt`, `exists_betaC_of_monotone`) and instantiate it at
+the finite-volume `+`-boundary magnetisations `GKS.magnetisation` of
+`GibbsMeasure/Model/GKSInequalities.lean`; they are independent of the main theorems below.
 
 Transferring the sharp threshold from the order parameter `μ₊^β(σ₀)` to the cardinality of
 `𝒢(βΦ)` uses the equivalence `|𝒢(βΦ)| > 1 ↔ μ₊^β(σ₀) > 0` of Lebowitz–Martin-Löf (1972) and

@@ -18,9 +18,9 @@ probability measure is the barycentre of a unique mixing measure on `𝒫(E, ℰ
 
 ## Main results
 
-* `MeasureTheory.GibbsMeasure.symmKernel_le_prod_add` /
-  `MeasureTheory.GibbsMeasure.prod_le_symmKernel_add`: the symmetrisation of a box differs from
-  the product of the empirical frequencies by at most `∑_{j<k} j/(n−j)` — Georgii's
+* `MeasureTheory.GibbsMeasure.symmAvg_le_prod_add` /
+  `MeasureTheory.GibbsMeasure.prod_le_symmAvg_add`: for `a i j ≤ 1` and `k ≤ n`, the symmetrised
+  product and the product of the empirical averages differ by at most `∑_{j<k} j/(n−j)` — Georgii's
   `|M₁(k,n)|/|M(k,n)| → 1`, in a subtraction-free form obtained by group translations alone.
 * `MeasureTheory.GibbsMeasure.eq_infinitePi_of_mem_extremePoints`: **Georgii (7.17)**, the
   substantial half — an extreme exchangeable probability measure is the i.i.d. product of its
