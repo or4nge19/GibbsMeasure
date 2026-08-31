@@ -363,6 +363,73 @@ theorem GP_lambdaSpecification_nonempty_of_lintegral_selfEnergyWeight_ne_top
     hfin (fun i ↦ selfEnergyMeasure_eq_withDensity (Φ := Φ) i)]
   exact GP_gibbsSpecificationFamily_nonempty _ _
 
+/-! ### λ-admissibility bounds the self-energies -/
+
+lemma lintegral_isssd_coord {i : S} (η : S → E) {f : E → ℝ≥0∞} (hf : Measurable f) :
+    ∫⁻ σ, f (σ i) ∂(Specification.isssd (S := S) (E := E) lam ({i} : Finset S) η)
+      = ∫⁻ x, f x ∂lam := by
+  rw [show Specification.isssd (S := S) (E := E) lam ({i} : Finset S) η
+      = Measure.map (juxt ((({i} : Finset S) : Finset S) : Set S) η)
+        (Measure.pi fun _ : ({i} : Finset S) ↦ lam) from rfl,
+    lintegral_map (f := fun σ : S → E ↦ f (σ i)) (hf.comp (measurable_pi_apply i))
+      Measurable.juxt]
+  have hcoord : ∀ ζ : ({i} : Finset S) → E,
+      f (juxt ((({i} : Finset S) : Finset S) : Set S) η ζ i)
+        = f (ζ ⟨i, Finset.mem_singleton_self i⟩) := fun ζ ↦ by
+    rw [juxt_apply_of_mem (Λ := ((({i} : Finset S) : Finset S) : Set S)) (by simp) ζ]
+  simp_rw [hcoord]
+  have h := (MeasureTheory.measurePreserving_eval (μ := fun _ : ({i} : Finset S) ↦ lam)
+    ⟨i, Finset.mem_singleton_self i⟩).lintegral_comp hf
+  simpa [Function.eval] using h
+
+/-- **Georgii's finiteness input.** `λ`-admissibility at the single-site volumes bounds the
+self-energy weights: once the recentred many-body part is absolutely summable, the many-body
+contribution to `H_{i}` is bounded, so `λ(e^{-β Φ_{i}}) ≤ C · Z_{i} < ∞`. -/
+theorem lintegral_selfEnergyWeight_ne_top [Countable S] [IsSummable Φ]
+    [IsAbsolutelySummable ((manyBody Φ).centre η₀)]
+    (hZ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) lam
+      (Φ.boltzmannFactor β))
+    (i : S) : ∫⁻ x, selfEnergyWeight Φ β η₀ i x ∂lam ≠ ⊤ := by
+  set Ψ : Potential S E := (manyBody Φ).centre η₀ with hΨ
+  set K : ℝ≥0∞ := ENNReal.ofReal (Real.exp (-β * (manyBody Φ).hamiltonian ({i} : Finset S) η₀))
+    with hK
+  set m : ℝ≥0∞ :=
+    ENNReal.ofReal (Real.exp (-(|β| * Ψ.hamiltonianBound ({i} : Finset S)))) with hm
+  have hKm : K * m ≠ 0 := mul_ne_zero (by simp [hK, Real.exp_pos]) (by simp [hm, Real.exp_pos])
+  -- the Boltzmann factor of `Φ` dominates a multiple of the self-energy weight
+  have hle : ∀ σ : S → E,
+      K * m * selfEnergyWeight Φ β η₀ i (σ i) ≤ Φ.boltzmannFactor β ({i} : Finset S) σ := by
+    intro σ
+    rw [boltzmannFactor_eq_mul_lambdaWeight (Φ := Φ) (β := β) (η₀ := η₀) ({i} : Finset S) σ,
+      Specification.lambdaWeight, Finset.prod_singleton, mul_assoc]
+    gcongr
+    exact le_boltzmannFactor (Φ := Ψ) β _ σ
+  -- integrate against the reference kernel at `Λ = {i}`
+  have hint : K * m * ∫⁻ x, selfEnergyWeight Φ β η₀ i x ∂lam
+      ≤ Specification.sigmaFiniteLambdaZ lam (Φ.boltzmannFactor β) ({i} : Finset S) η₀ := by
+    rw [← Specification.premodifierZ_eq_sigmaFiniteLambdaZ, Specification.premodifierZ,
+      ← lintegral_isssd_coord (lam := lam) (i := i) η₀ (measurable_selfEnergyWeight (Φ := Φ) i),
+      ← lintegral_const_mul (f := fun σ : S → E ↦ selfEnergyWeight Φ β η₀ i (σ i)) _
+        ((measurable_selfEnergyWeight (Φ := Φ) i).comp (measurable_pi_apply i))]
+    exact lintegral_mono hle
+  intro htop
+  rw [htop, ENNReal.mul_top hKm] at hint
+  exact (hZ ({i} : Finset S) η₀).2 (top_le_iff.1 hint)
+
+/-- **The existence half of Georgii Theorem (8.39), in the form his proof establishes it.** A
+`λ`-admissible potential whose recentred many-body part is absolutely summable has a Gibbs
+measure. Only `Potential.IsAbsolutelySummable ((manyBody Φ).centre η₀)` remains to be supplied,
+and on `ℤ` or `ℕ` condition (8.40) supplies it. -/
+theorem GP_lambdaSpecification_nonempty [Countable S] [StandardBorelSpace E] [IsSummable Φ]
+    [IsAbsolutelySummable ((manyBody Φ).centre η₀)]
+    {hρ : Specification.IsPremodifier (S := S) (E := E) (Φ.boltzmannFactor β)}
+    {hZ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) lam
+      (Φ.boltzmannFactor β)} :
+    (GP (S := S) (E := E)
+      (Specification.lambdaSpecification lam (Φ.boltzmannFactor β) hρ hZ)).Nonempty :=
+  GP_lambdaSpecification_nonempty_of_lintegral_selfEnergyWeight_ne_top (η₀ := η₀)
+    (lintegral_selfEnergyWeight_ne_top (Φ := Φ) (β := β) (η₀ := η₀) hZ)
+
 end SelfEnergy
 
 end Potential
