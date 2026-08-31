@@ -74,34 +74,35 @@ variable {S E : Type*} {mE : MeasurableSpace E} {ρ : Finset S → (S → E) →
 
 /-! ### The rescaling weight of Georgii's Remark (1.28)(3) -/
 
-variable (r : E → ℝ≥0∞) in
-/-- Georgii, Remark (1.28)(3): the weight `∏_{i ∈ Λ} r(ω_i)` by which the reference kernel `λ_Λ`
-changes when the a priori measure `λ` is replaced by `r · λ`. -/
-noncomputable def lambdaWeight (Λ : Finset S) (ω : S → E) : ℝ≥0∞ := ∏ i ∈ Λ, r (ω i)
+variable (r : S → E → ℝ≥0∞) in
+/-- Georgii, Remark (1.28)(3): the weight `∏_{i ∈ Λ} r_i(ω_i)` by which the reference kernel `λ_Λ`
+changes when the a priori measure at site `i` is replaced by `r_i · λ`. Georgii's own rescaling is
+the constant family. -/
+noncomputable def lambdaWeight (Λ : Finset S) (ω : S → E) : ℝ≥0∞ := ∏ i ∈ Λ, r i (ω i)
 
-variable {r : E → ℝ≥0∞}
+variable {r : S → E → ℝ≥0∞}
 
-lemma measurable_lambdaWeight (hr : Measurable r) (Λ : Finset S) :
+lemma measurable_lambdaWeight (hr : ∀ i, Measurable (r i)) (Λ : Finset S) :
     Measurable (lambdaWeight (S := S) (E := E) r Λ) :=
-  Finset.measurable_prod _ fun i _ ↦ hr.comp (measurable_pi_apply i)
+  Finset.measurable_prod _ fun i _ ↦ (hr i).comp (measurable_pi_apply i)
 
-lemma lambdaWeight_ne_zero (h0 : ∀ x, r x ≠ 0) (Λ : Finset S) (ω : S → E) :
+lemma lambdaWeight_ne_zero (h0 : ∀ i x, r i x ≠ 0) (Λ : Finset S) (ω : S → E) :
     lambdaWeight (S := S) (E := E) r Λ ω ≠ 0 :=
-  Finset.prod_ne_zero_iff.2 fun _i _ ↦ h0 _
+  Finset.prod_ne_zero_iff.2 fun _i _ ↦ h0 _ _
 
-lemma lambdaWeight_ne_top (htop : ∀ x, r x ≠ ⊤) (Λ : Finset S) (ω : S → E) :
+lemma lambdaWeight_ne_top (htop : ∀ i x, r i x ≠ ⊤) (Λ : Finset S) (ω : S → E) :
     lambdaWeight (S := S) (E := E) r Λ ω ≠ ⊤ :=
-  ENNReal.prod_ne_top fun _i _ ↦ htop _
+  ENNReal.prod_ne_top fun _i _ ↦ htop _ _
 
 @[simp] lemma lambdaWeight_const (c : ℝ≥0∞) (Λ : Finset S) (ω : S → E) :
-    lambdaWeight (S := S) (E := E) (fun _ ↦ c) Λ ω = c ^ Λ.card := by
+    lambdaWeight (S := S) (E := E) (fun _ _ ↦ c) Λ ω = c ^ Λ.card := by
   simp [lambdaWeight]
 
 lemma lambdaWeight_juxt (Λ : Finset S) (η : S → E) (ζ : Λ → E) :
-    lambdaWeight (S := S) (E := E) r Λ (juxt (Λ : Set S) η ζ) = ∏ i : Λ, r (ζ i) := by
+    lambdaWeight (S := S) (E := E) r Λ (juxt (Λ : Set S) η ζ) = ∏ i : Λ, r i (ζ i) := by
   classical
   rw [lambdaWeight, Finset.univ_eq_attach,
-    ← Finset.prod_attach Λ (fun i ↦ r (juxt (Λ : Set S) η ζ i))]
+    ← Finset.prod_attach Λ (fun i ↦ r i (juxt (Λ : Set S) η ζ i))]
   refine Finset.prod_congr rfl fun i _ ↦ ?_
   rw [juxt_apply_of_mem (show (i : S) ∈ (Λ : Set S) by simp)]
   congr 1
@@ -114,18 +115,61 @@ lemma lambdaWeight_mul_comm_of_subset {Λ₁ Λ₂ : Finset S} (hΛ : Λ₁ ⊆ 
       lambdaWeight (S := S) (E := E) r Λ₁ ζ * lambdaWeight (S := S) (E := E) r Λ₂ η := by
   classical
   have hsplit : ∀ ω : S → E, lambdaWeight (S := S) (E := E) r Λ₂ ω =
-      lambdaWeight (S := S) (E := E) r Λ₁ ω * ∏ i ∈ Λ₂ \ Λ₁, r (ω i) := by
+      lambdaWeight (S := S) (E := E) r Λ₁ ω * ∏ i ∈ Λ₂ \ Λ₁, r i (ω i) := by
     intro ω
     rw [lambdaWeight, lambdaWeight, ← Finset.prod_union Finset.disjoint_sdiff,
       Finset.union_sdiff_of_subset hΛ]
-  have hdiff : (∏ i ∈ Λ₂ \ Λ₁, r (ζ i)) = ∏ i ∈ Λ₂ \ Λ₁, r (η i) :=
+  have hdiff : (∏ i ∈ Λ₂ \ Λ₁, r i (ζ i)) = ∏ i ∈ Λ₂ \ Λ₁, r i (η i) :=
     Finset.prod_congr rfl fun i hi ↦ by
       rw [h i (Finset.mem_sdiff.1 hi).2]
   rw [hsplit ζ, hsplit η, hdiff]
   ring
 
 
+/-! ### Rescaling an arbitrary reference specification
+
+Georgii Remark (1.28)(3) does not use the product structure of `λ_Λ`: all it needs is that the
+new reference kernels are the old ones with a density that does not depend on the boundary
+condition. -/
+
+section RelRescale
+
+variable {γ γ' : Specification S E} {ρ : Finset S → (S → E) → ℝ≥0∞}
+  {W : Finset S → (S → E) → ℝ≥0∞}
+
+/-- A constant factor drops out of the normalized density. -/
+lemma relNorm_const_mul {c : Finset S → ℝ≥0∞} (hc0 : ∀ Λ, c Λ ≠ 0) (hctop : ∀ Λ, c Λ ≠ ⊤) :
+    relNorm γ (fun Λ ω ↦ c Λ * ρ Λ ω) = relNorm γ ρ := by
+  funext Λ η
+  rw [relNorm, relNorm, relZ, relZ, lintegral_const_mul' _ _ (hctop Λ)]
+  exact ENNReal.mul_div_mul_left _ _ (hc0 Λ) (hctop Λ)
+
+/-- **Georgii Remark (1.28)(3), for an arbitrary reference specification.** If `γ'_Λ` is `γ_Λ` with
+a boundary-independent density `W_Λ`, then dividing the premodifier by `W` leaves the normalized
+specification unchanged. -/
+theorem withDensity_relNorm_div (hγ' : ∀ (Λ : Finset S) (η : S → E),
+      γ' Λ η = (γ Λ η).withDensity (W Λ))
+    (hW : ∀ Λ, Measurable (W Λ)) (hW0 : ∀ Λ ω, W Λ ω ≠ 0) (hWtop : ∀ Λ ω, W Λ ω ≠ ⊤)
+    (hρ : ∀ Λ, Measurable (ρ Λ)) (Λ : Finset S) (η : S → E) :
+    (γ' Λ η).withDensity (relNorm γ' (fun Λ ω ↦ ρ Λ ω / W Λ ω) Λ)
+      = (γ Λ η).withDensity (relNorm γ ρ Λ) := by
+  set ρ' : Finset S → (S → E) → ℝ≥0∞ := fun Λ ω ↦ ρ Λ ω / W Λ ω with hρ'
+  have hρ'meas : ∀ Λ, Measurable (ρ' Λ) := fun Λ ↦ (hρ Λ).div (hW Λ)
+  have hcancel : ∀ (Λ : Finset S) (ω : S → E), W Λ ω * ρ' Λ ω = ρ Λ ω := fun Λ ω ↦
+    ENNReal.mul_div_cancel (hW0 Λ ω) (hWtop Λ ω)
+  have hZ : ∀ ω, relZ γ' ρ' Λ ω = relZ γ ρ Λ ω := by
+    intro ω
+    rw [relZ, relZ, hγ' Λ ω, lintegral_withDensity_eq_lintegral_mul _ (hW Λ) (hρ'meas Λ)]
+    exact lintegral_congr fun x ↦ hcancel Λ x
+  rw [hγ' Λ η, ← withDensity_mul _ (hW Λ) (measurable_relNorm (γ := γ') hρ'meas Λ)]
+  refine withDensity_congr_ae (.of_forall fun ω ↦ ?_)
+  rw [Pi.mul_apply, relNorm, relNorm, hZ ω, mul_div_assoc', hcancel Λ ω]
+
+end RelRescale
+
 /-! ### Rescaling the a priori measure -/
+
+variable {r : E → ℝ≥0∞}
 
 /-- **Georgii, Notation (1.26) and Remark (1.28)(3).** Replacing the a priori measure `ν` by
 `r · ν` multiplies the reference kernel `λ_Λ` by the weight `∏_{i ∈ Λ} r(ω_i)`. -/
@@ -133,30 +177,31 @@ lemma sigmaFiniteLambdaFun_withDensity (ν : Measure E) [SigmaFinite ν]
     (hr : Measurable r) [SigmaFinite (ν.withDensity r)] (Λ : Finset S) (η : S → E) :
     sigmaFiniteLambdaFun (S := S) (E := E) (ν.withDensity r) Λ η =
       (sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η).withDensity
-        (lambdaWeight (S := S) (E := E) r Λ) := by
+        (lambdaWeight (S := S) (E := E) (fun _ ↦ r) Λ) := by
   classical
   rw [sigmaFiniteLambdaFun_apply_eq_map, sigmaFiniteLambdaFun_apply_eq_map]
   have hpi : (Measure.pi fun _ : Λ ↦ ν.withDensity r) =
       (Measure.pi fun _ : Λ ↦ ν).withDensity (fun ζ : Λ → E ↦ ∏ i : Λ, r (ζ i)) :=
     Measure.pi_withDensity (fun _ : Λ ↦ ν) (fun _ ↦ hr)
   have hfun : (fun ζ : Λ → E ↦ ∏ i : Λ, r (ζ i)) =
-      fun ζ : Λ → E ↦ lambdaWeight (S := S) (E := E) r Λ (juxt (Λ : Set S) η ζ) :=
-    funext fun ζ ↦ (lambdaWeight_juxt (S := S) (E := E) (r := r) Λ η ζ).symm
+      fun ζ : Λ → E ↦ lambdaWeight (S := S) (E := E) (fun _ ↦ r) Λ (juxt (Λ : Set S) η ζ) :=
+    funext fun ζ ↦ (lambdaWeight_juxt (S := S) (E := E) (r := fun _ ↦ r) Λ η ζ).symm
   rw [hpi, hfun, MeasureTheory.map_withDensity_comp (Measure.pi fun _ : Λ ↦ ν)
     (Measurable.juxt (Λ := (Λ : Set S)) (η := η) (𝓔 := mE))
-    (measurable_lambdaWeight (S := S) (E := E) hr Λ)]
+    (measurable_lambdaWeight (S := S) (E := E) (fun _ ↦ hr) Λ)]
 
 /-- Georgii, Remark (1.28)(3): the density family `ρ̃_Λ = ρ_Λ / ∏_{i ∈ Λ} r(ω_i)` associated to the
 rescaled a priori measure `r · λ`. -/
 noncomputable def rescale (r : E → ℝ≥0∞) (ρ : Finset S → (S → E) → ℝ≥0∞) :
-    Finset S → (S → E) → ℝ≥0∞ := fun Λ ω ↦ ρ Λ ω / lambdaWeight (S := S) (E := E) r Λ ω
+    Finset S → (S → E) → ℝ≥0∞ := fun Λ ω ↦ ρ Λ ω / lambdaWeight (S := S) (E := E) (fun _ ↦ r) Λ ω
 
 lemma rescale_apply (r : E → ℝ≥0∞) (ρ : Finset S → (S → E) → ℝ≥0∞) (Λ : Finset S) (ω : S → E) :
-    rescale (S := S) (E := E) r ρ Λ ω = ρ Λ ω / lambdaWeight (S := S) (E := E) r Λ ω := rfl
+    rescale (S := S) (E := E) r ρ Λ ω
+      = ρ Λ ω / lambdaWeight (S := S) (E := E) (fun _ ↦ r) Λ ω := rfl
 
 lemma measurable_rescale (hr : Measurable r) (hρ : ∀ Λ, Measurable (ρ Λ)) (Λ : Finset S) :
     Measurable (rescale (S := S) (E := E) r ρ Λ) :=
-  (hρ Λ).div (measurable_lambdaWeight (S := S) (E := E) hr Λ)
+  (hρ Λ).div (measurable_lambdaWeight (S := S) (E := E) (fun _ ↦ hr) Λ)
 
 /-- **Georgii, Remark (1.28)(3).** `ρ̃ = ρ / ∏ r` is a premodifier whenever `ρ` is, provided the
 rescaling function `r` is everywhere positive and finite. -/
@@ -166,28 +211,28 @@ lemma isPremodifier_rescale (hr : Measurable r) (h0 : ∀ x, r x ≠ 0) (htop : 
   measurable Λ := measurable_rescale (S := S) (E := E) hr hρ.measurable Λ
   comm_of_subset := by
     intro Λ₁ Λ₂ ζ η hΛ hrestrict
-    have hW := lambdaWeight_mul_comm_of_subset (S := S) (E := E) (r := r) hΛ hrestrict
+    have hW := lambdaWeight_mul_comm_of_subset (S := S) (E := E) (r := fun _ ↦ r) hΛ hrestrict
     have hne : ∀ (Λ : Finset S) (ω : S → E),
-        lambdaWeight (S := S) (E := E) r Λ ω ≠ 0 ∧
-          lambdaWeight (S := S) (E := E) r Λ ω ≠ ⊤ :=
-      fun Λ ω ↦ ⟨lambdaWeight_ne_zero (S := S) (E := E) h0 Λ ω,
-        lambdaWeight_ne_top (S := S) (E := E) htop Λ ω⟩
-    have hinv : (lambdaWeight (S := S) (E := E) r Λ₂ ζ)⁻¹ *
-          (lambdaWeight (S := S) (E := E) r Λ₁ η)⁻¹ =
-        (lambdaWeight (S := S) (E := E) r Λ₁ ζ)⁻¹ *
-          (lambdaWeight (S := S) (E := E) r Λ₂ η)⁻¹ := by
+        lambdaWeight (S := S) (E := E) (fun _ ↦ r) Λ ω ≠ 0 ∧
+          lambdaWeight (S := S) (E := E) (fun _ ↦ r) Λ ω ≠ ⊤ :=
+      fun Λ ω ↦ ⟨lambdaWeight_ne_zero (S := S) (E := E) (fun _ ↦ h0) Λ ω,
+        lambdaWeight_ne_top (S := S) (E := E) (fun _ ↦ htop) Λ ω⟩
+    have hinv : (lambdaWeight (S := S) (E := E) (fun _ ↦ r) Λ₂ ζ)⁻¹ *
+          (lambdaWeight (S := S) (E := E) (fun _ ↦ r) Λ₁ η)⁻¹ =
+        (lambdaWeight (S := S) (E := E) (fun _ ↦ r) Λ₁ ζ)⁻¹ *
+          (lambdaWeight (S := S) (E := E) (fun _ ↦ r) Λ₂ η)⁻¹ := by
       rw [← ENNReal.mul_inv (Or.inl (hne Λ₂ ζ).1) (Or.inl (hne Λ₂ ζ).2),
         ← ENNReal.mul_inv (Or.inl (hne Λ₁ ζ).1) (Or.inl (hne Λ₁ ζ).2), hW]
     simp only [rescale, ENNReal.div_eq_inv_mul]
-    calc (lambdaWeight (S := S) (E := E) r Λ₂ ζ)⁻¹ * ρ Λ₂ ζ *
-            ((lambdaWeight (S := S) (E := E) r Λ₁ η)⁻¹ * ρ Λ₁ η)
-        = ((lambdaWeight (S := S) (E := E) r Λ₂ ζ)⁻¹ *
-            (lambdaWeight (S := S) (E := E) r Λ₁ η)⁻¹) * (ρ Λ₂ ζ * ρ Λ₁ η) := by ring
-      _ = ((lambdaWeight (S := S) (E := E) r Λ₁ ζ)⁻¹ *
-            (lambdaWeight (S := S) (E := E) r Λ₂ η)⁻¹) * (ρ Λ₁ ζ * ρ Λ₂ η) := by
+    calc (lambdaWeight (S := S) (E := E) (fun _ ↦ r) Λ₂ ζ)⁻¹ * ρ Λ₂ ζ *
+            ((lambdaWeight (S := S) (E := E) (fun _ ↦ r) Λ₁ η)⁻¹ * ρ Λ₁ η)
+        = ((lambdaWeight (S := S) (E := E) (fun _ ↦ r) Λ₂ ζ)⁻¹ *
+            (lambdaWeight (S := S) (E := E) (fun _ ↦ r) Λ₁ η)⁻¹) * (ρ Λ₂ ζ * ρ Λ₁ η) := by ring
+      _ = ((lambdaWeight (S := S) (E := E) (fun _ ↦ r) Λ₁ ζ)⁻¹ *
+            (lambdaWeight (S := S) (E := E) (fun _ ↦ r) Λ₂ η)⁻¹) * (ρ Λ₁ ζ * ρ Λ₂ η) := by
             rw [hinv, hρ.comm_of_subset hΛ hrestrict]
-      _ = (lambdaWeight (S := S) (E := E) r Λ₁ ζ)⁻¹ * ρ Λ₁ ζ *
-            ((lambdaWeight (S := S) (E := E) r Λ₂ η)⁻¹ * ρ Λ₂ η) := by ring
+      _ = (lambdaWeight (S := S) (E := E) (fun _ ↦ r) Λ₁ ζ)⁻¹ * ρ Λ₁ ζ *
+            ((lambdaWeight (S := S) (E := E) (fun _ ↦ r) Λ₂ η)⁻¹ * ρ Λ₂ η) := by ring
 
 end Specification
 
@@ -204,25 +249,25 @@ lemma withDensity_sigmaFiniteLambdaFun_withDensity_div (ν : Measure E) [SigmaFi
     [SigmaFinite (ν.withDensity r)] (Λ : Finset S) (η : S → E)
     {f : (S → E) → ℝ≥0∞} (hf : Measurable f) :
     (sigmaFiniteLambdaFun (S := S) (E := E) (ν.withDensity r) Λ η).withDensity
-        (fun ω ↦ f ω / lambdaWeight (S := S) (E := E) r Λ ω)
+        (fun ω ↦ f ω / lambdaWeight (S := S) (E := E) (fun _ ↦ r) Λ ω)
       = (sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η).withDensity f := by
   rw [sigmaFiniteLambdaFun_withDensity (S := S) (E := E) ν hr Λ η,
-    show (fun ω ↦ f ω / lambdaWeight (S := S) (E := E) r Λ ω) =
-      f / lambdaWeight (S := S) (E := E) r Λ from rfl,
-    ← withDensity_mul _ (measurable_lambdaWeight (S := S) (E := E) hr Λ)
-      (hf.div (measurable_lambdaWeight (S := S) (E := E) hr Λ))]
+    show (fun ω ↦ f ω / lambdaWeight (S := S) (E := E) (fun _ ↦ r) Λ ω) =
+      f / lambdaWeight (S := S) (E := E) (fun _ ↦ r) Λ from rfl,
+    ← withDensity_mul _ (measurable_lambdaWeight (S := S) (E := E) (fun _ ↦ hr) Λ)
+      (hf.div (measurable_lambdaWeight (S := S) (E := E) (fun _ ↦ hr) Λ))]
   congr 1
   funext ω
   simp only [Pi.mul_apply, Pi.div_apply, ENNReal.div_eq_inv_mul, ← mul_assoc]
-  rw [ENNReal.mul_inv_cancel (lambdaWeight_ne_zero (S := S) (E := E) h0 Λ ω)
-    (lambdaWeight_ne_top (S := S) (E := E) htop Λ ω), one_mul]
+  rw [ENNReal.mul_inv_cancel (lambdaWeight_ne_zero (S := S) (E := E) (fun _ ↦ h0) Λ ω)
+    (lambdaWeight_ne_top (S := S) (E := E) (fun _ ↦ htop) Λ ω), one_mul]
 
 /-- The integral form of `Specification.withDensity_sigmaFiniteLambdaFun_withDensity_div`. -/
 lemma lintegral_sigmaFiniteLambdaFun_withDensity_div (ν : Measure E) [SigmaFinite ν]
     (hr : Measurable r) (h0 : ∀ x, r x ≠ 0) (htop : ∀ x, r x ≠ ⊤)
     [SigmaFinite (ν.withDensity r)] (Λ : Finset S) (η : S → E)
     {f : (S → E) → ℝ≥0∞} (hf : Measurable f) :
-    ∫⁻ ω, f ω / lambdaWeight (S := S) (E := E) r Λ ω
+    ∫⁻ ω, f ω / lambdaWeight (S := S) (E := E) (fun _ ↦ r) Λ ω
         ∂(sigmaFiniteLambdaFun (S := S) (E := E) (ν.withDensity r) Λ η)
       = ∫⁻ ω, f ω ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η) := by
   have h := congrArg (fun m : Measure (S → E) ↦ m Set.univ)
@@ -256,7 +301,7 @@ lemma sigmaFinitePremodifierNorm_rescale (ν : Measure E) [SigmaFinite ν]
     sigmaFinitePremodifierNorm (S := S) (E := E) (ν.withDensity r)
         (rescale (S := S) (E := E) r ρ) Λ
       = fun ω ↦ sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ ω /
-          lambdaWeight (S := S) (E := E) r Λ ω := by
+          lambdaWeight (S := S) (E := E) (fun _ ↦ r) Λ ω := by
   funext ω
   rw [sigmaFinitePremodifierNorm, sigmaFinitePremodifierNorm,
     sigmaFiniteLambdaZ_rescale (S := S) (E := E) ν hr h0 htop hρ Λ ω, rescale_apply]
@@ -377,7 +422,7 @@ lemma sigmaFiniteLambdaFun_of_smul (ν ν' : Measure E) [SigmaFinite ν] [SigmaF
   have h2 : ν' = ν.withDensity (fun _ ↦ c) := by rw [hν', withDensity_const]
   subst h2
   rw [sigmaFiniteLambdaFun_withDensity (S := S) (E := E) ν measurable_const Λ η,
-    show lambdaWeight (S := S) (E := E) (fun _ ↦ c) Λ = fun _ : S → E ↦ c ^ Λ.card from
+    show lambdaWeight (S := S) (E := E) (fun _ _ ↦ c) Λ = fun _ : S → E ↦ c ^ Λ.card from
       funext fun ω ↦ lambdaWeight_const (S := S) (E := E) c Λ ω,
     withDensity_const]
 
