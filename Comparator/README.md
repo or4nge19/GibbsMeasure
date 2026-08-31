@@ -34,20 +34,22 @@ axioms beyond a permitted list, and that the result is accepted by the Lean kern
 
 Eleven entries, 61 theorems.
 
-> [!IMPORTANT]
-> **These entries have not yet been judged by comparator.** Every run of the `Comparator` workflow
-> to date has failed before executing a step, with
-> `The job was not started because your account is locked due to a billing issue`. Until a run
-> completes, the only evidence for this suite is the checking described in the next paragraph,
-> which is performed *by this project on itself* and is therefore exactly the kind of self-report
-> comparator exists to replace. Do not cite this suite as independently certified.
+> [!NOTE]
+> Judged by comparator on 2026-08-30:
+> [run 33340000915](https://github.com/or4nge19/GibbsMeasure/actions/runs/33340000915), 26 minutes,
+> concluding `comparator accepted all 11 entries`. Eleven `systemd-run --user` units with
+> `RestrictAddressFamilies=~AF_UNIX`, one per entry; eleven `nanoda kernel accepts the solution`;
+> eleven `Lean default kernel accepts the solution`. So all 61 theorems were checked by two
+> independent kernels inside the sandbox comparator's README prescribes.
+>
+> Before that date the workflow had never executed a step — every run died in seconds with
+> `The job was not started because your account is locked due to a billing issue`. Anything
+> written about this suite before 2026-08-30 rested on a re-implementation of comparator's checks
+> by this project on itself, which is the self-report comparator exists to replace.
 
-What has been checked here, entry by entry, is that each theorem is `sorry` in its challenge and
-proved in its solution; that the statement text is byte-identical between the two; that no axiom
-beyond `propext`, `Classical.choice` and `Quot.sound` is used; that no `Defs*` module imports
-anything but Mathlib and other `Defs*` modules; and that no solution imports its challenge. That
-is a re-implementation of comparator's checks, not comparator: it shares this project's Lean
-toolchain and `.lake` directory, runs no sandbox, and performs no independent kernel replay.
+For each entry comparator builds the challenge from its Mathlib-only `Defs`, exports the named
+theorems together with `propext`, `Quot.sound` and `Classical.choice` and nothing else, builds the
+solution separately, and confirms the exported types match and both kernels accept.
 
 A third party reproducing this must start from a clean checkout. comparator's assumption 2 is that
 the checker "has not previously tried to compile the `Solution` file", since doing so could

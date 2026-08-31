@@ -33,12 +33,12 @@ jobs:
 
     steps:
       - name: Checkout GibbsMeasure
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           path: GibbsMeasure
 
       - name: Checkout comparator
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           repository: leanprover/comparator
           # Pinned: an unpinned judge is a mutable link in the trust chain. Bump deliberately.
@@ -48,7 +48,7 @@ jobs:
       # `lean4export` must match the toolchain in `lean-toolchain`; the tag below is exactly
       # `leanprover/lean4:v4.34.0-rc2`, the toolchain this repository pins.
       - name: Checkout lean4export
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           repository: leanprover/lean4export
           # Tag v4.34.0-rc2, resolved to its commit: a tag can be moved, a SHA cannot.
@@ -56,7 +56,7 @@ jobs:
           path: lean4export
 
       - name: Checkout landrun
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           repository: Zouuup/landrun
           # Pinned; `main` is mutable and this is the sandbox the whole check rests on.
@@ -64,7 +64,7 @@ jobs:
           path: landrun
 
       - name: Checkout nanoda
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           repository: ammkrn/nanoda_lib
           ref: 05055695879dfebb6628a67da88ceca6cd6b0421
@@ -79,9 +79,10 @@ jobs:
 
       # landrun requires Go >= 1.24 (see its README).
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: 'stable'
+          # landrun's go.mod requires 1.24.0; pin rather than track `stable`.
+          go-version: '1.24.0'
           cache-dependency-path: landrun/go.sum
 
       - name: Build landrun
@@ -101,6 +102,36 @@ jobs:
           test: "false"
           lint: "false"
           use-mathlib-cache: "true"
+
+      # Two gates the sandboxed comparator run does NOT provide.
+      #
+      # (a) An all-solutions build. comparator compiles one challenge/solution pair per config
+      #     inside the sandbox; nothing otherwise checks that every Solution module still
+      #     compiles together against the library. `lake build Comparator` does, and it is not a
+      #     default target, so without this step a broken solution could sit unnoticed until the
+      #     entry naming it happened to run.
+      #
+      # (b) A hard sorry gate. warn.sorry is off for the Comparator library only, where the 61
+      #     holes are deliberate. Everywhere else a sorry is a warning, and warnings do not fail
+      #     a build, so grep for it directly.
+      - name: Build every challenge and solution, and gate on sorry
+        working-directory: GibbsMeasure
+        run: |
+          set -euo pipefail
+          export PATH="$HOME/.elan/bin:$PATH"
+          lake build Comparator
+
+          if grep -rnE '\bsorry\b' GibbsMeasure/ --include='*.lean'; then
+            echo "::error::sorry found in the library; permitted only in Comparator challenge files."
+            exit 1
+          fi
+          for f in Comparator/Solution*.lean Comparator/Defs*.lean; do
+            if grep -nE '\bsorry\b' "$f"; then
+              echo "::error::sorry in $f -- only Challenge files may contain one."
+              exit 1
+            fi
+          done
+          echo "no sorry outside Comparator/Challenge*.lean"
 
       - name: Build lean4export
         working-directory: lean4export

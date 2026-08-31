@@ -237,6 +237,15 @@ equivalence** `|𝒢(βΦ)| > 1 ↔ μ₊^β(σ₀) > 0` — which Georgii cites
 Onsager's exact value is not proved here, and Georgii does not prove it either — the digitised text
 does not state it.
 
+Two different senses of "sharp" occur in these names and should not be conflated. In
+`ising_sharp_phase_transition` it means the *dichotomy* is sharp: a single threshold `β_c` with
+uniqueness strictly below and non-uniqueness strictly above. In `SharpPhaseTransition.lean` and
+`exists_two_shiftInvariant_gibbs_sharp` it means the *Peierls threshold* has been sharpened, from
+`8 log 2` to `log 3`, by replacing the `4096^ℓ` contour count with Georgii's `ℓ·3^(ℓ-1)`. **`log 3`
+is a sufficient contour-counting threshold, an upper bound for `β_c`, not the critical value.** The
+proved bracket is `1/4 ≤ β_c ≤ log 3`; Onsager's `½ log(1+√2) ≈ 0.4407` lies inside it and is not
+proved.
+
 That equivalence rests on two new pieces. **Holley's inequality for the Ising ferromagnet**
 (`GibbsMeasure/Model/IsingFKG.lean`): the finite-volume distribution is stochastically increasing
 in the boundary condition, hence decreasing in the volume under the all-plus condition. It reduces
