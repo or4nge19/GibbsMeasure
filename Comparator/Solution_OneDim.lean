@@ -352,21 +352,18 @@ theorem gibbsKernel_eq_gibbsSpec (hΨ : IsPotential Ψ) (habs : IsAbsolutelySumm
       (Φ := (Ψ : Potential ℤ E)) lam β (isSigmaFiniteLambdaAdmissible hΨ lam β hadm)]
 
 /-- **Georgii, Theorem (8.39), second half**, transported to the from-first-principles
-Gibbsian specification. -/
+Gibbsian specification, at Georgii's own hypotheses. -/
 theorem existsUnique_isGibbs [StandardBorelSpace E] (hΨ : IsPotential Ψ)
-    (habs : IsAbsolutelySummable Ψ)
-    [Potential.IsPotential (Ψ : Potential ℤ E)]
-    [Potential.IsAbsolutelySummable (Ψ : Potential ℤ E)]
-    (lam : Measure E) [IsProbabilityMeasure lam] (β : ℝ)
+    (lam : Measure E) [SigmaFinite lam] [NeZero lam] (β : ℝ) (hadm : IsAdmissible Ψ lam β)
     (h840 : (⨆ i : ℤ, MeasureTheory.GibbsMeasure.oscSpan (Ψ : Potential ℤ E) i) ≠ ⊤) :
     ∃! μ : Measure (Config ℤ E), IsGibbs (gibbsKernel Ψ lam β) μ := by
   haveI := isPotentialLib hΨ
   haveI := isSummableLib hΨ
-  haveI := isAbsolutelySummableLib habs
-  have hK := gibbsKernel_eq_gibbsSpec hΨ habs lam β
+  have hK := gibbsKernel_eq hΨ lam β hadm
   obtain ⟨P, hP, huniq⟩ :=
-    MeasureTheory.GibbsMeasure.existsUnique_mem_GP_of_iSup_oscSpan_ne_top
-      (Φ := (Ψ : Potential ℤ E)) lam β h840
+    MeasureTheory.GibbsMeasure.existsUnique_mem_GP_lambdaSpecification_of_iSup_oscSpan_ne_top
+      (Φ := (Ψ : Potential ℤ E)) MeasureTheory.GibbsMeasure.hasBoundedBoundary_int lam β
+      (isSigmaFiniteLambdaAdmissible hΨ lam β hadm) h840
   refine ⟨(P : Measure (Config ℤ E)), (isGibbs_iff_isGibbsMeasure hK _).2 hP, fun ν hν ↦ ?_⟩
   haveI := hν.1
   have hνP : (⟨ν, hν.1⟩ : ProbabilityMeasure (Config ℤ E)) = P :=
@@ -441,27 +438,26 @@ theorem subsingleton_isGibbs_of_iSup_oscSpan_ne_top [Countable S] [Preorder S] {
     ⟨hμ.1, (Bridge.isGibbs_iff_isGibbsMeasure hK μ).1 hμ⟩
     ⟨hν.1, (Bridge.isGibbs_iff_isGibbsMeasure hK ν).1 hν⟩
 
-/-- **Georgii, Theorem (8.39), second half**: under condition (8.40) the potential has exactly one
-Gibbs measure.  Existence rests on Theorem (4.23)(a), available only for an absolutely summable
-potential over a finite a priori measure on a standard Borel state space, so the statement is made
-at exactly those hypotheses and no weaker ones. -/
+/-- **Georgii, Theorem (8.39), second half**: over a standard Borel state space, a potential in
+the sense of Definition (2.2) that is `λ`-admissible over a σ-finite non-zero `λ` and satisfies
+condition (8.40) has exactly one Gibbs measure.  No absolute summability is assumed: Georgii's own
+reduction recentres the many-body part of `Φ`, which (8.40) puts in `ℬ`, and absorbs the
+self-energies `Φ_{i}` into per-site a priori measures. -/
 theorem existsUnique_isGibbs_of_iSup_oscSpan_ne_top [StandardBorelSpace E]
-    (Φ : Finset ℤ → Config ℤ E → ℝ) (hΦ : IsPotential Φ) (habs : IsAbsolutelySummable Φ)
-    (lam : Measure E) [IsProbabilityMeasure lam] (β : ℝ)
+    (Φ : Finset ℤ → Config ℤ E → ℝ) (hΦ : IsPotential Φ)
+    (lam : Measure E) [SigmaFinite lam] [NeZero lam] (β : ℝ)
+    (hadm : IsAdmissible Φ lam β)
     (h840 : (⨆ i : ℤ, oscSpan Φ i) ≠ ⊤) :
-    ∃! μ : Measure (Config ℤ E), IsGibbs (gibbsKernel Φ lam β) μ := by
-  haveI := Bridge.isPotentialLib hΦ
-  haveI := Bridge.isSummableLib hΦ
-  haveI := Bridge.isAbsolutelySummableLib habs
-  exact Bridge.existsUnique_isGibbs hΦ habs lam β (by rwa [← Bridge.iSup_oscSpan_eq])
+    ∃! μ : Measure (Config ℤ E), IsGibbs (gibbsKernel Φ lam β) μ :=
+  Bridge.existsUnique_isGibbs hΦ lam β hadm (by rwa [← Bridge.iSup_oscSpan_eq])
 
 /-- **Georgii, Comment (8.41)(2)**: a shift-invariant pair potential on `ℤ` whose two-point
 oscillations decay as `δ(Φ_{{0,n}}) ≤ c n^{-p}` with `p > 2` has at most one Gibbs measure.  The
 hypotheses are conditions on the oscillations alone, so no relation between `Φ` and a particular
 `φ` is presumed. -/
 theorem subsingleton_isGibbs_of_pair_rpow_le
-    (Φ : Finset ℤ → Config ℤ E → ℝ) (hΦ : IsPotential Φ) (habs : IsAbsolutelySummable Φ)
-    (lam : Measure E) [IsProbabilityMeasure lam] (β : ℝ)
+    (Φ : Finset ℤ → Config ℤ E → ℝ) (hΦ : IsPotential Φ)
+    (lam : Measure E) [SigmaFinite lam] [NeZero lam] (β : ℝ) (hadm : IsAdmissible Φ lam β)
     (hshift : ∀ (n : ℤ) (A : Finset ℤ), osc (Φ (shiftFinset n A)) = osc (Φ A))
     (hpair : ∀ A : Finset ℤ, (∀ a b : ℤ, a < b → A ≠ {a, b}) → osc (Φ A) = 0)
     {c p : ℝ} (hp : 2 < p)
@@ -469,7 +465,6 @@ theorem subsingleton_isGibbs_of_pair_rpow_le
     {μ : Measure (Config ℤ E) | IsGibbs (gibbsKernel Φ lam β) μ}.Subsingleton := by
   haveI := Bridge.isPotentialLib hΦ
   haveI := Bridge.isSummableLib hΦ
-  haveI := Bridge.isAbsolutelySummableLib habs
   have hshift' : ∀ (n : ℤ) (A : Finset ℤ),
       MeasureTheory.GibbsMeasure.Dobrushin.osc
           ((Φ : Potential ℤ E) (MeasureTheory.GibbsMeasure.shiftFinset n A))
@@ -491,17 +486,19 @@ theorem subsingleton_isGibbs_of_pair_rpow_le
   intro μ hμ ν hν
   haveI := hμ.1
   haveI := hν.1
-  have hK := Bridge.gibbsKernel_eq_gibbsSpec hΦ habs lam β
-  exact MeasureTheory.GibbsMeasure.subsingleton_G_of_pair_rpow_le lam β hshift' hpair' hp hbd'
+  have hK := Bridge.gibbsKernel_eq hΦ lam β hadm
+  exact MeasureTheory.GibbsMeasure.subsingleton_G_lambdaSpecification_of_pair_rpow_le lam β
+    (Bridge.isSigmaFiniteLambdaAdmissible hΦ lam β hadm) ⟨hshift', hpair', hp, hbd'⟩
     ⟨hμ.1, (Bridge.isGibbs_iff_isGibbsMeasure hK μ).1 hμ⟩
     ⟨hν.1, (Bridge.isGibbs_iff_isGibbsMeasure hK ν).1 hν⟩
 
 /-- **Georgii, Theorem (8.39) with Comment (8.41)(2)**: over a standard Borel state space, a
-shift-invariant absolutely summable pair potential on `ℤ` with `δ(Φ_{{0,n}}) ≤ c n^{-p}` and
-`p > 2` has exactly one Gibbs measure. -/
+shift-invariant pair potential on `ℤ` with `δ(Φ_{{0,n}}) ≤ c n^{-p}` and `p > 2` has exactly one
+Gibbs measure.  Uniqueness far past the nearest-neighbour Markov case of Theorem (3.5), with no
+absolute summability and no restriction on `λ` beyond `λ ∈ 𝓜(E, ℰ)`. -/
 theorem existsUnique_isGibbs_of_pair_rpow_le [StandardBorelSpace E]
-    (Φ : Finset ℤ → Config ℤ E → ℝ) (hΦ : IsPotential Φ) (habs : IsAbsolutelySummable Φ)
-    (lam : Measure E) [IsProbabilityMeasure lam] (β : ℝ)
+    (Φ : Finset ℤ → Config ℤ E → ℝ) (hΦ : IsPotential Φ)
+    (lam : Measure E) [SigmaFinite lam] [NeZero lam] (β : ℝ) (hadm : IsAdmissible Φ lam β)
     (hshift : ∀ (n : ℤ) (A : Finset ℤ), osc (Φ (shiftFinset n A)) = osc (Φ A))
     (hpair : ∀ A : Finset ℤ, (∀ a b : ℤ, a < b → A ≠ {a, b}) → osc (Φ A) = 0)
     {c p : ℝ} (hp : 2 < p)
@@ -509,7 +506,6 @@ theorem existsUnique_isGibbs_of_pair_rpow_le [StandardBorelSpace E]
     ∃! μ : Measure (Config ℤ E), IsGibbs (gibbsKernel Φ lam β) μ := by
   haveI := Bridge.isPotentialLib hΦ
   haveI := Bridge.isSummableLib hΦ
-  haveI := Bridge.isAbsolutelySummableLib habs
   have hshift' : ∀ (n : ℤ) (A : Finset ℤ),
       MeasureTheory.GibbsMeasure.Dobrushin.osc
           ((Φ : Potential ℤ E) (MeasureTheory.GibbsMeasure.shiftFinset n A))
@@ -528,10 +524,8 @@ theorem existsUnique_isGibbs_of_pair_rpow_le [StandardBorelSpace E]
     intro n hn
     rw [← Bridge.osc_eq]
     exact hbd n hn
-  have h840' : (⨆ i : ℤ, MeasureTheory.GibbsMeasure.oscSpan (Φ : Potential ℤ E) i) ≠ ⊤ :=
-    MeasureTheory.GibbsMeasure.iSup_oscSpan_ne_top_of_oscSpanDiam_ne_top hshift'
-      (MeasureTheory.GibbsMeasure.oscSpanDiam_ne_top_of_pair_rpow_le hpair' hp hbd')
-  exact Bridge.existsUnique_isGibbs hΦ habs lam β h840'
+  exact Bridge.existsUnique_isGibbs hΦ lam β hadm
+    (MeasureTheory.GibbsMeasure.HasPairDecay.iSup_oscSpan_ne_top ⟨hshift', hpair', hp, hbd'⟩)
 
 /-- Non-vacuity: the zero potential satisfies every hypothesis assembled above at once, and its
 Gibbsian specification is the independent specification `λ_Λ(·|ω)`, not a degenerate one. -/

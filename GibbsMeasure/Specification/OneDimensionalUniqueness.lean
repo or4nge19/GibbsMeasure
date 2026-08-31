@@ -639,12 +639,12 @@ lemma oscNormAt_manyBody_le (Φ : Potential S E) (i : S) :
   refine ENNReal.tsum_le_tsum fun A ↦ ?_
   by_cases hiA : A ∈ ({A : Finset S | i ∈ A} : Set (Finset S))
   swap
-  · rw [Set.indicator_of_notMem hiA]; exact zero_le'
+  · rw [Set.indicator_of_notMem hiA]; exact zero_le
   rw [Set.indicator_of_mem hiA]
   rcases le_or_gt A.card 1 with hcard | hcard
   · have h0 : _root_.oscOutside (∅ : Set S) (Φ.manyBody A) = 0 := by
       rw [Potential.manyBody_of_card_le hcard]; exact Dobrushin.osc_const 0
-    rw [h0]; exact zero_le'
+    rw [h0]; exact zero_le
   rw [Potential.manyBody_of_one_lt_card hcard]
   rcases spans_or_spans_pred hiA hcard with hs | hs
   · rw [Set.indicator_of_mem (show A ∈ ({A : Finset S | Spans A i} : Set (Finset S)) from hs)]
@@ -663,11 +663,10 @@ theorem isAbsolutelySummable_centre_manyBody (h840 : ⨆ i : S, oscSpan Φ i ≠
     h840 ∘ (eq_top_mono (le_iSup _ (Order.pred i)))⟩) (oscNormAt_manyBody_le Φ i)
 
 /-- **Georgii, Theorem (8.39)**, at his own hypotheses: a potential in the sense of Definition
-(2.2), `λ`-admissible over any σ-finite non-zero a priori measure on a standard Borel state space,
-whose
-oscillations satisfy (8.40), has exactly one Gibbs measure. No absolute summability is assumed:
-(8.40) makes the recentred many-body part absolutely summable, and the self-energies go into the a
-priori measure. -/
+(2.2), `λ`-admissible over any σ-finite non-zero a priori measure on a standard Borel state
+space, whose oscillations satisfy (8.40), has exactly one Gibbs measure. No absolute summability
+is assumed: (8.40) makes the recentred many-body part absolutely summable, and the self-energies
+go into the a priori measure. -/
 theorem existsUnique_mem_GP_lambdaSpecification_of_iSup_oscSpan_ne_top [Countable S]
     [StandardBorelSpace E] {m : ℕ} (hexh : HasBoundedBoundary S m)
     [Potential.IsPotential Φ] [Potential.IsSummable Φ]
@@ -681,7 +680,7 @@ theorem existsUnique_mem_GP_lambdaSpecification_of_iSup_oscSpan_ne_top [Countabl
   classical
   have hE : Nonempty E := lam.nonempty_of_neZero
   set η₀ : S → E := fun _ ↦ Classical.arbitrary E with hη₀
-  haveI : Potential.IsAbsolutelySummable ((Potential.manyBody Φ).centre η₀) :=
+  have : Potential.IsAbsolutelySummable ((Potential.manyBody Φ).centre η₀) :=
     isAbsolutelySummable_centre_manyBody h840 η₀
   obtain ⟨μ, hμ⟩ := Potential.GP_lambdaSpecification_nonempty (Φ := Φ) (β := β) (η₀ := η₀)
     (lam := lam)
@@ -990,6 +989,72 @@ theorem iSup_oscSpan_ne_top_of_oscSpanDiam_ne_top {Φ : Potential ℤ E}
       Dobrushin.osc (Φ (shiftFinset n A)) = Dobrushin.osc (Φ A))
     (h842 : oscSpanDiam Φ ≠ ⊤) : ⨆ i : ℤ, oscSpan Φ i ≠ ⊤ :=
   ne_top_of_le_ne_top h842 (iSup_le fun i ↦ oscSpan_le_oscSpanDiam hshift i)
+
+/-! #### Comment (8.41)(2) at Georgii's own hypotheses -/
+
+section PairPotential
+
+variable {Φ : Potential ℤ E} [Potential.IsPotential Φ] [Potential.IsSummable Φ]
+  (lam : Measure E) (β : ℝ)
+
+variable (Φ) in
+/-- The pair-decay hypothesis of Georgii, Comment (8.41)(2): shift-invariant oscillations
+supported on pairs, decaying as `δ(Φ_{{0,n}}) ≤ c n^{-p}`. -/
+structure HasPairDecay (c p : ℝ) : Prop where
+  /-- The oscillations are shift invariant. -/
+  shift (n : ℤ) (A : Finset ℤ) : Dobrushin.osc (Φ (shiftFinset n A)) = Dobrushin.osc (Φ A)
+  /-- Only pairs oscillate. -/
+  pair (A : Finset ℤ) : (∀ a b : ℤ, a < b → A ≠ {a, b}) → Dobrushin.osc (Φ A) = 0
+  /-- The decay exponent exceeds `2`. -/
+  two_lt : 2 < p
+  /-- The two-point oscillations decay. -/
+  bound (n : ℕ) : 0 < n → Dobrushin.osc (Φ {0, (n : ℤ)}) ≤ ENNReal.ofReal (c * (n : ℝ) ^ (-p))
+
+omit [Potential.IsPotential Φ] [Potential.IsSummable Φ] in
+lemma HasPairDecay.iSup_oscSpan_ne_top {c p : ℝ} (h : HasPairDecay Φ c p) :
+    ⨆ i : ℤ, oscSpan Φ i ≠ ⊤ :=
+  iSup_oscSpan_ne_top_of_oscSpanDiam_ne_top h.shift
+    (oscSpanDiam_ne_top_of_pair_rpow_le h.pair h.two_lt h.bound)
+
+/-- **Georgii, Theorem (8.39) with Comment (8.41)(2), at his own hypotheses.** A potential on `ℤ`
+in the sense of Definition (2.2), `λ`-admissible over a σ-finite non-zero a priori measure, whose
+oscillations are shift invariant, supported on pairs and decaying as `δ(Φ_{{0,n}}) ≤ c n^{-p}`
+with `p > 2`, has at most one Gibbs measure. No absolute summability is assumed. -/
+theorem subsingleton_G_lambdaSpecification_of_pair_rpow_le [SigmaFinite lam] [NeZero lam]
+    (hZ : _root_.Specification.IsSigmaFiniteLambdaAdmissible (S := ℤ) (E := E) lam
+      (Φ.boltzmannFactor β))
+    {c p : ℝ} (h : HasPairDecay Φ c p) :
+    (G (γ := _root_.Specification.lambdaSpecification (S := ℤ) (E := E) lam
+      (Φ.boltzmannFactor β)
+      (Potential.isPremodifier_boltzmannFactor (Φ := Φ) β) hZ)).Subsingleton :=
+  subsingleton_G_lambdaSpecification_of_iSup_oscSpan_ne_top hasBoundedBoundary_int lam β hZ
+    h.iSup_oscSpan_ne_top
+
+/-- **Georgii, Theorem (8.39) with Comment (8.41)(2)**, for `𝒢(Φ)`. -/
+theorem subsingleton_GP_lambdaSpecification_of_pair_rpow_le [SigmaFinite lam] [NeZero lam]
+    (hZ : _root_.Specification.IsSigmaFiniteLambdaAdmissible (S := ℤ) (E := E) lam
+      (Φ.boltzmannFactor β))
+    {c p : ℝ} (h : HasPairDecay Φ c p) :
+    (GP (_root_.Specification.lambdaSpecification (S := ℤ) (E := E) lam (Φ.boltzmannFactor β)
+      (Potential.isPremodifier_boltzmannFactor (Φ := Φ) β) hZ)).Subsingleton :=
+  subsingleton_GP_lambdaSpecification_of_iSup_oscSpan_ne_top hasBoundedBoundary_int lam β hZ
+    h.iSup_oscSpan_ne_top
+
+/-- **Georgii, Theorem (8.39) with Comment (8.41)(2), in full.** Over a standard Borel state space
+such a potential has exactly one Gibbs measure — uniqueness far past the nearest-neighbour Markov
+case of (3.5), with no absolute summability and no restriction on `λ` beyond `λ ∈ 𝓜(E, ℰ)`. -/
+theorem existsUnique_mem_GP_lambdaSpecification_of_pair_rpow_le [StandardBorelSpace E]
+    [SigmaFinite lam] [NeZero lam]
+    (hZ : _root_.Specification.IsSigmaFiniteLambdaAdmissible (S := ℤ) (E := E) lam
+      (Φ.boltzmannFactor β))
+    {c p : ℝ} (h : HasPairDecay Φ c p) :
+    ∃! μ : ProbabilityMeasure (ℤ → E),
+      μ ∈ GP (_root_.Specification.lambdaSpecification (S := ℤ) (E := E) lam
+        (Φ.boltzmannFactor β) (Potential.isPremodifier_boltzmannFactor (Φ := Φ) β) hZ) :=
+  existsUnique_mem_GP_lambdaSpecification_of_iSup_oscSpan_ne_top hasBoundedBoundary_int lam β hZ
+    h.iSup_oscSpan_ne_top
+
+end PairPotential
 
 end Comments
 

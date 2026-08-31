@@ -6,13 +6,12 @@ import Comparator.Defs_OneDim
 Georgii's Proposition (8.38), Theorem (8.39) and Comments (8.41).
 
 Proposition (8.38) is stated for an arbitrary specification on an arbitrary countable parameter
-set.  The first half of Theorem (8.39) is stated at Georgii's own hypotheses: a potential in the
-sense of Definition (2.2) — summable in the sense of Convention (2.1), *not* absolutely summable —
-over an arbitrary σ-finite non-zero `λ`-admissible a priori measure.  The second half needs
-existence, i.e. Theorem (4.23)(a), available only for an absolutely summable potential over a
-probability a priori measure on a standard Borel state space, and is stated at exactly those
-hypotheses.  Nothing is claimed for the pair decay exponent `p ≤ 2`, where Georgii records that a
-phase transition can occur.
+set.  Theorem (8.39) is stated at Georgii's own hypotheses throughout, in both halves: a potential
+in the sense of Definition (2.2) — summable in the sense of Convention (2.1), *not* absolutely
+summable — that is `λ`-admissible over an arbitrary σ-finite non-zero a priori measure, with the
+state space standard Borel for the existence half only, exactly as in the book.  Nothing is
+claimed for the pair decay exponent `p ≤ 2`, where Georgii records that a phase transition can
+occur.
 
 ## Main statements
 
@@ -86,13 +85,15 @@ theorem subsingleton_isGibbs_of_iSup_oscSpan_ne_top [Countable S] [Preorder S] {
     {μ : Measure (Config S E) | IsGibbs (gibbsKernel Φ lam β) μ}.Subsingleton := by
   sorry
 
-/-- **Georgii, Theorem (8.39), second half**: under condition (8.40) the potential has exactly one
-Gibbs measure.  Existence rests on Theorem (4.23)(a), available only for an absolutely summable
-potential over a finite a priori measure on a standard Borel state space, so the statement is made
-at exactly those hypotheses and no weaker ones. -/
+/-- **Georgii, Theorem (8.39), second half**: over a standard Borel state space, a potential in
+the sense of Definition (2.2) that is `λ`-admissible over a σ-finite non-zero `λ` and satisfies
+condition (8.40) has exactly one Gibbs measure.  No absolute summability is assumed: Georgii's own
+reduction recentres the many-body part of `Φ`, which (8.40) puts in `ℬ`, and absorbs the
+self-energies `Φ_{i}` into per-site a priori measures. -/
 theorem existsUnique_isGibbs_of_iSup_oscSpan_ne_top [StandardBorelSpace E]
-    (Φ : Finset ℤ → Config ℤ E → ℝ) (hΦ : IsPotential Φ) (habs : IsAbsolutelySummable Φ)
-    (lam : Measure E) [IsProbabilityMeasure lam] (β : ℝ)
+    (Φ : Finset ℤ → Config ℤ E → ℝ) (hΦ : IsPotential Φ)
+    (lam : Measure E) [SigmaFinite lam] [NeZero lam] (β : ℝ)
+    (hadm : IsAdmissible Φ lam β)
     (h840 : (⨆ i : ℤ, oscSpan Φ i) ≠ ⊤) :
     ∃! μ : Measure (Config ℤ E), IsGibbs (gibbsKernel Φ lam β) μ := by
   sorry
@@ -102,8 +103,8 @@ oscillations decay as `δ(Φ_{{0,n}}) ≤ c n^{-p}` with `p > 2` has at most one
 hypotheses are conditions on the oscillations alone, so no relation between `Φ` and a particular
 `φ` is presumed. -/
 theorem subsingleton_isGibbs_of_pair_rpow_le
-    (Φ : Finset ℤ → Config ℤ E → ℝ) (hΦ : IsPotential Φ) (habs : IsAbsolutelySummable Φ)
-    (lam : Measure E) [IsProbabilityMeasure lam] (β : ℝ)
+    (Φ : Finset ℤ → Config ℤ E → ℝ) (hΦ : IsPotential Φ)
+    (lam : Measure E) [SigmaFinite lam] [NeZero lam] (β : ℝ) (hadm : IsAdmissible Φ lam β)
     (hshift : ∀ (n : ℤ) (A : Finset ℤ), osc (Φ (shiftFinset n A)) = osc (Φ A))
     (hpair : ∀ A : Finset ℤ, (∀ a b : ℤ, a < b → A ≠ {a, b}) → osc (Φ A) = 0)
     {c p : ℝ} (hp : 2 < p)
@@ -112,11 +113,12 @@ theorem subsingleton_isGibbs_of_pair_rpow_le
   sorry
 
 /-- **Georgii, Theorem (8.39) with Comment (8.41)(2)**: over a standard Borel state space, a
-shift-invariant absolutely summable pair potential on `ℤ` with `δ(Φ_{{0,n}}) ≤ c n^{-p}` and
-`p > 2` has exactly one Gibbs measure. -/
+shift-invariant pair potential on `ℤ` with `δ(Φ_{{0,n}}) ≤ c n^{-p}` and `p > 2` has exactly one
+Gibbs measure.  Uniqueness far past the nearest-neighbour Markov case of Theorem (3.5), with no
+absolute summability and no restriction on `λ` beyond `λ ∈ 𝓜(E, ℰ)`. -/
 theorem existsUnique_isGibbs_of_pair_rpow_le [StandardBorelSpace E]
-    (Φ : Finset ℤ → Config ℤ E → ℝ) (hΦ : IsPotential Φ) (habs : IsAbsolutelySummable Φ)
-    (lam : Measure E) [IsProbabilityMeasure lam] (β : ℝ)
+    (Φ : Finset ℤ → Config ℤ E → ℝ) (hΦ : IsPotential Φ)
+    (lam : Measure E) [SigmaFinite lam] [NeZero lam] (β : ℝ) (hadm : IsAdmissible Φ lam β)
     (hshift : ∀ (n : ℤ) (A : Finset ℤ), osc (Φ (shiftFinset n A)) = osc (Φ A))
     (hpair : ∀ A : Finset ℤ, (∀ a b : ℤ, a < b → A ≠ {a, b}) → osc (Φ A) = 0)
     {c p : ℝ} (hp : 2 < p)

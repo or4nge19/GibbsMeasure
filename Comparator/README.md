@@ -21,7 +21,7 @@ axioms beyond a permitted list, and that the result is accepted by the Lean kern
 | entry `X` | config | thms | Georgii result |
 | --- | --- | ---: | --- |
 | — (`Challenge.lean`/`Solution.lean`) | `config.json` | 9 | **(6.9)** at the explicit threshold `log 3`; the critical inverse temperature `β_c` with `1/4 ≤ β_c ≤ log 3`, uniqueness for `0 ≤ β < β_c` and non-uniqueness for `β_c < β`; the plus and minus phases as genuine local limits with the sandwich `μ₋ ≼ μ ≼ μ₊`; and the **Lebowitz–Martin-Löf/Ruelle** equivalence `|𝒢(β)| > 1 ↔ 0 < μ₊(σ₀)` |
-| `OneDim` | `config_OneDim.json` | 9 | **(8.38)**, a uniqueness criterion for an arbitrary specification, and **(8.39)** on `ℤ` and `ℕ`, ending in uniqueness for pair potentials with `δ(Φ_{0,n}) ≤ c n^{-p}`, `p > 2` |
+| `OneDim` | `config_OneDim.json` | 9 | **(8.38)**, a uniqueness criterion for an arbitrary specification, and **(8.39) in full at Georgii's hypotheses** — `∃!` over any σ-finite non-zero `λ`-admissible a priori measure, no absolute summability — on `ℤ` and `ℕ`, ending in uniqueness for pair potentials with `δ(Φ_{0,n}) ≤ c n^{-p}`, `p > 2` |
 | `Simplex` | `config_Simplex.json` | 7 | (7.7)(a), **(7.26)**, and (7.29): distinct extreme Gibbs measures are mutually singular, and `|ex 𝒢(γ)| ≥ n` is detected by an `n`-fold splitting of the tail |
 | `Dobrushin` | `config_Dobrushin.json` | 7 | **(8.7)** in `∃!` form, (8.20), (8.23): under Dobrushin's condition the finite-volume distributions *converge*, so uniqueness is a construction |
 | `Existence` | `config_Existence.json` | 6 | (4.22), **(4.23)(a),(c),(d)**: existence, compactness, and closedness of the Gibbs correspondence along a net of potentials |
@@ -42,6 +42,11 @@ Eleven entries, 61 theorems.
 > eleven `Lean default kernel accepts the solution`. So all 61 theorems were checked by two
 > independent kernels inside the sandbox comparator's README prescribes.
 >
+> Since that run, three (8.39) statements of `OneDim` have been **strengthened** — the `∃!` and
+> the two pair theorems now assume `λ`-admissibility over a σ-finite non-zero `λ` instead of
+> absolute summability over a probability measure. Run 33340000915 certifies the weaker
+> statements it saw; the strengthened ones await the next run.
+>
 > Before that date the workflow had never executed a step — every run died in seconds with
 > `The job was not started because your account is locked due to a billing issue`. Anything
 > written about this suite before 2026-08-30 rested on a re-implementation of comparator's checks
@@ -57,12 +62,12 @@ compromise the `Challenge`. Our CI pre-builds the *library* deliberately, so tha
 challenge and solution modules are compiled inside the sandbox — that is the intended
 arrangement, but it is sound only because we control both sides.
 
-Two conventions are worth stating because they are what keeps the suite honest. **Nothing is
+One convention is worth stating because it is what keeps the suite honest. **Nothing is
 claimed at `β = β_c`**, and Onsager's exact value appears nowhere: it is not proved here, and
-Georgii does not prove it either. And the second half of (8.39) (`|𝒢(Φ)| = 1` rather than `≤ 1`)
-is stated at the hypotheses the library actually has — an absolutely summable potential over a
-probability a priori measure — not at Georgii's, because the existence half rests on (4.23)(a),
-which is available only there.
+Georgii does not prove it either. (An earlier weakening — the second half of (8.39) stated only
+for an absolutely summable potential over a probability a priori measure — is gone: both halves
+now stand at Georgii's own hypotheses, existence going through his reduction to the recentred
+many-body part over per-site a priori measures.)
 
 `Challenge_Representation.lean` states exactly Georgii (2.30) and nothing more: the potential it
 produces is a potential in the sense of (2.2) — its Hamiltonians exist as limits of the partial
