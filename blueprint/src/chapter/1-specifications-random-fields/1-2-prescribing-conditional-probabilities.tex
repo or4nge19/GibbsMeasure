@@ -15,7 +15,7 @@ All specifications will be with parameter set $S$ and state space $(E, \mathcal{
 \begin{definition}[Independent specification]
     \label{def:indep-spec}
     \uses{def:spec}
-    \lean{Specification.IsIndep}
+    \lean{IsStronglyConsistent}
     \leanok{}
 
     A specification $\gamma$ is \textbf{independent} iff
@@ -24,7 +24,7 @@ All specifications will be with parameter set $S$ and state space $(E, \mathcal{
 
 \begin{definition}[Markov specification]
     \label{def:markov-spec}
-    \lean{Specification.IsMarkov}
+    \lean{Specification.isMarkovKernel'}
     \leanok{}
     \uses{def:spec}
 

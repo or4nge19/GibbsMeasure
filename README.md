@@ -1,7 +1,7 @@
 # Gibbs Measures
 
-[![.github/workflows/push.yml](https://github.com/james18lpc/GibbsMeasure/actions/workflows/push.yml/badge.svg)](https://github.com/james18lpc/GibbsMeasure/actions/workflows/push.yml)
-[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/james18lpc/GibbsMeasure)
+[![.github/workflows/push.yml](https://github.com/or4nge19/GibbsMeasure/actions/workflows/push.yml/badge.svg)](https://github.com/or4nge19/GibbsMeasure/actions/workflows/push.yml)
+[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/or4nge19/GibbsMeasure)
 
 The purpose of this repository is to *digitise* some mathematical definitions, theorem statements
 and theorem proofs. Digitisation, or formalisation, is a process where the source material,
@@ -62,8 +62,9 @@ From Chapter 7: Theorem (7.7), extreme ⟺ tail-trivial.
 
 Proposition (4.19): uniform convergence `γ^{Φⁱ} → γ^Φ` of Gibbsian specifications from
 convergence of the Hamiltonians, with Georgii's quantitative bound
-`‖γ^{Φⁱ}_Λ f − γ^Φ_Λ f‖ ≤ 2‖f‖(e^{|β|‖H^{Φⁱ−Φ}_Λ‖} − 1)`; the **general net Theorems
-(4.12)–(4.13)** (eventually-bounded densities on a set of eventually-full measure; confinement
+`‖γ^{Φⁱ}_Λ f − γ^Φ_Λ f‖ ≤ 2‖f‖(e^{|β|‖H^{Φⁱ−Φ}_Λ‖} − 1)`; the general net results
+**Theorem (4.12)** and **Corollary (4.13)** (eventually-bounded densities on a set of
+eventually-full measure; confinement
 boxes `K_ℓ^Δ`, in density and Hamiltonian forms) with the bounded-density Comment (4.14)(1)
 derived as a corollary; Example (4.20)(1) **free boundary conditions** (the truncated potential
 `Φ^Δ`, the tail estimate `‖H^{Φ^Δ−Φ}_Λ‖ ≤ ∑_{A∩Λ≠∅, A⊄Δ}‖Φ_A‖ → 0`, cluster points of the
@@ -166,8 +167,9 @@ family of proper probability kernels from a decreasing family of sub-σ-algebras
 and the `(𝒫, 𝓣)`-kernel of (7.25) proved at that level. Its payoff is §7.2–7.3 on exchangeability
 (`GibbsMeasure/Specification/HewittSavage.lean`, `GibbsMeasure/Specification/DeFinetti.lean`):
 Example **(7.16)**, the exchangeable distributions as the invariant measures of the symmetrisation
-kernels; the **Hewitt–Savage zero-one law (7.17)** (`measure_symmetric_eq_zero_or_one`); the
-identification `ex 𝒫_I` = i.i.d. product measures (`mem_extremePoints_exchangeable_iff`) — the
+kernels; the **Hewitt–Savage zero-one law** of Example (7.16) (`measure_symmetric_eq_zero_or_one`); the
+identification `ex 𝒫_I` = i.i.d. product measures, Georgii's equation **(7.17)**
+(`mem_extremePoints_exchangeable_iff`) — the
 substantial half over an *arbitrary* state space, via a subtraction-free symmetrisation estimate
 obtained from group translations alone, with no counting of injections; and **de Finetti's theorem
 in the version of Dynkin (7.31)** (`existsUnique_mixing_of_isExchangeable`): over a standard Borel
@@ -260,8 +262,8 @@ now the theorem `isUpperSet_isingNonUniqueness`, because the **Lebowitz–Martin
 equivalence** `|𝒢(βΦ)| > 1 ↔ μ₊^β(σ₀) > 0` — which Georgii cites without proving it — is proved in
 `GibbsMeasure/Model/LebowitzMartinLof.lean`
 (`nontrivial_GP_ising2D_iff_spontaneousMagnetisation_pos`). Nothing is asserted at `β = β_c`.
-Onsager's exact value is not proved here, and Georgii does not prove it either — the digitised text
-does not state it.
+Onsager's exact value `β_c = ½ log(1+√2)` is not proved here. Georgii states it in the remarks
+after (6.9) without proof, referring to the Bibliographical Notes.
 
 Two different senses of "sharp" occur in these names and should not be conflated. In
 `ising_sharp_phase_transition` it means the *dichotomy* is sharp: a single threshold `β_c` with
@@ -294,8 +296,8 @@ decay of the interaction, is its corollary, at Georgii's own hypotheses: Definit
 summability rather than absolute summability, any σ-finite non-zero λ-admissible a priori measure,
 and both `S = ℤ` and `S = ℕ` — through `HasBoundedBoundary`, an abstraction of "exhausted by
 intervals with a bounded number of boundary sites". Georgii's Comments (8.41) come with it, ending
-in `subsingleton_G_of_pair_rpow_le`: a shift-invariant pair potential on `ℤ` with
-`δ(Φ_{0,n}) ≤ c n^{-p}`, `p > 2`, has at most one Gibbs measure — uniqueness far past the
+in `subsingleton_G_lambdaSpecification_of_pair_rpow_le`: a shift-invariant pair potential on `ℤ`
+with `δ(Φ_{0,n}) ≤ c n^{-p}`, `p > 2`, has at most one Gibbs measure — uniqueness far past the
 nearest-neighbour Markov case of (3.5). The second half of (8.39), `|𝒢(Φ)| = 1` rather than
 `≤ 1`, follows Georgii's own reduction and is proved at his hypotheses
 (`existsUnique_mem_GP_lambdaSpecification_of_iSup_oscSpan_ne_top`). It needs three things that
@@ -324,7 +326,8 @@ the general theory applies verbatim to `ℤ^d` once a torus reduction and anchor
 `ℤ` are exactly the Gibbsian specifications of the homogeneous nearest-neighbour potentials
 `-log P` for a positive stochastic matrix `P`, and each has the stationary Markov chain `μ_P` as
 its **unique** Gibbs measure — `𝒢(γ_P) = {μ_P}` (`GibbsMeasure/Model/MarkovChain.lean`:
-`gibbsMeasure_eq_singleton`, `exists_matrix_eq_markovSpecification`), whence Georgii (3.15).
+`gibbsMeasure_eq_singleton`, `exists_matrix_eq_markovSpecification`). Georgii's (3.15), the
+specialisation to the one-dimensional Ising potential `Φ^{J,h}` of (3.13), is not instantiated.
 The correspondence `g ↔ P` uses the Perron–Frobenius theorem and Doeblin's ergodic theorem, both
 of which had to be built (`GibbsMeasure/Mathlib/LinearAlgebra/Matrix/`).
 
@@ -348,7 +351,7 @@ The Lean code is contained in the directory `GibbsMeasure/`. The subdirectories 
 On top of the new developments, there are many basic lemmas needed for this project that are
 currently missing from Mathlib.
 
-See the [upstreaming dashboard](https://james18lpc.github.io/GibbsMeasure/upstreaming) for more information.
+See the [upstreaming dashboard](https://or4nge19.github.io/GibbsMeasure/upstreaming) for more information.
 
 ## Getting the project
 
@@ -356,7 +359,7 @@ To build the Lean files of this project, you need to have a working version of L
 See [the installation instructions](https://lean-lang.org/install/).
 Alternatively, click on the button below to open an Ona workspace containing the project.
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/james18lpc/GibbsMeasure)
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/or4nge19/GibbsMeasure)
 
 In either case, run `lake exe cache get` and then `lake build` to build the project.
 
