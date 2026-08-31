@@ -476,6 +476,23 @@ lemma tanh_le_self {x : ℝ} (hx : 0 ≤ x) : Real.tanh x ≤ x := by
   rw [← Real.tanh_log_div_four one_pos hM] at h
   simpa [Real.log_exp] using h
 
+/-- `tanh x < x` for `x > 0`, so the `tanh` criterion is *strictly* weaker than the `δ` one.
+Halving: with `t = tanh (x/2)` the addition formula gives `tanh x = 2t/(1 + t²)`, and
+`2t ≤ x` while `1 + t² > 1`. -/
+lemma tanh_lt_self {x : ℝ} (hx : 0 < x) : Real.tanh x < x := by
+  set t : ℝ := Real.tanh (x / 2) with ht
+  have ht0 : 0 < t := by
+    rw [ht, Real.tanh_eq_sinh_div_cosh]
+    exact div_pos (Real.sinh_pos_iff.2 (by linarith)) (Real.cosh_pos _)
+  have hthalf : t ≤ x / 2 := ht ▸ tanh_le_self (by linarith)
+  have hden : (1 : ℝ) < 1 + t * t := by nlinarith
+  have hx2 : x = x / 2 + x / 2 := by ring
+  have hsum : t + t ≤ x := by linarith
+  calc Real.tanh x = (t + t) / (1 + t * t) := by
+        rw [hx2, Real.tanh_add, ← ht]
+    _ ≤ x / (1 + t * t) := by gcongr
+    _ < x := div_lt_self hx hden
+
 /-- The elementary estimate behind Georgii (8.8): if the "density" of `(c, e)` relative to
 `(a, b)` lies between `m` and `M`, then the normalised ratios differ by at most
 `(√M − √m)/(√M + √m)`. -/
@@ -1197,6 +1214,33 @@ theorem isDobrushin_gibbsSpecification {c : ℝ≥0∞} (hc : c < 2)
           rw [div_eq_mul_inv, div_eq_mul_inv]; ring
       _ ≤ c / 2 := by gcongr; exact hΦ i
 
+/-- **Georgii, Example (8.9)(2), general form.** The `tanh` criterion: if for every site the
+pair sums `tanh (|β| ∑_{A ⊇ {i,j}} δ(Φ_A) / 2)` add up to less than `1`, the Gibbsian
+specification of `βΦ` satisfies Dobrushin's condition. Georgii states this only for two-point
+spin spaces; `interdep_gibbsSpecification_le_tanh` gives it over any state space. Since
+`tanh x ≤ x`, it is strictly weaker than the hypothesis of `isDobrushin_gibbsSpecification`. -/
+theorem isDobrushin_gibbsSpecification_of_tanh {c : ℝ≥0∞} (hc : c < 1)
+    (hΦ : ∀ i, ∑' j : S, {j : S | j ≠ i}.indicator
+        (fun j ↦ ENNReal.ofReal (Real.tanh (|β| * (pairStrength Φ i j).toReal / 2))) j ≤ c) :
+    IsDobrushin (Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) := by
+  refine ⟨Potential.isQuasilocal_gibbsSpecificationOfAbsolutelySummable ν β, c, hc, fun i ↦ ?_⟩
+  set γ := Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β with hγ
+  have hzero : ∀ j : S, interdep γ i j
+      = {j : S | j ≠ i}.indicator (fun j ↦ interdep γ i j) j := by
+    intro j
+    by_cases hj : j = i
+    · subst hj
+      rw [Set.indicator_of_notMem (show j ∉ {k : S | k ≠ j} by simp), interdep_self]
+    · rw [Set.indicator_of_mem (show j ∈ {j : S | j ≠ i} from hj)]
+  refine le_trans (le_of_eq (tsum_congr hzero)) (le_trans (ENNReal.tsum_le_tsum fun j ↦ ?_) (hΦ i))
+  by_cases hj : j = i
+  · subst hj
+    rw [Set.indicator_of_notMem (show j ∉ {k : S | k ≠ j} by simp),
+      Set.indicator_of_notMem (show j ∉ {k : S | k ≠ j} by simp)]
+  · rw [Set.indicator_of_mem (show j ∈ {j : S | j ≠ i} from hj),
+      Set.indicator_of_mem (show j ∈ {j : S | j ≠ i} from hj)]
+    exact interdep_gibbsSpecification_le_tanh ν β i j
+
 /-- **Georgii, Proposition (8.8)** in Georgii's own `sup`-form. -/
 theorem isDobrushin_gibbsSpecification_of_iSup_lt
     (h : ⨆ i, ENNReal.ofReal |β| * interactionStrength Φ i < 2) :
@@ -1257,6 +1301,7 @@ lemma isingPotential_support (G : SimpleGraph S) {A : Finset S} {i : S}
   · rw [← hb, ← ha]; exact hab.symm
   · exact absurd (ha.trans hb.symm) hab.ne
 
+omit [DecidableEq S] in
 /-- **Georgii (8.8) for the Ising model.** `∑_{A ∋ i} (|A| − 1) δ(Φ_A) ≤ deg(i) · 2|J|`. -/
 lemma interactionStrength_isingPotential_le (G : SimpleGraph S) [G.LocallyFinite] (J h : ℝ)
     (i : S) :
@@ -1302,6 +1347,79 @@ lemma interactionStrength_isingPotential_le (G : SimpleGraph S) [G.LocallyFinite
         gcongr
         exact_mod_cast Finset.card_image_le
 
+omit [DecidableEq S] in
+/-- For the Ising potential the only interaction term containing two distinct sites is the bond
+`{i, j}`, so `∑_{A ⊇ {i,j}} δ(Φ_A) ≤ 2|J|` on an edge. -/
+lemma pairStrength_isingPotential_le (G : SimpleGraph S) (J h : ℝ) {i j : S} (hij : G.Adj i j) :
+    pairStrength (isingPotential G J h) i j ≤ ENNReal.ofReal (2 * |J|) := by
+  classical
+  set f : Finset S → ℝ≥0∞ := fun A ↦ {A : Finset S | i ∈ A ∧ j ∈ A}.indicator
+    (fun A ↦ osc (isingPotential G J h A)) A with hf
+  have hzero : ∀ A : Finset S, A ∉ ({({i, j} : Finset S)} : Finset (Finset S)) → f A = 0 := by
+    intro A hA
+    simp only [hf]
+    by_cases hmem : i ∈ A ∧ j ∈ A
+    swap
+    · exact Set.indicator_of_notMem (show A ∉ {A : Finset S | i ∈ A ∧ j ∈ A} from hmem) _
+    rw [Set.indicator_of_mem (show A ∈ {A : Finset S | i ∈ A ∧ j ∈ A} from hmem)]
+    by_cases hcard : A.card = 1
+    · obtain ⟨a, rfl⟩ := Finset.card_eq_one.1 hcard
+      simp only [Finset.mem_singleton] at hmem
+      exact absurd (hmem.1.trans hmem.2.symm) hij.ne
+    by_cases hedge : A.card = 2 ∧ ∃ a ∈ A, ∃ b ∈ A, G.Adj a b
+    · obtain ⟨k, hik, hAeq⟩ := isingPotential_support G hmem.1 hedge
+      have hkj : k = j := by
+        have : j ∈ ({i, k} : Finset S) := hAeq ▸ hmem.2
+        simp only [Finset.mem_insert, Finset.mem_singleton] at this
+        rcases this with h | h
+        · exact absurd h.symm hij.ne
+        · exact h.symm
+      exact absurd (by simp [hAeq, hkj]) hA
+    · have hΦ0 : isingPotential G J h A = 0 :=
+        funext fun η ↦ Potential.nearestNeighbourPair_apply_eq_zero hcard hedge η
+      have hosc0 : osc (0 : (S → Bool) → ℝ) = 0 := by
+        refine le_antisymm (osc_le fun _ _ ↦ ?_) bot_le
+        simp
+      rw [hΦ0, hosc0]
+  have hcard2 : ({i, j} : Finset S).card = 2 := Finset.card_pair hij.ne
+  have hedge2 : ({i, j} : Finset S).card = 2 ∧
+      ∃ a ∈ ({i, j} : Finset S), ∃ b ∈ ({i, j} : Finset S), G.Adj a b :=
+    ⟨hcard2, i, by simp, j, by simp, hij⟩
+  rw [pairStrength, ← hf, tsum_eq_sum hzero, Finset.sum_singleton]
+  simp only [hf]
+  rw [Set.indicator_of_mem (show ({i, j} : Finset S) ∈ {A : Finset S | i ∈ A ∧ j ∈ A} by simp)]
+  simpa using osc_isingPotential_le G J h hedge2
+
+omit [DecidableEq S] in
+/-- Off the edges of `G` two distinct sites share no interaction term. -/
+lemma pairStrength_isingPotential_eq_zero (G : SimpleGraph S) (J h : ℝ) {i j : S}
+    (hne : i ≠ j) (hij : ¬ G.Adj i j) :
+    pairStrength (isingPotential G J h) i j = 0 := by
+  classical
+  refine ENNReal.tsum_eq_zero.2 fun A ↦ ?_
+  by_cases hmem : i ∈ A ∧ j ∈ A
+  swap
+  · exact Set.indicator_of_notMem (show A ∉ {A : Finset S | i ∈ A ∧ j ∈ A} from hmem) _
+  rw [Set.indicator_of_mem (show A ∈ {A : Finset S | i ∈ A ∧ j ∈ A} from hmem)]
+  by_cases hcard : A.card = 1
+  · obtain ⟨a, rfl⟩ := Finset.card_eq_one.1 hcard
+    simp only [Finset.mem_singleton] at hmem
+    exact absurd (hmem.1.trans hmem.2.symm) hne
+  by_cases hedge : A.card = 2 ∧ ∃ a ∈ A, ∃ b ∈ A, G.Adj a b
+  · obtain ⟨k, hik, hAeq⟩ := isingPotential_support G hmem.1 hedge
+    have hkj : k = j := by
+      have : j ∈ ({i, k} : Finset S) := hAeq ▸ hmem.2
+      simp only [Finset.mem_insert, Finset.mem_singleton] at this
+      rcases this with h | h
+      · exact absurd h.symm hne
+      · exact h.symm
+    exact absurd (hkj ▸ hik) hij
+  · have hΦ0 : isingPotential G J h A = 0 :=
+      funext fun η ↦ Potential.nearestNeighbourPair_apply_eq_zero hcard hedge η
+    rw [hΦ0]
+    refine le_antisymm (osc_le fun _ _ ↦ ?_) bot_le
+    simp
+
 /-- Each site of `ℤ^d` has at most `2d` nearest neighbours. -/
 lemma card_neighborFinset_latticeGraph_le (d : ℕ) (v : Fin d → ℤ) :
     ((latticeGraph d).neighborFinset v).card ≤ 2 * d := by
@@ -1324,8 +1442,8 @@ lemma card_neighborFinset_latticeGraph_le (d : ℕ) (v : Fin d → ℤ) :
 Proposition (8.8) applied to the nearest-neighbour spin potential of Example (8.9)(2), using
 only that example's computation `δ(Φ_A) = 2|J(A)|`. Each of the `2d` bonds at a site
 contributes `(|A| − 1) δ(Φ_A) = 2|βJ|`, so `∑_{A ∋ i} (|A| − 1) δ((βΦ)_A) ≤ 4d|βJ| < 2`. The
-sharper criterion (8.10) of Example (8.9)(2), `sup_i ∑_{A ∋ i} (|A| − 1) tanh |J(A)| < 1` —
-here `2d tanh |βJ| < 1` — is not proved. -/
+sharper criterion (8.10) of Example (8.9)(2), here `2d tanh |βJ| < 1`, is
+`isDobrushin_isingSpecification_tanh`. -/
 theorem isDobrushin_isingSpecification (d : ℕ) (J h β : ℝ) (hβ : 4 * d * |β * J| < 2) :
     IsDobrushin (isingSpecification (latticeGraph d) J h β) := by
   classical
@@ -1353,6 +1471,66 @@ theorem isDobrushin_isingSpecification (d : ℕ) (J h β : ℝ) (hβ : 4 * d * |
           push_cast
           rw [abs_mul]
           ring
+
+/-- **Georgii, Example (8.9)(2) for the `ℤ^d` Ising model.** Dobrushin's condition holds as soon
+as `2d · tanh|βJ| < 1`. This is Georgii's (8.10) specialised to nearest neighbours, and since
+`tanh x < x` for `x > 0` it is strictly weaker than the hypothesis `4d|βJ| < 2` of
+`isDobrushin_isingSpecification`: at `d = 2, J = 1` it gives uniqueness for
+`β < artanh (1/4) ≈ 0.2554` rather than `β < 1/4`. -/
+theorem isDobrushin_isingSpecification_tanh (d : ℕ) (J h β : ℝ)
+    (hβ : 2 * d * Real.tanh |β * J| < 1) :
+    IsDobrushin (isingSpecification (latticeGraph d) J h β) := by
+  classical
+  set G := latticeGraph d with hG
+  set t : ℝ := Real.tanh |β * J| with ht
+  have ht0 : 0 ≤ t := Real.tanh_nonneg (abs_nonneg _)
+  rw [isingSpecification]
+  refine isDobrushin_gibbsSpecification_of_tanh (Φ := isingPotential G J h)
+    uniformSpinMeasure β (c := ENNReal.ofReal (2 * d * t))
+    (by rwa [show (1:ℝ≥0∞) = ENNReal.ofReal 1 by norm_num,
+      ENNReal.ofReal_lt_ofReal_iff (by norm_num)]) (fun i ↦ ?_)
+  -- only the neighbours of `i` contribute
+  set f : (Fin d → ℤ) → ℝ≥0∞ := fun j ↦ {j : Fin d → ℤ | j ≠ i}.indicator
+    (fun j ↦ ENNReal.ofReal
+      (Real.tanh (|β| * (pairStrength (isingPotential G J h) i j).toReal / 2))) j with hf
+  have hzero : ∀ j : Fin d → ℤ, j ∉ G.neighborFinset i → f j = 0 := by
+    intro j hj
+    simp only [hf]
+    by_cases hji : j = i
+    · exact Set.indicator_of_notMem (show j ∉ {k : Fin d → ℤ | k ≠ i} by simp [hji]) _
+    rw [Set.indicator_of_mem (show j ∈ {j : Fin d → ℤ | j ≠ i} from hji)]
+    have hadj : ¬ G.Adj i j := fun hadj ↦ hj ((SimpleGraph.mem_neighborFinset G i j).2 hadj)
+    rw [pairStrength_isingPotential_eq_zero G J h (Ne.symm hji) hadj]
+    simp
+  have hterm : ∀ j ∈ G.neighborFinset i, f j ≤ ENNReal.ofReal t := by
+    intro j hj
+    have hadj : G.Adj i j := (SimpleGraph.mem_neighborFinset G i j).1 hj
+    simp only [hf]
+    by_cases hji : j = i
+    · rw [Set.indicator_of_notMem (show j ∉ {k : Fin d → ℤ | k ≠ i} by simp [hji])]
+      exact zero_le
+    rw [Set.indicator_of_mem (show j ∈ {j : Fin d → ℤ | j ≠ i} from hji)]
+    refine ENNReal.ofReal_le_ofReal (Real.tanh_le_tanh_of_le ?_)
+    have hP := pairStrength_isingPotential_le G J h hadj
+    have hPreal : (pairStrength (isingPotential G J h) i j).toReal ≤ 2 * |J| :=
+      ENNReal.toReal_le_of_le_ofReal (by positivity) hP
+    calc |β| * (pairStrength (isingPotential G J h) i j).toReal / 2
+        ≤ |β| * (2 * |J|) / 2 := by
+          have : (0:ℝ) ≤ |β| := abs_nonneg β
+          nlinarith [ENNReal.toReal_nonneg (a := pairStrength (isingPotential G J h) i j)]
+      _ = |β * J| := by rw [abs_mul]; ring
+  calc ∑' j : Fin d → ℤ, f j = ∑ j ∈ G.neighborFinset i, f j := tsum_eq_sum hzero
+    _ ≤ (G.neighborFinset i).card • ENNReal.ofReal t :=
+        Finset.sum_le_card_nsmul _ _ _ hterm
+    _ = ((G.neighborFinset i).card : ℝ≥0∞) * ENNReal.ofReal t := by rw [nsmul_eq_mul]
+    _ ≤ (((2 * d : ℕ)) : ℝ≥0∞) * ENNReal.ofReal t := by
+        gcongr
+        exact_mod_cast card_neighborFinset_latticeGraph_le d i
+    _ = ENNReal.ofReal (2 * d * t) := by
+        rw [← ENNReal.ofReal_natCast, ← ENNReal.ofReal_mul (by positivity)]
+        congr 1
+        push_cast
+        ring
 
 end Ising
 

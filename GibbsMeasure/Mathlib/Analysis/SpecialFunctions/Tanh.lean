@@ -83,6 +83,14 @@ lemma tanh_sub_tanh_le_of_le {a b : ℝ} (hab : a ≤ b) :
   rw [hleft]
   exact hgoal
 
+/-- `tanh` is monotone. -/
+lemma tanh_le_tanh_of_le {a b : ℝ} (hab : a ≤ b) : tanh a ≤ tanh b := by
+  have h : tanh b - tanh a = sinh (b - a) / (cosh a * cosh b) := tanh_sub_tanh a b
+  have hnn : 0 ≤ tanh b - tanh a := by
+    rw [h]
+    exact div_nonneg (sinh_nonneg_iff.2 (by linarith)) (by positivity)
+  linarith
+
 /-- **Georgii's inequality for `tanh`** (used in Example (8.9)(2)): the increment of `tanh` over
 an interval is at most `2 * tanh` of half the interval length. -/
 theorem abs_tanh_sub_tanh_le (a b : ℝ) : |tanh b - tanh a| ≤ 2 * tanh (|b - a| / 2) := by
