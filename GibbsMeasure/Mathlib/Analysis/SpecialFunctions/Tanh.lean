@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import Mathlib.Analysis.SpecialFunctions.Artanh
 public import Mathlib.Analysis.SpecialFunctions.Log.Basic
 public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 public import Mathlib.Analysis.SpecialFunctions.Trigonometric.DerivHyp
@@ -89,6 +90,14 @@ lemma tanh_le_tanh_of_le {a b : ℝ} (hab : a ≤ b) : tanh a ≤ tanh b := by
   have hnn : 0 ≤ tanh b - tanh a := by
     rw [h]
     exact div_nonneg (sinh_nonneg_iff.2 (by linarith)) (by positivity)
+  linarith
+
+/-- `tanh` is strictly monotone. -/
+lemma tanh_lt_tanh_of_lt {a b : ℝ} (hab : a < b) : tanh a < tanh b := by
+  have h : tanh b - tanh a = sinh (b - a) / (cosh a * cosh b) := tanh_sub_tanh a b
+  have hpos : 0 < tanh b - tanh a := by
+    rw [h]
+    exact div_pos (sinh_pos_iff.2 (by linarith)) (by positivity)
   linarith
 
 /-- **Georgii's inequality for `tanh`** (used in Example (8.9)(2)): the increment of `tanh` over

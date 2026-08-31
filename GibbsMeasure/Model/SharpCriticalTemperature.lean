@@ -241,19 +241,29 @@ theorem isingBetaC_le_eight_log_two : isingBetaC ≤ 8 * Real.log 2 :=
   csInf_le bddBelow_isingNonUniqueness eight_log_two_mem_isingNonUniqueness
 
 /-- **`β_c > 0`** — Georgii Theorem (8.7) with Dobrushin's condition (8.8). -/
-theorem le_isingBetaC : (1 : ℝ) / 4 ≤ isingBetaC := by
+theorem artanh_le_isingBetaC : Real.artanh (1 / 4) ≤ isingBetaC := by
   refine le_csInf isingNonUniqueness_nonempty fun β hβ ↦ ?_
   by_contra hlt
   push Not at hlt
-  have habs : |β| < 1 / 4 := by rw [abs_of_nonneg hβ.1]; exact hlt
+  have habs : |β| < Real.artanh (1 / 4) := by rw [abs_of_nonneg hβ.1]; exact hlt
   obtain ⟨x, hx, y, hy, hxy⟩ := hβ.2
-  exact hxy (subsingleton_GP_ising2D_of_abs_lt habs hx hy)
+  exact hxy (subsingleton_GP_ising2D_of_abs_lt_artanh habs hx hy)
+
+/-- The `1/4` reading of `artanh_le_isingBetaC`, via `1/4 < artanh (1/4)`. -/
+theorem le_isingBetaC : (1 : ℝ) / 4 ≤ isingBetaC :=
+  le_trans one_quarter_lt_artanh_one_quarter.le artanh_le_isingBetaC
 
 /-- **Georgii's `0 < β_c < ∞`**, now as a statement about a well-defined number. -/
 theorem isingBetaC_pos : 0 < isingBetaC := lt_of_lt_of_le (by norm_num) le_isingBetaC
 
 theorem isingBetaC_mem_Icc : isingBetaC ∈ Set.Icc ((1 : ℝ) / 4) (Real.log 3) :=
   ⟨le_isingBetaC, isingBetaC_le⟩
+
+/-- The sharper bracket obtained from Georgii's `tanh` criterion (8.10):
+`artanh (1/4) ≈ 0.2554 ≤ β_c ≤ log 3`. -/
+theorem isingBetaC_mem_Icc_artanh :
+    isingBetaC ∈ Set.Icc (Real.artanh (1 / 4)) (Real.log 3) :=
+  ⟨artanh_le_isingBetaC, isingBetaC_le⟩
 
 /-- **Uniqueness strictly below `β_c`.**  This half of Georgii's dichotomy holds
 unconditionally: `β_c` is by definition the infimum of the non-uniqueness set. -/

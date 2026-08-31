@@ -91,6 +91,65 @@ theorem subsingleton_GP_ising2D_of_abs_lt {β : ℝ} (hβ : |β| < 1 / 4) :
       (isingSpecification (latticeGraph 2) 1 0 β)).Subsingleton :=
   subsingleton_GP_isingSpecification_of_lt 2 1 0 β (dobrushin_hyp_ising2D hβ)
 
+/-! #### The `tanh` criterion (Georgii, Example (8.9)(2)) -/
+
+/-- **Georgii (8.7)+(8.10) for the `ℤ^d` Ising model.** Uniqueness under the sharper hypothesis
+`2d tanh|βJ| < 1`. -/
+theorem subsingleton_GP_isingSpecification_of_tanh_lt (d : ℕ) (J h β : ℝ)
+    (hβ : 2 * d * Real.tanh |β * J| < 1) :
+    (GP (S := Fin d → ℤ) (E := Bool) (isingSpecification (latticeGraph d) J h β)).Subsingleton :=
+  Dobrushin.subsingleton_GP_of_isDobrushin
+    (Dobrushin.isDobrushin_isingSpecification_tanh d J h β hβ).1
+    (Dobrushin.isDobrushin_isingSpecification_tanh d J h β hβ)
+
+/-- **Georgii (8.7)+(8.10) for the `ℤ^d` Ising model**, existence and uniqueness combined. -/
+theorem existsUnique_mem_GP_isingSpecification_of_tanh_lt (d : ℕ) (J h β : ℝ)
+    (hβ : 2 * d * Real.tanh |β * J| < 1) :
+    ∃! μ : ProbabilityMeasure ((Fin d → ℤ) → Bool),
+      μ ∈ GP (S := Fin d → ℤ) (E := Bool) (isingSpecification (latticeGraph d) J h β) :=
+  Dobrushin.existsUnique_mem_GP_of_isDobrushin
+    (Dobrushin.isDobrushin_isingSpecification_tanh d J h β hβ).1
+    (Dobrushin.isDobrushin_isingSpecification_tanh d J h β hβ)
+    (isingGibbsMeasure_nonempty (latticeGraph d) J h β)
+
+/-- `1/4 < artanh (1/4)`: the `tanh` criterion strictly enlarges the high-temperature range of
+`existsUnique_mem_GP_ising2D_of_abs_lt`. -/
+lemma one_quarter_lt_artanh_one_quarter : (1 : ℝ) / 4 < Real.artanh (1 / 4) := by
+  have h : Real.tanh (1 / 4 : ℝ) < 1 / 4 := Dobrushin.tanh_lt_self (by norm_num)
+  have hlt := Real.artanh_lt_artanh (x := Real.tanh (1 / 4)) (y := 1 / 4)
+    (by have := abs_lt.1 (Real.abs_tanh_lt_one (1 / 4 : ℝ)); linarith [this.1])
+    (by norm_num) h
+  rwa [Real.artanh_tanh] at hlt
+
+/-- The `d = 2`, `J = 1`, `h = 0` instance of the `tanh` criterion: `2 · 2 · tanh|β| < 1`. -/
+lemma dobrushin_tanh_hyp_ising2D {β : ℝ} (hβ : |β| < Real.artanh (1 / 4)) :
+    2 * ((2 : ℕ) : ℝ) * Real.tanh |β * 1| < 1 := by
+  rw [mul_one]
+  have hmem : (1 / 4 : ℝ) ∈ Set.Ioo (-1 : ℝ) 1 := by norm_num
+  have h : Real.tanh |β| < 1 / 4 := by
+    have := Real.tanh_lt_tanh_of_lt hβ
+    rwa [Real.tanh_artanh hmem] at this
+  push_cast
+  linarith
+
+/-- **High-temperature uniqueness for the two-dimensional Ising ferromagnet, sharpened.**
+For `|β| < artanh (1/4) ≈ 0.2554` there is exactly one Gibbs measure. This strictly extends
+`existsUnique_mem_GP_ising2D_of_abs_lt`, which covers only `|β| < 1/4`
+(`one_quarter_lt_artanh_one_quarter`). -/
+theorem existsUnique_mem_GP_ising2D_of_abs_lt_artanh {β : ℝ}
+    (hβ : |β| < Real.artanh (1 / 4)) :
+    ∃! μ : ProbabilityMeasure (Site → Bool),
+      μ ∈ GP (S := Fin 2 → ℤ) (E := Bool) (isingSpecification (latticeGraph 2) 1 0 β) :=
+  existsUnique_mem_GP_isingSpecification_of_tanh_lt 2 1 0 β (dobrushin_tanh_hyp_ising2D hβ)
+
+/-- **High-temperature uniqueness for the two-dimensional Ising ferromagnet, sharpened**,
+subsingleton form. -/
+theorem subsingleton_GP_ising2D_of_abs_lt_artanh {β : ℝ}
+    (hβ : |β| < Real.artanh (1 / 4)) :
+    (GP (S := Fin 2 → ℤ) (E := Bool)
+      (isingSpecification (latticeGraph 2) 1 0 β)).Subsingleton :=
+  subsingleton_GP_isingSpecification_of_tanh_lt 2 1 0 β (dobrushin_tanh_hyp_ising2D hβ)
+
 /-! ### M2: low temperature — non-uniqueness from the Peierls argument -/
 
 /-- **Georgii Theorem (6.9), restated in the `isingSpecification` parametrisation.**

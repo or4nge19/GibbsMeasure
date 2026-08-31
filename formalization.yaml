@@ -303,6 +303,18 @@ alignment:
       lean: "MeasureTheory.GibbsMeasure.existsUnique_mem_GP_lambdaSpecification_of_nearestNeighbour"
       module: "GibbsMeasure/Specification/OneDimensionalUniqueness.lean"
       status: "proved"
+    - source: "Example (8.9)(2), Theorem (8.10): the tanh criterion"
+      lean: "MeasureTheory.GibbsMeasure.Dobrushin.isDobrushin_gibbsSpecification_of_tanh"
+      module: "GibbsMeasure/Specification/Dobrushin.lean"
+      status: "proved-stronger"
+      note: >-
+        Georgii states (8.10) only for two-point spin spaces, via an ad hoc estimate of C_ij. It is
+        proved here for an ARBITRARY state space: the existing proof of unifDist_normalize_le
+        already yields the sharp constant (sqrt M - sqrt m)/(sqrt M + sqrt m), which equals
+        tanh(log(M/m)/4). The Ising instance is isDobrushin_isingSpecification_tanh
+        (2d tanh|beta J| < 1), strictly weaker than 4d|beta J| < 2 since tanh x < x
+        (Dobrushin.tanh_lt_self), and it sharpens the critical-temperature bracket to
+        artanh(1/4) <= beta_c <= log 3 (isingBetaC_mem_Icc_artanh).
     - source: "Example (7.17), the Hewitt-Savage zero-one law"
       lean: "MeasureTheory.GibbsMeasure.measure_symmetric_eq_zero_or_one"
       module: "GibbsMeasure/Specification/HewittSavage.lean"

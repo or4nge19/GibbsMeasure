@@ -251,7 +251,8 @@ temperature, non-uniqueness at low temperature. Griffiths' monotonicity — the 
 (`GibbsMeasure/Model/GKSInequalities.lean`: `corr_nonneg`, `corr_mul_corr_le`, `corr_mono`,
 `corr_mono_beta`, `plusMagnetisation_mono`) — turns the bracket into a critical inverse
 temperature: `β_c := inf {β ≥ 0 : |𝒢(βΦ)| > 1}` is a well-defined real number with
-`1/4 ≤ β_c ≤ log 3`, and **both** halves are unconditional: uniqueness for every `0 ≤ β < β_c` and
+`artanh(1/4) ≤ β_c ≤ log 3`, and **both** halves are unconditional: uniqueness for every
+`0 ≤ β < β_c` and
 non-uniqueness for every `β_c < β` (`GibbsMeasure/Model/SharpCriticalTemperature.lean`:
 `isingBetaC`, `isingBetaC_mem_Icc`, `existsUnique_of_lt_isingBetaC`, `nontrivial_of_isingBetaC_lt`,
 `ising_sharp_phase_transition`). What used to be the hypothesis `IsUpperSet isingNonUniqueness` is
