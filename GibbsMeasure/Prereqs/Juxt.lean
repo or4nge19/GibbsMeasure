@@ -2,6 +2,14 @@ module
 
 public import Mathlib.MeasureTheory.Constructions.Cylinders
 
+/-!
+# Juxtaposition of configurations
+
+`juxt Λ η ζ` glues a configuration `ζ` on `Λ` to a boundary condition `η` off `Λ`. This is the
+resampling operation underlying independent specifications and the finite-volume kernels of a
+specification.
+-/
+
 @[expose] public section
 
 open MeasureTheory
@@ -11,6 +19,11 @@ section juxt
 variable {S E : Type*} {𝓔 : MeasurableSpace E} {Λ : Set S} {η : S → E} {x : S}
 
 open Classical in
+/-- `juxt Λ η ζ` is the configuration agreeing with `ζ` on `Λ` and with `η` off `Λ`.
+
+This is Georgii's juxtaposition (Section 1.1): "if `ω ∈ E^Λ` and `ζ ∈ E^{Δ∖Λ}` then the
+juxtaposition `ωζ ∈ E^Δ` is defined by the properties `σ_Λ(ωζ) = ω` and `σ_{Δ∖Λ}(ωζ) = ζ`",
+taken with `Δ = S`, in the order `ζ_Λ η_{S∖Λ}`. -/
 noncomputable def juxt (Λ : Set S) (η : S → E) (ζ : Λ → E) (x : S) : E :=
   if h : x ∈ Λ then ζ ⟨x, h⟩ else η x
 

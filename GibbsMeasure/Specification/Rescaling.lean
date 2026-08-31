@@ -29,9 +29,9 @@ the λ-specification layer of `GibbsMeasure/Specification.lean`.
 * `Specification.rescale r ρ`: Georgii's `ρ̃`.
 * `MeasureTheory.Measure.probNormalize`: the probability measure `λ(E)⁻¹ · λ` attached to a finite
   non-zero `λ`.
-* `Specification.lambdaSpecification`: **Georgii Definition (1.27)** — the λ-specification `ρ λ_·`
-  of an admissible premodifier, bundled as a `Specification`, for an arbitrary **σ-finite non-zero**
-  a priori measure.
+* `Specification.lambdaSpecification`: **Georgii Definition (1.27) via Remark (1.32)** — the
+  λ-specification `(ρ_Λ / λ_Λ ρ_Λ) λ_·` of an admissible pre-modification, bundled as a
+  `Specification`, for an arbitrary **σ-finite non-zero** a priori measure.
 
 ## Main results
 
@@ -543,7 +543,8 @@ lemma isSigmaFiniteLambdaAdmissible_probNormalize (ν : Measure E) [IsFiniteMeas
   (isSigmaFiniteLambdaAdmissible_of_smul (S := S) (E := E) (ρ := ρ) ν.probNormalize ν
       (univ_ne_zero_of_neZero ν) (measure_ne_top ν _) (Measure.smul_probNormalize ν)).symm
 
-/-- **Georgii, Proposition (1.30) together with Remark (1.28)(3).** The normalized modification of
+/-- **Georgii, Remark (1.32) (proved via Proposition (1.30)) together with Remark (1.28)(3).**
+The normalized modification of
 the reference kernels of *any* σ-finite non-zero a priori measure is consistent. The
 probability-measure case is transported along the rescaling `λ̃ = r · λ` with `λ(r) = 1`, whose
 existence is `MeasureTheory.Measure.exists_measurable_pos_isProbabilityMeasure_withDensity`. -/
@@ -570,7 +571,7 @@ theorem isConsistent_modificationKer_sigmaFinitePremodifierNorm_of_neZero
   exact IsPremodifier.isConsistent_modificationKer_sigmaFinitePremodifierNorm
     (S := S) (E := E) (ρ := rescale (S := S) (E := E) r ρ) (ν := ν.withDensity r) hρ' hZ'
 
-/-- **Georgii, Proposition (1.30) for a finite a priori measure.** -/
+/-- **Georgii, Remark (1.32) for a finite a priori measure.** -/
 theorem isConsistent_modificationKer_sigmaFinitePremodifierNorm_of_isFiniteMeasure
     (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν] (hρ : IsPremodifier (S := S) (E := E) ρ)
     (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ) :
@@ -581,14 +582,14 @@ theorem isConsistent_modificationKer_sigmaFinitePremodifierNorm_of_isFiniteMeasu
   isConsistent_modificationKer_sigmaFinitePremodifierNorm_of_neZero
     (S := S) (E := E) ν hρ hZ
 
-/-- **Georgii, Definition (1.27).** The λ-specification `ρ λ_·` attached to an admissible
-premodifier `ρ` and an arbitrary σ-finite non-zero a priori measure `ν`, bundled as a
-`Specification`.
+/-- **Georgii, Definition (1.27) via Remark (1.32).** The λ-specification `(ρ_Λ / λ_Λ ρ_Λ) λ_·`
+attached to a pre-modification `ρ` admissible for an arbitrary σ-finite non-zero a priori measure
+`ν`, bundled as a `Specification`.
 
 The consistency of the family is the content of
 `Specification.isConsistent_modificationKer_sigmaFinitePremodifierNorm_of_neZero`; the underlying
-kernels `Specification.sigmaFinitePremodifierKernel` were already available for σ-finite `ν`, but
-only their Markov property and properness had been established at that generality. -/
+kernels are `Specification.sigmaFinitePremodifierKernel`, whose Markov property and properness
+hold for every σ-finite `ν`. -/
 noncomputable def lambdaSpecification (ν : Measure E) [SigmaFinite ν] [NeZero ν]
     (ρ : Finset S → (S → E) → ℝ≥0∞) (hρ : IsPremodifier (S := S) (E := E) ρ)
     (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ) : Specification S E where
@@ -635,7 +636,7 @@ namespace Specification
 variable {S E : Type*} {mE : MeasurableSpace E} {ρ : Finset S → (S → E) → ℝ≥0∞}
 
 /-- For a probability a priori measure the λ-specification is the normalized modification of the
-independent specification `isssd ν`, i.e. the object already used throughout the development. -/
+independent specification `isssd ν`, i.e. `(isssd ν).modification (premodifierNorm ν ρ)`. -/
 theorem lambdaSpecification_eq_modification_isssd (ν : Measure E) [IsProbabilityMeasure ν]
     (hρ : IsPremodifier (S := S) (E := E) ρ)
     (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)

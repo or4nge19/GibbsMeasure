@@ -31,10 +31,11 @@ public import Mathlib.MeasureTheory.Measure.MeasuredSets
   (8.40) holds: `s := sup_i ∑_{A : min A ≤ i < max A} δ(Φ_A) < ∞` (`oscSpan`). Then `|𝒢(Φ)| ≤ 1`.
 * `MeasureTheory.GibbsMeasure.existsUnique_mem_GP_lambdaSpecification_of_iSup_oscSpan_ne_top`:
   Georgii Thm. (8.39) in full, at his own hypotheses — a potential in the sense of (2.2),
-  `λ`-admissible over a probability a priori measure on a standard Borel state space, with (8.40),
-  has exactly one Gibbs measure. Existence is Georgii's reduction: (8.40) makes the recentred
-  many-body part absolutely summable (`isAbsolutelySummable_centre_manyBody`) and the self-energies
-  go into the a priori measure (`Potential.GP_lambdaSpecification_nonempty`).
+  `λ`-admissible over a σ-finite non-zero a priori measure (`λ ∈ 𝓜(E, ℰ)`) on a standard Borel
+  state space, with (8.40), has exactly one Gibbs measure. Existence is Georgii's reduction:
+  (8.40) makes the recentred many-body part absolutely summable
+  (`isAbsolutelySummable_centre_manyBody`) and the self-energies go into the a priori measure
+  (`Potential.GP_lambdaSpecification_nonempty`).
 * `MeasureTheory.GibbsMeasure.existsUnique_mem_GP_of_iSup_oscSpan_ne_top`: the same for an
   absolutely summable potential, where existence is (4.23)(a) directly.
 * `MeasureTheory.GibbsMeasure.oscSpan_eq_oscSpanDiam`: Georgii Comment (8.41)(1). For a potential

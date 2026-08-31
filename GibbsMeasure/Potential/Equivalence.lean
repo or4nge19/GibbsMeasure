@@ -25,8 +25,10 @@ a potential may be replaced by any convenient representative of its class.
   oscillation `∑_{A ∋ i} δ(Φ_A)` that decides whether the class of `Φ` meets `ℬ`
   (`Potential.isAbsolutelySummable_centre_iff`).
 
-The converse (2.34), (ii) ⇒ (i) is
-`Potential.dependsOn_hamiltonian_sub_of_sigmaFinitePremodifierNorm_eq`.
+The converse (2.34), (ii) ⇒ (i) — in `DependsOn` form, and at inverse temperature `β = 1` — is
+`Potential.dependsOn_hamiltonian_sub_of_sigmaFinitePremodifierNorm_eq`; with
+`measurable_hamiltonian` and `Measurable.cylinderEvents_of_dependsOn` it upgrades to
+`IsEquivalent`.
 -/
 
 @[expose] public section
@@ -40,7 +42,12 @@ variable {S E : Type*} {mE : MeasurableSpace E} [Countable S] {Φ Ψ : Potential
 
 /-- **Georgii, Definition (2.33).** `Φ` and `Ψ` are *equivalent* if for every finite volume `Λ`
 the Hamiltonian `H_Λ^{Φ-Ψ}` is `𝓣_Λ`-measurable, i.e. depends on the configuration outside `Λ`
-only. -/
+only.
+
+The predicate is stated for raw families: where the series for `H_Λ^{Φ-Ψ}` diverges, `hamiltonian`
+takes the junk value `0` and the condition holds vacuously. It carries Georgii's meaning under
+`IsSummable Φ` and `IsSummable Ψ` (which give `IsSummable (Φ - Ψ)`, `isSummable_sub`), matching the
+standing hypothesis (2.2)(ii) of Definition (2.33). -/
 def IsEquivalent (Φ Ψ : Potential S E) : Prop :=
   ∀ Λ : Finset S, Measurable[cylinderEvents ((Λ : Set S))ᶜ] ((Φ - Ψ).hamiltonian Λ)
 

@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Matteo Cipollina. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Matteo Cipollina
+-/
 module
 
 public import GibbsMeasure.Prereqs.Kernel.Feller
@@ -12,25 +17,20 @@ This file links the *functional-analytic* notion of quasilocal observables to sp
 
 Assuming a specification `γ` has **Feller** kernels (in the sense of
 `ProbabilityTheory.Kernel.IsFeller`), we can define the induced action on bounded continuous
-observables. Markovness is already bundled in `Specification`:
-
-`f ↦ (η ↦ ∫ x, f x ∂(γ Λ η))`.
+observables, `f ↦ (η ↦ ∫ x, f x ∂(γ Λ η))`; the kernels are Markov because `Specification`
+bundles Markovness.
 
 A specification is **Feller-quasilocal** if this action preserves the submodule of continuous
 Feller-quasilocal observables (uniform closure of bounded continuous cylinder observables).
 
-This is a continuous/Feller version of Georgii's Definition 2.23. Georgii's full definition is
-formulated using bounded local measurable functions and their uniform closure, not only bounded
-continuous observables.
-
 Georgii's actual Definition (2.23) is `Specification.IsQuasilocal`, formalised without any topology
-in `GibbsMeasure/Specification/Quasilocality.lean` on top of the measurable quasilocal algebra of
-`GibbsMeasure/Specification/QuasilocalAlgebra.lean`. The predicate defined here is the
-continuous/Feller analogue and is named accordingly; it is a convenience interface for
-weak-topology arguments, not a substitute for Georgii's notion.
+in `GibbsMeasure/Specification/Quasilocality.lean` on top of the bounded local measurable functions
+and their uniform closure (`GibbsMeasure/Specification/QuasilocalAlgebra.lean`). The predicate
+defined here is its continuous/Feller analogue, restricted to bounded continuous observables: a
+convenience interface for weak-topology arguments, not a substitute for Georgii's notion.
 
-We also record the convenient “dense-check” formulation: it suffices to verify quasilocality on
-cylinder observables, since the action is continuous in the sup-norm.
+Dense check: it suffices to verify quasilocality on cylinder observables, since the action is
+continuous in the sup-norm.
 -/
 
 @[expose] public section

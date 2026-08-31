@@ -174,6 +174,10 @@ theorem mem_quasilocalFunctions_of_tendsto_oscOutside
     {f : lp (fun _ : S → E ↦ ℝ) ∞} (hmeas : Measurable (⇑f))
     (hosc : Tendsto (fun Λ : Finset S ↦ oscOutside Λ (⇑f)) atTop (𝓝 0)) :
     f ∈ quasilocalFunctions S E := by
+  -- Fix a base configuration `η₀` and cut `f` off outside `Λ`: `T Λ` patches `η₀` off `Λ`, so
+  -- `G Λ = f ∘ T Λ` is `𝓕_Λ`-measurable, hence local, and `‖f - G Λ‖` is bounded by the
+  -- oscillation of `f` outside `Λ`. That oscillation tends to `0`, so `G Λ → f` uniformly and `f`
+  -- lies in the closure of `𝓛`.
   classical
   by_cases hne : Nonempty (S → E)
   swap

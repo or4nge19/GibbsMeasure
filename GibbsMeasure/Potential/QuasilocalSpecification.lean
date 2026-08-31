@@ -11,9 +11,10 @@ public import GibbsMeasure.Specification.Quasilocality
 /-!
 # Quasilocality of the Gibbsian specification of an absolutely summable potential
 
-Georgii Example (2.25)(ii): the instance of Proposition (2.24)(b)
-(`Specification.isQuasilocal_modification_premodifierNorm`) at the quasilocal Hamiltonians of an
-absolutely summable potential.
+Georgii Example (2.25): the instance of Proposition (2.24)(b)
+(`Specification.isQuasilocal_modification_premodifierNorm`) at the bounded quasilocal Hamiltonians
+of an absolutely summable potential — the case singled out in (2.25)(ii), whose stronger conclusion
+`ρ_Λ^Φ ∈ 𝓛̄` is not proved here.
 -/
 
 @[expose] public section
@@ -37,8 +38,11 @@ lemma boltzmannFactor_eq_ofReal_boltzmann [IsAbsolutelySummable Φ] (β : ℝ) :
   rw [boltzmannFactor, Specification.coeFn_boltzmann, lp.coeFn_smul]
   norm_num [hamiltonianLp]
 
-/-- **Georgii Example (2.25)(ii).** The Gibbsian specification of an absolutely summable potential
-is quasilocal. -/
+/-- **Georgii Example (2.25).** The Gibbsian specification of an absolutely summable potential is
+quasilocal: Proposition (2.24)(b) applied to the bounded quasilocal Hamiltonians of `Φ ∈ ℬ`, the
+case singled out in (2.25)(ii). The stronger conclusion of (2.25)(ii), that `ρ_Λ^Φ ∈ 𝓛̄`, is not
+proved here. Georgii's a priori measure is finite in this case ((2.11): `Φ ∈ ℬ` is `λ`-admissible
+iff `λ` is finite); `ν` is its normalization. -/
 theorem isQuasilocal_gibbsSpecificationOfAbsolutelySummable
     [Countable S] [IsPotential Φ] [IsAbsolutelySummable Φ] (β : ℝ) :
     (Φ.gibbsSpecificationOfAbsolutelySummable ν β).IsQuasilocal := by

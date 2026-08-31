@@ -7,7 +7,7 @@ public import Mathlib.Topology.Basic
 /-!
 # Topology and measurability of configuration spaces
 
-This file provides lightweight, Mathlib-aligned infrastructure for configuration spaces of the form
+This file provides basic topology and measurability facts for configuration spaces of the form
 `S → E`.
 
 The main points are:

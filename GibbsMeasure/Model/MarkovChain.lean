@@ -22,19 +22,23 @@ the stationary Markov chain `μ_P` as its unique Gibbs measure.
 @[expose] public section
 
 /-!
-# Georgii, Theorem (3.5): positive homogeneous Markov specifications on `ℤ`
+## Setup and contents
 
 Sites `ℤ`, finite state space `E`, reference measure the uniform probability measure on `E`.
 Georgii uses counting measure on `E`; by Remark (1.28)(3) the Gibbs measures are the same, and the
 repo works with a probability reference measure.
 
-This file contains the complete proof of Georgii's Theorem (3.5): the map `P ↦ γ_P` is a bijection
-from the positive stochastic matrices onto the positive homogeneous Markov specifications on `ℤ`,
-and `𝒢(γ_P) = {μ_P}` where `μ_P` is the stationary Markov chain with transition matrix `P`.
+This file proves Georgii's Theorem (3.5): the map `P ↦ γ_P`, realised here as the Gibbsian
+specification of the potential `-log P`, is a bijection from the positive stochastic matrices onto
+the positive homogeneous Markov specifications on `ℤ`, and `𝒢(γ_P) = {μ_P}` where `μ_P` is the
+stationary Markov chain with transition matrix `P`. Georgii's defining equation (3.6), which reads
+`γ_Λ(σ_Λ = ζ|ω) = μ_P(σ_Λ = ζ|σ_{∂Λ} = ω_{∂Λ})`, is not stated as such; its explicit form
+(3.8)(1) is formalised for interval volumes only.
 
 ## The specification and its potential
 
-* `markovPotential P`: the homogeneous nearest-neighbour potential `Φ_{i,i+1} = -log P(σ_i, σ_{i+1})`
+* `markovPotential P`: the homogeneous nearest-neighbour potential `Φ_{i,i+1} = -log P(σ_i,
+σ_{i+1})`
   of Corollary (3.9), with the instances `IsPotential`, `IsFiniteRange`, `IsAbsolutelySummable`.
 * `markovSpecification P`: its Gibbsian specification (Georgii (3.6), Corollary (3.9)).
 * `markovSpecification_Icc_apply_cyl`, `markovSpecification_Icc_apply_cyl_of_subset`: the
@@ -475,6 +479,9 @@ lemma lintegral_isssd_pathWeight (hpos : ∀ x y, 0 < P x y) :
         ∂(Specification.isssd (uniformOn (Set.univ : Set E)) (Finset.Icc a b) ω)
       = (Fintype.card E : ℝ≥0∞)⁻¹ ^ (n + 1)
           * ENNReal.ofReal (∑ z, (P ^ (n + 1)) x z * g z) := by
+  -- Induction on the length `n` of the interval. The successor step splits off the top site
+  -- `a + n + 1` and integrates it out, which replaces `g` by `G w = ∑ z, P w z * g z`; the
+  -- induction hypothesis on `[a, a + n]` then raises the matrix power by one.
   intro n
   induction n with
   | zero =>
@@ -893,7 +900,8 @@ lemma lintegral_isssd_outer_blocks (hpos : ∀ x y, 0 < P x y) {a b l m : ℤ} {
 /-! ### The finite-volume formula for an interval inside an interval (Comment (3.8)(1)) -/
 
 /-- **Georgii, Comment (3.8)(1).** For the interval `Λ = [l, m]` sitting inside the interval
-`Δ = [a, b]` with `a - 1 ≤ l - 1 = a + p` and `b = m + 1 + q`, the specification of the cylinder
+`Δ = [a, b]` with `l - 1 = a + p` and `b = m + 1 + q` (so `Δ` contains at least one site on each
+side of `Λ`), the specification of the cylinder
 `{σ_Λ = ζ_Λ}` is
 `P^{p+2}(ω_{a-1}, ζ_l) P(ζ_l, ζ_{l+1}) ⋯ P(ζ_{m-1}, ζ_m) P^{q+2}(ζ_m, ω_{b+1})
   / P^{d+p+q+4}(ω_{a-1}, ω_{b+1})`, where `m = l + d`. -/
@@ -1487,7 +1495,10 @@ theorem markovSpecification_injOn {P' : Matrix E E ℝ} (hP : P ∈ Matrix.rowSt
 
 omit [MeasurableSpace E] [MeasurableSingletonClass E] in
 /-- **Georgii, step 3 of the proof of (3.5).** If the normalised positive function `g` satisfies
-(3.12), then it is the determining function (3.11) of the matrix `P` of (3.7). -/
+(3.12), then `g` is the determining function (3.11) of every matrix of the shape
+`M x y = Q x y * v y / (q * v x)` built from the auxiliary matrix `Q = detQ E g a`, a positive
+scalar `q` and a positive vector `v`; taking for `q`, `v` the Perron root and eigenvector of `Q`
+gives the matrix `P` of (3.7). -/
 theorem markovDeterminingFun_of_eq_312 {g : E → E → E → ℝ} (hg : ∀ x y z, 0 < g x y z)
     (hnorm : ∀ x z, ∑ y, g x y z = 1) (a : E) {q : ℝ} (hq : 0 < q) {v : E → ℝ}
     (hv : ∀ x, 0 < v x) {M : Matrix E E ℝ}

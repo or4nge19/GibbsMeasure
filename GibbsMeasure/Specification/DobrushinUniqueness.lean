@@ -14,14 +14,8 @@ Georgii, *Gibbs Measures and Phase Transitions*, Sections 8.1–8.2.
 
 ## Main declarations
 
-* `MeasureTheory.GibbsMeasure.Dobrushin.unifDist`: Georgii (8.1), the uniform distance of two
-  probability measures (half the total variation).
-* `MeasureTheory.GibbsMeasure.Dobrushin.interdep`: Georgii (8.5), Dobrushin's interdependence
-  matrix `C(γ)`.
-* `MeasureTheory.GibbsMeasure.Dobrushin.IsDobrushin`: Georgii (8.6).
-* `MeasureTheory.GibbsMeasure.Dobrushin.osc`, `oscAt`: Georgii (8.2), (8.14).
-* `MeasureTheory.GibbsMeasure.Dobrushin.ofReal_abs_integral_sub_leD`: Georgii (8.1),
-  `|α₁(f) - α₂(f)| ≤ ‖α₁ - α₂‖ δ(f)`.
+* `MeasureTheory.GibbsMeasure.Dobrushin.proj`: Georgii (8.4), the single-site distribution
+  `γ_i^0(·|ω)`; `act`: the single-site action `γ_i f` on bounded observables.
 * `MeasureTheory.GibbsMeasure.Dobrushin.oscAt_act_le`: the single-site estimate
   `δ_j(γ_i f) ≤ δ_j(f) + C_{ij}(γ) δ_i(f)` from the proof of (8.18).
 * `MeasureTheory.GibbsMeasure.Dobrushin.IsEstimate`: Georgii (8.16).
@@ -30,6 +24,17 @@ Georgii, *Gibbs Measures and Phase Transitions*, Sections 8.1–8.2.
 * `MeasureTheory.GibbsMeasure.Dobrushin.eq_of_isDobrushin`,
   `subsingleton_GP_of_isDobrushin`, `existsUnique_mem_GP_of_isDobrushin`: Georgii's uniqueness
   Theorem (8.7).
+* `MeasureTheory.GibbsMeasure.Dobrushin.condSpec`: Georgii's Lemma (8.22), the specification
+  `γ^{(V,ω)}` obtained by conditioning on `ω` outside `V`.
+* `MeasureTheory.GibbsMeasure.Dobrushin.measure_le_add_interdepTail`,
+  `tendsto_interdepTail`: the Cauchy estimate of Georgii (8.23), step 1.
+* `MeasureTheory.GibbsMeasure.Dobrushin.GP_nonempty_of_isDobrushin`,
+  `existsUnique_mem_GP_of_isDobrushin_of_standardBorel`: the existence half of Theorem (8.7),
+  proved as Georgii (8.23).
+
+The underlying notions — `unifDist` (8.1), `interdep` (8.5), `IsDobrushin` (8.6), `osc`,
+`oscAt` (8.14) and the potential criterion (8.8) — live in
+`GibbsMeasure.Specification.Dobrushin`.
 -/
 
 @[expose] public section
@@ -1437,7 +1442,8 @@ noncomputable def condSpec (γ : Specification S E) (V : Finset S) (ω : S → E
     (ζ : S → E) : condSpec γ V ω Λ ζ = γ (Λ ∩ V) (condCfg (Λ \ V) ω ζ) :=
   Kernel.comap_apply (γ (Λ ∩ V)) (measurable_condCfg_condSpec V Λ ω) ζ
 
-/-- Georgii (8.22)(i): `γ^{(S,ω)} = γ` on every finite volume contained in `V`. -/
+/-- `γ^{(V,ω)}_Λ = γ_Λ` for every finite volume `Λ ⊆ V`; Georgii (8.22)(i), `γ^{(S,ω)} = γ`, is
+the case `V = S`. -/
 lemma condSpec_apply_of_subset (γ : Specification S E) {V Λ : Finset S} (h : Λ ⊆ V) (ω ζ : S → E) :
     condSpec γ V ω Λ ζ = γ Λ ζ := by
   rw [condSpec_apply, Finset.inter_eq_left.2 h, Finset.sdiff_eq_empty_iff_subset.2 h, condCfg_empty]
@@ -1738,8 +1744,8 @@ theorem tendsto_interdepTail (hd : IsDobrushin γ) (i : S) :
   filter_upwards [Filter.eventually_ge_atTop Δ₀] with Δ hΔ
   exact (interdepTail_antitone γ hΔ i).trans hbound
 
-/-- **Georgii (8.23), step 1**, the Cauchy estimate: for `A` a `Λ`-local event and `Δ ⊆ Δ'`,
-`|γ_Δ(A|ω) - γ_{Δ'}(A|ω)| ≤ ∑_{i ∈ Λ, j ∈ Δ'∖Δ} D_{ij}(γ) ≤ ∑_{i ∈ Λ, j ∉ Δ} D_{ij}(γ)`. -/
+/-- From `|x.toReal - y.toReal| ≤ c` for finite `x`, `y`, the one-sided `ℝ≥0∞` bound
+`y ≤ x + c`. -/
 private lemma le_add_of_ofReal_abs_toReal_sub_le {x y c : ℝ≥0∞} (hx : x ≠ ⊤) (hy : y ≠ ⊤)
     (h : ENNReal.ofReal |x.toReal - y.toReal| ≤ c) : y ≤ x + c := by
   rcases eq_or_ne c ⊤ with rfl | hc
@@ -1755,6 +1761,10 @@ private lemma le_add_of_ofReal_abs_toReal_sub_le {x y c : ℝ≥0∞} (hx : x �
         ENNReal.ofReal_add ENNReal.toReal_nonneg ENNReal.toReal_nonneg
     _ = x + c := by rw [ENNReal.ofReal_toReal hx, ENNReal.ofReal_toReal hc]
 
+/-- **Georgii (8.23), step 1**, the Cauchy estimate. For a `Λ`-local event `A` and `Δ ⊆ Δ'`,
+`γ_{Δ'}(A|ω) ≤ γ_Δ(A|ω) + ∑_{i ∈ Λ} ∑_{j ∉ Δ} D_{ij}(γ)`, by the comparison Theorem (8.20)
+applied to the conditioned specifications `γ^{(Δ,ω)}` and `γ^{(Δ',ω)}` of Lemma (8.22). Georgii's
+sharper `∑_{j ∈ Δ'∖Δ}` form is not needed here: the proof compares with `b_j = 1` off `Δ`. -/
 theorem measure_le_add_interdepTail (hγq : γ.IsQuasilocal) (hd : IsDobrushin γ)
     {Λ Δ Δ' : Finset S} (hΔ : Δ ⊆ Δ') (ω : S → E) {A : Set (S → E)}
     (hA : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)] A) :

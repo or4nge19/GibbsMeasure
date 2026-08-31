@@ -57,7 +57,7 @@ variable {Z : Type*} [MeasurableSpace Z] {f : (∀ i, X i) → Z}
 
 /-- A function measurable for the cylinder σ-algebra of `Δ` depends only on the coordinates in `Δ`.
 
-This is one half of Georgii's Definition (2.20)(a). -/
+Requires measurable singletons in the codomain. -/
 theorem _root_.Measurable.dependsOn_of_cylinderEvents [MeasurableSingletonClass Z]
     (hf : Measurable[cylinderEvents Δ] f) : DependsOn f Δ :=
   dependsOn_iff_factorsThrough.2 <| by
@@ -92,7 +92,8 @@ theorem _root_.Measurable.cylinderEvents_of_dependsOn
 /-- **A function is `cylinderEvents Δ`-measurable exactly when it is measurable and depends only on
 the coordinates in `Δ`.**
 
-This is the general form of Georgii's Definition (2.20)(a); Mathlib's
+This characterization of `𝓕_Δ`-measurability (for codomains with measurable singletons) is what
+underlies Georgii's notion of a local function, Definition (2.20)(a). Mathlib's
 `Measurable.dependsOn_of_piFinset` is the `Finset`-indexed, one-directional special case. -/
 theorem measurable_cylinderEvents_iff_dependsOn [MeasurableSingletonClass Z] :
     Measurable[cylinderEvents Δ] f ↔ Measurable f ∧ DependsOn f Δ :=

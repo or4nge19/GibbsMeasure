@@ -19,7 +19,36 @@ public import Mathlib.Probability.ProductMeasure
 /-!
 # Gibbs measures
 
-This file defines Gibbs measures.
+This file develops specifications in the sense of Georgii, Definition (1.23), the Gibbs measures
+they specify, and the λ-specification machinery of Georgii §1.3.
+
+## Main definitions
+
+* `Specification`: a consistent family of proper probability kernels, Georgii (1.23).
+* `Specification.IsGibbsMeasure`: `μ ∈ 𝒢(γ)`, i.e. every `γ Λ` is a conditional expectation
+  kernel for `μ`.
+* `Specification.isssd`: the independent specification with single-spin distribution `ν`,
+  Georgii, Remark (1.25).
+* `Specification.juxtMapKernel` and `Specification.sigmaFiniteLambdaFun`: the reference kernels
+  `λ_Λ(· | η) = λ^Λ × δ_{η_{S∖Λ}}` of Georgii, Notation (1.26), the latter for σ-finite `λ`.
+* `Specification.IsModifier` and `Specification.modification`: modifiers and the specification
+  `ρ γ` they produce, generalizing Georgii's λ-modifications, Definition (1.27), to an arbitrary
+  base specification.
+* `Specification.IsPremodifier`: pre-modifications, Georgii, Definition (1.31).
+* `Specification.premodifierZ`, `Specification.premodifierNorm`, `Specification.relZ` and
+  `Specification.relNorm`: the partition function `λ_Λ h_Λ` and the normalized density
+  `h_Λ / λ_Λ h_Λ`, over `isssd` and over an arbitrary reference specification.
+* `Specification.IsResampling`: the shape of Georgii's `λ_Λ` -- resample `Λ`, freeze the exterior.
+
+## Main results
+
+* `Specification.isGibbsMeasure_iff_forall_bind_eq` and
+  `Specification.isGibbsMeasure_iff_frequently_bind_eq`: Georgii, Remark (1.24), (a) ↔ (b) ↔ (c).
+* `Specification.isGibbsMeasure_isssd_iff`: `𝒢(λ_·) = {λ^S}`, Georgii, Remark (1.25).
+* `Specification.isModifier_iff_ae_eq` and `Specification.isModifier_iff_ae_comm`: Georgii,
+  Proposition (1.30), (a) ↔ (b) ↔ (c).
+* `Specification.IsPremodifier.isModifier_relNorm`: Georgii, Remark (1.32) -- normalizing a
+  pre-modification against a resampling reference gives a modification.
 -/
 
 @[expose] public section
@@ -238,10 +267,13 @@ lemma isGibbsMeasure_iff_forall_bind_eq [IsFiniteMeasure μ] :
   forall_congr' fun Λ ↦ Kernel.isCondExp_iff_bind_eq_left (γ.isProper Λ) cylinderEvents_le_pi
 
 /-!
-### Probability-measure specializations
+### Probability-measure restatements
 
-In the Vol. II / infinite-volume development, Gibbs measures are probability measures.
-These lemmas avoid threading `[IsFiniteMeasure μ]` explicitly.
+`IsProbabilityMeasure μ` yields `IsFiniteMeasure μ` by instance resolution, so
+`Specification.isGibbsMeasure_iff_forall_bind_eq` and
+`Specification.isGibbsMeasure_iff_frequently_bind_eq` already apply verbatim to a probability
+measure. The `_of_prob` restatements below add no hypothesis, and exist only as the names the
+downstream files call.
 -/
 
 lemma isGibbsMeasure_iff_forall_bind_eq_of_prob [IsProbabilityMeasure μ] :
@@ -1682,8 +1714,11 @@ lemma modificationKer_comp_apply_eq_lintegral_mul
 
 /-! ### Georgii's Proposition (1.30)
 
-`Λ₁` is Georgii's `Λ` and `Λ₂` his `Δ`, with `Λ₁ ⊆ Λ₂`. Condition (a) ↔ (b) needs only properness and
-consistency of the base specification; (b) ↔ (c) needs strong consistency.
+`Λ₁` is Georgii's `Λ` and `Λ₂` his `Δ`, with `Λ₁ ⊆ Λ₂`. Condition (a) ↔ (b) needs only properness
+and
+consistency of the base specification; (b) ↔ (c) needs only *disjoint* consistency
+(`IsDisjointlyConsistent`: `λ_Δ λ_Λ = λ_{Δ ∪ Λ}` for `Λ ∩ Δ = ∅`, Georgii's Notation (1.26)),
+which is what `ae_eq_iff_ae_ae_eq` and `isModifier_iff_ae_comm` assume.
 -/
 
 /-- Composing two density-modified kernels is again a density change of the base specification, with
@@ -1954,7 +1989,11 @@ lemma IsPremodifier.measurable_div_sigmaFiniteLambda
   exact (hρ.measurable Λ).div
     ((hρ.measurable Λ).lintegral_kernel.mono cylinderEvents_le_pi le_rfl)
 
-/-! ### Normalization of a premodifier (Georgii 4.6 ⇒ DLR consistency) -/
+/-! ### Normalization of a premodifier
+
+**Georgii, Remark (1.32).** If `h` is a pre-modification and `0 < λ_Λ h_Λ < ∞` for all `Λ`, then
+`ρ_Λ = h_Λ / λ_Λ h_Λ` is a λ-modification, so `ρ λ_·` is a specification.
+-/
 
 variable (ν : Measure E) [IsProbabilityMeasure ν]
 
@@ -2274,7 +2313,11 @@ lemma isProper_sigmaFinitePremodifierKernel
 Georgii consistency for Gibbs kernels normalized against the λ-kernel repeats the finite-volume
 calculation unchanged once the reference family `sigmaFiniteLambdaFun ν` is known to compose (so
 iterated `λ`-integrals collapse); in this file composition is proved using
-**`isConsistent_sigmaFiniteLambdaFun`**, which currently assumes **`[IsProbabilityMeasure ν]`**.
+**`isConsistent_sigmaFiniteLambdaFun`**, which needs **`[IsProbabilityMeasure ν]`**. The general
+σ-finite non-zero case is
+`Specification.isConsistent_modificationKer_sigmaFinitePremodifierNorm_of_neZero`
+in `GibbsMeasure/Specification/Rescaling.lean`, obtained from this one by the rescaling of
+Georgii, Remark (1.28)(3).
 The algebraic premodifier cocycle is integrated against each `λ_Λ(ξ)`.
 -/
 
@@ -3020,7 +3063,7 @@ end Modifier
 
 Georgii's Notation (1.26) writes the reference kernel as `λ_Λ(dω | η) = λ^Λ(dω_Λ) δ_{η_{S∖Λ}}`:
 the volume `Λ` is resampled, the exterior is frozen. `Specification.IsResampling` records exactly
-this shape, and is all that the normalization of a premodifier (Georgii (1.31) ⇒ (1.30)) uses
+this shape, and is all that the normalization of a premodifier (Georgii, Remark (1.32)) uses
 about the reference kernels. Both `Specification.isssd` and, for the second half of Georgii
 (8.39), the inhomogeneous `Specification.isssdFamily` are resampling specifications.
 -/
@@ -3117,8 +3160,9 @@ lemma IsPremodifier.mul_relZ (hγ : IsResampling γ) (hρ : IsPremodifier ρ) {�
   rw [mul_comm (ρ Λ₂ η), mul_comm (ρ Λ₁ η)]
   exact this.symm
 
-/-- **Georgii (1.31) ⇒ (1.30).** Normalizing a premodifier against a resampling reference
-specification produces a modifier, hence a specification.
+/-- **Georgii, Remark (1.32).** Normalizing a premodifier against a resampling reference
+specification produces a modifier, hence a specification: the normalized family still satisfies
+the symmetry of Definition (1.31), hence condition (c) of Proposition (1.30), hence (a).
 
 This is `Specification.IsPremodifier.isModifier_premodifierNorm` with the independent
 specification `Specification.isssd ν` replaced by an arbitrary resampling reference — in

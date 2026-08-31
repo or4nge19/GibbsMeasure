@@ -59,8 +59,9 @@ Dropping the quasilocality conjunct would therefore make Theorem (8.7) below fal
 def IsDobrushin (γ : Specification S E) : Prop :=
   γ.IsQuasilocal ∧ ∃ c : ℝ≥0∞, c < 1 ∧ ∀ i, ∑' j, interdep γ i j ≤ c
 
-/-- Georgii (8.2): the oscillation `δ(f) = sup_{ζ,η} |f(ζ) − f(η)|` of a function on the
-configuration space.
+/-- The oscillation `δ(f) = sup_{ζ,η} |f(ζ) − f(η)|` of a function on the configuration space
+(Georgii, the unnumbered display before Proposition (8.8), "in analogy with (8.2)"; (8.2) itself
+is the oscillation of a function on the state space `E`).
 
 It is the oscillation `oscOutside ∅ f` of `f` under variation of *all* coordinates; the two
 agree because the `ℝ≥0∞`-valued distance of `ℝ` is `edist a b = ENNReal.ofReal |a − b|`
@@ -642,7 +643,7 @@ interdependence matrix vanish. -/
     exact hmeas.dependsOn_of_cylinderEvents (fun k hk ↦ h k (by simpa using hk))
   rw [hζη]
 
-/-! ### M3: the single-site Gibbs distributions of a potential -/
+/-! ### The single-site Gibbs distributions of a potential -/
 
 section GibbsSingleSite
 
@@ -1220,9 +1221,12 @@ lemma card_neighborFinset_latticeGraph_le (d : ℕ) (v : Fin d → ℤ) :
     _ ≤ (Finset.univ : Finset (Fin d × Bool)).card := Finset.card_image_le
     _ = 2 * d := by simp [Finset.card_univ, mul_comm]
 
-/-- **Dobrushin's condition for the `ℤ^d` Ising model at high temperature** (Georgii (8.8),
-Example (8.9)(2) specialised to nearest neighbours). Each of the `2d` bonds at a site
-contributes `(|A| − 1) δ(Φ_A) = 2|βJ|`, so `∑_{A ∋ i} (|A| − 1) δ((βΦ)_A) ≤ 4d|βJ| < 2`. -/
+/-- **Dobrushin's condition for the `ℤ^d` Ising model at high temperature**: Georgii's
+Proposition (8.8) applied to the nearest-neighbour spin potential of Example (8.9)(2), using
+only that example's computation `δ(Φ_A) = 2|J(A)|`. Each of the `2d` bonds at a site
+contributes `(|A| − 1) δ(Φ_A) = 2|βJ|`, so `∑_{A ∋ i} (|A| − 1) δ((βΦ)_A) ≤ 4d|βJ| < 2`. The
+sharper criterion (8.10) of Example (8.9)(2), `sup_i ∑_{A ∋ i} (|A| − 1) tanh |J(A)| < 1` —
+here `2d tanh |βJ| < 1` — is not proved. -/
 theorem isDobrushin_isingSpecification (d : ℕ) (J h β : ℝ) (hβ : 4 * d * |β * J| < 2) :
     IsDobrushin (isingSpecification (latticeGraph d) J h β) := by
   classical

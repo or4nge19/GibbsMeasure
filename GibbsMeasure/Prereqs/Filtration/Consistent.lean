@@ -5,7 +5,14 @@ public import Mathlib.Probability.Kernel.Composition.MapComap
 public import Mathlib.Probability.Process.Filtration
 
 /-!
-# TODO
+# Consistency of a family of kernels along a filtration
+
+`MeasureTheory.Filtration.IsConsistentKernel mXs γ`: a family of kernels `γ p : Kernel[mXs p] X X`
+indexed by a partial order `P` satisfies `γ p₂ ∘ₖ γ p₁ = γ p₁` whenever `p₁ ≤ p₂`. This is the
+abstract form of Georgii's consistency condition `γ_Δ γ_Λ = γ_Δ` for `Λ ⊆ Δ`, recovered along the
+order-dual of the volume order in `isConsistentKernel_cylinderEventsCompl`.
+
+## TODO
 
 Reopen https://github.com/leanprover-community/mathlib4/pull/17859 once we have more API depending
 on this definition.

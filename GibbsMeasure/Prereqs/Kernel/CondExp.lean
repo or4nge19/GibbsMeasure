@@ -146,6 +146,11 @@ private lemma condExp_simpleFunc_ae_eq_integral_kernel (f : @SimpleFunc X 𝓧 �
 lemma condExp_ae_eq_integral (hπ : π.IsProper) (h𝓑𝓧 : 𝓑 ≤ 𝓧) (f : X → ℝ)
     [IsMarkovKernel π] [SigmaFinite (μ.trim h𝓑𝓧)]
     (hf : Integrable f μ) : condExp 𝓑 μ f =ᵐ[μ] (fun x₀ ↦ ∫ x, f x ∂(π x₀)) := by
+  -- Sketch: write `T h x₀ = ∫ h d(π x₀)`. Being a conditional expectation kernel plus properness
+  -- give `μ.bind π = μ` (`isCondExp_iff_bind_eq_left`), whence `T` contracts the `L¹` norm and
+  -- preserves integrability and a.e. equality. `Integrable.induction` then reduces the claim to
+  -- constant indicators (`condExp_const_indicator_ae_eq_integral_kernel`), additivity, and
+  -- closedness in `L¹`, the last from continuity of `condExpL1CLM` and of the `1`-Lipschitz `Ψ`.
   let T (h : X → ℝ) (x₀ : X) := ∫ x, h x ∂(π x₀)
   have hbind : μ.bind π = μ := (isCondExp_iff_bind_eq_left hπ h𝓑𝓧).mp inferInstance
   have hπ_aemX : AEMeasurable (fun x₀ ↦ π x₀) μ := (π.measurable.mono h𝓑𝓧 le_rfl).aemeasurable

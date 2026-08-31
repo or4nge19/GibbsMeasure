@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Matteo Cipollina. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Matteo Cipollina
+-/
 module
 
 public import GibbsMeasure.Specification
@@ -7,14 +12,14 @@ public import Mathlib.MeasureTheory.MeasurableSpace.CountablyGenerated
 public import Mathlib.Order.Filter.CountableSeparatingOn
 
 /-!
-# Basic structure of the Gibbs state space `G(γ)` (Georgii, Ch. 7 — beginnings)
+# The Gibbs state space: probability measures, convexity, and the tail σ-algebra (Georgii, Ch. 7)
 
-This file sets up *definitions* used in the structural analysis of Gibbs measures:
-- `GP γ`: the set of Gibbs **probability measures** for a specification `γ`;
-- `tailSigmaAlgebra`: the tail σ-algebra `𝓣` on the configuration space.
-
-We intentionally keep the scope minimal and Mathlib-aligned: advanced results (extreme points,
-Choquet simplices, Lévy downward theorem applications) will be developed in subsequent files.
+This file sets up the objects used in the structural analysis of Gibbs measures:
+- `GP γ`: the set of Gibbs **probability measures** for a specification `γ`, and its convexity
+  (`ProbabilityMeasure.convexCombo`, `convexCombo_mem_GP`);
+- `tailSigmaAlgebra`: the tail σ-algebra `𝓣` on the configuration space;
+- `IsTailTrivial`: tail triviality, together with the a.e. constancy of tail-measurable functions
+  under a tail-trivial measure (`IsTailTrivial.ae_eq_const_of_measurable`).
 -/
 
 @[expose] public section

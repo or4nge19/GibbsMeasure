@@ -14,7 +14,8 @@ public import Mathlib.MeasureTheory.Constructions.BorelSpace.Metrizable
 # Potentials and their Hamiltonians
 
 Georgii's Definition (2.2) of an interaction potential: each `Φ A` is `𝓕_A`-measurable
-(`Potential.IsPotential`) and the Hamiltonian series `H_Λ = ∑_{A ∩ Λ ≠ ∅} Φ_A` converges in the sense
+(`Potential.IsPotential`) and the Hamiltonian series `H_Λ = ∑_{A ∩ Λ ≠ ∅} Φ_A` converges in the
+sense
 of Convention (2.1) (`Potential.IsSummable`).
 
 `Potential.IsFiniteRange` is the special case in which the series has finite support.
@@ -23,8 +24,9 @@ of Convention (2.1) (`Potential.IsSummable`).
 
 * `Potential.dependsOn_hamiltonian_sub`: Georgii (2.6).
 * `Potential.isPremodifier_boltzmannFactor`: Georgii Proposition (2.5).
-* `Potential.IsAbsolutelySummable`: the space `ℬ` of Georgii (2.11), with `‖Φ‖ᵢ` of (2.12); it
-  implies `IsSummable` and bounds the Hamiltonian by Georgii (2.14).
+* `Potential.IsAbsolutelySummable`: absolute summability, Georgii (2.11), with `‖Φ‖ᵢ` of (2.12); it
+  implies `IsSummable` and bounds the Hamiltonian by Georgii (2.14). The space `ℬ` itself is the
+  submodule `Potential.absolutelySummable` in `GibbsMeasure/Potential/Space.lean`.
 * `Potential.gibbsSpecificationOfAbsolutelySummable`: Georgii Definition (2.9) for `Φ ∈ ℬ`.
 -/
 
@@ -141,7 +143,10 @@ lemma dependsOn_sum_hamiltonianTerms_sub [IsPotential Φ] (Λ₁ Λ₂ : Finset 
   · have hmem : A ∉ {B : Finset S | ¬ Disjoint B Λ₂ ∧ Disjoint B Λ₁} := hA
     rw [Set.indicator_of_notMem hmem, Set.indicator_of_notMem hmem]
 
-/-- **Georgii (2.6).** For `Λ₁ ⊆ Λ₂` the Hamiltonian difference is `𝓕_{Λ₁ᶜ}`-measurable. -/
+/-- **Georgii (2.6).** For `Λ₁ ⊆ Λ₂` the Hamiltonian difference depends only on the coordinates
+outside `Λ₁` — the `DependsOn` half of Georgii's `𝓣_{Λ₁}`-measurability. Full
+`cylinderEvents (Λ₁ : Set S)ᶜ`-measurability follows for countable `S` by combining this with
+`measurable_hamiltonian` (`Measurable.cylinderEvents_of_dependsOn`). -/
 theorem dependsOn_hamiltonian_sub [IsPotential Φ] [IsSummable Φ] (hΛ : Λ₁ ⊆ Λ₂) :
     DependsOn (fun η ↦ Φ.hamiltonian Λ₂ η - Φ.hamiltonian Λ₁ η) ((Λ₁ : Set S)ᶜ) := by
   refine DependsOn.of_tendsto (l := (SummationFilter.volume S).filter)
@@ -197,8 +202,9 @@ private lemma ofReal_exp_mul_comm {a b c d : ℝ} (h : a + b = c + d) :
   rw [← ENNReal.ofReal_mul (Real.exp_pos _).le, ← ENNReal.ofReal_mul (Real.exp_pos _).le,
     ← Real.exp_add, ← Real.exp_add, h]
 
-/-- **Georgii, Proposition (2.5).** The Boltzmann factors of a potential form a positive
-pre-modification. -/
+/-- **Georgii, Proposition (2.5).** The Boltzmann factors of a potential form a pre-modification.
+The positivity in Georgii's statement is not part of `Specification.IsPremodifier`; it is the
+separate lemma `Potential.boltzmannFactor_pos`. -/
 theorem isPremodifier_boltzmannFactor [Countable S] [IsPotential Φ] [IsSummable Φ] (β : ℝ) :
     Specification.IsPremodifier (S := S) (E := E) (Φ.boltzmannFactor β) where
   measurable Λ := measurable_boltzmannFactor (Φ := Φ) β Λ
@@ -410,7 +416,8 @@ def gibbsSpecificationOfAbsolutelySummable [Countable S] [IsPotential Φ] [IsAbs
       (isPremodifier_boltzmannFactor (Φ := Φ) β)
       (isPremodifierAdmissible_boltzmannFactor (Φ := Φ) ν β))
 
-/-- **Domination of the Gibbsian specification (the estimate in Georgii (4.23)(a)).** On
+/-- **Domination of the Gibbsian specification** (the estimate behind Georgii (4.23)(a): the bound
+in the proof of Corollary (4.13) with Comment (4.14)(1), as in `relNorm_boltzmannFactor_le`). On
 `𝓕_Λ`-events, the Gibbsian specification of an absolutely summable potential is dominated by a
 constant multiple of the free measure `ν^S`. -/
 lemma gibbsSpecificationOfAbsolutelySummable_apply_le [Countable S] [IsPotential Φ]

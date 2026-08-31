@@ -1,0 +1,3 @@
+import GibbsMeasure.Specification.InvariantExistenceGroup
+#check @MeasureTheory.GibbsMeasure.isProbabilityMeasure_haarProb
+#check @MeasureTheory.GibbsMeasure.exists_mem_GP_and_forall_measurePreserving_of_compactGroup

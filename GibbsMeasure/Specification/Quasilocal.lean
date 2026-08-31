@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Matteo Cipollina. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Matteo Cipollina
+-/
 module
 
 public import GibbsMeasure.Topology.ConfigurationSpace
@@ -26,9 +31,8 @@ This file sets up the basic API:
 - `BoundedContinuousFunction.fellerQuasilocalFunctions`: its topological (uniform) closure;
 - `BoundedContinuousFunction.IsFellerQuasilocal`: membership predicate.
 
-We deliberately keep this file purely functional-analytic: it does *not* yet talk about
-specifications. The latter will require a Feller-type hypothesis to act on bounded continuous
-functions.
+This file is purely functional-analytic. The action of a specification on these observables needs
+a Feller hypothesis; it is developed in `GibbsMeasure/Specification/QuasilocalSpecification.lean`.
 -/
 
 @[expose] public section

@@ -20,7 +20,8 @@ to quasilocal observables. No topology on `E` is involved.
 
 * `Specification.action`: `γ_Λ f = ∫ f ∂γ_Λ(·|·)` on bounded observables.
 * `Specification.IsQuasilocal`: Georgii (2.23).
-* `Specification.isQuasilocal_iff_forall_mem_localFunctions`: it suffices to check local observables.
+* `Specification.isQuasilocal_iff_forall_mem_localFunctions`: it suffices to check local
+observables.
 -/
 
 @[expose] public section
@@ -166,8 +167,12 @@ end Isssd
 
 /-! ### Georgii (2.24) -/
 
-/-- **Georgii (2.24)(a).** A modification of a quasilocal specification by quasilocal densities is
-quasilocal. -/
+/-- A modification of a quasilocal specification by *bounded* quasilocal densities is quasilocal.
+
+This is a variant of **Georgii (2.24)(a)**, which assumes `γ = ρλ` for an a priori measure `λ` and
+concludes from either `ρ_Λ` local (any `λ`) or `λ` finite and `ρ_Λ` quasilocal — in neither branch
+is `ρ_Λ` assumed bounded. Here the reference `γ` is an arbitrary quasilocal specification, but the
+densities are required to lie in `𝓛̄`. -/
 theorem IsQuasilocal.modification {γ : Specification S E} (hγ : γ.IsQuasilocal)
     {ρ : Finset S → (S → E) → ℝ≥0∞} (hρ : γ.IsModifier ρ)
     {r : Finset S → lp (fun _ : S → E ↦ ℝ) ∞}
@@ -237,9 +242,13 @@ lemma le_action_boltzmann (H : lp (fun _ : S → E ↦ ℝ) ∞)
     _ ≤ _ := integral_mono (integrable_const _) (integrable_boltzmann hH Λ η)
         fun x ↦ le_boltzmann H x
 
-/-- **Georgii (2.24)(b).** If every Hamiltonian is a quasilocal observable, the Gibbsian
-specification obtained by normalizing `e^{-H_Λ}` against a resampling reference specification is
-quasilocal. -/
+/-- **Georgii (2.24)(b), bounded-Hamiltonian case.** If every Hamiltonian is a *bounded* quasilocal
+observable, the Gibbsian specification obtained by normalizing `e^{-H_Λ}` against a resampling
+reference specification is quasilocal.
+
+Georgii states (2.24)(b) for an arbitrary a priori measure `λ ∈ 𝓜(E, 𝓔)` and quasilocal, not
+necessarily bounded, Hamiltonians. Bounded Hamiltonians are possible only for finite `λ`
+(Georgii (2.25)(ii)), which is the case a resampling (Markov) reference captures. -/
 theorem IsResampling.isQuasilocal_modification_relNorm (hγ : IsResampling γ)
     {H : Finset S → lp (fun _ : S → E ↦ ℝ) ∞} (hH : ∀ Λ, H Λ ∈ quasilocalFunctions S E)
     (hρ : γ.IsModifier (relNorm γ fun Λ η ↦ ENNReal.ofReal ((⇑(boltzmann (H Λ))) η))) :

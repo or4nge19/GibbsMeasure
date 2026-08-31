@@ -16,8 +16,7 @@ This file adds the minimal infrastructure needed for the Feller version of quasi
   source, built from the integral. For Markov kernels this action is a contraction in sup-norm,
   hence defines a continuous linear operator `continuousActionCLM`.
 
-Mathlib currently does not provide a bundled "Feller kernel" interface, so this file is a small
-shim and *not* a reimplementation of existing API.
+Mathlib does not provide a bundled Feller-kernel interface; `IsFeller` fills that gap.
 -/
 
 @[expose] public section

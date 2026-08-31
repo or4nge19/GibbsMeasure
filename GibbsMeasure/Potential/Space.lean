@@ -231,7 +231,7 @@ protected lemma IsAbsolutelySummable.sub {Φ Ψ : Potential S E}
 
 instance : IsAbsolutelySummable (0 : Potential S E) := ⟨fun i ↦ by simp⟩
 
-/-! ### (B1) Georgii (2.11): the submodule `ℬ` of absolutely summable potentials -/
+/-! ### Georgii (2.11): the submodule `ℬ` of absolutely summable potentials -/
 
 variable (S E) in
 /-- **Georgii (2.11).** The space `ℬ` of absolutely summable potentials (indexed by nonempty
@@ -260,7 +260,7 @@ lemma coe_apply_empty (Φ : absolutelySummable S E) : (Φ : Potential S E) ∅ =
 
 instance (Φ : absolutelySummable S E) : IsPotential (Φ : Potential S E) := Φ.2.2.2
 
-/-! ### (B2) Georgii (2.11): the seminorms `‖·‖ᵢ` and the locally convex topology -/
+/-! ### Georgii (2.11): the seminorms `‖·‖ᵢ` and the locally convex topology -/
 
 variable (S E) in
 /-- Georgii (2.12): the seminorm `Φ ↦ ‖Φ‖ᵢ = (normAt Φ i).toReal` on `ℬ`. -/
@@ -626,7 +626,7 @@ theorem tendsto_hamiltonianBound_sub {ι : Type*} {l : Filter ι}
     (a := fun _ ↦ (0 : ℝ)) fun i _ ↦ h' i
   simpa using hsum
 
-/-! ### (B3) Georgii's `ℬ` as the domain of the Gibbs correspondence `𝒢` of (4.23) -/
+/-! ### Georgii's `ℬ` as the domain of the Gibbs correspondence `𝒢` of (4.23) -/
 
 variable (S E) in
 /-- Georgii's space `ℬ` of (2.11), the domain of the Gibbs correspondence. -/
@@ -670,7 +670,7 @@ theorem tendsto_dist_action_gibbsSpecification {ι : Type*} {l : Filter ι}
     (fun x Λ' η ↦ abs_hamiltonian_sub_le' (Φs x) Φ Λ' η)
     (fun Λ' ↦ tendsto_hamiltonianBound_sub hcoe Λ') Λ hf
 
-/-! ### (B3) Georgii Theorem (4.23)(c): the graph of the Gibbs correspondence is closed -/
+/-! ### Georgii Theorem (4.23)(c): the graph of the Gibbs correspondence is closed -/
 
 /-- Georgii Theorem (4.23)(c): the graph of the Gibbs correspondence `Φ ↦ 𝒢(Φ)` is closed in
 `ℬ × 𝒫(Ω, 𝓕)`. -/
@@ -713,7 +713,7 @@ theorem isClosed_graph_GP :
       (continuous_snd.tendsto q).comp (tendsto_fst.mono_right inf_le_left)
     exact hsnd.congr' (hev.mono fun r hr ↦ hr.symm)
 
-/-! ### (B4) Georgii Theorem (4.23)(d): the Gibbs correspondence is upper semicontinuous -/
+/-! ### Georgii Theorem (4.23)(d): the Gibbs correspondence is upper semicontinuous -/
 
 /-- Georgii Theorem (4.23)(d): the Gibbs correspondence is upper semicontinuous: `𝒢⁻¹(F)` is
 closed in `ℬ` for every closed `F ⊆ 𝒫(Ω, 𝓕)`. -/

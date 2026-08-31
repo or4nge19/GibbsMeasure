@@ -145,7 +145,8 @@ private lemma toReal_sub_toReal_eq_integral_simpleFunc
   have : Integrable φ (π x) := SimpleFunc.integrable_of_isFiniteMeasure φ
   exact (integral_eq_lintegral_pos_part_sub_lintegral_neg_part this).symm
 
-/-- Alias for `integrable_of_lintegral_nnnorm_lt_top`. -/
+/-- Integrability from a.e. strong measurability together with finiteness of the `‖·‖ₑ`-lintegral:
+the anonymous-constructor form of `Integrable`. -/
 lemma integrable_of_lintegral_ennnorm_lt_top
     {α E : Type*} [MeasurableSpace α] {μ : Measure α}
     [NormedAddCommGroup E] [NormedSpace ℝ E]
