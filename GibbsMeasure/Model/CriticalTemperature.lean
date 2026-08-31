@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Model.IsingDobrushin
 public import GibbsMeasure.Model.PhaseTransition
 public import GibbsMeasure.Specification.DobrushinUniqueness
 

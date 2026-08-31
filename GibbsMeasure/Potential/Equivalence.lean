@@ -234,8 +234,13 @@ lemma oscNormAt_ne_top [Φ.IsAbsolutelySummable] (i : S) : Φ.oscNormAt i ≠ �
   ne_top_of_le_ne_top (ENNReal.mul_ne_top (by simp) (IsAbsolutelySummable.normAt_ne_top i))
     (oscNormAt_le_two_mul_normAt i)
 
-/-- **Georgii §2.4.** The equivalence class of `Φ` meets `ℬ` exactly when the total oscillation at
-each site is finite, and `Φ.centre η₀` is then a witness. -/
+/-- **Recentring criterion** (cf. the normalisation `‖Φ_A‖ = δ(Φ_A)/2` in the proof of Georgii
+Theorem (8.39); §2.4 states no oscillation criterion). Some recentring `Φ.centre η₀` of `Φ` is
+absolutely summable iff the total oscillation `∑_{A ∋ i} δ(Φ_A)` is finite at every site; since
+`Φ.centre η₀` is equivalent to `Φ` (`isEquivalent_centre`), the class of `Φ` then meets `ℬ`.
+The converse for the whole equivalence class fails: for `Φ_{{0,1}} η = f (η 0)`,
+`Φ_{{0,2}} η = -f (η 0)` with `f` unbounded and all other terms `0`, `Φ` is equivalent to the zero
+potential of `ℬ` while `Φ.oscNormAt 0 = ⊤`. -/
 theorem isAbsolutelySummable_centre_iff [Nonempty E] :
     (∃ η₀ : S → E, (Φ.centre η₀).IsAbsolutelySummable) ↔ ∀ i, Φ.oscNormAt i ≠ ⊤ := by
   refine ⟨fun ⟨η₀, _⟩ i ↦ ?_, fun h ↦ ⟨fun _ ↦ Classical.arbitrary E, ⟨fun i ↦

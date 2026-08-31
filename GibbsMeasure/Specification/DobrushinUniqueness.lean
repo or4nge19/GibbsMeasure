@@ -66,13 +66,6 @@ variable {α₁ α₂ : Measure E}
 lemma measure_le_add_unifDist {A : Set E} (hA : MeasurableSet A) :
     α₁ A ≤ α₂ A + unifDist α₁ α₂ := tsub_le_iff_left.1 (le_unifDist hA)
 
-private lemma ennreal_sub_aux {a c : ℝ≥0∞} (ha : a ≤ 1) :
-    a - c = (1 - c) - (1 - a) := by
-  rcases le_total a c with h | h
-  · rw [tsub_eq_zero_of_le h, tsub_eq_zero_of_le (tsub_le_tsub_left h 1)]
-  · have h1 : (1 : ℝ≥0∞) - c = (1 - a) + (a - c) := (tsub_add_tsub_cancel ha h).symm
-    rw [h1, ENNReal.add_sub_cancel_left (by finiteness)]
-
 end UnifDist
 
 

@@ -60,6 +60,7 @@ public import GibbsMeasure.Potential.FreeBoundary
 public import GibbsMeasure.Potential.GibbsTransformation
 public import GibbsMeasure.Potential.UniformConvergence
 public import GibbsMeasure.Model.Ising
+public import GibbsMeasure.Model.IsingDobrushin
 public import GibbsMeasure.Model.IsingFKG
 public import GibbsMeasure.Model.PlusPhase
 public import GibbsMeasure.Model.Contours
