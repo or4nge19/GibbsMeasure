@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Tanh
 public import GibbsMeasure.Model.Ising
 public import GibbsMeasure.Potential.Existence
 public import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
@@ -466,6 +467,15 @@ lemma sqrtRatio_le_log_div_four {m M : ℝ} (hm : 0 < m) (hmM : m ≤ M) :
   rw [div_le_iff₀ hrpos] at hkey
   linarith
 
+/-- `tanh x ≤ x` for `x ≥ 0`: the `m = 1`, `M = e^{4x}` case of `sqrtRatio_le_log_div_four`,
+which is this inequality in disguise. -/
+lemma tanh_le_self {x : ℝ} (hx : 0 ≤ x) : Real.tanh x ≤ x := by
+  have hM : (0 : ℝ) < Real.exp (4 * x) := Real.exp_pos _
+  have hmM : (1 : ℝ) ≤ Real.exp (4 * x) := Real.one_le_exp (by linarith)
+  have h := sqrtRatio_le_log_div_four (m := 1) (M := Real.exp (4 * x)) one_pos hmM
+  rw [← Real.tanh_log_div_four one_pos hM] at h
+  simpa [Real.log_exp] using h
+
 /-- The elementary estimate behind Georgii (8.8): if the "density" of `(c, e)` relative to
 `(a, b)` lies between `m` and `M`, then the normalised ratios differ by at most
 `(√M − √m)/(√M + √m)`. -/
@@ -519,16 +529,17 @@ private lemma ennreal_sub_le_ofReal {x y : ℝ≥0∞} (hx : x ≠ ⊤) {K : ℝ
       ENNReal.toReal_sub_of_le hxy hx]
     exact ENNReal.ofReal_le_ofReal h
 
-/-- **Georgii (8.8), measure-theoretic core.** If two finite measures satisfy
+/-- **Georgii (8.8), measure-theoretic core, sharp form.** If two finite measures satisfy
 `m·μ₀ ≤ μ₁ ≤ M·μ₀` setwise, their normalisations are at uniform distance at most
-`log (M/m)/4`. -/
-lemma unifDist_normalize_le {X : Type*} [MeasurableSpace X] {μ₀ μ₁ : Measure X}
+`(√M − √m)/(√M + √m)`. This is the bound the argument actually produces;
+`unifDist_normalize_le` and `unifDist_normalize_le_tanh` are its two readings. -/
+lemma unifDist_normalize_le_sqrtRatio {X : Type*} [MeasurableSpace X] {μ₀ μ₁ : Measure X}
     {m M : ℝ} (hm : 0 < m) (hmM : m ≤ M)
     (h0top : μ₀ univ ≠ ⊤) (h1top : μ₁ univ ≠ ⊤) (h0ne : μ₀ univ ≠ 0)
     (hlo : ∀ A, MeasurableSet A → ENNReal.ofReal m * μ₀ A ≤ μ₁ A)
     (hhi : ∀ A, MeasurableSet A → μ₁ A ≤ ENNReal.ofReal M * μ₀ A) :
     unifDist ((μ₁ univ)⁻¹ • μ₁) ((μ₀ univ)⁻¹ • μ₀)
-      ≤ ENNReal.ofReal (Real.log (M / m) / 4) := by
+      ≤ ENNReal.ofReal ((Real.sqrt M - Real.sqrt m) / (Real.sqrt M + Real.sqrt m)) := by
   have hmM0 : ENNReal.ofReal m ≠ 0 := by simpa using hm
   have h1ne : μ₁ univ ≠ 0 := by
     intro hzero
@@ -567,15 +578,38 @@ lemma unifDist_normalize_le {X : Type*} [MeasurableSpace X] {μ₀ μ₁ : Measu
   have hmain : c / (c + e) - a / (a + b)
       ≤ (Real.sqrt M - Real.sqrt m) / (Real.sqrt M + Real.sqrt m) :=
     ratio_sub_ratio_le hm hmM ha hb hab hkeyA.1 hkeyA.2 hkeyAc.1
-  have hfinal : c / (c + e) - a / (a + b) ≤ Real.log (M / m) / 4 :=
-    hmain.trans (sqrtRatio_le_log_div_four hm hmM)
   rw [htoReal A, htoReal A]
   refine ennreal_sub_le_ofReal
     (ENNReal.mul_ne_top (ENNReal.inv_ne_top.2 h1ne) (hfin1 A)) ?_
   rw [ENNReal.toReal_mul, ENNReal.toReal_mul, ENNReal.toReal_inv, ENNReal.toReal_inv,
     ← hsum0, ← hsum1]
   rw [inv_mul_eq_div, inv_mul_eq_div]
-  exact hfinal
+  exact hmain
+
+/-- **Georgii (8.8), measure-theoretic core.** The `log (M/m)/4` reading of
+`unifDist_normalize_le_sqrtRatio`, via the Padé bound `sqrtRatio_le_log_div_four`. -/
+lemma unifDist_normalize_le {X : Type*} [MeasurableSpace X] {μ₀ μ₁ : Measure X}
+    {m M : ℝ} (hm : 0 < m) (hmM : m ≤ M)
+    (h0top : μ₀ univ ≠ ⊤) (h1top : μ₁ univ ≠ ⊤) (h0ne : μ₀ univ ≠ 0)
+    (hlo : ∀ A, MeasurableSet A → ENNReal.ofReal m * μ₀ A ≤ μ₁ A)
+    (hhi : ∀ A, MeasurableSet A → μ₁ A ≤ ENNReal.ofReal M * μ₀ A) :
+    unifDist ((μ₁ univ)⁻¹ • μ₁) ((μ₀ univ)⁻¹ • μ₀)
+      ≤ ENNReal.ofReal (Real.log (M / m) / 4) :=
+  (unifDist_normalize_le_sqrtRatio hm hmM h0top h1top h0ne hlo hhi).trans
+    (ENNReal.ofReal_le_ofReal (sqrtRatio_le_log_div_four hm hmM))
+
+/-- **The `tanh` form of the comparison bound.** `(√M − √m)/(√M + √m) = tanh (log (M/m)/4)`, so
+the normalisations are at uniform distance at most `tanh (log (M/m)/4)` — strictly sharper than
+`unifDist_normalize_le`, and the source of Georgii's improvement (8.10) of Proposition (8.8). -/
+lemma unifDist_normalize_le_tanh {X : Type*} [MeasurableSpace X] {μ₀ μ₁ : Measure X}
+    {m M : ℝ} (hm : 0 < m) (hmM : m ≤ M)
+    (h0top : μ₀ univ ≠ ⊤) (h1top : μ₁ univ ≠ ⊤) (h0ne : μ₀ univ ≠ 0)
+    (hlo : ∀ A, MeasurableSet A → ENNReal.ofReal m * μ₀ A ≤ μ₁ A)
+    (hhi : ∀ A, MeasurableSet A → μ₁ A ≤ ENNReal.ofReal M * μ₀ A) :
+    unifDist ((μ₁ univ)⁻¹ • μ₁) ((μ₀ univ)⁻¹ • μ₀)
+      ≤ ENNReal.ofReal (Real.tanh (Real.log (M / m) / 4)) := by
+  rw [Real.tanh_log_div_four hm (lt_of_lt_of_le hm hmM)]
+  exact unifDist_normalize_le_sqrtRatio hm hmM h0top h1top h0ne hlo hhi
 
 end Normalize
 
@@ -744,19 +778,22 @@ lemma singleSiteMeasure_le_of_boltzmann_le {i : S} {ζ η : S → E} {C : ℝ≥
       Set.indicator_of_notMem (fun hc ↦ hx ((hmem ζ x).1 hc))]
     simp
 
-/-- **Georgii (8.8), key estimate.** If the single-site Hamiltonian difference between two
-boundary conditions oscillates by at most `D`, the two `σ_i`-projections of the single-site
-Gibbs kernels are at uniform distance at most `D/4`. -/
-lemma unifDist_map_gibbsSpecification_le {i : S} {ζ η : S → E} {D : ℝ} (hD : 0 ≤ D)
+/-- **Georgii (8.8), the setwise ratio bounds.** If the single-site Hamiltonian difference between
+two boundary conditions oscillates by at most `D`, the unnormalised single-site distributions
+satisfy `m·μ_η ≤ μ_ζ ≤ M·μ_η` with `log (M/m) = D`. This is the whole content of the key estimate;
+`unifDist_map_gibbsSpecification_le_tanh` and `unifDist_map_gibbsSpecification_le` read it off
+through the two forms of `unifDist_normalize_le_sqrtRatio`. -/
+lemma exists_singleSiteMeasure_ratio_bounds {i : S} {ζ η : S → E} {D : ℝ} (hD : 0 ≤ D)
     (hosc : ∀ x y : ↥({i} : Finset S) → E,
       β * ((Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) η x)
               - Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) ζ x))
            - (Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) η y)
               - Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) ζ y))) ≤ D) :
-    unifDist
-        ((Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β {i} ζ).map (fun ω ↦ ω i))
-        ((Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β {i} η).map (fun ω ↦ ω i))
-      ≤ ENNReal.ofReal (D / 4) := by
+    ∃ m M : ℝ, 0 < m ∧ m ≤ M ∧ Real.log (M / m) = D ∧
+      (∀ B, MeasurableSet B →
+        ENNReal.ofReal m * singleSiteMeasure Φ ν β i η B ≤ singleSiteMeasure Φ ν β i ζ B) ∧
+      (∀ B, MeasurableSet B →
+        singleSiteMeasure Φ ν β i ζ B ≤ ENNReal.ofReal M * singleSiteMeasure Φ ν β i η B) := by
   have hEne : Nonempty E := by
     by_contra hcon
     rw [not_nonempty_iff] at hcon
@@ -822,13 +859,48 @@ lemma unifDist_map_gibbsSpecification_le {i : S} {ζ η : S → E} {D : ℝ} (hD
       _ = μ₁ B := by
           rw [← mul_assoc, ← ENNReal.ofReal_mul (Real.exp_pos _).le, ← Real.exp_add,
             show c₀ - D + (D - c₀) = 0 by ring, Real.exp_zero, ENNReal.ofReal_one, one_mul]
-  have hkey := unifDist_normalize_le (μ₀ := μ₀) (μ₁ := μ₁) hm hmM
+  exact ⟨m, M, hm, hmM, hlogMm, hset_lo, hset_hi⟩
+
+
+/-- **Georgii (8.8), key estimate, sharp form.** The two `σ_i`-projections of the single-site
+Gibbs kernels are at uniform distance at most `tanh (D/4)`. Georgii obtains this sharpening only
+for two-point spin spaces (Example (8.9)(2)); the bound `unifDist_normalize_le_sqrtRatio` already
+produces it over an arbitrary state space. -/
+lemma unifDist_map_gibbsSpecification_le_tanh {i : S} {ζ η : S → E} {D : ℝ} (hD : 0 ≤ D)
+    (hosc : ∀ x y : ↥({i} : Finset S) → E,
+      β * ((Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) η x)
+              - Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) ζ x))
+           - (Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) η y)
+              - Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) ζ y))) ≤ D) :
+    unifDist
+        ((Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β {i} ζ).map (fun ω ↦ ω i))
+        ((Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β {i} η).map (fun ω ↦ ω i))
+      ≤ ENNReal.ofReal (Real.tanh (D / 4)) := by
+  obtain ⟨m, M, hm, hmM, hlogMm, hset_lo, hset_hi⟩ :=
+    exists_singleSiteMeasure_ratio_bounds (Φ := Φ) (ν := ν) (β := β) hD hosc
+  have hkey := unifDist_normalize_le_tanh
+    (μ₀ := singleSiteMeasure Φ ν β i η) (μ₁ := singleSiteMeasure Φ ν β i ζ) hm hmM
     (singleSiteMeasure_univ_ne_top (Φ := Φ) (ν := ν) (β := β) i η)
     (singleSiteMeasure_univ_ne_top (Φ := Φ) (ν := ν) (β := β) i ζ)
     (singleSiteMeasure_univ_ne_zero (Φ := Φ) (ν := ν) (β := β) i η) hset_lo hset_hi
   rw [hlogMm] at hkey
   rwa [map_gibbsSpecification_singleton (Φ := Φ) i ζ,
     map_gibbsSpecification_singleton (Φ := Φ) i η]
+
+/-- **Georgii (8.8), key estimate.** The `D/4` reading of
+`unifDist_map_gibbsSpecification_le_tanh`. -/
+lemma unifDist_map_gibbsSpecification_le {i : S} {ζ η : S → E} {D : ℝ} (hD : 0 ≤ D)
+    (hosc : ∀ x y : ↥({i} : Finset S) → E,
+      β * ((Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) η x)
+              - Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) ζ x))
+           - (Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) η y)
+              - Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) ζ y))) ≤ D) :
+    unifDist
+        ((Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β {i} ζ).map (fun ω ↦ ω i))
+        ((Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β {i} η).map (fun ω ↦ ω i))
+      ≤ ENNReal.ofReal (D / 4) :=
+  (unifDist_map_gibbsSpecification_le_tanh hD hosc).trans
+    (ENNReal.ofReal_le_ofReal (tanh_le_self (by linarith)))
 
 end GibbsSingleSite
 
@@ -946,23 +1018,20 @@ section Prop88
 variable [Countable S] {Φ : Potential S E} [Potential.IsPotential Φ]
   [Potential.IsAbsolutelySummable Φ] (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ)
 
-/-- **Georgii (8.8), entrywise.** `C_ij(γ^{βΦ}) ≤ |β|/2 · ∑_{A ⊇ {i,j}} δ(Φ_A)`. -/
-theorem interdep_gibbsSpecification_le (i j : S) :
-    interdep (Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) i j
-      ≤ ENNReal.ofReal |β| * pairStrength Φ i j / 2 := by
+omit [Countable S] in
+/-- The second difference of the single-site Hamiltonian between two boundary conditions
+agreeing off `j` is bounded by `|β| · 2 · ∑_{A ⊇ {i,j}} δ(Φ_A)`. This is the whole oscillation
+input to Georgii (8.8); both readings of the key estimate consume it. -/
+lemma hamiltonian_singleSite_second_diff_le (i j : S) {ζ η : S → E}
+    (hζη : ∀ k, k ≠ j → ζ k = η k) (x y : ↥({i} : Finset S) → E) :
+    β * ((Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) η x)
+            - Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) ζ x))
+         - (Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) η y)
+            - Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) ζ y)))
+      ≤ |β| * 2 * (pairStrength Φ i j).toReal := by
   set P := pairStrength Φ i j with hPdef
   have hPtop : P ≠ ⊤ := pairStrength_ne_top Φ i j
   set D : ℝ := |β| * 2 * P.toReal with hDdef
-  have hD0 : 0 ≤ D := by positivity
-  have hrhs : ENNReal.ofReal (D / 4) = ENNReal.ofReal |β| * P / 2 := by
-    rw [hDdef, show |β| * 2 * P.toReal / 4 = |β| * P.toReal / 2 by ring,
-      ENNReal.ofReal_div_of_pos (by norm_num), ENNReal.ofReal_mul (abs_nonneg β),
-      ENNReal.ofReal_toReal hPtop]
-    norm_num
-  rw [← hrhs]
-  refine interdep_le fun ζ η hζη ↦ ?_
-  refine unifDist_map_gibbsSpecification_le hD0 ?_
-  intro x y
   set ω₁ := juxt ((({i} : Finset S) : Set S)) η x with hω₁
   set ω₂ := juxt ((({i} : Finset S) : Set S)) ζ x with hω₂
   set ω₃ := juxt ((({i} : Finset S) : Set S)) η y with hω₃
@@ -993,6 +1062,36 @@ theorem interdep_gibbsSpecification_le (i j : S) :
           - (Φ.hamiltonian {i} ω₃ - Φ.hamiltonian {i} ω₄)| := abs_mul _ _
     _ ≤ |β| * (2 * P.toReal) := mul_le_mul_of_nonneg_left hΔ (abs_nonneg β)
     _ = D := by rw [hDdef]; ring
+
+
+/-- **Georgii (8.8), entrywise.** `C_ij(γ^{βΦ}) ≤ |β|/2 · ∑_{A ⊇ {i,j}} δ(Φ_A)`. -/
+theorem interdep_gibbsSpecification_le (i j : S) :
+    interdep (Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) i j
+      ≤ ENNReal.ofReal |β| * pairStrength Φ i j / 2 := by
+  set P := pairStrength Φ i j with hPdef
+  have hPtop : P ≠ ⊤ := pairStrength_ne_top Φ i j
+  have hD0 : 0 ≤ |β| * 2 * P.toReal := by positivity
+  have hrhs : ENNReal.ofReal (|β| * 2 * P.toReal / 4) = ENNReal.ofReal |β| * P / 2 := by
+    rw [show |β| * 2 * P.toReal / 4 = |β| * P.toReal / 2 by ring,
+      ENNReal.ofReal_div_of_pos (by norm_num), ENNReal.ofReal_mul (abs_nonneg β),
+      ENNReal.ofReal_toReal hPtop]
+    norm_num
+  rw [← hrhs]
+  exact interdep_le fun ζ η hζη ↦ unifDist_map_gibbsSpecification_le hD0
+    fun x y ↦ hamiltonian_singleSite_second_diff_le β i j hζη x y
+
+/-- **Georgii, Example (8.9)(2), general form.** The sharp reading of the pair bound:
+`C_ij(γ^Φ) ≤ tanh (|β| ∑_{A ⊇ {i,j}} δ(Φ_A) / 2)`. Georgii derives the `tanh` improvement only
+for two-point spin spaces; it holds over an arbitrary state space. -/
+theorem interdep_gibbsSpecification_le_tanh (i j : S) :
+    interdep (Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) i j
+      ≤ ENNReal.ofReal (Real.tanh (|β| * (pairStrength Φ i j).toReal / 2)) := by
+  set P := pairStrength Φ i j with hPdef
+  have hD0 : 0 ≤ |β| * 2 * P.toReal := by positivity
+  have hquarter : |β| * 2 * P.toReal / 4 = |β| * P.toReal / 2 := by ring
+  rw [← hquarter]
+  exact interdep_le fun ζ η hζη ↦ unifDist_map_gibbsSpecification_le_tanh hD0
+    fun x y ↦ hamiltonian_singleSite_second_diff_le β i j hζη x y
 
 end Prop88
 

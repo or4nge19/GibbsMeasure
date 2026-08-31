@@ -5,6 +5,8 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import Mathlib.Analysis.SpecialFunctions.Log.Basic
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 public import Mathlib.Analysis.SpecialFunctions.Trigonometric.DerivHyp
 
 /-!
@@ -20,6 +22,9 @@ The proof is the identity `tanh b - tanh a = sinh (b - a) / (cosh a * cosh b)` t
 
 `tanh` is also subadditive on `[0, ∞)`, and hence subadditive along finite sums of nonnegative
 terms: `tanh (∑ f i) ≤ ∑ tanh (f i)`.
+
+Finally `tanh (log (M / m) / 4) = (√M - √m) / (√M + √m)`, which identifies the sharp constant in
+the comparison of two normalized measures with density ratio in `[m, M]`.
 -/
 
 @[expose] public section
@@ -133,5 +138,36 @@ theorem tanh_sum_le {ι : Type*} (s : Finset ι) {f : ι → ℝ} (hf : ∀ i �
       have hsum : 0 ≤ ∑ i ∈ s, f i := Finset.sum_nonneg hfs
       rw [Finset.sum_insert ha, Finset.sum_insert ha]
       exact (tanh_add_le_of_nonneg hfa hsum).trans (by gcongr; exact ih hfs)
+
+/-! ### The quarter-log form -/
+
+lemma exp_log_div_two {y : ℝ} (hy : 0 < y) : exp (log y / 2) = √y := by
+  rw [Real.sqrt_eq_rpow, Real.rpow_def_of_pos hy]
+  congr 1
+  ring
+
+/-- `tanh x = (exp (2 * x) - 1) / (exp (2 * x) + 1)`. -/
+lemma tanh_eq_exp_two_mul (x : ℝ) : tanh x = (exp (2 * x) - 1) / (exp (2 * x) + 1) := by
+  have hx : exp x ≠ 0 := (exp_pos x).ne'
+  have h2 : exp (2 * x) = exp x * exp x := by
+    rw [two_mul, exp_add]
+  rw [tanh_eq_sinh_div_cosh, sinh_eq, cosh_eq, exp_neg, h2]
+  field_simp
+
+/-- **The sharp constant of the comparison of two normalized measures.** If the density ratio of
+two measures lies in `[m, M]`, their total-variation distance is at most
+`(√M - √m) / (√M + √m)`, and this equals `tanh (log (M / m) / 4)`. -/
+theorem tanh_log_div_four {m M : ℝ} (hm : 0 < m) (hM : 0 < M) :
+    tanh (log (M / m) / 4) = (√M - √m) / (√M + √m) := by
+  have hMm : 0 < M / m := div_pos hM hm
+  have hsm : 0 < √m := Real.sqrt_pos.2 hm
+  have hsM : 0 < √M := Real.sqrt_pos.2 hM
+  have hu : exp (2 * (log (M / m) / 4)) = √M / √m := by
+    rw [show 2 * (log (M / m) / 4) = log (M / m) / 2 by ring, exp_log_div_two hMm,
+      Real.sqrt_div hM.le]
+  have hsum : √M + √m ≠ 0 := by positivity
+  rw [tanh_eq_exp_two_mul, hu]
+  rw [div_sub_one hsm.ne', div_add_one hsm.ne']
+  exact div_div_div_cancel_right₀ hsm.ne' _ _
 
 end Real
