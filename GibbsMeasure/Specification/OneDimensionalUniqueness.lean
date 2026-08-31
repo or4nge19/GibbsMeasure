@@ -663,14 +663,15 @@ theorem isAbsolutelySummable_centre_manyBody (h840 : ⨆ i : S, oscSpan Φ i ≠
     h840 ∘ (eq_top_mono (le_iSup _ (Order.pred i)))⟩) (oscNormAt_manyBody_le Φ i)
 
 /-- **Georgii, Theorem (8.39)**, at his own hypotheses: a potential in the sense of Definition
-(2.2), `λ`-admissible over a probability a priori measure on a standard Borel state space, whose
+(2.2), `λ`-admissible over any σ-finite non-zero a priori measure on a standard Borel state space,
+whose
 oscillations satisfy (8.40), has exactly one Gibbs measure. No absolute summability is assumed:
 (8.40) makes the recentred many-body part absolutely summable, and the self-energies go into the a
 priori measure. -/
 theorem existsUnique_mem_GP_lambdaSpecification_of_iSup_oscSpan_ne_top [Countable S]
     [StandardBorelSpace E] {m : ℕ} (hexh : HasBoundedBoundary S m)
     [Potential.IsPotential Φ] [Potential.IsSummable Φ]
-    (lam : Measure E) [IsProbabilityMeasure lam] (β : ℝ)
+    (lam : Measure E) [SigmaFinite lam] [NeZero lam] (β : ℝ)
     (hZ : _root_.Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) lam
       (Φ.boltzmannFactor β))
     (h840 : ⨆ i : S, oscSpan Φ i ≠ ⊤) :

@@ -201,12 +201,10 @@ fidelity:
     summability rather than absolute summability, and both S = Z and S = N (through an abstraction
     of the one-dimensional input, `HasBoundedBoundary`). The uniqueness half holds over any
     sigma-finite non-zero lambda-admissible a priori measure; the existence half, following
-    Georgii's own reduction, is so far stated over a *probability* a priori measure on a standard
-    Borel state space, where Georgii allows any lambda in M(E,E) (sigma-finite, non-zero); his own
-    (4.23) assumes lambda finite, and he reaches the sigma-finite case of (8.39) because the
-    measures exp(-Phi_{i}) lambda his reduction produces are finite. Normalizing them is done here
-    too, so the residual restriction is on the *starting* measure only. The reduction itself is
-    formalized: §2.4 (equivalence of potentials), the recentred many-body part and its
+    Georgii's own reduction, holds over the same sigma-finite non-zero lambda, on a standard Borel
+    state space, exactly as he states it. (His own (4.23) assumes lambda finite; (8.39) reaches
+    the sigma-finite case because the measures exp(-beta Phi_{i}) lambda produced by the reduction
+    are finite, which is how it is done here.) The reduction itself is formalized: §2.4 (equivalence of potentials), the recentred many-body part and its
     absolute summability under (8.40), the transport into the per-site a priori measures
     lambda_i = exp(-beta Phi_{i}) lambda, and (4.23)(a) over such a family.
   notes: >-

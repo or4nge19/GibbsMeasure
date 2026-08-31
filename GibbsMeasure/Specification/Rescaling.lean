@@ -165,6 +165,32 @@ theorem withDensity_relNorm_div (hγ' : ∀ (Λ : Finset S) (η : S → E),
   refine withDensity_congr_ae (.of_forall fun ω ↦ ?_)
   rw [Pi.mul_apply, relNorm, relNorm, hZ ω, mul_div_assoc', hcancel Λ ω]
 
+/-- **Georgii Remark (1.28)(3) against the σ-finite reference kernel.** If the kernels of `γ'` are
+those of the a priori measure `lam` times a boundary-independent density `W`, then dividing the
+premodifier by `W` gives back the λ-specification of `lam`. -/
+theorem withDensity_relNorm_div_sigmaFiniteLambdaFun (lam : Measure E) [SigmaFinite lam]
+    {γ' : Specification S E} {W : Finset S → (S → E) → ℝ≥0∞}
+    (hγ' : ∀ (Λ : Finset S) (η : S → E),
+      γ' Λ η = (sigmaFiniteLambdaFun (S := S) (E := E) lam Λ η).withDensity (W Λ))
+    (hW : ∀ Λ, Measurable (W Λ)) (hW0 : ∀ Λ ω, W Λ ω ≠ 0) (hWtop : ∀ Λ ω, W Λ ω ≠ ⊤)
+    (hρ : ∀ Λ, Measurable (ρ Λ)) (Λ : Finset S) (η : S → E) :
+    (γ' Λ η).withDensity (relNorm γ' (fun Λ ω ↦ ρ Λ ω / W Λ ω) Λ)
+      = (sigmaFiniteLambdaFun (S := S) (E := E) lam Λ η).withDensity
+          (sigmaFinitePremodifierNorm (S := S) (E := E) lam ρ Λ) := by
+  set ρ' : Finset S → (S → E) → ℝ≥0∞ := fun Λ ω ↦ ρ Λ ω / W Λ ω with hρ'
+  have hρ'meas : ∀ Λ, Measurable (ρ' Λ) := fun Λ ↦ (hρ Λ).div (hW Λ)
+  have hcancel : ∀ (Λ : Finset S) (ω : S → E), W Λ ω * ρ' Λ ω = ρ Λ ω := fun Λ ω ↦
+    ENNReal.mul_div_cancel (hW0 Λ ω) (hWtop Λ ω)
+  have hZ : ∀ ω, relZ γ' ρ' Λ ω
+      = sigmaFiniteLambdaZ (S := S) (E := E) lam ρ Λ ω := by
+    intro ω
+    rw [relZ, hγ' Λ ω, sigmaFiniteLambdaZ,
+      lintegral_withDensity_eq_lintegral_mul _ (hW Λ) (hρ'meas Λ)]
+    exact lintegral_congr fun x ↦ hcancel Λ x
+  rw [hγ' Λ η, ← withDensity_mul _ (hW Λ) (measurable_relNorm (γ := γ') hρ'meas Λ)]
+  refine withDensity_congr_ae (.of_forall fun ω ↦ ?_)
+  rw [Pi.mul_apply, relNorm, sigmaFinitePremodifierNorm, hZ ω, mul_div_assoc', hcancel Λ ω]
+
 end RelRescale
 
 /-! ### Rescaling the a priori measure -/

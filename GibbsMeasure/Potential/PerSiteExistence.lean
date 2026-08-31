@@ -230,7 +230,7 @@ variable (Φ β η₀) in
 noncomputable def selfEnergyMeasure (lam : Measure E) (i : S) : Measure E :=
   (lam.withDensity (selfEnergyWeight Φ β η₀ i)).probNormalize
 
-variable {lam : Measure E} [IsProbabilityMeasure lam]
+variable {lam : Measure E} [SigmaFinite lam] [NeZero lam]
 
 lemma withDensity_selfEnergyWeight_univ (i : S) :
     lam.withDensity (selfEnergyWeight Φ β η₀ i) Set.univ
@@ -242,9 +242,9 @@ lemma withDensity_selfEnergyWeight_univ_ne_zero (i : S) :
   rw [withDensity_selfEnergyWeight_univ]
   intro h
   have hae := (lintegral_eq_zero_iff' (measurable_selfEnergyWeight (Φ := Φ) i).aemeasurable).1 h
-  have : lam Set.univ = 0 :=
+  have hz : lam Set.univ = 0 :=
     measure_mono_null (fun x _ ↦ selfEnergyWeight_ne_zero (Φ := Φ) (β := β) (η₀ := η₀) i x) hae
-  simp at this
+  exact (NeZero.ne lam) (Measure.measure_univ_eq_zero.1 hz)
 
 /-- The per-site measures are the densities `c_i⁻¹ e^{-β Φ_{i}}` against `λ`. -/
 lemma selfEnergyMeasure_eq_withDensity (i : S) :
@@ -297,7 +297,7 @@ theorem lambdaSpecification_eq_gibbsSpecificationFamily [Countable S] [IsSummabl
   have hWtop : ∀ Λ ω, W Λ ω ≠ ⊤ := Specification.lambdaWeight_ne_top hwtop
   have href : ∀ (Λ : Finset S) (η : S → E),
       Specification.isssdFamily ν Λ η
-        = (Specification.isssd (S := S) (E := E) lam Λ η).withDensity (W Λ) := by
+        = (Specification.sigmaFiniteLambdaFun (S := S) (E := E) lam Λ η).withDensity (W Λ) := by
     intro Λ η
     have hν' : ν = fun i ↦ lam.withDensity (w i) := funext hν
     subst hν'
@@ -328,15 +328,11 @@ theorem lambdaSpecification_eq_gibbsSpecificationFamily [Countable S] [IsSummabl
   have hκtop : ∀ Λ, κ Λ ≠ ⊤ := fun Λ ↦
     ENNReal.mul_ne_top (by simp) (ENNReal.prod_ne_top fun i _ ↦ hctop i)
   refine Specification.ext fun Λ ↦ Kernel.ext fun η ↦ ?_
-  have hZ' : Specification.IsPremodifierAdmissible (S := S) (E := E) lam (Φ.boltzmannFactor β) :=
-    (Specification.isPremodifierAdmissible_iff_isSigmaFiniteLambdaAdmissible lam _).2 hZ
-  have key := Specification.withDensity_relNorm_div (γ := Specification.isssd lam)
+  have key := Specification.withDensity_relNorm_div_sigmaFiniteLambdaFun lam
     (γ' := Specification.isssdFamily ν) (ρ := Φ.boltzmannFactor β) (W := W)
     href hWmeas hW0 hWtop hρ.measurable Λ η
   rw [hdiv, Specification.relNorm_const_mul hκ0 hκtop] at key
-  rw [gibbsSpecificationFamily, Specification.premodification, Specification.modification_apply,
-    Specification.lambdaSpecification_eq_modification_isssd lam hρ hZ hZ',
-    Specification.modification_apply, ← Specification.relNorm_isssd lam]
+  rw [gibbsSpecificationFamily, Specification.premodification, Specification.modification_apply]
   exact key
 
 /-- **Georgii Theorem (4.23)(a) after the reduction.** A `λ`-admissible potential whose
@@ -365,22 +361,28 @@ theorem GP_lambdaSpecification_nonempty_of_lintegral_selfEnergyWeight_ne_top
 
 /-! ### λ-admissibility bounds the self-energies -/
 
-lemma lintegral_isssd_coord {i : S} (η : S → E) {f : E → ℝ≥0∞} (hf : Measurable f) :
-    ∫⁻ σ, f (σ i) ∂(Specification.isssd (S := S) (E := E) lam ({i} : Finset S) η)
+lemma lintegral_sigmaFiniteLambdaFun_coord {i : S} (η : S → E) {f : E → ℝ≥0∞}
+    (hf : Measurable f) :
+    ∫⁻ σ, f (σ i)
+        ∂(Specification.sigmaFiniteLambdaFun (S := S) (E := E) lam ({i} : Finset S) η)
       = ∫⁻ x, f x ∂lam := by
-  rw [show Specification.isssd (S := S) (E := E) lam ({i} : Finset S) η
-      = Measure.map (juxt ((({i} : Finset S) : Finset S) : Set S) η)
-        (Measure.pi fun _ : ({i} : Finset S) ↦ lam) from rfl,
+  haveI : Unique (({i} : Finset S) : Type _) :=
+    ⟨⟨⟨i, Finset.mem_singleton_self i⟩⟩, fun x ↦ Subtype.ext (Finset.mem_singleton.1 x.2)⟩
+  rw [Specification.sigmaFiniteLambdaFun_apply_eq_map,
     lintegral_map (f := fun σ : S → E ↦ f (σ i)) (hf.comp (measurable_pi_apply i))
       Measurable.juxt]
   have hcoord : ∀ ζ : ({i} : Finset S) → E,
-      f (juxt ((({i} : Finset S) : Finset S) : Set S) η ζ i)
-        = f (ζ ⟨i, Finset.mem_singleton_self i⟩) := fun ζ ↦ by
+      f (juxt ((({i} : Finset S) : Finset S) : Set S) η ζ i) = f (ζ default) := fun ζ ↦ by
     rw [juxt_apply_of_mem (Λ := ((({i} : Finset S) : Finset S) : Set S)) (by simp) ζ]
+    congr 1
+    exact congrArg ζ (Subsingleton.elim _ _)
   simp_rw [hcoord]
-  have h := (MeasureTheory.measurePreserving_eval (μ := fun _ : ({i} : Finset S) ↦ lam)
-    ⟨i, Finset.mem_singleton_self i⟩).lintegral_comp hf
-  simpa [Function.eval] using h
+  have h := (MeasureTheory.measurePreserving_funUnique lam
+    (({i} : Finset S) : Type _)).lintegral_comp hf
+  refine Eq.trans ?_ h
+  congr 1
+  congr 1
+  exact Subsingleton.elim _ _
 
 /-- **Georgii's finiteness input.** `λ`-admissibility at the single-site volumes bounds the
 self-energy weights: once the recentred many-body part is absolutely summable, the many-body
@@ -407,8 +409,9 @@ theorem lintegral_selfEnergyWeight_ne_top [Countable S] [IsSummable Φ]
   -- integrate against the reference kernel at `Λ = {i}`
   have hint : K * m * ∫⁻ x, selfEnergyWeight Φ β η₀ i x ∂lam
       ≤ Specification.sigmaFiniteLambdaZ lam (Φ.boltzmannFactor β) ({i} : Finset S) η₀ := by
-    rw [← Specification.premodifierZ_eq_sigmaFiniteLambdaZ, Specification.premodifierZ,
-      ← lintegral_isssd_coord (lam := lam) (i := i) η₀ (measurable_selfEnergyWeight (Φ := Φ) i),
+    rw [Specification.sigmaFiniteLambdaZ,
+      ← lintegral_sigmaFiniteLambdaFun_coord (lam := lam) (i := i) η₀
+        (measurable_selfEnergyWeight (Φ := Φ) i),
       ← lintegral_const_mul (f := fun σ : S → E ↦ selfEnergyWeight Φ β η₀ i (σ i)) _
         ((measurable_selfEnergyWeight (Φ := Φ) i).comp (measurable_pi_apply i))]
     exact lintegral_mono hle

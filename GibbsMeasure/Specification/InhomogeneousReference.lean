@@ -69,16 +69,15 @@ lemma isssdFamilyFun_const (ν : Measure E) [IsProbabilityMeasure ν] (Λ : Fins
   rfl
 
 /-- **Georgii, Remark (1.28)(3), per site.** Replacing the a priori measure at each site `i` by
-`w_i · λ` multiplies the independent kernel by the weight `∏_{i ∈ Λ} w_i(ω_i)`. -/
-lemma isssdFamilyFun_withDensity (lam : Measure E) [IsProbabilityMeasure lam]
+`w_i · λ` multiplies the reference kernel by the weight `∏_{i ∈ Λ} w_i(ω_i)`. -/
+lemma isssdFamilyFun_withDensity (lam : Measure E) [SigmaFinite lam]
     {w : S → E → ℝ≥0∞} (hw : ∀ i, Measurable (w i))
     [∀ i, IsProbabilityMeasure (lam.withDensity (w i))] (Λ : Finset S) (η : S → E) :
     isssdFamilyFun (S := S) (E := E) (fun i ↦ lam.withDensity (w i)) Λ η
-      = (isssdFun (S := S) (E := E) lam Λ η).withDensity
+      = (sigmaFiniteLambdaFun (S := S) (E := E) lam Λ η).withDensity
           (lambdaWeight (S := S) (E := E) w Λ) := by
   classical
-  rw [isssdFamilyFun_apply, show isssdFun (S := S) (E := E) lam Λ η
-    = Measure.map (juxt (Λ : Set S) η) (Measure.pi fun _ : Λ ↦ lam) from rfl]
+  rw [isssdFamilyFun_apply, sigmaFiniteLambdaFun_apply_eq_map]
   have hpi : (Measure.pi fun i : Λ ↦ lam.withDensity (w i))
       = (Measure.pi fun _ : Λ ↦ lam).withDensity (fun ζ : Λ → E ↦ ∏ i : Λ, w i (ζ i)) :=
     Measure.pi_withDensity (fun _ : Λ ↦ lam) (fun i : Λ ↦ hw i)
