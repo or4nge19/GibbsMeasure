@@ -400,9 +400,12 @@ alignment:
         setting. The same applies to the TailTrivialCore / LawLevelExtremal / ChoquetDecomposition
         sections of Specification/ChoquetLaw.lean. Nothing else depends on them: (7.26), the
         non-emptiness of ex G(gamma) and its measurability are proved unconditionally by the
-        (7.22)/(7.25) route in ExtremeDecomposition.lean and ExtremeCorollaries.lean. Fixing them
-        requires replacing the tail sigma-algebra by a countably generated one equal to it modulo
-        mu-null sets.
+        (7.22)/(7.25) route in ExtremeDecomposition.lean and ExtremeCorollaries.lean, and the
+        pointwise conclusion is ae_mem_extremePoints_G_gibbsKernel, which assumes no countable
+        generation. Fixing the tail-kernel versions requires replacing the tail sigma-algebra by a
+        countably generated one equal to it modulo mu-null sets; such a sigma-algebra always
+        exists (L^1 of a standard Borel space is separable, hence so is the L^1 of any
+        sub-sigma-algebra), but mathlib has no such lemma.
     - source: "Theorem (9.20), Chapters 10-20"
       lean: ""
       module: ""

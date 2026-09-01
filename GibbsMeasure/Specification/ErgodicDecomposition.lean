@@ -42,13 +42,18 @@ generating family `(B_n)` would make `ω ↦ (1_{B_n}(ω))ₙ` a Borel reduction
 The hypothesis is not gratuitous: it is what upgrades "for each `A ∈ 𝓣`, `tailKernel μ ω A =
 1_A(ω)` for `μ`-a.e. `ω`" to "for `μ`-a.e. `ω`, for all `A ∈ 𝓣`", and a regular conditional
 distribution given a σ-algebra that is not countably generated modulo null sets need not be proper
-on it. Removing it therefore requires replacing `𝓣` by a countably generated σ-algebra equal to it
-modulo `μ`-null sets, which is not done here.
+on it. It could be removed by replacing `𝓣` with a countably generated σ-algebra equal to it
+modulo `μ`-null sets — such a σ-algebra always exists, since `L¹(Ω, 𝓕, μ)` is separable for
+standard Borel `Ω` and hence so is its closed subspace `L¹(Ω, 𝓣, μ)` — but Mathlib has no such
+lemma and it is not proved here.
 
-Nothing else in the library rests on these statements: the extreme decomposition (7.26), the
-non-emptiness of `ex 𝒢(γ)` and its measurability are proved unconditionally by the (7.22)/(7.25)
-route in `GibbsMeasure/Specification/ExtremeDecomposition.lean` and
-`GibbsMeasure/Specification/ExtremeCorollaries.lean`, which never assume countable generation.
+Nothing is lost meanwhile. The conclusion these statements aim at is available without any
+countable-generation hypothesis, because the `(𝒢(γ), 𝓣)`-kernel of Proposition (7.25) is a version
+of `μ(· | 𝓣)` for every `μ ∈ 𝒢(γ)` simultaneously: see
+`MeasureTheory.GibbsMeasure.ae_mem_extremePoints_G_gibbsKernel`, and the extreme decomposition
+(7.26), the non-emptiness of `ex 𝒢(γ)` and its measurability in
+`GibbsMeasure/Specification/ExtremeDecomposition.lean` and
+`GibbsMeasure/Specification/ExtremeCorollaries.lean`.
 -/
 
 @[expose] public section

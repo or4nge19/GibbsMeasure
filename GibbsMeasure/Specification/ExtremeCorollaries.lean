@@ -193,6 +193,28 @@ lemma measurableSet_extremePoints_G (hG : (G γ).Nonempty) :
   rw [hset]
   exact (measurableSet_G γ).inter (measurableSet_fixedCore tailSigmaAlgebra_le_pi)
 
+/-- **Georgii (7.26), pointwise form.** For a Gibbs measure `μ`, the `(𝒢(γ), 𝓣)`-kernel of
+Proposition (7.25) takes an *extreme* Gibbs measure as value at `μ`-almost every boundary
+condition.
+
+This is the conclusion that the tail-kernel statements of
+`GibbsMeasure/Specification/ErgodicDecomposition.lean` reach for, and unlike those it assumes no
+countable generation of the tail σ-algebra — a hypothesis which is unsatisfiable for countably
+infinite `S` and `2 ≤ #E`. The kernel here is `gibbsKernel γ ν₀`, which is a version of
+`μ(· | 𝓣)` for *every* `μ ∈ 𝒢(γ)` at once (`isPAKernel_gibbsKernel`), so nothing is lost by using
+it in place of the conditional-expectation kernel. -/
+theorem ae_mem_extremePoints_G_gibbsKernel (hG : (G γ).Nonempty) {μ : Measure Ω}
+    (hμ : μ ∈ G γ) :
+    ∀ᵐ ω ∂μ, gibbsKernel γ hG.some ω ∈ (G γ).extremePoints ℝ≥0∞ := by
+  have hmeas := measurableSet_extremePoints_G (γ := γ) hG
+  have hzero : μ (gibbsKernel γ hG.some ⁻¹' ((G γ).extremePoints ℝ≥0∞)ᶜ) = 0 := by
+    rw [← weightOf_apply hG μ hmeas.compl]
+    exact weightOf_extremePoints_compl hG hμ
+  rw [ae_iff]
+  convert hzero using 2
+  ext ω
+  simp
+
 /-! ### Georgii (7.28): the weight map commutes with every symmetry -/
 
 /-- **Georgii, Corollary (7.28)**: for a symmetry `τ` of `γ`, `w_{τ(μ)} = τ(w_μ)`. -/
