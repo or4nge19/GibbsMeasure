@@ -48,7 +48,9 @@ convenience.
 
 The `Filter.EventuallyConst` API is used in exactly one place,
 `preErgodic_iff_forall_nullMeasurableSet`, which is the only bridge to Mathlib's `PreErgodic`;
-every other statement is phrased as `μ s = 0 ∨ μ s = 1`. Almost sure
+every other statement is phrased as `μ s = 0 ∨ μ s = 1`. That lemma also consumes
+`MeasurePreserving.quasiMeasurePreserving`, so if `MeasurePreserving` is ever weakened to require
+only `AEMeasurable`, it is the single place needing an explicit `Measurable T`. Almost sure
 invariance cannot be weakened to strict invariance, and `Example75` below is Georgii's Example
 (7.5) proving it: a stochastic matrix on three points whose strictly invariant σ-algebra is trivial
 while its invariant measures form a segment, so triviality on it does not imply extremality.
