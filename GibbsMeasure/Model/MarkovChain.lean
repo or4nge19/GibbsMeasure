@@ -10,13 +10,15 @@ public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PerronFrobenius
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.Doeblin
 public import GibbsMeasure.Potential.Existence
 public import GibbsMeasure.Specification.Extremal
+public import GibbsMeasure.Model.Ising
 
 /-!
-# Georgii Theorem (3.5): Markov chains as Gibbs measures on `ℤ`
+# Georgii (3.5), (3.9) and (3.15): Markov chains as Gibbs measures on `ℤ`
 
 For a finite state space, the positive homogeneous Markov specifications on `ℤ` are exactly the
-Gibbsian specifications of the homogeneous nearest-neighbour potentials `-log P`, and each has
-the stationary Markov chain `μ_P` as its unique Gibbs measure.
+Gibbsian specifications of the homogeneous nearest-neighbour potentials, and each has the
+stationary Markov chain `μ_P` as its unique Gibbs measure. The one-dimensional Ising model is the
+instance `E = Bool`, `Φ_{i,i+1} = -J σ_i σ_{i+1}`, `Φ_{i} = -h σ_i`.
 -/
 
 @[expose] public section
@@ -81,6 +83,46 @@ volumes.
   distribution of `μ_P` given the exterior of `Λ`.
 * `gibbsMeasure_eq_singleton`: `𝒢(markovSpecification P) = {μ_P}`.
 * `georgii_3_5`: the packaged statement of Theorem (3.5).
+
+## Homogeneous nearest-neighbour potentials and Corollary (3.9)
+
+* `homogeneousNNPotential φ₁ φ₂`: Georgii's homogeneous nearest-neighbour potential
+  `Φ_{i} = φ₁(σ_i)`, `Φ_{i,i+1} = φ₂(σ_i, σ_{i+1})`, `Φ_A = 0` otherwise, with the instances
+  `IsPotential`, `IsFiniteRange`, `IsAbsolutelySummable`; `homogeneousNNSpecification φ₁ φ₂ β` is
+  its Gibbsian specification at inverse temperature `β`.
+* `homogeneousNNDeterminingFun`, `isPositiveHomogeneousMarkovWith_homogeneousNNSpecification`:
+  **the converse half of Corollary (3.9)** — the Gibbsian specification of a homogeneous
+  nearest-neighbour potential is a positive homogeneous Markov specification, with determining
+  function `g(x,y,z) = e^{-β(φ₁(y) + φ₂(x,y) + φ₂(y,z))}` normalised over `y`.
+* `markovPotential_eq_homogeneousNNPotential`, `homogeneousNNSpecification_neg_log`: the forward
+  half — `γ_P` is Gibbsian for the homogeneous nearest-neighbour potential `-log P`.
+* `isPositiveHomogeneousMarkov_iff_exists_homogeneousNNSpecification`: **Corollary (3.9)**.
+* `determiningFun_unique`, `eq_of_isPositiveHomogeneousMarkovWith`: **Comment (3.2)** — a positive
+  homogeneous Markov specification is determined by its determining function.
+* `homogeneousNNSpecification_smul`: `β·Φ` is again a homogeneous nearest-neighbour potential.
+* `exists_markovSpecification_eq_homogeneousNNSpecification`,
+  `existsUnique_isGibbsMeasure_homogeneousNNSpecification`: Theorem (3.5) for an arbitrary
+  homogeneous nearest-neighbour potential.
+
+## Example (3.15): the one-dimensional Ising model
+
+* `chainGraph`: the nearest-neighbour graph of `ℤ`; `isingPotential_chainGraph`,
+  `isingSpecification_chainGraph`: the Ising potential (3.13) of `GibbsMeasure/Model/Ising.lean`
+  is the homogeneous nearest-neighbour potential `φ₁ = -h σ`, `φ₂ = -J σ σ`.
+* `isingChainDetFun`, `homogeneousNNDeterminingFun_ising`: **Georgii (3.14)**.
+* `isingChainQ`, `detQ_isingChainDetFun`: Georgii's matrix `Q` for the Ising chain.
+* `isingChainPerronRoot`, `isingChainPerronRoot_char`, `perronRoot_isingChainQ`:
+  **Georgii (3.16)** — `q_{J,h} = e^{-h}(cosh h + sqrt(e^{-4J} + sinh² h))` is the
+  Perron–Frobenius eigenvalue of `Q`.
+* `isingChainP`, `matrixOfDetFun_isingChainDetFun`: **Georgii (3.17)** — formula (3.7) produces
+  the transition matrix `P_{J,h}`.
+* `isingSpecification_chainGraph_eq_markovSpecification`,
+  `gibbsMeasure_isingSpecification_chainGraph`,
+  `existsUnique_isGibbsMeasure_isingSpecification_chainGraph`: **Georgii (3.15)** —
+  `𝒢(β Φ^{J,h}) = 𝒢(Φ^{βJ,βh}) = {μ_{βJ,βh}}`.
+* `isingChainStationary`, `stationaryDist_isingChainP`: **Georgii (3.18)**.
+* `integral_spin_stationaryChain_isingChainP`: **Georgii (3.19)** — the magnetisation
+  `μ_{J,h}(σ_i) = sinh h / sqrt(e^{-4J} + sinh² h)`.
 -/
 
 open MeasureTheory ProbabilityTheory Set
@@ -3459,6 +3501,1039 @@ theorem georgii_3_5 :
       gibbsMeasure_eq_singleton P hP hpos⟩,
     fun _ hγ ↦ exists_matrix_eq_markovSpecification hγ,
     fun _ _ hP hpos hP' hpos' h ↦ markovSpecification_injOn hP hpos hP' hpos' h⟩
+
+/-!
+## Corollary (3.9) and Example (3.15)
+
+Homogeneous nearest-neighbour potentials on `ℤ`, Corollary (3.9) in both directions, and the
+one-dimensional Ising model of Example (3.15).
+-/
+
+section HomogeneousNearestNeighbour
+open Finset Filter Topology Matrix
+open scoped Matrix
+
+
+
+/-- A singleton of `ℤ` is not a bond. -/
+lemma not_exists_pair_singleton (i : ℤ) : ¬ ∃ j : ℤ, ({i} : Finset ℤ) = {j, j + 1} := by
+  rintro ⟨j, hj⟩
+  have h1 : (j : ℤ) ∈ ({i} : Finset ℤ) := by rw [hj]; simp
+  have h2 : (j + 1 : ℤ) ∈ ({i} : Finset ℤ) := by rw [hj]; simp
+  simp only [Finset.mem_singleton] at h1 h2
+  omega
+
+open Classical in
+/-- Georgii, before Corollary (3.9): the **homogeneous nearest-neighbour potential** on `ℤ`
+with self-energy `φ₁` and bond energy `φ₂`:
+`Φ_{i}(σ) = φ₁(σ_i)`, `Φ_{i,i+1}(σ) = φ₂(σ_i, σ_{i+1})`, and `Φ_A = 0` for every other `A`. -/
+def homogeneousNNPotential (φ₁ : E → ℝ) (φ₂ : E → E → ℝ) : Potential ℤ E := fun A σ ↦
+  if h : ∃ i : ℤ, A = {i, i + 1} then φ₂ (σ h.choose) (σ (h.choose + 1))
+  else if h' : ∃ i : ℤ, A = {i} then φ₁ (σ h'.choose) else 0
+
+variable (φ₁ : E → ℝ) (φ₂ : E → E → ℝ)
+
+omit [Fintype E] [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
+@[simp] lemma homogeneousNNPotential_pair (i : ℤ) (σ : ℤ → E) :
+    homogeneousNNPotential φ₁ φ₂ {i, i + 1} σ = φ₂ (σ i) (σ (i + 1)) := by
+  have h : ∃ j, ({i, i + 1} : Finset ℤ) = {j, j + 1} := ⟨i, rfl⟩
+  have hi : i = h.choose := pair_succ_inj h.choose_spec
+  simp only [homogeneousNNPotential, dite_eq_left h]
+  rw [← hi]
+
+omit [Fintype E] [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
+@[simp] lemma homogeneousNNPotential_singleton (i : ℤ) (σ : ℤ → E) :
+    homogeneousNNPotential φ₁ φ₂ {i} σ = φ₁ (σ i) := by
+  have h' : ∃ j, ({i} : Finset ℤ) = {j} := ⟨i, rfl⟩
+  have hi : i = h'.choose := by
+    have := h'.choose_spec
+    rwa [Finset.singleton_inj] at this
+  simp only [homogeneousNNPotential, dite_eq_right (not_exists_pair_singleton i),
+    dite_eq_left h']
+  rw [← hi]
+
+omit [Fintype E] [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
+lemma homogeneousNNPotential_of_not {A : Finset ℤ} (hA : ¬ ∃ i : ℤ, A = {i, i + 1})
+    (hA' : ¬ ∃ i : ℤ, A = {i}) (σ : ℤ → E) : homogeneousNNPotential φ₁ φ₂ A σ = 0 := by
+  simp only [homogeneousNNPotential, dite_eq_right hA, dite_eq_right hA']
+
+omit [Fintype E] [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- The interaction supports of a homogeneous nearest-neighbour potential are the sites and the
+bonds. -/
+lemma exists_of_homogeneousNNPotential_ne_zero {A : Finset ℤ}
+    (h : homogeneousNNPotential φ₁ φ₂ A ≠ 0) :
+    (∃ i : ℤ, A = {i, i + 1}) ∨ ∃ i : ℤ, A = {i} := by
+  by_contra hcon
+  rw [not_or] at hcon
+  exact h (funext fun σ ↦ homogeneousNNPotential_of_not φ₁ φ₂ hcon.1 hcon.2 σ)
+
+instance isPotential_homogeneousNNPotential :
+    (homogeneousNNPotential φ₁ φ₂).IsPotential where
+  measurable A := by
+    by_cases h : ∃ i : ℤ, A = {i, i + 1}
+    · obtain ⟨i, rfl⟩ := h
+      have hf : homogeneousNNPotential φ₁ φ₂ {i, i + 1}
+          = fun σ ↦ φ₂ (σ i) (σ (i + 1)) := funext fun σ ↦ homogeneousNNPotential_pair φ₁ φ₂ i σ
+      rw [hf]
+      have hi : Measurable[cylinderEvents (({i, i + 1} : Finset ℤ) : Set ℤ)]
+          fun σ : ℤ → E ↦ σ i := measurable_cylinderEvent_apply (by simp)
+      have hi1 : Measurable[cylinderEvents (({i, i + 1} : Finset ℤ) : Set ℤ)]
+          fun σ : ℤ → E ↦ σ (i + 1) := measurable_cylinderEvent_apply (by simp)
+      exact (measurable_of_finite (fun p : E × E ↦ φ₂ p.1 p.2)).comp
+        (f := fun σ : ℤ → E ↦ (σ i, σ (i + 1))) (hi.prodMk hi1)
+    · by_cases h' : ∃ i : ℤ, A = {i}
+      · obtain ⟨i, rfl⟩ := h'
+        have hf : homogeneousNNPotential φ₁ φ₂ {i} = fun σ ↦ φ₁ (σ i) :=
+          funext fun σ ↦ homogeneousNNPotential_singleton φ₁ φ₂ i σ
+        rw [hf]
+        exact (measurable_of_finite φ₁).comp
+          (measurable_cylinderEvent_apply (X := fun _ : ℤ ↦ E) (by simp))
+      · have hf : homogeneousNNPotential φ₁ φ₂ A = fun _ ↦ 0 :=
+          funext fun σ ↦ homogeneousNNPotential_of_not φ₁ φ₂ h h' σ
+        rw [hf]
+        exact measurable_const
+
+omit [Fintype E] [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- A nonzero interaction term containing `i` lies in `[i-1, i+1]`. -/
+lemma subset_Icc_of_homogeneousNNPotential_ne_zero {i : ℤ} {A : Finset ℤ}
+    (hiA : i ∈ A) (hΦ : homogeneousNNPotential φ₁ φ₂ A ≠ 0) : A ⊆ Finset.Icc (i - 1) (i + 1) := by
+  rcases exists_of_homogeneousNNPotential_ne_zero φ₁ φ₂ hΦ with ⟨j, rfl⟩ | ⟨j, rfl⟩ <;>
+    intro k hk <;>
+    simp only [Finset.mem_insert, Finset.mem_singleton] at hiA hk <;>
+    simp only [Finset.mem_Icc] <;> omega
+
+instance isFiniteRange_homogeneousNNPotential :
+    (homogeneousNNPotential φ₁ φ₂).IsFiniteRange :=
+  ⟨fun i ↦ ⟨Finset.Icc (i - 1) (i + 1),
+    fun _ hiA hΦ ↦ subset_Icc_of_homogeneousNNPotential_ne_zero φ₁ φ₂ hiA hΦ⟩⟩
+
+variable (E) in
+/-- A uniform bound on the interaction terms of `homogeneousNNPotential φ₁ φ₂`. -/
+def homogeneousNNBound (φ₁ : E → ℝ) (φ₂ : E → E → ℝ) : ℝ := ∑ x, |φ₁ x| + ∑ x, ∑ y, |φ₂ x y|
+
+omit [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
+lemma homogeneousNNBound_nonneg : 0 ≤ homogeneousNNBound E φ₁ φ₂ :=
+  add_nonneg (Finset.sum_nonneg fun _ _ ↦ abs_nonneg _)
+    (Finset.sum_nonneg fun _ _ ↦ Finset.sum_nonneg fun _ _ ↦ abs_nonneg _)
+
+omit [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
+lemma abs_homogeneousNNPotential_le (A : Finset ℤ) (σ : ℤ → E) :
+    |homogeneousNNPotential φ₁ φ₂ A σ| ≤ homogeneousNNBound E φ₁ φ₂ := by
+  have h1 : (0:ℝ) ≤ ∑ x, |φ₁ x| := Finset.sum_nonneg fun _ _ ↦ abs_nonneg _
+  have h2 : (0:ℝ) ≤ ∑ x, ∑ y, |φ₂ x y| :=
+    Finset.sum_nonneg fun _ _ ↦ Finset.sum_nonneg fun _ _ ↦ abs_nonneg _
+  by_cases h : ∃ i : ℤ, A = {i, i + 1}
+  · obtain ⟨i, rfl⟩ := h
+    rw [homogeneousNNPotential_pair]
+    have : |φ₂ (σ i) (σ (i + 1))| ≤ ∑ x, ∑ y, |φ₂ x y| :=
+      le_trans (Finset.single_le_sum (f := fun y ↦ |φ₂ (σ i) y|) (fun _ _ ↦ abs_nonneg _)
+        (Finset.mem_univ _))
+        (Finset.single_le_sum (f := fun x ↦ ∑ y, |φ₂ x y|)
+          (fun _ _ ↦ Finset.sum_nonneg fun _ _ ↦ abs_nonneg _) (Finset.mem_univ _))
+    simp only [homogeneousNNBound]; linarith
+  · by_cases h' : ∃ i : ℤ, A = {i}
+    · obtain ⟨i, rfl⟩ := h'
+      rw [homogeneousNNPotential_singleton]
+      have : |φ₁ (σ i)| ≤ ∑ x, |φ₁ x| :=
+        Finset.single_le_sum (f := fun x ↦ |φ₁ x|) (fun _ _ ↦ abs_nonneg _) (Finset.mem_univ _)
+      simp only [homogeneousNNBound]; linarith
+    · rw [homogeneousNNPotential_of_not φ₁ φ₂ h h', abs_zero]
+      exact homogeneousNNBound_nonneg φ₁ φ₂
+
+instance isAbsolutelySummable_homogeneousNNPotential :
+    (homogeneousNNPotential φ₁ φ₂).IsAbsolutelySummable := by
+  refine ⟨fun i ↦ ?_⟩
+  have hsupp : ∀ A : Finset ℤ, A ∉ (Finset.Icc (i - 1) (i + 1)).powerset →
+      ({A : Finset ℤ | i ∈ A}.indicator
+        (fun A ↦ ⨆ η, ‖homogeneousNNPotential φ₁ φ₂ A η‖ₑ)) A = 0 := by
+    intro A hA
+    rw [Finset.mem_powerset] at hA
+    by_cases hiA : i ∈ A
+    · rw [Set.indicator_of_mem (show A ∈ {A : Finset ℤ | i ∈ A} from hiA)]
+      have hΦ0 : homogeneousNNPotential φ₁ φ₂ A = 0 := by
+        by_contra hΦ
+        exact hA (subset_Icc_of_homogeneousNNPotential_ne_zero φ₁ φ₂ hiA hΦ)
+      refine le_antisymm (iSup_le fun η ↦ ?_) zero_le
+      simp [hΦ0]
+    · exact Set.indicator_of_notMem (show A ∉ {A : Finset ℤ | i ∈ A} from hiA) _
+  rw [show (homogeneousNNPotential φ₁ φ₂).normAt i =
+      ∑ A ∈ (Finset.Icc (i - 1) (i + 1)).powerset,
+        ({A : Finset ℤ | i ∈ A}.indicator
+          (fun A ↦ ⨆ η, ‖homogeneousNNPotential φ₁ φ₂ A η‖ₑ)) A from tsum_eq_sum hsupp]
+  refine (ENNReal.sum_lt_top.2 fun A _ ↦ ?_).ne
+  calc ({A : Finset ℤ | i ∈ A}.indicator
+          (fun A ↦ ⨆ η, ‖homogeneousNNPotential φ₁ φ₂ A η‖ₑ)) A
+      ≤ ⨆ η, ‖homogeneousNNPotential φ₁ φ₂ A η‖ₑ := Set.indicator_le_self _ _ A
+    _ ≤ ENNReal.ofReal (homogeneousNNBound E φ₁ φ₂) := iSup_le fun η ↦ by
+        rw [Real.enorm_eq_ofReal_abs]
+        exact ENNReal.ofReal_le_ofReal (abs_homogeneousNNPotential_le φ₁ φ₂ A η)
+    _ < ⊤ := ENNReal.ofReal_lt_top
+
+
+
+/-! ### Singleton kernels of a Gibbsian specification -/
+
+/-- The singleton kernels of the Gibbsian specification of an absolutely summable potential,
+computed from the single-site Boltzmann weights: if `Φ`'s Boltzmann factor in `{i}` is
+`w x` at the configuration `ω` updated to `x` at `i`, then `γ_{i}(σ_i = y|ω) = w y / ∑_x w x`. -/
+lemma gibbsSpecification_singleton_apply_of_boltzmannFactor
+    (Φ : Potential ℤ E) [Φ.IsPotential] [Φ.IsAbsolutelySummable] (β : ℝ) (i : ℤ) (ω : ℤ → E)
+    {w : E → ℝ} (hw : ∀ x, 0 < w x)
+    (hb : ∀ x, Φ.boltzmannFactor β {i} (Function.update ω i x) = ENNReal.ofReal (w x)) (y : E) :
+    Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) (uniformOn (Set.univ : Set E)) β
+        {i} ω {σ : ℤ → E | σ i = y} = ENNReal.ofReal (w y / ∑ x, w x) := by
+  classical
+  set ν : Measure E := uniformOn (Set.univ : Set E) with hν
+  set ρ : Finset ℤ → (ℤ → E) → ℝ≥0∞ := Φ.boltzmannFactor β with hρ
+  have hmeasρ : Measurable (ρ {i}) := Potential.measurable_boltzmannFactor β {i}
+  have hsumpos : 0 < ∑ x, w x := Finset.sum_pos (fun x _ ↦ hw x) Finset.univ_nonempty
+  -- the partition function in `{i}` does not depend on the value at `i`
+  have hZ : ∀ x : E, Specification.premodifierZ ν ρ {i} (Function.update ω i x)
+      = (Fintype.card E : ℝ≥0∞)⁻¹ * ENNReal.ofReal (∑ x, w x) := by
+    intro x
+    have hcongr : Specification.isssd (S := ℤ) ν {i} (Function.update ω i x)
+        = Specification.isssd (S := ℤ) ν {i} ω :=
+      isssd_congr {i} (fun k hk ↦ Function.update_of_ne (by simpa using hk) _ _)
+    show ∫⁻ σ, ρ {i} σ ∂(Specification.isssd (S := ℤ) ν {i} (Function.update ω i x)) = _
+    rw [hcongr, lintegral_isssd_singleton i ω hmeasρ]
+    congr 1
+    rw [Finset.sum_congr rfl fun x _ ↦ hb x,
+      ← ENNReal.ofReal_sum_of_nonneg fun x _ ↦ (hw x).le]
+  -- the density at the updated configuration
+  have hdens : ∀ x : E, Specification.premodifierNorm ν ρ {i} (Function.update ω i x)
+      = ENNReal.ofReal (w x) / ((Fintype.card E : ℝ≥0∞)⁻¹ * ENNReal.ofReal (∑ x, w x)) := by
+    intro x
+    show ρ {i} (Function.update ω i x) / Specification.premodifierZ ν ρ {i}
+      (Function.update ω i x) = _
+    rw [hZ x, hb x]
+  have hSmeas : MeasurableSet {σ : ℤ → E | σ i = y} := measurableSet_eq_apply i y
+  have hfmeas : Measurable (Specification.premodifierNorm ν ρ {i}) :=
+    Specification.measurable_relNorm (γ := Specification.isssd (S := ℤ) ν)
+      (Potential.isPremodifier_boltzmannFactor β).measurable {i}
+  have hstep : Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β {i} ω
+        {σ : ℤ → E | σ i = y}
+      = ∫⁻ σ, ({σ : ℤ → E | σ i = y}.indicator
+          (Specification.premodifierNorm ν ρ {i})) σ ∂(Specification.isssd (S := ℤ) ν {i} ω) := by
+    rw [show Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β {i} ω
+        = (Specification.isssd (S := ℤ) ν {i} ω).withDensity
+            (Specification.premodifierNorm ν ρ {i}) from
+      Specification.modification_apply _ _ _ _ _, withDensity_apply _ hSmeas,
+      lintegral_indicator hSmeas]
+  rw [hstep, lintegral_isssd_singleton i ω (hfmeas.indicator hSmeas)]
+  have hind : ∀ x : E, ({σ : ℤ → E | σ i = y}.indicator
+      (Specification.premodifierNorm ν ρ {i})) (Function.update ω i x)
+      = if x = y then
+          ENNReal.ofReal (w y) / ((Fintype.card E : ℝ≥0∞)⁻¹ * ENNReal.ofReal (∑ x, w x))
+        else 0 := by
+    intro x
+    by_cases hxy : x = y
+    · subst hxy
+      rw [Set.indicator_of_mem (by simp), hdens x]
+      simp
+    · rw [Set.indicator_of_notMem (by simp [hxy])]
+      simp [hxy]
+  rw [Finset.sum_congr rfl fun x _ ↦ hind x, Finset.sum_ite_eq' Finset.univ y
+    (fun _ ↦ ENNReal.ofReal (w y) / ((Fintype.card E : ℝ≥0∞)⁻¹ * ENNReal.ofReal (∑ x, w x)))]
+  simp only [Finset.mem_univ, ite_true]
+  have hc0 : (Fintype.card E : ℝ≥0∞)⁻¹ ≠ 0 := card_inv_ne_zero (E := E)
+  have hctop : (Fintype.card E : ℝ≥0∞)⁻¹ ≠ ⊤ := card_inv_ne_top (E := E)
+  have hs0 : ENNReal.ofReal (∑ x, w x) ≠ 0 := (ENNReal.ofReal_pos.2 hsumpos).ne'
+  have hstop : ENNReal.ofReal (∑ x, w x) ≠ ⊤ := ENNReal.ofReal_ne_top
+  have key : ∀ a b d : ℝ≥0∞, d ≠ 0 → d ≠ ⊤ → d * (a / (d * b)) = a / b := by
+    intro a b d hd0 hdtop
+    rw [ENNReal.div_eq_inv_mul, ENNReal.mul_inv (Or.inl hd0) (Or.inl hdtop),
+      show d * (d⁻¹ * b⁻¹ * a) = d * d⁻¹ * (b⁻¹ * a) by ring,
+      ENNReal.mul_inv_cancel hd0 hdtop, one_mul, ← ENNReal.div_eq_inv_mul]
+  rw [key _ _ _ hc0 hctop, ENNReal.ofReal_div_of_pos hsumpos]
+
+
+/-! ### The Gibbsian specification of a homogeneous nearest-neighbour potential -/
+
+/-- The Gibbsian specification of the homogeneous nearest-neighbour potential `(φ₁, φ₂)` at
+inverse temperature `β`, with the uniform probability measure on `E` as reference measure. -/
+def homogeneousNNSpecification (φ₁ : E → ℝ) (φ₂ : E → E → ℝ) (β : ℝ) : Specification ℤ E :=
+  Potential.gibbsSpecificationOfAbsolutelySummable (Φ := homogeneousNNPotential φ₁ φ₂)
+    (uniformOn (Set.univ : Set E)) β
+
+omit [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- The Hamiltonian of a homogeneous nearest-neighbour potential in a singleton consists of the
+site term and the two bonds at the site. -/
+lemma hamiltonian_homogeneousNNPotential_singleton (i : ℤ) (σ : ℤ → E) :
+    (homogeneousNNPotential φ₁ φ₂).hamiltonian {i} σ
+      = φ₁ (σ i) + φ₂ (σ (i - 1)) (σ i) + φ₂ (σ i) (σ (i + 1)) := by
+  classical
+  rw [Potential.hamiltonian_eq_tsum]
+  have hcard1 : ({i - 1, i} : Finset ℤ).card = 2 := Finset.card_pair (by omega)
+  have hcard2 : ({i, i + 1} : Finset ℤ).card = 2 := Finset.card_pair (by omega)
+  have hne1 : ({i - 1, i} : Finset ℤ) ≠ {i, i + 1} := fun h ↦ by
+    have h' : ({i - 1, i - 1 + 1} : Finset ℤ) = {i, i + 1} := by rw [sub_add_cancel]; exact h
+    have := pair_succ_inj h'
+    omega
+  have hne2 : ({i - 1, i} : Finset ℤ) ≠ {i} := fun h ↦ by
+    rw [h, Finset.card_singleton] at hcard1; omega
+  have hne3 : ({i, i + 1} : Finset ℤ) ≠ {i} := fun h ↦ by
+    rw [h, Finset.card_singleton] at hcard2; omega
+  have hsupp : ∀ A ∉ ({({i - 1, i} : Finset ℤ), {i, i + 1}, {i}} : Finset (Finset ℤ)),
+      (homogeneousNNPotential φ₁ φ₂).hamiltonianTerms {i} σ A = 0 := by
+    intro A hA
+    by_cases hd : Disjoint A {i}
+    · exact Potential.hamiltonianTerms_of_disjoint hd σ
+    · rw [Potential.hamiltonianTerms_of_not_disjoint hd σ]
+      have hiA : i ∈ A := by
+        obtain ⟨a, ha, ha'⟩ := Finset.not_disjoint_iff.1 hd
+        rw [Finset.mem_singleton] at ha'
+        exact ha' ▸ ha
+      by_cases hb : ∃ j : ℤ, A = {j, j + 1}
+      · exfalso
+        obtain ⟨j, rfl⟩ := hb
+        simp only [Finset.mem_insert, Finset.mem_singleton] at hiA
+        rcases hiA with rfl | hij
+        · exact hA (by simp)
+        · have : j = i - 1 := by omega
+          subst this
+          exact hA (by simp [sub_add_cancel])
+      · by_cases hs : ∃ j : ℤ, A = {j}
+        · exfalso
+          obtain ⟨j, rfl⟩ := hs
+          rw [Finset.mem_singleton] at hiA
+          subst hiA
+          exact hA (by simp)
+        · exact homogeneousNNPotential_of_not φ₁ φ₂ hb hs σ
+  rw [tsum_eq_sum hsupp, Finset.sum_insert (by simp [hne1, hne2]),
+    Finset.sum_insert (by simp [hne3]), Finset.sum_singleton,
+    Potential.hamiltonianTerms_of_not_disjoint (by simp) σ,
+    Potential.hamiltonianTerms_of_not_disjoint (by simp) σ,
+    Potential.hamiltonianTerms_of_not_disjoint (by simp) σ,
+    show ({i - 1, i} : Finset ℤ) = {i - 1, i - 1 + 1} by rw [sub_add_cancel],
+    homogeneousNNPotential_pair, homogeneousNNPotential_pair, homogeneousNNPotential_singleton,
+    sub_add_cancel]
+  ring
+
+/-! ### The determining function of a homogeneous nearest-neighbour specification -/
+
+/-- Georgii (3.1) for a homogeneous nearest-neighbour potential: the determining function of
+`homogeneousNNSpecification φ₁ φ₂ β` is the single-site Boltzmann weight
+`exp(-β(φ₁(y) + φ₂(x,y) + φ₂(y,z)))`, normalised over `y`. -/
+def homogeneousNNDeterminingFun (φ₁ : E → ℝ) (φ₂ : E → E → ℝ) (β : ℝ) (x y z : E) : ℝ :=
+  Real.exp (-β * (φ₁ y + φ₂ x y + φ₂ y z)) / ∑ u, Real.exp (-β * (φ₁ u + φ₂ x u + φ₂ u z))
+
+omit [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] in
+lemma homogeneousNNDeterminingFun_pos (β : ℝ) (x y z : E) :
+    0 < homogeneousNNDeterminingFun φ₁ φ₂ β x y z :=
+  div_pos (Real.exp_pos _)
+    (Finset.sum_pos (fun _ _ ↦ Real.exp_pos _) Finset.univ_nonempty)
+
+omit [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] in
+lemma sum_homogeneousNNDeterminingFun (β : ℝ) (x z : E) :
+    ∑ y, homogeneousNNDeterminingFun φ₁ φ₂ β x y z = 1 := by
+  simp only [homogeneousNNDeterminingFun]
+  rw [← Finset.sum_div]
+  exact div_self (Finset.sum_pos (fun _ _ ↦ Real.exp_pos _) Finset.univ_nonempty).ne'
+
+omit [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- The single-site Boltzmann factor of a homogeneous nearest-neighbour potential. -/
+lemma boltzmannFactor_homogeneousNNPotential_singleton (β : ℝ) (i : ℤ) (ω : ℤ → E) (x : E) :
+    (homogeneousNNPotential φ₁ φ₂).boltzmannFactor β {i} (Function.update ω i x)
+      = ENNReal.ofReal (Real.exp (-β * (φ₁ x + φ₂ (ω (i - 1)) x + φ₂ x (ω (i + 1))))) := by
+  rw [Potential.boltzmannFactor, hamiltonian_homogeneousNNPotential_singleton,
+    Function.update_self, Function.update_of_ne (by omega), Function.update_of_ne (by omega)]
+
+/-- **Georgii (3.9), the converse direction.** The Gibbsian specification of a homogeneous
+nearest-neighbour potential on `ℤ` is a positive homogeneous Markov specification in the sense
+of Georgii (3.1), with determining function `homogeneousNNDeterminingFun φ₁ φ₂ β`. -/
+theorem isPositiveHomogeneousMarkovWith_homogeneousNNSpecification (β : ℝ) :
+    IsPositiveHomogeneousMarkovWith (homogeneousNNSpecification φ₁ φ₂ β)
+      (homogeneousNNDeterminingFun φ₁ φ₂ β) where
+  pos := homogeneousNNDeterminingFun_pos φ₁ φ₂ β
+  singleton_apply i y ω :=
+    gibbsSpecification_singleton_apply_of_boltzmannFactor (homogeneousNNPotential φ₁ φ₂) β i ω
+      (w := fun x ↦ Real.exp (-β * (φ₁ x + φ₂ (ω (i - 1)) x + φ₂ x (ω (i + 1)))))
+      (fun _ ↦ Real.exp_pos _)
+      (boltzmannFactor_homogeneousNNPotential_singleton φ₁ φ₂ β i ω) y
+
+theorem isPositiveHomogeneousMarkov_homogeneousNNSpecification (β : ℝ) :
+    IsPositiveHomogeneousMarkov (homogeneousNNSpecification φ₁ φ₂ β) :=
+  ⟨_, isPositiveHomogeneousMarkovWith_homogeneousNNSpecification φ₁ φ₂ β⟩
+
+/-! ### Georgii, Comment (3.2): a positive homogeneous Markov specification is determined by `g` -/
+
+omit [Fintype E] [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- **Georgii, Comment (3.2).** The determining function of a positive homogeneous Markov
+specification is unique. -/
+lemma determiningFun_unique {γ : Specification ℤ E} {g g' : E → E → E → ℝ}
+    (hg : IsPositiveHomogeneousMarkovWith γ g) (hg' : IsPositiveHomogeneousMarkovWith γ g') :
+    g = g' := by
+  funext x y z
+  have h1 := hg.singleton_apply 0 y (fun k ↦ if k = -1 then x else z)
+  have h2 := hg'.singleton_apply 0 y (fun k ↦ if k = -1 then x else z)
+  have h3 := h1.symm.trans h2
+  have hx : (if (0 : ℤ) - 1 = -1 then x else z) = x := by norm_num
+  have hz : (if (0 : ℤ) + 1 = -1 then x else z) = z := by norm_num
+  simp only [hx, hz] at h3
+  exact (ENNReal.ofReal_eq_ofReal_iff (hg.pos x y z).le (hg'.pos x y z).le).1 h3
+
+/-- **Georgii, Comment (3.2)**, via Theorem (1.33): two positive homogeneous Markov specifications
+with the same determining function are equal. -/
+theorem eq_of_isPositiveHomogeneousMarkovWith {γ γ' : Specification ℤ E} {g : E → E → E → ℝ}
+    (hγ : IsPositiveHomogeneousMarkovWith γ g) (hγ' : IsPositiveHomogeneousMarkovWith γ' g) :
+    γ = γ' := by
+  obtain ⟨P, hP, hpos, rfl⟩ := exists_matrix_eq_markovSpecification (γ := γ) ⟨g, hγ⟩
+  exact (eq_markovSpecification_of_determiningFun hpos hγ'
+    (determiningFun_unique hγ (isPositiveHomogeneousMarkovWith_markovSpecification hpos))).symm
+
+omit [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- The inverse temperature can be absorbed into the potential: `β·(φ₁, φ₂)` has the same
+determining function at `β = 1` as `(φ₁, φ₂)` at `β`. -/
+lemma homogeneousNNDeterminingFun_smul (β : ℝ) :
+    homogeneousNNDeterminingFun φ₁ φ₂ β
+      = homogeneousNNDeterminingFun (fun x ↦ β * φ₁ x) (fun x y ↦ β * φ₂ x y) 1 := by
+  funext x y z
+  have he : ∀ u : E, Real.exp (-β * (φ₁ u + φ₂ x u + φ₂ u z))
+      = Real.exp (-(1 : ℝ) * (β * φ₁ u + β * φ₂ x u + β * φ₂ u z)) := fun u ↦ by
+    congr 1
+    ring
+  simp only [homogeneousNNDeterminingFun, he]
+
+/-- **Georgii (2.35)/(3.9) for the inverse temperature.** `β Φ` is again a homogeneous
+nearest-neighbour potential, so every `homogeneousNNSpecification φ₁ φ₂ β` is a
+`homogeneousNNSpecification _ _ 1`. -/
+theorem homogeneousNNSpecification_smul (β : ℝ) :
+    homogeneousNNSpecification φ₁ φ₂ β
+      = homogeneousNNSpecification (fun x ↦ β * φ₁ x) (fun x y ↦ β * φ₂ x y) 1 := by
+  refine eq_of_isPositiveHomogeneousMarkovWith
+    (isPositiveHomogeneousMarkovWith_homogeneousNNSpecification φ₁ φ₂ β) ?_
+  have hg := isPositiveHomogeneousMarkovWith_homogeneousNNSpecification
+    (fun x ↦ β * φ₁ x) (fun x y ↦ β * φ₂ x y) 1
+  rwa [← homogeneousNNDeterminingFun_smul φ₁ φ₂ β] at hg
+
+/-! ### Georgii, Corollary (3.9) -/
+
+variable {P : Matrix E E ℝ}
+
+omit [Fintype E] [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- **Georgii, Corollary (3.9), forward direction, at the level of potentials.** The potential
+`Φ_{i,i+1} = -log P(σ_i, σ_{i+1})` of a positive stochastic matrix is the homogeneous
+nearest-neighbour potential with vanishing self-energy and bond energy `-log P`. -/
+lemma markovPotential_eq_homogeneousNNPotential (P : Matrix E E ℝ) :
+    markovPotential P
+      = homogeneousNNPotential (fun _ ↦ (0 : ℝ)) (fun x y ↦ -Real.log (P x y)) := by
+  funext A σ
+  by_cases hb : ∃ i : ℤ, A = {i, i + 1}
+  · obtain ⟨i, rfl⟩ := hb
+    rw [markovPotential_pair, homogeneousNNPotential_pair]
+  · by_cases hs : ∃ i : ℤ, A = {i}
+    · obtain ⟨i, rfl⟩ := hs
+      rw [markovPotential_of_not_pair P (not_exists_pair_singleton i),
+        homogeneousNNPotential_singleton]
+    · rw [markovPotential_of_not_pair P hb, homogeneousNNPotential_of_not _ _ hb hs]
+
+omit [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- The determining function of the homogeneous nearest-neighbour potential `-log P` is
+Georgii's (3.11). -/
+lemma homogeneousNNDeterminingFun_neg_log (hpos : ∀ x y, 0 < P x y) :
+    homogeneousNNDeterminingFun (fun _ ↦ (0 : ℝ)) (fun x y ↦ -Real.log (P x y)) 1
+      = markovDeterminingFun P := by
+  have hexp : ∀ x y z : E,
+      Real.exp (-(1 : ℝ) * ((0 : ℝ) + -Real.log (P x y) + -Real.log (P y z))) = P x y * P y z := by
+    intro x y z
+    rw [show -(1 : ℝ) * ((0 : ℝ) + -Real.log (P x y) + -Real.log (P y z))
+        = Real.log (P x y) + Real.log (P y z) by ring, Real.exp_add,
+      Real.exp_log (hpos x y), Real.exp_log (hpos y z)]
+  funext x y z
+  simp only [homogeneousNNDeterminingFun, markovDeterminingFun, hexp]
+  rw [pow_two, Matrix.mul_apply]
+
+/-- **Georgii, Corollary (3.9), forward direction.** The Markov specification of a positive
+stochastic matrix `P` is the Gibbsian specification of the homogeneous nearest-neighbour
+potential `Φ_{i,i+1} = -log P(σ_i, σ_{i+1})`. -/
+theorem homogeneousNNSpecification_neg_log (hpos : ∀ x y, 0 < P x y) :
+    homogeneousNNSpecification (fun _ ↦ (0 : ℝ)) (fun x y ↦ -Real.log (P x y)) 1
+      = markovSpecification P :=
+  eq_markovSpecification_of_determiningFun hpos
+    (isPositiveHomogeneousMarkovWith_homogeneousNNSpecification _ _ 1)
+    (homogeneousNNDeterminingFun_neg_log hpos)
+
+/-- **Georgii, Corollary (3.9).** A specification on `ℤ` with finite state space is a positive
+homogeneous Markov specification (Georgii (3.1)) if and only if it is Gibbsian for a homogeneous
+nearest-neighbour potential, i.e. one of the form `Φ_{i} = φ₁(σ_i)`,
+`Φ_{i,i+1} = φ₂(σ_i, σ_{i+1})`. -/
+theorem isPositiveHomogeneousMarkov_iff_exists_homogeneousNNSpecification (γ : Specification ℤ E) :
+    IsPositiveHomogeneousMarkov γ ↔
+      ∃ (φ₁ : E → ℝ) (φ₂ : E → E → ℝ), γ = homogeneousNNSpecification φ₁ φ₂ 1 := by
+  refine ⟨fun hγ ↦ ?_, ?_⟩
+  · obtain ⟨P, hP, hpos, rfl⟩ := exists_matrix_eq_markovSpecification hγ
+    exact ⟨fun _ ↦ 0, fun x y ↦ -Real.log (P x y), (homogeneousNNSpecification_neg_log hpos).symm⟩
+  · rintro ⟨φ₁, φ₂, rfl⟩
+    exact isPositiveHomogeneousMarkov_homogeneousNNSpecification φ₁ φ₂ 1
+
+/-- **Georgii (3.5) for homogeneous nearest-neighbour potentials.** The Gibbsian specification of
+a homogeneous nearest-neighbour potential on `ℤ` is the Markov specification of a positive
+stochastic matrix `P` — the one computed from its determining function by formula (3.7) — and its
+set of Gibbs measures is the singleton `{μ_P}`. -/
+theorem exists_markovSpecification_eq_homogeneousNNSpecification (β : ℝ) :
+    ∃ (P : Matrix E E ℝ) (hP : P ∈ Matrix.rowStochastic ℝ E) (hpos : ∀ x y, 0 < P x y),
+      homogeneousNNSpecification φ₁ φ₂ β = markovSpecification P ∧
+        GibbsMeasure.G (homogeneousNNSpecification φ₁ φ₂ β) = {stationaryChain P hP hpos} := by
+  obtain ⟨P, hP, hpos, hγ⟩ := exists_matrix_eq_markovSpecification
+    (isPositiveHomogeneousMarkov_homogeneousNNSpecification φ₁ φ₂ β)
+  exact ⟨P, hP, hpos, hγ, by rw [hγ]; exact gibbsMeasure_eq_singleton P hP hpos⟩
+
+/-- **Georgii (3.5) for homogeneous nearest-neighbour potentials**: existence and uniqueness of
+the Gibbs measure. -/
+theorem existsUnique_isGibbsMeasure_homogeneousNNSpecification (β : ℝ) :
+    ∃! μ : Measure (ℤ → E),
+      IsProbabilityMeasure μ ∧ (homogeneousNNSpecification φ₁ φ₂ β).IsGibbsMeasure μ := by
+  obtain ⟨P, hP, hpos, hγ, -⟩ :=
+    exists_markovSpecification_eq_homogeneousNNSpecification φ₁ φ₂ β
+  rw [hγ]
+  exact existsUnique_isGibbsMeasure P hP hpos
+
+/-!
+## Georgii Example (3.15): the one-dimensional Ising model
+
+The Ising potential (3.13) `Φ_{i,i+1} = -J σ_i σ_{i+1}`, `Φ_{i} = -h σ_i` on the nearest-neighbour
+graph of `ℤ` is a homogeneous nearest-neighbour potential, so Corollary (3.9) and Theorem (3.5)
+apply: its Gibbsian specification is the Markov specification of an explicit positive stochastic
+matrix `P_{J,h}`, and `𝒢(Φ^{J,h}) = {μ_{J,h}}`.
+-/
+
+/-- The nearest-neighbour graph on `ℤ`: `i ~ j` iff `|i - j| = 1`. This is the `d = 1` lattice
+graph of `GibbsMeasure/Model/Ising.lean` transported along `Fin 1 → ℤ ≃ ℤ`; the parameter set of
+Chapter 3 is `ℤ` itself. -/
+def chainGraph : SimpleGraph ℤ where
+  Adj i j := |i - j| = 1
+  symm := ⟨fun i j h ↦ by
+    have h' : |i - j| = 1 := h
+    have : |j - i| = 1 := by rw [show j - i = -(i - j) by ring, abs_neg]; exact h'
+    exact this⟩
+  loopless := ⟨fun i h ↦ by
+    have h' : |i - i| = 1 := h
+    simp at h'⟩
+
+lemma chainGraph_adj_iff {i j : ℤ} : chainGraph.Adj i j ↔ j = i + 1 ∨ i = j + 1 := by
+  constructor
+  · intro hij
+    have h : |i - j| = 1 := hij
+    rw [abs_eq (by norm_num : (0 : ℤ) ≤ 1)] at h
+    omega
+  · intro h
+    have h' : |i - j| = 1 := by rw [abs_eq (by norm_num : (0 : ℤ) ≤ 1)]; omega
+    exact h'
+
+lemma chainGraph_adj_succ (i : ℤ) : chainGraph.Adj i (i + 1) :=
+  chainGraph_adj_iff.2 (Or.inl rfl)
+
+noncomputable instance : chainGraph.LocallyFinite := fun v ↦
+  Set.Finite.fintype <| (Set.finite_range (fun b : Bool ↦ if b then v + 1 else v - 1)).subset <| by
+    rintro y hy
+    rcases chainGraph_adj_iff.1 hy with rfl | h
+    · exact ⟨true, by simp⟩
+    · exact ⟨false, by simp; omega⟩
+
+/-- **Georgii (3.13).** The one-dimensional Ising potential is the homogeneous nearest-neighbour
+potential with self-energy `φ₁(x) = -h σ(x)` and bond energy `φ₂(x,y) = -J σ(x) σ(y)`. -/
+theorem isingPotential_chainGraph (J h : ℝ) :
+    isingPotential chainGraph J h
+      = homogeneousNNPotential (fun b ↦ -h * spin b) (fun x y ↦ -J * (spin x * spin y)) := by
+  funext A σ
+  by_cases hb : ∃ i : ℤ, A = {i, i + 1}
+  · obtain ⟨i, rfl⟩ := hb
+    have hcard : ({i, i + 1} : Finset ℤ).card = 2 := Finset.card_pair (by omega)
+    rw [homogeneousNNPotential_pair,
+      show isingPotential chainGraph J h {i, i + 1} σ
+        = Potential.nearestNeighbourPair chainGraph J h spin {i, i + 1} σ from rfl,
+      Potential.nearestNeighbourPair_apply_pair
+        ⟨hcard, i, by simp, i + 1, by simp, chainGraph_adj_succ i⟩,
+      Finset.prod_pair (by omega : i ≠ i + 1)]
+  · by_cases hs : ∃ i : ℤ, A = {i}
+    · obtain ⟨i, rfl⟩ := hs
+      rw [homogeneousNNPotential_singleton,
+        show isingPotential chainGraph J h {i} σ
+          = Potential.nearestNeighbourPair chainGraph J h spin {i} σ from rfl,
+        Potential.nearestNeighbourPair_apply_card_one (Finset.card_singleton i),
+        Finset.sum_singleton]
+    · have h1 : ¬ A.card = 1 := fun hc ↦ hs (Finset.card_eq_one.1 hc)
+      have h2 : ¬ (A.card = 2 ∧ ∃ i ∈ A, ∃ j ∈ A, chainGraph.Adj i j) := by
+        rintro ⟨hcard, i, hiA, j, hjA, hij⟩
+        have hAij : ({i, j} : Finset ℤ) = A :=
+          Finset.eq_of_subset_of_card_le
+            (by
+              intro x hx
+              rcases Finset.mem_insert.1 hx with rfl | hx
+              · exact hiA
+              · rw [Finset.mem_singleton] at hx; exact hx ▸ hjA)
+            (le_of_eq (by rw [hcard, Finset.card_pair hij.ne]))
+        rcases chainGraph_adj_iff.1 hij with rfl | rfl
+        · exact hb ⟨i, hAij.symm⟩
+        · exact hb ⟨j, by rw [← hAij, Finset.pair_comm]⟩
+      rw [homogeneousNNPotential_of_not _ _ hb hs,
+        show isingPotential chainGraph J h A σ
+          = Potential.nearestNeighbourPair chainGraph J h spin A σ from rfl,
+        Potential.nearestNeighbourPair_apply_eq_zero h1 h2]
+
+/-- **Georgii (3.13)/(3.15).** The Ising specification on `ℤ` at inverse temperature `β` is the
+Gibbsian specification of a homogeneous nearest-neighbour potential. -/
+theorem isingSpecification_chainGraph (J h β : ℝ) :
+    isingSpecification chainGraph J h β
+      = homogeneousNNSpecification (fun b ↦ -h * spin b)
+          (fun x y ↦ -J * (spin x * spin y)) β := by
+  rw [isingSpecification, Potential.gibbsSpecification_congr uniformSpinMeasure β
+      (isingPotential_chainGraph J h), homogeneousNNSpecification]
+  simp only [uniformSpinMeasure_eq_uniformOn]
+
+/-! ### The determining function (3.14) of the Ising chain -/
+
+/-- **Georgii (3.14).** The determining function of the one-dimensional Ising specification with
+interaction `J` and external field `h`:
+`g(x,y,z) = e^{σ_y (h + J σ_x + J σ_z)} / 2 cosh(h + J σ_x + J σ_z)`. -/
+def isingChainDetFun (J h : ℝ) (x y z : Bool) : ℝ :=
+  Real.exp (spin y * (h + J * spin x + J * spin z))
+    / (2 * Real.cosh (h + J * spin x + J * spin z))
+
+lemma isingChainDetFun_pos (J h : ℝ) (x y z : Bool) : 0 < isingChainDetFun J h x y z :=
+  div_pos (Real.exp_pos _) (by positivity)
+
+lemma sum_isingChainDetFun (J h : ℝ) (x z : Bool) : ∑ y, isingChainDetFun J h x y z = 1 := by
+  simp only [isingChainDetFun, ← Finset.sum_div]
+  rw [Fintype.sum_bool]
+  have hc : 2 * Real.cosh (h + J * spin x + J * spin z)
+      = Real.exp (h + J * spin x + J * spin z) + Real.exp (-(h + J * spin x + J * spin z)) := by
+    rw [Real.cosh_eq]; ring
+  rw [hc]
+  have h1 : Real.exp (spin true * (h + J * spin x + J * spin z))
+      = Real.exp (h + J * spin x + J * spin z) := by norm_num [spin]
+  have h2 : Real.exp (spin false * (h + J * spin x + J * spin z))
+      = Real.exp (-(h + J * spin x + J * spin z)) := by
+    congr 1; simp [spin]
+  rw [h1, h2]
+  exact div_self (by positivity)
+
+/-- **Georgii (3.14).** The determining function of the Gibbsian specification of the
+one-dimensional Ising potential at inverse temperature `β` is that of the Ising potential with
+interaction `βJ` and external field `βh`. -/
+theorem homogeneousNNDeterminingFun_ising (J h β : ℝ) :
+    homogeneousNNDeterminingFun (fun b ↦ -h * spin b) (fun x y ↦ -J * (spin x * spin y)) β
+      = isingChainDetFun (β * J) (β * h) := by
+  funext x y z
+  have hf : ∀ u : Bool,
+      Real.exp (-β * ((-h * spin u) + (-J * (spin x * spin u)) + (-J * (spin u * spin z))))
+        = Real.exp (spin u * (β * h + β * J * spin x + β * J * spin z)) := by
+    intro u; congr 1; ring
+  have hden : ∑ u : Bool,
+      Real.exp (-β * ((-h * spin u) + (-J * (spin x * spin u)) + (-J * (spin u * spin z))))
+        = 2 * Real.cosh (β * h + β * J * spin x + β * J * spin z) := by
+    rw [Finset.sum_congr rfl fun u _ ↦ hf u, Fintype.sum_bool, Real.cosh_eq]
+    have h1 : Real.exp (spin true * (β * h + β * J * spin x + β * J * spin z))
+        = Real.exp (β * h + β * J * spin x + β * J * spin z) := by norm_num [spin]
+    have h2 : Real.exp (spin false * (β * h + β * J * spin x + β * J * spin z))
+        = Real.exp (-(β * h + β * J * spin x + β * J * spin z)) := by
+      congr 1; simp [spin]
+    rw [h1, h2]; ring
+  simp only [homogeneousNNDeterminingFun, isingChainDetFun]
+  rw [hf y, hden]
+
+/-! ### Georgii (3.16): the Perron–Frobenius eigenvalue of the Ising chain -/
+
+/-- **Georgii (3.16).** The Perron–Frobenius eigenvalue of Georgii's matrix `Q` for the
+one-dimensional Ising model: `q_{J,h} = e^{-h}(cosh h + sqrt(e^{-4J} + sinh² h))`. -/
+def isingChainPerronRoot (J h : ℝ) : ℝ :=
+  Real.exp (-h) * (Real.cosh h + Real.sqrt (Real.exp (-(4 * J)) + Real.sinh h ^ 2))
+
+lemma isingChainSqrt_sq (J h : ℝ) :
+    Real.sqrt (Real.exp (-(4 * J)) + Real.sinh h ^ 2) ^ 2
+      = Real.exp (-(4 * J)) + Real.sinh h ^ 2 :=
+  Real.sq_sqrt (by positivity)
+
+lemma isingChainSqrt_pos (J h : ℝ) : 0 < Real.sqrt (Real.exp (-(4 * J)) + Real.sinh h ^ 2) :=
+  Real.sqrt_pos.2 (by positivity)
+
+/-- The square root in (3.16) strictly dominates `|sinh h|`, since `e^{-4J} > 0`. -/
+lemma abs_sinh_lt_isingChainSqrt (J h : ℝ) :
+    |Real.sinh h| < Real.sqrt (Real.exp (-(4 * J)) + Real.sinh h ^ 2) := by
+  have hE : 0 < Real.exp (-(4 * J)) := Real.exp_pos _
+  have hs := isingChainSqrt_sq J h
+  have hspos := isingChainSqrt_pos J h
+  nlinarith [sq_abs (Real.sinh h), abs_nonneg (Real.sinh h)]
+
+lemma isingChainPerronRoot_pos (J h : ℝ) : 0 < isingChainPerronRoot J h :=
+  mul_pos (Real.exp_pos _) (by
+    have := Real.cosh_pos h
+    have := isingChainSqrt_pos J h
+    linarith)
+
+/-- `q_{J,h} > 1`: the Perron root of `Q` exceeds `Q(+,+) = 1`. -/
+lemma one_lt_isingChainPerronRoot (J h : ℝ) : 1 < isingChainPerronRoot J h := by
+  have hb : 0 < Real.exp (-h) := Real.exp_pos _
+  have hab : Real.exp h * Real.exp (-h) = 1 := by
+    rw [← Real.exp_add]; simp
+  have hcosh : Real.cosh h = (Real.exp h + Real.exp (-h)) / 2 := Real.cosh_eq h
+  have hsinh : Real.sinh h = (Real.exp h - Real.exp (-h)) / 2 := Real.sinh_eq h
+  have hlt : Real.sinh h < Real.sqrt (Real.exp (-(4 * J)) + Real.sinh h ^ 2) :=
+    lt_of_le_of_lt (le_abs_self _) (abs_sinh_lt_isingChainSqrt J h)
+  simp only [isingChainPerronRoot]
+  nlinarith
+
+/-- `q_{J,h} > e^{-2h} = Q(-,-)`. -/
+lemma exp_lt_isingChainPerronRoot (J h : ℝ) :
+    Real.exp (-(2 * h)) < isingChainPerronRoot J h := by
+  have hb : 0 < Real.exp (-h) := Real.exp_pos _
+  have hb2 : Real.exp (-(2 * h)) = Real.exp (-h) * Real.exp (-h) := by
+    rw [← Real.exp_add]; ring_nf
+  have hab : Real.exp h * Real.exp (-h) = 1 := by rw [← Real.exp_add]; simp
+  have hcosh : Real.cosh h = (Real.exp h + Real.exp (-h)) / 2 := Real.cosh_eq h
+  have hsinh : Real.sinh h = (Real.exp h - Real.exp (-h)) / 2 := Real.sinh_eq h
+  have hlt : -Real.sinh h < Real.sqrt (Real.exp (-(4 * J)) + Real.sinh h ^ 2) :=
+    lt_of_le_of_lt (neg_le_abs _) (abs_sinh_lt_isingChainSqrt J h)
+  simp only [isingChainPerronRoot]
+  nlinarith
+
+/-- **Georgii's characteristic equation for (3.16)**: `(e^{-2h} - q)(1 - q) = e^{-2h-4J}`. -/
+theorem isingChainPerronRoot_char (J h : ℝ) :
+    (isingChainPerronRoot J h - 1) * (isingChainPerronRoot J h - Real.exp (-(2 * h)))
+      = Real.exp (-(2 * h)) * Real.exp (-(4 * J)) := by
+  set a := Real.exp h with ha
+  set b := Real.exp (-h) with hb
+  set s := Real.sqrt (Real.exp (-(4 * J)) + Real.sinh h ^ 2) with hsdef
+  have hab : a * b = 1 := by rw [ha, hb, ← Real.exp_add]; simp
+  have hb2 : Real.exp (-(2 * h)) = b * b := by rw [hb, ← Real.exp_add]; ring_nf
+  have hs' : s ^ 2 = Real.exp (-(4 * J)) + ((a - b) / 2) ^ 2 := by
+    rw [hsdef, isingChainSqrt_sq, Real.sinh_eq, ha, hb]
+  have hcosh : Real.cosh h = (a + b) / 2 := by rw [Real.cosh_eq, ha, hb]
+  simp only [isingChainPerronRoot, hcosh, hb2]
+  linear_combination ((a * b - b ^ 2) / 2 + b * s) * hab + b ^ 2 * hs'
+
+/-! ### Georgii (3.7)/(3.17): the matrix `Q` and the transition matrix of the Ising chain -/
+
+/-- **Georgii (3.7) for the Ising chain.** The auxiliary matrix `Q(x,y) = g(+,x,y)/g(+,+,y)` of
+the determining function (3.14) at the reference state `a = +`:
+`Q(x,y) = e^{(σ_x - 1)(h + J + J σ_y)}`, i.e. `Q(+,·) = (1, 1)` and
+`Q(-,·) = (e^{-2h}, e^{-2h-4J})`. -/
+def isingChainQ (J h : ℝ) : Matrix Bool Bool ℝ :=
+  Matrix.of fun x y ↦ Real.exp ((spin x - 1) * (h + J + J * spin y))
+
+lemma isingChainQ_pos (J h : ℝ) (x y : Bool) : 0 < isingChainQ J h x y := Real.exp_pos _
+
+@[simp] lemma isingChainQ_true (J h : ℝ) (y : Bool) : isingChainQ J h true y = 1 := by
+  simp [isingChainQ, spin]
+
+lemma isingChainQ_false_false (J h : ℝ) : isingChainQ J h false false = Real.exp (-(2 * h)) := by
+  simp only [isingChainQ, Matrix.of_apply]
+  congr 1
+  simp [spin]
+  ring
+
+lemma isingChainQ_false_true (J h : ℝ) :
+    isingChainQ J h false true = Real.exp (-(2 * h)) * Real.exp (-(4 * J)) := by
+  simp only [isingChainQ, Matrix.of_apply]
+  rw [← Real.exp_add]
+  congr 1
+  simp [spin]
+  ring
+
+/-- The matrix `Q` of Georgii (3.7) computed from the determining function (3.14). -/
+theorem detQ_isingChainDetFun (J h : ℝ) :
+    detQ Bool (isingChainDetFun J h) true = isingChainQ J h := by
+  have key : ∀ u v c : ℝ, c ≠ 0 → Real.exp u / c / (Real.exp v / c) = Real.exp (u - v) := by
+    intro u v c hc
+    rw [Real.exp_sub]
+    field_simp
+  ext x y
+  have ht : h + J * spin true + J * spin y = h + J + J * spin y := by simp [spin]
+  have hc : (2 * Real.cosh (h + J + J * spin y)) ≠ 0 := by positivity
+  simp only [detQ, Matrix.of_apply, isingChainQ, isingChainDetFun, ht]
+  rw [key _ _ _ hc]
+  congr 1
+  cases x <;> cases y <;> simp [spin] <;> ring
+
+/-- Georgii (3.7) for the Ising chain: the strictly positive right eigenvector of `Q` for its
+Perron root `q_{J,h}`, normalised by `r(+) = 1`; then `r(-) = q_{J,h} - 1`. -/
+def isingChainPerronVector (J h : ℝ) : Bool → ℝ :=
+  fun b ↦ if b then 1 else isingChainPerronRoot J h - 1
+
+@[simp] lemma isingChainPerronVector_true (J h : ℝ) : isingChainPerronVector J h true = 1 := rfl
+
+@[simp] lemma isingChainPerronVector_false (J h : ℝ) :
+    isingChainPerronVector J h false = isingChainPerronRoot J h - 1 := rfl
+
+lemma isingChainPerronVector_pos (J h : ℝ) (x : Bool) : 0 < isingChainPerronVector J h x := by
+  cases x
+  · simpa [isingChainPerronVector] using sub_pos.2 (one_lt_isingChainPerronRoot J h)
+  · simp [isingChainPerronVector]
+
+/-- **Georgii (3.17).** The transition matrix of the one-dimensional Ising model with interaction
+`J` and external field `h`:
+`P(+,+) = q⁻¹`, `P(+,-) = 1 - q⁻¹`, `P(-,-) = e^{-2h} q⁻¹`, `P(-,+) = 1 - e^{-2h} q⁻¹`,
+with `q = q_{J,h}` the Perron root (3.16). -/
+def isingChainP (J h : ℝ) : Matrix Bool Bool ℝ := Matrix.of fun x y ↦
+  if x then (if y then (isingChainPerronRoot J h)⁻¹ else 1 - (isingChainPerronRoot J h)⁻¹)
+  else (if y then 1 - Real.exp (-(2 * h)) * (isingChainPerronRoot J h)⁻¹
+        else Real.exp (-(2 * h)) * (isingChainPerronRoot J h)⁻¹)
+
+@[simp] lemma isingChainP_true_true (J h : ℝ) :
+    isingChainP J h true true = (isingChainPerronRoot J h)⁻¹ := rfl
+
+@[simp] lemma isingChainP_true_false (J h : ℝ) :
+    isingChainP J h true false = 1 - (isingChainPerronRoot J h)⁻¹ := rfl
+
+@[simp] lemma isingChainP_false_false (J h : ℝ) :
+    isingChainP J h false false
+      = Real.exp (-(2 * h)) * (isingChainPerronRoot J h)⁻¹ := rfl
+
+@[simp] lemma isingChainP_false_true (J h : ℝ) :
+    isingChainP J h false true
+      = 1 - Real.exp (-(2 * h)) * (isingChainPerronRoot J h)⁻¹ := rfl
+
+lemma isingChainP_pos (J h : ℝ) (x y : Bool) : 0 < isingChainP J h x y := by
+  have hq : 0 < isingChainPerronRoot J h := isingChainPerronRoot_pos J h
+  have h1 : 1 < isingChainPerronRoot J h := one_lt_isingChainPerronRoot J h
+  have h2 : Real.exp (-(2 * h)) < isingChainPerronRoot J h := exp_lt_isingChainPerronRoot J h
+  cases x <;> cases y <;>
+    simp only [isingChainP_true_true, isingChainP_true_false,
+      isingChainP_false_false, isingChainP_false_true]
+  · exact mul_pos (Real.exp_pos _) (inv_pos.2 hq)
+  · rw [sub_pos, ← lt_div_iff₀ (by positivity), one_div]
+    simpa [inv_inv] using h2
+  · rw [sub_pos]
+    simpa using (inv_lt_one_iff₀).2 (Or.inr h1)
+  · exact inv_pos.2 hq
+
+lemma isingChainP_mem_rowStochastic (J h : ℝ) :
+    isingChainP J h ∈ Matrix.rowStochastic ℝ Bool := by
+  refine Matrix.mem_rowStochastic_iff_sum.2 ⟨fun x y ↦ (isingChainP_pos J h x y).le, ?_⟩
+  intro x
+  rw [Fintype.sum_bool]
+  cases x <;> simp
+
+/-- Georgii (3.7): the defining relation `Q(x,y) r(y) = q r(x) P(x,y)` of the transition matrix
+of the Ising chain. -/
+theorem isingChainQ_mul_perronVector (J h : ℝ) (x y : Bool) :
+    isingChainQ J h x y * isingChainPerronVector J h y
+      = isingChainPerronRoot J h * isingChainPerronVector J h x * isingChainP J h x y := by
+  have hq : 0 < isingChainPerronRoot J h := isingChainPerronRoot_pos J h
+  have hchar := isingChainPerronRoot_char J h
+  cases x <;> cases y <;>
+    simp only [isingChainQ_true, isingChainQ_false_false, isingChainQ_false_true,
+      isingChainPerronVector_true, isingChainPerronVector_false, isingChainP_true_true,
+      isingChainP_true_false, isingChainP_false_false, isingChainP_false_true] <;>
+    field_simp
+  nlinarith [hchar]
+
+/-- `(q_{J,h}, r)` is an eigenpair of Georgii's matrix `Q` for the Ising chain. -/
+theorem isingChainQ_mulVec (J h : ℝ) :
+    isingChainQ J h *ᵥ isingChainPerronVector J h
+      = isingChainPerronRoot J h • isingChainPerronVector J h := by
+  have hchar := isingChainPerronRoot_char J h
+  funext x
+  simp only [Matrix.mulVec, dotProduct, Pi.smul_apply, smul_eq_mul, Fintype.sum_bool]
+  cases x <;>
+    simp only [isingChainQ_true, isingChainQ_false_false, isingChainQ_false_true,
+      isingChainPerronVector_true, isingChainPerronVector_false] <;> nlinarith [hchar]
+
+/-! ### Georgii (3.15): the unique Gibbs measure of the one-dimensional Ising model -/
+
+/-- The Ising specification on `ℤ` at `β = 1` has the determining function (3.14). -/
+lemma isPositiveHomogeneousMarkovWith_isingChainDetFun (J h : ℝ) :
+    IsPositiveHomogeneousMarkovWith
+      (homogeneousNNSpecification (fun b ↦ -h * spin b) (fun x y ↦ -J * (spin x * spin y)) 1)
+      (isingChainDetFun J h) := by
+  have hg := isPositiveHomogeneousMarkovWith_homogeneousNNSpecification
+    (fun b ↦ -h * spin b) (fun x y ↦ -J * (spin x * spin y)) 1
+  rwa [homogeneousNNDeterminingFun_ising J h 1, one_mul, one_mul] at hg
+
+/-- **Georgii (3.11) for the Ising chain.** The determining function (3.11) of the transition
+matrix (3.17) is the Ising determining function (3.14): `P_{J,h}` is indeed the matrix that
+formula (3.7) attaches to `g`. -/
+theorem markovDeterminingFun_isingChainP (J h : ℝ) :
+    markovDeterminingFun (isingChainP J h) = isingChainDetFun J h := by
+  refine markovDeterminingFun_of_eq_312 (isingChainDetFun_pos J h) (sum_isingChainDetFun J h)
+    true (isingChainPerronRoot_pos J h) (isingChainPerronVector_pos J h) ?_
+    (eq_312_of_isPositiveHomogeneousMarkovWith
+      (isPositiveHomogeneousMarkovWith_isingChainDetFun J h) true)
+  intro x y
+  have hqv : isingChainPerronRoot J h * isingChainPerronVector J h x ≠ 0 :=
+    (mul_pos (isingChainPerronRoot_pos J h) (isingChainPerronVector_pos J h x)).ne'
+  rw [detQ_isingChainDetFun, eq_div_iff hqv, isingChainQ_mul_perronVector]
+  ring
+
+/-- **Georgii (3.7)/(3.17).** Formula (3.7), applied to the Ising determining function (3.14) at
+the reference state `a = +`, produces exactly the transition matrix (3.17). -/
+theorem matrixOfDetFun_isingChainDetFun (J h : ℝ) :
+    matrixOfDetFun Bool (isingChainDetFun J h) (isingChainDetFun_pos J h) true
+      = isingChainP J h :=
+  matrixOfDetFun_eq_of_eigen (isingChainDetFun_pos J h) true (isingChainPerronRoot_pos J h)
+    (isingChainPerronVector_pos J h)
+    (by rw [detQ_isingChainDetFun]; exact isingChainQ_mulVec J h)
+    (fun x y ↦ by rw [detQ_isingChainDetFun]; exact isingChainQ_mul_perronVector J h x y)
+
+/-- **Georgii (3.16).** `q_{J,h}` is the Perron–Frobenius eigenvalue of Georgii's matrix `Q`. -/
+theorem perronRoot_isingChainQ (J h : ℝ) :
+    Matrix.perronRoot (isingChainQ J h) (isingChainQ_pos J h) = isingChainPerronRoot J h :=
+  (Matrix.eq_perronRoot_of_pos_eigenvector (isingChainQ J h) (isingChainQ_pos J h)
+    (isingChainPerronVector_pos J h) (isingChainQ_mulVec J h)).symm
+
+/-- **Georgii (3.15).** The Gibbsian specification of the one-dimensional Ising potential
+`Φ^{J,h}` at inverse temperature `β` is the Markov specification of the transition matrix
+`P_{βJ,βh}` of (3.17): `β Φ^{J,h} = Φ^{βJ,βh}`. -/
+theorem isingSpecification_chainGraph_eq_markovSpecification (J h β : ℝ) :
+    isingSpecification chainGraph J h β
+      = markovSpecification (isingChainP (β * J) (β * h)) := by
+  have hγ : IsPositiveHomogeneousMarkovWith
+      (homogeneousNNSpecification (fun b ↦ -h * spin b) (fun x y ↦ -J * (spin x * spin y)) β)
+      (isingChainDetFun (β * J) (β * h)) := by
+    have hg := isPositiveHomogeneousMarkovWith_homogeneousNNSpecification
+      (fun b ↦ -h * spin b) (fun x y ↦ -J * (spin x * spin y)) β
+    rwa [homogeneousNNDeterminingFun_ising J h β] at hg
+  rw [isingSpecification_chainGraph]
+  exact eq_markovSpecification_of_determiningFun (isingChainP_pos (β * J) (β * h)) hγ
+    (markovDeterminingFun_isingChainP (β * J) (β * h)).symm
+
+/-- **Georgii (3.15).** `𝒢(Φ^{βJ,βh}) = {μ_{βJ,βh}}`: the one-dimensional Ising model has, at
+every coupling, external field and inverse temperature, exactly one Gibbs measure, the stationary
+Markov chain with transition matrix `P_{βJ,βh}` of (3.17). -/
+theorem gibbsMeasure_isingSpecification_chainGraph (J h β : ℝ) :
+    GibbsMeasure.G (isingSpecification chainGraph J h β)
+      = {stationaryChain (isingChainP (β * J) (β * h))
+          (isingChainP_mem_rowStochastic (β * J) (β * h))
+          (isingChainP_pos (β * J) (β * h))} := by
+  rw [isingSpecification_chainGraph_eq_markovSpecification]
+  exact gibbsMeasure_eq_singleton _ _ _
+
+/-- **Georgii (3.15).** Existence and uniqueness of the Gibbs measure of the one-dimensional
+Ising model. -/
+theorem existsUnique_isGibbsMeasure_isingSpecification_chainGraph (J h β : ℝ) :
+    ∃! μ : Measure (ℤ → Bool),
+      IsProbabilityMeasure μ ∧ (isingSpecification chainGraph J h β).IsGibbsMeasure μ := by
+  rw [isingSpecification_chainGraph_eq_markovSpecification]
+  exact existsUnique_isGibbsMeasure _ (isingChainP_mem_rowStochastic (β * J) (β * h))
+    (isingChainP_pos (β * J) (β * h))
+
+/-! ### The one-dimensional distributions of `μ_P`, and integrals of single-site observables -/
+
+section OneDim
+variable (P : Matrix E E ℝ) (hP : P ∈ Matrix.rowStochastic ℝ E) (hpos : ∀ x y, 0 < P x y)
+
+/-- The one-dimensional marginals of the stationary chain are the stationary distribution:
+`μ_P(σ_i = x) = α_P(x)`. -/
+theorem stationaryChain_apply_eq_stationaryDist (i : ℤ) (x : E) :
+    stationaryChain P hP hpos {σ : ℤ → E | σ i = x}
+      = ENNReal.ofReal (stationaryDist P hP hpos x) := by
+  have h := markovChain_cylinder P hP hpos (le_refl i) (fun _ ↦ x)
+  have hset : {τ : ℤ → E | ∀ k ∈ Finset.Icc i i, τ k = x} = {σ : ℤ → E | σ i = x} := by
+    ext τ
+    simp [Finset.Icc_self]
+  rw [hset] at h
+  simpa using h
+
+omit [MeasurableSpace E] [MeasurableSingletonClass E] in
+/-- The uniqueness of the stationary distribution: a probability vector fixed by `ᵥ* P` is
+`α_P`. -/
+theorem stationaryDist_eq_of_vecMul {α : E → ℝ} (hα : α ᵥ* P = α) (hsum : ∑ x, α x = 1) :
+    stationaryDist P hP hpos = α :=
+  Matrix.eq_of_vecMul_eq_of_sum_eq P hP hpos (vecMul_stationaryDist P hP hpos) hα
+    (((stationaryDist_mem_stdSimplex P hP hpos).2).trans hsum.symm)
+
+/-- The expectation of a single-site observable under the stationary chain. -/
+theorem integral_stationaryChain_apply (i : ℤ) (f : E → ℝ) :
+    ∫ σ, f (σ i) ∂(stationaryChain P hP hpos) = ∑ x, stationaryDist P hP hpos x * f x := by
+  have hprob := isProbabilityMeasure_stationaryChain P hP hpos
+  have hmeas : Measurable (fun σ : ℤ → E ↦ σ i) := measurable_pi_apply i
+  have hmap : IsProbabilityMeasure ((stationaryChain P hP hpos).map (fun σ : ℤ → E ↦ σ i)) := by
+    refine ⟨?_⟩
+    rw [Measure.map_apply hmeas MeasurableSet.univ, Set.preimage_univ, measure_univ]
+  rw [← integral_map hmeas.aemeasurable (Measurable.of_discrete (f := f)).aestronglyMeasurable,
+    integral_fintype Integrable.of_finite]
+  refine Finset.sum_congr rfl fun x _ ↦ ?_
+  have hx : ((stationaryChain P hP hpos).map (fun σ : ℤ → E ↦ σ i)) {x}
+      = ENNReal.ofReal (stationaryDist P hP hpos x) := by
+    rw [Measure.map_apply hmeas (measurableSet_singleton x)]
+    exact stationaryChain_apply_eq_stationaryDist P hP hpos i x
+  rw [measureReal_def, hx, ENNReal.toReal_ofReal (stationaryDist_pos P hP hpos x).le, smul_eq_mul]
+
+end OneDim
+
+/-! ### Georgii (3.18)/(3.19): the stationary distribution and the magnetisation -/
+
+/-- **Georgii (3.18).** The stationary distribution of the Ising transition matrix (3.17):
+`α_{P_{J,h}}(σ) = ½(1 + σ sinh h / sqrt(e^{-4J} + sinh² h))`. -/
+def isingChainStationary (J h : ℝ) : Bool → ℝ := fun b ↦
+  (1 + spin b * Real.sinh h / Real.sqrt (Real.exp (-(4 * J)) + Real.sinh h ^ 2)) / 2
+
+lemma sum_isingChainStationary (J h : ℝ) : ∑ b, isingChainStationary J h b = 1 := by
+  rw [Fintype.sum_bool]
+  simp only [isingChainStationary, spin]
+  norm_num
+  ring
+
+lemma isingChainStationary_pos (J h : ℝ) (b : Bool) : 0 < isingChainStationary J h b := by
+  have hs := isingChainSqrt_pos J h
+  have habs := abs_sinh_lt_isingChainSqrt J h
+  have hlt : |Real.sinh h| / Real.sqrt (Real.exp (-(4 * J)) + Real.sinh h ^ 2) < 1 :=
+    (div_lt_one hs).2 habs
+  have hkey : |spin b * Real.sinh h
+      / Real.sqrt (Real.exp (-(4 * J)) + Real.sinh h ^ 2)| < 1 := by
+    rw [abs_div, abs_mul, abs_of_pos hs]
+    have hspin : |spin b| = 1 := by cases b <;> simp [spin]
+    rw [hspin, one_mul]
+    exact hlt
+  have := neg_lt_of_abs_lt hkey
+  simp only [isingChainStationary]
+  linarith
+
+/-- The relation behind (3.18): `(s - sinh h)(q - e^{-2h}) = (q - 1)(s + sinh h)`, where `s` is
+the square root of (3.16). -/
+theorem isingChainStationary_key (J h : ℝ) :
+    (Real.sqrt (Real.exp (-(4 * J)) + Real.sinh h ^ 2) - Real.sinh h)
+        * (isingChainPerronRoot J h - Real.exp (-(2 * h)))
+      = (isingChainPerronRoot J h - 1)
+        * (Real.sqrt (Real.exp (-(4 * J)) + Real.sinh h ^ 2) + Real.sinh h) := by
+  set s := Real.sqrt (Real.exp (-(4 * J)) + Real.sinh h ^ 2) with hsdef
+  have hab : Real.exp h * Real.exp (-h) = 1 := by rw [← Real.exp_add]; simp
+  have hb2 : Real.exp (-(2 * h)) = Real.exp (-h) * Real.exp (-h) := by
+    rw [← Real.exp_add]; ring_nf
+  have hq2 : 2 * isingChainPerronRoot J h
+      = 1 + Real.exp (-(2 * h)) + 2 * Real.exp (-h) * s := by
+    simp only [isingChainPerronRoot, Real.cosh_eq, ← hsdef]
+    rw [hb2]
+    linear_combination hab
+  have hSe : 2 * Real.exp (-h) * Real.sinh h = 1 - Real.exp (-(2 * h)) := by
+    rw [Real.sinh_eq, hb2]
+    linear_combination hab
+  linear_combination (-s) * hSe + (-Real.sinh h) * hq2
+
+theorem vecMul_isingChainStationary (J h : ℝ) :
+    isingChainStationary J h ᵥ* isingChainP J h = isingChainStationary J h := by
+  have hq : 0 < isingChainPerronRoot J h := isingChainPerronRoot_pos J h
+  have hs : 0 < Real.sqrt (Real.exp (-(4 * J)) + Real.sinh h ^ 2) := isingChainSqrt_pos J h
+  have hkey := isingChainStationary_key J h
+  funext y
+  simp only [Matrix.vecMul, dotProduct, Fintype.sum_bool, isingChainStationary, spin]
+  cases y
+  · norm_num
+    field_simp
+    linear_combination (-1 : ℝ) * hkey
+  · norm_num
+    field_simp
+    linear_combination hkey
+
+/-- **Georgii (3.18).** -/
+theorem stationaryDist_isingChainP (J h : ℝ) :
+    stationaryDist (isingChainP J h) (isingChainP_mem_rowStochastic J h)
+        (isingChainP_pos J h) = isingChainStationary J h :=
+  stationaryDist_eq_of_vecMul _ _ _ (vecMul_isingChainStationary J h)
+    (sum_isingChainStationary J h)
+
+/-- **Georgii (3.19).** The magnetisation of the one-dimensional Ising model:
+`μ_{J,h}(σ_i) = sinh h / sqrt(e^{-4J} + sinh² h)` at every site `i`. -/
+theorem integral_spin_stationaryChain_isingChainP (J h : ℝ) (i : ℤ) :
+    ∫ σ, spin (σ i) ∂(stationaryChain (isingChainP J h)
+        (isingChainP_mem_rowStochastic J h) (isingChainP_pos J h))
+      = Real.sinh h / Real.sqrt (Real.exp (-(4 * J)) + Real.sinh h ^ 2) := by
+  rw [integral_stationaryChain_apply, stationaryDist_isingChainP, Fintype.sum_bool]
+  simp only [isingChainStationary, spin]
+  norm_num
+  ring
+
+end HomogeneousNearestNeighbour
 
 end MeasureTheory.GibbsMeasure.Markov
 

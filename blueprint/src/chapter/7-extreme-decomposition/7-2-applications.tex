@@ -172,6 +172,60 @@ $\gamma$-invariant probability measures.
     $\mu^k \in \Gibbs{\gamma^k}$ gives the inclusion.
 \end{proof}
 
+\begin{theorem}[Georgii, equation (7.19)]
+    \label{thm:app-product-extreme}
+    \uses{ex:app-product, thm:app-extreme-iff-tail-trivial}
+    \lean{MeasureTheory.GibbsMeasure.extremePoints_G_prod,
+      MeasureTheory.GibbsMeasure.mem_extremePoints_G_prod_map,
+      MeasureTheory.GibbsMeasure.exists_eq_map_prod_of_mem_extremePoints_G_prod,
+      MeasureTheory.GibbsMeasure.mem_extremePoints_G_of_mem_extremePoints_G_prod_map,
+      MeasureTheory.GibbsMeasure.bijective_prod_extremePoints_G,
+      MeasureTheory.GibbsMeasure.card_extremePoints_G_prod}
+    \leanok
+
+    For the product specification $\gamma = \gamma^1 \times \gamma^2$ over countable $S_1, S_2$,
+    \[\mathrm{ex}\,\Gibbs{\gamma} = \set{\mu^1 \times \mu^2 :
+      \mu^k \in \mathrm{ex}\,\Gibbs{\gamma^k},\ k = 1,2},\]
+    the map $(\mu^1,\mu^2) \mapsto \mu^1 \times \mu^2$ being a bijection; in particular
+    $|\mathrm{ex}\,\Gibbs{\gamma}| = |\mathrm{ex}\,\Gibbs{\gamma^1}|\,
+    |\mathrm{ex}\,\Gibbs{\gamma^2}|$, so an iterated product of the specifications of
+    Section 6.1 has a prescribed power of two as its number of phases.
+\end{theorem}
+\begin{proof}
+    \uses{lem:app-prod-zero-one}
+    \leanok
+
+    A product of measures trivial on $\Tail^1$, $\Tail^2$ is trivial on the tail of the product
+    (Lemma \ref{lem:app-prod-zero-one}), so by Theorem \ref{thm:app-extreme-iff-tail-trivial} a
+    product of extreme Gibbs measures is extreme. Conversely an extreme $\mu \in \Gibbs{\gamma}$
+    is tail trivial, hence its $\mathcal{F}^1 \times \mathcal{F}^2$-sections factorise and
+    $\mu = \mu^1 \times \mu^2$ with $\mu^k$ the marginals; each factor is extreme, since a
+    non-trivial splitting of $\mu^1$ would split $\mu$.
+\end{proof}
+
+\begin{lemma}[Zero-one laws multiply]
+    \label{lem:app-prod-zero-one}
+    \lean{MeasureTheory.Measure.prod_apply_eq_zero_or_one_iInf,
+      MeasureTheory.Measure.prod_apply_eq_zero_or_one,
+      MeasureTheory.GibbsMeasure.isTailTrivial_map_symm_prod}
+    \leanok
+
+    If $\mu$ is trivial on $\bigcap_i m^1_i$ and $\nu$ on $\bigcap_j m^2_j$, then
+    $\mu \otimes \nu$ is trivial on $\bigcap_i \bigcap_j m^1_i \otimes m^2_j$.  The double
+    intersection is essential: it contains
+    $(\bigcap_i m^1_i) \otimes (\bigcap_j m^2_j)$ strictly in general, and it is the double
+    intersection, not the product of the tails, that contains the tail
+    $\sigma$-algebra of $E^{S_1 \sqcup S_2}$.
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    For $A$ in the double intersection and each $i$, the section $A(\omega^1)$ lies in
+    $\bigcap_j m^2_j$, and $\omega^1 \mapsto \nu(A(\omega^1))$ is $m^1_i$-measurable; triviality
+    of $\nu$ makes it $\set{0,1}$-valued, triviality of $\mu$ makes the set where it is $1$ of
+    measure $0$ or $1$, and Fubini gives $(\mu \otimes \nu)(A) \in \set{0,1}$.
+\end{proof}
+
 \begin{example}[Georgii (7.15), stationary Markov chains]
     \label{ex:app-markov}
     \uses{thm:app-extreme-iff-tail-trivial, def:markov-spec, thm:mkv-35}

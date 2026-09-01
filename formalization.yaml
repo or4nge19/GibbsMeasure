@@ -455,6 +455,37 @@ alignment:
         +-boundary distributions is the monotone boundary-condition limit plusState of the FKG
         development, and the cube averages converge to it without subsequence extraction
         (tendsto_plusCubeAverage).
+    - source: "Theorem (2.30), second assertion; Corollaries (2.31), (2.32)"
+      lean: "Potential.exists_unique_isNormalized_sigmaFinitePremodifierNorm_eq"
+      module: "GibbsMeasure/Potential/GibbsRepresentation.lean"
+      status: "proved"
+      note: >-
+        The alpha-normalised potential is the vacuum potential averaged over the reference
+        configuration, so the second assertion integrates the first. (2.31) is
+        exists_unique_isNormalized_of_finite, (2.32) is isNearestNeighbour_normalizedPotential —
+        and also isNearestNeighbour_gasPotential, which Georgii does not state and which needs no
+        boundedness of the log-densities. The infinite-product resampling identities the proof
+        needs are new Mathlib API in GibbsMeasure/Mathlib/Probability/ProductMeasure.lean.
+    - source: "Corollary (3.9), converse; Examples (3.13)-(3.19)"
+      lean: "MeasureTheory.GibbsMeasure.Markov.isPositiveHomogeneousMarkov_iff_exists_homogeneousNNSpecification"
+      module: "GibbsMeasure/Model/MarkovChain.lean"
+      status: "proved"
+      note: >-
+        (3.9) as an iff, over the general homogeneous nearest-neighbour potential
+        homogeneousNNPotential. Example (3.15), the one-dimensional Ising model, comes with
+        (3.14), the Perron-Frobenius eigenvalue (3.16), the transfer matrix (3.17), the
+        stationary distribution (3.18) and the magnetisation (3.19).
+    - source: "Examples (7.18), (7.19)"
+      lean: "MeasureTheory.GibbsMeasure.extremePoints_G_prod"
+      module: "GibbsMeasure/Specification/ProductSpecification.lean"
+      status: "proved"
+      note: >-
+        The product specification on the disjoint union of the two site sets, the inclusion of
+        products of Gibbs measures, and (7.19) with the bijection and the cardinality product.
+        The zero-one law for a product measure over a double intersection of sigma-algebras —
+        which is what the tail of the product needs, the product of the tails being too small —
+        is new Mathlib API in
+        GibbsMeasure/Mathlib/MeasureTheory/Measure/ProdZeroOne.lean.
     - source: "Theorem (5.15)(ii)"
       lean: "MeasureTheory.GibbsMeasure.exists_mem_GP_and_forall_measurePreserving_sup_of_commute_mod_of_measurePreserving"
       module: "GibbsMeasure/Specification/InvariantExistenceGroup.lean"

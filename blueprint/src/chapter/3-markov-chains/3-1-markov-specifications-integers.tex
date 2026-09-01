@@ -480,6 +480,10 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
 \begin{corollary}[Georgii (3.9)]
     \label{cor:mkv-39}
     \uses{thm:mkv-surj, def:mkv-potential, def:mkv-pos-hom-markov}
+    \lean{MeasureTheory.GibbsMeasure.Markov.homogeneousNNPotential,
+      MeasureTheory.GibbsMeasure.Markov.isPositiveHomogeneousMarkovWith_homogeneousNNSpecification,
+      MeasureTheory.GibbsMeasure.Markov.isPositiveHomogeneousMarkov_iff_exists_homogeneousNNSpecification}
+    \leanok
 
     A specification $\gamma$ is a positive homogeneous Markov specification if and only if
     $\gamma$ is Gibbsian for some homogeneous nearest-neighbour potential $\Phi$, i.e.\ one with
@@ -490,6 +494,32 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
     $\Gibbs{\Phi} = \set{\mu_P}$ is a bijection between the $\alpha$-normalised homogeneous
     nearest-neighbour potentials and the positive stochastic matrices.
 \end{corollary}
+
+\begin{example}[Georgii (3.13)--(3.19): the one-dimensional Ising model]
+    \label{ex:mkv-315}
+    \uses{cor:mkv-39, thm:mkv-35, def:mkv-chain}
+    \lean{MeasureTheory.GibbsMeasure.Markov.chainGraph,
+      MeasureTheory.GibbsMeasure.Markov.isingPotential_chainGraph,
+      MeasureTheory.GibbsMeasure.Markov.homogeneousNNDeterminingFun_ising,
+      MeasureTheory.GibbsMeasure.Markov.perronRoot_isingChainQ,
+      MeasureTheory.GibbsMeasure.Markov.matrixOfDetFun_isingChainDetFun,
+      MeasureTheory.GibbsMeasure.Markov.existsUnique_isGibbsMeasure_isingSpecification_chainGraph,
+      MeasureTheory.GibbsMeasure.Markov.stationaryDist_isingChainP,
+      MeasureTheory.GibbsMeasure.Markov.integral_spin_stationaryChain_isingChainP}
+    \leanok
+
+    Take $S = \mathbb{Z}$ with the nearest-neighbour graph, $E = \set{\pm 1}$, and the Ising
+    potential $\Phi^{J,h}$ of (3.13): $\Phi_{\set i} = -h\sigma_i$,
+    $\Phi_{\set{i,i+1}} = -J\sigma_i\sigma_{i+1}$, which is the homogeneous nearest-neighbour
+    potential of $\varphi_1 = -h\sigma$, $\varphi_2 = -J\sigma\sigma$. Its determining function
+    is (3.14); the associated matrix $Q$ has Perron--Frobenius eigenvalue
+    $q_{J,h} = e^{-h}\bigl(\cosh h + \sqrt{e^{-4J} + \sinh^2 h}\bigr)$ (3.16); formula (3.7)
+    produces the transition matrix $P_{J,h}$ of (3.17); and therefore, by Theorem
+    \ref{thm:mkv-35}, $\Gibbs{\beta\Phi^{J,h}} = \set{\mu_{\beta J,\beta h}}$ is a singleton
+    (3.15) --- no phase transition in one dimension at any temperature. The stationary
+    distribution is (3.18) and the magnetisation is
+    $\mu_{J,h}(\sigma_i) = \sinh h / \sqrt{e^{-4J} + \sinh^2 h}$ (3.19).
+\end{example}
 
 \begin{remark}[The half-line variant]
     \label{rmk:mkv-half-line}

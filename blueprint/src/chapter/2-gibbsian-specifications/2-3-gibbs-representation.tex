@@ -433,9 +433,13 @@ is unique once normalized.
 \end{proof}
 
 % ---------------------------------------------------------------------------
-\begin{remark}[Georgii (2.30), the $\alpha$-normalized half]
-    \label{rmk:grep-not-formalized}
+\begin{theorem}[Georgii (2.30), the $\alpha$-normalized half]
+    \label{thm:grep-2-30-normalized}
     \uses{thm:grep-2-30, def:grep-alpha-normalized}
+    \lean{Potential.normalizedPotential, Potential.IsNormalized,
+      Potential.IsUniformlyConvergent,
+      Potential.exists_unique_isNormalized_sigmaFinitePremodifierNorm_eq}
+    \leanok
 
     If in the situation of Theorem~\ref{thm:grep-2-30} the function $\log \rho_\Lambda$ is bounded
     for every $\Lambda \in \Fin$, then for each $\alpha \in \Prob(E,\mathcal{E})$ there is a unique
@@ -447,17 +451,28 @@ is unique once normalized.
     Quasilocality may here be weakened to
     $\lim_\Delta \sup_{\zeta} |\rho_\Lambda(\omega_\Delta \zeta_{S\setminus\Delta}) - \rho_\Lambda(\omega)| = 0$
     for each $\omega$ and $\Lambda$.
-\end{remark}
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    The $\alpha$-normalized potential is the vacuum potential averaged over the reference
+    configuration, $\Phi^\alpha_A(\eta) = \int \Phi^\zeta_A(\eta)\,\alpha^S(\mathrm{d}\zeta)$,
+    so the first assertion integrates to the second; the identity
+    $H_\Lambda = \alpha_\Lambda u_\Lambda - u_\Lambda$ gives the Hamiltonians, and uniqueness is
+    the vanishing theorem for a normalized potential with $\Tail_\Lambda$-measurable Hamiltonians.
+\end{proof}
 
 \begin{corollary}[Georgii (2.31)]
     \label{cor:grep-2-31}
-    \uses{thm:grep-2-30, rmk:grep-not-formalized}
+    \uses{thm:grep-2-30, thm:grep-2-30-normalized}
+    \lean{Potential.exists_unique_isNormalized_of_finite}
+    \leanok
 
     Suppose $E$ is finite, $\lambda$ is counting measure, and $\gamma$ is a positive quasilocal
     specification.  Then for each $\alpha \in \Prob(E,\mathcal{E})$ there is a unique
     $\alpha$-normalized $\lambda$-admissible potential $\Phi$ with $\gamma = \gamma^\Phi$; it is
     uniformly convergent and $H^\Phi_\Lambda \in \overline{\mathcal{L}}$ for all $\Lambda \in \Fin$.
-    This is Remark~\ref{rmk:grep-not-formalized} applied to the unique $\lambda$-modification
+    This is Remark~\ref{thm:grep-2-30-normalized} applied to the unique $\lambda$-modification
     $\rho$ of $\gamma$: it is a pre-modification, quasilocal by Georgii (2.24)(c), and
     $\log \rho_\Lambda$ is bounded by continuity on the compact space $\Cfg = E^S$.
 \end{corollary}
@@ -465,6 +480,9 @@ is unique once normalized.
 \begin{corollary}[Georgii (2.32)]
     \label{cor:grep-2-32}
     \uses{thm:grep-2-30}
+    \lean{Potential.IsNearestNeighbour, Potential.isNearestNeighbour_normalizedPotential,
+      Potential.isNearestNeighbour_gasPotential}
+    \leanok
 
     Let $\rho$ and $\alpha$ satisfy the hypotheses of Theorem~\ref{thm:grep-2-30} and let $\Phi$ be
     the corresponding normalized potential.  Suppose $S$ is the vertex set of a simple graph with
@@ -476,5 +494,7 @@ is unique once normalized.
     $D, D \union \set i, D \union \set j, D \union \set{i,j}$ for a non-adjacent pair $i,j \in A$,
     rewrites each group using $\alpha_{\set i}u_A - u_A = \alpha_{\set i}u_{\set i} - u_{\set i}$,
     and observes that $B(i) \setminus D_1 = B(i) \setminus D_3$ and
-    $B(i) \setminus D_2 = B(i)\setminus D_4$, so each group cancels.
+    $B(i) \setminus D_2 = B(i)\setminus D_4$, so each group cancels.  The cancellation is an
+    identity at each fixed reference configuration, so it holds for the vacuum potential
+    $\Phi^a$ as well, with no boundedness of $\log\rho_\Lambda$.
 \end{corollary}

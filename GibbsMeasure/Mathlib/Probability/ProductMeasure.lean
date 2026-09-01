@@ -6,6 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import Mathlib.MeasureTheory.Constructions.Cylinders
+public import Mathlib.MeasureTheory.Integral.Prod
 public import Mathlib.Probability.Independence.InfinitePi
 public import Mathlib.Probability.Independence.ZeroOne
 public import Mathlib.Probability.ProductMeasure
@@ -117,6 +118,136 @@ theorem measurable_infinitePi {μ : α → (i : ι) → Measure (X i)}
 theorem measurable_infinitePi_const {E : Type*} [MeasurableSpace E] :
     Measurable fun lam : Measure E ↦ infinitePi (fun _ : ι ↦ lam) :=
   measurable_infinitePi fun _ ↦ measurable_id
+
+section Resampling
+
+/-! ### Resampling one coordinate of an infinite product measure
+
+Georgii's Remark (1.25) uses the kernels `α_B` attached to a single-site probability measure `α`,
+and the proof of Theorem (2.30) rests on the identity `α_{i} α_{S∖(C ∪ {i})} = α_{S∖C}` for
+`i ∉ C`.  At the level of the product measure `α^S` this is the statement that resampling one
+coordinate from an independent copy does not change the law. -/
+
+variable {ι : Type*} [DecidableEq ι] {X : ι → Type*} {mX : ∀ i, MeasurableSpace (X i)}
+variable (μ : (i : ι) → Measure (X i)) [∀ i, IsProbabilityMeasure (μ i)]
+
+/-- Resampling a single coordinate of an infinite product of probability measures from an
+independent copy leaves the law unchanged. -/
+theorem map_update_prod_infinitePi (i : ι) :
+    ((infinitePi μ).prod (μ i)).map (fun p : (Π j, X j) × X i ↦ Function.update p.1 i p.2)
+      = infinitePi μ := by
+  classical
+  refine eq_infinitePi _ fun s t ht ↦ ?_
+  rw [Measure.map_apply (by fun_prop) (.pi s.countable_toSet fun _ _ ↦ ht _)]
+  by_cases hi : i ∈ s
+  · have hpre : (fun p : (Π j, X j) × X i ↦ Function.update p.1 i p.2) ⁻¹' ((s : Set ι).pi t)
+        = ((↑(s.erase i) : Set ι).pi t) ×ˢ t i := by
+      ext p
+      simp only [Set.mem_preimage, Set.mem_pi, Finset.mem_coe, Set.mem_prod, Finset.coe_erase,
+        Set.mem_sdiff, Set.mem_singleton_iff]
+      constructor
+      · intro h
+        refine ⟨fun j hj => ?_, ?_⟩
+        · have := h j (by simpa using hj.1)
+          rwa [Function.update_of_ne (by simpa using hj.2)] at this
+        · have := h i hi
+          rwa [Function.update_self] at this
+      · rintro ⟨h1, h2⟩ j hj
+        by_cases hji : j = i
+        · subst hji; rwa [Function.update_self]
+        · rw [Function.update_of_ne hji]
+          exact h1 j ⟨hj, hji⟩
+    rw [hpre, Measure.prod_prod, infinitePi_pi μ (fun j _ => ht j),
+      ← Finset.prod_erase_mul s _ hi]
+  · have hpre : (fun p : (Π j, X j) × X i ↦ Function.update p.1 i p.2) ⁻¹' ((s : Set ι).pi t)
+        = ((s : Set ι).pi t) ×ˢ (Set.univ : Set (X i)) := by
+      ext p
+      simp only [Set.mem_preimage, Set.mem_pi, Finset.mem_coe, Set.mem_prod, Set.mem_univ,
+        and_true]
+      constructor
+      · intro h j hj
+        have := h j hj
+        rwa [Function.update_of_ne (by rintro rfl; exact hi hj)] at this
+      · intro h j hj
+        rw [Function.update_of_ne (by rintro rfl; exact hi hj)]
+        exact h j hj
+    rw [hpre, Measure.prod_prod, infinitePi_pi μ (fun j _ => ht j), measure_univ, mul_one]
+
+variable {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
+
+/-- Averaging over an infinite product of probability measures may be performed by first
+resampling the `i`-th coordinate. -/
+theorem integral_infinitePi_update (i : ι) {f : (Π j, X j) → G}
+    (hf : Integrable f (infinitePi μ)) :
+    ∫ ω, f ω ∂(infinitePi μ)
+      = ∫ ω, (∫ e, f (Function.update ω i e) ∂(μ i)) ∂(infinitePi μ) := by
+  have hmeas : Measurable (fun p : (Π j, X j) × X i ↦ Function.update p.1 i p.2) := by fun_prop
+  have hmap := map_update_prod_infinitePi μ i
+  have hint : Integrable (fun p : (Π j, X j) × X i ↦ f (Function.update p.1 i p.2))
+      ((infinitePi μ).prod (μ i)) :=
+    (integrable_map_measure (μ := (infinitePi μ).prod (μ i)) (g := f)
+      (f := fun p : (Π j, X j) × X i ↦ Function.update p.1 i p.2)
+      (by rw [hmap]; exact hf.aestronglyMeasurable) hmeas.aemeasurable).1
+      (by rw [hmap]; exact hf)
+  have h1 : ∫ ω, f ω ∂(infinitePi μ)
+      = ∫ p, f (Function.update p.1 i p.2) ∂((infinitePi μ).prod (μ i)) := by
+    conv_lhs => rw [← hmap]
+    exact integral_map hmeas.aemeasurable (by rw [hmap]; exact hf.aestronglyMeasurable)
+  rw [h1, integral_prod _ hint]
+
+/-- Averaging over an infinite product of probability measures may be performed by first
+resampling the `i`-th coordinate; the resampled coordinate is integrated first. -/
+theorem integral_infinitePi_update' (i : ι) {f : (Π j, X j) → G}
+    (hf : Integrable f (infinitePi μ)) :
+    ∫ ω, f ω ∂(infinitePi μ)
+      = ∫ e, (∫ ω, f (Function.update ω i e) ∂(infinitePi μ)) ∂(μ i) := by
+  have hmeas : Measurable (fun p : (Π j, X j) × X i ↦ Function.update p.1 i p.2) := by fun_prop
+  have hmap := map_update_prod_infinitePi μ i
+  have hint : Integrable (fun p : (Π j, X j) × X i ↦ f (Function.update p.1 i p.2))
+      ((infinitePi μ).prod (μ i)) :=
+    (integrable_map_measure (μ := (infinitePi μ).prod (μ i)) (g := f)
+      (f := fun p : (Π j, X j) × X i ↦ Function.update p.1 i p.2)
+      (by rw [hmap]; exact hf.aestronglyMeasurable) hmeas.aemeasurable).1
+      (by rw [hmap]; exact hf)
+  have h1 : ∫ ω, f ω ∂(infinitePi μ)
+      = ∫ p, f (Function.update p.1 i p.2) ∂((infinitePi μ).prod (μ i)) := by
+    conv_lhs => rw [← hmap]
+    exact integral_map hmeas.aemeasurable (by rw [hmap]; exact hf.aestronglyMeasurable)
+  rw [h1, integral_prod_symm _ hint]
+
+/-- If `F ω e` does not depend on the `i`-th coordinate of `ω`, then reading the second argument
+off the `i`-th coordinate of `ω` has the same effect as averaging it independently. -/
+theorem integral_infinitePi_eval_diag (i : ι) {F : (Π j, X j) → X i → G}
+    (hF : ∀ ω e x, F (Function.update ω i x) e = F ω e)
+    (hint : Integrable (fun ω ↦ F ω (ω i)) (infinitePi μ)) :
+    ∫ ω, F ω (ω i) ∂(infinitePi μ) = ∫ ω, (∫ e, F ω e ∂(μ i)) ∂(infinitePi μ) := by
+  rw [integral_infinitePi_update μ i hint]
+  refine integral_congr_ae (Filter.Eventually.of_forall fun ω ↦ ?_)
+  refine integral_congr_ae (Filter.Eventually.of_forall fun e ↦ ?_)
+  simp only [Function.update_self]
+  exact hF ω e e
+
+/-- The version of `integral_infinitePi_eval_diag` with the independent average taken first. -/
+theorem integral_infinitePi_eval_diag' (i : ι) {F : (Π j, X j) → X i → G}
+    (hF : ∀ ω e x, F (Function.update ω i x) e = F ω e)
+    (hint : Integrable (fun ω ↦ F ω (ω i)) (infinitePi μ)) :
+    ∫ ω, F ω (ω i) ∂(infinitePi μ) = ∫ e, (∫ ω, F ω e ∂(infinitePi μ)) ∂(μ i) := by
+  rw [integral_infinitePi_update' μ i hint]
+  refine integral_congr_ae (Filter.Eventually.of_forall fun e ↦ ?_)
+  refine integral_congr_ae (Filter.Eventually.of_forall fun ω ↦ ?_)
+  simp only [Function.update_self]
+  exact hF ω e e
+
+omit [DecidableEq ι] in
+/-- The `i`-th coordinate of an infinite product of probability measures is distributed
+according to `μ i`. -/
+theorem integral_infinitePi_eval (i : ι) {g : X i → G} (hg : AEStronglyMeasurable g (μ i)) :
+    ∫ ω, g (ω i) ∂(infinitePi μ) = ∫ e, g e ∂(μ i) := by
+  conv_rhs => rw [← infinitePi_map_eval μ i]
+  exact (integral_map (measurable_pi_apply i).aemeasurable
+    (by rwa [infinitePi_map_eval])).symm
+
+end Resampling
 
 end MeasureTheory.Measure
 

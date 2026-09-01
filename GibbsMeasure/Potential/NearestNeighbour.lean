@@ -6,6 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Potential.Summable
+public import Mathlib.Combinatorics.SimpleGraph.Clique
 public import Mathlib.Combinatorics.SimpleGraph.Finite
 
 /-!
@@ -30,6 +31,12 @@ noncomputable section
 namespace Potential
 
 variable {S E : Type*} [MeasurableSpace E]
+
+/-- **Georgii (2.17).** A potential is a *nearest-neighbour* (or Markov) potential for the graph
+`G` when `Φ_A = 0` unless `A` is a complete subgraph of `G`.  Georgii's Corollary (2.32) says that
+the potential representing a quasilocal Markov specification is of this form. -/
+def IsNearestNeighbour (G : SimpleGraph S) (Φ : Potential S E) : Prop :=
+  ∀ A : Finset S, ¬ G.IsClique (A : Set S) → Φ A = 0
 
 /-! ### The nearest-neighbour pair potential on a graph -/
 

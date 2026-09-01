@@ -434,4 +434,17 @@ lemma gibbsSpecificationOfAbsolutelySummable_apply_le [Countable S] [IsPotential
         Measure.infinitePi (fun _ : S ↦ ν) A := by
       rw [Specification.isssd_apply_of_mem_cylinderEvents ν Λ η hA]
 
+/-! ### Georgii (2.13): uniform convergence of the Hamiltonians -/
+
+section UniformlyConvergent
+
+/-- **Georgii (2.13).** A potential is *uniformly convergent* when for every finite volume `Λ`
+the partial Hamiltonians `H^Φ_{Λ,Δ} = ∑_{A ⊆ Δ, A ∩ Λ ≠ ∅} Φ_A` converge to `H^Φ_Λ` uniformly
+in the configuration. -/
+def IsUniformlyConvergent (Φ : Potential S E) : Prop :=
+  ∀ (Λ : Finset S) ⦃ε : ℝ⦄, 0 < ε → ∃ Δ₀ : Finset S, ∀ Δ : Finset S, Δ₀ ⊆ Δ → ∀ η : S → E,
+    |(∑ A ∈ Δ.powerset, Φ.hamiltonianTerms Λ η A) - Φ.hamiltonian Λ η| ≤ ε
+
+end UniformlyConvergent
+
 end Potential

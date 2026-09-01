@@ -812,6 +812,43 @@ theorem isClosed_setOf_exists_mem_GP [StandardBorelSpace E]
 
 end BSpace
 
+/-! ### Subtraction of potentials: Hamiltonians and uniform convergence (Georgii (2.13)) -/
+
+section Sub
+
+variable {S E : Type*} [MeasurableSpace E] [DecidableEq S]
+
+lemma hamiltonianTerms_sub_apply (Φ Ψ : Potential S E) (Λ : Finset S) (η : S → E)
+    (A : Finset S) :
+    (Φ - Ψ).hamiltonianTerms Λ η A
+      = Φ.hamiltonianTerms Λ η A - Ψ.hamiltonianTerms Λ η A := by
+  by_cases hd : Disjoint A Λ
+  · rw [hamiltonianTerms_of_disjoint hd, hamiltonianTerms_of_disjoint hd,
+      hamiltonianTerms_of_disjoint hd, sub_zero]
+  · rw [hamiltonianTerms_of_not_disjoint hd, hamiltonianTerms_of_not_disjoint hd,
+      hamiltonianTerms_of_not_disjoint hd]
+    rfl
+
+lemma IsUniformlyConvergent.sub {Φ Ψ : Potential S E} [IsSummable Φ] [IsSummable Ψ]
+    (hΦ : IsUniformlyConvergent Φ) (hΨ : IsUniformlyConvergent Ψ) :
+    IsUniformlyConvergent (Φ - Ψ) := by
+  intro Λ ε hε
+  obtain ⟨Δ₁, h1⟩ := hΦ Λ (half_pos hε)
+  obtain ⟨Δ₂, h2⟩ := hΨ Λ (half_pos hε)
+  refine ⟨Δ₁ ∪ Δ₂, fun Δ hΔ η ↦ ?_⟩
+  have e1 := h1 Δ (Finset.subset_union_left.trans hΔ) η
+  have e2 := h2 Δ (Finset.subset_union_right.trans hΔ) η
+  have hsum : ∑ A ∈ Δ.powerset, (Φ - Ψ).hamiltonianTerms Λ η A
+      = (∑ A ∈ Δ.powerset, Φ.hamiltonianTerms Λ η A)
+        - ∑ A ∈ Δ.powerset, Ψ.hamiltonianTerms Λ η A := by
+    rw [← Finset.sum_sub_distrib]
+    exact Finset.sum_congr rfl fun A _ ↦ hamiltonianTerms_sub_apply Φ Ψ Λ η A
+  rw [hsum, hamiltonian_sub Φ Ψ Λ η]
+  rw [abs_le] at e1 e2 ⊢
+  constructor <;> linarith [e1.1, e1.2, e2.1, e2.2]
+
+end Sub
+
 end Potential
 
 end

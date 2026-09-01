@@ -5,12 +5,41 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ProdZeroOne
 public import GibbsMeasure.Specification.LocalLimits
 public import Mathlib.MeasureTheory.MeasurableSpace.Prod
 public import Mathlib.Probability.Kernel.Composition.ParallelComp
 
 /-!
 # Georgii, Example (7.18)-(7.19): product specifications
+
+Let `γ¹` and `γ²` be specifications with the same state space `E` and parameter sets `S₁` and `S₂`.
+Georgii's product specification `γ = γ¹ × γ²` on the disjoint union `S₁ ⊕ S₂` is
+`γ_Λ(· | ω¹ω²) = γ¹_{Λ ∩ S₁}(· | ω¹) × γ²_{Λ ∩ S₂}(· | ω²)`, read through the measurable
+equivalence `E^{S₁ ⊕ S₂} ≃ E^{S₁} × E^{S₂}` (`MeasurableEquiv.sumArrowEquivProdArrow`).
+
+* `Specification.prod`, `Specification.prod_apply`: **Example (7.18)**, the product specification
+  and its defining identity. Consistency comes from Fubini for parallel binds
+  (`Specification.bind_prodKernel_map_prod`), properness from
+  `ProbabilityTheory.Kernel.IsProper.parallelComp`.
+* `Specification.isGibbsMeasure_prod_map`: `{μ¹ × μ² : μᵏ ∈ 𝒢(γᵏ)} ⊆ 𝒢(γ)`, an inclusion that is
+  strict as soon as both factors have more than one Gibbs measure.
+* `MeasureTheory.GibbsMeasure.extremePoints_G_prod`: **Equation (7.19)**,
+  `ex 𝒢(γ) = {μ¹ × μ² : μᵏ ∈ ex 𝒢(γᵏ)}`. Both inclusions go through Theorem (7.7), extremality
+  `↔` tail triviality. Forwards: a product of tail-trivial measures is tail-trivial
+  (`MeasureTheory.GibbsMeasure.isTailTrivial_map_symm_prod`, from the zero-one law
+  `MeasureTheory.Measure.prod_apply_eq_zero_or_one_iInf`). Backwards: Theorem (7.12)(a) turns the
+  product structure of `γ_Λ` into independence of the two blocks of coordinates
+  (`MeasureTheory.GibbsMeasure.measure_preimage_prod_eq_mul_of_mem_extremePoints_G_prod`), so an
+  extreme `μ` is the product of its two marginals, each of which is Gibbs and tail-trivial. The
+  factorwise converse Georgii states — if `μ¹ × μ²` is extreme then so is each `μᵏ` — is
+  `MeasureTheory.GibbsMeasure.mem_extremePoints_G_of_mem_extremePoints_G_prod_map`.
+* `MeasureTheory.GibbsMeasure.extremePointsGProdEquiv`,
+  `MeasureTheory.GibbsMeasure.card_extremePoints_G_prod`,
+  `MeasureTheory.GibbsMeasure.mk_extremePoints_G_prod`: the bijection
+  `ex 𝒢(γ¹) × ex 𝒢(γ²) ≃ ex 𝒢(γ)` and the resulting
+  `|ex 𝒢(γ)| = |ex 𝒢(γ¹)| |ex 𝒢(γ²)|`, Georgii's recipe for a specification with a prescribed
+  number of phases.
 -/
 
 @[expose] public section
@@ -89,18 +118,10 @@ lemma measurable_sumArrowEquivProdArrow_symm (Δ : Set (S₁ ⊕ S₂)) :
 
 end MeasureTheory
 
-/-! ### Missing `Mathlib` API: properness, monotonicity of product σ-algebras, parallel binds -/
+/-! ### Missing `Mathlib` API: properness under parallel composition, parallel binds
 
-namespace MeasurableSpace
-
-variable {α β : Type*}
-
-/-- The product of measurable spaces is monotone in both arguments. -/
-lemma prod_le_prod {m₁ m₁' : MeasurableSpace α} {m₂ m₂' : MeasurableSpace β} (h₁ : m₁ ≤ m₁')
-    (h₂ : m₂ ≤ m₂') : m₁.prod m₂ ≤ m₁'.prod m₂' :=
-  sup_le_sup (comap_mono h₁) (comap_mono h₂)
-
-end MeasurableSpace
+Monotonicity of the product of σ-algebras (`MeasurableSpace.prod_le_prod`) and the section lemmas
+it is used with live in `GibbsMeasure/Mathlib/MeasureTheory/Measure/ProdZeroOne.lean`. -/
 
 namespace ProbabilityTheory.Kernel
 
@@ -385,3 +406,331 @@ theorem isGibbsMeasure_prod_map {μ₁ : Measure (S₁ → E)} {μ₂ : Measure 
 end Prod
 
 end Specification
+
+/-! ### Georgii (7.19): the extreme points of `𝒢(γ¹ × γ²)` -/
+
+namespace MeasureTheory.GibbsMeasure
+
+open scoped Topology
+
+universe u₁ u₂ u₃
+
+variable {S₁ : Type u₁} {S₂ : Type u₂} {E : Type u₃} [MeasurableSpace E]
+
+/-! #### Tail events of `E^{S₁ ⊕ S₂}` and of the two factors -/
+
+/-- Splitting a configuration undoes glueing, on preimages. -/
+lemma preimage_symm_preimage_sumArrow (u : Set ((S₁ → E) × (S₂ → E))) :
+    (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E).symm ⁻¹'
+      (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E ⁻¹' u) = u := by
+  ext p
+  simp only [Set.mem_preimage, MeasurableEquiv.apply_symm_apply]
+
+/-- A tail event `A¹ ∈ 𝓣¹` of the first factor, read as the event `A¹ × Ω²` of the disjoint union,
+is a tail event: for every finite `Λ ⊆ S₁ ⊕ S₂` it only depends on the sites outside `Λ`. -/
+lemma measurableSet_tail_preimage_prod_univ {A₁ : Set (S₁ → E)}
+    (hA₁ : MeasurableSet[@tailSigmaAlgebra S₁ E _] A₁) :
+    MeasurableSet[@tailSigmaAlgebra (S₁ ⊕ S₂) E _]
+      (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E ⁻¹' (A₁ ×ˢ (univ : Set (S₂ → E)))) := by
+  refine MeasurableSpace.measurableSet_iInf.2 fun Λ ↦ Specification.measurable_split (E := E) Λ ?_
+  exact @MeasurableSet.prod _ _ (cylinderEvents (X := fun _ : S₁ ↦ E) ((Λ.toLeft : Set S₁)ᶜ))
+    (cylinderEvents (X := fun _ : S₂ ↦ E) ((Λ.toRight : Set S₂)ᶜ)) A₁ univ
+    (MeasurableSpace.measurableSet_iInf.1 hA₁ Λ.toLeft) MeasurableSet.univ
+
+/-- A tail event `A² ∈ 𝓣²` of the second factor, read as the event `Ω¹ × A²` of the disjoint
+union, is a tail event. -/
+lemma measurableSet_tail_preimage_univ_prod {A₂ : Set (S₂ → E)}
+    (hA₂ : MeasurableSet[@tailSigmaAlgebra S₂ E _] A₂) :
+    MeasurableSet[@tailSigmaAlgebra (S₁ ⊕ S₂) E _]
+      (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E ⁻¹' ((univ : Set (S₁ → E)) ×ˢ A₂)) := by
+  refine MeasurableSpace.measurableSet_iInf.2 fun Λ ↦ Specification.measurable_split (E := E) Λ ?_
+  exact @MeasurableSet.prod _ _ (cylinderEvents (X := fun _ : S₁ ↦ E) ((Λ.toLeft : Set S₁)ᶜ))
+    (cylinderEvents (X := fun _ : S₂ ↦ E) ((Λ.toRight : Set S₂)ᶜ)) univ A₂
+    MeasurableSet.univ (MeasurableSpace.measurableSet_iInf.1 hA₂ Λ.toRight)
+
+/-- Georgii's `𝓣 = ⋂_Λ 𝓕¹_{S₁∖Λ} × 𝓕²_{S₂∖Λ}`, in the direction that carries the proof of (7.19):
+a tail event of the disjoint union is, for *every* pair of finite volumes `L ⊆ S₁` and `R ⊆ S₂`,
+an event of `𝓕¹_{S₁∖L} ⊗ 𝓕²_{S₂∖R}` on the pair space.
+
+Note that this is genuinely weaker than membership of `𝓣¹ ⊗ 𝓣²`: an infimum of product
+σ-algebras is bigger than the product of the infima. That is why the zero-one law used below,
+`MeasureTheory.Measure.prod_apply_eq_zero_or_one_iInf`, is stated for families. -/
+lemma measurableSet_prod_preimage_symm_of_measurableSet_tail {A : Set ((S₁ ⊕ S₂) → E)}
+    (hA : MeasurableSet[@tailSigmaAlgebra (S₁ ⊕ S₂) E _] A) (L : Finset S₁) (R : Finset S₂) :
+    MeasurableSet[(cylinderEvents (X := fun _ : S₁ ↦ E) ((L : Set S₁)ᶜ)).prod
+        (cylinderEvents (X := fun _ : S₂ ↦ E) ((R : Set S₂)ᶜ))]
+      ((MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E).symm ⁻¹' A) := by
+  have h := Specification.measurable_glue (E := E) (L.disjSum R)
+    (MeasurableSpace.measurableSet_iInf.1 hA (L.disjSum R))
+  rwa [Finset.toLeft_disjSum, Finset.toRight_disjSum] at h
+
+/-- **Georgii (7.19), the tail-triviality half**: a product `μ¹ × μ²` of two tail-trivial
+probability measures is trivial on the tail σ-algebra of the disjoint union.
+
+Georgii's argument: for `A ∈ 𝓣` the section `A(ω¹)` lies in `𝓣²` and `ω¹ ↦ μ²(A(ω¹))` is
+`𝓣¹`-measurable, so `μ²(A(ω¹)) ∈ {0,1}` for all `ω¹` and
+`μ(A) = ∫ μ¹(dω¹) μ²(A(ω¹)) ∈ {0,1}`. -/
+theorem isTailTrivial_map_symm_prod {μ₁ : Measure (S₁ → E)} {μ₂ : Measure (S₂ → E)}
+    [IsProbabilityMeasure μ₁] [IsProbabilityMeasure μ₂]
+    (h₁ : ∀ A, MeasurableSet[@tailSigmaAlgebra S₁ E _] A → μ₁ A = 0 ∨ μ₁ A = 1)
+    (h₂ : ∀ B, MeasurableSet[@tailSigmaAlgebra S₂ E _] B → μ₂ B = 0 ∨ μ₂ B = 1)
+    (A : Set ((S₁ ⊕ S₂) → E)) (hA : MeasurableSet[@tailSigmaAlgebra (S₁ ⊕ S₂) E _] A) :
+    Measure.map (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E).symm (μ₁.prod μ₂) A = 0 ∨
+      Measure.map (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E).symm (μ₁.prod μ₂) A = 1 := by
+  rw [MeasurableEquiv.map_apply]
+  refine Measure.prod_apply_eq_zero_or_one_iInf
+    (m₁ := fun L : Finset S₁ ↦ cylinderEvents (X := fun _ : S₁ ↦ E) ((L : Set S₁)ᶜ))
+    (m₂ := fun R : Finset S₂ ↦ cylinderEvents (X := fun _ : S₂ ↦ E) ((R : Set S₂)ᶜ))
+    (fun _ ↦ cylinderEvents_le_pi) (fun _ ↦ cylinderEvents_le_pi) h₁ h₂ ?_
+  exact MeasurableSpace.measurableSet_iInf.2 fun L ↦ MeasurableSpace.measurableSet_iInf.2 fun R ↦
+    measurableSet_prod_preimage_symm_of_measurableSet_tail hA L R
+
+/-- Two products of probability measures agree only if their factors do: the factors are the
+marginals. -/
+lemma map_symm_prod_inj {μ₁ ν₁ : Measure (S₁ → E)} {μ₂ ν₂ : Measure (S₂ → E)}
+    [IsProbabilityMeasure μ₁] [IsProbabilityMeasure μ₂]
+    [IsProbabilityMeasure ν₁] [IsProbabilityMeasure ν₂]
+    (h : Measure.map (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E).symm (μ₁.prod μ₂)
+      = Measure.map (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E).symm (ν₁.prod ν₂)) :
+    μ₁ = ν₁ ∧ μ₂ = ν₂ := by
+  have h' : μ₁.prod μ₂ = ν₁.prod ν₂ := MeasurableEquiv.map_measurableEquiv_injective _ h
+  refine ⟨?_, ?_⟩
+  · have hf := congrArg Measure.fst h'
+    rwa [Measure.fst_prod, Measure.fst_prod] at hf
+  · have hs := congrArg Measure.snd h'
+    rwa [Measure.snd_prod, Measure.snd_prod] at hs
+
+/-! #### The two inclusions of (7.19) -/
+
+variable (γ₁ : Specification S₁ E) (γ₂ : Specification S₂ E)
+
+/-- The product specification on a rectangle:
+`(γ¹ × γ²)_Λ(A¹ × A² | ω) = γ¹_{Λ ∩ S₁}(A¹ | ω¹) γ²_{Λ ∩ S₂}(A² | ω²)`. -/
+lemma prod_apply_preimage_prod (Λ : Finset (S₁ ⊕ S₂)) (η : (S₁ ⊕ S₂) → E)
+    (s : Set (S₁ → E)) (t : Set (S₂ → E)) :
+    (γ₁.prod γ₂) Λ η (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E ⁻¹' (s ×ˢ t))
+      = (γ₁ Λ.toLeft fun i ↦ η (.inl i)) s * (γ₂ Λ.toRight fun i ↦ η (.inr i)) t := by
+  rw [Specification.prod_apply, MeasurableEquiv.map_apply, preimage_symm_preimage_sumArrow,
+    Measure.prod_prod]
+
+/-- **Georgii (7.19), the inclusion `⊇`**: a product of extreme Gibbs measures is an extreme Gibbs
+measure of the product specification.
+
+By Theorem (7.7) both `μᵏ` are tail-trivial, hence so is `μ¹ × μ²`, which is Gibbs for `γ¹ × γ²`
+by (7.18); Theorem (7.7) again makes it extreme. -/
+theorem mem_extremePoints_G_prod_map [Countable S₁] [Countable S₂]
+    {μ₁ : Measure (S₁ → E)} {μ₂ : Measure (S₂ → E)}
+    (h₁ : μ₁ ∈ (G (γ := γ₁)).extremePoints ℝ≥0∞)
+    (h₂ : μ₂ ∈ (G (γ := γ₂)).extremePoints ℝ≥0∞) :
+    Measure.map (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E).symm (μ₁.prod μ₂)
+      ∈ (G (γ := γ₁.prod γ₂)).extremePoints ℝ≥0∞ := by
+  have hp₁ : IsProbabilityMeasure μ₁ := h₁.1.1
+  have hp₂ : IsProbabilityMeasure μ₂ := h₂.1.1
+  have hG : Measure.map (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E).symm (μ₁.prod μ₂)
+      ∈ G (γ := γ₁.prod γ₂) :=
+    ⟨Measure.isProbabilityMeasure_map (MeasurableEquiv.measurable _).aemeasurable,
+      Specification.isGibbsMeasure_prod_map γ₁ γ₂ h₁.1.2 h₂.1.2⟩
+  exact mem_extremePoints_G_of_isTailTrivial hG fun A hA ↦
+    isTailTrivial_map_symm_prod (tailTrivial_of_mem_extremePoints_G h₁)
+      (tailTrivial_of_mem_extremePoints_G h₂) A hA
+
+/-- **The key step of the converse of (7.19)**: under an extreme Gibbs measure `μ` of a product
+specification the two blocks of coordinates are independent,
+`μ(A¹ × A²) = μ(A¹ × Ω²) μ(Ω¹ × A²)`.
+
+This is Georgii's computation: by Theorem (7.12)(a) the three probabilities are the `μ`-a.e.
+limits of `γ_{Λ_n}(· | ω)` along the exhaustion, and the product structure of `γ` makes the
+finite-volume quantities *exactly* multiplicative at every `n`. -/
+theorem measure_preimage_prod_eq_mul_of_mem_extremePoints_G_prod
+    [Countable S₁] [Countable S₂] {μ : Measure ((S₁ ⊕ S₂) → E)}
+    (hμ : μ ∈ (G (γ := γ₁.prod γ₂)).extremePoints ℝ≥0∞)
+    {s : Set (S₁ → E)} {t : Set (S₂ → E)} (hs : MeasurableSet s) (ht : MeasurableSet t) :
+    μ (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E ⁻¹' (s ×ˢ t))
+      = μ (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E ⁻¹' (s ×ˢ univ))
+        * μ (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E ⁻¹' (univ ×ˢ t)) := by
+  have hprob : IsProbabilityMeasure μ := hμ.1.1
+  have hm : ∀ u : Set ((S₁ → E) × (S₂ → E)), MeasurableSet u →
+      MeasurableSet (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E ⁻¹' u) :=
+    fun _ hu ↦ (MeasurableEquiv.measurable _) hu
+  set A := MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E ⁻¹' (s ×ˢ t) with hAdef
+  set A₁ := MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E ⁻¹' (s ×ˢ (univ : Set (S₂ → E)))
+    with hA₁def
+  set A₂ := MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E ⁻¹' ((univ : Set (S₁ → E)) ×ˢ t)
+    with hA₂def
+  have h1 := tendsto_ae_kernel_exhaustion_of_mem_extremePoints_G hμ (hm _ (hs.prod ht))
+  have h2 := tendsto_ae_kernel_exhaustion_of_mem_extremePoints_G hμ
+    (hm _ (hs.prod MeasurableSet.univ))
+  have h3 := tendsto_ae_kernel_exhaustion_of_mem_extremePoints_G hμ
+    (hm _ (MeasurableSet.univ.prod ht))
+  obtain ⟨ω, hω1, hω2, hω3⟩ := (h1.and (h2.and h3)).exists
+  have hpt : ∀ n : ℕ, ((γ₁.prod γ₂) (exhaustionVolumes n) ω A).toReal
+      = ((γ₁.prod γ₂) (exhaustionVolumes n) ω A₁).toReal
+        * ((γ₁.prod γ₂) (exhaustionVolumes n) ω A₂).toReal := by
+    intro n
+    rw [hAdef, hA₁def, hA₂def, prod_apply_preimage_prod, prod_apply_preimage_prod,
+      prod_apply_preimage_prod, measure_univ, measure_univ, mul_one, one_mul, ENNReal.toReal_mul]
+  have hlim : Tendsto (fun n ↦ ((γ₁.prod γ₂) (exhaustionVolumes n) ω A).toReal) atTop
+      (𝓝 (μ.real A₁ * μ.real A₂)) := by
+    simpa only [hpt] using hω2.mul hω3
+  refine (ENNReal.toReal_eq_toReal_iff' (measure_ne_top μ A)
+    (ENNReal.mul_ne_top (measure_ne_top μ A₁) (measure_ne_top μ A₂))).1 ?_
+  rw [ENNReal.toReal_mul]
+  exact tendsto_nhds_unique hω1 hlim
+
+/-- **Georgii (7.19), the inclusion `⊆`**: an extreme Gibbs measure of a product specification is
+the product of two extreme Gibbs measures of the factors.
+
+Independence of the two blocks identifies `μ` with the product of its marginals `μ¹` and `μ²`;
+Fubini for the product specification (`Specification.bind_prodKernel_map_prod`) plus injectivity
+of `μ ↦ μ ∘ φ⁻¹` turns the DLR equation for `μ` into `μ¹ γ¹_{Λ₁} = μ¹` and `μ² γ²_{Λ₂} = μ²`; and
+a tail event of a factor is a tail event of the disjoint union, so both marginals are tail-trivial
+and hence extreme by Theorem (7.7). -/
+theorem exists_eq_map_prod_of_mem_extremePoints_G_prod [Countable S₁] [Countable S₂]
+    {μ : Measure ((S₁ ⊕ S₂) → E)} (hμ : μ ∈ (G (γ := γ₁.prod γ₂)).extremePoints ℝ≥0∞) :
+    ∃ μ₁ ∈ (G (γ := γ₁)).extremePoints ℝ≥0∞, ∃ μ₂ ∈ (G (γ := γ₂)).extremePoints ℝ≥0∞,
+      μ = Measure.map (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E).symm (μ₁.prod μ₂) := by
+  have hprob : IsProbabilityMeasure μ := hμ.1.1
+  have hρprob : IsProbabilityMeasure
+      (Measure.map (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E) μ) :=
+    Measure.isProbabilityMeasure_map (MeasurableEquiv.measurable _).aemeasurable
+  set ρ := Measure.map (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E) μ with hρ
+  -- Independence of the two blocks identifies `ρ` with the product of its marginals.
+  have hsplit : ρ = ρ.fst.prod ρ.snd := by
+    refine (Measure.prod_eq fun s t hs ht ↦ ?_).symm
+    rw [Measure.fst_apply hs, Measure.snd_apply ht, ← Set.prod_univ, ← Set.univ_prod, hρ,
+      MeasurableEquiv.map_apply, MeasurableEquiv.map_apply, MeasurableEquiv.map_apply]
+    exact measure_preimage_prod_eq_mul_of_mem_extremePoints_G_prod γ₁ γ₂ hμ hs ht
+  have hμeq : μ = Measure.map (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E).symm
+      (ρ.fst.prod ρ.snd) := by
+    rw [← hsplit, hρ, MeasurableEquiv.map_symm_map]
+  -- The DLR equation for `μ` splits into the DLR equations for the two marginals.
+  have hprod : ∀ (L : Finset S₁) (R : Finset S₂),
+      (ρ.fst.bind (γ₁ L)).prod (ρ.snd.bind (γ₂ R)) = ρ.fst.prod ρ.snd := by
+    intro L R
+    have hbind := (Specification.isGibbsMeasure_iff_forall_bind_eq (γ := γ₁.prod γ₂)
+      (μ := μ)).1 hμ.1.2 (L.disjSum R)
+    rw [hμeq, Specification.prod_apply', Specification.bind_prodKernel_map_prod,
+      Finset.toLeft_disjSum, Finset.toRight_disjSum] at hbind
+    exact MeasurableEquiv.map_measurableEquiv_injective _ hbind
+  have hfix₁ : ∀ L : Finset S₁, ρ.fst.bind (γ₁ L) = ρ.fst := by
+    intro L
+    have hpb : IsProbabilityMeasure (ρ.snd.bind (γ₂ ∅)) := γ₂.isProbabilityMeasure_bind ∅ ρ.snd
+    have hpb' : IsProbabilityMeasure (ρ.fst.bind (γ₁ L)) := γ₁.isProbabilityMeasure_bind L ρ.fst
+    have h := congrArg Measure.fst (hprod L ∅)
+    rwa [Measure.fst_prod, Measure.fst_prod] at h
+  have hfix₂ : ∀ R : Finset S₂, ρ.snd.bind (γ₂ R) = ρ.snd := by
+    intro R
+    have hpb : IsProbabilityMeasure (ρ.fst.bind (γ₁ ∅)) := γ₁.isProbabilityMeasure_bind ∅ ρ.fst
+    have hpb' : IsProbabilityMeasure (ρ.snd.bind (γ₂ R)) := γ₂.isProbabilityMeasure_bind R ρ.snd
+    have h := congrArg Measure.snd (hprod ∅ R)
+    rwa [Measure.snd_prod, Measure.snd_prod] at h
+  have hG₁ : ρ.fst ∈ G (γ := γ₁) :=
+    ⟨inferInstance, Specification.isGibbsMeasure_iff_forall_bind_eq.2 hfix₁⟩
+  have hG₂ : ρ.snd ∈ G (γ := γ₂) :=
+    ⟨inferInstance, Specification.isGibbsMeasure_iff_forall_bind_eq.2 hfix₂⟩
+  -- Both marginals are tail-trivial, because a tail event of a factor is a tail event.
+  have htail₁ :
+      IsTailTrivial (S := S₁) (E := E) (⟨ρ.fst, hG₁.1⟩ : ProbabilityMeasure (S₁ → E)) := by
+    intro A₁ hA₁
+    have hval : ρ.fst A₁ = μ (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E ⁻¹'
+        (A₁ ×ˢ (univ : Set (S₂ → E)))) := by
+      rw [Measure.fst_apply (tailSigmaAlgebra_le_pi _ hA₁), ← Set.prod_univ, hρ,
+        MeasurableEquiv.map_apply]
+    show ρ.fst A₁ = 0 ∨ ρ.fst A₁ = 1
+    rw [hval]
+    exact tailTrivial_of_mem_extremePoints_G hμ _ (measurableSet_tail_preimage_prod_univ hA₁)
+  have htail₂ :
+      IsTailTrivial (S := S₂) (E := E) (⟨ρ.snd, hG₂.1⟩ : ProbabilityMeasure (S₂ → E)) := by
+    intro A₂ hA₂
+    have hval : ρ.snd A₂ = μ (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E ⁻¹'
+        ((univ : Set (S₁ → E)) ×ˢ A₂)) := by
+      rw [Measure.snd_apply (tailSigmaAlgebra_le_pi _ hA₂), ← Set.univ_prod, hρ,
+        MeasurableEquiv.map_apply]
+    show ρ.snd A₂ = 0 ∨ ρ.snd A₂ = 1
+    rw [hval]
+    exact tailTrivial_of_mem_extremePoints_G hμ _ (measurableSet_tail_preimage_univ_prod hA₂)
+  exact ⟨ρ.fst, mem_extremePoints_G_of_isTailTrivial hG₁ htail₁, ρ.snd,
+    mem_extremePoints_G_of_isTailTrivial hG₂ htail₂, hμeq⟩
+
+/-- **Georgii (7.19), the converse for the factors**: if a product `μ¹ × μ²` of probability
+measures is extreme in `𝒢(γ¹ × γ²)`, then each factor is extreme in `𝒢(γᵏ)`.
+
+Georgii argues directly — a nontrivial splitting `μ¹ = s ν + (1-s) ν'` inside `𝒢(γ¹)` produces the
+splitting `μ = s (ν × μ²) + (1-s) (ν' × μ²)` inside `𝒢(γ)` — but the same conclusion falls out of
+the inclusion `⊆` above, since the two factors of a product of probability measures are its
+marginals. -/
+theorem mem_extremePoints_G_of_mem_extremePoints_G_prod_map [Countable S₁] [Countable S₂]
+    {μ₁ : Measure (S₁ → E)} {μ₂ : Measure (S₂ → E)}
+    [IsProbabilityMeasure μ₁] [IsProbabilityMeasure μ₂]
+    (h : Measure.map (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E).symm (μ₁.prod μ₂)
+      ∈ (G (γ := γ₁.prod γ₂)).extremePoints ℝ≥0∞) :
+    μ₁ ∈ (G (γ := γ₁)).extremePoints ℝ≥0∞ ∧ μ₂ ∈ (G (γ := γ₂)).extremePoints ℝ≥0∞ := by
+  obtain ⟨ν₁, hν₁, ν₂, hν₂, heq⟩ := exists_eq_map_prod_of_mem_extremePoints_G_prod γ₁ γ₂ h
+  have hp₁ : IsProbabilityMeasure ν₁ := hν₁.1.1
+  have hp₂ : IsProbabilityMeasure ν₂ := hν₂.1.1
+  obtain ⟨e₁, e₂⟩ := map_symm_prod_inj heq
+  exact ⟨by rw [e₁]; exact hν₁, by rw [e₂]; exact hν₂⟩
+
+/-! #### (7.19) and the number of phases -/
+
+/-- **Georgii, equation (7.19)**:
+`ex 𝒢(γ¹ × γ²) = {μ¹ × μ² : μᵏ ∈ ex 𝒢(γᵏ), k = 1, 2}`. -/
+theorem extremePoints_G_prod [Countable S₁] [Countable S₂] :
+    (G (γ := γ₁.prod γ₂)).extremePoints ℝ≥0∞ =
+      (fun p : Measure (S₁ → E) × Measure (S₂ → E) ↦
+          Measure.map (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E).symm (p.1.prod p.2)) ''
+        ((G (γ := γ₁)).extremePoints ℝ≥0∞ ×ˢ (G (γ := γ₂)).extremePoints ℝ≥0∞) := by
+  ext μ
+  constructor
+  · intro hμ
+    obtain ⟨μ₁, h₁, μ₂, h₂, rfl⟩ := exists_eq_map_prod_of_mem_extremePoints_G_prod γ₁ γ₂ hμ
+    exact ⟨(μ₁, μ₂), ⟨h₁, h₂⟩, rfl⟩
+  · rintro ⟨⟨μ₁, μ₂⟩, ⟨h₁, h₂⟩, rfl⟩
+    exact mem_extremePoints_G_prod_map γ₁ γ₂ h₁ h₂
+
+/-- `(μ¹, μ²) ↦ μ¹ × μ²` is a bijection from `ex 𝒢(γ¹) × ex 𝒢(γ²)` onto `ex 𝒢(γ¹ × γ²)`. -/
+theorem bijective_prod_extremePoints_G [Countable S₁] [Countable S₂] :
+    Function.Bijective
+      (fun p : (G (γ := γ₁)).extremePoints ℝ≥0∞ × (G (γ := γ₂)).extremePoints ℝ≥0∞ ↦
+        (⟨Measure.map (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E).symm
+            ((p.1 : Measure (S₁ → E)).prod (p.2 : Measure (S₂ → E))),
+          mem_extremePoints_G_prod_map γ₁ γ₂ p.1.2 p.2.2⟩ :
+          (G (γ := γ₁.prod γ₂)).extremePoints ℝ≥0∞)) := by
+  constructor
+  · rintro ⟨⟨μ₁, hμ₁⟩, ⟨μ₂, hμ₂⟩⟩ ⟨⟨ν₁, hν₁⟩, ⟨ν₂, hν₂⟩⟩ h
+    have h₁ : IsProbabilityMeasure μ₁ := hμ₁.1.1
+    have h₂ : IsProbabilityMeasure μ₂ := hμ₂.1.1
+    have h₃ : IsProbabilityMeasure ν₁ := hν₁.1.1
+    have h₄ : IsProbabilityMeasure ν₂ := hν₂.1.1
+    obtain ⟨e₁, e₂⟩ := map_symm_prod_inj (Subtype.ext_iff.1 h)
+    simp only [Prod.mk.injEq, Subtype.mk.injEq]
+    exact ⟨e₁, e₂⟩
+  · rintro ⟨μ, hμ⟩
+    obtain ⟨μ₁, h₁, μ₂, h₂, rfl⟩ := exists_eq_map_prod_of_mem_extremePoints_G_prod γ₁ γ₂ hμ
+    exact ⟨(⟨μ₁, h₁⟩, ⟨μ₂, h₂⟩), rfl⟩
+
+/-- **Georgii (7.19)** as the explicit bijection `ex 𝒢(γ¹) × ex 𝒢(γ²) ≃ ex 𝒢(γ¹ × γ²)`,
+`(μ¹, μ²) ↦ μ¹ × μ²`. This is the statement behind `|ex 𝒢(γ)| = |ex 𝒢(γ¹)| |ex 𝒢(γ²)|`. -/
+noncomputable def extremePointsGProdEquiv [Countable S₁] [Countable S₂] :
+    ((G (γ := γ₁)).extremePoints ℝ≥0∞ × (G (γ := γ₂)).extremePoints ℝ≥0∞) ≃
+      (G (γ := γ₁.prod γ₂)).extremePoints ℝ≥0∞ :=
+  Equiv.ofBijective _ (bijective_prod_extremePoints_G γ₁ γ₂)
+
+/-- **Georgii (7.19)**: `|ex 𝒢(γ¹ × γ²)| = |ex 𝒢(γ¹)| |ex 𝒢(γ²)|`, the number of phases of a
+product specification. Iterating this over the potentials of Section 6.1 produces specifications
+whose number of phases is any prescribed power of two. -/
+theorem card_extremePoints_G_prod [Countable S₁] [Countable S₂] :
+    Nat.card ((G (γ := γ₁.prod γ₂)).extremePoints ℝ≥0∞)
+      = Nat.card ((G (γ := γ₁)).extremePoints ℝ≥0∞) *
+        Nat.card ((G (γ := γ₂)).extremePoints ℝ≥0∞) := by
+  rw [← Nat.card_congr (extremePointsGProdEquiv γ₁ γ₂), Nat.card_prod]
+
+/-- **Georgii (7.19)**, the cardinal identity `|ex 𝒢(γ¹ × γ²)| = |ex 𝒢(γ¹)| |ex 𝒢(γ²)|`, with no
+finiteness assumption on the number of phases. -/
+theorem mk_extremePoints_G_prod [Countable S₁] [Countable S₂] :
+    Cardinal.mk ((G (γ := γ₁.prod γ₂)).extremePoints ℝ≥0∞)
+      = Cardinal.lift.{max u₂ u₃} (Cardinal.mk ((G (γ := γ₁)).extremePoints ℝ≥0∞)) *
+        Cardinal.lift.{max u₁ u₃} (Cardinal.mk ((G (γ := γ₂)).extremePoints ℝ≥0∞)) := by
+  rw [← Cardinal.mk_congr (extremePointsGProdEquiv γ₁ γ₂), Cardinal.mk_prod]
+
+end MeasureTheory.GibbsMeasure
