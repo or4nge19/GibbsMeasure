@@ -10,6 +10,17 @@ public import GibbsMeasure.Model.ShiftAverage
 
 /-!
 # Georgii Theorem (6.9): spontaneous magnetisation of the 2D Ising ferromagnet
+
+The plus phase of Georgii's proof of (6.9) is a cluster point, in the topology of local
+convergence, of the cube-averaged `+`-boundary distributions `plusCubeAverage`; averaging over the
+cube translates is what makes the limit shift invariant (Georgii (5.20)(1)).  The cluster point is
+not unique *a priori*, so the construction is packaged here as three statements about an arbitrary
+cluster point — `mem_GP_of_mapClusterPt_plusCubeAverage`,
+`measurePreserving_shift_of_mapClusterPt_plusCubeAverage`,
+`eq_false_le_of_mapClusterPt_plusCubeAverage_of_cube` — rather than as a bare existence theorem.
+For `β ≥ 0` the cluster point *is* unique and equals the monotone local limit `plusState` of
+`GibbsMeasure/Model/PlusPhase.lean`: see `eq_plusState_of_mapClusterPt_plusCubeAverage` there and
+`Peierls.plusPhase_eq_plusState` in `GibbsMeasure/Model/LowTemperatureLimit.lean`.
 -/
 
 @[expose] public section
@@ -533,15 +544,6 @@ lemma average_eq_false_le (b : ℝ) (N : ℕ) (a : Site) :
       {z : Site → Bool | z a = false} ≤ r b :=
   average_eq_false_le_of_cube (fun N a ↦ isingSpecification_cube_eq_false_le b N a) N a
 
-/-- Evaluation at a local event is continuous for the topology of local convergence. -/
-lemma continuous_eval_localEvent {A : Set (Site → Bool)} (hA : A ∈ localEvents Site Bool) :
-    Continuous fun v : WithLocalConvergence Site Bool ↦
-      ((v.toMeasure : Measure (Site → Bool)) A) := by
-  rw [continuous_iff_continuousAt]
-  intro v
-  have h : Filter.Tendsto (fun v' : WithLocalConvergence Site Bool ↦ v') (𝓝 v) (𝓝 v) := tendsto_id
-  exact (tendsto_withLocalConvergence_iff.1 h) A hA
-
 /-- `{ζ | ζ a = -1}` is a local event. -/
 lemma spin_eq_false_mem_localEvents (a : Site) :
     {z : Site → Bool | z a = false} ∈ localEvents Site Bool := by
@@ -550,26 +552,116 @@ lemma spin_eq_false_mem_localEvents (a : Site) :
   exact measurable_cylinderEvent_apply (X := fun _ : Site ↦ Bool) hmem
     (measurableSet_singleton false)
 
-/-- A bound valid along a sequence passes to its cluster points, for a local event. -/
-lemma le_of_mapClusterPt {A : Set (Site → Bool)} (hA : A ∈ localEvents Site Bool) {c : ℝ≥0∞}
-    {ms : ℕ → ProbabilityMeasure (Site → Bool)} {m : ProbabilityMeasure (Site → Bool)}
+end MeasureTheory.GibbsMeasure.Peierls
+
+namespace MeasureTheory.GibbsMeasure
+
+/-! ### Closed conditions on the values of a net pass to its local cluster points -/
+
+variable {S E : Type*} [MeasurableSpace E]
+
+/-- **A closed condition on the value at a local event passes to the cluster points.**  Evaluation
+at a local event is continuous for the topology of local convergence (Georgii (4.2)), so the set
+of random fields whose value at `A` lies in a closed set `C` is closed. -/
+lemma mem_of_mapClusterPt_of_isClosed {ι : Type*} {l : Filter ι} {A : Set (S → E)}
+    (hA : A ∈ localEvents S E) {C : Set ℝ≥0∞} (hC : IsClosed C)
+    {ms : ι → ProbabilityMeasure (S → E)} {m : WithLocalConvergence S E}
+    (hm : MapClusterPt m l fun i ↦ WithSetwiseTopology.ofMeasure (ms i))
+    (hle : ∀ᶠ i in l, (ms i : Measure (S → E)) A ∈ C) :
+    (m.toMeasure : Measure (S → E)) A ∈ C := by
+  set s : Set (WithLocalConvergence S E) := {v | (v.toMeasure : Measure (S → E)) A ∈ C} with hs
+  have hclosed : IsClosed s := hC.preimage (WithSetwiseTopology.continuous_apply_enn hA)
+  have hcl : ClusterPt m (Filter.map (fun i ↦ (WithSetwiseTopology.ofMeasure (ms i) :
+      WithLocalConvergence S E)) l) := hm
+  have hprin : (Filter.map (fun i ↦ (WithSetwiseTopology.ofMeasure (ms i) :
+      WithLocalConvergence S E)) l) ≤ 𝓟 s :=
+    Filter.le_principal_iff.2 (Filter.mem_map.2 hle)
+  have hmem : m ∈ closure s := mem_closure_iff_clusterPt.2 (hcl.mono hprin)
+  rwa [hclosed.closure_eq] at hmem
+
+/-- An upper bound valid along a net at a local event passes to its cluster points. -/
+lemma eval_le_of_mapClusterPt {ι : Type*} {l : Filter ι} {A : Set (S → E)}
+    (hA : A ∈ localEvents S E) {c : ℝ≥0∞} {ms : ι → ProbabilityMeasure (S → E)}
+    {m : WithLocalConvergence S E}
+    (hm : MapClusterPt m l fun i ↦ WithSetwiseTopology.ofMeasure (ms i))
+    (hle : ∀ᶠ i in l, (ms i : Measure (S → E)) A ≤ c) :
+    (m.toMeasure : Measure (S → E)) A ≤ c :=
+  mem_of_mapClusterPt_of_isClosed hA (isClosed_Iic (a := c)) hm hle
+
+/-- A lower bound valid along a net at a local event passes to its cluster points. -/
+lemma le_eval_of_mapClusterPt {ι : Type*} {l : Filter ι} {A : Set (S → E)}
+    (hA : A ∈ localEvents S E) {c : ℝ≥0∞} {ms : ι → ProbabilityMeasure (S → E)}
+    {m : WithLocalConvergence S E}
+    (hm : MapClusterPt m l fun i ↦ WithSetwiseTopology.ofMeasure (ms i))
+    (hle : ∀ᶠ i in l, c ≤ (ms i : Measure (S → E)) A) :
+    c ≤ (m.toMeasure : Measure (S → E)) A :=
+  mem_of_mapClusterPt_of_isClosed hA (isClosed_Ici (a := c)) hm hle
+
+end MeasureTheory.GibbsMeasure
+
+namespace MeasureTheory.GibbsMeasure.Peierls
+
+/-! ### Georgii's cube-averaged `+`-boundary distributions -/
+
+/-- **Georgii (6.9)/(5.20)(1)**: the cube-averaged Ising distributions with the all-`+` boundary
+condition, `μ_N = |Λ_N|⁻¹ ∑_{i ∈ Λ_N} γ^β_{Λ_N + i}(· | ω⁺)`.  The plus phase of the proof of
+(6.9) is a cluster point of this sequence. -/
+def plusCubeAverage (b : ℝ) (N : ℕ) : ProbabilityMeasure (Site → Bool) :=
+  ⟨(isingSpecification (latticeGraph 2) 1 0 b).average
+      (Measure.dirac fun _ ↦ true) (cubeTranslates 2 N N),
+    (isingSpecification (latticeGraph 2) 1 0 b).isProbabilityMeasure_average _
+      (cubeTranslates_nonempty 2 N N)⟩
+
+@[simp] lemma coe_plusCubeAverage (b : ℝ) (N : ℕ) :
+    (plusCubeAverage b N : Measure (Site → Bool))
+      = (isingSpecification (latticeGraph 2) 1 0 b).average
+        (Measure.dirac fun _ ↦ true) (cubeTranslates 2 N N) := rfl
+
+/-- **Georgii (6.9)**: the cube averages have a cluster point in the topology of local
+convergence, by compactness of the space of random fields over a finite state space
+(Georgii (4.11)(2)). -/
+theorem exists_mapClusterPt_plusCubeAverage (b : ℝ) :
+    ∃ m : ProbabilityMeasure (Site → Bool),
+      MapClusterPt (WithSetwiseTopology.ofMeasure m : WithLocalConvergence Site Bool) atTop
+        fun N ↦ WithSetwiseTopology.ofMeasure (plusCubeAverage b N) := by
+  obtain ⟨m, hm⟩ := exists_clusterPt_of_compactSpace
+    (Filter.map (fun N ↦ (WithSetwiseTopology.ofMeasure (plusCubeAverage b N) :
+      WithLocalConvergence (Fin 2 → ℤ) Bool)) atTop)
+  exact ⟨m.toMeasure, hm⟩
+
+/-- **Georgii (6.9)**: every cluster point of the cube averages is a Gibbs measure
+(Georgii (4.18)). -/
+theorem mem_GP_of_mapClusterPt_plusCubeAverage {b : ℝ} {m : ProbabilityMeasure (Site → Bool)}
     (hm : MapClusterPt (WithSetwiseTopology.ofMeasure m : WithLocalConvergence Site Bool) atTop
-      fun N ↦ WithSetwiseTopology.ofMeasure (ms N))
-    (hle : ∀ N, (ms N : Measure (Site → Bool)) A ≤ c) :
-    (m : Measure (Site → Bool)) A ≤ c := by
-  set s : Set (WithLocalConvergence Site Bool) :=
-    {v | (v.toMeasure : Measure (Site → Bool)) A ≤ c} with hs
-  have hclosed : IsClosed s := isClosed_le (continuous_eval_localEvent hA) continuous_const
-  have hprin : (Filter.map (fun N ↦ (WithSetwiseTopology.ofMeasure (ms N) :
-      WithLocalConvergence Site Bool)) atTop) ≤ 𝓟 s :=
-    Filter.le_principal_iff.2 (Filter.mem_map.2 (Filter.Eventually.of_forall fun N ↦ hle N))
-  have hcl : ClusterPt (WithSetwiseTopology.ofMeasure m : WithLocalConvergence Site Bool)
-      (Filter.map (fun N ↦ (WithSetwiseTopology.ofMeasure (ms N) :
-        WithLocalConvergence Site Bool)) atTop) := hm
-  have hmem : (WithSetwiseTopology.ofMeasure m : WithLocalConvergence Site Bool) ∈ closure s :=
-    mem_closure_iff_clusterPt.2 (hcl.mono hprin)
-  rw [hclosed.closure_eq] at hmem
-  exact hmem
+      fun N ↦ WithSetwiseTopology.ofMeasure (plusCubeAverage b N)) :
+    m ∈ GP (S := Fin 2 → ℤ) (E := Bool) (isingSpecification (latticeGraph 2) 1 0 b) :=
+  (mem_GP_and_measurePreserving_shift_of_mapClusterPt_average_cubeTranslates_dirac
+    (Potential.isQuasilocal_gibbsSpecificationOfAbsolutelySummable uniformSpinMeasure b)
+    (isInvariant_shift_isingSpecification 2 1 0 b) true (μs := plusCubeAverage b)
+    (fun _ ↦ rfl) hm).1
+
+/-- **Georgii (6.9)**: every cluster point of the cube averages is shift invariant
+(Georgii (5.18)/(5.20)(1)); this is why Georgii averages over the cube translates. -/
+theorem measurePreserving_shift_of_mapClusterPt_plusCubeAverage {b : ℝ}
+    {m : ProbabilityMeasure (Site → Bool)}
+    (hm : MapClusterPt (WithSetwiseTopology.ofMeasure m : WithLocalConvergence Site Bool) atTop
+      fun N ↦ WithSetwiseTopology.ofMeasure (plusCubeAverage b N)) (j : Site) :
+    MeasurePreserving (shift Bool j).toFun (m : Measure (Site → Bool)) m :=
+  (mem_GP_and_measurePreserving_shift_of_mapClusterPt_average_cubeTranslates_dirac
+    (Potential.isQuasilocal_gibbsSpecificationOfAbsolutelySummable uniformSpinMeasure b)
+    (isInvariant_shift_isingSpecification 2 1 0 b) true (μs := plusCubeAverage b)
+    (fun _ ↦ rfl) hm).2 j
+
+/-- **Georgii (6.9)**: the Peierls estimate passes to every cluster point of the cube averages. -/
+theorem eq_false_le_of_mapClusterPt_plusCubeAverage_of_cube {ρ : ℝ → ℝ≥0∞} {b : ℝ}
+    {m : ProbabilityMeasure (Site → Bool)}
+    (hm : MapClusterPt (WithSetwiseTopology.ofMeasure m : WithLocalConvergence Site Bool) atTop
+      fun N ↦ WithSetwiseTopology.ofMeasure (plusCubeAverage b N))
+    (hcube : ∀ (N : ℕ) (a : Site), isingSpecification (latticeGraph 2) 1 0 b (cube 2 N)
+      (fun _ ↦ true) {z : Site → Bool | z a = false} ≤ ρ b) (a : Site) :
+    (m : Measure (Site → Bool)) {z : Site → Bool | z a = false} ≤ ρ b :=
+  eval_le_of_mapClusterPt (spin_eq_false_mem_localEvents a) hm
+    (.of_forall fun N ↦ average_eq_false_le_of_cube hcube N a)
 
 /-- **Georgii (6.9), the plus phase**, for any bound `ρ` dominating the cube estimate: a
 shift-invariant Gibbs measure with `μ(σ_a = -1) ≤ ρ(β)` for every site `a`. -/
@@ -580,21 +672,10 @@ theorem exists_plus_phase_of_cube {ρ : ℝ → ℝ≥0∞} {b : ℝ}
       m ∈ GP (S := Fin 2 → ℤ) (E := Bool) (isingSpecification (latticeGraph 2) 1 0 b) ∧
       (∀ j : Site, MeasurePreserving (shift Bool j).toFun (m : Measure (Site → Bool)) m) ∧
       ∀ a : Site, (m : Measure (Site → Bool)) {z : Site → Bool | z a = false} ≤ ρ b := by
-  set ms : ℕ → ProbabilityMeasure (Site → Bool) := fun N ↦
-    ⟨(isingSpecification (latticeGraph 2) 1 0 b).average
-        (Measure.dirac fun _ ↦ true) (cubeTranslates 2 N N),
-      (isingSpecification (latticeGraph 2) 1 0 b).isProbabilityMeasure_average _
-        (cubeTranslates_nonempty 2 N N)⟩ with hms
-  obtain ⟨m, hm⟩ := exists_clusterPt_of_compactSpace
-    (Filter.map (fun N ↦ (WithSetwiseTopology.ofMeasure (ms N) :
-      WithLocalConvergence (Fin 2 → ℤ) Bool)) atTop)
-  obtain ⟨hGP, hshift⟩ :=
-    mem_GP_and_measurePreserving_shift_of_mapClusterPt_average_cubeTranslates_dirac
-      (Potential.isQuasilocal_gibbsSpecificationOfAbsolutelySummable uniformSpinMeasure b)
-      (isInvariant_shift_isingSpecification 2 1 0 b) true (μs := ms) (fun N ↦ rfl) hm
-  refine ⟨m.toMeasure, hGP, hshift, fun a ↦ ?_⟩
-  exact le_of_mapClusterPt (spin_eq_false_mem_localEvents a) hm
-    (fun N ↦ average_eq_false_le_of_cube hcube N a)
+  obtain ⟨m, hm⟩ := exists_mapClusterPt_plusCubeAverage b
+  exact ⟨m, mem_GP_of_mapClusterPt_plusCubeAverage hm,
+    measurePreserving_shift_of_mapClusterPt_plusCubeAverage hm,
+    fun a ↦ eq_false_le_of_mapClusterPt_plusCubeAverage_of_cube hm hcube a⟩
 
 /-- **Georgii (6.9), the plus phase**: a shift-invariant Gibbs measure with `μ(σ_a = -1) ≤ r(β)`
 for every site `a`. -/

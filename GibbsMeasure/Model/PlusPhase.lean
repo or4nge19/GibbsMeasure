@@ -39,6 +39,15 @@ after (6.9), states only the weaker `μ₊^β(σ₀) ≥ μ(σ₀)` for all `μ 
 * `map_plusState_eq_minusState`: an order-reversing symmetry exchanges the two phases;
   `map_spinFlip_plusState` specialises this to the spin flip of the zero-field Ising model
   on `ℤ²`.
+* `eq_plusState_of_stochasticallyLE`, `eq_plusState_of_mapClusterPt`: the plus phase is the
+  *unique* `≼`-maximum of `𝒢(βΦ)`, and every local cluster point of a net dominating it which is
+  a Gibbs measure equals it.
+* `eq_plusState_of_mapClusterPt_plusCubeAverage`, `tendsto_plusCubeAverage`: **there is only one
+  plus phase.**  Georgii constructs `μ₊^β` in the proof of (6.9) as a cluster point of the
+  cube-averaged `+`-boundary distributions (`Peierls.plusCubeAverage`), in order to get shift
+  invariance; for `β ≥ 0` that cluster point is unique and equal to `plusState`, and the averages
+  converge to it with no subsequence extraction.  `Peierls.plusPhase_eq_plusState` in
+  `GibbsMeasure/Model/LowTemperatureLimit.lean` is the statement for Georgii's own `μ₊^β`.
 -/
 
 set_option autoImplicit false
@@ -50,6 +59,21 @@ open Filter MeasureTheory MeasureTheory.GibbsMeasure ProbabilityTheory Set Topol
 open scoped ENNReal Topology
 
 noncomputable section
+
+namespace MeasureTheory.Measure.StochasticallyLE
+
+variable {ι : Type*} {μ ν : Measure (ι → Bool)}
+
+/-- **Antisymmetry of the stochastic order on `ι → Bool`.**  Two mutually dominating probability
+measures on a configuration space with two-point spins are equal: the coordinate events are
+measurable upper sets and they generate the product σ-algebra. -/
+protected lemma antisymm [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (h₁ : μ.StochasticallyLE ν) (h₂ : ν.StochasticallyLE μ) : μ = ν :=
+  h₁.eq_of_forall_apply_eq fun i ↦ le_antisymm
+    (h₁ (measurableSet_setOf_eq_true i) (isUpperSet_setOf_eq_true i))
+    (h₂ (measurableSet_setOf_eq_true i) (isUpperSet_setOf_eq_true i))
+
+end MeasureTheory.Measure.StochasticallyLE
 
 namespace MeasureTheory.GibbsMeasure
 
@@ -450,6 +474,82 @@ theorem minusState_stochasticallyLE_plusState (hJ : 0 ≤ J) (hβ : 0 ≤ β) :
     (minusState G J h β : Measure (S → Bool)).StochasticallyLE (plusState G J h β) :=
   minusState_stochasticallyLE G J h β hJ hβ (plusState_mem_GP G J h β hJ hβ)
 
+/-! ### The plus phase is the unique maximum of the stochastic order -/
+
+/-- **The plus phase is dominated by every finite-volume `+`-boundary distribution**: it is their
+decreasing limit. -/
+theorem plusState_stochasticallyLE_isingSpecification_plus (hJ : 0 ≤ J) (hβ : 0 ≤ β)
+    (Λ : Finset S) :
+    (plusState G J h β : Measure (S → Bool)).StochasticallyLE
+      (isingSpecification G J h β Λ fun _ ↦ true) := by
+  refine stochasticallyLE_of_forall_upper_localEvents fun A hA hup ↦ ?_
+  refine le_of_tendsto (tendsto_measure_plusState G J h β hJ hβ hA) ?_
+  filter_upwards [eventually_ge_atTop Λ] with Λ' hΛ'
+  exact stochasticallyLE_isingSpecification_plus G J h β hJ hβ hΛ'
+    (MeasurableSet.of_mem_measurableCylinders hA) hup
+
+/-- **Every finite-volume `-`-boundary distribution is dominated by the minus phase**: it is their
+increasing limit. -/
+theorem isingSpecification_minus_stochasticallyLE_minusState (hJ : 0 ≤ J) (hβ : 0 ≤ β)
+    (Λ : Finset S) :
+    (isingSpecification G J h β Λ fun _ ↦ false).StochasticallyLE
+      (minusState G J h β : Measure (S → Bool)) := by
+  refine stochasticallyLE_of_forall_upper_localEvents fun A hA hup ↦ ?_
+  refine ge_of_tendsto (tendsto_measure_minusState G J h β hJ hβ hA) ?_
+  filter_upwards [eventually_ge_atTop Λ] with Λ' hΛ'
+  exact stochasticallyLE_isingSpecification_minus G J h β hJ hβ hΛ'
+    (MeasurableSet.of_mem_measurableCylinders hA) hup
+
+/-- **The plus phase is dominated by every average of finite-volume `+`-boundary distributions**
+(Georgii (5.18)): the stochastic order is preserved by mixtures. -/
+theorem plusState_stochasticallyLE_average (hJ : 0 ≤ J) (hβ : 0 ≤ β) {R : Finset (Finset S)}
+    (hR : R.Nonempty) :
+    (plusState G J h β : Measure (S → Bool)).StochasticallyLE
+      ((isingSpecification G J h β).average (Measure.dirac fun _ ↦ true) R) := by
+  intro A hA hup
+  rw [Specification.average_apply]
+  have hterm : ∀ Λ ∈ R, (plusState G J h β : Measure (S → Bool)) A
+      ≤ (Measure.dirac (fun _ ↦ true : S → Bool)).bind (isingSpecification G J h β Λ) A := by
+    intro Λ _
+    rw [Measure.dirac_bind ((isingSpecification G J h β).measurable_kernel_toMeasure Λ)]
+    exact plusState_stochasticallyLE_isingSpecification_plus G J h β hJ hβ Λ hA hup
+  calc (plusState G J h β : Measure (S → Bool)) A
+      = (R.card : ℝ≥0∞)⁻¹ * ((R.card : ℝ≥0∞) * (plusState G J h β : Measure (S → Bool)) A) := by
+        rw [← mul_assoc, ENNReal.inv_mul_cancel (by exact_mod_cast hR.card_pos.ne')
+          (ENNReal.natCast_ne_top _), one_mul]
+    _ = (R.card : ℝ≥0∞)⁻¹ * ∑ _Λ ∈ R, (plusState G J h β : Measure (S → Bool)) A := by
+        rw [Finset.sum_const, nsmul_eq_mul]
+    _ ≤ (R.card : ℝ≥0∞)⁻¹ * ∑ Λ ∈ R, (Measure.dirac (fun _ ↦ true : S → Bool)).bind
+          (isingSpecification G J h β Λ) A := mul_le_mul_right (Finset.sum_le_sum hterm) _
+
+/-- **The plus phase is the only Gibbs measure that dominates it.**  With
+`stochasticallyLE_plusState` this says that `μ₊^β` is the unique `≼`-maximum of `𝒢(βΦ)`, so any
+construction of a Gibbs measure that is `≽ μ₊^β` produces `μ₊^β` itself. -/
+theorem eq_plusState_of_stochasticallyLE (hJ : 0 ≤ J) (hβ : 0 ≤ β)
+    {μ : ProbabilityMeasure (S → Bool)}
+    (hμ : μ ∈ GP (S := S) (E := Bool) (isingSpecification G J h β))
+    (hle : (plusState G J h β : Measure (S → Bool)).StochasticallyLE μ) :
+    μ = plusState G J h β :=
+  ProbabilityMeasure.toMeasure_injective (Measure.StochasticallyLE.antisymm
+    (stochasticallyLE_plusState G J h β hJ hβ hμ) hle)
+
+/-- **Every local cluster point of a net dominating the plus phase which is itself a Gibbs measure
+is the plus phase.**  This is the uniqueness that identifies the compactness constructions of the
+plus phase (Georgii's proof of (6.9)) with the monotone boundary-condition limit. -/
+theorem eq_plusState_of_mapClusterPt (hJ : 0 ≤ J) (hβ : 0 ≤ β) {ι : Type*} {l : Filter ι}
+    {ms : ι → ProbabilityMeasure (S → Bool)}
+    (hms : ∀ᶠ i in l, (plusState G J h β : Measure (S → Bool)).StochasticallyLE (ms i))
+    {μ : ProbabilityMeasure (S → Bool)}
+    (hμ : μ ∈ GP (S := S) (E := Bool) (isingSpecification G J h β))
+    (hm : MapClusterPt (WithSetwiseTopology.ofMeasure μ : WithLocalConvergence S Bool) l
+      fun i ↦ WithSetwiseTopology.ofMeasure (ms i)) :
+    μ = plusState G J h β := by
+  refine eq_plusState_of_stochasticallyLE G J h β hJ hβ hμ ?_
+  refine stochasticallyLE_of_forall_upper_localEvents fun A hA hup ↦ ?_
+  refine le_eval_of_mapClusterPt hA hm ?_
+  filter_upwards [hms] with i hi
+  exact hi (MeasurableSet.of_mem_measurableCylinders hA) hup
+
 end Phases
 
 /-! ### Symmetries: shift invariance and spin-flip duality -/
@@ -698,6 +798,40 @@ theorem map_spinFlip_plusState (b : ℝ) (hb : 0 ≤ b) :
     (isInvariant_spinFlip b) antitone_spinFlip_toFun spinFlip_toFun_spinFlip_toFun
 
 end SpinFlip
+
+/-! ### Georgii's cube-average construction of the plus phase on `ℤ²` -/
+
+section CubeAverage
+open MeasureTheory.GibbsMeasure.Peierls
+
+/-- **The library has one plus phase.**  Every cluster point, in the topology of local
+convergence, of Georgii's cube-averaged `+`-boundary distributions — the construction in the proof
+of (6.9), which produces a *shift-invariant* Gibbs measure but no uniqueness — is the monotone
+boundary-condition limit `plusState`.  In particular that cluster point is unique. -/
+theorem eq_plusState_of_mapClusterPt_plusCubeAverage {b : ℝ} (hb : 0 ≤ b)
+    {m : ProbabilityMeasure (Site → Bool)}
+    (hm : MapClusterPt (WithSetwiseTopology.ofMeasure m : WithLocalConvergence Site Bool) atTop
+      fun N ↦ WithSetwiseTopology.ofMeasure (plusCubeAverage b N)) :
+    m = plusState (latticeGraph 2) 1 0 b :=
+  eq_plusState_of_mapClusterPt (latticeGraph 2) 1 0 b zero_le_one hb
+    (ms := fun N ↦ plusCubeAverage b N)
+    (.of_forall fun N ↦ plusState_stochasticallyLE_average (latticeGraph 2) 1 0 b zero_le_one hb
+      (cubeTranslates_nonempty 2 N N))
+    (mem_GP_of_mapClusterPt_plusCubeAverage hm) hm
+
+/-- **Georgii's cube averages converge**, with no subsequence extraction: `μ_N → μ₊^β` in the
+topology of local convergence, because the space of random fields is compact and `plusState` is
+the only cluster point. -/
+theorem tendsto_plusCubeAverage {b : ℝ} (hb : 0 ≤ b) :
+    Tendsto (fun N ↦ (WithSetwiseTopology.ofMeasure (plusCubeAverage b N) :
+      WithLocalConvergence Site Bool)) atTop
+      (𝓝 (WithSetwiseTopology.ofMeasure (plusState (latticeGraph 2) 1 0 b))) := by
+  refine tendsto_nhds_of_unique_mapClusterPt fun v hv ↦ ?_
+  obtain ⟨v⟩ := v
+  exact congrArg WithSetwiseTopology.ofMeasure
+    (eq_plusState_of_mapClusterPt_plusCubeAverage hb hv)
+
+end CubeAverage
 
 end MeasureTheory.GibbsMeasure
 

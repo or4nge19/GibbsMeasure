@@ -212,3 +212,45 @@ specifications, potentials, or configuration spaces. It is stated here at that g
     $|\nu(A) - \mu(A)| \le 3\varepsilon$. As $\varepsilon > 0$ was arbitrary, $\nu$ and $\mu$ agree
     on the generating $\pi$-system of local events, so $\nu = \mu$.
 \end{proof}
+
+\begin{proposition}[Georgii (7.11)(b)]
+    \label{prop:ext-711b}
+    \uses{def:ext-710, prop:ext-711a, def:gibbs-meas}
+    \lean{MeasureTheory.GibbsMeasure.eventually_forall_abs_real_apply_sub_le_of_forall_isGibbsMeasure_eq,
+      MeasureTheory.GibbsMeasure.tendsto_iSup_ofReal_abs_real_apply_sub_of_forall_isGibbsMeasure_eq,
+      MeasureTheory.GibbsMeasure.tendsto_finiteVolumeDistributions_of_forall_mem_GP_eq,
+      MeasureTheory.GibbsMeasure.tendsto_iSup_ofReal_abs_integral_sub_of_forall_isGibbsMeasure_eq,
+      MeasureTheory.GibbsMeasure.isUniformlyMixing_of_forall_isGibbsMeasure_eq,
+      MeasureTheory.GibbsMeasure.eventually_forall_abs_real_apply_sub_le_lambdaSpecification_of_G_eq_singleton,
+      MeasureTheory.GibbsMeasure.tendsto_iSup_ofReal_abs_integral_sub_lambdaSpecification_of_G_eq_singleton,
+      MeasureTheory.GibbsMeasure.G_lambdaSpecification_eq_singleton_iff_isUniformlyMixing,
+      MeasureTheory.GibbsMeasure.G_lambdaSpecification_eq_singleton_iff_isUniformlyMixing_of_isFiniteMeasure}
+    \leanok
+
+    Let $\gamma$ be a quasilocal specification whose finite-volume distributions are dominated by
+    a fixed finite measure, and suppose $\Gibbs{\gamma} = \set{\mu}$. Then for every local event
+    $A$ and every $\varepsilon > 0$, all sufficiently large $\Lambda \in \Fin$ satisfy
+    $|\gamma_\Lambda(A \mid \omega) - \mu(A)| \le \varepsilon$ \emph{simultaneously for all}
+    boundary conditions $\omega$; equivalently
+    $\sup_\omega |\gamma_\Lambda(A \mid \omega) - \mu(A)| \to 0$, and
+    $\gamma_\Lambda(\cdot \mid \omega) \to \mu$ in the topology of local convergence for every
+    $\omega$; the same uniform convergence holds tested against local observables
+    $f \in \mathcal{L}$, which is the form in which Georgii states it. Moreover $\mu$ is
+    uniformly mixing, so for a positive quasilocal $\lambda$-specification
+    $\Gibbs{\gamma} = \set{\mu}$ and the mixing property (7.10) of $\mu$ are equivalent. For a $\lambda$-specification
+    $\gamma = \rho\lambda$ with volumewise bounded densities over a probability a priori measure
+    the domination hypothesis is automatic.
+\end{proposition}
+\begin{proof}
+    \uses{thm:exg-4-17}
+    \leanok
+
+    Were the conclusion to fail, some local $A$, some $\varepsilon > 0$ and boundary conditions
+    $\omega_\Lambda$ along a subnet would keep
+    $|\gamma_\Lambda(A \mid \omega_\Lambda) - \mu(A)| > \varepsilon$. The domination hypothesis
+    makes the net $(\gamma_\Lambda(\cdot \mid \omega_\Lambda))_\Lambda$ locally equicontinuous, so
+    it has a cluster point, which is a Gibbs measure by Theorem \ref{thm:exg-4-17} because
+    $\gamma$ is quasilocal, hence equals $\mu$ --- contradicting the separation on $A$. The mixing
+    property follows: conditioning on a non-null $B \in \Tail_\Lambda$ averages the numbers
+    $\gamma_\Lambda(A \mid \omega)$, all within $\varepsilon$ of $\mu(A)$.
+\end{proof}

@@ -6,6 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Model.CriticalTemperature
+public import GibbsMeasure.Model.PlusPhase
 public import GibbsMeasure.Topology.LocalMetric
 
 /-!
@@ -59,21 +60,43 @@ lemma r_ne_top {b : ℝ} (hb : 8 * Real.log 2 ≤ b) : r b ≠ ⊤ :=
   ne_top_of_le_ne_top (by simp) (r_le_quarter hb)
 
 /-- **Georgii (6.9)**, `μ_+^β`: the shift-invariant Gibbs measure obtained as a cluster point of
-the cube averages with the `+1` boundary condition. -/
-def plusPhase (b : ℝ) : ProbabilityMeasure (Site → Bool) := (exists_plus_phase b).choose
+the cube averages with the `+1` boundary condition.
+
+It is defined as a cluster point of `plusCubeAverage`, not as an unanchored choice out of
+`exists_plus_phase`, so that it can be *identified*: for `0 ≤ β` it is the monotone
+boundary-condition limit `plusState` (`plusPhase_eq_plusState`), the object the FKG development
+and the Lebowitz–Martin-Löf theorem use.  There is one plus phase, under two names. -/
+def plusPhase (b : ℝ) : ProbabilityMeasure (Site → Bool) :=
+  (exists_mapClusterPt_plusCubeAverage b).choose
+
+/-- `μ_+^β` is a cluster point of Georgii's cube averages, by construction. -/
+lemma mapClusterPt_plusPhase (b : ℝ) :
+    MapClusterPt (WithSetwiseTopology.ofMeasure (plusPhase b) : WithLocalConvergence Site Bool)
+      atTop fun N ↦ WithSetwiseTopology.ofMeasure (plusCubeAverage b N) :=
+  (exists_mapClusterPt_plusCubeAverage b).choose_spec
 
 lemma plusPhase_mem_GP (b : ℝ) :
     plusPhase b ∈ GP (isingSpecification (latticeGraph 2) 1 0 b) :=
-  (exists_plus_phase b).choose_spec.1
+  mem_GP_of_mapClusterPt_plusCubeAverage (mapClusterPt_plusPhase b)
 
 lemma plusPhase_measurePreserving_shift (b : ℝ) (j : Site) :
     MeasurePreserving (shift Bool j).toFun (plusPhase b : Measure (Site → Bool))
       (plusPhase b : Measure (Site → Bool)) :=
-  (exists_plus_phase b).choose_spec.2.1 j
+  measurePreserving_shift_of_mapClusterPt_plusCubeAverage (mapClusterPt_plusPhase b) j
 
 lemma plusPhase_eq_false_le (b : ℝ) (a : Site) :
     (plusPhase b : Measure (Site → Bool)) {z : Site → Bool | z a = false} ≤ r b :=
-  (exists_plus_phase b).choose_spec.2.2 a
+  eq_false_le_of_mapClusterPt_plusCubeAverage_of_cube (mapClusterPt_plusPhase b)
+    (fun N a ↦ isingSpecification_cube_eq_false_le b N a) a
+
+/-- **The library has one plus phase.**  Georgii's `μ_+^β` of (6.9), a cluster point of the
+cube-averaged `+`-boundary distributions, *is* the monotone boundary-condition limit `plusState`
+of the FKG development, for every `0 ≤ β`.  Everything proved about either object therefore holds
+of the other: `plusState` is shift-invariant with `μ(σ_a = -1) ≤ r(β)`, and `μ_+^β` is
+`≽`-maximal in `𝒢(β)`. -/
+theorem plusPhase_eq_plusState {b : ℝ} (hb : 0 ≤ b) :
+    plusPhase b = plusState (latticeGraph 2) 1 0 b :=
+  eq_plusState_of_mapClusterPt_plusCubeAverage hb (mapClusterPt_plusPhase b)
 
 /-- **Georgii (6.9)**: `μ_+^β(σ_a ≠ +1) ≤ r(β)`. -/
 lemma plusPhase_real_ne_le {b : ℝ} (hb : 8 * Real.log 2 ≤ b) (a : Site) :

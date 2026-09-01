@@ -200,10 +200,13 @@ automation:
 
 fidelity:
   divergences: >-
-    One known weakening. Corollary (7.30) is proved for a finite state space
-    (`Specification/ExtremeCorollaries.lean`, `setOf_mem_GP_eq_closure_convexCombosLimitGibbs`),
-    where Georgii states it for a standard Borel state space and a quasilocal lambda-specification.
-    Every other restriction that remained after the main development has
+    No known weakening. Corollary (7.30) is now proved at Georgii's own hypotheses — a standard
+    Borel state space and a quasilocal lambda-specification over a sigma-finite non-zero a priori
+    measure (`Specification/ExtremeCorollaries.lean`,
+    `setOf_mem_GP_eq_closure_convexCombosLimitGibbs_lambdaSpecification`, with the
+    modification-of-isssd form alongside it); the finite-state-space statement
+    `setOf_mem_GP_eq_closure_convexCombosLimitGibbs` remains for an arbitrary quasilocal
+    specification. Every restriction that remained after the main development has
     been either removed or identified as one of Georgii's own hypotheses:
     (a) reference measures — the sigma-finite case is now covered by his rescaling Remark
     (1.28)(3) (`Specification/Rescaling.lean`, `Potential/FiniteReference.lean`). Two apparent
@@ -403,6 +406,55 @@ alignment:
       lean: "MeasureTheory.GibbsMeasure.ae_tendsto_iSup_ofReal_abs_sub_of_mem_extremePoints_G"
       module: "GibbsMeasure/Specification/UniformLocalLimits.lean"
       status: "proved"
+    - source: "Equation (7.10), Proposition (7.11)(a)"
+      lean: "MeasureTheory.GibbsMeasure.G_lambdaSpecification_eq_singleton_of_isUniformlyMixing"
+      module: "GibbsMeasure/Specification/UniquenessFromMixing.lean"
+      status: "proved"
+    - source: "Proposition (7.11)(b)"
+      lean: "MeasureTheory.GibbsMeasure.G_lambdaSpecification_eq_singleton_iff_isUniformlyMixing"
+      module: "GibbsMeasure/Specification/UniquenessFromMixing.lean"
+      status: "proved"
+      note: >-
+        Both halves, and the resulting equivalence between uniqueness and Georgii's mixing
+        property (7.10) for a positive quasilocal lambda-specification. The uniform convergence
+        is available both on local events and, as Georgii states it, tested against local
+        observables (tendsto_iSup_ofReal_abs_integral_sub_of_forall_isGibbsMeasure_eq).
+    - source: "Remark (1.28)(2)"
+      lean: "Specification.IsGibbsMeasure.lambdaSpecification_null_iff"
+      module: "GibbsMeasure/Specification/UniquenessFromMixing.lean"
+      status: "proved"
+    - source: "Example (7.14)"
+      lean: "MeasureTheory.GibbsMeasure.G_isssdFamily_eq_singleton"
+      module: "GibbsMeasure/Specification/KolmogorovZeroOne.lean"
+      status: "proved"
+      note: >-
+        Kolmogorov's zero-one law for the tail of a product measure is proved with no
+        countability assumption on the site set
+        (forall_tail_measure_eq_zero_or_one_infinitePi); the identification of the Gibbs
+        measures is the free-measure theorem
+        (Specification.isGibbsMeasure_iff_indep_of_hasFreeMeasure).
+    - source: "Example (7.15)"
+      lean: "MeasureTheory.GibbsMeasure.Markov.forall_tail_stationaryChain_eq_zero_or_one"
+      module: "GibbsMeasure/Model/MarkovChain.lean"
+      status: "proved"
+    - source: "Corollary (7.30)"
+      lean: "MeasureTheory.GibbsMeasure.setOf_mem_GP_eq_closure_convexCombosLimitGibbs_lambdaSpecification"
+      module: "GibbsMeasure/Specification/ExtremeCorollaries.lean"
+      status: "proved"
+      note: >-
+        At Georgii's hypotheses: a standard Borel state space and a quasilocal
+        lambda-specification over a sigma-finite non-zero a priori measure. The finite-state-space
+        form for an arbitrary quasilocal specification is
+        setOf_mem_GP_eq_closure_convexCombosLimitGibbs.
+    - source: "Theorem (6.9), the plus phase"
+      lean: "MeasureTheory.GibbsMeasure.Peierls.plusPhase_eq_plusState"
+      module: "GibbsMeasure/Model/LowTemperatureLimit.lean"
+      status: "proved"
+      note: >-
+        The library has one plus phase: Georgii's cluster point of the cube-averaged
+        +-boundary distributions is the monotone boundary-condition limit plusState of the FKG
+        development, and the cube averages converge to it without subsequence extraction
+        (tendsto_plusCubeAverage).
     - source: "Theorem (5.19)"
       lean: "MeasureTheory.GibbsMeasure.mem_GP_and_forall_measurePreserving_of_mapClusterPt_average"
       module: "GibbsMeasure/Specification/InvariantExistence.lean"

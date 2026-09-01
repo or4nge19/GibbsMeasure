@@ -36,11 +36,17 @@ m i` of a finite family of measures, with its total-variation estimate
   `convexCombo_mem_GP` of `GibbsMeasure/Specification/Structure.lean`;
 * `MeasureTheory.GibbsMeasure.map_transAverage`: `Φ b (avg_F ν) = avg_{b + F} ν` for a family of
   transformations indexed by an abelian group;
-* `GibbsMeasure.exists_mem_GP_and_forall_measurePreserving_of_isCompact_of_measurePreserving`:
-  **Georgii Theorem (5.15)(ii)** for an abelian group acting by symmetries — the averaging
-  carries the `I₀`-invariance of the starting measure through to the cluster point;
-  `exists_mem_GP_and_forall_measurePreserving_of_commute_of_measurePreserving` states it for two
-  subgroups `I₀`, `I₁` of the transformation group;
+* `exists_mem_GP_and_forall_measurePreserving_of_isCompact_invariant_of_measurePreserving`:
+  **Georgii Theorem (5.15)(ii)** for an abelian group acting by symmetries, at Georgii's own
+  compactness hypothesis — `𝒢_{I₀}(γ)` compact, not `𝒢(γ)`: the averaging carries the
+  `I₀`-invariance of the starting measure through to the cluster point;
+  `exists_mem_GP_and_forall_measurePreserving_of_isCompact_of_measurePreserving` is the case
+  where `𝒢(γ)` itself is compact;
+* `exists_mem_GP_and_forall_measurePreserving_of_commute_mod_of_measurePreserving`: **Georgii
+  Theorem (5.15)(ii)** for two subgroups `I₀`, `I₁` of the transformation group at Georgii's
+  hypotheses — `I₁` commutative modulo `I₀`, `𝒢_{I₀}(γ)` compact — with the group form
+  `..._sup_of_commute_mod_of_measurePreserving` (`𝒢_{I₁∘I₀}(γ) ≠ ∅`) and the abelian special
+  case `exists_mem_GP_and_forall_measurePreserving_of_commute_of_measurePreserving`;
 * `MeasureTheory.GibbsMeasure.exists_mem_GP_and_forall_measurePreserving_of_isCompact` and
   `exists_mem_GP_and_forall_measurePreserving_of_commute`: **Georgii Corollary (5.16)** — the
   `I₀ = {id}` case — for a group action and for an abelian subgroup of transformations;
@@ -56,11 +62,13 @@ m i` of a finite family of measures, with its total-variation estimate
 
 The Følner sets driving branch (ii) come from `GibbsMeasure/Mathlib/GroupTheory/Foelner.lean`.
 
-In branch (ii), Georgii weakens commutativity of `I₁` to commutativity modulo `I₀`
-(`τ₁ ∘ τ₂ = τ₂ ∘ τ₁ ∘ τ₀` for some `τ₀ ∈ I₀`) at the price of assuming `𝒢_{I₀}(γ)` compact and
-running a finite-intersection argument over finite subsets of `I₁`. The form proved here (`I₁`
-abelian, `𝒢(γ)` compact) is the one used by all of Georgii's examples (5.17), whose outer groups
-are abelian or compact.
+Branch (ii) is proved at Georgii's hypotheses: commutativity of `I₁` modulo `I₀`
+(`τ₁ ∘ τ₂ = τ₂ ∘ τ₁ ∘ τ₀` for some `τ₀ ∈ I₀`) and compactness of `𝒢_{I₀}(γ)` rather than of
+`𝒢(γ)`. The passage from the abelian form — the case `τ₀ = id`, the one all of Georgii's
+examples (5.17) use — is Georgii's finite-intersection argument: for a finite `F ⊆ I₁` the group
+`[I₀ ∪ F]` is normalised by every element of `I₁`, so its generators can be added one at a time
+by the cyclic case, and `𝒢_{I₀ ∪ F}(γ)` is a non-empty closed subset of the compact
+`𝒢_{I₀}(γ)`; compactness then produces a point common to all of them.
 -/
 
 @[expose] public section
@@ -153,6 +161,80 @@ lemma map_transAverage [AddCommGroup A] [DecidableEq A] {Φ : A → Transformati
   rw [show b +ᵥ F = F.image (b + ·) from rfl,
     Finset.sum_image fun x _ y _ h ↦ add_left_cancel h]
   exact Finset.sum_congr rfl fun a _ ↦ hterm a
+
+/-! ### Invariance under a group of transformations, and compactness of `𝒢_I(γ)`
+
+Georgii's set `𝒢_I(γ) = 𝒢(γ) ∩ 𝒫_I(Ω, 𝓕)` of (5.13) is closed in the topology of local
+convergence (`isClosed_setOf_mem_GP_and_measurePreserving`, in
+`GibbsMeasure/Specification/InvariantFields.lean`). What Georgii's proof of (5.15)(ii) needs on
+top of that is: invariance under a set of transformations is invariance under the group it
+generates, and `𝒢_J(γ)` is compact as soon as `𝒢_I(γ)` is for some `I ⊆ J` — in particular as
+soon as `𝒢(γ)` is. -/
+
+/-- **Georgii, remark after (5.12): `𝒫_I(Ω, 𝓕) = 𝒫_{[I]}(Ω, 𝓕)`.** The transformations
+preserving a fixed measure form a subgroup of the transformation group, so a measure preserved by
+every transformation in a set `I` is preserved by every element of the group `[I]` generated
+by `I`. -/
+theorem measurePreserving_of_mem_closure {μ : Measure (S → E)} {I : Set (Transformation S E)}
+    (h : ∀ σ ∈ I, MeasurePreserving σ.toFun μ μ) {τ : Transformation S E}
+    (hτ : τ ∈ Subgroup.closure I) : MeasurePreserving τ.toFun μ μ := by
+  induction hτ using Subgroup.closure_induction with
+  | mem x hx => exact h x hx
+  | one =>
+    have h1 : (1 : Transformation S E).toFun = _root_.id := funext Transformation.id_toFun
+    rw [h1]
+    exact MeasurePreserving.id μ
+  | mul x y _ _ ihx ihy =>
+    have hxy : (x * y).toFun = x.toFun ∘ y.toFun := funext (Transformation.comp_toFun x y)
+    rw [hxy]
+    exact ihx.comp ihy
+  | inv x _ ihx =>
+    refine ⟨x⁻¹.measurable_toFun, ?_⟩
+    have hcomp : x⁻¹.toFun ∘ x.toFun = _root_.id :=
+      funext fun ω ↦ Transformation.inv_toFun_toFun x ω
+    calc μ.map x⁻¹.toFun = (μ.map x.toFun).map x⁻¹.toFun := by rw [ihx.map_eq]
+      _ = μ := by
+          rw [Measure.map_map x⁻¹.measurable_toFun x.measurable_toFun, hcomp, Measure.map_id]
+
+/-- The invariance of Georgii (5.13) under a family of transformations, written as invariance
+under the range of that family. -/
+lemma setOf_mem_GP_and_forall_measurePreserving_range {γ : Specification S E} {ι : Type*}
+    (T : ι → Transformation S E) :
+    {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP (S := S) (E := E) γ ∧
+        ∀ i, MeasurePreserving (T i).toFun (μ.toMeasure : Measure (S → E)) μ.toMeasure} =
+      {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP (S := S) (E := E) γ ∧
+        ∀ τ ∈ Set.range T,
+          MeasurePreserving τ.toFun (μ.toMeasure : Measure (S → E)) μ.toMeasure} := by
+  ext μ
+  simp only [Set.mem_ofPred_eq, Set.forall_mem_range]
+
+/-- **`𝒢_J(γ)` is compact as soon as `𝒢_I(γ)` is**, for `I ⊆ J`: it is the intersection of
+`𝒢_I(γ)` with the closed set `𝒫_J(Ω, 𝓕)` of Georgii's remark after (5.12). -/
+theorem isCompact_setOf_mem_GP_and_forall_measurePreserving_of_subset {γ : Specification S E}
+    {I J : Set (Transformation S E)} (hIJ : I ⊆ J)
+    (hcpt : IsCompact {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP (S := S) (E := E) γ ∧
+      ∀ τ ∈ I, MeasurePreserving τ.toFun (μ.toMeasure : Measure (S → E)) μ.toMeasure}) :
+    IsCompact {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP (S := S) (E := E) γ ∧
+      ∀ τ ∈ J, MeasurePreserving τ.toFun (μ.toMeasure : Measure (S → E)) μ.toMeasure} := by
+  have hset : {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP (S := S) (E := E) γ ∧
+      ∀ τ ∈ J, MeasurePreserving τ.toFun (μ.toMeasure : Measure (S → E)) μ.toMeasure} =
+      {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP (S := S) (E := E) γ ∧
+        ∀ τ ∈ I, MeasurePreserving τ.toFun (μ.toMeasure : Measure (S → E)) μ.toMeasure} ∩
+      {μ : WithLocalConvergence S E |
+        ∀ τ ∈ J, MeasurePreserving τ.toFun (μ.toMeasure : Measure (S → E)) μ.toMeasure} := by
+    ext μ
+    exact ⟨fun h ↦ ⟨⟨h.1, fun τ hτ ↦ h.2 τ (hIJ hτ)⟩, h.2⟩, fun h ↦ ⟨h.1.1, h.2⟩⟩
+  rw [hset]
+  exact hcpt.inter_right (isClosed_setOf_forall_measurePreserving J)
+
+/-- **`𝒢_I(γ)` is compact as soon as `𝒢(γ)` is** (Georgii (5.13) and the remark after (5.12)). -/
+theorem isCompact_setOf_mem_GP_and_forall_measurePreserving {γ : Specification S E}
+    (hcpt : IsCompact {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP (S := S) (E := E) γ})
+    (I : Set (Transformation S E)) :
+    IsCompact {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP (S := S) (E := E) γ ∧
+      ∀ τ ∈ I, MeasurePreserving τ.toFun (μ.toMeasure : Measure (S → E)) μ.toMeasure} := by
+  rw [Set.ofPred_and]
+  exact hcpt.inter_right (isClosed_setOf_forall_measurePreserving I)
 
 /-! ### Georgii Theorem (5.15)(ii) and Corollary (5.16) -/
 

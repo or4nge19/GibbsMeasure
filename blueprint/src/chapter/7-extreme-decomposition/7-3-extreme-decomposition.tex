@@ -72,7 +72,9 @@ $(E, \mathcal{E})$, and $\Tail$ is the tail $\sigma$-algebra of $\Cfg = E^S$.
       MeasureTheory.GibbsMeasure.map_eq_self_iff_weightOf_map_eq_self,
       MeasureTheory.GibbsMeasure.measurePreserving_iff_measurePreserving_weightOf,
       MeasureTheory.GibbsMeasure.linearIndependent_of_mem_extremePoints,
-      MeasureTheory.GibbsMeasure.setOf_mem_GP_eq_closure_convexCombosLimitGibbs}
+      MeasureTheory.GibbsMeasure.setOf_mem_GP_eq_closure_convexCombosLimitGibbs,
+      MeasureTheory.GibbsMeasure.setOf_mem_GP_eq_closure_convexCombosLimitGibbs_modification_isssd,
+      MeasureTheory.GibbsMeasure.setOf_mem_GP_eq_closure_convexCombosLimitGibbs_lambdaSpecification}
     \leanok
 
     Let $(E, \mathcal{E})$ be standard Borel with $\mathcal{G}(\gamma) \neq \emptyset$.
@@ -80,6 +82,8 @@ $(E, \mathcal{E})$, and $\Tail$ is the tail $\sigma$-algebra of $\Cfg = E^S$.
     symmetry $\tau$ of $\gamma$; in particular $\mu$ is $\tau$-invariant iff $w_\mu$ is.
     (7.29): $\mathcal{G}(\gamma)$ contains $N$ extreme points iff it contains $N$ measures
     linearly independent over $\mathbb{R}_{\geq 0}^\infty$.
-    (7.30): for a finite state space and quasilocal $\gamma$, $\mathcal{G}(\gamma)$ is the closed
-    convex hull of the limiting Gibbs distributions in the topology of local convergence.
+    (7.30): for a quasilocal $\lambda$-specification over a $\sigma$-finite non-zero a priori
+    measure, $\mathcal{G}(\gamma)$ is the closed convex hull of the limiting Gibbs distributions
+    in the topology of local convergence; likewise for an arbitrary quasilocal $\gamma$ over a
+    finite state space.
 \end{corollary}

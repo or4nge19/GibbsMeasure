@@ -24,15 +24,20 @@ Complements to the extreme decomposition theorem (7.26) for a specification `γ`
   `w_{τ(μ)} = τ(w_μ)`; in particular `μ` is `τ`-invariant iff `w_μ` is.
 * **(7.29)**: `|ex G(γ)| ≥ N` iff `G(γ)` contains `N` linearly independent measures.
 * **(7.30)**: `G(γ)` is the closed convex hull of the limiting Gibbs measures `G_lim(γ)` in the
-  topology of local convergence — at Georgii's hypotheses, a standard Borel state space and a
-  quasilocal λ-specification (`setOf_mem_GP_eq_closure_convexCombosLimitGibbs_lambdaSpecification`),
-  and for an arbitrary quasilocal specification over a finite state space
-  (`setOf_mem_GP_eq_closure_convexCombosLimitGibbs`). Both follow from the density step
+  topology of local convergence, at Georgii's own hypotheses — a standard Borel state space and a
+  quasilocal λ-specification `γ = ρ λ_·`. Two readings of Definition (1.27), made one by
+  Remark (1.28)(3): `setOf_mem_GP_eq_closure_convexCombosLimitGibbs_modification_isssd` for an
+  arbitrary λ-modification `ρ` over a probability a priori measure, and
+  `setOf_mem_GP_eq_closure_convexCombosLimitGibbs_lambdaSpecification` for a normalized
+  pre-modification over an arbitrary σ-finite non-zero `λ ∈ 𝓜(E, ℰ)`. For an arbitrary quasilocal
+  specification over a finite state space it is
+  `setOf_mem_GP_eq_closure_convexCombosLimitGibbs`. All three follow from the density step
   `setOf_mem_GP_subset_closure_convexCombosLimitGibbs`, which needs only `ex G(γ) ⊆ G_lim(γ)` —
   Theorem (7.12)(c), supplied over a finite state space by
-  `ofMeasure_mem_limitGibbs_of_mem_extremePoints_G` and for a λ-specification by the uniform form
-  of (7.12)(c) (`ae_forall_tendsto_iSup_ofReal_abs_sub_lambdaSpecification`) via
-  `ofMeasure_mem_limitGibbs_lambdaSpecification`.
+  `ofMeasure_mem_limitGibbs_of_mem_extremePoints_G`, and for a λ-specification over *any* state
+  space by the uniform total-variation form of (7.12)(c)
+  (`ae_forall_tendsto_iSup_ofReal_abs_sub_of_mem_extremePoints_G`) via
+  `ofMeasure_mem_limitGibbs_modification_isssd`.
 -/
 
 @[expose] public section
@@ -896,15 +901,125 @@ theorem setOf_mem_GP_eq_closure_convexCombosLimitGibbs [Finite E] (hγ : γ.IsQu
   setOf_mem_GP_eq_closure_convexCombosLimitGibbs_of_mem_limitGibbs hγ fun _ hμ ↦
     ofMeasure_mem_limitGibbs_of_mem_extremePoints_G γ hμ
 
+
+/-! ### (7.30) at Georgii's hypotheses: a quasilocal λ-specification
+
+Georgii states Corollary (7.30) for a standard Borel state space and a quasilocal
+λ-specification `γ = ρ λ_·` (Definition (1.27)), where `λ ∈ 𝓜(E, ℰ)` is σ-finite and non-zero.
+The extra input over `setOf_mem_GP_eq_closure_convexCombosLimitGibbs_of_mem_limitGibbs` is
+Theorem (7.12)(c), `ex G(γ) ⊆ G_lim(γ)`, which holds for a λ-specification over an arbitrary
+state space.
+
+Remark (1.28)(3) makes the two readings of "λ-specification" one: with
+`λ̃ = r · λ` for a measurable `r > 0` with `λ(r) = 1`, a λ-specification is a `λ̃`-specification
+for a *probability* `λ̃`.  So the general statement is the one for a probability a priori measure
+and an arbitrary λ-modification `ρ`, i.e. an arbitrary `Specification.IsModifier` of
+`Specification.isssd` (`setOf_mem_GP_eq_closure_convexCombosLimitGibbs_modification_isssd`); the
+σ-finite reading, in the normalized-premodifier form in which this library builds Gibbsian
+specifications, is `setOf_mem_GP_eq_closure_convexCombosLimitGibbs_lambdaSpecification`. -/
+
 section LambdaSpecification
 
-variable {ν : Measure E} [IsProbabilityMeasure ν] {ρ : Finset S → (S → E) → ℝ≥0∞}
+variable {ν : Measure E} {ρ : Finset S → (S → E) → ℝ≥0∞}
+
+section Modification
+
+variable [IsProbabilityMeasure ν]
 
 omit [StandardBorelSpace E] in
-/-- **Georgii, Theorem (7.12)(c)** for a λ-specification, in the topology of local convergence:
-for `μ ∈ ex G(γ)` and `μ`-a.e. boundary condition `ω`, `γ_{Λ_m}(· | ω) → μ` locally along the
-canonical exhaustion.  This is the uniform total-variation-on-each-finite-volume form
-(`ae_forall_tendsto_iSup_ofReal_abs_sub_lambdaSpecification`) read off on each local event. -/
+/-- **Georgii, Theorem (7.12)(c)** for a λ-specification `γ = ρ λ_·` in the sense of Definition
+(1.27), in the topology of local convergence: for `μ ∈ ex G(γ)` and `μ`-almost every boundary
+condition `ω`, `γ_{Λ_m}(· | ω) → μ` locally along the canonical exhaustion.
+
+This reads the uniform total-variation form of (7.12)(c)
+(`ae_forall_tendsto_iSup_ofReal_abs_sub_of_mem_extremePoints_G`) off on a single local event `A`:
+`A` is `𝓕_Δ`-measurable for some finite `Δ`, and the supremum over `𝓕_Δ` dominates the deviation
+at `A`. -/
+theorem ae_tendsto_finiteVolumeDistributions_exhaustion_modification_isssd
+    (hmod : (Specification.isssd (S := S) (E := E) ν).IsModifier ρ)
+    {μ : ProbabilityMeasure Ω}
+    (hμ : (μ : Measure Ω) ∈
+      (G ((Specification.isssd (S := S) (E := E) ν).modification ρ hmod)).extremePoints ℝ≥0∞) :
+    ∀ᵐ ω ∂(μ : Measure Ω),
+      Tendsto (fun m ↦ (WithSetwiseTopology.ofMeasure
+          (finiteVolumeDistributions ((Specification.isssd ν).modification ρ hmod) ω
+            (exhaustionVolumes m)) : WithLocalConvergence S E))
+        atTop (𝓝 (WithSetwiseTopology.ofMeasure μ)) := by
+  filter_upwards [ae_forall_tendsto_iSup_ofReal_abs_sub_of_mem_extremePoints_G hmod hμ
+    exhaustionVolumes_monotone exhaustionVolumes_cofinal] with ω hω
+  rw [tendsto_withLocalConvergence_iff]
+  intro A hA
+  obtain ⟨Δ, hΔ⟩ := mem_localEvents_iff_cylinderEvents.1 hA
+  set κ : ℕ → Measure Ω := fun m ↦
+    ((Specification.isssd (S := S) (E := E) ν).modification ρ hmod) (exhaustionVolumes m) ω
+    with hκ
+  -- the total-variation deviation on `𝓕_Δ` dominates the deviation at `A`
+  have hle : ∀ m, ENNReal.ofReal |(κ m A).toReal - ((μ : Measure Ω) A).toReal| ≤
+      ⨆ (B : Set Ω)
+        (_ : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) ((Δ : Finset S) : Set S)] B),
+        ENNReal.ofReal |(κ m B).toReal - ((μ : Measure Ω) B).toReal| :=
+    fun m ↦ le_iSup₂ (f := fun B
+        (_ : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) ((Δ : Finset S) : Set S)] B) ↦
+      ENNReal.ofReal |(κ m B).toReal - ((μ : Measure Ω) B).toReal|) A hΔ
+  have hofReal : Tendsto (fun m ↦ ENNReal.ofReal
+      |(κ m A).toReal - ((μ : Measure Ω) A).toReal|) atTop (𝓝 0) :=
+    tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds (hω Δ) (fun m ↦ zero_le) hle
+  have habs : Tendsto (fun m ↦ |(κ m A).toReal - ((μ : Measure Ω) A).toReal|) atTop (𝓝 0) := by
+    have h := (ENNReal.tendsto_toReal ENNReal.zero_ne_top).comp hofReal
+    simpa [Function.comp_def, ENNReal.toReal_ofReal, abs_nonneg] using h
+  have hto : Tendsto (fun m ↦ (κ m A).toReal) atTop (𝓝 (((μ : Measure Ω) A).toReal)) := by
+    rw [tendsto_iff_dist_tendsto_zero]
+    simpa [Real.dist_eq] using habs
+  exact (ENNReal.tendsto_toReal_iff (fun m ↦ measure_ne_top _ _) (measure_ne_top _ _)).1 hto
+
+omit [StandardBorelSpace E] in
+/-- **Georgii, Theorem (7.12)(c)** for a λ-specification: every extreme Gibbs measure is a
+limiting Gibbs measure, `ex G(γ) ⊆ G_lim(γ)`. -/
+theorem ofMeasure_mem_limitGibbs_modification_isssd
+    (hmod : (Specification.isssd (S := S) (E := E) ν).IsModifier ρ)
+    {μ : ProbabilityMeasure Ω}
+    (hμ : (μ : Measure Ω) ∈
+      (G ((Specification.isssd (S := S) (E := E) ν).modification ρ hmod)).extremePoints ℝ≥0∞) :
+    (WithSetwiseTopology.ofMeasure μ : WithLocalConvergence S E) ∈
+      limitGibbs ((Specification.isssd (S := S) (E := E) ν).modification ρ hmod) := by
+  obtain ⟨ω, hω⟩ :=
+    (ae_tendsto_finiteVolumeDistributions_exhaustion_modification_isssd hmod hμ).exists
+  exact ⟨exhaustionVolumes, fun _ ↦ ω, tendsto_exhaustionVolumes_atTop, hω⟩
+
+/-- **Georgii, Corollary (7.30)**, at the book's hypotheses: over a standard Borel state space,
+the Gibbs measures of a quasilocal λ-specification `γ = ρ λ_·` form the closed convex hull of the
+limiting Gibbs measures `G_lim(γ)` in the topology of local convergence.
+
+Here `ρ` is an arbitrary λ-modification in the sense of Definition (1.27) — a density family
+making `ρ λ_·` a specification, i.e. a `Specification.IsModifier` of `Specification.isssd ν` —
+and, by Remark (1.28)(3), taking the a priori measure to be a probability measure is no
+restriction: see `setOf_mem_GP_eq_closure_convexCombosLimitGibbs_lambdaSpecification` for the
+σ-finite form. -/
+theorem setOf_mem_GP_eq_closure_convexCombosLimitGibbs_modification_isssd
+    (hmod : (Specification.isssd (S := S) (E := E) ν).IsModifier ρ)
+    (hγ : ((Specification.isssd (S := S) (E := E) ν).modification ρ hmod).IsQuasilocal) :
+    {μ : WithLocalConvergence S E |
+        μ.toMeasure ∈ GP ((Specification.isssd (S := S) (E := E) ν).modification ρ hmod)} =
+      closure (convexCombosLimitGibbs
+        ((Specification.isssd (S := S) (E := E) ν).modification ρ hmod)) :=
+  setOf_mem_GP_eq_closure_convexCombosLimitGibbs_of_mem_limitGibbs hγ fun _ hμ ↦
+    ofMeasure_mem_limitGibbs_modification_isssd hmod hμ
+
+end Modification
+
+section SigmaFinite
+
+variable [SigmaFinite ν] [NeZero ν]
+
+omit [StandardBorelSpace E] in
+/-- **Georgii, Theorem (7.12)(c)** for the λ-specification of a normalized pre-modification over
+an arbitrary σ-finite non-zero a priori measure `λ ∈ 𝓜(E, ℰ)`.
+
+The reduction to a probability a priori measure is Georgii's Remark (1.28)(3): choose a
+measurable `r > 0` with `λ(r) = 1`
+(`MeasureTheory.Measure.exists_measurable_pos_isProbabilityMeasure_withDensity`); then
+`ρ̃_Λ = ρ_Λ / ∏_{i ∈ Λ} r(ω_i)` is a pre-modification for `λ̃ = r · λ` with `ρ̃ λ̃_· = ρ λ_·`
+(`Specification.modificationKer_sigmaFiniteLambdaFun_of_withDensity`). -/
 theorem ae_tendsto_finiteVolumeDistributions_exhaustion_lambdaSpecification
     (hρ : Specification.IsPremodifier (S := S) (E := E) ρ)
     (hZ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
@@ -916,42 +1031,29 @@ theorem ae_tendsto_finiteVolumeDistributions_exhaustion_lambdaSpecification
           (finiteVolumeDistributions (Specification.lambdaSpecification ν ρ hρ hZ) ω
             (exhaustionVolumes m)) : WithLocalConvergence S E))
         atTop (𝓝 (WithSetwiseTopology.ofMeasure μ)) := by
-  filter_upwards [ae_forall_tendsto_iSup_ofReal_abs_sub_lambdaSpecification hρ hZ hμ
-    exhaustionVolumes_monotone exhaustionVolumes_cofinal] with ω hω
-  rw [tendsto_withLocalConvergence_iff]
-  intro A hA
-  obtain ⟨Δ, hΔ⟩ := mem_localEvents_iff_cylinderEvents.1 hA
-  -- the total-variation distance on the events of `Δ` dominates the distance at `A`
-  have hle : ∀ m, ENNReal.ofReal
-      |((Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ
-          (exhaustionVolumes m) ω) A).toReal - ((μ : Measure Ω) A).toReal| ≤
-      ⨆ (B : Set Ω)
-        (_ : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) ((Δ : Finset S) : Set S)] B),
-        ENNReal.ofReal |((Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ
-          (exhaustionVolumes m) ω) B).toReal - ((μ : Measure Ω) B).toReal| :=
-    fun m ↦ le_iSup₂ (f := fun B
-        (_ : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) ((Δ : Finset S) : Set S)] B) ↦
-      ENNReal.ofReal |((Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ
-        (exhaustionVolumes m) ω) B).toReal - ((μ : Measure Ω) B).toReal|) A hΔ
-  have hofReal : Tendsto (fun m ↦ ENNReal.ofReal
-      |((Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ
-          (exhaustionVolumes m) ω) A).toReal - ((μ : Measure Ω) A).toReal|) atTop (𝓝 0) :=
-    tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds (hω Δ)
-      (fun m ↦ zero_le) hle
-  have habs : Tendsto (fun m ↦
-      |((Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ
-          (exhaustionVolumes m) ω) A).toReal - ((μ : Measure Ω) A).toReal|) atTop (𝓝 0) := by
-    have h := (ENNReal.tendsto_toReal ENNReal.zero_ne_top).comp hofReal
-    simpa [Function.comp_def, ENNReal.toReal_ofReal, abs_nonneg] using h
-  have hto : Tendsto (fun m ↦ ((Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ
-      (exhaustionVolumes m) ω) A).toReal) atTop (𝓝 (((μ : Measure Ω) A).toReal)) := by
-    rw [tendsto_iff_dist_tendsto_zero]
-    simpa [Real.dist_eq] using habs
-  exact (ENNReal.tendsto_toReal_iff (fun m ↦ measure_ne_top _ _) (measure_ne_top _ _)).1 hto
+  obtain ⟨r, hr, h0, htop, hprob⟩ :=
+    Measure.exists_measurable_pos_isProbabilityMeasure_withDensity ν
+  have := hprob
+  have hρ' : Specification.IsPremodifier (S := S) (E := E) (Specification.rescale r ρ) :=
+    Specification.isPremodifier_rescale (S := S) (E := E) hr h0 htop hρ
+  have hZ' : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) (ν.withDensity r)
+      (Specification.rescale r ρ) :=
+    (Specification.isSigmaFiniteLambdaAdmissible_rescale (S := S) (E := E) ν hr h0 htop
+      hρ.measurable).2 hZ
+  -- Remark (1.28)(3): `ρ̃ λ̃_· = ρ λ_·`
+  have hγ : Specification.lambdaSpecification (S := S) (E := E) (ν.withDensity r)
+        (Specification.rescale r ρ) hρ' hZ'
+      = Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ := by
+    refine Specification.ext fun Λ ↦ ?_
+    rw [Specification.coe_lambdaSpecification, Specification.coe_lambdaSpecification]
+    exact congrFun (Specification.modificationKer_sigmaFiniteLambdaFun_of_withDensity
+      (S := S) (E := E) ν (ν.withDensity r) hr h0 htop rfl hρ.measurable _ _) Λ
+  rw [← hγ, Specification.lambdaSpecification_eq_modification_isssd] at hμ ⊢
+  exact ae_tendsto_finiteVolumeDistributions_exhaustion_modification_isssd _ hμ
 
 omit [StandardBorelSpace E] in
-/-- **Georgii, Theorem (7.12)(c)** for a λ-specification: every extreme Gibbs measure is a
-limiting Gibbs measure, `ex G(γ) ⊆ G_lim(γ)`. -/
+/-- **Georgii, Theorem (7.12)(c)** for a λ-specification over a σ-finite non-zero a priori
+measure: every extreme Gibbs measure is a limiting Gibbs measure, `ex G(γ) ⊆ G_lim(γ)`. -/
 theorem ofMeasure_mem_limitGibbs_lambdaSpecification
     (hρ : Specification.IsPremodifier (S := S) (E := E) ρ)
     (hZ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
@@ -964,11 +1066,11 @@ theorem ofMeasure_mem_limitGibbs_lambdaSpecification
     (ae_tendsto_finiteVolumeDistributions_exhaustion_lambdaSpecification hρ hZ hμ).exists
   exact ⟨exhaustionVolumes, fun _ ↦ ω, tendsto_exhaustionVolumes_atTop, hω⟩
 
-/-- **Georgii, Corollary (7.30)**, at the book's hypotheses: over a standard Borel state space,
-the Gibbs measures of a quasilocal λ-specification form the closed convex hull of the limiting
-Gibbs measures `G_lim(γ)` in the topology of local convergence.  By Remark (1.28)(3)
-(`Specification.lambdaSpecification_probNormalize`), the probability a priori measure covers
-every finite non-zero `λ`. -/
+/-- **Georgii, Corollary (7.30)** for the λ-specification of a normalized pre-modification over an
+arbitrary σ-finite non-zero a priori measure `λ ∈ 𝓜(E, ℰ)`, the form in which this library builds
+Gibbsian specifications: over a standard Borel state space, the Gibbs measures of a quasilocal
+λ-specification form the closed convex hull of the limiting Gibbs measures `G_lim(γ)` in the
+topology of local convergence. -/
 theorem setOf_mem_GP_eq_closure_convexCombosLimitGibbs_lambdaSpecification
     (hρ : Specification.IsPremodifier (S := S) (E := E) ρ)
     (hZ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
@@ -979,6 +1081,8 @@ theorem setOf_mem_GP_eq_closure_convexCombosLimitGibbs_lambdaSpecification
         (Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ)) :=
   setOf_mem_GP_eq_closure_convexCombosLimitGibbs_of_mem_limitGibbs hγ fun _ hμ ↦
     ofMeasure_mem_limitGibbs_lambdaSpecification hρ hZ hμ
+
+end SigmaFinite
 
 end LambdaSpecification
 
