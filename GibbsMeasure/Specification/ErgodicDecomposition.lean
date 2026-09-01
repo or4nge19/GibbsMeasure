@@ -43,14 +43,22 @@ The hypothesis is not gratuitous: it is what upgrades "for each `A ∈ 𝓣`, `t
 1_A(ω)` for `μ`-a.e. `ω`" to "for `μ`-a.e. `ω`, for all `A ∈ 𝓣`" — a countable generating family is
 what lets the `A`-dependent null sets be unioned.
 
-Replacing `𝓣` by a countably generated σ-algebra agreeing with it modulo `μ`-null sets does not
-suffice, though such a σ-algebra does always exist: that is
-`MeasureTheory.exists_countablyGenerated_le_ae` (proved here from the separability of `L¹(μ)` and
-Borel–Cantelli, in `GibbsMeasure/Mathlib/MeasureTheory/Measure/CountablyGeneratedModNull.lean`).
-The approximant it returns depends on the set approximated, so it reproduces exactly the
-`A`-dependent null sets, with no countable exhaustion of `𝓣` to union them over. Note also that the
-guarded conclusions are not false: `ω ↦ δ_ω` restricted to `𝓣` is itself a version of `μ(· | 𝓣)`.
-What is missing is kernel-level a.e. uniqueness on `𝓣`.
+**The guarded conclusions are false in that setting, not merely unprovable**, so they cannot be
+repaired and there is no missing uniqueness lemma to supply. `tailKernel μ` is `condExpKernel μ 𝓣`,
+a regular conditional distribution on the *ambient* σ-algebra, and the ambient σ-algebra of a
+standard Borel `E` over countable `S` *is* countably generated. So for a tail-trivial `μ` — a
+product measure, say — one null set suffices for a countable generating π-system and
+`tailKernel μ ω = μ` for `μ`-a.e. `ω`. But the eventual-agreement class
+`⋃_N ⋂_{m ≥ N} {ζ | ζ m = ω m}` of `ω` lies in `𝓣`, is countable, and is `μ`-null, while its
+indicator at `ω` is `1`. This is Blackwell–Dubins: for a non-atomic `μ` there is no proper regular
+conditional distribution given `𝓣`. It also re-proves the unsatisfiability above without appealing
+to Glimm–Effros.
+
+Replacing `𝓣` by a countably generated σ-algebra agreeing with it modulo `μ`-null sets therefore
+cannot help either, though such a σ-algebra does always exist
+(`MeasureTheory.exists_countablyGenerated_le_ae`, proved here from the separability of `L¹(μ)` and
+Borel–Cantelli). The guarded lemmas are kept because they are non-vacuous whenever `𝓣` *is*
+countably generated — finite `S`, where `𝓣 = ⊥` — but nothing downstream may rely on them.
 
 Nothing is lost meanwhile. The conclusion these statements aim at is available without any
 countable-generation hypothesis, because the `(𝒢(γ), 𝓣)`-kernel of Proposition (7.25) is a version

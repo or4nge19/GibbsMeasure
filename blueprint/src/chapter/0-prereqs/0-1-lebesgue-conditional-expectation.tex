@@ -75,8 +75,13 @@ Let $(X, \MCX)$ be a measurable space, let $\MCB$ be a sub $\sigma$-algebra of $
     Theorem \ref{thm:pre-cg-mod-null} does not remove the countable-generation hypotheses carried
     by the tail-$\sigma$-algebra results of Chapter 7. The approximating set it returns depends on
     the set approximated, so it reproduces exactly the $A$-dependent null sets those hypotheses
-    exist to union together, and no countable exhaustion of $\Tail$ is available. The conclusions
-    so guarded are not false --- $\omega \mapsto \delta_\omega$ restricted to $\Tail$ is itself a
-    version of $\mu(\cdot \mid \Tail)$ --- what is missing is kernel-level a.e.\ uniqueness
-    on $\Tail$.
+    exist to union together, and no countable exhaustion of $\Tail$ is available.
+
+    Nor could anything else remove them: the conclusions so guarded are \emph{false} in Georgii's
+    setting. The tail kernel is a regular conditional distribution on the \emph{ambient}
+    $\sigma$-algebra, which for a standard Borel $E$ over countable $S$ is countably generated; so
+    for tail-trivial $\mu$ one has $\mu(\cdot \mid \Tail)(\omega) = \mu$ for a.e.\ $\omega$, while
+    the eventual-agreement class of $\omega$ is a $\mu$-null tail event containing $\omega$. This is
+    Blackwell--Dubins: a non-atomic $\mu$ admits no \emph{proper} regular conditional distribution
+    given $\Tail$.
 \end{remark}

@@ -6,8 +6,13 @@
     \lean{Specification}
     \leanok{}
 
-    A {\bf specification} is a family of kernels $\gamma : \Finset S \to \Ker_{\mathcal{F}_{S\setminus\Lambda}, \mathcal{E}^S}$ which is {\bf consistent}, in the sense that
+    Following Georgii (1.23), a {\bf specification} is a family of kernels
+    $\gamma : \Finset S \to \Ker_{\mathcal{F}_{S\setminus\Lambda}, \mathcal{E}^S}$ such that each
+    $\gamma_\Lambda$ is a {\bf probability} kernel and is {\bf proper}, and which is {\bf consistent}:
     \[\forall \Lambda_1, \Lambda_2 \in \Finset(S), \Lambda_1 \subseteq \Lambda_2 \implies \gamma_{\Lambda_1} \circ_k \gamma_{\Lambda_2} = \gamma_{\Lambda_2}\]
+    All three conditions are fields of the Lean structure: \texttt{isMarkovKernel'},
+    \texttt{isProper'} and the consistency carried by \texttt{PreSpecification}. A family satisfying
+    consistency alone is a \texttt{PreSpecification}.
 \end{definition}
 
 All specifications will be with parameter set $S$ and state space $(E, \mathcal{E})$ in this chapter.
@@ -22,23 +27,17 @@ All specifications will be with parameter set $S$ and state space $(E, \mathcal{
     \[\forall \Lambda_1, \Lambda_2 \in \Finset(S), \gamma_{\Lambda_1} \circ_k \gamma_{\Lambda_2} = \gamma_{\Lambda_1\cup\Lambda_2}\]
 \end{definition}
 
-\begin{definition}[Markov specification]
+\begin{remark}[The probability and properness conditions]
     \label{def:markov-spec}
-    \lean{Specification.isMarkovKernel'}
+    \lean{Specification.isMarkovKernel', Specification.IsProper, Specification.isProper}
     \leanok{}
-    \uses{def:spec}
-
-    A specification $\gamma$ is a \textbf{Markov specification} iff $\gamma_\Lambda$ is a probability kernel for every $\Lambda \in \Finset(S)$.
-\end{definition}
-
-\begin{definition}[Proper specification]
-    \label{def:proper-spec}
     \uses{def:spec, def:proper-ker}
-    \lean{Specification.IsProper}
-    \leanok{}
 
-    A specification $\gamma$ is \textbf{proper} iff the kernel $\gamma_\Lambda$ is proper for every $\Lambda \in \Finset(S)$.
-\end{definition}
+    That $\gamma_\Lambda$ is a probability kernel, and that it is proper, are not properties some
+    specifications lack: they are fields of the structure. \texttt{Specification.IsProper} names the
+    condition, and \texttt{Specification.isProper} proves that \emph{every} specification satisfies
+    it. Both are genuine hypotheses only on a \texttt{PreSpecification}.
+\end{remark}
 
 \begin{definition}[Gibbs measures]
     \label{def:gibbs-meas}
@@ -50,11 +49,11 @@ All specifications will be with parameter set $S$ and state space $(E, \mathcal{
 
 \begin{lemma}[Characterisation of Gibbs measures, Remark 1.24]
     \label{lem:gibbs-meas-tfae}
-    \uses{def:gibbs-meas, def:proper-spec}
+    \uses{def:gibbs-meas, def:markov-spec}
     \lean{Specification.isGibbsMeasure_iff_forall_bind_eq, Specification.isGibbsMeasure_iff_frequently_bind_eq}
     \leanok
 
-    Let $\gamma$ be a {\it proper} specification with parameter set $S$ and state space $(E, \mathcal{E})$, and let $\nu\in\mathfrak{P}(E^S, \mathcal{E}^S)$. TFAE:
+    Let $\gamma$ be a specification with parameter set $S$ and state space $(E, \mathcal{E})$, and let $\nu\in\mathfrak{P}(E^S, \mathcal{E}^S)$. TFAE:
     \begin{enumerate}
         \item $\nu\in\mathcal{G}(\gamma)$.
         \item $\gamma_\Lambda\circ_m\nu = \nu$ for all $\Lambda\in\Finset(S)$.

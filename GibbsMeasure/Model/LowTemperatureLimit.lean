@@ -244,23 +244,29 @@ variable {S E : Type*} [MeasurableSpace E] [Countable S] [Finite E]
 /-! ### Georgii's distance `d(F, μ)` from a set of random fields to a random field -/
 
 /-- **Georgii's `d(𝒢, μ)`**: the `localDist`-distance from a set `F` of random fields to a
-random field `μ`. -/
+random field `μ`.
+
+The infimum is over the subtype `↥F`, not `⨅ ν ∈ F`: in `ℝ` the latter is
+`⨅ ν, ⨅ (_ : ν ∈ F), …`, whose term at any `ν ∉ F` is `sInf ∅ = 0`, so it would collapse to `0`
+whenever some probability measure lies outside `F`. `le_localDistSet` pins the definition down from
+below and fails for that reading. -/
 def localDistSet (F : Set (ProbabilityMeasure (S → E))) (μ : ProbabilityMeasure (S → E)) : ℝ :=
-  ⨅ ν ∈ F, localDist ν μ
+  ⨅ ν : F, localDist (ν : ProbabilityMeasure (S → E)) μ
 
 lemma localDistSet_nonneg (F : Set (ProbabilityMeasure (S → E)))
-    (μ : ProbabilityMeasure (S → E)) : 0 ≤ localDistSet F μ := by
-  refine Real.iInf_nonneg fun ν ↦ Real.iInf_nonneg fun _ ↦ localDist_nonneg ν μ
+    (μ : ProbabilityMeasure (S → E)) : 0 ≤ localDistSet F μ :=
+  Real.iInf_nonneg fun ν ↦ localDist_nonneg _ μ
 
 lemma localDistSet_le {F : Set (ProbabilityMeasure (S → E))} {μ ν : ProbabilityMeasure (S → E)}
-    (hν : ν ∈ F) : localDistSet F μ ≤ localDist ν μ := by
-  have hbdd : BddBelow (Set.range fun ν' : ProbabilityMeasure (S → E) ↦
-      ⨅ _ : ν' ∈ F, localDist ν' μ) := by
-    refine ⟨0, ?_⟩
-    rintro x ⟨ν', rfl⟩
-    exact Real.iInf_nonneg fun _ ↦ localDist_nonneg ν' μ
-  calc localDistSet F μ ≤ ⨅ _ : ν ∈ F, localDist ν μ := ciInf_le hbdd ν
-    _ = localDist ν μ := ciInf_pos hν
+    (hν : ν ∈ F) : localDistSet F μ ≤ localDist ν μ :=
+  ciInf_le ⟨0, by rintro x ⟨ν', rfl⟩; exact localDist_nonneg _ μ⟩ (⟨ν, hν⟩ : F)
+
+/-- A lower bound for `d(F, μ)`, which is what makes the definition informative: it fails for the
+`⨅ ν ∈ F` reading. -/
+lemma le_localDistSet {F : Set (ProbabilityMeasure (S → E))} {μ : ProbabilityMeasure (S → E)}
+    {c : ℝ} (hF : F.Nonempty) (h : ∀ ν ∈ F, c ≤ localDist ν μ) : c ≤ localDistSet F μ := by
+  have : Nonempty F := hF.to_subtype
+  exact le_ciInf fun ν ↦ h ν ν.2
 
 end MeasureTheory
 
