@@ -1,0 +1,49 @@
+\section{Ergodic random fields}
+
+Georgii opens Chapter 14 by observing that the convex geometry of the shift-invariant random
+fields is an instance of the abstract kernel machinery of Section 7.1: the shift group acts by
+the deterministic kernels $\hat\theta_i(A \mid \omega) = \1_A(\theta_i\omega)$ of (14.4), the
+invariant fields $\mathcal{P}_{\Theta}$ are the $\Pi$-invariant measures of Corollary (7.4), and
+the almost surely invariant events $\mathcal{I}(\mu)$ of (14.3) are $\mathcal{I}_{\Pi}(\mu)$.
+The formalization takes the same route, at the generality of an arbitrary group action.
+
+\begin{definition}[Invariant fields and invariant events, Georgii (14.1)--(14.4)]
+    \label{def:erg-invariant}
+    \uses{def:ext-ae-invariant}
+    \lean{ProbabilityTheory.Kernel.smulKernel,
+      ProbabilityTheory.Kernel.smulInvariantMeasure_iff_forall_invariant,
+      ProbabilityTheory.Kernel.measurableSet_aeInvariantSigmaAlgebraFamily_smul}
+    \leanok
+
+    For a group $G$ acting measurably on $\Omega$, the kernel of the action of $g$ is
+    `Kernel.deterministic (g • ·)` — Georgii's $\hat\theta_i$ — and Mathlib's
+    \texttt{SMulInvariantMeasure} is exactly invariance under every such kernel. The
+    $\mu$-almost surely invariant σ-algebra of the family is Georgii's $\mathcal{I}(\mu)$: the
+    events whose preimage under every $g \cdot{}$ agrees with them $\mu$-a.e.
+\end{definition}
+
+\begin{theorem}[Ergodicity is extremality, Georgii (14.5)(a) and (14.6)]
+    \label{thm:erg-145a}
+    \uses{def:erg-invariant, thm:ext-74}
+    \lean{ProbabilityTheory.Kernel.ergodicSMul_iff_mem_extremePoints}
+    \leanok
+
+    An invariant probability measure is \emph{ergodic} — Mathlib's \texttt{ErgodicSMul}, i.e.
+    trivial on $\mathcal{I}(\mu)$, which is Georgii's Definition (14.6) — if and only if it is an
+    extreme point of the convex set of invariant probability measures. This is Corollary (7.4)
+    applied to the kernels of (14.4), exactly as Georgii says; no countability of the group is
+    needed. Mathlib's \texttt{ErgodicSMul} is already phrased with almost sure invariance, so no
+    strict-to-a.e.\ correction arises, unlike the single-map case
+    (Proposition~\ref{prop:ext-mathlib}).
+\end{theorem}
+
+\begin{remark}[Parts (b), (c) and the ergodic decomposition]
+    \label{rmk:erg-145bc}
+    \uses{thm:erg-145a, thm:ext-invariant-density}
+
+    (14.5)(b) — an absolutely continuous $\nu = f\mu$ is invariant iff $f$ is
+    $\mathcal{I}(\mu)$-measurable — is Theorem~\ref{thm:ext-invariant-density} at the kernels of
+    (14.4). The shift-specific development ((14.7) ergodicity as cube-averaged mixing, (14.10)
+    the ergodic decomposition of $\mathcal{P}_{\Theta}$, (14.12) density of the extreme boundary)
+    is not yet formalized; the general decomposition machinery it instantiates is Chapter 7's.
+\end{remark}
