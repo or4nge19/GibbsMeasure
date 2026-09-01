@@ -726,23 +726,6 @@ lemma measure_pi_univ_pi_if_mem_eq_prod_inter
     simp [h', Finset.prod_ite_mem, Finset.inter_comm]
   exact hpi.trans (hattach.trans hdrop)
 
-/-- If the boundary condition satisfies all outside-volume constraints, the pullback of a square
-cylinder under `juxt` is the corresponding coordinate box on the resampled volume. -/
-lemma preimage_juxt_squareCylinder_of_forall
-    [DecidableEq S] {Λ s : Finset S} {t : S → Set E} {η : S → E}
-    (hP : ∀ i ∈ (s : Set S), i ∉ (Λ : Set S) → η i ∈ t i) :
-    (juxt (Λ : Set S) η) ⁻¹' ((s : Set S).pi t) =
-      Set.univ.pi (fun j : Λ => if (j : S) ∈ (s : Set S) then t j else Set.univ) := by
-  exact preimage_juxt_squareCylinder_eq_univ_pi_of_forall (S := S) (E := E) hP
-
-/-- If the boundary condition violates an outside-volume constraint, the pullback of the square
-cylinder under `juxt` is empty. -/
-lemma preimage_juxt_squareCylinder_of_not_forall
-    {Λ s : Finset S} {t : S → Set E} {η : S → E}
-    (hP : ¬ ∀ i ∈ (s : Set S), i ∉ (Λ : Set S) → η i ∈ t i) :
-    (juxt (Λ : Set S) η) ⁻¹' ((s : Set S).pi t) = (∅ : Set (Λ → E)) := by
-  exact preimage_juxt_squareCylinder_eq_empty_of_not_forall (S := S) (E := E) hP
-
 lemma isssdFun_apply_squareCylinder
     [DecidableEq S] (Λ s : Finset S) (t : S → Set E) (ht : ∀ i, MeasurableSet (t i)) (η : S → E) :
     isssdFun ν Λ η ((s : Set S).pi t) =
@@ -1167,13 +1150,6 @@ lemma preimage_juxt_restrict_compl
       simpa [restrict_compl_juxt (S := S) (E := E) Λ x ζ] using hx'
     simp [hx, Set.mem_preimage, this]
 
-/-- The coordinate restriction to any set of sites is measurable. -/
-lemma measurable_restrict_sites (Δ : Set S) :
-    Measurable (Set.restrict (π := fun _ : S ↦ E) Δ) := by
-  rw [measurable_pi_iff]
-  intro i
-  simpa [Set.restrict] using (measurable_pi_apply (i : S))
-
 omit [IsProbabilityMeasure ν] in
 /-- A `juxt`-mapped finite-coordinate measure factors outside-volume events as an indicator of the
 boundary condition. -/
@@ -1186,7 +1162,7 @@ lemma map_juxt_inter_restrict_compl_preimage_of_measure
         (Measure.map (juxt (Λ := (Λ : Set S)) x) μΛ) A := by
   let J : (Λ → E) → (S → E) := juxt (Λ := (Λ : Set S)) x
   let B : Set (S → E) := (Set.restrict (π := fun _ : S ↦ E) ((Λ : Set S)ᶜ)) ⁻¹' C
-  have hB : MeasurableSet B := hC.preimage (measurable_restrict_sites (S := S) (E := E) _)
+  have hB : MeasurableSet B := hC.preimage (Set.measurable_restrict _)
   have hAB : MeasurableSet (A ∩ B) := hA.inter hB
   have hpreB : J ⁻¹' B = (by classical exact if x ∈ B then Set.univ else ∅) := by
     simpa [J, B] using preimage_juxt_restrict_compl (S := S) (E := E) Λ x (C := C)

@@ -104,7 +104,8 @@ conditional probability may read off the state of the system at infinity.
 
 \begin{definition}[Oscillation, Georgii (2.22)]
     \label{def:ql-osc}
-    \lean{MeasureTheory.GibbsMeasure.oscOutside}
+    \lean{MeasureTheory.GibbsMeasure.oscOutside, MeasureTheory.GibbsMeasure.IsQuasilocalFun,
+      MeasureTheory.GibbsMeasure.isQuasilocalFun_iff_tendsto_oscOutside}
     \leanok
 
     For $f : \Cfg \to \R$ and $\Lambda \in \Fin$ put
@@ -113,17 +114,25 @@ conditional probability may read off the state of the system at infinity.
     the oscillation of $f$ under changes outside $\Lambda$. The Lean definition takes values in
     $[0,\infty]$ and is stated for an arbitrary $s \subseteq S$ (\texttt{\_root\_.oscOutside});
     the displayed $\osc_\Lambda$ is that definition at $s = \Lambda$. It is antitone in $\Lambda$.
+
+    Georgii's phrasing of (2.22) --- for every $\varepsilon > 0$ there is a finite $\Delta$ with
+    $|f(\zeta) - f(\eta)| \leq \varepsilon$ whenever $\zeta_\Delta = \eta_\Delta$ --- is
+    \texttt{IsQuasilocalFun}, and needs neither boundedness nor measurability. It is equivalent to
+    $\osc_\Lambda(f) \to 0$, so the $\varepsilon$--$\Delta$ form and the oscillation form are one
+    notion.
 \end{definition}
 
 \begin{theorem}[Oscillation criterion, Georgii Remark (2.21)(1)]
     \label{thm:ql-osc-criterion}
     \uses{def:ql-quasilocal, def:ql-osc}
-    \lean{MeasureTheory.GibbsMeasure.mem_quasilocalFunctions_iff, MeasureTheory.GibbsMeasure.tendsto_oscOutside_of_mem_quasilocalFunctions, MeasureTheory.GibbsMeasure.mem_quasilocalFunctions_of_tendsto_oscOutside}
+    \lean{MeasureTheory.GibbsMeasure.mem_quasilocalFunctions_iff, MeasureTheory.GibbsMeasure.tendsto_oscOutside_of_mem_quasilocalFunctions, MeasureTheory.GibbsMeasure.mem_quasilocalFunctions_of_tendsto_oscOutside,
+      MeasureTheory.GibbsMeasure.mem_quasilocalFunctions_iff_isQuasilocalFun}
     \leanok
 
     A bounded measurable $f : \Cfg \to \R$ is quasilocal if and only if
     \[\lim_{\Lambda \in \Fin} \osc_\Lambda(f) = 0,\]
-    the limit being taken along the directed set $\Fin$.
+    the limit being taken along the directed set $\Fin$; equivalently, if and only if it is
+    quasilocal in the $\varepsilon$--$\Delta$ sense of (2.22).
 \end{theorem}
 \begin{proof}
     \leanok

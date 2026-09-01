@@ -265,7 +265,8 @@ lemma isProbabilityMeasure_selfEnergyMeasure
       (by rw [h]; simp)⟩
   exact Measure.isProbabilityMeasure_probNormalize _
 
-/-- **Georgii's reduction in the proof of Theorem (8.39).** Moving the self-energies `Φ_{i}` into
+/-- **Georgii (2.18)**, cf. (1.28)(3); used in the proof of Theorem (8.39). Moving the
+self-energies `Φ_{i}` into
 the a priori measure does not change the specification: over the per-site measures
 `c_i⁻¹ e^{-β Φ_{i}} λ`, the recentred many-body part of `Φ` defines the λ-specification of `Φ`. -/
 theorem lambdaSpecification_eq_gibbsSpecificationFamily [Countable S] [IsSummable Φ]

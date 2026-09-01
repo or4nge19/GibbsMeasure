@@ -28,7 +28,8 @@ second being the topological closure of the first. No topology on `E` is involve
 
 * `MeasureTheory.GibbsMeasure.localFunctionsOn`, `MeasureTheory.GibbsMeasure.localFunctions`,
   `MeasureTheory.GibbsMeasure.quasilocalFunctions`: Georgii's `𝓛_Λ`, `𝓛`, `𝓛̄`.
-* `MeasureTheory.GibbsMeasure.oscOutside`: the oscillation of Georgii's eq. (2.22).
+* `MeasureTheory.GibbsMeasure.oscOutside`, `MeasureTheory.GibbsMeasure.IsQuasilocalFun`: the
+  oscillation of Georgii's eq. (2.22) and the unbundled quasilocality it measures.
 * `MeasureTheory.GibbsMeasure.mem_quasilocalFunctions_iff`: Georgii Remark (2.21)(1).
 -/
 
@@ -119,6 +120,31 @@ lemma oscOutside_le {Λ : Finset S} {f : (S → E) → ℝ} {c : ℝ≥0∞}
 
 lemma oscOutside_antitone {f : (S → E) → ℝ} : Antitone fun Λ : Finset S ↦ oscOutside Λ f :=
   fun _ _ h ↦ _root_.oscOutside_antitone (by exact_mod_cast h)
+
+/-- **Georgii (2.22).** A real function on configuration space is *quasilocal* if configurations
+agreeing on a large enough finite volume have arbitrarily close values. This is the unbundled
+form of vanishing oscillation (`isQuasilocalFun_iff_tendsto_oscOutside`). -/
+def IsQuasilocalFun (f : (S → E) → ℝ) : Prop :=
+  ∀ ε : ℝ, 0 < ε → ∃ Δ : Finset S, ∀ ζ η : S → E, (∀ i ∈ Δ, ζ i = η i) → |f ζ - f η| ≤ ε
+
+lemma isQuasilocalFun_iff_tendsto_oscOutside {f : (S → E) → ℝ} :
+    IsQuasilocalFun f ↔ Tendsto (fun Λ : Finset S ↦ oscOutside Λ f) atTop (𝓝 0) := by
+  constructor
+  · intro hf
+    rw [ENNReal.tendsto_nhds_zero]
+    intro ε hε
+    obtain ⟨r, hr, hrε⟩ : ∃ r : ℝ, 0 < r ∧ ENNReal.ofReal r ≤ ε := by
+      rcases eq_or_ne ε ∞ with rfl | hne
+      · exact ⟨1, one_pos, le_top⟩
+      · exact ⟨ε.toReal, ENNReal.toReal_pos hε.ne' hne, (ENNReal.ofReal_toReal hne).le⟩
+    obtain ⟨Δ, hΔ⟩ := hf r hr
+    filter_upwards [eventually_ge_atTop Δ] with Λ hΛ
+    exact (oscOutside_antitone hΛ).trans
+      ((oscOutside_le fun ζ η hζη ↦ ENNReal.ofReal_le_ofReal (hΔ ζ η hζη)).trans hrε)
+  · intro hf ε hε
+    obtain ⟨Δ, hΔ⟩ := ((ENNReal.tendsto_nhds_zero.1 hf) _ (ENNReal.ofReal_pos.2 hε)).exists
+    exact ⟨Δ, fun ζ η hζη ↦
+      (ENNReal.ofReal_le_ofReal_iff hε.le).1 ((le_oscOutside hζη).trans hΔ)⟩
 
 end Oscillation
 
@@ -240,6 +266,12 @@ theorem mem_quasilocalFunctions_iff {f : lp (fun _ : S → E ↦ ℝ) ∞} :
   ⟨fun h ↦ ⟨measurable_of_mem_quasilocalFunctions h,
       tendsto_oscOutside_of_mem_quasilocalFunctions h⟩,
     fun h ↦ mem_quasilocalFunctions_of_tendsto_oscOutside h.1 h.2⟩
+
+/-- **Georgii, Remark (2.21)(1)**, unbundled: for a bounded function, measurability together with
+quasilocality in the sense of (2.22) is exactly membership in `𝓛̄`. -/
+theorem mem_quasilocalFunctions_iff_isQuasilocalFun {f : lp (fun _ : S → E ↦ ℝ) ∞} :
+    f ∈ quasilocalFunctions S E ↔ Measurable (⇑f) ∧ IsQuasilocalFun (⇑f) := by
+  rw [mem_quasilocalFunctions_iff, isQuasilocalFun_iff_tendsto_oscOutside]
 
 
 /-! ### Uniformly continuous observables -/

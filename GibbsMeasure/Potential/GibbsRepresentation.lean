@@ -22,20 +22,6 @@ quasilocal pre-modification with `λ_Λ ρ_Λ = 1` for every finite volume `Λ`.
 open Filter Function MeasureTheory ProbabilityTheory Set
 open scoped ENNReal Topology
 
-namespace MeasureTheory.GibbsMeasure
-
-variable {S E : Type*}
-
-/-- **Georgii (2.22).** A real function on configuration space is *quasilocal* if configurations
-which agree on a large enough finite volume have arbitrarily close values.  By Georgii's
-Remark (2.21)(1) this is equivalent, for measurable `f`, to `f` being a uniform limit of local
-functions; for bounded `f` this is membership in `𝓛̄`, Georgii's space of *bounded* quasilocal
-functions ((2.20)(b)). -/
-def IsQuasilocalFun (f : (S → E) → ℝ) : Prop :=
-  ∀ ε : ℝ, 0 < ε → ∃ Δ : Finset S, ∀ ζ η : S → E, (∀ i ∈ Δ, ζ i = η i) → |f ζ - f η| ≤ ε
-
-end MeasureTheory.GibbsMeasure
-
 namespace Potential
 
 open MeasureTheory.GibbsMeasure
