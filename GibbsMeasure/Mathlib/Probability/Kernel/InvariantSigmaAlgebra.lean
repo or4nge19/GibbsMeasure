@@ -28,7 +28,27 @@ trivial on `I_Π(μ) = ⨅ i, I_{κ i}(μ)`
 
 This contains Mathlib's `Ergodic.iff_mem_extremePoints` and extends it in two directions, to
 genuinely random kernels and to families: `preErgodic_iff_trivialOn_aeInvariant` identifies
-Mathlib's `PreErgodic` with triviality on `I_π(μ)` for a deterministic kernel. Almost sure
+Mathlib's `PreErgodic` with triviality on `I_π(μ)` for a deterministic kernel.
+
+## Why almost sure, and not strict, invariance
+
+Mathlib's `PreErgodic` is a zero-one law over the *strictly* invariant measurable sets
+`T ⁻¹' s = s`. That is not stable under changing `T` on a null set as stated, and the equivalence
+with the usual a.e. formulation
+(`preErgodic_iff_forall_nullMeasurableSet`, `preErgodic_congr_ae`) rests on
+`QuasiMeasurePreserving.exists_preimage_eq_of_preimage_ae`, which corrects an a.e. invariant set to
+a strictly invariant one by iterating `T` — so it needs `T` measurable, not merely a.e. measurable.
+
+`aeInvariantSets` is defined by an a.e. condition and so depends only on the a.e. class of the
+kernel outright (`aeInvariantSets_congr`), with no correction step. For a general kernel no such
+correction exists: `Example75` is a stochastic matrix whose strictly invariant σ-algebra is trivial
+while its invariant measures form a segment. Almost sure invariance is therefore the primitive
+here, and the strictly invariant sets are not an alternative definition but a special-case
+convenience.
+
+The `Filter.EventuallyConst` API is used in exactly one place,
+`preErgodic_iff_forall_nullMeasurableSet`, which is the only bridge to Mathlib's `PreErgodic`;
+every other statement is phrased as `μ s = 0 ∨ μ s = 1`. Almost sure
 invariance cannot be weakened to strict invariance, and `Example75` below is Georgii's Example
 (7.5) proving it: a stochastic matrix on three points whose strictly invariant σ-algebra is trivial
 while its invariant measures form a segment, so triviality on it does not imply extremality.
@@ -59,6 +79,19 @@ lemma mem_aeInvariantSets {A : Set Ω} :
 
 lemma measurableSet_of_mem_aeInvariantSets {A : Set Ω} (h : A ∈ aeInvariantSets π μ) :
     MeasurableSet A := h.1
+
+/-- `aeInvariantSets` depends only on the `μ`-a.e. class of the kernel. Contrast Mathlib's
+`PreErgodic`, which is phrased with *strictly* invariant sets and is therefore not manifestly
+invariant under modifying the map on a null set. -/
+lemma aeInvariantSets_congr {π' : Kernel Ω Ω} (h : ∀ᵐ ω ∂μ, π ω = π' ω) :
+    aeInvariantSets π μ = aeInvariantSets π' μ := by
+  have key : ∀ (κ₁ κ₂ : Kernel Ω Ω), (∀ᵐ ω ∂μ, κ₁ ω = κ₂ ω) →
+      aeInvariantSets κ₁ μ ⊆ aeInvariantSets κ₂ μ := by
+    intro κ₁ κ₂ hκ A hA
+    refine ⟨hA.1, ?_⟩
+    filter_upwards [hA.2, hκ] with ω h1 h2
+    rw [← h2]; exact h1
+  exact Set.Subset.antisymm (key _ _ h) (key _ _ (h.mono fun _ hω ↦ hω.symm))
 
 /-- The integral of `ω ↦ π ω A` against an invariant measure is `μ A`. -/
 lemma lintegral_kernel_apply_of_invariant (hπ : Invariant π μ) {A : Set Ω}
@@ -559,37 +592,73 @@ lemma mem_aeInvariantSets_deterministic_iff (hT : Measurable T) {A : Set Ω} :
       simp [h1, h2, Set.mem_preimage, eq_iff_iff]
   exact eventually_congr (.of_forall hiff)
 
-/-- **Mathlib's `Ergodic.iff_mem_extremePoints` is the deterministic case of (7.4).** For a
-measure-preserving self-map `T`, Mathlib's pre-ergodicity — triviality on the *strictly* invariant
-sets — coincides with triviality on `I_π(μ)` for the deterministic kernel `π = δ_{T(·)}`. The
-non-trivial direction is Mathlib's
+/-- **The almost-everywhere characterisation of pre-ergodicity.** For a measure-preserving map on a
+probability space, Mathlib's `PreErgodic` — a zero-one law over *strictly* invariant measurable sets
+— is equivalent to the zero-one law over *null measurable, almost everywhere* invariant sets, which
+is how ergodicity is normally stated.
+
+Measurability of `T` is essential, not cosmetic: the equivalence runs through
 `QuasiMeasurePreserving.exists_preimage_eq_of_preimage_ae`, which corrects an a.e. invariant set to
-a strictly invariant one; Georgii's Example (7.5) shows no such correction exists for general
-kernels. -/
+a strictly invariant one by iterating `T`, and that correction is unavailable for a merely a.e.
+measurable map. `aeInvariantSets_congr` and `preErgodic_congr_ae` are the payoff: the right-hand
+side, unlike the definition, manifestly depends only on the a.e. class. -/
+theorem preErgodic_iff_forall_nullMeasurableSet [IsProbabilityMeasure μ]
+    (hmp : MeasurePreserving T μ μ) :
+    PreErgodic T μ ↔
+      ∀ s, NullMeasurableSet s μ → T ⁻¹' s =ᵐ[μ] s → μ s = 0 ∨ μ s = 1 := by
+  constructor
+  · intro herg s hs hae
+    obtain ⟨t, htm, hteq, hinv⟩ :=
+      hmp.quasiMeasurePreserving.exists_preimage_eq_of_preimage_ae hs hae
+    rcases eventuallyConst_set'.1 (herg.aeconst_set htm hinv) with h | h
+    · exact Or.inl (by rw [← measure_congr hteq]; exact ae_eq_empty.1 h)
+    · exact Or.inr (by
+        rw [← measure_congr hteq]; exact (prob_compl_eq_zero_iff htm).1 (ae_eq_univ.1 h))
+  · intro htriv
+    refine ⟨fun s hsm hinv ↦ ?_⟩
+    rw [eventuallyConst_set']
+    rcases htriv s hsm.nullMeasurableSet (by rw [hinv]; exact EventuallyEq.rfl) with h | h
+    · exact Or.inl (ae_eq_empty.2 h)
+    · exact Or.inr (ae_eq_univ.2 ((prob_compl_eq_zero_iff hsm).2 h))
+
+/-- Pre-ergodicity of a measure-preserving map depends only on its `μ`-a.e. class. This is not
+apparent from the definition, which quantifies over strictly invariant sets. -/
+theorem preErgodic_congr_ae [IsProbabilityMeasure μ] {T' : Ω → Ω}
+    (hmp : MeasurePreserving T μ μ) (hmp' : MeasurePreserving T' μ μ) (h : T =ᵐ[μ] T') :
+    PreErgodic T μ ↔ PreErgodic T' μ := by
+  have hpre : ∀ s : Set Ω, T ⁻¹' s =ᵐ[μ] T' ⁻¹' s := fun s ↦ by
+    filter_upwards [h] with ω hω
+    show (T ω ∈ s) = (T' ω ∈ s)
+    rw [hω]
+  rw [preErgodic_iff_forall_nullMeasurableSet hmp, preErgodic_iff_forall_nullMeasurableSet hmp']
+  constructor
+  · exact fun H s hs hae ↦ H s hs ((hpre s).trans hae)
+  · exact fun H s hs hae ↦ H s hs ((hpre s).symm.trans hae)
+
+/-- **Mathlib's `Ergodic.iff_mem_extremePoints` is the deterministic case of (7.4).** For a
+measure-preserving self-map `T`, pre-ergodicity is triviality on `I_π(μ)` for the deterministic
+kernel `π = δ_{T(·)}`. Georgii's Example (7.5) shows that for a general kernel no such reduction to
+strictly invariant sets is available, so the a.s. invariant σ-algebra is the right primitive. -/
 theorem preErgodic_iff_trivialOn_aeInvariant [IsProbabilityMeasure μ] (hT : Measurable T)
     (hmp : MeasurePreserving T μ μ) :
     PreErgodic T μ ↔
       ∀ A, MeasurableSet[aeInvariantSigmaAlgebra
         ((invariant_deterministic_iff (μ := μ) hT).2 hmp.map_eq)] A → μ A = 0 ∨ μ A = 1 := by
+  rw [preErgodic_iff_forall_nullMeasurableSet hmp]
   constructor
-  · intro herg A hA
+  · intro h A hA
     obtain ⟨hAm, hae⟩ := (mem_aeInvariantSets_deterministic_iff hT).1 hA
-    obtain ⟨t, htm, hteq, hinv⟩ :=
-      hmp.quasiMeasurePreserving.exists_preimage_eq_of_preimage_ae hAm.nullMeasurableSet hae
-    rcases eventuallyConst_set'.1 (herg.aeconst_set htm hinv) with h | h
-    · exact Or.inl (by rw [← measure_congr hteq]; exact ae_eq_empty.1 h)
-    · exact Or.inr (by
-        rw [← measure_congr hteq]
-        exact (prob_compl_eq_zero_iff htm).1 (ae_eq_univ.1 h))
-  · intro htriv
-    refine ⟨fun A hAm hinv ↦ ?_⟩
+    exact h A hAm.nullMeasurableSet hae
+  · intro h s hs hae
+    obtain ⟨t, htm, hteq⟩ := hs
+    -- `NullMeasurableSet` gives `hteq : s =ᵐ[μ] t`
+    have htinv : T ⁻¹' t =ᵐ[μ] t :=
+      ((hmp.quasiMeasurePreserving.preimage_ae_eq hteq).symm.trans hae).trans hteq
     have hA : MeasurableSet[aeInvariantSigmaAlgebra
-        ((invariant_deterministic_iff (μ := μ) hT).2 hmp.map_eq)] A :=
-      (mem_aeInvariantSets_deterministic_iff hT).2 ⟨hAm, by rw [hinv]; exact EventuallyEq.rfl⟩
-    rw [eventuallyConst_set']
-    rcases htriv A hA with h | h
-    · exact Or.inl (ae_eq_empty.2 h)
-    · exact Or.inr (ae_eq_univ.2 ((prob_compl_eq_zero_iff hAm).2 h))
+        ((invariant_deterministic_iff (μ := μ) hT).2 hmp.map_eq)] t :=
+      (mem_aeInvariantSets_deterministic_iff hT).2 ⟨htm, htinv⟩
+    rw [measure_congr hteq]
+    exact h t hA
 
 end Deterministic
 

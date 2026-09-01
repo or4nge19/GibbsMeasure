@@ -117,7 +117,23 @@ generality, in Mathlib's \texttt{ProbabilityTheory.Kernel} namespace.
 
     The non-trivial direction is Mathlib's
     \texttt{QuasiMeasurePreserving.exists\_preimage\_eq\_of\_preimage\_ae}, correcting an a.e.\
-    invariant set to a strictly invariant one. Example \ref{ex:ext-75} shows that no such
-    correction is available for general kernels, so the passage from strict to almost sure
-    invariance is not a mere technical convenience.
+    invariant set to a strictly invariant one; it iterates $T$ and so needs $T$ measurable, not
+    merely a.e.\ measurable. Example \ref{ex:ext-75} shows that no such correction is available for
+    general kernels, so the passage from strict to almost sure invariance is not a mere technical
+    convenience.
 \end{proposition}
+
+\begin{corollary}[Pre-ergodicity is an almost-everywhere notion]
+    \label{cor:ext-preergodic-ae}
+    \uses{prop:ext-mathlib}
+    \lean{ProbabilityTheory.Kernel.aeInvariantSets_congr,
+      ProbabilityTheory.Kernel.preErgodic_iff_forall_nullMeasurableSet,
+      ProbabilityTheory.Kernel.preErgodic_congr_ae}
+    \leanok
+
+    For measure-preserving $T$ on a probability space, pre-ergodicity is equivalent to the zero-one
+    law over the \emph{null measurable, almost everywhere} invariant sets, and consequently depends
+    only on the $\mu$-a.e.\ class of $T$. Neither statement is apparent from a definition using
+    strictly invariant sets. By contrast $\mathcal I_\pi(\mu)$ depends on the a.e.\ class of $\pi$
+    by construction.
+\end{corollary}
