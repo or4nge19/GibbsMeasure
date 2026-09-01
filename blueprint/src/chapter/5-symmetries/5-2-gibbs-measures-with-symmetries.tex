@@ -645,9 +645,11 @@ transformations and in the other over volumes. The library isolates the common o
     \leanok
 
     The Ising potential in zero field is spin-flip invariant, so the spin flip is a symmetry of
-    the specification by Georgii (5.6)(c)/(5.9)(b). Georgii's Theorem (6.9) supplies, at
-    $\beta \ge \log 3$, two distinct shift-invariant Gibbs measures $\mu^+ \neq \mu^-$ exchanged
-    by the spin flip; hence $\mu^+$ is not spin-flip invariant, and
-    Theorem \ref{thm:sym-broken-nontrivial} re-derives the non-uniqueness from the breaking
+    the specification by Georgii (5.6)(c)/(5.9)(b). Georgii's Theorem (6.9) gives non-uniqueness
+    for all sufficiently large $\beta$ without an explicit threshold; the explicit
+    $\beta \ge \log 3$ used here (i.e.\ $\log 9 \le 2\beta$) is the library's own Peierls
+    estimate (\texttt{Model/PeierlsEstimate.lean}), which supplies two distinct Gibbs measures
+    $\mu^+ \neq \mu^-$ exchanged by the spin flip; hence $\mu^+$ is not spin-flip invariant,
+    and Theorem \ref{thm:sym-broken-nontrivial} re-derives the non-uniqueness from the breaking
     alone.
 \end{proof}
