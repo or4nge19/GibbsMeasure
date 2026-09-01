@@ -210,92 +210,12 @@ theorem isingSpecification_cube_eq_false_le' (b : ℝ) (N : ℕ) (a : Site) :
 
 /-! ### M5: the plus phase at the sharp threshold -/
 
-/-- Translation covariance of the sharpened Peierls estimate.  (Proof copied from
-`Peierls.isingSpecification_translate_eq_false_le`, which is stated for `r` only.) -/
-lemma isingSpecification_translate_eq_false_le' (b : ℝ) (N : ℕ) (j a : Site) :
-    isingSpecification (latticeGraph 2) 1 0 b
-        ((cube 2 N).map (Equiv.addRight j).toEmbedding) (fun _ ↦ true)
-      {z : Site → Bool | z a = false} ≤ r' b := by
-  have hinv := (Specification.isInvariant_iff.1
-    (isInvariant_shift_isingSpecification 2 1 0 b j)) (cube 2 N) (fun _ ↦ true)
-  have hconst : (shift Bool j).toFun (fun _ ↦ true) = (fun _ ↦ true) := by
-    funext i
-    rw [shift_toFun_apply]
-  have hsites : (shift Bool j).sites.toEmbedding = (Equiv.addRight j).toEmbedding := rfl
-  rw [hconst, hsites] at hinv
-  have hmeas : MeasurableSet {z : Site → Bool | z a = false} := by
-    have h : {z : Site → Bool | z a = false} = (fun z : Site → Bool ↦ z a) ⁻¹' {false} := rfl
-    rw [h]
-    exact (measurable_pi_apply a) (measurableSet_singleton false)
-  rw [← hinv, Measure.map_apply (shift Bool j).measurable_toFun hmeas]
-  have hpre : (shift Bool j).toFun ⁻¹' {z : Site → Bool | z a = false}
-      = {z : Site → Bool | z (a - j) = false} := by
-    ext z
-    simp only [Set.mem_preimage, Set.mem_ofPred_eq, shift_toFun_apply]
-  rw [hpre]
-  exact isingSpecification_cube_eq_false_le' b N (a - j)
-
-/-- The sharpened Peierls estimate for the cube-averaged Gibbs distributions with the `+1`
-boundary condition.  (Proof copied from `Peierls.average_eq_false_le`.) -/
-lemma average_eq_false_le' (b : ℝ) (N : ℕ) (a : Site) :
-    (isingSpecification (latticeGraph 2) 1 0 b).average
-        (Measure.dirac (fun _ ↦ true)) (cubeTranslates 2 N N)
-      {z : Site → Bool | z a = false} ≤ r' b := by
-  rw [Specification.average_apply]
-  have hne : (cubeTranslates 2 N N).Nonempty := cubeTranslates_nonempty 2 N N
-  have hterm : ∀ L ∈ cubeTranslates 2 N N,
-      (Measure.dirac (fun _ ↦ true : Site → Bool)).bind
-        (isingSpecification (latticeGraph 2) 1 0 b L) {z : Site → Bool | z a = false} ≤ r' b := by
-    intro L hL
-    obtain ⟨i, -, rfl⟩ := Finset.mem_image.1 hL
-    rw [Measure.dirac_bind
-      ((isingSpecification (latticeGraph 2) 1 0 b).measurable_kernel_toMeasure _)]
-    exact isingSpecification_translate_eq_false_le' b N i a
-  calc ((cubeTranslates 2 N N).card : ℝ≥0∞)⁻¹ * ∑ L ∈ cubeTranslates 2 N N,
-        (Measure.dirac (fun _ ↦ true : Site → Bool)).bind
-          (isingSpecification (latticeGraph 2) 1 0 b L) {z : Site → Bool | z a = false}
-      ≤ ((cubeTranslates 2 N N).card : ℝ≥0∞)⁻¹ * ∑ _L ∈ cubeTranslates 2 N N, r' b := by
-        gcongr with L hL
-        exact hterm L hL
-    _ = ((cubeTranslates 2 N N).card : ℝ≥0∞)⁻¹ * (((cubeTranslates 2 N N).card : ℝ≥0∞) * r' b) := by
-        rw [Finset.sum_const, nsmul_eq_mul]
-    _ = r' b := by
-        rw [← mul_assoc, ENNReal.inv_mul_cancel (by exact_mod_cast hne.card_pos.ne')
-          (ENNReal.natCast_ne_top _), one_mul]
-
-/-- **Georgii (6.9), the plus phase at the sharp threshold**: a shift-invariant Gibbs measure
-with `μ(σ_a = -1) ≤ r' β` for every site `a`.  (Proof copied from `Peierls.exists_plus_phase`,
-which hard-codes the bound `r`.) -/
-theorem exists_plus_phase' (b : ℝ) :
-    ∃ m : ProbabilityMeasure (Site → Bool),
-      m ∈ GP (S := Fin 2 → ℤ) (E := Bool) (isingSpecification (latticeGraph 2) 1 0 b) ∧
-      (∀ j : Site, MeasurePreserving (shift Bool j).toFun (m : Measure (Site → Bool)) m) ∧
-      ∀ a : Site, (m : Measure (Site → Bool)) {z : Site → Bool | z a = false} ≤ r' b := by
-  set ms : ℕ → ProbabilityMeasure (Site → Bool) := fun N ↦
-    ⟨(isingSpecification (latticeGraph 2) 1 0 b).average
-        (Measure.dirac fun _ ↦ true) (cubeTranslates 2 N N),
-      (isingSpecification (latticeGraph 2) 1 0 b).isProbabilityMeasure_average _
-        (cubeTranslates_nonempty 2 N N)⟩ with hms
-  obtain ⟨m, hm⟩ := exists_clusterPt_of_compactSpace
-    (Filter.map (fun N ↦ (WithSetwiseTopology.ofMeasure (ms N) :
-      WithLocalConvergence (Fin 2 → ℤ) Bool)) atTop)
-  obtain ⟨hGP, hshift⟩ :=
-    mem_GP_and_measurePreserving_shift_of_mapClusterPt_average_cubeTranslates_dirac
-      (Potential.isQuasilocal_gibbsSpecificationOfAbsolutelySummable uniformSpinMeasure b)
-      (isInvariant_shift_isingSpecification 2 1 0 b) true (μs := ms) (fun N ↦ rfl) hm
-  refine ⟨m.toMeasure, hGP, hshift, fun a ↦ ?_⟩
-  exact le_of_mapClusterPt (spin_eq_false_mem_localEvents a) hm (fun N ↦ average_eq_false_le' b N a)
-
-/-! ### M6: Georgii Theorem (6.9) at the sharp threshold -/
-
 /-- **Georgii Theorem (6.9), the "in particular" part, at the sharp threshold.**
 For `log 9 ≤ 2β` — i.e. `β ≥ log 3 ≈ 1.0986`, against the `8 log 2 ≈ 5.5452` of
 `Peierls.exists_two_shiftInvariant_gibbs` — the two-dimensional Ising ferromagnet with coupling
 `1` and no external field has two distinct shift-invariant Gibbs measures `μ₋ = τ(μ₊)`,
-exchanged by the spin flip, with `μ₊(σ₀ = -1) < 1/2 < μ₋(σ₀ = -1)`: spontaneous magnetisation.
-
-The proof is that of `Peierls.exists_two_shiftInvariant_gibbs` with `exists_plus_phase'` and
-`r'_le_quarter` in place of `exists_plus_phase` and `r_le_quarter`. -/
+exchanged by the spin flip, with `μ₊(σ₀ = -1) < 1/2 < μ₋(σ₀ = -1)`: spontaneous magnetisation. `Peierls.exists_two_shiftInvariant_gibbs_of_cube` instantiated with the sharpened cube
+estimate `isingSpecification_cube_eq_false_le'` and threshold `r'_le_quarter`. -/
 theorem exists_two_shiftInvariant_gibbs_sharp (b : ℝ) (hb : Real.log 9 ≤ 2 * b) :
     ∃ mp mm : ProbabilityMeasure (Site → Bool),
       mp ≠ mm ∧
@@ -306,64 +226,9 @@ theorem exists_two_shiftInvariant_gibbs_sharp (b : ℝ) (hb : Real.log 9 ≤ 2 *
       (mm : Measure (Site → Bool)) = Measure.map spinFlip.toFun (mp : Measure (Site → Bool)) ∧
       (mp : Measure (Site → Bool)) {z : Site → Bool | z 0 = false} < 2⁻¹ ∧
       2⁻¹ < (mm : Measure (Site → Bool)) {z : Site → Bool | z 0 = false} ∧
-      2⁻¹ < (mp : Measure (Site → Bool)) {z : Site → Bool | z 0 = true} := by
-  obtain ⟨mp, hGP, hshift, hbound⟩ := exists_plus_phase' b
-  set mm : ProbabilityMeasure (Site → Bool) :=
-    mp.map spinFlip.measurable_toFun.aemeasurable with hmmdef
-  have hmmshift : ∀ j : Site,
-      MeasurePreserving (shift Bool j).toFun (mm : Measure (Site → Bool)) mm := by
-    intro j
-    refine ⟨(shift Bool j).measurable_toFun, ?_⟩
-    rw [hmmdef, ProbabilityMeasure.toMeasure_map,
-      Measure.map_map (shift Bool j).measurable_toFun spinFlip.measurable_toFun,
-      show (shift Bool j).toFun ∘ spinFlip.toFun = spinFlip.toFun ∘ (shift Bool j).toFun from
-        funext fun z ↦ funext fun i ↦ by simp,
-      ← Measure.map_map spinFlip.measurable_toFun (shift Bool j).measurable_toFun,
-      (hshift j).map_eq]
-  have hmeasF : MeasurableSet {z : Site → Bool | z (0 : Site) = false} := by
-    have h : {z : Site → Bool | z (0 : Site) = false}
-        = (fun z : Site → Bool ↦ z 0) ⁻¹' {false} := rfl
-    rw [h]
-    exact (measurable_pi_apply _) (measurableSet_singleton false)
-  have hcompl : {z : Site → Bool | z (0 : Site) = true}
-      = {z : Site → Bool | z (0 : Site) = false}ᶜ := by
-    ext z
-    cases h : z 0 <;> simp [h]
-  have hmmval : (mm : Measure (Site → Bool)) {z : Site → Bool | z 0 = false}
-      = (mp : Measure (Site → Bool)) {z : Site → Bool | z 0 = true} := by
-    rw [hmmdef, ProbabilityMeasure.toMeasure_map,
-      Measure.map_apply spinFlip.measurable_toFun hmeasF]
-    congr 1
-    ext z
-    simp
-  have hsum : (mp : Measure (Site → Bool)) {z : Site → Bool | z 0 = false} +
-      (mp : Measure (Site → Bool)) {z : Site → Bool | z 0 = true} = 1 := by
-    rw [hcompl, measure_add_measure_compl hmeasF]
-    simp
-  have hle : (mp : Measure (Site → Bool)) {z : Site → Bool | z 0 = false} ≤ 4⁻¹ :=
-    le_trans (hbound 0) (r'_le_quarter hb)
-  have hlt : (mp : Measure (Site → Bool)) {z : Site → Bool | z 0 = false} < 2⁻¹ :=
-    lt_of_le_of_lt hle (by norm_num)
-  have hgt : 2⁻¹ < (mp : Measure (Site → Bool)) {z : Site → Bool | z 0 = true} := by
-    by_contra hcon
-    push Not at hcon
-    have h1 := add_le_add hle hcon
-    rw [hsum] at h1
-    have h2 : (4 : ℝ≥0∞)⁻¹ + 2⁻¹ < 1 := by
-      rw [← ENNReal.toReal_lt_toReal (by finiteness) (by finiteness),
-        ENNReal.toReal_add (by finiteness) (by finiteness)]
-      simp
-      norm_num
-    exact absurd h1 (not_le.2 h2)
-  have hgt' : 2⁻¹ < (mm : Measure (Site → Bool)) {z : Site → Bool | z 0 = false} := by
-    rw [hmmval]
-    exact hgt
-  have hne : mp ≠ mm := by
-    intro hcon
-    rw [hcon] at hlt
-    exact absurd hlt (not_lt.2 (le_of_lt hgt'))
-  exact ⟨mp, mm, hne, hGP, (isInvariant_spinFlip b).map_mem_GP hGP, hshift, hmmshift,
-    hmmdef ▸ ProbabilityMeasure.toMeasure_map _ _, hlt, hgt', hgt⟩
+      2⁻¹ < (mp : Measure (Site → Bool)) {z : Site → Bool | z 0 = true} :=
+  Peierls.exists_two_shiftInvariant_gibbs_of_cube
+    (fun N a ↦ isingSpecification_cube_eq_false_le' b N a) (r'_le_quarter hb)
 
 /-- `log 9 / 2 = log 3`. -/
 lemma log_nine_div_two : Real.log 9 / 2 = Real.log 3 := by

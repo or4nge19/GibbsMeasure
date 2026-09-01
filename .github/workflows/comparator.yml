@@ -103,24 +103,13 @@ jobs:
           lint: "false"
           use-mathlib-cache: "true"
 
-      # Two gates the sandboxed comparator run does NOT provide.
-      #
-      # (a) An all-solutions build. comparator compiles one challenge/solution pair per config
-      #     inside the sandbox; nothing otherwise checks that every Solution module still
-      #     compiles together against the library. `lake build Comparator` does, and it is not a
-      #     default target, so without this step a broken solution could sit unnoticed until the
-      #     entry naming it happened to run.
-      #
-      # (b) A hard sorry gate. warn.sorry is off for the Comparator library only, where the 61
-      #     holes are deliberate. Everywhere else a sorry is a warning, and warnings do not fail
-      #     a build, so grep for it directly.
-      - name: Build every challenge and solution, and gate on sorry
+      # A hard sorry gate, textual so it needs no build. warn.sorry is off for the Comparator
+      # library only, where the challenge holes are deliberate. Everywhere else a sorry is a
+      # warning, and warnings do not fail a build, so grep for it directly.
+      - name: Gate on sorry
         working-directory: GibbsMeasure
         run: |
           set -euo pipefail
-          export PATH="$HOME/.elan/bin:$PATH"
-          lake build Comparator
-
           if grep -rnE '\bsorry\b' GibbsMeasure/ --include='*.lean'; then
             echo "::error::sorry found in the library; permitted only in Comparator challenge files."
             exit 1
@@ -229,3 +218,15 @@ jobs:
             exit 1
           fi
           echo "comparator accepted all $(ls Comparator/config*.json | wc -l) entries"
+
+      # The all-solutions build, deliberately AFTER the judge: comparator's assumption 2 is that
+      # the checker has not previously tried to compile the Solution file, so nothing may build
+      # the Comparator lib before the sandboxed runs. `lake build Comparator` still checks, in
+      # the same CI run, that every Challenge, Solution and Defs module compiles together against
+      # the library (it is not a default target, so no earlier step builds it).
+      - name: Build every challenge and solution together
+        working-directory: GibbsMeasure
+        run: |
+          set -euo pipefail
+          export PATH="$HOME/.elan/bin:$PATH"
+          lake build Comparator

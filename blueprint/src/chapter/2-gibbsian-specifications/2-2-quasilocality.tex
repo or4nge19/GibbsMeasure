@@ -389,21 +389,6 @@ conditional probability may read off the state of the system at infinity.
     Hamiltonians.
 \end{example}
 
-\begin{remark}[The continuous (Feller) variant]
-    \label{rmk:ql-feller}
-    \uses{def:ql-quasilocal-spec, prop:ql-continuous-iff}
-    \lean{BoundedContinuousFunction.fellerQuasilocalFunctions, Specification.IsFellerQuasilocal, Specification.IsFellerQuasilocal_iff_onCylinder}
-    \leanok
-
-    The library also carries a topological analogue, for use in weak-convergence arguments: with $E$
-    a topological space, $C_b(\Cfg)$ replaces $\ell^\infty(\Cfg)$, the cylinder functions replace
-    $\mathcal{L}$, and a specification with Feller kernels is \emph{Feller-quasilocal} when its
-    action preserves the uniform closure of the continuous cylinder functions; again it suffices to
-    test cylinder observables. This is \emph{not} Georgii's (2.23): it is a strictly smaller class
-    of test functions and it presupposes a topology on $E$, whereas Definition
-    \ref{def:ql-quasilocal-spec} does not. By Proposition \ref{prop:ql-continuous-iff} the two
-    algebras of observables coincide when $E$ is finite and discrete.
-\end{remark}
 
 \subsection*{Non-quasilocal specifications}
 

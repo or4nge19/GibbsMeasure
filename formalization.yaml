@@ -174,11 +174,16 @@ automation:
 
 fidelity:
   divergences: >-
-    One known weakening: Corollary (7.30) is proved for a finite state space
+    Two known weakenings. Corollary (7.30) is proved for a finite state space
     (`Specification/ExtremeCorollaries.lean`, `setOf_mem_GP_eq_closure_convexCombosLimitGibbs`),
     where Georgii states it for a standard Borel state space and a quasilocal lambda-specification.
-    Every other restriction that remained after the main development has been either removed or
-    identified as one of Georgii's own hypotheses:
+    Proposition (8.8) (`Specification/Dobrushin.lean`, `isDobrushin_gibbsSpecification`) is proved
+    for a probability a-priori measure and an absolutely summable potential, where Georgii allows
+    any lambda-admissible potential over sigma-finite lambda and stresses that the self-potential
+    part is unrestricted; the missing prerequisite is (2.24)(b) at Georgii's hypotheses (ours needs
+    bounded densities), and the probability-measure hypothesis is harmless only because absolute
+    summability is in force. Every other restriction that remained after the main development has
+    been either removed or identified as one of Georgii's own hypotheses:
     (a) reference measures — the sigma-finite case is now covered by his rescaling Remark
     (1.28)(3) (`Specification/Rescaling.lean`, `Potential/FiniteReference.lean`). Two apparent
     restrictions turned out to be intrinsic rather than weakenings: the independent specification
@@ -282,6 +287,13 @@ alignment:
       lean: "MeasureTheory.GibbsMeasure.Dobrushin.existsUnique_mem_GP_of_isDobrushin_of_standardBorel"
       module: "GibbsMeasure/Specification/DobrushinUniqueness.lean"
       status: "proved"
+    - source: "Proposition (8.8)"
+      lean: "MeasureTheory.GibbsMeasure.Dobrushin.isDobrushin_gibbsSpecification"
+      status: weakened
+      note: >-
+        Proved for a probability a-priori measure and an absolutely summable potential;
+        Georgii assumes only lambda-admissibility over sigma-finite lambda. See
+        fidelity.divergences.
     - source: "Theorem (8.20)"
       lean: "MeasureTheory.GibbsMeasure.Dobrushin.comparison"
       module: "GibbsMeasure/Specification/DobrushinUniqueness.lean"

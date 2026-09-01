@@ -1,6 +1,9 @@
 module
 
+public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.TrivialOn
+public import GibbsMeasure.Mathlib.Order.Cofinal
 public import GibbsMeasure.Mathlib.Probability.ConditionalProbability
+public import GibbsMeasure.Mathlib.Probability.Kernel.InvariantSigmaAlgebra
 public import GibbsMeasure.Specification.Structure
 public import Mathlib.Analysis.Convex.Extreme
 public import Mathlib.Data.Set.Countable
@@ -13,8 +16,9 @@ public import Mathlib.MeasureTheory.Measure.Typeclasses.Probability
 # Extremality and tail triviality (Georgii, Thm. (7.7)(a))
 
 A Gibbs measure `μ ∈ G(γ)` is extreme in `G(γ)` if and only if it is trivial on the tail σ-algebra
-`𝓣`. The forward direction conditions `μ` on a tail event of probability strictly between `0` and
-`1`, which exhibits `μ` as a nontrivial convex combination of two Gibbs measures. The converse (for
+`𝓣`. The forward direction is derived from the general extremality criterion
+`ProbabilityTheory.Kernel.mem_extremePoints_iff_trivialOn` (Georgii (7.4)): by properness a tail
+event is invariant for every kernel `γ Λ`, so an extreme point is trivial on it. The converse (for
 countable `S`) identifies the Radon–Nikodym derivative of an absolutely continuous Gibbs measure
 with a tail-measurable function, along the exhaustion `exhaustionVolumes`.
 -/
@@ -288,51 +292,60 @@ lemma isGibbsMeasure_cond_of_tail
   exact (_root_.Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ)).2 hfix_norm
 
 /-- If a Gibbs probability measure assigns a tail event probability strictly between `0` and `1`,
-then it is **not** an extreme point of `G(γ)`. -/
+then it is **not** an extreme point of `G(γ)`.
+
+Derived from the general criterion `ProbabilityTheory.Kernel.mem_extremePoints_iff_trivialOn`
+(Georgii (7.4)): `G(γ)` is the set of invariant probability measures of the family of kernels
+`γ Λ` viewed on the ambient σ-algebra, and by properness a tail event is invariant for every
+`γ Λ`, so an extreme point gives it probability `0` or `1`. -/
 theorem not_mem_extremePoints_G_of_tail_prob
     (μ : Measure Ω) [IsProbabilityMeasure μ]
     (hμ : _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ μ)
     {A : Set Ω} (hA_tail : MeasurableSet[@tailSigmaAlgebra S E _] A)
     (hA0 : 0 < μ A) (hA1 : μ A < 1) :
     μ ∉ (G (γ := γ)).extremePoints ENNReal := by
-  let μA : Measure Ω := (ProbabilityTheory.cond μ A)
-  let μAc : Measure Ω := (ProbabilityTheory.cond μ Aᶜ)
-  have hA0' : μ A ≠ 0 := ne_of_gt hA0
+  classical
+  -- the kernels of `γ`, viewed on the ambient σ-algebra
+  let κ : Finset S → ProbabilityTheory.Kernel Ω Ω := fun Λ =>
+    ⟨⇑(γ Λ), (ProbabilityTheory.Kernel.measurable (γ Λ)).mono
+      (MeasureTheory.cylinderEvents_le_pi (X := fun _ : S ↦ E) (Δ := ((Λ : Set S)ᶜ))) le_rfl⟩
+  have : ∀ Λ, ProbabilityTheory.IsMarkovKernel (κ Λ) := fun Λ =>
+    ⟨fun a => (inferInstance : ProbabilityTheory.IsMarkovKernel (γ Λ)).isProbabilityMeasure a⟩
+  -- `G γ` is the set of invariant probability measures of the family `κ`
+  have hGeq : G (γ := γ) =
+      {ν : Measure Ω | IsProbabilityMeasure ν ∧
+        ∀ Λ, ProbabilityTheory.Kernel.Invariant (κ Λ) ν} := by
+    ext ν
+    constructor
+    · rintro ⟨hp, hg⟩
+      have := hp
+      exact ⟨hp, fun Λ =>
+        (_root_.Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ)).1 hg Λ⟩
+    · rintro ⟨hp, hinv⟩
+      have := hp
+      exact ⟨hp,
+        (_root_.Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ)).2
+          fun Λ => hinv Λ⟩
+  have hκinv : ∀ Λ, ProbabilityTheory.Kernel.Invariant (κ Λ) μ := fun Λ =>
+    (_root_.Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ)).1 hμ Λ
+  -- a tail event is pointwise, hence a.s., invariant for every `κ Λ`: properness
   have hA_meas : MeasurableSet A := measurableSet_of_measurableSet_tail (S := S) (E := E) hA_tail
-  have hAc0' : μ Aᶜ ≠ 0 := measure_compl_ne_zero_of_lt_one (μ := μ) hA_meas hA1
-  have hμA_prob : IsProbabilityMeasure μA :=
-    ProbabilityTheory.cond_isProbabilityMeasure hA0'
-  have hμAc_prob : IsProbabilityMeasure μAc :=
-    ProbabilityTheory.cond_isProbabilityMeasure hAc0'
-  have hμA_gibbs : _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ μA :=
-    isGibbsMeasure_cond_of_tail (γ := γ) (μ := μ) hμ (A := A) hA_tail hA0'
-  have hμAc_gibbs : _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ μAc := by
-    have hA_tail' : MeasurableSet[@tailSigmaAlgebra S E _] Aᶜ := by
-      simpa using (MeasurableSet.compl hA_tail)
-    exact isGibbsMeasure_cond_of_tail (γ := γ) (μ := μ) hμ (A := Aᶜ) hA_tail' hAc0'
-  have hμA_mem : μA ∈ G (γ := γ) := ⟨hμA_prob, hμA_gibbs⟩
-  have hμAc_mem : μAc ∈ G (γ := γ) := ⟨hμAc_prob, hμAc_gibbs⟩
-  have hμ_mem : μ ∈ G (γ := γ) := ⟨inferInstance, hμ⟩
-  have hsum : μ A + μ Aᶜ = 1 := prob_add_prob_compl (μ := μ) hA_meas
-  have hseg : μ ∈ openSegment ENNReal μA μAc := by
-    refine ⟨μ A, μ Aᶜ, hA0, ?_, hsum, ?_⟩
-    · have : μ Aᶜ ≠ 0 := hAc0'
-      exact pos_iff_ne_zero.2 this
-    · have hmulA : (μ A) • μA = μ.restrict A := by
-        simpa [μA] using ProbabilityTheory.measure_smul_cond hA0' (measure_ne_top _ _)
-      have hmulAc : (μ Aᶜ) • μAc = μ.restrict Aᶜ := by
-        simpa [μAc] using ProbabilityTheory.measure_smul_cond hAc0' (measure_ne_top _ _)
-      have : (μ A) • μA + (μ Aᶜ) • μAc = μ := by
-        simp [hmulA, hmulAc, Measure.restrict_add_restrict_compl hA_meas]
-      simp [this]
+  have hAinv : ∀ Λ, A ∈ ProbabilityTheory.Kernel.aeInvariantSets (κ Λ) μ := by
+    intro Λ
+    refine ⟨hA_meas, Filter.Eventually.of_forall fun ω => ?_⟩
+    have hAΛ : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) ((Λ : Set S)ᶜ)] A :=
+      measurableSet_cylinderEvents_compl_of_measurableSet_tail (S := S) (E := E) Λ hA_tail
+    have hproper := _root_.Specification.IsProper.inter_eq_indicator_mul (γ := γ) γ.isProper Λ
+      (A := Set.univ) (B := A) (η := ω) MeasurableSet.univ hAΛ
+    change γ Λ ω A = A.indicator 1 ω
+    simpa [Set.univ_inter, measure_univ] using hproper
   intro hext
-  rcases (mem_extremePoints_iff_left (𝕜 := ENNReal)
-      (A := G (γ := γ)) (x := μ)).1 hext with ⟨_hμ_in, hleft⟩
-  have hEq : μA = μ := hleft μA hμA_mem μAc hμAc_mem hseg
-  have hμA_A : μA A = 1 := by
-    simpa [μA] using ProbabilityTheory.cond_apply_self hA0' (measure_ne_top _ _)
-  have : μ A = 1 := by simpa [hEq] using hμA_A
-  exact (ne_of_lt hA1) this
+  rw [hGeq] at hext
+  rcases (ProbabilityTheory.Kernel.mem_extremePoints_iff_trivialOn hκinv).1 hext A
+      ((ProbabilityTheory.Kernel.measurableSet_aeInvariantSigmaAlgebraFamily_iff hκinv).2 hAinv)
+    with h0 | h1
+  · exact hA0.ne' h0
+  · exact hA1.ne h1
 
 /-- **Extreme** Gibbs probability measures are **tail-trivial** (Georgii Thm. 7.7, direction
 `extreme → tail-trivial`). -/
@@ -379,12 +392,8 @@ variable [Countable S]
 omit [MeasurableSpace E] [Countable S] in
 lemma measurable_iInf_iff {ι : Sort*} (m : ι → MeasurableSpace Ω) {X : Type*}
     [MeasurableSpace X] {f : Ω → X} :
-    Measurable[iInf m] f ↔ ∀ i, Measurable[m i] f := by
-  constructor
-  · intro hf i
-    exact hf.mono (iInf_le m i) le_rfl
-  · intro hf s hs
-    exact (MeasurableSpace.measurableSet_iInf (m := m) (s := f ⁻¹' s)).2 (fun i => (hf i) hs)
+    Measurable[iInf m] f ↔ ∀ i, Measurable[m i] f :=
+  measurable_iInf_iff_forall m
 
 lemma iInf_eq_iInf_ge_of_antitone {α : Type*} [CompleteLattice α] (h : ℕ → α)
     (hh : Antitone h) (N : ℕ) :
@@ -523,27 +532,12 @@ lemma tailSigmaAlgebra_eq_iInf_exhaustion :
       =
       ⨅ n : ℕ,
         cylinderEvents (X := fun _ : S ↦ E) (((exhaustionVolumes (S := S) n : Finset S) : Set S)ᶜ) := by
-  let m : Finset S → MeasurableSpace Ω :=
-    fun Λ => cylinderEvents (X := fun _ : S ↦ E) ((Λ : Set S)ᶜ)
-  have hle :
-      (⨅ Λ : Finset S, m Λ) ≤
-        (⨅ n : ℕ, m (exhaustionVolumes (S := S) n)) := by
-    refine le_iInf ?_
-    intro n
-    exact iInf_le (fun Λ : Finset S => m Λ) (exhaustionVolumes (S := S) n)
-  have hge :
-      (⨅ n : ℕ, m (exhaustionVolumes (S := S) n)) ≤
-        (⨅ Λ : Finset S, m Λ) := by
-    refine le_iInf ?_
-    intro Λ
-    rcases exhaustionVolumes_cofinal (S := S) (Λ := Λ) with ⟨n, hn⟩
-    have hcompl : (((exhaustionVolumes (S := S) n : Finset S) : Set S)ᶜ) ⊆ ((Λ : Set S)ᶜ) := by
-      intro x hx hxΛ
-      exact hx (hn hxΛ)
-    have hmmono : m (exhaustionVolumes (S := S) n) ≤ m Λ :=
-      MeasureTheory.cylinderEvents_mono (X := fun _ : S ↦ E) (h := hcompl)
-    exact (iInf_le (fun n : ℕ => m (exhaustionVolumes (S := S) n)) n).trans hmmono
-  simpa [tailSigmaAlgebra, m] using le_antisymm hle hge
+  refine iInf_eq_iInf_comp_of_cofinal
+    (m := fun Λ : Finset S => cylinderEvents (X := fun _ : S ↦ E) ((Λ : Set S)ᶜ))
+    (fun Λ₁ Λ₂ h => cylinderEvents_mono (X := fun _ : S ↦ E)
+      (compl_subset_compl.2 (Finset.coe_subset.2 h))) fun Λ => ?_
+  obtain ⟨n, hn⟩ := exhaustionVolumes_cofinal (S := S) Λ
+  exact ⟨n, hn⟩
 
 omit [Countable S] in
 lemma bind_eq_bind_trim (Λ : Finset S) (μ : Measure Ω) {A : Set Ω} (hA : MeasurableSet A) :

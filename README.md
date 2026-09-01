@@ -246,7 +246,9 @@ gives the Bernoulli instance with `interdep_gammaEx i j = 0`, `not_countable_gib
 `exists_not_countable_gibbsMeasures_of_tsum_interdep_lt_one`. Deleting quasilocality from (8.6)
 would therefore make (8.7) false. The criterion **(8.8)** —
 `sup_i ∑_{A ∋ i} (|A| − 1) δ(Φ_A) < 2` implies Dobrushin's condition, with Georgii's sharp
-constant 2 — and its instance for the Ising model, `isDobrushin_isingSpecification`
+constant 2, proved for a probability a-priori measure and an absolutely summable potential
+(Georgii assumes only λ-admissibility; see `formalization.yaml`) — and its instance for the
+Ising model, `isDobrushin_isingSpecification`
 (`GibbsMeasure/Specification/Dobrushin.lean`). Together with (6.9) this brackets the critical
 temperature of the two-dimensional Ising ferromagnet from both sides: uniqueness at high
 temperature, non-uniqueness at low temperature. Griffiths' monotonicity — the GKS inequalities

@@ -459,12 +459,16 @@ theorem r_le_of_ofReal_exp_le {b : ℝ}
 
 /-! ### M6: the plus phase -/
 
-/-- Translation covariance of the Peierls estimate: the estimate holds in every translate of a
-cube, by shift-invariance of the Ising specification. -/
-lemma isingSpecification_translate_eq_false_le (b : ℝ) (N : ℕ) (j a : Site) :
+/-- Translation covariance of the Peierls estimate, for any bound `ρ` dominating the cube
+estimate: the estimate holds in every translate of a cube, by shift-invariance of the Ising
+specification. -/
+lemma isingSpecification_translate_eq_false_le_of_cube {ρ : ℝ → ℝ≥0∞} {b : ℝ}
+    (hcube : ∀ (N : ℕ) (a : Site), isingSpecification (latticeGraph 2) 1 0 b (cube 2 N)
+      (fun _ ↦ true) {z : Site → Bool | z a = false} ≤ ρ b)
+    (N : ℕ) (j a : Site) :
     isingSpecification (latticeGraph 2) 1 0 b
         ((cube 2 N).map (Equiv.addRight j).toEmbedding) (fun _ ↦ true)
-      {z : Site → Bool | z a = false} ≤ r b := by
+      {z : Site → Bool | z a = false} ≤ ρ b := by
   have hinv := (Specification.isInvariant_iff.1
     (isInvariant_shift_isingSpecification 2 1 0 b j)) (cube 2 N) (fun _ ↦ true)
   have hconst : (shift Bool j).toFun (fun _ ↦ true) = (fun _ ↦ true) := by
@@ -482,35 +486,52 @@ lemma isingSpecification_translate_eq_false_le (b : ℝ) (N : ℕ) (j a : Site) 
     ext z
     simp only [Set.mem_preimage, Set.mem_ofPred_eq, shift_toFun_apply]
   rw [hpre]
-  exact isingSpecification_cube_eq_false_le b N (a - j)
+  exact hcube N (a - j)
+
+lemma isingSpecification_translate_eq_false_le (b : ℝ) (N : ℕ) (j a : Site) :
+    isingSpecification (latticeGraph 2) 1 0 b
+        ((cube 2 N).map (Equiv.addRight j).toEmbedding) (fun _ ↦ true)
+      {z : Site → Bool | z a = false} ≤ r b :=
+  isingSpecification_translate_eq_false_le_of_cube
+    (fun N a ↦ isingSpecification_cube_eq_false_le b N a) N j a
 
 /-- The Peierls estimate for the cube-averaged Gibbs distributions with the `+1` boundary
-condition (Georgii (6.9), the averaged sequence). -/
-lemma average_eq_false_le (b : ℝ) (N : ℕ) (a : Site) :
+condition (Georgii (6.9), the averaged sequence), for any bound dominating the cube estimate. -/
+lemma average_eq_false_le_of_cube {ρ : ℝ → ℝ≥0∞} {b : ℝ}
+    (hcube : ∀ (N : ℕ) (a : Site), isingSpecification (latticeGraph 2) 1 0 b (cube 2 N)
+      (fun _ ↦ true) {z : Site → Bool | z a = false} ≤ ρ b)
+    (N : ℕ) (a : Site) :
     (isingSpecification (latticeGraph 2) 1 0 b).average
         (Measure.dirac (fun _ ↦ true)) (cubeTranslates 2 N N)
-      {z : Site → Bool | z a = false} ≤ r b := by
+      {z : Site → Bool | z a = false} ≤ ρ b := by
   rw [Specification.average_apply]
   have hne : (cubeTranslates 2 N N).Nonempty := cubeTranslates_nonempty 2 N N
   have hterm : ∀ L ∈ cubeTranslates 2 N N,
       (Measure.dirac (fun _ ↦ true : Site → Bool)).bind
-        (isingSpecification (latticeGraph 2) 1 0 b L) {z : Site → Bool | z a = false} ≤ r b := by
+        (isingSpecification (latticeGraph 2) 1 0 b L) {z : Site → Bool | z a = false} ≤ ρ b := by
     intro L hL
     obtain ⟨i, -, rfl⟩ := Finset.mem_image.1 hL
     rw [Measure.dirac_bind
       ((isingSpecification (latticeGraph 2) 1 0 b).measurable_kernel_toMeasure _)]
-    exact isingSpecification_translate_eq_false_le b N i a
+    exact isingSpecification_translate_eq_false_le_of_cube hcube N i a
   calc ((cubeTranslates 2 N N).card : ℝ≥0∞)⁻¹ * ∑ L ∈ cubeTranslates 2 N N,
         (Measure.dirac (fun _ ↦ true : Site → Bool)).bind
           (isingSpecification (latticeGraph 2) 1 0 b L) {z : Site → Bool | z a = false}
-      ≤ ((cubeTranslates 2 N N).card : ℝ≥0∞)⁻¹ * ∑ _L ∈ cubeTranslates 2 N N, r b := by
+      ≤ ((cubeTranslates 2 N N).card : ℝ≥0∞)⁻¹ * ∑ _L ∈ cubeTranslates 2 N N, ρ b := by
         gcongr with L hL
         exact hterm L hL
-    _ = ((cubeTranslates 2 N N).card : ℝ≥0∞)⁻¹ * (((cubeTranslates 2 N N).card : ℝ≥0∞) * r b) := by
+    _ = ((cubeTranslates 2 N N).card : ℝ≥0∞)⁻¹ * (((cubeTranslates 2 N N).card : ℝ≥0∞) * ρ b) := by
         rw [Finset.sum_const, nsmul_eq_mul]
-    _ = r b := by
+    _ = ρ b := by
         rw [← mul_assoc, ENNReal.inv_mul_cancel (by exact_mod_cast hne.card_pos.ne')
           (ENNReal.natCast_ne_top _), one_mul]
+
+
+lemma average_eq_false_le (b : ℝ) (N : ℕ) (a : Site) :
+    (isingSpecification (latticeGraph 2) 1 0 b).average
+        (Measure.dirac (fun _ ↦ true)) (cubeTranslates 2 N N)
+      {z : Site → Bool | z a = false} ≤ r b :=
+  average_eq_false_le_of_cube (fun N a ↦ isingSpecification_cube_eq_false_le b N a) N a
 
 /-- Evaluation at a local event is continuous for the topology of local convergence. -/
 lemma continuous_eval_localEvent {A : Set (Site → Bool)} (hA : A ∈ localEvents Site Bool) :
@@ -550,13 +571,15 @@ lemma le_of_mapClusterPt {A : Set (Site → Bool)} (hA : A ∈ localEvents Site 
   rw [hclosed.closure_eq] at hmem
   exact hmem
 
-/-- **Georgii (6.9), the plus phase**: a shift-invariant Gibbs measure with `μ(σ_a = -1) ≤ r(β)`
-for every site `a`. -/
-theorem exists_plus_phase (b : ℝ) :
+/-- **Georgii (6.9), the plus phase**, for any bound `ρ` dominating the cube estimate: a
+shift-invariant Gibbs measure with `μ(σ_a = -1) ≤ ρ(β)` for every site `a`. -/
+theorem exists_plus_phase_of_cube {ρ : ℝ → ℝ≥0∞} {b : ℝ}
+    (hcube : ∀ (N : ℕ) (a : Site), isingSpecification (latticeGraph 2) 1 0 b (cube 2 N)
+      (fun _ ↦ true) {z : Site → Bool | z a = false} ≤ ρ b) :
     ∃ m : ProbabilityMeasure (Site → Bool),
       m ∈ GP (S := Fin 2 → ℤ) (E := Bool) (isingSpecification (latticeGraph 2) 1 0 b) ∧
       (∀ j : Site, MeasurePreserving (shift Bool j).toFun (m : Measure (Site → Bool)) m) ∧
-      ∀ a : Site, (m : Measure (Site → Bool)) {z : Site → Bool | z a = false} ≤ r b := by
+      ∀ a : Site, (m : Measure (Site → Bool)) {z : Site → Bool | z a = false} ≤ ρ b := by
   set ms : ℕ → ProbabilityMeasure (Site → Bool) := fun N ↦
     ⟨(isingSpecification (latticeGraph 2) 1 0 b).average
         (Measure.dirac fun _ ↦ true) (cubeTranslates 2 N N),
@@ -570,7 +593,17 @@ theorem exists_plus_phase (b : ℝ) :
       (Potential.isQuasilocal_gibbsSpecificationOfAbsolutelySummable uniformSpinMeasure b)
       (isInvariant_shift_isingSpecification 2 1 0 b) true (μs := ms) (fun N ↦ rfl) hm
   refine ⟨m.toMeasure, hGP, hshift, fun a ↦ ?_⟩
-  exact le_of_mapClusterPt (spin_eq_false_mem_localEvents a) hm (fun N ↦ average_eq_false_le b N a)
+  exact le_of_mapClusterPt (spin_eq_false_mem_localEvents a) hm
+    (fun N ↦ average_eq_false_le_of_cube hcube N a)
+
+/-- **Georgii (6.9), the plus phase**: a shift-invariant Gibbs measure with `μ(σ_a = -1) ≤ r(β)`
+for every site `a`. -/
+theorem exists_plus_phase (b : ℝ) :
+    ∃ m : ProbabilityMeasure (Site → Bool),
+      m ∈ GP (S := Fin 2 → ℤ) (E := Bool) (isingSpecification (latticeGraph 2) 1 0 b) ∧
+      (∀ j : Site, MeasurePreserving (shift Bool j).toFun (m : Measure (Site → Bool)) m) ∧
+      ∀ a : Site, (m : Measure (Site → Bool)) {z : Site → Bool | z a = false} ≤ r b :=
+  exists_plus_phase_of_cube fun N a ↦ isingSpecification_cube_eq_false_le b N a
 
 /-! ### M7: the spin flip -/
 
@@ -676,11 +709,11 @@ theorem r_le_quarter {b : ℝ} (hb : 8 * Real.log 2 ≤ b) : r b ≤ 4⁻¹ := b
           ENNReal.mul_inv (by norm_num) (by norm_num), ← mul_assoc,
           ENNReal.mul_inv_cancel (by norm_num) (by norm_num), one_mul]
 
-/-- **Georgii Theorem (6.9), the "in particular" part.** For all sufficiently large `β` the
-two-dimensional Ising ferromagnet with coupling `1` and no external field has two distinct
-shift-invariant Gibbs measures `μ₋ = τ(μ₊)`, exchanged by the spin flip, with
-`μ₊(σ₀ = -1) < 1/2 < μ₋(σ₀ = -1)`: spontaneous magnetisation. -/
-theorem exists_two_shiftInvariant_gibbs (b : ℝ) (hb : 8 * Real.log 2 ≤ b) :
+/-- The two-phase theorem for any bound dominating the cube estimate and `≤ 4⁻¹` at `b`. -/
+theorem exists_two_shiftInvariant_gibbs_of_cube {ρ : ℝ → ℝ≥0∞} {b : ℝ}
+    (hcube : ∀ (N : ℕ) (a : Site), isingSpecification (latticeGraph 2) 1 0 b (cube 2 N)
+      (fun _ ↦ true) {z : Site → Bool | z a = false} ≤ ρ b)
+    (hquarter : ρ b ≤ 4⁻¹) :
     ∃ mp mm : ProbabilityMeasure (Site → Bool),
       mp ≠ mm ∧
       mp ∈ GP (S := Fin 2 → ℤ) (E := Bool) (isingSpecification (latticeGraph 2) 1 0 b) ∧
@@ -691,7 +724,7 @@ theorem exists_two_shiftInvariant_gibbs (b : ℝ) (hb : 8 * Real.log 2 ≤ b) :
       (mp : Measure (Site → Bool)) {z : Site → Bool | z 0 = false} < 2⁻¹ ∧
       2⁻¹ < (mm : Measure (Site → Bool)) {z : Site → Bool | z 0 = false} ∧
       2⁻¹ < (mp : Measure (Site → Bool)) {z : Site → Bool | z 0 = true} := by
-  obtain ⟨mp, hGP, hshift, hbound⟩ := exists_plus_phase b
+  obtain ⟨mp, hGP, hshift, hbound⟩ := exists_plus_phase_of_cube hcube
   set mm : ProbabilityMeasure (Site → Bool) :=
     mp.map spinFlip.measurable_toFun.aemeasurable with hmmdef
   have hmmshift : ∀ j : Site,
@@ -725,7 +758,7 @@ theorem exists_two_shiftInvariant_gibbs (b : ℝ) (hb : 8 * Real.log 2 ≤ b) :
     rw [hcompl, measure_add_measure_compl hmeasF]
     simp
   have hle : (mp : Measure (Site → Bool)) {z : Site → Bool | z 0 = false} ≤ 4⁻¹ :=
-    le_trans (hbound 0) (r_le_quarter hb)
+    le_trans (hbound 0) hquarter
   have hlt : (mp : Measure (Site → Bool)) {z : Site → Bool | z 0 = false} < 2⁻¹ :=
     lt_of_le_of_lt hle (by norm_num)
   have hgt : 2⁻¹ < (mp : Measure (Site → Bool)) {z : Site → Bool | z 0 = true} := by
@@ -748,6 +781,24 @@ theorem exists_two_shiftInvariant_gibbs (b : ℝ) (hb : 8 * Real.log 2 ≤ b) :
     exact absurd hlt (not_lt.2 (le_of_lt hgt'))
   exact ⟨mp, mm, hne, hGP, (isInvariant_spinFlip b).map_mem_GP hGP, hshift, hmmshift,
     hmmdef ▸ ProbabilityMeasure.toMeasure_map _ _, hlt, hgt', hgt⟩
+
+/-- **Georgii Theorem (6.9), the "in particular" part.** For all sufficiently large `β` the
+two-dimensional Ising ferromagnet with coupling `1` and no external field has two distinct
+shift-invariant Gibbs measures `μ₋ = τ(μ₊)`, exchanged by the spin flip, with
+`μ₊(σ₀ = -1) < 1/2 < μ₋(σ₀ = -1)`: spontaneous magnetisation. -/
+theorem exists_two_shiftInvariant_gibbs (b : ℝ) (hb : 8 * Real.log 2 ≤ b) :
+    ∃ mp mm : ProbabilityMeasure (Site → Bool),
+      mp ≠ mm ∧
+      mp ∈ GP (S := Fin 2 → ℤ) (E := Bool) (isingSpecification (latticeGraph 2) 1 0 b) ∧
+      mm ∈ GP (S := Fin 2 → ℤ) (E := Bool) (isingSpecification (latticeGraph 2) 1 0 b) ∧
+      (∀ j : Site, MeasurePreserving (shift Bool j).toFun (mp : Measure (Site → Bool)) mp) ∧
+      (∀ j : Site, MeasurePreserving (shift Bool j).toFun (mm : Measure (Site → Bool)) mm) ∧
+      (mm : Measure (Site → Bool)) = Measure.map spinFlip.toFun (mp : Measure (Site → Bool)) ∧
+      (mp : Measure (Site → Bool)) {z : Site → Bool | z 0 = false} < 2⁻¹ ∧
+      2⁻¹ < (mm : Measure (Site → Bool)) {z : Site → Bool | z 0 = false} ∧
+      2⁻¹ < (mp : Measure (Site → Bool)) {z : Site → Bool | z 0 = true} :=
+  exists_two_shiftInvariant_gibbs_of_cube
+    (fun N a ↦ isingSpecification_cube_eq_false_le b N a) (r_le_quarter hb)
 
 /-- **Georgii Theorem (6.9)**, the "in particular" half, in the book's `for sufficiently large
 `β`` form; `exists_two_shiftInvariant_gibbs` gives the explicit threshold `8 log 2`. -/

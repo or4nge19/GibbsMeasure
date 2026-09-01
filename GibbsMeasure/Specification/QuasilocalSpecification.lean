@@ -7,30 +7,16 @@ module
 
 public import GibbsMeasure.Prereqs.Kernel.Feller
 public import GibbsMeasure.Specification
-public import GibbsMeasure.Specification.Quasilocal
 public import Mathlib.Topology.Continuous
 
 /-!
-# Continuous/Feller quasilocal specifications
+# Feller specifications
 
-This file links the *functional-analytic* notion of quasilocal observables to specifications.
-
-Assuming a specification `γ` has **Feller** kernels (in the sense of
-`ProbabilityTheory.Kernel.IsFeller`), we can define the induced action on bounded continuous
-observables, `f ↦ (η ↦ ∫ x, f x ∂(γ Λ η))`; the kernels are Markov because `Specification`
-bundles Markovness.
-
-A specification is **Feller-quasilocal** if this action preserves the submodule of continuous
-Feller-quasilocal observables (uniform closure of bounded continuous cylinder observables).
-
-Georgii's actual Definition (2.23) is `Specification.IsQuasilocal`, formalised without any topology
-in `GibbsMeasure/Specification/Quasilocality.lean` on top of the bounded local measurable functions
-and their uniform closure (`GibbsMeasure/Specification/QuasilocalAlgebra.lean`). The predicate
-defined here is its continuous/Feller analogue, restricted to bounded continuous observables: a
-convenience interface for weak-topology arguments, not a substitute for Georgii's notion.
-
-Dense check: it suffices to verify quasilocality on cylinder observables, since the action is
-continuous in the sup-norm.
+`Specification.IsFeller`: a specification whose kernels are all Feller
+(`ProbabilityTheory.Kernel.IsFeller`), the hypothesis under which weak-convergence existence
+arguments run (`Specification/Existence.lean`). The induced action on bounded continuous
+observables is the kernel-level `ProbabilityTheory.Kernel.continuousAction` of
+`Prereqs/Kernel/Feller.lean`; this file adds nothing beyond the class.
 -/
 
 @[expose] public section
@@ -62,101 +48,5 @@ instance (γ : Specification S E) [γ.IsFeller] (Λ : Finset S) :
 
 end IsFeller
 
-section Action
-
-variable (γ : Specification S E)
-variable [γ.IsFeller]
-
-/-- The (Feller) action of `γ(Λ)` on bounded continuous observables. -/
-noncomputable def continuousAction (Λ : Finset S) : Obs → Obs :=
-  fun f => ProbabilityTheory.Kernel.continuousAction (κ := γ Λ) f
-
-omit [OpensMeasurableSpace (S → E)] in
-@[simp] lemma continuousAction_apply (Λ : Finset S) (f : Obs) (η : S → E) :
-    continuousAction γ Λ f η = ∫ x, f x ∂(γ Λ η) := by
-  simp [continuousAction]
-
-/-- The action operator as a continuous linear map on observables. -/
-noncomputable def continuousActionCLM (Λ : Finset S) : Obs →L[ℝ] Obs :=
-  ProbabilityTheory.Kernel.continuousActionCLM (κ := γ Λ)
-
-@[simp] lemma continuousActionCLM_apply (Λ : Finset S) (f : Obs) :
-    continuousActionCLM γ Λ f = continuousAction γ Λ f :=
-  rfl
-
-lemma continuous_continuousAction (Λ : Finset S) :
-    Continuous (continuousAction γ Λ : Obs → Obs) :=
-  (continuousActionCLM γ Λ).continuous
-
-end Action
-
-/-! ### Continuous/Feller quasilocality -/
-
-section Quasilocal
-
-variable (γ : Specification S E)
-variable [γ.IsFeller]
-
-open BoundedContinuousFunction
-
-/-- A specification is **Feller-quasilocal** if its Feller action preserves continuous
-Feller-quasilocal observables. -/
-def IsFellerQuasilocal : Prop :=
-  ∀ (Λ : Finset S) (f : Obs),
-    f ∈ fellerQuasilocalFunctions (S := S) (E := E) (F := ℝ) →
-      continuousAction γ Λ f ∈ fellerQuasilocalFunctions (S := S) (E := E) (F := ℝ)
-
-/-- Dense-check version: it suffices to verify Feller-quasilocality on cylinder observables. -/
-def IsFellerQuasilocalOnCylinder : Prop :=
-  ∀ (Λ : Finset S) (f : Obs),
-    f ∈ cylinderFunctions (S := S) (E := E) (F := ℝ) →
-      continuousAction γ Λ f ∈ fellerQuasilocalFunctions (S := S) (E := E) (F := ℝ)
-
-lemma IsFellerQuasilocal.of_onCylinder
-    (h : IsFellerQuasilocalOnCylinder γ) : IsFellerQuasilocal γ := by
-  intro Λ f hf
-  have hf' : f ∈ closure (cylinderFunctions (S := S) (E := E) (F := ℝ) : Set Obs) := by
-    have hmem : f ∈ ((cylinderFunctions (S := S) (E := E) (F := ℝ)).topologicalClosure : Set Obs) :=
-      hf
-    rwa [Submodule.topologicalClosure_coe] at hmem
-  have h_cont : Continuous (continuousAction γ Λ : Obs → Obs) :=
-    continuous_continuousAction γ Λ
-  have himage :
-      continuousAction γ Λ f ∈
-        closure
-          ((continuousAction γ Λ) ''
-            (cylinderFunctions (S := S) (E := E) (F := ℝ) : Set Obs)) :=
-    by
-      let s : Set Obs := (cylinderFunctions (S := S) (E := E) (F := ℝ) : Set Obs)
-      have hx : continuousAction γ Λ f ∈ (continuousAction γ Λ) '' closure s :=
-        ⟨f, hf', rfl⟩
-      exact (image_closure_subset_closure_image h_cont (s := s)) hx
-  have hsubset :
-      (continuousAction γ Λ) '' (cylinderFunctions (S := S) (E := E) (F := ℝ) : Set Obs) ⊆
-        (fellerQuasilocalFunctions (S := S) (E := E) (F := ℝ) : Set Obs) := by
-    intro g hg
-    rcases hg with ⟨f0, hf0, rfl⟩
-    exact h Λ f0 hf0
-  have hclosed :
-      IsClosed (fellerQuasilocalFunctions (S := S) (E := E) (F := ℝ) : Set Obs) :=
-    Submodule.isClosed_topologicalClosure _
-  have :
-      continuousAction γ Λ f ∈
-        closure (fellerQuasilocalFunctions (S := S) (E := E) (F := ℝ) : Set Obs) :=
-    closure_mono hsubset himage
-  rwa [hclosed.closure_eq] at this
-
-lemma IsFellerQuasilocal_iff_onCylinder :
-    IsFellerQuasilocal γ ↔ IsFellerQuasilocalOnCylinder γ := by
-  constructor
-  · intro h Λ f hf
-    -- Cylinder observables are Feller-quasilocal by definition.
-    have hf' : f ∈ fellerQuasilocalFunctions (S := S) (E := E) (F := ℝ) :=
-      cylinderFunctions_le_fellerQuasilocalFunctions (S := S) (E := E) (F := ℝ) hf
-    exact h Λ f hf'
-  · intro h
-    exact IsFellerQuasilocal.of_onCylinder γ h
-
-end Quasilocal
 
 end Specification

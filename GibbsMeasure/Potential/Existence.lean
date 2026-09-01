@@ -24,8 +24,11 @@ case, Georgii Comment (4.14)(1), derived here from the general net Theorem (4.12
 machinery of §4.2, and quasilocality (Example (2.25)).
 
 The file also hosts the Gibbsian (Hamiltonian) form of Georgii Corollary (4.13),
-`locallyEquicontinuous_of_confinement_hamiltonian`, via the density estimate
-`premodifierNorm_le_of_abs_hamiltonian_le` (Georgii's `e^{2c(ℓ)} λ(K_ℓ)^{-|Λ|}`).
+`locallyEquicontinuous_of_confinement_hamiltonian`, stated as in Georgii for a net of
+admissible potentials (summable with finite nonzero partition functions, not necessarily
+absolutely summable), via the density estimate `premodifierNorm_le_of_abs_hamiltonian_le`
+(Georgii's `e^{2c(ℓ)} λ(K_ℓ)^{-|Λ|}`); the `Φ ∈ ℬ` case is
+`locallyEquicontinuous_of_confinement_hamiltonian_of_absolutelySummable`.
 -/
 
 @[expose] public section
@@ -258,11 +261,55 @@ lemma premodifierNorm_le_of_abs_hamiltonian_le
   rw [Specification.premodifierNorm]
   exact ENNReal.div_le_div hnum hZ
 
-/-- **Georgii Corollary (4.13).** If `0 < ν (K ℓ)`, the mass escaping `K ℓ` at each site
+/-- **Georgii Corollary (4.13).** Let `Φᵃ` be a net of `ν`-admissible potentials (summable, with
+finite nonzero partition functions — Georgii's condition (2.7), here
+`Specification.IsPremodifierAdmissible`). If `0 < ν (K ℓ)`, the mass escaping `K ℓ` at each site
 vanishes along the net, and the Hamiltonians are eventually bounded on each confinement box,
 then the finite-volume Gibbs distributions of the potentials `Φᵃ` are locally
 equicontinuous. -/
 theorem locallyEquicontinuous_of_confinement_hamiltonian
+    {S E : Type*} [Countable S] [MeasurableSpace E] {ι : Type*} {l : Filter ι}
+    (Φs : ι → Potential S E) [∀ a, IsPotential (Φs a)] [∀ a, IsSummable (Φs a)]
+    (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ)
+    (hadm : ∀ a, Specification.IsPremodifierAdmissible (S := S) (E := E) ν
+      ((Φs a).boltzmannFactor β))
+    (Λs : ι → Finset S) (hΛs : Tendsto Λs l atTop)
+    (νs μs : ι → ProbabilityMeasure (S → E))
+    (hμs : ∀ a, μs a
+      = ((Specification.isssd (S := S) (E := E) ν).modification
+          (Specification.premodifierNorm (S := S) (E := E) ν ((Φs a).boltzmannFactor β))
+          (Specification.IsPremodifier.isModifier_premodifierNorm (ν := ν)
+            (isPremodifier_boltzmannFactor (Φ := Φs a) β) (hadm a))).bindPM (Λs a) (νs a))
+    (K : ℕ → Set E) (hK : ∀ ℓ, MeasurableSet (K ℓ))
+    (hKpos : ∀ ℓ, 0 < ν (K ℓ))
+    (hii : ∀ i : S, Tendsto
+      (fun ℓ ↦ limsup (fun a ↦ (μs a : Measure (S → E)) {ω | ω i ∉ K ℓ}) l) atTop (𝓝 0))
+    (hiii : ∀ Λ : Finset S, ∃ Δ : Finset S, Λ ⊆ Δ ∧ ∀ ℓ : ℕ, ∃ c : ℝ,
+      ∀ᶠ a in l, ∀ ω ∈ {x : S → E | ∀ i ∈ Δ, x i ∈ K ℓ},
+        |(Φs a).hamiltonian Λ ω| ≤ c) :
+    LocallyEquicontinuous l μs := by
+  refine locallyEquicontinuous_of_confinement (Specification.hasFreeMeasure_isssd ν)
+    (fun a ↦ Specification.premodifierNorm (S := S) (E := E) ν ((Φs a).boltzmannFactor β))
+    (fun a ↦ Specification.IsPremodifier.isModifier_premodifierNorm (ν := ν)
+      (isPremodifier_boltzmannFactor (Φ := Φs a) β) (hadm a))
+    Λs hΛs νs μs hμs K hK hii ?_
+  intro Λ
+  obtain ⟨Δ, hΛΔ, hΔ⟩ := hiii Λ
+  refine ⟨Δ, hΛΔ, fun ℓ ↦ ?_⟩
+  obtain ⟨c, hc⟩ := hΔ ℓ
+  refine ⟨ENNReal.ofReal (Real.exp (|β| * c))
+      / (ENNReal.ofReal (Real.exp (-(|β| * c))) * ν (K ℓ) ^ Λ.card), ?_, ?_⟩
+  · exact ENNReal.div_ne_top ENNReal.ofReal_ne_top
+      (mul_ne_zero (ENNReal.ofReal_pos.2 (Real.exp_pos _)).ne'
+        (pow_ne_zero _ (hKpos ℓ).ne'))
+  · filter_upwards [hc] with a ha
+    intro ω hω
+    exact premodifierNorm_le_of_abs_hamiltonian_le (Φs a) ν β hΛΔ (hK ℓ) ha hω
+
+/-- Georgii Corollary (4.13) for a net of absolutely summable potentials: `Φ ∈ ℬ` is
+`ν`-admissible, so this is the special case of
+`locallyEquicontinuous_of_confinement_hamiltonian`. -/
+theorem locallyEquicontinuous_of_confinement_hamiltonian_of_absolutelySummable
     {S E : Type*} [Countable S] [MeasurableSpace E] {ι : Type*} {l : Filter ι}
     (Φs : ι → Potential S E) [∀ a, IsPotential (Φs a)] [∀ a, IsAbsolutelySummable (Φs a)]
     (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ)
@@ -277,24 +324,9 @@ theorem locallyEquicontinuous_of_confinement_hamiltonian
     (hiii : ∀ Λ : Finset S, ∃ Δ : Finset S, Λ ⊆ Δ ∧ ∀ ℓ : ℕ, ∃ c : ℝ,
       ∀ᶠ a in l, ∀ ω ∈ {x : S → E | ∀ i ∈ Δ, x i ∈ K ℓ},
         |(Φs a).hamiltonian Λ ω| ≤ c) :
-    LocallyEquicontinuous l μs := by
-  refine locallyEquicontinuous_of_confinement (Specification.hasFreeMeasure_isssd ν)
-    (fun a ↦ Specification.premodifierNorm (S := S) (E := E) ν ((Φs a).boltzmannFactor β))
-    (fun a ↦ Specification.IsPremodifier.isModifier_premodifierNorm (ν := ν)
-      (isPremodifier_boltzmannFactor (Φ := Φs a) β)
-      (isPremodifierAdmissible_boltzmannFactor (Φ := Φs a) ν β))
-    Λs hΛs νs μs (fun a ↦ (hμs a).trans rfl) K hK hii ?_
-  intro Λ
-  obtain ⟨Δ, hΛΔ, hΔ⟩ := hiii Λ
-  refine ⟨Δ, hΛΔ, fun ℓ ↦ ?_⟩
-  obtain ⟨c, hc⟩ := hΔ ℓ
-  refine ⟨ENNReal.ofReal (Real.exp (|β| * c))
-      / (ENNReal.ofReal (Real.exp (-(|β| * c))) * ν (K ℓ) ^ Λ.card), ?_, ?_⟩
-  · exact ENNReal.div_ne_top ENNReal.ofReal_ne_top
-      (mul_ne_zero (ENNReal.ofReal_pos.2 (Real.exp_pos _)).ne'
-        (pow_ne_zero _ (hKpos ℓ).ne'))
-  · filter_upwards [hc] with a ha
-    intro ω hω
-    exact premodifierNorm_le_of_abs_hamiltonian_le (Φs a) ν β hΛΔ (hK ℓ) ha hω
+    LocallyEquicontinuous l μs :=
+  locallyEquicontinuous_of_confinement_hamiltonian Φs ν β
+    (fun a ↦ isPremodifierAdmissible_boltzmannFactor (Φ := Φs a) ν β)
+    Λs hΛs νs μs hμs K hK hKpos hii hiii
 
 end Potential

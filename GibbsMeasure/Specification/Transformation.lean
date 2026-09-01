@@ -98,7 +98,7 @@ lemma map_apply_image (τ : Transformation S E) (γ : Specification S E) (Λ : F
     (ω : S → E) {A : Set (S → E)} (hA : MeasurableSet A) :
     (γ.map τ) (Λ.map τ.sites.toEmbedding) (τ.toFun ω) (τ.toFun '' A) = γ Λ ω A := by
   have hA' : MeasurableSet (τ.toFun '' A) := τ.toMeasurableEquiv.measurableSet_image.2 hA
-  rw [map_apply' _ _ _ _ hA', Finset.map_symm_toEmbedding_map_toEmbedding, τ.inv_toFun_toFun,
+  rw [map_apply' _ _ _ _ hA', Finset.map_symm_map, τ.inv_toFun_toFun,
     (Function.LeftInverse.injective τ.inv_toFun_toFun).preimage_image]
 
 /-- **Georgii (5.5).** `(τ(γ)_{τ_* Λ} f) ∘ τ = γ_Λ (f ∘ τ)` for the Lebesgue integral. -/
@@ -106,7 +106,7 @@ lemma lintegral_map_comp (τ : Transformation S E) (γ : Specification S E) (Λ 
     (ω : S → E) (f : (S → E) → ℝ≥0∞) :
     ∫⁻ x, f x ∂(γ.map τ) (Λ.map τ.sites.toEmbedding) (τ.toFun ω) =
       ∫⁻ x, f (τ.toFun x) ∂γ Λ ω := by
-  rw [map_apply, Finset.map_symm_toEmbedding_map_toEmbedding, τ.inv_toFun_toFun]
+  rw [map_apply, Finset.map_symm_map, τ.inv_toFun_toFun]
   exact lintegral_map_equiv f τ.toMeasurableEquiv
 
 /-- **Georgii (5.5)**, Bochner form: `(τ(γ)_{τ_* Λ} f) ∘ τ = γ_Λ (f ∘ τ)`. -/
@@ -114,7 +114,7 @@ lemma integral_map_comp {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
     (τ : Transformation S E) (γ : Specification S E) (Λ : Finset S) (ω : S → E)
     (f : (S → E) → F) :
     ∫ x, f x ∂(γ.map τ) (Λ.map τ.sites.toEmbedding) (τ.toFun ω) = ∫ x, f (τ.toFun x) ∂γ Λ ω := by
-  rw [map_apply, Finset.map_symm_toEmbedding_map_toEmbedding, τ.inv_toFun_toFun]
+  rw [map_apply, Finset.map_symm_map, τ.inv_toFun_toFun]
   exact integral_map_equiv τ.toMeasurableEquiv f
 
 lemma map_id (γ : Specification S E) : γ.map Transformation.id = γ := by
@@ -149,10 +149,10 @@ lemma isInvariant_iff {τ : Transformation S E} {γ : Specification S E} :
   · intro h Λ ω
     have h' : γ.map τ = γ := h
     have := DFunLike.congr_fun (DFunLike.congr_fun h' (Λ.map τ.sites.toEmbedding)) (τ.toFun ω)
-    rwa [map_apply, Finset.map_symm_toEmbedding_map_toEmbedding, τ.inv_toFun_toFun] at this
+    rwa [map_apply, Finset.map_symm_map, τ.inv_toFun_toFun] at this
   · intro h
     refine Specification.ext fun Λ ↦ Kernel.ext fun ω ↦ ?_
-    rw [map_apply, h, Finset.map_toEmbedding_map_symm_toEmbedding, τ.toFun_inv_toFun]
+    rw [map_apply, h, Finset.map_map_symm, τ.toFun_inv_toFun]
 
 /-- **Georgii (5.10).** If `μ ∈ 𝒢(γ)` then `τ(μ) ∈ 𝒢(τ(γ))`. -/
 theorem map_mem_GP {γ : Specification S E} (τ : Transformation S E)

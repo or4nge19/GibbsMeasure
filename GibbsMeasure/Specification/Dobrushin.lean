@@ -1172,7 +1172,7 @@ variable [Countable S] {Φ : Potential S E} [Potential.IsPotential Φ]
 /-- **Georgii, Proposition (8.8).** If `sup_i |β| ∑_{A ∋ i} (|A| − 1) δ(Φ_A) < 2`, the Gibbsian
 specification of `βΦ` satisfies Dobrushin's condition of weak dependence — *both* conjuncts of
 (8.6). Quasilocality is the first step of Georgii's proof of (8.8) and is discharged here by
-`Potential.isQuasilocal_gibbsSpecificationOfAbsolutelySummable` (Georgii Example (2.25)(ii), the
+`Potential.isQuasilocal_gibbsSpecificationOfAbsolutelySummable` (Georgii Example (2.25), the
 instance of Proposition (2.24)(b) at the quasilocal Hamiltonians of an absolutely summable
 potential); the bound on `c(γ^Φ)` is the rest.
 

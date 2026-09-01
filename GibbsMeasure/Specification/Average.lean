@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Mathlib.MeasureTheory.Measure.UniformAverage
 public import GibbsMeasure.Specification.InvariantFields
 public import GibbsMeasure.Specification.Transformation
 
@@ -29,36 +30,29 @@ namespace Specification
 variable {S E : Type*} [MeasurableSpace E]
 
 /-- **Georgii (5.18).** The average `|R|⁻¹ ∑_{Λ ∈ R} ν γ_Λ` of the finite-volume Gibbs
-distributions of `ν` over a finite family `R` of volumes. -/
-def average (γ : Specification S E) (ν : Measure (S → E)) (R : Finset (Finset S)) :
+distributions of `ν` over a finite family `R` of volumes: `MeasureTheory.uniformAverage` of the
+family `Λ ↦ ν γ_Λ`. -/
+abbrev average (γ : Specification S E) (ν : Measure (S → E)) (R : Finset (Finset S)) :
     Measure (S → E) :=
-  (R.card : ℝ≥0∞)⁻¹ • ∑ Λ ∈ R, ν.bind (γ Λ)
+  MeasureTheory.uniformAverage (fun Λ ↦ ν.bind (γ Λ)) R
 
 lemma average_apply (γ : Specification S E) (ν : Measure (S → E)) (R : Finset (Finset S))
     (A : Set (S → E)) :
-    γ.average ν R A = (R.card : ℝ≥0∞)⁻¹ * ∑ Λ ∈ R, ν.bind (γ Λ) A := by
-  simp only [average, Measure.smul_apply, Measure.finsetSum_apply, smul_eq_mul]
+    γ.average ν R A = (R.card : ℝ≥0∞)⁻¹ * ∑ Λ ∈ R, ν.bind (γ Λ) A :=
+  MeasureTheory.uniformAverage_apply _ R A
 
 /-- The average of Georgii (5.18) over a nonempty family is a probability measure. -/
 lemma isProbabilityMeasure_average (γ : Specification S E) (ν : Measure (S → E))
     [IsProbabilityMeasure ν] {R : Finset (Finset S)} (hR : R.Nonempty) :
-    IsProbabilityMeasure (γ.average ν R) := by
-  constructor
-  rw [average_apply]
-  have h : ∀ Λ ∈ R, ν.bind (γ Λ) univ = 1 := fun Λ _ ↦
-    (γ.isProbabilityMeasure_bind Λ ν).measure_univ
-  rw [Finset.sum_congr rfl h, Finset.sum_const, nsmul_eq_mul, mul_one]
-  exact ENNReal.inv_mul_cancel (by exact_mod_cast hR.card_pos.ne') (ENNReal.natCast_ne_top _)
+    IsProbabilityMeasure (γ.average ν R) :=
+  MeasureTheory.isProbabilityMeasure_uniformAverage _
+    (fun Λ ↦ γ.isProbabilityMeasure_bind Λ ν) hR
 
 /-- Real-valued form of `Specification.average_apply`. -/
 lemma average_real_apply (γ : Specification S E) (ν : Measure (S → E))
     [IsProbabilityMeasure ν] (R : Finset (Finset S)) (A : Set (S → E)) :
-    (γ.average ν R).real A = (R.card : ℝ)⁻¹ * ∑ Λ ∈ R, (ν.bind (γ Λ)).real A := by
-  rw [measureReal_def, average_apply, ENNReal.toReal_mul, ENNReal.toReal_inv,
-    ENNReal.toReal_natCast, ENNReal.toReal_sum fun Λ _ ↦ by
-      have := γ.isProbabilityMeasure_bind Λ ν
-      exact measure_ne_top _ _]
-  simp only [measureReal_def]
+    (γ.average ν R).real A = (R.card : ℝ)⁻¹ * ∑ Λ ∈ R, (ν.bind (γ Λ)).real A :=
+  MeasureTheory.uniformAverage_real_apply _ (fun Λ ↦ γ.isProbabilityMeasure_bind Λ ν) R A
 
 /-! ### Georgii (5.18): transport of averages under symmetries -/
 
@@ -77,7 +71,7 @@ lemma map_average {τ : Transformation S E} (hγ : IsInvariant τ γ)
     have h : (fun ω ↦ (γ Λ ω).map τ.toFun) = ⇑(γ (Λ.map τ.sites.toEmbedding)) ∘ τ.toFun :=
       funext fun ω ↦ isInvariant_iff.1 hγ Λ ω
     rw [h, ← Measure.bind_map τ.measurable_toFun (γ.measurable_kernel_toMeasure _), hν.map_eq]
-  unfold average
+  unfold average MeasureTheory.uniformAverage
   rw [Measure.map_smul, Measure.map_finset_sum τ.measurable_toFun.aemeasurable, Finset.card_map,
     Finset.sum_map]
   congr 1
@@ -94,65 +88,25 @@ most `|R ∆ R'| / |R| + | |R'| / |R| - 1 |`. -/
 lemma abs_average_real_sub_le [IsProbabilityMeasure ν] {R R' : Finset (Finset S)}
     (hR : R.Nonempty) (hR' : R'.Nonempty) (A : Set (S → E)) :
     |(γ.average ν R).real A - (γ.average ν R').real A| ≤
-      ((R ∆ R').card : ℝ) / R.card + |(R'.card : ℝ) / R.card - 1| := by
-  set g : Finset S → ℝ := fun Λ ↦ (ν.bind (γ Λ)).real A with hg
-  have hg0 : ∀ Λ, 0 ≤ g Λ := fun Λ ↦ measureReal_nonneg
-  have hg1 : ∀ Λ, g Λ ≤ 1 := fun Λ ↦ by
-    have := γ.isProbabilityMeasure_bind Λ ν
-    exact measureReal_le_one
-  have hc : (0 : ℝ) < R.card := by exact_mod_cast hR.card_pos
-  have hc' : (0 : ℝ) < R'.card := by exact_mod_cast hR'.card_pos
-  rw [average_real_apply, average_real_apply]
-  have hsum_le : ∀ T : Finset (Finset S), ∑ Λ ∈ T, g Λ ≤ T.card := fun T ↦ by
-    simpa using Finset.sum_le_card_nsmul T g 1 fun Λ _ ↦ hg1 Λ
-  have hsum_nn : ∀ T : Finset (Finset S), 0 ≤ ∑ Λ ∈ T, g Λ := fun T ↦
-    Finset.sum_nonneg fun Λ _ ↦ hg0 Λ
-  have hdecomp : (R.card : ℝ)⁻¹ * ∑ Λ ∈ R, g Λ - (R'.card : ℝ)⁻¹ * ∑ Λ ∈ R', g Λ =
-      (R.card : ℝ)⁻¹ * (∑ Λ ∈ R \ R', g Λ - ∑ Λ ∈ R' \ R, g Λ) +
-        ((R.card : ℝ)⁻¹ - (R'.card : ℝ)⁻¹) * ∑ Λ ∈ R', g Λ := by
-    rw [Finset.sum_sdiff_sub_sum_sdiff]; ring
-  rw [hdecomp]
-  refine (abs_add_le _ _).trans (add_le_add ?_ ?_)
-  · rw [abs_mul, abs_of_pos (inv_pos.2 hc), div_eq_inv_mul]
-    refine mul_le_mul_of_nonneg_left ?_ (inv_pos.2 hc).le
-    refine (abs_sub _ _).trans ?_
-    rw [abs_of_nonneg (hsum_nn _), abs_of_nonneg (hsum_nn _), Finset.symmDiff_def,
-      Finset.card_union_of_disjoint disjoint_sdiff_sdiff, Nat.cast_add]
-    exact add_le_add (hsum_le _) (hsum_le _)
-  · rw [abs_mul, abs_of_nonneg (hsum_nn _)]
-    calc |(R.card : ℝ)⁻¹ - (R'.card : ℝ)⁻¹| * ∑ Λ ∈ R', g Λ
-        ≤ |(R.card : ℝ)⁻¹ - (R'.card : ℝ)⁻¹| * R'.card :=
-          mul_le_mul_of_nonneg_left (hsum_le _) (abs_nonneg _)
-      _ = |((R.card : ℝ)⁻¹ - (R'.card : ℝ)⁻¹) * R'.card| := by rw [abs_mul, abs_of_pos hc']
-      _ = |(R'.card : ℝ) / R.card - 1| := by
-          congr 1
-          rw [sub_mul, inv_mul_cancel₀ hc'.ne', div_eq_inv_mul]
+      ((R ∆ R').card : ℝ) / R.card + |(R'.card : ℝ) / R.card - 1| :=
+  MeasureTheory.abs_uniformAverage_real_sub_le _
+    (fun Λ ↦ γ.isProbabilityMeasure_bind Λ ν) hR hR' A
 
 /-- Georgii (5.18), the estimate `|μ_α(f ∘ τ) - μ_α(f)| ≤ ‖f‖ |τ_* R ∆ R| / |R|` for events:
 averages over families of the same cardinality differ by at most `|R ∆ R'| / |R|`. -/
 lemma abs_average_real_sub_le_of_card_eq [IsProbabilityMeasure ν] {R R' : Finset (Finset S)}
     (hR : R.Nonempty) (hcard : R.card = R'.card) (A : Set (S → E)) :
-    |(γ.average ν R).real A - (γ.average ν R').real A| ≤ ((R ∆ R').card : ℝ) / R.card := by
-  have hR' : R'.Nonempty := Finset.card_pos.1 (hcard ▸ hR.card_pos)
-  have h := abs_average_real_sub_le (γ := γ) (ν := ν) hR hR' A
-  rwa [← hcard, div_self (by exact_mod_cast hR.card_pos.ne'), sub_self, abs_zero, add_zero] at h
+    |(γ.average ν R).real A - (γ.average ν R').real A| ≤ ((R ∆ R').card : ℝ) / R.card :=
+  MeasureTheory.abs_uniformAverage_real_sub_le_of_card_eq _
+    (fun Λ ↦ γ.isProbabilityMeasure_bind Λ ν) hR hcard A
 
 /-- Georgii (5.20)(1), the estimate for the modified sequence: the averages over `R' ⊆ R` differ
 from those over `R` by at most `2 (1 - |R'| / |R|)`. -/
 lemma abs_average_real_sub_le_of_subset [IsProbabilityMeasure ν] {R R' : Finset (Finset S)}
     (hR' : R'.Nonempty) (hsub : R' ⊆ R) (A : Set (S → E)) :
-    |(γ.average ν R).real A - (γ.average ν R').real A| ≤ 2 * (1 - (R'.card : ℝ) / R.card) := by
-  have hR : R.Nonempty := hR'.mono hsub
-  have hc : (0 : ℝ) < R.card := by exact_mod_cast hR.card_pos
-  have hle : (R'.card : ℝ) ≤ R.card := by exact_mod_cast Finset.card_le_card hsub
-  have h := abs_average_real_sub_le (γ := γ) (ν := ν) hR hR' A
-  have h1 : ((R ∆ R').card : ℝ) / R.card = 1 - R'.card / R.card := by
-    rw [symmDiff_of_ge hsub, Finset.card_sdiff_of_subset hsub,
-      Nat.cast_sub (Finset.card_le_card hsub), sub_div, div_self hc.ne']
-  have h2 : |(R'.card : ℝ) / R.card - 1| = 1 - R'.card / R.card := by
-    rw [abs_of_nonpos (by rw [sub_nonpos]; exact (div_le_one hc).2 hle)]; ring
-  rw [h1, h2] at h
-  linarith
+    |(γ.average ν R).real A - (γ.average ν R').real A| ≤ 2 * (1 - (R'.card : ℝ) / R.card) :=
+  MeasureTheory.abs_uniformAverage_real_sub_le_of_subset _
+    (fun Λ ↦ γ.isProbabilityMeasure_bind Λ ν) hR' hsub A
 
 end Specification
 
@@ -164,7 +118,7 @@ variable {S E : Type*} [MeasurableSpace E] {γ : Specification S E} {ν : Measur
 fixed by `γ_Λ`, i.e. `μ_α γ_Λ = μ_α` when `Λ ⊆ ⋂ R`, by consistency. -/
 lemma bind_average_of_subset {Λ : Finset S} {R : Finset (Finset S)} (h : ∀ Λ' ∈ R, Λ ⊆ Λ') :
     (γ.average ν R).bind (γ Λ) = γ.average ν R := by
-  unfold average
+  unfold average MeasureTheory.uniformAverage
   rw [Measure.bind_smul, Measure.bind_finset_sum _ _ _ (γ.measurable_kernel_toMeasure Λ)]
   congr 1
   exact Finset.sum_congr rfl fun Λ' hΛ' ↦ γ.bind_bind_of_subset (h Λ' hΛ') ν

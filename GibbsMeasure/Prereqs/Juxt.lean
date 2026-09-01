@@ -46,3 +46,48 @@ lemma juxt_agree_on_compl (Λ : Finset S) (η : S → E) (ζ : Λ → E) :
   juxt_apply_of_not_mem (x := x) (Λ := (Λ : Set S)) (η := η) (ζ := ζ) (Finset.mem_coe.not.mpr hx)
 
 end juxt
+
+/-! ### Lattice and order identities
+
+Resampling on `Λ` absorbs previous resamplings on `Λ`, commutes with the pointwise lattice
+operations, and is monotone in both the boundary condition and the inner configuration. -/
+
+section order
+
+variable {S E : Type*} {Λ : Set S}
+
+lemma juxt_juxt (Λ : Set S) (ω : S → E) (ζ ξ : Λ → E) :
+    juxt Λ (juxt Λ ω ζ) ξ = juxt Λ ω ξ := by
+  funext x
+  by_cases hx : x ∈ Λ <;> simp [hx]
+
+lemma juxt_inf_juxt [SemilatticeInf E] {ω ω' : S → E} (hω : ω ≤ ω') (ζ ξ : Λ → E) :
+    juxt Λ ω (ζ ⊓ ξ) = juxt Λ ω ζ ⊓ juxt Λ ω' ξ := by
+  funext x
+  by_cases hx : x ∈ Λ
+  · simp [hx]
+  · simp only [juxt_apply_of_not_mem hx, Pi.inf_apply]
+    exact (inf_eq_left.2 (hω x)).symm
+
+lemma juxt_sup_juxt [SemilatticeSup E] {ω ω' : S → E} (hω : ω ≤ ω') (ζ ξ : Λ → E) :
+    juxt Λ ω' (ζ ⊔ ξ) = juxt Λ ω ζ ⊔ juxt Λ ω' ξ := by
+  funext x
+  by_cases hx : x ∈ Λ
+  · simp [hx]
+  · simp only [juxt_apply_of_not_mem hx, Pi.sup_apply]
+    exact (sup_eq_right.2 (hω x)).symm
+
+lemma juxt_le_juxt [Preorder E] {ω ω' : S → E} (hω : ω ≤ ω') (ζ : Λ → E) :
+    juxt Λ ω ζ ≤ juxt Λ ω' ζ := by
+  intro x
+  by_cases hx : x ∈ Λ
+  · simp [hx]
+  · simpa [hx] using hω x
+
+lemma monotone_juxt [Preorder E] (ω : S → E) : Monotone (juxt Λ ω) := by
+  intro ζ ξ hζξ x
+  by_cases hx : x ∈ Λ
+  · simpa [hx] using hζξ ⟨x, hx⟩
+  · simp [hx]
+
+end order

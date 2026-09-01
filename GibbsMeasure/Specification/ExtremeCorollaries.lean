@@ -15,6 +15,10 @@ public import GibbsMeasure.Specification.Transformation
 Complements to the extreme decomposition theorem (7.26) for a specification `γ` on `S → E`
 (`S` countable, `E` standard Borel):
 
+* **(7.7)(c)**: each `μ ∈ G(γ)` is uniquely determined within `G(γ)` by its restriction to the
+  tail σ-algebra `𝓣` (`eq_of_forall_measurableSet_tail_eq`); this and **(7.7)(d)** — distinct
+  extreme Gibbs measures are separated by a tail event, hence mutually singular — hold for an
+  arbitrary state space `E`, without the standard Borel assumption of §7.3.
 * **(7.28)**: the weight map `μ ↦ w_μ` commutes with every symmetry `τ` of `γ`:
   `w_{τ(μ)} = τ(w_μ)`; in particular `μ` is `τ`-invariant iff `w_μ` is.
 * **(7.29)**: `|ex G(γ)| ≥ N` iff `G(γ)` contains `N` linearly independent measures.
@@ -115,6 +119,97 @@ lemma join_eq_sum_smul (w : Measure (Measure X)) (T : Finset (Measure X))
   simpa using join_finset_sum_smul_dirac T (fun ν ↦ w {ν}) (fun ν ↦ ν)
 
 end GiryHelpers
+
+/-! ### Georgii (7.7)(c)–(d): tail determinacy and mutual singularity
+
+Georgii states Theorem (7.7) for an arbitrary specification over an arbitrary state space, so
+this section assumes only `[Countable S]` — no `[StandardBorelSpace E]`. Part (c) follows from
+(7.7)(b) (`ae_eq_tailMeasurable_of_forall_boundary`) applied to the mixture `(μ + ν) / 2`, and
+part (d) is immediate from (a) (`tailTrivial_of_mem_extremePoints_G`) and (c). -/
+
+section Theorem77
+
+variable {S E : Type*} [MeasurableSpace E] [Countable S] {γ : Specification S E}
+
+local notation3 (prettyPrint := false) "Ω" => (S → E)
+
+/-- **Georgii, Theorem (7.7)(c)**: each `μ ∈ G(γ)` is uniquely determined within `G(γ)` by its
+restriction to the tail σ-algebra `𝓣`. -/
+theorem eq_of_forall_measurableSet_tail_eq {μ ν : Measure Ω} (hμ : μ ∈ G γ) (hν : ν ∈ G γ)
+    (h : ∀ A, MeasurableSet[@tailSigmaAlgebra S E _] A → μ A = ν A) : μ = ν := by
+  have hμp : IsProbabilityMeasure μ := hμ.1
+  have hνp : IsProbabilityMeasure ν := hν.1
+  set ρ : Measure Ω := (2⁻¹ : ℝ≥0∞) • μ + (2⁻¹ : ℝ≥0∞) • ν with hρdef
+  have hρG : ρ ∈ G γ := add_smul_mem_G hμ hν ENNReal.inv_two_add_inv_two
+  have hρp : IsProbabilityMeasure ρ := hρG.1
+  have hhalf : (2⁻¹ : ℝ≥0∞) ≠ 0 := ENNReal.inv_ne_zero.2 ENNReal.ofNat_ne_top
+  have hμρ : μ ≪ ρ := by
+    refine Measure.AbsolutelyContinuous.mk fun s hs h0 ↦ ?_
+    simp only [hρdef, Measure.add_apply, Measure.smul_apply, smul_eq_mul] at h0
+    exact (mul_eq_zero.1 (add_eq_zero.1 h0).1).resolve_left hhalf
+  have hνρ : ν ≪ ρ := by
+    refine Measure.AbsolutelyContinuous.mk fun s hs h0 ↦ ?_
+    simp only [hρdef, Measure.add_apply, Measure.smul_apply, smul_eq_mul] at h0
+    exact (mul_eq_zero.1 (add_eq_zero.1 h0).2).resolve_left hhalf
+  obtain ⟨f, hf_tail, hμf⟩ :=
+    ae_eq_tailMeasurable_of_forall_boundary (S := S) (E := E) (γ := γ) hρG.2 hμ.2 hμρ
+  obtain ⟨g, hg_tail, hνg⟩ :=
+    ae_eq_tailMeasurable_of_forall_boundary (S := S) (E := E) (γ := γ) hρG.2 hν.2 hνρ
+  have : μ.HaveLebesgueDecomposition ρ := Measure.haveLebesgueDecomposition_of_sigmaFinite μ ρ
+  have : ν.HaveLebesgueDecomposition ρ := Measure.haveLebesgueDecomposition_of_sigmaFinite ν ρ
+  have hμ_repr : ρ.withDensity f = μ := by
+    rw [← withDensity_congr_ae hμf]
+    exact Measure.withDensity_rnDeriv_eq μ ρ hμρ
+  have hν_repr : ρ.withDensity g = ν := by
+    rw [← withDensity_congr_ae hνg]
+    exact Measure.withDensity_rnDeriv_eq ν ρ hνρ
+  have hm := tailSigmaAlgebra_le_pi (S := S) (E := E)
+  have htrim : μ.trim hm = ν.trim hm :=
+    @Measure.ext _ (@tailSigmaAlgebra S E _) _ _ fun A hA ↦ by
+      rw [trim_measurableSet_eq hm hA, trim_measurableSet_eq hm hA]
+      exact h A hA
+  have hfg_trim : f =ᵐ[ρ.trim hm] g := by
+    have h1 : (ρ.trim hm).withDensity f = (ρ.trim hm).withDensity g := by
+      rw [← trim_withDensity hm hf_tail, ← trim_withDensity hm hg_tail, hμ_repr, hν_repr, htrim]
+    exact (withDensity_eq_iff_of_sigmaFinite hf_tail.aemeasurable hg_tail.aemeasurable).1 h1
+  have hfg : f =ᵐ[ρ] g := ae_of_ae_trim hm hfg_trim
+  calc μ = ρ.withDensity f := hμ_repr.symm
+    _ = ρ.withDensity g := withDensity_congr_ae hfg
+    _ = ν := hν_repr
+
+/-- **Georgii, Theorem (7.7)(d)**, tail form: distinct extreme Gibbs measures are separated by a
+*tail* event — they are mutually singular on `𝓣`, not merely on the product σ-algebra. -/
+theorem exists_tail_eq_one_eq_zero_of_mem_extremePoints {μ ν : Measure Ω}
+    (hμ : μ ∈ (G γ).extremePoints ℝ≥0∞) (hν : ν ∈ (G γ).extremePoints ℝ≥0∞) (hne : μ ≠ ν) :
+    ∃ A, MeasurableSet[@tailSigmaAlgebra S E _] A ∧ μ A = 1 ∧ ν A = 0 := by
+  have hμG : μ ∈ G γ := extremePoints_subset hμ
+  have hνG : ν ∈ G γ := extremePoints_subset hν
+  have hμp : IsProbabilityMeasure μ := hμG.1
+  have hνp : IsProbabilityMeasure ν := hνG.1
+  obtain ⟨A, hA, hAne⟩ : ∃ A, MeasurableSet[@tailSigmaAlgebra S E _] A ∧ μ A ≠ ν A := by
+    by_contra hall
+    push Not at hall
+    exact hne (eq_of_forall_measurableSet_tail_eq hμG hνG hall)
+  rcases tailTrivial_of_mem_extremePoints_G (γ := γ) hμ A hA with hμ0 | hμ1
+  · rcases tailTrivial_of_mem_extremePoints_G (γ := γ) hν A hA with hν0 | hν1
+    · exact absurd (hμ0.trans hν0.symm) hAne
+    · exact ⟨Aᶜ, hA.compl, (prob_compl_eq_one_iff (measurableSet_of_measurableSet_tail hA)).2 hμ0,
+        (prob_compl_eq_zero_iff (measurableSet_of_measurableSet_tail hA)).2 hν1⟩
+  · rcases tailTrivial_of_mem_extremePoints_G (γ := γ) hν A hA with hν0 | hν1
+    · exact ⟨A, hA, hμ1, hν0⟩
+    · exact absurd (hμ1.trans hν1.symm) hAne
+
+/-- **Georgii, Theorem (7.7)(d)**: distinct extreme Gibbs measures are mutually singular. -/
+theorem mutuallySingular_of_mem_extremePoints {μ ν : Measure Ω}
+    (hμ : μ ∈ (G γ).extremePoints ℝ≥0∞) (hν : ν ∈ (G γ).extremePoints ℝ≥0∞) (hne : μ ≠ ν) :
+    μ.MutuallySingular ν := by
+  obtain ⟨A, hA, hμA, hνA⟩ := exists_tail_eq_one_eq_zero_of_mem_extremePoints hμ hν hne
+  have : IsProbabilityMeasure μ := (extremePoints_subset hμ).1
+  refine ⟨Aᶜ, (measurableSet_of_measurableSet_tail hA).compl, ?_, ?_⟩
+  · exact (prob_compl_eq_zero_iff (measurableSet_of_measurableSet_tail hA)).2 hμA
+  · rwa [compl_compl]
+
+end Theorem77
 
 /-! ### Symmetries act on `G(γ)` and `ex G(γ)` -/
 
@@ -303,21 +398,6 @@ lemma measure_gibbsKernel_eq_ne (hG : (G γ).Nonempty) {μ ν : Measure Ω}
   refine measure_mono_null ?_ (ae_iff.1 hae)
   intro ω hω hcontra
   exact hne (by rw [← hω, hcontra])
-
-/-- **Georgii, Theorem (7.7)(d)**: distinct extreme Gibbs measures are mutually singular. -/
-theorem mutuallySingular_of_mem_extremePoints (hG : (G γ).Nonempty) {μ ν : Measure Ω}
-    (hμ : μ ∈ (G γ).extremePoints ℝ≥0∞) (hν : ν ∈ (G γ).extremePoints ℝ≥0∞) (hne : μ ≠ ν) :
-    μ.MutuallySingular ν := by
-  have := hG.some_mem.1
-  have := (extremePoints_subset hμ).1
-  refine ⟨{ω | gibbsKernel γ hG.some ω = μ}ᶜ,
-    (tailSigmaAlgebra_le_pi _ (measurableSet_eq_measure (π := gibbsKernel γ hG.some) μ)).compl,
-    ?_, ?_⟩
-  · rw [prob_compl_eq_zero_iff
-      (tailSigmaAlgebra_le_pi _ (measurableSet_eq_measure (π := gibbsKernel γ hG.some) μ))]
-    exact measure_gibbsKernel_eq_self hG hμ
-  · rw [compl_compl]
-    exact measure_gibbsKernel_eq_ne hG hν hne
 
 /-- **Georgii, Corollary (7.29)**, part 1: distinct extreme Gibbs measures are linearly
 independent over `ℝ≥0∞`. -/

@@ -30,7 +30,6 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Integral.IntegrableOn
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.CountablyGeneratedModNull
 public import GibbsMeasure.Mathlib.MeasureTheory.Order.StochasticDomination
 public import GibbsMeasure.Mathlib.MeasureTheory.Order.Holley
-public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.Bot
 public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.TrivialOn
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.AEMeasurable
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.GiryMonad
@@ -95,6 +94,7 @@ public import GibbsMeasure.Specification
 public import GibbsMeasure.Specification.ChoquetLaw
 public import GibbsMeasure.Specification.DeFinetti
 public import GibbsMeasure.Specification.Dobrushin
+public import GibbsMeasure.Specification.DobrushinComparison
 public import GibbsMeasure.Specification.DobrushinUniqueness
 public import GibbsMeasure.Specification.Average
 public import GibbsMeasure.Specification.ErgodicDecomposition
@@ -109,7 +109,6 @@ public import GibbsMeasure.Specification.InvariantFields
 public import GibbsMeasure.Specification.NoGibbsMeasure
 public import GibbsMeasure.Specification.Transformation
 public import GibbsMeasure.Specification.Extremal
-public import GibbsMeasure.Specification.Quasilocal
 public import GibbsMeasure.Specification.QuasilocalAlgebra
 public import GibbsMeasure.Specification.LocalContinuity
 public import GibbsMeasure.Specification.LocalLimits
@@ -130,5 +129,6 @@ public import GibbsMeasure.Specification.Structure
 public import GibbsMeasure.Topology.ConfigurationSpace
 public import GibbsMeasure.Topology.ClusterPoints
 public import GibbsMeasure.Topology.LocalConvergence
+public import GibbsMeasure.Topology.LocalMetric
 public import GibbsMeasure.Topology.Subsequence
 public import GibbsMeasure.Topology.Metrizable

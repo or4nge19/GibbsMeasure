@@ -228,23 +228,25 @@ theorem georgii_7_26 [Countable S] [StandardBorelSpace E]
 
 /-! ### Georgii, Theorem (7.7)(d) and Corollary (7.29) -/
 
-/-- **Georgii (7.7)(d)**: distinct extreme Gibbs measures are mutually singular.  Georgii states
-(7.7)(d) for an arbitrary specification over an arbitrary state space; `[StandardBorelSpace E]`
-here is an artefact of the proof route through the regular conditional probability `gibbsKernel`,
-not a hypothesis of the book. -/
-theorem mutuallySingular_of_isExtremeIn [Countable S] [StandardBorelSpace E]
+/-- **Georgii (7.7)(d)**: distinct extreme Gibbs measures are mutually singular *on the tail
+σ-algebra*: some tail event carries all of `μ` and none of `ν`. This is the theorem's actual
+strength — mutual singularity on the ambient σ-algebra is the trailing corollary. -/
+theorem mutuallySingular_of_isExtremeIn [Countable S]
     {γ : Finset S → Config S E → Measure (Config S E)} (hγ : IsSpecification γ)
     {μ ν : Measure (Config S E)} (hμ : IsExtremeIn (GibbsSet γ) μ)
     (hν : IsExtremeIn (GibbsSet γ) ν) (hne : μ ≠ ν) :
-    μ.MutuallySingular ν := by
+    (∃ A : Set (Config S E), MeasurableSet[tail S E] A ∧ μ A = 1 ∧ ν A = 0) ∧
+      μ.MutuallySingular ν := by
   have hμ' : μ ∈ (MeasureTheory.GibbsMeasure.G (SimplexBridge.spec hγ)).extremePoints ℝ≥0∞ := by
     rw [← SimplexBridge.gibbsSet_eq_G hγ, ← SimplexBridge.isExtremeIn_iff_mem_extremePoints]
     exact hμ
   have hν' : ν ∈ (MeasureTheory.GibbsMeasure.G (SimplexBridge.spec hγ)).extremePoints ℝ≥0∞ := by
     rw [← SimplexBridge.gibbsSet_eq_G hγ, ← SimplexBridge.isExtremeIn_iff_mem_extremePoints]
     exact hν
-  exact MeasureTheory.GibbsMeasure.mutuallySingular_of_mem_extremePoints
-    ⟨μ, extremePoints_subset hμ'⟩ hμ' hν' hne
+  obtain ⟨A, hA, h1, h0⟩ :=
+    MeasureTheory.GibbsMeasure.exists_tail_eq_one_eq_zero_of_mem_extremePoints hμ' hν' hne
+  exact ⟨⟨A, hA, h1, h0⟩,
+    MeasureTheory.GibbsMeasure.mutuallySingular_of_mem_extremePoints hμ' hν' hne⟩
 
 /-- **Georgii (7.29)**: `𝓖(γ)` has at least `N` extreme points iff it contains `N` measures that
 are linearly independent over `ℝ≥0∞`. -/

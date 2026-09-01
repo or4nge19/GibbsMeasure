@@ -6,12 +6,19 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Specification.InvariantExistence
+public import GibbsMeasure.Specification.InvariantExistenceGroup
 public import GibbsMeasure.Model.Ising
 
 /-!
 # Shift-invariant Gibbs measures on `ℤ^d` from averaged Gibbs distributions
 
-Georgii Example (5.20)(1) and (5.17)(1): cluster points of the cube-averaged finite-volume Gibbs
+Georgii (5.17)(1): a shift-invariant specification with `𝒢(γ)` non-empty and compact has a
+shift-invariant Gibbs measure, by Corollary (5.16) since the shift group `Θ` is abelian
+(`exists_mem_GP_forall_measurePreserving_shift_of_isCompact`, no hypothesis on the state space);
+in particular for the Gibbsian specification of a shift-invariant absolutely summable potential
+over a standard Borel state space (Theorem (4.23)(a)).
+
+Georgii Example (5.20)(1): cluster points of the cube-averaged finite-volume Gibbs
 distributions `|Λ_N|⁻¹ ∑_{i ∈ Λ_N} γ_{Λ_N + i}(· | ω)` with a constant boundary condition are
 shift-invariant Gibbs measures; for finite `E` they exist, in particular for the Ising model.
 -/
@@ -244,6 +251,47 @@ lemma card_symmDiff_map_cubeTranslates_shift (j : Fin d → ℤ) (N k : ℕ) :
     ← Finset.image_symmDiff _ _ (map_addRight_cube_injective N),
     Finset.card_image_of_injective _ (map_addRight_cube_injective N)]
 
+/-! ### Georgii (5.17)(1): existence of shift-invariant Gibbs measures -/
+
+section ShiftGroup
+variable [AddCommGroup S]
+
+/-- On an abelian group of sites, `j ↦ θ_j` is a homomorphism into the transformation group:
+`θ_{j + j'} = θ_j ∘ θ_{j'}` (Georgii (5.2)(1): the shift group `Θ`). -/
+lemma shift_add (j j' : S) : shift E (j + j') = shift E j * shift E j' := by
+  refine Transformation.ext (Equiv.ext fun x ↦ ?_) rfl
+  show x + (j + j') = x + j' + j
+  rw [add_comm j j', ← add_assoc]
+
+/-- **Georgii (5.17)(1).** A shift-invariant specification on an abelian group of sites whose
+set of Gibbs measures is non-empty and compact in the topology of local convergence admits a
+shift-invariant Gibbs measure, by Corollary (5.16) since the shift group `Θ` is abelian. No
+hypothesis on the state space is needed. -/
+theorem exists_mem_GP_forall_measurePreserving_shift_of_isCompact {γ : Specification S E}
+    (hγ : ∀ j, Specification.IsInvariant (shift E j) γ)
+    (hcpt : IsCompact {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP (S := S) (E := E) γ})
+    (hne : (GP (S := S) (E := E) γ).Nonempty) :
+    ∃ μ ∈ GP (S := S) (E := E) γ,
+      ∀ j : S, MeasurePreserving (shift E j).toFun (μ : Measure (S → E)) μ :=
+  exists_mem_GP_and_forall_measurePreserving_of_isCompact (Φ := shift E)
+    (fun j j' ↦ shift_add j j') hγ hcpt hne
+
+end ShiftGroup
+
+/-- **Georgii (5.17)(1) for Gibbsian specifications.** Over a standard Borel state space, the
+Gibbsian specification of a shift-invariant absolutely summable potential on `ℤ^d` admits a
+shift-invariant Gibbs measure: `𝒢(βΦ)` is non-empty and compact by Theorem (4.23)(a). -/
+theorem exists_mem_GP_gibbsSpecification_forall_measurePreserving_shift [StandardBorelSpace E]
+    {Φ : Potential (Fin d → ℤ) E} [Potential.IsPotential Φ] [Potential.IsAbsolutelySummable Φ]
+    (hΦ : Φ.IsShiftInvariant) (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ) :
+    ∃ μ ∈ GP (S := Fin d → ℤ) (E := E)
+        (Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β),
+      ∀ j, MeasurePreserving (shift E j).toFun (μ : Measure ((Fin d → ℤ) → E)) μ :=
+  exists_mem_GP_forall_measurePreserving_shift_of_isCompact
+    (isInvariant_shift_gibbsSpecification hΦ ν β)
+    (Potential.isCompact_setOf_mem_GP_gibbsSpecification ν β)
+    (Potential.GP_gibbsSpecification_nonempty ν β)
+
 /-! ### Georgii Example (5.20)(1): configurational boundary conditions on `ℤ^d` -/
 
 variable {γ : Specification (Fin d → ℤ) E} {ν : Measure ((Fin d → ℤ) → E)}
@@ -350,42 +398,19 @@ theorem mem_GP_and_measurePreserving_shift_of_mapClusterPt_average_cubeTranslate
   mem_GP_and_measurePreserving_shift_of_mapClusterPt_average_cubeTranslates hγq hγ
     (measurePreserving_shift_dirac_const e) hμs hμ
 
-/-- **Existence of shift-invariant Gibbs measures** (Georgii (5.17)(1)/(5.20)(1)): over a finite
-state space, a quasilocal shift-invariant specification on `ℤ^d` has a shift-invariant one. -/
+/-- **Existence of shift-invariant Gibbs measures** (Georgii (5.20)(1), existence part): over a
+finite state space, a quasilocal shift-invariant specification on `ℤ^d` has a shift-invariant
+Gibbs measure. A corollary of the general (5.17)(1): `𝒢(γ)` is closed by quasilocality and the
+whole space of random fields is compact over a finite state space (Example (4.11)(2)). -/
 theorem exists_mem_GP_forall_measurePreserving_shift [Finite E] [MeasurableSingletonClass E]
     [Nonempty E] (hγq : γ.IsQuasilocal) (hγ : ∀ j, Specification.IsInvariant (shift E j) γ) :
     ∃ μ ∈ GP (S := Fin d → ℤ) (E := E) γ,
       ∀ j, MeasurePreserving (shift E j).toFun (μ : Measure ((Fin d → ℤ) → E)) μ := by
-  classical
-  obtain ⟨e⟩ := ‹Nonempty E›
-  -- Georgii (5.20)(1): `𝓡_N = {Λ_N + i : i ∈ Λ_{k(N)}}` with `k(N) = N - √N`, so that
-  -- `Λ_{√N} ⊆ ⋂ 𝓡_N ↑ S`; the boundary condition is the shift-invariant `δ_ω`, `ω ≡ e`.
-  have hRne : ∀ N : ℕ, (cubeTranslates d N (N - Nat.sqrt N)).Nonempty := fun N ↦
-    cubeTranslates_nonempty d N (N - Nat.sqrt N)
-  have hΛ : Tendsto (fun N ↦ (cubeTranslates d N (N - Nat.sqrt N)).inf' (hRne N) id)
-      atTop atTop := by
-    refine tendsto_atTop_mono (fun N ↦ ?_) (tendsto_cube_atTop.comp tendsto_nat_sqrt_atTop)
-    refine Finset.le_inf' _ _ fun Λ hΛ ↦ ?_
-    have h := cube_sub_subset_of_mem_cubeTranslates (Nat.sub_le N (Nat.sqrt N)) hΛ
-    rwa [Nat.sub_sub_self (Nat.sqrt_le_self N)] at h
-  have hsymm : ∀ τ ∈ Set.range (shift (S := Fin d → ℤ) E), Tendsto (fun N ↦
-      (((cubeTranslates d N (N - Nat.sqrt N)).map
-          (Finset.mapEmbedding τ.sites.toEmbedding).toEmbedding ∆
-        cubeTranslates d N (N - Nat.sqrt N)).card : ℝ) /
-          (cubeTranslates d N (N - Nat.sqrt N)).card) atTop (𝓝 0) := by
-    rintro τ ⟨j, rfl⟩
-    simp only [card_symmDiff_map_cubeTranslates_shift, card_cubeTranslates]
-    exact (tendsto_card_symmDiff_map_addRight_cube_div j).comp tendsto_sub_nat_sqrt_atTop
-  obtain ⟨μ, hμGP, hμinv, -⟩ := exists_mem_GP_and_forall_measurePreserving
-    (I := Set.range (shift (S := Fin d → ℤ) E)) (γs := fun _ : ℕ ↦ γ)
-    (νs := fun _ : ℕ ↦ (⟨Measure.dirac fun _ ↦ e, inferInstance⟩ :
-      ProbabilityMeasure ((Fin d → ℤ) → E)))
-    (μs := fun N ↦ ⟨γ.average (Measure.dirac fun _ ↦ e)
-      (cubeTranslates d N (N - Nat.sqrt N)), γ.isProbabilityMeasure_average _ (hRne N)⟩)
-    hγq (by rintro τ ⟨j, rfl⟩ N; exact hγ j) (fun Λ f _ ↦ by simp) hRne hΛ hsymm
-    (by rintro τ ⟨j, rfl⟩ N; exact measurePreserving_shift_dirac_const e j) (fun N ↦ rfl)
-    (locallyEquicontinuous_of_finite _ _)
-  exact ⟨μ, hμGP, fun j ↦ hμinv _ ⟨j, rfl⟩⟩
+  refine exists_mem_GP_forall_measurePreserving_shift_of_isCompact hγ
+    (isClosed_setOf_mem_GP hγq).isCompact ?_
+  obtain ⟨μ, hμ, -⟩ := exists_isLocalThermodynamicLimit_mem_GP hγq
+    (fun _ ↦ Classical.arbitrary E) (locallyEquicontinuous_of_finite _ _)
+  exact ⟨μ, hμ⟩
 
 /-- **Shift-invariant Gibbs measures for the Ising model on `ℤ^d`** (Georgii (5.20)(1)). -/
 theorem exists_latticeIsing_mem_GP_forall_measurePreserving_shift (d : ℕ) (J h β : ℝ) :

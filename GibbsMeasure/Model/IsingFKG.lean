@@ -126,49 +126,6 @@ lemma isingHamiltonian_inf_add_sup_le [G.LocallyFinite] (hJ : 0 ≤ J) (Λ : Fin
 
 end Submodular
 
-/-! ### Lattice identities for `juxt` -/
-
-section Juxt
-variable {S E : Type*}
-
-lemma juxt_juxt (Λ : Set S) (ω : S → E) (ζ ξ : Λ → E) :
-    juxt Λ (juxt Λ ω ζ) ξ = juxt Λ ω ξ := by
-  funext x
-  by_cases hx : x ∈ Λ <;> simp [hx]
-
-variable {Λ : Set S} {ω ω' : S → Bool}
-
-lemma juxt_inf_juxt (hω : ω ≤ ω') (ζ ξ : Λ → Bool) :
-    juxt Λ ω (ζ ⊓ ξ) = juxt Λ ω ζ ⊓ juxt Λ ω' ξ := by
-  funext x
-  by_cases hx : x ∈ Λ
-  · simp [hx]
-  · simp only [juxt_apply_of_not_mem hx, Pi.inf_apply]
-    exact (inf_eq_left.2 (hω x)).symm
-
-lemma juxt_sup_juxt (hω : ω ≤ ω') (ζ ξ : Λ → Bool) :
-    juxt Λ ω' (ζ ⊔ ξ) = juxt Λ ω ζ ⊔ juxt Λ ω' ξ := by
-  funext x
-  by_cases hx : x ∈ Λ
-  · simp [hx]
-  · simp only [juxt_apply_of_not_mem hx, Pi.sup_apply]
-    exact (sup_eq_right.2 (hω x)).symm
-
-lemma juxt_le_juxt (hω : ω ≤ ω') (ζ : Λ → Bool) : juxt Λ ω ζ ≤ juxt Λ ω' ζ := by
-  intro x
-  by_cases hx : x ∈ Λ
-  · simp [hx]
-  · simpa [hx] using hω x
-
-lemma monotone_juxt (ω : S → Bool) : Monotone (juxt Λ ω) := by
-  intro ζ ξ hζξ x
-  by_cases hx : x ∈ Λ
-  · simpa [hx] using hζξ ⟨x, hx⟩
-  · simp [hx]
-
-end Juxt
-
-
 /-! ### The finite-volume Ising distribution as an explicit finite sum -/
 
 section Weights

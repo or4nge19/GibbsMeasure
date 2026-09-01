@@ -2986,12 +2986,11 @@ end GibbsMeasure
 
 /-! ### Georgii, Theorem (3.5): `𝒢(γ_P) = {μ_P}` -/
 
-/-- **Georgii (3.6).** The finite-volume kernel of the Markov specification is a version of the
-conditional distribution of the stationary chain given the configuration outside `Λ`:
-`γ_Λ(σ_Λ = ζ | ω) = μ_P(σ_Λ = ζ | σ_{Λᶜ} = ω_{Λᶜ})`. Together with
-`isPositiveHomogeneousMarkovWith_markovSpecification`, which exhibits the singleton kernels as
-functions of the two boundary sites `i ± 1` alone, this is the equation determining `γ` from `P`
-in Theorem (3.5). -/
+/-- The DLR property of the stationary chain, volume by volume: `γ_Λ` is a version of the
+conditional distribution of `μ_P` given the *whole exterior* σ-algebra `𝓕_{Λᶜ}`, `μ_P`-a.e. This
+is the definitional projection of `isGibbsMeasure_markovSpecification_stationaryChain`. Georgii's
+(3.6) is stronger on two counts — it conditions on the two-site boundary `∂Λ` of (3.4) and holds
+for every `ω` — and is not proved here; see the module doc. -/
 theorem isCondExp_markovSpecification_stationaryChain (P : Matrix E E ℝ)
     (hP : P ∈ Matrix.rowStochastic ℝ E) (hpos : ∀ x y, 0 < P x y) (Λ : Finset ℤ) :
     (markovSpecification P Λ).IsCondExp (stationaryChain P hP hpos) :=

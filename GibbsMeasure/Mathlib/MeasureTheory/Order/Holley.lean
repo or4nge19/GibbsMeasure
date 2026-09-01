@@ -30,8 +30,7 @@ stochastically increasing in the boundary condition.
 
 open Finset Set
 
-variable {ι Ω : Type*} [Fintype ι] [DecidableEq ι] [Preorder Ω] {f g : (ι → Bool) → ℝ}
-  {F G : (ι → Bool) → Ω}
+variable {α Ω : Type*} [DistribLattice α] [Fintype α] [Preorder Ω] {f g : α → ℝ} {F G : α → Ω}
 
 /-- **Holley's inequality**, in the form used for monotonicity in the boundary condition: for
 weights of equal mass satisfying the lattice condition, an upper set pulled back along a monotone
@@ -40,7 +39,7 @@ lemma sum_indicator_le_of_holley (hf : 0 ≤ f) (hg : 0 ≤ g)
     (hsum : ∑ a, f a = ∑ a, g a) (hcond : ∀ a b, f a * g b ≤ f (a ⊓ b) * g (a ⊔ b))
     (hG : Monotone G) (hFG : ∀ a, F a ≤ G a) {A : Set Ω} (hA : IsUpperSet A) :
     ∑ a, f a * A.indicator (1 : Ω → ℝ) (F a) ≤ ∑ a, g a * A.indicator (1 : Ω → ℝ) (G a) := by
-  set μ : (ι → Bool) → ℝ := fun a ↦ A.indicator (1 : Ω → ℝ) (G a) with hμdef
+  set μ : α → ℝ := fun a ↦ A.indicator (1 : Ω → ℝ) (G a) with hμdef
   have hμ₀ : 0 ≤ μ := fun a ↦ Set.indicator_nonneg (fun _ _ ↦ zero_le_one) _
   have hμmono : Monotone μ := by
     intro a b hab

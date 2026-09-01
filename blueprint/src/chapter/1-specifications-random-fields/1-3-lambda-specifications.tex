@@ -177,12 +177,17 @@ Let $S$ be a set, $(E, \mathcal{E})$ be a measurable space and $\nu$ a measure o
     \lean{Specification.isModifier_iff_ae_eq}
     \leanok{}
 
-    If $\rho$ is a family of measurable densities and $\gamma$ is a proper specification, then TFAE
+    Let $\gamma$ be a specification and $\rho$ a family of functions $\Cfg \to [0,\infty]$. TFAE
     \begin{enumerate}
         \item $\rho$ is a modifier of $\gamma$
-        \item For all $\Lambda_1, \Lambda_2$ with $\Lambda_1 \subseteq \Lambda_2$ and all $\eta : S \to E$, we have
+        \item each $\rho_\Lambda$ is measurable, $\int \rho_\Lambda \dd\gamma_\Lambda(\cdot|\eta) = 1$
+        for every $\Lambda$ and $\eta$ (Georgii's standing normalisation
+        $\lambda_\Lambda \rho_\Lambda = 1$ in (1.30)), and for all
+        $\Lambda_1 \subseteq \Lambda_2$ and all $\eta : S \to E$,
         \[\rho_{\Lambda_2} = \rho_{\Lambda_1}\cdot (\gamma_{\Lambda_1} \rho_{\Lambda_2}) \quad \gamma_{\Lambda_2}(\cdot|\eta)\text{-a.e.}\]
     \end{enumerate}
+    Without the normalisation conjunct the equivalence is false: $\rho_\Lambda \equiv 0$ satisfies
+    the displayed identity but modifies no specification.
 \end{proposition}
 \begin{proof}
     % \uses{}
@@ -203,10 +208,17 @@ Let $S$ be a set, $(E, \mathcal{E})$ be a measurable space and $\nu$ a measure o
     \lean{Specification.isModifier_iff_ae_comm}
     \leanok{}
 
-    If $\rho$ is a family of measurable densities and $\gamma$ is a proper independent specification, then TFAE
+    Let $\gamma$ be a specification satisfying
+    $\gamma_{\Lambda_1} \circ_k \gamma_{\Lambda_2} = \gamma_{\Lambda_1 \cup \Lambda_2}$ for
+    \emph{disjoint} volumes (Georgii's Notation (1.26); the Lean hypothesis is
+    \texttt{IsDisjointlyConsistent}, satisfied by the independent specifications), and $\rho$ a
+    family of functions. TFAE
     \begin{enumerate}
         \item $\rho$ is a modifier of $\gamma$
-        \item For all $\Lambda_1, \Lambda_2$ with $\Lambda_1 \subseteq \Lambda_2$, $\eta : S \to E$ and $\gamma_{\Lambda_2 \setminus \Lambda_1}(\cdot|\alpha)$-almost all $\eta_2 : S \to E$, we have
+        \item each $\rho_\Lambda$ is measurable and normalised as in
+        Proposition~\ref{prop:modif-char}, and for all $\Lambda_1, \Lambda_2$ with
+        $\Lambda_1 \subseteq \Lambda_2$, $\eta : S \to E$ and
+        $\gamma_{\Lambda_2 \setminus \Lambda_1}(\cdot|\alpha)$-almost all $\eta_2 : S \to E$, we have
         \[\rho_{\Lambda_2}(\zeta_1)\rho_{\Lambda_1}(\zeta_2) = \rho_{\Lambda_2}(\zeta_2) \rho_{\Lambda_1}(\zeta_1)\]
         for $\gamma_{\Lambda_1}(\cdot|\eta_2) \times \gamma_{\Lambda_2}(\cdot|\eta_2)$-almost all $(\zeta_1, \zeta_2)$.
     \end{enumerate}
