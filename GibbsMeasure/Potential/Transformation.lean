@@ -301,6 +301,49 @@ lemma isShiftInvariant_iff (Φ : Potential S E) :
 
 end Shift
 
+/-! ### Translates of finite volumes
+
+The translate `A + g` of a finite volume, in the `Finset.map (Equiv.addRight g)` spelling used by
+`isShiftInvariant_iff` above, together with its membership API. -/
+
+section Translate
+
+variable {S : Type*} [AddCommGroup S] {B : Finset S} {g h : S}
+
+/-- The translate `A + g` of a finite set of sites. This is an `abbrev` for the
+`Finset.map (Equiv.addRight g)` spelling of Georgii (5.8) (`isShiftInvariant_iff`), so the two
+spellings are interchangeable. -/
+abbrev translate (B : Finset S) (g : S) : Finset S := B.map (Equiv.addRight g).toEmbedding
+
+@[simp] lemma mem_translate {x : S} : x ∈ translate B g ↔ x - g ∈ B := by
+  rw [translate, Finset.mem_map_equiv]
+  simp [sub_eq_add_neg]
+
+lemma mem_translate_of_mem {x : S} (hx : x ∈ B) : x + g ∈ translate B g :=
+  mem_translate.2 (by simpa using hx)
+
+@[simp] lemma translate_zero (B : Finset S) : translate B 0 = B := by
+  ext x; rw [mem_translate]; simp
+
+lemma translate_translate (B : Finset S) (g h : S) :
+    translate (translate B g) h = translate B (g + h) := by
+  ext x
+  rw [mem_translate, mem_translate, mem_translate, sub_sub, add_comm h g]
+
+@[simp] lemma translate_nonempty : (translate B g).Nonempty ↔ B.Nonempty := by
+  constructor
+  · rintro ⟨x, hx⟩; exact ⟨x - g, mem_translate.1 hx⟩
+  · rintro ⟨x, hx⟩; exact ⟨x + g, mem_translate_of_mem hx⟩
+
+lemma translate_subset_iff {Δ : Finset S} : translate B g ⊆ Δ ↔ ∀ x ∈ B, x + g ∈ Δ := by
+  constructor
+  · intro h x hx; exact h (mem_translate_of_mem hx)
+  · intro h x hx
+    have := h _ (mem_translate.1 hx)
+    simpa using this
+
+end Translate
+
 section Closed
 
 /-- The fixed-point set `{Φ ∈ ℬ : τ(Φ) = Φ}` of a transformation is closed in `ℬ`; cf. Georgii

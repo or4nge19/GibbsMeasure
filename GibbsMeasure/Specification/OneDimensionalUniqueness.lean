@@ -1353,8 +1353,7 @@ lemma gibbsSpecificationOfAbsolutelySummable_eq_lambdaSpecification
       _root_.Specification.lambdaSpecification (S := ℤ) (E := E) lam (Φ.boltzmannFactor β)
         (Potential.isPremodifier_boltzmannFactor (Φ := Φ) β) hZ :=
   (_root_.Specification.lambdaSpecification_eq_modification_isssd (S := ℤ) (E := E) lam
-    (Potential.isPremodifier_boltzmannFactor (Φ := Φ) β) hZ
-    (Potential.isPremodifierAdmissible_boltzmannFactor (Φ := Φ) lam β)).symm
+    (Potential.isPremodifier_boltzmannFactor (Φ := Φ) β) hZ).symm
 
 /-- **Georgii, Theorem (8.39)**, first half, for an absolutely summable potential and a probability
 a priori measure on `ℤ`. -/

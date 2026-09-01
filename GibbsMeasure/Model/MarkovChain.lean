@@ -583,7 +583,7 @@ lemma premodifierZ_Icc (hpos : ∀ x y, 0 < P x y) {n : ℕ} {a b : ℤ} (hb : b
       hσ (b + 1) (by simp only [Finset.mem_Icc]; omega)]
     congr 1
     ring
-  rw [Specification.premodifierZ,
+  rw [Specification.premodifierZ, Specification.relZ,
     lintegral_isssd_congr _ _ (Potential.measurable_boltzmannFactor 1 _)
       (measurable_ofReal_pathWeight P (ω (a - 1)) (fun z ↦ P z (ω (b + 1))) a a b b) hcongr]
   have hkey := lintegral_isssd_pathWeight hpos n a b hb (ω (a - 1))
@@ -641,7 +641,8 @@ lemma markovSpecification_apply_eq (Λ : Finset ℤ) (ω : ℤ → E)
     Potential.measurable_boltzmannFactor 1 Λ
   have hZ : Measurable (Specification.premodifierZ (uniformOn (Set.univ : Set E))
       ((markovPotential P).boltzmannFactor 1) Λ) :=
-    (Specification.measurable_premodifierZ _ (Potential.isPremodifier_boltzmannFactor 1) Λ).mono
+    (Specification.measurable_relZ (γ := Specification.isssd (uniformOn (Set.univ : Set E)))
+      (Potential.isPremodifier_boltzmannFactor 1).measurable Λ).mono
       cylinderEvents_le_pi le_rfl
   have happly : markovSpecification P Λ ω A
       = ∫⁻ σ, A.indicator (fun σ' ↦ (markovPotential P).boltzmannFactor 1 Λ σ'
@@ -667,7 +668,8 @@ lemma markovSpecification_apply_eq (Λ : Finset ℤ) (ω : ℤ → E)
         ((markovPotential P).boltzmannFactor 1) Λ σ
         = Specification.premodifierZ (uniformOn (Set.univ : Set E))
             ((markovPotential P).boltzmannFactor 1) Λ ω := by
-      rw [Specification.premodifierZ, Specification.premodifierZ, isssd_congr Λ hσ]
+      rw [Specification.premodifierZ, Specification.premodifierZ, Specification.relZ,
+        Specification.relZ, isssd_congr Λ hσ]
     by_cases hmem : σ ∈ A
     · rw [Set.indicator_of_mem hmem, Set.indicator_of_mem hmem, hZconst, div_eq_mul_inv]
     · rw [Set.indicator_of_notMem hmem, Set.indicator_of_notMem hmem, zero_mul]
@@ -1665,13 +1667,14 @@ theorem eq_markovSpecification_of_forall_singleton
       (uniformOn (Set.univ : Set E))).isDisjointlyConsistent
     (ρ := fun i ↦ Specification.premodifierNorm (uniformOn (Set.univ : Set E))
       ((markovPotential P).boltzmannFactor 1) {i})
-    (fun i ↦ Specification.premodifierNorm_measurable _
-      (Potential.isPremodifier_boltzmannFactor 1) {i})
+    (fun i ↦ Specification.measurable_relNorm
+      (γ := Specification.isssd (uniformOn (Set.univ : Set E)))
+      (Potential.isPremodifier_boltzmannFactor 1).measurable {i})
     (fun i ω ↦ ?_) (fun i ω ↦ ?_) (fun i η ↦ markovSpecification_eq_withDensity {i} η) hγ
-  · rw [Specification.premodifierNorm]
+  · rw [Specification.premodifierNorm, Specification.relNorm]
     refine ENNReal.div_ne_zero.2 ⟨(Potential.boltzmannFactor_pos 1 _ _).ne', ?_⟩
     exact (hadm ({i} : Finset ℤ) ω).2
-  · rw [Specification.premodifierNorm]
+  · rw [Specification.premodifierNorm, Specification.relNorm]
     intro hcon
     rw [ENNReal.div_eq_top] at hcon
     rcases hcon with ⟨-, h2⟩ | ⟨h1, -⟩
@@ -2623,8 +2626,8 @@ lemma premodifierZ_singleton (hpos : ∀ x y, 0 < P x y) (i : ℤ) (ω : ℤ →
     intro x
     rw [uniformOn_univ, Measure.count_singleton, one_div]
 
-  rw [Specification.premodifierZ, isssd_singleton_eq_map, lintegral_map (hpre.measurable {i}) hupd,
-    lintegral_fintype]
+  rw [Specification.premodifierZ, Specification.relZ, isssd_singleton_eq_map,
+    lintegral_map (hpre.measurable {i}) hupd, lintegral_fintype]
   simp_rw [hρi, hνx]
   rw [← Finset.sum_mul, pow_two, Matrix.mul_apply,
     ENNReal.ofReal_sum_of_nonneg (fun x _ ↦ mul_nonneg (hpos _ _).le (hpos _ _).le)]
@@ -2646,7 +2649,8 @@ lemma markovSpecification_singleton_eq_withDensity (i : ℤ) (η : ℤ → E) :
 
 omit [DecidableEq E] in
 lemma measurable_markovSingletonDensity (i : ℤ) : Measurable (markovSingletonDensity P i) :=
-  Specification.premodifierNorm_measurable _ (Potential.isPremodifier_boltzmannFactor 1) {i}
+  Specification.measurable_relNorm (γ := Specification.isssd (uniformOn (Set.univ : Set E)))
+    (Potential.isPremodifier_boltzmannFactor 1).measurable {i}
 
 /-- The singleton density is `ρ_i(σ) = |E| · g(σ_{i-1}, σ_i, σ_{i+1})` with `g` as in (3.11). -/
 lemma markovSingletonDensity_eq (hpos : ∀ x y, 0 < P x y) (i : ℤ) (ω : ℤ → E) :
@@ -2655,8 +2659,12 @@ lemma markovSingletonDensity_eq (hpos : ∀ x y, 0 < P x y) (i : ℤ) (ω : ℤ 
   have hD0 : ENNReal.ofReal ((P ^ 2) (ω (i - 1)) (ω (i + 1))) ≠ 0 :=
     (ENNReal.ofReal_pos.2 (pow_apply_pos hpos 1 _ _)).ne'
   have hDtop : ENNReal.ofReal ((P ^ 2) (ω (i - 1)) (ω (i + 1))) ≠ ⊤ := ENNReal.ofReal_ne_top
-  rw [markovSingletonDensity, Specification.premodifierNorm, premodifierZ_singleton P hpos,
-    boltzmannFactor_singleton P hpos, markovDeterminingFun,
+  rw [markovSingletonDensity, show Specification.premodifierNorm (uniformOn (Set.univ : Set E))
+        ((markovPotential P).boltzmannFactor 1) {i} ω
+      = (markovPotential P).boltzmannFactor 1 {i} ω
+        / Specification.premodifierZ (uniformOn (Set.univ : Set E))
+            ((markovPotential P).boltzmannFactor 1) {i} ω from rfl,
+    premodifierZ_singleton P hpos, boltzmannFactor_singleton P hpos, markovDeterminingFun,
     ENNReal.ofReal_div_of_pos (pow_apply_pos hpos 1 _ _), ENNReal.div_eq_inv_mul,
     ENNReal.div_eq_inv_mul, ENNReal.mul_inv (Or.inl hD0) (Or.inl hDtop), inv_inv]
   ring

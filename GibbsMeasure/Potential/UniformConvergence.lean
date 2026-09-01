@@ -218,12 +218,12 @@ private lemma integral_gibbs_eq (Λ : Finset S) (η : S → E) (F : (S → E) �
   have hZdep : DependsOn
       (Specification.premodifierZ (S := S) (E := E) ν (Φ.boltzmannFactor β) Λ)
       ((Λ : Set S)ᶜ) :=
-    (Specification.measurable_premodifierZ ν
-      (isPremodifier_boltzmannFactor (Φ := Φ) β) Λ).dependsOn_of_cylinderEvents
+    (Specification.measurable_relZ (γ := Specification.isssd (S := S) (E := E) ν)
+      (isPremodifier_boltzmannFactor (Φ := Φ) β).measurable Λ).dependsOn_of_cylinderEvents
   have hZfull : Measurable
       (Specification.premodifierZ (S := S) (E := E) ν (Φ.boltzmannFactor β) Λ) :=
-    (Specification.measurable_premodifierZ ν
-      (isPremodifier_boltzmannFactor (Φ := Φ) β) Λ).mono cylinderEvents_le_pi le_rfl
+    (Specification.measurable_relZ (γ := Specification.isssd (S := S) (E := E) ν)
+      (isPremodifier_boltzmannFactor (Φ := Φ) β).measurable Λ).mono cylinderEvents_le_pi le_rfl
   have hZae : (fun x ↦ Specification.premodifierZ (S := S) (E := E) ν (Φ.boltzmannFactor β) Λ x)
       =ᵐ[Specification.isssd (S := S) (E := E) ν Λ η]
       fun _ ↦ Specification.premodifierZ (S := S) (E := E) ν (Φ.boltzmannFactor β) Λ η := by

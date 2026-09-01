@@ -249,7 +249,7 @@ would therefore make (8.7) false. The criterion **(8.8)** —
 constant 2, proved for a probability a-priori measure and an absolutely summable potential
 (Georgii assumes only λ-admissibility; see `formalization.yaml`) — and its instance for the
 Ising model, `isDobrushin_isingSpecification`
-(`GibbsMeasure/Specification/Dobrushin.lean`). Together with (6.9) this brackets the critical
+(`GibbsMeasure/Model/IsingDobrushin.lean`). Together with (6.9) this brackets the critical
 temperature of the two-dimensional Ising ferromagnet from both sides: uniqueness at high
 temperature, non-uniqueness at low temperature. Griffiths' monotonicity — the GKS inequalities
 (`GibbsMeasure/Model/GKSInequalities.lean`: `corr_nonneg`, `corr_mul_corr_le`, `corr_mono`,

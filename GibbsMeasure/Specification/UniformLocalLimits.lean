@@ -227,14 +227,6 @@ lemma restrict_juxt (Δ : Finset S) (η : S → E) (ζ : Δ → E) :
   funext fun i ↦ juxt_apply_of_mem (by simp) ζ
 
 omit [DecidableEq S] in
-lemma lintegral_isssd_eq (Δ : Finset S) (τ : S → E) {g : (S → E) → ℝ≥0∞} (hg : Measurable g) :
-    ∫⁻ σ, g σ ∂(isssd ν Δ τ) =
-      ∫⁻ ζ, g (juxt (Δ : Set S) τ ζ) ∂(Measure.pi fun _ : Δ ↦ ν) := by
-  rw [show (isssd ν Δ τ) = Measure.map (juxt (Δ : Set S) τ) (Measure.pi fun _ : Δ ↦ ν) from rfl,
-    lintegral_map hg Measurable.juxt]
-  rfl
-
-omit [DecidableEq S] in
 /-- **Georgii's identity for `ρ̄_Δ`**: for every boundary condition `ω` and every observable `f`
 measurable with respect to the events of `Δ`, `λ_Δ(ρ̄_Δ f | ω) = μ(f)`.  Taking `f = 1` gives the
 normalization `λ_Δ ρ̄_Δ = 1` used by Scheffé's lemma. -/
@@ -888,7 +880,7 @@ covers every finite non-zero a priori measure. -/
 theorem ae_tendsto_iSup_ofReal_abs_sub_lambdaSpecification
     (hρ : Specification.IsPremodifier (S := S) (E := E) ρ)
     (hZ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
-    (hZ' : Specification.IsPremodifierAdmissible (S := S) (E := E) ν ρ) {μ : Measure (S → E)}
+    {μ : Measure (S → E)}
     (hμ : μ ∈ (G (Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ)).extremePoints
       ℝ≥0∞)
     {Δ : Finset S} {Λ : ℕ → Finset S} (hmono : Monotone Λ)
@@ -900,7 +892,7 @@ theorem ae_tendsto_iSup_ofReal_abs_sub_lambdaSpecification
             - (μ A).toReal|)
       Filter.atTop (nhds 0) := by
   classical
-  rw [Specification.lambdaSpecification_eq_modification_isssd (S := S) (E := E) ν hρ hZ hZ'] at hμ ⊢
+  rw [Specification.lambdaSpecification_eq_modification_isssd (S := S) (E := E) ν hρ hZ] at hμ ⊢
   exact ae_tendsto_iSup_ofReal_abs_sub_of_mem_extremePoints_G _ hμ hmono hcof hΔ
 
 omit [DecidableEq S] in
@@ -926,7 +918,7 @@ omit [DecidableEq S] in
 theorem ae_forall_tendsto_iSup_ofReal_abs_sub_lambdaSpecification
     (hρ : Specification.IsPremodifier (S := S) (E := E) ρ)
     (hZ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
-    (hZ' : Specification.IsPremodifierAdmissible (S := S) (E := E) ν ρ) {μ : Measure (S → E)}
+    {μ : Measure (S → E)}
     (hμ : μ ∈ (G (Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ)).extremePoints
       ℝ≥0∞)
     {Λ : ℕ → Finset S} (hmono : Monotone Λ) (hcof : ∀ Θ : Finset S, ∃ n, Θ ⊆ Λ n) :
@@ -937,7 +929,7 @@ theorem ae_forall_tendsto_iSup_ofReal_abs_sub_lambdaSpecification
             - (μ A).toReal|)
       Filter.atTop (nhds 0) := by
   classical
-  rw [Specification.lambdaSpecification_eq_modification_isssd (S := S) (E := E) ν hρ hZ hZ'] at hμ ⊢
+  rw [Specification.lambdaSpecification_eq_modification_isssd (S := S) (E := E) ν hρ hZ] at hμ ⊢
   exact ae_forall_tendsto_iSup_ofReal_abs_sub_of_mem_extremePoints_G _ hμ hmono hcof
 
 end MeasureTheory.GibbsMeasure

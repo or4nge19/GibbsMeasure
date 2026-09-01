@@ -39,45 +39,6 @@ noncomputable section
 
 namespace Potential
 
-/-! ### Translations of finite volumes -/
-
-section Translate
-
-variable {S : Type*} [AddCommGroup S] {B : Finset S} {g h : S}
-
-/-- The translate `A + g` of a finite set of sites. -/
-def translate (B : Finset S) (g : S) : Finset S := B.map ⟨(· + g), add_left_injective g⟩
-
-@[simp] lemma mem_translate {x : S} : x ∈ translate B g ↔ x - g ∈ B := by
-  simp only [translate, Finset.mem_map, Function.Embedding.coeFn_mk]
-  constructor
-  · rintro ⟨y, hy, rfl⟩; simpa using hy
-  · intro hx; exact ⟨x - g, hx, by abel⟩
-
-lemma mem_translate_of_mem {x : S} (hx : x ∈ B) : x + g ∈ translate B g := by
-  simp [mem_translate, hx]
-
-@[simp] lemma translate_zero (B : Finset S) : translate B 0 = B := by
-  ext x; simp
-
-lemma translate_translate (B : Finset S) (g h : S) :
-    translate (translate B g) h = translate B (g + h) := by
-  ext x; simp [mem_translate, sub_sub, add_comm]
-
-@[simp] lemma translate_nonempty : (translate B g).Nonempty ↔ B.Nonempty := by
-  constructor
-  · rintro ⟨x, hx⟩; exact ⟨x - g, mem_translate.1 hx⟩
-  · rintro ⟨x, hx⟩; exact ⟨x + g, mem_translate_of_mem hx⟩
-
-lemma translate_subset_iff {Δ : Finset S} : translate B g ⊆ Δ ↔ ∀ x ∈ B, x + g ∈ Δ := by
-  constructor
-  · intro h x hx; exact h (mem_translate_of_mem hx)
-  · intro h x hx
-    have := h _ (mem_translate.1 hx)
-    simpa using this
-
-end Translate
-
 /-! ### Georgii (4.20)(2): the torus `S / p·S` -/
 
 section Torus
@@ -1218,7 +1179,9 @@ lemma measurable_premodifierNorm_of_supported [IsPotential Ψ] [IsSummable Ψ]
       = fun x ↦ Ψ.boltzmannFactor β Δ x
         * (∫⁻ y, Ψ.boltzmannFactor β Δ y ∂(Measure.infinitePi fun _ : S ↦ ν))⁻¹ := by
     funext x
-    rw [Specification.premodifierNorm, premodifierZ_eq_of_supported ν β hΨ x, div_eq_mul_inv]
+    rw [Specification.premodifierNorm, Specification.relNorm, Specification.relZ,
+      lintegral_isssd_eq_of_cylinderEvents ν Δ x (measurable_boltzmannFactor_of_supported β hΨ),
+      div_eq_mul_inv]
   rw [heq]
   exact (measurable_boltzmannFactor_of_supported β hΨ).mul_const _
 

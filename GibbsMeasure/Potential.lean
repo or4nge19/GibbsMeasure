@@ -312,8 +312,8 @@ lemma measurable_partitionFunction (Φ : Potential S E) [IsFiniteRange Φ] [IsPo
     funext η
     rfl
   rw [h]
-  exact Specification.measurable_premodifierZ
-    (S := S) (E := E) (ν := ν) (isPremodifier_boltzmannWeight (Φ := Φ) β) Λ
+  exact Specification.measurable_relZ (γ := Specification.isssd (S := S) (E := E) ν)
+    (isPremodifier_boltzmannWeight (Φ := Φ) β).measurable Λ
 
 /-- The (normalized) Gibbs modifier associated to the Boltzmann weights, i.e.
 \(\rho'_Λ(η) = \rho_Λ(η) / \int \rho_Λ \, d(\text{isssd}_Λ(η))\). -/
@@ -338,10 +338,10 @@ lemma measurable_gibbsModifier (Φ : Potential S E) [IsFiniteRange Φ] [IsPotent
         Specification.premodifierNorm (S := S) (E := E) ν (boltzmannWeight (Φ := Φ) β) Λ := by
     funext η
     simp [gibbsModifier, partitionFunction, Specification.premodifierNorm,
-      Specification.premodifierZ]
+      Specification.relNorm, Specification.premodifierZ, Specification.relZ]
   rw [h]
-  exact Specification.premodifierNorm_measurable
-    (S := S) (E := E) (ν := ν) (isPremodifier_boltzmannWeight (Φ := Φ) β) Λ
+  exact Specification.measurable_relNorm (γ := Specification.isssd (S := S) (E := E) ν)
+    (isPremodifier_boltzmannWeight (Φ := Φ) β).measurable Λ
 
 omit [DecidableEq S] in
 /-- Measurability of the σ-finite normalized Boltzmann density. -/
@@ -369,7 +369,8 @@ lemma gibbsModifier_eq_premodifierNorm (Φ : Potential S E) [IsFiniteRange Φ]
     gibbsModifier (S := S) (E := E) Φ β ν
       = Specification.premodifierNorm (S := S) (E := E) ν (boltzmannWeight (Φ := Φ) β) := by
   funext Λ η
-  simp [gibbsModifier, partitionFunction, Specification.premodifierNorm, Specification.premodifierZ]
+  simp [gibbsModifier, partitionFunction, Specification.premodifierNorm, Specification.relNorm,
+    Specification.premodifierZ, Specification.relZ]
 
 omit [DecidableEq S] in
 /-- `sigmaFiniteGibbsModifier` is definitionally the σ-finite normalized premodifier applied to the
@@ -530,7 +531,7 @@ lemma premodifierZ_boltzmannWeight_ne_zero (Φ : Potential S E) [IsFiniteRange �
     have : (0 : ℝ≥0∞) < μ (Function.support (boltzmannWeight (Φ := Φ) β Λ)) := by
       simp [hsupport, hμ_univ]
     exact (MeasureTheory.lintegral_pos_iff_support hf_meas).2 this
-  simpa [Specification.premodifierZ, μ] using (ne_of_gt hpos)
+  simpa [Specification.premodifierZ, Specification.relZ, μ] using (ne_of_gt hpos)
 
 omit [DecidableEq S] in
 /-- The partition function for Boltzmann weights is never `0`. -/
@@ -559,7 +560,7 @@ lemma partitionFunction_ne_top_of_boltzmannWeight_le
       ∫⁻ σ, boltzmannWeight (Φ := Φ) β Λ σ ∂μ ≤ C :=
     lintegral_le_const (μ := μ) (Filter.Eventually.of_forall hbound)
   exact ne_top_of_le_ne_top hC
-    (by simpa [partitionFunction, Specification.premodifierZ, μ] using hle)
+    (by simpa [partitionFunction, Specification.premodifierZ, Specification.relZ, μ] using hle)
 
 omit [DecidableEq S] in
 /-- Boltzmann admissibility follows from finiteness of the partition functions; strict positivity of

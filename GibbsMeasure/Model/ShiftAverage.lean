@@ -60,11 +60,6 @@ lemma tendsto_cube_atTop : Tendsto (cube d) atTop atTop := by
   exact ((Finset.le_sup (f := fun k ↦ (i k).natAbs) (Finset.mem_univ k)).trans
     (Finset.le_sup (f := fun i ↦ Finset.univ.sup fun k ↦ (i k).natAbs) hi)).trans hN
 
-/-- Membership in the translate `Λ + j = {i + j : i ∈ Λ}` of a finite volume of `ℤ^d`. -/
-lemma mem_map_addRight_iff {Λ : Finset (Fin d → ℤ)} {j x : Fin d → ℤ} :
-    x ∈ Λ.map (Equiv.addRight j).toEmbedding ↔ x - j ∈ Λ := by
-  simp [Finset.mem_map_equiv, sub_eq_add_neg]
-
 /-- Georgii (5.20)(1): `|(Λ_N + j) ∆ Λ_N| + 2 |Λ_{N - m}| ≤ 2 |Λ_N|` for `m = ‖j‖₁ ≤ N`, since
 `Λ_{N - m} + j ⊆ Λ_N ∩ (Λ_N + j)`. -/
 lemma card_symmDiff_map_addRight_cube_le (j : Fin d → ℤ) {N : ℕ} (hN : ∑ k, (j k).natAbs ≤ N) :
@@ -74,7 +69,7 @@ lemma card_symmDiff_map_addRight_cube_le (j : Fin d → ℤ) {N : ℕ} (hN : ∑
   set C := cube d N with hC
   set D := (cube d (N - m)).map (Equiv.addRight j).toEmbedding with hD
   have hDC : D ⊆ C := fun x hx ↦ by
-    rw [hD, mem_map_addRight_iff, mem_cube] at hx
+    rw [hD, Potential.mem_translate, mem_cube] at hx
     refine mem_cube.2 fun k ↦ ?_
     have hjk : (j k).natAbs ≤ m :=
       Finset.single_le_sum (fun k _ ↦ Nat.zero_le ((j k).natAbs)) (Finset.mem_univ k)
@@ -190,9 +185,9 @@ lemma map_addRight_cube_injective (N : ℕ) :
       (cube d N).map (Equiv.addRight b).toEmbedding → ∀ k, b k ≤ a k := by
     intro a b hab k
     have hmem : (fun _ ↦ -(N : ℤ)) + a ∈ (cube d N).map (Equiv.addRight a).toEmbedding := by
-      rw [mem_map_addRight_iff, add_sub_cancel_right]
+      rw [Potential.mem_translate, add_sub_cancel_right]
       exact mem_cube.2 fun k ↦ by simp
-    rw [hab, mem_map_addRight_iff, mem_cube] at hmem
+    rw [hab, Potential.mem_translate, mem_cube] at hmem
     have := hmem k
     simp only [Pi.add_apply, Pi.sub_apply] at this
     omega
@@ -216,7 +211,7 @@ lemma cube_sub_subset_of_mem_cubeTranslates {N k : ℕ} (hk : k ≤ N) {Λ : Fin
     (hΛ : Λ ∈ cubeTranslates d N k) : cube d (N - k) ⊆ Λ := by
   obtain ⟨i, hi, rfl⟩ := Finset.mem_image.1 hΛ
   intro x hx
-  rw [mem_map_addRight_iff]
+  rw [Potential.mem_translate]
   rw [mem_cube] at hx hi ⊢
   intro l
   have h1 := hx l

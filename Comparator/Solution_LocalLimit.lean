@@ -167,9 +167,6 @@ lemma isModifier (hγ : IsLambdaSpec ν ρ γ) : (Specification.isssd ν).IsModi
   isMarkovKernel Λ := by
     rw [modificationKer_eq_ker hγ]
     infer_instance
-  isProper Λ := by
-    rw [modificationKer_eq_ker hγ]
-    exact isProper_ker hγ.isSpecification Λ
   isConsistent := by
     have h : Specification.modificationKer (⇑(Specification.isssd ν)) ρ
         (fun Λ ↦ hγ.measurable_density Λ) = ker hγ.isSpecification :=

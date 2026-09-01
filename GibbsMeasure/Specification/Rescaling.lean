@@ -645,12 +645,13 @@ variable {S E : Type*} {mE : MeasurableSpace E} {ρ : Finset S → (S → E) →
 independent specification `isssd ν`, i.e. `(isssd ν).modification (premodifierNorm ν ρ)`. -/
 theorem lambdaSpecification_eq_modification_isssd (ν : Measure E) [IsProbabilityMeasure ν]
     (hρ : IsPremodifier (S := S) (E := E) ρ)
-    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
-    (hZ' : IsPremodifierAdmissible (S := S) (E := E) ν ρ) :
+    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ) :
     lambdaSpecification (S := S) (E := E) ν ρ hρ hZ
       = (isssd (S := S) (E := E) ν).modification
         (premodifierNorm (S := S) (E := E) ν ρ)
-        (IsPremodifier.isModifier_premodifierNorm (S := S) (E := E) ν hρ hZ') := by
+        (IsPremodifier.isModifier_premodifierNorm (S := S) (E := E) ν hρ
+          ((isPremodifierAdmissible_iff_isSigmaFiniteLambdaAdmissible
+            (S := S) (E := E) ν ρ).2 hZ)) := by
   refine Specification.ext fun Λ ↦ ?_
   ext η A hA
   rw [lambdaSpecification_apply, modification_apply,

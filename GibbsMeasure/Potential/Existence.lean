@@ -258,7 +258,7 @@ lemma premodifierNorm_le_of_abs_hamiltonian_le
             ∂(Specification.isssd (S := S) (E := E) ν Λ ω) :=
           setLIntegral_le_lintegral _ _
       _ = Specification.premodifierZ (S := S) (E := E) ν (Φ.boltzmannFactor β) Λ ω := rfl
-  rw [Specification.premodifierNorm]
+  rw [Specification.premodifierNorm, Specification.relNorm]
   exact ENNReal.div_le_div hnum hZ
 
 /-- **Georgii Corollary (4.13).** Let `Φᵃ` be a net of `ν`-admissible potentials (summable, with

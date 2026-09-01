@@ -146,8 +146,7 @@ theorem gibbsSpecificationOfFiniteReference_eq_gibbsSpecificationOfAbsolutelySum
       (isSigmaFiniteLambdaAdmissible_boltzmannFactor (Φ := Φ) ν.probNormalize β),
     lambdaSpecification_eq_modification_isssd (S := S) (E := E) ν.probNormalize
       (isPremodifier_boltzmannFactor (Φ := Φ) β)
-      (isSigmaFiniteLambdaAdmissible_boltzmannFactor (Φ := Φ) ν.probNormalize β)
-      (isPremodifierAdmissible_boltzmannFactor (Φ := Φ) ν.probNormalize β)]
+      (isSigmaFiniteLambdaAdmissible_boltzmannFactor (Φ := Φ) ν.probNormalize β)]
   rfl
 
 /-- For a probability a priori measure the two definitions agree. -/
@@ -158,8 +157,7 @@ theorem gibbsSpecificationOfFiniteReference_eq_of_isProbabilityMeasure
   rw [gibbsSpecificationOfFiniteReference, gibbsSpecificationOfSigmaFiniteAdmissible,
     lambdaSpecification_eq_modification_isssd (S := S) (E := E) ν
       (isPremodifier_boltzmannFactor (Φ := Φ) β)
-      (isSigmaFiniteLambdaAdmissible_boltzmannFactor (Φ := Φ) ν β)
-      (isPremodifierAdmissible_boltzmannFactor (Φ := Φ) ν β)]
+      (isSigmaFiniteLambdaAdmissible_boltzmannFactor (Φ := Φ) ν β)]
   rfl
 
 /-! ### Removing the probability restriction from the σ-finite Gibbs specification -/
@@ -232,15 +230,15 @@ theorem exists_mem_quasilocalFunctions_toReal_premodifierNorm_boltzmannFactor (�
   have hbf : Φ.boltzmannFactor β Λ = fun x ↦ ENNReal.ofReal ((⇑h) x) :=
     congrFun (boltzmannFactor_eq_ofReal_boltzmann (Φ := Φ) β) Λ
   refine ⟨h * W, Subalgebra.mul_mem _ (boltzmann_mem_quasilocalFunctions hH) hWql, fun η ↦ ?_⟩
-  have hZof : premodifierZ (S := S) (E := E) ν (Φ.boltzmannFactor β) Λ η
+  have hZof : relZ (isssd (S := S) (E := E) ν) (Φ.boltzmannFactor β) Λ η
       = ENNReal.ofReal ((⇑Z) η) := by
     rw [hZ, action_apply,
       ofReal_integral_eq_lintegral_ofReal (integrable_boltzmann (γ := isssd ν) hH Λ η)
         (.of_forall fun x ↦ (Real.exp_pos _).le),
-      premodifierZ, hbf]
+      relZ, hbf]
   have hmul : (⇑(h * W)) η = (⇑h) η * ((⇑Z) η)⁻¹ := by
     rw [lp.infty_coeFn_mul]; rfl
-  rw [hmul, premodifierNorm, hZof, congrFun hbf η,
+  rw [hmul, premodifierNorm, relNorm, hZof, congrFun hbf η,
     ← ENNReal.ofReal_div_of_pos (hZpos η),
     ENNReal.toReal_ofReal
       ((div_pos (lt_of_lt_of_le (Real.exp_pos (-‖H‖)) (le_boltzmann H η)) (hZpos η)).le),

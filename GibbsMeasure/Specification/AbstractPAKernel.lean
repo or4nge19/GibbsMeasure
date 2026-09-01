@@ -408,14 +408,14 @@ lemma ae_paKernel_eq_tailCondKernel (hμ : μ ∈ γ.invariant) :
     exact ⟨measure_univ, hω⟩
   filter_upwards [ae_tailRealKernel_eq_map μ hμ, hcore] with ω h1 h2
   have hrange : ω ∈ γ.rangeSet := by
-    show γ.tailRealKernel ω (range (embeddingReal Ω)) = 1
+    change γ.tailRealKernel ω (range (embeddingReal Ω)) = 1
     rw [h1, Measure.map_apply (measurable_embeddingReal _)
       (measurableEmbedding_embeddingReal _).measurableSet_range, preimage_range, measure_univ]
   have haux : paKernelAux γ ν₀ ω = tailCondKernel γ μ ω := by
     rw [paKernelAux, Kernel.comapRight_apply, tailRealKernel', Kernel.piecewise_apply,
       ite_eq_left hrange, h1, (measurableEmbedding_embeddingReal _).comap_map]
   have hgood : ω ∈ invariantSet γ ν₀ := by
-    show γ.IsInvariantCore (paKernelAux γ ν₀ ω)
+    change γ.IsInvariantCore (paKernelAux γ ν₀ ω)
     rw [haux]; exact h2
   rw [paKernel, Kernel.piecewise_apply, ite_eq_left hgood, haux]
 

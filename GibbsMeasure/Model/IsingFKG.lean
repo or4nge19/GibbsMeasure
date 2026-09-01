@@ -227,12 +227,12 @@ private lemma lintegral_isssd_uniform (Λ : Finset S) (η : S → Bool) {F : (S 
   rw [hker, lintegral_map hF Measurable.juxt, lintegral_fintype, Finset.sum_mul]
   exact Finset.sum_congr rfl fun ζ _ ↦ by rw [pi_uniformSpinMeasure_singleton]
 
-private lemma premodifierZ_ising (Λ : Finset S) (ω : S → Bool) (ζ : Λ → Bool) :
-    Specification.premodifierZ (S := S) (E := Bool) uniformSpinMeasure
+private lemma relZ_ising (Λ : Finset S) (ω : S → Bool) (ζ : Λ → Bool) :
+    Specification.relZ (Specification.isssd (S := S) (E := Bool) uniformSpinMeasure)
         ((isingPotential G J h).boltzmannFactor β) Λ (juxt (Λ : Set S) ω ζ)
       = (∑ ξ : (Λ → Bool), ENNReal.ofReal (isingWeight G J h β Λ ω ξ)) *
           (2 : ℝ≥0∞)⁻¹ ^ Fintype.card Λ := by
-  rw [Specification.premodifierZ,
+  rw [Specification.relZ,
     lintegral_isssd_uniform Λ _ (Potential.measurable_boltzmannFactor
       (Φ := isingPotential G J h) β Λ)]
   congr 1
@@ -249,8 +249,8 @@ theorem isingSpecification_apply_eq (Λ : Finset S) (ω : S → Bool) {A : Set (
   set ρ := Specification.premodifierNorm (S := S) (E := Bool) uniformSpinMeasure
     ((isingPotential G J h).boltzmannFactor β) with hρdef
   have hρmeas : Measurable (ρ Λ) :=
-    Specification.premodifierNorm_measurable uniformSpinMeasure
-      (Potential.isPremodifier_boltzmannFactor (Φ := isingPotential G J h) β) Λ
+    Specification.measurable_relNorm (γ := Specification.isssd uniformSpinMeasure)
+      (Potential.isPremodifier_boltzmannFactor (Φ := isingPotential G J h) β).measurable Λ
   have hmod : isingSpecification G J h β Λ ω
       = (Specification.isssd (S := S) (E := Bool) uniformSpinMeasure Λ ω).withDensity (ρ Λ) := rfl
   set c : ℝ≥0∞ := (2 : ℝ≥0∞)⁻¹ ^ Fintype.card Λ with hcdef
@@ -272,7 +272,8 @@ theorem isingSpecification_apply_eq (Λ : Finset S) (ω : S → Bool) {A : Set (
     · rw [Set.indicator_of_mem hmem, Set.indicator_of_mem hmem]
       have hρval : ρ Λ (juxt (Λ : Set S) ω ζ)
           = ENNReal.ofReal (isingWeight G J h β Λ ω ζ) / (ENNReal.ofReal W * c) := by
-        rw [hρdef, Specification.premodifierNorm, premodifierZ_ising G J h β Λ ω ζ, hB]
+        rw [hρdef, Specification.premodifierNorm, Specification.relNorm,
+          relZ_ising G J h β Λ ω ζ, hB]
         rfl
       rw [hρval, ennreal_div_mul_cancel hc0 hct, Pi.one_apply, mul_one,
         isingDensity, ← hWdef, ENNReal.ofReal_div_of_pos hWpos]

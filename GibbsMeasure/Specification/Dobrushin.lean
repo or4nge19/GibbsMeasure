@@ -725,7 +725,7 @@ lemma singleSiteMeasure_univ (i : S) (ζ : S → E) :
     singleSiteMeasure Φ ν β i ζ univ
       = Specification.premodifierZ (S := S) (E := E) ν (Φ.boltzmannFactor β) {i} ζ := by
   rw [singleSiteMeasure_apply (Φ := Φ) i ζ MeasurableSet.univ]
-  simp [Specification.premodifierZ]
+  simp [Specification.premodifierZ, Specification.relZ]
 
 omit [Countable S] [Potential.IsPotential Φ] in
 lemma singleSiteMeasure_univ_ne_zero (i : S) (ζ : S → E) :

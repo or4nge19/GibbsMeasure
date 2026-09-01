@@ -397,8 +397,7 @@ lemma le_premodifierZ_boltzmannFactor [IsAbsolutelySummable Φ] (β : ℝ) (Λ :
 
 theorem isPremodifierAdmissible_boltzmannFactor [IsAbsolutelySummable Φ] (β : ℝ) :
     Specification.IsPremodifierAdmissible (S := S) (E := E) ν (Φ.boltzmannFactor β) :=
-  (Specification.isRelAdmissible_isssd_iff ν).1
-    (isRelAdmissible_boltzmannFactor (γ := Specification.isssd ν) β)
+  isRelAdmissible_boltzmannFactor (γ := Specification.isssd ν) β
 
 lemma premodifierNorm_boltzmannFactor_le [IsAbsolutelySummable Φ] (β : ℝ) (Λ : Finset S)
     (η : S → E) :

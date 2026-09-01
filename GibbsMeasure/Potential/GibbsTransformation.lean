@@ -64,14 +64,14 @@ lemma premodifierNorm_map (hτ : ∀ i, MeasurePreserving (τ.spin i) ν ν)
     premodifierNorm (S := S) (E := E) ν
         (fun Λ η ↦ ρ (Λ.map τ.sites.symm.toEmbedding) (τ.inv.toFun η)) Λ η =
       premodifierNorm (S := S) (E := E) ν ρ (Λ.map τ.sites.symm.toEmbedding) (τ.inv.toFun η) := by
-  rw [premodifierNorm, premodifierNorm, premodifierZ_map ν τ hτ]
+  simp only [premodifierNorm, Specification.relNorm, premodifierZ_map ν τ hτ]
 
 /-- `λ`-admissibility (Georgii (2.7)) is transported by (5.3): `Z^{τ(ρ)}_{τ_* Λ} ∘ τ = Z^ρ_Λ`. -/
 lemma IsPremodifierAdmissible.map (hτ : ∀ i, MeasurePreserving (τ.spin i) ν ν)
     {ρ : Finset S → (S → E) → ℝ≥0∞} (hρ : IsPremodifierAdmissible (S := S) (E := E) ν ρ) :
     IsPremodifierAdmissible (S := S) (E := E) ν
       fun Λ η ↦ ρ (Λ.map τ.sites.symm.toEmbedding) (τ.inv.toFun η) := fun Λ η ↦ by
-  rw [premodifierZ_map ν τ hτ]
+  simp only [premodifierZ_map ν τ hτ]
   exact hρ _ _
 
 /-- The kernels of `τ(ρλ.)` are the `λ.`-kernels with densities `τ(ρ)` (Georgii (5.6)(b)). -/
@@ -99,9 +99,6 @@ theorem IsModifier.map_isssd (hτ : ∀ i, MeasurePreserving (τ.spin i) ν ν)
   isMarkovKernel Λ := by
     rw [← congrFun (coe_modification_isssd_map ν τ hτ hρ) Λ]
     infer_instance
-  isProper Λ := by
-    rw [← congrFun (coe_modification_isssd_map ν τ hτ hρ) Λ]
-    exact (((isssd ν).modification ρ hρ).map τ).isProper Λ
   isConsistent := by
     rw [← coe_modification_isssd_map ν τ hτ hρ]
     exact (((isssd ν).modification ρ hρ).map τ).isConsistent

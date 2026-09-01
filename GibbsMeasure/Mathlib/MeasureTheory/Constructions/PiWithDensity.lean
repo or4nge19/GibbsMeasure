@@ -37,7 +37,7 @@ namespace MeasureTheory
 
 /-- **Tonelli's theorem for a product of single-variable functions.** The `ℝ≥0∞`-valued companion
 of `MeasureTheory.integral_fintype_prod_eq_prod`. -/
-theorem lintegral_pi_prod {ι : Type*} [Fintype ι] [DecidableEq ι] {α : ι → Type*}
+theorem lintegral_pi_prod {ι : Type*} [Fintype ι] {α : ι → Type*}
     [∀ i, MeasurableSpace (α i)] (μ : ∀ i, Measure (α i)) [∀ i, SigmaFinite (μ i)]
     {g : ∀ i, α i → ℝ≥0∞} (hg : ∀ i, Measurable (g i)) :
     ∫⁻ x, ∏ i, g i (x i) ∂(Measure.pi μ) = ∏ i, ∫⁻ y, g i y ∂(μ i) := by

@@ -15,7 +15,6 @@ public import GibbsMeasure.Mathlib.Probability.Kernel.Proper
 public import GibbsMeasure.Prereqs.SquareCylinders
 public import Mathlib.Probability.ProductMeasure
 
-
 /-!
 # Gibbs measures
 
@@ -371,7 +370,6 @@ lemma preimage_juxt_squareCylinder_eq_empty_of_not_forall
   · intro hζ
     simp at hζ
 
-omit [IsProbabilityMeasure ν] in
 /-- Raw evaluation of a `juxt`-mapped finite-coordinate measure on a finite square cylinder. -/
 lemma map_juxt_apply_squareCylinder_of_measure
     [DecidableEq S] {Λ s : Finset S} (μΛ : Measure (Λ → E)) (t : S → Set E)
@@ -415,7 +413,6 @@ lemma map_juxt_apply_squareCylinder
   exact map_juxt_apply_squareCylinder_of_measure
     (S := S) (E := E) (Λ := Λ) (s := s) (Measure.pi fun _ : Λ => ν) t ht η
 
-omit [IsProbabilityMeasure ν] in
 /-- Measurability, as a function of the boundary condition, of a `juxt`-mapped finite-coordinate
 measure applied to a finite square cylinder. -/
 lemma measurable_map_juxt_apply_squareCylinder_of_measure
@@ -456,7 +453,6 @@ lemma measurable_map_juxt_apply_squareCylinder
   exact measurable_map_juxt_apply_squareCylinder_of_measure
     (S := S) (E := E) (Λ := Λ) (s := s) (Measure.pi fun _ : Λ => ν) t ht
 
-omit [IsProbabilityMeasure ν] in
 /-- Measurability of a `juxt`-mapped finite-coordinate finite measure as a function of the boundary
 condition. -/
 lemma measurable_map_juxt_of_isFiniteMeasure
@@ -495,7 +491,6 @@ lemma measurable_map_juxt_of_isFiniteMeasure
     rw [h_eval_univ]
     exact measurable_const
 
-omit [IsProbabilityMeasure ν] in
 /-- Kernel obtained by pushing a finite measure on the finite-coordinate space through `juxt`. -/
 @[simps -fullyApplied]
 def juxtMapKernel {Λ : Finset S} (μΛ : Measure (Λ → E)) [IsFiniteMeasure μΛ] :
@@ -504,7 +499,6 @@ def juxtMapKernel {Λ : Finset S} (μΛ : Measure (Λ → E)) [IsFiniteMeasure �
     (fun η => Measure.map (juxt (Λ := (Λ : Set S)) η) μΛ)
     (measurable_map_juxt_of_isFiniteMeasure (S := S) (E := E) (Λ := Λ) μΛ)
 
-omit [IsProbabilityMeasure ν] in
 /-- Evaluation of `juxtMapKernel` on a finite square cylinder. -/
 lemma juxtMapKernel_apply_squareCylinder
     [DecidableEq S] {Λ s : Finset S} (μΛ : Measure (Λ → E)) [IsFiniteMeasure μΛ]
@@ -520,7 +514,6 @@ lemma juxtMapKernel_apply_squareCylinder
   exact map_juxt_apply_squareCylinder_of_measure
     (S := S) (E := E) (Λ := Λ) (s := s) μΛ t ht η
 
-omit [IsProbabilityMeasure ν] in
 /-- The total mass of `juxtMapKernel` is the mass of its finite-coordinate input measure. -/
 lemma juxtMapKernel_apply_univ {Λ : Finset S} (μΛ : Measure (Λ → E)) [IsFiniteMeasure μΛ]
     (η : S → E) :
@@ -530,14 +523,12 @@ lemma juxtMapKernel_apply_univ {Λ : Finset S} (μΛ : Measure (Λ → E)) [IsFi
     (Measurable.juxt (Λ := (Λ : Set S)) (η := η) (𝓔 := mE)) MeasurableSet.univ]
   simp
 
-omit [IsProbabilityMeasure ν] in
 instance juxtMapKernel.instIsFiniteKernel
     {Λ : Finset S} (μΛ : Measure (Λ → E)) [IsFiniteMeasure μΛ] :
     IsFiniteKernel (juxtMapKernel (S := S) (E := E) μΛ) := by
   refine ⟨⟨μΛ Set.univ, measure_lt_top _ _, fun η => ?_⟩⟩
   rw [juxtMapKernel_apply_univ]
 
-omit [IsProbabilityMeasure ν] in
 /-- The σ-finite reference kernel from Georgii's Notation 1.26, constructed as an s-finite kernel.
 
 For a σ-finite reference measure `ν`, the finite-volume product measure is s-finite. We decompose
@@ -548,7 +539,6 @@ noncomputable def sigmaFiniteLambdaFun (ν : Measure E) [SigmaFinite ν] (Λ : F
   Kernel.sum fun n : ℕ =>
     juxtMapKernel (S := S) (E := E) (Λ := Λ) (sfiniteSeq (Measure.pi fun _ : Λ => ν) n)
 
-omit [IsProbabilityMeasure ν] in
 instance sigmaFiniteLambdaFun.instIsSFiniteKernel
     (ν : Measure E) [SigmaFinite ν] (Λ : Finset S) :
     IsSFiniteKernel (sigmaFiniteLambdaFun (S := S) (E := E) ν Λ) := by
@@ -561,7 +551,6 @@ instance sigmaFiniteLambdaFun.instIsSFiniteKernel
     infer_instance
   infer_instance
 
-omit [IsProbabilityMeasure ν] in
 /-- The s-finite construction of `sigmaFiniteLambdaFun` evaluates to the expected pushed-forward
 finite-volume product measure. -/
 lemma sigmaFiniteLambdaFun_apply_eq_map
@@ -581,7 +570,6 @@ lemma sigmaFiniteLambdaFun_apply_eq_map
     _ = Measure.map J μΛ := by
           rw [sum_sfiniteSeq μΛ]
 
-omit [IsProbabilityMeasure ν] in
 /-- Evaluation of the σ-finite reference kernel on a finite square cylinder. -/
 lemma sigmaFiniteLambdaFun_apply_squareCylinder
     [DecidableEq S] (ν : Measure E) [SigmaFinite ν] (Λ s : Finset S)
@@ -597,7 +585,6 @@ lemma sigmaFiniteLambdaFun_apply_squareCylinder
   rw [sigmaFiniteLambdaFun_apply_eq_map]
   exact map_juxt_apply_squareCylinder (S := S) (E := E) ν Λ s t ht η
 
-omit [IsProbabilityMeasure ν] in
 /-- The total mass of the σ-finite reference kernel is the finite-volume product mass of `ν`. -/
 lemma sigmaFiniteLambdaFun_apply_univ
     (ν : Measure E) [SigmaFinite ν] (Λ : Finset S) (η : S → E) :
@@ -608,30 +595,16 @@ lemma sigmaFiniteLambdaFun_apply_univ
     (Measurable.juxt (Λ := (Λ : Set S)) (η := η) (𝓔 := mE)) MeasurableSet.univ]
   simp
 
-omit [IsProbabilityMeasure ν] in
-/-- Measurability of the finite-volume resampling measure associated to a finite reference measure.
-
-This is the finite-measure fragment of Georgii's `λ_Λ` kernel from Notation 1.26. It is not a
-Markov kernel unless the reference measure has total mass `1`; normalization belongs to the
-premodifier layer. -/
-lemma measurable_finiteLambdaFun [IsFiniteMeasure ν] (Λ : Finset S) :
-    Measurable[cylinderEvents Λᶜ]
-      fun η : S → E ↦ (Measure.pi fun _ : Λ ↦ ν).map (juxt Λ η) := by
-  exact measurable_map_juxt_of_isFiniteMeasure
-    (S := S) (E := E) (Λ := Λ) (Measure.pi fun _ : Λ => ν)
-
-omit [IsProbabilityMeasure ν] in
-/-- The finite-reference version of Georgii's `λ_Λ` kernel.
+/-- The finite-reference version of Georgii's `λ_Λ` kernel: `Specification.juxtMapKernel` of the
+finite product `ν^Λ`.
 
 This kernel resamples the coordinates in `Λ` using the finite measure `ν` and leaves the exterior
 configuration fixed. It is generally not Markov; the probability independent specification
 `isssdFun` is the special case where `ν` is a probability measure. -/
-@[simps! -fullyApplied]
-def finiteLambdaFun (ν : Measure E) [IsFiniteMeasure ν] (Λ : Finset S) :
+abbrev finiteLambdaFun (ν : Measure E) [IsFiniteMeasure ν] (Λ : Finset S) :
     Kernel[cylinderEvents Λᶜ] (S → E) (S → E) :=
   juxtMapKernel (S := S) (E := E) (Λ := Λ) (Measure.pi fun _ : Λ => ν)
 
-omit [IsProbabilityMeasure ν] in
 /-- For finite reference measures, the s-finite λ-kernel agrees with the finite λ-kernel. -/
 lemma sigmaFiniteLambdaFun_eq_finiteLambdaFun
     (ν : Measure E) [IsFiniteMeasure ν] (Λ : Finset S) :
@@ -641,51 +614,21 @@ lemma sigmaFiniteLambdaFun_eq_finiteLambdaFun
   rw [sigmaFiniteLambdaFun_apply_eq_map]
   rfl
 
-omit [IsProbabilityMeasure ν] in
-/-- Evaluation of `finiteLambdaFun` on a finite square cylinder. -/
-lemma finiteLambdaFun_apply_squareCylinder
-    [DecidableEq S] [IsFiniteMeasure ν] (Λ s : Finset S) (t : S → Set E)
-    (ht : ∀ i, MeasurableSet (t i)) (η : S → E) :
-    finiteLambdaFun ν Λ η ((s : Set S).pi t) =
-      (by
-        classical
-        exact ite (∀ i ∈ (s : Set S), i ∉ (Λ : Set S) → η i ∈ t i)
-          ((Measure.pi fun _ : Λ ↦ ν)
-            (Set.univ.pi (fun j : Λ =>
-              if (j : S) ∈ (s : Set S) then t j else Set.univ)))
-          0) := by
-  rw [finiteLambdaFun_apply]
-  exact juxtMapKernel_apply_squareCylinder
-    (S := S) (E := E) (Λ := Λ) (s := s) (Measure.pi fun _ : Λ => ν) t ht η
-
-omit [IsProbabilityMeasure ν] in
-/-- The total mass of `finiteLambdaFun` is the finite-volume product mass of `ν`. -/
-lemma finiteLambdaFun_apply_univ [IsFiniteMeasure ν] (Λ : Finset S) (η : S → E) :
-    finiteLambdaFun ν Λ η Set.univ = (Measure.pi fun _ : Λ ↦ ν) Set.univ := by
-  change juxtMapKernel (S := S) (E := E) (Λ := Λ)
-    (Measure.pi fun _ : Λ => ν) η Set.univ = (Measure.pi fun _ : Λ => ν) Set.univ
-  rw [juxtMapKernel_apply_univ]
-
-lemma measurable_isssdFun (Λ : Finset S) :
-    Measurable[cylinderEvents Λᶜ]
-      fun η : S → E ↦ (Measure.pi fun _ : Λ ↦ ν).map (juxt Λ η) := by
-  haveI : IsFiniteMeasure ν := by infer_instance
-  exact measurable_finiteLambdaFun ν Λ
-
-/-- Auxiliary definition for `Specification.isssd`. -/
-@[simps -fullyApplied]
-def isssdFun (ν : Measure E) [IsProbabilityMeasure ν] (Λ : Finset S) :
+/-- Auxiliary definition for `Specification.isssd`: the independent resampling kernel with a
+probability spin distribution `ν`, i.e. `Specification.juxtMapKernel` of the finite product
+`ν^Λ`. -/
+abbrev isssdFun (ν : Measure E) [IsProbabilityMeasure ν] (Λ : Finset S) :
     Kernel[cylinderEvents Λᶜ] (S → E) (S → E) :=
-  @Kernel.mk _ _ (_) _
-    (fun η ↦ Measure.map (juxt Λ η) (Measure.pi fun _ : Λ ↦ ν))
-    (measurable_isssdFun ν Λ)
+  juxtMapKernel (S := S) (E := E) (Λ := Λ) (Measure.pi fun _ : Λ ↦ ν)
+
+@[simp] lemma isssdFun_apply (Λ : Finset S) :
+    ⇑(isssdFun (S := S) (E := E) ν Λ)
+      = fun η : S → E ↦ Measure.map (juxt Λ η) (Measure.pi fun _ : Λ ↦ ν) := rfl
 
 /-- The probability independent kernel is the finite-reference kernel for a probability reference
 measure. -/
 lemma finiteLambdaFun_eq_isssdFun (ν : Measure E) [IsProbabilityMeasure ν] (Λ : Finset S) :
-    finiteLambdaFun (S := S) (E := E) ν Λ = isssdFun (S := S) (E := E) ν Λ := by
-  ext η A hA
-  rfl
+    finiteLambdaFun (S := S) (E := E) ν Λ = isssdFun (S := S) (E := E) ν Λ := rfl
 
 /-!
 ### Evaluating `isssdFun` on square cylinders
@@ -1150,7 +1093,6 @@ lemma preimage_juxt_restrict_compl
       simpa [restrict_compl_juxt (S := S) (E := E) Λ x ζ] using hx'
     simp [hx, Set.mem_preimage, this]
 
-omit [IsProbabilityMeasure ν] in
 /-- A `juxt`-mapped finite-coordinate measure factors outside-volume events as an indicator of the
 boundary condition. -/
 lemma map_juxt_inter_restrict_compl_preimage_of_measure
@@ -1192,7 +1134,6 @@ lemma map_juxt_inter_restrict_compl_preimage
   exact map_juxt_inter_restrict_compl_preimage_of_measure
     (S := S) (E := E) (Λ := Λ) (Measure.pi fun _ : Λ => ν) hA hC x
 
-omit [IsProbabilityMeasure ν] in
 /-- `juxtMapKernel` is proper with respect to the outside-volume σ-algebra. -/
 lemma isProper_juxtMapKernel {Λ : Finset S} (μΛ : Measure (Λ → E)) [IsFiniteMeasure μΛ] :
     (juxtMapKernel (S := S) (E := E) μΛ).IsProper := by
@@ -1211,15 +1152,6 @@ lemma isProper_juxtMapKernel {Λ : Finset S} (μΛ : Measure (Λ → E)) [IsFini
   exact map_juxt_inter_restrict_compl_preimage_of_measure
     (S := S) (E := E) (Λ := Λ) μΛ hA hC x
 
-omit [IsProbabilityMeasure ν] in
-/-- The finite-reference λ-kernel is proper with respect to the outside-volume σ-algebra. -/
-lemma isProper_finiteLambdaFun [IsFiniteMeasure ν] (Λ : Finset S) :
-    (finiteLambdaFun (S := S) (E := E) ν Λ).IsProper := by
-  change (juxtMapKernel (S := S) (E := E) (Λ := Λ)
-    (Measure.pi fun _ : Λ => ν)).IsProper
-  exact isProper_juxtMapKernel (S := S) (E := E) (Measure.pi fun _ : Λ => ν)
-
-omit [IsProbabilityMeasure ν] in
 /-- The σ-finite reference λ-kernel is proper with respect to the outside-volume σ-algebra. -/
 lemma isProper_sigmaFiniteLambdaFun
     (ν : Measure E) [SigmaFinite ν] (Λ : Finset S) :
@@ -1240,10 +1172,8 @@ lemma isProper_sigmaFiniteLambdaFun
     (S := S) (E := E) (Λ := Λ) (Measure.pi fun _ : Λ => ν) hA hC x
 
 /-- The independent finite-volume kernels are proper. -/
-lemma isProper_isssdFun (Λ : Finset S) : (isssdFun (S := S) (E := E) ν Λ).IsProper := by
-  haveI : IsFiniteMeasure ν := by infer_instance
-  rw [← finiteLambdaFun_eq_isssdFun (S := S) (E := E) ν Λ]
-  exact isProper_finiteLambdaFun (S := S) (E := E) (ν := ν) Λ
+lemma isProper_isssdFun (Λ : Finset S) : (isssdFun (S := S) (E := E) ν Λ).IsProper :=
+  isProper_juxtMapKernel (S := S) (E := E) (Measure.pi fun _ : Λ ↦ ν)
 
 /-- The independent finite-volume kernels are consistent. -/
 lemma isConsistent_isssdFun : IsConsistent (isssdFun (S := S) (E := E) ν) := by
@@ -1299,14 +1229,12 @@ the ISSSD consistency proof applies verbatim.
 /-- For ISSSD-compatible spin distributions (probability spin law),
 σ-finite λ-kernels coincide with ISSSD kernels. -/
 lemma sigmaFiniteLambdaFun_eq_isssdFun {ν : Measure E}
-    [SigmaFinite ν] [IsProbabilityMeasure ν] (Λ : Finset S) :
-    sigmaFiniteLambdaFun (S := S) (E := E) ν Λ = isssdFun (S := S) (E := E) ν Λ := by
-  classical
-  haveI : IsFiniteMeasure ν := inferInstance
-  exact (sigmaFiniteLambdaFun_eq_finiteLambdaFun ν Λ).trans (finiteLambdaFun_eq_isssdFun ν Λ)
+    [IsProbabilityMeasure ν] (Λ : Finset S) :
+    sigmaFiniteLambdaFun (S := S) (E := E) ν Λ = isssdFun (S := S) (E := E) ν Λ :=
+  (sigmaFiniteLambdaFun_eq_finiteLambdaFun ν Λ).trans (finiteLambdaFun_eq_isssdFun ν Λ)
 
 lemma isConsistent_sigmaFiniteLambdaFun {ν : Measure E}
-    [SigmaFinite ν] [IsProbabilityMeasure ν] :
+    [IsProbabilityMeasure ν] :
     IsConsistent (sigmaFiniteLambdaFun (S := S) (E := E) ν) := fun Λ₁ Λ₂ hΛ₁₂ => by
   classical
   simp_rw [sigmaFiniteLambdaFun_eq_isssdFun Λ₁, sigmaFiniteLambdaFun_eq_isssdFun Λ₂]
@@ -1397,7 +1325,7 @@ lemma infinitePi_bind_isssd_apply_univ
     funext η
     simpa [isssd_apply, isssdFun_apply] using h1 η
   rw [Measure.bind_apply (s := Set.univ) huniv_meas hκ]
-  simp [isssdFun_apply, h_integrand, MeasureTheory.lintegral_const]
+  simp [h_integrand, MeasureTheory.lintegral_const]
 
 /-- The ISSSD resampling kernel preserves finite square-cylinder probabilities of the infinite
 product measure. -/
@@ -1567,7 +1495,6 @@ theorem isGibbsMeasure_isssd_iff (ν : Measure E) [IsProbabilityMeasure ν]
     (isssd ν).IsGibbsMeasure μ ↔ μ = Measure.infinitePi fun _ : S ↦ ν := by
   rw [isGibbsMeasure_isssd_iff_of_isFiniteMeasure ν μ, measure_univ, one_smul]
 
-
 end InfinitePi
 
 section Modifier
@@ -1609,6 +1536,8 @@ lemma isProper_modificationKer_of_isProper
     withDensity_apply _ (hA.inter <| cylinderEvents_le_pi _ hB),
     (hγ Λ).setLIntegral_inter_eq_indicator_mul_setLIntegral cylinderEvents_le_pi (hρ _) hA hB]
 
+/-- **Georgii, Remark (1.28)(1), first sentence.** A density change of the kernels of a
+specification is proper, because the kernels of the specification are. -/
 lemma isProper_modificationKer {γ : Specification S E}
     (hρ : ∀ Λ, Measurable (ρ Λ)) :
     ∀ Λ, (modificationKer γ ρ hρ Λ).IsProper :=
@@ -1618,14 +1547,22 @@ lemma isProper_modificationKer {γ : Specification S E}
 `ρ Λ : (S → E) → ℝ≥0∞` such that:
 * Each `ρ Λ` is measurable.
 * `γ.modificationKer ρ` (informally, `ρ * γ`) is consistent.
-* The modified kernels are still probability kernels and proper, so they again form a genuine
-  specification. -/
+* The modified kernels are still probability kernels, so they again form a genuine specification.
+
+Properness of the modified kernels is not a condition: by Georgii, Remark (1.28)(1), it is
+inherited from `γ` (`Specification.isProper_modificationKer`); see
+`Specification.IsModifier.isProper`. -/
 @[mk_iff]
 structure IsModifier (γ : Specification S E) (ρ : Finset S → (S → E) → ℝ≥0∞) : Prop where
   measurable Λ : Measurable (ρ Λ)
   isMarkovKernel Λ : IsMarkovKernel (modificationKer γ ρ measurable Λ)
-  isProper Λ : (modificationKer γ ρ measurable Λ).IsProper
   isConsistent : IsConsistent (modificationKer γ ρ measurable)
+
+/-- **Georgii, Remark (1.28)(1).** The kernels modified by a modifier are proper: this is
+automatic, not a condition of `Specification.IsModifier`. -/
+protected lemma IsModifier.isProper (h : γ.IsModifier ρ) :
+    ∀ Λ, (modificationKer γ ρ h.measurable Λ).IsProper :=
+  isProper_modificationKer h.measurable
 
 @[simp] lemma IsModifier.one' : γ.IsModifier (fun _Λ _η ↦ 1) where
   measurable _ := measurable_const
@@ -1633,9 +1570,6 @@ structure IsModifier (γ : Specification S E) (ρ : Finset S → (S → E) → �
   isMarkovKernel Λ := by
     simp only [modificationKer_one']
     infer_instance
-  isProper Λ := by
-    simp only [modificationKer_one']
-    exact γ.isProper Λ
 
 @[simp] lemma IsModifier.one : γ.IsModifier 1 := .one'
 
@@ -1769,7 +1703,7 @@ lemma isModifier_iff_ae_eq :
       refine ⟨fun η ↦ ⟨?_⟩⟩
       rw [modificationKer_apply, withDensity_apply _ MeasurableSet.univ, setLIntegral_univ]
       exact hnorm Λ η
-    refine ⟨hmeas, hmk, isProper_modificationKer hmeas, fun Λ₁ Λ₂ hΛ ↦ Kernel.ext fun η ↦ ?_⟩
+    refine ⟨hmeas, hmk, fun Λ₁ Λ₂ hΛ ↦ Kernel.ext fun η ↦ ?_⟩
     rw [comp_modificationKer_apply hmeas hΛ η, modificationKer_apply]
     exact (withDensity_congr_ae (hb hΛ η)).symm
 
@@ -1898,7 +1832,6 @@ lemma modification_apply_le (γ : Specification S E) (ρ : Finset S → (S → E
   simpa [Set.inter_univ] using modification_apply_inter_le γ ρ hρ Λ η hA MeasurableSet.univ
     (fun ω _ ↦ hc ω)
 
-
 @[simp] lemma IsModifier.mul {ρ₁ ρ₂ : Finset S → (S → E) → ℝ≥0∞}
     (hρ₁ : γ.IsModifier ρ₁) (hρ₂ : (γ.modification ρ₁ hρ₁).IsModifier ρ₂) :
     γ.IsModifier (ρ₁ * ρ₂) where
@@ -1911,10 +1844,6 @@ lemma modification_apply_le (γ : Specification S E) (ρ : Finset S → (S → E
     simpa [modificationKer, modification_apply, Pi.mul_apply, MeasureTheory.withDensity_mul,
       hρ₁.measurable, hρ₂.measurable]
       using hρ₂.isMarkovKernel Λ
-  isProper Λ := by
-    simpa [modificationKer, modification_apply, Pi.mul_apply, MeasureTheory.withDensity_mul,
-      hρ₁.measurable, hρ₂.measurable]
-      using hρ₂.isProper Λ
 
 @[simp] lemma modification_one' (γ : Specification S E) :
     γ.modification (fun _Λ _η ↦ 1) .one' = γ := by ext; simp
@@ -1945,15 +1874,6 @@ structure IsPremodifier [MeasurableSpace E] (ρ : Finset S → (S → E) → ℝ
   comm_of_subset ⦃Λ₁ Λ₂ : Finset S⦄ ⦃ζ η : S → E⦄ (hΛ : Λ₁ ⊆ Λ₂)
     (hrestrict : ∀ s ∉ Λ₁, ζ s = η s) : ρ Λ₂ ζ * ρ Λ₁ η = ρ Λ₁ ζ * ρ Λ₂ η
 
-/-- For a premodifier `ρ`, the normalized density
-`σ ↦ ρ Λ σ / ∫⁻ x, ρ Λ x ∂(isssd ν Λ σ)` is measurable. -/
-lemma IsPremodifier.measurable_div_isssd
-    (hρ : IsPremodifier ρ) (ν : Measure E) [IsProbabilityMeasure ν] :
-    ∀ Λ, Measurable (fun σ : S → E ↦ ρ Λ σ / ∫⁻ x, ρ Λ x ∂(isssd ν Λ σ)) := by
-  intro Λ
-  -- `σ ↦ ∫⁻ x, ρ Λ x ∂(isssd ν Λ σ)` is measurable by the kernel measurability API.
-  exact (hρ.measurable Λ).div ((hρ.measurable Λ).lintegral_kernel.mono cylinderEvents_le_pi le_rfl)
-
 /-- For a premodifier `ρ`, the normalized density relative to the σ-finite reference kernel
 `sigmaFiniteLambdaFun` is measurable. -/
 lemma IsPremodifier.measurable_div_sigmaFiniteLambda
@@ -1965,1075 +1885,6 @@ lemma IsPremodifier.measurable_div_sigmaFiniteLambda
   exact (hρ.measurable Λ).div
     ((hρ.measurable Λ).lintegral_kernel.mono cylinderEvents_le_pi le_rfl)
 
-/-! ### Normalization of a premodifier
-
-**Georgii, Remark (1.32).** If `h` is a pre-modification and `0 < λ_Λ h_Λ < ∞` for all `Λ`, then
-`ρ_Λ = h_Λ / λ_Λ h_Λ` is a λ-modification, so `ρ λ_·` is a specification.
--/
-
-variable (ν : Measure E) [IsProbabilityMeasure ν]
-
-/-- The *partition function* (normalizing factor) associated to a density `ρ Λ` and the independent
-specification `isssd ν`. -/
-noncomputable def premodifierZ
-    (ρ : Finset S → (S → E) → ℝ≥0∞) (Λ : Finset S) (η : S → E) : ℝ≥0∞ :=
-  ∫⁻ x, ρ Λ x ∂(isssd (S := S) (E := E) ν Λ η)
-
-lemma measurable_premodifierZ (hρ : IsPremodifier ρ) (Λ : Finset S) :
-    Measurable[cylinderEvents (Λ : Set S)ᶜ]
-      (premodifierZ (S := S) (E := E) ν ρ Λ) := by
-  have h :
-      premodifierZ (S := S) (E := E) ν ρ Λ =
-        fun a ↦ ∫⁻ b, ρ Λ b ∂(isssd (S := S) (E := E) ν Λ a) := by
-    funext a
-    rfl
-  rw [h]
-  exact Measurable.lintegral_kernel (κ := (isssd (S := S) (E := E) ν Λ))
-    (f := ρ Λ) (hρ.measurable Λ)
-
-omit [IsProbabilityMeasure ν] in
-/-- The σ-finite-reference partition function associated to `sigmaFiniteLambdaFun`.
-
-This is Georgii's `λ_Λ h_Λ(η)` for a σ-finite reference measure. -/
-noncomputable def sigmaFiniteLambdaZ
-    (ν : Measure E) [SigmaFinite ν]
-    (ρ : Finset S → (S → E) → ℝ≥0∞) (Λ : Finset S) (η : S → E) : ℝ≥0∞ :=
-  ∫⁻ x, ρ Λ x ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η)
-
-omit [IsProbabilityMeasure ν] in
-/-- The normalized density associated to a premodifier and a σ-finite reference measure:
-`ρ' Λ η = ρ Λ η / Z_Λ(η)`. -/
-noncomputable def sigmaFinitePremodifierNorm
-    (ν : Measure E) [SigmaFinite ν]
-    (ρ : Finset S → (S → E) → ℝ≥0∞) (Λ : Finset S) (η : S → E) : ℝ≥0∞ :=
-  ρ Λ η / sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ η
-
-omit [IsProbabilityMeasure ν] in
-/-- Measurability of the normalized σ-finite premodifier density. -/
-lemma sigmaFinitePremodifierNorm_measurable
-    (ν : Measure E) [SigmaFinite ν] (hρ : IsPremodifier ρ) :
-    ∀ Λ, Measurable (sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ) := by
-  intro Λ
-  have h :
-      sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ =
-        fun σ ↦ ρ Λ σ / ∫⁻ x, ρ Λ x ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ σ) := by
-    funext σ
-    simp [sigmaFinitePremodifierNorm, sigmaFiniteLambdaZ]
-  rw [h]
-  exact hρ.measurable_div_sigmaFiniteLambda (S := S) (E := E) (ρ := ρ) ν Λ
-
-omit [IsProbabilityMeasure ν] in
-/-- σ-finite-reference admissibility: all finite-volume partition functions are nonzero and finite.
-
-This is the formal version of Georgii's λ-admissibility condition for the normalized density. -/
-def IsSigmaFiniteLambdaAdmissible
-    (ν : Measure E) [SigmaFinite ν] (ρ : Finset S → (S → E) → ℝ≥0∞) : Prop :=
-  ∀ (Λ : Finset S) (η : S → E),
-    sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ η ≠ 0 ∧
-      sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ η ≠ ⊤
-
-namespace IsSigmaFiniteLambdaAdmissible
-
-lemma ne_zero {ρ : Finset S → (S → E) → ℝ≥0∞}
-    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
-    (Λ : Finset S) (η : S → E) :
-    sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ η ≠ 0 :=
-  (hZ Λ η).1
-
-lemma ne_top {ρ : Finset S → (S → E) → ℝ≥0∞}
-    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
-    (Λ : Finset S) (η : S → E) :
-    sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ η ≠ ⊤ :=
-  (hZ Λ η).2
-
-end IsSigmaFiniteLambdaAdmissible
-
-/-- For probability reference measures, `premodifierZ` is the σ-finite-reference partition
-function. -/
-lemma premodifierZ_eq_sigmaFiniteLambdaZ
-    (ρ : Finset S → (S → E) → ℝ≥0∞) (Λ : Finset S) (η : S → E) :
-    premodifierZ (S := S) (E := E) ν ρ Λ η =
-      sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ η := by
-  simp [premodifierZ, sigmaFiniteLambdaZ, sigmaFiniteLambdaFun_eq_finiteLambdaFun,
-    isssdFun_apply, finiteLambdaFun_apply]
-
-/-- A premodifier is admissible for the reference measure `ν` when all finite-volume partition
-functions are nonzero and finite. This records the `Z ≠ 0` and `Z ≠ ⊤` hypotheses used to define
-the normalized modification. -/
-def IsPremodifierAdmissible
-    (ρ : Finset S → (S → E) → ℝ≥0∞) : Prop :=
-  ∀ (Λ : Finset S) (η : S → E),
-    premodifierZ (S := S) (E := E) ν ρ Λ η ≠ 0 ∧
-      premodifierZ (S := S) (E := E) ν ρ Λ η ≠ ⊤
-
-namespace IsPremodifierAdmissible
-
-lemma ne_zero {ρ : Finset S → (S → E) → ℝ≥0∞}
-    (hZ : IsPremodifierAdmissible (S := S) (E := E) ν ρ)
-    (Λ : Finset S) (η : S → E) :
-    premodifierZ (S := S) (E := E) ν ρ Λ η ≠ 0 :=
-  (hZ Λ η).1
-
-lemma ne_top {ρ : Finset S → (S → E) → ℝ≥0∞}
-    (hZ : IsPremodifierAdmissible (S := S) (E := E) ν ρ)
-    (Λ : Finset S) (η : S → E) :
-    premodifierZ (S := S) (E := E) ν ρ Λ η ≠ ⊤ :=
-  (hZ Λ η).2
-
-end IsPremodifierAdmissible
-
-/-- For probability reference measures, normalized premodifier admissibility is exactly
-σ-finite-reference admissibility specialized to a probability measure. -/
-lemma isPremodifierAdmissible_iff_isSigmaFiniteLambdaAdmissible
-    (ρ : Finset S → (S → E) → ℝ≥0∞) :
-    IsPremodifierAdmissible (S := S) (E := E) ν ρ ↔
-      IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ := by
-  simp [IsPremodifierAdmissible, IsSigmaFiniteLambdaAdmissible,
-    premodifierZ_eq_sigmaFiniteLambdaZ]
-
-/-- The normalized density associated to a premodifier `ρ`:
-`ρ' Λ η = ρ Λ η / Z_Λ(η)` where `Z_Λ(η) = ∫ ρ Λ x d(isssd ν Λ η)`. -/
-noncomputable def premodifierNorm
-    (ρ : Finset S → (S → E) → ℝ≥0∞) (Λ : Finset S) (η : S → E) : ℝ≥0∞ :=
-  ρ Λ η / premodifierZ (S := S) (E := E) ν ρ Λ η
-
-lemma premodifierNorm_measurable (hρ : IsPremodifier ρ) :
-    ∀ Λ, Measurable (premodifierNorm (S := S) (E := E) ν ρ Λ) := by
-  intro Λ
-  have h :
-      premodifierNorm (S := S) (E := E) ν ρ Λ =
-        fun σ ↦ ρ Λ σ / ∫⁻ x, ρ Λ x ∂(isssd (S := S) (E := E) ν Λ σ) := by
-    funext σ
-    simp [premodifierNorm, premodifierZ]
-  rw [h]
-  exact hρ.measurable_div_isssd (S := S) (E := E) (ρ := ρ) ν Λ
-
-/-- For probability reference measures, `premodifierNorm` is the σ-finite normalized premodifier. -/
-lemma premodifierNorm_eq_sigmaFinitePremodifierNorm
-    (ρ : Finset S → (S → E) → ℝ≥0∞) :
-    premodifierNorm (S := S) (E := E) ν ρ =
-      sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ := by
-  funext Λ η
-  simp [premodifierNorm, sigmaFinitePremodifierNorm, premodifierZ_eq_sigmaFiniteLambdaZ]
-
-omit [IsProbabilityMeasure ν] in
-/-- The σ-finite-reference partition function depends only on the exterior boundary condition. -/
-lemma sigmaFiniteLambdaZ_congr_of_eqOn_compl
-    (ν : Measure E) [SigmaFinite ν] {Λ : Finset S} (hρΛ : Measurable (ρ Λ))
-    {η₁ η₂ : S → E} (h : ∀ s ∉ Λ, η₁ s = η₂ s) :
-    sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ η₁ =
-      sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ η₂ := by
-  classical
-  have hjuxt : juxt (Λ := (Λ : Set S)) η₁ = juxt (Λ := (Λ : Set S)) η₂ := by
-    funext ζ x
-    by_cases hx : x ∈ (Λ : Set S)
-    · simp [juxt_apply_of_mem (Λ := (Λ : Set S)) (η := η₁) (ζ := ζ) hx,
-        juxt_apply_of_mem (Λ := (Λ : Set S)) (η := η₂) (ζ := ζ) hx]
-    · have hx' : x ∉ Λ := by
-        simpa [Finset.mem_coe] using hx
-      simp [juxt_apply_of_not_mem (Λ := (Λ : Set S)) (η := η₁) (ζ := ζ) hx,
-        juxt_apply_of_not_mem (Λ := (Λ : Set S)) (η := η₂) (ζ := ζ) hx, h x hx']
-  simp only [sigmaFiniteLambdaZ]
-  rw [sigmaFiniteLambdaFun_apply_eq_map, sigmaFiniteLambdaFun_apply_eq_map]
-  rw [lintegral_map hρΛ (Measurable.juxt (Λ := (Λ : Set S)) (η := η₁) (𝓔 := mE))]
-  simpa [hjuxt] using
-    (lintegral_map hρΛ
-      (Measurable.juxt (Λ := (Λ : Set S)) (η := η₂) (𝓔 := mE))).symm
-
-omit [IsProbabilityMeasure ν] in
-/-- Pull the boundary normalization of a σ-finite normalized premodifier outside an integral. -/
-lemma lintegral_sigmaFinitePremodifierNorm_mul_eq
-    (ν : Measure E) [SigmaFinite ν] (hρ : IsPremodifier ρ) {Λ : Finset S}
-    {f : (S → E) → ℝ≥0∞} (hf : Measurable f) (η : S → E) :
-    ∫⁻ x, sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ x * f x
-        ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η) =
-      (sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ η)⁻¹ *
-        ∫⁻ x, ρ Λ x * f x ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η) := by
-  let Z : Finset S → (S → E) → ℝ≥0∞ :=
-    sigmaFiniteLambdaZ (S := S) (E := E) ν ρ
-  have hZmeas : Measurable[cylinderEvents (Λ : Set S)ᶜ] (Z Λ) := by
-    have h :
-        Z Λ = fun a ↦ ∫⁻ b, ρ Λ b ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ a) := by
-      funext a
-      simp [Z, sigmaFiniteLambdaZ]
-    rw [h]
-    exact Measurable.lintegral_kernel (κ := sigmaFiniteLambdaFun (S := S) (E := E) ν Λ)
-      (f := ρ Λ) (hρ.measurable Λ)
-  have hpull :=
-    (isProper_sigmaFiniteLambdaFun (S := S) (E := E) ν Λ).lintegral_mul cylinderEvents_le_pi
-      (hf := (hρ.measurable Λ).mul hf) (hg := hZmeas.inv) η
-  simpa [sigmaFinitePremodifierNorm, Z, div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm]
-    using hpull
-
-omit [IsProbabilityMeasure ν] in
-/-- Pull the boundary normalization of a σ-finite normalized premodifier outside a set integral. -/
-lemma setLIntegral_sigmaFinitePremodifierNorm_eq
-    (ν : Measure E) [SigmaFinite ν] (hρ : IsPremodifier ρ) {Λ : Finset S}
-    {A : Set (S → E)} (hA : MeasurableSet A) (η : S → E) :
-    ∫⁻ x in A, sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ x
-        ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η) =
-      (sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ η)⁻¹ *
-        ∫⁻ x in A, ρ Λ x ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η) := by
-  have h := lintegral_sigmaFinitePremodifierNorm_mul_eq
-    (S := S) (E := E) (ρ := ρ) ν hρ (Λ := Λ)
-    (f := A.indicator fun _ : S → E => 1) (Measurable.indicator measurable_const hA) η
-  let μ : Measure (S → E) := sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η
-  have hlhs :
-      ∫⁻ x, sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ x *
-          A.indicator (fun _ : S → E => 1) x ∂μ =
-        ∫⁻ x in A, sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ x ∂μ := by
-    rw [← lintegral_indicator hA]
-    congr with x
-    by_cases hx : x ∈ A <;> simp [hx]
-  have hrhs :
-      ∫⁻ x, ρ Λ x * A.indicator (fun _ : S → E => 1) x ∂μ =
-        ∫⁻ x in A, ρ Λ x ∂μ := by
-    rw [← lintegral_indicator hA]
-    congr with x
-    by_cases hx : x ∈ A <;> simp [hx]
-  simpa [μ, hlhs, hrhs] using h
-
-omit [IsProbabilityMeasure ν] in
-/-- Evaluating the σ-finite normalized premodifier kernel on a measurable set factors the boundary
-normalization outside the set integral. -/
-lemma withDensity_sigmaFinitePremodifierNorm_apply
-    (ν : Measure E) [SigmaFinite ν] (hρ : IsPremodifier ρ) {Λ : Finset S}
-    {A : Set (S → E)} (hA : MeasurableSet A) (η : S → E) :
-    ((sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η).withDensity
-        (sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ)) A =
-      (sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ η)⁻¹ *
-        ∫⁻ x in A, ρ Λ x ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η) := by
-  rw [withDensity_apply _ hA]
-  exact setLIntegral_sigmaFinitePremodifierNorm_eq
-    (S := S) (E := E) (ρ := ρ) ν hρ hA η
-
-omit [IsProbabilityMeasure ν] in
-/-- The σ-finite normalized premodifier has partition function `1` in every finite volume. -/
-lemma lintegral_sigmaFinitePremodifierNorm_eq_one
-    (ν : Measure E) [SigmaFinite ν] (hρ : IsPremodifier ρ)
-    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
-    (Λ : Finset S) (ξ : S → E) :
-    ∫⁻ x, sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ x
-      ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ ξ) = 1 := by
-  let Z : Finset S → (S → E) → ℝ≥0∞ :=
-    sigmaFiniteLambdaZ (S := S) (E := E) ν ρ
-  have hmul := lintegral_sigmaFinitePremodifierNorm_mul_eq
-    (S := S) (E := E) (ρ := ρ) ν hρ (Λ := Λ)
-    (f := fun _ : S → E => 1) measurable_const ξ
-  have hZξ : Z Λ ξ ≠ 0 ∧ Z Λ ξ ≠ ⊤ := hZ Λ ξ
-  calc
-    ∫⁻ x, sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ x
-        ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ ξ) =
-        (Z Λ ξ)⁻¹ * ∫⁻ x, ρ Λ x ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ ξ) := by
-          simpa [Z] using hmul
-    _ = (Z Λ ξ)⁻¹ * Z Λ ξ := by simp [Z, sigmaFiniteLambdaZ]
-    _ = 1 := ENNReal.inv_mul_cancel hZξ.1 hZξ.2
-
-omit [IsProbabilityMeasure ν] in
-/-- The normalized finite-volume kernel obtained from a σ-finite reference measure and a
-premodifier. It is the density modification of
-`sigmaFiniteLambdaFun ν Λ η` with density `sigmaFinitePremodifierNorm ν ρ Λ`.
-
-These kernels are proper because the σ-finite reference λ-kernels are proper and properness is
-preserved by density changes. Under `IsSigmaFiniteLambdaAdmissible`, they are also Markov; under a
-probability spin law `[IsProbabilityMeasure ν]` (so `sigmaFiniteLambdaFun ν` composes via
-`isConsistent_sigmaFiniteLambdaFun`),
-**`IsPremodifier.isConsistent_modificationKer_sigmaFinitePremodifierNorm`** gives full DLR
-consistency of the normalized modification. -/
-noncomputable def sigmaFinitePremodifierKernel
-    (ν : Measure E) [SigmaFinite ν] (ρ : Finset S → (S → E) → ℝ≥0∞)
-    (hρ : IsPremodifier ρ) (Λ : Finset S) :
-    Kernel[cylinderEvents Λᶜ] (S → E) (S → E) :=
-  modificationKer (γ := sigmaFiniteLambdaFun (S := S) (E := E) ν)
-    (ρ := sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ)
-    (sigmaFinitePremodifierNorm_measurable (S := S) (E := E) (ρ := ρ) ν hρ) Λ
-
-omit [IsProbabilityMeasure ν] in
-/-- Evaluation of `sigmaFinitePremodifierKernel`. -/
-lemma sigmaFinitePremodifierKernel_apply
-    (ν : Measure E) [SigmaFinite ν] (hρ : IsPremodifier ρ)
-    (Λ : Finset S) (η : S → E) :
-    sigmaFinitePremodifierKernel (S := S) (E := E) ν ρ hρ Λ η =
-      (sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η).withDensity
-        (sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ) := rfl
-
-omit [IsProbabilityMeasure ν] in
-/-- Under admissibility, each normalized σ-finite premodifier kernel is a probability kernel. -/
-lemma isMarkovKernel_sigmaFinitePremodifierKernel
-    (ν : Measure E) [SigmaFinite ν] (hρ : IsPremodifier ρ)
-    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
-    (Λ : Finset S) :
-    IsMarkovKernel (sigmaFinitePremodifierKernel (S := S) (E := E) ν ρ hρ Λ) := by
-  refine ⟨?_⟩
-  intro ξ
-  constructor
-  simpa [sigmaFinitePremodifierKernel, modificationKer, withDensity_apply] using
-    lintegral_sigmaFinitePremodifierNorm_eq_one
-      (S := S) (E := E) (ρ := ρ) ν hρ hZ Λ ξ
-
-omit [IsProbabilityMeasure ν] in
-/-- Each normalized σ-finite premodifier kernel is proper with respect to the outside-volume
-σ-algebra. -/
-lemma isProper_sigmaFinitePremodifierKernel
-    (ν : Measure E) [SigmaFinite ν] (hρ : IsPremodifier ρ) (Λ : Finset S) :
-    (sigmaFinitePremodifierKernel (S := S) (E := E) ν ρ hρ Λ).IsProper := by
-  exact isProper_modificationKer_of_isProper
-    (γ := sigmaFiniteLambdaFun (S := S) (E := E) ν)
-    (ρ := sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ)
-    (fun Λ => isProper_sigmaFiniteLambdaFun (S := S) (E := E) ν Λ)
-    (sigmaFinitePremodifierNorm_measurable (S := S) (E := E) (ρ := ρ) ν hρ) Λ
-
-/-!
-#### σ-finite λ-reference DLR consistency (normalized modifications)
-
-Georgii consistency for Gibbs kernels normalized against the λ-kernel repeats the finite-volume
-calculation unchanged once the reference family `sigmaFiniteLambdaFun ν` is known to compose (so
-iterated `λ`-integrals collapse); in this file composition is proved using
-**`isConsistent_sigmaFiniteLambdaFun`**, which needs **`[IsProbabilityMeasure ν]`**. The general
-σ-finite non-zero case is
-`Specification.isConsistent_modificationKer_sigmaFinitePremodifierNorm_of_neZero`
-in `GibbsMeasure/Specification/Rescaling.lean`, obtained from this one by the rescaling of
-Georgii, Remark (1.28)(3).
-The algebraic premodifier cocycle is integrated against each `λ_Λ(ξ)`.
--/
-
-omit [IsProbabilityMeasure ν] in
-lemma setLIntegral_sigmaFiniteLambdaFun_eq_setLIntegral_juxt
-    (ν : Measure E) [SigmaFinite ν] {ρ : Finset S → (S → E) → ℝ≥0∞}
-    {Λ₀ Λ : Finset S} (hρΛ : Measurable (ρ Λ)) {A : Set (S → E)}
-    (hA : MeasurableSet A) (η : S → E) :
-    ∫⁻ x in A, ρ Λ x ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₀ η) =
-      ∫⁻ ζ : Λ₀ → E in (juxt (Λ := (Λ₀ : Set S)) (η := η)) ⁻¹' A,
-        ρ Λ (juxt (Λ := (Λ₀ : Set S)) (η := η) ζ) ∂(Measure.pi fun _ : Λ₀ => ν) := by
-  rw [sigmaFiniteLambdaFun_apply_eq_map ν Λ₀ η]
-  simpa using
-    (setLIntegral_map (μ := Measure.pi (fun _ : Λ₀ => ν)) (s := A) (f := ρ Λ)
-      (g := juxt (Λ := (Λ₀ : Set S)) (η := η)) hA hρΛ
-      (Measurable.juxt (Λ := (Λ₀ : Set S)) (η := η) (𝓔 := mE)))
-
-omit [IsProbabilityMeasure ν] in
-lemma IsPremodifier.mul_setLIntegral_sigmaFiniteLambdaFun_eq
-    (ν : Measure E) [SigmaFinite ν] (hρ : IsPremodifier ρ) {Λ₁ Λ₂ : Finset S} (hΛ : Λ₁ ⊆ Λ₂)
-    {A : Set (S → E)} (hA : MeasurableSet A) (ξ : S → E) :
-    ρ Λ₂ ξ * ∫⁻ ζ in A, ρ Λ₁ ζ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁ ξ) =
-      ρ Λ₁ ξ * ∫⁻ ζ in A, ρ Λ₂ ζ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁ ξ) := by
-  let J : (Λ₁ → E) → (S → E) := juxt (Λ := (Λ₁ : Set S)) (η := ξ)
-  let s : Set (Λ₁ → E) := J ⁻¹' A
-  let μ : Measure (Λ₁ → E) := Measure.pi fun _ : Λ₁ => ν
-  have hI := setLIntegral_sigmaFiniteLambdaFun_eq_setLIntegral_juxt
-    (S := S) (E := E) (ρ := ρ) ν (Λ₀ := Λ₁) (Λ := Λ₁) (hρ.measurable Λ₁) hA ξ
-  have hH := setLIntegral_sigmaFiniteLambdaFun_eq_setLIntegral_juxt
-    (S := S) (E := E) (ρ := ρ) ν (Λ₀ := Λ₁) (Λ := Λ₂) (hρ.measurable Λ₂) hA ξ
-  have hpoint (ζ : Λ₁ → E) : ρ Λ₂ ξ * ρ Λ₁ (J ζ) = ρ Λ₁ ξ * ρ Λ₂ (J ζ) := by
-    have hrestrict : ∀ s ∉ Λ₁, J ζ s = ξ s := by
-      intro s hs
-      simpa [J] using (juxt_agree_on_compl (Λ := Λ₁) (η := ξ) (ζ := ζ) s hs)
-    simpa [J, mul_comm, mul_left_comm, mul_assoc] using
-      (hρ.comm_of_subset (Λ₁ := Λ₁) (Λ₂ := Λ₂) (ζ := J ζ) (η := ξ) hΛ hrestrict).symm
-  have hf₁ : Measurable fun ζ : Λ₁ → E => ρ Λ₁ (J ζ) :=
-    (hρ.measurable Λ₁).comp (Measurable.juxt (Λ := (Λ₁ : Set S)) (η := ξ) (𝓔 := mE))
-  have hf₂ : Measurable fun ζ : Λ₁ → E => ρ Λ₂ (J ζ) :=
-    (hρ.measurable Λ₂).comp (Measurable.juxt (Λ := (Λ₁ : Set S)) (η := ξ) (𝓔 := mE))
-  rw [hI, hH]
-  calc
-    ρ Λ₂ ξ * ∫⁻ ζ in s, ρ Λ₁ (J ζ) ∂μ =
-        ∫⁻ ζ in s, ρ Λ₂ ξ * ρ Λ₁ (J ζ) ∂μ := by
-          simpa [s, μ] using (lintegral_const_mul (μ := μ.restrict s) (ρ Λ₂ ξ) hf₁).symm
-    _ = ∫⁻ ζ in s, ρ Λ₁ ξ * ρ Λ₂ (J ζ) ∂μ := by
-          refine lintegral_congr_ae ?_
-          filter_upwards with ζ
-          exact hpoint ζ
-    _ = ρ Λ₁ ξ * ∫⁻ ζ in s, ρ Λ₂ (J ζ) ∂μ := by
-          simpa [s, μ] using lintegral_const_mul (μ := μ.restrict s) (ρ Λ₁ ξ) hf₂
-
-omit [IsProbabilityMeasure ν] in
-lemma lintegral_lintegral_sigmaFiniteLambdaFun_eq_of_subset
-    {ν : Measure E} [SigmaFinite ν] [IsProbabilityMeasure ν]
-    {Λ₁ Λ₂ : Finset S} (hΛ : Λ₁ ⊆ Λ₂) {f : (S → E) → ℝ≥0∞} (hf : Measurable f) (η : S → E) :
-    ∫⁻ x, ∫⁻ y, f y ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁ x)
-        ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η) =
-      ∫⁻ y, f y ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η) := by
-  have hκ := isConsistent_sigmaFiniteLambdaFun (S := S) (E := E) (ν := ν)
-  have hcons := hκ hΛ
-  have hcons_eta :
-      (((sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁).comap id cylinderEvents_le_pi ∘ₖ
-          sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂) η) =
-        sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η := by
-    simpa using congrArg (fun κ => κ η) hcons
-  calc
-    ∫⁻ x, ∫⁻ y, f y ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁ x)
-        ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η)
-        = ∫⁻ y, f y
-            ∂(((sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁).comap id cylinderEvents_le_pi ∘ₖ
-                sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂) η) := by
-          simpa [Kernel.comap_apply, measurable_id''] using
-            (Kernel.lintegral_comp
-                ((sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁).comap id cylinderEvents_le_pi)
-              (sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂) η hf).symm
-    _ = ∫⁻ y, f y ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η) := by rw [hcons_eta]
-
-omit [IsProbabilityMeasure ν] in
-lemma measurable_setLIntegral_sigmaFiniteLambdaFun
-    (ν : Measure E) [SigmaFinite ν] {Λ : Finset S} {A : Set (S → E)}
-    (hA : MeasurableSet A) {f : (S → E) → ℝ≥0∞} (hf : Measurable f) :
-    Measurable[cylinderEvents (Λ : Set S)ᶜ]
-      (fun η : S → E => ∫⁻ ζ in A, f ζ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η)) := by
-  simpa [lintegral_indicator hA] using
-    (Measurable.lintegral_kernel (κ := sigmaFiniteLambdaFun (S := S) (E := E) ν Λ)
-      (f := A.indicator f) (Measurable.indicator hf hA))
-
-omit [IsProbabilityMeasure ν] in
-lemma lintegral_setLIntegral_sigmaFiniteLambdaFun_eq_setLIntegral_of_subset
-    {ν : Measure E} [SigmaFinite ν] [IsProbabilityMeasure ν] {Λ₁ Λ₂ : Finset S}
-    (hΛ : Λ₁ ⊆ Λ₂) {A : Set (S → E)} (hA : MeasurableSet A) {f : (S → E) → ℝ≥0∞}
-    (hf : Measurable f) (η : S → E) :
-    ∫⁻ ξ, (∫⁻ ζ in A, f ζ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁ ξ))
-        ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η) =
-      ∫⁻ ζ in A, f ζ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η) := by
-  let gA : (S → E) → ℝ≥0∞ := A.indicator f
-  have hgA : Measurable gA := Measurable.indicator hf hA
-  calc
-    ∫⁻ ξ, (∫⁻ ζ in A, f ζ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁ ξ))
-        ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η)
-        = ∫⁻ ξ, ∫⁻ ζ, gA ζ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁ ξ)
-            ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η) := by
-          simp [gA, lintegral_indicator hA]
-    _ = ∫⁻ ζ, gA ζ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η) := by
-          exact lintegral_lintegral_sigmaFiniteLambdaFun_eq_of_subset (S := S) (E := E) hΛ hgA η
-    _ = ∫⁻ ζ in A, f ζ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η) := by
-          simp [gA, lintegral_indicator hA]
-
-omit [IsProbabilityMeasure ν] in
-/-- A normalized σ-finite premodifier integrates boundary-measurable observables to their boundary
-value in the same finite volume. -/
-lemma lintegral_sigmaFinitePremodifierNorm_mul_boundary_self
-    {ν : Measure E} [SigmaFinite ν] [IsProbabilityMeasure ν]
-    (hρ : IsPremodifier ρ) (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
-    {Λ : Finset S} {H : (S → E) → ℝ≥0∞}
-    (hHc : Measurable[cylinderEvents (Λ : Set S)ᶜ] H) (η : S → E) :
-    ∫⁻ ξ, sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ ξ * H ξ
-        ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η) = H η := by
-  let ρ' : Finset S → (S → E) → ℝ≥0∞ :=
-    sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ
-  have hρ'meas : ∀ Λ, Measurable (ρ' Λ) :=
-    sigmaFinitePremodifierNorm_measurable (S := S) (E := E) (ρ := ρ) ν hρ
-  have hpull := (isProper_sigmaFiniteLambdaFun (S := S) (E := E) ν Λ).lintegral_mul
-    cylinderEvents_le_pi (hf := hρ'meas Λ) (hg := hHc) η
-  have hnorm :
-      ∫⁻ ξ, ρ' Λ ξ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η) = 1 := by
-    simpa [ρ'] using lintegral_sigmaFinitePremodifierNorm_eq_one
-      (S := S) (E := E) (ρ := ρ) ν hρ hZ Λ η
-  calc
-    ∫⁻ ξ, sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ ξ * H ξ
-        ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η) =
-        H η * ∫⁻ ξ, ρ' Λ ξ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η) := by
-          simpa [ρ', mul_comm] using hpull
-    _ = H η := by simp [hnorm]
-
-omit [IsProbabilityMeasure ν] in
-lemma lintegral_sigmaFinitePremodifierNorm_mul_boundary_eq
-    {ν : Measure E} [SigmaFinite ν] [IsProbabilityMeasure ν]
-    (hρ : IsPremodifier ρ) (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
-    {Λ₁ Λ₂ : Finset S} (hΛ : Λ₁ ⊆ Λ₂) {H : (S → E) → ℝ≥0∞}
-    (hHc : Measurable[cylinderEvents (Λ₁ : Set S)ᶜ] H) (hH : Measurable H) (η : S → E) :
-    ∫⁻ ξ, sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ₁ ξ * H ξ
-        ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η) =
-      ∫⁻ ξ, H ξ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η) := by
-  let ρ' : Finset S → (S → E) → ℝ≥0∞ :=
-    sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ
-  have hρ'meas : ∀ Λ, Measurable (ρ' Λ) :=
-    sigmaFinitePremodifierNorm_measurable (S := S) (E := E) (ρ := ρ) ν hρ
-  have hprod : Measurable fun ξ : S → E => ρ' Λ₁ ξ * H ξ :=
-    (hρ'meas Λ₁).mul hH
-  calc
-    ∫⁻ ξ, ρ' Λ₁ ξ * H ξ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η)
-        = ∫⁻ x, ∫⁻ ξ, ρ' Λ₁ ξ * H ξ
-            ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁ x)
-            ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η) := by
-          exact (lintegral_lintegral_sigmaFiniteLambdaFun_eq_of_subset
-            (S := S) (E := E) hΛ hprod η).symm
-    _ = ∫⁻ x, H x ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η) := by
-          refine lintegral_congr_ae ?_
-          filter_upwards with x
-          exact lintegral_sigmaFinitePremodifierNorm_mul_boundary_self
-            (S := S) (E := E) (ρ := ρ) hρ hZ hHc x
-
-omit [IsProbabilityMeasure ν] in
-lemma sigmaFinitePremodifierNorm_withDensity_rearrange
-    {ν : Measure E} [SigmaFinite ν] [IsProbabilityMeasure ν] (hρ : IsPremodifier ρ)
-    {Λ₁ Λ₂ : Finset S} (hΛ : Λ₁ ⊆ Λ₂) {A : Set (S → E)} (hA : MeasurableSet A) (ξ : S → E) :
-    ρ Λ₂ ξ * ((sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁ ξ).withDensity
-        (sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ₁)) A =
-      sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ₁ ξ *
-        ∫⁻ ζ in A, ρ Λ₂ ζ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁ ξ) := by
-  let Z : Finset S → (S → E) → ℝ≥0∞ := sigmaFiniteLambdaZ (S := S) (E := E) ν ρ
-  let ρ' : Finset S → (S → E) → ℝ≥0∞ := sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ
-  let I₁ : (S → E) → ℝ≥0∞ :=
-    fun η => ∫⁻ ζ in A, ρ Λ₁ ζ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁ η)
-  let H : (S → E) → ℝ≥0∞ :=
-    fun η => ∫⁻ ζ in A, ρ Λ₂ ζ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁ η)
-  have hkA : ((sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁ ξ).withDensity (ρ' Λ₁)) A =
-      (Z Λ₁ ξ)⁻¹ * I₁ ξ := by
-    simpa [ρ', Z, I₁] using
-      withDensity_sigmaFinitePremodifierNorm_apply
-        (S := S) (E := E) (ρ := ρ) ν hρ (Λ := Λ₁) hA ξ
-  have hcocycle : ρ Λ₂ ξ * I₁ ξ = ρ Λ₁ ξ * H ξ := by
-    simpa [I₁, H] using
-      IsPremodifier.mul_setLIntegral_sigmaFiniteLambdaFun_eq
-        (S := S) (E := E) (ρ := ρ) ν hρ hΛ hA ξ
-  calc
-    ρ Λ₂ ξ * ((sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁ ξ).withDensity (ρ' Λ₁)) A
-        = ρ Λ₂ ξ * ((Z Λ₁ ξ)⁻¹ * I₁ ξ) :=
-          congrArg (fun t => ρ Λ₂ ξ * t) hkA
-    _ = (Z Λ₁ ξ)⁻¹ * (ρ Λ₂ ξ * I₁ ξ) := by simp [mul_left_comm]
-    _ = (Z Λ₁ ξ)⁻¹ * (ρ Λ₁ ξ * H ξ) := by simp [hcocycle]
-    _ = ρ' Λ₁ ξ * H ξ := by
-          simp [ρ', sigmaFinitePremodifierNorm, Z, div_eq_mul_inv, mul_assoc, mul_left_comm]
-
-omit [IsProbabilityMeasure ν] in
-lemma lintegral_mul_sigmaFinitePremodifierNorm_withDensity_eq_setLIntegral
-    {ν : Measure E} [SigmaFinite ν] [IsProbabilityMeasure ν] (hρ : IsPremodifier ρ)
-    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
-    {Λ₁ Λ₂ : Finset S} (hΛ : Λ₁ ⊆ Λ₂) {A : Set (S → E)}
-    (hA : MeasurableSet A) (η : S → E) :
-    ∫⁻ ξ, ρ Λ₂ ξ * ((sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁ ξ).withDensity
-        (sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ₁)) A
-        ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η) =
-      ∫⁻ ξ in A, ρ Λ₂ ξ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η) := by
-  let ρ' : Finset S → (S → E) → ℝ≥0∞ :=
-    sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ
-  let H : (S → E) → ℝ≥0∞ := fun ξ =>
-    ∫⁻ ζ in A, ρ Λ₂ ζ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁ ξ)
-  have hH_meas_Λ₁c : Measurable[cylinderEvents (Λ₁ : Set S)ᶜ] H := by
-    simpa [H] using measurable_setLIntegral_sigmaFiniteLambdaFun
-      (S := S) (E := E) ν (Λ := Λ₁) hA (hρ.measurable Λ₂)
-  have hH_meas : Measurable H := hH_meas_Λ₁c.mono cylinderEvents_le_pi le_rfl
-  have h_rearrange (ξ : S → E) :
-      ρ Λ₂ ξ *
-          ((sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁ ξ).withDensity (ρ' Λ₁)) A =
-        ρ' Λ₁ ξ * H ξ := by
-    simpa [ρ', H] using
-      sigmaFinitePremodifierNorm_withDensity_rearrange
-        (S := S) (E := E) (ρ := ρ) hρ hΛ hA ξ
-  have hH_integral : (∫⁻ ξ, H ξ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η)) =
-      ∫⁻ ξ in A, ρ Λ₂ ξ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η) := by
-    simpa [H] using
-      lintegral_setLIntegral_sigmaFiniteLambdaFun_eq_setLIntegral_of_subset
-        (S := S) (E := E) hΛ hA (hρ.measurable Λ₂) η
-  calc
-    ∫⁻ ξ, ρ Λ₂ ξ * ((sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁ ξ).withDensity (ρ' Λ₁)) A
-        ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η)
-        = ∫⁻ ξ, ρ' Λ₁ ξ * H ξ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η) := by
-          refine lintegral_congr_ae ?_
-          filter_upwards with ξ
-          exact h_rearrange ξ
-    _ = ∫⁻ ξ, H ξ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η) := by
-          exact lintegral_sigmaFinitePremodifierNorm_mul_boundary_eq
-            (S := S) (E := E) (ρ := ρ) hρ hZ hΛ hH_meas_Λ₁c hH_meas η
-    _ = ∫⁻ ξ in A, ρ Λ₂ ξ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η) := hH_integral
-
-omit [IsProbabilityMeasure ν] in
-lemma lintegral_sigmaFinitePremodifierNorm_withDensity_eq_setLIntegral
-    {ν : Measure E} [SigmaFinite ν] [IsProbabilityMeasure ν] (hρ : IsPremodifier ρ)
-    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
-    {Λ₁ Λ₂ : Finset S} (hΛ : Λ₁ ⊆ Λ₂) {A : Set (S → E)}
-    (hA : MeasurableSet A) (η : S → E) :
-    ∫⁻ ξ, sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ₂ ξ *
-        ((sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁ ξ).withDensity
-          (sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ₁)) A
-        ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η) =
-      ∫⁻ ξ in A, sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ₂ ξ
-        ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η) := by
-  let ρ' : Finset S → (S → E) → ℝ≥0∞ :=
-    sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ
-  let kA : (S → E) → ℝ≥0∞ := fun ξ =>
-    ((sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁ ξ).withDensity (ρ' Λ₁)) A
-  have hkA_meas : Measurable kA := by
-    have hρ'meas : ∀ Λ, Measurable (ρ' Λ) :=
-      sigmaFinitePremodifierNorm_measurable (S := S) (E := E) (ρ := ρ) ν hρ
-    let K₁ : Kernel[cylinderEvents (Λ₁ : Set S)ᶜ] (S → E) (S → E) :=
-      modificationKer (γ := sigmaFiniteLambdaFun (S := S) (E := E) ν)
-        (ρ := ρ') (hρ := hρ'meas) Λ₁
-    have hmeas_dom : Measurable[cylinderEvents (Λ₁ : Set S)ᶜ]
-        (fun ξ : S → E => (K₁ ξ) A) :=
-      Kernel.measurable_coe K₁ hA
-    simpa [kA, ρ', K₁, modificationKer] using hmeas_dom.mono cylinderEvents_le_pi le_rfl
-  calc
-    ∫⁻ ξ, ρ' Λ₂ ξ * kA ξ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η)
-        = (sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ₂ η)⁻¹ *
-            ∫⁻ ξ, ρ Λ₂ ξ * kA ξ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η) := by
-          exact lintegral_sigmaFinitePremodifierNorm_mul_eq
-            (S := S) (E := E) (ρ := ρ) ν hρ hkA_meas η
-    _ = (sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ₂ η)⁻¹ *
-          ∫⁻ ξ in A, ρ Λ₂ ξ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η) := by
-          rw [lintegral_mul_sigmaFinitePremodifierNorm_withDensity_eq_setLIntegral
-            (S := S) (E := E) (ρ := ρ) hρ hZ hΛ hA η]
-    _ = ∫⁻ ξ in A, ρ' Λ₂ ξ
-          ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₂ η) := by
-          rw [setLIntegral_sigmaFinitePremodifierNorm_eq (S := S) (E := E) (ρ := ρ) ν hρ hA η]
-
-lemma premodifierZ_congr_of_eqOn_compl
-    {Λ : Finset S} (hρΛ : Measurable (ρ Λ)) {η₁ η₂ : S → E} (h : ∀ s ∉ Λ, η₁ s = η₂ s) :
-    premodifierZ (S := S) (E := E) ν ρ Λ η₁ = premodifierZ (S := S) (E := E) ν ρ Λ η₂ := by
-  classical
-  have hjuxt : juxt (Λ := (Λ : Set S)) η₁ = juxt (Λ := (Λ : Set S)) η₂ := by
-    funext ζ x
-    by_cases hx : x ∈ (Λ : Set S)
-    · simp [juxt_apply_of_mem (Λ := (Λ : Set S)) (η := η₁) (ζ := ζ) hx,
-        juxt_apply_of_mem (Λ := (Λ : Set S)) (η := η₂) (ζ := ζ) hx]
-    · have hx' : x ∉ Λ := by
-        simpa [Finset.mem_coe] using hx
-      simp [juxt_apply_of_not_mem (Λ := (Λ : Set S)) (η := η₁) (ζ := ζ) hx,
-        juxt_apply_of_not_mem (Λ := (Λ : Set S)) (η := η₂) (ζ := ζ) hx, h x hx']
-  simp only [premodifierZ]
-  change
-    ∫⁻ x, ρ Λ x ∂Measure.map (juxt (Λ := (Λ : Set S)) (η := η₁))
-      (Measure.pi fun _ : Λ => ν) =
-    ∫⁻ x, ρ Λ x ∂Measure.map (juxt (Λ := (Λ : Set S)) (η := η₂))
-      (Measure.pi fun _ : Λ => ν)
-  rw [lintegral_map hρΛ (Measurable.juxt (Λ := (Λ : Set S)) (η := η₁) (𝓔 := mE))]
-  simpa [hjuxt] using
-    (lintegral_map hρΛ (Measurable.juxt (Λ := (Λ : Set S)) (η := η₂) (𝓔 := mE))).symm
-
-/-- Rewrite a set integral against `isssd` as an integral over the finite resampling coordinates. -/
-lemma setLIntegral_isssd_eq_setLIntegral_juxt
-    {Λ₀ Λ : Finset S} (hρΛ : Measurable (ρ Λ)) {A : Set (S → E)}
-    (hA : MeasurableSet A) (η : S → E) :
-    ∫⁻ x in A, ρ Λ x ∂(isssd (S := S) (E := E) ν Λ₀ η) =
-      ∫⁻ ζ : Λ₀ → E in (juxt (Λ := (Λ₀ : Set S)) (η := η)) ⁻¹' A,
-        ρ Λ (juxt (Λ := (Λ₀ : Set S)) (η := η) ζ) ∂(Measure.pi fun _ : Λ₀ => ν) := by
-  simp [isssdFun_apply]
-  simpa using
-    (setLIntegral_map (μ := Measure.pi (fun _ : Λ₀ => ν)) (s := A) (f := ρ Λ)
-      (g := juxt (Λ := (Λ₀ : Set S)) (η := η)) hA hρΛ
-      (Measurable.juxt (Λ := (Λ₀ : Set S)) (η := η) (𝓔 := mE)))
-
-/-- Premodifier cocycle identity integrated over an independent finite-volume resampling. -/
-lemma IsPremodifier.mul_setLIntegral_isssd_eq
-    (hρ : IsPremodifier ρ) {Λ₁ Λ₂ : Finset S} (hΛ : Λ₁ ⊆ Λ₂)
-    {A : Set (S → E)} (hA : MeasurableSet A) (ξ : S → E) :
-    ρ Λ₂ ξ * ∫⁻ ζ in A, ρ Λ₁ ζ ∂(isssd (S := S) (E := E) ν Λ₁ ξ) =
-      ρ Λ₁ ξ * ∫⁻ ζ in A, ρ Λ₂ ζ ∂(isssd (S := S) (E := E) ν Λ₁ ξ) := by
-  let J : (Λ₁ → E) → (S → E) := juxt (Λ := (Λ₁ : Set S)) (η := ξ)
-  let s : Set (Λ₁ → E) := J ⁻¹' A
-  let μ : Measure (Λ₁ → E) := Measure.pi fun _ : Λ₁ => ν
-  have hI := setLIntegral_isssd_eq_setLIntegral_juxt
-    (S := S) (E := E) (ρ := ρ) ν (Λ₀ := Λ₁) (Λ := Λ₁) (hρ.measurable Λ₁) hA ξ
-  have hH := setLIntegral_isssd_eq_setLIntegral_juxt
-    (S := S) (E := E) (ρ := ρ) ν (Λ₀ := Λ₁) (Λ := Λ₂) (hρ.measurable Λ₂) hA ξ
-  have hpoint (ζ : Λ₁ → E) : ρ Λ₂ ξ * ρ Λ₁ (J ζ) = ρ Λ₁ ξ * ρ Λ₂ (J ζ) := by
-    have hrestrict : ∀ s ∉ Λ₁, J ζ s = ξ s := by
-      intro s hs
-      simpa [J] using (juxt_agree_on_compl (Λ := Λ₁) (η := ξ) (ζ := ζ) s hs)
-    simpa [J, mul_comm, mul_left_comm, mul_assoc] using
-      (hρ.comm_of_subset (Λ₁ := Λ₁) (Λ₂ := Λ₂) (ζ := J ζ) (η := ξ) hΛ hrestrict).symm
-  have hf₁ : Measurable fun ζ : Λ₁ → E => ρ Λ₁ (J ζ) :=
-    (hρ.measurable Λ₁).comp (Measurable.juxt (Λ := (Λ₁ : Set S)) (η := ξ) (𝓔 := mE))
-  have hf₂ : Measurable fun ζ : Λ₁ → E => ρ Λ₂ (J ζ) :=
-    (hρ.measurable Λ₂).comp (Measurable.juxt (Λ := (Λ₁ : Set S)) (η := ξ) (𝓔 := mE))
-  rw [hI, hH]
-  calc
-    ρ Λ₂ ξ * ∫⁻ ζ in s, ρ Λ₁ (J ζ) ∂μ =
-        ∫⁻ ζ in s, ρ Λ₂ ξ * ρ Λ₁ (J ζ) ∂μ := by
-          simpa [s, μ] using (lintegral_const_mul (μ := μ.restrict s) (ρ Λ₂ ξ) hf₁).symm
-    _ = ∫⁻ ζ in s, ρ Λ₁ ξ * ρ Λ₂ (J ζ) ∂μ := by
-          refine lintegral_congr_ae ?_
-          filter_upwards with ζ
-          exact hpoint ζ
-    _ = ρ Λ₁ ξ * ∫⁻ ζ in s, ρ Λ₂ (J ζ) ∂μ := by
-          simpa [s, μ] using lintegral_const_mul (μ := μ.restrict s) (ρ Λ₁ ξ) hf₂
-
-/-- The normalized premodifier has partition function `1` in every finite volume. -/
-lemma lintegral_premodifierNorm_eq_one (hρ : IsPremodifier ρ)
-    (hZ : IsPremodifierAdmissible (S := S) (E := E) ν ρ)
-    (Λ : Finset S) (ξ : S → E) :
-    ∫⁻ x, premodifierNorm (S := S) (E := E) ν ρ Λ x
-      ∂(isssd (S := S) (E := E) ν Λ ξ) = 1 := by
-  let Z : Finset S → (S → E) → ℝ≥0∞ := premodifierZ (S := S) (E := E) ν ρ
-  have hZmeasΛ : Measurable[cylinderEvents (Λ : Set S)ᶜ] (Z Λ) := by
-    exact measurable_premodifierZ (S := S) (E := E) (ν := ν) hρ Λ
-  have hpull :=
-    Specification.lintegral_mul (isssd (S := S) (E := E) ν)
-      (Λ := Λ) (η₀ := ξ) (f := ρ Λ) (g := fun x : S → E => (Z Λ x)⁻¹)
-      (hf := hρ.measurable Λ) (hg := hZmeasΛ.inv)
-  have hZξ : Z Λ ξ ≠ 0 ∧ Z Λ ξ ≠ ⊤ := hZ Λ ξ
-  calc
-    ∫⁻ x, premodifierNorm (S := S) (E := E) ν ρ Λ x ∂(isssd (S := S) (E := E) ν Λ ξ)
-        = (Z Λ ξ)⁻¹ * ∫⁻ x, ρ Λ x ∂(isssd (S := S) (E := E) ν Λ ξ) := by
-            simpa [premodifierNorm, Z, div_eq_mul_inv, mul_assoc, mul_left_comm,
-              mul_comm] using hpull
-    _ = (Z Λ ξ)⁻¹ * Z Λ ξ := by simp [Z, premodifierZ]
-    _ = 1 := ENNReal.inv_mul_cancel hZξ.1 hZξ.2
-
-/-- Evaluating the normalized premodifier modification on a measurable set factors the boundary
-normalization outside the set integral. -/
-lemma withDensity_premodifierNorm_apply (hρ : IsPremodifier ρ) {Λ : Finset S}
-    {A : Set (S → E)} (hA : MeasurableSet A) (η : S → E) :
-    ((isssd (S := S) (E := E) ν Λ η).withDensity
-        (premodifierNorm (S := S) (E := E) ν ρ Λ)) A =
-      (premodifierZ (S := S) (E := E) ν ρ Λ η)⁻¹ *
-        ∫⁻ y in A, ρ Λ y ∂(isssd (S := S) (E := E) ν Λ η) := by
-  let Z : Finset S → (S → E) → ℝ≥0∞ := premodifierZ (S := S) (E := E) ν ρ
-  have hZmeas : Measurable[cylinderEvents (Λ : Set S)ᶜ] (Z Λ) := by
-    exact measurable_premodifierZ (S := S) (E := E) (ν := ν) hρ Λ
-  have hpull :
-      ∫⁻ y, (fun y : S → E => (Z Λ y)⁻¹) y *
-          (A.indicator fun y : S → E => ρ Λ y) y
-        ∂(isssd (S := S) (E := E) ν Λ η) =
-        (Z Λ η)⁻¹ *
-          ∫⁻ y, (A.indicator fun y : S → E => ρ Λ y) y
-            ∂(isssd (S := S) (E := E) ν Λ η) :=
-    Specification.lintegral_mul (isssd (S := S) (E := E) ν)
-      (Λ := Λ) (η₀ := η) (f := A.indicator fun y : S → E => ρ Λ y)
-      (g := fun y : S → E => (Z Λ y)⁻¹)
-      (hf := Measurable.indicator (hρ.measurable Λ) hA) (hg := hZmeas.inv)
-  calc
-    ((isssd (S := S) (E := E) ν Λ η).withDensity
-        (premodifierNorm (S := S) (E := E) ν ρ Λ)) A =
-        ∫⁻ y in A, ρ Λ y * (Z Λ y)⁻¹ ∂(isssd (S := S) (E := E) ν Λ η) := by
-          simp [withDensity_apply _ hA, premodifierNorm, Z, div_eq_mul_inv]
-    _ = ∫⁻ y, (Z Λ y)⁻¹ * (A.indicator fun y : S → E => ρ Λ y) y
-          ∂(isssd (S := S) (E := E) ν Λ η) := by
-          rw [← lintegral_indicator hA]
-          simp [Set.indicator_mul_left, mul_comm]
-    _ = (Z Λ η)⁻¹ * ∫⁻ y, (A.indicator fun y : S → E => ρ Λ y) y
-          ∂(isssd (S := S) (E := E) ν Λ η) := hpull
-    _ = (Z Λ η)⁻¹ * ∫⁻ y in A, ρ Λ y ∂(isssd (S := S) (E := E) ν Λ η) := by
-          simp [lintegral_indicator hA]
-
-/-- Pull the boundary normalization of a normalized premodifier outside an integral. -/
-lemma lintegral_premodifierNorm_mul_eq (hρ : IsPremodifier ρ) {Λ : Finset S}
-    {f : (S → E) → ℝ≥0∞} (hf : Measurable f) (η : S → E) :
-    ∫⁻ x, premodifierNorm (S := S) (E := E) ν ρ Λ x * f x
-        ∂(isssd (S := S) (E := E) ν Λ η) =
-      (premodifierZ (S := S) (E := E) ν ρ Λ η)⁻¹ *
-        ∫⁻ x, ρ Λ x * f x ∂(isssd (S := S) (E := E) ν Λ η) := by
-  let Z : Finset S → (S → E) → ℝ≥0∞ := premodifierZ (S := S) (E := E) ν ρ
-  have hZmeas : Measurable[cylinderEvents (Λ : Set S)ᶜ] (Z Λ) := by
-    exact measurable_premodifierZ (S := S) (E := E) (ν := ν) hρ Λ
-  have hpull :=
-    Specification.lintegral_mul (isssd (S := S) (E := E) ν)
-      (Λ := Λ) (η₀ := η) (f := fun x : S → E => ρ Λ x * f x)
-      (g := fun x : S → E => (Z Λ x)⁻¹)
-      (hf := (hρ.measurable Λ).mul hf) (hg := hZmeas.inv)
-  simpa [premodifierNorm, Z, div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm] using hpull
-
-/-- Pull the boundary normalization of a normalized premodifier outside a set integral. -/
-lemma setLIntegral_premodifierNorm_eq (hρ : IsPremodifier ρ) {Λ : Finset S}
-    {A : Set (S → E)} (hA : MeasurableSet A) (η : S → E) :
-    ∫⁻ x in A, premodifierNorm (S := S) (E := E) ν ρ Λ x
-        ∂(isssd (S := S) (E := E) ν Λ η) =
-      (premodifierZ (S := S) (E := E) ν ρ Λ η)⁻¹ *
-        ∫⁻ x in A, ρ Λ x ∂(isssd (S := S) (E := E) ν Λ η) := by
-  simpa [withDensity_apply _ hA] using
-    withDensity_premodifierNorm_apply (S := S) (E := E) (ρ := ρ) ν hρ hA η
-
-/-- Consistency of `isssd` collapses an iterated finite-volume integral. -/
-lemma lintegral_lintegral_isssd_eq_of_subset {Λ₁ Λ₂ : Finset S} (hΛ : Λ₁ ⊆ Λ₂)
-    {f : (S → E) → ℝ≥0∞} (hf : Measurable f) (η : S → E) :
-    ∫⁻ x, ∫⁻ y, f y ∂(isssd (S := S) (E := E) ν Λ₁ x)
-        ∂(isssd (S := S) (E := E) ν Λ₂ η) =
-      ∫⁻ y, f y ∂(isssd (S := S) (E := E) ν Λ₂ η) := by
-  have hcons : ((isssd (S := S) (E := E) ν Λ₁).comap id cylinderEvents_le_pi ∘ₖ
-      (isssd (S := S) (E := E) ν Λ₂)) = (isssd (S := S) (E := E) ν Λ₂) :=
-    (isssd (S := S) (E := E) ν).isConsistent hΛ
-  have hcons_eta :
-      (((isssd (S := S) (E := E) ν Λ₁).comap id cylinderEvents_le_pi ∘ₖ
-          (isssd (S := S) (E := E) ν Λ₂)) η) =
-        (isssd (S := S) (E := E) ν Λ₂ η) := by
-    simpa using congrArg (fun κ => κ η) hcons
-  calc
-    ∫⁻ x, ∫⁻ y, f y ∂(isssd (S := S) (E := E) ν Λ₁ x)
-        ∂(isssd (S := S) (E := E) ν Λ₂ η)
-        = ∫⁻ y, f y
-            ∂(((isssd (S := S) (E := E) ν Λ₁).comap id cylinderEvents_le_pi ∘ₖ
-                (isssd (S := S) (E := E) ν Λ₂)) η) := by
-          simpa [Kernel.comap_apply, measurable_id''] using
-            (Kernel.lintegral_comp ((isssd (S := S) (E := E) ν Λ₁).comap id cylinderEvents_le_pi)
-              (isssd (S := S) (E := E) ν Λ₂) η hf).symm
-    _ = ∫⁻ y, f y ∂(isssd (S := S) (E := E) ν Λ₂ η) := by rw [hcons_eta]
-
-/-- Set integrals against `isssd Λ₁` are measurable with respect to the outside of `Λ₁`. -/
-lemma measurable_setLIntegral_isssd {Λ : Finset S} {A : Set (S → E)}
-    (hA : MeasurableSet A) {f : (S → E) → ℝ≥0∞} (hf : Measurable f) :
-    Measurable[cylinderEvents (Λ : Set S)ᶜ]
-      (fun η : S → E => ∫⁻ ζ in A, f ζ ∂(isssd (S := S) (E := E) ν Λ η)) := by
-  simpa [lintegral_indicator hA] using
-    (Measurable.lintegral_kernel (κ := isssd (S := S) (E := E) ν Λ)
-      (f := A.indicator f) (Measurable.indicator hf hA))
-
-/-- Consistency of `isssd` collapses an outer integral of an inner set integral. -/
-lemma lintegral_setLIntegral_isssd_eq_setLIntegral_of_subset {Λ₁ Λ₂ : Finset S}
-    (hΛ : Λ₁ ⊆ Λ₂) {A : Set (S → E)} (hA : MeasurableSet A)
-    {f : (S → E) → ℝ≥0∞} (hf : Measurable f) (η : S → E) :
-    ∫⁻ ξ, (∫⁻ ζ in A, f ζ ∂(isssd (S := S) (E := E) ν Λ₁ ξ))
-        ∂(isssd (S := S) (E := E) ν Λ₂ η) =
-      ∫⁻ ζ in A, f ζ ∂(isssd (S := S) (E := E) ν Λ₂ η) := by
-  let gA : (S → E) → ℝ≥0∞ := A.indicator f
-  have hgA : Measurable gA := Measurable.indicator hf hA
-  calc
-    ∫⁻ ξ, (∫⁻ ζ in A, f ζ ∂(isssd (S := S) (E := E) ν Λ₁ ξ))
-        ∂(isssd (S := S) (E := E) ν Λ₂ η)
-        = ∫⁻ ξ, ∫⁻ ζ, gA ζ ∂(isssd (S := S) (E := E) ν Λ₁ ξ)
-            ∂(isssd (S := S) (E := E) ν Λ₂ η) := by
-          simp [gA, lintegral_indicator hA]
-    _ = ∫⁻ ζ, gA ζ ∂(isssd (S := S) (E := E) ν Λ₂ η) := by
-          exact lintegral_lintegral_isssd_eq_of_subset (S := S) (E := E) ν hΛ hgA η
-    _ = ∫⁻ ζ in A, f ζ ∂(isssd (S := S) (E := E) ν Λ₂ η) := by
-          simp [gA, lintegral_indicator hA]
-
-/-- A normalized premodifier integrates out against off-volume measurable functions. -/
-lemma lintegral_premodifierNorm_mul_boundary_eq (hρ : IsPremodifier ρ)
-    (hZ : IsPremodifierAdmissible (S := S) (E := E) ν ρ)
-    {Λ₁ Λ₂ : Finset S} (hΛ : Λ₁ ⊆ Λ₂) {H : (S → E) → ℝ≥0∞}
-    (hHc : Measurable[cylinderEvents (Λ₁ : Set S)ᶜ] H) (hH : Measurable H) (η : S → E) :
-    ∫⁻ ξ, premodifierNorm (S := S) (E := E) ν ρ Λ₁ ξ * H ξ
-        ∂(isssd (S := S) (E := E) ν Λ₂ η) =
-      ∫⁻ ξ, H ξ ∂(isssd (S := S) (E := E) ν Λ₂ η) := by
-  let ρ' : Finset S → (S → E) → ℝ≥0∞ := premodifierNorm (S := S) (E := E) ν ρ
-  have hρ'meas : ∀ Λ, Measurable (ρ' Λ) :=
-    premodifierNorm_measurable (S := S) (E := E) (ρ := ρ) ν hρ
-  have hprod : Measurable fun ξ : S → E => ρ' Λ₁ ξ * H ξ := (hρ'meas Λ₁).mul hH
-  calc
-    ∫⁻ ξ, ρ' Λ₁ ξ * H ξ ∂(isssd (S := S) (E := E) ν Λ₂ η)
-        = ∫⁻ x, ∫⁻ ξ, ρ' Λ₁ ξ * H ξ
-            ∂(isssd (S := S) (E := E) ν Λ₁ x)
-            ∂(isssd (S := S) (E := E) ν Λ₂ η) := by
-          exact (lintegral_lintegral_isssd_eq_of_subset (S := S) (E := E) ν hΛ hprod η).symm
-    _ = ∫⁻ x, H x ∂(isssd (S := S) (E := E) ν Λ₂ η) := by
-          refine lintegral_congr_ae ?_
-          filter_upwards with x
-          have hpull := Specification.lintegral_mul (isssd (S := S) (E := E) ν)
-            (Λ := Λ₁) (η₀ := x) (f := ρ' Λ₁) (g := H)
-            (hf := hρ'meas Λ₁) (hg := hHc)
-          have hnormx : ∫⁻ ξ, ρ' Λ₁ ξ ∂(isssd (S := S) (E := E) ν Λ₁ x) = 1 := by
-            simpa [ρ'] using lintegral_premodifierNorm_eq_one
-              (S := S) (E := E) (ρ := ρ) ν hρ hZ Λ₁ x
-          calc
-            ∫⁻ ξ, ρ' Λ₁ ξ * H ξ ∂(isssd (S := S) (E := E) ν Λ₁ x)
-                = H x * ∫⁻ ξ, ρ' Λ₁ ξ ∂(isssd (S := S) (E := E) ν Λ₁ x) := by
-                  simpa [mul_comm] using hpull
-            _ = H x * 1 := by rw [hnormx]
-            _ = H x := by simp
-
-/-- Pointwise rearrangement behind consistency of a normalized premodifier modification. -/
-lemma premodifierNorm_withDensity_rearrange (hρ : IsPremodifier ρ)
-    {Λ₁ Λ₂ : Finset S} (hΛ : Λ₁ ⊆ Λ₂) {A : Set (S → E)}
-    (hA : MeasurableSet A) (ξ : S → E) :
-    ρ Λ₂ ξ * ((isssd (S := S) (E := E) ν Λ₁ ξ).withDensity
-        (premodifierNorm (S := S) (E := E) ν ρ Λ₁)) A =
-      premodifierNorm (S := S) (E := E) ν ρ Λ₁ ξ *
-        ∫⁻ ζ in A, ρ Λ₂ ζ ∂(isssd (S := S) (E := E) ν Λ₁ ξ) := by
-  let Z : Finset S → (S → E) → ℝ≥0∞ := premodifierZ (S := S) (E := E) ν ρ
-  let ρ' : Finset S → (S → E) → ℝ≥0∞ := premodifierNorm (S := S) (E := E) ν ρ
-  let I₁ : (S → E) → ℝ≥0∞ := fun η => ∫⁻ ζ in A, ρ Λ₁ ζ ∂(isssd (S := S) (E := E) ν Λ₁ η)
-  let H : (S → E) → ℝ≥0∞ := fun η => ∫⁻ ζ in A, ρ Λ₂ ζ ∂(isssd (S := S) (E := E) ν Λ₁ η)
-  have hkA : ((isssd (S := S) (E := E) ν Λ₁ ξ).withDensity (ρ' Λ₁)) A =
-      (Z Λ₁ ξ)⁻¹ * I₁ ξ := by
-    simpa [ρ', Z, I₁] using
-      withDensity_premodifierNorm_apply (S := S) (E := E) (ρ := ρ) ν hρ
-        (Λ := Λ₁) hA ξ
-  have hcocycle : ρ Λ₂ ξ * I₁ ξ = ρ Λ₁ ξ * H ξ := by
-    simpa [I₁, H] using
-      IsPremodifier.mul_setLIntegral_isssd_eq (S := S) (E := E) (ρ := ρ) ν hρ hΛ hA ξ
-  have hkA' :
-      ((Measure.map (juxt (Λ := (Λ₁ : Set S)) (η := ξ)) (Measure.pi fun _ : Λ₁ => ν)).withDensity
-          (ρ' Λ₁)) A = (Z Λ₁ ξ)⁻¹ * I₁ ξ := by
-    simpa [isssdFun_apply] using hkA
-  calc
-    ρ Λ₂ ξ * ((isssd (S := S) (E := E) ν Λ₁ ξ).withDensity (ρ' Λ₁)) A
-        = ρ Λ₂ ξ * ((Z Λ₁ ξ)⁻¹ * I₁ ξ) := by
-            simpa [isssdFun_apply] using congrArg (fun t => ρ Λ₂ ξ * t) hkA'
-    _ = (Z Λ₁ ξ)⁻¹ * (ρ Λ₂ ξ * I₁ ξ) := by simp [mul_left_comm]
-    _ = (Z Λ₁ ξ)⁻¹ * (ρ Λ₁ ξ * H ξ) := by simp [hcocycle]
-    _ = ρ' Λ₁ ξ * H ξ := by simp [ρ', premodifierNorm, Z, div_eq_mul_inv, mul_assoc, mul_left_comm]
-
-omit [IsProbabilityMeasure ν] in
-lemma IsPremodifier.isConsistent_modificationKer_sigmaFinitePremodifierNorm
-    {ν : Measure E} [SigmaFinite ν] [IsProbabilityMeasure ν] (hρ : IsPremodifier ρ)
-    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ) :
-    IsConsistent
-      (modificationKer (γ := sigmaFiniteLambdaFun (S := S) (E := E) ν)
-        (ρ := sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ)
-        (sigmaFinitePremodifierNorm_measurable (S := S) (E := E) (ρ := ρ) ν hρ)) := by
-  let ρ' : Finset S → (S → E) → ℝ≥0∞ :=
-    sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ
-  have hρ'meas : ∀ Λ, Measurable (ρ' Λ) :=
-    sigmaFinitePremodifierNorm_measurable (S := S) (E := E) (ρ := ρ) ν hρ
-  let γ : Finset S → (S → E) → Measure (S → E) :=
-    fun Λ ξ => (sigmaFiniteLambdaFun (S := S) (E := E) ν Λ) ξ
-  intro Λ₁ Λ₂ hΛ
-  ext η A hA
-  let kA : (S → E) → ℝ≥0∞ := fun ξ => ((γ Λ₁ ξ).withDensity (ρ' Λ₁)) A
-  have h_goal :
-      (∫⁻ ξ, ρ' Λ₂ ξ * kA ξ ∂(γ Λ₂ η)) = ∫⁻ ξ in A, ρ' Λ₂ ξ ∂(γ Λ₂ η) := by
-    simpa [ρ', γ, kA] using
-      lintegral_sigmaFinitePremodifierNorm_withDensity_eq_setLIntegral
-        (S := S) (E := E) (ρ := ρ) hρ hZ hΛ hA η
-  have hLHS :
-      (((modificationKer (γ := sigmaFiniteLambdaFun (S := S) (E := E) ν) (ρ := ρ')
-            (hρ := hρ'meas) Λ₁).comap id
-            cylinderEvents_le_pi ∘ₖ
-          modificationKer (γ := sigmaFiniteLambdaFun (S := S) (E := E) ν)
-            (ρ := ρ') (hρ := hρ'meas) Λ₂) η)
-        A = ∫⁻ ξ, ρ' Λ₂ ξ * kA ξ ∂(γ Λ₂ η) := by
-    simpa [γ, kA] using modificationKer_comp_apply_eq_lintegral_mul
-      (γ := sigmaFiniteLambdaFun (S := S) (E := E) ν) (ρ := ρ') hρ'meas
-      (Λ₁ := Λ₁) (Λ₂ := Λ₂) (η := η) (A := A) hA
-  calc
-    (((modificationKer (γ := sigmaFiniteLambdaFun (S := S) (E := E) ν) (ρ := ρ')
-            (hρ := hρ'meas) Λ₁).comap id
-            cylinderEvents_le_pi ∘ₖ
-          modificationKer (γ := sigmaFiniteLambdaFun (S := S) (E := E) ν)
-            (ρ := ρ') (hρ := hρ'meas) Λ₂) η) A =
-        ∫⁻ ξ, ρ' Λ₂ ξ * kA ξ ∂(γ Λ₂ η) := hLHS
-    _ = ∫⁻ ξ in A, ρ' Λ₂ ξ ∂(γ Λ₂ η) := h_goal
-    _ = (modificationKer (γ := sigmaFiniteLambdaFun (S := S) (E := E) ν)
-            (ρ := ρ') (hρ := hρ'meas) Λ₂ η) A := by
-          simp only [modificationKer_apply]
-          exact Eq.symm (withDensity_apply' (ρ' Λ₂) A)
-
-/-- The unnormalized cocycle integral left after expanding the outer normalized density. -/
-lemma lintegral_mul_premodifierNorm_withDensity_eq_setLIntegral (hρ : IsPremodifier ρ)
-    (hZ : IsPremodifierAdmissible (S := S) (E := E) ν ρ)
-    {Λ₁ Λ₂ : Finset S} (hΛ : Λ₁ ⊆ Λ₂) {A : Set (S → E)}
-    (hA : MeasurableSet A) (η : S → E) :
-    ∫⁻ ξ, ρ Λ₂ ξ * ((isssd (S := S) (E := E) ν Λ₁ ξ).withDensity
-        (premodifierNorm (S := S) (E := E) ν ρ Λ₁)) A
-        ∂(isssd (S := S) (E := E) ν Λ₂ η) =
-      ∫⁻ ξ in A, ρ Λ₂ ξ ∂(isssd (S := S) (E := E) ν Λ₂ η) := by
-  let ρ' : Finset S → (S → E) → ℝ≥0∞ := premodifierNorm (S := S) (E := E) ν ρ
-  let H : (S → E) → ℝ≥0∞ := fun ξ => ∫⁻ ζ in A, ρ Λ₂ ζ ∂(isssd (S := S) (E := E) ν Λ₁ ξ)
-  have hH_meas_Λ₁c : Measurable[cylinderEvents (Λ₁ : Set S)ᶜ] H := by
-    simpa [H] using measurable_setLIntegral_isssd
-      (S := S) (E := E) ν (Λ := Λ₁) hA (hρ.measurable Λ₂)
-  have hH_meas : Measurable H := hH_meas_Λ₁c.mono cylinderEvents_le_pi le_rfl
-  have h_rearrange (ξ : S → E) :
-      ρ Λ₂ ξ * ((isssd (S := S) (E := E) ν Λ₁ ξ).withDensity (ρ' Λ₁)) A = ρ' Λ₁ ξ * H ξ := by
-    simpa [ρ', H] using
-      premodifierNorm_withDensity_rearrange (S := S) (E := E) (ρ := ρ) ν hρ hΛ hA ξ
-  have hH_integral : (∫⁻ ξ, H ξ ∂(isssd (S := S) (E := E) ν Λ₂ η)) =
-      ∫⁻ ξ in A, ρ Λ₂ ξ ∂(isssd (S := S) (E := E) ν Λ₂ η) := by
-    simpa [H] using
-      lintegral_setLIntegral_isssd_eq_setLIntegral_of_subset
-        (S := S) (E := E) ν hΛ hA (hρ.measurable Λ₂) η
-  calc
-    ∫⁻ ξ, ρ Λ₂ ξ * ((isssd (S := S) (E := E) ν Λ₁ ξ).withDensity (ρ' Λ₁)) A
-        ∂(isssd (S := S) (E := E) ν Λ₂ η)
-        = ∫⁻ ξ, ρ' Λ₁ ξ * H ξ ∂(isssd (S := S) (E := E) ν Λ₂ η) := by
-          refine lintegral_congr_ae ?_
-          filter_upwards with ξ
-          exact h_rearrange ξ
-    _ = ∫⁻ ξ, H ξ ∂(isssd (S := S) (E := E) ν Λ₂ η) := by
-          exact lintegral_premodifierNorm_mul_boundary_eq
-            (S := S) (E := E) (ρ := ρ) ν hρ hZ hΛ hH_meas_Λ₁c hH_meas η
-    _ = ∫⁻ ξ in A, ρ Λ₂ ξ ∂(isssd (S := S) (E := E) ν Λ₂ η) := hH_integral
-
-/-- Consistency integral for the normalized premodifier density. -/
-lemma lintegral_premodifierNorm_withDensity_eq_setLIntegral (hρ : IsPremodifier ρ)
-    (hZ : IsPremodifierAdmissible (S := S) (E := E) ν ρ)
-    {Λ₁ Λ₂ : Finset S} (hΛ : Λ₁ ⊆ Λ₂) {A : Set (S → E)}
-    (hA : MeasurableSet A) (η : S → E) :
-    ∫⁻ ξ, premodifierNorm (S := S) (E := E) ν ρ Λ₂ ξ *
-        ((isssd (S := S) (E := E) ν Λ₁ ξ).withDensity
-          (premodifierNorm (S := S) (E := E) ν ρ Λ₁)) A
-        ∂(isssd (S := S) (E := E) ν Λ₂ η) =
-      ∫⁻ ξ in A, premodifierNorm (S := S) (E := E) ν ρ Λ₂ ξ
-        ∂(isssd (S := S) (E := E) ν Λ₂ η) := by
-  let kA : (S → E) → ℝ≥0∞ := fun ξ =>
-    ((isssd (S := S) (E := E) ν Λ₁ ξ).withDensity
-      (premodifierNorm (S := S) (E := E) ν ρ Λ₁)) A
-  have hkA_meas : Measurable kA := by
-    let ρ' : Finset S → (S → E) → ℝ≥0∞ := premodifierNorm (S := S) (E := E) ν ρ
-    have hρ'meas : ∀ Λ, Measurable (ρ' Λ) :=
-      premodifierNorm_measurable (S := S) (E := E) (ρ := ρ) ν hρ
-    let K₁ : Kernel[cylinderEvents (Λ₁ : Set S)ᶜ] (S → E) (S → E) :=
-      modificationKer (γ := isssd (S := S) (E := E) ν)
-        (ρ := ρ') (hρ := hρ'meas) Λ₁
-    have hmeas_dom : Measurable[cylinderEvents (Λ₁ : Set S)ᶜ] (fun ξ : S → E => (K₁ ξ) A) :=
-      Kernel.measurable_coe K₁ hA
-    simpa [kA, ρ', K₁, modificationKer] using hmeas_dom.mono cylinderEvents_le_pi le_rfl
-  calc
-    ∫⁻ ξ, premodifierNorm (S := S) (E := E) ν ρ Λ₂ ξ * kA ξ
-        ∂(isssd (S := S) (E := E) ν Λ₂ η)
-        = (premodifierZ (S := S) (E := E) ν ρ Λ₂ η)⁻¹ *
-            ∫⁻ ξ, ρ Λ₂ ξ * kA ξ ∂(isssd (S := S) (E := E) ν Λ₂ η) := by
-          exact lintegral_premodifierNorm_mul_eq
-            (S := S) (E := E) (ρ := ρ) ν hρ hkA_meas η
-    _ = (premodifierZ (S := S) (E := E) ν ρ Λ₂ η)⁻¹ *
-          ∫⁻ ξ in A, ρ Λ₂ ξ ∂(isssd (S := S) (E := E) ν Λ₂ η) := by
-          rw [lintegral_mul_premodifierNorm_withDensity_eq_setLIntegral
-            (S := S) (E := E) (ρ := ρ) ν hρ hZ hΛ hA η]
-    _ = ∫⁻ ξ in A, premodifierNorm (S := S) (E := E) ν ρ Λ₂ ξ
-          ∂(isssd (S := S) (E := E) ν Λ₂ η) := by
-          rw [setLIntegral_premodifierNorm_eq (S := S) (E := E) (ρ := ρ) ν hρ hA η]
-
-/-- The normalized premodifier density gives a consistent modification of `isssd`. -/
-lemma IsPremodifier.isConsistent_modificationKer_premodifierNorm (hρ : IsPremodifier ρ)
-    (hZ : IsPremodifierAdmissible (S := S) (E := E) ν ρ) :
-    IsConsistent
-      (modificationKer (γ := isssd (S := S) (E := E) ν)
-        (ρ := premodifierNorm (S := S) (E := E) ν ρ)
-        (premodifierNorm_measurable (S := S) (E := E) (ρ := ρ) ν hρ)) := by
-  let ρ' : Finset S → (S → E) → ℝ≥0∞ := premodifierNorm (S := S) (E := E) ν ρ
-  have hρ'meas : ∀ Λ, Measurable (ρ' Λ) :=
-    premodifierNorm_measurable (S := S) (E := E) (ρ := ρ) ν hρ
-  let γ : Finset S → (S → E) → Measure (S → E) := fun Λ ξ => (isssd (S := S) (E := E) ν Λ) ξ
-  intro Λ₁ Λ₂ hΛ
-  ext η A hA
-  let kA : (S → E) → ℝ≥0∞ := fun ξ => ((γ Λ₁ ξ).withDensity (ρ' Λ₁)) A
-  have h_goal :
-      (∫⁻ ξ, ρ' Λ₂ ξ * kA ξ ∂(γ Λ₂ η)) = ∫⁻ ξ in A, ρ' Λ₂ ξ ∂(γ Λ₂ η) := by
-    simpa [ρ', γ, kA] using
-      lintegral_premodifierNorm_withDensity_eq_setLIntegral
-        (S := S) (E := E) (ρ := ρ) ν hρ hZ hΛ hA η
-  have hLHS :
-      (((modificationKer (γ := isssd (S := S) (E := E) ν) (ρ := ρ') (hρ := hρ'meas) Λ₁).comap id
-            cylinderEvents_le_pi ∘ₖ
-          modificationKer (γ := isssd (S := S) (E := E) ν) (ρ := ρ') (hρ := hρ'meas) Λ₂)
-        η) A = ∫⁻ ξ, ρ' Λ₂ ξ * kA ξ ∂(γ Λ₂ η) := by
-    simpa [γ, kA] using modificationKer_comp_apply_eq_lintegral_mul
-      (γ := isssd (S := S) (E := E) ν) (ρ := ρ') hρ'meas
-      (Λ₁ := Λ₁) (Λ₂ := Λ₂) (η := η) (A := A) hA
-  calc
-    (((modificationKer (γ := isssd (S := S) (E := E) ν) (ρ := ρ') (hρ := hρ'meas) Λ₁).comap id
-          cylinderEvents_le_pi ∘ₖ
-        modificationKer (γ := isssd (S := S) (E := E) ν) (ρ := ρ') (hρ := hρ'meas) Λ₂) η) A
-        = ∫⁻ ξ, ρ' Λ₂ ξ * kA ξ ∂(γ Λ₂ η) := hLHS
-    _ = ∫⁻ ξ in A, ρ' Λ₂ ξ ∂(γ Λ₂ η) := h_goal
-    _ = (modificationKer (γ := isssd (S := S) (E := E) ν) (ρ := ρ') (hρ := hρ'meas) Λ₂ η) A := by
-          simp only [modificationKer_apply]
-          exact Eq.symm (withDensity_apply' (ρ' Λ₂) A)
-
-lemma IsPremodifier.isModifier_premodifierNorm (hρ : IsPremodifier ρ)
-    (hZ : IsPremodifierAdmissible (S := S) (E := E) ν ρ) :
-    (isssd (S := S) (E := E) ν).IsModifier (premodifierNorm (S := S) (E := E) ν ρ) := by
-  classical
-  let ρ' : Finset S → (S → E) → ℝ≥0∞ := premodifierNorm (S := S) (E := E) ν ρ
-  have hρ'meas : ∀ Λ, Measurable (ρ' Λ) :=
-    premodifierNorm_measurable (S := S) (E := E) (ρ := ρ) ν hρ
-  let γ : Finset S → (S → E) → Measure (S → E) := fun Λ ξ => (isssd (S := S) (E := E) ν Λ) ξ
-  have hNorm :
-      ∀ (Λ : Finset S) (ξ : S → E), ∫⁻ x, ρ' Λ x ∂(γ Λ ξ) = 1 := by
-    intro Λ ξ
-    simpa [ρ', γ] using
-      lintegral_premodifierNorm_eq_one (S := S) (E := E) (ρ := ρ) ν hρ hZ Λ ξ
-  refine
-    { measurable := hρ'meas
-      isMarkovKernel := ?_
-      isProper := ?_
-      isConsistent := ?_ }
-  · intro Λ
-    refine ⟨?_⟩
-    intro ξ
-    constructor
-    simpa [modificationKer, γ, withDensity_apply] using hNorm Λ ξ
-  · exact isProper_modificationKer (γ := isssd (S := S) (E := E) ν) hρ'meas
-  · simpa [ρ'] using
-      IsPremodifier.isConsistent_modificationKer_premodifierNorm
-        (S := S) (E := E) (ρ := ρ) ν hρ hZ
-
-end Modifier
 /-!
 ### Resampling specifications
 
@@ -3043,11 +1894,6 @@ this shape, and is all that the normalization of a premodifier (Georgii, Remark 
 about the reference kernels. Both `Specification.isssd` and, for the second half of Georgii
 (8.39), the inhomogeneous `Specification.isssdFamily` are resampling specifications.
 -/
-
-section Resampling
-
-variable {S E : Type*} {mE : MeasurableSpace E} {γ : Specification S E}
-  {ρ : Finset S → (S → E) → ℝ≥0∞}
 
 variable (γ) in
 /-- A specification *resamples volumes* if each finite-volume kernel is the image, under
@@ -3072,33 +1918,30 @@ lemma IsResampling.lintegral_congr (hγ : IsResampling γ) {Λ : Finset S} {η :
   refine MeasureTheory.lintegral_congr fun ζ ↦ ?_
   exact h _ (juxt_agree_on_compl Λ η ζ)
 
-/-! ### Normalizing a premodifier against an arbitrary reference specification -/
+/-! ### Normalizing a premodifier against a reference specification
+
+**Georgii, Remark (1.32).** If `h` is a pre-modification and `0 < λ_Λ h_Λ < ∞` for all `Λ`, then
+`ρ_Λ = h_Λ / λ_Λ h_Λ` is a λ-modification, so `ρ λ_·` is a specification. The partition function
+`relZ`, the normalized density `relNorm` and the admissibility predicate `IsRelAdmissible` are
+stated for an arbitrary reference specification `γ`; Georgii's λ-versions over the independent
+reference `Specification.isssd ν` are the abbreviations `Specification.premodifierZ`,
+`Specification.premodifierNorm` and `Specification.IsPremodifierAdmissible` below.
+-/
 
 variable (γ ρ) in
 /-- The partition function of a density family `ρ` relative to a reference specification `γ`:
-`Z_Λ(η) = γ_Λ(ρ_Λ | η)`. For `γ = Specification.isssd ν` this is
-`Specification.premodifierZ`. -/
+`Z_Λ(η) = γ_Λ(ρ_Λ | η)`. `Specification.premodifierZ` is this at `γ = Specification.isssd ν`. -/
 noncomputable def relZ (Λ : Finset S) (η : S → E) : ℝ≥0∞ := ∫⁻ x, ρ Λ x ∂(γ Λ η)
 
 variable (γ ρ) in
 /-- The normalized density `ρ'_Λ = ρ_Λ / Z_Λ` relative to a reference specification `γ`.
-For `γ = Specification.isssd ν` this is `Specification.premodifierNorm`. -/
+`Specification.premodifierNorm` is this at `γ = Specification.isssd ν`. -/
 noncomputable def relNorm (Λ : Finset S) (η : S → E) : ℝ≥0∞ := ρ Λ η / relZ γ ρ Λ η
 
 variable (γ ρ) in
 /-- Georgii's λ-admissibility relative to a reference specification: every finite-volume
 partition function is nonzero and finite. -/
 def IsRelAdmissible : Prop := ∀ (Λ : Finset S) (η : S → E), relZ γ ρ Λ η ≠ 0 ∧ relZ γ ρ Λ η ≠ ⊤
-
-lemma relZ_isssd (ν : Measure E) [IsProbabilityMeasure ν] :
-    relZ (isssd (S := S) (E := E) ν) ρ = premodifierZ (S := S) (E := E) ν ρ := rfl
-
-lemma relNorm_isssd (ν : Measure E) [IsProbabilityMeasure ν] :
-    relNorm (isssd (S := S) (E := E) ν) ρ = premodifierNorm (S := S) (E := E) ν ρ := rfl
-
-lemma isRelAdmissible_isssd_iff (ν : Measure E) [IsProbabilityMeasure ν] :
-    IsRelAdmissible (isssd (S := S) (E := E) ν) ρ ↔
-      IsPremodifierAdmissible (S := S) (E := E) ν ρ := Iff.rfl
 
 lemma measurable_relZ (hρ : ∀ Λ, Measurable (ρ Λ)) (Λ : Finset S) :
     Measurable[cylinderEvents (Λ : Set S)ᶜ] (relZ γ ρ Λ) :=
@@ -3124,6 +1967,34 @@ lemma lintegral_relNorm (hρ : ∀ Λ, Measurable (ρ Λ)) (hZ : IsRelAdmissible
   rw [lintegral_congr_ae hae, lintegral_const_mul _ (hρ Λ)]
   exact ENNReal.inv_mul_cancel (hZ Λ η).1 (hZ Λ η).2
 
+/-- Evaluating the normalized modification `relNorm γ ρ · γ_·` on a measurable set factors the
+partition function out of the set integral:
+`(ρ'_Λ γ_Λ)(A | η) = Z_Λ(η)⁻¹ ∫_A ρ_Λ dγ_Λ(· | η)`. Only properness of `γ` is used. -/
+lemma withDensity_relNorm_apply (hρ : ∀ Λ, Measurable (ρ Λ)) {Λ : Finset S}
+    {A : Set (S → E)} (hA : MeasurableSet A) (η : S → E) :
+    ((γ Λ η).withDensity (relNorm γ ρ Λ)) A
+      = (relZ γ ρ Λ η)⁻¹ * ∫⁻ y in A, ρ Λ y ∂(γ Λ η) := by
+  have hZmeas : Measurable[cylinderEvents (Λ : Set S)ᶜ] (relZ γ ρ Λ) :=
+    measurable_relZ (γ := γ) hρ Λ
+  have hpull :
+      ∫⁻ y, (fun y : S → E ↦ (relZ γ ρ Λ y)⁻¹) y *
+          (A.indicator fun y : S → E ↦ ρ Λ y) y ∂(γ Λ η) =
+        (relZ γ ρ Λ η)⁻¹ *
+          ∫⁻ y, (A.indicator fun y : S → E ↦ ρ Λ y) y ∂(γ Λ η) :=
+    Specification.lintegral_mul γ Λ
+      (f := A.indicator fun y : S → E ↦ ρ Λ y) (g := fun y : S → E ↦ (relZ γ ρ Λ y)⁻¹)
+      (Measurable.indicator (hρ Λ) hA) hZmeas.inv
+  calc
+    ((γ Λ η).withDensity (relNorm γ ρ Λ)) A =
+        ∫⁻ y in A, ρ Λ y * (relZ γ ρ Λ y)⁻¹ ∂(γ Λ η) := by
+          simp [withDensity_apply _ hA, relNorm, div_eq_mul_inv]
+    _ = ∫⁻ y, (relZ γ ρ Λ y)⁻¹ * (A.indicator fun y : S → E ↦ ρ Λ y) y ∂(γ Λ η) := by
+          rw [← lintegral_indicator hA]
+          simp [Set.indicator_mul_left, mul_comm]
+    _ = (relZ γ ρ Λ η)⁻¹ * ∫⁻ y, (A.indicator fun y : S → E ↦ ρ Λ y) y ∂(γ Λ η) := hpull
+    _ = (relZ γ ρ Λ η)⁻¹ * ∫⁻ y in A, ρ Λ y ∂(γ Λ η) := by
+          simp [lintegral_indicator hA]
+
 /-- Georgii's cocycle (1.31) integrated against the reference kernel: the premodifier identity
 holds with one argument averaged over the resampled volume. -/
 lemma IsPremodifier.mul_relZ (hγ : IsResampling γ) (hρ : IsPremodifier ρ) {Λ₁ Λ₂ : Finset S}
@@ -3140,9 +2011,9 @@ lemma IsPremodifier.mul_relZ (hγ : IsResampling γ) (hρ : IsPremodifier ρ) {�
 specification produces a modifier, hence a specification: the normalized family still satisfies
 the symmetry of Definition (1.31), hence condition (c) of Proposition (1.30), hence (a).
 
-This is `Specification.IsPremodifier.isModifier_premodifierNorm` with the independent
-specification `Specification.isssd ν` replaced by an arbitrary resampling reference — in
-particular by the inhomogeneous `Specification.isssdFamily ν`. -/
+Specialized to `γ = Specification.isssd ν` this is
+`Specification.IsPremodifier.isModifier_premodifierNorm`; it applies just as well to the
+inhomogeneous `Specification.isssdFamily`. -/
 theorem IsPremodifier.isModifier_relNorm (hγ : IsResampling γ) (hρ : IsPremodifier ρ)
     (hZ : IsRelAdmissible γ ρ) : γ.IsModifier (relNorm γ ρ) := by
   refine (isModifier_iff_ae_eq (γ := γ)).2
@@ -3177,6 +2048,448 @@ lemma premodification_apply (hγ : IsResampling γ) (hρ : IsPremodifier ρ)
     (hZ : IsRelAdmissible γ ρ) (Λ : Finset S) (η : S → E) :
     premodification γ ρ hγ hρ hZ Λ η = (γ Λ η).withDensity (relNorm γ ρ Λ) := rfl
 
-end Resampling
+/-!
+### Georgii's λ-modification machinery over `isssd`
+
+The Georgii-named layer at the independent reference with a probability spin distribution:
+`premodifierZ`, `premodifierNorm` and `IsPremodifierAdmissible` are abbreviations for `relZ`,
+`relNorm` and `IsRelAdmissible` at `γ = Specification.isssd ν`, so the whole `rel*` API applies
+to them directly.
+-/
+
+/-- The *partition function* (normalizing factor) `λ_Λ h_Λ` associated to a density `ρ Λ` and the
+independent specification `isssd ν`: `Specification.relZ` at the independent reference. -/
+noncomputable abbrev premodifierZ (ν : Measure E) [IsProbabilityMeasure ν]
+    (ρ : Finset S → (S → E) → ℝ≥0∞) (Λ : Finset S) (η : S → E) : ℝ≥0∞ :=
+  relZ (isssd (S := S) (E := E) ν) ρ Λ η
+
+/-- The normalized density `h_Λ / λ_Λ h_Λ` associated to a premodifier `ρ` and the independent
+specification `isssd ν`: `Specification.relNorm` at the independent reference. -/
+noncomputable abbrev premodifierNorm (ν : Measure E) [IsProbabilityMeasure ν]
+    (ρ : Finset S → (S → E) → ℝ≥0∞) (Λ : Finset S) (η : S → E) : ℝ≥0∞ :=
+  relNorm (isssd (S := S) (E := E) ν) ρ Λ η
+
+/-- Georgii's λ-admissibility `0 < λ_Λ h_Λ < ∞` over the independent reference:
+`Specification.IsRelAdmissible` at `γ = Specification.isssd ν`. -/
+abbrev IsPremodifierAdmissible (ν : Measure E) [IsProbabilityMeasure ν]
+    (ρ : Finset S → (S → E) → ℝ≥0∞) : Prop :=
+  IsRelAdmissible (isssd (S := S) (E := E) ν) ρ
+
+/-- Evaluating the normalized premodifier modification on a measurable set factors the boundary
+normalization outside the set integral. -/
+lemma withDensity_premodifierNorm_apply (ν : Measure E) [IsProbabilityMeasure ν]
+    (hρ : IsPremodifier ρ) {Λ : Finset S}
+    {A : Set (S → E)} (hA : MeasurableSet A) (η : S → E) :
+    ((isssd (S := S) (E := E) ν Λ η).withDensity
+        (premodifierNorm (S := S) (E := E) ν ρ Λ)) A =
+      (premodifierZ (S := S) (E := E) ν ρ Λ η)⁻¹ *
+        ∫⁻ y in A, ρ Λ y ∂(isssd (S := S) (E := E) ν Λ η) :=
+  withDensity_relNorm_apply (γ := isssd (S := S) (E := E) ν) hρ.measurable hA η
+
+/-!
+### The σ-finite λ-layer
+
+Georgii's reference measures range over the σ-finite `𝓜(E, ℰ)`. `sigmaFiniteLambdaZ`,
+`sigmaFinitePremodifierNorm` and `IsSigmaFiniteLambdaAdmissible` are the partition function,
+normalized density and admissibility over the σ-finite reference kernels
+`sigmaFiniteLambdaFun ν`, which do not form a `Specification` (they are not Markov unless
+`ν univ = 1`), so the `rel*` API does not apply to them; for a probability spin law the two
+layers agree (`premodifierZ_eq_sigmaFiniteLambdaZ`,
+`premodifierNorm_eq_sigmaFinitePremodifierNorm`,
+`isPremodifierAdmissible_iff_isSigmaFiniteLambdaAdmissible`).
+-/
+
+/-- The σ-finite-reference partition function associated to `sigmaFiniteLambdaFun`.
+
+This is Georgii's `λ_Λ h_Λ(η)` for a σ-finite reference measure. -/
+noncomputable def sigmaFiniteLambdaZ
+    (ν : Measure E) [SigmaFinite ν]
+    (ρ : Finset S → (S → E) → ℝ≥0∞) (Λ : Finset S) (η : S → E) : ℝ≥0∞ :=
+  ∫⁻ x, ρ Λ x ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η)
+
+/-- The normalized density associated to a premodifier and a σ-finite reference measure:
+`ρ' Λ η = ρ Λ η / Z_Λ(η)`. -/
+noncomputable def sigmaFinitePremodifierNorm
+    (ν : Measure E) [SigmaFinite ν]
+    (ρ : Finset S → (S → E) → ℝ≥0∞) (Λ : Finset S) (η : S → E) : ℝ≥0∞ :=
+  ρ Λ η / sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ η
+
+/-- Measurability of the normalized σ-finite premodifier density. -/
+lemma sigmaFinitePremodifierNorm_measurable
+    (ν : Measure E) [SigmaFinite ν] (hρ : IsPremodifier ρ) :
+    ∀ Λ, Measurable (sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ) := by
+  intro Λ
+  have h :
+      sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ =
+        fun σ ↦ ρ Λ σ / ∫⁻ x, ρ Λ x ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ σ) := by
+    funext σ
+    simp [sigmaFinitePremodifierNorm, sigmaFiniteLambdaZ]
+  rw [h]
+  exact hρ.measurable_div_sigmaFiniteLambda (S := S) (E := E) (ρ := ρ) ν Λ
+
+/-- σ-finite-reference admissibility: all finite-volume partition functions are nonzero and finite.
+
+This is the formal version of Georgii's λ-admissibility condition for the normalized density. -/
+def IsSigmaFiniteLambdaAdmissible
+    (ν : Measure E) [SigmaFinite ν] (ρ : Finset S → (S → E) → ℝ≥0∞) : Prop :=
+  ∀ (Λ : Finset S) (η : S → E),
+    sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ η ≠ 0 ∧
+      sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ η ≠ ⊤
+
+namespace IsSigmaFiniteLambdaAdmissible
+
+lemma ne_zero {ν : Measure E} [SigmaFinite ν] {ρ : Finset S → (S → E) → ℝ≥0∞}
+    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
+    (Λ : Finset S) (η : S → E) :
+    sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ η ≠ 0 :=
+  (hZ Λ η).1
+
+lemma ne_top {ν : Measure E} [SigmaFinite ν] {ρ : Finset S → (S → E) → ℝ≥0∞}
+    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
+    (Λ : Finset S) (η : S → E) :
+    sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ η ≠ ⊤ :=
+  (hZ Λ η).2
+
+end IsSigmaFiniteLambdaAdmissible
+
+/-- For probability reference measures, `premodifierZ` is the σ-finite-reference partition
+function. -/
+lemma premodifierZ_eq_sigmaFiniteLambdaZ (ν : Measure E) [IsProbabilityMeasure ν]
+    (ρ : Finset S → (S → E) → ℝ≥0∞) (Λ : Finset S) (η : S → E) :
+    premodifierZ (S := S) (E := E) ν ρ Λ η =
+      sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ η := by
+  rw [sigmaFiniteLambdaZ,
+    show sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η = isssd (S := S) (E := E) ν Λ η from
+      by rw [sigmaFiniteLambdaFun_eq_isssdFun (ν := ν) Λ]; rfl]
+  rfl
+
+/-- For probability reference measures, normalized premodifier admissibility is exactly
+σ-finite-reference admissibility specialized to a probability measure. -/
+lemma isPremodifierAdmissible_iff_isSigmaFiniteLambdaAdmissible
+    (ν : Measure E) [IsProbabilityMeasure ν] (ρ : Finset S → (S → E) → ℝ≥0∞) :
+    IsPremodifierAdmissible (S := S) (E := E) ν ρ ↔
+      IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ := by
+  simp only [IsPremodifierAdmissible, IsRelAdmissible, IsSigmaFiniteLambdaAdmissible,
+    premodifierZ_eq_sigmaFiniteLambdaZ (S := S) (E := E) ν ρ]
+
+/-- For probability reference measures, `premodifierNorm` is the σ-finite normalized
+premodifier. -/
+lemma premodifierNorm_eq_sigmaFinitePremodifierNorm (ν : Measure E) [IsProbabilityMeasure ν]
+    (ρ : Finset S → (S → E) → ℝ≥0∞) :
+    premodifierNorm (S := S) (E := E) ν ρ =
+      sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ := by
+  funext Λ η
+  simp only [premodifierNorm, relNorm, sigmaFinitePremodifierNorm,
+    premodifierZ_eq_sigmaFiniteLambdaZ (S := S) (E := E) ν ρ]
+
+/-- The σ-finite-reference partition function depends only on the exterior boundary condition. -/
+lemma sigmaFiniteLambdaZ_congr_of_eqOn_compl
+    (ν : Measure E) [SigmaFinite ν] {Λ : Finset S} (hρΛ : Measurable (ρ Λ))
+    {η₁ η₂ : S → E} (h : ∀ s ∉ Λ, η₁ s = η₂ s) :
+    sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ η₁ =
+      sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ η₂ := by
+  classical
+  have hjuxt : juxt (Λ := (Λ : Set S)) η₁ = juxt (Λ := (Λ : Set S)) η₂ := by
+    funext ζ x
+    by_cases hx : x ∈ (Λ : Set S)
+    · simp [juxt_apply_of_mem (Λ := (Λ : Set S)) (η := η₁) (ζ := ζ) hx,
+        juxt_apply_of_mem (Λ := (Λ : Set S)) (η := η₂) (ζ := ζ) hx]
+    · have hx' : x ∉ Λ := by
+        simpa [Finset.mem_coe] using hx
+      simp [juxt_apply_of_not_mem (Λ := (Λ : Set S)) (η := η₁) (ζ := ζ) hx,
+        juxt_apply_of_not_mem (Λ := (Λ : Set S)) (η := η₂) (ζ := ζ) hx, h x hx']
+  simp only [sigmaFiniteLambdaZ]
+  rw [sigmaFiniteLambdaFun_apply_eq_map, sigmaFiniteLambdaFun_apply_eq_map]
+  rw [lintegral_map hρΛ (Measurable.juxt (Λ := (Λ : Set S)) (η := η₁) (𝓔 := mE))]
+  simpa [hjuxt] using
+    (lintegral_map hρΛ
+      (Measurable.juxt (Λ := (Λ : Set S)) (η := η₂) (𝓔 := mE))).symm
+
+/-- Pull the boundary normalization of a σ-finite normalized premodifier outside an integral. -/
+lemma lintegral_sigmaFinitePremodifierNorm_mul_eq
+    (ν : Measure E) [SigmaFinite ν] (hρ : IsPremodifier ρ) {Λ : Finset S}
+    {f : (S → E) → ℝ≥0∞} (hf : Measurable f) (η : S → E) :
+    ∫⁻ x, sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ x * f x
+        ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η) =
+      (sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ η)⁻¹ *
+        ∫⁻ x, ρ Λ x * f x ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η) := by
+  let Z : Finset S → (S → E) → ℝ≥0∞ :=
+    sigmaFiniteLambdaZ (S := S) (E := E) ν ρ
+  have hZmeas : Measurable[cylinderEvents (Λ : Set S)ᶜ] (Z Λ) := by
+    have h :
+        Z Λ = fun a ↦ ∫⁻ b, ρ Λ b ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ a) := by
+      funext a
+      simp [Z, sigmaFiniteLambdaZ]
+    rw [h]
+    exact Measurable.lintegral_kernel (κ := sigmaFiniteLambdaFun (S := S) (E := E) ν Λ)
+      (f := ρ Λ) (hρ.measurable Λ)
+  have hpull :=
+    (isProper_sigmaFiniteLambdaFun (S := S) (E := E) ν Λ).lintegral_mul cylinderEvents_le_pi
+      (hf := (hρ.measurable Λ).mul hf) (hg := hZmeas.inv) η
+  simpa [sigmaFinitePremodifierNorm, Z, div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm]
+    using hpull
+
+/-- Pull the boundary normalization of a σ-finite normalized premodifier outside a set integral. -/
+lemma setLIntegral_sigmaFinitePremodifierNorm_eq
+    (ν : Measure E) [SigmaFinite ν] (hρ : IsPremodifier ρ) {Λ : Finset S}
+    {A : Set (S → E)} (hA : MeasurableSet A) (η : S → E) :
+    ∫⁻ x in A, sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ x
+        ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η) =
+      (sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ η)⁻¹ *
+        ∫⁻ x in A, ρ Λ x ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η) := by
+  have h := lintegral_sigmaFinitePremodifierNorm_mul_eq
+    (S := S) (E := E) (ρ := ρ) ν hρ (Λ := Λ)
+    (f := A.indicator fun _ : S → E => 1) (Measurable.indicator measurable_const hA) η
+  let μ : Measure (S → E) := sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η
+  have hlhs :
+      ∫⁻ x, sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ x *
+          A.indicator (fun _ : S → E => 1) x ∂μ =
+        ∫⁻ x in A, sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ x ∂μ := by
+    rw [← lintegral_indicator hA]
+    congr with x
+    by_cases hx : x ∈ A <;> simp [hx]
+  have hrhs :
+      ∫⁻ x, ρ Λ x * A.indicator (fun _ : S → E => 1) x ∂μ =
+        ∫⁻ x in A, ρ Λ x ∂μ := by
+    rw [← lintegral_indicator hA]
+    congr with x
+    by_cases hx : x ∈ A <;> simp [hx]
+  simpa [μ, hlhs, hrhs] using h
+
+/-- Evaluating the σ-finite normalized premodifier kernel on a measurable set factors the boundary
+normalization outside the set integral. -/
+lemma withDensity_sigmaFinitePremodifierNorm_apply
+    (ν : Measure E) [SigmaFinite ν] (hρ : IsPremodifier ρ) {Λ : Finset S}
+    {A : Set (S → E)} (hA : MeasurableSet A) (η : S → E) :
+    ((sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η).withDensity
+        (sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ)) A =
+      (sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ η)⁻¹ *
+        ∫⁻ x in A, ρ Λ x ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η) := by
+  rw [withDensity_apply _ hA]
+  exact setLIntegral_sigmaFinitePremodifierNorm_eq
+    (S := S) (E := E) (ρ := ρ) ν hρ hA η
+
+/-- The σ-finite normalized premodifier has partition function `1` in every finite volume. -/
+lemma lintegral_sigmaFinitePremodifierNorm_eq_one
+    (ν : Measure E) [SigmaFinite ν] (hρ : IsPremodifier ρ)
+    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
+    (Λ : Finset S) (ξ : S → E) :
+    ∫⁻ x, sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ x
+      ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ ξ) = 1 := by
+  let Z : Finset S → (S → E) → ℝ≥0∞ :=
+    sigmaFiniteLambdaZ (S := S) (E := E) ν ρ
+  have hmul := lintegral_sigmaFinitePremodifierNorm_mul_eq
+    (S := S) (E := E) (ρ := ρ) ν hρ (Λ := Λ)
+    (f := fun _ : S → E => 1) measurable_const ξ
+  have hZξ : Z Λ ξ ≠ 0 ∧ Z Λ ξ ≠ ⊤ := hZ Λ ξ
+  calc
+    ∫⁻ x, sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ x
+        ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ ξ) =
+        (Z Λ ξ)⁻¹ * ∫⁻ x, ρ Λ x ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ ξ) := by
+          simpa [Z] using hmul
+    _ = (Z Λ ξ)⁻¹ * Z Λ ξ := by simp [Z, sigmaFiniteLambdaZ]
+    _ = 1 := ENNReal.inv_mul_cancel hZξ.1 hZξ.2
+
+/-- The normalized finite-volume kernel obtained from a σ-finite reference measure and a
+premodifier. It is the density modification of
+`sigmaFiniteLambdaFun ν Λ η` with density `sigmaFinitePremodifierNorm ν ρ Λ`.
+
+These kernels are proper because the σ-finite reference λ-kernels are proper and properness is
+preserved by density changes. Under `IsSigmaFiniteLambdaAdmissible`, they are also Markov; under a
+probability spin law `[IsProbabilityMeasure ν]` (so `sigmaFiniteLambdaFun ν` composes via
+`isConsistent_sigmaFiniteLambdaFun`),
+**`IsPremodifier.isConsistent_modificationKer_sigmaFinitePremodifierNorm`** gives full DLR
+consistency of the normalized modification. -/
+noncomputable def sigmaFinitePremodifierKernel
+    (ν : Measure E) [SigmaFinite ν] (ρ : Finset S → (S → E) → ℝ≥0∞)
+    (hρ : IsPremodifier ρ) (Λ : Finset S) :
+    Kernel[cylinderEvents Λᶜ] (S → E) (S → E) :=
+  modificationKer (γ := sigmaFiniteLambdaFun (S := S) (E := E) ν)
+    (ρ := sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ)
+    (sigmaFinitePremodifierNorm_measurable (S := S) (E := E) (ρ := ρ) ν hρ) Λ
+
+/-- Evaluation of `sigmaFinitePremodifierKernel`. -/
+lemma sigmaFinitePremodifierKernel_apply
+    (ν : Measure E) [SigmaFinite ν] (hρ : IsPremodifier ρ)
+    (Λ : Finset S) (η : S → E) :
+    sigmaFinitePremodifierKernel (S := S) (E := E) ν ρ hρ Λ η =
+      (sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η).withDensity
+        (sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ) := rfl
+
+/-- Under admissibility, each normalized σ-finite premodifier kernel is a probability kernel. -/
+lemma isMarkovKernel_sigmaFinitePremodifierKernel
+    (ν : Measure E) [SigmaFinite ν] (hρ : IsPremodifier ρ)
+    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
+    (Λ : Finset S) :
+    IsMarkovKernel (sigmaFinitePremodifierKernel (S := S) (E := E) ν ρ hρ Λ) := by
+  refine ⟨?_⟩
+  intro ξ
+  constructor
+  simpa [sigmaFinitePremodifierKernel, modificationKer, withDensity_apply] using
+    lintegral_sigmaFinitePremodifierNorm_eq_one
+      (S := S) (E := E) (ρ := ρ) ν hρ hZ Λ ξ
+
+/-- Each normalized σ-finite premodifier kernel is proper with respect to the outside-volume
+σ-algebra. -/
+lemma isProper_sigmaFinitePremodifierKernel
+    (ν : Measure E) [SigmaFinite ν] (hρ : IsPremodifier ρ) (Λ : Finset S) :
+    (sigmaFinitePremodifierKernel (S := S) (E := E) ν ρ hρ Λ).IsProper := by
+  exact isProper_modificationKer_of_isProper
+    (γ := sigmaFiniteLambdaFun (S := S) (E := E) ν)
+    (ρ := sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ)
+    (fun Λ => isProper_sigmaFiniteLambdaFun (S := S) (E := E) ν Λ)
+    (sigmaFinitePremodifierNorm_measurable (S := S) (E := E) (ρ := ρ) ν hρ) Λ
+
+/-!
+### Change of variables along `juxt`
+
+Integrating against a reference kernel `λ_Λ(· | η)` is integrating along `juxt Λ η` against the
+finite product `ν^Λ` — one application of `MeasureTheory.setLIntegral_map`. The σ-finite form is
+the root; the `isssd` form is its specialization to a probability spin law. -/
+
+/-- Rewrite a set integral against the σ-finite reference kernel as an integral over the finite
+resampling coordinates. -/
+lemma setLIntegral_sigmaFiniteLambdaFun_eq_setLIntegral_juxt
+    (ν : Measure E) [SigmaFinite ν] {Λ₀ : Finset S}
+    {f : (S → E) → ℝ≥0∞} (hf : Measurable f) {A : Set (S → E)}
+    (hA : MeasurableSet A) (η : S → E) :
+    ∫⁻ x in A, f x ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₀ η) =
+      ∫⁻ ζ : Λ₀ → E in (juxt (Λ := (Λ₀ : Set S)) (η := η)) ⁻¹' A,
+        f (juxt (Λ := (Λ₀ : Set S)) (η := η) ζ) ∂(Measure.pi fun _ : Λ₀ => ν) := by
+  rw [sigmaFiniteLambdaFun_apply_eq_map ν Λ₀ η]
+  simpa using
+    (setLIntegral_map (μ := Measure.pi (fun _ : Λ₀ => ν)) (s := A) (f := f)
+      (g := juxt (Λ := (Λ₀ : Set S)) (η := η)) hA hf
+      (Measurable.juxt (Λ := (Λ₀ : Set S)) (η := η) (𝓔 := mE)))
+
+/-- Rewrite a set integral against `isssd` as an integral over the finite resampling
+coordinates. -/
+lemma setLIntegral_isssd_eq_setLIntegral_juxt
+    (ν : Measure E) [IsProbabilityMeasure ν] {Λ₀ : Finset S}
+    {f : (S → E) → ℝ≥0∞} (hf : Measurable f) {A : Set (S → E)}
+    (hA : MeasurableSet A) (η : S → E) :
+    ∫⁻ x in A, f x ∂(isssd (S := S) (E := E) ν Λ₀ η) =
+      ∫⁻ ζ : Λ₀ → E in (juxt (Λ := (Λ₀ : Set S)) (η := η)) ⁻¹' A,
+        f (juxt (Λ := (Λ₀ : Set S)) (η := η) ζ) ∂(Measure.pi fun _ : Λ₀ => ν) := by
+  rw [show (isssd (S := S) (E := E) ν Λ₀) η = sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₀ η from
+    by rw [sigmaFiniteLambdaFun_eq_isssdFun (ν := ν) Λ₀]; rfl]
+  exact setLIntegral_sigmaFiniteLambdaFun_eq_setLIntegral_juxt ν hf hA η
+
+/-- Integrating against `isssd ν Δ (· | τ)` is integrating along `juxt Δ τ` against `ν^Δ`:
+the full-integral change of variables. -/
+lemma lintegral_isssd_eq {ν : Measure E} [IsProbabilityMeasure ν] (Δ : Finset S) (τ : S → E)
+    {g : (S → E) → ℝ≥0∞} (hg : Measurable g) :
+    ∫⁻ σ, g σ ∂(isssd ν Δ τ) =
+      ∫⁻ ζ, g (juxt (Δ : Set S) τ ζ) ∂(Measure.pi fun _ : Δ ↦ ν) := by
+  simpa using setLIntegral_isssd_eq_setLIntegral_juxt (S := S) (E := E) ν hg .univ τ
+
+/-- Premodifier cocycle identity integrated over a σ-finite finite-volume resampling. -/
+lemma IsPremodifier.mul_setLIntegral_sigmaFiniteLambdaFun_eq
+    (ν : Measure E) [SigmaFinite ν] (hρ : IsPremodifier ρ) {Λ₁ Λ₂ : Finset S} (hΛ : Λ₁ ⊆ Λ₂)
+    {A : Set (S → E)} (hA : MeasurableSet A) (ξ : S → E) :
+    ρ Λ₂ ξ * ∫⁻ ζ in A, ρ Λ₁ ζ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁ ξ) =
+      ρ Λ₁ ξ * ∫⁻ ζ in A, ρ Λ₂ ζ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ₁ ξ) := by
+  let J : (Λ₁ → E) → (S → E) := juxt (Λ := (Λ₁ : Set S)) (η := ξ)
+  let s : Set (Λ₁ → E) := J ⁻¹' A
+  let μ : Measure (Λ₁ → E) := Measure.pi fun _ : Λ₁ => ν
+  have hI := setLIntegral_sigmaFiniteLambdaFun_eq_setLIntegral_juxt
+    (S := S) (E := E) ν (Λ₀ := Λ₁) (hρ.measurable Λ₁) hA ξ
+  have hH := setLIntegral_sigmaFiniteLambdaFun_eq_setLIntegral_juxt
+    (S := S) (E := E) ν (Λ₀ := Λ₁) (hρ.measurable Λ₂) hA ξ
+  have hpoint (ζ : Λ₁ → E) : ρ Λ₂ ξ * ρ Λ₁ (J ζ) = ρ Λ₁ ξ * ρ Λ₂ (J ζ) := by
+    have hrestrict : ∀ s ∉ Λ₁, J ζ s = ξ s := by
+      intro s hs
+      simpa [J] using (juxt_agree_on_compl (Λ := Λ₁) (η := ξ) (ζ := ζ) s hs)
+    simpa [J, mul_comm, mul_left_comm, mul_assoc] using
+      (hρ.comm_of_subset (Λ₁ := Λ₁) (Λ₂ := Λ₂) (ζ := J ζ) (η := ξ) hΛ hrestrict).symm
+  have hf₁ : Measurable fun ζ : Λ₁ → E => ρ Λ₁ (J ζ) :=
+    (hρ.measurable Λ₁).comp (Measurable.juxt (Λ := (Λ₁ : Set S)) (η := ξ) (𝓔 := mE))
+  have hf₂ : Measurable fun ζ : Λ₁ → E => ρ Λ₂ (J ζ) :=
+    (hρ.measurable Λ₂).comp (Measurable.juxt (Λ := (Λ₁ : Set S)) (η := ξ) (𝓔 := mE))
+  rw [hI, hH]
+  calc
+    ρ Λ₂ ξ * ∫⁻ ζ in s, ρ Λ₁ (J ζ) ∂μ =
+        ∫⁻ ζ in s, ρ Λ₂ ξ * ρ Λ₁ (J ζ) ∂μ := by
+          simpa [s, μ] using (lintegral_const_mul (μ := μ.restrict s) (ρ Λ₂ ξ) hf₁).symm
+    _ = ∫⁻ ζ in s, ρ Λ₁ ξ * ρ Λ₂ (J ζ) ∂μ := by
+          refine lintegral_congr_ae ?_
+          filter_upwards with ζ
+          exact hpoint ζ
+    _ = ρ Λ₁ ξ * ∫⁻ ζ in s, ρ Λ₂ (J ζ) ∂μ := by
+          simpa [s, μ] using lintegral_const_mul (μ := μ.restrict s) (ρ Λ₁ ξ) hf₂
+
+/-- Set integrals against the σ-finite reference kernel over `Λ` are measurable with respect to
+the outside of `Λ`. -/
+lemma measurable_setLIntegral_sigmaFiniteLambdaFun
+    (ν : Measure E) [SigmaFinite ν] {Λ : Finset S} {A : Set (S → E)}
+    (hA : MeasurableSet A) {f : (S → E) → ℝ≥0∞} (hf : Measurable f) :
+    Measurable[cylinderEvents (Λ : Set S)ᶜ]
+      (fun η : S → E => ∫⁻ ζ in A, f ζ ∂(sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η)) := by
+  simpa [lintegral_indicator hA] using
+    (Measurable.lintegral_kernel (κ := sigmaFiniteLambdaFun (S := S) (E := E) ν Λ)
+      (f := A.indicator f) (Measurable.indicator hf hA))
+
+/-!
+### Georgii, Remark (1.32), headline statements
+
+The single proof is `Specification.IsPremodifier.isModifier_relNorm` over an arbitrary
+resampling reference; the statements below are its specializations to the independent reference
+`Specification.isssd ν` and, through the bridge lemmas, to the σ-finite presentation
+`sigmaFiniteLambdaFun ν` of the same kernels at a probability spin law. The genuinely σ-finite
+non-zero case is `Specification.isConsistent_modificationKer_sigmaFinitePremodifierNorm_of_neZero`
+in `GibbsMeasure/Specification/Rescaling.lean`, obtained by the rescaling of Georgii,
+Remark (1.28)(3). -/
+
+/-- **Georgii, Remark (1.32) over `isssd`.** The normalized premodifier density is a modifier of
+the independent specification. -/
+lemma IsPremodifier.isModifier_premodifierNorm (ν : Measure E) [IsProbabilityMeasure ν]
+    (hρ : IsPremodifier ρ) (hZ : IsPremodifierAdmissible (S := S) (E := E) ν ρ) :
+    (isssd (S := S) (E := E) ν).IsModifier (premodifierNorm (S := S) (E := E) ν ρ) :=
+  hρ.isModifier_relNorm (isResampling_isssd ν) hZ
+
+/-- **Georgii, Remark (1.32) over `isssd`,** consistency form: the normalized premodifier density
+gives a consistent modification of the independent specification. -/
+lemma IsPremodifier.isConsistent_modificationKer_premodifierNorm
+    (ν : Measure E) [IsProbabilityMeasure ν]
+    (hρ : IsPremodifier ρ) (hZ : IsPremodifierAdmissible (S := S) (E := E) ν ρ) :
+    IsConsistent
+      (modificationKer (γ := isssd (S := S) (E := E) ν)
+        (ρ := premodifierNorm (S := S) (E := E) ν ρ)
+        (measurable_relNorm (γ := isssd (S := S) (E := E) ν) hρ.measurable)) :=
+  (hρ.isModifier_relNorm (isResampling_isssd ν) hZ).isConsistent
+
+/-- **Georgii, Remark (1.32) for the σ-finite presentation of a probability spin law.** DLR
+consistency of the normalized modification of `sigmaFiniteLambdaFun ν`, from
+`Specification.IsPremodifier.isModifier_relNorm` through the bridge lemmas. -/
+lemma IsPremodifier.isConsistent_modificationKer_sigmaFinitePremodifierNorm
+    {ν : Measure E} [IsProbabilityMeasure ν] (hρ : IsPremodifier ρ)
+    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ) :
+    IsConsistent
+      (modificationKer (γ := sigmaFiniteLambdaFun (S := S) (E := E) ν)
+        (ρ := sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ)
+        (sigmaFinitePremodifierNorm_measurable (S := S) (E := E) (ρ := ρ) ν hρ)) := by
+  have hZ' : IsPremodifierAdmissible (S := S) (E := E) ν ρ :=
+    (isPremodifierAdmissible_iff_isSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ).2 hZ
+  have hcons := (hρ.isModifier_relNorm (γ := isssd (S := S) (E := E) ν)
+    (isResampling_isssd ν) hZ').isConsistent
+  have hkey : modificationKer (γ := sigmaFiniteLambdaFun (S := S) (E := E) ν)
+        (ρ := sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ)
+        (sigmaFinitePremodifierNorm_measurable (S := S) (E := E) (ρ := ρ) ν hρ)
+      = modificationKer (γ := ⇑(isssd (S := S) (E := E) ν))
+        (ρ := relNorm (isssd (S := S) (E := E) ν) ρ)
+        (measurable_relNorm (γ := isssd (S := S) (E := E) ν) hρ.measurable) := by
+    funext Λ
+    refine Kernel.ext fun η ↦ ?_
+    rw [modificationKer_apply, modificationKer_apply,
+      show sigmaFiniteLambdaFun (S := S) (E := E) ν Λ η = isssd (S := S) (E := E) ν Λ η from
+        by rw [sigmaFiniteLambdaFun_eq_isssdFun (ν := ν) Λ]; rfl,
+      show sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Λ
+        = relNorm (isssd (S := S) (E := E) ν) ρ Λ from
+        congrFun (premodifierNorm_eq_sigmaFinitePremodifierNorm
+          (S := S) (E := E) ν ρ).symm Λ]
+  rw [hkey]
+  exact hcons
+
+end Modifier
 
 end Specification

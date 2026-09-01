@@ -257,7 +257,6 @@ theorem exists_isModifier_of_singleton (hlam : IsDisjointlyConsistent ⇑lam)
   have hmod : lam.IsModifier ρ' :=
     { measurable := hmeas
       isMarkovKernel := fun Λ ↦ by rw [hker]; infer_instance
-      isProper := fun Λ ↦ by rw [hker]; exact γ.isProper Λ
       isConsistent := by
         have hfun : modificationKer (⇑lam) ρ' hmeas = ⇑γ := funext hker
         rw [hfun]

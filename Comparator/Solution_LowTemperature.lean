@@ -281,7 +281,7 @@ lemma spec_apply (β : ℝ) (Λ : Finset Site) (ω : Config) {A : Set Config} (h
   have hZ : Specification.premodifierZ (S := Site) (E := Bool) uniformSpinMeasure
       (P.boltzmannFactor β) Λ ω
       = (2 ^ Λ.card : ℝ≥0∞)⁻¹ * ∑ ζ : Λ → Bool, ENNReal.ofReal (weight β Λ ω ζ) := by
-    rw [Specification.premodifierZ,
+    rw [Specification.premodifierZ, Specification.relZ,
       lintegral_isssd Λ ω (Potential.measurable_boltzmannFactor (Φ := P) β Λ)]
     exact congrArg _ (Finset.sum_congr rfl fun ζ _ ↦ boltzmann_extend β Λ ω ζ)
   have hnum : ∫⁻ y in A, P.boltzmannFactor β Λ y
