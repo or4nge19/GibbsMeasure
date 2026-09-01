@@ -10,6 +10,7 @@ public import Mathlib.MeasureTheory.Integral.Lebesgue.Markov
 public import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
 public import Mathlib.Analysis.Convex.Extreme
 public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.TrivialOn
+public import Mathlib.Dynamics.Ergodic.Ergodic
 
 /-!
 # The almost surely invariant σ-algebra of a Markov kernel
@@ -25,8 +26,9 @@ probability measure is an extreme point of the convex set of such measures if an
 trivial on `I_Π(μ) = ⨅ i, I_{κ i}(μ)`
 (`ProbabilityTheory.Kernel.mem_extremePoints_iff_trivialOn`).
 
-This generalises Mathlib's `Ergodic.iff_mem_extremePoints`, which is the case of a single
-deterministic kernel, in two directions: to genuinely random kernels, and to families. Almost sure
+This contains Mathlib's `Ergodic.iff_mem_extremePoints` and extends it in two directions, to
+genuinely random kernels and to families: `preErgodic_iff_trivialOn_aeInvariant` identifies
+Mathlib's `PreErgodic` with triviality on `I_π(μ)` for a deterministic kernel. Almost sure
 invariance cannot be weakened to strict invariance, and `Example75` below is Georgii's Example
 (7.5) proving it: a stochastic matrix on three points whose strictly invariant σ-algebra is trivial
 while its invariant measures form a segment, so triviality on it does not imply extremality.
@@ -39,7 +41,7 @@ Corollary (7.4).
 
 @[expose] public section
 
-open MeasureTheory Set
+open Filter MeasureTheory Set
 open scoped ENNReal
 
 namespace ProbabilityTheory.Kernel
@@ -529,6 +531,68 @@ theorem mem_extremePoints_iff_trivialOn [IsProbabilityMeasure μ] [Nonempty ι]
 
 end Family
 
+/-! ### Specialisation to a deterministic kernel: Mathlib's ergodicity -/
+
+section Deterministic
+
+variable {T : Ω → Ω}
+
+/-- For the deterministic kernel of a map, kernel invariance is measure preservation. -/
+lemma invariant_deterministic_iff (hT : Measurable T) :
+    Invariant (Kernel.deterministic T hT) μ ↔ μ.map T = μ := by
+  rw [Invariant, show ((Kernel.deterministic T hT : Kernel Ω Ω) : Ω → Measure Ω)
+      = fun ω ↦ Measure.dirac (T ω) from funext (Kernel.deterministic_apply hT),
+    Measure.bind_dirac_eq_map μ hT]
+
+/-- The `μ`-a.s. invariant sets of a deterministic kernel are the `μ`-a.e. invariant sets of the
+map. -/
+lemma mem_aeInvariantSets_deterministic_iff (hT : Measurable T) {A : Set Ω} :
+    A ∈ aeInvariantSets (Kernel.deterministic T hT) μ ↔
+      MeasurableSet A ∧ T ⁻¹' A =ᵐ[μ] A := by
+  rw [mem_aeInvariantSets]
+  refine and_congr_right fun hA ↦ ?_
+  have hiff : ∀ ω, (Kernel.deterministic T hT ω A = A.indicator 1 ω)
+      ↔ ((ω ∈ T ⁻¹' A) = (ω ∈ A)) := by
+    intro ω
+    rw [Kernel.deterministic_apply' hT ω hA]
+    by_cases h1 : T ω ∈ A <;> by_cases h2 : ω ∈ A <;>
+      simp [h1, h2, Set.mem_preimage, eq_iff_iff]
+  exact eventually_congr (.of_forall hiff)
+
+/-- **Mathlib's `Ergodic.iff_mem_extremePoints` is the deterministic case of (7.4).** For a
+measure-preserving self-map `T`, Mathlib's pre-ergodicity — triviality on the *strictly* invariant
+sets — coincides with triviality on `I_π(μ)` for the deterministic kernel `π = δ_{T(·)}`. The
+non-trivial direction is Mathlib's
+`QuasiMeasurePreserving.exists_preimage_eq_of_preimage_ae`, which corrects an a.e. invariant set to
+a strictly invariant one; Georgii's Example (7.5) shows no such correction exists for general
+kernels. -/
+theorem preErgodic_iff_trivialOn_aeInvariant [IsProbabilityMeasure μ] (hT : Measurable T)
+    (hmp : MeasurePreserving T μ μ) :
+    PreErgodic T μ ↔
+      ∀ A, MeasurableSet[aeInvariantSigmaAlgebra
+        ((invariant_deterministic_iff (μ := μ) hT).2 hmp.map_eq)] A → μ A = 0 ∨ μ A = 1 := by
+  constructor
+  · intro herg A hA
+    obtain ⟨hAm, hae⟩ := (mem_aeInvariantSets_deterministic_iff hT).1 hA
+    obtain ⟨t, htm, hteq, hinv⟩ :=
+      hmp.quasiMeasurePreserving.exists_preimage_eq_of_preimage_ae hAm.nullMeasurableSet hae
+    rcases eventuallyConst_set'.1 (herg.aeconst_set htm hinv) with h | h
+    · exact Or.inl (by rw [← measure_congr hteq]; exact ae_eq_empty.1 h)
+    · exact Or.inr (by
+        rw [← measure_congr hteq]
+        exact (prob_compl_eq_zero_iff htm).1 (ae_eq_univ.1 h))
+  · intro htriv
+    refine ⟨fun A hAm hinv ↦ ?_⟩
+    have hA : MeasurableSet[aeInvariantSigmaAlgebra
+        ((invariant_deterministic_iff (μ := μ) hT).2 hmp.map_eq)] A :=
+      (mem_aeInvariantSets_deterministic_iff hT).2 ⟨hAm, by rw [hinv]; exact EventuallyEq.rfl⟩
+    rw [eventuallyConst_set']
+    rcases htriv A hA with h | h
+    · exact Or.inl (ae_eq_empty.2 h)
+    · exact Or.inr (ae_eq_univ.2 ((prob_compl_eq_zero_iff hAm).2 h))
+
+end Deterministic
+
 /-! ### Georgii's Example (7.5): almost sure invariance is not strict invariance -/
 
 namespace Example75
@@ -585,7 +649,7 @@ lemma eq_empty_or_univ_of_strictly_invariant {A : Set (Fin 3)}
     simpa [Measure.dirac_apply] using h1
   by_cases h0 : (0 : Fin 3) ∈ A <;> by_cases hm : (1 : Fin 3) ∈ A <;>
       by_cases h2 : (2 : Fin 3) ∈ A <;>
-    simp [Set.indicator_apply, h0, hm, h2, ENNReal.inv_two_add_inv_two] at key
+    simp [h0, hm, h2, ENNReal.inv_two_add_inv_two] at key
   · exact Or.inr (by ext x; fin_cases x <;> simp [h0, hm, h2])
   · exact Or.inl (by ext x; fin_cases x <;> simp [h0, hm, h2])
 

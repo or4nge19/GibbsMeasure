@@ -99,12 +99,25 @@ generality, in Mathlib's \texttt{ProbabilityTheory.Kernel} namespace.
     so $\mu$ is not extreme.
 \end{example}
 
-\begin{remark}[Relation to Mathlib]
-    \label{rmk:ext-mathlib}
-    \uses{thm:ext-74}
+\begin{proposition}[The deterministic case is Mathlib's ergodicity]
+    \label{prop:ext-mathlib}
+    \uses{thm:ext-74, ex:ext-75}
+    \lean{ProbabilityTheory.Kernel.invariant_deterministic_iff,
+      ProbabilityTheory.Kernel.mem_aeInvariantSets_deterministic_iff,
+      ProbabilityTheory.Kernel.preErgodic_iff_trivialOn_aeInvariant}
+    \leanok
 
-    Mathlib's \texttt{Ergodic.iff\_mem\_extremePoints} is the special case of a single
-    \emph{deterministic} kernel $\pi = \delta_{T(\cdot)}$. Theorem \ref{thm:ext-74} extends it to
-    random kernels and to families, which is what Chapter 7 needs: a specification is a family of
-    kernels indexed by the finite volumes.
-\end{remark}
+    For a measurable self-map $T$ and the deterministic kernel $\pi = \delta_{T(\cdot)}$, kernel
+    invariance is measure preservation, and $\mathcal I_\pi(\mu)$ consists of the sets with
+    $T^{-1}A =_\mu A$. For measure-preserving $T$ this makes Mathlib's \texttt{PreErgodic} --- which
+    quantifies over the \emph{strictly} invariant sets $T^{-1}A = A$ --- equivalent to triviality on
+    $\mathcal I_\pi(\mu)$, so Theorem \ref{thm:ext-74} contains Mathlib's
+    \texttt{Ergodic.iff\_mem\_extremePoints} and extends it to random kernels and to families,
+    which is what Chapter 7 needs: a specification is a family of kernels indexed by finite volumes.
+
+    The non-trivial direction is Mathlib's
+    \texttt{QuasiMeasurePreserving.exists\_preimage\_eq\_of\_preimage\_ae}, correcting an a.e.\
+    invariant set to a strictly invariant one. Example \ref{ex:ext-75} shows that no such
+    correction is available for general kernels, so the passage from strict to almost sure
+    invariance is not a mere technical convenience.
+\end{proposition}

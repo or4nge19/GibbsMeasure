@@ -50,8 +50,8 @@ theorem exists_countable_measure_symmDiff_lt_of_le [IsFiniteMeasure μ] [IsSepar
     {m₀ : MeasurableSpace X} (hm₀ : m₀ ≤ m) :
     ∃ D : Set (Set X), D.Countable ∧ (∀ t ∈ D, MeasurableSet[m₀] t) ∧
       ∀ s, MeasurableSet[m₀] s → ∀ ε : ℝ, 0 < ε → ∃ t ∈ D, μ (s ∆ t) < ENNReal.ofReal ε := by
-  haveI : Fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_rfl⟩
-  haveI : Fact ((1 : ℝ≥0∞) ≠ ∞) := ⟨ENNReal.one_ne_top⟩
+  have : Fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_rfl⟩
+  have : Fact ((1 : ℝ≥0∞) ≠ ∞) := ⟨ENNReal.one_ne_top⟩
   -- The constant-one indicators of `m₀`-measurable sets, viewed inside `L¹(μ)`.
   set ind : {s : Set X // MeasurableSet[m₀] s} → Lp ℝ 1 μ :=
     fun s ↦ indicatorConstLp 1 (hm₀ _ s.2) (measure_ne_top μ _) (1 : ℝ) with hind
@@ -69,7 +69,7 @@ theorem exists_countable_measure_symmDiff_lt_of_le [IsFiniteMeasure μ] [IsSepar
   have hchoice : ∀ f : c, ∃ s : {s : Set X // MeasurableSet[m₀] s}, ind s = (f : Lp ℝ 1 μ) :=
     fun f ↦ hcT f.2
   choose g hg using hchoice
-  haveI := hcc.to_subtype
+  have := hcc.to_subtype
   refine ⟨Set.range fun f : c ↦ ((g f : {s : Set X // MeasurableSet[m₀] s}) : Set X),
     countable_range _, ?_, ?_⟩
   · rintro t ⟨f, rfl⟩
