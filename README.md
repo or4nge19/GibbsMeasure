@@ -118,8 +118,16 @@ needs `𝒢(γ)` compact. The two-subgroup `I₁ ∘ I₀` form of (5.15) is pro
 (`exists_mem_GP_and_forall_measurePreserving_of_commute_of_measurePreserving`,
 `exists_isGibbsMeasure_and_forall_map_eq_of_invariantWeight_of_map_eq`), with the
 (5.17)(2)-shaped Ising instance (shift- and spin-flip-invariant Gibbs measure at `h = 0`).
-What remains of Georgii's (ii) is commutativity *modulo* `I₀` with `𝒢_{I₀}(γ)` compact in
-place of an abelian `I₁` with `𝒢(γ)` compact. In detail: Georgii's
+Georgii's (ii) is now proved at his own hypotheses — commutativity *modulo* `I₀`
+(`τ₁ ∘ τ₂ = τ₂ ∘ τ₁ ∘ τ₀` with `τ₀ ∈ I₀`), `I₀` normalised by `I₁`, and `𝒢_{I₀}(γ)` compact rather
+than `𝒢(γ)` (`exists_mem_GP_and_forall_measurePreserving_sup_of_commute_mod_of_measurePreserving`).
+Georgii runs a Markov–Kakutani average over `ℤⁿ`; here the generators are adjoined one at a time,
+each step a Følner average over the cyclic group `{τ^k}` — whose transport law is `zpow_add`, so
+the commutation hypothesis is needed only to keep the previously gained invariance — and the
+finite subsets of `I₁` are combined by the finite intersection property in the compact
+`𝒢_{I₀}(γ)`. The Følner theorem was generalised in place for it: the composition law is required
+only after transporting the starting measure (`map_transAverage_of_transportLaw`), which is what
+"homomorphism modulo `I₀`" delivers. In detail: Georgii's
 transformation group `T` of configuration space ((5.1),
 `GibbsMeasure/Prereqs/Transformation.lean`), its action on potentials ((5.3), `Potential.map`,
 with the Hamiltonian/norm/Boltzmann-factor transport of (5.6)(c)), on specifications ((5.4),

@@ -455,6 +455,16 @@ alignment:
         +-boundary distributions is the monotone boundary-condition limit plusState of the FKG
         development, and the cube averages converge to it without subsequence extraction
         (tendsto_plusCubeAverage).
+    - source: "Theorem (5.15)(ii)"
+      lean: "MeasureTheory.GibbsMeasure.exists_mem_GP_and_forall_measurePreserving_sup_of_commute_mod_of_measurePreserving"
+      module: "GibbsMeasure/Specification/InvariantExistenceGroup.lean"
+      status: "proved"
+      note: >-
+        At Georgii's own hypotheses: commutation modulo I0, normality of I0 under I1, and
+        compactness of G_{I0}(gamma) rather than of G(gamma). The Foelner argument is applied one
+        generator at a time over the group already adjoined, and the finite subsets are combined
+        by the finite-intersection property
+        (nonempty_setOf_mem_GP_and_forall_measurePreserving_of_forall_finset).
     - source: "Theorem (5.19)"
       lean: "MeasureTheory.GibbsMeasure.mem_GP_and_forall_measurePreserving_of_mapClusterPt_average"
       module: "GibbsMeasure/Specification/InvariantExistence.lean"

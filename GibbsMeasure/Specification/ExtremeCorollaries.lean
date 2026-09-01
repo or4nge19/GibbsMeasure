@@ -235,17 +235,6 @@ variable {S E : Type*} [MeasurableSpace E] [Countable S] [StandardBorelSpace E]
 local notation3 (prettyPrint := false) "Ω" => (S → E)
 
 omit [Countable S] [StandardBorelSpace E] in
-/-- The inverse of a symmetry of `γ` (Georgii (5.7)) is a symmetry of `γ`. -/
-theorem _root_.Specification.IsInvariant.inv {τ : Transformation S E}
-    (hτ : Specification.IsInvariant τ γ) : Specification.IsInvariant τ.inv γ := by
-  have hid : τ.inv.comp τ = Transformation.id := by simpa using inv_mul_cancel τ
-  have h1 : γ.map (τ.inv.comp τ) = (γ.map τ).map τ.inv := Specification.map_comp τ.inv τ γ
-  rw [hid, Specification.map_id] at h1
-  show γ.map τ.inv = γ
-  conv_lhs => rw [← hτ]
-  exact h1.symm
-
-omit [Countable S] [StandardBorelSpace E] in
 /-- **Georgii (5.10)**, `Measure` form: a symmetry of `γ` maps `G(γ)` into itself. -/
 lemma map_mem_G {τ : Transformation S E} (hτ : Specification.IsInvariant τ γ)
     {μ : Measure Ω} (hμ : μ ∈ G γ) : μ.map τ.toFun ∈ G γ := by

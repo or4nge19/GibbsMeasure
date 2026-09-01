@@ -208,6 +208,46 @@ lemma IsInvariant.comp {τ σ : Transformation S E} {γ : Specification S E}
   unfold IsInvariant at *
   rw [map_comp, hσ, hτ]
 
+/-- **Georgii (5.7)(d): the symmetry group of a specification.**  The transformations `τ` with
+`τ(γ) = γ` form a subgroup of the transformation group `T`.  Georgii's hypotheses "let `I` be a
+subgroup of `T` consisting of symmetries of `γ`" — (5.14), (5.15), (5.19) — say exactly that `I`
+is a subgroup of this one. -/
+def symmetryGroup (γ : Specification S E) : Subgroup (Transformation S E) where
+  carrier := {τ | IsInvariant τ γ}
+  mul_mem' := by
+    intro τ σ hτ hσ
+    show IsInvariant (τ * σ) γ
+    rw [Transformation.mul_def]
+    exact hτ.comp hσ
+  one_mem' := by
+    show IsInvariant 1 γ
+    rw [Transformation.one_def]
+    exact isInvariant_id γ
+  inv_mem' := by
+    intro τ hτ
+    show IsInvariant τ⁻¹ γ
+    have h : γ.map (τ⁻¹ * τ) = γ.map τ⁻¹ := by
+      rw [Transformation.mul_def, map_comp, show γ.map τ = γ from hτ]
+    rwa [inv_mul_cancel, Transformation.one_def, map_id, eq_comm] at h
+
+@[simp] lemma mem_symmetryGroup {τ : Transformation S E} {γ : Specification S E} :
+    τ ∈ γ.symmetryGroup ↔ IsInvariant τ γ := Iff.rfl
+
+/-- Georgii (5.7)(d) in group form: symmetries of `γ` are closed under multiplication. -/
+lemma IsInvariant.mul {γ : Specification S E} {τ σ : Transformation S E}
+    (hτ : IsInvariant τ γ) (hσ : IsInvariant σ γ) : IsInvariant (τ * σ) γ :=
+  mul_mem (mem_symmetryGroup.2 hτ) (mem_symmetryGroup.2 hσ)
+
+/-- The inverse of a symmetry of `γ` (Georgii (5.7)) is a symmetry of `γ`. -/
+lemma IsInvariant.inv {γ : Specification S E} {τ : Transformation S E}
+    (hτ : IsInvariant τ γ) : IsInvariant τ.inv γ :=
+  inv_mem (mem_symmetryGroup.2 hτ)
+
+/-- The symmetries of `γ` are closed under integer powers. -/
+lemma IsInvariant.zpow {γ : Specification S E} {τ : Transformation S E}
+    (hτ : IsInvariant τ γ) (k : ℤ) : IsInvariant (τ ^ k) γ :=
+  zpow_mem (mem_symmetryGroup.2 hτ) k
+
 end Specification
 
 namespace Specification
