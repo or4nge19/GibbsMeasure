@@ -1,0 +1,112 @@
+\section{Dobrushin's uniqueness condition}
+
+\begin{definition}[Dobrushin's interdependence matrix, Georgii (8.1)--(8.3)]
+    \label{def:dob-interdep}
+    \uses{def:spec}
+    \lean{MeasureTheory.GibbsMeasure.Dobrushin.unifDist,
+      MeasureTheory.GibbsMeasure.Dobrushin.interdep,
+      MeasureTheory.GibbsMeasure.Dobrushin.IsDobrushin}
+    \leanok
+
+    For a specification $\gamma$, the interdependence coefficients are
+    $C_{ij}(\gamma) = \sup \set{\norm{\gamma_{\{i\}}(\cdot|\zeta) - \gamma_{\{i\}}(\cdot|\eta)}
+      : \zeta = \eta \text{ off } j}$, with $\norm{\cdot}$ the uniform (total-variation) distance.
+    \textbf{Dobrushin's condition} is
+    $c(\gamma) = \sup_i \sum_{j} C_{ij}(\gamma) < 1$, together with quasilocality where Georgii
+    requires it; Example (2.27) shows the quasilocality conjunct is not decorative.
+\end{definition}
+
+\begin{theorem}[Dobrushin's uniqueness theorem, Georgii (8.7) and (8.23)]
+    \label{thm:dob-uniqueness}
+    \uses{def:dob-interdep, def:gibbs-meas}
+    \lean{MeasureTheory.GibbsMeasure.Dobrushin.subsingleton_GP_of_isDobrushin,
+      MeasureTheory.GibbsMeasure.Dobrushin.existsUnique_mem_GP_of_isDobrushin,
+      MeasureTheory.GibbsMeasure.Dobrushin.existsUnique_mem_GP_of_isDobrushin_of_standardBorel,
+      MeasureTheory.GibbsMeasure.Dobrushin.tendsto_finiteVolumeDistributions_of_isDobrushin,
+      MeasureTheory.GibbsMeasure.Dobrushin.exists_mem_GP_forall_tendsto_of_isDobrushin,
+      MeasureTheory.GibbsMeasure.Dobrushin.measure_le_add_interdepTail_of_mem_GP,
+      MeasureTheory.GibbsMeasure.Dobrushin.ofReal_abs_toReal_sub_le_interdepTail_of_mem_GP}
+    \leanok
+
+    A quasilocal specification satisfying Dobrushin's condition has at most one Gibbs measure;
+    over a standard Borel state space it has exactly one, and ((8.23)(ii)) the finite-volume
+    distributions $\gamma_{\Delta}(\cdot \mid \eta)$ converge locally to it, for \emph{every}
+    boundary condition, with the uniform speed estimate
+    $|\gamma_{\Delta}(A|\eta) - \mu(A)| \leq \sum_{i \in \Lambda} \sup_j C^{\Delta}_{ij}$
+    on $\Lambda$-local events (the comment after (8.24)).
+\end{theorem}
+
+\begin{theorem}[The comparison theorem, Georgii (8.20)]
+    \label{thm:dob-comparison}
+    \uses{def:dob-interdep}
+    \lean{MeasureTheory.GibbsMeasure.Dobrushin.isEstimate_comparisonVec,
+      MeasureTheory.GibbsMeasure.Dobrushin.comparison}
+    \leanok
+
+    If $\gamma$ satisfies Dobrushin's condition and $\mu, \nu$ are Gibbs for two specifications
+    whose singleton kernels differ by at most $b_i$ at site $i$, then
+    $|\mu(f) - \nu(f)| \leq \sum_i \delta_i(f') \sum_j D_{ij} b_j$ with
+    $D = \sum_n C^n$ the Dobrushin matrix.
+\end{theorem}
+
+\subsection*{The single-site criterion}
+
+\begin{theorem}[Georgii (8.8)--(8.10), with the sharp tanh bound]
+    \label{thm:dob-single-site}
+    \uses{def:dob-interdep, def:pot-potential}
+    \lean{MeasureTheory.GibbsMeasure.Dobrushin.unifDist_normalize_le_sqrtRatio,
+      MeasureTheory.GibbsMeasure.Dobrushin.unifDist_normalize_le,
+      MeasureTheory.GibbsMeasure.Dobrushin.unifDist_normalize_le_tanh,
+      MeasureTheory.GibbsMeasure.Dobrushin.interdep_gibbsSpecification_le,
+      MeasureTheory.GibbsMeasure.Dobrushin.interdep_gibbsSpecification_le_tanh,
+      MeasureTheory.GibbsMeasure.Dobrushin.isDobrushin_gibbsSpecification}
+    \leanok
+
+    For the Gibbsian specification of an absolutely summable potential over a probability a
+    priori measure, $C_{ij} \leq \tfrac12 \sup_{A \ni i,j} \delta(\Phi_A) \cdot$(combinatorial
+    factor), so $\sup_i \sum_{A \ni i} (|A|-1)\, \delta(\Phi_A) < 2$ implies Dobrushin's
+    condition — with Georgii's sharp constant $2$. The primary estimate is the two-measure
+    normalisation bound $\norm{\bar\mu_0 - \bar\mu_1} \leq (\sqrt M - \sqrt m)/(\sqrt M + \sqrt m)
+    = \tanh\bigl(\tfrac14 \log (M/m)\bigr)$, which sharpens Georgii's (8.9)(2) to the
+    $\tanh$ form of (8.10) over an \emph{arbitrary} state space.
+    Georgii states (8.8) for any $\lambda$-admissible potential over $\sigma$-finite $\lambda$;
+    the absolute-summability restriction here is recorded in \texttt{formalization.yaml} and is
+    an open strengthening target, blocked on (2.24)(b) at Georgii's hypotheses.
+\end{theorem}
+
+\section{One-dimensional uniqueness}
+
+\begin{theorem}[Georgii, Proposition (8.38)]
+    \label{thm:onedim-838}
+    \uses{def:gibbs-meas}
+    \lean{MeasureTheory.GibbsMeasure.IsUniformlyDominated,
+      MeasureTheory.GibbsMeasure.subsingleton_G_of_isUniformlyDominated}
+    \leanok
+
+    If there is $c > 0$ such that every cylinder event admits a uniform two-sided comparison
+    between its conditional probabilities at different boundary conditions, then there is at most
+    one Gibbs measure. No quasilocality is assumed — uniqueness does not always need it.
+\end{theorem}
+
+\begin{theorem}[Georgii, Theorem (8.39), with Comments (8.41)]
+    \label{thm:onedim-839}
+    \uses{thm:onedim-838, def:pot-potential}
+    \lean{MeasureTheory.GibbsMeasure.Spans,
+      MeasureTheory.GibbsMeasure.HasBoundedBoundary,
+      MeasureTheory.GibbsMeasure.subsingleton_G_lambdaSpecification_of_oscSpan_le,
+      MeasureTheory.GibbsMeasure.subsingleton_G_lambdaSpecification_of_iSup_oscSpan_ne_top,
+      MeasureTheory.GibbsMeasure.subsingleton_GP_lambdaSpecification_of_iSup_oscSpan_ne_top,
+      MeasureTheory.GibbsMeasure.hasBoundedBoundary_int,
+      MeasureTheory.GibbsMeasure.oscSpan_eq_oscSpanDiam,
+      MeasureTheory.GibbsMeasure.oscSpanDiamDiv_eq_oscSpanDiam,
+      MeasureTheory.GibbsMeasure.HasPairDecay,
+      MeasureTheory.GibbsMeasure.subsingleton_G_lambdaSpecification_of_pair_rpow_le}
+    \leanok
+
+    On $\mathbb{Z}$ or $\mathbb{N}$, a $\lambda$-specification whose potential has uniformly
+    bounded span-oscillation sums has at most one Gibbs measure — long-range one-dimensional
+    uniqueness, proved at Georgii's own hypotheses over a $\sigma$-finite a priori measure.
+    Comments (8.41)(1) identify the three equivalent forms of the oscillation functional
+    (span, diameter, and the rooted normalisation), and (8.41)(3) gives the pair-decay
+    sufficient condition.
+\end{theorem}
