@@ -209,6 +209,17 @@ for an arbitrary index type, is `ProbabilityTheory.indep_cylinderEvents_compl_in
 (7.15): the stationary Markov chain is extreme in `𝒢(γ_P)` and trivial on `𝓣`
 (`stationaryChain_mem_extremePoints_G`, `forall_tail_stationaryChain_eq_zero_or_one`).
 
+Examples **(7.18)** and **(7.19)**, product specifications
+(`GibbsMeasure/Specification/ProductSpecification.lean`): on the disjoint union `S₁ ⊕ S₂` of two
+site sets, `γ¹ × γ²` is a specification with `γ_Λ(·|ω¹ω²) = γ¹_{Λ∩S₁}(·|ω¹) × γ²_{Λ∩S₂}(·|ω²)`,
+products of Gibbs measures are Gibbs, and `ex 𝒢(γ¹ × γ²) = {μ¹ × μ² : μᵏ ∈ ex 𝒢(γᵏ)}` — a
+bijection, so `|ex 𝒢|` multiplies and an iterated product prescribes the number of phases. Two
+general facts came out of it: properness of a parallel composition of kernels with Fubini for
+parallel binds, and the zero-one law for a product measure over a *double* intersection of
+σ-algebras (`Measure.prod_apply_eq_zero_or_one_iInf`) — the product of the two tail σ-algebras is
+strictly too small to contain the tail of `E^{S₁ ⊕ S₂}`, which is the trap in Georgii's one-line
+"it follows from the definition of product σ-algebras".
+
 **Theorem (7.12)**: for an extreme Gibbs measure `μ` the finite-volume distributions
 `γ_{Λ_n}(·|ω)` converge to `μ` for `μ`-a.e. `ω` (setwise, and in the topology of local
 convergence for finite `E`), so `ex 𝒢(γ) ⊆ 𝒢_lim(γ) ⊆ 𝒢(γ)` (`GibbsMeasure/Specification/LocalLimits.lean`).
@@ -361,17 +372,30 @@ the general theory applies verbatim to `ℤ^d` once a torus reduction and anchor
 `ℤ` are exactly the Gibbsian specifications of the homogeneous nearest-neighbour potentials
 `-log P` for a positive stochastic matrix `P`, and each has the stationary Markov chain `μ_P` as
 its **unique** Gibbs measure — `𝒢(γ_P) = {μ_P}` (`GibbsMeasure/Model/MarkovChain.lean`:
-`gibbsMeasure_eq_singleton`, `exists_matrix_eq_markovSpecification`). Georgii's (3.15), the
-specialisation to the one-dimensional Ising potential `Φ^{J,h}` of (3.13), is not instantiated.
-The correspondence `g ↔ P` uses the Perron–Frobenius theorem and Doeblin's ergodic theorem, both
-of which had to be built (`GibbsMeasure/Mathlib/LinearAlgebra/Matrix/`).
+`gibbsMeasure_eq_singleton`, `exists_matrix_eq_markovSpecification`). Corollary **(3.9)** is an
+iff over the general homogeneous nearest-neighbour potential `Φ_{i} = φ₁(σ_i)`,
+`Φ_{i,i+1} = φ₂(σ_i, σ_{i+1})` (`isPositiveHomogeneousMarkov_iff_exists_homogeneousNNSpecification`),
+and Georgii's **(3.13)–(3.19)** come with it: the one-dimensional Ising potential is such a
+potential, its determining function is (3.14), the Perron–Frobenius eigenvalue of the associated
+matrix is `q_{J,h} = e^{-h}(cosh h + √(e^{-4J} + sinh²h))` (3.16), formula (3.7) produces the
+transfer matrix (3.17), so `𝒢(βΦ^{J,h})` is the singleton `{μ_{βJ,βh}}` — **(3.15)**, no phase
+transition in one dimension — with stationary distribution (3.18) and magnetisation
+`sinh h / √(e^{-4J} + sinh²h)` (3.19). The correspondence `g ↔ P` uses the Perron–Frobenius
+theorem and Doeblin's ergodic theorem, both of which had to be built
+(`GibbsMeasure/Mathlib/LinearAlgebra/Matrix/`).
 
-**Theorem (2.30), first assertion — the gas/vacuum Gibbs representation** (`GibbsMeasure/Potential/GibbsRepresentation.lean`); its second assertion (the α-normalised potential for bounded `log ρ_Λ`) and Corollaries (2.31)-(2.32) are not formalized:
+**Theorem (2.30), the Gibbs representation theorem** (`GibbsMeasure/Potential/GibbsRepresentation.lean`):
 every positive quasilocal pre-modification is Gibbsian for a unique `a`-normalised gas potential,
-so the DLR and Hamiltonian frameworks agree.
+so the DLR and Hamiltonian frameworks agree — and, when `log ρ_Λ` is bounded, for a unique
+`α`-normalised potential for each `α ∈ 𝓟(E)`, its second assertion. The gas potential is built at
+an arbitrary reference configuration and the `α`-normalised one is that potential averaged over
+the reference configuration, so the second assertion integrates the first. Corollaries **(2.31)**
+(finite `E`, counting measure) and **(2.32)** (a Markov premodifier is represented by a
+nearest-neighbour potential, `Potential.IsNearestNeighbour`) come with it; (2.32) holds for the
+vacuum potential too, with no boundedness hypothesis, which Georgii does not state.
 
 Not yet done: the inhomogeneous Ising chains of §6.1, Shlosman's random staircases of §6.3
-(Theorem (6.21)), the commute-modulo-`I₀` refinement of Theorem (5.15)(ii), Mermin–Wagner (9.20), and
+(Theorem (6.21)), Examples (5.17)(2)–(4) and (5.20)(2)–(3), Mermin–Wagner (9.20), and
 Chapters 10–20 (Markov fields on trees, Gaussian fields, the variational principle, the Poulsen
 simplex, reflection positivity, and the infrared bound).
 

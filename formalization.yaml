@@ -218,7 +218,10 @@ fidelity:
     when lambda is finite.
     (b) Proposition (4.15) now assumes nothing about the state space, via Georgii's Radon-Nikodym
     seed algebra.
-    (c) Theorem (7.12)(b), weak convergence, is proved for a compact metrizable state space.
+    (c) Theorem (7.12)(b), weak convergence, assumes a compact metrizable state space — that is
+    Georgii's own hypothesis in (7.12)(b) ("if E is a compact metric space"), not a restriction
+    added here; parts (a) and (c) are proved at his hypotheses too, (a) over an arbitrary
+    measurable state space.
     (d) The critical inverse temperature beta_c is defined, with 1/4 <= beta_c <= log 3, and BOTH
     halves are now unconditional: uniqueness for every 0 <= beta < beta_c and non-uniqueness for
     every beta_c < beta (`Model/SharpCriticalTemperature.lean`, `ising_sharp_phase_transition`).
