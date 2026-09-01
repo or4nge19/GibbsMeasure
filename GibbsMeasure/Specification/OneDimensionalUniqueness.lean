@@ -7,7 +7,7 @@ module
 
 public import GibbsMeasure.Potential.Equivalence
 public import GibbsMeasure.Potential.PerSiteExistence
-public import GibbsMeasure.Specification.Dobrushin
+public import GibbsMeasure.Specification.Oscillation
 public import GibbsMeasure.Specification.Extremal
 public import GibbsMeasure.Specification.Rescaling
 public import Mathlib.Analysis.PSeries

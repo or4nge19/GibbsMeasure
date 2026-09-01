@@ -3403,6 +3403,25 @@ theorem gibbsMeasure_eq_singleton (P : Matrix E E ℝ) (hP : P ∈ Matrix.rowSto
     exact ⟨isProbabilityMeasure_stationaryChain P hP hpos,
       isGibbsMeasure_markovSpecification_stationaryChain P hP hpos⟩
 
+
+/-- **Georgii Example (7.15), first half.** The stationary chain is extreme in `𝒢(γ_P)` — it is
+the unique element. -/
+theorem stationaryChain_mem_extremePoints_G (P : Matrix E E ℝ)
+    (hP : P ∈ Matrix.rowStochastic ℝ E) (hpos : ∀ x y, 0 < P x y) :
+    stationaryChain P hP hpos
+      ∈ (GibbsMeasure.G (markovSpecification P)).extremePoints ENNReal := by
+  rw [gibbsMeasure_eq_singleton P hP hpos, extremePoints_singleton]
+  rfl
+
+/-- **Georgii Example (7.15).** The unique Gibbs measure of a positive homogeneous Markov
+specification is trivial on the tail σ-algebra: uniqueness gives extremality, and Theorem
+(7.7)(a) gives tail triviality. -/
+theorem forall_tail_stationaryChain_eq_zero_or_one (P : Matrix E E ℝ)
+    (hP : P ∈ Matrix.rowStochastic ℝ E) (hpos : ∀ x y, 0 < P x y) :
+    ∀ A, MeasurableSet[@GibbsMeasure.tailSigmaAlgebra ℤ E _] A →
+      stationaryChain P hP hpos A = 0 ∨ stationaryChain P hP hpos A = 1 :=
+  GibbsMeasure.tailTrivial_of_mem_extremePoints_G
+    (stationaryChain_mem_extremePoints_G P hP hpos)
 /-- **Georgii, Theorem (3.5).** The Markov specification of a positive stochastic matrix has a
 unique Gibbs measure, the stationary Markov chain `μ_P` of (3.3). -/
 theorem existsUnique_isGibbsMeasure (P : Matrix E E ℝ) (hP : P ∈ Matrix.rowStochastic ℝ E)

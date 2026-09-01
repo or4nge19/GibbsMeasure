@@ -343,7 +343,7 @@ specialisation to the one-dimensional Ising potential `Φ^{J,h}` of (3.13), is n
 The correspondence `g ↔ P` uses the Perron–Frobenius theorem and Doeblin's ergodic theorem, both
 of which had to be built (`GibbsMeasure/Mathlib/LinearAlgebra/Matrix/`).
 
-**Theorem (2.30), the Gibbs representation theorem** (`GibbsMeasure/Potential/GibbsRepresentation.lean`):
+**Theorem (2.30), first assertion — the gas/vacuum Gibbs representation** (`GibbsMeasure/Potential/GibbsRepresentation.lean`); its second assertion (the α-normalised potential for bounded `log ρ_Λ`) and Corollaries (2.31)-(2.32) are not formalized:
 every positive quasilocal pre-modification is Gibbsian for a unique `a`-normalised gas potential,
 so the DLR and Hamiltonian frameworks agree.
 

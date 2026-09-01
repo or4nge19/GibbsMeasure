@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Specification.Extremal
 public import GibbsMeasure.Specification.Structure
 public import Mathlib.Probability.Independence.ZeroOne
 public import Mathlib.Probability.Independence.InfinitePi
@@ -87,5 +88,29 @@ theorem forall_tail_measure_eq_zero_or_one_infinitePi (μs : S → Measure E)
 theorem isTailTrivial_infinitePi (μs : S → Measure E) [∀ i, IsProbabilityMeasure (μs i)] :
     IsTailTrivial (⟨Measure.infinitePi μs, inferInstance⟩ : ProbabilityMeasure (S → E)) :=
   fun _A hA ↦ forall_tail_measure_eq_zero_or_one_infinitePi μs hA
+
+/-! ### Georgii Example (7.14): the independent specification -/
+
+open Specification in
+/-- **Georgii Example (7.14).** `𝒢(λ_·) = {λ^S}`: the independent product is the unique Gibbs
+measure of the independent specification, as a set identity. -/
+theorem G_isssd_eq_singleton (ν : Measure E) [IsProbabilityMeasure ν] :
+    G (isssd (S := S) ν) = {Measure.infinitePi fun _ : S ↦ ν} := by
+  ext μ
+  rw [G.mem_iff, Set.mem_singleton_iff]
+  constructor
+  · rintro ⟨hp, hg⟩
+    exact (isGibbsMeasure_isssd_iff ν μ).1 hg
+  · rintro rfl
+    exact ⟨inferInstance, (isGibbsMeasure_isssd_iff ν _).2 rfl⟩
+
+open Specification in
+/-- **Georgii Example (7.14).** The independent product is an extreme Gibbs measure of the
+independent specification — being the unique one — and it is tail trivial, both by uniqueness and
+by Kolmogorov's zero–one law (`isTailTrivial_infinitePi`). -/
+theorem infinitePi_mem_extremePoints_G_isssd (ν : Measure E) [IsProbabilityMeasure ν] :
+    (Measure.infinitePi fun _ : S ↦ ν) ∈ (G (isssd (S := S) ν)).extremePoints ENNReal := by
+  rw [G_isssd_eq_singleton, extremePoints_singleton]
+  rfl
 
 end MeasureTheory.GibbsMeasure

@@ -103,6 +103,7 @@ public import GibbsMeasure.Specification.ExtremeDecomposition
 public import GibbsMeasure.Specification.GibbsKernel
 public import GibbsMeasure.Specification.KolmogorovZeroOne
 public import GibbsMeasure.Specification.NoProperTailKernel
+public import GibbsMeasure.Specification.Oscillation
 public import GibbsMeasure.Specification.PAKernel
 public import GibbsMeasure.Specification.Abstract
 public import GibbsMeasure.Specification.AbstractPAKernel

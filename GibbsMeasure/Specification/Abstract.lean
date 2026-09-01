@@ -23,7 +23,8 @@ directed upwards by a partial order, `(𝓣ᵢ)` a decreasing family of sub-σ-a
 `𝓣 = ⨅ i, 𝓣ᵢ`, and `γ` any family of proper probability kernels `γᵢ` from `𝓣ᵢ` to `𝓕`. The set
 `𝒢(γ) = 𝒫_γ` of `γ`-invariant probability measures replaces the set of Gibbs measures.
 
-Georgii asks for no consistency between the kernels, and none is used below: invariance of `μ`
+Georgii's Remark (7.13) assumes the family is consistent (`γᵢ γⱼ = γⱼ` for `i ≤ j`); the
+theorems below are *stronger* — no consistency is used anywhere: invariance of `μ`
 is what the arguments consume, not `γᵢ γⱼ = γⱼ`.
 
 ## Main definitions

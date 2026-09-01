@@ -44,7 +44,9 @@ classification:
 status:
   scope: >-
     Georgii Chapters 1-8, complete for the results listed under main_results, with the exceptions
-    recorded in fidelity.divergences. Chapters 9-20 are not formalized.
+    recorded in fidelity.divergences. Of Chapters 9-20, only (14.5)(a) is formalized —
+    ergodicity of a group action is extremality (ergodicSMul_iff_mem_extremePoints), Georgii's
+    own reduction of Chapter 14's opening to Corollary (7.4); the rest of Chapters 9-20 is not.
   sorry_count: 0
   sorry_in_definitions: 0
   axioms: ["propext", "Classical.choice", "Quot.sound"]
@@ -429,7 +431,12 @@ alignment:
         generation. Fixing the tail-kernel versions requires replacing the tail sigma-algebra by a
         countably generated one equal to it modulo mu-null sets; such a sigma-algebra always
         exists (L^1 of a standard Borel space is separable, hence so is the L^1 of any
-        sub-sigma-algebra), but mathlib has no such lemma.
+        sub-sigma-algebra); that lemma is now in the tree
+        (MeasureTheory.exists_countablyGenerated_le_ae, Mathlib/MeasureTheory/Measure/
+        CountablyGeneratedModNull.lean, at SFinite generality) and it still does not help, because
+        the approximating set depends on the event; the impossibility is the theorem
+        MeasureTheory.GibbsMeasure.not_ae_forall_tailKernel_apply_eq_indicator
+        (Blackwell-Dubins, Specification/NoProperTailKernel.lean).
     - source: "Theorem (9.20), Chapters 10-20"
       lean: ""
       module: ""

@@ -28,7 +28,12 @@ team.
 
 ## Content of this project
 
-This project currently contains a definition of Gibbs measures, but no construction yet.
+This project formalizes the numbered backbone of Georgii's Chapters 1-8 (and (14.5)(a)):
+specifications and the DLR equations, Gibbsian specifications of summable potentials, existence
+and compactness of the set of Gibbs measures, the two-dimensional Ising phase transition with a
+proved bracket `artanh(1/4) ≤ β_c ≤ log 3`, Dobrushin's uniqueness theorem at Georgii's
+hypotheses, one-dimensional uniqueness (8.38)/(8.39), the extreme decomposition, and de Finetti's
+theorem. The library has no `sorry`.
 
 ### Code organisation
 
@@ -39,9 +44,6 @@ The Lean code is contained in the directory `GibbsMeasure/`. The subdirectories 
 ### Current progress
 
 The project is not yet finished. The following table details live which files are unfinished, and
-how many 'sorries' (unproven statements) remain in each file.
-
-{% include sorries.md %}
 
 ## What next?
 
