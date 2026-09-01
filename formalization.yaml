@@ -118,6 +118,22 @@ status:
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
       comparator_config: "Comparator/config_OneDim.json"
+    - declaration: "MeasureTheory.GibbsMeasure.existence_of_gibbsMeasure_of_isTight_weak"
+      file: "GibbsMeasure/Specification/Existence.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.exists_mem_GP_and_forall_measurePreserving_of_isCompact_of_measurePreserving"
+      file: "GibbsMeasure/Specification/InvariantExistenceGroup.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.existsUnique_mem_GP_lambdaSpecification_of_iSup_oscSpan_ne_top"
+      file: "GibbsMeasure/Specification/OneDimensionalUniqueness.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.existsUnique_mixing_of_isExchangeable"
+      file: "GibbsMeasure/Specification/DeFinetti.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.subsingleton_G_lambdaSpecification_of_iSup_oscSpan_ne_top"
       file: "GibbsMeasure/Specification/OneDimensionalUniqueness.lean"
       sorry_count: 0

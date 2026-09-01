@@ -135,6 +135,11 @@ and (7.18)--(7.19) are not formalised; what is present of them is recorded below
 \begin{example}[Georgii (7.14), Kolmogorov's zero-one law]
     \label{ex:app-kolmogorov}
     \uses{def:isssd, def:isssd-spec, lem:isssd-gibbs-meas-existence, lem:isssd-gibbs-meas-uniqueness, thm:app-extreme-iff-tail-trivial}
+    \lean{MeasureTheory.GibbsMeasure.forall_tail_measure_eq_zero_or_one_infinitePi,
+      MeasureTheory.GibbsMeasure.isTailTrivial_infinitePi,
+      MeasureTheory.GibbsMeasure.G_isssd_eq_singleton,
+      MeasureTheory.GibbsMeasure.infinitePi_mem_extremePoints_G_isssd}
+    \leanok
 
     Let $(E, \mathcal{E})$ be a measurable space, $S$ countably infinite,
     $(\Cfg, \mathcal{F}) = (E, \mathcal{E})^S$, and $\lambda \in \Prob(E, \mathcal{E})$.  Then
@@ -146,16 +151,25 @@ and (7.18)--(7.19) are not formalised; what is present of them is recorded below
     \[\gamma_\Lambda f(\omega) = \int \Big(\prod_{i \in \Lambda} \alpha_i\Big)(\mathrm{d}\zeta)\,
       f(\zeta\omega_{S \setminus \Lambda}).\]
 
-    Not formalised.  The two ingredients are in the tree --- Remark (1.25) as
-    \texttt{Specification.isGibbsMeasure\_isssd\_iff}, and the inhomogeneous specification
-    $\gamma$ above as \texttt{Specification.isssdFamily} --- but neither the passage
-    ``unique $\Rightarrow$ extreme'' nor the resulting tail triviality of $\lambda^S$ is
-    recorded as a declaration, and $\Gibbs{\texttt{isssdFamily}}$ has not been computed.
+    Formalised in \texttt{GibbsMeasure/Specification/KolmogorovZeroOne.lean}: the zero-one law
+    for $\prod_i \alpha_i$ (\texttt{forall\_tail\_measure\_eq\_zero\_or\_one\_infinitePi}, with
+    \emph{no} countability assumption on $S$ --- the tail of an uncountable product is handled by
+    the same cofinite-limsup description of $\Tail$), its packaging as tail triviality
+    (\texttt{isTailTrivial\_infinitePi}), and Georgii's route as stated:
+    $\Gibbs{\ISSSD(\lambda)} = \set{\lambda^S}$ as a set identity
+    (\texttt{G\_isssd\_eq\_singleton}) and the resulting extremality
+    (\texttt{infinitePi\_mem\_extremePoints\_G\_isssd}).  The zero-one law is proved directly from
+    Mathlib's filter-indexed Kolmogorov law rather than through
+    Theorem \ref{thm:app-extreme-iff-tail-trivial}, which is why no countability of $S$ enters;
+    the inhomogeneous case $\prod_i \alpha_i$ comes with it.
 \end{example}
 
 \begin{example}[Georgii (7.15), stationary Markov chains]
     \label{ex:app-markov}
-    \uses{thm:app-extreme-iff-tail-trivial, def:markov-spec}
+    \uses{thm:app-extreme-iff-tail-trivial, def:markov-spec, thm:mkv-35}
+    \lean{MeasureTheory.GibbsMeasure.Markov.stationaryChain_mem_extremePoints_G,
+      MeasureTheory.GibbsMeasure.Markov.forall_tail_stationaryChain_eq_zero_or_one}
+    \leanok
 
     Let $E$ be finite, $P$ a positive stochastic matrix on $E$, and $\mu_P$ the distribution
     of the stationary Markov chain with transition matrix $P$ and parameter set $\mathbb{Z}$,
@@ -166,11 +180,14 @@ and (7.18)--(7.19) are not formalised; what is present of them is recorded below
     $|P^n(x,y) - \alpha(y)| \to 0$, where $\alpha P = \alpha$, follows from Georgii (7.9) or
     (7.11)(b) applied to $\set{\sigma_{-n} = x} \in \Tail_{\mathbb{Z} \cap ]-n,n[}$.
 
-    Not formalised.  Theorem (3.5) itself is in the tree
-    (\texttt{MeasureTheory.GibbsMeasure.Markov.gibbsMeasure\_eq\_singleton},
-    \texttt{MeasureTheory.GibbsMeasure.Markov.existsUnique\_isGibbsMeasure}), but neither the
-    tail triviality of $\mu_P$ nor the derivation of the ergodic theorem for $P$ from it is
-    recorded.
+    Formalised in \texttt{GibbsMeasure/Model/MarkovChain.lean}: extremality of $\mu_P$ in
+    $\Gibbs{\gamma_P}$ from the Theorem (3.5) singleton
+    (\texttt{stationaryChain\_mem\_extremePoints\_G}) and its tail triviality via
+    Theorem \ref{thm:app-extreme-iff-tail-trivial}
+    (\texttt{forall\_tail\_stationaryChain\_eq\_zero\_or\_one}); triviality on the right-sided
+    tail is the restriction of the latter to
+    $\bigcap_n \mathcal{F}_{\mathbb{Z} \cap [n,\infty[} \subseteq \Tail$.  The convergence
+    $|P^n(x,y) - \alpha(y)| \to 0$ via (7.9)/(7.11)(b) is not yet derived from it.
 \end{example}
 
 \subsection*{Exchangeability: Georgii (7.16)}

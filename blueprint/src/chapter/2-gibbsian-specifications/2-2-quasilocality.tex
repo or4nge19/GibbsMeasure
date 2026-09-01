@@ -328,23 +328,30 @@ conditional probability may read off the state of the system at infinity.
     quasilocal observable is quasilocal, since $\overline{\mathcal{L}}$ is a closed subalgebra.
 \end{definition}
 
-\begin{theorem}[Georgii (2.24)(b), bounded-Hamiltonian case]
+\begin{theorem}[Georgii (2.24)(b)]
     \label{thm:ql-gibbsian-quasilocal}
     \uses{prop:ql-modification, def:ql-boltzmann, prop:ql-isssd}
-    \lean{Specification.IsResampling.isQuasilocal_modification_relNorm, Specification.isQuasilocal_modification_premodifierNorm}
+    \lean{Specification.isQuasilocal_lambdaSpecification,
+      Potential.isQuasilocal_gibbsSpecificationOfSigmaFiniteAdmissible,
+      Specification.IsResampling.isQuasilocal_modification_relNorm,
+      Specification.isQuasilocal_modification_premodifierNorm}
     \leanok
 
-    Let $\gamma$ be a resampling specification (for instance $\ISSSD(\nu)$) and let
-    $(H_\Lambda)_{\Lambda \in \Fin}$ be bounded quasilocal observables. If the normalised densities
-    \[\rho_\Lambda \;=\; \frac{e^{-H_\Lambda}}{\gamma_\Lambda\!\left(e^{-H_\Lambda}\right)}\]
-    form a modifier of $\gamma$, then the resulting Gibbsian specification $\rho\gamma$ is
-    quasilocal.
+    At Georgii's hypotheses: the $\lambda$-specification of a premodifier of Boltzmann form
+    $\rho_\Lambda = e^{-H_\Lambda}$ with quasilocal --- \emph{not necessarily bounded} ---
+    Hamiltonians, over a $\sigma$-finite a priori measure $\lambda$, is quasilocal
+    (\texttt{Specification.isQuasilocal\_lambdaSpecification}; specialised to the Gibbsian
+    specification $\gamma^\Phi$ of a $\lambda$-admissible potential as
+    \texttt{Potential.isQuasilocal\_gibbsSpecificationOfSigmaFiniteAdmissible}).  The proof is
+    Georgii's own: approximate $e^{-H_\Lambda}$ by $e^{-u}$ with $u$ local, at the cost
+    $\lambda_\Lambda|\rho_\Lambda - e^{-u}| \le (e^\varepsilon - 1)\lambda_\Lambda\rho_\Lambda$,
+    and divide by the partition function.
 
-    Georgii states (2.24)(b) for an arbitrary a priori measure $\lambda \in \Meas(E,\mathcal{E})$
-    and for quasilocal, not necessarily bounded, Hamiltonians $H_\Lambda^\Phi$. The Lean statement
-    requires $H_\Lambda \in \overline{\mathcal{L}}$, i.e.\ bounded. By Georgii's own (2.25)(ii),
-    bounded Hamiltonians force $\lambda$ to be finite, which is exactly the case a Markov (hence
-    resampling) reference specification captures; so the two restrictions match.
+    The earlier, bounded-Hamiltonian route --- for a resampling reference specification
+    (e.g.\ $\ISSSD(\nu)$) and $H_\Lambda \in \overline{\mathcal{L}}$, the normalised modification
+    is quasilocal by the closure properties of $\overline{\mathcal{L}}$ --- is kept as
+    \texttt{Specification.IsResampling.isQuasilocal\_modification\_relNorm} and
+    \texttt{isQuasilocal\_modification\_premodifierNorm}.
 \end{theorem}
 \begin{proof}
     \leanok

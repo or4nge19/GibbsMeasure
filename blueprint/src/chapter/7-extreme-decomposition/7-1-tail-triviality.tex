@@ -176,3 +176,43 @@ generality, in Mathlib's \texttt{ProbabilityTheory.Kernel} namespace.
     Georgii's index set $\Fin$ requires. The supremum over $B$ is expressed as an
     $\varepsilon$--eventually bound, avoiding a supremum over a set of sets.
 \end{proof}
+
+\section{Uniform mixing}
+
+\begin{definition}[Uniform mixing, Georgii (7.10)]
+    \label{def:ext-710}
+    \lean{MeasureTheory.GibbsMeasure.IsUniformlyMixing}
+    \leanok
+
+    A probability measure $\mu$ on the configuration space is \emph{uniformly mixing} if for
+    every local event $A$ and every $\varepsilon > 0$, all sufficiently large $\Lambda \in \Fin$
+    satisfy $|\mu(A \mid B) - \mu(A)| \le \varepsilon$ for \emph{every} non-null
+    $B \in \Tail_\Lambda = \mathcal{F}_{\Lambda^{\mathrm{c}}}$.  This strengthens the
+    short-range-correlations characterisation of tail triviality (Theorem \ref{thm:ext-79}):
+    there the covariance $|\mu(A \cap B) - \mu(A)\mu(B)|$ is small, here the conditional
+    probability is controlled even on events of very small positive probability.
+\end{definition}
+
+\begin{proposition}[Georgii (7.11)(a)]
+    \label{prop:ext-711a}
+    \uses{def:ext-710, def:gibbs-meas}
+    \lean{MeasureTheory.GibbsMeasure.eq_of_isGibbsMeasure_lambdaSpecification_of_isUniformlyMixing,
+      MeasureTheory.GibbsMeasure.G_lambdaSpecification_eq_singleton_of_isUniformlyMixing}
+    \leanok
+
+    Let $\gamma$ be a quasilocal $\lambda$-specification with positive densities over a
+    $\sigma$-finite non-zero a priori measure, and let $\mu \in \Gibbs{\gamma}$ be uniformly
+    mixing.  Then $\Gibbs{\gamma} = \set{\mu}$.
+\end{proposition}
+\begin{proof}
+    \leanok
+
+    Let $\nu \in \Gibbs{\gamma}$ and let $A$ be a local event.  By Remark (1.28)(2)
+    (\texttt{Specification.IsGibbsMeasure.lambdaSpecification\_null\_iff}: for positive densities
+    the null events of $\mathcal{F}_\Delta$ are those of the reference kernel, hence shared by
+    all Gibbs measures), $\nu$-non-null events of $\Tail_\Lambda$ are $\mu$-non-null, so the DLR
+    equation for $\nu$ over the volume $\Lambda$ averages conditional $\mu$-probabilities
+    $\mu(A \mid B)$ with $B$ ranging over a $\Tail_\Lambda$-partition; uniform mixing pins each
+    to within $\varepsilon$ of $\mu(A)$, and $\Lambda \to \Fin$ gives $\nu(A) = \mu(A)$ on the
+    generating ring of local events, hence $\nu = \mu$.
+\end{proof}

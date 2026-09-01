@@ -57,8 +57,10 @@
     \lean{MeasureTheory.GibbsMeasure.Dobrushin.unifDist_normalize_le_sqrtRatio,
       MeasureTheory.GibbsMeasure.Dobrushin.unifDist_normalize_le,
       MeasureTheory.GibbsMeasure.Dobrushin.unifDist_normalize_le_tanh,
-      MeasureTheory.GibbsMeasure.Dobrushin.interdep_gibbsSpecification_le,
-      MeasureTheory.GibbsMeasure.Dobrushin.interdep_gibbsSpecification_le_tanh,
+      MeasureTheory.GibbsMeasure.Dobrushin.interdep_gibbsSpecificationOfSigmaFiniteAdmissible_le,
+      MeasureTheory.GibbsMeasure.Dobrushin.interdep_gibbsSpecificationOfSigmaFiniteAdmissible_le_tanh,
+      MeasureTheory.GibbsMeasure.Dobrushin.isDobrushin_gibbsSpecificationOfSigmaFiniteAdmissible,
+      MeasureTheory.GibbsMeasure.Dobrushin.isDobrushin_gibbsSpecificationOfSigmaFiniteAdmissible_of_iSup_lt,
       MeasureTheory.GibbsMeasure.Dobrushin.isDobrushin_gibbsSpecification}
     \leanok
 
@@ -69,9 +71,12 @@
     normalisation bound $\norm{\bar\mu_0 - \bar\mu_1} \leq (\sqrt M - \sqrt m)/(\sqrt M + \sqrt m)
     = \tanh\bigl(\tfrac14 \log (M/m)\bigr)$, which sharpens Georgii's (8.9)(2) to the
     $\tanh$ form of (8.10) over an \emph{arbitrary} state space.
-    Georgii states (8.8) for any $\lambda$-admissible potential over $\sigma$-finite $\lambda$;
-    the absolute-summability restriction here is recorded in \texttt{formalization.yaml} and is
-    an open strengthening target, blocked on (2.24)(b) at Georgii's hypotheses.
+    The theorem is at Georgii's hypotheses: any $\lambda$-admissible potential in the sense of
+    Definition (2.2) --- summable, not absolutely summable --- over a $\sigma$-finite non-zero
+    a priori measure $\lambda$, with quasilocality of $\gamma^\Phi$ supplied by (2.24)(b)
+    (Theorem \ref{thm:ql-gibbsian-quasilocal}).  The earlier probability-reference,
+    absolutely-summable version survives as the corollary
+    \texttt{isDobrushin\_gibbsSpecification}.
 \end{theorem}
 
 \section{One-dimensional uniqueness}

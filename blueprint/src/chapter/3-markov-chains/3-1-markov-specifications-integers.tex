@@ -463,26 +463,32 @@ free from the Gibbsian machinery instead of Georgii's ad hoc argument in step 1.
 \begin{theorem}[Georgii (3.6)]
     \label{thm:mkv-36}
     \uses{thm:mkv-step1, def:mkv-chain, def:mkv-specification, def:cond-exp-ker}
-    \lean{MeasureTheory.GibbsMeasure.Markov.isCondExp_markovSpecification_stationaryChain}
+    \lean{MeasureTheory.GibbsMeasure.Markov.markovSpecification_apply_cyl_eq_cond,
+      MeasureTheory.GibbsMeasure.Markov.isCondExp_markovSpecification_stationaryChain}
     \leanok
 
-    For every $\Lambda \in \Fin$, $\gamma_{P,\Lambda}$ is a version of the conditional
-    distribution of $\mu_P$ given the configuration outside $\Lambda$.
-
-    Georgii states (3.6) as $\gamma_\Lambda(\sigma_\Lambda = \zeta \mid \omega) =
-    \mu_P(\sigma_\Lambda = \zeta \mid \sigma_{\partial\Lambda} = \omega_{\partial\Lambda})$,
-    i.e.\ conditioning on the \emph{boundary} $\partial\Lambda$ alone. The Lean statement is at
-    different hypotheses: it conditions on the whole exterior $\sigma$-algebra
-    $\mathcal{F}_{\mathbb{Z}\setminus\Lambda}$. The extra content of Georgii's version --- that
-    the kernel depends on $\omega$ only through $\omega_{\partial\Lambda}$ --- is available for
-    interval volumes as Theorem \ref{thm:mkv-38-1-single}, where only $\omega_{a-1}$ and
-    $\omega_{b+1}$ occur, and for singletons as (3.11); it is not stated for a general finite
-    $\Lambda$.
+    For every $\Lambda \in \Fin$, every $\zeta$ and \emph{every} --- not merely almost every ---
+    boundary condition $\omega$,
+    \[\gamma_{P,\Lambda}(\sigma_\Lambda = \zeta \mid \omega) =
+      \mu_P(\sigma_\Lambda = \zeta \mid \sigma_{\partial\Lambda} = \omega_{\partial\Lambda}),\]
+    conditioning on the finite boundary $\partial\Lambda$ of (3.4) alone: Georgii's statement
+    verbatim, as \texttt{markovSpecification\_apply\_cyl\_eq\_cond}, with the conditioning event
+    of positive $\mu_P$-measure (\texttt{stationaryChain\_cyl\_pos}), so the right-hand side is
+    the elementary conditional probability.  The kernel-level companion --- $\gamma_{P,\Lambda}$
+    is a version of the conditional distribution of $\mu_P$ given the whole exterior
+    $\sigma$-algebra $\mathcal{F}_{\mathbb{Z}\setminus\Lambda}$ --- is
+    \texttt{isCondExp\_markovSpecification\_stationaryChain}.  For an interval
+    $\Lambda = [a,b]$ the boundary is $\set{a-1, b+1}$ (\texttt{boundary\_Icc}) and the
+    right-hand side is evaluated by Comment (3.8)(1) as Theorem \ref{thm:mkv-38-1-single}.
 \end{theorem}
 \begin{proof}
     \leanok
 
-    Unfolding the definition of a Gibbs measure, this is Theorem \ref{thm:mkv-step1}.
+    Both sides are ratios of Boltzmann weights of the Markov potential: the left-hand side by
+    the definition of the Markov specification, the right-hand side by the single-site exchange
+    identity for $\mu_P$
+    (\texttt{stationaryChain\_cyl\_update\_mul\_boltzmannFactor}), inducting over the sites of
+    $\Lambda$.  The kernel-level version is Theorem \ref{thm:mkv-step1}.
 \end{proof}
 
 \begin{theorem}[Georgii (3.5)]

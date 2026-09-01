@@ -140,7 +140,29 @@ Let $S$ be a set, $(E, \mathcal{E})$ be a measurable space and $\nu$ a measure o
 
 % The rest of Remark 1.28.1 is vacuous in our setup
 
-% (Yaël) Don't understand Remark 1.28.2. Can it be generalised away from ISSSD?
+\begin{lemma}[Null events of Gibbs measures, Remark 1.28.2]
+    \label{lem:remark-128-2}
+    \uses{def:modif, def:gibbs-meas}
+    \lean{Specification.IsGibbsMeasure.lambdaSpecification_null_iff,
+      Specification.IsGibbsMeasure.lambdaSpecification_null_iff_null}
+    \leanok
+
+    Let $\gamma = \rho\lambda$ be a $\lambda$-specification with everywhere positive densities
+    $\rho_\Lambda$ over a $\sigma$-finite non-zero a priori measure.  A Gibbs measure
+    $\mu \in \Gibbs{\gamma}$ annihilates an event $C \in \mathcal{F}_\Delta$, $\Delta \in \Fin$,
+    exactly when the reference kernels $\lambda_\Delta(\,\cdot\mid\eta)$ all do.  In particular
+    any two Gibbs measures for $\gamma$ have the same null events in
+    $\bigcup_{\Delta \in \Fin} \mathcal{F}_\Delta$.
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    The DLR equation at the volume $\Delta$ writes $\mu(C)$ as the $\mu$-average of
+    $\gamma_\Delta(C \mid \cdot) = \int_C \rho_\Delta \, \mathrm{d}\lambda_\Delta(\cdot\mid\eta)$,
+    and positivity of $\rho_\Delta$ makes the inner integral vanish exactly when
+    $\lambda_\Delta(C \mid \eta) = 0$.
+\end{proof}
+
 
 % (Yaël) Not sure how to generalise Remark 1.28.3 away from ISSSD
 

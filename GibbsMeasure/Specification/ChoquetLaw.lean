@@ -438,7 +438,11 @@ lemma measurableSet_goodSet (γ : Specification S E) :
     measurableSet_isTailTrivialCore (S := S) (E := E)
   simpa [goodSet, Set.setOf_and] using hg.inter ht
 
-/-- The law of tail-conditionals is concentrated on extremal Gibbs measures. -/
+/-- The law of tail-conditionals is concentrated on extremal Gibbs measures.
+
+This is a `ProbabilityMeasure`-law packaging; the underlying pointwise statement — Georgii
+(7.26), `μ`-a.e. extremality of the values of the `(𝒢(γ), 𝓣)`-kernel — is
+`ae_mem_extremePoints_G_gibbsKernel` in `GibbsMeasure/Specification/ExtremeCorollaries.lean`. -/
 theorem ae_mem_extremePoints_G_tailKernelLaw
     (hμ : γ.IsGibbsMeasure μ) :
     ∀ᵐ ν ∂tailKernelLaw (S := S) (E := E) (μ := μ),
