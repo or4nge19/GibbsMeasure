@@ -6,6 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.TrivialOn
+public import GibbsMeasure.Mathlib.Probability.Kernel.InvariantSigmaAlgebra
 public import GibbsMeasure.Mathlib.Probability.ConditionalProbability
 public import GibbsMeasure.Specification.PAKernel
 public import Mathlib.Analysis.Convex.Extreme
@@ -155,6 +156,34 @@ lemma isProbabilityMeasure_of_mem_invariant {μ : Measure Ω} (hμ : μ ∈ γ.i
 
 lemma bind_eq_self_of_mem_invariant {μ : Measure Ω} (hμ : μ ∈ γ.invariant) (i : ι) :
     μ.bind (γ.ker i) = μ := hμ.2 i
+
+variable (γ) in
+/-- `γᵢ` as a kernel on `(Ω, 𝓕)`: it is `𝓣ᵢ`-measurable, hence `𝓕`-measurable. -/
+def kerAmbient (i : ι) : Kernel Ω Ω := ⟨⇑(γ.ker i), γ.measurable_ker i⟩
+
+instance isMarkovKernel_kerAmbient (i : ι) : IsMarkovKernel (γ.kerAmbient i) :=
+  ⟨fun a ↦ (γ.isMarkovKernel i).isProbabilityMeasure a⟩
+
+lemma invariant_kerAmbient_iff {μ : Measure Ω} (i : ι) :
+    Kernel.Invariant (γ.kerAmbient i) μ ↔ μ.bind (γ.ker i) = μ := Iff.rfl
+
+lemma invariant_eq_setOf :
+    γ.invariant
+      = {ν : Measure Ω | IsProbabilityMeasure ν ∧ ∀ i, Kernel.Invariant (γ.kerAmbient i) ν} := rfl
+
+/-- **Georgii (7.4) in the generality of Remark (7.13).** An invariant probability measure is
+extreme in `𝒢(γ)` exactly when it is trivial on the σ-algebra of `μ`-almost surely invariant sets.
+
+Theorem (7.7)(a) (`mem_extremePoints_iff_mem_trivialOn`) is the *strengthening* that replaces this
+σ-algebra by the tail σ-algebra `𝓣`; that identification, not the extremality criterion itself, is
+where the consistency of `γ` and the backward martingale argument are used. -/
+theorem mem_extremePoints_iff_trivialOn_aeInvariant [Nonempty ι] {μ : Measure Ω}
+    [IsProbabilityMeasure μ] (hμ : μ ∈ γ.invariant) :
+    μ ∈ γ.invariant.extremePoints ℝ≥0∞ ↔
+      ∀ A, MeasurableSet[Kernel.aeInvariantSigmaAlgebraFamily (γ.kerAmbient)
+        fun i ↦ (γ.invariant_kerAmbient_iff i).2 (hμ.2 i)] A → μ A = 0 ∨ μ A = 1 := by
+  rw [invariant_eq_setOf]
+  exact Kernel.mem_extremePoints_iff_trivialOn fun i ↦ (γ.invariant_kerAmbient_iff i).2 (hμ.2 i)
 
 /-- Along a cofinal sequence the tail σ-algebra is already reached. -/
 lemma tail_eq_iInf_of_cofinal {f : ℕ → ι} (hcof : ∀ i, ∃ n, i ≤ f n) :
