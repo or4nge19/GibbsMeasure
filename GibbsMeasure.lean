@@ -37,6 +37,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Measure.WithSetwiseTopology
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.WithDensity
 public import GibbsMeasure.Mathlib.Probability.ConditionalProbability
 public import GibbsMeasure.Mathlib.GroupTheory.Foelner
+public import GibbsMeasure.Mathlib.Probability.Kernel.InvariantSigmaAlgebra
 public import GibbsMeasure.Mathlib.Probability.ProductMeasure
 public import GibbsMeasure.Mathlib.Probability.Kernel.Composition.MeasureComp
 public import GibbsMeasure.Mathlib.Probability.Kernel.Composition.MapComap

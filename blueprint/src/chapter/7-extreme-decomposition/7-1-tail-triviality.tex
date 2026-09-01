@@ -1,0 +1,99 @@
+\section{Almost sure invariance}
+
+Georgii's Chapter 7 rests on an abstract statement about a single probability kernel, with no
+reference to specifications, potentials, or configuration spaces. It is stated here at that
+generality, in Mathlib's \texttt{ProbabilityTheory.Kernel} namespace.
+
+\begin{definition}[The a.s.\ invariant $\sigma$-algebra, Georgii (7.3)]
+    \label{def:ext-ae-invariant}
+    \lean{ProbabilityTheory.Kernel.aeInvariantSets,
+      ProbabilityTheory.Kernel.aeInvariantSigmaAlgebra,
+      ProbabilityTheory.Kernel.aeInvariantSigmaAlgebra_le}
+    \leanok
+
+    Let $\pi$ be a Markov kernel from $(\Omega,\mathcal F)$ to itself and $\mu$ a finite measure
+    with $\mu\pi = \mu$. The system
+    \[\mathcal I_\pi(\mu) \;=\; \set{A \in \mathcal F \;:\; \pi(A \mid \cdot) = \1_A \ \mu\text{-a.s.}}\]
+    of \textbf{$\mu$-almost surely $\pi$-invariant} sets is a $\sigma$-algebra.
+\end{definition}
+\begin{proof}
+    \leanok
+
+    Stability under complements is the Markov property. For a countable union $A = \bigcup_n A_n$
+    of members, $\pi(A \mid \cdot) \geq \pi(A_n \mid \cdot) = \1_{A_n}$ a.s.\ for each $n$, so
+    $\1_A \leq \pi(A \mid \cdot)$ a.s.; since $\int \pi(A\mid\cdot)\,\dd\mu = \mu\pi(A) = \mu(A) =
+    \int \1_A \,\dd\mu < \infty$, the inequality is an equality a.s.
+\end{proof}
+
+\begin{theorem}[Densities of invariant measures, Georgii (7.3)]
+    \label{thm:ext-invariant-density}
+    \uses{def:ext-ae-invariant}
+    \lean{ProbabilityTheory.Kernel.invariant_withDensity_of_measurable,
+      ProbabilityTheory.Kernel.measurable_of_invariant_withDensity,
+      ProbabilityTheory.Kernel.invariant_withDensity_iff_measurable}
+    \leanok
+
+    For measurable $f : \Omega \to [0,\infty]$ with $\int f \,\dd\mu < \infty$,
+    \[(f\mu)\pi = f\mu \quad\Longleftrightarrow\quad f \text{ is } \mathcal I_\pi(\mu)\text{-measurable}.\]
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    ($\Leftarrow$) By monotone approximation it suffices to treat $f = c\1_A$ with
+    $A \in \mathcal I_\pi(\mu)$, and there $\int_A \pi(B \mid \cdot)\,\dd\mu = \mu(A \cap B)$
+    because $\pi$ neither leaves $A$ nor enters it.
+
+    ($\Rightarrow$) Fix $0 < c < \infty$ and put $A = \set{f \geq c}$. Invariance of $f\mu$ and of
+    $\mu$ give two conservation identities; combining them with the pointwise inequality
+    $(f - c)(1 - \pi(A\mid\cdot)) \geq 0$ on $A$ yields
+    $c\int_{A^c} \pi(A\mid\cdot) \leq \int_{A^c} f\,\pi(A\mid\cdot) \leq c\int_{A^c}\pi(A\mid\cdot)$.
+    Equality forces $\pi(A \mid \cdot) = 0$ a.s.\ on $A^c$, since $f < c$ there; the conservation
+    identity for $\mu$ then forces $\pi(A\mid\cdot) = 1$ a.s.\ on $A$. So $A \in \mathcal I_\pi(\mu)$.
+\end{proof}
+
+\begin{theorem}[Extremality, Georgii (7.4)]
+    \label{thm:ext-74}
+    \uses{thm:ext-invariant-density}
+    \lean{ProbabilityTheory.Kernel.aeInvariantSigmaAlgebraFamily,
+      ProbabilityTheory.Kernel.eq_of_absolutelyContinuous_of_trivialOn,
+      ProbabilityTheory.Kernel.mem_extremePoints_iff_trivialOn}
+    \leanok
+
+    Let $\Pi$ be a non-empty family of Markov kernels and
+    $\mathcal P_\Pi$ the convex set of probability measures invariant under every member. For
+    $\mu \in \mathcal P_\Pi$ put $\mathcal I_\Pi(\mu) = \bigcap_{\pi \in \Pi} \mathcal I_\pi(\mu)$.
+    Then $\mu$ is extreme in $\mathcal P_\Pi$ if and only if $\mu$ is trivial on
+    $\mathcal I_\Pi(\mu)$.
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    If $A \in \mathcal I_\Pi(\mu)$ has $0 < \mu(A) < 1$ then $\mu(\cdot \mid A)$ and
+    $\mu(\cdot \mid A^c)$ lie in $\mathcal P_\Pi$ by Theorem \ref{thm:ext-invariant-density}, and
+    they split $\mu$. Conversely, if $\mu = a\nu_1 + b\nu_2$ with $a,b>0$ then $\nu_1 \ll \mu$, so
+    $\nu_1 = f\mu$ for $f = \dd\nu_1/\dd\mu$; Theorem \ref{thm:ext-invariant-density} makes $f$
+    measurable for $\mathcal I_\Pi(\mu)$, triviality makes it a.e.\ constant, and its integral $1$
+    makes that constant $1$.
+\end{proof}
+
+\begin{remark}[Almost sure, not strict, Georgii (7.5)]
+    \label{rmk:ext-75}
+    \uses{thm:ext-74}
+
+    $\mathcal I_\Pi(\mu)$ cannot be replaced by the $\sigma$-algebra $\mathcal I_\Pi$ of
+    \emph{strictly} invariant sets. Georgii's Example (7.5) takes $\Omega = \set{1,2,3}$ and the
+    stochastic matrix with rows $(1,0,0)$, $(\tfrac12,0,\tfrac12)$, $(0,0,1)$: its invariant
+    probability vectors are $(s,0,1-s)$, so the extreme ones are $(1,0,0)$ and $(0,0,1)$, whereas
+    $\mathcal I_\pi = \set{\emptyset,\Omega}$ makes every invariant measure trivial on
+    $\mathcal I_\pi$. This example is not yet formalized.
+\end{remark}
+
+\begin{remark}[Relation to Mathlib]
+    \label{rmk:ext-mathlib}
+    \uses{thm:ext-74}
+
+    Mathlib's \texttt{Ergodic.iff\_mem\_extremePoints} is the special case of a single
+    \emph{deterministic} kernel $\pi = \delta_{T(\cdot)}$. Theorem \ref{thm:ext-74} extends it to
+    random kernels and to families, which is what Chapter 7 needs: a specification is a family of
+    kernels indexed by the finite volumes.
+\end{remark}
