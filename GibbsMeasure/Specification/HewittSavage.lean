@@ -270,7 +270,6 @@ noncomputable def exchangeableSpec : AbstractSpecification (ℕ → E) ℕ where
   ker := symmKernel E
   isMarkovKernel := isMarkovKernel_symmKernel
   isProper := isProper_symmKernel
-  isConsistent _ _ := isConsistent_symmKernel
 
 @[simp] lemma exchangeableSpec_sub (n : ℕ) : (exchangeableSpec E).sub n = symmSub E n := rfl
 

@@ -17,9 +17,11 @@ public import Mathlib.MeasureTheory.Measure.Restrict
 Georgii's Remark (7.13) observes that Theorem (7.7) and Theorem (7.12)(a) hold verbatim in the
 following generality: `(Ω, 𝓕)` is an arbitrary measurable space, `ι` a countable index set
 directed upwards by a partial order, `(𝓣ᵢ)` a decreasing family of sub-σ-algebras of `𝓕` with
-`𝓣 = ⨅ i, 𝓣ᵢ`, and `γ` any family of proper probability kernels `γᵢ` from `𝓣ᵢ` to `𝓕` which is
-consistent, `γᵢ γⱼ = γⱼ` for `i ≤ j`. The set `𝒢(γ) = 𝒫_γ` of `γ`-invariant probability measures
-replaces the set of Gibbs measures.
+`𝓣 = ⨅ i, 𝓣ᵢ`, and `γ` any family of proper probability kernels `γᵢ` from `𝓣ᵢ` to `𝓕`. The set
+`𝒢(γ) = 𝒫_γ` of `γ`-invariant probability measures replaces the set of Gibbs measures.
+
+Georgii asks for no consistency between the kernels, and none is used below: invariance of `μ`
+is what the arguments consume, not `γᵢ γⱼ = γⱼ`.
 
 ## Main definitions
 
@@ -145,8 +147,6 @@ structure AbstractSpecification where
   isMarkovKernel : ∀ i, IsMarkovKernel (ker i)
   /-- Each `γᵢ` is proper. -/
   isProper : ∀ i, (ker i).IsProper
-  /-- Consistency: `γᵢ γⱼ = γⱼ` for `i ≤ j`. -/
-  isConsistent : ∀ ⦃i j⦄, i ≤ j → (ker i).comap id (sub_le i) ∘ₖ ker j = ker j
 
 namespace AbstractSpecification
 
@@ -438,7 +438,6 @@ noncomputable def toAbstract (γ : Specification S E) :
   ker Λ := γ Λ
   isMarkovKernel _ := inferInstance
   isProper := γ.isProper
-  isConsistent _ _ h := γ.isConsistent h
 
 @[simp] lemma toAbstract_sub (γ : Specification S E) (Λ : Finset S) :
     γ.toAbstract.sub Λ = cylinderEvents (X := fun _ : S ↦ E) ((Λ : Set S)ᶜ) := rfl
