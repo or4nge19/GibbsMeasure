@@ -121,7 +121,9 @@ $\gamma$-invariant probability measures.
     \lean{MeasureTheory.GibbsMeasure.forall_tail_measure_eq_zero_or_one_infinitePi,
       MeasureTheory.GibbsMeasure.isTailTrivial_infinitePi,
       MeasureTheory.GibbsMeasure.G_isssd_eq_singleton,
-      MeasureTheory.GibbsMeasure.infinitePi_mem_extremePoints_G_isssd}
+      MeasureTheory.GibbsMeasure.infinitePi_mem_extremePoints_G_isssd,
+      MeasureTheory.GibbsMeasure.G_isssdFamily_eq_singleton,
+      MeasureTheory.GibbsMeasure.infinitePi_mem_extremePoints_G_isssdFamily}
     \leanok
 
     Let $(E, \mathcal{E})$ be a measurable space, $S$ an arbitrary site set,
@@ -136,7 +138,9 @@ $\gamma$-invariant probability measures.
     Theorem \ref{thm:app-extreme-iff-tail-trivial}; for general $\alpha_i$, Georgii uses in the
     same way that $\mu$ is the unique element of $\Gibbs{\gamma}$ for
     \[\gamma_\Lambda f(\omega) = \int \Big(\prod_{i \in \Lambda} \alpha_i\Big)(\mathrm{d}\zeta)\,
-      f(\zeta\omega_{S \setminus \Lambda}).\]
+      f(\zeta\omega_{S \setminus \Lambda}),\]
+    and both identifications $\Gibbs{\gamma} = \set{\mu}$ are instances of
+    Theorem \ref{thm:free-measure-gibbs}.
 \end{example}
 
 \begin{example}[Georgii (7.15), stationary Markov chains]

@@ -68,20 +68,64 @@ Throughout, $S$ is a set, $(E, \mathcal{E})$ a measurable space and $\nu$ a meas
     it factors out of $\nu^\Lambda(\juxtBy{\omega}^{-1}(\cdot))$.
 \end{proof}
 
+\subsection*{Free measures}
+
+\begin{definition}[Free measure of a specification]
+    \label{def:free-measure}
+    \uses{def:spec}
+    \lean{Specification.HasFreeMeasure}
+    \leanok
+
+    A measure $\mu_0$ on $(\Cfg, \mathcal{F})$ is a \textbf{free measure} of a specification
+    $\gamma$ if $\gamma_\Lambda(A \mid \eta) = \mu_0(A)$ for every $\Lambda \in \Fin$, every
+    boundary condition $\eta$ and every $A \in \mathcal{F}_\Lambda$: inside a finite volume,
+    $\gamma$ forgets the boundary condition and reproduces $\mu_0$. This is Georgii's
+    $\lambda_\Lambda(A \mid \eta) = \lambda^S(A)$ of Remark (1.25).
+\end{definition}
+
+\begin{theorem}[Free measures determine the Gibbs measures]
+    \label{thm:free-measure-gibbs}
+    \uses{def:free-measure, def:gibbs-meas}
+    \lean{Specification.eq_smul_of_hasFreeMeasure, Specification.eq_of_hasFreeMeasure,
+      Specification.isGibbsMeasure_iff_indep_of_hasFreeMeasure}
+    \leanok
+
+    Let $\gamma$ have free measure $\mu_0 \in \Prob(\Cfg, \mathcal{F})$. Then every finite
+    $\mu \in \Gibbs{\gamma}$ equals $\mu(\Cfg)\,\mu_0$; in particular $\Gibbs{\gamma}$ contains at
+    most the one probability measure $\mu_0$. Moreover $\mu_0 \in \Gibbs{\gamma}$ if and only if
+    $\mathcal{F}_\Lambda$ and $\mathcal{F}_{S \setminus \Lambda}$ are independent under $\mu_0$
+    for every $\Lambda \in \Fin$. So $\Gibbs{\gamma}$ is $\set{\mu_0}$ under that independence
+    and empty without it.
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    For $A \in \mathcal{F}_\Lambda$ the DLR equation gives
+    $\mu(A) = \int \gamma_\Lambda(A \mid \eta)\,\mu(\mathrm{d}\eta) = \mu(\Cfg)\,\mu_0(A)$, and
+    the local events form a $\pi$-system generating $\mathcal{F}$. For the second assertion, let
+    $A \in \mathcal{F}_\Lambda$ and $B \in \mathcal{F}_{S \setminus \Lambda}$; properness gives
+    $\gamma_\Lambda(A \inter B \mid \eta) = 1_B(\eta)\,\mu_0(A)$, so
+    $\mu_0\gamma_\Lambda(A \inter B) = \mu_0(A)\,\mu_0(B)$, which equals $\mu_0(A \inter B)$
+    exactly under the stated independence. Conversely a square cylinder splits as
+    $A \inter B$ with $A$ over the sites in $\Lambda$ and $B$ over those outside, and square
+    cylinders generate.
+\end{proof}
+
 \begin{lemma}[Uniqueness of a Gibbs measure specified by an ISSSD]
     \label{lem:isssd-gibbs-meas-uniqueness}
-    \uses{def:gibbs-meas, def:isssd-spec}
+    \uses{def:gibbs-meas, def:isssd-spec, thm:free-measure-gibbs}
+    \lean{Specification.isGibbsMeasure_isssd_iff,
+      Specification.isGibbsMeasure_isssdFamily_iff}
+    \leanok
 
-    There is at most one Gibbs measure specified by $\ISSSD(\nu)$.
+    There is at most one Gibbs measure specified by $\ISSSD(\nu)$, and likewise for the
+    inhomogeneous $\ISSSD$ of a family $(\nu_i)_{i \in S}$.
 \end{lemma}
 \begin{proof}
-    \uses{lem:isssd-proper-spec}
-    % \leanok
+    \leanok
 
-    If $A \in \mathcal{F}_\Lambda$ then $\juxtBy{\omega}^{-1}(A)$ does not depend on $\omega$, so
-    the DLR equation at $\Lambda$ gives $\mu(A) = \nu^\Lambda(\juxtBy{\omega}^{-1}(A))$ for every
-    $\mu \in \Gibbs{\ISSSD(\nu)}$. Thus $\mu$ is determined on the ring
-    $\bigcup_{\Lambda \in \Fin} \mathcal{F}_\Lambda$, which generates $\mathcal{E}^S$.
+    $\ISSSD(\nu)$ has free measure $\nu^S$, so this is
+    Theorem \ref{thm:free-measure-gibbs}.
 \end{proof}
 
 \begin{lemma}[Existence of a Gibbs measure specified by an ISSSD]
