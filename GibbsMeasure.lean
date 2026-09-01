@@ -101,6 +101,7 @@ public import GibbsMeasure.Specification.ErgodicDecomposition
 public import GibbsMeasure.Specification.ExtremeCorollaries
 public import GibbsMeasure.Specification.ExtremeDecomposition
 public import GibbsMeasure.Specification.GibbsKernel
+public import GibbsMeasure.Specification.KolmogorovZeroOne
 public import GibbsMeasure.Specification.PAKernel
 public import GibbsMeasure.Specification.Abstract
 public import GibbsMeasure.Specification.AbstractPAKernel
