@@ -1125,9 +1125,10 @@ lemma anchor_bond_eq (a : Site) (k : ℕ) :
   rw [add_nsmul_e0_eq, h2, hBond]
 
 /-- **Georgii Lemma (6.13), in anchored form**: at most `ℓ · 3^(ℓ-1)` circuits of length `ℓ`
-cross the horizontal half-line to the right of `a` at one of its first `ℓ` bonds.  (Georgii
-reads off his count for the circuits *surrounding* `a` from this; that every such circuit is
-anchored in this way is his first proof step, and is not formalised here.)  Compare the
+cross the horizontal half-line to the right of `a` at one of its first `ℓ` bonds.  Georgii
+derives his count for the circuits *surrounding* `a` from this, using that such a circuit must
+cross that half-line; here the contour comes out of `exists_circuit_contour` already anchored
+(`exists_anchor_bond`), so the anchored form is the one the Peierls sum needs.  Compare the
 `4096 ^ ℓ` bound of `GibbsMeasure/Model/PeierlsEstimate.lean`. -/
 theorem ncard_anchored_circuits_le (a : Site) (ℓ : ℕ) :
     {C : Finset (Sym2 Site) | IsCircuit C ∧ C.card = ℓ ∧

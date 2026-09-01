@@ -16,6 +16,9 @@ Georgii Proposition (5.18): every cluster point of the averages
 `μ_α = |R_α|⁻¹ ∑_{Λ ∈ R_α} ν γ_Λ` is `τ`-invariant when `γ` and `ν` are and the index families
 `R_α` are asymptotically invariant. The lattice instance (cubes on `ℤ^d`, Georgii (5.20)(1)) is
 in `GibbsMeasure/Model/ShiftAverage.lean`.
+
+`Specification.isGibbsMeasure_bind` is the continuous companion of these finite averages: a
+mixture `∫ w(dx) μ^x` of a measurable family of Gibbs measures is a Gibbs measure.
 -/
 
 @[expose] public section
@@ -122,6 +125,37 @@ lemma bind_average_of_subset {Λ : Finset S} {R : Finset (Finset S)} (h : ∀ Λ
   rw [Measure.bind_smul, Measure.bind_finset_sum _ _ _ (γ.measurable_kernel_toMeasure Λ)]
   congr 1
   exact Finset.sum_congr rfl fun Λ' hΛ' ↦ γ.bind_bind_of_subset (h Λ' hΛ') ν
+
+/-! ### Mixtures of Gibbs measures
+
+The continuous analogue of the finite averages above: a measurable family `x ↦ μ^x` of Gibbs
+measures and a probability weight `w` on the parameter space combine into the mixture
+`∫ w(dx) μ^x = w.bind μ`, which is again Gibbs.
+-/
+
+variable {X : Type*} [MeasurableSpace X] {w : Measure X} {μ : X → Measure (S → E)}
+
+/-- If `μ^x γ_Λ = μ^x` for `w`-almost every parameter `x`, the mixture `∫ w(dx) μ^x` is fixed by
+`γ_Λ` as well. No finiteness of `w` or of the `μ^x` is needed. -/
+lemma bind_bind_of_ae_bind_eq_self (γ : Specification S E) (hmeas : AEMeasurable μ w)
+    (Λ : Finset S) (h : ∀ᵐ x ∂w, (μ x).bind (γ Λ) = μ x) :
+    (w.bind μ).bind (γ Λ) = w.bind μ := by
+  have hg : AEMeasurable (γ Λ : (S → E) → Measure (S → E)) (w.bind μ) :=
+    ((γ Λ).measurable.mono cylinderEvents_le_pi le_rfl).aemeasurable
+  rw [Measure.bind_bind hmeas hg]
+  exact Measure.bind_congr_right h
+
+/-- **A mixture of Gibbs measures is a Gibbs measure**: if `x ↦ μ^x` is a measurable family of
+Gibbs measures for `γ` and `w` is a probability weight on the parameter space, then
+`∫ w(dx) μ^x ∈ 𝒢(γ)`. This is the parametrised form of the convexity of `𝒢(γ)`. -/
+theorem isGibbsMeasure_bind (γ : Specification S E) [IsProbabilityMeasure w]
+    (hmeas : AEMeasurable μ w) (hprob : ∀ᵐ x ∂w, IsProbabilityMeasure (μ x))
+    (hgibbs : ∀ᵐ x ∂w, γ.IsGibbsMeasure (μ x)) : γ.IsGibbsMeasure (w.bind μ) := by
+  have : IsProbabilityMeasure (w.bind μ) := MeasureTheory.isProbabilityMeasure_bind hmeas hprob
+  rw [isGibbsMeasure_iff_forall_bind_eq_of_prob]
+  refine fun Λ ↦ γ.bind_bind_of_ae_bind_eq_self hmeas Λ ?_
+  filter_upwards [hprob, hgibbs] with x hxprob hxgibbs
+  exact (isGibbsMeasure_iff_forall_bind_eq_of_prob.1 hxgibbs) Λ
 
 end Specification
 

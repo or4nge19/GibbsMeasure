@@ -5,8 +5,11 @@ Authors: Matteo Cipollina
 -/
 module
 
-public import GibbsMeasure.Specification.GluedFamily
+public import GibbsMeasure.Mathlib.Probability.ProductMeasure
+public import GibbsMeasure.Specification.Average
 public import GibbsMeasure.Specification.DobrushinUniqueness
+public import GibbsMeasure.Specification.Extremal
+public import GibbsMeasure.Specification.GluedFamily
 public import Mathlib.Probability.StrongLaw
 public import Mathlib.Probability.Independence.InfinitePi
 public import Mathlib.Analysis.Real.Cardinality
@@ -42,11 +45,19 @@ it Theorem (8.7) would be false.
 * `not_isQuasilocal_gammaEx`: `γ` is not quasilocal.
 * `exists_not_countable_gibbsMeasures_of_tsum_interdep_lt_one`: the two previous items packaged as
   the justification for the quasilocality conjunct of Definition (8.6).
+* `G_gammaEx_eq`: Georgii's full identification `𝒢(γ) = {∫ w(dx) μ^x : w ∈ 𝓟([0,1])}`, and
+  `existsUnique_weight_of_mem_G`: the mixing weight `w` is unique, being the law of `ξ`.
 
-Georgii's full identification `𝒢(γ) = {∫ w(dx) μ^x : w ∈ 𝓟([0,1])}` follows from `μ γ_Λ = μ`
-alone and is not formalised here; de Finetti's theorem, his Example (7.31), is needed only for
-the further identification of that set with the set of all exchangeable random fields, and is
-formalised in `GibbsMeasure/Specification/DeFinetti.lean` (`existsUnique_mixing_of_isExchangeable`).
+The identification needs nothing beyond `μ γ_Λ = μ`: on an event `A ∈ 𝓕_Λ` the glued kernel is
+`γ_Λ(A | ω) = μ^{ξ ω}(A)` (`gammaEx_apply_of_mem_cylinderEvents`, from
+`Specification.isssd_apply_of_mem_cylinderEvents`), so the DLR equation reads
+`μ(A) = ∫ μ(dω) μ^{ξ ω}(A) = ∫ ξ(μ)(dx) μ^x(A)` and the local events determine `μ`. The reverse
+inclusion is the general fact that a measurable mixture of Gibbs measures is Gibbs
+(`Specification.isGibbsMeasure_bind`).
+
+De Finetti's theorem, Georgii's Example (7.31), is *not* needed for this; it is what further
+identifies the above set with the set of all exchangeable random fields, and is formalised in
+`GibbsMeasure/Specification/DeFinetti.lean` (`existsUnique_mixing_of_isExchangeable`).
 -/
 
 @[expose] public section
@@ -89,6 +100,17 @@ lemma measurable_bern_apply (B : Set Bool) : Measurable fun y : ℝ≥0∞ ↦ b
   simp only [bern_apply]
   fun_prop
 
+/-- The single-spin distributions depend measurably on the parameter. -/
+lemma measurable_bern : Measurable bern :=
+  Measure.measurable_of_measurable_coe _ fun B _ ↦ measurable_bern_apply B
+
+/-- `bern` sees the parameter only through its truncation at `1`. -/
+lemma bern_min_one (y : ℝ≥0∞) : bern (min y 1) = bern y := by simp [bern]
+
+/-- Every `bern y` is a `bern` of a genuine `[0,1]` parameter. -/
+lemma bern_ofReal_toReal (y : ℝ≥0∞) : bern (ENNReal.ofReal (min y 1).toReal) = bern y := by
+  rw [ENNReal.ofReal_toReal (by simp), bern_min_one]
+
 /-! ### The tail function `ξ` -/
 
 /-- The `{0,1}`-valued spin variable of Georgii (2.27). -/
@@ -106,6 +128,15 @@ noncomputable def avg (ω : ℕ → Bool) (n : ℕ) : ℝ := (∑ i ∈ Finset.r
 lemma avg_nonneg (ω : ℕ → Bool) (n : ℕ) : 0 ≤ avg ω n :=
   div_nonneg (Finset.sum_nonneg fun _ _ ↦ spin_nonneg _) (Nat.cast_nonneg n)
 
+lemma avg_le_one (ω : ℕ → Bool) (n : ℕ) : avg ω n ≤ 1 := by
+  rcases Nat.eq_zero_or_pos n with rfl | hn
+  · simp [avg]
+  have hnpos : (0 : ℝ) < n := by exact_mod_cast hn
+  rw [avg, div_le_one hnpos]
+  calc ∑ i ∈ Finset.range n, spin (ω i) ≤ ∑ _i ∈ Finset.range n, (1 : ℝ) :=
+        Finset.sum_le_sum fun i _ ↦ spin_le_one _
+    _ = n := by simp
+
 /-- **Georgii (2.27)**: the tail function `ξ = liminf_n n⁻¹ ∑_{i < n} σ_i`, valued in `ℝ≥0∞`. -/
 noncomputable def xi (ω : ℕ → Bool) : ℝ≥0∞ :=
   liminf (fun n ↦ ENNReal.ofReal (avg ω n)) atTop
@@ -117,6 +148,13 @@ lemma measurable_avg (n : ℕ) : Measurable fun ω : ℕ → Bool ↦ avg ω n :
 
 lemma measurable_xi : Measurable xi :=
   Measurable.liminf fun n ↦ (measurable_avg n).ennreal_ofReal
+
+/-- **Georgii (2.27)**: `ξ` takes its values in `[0,1]`, being a liminf of averages of
+`{0,1}`-valued spins. -/
+lemma xi_le_one (ω : ℕ → Bool) : xi ω ≤ 1 :=
+  calc xi ω ≤ liminf (fun _ : ℕ ↦ (1 : ℝ≥0∞)) atTop :=
+        liminf_le_liminf (.of_forall fun n ↦ ENNReal.ofReal_le_one.2 (avg_le_one ω n))
+    _ = 1 := liminf_const 1
 
 /-! ### `ξ` is insensitive to finitely many coordinates -/
 
@@ -269,6 +307,16 @@ lemma bernoulliField_map_eval (y : ℝ≥0∞) (i : ℕ) :
     (bernoulliField y).map (fun ω : ℕ → Bool ↦ ω i) = bern y :=
   Measure.infinitePi_map_eval _ i
 
+/-- **Georgii (2.27)**: the family `y ↦ μ^y` of Bernoulli fields is measurable for the Giry
+σ-algebra. -/
+lemma measurable_bernoulliField : Measurable (bernoulliField : ℝ≥0∞ → Measure (ℕ → Bool)) :=
+  Measure.measurable_infinitePi_const.comp measurable_bern
+
+/-- Every Bernoulli field is the Bernoulli field of a genuine `[0,1]` parameter. -/
+lemma bernoulliField_ofReal_toReal (y : ℝ≥0∞) :
+    bernoulliField (ENNReal.ofReal (min y 1).toReal) = bernoulliField y := by
+  rw [bernoulliField, bernoulliField, bern_ofReal_toReal]
+
 /-- **Georgii (2.27)**: by the strong law of large numbers, `ξ = x` almost surely under `μ^x`. -/
 theorem xi_ae_eq {x : ℝ} (hx0 : 0 ≤ x) (hx1 : x ≤ 1) :
     ∀ᵐ ω ∂(bernoulliField (ENNReal.ofReal x)), xi ω = ENNReal.ofReal x := by
@@ -315,6 +363,20 @@ theorem measure_xi_eq_one {x : ℝ} (hx0 : 0 ≤ x) (hx1 : x ≤ 1) :
   have := (MeasureTheory.ae_iff).1 (xi_ae_eq hx0 hx1)
   simpa [Set.compl_ofPred] using this
 
+/-- **Georgii (2.27)**, `ℝ≥0∞`-parameter form of `xi_ae_eq`: `ξ = y` almost surely under `μ^y`,
+for every parameter `y ≤ 1`. -/
+theorem xi_ae_eq' {y : ℝ≥0∞} (hy : y ≤ 1) : ∀ᵐ ω ∂(bernoulliField y), xi ω = y := by
+  have hy' : ENNReal.ofReal y.toReal = y :=
+    ENNReal.ofReal_toReal (hy.trans_lt ENNReal.one_lt_top).ne
+  rw [← hy']
+  exact xi_ae_eq ENNReal.toReal_nonneg (by simpa using ENNReal.toReal_mono ENNReal.one_ne_top hy)
+
+/-- **Georgii (2.27)**: the law of the tail function `ξ` under `μ^y` is the Dirac measure at `y`;
+this is what makes the mixing weight of a mixture of Bernoulli fields recoverable. -/
+lemma map_xi_bernoulliField {y : ℝ≥0∞} (hy : y ≤ 1) :
+    (bernoulliField y).map xi = Measure.dirac y := by
+  rw [Measure.map_congr (xi_ae_eq' hy), Measure.map_const, measure_univ, one_smul]
+
 /-! ### The glued specification of Example (2.27) -/
 
 /-- **Georgii, Example (2.27)**: the specification obtained by gluing the independent
@@ -335,6 +397,23 @@ theorem isGibbsMeasure_bernoulliField {x : ℝ} (hx0 : 0 ≤ x) (hx1 : x ≤ 1) 
     rw [Specification.isGibbsMeasure_isssd_iff]
     rfl
   exact Specification.isGibbsMeasure_glued _ _ (measure_xi_eq_one hx0 hx1) h
+
+/-- **Georgii, Example (2.27)**: every Bernoulli field `μ^y`, for an arbitrary parameter
+`y : ℝ≥0∞`, is a Gibbs measure for `γ`; `bern` truncates the parameter at `1`, so this is no more
+than `isGibbsMeasure_bernoulliField`. -/
+theorem isGibbsMeasure_bernoulliField' (y : ℝ≥0∞) :
+    gammaEx.IsGibbsMeasure (bernoulliField y) := by
+  rw [← bernoulliField_ofReal_toReal y]
+  exact isGibbsMeasure_bernoulliField ENNReal.toReal_nonneg
+    (by simpa using ENNReal.toReal_mono ENNReal.one_ne_top (min_le_right y 1))
+
+/-- **Georgii, Example (2.27)**: on an event inside the finite volume `Λ` the glued kernel is the
+Bernoulli field of parameter `ξ ω`, with no dependence left on the boundary condition:
+`γ_Λ(A | ω) = μ^{ξ ω}(A)` for `A ∈ 𝓕_Λ`. -/
+lemma gammaEx_apply_of_mem_cylinderEvents (Λ : Finset ℕ) (ω : ℕ → Bool) {A : Set (ℕ → Bool)}
+    (hA : MeasurableSet[cylinderEvents (X := fun _ : ℕ ↦ Bool) (Λ : Set ℕ)] A) :
+    gammaEx Λ ω A = bernoulliField (xi ω) A := by
+  rw [gammaEx_apply, Specification.isssd_apply_of_mem_cylinderEvents _ Λ ω hA, bernoulliField]
 
 /-! ### `C(γ) ≡ 0`: Georgii's interdependence matrix vanishes -/
 
@@ -444,6 +523,99 @@ theorem exists_not_countable_gibbsMeasures_of_tsum_interdep_lt_one :
         ¬ {μ : Measure (ℕ → Bool) | γ.IsGibbsMeasure μ}.Countable :=
   ⟨gammaEx, ⟨0, zero_lt_one, fun i ↦ le_of_eq (tsum_interdep_gammaEx i)⟩,
     not_countable_gibbsMeasures⟩
+
+/-! ### `𝒢(γ) = {∫ w(dx) μ^x : w ∈ 𝓟([0,1])}`: Georgii's identification -/
+
+instance instIsProbabilityMeasureBindBernoulliField (w : Measure ℝ≥0∞)
+    [IsProbabilityMeasure w] : IsProbabilityMeasure (w.bind bernoulliField) :=
+  MeasureTheory.isProbabilityMeasure_bind measurable_bernoulliField.aemeasurable
+    (.of_forall fun _ ↦ inferInstance)
+
+/-- **Georgii, Example (2.27)**, the inclusion `⊇`: every mixture `∫ w(dx) μ^x` of Bernoulli
+fields is a Gibbs measure for `γ`. -/
+theorem isGibbsMeasure_bind_bernoulliField (w : Measure ℝ≥0∞) [IsProbabilityMeasure w] :
+    gammaEx.IsGibbsMeasure (w.bind bernoulliField) :=
+  gammaEx.isGibbsMeasure_bind measurable_bernoulliField.aemeasurable
+    (.of_forall fun _ ↦ inferInstance) (.of_forall isGibbsMeasure_bernoulliField')
+
+/-- The law of `ξ` under a probability measure is carried by `[0,1]`, so it is a weight in
+Georgii's `𝓟(X)` with `X = [0,1]`. -/
+lemma map_xi_apply_Icc (μ : Measure (ℕ → Bool)) [IsProbabilityMeasure μ] :
+    μ.map xi (Set.Icc 0 1) = 1 := by
+  have hpre : xi ⁻¹' (Set.Icc 0 1) = Set.univ := by
+    ext ω
+    simp [xi_le_one ω]
+  rw [Measure.map_apply measurable_xi measurableSet_Icc, hpre, measure_univ]
+
+/-- **Georgii, Example (2.27)**, the inclusion `⊆`: a Gibbs measure for `γ` is the mixture of the
+Bernoulli fields along the law of its own tail function `ξ`. Only the DLR equation `μ γ_Λ = μ` is
+used: on a local event `A ∈ 𝓕_Λ` it reads `μ(A) = ∫ μ(dω) μ^{ξ ω}(A)`, and the local events
+generate `𝓕`. -/
+theorem eq_bind_map_xi {μ : Measure (ℕ → Bool)} [IsProbabilityMeasure μ]
+    (hμ : gammaEx.IsGibbsMeasure μ) : μ = (μ.map xi).bind bernoulliField := by
+  have hw : IsProbabilityMeasure (μ.map xi) :=
+    Measure.isProbabilityMeasure_map measurable_xi.aemeasurable
+  have hbind : ∀ Λ : Finset ℕ, μ.bind (gammaEx Λ) = μ :=
+    Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob.1 hμ
+  refine MeasureTheory.ext_of_generate_finite _ generateFrom_measurableCylinders.symm
+    isPiSystem_measurableCylinders (fun A hA ↦ ?_) (by rw [measure_univ, measure_univ])
+  obtain ⟨Λ, hΛ⟩ := mem_localEvents_iff_cylinderEvents.1 hA
+  have hAm : MeasurableSet A := cylinderEvents_le_pi _ hΛ
+  have hker : AEMeasurable (gammaEx Λ : (ℕ → Bool) → Measure (ℕ → Bool)) μ :=
+    ((gammaEx Λ).measurable.mono cylinderEvents_le_pi le_rfl).aemeasurable
+  calc μ A = (μ.bind (gammaEx Λ)) A := by rw [hbind]
+    _ = ∫⁻ ω, gammaEx Λ ω A ∂μ := Measure.bind_apply hAm hker
+    _ = ∫⁻ ω, bernoulliField (xi ω) A ∂μ :=
+        lintegral_congr fun ω ↦ gammaEx_apply_of_mem_cylinderEvents Λ ω hΛ
+    _ = ∫⁻ x, bernoulliField x A ∂(μ.map xi) :=
+        (lintegral_map ((Measure.measurable_coe hAm).comp measurable_bernoulliField)
+          measurable_xi).symm
+    _ = ((μ.map xi).bind bernoulliField) A :=
+        (Measure.bind_apply hAm measurable_bernoulliField.aemeasurable).symm
+
+/-- **Georgii, Example (2.27)**, the full identification:
+`𝒢(γ) = {∫ w(dx) μ^x : w ∈ 𝓟([0,1])}`, the weights being the probability measures on `ℝ≥0∞`
+carried by `[0,1]`. -/
+theorem G_gammaEx_eq :
+    G gammaEx = {μ : Measure (ℕ → Bool) | ∃ w : Measure ℝ≥0∞, IsProbabilityMeasure w ∧
+      w (Set.Icc 0 1) = 1 ∧ μ = w.bind bernoulliField} := by
+  ext μ
+  constructor
+  · rintro ⟨hprob, hgibbs⟩
+    exact ⟨μ.map xi, Measure.isProbabilityMeasure_map measurable_xi.aemeasurable,
+      map_xi_apply_Icc μ, eq_bind_map_xi hgibbs⟩
+  · rintro ⟨w, hw, -, rfl⟩
+    exact ⟨inferInstance, isGibbsMeasure_bind_bernoulliField w⟩
+
+/-- **Georgii, Example (2.27)**: the mixing weight is recovered from the mixture as the law of the
+tail function `ξ`, because `ξ = x` holds `μ^x`-almost surely. -/
+theorem map_xi_bind_bernoulliField (w : Measure ℝ≥0∞) [IsProbabilityMeasure w]
+    (hw : w (Set.Icc 0 1) = 1) : (w.bind bernoulliField).map xi = w := by
+  rw [Measure.map_bind measurable_bernoulliField measurable_xi]
+  have hIcc : ∀ᵐ x ∂w, x ∈ Set.Icc (0 : ℝ≥0∞) 1 :=
+    mem_ae_iff.2 ((prob_compl_eq_zero_iff measurableSet_Icc).2 hw)
+  have hae : ∀ᵐ x ∂w, (bernoulliField x).map xi = Measure.dirac x := by
+    filter_upwards [hIcc] with x hx
+    exact map_xi_bernoulliField hx.2
+  rw [Measure.bind_congr_right hae]
+  exact Measure.bind_dirac
+
+/-- **Georgii, Example (2.27)**: the weight in the representation `μ = ∫ w(dx) μ^x` is unique. -/
+theorem eq_of_bind_bernoulliField_eq {w w' : Measure ℝ≥0∞} [IsProbabilityMeasure w]
+    [IsProbabilityMeasure w'] (hw : w (Set.Icc 0 1) = 1) (hw' : w' (Set.Icc 0 1) = 1)
+    (h : w.bind bernoulliField = w'.bind bernoulliField) : w = w' := by
+  rw [← map_xi_bind_bernoulliField w hw, ← map_xi_bind_bernoulliField w' hw', h]
+
+/-- **Georgii, Example (2.27)**, sharp form of the identification: every Gibbs measure for `γ` is
+`∫ w(dx) μ^x` for a *unique* probability weight `w` on `[0,1]`, namely the law of `ξ`. So `𝒢(γ)`
+is affinely isomorphic to `𝓟([0,1])`. -/
+theorem existsUnique_weight_of_mem_G {μ : Measure (ℕ → Bool)} (hμ : μ ∈ G gammaEx) :
+    ∃! w : Measure ℝ≥0∞, IsProbabilityMeasure w ∧ w (Set.Icc 0 1) = 1 ∧
+      μ = w.bind bernoulliField := by
+  obtain ⟨w, hwprob, hwsupp, hwμ⟩ := G_gammaEx_eq.subset hμ
+  refine ⟨w, ⟨hwprob, hwsupp, hwμ⟩, ?_⟩
+  rintro w' ⟨hw'prob, hw'supp, hw'μ⟩
+  exact eq_of_bind_bernoulliField_eq hw'supp hwsupp (hw'μ.symm.trans hwμ)
 
 end MeasureTheory.GibbsMeasure.Exchangeable
 
