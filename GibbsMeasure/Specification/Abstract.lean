@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.TrivialOn
 public import GibbsMeasure.Mathlib.Probability.ConditionalProbability
 public import GibbsMeasure.Specification.PAKernel
 public import Mathlib.Analysis.Convex.Extreme
@@ -56,13 +57,6 @@ section Aux
 
 variable {Ω : Type*}
 
-/-- Measurability for an infimum of σ-algebras is measurability for each of them. -/
-lemma measurable_iInf_iff_forall {κ : Sort*} (mκ : κ → MeasurableSpace Ω) {X : Type*}
-    [MeasurableSpace X] {f : Ω → X} :
-    Measurable[iInf mκ] f ↔ ∀ i, Measurable[mκ i] f := by
-  refine ⟨fun hf i ↦ hf.mono (iInf_le mκ i) le_rfl, fun hf s hs ↦ ?_⟩
-  exact (MeasurableSpace.measurableSet_iInf (m := mκ) (s := f ⁻¹' s)).2 fun i ↦ hf i hs
-
 /-- An antitone sequence in a complete lattice has the same infimum as each of its tails. -/
 lemma iInf_ge_eq_iInf_of_antitone {α : Type*} [CompleteLattice α] {h : ℕ → α} (hh : Antitone h)
     (N : ℕ) : (⨅ n : ℕ, h n) = ⨅ n : {n // N ≤ n}, h n.1 := by
@@ -93,24 +87,6 @@ lemma measurable_limsup_iInf (mn : ℕ → MeasurableSpace Ω) (hm : Antitone mn
   have h_each : ∀ i : {i // i ≥ n.1}, Measurable[mn N] (g i.1) := fun i ↦
     (hg i.1).mono (hm (n.2.trans i.2)) le_rfl
   simpa [iSup_subtype] using Measurable.iSup (f := fun i : {i // i ≥ n.1} ↦ g i.1) h_each
-
-/-- If `μ` is trivial on a sub-σ-algebra `𝒜`, then every `𝒜`-measurable map into a countably
-separated space is `μ`-a.e. constant. -/
-lemma ae_eq_const_of_mem_trivialOn {𝒜 : MeasurableSpace Ω} [m : MeasurableSpace Ω] (h𝒜 : 𝒜 ≤ m)
-    {μ : Measure Ω} [IsProbabilityMeasure μ] (htriv : μ ∈ trivialOn 𝒜) {X : Type*}
-    [MeasurableSpace X] [MeasurableSpace.CountablySeparated X] [Nonempty X] {f : Ω → X}
-    (hf : Measurable[𝒜] f) : ∃ c : X, f =ᵐ[μ] fun _ ↦ c := by
-  refine Filter.exists_eventuallyEq_const_of_forall_separating (l := ae μ) (f := f)
-    MeasurableSet fun U hU ↦ ?_
-  have hpre : MeasurableSet[𝒜] (f ⁻¹' U) := hf hU
-  rcases htriv _ hpre with h0 | h1
-  · right
-    rw [ae_iff]
-    simp only [not_not]
-    exact h0
-  · left
-    rw [ae_iff]
-    exact (prob_compl_eq_zero_iff (h𝒜 _ hpre)).2 h1
 
 /-- A nonempty countable preorder directed upwards contains a monotone cofinal sequence. -/
 lemma exists_monotone_cofinal (ι : Type*) [Preorder ι] [Countable ι] [Nonempty ι]
@@ -323,7 +299,7 @@ theorem eq_of_absolutelyContinuous [Countable ι] [Nonempty ι] [IsDirected ι (
   have hνp : IsProbabilityMeasure ν := hν.1
   obtain ⟨g, hg_tail, hfg⟩ :=
     exists_tail_measurable_rnDeriv (γ := γ) hμ.2 hν.2 hνμ
-  obtain ⟨c, hgc⟩ := ae_eq_const_of_mem_trivialOn γ.tail_le htriv hg_tail
+  obtain ⟨c, hgc⟩ := exists_ae_eq_const_of_forall_measure_eq_zero_or_one γ.tail_le htriv hg_tail
   have hfc : ν.rnDeriv μ =ᵐ[μ] fun _ ↦ c := hfg.trans hgc
   have hrepr : μ.withDensity (ν.rnDeriv μ) = ν :=
     Measure.withDensity_rnDeriv_eq (μ := ν) (ν := μ) hνμ

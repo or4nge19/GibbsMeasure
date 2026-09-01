@@ -9,6 +9,7 @@ public import Mathlib.Probability.Kernel.Invariance
 public import Mathlib.MeasureTheory.Integral.Lebesgue.Markov
 public import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
 public import Mathlib.Analysis.Convex.Extreme
+public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.TrivialOn
 
 /-!
 # The almost surely invariant σ-algebra of a Markov kernel
@@ -387,23 +388,6 @@ theorem invariant_withDensity_iff_measurable (hπ : Invariant π μ) {f : Ω →
 
 end Converse
 
-section Trivial
-
-/-- If `μ` is trivial on a sub-σ-algebra `𝒜` — every `𝒜`-set is null or co-null — then every
-`𝒜`-measurable map into a countably separated space is `μ`-a.e. constant. -/
-lemma exists_ae_eq_const_of_forall_measure_eq_zero_or_one {Ω : Type*} {𝒜 m : MeasurableSpace Ω}
-    (h𝒜 : 𝒜 ≤ m) {μ : Measure[m] Ω} [IsProbabilityMeasure μ]
-    (htriv : ∀ A, MeasurableSet[𝒜] A → μ A = 0 ∨ μ A = 1)
-    {X : Type*} [MeasurableSpace X] [MeasurableSpace.CountablySeparated X] [Nonempty X]
-    {f : Ω → X} (hf : Measurable[𝒜] f) : ∃ c : X, f =ᵐ[μ] fun _ ↦ c := by
-  refine Filter.exists_eventuallyEq_const_of_forall_separating (l := ae μ) (f := f)
-    MeasurableSet fun U hU ↦ ?_
-  have hpre : MeasurableSet[𝒜] (f ⁻¹' U) := hf hU
-  rcases htriv _ hpre with h0 | h1
-  · exact Or.inr (by rw [ae_iff]; simp only [not_not]; exact h0)
-  · exact Or.inl (by rw [ae_iff]; exact (prob_compl_eq_zero_iff (h𝒜 _ hpre)).2 h1)
-
-end Trivial
 
 end Core
 
@@ -426,9 +410,8 @@ lemma measurable_aeInvariantSigmaAlgebraFamily_iff [IsFiniteMeasure μ]
     (hκ : ∀ i, Invariant (κ i) μ) {X : Type*} [MeasurableSpace X] {f : Ω → X} :
     Measurable[aeInvariantSigmaAlgebraFamily κ hκ] f ↔
       ∀ i, Measurable[aeInvariantSigmaAlgebra (hκ i)] f := by
-  refine ⟨fun h i ↦ h.mono (iInf_le _ i) le_rfl, fun h U hU ↦ ?_⟩
-  rw [aeInvariantSigmaAlgebraFamily, MeasurableSpace.measurableSet_iInf]
-  exact fun i ↦ h i hU
+  rw [aeInvariantSigmaAlgebraFamily]
+  exact measurable_iInf_iff_forall _
 
 /-- **Georgii (7.4), the substantial half.** If `μ` is trivial on `I_Π(μ)`, every `Π`-invariant
 probability measure absolutely continuous with respect to `μ` *is* `μ`. -/
@@ -447,7 +430,7 @@ theorem eq_of_absolutelyContinuous_of_trivialOn [IsProbabilityMeasure μ] [Nonem
   have hmeas : Measurable[aeInvariantSigmaAlgebraFamily κ hκ] f :=
     (measurable_aeInvariantSigmaAlgebraFamily_iff hκ).2 fun i ↦
       measurable_of_invariant_withDensity (hκ i) hfm hfin (by rw [hwd]; exact hν i)
-  obtain ⟨c, hc⟩ := exists_ae_eq_const_of_forall_measure_eq_zero_or_one
+  obtain ⟨c, hc⟩ := MeasureTheory.exists_ae_eq_const_of_forall_measure_eq_zero_or_one
     (aeInvariantSigmaAlgebraFamily_le hκ) htriv hmeas
   have hc1 : c = 1 := by
     have hcalc : ∫⁻ ω, f ω ∂μ = c := by rw [lintegral_congr_ae hc]; simp

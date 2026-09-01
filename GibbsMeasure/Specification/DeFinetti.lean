@@ -420,7 +420,7 @@ private lemma ae_tendsto_symmKernel (hμ : μ ∈ (exchangeableSpec E).invariant
       = (symmKernel E n ω B).toReal :=
     ae_all_iff.2 fun n ↦ AbstractSpecification.condExp_sub_ae_eq (γ := exchangeableSpec E) hμ n hB
   have hconst : ∃ c : ℝ, (μ[B.indicator fun _ ↦ (1 : ℝ) | ⨅ n, symmSub E n]) =ᵐ[μ] fun _ ↦ c := by
-    refine ae_eq_const_of_mem_trivialOn (𝒜 := symmetricSigmaAlgebra E)
+    refine exists_ae_eq_const_of_forall_measure_eq_zero_or_one (𝒜 := symmetricSigmaAlgebra E)
       symmetricSigmaAlgebra_le htriv ?_
     exact (stronglyMeasurable_condExp (m := ⨅ n, symmSub E n)).measurable
   obtain ⟨c, hc⟩ := hconst

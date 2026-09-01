@@ -30,6 +30,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Measure.CountablyGeneratedModNu
 public import GibbsMeasure.Mathlib.MeasureTheory.Order.StochasticDomination
 public import GibbsMeasure.Mathlib.MeasureTheory.Order.Holley
 public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.Bot
+public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.TrivialOn
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.AEMeasurable
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.GiryMonad
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.RegularContent
