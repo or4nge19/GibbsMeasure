@@ -78,10 +78,37 @@ Let $(X, \MCX)$ be a measurable space, let $\MCB$ be a sub $\sigma$-algebra of $
     exist to union together, and no countable exhaustion of $\Tail$ is available.
 
     Nor could anything else remove them: the conclusions so guarded are \emph{false} in Georgii's
-    setting. The tail kernel is a regular conditional distribution on the \emph{ambient}
+    setting, and this is now a theorem
+    (\texttt{not\_ae\_forall\_tailKernel\_apply\_eq\_indicator}). The tail kernel is a regular conditional distribution on the \emph{ambient}
     $\sigma$-algebra, which for a standard Borel $E$ over countable $S$ is countably generated; so
     for tail-trivial $\mu$ one has $\mu(\cdot \mid \Tail)(\omega) = \mu$ for a.e.\ $\omega$, while
     the eventual-agreement class of $\omega$ is a $\mu$-null tail event containing $\omega$. This is
     Blackwell--Dubins: a non-atomic $\mu$ admits no \emph{proper} regular conditional distribution
     given $\Tail$.
 \end{remark}
+
+
+\begin{theorem}[Blackwell--Dubins: no proper tail conditional distribution]
+    \label{thm:pre-blackwell-dubins}
+    \uses{thm:pre-cg-mod-null}
+    \lean{eventualAgreementClass,
+      measurableSet_tail_eventualAgreementClass,
+      infinitePi_eventualAgreementClass_eq_zero,
+      tailSigmaAlgebra_eq_limsup_cofinite,
+      MeasureTheory.GibbsMeasure.forall_tail_measure_eq_zero_or_one_infinitePi,
+      tailKernel_apply_ae_eq_measure,
+      ae_tailKernel_eq_self,
+      not_ae_forall_tailKernel_apply_eq_indicator}
+    \leanok
+
+    Let $\mu = \bigotimes_i \mu_i$ be an independent product over an infinite countable site set
+    with a uniform atom bound $\mu_i\set{x} \leq c < 1$, and finite state space. The tail
+    $\sigma$-algebra is the $\limsup$ of the coordinate $\sigma$-algebras along the cofinite
+    filter, so Kolmogorov's zero--one law makes $\mu$ tail trivial; consequently the tail
+    conditional kernel is $\mu$-a.e.\ equal to $\mu$ itself. But the eventual-agreement class of
+    $\omega$ is a $\mu$-null tail event containing $\omega$, so
+    \[\neg\; \forall^{\mu}\text{-a.e. } \omega,\ \forall A \in \Tail:\
+      \mu(A \mid \Tail)(\omega) = \1_A(\omega):\]
+    no proper regular conditional distribution given $\Tail$ exists. This is the reason the
+    countable-generation hypotheses of Chapter 7's kernel-level statements cannot be removed.
+\end{theorem}

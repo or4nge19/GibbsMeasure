@@ -31,8 +31,9 @@ The hypothesis is not gratuitous: it is what upgrades "for each `A ∈ 𝓣`, `t
 1_A(ω)` for `μ`-a.e. `ω`" to "for `μ`-a.e. `ω`, for all `A ∈ 𝓣`" — a countable generating family is
 what lets the `A`-dependent null sets be unioned.
 
-**The guarded conclusions are false in that setting, not merely unprovable**, so they cannot be
-repaired and there is no missing uniqueness lemma to supply. `tailKernel μ` is `condExpKernel μ 𝓣`,
+**The guarded conclusions are false in that setting, not merely unprovable** — now a theorem:
+`not_ae_forall_tailKernel_apply_eq_indicator` in `Specification/NoProperTailKernel.lean` — so they
+cannot be repaired and there is no missing uniqueness lemma to supply. `tailKernel μ` is `condExpKernel μ 𝓣`,
 a regular conditional distribution on the *ambient* σ-algebra, and the ambient σ-algebra of a
 standard Borel `E` over countable `S` *is* countably generated. So for a tail-trivial `μ` — a
 product measure, say — one null set suffices for a countable generating π-system and
