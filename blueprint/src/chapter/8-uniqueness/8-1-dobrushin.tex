@@ -8,12 +8,17 @@
       MeasureTheory.GibbsMeasure.Dobrushin.IsDobrushin}
     \leanok
 
-    For a specification $\gamma$, the interdependence coefficients are
-    $C_{ij}(\gamma) = \sup \set{\norm{\gamma_{\{i\}}(\cdot|\zeta) - \gamma_{\{i\}}(\cdot|\eta)}
-      : \zeta = \eta \text{ off } j}$, with $\norm{\cdot}$ the uniform (total-variation) distance.
-    \textbf{Dobrushin's condition} is
-    $c(\gamma) = \sup_i \sum_{j} C_{ij}(\gamma) < 1$, together with quasilocality where Georgii
-    requires it; Example (2.27) shows the quasilocality conjunct is not decorative.
+    For measures $\alpha_1, \alpha_2$ on $(E,\mathcal{E})$ put
+    $\lVert\alpha_1 - \alpha_2\rVert = \sup_{A \in \mathcal{E}}(\alpha_1(A) - \alpha_2(A))$, the
+    uniform distance (8.1). The \textbf{interdependence coefficients} of a specification $\gamma$
+    are
+    \[C_{ij}(\gamma) = \sup\set{\lVert\gamma_{\{i\}}(\sigma_i \in \cdot \mid \zeta)
+        - \gamma_{\{i\}}(\sigma_i \in \cdot \mid \eta)\rVert :
+        \zeta_k = \eta_k \text{ for all } k \neq j},\]
+    and $\gamma$ satisfies \textbf{Dobrushin's condition} (8.6) iff $\gamma$ is quasilocal and
+    $c(\gamma) = \sup_i \sum_{j} C_{ij}(\gamma) < 1$. The quasilocality conjunct is not implied by
+    the second one: the glued specification of Example \ref{ex:ql-2-27} has $c(\gamma) = 0$ and
+    uncountably many Gibbs measures.
 \end{definition}
 
 \begin{theorem}[Dobrushin's uniqueness theorem, Georgii (8.7) and (8.23)]
@@ -28,12 +33,13 @@
       MeasureTheory.GibbsMeasure.Dobrushin.ofReal_abs_toReal_sub_le_interdepTail_of_mem_GP}
     \leanok
 
-    A quasilocal specification satisfying Dobrushin's condition has at most one Gibbs measure;
-    over a standard Borel state space it has exactly one, and ((8.23)(ii)) the finite-volume
-    distributions $\gamma_{\Delta}(\cdot \mid \eta)$ converge locally to it, for \emph{every}
-    boundary condition, with the uniform speed estimate
-    $|\gamma_{\Delta}(A|\eta) - \mu(A)| \leq \sum_{i \in \Lambda} \sup_j C^{\Delta}_{ij}$
-    on $\Lambda$-local events (the comment after (8.24)).
+    A quasilocal specification satisfying Dobrushin's condition has at most one Gibbs measure, and
+    exactly one if $E$ is non-empty and standard Borel. In the latter case, for \emph{every}
+    boundary condition $\eta$ the finite-volume distributions $\gamma_{\Delta}(\cdot \mid \eta)$
+    converge to the unique $\mu$ in the topology of local convergence as $\Delta \uparrow S$
+    ((8.23)(ii)), with the uniform speed estimate
+    \[|\gamma_{\Delta}(A|\eta) - \mu(A)| \leq \sum_{i \in \Lambda} \sup_j C^{\Delta}_{ij}\]
+    on $\Lambda$-local events.
 \end{theorem}
 
 \begin{theorem}[The comparison theorem, Georgii (8.20)]
@@ -43,10 +49,13 @@
       MeasureTheory.GibbsMeasure.Dobrushin.comparison}
     \leanok
 
-    If $\gamma$ satisfies Dobrushin's condition and $\mu, \nu$ are Gibbs for two specifications
-    whose singleton kernels differ by at most $b_i$ at site $i$, then
-    $|\mu(f) - \nu(f)| \leq \sum_i \delta_i(f') \sum_j D_{ij} b_j$ with
-    $D = \sum_n C^n$ the Dobrushin matrix.
+    Let $\gamma$ be quasilocal and satisfy Dobrushin's condition, let $\mu \in \Gibbs{\gamma}$ and
+    $\nu \in \Gibbs{\tilde\gamma}$, and let $b_i : \Cfg \to [0,\infty]$ be measurable with
+    $\lVert\gamma_{\{i\}}(\sigma_i \in \cdot \mid \omega)
+      - \tilde\gamma_{\{i\}}(\sigma_i \in \cdot \mid \omega)\rVert \leq b_i(\omega)$ for all
+    $i, \omega$. Then, with $D = \sum_{n \geq 0} C(\gamma)^n$ the Dobrushin matrix,
+    \[|\mu(f) - \nu(f)| \;\leq\; \sum_{i,j} \delta_i(f)\, D_{ij}\, \nu(b_j)\]
+    for every local function $f$, where $\delta_i(f)$ is the oscillation of $f$ at the site $i$.
 \end{theorem}
 
 \subsection*{The single-site criterion}
@@ -64,19 +73,20 @@
       MeasureTheory.GibbsMeasure.Dobrushin.isDobrushin_gibbsSpecification}
     \leanok
 
-    For the Gibbsian specification of an absolutely summable potential over a probability a
-    priori measure, $C_{ij} \leq \tfrac12 \sup_{A \ni i,j} \delta(\Phi_A) \cdot$(combinatorial
-    factor), so $\sup_i \sum_{A \ni i} (|A|-1)\, \delta(\Phi_A) < 2$ implies Dobrushin's
-    condition — with Georgii's sharp constant $2$. The primary estimate is the two-measure
-    normalisation bound $\norm{\bar\mu_0 - \bar\mu_1} \leq (\sqrt M - \sqrt m)/(\sqrt M + \sqrt m)
-    = \tanh\bigl(\tfrac14 \log (M/m)\bigr)$, which sharpens Georgii's (8.9)(2) to the
-    $\tanh$ form of (8.10) over an \emph{arbitrary} state space.
-    The theorem is at Georgii's hypotheses: any $\lambda$-admissible potential in the sense of
-    Definition (2.2) --- summable, not absolutely summable --- over a $\sigma$-finite non-zero
-    a priori measure $\lambda$, with quasilocality of $\gamma^\Phi$ supplied by (2.24)(b)
-    (Theorem \ref{thm:ql-gibbsian-quasilocal}).  The earlier probability-reference,
-    absolutely-summable version survives as the corollary
-    \texttt{isDobrushin\_gibbsSpecification}.
+    Let $(E,\mathcal{E})$ be any state space, $\lambda$ a $\sigma$-finite non-zero a priori
+    measure, and $\Phi$ a $\lambda$-admissible potential in the sense of Definition (2.2). Then
+    \[C_{ij}(\gamma^{\beta\Phi}) \;\leq\;
+      \tanh\Bigl(\tfrac{|\beta|}{2}\sum_{A \supseteq \{i,j\}} \delta(\Phi_A)\Bigr) \;\leq\;
+      \tfrac{|\beta|}{2}\sum_{A \supseteq \{i,j\}} \delta(\Phi_A)
+      \qquad (i \neq j),\]
+    so $|\beta| \sup_i \sum_{A \ni i} (|A|-1)\, \delta(\Phi_A) < 2$ implies Dobrushin's condition,
+    quasilocality of $\gamma^{\beta\Phi}$ being supplied by Theorem
+    \ref{thm:ql-gibbsian-quasilocal}. The primary estimate is the two-measure normalisation bound:
+    if $m\mu_0 \leq \mu_1 \leq M\mu_0$ setwise with $0 < m \leq M < \infty$ and $\mu_0, \mu_1$
+    finite and non-zero, then
+    \[\lVert\bar\mu_1 - \bar\mu_0\rVert \;\leq\; \frac{\sqrt M - \sqrt m}{\sqrt M + \sqrt m}
+      \;=\; \tanh\bigl(\tfrac14 \log (M/m)\bigr),\]
+    which is the $\tanh$ form (8.10) of (8.9)(2) over an arbitrary state space.
 \end{theorem}
 
 \section{One-dimensional uniqueness}
@@ -88,9 +98,10 @@
       MeasureTheory.GibbsMeasure.subsingleton_G_of_isUniformlyDominated}
     \leanok
 
-    If there is $c > 0$ such that every cylinder event admits a uniform two-sided comparison
-    between its conditional probabilities at different boundary conditions, then there is at most
-    one Gibbs measure. No quasilocality is assumed — uniqueness does not always need it.
+    Let $S$ be countable and $\gamma$ a specification, with no quasilocality assumed. If there is
+    $c > 0$ such that every cylinder event $A$ admits a finite volume $\Lambda$ with
+    $\gamma_{\Lambda}(A \mid \zeta) \geq c\, \gamma_{\Lambda}(A \mid \eta)$ for all
+    $\zeta, \eta \in \Cfg$, then $|\Gibbs{\gamma}| \leq 1$.
 \end{theorem}
 
 \begin{theorem}[Georgii, Theorem (8.39), with Comments (8.41)]
@@ -108,10 +119,16 @@
       MeasureTheory.GibbsMeasure.subsingleton_G_lambdaSpecification_of_pair_rpow_le}
     \leanok
 
-    On $\mathbb{Z}$ or $\mathbb{N}$, a $\lambda$-specification whose potential has uniformly
-    bounded span-oscillation sums has at most one Gibbs measure — long-range one-dimensional
-    uniqueness, proved at Georgii's own hypotheses over a $\sigma$-finite a priori measure.
-    Comments (8.41)(1) identify the three equivalent forms of the oscillation functional
-    (span, diameter, and the rooted normalisation), and (8.41)(3) gives the pair-decay
-    sufficient condition.
+    Let $S$ be countable and ordered, and exhausted by volumes with at most $m$ boundary sites:
+    every finite set is contained in some $\Lambda$ admitting $D$ with $|D| \leq m$ such that every
+    $A$ meeting both $\Lambda$ and $S \setminus \Lambda$ spans a site of $D$ (for
+    $S = \mathbb{Z}$, $\Lambda = \,]-n,n]$ and $m = 2$; for $S = \mathbb{N}$, $\Lambda = [0,n]$ and
+    $m = 1$). Let $\lambda$ be a $\sigma$-finite non-zero a priori measure and $\Phi$ a
+    $\lambda$-admissible potential satisfying (8.40),
+    \[\sup_{i \in S} \sum_{A : \min A \leq i < \max A} \delta(\Phi_A) < \infty.\]
+    Then $|\Gibbs{\Phi}| \leq 1$. For $S = \mathbb{Z}$ and shift-invariant oscillations, (8.40) is
+    equivalent to $\sum_{A : \min A = 0} \operatorname{diam}(A)\, \delta(\Phi_A) < \infty$ and to
+    $\sum_{A \ni 0} \frac{\operatorname{diam}(A)}{|A|} \delta(\Phi_A) < \infty$ (Comments
+    (8.41)(1)), and it holds for a shift-invariant potential supported on pairs with
+    $\delta(\Phi_{\{0,n\}}) \leq c\,n^{-p}$ for some $p > 2$ ((8.41)(3)).
 \end{theorem}

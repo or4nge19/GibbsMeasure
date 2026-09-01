@@ -1,16 +1,13 @@
 \section{Existence of cluster points}
 
-Throughout, $S$ is the (countable) parameter set, $(E, \mathcal{E})$ the state space,
-$\Cfg = E^S$, $\mathcal{F} = \mathcal{E}^S$, $\mathcal{F}_\Lambda$ the $\sigma$-algebra of
-events depending only on the coordinates in $\Lambda$, and
-$\mathcal{F}^0 = \bigcup_{\Lambda \in \Fin} \mathcal{F}_\Lambda$ the algebra of local events.
-$\Prob(\Cfg, \mathcal{F})$ carries the topology of local convergence of \S4.1.
-
-Georgii's nets $(\mu_\alpha)_{\alpha \in D}$ are, in Lean, families $(\mu_a)_{a \in \iota}$
-indexed along an arbitrary filter $l$ on $\iota$; a net is the case where $l$ is the filter of
-a directed set, and $\limsup_{\alpha \in D}$ becomes $\limsup$ along $l$. This is more general
-than a net, and it is what is used at $l = \operatorname{atTop}$ on $\Fin$ for the
-finite-volume Gibbs distributions.
+Throughout, $S$ is the parameter set, $(E, \mathcal{E})$ the state space, $\Cfg = E^S$,
+$\mathcal{F} = \mathcal{E}^S$, $\mathcal{F}_\Lambda$ the $\sigma$-algebra of events depending
+only on the coordinates in $\Lambda$, and
+$\mathcal{F}^0 = \bigcup_{\Lambda \in \Fin} \mathcal{F}_\Lambda$ the algebra of local events;
+$\Prob(\Cfg, \mathcal{F})$ carries the topology of local convergence of \S4.1. Georgii's nets
+$(\mu_\alpha)_{\alpha \in D}$ appear as families $(\mu_a)_{a \in \iota}$ indexed along a filter
+$l$ on $\iota$, a net being the case of the filter of a directed set, and $\limsup_{\alpha \in D}$
+as $\limsup$ along $l$.
 
 \subsection*{Equicontinuity}
 
@@ -33,8 +30,7 @@ finite-volume Gibbs distributions.
 
     The family $(\mu_a)_{a \in \iota}$ is \textbf{equicontinuous} if the same conclusion holds
     for every sequence $(A_m)_{m \geq 1}$ in the whole algebra $\mathcal{F}^0$ of local events
-    with $A_m \downarrow \emptyset$. This is the condition Georgii calls hard to verify, because
-    the volume on which $A_m$ depends is allowed to grow with $m$.
+    with $A_m \downarrow \emptyset$; the volume on which $A_m$ depends may grow with $m$.
 \end{definition}
 
 \begin{lemma}[Georgii (4.5) implies (4.6)]
@@ -79,10 +75,9 @@ finite-volume Gibbs distributions.
 
     A measurable space $(E, \mathcal{E})$ is a \textbf{standard Borel space} if there exists a
     metric $d$ on $E$ which turns $E$ into a complete separable metric space and is such that
-    $\mathcal{E}$ is the Borel $\sigma$-algebra with respect to $d$. Mathlib's
-    \texttt{StandardBorelSpace} is the same class, phrased as ``the Borel $\sigma$-algebra of
-    some Polish topology''. Georgii's Comment (4.8), that a Borel subset of a complete separable
-    metric space is standard Borel, is Mathlib's \texttt{MeasurableSet.standardBorel}.
+    $\mathcal{E}$ is the Borel $\sigma$-algebra with respect to $d$; equivalently, $\mathcal{E}$
+    is the Borel $\sigma$-algebra of some Polish topology on $E$. By Georgii's Comment (4.8), a
+    Borel subset of a complete separable metric space is again standard Borel.
 \end{definition}
 
 \subsection*{Proof of Georgii (4.9): ultrafilter limit, marginals, Kolmogorov}
@@ -95,10 +90,8 @@ finite-volume Gibbs distributions.
 
     For an ultrafilter $U$ on $\iota$ and $A \subseteq \Cfg$ put
     $\mu^0(A) = \lim_{a \in U} \mu_a(A)$, the limit along $U$ of the evaluations, taken in
-    $[0,\infty]$. Georgii instead extracts a subnet converging pointwise in the compact space
-    $[0,1]^{\mathcal{F}^0}$; the Lean proof uses the compactness of $[0,\infty]$ one event at a
-    time, which is the same Tychonoff argument packaged as an ultrafilter limit and needs no
-    subnet formalism.
+    $[0,\infty]$. This exists by compactness of $[0,\infty]$, one event at a time; it replaces
+    Georgii's extraction of a subnet converging pointwise in $[0,1]^{\mathcal{F}^0}$.
 \end{definition}
 
 \begin{lemma}[$\mu^0$ is $\sigma$-additive on each $\mathcal{F}_\Lambda$]
@@ -155,10 +148,10 @@ finite-volume Gibbs distributions.
 
     Consistency is the identity
     $\operatorname{restrict}_{J \subseteq I} \circ \sigma_I = \sigma_J$ between coordinate
-    restrictions, so the push-forward of the $I$-marginal is the $J$-marginal. Georgii's
-    "standard Borel state space" hypothesis enters exactly here, through the Kolmogorov
-    extension theorem, which produces the projective limit $\mu$; evaluating $\mu$ on a
-    cylinder $\{\sigma_\Lambda \in B\}$ gives the $\Lambda$-marginal of $B$, i.e.\ $\mu^0$.
+    restrictions, so the push-forward of the $I$-marginal is the $J$-marginal. The standard
+    Borel hypothesis enters through the Kolmogorov extension theorem, which produces the
+    projective limit $\mu$; evaluating $\mu$ on a cylinder $\{\sigma_\Lambda \in B\}$ gives the
+    $\Lambda$-marginal of $B$, i.e.\ $\mu^0$.
 \end{proof}
 
 \begin{theorem}[Ultrafilter form of Georgii (4.9)]
@@ -185,10 +178,10 @@ finite-volume Gibbs distributions.
     \lean{MeasureTheory.GibbsMeasure.exists_mapClusterPt_of_locallyEquicontinuous}
     \leanok
 
-    Let $(E, \mathcal{E})$ be a standard Borel space. Then every locally equicontinuous net in
-    $\Prob(\Cfg, \mathcal{F})$ has at least one cluster point in $\Prob(\Cfg, \mathcal{F})$.
-    The Lean statement is at an arbitrary filter $l$ with $l \neq \bot$ (a net is one instance),
-    and it does \emph{not} assume $S$ countable, which Georgii assumes throughout.
+    Let $(E, \mathcal{E})$ be a standard Borel space, with no countability assumption on $S$.
+    Then every locally equicontinuous family in $\Prob(\Cfg, \mathcal{F})$ indexed along a
+    filter $l \neq \bot$ -- in particular every locally equicontinuous net -- has at least one
+    cluster point in $\Prob(\Cfg, \mathcal{F})$.
 \end{proposition}
 \begin{proof}
     \leanok
@@ -205,12 +198,11 @@ finite-volume Gibbs distributions.
     \lean{MeasureTheory.GibbsMeasure.dominatedBy}
     \leanok
 
-    Given finite measures $\nu_\Lambda$, $\Lambda \in \Fin$, set
+    Given measures $\nu_\Lambda$ on $(\Cfg, \mathcal{F})$, $\Lambda \in \Fin$, set
     \[\mathcal{K} = \set{\mu \in \Prob(\Cfg, \mathcal{F}) :
       \mu(A) \leq \nu_\Lambda(A) \text{ for all } A \in \mathcal{F}_\Lambda,\ \Lambda \in \Fin}.\]
-    Georgii's $\nu_\Lambda$ lives on the sub-$\sigma$-algebra $\mathcal{F}_\Lambda$; in Lean
-    $\nu_\Lambda$ is a finite measure on all of $\mathcal{F}$ and only its values on
-    $\mathcal{F}_\Lambda$-events are used, which is the same condition.
+    Only the values of $\nu_\Lambda$ on $\mathcal{F}_\Lambda$-events enter, so this is Georgii's
+    condition for $\nu_\Lambda$ defined on the sub-$\sigma$-algebra $\mathcal{F}_\Lambda$ alone.
 \end{definition}
 
 \begin{lemma}[Local uniform domination implies local equicontinuity]
@@ -223,8 +215,7 @@ finite-volume Gibbs distributions.
     If for each $\Lambda \in \Fin$ one has $\mu_a(A) \leq \nu_\Lambda(A)$ for all
     $A \in \mathcal{F}_\Lambda$ and eventually in $a$, with $\nu_\Lambda$ finite, then
     $(\mu_a)_{a \in \iota}$ is locally equicontinuous. Moreover $\mathcal{K}$ is closed in the
-    topology of local convergence. This is Georgii's \emph{local uniform domination} with the
-    linear modulus $\delta = \varepsilon$, which is the only case used in (4.10)--(4.13).
+    topology of local convergence.
 \end{lemma}
 \begin{proof}
     \leanok
@@ -260,13 +251,12 @@ finite-volume Gibbs distributions.
     \lean{MeasureTheory.GibbsMeasure.isCompact_closure_setOf_mem_GP_modification}
     \leanok
 
-    Let $(E, \mathcal{E})$ be standard Borel, $\lambda$ a finite a priori measure, and
-    $\gamma = \rho\lambda$ a $\lambda$-specification with bounded $\rho_\Lambda$'s (for instance
-    Gibbsian for an absolutely summable potential). Then $\Gibbs{\gamma}$ is contained in a set
-    $\mathcal{K}$ as in Corollary \ref{cor:cp-410}, hence relatively compact. In Lean the a
-    priori measure is a probability measure $\nu$ (Georgii's finite $\lambda$, normalised),
-    $\gamma$ is a modification $\rho\ISSSD(\nu)$ with $\rho_\Lambda \leq C_\Lambda < \infty$,
-    and the conclusion is the compactness of the closure of $\Gibbs{\rho\ISSSD(\nu)}$.
+    Let $(E, \mathcal{E})$ be standard Borel, $\nu$ an a priori probability measure (Georgii's
+    finite $\lambda$, normalised), and $\gamma = \rho\ISSSD(\nu)$ a modification of the
+    independent specification with $\rho_\Lambda \leq C_\Lambda < \infty$ for each
+    $\Lambda \in \Fin$ (for instance Gibbsian for an absolutely summable potential). Then
+    $\Gibbs{\rho\ISSSD(\nu)}$ is contained in a set $\mathcal{K}$ as in
+    Corollary \ref{cor:cp-410}, and its closure is compact.
 \end{example}
 \begin{proof}
     \leanok
@@ -284,13 +274,10 @@ finite-volume Gibbs distributions.
     \uses{cor:cp-410}
     \leanok
 
-    Suppose $E$ is finite. Then $\Prob(\Cfg, \mathcal{F})$ is compact. Take
+    Suppose $E$ is finite, read as a discrete space: every singleton is measurable. Then
+    $\Prob(\Cfg, \mathcal{F})$ is compact, by taking
     $\nu_\Lambda(\sigma_\Lambda \in A) = |A|$ for $A \subseteq E^\Lambda$ in
-    Corollary \ref{cor:cp-410}. In Lean this is an \emph{anonymous}
-    \texttt{CompactSpace} instance in \texttt{GibbsMeasure/Topology/ClusterPoints.lean} (so
-    there is no name to cite), proved for \texttt{Finite E} together with
-    \texttt{MeasurableSingletonClass E}; the latter is Georgii's tacit reading of a finite state
-    space as a discrete one, and it is what makes the counting measures available.
+    Corollary \ref{cor:cp-410}.
 \end{example}
 \begin{proof}
     \leanok
@@ -311,44 +298,34 @@ finite-volume Gibbs distributions.
     \lean{MeasureTheory.GibbsMeasure.locallyEquicontinuous_of_eventually_boundedOn}
     \leanok
 
-    Let $(E, \mathcal{E})$ be standard Borel, $\lambda \in \Meas(E, \mathcal{E})$, and let
-    $(\mu_\alpha)_{\alpha \in D}$ be random fields $\mu_\alpha = \nu_\alpha \gamma^\alpha_{\Lambda_\alpha}$,
-    where $(\nu_\alpha)$ is a net in $\Prob(\Cfg, \mathcal{F})$, $\gamma^\alpha = \rho^\alpha\lambda$
-    are $\lambda$-specifications, and $\Lambda_\alpha \to S$ cofinally in $\Fin$. Suppose that for
-    each $\Lambda \in \Fin$ and $\varepsilon > 0$ there are $B \in \mathcal{F}$ and
-    $B_\Lambda \in \mathcal{E}^\Lambda$ with $B \subseteq \{\sigma_\Lambda \in B_\Lambda\}$,
-    $\lambda^\Lambda(B_\Lambda) < \infty$,
-    \[\limsup_{\alpha \in D} \sup_{\omega \in B} \rho^\alpha_\Lambda(\omega) < \infty,
+    Let $\gamma_0$ be a specification with free measure a probability measure $\mu_0$, that is
+    $(\gamma_0)_\Lambda(A \mid \eta) = \mu_0(A)$ for all $\Lambda \in \Fin$,
+    $A \in \mathcal{F}_\Lambda$ and $\eta \in \Cfg$; this is Georgii's
+    $\lambda_\Lambda(A \mid \eta) = \lambda^S(A)$ for a finite, hence normalisable, $\lambda$,
+    and both $\ISSSD(\nu)$ and its inhomogeneous variant qualify. Let
+    $\gamma^a = \rho^a\gamma_0$, $a \in \iota$, be modifications of $\gamma_0$, let
+    $(\nu_a)_{a \in \iota}$ be a family in $\Prob(\Cfg, \mathcal{F})$, let
+    $\Lambda_a \to S$ along $l$ in $\Fin$, and put
+    $\mu_a = \nu_a \gamma^a_{\Lambda_a}$. Suppose that for each $\Lambda \in \Fin$ and each
+    $\varepsilon > 0$ there are $B \in \mathcal{F}$ and $C < \infty$ with
+    \[\rho^a_\Lambda \leq C \text{ on } B \text{ eventually in } a,
       \qquad
-      \limsup_{\alpha \in D} \mu_\alpha(\Cfg \setminus B) \leq \varepsilon.\]
-    Then $(\mu_\alpha)_{\alpha \in D}$ is locally equicontinuous, and therefore (by
-    Proposition \ref{prop:cp-49}) has a cluster point.
-
-    The Lean statement differs from the book in four ways, all recorded in the module docstring
-    of \texttt{Specification/NetEquicontinuity.lean}. (a) The reference object is an arbitrary
-    specification $\gamma_0$ with a \emph{probability} free measure $\mu_0$, i.e.\
-    $(\gamma_0)_\Lambda(A \mid \eta) = \mu_0(A)$ for $A \in \mathcal{F}_\Lambda$ (Georgii's
-    $\lambda_\Lambda(A \mid \eta) = \lambda^S(A)$ for a finite, hence normalisable, $\lambda$);
-    both $\ISSSD(\nu)$ and its inhomogeneous variant qualify. (b) With $\lambda$ a probability
-    measure the set $B_\Lambda$ may be taken to be $E^\Lambda$, so the hypothesis
-    $\lambda^\Lambda(B_\Lambda) < \infty$ is vacuous and is dropped. (c) The density bound is
-    stated in the directly usable eventual form ``$\rho^a_\Lambda \leq C$ on $B$ eventually in
-    $a$'', with $C < \infty$; the literal $\limsup$--$\sup$ form is
-    Lemma \ref{lem:cp-412-limsup}. (d) The conclusion is local equicontinuity only, and it is
-    proved with \emph{no} hypothesis on $(E, \mathcal{E})$: standard Borelness is needed only for
-    the cluster point, i.e.\ when Proposition \ref{prop:cp-49} is applied.
+      \limsup_{a \in l} \mu_a(\Cfg \setminus B) \leq \varepsilon.\]
+    Then $(\mu_a)_{a \in \iota}$ is locally equicontinuous, with no assumption on
+    $(E, \mathcal{E})$; if $(E, \mathcal{E})$ is standard Borel it therefore has a cluster point
+    by Proposition \ref{prop:cp-49}.
 \end{theorem}
 \begin{proof}
     \leanok
 
     Let $\Lambda \in \Fin$, $A_m \in \mathcal{F}_\Lambda$ with $A_m \downarrow \emptyset$, and
-    choose $B$, $C$ for $\varepsilon/2$. Since $\Lambda_\alpha \to S$, eventually
-    $\Lambda \subseteq \Lambda_\alpha$ and consistency gives
-    $\mu_\alpha = \mu_\alpha\gamma^\alpha_\Lambda$. Splitting $A_m$ along $B$,
-    \[\mu_\alpha(A_m) \leq \mu_\alpha(A_m \cap B) + \mu_\alpha(\Cfg\setminus B)
-      \leq C\,\mu_0(A_m) + \mu_\alpha(\Cfg \setminus B),\]
-    using $\gamma^\alpha_\Lambda(A_m \cap B \mid \omega) \leq C\,(\gamma_0)_\Lambda(A_m \mid \omega)
-    = C\,\mu_0(A_m)$. Taking $\limsup_\alpha$ gives
+    choose $B$, $C$ for $\varepsilon/2$. Since $\Lambda_a \to S$, eventually
+    $\Lambda \subseteq \Lambda_a$ and consistency gives
+    $\mu_a = \mu_a\gamma^a_\Lambda$. Splitting $A_m$ along $B$,
+    \[\mu_a(A_m) \leq \mu_a(A_m \cap B) + \mu_a(\Cfg\setminus B)
+      \leq C\,\mu_0(A_m) + \mu_a(\Cfg \setminus B),\]
+    using $\gamma^a_\Lambda(A_m \cap B \mid \omega) \leq C\,(\gamma_0)_\Lambda(A_m \mid \omega)
+    = C\,\mu_0(A_m)$. Taking $\limsup_a$ gives
     $C\,\mu_0(A_m) + \varepsilon/2$, and $\mu_0(A_m) \to 0$ because $\mu_0$ is a
     $\sigma$-additive finite measure; so the $\limsup$ is $\leq \varepsilon$ for large $m$.
 \end{proof}
@@ -386,10 +363,10 @@ finite-volume Gibbs distributions.
               $\ell$, the densities $\rho^a_\Lambda$ are eventually bounded by a finite constant on
               the box $K_\ell^\Delta \times E^{S \setminus \Delta}$.
     \end{enumerate}
-    Then $(\mu_a)$ is locally equicontinuous. In Lean hypothesis (i) is absent entirely: with a
-    probability reference measure the finiteness half is automatic, and the positivity half is
-    needed only in the Hamiltonian form (Corollary \ref{cor:cp-413-ham}). Hypothesis (iii) is
-    stated over the box for $\Delta$, which is what Georgii's proof uses.
+    Then $(\mu_a)$ is locally equicontinuous. Of (i) only the measurability of the $K_\ell$ is
+    used here; the positivity enters in the Hamiltonian form,
+    Corollary \ref{cor:cp-413-ham}, and the finiteness is automatic for a reference probability
+    measure.
 \end{corollary}
 \begin{proof}
     \leanok
@@ -408,16 +385,15 @@ finite-volume Gibbs distributions.
     \lean{Potential.locallyEquicontinuous_of_confinement_hamiltonian}
     \leanok
 
-    Georgii's own statement: for $\lambda$-admissible potentials $\Phi^\alpha$ and
-    $\mu_\alpha = \nu_\alpha \gamma^{\Phi^\alpha}_{\Lambda_\alpha}$, hypothesis (iii) reads
-    \[\limsup_{\alpha \in D} \sup_{\omega \in K_\ell^\Delta \times E^{S\setminus\Delta}}
-      |H^{\Phi^\alpha}_\Lambda(\omega)| < \infty \qquad (\ell \geq 1),\]
-    and (i)--(iii) again give local equicontinuity. The Lean version is at the narrower class of
-    \emph{absolutely summable} potentials $\Phi^a \in \Bspace$ with a probability a priori
-    measure $\nu$ and an explicit inverse temperature $\beta$ (Georgii absorbs $\beta$ into
-    $\Phi$), and it assumes $S$ countable; it keeps the surviving half $0 < \nu(K_\ell)$ of
-    Georgii's (i). Since $\nu$ is finite, $\Phi^a \in \Bspace$ is $\nu$-admissible, so this is a
-    special case of Georgii's hypotheses.
+    Let $S$ be countable, $\nu$ an a priori probability measure, $\beta \in \R$, and let
+    $(\Phi^a)_{a \in \iota}$ be summable potentials whose Boltzmann factors are
+    $\nu$-admissible in the sense of Georgii's condition (2.7). Put
+    $\mu_a = \nu_a \gamma^{\Phi^a}_{\Lambda_a}$ and assume $0 < \nu(K_\ell)$ for all $\ell$
+    together with (ii) of Corollary \ref{cor:cp-413}, while (iii) is replaced by the Hamiltonian
+    bound
+    \[\limsup_{a} \sup_{\omega \in K_\ell^\Delta \times E^{S\setminus\Delta}}
+      |H^{\Phi^a}_\Lambda(\omega)| < \infty \qquad (\ell \geq 1).\]
+    Then $(\mu_a)$ is locally equicontinuous.
 \end{corollary}
 \begin{proof}
     \leanok
@@ -433,15 +409,12 @@ finite-volume Gibbs distributions.
     \label{rmk:cp-414}
     \uses{cor:cp-413-ham}
 
-    (1) The hypotheses (i)--(iii) hold trivially when $\lambda$ is finite and
-    $\limsup_\alpha \|\Phi^\alpha\|_i < \infty$ for all $i$ (take $K_\ell = E$, $\Delta = \Lambda$).
-    This bounded-density case is formalised, for a single absolutely summable potential and the
-    net of finite-volume Gibbs distributions with a fixed boundary condition, in
-    \texttt{GibbsMeasure/Potential/Existence.lean}; it belongs with the existence theorem of
-    \S4.4 and is documented there.
-    (2) Georgii's more general sufficient condition for (iii) -- the existence of a finite-range
-    potential $\Phi$ with $\limsup_\alpha \|\Phi^\alpha - \Phi\|_i < \infty$ for all $i$ and each
-    $\Phi_A$ bounded on $K_\ell^S$ -- is \emph{not} formalised.
+    (1) The hypotheses (i)--(iii) hold when $\lambda$ is finite and
+    $\limsup_\alpha \|\Phi^\alpha\|_i < \infty$ for all $i$: take $K_\ell = E$ and
+    $\Delta = \Lambda$.
+    (2) Hypothesis (iii) also follows from the existence of a finite-range potential $\Phi$
+    with $\limsup_\alpha \|\Phi^\alpha - \Phi\|_i < \infty$ for all $i$ and each $\Phi_A$
+    bounded on $K_\ell^S$.
 \end{remark}
 
 \subsection*{Georgii (4.15): from cluster point to convergent subsequence}
@@ -457,14 +430,13 @@ finite-volume Gibbs distributions.
     \leanok
 
     For a sequence $(\mu_n)_{n \geq 1}$ and a candidate limit $\mu$, put
-    $\nu = \sum_{n} 2^{-n}\mu_n$ (the Lean \texttt{domMeasure} also charges $\mu$, which makes
-    the density of $\mu$ available too), let $h_{n,\Lambda}$ be a Radon--Nikodym density of
+    $\nu = \mu + \sum_{n \geq 1} 2^{-n}\mu_n$, so that the densities of $\mu$ are available as
+    well as those of the $\mu_n$; let $h_{n,\Lambda}$ be a Radon--Nikodym density of
     $\mu_n|\mathcal{F}_\Lambda$ with respect to $\nu|\mathcal{F}_\Lambda$, let
     $\mathcal{A}_\Lambda \subseteq \mathcal{F}_\Lambda$ be the $\sigma$-algebra generated by the
     $h_{n,\Lambda}$, and let $\mathcal{A}^0_\Lambda$ be the family of finite intersections of
     preimages, under the $h_{n,\Lambda}$, of a fixed countable generating family of the Borel
-    sets of $[0,\infty]$ (Georgii uses the sublevel sets $\{h_{n,\Lambda} \leq c\}$, $c$
-    rational). Finally $\mathcal{A}^0 = \bigcup_{\Lambda \in \Fin} \mathcal{A}^0_\Lambda$.
+    sets of $[0,\infty]$. Finally $\mathcal{A}^0 = \bigcup_{\Lambda \in \Fin} \mathcal{A}^0_\Lambda$.
 \end{definition}
 
 \begin{lemma}[$\mathcal{A}^0$ is a countable $\pi$-system of local events generating the
@@ -479,8 +451,7 @@ finite-volume Gibbs distributions.
     \leanok
 
     Each $\mathcal{A}^0_\Lambda$ is a countable $\pi$-system generating $\mathcal{A}_\Lambda$,
-    and $\mathcal{A}^0$ is a countable family of local events. Countability of $S$ is used here,
-    and only here, to make the union over $\Lambda \in \Fin$ countable.
+    and, $S$ being countable, $\mathcal{A}^0$ is a countable family of local events.
 \end{lemma}
 \begin{proof}
     \leanok
@@ -489,7 +460,8 @@ finite-volume Gibbs distributions.
     $\sigma$-algebra; the preimages of a countable generating family of the Borel sets of
     $[0,\infty]$ under the countably many $h_{n,\Lambda}$ generate exactly
     $\mathcal{A}_\Lambda$. Each generator is $\mathcal{F}_\Lambda$-measurable because the
-    $h_{n,\Lambda}$ are, so it is a local event.
+    $h_{n,\Lambda}$ are, so it is a local event. Countability of $S$ makes the union over
+    $\Lambda \in \Fin$ countable.
 \end{proof}
 
 \begin{lemma}[Transfer from $\mathcal{A}_\Lambda$ back to $\mathcal{F}_\Lambda$]
@@ -501,10 +473,10 @@ finite-volume Gibbs distributions.
       MeasureTheory.GibbsMeasure.tendsto_lintegral_of_tendsto_setwise}
     \leanok
 
-    Let $A \in \mathcal{F}_\Lambda$ and let $f_A$ be a version of $\nu(A \mid \mathcal{A}_\Lambda)$
-    (in Lean: a Radon--Nikodym density of $\nu(A \cap \cdot)|\mathcal{A}_\Lambda$ with respect to
-    $\nu|\mathcal{A}_\Lambda$, truncated at $1$). Then
-    $\rho(A) = \rho(f_A)$ for every measure $\rho \ll \nu$ whose density on
+    Let $A \in \mathcal{F}_\Lambda$ and let $f_A$ be the version of
+    $\nu(A \mid \mathcal{A}_\Lambda)$ given by a Radon--Nikodym density of
+    $\nu(A \cap \cdot)|\mathcal{A}_\Lambda$ with respect to $\nu|\mathcal{A}_\Lambda$, truncated
+    at $1$. Then $\rho(A) = \rho(f_A)$ for every measure $\rho \ll \nu$ whose density on
     $\mathcal{F}_\Lambda$ is $\mathcal{A}_\Lambda$-measurable -- in particular for each $\mu_n$
     and for $\mu$. Moreover, setwise convergence on $\mathcal{A}_\Lambda$ of probability measures
     implies convergence of the integrals of every $\mathcal{A}_\Lambda$-measurable function
@@ -552,11 +524,10 @@ finite-volume Gibbs distributions.
       MeasureTheory.GibbsMeasure.exists_strictMono_tendsto_of_mapClusterPt}
     \leanok
 
-    Suppose $\mu \in \Prob(\Cfg, \mathcal{F})$ is a cluster point of a locally equicontinuous
-    sequence $(\mu_n)_{n \geq 1}$ in $\Prob(\Cfg, \mathcal{F})$. Then there is a subsequence
-    $(\mu_{n_k})_{k\geq 1}$ which converges to $\mu$. No assumption whatever is made on the state
-    space $(E, \mathcal{E})$ -- in particular no standard Borel hypothesis; $S$ is countable, as
-    everywhere in Georgii.
+    Let $S$ be countable, with no assumption on $(E, \mathcal{E})$. Suppose
+    $\mu \in \Prob(\Cfg, \mathcal{F})$ is a cluster point of a locally equicontinuous sequence
+    $(\mu_n)_{n \geq 1}$ in $\Prob(\Cfg, \mathcal{F})$. Then there is a subsequence
+    $(\mu_{n_k})_{k\geq 1}$ which converges to $\mu$.
 \end{proposition}
 \begin{proof}
     \leanok

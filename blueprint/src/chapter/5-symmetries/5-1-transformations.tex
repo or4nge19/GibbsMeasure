@@ -2,9 +2,9 @@
 
 Throughout, $(\Cfg, \mathcal{F}) = (E, \mathcal{E})^S$ is a countably infinite product,
 $\Fin$ denotes the finite subsets of $S$, and $\lambda \in \Meas(E, \mathcal{E})$ is an a
-priori measure.  Georgii §5.1 studies the invertible transformations of $\Cfg$ that are
-induced by a bijection of the sites together with spin transformations acting separately at
-each site, and their action on potentials, $\lambda$-modifications and specifications.
+priori measure.  This section treats the invertible transformations of $\Cfg$ induced by a
+bijection of the sites together with spin transformations acting separately at each site, and
+their action on potentials, $\lambda$-modifications and specifications.
 
 \begin{definition}[Transformations of $\Cfg$, Georgii (5.1)]
     \label{def:trans-transformation}
@@ -18,14 +18,9 @@ each site, and their action on potentials, $\lambda$-modifications and specifica
     Let $T$ be the set of all transformations $\tau : \Cfg \to \Cfg$ of the form
     \[\tau : \omega \mapsto (\tau_i\,\omega_{\tau_*^{-1} i})_{i \in S},\]
     where $\tau_*$ is a bijection of $S$ and each $\tau_i$ is a bimeasurable bijection of $E$.
-    We write $\tau = (\tau_*; \tau_i, i \in S)$.  Every $\tau \in T$ is measurable, indeed a
-    measurable isomorphism of $\Cfg$.
-
-    In Lean, \texttt{Transformation S E} is the structure bundling the two data
-    \texttt{sites : S $\simeq$ S} and \texttt{spin : S $\to$ E $\simeq^m$ E}; the action is
-    \texttt{toFun}, and \texttt{toMeasurableEquiv} packages it as a measurable equivalence.
-    It is identified with the composite of Mathlib's \texttt{piCongrLeft} (reindexing along
-    $\tau_*$) and \texttt{piCongrRight} (applying the spins $\tau_i$).
+    We write $\tau = (\tau_*; \tau_i, i \in S)$.  Every $\tau \in T$ is a measurable
+    isomorphism of $\Cfg$, namely the composite of the reindexing along $\tau_*$ with the
+    coordinatewise application of the spins $\tau_i$.
 \end{definition}
 
 \begin{lemma}[$T$ is a group, Georgii §5.1]
@@ -48,11 +43,7 @@ each site, and their action on potentials, $\lambda$-modifications and specifica
     \leanok
 
     Composition of the site bijections and of the spin equivalences is again of the displayed
-    shape, and the stated formula for $\tau^{-1}$ is checked pointwise.  The Lean file supplies
-    the \texttt{Group} instance on \texttt{Transformation S E} together with the
-    \texttt{MulAction} on $S \to E$; the cited \texttt{mul\_def}, \texttt{one\_def},
-    \texttt{inv\_def}, \texttt{smul\_def} identify the group operations with
-    \texttt{comp}, \texttt{id}, \texttt{inv} and the action with \texttt{toFun}.
+    shape, and the stated formula for $\tau^{-1}$ is checked pointwise.
 \end{proof}
 
 \begin{lemma}[Transport of the finite-volume $\sigma$-algebras, Georgii, remark after (5.1)]
@@ -90,14 +81,9 @@ each site, and their action on potentials, $\lambda$-modifications and specifica
 
     Let $S = \mathbb{Z}^d$.  For $j \in S$ the \emph{shift} (translation) by $j$ is
     \[\theta_j : \omega \mapsto (\omega_{i-j})_{i \in S},\]
-    i.e.\ $\theta_j = (\,\cdot + j\,;\, \mathrm{id}_E, i \in S) \in T$.  The family
-    $\Theta = (\theta_j)_{j \in S}$ is an abelian subgroup of $T$.
-
-    In Lean the lattice $\mathbb{Z}^d$ is modelled as \texttt{Fin d $\to$ $\mathbb{Z}$} and
-    $\theta_j$ is \texttt{shift E j}, with site part \texttt{Equiv.addRight j} and trivial
-    spins; the two simp lemmas record $(\theta_j\omega)_i = \omega_{i-j}$ and
-    $(\theta_j^{-1}\omega)_i = \omega_{i+j}$.  That $\Theta$ is an abelian subgroup is not
-    recorded as a separate declaration.
+    i.e.\ $\theta_j = (\,\cdot + j\,;\, \mathrm{id}_E, i \in S) \in T$, with
+    $(\theta_j^{-1}\omega)_i = \omega_{i+j}$.  The family $\Theta = (\theta_j)_{j \in S}$ is an
+    abelian subgroup of $T$.
 \end{example}
 
 \begin{example}[Spin flip and spin rotation, Georgii (5.2)(2),(3)]
@@ -105,18 +91,11 @@ each site, and their action on potentials, $\lambda$-modifications and specifica
     \uses{def:trans-transformation}
 
     If $E$ is a symmetric Borel subset of $\R$, the \emph{spin flip}
-    $\tau : \omega \mapsto (-\omega_i)_{i \in S}$ lies in $T$ (with $\tau_* = \mathrm{id}$).
-    If $E$ is a rotation invariant Borel subset of $\R^N$ and $M \in SO(N)$, the \emph{spin
-    rotation} $\omega \mapsto (M\omega_i)_{i \in S}$ lies in $T$.
-
-    Both are instances of Definition~\ref{def:trans-transformation} with
-    $\tau_* = \mathrm{id}$ and a constant family of spin equivalences.  Neither is formalized at
-    Georgii's generality.  What the library has is the single Boolean instance
-    \texttt{MeasureTheory.GibbsMeasure.Peierls.spinFlip}, the spin flip
-    $\omega \mapsto (\neg\,\omega_i)_i$ on $\{0,1\}^{\mathbb{Z}^2}$ used for the Ising model in
-    \texttt{Model/PhaseTransition.lean}; it is the case $E = \{\pm 1\}$ of (5.2)(2).  The
-    general construction for a symmetric Borel $E \subset \R$, and the spin rotation of
-    (5.2)(3), are not formalized.
+    $\tau : \omega \mapsto (-\omega_i)_{i \in S}$ lies in $T$.  If $E$ is a rotation invariant
+    Borel subset of $\R^N$ and $M \in SO(N)$, the \emph{spin rotation}
+    $\omega \mapsto (M\omega_i)_{i \in S}$ lies in $T$.  Both are instances of
+    Definition~\ref{def:trans-transformation} with $\tau_* = \mathrm{id}$ and a constant family
+    of spin equivalences.
 \end{example}
 
 \begin{definition}[$\lambda$-preserving transformations, Georgii §5.1]
@@ -126,10 +105,6 @@ each site, and their action on potentials, $\lambda$-modifications and specifica
     Given $\lambda \in \Meas(E, \mathcal{E})$, a transformation
     $\tau = (\tau_*; \tau_i, i \in S) \in T$ is \emph{$\lambda$-preserving} if
     $\tau_i(\lambda) = \lambda \circ \tau_i^{-1} = \lambda$ for every $i \in S$.
-
-    There is no named predicate for this in the library: it is carried as the hypothesis
-    \texttt{h$\tau$ : $\forall$ i, MeasurePreserving ($\tau$.spin i) $\nu$ $\nu$} on the
-    results that need it.
 \end{definition}
 
 \subsection*{The action on potentials, on modifications and on specifications}
@@ -143,9 +118,7 @@ each site, and their action on potentials, $\lambda$-modifications and specifica
     For a family $\varphi = (\varphi_\Lambda)_{\Lambda \in \Fin}$ of functions on $\Cfg$ set
     \[\tau(\varphi) = (\varphi_{\tau_*^{-1}\Lambda} \circ \tau^{-1})_{\Lambda \in \Fin}.\]
     This applies in particular to potentials and to $\lambda$-modifications.  If $\Phi$ is a
-    potential then so is $\tau(\Phi)$: the Lean file supplies the \texttt{IsPotential} instance
-    for \texttt{Potential.map $\tau$ $\Phi$}, using
-    Lemma~\ref{lem:trans-cylinder-transport}.
+    potential then so is $\tau(\Phi)$, by Lemma~\ref{lem:trans-cylinder-transport}.
 \end{definition}
 
 \begin{lemma}[(5.3) is a left action]
@@ -178,11 +151,8 @@ each site, and their action on potentials, $\lambda$-modifications and specifica
     \[\tau(\gamma)_\Lambda(A \mid \omega) = \gamma_{\tau_*^{-1}\Lambda}(\tau^{-1}A \mid
       \tau^{-1}\omega) \qquad (\Lambda \in \Fin,\ A \in \mathcal{F},\ \omega \in \Cfg),\]
     equivalently $\tau(\gamma)_{\tau_*\Lambda}(\tau A \mid \tau\omega) =
-    \gamma_\Lambda(A \mid \omega)$.  The $\tau$-image of a specification is a specification.
-
-    In Lean \texttt{Specification.map} produces a bundled \texttt{Specification}, so the
-    consistency, properness and Markov property of $\tau(\gamma)$ are part of the definition;
-    \texttt{map\_apply'} and \texttt{map\_apply\_image} are the two displayed forms.
+    \gamma_\Lambda(A \mid \omega)$.  The $\tau$-image of a specification is again a
+    specification: consistency, properness and the Markov property are preserved.
 \end{definition}
 
 \begin{lemma}[Georgii (5.5)]
@@ -193,9 +163,8 @@ each site, and their action on potentials, $\lambda$-modifications and specifica
 
     Equation (5.4) is equivalent to
     \[(\tau(\gamma)_{\tau_*\Lambda} f) \circ \tau = \gamma_\Lambda(f \circ \tau)\]
-    for all $\Lambda \in \Fin$ and all bounded or non-negative measurable $f$ on $\Cfg$.  The
-    library proves both the Lebesgue form (for $f$ with values in $[0,\infty]$) and the
-    Bochner form (for $f$ with values in a Banach space).
+    for all $\Lambda \in \Fin$ and all measurable $f$ on $\Cfg$ with values in $[0,\infty]$ or
+    in a Banach space.
 \end{lemma}
 \begin{proof}
     \leanok
@@ -216,7 +185,7 @@ each site, and their action on potentials, $\lambda$-modifications and specifica
 \begin{proof}
     \leanok
 
-    Both sides are computed by \texttt{map\_apply}; the claim reduces to
+    Both sides are computed from (5.4); the claim reduces to
     $(\tau\sigma)_*^{-1}\Lambda = \sigma_*^{-1}\tau_*^{-1}\Lambda$,
     $(\tau\sigma)^{-1} = \sigma^{-1}\tau^{-1}$ and functoriality of the pushforward of measures.
 \end{proof}
@@ -240,10 +209,6 @@ each site, and their action on potentials, $\lambda$-modifications and specifica
         \item $\varphi$ (resp.\ $\mu$, $\gamma$) is \emph{$I$-invariant} if it is
         $\tau$-invariant for every $\tau \in I$.
     \end{enumerate}
-    In Lean, $\tau$-invariance of a specification is \texttt{Specification.IsInvariant}, with
-    \texttt{isInvariant\_iff} the displayed form of (b); \texttt{Potential.map\_eq\_iff} is the
-    displayed form of (a) for potentials.  $\tau$-invariance of a measure is expressed by
-    Mathlib's \texttt{MeasurePreserving $\tau$.toFun $\mu$ $\mu$}.
 \end{definition}
 
 \begin{lemma}[Symmetries form a monoid, Georgii (5.7)(d)]
@@ -253,11 +218,9 @@ each site, and their action on potentials, $\lambda$-modifications and specifica
     \leanok
 
     $\mathrm{id}$ is a symmetry of every specification $\gamma$, and if $\tau, \sigma$ are
-    symmetries of $\gamma$ then so is $\tau \circ \sigma$.
-
-    Georgii (5.7)(d) asserts more, namely that the symmetries of $\gamma$ form a \emph{subgroup}
-    of $T$; closure under inverses is not proved in the tree, so what carries \leanok\ here is
-    only the stated monoid version.
+    symmetries of $\gamma$ then so is $\tau \circ \sigma$.  Georgii (5.7)(d) asserts in addition
+    that the symmetries of $\gamma$ form a subgroup of $T$; closure under inverses is not covered
+    by the \leanok\ above.
 \end{lemma}
 \begin{proof}
     \leanok
@@ -276,21 +239,18 @@ each site, and their action on potentials, $\lambda$-modifications and specifica
           MeasureTheory.GibbsMeasure.Transformation.measurePreserving_spin_piCongrLeft}
     \leanok
 
-    Let $\lambda$ be an a priori measure and $\tau \in T$ be $\lambda$-preserving.  Then
+    Let $\lambda \in \Prob(E, \mathcal{E})$ and let $\tau \in T$ be $\lambda$-preserving.  Then
     $\tau(\lambda_\cdot) = \lambda_\cdot$, i.e.\ the independent specification
-    $\lambda_\cdot = \ISSSD(\lambda)$ is $\tau$-invariant.
-
-    Georgii states this for $\lambda \in \Meas(E, \mathcal{E})$; the Lean statement assumes
-    $\lambda$ is a probability measure (the standing hypothesis of \texttt{isssd}).  The
-    underlying reindexing lemma \texttt{measurePreserving\_spin\_piCongrLeft} is proved for any
-    $\sigma$-finite $\lambda$, hence is more general than the use made of it here.
+    $\lambda_\cdot = \ISSSD(\lambda)$ is $\tau$-invariant.  The underlying reindexing map
+    $\zeta \mapsto (\tau_i\,\zeta_{\tau_*^{-1}i})_{i \in \Lambda}$ carries
+    $\lambda^{\tau_*^{-1}\Lambda}$ to $\lambda^\Lambda$ for every $\sigma$-finite $\lambda$.
 \end{proposition}
 \begin{proof}
     \leanok
 
     By definition $\lambda_\Lambda(\cdot\mid\omega)$ is the image of $\lambda^\Lambda$ under the
-    juxtaposition $\zeta \mapsto \zeta_\Lambda \omega_{\Lambda^c}$.  The key identity
-    \texttt{toFun\_comp\_juxt} says that $\tau$ intertwines the juxtapositions:
+    juxtaposition $\zeta \mapsto \zeta_\Lambda \omega_{\Lambda^c}$, and $\tau$ intertwines the
+    juxtapositions:
     $\tau \circ \juxtBy{\tau_*^{-1}\Lambda}(\tau^{-1}\omega)
      = \juxtBy{\Lambda}(\omega) \circ g$, where $g$ reindexes $\tau_*^{-1}\Lambda \to \Lambda$
     along $\tau_*$ and applies the spins $\tau_i$.  Since $\tau$ is $\lambda$-preserving, $g$
@@ -304,11 +264,10 @@ each site, and their action on potentials, $\lambda$-modifications and specifica
           Specification.coe_modification_isssd_map}
     \leanok
 
-    Let $\tau \in T$ be $\lambda$-preserving.  For every $\lambda$-modification $\rho$, the
-    family $\tau(\rho)$ of (5.3) is again a $\lambda$-modification, and
+    Let $\lambda \in \Prob(E, \mathcal{E})$ and let $\tau \in T$ be $\lambda$-preserving.  For
+    every $\lambda$-modification $\rho$, the family $\tau(\rho)$ of (5.3) is again a
+    $\lambda$-modification, and
     \[\tau(\rho)\,\lambda_\cdot = \tau(\rho\,\lambda_\cdot).\]
-
-    As in (5.6)(a), the Lean statement assumes that $\lambda$ is a probability measure.
 \end{proposition}
 \begin{proof}
     \leanok
@@ -319,11 +278,11 @@ each site, and their action on potentials, $\lambda$-modifications and specifica
       = \lambda_\Lambda\big((\tau(\rho)_{\tau_*\Lambda} f) \circ \tau\big)
       = [\lambda_{\tau_*\Lambda}(\tau(\rho)_{\tau_*\Lambda} f)] \circ \tau
       = [(\tau(\rho)\lambda_\cdot)_{\tau_*\Lambda} f] \circ \tau,\]
-    and $\tau$ is invertible.  In Lean the computation is done at the level of kernels:
-    \texttt{coe\_modification\_isssd\_map} rewrites the pushforward of a
-    \texttt{withDensity} measure along the measurable equivalence $\tau$, and then applies
-    Proposition~\ref{prop:trans-isssd-invariant}.  That $\tau(\rho)$ is a modification then
-    follows because the resulting family of kernels is a specification.
+    and $\tau$ is invertible.  Equivalently, at the level of kernels: the image under $\tau$ of
+    the measure with density $\rho_\Lambda$ with respect to $\lambda_\Lambda(\cdot\mid\omega)$
+    is, by Proposition~\ref{prop:trans-isssd-invariant}, the measure with density
+    $\tau(\rho)_{\tau_*\Lambda}$ with respect to $\lambda_{\tau_*\Lambda}(\cdot\mid\tau\omega)$.
+    Since the resulting family of kernels is a specification, $\tau(\rho)$ is a modification.
 \end{proof}
 
 \begin{lemma}[Hamiltonians and partition functions, Georgii (5.6)(c)]
@@ -334,12 +293,12 @@ each site, and their action on potentials, $\lambda$-modifications and specifica
           Specification.premodifierNorm_map, Specification.lintegral_isssd_comp_inv}
     \leanok
 
-    For every $\Lambda \in \Fin$,
+    Let $\tau \in T$.  For every potential $\Phi$ and every $\Lambda \in \Fin$,
     \[H^{\tau(\Phi)}_{\tau_*\Lambda} \circ \tau = H^\Phi_\Lambda, \qquad
-      h^{\tau(\Phi)}_{\tau_*\Lambda} \circ \tau = h^\Phi_\Lambda,\]
-    and, for $\lambda$-preserving $\tau$, $Z^{\tau(\rho)}_{\tau_*\Lambda} \circ \tau
-    = Z^{\rho}_\Lambda$ for any family $\rho$ of densities, hence also
-    $\tau(\rho)/Z^{\tau(\rho)} = \tau(\rho/Z^\rho)$.
+      h^{\tau(\Phi)}_{\tau_*\Lambda} \circ \tau = h^\Phi_\Lambda.\]
+    If moreover $\lambda \in \Prob(E, \mathcal{E})$ and $\tau$ is $\lambda$-preserving, then
+    $Z^{\tau(\rho)}_{\tau_*\Lambda} \circ \tau = Z^{\rho}_\Lambda$ for every family $\rho$ of
+    densities, hence also $\tau(\rho)/Z^{\tau(\rho)} = \tau(\rho/Z^\rho)$.
 \end{lemma}
 \begin{proof}
     \leanok
@@ -351,7 +310,8 @@ each site, and their action on potentials, $\lambda$-modifications and specifica
     $\tau(\Phi)_{\tau_* A} \circ \tau = \Phi_A$.  Exponentiating gives the statement for the
     Boltzmann factors, and applying (5.5) to $\gamma = \lambda_\cdot = \tau(\lambda_\cdot)$
     gives $Z^{\tau(\rho)}_{\tau_*\Lambda} \circ \tau
-    = \lambda_\Lambda(h^{\tau(\Phi)}_{\tau_*\Lambda} \circ \tau) = Z^\Phi_\Lambda$.
+    = \lambda_\Lambda\big(\tau(\rho)_{\tau_*\Lambda} \circ \tau\big)
+    = \lambda_\Lambda(\rho_\Lambda) = Z^\rho_\Lambda$.
 \end{proof}
 
 \begin{proposition}[Georgii (5.6)(c)]
@@ -362,8 +322,8 @@ each site, and their action on potentials, $\lambda$-modifications and specifica
           Potential.premodifierNorm_boltzmannFactor_map}
     \leanok
 
-    Let $\tau \in T$ be $\lambda$-preserving.  If $\Phi$ is a $\lambda$-admissible potential
-    then $\tau(\Phi)$ is $\lambda$-admissible, and
+    Let $\lambda \in \Prob(E, \mathcal{E})$ and let $\tau \in T$ be $\lambda$-preserving.  If
+    $\Phi$ is a $\lambda$-admissible potential then $\tau(\Phi)$ is $\lambda$-admissible, and
     \[\rho^{\tau(\Phi)} = \tau(\rho^{\Phi}).\]
 \end{proposition}
 \begin{proof}
@@ -383,14 +343,10 @@ each site, and their action on potentials, $\lambda$-modifications and specifica
           Potential.map_mem_absolutelySummable}
     \leanok
 
-    $\|\tau(\Phi)\|_{\tau_* i} = \|\Phi\|_i$ for every $i \in S$, hence
-    $\sum_{j \in \tau_*\Lambda}\|\tau(\Phi)\|_j = \sum_{i \in \Lambda}\|\Phi\|_i$; in particular
-    $\tau(\Bspace) = \Bspace$, i.e.\ the action (5.3) preserves absolute summability, and
-    likewise summability and finite range.
-
-    This is not a numbered statement of Georgii; it records that the norms (2.12) and the bound
-    (2.14) are transported by (5.3), which is what makes the closedness statement of (5.8)
-    below available for an arbitrary $\tau \in T$.
+    $\|\tau(\Phi)\|_{\tau_* i} = \|\Phi\|_i$ for every $i \in S$, hence the bound (2.14)
+    satisfies $\sum_{j \in \tau_*\Lambda}\|\tau(\Phi)\|_j = \sum_{i \in \Lambda}\|\Phi\|_i$; in
+    particular $\tau(\Bspace) = \Bspace$, i.e.\ the action (5.3) preserves absolute summability,
+    and likewise summability and finite range.
 \end{lemma}
 \begin{proof}
     \leanok
@@ -410,15 +366,10 @@ each site, and their action on potentials, $\lambda$-modifications and specifica
           Potential.gibbsSpecification_congr}
     \leanok
 
-    Let $\tau \in T$ be $\lambda$-preserving and $\Phi$ a $\lambda$-admissible potential.  Then
+    Let $S$ be countable, $\lambda \in \Prob(E, \mathcal{E})$, $\tau \in T$ $\lambda$-preserving,
+    and $\Phi \in \Bspace$ an absolutely summable potential.  Then
     $\tau(\gamma^\Phi) = \gamma^{\tau(\Phi)}$; in particular, if $\Phi$ is $\tau$-invariant then
     so is $\gamma^\Phi$.
-
-    The Lean statements are at \emph{stronger} hypotheses than Georgii's: they require $S$
-    countable and $\Phi \in \Bspace$ absolutely summable (the setting in which
-    \texttt{gibbsSpecificationOfAbsolutelySummable} is defined), whereas Georgii only assumes
-    $\Phi$ to be $\lambda$-admissible.  Proposition~\ref{prop:trans-admissible-map}, which is
-    the substance of the argument, is available at Georgii's generality.
 \end{corollary}
 \begin{proof}
     \leanok
@@ -434,22 +385,22 @@ each site, and their action on potentials, $\lambda$-modifications and specifica
     \label{rmk:trans-59-converse}
     \uses{cor:trans-gibbs-spec, def:trans-invariant}
 
-    Georgii (5.9) also contains two converses, neither of which is formalized.
+    Georgii (5.9) also contains two converses.
     \begin{enumerate}
         \item (5.9)(a): if $E$ is countable, $\mathcal{E} = \mathfrak{P}(E)$, $\lambda$ is
         equivalent to counting measure and $\gamma$ is a $\tau$-invariant specification, then the
         unique $\lambda$-modification $\rho$ with $\gamma = \rho\lambda_\cdot$ is
         $\tau$-invariant.  The proof uses the explicit formula
         $\rho_\Lambda(\omega) \propto \gamma_\Lambda(\sigma_\Lambda = \omega_\Lambda \mid \omega)$
-        of Remark (1.28), which the library records only informally.
+        of Remark (1.28).
         \item (5.9)(b), converse: if $\Phi$ is normalized by some $\alpha \in \Prob(E, \mathcal{E})$
         preserved by $\tau$, and either $\alpha$ is a Dirac measure or $\Phi$ converges uniformly,
-        then $\tau$-invariance of $\rho^\Phi$ implies $\tau$-invariance of $\Phi$.  This needs
-        the equivalence theorems (2.34) and (2.35)(a) for potentials, which are not in the tree.
+        then $\tau$-invariance of $\rho^\Phi$ implies $\tau$-invariance of $\Phi$; this uses the
+        equivalence theorems (2.34) and (2.35)(a) for potentials.
     \end{enumerate}
-    Consequently the concluding statement of §5.1 --- for $S = \mathbb{Z}^d$, a normalized
-    potential $\Phi$ is shift-invariant \emph{iff} $\rho^\Phi$ is --- is available in the library
-    in one direction only.
+    Together with Corollary~\ref{cor:trans-gibbs-spec} they give the concluding statement of
+    §5.1: for $S = \mathbb{Z}^d$, a normalized potential $\Phi$ is shift-invariant if and only if
+    $\rho^\Phi$ is.
 \end{remark}
 
 \begin{example}[Shift-invariance, Georgii (5.8)]
@@ -462,13 +413,9 @@ each site, and their action on potentials, $\lambda$-modifications and specifica
     it is $\Theta$-invariant, i.e.\
     $\gamma_{\Lambda+j}(\theta_j A \mid \theta_j\omega) = \gamma_\Lambda(A\mid\omega)$ for all
     $\Lambda \in \Fin$, $j \in S$, $A \in \mathcal{F}$, $\omega \in \Cfg$.  A potential $\Phi$ is
-    shift-invariant if $\Phi_{A+j} \circ \theta_j = \Phi_A$ for all $A \in \Fin$, $j \in S$.  We
-    write $\Bspace_\Theta$ for the set of shift-invariant elements of $\Bspace$.
-
-    The library defines \texttt{Potential.IsShiftInvariant} as
-    $\forall j,\ \theta_j(\Phi) = \Phi$ and \texttt{isShiftInvariant\_iff} unfolds it to
-    Georgii's displayed form.  Shift-invariance of a \emph{specification} is not given a
-    separate name: it is $\forall j$, \texttt{Specification.IsInvariant (shift E j) $\gamma$}.
+    shift-invariant if $\theta_j(\Phi) = \Phi$ for all $j \in S$, equivalently
+    $\Phi_{A+j} \circ \theta_j = \Phi_A$ for all $A \in \Fin$, $j \in S$.  We write
+    $\Bspace_\Theta$ for the set of shift-invariant elements of $\Bspace$.
 \end{example}
 
 \begin{theorem}[$\Bspace_\Theta$ is closed, Georgii (5.8)]
@@ -477,12 +424,10 @@ each site, and their action on potentials, $\lambda$-modifications and specifica
     \lean{Potential.isClosed_setOf_map_eq, Potential.isClosed_setOf_isShiftInvariant}
     \leanok
 
-    $\Bspace_\Theta$ is a $\|\cdot\|_0$-closed subspace of $\Bspace$.
-
-    The library proves \emph{more}: for \emph{any} $\tau \in T$ (and $S$ countable), the fixed
-    point set $\{\Phi \in \Bspace : \tau(\Phi) = \Phi\}$ is closed in $\Bspace$; Georgii's
-    statement is the intersection of these sets over the shift group $\Theta$.  The extra
-    hypothesis $S$ countable is automatic for $S = \mathbb{Z}^d$.
+    Let $S$ be countable.  For every $\tau \in T$ the fixed point set
+    $\{\Phi \in \Bspace : \tau(\Phi) = \Phi\}$ is $\|\cdot\|_0$-closed in $\Bspace$.  In
+    particular, for $S = \mathbb{Z}^d$, $\Bspace_\Theta = \bigcap_{j \in \mathbb{Z}^d}
+    \{\Phi \in \Bspace : \theta_j(\Phi) = \Phi\}$ is a closed subspace of $\Bspace$.
 \end{theorem}
 \begin{proof}
     \leanok
@@ -499,12 +444,12 @@ each site, and their action on potentials, $\lambda$-modifications and specifica
     \label{rmk:trans-b-theta-banach}
     \uses{thm:trans-b-theta-closed}
 
-    Georgii (5.8) additionally asserts that $\Bspace_\Theta$ is a Banach space for the norm
+    Georgii (5.8) further asserts that $\Bspace_\Theta$ is a Banach space for the norm
     $\|\Phi\|_0 = \sum_{A \ni 0} \|\Phi_A\|$, and that the shift-invariant potentials of bounded
-    range are dense in $\Bspace_\Theta$.  Neither is in the library: what is available is the
-    closedness of Theorem~\ref{thm:trans-b-theta-closed} inside the (complete) space $\Bspace$,
-    and Lemma~\ref{lem:trans-norm-map}, which shows $\|\cdot\|_0$ is shift-invariant.  Not yet
-    formalized.
+    range are dense in $\Bspace_\Theta$.  Completeness follows from
+    Theorem~\ref{thm:trans-b-theta-closed}, $\Bspace_\Theta$ being closed in the complete space
+    $\Bspace$, and $\|\cdot\|_0$ is shift-invariant by Lemma~\ref{lem:trans-norm-map}; the
+    density statement is the remaining content.
 \end{remark}
 
 \begin{remark}[Outlook: Gibbs measures with symmetries]
@@ -514,12 +459,6 @@ each site, and their action on potentials, $\lambda$-modifications and specifica
     The action (5.4) transports Gibbs measures: $\mu \in \Gibbs{\gamma}$ implies
     $\tau(\mu) \in \Gibbs{\tau(\gamma)}$, so $\Gibbs{\gamma}$ is invariant under every symmetry
     of $\gamma$, and if $\Gibbs{\gamma} = \{\mu\}$ then $\mu$ inherits all symmetries of
-    $\gamma$.  These are Georgii (5.10) and (5.11) and belong to §5.2; the library has them as
-    \texttt{Specification.map\_mem\_GP}, \texttt{Specification.IsInvariant.map\_mem\_GP},
-    \texttt{Specification.IsInvariant.map\_isGibbsMeasure} and
-    \texttt{Specification.IsInvariant.measurePreserving\_of\_GP\_eq\_singleton}, and the
-    $L$-closedness of the $I$-invariant random fields and of $\mathcal{G}_I(\gamma)$ as
-    \texttt{MeasureTheory.GibbsMeasure.isClosed\_setOf\_forall\_measurePreserving} and
-    \texttt{MeasureTheory.GibbsMeasure.isClosed\_setOf\_mem\_GP\_and\_measurePreserving}.  They
-    are stated and proved in the next section.
+    $\gamma$.  These are Georgii (5.10) and (5.11); they, and the $L$-closedness of the
+    $I$-invariant random fields and of $\mathcal{G}_I(\gamma)$, belong to §5.2.
 \end{remark}

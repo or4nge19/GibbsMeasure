@@ -1,8 +1,8 @@
 \section{The Ising ferromagnet in two dimensions}
 
-Throughout, $S = \mathbb{Z}^2$, $E = \{\pm 1\}$ (Lean: \texttt{Bool}), and $\gamma^{\beta}$ is the
-Gibbsian specification of the nearest-neighbour Ising potential with coupling $J = 1$ and external
-field $h = 0$ at inverse temperature $\beta$.
+Throughout, $S = \mathbb{Z}^2$, $E = \{\pm 1\}$, and $\gamma^{\beta}$ is the Gibbsian specification
+of the nearest-neighbour Ising potential $\Phi$ with coupling $J = 1$ and external field $h = 0$ at
+inverse temperature $\beta$.
 
 \subsection*{The Peierls argument}
 
@@ -15,17 +15,11 @@ field $h = 0$ at inverse temperature $\beta$.
       MeasureTheory.GibbsMeasure.tendsto_r_atTop}
     \leanok
 
-    In a cube $\Lambda = [-N,N]^2$ with $+$ boundary condition,
-    \[\gamma^{\beta}_{\Lambda}(\sigma_a = -1 \mid +) \;\leq\; r(\beta)\]
-    for every site $a$, where $r(\beta) = \sum_{\ell \geq 1} \ell\, 4096^{\ell} e^{-2\beta\ell}$ is
-    the Peierls series: a minus spin at $a$ forces a contour around $a$, and each contour of length
-    $\ell$ costs $e^{-2\beta\ell}$. Moreover $r(\beta) \leq \tfrac14$ once
-    $\beta \geq 8\log 2$, and $r(\beta) \to 0$ as $\beta \to \infty$.
-
-    The chain from the cube estimate to the phase transition is proved once, for an arbitrary
-    bound $\rho$ dominating the cube estimate
-    (\texttt{exists\_two\_shiftInvariant\_gibbs\_of\_cube}), and instantiated at $r$ and at the
-    sharpened bound $r'$ of the refined contour count.
+    Let $r(\beta) = \sum_{\ell \geq 1} \ell\, 4096^{\ell} e^{-2\beta\ell}$. For every $N$, every
+    site $a$, and the cube $\Lambda = [-N,N]^2$ with $+$ boundary condition,
+    \[\gamma^{\beta}_{\Lambda}(\sigma_a = -1 \mid +) \;\leq\; r(\beta).\]
+    Moreover $r(\beta) \leq \tfrac14$ for $\beta \geq 8\log 2$, and $r(\beta) \to 0$ as
+    $\beta \to \infty$.
 \end{lemma}
 
 \begin{theorem}[Georgii Theorem (6.9), spontaneous magnetisation]
@@ -38,12 +32,11 @@ field $h = 0$ at inverse temperature $\beta$.
       MeasureTheory.GibbsMeasure.PeierlsSharp.exists_two_shiftInvariant_gibbs_sharp}
     \leanok
 
-    For $\beta \geq 8 \log 2$ — and, with the sharpened contour count, already for
-    $\beta \geq \tfrac12\log 9 = \log 3$ — the two-dimensional Ising ferromagnet has two distinct
-    shift-invariant Gibbs measures $\mu_\pm$, exchanged by the spin flip, with
+    For $\beta \geq 8 \log 2$ --- and, with the sharpened contour count, already for
+    $\beta \geq \tfrac12\log 9 = \log 3$ --- there are two distinct shift-invariant Gibbs measures
+    $\mu_\pm \in \Gibbs{\gamma^{\beta}}$, exchanged by the spin flip, with
     \[\mu_+(\sigma_0 = -1) \;<\; \tfrac12 \;<\; \mu_-(\sigma_0 = -1).\]
-    The plus phase arises as a cluster point of the cube averages with $+$ boundary condition;
-    shift-invariance comes from averaging over cube translates.
+    In particular $\Gibbs{\gamma^{\beta}}$ is not a singleton.
 \end{theorem}
 
 \begin{theorem}[Georgii Theorem (6.9), the low-temperature limit]
@@ -54,11 +47,11 @@ field $h = 0$ at inverse temperature $\beta$.
       MeasureTheory.GibbsMeasure.Peierls.tendsto_localDistSet_shiftInvariantGibbs_dirac}
     \leanok
 
-    With $d$ a metric for the topology of local convergence (Georgii Remark (4.3)(3), the explicit
-    metric of \texttt{Topology/LocalMetric.lean}),
+    Let $d$ be a metric for the topology of local convergence (Georgii Remark (4.3)(3)), let
+    $\mathcal{G}_{\Theta}(\beta\Phi)$ be the set of shift-invariant Gibbs measures, and let
+    $\delta_\pm$ be the Dirac measures at the two constant configurations. Then
     \[\lim_{\beta \to \infty} d\bigl(\mathcal{G}_{\Theta}(\beta\Phi), \delta_+\bigr)
-      = \lim_{\beta \to \infty} d\bigl(\mathcal{G}_{\Theta}(\beta\Phi), \delta_-\bigr) = 0:\]
-    at low temperature the shift-invariant Gibbs measures approach the two ground states.
+      = \lim_{\beta \to \infty} d\bigl(\mathcal{G}_{\Theta}(\beta\Phi), \delta_-\bigr) = 0.\]
 \end{theorem}
 
 \subsection*{Griffiths' inequality and the spontaneous magnetisation}
@@ -74,11 +67,11 @@ field $h = 0$ at inverse temperature $\beta$.
       MeasureTheory.GibbsMeasure.spontaneousMagnetisation}
     \leanok
 
-    The finite-volume $+$-boundary magnetisation
+    Let $\beta \geq 0$. The finite-volume $+$-boundary magnetisation
     $\langle\sigma_i\rangle_{\Lambda}^{+}(\beta) = 2\gamma^{\beta}_{\Lambda}(\sigma_i = 1 \mid +)-1$
-    is a GKS correlation of a ferromagnetic interaction; by Griffiths' inequalities it is
-    nonnegative and nondecreasing in $\beta$, and it converges along the volumes to
-    $\mu_+^{\beta}(\sigma_i)$. The \textbf{spontaneous magnetisation} is
+    is a GKS correlation of the ferromagnetic interaction $\beta\Phi$; by Griffiths' inequalities
+    it is nonnegative and nondecreasing in $\beta$, and it converges to $\mu_+^{\beta}(\sigma_i)$
+    along $\Lambda \uparrow S$. The \textbf{spontaneous magnetisation} is
     $m^*(\beta) = \mu_+^{\beta}(\sigma_0)$.
 \end{lemma}
 
@@ -90,9 +83,8 @@ field $h = 0$ at inverse temperature $\beta$.
       MeasureTheory.GibbsMeasure.isingNonUniqueness_eq_setOf_spontaneousMagnetisation_pos}
     \leanok
 
-    For $\beta \geq 0$, the two-dimensional Ising ferromagnet has more than one Gibbs measure if
-    and only if $m^*(\beta) > 0$. Consequently non-uniqueness is an upper set in $\beta$:
-    Georgii's route, via Griffiths, to the existence of a critical inverse temperature.
+    For $\beta \geq 0$, $|\Gibbs{\beta\Phi}| > 1$ if and only if $m^*(\beta) > 0$. Consequently
+    $\set{\beta \geq 0 : |\Gibbs{\beta\Phi}| > 1}$ is an upper set.
 \end{theorem}
 
 \subsection*{The critical inverse temperature}
@@ -106,10 +98,9 @@ field $h = 0$ at inverse temperature $\beta$.
       MeasureTheory.GibbsMeasure.isingBetaC_eq_betaCOf_spontaneousMagnetisation}
     \leanok
 
-    $\beta_c = \inf\set{\beta \geq 0 : |\mathcal{G}(\beta\Phi)| > 1}$. By the
-    Lebowitz--Martin-L\"of/Ruelle criterion this is the same number as the threshold
-    $\inf\set{\beta \geq 0 : m^*(\beta) > 0}$ of the order parameter, which is how Georgii defines
-    it.
+    $\beta_c = \inf\set{\beta \geq 0 : |\Gibbs{\beta\Phi}| > 1}$. By Theorem \ref{thm:ising-lml}
+    this is the threshold $\inf\set{\beta \geq 0 : m^*(\beta) > 0}$ of the order parameter, which
+    is Georgii's definition.
 \end{definition}
 
 \begin{theorem}[The sharp dichotomy at $\beta_c$]
@@ -124,15 +115,13 @@ field $h = 0$ at inverse temperature $\beta$.
       MeasureTheory.GibbsMeasure.spontaneousMagnetisation_pos_of_isingBetaC_lt}
     \leanok
 
-    For $0 \leq \beta < \beta_c$ the Gibbs measure is unique and $m^*(\beta) = 0$; for
-    $\beta > \beta_c$ there are several Gibbs measures and $m^*(\beta) > 0$ — spontaneous
-    magnetisation. This is Georgii's statement in §6.2 after (6.9), for the genuine order
-    parameter, not an abstract stand-in.
+    For $0 \leq \beta < \beta_c$ there is exactly one Gibbs measure and $m^*(\beta) = 0$; for
+    $\beta > \beta_c$ there is more than one and $m^*(\beta) > 0$.
 \end{theorem}
 
 \begin{theorem}[Bounds on $\beta_c$]
     \label{thm:ising-betac-bounds}
-    \uses{def:ising-betac}
+    \uses{def:ising-betac, thm:dob-uniqueness, thm:ising-69-two-phases}
     \lean{MeasureTheory.GibbsMeasure.artanh_le_isingBetaC,
       MeasureTheory.GibbsMeasure.le_isingBetaC,
       MeasureTheory.GibbsMeasure.isingBetaC_le,
@@ -142,10 +131,10 @@ field $h = 0$ at inverse temperature $\beta$.
       MeasureTheory.GibbsMeasure.Dobrushin.isDobrushin_isingSpecification_tanh}
     \leanok
 
-    \[\operatorname{artanh}\tfrac14 \;\leq\; \beta_c \;\leq\; \log 3 .\]
-    The lower bound is Dobrushin uniqueness with the sharpened single-site bound
-    $2d\tanh|\beta J| < 1$ of (8.9)(2)/(8.10); the upper bound is the sharpened Peierls
-    threshold $\log 3$. (Onsager's exact
-    $\beta_c = \tfrac12\log(1 + \sqrt2) \approx 0.4407$ is not proved in Georgii and not claimed
-    here; $\operatorname{artanh}\tfrac14 \approx 0.2554$.)
+    \[\operatorname{artanh}\tfrac14 \;\leq\; \beta_c \;\leq\; \log 3, \qquad
+      \operatorname{artanh}\tfrac14 \approx 0.2554 .\]
+    The lower bound is Dobrushin uniqueness (Theorem \ref{thm:dob-uniqueness}) applied to the
+    $\mathbb{Z}^d$ Ising specification, for which the single-site criterion (8.9)(2)/(8.10) reads
+    $2d\tanh|\beta J| < 1$; the upper bound is the sharpened Peierls threshold of Theorem
+    \ref{thm:ising-69-two-phases}.
 \end{theorem}

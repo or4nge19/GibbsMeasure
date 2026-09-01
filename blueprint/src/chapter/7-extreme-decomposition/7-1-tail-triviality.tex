@@ -1,8 +1,7 @@
 \section{Almost sure invariance}
 
-Georgii's Chapter 7 rests on an abstract statement about a single probability kernel, with no
-reference to specifications, potentials, or configuration spaces. It is stated here at that
-generality, in Mathlib's \texttt{ProbabilityTheory.Kernel} namespace.
+Chapter 7 rests on a statement about a single probability kernel, with no reference to
+specifications, potentials, or configuration spaces. It is stated here at that generality.
 
 \begin{definition}[The a.s.\ invariant $\sigma$-algebra, Georgii (7.3)]
     \label{def:ext-ae-invariant}
@@ -14,7 +13,7 @@ generality, in Mathlib's \texttt{ProbabilityTheory.Kernel} namespace.
     Let $\pi$ be a Markov kernel from $(\Omega,\mathcal F)$ to itself and $\mu$ a finite measure
     with $\mu\pi = \mu$. The system
     \[\mathcal I_\pi(\mu) \;=\; \set{A \in \mathcal F \;:\; \pi(A \mid \cdot) = \1_A \ \mu\text{-a.s.}}\]
-    of \textbf{$\mu$-almost surely $\pi$-invariant} sets is a $\sigma$-algebra.
+    of \textbf{$\mu$-almost surely $\pi$-invariant} sets is a sub-$\sigma$-algebra of $\mathcal F$.
 \end{definition}
 \begin{proof}
     \leanok
@@ -87,8 +86,8 @@ generality, in Mathlib's \texttt{ProbabilityTheory.Kernel} namespace.
       ProbabilityTheory.Kernel.Example75.not_mem_extremePoints}
     \leanok
 
-    $\mathcal I_\Pi(\mu)$ cannot be replaced by the $\sigma$-algebra of \emph{strictly}
-    invariant sets $\set{A : \pi(A \mid \cdot) = \1_A \text{ everywhere}}$. Take
+    In Theorem \ref{thm:ext-74}, $\mathcal I_\Pi(\mu)$ cannot be replaced by the $\sigma$-algebra of
+    \emph{strictly} invariant sets $\set{A : \pi(A \mid \cdot) = \1_A \text{ everywhere}}$. Take
     $\Omega = \set{0,1,2}$ and
     \[\pi \;=\; \begin{pmatrix} 1 & 0 & 0 \\ \tfrac12 & 0 & \tfrac12 \\ 0 & 0 & 1\end{pmatrix},
       \qquad \mu \;=\; \tfrac12\delta_0 + \tfrac12\delta_2 .\]
@@ -107,20 +106,17 @@ generality, in Mathlib's \texttt{ProbabilityTheory.Kernel} namespace.
       ProbabilityTheory.Kernel.preErgodic_iff_trivialOn_aeInvariant}
     \leanok
 
-    For a measurable self-map $T$ and the deterministic kernel $\pi = \delta_{T(\cdot)}$, kernel
-    invariance is measure preservation, and $\mathcal I_\pi(\mu)$ consists of the sets with
-    $T^{-1}A =_\mu A$. For measure-preserving $T$ this makes Mathlib's \texttt{PreErgodic} --- which
-    quantifies over the \emph{strictly} invariant sets $T^{-1}A = A$ --- equivalent to triviality on
-    $\mathcal I_\pi(\mu)$, so Theorem \ref{thm:ext-74} contains Mathlib's
-    \texttt{Ergodic.iff\_mem\_extremePoints} and extends it to random kernels and to families,
-    which is what Chapter 7 needs: a specification is a family of kernels indexed by finite volumes.
+    Let $T : \Omega \to \Omega$ be measurable and $\pi = \delta_{T(\cdot)}$ the associated
+    deterministic kernel. Then $\mu\pi = \mu$ if and only if $T$ preserves $\mu$, and
+    $\mathcal I_\pi(\mu)$ consists of the measurable $A$ with $T^{-1}A =_\mu A$. For
+    measure-preserving $T$ on a probability space, the zero-one law over the \emph{strictly}
+    invariant sets $T^{-1}A = A$ is therefore equivalent to triviality on $\mathcal I_\pi(\mu)$, so
+    Theorem \ref{thm:ext-74} specialises to the characterisation of the ergodic measures as the
+    extreme points of the invariant ones, and extends it to random kernels and to families.
 
-    The non-trivial direction is Mathlib's
-    \texttt{QuasiMeasurePreserving.exists\_preimage\_eq\_of\_preimage\_ae}, correcting an a.e.\
-    invariant set to a strictly invariant one; it iterates $T$ and so needs $T$ measurable, not
-    merely a.e.\ measurable. Example \ref{ex:ext-75} shows that no such correction is available for
-    general kernels, so the passage from strict to almost sure invariance is not a mere technical
-    convenience.
+    The equivalence corrects an a.e.\ invariant set to a strictly invariant one by iterating $T$,
+    and so uses measurability of $T$, not merely a.e.\ measurability. By Example \ref{ex:ext-75} no
+    such correction exists for a general kernel.
 \end{proposition}
 
 \begin{corollary}[Pre-ergodicity is an almost-everywhere notion]
@@ -131,11 +127,10 @@ generality, in Mathlib's \texttt{ProbabilityTheory.Kernel} namespace.
       ProbabilityTheory.Kernel.preErgodic_congr_ae}
     \leanok
 
-    For measure-preserving $T$ on a probability space, pre-ergodicity is equivalent to the zero-one
-    law over the \emph{null measurable, almost everywhere} invariant sets, and consequently depends
-    only on the $\mu$-a.e.\ class of $T$. Neither statement is apparent from a definition using
-    strictly invariant sets. By contrast $\mathcal I_\pi(\mu)$ depends on the a.e.\ class of $\pi$
-    by construction.
+    For measure-preserving $T$ on a probability space, the zero-one law over the strictly invariant
+    sets is equivalent to the zero-one law over the null measurable $A$ with $T^{-1}A =_\mu A$; in
+    particular it depends only on the $\mu$-a.e.\ class of $T$. Likewise $\mathcal I_\pi(\mu)$
+    depends only on the $\mu$-a.e.\ class of $\pi$.
 \end{corollary}
 
 \section{Tail triviality and asymptotic independence}
@@ -148,13 +143,16 @@ generality, in Mathlib's \texttt{ProbabilityTheory.Kernel} namespace.
       MeasureTheory.GibbsMeasure.isTailTrivial_iff_asymptotically_independent}
     \leanok
 
-    For $\mu \in \Prob(\Cfg, \mathcal F)$ the following are equivalent.
+    Let $S$ be countable and $\mu \in \Prob(\Cfg, \mathcal F)$. The following are equivalent.
     \begin{enumerate}
         \item $\mu$ is trivial on $\Tail$.
         \item For every event $A$,
           \[\lim_{\Lambda \in \Fin} \ \sup_{B \in \mathcal F_{S \setminus \Lambda}}
             \abs{\mu(A \cap B) - \mu(A)\mu(B)} \;=\; 0 .\]
     \end{enumerate}
+    The same equivalence holds for an antitone family $(\mathcal A_i)_{i \in I}$ of
+    sub-$\sigma$-algebras indexed by any countable directed non-empty $I$, with $\Tail$ replaced by
+    $\bigcap_{i} \mathcal A_i$.
 \end{theorem}
 \begin{proof}
     \leanok
@@ -170,11 +168,8 @@ generality, in Mathlib's \texttt{ProbabilityTheory.Kernel} namespace.
     $B = A$ gives $\abs{\mu(A) - \mu(A)^2} \leq \varepsilon$ for every $\varepsilon > 0$, whence
     $\mu(A) \in \set{0,1}$.
 
-    The Lean statement is proved first for an antitone sequence of $\sigma$-algebras, then
-    transferred to a countable directed index set along a monotone cofinal sequence
-    (\texttt{exists\_monotone\_cofinal}, \texttt{iInf\_eq\_iInf\_comp\_of\_cofinal}), which is what
-    Georgii's index set $\Fin$ requires. The supremum over $B$ is expressed as an
-    $\varepsilon$--eventually bound, avoiding a supremum over a set of sets.
+    The directed case follows from the sequential one along a monotone cofinal sequence in $I$,
+    which exists because $I$ is countable and directed.
 \end{proof}
 
 \section{Uniform mixing}
@@ -184,13 +179,10 @@ generality, in Mathlib's \texttt{ProbabilityTheory.Kernel} namespace.
     \lean{MeasureTheory.GibbsMeasure.IsUniformlyMixing}
     \leanok
 
-    A probability measure $\mu$ on the configuration space is \emph{uniformly mixing} if for
+    A probability measure $\mu$ on the configuration space is \textbf{uniformly mixing} if for
     every local event $A$ and every $\varepsilon > 0$, all sufficiently large $\Lambda \in \Fin$
-    satisfy $|\mu(A \mid B) - \mu(A)| \le \varepsilon$ for \emph{every} non-null
-    $B \in \Tail_\Lambda = \mathcal{F}_{\Lambda^{\mathrm{c}}}$.  This strengthens the
-    short-range-correlations characterisation of tail triviality (Theorem \ref{thm:ext-79}):
-    there the covariance $|\mu(A \cap B) - \mu(A)\mu(B)|$ is small, here the conditional
-    probability is controlled even on events of very small positive probability.
+    satisfy $|\mu(A \mid B) - \mu(A)| \le \varepsilon$ for every non-null
+    $B \in \Tail_\Lambda = \mathcal{F}_{\Lambda^{\mathrm{c}}}$.
 \end{definition}
 
 \begin{proposition}[Georgii (7.11)(a)]
@@ -200,19 +192,23 @@ generality, in Mathlib's \texttt{ProbabilityTheory.Kernel} namespace.
       MeasureTheory.GibbsMeasure.G_lambdaSpecification_eq_singleton_of_isUniformlyMixing}
     \leanok
 
-    Let $\gamma$ be a quasilocal $\lambda$-specification with positive densities over a
-    $\sigma$-finite non-zero a priori measure, and let $\mu \in \Gibbs{\gamma}$ be uniformly
-    mixing.  Then $\Gibbs{\gamma} = \set{\mu}$.
+    Let $\gamma = \rho\lambda$ be a quasilocal $\lambda$-specification with everywhere positive
+    densities over a $\sigma$-finite non-zero a priori measure, and let $\mu \in \Gibbs{\gamma}$ be
+    uniformly mixing. Then $\Gibbs{\gamma} = \set{\mu}$.
 \end{proposition}
 \begin{proof}
+    \uses{lem:remark-128-2}
     \leanok
 
-    Let $\nu \in \Gibbs{\gamma}$ and let $A$ be a local event.  By Remark (1.28)(2)
-    (\texttt{Specification.IsGibbsMeasure.lambdaSpecification\_null\_iff}: for positive densities
-    the null events of $\mathcal{F}_\Delta$ are those of the reference kernel, hence shared by
-    all Gibbs measures), $\nu$-non-null events of $\Tail_\Lambda$ are $\mu$-non-null, so the DLR
-    equation for $\nu$ over the volume $\Lambda$ averages conditional $\mu$-probabilities
-    $\mu(A \mid B)$ with $B$ ranging over a $\Tail_\Lambda$-partition; uniform mixing pins each
-    to within $\varepsilon$ of $\mu(A)$, and $\Lambda \to \Fin$ gives $\nu(A) = \mu(A)$ on the
-    generating ring of local events, hence $\nu = \mu$.
+    Let $\nu \in \Gibbs{\gamma}$, let $A$ be a local event and let $\varepsilon > 0$. Pick
+    $\Lambda \in \Fin$ from uniform mixing for $A$ and $\varepsilon$. Since $\gamma_\Lambda(A \mid
+    \cdot)$ is a version of $\mu[\1_A \mid \Tail_\Lambda]$, the bound on $\mu(A \mid B)$ over
+    non-null $B \in \Tail_\Lambda$ gives $|\gamma_\Lambda(A \mid \cdot) - \mu(A)| \le \varepsilon$
+    $\mu$-a.s. Quasilocality provides $\Delta \in \Fin$ and an $\mathcal F_\Delta$-measurable $f$
+    with $\sup_\eta |\gamma_\Lambda(A \mid \eta) - f(\eta)| \le \varepsilon$, so
+    $\set{|f - \mu(A)| > 2\varepsilon} \in \mathcal F_\Delta$ is $\mu$-null, hence $\nu$-null by
+    Lemma \ref{lem:remark-128-2}, and therefore $|\gamma_\Lambda(A \mid \cdot) - \mu(A)| \le
+    3\varepsilon$ $\nu$-a.s. Integrating the DLR equation $\nu\gamma_\Lambda = \nu$ gives
+    $|\nu(A) - \mu(A)| \le 3\varepsilon$. As $\varepsilon > 0$ was arbitrary, $\nu$ and $\mu$ agree
+    on the generating $\pi$-system of local events, so $\nu = \mu$.
 \end{proof}

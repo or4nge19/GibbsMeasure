@@ -1,8 +1,7 @@
 \section{The extreme decomposition of a Gibbs simplex}
 
-The abstract track of the previous section proves (7.7)(a) at the generality of Remark (7.13).
-This section records the theorem for specifications proper, with the parts (b)--(d) and the
-decomposition (7.25)--(7.26) with its corollaries.
+Throughout, $\gamma$ is a specification with countable parameter set $S$ and state space
+$(E, \mathcal{E})$, and $\Tail$ is the tail $\sigma$-algebra of $\Cfg = E^S$.
 
 \begin{theorem}[Georgii, Theorem (7.7)]
     \label{thm:ext-77-concrete}
@@ -15,7 +14,8 @@ decomposition (7.25)--(7.26) with its corollaries.
       MeasureTheory.GibbsMeasure.mutuallySingular_of_mem_extremePoints}
     \leanok
 
-    Let $\gamma$ be a specification over a countable parameter set.
+    Let $\gamma$ be a specification over a countable parameter set, with no assumption on
+    $(E, \mathcal{E})$ and no non-emptiness assumption on $\mathcal{G}(\gamma)$.
     \begin{enumerate}
         \item[(a)] $\mu \in \mathcal{G}(\gamma)$ is extreme iff $\mu$ is trivial on $\Tail$.
         \item[(c)] Each $\mu \in \mathcal{G}(\gamma)$ is determined by its restriction to
@@ -23,10 +23,9 @@ decomposition (7.25)--(7.26) with its corollaries.
         \item[(d)] Distinct extreme Gibbs measures $\mu \neq \nu$ are separated by a \emph{tail}
           event $A$ with $\mu(A) = 1$ and $\nu(A) = 0$; in particular they are mutually singular.
     \end{enumerate}
-    Part (c) goes through (b): the mixture $\rho = \tfrac12\mu + \tfrac12\nu$ is Gibbs, both
+    Part (c) is proved through (b): the mixture $\rho = \tfrac12\mu + \tfrac12\nu$ is Gibbs, both
     measures have $\Tail$-measurable densities with respect to it, and agreement on $\Tail$
-    forces the densities to agree. No standard Borel hypothesis and no non-emptiness hypothesis
-    appears in (c) or (d).
+    forces the densities to agree.
 \end{theorem}
 
 \begin{proposition}[The Gibbs kernel, Georgii (7.25)]
@@ -56,10 +55,14 @@ decomposition (7.25)--(7.26) with its corollaries.
       MeasureTheory.GibbsMeasure.bijOn_weightOf}
     \leanok
 
-    Every $\mu \in \mathcal{G}(\gamma)$ is the barycentre `Measure.join (weightOf hG μ)` of a
-    unique probability weight `weightOf hG μ` concentrated on the extreme points, and
-    $\mu \mapsto w_\mu$ is a bijection onto the probability weights on
-    $\operatorname{ex}\mathcal{G}(\gamma)$: the Gibbs simplex.
+    Let $(E, \mathcal{E})$ be standard Borel with $\mathcal{G}(\gamma) \neq \emptyset$. Every
+    $\mu \in \mathcal{G}(\gamma)$ is the barycentre
+    $\mu = \int \nu\, w_\mu(\mathrm{d}\nu)$ of a unique probability weight $w_\mu$ concentrated on
+    $\operatorname{ex}\mathcal{G}(\gamma)$, namely the law under $\mu$ of $\omega \mapsto
+    \pi(\cdot \mid \omega)$ for the kernel $\pi$ of Proposition \ref{prop:ext-gibbs-kernel}, and
+    $\mu \mapsto w_\mu$ is a bijection from $\mathcal{G}(\gamma)$ onto
+    the probability weights concentrated on $\operatorname{ex}\mathcal{G}(\gamma)$: the Gibbs
+    simplex.
 \end{theorem}
 
 \begin{corollary}[Georgii (7.28)--(7.30)]
@@ -72,10 +75,11 @@ decomposition (7.25)--(7.26) with its corollaries.
       MeasureTheory.GibbsMeasure.setOf_mem_GP_eq_closure_convexCombosLimitGibbs}
     \leanok
 
-    (7.28): the decomposition commutes with symmetries — `μ` is `τ`-invariant iff its weight is.
+    Let $(E, \mathcal{E})$ be standard Borel with $\mathcal{G}(\gamma) \neq \emptyset$.
+    (7.28): the decomposition commutes with symmetries, $w_{\tau\mu} = \tau w_\mu$ for every
+    symmetry $\tau$ of $\gamma$; in particular $\mu$ is $\tau$-invariant iff $w_\mu$ is.
     (7.29): $\mathcal{G}(\gamma)$ contains $N$ extreme points iff it contains $N$ measures
     linearly independent over $\mathbb{R}_{\geq 0}^\infty$.
     (7.30): for a finite state space and quasilocal $\gamma$, $\mathcal{G}(\gamma)$ is the closed
-    convex hull of the limiting Gibbs distributions (Georgii states this for standard Borel $E$;
-    the finite-state restriction is recorded in \texttt{formalization.yaml}).
+    convex hull of the limiting Gibbs distributions in the topology of local convergence.
 \end{corollary}

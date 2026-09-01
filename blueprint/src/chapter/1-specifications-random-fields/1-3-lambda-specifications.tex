@@ -1,13 +1,15 @@
 \section{\texorpdfstring{$\lambda$}{Lambda}-specifications}
 
-Let $S$ be a set, $(E, \mathcal{E})$ be a measurable space and $\nu$ a measure on $E$.
+Throughout, $S$ is a set, $(E, \mathcal{E})$ a measurable space and $\nu$ a measure on $E$.
 
 \begin{definition}[Product probability measure]
     \label{def:product-probability-measure}
     \lean{MeasureTheory.Measure.infinitePi}
     \leanok{}
 
-    Let $I$ be a set. Suppose for each $i\in I$ that $(\Omega_i,\MCB_i,P_i)$ is a probability space. Then, $P:=\bigotimes_{i\in I}P_i$ is a well-defined product probability measure on $\prod_{i\in I}\Omega_i$.
+    Let $I$ be a set and, for each $i \in I$, let $(\Omega_i,\MCB_i,P_i)$ be a probability space.
+    Then $P:=\bigotimes_{i\in I}P_i$ is a well-defined probability measure on
+    $\prod_{i\in I}\Omega_i$.
 \end{definition}
 
 \begin{definition}[Independent Specification with Single Spin Distribution (ISSSD)]
@@ -16,12 +18,13 @@ Let $S$ be a set, $(E, \mathcal{E})$ be a measurable space and $\nu$ a measure o
     \lean{Specification.isssdFun}
     % \leanok
 
-    The \textbf{Independent Specification with Single Spin Distribution $\nu$} is
+    For $\nu \in \mathfrak{P}(E, \mathcal{E})$, the \textbf{Independent Specification with Single
+    Spin Distribution $\nu$} is
     \begin{align}
         \ISSSD:\mathfrak{P}(E, \mathcal{E})&\to\Finset(S)\to\mathcal{E}^S\times E^S\to\overline{\mathbb{R}_{\geq0}}\\
         \nu&\mapsto\Lambda\mapsto(A\mid\omega)\mapsto\left(\nu^\Lambda\left(\juxtBy{\omega}^{-1}(A)\right)\right)
     \end{align}
-    defines the \textbf{Independent Specification with Single Spin Distribution with $\nu$} (for each $\nu\in\mathfrak{P}(E, \mathcal{E})$), where $\nu^\Lambda$ is the usual product measure.
+    where $\nu^\Lambda$ is the product measure on $E^\Lambda$.
 \end{definition}
 
 \begin{lemma}[Independence of ISSSDs]
@@ -30,12 +33,13 @@ Let $S$ be a set, $(E, \mathcal{E})$ be a measurable space and $\nu$ a measure o
     \lean{Specification.isssdFun_comp_isssdFun}
     \leanok{}
 
-    $\ISSSD(\nu)$ is independent.
+    $\ISSSD(\nu)$ is independent: $\ISSSD(\nu)_{\Lambda_1} \circ_k \ISSSD(\nu)_{\Lambda_2}
+    = \ISSSD(\nu)_{\Lambda_1 \union \Lambda_2}$ for all $\Lambda_1, \Lambda_2 \in \Finset(S)$.
 \end{lemma}
 \begin{proof}
     % \leanok
 
-  Immediate.
+    Both sides agree on square cylinders, which form a $\pi$-system generating $\mathcal{E}^S$.
 \end{proof}
 
 
@@ -60,7 +64,8 @@ Let $S$ be a set, $(E, \mathcal{E})$ be a measurable space and $\nu$ a measure o
     \uses{def:isssd-spec}
     % \leanok
 
-    We already know it's a specification. Properness is immediate.
+    An event of $\mathcal{F}_{S\setminus\Lambda}$ is determined by $\omega$ outside $\Lambda$, so
+    it factors out of $\nu^\Lambda(\juxtBy{\omega}^{-1}(\cdot))$.
 \end{proof}
 
 \begin{lemma}[Uniqueness of a Gibbs measure specified by an ISSSD]
@@ -73,7 +78,10 @@ Let $S$ be a set, $(E, \mathcal{E})$ be a measurable space and $\nu$ a measure o
     \uses{lem:isssd-proper-spec}
     % \leanok
 
-    See book.
+    If $A \in \mathcal{F}_\Lambda$ then $\juxtBy{\omega}^{-1}(A)$ does not depend on $\omega$, so
+    the DLR equation at $\Lambda$ gives $\mu(A) = \nu^\Lambda(\juxtBy{\omega}^{-1}(A))$ for every
+    $\mu \in \Gibbs{\ISSSD(\nu)}$. Thus $\mu$ is determined on the ring
+    $\bigcup_{\Lambda \in \Fin} \mathcal{F}_\Lambda$, which generates $\mathcal{E}^S$.
 \end{proof}
 
 \begin{lemma}[Existence of a Gibbs measure specified by an ISSSD]
@@ -87,7 +95,7 @@ Let $S$ be a set, $(E, \mathcal{E})$ be a measurable space and $\nu$ a measure o
 \begin{proof}
     % \leanok
 
-   Immediate.
+    On square cylinders both sides of the DLR equation factor over the coordinates.
 \end{proof}
 
 \begin{definition}[Modifier]
@@ -98,7 +106,9 @@ Let $S$ be a set, $(E, \mathcal{E})$ be a measurable space and $\nu$ a measure o
 
     A {\bf modifier of $\gamma$} is a family
     \[\rho : \Finset(S) \to \Omega \to [0, \infty[\]
-    such that the corresponding family of kernels $\rho\gamma$ is a specification.
+    of measurable functions such that the family of kernels $\rho\gamma$, with
+    $(\rho\gamma)_\Lambda(\cdot \mid \eta) := \rho_\Lambda \cdot \gamma_\Lambda(\cdot \mid \eta)$,
+    is a specification.
 \end{definition}
 
 \begin{lemma}[Modifier of a modifier]
@@ -107,18 +117,17 @@ Let $S$ be a set, $(E, \mathcal{E})$ be a measurable space and $\nu$ a measure o
     \lean{Specification.modification_modification}
     \leanok{}
 
-    Modifying a specification $\gamma$ by $\rho_1$ then $\rho_2$ is the same as modifying it by their product.
+    Modifying a specification $\gamma$ by $\rho_1$ then $\rho_2$ is the same as modifying it by
+    their product $\rho_1\rho_2$.
 \end{lemma}
 \begin{proof}
     % \uses{}
     \leanok
 
-    TODO
+    Both sides have density $\rho_{1,\Lambda}\rho_{2,\Lambda}$ with respect to
+    $\gamma_\Lambda(\cdot\mid\eta)$.
 \end{proof}
 
-% Currently skipping the definition of positive modifiers because it looks a bit dumb
-
-% Start of Remark 1.28.1
 \begin{lemma}[A modifier of a proper specification is proper]
     \label{lem:modif-proper}
     \uses{def:modif, def:markov-spec}
@@ -138,8 +147,6 @@ Let $S$ be a set, $(E, \mathcal{E})$ be a measurable space and $\nu$ a measure o
     which is true by Lemma \ref{lem:proper-ker-lintegral} with $f = 1_A\rho_\Lambda$, $g = 1_B$.
 \end{proof}
 
-% The rest of Remark 1.28.1 is vacuous in our setup
-
 \begin{lemma}[Null events of Gibbs measures, Remark 1.28.2]
     \label{lem:remark-128-2}
     \uses{def:modif, def:gibbs-meas}
@@ -147,11 +154,11 @@ Let $S$ be a set, $(E, \mathcal{E})$ be a measurable space and $\nu$ a measure o
       Specification.IsGibbsMeasure.lambdaSpecification_null_iff_null}
     \leanok
 
-    Let $\gamma = \rho\lambda$ be a $\lambda$-specification with everywhere positive densities
-    $\rho_\Lambda$ over a $\sigma$-finite non-zero a priori measure.  A Gibbs measure
+    Let $\lambda$ be the $\lambda$-specification of a $\sigma$-finite non-zero a priori measure
+    $\nu$ and let $\gamma = \rho\lambda$ with $\rho_\Lambda > 0$ everywhere. A Gibbs measure
     $\mu \in \Gibbs{\gamma}$ annihilates an event $C \in \mathcal{F}_\Delta$, $\Delta \in \Fin$,
-    exactly when the reference kernels $\lambda_\Delta(\,\cdot\mid\eta)$ all do.  In particular
-    any two Gibbs measures for $\gamma$ have the same null events in
+    exactly when $\lambda_\Delta(C \mid \eta) = 0$ for every $\eta$. In particular any two Gibbs
+    measures for $\gamma$ have the same null events in
     $\bigcup_{\Delta \in \Fin} \mathcal{F}_\Delta$.
 \end{lemma}
 \begin{proof}
@@ -160,16 +167,10 @@ Let $S$ be a set, $(E, \mathcal{E})$ be a measurable space and $\nu$ a measure o
     The DLR equation at the volume $\Delta$ writes $\mu(C)$ as the $\mu$-average of
     $\gamma_\Delta(C \mid \cdot) = \int_C \rho_\Delta \, \mathrm{d}\lambda_\Delta(\cdot\mid\eta)$,
     and positivity of $\rho_\Delta$ makes the inner integral vanish exactly when
-    $\lambda_\Delta(C \mid \eta) = 0$.
+    $\lambda_\Delta(C \mid \eta) = 0$. On $\mathcal{F}_\Delta$ the value
+    $\lambda_\Delta(C \mid \eta)$ does not depend on $\eta$.
 \end{proof}
 
-
-% (Yaël) Not sure how to generalise Remark 1.28.3 away from ISSSD
-
-% We can't state Remark 1.28.4 since we don't have a characteristic for a specification to be a
-% modifier of another measure
-
-% We don't need this. This is just for fun.
 \begin{lemma}[Every specification is a modification of some ISSSD, Remark 1.28.5]
     \label{lem:exists-modif-isssd}
     \uses{def:modif, def:isssd}
@@ -203,25 +204,28 @@ Let $S$ be a set, $(E, \mathcal{E})$ be a measurable space and $\nu$ a measure o
     \begin{enumerate}
         \item $\rho$ is a modifier of $\gamma$
         \item each $\rho_\Lambda$ is measurable, $\int \rho_\Lambda \dd\gamma_\Lambda(\cdot|\eta) = 1$
-        for every $\Lambda$ and $\eta$ (Georgii's standing normalisation
-        $\lambda_\Lambda \rho_\Lambda = 1$ in (1.30)), and for all
+        for every $\Lambda$ and $\eta$, and for all
         $\Lambda_1 \subseteq \Lambda_2$ and all $\eta : S \to E$,
         \[\rho_{\Lambda_2} = \rho_{\Lambda_1}\cdot (\gamma_{\Lambda_1} \rho_{\Lambda_2}) \quad \gamma_{\Lambda_2}(\cdot|\eta)\text{-a.e.}\]
     \end{enumerate}
-    Without the normalisation conjunct the equivalence is false: $\rho_\Lambda \equiv 0$ satisfies
-    the displayed identity but modifies no specification.
+    The normalisation conjunct cannot be dropped: $\rho_\Lambda \equiv 0$ satisfies the displayed
+    identity and modifies no specification.
 \end{proposition}
 \begin{proof}
     % \uses{}
     % \leanok
 
     \begin{itemize}
-        \item ($\implies$) $\rho_{\Lambda_2} = \rho_{\Lambda_1}\cdot (\gamma_{\Lambda_1} \rho_{\Lambda_2}) \quad \gamma_{\Lambda_2}(\cdot|\eta)\text{-a.e.}$
+        \item Normalisation says that each $(\rho\gamma)_\Lambda(\cdot|\eta)$ is a probability
+        measure.
         \begin{itemize}
-            \item $\implies \rho_{\Lambda_2}\gamma_{\Lambda_2} = $
+            \item Properness and consistency of $\gamma$ give, for $\Lambda_1 \subseteq \Lambda_2$,
+            $(\rho\gamma)_{\Lambda_1} \circ_k (\rho\gamma)_{\Lambda_2}
+            = \big(\rho_{\Lambda_1}\cdot(\gamma_{\Lambda_1}\rho_{\Lambda_2})\big)\gamma_{\Lambda_2}$.
         \end{itemize}
+        \item So consistency of $\rho\gamma$ equates two densities of the same $\sigma$-finite
+        measure, which is the displayed a.e. identity.
     \end{itemize}
-
 \end{proof}
 
 \begin{proposition}[Characterisation of modifiers of independent specifications, Proposition 1.30.2]
@@ -230,17 +234,17 @@ Let $S$ be a set, $(E, \mathcal{E})$ be a measurable space and $\nu$ a measure o
     \lean{Specification.isModifier_iff_ae_comm}
     \leanok{}
 
-    Let $\gamma$ be a specification satisfying
-    $\gamma_{\Lambda_1} \circ_k \gamma_{\Lambda_2} = \gamma_{\Lambda_1 \cup \Lambda_2}$ for
-    \emph{disjoint} volumes (Georgii's Notation (1.26); the Lean hypothesis is
-    \texttt{IsDisjointlyConsistent}, satisfied by the independent specifications), and $\rho$ a
-    family of functions. TFAE
+    Let $\gamma$ be a \emph{disjointly consistent} specification, that is
+    $\gamma_{\Lambda_1} \circ_k \gamma_{\Lambda_2} = \gamma_{\Lambda_1 \union \Lambda_2}$ whenever
+    $\Lambda_1 \inter \Lambda_2 = \emptyset$ (Georgii's Notation (1.26); independent
+    specifications, Definition \ref{def:indep-spec}, qualify), and $\rho$ a family of functions.
+    TFAE
     \begin{enumerate}
         \item $\rho$ is a modifier of $\gamma$
         \item each $\rho_\Lambda$ is measurable and normalised as in
         Proposition~\ref{prop:modif-char}, and for all $\Lambda_1, \Lambda_2$ with
         $\Lambda_1 \subseteq \Lambda_2$, $\eta : S \to E$ and
-        $\gamma_{\Lambda_2 \setminus \Lambda_1}(\cdot|\alpha)$-almost all $\eta_2 : S \to E$, we have
+        $\gamma_{\Lambda_2 \setminus \Lambda_1}(\cdot|\eta)$-almost all $\eta_2 : S \to E$, we have
         \[\rho_{\Lambda_2}(\zeta_1)\rho_{\Lambda_1}(\zeta_2) = \rho_{\Lambda_2}(\zeta_2) \rho_{\Lambda_1}(\zeta_1)\]
         for $\gamma_{\Lambda_1}(\cdot|\eta_2) \times \gamma_{\Lambda_2}(\cdot|\eta_2)$-almost all $(\zeta_1, \zeta_2)$.
     \end{enumerate}
@@ -262,8 +266,6 @@ Let $S$ be a set, $(E, \mathcal{E})$ be a measurable space and $\nu$ a measure o
     for all $\Lambda_1 \subseteq \Lambda_2$ and all $\zeta, \eta : S \to E$ such that $\zeta_{\Lambda_1^c} = \eta_{\Lambda_1^c}$.
 \end{definition}
 
-% TODO: Probably split into several items
-% We don't need this. This is just for fun.
 \begin{lemma}[Modifiers are premodifiers]
     \label{lem:modif-premodif}
     \uses{def:modif, def:premodif}
@@ -294,14 +296,15 @@ Let $S$ be a set, $(E, \mathcal{E})$ be a measurable space and $\nu$ a measure o
     \uses{def:modif, def:premodif}
     \lean{Specification.IsPremodifier.isModifier_premodifierNorm}
     \leanok
-    If $h$ is a premodifier and $\nu$ is such that $0 < \nu_\Lambda h_\Lambda < \infty$ for all $\Lambda$, then
+    If $h$ is a premodifier, $\nu$ a probability measure and
+    $0 < \ISSSD(\nu)_\Lambda h_\Lambda(\eta) < \infty$ for all $\Lambda$ and $\eta$, then
     $$\rho_\Lambda := \frac{h_\Lambda}{\ISSSD(\nu)_\Lambda h_\Lambda}$$
     is a modifier of $\ISSSD(\nu)$.
 \end{lemma}
 \begin{proof}
     \uses{prop:modif-indep-char}
 
-    TODO
+    The premodifier identity is the pointwise form of the symmetry in
+    Proposition \ref{prop:modif-indep-char}(2) and survives the normalisation, which is finite and
+    non-zero by hypothesis and makes $\ISSSD(\nu)_\Lambda\rho_\Lambda = 1$.
 \end{proof}
-
-% Skipping Theorem 1.33 for now

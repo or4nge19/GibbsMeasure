@@ -1,29 +1,15 @@
 \section{Markov specifications on the integers}
 
-Throughout this section the parameter set is $S = \mathbb{Z}$ and the state space $E$ is a
-finite non-empty set with $\mathcal{E}$ its power set. Georgii takes the a priori measure
-$\lambda$ on $E$ to be counting measure; the Lean development uses the uniform probability
-measure on $E$ instead. By Remark (1.28)(3) the two choices give the same modifications and hence
-the same Gibbs measures, and the normalising constants differ by the explicit factor
-$|E|^{|\Lambda|}$ which is visible in the Lean partition-function lemmas.
-
-For $\Lambda \subseteq \mathbb{Z}$ Georgii writes
+Throughout this section the parameter set is $S = \mathbb{Z}$, the state space $E$ is a finite
+non-empty set with $\mathcal{E}$ its power set, and the a priori measure $\lambda$ is the uniform
+probability measure on $E$; Georgii takes counting measure instead, and by Remark (1.28)(3) the
+two choices have the same modifications and hence the same Gibbs measures. For
+$\Lambda \subseteq \mathbb{Z}$,
 \[
     \partial\Lambda = \set{i \in \mathbb{Z}\setminus\Lambda : |i - j| = 1 \text{ for some }
     j \in \Lambda} \qquad (3.4)
 \]
-for the boundary of $\Lambda$. There is no Lean definition of $\partial\Lambda$ for a general
-finite $\Lambda$: every finite-volume statement below is proved for an interval
-$\Lambda = [a,b]$, whose boundary is $\set{a-1, b+1}$, and the two boundary sites appear
-explicitly in the formulas.
-
-One further difference in presentation. Georgii \emph{defines} the specification attached to a
-stochastic matrix $P$ by the conditioning equation (3.6) and only afterwards identifies it as
-Gibbsian for a nearest-neighbour potential (Corollary (3.9)). The Lean development runs the other
-way: $\gamma_P$ is \emph{defined} as the Gibbsian specification of the potential
-$\Phi_{\set{i,i+1}} = -\log P(\sigma_i, \sigma_{i+1})$, and (3.6), (3.8)(1) and (3.11) are then
-theorems about it. Nothing is lost, and the properness and consistency of $\gamma_P$ come for
-free from the Gibbsian machinery instead of Georgii's ad hoc argument in step 1.
+is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1, b+1}$.
 
 \begin{definition}[Positive homogeneous Markov specification, Georgii (3.1)]
     \label{def:mkv-pos-hom-markov}
@@ -37,9 +23,7 @@ free from the Gibbsian machinery instead of Georgii's ad hoc argument in step 1.
     \[
         \gamma_{\set{i}}(\sigma_i = y \mid \omega) = g(\omega_{i-1}, y, \omega_{i+1})
     \]
-    for all $i \in \mathbb{Z}$, $y \in E$ and $\omega \in \Cfg$. In Lean the notion is split in
-    two: a structure carrying the strict positivity of $g$ together with the displayed identity
-    for the singleton kernels, and its existential closure over $g$.
+    for all $i \in \mathbb{Z}$, $y \in E$ and $\omega \in \Cfg$.
 \end{definition}
 
 \begin{remark}[Comment (3.2): the determining function]
@@ -48,13 +32,11 @@ free from the Gibbsian machinery instead of Georgii's ad hoc argument in step 1.
     \lean{Specification.eq_of_forall_singleton_eq, MeasureTheory.GibbsMeasure.Markov.eq_markovSpecification_of_forall_singleton}
     \leanok
 
-    Definition \ref{def:mkv-pos-hom-markov} constrains only the singleton part of $\gamma$, but
-    by Theorem (1.33) a specification is determined by its singleton kernels, so a positive
-    homogeneous Markov specification is determined by $g$, which is therefore called its
-    \textbf{determining function}. The library has the general statement --- two specifications
-    with equal singleton kernels agree, provided the singleton kernels are densities against a
-    disjointly consistent independent family --- and the instance of it for the specifications of
-    this section; both are named above.
+    Two specifications with equal singleton kernels agree, provided those kernels are densities,
+    nowhere $0$ or $\infty$, against a disjointly consistent $\lambda$-independent family
+    (Theorem (1.33)); this applies to the specifications of this section. Hence a positive
+    homogeneous Markov specification is determined by the $g$ of Definition
+    \ref{def:mkv-pos-hom-markov}, which is called its \textbf{determining function}.
 \end{remark}
 
 \begin{definition}[The homogeneous nearest-neighbour potential of a matrix, Georgii (3.9)]
@@ -69,11 +51,11 @@ free from the Gibbsian machinery instead of Georgii's ad hoc argument in step 1.
             0 & \text{otherwise.}
         \end{cases}
     \]
-    This is a homogeneous nearest-neighbour potential in Georgii's sense (with
-    $\varphi_1 = 0$ and $\varphi_2 = -\log P$). It is a potential (each $\Phi^P_A$ is
-    $\mathcal{F}_A$-measurable), it has finite range (the interactions containing $i$ lie inside
-    $[i-1, i+1]$), and it is absolutely summable: $|\Phi^P_A| \le \sum_{x,y}|\log P(x,y)|$
-    uniformly, and only three sets $A \ni i$ contribute. Hence $\Phi^P \in \Bspace$.
+    This is a homogeneous nearest-neighbour potential (with $\varphi_1 = 0$ and
+    $\varphi_2 = -\log P$): each $\Phi^P_A$ is $\mathcal{F}_A$-measurable, the interactions
+    containing $i$ lie inside $[i-1, i+1]$, so $\Phi^P$ has finite range, and
+    $|\Phi^P_A| \le \sum_{x,y}|\log P(x,y)|$ uniformly, so with only three sets $A \ni i$
+    contributing $\Phi^P$ is absolutely summable, $\Phi^P \in \Bspace$.
 \end{definition}
 
 \begin{definition}[The Markov specification of a matrix, Georgii (3.6)]
@@ -86,7 +68,7 @@ free from the Gibbsian machinery instead of Georgii's ad hoc argument in step 1.
     potential $\Phi^P$ of Definition \ref{def:mkv-potential} at inverse temperature $1$, with the
     uniform probability measure on $E$ as a priori measure: $\gamma_P$ is the modification of
     $\ISSSD(\lambda)$ by the normalised Boltzmann factor
-    $e^{-H_\Lambda^{\Phi^P}} / Z_\Lambda$.
+    $e^{-H_\Lambda^{\Phi^P}} / Z_\Lambda$. In particular $\gamma_P$ is proper and consistent.
 \end{definition}
 
 \begin{lemma}[Perron--Frobenius, Georgii Appendix 3.A and Comment (3.8)(2)]
@@ -97,11 +79,6 @@ free from the Gibbsian machinery instead of Georgii's ad hoc argument in step 1.
     A matrix $Q$ on $E$ with all entries strictly positive has a strictly positive eigenvalue
     $q$ admitting a strictly positive right eigenvector $r$; $q$ is the only eigenvalue with a
     strictly positive eigenvector, and every eigenvector for $q$ is a multiple of $r$.
-
-    Georgii's Comment (3.8)(2) also asserts that all other eigenvalues of $Q$ have modulus
-    strictly less than $q$. That spectral dominance is \emph{not} formalized. It is not needed
-    here: everything below uses only the uniqueness of $q$ among eigenvalues with a positive
-    eigenvector, which pins down $P = (Q(x,y)r(y)/qr(x))_{x,y}$ just as well.
 \end{lemma}
 \begin{proof}
     \leanok
@@ -146,11 +123,10 @@ free from the Gibbsian machinery instead of Georgii's ad hoc argument in step 1.
         \mu_P(\sigma_i = x_0, \dots, \sigma_{i+n} = x_n)
           = \alpha_P(x_0) P(x_0,x_1)\cdots P(x_{n-1},x_n) \qquad (3.3)
     \]
-    where $\alpha_P$ is the stationary vector of Lemma \ref{lem:mkv-doeblin}. In Lean it is built
-    from these finite-dimensional distributions: the interval weights are shown to form a
-    projective family (the right endpoint is dropped using $\sum_y P(x,y) = 1$, the left endpoint
-    using $\alpha_P P = \alpha_P$), and $\mu_P$ is their projective limit by the Kolmogorov
-    extension theorem for standard Borel spaces.
+    where $\alpha_P$ is the stationary vector of Lemma \ref{lem:mkv-doeblin}. These interval
+    weights form a projective family --- the right endpoint is dropped using
+    $\sum_y P(x,y) = 1$, the left endpoint using $\alpha_P P = \alpha_P$ --- and $\mu_P$ is their
+    projective limit by the Kolmogorov extension theorem.
 \end{definition}
 
 \begin{theorem}[Cylinder probabilities of $\mu_P$, Georgii (3.3)]
@@ -186,7 +162,6 @@ free from the Gibbsian machinery instead of Georgii's ad hoc argument in step 1.
           = \frac{P(\omega_{a-1}, \eta_a) P(\eta_a, \eta_{a+1}) \cdots P(\eta_b, \omega_{b+1})}
                  {P^{n+2}(\omega_{a-1}, \omega_{b+1})}.
     \]
-    This is Georgii's Comment (3.8)(1) for a single block $\Lambda = \set{i+1, \dots, i+n_k}$.
 \end{theorem}
 \begin{proof}
     \leanok
@@ -214,11 +189,7 @@ free from the Gibbsian machinery instead of Georgii's ad hoc argument in step 1.
                   P(\zeta_{m-1}, \zeta_m)\, P^{q+2}(\zeta_m, \omega_{b+1})}
                  {P^{d+p+q+4}(\omega_{a-1}, \omega_{b+1})}.
     \]
-    Georgii's Comment (3.8)(1) computes $\mu_P(\sigma_\Lambda = \zeta \mid \sigma_{\partial\Lambda}
-    = \omega_{\partial\Lambda})$ for a $\Lambda$ that is a finite union of blocks, with
-    conditioning volume $\Lambda$ itself. The Lean statement is at different hypotheses: one block
-    $\Lambda$ inside one interval $\Delta$, with $\Delta$ arbitrary. The multi-block case is not
-    formalized; the case $\Delta = \Lambda$ is Theorem \ref{thm:mkv-38-1-single}.
+    The case $\Delta = \Lambda$ is Theorem \ref{thm:mkv-38-1-single}.
 \end{theorem}
 \begin{proof}
     \leanok
@@ -342,7 +313,7 @@ free from the Gibbsian machinery instead of Georgii's ad hoc argument in step 1.
     $\gamma_\Lambda = \gamma_\Lambda\gamma_{\set{1}} = \gamma_\Lambda\gamma_{\set{2}}$ give
     $[xy] = g(a,x,y)\sum_u [uy] = g(x,y,z)\sum_v [xv]$, whence
     $g(a,x,y)/g(a,a,y) = [xy]/[ay]$ and $g(x,y,z)/g(x,a,z) = [xy]/[xa]$. Both sides of (3.12)
-    equal $[xy]/[aa]$. (All the $[xy]$ are strictly positive because $g$ is.)
+    equal $[xy]/[aa]$. All the $[xy]$ are strictly positive because $g$ is.
 \end{proof}
 
 \begin{theorem}[Georgii, step 3 of the proof of (3.5): (3.12) $\Rightarrow$ (3.11)]
@@ -352,13 +323,10 @@ free from the Gibbsian machinery instead of Georgii's ad hoc argument in step 1.
     \leanok
 
     Let $g > 0$ on $E^3$ be normalised, $\sum_y g(x,y,z) = 1$, and satisfy (3.12), and let
-    $Q = (g(a,x,y)/g(a,a,y))_{x,y}$. Then for \emph{every} $q > 0$ and every $v \in
-    \,]0,\infty[^E$, the matrix $M(x,y) = Q(x,y)v(y)/(q\,v(x))$ has $g$ as its determining
-    function (3.11): $g(x,y,z) = M(x,y)M(y,z)/M^2(x,z)$. Taking for $(q,v)$ the Perron pair of
-    $Q$ gives the matrix $P$ of (3.7).
-
-    The Lean statement is stronger than Georgii's step 3, which only treats the Perron pair: no
-    eigenvector equation is assumed, only positivity of $q$ and $v$.
+    $Q = (g(a,x,y)/g(a,a,y))_{x,y}$. Then for every $q > 0$ and every $v \in \,]0,\infty[^E$ ---
+    no eigenvector equation assumed --- the matrix $M(x,y) = Q(x,y)v(y)/(q\,v(x))$ has $g$ as its
+    determining function (3.11): $g(x,y,z) = M(x,y)M(y,z)/M^2(x,z)$. Taking for $(q,v)$ the
+    Perron pair of $Q$ gives the matrix $P$ of (3.7).
 \end{theorem}
 \begin{proof}
     \leanok
@@ -387,8 +355,8 @@ free from the Gibbsian machinery instead of Georgii's ad hoc argument in step 1.
     Let $g$ be the determining function of $\gamma$ and let $P$ be given by (3.7). By Theorem
     \ref{thm:mkv-312} $g$ is normalised and satisfies (3.12), so by Theorem \ref{thm:mkv-step3}
     $g = g_P$ is the determining function of $\gamma_P$ as in (3.11). Thus $\gamma$ and
-    $\gamma_P$ have the same singleton kernels, and Remark \ref{rmk:mkv-comment-32} (Theorem
-    (1.33)) gives $\gamma = \gamma_P$.
+    $\gamma_P$ have the same singleton kernels, and Remark \ref{rmk:mkv-comment-32} gives
+    $\gamma = \gamma_P$.
 \end{proof}
 
 \begin{theorem}[Georgii, step 1 of the proof of (3.5): existence]
@@ -433,7 +401,7 @@ free from the Gibbsian machinery instead of Georgii's ad hoc argument in step 1.
     / P^{d+2k+4}(\omega_{l-2-k}, \omega_{m+2+k})$ with
     $\pi(\zeta) = \prod_{j=l}^{m-1}P(\zeta_j,\zeta_{j+1})$. By Lemma \ref{lem:mkv-doeblin} each
     matrix power is within $2\rho^k$ of $\alpha_P$ at the relevant entry. The two boundary sites
-    move with $k$, so one estimates the ratio rather than the individual limits: since
+    move with $k$, so the ratio is estimated rather than the individual limits: since
     $\alpha_P \ge c > 0$, the numerator and denominator factors at the varying site cancel to
     $1 + O(\rho^k)$, and the remaining factor tends to $\alpha_P(\zeta_l)$.
 \end{proof}
@@ -467,28 +435,22 @@ free from the Gibbsian machinery instead of Georgii's ad hoc argument in step 1.
       MeasureTheory.GibbsMeasure.Markov.isCondExp_markovSpecification_stationaryChain}
     \leanok
 
-    For every $\Lambda \in \Fin$, every $\zeta$ and \emph{every} --- not merely almost every ---
+    For every $\Lambda \in \Fin$, every $\zeta$ and every --- not merely almost every ---
     boundary condition $\omega$,
     \[\gamma_{P,\Lambda}(\sigma_\Lambda = \zeta \mid \omega) =
       \mu_P(\sigma_\Lambda = \zeta \mid \sigma_{\partial\Lambda} = \omega_{\partial\Lambda}),\]
-    conditioning on the finite boundary $\partial\Lambda$ of (3.4) alone: Georgii's statement
-    verbatim, as \texttt{markovSpecification\_apply\_cyl\_eq\_cond}, with the conditioning event
-    of positive $\mu_P$-measure (\texttt{stationaryChain\_cyl\_pos}), so the right-hand side is
-    the elementary conditional probability.  The kernel-level companion --- $\gamma_{P,\Lambda}$
-    is a version of the conditional distribution of $\mu_P$ given the whole exterior
-    $\sigma$-algebra $\mathcal{F}_{\mathbb{Z}\setminus\Lambda}$ --- is
-    \texttt{isCondExp\_markovSpecification\_stationaryChain}.  For an interval
-    $\Lambda = [a,b]$ the boundary is $\set{a-1, b+1}$ (\texttt{boundary\_Icc}) and the
-    right-hand side is evaluated by Comment (3.8)(1) as Theorem \ref{thm:mkv-38-1-single}.
+    the conditioning on the finite boundary $\partial\Lambda$ of (3.4) being on an event of
+    positive $\mu_P$-measure, so that the right-hand side is an elementary conditional
+    probability. Moreover $\gamma_{P,\Lambda}$ is a version of the conditional distribution of
+    $\mu_P$ given the whole exterior $\sigma$-algebra $\mathcal{F}_{\mathbb{Z}\setminus\Lambda}$.
 \end{theorem}
 \begin{proof}
     \leanok
 
     Both sides are ratios of Boltzmann weights of the Markov potential: the left-hand side by
     the definition of the Markov specification, the right-hand side by the single-site exchange
-    identity for $\mu_P$
-    (\texttt{stationaryChain\_cyl\_update\_mul\_boltzmannFactor}), inducting over the sites of
-    $\Lambda$.  The kernel-level version is Theorem \ref{thm:mkv-step1}.
+    identity for $\mu_P$, inducting over the sites of $\Lambda$. The version statement for the
+    exterior $\sigma$-algebra is Theorem \ref{thm:mkv-step1}.
 \end{proof}
 
 \begin{theorem}[Georgii (3.5)]
@@ -506,15 +468,13 @@ free from the Gibbsian machinery instead of Georgii's ad hoc argument in step 1.
 \begin{proof}
     \leanok
 
-    Georgii's five steps are, in Lean: step 1, $\mu_P \in \Gibbs{\gamma_P}$ and $\gamma_P$ is a
-    specification (Theorem \ref{thm:mkv-step1}; properness and consistency are free here, since
-    $\gamma_P$ is Gibbsian for $\Phi^P$ by construction), with the determining function (3.11)
-    (Theorem \ref{thm:mkv-311}); step 2, $P$ is recovered from $g_P$ by (3.7), whence injectivity
-    (Theorem \ref{thm:mkv-step2}, Corollary \ref{cor:mkv-inj}); steps 3 and 4, every determining
-    function satisfies (3.12) and (3.12) forces the shape (3.11), whence surjectivity (Theorems
-    \ref{thm:mkv-312}, \ref{thm:mkv-step3}, \ref{thm:mkv-surj}); step 5, the ergodic theorem for
-    Markov chains gives $\Gibbs{\gamma_P} \subseteq \set{\mu_P}$ (Theorem
-    \ref{thm:mkv-uniqueness}).
+    Step 1: $\mu_P \in \Gibbs{\gamma_P}$ (Theorem \ref{thm:mkv-step1}), with determining
+    function (3.11) (Theorem \ref{thm:mkv-311}). Step 2: $P$ is recovered from $g_P$ by (3.7),
+    whence injectivity (Theorem \ref{thm:mkv-step2}, Corollary \ref{cor:mkv-inj}). Steps 3 and 4:
+    every determining function satisfies (3.12), and (3.12) forces the shape (3.11), whence
+    surjectivity (Theorems \ref{thm:mkv-312}, \ref{thm:mkv-step3}, \ref{thm:mkv-surj}). Step 5:
+    the ergodic theorem for Markov chains gives $\Gibbs{\gamma_P} \subseteq \set{\mu_P}$
+    (Theorem \ref{thm:mkv-uniqueness}).
 \end{proof}
 
 \begin{corollary}[Georgii (3.9)]
@@ -524,25 +484,18 @@ free from the Gibbsian machinery instead of Georgii's ad hoc argument in step 1.
     A specification $\gamma$ is a positive homogeneous Markov specification if and only if
     $\gamma$ is Gibbsian for some homogeneous nearest-neighbour potential $\Phi$, i.e.\ one with
     $\Phi_{\set{i}} = \varphi_1(\sigma_i)$ and $\Phi_{\set{i,i+1}} =
-    \varphi_2(\sigma_i,\sigma_{i+1})$.
-
-    Only the forward implication is formalized, and it is exactly Theorem \ref{thm:mkv-surj}:
-    $\gamma = \gamma_P$ is Gibbsian for the homogeneous nearest-neighbour potential
-    $\Phi^P = -\log P$ of Definition \ref{def:mkv-potential}. The converse --- that the Gibbsian
-    specification of an \emph{arbitrary} homogeneous nearest-neighbour pair
-    $(\varphi_1,\varphi_2)$ is a positive homogeneous Markov specification --- is not in the
-    library, and neither is the consequence Georgii draws from it with (2.35)(b): that for a
-    fixed $\alpha \in \Prob(E,\mathcal{E})$ the relation $\Gibbs{\Phi} = \set{\mu_P}$ is a
-    bijection between the $\alpha$-normalised homogeneous nearest-neighbour potentials and the
-    positive stochastic matrices.
+    \varphi_2(\sigma_i,\sigma_{i+1})$; in the forward direction $\gamma = \gamma_P$ is Gibbsian
+    for $\Phi^P = -\log P$ of Definition \ref{def:mkv-potential} by Theorem \ref{thm:mkv-surj}.
+    Consequently, by (2.35)(b), for a fixed $\alpha \in \Prob(E,\mathcal{E})$ the relation
+    $\Gibbs{\Phi} = \set{\mu_P}$ is a bijection between the $\alpha$-normalised homogeneous
+    nearest-neighbour potentials and the positive stochastic matrices.
 \end{corollary}
 
 \begin{remark}[The half-line variant]
     \label{rmk:mkv-half-line}
     \uses{thm:mkv-35}
 
-    Georgii notes that Theorem (3.5) has a straightforward modification for $S = \mathbb{N}$, with
-    $\mu_P$ replaced by the Markov chain with transition matrix $P$ started at time $0$ in a fixed
-    state $a \in E$. This variant is not formalized; the whole file is written for
-    $S = \mathbb{Z}$.
+    Theorem (3.5) has a straightforward modification for $S = \mathbb{N}$, with $\mu_P$ replaced
+    by the Markov chain with transition matrix $P$ started at time $0$ in a fixed state
+    $a \in E$.
 \end{remark}

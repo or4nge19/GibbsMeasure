@@ -1,11 +1,15 @@
 \section{Preliminaries}
 
+Throughout this section $(X,\MCX)$ is a measurable space and $\MCB$ a sub $\sigma$-algebra of
+$\MCX$.
+
 \begin{definition}[Juxtaposition]
     \label{def:juxtaposition}
     \lean{juxt}
     \leanok{}
 
-    Let $E$ and $S$ be sets. Let $\Delta\in\mathcal{P}(S)$, and let $\omega\in E^S$. We define
+    Let $E$ and $S$ be sets, $\Delta\in\mathcal{P}(S)$ and $\omega\in E^S$. The
+    \textbf{juxtaposition of $\zeta$ and $\omega$}, for $\zeta\in E^\Delta$, is given by
     \begin{align}
         \juxtBy{\omega} : E^\Delta&\to E^S\\
         \zeta&\mapsto \delta\mapsto\begin{cases}
@@ -13,7 +17,6 @@
             \omega_\delta & \delta\notin\Delta
         \end{cases}
     \end{align}
-    to be the \textbf{juxtaposition of $\zeta$ and $\omega$} (for each $\zeta\in E^\Delta$).
 \end{definition}
 
 \begin{definition}[Cylinder events]
@@ -21,13 +24,13 @@
     \lean{MeasureTheory.cylinderEvents}
     \leanok{}
 
-    Let $(E,\mathcal{E})$ be a measurable space, and let $S$ be a set. Then,
+    Let $(E,\mathcal{E})$ be a measurable space and $S$ a set. The \textbf{cylinder events in
+    $\Delta$}, for $\Delta\in\mathcal{P}(S)$, are given by
     \begin{align}
         \mathcal{F}:\mathcal{P}(S)&\to \set{\text{sigma algebras on } E^S}\\
         \Delta&\mapsto \sigma(\{\text{proj}_\delta:E^S\to E\mid \delta\in \Delta\})
     \end{align}
-    defines the \textbf{cylinder events in }$\Delta$ (for each $\Delta\in\mathcal{P}(S)$),
-    where each $\text{proj}_\delta$ is the coordinate projection at coordinate $\delta$.
+    where $\text{proj}_\delta$ is the coordinate projection at $\delta$.
 \end{definition}
 
 \begin{definition}[Kernel]
@@ -35,9 +38,10 @@
     \lean{ProbabilityTheory.Kernel}
     \leanok{}
 
-    Let $(X,\MCX)$ and $(Y,\mathcal{Y})$ be measurable spaces. Then,
+    Let $(X,\MCX)$ and $(Y,\mathcal{Y})$ be measurable spaces. The set of \textbf{kernels from
+    $\mathcal{Y}$ to $\MCX$} is
     \[\text{Ker}_{\mathcal{Y},\MCX}:=\left\{\pi:\MCX\times Y\to[0,\infty]~\middle\vert~ \forall y\in Y,\pi(\cdot\mid y)\in\mathfrak{M}(X,\MCX);~\forall A\in\MCX,\pi(A\mid\cdot)\text{ is }\mathcal{Y}\text{-measurable}\right\}\]
-    defines the set of \textbf{kernels from $\mathcal{Y}$ to $\MCX$}, where $\mathfrak{M}(X,\MCX)$ is the space of measures on $X$.
+    where $\mathfrak{M}(X,\MCX)$ is the space of measures on $X$.
 \end{definition}
 
 \begin{definition}[Markov kernel]
@@ -46,10 +50,8 @@
     \lean{ProbabilityTheory.IsMarkovKernel}
     \leanok{}
 
-    Let $(X,\MCX)$ and $(Y,\mathcal{Y})$ be measurable spaces. We say that $\pi\in\text{Ker}_{\mathcal{Y},\MCX}$ is a \textbf{Markov kernel} iff $\pi(X\mid \cdot)=1$.
+    Let $(X,\MCX)$ and $(Y,\mathcal{Y})$ be measurable spaces. A kernel $\pi\in\text{Ker}_{\mathcal{Y},\MCX}$ is a \textbf{Markov kernel} iff $\pi(X\mid \cdot)=1$.
 \end{definition}
-
-Let $(X, \MCX)$ be a measurable space, let $\MCB$ be a sub $\sigma$-algebra of $\MCX$. Let $\pi \in \text{Ker}_{\MCB, \MCX}$.
 
 \begin{definition}[Proper kernel]
     \label{def:proper-ker}
@@ -57,7 +59,7 @@ Let $(X, \MCX)$ be a measurable space, let $\MCB$ be a sub $\sigma$-algebra of $
     \lean{ProbabilityTheory.Kernel.IsProper}
     \leanok{}
 
-    $\pi$ is \textbf{proper} iff $\pi(A\cap B\mid x)=\pi(A\mid x)\cdot\mathbf{1}_B(x)$ for all $A\in\MCX$, $B\in\MCB$ and $x\in X$.
+    A kernel $\pi\in\text{Ker}_{\MCB,\MCX}$ is \textbf{proper} iff $\pi(A\cap B\mid x)=\pi(A\mid x)\cdot\mathbf{1}_B(x)$ for all $A\in\MCX$, $B\in\MCB$ and $x\in X$.
 \end{definition}
 
 \begin{lemma}[Lebesgue integral characterisation of proper kernels]
@@ -66,7 +68,7 @@ Let $(X, \MCX)$ be a measurable space, let $\MCB$ be a sub $\sigma$-algebra of $
     \lean{ProbabilityTheory.Kernel.IsProper.lintegral_mul}
     \leanok{}
 
-    If $\pi$ is proper, then
+    If $\pi\in\text{Ker}_{\MCB,\MCX}$ is proper, then
     \[\int f(x) g(x)\ \pi(dx\mid x_0) = g(x_0)\int f(x)\ \pi(dx\mid x_0)\]
     for all $x_0 \in X$ and functions $f, g : X \to [0, \infty]$ such that $f$ is $\MCX$-measurable, $g$ is $\MCB$-measurable.
 \end{lemma}
@@ -83,7 +85,7 @@ Let $(X, \MCX)$ be a measurable space, let $\MCB$ be a sub $\sigma$-algebra of $
     \lean{ProbabilityTheory.Kernel.IsProper.integral_bdd_mul}
     \leanok{}
 
-    If $\pi$ is a proper Markov kernel and $g$ is a bounded function, then
+    If $\pi\in\text{Ker}_{\MCB,\MCX}$ is a proper Markov kernel, then
     \[\int f(x) g(x)\ \pi(dx\mid x_0) = g(x_0)\int f(x)\ \pi(dx\mid x_0)\]
     for all $x_0 \in X$ and functions $f, g : X \to \R$ such that $f$ is bounded $\MCX$-measurable and $g$ is bounded $\MCB$-measurable.
 \end{lemma}
@@ -100,7 +102,7 @@ Let $(X, \MCX)$ be a measurable space, let $\MCB$ be a sub $\sigma$-algebra of $
     \lean{ProbabilityTheory.condExpKernel, ProbabilityTheory.Kernel.IsCondExp}
     \leanok{}
 
-    Let $\mu\in\mathfrak{M}(X,\MCX)$. Then, $\pi\in\text{Ker}_{\MCB,\MCX}$ is a \textbf{conditional expectation kernel for $\mu$} if $\mu(A\mid \MCB)=\pi(A\mid\cdot)$ $\mu$-a.e.
+    Let $\mu\in\mathfrak{M}(X,\MCX)$. A kernel $\pi\in\text{Ker}_{\MCB,\MCX}$ is a \textbf{conditional expectation kernel for $\mu$} iff $\mu(A\mid \MCB)=\pi(A\mid\cdot)$ $\mu$-a.e.
 \end{definition}
 
 \begin{lemma}[Lebesgue integral characterisation of proper conditional expectation kernels]
@@ -143,8 +145,7 @@ Let $(X, \MCX)$ be a measurable space, let $\MCB$ be a sub $\sigma$-algebra of $
     \lean{ProbabilityTheory.Kernel.isCondExp_iff_bind_eq_left}
     \leanok
 
-    Let $\mu\in\mathfrak{M}(X,\MCX)$ be a finite measure and let $\pi\in\text{Ker}_{\MCB,\MCX}$ be a proper kernel. Then,
-    $$\pi \text{ is a conditional expectation kernel for }\mu \iff \mu\pi = \mu$$
+    Let $\mu\in\mathfrak{M}(X,\MCX)$ be a finite measure and $\pi\in\text{Ker}_{\MCB,\MCX}$ a proper kernel. Then $\pi$ is a conditional expectation kernel for $\mu$ iff $\mu\pi = \mu$.
 \end{lemma}
 \begin{proof}
     \uses{lem:lebesgue-cond-exp-char}

@@ -1,19 +1,20 @@
 \section{Lebesgue conditional expectation}
 
-Let $(X, \MCX)$ be a measurable space, let $\MCB$ be a sub $\sigma$-algebra of $\MCX$.
+Let $(X, \MCX)$ be a measurable space, let $\MCB$ be a sub $\sigma$-algebra of $\MCX$, and let
+$\mu$ be a measure on $(X, \MCX)$ whose restriction $\mu|_\MCB$ to $\MCB$ is $\sigma$-finite.
 
-% Not in the book
 \begin{definition}[Lebesgue conditional expectation]
   \label{def:lebesgue-cond-exp}
   % \uses{}
   \lean{MeasureTheory.condLExp}
   \leanok{}
 
-  The {\bf conditional expectation} of a $\MCX$-measurable function $f : X \to [0, \infty]$ is
-  \[\mu[f | \MCB] = ??\]
+  The {\bf conditional expectation} of a $\MCX$-measurable function $f : X \to [0, \infty]$ is the
+  Radon--Nikodym derivative
+  \[\mu[f | \MCB] = \frac{\partial (f\mu)|_\MCB}{\partial \mu|_\MCB},\]
+  where $f\mu$ is the measure with density $f$ relative to $\mu$.
 \end{definition}
 
-% Not in the book
 \begin{lemma}[Characterisation of the Lebesgue conditional expectation]
   \label{lem:lebesgue-cond-exp-char}
   \uses{def:lebesgue-cond-exp}
@@ -43,15 +44,10 @@ Let $(X, \MCX)$ be a measurable space, let $\MCB$ be a sub $\sigma$-algebra of $
     \leanok
 
     Let $\mu$ be a finite separable measure on $(X, \mathcal{M})$ --- for instance any finite
-    measure on a countably generated $\mathcal{M}$, so any finite measure on a standard Borel
-    space --- and let $\mathcal{M}_0 \leq \mathcal{M}$ be an arbitrary sub-$\sigma$-algebra. Then
-    there is a countable $D \subseteq \mathcal{M}_0$ such that every $A \in \mathcal{M}_0$
-    satisfies $\mu(A \mathbin{\Delta} B) = 0$ for some $B \in \sigma(D)$.
-
-    No countability hypothesis is imposed on $\mathcal{M}_0$. The tail $\sigma$-algebra of a
-    product space is a sub-$\sigma$-algebra which is \emph{not} countably generated --- its atoms
-    are the classes of the eventual-agreement relation $E_0$, and a countable generating family
-    would exhibit $E_0$ as smooth, contradicting Glimm--Effros --- and it is covered here.
+    measure on a countably generated $\mathcal{M}$, hence any finite measure on a standard Borel
+    space --- and let $\mathcal{M}_0 \leq \mathcal{M}$ be a sub-$\sigma$-algebra, subject to no
+    countability hypothesis. Then there is a countable $D \subseteq \mathcal{M}_0$ such that every
+    $A \in \mathcal{M}_0$ satisfies $\mu(A \mathbin{\Delta} B) = 0$ for some $B \in \sigma(D)$.
 \end{theorem}
 \begin{proof}
     \leanok
@@ -68,23 +64,20 @@ Let $(X, \MCX)$ be a measurable space, let $\MCB$ be a sub $\sigma$-algebra of $
     Borel--Cantelli because $\sum_n \mu(A \mathbin{\Delta} B_n) \leq \sum_n 2^{-n} < \infty$.
 \end{proof}
 
-\begin{remark}[What this does \emph{not} give]
+\begin{remark}[What this does not give]
     \label{rmk:pre-cg-mod-null-limits}
-    \uses{thm:pre-cg-mod-null}
+    \uses{thm:pre-cg-mod-null, thm:pre-blackwell-dubins}
 
-    Theorem \ref{thm:pre-cg-mod-null} does not remove the countable-generation hypotheses carried
-    by the tail-$\sigma$-algebra results of Chapter 7. The approximating set it returns depends on
-    the set approximated, so it reproduces exactly the $A$-dependent null sets those hypotheses
-    exist to union together, and no countable exhaustion of $\Tail$ is available.
+    The tail $\sigma$-algebra of a product space is a sub-$\sigma$-algebra which is not countably
+    generated: its atoms are the classes of the eventual-agreement relation $E_0$, and a countable
+    generating family would exhibit $E_0$ as smooth, contradicting Glimm--Effros. Theorem
+    \ref{thm:pre-cg-mod-null} covers it, but does not remove the countable-generation hypotheses
+    carried by the tail-$\sigma$-algebra results of Chapter 7: the approximating set it returns
+    depends on the set approximated, so it reproduces exactly the $A$-dependent null sets those
+    hypotheses exist to union together, and no countable exhaustion of $\Tail$ is available.
 
-    Nor could anything else remove them: the conclusions so guarded are \emph{false} in Georgii's
-    setting, and this is now a theorem
-    (\texttt{not\_ae\_forall\_tailKernel\_apply\_eq\_indicator}). The tail kernel is a regular conditional distribution on the \emph{ambient}
-    $\sigma$-algebra, which for a standard Borel $E$ over countable $S$ is countably generated; so
-    for tail-trivial $\mu$ one has $\mu(\cdot \mid \Tail)(\omega) = \mu$ for a.e.\ $\omega$, while
-    the eventual-agreement class of $\omega$ is a $\mu$-null tail event containing $\omega$. This is
-    Blackwell--Dubins: a non-atomic $\mu$ admits no \emph{proper} regular conditional distribution
-    given $\Tail$.
+    Nor could anything else remove them: the conclusions so guarded are false in Georgii's setting,
+    by Theorem \ref{thm:pre-blackwell-dubins}.
 \end{remark}
 
 
@@ -109,6 +102,5 @@ Let $(X, \MCX)$ be a measurable space, let $\MCB$ be a sub $\sigma$-algebra of $
     $\omega$ is a $\mu$-null tail event containing $\omega$, so
     \[\neg\; \forall^{\mu}\text{-a.e. } \omega,\ \forall A \in \Tail:\
       \mu(A \mid \Tail)(\omega) = \1_A(\omega):\]
-    no proper regular conditional distribution given $\Tail$ exists. This is the reason the
-    countable-generation hypotheses of Chapter 7's kernel-level statements cannot be removed.
+    no proper regular conditional distribution given $\Tail$ exists.
 \end{theorem}
