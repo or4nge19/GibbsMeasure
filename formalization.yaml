@@ -134,6 +134,14 @@ status:
       file: "GibbsMeasure/Specification/DeFinetti.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "Specification.isGibbsMeasure_iff_indep_of_hasFreeMeasure"
+      file: "GibbsMeasure/Specification.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.G_isssdFamily_eq_singleton"
+      file: "GibbsMeasure/Specification/KolmogorovZeroOne.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.subsingleton_G_lambdaSpecification_of_iSup_oscSpan_ne_top"
       file: "GibbsMeasure/Specification/OneDimensionalUniqueness.lean"
       sorry_count: 0

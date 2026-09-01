@@ -29,7 +29,14 @@ project being developed by the [Lean FRO](https://lean-lang.org/fro).
 
 Chapter 1 is essentially complete: specifications (1.23), Gibbs measures and the DLR equation
 (1.24), the independent specification with `G(λ_·) = {λ^S}` (1.25), λ-modifications and
-Proposition (1.30).
+Proposition (1.30). Remark (1.25) is a corollary of a general fact rather than a computation:
+a specification with a **free measure** `μ₀` — `γ_Λ(A|η) = μ₀(A)` for `A ∈ 𝓕_Λ`, Georgii's
+`λ_Λ(A|η) = λ^S(A)` — has at most one Gibbs probability measure, namely `μ₀`, and has one exactly
+when `μ₀` makes `𝓕_Λ` and `𝓕_{Λᶜ}` independent for every finite `Λ`
+(`Specification.eq_of_hasFreeMeasure`, `Specification.isGibbsMeasure_iff_indep_of_hasFreeMeasure`).
+Remark **(1.28)(2)**: for positive densities the null events of `𝓕_Δ` are those of the reference
+kernel, so all Gibbs measures of a λ-specification share them
+(`IsGibbsMeasure.lambdaSpecification_null_iff`).
 
 Chapter 2: potentials, Hamiltonians and the Boltzmann pre-modification (2.1)–(2.6); the space `ℬ` of
 absolutely summable potentials (2.11)–(2.14) and the Gibbsian specification `γ^Φ` for `Φ ∈ ℬ` (2.9);
@@ -59,8 +66,6 @@ independent specification.
 lattice `ℤ^d`, the Ising model has a Gibbs measure at every coupling, external field and inverse
 temperature, and its set of Gibbs measures is compact in the topology of local convergence
 (`latticeIsingGibbsMeasure_nonempty`, `isCompact_setOf_latticeIsingGibbsMeasure`).
-
-From Chapter 7: Theorem (7.7), extreme ⟺ tail-trivial.
 
 Proposition (4.19): uniform convergence `γ^{Φⁱ} → γ^Φ` of Gibbsian specifications from
 convergence of the Hamiltonians, with Georgii's quantitative bound
@@ -185,6 +190,16 @@ probability measure `m` on `𝒫(E, ℰ)`, the mixture taken as `Measure.bind`. 
 exchangeability nor de Finetti; the new Mathlib-facing prerequisite is
 `Measure.measurable_infinitePi` (`GibbsMeasure/Mathlib/Probability/ProductMeasure.lean`), the
 measurability of the infinite product measure in its parameters.
+
+Examples **(7.14)** and **(7.15)** come with them. (7.14) is Kolmogorov's zero-one law: the tail
+σ-algebra of `⨂ᵢ αᵢ` is trivial, proved from the cofinite-limsup description of `𝓣` and so with
+**no countability assumption on `S`** (`forall_tail_measure_eq_zero_or_one_infinitePi`), together
+with Georgii's own route — `𝒢(λ_·) = {λ^S}` and its inhomogeneous form `𝒢(isssdFamily ν) =
+{⨂ᵢ νᵢ}` (`G_isssd_eq_singleton`, `G_isssdFamily_eq_singleton`), hence extremality. The general
+independence input, `⨂ᵢ μᵢ` makes the coordinates inside a set independent of those outside it
+for an arbitrary index type, is `ProbabilityTheory.indep_cylinderEvents_compl_infinitePi`.
+(7.15): the stationary Markov chain is extreme in `𝒢(γ_P)` and trivial on `𝓣`
+(`stationaryChain_mem_extremePoints_G`, `forall_tail_stationaryChain_eq_zero_or_one`).
 
 **Theorem (7.12)**: for an extreme Gibbs measure `μ` the finite-volume distributions
 `γ_{Λ_n}(·|ω)` converge to `μ` for `μ`-a.e. `ω` (setwise, and in the topology of local
