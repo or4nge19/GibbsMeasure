@@ -59,7 +59,7 @@ omit [Countable S] in
   classical
   have h : (Φ - Φ).hamiltonian Λ = fun _ ↦ 0 := by
     funext η
-    simpa using hamiltonian_sub' (Φ := Φ) (Ψ := Φ) Λ η
+    simpa using hamiltonian_sub Φ Φ Λ η
   rw [h]
   exact measurable_const
 
@@ -69,7 +69,7 @@ protected lemma symm [IsSummable Φ] [IsSummable Ψ] (h : IsEquivalent Φ Ψ) :
   classical
   have hne : (Ψ - Φ).hamiltonian Λ = fun η ↦ -((Φ - Ψ).hamiltonian Λ η) := by
     funext η
-    rw [hamiltonian_sub' (Φ := Ψ) (Ψ := Φ) Λ η, hamiltonian_sub' (Φ := Φ) (Ψ := Ψ) Λ η]
+    rw [hamiltonian_sub Ψ Φ Λ η, hamiltonian_sub Φ Ψ Λ η]
     ring
   rw [hne]
   exact (h Λ).neg
@@ -81,8 +81,8 @@ protected lemma trans {Θ : Potential S E} [IsSummable Φ] [IsSummable Ψ] [IsSu
   have hadd : (Φ - Θ).hamiltonian Λ
       = fun η ↦ (Φ - Ψ).hamiltonian Λ η + (Ψ - Θ).hamiltonian Λ η := by
     funext η
-    rw [hamiltonian_sub' (Φ := Φ) (Ψ := Θ) Λ η, hamiltonian_sub' (Φ := Φ) (Ψ := Ψ) Λ η,
-      hamiltonian_sub' (Φ := Ψ) (Ψ := Θ) Λ η]
+    rw [hamiltonian_sub Φ Θ Λ η, hamiltonian_sub Φ Ψ Λ η,
+      hamiltonian_sub Ψ Θ Λ η]
     ring
   rw [hadd]
   exact (h₁ Λ).add (h₂ Λ)
@@ -95,7 +95,7 @@ lemma boltzmannFactor_eq_mul_sub [IsSummable Φ] [IsSummable Ψ] (β : ℝ) (Λ 
     Φ.boltzmannFactor β Λ η
       = (Φ - Ψ).boltzmannFactor β Λ η * Ψ.boltzmannFactor β Λ η := by
   classical
-  have hsub := hamiltonian_sub' (Φ := Φ) (Ψ := Ψ) Λ η
+  have hsub := hamiltonian_sub Φ Ψ Λ η
   rw [boltzmannFactor, boltzmannFactor, boltzmannFactor,
     ← ENNReal.ofReal_mul (Real.exp_pos _).le, ← Real.exp_add]
   congr 2

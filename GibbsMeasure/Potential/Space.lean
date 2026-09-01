@@ -577,17 +577,24 @@ lemma hamiltonianTerms_sub_eq (Φ Ψ : Potential S E) (Λ : Finset S) (η : S �
   · simp [hamiltonianTerms_of_disjoint h]
   · simp [Pi.sub_apply, hamiltonianTerms_of_not_disjoint h]
 
-/-- The Hamiltonian is additive in the potential (on absolutely summable potentials), by
-linearity of unconditional sums. -/
-theorem hamiltonian_sub (Φ Ψ : Potential S E)
-    [Φ.IsAbsolutelySummable] [Ψ.IsAbsolutelySummable] (Λ : Finset S) (η : S → E) :
-    (Φ - Ψ).hamiltonian Λ η = Φ.hamiltonian Λ η - Ψ.hamiltonian Λ η := by
-  have : (Φ - Ψ).IsAbsolutelySummable :=
-    IsAbsolutelySummable.sub ‹Φ.IsAbsolutelySummable› ‹Ψ.IsAbsolutelySummable›
-  rw [hamiltonian_eq_tsum, hamiltonian_eq_tsum, hamiltonian_eq_tsum, hamiltonianTerms_sub_eq]
-  simp only [Pi.sub_apply]
-  exact (summable_hamiltonianTerms (Φ := Φ) Λ η).tsum_sub
-    (summable_hamiltonianTerms (Φ := Ψ) Λ η)
+/-- The terms of `H_Λ^{Φ-Ψ}` sum to `H_Λ^Φ - H_Λ^Ψ`, for merely summable potentials. -/
+lemma hasSum_hamiltonianTerms_sub (Φ Ψ : Potential S E) [IsSummable Φ] [IsSummable Ψ]
+    (Λ : Finset S) (η : S → E) :
+    HasSum ((Φ - Ψ).hamiltonianTerms Λ η) (Φ.hamiltonian Λ η - Ψ.hamiltonian Λ η)
+      (SummationFilter.volume S) :=
+  ((hasSum_hamiltonian (Φ := Φ) Λ η).sub (hasSum_hamiltonian (Φ := Ψ) Λ η)).congr_fun
+    fun A ↦ congrFun (hamiltonianTerms_sub_eq Φ Ψ Λ η) A
+
+lemma isSummable_sub (Φ Ψ : Potential S E) [IsSummable Φ] [IsSummable Ψ] :
+    IsSummable (Φ - Ψ) :=
+  ⟨fun Λ η ↦ ⟨_, hasSum_hamiltonianTerms_sub Φ Ψ Λ η⟩⟩
+
+/-- The Hamiltonian is additive in the potential, by linearity of unconditional sums. Summability
+suffices; absolute summability is not needed. -/
+theorem hamiltonian_sub (Φ Ψ : Potential S E) [IsSummable Φ] [IsSummable Ψ]
+    (Λ : Finset S) (η : S → E) :
+    (Φ - Ψ).hamiltonian Λ η = Φ.hamiltonian Λ η - Ψ.hamiltonian Λ η :=
+  (hasSum_hamiltonianTerms_sub Φ Ψ Λ η).tsum_eq
 
 /-- **Georgii (2.14) for a difference**: `|H_Λ^Φ − H_Λ^Ψ| ≤ ∑_{i ∈ Λ} ‖Φ − Ψ‖ᵢ`. -/
 theorem abs_hamiltonian_sub_le (Φ Ψ : Potential S E)

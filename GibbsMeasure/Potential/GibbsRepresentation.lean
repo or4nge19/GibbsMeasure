@@ -821,30 +821,6 @@ omit [DecidableEq S] in
 lemma isPotential_sub [IsPotential Φ] [IsPotential Ψ] : IsPotential (Φ - Ψ) where
   measurable A :=
     (IsPotential.measurable (Φ := Φ) A).sub (IsPotential.measurable (Φ := Ψ) A)
-
-lemma hamiltonianTerms_sub' (Φ Ψ : Potential S E) (Λ : Finset S) (η : S → E) (A : Finset S) :
-    (Φ - Ψ).hamiltonianTerms Λ η A
-      = Φ.hamiltonianTerms Λ η A - Ψ.hamiltonianTerms Λ η A := by
-  by_cases h : Disjoint A Λ
-  · rw [hamiltonianTerms_of_disjoint h, hamiltonianTerms_of_disjoint h,
-      hamiltonianTerms_of_disjoint h, sub_zero]
-  · rw [hamiltonianTerms_of_not_disjoint h, hamiltonianTerms_of_not_disjoint h,
-      hamiltonianTerms_of_not_disjoint h, sub_apply]
-
-lemma hasSum_hamiltonianTerms_sub [IsSummable Φ] [IsSummable Ψ] (Λ : Finset S) (η : S → E) :
-    HasSum ((Φ - Ψ).hamiltonianTerms Λ η) (Φ.hamiltonian Λ η - Ψ.hamiltonian Λ η)
-      (SummationFilter.volume S) := by
-  have h := (hasSum_hamiltonian (Φ := Φ) Λ η).sub (hasSum_hamiltonian (Φ := Ψ) Λ η)
-  refine h.congr_fun fun A ↦ ?_
-  exact hamiltonianTerms_sub' Φ Ψ Λ η A
-
-lemma isSummable_sub [IsSummable Φ] [IsSummable Ψ] : IsSummable (Φ - Ψ) :=
-  ⟨fun Λ η ↦ ⟨_, hasSum_hamiltonianTerms_sub Λ η⟩⟩
-
-lemma hamiltonian_sub' [IsSummable Φ] [IsSummable Ψ] (Λ : Finset S) (η : S → E) :
-    (Φ - Ψ).hamiltonian Λ η = Φ.hamiltonian Λ η - Ψ.hamiltonian Λ η :=
-  (hasSum_hamiltonianTerms_sub Λ η).tsum_eq
-
 end Potential
 
 namespace Potential
@@ -913,7 +889,7 @@ theorem dependsOn_hamiltonian_sub_of_sigmaFinitePremodifierNorm_eq [IsPotential 
     (Λ : Finset S) : DependsOn ((Φ - Ψ).hamiltonian Λ) ((Λ : Set S)ᶜ) := by
   intro x y hxy
   have hxy' : ∀ s ∉ Λ, x s = y s := fun s hs ↦ hxy s (by simpa using hs)
-  rw [hamiltonian_sub' Λ x, hamiltonian_sub' Λ y,
+  rw [hamiltonian_sub _ _ Λ x, hamiltonian_sub _ _ Λ y,
     hamiltonian_sub_eq_log_sigmaFiniteLambdaZ ν hΦ hΨ heq Λ x,
     hamiltonian_sub_eq_log_sigmaFiniteLambdaZ ν hΦ hΨ heq Λ y,
     Specification.sigmaFiniteLambdaZ_congr_of_eqOn_compl (ρ := Φ.boltzmannFactor 1) ν
@@ -949,7 +925,7 @@ theorem eq_of_isGasPotential_of_sigmaFinitePremodifierNorm_eq
       = Specification.sigmaFinitePremodifierNorm (S := S) (E := E) ν (Ψ.boltzmannFactor 1))
     {A : Finset S} (hA : A.Nonempty) (ω : S → E) : Φ A ω = Ψ A ω := by
   have : IsPotential (Φ - Ψ) := isPotential_sub
-  have : IsSummable (Φ - Ψ) := isSummable_sub
+  have : IsSummable (Φ - Ψ) := isSummable_sub Φ Ψ
   have hgas : IsGasPotential a (Φ - Ψ) := hΦgas.sub hΨgas
   have h : (Φ - Ψ) A ω = 0 :=
     eq_zero_of_isGasPotential (Θ := (Φ - Ψ)) hgas

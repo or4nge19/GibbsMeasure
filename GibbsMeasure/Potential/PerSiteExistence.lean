@@ -204,7 +204,7 @@ lemma boltzmannFactor_eq_mul_lambdaWeight [IsSummable Φ] (Λ : Finset S) (σ : 
             * Specification.lambdaWeight (selfEnergyWeight Φ β η₀) Λ σ) := by
   have hcentre : (manyBody Φ).hamiltonian Λ σ
       = ((manyBody Φ).centre η₀).hamiltonian Λ σ + (manyBody Φ).hamiltonian Λ η₀ := by
-    have h := hamiltonian_sub' (Φ := manyBody Φ) (Ψ := (manyBody Φ).centre η₀) Λ σ
+    have h := hamiltonian_sub (manyBody Φ) ((manyBody Φ).centre η₀) Λ σ
     rw [hamiltonian_sub_centre (Φ := manyBody Φ) η₀ Λ σ] at h
     linarith
   have hsplit : Φ.hamiltonian Λ σ
