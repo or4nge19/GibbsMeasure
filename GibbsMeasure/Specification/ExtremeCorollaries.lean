@@ -8,6 +8,7 @@ module
 public import GibbsMeasure.Specification.ExtremeDecomposition
 public import GibbsMeasure.Specification.LocalLimits
 public import GibbsMeasure.Specification.Transformation
+public import GibbsMeasure.Specification.UniformLocalLimits
 
 /-!
 # Georgii, Corollaries (7.28), (7.29) and (7.30)
@@ -22,8 +23,16 @@ Complements to the extreme decomposition theorem (7.26) for a specification `γ`
 * **(7.28)**: the weight map `μ ↦ w_μ` commutes with every symmetry `τ` of `γ`:
   `w_{τ(μ)} = τ(w_μ)`; in particular `μ` is `τ`-invariant iff `w_μ` is.
 * **(7.29)**: `|ex G(γ)| ≥ N` iff `G(γ)` contains `N` linearly independent measures.
-* **(7.30)**: for finite `E` and quasilocal `γ`, `G(γ)` is the closed convex hull of the
-  limiting Gibbs measures `G_lim(γ)` in the topology of local convergence.
+* **(7.30)**: `G(γ)` is the closed convex hull of the limiting Gibbs measures `G_lim(γ)` in the
+  topology of local convergence — at Georgii's hypotheses, a standard Borel state space and a
+  quasilocal λ-specification (`setOf_mem_GP_eq_closure_convexCombosLimitGibbs_lambdaSpecification`),
+  and for an arbitrary quasilocal specification over a finite state space
+  (`setOf_mem_GP_eq_closure_convexCombosLimitGibbs`). Both follow from the density step
+  `setOf_mem_GP_subset_closure_convexCombosLimitGibbs`, which needs only `ex G(γ) ⊆ G_lim(γ)` —
+  Theorem (7.12)(c), supplied over a finite state space by
+  `ofMeasure_mem_limitGibbs_of_mem_extremePoints_G` and for a λ-specification by the uniform form
+  of (7.12)(c) (`ae_forall_tendsto_iSup_ofReal_abs_sub_lambdaSpecification`) via
+  `ofMeasure_mem_limitGibbs_lambdaSpecification`.
 -/
 
 @[expose] public section
@@ -791,77 +800,187 @@ theorem exists_extremePoints_combo_approx (hG : (G γ).Nonempty) {μ : Measure �
     rw [hcombo]
     exact ⟨hupper j, hlower j⟩
 
+/-- Hard inclusion of **Georgii, Corollary (7.30)**, given Theorem (7.12)(c): if every extreme
+Gibbs measure is a limiting Gibbs measure, `ex G(γ) ⊆ G_lim(γ)`, then every Gibbs measure lies in
+the closed convex hull of `G_lim(γ)`.  Georgii's proof: the neighbourhoods of `μ ∈ G(γ)` in the
+topology of local convergence are indexed by the directed family of pairs (finitely many local
+events `I`, precision `1/(r+1)`), and `exists_extremePoints_combo_approx` — the partition of
+`ex G(γ)` by a grid on the values `ν(A)`, `A ∈ I` — meets each of them with a finite convex
+combination of extreme Gibbs measures. -/
+theorem setOf_mem_GP_subset_closure_convexCombosLimitGibbs
+    (hlim : ∀ μ : ProbabilityMeasure Ω, (μ : Measure Ω) ∈ (G γ).extremePoints ℝ≥0∞ →
+      (WithSetwiseTopology.ofMeasure μ : WithLocalConvergence S E) ∈ limitGibbs γ) :
+    {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP γ} ⊆
+      closure (convexCombosLimitGibbs γ) := by
+  classical
+  intro μ0 hμ0
+  have hμG : (μ0.toMeasure : Measure Ω) ∈ G γ := (G.mem_iff _).2 ⟨inferInstance, hμ0⟩
+  have hG : (G γ).Nonempty := ⟨_, hμG⟩
+  -- stage-`(I, r)` approximation: precision `1 / (r + 1)` on the local events in `I`
+  have happrox : ∀ p : Finset (localEvents S E) × ℕ,
+      ∃ (n : ℕ) (c : Fin n → ℝ≥0∞) (ν : Fin n → Measure Ω),
+        (∀ i, ν i ∈ (G γ).extremePoints ℝ≥0∞) ∧ (∑ i, c i) = 1 ∧
+        ∀ A ∈ p.1,
+          (∑ i, c i • ν i) (A : Set Ω) ≤
+              (μ0.toMeasure : Measure Ω) (A : Set Ω) + ((p.2 + 1 : ℕ) : ℝ≥0∞)⁻¹ ∧
+            (μ0.toMeasure : Measure Ω) (A : Set Ω) ≤
+              (∑ i, c i • ν i) (A : Set Ω) + ((p.2 + 1 : ℕ) : ℝ≥0∞)⁻¹ := by
+    rintro ⟨I, r⟩
+    obtain ⟨n, c, ν, hν, hc, hbounds⟩ := exists_extremePoints_combo_approx hG hμG
+      (fun j : Fin I.card ↦ ((I.equivFin.symm j : localEvents S E) : Set Ω))
+      (fun j ↦ MeasurableSet.of_mem_measurableCylinders (I.equivFin.symm j).1.2)
+      (r := r + 1) r.succ_pos
+    refine ⟨n, c, ν, hν, hc, fun A hA ↦ ?_⟩
+    have h := hbounds (I.equivFin ⟨A, hA⟩)
+    rwa [Equiv.symm_apply_apply] at h
+  choose n c ν hν hc hbounds using happrox
+  have hprob : ∀ p, IsProbabilityMeasure (∑ i, c p i • ν p i : Measure Ω) := fun p ↦
+    (sum_smul_mem_G (fun i ↦ extremePoints_subset (hν p i)) (hc p)).1
+  set combo : Finset (localEvents S E) × ℕ → WithLocalConvergence S E := fun p ↦
+    WithSetwiseTopology.ofMeasure (⟨∑ i, c p i • ν p i, hprob p⟩ : ProbabilityMeasure Ω)
+    with hcombodef
+  -- each `combo p` is a finite convex combination of limiting Gibbs measures
+  have hmem : ∀ p, combo p ∈ convexCombosLimitGibbs γ := fun p ↦
+    ⟨n p, c p, fun i ↦ WithSetwiseTopology.ofMeasure
+      (⟨ν p i, (extremePoints_subset (hν p i)).1⟩ : ProbabilityMeasure Ω),
+      fun i ↦ hlim _ (hν p i), hc p, rfl⟩
+  -- `combo → μ0` along the directed family of stages
+  have htendsto : Tendsto combo atTop (𝓝 μ0) := by
+    rw [tendsto_withLocalConvergence_iff]
+    intro B hB
+    set ε : Finset (localEvents S E) × ℕ → ℝ≥0∞ := fun p ↦ ((p.2 + 1 : ℕ) : ℝ≥0∞)⁻¹ with hεdef
+    have hsnd : Tendsto (fun p : Finset (localEvents S E) × ℕ ↦ p.2) atTop atTop :=
+      tendsto_atTop_atTop.2 fun b ↦ ⟨(∅, b), fun p hp ↦ hp.2⟩
+    have hεtendsto : Tendsto ε atTop (𝓝 0) :=
+      ENNReal.tendsto_inv_nat_nhds_zero.comp ((tendsto_add_atTop_nat 1).comp hsnd)
+    have hupper : Tendsto (fun p ↦ (μ0.toMeasure : Measure Ω) B + ε p) atTop
+        (𝓝 ((μ0.toMeasure : Measure Ω) B)) := by
+      have h := Tendsto.add
+        (tendsto_const_nhds (x := (μ0.toMeasure : Measure Ω) B)
+          (f := (atTop : Filter (Finset (localEvents S E) × ℕ)))) hεtendsto
+      simpa using h
+    have hlower : Tendsto (fun p ↦ (μ0.toMeasure : Measure Ω) B - ε p) atTop
+        (𝓝 ((μ0.toMeasure : Measure Ω) B)) := by
+      have h := ENNReal.Tendsto.sub
+        (tendsto_const_nhds (x := (μ0.toMeasure : Measure Ω) B)
+          (f := (atTop : Filter (Finset (localEvents S E) × ℕ)))) hεtendsto
+        (Or.inl (measure_ne_top _ _))
+      simpa using h
+    have hBev : ∀ᶠ p : Finset (localEvents S E) × ℕ in atTop, (⟨B, hB⟩ : localEvents S E) ∈ p.1 :=
+      eventually_atTop.2 ⟨({⟨B, hB⟩}, 0), fun p hp ↦ hp.1 (Finset.mem_singleton_self _)⟩
+    refine tendsto_of_tendsto_of_tendsto_of_le_of_le' hlower hupper ?_ ?_
+    · filter_upwards [hBev] with p hp
+      exact tsub_le_iff_right.2 (hbounds p ⟨B, hB⟩ hp).2
+    · filter_upwards [hBev] with p hp
+      exact (hbounds p ⟨B, hB⟩ hp).1
+  exact mem_closure_of_tendsto htendsto (Eventually.of_forall hmem)
+
+/-- **Georgii, Corollary (7.30)**, conditional form: for a quasilocal specification `γ` with
+`ex G(γ) ⊆ G_lim(γ)` — the conclusion of Theorem (7.12)(c) — the Gibbs measures form the closed
+convex hull of the limiting Gibbs measures in the topology of local convergence. -/
+theorem setOf_mem_GP_eq_closure_convexCombosLimitGibbs_of_mem_limitGibbs
+    (hγ : γ.IsQuasilocal)
+    (hlim : ∀ μ : ProbabilityMeasure Ω, (μ : Measure Ω) ∈ (G γ).extremePoints ℝ≥0∞ →
+      (WithSetwiseTopology.ofMeasure μ : WithLocalConvergence S E) ∈ limitGibbs γ) :
+    {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP γ} =
+      closure (convexCombosLimitGibbs γ) :=
+  Subset.antisymm (setOf_mem_GP_subset_closure_convexCombosLimitGibbs hlim)
+    (closure_convexCombosLimitGibbs_subset hγ)
+
 /-- **Georgii, Corollary (7.30)** (finite `E`): for a quasilocal specification, the Gibbs
 measures form the closed convex hull of the limiting Gibbs measures `G_lim(γ)` in the topology
 of local convergence. -/
 theorem setOf_mem_GP_eq_closure_convexCombosLimitGibbs [Finite E] (hγ : γ.IsQuasilocal) :
     {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP γ} =
-      closure (convexCombosLimitGibbs γ) := by
-  refine Subset.antisymm ?_ (closure_convexCombosLimitGibbs_subset hγ)
-  intro μ0 hμ0
-  have hμG : (μ0.toMeasure : Measure Ω) ∈ G γ := (G.mem_iff _).2 ⟨inferInstance, hμ0⟩
-  have hG : (G γ).Nonempty := ⟨_, hμG⟩
-  -- enumerate the countably many local events
-  have : Nonempty (localEvents S E) := ⟨⟨∅, empty_mem_measurableCylinders _⟩⟩
-  obtain ⟨e, he⟩ := exists_surjective_nat (localEvents S E)
-  -- stage-`m` approximation on the first `m + 1` local events with precision `1 / (m + 1)`
-  have happrox : ∀ m : ℕ, ∃ (n : ℕ) (c : Fin n → ℝ≥0∞) (ν : Fin n → Measure Ω),
-      (∀ i, ν i ∈ (G γ).extremePoints ℝ≥0∞) ∧ (∑ i, c i) = 1 ∧
-      ∀ j : Fin (m + 1), (∑ i, c i • ν i) ((e j.1 : localEvents S E) : Set Ω) ≤
-          (μ0.toMeasure : Measure Ω) ((e j.1 : localEvents S E) : Set Ω) +
-            ((m + 1 : ℕ) : ℝ≥0∞)⁻¹ ∧
-        (μ0.toMeasure : Measure Ω) ((e j.1 : localEvents S E) : Set Ω) ≤
-          (∑ i, c i • ν i) ((e j.1 : localEvents S E) : Set Ω) + ((m + 1 : ℕ) : ℝ≥0∞)⁻¹ :=
-    fun m ↦ exists_extremePoints_combo_approx hG hμG
-      (fun j : Fin (m + 1) ↦ ((e j.1 : localEvents S E) : Set Ω))
-      (fun j ↦ MeasurableSet.of_mem_measurableCylinders (e j.1).2) m.succ_pos
-  choose n c ν hν hc hbounds using happrox
-  have hprob : ∀ m, IsProbabilityMeasure (∑ i, c m i • ν m i : Measure Ω) := fun m ↦
-    (sum_smul_mem_G (fun i ↦ extremePoints_subset (hν m i)) (hc m)).1
-  set combo : ℕ → WithLocalConvergence S E := fun m ↦
-    WithSetwiseTopology.ofMeasure (⟨∑ i, c m i • ν m i, hprob m⟩ : ProbabilityMeasure Ω)
-    with hcombodef
-  -- each `combo m` is a finite convex combination of limiting Gibbs measures
-  have hmem : ∀ m, combo m ∈ convexCombosLimitGibbs γ := by
-    intro m
-    refine ⟨n m, c m, fun i ↦ WithSetwiseTopology.ofMeasure
-      (⟨ν m i, (extremePoints_subset (hν m i)).1⟩ : ProbabilityMeasure Ω), fun i ↦ ?_,
-      hc m, rfl⟩
-    exact ofMeasure_mem_limitGibbs_of_mem_extremePoints_G γ (hν m i)
-  -- `combo m → μ0` in the topology of local convergence
-  have htendsto : Tendsto combo atTop (𝓝 μ0) := by
-    rw [tendsto_withLocalConvergence_iff]
-    intro B hB
-    obtain ⟨m₀, hm₀⟩ := he ⟨B, hB⟩
-    have hEB : ((e m₀ : localEvents S E) : Set Ω) = B := congrArg Subtype.val hm₀
-    set ε : ℕ → ℝ≥0∞ := fun m ↦ ((m + 1 : ℕ) : ℝ≥0∞)⁻¹ with hεdef
-    have hεtendsto : Tendsto ε atTop (𝓝 0) :=
-      ENNReal.tendsto_inv_nat_nhds_zero.comp (tendsto_add_atTop_nat 1)
-    have hupper : Tendsto (fun m : ℕ ↦ (μ0.toMeasure : Measure Ω) B + ε m) atTop
-        (𝓝 ((μ0.toMeasure : Measure Ω) B)) := by
-      have h := Tendsto.add
-        (tendsto_const_nhds (x := (μ0.toMeasure : Measure Ω) B) (f := atTop)) hεtendsto
-      simpa using h
-    have hlowert : Tendsto (fun m : ℕ ↦ (μ0.toMeasure : Measure Ω) B - ε m) atTop
-        (𝓝 ((μ0.toMeasure : Measure Ω) B)) := by
-      have h := ENNReal.Tendsto.sub
-        (tendsto_const_nhds (x := (μ0.toMeasure : Measure Ω) B) (f := atTop)) hεtendsto
-        (Or.inl (measure_ne_top _ _))
-      simpa using h
-    refine tendsto_of_tendsto_of_tendsto_of_le_of_le' hlowert hupper ?_ ?_
-    · filter_upwards [eventually_ge_atTop m₀] with m hm
-      have h := (hbounds m ⟨m₀, Nat.lt_succ_of_le hm⟩).2
-      have h' : (μ0.toMeasure : Measure Ω) B ≤ (∑ i, c m i • ν m i) B + ε m := by
-        rw [← hEB]
-        exact h
-      exact tsub_le_iff_right.2 h'
-    · filter_upwards [eventually_ge_atTop m₀] with m hm
-      have h := (hbounds m ⟨m₀, Nat.lt_succ_of_le hm⟩).1
-      have h' : (∑ i, c m i • ν m i) B ≤ (μ0.toMeasure : Measure Ω) B + ε m := by
-        rw [← hEB]
-        exact h
-      exact h'
-  exact mem_closure_of_tendsto htendsto (Eventually.of_forall hmem)
+      closure (convexCombosLimitGibbs γ) :=
+  setOf_mem_GP_eq_closure_convexCombosLimitGibbs_of_mem_limitGibbs hγ fun _ hμ ↦
+    ofMeasure_mem_limitGibbs_of_mem_extremePoints_G γ hμ
+
+section LambdaSpecification
+
+variable {ν : Measure E} [IsProbabilityMeasure ν] {ρ : Finset S → (S → E) → ℝ≥0∞}
+
+omit [StandardBorelSpace E] in
+/-- **Georgii, Theorem (7.12)(c)** for a λ-specification, in the topology of local convergence:
+for `μ ∈ ex G(γ)` and `μ`-a.e. boundary condition `ω`, `γ_{Λ_m}(· | ω) → μ` locally along the
+canonical exhaustion.  This is the uniform total-variation-on-each-finite-volume form
+(`ae_forall_tendsto_iSup_ofReal_abs_sub_lambdaSpecification`) read off on each local event. -/
+theorem ae_tendsto_finiteVolumeDistributions_exhaustion_lambdaSpecification
+    (hρ : Specification.IsPremodifier (S := S) (E := E) ρ)
+    (hZ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
+    {μ : ProbabilityMeasure Ω}
+    (hμ : (μ : Measure Ω) ∈
+      (G (Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ)).extremePoints ℝ≥0∞) :
+    ∀ᵐ ω ∂(μ : Measure Ω),
+      Tendsto (fun m ↦ (WithSetwiseTopology.ofMeasure
+          (finiteVolumeDistributions (Specification.lambdaSpecification ν ρ hρ hZ) ω
+            (exhaustionVolumes m)) : WithLocalConvergence S E))
+        atTop (𝓝 (WithSetwiseTopology.ofMeasure μ)) := by
+  filter_upwards [ae_forall_tendsto_iSup_ofReal_abs_sub_lambdaSpecification hρ hZ hμ
+    exhaustionVolumes_monotone exhaustionVolumes_cofinal] with ω hω
+  rw [tendsto_withLocalConvergence_iff]
+  intro A hA
+  obtain ⟨Δ, hΔ⟩ := mem_localEvents_iff_cylinderEvents.1 hA
+  -- the total-variation distance on the events of `Δ` dominates the distance at `A`
+  have hle : ∀ m, ENNReal.ofReal
+      |((Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ
+          (exhaustionVolumes m) ω) A).toReal - ((μ : Measure Ω) A).toReal| ≤
+      ⨆ (B : Set Ω)
+        (_ : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) ((Δ : Finset S) : Set S)] B),
+        ENNReal.ofReal |((Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ
+          (exhaustionVolumes m) ω) B).toReal - ((μ : Measure Ω) B).toReal| :=
+    fun m ↦ le_iSup₂ (f := fun B
+        (_ : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) ((Δ : Finset S) : Set S)] B) ↦
+      ENNReal.ofReal |((Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ
+        (exhaustionVolumes m) ω) B).toReal - ((μ : Measure Ω) B).toReal|) A hΔ
+  have hofReal : Tendsto (fun m ↦ ENNReal.ofReal
+      |((Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ
+          (exhaustionVolumes m) ω) A).toReal - ((μ : Measure Ω) A).toReal|) atTop (𝓝 0) :=
+    tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds (hω Δ)
+      (fun m ↦ zero_le) hle
+  have habs : Tendsto (fun m ↦
+      |((Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ
+          (exhaustionVolumes m) ω) A).toReal - ((μ : Measure Ω) A).toReal|) atTop (𝓝 0) := by
+    have h := (ENNReal.tendsto_toReal ENNReal.zero_ne_top).comp hofReal
+    simpa [Function.comp_def, ENNReal.toReal_ofReal, abs_nonneg] using h
+  have hto : Tendsto (fun m ↦ ((Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ
+      (exhaustionVolumes m) ω) A).toReal) atTop (𝓝 (((μ : Measure Ω) A).toReal)) := by
+    rw [tendsto_iff_dist_tendsto_zero]
+    simpa [Real.dist_eq] using habs
+  exact (ENNReal.tendsto_toReal_iff (fun m ↦ measure_ne_top _ _) (measure_ne_top _ _)).1 hto
+
+omit [StandardBorelSpace E] in
+/-- **Georgii, Theorem (7.12)(c)** for a λ-specification: every extreme Gibbs measure is a
+limiting Gibbs measure, `ex G(γ) ⊆ G_lim(γ)`. -/
+theorem ofMeasure_mem_limitGibbs_lambdaSpecification
+    (hρ : Specification.IsPremodifier (S := S) (E := E) ρ)
+    (hZ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
+    {μ : ProbabilityMeasure Ω}
+    (hμ : (μ : Measure Ω) ∈
+      (G (Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ)).extremePoints ℝ≥0∞) :
+    (WithSetwiseTopology.ofMeasure μ : WithLocalConvergence S E) ∈
+      limitGibbs (Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ) := by
+  obtain ⟨ω, hω⟩ :=
+    (ae_tendsto_finiteVolumeDistributions_exhaustion_lambdaSpecification hρ hZ hμ).exists
+  exact ⟨exhaustionVolumes, fun _ ↦ ω, tendsto_exhaustionVolumes_atTop, hω⟩
+
+/-- **Georgii, Corollary (7.30)**, at the book's hypotheses: over a standard Borel state space,
+the Gibbs measures of a quasilocal λ-specification form the closed convex hull of the limiting
+Gibbs measures `G_lim(γ)` in the topology of local convergence.  By Remark (1.28)(3)
+(`Specification.lambdaSpecification_probNormalize`), the probability a priori measure covers
+every finite non-zero `λ`. -/
+theorem setOf_mem_GP_eq_closure_convexCombosLimitGibbs_lambdaSpecification
+    (hρ : Specification.IsPremodifier (S := S) (E := E) ρ)
+    (hZ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
+    (hγ : (Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ).IsQuasilocal) :
+    {μ : WithLocalConvergence S E |
+        μ.toMeasure ∈ GP (Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ)} =
+      closure (convexCombosLimitGibbs
+        (Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ)) :=
+  setOf_mem_GP_eq_closure_convexCombosLimitGibbs_of_mem_limitGibbs hγ fun _ hμ ↦
+    ofMeasure_mem_limitGibbs_lambdaSpecification hρ hZ hμ
+
+end LambdaSpecification
 
 end Corollary730
 
