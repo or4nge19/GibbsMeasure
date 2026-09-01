@@ -174,15 +174,10 @@ automation:
 
 fidelity:
   divergences: >-
-    Two known weakenings. Corollary (7.30) is proved for a finite state space
+    One known weakening. Corollary (7.30) is proved for a finite state space
     (`Specification/ExtremeCorollaries.lean`, `setOf_mem_GP_eq_closure_convexCombosLimitGibbs`),
     where Georgii states it for a standard Borel state space and a quasilocal lambda-specification.
-    Proposition (8.8) (`Specification/Dobrushin.lean`, `isDobrushin_gibbsSpecification`) is proved
-    for a probability a-priori measure and an absolutely summable potential, where Georgii allows
-    any lambda-admissible potential over sigma-finite lambda and stresses that the self-potential
-    part is unrestricted; the missing prerequisite is (2.24)(b) at Georgii's hypotheses (ours needs
-    bounded densities), and the probability-measure hypothesis is harmless only because absolute
-    summability is in force. Every other restriction that remained after the main development has
+    Every other restriction that remained after the main development has
     been either removed or identified as one of Georgii's own hypotheses:
     (a) reference measures — the sigma-finite case is now covered by his rescaling Remark
     (1.28)(3) (`Specification/Rescaling.lean`, `Potential/FiniteReference.lean`). Two apparent
@@ -288,12 +283,17 @@ alignment:
       module: "GibbsMeasure/Specification/DobrushinUniqueness.lean"
       status: "proved"
     - source: "Proposition (8.8)"
-      lean: "MeasureTheory.GibbsMeasure.Dobrushin.isDobrushin_gibbsSpecification"
-      status: weakened
+      lean: "MeasureTheory.GibbsMeasure.Dobrushin.isDobrushin_gibbsSpecificationOfSigmaFiniteAdmissible"
+      module: "GibbsMeasure/Specification/Dobrushin.lean"
+      status: "proved"
       note: >-
-        Proved for a probability a-priori measure and an absolutely summable potential;
-        Georgii assumes only lambda-admissibility over sigma-finite lambda. See
-        fidelity.divergences.
+        At Georgii's hypotheses: a sigma-finite non-zero a-priori measure and a merely
+        lambda-admissible potential, with the self-potential unrestricted. The
+        probability/absolutely-summable case is the corollary
+        `Dobrushin.isDobrushin_gibbsSpecification`; the quasilocality input is (2.24)(b) at
+        Georgii's hypotheses
+        (`Specification.IsResampling.isQuasilocal_modification_relNorm_of_isQuasilocalFun`,
+        `Specification.isQuasilocal_lambdaSpecification`).
     - source: "Theorem (8.20)"
       lean: "MeasureTheory.GibbsMeasure.Dobrushin.comparison"
       module: "GibbsMeasure/Specification/DobrushinUniqueness.lean"
@@ -372,7 +372,7 @@ alignment:
         Proved from the general
         exists_mem_GP_and_forall_measurePreserving_of_invariantWeight, which asks only for a
         left-invariant probability measure on the acting group; compactness enters only to supply
-        Haar. The general I1 o I0 form of (5.15) is not formalized.
+        Haar.
     - source: "Theorem (7.12)(c)"
       lean: "MeasureTheory.GibbsMeasure.ae_tendsto_iSup_ofReal_abs_sub_of_mem_extremePoints_G"
       module: "GibbsMeasure/Specification/UniformLocalLimits.lean"
@@ -397,10 +397,22 @@ alignment:
       lean: "Potential.dependsOn_hamiltonian_sub_of_sigmaFinitePremodifierNorm_eq"
       module: "GibbsMeasure/Potential/GibbsRepresentation.lean"
       status: "proved"
-    - source: "Theorem (5.15), general I1 o I0 form"
-      lean: ""
-      module: ""
-      status: "not-formalized"
+    - source: "Theorem (5.15)(ii), I1 o I0 form (I1 abelian, G(gamma) compact)"
+      lean: "MeasureTheory.GibbsMeasure.exists_mem_GP_and_forall_measurePreserving_of_commute_of_measurePreserving"
+      module: "GibbsMeasure/Specification/InvariantExistenceGroup.lean"
+      status: "proved"
+      note: >-
+        Georgii's (ii) weakens commutativity of I1 to commutativity modulo I0 at the price of
+        G_{I0}(gamma) compact plus a finite-intersection argument; the abelian form is the one all
+        Examples (5.17) use. That refinement is the remaining open piece of (5.15).
+    - source: "Theorem (5.15)(i), I1 o I0 form"
+      lean: "MeasureTheory.GibbsMeasure.exists_isGibbsMeasure_and_forall_map_eq_of_invariantWeight_of_map_eq"
+      module: "GibbsMeasure/Specification/InvariantExistenceGroup.lean"
+      status: "proved"
+    - source: "Example (5.17)(2)-shaped: spin flip composed with the shifts, Ising at h = 0"
+      lean: "MeasureTheory.GibbsMeasure.exists_latticeIsing_mem_GP_forall_measurePreserving_shift_and_spinFlip"
+      module: "GibbsMeasure/Model/ShiftAverage.lean"
+      status: "proved"
     - source: "Ergodic decomposition of Gibbs measures via the tail kernel"
       lean: "MeasureTheory.GibbsMeasure.ae_mem_extremePoints_G_tailKernel"
       module: "GibbsMeasure/Specification/ErgodicDecomposition.lean"

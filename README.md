@@ -34,7 +34,9 @@ Proposition (1.30).
 Chapter 2: potentials, Hamiltonians and the Boltzmann pre-modification (2.1)–(2.6); the space `ℬ` of
 absolutely summable potentials (2.11)–(2.14) and the Gibbsian specification `γ^Φ` for `Φ ∈ ℬ` (2.9);
 the quasilocal algebra (2.20)–(2.23); and Proposition (2.24)(a)(b) with Example (2.25), so `γ^Φ` is
-quasilocal for every `Φ ∈ ℬ`.
+quasilocal for every `Φ ∈ ℬ` — with (2.24)(b) at Georgii's hypotheses: measurable quasilocal
+Hamiltonians, not assumed bounded, over a resampling reference specification or a σ-finite
+a-priori measure (`Specification/Quasilocality.lean`).
 
 Chapter 4: the topology of local convergence (4.2) with Hausdorffness (4.3)(1) and the
 characterisation by local observables (4.3)(2); the necessary condition (4.4), equicontinuity
@@ -107,7 +109,12 @@ group (`GibbsMeasure/Mathlib/GroupTheory/Foelner.lean` supplies the Følner sets
 the hypothesis its proof actually uses — a *left-invariant probability measure* on the acting
 group, `exists_mem_GP_and_forall_measurePreserving_of_invariantWeight` — with the compact-group
 case (`..._of_compactGroup`) as the corollary in which Haar measure supplies the weight; neither
-needs `𝒢(γ)` compact. Only the general `I₁ ∘ I₀` iteration remains open. In detail: Georgii's
+needs `𝒢(γ)` compact. The two-subgroup `I₁ ∘ I₀` form of (5.15) is proved in both branches
+(`exists_mem_GP_and_forall_measurePreserving_of_commute_of_measurePreserving`,
+`exists_isGibbsMeasure_and_forall_map_eq_of_invariantWeight_of_map_eq`), with the
+(5.17)(2)-shaped Ising instance (shift- and spin-flip-invariant Gibbs measure at `h = 0`).
+What remains of Georgii's (ii) is commutativity *modulo* `I₀` with `𝒢_{I₀}(γ)` compact in
+place of an abelian `I₁` with `𝒢(γ)` compact. In detail: Georgii's
 transformation group `T` of configuration space ((5.1),
 `GibbsMeasure/Prereqs/Transformation.lean`), its action on potentials ((5.3), `Potential.map`,
 with the Hamiltonian/norm/Boltzmann-factor transport of (5.6)(c)), on specifications ((5.4),
@@ -246,8 +253,11 @@ gives the Bernoulli instance with `interdep_gammaEx i j = 0`, `not_countable_gib
 `exists_not_countable_gibbsMeasures_of_tsum_interdep_lt_one`. Deleting quasilocality from (8.6)
 would therefore make (8.7) false. The criterion **(8.8)** —
 `sup_i ∑_{A ∋ i} (|A| − 1) δ(Φ_A) < 2` implies Dobrushin's condition, with Georgii's sharp
-constant 2, proved for a probability a-priori measure and an absolutely summable potential
-(Georgii assumes only λ-admissibility; see `formalization.yaml`) — and its instance for the
+constant 2, proved at Georgii's hypotheses: a σ-finite non-zero a-priori measure and a merely
+λ-admissible potential, with the self-potential unrestricted
+(`Dobrushin.isDobrushin_gibbsSpecificationOfSigmaFiniteAdmissible`; the quasilocality input is
+Proposition (2.24)(b) at Georgii's hypotheses — unbounded quasilocal Hamiltonians — in
+`GibbsMeasure/Specification/Quasilocality.lean`) — and its instance for the
 Ising model, `isDobrushin_isingSpecification`
 (`GibbsMeasure/Model/IsingDobrushin.lean`). Together with (6.9) this brackets the critical
 temperature of the two-dimensional Ising ferromagnet from both sides: uniqueness at high
@@ -338,7 +348,7 @@ every positive quasilocal pre-modification is Gibbsian for a unique `a`-normalis
 so the DLR and Hamiltonian frameworks agree.
 
 Not yet done: the inhomogeneous Ising chains of §6.1, Shlosman's random staircases of §6.3
-(Theorem (6.21)), the general `I₁ ∘ I₀` form of Theorem (5.15), Mermin–Wagner (9.20), and
+(Theorem (6.21)), the commute-modulo-`I₀` refinement of Theorem (5.15)(ii), Mermin–Wagner (9.20), and
 Chapters 10–20 (Markov fields on trees, Gaussian fields, the variational principle, the Poulsen
 simplex, reflection positivity, and the infrared bound).
 

@@ -36,6 +36,9 @@ over to that generality.
   form `γ_Λ(A|η) = Z_Λ(η)⁻¹ ∫_A e^{-βH_Λ} dλ_Λ(·|η)`.
 * `Potential.gibbsSpecificationOfFiniteReference_eq_gibbsSpecificationOfAbsolutelySummable`:
   rescaling `λ` to a probability measure does not change `γ^Φ`.
+* `Potential.isQuasilocal_gibbsSpecificationOfSigmaFiniteAdmissible`: **Georgii (2.24)(b)** for
+  the σ-finite Gibbsian specification — quasilocal (not necessarily bounded) Hamiltonians give a
+  quasilocal specification.
 * `Potential.exists_mem_quasilocalFunctions_toReal_sigmaFinitePremodifierNorm_boltzmannFactor`:
   **Georgii Example (2.25)(ii)** — the densities `ρ_Λ^Φ` are bounded quasilocal, `ρ_Λ^Φ ∈ 𝓛̄`;
   `Potential.isQuasilocal_gibbsSpecificationOfFiniteReference` is the specification-level
@@ -294,6 +297,21 @@ theorem isQuasilocal_gibbsSpecificationOfFiniteReference (ν : Measure E) [IsFin
     [NeZero ν] (β : ℝ) : (gibbsSpecificationOfFiniteReference Φ ν β).IsQuasilocal := by
   rw [gibbsSpecificationOfFiniteReference_eq_gibbsSpecificationOfAbsolutelySummable]
   exact isQuasilocal_gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν.probNormalize β
+
+/-- **Georgii Proposition (2.24)(b) for the Gibbsian specification of a σ-finite a priori
+measure.** If the scaled Hamiltonians `βH_Λ` are quasilocal in the sense of Georgii (2.22), the
+Gibbsian specification of a `λ`-admissible potential over a σ-finite non-zero `λ` is quasilocal.
+This is the quasilocality input to Georgii's Proposition (8.8) at its stated hypotheses; for an
+absolutely summable potential over a finite `λ` the quasilocality hypothesis is automatic
+(`Potential.isQuasilocal_gibbsSpecificationOfFiniteReference`). -/
+theorem isQuasilocal_gibbsSpecificationOfSigmaFiniteAdmissible (Ψ : Potential S E)
+    [IsPotential Ψ] [IsSummable Ψ] (ν : Measure E) [SigmaFinite ν] [NeZero ν] (β : ℝ)
+    (hadm : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν (Ψ.boltzmannFactor β))
+    (hql : ∀ Λ : Finset S, IsQuasilocalFun fun η : S → E ↦ β * Ψ.hamiltonian Λ η) :
+    (gibbsSpecificationOfSigmaFiniteAdmissible Ψ ν β hadm).IsQuasilocal :=
+  Specification.isQuasilocal_lambdaSpecification
+    (isPremodifier_boltzmannFactor (Φ := Ψ) β) hadm
+    (fun Λ η ↦ by rw [boltzmannFactor, neg_mul]) hql
 
 /-- **Georgii (4.14)(1) for a general finite a priori measure.** -/
 theorem gibbsSpecificationOfFiniteReference_apply_le (ν : Measure E) [IsFiniteMeasure ν]

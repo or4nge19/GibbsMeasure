@@ -32,8 +32,12 @@ This file proves Georgii's Theorem (3.5): the map `P ↦ γ_P`, realised here as
 specification of the potential `-log P`, is a bijection from the positive stochastic matrices onto
 the positive homogeneous Markov specifications on `ℤ`, and `𝒢(γ_P) = {μ_P}` where `μ_P` is the
 stationary Markov chain with transition matrix `P`. Georgii's defining equation (3.6), which reads
-`γ_Λ(σ_Λ = ζ|ω) = μ_P(σ_Λ = ζ|σ_{∂Λ} = ω_{∂Λ})`, is not stated as such; its explicit form
-(3.8)(1) is formalised for interval volumes only.
+`γ_Λ(σ_Λ = ζ|ω) = μ_P(σ_Λ = ζ|σ_{∂Λ} = ω_{∂Λ})`, is proved in full as
+`markovSpecification_apply_cyl_eq_cond`: for every finite `Λ ⊆ ℤ` and *every* boundary condition
+`ω`, with `∂Λ` the two-sided boundary of (3.4) (`boundary`) and the right-hand side the
+elementary conditional probability `ProbabilityTheory.cond` (the conditioning event has positive
+measure by `stationaryChain_cyl_pos`). Its explicit form (3.8)(1) is formalised for interval
+volumes.
 
 ## The specification and its potential
 
@@ -44,6 +48,8 @@ stationary Markov chain with transition matrix `P`. Georgii's defining equation 
 * `markovSpecification_Icc_apply_cyl`, `markovSpecification_Icc_apply_cyl_of_subset`: the
   finite-volume formula of Comment (3.8)(1), for an interval `Λ` inside an interval `Δ`.
 * `markovSpecification_singleton_apply`: the determining function (3.11) of `markovSpecification P`.
+* `bondsOf`, `hamiltonian_eq_sum_bondsOf`, `boltzmannFactor_eq_prod_bondsOf`: the Hamiltonian and
+  the Boltzmann factor of an arbitrary finite volume as a sum/product over the bonds meeting it.
 
 ## Uniqueness (Georgii's step 5)
 
@@ -68,8 +74,11 @@ stationary Markov chain with transition matrix `P`. Georgii's defining equation 
 
 ## The full theorem
 
-* `isCondExp_markovSpecification_stationaryChain`: Georgii (3.6), `γ_Λ` is a version of the
-  conditional distribution of `μ_P` given the exterior of `Λ`.
+* `boundary`: the two-sided boundary `∂Λ` of Georgii (3.4).
+* `markovSpecification_apply_cyl_eq_cond`: **Georgii (3.6)** — for every finite `Λ` and every
+  boundary condition `ω`, `γ_Λ(σ_Λ = ζ|ω) = μ_P(σ_Λ = ζ | σ_{∂Λ} = ω_{∂Λ})`.
+* `isCondExp_markovSpecification_stationaryChain`: `γ_Λ` is a version of the conditional
+  distribution of `μ_P` given the exterior of `Λ`.
 * `gibbsMeasure_eq_singleton`: `𝒢(markovSpecification P) = {μ_P}`.
 * `georgii_3_5`: the packaged statement of Theorem (3.5).
 -/
@@ -94,6 +103,76 @@ lemma pair_succ_inj {i j : ℤ} (h : ({i, i + 1} : Finset ℤ) = {j, j + 1}) : i
   have h1 : i ∈ ({j, j + 1} : Finset ℤ) := h ▸ Finset.mem_insert_self i {i + 1}
   have h2 : j ∈ ({i, i + 1} : Finset ℤ) := h.symm ▸ Finset.mem_insert_self j {j + 1}
   simp only [Finset.mem_insert, Finset.mem_singleton] at h1 h2
+  omega
+
+/-! ### The boundary of a finite volume (Georgii (3.4)) -/
+
+/-- Georgii (3.4): the boundary `∂Λ = {i ∈ ℤ ∖ Λ : |i - j| = 1 for some j ∈ Λ}` of a finite
+volume `Λ ⊆ ℤ`. -/
+def boundary (Λ : Finset ℤ) : Finset ℤ := (Λ.image (· + 1) ∪ Λ.image (· - 1)) \ Λ
+
+lemma mem_boundary {Λ : Finset ℤ} {i : ℤ} :
+    i ∈ boundary Λ ↔ i ∉ Λ ∧ ∃ j ∈ Λ, |i - j| = 1 := by
+  simp only [boundary, Finset.mem_sdiff, Finset.mem_union, Finset.mem_image]
+  constructor
+  · rintro ⟨⟨j, hj, rfl⟩ | ⟨j, hj, rfl⟩, hi⟩ <;>
+      exact ⟨hi, j, hj, by rw [abs_eq (by norm_num : (0 : ℤ) ≤ 1)]; omega⟩
+  · rintro ⟨hi, j, hj, habs⟩
+    rw [abs_eq (by norm_num : (0 : ℤ) ≤ 1)] at habs
+    refine ⟨?_, hi⟩
+    rcases habs with h | h
+    · exact Or.inl ⟨j, hj, by omega⟩
+    · exact Or.inr ⟨j, hj, by omega⟩
+
+lemma disjoint_boundary (Λ : Finset ℤ) : Disjoint Λ (boundary Λ) :=
+  Finset.disjoint_sdiff
+
+lemma succ_mem_union_boundary {Λ : Finset ℤ} {i : ℤ} (hi : i ∈ Λ) :
+    i + 1 ∈ Λ ∪ boundary Λ := by
+  by_cases h : i + 1 ∈ Λ
+  · exact Finset.mem_union_left _ h
+  · exact Finset.mem_union_right _ (mem_boundary.2 ⟨h, i, hi, by
+      rw [show i + 1 - i = (1 : ℤ) by omega, abs_one]⟩)
+
+lemma pred_mem_union_boundary {Λ : Finset ℤ} {i : ℤ} (hi : i ∈ Λ) :
+    i - 1 ∈ Λ ∪ boundary Λ := by
+  by_cases h : i - 1 ∈ Λ
+  · exact Finset.mem_union_left _ h
+  · exact Finset.mem_union_right _ (mem_boundary.2 ⟨h, i, hi, by
+      rw [show i - 1 - i = (-1 : ℤ) by omega, abs_neg, abs_one]⟩)
+
+/-- The boundary of an interval is the two-point set of Georgii (3.8)(1). -/
+lemma boundary_Icc {a b : ℤ} (hab : a ≤ b) :
+    boundary (Finset.Icc a b) = {a - 1, b + 1} := by
+  ext i
+  rw [mem_boundary]
+  simp only [Finset.mem_Icc, Finset.mem_insert, Finset.mem_singleton]
+  constructor
+  · rintro ⟨hi, j, hj, habs⟩
+    rw [abs_eq (by norm_num : (0 : ℤ) ≤ 1)] at habs
+    omega
+  · rintro (rfl | rfl)
+    · exact ⟨by omega, a, ⟨le_rfl, hab⟩, by rw [abs_eq (by norm_num : (0 : ℤ) ≤ 1)]; omega⟩
+    · exact ⟨by omega, b, ⟨hab, le_rfl⟩, by rw [abs_eq (by norm_num : (0 : ℤ) ≤ 1)]; omega⟩
+
+/-- The left endpoints of the bonds `{j, j + 1}` meeting a finite volume `Λ ⊆ ℤ`. -/
+def bondsOf (Λ : Finset ℤ) : Finset ℤ := Λ ∪ Λ.image (· - 1)
+
+lemma mem_bondsOf {Λ : Finset ℤ} {j : ℤ} : j ∈ bondsOf Λ ↔ j ∈ Λ ∨ j + 1 ∈ Λ := by
+  simp only [bondsOf, Finset.mem_union, Finset.mem_image]
+  constructor
+  · rintro (h | ⟨k, hk, rfl⟩)
+    · exact Or.inl h
+    · exact Or.inr (by simpa using hk)
+  · rintro (h | h)
+    · exact Or.inl h
+    · exact Or.inr ⟨j + 1, h, by omega⟩
+
+lemma bondsOf_Icc {a b : ℤ} (hab : a ≤ b) :
+    bondsOf (Finset.Icc a b) = Finset.Ico (a - 1) (b + 1) := by
+  ext j
+  rw [mem_bondsOf]
+  simp only [Finset.mem_Icc, Finset.mem_Ico]
   omega
 
 open Classical in
@@ -409,15 +488,41 @@ lemma sum_pow_mul (P : Matrix E E ℝ) (m : ℕ) (x y : E) :
     ∑ z, (P ^ m) x z * P z y = (P ^ (m + 1)) x y := by
   rw [pow_succ, Matrix.mul_apply]
 
-/-! ### The Hamiltonian and Boltzmann factor on intervals -/
+/-! ### The Hamiltonian and Boltzmann factor of a finite volume -/
 
-/-- `¬ Disjoint {i, i+1} (Icc a b)` for `a - 1 ≤ i ≤ b`. -/
-lemma not_disjoint_pair_Icc {i a b : ℤ} (hab : a ≤ b) (h1 : a - 1 ≤ i) (h2 : i ≤ b) :
-    ¬ Disjoint ({i, i + 1} : Finset ℤ) (Finset.Icc a b) := by
+/-- The bond `{i, i + 1}` meets `Λ` when `i ∈ bondsOf Λ`. -/
+lemma not_disjoint_pair_bondsOf {Λ : Finset ℤ} {i : ℤ} (hi : i ∈ bondsOf Λ) :
+    ¬ Disjoint ({i, i + 1} : Finset ℤ) Λ := by
   rw [Finset.not_disjoint_iff]
-  rcases le_or_gt a i with h | h
-  · exact ⟨i, by simp, Finset.mem_Icc.2 ⟨h, h2⟩⟩
-  · refine ⟨i + 1, by simp, Finset.mem_Icc.2 ⟨?_, ?_⟩⟩ <;> omega
+  rcases mem_bondsOf.1 hi with h | h
+  · exact ⟨i, by simp, h⟩
+  · exact ⟨i + 1, by simp, h⟩
+
+omit [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- The Hamiltonian of `markovPotential P` on a finite volume `Λ` is the sum of the bond
+energies `-log P(σ_j, σ_{j+1})` over the bonds meeting `Λ`. -/
+lemma hamiltonian_eq_sum_bondsOf (P : Matrix E E ℝ) (Λ : Finset ℤ) (σ : ℤ → E) :
+    (markovPotential P).hamiltonian Λ σ
+      = ∑ j ∈ bondsOf Λ, -Real.log (P (σ j) (σ (j + 1))) := by
+  rw [Potential.hamiltonian_eq_tsum,
+    tsum_eq_sum (s := (bondsOf Λ).image fun i ↦ ({i, i + 1} : Finset ℤ)) (fun A hA ↦ ?_)]
+  · rw [Finset.sum_image fun i _ j _ h ↦ pair_succ_inj h]
+    refine Finset.sum_congr rfl fun i hi ↦ ?_
+    rw [Potential.hamiltonianTerms_of_not_disjoint (not_disjoint_pair_bondsOf hi),
+      markovPotential_pair]
+  · by_cases hd : Disjoint A Λ
+    · exact Potential.hamiltonianTerms_of_disjoint hd σ
+    · rw [Potential.hamiltonianTerms_of_not_disjoint hd]
+      by_cases hpair : ∃ i, A = {i, i + 1}
+      · obtain ⟨i, rfl⟩ := hpair
+        exfalso
+        refine hA (Finset.mem_image.2 ⟨i, mem_bondsOf.2 ?_, rfl⟩)
+        obtain ⟨k, hk1, hk2⟩ := Finset.not_disjoint_iff.1 hd
+        simp only [Finset.mem_insert, Finset.mem_singleton] at hk1
+        rcases hk1 with rfl | rfl
+        · exact Or.inl hk2
+        · exact Or.inr hk2
+      · exact markovPotential_of_not_pair P hpair σ
 
 omit [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
 /-- The Hamiltonian of `markovPotential P` on the interval `[a, a+n]` is the sum of the bond
@@ -425,40 +530,29 @@ energies `-log P(σ_j, σ_{j+1})`, `a - 1 ≤ j ≤ a + n`. -/
 lemma hamiltonian_Icc (P : Matrix E E ℝ) (a : ℤ) (n : ℕ) (σ : ℤ → E) :
     (markovPotential P).hamiltonian (Finset.Icc a (a + n)) σ
       = ∑ j ∈ Finset.Ico (a - 1) (a + n + 1), -Real.log (P (σ j) (σ (j + 1))) := by
-  rw [Potential.hamiltonian_eq_tsum,
-    tsum_eq_sum (s := (Finset.Ico (a - 1) (a + n + 1)).image fun i ↦ ({i, i + 1} : Finset ℤ))
-      (fun A hA ↦ ?_)]
-  · rw [Finset.sum_image fun i _ j _ h ↦ pair_succ_inj h]
-    refine Finset.sum_congr rfl fun i hi ↦ ?_
-    rw [Finset.mem_Ico] at hi
-    rw [Potential.hamiltonianTerms_of_not_disjoint
-      (not_disjoint_pair_Icc (by omega) (by omega) (by omega)), markovPotential_pair]
-  · by_cases hd : Disjoint A (Finset.Icc a (a + (n : ℤ)))
-    · exact Potential.hamiltonianTerms_of_disjoint hd σ
-    · rw [Potential.hamiltonianTerms_of_not_disjoint hd]
-      by_cases hpair : ∃ i, A = {i, i + 1}
-      · obtain ⟨i, rfl⟩ := hpair
-        exfalso
-        refine hA (Finset.mem_image.2 ⟨i, Finset.mem_Ico.2 ?_, rfl⟩)
-        by_contra hi
-        refine hd (Finset.disjoint_left.2 fun k hk hk' ↦ ?_)
-        simp only [Finset.mem_insert, Finset.mem_singleton] at hk
-        rw [Finset.mem_Icc] at hk'
-        omega
-      · exact markovPotential_of_not_pair P hpair σ
+  rw [hamiltonian_eq_sum_bondsOf, bondsOf_Icc (by omega : a ≤ a + (n : ℤ))]
 
-/-- The Boltzmann factor of `markovPotential P` on `[a, a+n]` is the path weight. -/
-lemma boltzmannFactor_Icc (hpos : ∀ x y, 0 < P x y) (a : ℤ) (n : ℕ) (σ : ℤ → E) :
-    (markovPotential P).boltzmannFactor 1 (Finset.Icc a (a + n)) σ
-      = ENNReal.ofReal (pathWeight P (a - 1) (a + n + 1) σ) := by
-  rw [Potential.boltzmannFactor, hamiltonian_Icc]
+omit [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- The Boltzmann factor of `markovPotential P` on a finite volume `Λ` is the product of the
+transition weights over the bonds meeting `Λ`. -/
+lemma boltzmannFactor_eq_prod_bondsOf (hpos : ∀ x y, 0 < P x y) (Λ : Finset ℤ) (σ : ℤ → E) :
+    (markovPotential P).boltzmannFactor 1 Λ σ
+      = ENNReal.ofReal (∏ j ∈ bondsOf Λ, P (σ j) (σ (j + 1))) := by
+  rw [Potential.boltzmannFactor, hamiltonian_eq_sum_bondsOf]
   congr 1
-  rw [show -(1 : ℝ) * ∑ j ∈ Finset.Ico (a - 1) (a + n + 1), -Real.log (P (σ j) (σ (j + 1)))
-      = ∑ j ∈ Finset.Ico (a - 1) (a + n + 1), Real.log (P (σ j) (σ (j + 1))) by
+  rw [show -(1 : ℝ) * ∑ j ∈ bondsOf Λ, -Real.log (P (σ j) (σ (j + 1)))
+      = ∑ j ∈ bondsOf Λ, Real.log (P (σ j) (σ (j + 1))) by
     rw [neg_one_mul, ← Finset.sum_neg_distrib]
     exact Finset.sum_congr rfl fun j _ ↦ neg_neg _]
   rw [Real.exp_sum]
   exact Finset.prod_congr rfl fun j _ ↦ Real.exp_log (hpos _ _)
+
+omit [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- The Boltzmann factor of `markovPotential P` on `[a, a+n]` is the path weight. -/
+lemma boltzmannFactor_Icc (hpos : ∀ x y, 0 < P x y) (a : ℤ) (n : ℕ) (σ : ℤ → E) :
+    (markovPotential P).boltzmannFactor 1 (Finset.Icc a (a + n)) σ
+      = ENNReal.ofReal (pathWeight P (a - 1) (a + n + 1) σ) := by
+  rw [boltzmannFactor_eq_prod_bondsOf hpos, bondsOf_Icc (by omega : a ≤ a + (n : ℤ)), pathWeight]
 
 
 
@@ -604,6 +698,45 @@ omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E
 lemma overwrite_apply_of_notMem {Λ : Finset ℤ} {k : ℤ} (hk : k ∉ Λ) (ζ σ : ℤ → E) :
     overwrite Λ ζ σ k = σ k := Λ.piecewise_eq_of_notMem _ _ hk
 
+omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- Cylinders over disjoint volumes intersect in the cylinder of the overwritten
+configuration. -/
+lemma cyl_inter_cyl {Λ₁ Λ₂ : Finset ℤ} (h : Disjoint Λ₁ Λ₂) (ω ζ : ℤ → E) :
+    cyl Λ₁ ω ∩ cyl Λ₂ ζ = cyl (Λ₁ ∪ Λ₂) (overwrite Λ₂ ζ ω) := by
+  ext σ
+  simp only [Set.mem_inter_iff, mem_cyl, Finset.mem_union]
+  constructor
+  · rintro ⟨h₁, h₂⟩ k hk
+    rcases hk with hk | hk
+    · rw [overwrite_apply_of_notMem (Finset.disjoint_left.1 h hk)]
+      exact h₁ k hk
+    · rw [overwrite_apply_of_mem hk]
+      exact h₂ k hk
+  · intro hσ
+    refine ⟨fun k hk ↦ ?_, fun k hk ↦ ?_⟩
+    · have := hσ k (Or.inl hk)
+      rwa [overwrite_apply_of_notMem (Finset.disjoint_left.1 h hk)] at this
+    · have := hσ k (Or.inr hk)
+      rwa [overwrite_apply_of_mem hk] at this
+
+omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- Overwriting on `Λ` only reads the base configuration off `Λ`. -/
+lemma overwrite_juxt (Λ : Finset ℤ) (ζ ω : ℤ → E) (ξ : Λ → E) :
+    overwrite Λ ζ (juxt (Λ : Set ℤ) ω ξ) = overwrite Λ ζ ω := by
+  funext k
+  by_cases hk : k ∈ Λ
+  · rw [overwrite_apply_of_mem hk, overwrite_apply_of_mem hk]
+  · rw [overwrite_apply_of_notMem hk, overwrite_apply_of_notMem hk,
+      juxt_apply_of_not_mem (by simpa using hk)]
+
+omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- `juxt` commutes with updating a site outside the pinned volume: `_root_.juxt_update_of_notMem`
+at `S = ℤ`. -/
+lemma juxt_update_of_notMem {Γ : Finset ℤ} {i : ℤ} (hi : i ∉ Γ) (τ : ℤ → E) (y : E)
+    (ξ : Γ → E) :
+    juxt (Γ : Set ℤ) (Function.update τ i y) ξ
+      = Function.update (juxt (Γ : Set ℤ) τ ξ) i y :=
+  _root_.juxt_update_of_notMem (by simpa using hi) τ y ξ
 omit [DecidableEq E] in
 /-- Only the configuration matching `ζ` on `Λ` contributes to an integral over `cyl Λ ζ`. -/
 lemma lintegral_isssd_indicator_cyl (Λ : Finset ℤ) (ζ σ₀ : ℤ → E) {f : (ℤ → E) → ℝ≥0∞}
@@ -1271,6 +1404,36 @@ lemma pairwise_disjoint_cyl_fillOutside (Δ Λ : Finset ℤ) (η : ℤ → E) :
   rw [fillOutside, dite_eq_left j.2] at h1
   rw [fillOutside, dite_eq_left j.2] at h2
   rw [← h1, ← h2]
+
+omit [DecidableEq E] [Nonempty E] in
+/-- Decomposing a cylinder over the configurations on a disjoint finite volume `Λ₁`:
+`μ(σ_{Λ₂} = ω_{Λ₂}) = ∑_{ξ ∈ E^{Λ₁}} μ(σ_{Λ₁} = ξ, σ_{Λ₂} = ω_{Λ₂})`. -/
+lemma measure_cyl_eq_sum_juxt (μ : Measure (ℤ → E)) {Λ₁ Λ₂ : Finset ℤ} (h : Disjoint Λ₁ Λ₂)
+    (ω : ℤ → E) :
+    μ (cyl Λ₂ ω) = ∑ ξ : Λ₁ → E, μ (cyl (Λ₁ ∪ Λ₂) (juxt (Λ₁ : Set ℤ) ω ξ)) := by
+  have hdecomp : cyl Λ₂ ω = ⋃ ξ : Λ₁ → E, cyl (Λ₁ ∪ Λ₂) (juxt (Λ₁ : Set ℤ) ω ξ) := by
+    ext σ
+    simp only [Set.mem_iUnion, mem_cyl]
+    constructor
+    · intro hσ
+      refine ⟨fun k ↦ σ k.1, fun k hk ↦ ?_⟩
+      rcases Finset.mem_union.1 hk with hk₁ | hk₂
+      · rw [juxt_apply_of_mem (by simpa using hk₁)]
+      · rw [juxt_apply_of_not_mem (by simpa using Finset.disjoint_right.1 h hk₂)]
+        exact hσ k hk₂
+    · rintro ⟨ξ, hξ⟩ k hk
+      rw [hξ k (Finset.mem_union_right _ hk),
+        juxt_apply_of_not_mem (by simpa using Finset.disjoint_right.1 h hk)]
+  have hdisj : Pairwise (Function.onFun Disjoint fun ξ : Λ₁ → E ↦
+      cyl (Λ₁ ∪ Λ₂) (juxt (Λ₁ : Set ℤ) ω ξ)) := by
+    intro ξ ξ' hne
+    refine Set.disjoint_left.2 fun σ hσ hσ' ↦ hne (funext fun k ↦ ?_)
+    have hmem : k.1 ∈ Λ₁ ∪ Λ₂ := Finset.mem_union_left _ k.2
+    have h1 := hσ k.1 hmem
+    have h2 := hσ' k.1 hmem
+    rw [juxt_apply_of_mem (Finset.mem_coe.2 k.2)] at h1 h2
+    exact h1.symm.trans h2
+  rw [hdecomp, measure_iUnion hdisj fun ξ ↦ measurableSet_cyl _ _, tsum_fintype]
 
 omit [DecidableEq E] [Nonempty E] in
 /-- Two measures agreeing on all interval cylinders agree on all cylinders. -/
@@ -2600,6 +2763,23 @@ theorem markovChain_cylinder {a b : ℤ} (hab : a ≤ b) (σ : ℤ → E) :
   congr 1
   exact chainWeight_congr P _ hab fun k hk ↦ by rw [extendBy_of_mem _ hk]; rfl
 
+/-- Every cylinder event has positive `μ_P`-measure: `α_P` and `P` are strictly positive. -/
+lemma stationaryChain_cyl_pos (Λ : Finset ℤ) (ω : ℤ → E) :
+    0 < stationaryChain P hP hpos (cyl Λ ω) := by
+  obtain ⟨a, b, hab, hΛ⟩ : ∃ a b : ℤ, a ≤ b ∧ Λ ⊆ Finset.Icc a b := by
+    refine ⟨-boundOf Λ, boundOf Λ, ?_, subset_Icc_boundOf Λ⟩
+    have := boundOf_nonneg Λ
+    omega
+  calc (0 : ℝ≥0∞)
+      < ENNReal.ofReal (chainWeight P (stationaryDist P hP hpos) a b ω) := by
+        rw [ENNReal.ofReal_pos]
+        exact mul_pos (stationaryDist_pos P hP hpos _)
+          (Finset.prod_pos fun _ _ ↦ hpos _ _)
+    _ = stationaryChain P hP hpos (cyl (Finset.Icc a b) ω) :=
+        (markovChain_cylinder P hP hpos hab ω).symm
+    _ ≤ stationaryChain P hP hpos (cyl Λ ω) :=
+        measure_mono fun σ hσ k hk ↦ hσ k (hΛ hk)
+
 end StationaryChain
 
 /-! ### The singleton densities of the Markov specification with respect to `isssd ν` -/
@@ -2992,13 +3172,213 @@ theorem isGibbsMeasure_markovSpecification_stationaryChain :
 
 end GibbsMeasure
 
+/-! ### Georgii (3.6): conditioning on the boundary `∂Λ` -/
+
+section BoundaryCond
+variable (P : Matrix E E ℝ) (hP : P ∈ Matrix.rowStochastic ℝ E) (hpos : ∀ x y, 0 < P x y)
+
+/-- **Single-site exchange.** Resampling one site `i ∈ Λ` of a cylinder over `Λ ∪ ∂Λ` changes
+its `μ_P`-measure by the ratio of the Boltzmann factors of `Λ`: since `∂Λ` contains both
+neighbours of every site of `Λ`, the two bonds at `i` are the only factors of the chain weight
+that move. -/
+lemma stationaryChain_cyl_update_mul_boltzmannFactor {Λ : Finset ℤ} {i : ℤ} (hi : i ∈ Λ)
+    (τ : ℤ → E) (y : E) :
+    stationaryChain P hP hpos (cyl (Λ ∪ boundary Λ) (Function.update τ i y))
+        * (markovPotential P).boltzmannFactor 1 Λ τ
+      = stationaryChain P hP hpos (cyl (Λ ∪ boundary Λ) τ)
+        * (markovPotential P).boltzmannFactor 1 Λ (Function.update τ i y) := by
+  classical
+  set Δ := Λ ∪ boundary Λ with hΔdef
+  have hiΔ : i ∈ Δ := Finset.mem_union_left _ hi
+  have him : i - 1 ∈ Δ := pred_mem_union_boundary hi
+  have hip : i + 1 ∈ Δ := succ_mem_union_boundary hi
+  obtain ⟨a, b, hsub, hai, hib⟩ : ∃ a b : ℤ, Δ ⊆ Finset.Icc a b ∧ a < i ∧ i < b := by
+    refine ⟨-boundOf Δ, boundOf Δ, subset_Icc_boundOf Δ, ?_, ?_⟩
+    · have h1 := Finset.mem_Icc.1 (subset_Icc_boundOf Δ him)
+      omega
+    · have h2 := Finset.mem_Icc.1 (subset_Icc_boundOf Δ hip)
+      omega
+  have hab : a ≤ b := by omega
+  set α := stationaryDist P hP hpos with hα
+  have hαnn : ∀ x, 0 ≤ α x := fun x ↦ (stationaryDist_pos P hP hpos x).le
+  set Γ := Finset.Icc a b \ Δ with hΓdef
+  have hΓdisj : Disjoint Γ Δ := Finset.sdiff_disjoint
+  have hΓΔ : Γ ∪ Δ = Finset.Icc a b := Finset.sdiff_union_of_subset hsub
+  have hiΓ : i ∉ Γ := fun h ↦ (Finset.mem_sdiff.1 h).2 hiΔ
+  have hdec : ∀ σ : ℤ → E, stationaryChain P hP hpos (cyl Δ σ)
+      = ∑ ξ : Γ → E,
+          stationaryChain P hP hpos (cyl (Finset.Icc a b) (juxt (Γ : Set ℤ) σ ξ)) := by
+    intro σ
+    rw [measure_cyl_eq_sum_juxt _ hΓdisj σ]
+    exact Finset.sum_congr rfl fun ξ _ ↦ by rw [hΓΔ]
+  have hcyl : ∀ ρ : ℤ → E, stationaryChain P hP hpos (cyl (Finset.Icc a b) ρ)
+      = ENNReal.ofReal (chainWeight P α a b ρ) := fun ρ ↦ markovChain_cylinder P hP hpos hab ρ
+  -- the Boltzmann factors, split at the two bonds at `i`
+  have hbondm : i - 1 ∈ bondsOf Λ :=
+    mem_bondsOf.2 (Or.inr (by rw [show i - 1 + 1 = i by omega]; exact hi))
+  have hbond : i ∈ bondsOf Λ := mem_bondsOf.2 (Or.inl hi)
+  set R : ℝ := ∏ j ∈ ((bondsOf Λ).erase (i - 1)).erase i, P (τ j) (τ (j + 1)) with hRdef
+  have hsplit : ∀ σ : ℤ → E, ∏ j ∈ bondsOf Λ, P (σ j) (σ (j + 1))
+      = P (σ (i - 1)) (σ i) * (P (σ i) (σ (i + 1))
+          * ∏ j ∈ ((bondsOf Λ).erase (i - 1)).erase i, P (σ j) (σ (j + 1))) := by
+    intro σ
+    rw [← Finset.mul_prod_erase _ _ hbondm,
+      ← Finset.mul_prod_erase _ _ (Finset.mem_erase.2 ⟨by omega, hbond⟩),
+      show i - 1 + 1 = i by omega]
+  have hrest : ∏ j ∈ ((bondsOf Λ).erase (i - 1)).erase i,
+      P (Function.update τ i y j) (Function.update τ i y (j + 1)) = R := by
+    refine Finset.prod_congr rfl fun j hj ↦ ?_
+    simp only [Finset.mem_erase] at hj
+    rw [Function.update_of_ne hj.1, Function.update_of_ne (fun h ↦ hj.2.1 (by omega))]
+  have hboltzτ : (markovPotential P).boltzmannFactor 1 Λ τ
+      = ENNReal.ofReal (P (τ (i - 1)) (τ i) * P (τ i) (τ (i + 1)) * R) := by
+    rw [boltzmannFactor_eq_prod_bondsOf hpos, hsplit τ, ← hRdef, mul_assoc]
+  have hboltzupd : (markovPotential P).boltzmannFactor 1 Λ (Function.update τ i y)
+      = ENNReal.ofReal (P (τ (i - 1)) y * P y (τ (i + 1)) * R) := by
+    rw [boltzmannFactor_eq_prod_bondsOf hpos, hsplit (Function.update τ i y),
+      Function.update_of_ne (by omega : i - 1 ≠ i), Function.update_self,
+      Function.update_of_ne (by omega : i + 1 ≠ i), hrest, mul_assoc]
+  have hkey : ∀ ξ : Γ → E,
+      stationaryChain P hP hpos
+          (cyl (Finset.Icc a b) (juxt (Γ : Set ℤ) (Function.update τ i y) ξ))
+        * ENNReal.ofReal (P (τ (i - 1)) (τ i) * P (τ i) (τ (i + 1)))
+      = stationaryChain P hP hpos (cyl (Finset.Icc a b) (juxt (Γ : Set ℤ) τ ξ))
+        * ENNReal.ofReal (P (τ (i - 1)) y * P y (τ (i + 1))) := by
+    intro ξ
+    have himΓ : i - 1 ∉ Γ := fun h ↦ (Finset.mem_sdiff.1 h).2 him
+    have hipΓ : i + 1 ∉ Γ := fun h ↦ (Finset.mem_sdiff.1 h).2 hip
+    have hρm : juxt (Γ : Set ℤ) τ ξ (i - 1) = τ (i - 1) :=
+      juxt_apply_of_not_mem (Finset.mem_coe.not.mpr himΓ) ξ
+    have hρi : juxt (Γ : Set ℤ) τ ξ i = τ i :=
+      juxt_apply_of_not_mem (Finset.mem_coe.not.mpr hiΓ) ξ
+    have hρp : juxt (Γ : Set ℤ) τ ξ (i + 1) = τ (i + 1) :=
+      juxt_apply_of_not_mem (Finset.mem_coe.not.mpr hipΓ) ξ
+    rw [juxt_update_of_notMem hiΓ, hcyl, hcyl,
+      ← ENNReal.ofReal_mul (chainWeight_nonneg P α (fun x y ↦ (hpos x y).le) hαnn a b _),
+      ← ENNReal.ofReal_mul (chainWeight_nonneg P α (fun x y ↦ (hpos x y).le) hαnn a b _)]
+    congr 1
+    rw [chainWeight_update_middle P α hai hib, chainWeight_eq_middle P α hai hib,
+      hρm, hρi, hρp]
+    ring
+  rw [hdec, hdec, hboltzτ, hboltzupd,
+    show P (τ (i - 1)) (τ i) * P (τ i) (τ (i + 1)) * R
+      = (P (τ (i - 1)) (τ i) * P (τ i) (τ (i + 1))) * R by ring,
+    show P (τ (i - 1)) y * P y (τ (i + 1)) * R
+      = (P (τ (i - 1)) y * P y (τ (i + 1))) * R by ring,
+    ENNReal.ofReal_mul (mul_nonneg (hpos _ _).le (hpos _ _).le),
+    ENNReal.ofReal_mul (mul_nonneg (hpos _ _).le (hpos _ _).le),
+    ← mul_assoc, ← mul_assoc]
+  congr 1
+  rw [Finset.sum_mul, Finset.sum_mul]
+  exact Finset.sum_congr rfl fun ξ _ ↦ hkey ξ
+
+/-- **Exchange lemma.** Two configurations agreeing off `Λ` have cylinder `μ_P`-measures over
+`Λ ∪ ∂Λ` proportional to their Boltzmann factors on `Λ`: iterate the single-site exchange over
+the sites of `Λ`. -/
+lemma stationaryChain_cyl_overwrite_mul_boltzmannFactor (Λ : Finset ℤ) (ζ τ : ℤ → E) :
+    stationaryChain P hP hpos (cyl (Λ ∪ boundary Λ) (overwrite Λ ζ τ))
+        * (markovPotential P).boltzmannFactor 1 Λ τ
+      = stationaryChain P hP hpos (cyl (Λ ∪ boundary Λ) τ)
+        * (markovPotential P).boltzmannFactor 1 Λ (overwrite Λ ζ τ) := by
+  suffices h : ∀ s : Finset ℤ, s ⊆ Λ →
+      stationaryChain P hP hpos (cyl (Λ ∪ boundary Λ) (overwrite s ζ τ))
+          * (markovPotential P).boltzmannFactor 1 Λ τ
+        = stationaryChain P hP hpos (cyl (Λ ∪ boundary Λ) τ)
+          * (markovPotential P).boltzmannFactor 1 Λ (overwrite s ζ τ) from h Λ subset_rfl
+  intro s
+  induction s using Finset.induction with
+  | empty =>
+      intro _
+      rw [show overwrite (∅ : Finset ℤ) ζ τ = τ from Finset.piecewise_empty ζ τ]
+  | insert i s his ih =>
+      intro hsub
+      have hiΛ : i ∈ Λ := hsub (Finset.mem_insert_self i s)
+      have hihs := ih ((Finset.subset_insert i s).trans hsub)
+      have hover_insert : overwrite (insert i s) ζ τ
+          = Function.update (overwrite s ζ τ) i (ζ i) := Finset.piecewise_insert s ζ τ i
+      have hstep := stationaryChain_cyl_update_mul_boltzmannFactor P hP hpos hiΛ
+        (overwrite s ζ τ) (ζ i)
+      have hB0 : (markovPotential P).boltzmannFactor 1 Λ (overwrite s ζ τ) ≠ 0 :=
+        (Potential.boltzmannFactor_pos 1 Λ _).ne'
+      have hBtop : (markovPotential P).boltzmannFactor 1 Λ (overwrite s ζ τ) ≠ ⊤ :=
+        Potential.boltzmannFactor_ne_top 1 Λ _
+      rw [hover_insert, ← ENNReal.mul_left_inj hB0 hBtop, mul_right_comm, hstep,
+        mul_right_comm, hihs, mul_right_comm]
+
+/-- **Georgii (3.6).** For every finite volume `Λ ⊆ ℤ`, every configuration `ζ`, and every —
+not merely almost every — boundary condition `ω`, the Markov specification is the elementary
+conditional probability of the stationary chain `μ_P` given the values on the boundary `∂Λ` of
+(3.4): `γ_Λ(σ_Λ = ζ | ω) = μ_P(σ_Λ = ζ | σ_{∂Λ} = ω_{∂Λ})`. The conditioning event has
+positive measure by `stationaryChain_cyl_pos`; for an interval `Λ = [a, b]` the boundary is
+`{a - 1, b + 1}` (`boundary_Icc`) and the right-hand side is evaluated by Comment (3.8)(1). -/
+theorem markovSpecification_apply_cyl_eq_cond (Λ : Finset ℤ) (ζ ω : ℤ → E) :
+    markovSpecification P Λ ω (cyl Λ ζ)
+      = (stationaryChain P hP hpos)[cyl Λ ζ | cyl (boundary Λ) ω] := by
+  have hprob := isProbabilityMeasure_stationaryChain P hP hpos
+  -- the left-hand side as a ratio of Boltzmann weights
+  have hLHS : markovSpecification P Λ ω (cyl Λ ζ)
+      = (markovPotential P).boltzmannFactor 1 Λ (overwrite Λ ζ ω)
+        * (∑ ξ : Λ → E,
+            (markovPotential P).boltzmannFactor 1 Λ (juxt (Λ : Set ℤ) ω ξ))⁻¹ := by
+    rw [markovSpecification_apply_eq Λ ω (measurableSet_cyl Λ ζ),
+      lintegral_isssd_indicator_cyl Λ ζ ω (Potential.measurable_boltzmannFactor 1 Λ),
+      Specification.premodifierZ, Specification.relZ,
+      lintegral_isssd_eq_sum Λ ω (Potential.measurable_boltzmannFactor 1 Λ),
+      ← Finset.sum_mul,
+      mul_comm (∑ ξ : Λ → E,
+        (markovPotential P).boltzmannFactor 1 Λ (juxt (Λ : Set ℤ) ω ξ)) _,
+      mul_mul_inv_cancel (pow_ne_zero _ card_inv_ne_zero) (ENNReal.pow_ne_top card_inv_ne_top)]
+  -- the exchange relation, summed over the configurations in `Λ`
+  have hrel : stationaryChain P hP hpos (cyl (Λ ∪ boundary Λ) (overwrite Λ ζ ω))
+        * (∑ ξ : Λ → E, (markovPotential P).boltzmannFactor 1 Λ (juxt (Λ : Set ℤ) ω ξ))
+      = stationaryChain P hP hpos (cyl (boundary Λ) ω)
+        * (markovPotential P).boltzmannFactor 1 Λ (overwrite Λ ζ ω) := by
+    rw [measure_cyl_eq_sum_juxt (stationaryChain P hP hpos) (disjoint_boundary Λ) ω,
+      Finset.mul_sum, Finset.sum_mul]
+    refine Finset.sum_congr rfl fun ξ _ ↦ ?_
+    have h := stationaryChain_cyl_overwrite_mul_boltzmannFactor P hP hpos Λ ζ
+      (juxt (Λ : Set ℤ) ω ξ)
+    rwa [overwrite_juxt] at h
+  -- assemble
+  have h1 : stationaryChain P hP hpos (cyl (boundary Λ) ω) ≠ 0 :=
+    (stationaryChain_cyl_pos P hP hpos _ ω).ne'
+  have h2 : stationaryChain P hP hpos (cyl (boundary Λ) ω) ≠ ⊤ := measure_ne_top _ _
+  have h3 : (∑ ξ : Λ → E,
+      (markovPotential P).boltzmannFactor 1 Λ (juxt (Λ : Set ℤ) ω ξ)) ≠ 0 := by
+    intro hzero
+    exact (Potential.boltzmannFactor_pos 1 Λ
+        (juxt (Λ : Set ℤ) ω fun _ ↦ Classical.arbitrary E)).ne'
+      (Finset.sum_eq_zero_iff.1 hzero _ (Finset.mem_univ _))
+  have h4 : (∑ ξ : Λ → E,
+      (markovPotential P).boltzmannFactor 1 Λ (juxt (Λ : Set ℤ) ω ξ)) ≠ ⊤ :=
+    ENNReal.sum_ne_top.2 fun ξ _ ↦ Potential.boltzmannFactor_ne_top 1 Λ _
+  rw [hLHS, ProbabilityTheory.cond_apply (measurableSet_cyl _ _),
+    cyl_inter_cyl (disjoint_boundary Λ).symm ω ζ, Finset.union_comm (boundary Λ) Λ]
+  calc (markovPotential P).boltzmannFactor 1 Λ (overwrite Λ ζ ω)
+        * (∑ ξ : Λ → E, (markovPotential P).boltzmannFactor 1 Λ (juxt (Λ : Set ℤ) ω ξ))⁻¹
+      = (stationaryChain P hP hpos (cyl (boundary Λ) ω))⁻¹
+          * stationaryChain P hP hpos (cyl (boundary Λ) ω)
+          * (markovPotential P).boltzmannFactor 1 Λ (overwrite Λ ζ ω)
+          * (∑ ξ : Λ → E, (markovPotential P).boltzmannFactor 1 Λ (juxt (Λ : Set ℤ) ω ξ))⁻¹ := by
+        rw [ENNReal.inv_mul_cancel h1 h2, one_mul]
+    _ = (stationaryChain P hP hpos (cyl (boundary Λ) ω))⁻¹
+          * (stationaryChain P hP hpos (cyl (Λ ∪ boundary Λ) (overwrite Λ ζ ω))
+            * (∑ ξ : Λ → E, (markovPotential P).boltzmannFactor 1 Λ (juxt (Λ : Set ℤ) ω ξ)))
+          * (∑ ξ : Λ → E, (markovPotential P).boltzmannFactor 1 Λ (juxt (Λ : Set ℤ) ω ξ))⁻¹ := by
+        rw [mul_assoc (stationaryChain P hP hpos (cyl (boundary Λ) ω))⁻¹, ← hrel]
+    _ = (stationaryChain P hP hpos (cyl (boundary Λ) ω))⁻¹
+          * stationaryChain P hP hpos (cyl (Λ ∪ boundary Λ) (overwrite Λ ζ ω)) := by
+        rw [mul_assoc, mul_assoc, ENNReal.mul_inv_cancel h3 h4, mul_one]
+
+end BoundaryCond
+
 /-! ### Georgii, Theorem (3.5): `𝒢(γ_P) = {μ_P}` -/
 
 /-- The DLR property of the stationary chain, volume by volume: `γ_Λ` is a version of the
 conditional distribution of `μ_P` given the *whole exterior* σ-algebra `𝓕_{Λᶜ}`, `μ_P`-a.e. This
 is the definitional projection of `isGibbsMeasure_markovSpecification_stationaryChain`. Georgii's
-(3.6) is stronger on two counts — it conditions on the two-site boundary `∂Λ` of (3.4) and holds
-for every `ω` — and is not proved here; see the module doc. -/
+(3.6), which conditions on the boundary `∂Λ` of (3.4) and holds for every `ω`, is
+`markovSpecification_apply_cyl_eq_cond`. -/
 theorem isCondExp_markovSpecification_stationaryChain (P : Matrix E E ℝ)
     (hP : P ∈ Matrix.rowStochastic ℝ E) (hpos : ∀ x y, 0 < P x y) (Λ : Finset ℤ) :
     (markovSpecification P Λ).IsCondExp (stationaryChain P hP hpos) :=

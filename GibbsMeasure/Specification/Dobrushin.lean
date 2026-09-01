@@ -7,6 +7,7 @@ module
 
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Tanh
 public import GibbsMeasure.Potential.Existence
+public import GibbsMeasure.Potential.FiniteReference
 public import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 public import Mathlib.MeasureTheory.Integral.Layercake
 public import Mathlib.MeasureTheory.VectorMeasure.Decomposition.Jordan
@@ -15,6 +16,13 @@ public import Mathlib.MeasureTheory.VectorMeasure.Decomposition.Jordan
 # Georgii §8.1: Dobrushin's condition of weak dependence
 
 Georgii (8.1)–(8.6), the potential criterion (8.8) and its `tanh` sharpening (8.10).
+
+Proposition (8.8) is proved at Georgii's hypotheses
+(`Dobrushin.isDobrushin_gibbsSpecificationOfSigmaFiniteAdmissible`): a σ-finite non-zero a priori
+measure `λ`, a `λ`-admissible potential — `Potential.IsSummable` plus finiteness of the partition
+functions, with no absolute-summability restriction on the self-potential — and
+`sup_i |β| ∑_{A ∋ i} (|A| − 1) δ(Φ_A) < 2`. The probability/absolutely-summable case is the
+corollary `Dobrushin.isDobrushin_gibbsSpecification`.
 
 The Ising instances live in `GibbsMeasure/Model/IsingDobrushin.lean`: a `Specification/` file
 states criteria, a `Model/` file applies them.
@@ -700,59 +708,65 @@ interdependence matrix vanish. -/
 
 section GibbsSingleSite
 
-variable [Countable S] {Φ : Potential S E} [Potential.IsPotential Φ]
-  [Potential.IsAbsolutelySummable Φ] (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ)
+variable [Countable S] {Φ : Potential S E} [Potential.IsPotential Φ] [Potential.IsSummable Φ]
+  (ν : Measure E) [SigmaFinite ν] [NeZero ν] (β : ℝ)
 
 /-- The unnormalised single-site distribution at `i` under the boundary condition `ζ`:
-the `σ_i`-projection of `e^{-β H_{i}} · λ_{i}(·|ζ)`. -/
-def singleSiteMeasure (Φ : Potential S E) (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ)
+the `σ_i`-projection of `e^{-β H_{i}} · λ_{i}(·|ζ)`, over a σ-finite a priori measure. -/
+def singleSiteMeasure (Φ : Potential S E) (ν : Measure E) [SigmaFinite ν] (β : ℝ)
     (i : S) (ζ : S → E) : Measure E :=
-  ((Specification.isssd (S := S) (E := E) ν {i} ζ).withDensity
+  ((Specification.sigmaFiniteLambdaFun (S := S) (E := E) ν {i} ζ).withDensity
     (Φ.boltzmannFactor β {i})).map (fun ω ↦ ω i)
 
 variable {ν β}
 
-omit [Countable S] [Potential.IsPotential Φ] [Potential.IsAbsolutelySummable Φ] in
+omit [Countable S] [Potential.IsPotential Φ] [Potential.IsSummable Φ] [NeZero ν] in
 lemma singleSiteMeasure_apply (i : S) (ζ : S → E) {B : Set E} (hB : MeasurableSet B) :
     singleSiteMeasure Φ ν β i ζ B
       = ∫⁻ y in (fun ω : S → E ↦ ω i) ⁻¹' B, Φ.boltzmannFactor β {i} y
-          ∂(Specification.isssd (S := S) (E := E) ν {i} ζ) := by
+          ∂(Specification.sigmaFiniteLambdaFun (S := S) (E := E) ν {i} ζ) := by
   rw [singleSiteMeasure, Measure.map_apply (measurable_pi_apply i) hB,
     withDensity_apply _ ((measurable_pi_apply i) hB)]
 
-omit [Countable S] [Potential.IsPotential Φ] [Potential.IsAbsolutelySummable Φ] in
+omit [Countable S] [Potential.IsPotential Φ] [Potential.IsSummable Φ] [NeZero ν] in
 lemma singleSiteMeasure_univ (i : S) (ζ : S → E) :
     singleSiteMeasure Φ ν β i ζ univ
-      = Specification.premodifierZ (S := S) (E := E) ν (Φ.boltzmannFactor β) {i} ζ := by
+      = Specification.sigmaFiniteLambdaZ (S := S) (E := E) ν (Φ.boltzmannFactor β) {i} ζ := by
   rw [singleSiteMeasure_apply (Φ := Φ) i ζ MeasurableSet.univ]
-  simp [Specification.premodifierZ, Specification.relZ]
+  simp [Specification.sigmaFiniteLambdaZ]
 
-omit [Countable S] [Potential.IsPotential Φ] in
-lemma singleSiteMeasure_univ_ne_zero (i : S) (ζ : S → E) :
+omit [Countable S] [Potential.IsPotential Φ] [Potential.IsSummable Φ] [NeZero ν] in
+lemma singleSiteMeasure_univ_ne_zero
+    (hadm : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν
+      (Φ.boltzmannFactor β)) (i : S) (ζ : S → E) :
     singleSiteMeasure Φ ν β i ζ univ ≠ 0 := by
   rw [singleSiteMeasure_univ]
-  exact (Potential.isPremodifierAdmissible_boltzmannFactor (Φ := Φ) ν β {i} ζ).1
+  exact (hadm {i} ζ).1
 
-omit [Countable S] [Potential.IsPotential Φ] in
-lemma singleSiteMeasure_univ_ne_top (i : S) (ζ : S → E) :
+omit [Countable S] [Potential.IsPotential Φ] [Potential.IsSummable Φ] [NeZero ν] in
+lemma singleSiteMeasure_univ_ne_top
+    (hadm : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν
+      (Φ.boltzmannFactor β)) (i : S) (ζ : S → E) :
     singleSiteMeasure Φ ν β i ζ univ ≠ ⊤ := by
   rw [singleSiteMeasure_univ]
-  exact (Potential.isPremodifierAdmissible_boltzmannFactor (Φ := Φ) ν β {i} ζ).2
+  exact (hadm {i} ζ).2
 
 /-- The `σ_i`-projection of the single-site Gibbs kernel is the normalisation of
-`singleSiteMeasure`. -/
-lemma map_gibbsSpecification_singleton (i : S) (ζ : S → E) :
-    ((Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) {i} ζ).map (fun ω ↦ ω i)
+`singleSiteMeasure`, over any σ-finite a priori measure. -/
+lemma map_gibbsSpecification_singleton
+    (hadm : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν
+      (Φ.boltzmannFactor β)) (i : S) (ζ : S → E) :
+    ((Potential.gibbsSpecificationOfSigmaFiniteAdmissible Φ ν β hadm) {i} ζ).map
+        (fun ω ↦ ω i)
       = (singleSiteMeasure Φ ν β i ζ univ)⁻¹ • singleSiteMeasure Φ ν β i ζ := by
   refine Measure.ext fun B hB ↦ ?_
   rw [Measure.map_apply (measurable_pi_apply i) hB,
-    Potential.gibbsSpecificationOfAbsolutelySummable, Specification.modification_apply,
-    Specification.withDensity_premodifierNorm_apply ν
-      (Potential.isPremodifier_boltzmannFactor (Φ := Φ) β) ((measurable_pi_apply i) hB) ζ,
+    Potential.gibbsSpecificationOfSigmaFiniteAdmissible_apply_set Φ ν β hadm {i} ζ
+      ((measurable_pi_apply i) hB),
     Measure.smul_apply, smul_eq_mul, singleSiteMeasure_apply (Φ := Φ) i ζ hB,
     singleSiteMeasure_univ (Φ := Φ) i ζ]
 
-omit [Countable S] [Potential.IsPotential Φ] [Potential.IsAbsolutelySummable Φ] in
+omit [Countable S] [Potential.IsPotential Φ] [Potential.IsSummable Φ] in
 /-- Comparison of Boltzmann factors from a bound on the Hamiltonian difference. -/
 lemma boltzmannFactor_le_mul {Λ : Finset S} {ω₀ ω₁ : S → E} {c : ℝ}
     (h : β * (Φ.hamiltonian Λ ω₀ - Φ.hamiltonian Λ ω₁) ≤ c) :
@@ -761,6 +775,7 @@ lemma boltzmannFactor_le_mul {Λ : Finset S} {ω₀ ω₁ : S → E} {c : ℝ}
     ← ENNReal.ofReal_mul (Real.exp_pos _).le, ← Real.exp_add]
   exact ENNReal.ofReal_le_ofReal (Real.exp_le_exp.2 (by nlinarith))
 
+omit [NeZero ν] in
 /-- A uniform comparison of the single-site Boltzmann factors transfers to the unnormalised
 single-site distributions. -/
 lemma singleSiteMeasure_le_of_boltzmann_le {i : S} {ζ η : S → E} {C : ℝ≥0∞} (hC : C ≠ ⊤)
@@ -778,11 +793,9 @@ lemma singleSiteMeasure_le_of_boltzmann_le {i : S} {ζ η : S → E} {C : ℝ≥
           (juxt ((({i} : Finset S) : Set S)) ξ x)
         ∂(Measure.pi fun _ : ↥({i} : Finset S) ↦ ν) := by
     intro ξ
-    rw [singleSiteMeasure_apply (Φ := Φ) i ξ hB, ← lintegral_indicator hTmeas]
-    change ∫⁻ y, T.indicator (Φ.boltzmannFactor β {i}) y
-        ∂(Measure.map (juxt ((({i} : Finset S) : Set S)) ξ)
-          (Measure.pi fun _ : ↥({i} : Finset S) ↦ ν)) = _
-    rw [lintegral_map (hw.indicator hTmeas) Measurable.juxt]
+    rw [singleSiteMeasure_apply (Φ := Φ) i ξ hB, ← lintegral_indicator hTmeas,
+      Specification.sigmaFiniteLambdaFun_apply_eq_map,
+      lintegral_map (hw.indicator hTmeas) Measurable.juxt]
     rfl
   have hmem : ∀ (ξ : S → E) (x : ↥({i} : Finset S) → E),
       (juxt ((({i} : Finset S) : Set S)) ξ x) ∈ T ↔ x ⟨i, by simp⟩ ∈ B := by
@@ -797,11 +810,7 @@ lemma singleSiteMeasure_le_of_boltzmann_le {i : S} {ζ η : S → E} {C : ℝ≥
       Set.indicator_of_notMem (fun hc ↦ hx ((hmem ζ x).1 hc))]
     simp
 
-/-- **Georgii (8.8), the setwise ratio bounds.** If the single-site Hamiltonian difference between
-two boundary conditions oscillates by at most `D`, the unnormalised single-site distributions
-satisfy `m·μ_η ≤ μ_ζ ≤ M·μ_η` with `log (M/m) = D`. This is the whole content of the key estimate;
-`unifDist_map_gibbsSpecification_le_tanh` and `unifDist_map_gibbsSpecification_le` read it off
-through the two forms of `unifDist_normalize_le_sqrtRatio`. -/
+/-- **Georgii (8.8), the setwise ratio bounds**, over a σ-finite a priori measure. -/
 lemma exists_singleSiteMeasure_ratio_bounds {i : S} {ζ η : S → E} {D : ℝ} (hD : 0 ≤ D)
     (hosc : ∀ x y : ↥({i} : Finset S) → E,
       β * ((Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) η x)
@@ -816,10 +825,9 @@ lemma exists_singleSiteMeasure_ratio_bounds {i : S} {ζ η : S → E} {D : ℝ} 
   have hEne : Nonempty E := by
     by_contra hcon
     rw [not_nonempty_iff] at hcon
-    have huniv : (univ : Set E) = ∅ := Set.univ_eq_empty_iff.2 hcon
-    have := measure_univ (μ := ν)
-    rw [huniv, measure_empty] at this
-    exact zero_ne_one this
+    refine NeZero.ne ν (Measure.measure_univ_eq_zero.1 ?_)
+    rw [Set.univ_eq_empty_iff.2 hcon]
+    exact measure_empty
   have hne : Nonempty (↥({i} : Finset S) → E) := inferInstance
   set v : (↥({i} : Finset S) → E) → ℝ :=
     fun x ↦ β * (Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) η x)
@@ -848,7 +856,6 @@ lemma exists_singleSiteMeasure_ratio_bounds {i : S} {ζ η : S → E} {D : ℝ} 
   have hmM : m ≤ M := Real.exp_le_exp.2 (by linarith)
   have hlogMm : Real.log (M / m) = D := by
     rw [hMdef, hmdef, ← Real.exp_sub, Real.log_exp]; ring
-  -- pointwise comparison of the Boltzmann factors
   have hhi : ∀ x : ↥({i} : Finset S) → E,
       Φ.boltzmannFactor β {i} (juxt ((({i} : Finset S) : Set S)) ζ x)
         ≤ ENNReal.ofReal M * Φ.boltzmannFactor β {i}
@@ -864,7 +871,6 @@ lemma exists_singleSiteMeasure_ratio_bounds {i : S} {ζ η : S → E} {D : ℝ} 
     rw [hvdef] at this
     simp only at this
     nlinarith [this]
-  -- setwise comparison of the unnormalised single-site distributions
   set μ₀ : Measure E := singleSiteMeasure Φ ν β i η with hμ₀
   set μ₁ : Measure E := singleSiteMeasure Φ ν β i ζ with hμ₁
   have hset_hi : ∀ B, MeasurableSet B → μ₁ B ≤ ENNReal.ofReal M * μ₀ B :=
@@ -880,48 +886,73 @@ lemma exists_singleSiteMeasure_ratio_bounds {i : S} {ζ η : S → E} {D : ℝ} 
             show c₀ - D + (D - c₀) = 0 by ring, Real.exp_zero, ENNReal.ofReal_one, one_mul]
   exact ⟨m, M, hm, hmM, hlogMm, hset_lo, hset_hi⟩
 
-
-/-- **Georgii (8.8), key estimate, sharp form.** The two `σ_i`-projections of the single-site
-Gibbs kernels are at uniform distance at most `tanh (D/4)`. Georgii obtains this sharpening only
-for two-point spin spaces (Example (8.9)(2)); the bound `unifDist_normalize_le_sqrtRatio` already
-produces it over an arbitrary state space. -/
-lemma unifDist_map_gibbsSpecification_le_tanh {i : S} {ζ η : S → E} {D : ℝ} (hD : 0 ≤ D)
+/-- **Georgii (8.8), key estimate, sharp form, over a σ-finite a priori measure.** -/
+lemma unifDist_map_gibbsSpecification_le_tanh
+    (hadm : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν
+      (Φ.boltzmannFactor β))
+    {i : S} {ζ η : S → E} {D : ℝ} (hD : 0 ≤ D)
     (hosc : ∀ x y : ↥({i} : Finset S) → E,
       β * ((Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) η x)
               - Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) ζ x))
            - (Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) η y)
               - Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) ζ y))) ≤ D) :
     unifDist
-        ((Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β {i} ζ).map (fun ω ↦ ω i))
-        ((Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β {i} η).map (fun ω ↦ ω i))
+        ((Potential.gibbsSpecificationOfSigmaFiniteAdmissible Φ ν β hadm {i} ζ).map
+          (fun ω ↦ ω i))
+        ((Potential.gibbsSpecificationOfSigmaFiniteAdmissible Φ ν β hadm {i} η).map
+          (fun ω ↦ ω i))
       ≤ ENNReal.ofReal (Real.tanh (D / 4)) := by
   obtain ⟨m, M, hm, hmM, hlogMm, hset_lo, hset_hi⟩ :=
     exists_singleSiteMeasure_ratio_bounds (Φ := Φ) (ν := ν) (β := β) hD hosc
   have hkey := unifDist_normalize_le_tanh
     (μ₀ := singleSiteMeasure Φ ν β i η) (μ₁ := singleSiteMeasure Φ ν β i ζ) hm hmM
-    (singleSiteMeasure_univ_ne_top (Φ := Φ) (ν := ν) (β := β) i η)
-    (singleSiteMeasure_univ_ne_top (Φ := Φ) (ν := ν) (β := β) i ζ)
-    (singleSiteMeasure_univ_ne_zero (Φ := Φ) (ν := ν) (β := β) i η) hset_lo hset_hi
+    (singleSiteMeasure_univ_ne_top (Φ := Φ) hadm i η)
+    (singleSiteMeasure_univ_ne_top (Φ := Φ) hadm i ζ)
+    (singleSiteMeasure_univ_ne_zero (Φ := Φ) hadm i η) hset_lo hset_hi
   rw [hlogMm] at hkey
-  rwa [map_gibbsSpecification_singleton (Φ := Φ) i ζ,
-    map_gibbsSpecification_singleton (Φ := Φ) i η]
+  rwa [map_gibbsSpecification_singleton (Φ := Φ) hadm i ζ,
+    map_gibbsSpecification_singleton (Φ := Φ) hadm i η]
 
-/-- **Georgii (8.8), key estimate.** The `D/4` reading of
-`unifDist_map_gibbsSpecification_le_tanh`. -/
-lemma unifDist_map_gibbsSpecification_le {i : S} {ζ η : S → E} {D : ℝ} (hD : 0 ≤ D)
+/-- **Georgii (8.8), key estimate**, over a σ-finite a priori measure. -/
+lemma unifDist_map_gibbsSpecification_le
+    (hadm : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν
+      (Φ.boltzmannFactor β))
+    {i : S} {ζ η : S → E} {D : ℝ} (hD : 0 ≤ D)
     (hosc : ∀ x y : ↥({i} : Finset S) → E,
       β * ((Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) η x)
               - Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) ζ x))
            - (Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) η y)
               - Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) ζ y))) ≤ D) :
     unifDist
-        ((Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β {i} ζ).map (fun ω ↦ ω i))
-        ((Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β {i} η).map (fun ω ↦ ω i))
+        ((Potential.gibbsSpecificationOfSigmaFiniteAdmissible Φ ν β hadm {i} ζ).map
+          (fun ω ↦ ω i))
+        ((Potential.gibbsSpecificationOfSigmaFiniteAdmissible Φ ν β hadm {i} η).map
+          (fun ω ↦ ω i))
       ≤ ENNReal.ofReal (D / 4) :=
-  (unifDist_map_gibbsSpecification_le_tanh hD hosc).trans
+  (unifDist_map_gibbsSpecification_le_tanh hadm hD hosc).trans
     (ENNReal.ofReal_le_ofReal (tanh_le_self (by linarith)))
 
+omit [Countable S] [Potential.IsPotential Φ] [Potential.IsSummable Φ] [NeZero ν] in
+/-- With `β = 0` the single-site distributions do not see the boundary condition. -/
+lemma singleSiteMeasure_zero_eq (i : S) (ζ η : S → E) :
+    singleSiteMeasure Φ ν 0 i ζ = singleSiteMeasure Φ ν 0 i η := by
+  have hbf : Φ.boltzmannFactor 0 ({i} : Finset S) = 1 := by
+    funext x
+    simp [Potential.boltzmannFactor]
+  have hmap : ∀ ξ : S → E, singleSiteMeasure Φ ν 0 i ξ
+      = (Measure.pi fun _ : ↥({i} : Finset S) ↦ ν).map
+          (fun x ↦ x ⟨i, Finset.mem_singleton_self i⟩) := by
+    intro ξ
+    rw [singleSiteMeasure, hbf, withDensity_one,
+      Specification.sigmaFiniteLambdaFun_apply_eq_map,
+      Measure.map_map (measurable_pi_apply i) Measurable.juxt]
+    congr 1
+    funext x
+    simp [Function.comp, juxt]
+  rw [hmap ζ, hmap η]
+
 end GibbsSingleSite
+
 
 /-! ### Oscillations of the interaction terms (Georgii (8.2)) -/
 
@@ -973,83 +1004,228 @@ end Osc
 
 section HamiltonianOsc
 
-variable {Φ : Potential S E} [Potential.IsPotential Φ] [Potential.IsAbsolutelySummable Φ]
+variable {Φ : Potential S E}
+
+/-! ### Hamiltonian differences as unconditional sums -/
+
+/-- If the term differences of two boundary conditions are unconditionally summable, the
+difference of the (volume-limit) Hamiltonians is their unconditional sum. -/
+lemma _root_.Potential.hamiltonian_sub_eq_tsum [Potential.IsSummable Φ] {Λ : Finset S}
+    {ζ η : S → E}
+    (hsum : Summable fun A ↦ Φ.hamiltonianTerms Λ ζ A - Φ.hamiltonianTerms Λ η A) :
+    Φ.hamiltonian Λ ζ - Φ.hamiltonian Λ η
+      = ∑' A, (Φ.hamiltonianTerms Λ ζ A - Φ.hamiltonianTerms Λ η A) := by
+  have h1 : HasSum (fun A ↦ Φ.hamiltonianTerms Λ ζ A - Φ.hamiltonianTerms Λ η A)
+      (Φ.hamiltonian Λ ζ - Φ.hamiltonian Λ η) (SummationFilter.volume S) :=
+    (Potential.hasSum_hamiltonian Λ ζ).sub (Potential.hasSum_hamiltonian Λ η)
+  exact (hsum.hasSum.volume.unique h1).symm
+
+/-- **Georgii (8.8): the interaction terms felt by a boundary flip at `j`.** For boundary
+conditions agreeing off `j`, only the terms whose support contains both `i` and `j` contribute to
+the difference of `H_{i}`-terms, and each contributes at most the oscillation of its
+interaction. -/
+lemma enorm_hamiltonianTerms_sub_le [Potential.IsPotential Φ] {i j : S} {ζ η : S → E}
+    (hζη : ∀ k, k ≠ j → ζ k = η k) (A : Finset S) :
+    ‖Φ.hamiltonianTerms {i} ζ A - Φ.hamiltonianTerms {i} η A‖ₑ
+      ≤ {A : Finset S | i ∈ A ∧ j ∈ A}.indicator (fun A ↦ osc (Φ A)) A := by
+  by_cases hiA : i ∈ A
+  · have hnd : ¬ Disjoint A ({i} : Finset S) :=
+      Finset.not_disjoint_iff.2 ⟨i, hiA, Finset.mem_singleton_self i⟩
+    rw [Potential.hamiltonianTerms_of_not_disjoint hnd,
+      Potential.hamiltonianTerms_of_not_disjoint hnd]
+    by_cases hjA : j ∈ A
+    · rw [Set.indicator_of_mem (show A ∈ {A : Finset S | i ∈ A ∧ j ∈ A} from ⟨hiA, hjA⟩),
+        Real.enorm_eq_ofReal_abs]
+      exact le_osc _ _ _
+    · have heq : Φ A ζ = Φ A η :=
+        Potential.IsPotential.eq_of_eqOn fun k hk ↦ hζη k fun hkj ↦ hjA (hkj ▸ hk)
+      simp [heq]
+  · have hd : Disjoint A ({i} : Finset S) := Finset.disjoint_singleton_right.2 hiA
+    rw [Potential.hamiltonianTerms_of_disjoint hd, Potential.hamiltonianTerms_of_disjoint hd]
+    simp
 
 /-- **Georgii (8.8), the estimate `δ(v) ≤ 2 ∑_{A ⊇ {i,j}} δ(Φ_A)`.** The second difference of
 `H_{i}` between boundary conditions that agree off `j` only sees the interaction terms
-containing both `i` and `j`. -/
-lemma enorm_hamiltonian_second_diff_le {i j : S} {ω₁ ω₂ ω₃ ω₄ : S → E}
+containing both `i` and `j`.
+
+Unlike the corresponding estimate for an absolutely summable potential, only `IsSummable` — the
+convergence (2.2)(ii) of the Hamiltonian series — and finiteness of the pair strength
+`∑_{A ⊇ {i,j}} δ(Φ_A)` are needed: the *difference* series is absolutely summable even when the
+Hamiltonian series is not. -/
+lemma enorm_hamiltonian_second_diff_le [Potential.IsPotential Φ] [Potential.IsSummable Φ]
+    {i j : S} (hP : pairStrength Φ i j ≠ ⊤) {ω₁ ω₂ ω₃ ω₄ : S → E}
     (h12 : ∀ k, k ≠ j → ω₁ k = ω₂ k) (h34 : ∀ k, k ≠ j → ω₃ k = ω₄ k) :
     ‖(Φ.hamiltonian {i} ω₁ - Φ.hamiltonian {i} ω₂)
        - (Φ.hamiltonian {i} ω₃ - Φ.hamiltonian {i} ω₄)‖ₑ ≤ 2 * pairStrength Φ i j := by
   classical
-  have hs : ∀ ω : S → E, Summable (Φ.hamiltonianTerms {i} ω) := fun ω ↦
-    Potential.summable_hamiltonianTerms (Φ := Φ) {i} ω
-  rw [Potential.hamiltonian_eq_tsum, Potential.hamiltonian_eq_tsum,
-    Potential.hamiltonian_eq_tsum, Potential.hamiltonian_eq_tsum,
-    ← (hs ω₁).tsum_sub (hs ω₂), ← (hs ω₃).tsum_sub (hs ω₄),
-    ← ((hs ω₁).sub (hs ω₂)).tsum_sub ((hs ω₃).sub (hs ω₄))]
+  set d₁₂ : Finset S → ℝ :=
+    fun A ↦ Φ.hamiltonianTerms {i} ω₁ A - Φ.hamiltonianTerms {i} ω₂ A with hd₁₂
+  set d₃₄ : Finset S → ℝ :=
+    fun A ↦ Φ.hamiltonianTerms {i} ω₃ A - Φ.hamiltonianTerms {i} ω₄ A with hd₃₄
+  have hb₁₂ : ∀ A, ‖d₁₂ A‖ₑ ≤ {A : Finset S | i ∈ A ∧ j ∈ A}.indicator (fun A ↦ osc (Φ A)) A :=
+    enorm_hamiltonianTerms_sub_le h12
+  have hb₃₄ : ∀ A, ‖d₃₄ A‖ₑ ≤ {A : Finset S | i ∈ A ∧ j ∈ A}.indicator (fun A ↦ osc (Φ A)) A :=
+    enorm_hamiltonianTerms_sub_le h34
+  have htsum₁₂ : ∑' A, ‖d₁₂ A‖ₑ ≤ pairStrength Φ i j := ENNReal.tsum_le_tsum hb₁₂
+  have htsum₃₄ : ∑' A, ‖d₃₄ A‖ₑ ≤ pairStrength Φ i j := ENNReal.tsum_le_tsum hb₃₄
+  have hs₁₂ : Summable d₁₂ := Summable.of_enorm (ne_top_of_le_ne_top hP htsum₁₂)
+  have hs₃₄ : Summable d₃₄ := Summable.of_enorm (ne_top_of_le_ne_top hP htsum₃₄)
+  rw [Potential.hamiltonian_sub_eq_tsum hs₁₂, Potential.hamiltonian_sub_eq_tsum hs₃₄,
+    ← hs₁₂.tsum_sub hs₃₄]
   refine le_trans enorm_tsum_le_tsum_enorm ?_
-  rw [pairStrength, ← ENNReal.tsum_mul_left]
-  refine ENNReal.tsum_le_tsum fun A ↦ ?_
-  by_cases hiA : i ∈ A
-  · have hnd : ¬ Disjoint A ({i} : Finset S) :=
-      Finset.not_disjoint_iff.2 ⟨i, hiA, Finset.mem_singleton_self i⟩
-    have hterm : ∀ ω : S → E, Φ.hamiltonianTerms {i} ω A = Φ A ω := fun ω ↦
-      Potential.hamiltonianTerms_of_not_disjoint hnd ω
-    by_cases hjA : j ∈ A
-    · rw [Set.indicator_of_mem (show A ∈ {A : Finset S | i ∈ A ∧ j ∈ A} from ⟨hiA, hjA⟩)]
-      rw [hterm, hterm, hterm, hterm]
-      have hsplit : Φ A ω₁ - Φ A ω₂ - (Φ A ω₃ - Φ A ω₄)
-          = (Φ A ω₁ - Φ A ω₃) + (Φ A ω₄ - Φ A ω₂) := by ring
-      rw [hsplit, Real.enorm_eq_ofReal_abs]
-      have habs : |(Φ A ω₁ - Φ A ω₃) + (Φ A ω₄ - Φ A ω₂)|
-          ≤ |Φ A ω₁ - Φ A ω₃| + |Φ A ω₄ - Φ A ω₂| := by
-        rw [abs_le]
-        constructor <;>
-          linarith [le_abs_self (Φ A ω₁ - Φ A ω₃), neg_abs_le (Φ A ω₁ - Φ A ω₃),
-            le_abs_self (Φ A ω₄ - Φ A ω₂), neg_abs_le (Φ A ω₄ - Φ A ω₂)]
-      calc ENNReal.ofReal |(Φ A ω₁ - Φ A ω₃) + (Φ A ω₄ - Φ A ω₂)|
-          ≤ ENNReal.ofReal (|Φ A ω₁ - Φ A ω₃| + |Φ A ω₄ - Φ A ω₂|) :=
-            ENNReal.ofReal_le_ofReal habs
-        _ = ENNReal.ofReal |Φ A ω₁ - Φ A ω₃| + ENNReal.ofReal |Φ A ω₄ - Φ A ω₂| :=
-            ENNReal.ofReal_add (abs_nonneg _) (abs_nonneg _)
-        _ ≤ osc (Φ A) + osc (Φ A) := add_le_add (le_osc _ _ _) (le_osc _ _ _)
-        _ = 2 * osc (Φ A) := (two_mul _).symm
-    · have e12 : Φ A ω₁ = Φ A ω₂ :=
-        Potential.IsPotential.eq_of_eqOn fun k hk ↦ h12 k (fun hkj ↦ hjA (hkj ▸ hk))
-      have e34 : Φ A ω₃ = Φ A ω₄ :=
-        Potential.IsPotential.eq_of_eqOn fun k hk ↦ h34 k (fun hkj ↦ hjA (hkj ▸ hk))
-      rw [hterm, hterm, hterm, hterm, e12, e34]
-      simp
-  · have hd : Disjoint A ({i} : Finset S) := Finset.disjoint_singleton_right.2 hiA
-    have hterm : ∀ ω : S → E, Φ.hamiltonianTerms {i} ω A = 0 := fun ω ↦
-      Potential.hamiltonianTerms_of_disjoint hd ω
-    rw [hterm, hterm, hterm, hterm]
-    simp
+  calc ∑' A, ‖d₁₂ A - d₃₄ A‖ₑ
+      ≤ ∑' A, (‖d₁₂ A‖ₑ + ‖d₃₄ A‖ₑ) := by
+        refine ENNReal.tsum_le_tsum fun A ↦ ?_
+        rw [sub_eq_add_neg]
+        exact le_trans (enorm_add_le _ _) (by rw [enorm_neg])
+    _ = (∑' A, ‖d₁₂ A‖ₑ) + ∑' A, ‖d₃₄ A‖ₑ := ENNReal.tsum_add
+    _ ≤ pairStrength Φ i j + pairStrength Φ i j := add_le_add htsum₁₂ htsum₃₄
+    _ = 2 * pairStrength Φ i j := (two_mul _).symm
+
+/-! ### Quasilocality of the Hamiltonians (Georgii's first step in the proof of (8.8)) -/
+
+/-- **Georgii, proof of (8.8), first step.** If the interaction strengths
+`∑_{A ∋ i} (|A| − 1) δ(Φ_A)` at the sites of `Λ` are finite, the Hamiltonian `H_Λ` is quasilocal:
+`sup_{ζ_Δ = η_Δ} |H_Λ(ζ) − H_Λ(η)| ≤ ∑_{i ∈ Λ} ∑_{A ∋ i, A ⊄ Δ} δ(Φ_A) → 0` as `Δ ↑ S`. The
+single-site terms drop out of the tail — the sum over `A ∋ i`, `A ⊄ Δ ⊇ Λ` sees only supports of
+at least two points — so, as Georgii remarks, the self-potential is unconstrained. -/
+theorem isQuasilocalFun_hamiltonian [Potential.IsPotential Φ] [Potential.IsSummable Φ]
+    {Λ : Finset S} (hIS : ∀ i ∈ Λ, interactionStrength Φ i ≠ ⊤) :
+    IsQuasilocalFun (Φ.hamiltonian Λ) := by
+  classical
+  intro ε hε
+  set ε₀ : ℝ≥0∞ := ENNReal.ofReal ε / (Λ.card + 1) with hε₀
+  have hε₀pos : 0 < ε₀ := by
+    rw [hε₀]
+    exact ENNReal.div_pos (by simpa using hε) (by simp)
+  -- for each site, a finite family of supports carrying all but `ε₀` of the interaction strength
+  have hchoice : ∀ i ∈ Λ, ∃ s : Finset (Finset S),
+      ∑' A : {A : Finset S // A ∉ s},
+        {B : Finset S | i ∈ B}.indicator
+          (fun B ↦ ((B.card - 1 : ℕ) : ℝ≥0∞) * osc (Φ B)) A.1 ≤ ε₀ := by
+    intro i hi
+    have hne : ∑' A : Finset S, {B : Finset S | i ∈ B}.indicator
+        (fun B ↦ ((B.card - 1 : ℕ) : ℝ≥0∞) * osc (Φ B)) A ≠ ⊤ := by
+      have hval : ∑' A : Finset S, {B : Finset S | i ∈ B}.indicator
+          (fun B ↦ ((B.card - 1 : ℕ) : ℝ≥0∞) * osc (Φ B)) A = interactionStrength Φ i := rfl
+      rw [hval]
+      exact hIS i hi
+    have htail := ENNReal.tendsto_tsum_compl_atTop_zero hne
+    exact ((ENNReal.tendsto_nhds_zero.1 htail) ε₀ hε₀pos).exists
+  choose! s hs using hchoice
+  set Δ : Finset S := Λ ∪ Λ.attach.biUnion (fun i ↦ (s i.1).biUnion id) with hΔdef
+  have hΛΔ : Λ ⊆ Δ := Finset.subset_union_left
+  have hsΔ : ∀ i ∈ Λ, ∀ A ∈ s i, A ⊆ Δ := by
+    intro i hi A hA x hx
+    refine Finset.mem_union_right _ (Finset.mem_biUnion.2 ⟨⟨i, hi⟩, Finset.mem_attach _ _, ?_⟩)
+    exact Finset.mem_biUnion.2 ⟨A, hA, hx⟩
+  refine ⟨Δ, fun ζ η hagree ↦ ?_⟩
+  -- the surviving interaction terms
+  have hbd : ∀ A : Finset S, ‖Φ.hamiltonianTerms Λ ζ A - Φ.hamiltonianTerms Λ η A‖ₑ
+      ≤ {B : Finset S | ¬ Disjoint B Λ ∧ ¬ B ⊆ Δ}.indicator (fun B ↦ osc (Φ B)) A := by
+    intro A
+    by_cases hdisj : Disjoint A Λ
+    · simp [Potential.hamiltonianTerms_of_disjoint hdisj]
+    · rw [Potential.hamiltonianTerms_of_not_disjoint hdisj,
+        Potential.hamiltonianTerms_of_not_disjoint hdisj]
+      by_cases hAΔ : A ⊆ Δ
+      · have heq : Φ A ζ = Φ A η :=
+          Potential.IsPotential.eq_of_eqOn fun k hk ↦ hagree k (hAΔ hk)
+        simp [heq]
+      · rw [Set.indicator_of_mem
+          (show A ∈ {B : Finset S | ¬ Disjoint B Λ ∧ ¬ B ⊆ Δ} from ⟨hdisj, hAΔ⟩),
+          Real.enorm_eq_ofReal_abs]
+        exact le_osc _ _ _
+  -- one site of `Λ` witnesses each surviving support
+  have hGle : ∀ A : Finset S,
+      {B : Finset S | ¬ Disjoint B Λ ∧ ¬ B ⊆ Δ}.indicator (fun B ↦ osc (Φ B)) A
+        ≤ ∑ i ∈ Λ, {B : Finset S | i ∈ B ∧ ¬ B ⊆ Δ}.indicator (fun B ↦ osc (Φ B)) A := by
+    intro A
+    by_cases hA : A ∈ {B : Finset S | ¬ Disjoint B Λ ∧ ¬ B ⊆ Δ}
+    · rw [Set.indicator_of_mem hA]
+      obtain ⟨k, hkA, hkΛ⟩ := Finset.not_disjoint_iff.1 hA.1
+      calc osc (Φ A)
+          = {B : Finset S | k ∈ B ∧ ¬ B ⊆ Δ}.indicator (fun B ↦ osc (Φ B)) A := by
+            rw [Set.indicator_of_mem
+              (show A ∈ {B : Finset S | k ∈ B ∧ ¬ B ⊆ Δ} from ⟨hkA, hA.2⟩)]
+        _ ≤ ∑ i ∈ Λ, {B : Finset S | i ∈ B ∧ ¬ B ⊆ Δ}.indicator (fun B ↦ osc (Φ B)) A :=
+            Finset.single_le_sum
+              (f := fun i ↦ {B : Finset S | i ∈ B ∧ ¬ B ⊆ Δ}.indicator (fun B ↦ osc (Φ B)) A)
+              (fun _ _ ↦ bot_le) hkΛ
+    · rw [Set.indicator_of_notMem hA]
+      exact bot_le
+  -- each site's tail lies beyond its chosen finite family
+  have hinner : ∀ i ∈ Λ,
+      ∑' A, {B : Finset S | i ∈ B ∧ ¬ B ⊆ Δ}.indicator (fun B ↦ osc (Φ B)) A ≤ ε₀ := by
+    intro i hi
+    have hsupp : Function.support
+        (fun A ↦ {B : Finset S | i ∈ B ∧ ¬ B ⊆ Δ}.indicator (fun B ↦ osc (Φ B)) A)
+          ⊆ {A : Finset S | A ∉ s i} := by
+      intro A hA
+      rw [Function.mem_support] at hA
+      by_contra hmem
+      rw [Set.mem_ofPred_eq, not_not] at hmem
+      refine hA (Set.indicator_of_notMem ?_ _)
+      rintro ⟨-, hAΔ⟩
+      exact hAΔ (hsΔ i hi A hmem)
+    rw [← tsum_subtype_eq_of_support_subset hsupp]
+    refine le_trans (ENNReal.tsum_le_tsum fun A ↦ ?_) (hs i hi)
+    by_cases hmem : A.1 ∈ {B : Finset S | i ∈ B ∧ ¬ B ⊆ Δ}
+    · rw [Set.indicator_of_mem hmem,
+        Set.indicator_of_mem (show A.1 ∈ {B : Finset S | i ∈ B} from hmem.1)]
+      obtain ⟨k, hkA, hkΔ⟩ := Finset.not_subset.1 hmem.2
+      have hki : k ≠ i := fun h ↦ hkΔ (h ▸ hΛΔ hi)
+      have h1 : (1 : ℝ≥0∞) ≤ ((A.1.card - 1 : ℕ) : ℝ≥0∞) := by
+        have hcard : 1 < A.1.card := Finset.one_lt_card.2 ⟨i, hmem.1, k, hkA, hki.symm⟩
+        exact_mod_cast Nat.one_le_iff_ne_zero.2 (by omega)
+      calc osc (Φ A.1) = 1 * osc (Φ A.1) := (one_mul _).symm
+        _ ≤ ((A.1.card - 1 : ℕ) : ℝ≥0∞) * osc (Φ A.1) := mul_le_mul' h1 le_rfl
+    · rw [Set.indicator_of_notMem hmem]
+      exact bot_le
+  -- total tail bound
+  have htotal : ∑' A, ‖Φ.hamiltonianTerms Λ ζ A - Φ.hamiltonianTerms Λ η A‖ₑ
+      ≤ ENNReal.ofReal ε := by
+    calc ∑' A, ‖Φ.hamiltonianTerms Λ ζ A - Φ.hamiltonianTerms Λ η A‖ₑ
+        ≤ ∑' A, {B : Finset S | ¬ Disjoint B Λ ∧ ¬ B ⊆ Δ}.indicator (fun B ↦ osc (Φ B)) A :=
+          ENNReal.tsum_le_tsum hbd
+      _ ≤ ∑' A, ∑ i ∈ Λ, {B : Finset S | i ∈ B ∧ ¬ B ⊆ Δ}.indicator (fun B ↦ osc (Φ B)) A :=
+          ENNReal.tsum_le_tsum hGle
+      _ = ∑ i ∈ Λ, ∑' A, {B : Finset S | i ∈ B ∧ ¬ B ⊆ Δ}.indicator (fun B ↦ osc (Φ B)) A :=
+          Summable.tsum_finsetSum fun i _ ↦ ENNReal.summable
+      _ ≤ ∑ _i ∈ Λ, ε₀ := Finset.sum_le_sum hinner
+      _ = Λ.card * ε₀ := by rw [Finset.sum_const, nsmul_eq_mul]
+      _ ≤ (Λ.card + 1) * ε₀ := mul_le_mul' (by simp) le_rfl
+      _ = ENNReal.ofReal ε := by
+          rw [hε₀]
+          exact ENNReal.mul_div_cancel (by simp) (by simp)
+  have hsum : Summable fun A ↦ Φ.hamiltonianTerms Λ ζ A - Φ.hamiltonianTerms Λ η A :=
+    Summable.of_enorm (ne_top_of_le_ne_top ENNReal.ofReal_ne_top htotal)
+  have habs : ENNReal.ofReal |Φ.hamiltonian Λ ζ - Φ.hamiltonian Λ η| ≤ ENNReal.ofReal ε := by
+    rw [Potential.hamiltonian_sub_eq_tsum hsum, ← Real.enorm_eq_ofReal_abs]
+    exact le_trans enorm_tsum_le_tsum_enorm htotal
+  exact (ENNReal.ofReal_le_ofReal_iff hε.le).1 habs
 
 end HamiltonianOsc
+
 
 /-! ### M3: Georgii's Proposition (8.8) -/
 
 section Prop88
 
-variable [Countable S] {Φ : Potential S E} [Potential.IsPotential Φ]
-  [Potential.IsAbsolutelySummable Φ] (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ)
+variable [Countable S] {Φ : Potential S E} [Potential.IsPotential Φ] [Potential.IsSummable Φ]
+  (ν : Measure E) [SigmaFinite ν] [NeZero ν] (β : ℝ)
 
 omit [Countable S] in
 /-- The second difference of the single-site Hamiltonian between two boundary conditions
-agreeing off `j` is bounded by `|β| · 2 · ∑_{A ⊇ {i,j}} δ(Φ_A)`. This is the whole oscillation
-input to Georgii (8.8); both readings of the key estimate consume it. -/
-lemma hamiltonian_singleSite_second_diff_le (i j : S) {ζ η : S → E}
-    (hζη : ∀ k, k ≠ j → ζ k = η k) (x y : ↥({i} : Finset S) → E) :
+agreeing off `j` is bounded by `|β| · 2 · ∑_{A ⊇ {i,j}} δ(Φ_A)`. -/
+lemma hamiltonian_singleSite_second_diff_le {i j : S} (hP : pairStrength Φ i j ≠ ⊤)
+    {ζ η : S → E} (hζη : ∀ k, k ≠ j → ζ k = η k) (x y : ↥({i} : Finset S) → E) :
     β * ((Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) η x)
             - Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) ζ x))
          - (Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) η y)
             - Φ.hamiltonian {i} (juxt ((({i} : Finset S) : Set S)) ζ y)))
       ≤ |β| * 2 * (pairStrength Φ i j).toReal := by
   set P := pairStrength Φ i j with hPdef
-  have hPtop : P ≠ ⊤ := pairStrength_ne_top Φ i j
   set D : ℝ := |β| * 2 * P.toReal with hDdef
   set ω₁ := juxt ((({i} : Finset S) : Set S)) η x with hω₁
   set ω₂ := juxt ((({i} : Finset S) : Set S)) ζ x with hω₂
@@ -1065,9 +1241,9 @@ lemma hamiltonian_singleSite_second_diff_le (i j : S) {ζ η : S → E}
       exact hξ k hk
   have h12 : ∀ k, k ≠ j → ω₁ k = ω₂ k := hagree η ζ x fun k hk ↦ (hζη k hk).symm
   have h34 : ∀ k, k ≠ j → ω₃ k = ω₄ k := hagree η ζ y fun k hk ↦ (hζη k hk).symm
-  have hbound := enorm_hamiltonian_second_diff_le (Φ := Φ) (i := i) (j := j) h12 h34
+  have hbound := enorm_hamiltonian_second_diff_le (Φ := Φ) (i := i) (j := j) hP h12 h34
   rw [Real.enorm_eq_ofReal_abs] at hbound
-  have h2P : (2 : ℝ≥0∞) * P ≠ ⊤ := ENNReal.mul_ne_top (by norm_num) hPtop
+  have h2P : (2 : ℝ≥0∞) * P ≠ ⊤ := ENNReal.mul_ne_top (by norm_num) hP
   have hΔ : |(Φ.hamiltonian {i} ω₁ - Φ.hamiltonian {i} ω₂)
       - (Φ.hamiltonian {i} ω₃ - Φ.hamiltonian {i} ω₄)| ≤ 2 * P.toReal := by
     have h := ENNReal.toReal_mono h2P hbound
@@ -1082,22 +1258,70 @@ lemma hamiltonian_singleSite_second_diff_le (i j : S) {ζ η : S → E}
     _ ≤ |β| * (2 * P.toReal) := mul_le_mul_of_nonneg_left hΔ (abs_nonneg β)
     _ = D := by rw [hDdef]; ring
 
+variable {ν β}
 
-/-- **Georgii (8.8), entrywise.** `C_ij(γ^{βΦ}) ≤ |β|/2 · ∑_{A ⊇ {i,j}} δ(Φ_A)`. -/
+/-- **Georgii (8.8), entrywise, over a σ-finite a priori measure.** -/
+theorem interdep_gibbsSpecificationOfSigmaFiniteAdmissible_le
+    (hadm : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν
+      (Φ.boltzmannFactor β)) (i j : S) :
+    interdep (Potential.gibbsSpecificationOfSigmaFiniteAdmissible Φ ν β hadm) i j
+      ≤ ENNReal.ofReal |β| * pairStrength Φ i j / 2 := by
+  rcases eq_or_ne i j with rfl | hij
+  · rw [interdep_self]
+    exact bot_le
+  rcases eq_or_ne β 0 with rfl | hβ
+  · have hzero : interdep
+        (Potential.gibbsSpecificationOfSigmaFiniteAdmissible Φ ν 0 hadm) i j = 0 := by
+      refine interdep_eq_zero fun ζ η h ↦ ?_
+      rw [map_gibbsSpecification_singleton (Φ := Φ) hadm i ζ,
+        map_gibbsSpecification_singleton (Φ := Φ) hadm i η,
+        singleSiteMeasure_zero_eq (Φ := Φ) (ν := ν) i ζ η]
+    rw [hzero]
+    exact bot_le
+  rcases eq_or_ne (pairStrength Φ i j) ⊤ with hP | hP
+  · have hval : ENNReal.ofReal |β| * pairStrength Φ i j / 2 = ⊤ := by
+      rw [hP, ENNReal.mul_top (by simpa [abs_pos] using hβ)]
+      exact ENNReal.top_div_of_ne_top (by simp)
+    exact hval ▸ le_top
+  · set P := pairStrength Φ i j with hPdef
+    have hD0 : 0 ≤ |β| * 2 * P.toReal := by positivity
+    have hrhs : ENNReal.ofReal (|β| * 2 * P.toReal / 4) = ENNReal.ofReal |β| * P / 2 := by
+      rw [show |β| * 2 * P.toReal / 4 = |β| * P.toReal / 2 by ring,
+        ENNReal.ofReal_div_of_pos (by norm_num), ENNReal.ofReal_mul (abs_nonneg β),
+        ENNReal.ofReal_toReal hP]
+      norm_num
+    rw [← hrhs]
+    exact interdep_le fun ζ η hζη ↦ unifDist_map_gibbsSpecification_le hadm hD0
+      fun x y ↦ hamiltonian_singleSite_second_diff_le β hP hζη x y
+
+/-- **Georgii, Example (8.9)(2), entrywise, over a σ-finite a priori measure.** -/
+theorem interdep_gibbsSpecificationOfSigmaFiniteAdmissible_le_tanh
+    (hadm : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν
+      (Φ.boltzmannFactor β)) {i j : S} (hP : pairStrength Φ i j ≠ ⊤) :
+    interdep (Potential.gibbsSpecificationOfSigmaFiniteAdmissible Φ ν β hadm) i j
+      ≤ ENNReal.ofReal (Real.tanh (|β| * (pairStrength Φ i j).toReal / 2)) := by
+  set P := pairStrength Φ i j with hPdef
+  have hD0 : 0 ≤ |β| * 2 * P.toReal := by positivity
+  have hquarter : |β| * 2 * P.toReal / 4 = |β| * P.toReal / 2 := by ring
+  rw [← hquarter]
+  exact interdep_le fun ζ η hζη ↦ unifDist_map_gibbsSpecification_le_tanh hadm hD0
+    fun x y ↦ hamiltonian_singleSite_second_diff_le β hP hζη x y
+
+end Prop88
+
+section Prop88Prob
+
+variable [Countable S] {Φ : Potential S E} [Potential.IsPotential Φ]
+  [Potential.IsAbsolutelySummable Φ] (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ)
+
+/-- **Georgii (8.8), entrywise.** `C_ij(γ^{βΦ}) ≤ |β|/2 · ∑_{A ⊇ {i,j}} δ(Φ_A)`; the
+probability/absolutely-summable special case of
+`Dobrushin.interdep_gibbsSpecificationOfSigmaFiniteAdmissible_le`. -/
 theorem interdep_gibbsSpecification_le (i j : S) :
     interdep (Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) i j
       ≤ ENNReal.ofReal |β| * pairStrength Φ i j / 2 := by
-  set P := pairStrength Φ i j with hPdef
-  have hPtop : P ≠ ⊤ := pairStrength_ne_top Φ i j
-  have hD0 : 0 ≤ |β| * 2 * P.toReal := by positivity
-  have hrhs : ENNReal.ofReal (|β| * 2 * P.toReal / 4) = ENNReal.ofReal |β| * P / 2 := by
-    rw [show |β| * 2 * P.toReal / 4 = |β| * P.toReal / 2 by ring,
-      ENNReal.ofReal_div_of_pos (by norm_num), ENNReal.ofReal_mul (abs_nonneg β),
-      ENNReal.ofReal_toReal hPtop]
-    norm_num
-  rw [← hrhs]
-  exact interdep_le fun ζ η hζη ↦ unifDist_map_gibbsSpecification_le hD0
-    fun x y ↦ hamiltonian_singleSite_second_diff_le β i j hζη x y
+  rw [← Potential.gibbsSpecificationOfFiniteReference_eq_of_isProbabilityMeasure (Φ := Φ) ν β]
+  exact interdep_gibbsSpecificationOfSigmaFiniteAdmissible_le (Φ := Φ) _ i j
 
 /-- **Georgii, Example (8.9)(2), general form.** The sharp reading of the pair bound:
 `C_ij(γ^Φ) ≤ tanh (|β| ∑_{A ⊇ {i,j}} δ(Φ_A) / 2)`. Georgii derives the `tanh` improvement only
@@ -1105,14 +1329,11 @@ for two-point spin spaces; it holds over an arbitrary state space. -/
 theorem interdep_gibbsSpecification_le_tanh (i j : S) :
     interdep (Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) i j
       ≤ ENNReal.ofReal (Real.tanh (|β| * (pairStrength Φ i j).toReal / 2)) := by
-  set P := pairStrength Φ i j with hPdef
-  have hD0 : 0 ≤ |β| * 2 * P.toReal := by positivity
-  have hquarter : |β| * 2 * P.toReal / 4 = |β| * P.toReal / 2 := by ring
-  rw [← hquarter]
-  exact interdep_le fun ζ η hζη ↦ unifDist_map_gibbsSpecification_le_tanh hD0
-    fun x y ↦ hamiltonian_singleSite_second_diff_le β i j hζη x y
+  rw [← Potential.gibbsSpecificationOfFiniteReference_eq_of_isProbabilityMeasure (Φ := Φ) ν β]
+  exact interdep_gibbsSpecificationOfSigmaFiniteAdmissible_le_tanh (Φ := Φ) _
+    (pairStrength_ne_top Φ i j)
 
-end Prop88
+end Prop88Prob
 
 /-- Georgii (8.8): `∑_{j ≠ i} ∑_{A ⊇ {i,j}} δ(Φ_A) = ∑_{A ∋ i} (|A| − 1) δ(Φ_A)`. -/
 lemma tsum_pairStrength (Φ : Potential S E) (i : S) :
@@ -1166,30 +1387,35 @@ lemma tsum_pairStrength (Φ : Potential S E) (i : S) :
 
 section Prop88b
 
-variable [Countable S] {Φ : Potential S E} [Potential.IsPotential Φ]
-  [Potential.IsAbsolutelySummable Φ] (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ)
+variable [Countable S] {Φ : Potential S E} [Potential.IsPotential Φ] [Potential.IsSummable Φ]
+  {ν : Measure E} [SigmaFinite ν] [NeZero ν] {β : ℝ}
 
-/-- **Georgii, Proposition (8.8).** If `sup_i |β| ∑_{A ∋ i} (|A| − 1) δ(Φ_A) < 2`, the Gibbsian
-specification of `βΦ` satisfies Dobrushin's condition of weak dependence — *both* conjuncts of
-(8.6). Quasilocality is the first step of Georgii's proof of (8.8) and is discharged here by
-`Potential.isQuasilocal_gibbsSpecificationOfAbsolutelySummable` (Georgii Example (2.25), the
-instance of Proposition (2.24)(b) at the quasilocal Hamiltonians of an absolutely summable
-potential); the bound on `c(γ^Φ)` is the rest.
-
-Hypotheses. Georgii states (8.8) for an arbitrary a-priori measure `λ ∈ 𝓜(E, ℰ)` and any
-`λ`-admissible potential, and notes that "up to `λ`-admissibility, there are no restrictions on
-the self-potential part of `Φ`". What is proved here is the special case of a probability
-a-priori measure `ν` and an absolutely summable `Φ` — the hypotheses of
-`gibbsSpecificationOfAbsolutelySummable` — which does restrict the self-potential: by Georgii
-§2.1 (after (2.14)), an absolutely summable potential is `λ`-admissible iff `λ` is finite.
-Generalising needs the Gibbsian specification of a merely `λ`-admissible potential. -/
-theorem isDobrushin_gibbsSpecification {c : ℝ≥0∞} (hc : c < 2)
+/-- **Georgii, Proposition (8.8), at Georgii's hypotheses.** For a σ-finite non-zero a priori
+measure `λ` and a `λ`-admissible potential with
+`sup_i |β| ∑_{A ∋ i} (|A| − 1) δ(Φ_A) < 2`, the Gibbsian specification of `βΦ` satisfies
+Dobrushin's condition of weak dependence. -/
+theorem isDobrushin_gibbsSpecificationOfSigmaFiniteAdmissible
+    (hadm : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν
+      (Φ.boltzmannFactor β))
+    {c : ℝ≥0∞} (hc : c < 2)
     (hΦ : ∀ i, ENNReal.ofReal |β| * interactionStrength Φ i ≤ c) :
-    IsDobrushin (Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) := by
-  refine ⟨Potential.isQuasilocal_gibbsSpecificationOfAbsolutelySummable ν β, c / 2, ?_, fun i ↦ ?_⟩
+    IsDobrushin (Potential.gibbsSpecificationOfSigmaFiniteAdmissible Φ ν β hadm) := by
+  have hql : ∀ Λ : Finset S, IsQuasilocalFun fun η : S → E ↦ β * Φ.hamiltonian Λ η := by
+    intro Λ
+    rcases eq_or_ne β 0 with rfl | hβ
+    · intro ε hε
+      exact ⟨∅, fun ζ η _ ↦ by simpa using hε.le⟩
+    · have hIS : ∀ i ∈ Λ, interactionStrength Φ i ≠ ⊤ := by
+        intro i _ htop
+        have h1 := hΦ i
+        rw [htop, ENNReal.mul_top (by simpa [abs_pos] using hβ)] at h1
+        exact absurd (lt_of_le_of_lt h1 hc) (by simp)
+      exact (isQuasilocalFun_hamiltonian hIS).const_mul β
+  refine ⟨Potential.isQuasilocal_gibbsSpecificationOfSigmaFiniteAdmissible Φ ν β hadm hql,
+    c / 2, ?_, fun i ↦ ?_⟩
   · rw [ENNReal.div_lt_iff (by norm_num) (by norm_num), one_mul]
     exact hc
-  · set γ := Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β with hγ
+  · set γ := Potential.gibbsSpecificationOfSigmaFiniteAdmissible Φ ν β hadm with hγ
     have hzero : ∀ j : S, interdep γ i j
         = {j : S | j ≠ i}.indicator (fun j ↦ interdep γ i j) j := by
       intro j
@@ -1198,7 +1424,8 @@ theorem isDobrushin_gibbsSpecification {c : ℝ≥0∞} (hc : c < 2)
         rw [Set.indicator_of_notMem (show j ∉ {k : S | k ≠ j} by simp), interdep_self]
       · rw [Set.indicator_of_mem (show j ∈ {j : S | j ≠ i} from hj)]
     have hstep : ∀ j : S, {j : S | j ≠ i}.indicator (fun j ↦ interdep γ i j) j
-        ≤ (ENNReal.ofReal |β| / 2) * {j : S | j ≠ i}.indicator (fun j ↦ pairStrength Φ i j) j := by
+        ≤ (ENNReal.ofReal |β| / 2)
+          * {j : S | j ≠ i}.indicator (fun j ↦ pairStrength Φ i j) j := by
       intro j
       by_cases hj : j = i
       · subst hj
@@ -1207,7 +1434,7 @@ theorem isDobrushin_gibbsSpecification {c : ℝ≥0∞} (hc : c < 2)
         simp
       · rw [Set.indicator_of_mem (show j ∈ {j : S | j ≠ i} from hj),
           Set.indicator_of_mem (show j ∈ {j : S | j ≠ i} from hj)]
-        have h := interdep_gibbsSpecification_le (Φ := Φ) ν β i j
+        have h := interdep_gibbsSpecificationOfSigmaFiniteAdmissible_le (Φ := Φ) hadm i j
         rwa [show ENNReal.ofReal |β| * pairStrength Φ i j / 2
             = ENNReal.ofReal |β| / 2 * pairStrength Φ i j by
           rw [div_eq_mul_inv, div_eq_mul_inv]; ring] at h
@@ -1223,6 +1450,34 @@ theorem isDobrushin_gibbsSpecification {c : ℝ≥0∞} (hc : c < 2)
       _ = ENNReal.ofReal |β| * interactionStrength Φ i / 2 := by
           rw [div_eq_mul_inv, div_eq_mul_inv]; ring
       _ ≤ c / 2 := by gcongr; exact hΦ i
+
+/-- **Georgii, Proposition (8.8)** in Georgii's own `sup`-form, over a σ-finite a priori
+measure. -/
+theorem isDobrushin_gibbsSpecificationOfSigmaFiniteAdmissible_of_iSup_lt
+    (hadm : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν
+      (Φ.boltzmannFactor β))
+    (h : ⨆ i, ENNReal.ofReal |β| * interactionStrength Φ i < 2) :
+    IsDobrushin (Potential.gibbsSpecificationOfSigmaFiniteAdmissible Φ ν β hadm) :=
+  isDobrushin_gibbsSpecificationOfSigmaFiniteAdmissible hadm h
+    fun i ↦ le_iSup (fun i ↦ ENNReal.ofReal |β| * interactionStrength Φ i) i
+
+end Prop88b
+
+section Prop88bProb
+
+variable [Countable S] {Φ : Potential S E} [Potential.IsPotential Φ]
+  [Potential.IsAbsolutelySummable Φ] (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ)
+
+/-- **Georgii, Proposition (8.8)** for a probability a priori measure and an absolutely summable
+potential: the special case of
+`Dobrushin.isDobrushin_gibbsSpecificationOfSigmaFiniteAdmissible`, which proves (8.8) at
+Georgii's own hypotheses — an arbitrary σ-finite non-zero a priori measure and a merely
+`λ`-admissible potential, with no restriction on the self-potential. -/
+theorem isDobrushin_gibbsSpecification {c : ℝ≥0∞} (hc : c < 2)
+    (hΦ : ∀ i, ENNReal.ofReal |β| * interactionStrength Φ i ≤ c) :
+    IsDobrushin (Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) := by
+  rw [← Potential.gibbsSpecificationOfFiniteReference_eq_of_isProbabilityMeasure (Φ := Φ) ν β]
+  exact isDobrushin_gibbsSpecificationOfSigmaFiniteAdmissible (Φ := Φ) _ hc hΦ
 
 /-- **Georgii, Example (8.9)(2), general form.** The `tanh` criterion: if for every site the
 pair sums `tanh (|β| ∑_{A ⊇ {i,j}} δ(Φ_A) / 2)` add up to less than `1`, the Gibbsian
@@ -1258,7 +1513,7 @@ theorem isDobrushin_gibbsSpecification_of_iSup_lt
   isDobrushin_gibbsSpecification ν β h
     (fun i ↦ le_iSup (fun i ↦ ENNReal.ofReal |β| * interactionStrength Φ i) i)
 
-end Prop88b
+end Prop88bProb
 
 
 end MeasureTheory.GibbsMeasure.Dobrushin

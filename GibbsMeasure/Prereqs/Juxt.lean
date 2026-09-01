@@ -39,6 +39,21 @@ lemma measurable_coordinate_projection_2 {Δ : Set S} {x : S} (h : x ∈ Δ) :
     exact Measurable.of_comap_le fun s a ↦ a
   exact key.mono (le_iSup₂_of_le x h (fun s a ↦ a)) le_rfl
 
+/-- Updating the boundary configuration at a site inside `Λ` does not change the resampled
+configuration off that site; updating it outside `Λ` commutes with `juxt`. -/
+lemma juxt_update_of_notMem [DecidableEq S] {i : S} (hi : i ∉ Λ) (η : S → E) (y : E)
+    (ζ : Λ → E) :
+    juxt Λ (Function.update η i y) ζ = Function.update (juxt Λ η ζ) i y := by
+  funext x
+  by_cases hx : x ∈ Λ
+  · have hxi : x ≠ i := fun h ↦ hi (h ▸ hx)
+    rw [juxt_apply_of_mem hx, Function.update_of_ne hxi, juxt_apply_of_mem hx]
+  · by_cases hxi : x = i
+    · subst hxi
+      rw [juxt_apply_of_not_mem hx, Function.update_self, Function.update_self]
+    · rw [juxt_apply_of_not_mem hx, Function.update_of_ne hxi, Function.update_of_ne hxi,
+        juxt_apply_of_not_mem hx]
+
 /-- `η ↦ juxt Λ η ζ` fixes `ζ` on `Λ` and copies `η` off `Λ`, so it is measurable for the
 exterior cylinder σ-algebra — the strongest measurability the map has. -/
 lemma measurable_cylinderEvents_juxt_boundary (ζ : Λ → E) :

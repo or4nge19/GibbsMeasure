@@ -122,6 +122,7 @@ public import GibbsMeasure.Specification.InhomogeneousReference
 public import GibbsMeasure.Specification.InvariantExistenceGroup
 public import GibbsMeasure.Specification.OneDimensionalUniqueness
 public import GibbsMeasure.Specification.UniformLocalLimits
+public import GibbsMeasure.Specification.UniquenessFromMixing
 public import GibbsMeasure.Specification.NetEquicontinuity
 public import GibbsMeasure.Specification.Quasilocality
 public import GibbsMeasure.Specification.Rescaling

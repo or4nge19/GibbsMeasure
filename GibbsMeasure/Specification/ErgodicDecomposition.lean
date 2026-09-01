@@ -1,6 +1,7 @@
 module
 
 public import GibbsMeasure.Specification.Extremal
+public import GibbsMeasure.Specification.UniquenessFromMixing
 public import GibbsMeasure.Prereqs.MeasureExt
 public import GibbsMeasure.Mathlib.Probability.Kernel.Condexp
 public import Mathlib.Probability.Notation
@@ -625,48 +626,14 @@ variable (Λ : Finset S)
 
 omit [Countable S] [StandardBorelSpace E] in
 /-- If `μ` is Gibbs for `γ`, then for a tail event `B` (hence also `Λᶜ`-measurable),
-the DLR identity reads `μ(A ∩ B) = ∫⁻ ω in B, γ Λ ω A ∂μ`. -/
+the DLR identity reads `μ(A ∩ B) = ∫⁻ ω in B, γ Λ ω A ∂μ`. The special case, for tail `B`, of
+`measure_inter_eq_setLIntegral_of_isGibbsMeasure`. -/
 lemma isGibbsMeasure_measure_inter_eq_setLIntegral
     (hμ : γ.IsGibbsMeasure μ)
     {A B : Set (S → E)} (hA : MeasurableSet A) (hB : MeasurableSet[@tailSigmaAlgebra S E _] B) :
-    μ (A ∩ B) = ∫⁻ ω in B, (γ Λ ω) A ∂μ := by
-  -- Use the fixed point `μ.bind (γ Λ) = μ`.
-  have hfix : μ.bind (γ Λ) = μ :=
-    ((Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ)).1 hμ) Λ
-  have hB_pi : MeasurableSet B :=
-    (tailSigmaAlgebra_le_pi (S := S) (E := E)) B hB
-  have hB_cyl : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) ((Λ : Set S)ᶜ)] B :=
-    (tailSigmaAlgebra_le_cylinderEvents (S := S) (E := E) Λ) B hB
-  have hAB : MeasurableSet (A ∩ B) := hA.inter hB_pi
-  have hmeasγ : Measurable (γ Λ : (S → E) → Measure (S → E)) :=
-    (ProbabilityTheory.Kernel.measurable (γ Λ)).mono cylinderEvents_le_pi le_rfl
-  have hbind :
-      (μ.bind (γ Λ)) (A ∩ B) = ∫⁻ ω, (γ Λ ω) (A ∩ B) ∂μ := by
-    simp [Measure.bind_apply hAB hmeasγ.aemeasurable]
-  have hprop : ∀ ω, (γ Λ ω) (A ∩ B) =
-      (B.indicator (fun _ : (S → E) => (1 : ℝ≥0∞)) ω) * (γ Λ ω) A := by
-    intro ω
-    convert (γ.isProper.inter_eq_indicator_mul (Λ := Λ) (A := A) (B := B) hA hB_cyl ω)
-    simp [Pi.one_def]
-  have hind :
-      (fun ω => (B.indicator (fun _ : (S → E) => (1 : ℝ≥0∞)) ω) * (γ Λ ω) A)
-        =
-      fun ω => B.indicator (fun ω => (γ Λ ω) A) ω := by
-    funext ω
-    by_cases hω : ω ∈ B <;> simp [Set.indicator_of_mem, Set.indicator_of_notMem, hω]
-  calc
-    μ (A ∩ B) = (μ.bind (γ Λ)) (A ∩ B) := by simp [hfix]
-    _ = ∫⁻ ω, (γ Λ ω) (A ∩ B) ∂μ := hbind
-    _ = ∫⁻ ω, (B.indicator (fun _ : (S → E) => (1 : ℝ≥0∞)) ω) * (γ Λ ω) A ∂μ := by
-          simp_rw [hprop]
-    _ = ∫⁻ ω, B.indicator (fun ω => (γ Λ ω) A) ω ∂μ := by
-          simp [hind]
-    _ = ∫⁻ ω in B, (γ Λ ω) A ∂μ := by
-          have hmeasA : Measurable fun ω : S → E => (γ Λ ω) A :=
-            (ProbabilityTheory.Kernel.measurable_coe (γ Λ) hA).mono
-              (MeasureTheory.cylinderEvents_le_pi (X := fun _ : S ↦ E) (Δ := ((Λ : Set S)ᶜ))) le_rfl
-          simp [hB_pi]
-
+    μ (A ∩ B) = ∫⁻ ω in B, (γ Λ ω) A ∂μ :=
+  measure_inter_eq_setLIntegral_of_isGibbsMeasure hμ Λ hA
+    (tailSigmaAlgebra_le_cylinderEvents (S := S) (E := E) Λ B hB)
 /-!
 #### Tail-conditional measures are Gibbs: kernel fixed point for a fixed `Λ`
 -/
