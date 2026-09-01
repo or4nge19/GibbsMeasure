@@ -30,3 +30,53 @@ Let $(X, \MCX)$ be a measurable space, let $\MCB$ be a sub $\sigma$-algebra of $
 
   Standard machine.
 \end{proof}
+
+\section{Sub-\texorpdfstring{$\sigma$}{sigma}-algebras modulo null sets}
+
+\begin{theorem}[Sub-$\sigma$-algebras are countably generated modulo null sets]
+    \label{thm:pre-cg-mod-null}
+    \lean{MeasureTheory.exists_countable_measure_symmDiff_lt_of_le,
+      MeasureTheory.exists_measurableSet_measure_symmDiff_eq_zero,
+      MeasureTheory.exists_countable_generateFrom_le_ae_of_isSeparable,
+      MeasureTheory.exists_countablyGenerated_le_ae_of_isSeparable,
+      MeasureTheory.exists_countablyGenerated_le_ae}
+    \leanok
+
+    Let $\mu$ be a finite separable measure on $(X, \mathcal{M})$ --- for instance any finite
+    measure on a countably generated $\mathcal{M}$, so any finite measure on a standard Borel
+    space --- and let $\mathcal{M}_0 \leq \mathcal{M}$ be an arbitrary sub-$\sigma$-algebra. Then
+    there is a countable $D \subseteq \mathcal{M}_0$ such that every $A \in \mathcal{M}_0$
+    satisfies $\mu(A \mathbin{\Delta} B) = 0$ for some $B \in \sigma(D)$.
+
+    No countability hypothesis is imposed on $\mathcal{M}_0$. The tail $\sigma$-algebra of a
+    product space is a sub-$\sigma$-algebra which is \emph{not} countably generated --- its atoms
+    are the classes of the eventual-agreement relation $E_0$, and a countable generating family
+    would exhibit $E_0$ as smooth, contradicting Glimm--Effros --- and it is covered here.
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    The constant-one indicators $\1_A$, $A \in \mathcal{M}_0$, form a subset of $L^1(\mu)$, which
+    is second-countable because $\mu$ is separable; second-countability passes to subsets, so that
+    family admits a countable dense subset, which we realise as $\set{\1_B : B \in D}$ for a
+    countable $D \subseteq \mathcal{M}_0$. Since
+    $\norm{\1_A - \1_B}_{L^1} = \mu(A \mathbin{\Delta} B)$, this is approximation in measure.
+
+    To pass from approximation to equality, choose $B_n \in \sigma(D)$ with
+    $\mu(A \mathbin{\Delta} B_n) < 2^{-n}$ and put $B = \limsup_n B_n \in \sigma(D)$. Then
+    $A \mathbin{\Delta} B \subseteq \limsup_n (A \mathbin{\Delta} B_n)$, and the latter is null by
+    Borel--Cantelli because $\sum_n \mu(A \mathbin{\Delta} B_n) \leq \sum_n 2^{-n} < \infty$.
+\end{proof}
+
+\begin{remark}[What this does \emph{not} give]
+    \label{rmk:pre-cg-mod-null-limits}
+    \uses{thm:pre-cg-mod-null}
+
+    Theorem \ref{thm:pre-cg-mod-null} does not remove the countable-generation hypotheses carried
+    by the tail-$\sigma$-algebra results of Chapter 7. The approximating set it returns depends on
+    the set approximated, so it reproduces exactly the $A$-dependent null sets those hypotheses
+    exist to union together, and no countable exhaustion of $\Tail$ is available. The conclusions
+    so guarded are not false --- $\omega \mapsto \delta_\omega$ restricted to $\Tail$ is itself a
+    version of $\mu(\cdot \mid \Tail)$ --- what is missing is kernel-level a.e.\ uniqueness
+    on $\Tail$.
+\end{remark}

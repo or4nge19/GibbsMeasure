@@ -28,12 +28,17 @@ generating family `(B_n)` would make `ω ↦ (1_{B_n}(ω))ₙ` a Borel reduction
 `2^ℕ`, i.e. `E₀` smooth, contradicting Glimm–Effros.
 
 The hypothesis is not gratuitous: it is what upgrades "for each `A ∈ 𝓣`, `tailKernel μ ω A =
-1_A(ω)` for `μ`-a.e. `ω`" to "for `μ`-a.e. `ω`, for all `A ∈ 𝓣`", and a regular conditional
-distribution given a σ-algebra that is not countably generated modulo null sets need not be proper
-on it. It could be removed by replacing `𝓣` with a countably generated σ-algebra equal to it
-modulo `μ`-null sets — such a σ-algebra always exists, since `L¹(Ω, 𝓕, μ)` is separable for
-standard Borel `Ω` and hence so is its closed subspace `L¹(Ω, 𝓣, μ)` — but Mathlib has no such
-lemma and it is not proved here.
+1_A(ω)` for `μ`-a.e. `ω`" to "for `μ`-a.e. `ω`, for all `A ∈ 𝓣`" — a countable generating family is
+what lets the `A`-dependent null sets be unioned.
+
+Replacing `𝓣` by a countably generated σ-algebra agreeing with it modulo `μ`-null sets does not
+suffice, though such a σ-algebra does always exist: that is
+`MeasureTheory.exists_countablyGenerated_le_ae` (proved here from the separability of `L¹(μ)` and
+Borel–Cantelli, in `GibbsMeasure/Mathlib/MeasureTheory/Measure/CountablyGeneratedModNull.lean`).
+The approximant it returns depends on the set approximated, so it reproduces exactly the
+`A`-dependent null sets, with no countable exhaustion of `𝓣` to union them over. Note also that the
+guarded conclusions are not false: `ω ↦ δ_ω` restricted to `𝓣` is itself a version of `μ(· | 𝓣)`.
+What is missing is kernel-level a.e. uniqueness on `𝓣`.
 
 Nothing is lost meanwhile. The conclusion these statements aim at is available without any
 countable-generation hypothesis, because the `(𝒢(γ), 𝓣)`-kernel of Proposition (7.25) is a version
