@@ -203,28 +203,6 @@ lemma isssd_apply_eq_sum (ν : Measure Bool) [IsProbabilityMeasure ν] (Λ : Fin
   rw [tsum_fintype, hfun]
   rfl
 
-lemma measurable_juxt_boundary (Λ : Finset ℕ) (σ : {i // i ∈ Λ} → Bool) :
-    Measurable[cylinderEvents ((Λ : Set ℕ)ᶜ)] fun ω : ℕ → Bool ↦ juxt (Λ : Set ℕ) ω σ := by
-  have hmeas : Measurable fun ω : ℕ → Bool ↦ juxt (Λ : Set ℕ) ω σ := by
-    apply measurable_pi_lambda
-    intro x
-    by_cases hx : x ∈ (Λ : Set ℕ)
-    · have hcst : (fun ω : ℕ → Bool ↦ juxt (Λ : Set ℕ) ω σ x) = fun _ ↦ σ ⟨x, hx⟩ :=
-        funext fun _ ↦ juxt_apply_of_mem hx σ
-      rw [hcst]
-      exact measurable_const
-    · have hproj : (fun ω : ℕ → Bool ↦ juxt (Λ : Set ℕ) ω σ x) = fun ω ↦ ω x :=
-        funext fun _ ↦ juxt_apply_of_not_mem hx σ
-      rw [hproj]
-      exact measurable_pi_apply (X := fun _ : ℕ ↦ Bool) x
-  have hdep : DependsOn (fun ω : ℕ → Bool ↦ juxt (Λ : Set ℕ) ω σ) ((Λ : Set ℕ)ᶜ) := by
-    intro ζ η h
-    funext x
-    by_cases hx : x ∈ (Λ : Set ℕ)
-    · simp [juxt, hx]
-    · simp [juxt, hx, h x hx]
-  exact hmeas.cylinderEvents_of_dependsOn hdep
-
 /-- **Georgii (2.27)**: the independent specifications `γ^y = λ^y` depend measurably on `y`. -/
 lemma isMeasurableFamily_isssd_bern :
     Specification.IsMeasurableFamily (S := ℕ) fun y : ℝ≥0∞ ↦ Specification.isssd (S := ℕ)
@@ -246,7 +224,7 @@ lemma isMeasurableFamily_isssd_bern :
   have hset : @MeasurableSet (ℝ≥0∞ × (ℕ → Bool))
       (@Prod.instMeasurableSpace ℝ≥0∞ (ℕ → Bool) _ (cylinderEvents ((Λ : Set ℕ)ᶜ)))
       {p : ℝ≥0∞ × (ℕ → Bool) | juxt (Λ : Set ℕ) p.2 σ ∈ A} :=
-    ((measurable_juxt_boundary Λ σ).comp hsnd) hA
+    ((measurable_cylinderEvents_juxt_boundary σ).comp hsnd) hA
   have hind : (fun p : ℝ≥0∞ × (ℕ → Bool) ↦
         (juxt (Λ : Set ℕ) p.2 ⁻¹' A).indicator (fun τ ↦ ∏ i, bern p.1 {τ i}) σ) =
       {p : ℝ≥0∞ × (ℕ → Bool) | juxt (Λ : Set ℕ) p.2 σ ∈ A}.indicator

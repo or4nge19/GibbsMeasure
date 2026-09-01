@@ -251,16 +251,37 @@ theorem mutuallySingular_of_isExtremeIn [Countable S]
 /-- **Georgii (7.29)**: `𝓖(γ)` has at least `N` extreme points iff it contains `N` measures that
 are linearly independent over `ℝ≥0∞`. -/
 theorem le_encard_setOf_isExtremeIn_iff [Countable S] [StandardBorelSpace E]
-    {γ : Finset S → Config S E → Measure (Config S E)} (hγ : IsSpecification γ)
-    (hne : (GibbsSet γ).Nonempty) (N : ℕ) :
+    {γ : Finset S → Config S E → Measure (Config S E)} (hγ : IsSpecification γ) (N : ℕ) :
     (N : ℕ∞) ≤ {ν : Measure (Config S E) | IsExtremeIn (GibbsSet γ) ν}.encard ↔
       ∃ μ : Fin N → Measure (Config S E), (∀ i, IsGibbs γ (μ i)) ∧ LinearIndependent ℝ≥0∞ μ := by
-  have hG : (MeasureTheory.GibbsMeasure.G (SimplexBridge.spec hγ)).Nonempty := by
-    rwa [← SimplexBridge.gibbsSet_eq_G hγ]
-  rw [SimplexBridge.setOf_isExtremeIn_eq hγ,
-    MeasureTheory.GibbsMeasure.le_encard_extremePoints_iff hG N]
-  exact ⟨fun ⟨μ, hμ, hLI⟩ ↦ ⟨μ, fun i ↦ (SimplexBridge.isGibbs_iff_mem_G hγ (μ i)).2 (hμ i), hLI⟩,
-    fun ⟨μ, hμ, hLI⟩ ↦ ⟨μ, fun i ↦ (SimplexBridge.isGibbs_iff_mem_G hγ (μ i)).1 (hμ i), hLI⟩⟩
+  -- Georgii (7.29) does not assume `𝓖(γ) ≠ ∅`: for `N = 0` both sides hold unconditionally,
+  -- and for `N ≥ 1` each side supplies a Gibbs measure.
+  rcases Nat.eq_zero_or_pos N with rfl | hN
+  · exact iff_of_true (by simp) ⟨Fin.elim0, fun i ↦ i.elim0, linearIndependent_empty_type⟩
+  have key : (GibbsSet γ).Nonempty →
+      ((N : ℕ∞) ≤ {ν : Measure (Config S E) | IsExtremeIn (GibbsSet γ) ν}.encard ↔
+        ∃ μ : Fin N → Measure (Config S E), (∀ i, IsGibbs γ (μ i)) ∧
+          LinearIndependent ℝ≥0∞ μ) := by
+    intro hne
+    have hG : (MeasureTheory.GibbsMeasure.G (SimplexBridge.spec hγ)).Nonempty := by
+      rwa [← SimplexBridge.gibbsSet_eq_G hγ]
+    rw [SimplexBridge.setOf_isExtremeIn_eq hγ,
+      MeasureTheory.GibbsMeasure.le_encard_extremePoints_iff hG N]
+    exact ⟨fun ⟨μ, hμ, hLI⟩ ↦
+        ⟨μ, fun i ↦ (SimplexBridge.isGibbs_iff_mem_G hγ (μ i)).2 (hμ i), hLI⟩,
+      fun ⟨μ, hμ, hLI⟩ ↦
+        ⟨μ, fun i ↦ (SimplexBridge.isGibbs_iff_mem_G hγ (μ i)).1 (hμ i), hLI⟩⟩
+  constructor
+  · intro h
+    have hset : {ν : Measure (Config S E) | IsExtremeIn (GibbsSet γ) ν}.Nonempty := by
+      rw [Set.nonempty_iff_ne_empty]
+      intro hempty
+      rw [hempty, Set.encard_empty, le_zero_iff] at h
+      exact_mod_cast absurd h (by exact_mod_cast hN.ne')
+    obtain ⟨ν, hν⟩ := hset
+    exact (key ⟨ν, hν.1⟩).1 h
+  · rintro ⟨μ, hμ, hLI⟩
+    exact (key ⟨μ ⟨0, hN⟩, hμ ⟨0, hN⟩⟩).2 ⟨μ, hμ, hLI⟩
 
 /-! ### Non-degeneracy -/
 

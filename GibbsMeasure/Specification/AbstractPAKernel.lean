@@ -333,13 +333,13 @@ end Core
 
 section PAKernel
 
-variable [StandardBorelSpace Ω] [Nonempty Ω] [MeasurableSpace.CountablyGenerated Ω] [Countable ι]
+variable [StandardBorelSpace Ω] [Nonempty Ω] [Countable ι]
   [Nonempty ι] [IsDirected ι (· ≤ ·)] (γ : AbstractSpecification Ω ι) (ν₀ : Measure Ω)
 
 /-- The tail event on which `γ.tailRealKernel` is carried by the range of `embeddingReal`. -/
 def rangeSet : Set Ω := {ω | γ.tailRealKernel ω (range (embeddingReal Ω)) = 1}
 
-omit [Nonempty Ω] [MeasurableSpace.CountablyGenerated Ω] in
+omit [Nonempty Ω] in
 lemma measurableSet_rangeSet : MeasurableSet[γ.tail] γ.rangeSet :=
   (measurableSet_singleton 1).preimage
     (Kernel.measurable_coe _ (measurableEmbedding_embeddingReal _).measurableSet_range)
@@ -350,7 +350,7 @@ noncomputable def tailRealKernel' : Kernel[γ.tail] Ω ℝ :=
   Kernel.piecewise (measurableSet_rangeSet γ) γ.tailRealKernel
     (@Kernel.const Ω ℝ γ.tail _ (ν₀.map (embeddingReal Ω)))
 
-omit [Nonempty Ω] [MeasurableSpace.CountablyGenerated Ω] in
+omit [Nonempty Ω] in
 lemma tailRealKernel'_apply_range [IsProbabilityMeasure ν₀] (ω : Ω) :
     tailRealKernel' γ ν₀ ω (range (embeddingReal Ω)) = 1 := by
   classical
@@ -431,7 +431,7 @@ end PAKernel
 
 section Main
 
-variable [StandardBorelSpace Ω] [Nonempty Ω] [MeasurableSpace.CountablyGenerated Ω] [Countable ι]
+variable [StandardBorelSpace Ω] [Nonempty Ω] [Countable ι]
   [Nonempty ι] [IsDirected ι (· ≤ ·)] (γ : AbstractSpecification Ω ι) (ν₀ : Measure Ω)
 
 omit [Nonempty Ω] in

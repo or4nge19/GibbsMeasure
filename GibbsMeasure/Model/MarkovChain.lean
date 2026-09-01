@@ -593,16 +593,16 @@ lemma premodifierZ_Icc (hpos : ∀ x y, 0 < P x y) {n : ℕ} {a b : ℤ} (hb : b
 
 /-! ### Integrals over a single matching configuration -/
 
-/-- The configuration equal to `ζ` on `Λ` and to `σ` elsewhere. -/
-def overwrite (Λ : Finset ℤ) (ζ σ : ℤ → E) : ℤ → E := fun k ↦ if k ∈ Λ then ζ k else σ k
+/-- The configuration equal to `ζ` on `Λ` and to `σ` elsewhere — `Finset.piecewise`. -/
+abbrev overwrite (Λ : Finset ℤ) (ζ σ : ℤ → E) : ℤ → E := Λ.piecewise ζ σ
 
 omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
 lemma overwrite_apply_of_mem {Λ : Finset ℤ} {k : ℤ} (hk : k ∈ Λ) (ζ σ : ℤ → E) :
-    overwrite Λ ζ σ k = ζ k := ite_eq_left hk
+    overwrite Λ ζ σ k = ζ k := Λ.piecewise_eq_of_mem _ _ hk
 
 omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
 lemma overwrite_apply_of_notMem {Λ : Finset ℤ} {k : ℤ} (hk : k ∉ Λ) (ζ σ : ℤ → E) :
-    overwrite Λ ζ σ k = σ k := ite_eq_right hk
+    overwrite Λ ζ σ k = σ k := Λ.piecewise_eq_of_notMem _ _ hk
 
 omit [DecidableEq E] in
 /-- Only the configuration matching `ζ` on `Λ` contributes to an integral over `cyl Λ ζ`. -/

@@ -1,5 +1,6 @@
 module
 
+public import GibbsMeasure.Prereqs.CylinderEvents
 public import Mathlib.MeasureTheory.Constructions.Cylinders
 
 /-!
@@ -35,6 +36,29 @@ lemma measurable_coordinate_projection_2 {Δ : Set S} {x : S} (h : x ∈ Δ) :
   have key : @Measurable (S → E) E (𝓔.comap fun σ ↦ σ x) _ (fun σ ↦ σ x) := by
     exact Measurable.of_comap_le fun s a ↦ a
   exact key.mono (le_iSup₂_of_le x h (fun s a ↦ a)) le_rfl
+
+/-- `η ↦ juxt Λ η ζ` fixes `ζ` on `Λ` and copies `η` off `Λ`, so it is measurable for the
+exterior cylinder σ-algebra — the strongest measurability the map has. -/
+lemma measurable_cylinderEvents_juxt_boundary (ζ : Λ → E) :
+    Measurable[cylinderEvents (X := fun _ : S ↦ E) Λᶜ] fun η : S → E ↦ juxt Λ η ζ := by
+  have hmeas : Measurable fun η : S → E ↦ juxt Λ η ζ := by
+    refine measurable_pi_lambda _ fun i ↦ ?_
+    by_cases hi : i ∈ Λ
+    · simp only [juxt_apply_of_mem hi]
+      exact measurable_const
+    · simp only [juxt_apply_of_not_mem hi]
+      exact measurable_pi_apply i
+  refine hmeas.cylinderEvents_of_dependsOn fun η η' h ↦ ?_
+  funext i
+  by_cases hi : i ∈ Λ
+  · simp only [juxt_apply_of_mem hi]
+  · simp only [juxt_apply_of_not_mem hi]
+    exact h i hi
+
+/-- `η ↦ juxt Λ η ζ` is measurable. -/
+lemma measurable_juxt_boundary (ζ : Λ → E) :
+    Measurable fun η : S → E ↦ juxt Λ η ζ :=
+  (measurable_cylinderEvents_juxt_boundary ζ).mono cylinderEvents_le_pi le_rfl
 
 protected lemma Measurable.juxt : Measurable (juxt Λ η) := by
   rw [measurable_pi_iff]

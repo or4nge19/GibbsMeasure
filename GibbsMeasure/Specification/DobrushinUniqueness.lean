@@ -506,22 +506,23 @@ section Localize
 
 variable [DecidableEq S]
 
-/-- `σ ↦ σ_Λ ω_{S∖Λ}`: the configuration agreeing with `σ` on `Λ` and with `ω` off `Λ`. -/
-def loc (Λ : Finset S) (ω σ : S → E) : S → E := fun k ↦ if k ∈ Λ then σ k else ω k
+/-- `σ ↦ σ_Λ ω_{S∖Λ}`: the configuration agreeing with `σ` on `Λ` and with `ω` off `Λ` —
+`Finset.piecewise`. -/
+abbrev loc (Λ : Finset S) (ω σ : S → E) : S → E := Λ.piecewise σ ω
 
 omit [MeasurableSpace E] in
 @[simp] lemma loc_apply_of_mem {Λ : Finset S} {ω σ : S → E} {k : S} (hk : k ∈ Λ) :
-    loc Λ ω σ k = σ k := by simp [loc, hk]
+    loc Λ ω σ k = σ k := Λ.piecewise_eq_of_mem _ _ hk
 
 omit [MeasurableSpace E] in
 @[simp] lemma loc_apply_of_notMem {Λ : Finset S} {ω σ : S → E} {k : S} (hk : k ∉ Λ) :
-    loc Λ ω σ k = ω k := by simp [loc, hk]
+    loc Λ ω σ k = ω k := Λ.piecewise_eq_of_notMem _ _ hk
 
 lemma measurable_loc (Λ : Finset S) (ω : S → E) : Measurable (loc Λ ω) := by
   refine measurable_pi_lambda _ fun k ↦ ?_
   by_cases hk : k ∈ Λ
-  · simpa [loc, hk] using measurable_pi_apply (X := fun _ : S ↦ E) k
-  · simp [loc, hk]
+  · simpa [hk] using measurable_pi_apply (X := fun _ : S ↦ E) k
+  · simp [hk]
 
 omit [MeasurableSpace E] in
 lemma dependsOn_loc (Λ : Finset S) (ω : S → E) : DependsOn (loc Λ ω) (Λ : Set S) := by
@@ -1217,9 +1218,9 @@ variable [DecidableEq S]
 
 open scoped Classical in
 /-- Georgii (8.22): the configuration `ω_V ζ_{S∖V}` which agrees with `ω` on `V` and with `ζ`
-off `V`. -/
-noncomputable def condCfg (V : Finset S) (ω ζ : S → E) : S → E :=
-  fun k ↦ if k ∈ V then ω k else ζ k
+off `V` — `Finset.piecewise`, i.e. `loc V ζ ω`. -/
+noncomputable abbrev condCfg (V : Finset S) (ω ζ : S → E) : S → E :=
+  V.piecewise ω ζ
 
 variable {V W Δ Λ : Finset S} {ω ζ : S → E} {k : S}
 

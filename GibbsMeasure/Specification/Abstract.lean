@@ -98,8 +98,9 @@ variable (Ω : Type*) [m : MeasurableSpace Ω] (ι : Type*) [Preorder ι] in
 /-- **Georgii, Remark (7.13)**: the abstract setting in which the results of Section 7.1 hold.
 
 A decreasing family `sub` of sub-σ-algebras of `m`, indexed by a preorder `ι`, together with a
-consistent family of proper Markov kernels `ker i` from `sub i` to `m`. Consistency is Georgii's
-`γᵢ γⱼ = γⱼ` for `i ≤ j`, written exactly as in `IsConsistent`. -/
+family of proper Markov kernels `ker i` from `sub i` to `m`. Following Georgii's Remark (7.13),
+**no** consistency `γᵢ γⱼ = γⱼ` is imposed — the arguments below consume only invariance of
+`μ`, not `IsConsistent`. -/
 structure AbstractSpecification where
   /-- The decreasing family `(𝓣ᵢ)` of sub-σ-algebras. -/
   sub : ι → MeasurableSpace Ω

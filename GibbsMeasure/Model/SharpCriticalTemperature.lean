@@ -41,11 +41,13 @@ Griffiths' monotonicity of `β ↦ μ₊^β(σ₀)`.
 
 `isingBetaC` is the infimum of the non-uniqueness set, so uniqueness below it is immediate;
 non-uniqueness above it comes from `isUpperSet_isingNonUniqueness`, i.e. from
-`LebowitzMartinLof.nontrivial_GP_ising2D_of_nontrivial_of_le`.  Sections M7-M8b record the same
-threshold construction for an abstract nonnegative nondecreasing order parameter (`betaCOf`,
-`eq_zero_of_lt_betaCOf`, `pos_of_betaCOf_lt`, `exists_betaC_of_monotone`) and instantiate it at
-the finite-volume `+`-boundary magnetisations `GKS.magnetisation` of
-`GibbsMeasure/Model/GKSInequalities.lean`; they are independent of the main theorems below.
+`LebowitzMartinLof.nontrivial_GP_ising2D_of_nontrivial_of_le`.  Sections M7-M8 build the
+threshold `betaCOf M` of an abstract nonnegative nondecreasing order parameter (`betaCOf`,
+`eq_zero_of_lt_betaCOf`, `pos_of_betaCOf_lt`, `exists_betaC_of_monotone`);
+`isingBetaC_eq_betaCOf_spontaneousMagnetisation` identifies `isingBetaC` with `betaCOf m*`, and
+`spontaneousMagnetisation_eq_zero_of_lt_isingBetaC` /
+`spontaneousMagnetisation_pos_of_isingBetaC_lt` are Georgii's statement that `m*` vanishes below
+`β_c` and is positive above it.
 
 Transferring the sharp threshold from the order parameter `μ₊^β(σ₀)` to the cardinality of
 `𝒢(βΦ)` uses the equivalence `|𝒢(βΦ)| > 1 ↔ μ₊^β(σ₀) > 0` of Lebowitz–Martin-Löf (1972) and
@@ -128,80 +130,6 @@ theorem monotoneOn_of_tendsto {J : Type*} {F : Filter J} [F.NeBot] (m : J → �
 
 /-! ### M8: Griffiths' inequality gives Georgii's monotone magnetisation -/
 
-/-- **Georgii's "`μ₊^β(σ₀)` is a nonnegative nondecreasing function of `β`".**
-
-Let `j ↦ Λ_j` be any family of finite volumes, each carrying a ferromagnetic Ising
-interaction `K j ≥ 0` and a nonnegative external field `h j ≥ 0` — the latter is what the
-`+` boundary condition contributes, the boundary spins being `+1` — and let `i j` be a
-distinguished site of `Λ_j` (the origin).  If the finite-volume magnetisations converge
-pointwise in `β` along a filter `F` to `M`, then `M` is nonnegative and nondecreasing
-on `[0, ∞)`.
-
-Nonnegativity is GKS-I and monotonicity is GKS-II (`GKS.magnetisation_nonneg`,
-`GKS.magnetisation_mono`), both proved in `GibbsMeasure/Model/GKSInequalities.lean`. -/
-theorem monotoneOn_magnetisation_limit {J : Type*} {F : Filter J} [F.NeBot]
-    {V : J → Type*} [∀ j, Fintype (V j)] [∀ j, DecidableEq (V j)]
-    {K : ∀ j, V j → V j → ℝ} {h : ∀ j, V j → ℝ} {i : ∀ j, V j}
-    (hK : ∀ j x y, 0 ≤ K j x y) (hh : ∀ j x, 0 ≤ h j x) {M : ℝ → ℝ}
-    (hlim : ∀ β, Tendsto (fun j ↦ GKS.magnetisation (K j) (h j) β (i j)) F (𝓝 (M β))) :
-    MonotoneOn M (Set.Ici 0) ∧ ∀ β, 0 ≤ β → 0 ≤ M β := by
-  refine ⟨monotoneOn_of_tendsto _ M (fun j ↦ GKS.monotoneOn_magnetisation (hK j) (hh j) (i j))
-    hlim, fun β hβ ↦ ?_⟩
-  exact ge_of_tendsto' (hlim β) fun j ↦ GKS.magnetisation_nonneg (hK j) (hh j) hβ (i j)
-
-/-- **Georgii's critical inverse temperature for the magnetisation.**  Combining
-`monotoneOn_magnetisation_limit` with `exists_betaC_of_monotone`: any infinite-volume
-magnetisation obtained as a limit of finite-volume `+`-boundary magnetisations of the Ising
-ferromagnet, and which is positive somewhere, has a sharp threshold `β_c` — it vanishes
-strictly below `β_c` and is strictly positive strictly above `β_c`. -/
-theorem exists_betaC_magnetisation {J : Type*} {F : Filter J} [F.NeBot]
-    {V : J → Type*} [∀ j, Fintype (V j)] [∀ j, DecidableEq (V j)]
-    {K : ∀ j, V j → V j → ℝ} {h : ∀ j, V j → ℝ} {i : ∀ j, V j}
-    (hK : ∀ j x y, 0 ≤ K j x y) (hh : ∀ j x, 0 ≤ h j x) {M : ℝ → ℝ}
-    (hlim : ∀ β, Tendsto (fun j ↦ GKS.magnetisation (K j) (h j) β (i j)) F (𝓝 (M β)))
-    (hpos : ∃ β, 0 ≤ β ∧ 0 < M β) :
-    ∃ βc : ℝ, 0 ≤ βc ∧ (∀ β, 0 ≤ β → β < βc → M β = 0) ∧ (∀ β, βc < β → 0 < M β) := by
-  obtain ⟨hmono, hnn⟩ := monotoneOn_magnetisation_limit hK hh hlim
-  exact exists_betaC_of_monotone M hmono hnn hpos
-
-/-! ### M8b: the two-dimensional lattice -/
-
-/-- Adjacency in `ℤ^d` is decidable. -/
-instance decidableRelLatticeGraphAdj (d : ℕ) : DecidableRel (latticeGraph d).Adj :=
-  fun x y ↦ inferInstanceAs (Decidable (∑ i, (x i - y i).natAbs = 1))
-
-/-- **Griffiths' inequality for the two-dimensional Ising ferromagnet, at finite volume.**
-For every finite volume `Λ ⊆ ℤ²` and every site `i ∈ Λ`, the magnetisation
-`⟨σ_i⟩_Λ^+(β)` of the Ising ferromagnet in `Λ` with `+` boundary condition is nonnegative
-and nondecreasing in `β` on `[0, ∞)`. -/
-theorem plusMagnetisation_ising2D_nonneg (Λ : Finset Site) (i : {x // x ∈ Λ}) {β : ℝ}
-    (hβ : 0 ≤ β) : 0 ≤ GKS.plusMagnetisation (latticeGraph 2) Λ 1 0 β i :=
-  GKS.plusMagnetisation_nonneg _ _ _ _ zero_le_one le_rfl hβ i
-
-theorem monotoneOn_plusMagnetisation_ising2D (Λ : Finset Site) (i : {x // x ∈ Λ}) :
-    MonotoneOn (fun β : ℝ ↦ GKS.plusMagnetisation (latticeGraph 2) Λ 1 0 β i) (Set.Ici 0) :=
-  GKS.monotoneOn_plusMagnetisation _ _ _ _ zero_le_one le_rfl i
-
-/-- **Georgii's monotone spontaneous magnetisation for the two-dimensional Ising ferromagnet,
-and the critical inverse temperature it defines.**
-
-If the finite-volume `+`-boundary magnetisations at the origin converge, along some filter of
-volumes `Λ_j`, pointwise in `β` to `M`, and `M` is positive somewhere, then `M` is nonnegative
-and nondecreasing on `[0, ∞)` and there is a sharp `β_c ≥ 0` with `M = 0` strictly below `β_c`
-and `M > 0` strictly above `β_c` — Georgii's "there exists a critical inverse temperature
-`0 ≤ β_c ≤ ∞`". -/
-theorem exists_betaC_ising2D {J : Type*} {F : Filter J} [F.NeBot] (Λ : J → Finset Site)
-    (i : ∀ j, {x // x ∈ Λ j}) {M : ℝ → ℝ}
-    (hlim : ∀ β, Tendsto
-      (fun j ↦ GKS.plusMagnetisation (latticeGraph 2) (Λ j) 1 0 β (i j)) F (𝓝 (M β)))
-    (hpos : ∃ β, 0 ≤ β ∧ 0 < M β) :
-    ∃ βc : ℝ, 0 ≤ βc ∧ (∀ β, 0 ≤ β → β < βc → M β = 0) ∧ (∀ β, βc < β → 0 < M β) :=
-  exists_betaC_magnetisation
-    (K := fun j ↦ GKS.restrictedCoupling (latticeGraph 2) (Λ j) 1)
-    (h := fun j ↦ GKS.plusField (latticeGraph 2) (Λ j) 1 0) (i := i)
-    (fun _ ↦ GKS.restrictedCoupling_nonneg _ _ _ zero_le_one)
-    (fun _ ↦ GKS.plusField_nonneg _ _ _ _ zero_le_one le_rfl) hlim hpos
-
 /-! ### M9: Georgii's `β_c` for the two-dimensional Ising ferromagnet -/
 
 /-- The set of nonnegative inverse temperatures at which the two-dimensional Ising ferromagnet
@@ -225,6 +153,34 @@ lemma eight_log_two_mem_isingNonUniqueness : 8 * Real.log 2 ∈ isingNonUniquene
 
 lemma isingNonUniqueness_nonempty : isingNonUniqueness.Nonempty :=
   ⟨_, eight_log_two_mem_isingNonUniqueness⟩
+
+/-- **Lebowitz–Martin-Löf/Ruelle, as an identity of sets**: non-uniqueness happens exactly where
+the spontaneous magnetisation is positive. -/
+theorem isingNonUniqueness_eq_setOf_spontaneousMagnetisation_pos :
+    isingNonUniqueness = {β : ℝ | 0 ≤ β ∧ 0 < spontaneousMagnetisation β} :=
+  Set.ext fun β ↦ and_congr_right fun h0 ↦
+    nontrivial_GP_ising2D_iff_spontaneousMagnetisation_pos β h0
+
+/-- **Georgii's critical inverse temperature is the threshold of the order parameter `m*`**: the
+two constructions in this file are the same number. -/
+theorem isingBetaC_eq_betaCOf_spontaneousMagnetisation :
+    isingBetaC = betaCOf spontaneousMagnetisation := by
+  rw [isingBetaC, betaCOf, isingNonUniqueness_eq_setOf_spontaneousMagnetisation_pos]
+
+/-- **Georgii, §6.2 after (6.9)**: the spontaneous magnetisation vanishes strictly below the
+critical inverse temperature. -/
+theorem spontaneousMagnetisation_eq_zero_of_lt_isingBetaC {β : ℝ} (h0 : 0 ≤ β)
+    (h : β < isingBetaC) : spontaneousMagnetisation β = 0 :=
+  eq_zero_of_lt_betaCOf (fun β hβ ↦ spontaneousMagnetisation_nonneg β hβ) h0
+    (isingBetaC_eq_betaCOf_spontaneousMagnetisation ▸ h)
+
+/-- **Georgii, §6.2 after (6.9)**: the spontaneous magnetisation is strictly positive strictly
+above the critical inverse temperature — spontaneous magnetisation occurs. -/
+theorem spontaneousMagnetisation_pos_of_isingBetaC_lt {β : ℝ} (h : isingBetaC < β) :
+    0 < spontaneousMagnetisation β :=
+  pos_of_betaCOf_lt (fun _ ha _ _ hab ↦ spontaneousMagnetisation_mono ha hab)
+    (isingNonUniqueness_eq_setOf_spontaneousMagnetisation_pos ▸ isingNonUniqueness_nonempty)
+    (isingBetaC_eq_betaCOf_spontaneousMagnetisation ▸ h)
 
 lemma log_three_nonneg : (0 : ℝ) ≤ Real.log 3 := (Real.log_pos (by norm_num)).le
 

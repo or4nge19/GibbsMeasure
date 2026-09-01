@@ -222,16 +222,6 @@ lemma measurable_juxt_snd (Δ : Finset S) :
     exact (measurable_pi_apply i).comp measurable_snd
 
 omit [DecidableEq S] in
-lemma measurable_juxt_boundary (Δ : Finset S) (ζ : Δ → E) :
-    Measurable fun η : S → E ↦ juxt (Δ : Set S) η ζ := by
-  refine measurable_pi_lambda _ fun i ↦ ?_
-  by_cases hi : i ∈ (Δ : Set S)
-  · simp only [juxt_apply_of_mem hi]
-    exact measurable_const
-  · simp only [juxt_apply_of_not_mem hi]
-    exact measurable_pi_apply i
-
-omit [DecidableEq S] in
 lemma restrict_juxt (Δ : Finset S) (η : S → E) (ζ : Δ → E) :
     Δ.restrict (juxt (Δ : Set S) η ζ) = ζ :=
   funext fun i ↦ juxt_apply_of_mem (by simp) ζ
@@ -278,7 +268,7 @@ lemma lintegral_avgDensity_mul (hmod : (isssd ν).IsModifier ρ)
         simp only [hconst]
         rw [avgDensity, restrict_juxt Δ ω ζ]
         exact (lintegral_mul_const _
-          ((hmod.measurable Δ).comp (measurable_juxt_boundary Δ ζ))).symm
+          ((hmod.measurable Δ).comp (measurable_juxt_boundary ζ))).symm
     _ = ∫⁻ η, ∫⁻ ζ, ρ Δ (juxt (Δ : Set S) η ζ) * f (juxt (Δ : Set S) η ζ)
           ∂(Measure.pi fun _ : Δ ↦ ν) ∂μ := lintegral_lintegral_swap hFm.aemeasurable
     _ = ∫⁻ η, ∫⁻ σ, ρ Δ σ * f σ ∂(isssd ν Δ η) ∂μ :=
@@ -337,7 +327,7 @@ lemma lintegral_avgDensity_mul_bind (μ : Measure (S → E)) [SFinite μ] {Δ : 
           ∂(Measure.pi fun _ : Δ ↦ ν) := lintegral_lintegral_swap hprod.aemeasurable
     _ = ∫⁻ ζ, avgKernel ρ μ Δ ζ * ∫⁻ ω, g (juxt (Δ : Set S) ω ζ) ∂μ
           ∂(Measure.pi fun _ : Δ ↦ ν) :=
-        lintegral_congr fun ζ ↦ lintegral_const_mul _ (hg.comp (measurable_juxt_boundary Δ ζ))
+        lintegral_congr fun ζ ↦ lintegral_const_mul _ (hg.comp (measurable_juxt_boundary ζ))
 
 omit [DecidableEq S] in
 /-- Fubini form of `v(ρ_Δ g)`. -/
@@ -478,7 +468,7 @@ lemma lintegral_avgDensity_mul_indicator [Countable S] (hmod : (isssd ν).IsModi
         = ((fun ω : S → E ↦ juxt (Δ : Set S) ω ζ) ⁻¹' A).indicator 1 := by
       funext ω
       by_cases h : juxt (Δ : Set S) ω ζ ∈ A <;> simp [h, Set.mem_preimage]
-    rw [h, lintegral_indicator_one ((measurable_juxt_boundary Δ ζ) hAm)]
+    rw [h, lintegral_indicator_one ((measurable_juxt_boundary ζ) hAm)]
   have hkey : ∀ ζ : Δ → E, avgKernel ρ μ Δ ζ *
       ∫⁻ ω, A.indicator (1 : (S → E) → ℝ≥0∞) (juxt (Δ : Set S) ω ζ) ∂μ
       = ∫⁻ η, ρ Δ (juxt (Δ : Set S) η ζ) * A.indicator 1 (juxt (Δ : Set S) η ζ) ∂μ := by
@@ -487,8 +477,8 @@ lemma lintegral_avgDensity_mul_indicator [Countable S] (hmod : (isssd ν).IsModi
     rcases hfib ζ with h0 | h1
     · rw [h0, mul_zero]
       refine ((lintegral_eq_zero_iff' ?_).2 ?_).symm
-      · exact ((hmod.measurable Δ).comp (measurable_juxt_boundary Δ ζ)).aemeasurable.mul
-          (hind.comp (measurable_juxt_boundary Δ ζ)).aemeasurable
+      · exact ((hmod.measurable Δ).comp (measurable_juxt_boundary ζ)).aemeasurable.mul
+          (hind.comp (measurable_juxt_boundary ζ)).aemeasurable
       · have hnull : ∀ᵐ ω ∂μ, juxt (Δ : Set S) ω ζ ∉ A := by
           rw [ae_iff]
           simp only [not_not]
@@ -499,7 +489,7 @@ lemma lintegral_avgDensity_mul_indicator [Countable S] (hmod : (isssd ν).IsModi
     · rw [h1, mul_one, avgKernel]
       refine lintegral_congr_ae ?_
       have h2 : μ ((fun ω : S → E ↦ juxt (Δ : Set S) ω ζ) ⁻¹' A)ᶜ = 0 := by
-        rw [measure_compl ((measurable_juxt_boundary Δ ζ) hAm) (measure_ne_top _ _), h1,
+        rw [measure_compl ((measurable_juxt_boundary ζ) hAm) (measure_ne_top _ _), h1,
           measure_univ, tsub_self]
       have hfull : ∀ᵐ ω ∂μ, juxt (Δ : Set S) ω ζ ∈ A := by
         rw [ae_iff]; exact h2

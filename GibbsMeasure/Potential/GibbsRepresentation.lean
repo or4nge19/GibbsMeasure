@@ -69,7 +69,7 @@ lemma dependsOn_vacuum (a : E) (C : Finset S) :
     DependsOn (fun η : S → E ↦ vacuum a C η) (C : Set S) := by
   intro x y h
   funext i
-  show vacuum a C x i = vacuum a C y i
+  change vacuum a C x i = vacuum a C y i
   by_cases hi : i ∈ C
   · rw [vacuum_apply_of_mem hi, vacuum_apply_of_mem hi, h i (by simpa using hi)]
   · rw [vacuum_apply_of_notMem hi, vacuum_apply_of_notMem hi]
@@ -299,13 +299,14 @@ lemma vacuum_sdiff_eqOn (a : E) {Λ Δ : Finset S} (η : S → E) :
   · rw [vacuum_apply_of_notMem (by simp [Finset.mem_sdiff, hiΛ]), vacuumOn_apply_of_mem hiΛ]
   · rw [vacuum_apply_of_mem (Finset.mem_sdiff.2 ⟨hi, hiΛ⟩), vacuumOn_apply_of_notMem hiΛ]
 
-omit [MeasurableSpace E] in
+omit [DecidableEq S] [MeasurableSpace E] in
 /-- A quasilocal function is continuous along any net of configurations which eventually agree
 with the limit configuration on any prescribed finite volume. -/
 lemma tendsto_of_quasilocal {f : (S → E) → ℝ} (hf : IsQuasilocalFun f)
     (g : Finset S → (S → E)) (η : S → E)
     (hg : ∀ Δ₀ : Finset S, ∀ Δ : Finset S, Δ₀ ⊆ Δ → ∀ i ∈ Δ₀, g Δ i = η i) :
     Tendsto (fun Δ : Finset S ↦ f (g Δ)) atTop (nhds (f η)) := by
+  classical
   rw [Metric.tendsto_atTop]
   intro ε hε
   obtain ⟨Δ₀, hΔ₀⟩ := hf (ε / 2) (by positivity)
@@ -437,7 +438,7 @@ theorem gasPotential_eq_neg_mobius (hρ : Specification.IsPremodifier ρ)
     rw [← mul_sub, key C hC]
     ring
   rw [hzero, mul_zero] at hdiff
-  show -mobius a A (logDensity ρ A) η = -mobius a A (logDensity ρ Δ) η
+  change -mobius a A (logDensity ρ A) η = -mobius a A (logDensity ρ Δ) η
   linarith
 
 end Potential
@@ -757,6 +758,7 @@ lemma hamiltonian_vacuum {Θ : Potential S E} [IsPotential Θ] [IsSummable Θ] {
   filter_upwards [eventually_ge_atTop Λ] with Δ hΔ
   exact (sum_powerset_hamiltonianTerms_vacuum hΘ hΔ ω).symm
 
+omit [DecidableEq S] in
 /-- A gas potential has vanishing Hamiltonians at the constant vacuum configuration. -/
 lemma hamiltonian_const_vacuum {Θ : Potential S E} [IsSummable Θ] {a : E}
     (hΘ : IsGasPotential a Θ) (Λ : Finset S) : Θ.hamiltonian Λ (fun _ ↦ a) = 0 := by
@@ -770,12 +772,14 @@ lemma hamiltonian_const_vacuum {Θ : Potential S E} [IsSummable Θ] {a : E}
   rw [hamiltonian, hterm]
   exact tsum_zero
 
+omit [DecidableEq S] in
 /-- **Georgii (2.35)(a), for `α = δ_a`.** A gas potential with vacuum state `a` all of whose
 Hamiltonians are `𝓣_Λ`-measurable vanishes on every nonempty support. -/
 theorem eq_zero_of_isGasPotential {Θ : Potential S E} [IsPotential Θ] [IsSummable Θ] {a : E}
     (hΘ : IsGasPotential a Θ)
     (hdep : ∀ Λ : Finset S, DependsOn (Θ.hamiltonian Λ) ((Λ : Set S)ᶜ))
     {A : Finset S} (hA : A.Nonempty) (ω : S → E) : Θ A ω = 0 := by
+  classical
   have main : ∀ B : Finset S, ∑ C ∈ B.powerset.erase ∅, Θ C ω = 0 := by
     intro B
     rw [← hamiltonian_vacuum hΘ B ω]
@@ -877,6 +881,7 @@ theorem hamiltonian_sub_eq_log_sigmaFiniteLambdaZ [IsPotential Φ] [IsSummable �
     Real.log_exp, Real.log_exp] at hlog
   linarith
 
+omit [DecidableEq S] in
 /-- **Georgii (2.34), (ii) ⇒ (i).** If two `λ`-admissible potentials define the same
 `λ`-modification then they are equivalent in the sense of Georgii (2.33): the Hamiltonians of
 `Φ - Ψ` are `𝓣_Λ`-measurable. -/
@@ -910,6 +915,7 @@ variable {S E : Type*} [Countable S] [DecidableEq S] [MeasurableSpace E]
 
 variable (ν : Measure E) [SigmaFinite ν]
 
+omit [DecidableEq S] in
 /-- **Georgii (2.30), step 5.**  Two `λ`-admissible gas potentials with the same vacuum state `a`
 which define the same `λ`-modification coincide on every nonempty interaction support.
 
@@ -935,6 +941,7 @@ theorem eq_of_isGasPotential_of_sigmaFinitePremodifierNorm_eq
 
 /-! ### Georgii, Theorem (2.30) -/
 
+omit [DecidableEq S] in
 /-- **Georgii, Theorem (2.30): the Gibbs representation theorem.**
 
 Let `λ = ν` be an a priori measure on the single-spin space `(E, 𝓔)` and let `ρ = (ρ_Λ)` be a
@@ -962,6 +969,7 @@ theorem exists_unique_isGasPotential_sigmaFinitePremodifierNorm_eq
         Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν (Ψ.boltzmannFactor 1) →
         Specification.sigmaFinitePremodifierNorm (S := S) (E := E) ν (Ψ.boltzmannFactor 1) = ρ →
         ∀ A : Finset S, A.Nonempty → Ψ A = Φ A := by
+  classical
   have hΦP : IsPotential (gasPotential ρ a) := isPotential_gasPotential hρ.measurable a
   have hΦS : IsSummable (gasPotential ρ a) := isSummable_gasPotential hρ hpos hfin hql a
   have hΦadm : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν

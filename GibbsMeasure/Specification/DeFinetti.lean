@@ -370,7 +370,7 @@ variable {μ : Measure (ℕ → E)} [IsProbabilityMeasure μ]
 private def rowOf (A : ℕ → Set E) (ω : ℕ → E) : ℕ → ℕ → ℝ≥0∞ := fun i j ↦
   (A i).indicator 1 (ω j)
 
-omit [IsProbabilityMeasure μ] in
+omit [MeasurableSpace E] [IsProbabilityMeasure μ] in
 private lemma rowOf_le_one (A : ℕ → Set E) (ω : ℕ → E) (i j : ℕ) : rowOf A ω i j ≤ 1 := by
   unfold rowOf
   by_cases h : ω j ∈ A i <;> simp [h]
@@ -640,6 +640,7 @@ private lemma measurableSet_probSet :
   rw [h]
   exact (measurableSet_singleton 1).preimage (Measure.measurable_coe .univ)
 
+omit [Nonempty E] in
 /-- **Georgii, Example (7.31): de Finetti's theorem in the version of Dynkin.** Over a standard
 Borel state space, every exchangeable probability measure on `E^ℕ` is the mixture `∫ λ^ℕ m(dλ)`
 of i.i.d. product measures under a unique probability measure `m` on `𝒫(E, ℰ)`. -/

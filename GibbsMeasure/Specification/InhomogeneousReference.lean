@@ -10,7 +10,7 @@ public import GibbsMeasure.Specification.Rescaling
 /-!
 # Inhomogeneous independent specifications
 
-Georgii's independent specification `Specification.isssd ν` (Example (1.28)(1)) resamples every
+Georgii's independent specification `Specification.isssd ν` (Remark (1.25)) resamples every
 site of a finite volume from one and the same a priori measure `ν`. In the second half of the
 proof of Georgii Theorem (8.39) one needs the version in which each site `i` carries its own a
 priori measure `ν i`:

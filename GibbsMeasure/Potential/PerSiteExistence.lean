@@ -232,11 +232,13 @@ noncomputable def selfEnergyMeasure (lam : Measure E) (i : S) : Measure E :=
 
 variable {lam : Measure E} [SigmaFinite lam] [NeZero lam]
 
+omit [IsPotential Φ] [SigmaFinite lam] [NeZero lam] in
 lemma withDensity_selfEnergyWeight_univ (i : S) :
     lam.withDensity (selfEnergyWeight Φ β η₀ i) Set.univ
       = ∫⁻ x, selfEnergyWeight Φ β η₀ i x ∂lam := by
   rw [withDensity_apply _ MeasurableSet.univ, setLIntegral_univ]
 
+omit [SigmaFinite lam] in
 lemma withDensity_selfEnergyWeight_univ_ne_zero (i : S) :
     lam.withDensity (selfEnergyWeight Φ β η₀ i) Set.univ ≠ 0 := by
   rw [withDensity_selfEnergyWeight_univ]
@@ -246,6 +248,7 @@ lemma withDensity_selfEnergyWeight_univ_ne_zero (i : S) :
     measure_mono_null (fun x _ ↦ selfEnergyWeight_ne_zero (Φ := Φ) (β := β) (η₀ := η₀) i x) hae
   exact (NeZero.ne lam) (Measure.measure_univ_eq_zero.1 hz)
 
+omit [SigmaFinite lam] [NeZero lam] in
 /-- The per-site measures are the densities `c_i⁻¹ e^{-β Φ_{i}}` against `λ`. -/
 lemma selfEnergyMeasure_eq_withDensity (i : S) :
     selfEnergyMeasure Φ β η₀ lam i
@@ -255,6 +258,7 @@ lemma selfEnergyMeasure_eq_withDensity (i : S) :
     ← withDensity_smul _ (measurable_selfEnergyWeight (Φ := Φ) i)]
   rfl
 
+omit [SigmaFinite lam] in
 lemma isProbabilityMeasure_selfEnergyMeasure
     (hfin : ∀ i, ∫⁻ x, selfEnergyWeight Φ β η₀ i x ∂lam ≠ ⊤) (i : S) :
     IsProbabilityMeasure (selfEnergyMeasure Φ β η₀ lam i) := by
@@ -349,7 +353,7 @@ theorem GP_lambdaSpecification_nonempty_of_lintegral_selfEnergyWeight_ne_top
       (Φ.boltzmannFactor β)} :
     (GP (S := S) (E := E)
       (Specification.lambdaSpecification lam (Φ.boltzmannFactor β) hρ hZ)).Nonempty := by
-  haveI : ∀ i, IsProbabilityMeasure (selfEnergyMeasure Φ β η₀ lam i) :=
+  have : ∀ i, IsProbabilityMeasure (selfEnergyMeasure Φ β η₀ lam i) :=
     isProbabilityMeasure_selfEnergyMeasure hfin
   rw [← lambdaSpecification_eq_gibbsSpecificationFamily (Φ := Φ) (β := β) (η₀ := η₀)
     (selfEnergyMeasure Φ β η₀ lam)
@@ -362,12 +366,13 @@ theorem GP_lambdaSpecification_nonempty_of_lintegral_selfEnergyWeight_ne_top
 
 /-! ### λ-admissibility bounds the self-energies -/
 
+omit [DecidableEq S] [NeZero lam] in
 lemma lintegral_sigmaFiniteLambdaFun_coord {i : S} (η : S → E) {f : E → ℝ≥0∞}
     (hf : Measurable f) :
     ∫⁻ σ, f (σ i)
         ∂(Specification.sigmaFiniteLambdaFun (S := S) (E := E) lam ({i} : Finset S) η)
       = ∫⁻ x, f x ∂lam := by
-  haveI : Unique (({i} : Finset S) : Type _) :=
+  have : Unique (({i} : Finset S) : Type _) :=
     ⟨⟨⟨i, Finset.mem_singleton_self i⟩⟩, fun x ↦ Subtype.ext (Finset.mem_singleton.1 x.2)⟩
   rw [Specification.sigmaFiniteLambdaFun_apply_eq_map,
     lintegral_map (f := fun σ : S → E ↦ f (σ i)) (hf.comp (measurable_pi_apply i))
@@ -385,6 +390,7 @@ lemma lintegral_sigmaFiniteLambdaFun_coord {i : S} (η : S → E) {f : E → ℝ
   congr 1
   exact Subsingleton.elim _ _
 
+omit [NeZero lam] in
 /-- **Georgii's finiteness input.** `λ`-admissibility at the single-site volumes bounds the
 self-energy weights: once the recentred many-body part is absolutely summable, the many-body
 contribution to `H_{i}` is bounded, so `λ(e^{-β Φ_{i}}) ≤ C · Z_{i} < ∞`. -/
@@ -420,6 +426,7 @@ theorem lintegral_selfEnergyWeight_ne_top [Countable S] [IsSummable Φ]
   rw [htop, ENNReal.mul_top hKm] at hint
   exact (hZ ({i} : Finset S) η₀).2 (top_le_iff.1 hint)
 
+omit [DecidableEq S] in
 /-- **The existence half of Georgii Theorem (8.39), in the form his proof establishes it.** A
 `λ`-admissible potential whose recentred many-body part is absolutely summable has a Gibbs
 measure. Only `Potential.IsAbsolutelySummable ((manyBody Φ).centre η₀)` remains to be supplied,
@@ -430,8 +437,9 @@ theorem GP_lambdaSpecification_nonempty [Countable S] [StandardBorelSpace E] [Is
     {hZ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) lam
       (Φ.boltzmannFactor β)} :
     (GP (S := S) (E := E)
-      (Specification.lambdaSpecification lam (Φ.boltzmannFactor β) hρ hZ)).Nonempty :=
-  GP_lambdaSpecification_nonempty_of_lintegral_selfEnergyWeight_ne_top (η₀ := η₀)
+      (Specification.lambdaSpecification lam (Φ.boltzmannFactor β) hρ hZ)).Nonempty := by
+  classical
+  exact GP_lambdaSpecification_nonempty_of_lintegral_selfEnergyWeight_ne_top (η₀ := η₀)
     (lintegral_selfEnergyWeight_ne_top (Φ := Φ) (β := β) (η₀ := η₀) hZ)
 
 end SelfEnergy

@@ -45,17 +45,13 @@ lemma setIntegral_indicator_one (μ : Measure[m0] α) (hs : MeasurableSet[m0] s)
     ∫ x in t, s.indicator (fun _ : α => (1 : ℝ)) x ∂μ = μ.real (s ∩ t) := by
   simpa [smul_eq_mul, mul_one] using setIntegral_indicator_const μ hs t (1 : ℝ)
 
+omit [IsFiniteMeasure μ] in
 /-- For `f : α → ℝ≥0∞`, if the Lebesgue integral is finite then the Bochner integral of `toReal`
 agrees with `toReal` of the Lebesgue integral. -/
 lemma integral_toReal_of_lintegral_ne_top {f : α → ℝ≥0∞} (hf_meas : AEMeasurable f μ)
     (h_fin : (∫⁻ a, f a ∂μ) ≠ ∞) :
     ∫ a, (f a).toReal ∂μ = (∫⁻ a, f a ∂μ).toReal := by
-  have h_ae_fin : (∀ᵐ a ∂μ, f a < ∞) := by
-    have h_lt : (∫⁻ a, f a ∂μ) < ∞ := by
-      have : (∫⁻ a, f a ∂μ) ≤ (∞ : ℝ≥0∞) := le_top
-      exact lt_of_le_of_ne this h_fin
-    exact ae_lt_top' hf_meas h_fin
-  simpa using integral_toReal hf_meas h_ae_fin
+  simpa using integral_toReal hf_meas (ae_lt_top' hf_meas h_fin)
 
 end AuxReal
 

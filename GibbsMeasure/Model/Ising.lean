@@ -22,7 +22,7 @@ particular on the lattice `ℤ^d`.
 
 Non-uniqueness at low temperature on `ℤ²` (Georgii Theorem (6.9)) is proved in
 `GibbsMeasure/Model/PhaseTransition.lean`, uniqueness at high temperature (Dobrushin's condition,
-Georgii (8.7)/(8.8)) in `GibbsMeasure/Specification/Dobrushin.lean`, and the simplex structure
+Georgii (8.7)/(8.8)) in `GibbsMeasure/Model/IsingDobrushin.lean`, and the simplex structure
 (Georgii (7.26)) in `GibbsMeasure/Specification/ExtremeDecomposition.lean`.
 
 What is *not* proved here: uniqueness on `ℤ` (Georgii (3.15), from Theorem (3.5)).

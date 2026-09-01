@@ -418,6 +418,12 @@ noncomputable def probNormalize (ν : Measure E) : Measure E := (ν Set.univ)⁻
 
 lemma probNormalize_def (ν : Measure E) : ν.probNormalize = (ν Set.univ)⁻¹ • ν := rfl
 
+/-- `probNormalize` is Mathlib's conditional probability `ν[|Set.univ]`, so the
+`ProbabilityTheory.cond` API applies to it. -/
+lemma probNormalize_eq_cond_univ (ν : Measure E) :
+    ν.probNormalize = ProbabilityTheory.cond ν Set.univ := by
+  rw [probNormalize_def, ProbabilityTheory.cond, Measure.restrict_univ]
+
 instance isProbabilityMeasure_probNormalize (ν : Measure E) [IsFiniteMeasure ν] [NeZero ν] :
     IsProbabilityMeasure ν.probNormalize := by
   constructor

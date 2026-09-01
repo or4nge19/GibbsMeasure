@@ -121,9 +121,13 @@ lemma oscOutside_le {Λ : Finset S} {f : (S → E) → ℝ} {c : ℝ≥0∞}
 lemma oscOutside_antitone {f : (S → E) → ℝ} : Antitone fun Λ : Finset S ↦ oscOutside Λ f :=
   fun _ _ h ↦ _root_.oscOutside_antitone (by exact_mod_cast h)
 
-/-- **Georgii (2.22).** A real function on configuration space is *quasilocal* if configurations
-agreeing on a large enough finite volume have arbitrarily close values. This is the unbundled
-form of vanishing oscillation (`isQuasilocalFun_iff_tendsto_oscOutside`). -/
+/-- **Georgii's condition (2.22)** (vanishing oscillation, in ε-Δ form): configurations agreeing
+on a large enough finite volume have arbitrarily close values. This is the unbundled form of
+vanishing oscillation (`isQuasilocalFun_iff_tendsto_oscOutside`). For *measurable* `f` this is
+Georgii's quasilocality (2.20)(b) by Remark (2.21)(1) — see
+`mem_quasilocalFunctions_iff_isQuasilocalFun` for the bounded case; without measurability it is
+strictly weaker (e.g. `f ω = (V.indicator 1) (ω 0)` for a non-measurable `V ⊆ ℝ` satisfies it
+with `Δ = {0}` but is no limit of local functions). -/
 def IsQuasilocalFun (f : (S → E) → ℝ) : Prop :=
   ∀ ε : ℝ, 0 < ε → ∃ Δ : Finset S, ∀ ζ η : S → E, (∀ i ∈ Δ, ζ i = η i) → |f ζ - f η| ≤ ε
 

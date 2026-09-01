@@ -6,6 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import Mathlib.MeasureTheory.Measure.SeparableMeasure
+public import Mathlib.MeasureTheory.Measure.WithDensityFinite
 public import Mathlib.MeasureTheory.OuterMeasure.BorelCantelli
 
 /-!
@@ -135,11 +136,17 @@ theorem exists_countablyGenerated_le_ae_of_isSeparable [IsFiniteMeasure μ] [IsS
   exact ⟨generateFrom D, hDle, @CountablyGenerated.mk X (generateFrom D) ⟨D, hDc, rfl⟩, hD⟩
 
 /-- Specialisation to a countably generated ambient σ-algebra — in particular to any standard Borel
-space — where separability of a finite measure is automatic. -/
-theorem exists_countablyGenerated_le_ae [CountablyGenerated X] [IsFiniteMeasure μ]
+space — where separability is automatic. Any s-finite measure is allowed (so in particular Lebesgue
+measure on `ℝ`): the conclusion only mentions the null sets of `μ`, and `μ.toFinite` is a finite
+measure with exactly the same null sets. -/
+theorem exists_countablyGenerated_le_ae [CountablyGenerated X] [SFinite μ]
     {m₀ : MeasurableSpace X} (hm₀ : m₀ ≤ m) :
     ∃ m' : MeasurableSpace X, m' ≤ m₀ ∧ @CountablyGenerated X m' ∧
-      ∀ s, MeasurableSet[m₀] s → ∃ t, MeasurableSet[m'] t ∧ μ (s ∆ t) = 0 :=
-  exists_countablyGenerated_le_ae_of_isSeparable hm₀
+      ∀ s, MeasurableSet[m₀] s → ∃ t, MeasurableSet[m'] t ∧ μ (s ∆ t) = 0 := by
+  obtain ⟨m', hle, hcg, h⟩ :=
+    exists_countablyGenerated_le_ae_of_isSeparable (μ := μ.toFinite) hm₀
+  refine ⟨m', hle, hcg, fun s hs ↦ ?_⟩
+  obtain ⟨t, htm, ht⟩ := h s hs
+  exact ⟨t, htm, absolutelyContinuous_toFinite μ ht⟩
 
 end MeasureTheory

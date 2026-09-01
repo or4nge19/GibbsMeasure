@@ -94,8 +94,7 @@ theorem mutuallySingular_of_isExtremeIn [Countable S]
 /-- **Georgii (7.29)**: `𝓖(γ)` has at least `N` extreme points iff it contains `N` measures that
 are linearly independent over `ℝ≥0∞`. -/
 theorem le_encard_setOf_isExtremeIn_iff [Countable S] [StandardBorelSpace E]
-    {γ : Finset S → Config S E → Measure (Config S E)} (hγ : IsSpecification γ)
-    (hne : (GibbsSet γ).Nonempty) (N : ℕ) :
+    {γ : Finset S → Config S E → Measure (Config S E)} (hγ : IsSpecification γ) (N : ℕ) :
     (N : ℕ∞) ≤ {ν : Measure (Config S E) | IsExtremeIn (GibbsSet γ) ν}.encard ↔
       ∃ μ : Fin N → Measure (Config S E), (∀ i, IsGibbs γ (μ i)) ∧ LinearIndependent ℝ≥0∞ μ :=
   sorry

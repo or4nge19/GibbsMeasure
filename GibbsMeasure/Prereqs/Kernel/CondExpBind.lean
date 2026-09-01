@@ -428,13 +428,11 @@ private lemma integral_bind_kernel_restrict
 /-- General version with explicit integrability and measurability hypotheses for the kernel
 integral. -/
 lemma condExp_ae_eq_integral_kernel
-    [π.IsCondExp μ] [IsFiniteMeasure μ] [IsFiniteKernel π]
+    [π.IsCondExp μ] [IsFiniteMeasure μ] [IsMarkovKernel π]
     (h𝓑𝓧 : 𝓑 ≤ 𝓧) (f : X → ℝ) -- (hf_meas : Measurable[𝓧] f)
     (hf_int : Integrable f μ)
     (hg_int : Integrable (fun x₀ ↦ ∫ x, f x ∂(π x₀)) μ)
-    (hg_aesm : AEStronglyMeasurable[𝓑] (fun x₀ ↦ ∫ x, f x ∂(π x₀)) μ)
-    [IsMarkovKernel π]
-    [SigmaFinite (μ.trim h𝓑𝓧)] :
+    (hg_aesm : AEStronglyMeasurable[𝓑] (fun x₀ ↦ ∫ x, f x ∂(π x₀)) μ) :
     condExp 𝓑 μ f =ᵐ[μ] (fun x₀ ↦ ∫ x, f x ∂(π x₀)) := by
   let g := fun x₀ ↦ ∫ x, f x ∂(π x₀)
   refine (ae_eq_condExp_of_forall_setIntegral_eq h𝓑𝓧 hf_int ?_ ?_ hg_aesm).symm

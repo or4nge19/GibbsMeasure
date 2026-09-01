@@ -15,7 +15,7 @@ variable {X : Type*} {𝓑 𝓧 : MeasurableSpace X} {π : Kernel[𝓑, 𝓧] X 
   {A B : Set X} {f g : X → ℝ≥0∞} {x₀ : X}
 
 lemma isCondExp_iff_bind_eq_left [IsFiniteMeasure μ] [IsMarkovKernel π]
-    (hπ : π.IsProper) (h𝓑𝓧 : 𝓑 ≤ 𝓧) [SigmaFinite (μ.trim h𝓑𝓧)] :
+    (hπ : π.IsProper) (h𝓑𝓧 : 𝓑 ≤ 𝓧) :
     IsCondExp π μ ↔ μ.bind π = μ := by
   have h_iff_A (A : Set X) (hA : MeasurableSet[𝓧] A) :
       (μ[A.indicator 1|𝓑] =ᵐ[μ] fun a ↦ (π a A).toReal) ↔
@@ -92,6 +92,7 @@ private lemma condExp_indicator_ae_eq_integral_kernel (A_mble : MeasurableSet[�
 
 variable [IsFiniteMeasure μ] [IsFiniteKernel π]
 
+omit [IsFiniteMeasure μ] [IsFiniteKernel π] in
 private lemma condExp_const_indicator_ae_eq_integral_kernel (c : ℝ) (A_mble : MeasurableSet[𝓧] A) :
     condExp 𝓑 μ (A.indicator (fun _ ↦ (c : ℝ)))
       =ᵐ[μ] (fun x₀ ↦ ∫ x, A.indicator (fun _ ↦ (c : ℝ)) x ∂(π x₀)) := by
@@ -143,9 +144,9 @@ private lemma condExp_simpleFunc_ae_eq_integral_kernel (f : @SimpleFunc X 𝓧 �
     · exact SimpleFunc.integrable_of_isFiniteMeasure f
     exact SimpleFunc.integrable_of_isFiniteMeasure g
 
+omit [IsFiniteKernel π] in
 lemma condExp_ae_eq_integral (hπ : π.IsProper) (h𝓑𝓧 : 𝓑 ≤ 𝓧) (f : X → ℝ)
-    [IsMarkovKernel π] [SigmaFinite (μ.trim h𝓑𝓧)]
-    (hf : Integrable f μ) : condExp 𝓑 μ f =ᵐ[μ] (fun x₀ ↦ ∫ x, f x ∂(π x₀)) := by
+    [IsMarkovKernel π] (hf : Integrable f μ) : condExp 𝓑 μ f =ᵐ[μ] (fun x₀ ↦ ∫ x, f x ∂(π x₀)) := by
   -- Sketch: write `T h x₀ = ∫ h d(π x₀)`. Being a conditional expectation kernel plus properness
   -- give `μ.bind π = μ` (`isCondExp_iff_bind_eq_left`), whence `T` contracts the `L¹` norm and
   -- preserves integrability and a.e. equality. `Integrable.induction` then reduces the claim to

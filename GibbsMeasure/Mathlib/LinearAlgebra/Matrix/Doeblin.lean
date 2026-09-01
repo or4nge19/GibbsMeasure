@@ -85,10 +85,11 @@ lemma sum_abs_sub_le_two_of_mem_stdSimplex {μ ν : n → ℝ} (hμ : μ ∈ std
 
 variable [Nonempty n]
 
-omit [DecidableEq n] in
+omit [Fintype n] [DecidableEq n] in
 /-- A matrix with positive entries has a positive lower bound on its entries. -/
-lemma exists_pos_le_of_pos (hpos : ∀ i j, 0 < P i j) :
+lemma exists_pos_le_of_pos [Finite n] (hpos : ∀ i j, 0 < P i j) :
     ∃ ε : ℝ, 0 < ε ∧ ∀ i j, ε ≤ P i j := by
+  have := Fintype.ofFinite n
   obtain ⟨⟨i₀, j₀⟩, -, hmin⟩ :=
     Finset.exists_min_image (univ : Finset (n × n)) (fun p => P p.1 p.2) univ_nonempty
   exact ⟨P i₀ j₀, hpos i₀ j₀, fun i j => hmin (i, j) (mem_univ _)⟩
@@ -241,6 +242,7 @@ theorem tendsto_pow_apply (hP : P ∈ rowStochastic ℝ n) (hpos : ∀ i j, 0 < 
     (tendsto_vecMul_pow P hP hpos hα hαP (single_mem_stdSimplex (𝕜 := ℝ) (ι := n) x)) y
   simpa [single_vecMul, row_apply] using h
 
+omit [DecidableEq n] [Nonempty n] in
 /-- The stationary distribution of a positive stochastic matrix is strictly positive
 (Georgii, Remark (3.A2)(b)). -/
 lemma pos_of_vecMul_eq_self (hpos : ∀ i j, 0 < P i j) {α : n → ℝ} (hα : α ∈ stdSimplex ℝ n)

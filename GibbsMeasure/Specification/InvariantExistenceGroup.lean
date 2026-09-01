@@ -379,7 +379,7 @@ section Compact
 
 variable {S E : Type*} [MeasurableSpace E] {γ : Specification S E}
   {H : Type*} [Group H] [TopologicalSpace H] [IsTopologicalGroup H] [CompactSpace H] [Nonempty H]
-  [MeasurableSpace H] [BorelSpace H] [SecondCountableTopology H] {Φ : H → Transformation S E}
+  [MeasurableSpace H] [BorelSpace H] {Φ : H → Transformation S E}
 
 /-- The Haar measure of a compact group, normalized to a probability measure. -/
 noncomputable def haarProb (H : Type*) [Group H] [TopologicalSpace H] [IsTopologicalGroup H]
@@ -392,11 +392,9 @@ instance isProbabilityMeasure_haarProb : IsProbabilityMeasure (haarProb H) := by
   rw [haarProb, ← htop]
   exact Measure.haarMeasure_self
 
-omit [SecondCountableTopology H] in
 lemma map_mul_haarProb (g : H) : (haarProb H).map (g * ·) = haarProb H :=
   (Measure.isMulLeftInvariant_haarMeasure ⊤).map_mul_left_eq_self g
 
-omit [SecondCountableTopology H] in
 /-- **Georgii, Theorem (5.15)(i).** If a compact group `H` acts on configuration space by
 symmetries of `γ` with measurable evaluation map `(g, ω) ↦ τ_g ω`, then a non-empty `𝒢(γ)`
 contains an `H`-invariant Gibbs measure. This is the `w = ` Haar case of

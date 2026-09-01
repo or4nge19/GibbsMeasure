@@ -303,6 +303,7 @@ theorem isGibbsMeasure_iff_forall_eq_withDensity (hlam : IsDisjointlyConsistent 
 section ISSSD
 variable (ν : Measure E) [IsProbabilityMeasure ν]
 
+omit [DecidableEq S] in
 /-- **Georgii, Theorem (1.33)** for the independent specification `λ_· = isssd ν` of a probability
 measure `ν` (Georgii's σ-finite `λ` reduces to this case by Remark (1.28)(3)). Suppose that for
 each site `i` the singleton kernel `γ_{i}` is `ρ_i λ_{i}` with `ρ_i` measurable and `0 < ρ_i < ∞`.
@@ -318,6 +319,7 @@ theorem georgii_1_33 {ρ : S → (S → E) → ℝ≥0∞} (hρ : ∀ i, Measura
       (γ.IsGibbsMeasure μ ↔ ∀ i, μ.bind (γ {i}) = μ)) ∧
     (∀ μ : Measure (S → E), IsProbabilityMeasure μ →
       (γ.IsGibbsMeasure μ ↔ ∀ i, μ = (μ.bind (isssd (S := S) ν {i})).withDensity (ρ i))) := by
+  classical
   have hlam : IsDisjointlyConsistent ⇑(isssd (S := S) ν) :=
     (isStronglyConsistent_isssd ν).isDisjointlyConsistent
   exact ⟨exists_isModifier_of_singleton hlam hρ h0 htop hγ,
