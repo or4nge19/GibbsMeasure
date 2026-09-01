@@ -147,20 +147,48 @@ lemma isProbabilityMeasure_transAverage (Φ : A → Transformation S E) (ν : Me
     (fun a ↦ Measure.isProbabilityMeasure_map (Φ a).measurable_toFun.aemeasurable) hF
 
 /-- In Georgii's proof of Theorem (5.15)(ii), translating the index set by `b` is the same as
-pushing the average forward by `Φ b`, when `Φ` turns addition into composition. -/
-lemma map_transAverage [AddCommGroup A] [DecidableEq A] {Φ : A → Transformation S E}
-    (hΦ : ∀ x y, Φ (x + y) = Φ x * Φ y) (ν : Measure (S → E)) (F : Finset A) (b : A) :
+pushing the average forward by `Φ b`.
+
+The hypothesis is the weakest one the computation uses: the composition law is needed only after
+transporting `ν`, not as an identity of transformations.  That is what makes Georgii's case (ii)
+available, where `Φ` is a homomorphism only *modulo* the subgroup `I₀` and the law is recovered
+because `ν` is `I₀`-invariant (`transportLaw_of_measurePreserving`). -/
+lemma map_transAverage_of_transportLaw [AddCommGroup A] [DecidableEq A]
+    {Φ : A → Transformation S E} {ν : Measure (S → E)}
+    (hΦν : ∀ x y, (ν.map (Φ y).toFun).map (Φ x).toFun = ν.map (Φ (x + y)).toFun)
+    (F : Finset A) (b : A) :
     (transAverage Φ ν F).map (Φ b).toFun = transAverage Φ ν (b +ᵥ F) := by
-  have hterm : ∀ a : A, (ν.map (Φ a).toFun).map (Φ b).toFun = ν.map (Φ (b + a)).toFun := by
-    intro a
-    rw [Measure.map_map (Φ b).measurable_toFun (Φ a).measurable_toFun, hΦ]
-    congr 1
+  have hterm : ∀ a : A, (ν.map (Φ a).toFun).map (Φ b).toFun = ν.map (Φ (b + a)).toFun :=
+    fun a ↦ hΦν b a
   rw [transAverage, transAverage, uniformAverage, uniformAverage, Measure.map_smul,
     Measure.map_finset_sum (Φ b).measurable_toFun.aemeasurable, Finset.card_vadd_finset]
   congr 1
   rw [show b +ᵥ F = F.image (b + ·) from rfl,
     Finset.sum_image fun x _ y _ h ↦ add_left_cancel h]
   exact Finset.sum_congr rfl fun a _ ↦ hterm a
+
+/-- **Georgii's transport law from a homomorphism modulo `I₀`.**  If `Φ x ∘ Φ y` differs from
+`Φ (x + y)` by a transformation `T₀ i` preserving `ν` — Georgii's `τ₁ ∘ τ₂ = τ₂ ∘ τ₁ ∘ τ₀` with
+`τ₀ ∈ I₀` and `ν` an `I₀`-invariant Gibbs measure — then the composition law holds after
+transporting `ν`, which is all the averaging argument uses. -/
+lemma transportLaw_of_measurePreserving [AddCommGroup A] {Φ : A → Transformation S E}
+    {ι₀ : Type*} {T₀ : ι₀ → Transformation S E} {ν : Measure (S → E)}
+    (hΦ : ∀ x y, ∃ i : ι₀,
+      (Φ x).toFun ∘ (Φ y).toFun = (Φ (x + y)).toFun ∘ (T₀ i).toFun)
+    (hν₀ : ∀ i, MeasurePreserving (T₀ i).toFun ν ν) (x y : A) :
+    (ν.map (Φ y).toFun).map (Φ x).toFun = ν.map (Φ (x + y)).toFun := by
+  obtain ⟨i, hi⟩ := hΦ x y
+  rw [Measure.map_map (Φ x).measurable_toFun (Φ y).measurable_toFun, hi,
+    ← Measure.map_map (Φ (x + y)).measurable_toFun (T₀ i).measurable_toFun, (hν₀ i).map_eq]
+
+/-- `map_transAverage_of_transportLaw` for a genuine homomorphism `Φ (x + y) = Φ x ∘ Φ y`. -/
+lemma map_transAverage [AddCommGroup A] [DecidableEq A] {Φ : A → Transformation S E}
+    (hΦ : ∀ x y, Φ (x + y) = Φ x * Φ y) (ν : Measure (S → E)) (F : Finset A) (b : A) :
+    (transAverage Φ ν F).map (Φ b).toFun = transAverage Φ ν (b +ᵥ F) :=
+  map_transAverage_of_transportLaw
+    (fun x y ↦ by
+      rw [Measure.map_map (Φ x).measurable_toFun (Φ y).measurable_toFun, hΦ]
+      congr 1) F b
 
 /-! ### Invariance under a group of transformations, and compactness of `𝒢_I(γ)`
 
@@ -251,14 +279,17 @@ by `AddCommGroup.exists_finset_transDist_le` and take a cluster point. The avera
 `T₀`-invariant because `ν` is and the two families commute, so the cluster point inherits this
 invariance exactly, while the `Φ`-invariance comes from the Følner symmetric-difference estimate.
 Invariance of `γ` under `T₀` is not needed. -/
-theorem exists_mem_GP_and_forall_measurePreserving_of_isCompact_of_measurePreserving
+theorem exists_mem_GP_and_forall_measurePreserving_of_isCompact_of_transportLaw
     [AddCommGroup A] {ι₀ : Type*} {γ : Specification S E} {Φ : A → Transformation S E}
-    {T₀ : ι₀ → Transformation S E} (hΦ : ∀ x y, Φ (x + y) = Φ x * Φ y)
+    {T₀ : ι₀ → Transformation S E} {ν : ProbabilityMeasure (S → E)}
+    (hΦ : ∀ x y, ((ν : Measure (S → E)).map (Φ y).toFun).map (Φ x).toFun
+      = (ν : Measure (S → E)).map (Φ (x + y)).toFun)
     (hcomm : ∀ (i : ι₀) (x : A), ∃ i',
       (T₀ i).toFun ∘ (Φ x).toFun = (Φ x).toFun ∘ (T₀ i').toFun)
     (hγ : ∀ x, Specification.IsInvariant (Φ x) γ)
-    (hcpt : IsCompact {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP (S := S) (E := E) γ})
-    {ν : ProbabilityMeasure (S → E)} (hν : ν ∈ GP (S := S) (E := E) γ)
+    (hcpt : IsCompact {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP (S := S) (E := E) γ ∧
+      ∀ i : ι₀, MeasurePreserving (T₀ i).toFun (μ.toMeasure : Measure (S → E)) μ.toMeasure})
+    (hν : ν ∈ GP (S := S) (E := E) γ)
     (hν₀ : ∀ i, MeasurePreserving (T₀ i).toFun (ν : Measure (S → E)) ν) :
     ∃ μ ∈ GP (S := S) (E := E) γ,
       (∀ i, MeasurePreserving (T₀ i).toFun (μ : Measure (S → E)) μ) ∧
@@ -301,33 +332,18 @@ theorem exists_mem_GP_and_forall_measurePreserving_of_isCompact_of_measurePreser
     intro p i
     rw [hμsc p, transAverage, map_uniformAverage _ _ (T₀ i).measurable_toFun]
     exact congrArg (fun m ↦ uniformAverage m (Fs p)) (funext fun a ↦ hterm₀ a i)
-  -- 𝒢(γ) is compact, so the net of averages has a cluster point in it
+  -- `𝒢_{T₀}(γ)` is compact, so the net of averages — all of them `T₀`-invariant — has a cluster
+  -- point in it, and that cluster point is `T₀`-invariant for free
   have hle : map (fun p ↦ (WithSetwiseTopology.ofMeasure (μs p) : WithLocalConvergence S E))
-      atTop ≤ 𝓟 {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP (S := S) (E := E) γ} :=
-    le_principal_iff.2 (mem_map.2 (Eventually.of_forall fun p ↦ hμsGP p))
+      atTop ≤ 𝓟 {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP (S := S) (E := E) γ ∧
+        ∀ i : ι₀, MeasurePreserving (T₀ i).toFun (μ.toMeasure : Measure (S → E)) μ.toMeasure} :=
+    le_principal_iff.2 (mem_map.2 (Eventually.of_forall fun p ↦
+      ⟨hμsGP p, fun i ↦ ⟨(T₀ i).measurable_toFun, hμs₀ p i⟩⟩))
   obtain ⟨μ, hμmem, hμcl⟩ := hcpt.exists_clusterPt hle
   have hMCP : MapClusterPt μ (atTop : Filter (Finset A × ℕ))
       fun p ↦ (WithSetwiseTopology.ofMeasure (μs p) : WithLocalConvergence S E) := hμcl
   obtain ⟨U, hUle, hU⟩ := mapClusterPt_iff_ultrafilter.1 hMCP
-  refine ⟨μ.toMeasure, hμmem, fun i ↦ ⟨(T₀ i).measurable_toFun, ?_⟩,
-    fun x ↦ ⟨(Φ x).measurable_toFun, ?_⟩⟩
-  -- `T₀`-invariance passes to the cluster point exactly, with no Følner error
-  · have hmap : IsProbabilityMeasure ((μ.toMeasure : Measure (S → E)).map (T₀ i).toFun) := by
-      constructor
-      rw [Measure.map_apply (T₀ i).measurable_toFun .univ, preimage_univ, measure_univ]
-    refine separatesOn_localEvents hmap inferInstance fun B hB ↦ ?_
-    have hBm : MeasurableSet B := .of_mem_measurableCylinders hB
-    rw [Measure.map_apply (T₀ i).measurable_toFun hBm]
-    have h1 : Tendsto (fun p ↦ (μs p : Measure (S → E)) B) U
-        (𝓝 ((μ.toMeasure : Measure (S → E)) B)) :=
-      tendsto_withLocalConvergence_iff.1 hU B hB
-    have h2 : Tendsto (fun p ↦ (μs p : Measure (S → E)) ((T₀ i).toFun ⁻¹' B)) U
-        (𝓝 ((μ.toMeasure : Measure (S → E)) ((T₀ i).toFun ⁻¹' B))) :=
-      tendsto_withLocalConvergence_iff.1 hU _ ((T₀ i).preimage_mem_localEvents hB)
-    have heq : ∀ p, (μs p : Measure (S → E)) ((T₀ i).toFun ⁻¹' B)
-        = (μs p : Measure (S → E)) B := fun p ↦ by
-      rw [← Measure.map_apply (T₀ i).measurable_toFun hBm, hμs₀ p i]
-    exact tendsto_nhds_unique (h2.congr heq) h1
+  refine ⟨μ.toMeasure, hμmem.1, hμmem.2, fun x ↦ ⟨(Φ x).measurable_toFun, ?_⟩⟩
   -- `Φ`-invariance of the cluster point, by the Følner estimate
   · have hmap : IsProbabilityMeasure ((μ.toMeasure : Measure (S → E)).map (Φ x).toFun) := by
       constructor
@@ -347,7 +363,8 @@ theorem exists_mem_GP_and_forall_measurePreserving_of_isCompact_of_measurePreser
     have hn : ∀ p, ((μs p : Measure (S → E)) ((Φ x).toFun ⁻¹' B)).toReal =
         (transAverage Φ (ν : Measure (S → E)) (x +ᵥ Fs p)).real B := by
       intro p
-      rw [measureReal_def, ← map_transAverage hΦ, Measure.map_apply (Φ x).measurable_toFun hBm,
+      rw [measureReal_def, ← map_transAverage_of_transportLaw hΦ,
+        Measure.map_apply (Φ x).measurable_toFun hBm,
         hμsc p]
     -- the difference tends to `0` by the Følner estimate
     have hfst : Tendsto (Prod.fst : Finset A × ℕ → Finset A) atTop atTop := by
@@ -375,6 +392,90 @@ theorem exists_mem_GP_and_forall_measurePreserving_of_isCompact_of_measurePreser
     have h3 := tendsto_nhds_unique (h2.sub h1) (hdiff.mono_left hUle)
     rw [sub_eq_zero] at h3
     exact (ENNReal.toReal_eq_toReal_iff' (measure_ne_top _ _) (measure_ne_top _ _)).1 h3
+
+/-- **Georgii Theorem (5.15)(ii)**, two-subgroup form for a genuine homomorphism `Φ`: the
+specialisation of `exists_mem_GP_and_forall_measurePreserving_of_isCompact_of_transportLaw` in
+which `Φ (x + y) = Φ x ∘ Φ y` holds on the nose. -/
+theorem exists_mem_GP_and_forall_measurePreserving_of_isCompact_of_measurePreserving
+    [AddCommGroup A] {ι₀ : Type*} {γ : Specification S E} {Φ : A → Transformation S E}
+    {T₀ : ι₀ → Transformation S E} (hΦ : ∀ x y, Φ (x + y) = Φ x * Φ y)
+    (hcomm : ∀ (i : ι₀) (x : A), ∃ i',
+      (T₀ i).toFun ∘ (Φ x).toFun = (Φ x).toFun ∘ (T₀ i').toFun)
+    (hγ : ∀ x, Specification.IsInvariant (Φ x) γ)
+    (hcpt : IsCompact {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP (S := S) (E := E) γ})
+    {ν : ProbabilityMeasure (S → E)} (hν : ν ∈ GP (S := S) (E := E) γ)
+    (hν₀ : ∀ i, MeasurePreserving (T₀ i).toFun (ν : Measure (S → E)) ν) :
+    ∃ μ ∈ GP (S := S) (E := E) γ,
+      (∀ i, MeasurePreserving (T₀ i).toFun (μ : Measure (S → E)) μ) ∧
+        ∀ x : A, MeasurePreserving (Φ x).toFun (μ : Measure (S → E)) μ :=
+  exists_mem_GP_and_forall_measurePreserving_of_isCompact_of_transportLaw
+    (fun x y ↦ by
+      rw [Measure.map_map (Φ x).measurable_toFun (Φ y).measurable_toFun, hΦ]
+      congr 1)
+    hcomm hγ (by
+      have h := isCompact_setOf_mem_GP_and_forall_measurePreserving_of_subset
+        (γ := γ) (I := (∅ : Set (Transformation S E))) (J := Set.range T₀)
+        (Set.empty_subset _) (by simpa using hcpt)
+      simpa [Set.forall_mem_range] using h)
+    hν hν₀
+
+/-- **The finite-intersection step of Georgii's proof of Theorem (5.15)(ii).**  If `𝒢_I(γ)` is
+compact in the topology of local convergence and `𝒢_{I ∪ F}(γ)` is non-empty for every *finite*
+`F ⊆ J`, then `𝒢_{I ∪ J}(γ)` is non-empty: the sets `𝒢_{I ∪ {τ}}(γ)`, `τ ∈ J`, are closed subsets
+of the compact `𝒢_I(γ)` with the finite intersection property. -/
+theorem nonempty_setOf_mem_GP_and_forall_measurePreserving_of_forall_finset
+    {γ : Specification S E} {I J : Set (Transformation S E)}
+    (hcpt : IsCompact {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP (S := S) (E := E) γ ∧
+      ∀ τ ∈ I, MeasurePreserving τ.toFun (μ.toMeasure : Measure (S → E)) μ.toMeasure})
+    (hfin : ∀ F : Finset (Transformation S E), (F : Set (Transformation S E)) ⊆ J →
+      {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP (S := S) (E := E) γ ∧
+        ∀ τ ∈ I ∪ (F : Set (Transformation S E)),
+          MeasurePreserving τ.toFun (μ.toMeasure : Measure (S → E)) μ.toMeasure}.Nonempty) :
+    {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP (S := S) (E := E) γ ∧
+      ∀ τ ∈ I ∪ J,
+        MeasurePreserving τ.toFun (μ.toMeasure : Measure (S → E)) μ.toMeasure}.Nonempty := by
+  classical
+  set K : Set (WithLocalConvergence S E) :=
+    {μ | μ.toMeasure ∈ GP (S := S) (E := E) γ ∧
+      ∀ τ ∈ I, MeasurePreserving τ.toFun (μ.toMeasure : Measure (S → E)) μ.toMeasure} with hK
+  set t : J → Set (WithLocalConvergence S E) := fun τ ↦
+    {μ | ∀ σ ∈ ({(τ : Transformation S E)} : Set (Transformation S E)),
+      MeasurePreserving σ.toFun (μ.toMeasure : Measure (S → E)) μ.toMeasure} with ht
+  have htclosed : ∀ τ : J, IsClosed (t τ) := fun τ ↦
+    isClosed_setOf_forall_measurePreserving _
+  have hgoal : {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP (S := S) (E := E) γ ∧
+      ∀ τ ∈ I ∪ J,
+        MeasurePreserving τ.toFun (μ.toMeasure : Measure (S → E)) μ.toMeasure}
+      = K ∩ ⋂ τ : J, t τ := by
+    ext μ
+    simp only [hK, ht, Set.mem_inter_iff, Set.mem_ofPred_eq, Set.mem_iInter, Set.mem_singleton_iff,
+      forall_eq, Set.mem_union]
+    constructor
+    · rintro ⟨hg, hinv⟩
+      exact ⟨⟨hg, fun τ hτ ↦ hinv τ (.inl hτ)⟩, fun τ ↦ hinv τ (.inr τ.2)⟩
+    · rintro ⟨⟨hg, hI⟩, hJ⟩
+      exact ⟨hg, fun τ hτ ↦ hτ.elim (hI τ) fun h ↦ hJ ⟨τ, h⟩⟩
+  rw [hgoal]
+  rw [Set.nonempty_iff_ne_empty]
+  intro hempty
+  obtain ⟨u, hu⟩ := hcpt.elim_finite_subfamily_closed t htclosed
+    (Set.disjoint_iff_inter_eq_empty.2 hempty)
+  set F : Finset (Transformation S E) := u.image (fun τ : J ↦ (τ : Transformation S E)) with hF
+  obtain ⟨μ, hμ⟩ := hfin F (by
+    intro σ hσ
+    simp only [hF, Finset.coe_image, Set.mem_image, Finset.mem_coe] at hσ
+    obtain ⟨τ, -, rfl⟩ := hσ
+    exact τ.2)
+  have hmemF : ∀ τ : J, τ ∈ u → (τ : Transformation S E) ∈ (F : Set (Transformation S E)) := by
+    intro τ hτ
+    simp only [hF, Finset.coe_image, Set.mem_image, Finset.mem_coe]
+    exact ⟨τ, hτ, rfl⟩
+  have hμK : μ ∈ K := ⟨hμ.1, fun τ hτ ↦ hμ.2 τ (.inl hτ)⟩
+  have hμt : μ ∈ ⋂ τ ∈ u, t τ := by
+    simp only [Set.mem_iInter, ht, Set.mem_ofPred_eq, Set.mem_singleton_iff, forall_eq]
+    intro τ hτ
+    exact hμ.2 (τ : Transformation S E) (.inr (hmemF τ hτ))
+  exact Set.not_disjoint_iff.2 ⟨μ, hμK, hμt⟩ hu
 
 /-- **Georgii Corollary (5.16)** for an abelian group acting by symmetries — the `I₀ = {id}`
 case of Theorem (5.15)(ii)
