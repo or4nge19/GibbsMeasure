@@ -143,6 +143,35 @@ $\gamma$-invariant probability measures.
     Theorem \ref{thm:free-measure-gibbs}.
 \end{example}
 
+\begin{example}[Georgii (7.18), product specifications]
+    \label{ex:app-product}
+    \uses{def:spec, def:gibbs-meas}
+    \lean{Specification.prod, Specification.prod_apply,
+      Specification.isGibbsMeasure_prod_map}
+    \leanok
+
+    Let $\gamma^1, \gamma^2$ be specifications with the same state space $(E,\mathcal E)$ and
+    parameter sets $S_1, S_2$. On the disjoint union $S_1 \sqcup S_2$ the kernels
+    \[\gamma_{\Lambda}(\,\cdot \mid \omega^1\omega^2)
+      = \gamma^1_{\Lambda \inter S_1}(\,\cdot \mid \omega^1) \times
+        \gamma^2_{\Lambda \inter S_2}(\,\cdot \mid \omega^2)\]
+    form a specification $\gamma = \gamma^1 \times \gamma^2$, and
+    \[\set{\mu^1 \times \mu^2 : \mu^k \in \Gibbs{\gamma^k}} \subseteq \Gibbs{\gamma},\]
+    with strict inclusion as soon as both $\Gibbs{\gamma^k}$ have more than one element, since
+    $(\mu^1 \times \mu^2 + \nu^1 \times \nu^2)/2$ is then Gibbs without being a product.
+\end{example}
+\begin{proof}
+    \leanok
+
+    Properness of $\gamma_\Lambda$ is properness of a parallel composition of kernels, and
+    consistency follows from Fubini for parallel binds: pushing a product measure through
+    $\gamma_\Lambda$ binds the two factors separately, so
+    $(\mu^1 \times \mu^2)\gamma_\Lambda
+      = \mu^1\gamma^1_{\Lambda \inter S_1} \times \mu^2\gamma^2_{\Lambda \inter S_2}$. Taking
+    $\mu^k = \gamma^k_{\Lambda'_k}(\,\cdot \mid \omega^k)$ gives consistency, and taking
+    $\mu^k \in \Gibbs{\gamma^k}$ gives the inclusion.
+\end{proof}
+
 \begin{example}[Georgii (7.15), stationary Markov chains]
     \label{ex:app-markov}
     \uses{thm:app-extreme-iff-tail-trivial, def:markov-spec, thm:mkv-35}

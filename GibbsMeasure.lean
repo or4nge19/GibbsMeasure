@@ -127,6 +127,7 @@ public import GibbsMeasure.Specification.UniquenessFromMixing
 public import GibbsMeasure.Specification.NetEquicontinuity
 public import GibbsMeasure.Specification.Quasilocality
 public import GibbsMeasure.Specification.Rescaling
+public import GibbsMeasure.Specification.ProductSpecification
 public import GibbsMeasure.Specification.QuasilocalSpecification
 public import GibbsMeasure.Specification.Singleton
 public import GibbsMeasure.Specification.Structure
