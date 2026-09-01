@@ -10,6 +10,7 @@ public import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
 public import Mathlib.MeasureTheory.Integral.Lebesgue.Basic
 public import Mathlib.MeasureTheory.MeasurableSpace.CountablyGenerated
 public import Mathlib.Order.Filter.CountableSeparatingOn
+public import GibbsMeasure.Mathlib.Probability.TailTriviality
 
 /-!
 # The Gibbs state space: probability measures, convexity, and the tail σ-algebra (Georgii, Ch. 7)
@@ -116,6 +117,30 @@ notation "𝓣" => tailSigmaAlgebra
 def IsTailTrivial (μ : ProbabilityMeasure (S → E)) : Prop :=
   ∀ A, MeasurableSet[@tailSigmaAlgebra S E _] A →
     (μ : Measure (S → E)) A = 0 ∨ (μ : Measure (S → E)) A = 1
+
+/-- **Georgii (7.9).** A probability measure on a configuration space over a countable set of sites
+is trivial on the tail σ-algebra `𝓣` if and only if it is asymptotically independent of the
+exterior σ-algebras `𝓕_{Λᶜ}`: for every event `A` and every `ε > 0`, all large enough finite
+volumes `Λ` satisfy `|μ(A ∩ B) - μ(A) μ(B)| ≤ ε` for every `B ∈ 𝓕_{Λᶜ}`. -/
+theorem forall_tail_measure_eq_zero_or_one_iff [Countable S] {μ : Measure (S → E)}
+    [IsProbabilityMeasure μ] :
+    (∀ A, MeasurableSet[@tailSigmaAlgebra S E _] A → μ A = 0 ∨ μ A = 1) ↔
+      ∀ A, MeasurableSet A → ∀ ε : ℝ, 0 < ε → ∀ᶠ Λ : Finset S in Filter.atTop,
+        ∀ B, MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) ((Λ : Set S)ᶜ)] B →
+          |(μ (A ∩ B)).toReal - (μ A).toReal * (μ B).toReal| ≤ ε :=
+  MeasureTheory.forall_measure_eq_zero_or_one_iInf_iff_of_directed
+    (fun _ _ h ↦ cylinderEvents_mono (Set.compl_subset_compl.2 (by exact_mod_cast h)))
+    fun _ ↦ cylinderEvents_le_pi
+
+/-- `IsTailTrivial` in the form of Georgii (7.9). -/
+theorem isTailTrivial_iff_asymptotically_independent [Countable S]
+    (μ : ProbabilityMeasure (S → E)) :
+    IsTailTrivial μ ↔
+      ∀ A, MeasurableSet A → ∀ ε : ℝ, 0 < ε → ∀ᶠ Λ : Finset S in Filter.atTop,
+        ∀ B, MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) ((Λ : Set S)ᶜ)] B →
+          |((μ : Measure (S → E)) (A ∩ B)).toReal
+            - ((μ : Measure (S → E)) A).toReal * ((μ : Measure (S → E)) B).toReal| ≤ ε :=
+  forall_tail_measure_eq_zero_or_one_iff
 
 namespace IsTailTrivial
 

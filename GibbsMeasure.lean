@@ -18,6 +18,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Function.L1Space.Integrable
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.LpSeminorm.Basic
 public import GibbsMeasure.Mathlib.Logic.Function.DependsOn
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.BoundedMeasurable
+public import GibbsMeasure.Mathlib.Order.Cofinal
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.Volume
 public import GibbsMeasure.Mathlib.Topology.Order.LiminfLimsup
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.SimpleFunc
@@ -45,6 +46,7 @@ public import GibbsMeasure.Mathlib.Probability.Kernel.Composition.MapComap
 public import GibbsMeasure.Mathlib.Probability.Kernel.Condexp
 public import GibbsMeasure.Mathlib.Probability.Kernel.Proper
 public import GibbsMeasure.Mathlib.Probability.Martingale.Convergence
+public import GibbsMeasure.Mathlib.Probability.TailTriviality
 public import GibbsMeasure.Prereqs.CylinderEvents
 public import GibbsMeasure.Prereqs.Filtration.Consistent
 public import GibbsMeasure.Prereqs.Juxt

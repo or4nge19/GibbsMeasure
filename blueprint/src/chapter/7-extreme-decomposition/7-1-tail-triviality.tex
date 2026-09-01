@@ -137,3 +137,42 @@ generality, in Mathlib's \texttt{ProbabilityTheory.Kernel} namespace.
     strictly invariant sets. By contrast $\mathcal I_\pi(\mu)$ depends on the a.e.\ class of $\pi$
     by construction.
 \end{corollary}
+
+\section{Tail triviality and asymptotic independence}
+
+\begin{theorem}[Georgii (7.9)]
+    \label{thm:ext-79}
+    \lean{MeasureTheory.forall_measure_eq_zero_or_one_iInf_iff,
+      MeasureTheory.forall_measure_eq_zero_or_one_iInf_iff_of_directed,
+      MeasureTheory.GibbsMeasure.forall_tail_measure_eq_zero_or_one_iff,
+      MeasureTheory.GibbsMeasure.isTailTrivial_iff_asymptotically_independent}
+    \leanok
+
+    For $\mu \in \Prob(\Cfg, \mathcal F)$ the following are equivalent.
+    \begin{enumerate}
+        \item $\mu$ is trivial on $\Tail$.
+        \item For every event $A$,
+          \[\lim_{\Lambda \in \Fin} \ \sup_{B \in \mathcal F_{S \setminus \Lambda}}
+            \abs{\mu(A \cap B) - \mu(A)\mu(B)} \;=\; 0 .\]
+    \end{enumerate}
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    ($1 \Rightarrow 2$) By L\'evy's downward theorem $\mu[\1_A \mid \mathcal F_{S \setminus \Lambda}]
+    \to \mu[\1_A \mid \Tail]$ in $L^1$, and triviality on $\Tail$ makes the limit the constant
+    $\mu(A)$. For $B \in \mathcal F_{S\setminus\Lambda}$,
+    \[\mu(A \cap B) - \mu(A)\mu(B)
+      = \int_B \bigl(\mu[\1_A \mid \mathcal F_{S\setminus\Lambda}] - \mu(A)\bigr) \dd\mu,\]
+    which is bounded in absolute value by the $L^1$ distance, hence tends to $0$.
+
+    ($2 \Rightarrow 1$) Any $A \in \Tail$ lies in every $\mathcal F_{S\setminus\Lambda}$, so taking
+    $B = A$ gives $\abs{\mu(A) - \mu(A)^2} \leq \varepsilon$ for every $\varepsilon > 0$, whence
+    $\mu(A) \in \set{0,1}$.
+
+    The Lean statement is proved first for an antitone sequence of $\sigma$-algebras, then
+    transferred to a countable directed index set along a monotone cofinal sequence
+    (\texttt{exists\_monotone\_cofinal}, \texttt{iInf\_eq\_iInf\_comp\_of\_cofinal}), which is what
+    Georgii's index set $\Fin$ requires. The supremum over $B$ is expressed as an
+    $\varepsilon$--eventually bound, avoiding a supremum over a set of sets.
+\end{proof}

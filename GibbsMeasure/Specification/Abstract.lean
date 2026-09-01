@@ -6,6 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.TrivialOn
+public import GibbsMeasure.Mathlib.Order.Cofinal
 public import GibbsMeasure.Mathlib.Probability.Kernel.InvariantSigmaAlgebra
 public import GibbsMeasure.Mathlib.Probability.ConditionalProbability
 public import GibbsMeasure.Specification.PAKernel
@@ -88,18 +89,6 @@ lemma measurable_limsup_iInf (mn : ℕ → MeasurableSpace Ω) (hm : Antitone mn
   have h_each : ∀ i : {i // i ≥ n.1}, Measurable[mn N] (g i.1) := fun i ↦
     (hg i.1).mono (hm (n.2.trans i.2)) le_rfl
   simpa [iSup_subtype] using Measurable.iSup (f := fun i : {i // i ≥ n.1} ↦ g i.1) h_each
-
-/-- A nonempty countable preorder directed upwards contains a monotone cofinal sequence. -/
-lemma exists_monotone_cofinal (ι : Type*) [Preorder ι] [Countable ι] [Nonempty ι]
-    [IsDirected ι (· ≤ ·)] : ∃ f : ℕ → ι, Monotone f ∧ ∀ i, ∃ n, i ≤ f n := by
-  obtain ⟨e, he⟩ := exists_surjective_nat ι
-  choose g hg₁ hg₂ using fun a b : ι ↦ directed_of (· ≤ ·) a b
-  refine ⟨fun n ↦ Nat.rec (e 0) (fun k ih ↦ g ih (e (k + 1))) n,
-    monotone_nat_of_le_succ fun n ↦ hg₁ _ _, fun i ↦ ?_⟩
-  obtain ⟨n, rfl⟩ := he i
-  cases n with
-  | zero => exact ⟨0, le_rfl⟩
-  | succ k => exact ⟨k + 1, hg₂ _ _⟩
 
 end Aux
 
@@ -187,10 +176,8 @@ theorem mem_extremePoints_iff_trivialOn_aeInvariant [Nonempty ι] {μ : Measure 
 
 /-- Along a cofinal sequence the tail σ-algebra is already reached. -/
 lemma tail_eq_iInf_of_cofinal {f : ℕ → ι} (hcof : ∀ i, ∃ n, i ≤ f n) :
-    γ.tail = ⨅ n, γ.sub (f n) := by
-  refine le_antisymm (le_iInf fun n ↦ γ.tail_le_sub _) (le_iInf fun i ↦ ?_)
-  obtain ⟨n, hn⟩ := hcof i
-  exact (iInf_le (fun n ↦ γ.sub (f n)) n).trans (γ.sub_antitone hn)
+    γ.tail = ⨅ n, γ.sub (f n) :=
+  iInf_eq_iInf_comp_of_cofinal γ.sub_antitone hcof
 
 /-! ### Georgii (7.7)(b): conditioning on a tail event -/
 
