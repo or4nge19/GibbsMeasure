@@ -26,9 +26,9 @@ trivial on `I_Π(μ) = ⨅ i, I_{κ i}(μ)`
 
 This generalises Mathlib's `Ergodic.iff_mem_extremePoints`, which is the case of a single
 deterministic kernel, in two directions: to genuinely random kernels, and to families. Almost sure
-invariance cannot be weakened to strict invariance: Georgii's Example (7.5) is a stochastic matrix
-on three points whose strictly invariant σ-algebra is trivial while its invariant measures form a
-segment, so triviality on it does not imply extremality.
+invariance cannot be weakened to strict invariance, and `Example75` below is Georgii's Example
+(7.5) proving it: a stochastic matrix on three points whose strictly invariant σ-algebra is trivial
+while its invariant measures form a segment, so triviality on it does not imply extremality.
 
 ## References
 
@@ -545,6 +545,91 @@ theorem mem_extremePoints_iff_trivialOn [IsProbabilityMeasure μ] [Nonempty ι]
     exact eq_of_absolutelyContinuous_of_trivialOn hκ htriv h₁.2 hac
 
 end Family
+
+/-! ### Georgii's Example (7.5): almost sure invariance is not strict invariance -/
+
+namespace Example75
+
+open Measure
+
+/-- Georgii's Example (7.5): the stochastic matrix on three points in which `0` and `2` are
+absorbing and `1` jumps to each of them with probability `1/2`. -/
+noncomputable def ker : Kernel (Fin 3) (Fin 3) :=
+  Kernel.ofFunOfCountable fun i ↦
+    if i = 1 then (2⁻¹ : ℝ≥0∞) • dirac 0 + (2⁻¹ : ℝ≥0∞) • dirac 2 else dirac i
+
+lemma ker_apply (i : Fin 3) :
+    ker i = if i = 1 then (2⁻¹ : ℝ≥0∞) • dirac 0 + (2⁻¹ : ℝ≥0∞) • dirac 2 else dirac i := rfl
+
+lemma ker_zero : ker 0 = dirac 0 := by rw [ker_apply, if_neg (by decide)]
+lemma ker_two : ker 2 = dirac 2 := by rw [ker_apply, if_neg (by decide)]
+lemma ker_one : ker 1 = (2⁻¹ : ℝ≥0∞) • dirac 0 + (2⁻¹ : ℝ≥0∞) • dirac 2 := by
+  rw [ker_apply, if_pos rfl]
+
+instance : IsMarkovKernel ker := by
+  refine ⟨fun i ↦ ⟨?_⟩⟩
+  fin_cases i
+  · simp [ker_zero]
+  · simp [ker_one, ENNReal.inv_two_add_inv_two]
+  · simp [ker_two]
+
+/-- The invariant measure `μ = ½δ₀ + ½δ₂` of Example (7.5). -/
+noncomputable def mu : Measure (Fin 3) := (2⁻¹ : ℝ≥0∞) • dirac 0 + (2⁻¹ : ℝ≥0∞) • dirac 2
+
+instance : IsProbabilityMeasure mu := ⟨by simp [mu, ENNReal.inv_two_add_inv_two]⟩
+
+lemma invariant_mu : Kernel.Invariant ker mu := by
+  refine Measure.ext fun B hB ↦ ?_
+  rw [Measure.bind_apply hB ker.aemeasurable]
+  simp [mu, lintegral_add_measure, lintegral_smul_measure, lintegral_dirac, ker_zero, ker_two]
+
+lemma invariant_dirac_zero : Kernel.Invariant ker (dirac 0) := by
+  refine Measure.ext fun B hB ↦ ?_
+  rw [Measure.bind_apply hB ker.aemeasurable, lintegral_dirac, ker_zero]
+
+lemma invariant_dirac_two : Kernel.Invariant ker (dirac 2) := by
+  refine Measure.ext fun B hB ↦ ?_
+  rw [Measure.bind_apply hB ker.aemeasurable, lintegral_dirac, ker_two]
+
+/-- Every **strictly** `ker`-invariant set is trivial: the middle state forces
+`½·1_A(0) + ½·1_A(2) = 1_A(1)`, whose only solutions with values in `{0,1}` are constant. -/
+lemma eq_empty_or_univ_of_strictly_invariant {A : Set (Fin 3)}
+    (h : ∀ i, ker i A = A.indicator 1 i) : A = ∅ ∨ A = Set.univ := by
+  classical
+  have key : (2⁻¹ : ℝ≥0∞) * A.indicator 1 0 + 2⁻¹ * A.indicator 1 2 = A.indicator 1 1 := by
+    have h1 := h 1
+    rw [ker_one] at h1
+    simpa [Measure.dirac_apply] using h1
+  by_cases h0 : (0 : Fin 3) ∈ A <;> by_cases hm : (1 : Fin 3) ∈ A <;>
+      by_cases h2 : (2 : Fin 3) ∈ A <;>
+    simp [Set.indicator_apply, h0, hm, h2, ENNReal.inv_two_add_inv_two] at key
+  · exact Or.inr (by ext x; fin_cases x <;> simp [h0, hm, h2])
+  · exact Or.inl (by ext x; fin_cases x <;> simp [h0, hm, h2])
+
+/-- **Georgii (7.5).** `μ` is trivial on the σ-algebra of *strictly* `ker`-invariant sets. -/
+theorem trivial_on_strictly_invariant (A : Set (Fin 3)) (h : ∀ i, ker i A = A.indicator 1 i) :
+    mu A = 0 ∨ mu A = 1 := by
+  rcases eq_empty_or_univ_of_strictly_invariant h with rfl | rfl
+  · exact Or.inl (by simp)
+  · exact Or.inr (by simp)
+
+/-- **Georgii (7.5).** Nevertheless `μ` is *not* extreme: it is the midpoint of `δ₀` and `δ₂`,
+both invariant. So Corollary (7.4) genuinely needs the *almost surely* invariant σ-algebra
+`I_π(μ)`; the strictly invariant sets do not suffice. -/
+theorem not_mem_extremePoints :
+    mu ∉ ({ν : Measure (Fin 3) | IsProbabilityMeasure ν ∧ Kernel.Invariant ker ν} :
+      Set (Measure (Fin 3))).extremePoints ℝ≥0∞ := by
+  intro hext
+  have hseg : mu ∈ openSegment ℝ≥0∞ (dirac (0 : Fin 3)) (dirac (2 : Fin 3)) :=
+    ⟨2⁻¹, 2⁻¹, by norm_num, by norm_num, ENNReal.inv_two_add_inv_two, rfl⟩
+  have hd0 : dirac (0 : Fin 3) = mu :=
+    hext.2 ⟨inferInstance, invariant_dirac_zero⟩ ⟨inferInstance, invariant_dirac_two⟩ hseg
+  have hone : (1 : ℝ≥0∞) = 2⁻¹ := by
+    have := congrArg (fun m : Measure (Fin 3) ↦ m {0}) hd0
+    simpa [mu, Measure.dirac_apply] using this
+  exact absurd hone.symm (ENNReal.inv_lt_one.2 (by norm_num : (1 : ℝ≥0∞) < 2)).ne
+
+end Example75
 
 end Kernel
 

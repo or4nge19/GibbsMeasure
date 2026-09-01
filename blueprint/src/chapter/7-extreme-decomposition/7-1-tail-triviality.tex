@@ -76,17 +76,28 @@ generality, in Mathlib's \texttt{ProbabilityTheory.Kernel} namespace.
     makes that constant $1$.
 \end{proof}
 
-\begin{remark}[Almost sure, not strict, Georgii (7.5)]
-    \label{rmk:ext-75}
+\begin{example}[Almost sure, not strict, Georgii (7.5)]
+    \label{ex:ext-75}
     \uses{thm:ext-74}
+    \lean{ProbabilityTheory.Kernel.Example75.ker,
+      ProbabilityTheory.Kernel.Example75.mu,
+      ProbabilityTheory.Kernel.Example75.invariant_mu,
+      ProbabilityTheory.Kernel.Example75.eq_empty_or_univ_of_strictly_invariant,
+      ProbabilityTheory.Kernel.Example75.trivial_on_strictly_invariant,
+      ProbabilityTheory.Kernel.Example75.not_mem_extremePoints}
+    \leanok
 
-    $\mathcal I_\Pi(\mu)$ cannot be replaced by the $\sigma$-algebra $\mathcal I_\Pi$ of
-    \emph{strictly} invariant sets. Georgii's Example (7.5) takes $\Omega = \set{1,2,3}$ and the
-    stochastic matrix with rows $(1,0,0)$, $(\tfrac12,0,\tfrac12)$, $(0,0,1)$: its invariant
-    probability vectors are $(s,0,1-s)$, so the extreme ones are $(1,0,0)$ and $(0,0,1)$, whereas
-    $\mathcal I_\pi = \set{\emptyset,\Omega}$ makes every invariant measure trivial on
-    $\mathcal I_\pi$. This example is not yet formalized.
-\end{remark}
+    $\mathcal I_\Pi(\mu)$ cannot be replaced by the $\sigma$-algebra of \emph{strictly}
+    invariant sets $\set{A : \pi(A \mid \cdot) = \1_A \text{ everywhere}}$. Take
+    $\Omega = \set{0,1,2}$ and
+    \[\pi \;=\; \begin{pmatrix} 1 & 0 & 0 \\ \tfrac12 & 0 & \tfrac12 \\ 0 & 0 & 1\end{pmatrix},
+      \qquad \mu \;=\; \tfrac12\delta_0 + \tfrac12\delta_2 .\]
+    Then $\mu$ is invariant, and a strictly invariant $A$ must satisfy
+    $\tfrac12\1_A(0) + \tfrac12\1_A(2) = \1_A(1)$, which for $\set{0,1}$-valued indicators
+    forces $A = \emptyset$ or $A = \Omega$. So $\mu$ is trivial on the strictly invariant sets.
+    But $\mu = \tfrac12\delta_0 + \tfrac12\delta_2$ with $\delta_0, \delta_2$ both invariant,
+    so $\mu$ is not extreme.
+\end{example}
 
 \begin{remark}[Relation to Mathlib]
     \label{rmk:ext-mathlib}
