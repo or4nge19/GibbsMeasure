@@ -27,6 +27,28 @@ We record:
 - for tail events `A ∈ 𝓣`, the kernel evaluates `A` as the **indicator** (hence is {0,1}-valued a.e.).
 
 These lemmas are the starting point for the ergodic (extremal) decomposition of Gibbs measures.
+
+## The countable-generation hypothesis is unsatisfiable in Georgii's setting
+
+Several results below carry
+`[@MeasurableSpace.CountableOrCountablyGenerated (S → E) (S → E) (@tailSigmaAlgebra S E _)]`,
+i.e. `Countable (S → E) ∨ CountablyGenerated[𝓣] (S → E)`. **For countably infinite `S` and
+`2 ≤ #E` both disjuncts are false**, so those statements are vacuous exactly in the setting of
+Georgii's Chapter 7. The first disjunct fails on cardinality. For the second: the atoms of the
+tail σ-algebra `𝓣` are the classes of the eventual-agreement relation `E₀`, so a countable
+generating family `(B_n)` would make `ω ↦ (1_{B_n}(ω))ₙ` a Borel reduction of `E₀` to equality on
+`2^ℕ`, i.e. `E₀` smooth, contradicting Glimm–Effros.
+
+The hypothesis is not gratuitous: it is what upgrades "for each `A ∈ 𝓣`, `tailKernel μ ω A =
+1_A(ω)` for `μ`-a.e. `ω`" to "for `μ`-a.e. `ω`, for all `A ∈ 𝓣`", and a regular conditional
+distribution given a σ-algebra that is not countably generated modulo null sets need not be proper
+on it. Removing it therefore requires replacing `𝓣` by a countably generated σ-algebra equal to it
+modulo `μ`-null sets, which is not done here.
+
+Nothing else in the library rests on these statements: the extreme decomposition (7.26), the
+non-emptiness of `ex 𝒢(γ)` and its measurability are proved unconditionally by the (7.22)/(7.25)
+route in `GibbsMeasure/Specification/ExtremeDecomposition.lean` and
+`GibbsMeasure/Specification/ExtremeCorollaries.lean`, which never assume countable generation.
 -/
 
 @[expose] public section

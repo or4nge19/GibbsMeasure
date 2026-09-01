@@ -389,6 +389,20 @@ alignment:
       lean: ""
       module: ""
       status: "not-formalized"
+    - source: "Ergodic decomposition of Gibbs measures via the tail kernel"
+      lean: "MeasureTheory.GibbsMeasure.ae_mem_extremePoints_G_tailKernel"
+      module: "GibbsMeasure/Specification/ErgodicDecomposition.lean"
+      status: "vacuous-hypothesis"
+      note: >-
+        These statements assume CountableOrCountablyGenerated of the TAIL sigma-algebra on E^S,
+        which is false for countably infinite S and 2 <= #E (the tail atoms are the E_0 classes, so
+        a countable generator would make E_0 smooth). They are therefore vacuous in Georgii's
+        setting. The same applies to the TailTrivialCore / LawLevelExtremal / ChoquetDecomposition
+        sections of Specification/ChoquetLaw.lean. Nothing else depends on them: (7.26), the
+        non-emptiness of ex G(gamma) and its measurability are proved unconditionally by the
+        (7.22)/(7.25) route in ExtremeDecomposition.lean and ExtremeCorollaries.lean. Fixing them
+        requires replacing the tail sigma-algebra by a countably generated one equal to it modulo
+        mu-null sets.
     - source: "Theorem (9.20), Chapters 10-20"
       lean: ""
       module: ""
