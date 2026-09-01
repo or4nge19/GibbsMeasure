@@ -11,6 +11,7 @@ public import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
 public import Mathlib.Analysis.Convex.Extreme
 public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.TrivialOn
 public import Mathlib.Dynamics.Ergodic.Ergodic
+public import Mathlib.Dynamics.Ergodic.Action.Basic
 
 /-!
 # The almost surely invariant σ-algebra of a Markov kernel
@@ -443,6 +444,11 @@ lemma aeInvariantSigmaAlgebraFamily_le [IsFiniteMeasure μ] [Nonempty ι]
     (hκ : ∀ i, Invariant (κ i) μ) : aeInvariantSigmaAlgebraFamily κ hκ ≤ m :=
   le_trans (iInf_le _ (Classical.arbitrary ι)) (aeInvariantSigmaAlgebra_le _)
 
+lemma measurableSet_aeInvariantSigmaAlgebraFamily_iff [IsFiniteMeasure μ]
+    (hκ : ∀ i, Invariant (κ i) μ) {A : Set Ω} :
+    MeasurableSet[aeInvariantSigmaAlgebraFamily κ hκ] A ↔ ∀ i, A ∈ aeInvariantSets (κ i) μ :=
+  MeasurableSpace.measurableSet_iInf
+
 lemma measurable_aeInvariantSigmaAlgebraFamily_iff [IsFiniteMeasure μ]
     (hκ : ∀ i, Invariant (κ i) μ) {X : Type*} [MeasurableSpace X] {f : Ω → X} :
     Measurable[aeInvariantSigmaAlgebraFamily κ hκ] f ↔
@@ -663,6 +669,86 @@ theorem preErgodic_iff_trivialOn_aeInvariant [IsProbabilityMeasure μ] (hT : Mea
     exact h t hA
 
 end Deterministic
+
+/-! ### Specialisation to a group action: ergodicity as extremality -/
+
+section SMul
+
+variable {G : Type*} [Group G] [MulAction G Ω] [MeasurableConstSMul G Ω]
+
+variable (G) in
+/-- The deterministic kernel of the action of `g`; Georgii's `θ̂_i` of (14.4). -/
+noncomputable def smulKernel (g : G) : Kernel Ω Ω :=
+  Kernel.deterministic (fun ω : Ω ↦ g • ω) (measurable_const_smul g)
+
+instance isMarkovKernel_smulKernel (g : G) :
+    IsMarkovKernel (smulKernel G g : Kernel Ω Ω) := by
+  unfold smulKernel; infer_instance
+
+/-- `SMulInvariantMeasure` is exactly invariance under every `smulKernel`. -/
+lemma smulInvariantMeasure_iff_forall_invariant {ν : Measure Ω} :
+    SMulInvariantMeasure G Ω ν ↔ ∀ g : G, Invariant (smulKernel G g) ν := by
+  simp only [smulKernel, invariant_deterministic_iff]
+  constructor
+  · intro h g
+    refine Measure.ext fun s hs ↦ ?_
+    rw [Measure.map_apply (measurable_const_smul g) hs]
+    exact h.measure_preimage_smul g hs
+  · intro h
+    refine ⟨fun g s hs ↦ ?_⟩
+    have hg := congrArg (fun m : Measure Ω ↦ m s) (h g)
+    rwa [Measure.map_apply (measurable_const_smul g) hs] at hg
+
+/-- The `μ`-a.s. invariant σ-algebra of the family `smulKernel` is Georgii's `𝓘(μ)` of (14.3): the
+sets whose preimage under every `g • ·` agrees with them almost everywhere. -/
+lemma measurableSet_aeInvariantSigmaAlgebraFamily_smul [IsFiniteMeasure μ]
+    (hμ : ∀ g : G, Invariant (smulKernel G g) μ) {A : Set Ω} :
+    MeasurableSet[aeInvariantSigmaAlgebraFamily (smulKernel G) hμ] A ↔
+      MeasurableSet A ∧ ∀ g : G, (fun ω : Ω ↦ g • ω) ⁻¹' A =ᵐ[μ] A := by
+  rw [measurableSet_aeInvariantSigmaAlgebraFamily_iff]
+  constructor
+  · intro h
+    refine ⟨((mem_aeInvariantSets_deterministic_iff
+      (measurable_const_smul (1 : G))).1 (h 1)).1, fun g ↦ ?_⟩
+    exact ((mem_aeInvariantSets_deterministic_iff (measurable_const_smul g)).1 (h g)).2
+  · rintro ⟨hA, hae⟩ g
+    exact (mem_aeInvariantSets_deterministic_iff (measurable_const_smul g)).2 ⟨hA, hae g⟩
+
+/-- **Georgii (14.5)(a).** An invariant probability measure is ergodic — trivial on the σ-algebra
+`𝓘(μ)` of almost surely invariant events — if and only if it is an extreme point of the convex set
+of invariant probability measures.
+
+Mathlib has `Ergodic.iff_mem_extremePoints` for a single map; this is the statement for a group
+action, which is what Chapter 14 needs, and Mathlib does not have it. Note that Mathlib's
+`ErgodicSMul` is already phrased with almost sure invariance, unlike `PreErgodic`. -/
+theorem ergodicSMul_iff_mem_extremePoints [IsProbabilityMeasure μ]
+    (hμ : SMulInvariantMeasure G Ω μ) :
+    ErgodicSMul G Ω μ ↔
+      μ ∈ ({ν : Measure Ω | IsProbabilityMeasure ν ∧ SMulInvariantMeasure G Ω ν} :
+        Set (Measure Ω)).extremePoints ℝ≥0∞ := by
+  have hinv : ∀ g : G, Invariant (smulKernel G g) μ :=
+    smulInvariantMeasure_iff_forall_invariant.1 hμ
+  have hset : {ν : Measure Ω | IsProbabilityMeasure ν ∧ SMulInvariantMeasure G Ω ν}
+      = {ν : Measure Ω | IsProbabilityMeasure ν ∧ ∀ g : G, Invariant (smulKernel G g) ν} := by
+    ext ν; simp [smulInvariantMeasure_iff_forall_invariant]
+  rw [hset, mem_extremePoints_iff_trivialOn hinv]
+  constructor
+  · intro herg A hA
+    obtain ⟨hAm, hae⟩ := (measurableSet_aeInvariantSigmaAlgebraFamily_smul hinv).1 hA
+    rcases eventuallyConst_set'.1
+      (ErgodicSMul.aeconst_of_forall_preimage_smul_ae_eq hAm hae) with h | h
+    · exact Or.inl (ae_eq_empty.1 h)
+    · exact Or.inr ((prob_compl_eq_zero_iff hAm).1 (ae_eq_univ.1 h))
+  · intro htriv
+    refine ⟨fun {s} hsm hae ↦ ?_⟩
+    have hA : MeasurableSet[aeInvariantSigmaAlgebraFamily (smulKernel G) hinv] s :=
+      (measurableSet_aeInvariantSigmaAlgebraFamily_smul hinv).2 ⟨hsm, hae⟩
+    rw [eventuallyConst_set']
+    rcases htriv s hA with h | h
+    · exact Or.inl (ae_eq_empty.2 h)
+    · exact Or.inr (ae_eq_univ.2 ((prob_compl_eq_zero_iff hsm).2 h))
+
+end SMul
 
 /-! ### Georgii's Example (7.5): almost sure invariance is not strict invariance -/
 
