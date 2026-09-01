@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Mathlib.Probability.ProductMeasure
 public import GibbsMeasure.Specification.Rescaling
 
 /-!
@@ -360,5 +361,32 @@ lemma isResampling_isssdFamily (ν : S → Measure E) [∀ i, IsProbabilityMeasu
 lemma hasFreeMeasure_isssdFamily (ν : S → Measure E) [∀ i, IsProbabilityMeasure (ν i)] :
     HasFreeMeasure (isssdFamily (S := S) (E := E) ν) (Measure.infinitePi ν) :=
   isssdFamily_apply_of_mem_cylinderEvents ν
+
+/-- **Georgii, Remark (1.25) and Example (7.14), inhomogeneous form.**  The product measure
+`⨂ i, ν i` is the *unique* Gibbs measure of the inhomogeneous independent specification:
+`𝒢(λ_·) = {⨂ i, ν i}`.  Both halves are instances of the general free-measure theory —
+uniqueness by `Specification.eq_of_hasFreeMeasure`, existence because a product measure makes the
+coordinates inside a finite volume independent of those outside it. -/
+theorem isGibbsMeasure_isssdFamily_iff (ν : S → Measure E) [∀ i, IsProbabilityMeasure (ν i)]
+    (μ : Measure (S → E)) [IsProbabilityMeasure μ] :
+    (isssdFamily (S := S) (E := E) ν).IsGibbsMeasure μ ↔ μ = Measure.infinitePi ν := by
+  refine ⟨fun hμ ↦ eq_of_hasFreeMeasure (hasFreeMeasure_isssdFamily ν) hμ, ?_⟩
+  rintro rfl
+  exact (isGibbsMeasure_iff_indep_of_hasFreeMeasure (hasFreeMeasure_isssdFamily ν)).2
+    fun Λ ↦ ProbabilityTheory.indep_cylinderEvents_compl_infinitePi ν _
+
+/-- The finite-measure form of `Specification.isGibbsMeasure_isssdFamily_iff`. -/
+theorem isGibbsMeasure_isssdFamily_iff_of_isFiniteMeasure (ν : S → Measure E)
+    [∀ i, IsProbabilityMeasure (ν i)] (μ : Measure (S → E)) [IsFiniteMeasure μ] :
+    (isssdFamily (S := S) (E := E) ν).IsGibbsMeasure μ
+      ↔ μ = μ Set.univ • Measure.infinitePi ν := by
+  refine ⟨fun hμ ↦ eq_smul_of_hasFreeMeasure (hasFreeMeasure_isssdFamily ν) hμ, fun h ↦ ?_⟩
+  have hprod : (isssdFamily (S := S) (E := E) ν).IsGibbsMeasure (Measure.infinitePi ν) :=
+    (isGibbsMeasure_isssdFamily_iff ν _).2 rfl
+  refine (isGibbsMeasure_iff_forall_bind_eq (γ := isssdFamily ν) (μ := μ)).2 fun Λ ↦ ?_
+  conv_lhs => rw [h]
+  rw [Measure.bind_smul,
+    (isGibbsMeasure_iff_forall_bind_eq (γ := isssdFamily (S := S) (E := E) ν)
+      (μ := Measure.infinitePi ν)).1 hprod Λ, ← h]
 
 end Specification

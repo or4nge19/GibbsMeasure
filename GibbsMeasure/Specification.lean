@@ -13,6 +13,7 @@ public import GibbsMeasure.Prereqs.MeasureExt
 public import GibbsMeasure.Prereqs.Kernel.CondExp
 public import GibbsMeasure.Mathlib.Probability.Kernel.Proper
 public import GibbsMeasure.Prereqs.SquareCylinders
+public import Mathlib.Probability.Independence.Basic
 public import Mathlib.Probability.ProductMeasure
 
 /-!
@@ -1411,6 +1412,143 @@ specifications, homogeneous (`Specification.hasFreeMeasure_isssd`) or not
 def HasFreeMeasure (μ₀ : Measure (S → E)) : Prop :=
   ∀ (Λ : Finset S) (η : S → E) ⦃A : Set (S → E)⦄,
     MeasurableSet[cylinderEvents (Λ : Set S)] A → γ Λ η A = μ₀ A
+
+/-! #### What a free measure determines
+
+A free measure pins down the Gibbs measures of `γ` completely, and by an argument that uses
+nothing but properness: the value `γ_Λ(A | η) = μ₀(A)` for `A ∈ 𝓕_Λ` turns the DLR equation over
+`Λ` into `μ(A) = μ(Ω)\,μ₀(A)` on the local events, which generate. So `|𝒢(γ)| ≤ 1`, with equality
+exactly when `μ₀` makes the inside and the outside of every finite volume independent
+(`Specification.isGibbsMeasure_iff_indep_of_hasFreeMeasure`). Georgii's Remark (1.25) and
+Example (7.14) are the two instances of this at `γ = ISSSD(λ)` and at its inhomogeneous form.
+-/
+
+section HasFreeMeasureTheorems
+variable {μ₀ : Measure (S → E)}
+
+/-- A square cylinder all of whose sites lie in `Δ` is `𝓕_Δ`-measurable. -/
+lemma measurableSet_cylinderEvents_finset_pi {Δ : Set S} {s : Finset S} (hs : (s : Set S) ⊆ Δ)
+    {t : S → Set E} (ht : ∀ i, MeasurableSet (t i)) :
+    MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) Δ] ((s : Set S).pi t) := by
+  have hpi : ((s : Set S).pi t) = ⋂ i ∈ s, (fun σ : S → E ↦ σ i) ⁻¹' t i := by
+    ext σ; simp [Set.mem_pi]
+  rw [hpi]
+  exact MeasurableSet.biInter s.countable_toSet fun i hi ↦
+    (measurable_cylinderEvent_apply (X := fun _ : S ↦ E) (hs hi)) (ht i)
+
+/-- Every local event is `𝓕_Λ`-measurable for some finite volume `Λ`. -/
+lemma exists_measurableSet_cylinderEvents_of_mem_measurableCylinders
+    {A : Set (S → E)} (hA : A ∈ measurableCylinders fun _ : S ↦ E) :
+    ∃ Λ : Finset S, MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)] A := by
+  obtain ⟨Λ, B, hB, rfl⟩ := (mem_measurableCylinders _).1 hA
+  refine ⟨Λ, ?_⟩
+  rw [cylinderEvents_eq_comap_finsetRestrict]
+  exact ⟨B, hB, rfl⟩
+
+/-- **A specification with a free measure has at most one Gibbs measure, up to total mass.**  If
+`γ_Λ(A | η) = μ₀(A)` for all `A ∈ 𝓕_Λ` and all boundary conditions, then every finite Gibbs
+measure for `γ` is the multiple `μ(Ω)\,μ₀` of `μ₀`.  Beyond the properness that every
+specification has, no hypothesis on `γ`, on `E` or on `S` is used, and `μ₀` need not itself be a
+Gibbs measure. -/
+theorem eq_smul_of_hasFreeMeasure (h₀ : γ.HasFreeMeasure μ₀) [IsProbabilityMeasure μ₀]
+    {μ : Measure (S → E)} [IsFiniteMeasure μ] (hμ : γ.IsGibbsMeasure μ) :
+    μ = μ Set.univ • μ₀ := by
+  have hbind : ∀ Λ : Finset S, μ.bind (γ Λ) = μ :=
+    (isGibbsMeasure_iff_forall_bind_eq (γ := γ) (μ := μ)).1 hμ
+  refine MeasureTheory.ext_of_generate_finite (measurableCylinders fun _ : S ↦ E)
+    (generateFrom_measurableCylinders (α := fun _ : S ↦ E)).symm
+    isPiSystem_measurableCylinders (fun A hA ↦ ?_) (by simp)
+  obtain ⟨Λ, hΛ⟩ := exists_measurableSet_cylinderEvents_of_mem_measurableCylinders hA
+  have hmeas : MeasurableSet A := MeasurableSet.of_mem_measurableCylinders hA
+  have hker : AEMeasurable (γ Λ : (S → E) → Measure (S → E)) μ :=
+    (((γ Λ).measurable).mono cylinderEvents_le_pi le_rfl).aemeasurable
+  calc μ A = (μ.bind (γ Λ)) A := by rw [hbind Λ]
+    _ = ∫⁻ _, μ₀ A ∂μ := by
+        rw [Measure.bind_apply hmeas hker]
+        exact lintegral_congr fun η ↦ h₀ Λ η hΛ
+    _ = (μ Set.univ • μ₀) A := by
+        rw [lintegral_const, Measure.smul_apply, smul_eq_mul, mul_comm]
+
+/-- **A specification with a free measure has at most one Gibbs probability measure**, namely the
+free measure itself. -/
+theorem eq_of_hasFreeMeasure (h₀ : γ.HasFreeMeasure μ₀) [IsProbabilityMeasure μ₀]
+    {μ : Measure (S → E)} [IsProbabilityMeasure μ] (hμ : γ.IsGibbsMeasure μ) : μ = μ₀ := by
+  simpa using eq_smul_of_hasFreeMeasure h₀ hμ
+
+/-- **A free measure is a Gibbs measure exactly when it makes the inside and the outside of every
+finite volume independent.**
+
+Properness turns the DLR equation over `Λ` into the product rule
+`μ₀(A ∩ B) = μ₀(A)\,μ₀(B)` for `A ∈ 𝓕_Λ` and `B ∈ 𝓕_{Λᶜ}`, and conversely: on a square cylinder,
+splitting the sites into those inside and those outside `Λ` reduces the fixed-point equation to
+that product rule. With `Specification.eq_of_hasFreeMeasure` this determines `𝒢(γ)` for a
+specification with a free measure: it is `{μ₀}` when the independence holds, and `∅` otherwise. -/
+theorem isGibbsMeasure_iff_indep_of_hasFreeMeasure [IsProbabilityMeasure μ₀]
+    (h₀ : γ.HasFreeMeasure μ₀) :
+    γ.IsGibbsMeasure μ₀ ↔ ∀ Λ : Finset S,
+      ProbabilityTheory.Indep (cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S))
+        (cylinderEvents (X := fun _ : S ↦ E) ((Λ : Set S)ᶜ)) μ₀ := by
+  classical
+  rw [isGibbsMeasure_iff_forall_bind_eq]
+  constructor
+  · intro hbind Λ
+    rw [ProbabilityTheory.Indep_iff]
+    intro A B hA hB
+    have hA' : MeasurableSet A := cylinderEvents_le_pi _ hA
+    have hB' : MeasurableSet B := cylinderEvents_le_pi _ hB
+    have hker : AEMeasurable (γ Λ : (S → E) → Measure (S → E)) μ₀ :=
+      (((γ Λ).measurable).mono cylinderEvents_le_pi le_rfl).aemeasurable
+    calc μ₀ (A ∩ B) = (μ₀.bind (γ Λ)) (A ∩ B) := by rw [hbind Λ]
+      _ = ∫⁻ η, B.indicator 1 η * μ₀ A ∂μ₀ := by
+          rw [Measure.bind_apply (hA'.inter hB') hker]
+          refine lintegral_congr fun η ↦ ?_
+          rw [γ.isProper.inter_eq_indicator_mul Λ hA' hB η, h₀ Λ η hA]
+      _ = μ₀ A * μ₀ B := by
+          rw [lintegral_mul_const' _ _ (by simp), lintegral_indicator_one hB']
+          ring
+  · intro hindep Λ
+    have hker : AEMeasurable (γ Λ : (S → E) → Measure (S → E)) μ₀ :=
+      (((γ Λ).measurable).mono cylinderEvents_le_pi le_rfl).aemeasurable
+    have hprob : IsProbabilityMeasure (μ₀.bind (γ Λ)) := by
+      constructor
+      rw [Measure.bind_apply MeasurableSet.univ hker]
+      simp
+    refine MeasureTheory.ext_of_generate_finite (squareCylindersMeas S E)
+      (generateFrom_squareCylindersMeas S E) (isPiSystem_squareCylindersMeas S E)
+      (fun A hA ↦ ?_) (by simp)
+    obtain ⟨s, t, ht, rfl⟩ := hA
+    have ht' : ∀ i : S, MeasurableSet (t i) := by
+      simpa [Set.mem_pi, Set.mem_univ, true_implies] using ht
+    set A₁ : Set (S → E) := ((s ∩ Λ : Finset S) : Set S).pi t with hA₁
+    set A₂ : Set (S → E) := ((s \ Λ : Finset S) : Set S).pi t with hA₂
+    have hsplit : ((s : Set S).pi t) = A₁ ∩ A₂ := by
+      ext σ
+      simp only [hA₁, hA₂, Set.mem_pi, Set.mem_inter_iff, Finset.coe_inter, Finset.coe_sdiff,
+        Set.mem_inter_iff, Set.mem_sdiff]
+      refine ⟨fun h ↦ ⟨fun i hi ↦ h i hi.1, fun i hi ↦ h i hi.1⟩, ?_⟩
+      rintro ⟨h1, h2⟩ i hi
+      by_cases hiΛ : i ∈ Λ
+      · exact h1 i ⟨hi, hiΛ⟩
+      · exact h2 i ⟨hi, hiΛ⟩
+    have hm₁ : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)] A₁ :=
+      measurableSet_cylinderEvents_finset_pi (Finset.coe_subset.2 Finset.inter_subset_right) ht'
+    have hm₂ : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) ((Λ : Set S)ᶜ)] A₂ :=
+      measurableSet_cylinderEvents_finset_pi
+        (fun i hi ↦ by simp only [Finset.coe_sdiff, Set.mem_sdiff] at hi; exact hi.2) ht'
+    have h₁' : MeasurableSet A₁ := cylinderEvents_le_pi _ hm₁
+    have h₂' : MeasurableSet A₂ := cylinderEvents_le_pi _ hm₂
+    rw [hsplit, Measure.bind_apply (h₁'.inter h₂') hker]
+    calc ∫⁻ η, γ Λ η (A₁ ∩ A₂) ∂μ₀
+        = ∫⁻ η, A₂.indicator 1 η * μ₀ A₁ ∂μ₀ := by
+          refine lintegral_congr fun η ↦ ?_
+          rw [γ.isProper.inter_eq_indicator_mul Λ h₁' hm₂ η, h₀ Λ η hm₁]
+      _ = μ₀ A₁ * μ₀ A₂ := by
+          rw [lintegral_mul_const' _ _ (by simp), lintegral_indicator_one h₂']
+          ring
+      _ = μ₀ (A₁ ∩ A₂) :=
+          ((ProbabilityTheory.Indep_iff _ _ _).1 (hindep Λ) A₁ A₂ hm₁ hm₂).symm
+
+end HasFreeMeasureTheorems
 
 /-- On events measurable inside the finite volume `Λ`, the independent kernel with any boundary
 condition `η` gives the same mass as the infinite product measure `ν^S`. -/

@@ -6,6 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Specification.Extremal
+public import GibbsMeasure.Specification.InhomogeneousReference
 public import GibbsMeasure.Specification.Structure
 public import Mathlib.Probability.Independence.ZeroOne
 public import Mathlib.Probability.Independence.InfinitePi
@@ -111,6 +112,27 @@ by Kolmogorov's zero–one law (`isTailTrivial_infinitePi`). -/
 theorem infinitePi_mem_extremePoints_G_isssd (ν : Measure E) [IsProbabilityMeasure ν] :
     (Measure.infinitePi fun _ : S ↦ ν) ∈ (G (isssd (S := S) ν)).extremePoints ENNReal := by
   rw [G_isssd_eq_singleton, extremePoints_singleton]
+  rfl
+
+open Specification in
+/-- **Georgii Example (7.14), inhomogeneous form.**  `𝒢(λ_·) = {⨂ i, ν i}` for the independent
+specification built from a site-dependent family of a priori measures. -/
+theorem G_isssdFamily_eq_singleton (ν : S → Measure E) [∀ i, IsProbabilityMeasure (ν i)] :
+    G (isssdFamily (S := S) ν) = {Measure.infinitePi ν} := by
+  ext μ
+  rw [G.mem_iff, Set.mem_singleton_iff]
+  refine ⟨fun ⟨_, hg⟩ ↦ (isGibbsMeasure_isssdFamily_iff ν μ).1 hg, ?_⟩
+  rintro rfl
+  exact ⟨inferInstance, (isGibbsMeasure_isssdFamily_iff ν _).2 rfl⟩
+
+open Specification in
+/-- **Georgii Example (7.14), inhomogeneous form.**  `⨂ i, ν i` is an extreme Gibbs measure of the
+inhomogeneous independent specification, being its unique one; its tail triviality is
+`isTailTrivial_infinitePi`, which needs neither countability of `S` nor the specification. -/
+theorem infinitePi_mem_extremePoints_G_isssdFamily (ν : S → Measure E)
+    [∀ i, IsProbabilityMeasure (ν i)] :
+    Measure.infinitePi ν ∈ (G (isssdFamily (S := S) ν)).extremePoints ENNReal := by
+  rw [G_isssdFamily_eq_singleton, extremePoints_singleton]
   rfl
 
 end MeasureTheory.GibbsMeasure
