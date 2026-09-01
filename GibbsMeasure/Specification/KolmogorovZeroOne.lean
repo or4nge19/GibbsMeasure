@@ -25,8 +25,10 @@ distributions given `𝓣`.
 
 @[expose] public section
 
-open Filter MeasureTheory MeasureTheory.GibbsMeasure ProbabilityTheory
+open Filter MeasureTheory ProbabilityTheory
 open scoped ENNReal
+
+namespace MeasureTheory.GibbsMeasure
 
 variable {S E : Type*} [MeasurableSpace E]
 
@@ -85,3 +87,5 @@ theorem forall_tail_measure_eq_zero_or_one_infinitePi (μs : S → Measure E)
 theorem isTailTrivial_infinitePi (μs : S → Measure E) [∀ i, IsProbabilityMeasure (μs i)] :
     IsTailTrivial (⟨Measure.infinitePi μs, inferInstance⟩ : ProbabilityMeasure (S → E)) :=
   fun _A hA ↦ forall_tail_measure_eq_zero_or_one_infinitePi μs hA
+
+end MeasureTheory.GibbsMeasure

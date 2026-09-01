@@ -26,8 +26,10 @@ guarded conclusions there are false in Georgii's setting, not merely unprovable 
 
 @[expose] public section
 
-open Filter MeasureTheory MeasureTheory.GibbsMeasure ProbabilityTheory Set
+open Filter MeasureTheory ProbabilityTheory Set
 open scoped ENNReal
+
+namespace MeasureTheory.GibbsMeasure
 
 variable {S E : Type*} [MeasurableSpace E] {ω : S → E}
 
@@ -198,3 +200,5 @@ theorem not_ae_forall_tailKernel_apply_eq_indicator
     rw [hω2 _ hA, Set.indicator_of_mem (self_mem_eventualAgreementClass ω)]
   rw [hω1, infinitePi_eventualAgreementClass_eq_zero hc hc1 ω] at h1
   exact zero_ne_one h1
+
+end MeasureTheory.GibbsMeasure

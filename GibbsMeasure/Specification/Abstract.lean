@@ -9,7 +9,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.TrivialOn
 public import GibbsMeasure.Mathlib.Order.Cofinal
 public import GibbsMeasure.Mathlib.Probability.Kernel.InvariantSigmaAlgebra
 public import GibbsMeasure.Mathlib.Probability.ConditionalProbability
-public import GibbsMeasure.Specification.PAKernel
+public import GibbsMeasure.Specification.Structure
 public import Mathlib.Analysis.Convex.Extreme
 public import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
 public import Mathlib.MeasureTheory.Measure.Restrict
@@ -52,6 +52,23 @@ open MeasureTheory ProbabilityTheory Set Filter
 open scoped ENNReal
 
 namespace MeasureTheory.GibbsMeasure
+
+/-! ### Measures trivial on a sub-σ-algebra -/
+
+/-- The measures that are trivial (0-1 valued) on the sub-σ-algebra `𝒜`. Georgii's `P_𝒜` is
+`P ∩ trivialOn 𝒜`. -/
+def trivialOn {Ω : Type*} [m : MeasurableSpace Ω] (𝒜 : MeasurableSpace Ω) :
+    Set (Measure[m] Ω) :=
+  {μ | ∀ A, MeasurableSet[𝒜] A → μ A = 0 ∨ μ A = 1}
+
+lemma mem_trivialOn {Ω : Type*} {𝒜 : MeasurableSpace Ω} [m : MeasurableSpace Ω]
+    {μ : Measure[m] Ω} :
+    μ ∈ trivialOn 𝒜 ↔ ∀ A, MeasurableSet[𝒜] A → μ A = 0 ∨ μ A = 1 := Iff.rfl
+
+/-- Tail-triviality (`IsTailTrivial`) is `trivialOn` for the tail σ-algebra. -/
+lemma isTailTrivial_iff_mem_trivialOn {S E : Type*} [MeasurableSpace E]
+    (μ : ProbabilityMeasure (S → E)) :
+    IsTailTrivial μ ↔ (μ : Measure (S → E)) ∈ trivialOn (tailSigmaAlgebra S E) := Iff.rfl
 
 /-! ### Auxiliary lemmas -/
 

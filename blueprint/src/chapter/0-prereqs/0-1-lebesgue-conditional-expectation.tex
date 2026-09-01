@@ -91,14 +91,14 @@ Let $(X, \MCX)$ be a measurable space, let $\MCB$ be a sub $\sigma$-algebra of $
 \begin{theorem}[Blackwell--Dubins: no proper tail conditional distribution]
     \label{thm:pre-blackwell-dubins}
     \uses{thm:pre-cg-mod-null}
-    \lean{eventualAgreementClass,
-      measurableSet_tail_eventualAgreementClass,
-      infinitePi_eventualAgreementClass_eq_zero,
-      tailSigmaAlgebra_eq_limsup_cofinite,
+    \lean{MeasureTheory.GibbsMeasure.eventualAgreementClass,
+      MeasureTheory.GibbsMeasure.measurableSet_tail_eventualAgreementClass,
+      MeasureTheory.GibbsMeasure.infinitePi_eventualAgreementClass_eq_zero,
+      MeasureTheory.GibbsMeasure.tailSigmaAlgebra_eq_limsup_cofinite,
       MeasureTheory.GibbsMeasure.forall_tail_measure_eq_zero_or_one_infinitePi,
-      tailKernel_apply_ae_eq_measure,
-      ae_tailKernel_eq_self,
-      not_ae_forall_tailKernel_apply_eq_indicator}
+      MeasureTheory.GibbsMeasure.tailKernel_apply_ae_eq_measure,
+      MeasureTheory.GibbsMeasure.ae_tailKernel_eq_self,
+      MeasureTheory.GibbsMeasure.not_ae_forall_tailKernel_apply_eq_indicator}
     \leanok
 
     Let $\mu = \bigotimes_i \mu_i$ be an independent product over an infinite countable site set

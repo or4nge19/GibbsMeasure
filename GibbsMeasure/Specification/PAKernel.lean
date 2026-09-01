@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Specification.Abstract
 public import GibbsMeasure.Specification.ChoquetLaw
 public import GibbsMeasure.Specification.Structure
 
@@ -26,21 +27,6 @@ namespace MeasureTheory.GibbsMeasure
 
 -- `𝒜` is declared before the ambient `m` so that `m` is the default instance on `Ω`.
 variable {Ω : Type*} {𝒜 : MeasurableSpace Ω} [m : MeasurableSpace Ω]
-
-/-- The measures that are trivial (0-1 valued) on the sub-σ-algebra `𝒜`. Georgii's `P_𝒜` is
-`P ∩ trivialOn 𝒜`. -/
-def trivialOn (𝒜 : MeasurableSpace Ω) : Set (Measure[m] Ω) :=
-  {μ | ∀ A, MeasurableSet[𝒜] A → μ A = 0 ∨ μ A = 1}
-
-omit m in
-lemma mem_trivialOn [m : MeasurableSpace Ω] {μ : Measure[m] Ω} :
-    μ ∈ trivialOn 𝒜 ↔ ∀ A, MeasurableSet[𝒜] A → μ A = 0 ∨ μ A = 1 := Iff.rfl
-
-omit m in
-/-- Tail-triviality (`IsTailTrivial`) is `trivialOn` for the tail σ-algebra. -/
-lemma isTailTrivial_iff_mem_trivialOn {S E : Type*} [MeasurableSpace E]
-    (μ : ProbabilityMeasure (S → E)) :
-    IsTailTrivial μ ↔ (μ : Measure (S → E)) ∈ trivialOn (tailSigmaAlgebra S E) := Iff.rfl
 
 /-- Georgii Definition (7.21): a `(P, 𝒜)`-kernel is a probability kernel from `(Ω, 𝒜)` to
 `(Ω, m)` which is a version of `μ(· | 𝒜)` for every `μ ∈ P`, and whose values lie in `P`
