@@ -422,12 +422,23 @@ subgroup of the transformation group, as Georgii's footnote licenses: ergodic �
 the density of an absolutely continuous invariant measure is `𝓘`-measurable, `μ ∈ 𝓟_Θ` is
 determined by its restriction to `𝓘`, and distinct ergodic measures are singular *on `𝓘`*.
 Ergodicity (14.6) is Mathlib's `ErgodicSMul`, not a second definition. Georgii's shift group is
-`shiftGroup S E`, an honest `Subgroup`.
+`shiftGroup S E`, an honest `Subgroup`. **Proposition (14.9)**, `𝓘 ⊆ 𝓣` mod `μ` for any group of
+transformations that moves every finite volume off itself (hence tail-trivial ⟹ ergodic), rests on
+a Borel–Cantelli lemma for an *infimum* of σ-algebras now in the Mathlib layer; **(14.14)**
+`𝒢_Θ(γ) = 𝒢(γ) ∩ 𝓟_Θ` and **Theorem (14.15)** follow in Georgii's own order — (c) `𝒢_Θ(γ)` is a
+face of `𝓟_Θ`, then (a) `ex 𝒢_Θ(γ) = 𝒢_Θ(γ) ∩ ex 𝓟_Θ` and (b) — with no shift-invariance of `γ`
+consumed by any proof (`GibbsMeasure/Specification/ErgodicGibbs.lean`). Of Appendix 14.A, the
+**ergodic maximal inequality (14.A6)** is proved (`GibbsMeasure/Mathlib/Dynamics/Ergodic/MaximalInequality.lean`):
+Georgii's `μ(sup_n |R_n f| > c) ≤ 3^d μ(|f|)/c` for increasing cubes in `ℤ^d`, as the instance of
+a Tempelman-type inequality over any additive group acting by measure-preserving maps, with the
+greedy Vitali selection a corollary of Mathlib's covering lemma. Mathlib has no pointwise ergodic
+theorem at all — not even for a single transformation — so the mean and individual theorems
+(14.A3), (14.A5), (14.A8) are being built on top of this.
 
 Not yet done: the inhomogeneous Ising chains of §6.1, Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Mermin–Wagner
-(9.20), the rest of Chapter 14 — the multidimensional ergodic theorem of Appendix 14.A, (14.7),
-(14.9)–(14.12), (14.15)–(14.25) — and Chapters 10–13 and 15–20 (Markov fields on trees,
+(9.20), the rest of Chapter 14 — the mean and individual ergodic theorems (14.A3)/(14.A5)/(14.A8),
+(14.7), (14.10)–(14.12), (14.16)–(14.25) — and Chapters 10–13 and 15–20 (Markov fields on trees,
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).
 
