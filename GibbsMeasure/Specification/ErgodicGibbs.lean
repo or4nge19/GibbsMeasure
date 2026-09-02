@@ -10,7 +10,6 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Measure.CountablyGeneratedModNu
 public import GibbsMeasure.Specification.Extremal
 public import GibbsMeasure.Topology.LocalConvergence
 public import Mathlib.MeasureTheory.Measure.MeasuredSets
-public import Mathlib.MeasureTheory.OuterMeasure.BorelCantelli
 
 /-!
 # Ergodic Gibbs measures (Georgii §14.1–14.2: (14.9), (14.14), (14.15))
