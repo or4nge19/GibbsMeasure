@@ -176,7 +176,8 @@ lemma Icc_le_prod_nsmul (m : ι → ℤ) {p q : ι → ℕ} (hp : ∀ k, 0 < p k
   intro m q hq hs
   by_cases hq1 : ∀ k, q k = 1
   · -- a single tile: a translate of `Δ`
-    have hΔ : Icc m (fun k ↦ m k + q k * p k - 1) = (Icc 0 fun k ↦ (p k : ℤ) - 1).image (· + m) := by
+    have hΔ : Icc m (fun k ↦ m k + q k * p k - 1)
+        = (Icc 0 fun k ↦ (p k : ℤ) - 1).image (· + m) := by
       rw [image_add_right_Icc, zero_add]
       congr 1
       ext k
@@ -243,7 +244,8 @@ lemma Icc_le_card_nsmul {m n : ι → ℤ} (hmn : m ≤ n) : a (Icc m n) ≤ #(I
     omega
   have key := ha.Icc_le_prod_nsmul m (p := fun _ ↦ 1) (q := fun k ↦ (n k + 1 - m k).toNat)
     (fun _ ↦ one_pos) hq
-  have e₁ : Icc m n = Icc m fun k ↦ m k + (((n k + 1 - m k).toNat : ℕ) : ℤ) * ((1 : ℕ) : ℤ) - 1 := by
+  have e₁ : Icc m n
+      = Icc m fun k ↦ m k + (((n k + 1 - m k).toNat : ℕ) : ℤ) * ((1 : ℕ) : ℤ) - 1 := by
     congr 1
     ext k
     have hk : m k ≤ n k := hmn k
@@ -274,7 +276,8 @@ lemma Icc_le_add_card_sub_nsmul_update_right {m n : ι → ℤ} (hmn : m ≤ n) 
     a (Icc m n) ≤ a (Icc m (update n k t)) + (#(Icc m n) - #(Icc m (update n k t))) • a {0} := by
   rcases htn.lt_or_eq with htn | rfl
   · have hcard : #(Icc m n) = #(Icc m (update n k t)) + #(Icc (update m k (t + 1)) n) := by
-      rw [Icc_eq_union_Icc_update m n k hmt htn.le, card_union_of_disjoint (disjoint_Icc_update m n k t)]
+      rw [Icc_eq_union_Icc_update m n k hmt htn.le,
+        card_union_of_disjoint (disjoint_Icc_update m n k t)]
     have hle : update m k (t + 1) ≤ n := fun i ↦ by
       by_cases hi : i = k
       · subst hi; simp; omega
@@ -348,20 +351,20 @@ lemma Icc_le_add_card_sub_nsmul {m m' n' n : ι → ℤ} (hmm' : m ≤ m') (hm'n
       rw [e₁, e₂]
       have hup : update ns k (n' k) ≤ ns := fun i ↦ by
         by_cases hi : i = k
-        · subst hi; simp [hns_k]; exact hn'n _
+        · subst hi; simp only [update_self, hns_k]; exact hn'n _
         · rw [update_of_ne hi]
       have hlow : ms ≤ update ms k (m' k) := fun i ↦ by
         by_cases hi : i = k
-        · subst hi; simp [hms_k]; exact hmm' _
+        · subst hi; simp only [update_self, hms_k]; exact hmm' _
         · rw [update_of_ne hi]
       have hmsup : ms ≤ update ns k (n' k) := fun i ↦ by
         by_cases hi : i = k
-        · subst hi; simp [hms_k]; exact (hmm' _).trans (hm'n' _)
+        · subst hi; simp only [update_self, hms_k]; exact (hmm' _).trans (hm'n' _)
         · rw [update_of_ne hi]; exact hmsns i
       have t₁ := ha.Icc_le_add_card_sub_nsmul_update_right hmsns k (t := n' k)
         (by rw [hms_k]; exact (hmm' k).trans (hm'n' k)) (by rw [hns_k]; exact hn'n k)
       have t₂ := ha.Icc_le_add_card_sub_nsmul_update_left hmsup k (s := m' k)
-        (by rw [hms_k]; exact hmm' k) (by simp; exact hm'n' k)
+        (by rw [hms_k]; exact hmm' k) (by simp only [update_self]; exact hm'n' k)
       refine le_add_card_sub_nsmul_trans (card_le_card (Icc_subset_Icc hms_le hns_le))
         (card_le_card (Icc_subset_Icc hlow hup)) ih ?_
       exact le_add_card_sub_nsmul_trans (card_le_card (Icc_subset_Icc le_rfl hup))
@@ -407,10 +410,10 @@ lemma Icc_le_nsmul_add_nsmul {m n : ι → ℤ} {p : ι → ℕ} (hp : ∀ k, 0 
 
 end BoxSubadditive
 
-omit [DecidableEq ι] in
+omit [Fintype ι] [DecidableEq ι] in
 /-- If all side lengths of the boxes `Icc (m j) (n j)` tend to infinity, then eventually
 `m j ≤ n j`. -/
-private lemma eventually_le_of_tendsto_sub {κ : Type*} {l : Filter κ} {m n : κ → ι → ℤ}
+private lemma eventually_le_of_tendsto_sub [Finite ι] {κ : Type*} {l : Filter κ} {m n : κ → ι → ℤ}
     (h : ∀ k, Tendsto (fun j ↦ n j k - m j k) l atTop) : ∀ᶠ j in l, m j ≤ n j :=
   eventually_all.2 fun k ↦ ((h k).eventually_ge_atTop 0).mono fun _ hj ↦ by
     simpa [sub_nonneg] using hj

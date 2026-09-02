@@ -2955,9 +2955,9 @@ lemma isPiSystem_centredCylinders (c : ℤ) : IsPiSystem (centredCylinders (E :=
     · intro k hk
       rw [h k ⟨by omega, by omega⟩, ← hτ₂ k hk]
 
-omit [DecidableEq E] in
+omit [Fintype E] [DecidableEq E] in
 /-- The centred interval cylinders generate the product σ-algebra on `ℤ → E`. -/
-lemma generateFrom_centredCylinders (c : ℤ) :
+lemma generateFrom_centredCylinders [Countable E] (c : ℤ) :
     (inferInstance : MeasurableSpace (ℤ → E))
       = MeasurableSpace.generateFrom (centredCylinders (E := E) c) := by
   refine le_antisymm ?_ (MeasurableSpace.generateFrom_le ?_)
@@ -2995,10 +2995,10 @@ lemma generateFrom_centredCylinders (c : ℤ) :
   · rintro S ⟨a, b, σ, -, -, rfl⟩
     exact measurableSet_intervalCylinder a b σ
 
-omit [DecidableEq E] in
-/-- Two probability measures on `ℤ → E` agreeing on all interval cylinders whose interval contains
-a fixed site `c` in its interior are equal. -/
-lemma ext_of_centredCylinders {μ₁ μ₂ : Measure (ℤ → E)} [IsProbabilityMeasure μ₁]
+omit [Fintype E] [DecidableEq E] in
+/-- Two probability measures on `ℤ → E`, agreeing on all interval cylinders whose
+interval contains a fixed site `c` in its interior are equal. -/
+lemma ext_of_centredCylinders [Countable E] {μ₁ μ₂ : Measure (ℤ → E)} [IsProbabilityMeasure μ₁]
     [IsProbabilityMeasure μ₂] (c : ℤ)
     (h : ∀ a b : ℤ, a < c → c < b → ∀ σ : ℤ → E,
       μ₁ (intervalCylinder a b σ) = μ₂ (intervalCylinder a b σ)) :
@@ -3007,6 +3007,17 @@ lemma ext_of_centredCylinders {μ₁ μ₂ : Measure (ℤ → E)} [IsProbability
     (isPiSystem_centredCylinders c)
     (by rintro S ⟨a, b, σ, ha, hb, rfl⟩; exact h a b ha hb σ)
     (by rw [measure_univ, measure_univ])
+
+omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
+lemma intervalCylinder_eq_preimage (a b : ℤ) (σ : ℤ → E) :
+    intervalCylinder a b σ = (Finset.Icc a b).restrict ⁻¹'
+      ({(Finset.Icc a b).restrict σ} : Set (↥(Finset.Icc a b) → E)) := by
+  ext τ
+  constructor
+  · intro h
+    exact funext fun k ↦ h k k.2
+  · intro h k hk
+    exact congrFun h ⟨k, hk⟩
 
 end Cylinders
 
@@ -3080,15 +3091,22 @@ lemma pairwise_disjoint_intervalCylinder_update {a b i : ℤ} (hi : i ∈ Finset
   rw [Function.update_self] at h1 h2
   exact hyy' (h1.symm.trans h2)
 
+omit [Fintype E] [DecidableEq E] [Nonempty E] in
+/-- The measure of a punctured cylinder is the sum over the free coordinate. -/
+lemma measure_puncturedCylinder_tsum [Countable E] (μ : Measure (ℤ → E)) {a b i : ℤ}
+    (hi : i ∈ Finset.Icc a b) (σ : ℤ → E) :
+    μ (puncturedCylinder a b i σ)
+      = ∑' y : E, μ (intervalCylinder a b (Function.update σ i y)) := by
+  rw [puncturedCylinder_eq_iUnion, measure_iUnion (pairwise_disjoint_intervalCylinder_update hi σ)
+    fun y ↦ measurableSet_intervalCylinder a b _]
+
 omit [DecidableEq E] [Nonempty E] in
 /-- The measure of a punctured cylinder is the sum of the measures of the interval cylinders
 obtained by filling in the free coordinate. -/
 lemma measure_puncturedCylinder (μ : Measure (ℤ → E)) {a b i : ℤ} (hi : i ∈ Finset.Icc a b)
     (σ : ℤ → E) :
     μ (puncturedCylinder a b i σ) = ∑ y : E, μ (intervalCylinder a b (Function.update σ i y)) := by
-  rw [puncturedCylinder_eq_iUnion, measure_iUnion
-    (pairwise_disjoint_intervalCylinder_update hi σ)
-    (fun y ↦ measurableSet_intervalCylinder a b _), tsum_fintype]
+  rw [measure_puncturedCylinder_tsum μ hi σ, tsum_fintype]
 
 end Punctured
 

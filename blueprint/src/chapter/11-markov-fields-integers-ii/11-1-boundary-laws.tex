@@ -1,0 +1,144 @@
+\section{Boundary laws, uniqueness, and non-existence}
+
+Throughout this section $S = \mathbb{Z}$, $E$ is a countable non-empty set with the discrete
+$\sigma$-algebra, and the a priori measure $\lambda$ is counting measure on $E$. A matrix
+$Q = (Q(x,y))_{x,y \in E}$ with entries in $[0,\infty]$ is the kernel $x \mapsto Q(x,\cdot)\lambda$
+on $E$; its powers $Q^n$ are the powers of this kernel.
+
+\begin{definition}[Positive matrix with finite powers, Georgii (11.1)]
+    \label{def:bl-transfer-matrix}
+    \lean{MeasureTheory.GibbsMeasure.Markov.IsTransferMatrix}
+    \leanok
+
+    A matrix $Q$ on $E$ is a \textbf{transfer matrix} if $Q(x,y) > 0$ for all $x, y \in E$ and
+    \[
+        Q^n(x,y) < \infty \qquad (x, y \in E,\ n \geq 1). \tag{11.1}
+    \]
+\end{definition}
+
+\begin{definition}[The specification $\gamma^Q$, Georgii (11.2)--(11.3)]
+    \label{def:bl-transfer-spec}
+    \uses{def:bl-transfer-matrix, def:mkv-pos-hom-markov, def:premodif}
+    \lean{MeasureTheory.GibbsMeasure.Markov.transferWeight, MeasureTheory.GibbsMeasure.Markov.transferSpecification}
+    \leanok
+
+    Let $Q$ be a transfer matrix. For $\Lambda \in \mathcal S$ and $\sigma \in \Cfg$ put
+    $\rho^Q_\Lambda(\sigma) = \prod_{j} Q(\sigma_j, \sigma_{j+1})$, the product over the bonds
+    $\set{j, j+1}$ meeting $\Lambda$. Then $\rho^Q$ is a $\lambda$-admissible pre-modification, and
+    $\gamma^Q = \rho^Q \lambda$ is its $\lambda$-specification, a positive homogeneous Markov
+    specification.
+\end{definition}
+
+\begin{proposition}[Georgii (11.2)]
+    \label{prop:bl-11-2}
+    \uses{def:bl-transfer-spec}
+    \lean{MeasureTheory.GibbsMeasure.Markov.sigmaFiniteLambdaZ_transferWeight_Icc, MeasureTheory.GibbsMeasure.Markov.transferSpecification_Icc_apply_intervalCylinder}
+    \leanok
+
+    For $a \leq b$, $\Lambda = [a,b]$ and $\omega \in \Cfg$, the partition function is
+    $Z_\Lambda(\omega) = Q^{b-a+2}(\omega_{a-1}, \omega_{b+1})$ and
+    \[
+        \gamma^Q_\Lambda(\sigma_\Lambda = \omega_\Lambda \mid \omega)
+        = \Bigl[\prod_{j=a}^{b+1} Q(\omega_{j-1}, \omega_j)\Bigr] \Big/ Q^{b-a+2}(\omega_{a-1}, \omega_{b+1}).
+    \]
+\end{proposition}
+\begin{proof}
+    \leanok
+    Induction on $b - a$: integrating the free coordinate $b$ against counting measure sums
+    $Q(\omega_{b-1}, \cdot)\,Q^{m}(\cdot, \omega_{b+1})$ to $Q^{m+1}(\omega_{b-1}, \omega_{b+1})$.
+\end{proof}
+
+\begin{proposition}[Georgii (11.3)]
+    \label{prop:bl-11-3}
+    \uses{def:bl-transfer-spec}
+    \lean{MeasureTheory.GibbsMeasure.Markov.transferSpecification_apply_cyl_union}
+    \leanok
+
+    If $\Lambda_1, \Lambda_2 \in \mathcal S$ have disjoint sets of bonds, then for all $\omega$
+    \[
+        \gamma^Q_{\Lambda_1 \cup \Lambda_2}(\sigma_{\Lambda_1 \cup \Lambda_2} = \omega_{\Lambda_1 \cup \Lambda_2} \mid \omega)
+        = \gamma^Q_{\Lambda_1}(\sigma_{\Lambda_1} = \omega_{\Lambda_1} \mid \omega)\,
+          \gamma^Q_{\Lambda_2}(\sigma_{\Lambda_2} = \omega_{\Lambda_2} \mid \omega).
+    \]
+\end{proposition}
+\begin{proof}
+    \leanok
+    The weight $\rho^Q_{\Lambda_1 \cup \Lambda_2}$ factorises, and so does the sum defining the
+    partition function.
+\end{proof}
+
+\begin{remark}[Georgii (11.4)]
+    \label{rmk:bl-11-4}
+    \uses{def:bl-transfer-spec, prop:bl-11-2}
+    \lean{MeasureTheory.GibbsMeasure.Markov.transferSpecification_eq_iff}
+    \leanok
+
+    Let $P$ and $Q$ be transfer matrices. Then $\gamma^P = \gamma^Q$ if and only if there are a
+    number $q \in \left]0,\infty\right[$ and a function $r \colon E \to \left]0,\infty\right[$ with
+    \[
+        P(x,y) = Q(x,y)\, r(y) / q\, r(x) \qquad (x, y \in E). \tag{11.5}
+    \]
+\end{remark}
+\begin{proof}
+    \leanok
+    If (11.5) holds the singleton kernels agree, hence the specifications, by Theorem (1.33).
+    Conversely the singleton kernels give $P(x,y)P(y,a)/P^2(x,a) = Q(x,y)Q(y,a)/Q^2(x,a)$; fix
+    $a$, put $q = Q(a,a)/P(a,a)$ and $r(x) = Q^2(x,a)/P^2(x,a)$.
+\end{proof}
+
+\begin{definition}[Boundary law, Georgii (11.8)]
+    \label{def:bl-boundary-law}
+    \uses{def:bl-transfer-matrix}
+    \lean{MeasureTheory.GibbsMeasure.Markov.IsBoundaryLaw}
+    \leanok
+
+    A \textbf{boundary law} for a transfer matrix $Q$ is a family
+    $\set{\ell_i, r_i : i \in \mathbb{Z}}$ of functions $E \to \left]0,\infty\right[$ with
+    \[
+        \ell_i Q = \ell_{i+1}, \qquad Q r_i = r_{i-1}, \qquad \ell_i r_i = 1 \qquad (i \in \mathbb{Z}),
+    \]
+    where $\ell_i Q(y) = \sum_x \ell_i(x) Q(x,y)$, $Q r_i(x) = \sum_y Q(x,y) r_i(y)$ and
+    $\ell_i r_i = \sum_x \ell_i(x) r_i(x)$.
+\end{definition}
+
+\begin{theorem}[Georgii (11.9)(a)]
+    \label{thm:bl-11-9a}
+    \uses{def:bl-boundary-law, def:bl-transfer-spec, def:gibbs-meas}
+    \lean{MeasureTheory.GibbsMeasure.Markov.boundaryLawMeasure, MeasureTheory.GibbsMeasure.Markov.IsBoundaryLaw.boundaryLawMeasure_intervalCylinder, MeasureTheory.GibbsMeasure.Markov.isGibbsMeasure_transferSpecification_boundaryLawMeasure}
+    \leanok
+
+    Let $Q$ be a transfer matrix and $\set{\ell_i, r_i}$ a boundary law for $Q$. There is a unique
+    probability measure $\mu$ on $\Cfg$ with
+    \[
+        \mu(\sigma_a = x_a, \dots, \sigma_b = x_b)
+        = \ell_a(x_a)\, Q(x_a, x_{a+1}) \cdots Q(x_{b-1}, x_b)\, r_b(x_b)
+        \qquad (a \leq b,\ x_a, \dots, x_b \in E), \tag{11.10}
+    \]
+    and $\mu \in \mathcal G(\gamma^Q)$.
+\end{theorem}
+\begin{proof}
+    \uses{prop:bl-11-2, lem:gibbs-meas-tfae}
+    \leanok
+    The right-hand side of (11.10) defines a projective family of probability measures on the
+    intervals, by the three identities of Definition \ref{def:bl-boundary-law}; Kolmogorov's
+    extension theorem gives $\mu$, unique since the interval cylinders around a fixed site form a
+    generating $\pi$-system. By Theorem (1.33) for $\lambda$-specifications it suffices that
+    $\mu \gamma^Q_{\set{i}} = \mu$ for each $i$, which is checked on the interval cylinders
+    $[a,b] \ni i$ using Proposition \ref{prop:bl-11-2} for the singleton.
+\end{proof}
+
+\begin{proposition}[Chapter 3 as the finite-state case]
+    \label{prop:bl-finite-state}
+    \uses{def:bl-transfer-spec, def:mkv-specification, def:mkv-chain, thm:bl-11-9a}
+    \lean{MeasureTheory.GibbsMeasure.Markov.markovSpecification_eq_transferSpecification, MeasureTheory.GibbsMeasure.Markov.isBoundaryLaw_stationaryDist, MeasureTheory.GibbsMeasure.Markov.stationaryChain_eq_boundaryLawMeasure}
+    \leanok
+
+    Let $E$ be finite and $P$ a positive stochastic matrix. Then $\gamma_P = \gamma^P$, the
+    constant family $\ell_i = \alpha_P$, $r_i = 1$ is a boundary law for $P$, and the stationary
+    chain $\mu_P$ is its measure (11.10).
+\end{proposition}
+\begin{proof}
+    \leanok
+    The uniform a priori measure of Chapter 3 and counting measure define the same
+    $\lambda$-specification (Remark (1.28)(3)); the rest is Theorem (3.3).
+\end{proof}

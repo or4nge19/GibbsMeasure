@@ -457,11 +457,23 @@ of σ-algebras, and (15.7) as a supremum over finite partitions. Lemma **(15.11)
 `d` dimensions for translation-invariant box-subadditive functions, is the prerequisite of the
 specific entropy (15.12) and the pressure (15.30).
 
+**Chapter 11, first steps** (`GibbsMeasure/Model/BoundaryLaw.lean`,
+`GibbsMeasure/Mathlib/Probability/Kernel/CountableMatrix.lean`): sites `ℤ`, a *countable* state
+space, counting measure. A positive matrix `Q` with finite powers (11.1) is Mathlib's kernel
+`Kernel.ofMatrix Q`, its powers the powers in the monoid `Kernel E E`; Georgii's `γ^Q` is the
+λ-specification of counting measure with the bond weights, with (11.2) and (11.3) as theorems and
+**Remark (11.4)** — `γ^P = γ^Q` iff `P(x,y) = Q(x,y) r(y)/(q r(x))` — in both directions. A
+**boundary law** (11.8) is a pair of families of row and column vectors, and **Theorem (11.9)(a)**:
+the probability measure with the cylinder probabilities (11.10), built by Kolmogorov extension, is
+a Gibbs measure for `γ^Q`. Chapter 3 is the finite-state instance (`Q = P` stochastic, `ℓ_i = α_P`,
+`r_i = 1`). Georgii (1.33) is proved for the λ-specification of any σ-finite a priori measure on
+the way.
+
 Not yet done: the inhomogeneous Ising chains of §6.1, Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Mermin–Wagner
-(9.20), the rest of Chapter 14 — the mean and individual ergodic theorems (14.A3)/(14.A5)/(14.A8),
-(14.10)–(14.11), (14.16)–(14.18), (14.20)–(14.25) — the rest of Chapter 15 from (15.10) on, and Chapters
-10–13 and 16–20 (Markov fields on trees,
+(9.20), the rest of Chapter 14 — (14.10)–(14.11), (14.16)–(14.18), (14.20)–(14.25) — the rest of
+Chapter 15 from (15.10) on, Chapter 11 from (11.9)(b) on, and Chapters 10, 12–13 and 16–20 (Markov
+fields on the integers and on trees,
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).
 

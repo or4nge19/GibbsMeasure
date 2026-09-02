@@ -43,10 +43,10 @@ classification:
 
 status:
   scope: >-
-    Georgii Chapters 1-8, complete for the results listed under main_results, with the exceptions
-    recorded in fidelity.divergences. Of Chapters 9-20, only (14.5)(a) is formalized —
-    ergodicity of a group action is extremality (ergodicSMul_iff_mem_extremePoints), Georgii's
-    own reduction of Chapter 14's opening to Corollary (7.4); the rest of Chapters 9-20 is not.
+    Georgii Chapters 1-8, complete for the results listed under main_results. Of Chapters 9-20:
+    Chapter 14 (ergodicity) except (14.10)-(14.11), (14.16)-(14.18), (14.20)-(14.25); Section
+    15.1 (relative entropy) and Lemma (15.11); Section 11.1 up to Theorem (11.9)(a) (transfer
+    matrices, boundary laws, the Gibbs measure of a boundary law). The rest is not formalized.
   sorry_count: 0
   sorry_in_definitions: 0
   axioms: ["propext", "Classical.choice", "Quot.sound"]
@@ -705,6 +705,49 @@ alignment:
       lean: ""
       module: ""
       status: "not-formalized"
+    - source: "Section 11.1, displays (11.1)-(11.3): the transfer-matrix specification gamma^Q"
+      lean: "MeasureTheory.GibbsMeasure.Markov.transferSpecification"
+      module: "GibbsMeasure/Model/BoundaryLaw.lean"
+      status: "proved"
+      note: >-
+        S = Z, E countable, counting measure as a priori measure. A positive matrix Q with finite
+        powers (IsTransferMatrix, (11.1)) is the kernel Kernel.ofMatrix Q; gamma^Q is the
+        lambda-specification of counting measure with the bond weights prod Q(sigma_j, sigma_{j+1})
+        over the bonds meeting Lambda, a pre-modification (1.28)(5). (11.2) is
+        transferSpecification_Icc_apply_intervalCylinder, with the partition function of an
+        interval an entry of a power of Q (sigmaFiniteLambdaZ_transferWeight_Icc); (11.3) is
+        transferSpecification_apply_cyl_union for volumes with disjoint bond sets. Georgii (1.33)
+        for the lambda-specification of a sigma-finite a priori measure
+        (Specification.lambdaSpecification_isGibbsMeasure_iff_forall_singleton_bind_eq) is the
+        general tool.
+    - source: "Remark (11.4), display (11.5)"
+      lean: "MeasureTheory.GibbsMeasure.Markov.transferSpecification_eq_iff"
+      module: "GibbsMeasure/Model/BoundaryLaw.lean"
+      status: "proved"
+      note: >-
+        gamma^P = gamma^Q iff P(x,y) = Q(x,y) r(y) / (q r(x)) for a constant q in (0, infinity) and
+        a function r : E -> (0, infinity). Both directions, by Georgii's argument through the
+        singleton kernels.
+    - source: "Definition (11.8), boundary laws"
+      lean: "MeasureTheory.GibbsMeasure.Markov.IsBoundaryLaw"
+      module: "GibbsMeasure/Model/BoundaryLaw.lean"
+      status: "proved"
+      note: >-
+        Families l_i, r_i of positive finite row and column vectors with l_i Q = l_{i+1},
+        Q r_i = r_{i-1} and l_i r_i = 1: the row vectors are the measures l_i . count acting on the
+        kernel ofMatrix Q by Measure.bind, the column vectors are integrated against it.
+    - source: "Theorem (11.9)(a), display (11.10)"
+      lean: "MeasureTheory.GibbsMeasure.Markov.isGibbsMeasure_transferSpecification_boundaryLawMeasure"
+      module: "GibbsMeasure/Model/BoundaryLaw.lean"
+      status: "proved"
+      note: >-
+        The probability measure with the cylinder probabilities (11.10)
+        (boundaryLawMeasure, by Kolmogorov's extension theorem; boundaryLawMeasure_intervalCylinder
+        is (11.10) and eq_boundaryLawMeasure_of_forall_intervalCylinder its uniqueness) is a Gibbs
+        measure for gamma^Q. Chapter 3 is the finite-state instance:
+        markovSpecification_eq_transferSpecification and stationaryChain_eq_boundaryLawMeasure
+        (Q = P stochastic, l_i = alpha_P, r_i = 1). (11.9)(b), the converse for shift-invariant
+        Gibbs measures, and (11.11)-(11.19) are not formalized.
 
 acknowledgements: >-
   Builds on Mathlib. Kolmogorov extension material adapted from RemyDegenne/kolmogorov_extension4.

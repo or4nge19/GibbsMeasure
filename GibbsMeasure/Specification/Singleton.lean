@@ -7,6 +7,7 @@ module
 
 public import GibbsMeasure.Specification
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.WithDensity
+public import GibbsMeasure.Specification.Rescaling
 
 /-!
 # Georgii, Theorem (1.33): a specification is determined by its singleton part
@@ -327,6 +328,143 @@ theorem georgii_1_33 {ρ : S → (S → E) → ℝ≥0∞} (hρ : ∀ i, Measura
     fun _ _ ↦ isGibbsMeasure_iff_forall_eq_withDensity hlam hρ h0 htop hγ⟩
 
 end ISSSD
+
+/-! ## The λ-specification of a σ-finite a priori measure: Georgii (1.33) -/
+
+section SigmaFiniteLambda
+
+variable {S E : Type*} {mE : MeasurableSpace E} {ρ : Finset S → (S → E) → ℝ≥0∞}
+
+/-- `lambdaSpecification` only depends on the density family. -/
+lemma lambdaSpecification_congr (ν : Measure E) [SigmaFinite ν] [NeZero ν]
+    {ρ₁ ρ₂ : Finset S → (S → E) → ℝ≥0∞} (h : ρ₁ = ρ₂)
+    (hρ₁ : IsPremodifier (S := S) (E := E) ρ₁)
+    (hZ₁ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ₁)
+    (hρ₂ : IsPremodifier (S := S) (E := E) ρ₂)
+    (hZ₂ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ₂) :
+    lambdaSpecification (S := S) (E := E) ν ρ₁ hρ₁ hZ₁
+      = lambdaSpecification (S := S) (E := E) ν ρ₂ hρ₂ hZ₂ := by
+  subst h; rfl
+
+/-- **Georgii, Remark (1.28)(3) for λ-specifications.** The λ-specification of `ν` and `ρ` is the
+λ-specification of the rescaled a priori measure `r · ν` and the rescaled densities. -/
+theorem lambdaSpecification_eq_lambdaSpecification_withDensity (ν : Measure E) [SigmaFinite ν]
+    [NeZero ν] {r : E → ℝ≥0∞} (hr : Measurable r) (h0 : ∀ x, r x ≠ 0) (htop : ∀ x, r x ≠ ⊤)
+    [SigmaFinite (ν.withDensity r)] [NeZero (ν.withDensity r)]
+    (hρ : IsPremodifier (S := S) (E := E) ρ)
+    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ) :
+    lambdaSpecification (S := S) (E := E) ν ρ hρ hZ
+      = lambdaSpecification (S := S) (E := E) (ν.withDensity r) (rescale (S := S) (E := E) r ρ)
+          (isPremodifier_rescale (S := S) (E := E) hr h0 htop hρ)
+          ((isSigmaFiniteLambdaAdmissible_rescale (S := S) (E := E) ν hr h0 htop
+            hρ.measurable).2 hZ) := by
+  refine Specification.ext fun Λ ↦ ?_
+  rw [coe_lambdaSpecification, coe_lambdaSpecification, sigmaFinitePremodifierKernel,
+    sigmaFinitePremodifierKernel,
+    modificationKer_sigmaFiniteLambdaFun_of_withDensity (S := S) (E := E) ν
+      (ν.withDensity r) hr h0 htop rfl hρ.measurable
+      (sigmaFinitePremodifierNorm_measurable (S := S) (E := E)
+        (ρ := rescale (S := S) (E := E) r ρ) (ν.withDensity r)
+        (isPremodifier_rescale (S := S) (E := E) hr h0 htop hρ))
+      (sigmaFinitePremodifierNorm_measurable (S := S) (E := E) (ρ := ρ) ν hρ)]
+
+/-- The singleton kernels of a λ-specification as density changes of the independent
+specification of the rescaled probability measure `r · ν`. -/
+lemma lambdaSpecification_singleton_eq_isssd_withDensity (ν : Measure E) [SigmaFinite ν]
+    [NeZero ν] {r : E → ℝ≥0∞} (hr : Measurable r) (h0 : ∀ x, r x ≠ 0) (htop : ∀ x, r x ≠ ⊤)
+    [IsProbabilityMeasure (ν.withDensity r)] (hρ : IsPremodifier (S := S) (E := E) ρ)
+    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ) (i : S) (η : S → E) :
+    lambdaSpecification (S := S) (E := E) ν ρ hρ hZ {i} η
+      = (isssd (S := S) (E := E) (ν.withDensity r) {i} η).withDensity
+        (premodifierNorm (S := S) (E := E) (ν.withDensity r)
+          (rescale (S := S) (E := E) r ρ) {i}) := by
+  rw [lambdaSpecification_eq_lambdaSpecification_withDensity (S := S) (E := E) ν hr h0 htop hρ hZ,
+    lambdaSpecification_eq_modification_isssd, modification_apply]
+
+lemma premodifierNorm_rescale_ne_zero (ν : Measure E) [SigmaFinite ν] {r : E → ℝ≥0∞}
+    (hr : Measurable r) (h0 : ∀ x, r x ≠ 0) (htop : ∀ x, r x ≠ ⊤)
+    [IsProbabilityMeasure (ν.withDensity r)] (hρ : IsPremodifier (S := S) (E := E) ρ)
+    (hρ0 : ∀ Λ ω, ρ Λ ω ≠ 0)
+    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ) (Λ : Finset S) (ω : S → E) :
+    premodifierNorm (S := S) (E := E) (ν.withDensity r) (rescale (S := S) (E := E) r ρ) Λ ω
+      ≠ 0 := by
+  have hZ' := (isSigmaFiniteLambdaAdmissible_rescale (S := S) (E := E) ν hr h0 htop
+    hρ.measurable).2 hZ
+  rw [premodifierNorm_eq_sigmaFinitePremodifierNorm, sigmaFinitePremodifierNorm, rescale_apply]
+  refine (ENNReal.div_pos_iff.2 ⟨?_, hZ'.ne_top _ _⟩).ne'
+  exact (ENNReal.div_pos_iff.2 ⟨hρ0 _ _,
+    lambdaWeight_ne_top (S := S) (E := E) (fun _ ↦ htop) _ _⟩).ne'
+
+lemma premodifierNorm_rescale_ne_top (ν : Measure E) [SigmaFinite ν] {r : E → ℝ≥0∞}
+    (hr : Measurable r) (h0 : ∀ x, r x ≠ 0) (htop : ∀ x, r x ≠ ⊤)
+    [IsProbabilityMeasure (ν.withDensity r)] (hρ : IsPremodifier (S := S) (E := E) ρ)
+    (hρtop : ∀ Λ ω, ρ Λ ω ≠ ⊤)
+    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ) (Λ : Finset S) (ω : S → E) :
+    premodifierNorm (S := S) (E := E) (ν.withDensity r) (rescale (S := S) (E := E) r ρ) Λ ω
+      ≠ ⊤ := by
+  have hZ' := (isSigmaFiniteLambdaAdmissible_rescale (S := S) (E := E) ν hr h0 htop
+    hρ.measurable).2 hZ
+  rw [premodifierNorm_eq_sigmaFinitePremodifierNorm, sigmaFinitePremodifierNorm, rescale_apply]
+  intro h
+  rcases ENNReal.div_eq_top.1 h with ⟨-, h⟩ | ⟨h, -⟩
+  · exact hZ'.ne_zero _ _ h
+  · rcases ENNReal.div_eq_top.1 h with ⟨-, h⟩ | ⟨h, -⟩
+    · exact lambdaWeight_ne_zero (S := S) (E := E) (fun _ ↦ h0) _ _ h
+    · exact hρtop _ _ h
+
+lemma measurable_premodifierNorm_rescale (ν : Measure E) [SigmaFinite ν] {r : E → ℝ≥0∞}
+    (hr : Measurable r) (h0 : ∀ x, r x ≠ 0) (htop : ∀ x, r x ≠ ⊤)
+    [IsProbabilityMeasure (ν.withDensity r)] (hρ : IsPremodifier (S := S) (E := E) ρ)
+    (Λ : Finset S) :
+    Measurable (premodifierNorm (S := S) (E := E) (ν.withDensity r)
+      (rescale (S := S) (E := E) r ρ) Λ) := by
+  rw [premodifierNorm_eq_sigmaFinitePremodifierNorm]
+  exact sigmaFinitePremodifierNorm_measurable (S := S) (E := E) (ν.withDensity r)
+    (isPremodifier_rescale (S := S) (E := E) hr h0 htop hρ) _
+
+/-- **Georgii (1.33) for the λ-specification of a σ-finite a priori measure.** For a positive
+finite pre-modification `ρ` admissible for a σ-finite non-zero `ν`, a probability measure `μ` is
+a Gibbs measure for `ρλ_·` iff it is invariant under the singleton kernels `ρ_{i} λ_{i}`. -/
+theorem lambdaSpecification_isGibbsMeasure_iff_forall_singleton_bind_eq
+    (ν : Measure E) [SigmaFinite ν] [NeZero ν] (hρ : IsPremodifier (S := S) (E := E) ρ)
+    (h0 : ∀ Λ ω, ρ Λ ω ≠ 0) (htop : ∀ Λ ω, ρ Λ ω ≠ ⊤)
+    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
+    {μ : Measure (S → E)} [IsProbabilityMeasure μ] :
+    (lambdaSpecification (S := S) (E := E) ν ρ hρ hZ).IsGibbsMeasure μ
+      ↔ ∀ i, μ.bind (lambdaSpecification (S := S) (E := E) ν ρ hρ hZ {i}) = μ := by
+  classical
+  obtain ⟨r, hr, hr0, hrtop, hprob⟩ :=
+    Measure.exists_measurable_pos_isProbabilityMeasure_withDensity ν
+  exact isGibbsMeasure_iff_forall_singleton_bind_eq
+    (lam := isssd (S := S) (E := E) (ν.withDensity r))
+    ((isStronglyConsistent_isssd (S := S) (E := E) (ν.withDensity r)).isDisjointlyConsistent)
+    (fun i ↦ measurable_premodifierNorm_rescale (S := S) (E := E) ν hr hr0 hrtop hρ {i})
+    (fun i ω ↦ premodifierNorm_rescale_ne_zero (S := S) (E := E) ν hr hr0 hrtop hρ h0 hZ {i} ω)
+    (fun i ω ↦ premodifierNorm_rescale_ne_top (S := S) (E := E) ν hr hr0 hrtop hρ htop hZ {i} ω)
+    (fun i η ↦ lambdaSpecification_singleton_eq_isssd_withDensity (S := S) (E := E) ν hr hr0
+      hrtop hρ hZ i η)
+
+/-- **Georgii (1.33), uniqueness, for the λ-specification of a σ-finite a priori measure.** A
+specification with the singleton kernels of `ρλ_·` is `ρλ_·`. -/
+theorem eq_lambdaSpecification_of_forall_singleton_eq
+    (ν : Measure E) [SigmaFinite ν] [NeZero ν] (hρ : IsPremodifier (S := S) (E := E) ρ)
+    (h0 : ∀ Λ ω, ρ Λ ω ≠ 0) (htop : ∀ Λ ω, ρ Λ ω ≠ ⊤)
+    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ) {γ' : Specification S E}
+    (hγ' : ∀ i, γ' {i} = lambdaSpecification (S := S) (E := E) ν ρ hρ hZ {i}) :
+    γ' = lambdaSpecification (S := S) (E := E) ν ρ hρ hZ := by
+  classical
+  obtain ⟨r, hr, hr0, hrtop, hprob⟩ :=
+    Measure.exists_measurable_pos_isProbabilityMeasure_withDensity ν
+  exact eq_of_forall_singleton_eq
+    (lam := isssd (S := S) (E := E) (ν.withDensity r))
+    ((isStronglyConsistent_isssd (S := S) (E := E) (ν.withDensity r)).isDisjointlyConsistent)
+    (fun i ↦ measurable_premodifierNorm_rescale (S := S) (E := E) ν hr hr0 hrtop hρ {i})
+    (fun i ω ↦ premodifierNorm_rescale_ne_zero (S := S) (E := E) ν hr hr0 hrtop hρ h0 hZ {i} ω)
+    (fun i ω ↦ premodifierNorm_rescale_ne_top (S := S) (E := E) ν hr hr0 hrtop hρ htop hZ {i} ω)
+    (fun i η ↦ lambdaSpecification_singleton_eq_isssd_withDensity (S := S) (E := E) ν hr hr0
+      hrtop hρ hZ i η) hγ'
+
+end SigmaFiniteLambda
 
 end Specification
 

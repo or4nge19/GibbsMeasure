@@ -57,143 +57,6 @@ open scoped ENNReal
 
 noncomputable section
 
-/-! ## The λ-specification of a σ-finite a priori measure: Georgii (1.33) -/
-
-namespace Specification
-
-variable {S E : Type*} {mE : MeasurableSpace E} {ρ : Finset S → (S → E) → ℝ≥0∞}
-
-/-- `lambdaSpecification` only depends on the density family. -/
-lemma lambdaSpecification_congr (ν : Measure E) [SigmaFinite ν] [NeZero ν]
-    {ρ₁ ρ₂ : Finset S → (S → E) → ℝ≥0∞} (h : ρ₁ = ρ₂)
-    (hρ₁ : IsPremodifier (S := S) (E := E) ρ₁)
-    (hZ₁ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ₁)
-    (hρ₂ : IsPremodifier (S := S) (E := E) ρ₂)
-    (hZ₂ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ₂) :
-    lambdaSpecification (S := S) (E := E) ν ρ₁ hρ₁ hZ₁
-      = lambdaSpecification (S := S) (E := E) ν ρ₂ hρ₂ hZ₂ := by
-  subst h; rfl
-
-/-- **Georgii, Remark (1.28)(3) for λ-specifications.** The λ-specification of `ν` and `ρ` is the
-λ-specification of the rescaled a priori measure `r · ν` and the rescaled densities. -/
-theorem lambdaSpecification_eq_lambdaSpecification_withDensity (ν : Measure E) [SigmaFinite ν]
-    [NeZero ν] {r : E → ℝ≥0∞} (hr : Measurable r) (h0 : ∀ x, r x ≠ 0) (htop : ∀ x, r x ≠ ⊤)
-    [SigmaFinite (ν.withDensity r)] [NeZero (ν.withDensity r)]
-    (hρ : IsPremodifier (S := S) (E := E) ρ)
-    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ) :
-    lambdaSpecification (S := S) (E := E) ν ρ hρ hZ
-      = lambdaSpecification (S := S) (E := E) (ν.withDensity r) (rescale (S := S) (E := E) r ρ)
-          (isPremodifier_rescale (S := S) (E := E) hr h0 htop hρ)
-          ((isSigmaFiniteLambdaAdmissible_rescale (S := S) (E := E) ν hr h0 htop
-            hρ.measurable).2 hZ) := by
-  refine Specification.ext fun Λ ↦ ?_
-  rw [coe_lambdaSpecification, coe_lambdaSpecification, sigmaFinitePremodifierKernel,
-    sigmaFinitePremodifierKernel,
-    modificationKer_sigmaFiniteLambdaFun_of_withDensity (S := S) (E := E) ν
-      (ν.withDensity r) hr h0 htop rfl hρ.measurable
-      (sigmaFinitePremodifierNorm_measurable (S := S) (E := E)
-        (ρ := rescale (S := S) (E := E) r ρ) (ν.withDensity r)
-        (isPremodifier_rescale (S := S) (E := E) hr h0 htop hρ))
-      (sigmaFinitePremodifierNorm_measurable (S := S) (E := E) (ρ := ρ) ν hρ)]
-
-/-- The singleton kernels of a λ-specification as density changes of the independent
-specification of the rescaled probability measure `r · ν`. -/
-lemma lambdaSpecification_singleton_eq_isssd_withDensity (ν : Measure E) [SigmaFinite ν]
-    [NeZero ν] {r : E → ℝ≥0∞} (hr : Measurable r) (h0 : ∀ x, r x ≠ 0) (htop : ∀ x, r x ≠ ⊤)
-    [IsProbabilityMeasure (ν.withDensity r)] (hρ : IsPremodifier (S := S) (E := E) ρ)
-    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ) (i : S) (η : S → E) :
-    lambdaSpecification (S := S) (E := E) ν ρ hρ hZ {i} η
-      = (isssd (S := S) (E := E) (ν.withDensity r) {i} η).withDensity
-        (premodifierNorm (S := S) (E := E) (ν.withDensity r)
-          (rescale (S := S) (E := E) r ρ) {i}) := by
-  rw [lambdaSpecification_eq_lambdaSpecification_withDensity (S := S) (E := E) ν hr h0 htop hρ hZ,
-    lambdaSpecification_eq_modification_isssd, modification_apply]
-
-lemma premodifierNorm_rescale_ne_zero (ν : Measure E) [SigmaFinite ν] {r : E → ℝ≥0∞}
-    (hr : Measurable r) (h0 : ∀ x, r x ≠ 0) (htop : ∀ x, r x ≠ ⊤)
-    [IsProbabilityMeasure (ν.withDensity r)] (hρ : IsPremodifier (S := S) (E := E) ρ)
-    (hρ0 : ∀ Λ ω, ρ Λ ω ≠ 0)
-    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ) (Λ : Finset S) (ω : S → E) :
-    premodifierNorm (S := S) (E := E) (ν.withDensity r) (rescale (S := S) (E := E) r ρ) Λ ω
-      ≠ 0 := by
-  have hZ' := (isSigmaFiniteLambdaAdmissible_rescale (S := S) (E := E) ν hr h0 htop
-    hρ.measurable).2 hZ
-  rw [premodifierNorm_eq_sigmaFinitePremodifierNorm, sigmaFinitePremodifierNorm, rescale_apply]
-  refine (ENNReal.div_pos_iff.2 ⟨?_, hZ'.ne_top _ _⟩).ne'
-  exact (ENNReal.div_pos_iff.2 ⟨hρ0 _ _,
-    lambdaWeight_ne_top (S := S) (E := E) (fun _ ↦ htop) _ _⟩).ne'
-
-lemma premodifierNorm_rescale_ne_top (ν : Measure E) [SigmaFinite ν] {r : E → ℝ≥0∞}
-    (hr : Measurable r) (h0 : ∀ x, r x ≠ 0) (htop : ∀ x, r x ≠ ⊤)
-    [IsProbabilityMeasure (ν.withDensity r)] (hρ : IsPremodifier (S := S) (E := E) ρ)
-    (hρtop : ∀ Λ ω, ρ Λ ω ≠ ⊤)
-    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ) (Λ : Finset S) (ω : S → E) :
-    premodifierNorm (S := S) (E := E) (ν.withDensity r) (rescale (S := S) (E := E) r ρ) Λ ω
-      ≠ ⊤ := by
-  have hZ' := (isSigmaFiniteLambdaAdmissible_rescale (S := S) (E := E) ν hr h0 htop
-    hρ.measurable).2 hZ
-  rw [premodifierNorm_eq_sigmaFinitePremodifierNorm, sigmaFinitePremodifierNorm, rescale_apply]
-  intro h
-  rcases ENNReal.div_eq_top.1 h with ⟨-, h⟩ | ⟨h, -⟩
-  · exact hZ'.ne_zero _ _ h
-  · rcases ENNReal.div_eq_top.1 h with ⟨-, h⟩ | ⟨h, -⟩
-    · exact lambdaWeight_ne_zero (S := S) (E := E) (fun _ ↦ h0) _ _ h
-    · exact hρtop _ _ h
-
-lemma measurable_premodifierNorm_rescale (ν : Measure E) [SigmaFinite ν] {r : E → ℝ≥0∞}
-    (hr : Measurable r) (h0 : ∀ x, r x ≠ 0) (htop : ∀ x, r x ≠ ⊤)
-    [IsProbabilityMeasure (ν.withDensity r)] (hρ : IsPremodifier (S := S) (E := E) ρ)
-    (Λ : Finset S) :
-    Measurable (premodifierNorm (S := S) (E := E) (ν.withDensity r)
-      (rescale (S := S) (E := E) r ρ) Λ) := by
-  rw [premodifierNorm_eq_sigmaFinitePremodifierNorm]
-  exact sigmaFinitePremodifierNorm_measurable (S := S) (E := E) (ν.withDensity r)
-    (isPremodifier_rescale (S := S) (E := E) hr h0 htop hρ) _
-
-/-- **Georgii (1.33) for the λ-specification of a σ-finite a priori measure.** For a positive
-finite pre-modification `ρ` admissible for a σ-finite non-zero `ν`, a probability measure `μ` is
-a Gibbs measure for `ρλ_·` iff it is invariant under the singleton kernels `ρ_{i} λ_{i}`. -/
-theorem lambdaSpecification_isGibbsMeasure_iff_forall_singleton_bind_eq
-    (ν : Measure E) [SigmaFinite ν] [NeZero ν] (hρ : IsPremodifier (S := S) (E := E) ρ)
-    (h0 : ∀ Λ ω, ρ Λ ω ≠ 0) (htop : ∀ Λ ω, ρ Λ ω ≠ ⊤)
-    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
-    {μ : Measure (S → E)} [IsProbabilityMeasure μ] :
-    (lambdaSpecification (S := S) (E := E) ν ρ hρ hZ).IsGibbsMeasure μ
-      ↔ ∀ i, μ.bind (lambdaSpecification (S := S) (E := E) ν ρ hρ hZ {i}) = μ := by
-  classical
-  obtain ⟨r, hr, hr0, hrtop, hprob⟩ :=
-    Measure.exists_measurable_pos_isProbabilityMeasure_withDensity ν
-  exact isGibbsMeasure_iff_forall_singleton_bind_eq
-    (lam := isssd (S := S) (E := E) (ν.withDensity r))
-    ((isStronglyConsistent_isssd (S := S) (E := E) (ν.withDensity r)).isDisjointlyConsistent)
-    (fun i ↦ measurable_premodifierNorm_rescale (S := S) (E := E) ν hr hr0 hrtop hρ {i})
-    (fun i ω ↦ premodifierNorm_rescale_ne_zero (S := S) (E := E) ν hr hr0 hrtop hρ h0 hZ {i} ω)
-    (fun i ω ↦ premodifierNorm_rescale_ne_top (S := S) (E := E) ν hr hr0 hrtop hρ htop hZ {i} ω)
-    (fun i η ↦ lambdaSpecification_singleton_eq_isssd_withDensity (S := S) (E := E) ν hr hr0
-      hrtop hρ hZ i η)
-
-/-- **Georgii (1.33), uniqueness, for the λ-specification of a σ-finite a priori measure.** A
-specification with the singleton kernels of `ρλ_·` is `ρλ_·`. -/
-theorem eq_lambdaSpecification_of_forall_singleton_eq
-    (ν : Measure E) [SigmaFinite ν] [NeZero ν] (hρ : IsPremodifier (S := S) (E := E) ρ)
-    (h0 : ∀ Λ ω, ρ Λ ω ≠ 0) (htop : ∀ Λ ω, ρ Λ ω ≠ ⊤)
-    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ) {γ' : Specification S E}
-    (hγ' : ∀ i, γ' {i} = lambdaSpecification (S := S) (E := E) ν ρ hρ hZ {i}) :
-    γ' = lambdaSpecification (S := S) (E := E) ν ρ hρ hZ := by
-  classical
-  obtain ⟨r, hr, hr0, hrtop, hprob⟩ :=
-    Measure.exists_measurable_pos_isProbabilityMeasure_withDensity ν
-  exact eq_of_forall_singleton_eq
-    (lam := isssd (S := S) (E := E) (ν.withDensity r))
-    ((isStronglyConsistent_isssd (S := S) (E := E) (ν.withDensity r)).isDisjointlyConsistent)
-    (fun i ↦ measurable_premodifierNorm_rescale (S := S) (E := E) ν hr hr0 hrtop hρ {i})
-    (fun i ω ↦ premodifierNorm_rescale_ne_zero (S := S) (E := E) ν hr hr0 hrtop hρ h0 hZ {i} ω)
-    (fun i ω ↦ premodifierNorm_rescale_ne_top (S := S) (E := E) ν hr hr0 hrtop hρ htop hZ {i} ω)
-    (fun i η ↦ lambdaSpecification_singleton_eq_isssd_withDensity (S := S) (E := E) ν hr hr0
-      hrtop hρ hZ i η) hγ'
-
-end Specification
-
 /-! ## The counting-measure reference kernel on `ℤ`
 
 For counting measure on a countable `E`, `λ_Λ(·|η)` is the sum of the Dirac measures at the
@@ -1009,86 +872,6 @@ theorem transferSpecification_eq_iff (hP : IsTransferMatrix P) (hQ : IsTransferM
 
 end Equivalence
 
-/-! ## Interval cylinders on a countable state space -/
-
-section Cylinders
-
-variable [Nonempty E]
-
-/-- The centred interval cylinders generate the product σ-algebra on `ℤ → E` for a countable
-state space (`generateFrom_centredCylinders` with `Fintype E` weakened to `Countable E`). -/
-lemma generateFrom_centredCylinders_of_countable (c : ℤ) :
-    (inferInstance : MeasurableSpace (ℤ → E))
-      = MeasurableSpace.generateFrom (centredCylinders (E := E) c) := by
-  refine le_antisymm ?_ (MeasurableSpace.generateFrom_le ?_)
-  · have key : ∀ k : ℤ,
-        Measurable[MeasurableSpace.generateFrom (centredCylinders (E := E) c)]
-          fun τ : ℤ → E ↦ τ k := by
-      intro k
-      refine @measurable_to_countable' E (ℤ → E) _ _
-        (MeasurableSpace.generateFrom (centredCylinders (E := E) c)) _ fun e ↦ ?_
-      set a : ℤ := min k c - 1 with ha
-      set b : ℤ := max k c + 1 with hb
-      have hac : a < c := by simp only [ha]; omega
-      have hcb : c < b := by simp only [hb]; omega
-      have hk : k ∈ Finset.Icc a b := by simp only [Finset.mem_Icc, ha, hb]; omega
-      have hset : (fun τ : ℤ → E ↦ τ k) ⁻¹' {e}
-          = ⋃ x ∈ {x : Π _j : (Finset.Icc a b : Finset ℤ), E | x ⟨k, hk⟩ = e},
-              intervalCylinder a b (extendBy (Finset.Icc a b) x) := by
-        ext τ
-        simp only [Set.mem_preimage, Set.mem_singleton_iff, Set.mem_iUnion, Set.mem_ofPred_eq,
-          intervalCylinder, exists_prop]
-        constructor
-        · intro hτ
-          refine ⟨(Finset.Icc a b).restrict τ, hτ, fun j hj ↦ ?_⟩
-          rw [extendBy_of_mem _ hj]
-          rfl
-        · rintro ⟨x, hx, hτ⟩
-          rw [hτ k hk, extendBy_of_mem _ hk, hx]
-      rw [hset]
-      refine MeasurableSet.biUnion (Set.to_countable _) fun x _ ↦ ?_
-      exact MeasurableSpace.measurableSet_generateFrom ⟨a, b, _, hac, hcb, rfl⟩
-    have hle : (⨆ k : ℤ, MeasurableSpace.comap (fun τ : ℤ → E ↦ τ k) inferInstance)
-        ≤ MeasurableSpace.generateFrom (centredCylinders (E := E) c) :=
-      iSup_le fun k ↦ (key k).comap_le
-    exact hle
-  · rintro S ⟨a, b, σ, -, -, rfl⟩
-    exact measurableSet_intervalCylinder a b σ
-
-/-- Two probability measures on `ℤ → E`, `E` countable, agreeing on all interval cylinders whose
-interval contains a fixed site `c` in its interior are equal. -/
-lemma ext_of_centredCylinders_of_countable {μ₁ μ₂ : Measure (ℤ → E)} [IsProbabilityMeasure μ₁]
-    [IsProbabilityMeasure μ₂] (c : ℤ)
-    (h : ∀ a b : ℤ, a < c → c < b → ∀ σ : ℤ → E,
-      μ₁ (intervalCylinder a b σ) = μ₂ (intervalCylinder a b σ)) :
-    μ₁ = μ₂ :=
-  MeasureTheory.ext_of_generate_finite _ (generateFrom_centredCylinders_of_countable c)
-    (isPiSystem_centredCylinders c)
-    (by rintro S ⟨a, b, σ, ha, hb, rfl⟩; exact h a b ha hb σ)
-    (by rw [measure_univ, measure_univ])
-
-omit [Nonempty E] in
-/-- The measure of a punctured cylinder is the sum over the free coordinate. -/
-lemma measure_puncturedCylinder_tsum (μ : Measure (ℤ → E)) {a b i : ℤ}
-    (hi : i ∈ Finset.Icc a b) (σ : ℤ → E) :
-    μ (puncturedCylinder a b i σ)
-      = ∑' y : E, μ (intervalCylinder a b (Function.update σ i y)) := by
-  rw [puncturedCylinder_eq_iUnion, measure_iUnion (pairwise_disjoint_intervalCylinder_update hi σ)
-    fun y ↦ measurableSet_intervalCylinder a b _]
-
-omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] [Nonempty E] in
-lemma intervalCylinder_eq_preimage (a b : ℤ) (σ : ℤ → E) :
-    intervalCylinder a b σ = (Finset.Icc a b).restrict ⁻¹'
-      ({(Finset.Icc a b).restrict σ} : Set (↥(Finset.Icc a b) → E)) := by
-  ext τ
-  constructor
-  · intro h
-    exact funext fun k ↦ h k k.2
-  · intro h k hk
-    exact congrFun h ⟨k, hk⟩
-
-end Cylinders
-
 /-! ## Boundary laws: Georgii Definition (11.8) -/
 
 /-- **Georgii Definition (11.8).** A boundary law for `Q` is a family of positive finite row
@@ -1415,7 +1198,7 @@ theorem eq_boundaryLawMeasure_of_forall_intervalCylinder {μ : Measure (ℤ → 
     (h : ∀ a b : ℤ, a ≤ b → ∀ σ : ℤ → E,
       μ (intervalCylinder a b σ) = ℓ a (σ a) * pathProd Q a b σ * r b (σ b)) :
     μ = boundaryLawMeasure hbl :=
-  ext_of_centredCylinders_of_countable 0 fun a b ha hb σ ↦ by
+  ext_of_centredCylinders 0 fun a b ha hb σ ↦ by
     rw [h a b (by omega) σ, hbl.boundaryLawMeasure_intervalCylinder (by omega)]
 
 end IsBoundaryLaw
@@ -1468,7 +1251,7 @@ theorem isGibbsMeasure_transferSpecification_boundaryLawMeasure :
     constructor
     rw [Measure.bind_apply MeasurableSet.univ hmeas.aemeasurable]
     simp
-  refine ext_of_centredCylinders_of_countable i fun a b hai hib σ ↦ ?_
+  refine ext_of_centredCylinders i fun a b hai hib σ ↦ ?_
   have hi : i ∈ Finset.Icc a b := Finset.mem_Icc.2 ⟨hai.le, hib.le⟩
   rw [Measure.bind_apply (measurableSet_intervalCylinder a b σ) hmeas.aemeasurable]
   simp_rw [transferSpecification_singleton_apply_intervalCylinder Q hQ hai hib σ]
