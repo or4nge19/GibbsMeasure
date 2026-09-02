@@ -465,7 +465,11 @@ sub-σ-algebra *is* Mathlib's `klDiv` of the trimmed measures and his `ψ` is `k
 lemmas about `klDiv`: joint convexity, the monotone convergence (15.6) along an increasing sequence
 of σ-algebras, and (15.7) as a supremum over finite partitions. Lemma **(15.11)**, Fekete's lemma in
 `d` dimensions for translation-invariant box-subadditive functions, is the prerequisite of the
-specific entropy (15.12) and the pressure (15.30).
+specific entropy (15.12) and the pressure (15.30). **§15.3** (`GibbsMeasure/Specification/Pressure.lean`):
+the energy density and specific energy (15.22)–(15.24), the boundary estimate (15.25) with an
+explicit finite-volume bound, and **Theorem (15.30)(a)**: the pressure `P(Φ)` exists along any boxes
+with all side lengths → ∞, for every choice of boundary conditions, with `|P(Φ)| ≤ ‖Φ‖₀`; `P` is
+Lipschitz and convex (Georgii (16.1)(a)).
 
 **Chapter 9, §9.1** (`GibbsMeasure/Specification/SymmetryInheritance.lean`,
 `GibbsMeasure/Model/OneDimensionalSymmetry.lean`): **Proposition (9.1)** — a symmetry `τ` of `γ`

@@ -413,7 +413,7 @@ end BoxSubadditive
 omit [Fintype ι] [DecidableEq ι] in
 /-- If all side lengths of the boxes `Icc (m j) (n j)` tend to infinity, then eventually
 `m j ≤ n j`. -/
-private lemma eventually_le_of_tendsto_sub [Finite ι] {κ : Type*} {l : Filter κ} {m n : κ → ι → ℤ}
+lemma eventually_le_of_tendsto_sub [Finite ι] {κ : Type*} {l : Filter κ} {m n : κ → ι → ℤ}
     (h : ∀ k, Tendsto (fun j ↦ n j k - m j k) l atTop) : ∀ᶠ j in l, m j ≤ n j :=
   eventually_all.2 fun k ↦ ((h k).eventually_ge_atTop 0).mono fun _ hj ↦ by
     simpa [sub_nonneg] using hj

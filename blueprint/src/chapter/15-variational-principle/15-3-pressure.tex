@@ -1,0 +1,70 @@
+\section{Specific energy and free energy}
+
+Throughout, $S = \mathbb{Z}^d$, $\lambda$ is a probability measure on $E$, $\Theta$ the shift
+group, and $\Phi$ a shift-invariant absolutely summable potential; $\Lambda_n$ runs through boxes
+all of whose side lengths tend to infinity.
+
+\begin{definition}[Energy density, specific energy, Georgii (15.22)--(15.24)]
+    \label{def:pr-energy-density}
+    \uses{def:pot-abs-summable, def:erg-invariant}
+    \lean{Potential.energyDensity, Potential.specificEnergy, Potential.IsShiftInvariant.siteEnergy_eq, Potential.abs_specificEnergy_sub_le}
+    \leanok
+
+    The \textbf{energy density} of $\Phi$ is $f_\Phi = \sum_{A \ni 0} |A|^{-1} \Phi_A$, with
+    $\|f_\Phi\| \leq \|\Phi\|_0$; for $\mu \in \Prob_\Theta$ the \textbf{specific energy} is
+    $\mu(f_\Phi)$, and $|\mu(f_\Phi) - \mu(f_\Psi)| \leq \|\Phi - \Psi\|_0$.
+\end{definition}
+
+\begin{proposition}[Georgii (15.23), (15.25)]
+    \label{prop:pr-15-25}
+    \uses{def:pr-energy-density, def:pot-hamiltonian}
+    \lean{Potential.abs_sum_energyDensity_shift_sub_hamiltonian_le, Potential.tendsto_iSup_abs_sum_siteEnergy_sub_hamiltonian_div_card, Potential.tendsto_integral_hamiltonian_div_card, Potential.tendsto_integral_hamiltonian_juxt_div_card}
+    \leanok
+
+    $\sup_\omega \bigl|\sum_{i \in \Lambda} f_\Phi(\theta_{-i}\omega) - H_\Lambda(\omega)\bigr|
+    \leq \sum_{A \cap \Lambda \neq \emptyset,\ A \not\subseteq \Lambda} \|\Phi_A\|$, and the
+    right-hand side is $o(|\Lambda_n|)$. Consequently, for $\mu \in \Prob_\Theta$ and any boundary
+    conditions $\omega_n$, $|\Lambda_n|^{-1}\mu(H_{\Lambda_n}) \to \mu(f_\Phi)$ and
+    $|\Lambda_n|^{-1}\mu(H_{\Lambda_n}(\cdot\,\omega_n)) \to \mu(f_\Phi)$.
+\end{proposition}
+\begin{proof}
+    \leanok
+    Each $\Phi_A$ with $A \subseteq \Lambda$ is counted $|A|$ times with weight $|A|^{-1}$ in
+    $\sum_{i \in \Lambda} f_\Phi \circ \theta_{-i}$; the remaining terms are the boundary sum,
+    which is $o(|\Lambda_n|)$ by absolute summability and shift-invariance.
+\end{proof}
+
+\begin{theorem}[Pressure, Georgii (15.30)(a)]
+    \label{thm:pr-15-30}
+    \uses{prop:pr-15-25, def:pot-partition-function, lem:ent-1511}
+    \lean{Potential.pressure, Potential.tendsto_logZ_div_card_pressure, Potential.tendsto_logZ_div_card_pressure_cube, Potential.abs_pressure_le}
+    \leanok
+
+    There is $P(\Phi) \in \mathbb R$ with $|P(\Phi)| \leq \|\Phi\|_0$ such that
+    $|\Lambda_n|^{-1} \log Z_{\Lambda_n}(\omega_n) \to P(\Phi)$ for every choice of boundary
+    conditions $\omega_n$; $P(\Phi)$ is the infimum over boxes of
+    $|\Lambda|^{-1}\bigl(\log \sup_\omega Z_\Lambda(\omega) + \sum_{A \cap \Lambda \neq \emptyset,\ A \not\subseteq \Lambda}\|\Phi_A\|\bigr)$.
+\end{theorem}
+\begin{proof}
+    \leanok
+    $Z_\Lambda(\eta) \leq e^{2 t(\Lambda)} Z_\Lambda(\omega)$ with $t(\Lambda)$ the boundary sum,
+    so $\log Z_\Lambda(\omega)$ is within $3 t(\Lambda)$ of
+    $\log \sup_\omega Z_\Lambda + t(\Lambda)$, which is subadditive on disjoint volumes and
+    bounded below by $-\|\Phi\|_0 |\Lambda|$; Lemma \ref{lem:ent-1511} gives the limit.
+\end{proof}
+
+\begin{proposition}[Georgii (16.1)(a)]
+    \label{prop:pr-16-1a}
+    \uses{thm:pr-15-30}
+    \lean{Potential.abs_pressure_sub_le, Potential.pressure_smul_add_smul_le, Potential.convexOn_pressure}
+    \leanok
+
+    $|P(\Phi) - P(\Psi)| \leq \|\Phi - \Psi\|_0$, and $P$ is convex on the shift-invariant
+    absolutely summable potentials.
+\end{proposition}
+\begin{proof}
+    \leanok
+    Finite volume: $|\log Z^\Phi_\Lambda - \log Z^\Psi_\Lambda| \leq \sup|H^\Phi_\Lambda - H^\Psi_\Lambda|$,
+    and $\log Z^{a\Phi + b\Psi}_\Lambda \leq a \log Z^\Phi_\Lambda + b \log Z^\Psi_\Lambda$ by
+    Hölder's inequality with exponents $1/a$, $1/b$; pass to the limit.
+\end{proof}
