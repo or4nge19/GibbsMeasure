@@ -436,7 +436,10 @@ theorem at all — not even for a single transformation. The **mean ergodic theo
 are proved (`GibbsMeasure/Mathlib/Dynamics/Ergodic/MeanErgodic.lean`) for any countable group acting
 by measure-preserving maps along any Følner net, in `L²` (no finiteness of `μ`) and `L¹`, by
 adapting the strategy of Mathlib's single-operator von Neumann theorem; the individual theorem
-(14.A8) is next.
+(14.A8) is next. **Theorem (14.12)** (`GibbsMeasure/Specification/ErgodicDense.lean`): the ergodic
+fields are dense in `𝓟_Θ` — Georgii's periodised product `μ_n` and its shift average `v_n`, for a
+countable infinite abelian site group with tilings of vanishing boundary fraction, cubes of `ℤ^d`
+the instance; no ergodic theorem is used.
 
 **Chapter 15, first steps** (`GibbsMeasure/Mathlib/InformationTheory/RelativeEntropy.lean`,
 `GibbsMeasure/Mathlib/Analysis/Subadditive/Cubes.lean`): Georgii's relative entropy on a
@@ -449,7 +452,7 @@ specific entropy (15.12) and the pressure (15.30).
 Not yet done: the inhomogeneous Ising chains of §6.1, Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Mermin–Wagner
 (9.20), the rest of Chapter 14 — the mean and individual ergodic theorems (14.A3)/(14.A5)/(14.A8),
-(14.7), (14.10)–(14.12), (14.16)–(14.25) — the rest of Chapter 15 from (15.10) on, and Chapters
+(14.7), (14.10)–(14.11), (14.16)–(14.25) — the rest of Chapter 15 from (15.10) on, and Chapters
 10–13 and 16–20 (Markov fields on trees,
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).

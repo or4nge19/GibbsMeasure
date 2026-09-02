@@ -178,6 +178,33 @@ $(\Cfg, \mathcal{F})$, specialised to a subgroup $\Theta$ of the transformation 
     ambient set that lie in it.
 \end{proof}
 
+\begin{theorem}[Georgii (14.12)]
+    \label{thm:erg-1412}
+    \uses{def:erg-invariant-events, prop:erg-149, thm:erg-145}
+    \lean{MeasureTheory.GibbsMeasure.tileAverage,
+      MeasureTheory.GibbsMeasure.exists_tendsto_extremePoints_invariantFields_shiftGroup,
+      MeasureTheory.GibbsMeasure.closure_setOf_mem_extremePoints_invariantFields_shiftGroup}
+    \leanok
+
+    Let the site set be a countable infinite abelian group with a sequence of tilings
+    $(C_n, H_n)$ --- $C_n$ a set of representatives of the subgroup $H_n$ --- whose boundary
+    fractions vanish, e.g.\ the cubes of $\mathbb{Z}^d$. In the topology of local convergence,
+    $\mathrm{ex}\,\Prob_\Theta$ is dense in $\Prob_\Theta$: every $\mu \in \Prob_\Theta$ is the
+    limit of a sequence of ergodic shift-invariant fields.
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    Let $\mu_n$ be the product over the tiles of the marginals of $\mu$ on $C_n$, and
+    $v_n = |C_n|^{-1}\sum_{j \in C_n} \theta_j(\mu_n)$. For a local event in the volume $\Delta$,
+    only the $j$ for which $\Delta - j$ crosses a tile boundary contribute to
+    $v_n(A) - \mu(A)$, a fraction tending to zero, so $v_n \to \mu$. Each $v_n$ is shift
+    invariant since $\theta_h(\mu_n) = \mu_n$ for $h \in H_n$, and ergodic: for $A \in \mathcal{I}$,
+    Proposition \ref{prop:erg-149} gives a tail event $B$ with $v_n(A \mathbin{\triangle} B) = 0$,
+    and $\mu_n$ is trivial on the tail as a product over independent tiles, so $v_n(A) = \mu_n(B)
+    \in \set{0,1}$.
+\end{proof}
+
 \begin{theorem}[Georgii (14.A3), (14.A5): the mean ergodic theorems]
     \label{thm:erg-14A3}
     \uses{def:erg-invariant-events}
