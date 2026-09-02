@@ -27,7 +27,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Function.StronglyMeasurable.Bas
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.Bochner.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.DominatedConvergence
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.IntegrableOn
-public import GibbsMeasure.Mathlib.MeasureTheory.Measure.UniformOfFintype
+public import GibbsMeasure.Mathlib.Probability.UniformOn
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ProdZeroOne
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.CountablyGeneratedModNull
 public import GibbsMeasure.Mathlib.MeasureTheory.Order.StochasticDomination

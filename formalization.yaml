@@ -496,7 +496,7 @@ alignment:
       note: >-
         Georgii's reflection group R is finite but does not commute modulo the shifts, so this is
         branch (i) of (5.15), not (ii): the invariant weight is the uniform measure on a finite
-        group (Measure.uniformOfFintype). Stated for an arbitrary additive site group and an
+        group (Mathlib's uniformOn Set.univ, shown left invariant). Stated for an arbitrary additive site group and an
         arbitrary finite group acting on it by additive bijections; Z^d with the hyperoctahedral
         group is the instance. Examples (5.17)(3)-(4) are the same theorem with I0 = R o Theta and
         I0 = Theta.

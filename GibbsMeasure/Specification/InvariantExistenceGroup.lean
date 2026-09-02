@@ -6,7 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Potential.Transformation
-public import GibbsMeasure.Mathlib.MeasureTheory.Measure.UniformOfFintype
+public import GibbsMeasure.Mathlib.Probability.UniformOn
 public import GibbsMeasure.Mathlib.GroupTheory.Foelner
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.UniformAverage
 public import GibbsMeasure.Specification.InvariantFields
@@ -1084,7 +1084,7 @@ induced transformations.  If `γ` has a shift-invariant Gibbs measure, then it h
 under the shifts *and* under `H`: `𝒢_{H ∘ Θ}(γ) ≠ ∅`.
 
 This is Theorem (5.15)(i) with `I₀ = Θ` and `I₁ = H`: a finite group carries a left-invariant
-probability measure, namely the uniform one, and the shift group is normalised by every additive
+probability measure, namely `uniformOn Set.univ`, and the shift group is normalised by every additive
 site bijection (`siteEquiv_comp_shift`), which is Georgii's `τ ∘ Θ = Θ ∘ τ`. -/
 theorem exists_isGibbsMeasure_shift_and_siteEquiv_invariant
     {H : Type*} [Group H] [Fintype H] [MeasurableSpace H] [MeasurableSingletonClass H]
@@ -1103,7 +1103,8 @@ theorem exists_isGibbsMeasure_shift_and_siteEquiv_invariant
   refine exists_isGibbsMeasure_and_forall_map_eq_of_invariantWeight_of_map_eq
     (Φ := fun g : H ↦ siteEquiv E (ρ g)) (T₀ := fun j : S ↦ shift E j)
     hν hev (fun g h ↦ ?_) hγH (fun j g ↦ ?_) hνshift
-    (Measure.uniformOfFintype H) (Measure.map_mul_left_uniformOfFintype)
+    (ProbabilityTheory.uniformOn (Set.univ : Set H))
+    (ProbabilityTheory.map_mul_left_uniformOn_univ)
   · show siteEquiv E (ρ (g * h)) = (siteEquiv E (ρ g)).comp (siteEquiv E (ρ h))
     rw [siteEquiv_comp, map_mul]
     rfl

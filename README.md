@@ -155,7 +155,7 @@ varying along the net — the form Example (5.20)(3) needs, since there `τ_N` i
 automorphisms to the shift invariance
 (`exists_isGibbsMeasure_shift_and_siteEquiv_invariant`): Georgii's reflection group `R` does not
 commute modulo the shifts, so this is branch (i) of (5.15), with the uniform measure on a finite
-group as the invariant weight (`Measure.uniformOfFintype`); the general fact behind it is that an
+group as the invariant weight (Mathlib's `uniformOn Set.univ`, shown left invariant); the general fact behind it is that an
 additive site bijection conjugates shifts into shifts, `τ_e ∘ θ_j = θ_{ej} ∘ τ_e`. Example
 **(5.20)(2)**, free boundary conditions, is
 `mem_GP_and_measurePreserving_of_mapClusterPt_truncation`: cluster points of the truncated-potential
