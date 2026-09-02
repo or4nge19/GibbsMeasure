@@ -65,7 +65,7 @@ Følner sets of the abelian group `G` (`AddCommGroup.exists_finset_transDist_le`
 @[expose] public section
 
 open Filter Finset Set
-open scoped ENNReal Pointwise symmDiff
+open scoped ENNReal Pointwise symmDiff Topology
 
 /-! ### The finite Vitali covering lemma -/
 
@@ -512,5 +512,168 @@ theorem measure_exists_lt_abs_div_card_le_cube {Ω : Type*} [AddAction (ι → �
     (mul_measure_lt_ergodicMaximalFunction_le_cube hθ x r hr hF hf.enorm _)
 
 end Cube
+
+
+/-! ### The real-valued form of the inequality, and cubes are Følner (from the proof of (14.A8)) -/
+
+section MaximalReal
+
+variable {G Ω : Type*} [AddCommGroup G] [AddAction G Ω] {F : ℕ → Finset G}
+
+/-- `{sup_n |R_n f| > c} ⊆ {sup_n R_n ‖f‖ₑ > c}`. -/
+lemma setOf_exists_lt_abs_div_card_subset (hne : ∀ n, (F n).Nonempty) (f : Ω → ℝ) {c : ℝ}
+    (hc : 0 < c) :
+    {ω | ∃ n, c < |(∑ j ∈ F n, f (j +ᵥ ω)) / (F n).card|} ⊆
+      {ω | ENNReal.ofReal c < ergodicMaximalFunction F (fun ω ↦ ‖f ω‖ₑ) ω} := by
+  intro ω ⟨n, hn⟩
+  refine lt_ergodicMaximalFunction_iff.2 ⟨n, ?_⟩
+  have hcard : (0 : ℝ) < (F n).card := by exact_mod_cast (hne n).card_pos
+  rw [abs_div, Nat.abs_cast, lt_div_iff₀ hcard] at hn
+  have hn' : c * (F n).card < ∑ j ∈ F n, |f (j +ᵥ ω)| :=
+    hn.trans_le (Finset.abs_sum_le_sum_abs _ _)
+  rw [ENNReal.lt_div_iff_mul_lt (Or.inl (by exact_mod_cast hcard.ne'))
+    (Or.inl (ENNReal.natCast_ne_top _))]
+  simp_rw [Real.enorm_eq_ofReal_abs]
+  rw [← ENNReal.ofReal_sum_of_nonneg fun _ _ ↦ abs_nonneg _, ← ENNReal.ofReal_natCast,
+    ← ENNReal.ofReal_mul hc.le]
+  exact (ENNReal.ofReal_lt_ofReal_iff ((mul_pos hc hcard).trans hn')).2 hn'
+
+variable [DecidableEq G] [MeasurableSpace Ω] {μ : Measure Ω} {C : ℝ≥0∞}
+
+/-- **Tempelman's maximal inequality for real functions**: `μ(sup_n |R_n f| > c) ≤ C μ(|f|) / c`
+along an increasing sequence of non-empty finite sets with `|F n - F n + F n| ≤ C |F n|`
+(Georgii (14.A6) without the cube geometry, in the form used in the proof of (14.A8)). -/
+theorem measure_exists_lt_abs_div_card_le_of_monotone
+    (hθ : ∀ g : G, MeasurePreserving (g +ᵥ · : Ω → Ω) μ μ) (hF : Monotone F) (hne : (F 0).Nonempty)
+    (hC : ∀ n, ((F n - F n + F n).card : ℝ≥0∞) ≤ C * (F n).card) {f : Ω → ℝ} (hf : Measurable f)
+    {c : ℝ} (hc : 0 < c) :
+    μ {ω | ∃ n, c < |(∑ j ∈ F n, f (j +ᵥ ω)) / (F n).card|} ≤
+      C * (∫⁻ ω, ‖f ω‖ₑ ∂μ) / ENNReal.ofReal c := by
+  rw [ENNReal.le_div_iff_mul_le (Or.inl (ENNReal.ofReal_pos.2 hc).ne')
+    (Or.inl ENNReal.ofReal_ne_top), mul_comm]
+  exact (mul_le_mul_right (measure_mono
+    (setOf_exists_lt_abs_div_card_subset (fun n ↦ hne.mono (hF (Nat.zero_le n))) f hc)) _).trans
+    (mul_measure_lt_ergodicMaximalFunction_le_of_monotone hθ hF hne hC hf.enorm _)
+
+end MaximalReal
+
+section CubeFoelner
+
+variable {ι : Type*} [Fintype ι] [DecidableEq ι]
+
+/-- The sub-cube `[m, r - m)^d` of `[0, r)^d`, `m = ∑ |g_i|`, lies in the cube and in its
+translate by `g`. -/
+lemma piFinset_Ico_subset_inter_vadd_piFinset_Ico (g : ι → ℤ) (r : ℕ) :
+    (Fintype.piFinset fun _ : ι ↦ Finset.Ico ((∑ k, (g k).natAbs : ℕ) : ℤ)
+        (r - (∑ k, (g k).natAbs : ℕ))) ⊆
+      (g +ᵥ Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) r) ∩
+        Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) r := by
+  intro y hy
+  rw [Fintype.mem_piFinset] at hy
+  have hg : ∀ k, (g k).natAbs ≤ ∑ k, (g k).natAbs := fun k ↦
+    Finset.single_le_sum (f := fun k ↦ (g k).natAbs) (fun _ _ ↦ Nat.zero_le _) (Finset.mem_univ k)
+  refine Finset.mem_inter.2 ⟨Finset.mem_vadd_finset_iff_sub_mem.2 ?_, ?_⟩
+  · rw [Fintype.mem_piFinset]
+    intro k
+    have := Finset.mem_Ico.1 (hy k)
+    have := hg k
+    simp only [Pi.sub_apply, Finset.mem_Ico]
+    omega
+  · rw [Fintype.mem_piFinset]
+    intro k
+    have := Finset.mem_Ico.1 (hy k)
+    have := hg k
+    simp only [Finset.mem_Ico]
+    omega
+
+/-- `|(g +ᵥ [0, r)^d) ∆ [0, r)^d| ≤ 2 (r^d - (r - 2m)^d)` with `m = ∑ |g_i|`. -/
+lemma card_vadd_piFinset_Ico_symmDiff_le (g : ι → ℤ) (r : ℕ) :
+    (((g +ᵥ Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) r) ∆
+        Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) r).card : ℝ) ≤
+      2 * ((r : ℝ) ^ Fintype.card ι - ((r - 2 * ∑ k, (g k).natAbs : ℕ) : ℝ) ^ Fintype.card ι) := by
+  set m : ℕ := ∑ k, (g k).natAbs with hm
+  set Q : Finset (ι → ℤ) := Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) r with hQ
+  set S : Finset (ι → ℤ) := Fintype.piFinset fun _ : ι ↦ Finset.Ico (m : ℤ) (r - m) with hS
+  have hSsub := piFinset_Ico_subset_inter_vadd_piFinset_Ico g r
+  rw [← hm, ← hQ, ← hS] at hSsub
+  have hS1 : S ⊆ g +ᵥ Q := hSsub.trans Finset.inter_subset_left
+  have hS2 : S ⊆ Q := hSsub.trans Finset.inter_subset_right
+  have hQcard : Q.card = r ^ Fintype.card ι := by
+    simp [hQ, Fintype.card_piFinset, Int.card_Ico]
+  have hScard : S.card = (r - 2 * m) ^ Fintype.card ι := by
+    simp only [hS, Fintype.card_piFinset, Int.card_Ico, Finset.prod_const, Finset.card_univ]
+    congr 1
+    omega
+  have hSQ : S.card ≤ Q.card := Finset.card_le_card hS2
+  have hsub : (g +ᵥ Q) ∆ Q ⊆ ((g +ᵥ Q) \ S) ∪ (Q \ S) := by
+    rw [Finset.symmDiff_def]
+    exact Finset.union_subset_union (Finset.sdiff_subset_sdiff le_rfl hS2)
+      (Finset.sdiff_subset_sdiff le_rfl hS1)
+  have h1 : ((g +ᵥ Q) ∆ Q).card ≤ 2 * (Q.card - S.card) := by
+    calc ((g +ᵥ Q) ∆ Q).card ≤ (((g +ᵥ Q) \ S) ∪ (Q \ S)).card := Finset.card_le_card hsub
+      _ ≤ ((g +ᵥ Q) \ S).card + (Q \ S).card := Finset.card_union_le _ _
+      _ = 2 * (Q.card - S.card) := by
+          rw [Finset.card_sdiff_of_subset hS1, Finset.card_sdiff_of_subset hS2,
+            Finset.card_vadd_finset]
+          ring
+  have h2 : (((g +ᵥ Q) ∆ Q).card : ℝ) ≤ 2 * ((Q.card : ℝ) - S.card) := by
+    rw [← Nat.cast_sub hSQ]; exact_mod_cast h1
+  rw [hQcard, hScard] at h2
+  push_cast at h2
+  exact h2
+
+/-- **The cubes `x_n + [0, r_n)^d` form a Følner sequence** as soon as `r_n → ∞`:
+`|(g +ᵥ Λ_n) ∆ Λ_n| / |Λ_n| → 0` for every `g ∈ ℤ^d`. -/
+theorem tendsto_card_vadd_cube_symmDiff_div_card (x : ℕ → ι → ℤ) {r : ℕ → ℕ}
+    (hr : Tendsto r atTop atTop) (g : ι → ℤ) :
+    Tendsto (fun n ↦ (((g +ᵥ (x n +ᵥ Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) (r n))) ∆
+        (x n +ᵥ Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) (r n))).card : ℝ) /
+      (x n +ᵥ Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) (r n)).card) atTop (𝓝 0) := by
+  set m : ℕ := ∑ k, (g k).natAbs with hm
+  -- Translation by `x n` does not change the ratio.
+  have htrans : ∀ n, (((g +ᵥ (x n +ᵥ Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) (r n))) ∆
+        (x n +ᵥ Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) (r n))).card : ℝ) /
+      (x n +ᵥ Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) (r n)).card =
+      (((g +ᵥ Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) (r n)) ∆
+        Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) (r n)).card : ℝ) /
+      (Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) (r n)).card := fun n ↦ by
+    rw [vadd_vadd, add_comm, ← vadd_vadd, ← Finset.vadd_finset_symmDiff, Finset.card_vadd_finset,
+      Finset.card_vadd_finset]
+  simp only [htrans]
+  -- The ratio for the cube `[0, r)^d`, as a function of `r`.
+  have hratio : Tendsto (fun r : ℕ ↦ (((g +ᵥ Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) r) ∆
+      Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) r).card : ℝ) /
+      (Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) r).card) atTop (𝓝 0) := by
+    have hQcard : ∀ r : ℕ, ((Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) r).card : ℝ) =
+        (r : ℝ) ^ Fintype.card ι := fun r ↦ by
+      simp [Fintype.card_piFinset, Int.card_Ico]
+    -- `(r - 2m) / r → 1`.
+    have hq : Tendsto (fun r : ℕ ↦ ((r - 2 * m : ℕ) : ℝ) / r) atTop (𝓝 1) := by
+      have h := (tendsto_const_div_atTop_nhds_zero_nat (2 * m : ℝ)).const_sub 1
+      rw [sub_zero] at h
+      refine h.congr' ?_
+      filter_upwards [eventually_ge_atTop (2 * m + 1)] with r hr
+      have hr0 : (r : ℝ) ≠ 0 := by exact_mod_cast (by omega : r ≠ 0)
+      rw [Nat.cast_sub (by omega)]
+      field_simp
+      push_cast
+      ring
+    have hlim : Tendsto (fun r : ℕ ↦ 2 * (1 - (((r - 2 * m : ℕ) : ℝ) / r) ^ Fintype.card ι))
+        atTop (𝓝 0) := by
+      have := ((hq.pow (Fintype.card ι)).const_sub 1).const_mul 2
+      simpa using this
+    refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds hlim
+      (Eventually.of_forall fun r ↦ by positivity) ?_
+    filter_upwards [eventually_gt_atTop 0] with r hr
+    have hr0 : (0 : ℝ) < r := by exact_mod_cast hr
+    rw [hQcard, div_le_iff₀ (by positivity)]
+    have hkey : (((r - 2 * m : ℕ) : ℝ) / r) ^ Fintype.card ι * (r : ℝ) ^ Fintype.card ι =
+        ((r - 2 * m : ℕ) : ℝ) ^ Fintype.card ι := by
+      rw [div_pow, div_mul_cancel₀ _ (by positivity)]
+    have := card_vadd_piFinset_Ico_symmDiff_le g r
+    rw [← hm] at this
+    linarith
+  exact hratio.comp hr
+end CubeFoelner
 
 end MeasureTheory
