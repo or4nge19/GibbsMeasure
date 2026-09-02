@@ -30,6 +30,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Integral.Bochner.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.DominatedConvergence
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.IntegrableOn
 public import GibbsMeasure.Mathlib.Probability.UniformOn
+public import GibbsMeasure.Mathlib.MeasureTheory.Measure.SetwiseConvergence
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ProdZeroOne
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.CountablyGeneratedModNull
 public import GibbsMeasure.Mathlib.MeasureTheory.Order.StochasticDomination
@@ -45,6 +46,7 @@ public import GibbsMeasure.Mathlib.Dynamics.Ergodic.Pointwise
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.MeanErgodic
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.MaximalInequality
 public import GibbsMeasure.Mathlib.GroupTheory.Foelner
+public import GibbsMeasure.Mathlib.Probability.Kernel.CountableMatrix
 public import GibbsMeasure.Mathlib.Probability.Kernel.StieltjesPoint
 public import GibbsMeasure.Mathlib.Probability.Kernel.InvariantSigmaAlgebra
 public import GibbsMeasure.Mathlib.Probability.ProductMeasure
@@ -72,6 +74,7 @@ public import GibbsMeasure.Potential.QuasilocalSpecification
 public import GibbsMeasure.Potential.FreeBoundary
 public import GibbsMeasure.Potential.GibbsTransformation
 public import GibbsMeasure.Potential.UniformConvergence
+public import GibbsMeasure.Model.BoundaryLaw
 public import GibbsMeasure.Model.Ising
 public import GibbsMeasure.Model.IsingDobrushin
 public import GibbsMeasure.Model.IsingFKG
