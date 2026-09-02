@@ -50,7 +50,8 @@ status:
     matrices, boundary laws, the Gibbs measure of a boundary law); Section 10.1 (the Markov
     properties (10.2)-(10.11)); Section 9.1 (symmetry
     inheritance (9.1), localized symmetries (9.3), one-dimensional pair interactions (9.5),
-    (9.11), (9.16)). The rest is not formalized.
+    (9.11), (9.16)); Section 9.2 (Mermin-Wagner (9.20) with Lemmas (9.28), (9.33)). The rest is not
+    formalized.
   sorry_count: 0
   sorry_in_definitions: 0
   axioms: ["propext", "Classical.choice", "Quot.sound"]
@@ -917,6 +918,22 @@ alignment:
         stated once for any IsPAKernel P A pi with ex P = P cap trivialOn A and P measurable;
         Chapter 7 is the instance P = G(gamma), A = tail, Chapter 14 the instance P = P_Theta or
         G_Theta(gamma), A = I.
+    - source: "Theorem (9.20), Mermin-Wagner; Lemmas (9.28), (9.33); decay condition (9.21)"
+      lean: "MeasureTheory.GibbsMeasure.measurePreserving_of_logDecay"
+      module: "GibbsMeasure/Model/MerminWagner.lean"
+      status: "proved"
+      note: >-
+        Any countable linearly ordered site set with a planar norm (finite balls, shells of size
+        <= c_0 (n+1)); Z^2 with the maximum norm is the instance (as the lexicographic product
+        Z x_l Z, because Potential.pair needs a linear order on the sites). E standard Borel,
+        lambda sigma-finite, any real beta, a summable lambda-admissible pair potential, a
+        one-parameter group of lambda-preserving pure-spin symmetries with u -> phi_ij(x, tau^u_j y)
+        C^2 and beta times its second derivative <= J(i,j), J symmetric with the decay condition
+        (9.21): every Gibbs measure is invariant under every tau^u. (9.28) is proved on the
+        partial sums of the Hamiltonian; (9.33) with the explicit bound
+        1096 c_0 (N+1)^2 K / log(1+L), splitting the pairs at d(i,j) <= (|i|-N)^3 (Georgii splits
+        at the square; the cubic split is what the tail estimate used here supports). The
+        plane-rotator and Heisenberg instances (9.22)-(9.24) are not formalized.
 
 acknowledgements: >-
   Builds on Mathlib. Kolmogorov extension material adapted from RemyDegenne/kolmogorov_extension4.

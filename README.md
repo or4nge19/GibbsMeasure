@@ -485,6 +485,14 @@ potential on `ℤ` from (9.6), by Georgii's cyclic rotation of an interval, with
 interaction (9.8)(1) as the instance. On the way (5.5)/(5.6)/(5.9)(b) are proved over a σ-finite a
 priori measure.
 
+**§9.2, Mermin–Wagner** (`GibbsMeasure/Model/MerminWagner.lean`): **Theorem (9.20)** — for a
+pair potential on a site set with a planar norm (ℤ² with the maximum norm the instance), any real
+`β`, and a one-parameter group of λ-preserving pure-spin symmetries whose interaction is `C²` in
+the group parameter with second derivative dominated by a `J` obeying the decay condition (9.21),
+every Gibbs measure is invariant under the whole group — via the spin-wave localized versions,
+Lemma (9.28) (a two-sided Taylor bound on the Hamiltonian's partial sums) and Lemma (9.33) (the
+Dirichlet energy of the logarithmic profile, with an explicit constant), assembled against (9.3).
+
 **Chapter 10, §10.1** (`GibbsMeasure/Specification/MarkovInt.lean`): Markov specifications and
 Markovian densities on `ℤ` (10.2), the chain specification of transition densities (10.3), Markov
 chains (10.4) with (10.5) as an equivalence, the two-sided, one-sided, local and global Markov
@@ -505,8 +513,8 @@ a Gibbs measure for `γ^Q`. Chapter 3 is the finite-state instance (`Q = P` stoc
 the way.
 
 Not yet done: the inhomogeneous Ising chains of §6.1, Shlosman's random staircases of §6.3
-(Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), (9.7)(1),(3), (9.13)–(9.17),
-Mermin–Wagner (9.20), (14.13), (14.16), (14.21)–(14.24), the rest of
+(Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), (9.7)(1),(3), (9.13)–(9.17), the
+plane-rotator and Heisenberg instances (9.22)–(9.24), (14.13), (14.16), (14.21)–(14.24), the rest of
 Chapter 15 from (15.10) on, Chapter 11 from (11.9)(b) on, §§10.2–10.3, and Chapters 12–13 and
 16–20 (Markov fields on trees,
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the

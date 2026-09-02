@@ -1,0 +1,90 @@
+\section{Continuous symmetries in two dimensions}
+
+Throughout, $S$ is a countable linearly ordered site set carrying a \emph{planar norm}
+$\|\cdot\| \colon S \to \mathbb N$ with distance $d(i,j)$: balls $\set{\|i\| \leq n}$ are finite,
+$\|j\| \leq \|i\| + d(i,j)$, and shells $\set{\|i\| = n}$ have at most $c_0 (n+1)$ elements. On
+$\mathbb Z^2$ with the maximum norm, $c_0 = 8$.
+
+\begin{definition}[Decay condition, Georgii (9.21)]
+    \label{def:cs-log-decay}
+    \lean{MeasureTheory.GibbsMeasure.MerminWagner.IsPlanarSiteNorm, MeasureTheory.GibbsMeasure.MerminWagner.LogDecay}
+    \leanok
+
+    A symmetric $J \colon S \times S \to [0,\infty[$ satisfies the \textbf{decay condition} with
+    constant $K$ if $\sum_{i \neq j,\ d(i,j) \leq n} d(i,j)^2 J(i,j) \leq K \log n$ for all
+    $n \geq 2$, for every $i$.
+\end{definition}
+
+\begin{definition}[Spin waves, Georgii (9.27), (9.29)]
+    \label{def:cs-spin-wave}
+    \uses{def:sb-pure-spin}
+    \lean{MeasureTheory.GibbsMeasure.spinWave, MeasureTheory.GibbsMeasure.MerminWagner.dirichletEnergy, MeasureTheory.GibbsMeasure.MerminWagner.profile}
+    \leanok
+
+    For a family $(\tau^u)_{u \in \mathbb R}$ of pure spin transformations and a profile
+    $t \colon S \to \mathbb R$, the \textbf{spin wave} is $\tilde\tau = (\tau_i^{t(i)})_{i \in S}$.
+    The \textbf{Dirichlet energy} of $t$ is $\sum_{(i,j) \in S^2} J(i,j)\,(t(i) - t(j))^2$. For
+    $N, L \geq 1$ the profile $t_{N,L}(i) = r(\|i\| - N, L)$ is $1$ on $\|i\| \leq N$, $0$ on
+    $\|i\| \geq N + L$, and $1 - \log(1+k)/\log(1+L)$ in between.
+\end{definition}
+
+\begin{lemma}[Georgii (9.28)]
+    \label{lem:cs-9-28}
+    \uses{def:cs-spin-wave, def:sb-pair-potential}
+    \lean{MeasureTheory.GibbsMeasure.hamiltonian_spinWave_add_sub_le}
+    \leanok
+
+    Let $\Phi^\varphi$ be a summable pair potential, $\beta \in \mathbb R$, and
+    $(\tau^u)_{u \in \mathbb R}$ pure spin transformations with $\tau^s\tau^t = \tau^{s+t}$,
+    leaving $\varphi$ invariant, such that $u \mapsto \varphi_{ij}(x, \tau^u_j y)$ is $C^2$ with
+    $\beta\,\partial_u^2 \varphi_{ij}(x, \tau^u_j y) \leq J(i,j)$ for $i < j$. Then for every
+    profile $t$, volume $\Lambda$ and $\omega$,
+    \[
+        \beta\bigl(H_\Lambda(\tilde\tau\omega) + H_\Lambda(\tilde\tau^{-1}\omega) - 2H_\Lambda(\omega)\bigr)
+        \leq \sum_{(i,j)} J(i,j)\,(t(i) - t(j))^2 .
+    \]
+\end{lemma}
+\begin{proof}
+    \leanok
+    Invariance gives $\varphi_{ij}(\tau^{t(i)}_i x, \tau^{t(j)}_j y) = \varphi_{ij}(x, \tau^{t(j)-t(i)}_j y)$;
+    the two-sided Taylor bound $g(s) + g(-s) - 2g(0) \leq s^2 \sup g''$ applied to
+    $s = t(j) - t(i)$ and summed over the pairs of the Hamiltonian's partial sums.
+\end{proof}
+
+\begin{lemma}[Georgii (9.33)]
+    \label{lem:cs-9-33}
+    \uses{def:cs-spin-wave, def:cs-log-decay}
+    \lean{MeasureTheory.GibbsMeasure.MerminWagner.exists_dirichletEnergy_profile_le, MeasureTheory.GibbsMeasure.MerminWagner.dirichletEnergy_profile_le}
+    \leanok
+
+    Under the decay condition, for every $N \geq 1$ and $C > 0$ there is $L \geq 1$ with
+    $\sum_{(i,j)} J(i,j)\,(t_{N,L}(i) - t_{N,L}(j))^2 \leq C$; quantitatively the energy is at
+    most $1096\, c_0 (N+1)^2 K / \log(1+L)$.
+\end{lemma}
+\begin{proof}
+    \leanok
+    Split the pairs by $d(i,j) \leq (\|i\| - N)^3$ or not; the near pairs contribute
+    $\lesssim \sum_k (k \log(1+L))^{-2} \sum_{d \le k^3} d^2 J \lesssim K/\log(1+L)$ by the decay
+    condition, the far pairs $\lesssim K/\log(1+L)$ by the tail estimate of the decay condition
+    summed over shells.
+\end{proof}
+
+\begin{theorem}[Mermin--Wagner, Georgii (9.20)]
+    \label{thm:cs-9-20}
+    \uses{lem:cs-9-28, lem:cs-9-33, thm:sb-9-3, def:pot-gibbs-spec}
+    \lean{MeasureTheory.GibbsMeasure.measurePreserving_of_logDecay, MeasureTheory.GibbsMeasure.measurePreserving_of_logDecay_int_lex}
+    \leanok
+
+    Let $E$ be standard Borel, $\lambda$ $\sigma$-finite, $\beta \in \mathbb R$, $\Phi^\varphi$
+    a summable $\lambda$-admissible pair potential, and $(\tau^u)$ as in Lemma \ref{lem:cs-9-28}
+    with $\lambda$-preserving spins and $J$ satisfying the decay condition. Then every
+    $\mu \in \mathcal G(\gamma^{\beta\Phi^\varphi})$ is invariant under every $\tau^u$. In
+    particular this holds on $S = \mathbb Z^2$.
+\end{theorem}
+\begin{proof}
+    \leanok
+    Fix $u$ and $\Delta \subseteq \set{\|\cdot\| \leq N}$. By Lemma \ref{lem:cs-9-33} choose $L$
+    with Dirichlet energy of $u\,t_{N,L}$ at most $1/2$; the spin wave $\tilde\tau$ with this
+    profile is a localized version of $\tau^u$ on $(\Delta, \set{\|\cdot\| < N + L})$, and Lemma
+    \ref{lem:cs-9-28} gives the energy condition of Theorem \ref{thm:sb-9-3} with $c = 1/2$.
+\end{proof}
