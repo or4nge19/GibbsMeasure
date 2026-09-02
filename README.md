@@ -95,7 +95,7 @@ Example (4.16): a genuine (proper, consistent) specification — a single partic
 random site — with **no Gibbs measure**; it is not quasilocal (`not_isQuasilocal_specification`),
 so quasilocality cannot be dropped from (4.17)/(4.22).
 
-Chapter 5, §5.1 and §5.2: everything in (5.1)–(5.13), (5.17)(1)–(2), (5.18) and (5.20)(1)–(2) is
+Chapter 5, §5.1 and §5.2: everything in (5.1)–(5.13), (5.17)(1)–(2), (5.18) and (5.20)(1)–(3) is
 formalised; Theorem **(5.19)**, Georgii's counterpart to the general
 existence theorem (4.22) — a locally equicontinuous net of Cesàro averages of `I`-invariant
 finite-volume distributions has a cluster point in `𝒢_I(γ)` — is
@@ -161,7 +161,13 @@ additive site bijection conjugates shifts into shifts, `τ_e ∘ θ_j = θ_{ej} 
 `mem_GP_and_measurePreserving_of_mapClusterPt_truncation`: cluster points of the truncated-potential
 net are `I`-invariant Gibbs measures whenever `Φ` is `I`-invariant and the spatial parts of `I`
 fix the volumes, because truncation transports (`Potential.map_truncation`) and (5.18) applies
-with the one-element family `{Δ_n}`, whose Følner ratio is zero.
+with the one-element family `{Δ_n}`, whose Følner ratio is zero. Example **(5.20)(3)**, periodic
+boundary conditions (`GibbsMeasure/Model/PeriodicSymmetry.lean`), needed Georgii's periodic
+modification `τ_N` of a *transformation*, `i ↦ π(τ_* π i) + (i − π i)` — a bijection whose
+inverse is the periodic modification of `τ⁻¹` — and the identity `σ̃_Δ ∘ τ_N = τ ∘ σ̃_Δ`, from
+which the periodic modification of a `τ`-invariant potential is `τ_N`-invariant; then (5.18)
+with the varying `τ_N`. The boundary fields are arbitrary, as Georgii says; `I` need only be a
+set; the reflection group `R` is replaced by all lattice automorphisms.
 
 Prerequisites filled for Chapter 3 (uniqueness on `ℤ`, Theorem (3.5)), all absent from Mathlib:
 the Perron–Frobenius theorem for positive matrices
@@ -408,10 +414,22 @@ the reference configuration, so the second assertion integrates the first. Corol
 nearest-neighbour potential, `Potential.IsNearestNeighbour`) come with it; (2.32) holds for the
 vacuum potential too, with no boundedness hypothesis, which Georgii does not state.
 
+**Chapter 14, ergodicity** (`GibbsMeasure/Specification/Ergodicity.lean`): Georgii's invariant
+σ-algebra `𝓘` ((14.2), `MeasurableSpace.invariants` for any group action), Remark (14.3) — a
+function is `𝓘`-measurable iff it is invariant, and an a.s.-invariant event has a strictly
+invariant companion, its orbit — and **Theorem (14.5)** in full, (a)–(d), for any *countable*
+subgroup of the transformation group, as Georgii's footnote licenses: ergodic ⟺ extreme in `𝓟_Θ`,
+the density of an absolutely continuous invariant measure is `𝓘`-measurable, `μ ∈ 𝓟_Θ` is
+determined by its restriction to `𝓘`, and distinct ergodic measures are singular *on `𝓘`*.
+Ergodicity (14.6) is Mathlib's `ErgodicSMul`, not a second definition. Georgii's shift group is
+`shiftGroup S E`, an honest `Subgroup`.
+
 Not yet done: the inhomogeneous Ising chains of §6.1, Shlosman's random staircases of §6.3
-(Theorem (6.21)), Examples (5.17)(2)–(4) and (5.20)(2)–(3), Mermin–Wagner (9.20), and
-Chapters 10–20 (Markov fields on trees, Gaussian fields, the variational principle, the Poulsen
-simplex, reflection positivity, and the infrared bound).
+(Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Mermin–Wagner
+(9.20), the rest of Chapter 14 — the multidimensional ergodic theorem of Appendix 14.A, (14.7),
+(14.9)–(14.12), (14.15)–(14.25) — and Chapters 10–13 and 15–20 (Markov fields on trees,
+Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
+infrared bound).
 
 ### Code organisation
 

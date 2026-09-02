@@ -633,11 +633,45 @@ and over volumes in the other.
     The remaining groups on $\mathbb{Z}^d$ are treated the same way. The spin-rotation groups
     $U \circ R \circ \Theta$ of (5.17)(3), $U$ compact and commuting with every spatial
     transformation, and the even/odd sublattice flips $F$ of (5.17)(4), are further instances of
-    Theorem \ref{thm:sym-5-15} with $I_0 = R \circ \Theta$ and $I_0 = \Theta$ respectively. Periodic boundary conditions (5.20)(3) use the periodic
-    modifications $\tilde\Phi^{\Delta_N}$ of Example (4.20)(2) together with the form of
-    Proposition \ref{prop:sym-5-18} in which the transformation varies, $\tau_N$ being the
-    $\Delta_N$-periodic modification of $\tau$.
+    Theorem \ref{thm:sym-5-15} with $I_0 = R \circ \Theta$ and $I_0 = \Theta$ respectively.
 \end{remark}
+
+\begin{theorem}[Georgii (5.20)(3), periodic boundary conditions]
+    \label{thm:sym-5-20-3}
+    \uses{prop:sym-5-18, def:sym-invariant-fields}
+    \lean{Potential.periodizeSites,
+      Potential.periodizeSitesEquiv,
+      Potential.IsPeriodizable,
+      Potential.periodize,
+      Potential.periodicExtend_periodize,
+      Potential.map_periodize_periodicModification,
+      Potential.eventually_preimage_periodize_eq,
+      MeasureTheory.GibbsMeasure.mem_GP_and_measurePreserving_of_mapClusterPt_periodicModification,
+      MeasureTheory.GibbsMeasure.mem_GP_and_measurePreserving_of_mapClusterPt_latticePeriodic,
+      MeasureTheory.GibbsMeasure.mem_GP_and_measurePreserving_of_mapClusterPt_mPeriodicBox}
+    \leanok
+
+    Let $\lambda$ be finite, $\Phi \in \Bspace$ shift invariant, $(\Delta_N)$ an exhausting
+    sequence of boxes with torus reductions $\pi_N$, and $I$ a set of $\lambda$-preserving
+    symmetries of $\Phi$ whose spatial parts respect the congruences modulo the periods
+    (Georgii: $\Theta \subseteq I \subseteq T_\lambda^{(m)} \circ R \circ \Theta$, boxes with
+    sides divisible by $m$). For arbitrary boundary fields $\nu_N$, every cluster point of
+    $\nu_N \gamma^{\tilde\Phi^{\Delta_N}}_{\Delta_N}$ lies in $\mathcal{G}_I(\Phi)$.
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    The Gibbs half is Example (4.20)(2). For the symmetry half, the periodic modification
+    $\tau_N$ of $\tau \in I$ has spatial part $i \mapsto \pi_N(\tau_* \pi_N i) + (i - \pi_N i)$,
+    a bijection of the site group whose inverse is the periodic modification of $\tau^{-1}$;
+    $\tilde\sigma_{\Delta_N} \circ \tau_N = \tau \circ \tilde\sigma_{\Delta_N}$, so
+    $\tilde\Phi^{\Delta_N}$ is $\tau_N$-invariant, by reindexing the representative sums along
+    $B \mapsto \mathcal{R}(\tau_* B)$. Since $\gamma^{\tilde\Phi}_{\Delta}(\cdot \mid \omega)$
+    restricted to $\mathcal{F}_\Delta$ does not depend on $\omega$, the boundary fields may be
+    replaced by $\lambda^S$, which every $\tau_N$ preserves. Finally $\tau_N^{-1}A = \tau^{-1}A$
+    eventually for each local event $A$, so Proposition \ref{prop:sym-5-18} with the one-element
+    families $\set{\Delta_N}$ gives $\tau$-invariance of every cluster point.
+\end{proof}
 
 \subsection*{Broken symmetries}
 

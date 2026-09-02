@@ -509,6 +509,30 @@ alignment:
         Proposition (5.18) with the one-element volume family R_n = {Delta_n}, whose Foelner ratio
         is zero. The missing ingredient was that truncation transports,
         Potential.map_truncation.
+    - source: "Example (5.20)(3)"
+      lean: "MeasureTheory.GibbsMeasure.mem_GP_and_measurePreserving_of_mapClusterPt_periodicModification"
+      module: "GibbsMeasure/Model/PeriodicSymmetry.lean"
+      status: "proved"
+      note: >-
+        Periodic boundary conditions. The Gibbs half is Example (4.20)(2); the symmetry half needs
+        Georgii's periodic modification tau_N of a transformation (Potential.periodize), the
+        identity sigma-tilde o tau_N = tau o sigma-tilde, the tau_N-invariance of the periodic
+        modification of the potential, and Proposition (5.18) with varying tau_N. Stated for an
+        additive site group, any exhausting net of torus reductions, and any set I of periodizable
+        lambda-preserving symmetries; Z^d with Theta <= I <= T_lambda^(m) o R o Theta is the
+        instance (mem_GP_and_measurePreserving_of_mapClusterPt_latticePeriodic). Phi is taken in
+        B, the Gibbsian specification the tree has, rather than "finite range or B".
+    - source: "Theorem (14.5)(b)-(d), Remark (14.3), Definition (14.6)"
+      lean: "MeasureTheory.GibbsMeasure.mem_invariantFields_iff_exists_withDensity"
+      module: "GibbsMeasure/Specification/Ergodicity.lean"
+      status: "proved"
+      note: >-
+        For any countable subgroup of the transformation group, as Georgii's footnote licenses,
+        not only the shift group. The general facts live in the Mathlib layer
+        (MeasurableSpace.invariants, smulInvariantMeasure_iff_exists_withDensity,
+        eq_of_forall_measurableSet_invariants_eq, exists_measurableSet_invariants_eq_one_eq_zero)
+        for a countable group acting measurably on any measurable space. (14.5)(d) is singularity
+        on the invariant sigma-algebra, as Georgii states it. Georgii's shift group is shiftGroup.
     - source: "Theorem (5.15)(ii)"
       lean: "MeasureTheory.GibbsMeasure.exists_mem_GP_and_forall_measurePreserving_sup_of_commute_mod_of_measurePreserving"
       module: "GibbsMeasure/Specification/InvariantExistenceGroup.lean"
