@@ -51,6 +51,7 @@ public import GibbsMeasure.Mathlib.Probability.Kernel.Composition.MeasureComp
 public import GibbsMeasure.Mathlib.Probability.Kernel.Composition.MapComap
 public import GibbsMeasure.Mathlib.Probability.Kernel.Condexp
 public import GibbsMeasure.Mathlib.Probability.Kernel.Proper
+public import GibbsMeasure.Mathlib.Probability.Martingale.DominatedBackward
 public import GibbsMeasure.Mathlib.Probability.Martingale.Convergence
 public import GibbsMeasure.Mathlib.Probability.TailTriviality
 public import GibbsMeasure.Prereqs.CylinderEvents

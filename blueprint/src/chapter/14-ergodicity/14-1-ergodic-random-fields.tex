@@ -231,6 +231,26 @@ $(\Cfg, \mathcal{F})$, specialised to a subgroup $\Theta$ of the transformation 
     follows by density of simple functions and the contraction $\|R_k f\|_1 \le \|f\|_1$.
 \end{proof}
 
+\begin{lemma}[Georgii (14.19)]
+    \label{lem:erg-1419}
+    \lean{MeasureTheory.tendsto_ae_condExp_of_antitone_of_dominated,
+      MeasureTheory.condExp_iInf_le_liminf_condExp_of_antitone,
+      MeasureTheory.tendsto_ae_condExp_of_monotone}
+    \leanok
+
+    Let $\mu$ be finite, $(\mathcal{A}_n)$ a decreasing sequence of sub-$\sigma$-algebras,
+    $(f_n)$ with $|f_n| \le g$ for an integrable $g$ and $f_n \to f_\infty$ a.e. Then
+    $\mu(f_n \mid \mathcal{A}_n) \to \mu(f_\infty \mid \bigcap_n \mathcal{A}_n)$ a.e.
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    For $g_N = \inf_{n \ge N} f_n$ the backward martingale theorem gives
+    $\mu(g_N \mid \bigcap \mathcal{A}_n) = \lim_n \mu(g_N \mid \mathcal{A}_n) \le
+    \liminf_n \mu(f_n \mid \mathcal{A}_n)$; $g_N \uparrow f_\infty$ and monotone convergence of
+    conditional expectations give the lower bound, and $-f_n$ the upper one.
+\end{proof}
+
 \begin{lemma}[Georgii (14.A6), the maximal inequality]
     \label{lem:erg-14A6}
     \lean{MeasureTheory.ergodicMaximalFunction,

@@ -543,6 +543,16 @@ alignment:
         disjoint unions that are boxes, has lim |Lambda_n|^{-1} a(Lambda_n) = inf over boxes along
         cubes with |Lambda_n| -> infinity, via the tiling lemma. Mathlib has only the 1D
         Subadditive.tendsto_lim. Prerequisite of (15.12) and (15.30).
+    - source: "Lemma (14.19), dominated convergence for reversed martingales"
+      lean: "MeasureTheory.tendsto_ae_condExp_of_antitone_of_dominated"
+      module: "GibbsMeasure/Mathlib/Probability/Martingale/DominatedBackward.lean"
+      status: "proved"
+      note: >-
+        For a finite measure, a decreasing sequence of sub-sigma-algebras and f_n -> F a.e. with
+        |f_n| <= g integrable: E[f_n | A_n] -> E[F | inf A_n] a.e., via the tree's Levy downward
+        theorem and a new a.e. monotone convergence theorem for condExp
+        (tendsto_ae_condExp_of_monotone, sigma-finite trim, no finiteness). The liminf and limsup
+        halves are separate lemmas.
     - source: "Theorem (14.12), dense extreme boundary of P_Theta"
       lean: "MeasureTheory.GibbsMeasure.closure_setOf_mem_extremePoints_invariantFields_shiftGroup"
       module: "GibbsMeasure/Specification/ErgodicDense.lean"
