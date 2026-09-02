@@ -7,6 +7,7 @@ module
 
 public import GibbsMeasure.Specification.InvariantExistence
 public import GibbsMeasure.Specification.InvariantExistenceGroup
+public import GibbsMeasure.Potential.FreeBoundary
 public import GibbsMeasure.Model.Ising
 
 /-!
@@ -617,6 +618,72 @@ theorem exists_latticeIsing_mem_GP_forall_measurePreserving_shift_and_spinFlip
     (isInvariant_pureSpin_boolNot_isingSpecification (latticeGraph d) J β)
     (isCompact_setOf_latticeIsingGibbsMeasure d J 0 β)
     (latticeIsingGibbsMeasure_nonempty d J 0 β)
+
+/-! ### Georgii Example (5.20)(2): free boundary conditions -/
+
+section FreeBoundarySymmetry
+
+open Potential
+
+variable {S E : Type*} [Countable S] [MeasurableSpace E] {Φ : Potential S E}
+  {ν : Measure E} [IsProbabilityMeasure ν] {β : ℝ}
+
+/-- **Georgii Example (5.20)(2): free boundary conditions produce symmetric Gibbs measures.**
+
+Let `Φ ∈ ℬ` be invariant under a set `I` of `λ`-preserving transformations whose spatial parts
+preserve each volume `Δ_n` of an exhausting sequence — Georgii's `I ⊆ T_λ⁰ ∘ R` and the cubes
+`Λ_N`, which every reflection maps onto themselves.  Then each truncation `Φ^{Δ_n}` inherits the
+`I`-invariance, so every cluster point of the free-boundary net `ν_n γ^{Φ^{Δ_n}}_{Δ_n}` is an
+`I`-invariant Gibbs measure for `Φ`.
+
+The boundary fields `ν_n` need only be `I`-invariant; by Georgii's remark they may be taken to be
+anything at all as far as the Gibbs half is concerned, since `γ^{Φ^{Δ}}_{Δ}(·|ω)` restricted to
+`𝓕_Δ` does not depend on `ω`. -/
+theorem mem_GP_and_measurePreserving_of_mapClusterPt_truncation
+    [Potential.IsPotential Φ] [Potential.IsAbsolutelySummable Φ]
+    {I : Set (Transformation S E)}
+    (hIspin : ∀ τ ∈ I, ∀ i, MeasurePreserving (τ.spin i) ν ν)
+    (hIΦ : ∀ τ ∈ I, Potential.map τ Φ = Φ)
+    {Δs : ℕ → Finset S} (hΔ : Tendsto Δs atTop atTop)
+    (hΔinv : ∀ τ ∈ I, ∀ n, (Δs n).map τ.sites.toEmbedding = Δs n)
+    (νs : ℕ → ProbabilityMeasure (S → E))
+    (hνs : ∀ τ ∈ I, ∀ n, MeasurePreserving τ.toFun (νs n : Measure (S → E)) (νs n))
+    {μ : ProbabilityMeasure (S → E)}
+    (hcp : MapClusterPt (WithSetwiseTopology.ofMeasure μ : WithLocalConvergence S E) atTop
+      fun n ↦ WithSetwiseTopology.ofMeasure
+        ((gibbsSpecificationOfAbsolutelySummable (Φ := Φ.truncation (Δs n)) ν β).bindPM
+          (Δs n) (νs n))) :
+    μ ∈ GP (gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) ∧
+      ∀ τ ∈ I, MeasurePreserving τ.toFun (μ : Measure (S → E)) μ := by
+  classical
+  refine ⟨?_, fun τ hτ ↦ ?_⟩
+  · exact mem_GP_of_mapClusterPt
+      (isQuasilocal_gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) hΔ
+      (fun Λ f hf ↦ (tendsto_dist_action_truncation ν β Λ hf).comp hΔ) hcp
+  · -- the truncations are `τ`-invariant, and `{Δ_n}` is a one-element Følner family for `τ`
+    have hinv : ∀ n, Specification.IsInvariant τ
+        (gibbsSpecificationOfAbsolutelySummable (Φ := Φ.truncation (Δs n)) ν β) := fun n ↦
+      Potential.isInvariant_gibbsSpecification τ _ ν β (hIspin τ hτ)
+        (map_truncation_eq_of_map_eq (hIΦ τ hτ) (hΔinv τ hτ n))
+    refine measurePreserving_of_mapClusterPt_average_of_eventually_preimage_eq
+      (τs := fun _ ↦ τ) (γs := fun n ↦ gibbsSpecificationOfAbsolutelySummable
+        (Φ := Φ.truncation (Δs n)) ν β) (νs := νs) (R := fun n ↦ {Δs n})
+      hinv (fun n ↦ hνs τ hτ n) (fun n ↦ Finset.singleton_nonempty _) ?_
+      (fun _ _ ↦ Eventually.of_forall fun _ ↦ rfl) ?_ hcp
+    · refine tendsto_const_nhds.congr fun n ↦ ?_
+      have hmap : ({Δs n} : Finset (Finset S)).map
+          (Finset.mapEmbedding τ.sites.toEmbedding).toEmbedding = {Δs n} := by
+        rw [Finset.map_singleton]
+        congr 1
+        show (Finset.mapEmbedding τ.sites.toEmbedding) (Δs n) = Δs n
+        rw [Finset.mapEmbedding_apply, hΔinv τ hτ n]
+      rw [hmap, symmDiff_self]
+      simp
+    · intro n
+      rw [Specification.average_singleton]
+      rfl
+
+end FreeBoundarySymmetry
 
 end MeasureTheory.GibbsMeasure
 

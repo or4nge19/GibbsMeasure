@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Potential.Transformation
 public import GibbsMeasure.Potential.Space
 public import GibbsMeasure.Potential.UniformConvergence
 
@@ -395,6 +396,47 @@ noncomputable def truncationB (Φ : absolutelySummable S E) (Δ : Finset S) :
 
 @[simp] lemma coe_truncationB (Φ : absolutelySummable S E) (Δ : Finset S) :
     (truncationB Φ Δ : Potential S E) = (Φ : Potential S E).truncation Δ := rfl
+
+/-! ### Transport of the truncation under a transformation -/
+
+section Transport
+
+variable {S E : Type*} [MeasurableSpace E]
+
+/-- Truncating commutes with transporting a potential: `τ(Φ^Δ) = (τΦ)^{τ_*Δ}`. -/
+lemma map_truncation (τ : Transformation S E) (Φ : Potential S E) (Δ : Finset S) :
+    Potential.map τ (Φ.truncation Δ)
+      = (Potential.map τ Φ).truncation (Δ.map τ.sites.toEmbedding) := by
+  funext A η
+  by_cases h : A ⊆ Δ.map τ.sites.toEmbedding
+  · have h' : A.map τ.sites.symm.toEmbedding ⊆ Δ := by
+      intro i hi
+      obtain ⟨j, hj, rfl⟩ := Finset.mem_map.1 hi
+      obtain ⟨k, hk, rfl⟩ := Finset.mem_map.1 (h hj)
+      simpa using hk
+    rw [truncation_of_subset h]
+    change Φ.truncation Δ (A.map τ.sites.symm.toEmbedding) (τ.inv.toFun η) = _
+    rw [truncation_of_subset h']
+    rfl
+  · have h' : ¬ A.map τ.sites.symm.toEmbedding ⊆ Δ := by
+      intro hc
+      refine h fun i hi ↦ ?_
+      have hmem : τ.sites.symm i ∈ Δ := hc (Finset.mem_map.2 ⟨i, hi, rfl⟩)
+      exact Finset.mem_map.2 ⟨τ.sites.symm i, hmem, by simp⟩
+    rw [truncation_of_not_subset h]
+    change Φ.truncation Δ (A.map τ.sites.symm.toEmbedding) (τ.inv.toFun η) = _
+    rw [truncation_of_not_subset h']
+    rfl
+
+/-- **Georgii, in the proof of Example (5.20)(2).** The truncation of a `τ`-invariant potential to
+a volume that `τ` preserves is again `τ`-invariant. -/
+lemma map_truncation_eq_of_map_eq {τ : Transformation S E} {Φ : Potential S E}
+    (h : Potential.map τ Φ = Φ) {Δ : Finset S}
+    (hΔ : Δ.map τ.sites.toEmbedding = Δ) :
+    Potential.map τ (Φ.truncation Δ) = Φ.truncation Δ := by
+  rw [map_truncation, h, hΔ]
+
+end Transport
 
 /-- **Georgii (4.20)(1) in `ℬ`**: the free-boundary truncations of `Φ` converge to `Φ` in the
 topology of `ℬ`. -/

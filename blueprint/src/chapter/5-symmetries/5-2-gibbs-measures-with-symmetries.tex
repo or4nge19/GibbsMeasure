@@ -573,19 +573,44 @@ and over volumes in the other.
     $\nu = \delta_\omega$ with $\omega$ constant is a shift-invariant boundary condition.
 \end{proof}
 
-\begin{remark}[Georgii (5.17)(2)--(4), (5.20)(2)--(3)]
+\begin{theorem}[Georgii (5.20)(2), free boundary conditions]
+    \label{thm:sym-5-20-2}
+    \uses{prop:sym-5-18, cor:exg-free-boundary-existence}
+    \lean{MeasureTheory.GibbsMeasure.mem_GP_and_measurePreserving_of_mapClusterPt_truncation,
+      Potential.map_truncation, Potential.map_truncation_eq_of_map_eq}
+    \leanok
+
+    Let $\Phi \in \Bspace$ be invariant under a set $I$ of $\lambda$-preserving transformations
+    whose spatial parts fix each volume of an exhausting sequence $(\Delta_n)$ --- Georgii's
+    $I \subseteq T_\lambda^0 \circ R$ and the cubes $\Lambda_N$, which every reflection maps onto
+    themselves. Then every cluster point of the free-boundary net
+    $\nu_n \gamma^{\Phi^{\Delta_n}}_{\Delta_n}$ lies in $\mathcal{G}_I(\Phi)$, the boundary
+    fields $\nu_n$ being $I$-invariant. Over a standard Borel state space such cluster points
+    exist, by Corollary \ref{cor:exg-free-boundary-existence}.
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    Truncation commutes with transport, $\tau(\Phi^\Delta) = (\tau\Phi)^{\tau_*\Delta}$, so each
+    $\Phi^{\Delta_n}$ is $I$-invariant and hence so is $\gamma^{\Phi^{\Delta_n}}$ by (5.9)(b).
+    Being Gibbs for $\Phi$ is Example (4.20)(1). Invariance is
+    Proposition \ref{prop:sym-5-18} with the one-element family
+    $\mathcal{R}_n = \set{\Delta_n}$: since $\tau_*\Delta_n = \Delta_n$ the symmetric difference
+    is empty, so the F\o lner ratio is $0$.
+\end{proof}
+
+\begin{remark}[Georgii (5.17)(2)--(4), (5.20)(3)]
     \label{rmk:sym-5-20-others}
-    \uses{thm:sym-5-19, thm:sym-5-15}
+    \uses{thm:sym-5-19, thm:sym-5-15, prop:sym-5-18}
 
     Further groups of symmetries on $\mathbb{Z}^d$ are treated the same way. The reflection and
     lattice-rotation groups $R \circ \Theta$ and the spin-rotation groups
     $U \circ R \circ \Theta$ of (5.17)(2)--(3), and the even/odd sublattice flips of (5.17)(4),
     are instances of Theorem \ref{thm:sym-5-15} with $I_0 = \Theta$ rather than of its
-    $I_0 = \set{\mathrm{id}}$ case. On the (5.20) side, Georgii treats free boundary conditions
-    with the truncated potentials $\Phi^{\Lambda_N}$ and periodic boundary conditions with the
-    periodic modifications $\tilde\Phi^{\Delta_N}$; the latter uses the form of
-    Proposition \ref{prop:sym-5-18} with a varying transformation $\tau_\alpha$ subject only to
-    $\|f \circ \tau_\alpha - f \circ \tau\| \to 0$ for $f \in \mathcal{L}$.
+    $I_0 = \set{\mathrm{id}}$ case. Periodic boundary conditions (5.20)(3) use the periodic
+    modifications $\tilde\Phi^{\Delta_N}$ of Example (4.20)(2) together with the form of
+    Proposition \ref{prop:sym-5-18} in which the transformation varies, $\tau_N$ being the
+    $\Delta_N$-periodic modification of $\tau$.
 \end{remark}
 
 \subsection*{Broken symmetries}
