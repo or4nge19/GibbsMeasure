@@ -231,6 +231,20 @@ protected lemma IsAbsolutelySummable.sub {Φ Ψ : Potential S E}
 
 instance : IsAbsolutelySummable (0 : Potential S E) := ⟨fun i ↦ by simp⟩
 
+instance {Φ Ψ : Potential S E} [Φ.IsAbsolutelySummable] [Ψ.IsAbsolutelySummable] :
+    (Φ + Ψ).IsAbsolutelySummable :=
+  IsAbsolutelySummable.add ‹_› ‹_›
+
+instance (c : ℝ) {Φ : Potential S E} [Φ.IsAbsolutelySummable] : (c • Φ).IsAbsolutelySummable :=
+  IsAbsolutelySummable.smul c ‹_›
+
+instance {Φ : Potential S E} [Φ.IsAbsolutelySummable] : (-Φ).IsAbsolutelySummable :=
+  IsAbsolutelySummable.neg ‹_›
+
+instance {Φ Ψ : Potential S E} [Φ.IsAbsolutelySummable] [Ψ.IsAbsolutelySummable] :
+    (Φ - Ψ).IsAbsolutelySummable :=
+  IsAbsolutelySummable.sub ‹_› ‹_›
+
 /-! ### Georgii (2.11): the submodule `ℬ` of absolutely summable potentials -/
 
 variable (S E) in
