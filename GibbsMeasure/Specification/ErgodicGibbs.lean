@@ -322,7 +322,7 @@ lemma mem_aeInvariantSets_kerAmbient_of_forall_preimage_smul_ae_eq {μ : Measure
     exact measure_symmDiff_eq_zero_iff.2 hAB
   refine ⟨hA, ?_⟩
   filter_upwards [hnull, Filter.eventuallyEq_set.1 hAB] with ω hω hωAB
-  show γ Λ ω A = A.indicator 1 ω
+  change γ Λ ω A = A.indicator 1 ω
   rw [measure_congr (measure_symmDiff_eq_zero_iff.1 hω), hker ω]
   by_cases h : ω ∈ A
   · simp [h, hωAB.1 h]

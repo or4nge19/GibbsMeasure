@@ -7,6 +7,7 @@ module
 
 public import GibbsMeasure.Mathlib.Probability.Kernel.InvariantSigmaAlgebra
 public import GibbsMeasure.Prereqs.Transformation
+public import Mathlib.MeasureTheory.Group.Action
 public import GibbsMeasure.Specification.Abstract
 
 /-!
@@ -231,19 +232,19 @@ def shiftGroup : Subgroup (Transformation S E) where
     refine ⟨j + i, ?_⟩
     refine Transformation.ext ?_ rfl
     ext k
-    show k + (j + i) = k + j + i
+    change k + (j + i) = k + j + i
     exact (add_assoc k j i).symm
   one_mem' := ⟨0, by
     refine Transformation.ext ?_ rfl
     ext k
-    show k + 0 = k
+    change k + 0 = k
     exact add_zero k⟩
   inv_mem' := by
     rintro _ ⟨i, rfl⟩
     refine ⟨-i, ?_⟩
     refine Transformation.ext ?_ rfl
     ext k
-    simp [shift, Transformation.inv, sub_eq_add_neg]
+    simp [shift, Transformation.inv]
 
 @[simp] lemma mem_shiftGroup {τ : Transformation S E} :
     τ ∈ shiftGroup S E ↔ ∃ j : S, shift E j = τ := Iff.rfl
@@ -264,5 +265,70 @@ lemma mem_invariantFields_shiftGroup {μ : Measure (S → E)} :
   exact h j
 
 end ShiftGroup
+
+section ShiftAction
+
+variable {S E : Type*} [MeasurableSpace E] [AddCommGroup S]
+
+variable (S E) in
+/-- The shift action of the site group on configuration space, `j +ᵥ ω = θ_j ω`, i.e.
+`(j +ᵥ ω) i = ω (i - j)` (Georgii (5.2)(1)). -/
+@[instance_reducible] def shiftAddAction : AddAction S (S → E) where
+  vadd j ω := (shift E j).toFun ω
+  zero_vadd ω := funext fun i ↦ by
+    change (shift E 0).toFun ω i = ω i
+    simp
+  add_vadd j k ω := funext fun i ↦ by
+    change (shift E (j + k)).toFun ω i = (shift E j).toFun ((shift E k).toFun ω) i
+    simp [sub_sub]
+
+attribute [local instance] shiftAddAction
+
+@[simp] lemma shift_vadd (j : S) (ω : S → E) : j +ᵥ ω = (shift E j).toFun ω := rfl
+
+/-- The shifts act measurably. -/
+lemma measurableConstVAdd_shift : MeasurableConstVAdd S (S → E) :=
+  ⟨fun j ↦ (shift E j).measurable_toFun⟩
+
+attribute [local instance] measurableConstVAdd_shift
+
+/-- Under the shift action, the strictly invariant σ-algebra of the site group is Georgii's `𝓘`
+for the shift group `Θ` (14.2). -/
+lemma smulInvariants_multiplicative_eq_invariantEvents_shiftGroup :
+    MeasurableSpace.smulInvariants (Multiplicative S) (S → E)
+      = invariantEvents (shiftGroup S E) := by
+  refine (MeasurableSpace.ext fun A ↦ ?_).symm
+  rw [measurableSet_invariantEvents, MeasurableSpace.measurableSet_smulInvariants]
+  refine and_congr_right fun _ ↦ ⟨fun h c ↦ h _ (shift_mem_shiftGroup c.toAdd), ?_⟩
+  rintro h _ ⟨j, rfl⟩
+  exact h (Multiplicative.ofAdd j)
+
+/-- Under the shift action, invariance for the site group is invariance for the shift group. -/
+lemma vaddInvariantMeasure_iff_smulInvariantMeasure_shiftGroup {μ : Measure (S → E)} :
+    VAddInvariantMeasure S (S → E) μ ↔ SMulInvariantMeasure (shiftGroup S E) (S → E) μ := by
+  have h : VAddInvariantMeasure S (S → E) μ ↔ ∀ c : S, MeasurePreserving (c +ᵥ ·) μ μ :=
+    (vaddInvariantMeasure_tfae S μ).out 1 7
+  refine h.trans (Iff.trans ?_ smulInvariantMeasure_iff_forall_measurePreserving.symm)
+  constructor
+  · rintro h τ ⟨j, rfl⟩
+    exact h j
+  · intro h j
+    exact h (shift E j) (shift_mem_shiftGroup j)
+
+/-- **Georgii (14.1) for the shift group**, in the additive phrasing: `𝓟_Θ` is the set of
+probability measures invariant under the shift action of the site group. -/
+lemma mem_invariantFields_shiftGroup_iff_vaddInvariantMeasure {μ : Measure (S → E)} :
+    μ ∈ invariantFields (shiftGroup S E) ↔
+      IsProbabilityMeasure μ ∧ VAddInvariantMeasure S (S → E) μ :=
+  mem_invariantFields.trans
+    (and_congr_right fun _ ↦ vaddInvariantMeasure_iff_smulInvariantMeasure_shiftGroup.symm)
+
+/-- A shift-invariant random field is an invariant measure for the shift action. -/
+lemma vaddInvariantMeasure_of_forall_measurePreserving_shift {μ : Measure (S → E)}
+    (hμ : ∀ j : S, MeasurePreserving (shift E j).toFun μ μ) :
+    VAddInvariantMeasure S (S → E) μ :=
+  ⟨fun j _ hs ↦ (hμ j).measure_preimage hs.nullMeasurableSet⟩
+
+end ShiftAction
 
 end MeasureTheory.GibbsMeasure
