@@ -1,6 +1,6 @@
 \section{Preliminaries}
 
-Throughout this section $(X,\MCX)$ is a measurable space and $\MCB$ a sub $\sigma$-algebra of
+Throughout this section $(X,\MCX)$ is a measurable space and $\MCB$ a sub-$\sigma$-algebra of
 $\MCX$.
 
 \begin{definition}[Juxtaposition]
@@ -8,13 +8,13 @@ $\MCX$.
     \lean{juxt}
     \leanok{}
 
-    Let $E$ and $S$ be sets, $\Delta\in\mathcal{P}(S)$ and $\omega\in E^S$. The
-    \textbf{juxtaposition of $\zeta$ and $\omega$}, for $\zeta\in E^\Delta$, is given by
+    Let $E$ and $S$ be sets, $\Delta \subseteq S$ and $\omega\in E^S$. The
+    \textbf{juxtaposition of $\zeta$ and $\omega$}, for $\zeta\in E^\Delta$, is
     \begin{align}
         \juxtBy{\omega} : E^\Delta&\to E^S\\
         \zeta&\mapsto \delta\mapsto\begin{cases}
             \zeta_\delta & \delta\in\Delta\\
-            \omega_\delta & \delta\notin\Delta
+            \omega_\delta & \delta\notin\Delta.
         \end{cases}
     \end{align}
 \end{definition}
@@ -24,11 +24,11 @@ $\MCX$.
     \lean{MeasureTheory.cylinderEvents}
     \leanok{}
 
-    Let $(E,\mathcal{E})$ be a measurable space and $S$ a set. The \textbf{cylinder events in
-    $\Delta$}, for $\Delta\in\mathcal{P}(S)$, are given by
+    Let $(E,\mathcal{E})$ be a measurable space and $S$ a set. The $\sigma$-algebra of
+    \textbf{cylinder events in $\Delta$}, for $\Delta \subseteq S$, is
     \begin{align}
-        \mathcal{F}:\mathcal{P}(S)&\to \set{\text{sigma algebras on } E^S}\\
-        \Delta&\mapsto \sigma(\{\text{proj}_\delta:E^S\to E\mid \delta\in \Delta\})
+        \mathcal{F}:\mathcal{P}(S)&\to \set{\sigma\text{-algebras on } E^S}\\
+        \Delta&\mapsto \sigma(\{\text{proj}_\delta:E^S\to E\mid \delta\in \Delta\}),
     \end{align}
     where $\text{proj}_\delta$ is the coordinate projection at $\delta$.
 \end{definition}
@@ -40,8 +40,8 @@ $\MCX$.
 
     Let $(X,\MCX)$ and $(Y,\mathcal{Y})$ be measurable spaces. The set of \textbf{kernels from
     $\mathcal{Y}$ to $\MCX$} is
-    \[\text{Ker}_{\mathcal{Y},\MCX}:=\left\{\pi:\MCX\times Y\to[0,\infty]~\middle\vert~ \forall y\in Y,\pi(\cdot\mid y)\in\mathfrak{M}(X,\MCX);~\forall A\in\MCX,\pi(A\mid\cdot)\text{ is }\mathcal{Y}\text{-measurable}\right\}\]
-    where $\mathfrak{M}(X,\MCX)$ is the space of measures on $X$.
+    \[\text{Ker}_{\mathcal{Y},\MCX}:=\left\{\pi:\MCX\times Y\to[0,\infty]~\middle\vert~ \forall y\in Y,\pi(\cdot\mid y)\in\mathfrak{M}(X,\MCX);~\forall A\in\MCX,\pi(A\mid\cdot)\text{ is }\mathcal{Y}\text{-measurable}\right\},\]
+    where $\mathfrak{M}(X,\MCX)$ is the set of measures on $(X,\MCX)$.
 \end{definition}
 
 \begin{definition}[Markov kernel]
@@ -50,7 +50,8 @@ $\MCX$.
     \lean{ProbabilityTheory.IsMarkovKernel}
     \leanok{}
 
-    Let $(X,\MCX)$ and $(Y,\mathcal{Y})$ be measurable spaces. A kernel $\pi\in\text{Ker}_{\mathcal{Y},\MCX}$ is a \textbf{Markov kernel} iff $\pi(X\mid \cdot)=1$.
+    A kernel $\pi\in\text{Ker}_{\mathcal{Y},\MCX}$ is a \textbf{Markov kernel} iff $\pi(X\mid y)=1$
+    for all $y \in Y$.
 \end{definition}
 
 \begin{definition}[Proper kernel]
@@ -59,7 +60,8 @@ $\MCX$.
     \lean{ProbabilityTheory.Kernel.IsProper}
     \leanok{}
 
-    A kernel $\pi\in\text{Ker}_{\MCB,\MCX}$ is \textbf{proper} iff $\pi(A\cap B\mid x)=\pi(A\mid x)\cdot\mathbf{1}_B(x)$ for all $A\in\MCX$, $B\in\MCB$ and $x\in X$.
+    A kernel $\pi\in\text{Ker}_{\MCB,\MCX}$ is \textbf{proper} iff
+    $\pi(A\cap B\mid x)=\pi(A\mid x)\,\mathbf{1}_B(x)$ for all $A\in\MCX$, $B\in\MCB$ and $x\in X$.
 \end{definition}
 
 \begin{lemma}[Lebesgue integral characterisation of proper kernels]
@@ -70,13 +72,15 @@ $\MCX$.
 
     If $\pi\in\text{Ker}_{\MCB,\MCX}$ is proper, then
     \[\int f(x) g(x)\ \pi(dx\mid x_0) = g(x_0)\int f(x)\ \pi(dx\mid x_0)\]
-    for all $x_0 \in X$ and functions $f, g : X \to [0, \infty]$ such that $f$ is $\MCX$-measurable, $g$ is $\MCB$-measurable.
+    for all $x_0 \in X$, all $\MCX$-measurable $f : X \to [0, \infty]$ and all $\MCB$-measurable
+    $g : X \to [0,\infty]$.
 \end{lemma}
 \begin{proof}
     % \uses{}
     \leanok{}
 
-    Standard machine.
+    For $g = \mathbf 1_B$, $B \in \MCB$, this is the definition; the general case follows by
+    linearity and monotone convergence.
 \end{proof}
 
 \begin{lemma}[Integral characterisation of proper kernels]
@@ -85,15 +89,18 @@ $\MCX$.
     \lean{ProbabilityTheory.Kernel.IsProper.integral_bdd_mul}
     \leanok{}
 
-    If $\pi\in\text{Ker}_{\MCB,\MCX}$ is a proper Markov kernel, then
+    If $\pi\in\text{Ker}_{\MCB,\MCX}$ is a proper finite kernel, then
     \[\int f(x) g(x)\ \pi(dx\mid x_0) = g(x_0)\int f(x)\ \pi(dx\mid x_0)\]
-    for all $x_0 \in X$ and functions $f, g : X \to \R$ such that $f$ is bounded $\MCX$-measurable and $g$ is bounded $\MCB$-measurable.
+    for all $x_0 \in X$, all $f : X \to \R$ integrable with respect to $\pi(\cdot\mid x_0)$ and
+    all bounded $\MCB$-measurable $g : X \to \R$.
 \end{lemma}
 \begin{proof}
     % \uses{}
     \leanok
 
-    Standard machine.
+    For indicators $f = \mathbf 1_A$, $A \in \MCX$, this is the definition, extended to bounded
+    $g$ by approximation. Both sides are continuous in $f \in L^1(\pi(\cdot\mid x_0))$, so the
+    identity extends from simple functions to integrable $f$.
 \end{proof}
 
 \begin{definition}[Conditional expectation kernel]
@@ -102,7 +109,9 @@ $\MCX$.
     \lean{ProbabilityTheory.condExpKernel, ProbabilityTheory.Kernel.IsCondExp}
     \leanok{}
 
-    Let $\mu\in\mathfrak{M}(X,\MCX)$. A kernel $\pi\in\text{Ker}_{\MCB,\MCX}$ is a \textbf{conditional expectation kernel for $\mu$} iff $\mu(A\mid \MCB)=\pi(A\mid\cdot)$ $\mu$-a.e.
+    Let $\mu\in\mathfrak{M}(X,\MCX)$. A kernel $\pi\in\text{Ker}_{\MCB,\MCX}$ is a
+    \textbf{conditional expectation kernel for $\mu$} iff $\mu(A\mid \MCB)=\pi(A\mid\cdot)$
+    $\mu$-a.e.\ for every $A \in \MCX$.
 \end{definition}
 
 \begin{lemma}[Lebesgue integral characterisation of proper conditional expectation kernels]
@@ -112,14 +121,14 @@ $\MCX$.
     % \leanok
 
     If $\pi \in \text{Ker}_{\MCB, \MCX}$ is a conditional expectation kernel for $\mu$, then
-    \[\mu[f\mid \MCB] = \int f(x)\ \pi(\partial x\mid\cdot)\ \mu\text{-a.e.}\]
-    for all $\MCX$-measurable functions $f : X \to [0, \infty]$.
+    \[\mu(f\mid \MCB) = \int f(x)\ \pi(dx\mid\cdot)\quad \mu\text{-a.e.}\]
+    for all $\MCX$-measurable $f : X \to [0, \infty]$.
 \end{lemma}
 \begin{proof}
     \uses{lem:lebesgue-cond-exp-char}
     % \leanok
 
-    Standard machine.
+    Monotone convergence from the indicator case of Definition \ref{def:cond-exp-ker}.
 \end{proof}
 
 \begin{lemma}[Integral characterisation of proper conditional expectation kernels]
@@ -128,15 +137,19 @@ $\MCX$.
     \lean{ProbabilityTheory.Kernel.condExp_ae_eq_integral}
     \leanok
 
-    If $\pi \in \text{Ker}_{\MCB, \MCX}$ is a conditional expectation kernel for $\mu$, then
-    $$\mu(f\mid \MCB) = \int f(x)\ \pi(\partial x\mid\cdot)\ \mu\text{-a.e.}$$
-    for all bounded $\MCX$-measurable functions $f : X \to \R$.
+    Let $\mu$ be a finite measure and $\pi \in \text{Ker}_{\MCB, \MCX}$ a proper Markov kernel
+    which is a conditional expectation kernel for $\mu$. Then
+    \[\mu(f\mid \MCB) = \int f(x)\ \pi(dx\mid\cdot)\quad \mu\text{-a.e.}\]
+    for all $\mu$-integrable $f : X \to \R$.
 \end{lemma}
 \begin{proof}
     \uses{lem:lebesgue-cond-exp-char}
     % \leanok
 
-    Standard machine.
+    By Lemma \ref{lem:cond-exp-proper-ker-bind}, $\mu\pi = \mu$, so
+    $f \mapsto \int f(x)\,\pi(dx\mid\cdot)$ is a contraction of $L^1(\mu)$. The identity holds for
+    indicators by Definition \ref{def:cond-exp-ker}, hence for simple functions, hence on
+    $L^1(\mu)$ by continuity of both sides.
 \end{proof}
 
 \begin{lemma}[Characterisation of proper conditional expectation kernels, Remark 1.20]
@@ -145,21 +158,21 @@ $\MCX$.
     \lean{ProbabilityTheory.Kernel.isCondExp_iff_bind_eq_left}
     \leanok
 
-    Let $\mu\in\mathfrak{M}(X,\MCX)$ be a finite measure and $\pi\in\text{Ker}_{\MCB,\MCX}$ a proper kernel. Then $\pi$ is a conditional expectation kernel for $\mu$ iff $\mu\pi = \mu$.
+    Let $\mu\in\mathfrak{M}(X,\MCX)$ be a finite measure and $\pi\in\text{Ker}_{\MCB,\MCX}$ a
+    proper Markov kernel. Then $\pi$ is a conditional expectation kernel for $\mu$ iff
+    $\mu\pi = \mu$.
 \end{lemma}
 \begin{proof}
     \uses{lem:lebesgue-cond-exp-char}
     \leanok
 
-    By the characterisation of conditional expectation,
-    $$\pi \text{ is a conditional expectation kernel for }\mu \iff \forall A \in \MCX, \forall B \in \MCB, \mu(A \inter B) = \int_B \pi(A|\cdot)\ \partial\mu$$
-    By properness of $\pi$,
-    $$\int_B \pi(A|\cdot)\ \partial\mu = \mu\pi(A \inter B)$$
-    Hence
+    By the characterisation of conditional expectation, $\pi$ is a conditional expectation
+    kernel for $\mu$ iff $\mu(A \inter B) = \int_B \pi(A\mid\cdot)\ d\mu$ for all $A \in \MCX$,
+    $B \in \MCB$. By properness, $\int_B \pi(A\mid\cdot)\ d\mu = \mu\pi(A \inter B)$. Hence
     \begin{align}
-        \pi \text{ is a cond. exp. kernel with respect to }\mu
+        \pi \text{ is a conditional expectation kernel for }\mu
         & \iff \forall A \in \MCX, \forall B \in \MCB, \mu(A \inter B) = \mu\pi(A \inter B) \\
         & \iff \forall A \in \MCX, \mu(A) = \mu\pi(A) \\
-        & \iff \mu = \mu\pi
+        & \iff \mu = \mu\pi.
     \end{align}
 \end{proof}

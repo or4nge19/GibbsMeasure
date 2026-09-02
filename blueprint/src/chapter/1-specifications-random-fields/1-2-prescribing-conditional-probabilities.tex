@@ -1,7 +1,6 @@
 \section{Prescribing conditional probabilities}
 
-All specifications will be with parameter set $S$ and state space $(E, \mathcal{E})$ in this
-chapter.
+Throughout, $S$ is the parameter set and $(E, \mathcal{E})$ the state space.
 
 \begin{definition}[Specification]
     \label{def:spec}
@@ -9,11 +8,12 @@ chapter.
     \lean{Specification}
     \leanok{}
 
-    Following Georgii (1.23), a {\bf specification} is a family of kernels
-    $\gamma : \Finset S \to \Ker_{\mathcal{F}_{S\setminus\Lambda}, \mathcal{E}^S}$ such that each
-    $\gamma_\Lambda$ is a {\bf probability} kernel and is {\bf proper}, and which is {\bf consistent}:
-    \[\forall \Lambda_1, \Lambda_2 \in \Finset(S), \Lambda_1 \subseteq \Lambda_2 \implies \gamma_{\Lambda_1} \circ_k \gamma_{\Lambda_2} = \gamma_{\Lambda_2}\]
-    A family satisfying consistency alone is a {\bf pre-specification}.
+    A {\bf specification} (Georgii (1.23)) is a family of kernels
+    $\gamma : \Finset S \to \Ker_{\mathcal{F}_{S\setminus\Lambda}, \mathcal{E}^S}$, each
+    $\gamma_\Lambda$ a {\bf probability} kernel and {\bf proper}, which is {\bf consistent}:
+    \[\gamma_{\Lambda_1} \circ_k \gamma_{\Lambda_2} = \gamma_{\Lambda_2}
+      \quad \text{whenever } \Lambda_1 \subseteq \Lambda_2 \in \Finset(S).\]
+    A consistent family is a {\bf pre-specification}.
 \end{definition}
 
 \begin{definition}[Independent specification]
@@ -22,8 +22,10 @@ chapter.
     \lean{IsStronglyConsistent}
     \leanok{}
 
-    A specification $\gamma$ is \textbf{independent} iff
-    \[\forall \Lambda_1, \Lambda_2 \in \Finset(S), \gamma_{\Lambda_1} \circ_k \gamma_{\Lambda_2} = \gamma_{\Lambda_1\cup\Lambda_2}\]
+    A family of kernels $\gamma : \Finset S \to \Ker_{\mathcal{F}_{S\setminus\Lambda}, \mathcal{E}^S}$
+    (in particular a specification) is \textbf{independent} if
+    \[\gamma_{\Lambda_1} \circ_k \gamma_{\Lambda_2} = \gamma_{\Lambda_1\cup\Lambda_2}
+      \quad (\Lambda_1, \Lambda_2 \in \Finset(S)).\]
 \end{definition}
 
 \begin{remark}[The probability and properness conditions]
@@ -32,9 +34,9 @@ chapter.
     \leanok{}
     \uses{def:spec, def:proper-ker}
 
-    Both conditions are part of Definition \ref{def:spec}: every specification consists of
-    probability kernels and is proper. On a pre-specification, where only consistency is assumed,
-    each of them is a genuine hypothesis.
+    Every specification consists of probability kernels and is proper (Definition
+    \ref{def:spec}); on a pre-specification, where only consistency is assumed, each is a
+    separate hypothesis.
 \end{remark}
 
 \begin{definition}[Gibbs measures]
@@ -43,7 +45,10 @@ chapter.
     \lean{Specification.IsGibbsMeasure}
     \leanok
 
-    Given a specification $\gamma$, a \textbf{Gibbs measure specified by $\gamma$} is a measure $\nu \in \mathfrak{M}(E^S, \mathcal{E}^S)$ such that $\gamma_\Lambda(A|\cdot)$ is a conditional expectation kernel for $\nu$ for all $A \in \mathcal E^S$ and $\Lambda \in \Finset(S)$.
+    Let $\gamma$ be a specification. A measure $\nu \in \mathfrak{M}(E^S, \mathcal{E}^S)$ is a
+    \textbf{Gibbs measure specified by $\gamma$} if $\gamma_\Lambda(A \mid \cdot)$ is a
+    conditional expectation kernel for $\nu$ for all $A \in \mathcal E^S$ and
+    $\Lambda \in \Finset(S)$.
 \end{definition}
 
 \begin{lemma}[Characterisation of Gibbs measures, Remark 1.24]
@@ -52,9 +57,9 @@ chapter.
     \lean{Specification.isGibbsMeasure_iff_forall_bind_eq, Specification.isGibbsMeasure_iff_frequently_bind_eq}
     \leanok
 
-    Let $\gamma$ be a specification with parameter set $S$ and state space $(E, \mathcal{E})$, and let $\nu\in\mathfrak{P}(E^S, \mathcal{E}^S)$. TFAE:
+    Let $\gamma$ be a specification and $\nu$ a finite measure on $(E^S, \mathcal{E}^S)$. TFAE:
     \begin{enumerate}
-        \item $\nu\in\mathcal{G}(\gamma)$.
+        \item $\nu$ is a Gibbs measure specified by $\gamma$.
         \item $\gamma_\Lambda\circ_m\nu = \nu$ for all $\Lambda\in\Finset(S)$.
         \item $\gamma_\Lambda\circ_m\nu = \nu$ frequently as $\Lambda \to S$.
     \end{enumerate}
@@ -63,7 +68,9 @@ chapter.
     \uses{lem:cond-exp-proper-ker-lintegral}
     \leanok
 
-    1 is equivalent to 2 by Lemma \ref{lem:cond-exp-proper-ker-lintegral}. 2 trivially implies 3. Now, 3 implies 2 because for each $\Lambda$ there exists some $\Lambda' \supseteq \Lambda$ such that
-    $\gamma_{\Lambda'}\circ_k\nu = \nu$. Then
-    $$\nu\gamma_\Lambda = \nu\gamma_{\Lambda'}\gamma_\Lambda = \nu\gamma_{\Lambda'} = \nu$$
+    (1)$\Leftrightarrow$(2) is Lemma \ref{lem:cond-exp-proper-ker-lintegral}, and
+    (2)$\Rightarrow$(3) is trivial. (3)$\Rightarrow$(2): given $\Lambda$, choose
+    $\Lambda' \supseteq \Lambda$ with $\gamma_{\Lambda'}\circ_m\nu = \nu$; by consistency
+    \[\gamma_\Lambda\circ_m\nu = \gamma_\Lambda\circ_m(\gamma_{\Lambda'}\circ_m\nu)
+      = \gamma_{\Lambda'}\circ_m\nu = \nu.\]
 \end{proof}

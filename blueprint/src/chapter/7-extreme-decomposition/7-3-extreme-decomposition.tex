@@ -14,18 +14,16 @@ $(E, \mathcal{E})$, and $\Tail$ is the tail $\sigma$-algebra of $\Cfg = E^S$.
       MeasureTheory.GibbsMeasure.mutuallySingular_of_mem_extremePoints}
     \leanok
 
-    Let $\gamma$ be a specification over a countable parameter set, with no assumption on
-    $(E, \mathcal{E})$ and no non-emptiness assumption on $\mathcal{G}(\gamma)$.
+    No assumption is made on $(E, \mathcal{E})$ or on $\mathcal{G}(\gamma) \neq \emptyset$.
     \begin{enumerate}
         \item[(a)] $\mu \in \mathcal{G}(\gamma)$ is extreme iff $\mu$ is trivial on $\Tail$.
-        \item[(c)] Each $\mu \in \mathcal{G}(\gamma)$ is determined by its restriction to
-          $\Tail$: two Gibbs measures agreeing on every tail event are equal.
-        \item[(d)] Distinct extreme Gibbs measures $\mu \neq \nu$ are separated by a \emph{tail}
-          event $A$ with $\mu(A) = 1$ and $\nu(A) = 0$; in particular they are mutually singular.
+        \item[(c)] Two Gibbs measures agreeing on every tail event are equal.
+        \item[(d)] Distinct extreme $\mu, \nu \in \mathcal{G}(\gamma)$ are separated by a tail
+          event $A$ with $\mu(A) = 1$ and $\nu(A) = 0$; in particular $\mu \perp \nu$.
     \end{enumerate}
-    Part (c) is proved through (b): the mixture $\rho = \tfrac12\mu + \tfrac12\nu$ is Gibbs, both
-    measures have $\Tail$-measurable densities with respect to it, and agreement on $\Tail$
-    forces the densities to agree.
+    (c) follows from (b): for $\rho = \tfrac12(\mu + \nu) \in \mathcal{G}(\gamma)$, $\mu$ and
+    $\nu$ have $\Tail$-measurable densities with respect to $\rho$, which coincide once $\mu$ and
+    $\nu$ agree on $\Tail$.
 \end{theorem}
 
 \begin{proposition}[The Gibbs kernel, Georgii (7.25)]
@@ -38,11 +36,12 @@ $(E, \mathcal{E})$, and $\Tail$ is the tail $\sigma$-algebra of $\Cfg = E^S$.
       MeasureTheory.GibbsMeasure.ae_mem_extremePoints_G_gibbsKernel}
     \leanok
 
-    For a standard Borel state space and $\mathcal{G}(\gamma) \neq \emptyset$ there is a
-    $(\mathcal{G}(\gamma), \Tail)$-kernel: a tail-measurable kernel $\omega \mapsto
-    \pi(\cdot \mid \omega)$ with values in $\mathcal{G}(\gamma)$ which is simultaneously a
-    version of $\mu(\cdot \mid \Tail)$ for \emph{every} $\mu \in \mathcal{G}(\gamma)$, and whose
-    values are almost surely extreme.
+    Let $(E, \mathcal{E})$ be standard Borel and $\mathcal{G}(\gamma) \neq \emptyset$. There is a
+    $\Tail$-measurable probability kernel $\omega \mapsto \pi(\cdot \mid \omega)$ with
+    $\pi(\cdot \mid \omega) \in \mathcal{G}(\gamma)$ for every $\omega$ which is a version of
+    $\mu(\cdot \mid \Tail)$ for every $\mu \in \mathcal{G}(\gamma)$ simultaneously (a
+    $(\mathcal{G}(\gamma), \Tail)$-kernel), and for every $\mu \in \mathcal{G}(\gamma)$,
+    $\pi(\cdot \mid \omega) \in \operatorname{ex}\mathcal{G}(\gamma)$ for $\mu$-a.e.\ $\omega$.
 \end{proposition}
 
 \begin{theorem}[The extreme decomposition, Georgii (7.26)]
@@ -55,14 +54,13 @@ $(E, \mathcal{E})$, and $\Tail$ is the tail $\sigma$-algebra of $\Cfg = E^S$.
       MeasureTheory.GibbsMeasure.bijOn_weightOf}
     \leanok
 
-    Let $(E, \mathcal{E})$ be standard Borel with $\mathcal{G}(\gamma) \neq \emptyset$. Every
-    $\mu \in \mathcal{G}(\gamma)$ is the barycentre
-    $\mu = \int \nu\, w_\mu(\mathrm{d}\nu)$ of a unique probability weight $w_\mu$ concentrated on
-    $\operatorname{ex}\mathcal{G}(\gamma)$, namely the law under $\mu$ of $\omega \mapsto
-    \pi(\cdot \mid \omega)$ for the kernel $\pi$ of Proposition \ref{prop:ext-gibbs-kernel}, and
-    $\mu \mapsto w_\mu$ is a bijection from $\mathcal{G}(\gamma)$ onto
-    the probability weights concentrated on $\operatorname{ex}\mathcal{G}(\gamma)$: the Gibbs
-    simplex.
+    Let $(E, \mathcal{E})$ be standard Borel and $\mathcal{G}(\gamma) \neq \emptyset$. Every
+    $\mu \in \mathcal{G}(\gamma)$ is the barycentre $\mu = \int \nu\, w_\mu(\mathrm{d}\nu)$ of a
+    unique probability weight $w_\mu$ concentrated on $\operatorname{ex}\mathcal{G}(\gamma)$,
+    namely the law under $\mu$ of $\omega \mapsto \pi(\cdot \mid \omega)$ for the kernel $\pi$ of
+    Proposition \ref{prop:ext-gibbs-kernel}; and $\mu \mapsto w_\mu$ is a bijection from
+    $\mathcal{G}(\gamma)$ onto the probability weights concentrated on
+    $\operatorname{ex}\mathcal{G}(\gamma)$ (the Gibbs simplex).
 \end{theorem}
 
 \begin{corollary}[Georgii (7.28)--(7.30)]
@@ -72,18 +70,24 @@ $(E, \mathcal{E})$, and $\Tail$ is the tail $\sigma$-algebra of $\Cfg = E^S$.
       MeasureTheory.GibbsMeasure.map_eq_self_iff_weightOf_map_eq_self,
       MeasureTheory.GibbsMeasure.measurePreserving_iff_measurePreserving_weightOf,
       MeasureTheory.GibbsMeasure.linearIndependent_of_mem_extremePoints,
+      MeasureTheory.GibbsMeasure.le_encard_extremePoints_iff,
       MeasureTheory.GibbsMeasure.setOf_mem_GP_eq_closure_convexCombosLimitGibbs,
       MeasureTheory.GibbsMeasure.setOf_mem_GP_eq_closure_convexCombosLimitGibbs_modification_isssd,
       MeasureTheory.GibbsMeasure.setOf_mem_GP_eq_closure_convexCombosLimitGibbs_lambdaSpecification}
     \leanok
 
-    Let $(E, \mathcal{E})$ be standard Borel with $\mathcal{G}(\gamma) \neq \emptyset$.
-    (7.28): the decomposition commutes with symmetries, $w_{\tau\mu} = \tau w_\mu$ for every
-    symmetry $\tau$ of $\gamma$; in particular $\mu$ is $\tau$-invariant iff $w_\mu$ is.
-    (7.29): $\mathcal{G}(\gamma)$ contains $N$ extreme points iff it contains $N$ measures
-    linearly independent over $\mathbb{R}_{\geq 0}^\infty$.
-    (7.30): for a quasilocal $\lambda$-specification over a $\sigma$-finite non-zero a priori
-    measure, $\mathcal{G}(\gamma)$ is the closed convex hull of the limiting Gibbs distributions
-    in the topology of local convergence; likewise for an arbitrary quasilocal $\gamma$ over a
-    finite state space.
+    Let $(E, \mathcal{E})$ be standard Borel.
+    \begin{enumerate}
+        \item[(7.28)] If $\mathcal{G}(\gamma) \neq \emptyset$ and $\tau$ is a symmetry of
+          $\gamma$, then $w_{\tau\mu} = \tau_* w_\mu$ for every $\mu \in \mathcal{G}(\gamma)$,
+          where $\tau_*$ is the push-forward along $\nu \mapsto \tau\nu$; in particular
+          $\tau\mu = \mu$ iff $\tau_* w_\mu = w_\mu$.
+        \item[(7.29)] If $\mathcal{G}(\gamma) \neq \emptyset$ and $N \in \mathbb{N}$, then
+          $|\operatorname{ex}\mathcal{G}(\gamma)| \geq N$ iff $\mathcal{G}(\gamma)$ contains $N$
+          measures linearly independent over $[0, \infty]$.
+        \item[(7.30)] If $\gamma$ is a quasilocal $\lambda$-specification for a $\sigma$-finite
+          non-zero a priori measure $\lambda$, then $\mathcal{G}(\gamma)$ is the closure, in the
+          topology of local convergence, of the convex hull of the limiting Gibbs distributions;
+          the same holds for every quasilocal $\gamma$ when $E$ is finite.
+    \end{enumerate}
 \end{corollary}

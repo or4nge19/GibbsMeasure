@@ -7,9 +7,8 @@ Throughout, $S$ is a set, $(E, \mathcal{E})$ a measurable space and $\nu$ a meas
     \lean{MeasureTheory.Measure.infinitePi}
     \leanok{}
 
-    Let $I$ be a set and, for each $i \in I$, let $(\Omega_i,\MCB_i,P_i)$ be a probability space.
-    Then $P:=\bigotimes_{i\in I}P_i$ is a well-defined probability measure on
-    $\prod_{i\in I}\Omega_i$.
+    For probability spaces $(\Omega_i,\MCB_i,P_i)$, $i \in I$, the product
+    $P:=\bigotimes_{i\in I}P_i$ is a probability measure on $\prod_{i\in I}\Omega_i$.
 \end{definition}
 
 \begin{definition}[Independent Specification with Single Spin Distribution (ISSSD)]
@@ -33,13 +32,13 @@ Throughout, $S$ is a set, $(E, \mathcal{E})$ a measurable space and $\nu$ a meas
     \lean{Specification.isssdFun_comp_isssdFun}
     \leanok{}
 
-    $\ISSSD(\nu)$ is independent: $\ISSSD(\nu)_{\Lambda_1} \circ_k \ISSSD(\nu)_{\Lambda_2}
-    = \ISSSD(\nu)_{\Lambda_1 \union \Lambda_2}$ for all $\Lambda_1, \Lambda_2 \in \Finset(S)$.
+    $\ISSSD(\nu)_{\Lambda_1} \circ_k \ISSSD(\nu)_{\Lambda_2} = \ISSSD(\nu)_{\Lambda_1 \union \Lambda_2}$
+    for all $\Lambda_1, \Lambda_2 \in \Finset(S)$.
 \end{lemma}
 \begin{proof}
     % \leanok
 
-    Both sides agree on square cylinders, which form a $\pi$-system generating $\mathcal{E}^S$.
+    Both sides agree on square cylinders, a $\pi$-system generating $\mathcal{E}^S$.
 \end{proof}
 
 
@@ -78,9 +77,7 @@ Throughout, $S$ is a set, $(E, \mathcal{E})$ a measurable space and $\nu$ a meas
 
     A measure $\mu_0$ on $(\Cfg, \mathcal{F})$ is a \textbf{free measure} of a specification
     $\gamma$ if $\gamma_\Lambda(A \mid \eta) = \mu_0(A)$ for every $\Lambda \in \Fin$, every
-    boundary condition $\eta$ and every $A \in \mathcal{F}_\Lambda$: inside a finite volume,
-    $\gamma$ forgets the boundary condition and reproduces $\mu_0$. This is Georgii's
-    $\lambda_\Lambda(A \mid \eta) = \lambda^S(A)$ of Remark (1.25).
+    $\eta \in \Cfg$ and every $A \in \mathcal{F}_\Lambda$.
 \end{definition}
 
 \begin{theorem}[Free measures determine the Gibbs measures]
@@ -90,12 +87,11 @@ Throughout, $S$ is a set, $(E, \mathcal{E})$ a measurable space and $\nu$ a meas
       Specification.isGibbsMeasure_iff_indep_of_hasFreeMeasure}
     \leanok
 
-    Let $\gamma$ have free measure $\mu_0 \in \Prob(\Cfg, \mathcal{F})$. Then every finite
-    $\mu \in \Gibbs{\gamma}$ equals $\mu(\Cfg)\,\mu_0$; in particular $\Gibbs{\gamma}$ contains at
-    most the one probability measure $\mu_0$. Moreover $\mu_0 \in \Gibbs{\gamma}$ if and only if
-    $\mathcal{F}_\Lambda$ and $\mathcal{F}_{S \setminus \Lambda}$ are independent under $\mu_0$
-    for every $\Lambda \in \Fin$. So $\Gibbs{\gamma}$ is $\set{\mu_0}$ under that independence
-    and empty without it.
+    Let $\gamma$ have free measure $\mu_0 \in \Prob(\Cfg, \mathcal{F})$. Every finite
+    $\mu \in \Gibbs{\gamma}$ equals $\mu(\Cfg)\,\mu_0$; in particular $\mu_0$ is the only
+    probability measure that can lie in $\Gibbs{\gamma}$. Moreover $\mu_0 \in \Gibbs{\gamma}$ if
+    and only if $\mathcal{F}_\Lambda$ and $\mathcal{F}_{S \setminus \Lambda}$ are independent
+    under $\mu_0$ for every $\Lambda \in \Fin$.
 \end{theorem}
 \begin{proof}
     \leanok
@@ -118,13 +114,16 @@ Throughout, $S$ is a set, $(E, \mathcal{E})$ a measurable space and $\nu$ a meas
       Specification.isGibbsMeasure_isssdFamily_iff}
     \leanok
 
-    There is at most one Gibbs measure specified by $\ISSSD(\nu)$, and likewise for the
-    inhomogeneous $\ISSSD$ of a family $(\nu_i)_{i \in S}$.
+    A probability measure $\mu$ is a Gibbs measure for $\ISSSD(\nu)$ if and only if
+    $\mu = \nu^S$; likewise, for a family $(\nu_i)_{i \in S}$ of probability measures, $\mu$ is a
+    Gibbs measure for the inhomogeneous $\ISSSD$ of $(\nu_i)$ if and only if
+    $\mu = \bigotimes_{i \in S} \nu_i$.
 \end{lemma}
 \begin{proof}
     \leanok
 
-    $\ISSSD(\nu)$ has free measure $\nu^S$, so this is
+    $\ISSSD(\nu)$ has free measure $\nu^S$, under which $\mathcal{F}_\Lambda$ and
+    $\mathcal{F}_{S \setminus \Lambda}$ are independent; apply
     Theorem \ref{thm:free-measure-gibbs}.
 \end{proof}
 
@@ -134,7 +133,7 @@ Throughout, $S$ is a set, $(E, \mathcal{E})$ a measurable space and $\nu$ a meas
     \lean{Specification.isGibbsMeasure_isssd_infinitePi}
     \leanok{}
 
-    The product measure $\nu^S$ is a Gibbs measure specified by $\ISSSD(\nu)$.
+    $\nu^S$ is a Gibbs measure for $\ISSSD(\nu)$.
 \end{lemma}
 \begin{proof}
     % \leanok
@@ -150,9 +149,9 @@ Throughout, $S$ is a set, $(E, \mathcal{E})$ a measurable space and $\nu$ a meas
 
     A {\bf modifier of $\gamma$} is a family
     \[\rho : \Finset(S) \to \Omega \to [0, \infty[\]
-    of measurable functions such that the family of kernels $\rho\gamma$, with
-    $(\rho\gamma)_\Lambda(\cdot \mid \eta) := \rho_\Lambda \cdot \gamma_\Lambda(\cdot \mid \eta)$,
-    is a specification.
+    of measurable functions such that the kernels
+    $(\rho\gamma)_\Lambda(\cdot \mid \eta) := \rho_\Lambda \cdot \gamma_\Lambda(\cdot \mid \eta)$
+    form a specification $\rho\gamma$.
 \end{definition}
 
 \begin{lemma}[Modifier of a modifier]
@@ -161,8 +160,8 @@ Throughout, $S$ is a set, $(E, \mathcal{E})$ a measurable space and $\nu$ a meas
     \lean{Specification.modification_modification}
     \leanok{}
 
-    Modifying a specification $\gamma$ by $\rho_1$ then $\rho_2$ is the same as modifying it by
-    their product $\rho_1\rho_2$.
+    If $\rho_1$ is a modifier of $\gamma$ and $\rho_2$ a modifier of $\rho_1\gamma$, then
+    $\rho_1\rho_2$ is a modifier of $\gamma$ and $\rho_2(\rho_1\gamma) = (\rho_1\rho_2)\gamma$.
 \end{lemma}
 \begin{proof}
     % \uses{}
@@ -178,17 +177,19 @@ Throughout, $S$ is a set, $(E, \mathcal{E})$ a measurable space and $\nu$ a meas
     \lean{Specification.isProper_modification}
     \leanok{}
 
-    If $\gamma$ is a specification and $\rho$ a modifier of $\gamma$, then $\rho\gamma$ is a proper specification.
+    If $\rho$ is a modifier of a specification $\gamma$, then $\rho\gamma$ is proper.
 \end{lemma}
 \begin{proof}
     \uses{lem:proper-ker-lintegral}
     \leanok
 
-    For all $\Lambda \in \Finset(S)$, $A \in \mathcal E^S$, $B \in \mathcal{F}_{S\setminus\Lambda}$, $\eta : S \to E$, we want to prove
-    $$(\rho\gamma)_\Lambda(A \inter B | \eta) = 1_B(\eta) (\rho\gamma)_\Lambda(A B | \eta)$$
-    Expanding out, this is equivalent to
-    $$\int_{\zeta \in A \inter B} \rho_\Lambda(\zeta)\ d(\gamma_\Lambda(\eta)) = 1_B(\eta) \int_{\zeta \in A} \rho_\Lambda(\zeta)\ d(\gamma_\Lambda(\eta))$$
-    which is true by Lemma \ref{lem:proper-ker-lintegral} with $f = 1_A\rho_\Lambda$, $g = 1_B$.
+    For $\Lambda \in \Finset(S)$, $A \in \mathcal E^S$, $B \in \mathcal{F}_{S\setminus\Lambda}$
+    and $\eta \in \Cfg$,
+    \[(\rho\gamma)_\Lambda(A \inter B \mid \eta)
+      = \int_{A \inter B} \rho_\Lambda \,\mathrm{d}\gamma_\Lambda(\cdot\mid\eta)
+      = 1_B(\eta) \int_{A} \rho_\Lambda \,\mathrm{d}\gamma_\Lambda(\cdot\mid\eta)
+      = 1_B(\eta)\,(\rho\gamma)_\Lambda(A \mid \eta)\]
+    by Lemma \ref{lem:proper-ker-lintegral} with $f = 1_A\rho_\Lambda$, $g = 1_B$.
 \end{proof}
 
 \begin{lemma}[Null events of Gibbs measures, Remark 1.28.2]
@@ -198,11 +199,14 @@ Throughout, $S$ is a set, $(E, \mathcal{E})$ a measurable space and $\nu$ a meas
       Specification.IsGibbsMeasure.lambdaSpecification_null_iff_null}
     \leanok
 
-    Let $\lambda$ be the $\lambda$-specification of a $\sigma$-finite non-zero a priori measure
-    $\nu$ and let $\gamma = \rho\lambda$ with $\rho_\Lambda > 0$ everywhere. A Gibbs measure
-    $\mu \in \Gibbs{\gamma}$ annihilates an event $C \in \mathcal{F}_\Delta$, $\Delta \in \Fin$,
-    exactly when $\lambda_\Delta(C \mid \eta) = 0$ for every $\eta$. In particular any two Gibbs
-    measures for $\gamma$ have the same null events in
+    Let $\nu$ be a $\sigma$-finite non-zero measure on $E$ with $\lambda$-kernels
+    $\lambda_\Lambda(\cdot \mid \eta) = \nu^\Lambda \otimes \delta_{\eta_{S \setminus \Lambda}}$,
+    let $h$ be a premodifier (Definition \ref{def:premodif}) with $h_\Lambda > 0$ everywhere
+    and $0 < \lambda_\Lambda h_\Lambda(\eta) < \infty$ for all $\Lambda \in \Fin$, $\eta \in \Cfg$,
+    and let $\gamma = \rho\lambda$ with $\rho_\Lambda = h_\Lambda / \lambda_\Lambda h_\Lambda$.
+    A finite non-zero $\mu \in \Gibbs{\gamma}$ annihilates an event $C \in \mathcal{F}_\Delta$,
+    $\Delta \in \Fin$, exactly when $\lambda_\Delta(C \mid \eta) = 0$ for every $\eta$. In
+    particular any two finite non-zero Gibbs measures for $\gamma$ have the same null events in
     $\bigcup_{\Delta \in \Fin} \mathcal{F}_\Delta$.
 \end{lemma}
 \begin{proof}
@@ -229,13 +233,16 @@ Throughout, $S$ is a set, $(E, \mathcal{E})$ a measurable space and $\nu$ a meas
     % \uses{}
     % \leanok
 
-    For all $\Lambda \in \Finset(S)$, $A$ measurable, $\eta : S \to E$, we have
-    \begin{align}
-        (\rho\ISSSD(\nu))_\Lambda(A|\eta)
-        & = \int_\zeta \rho_\Lambda(\zeta) \ISSSD(\nu)(d\zeta|\eta) \\
-        & = \int_\zeta \gamma_\Lambda(\{\sigma_\Lambda = \eta_\Lambda\} | \eta) \ISSSD(\nu)(d\zeta|\eta) \\
-        & = \gamma_\Lambda(A|\eta)
-    \end{align}
+    Fix $\Lambda \in \Finset(S)$ and $\eta \in \Cfg$. The measure $\ISSSD(\nu)_\Lambda(\cdot\mid\eta)$
+    is counting measure on the countable set $\set{\zeta : \zeta_{S \setminus \Lambda} = \eta_{S\setminus\Lambda}}$,
+    and for such $\zeta$ properness gives
+    $\rho_\Lambda(\zeta) = \gamma_\Lambda(\{\sigma_\Lambda = \zeta_\Lambda\} \mid \eta)$. Hence
+    for measurable $A$
+    \[(\rho\ISSSD(\nu))_\Lambda(A\mid\eta)
+      = \sum_{\zeta_{S\setminus\Lambda} = \eta_{S\setminus\Lambda}} 1_A(\zeta)\,
+        \gamma_\Lambda(\{\sigma_\Lambda = \zeta_\Lambda\} \mid \eta)
+      = \gamma_\Lambda(A\mid\eta),\]
+    since $\gamma_\Lambda(\cdot\mid\eta)$ is carried by the same countable set.
 \end{proof}
 
 \begin{proposition}[Characterisation of modifiers, Proposition 1.30.1]
@@ -249,27 +256,22 @@ Throughout, $S$ is a set, $(E, \mathcal{E})$ a measurable space and $\nu$ a meas
         \item $\rho$ is a modifier of $\gamma$
         \item each $\rho_\Lambda$ is measurable, $\int \rho_\Lambda \dd\gamma_\Lambda(\cdot|\eta) = 1$
         for every $\Lambda$ and $\eta$, and for all
-        $\Lambda_1 \subseteq \Lambda_2$ and all $\eta : S \to E$,
+        $\Lambda_1 \subseteq \Lambda_2$ and all $\eta \in \Cfg$,
         \[\rho_{\Lambda_2} = \rho_{\Lambda_1}\cdot (\gamma_{\Lambda_1} \rho_{\Lambda_2}) \quad \gamma_{\Lambda_2}(\cdot|\eta)\text{-a.e.}\]
     \end{enumerate}
-    The normalisation conjunct cannot be dropped: $\rho_\Lambda \equiv 0$ satisfies the displayed
-    identity and modifies no specification.
+    The normalisation in (2) cannot be dropped: $\rho_\Lambda \equiv 0$ satisfies the displayed
+    identity and is not a modifier.
 \end{proposition}
 \begin{proof}
     % \uses{}
     % \leanok
 
-    \begin{itemize}
-        \item Normalisation says that each $(\rho\gamma)_\Lambda(\cdot|\eta)$ is a probability
-        measure.
-        \begin{itemize}
-            \item Properness and consistency of $\gamma$ give, for $\Lambda_1 \subseteq \Lambda_2$,
-            $(\rho\gamma)_{\Lambda_1} \circ_k (\rho\gamma)_{\Lambda_2}
-            = \big(\rho_{\Lambda_1}\cdot(\gamma_{\Lambda_1}\rho_{\Lambda_2})\big)\gamma_{\Lambda_2}$.
-        \end{itemize}
-        \item So consistency of $\rho\gamma$ equates two densities of the same $\sigma$-finite
-        measure, which is the displayed a.e. identity.
-    \end{itemize}
+    Normalisation says that each $(\rho\gamma)_\Lambda(\cdot|\eta)$ is a probability measure.
+    Properness and consistency of $\gamma$ give, for $\Lambda_1 \subseteq \Lambda_2$,
+    $(\rho\gamma)_{\Lambda_1} \circ_k (\rho\gamma)_{\Lambda_2}
+    = \big(\rho_{\Lambda_1}\cdot(\gamma_{\Lambda_1}\rho_{\Lambda_2})\big)\gamma_{\Lambda_2}$, so
+    consistency of $\rho\gamma$ equates two densities with respect to the same $\sigma$-finite
+    measure $\gamma_{\Lambda_2}(\cdot|\eta)$, which is the displayed a.e. identity.
 \end{proof}
 
 \begin{proposition}[Characterisation of modifiers of independent specifications, Proposition 1.30.2]
@@ -278,17 +280,17 @@ Throughout, $S$ is a set, $(E, \mathcal{E})$ a measurable space and $\nu$ a meas
     \lean{Specification.isModifier_iff_ae_comm}
     \leanok{}
 
-    Let $\gamma$ be a \emph{disjointly consistent} specification, that is
+    Let $\gamma$ be a specification with
     $\gamma_{\Lambda_1} \circ_k \gamma_{\Lambda_2} = \gamma_{\Lambda_1 \union \Lambda_2}$ whenever
-    $\Lambda_1 \inter \Lambda_2 = \emptyset$ (Georgii's Notation (1.26); independent
-    specifications, Definition \ref{def:indep-spec}, qualify), and $\rho$ a family of functions.
+    $\Lambda_1 \inter \Lambda_2 = \emptyset$ (in particular any independent specification,
+    Definition \ref{def:indep-spec}), and $\rho$ a family of functions $\Cfg \to [0,\infty]$.
     TFAE
     \begin{enumerate}
         \item $\rho$ is a modifier of $\gamma$
         \item each $\rho_\Lambda$ is measurable and normalised as in
-        Proposition~\ref{prop:modif-char}, and for all $\Lambda_1, \Lambda_2$ with
-        $\Lambda_1 \subseteq \Lambda_2$, $\eta : S \to E$ and
-        $\gamma_{\Lambda_2 \setminus \Lambda_1}(\cdot|\eta)$-almost all $\eta_2 : S \to E$, we have
+        Proposition~\ref{prop:modif-char}, and for all $\Lambda_1 \subseteq \Lambda_2$,
+        $\eta \in \Cfg$ and $\gamma_{\Lambda_2 \setminus \Lambda_1}(\cdot|\eta)$-almost all
+        $\eta_2 \in \Cfg$,
         \[\rho_{\Lambda_2}(\zeta_1)\rho_{\Lambda_1}(\zeta_2) = \rho_{\Lambda_2}(\zeta_2) \rho_{\Lambda_1}(\zeta_1)\]
         for $\gamma_{\Lambda_1}(\cdot|\eta_2) \times \gamma_{\Lambda_2}(\cdot|\eta_2)$-almost all $(\zeta_1, \zeta_2)$.
     \end{enumerate}
@@ -297,6 +299,16 @@ Throughout, $S$ is a set, $(E, \mathcal{E})$ a measurable space and $\nu$ a meas
     % \uses{}
     % \leanok
 
+    By Proposition \ref{prop:modif-char} it suffices to compare the a.e. identity there with the
+    symmetry in (2). Disjoint consistency gives
+    $\gamma_{\Lambda_2}(\cdot|\eta) = \int \gamma_{\Lambda_1}(\cdot|\eta_2)\,
+    \gamma_{\Lambda_2\setminus\Lambda_1}(\mathrm{d}\eta_2|\eta)$, so the identity holds
+    $\gamma_{\Lambda_2}(\cdot|\eta)$-a.e. iff for $\gamma_{\Lambda_2\setminus\Lambda_1}(\cdot|\eta)$-almost
+    all $\eta_2$ it holds $\gamma_{\Lambda_1}(\cdot|\eta_2)$-a.e. For fixed $\eta_2$ and
+    normalised $\rho_{\Lambda_1}$, integrating the symmetry in $\zeta_2$ against
+    $\gamma_{\Lambda_1}(\cdot|\eta_2)$ recovers
+    $\rho_{\Lambda_2} = \rho_{\Lambda_1}\cdot(\gamma_{\Lambda_1}\rho_{\Lambda_2})$ a.e., and
+    conversely that identity substituted on both sides gives the symmetry.
 \end{proof}
 
 \begin{definition}[Premodifier, Definition 1.31]
@@ -305,9 +317,10 @@ Throughout, $S$ is a set, $(E, \mathcal{E})$ a measurable space and $\nu$ a meas
     \lean{Specification.IsPremodifier}
     \leanok
 
-    A family of measurable functions $h_\Lambda : (S \to E) \to [0, \infty[$ is a {\bf premodifier} if
+    A family of measurable functions $h_\Lambda : \Cfg \to [0, \infty[$ is a {\bf premodifier} if
     $$h_{\Lambda_2}(\zeta)h_{\Lambda_1}(\eta) = h_{\Lambda_1}(\zeta)h_{\Lambda_2}(\eta)$$
-    for all $\Lambda_1 \subseteq \Lambda_2$ and all $\zeta, \eta : S \to E$ such that $\zeta_{\Lambda_1^c} = \eta_{\Lambda_1^c}$.
+    for all $\Lambda_1 \subseteq \Lambda_2$ and all $\zeta, \eta \in \Cfg$ with
+    $\zeta_{S \setminus \Lambda_1} = \eta_{S \setminus \Lambda_1}$.
 \end{definition}
 
 \begin{lemma}[Modifiers are premodifiers]
@@ -320,7 +333,7 @@ Throughout, $S$ is a set, $(E, \mathcal{E})$ a measurable space and $\nu$ a meas
         \item $E$ is countable and $\nu$ is equivalent to the counting measure.
         \item $E$ is a second countable Borel space.
         \item $\nu$ is everywhere dense.
-        \item For all $\Lambda_1 \subseteq \Lambda_2$ and all $\eta : S \to E$, $\zeta \mapsto \rho_{\Lambda_1}(\zeta \eta_{\Lambda_1^c})$ is continuous on $E^{\Lambda_1}$.
+        \item For all $\Lambda_1 \subseteq \Lambda_2$ and all $\eta \in \Cfg$, $\zeta \mapsto \rho_{\Lambda_1}(\zeta \eta_{S \setminus \Lambda_1})$ is continuous on $E^{\Lambda_1}$.
     \end{enumerate}
 \end{lemma}
 \begin{proof}
@@ -328,7 +341,8 @@ Throughout, $S$ is a set, $(E, \mathcal{E})$ a measurable space and $\nu$ a meas
     % \leanok
 
     \begin{enumerate}
-        \item Use Proposition \ref{prop:modif-char}.
+        \item Proposition \ref{prop:modif-char}: under counting measure, an a.e. identity holds
+        everywhere.
         \item Omitted.
         \item Omitted.
         \item Omitted.
@@ -348,7 +362,10 @@ Throughout, $S$ is a set, $(E, \mathcal{E})$ a measurable space and $\nu$ a meas
 \begin{proof}
     \uses{prop:modif-indep-char}
 
-    The premodifier identity is the pointwise form of the symmetry in
-    Proposition \ref{prop:modif-indep-char}(2) and survives the normalisation, which is finite and
-    non-zero by hypothesis and makes $\ISSSD(\nu)_\Lambda\rho_\Lambda = 1$.
+    $\ISSSD(\nu)_\Lambda h_\Lambda$ is $\mathcal{F}_{S\setminus\Lambda}$-measurable, so
+    $\ISSSD(\nu)_\Lambda\rho_\Lambda = 1$ and $\rho$ is again a premodifier. The premodifier
+    identity is the pointwise form of the symmetry in
+    Proposition \ref{prop:modif-indep-char}(2), since
+    $\ISSSD(\nu)_\Lambda(\cdot|\eta) \times \ISSSD(\nu)_\Lambda(\cdot|\eta)$ is carried by pairs
+    agreeing with $\eta$ outside $\Lambda$.
 \end{proof}

@@ -2,12 +2,11 @@
 
 Throughout, $S$ is the parameter set, $(E, \mathcal{E})$ the state space, $\Cfg = E^S$,
 $\mathcal{F} = \mathcal{E}^S$, $\mathcal{F}_\Lambda$ the $\sigma$-algebra of events depending
-only on the coordinates in $\Lambda$, and
-$\mathcal{F}^0 = \bigcup_{\Lambda \in \Fin} \mathcal{F}_\Lambda$ the algebra of local events;
-$\Prob(\Cfg, \mathcal{F})$ carries the topology of local convergence of \S4.1. Georgii's nets
-$(\mu_\alpha)_{\alpha \in D}$ appear as families $(\mu_a)_{a \in \iota}$ indexed along a filter
-$l$ on $\iota$, a net being the case of the filter of a directed set, and $\limsup_{\alpha \in D}$
-as $\limsup$ along $l$.
+only on the coordinates in $\Lambda$,
+$\mathcal{F}^0 = \bigcup_{\Lambda \in \Fin} \mathcal{F}_\Lambda$ the algebra of local events, and
+$\Prob(\Cfg, \mathcal{F})$ carries the topology of local convergence of \S4.1. Families
+$(\mu_a)_{a \in \iota}$ are indexed along a filter $l$ on $\iota$; a net is the case of the
+filter of a directed set.
 
 \subsection*{Equicontinuity}
 
@@ -28,9 +27,9 @@ as $\limsup$ along $l$.
     \lean{MeasureTheory.GibbsMeasure.EquicontinuousOnLocalEvents}
     \leanok
 
-    The family $(\mu_a)_{a \in \iota}$ is \textbf{equicontinuous} if the same conclusion holds
-    for every sequence $(A_m)_{m \geq 1}$ in the whole algebra $\mathcal{F}^0$ of local events
-    with $A_m \downarrow \emptyset$; the volume on which $A_m$ depends may grow with $m$.
+    The family $(\mu_a)_{a \in \iota}$ is \textbf{equicontinuous} if
+    $\lim_{m \to \infty} \limsup_{a \in l} \mu_a(A_m) = 0$ for every sequence
+    $(A_m)_{m \geq 1}$ in $\mathcal{F}^0$ with $A_m \downarrow \emptyset$.
 \end{definition}
 
 \begin{lemma}[Georgii (4.5) implies (4.6)]
@@ -44,8 +43,7 @@ as $\limsup$ along $l$.
 \begin{proof}
     \leanok
 
-    Every $\mathcal{F}_\Lambda$-measurable set is a local event, so the hypothesis of
-    Definition \ref{def:cp-loc-equi} is a special case of that of Definition \ref{def:cp-equi}.
+    $\mathcal{F}_\Lambda \subseteq \mathcal{F}^0$.
 \end{proof}
 
 \begin{theorem}[Necessary condition for a cluster point, Georgii (4.4)]
@@ -61,11 +59,9 @@ as $\limsup$ along $l$.
 \begin{proof}
     \leanok
 
-    Pass to an ultrafilter $U \leq l$ along which $\mu_a \to \mu$. For each $m$ the evaluation
-    at the local event $A_m$ converges, so
-    $\liminf_{a \in l} \mu_a(A_m) \leq \liminf_{a \in U} \mu_a(A_m) = \mu(A_m)$. Since $\mu$ is
-    $\sigma$-additive and $A_m \downarrow \emptyset$, $\mu(A_m) \to 0$, and the claim follows by
-    squeezing.
+    Take an ultrafilter $U \leq l$ along which $\mu_a \to \mu$. For each $m$,
+    $\liminf_{a \in l} \mu_a(A_m) \leq \liminf_{a \in U} \mu_a(A_m) = \mu(A_m)$, and
+    $\mu(A_m) \to 0$ by $\sigma$-additivity.
 \end{proof}
 
 \begin{definition}[Standard Borel space, Georgii (4.7)]
@@ -73,11 +69,9 @@ as $\limsup$ along $l$.
     \lean{StandardBorelSpace}
     \leanok
 
-    A measurable space $(E, \mathcal{E})$ is a \textbf{standard Borel space} if there exists a
-    metric $d$ on $E$ which turns $E$ into a complete separable metric space and is such that
-    $\mathcal{E}$ is the Borel $\sigma$-algebra with respect to $d$; equivalently, $\mathcal{E}$
-    is the Borel $\sigma$-algebra of some Polish topology on $E$. By Georgii's Comment (4.8), a
-    Borel subset of a complete separable metric space is again standard Borel.
+    A measurable space $(E, \mathcal{E})$ is a \textbf{standard Borel space} if $\mathcal{E}$
+    is the Borel $\sigma$-algebra of some complete separable metric on $E$; equivalently, of
+    some Polish topology on $E$.
 \end{definition}
 
 \subsection*{Proof of Georgii (4.9): ultrafilter limit, marginals, Kolmogorov}
@@ -89,9 +83,8 @@ as $\limsup$ along $l$.
     \leanok
 
     For an ultrafilter $U$ on $\iota$ and $A \subseteq \Cfg$ put
-    $\mu^0(A) = \lim_{a \in U} \mu_a(A)$, the limit along $U$ of the evaluations, taken in
-    $[0,\infty]$. This exists by compactness of $[0,\infty]$, one event at a time; it replaces
-    Georgii's extraction of a subnet converging pointwise in $[0,1]^{\mathcal{F}^0}$.
+    $\mu^0(A) = \lim_{a \in U} \mu_a(A) \in [0,\infty]$; the limit exists by compactness of
+    $[0,\infty]$.
 \end{definition}
 
 \begin{lemma}[$\mu^0$ is $\sigma$-additive on each $\mathcal{F}_\Lambda$]
@@ -104,18 +97,17 @@ as $\limsup$ along $l$.
     \leanok
 
     Let $U \leq l$ be an ultrafilter and $(\mu_a)_{a \in \iota}$ locally equicontinuous along
-    $l$. Then $\mu^0$ is finitely additive, satisfies
-    $\mu^0(A) \leq \limsup_{a \in l} \mu_a(A)$, and for each $\Lambda \in \Fin$ it is
-    $\sigma$-additive on the set ring $\mathcal{F}_\Lambda$.
+    $l$. Then $\mu^0$ is finitely additive, $\mu^0(A) \leq \limsup_{a \in l} \mu_a(A)$ for all
+    $A$, and for each $\Lambda \in \Fin$, $\mu^0$ is $\sigma$-additive on $\mathcal{F}_\Lambda$.
 \end{lemma}
 \begin{proof}
     \leanok
 
-    Finite additivity is continuity of addition on $[0,\infty]$ along $U$; the bound by the
-    $\limsup$ holds because $U$ refines $l$. If $A_m \in \mathcal{F}_\Lambda$ and
-    $A_m \downarrow \emptyset$ then
-    $\lim_m \mu^0(A_m) \leq \lim_m \limsup_{a \in l} \mu_a(A_m) = 0$ by local equicontinuity;
-    continuity at $\emptyset$ of a finite additive content on a set ring is $\sigma$-additivity.
+    Finite additivity is continuity of addition on $[0,\infty]$; the bound holds because
+    $U \leq l$. If $A_m \in \mathcal{F}_\Lambda$ and $A_m \downarrow \emptyset$ then
+    $\lim_m \mu^0(A_m) \leq \lim_m \limsup_{a \in l} \mu_a(A_m) = 0$ by local equicontinuity,
+    and a finitely additive content on a set ring that is continuous at $\emptyset$ is
+    $\sigma$-additive.
 \end{proof}
 
 \begin{definition}[Finite-volume marginals]
@@ -127,8 +119,8 @@ as $\limsup$ along $l$.
     \leanok
 
     For $\Lambda \in \Fin$, the map $B \mapsto \mu^0(\{\sigma_\Lambda \in B\})$,
-    $B \in \mathcal{E}^\Lambda$, is a probability measure on $E^\Lambda$: Georgii's marginal
-    distribution in $\Lambda$.
+    $B \in \mathcal{E}^\Lambda$, is a probability measure on $E^\Lambda$, the marginal of
+    $\mu^0$ in $\Lambda$.
 \end{definition}
 
 \begin{lemma}[Consistency and Kolmogorov extension]
@@ -139,19 +131,17 @@ as $\limsup$ along $l$.
       MeasureTheory.GibbsMeasure.eval_localEvents_of_isProjectiveLimit}
     \leanok
 
-    The marginals of Definition \ref{def:cp-finvol} form a projective (consistent) family. If
-    $(E, \mathcal{E})$ is standard Borel, there is a $\mu \in \Prob(\Cfg, \mathcal{F})$ whose
-    finite-volume marginals are these, and then $\mu(A) = \mu^0(A)$ for every local event $A$.
+    The marginals of Definition \ref{def:cp-finvol} form a projective family. If
+    $(E, \mathcal{E})$ is standard Borel, there is a $\mu \in \Prob(\Cfg, \mathcal{F})$ with
+    these marginals, and then $\mu(A) = \mu^0(A)$ for every local event $A$.
 \end{lemma}
 \begin{proof}
     \leanok
 
-    Consistency is the identity
-    $\operatorname{restrict}_{J \subseteq I} \circ \sigma_I = \sigma_J$ between coordinate
-    restrictions, so the push-forward of the $I$-marginal is the $J$-marginal. The standard
-    Borel hypothesis enters through the Kolmogorov extension theorem, which produces the
-    projective limit $\mu$; evaluating $\mu$ on a cylinder $\{\sigma_\Lambda \in B\}$ gives the
-    $\Lambda$-marginal of $B$, i.e.\ $\mu^0$.
+    Consistency: $\operatorname{restrict}_{J \subseteq I} \circ \sigma_I = \sigma_J$, so the
+    push-forward of the $I$-marginal is the $J$-marginal. Kolmogorov's extension theorem gives
+    the projective limit $\mu$; on a cylinder $\{\sigma_\Lambda \in B\}$ it evaluates to the
+    $\Lambda$-marginal of $B$, i.e.\ to $\mu^0$.
 \end{proof}
 
 \begin{theorem}[Ultrafilter form of Georgii (4.9)]
@@ -167,9 +157,8 @@ as $\limsup$ along $l$.
 \begin{proof}
     \leanok
 
-    Take $\mu$ the projective limit of Lemma \ref{lem:cp-projective}. Local convergence is
-    evaluation-wise convergence on local events, and on a local event $A$ we have
-    $\mu(A) = \mu^0(A) = \lim_{a \in U}\mu_a(A)$ by construction.
+    Let $\mu$ be the projective limit of Lemma \ref{lem:cp-projective}. On a local event $A$,
+    $\mu(A) = \mu^0(A) = \lim_{a \in U}\mu_a(A)$.
 \end{proof}
 
 \begin{proposition}[Georgii (4.9)]
@@ -178,10 +167,10 @@ as $\limsup$ along $l$.
     \lean{MeasureTheory.GibbsMeasure.exists_mapClusterPt_of_locallyEquicontinuous}
     \leanok
 
-    Let $(E, \mathcal{E})$ be a standard Borel space, with no countability assumption on $S$.
-    Then every locally equicontinuous family in $\Prob(\Cfg, \mathcal{F})$ indexed along a
-    filter $l \neq \bot$ -- in particular every locally equicontinuous net -- has at least one
-    cluster point in $\Prob(\Cfg, \mathcal{F})$.
+    Let $(E, \mathcal{E})$ be standard Borel, with no countability assumption on $S$. Every
+    locally equicontinuous family in $\Prob(\Cfg, \mathcal{F})$ indexed along a filter
+    $l \neq \bot$, in particular every locally equicontinuous net, has a cluster point in
+    $\Prob(\Cfg, \mathcal{F})$.
 \end{proposition}
 \begin{proof}
     \leanok
@@ -201,8 +190,7 @@ as $\limsup$ along $l$.
     Given measures $\nu_\Lambda$ on $(\Cfg, \mathcal{F})$, $\Lambda \in \Fin$, set
     \[\mathcal{K} = \set{\mu \in \Prob(\Cfg, \mathcal{F}) :
       \mu(A) \leq \nu_\Lambda(A) \text{ for all } A \in \mathcal{F}_\Lambda,\ \Lambda \in \Fin}.\]
-    Only the values of $\nu_\Lambda$ on $\mathcal{F}_\Lambda$-events enter, so this is Georgii's
-    condition for $\nu_\Lambda$ defined on the sub-$\sigma$-algebra $\mathcal{F}_\Lambda$ alone.
+    Only the restriction of $\nu_\Lambda$ to $\mathcal{F}_\Lambda$ enters.
 \end{definition}
 
 \begin{lemma}[Local uniform domination implies local equicontinuity]
@@ -212,19 +200,19 @@ as $\limsup$ along $l$.
       MeasureTheory.GibbsMeasure.isClosed_dominatedBy}
     \leanok
 
-    If for each $\Lambda \in \Fin$ one has $\mu_a(A) \leq \nu_\Lambda(A)$ for all
-    $A \in \mathcal{F}_\Lambda$ and eventually in $a$, with $\nu_\Lambda$ finite, then
-    $(\mu_a)_{a \in \iota}$ is locally equicontinuous. Moreover $\mathcal{K}$ is closed in the
-    topology of local convergence.
+    Let $\nu_\Lambda$, $\Lambda \in \Fin$, be finite measures on $(\Cfg, \mathcal{F})$. If for
+    each $\Lambda \in \Fin$, eventually in $a$, $\mu_a(A) \leq \nu_\Lambda(A)$ for all
+    $A \in \mathcal{F}_\Lambda$, then $(\mu_a)_{a \in \iota}$ is locally equicontinuous.
+    For arbitrary $\nu_\Lambda$, $\mathcal{K}$ is closed in the topology of local convergence.
 \end{lemma}
 \begin{proof}
     \leanok
 
-    For $A_m \in \mathcal{F}_\Lambda$ with $A_m \downarrow \emptyset$ we get
-    $\limsup_a \mu_a(A_m) \leq \nu_\Lambda(A_m)$, and $\nu_\Lambda(A_m) \to 0$ by continuity
-    from above of the finite measure $\nu_\Lambda$. Closedness of $\mathcal{K}$ holds because
-    it is an intersection of sets $\{\mu : \mu(A) \leq \nu_\Lambda(A)\}$, and $\mu \mapsto \mu(A)$
-    is continuous for a local event $A$.
+    For $A_m \in \mathcal{F}_\Lambda$ with $A_m \downarrow \emptyset$,
+    $\limsup_a \mu_a(A_m) \leq \nu_\Lambda(A_m) \to 0$ by continuity from above of the finite
+    measure $\nu_\Lambda$. $\mathcal{K}$ is an intersection of the sets
+    $\{\mu : \mu(A) \leq \nu_\Lambda(A)\}$, each closed since $\mu \mapsto \mu(A)$ is
+    continuous for a local event $A$.
 \end{proof}
 
 \begin{corollary}[Georgii (4.10)]
@@ -233,16 +221,16 @@ as $\limsup$ along $l$.
     \lean{MeasureTheory.GibbsMeasure.isCompact_dominatedBy}
     \leanok
 
-    Suppose $(E, \mathcal{E})$ is a standard Borel space, and for each $\Lambda \in \Fin$ we are
-    given a finite measure $\nu_\Lambda$ on $\mathcal{F}_\Lambda$. Then $\mathcal{K}$ is compact.
+    Let $(E, \mathcal{E})$ be standard Borel and $\nu_\Lambda$, $\Lambda \in \Fin$, finite
+    measures on $(\Cfg, \mathcal{F})$. Then $\mathcal{K}$ is compact.
 \end{corollary}
 \begin{proof}
     \leanok
 
     $\mathcal{K}$ is closed and every family in $\mathcal{K}$ is locally equicontinuous
-    (Lemma \ref{lem:cp-dom-equi}), hence has a local limit along any ultrafilter by
-    Theorem \ref{thm:cp-ultrafilter-convergence}; the limit lies in the closed set
-    $\mathcal{K}$. Compactness follows from the ultrafilter criterion.
+    (Lemma \ref{lem:cp-dom-equi}), hence converges along any ultrafilter to a limit in
+    $\mathcal{K}$ by Theorem \ref{thm:cp-ultrafilter-convergence}. Apply the ultrafilter
+    criterion for compactness.
 \end{proof}
 
 \begin{example}[Georgii (4.11)(1)]
@@ -251,22 +239,20 @@ as $\limsup$ along $l$.
     \lean{MeasureTheory.GibbsMeasure.isCompact_closure_setOf_mem_GP_modification}
     \leanok
 
-    Let $(E, \mathcal{E})$ be standard Borel, $\nu$ an a priori probability measure (Georgii's
-    finite $\lambda$, normalised), and $\gamma = \rho\ISSSD(\nu)$ a modification of the
-    independent specification with $\rho_\Lambda \leq C_\Lambda < \infty$ for each
-    $\Lambda \in \Fin$ (for instance Gibbsian for an absolutely summable potential). Then
+    Let $(E, \mathcal{E})$ be standard Borel, $\nu$ a probability measure on $E$, and
+    $\gamma = \rho\ISSSD(\nu)$ a modification of the independent specification with
+    $\rho_\Lambda \leq C_\Lambda < \infty$ for each $\Lambda \in \Fin$. Then
     $\Gibbs{\rho\ISSSD(\nu)}$ is contained in a set $\mathcal{K}$ as in
     Corollary \ref{cor:cp-410}, and its closure is compact.
 \end{example}
 \begin{proof}
     \leanok
 
-    A Gibbs measure $\mu$ for $\rho\ISSSD(\nu)$ satisfies
+    For $\mu \in \Gibbs{\rho\ISSSD(\nu)}$ and $A \in \mathcal{F}_\Lambda$,
     $\mu(A) = \int (\rho\ISSSD(\nu))_\Lambda(A \mid \omega)\, \mu(d\omega)
-    \leq C_\Lambda\, \nu^S(A)$ for $A \in \mathcal{F}_\Lambda$, because the independent kernel
-    forgets the boundary condition on $\mathcal{F}_\Lambda$. So $\Gibbs{\rho\ISSSD(\nu)}$ lies in
-    $\mathcal{K}$ for $\nu_\Lambda = C_\Lambda \cdot \nu^S$, which is compact by
-    Corollary \ref{cor:cp-410}, and the closure of a subset of a compact set is compact.
+    \leq C_\Lambda\, \nu^S(A)$, since $\ISSSD(\nu)_\Lambda(A \mid \omega) = \nu^S(A)$. So
+    $\Gibbs{\rho\ISSSD(\nu)} \subseteq \mathcal{K}$ for $\nu_\Lambda = C_\Lambda \nu^S$, which is
+    compact by Corollary \ref{cor:cp-410}.
 \end{proof}
 
 \begin{example}[Georgii (4.11)(2)]
@@ -274,20 +260,18 @@ as $\limsup$ along $l$.
     \uses{cor:cp-410}
     \leanok
 
-    Suppose $E$ is finite, read as a discrete space: every singleton is measurable. Then
-    $\Prob(\Cfg, \mathcal{F})$ is compact, by taking
-    $\nu_\Lambda(\sigma_\Lambda \in A) = |A|$ for $A \subseteq E^\Lambda$ in
-    Corollary \ref{cor:cp-410}.
+    Let $E$ be finite with every singleton measurable. Then $\Prob(\Cfg, \mathcal{F})$ is
+    compact.
 \end{example}
 \begin{proof}
     \leanok
 
-    Push the counting measure on $E^\Lambda$ forward along a measurable section
-    $E^\Lambda \to \Cfg$ (extend by a fixed configuration off $\Lambda$); the resulting finite
-    measures dominate every probability measure on $\mathcal{F}_\Lambda$, since a nonempty
-    $B \subseteq E^\Lambda$ has counting measure at least $1$. Now apply
-    Corollary \ref{cor:cp-410}. If $\Cfg$ is empty there is no random field at all and the
-    statement is trivial.
+    If $\Cfg = \emptyset$ there is nothing to prove. Otherwise push the counting measure on
+    $E^\Lambda$ forward along a measurable section $E^\Lambda \to \Cfg$ (extend by a fixed
+    configuration off $\Lambda$); a nonempty $B \subseteq E^\Lambda$ has counting measure
+    $\geq 1$, so these finite measures $\nu_\Lambda$ dominate every probability measure on
+    $\mathcal{F}_\Lambda$, and $\mathcal{K} = \Prob(\Cfg, \mathcal{F})$ is compact by
+    Corollary \ref{cor:cp-410}.
 \end{proof}
 
 \subsection*{Local equicontinuity of nets of Gibbs distributions}
@@ -298,36 +282,31 @@ as $\limsup$ along $l$.
     \lean{MeasureTheory.GibbsMeasure.locallyEquicontinuous_of_eventually_boundedOn}
     \leanok
 
-    Let $\gamma_0$ be a specification with free measure a probability measure $\mu_0$, that is
+    Let $\gamma_0$ be a specification with free measure a probability measure $\mu_0$, i.e.\
     $(\gamma_0)_\Lambda(A \mid \eta) = \mu_0(A)$ for all $\Lambda \in \Fin$,
-    $A \in \mathcal{F}_\Lambda$ and $\eta \in \Cfg$; this is Georgii's
-    $\lambda_\Lambda(A \mid \eta) = \lambda^S(A)$ for a finite, hence normalisable, $\lambda$,
-    and both $\ISSSD(\nu)$ and its inhomogeneous variant qualify. Let
-    $\gamma^a = \rho^a\gamma_0$, $a \in \iota$, be modifications of $\gamma_0$, let
-    $(\nu_a)_{a \in \iota}$ be a family in $\Prob(\Cfg, \mathcal{F})$, let
-    $\Lambda_a \to S$ along $l$ in $\Fin$, and put
+    $A \in \mathcal{F}_\Lambda$, $\eta \in \Cfg$. Let $\gamma^a = \rho^a\gamma_0$, $a \in \iota$,
+    be modifications of $\gamma_0$, $(\nu_a)_{a \in \iota}$ a family in
+    $\Prob(\Cfg, \mathcal{F})$, $\Lambda_a \to S$ along $l$ in $\Fin$, and
     $\mu_a = \nu_a \gamma^a_{\Lambda_a}$. Suppose that for each $\Lambda \in \Fin$ and each
     $\varepsilon > 0$ there are $B \in \mathcal{F}$ and $C < \infty$ with
     \[\rho^a_\Lambda \leq C \text{ on } B \text{ eventually in } a,
       \qquad
       \limsup_{a \in l} \mu_a(\Cfg \setminus B) \leq \varepsilon.\]
     Then $(\mu_a)_{a \in \iota}$ is locally equicontinuous, with no assumption on
-    $(E, \mathcal{E})$; if $(E, \mathcal{E})$ is standard Borel it therefore has a cluster point
-    by Proposition \ref{prop:cp-49}.
+    $(E, \mathcal{E})$; if $(E, \mathcal{E})$ is standard Borel it has a cluster point by
+    Proposition \ref{prop:cp-49}.
 \end{theorem}
 \begin{proof}
     \leanok
 
     Let $\Lambda \in \Fin$, $A_m \in \mathcal{F}_\Lambda$ with $A_m \downarrow \emptyset$, and
-    choose $B$, $C$ for $\varepsilon/2$. Since $\Lambda_a \to S$, eventually
-    $\Lambda \subseteq \Lambda_a$ and consistency gives
-    $\mu_a = \mu_a\gamma^a_\Lambda$. Splitting $A_m$ along $B$,
+    choose $B$, $C$ for $\varepsilon/2$. Eventually $\Lambda \subseteq \Lambda_a$, so
+    $\mu_a = \mu_a\gamma^a_\Lambda$ by consistency, and
     \[\mu_a(A_m) \leq \mu_a(A_m \cap B) + \mu_a(\Cfg\setminus B)
       \leq C\,\mu_0(A_m) + \mu_a(\Cfg \setminus B),\]
     using $\gamma^a_\Lambda(A_m \cap B \mid \omega) \leq C\,(\gamma_0)_\Lambda(A_m \mid \omega)
-    = C\,\mu_0(A_m)$. Taking $\limsup_a$ gives
-    $C\,\mu_0(A_m) + \varepsilon/2$, and $\mu_0(A_m) \to 0$ because $\mu_0$ is a
-    $\sigma$-additive finite measure; so the $\limsup$ is $\leq \varepsilon$ for large $m$.
+    = C\,\mu_0(A_m)$. Hence $\limsup_a \mu_a(A_m) \leq C\,\mu_0(A_m) + \varepsilon/2$, and
+    $\mu_0(A_m) \to 0$.
 \end{proof}
 
 \begin{lemma}[Georgii (4.12), literal density hypothesis]
@@ -336,15 +315,14 @@ as $\limsup$ along $l$.
     \lean{MeasureTheory.GibbsMeasure.locallyEquicontinuous_of_limsup_iSup_ne_top}
     \leanok
 
-    Theorem \ref{thm:cp-412} also holds with the density hypothesis in Georgii's own shape,
-    $\limsup_{a} \sup_{\omega \in B} \rho^a_\Lambda(\omega) < \infty$.
+    Theorem \ref{thm:cp-412} holds with the density hypothesis replaced by
+    $\limsup_{a \in l} \sup_{\omega \in B} \rho^a_\Lambda(\omega) < \infty$.
 \end{lemma}
 \begin{proof}
     \leanok
 
-    Put $C = \limsup_a \sup_{\omega \in B}\rho^a_\Lambda(\omega) + 1 < \infty$. Eventually the
-    $\sup$ is $< C$, hence $\rho^a_\Lambda \leq C$ on $B$ eventually; apply
-    Theorem \ref{thm:cp-412}.
+    Put $C = \limsup_a \sup_{\omega \in B}\rho^a_\Lambda(\omega) + 1 < \infty$. Eventually
+    $\sup_B \rho^a_\Lambda < C$; apply Theorem \ref{thm:cp-412}.
 \end{proof}
 
 \begin{corollary}[Georgii (4.13), density form]
@@ -353,30 +331,27 @@ as $\limsup$ along $l$.
     \lean{MeasureTheory.GibbsMeasure.locallyEquicontinuous_of_confinement}
     \leanok
 
-    In the setting of Theorem \ref{thm:cp-412}, suppose there is a sequence $(K_\ell)_{\ell \geq 1}$
-    in $\mathcal{E}$ such that
+    In the setting of Theorem \ref{thm:cp-412}, let $(K_\ell)_{\ell \geq 1}$ be a sequence in
+    $\mathcal{E}$ such that
     \begin{enumerate}
-        \item $0 < \lambda(K_\ell) < \infty$ for all $\ell$;
-        \item $\lim_{\ell \to \infty} \limsup_{a} \mu_a(\sigma_i \notin K_\ell) = 0$ for all
-              $i \in S$;
+        \item $\lim_{\ell \to \infty} \limsup_{a \in l} \mu_a(\sigma_i \notin K_\ell) = 0$ for
+              all $i \in S$;
         \item each $\Lambda \in \Fin$ is contained in some $\Delta \in \Fin$ such that, for every
-              $\ell$, the densities $\rho^a_\Lambda$ are eventually bounded by a finite constant on
-              the box $K_\ell^\Delta \times E^{S \setminus \Delta}$.
+              $\ell$, there is $C < \infty$ with $\rho^a_\Lambda \leq C$ on
+              $K_\ell^\Delta \times E^{S \setminus \Delta}$ eventually in $a$.
     \end{enumerate}
-    Then $(\mu_a)$ is locally equicontinuous. Of (i) only the measurability of the $K_\ell$ is
-    used here; the positivity enters in the Hamiltonian form,
-    Corollary \ref{cor:cp-413-ham}, and the finiteness is automatic for a reference probability
-    measure.
+    Then $(\mu_a)_{a \in \iota}$ is locally equicontinuous. No positivity or finiteness of
+    $\mu_0$-mass of the $K_\ell$ is assumed.
 \end{corollary}
 \begin{proof}
     \leanok
 
-    Given $\Lambda$ and $\varepsilon > 0$, take $\Delta \supseteq \Lambda$ from (iii). By (ii)
-    choose $\ell$ with $\sum_{i \in \Delta}\limsup_a \mu_a(\sigma_i \notin K_\ell) < \varepsilon$,
-    a union bound over the finitely many sites of $\Delta$. Put
-    $B = K_\ell^\Delta \times E^{S\setminus\Delta}$: then $\limsup_a \mu_a(\Cfg\setminus B)
-    \leq \varepsilon$ and the densities are eventually bounded on $B$ by (iii), which is the
-    hypothesis of Theorem \ref{thm:cp-412}.
+    Given $\Lambda$ and $\varepsilon > 0$, take $\Delta \supseteq \Lambda$ from (ii). By (i) and
+    a union bound over the sites of $\Delta$, choose $\ell$ with
+    $\sum_{i \in \Delta}\limsup_a \mu_a(\sigma_i \notin K_\ell) < \varepsilon$. Then
+    $B = K_\ell^\Delta \times E^{S\setminus\Delta}$ satisfies
+    $\limsup_a \mu_a(\Cfg\setminus B) \leq \varepsilon$, and the densities are eventually
+    bounded on $B$ by (ii); apply Theorem \ref{thm:cp-412}.
 \end{proof}
 
 \begin{corollary}[Georgii (4.13), Hamiltonian form]
@@ -385,35 +360,37 @@ as $\limsup$ along $l$.
     \lean{Potential.locallyEquicontinuous_of_confinement_hamiltonian}
     \leanok
 
-    Let $S$ be countable, $\nu$ an a priori probability measure, $\beta \in \R$, and let
-    $(\Phi^a)_{a \in \iota}$ be summable potentials whose Boltzmann factors are
-    $\nu$-admissible in the sense of Georgii's condition (2.7). Put
-    $\mu_a = \nu_a \gamma^{\Phi^a}_{\Lambda_a}$ and assume $0 < \nu(K_\ell)$ for all $\ell$
-    together with (ii) of Corollary \ref{cor:cp-413}, while (iii) is replaced by the Hamiltonian
-    bound
-    \[\limsup_{a} \sup_{\omega \in K_\ell^\Delta \times E^{S\setminus\Delta}}
-      |H^{\Phi^a}_\Lambda(\omega)| < \infty \qquad (\ell \geq 1).\]
-    Then $(\mu_a)$ is locally equicontinuous.
+    Let $S$ be countable, $\nu$ a probability measure on $E$, $\beta \in \R$, and
+    $(\Phi^a)_{a \in \iota}$ summable potentials whose Boltzmann factors
+    $e^{-\beta H^{\Phi^a}_\Lambda}$ are $\nu$-admissible (Georgii's condition (2.7)). Let
+    $\Lambda_a \to S$ along $l$, $\nu_a \in \Prob(\Cfg, \mathcal{F})$, and
+    $\mu_a = \nu_a \gamma^{\Phi^a}_{\Lambda_a}$. Let $(K_\ell)_{\ell \geq 1}$ be a sequence in
+    $\mathcal{E}$ with $\nu(K_\ell) > 0$ for all $\ell$, satisfying (i) of
+    Corollary \ref{cor:cp-413}, and such that each $\Lambda \in \Fin$ is contained in some
+    $\Delta \in \Fin$ with, for every $\ell$, a $c \in \R$ such that
+    \[|H^{\Phi^a}_\Lambda| \leq c \text{ on } K_\ell^\Delta \times E^{S\setminus\Delta}
+      \text{ eventually in } a.\]
+    Then $(\mu_a)_{a \in \iota}$ is locally equicontinuous.
 \end{corollary}
 \begin{proof}
     \leanok
 
-    From $|H^{\Phi^a}_\Lambda| \leq c$ on the box one gets the density bound
+    From $|H^{\Phi^a}_\Lambda| \leq c$ on the box, the Boltzmann factor is
+    $\leq e^{|\beta|c}$ there and the partition function is
+    $\geq e^{-|\beta|c}\nu(K_\ell)^{|\Lambda|} > 0$, so
     $\rho^{\Phi^a}_\Lambda \leq e^{|\beta|c}\big/\big(e^{-|\beta|c}\nu(K_\ell)^{|\Lambda|}\big)$
-    -- Georgii's $e^{2c(\ell)}\lambda(K_\ell)^{-|\Lambda|}$ -- by bounding the Boltzmann factor
-    above and the partition function below, the latter using $\nu(K_\ell) > 0$. This is
-    hypothesis (iii) of Corollary \ref{cor:cp-413}.
+    on the box. This is (ii) of Corollary \ref{cor:cp-413}.
 \end{proof}
 
 \begin{remark}[Georgii (4.14)]
     \label{rmk:cp-414}
     \uses{cor:cp-413-ham}
 
-    (1) The hypotheses (i)--(iii) hold when $\lambda$ is finite and
-    $\limsup_\alpha \|\Phi^\alpha\|_i < \infty$ for all $i$: take $K_\ell = E$ and
+    (1) The hypotheses of Corollary \ref{cor:cp-413-ham} hold when
+    $\limsup_{a} \|\Phi^a\|_i < \infty$ for all $i \in S$: take $K_\ell = E$ and
     $\Delta = \Lambda$.
-    (2) Hypothesis (iii) also follows from the existence of a finite-range potential $\Phi$
-    with $\limsup_\alpha \|\Phi^\alpha - \Phi\|_i < \infty$ for all $i$ and each $\Phi_A$
+    (2) The Hamiltonian bound also follows from the existence of a finite-range potential
+    $\Phi$ with $\limsup_{a} \|\Phi^a - \Phi\|_i < \infty$ for all $i$ and each $\Phi_A$
     bounded on $K_\ell^S$.
 \end{remark}
 
@@ -430,13 +407,12 @@ as $\limsup$ along $l$.
     \leanok
 
     For a sequence $(\mu_n)_{n \geq 1}$ and a candidate limit $\mu$, put
-    $\nu = \mu + \sum_{n \geq 1} 2^{-n}\mu_n$, so that the densities of $\mu$ are available as
-    well as those of the $\mu_n$; let $h_{n,\Lambda}$ be a Radon--Nikodym density of
-    $\mu_n|\mathcal{F}_\Lambda$ with respect to $\nu|\mathcal{F}_\Lambda$, let
+    $\nu = \mu + \sum_{n \geq 1} 2^{-n}\mu_n$; let $h_{n,\Lambda}$ be a Radon--Nikodym density
+    of $\mu_n|\mathcal{F}_\Lambda$ with respect to $\nu|\mathcal{F}_\Lambda$, let
     $\mathcal{A}_\Lambda \subseteq \mathcal{F}_\Lambda$ be the $\sigma$-algebra generated by the
     $h_{n,\Lambda}$, and let $\mathcal{A}^0_\Lambda$ be the family of finite intersections of
     preimages, under the $h_{n,\Lambda}$, of a fixed countable generating family of the Borel
-    sets of $[0,\infty]$. Finally $\mathcal{A}^0 = \bigcup_{\Lambda \in \Fin} \mathcal{A}^0_\Lambda$.
+    sets of $[0,\infty]$. Put $\mathcal{A}^0 = \bigcup_{\Lambda \in \Fin} \mathcal{A}^0_\Lambda$.
 \end{definition}
 
 \begin{lemma}[$\mathcal{A}^0$ is a countable $\pi$-system of local events generating the
@@ -451,17 +427,16 @@ as $\limsup$ along $l$.
     \leanok
 
     Each $\mathcal{A}^0_\Lambda$ is a countable $\pi$-system generating $\mathcal{A}_\Lambda$,
-    and, $S$ being countable, $\mathcal{A}^0$ is a countable family of local events.
+    and, for $S$ countable, $\mathcal{A}^0$ is a countable family of local events.
 \end{lemma}
 \begin{proof}
     \leanok
 
     Finite intersections of a countable family form a countable $\pi$-system generating the same
     $\sigma$-algebra; the preimages of a countable generating family of the Borel sets of
-    $[0,\infty]$ under the countably many $h_{n,\Lambda}$ generate exactly
-    $\mathcal{A}_\Lambda$. Each generator is $\mathcal{F}_\Lambda$-measurable because the
-    $h_{n,\Lambda}$ are, so it is a local event. Countability of $S$ makes the union over
-    $\Lambda \in \Fin$ countable.
+    $[0,\infty]$ under the countably many $h_{n,\Lambda}$ generate $\mathcal{A}_\Lambda$. Each
+    generator is $\mathcal{F}_\Lambda$-measurable, hence a local event. For $S$ countable the
+    union over $\Lambda \in \Fin$ is countable.
 \end{proof}
 
 \begin{lemma}[Transfer from $\mathcal{A}_\Lambda$ back to $\mathcal{F}_\Lambda$]
@@ -477,20 +452,19 @@ as $\limsup$ along $l$.
     $\nu(A \mid \mathcal{A}_\Lambda)$ given by a Radon--Nikodym density of
     $\nu(A \cap \cdot)|\mathcal{A}_\Lambda$ with respect to $\nu|\mathcal{A}_\Lambda$, truncated
     at $1$. Then $\rho(A) = \rho(f_A)$ for every measure $\rho \ll \nu$ whose density on
-    $\mathcal{F}_\Lambda$ is $\mathcal{A}_\Lambda$-measurable -- in particular for each $\mu_n$
-    and for $\mu$. Moreover, setwise convergence on $\mathcal{A}_\Lambda$ of probability measures
+    $\mathcal{F}_\Lambda$ is $\mathcal{A}_\Lambda$-measurable, in particular for each $\mu_n$
+    and for $\mu$. Setwise convergence on $\mathcal{A}_\Lambda$ of probability measures
     implies convergence of the integrals of every $\mathcal{A}_\Lambda$-measurable function
     bounded by $1$.
 \end{lemma}
 \begin{proof}
     \leanok
 
-    With $h = h_{n,\Lambda}$ one has $\mu_n(A) = \nu(h 1_A) = \nu(h f_A) = \mu_n(f_A)$, the
-    middle equality being the defining property of the conditional expectation $f_A$ together
-    with $\mathcal{A}_\Lambda$-measurability of $h$. The last assertion is bounded convergence,
-    proved by approximating $f$ from below by the horizontal layer sums
-    $N^{-1}\sum_{j} 1_{\{f > j/N\}}$, whose integrals converge by hypothesis, with a uniform
-    error $N^{-1}$.
+    With $h = h_{n,\Lambda}$, $\mu_n(A) = \nu(h 1_A) = \nu(h f_A) = \mu_n(f_A)$, the middle
+    equality by the defining property of $f_A$ and $\mathcal{A}_\Lambda$-measurability of $h$.
+    For the last assertion approximate $f$ from below by the layer sums
+    $N^{-1}\sum_{j} 1_{\{f > j/N\}}$, whose integrals converge by hypothesis, with uniform error
+    $N^{-1}$.
 \end{proof}
 
 \begin{lemma}[Dynkin step of Georgii (4.15)]
@@ -508,13 +482,12 @@ as $\limsup$ along $l$.
 
     Fix $\Lambda$ and let $\mathcal{A}^1_\Lambda$ be the sets of $\mathcal{A}_\Lambda$ on which
     convergence holds. It contains the $\pi$-system $\mathcal{A}^0_\Lambda$ and is a Dynkin
-    system: only countable disjoint unions $B = \bigcup_\ell B_\ell$ need an argument, and there
-    one uses local equicontinuity on the tails $B \setminus C_m \downarrow \emptyset$,
-    $C_m = \bigcup_{\ell \leq m}B_\ell$, to squeeze $\limsup_k \mu_{n_k}(B) \leq \mu(B)+\varepsilon$
-    and $\liminf_k \mu_{n_k}(B) \geq \mu(B)-\varepsilon$. Hence
+    system: for a countable disjoint union $B = \bigcup_\ell B_\ell$, local equicontinuity on
+    the tails $B \setminus C_m \downarrow \emptyset$, $C_m = \bigcup_{\ell \leq m}B_\ell$, gives
+    $\limsup_k \mu_{n_k}(B) \leq \mu(B)+\varepsilon$ and
+    $\liminf_k \mu_{n_k}(B) \geq \mu(B)-\varepsilon$. Hence
     $\mathcal{A}^1_\Lambda = \mathcal{A}_\Lambda$, and Lemma \ref{lem:cp-transfer} carries the
-    convergence from $\mathcal{A}_\Lambda$ to all of $\mathcal{F}_\Lambda$ via
-    $\mu_n(A) = \mu_n(f_A)$.
+    convergence to $\mathcal{F}_\Lambda$ via $\mu_n(A) = \mu_n(f_A)$.
 \end{proof}
 
 \begin{proposition}[Georgii (4.15)]
@@ -524,21 +497,19 @@ as $\limsup$ along $l$.
       MeasureTheory.GibbsMeasure.exists_strictMono_tendsto_of_mapClusterPt}
     \leanok
 
-    Let $S$ be countable, with no assumption on $(E, \mathcal{E})$. Suppose
+    Let $S$ be countable, with no assumption on $(E, \mathcal{E})$. If
     $\mu \in \Prob(\Cfg, \mathcal{F})$ is a cluster point of a locally equicontinuous sequence
-    $(\mu_n)_{n \geq 1}$ in $\Prob(\Cfg, \mathcal{F})$. Then there is a subsequence
-    $(\mu_{n_k})_{k\geq 1}$ which converges to $\mu$.
+    $(\mu_n)_{n \geq 1}$ in $\Prob(\Cfg, \mathcal{F})$, then some subsequence
+    $(\mu_{n_k})_{k\geq 1}$ converges to $\mu$.
 \end{proposition}
 \begin{proof}
     \leanok
 
-    Enumerate the countable family $\mathcal{A}^0 = \{A_1, A_2, \dots\}$ of
-    Lemma \ref{lem:cp-dens-countable}. The map $\nu \mapsto (\nu(A_\ell))_{\ell \geq 1}$ into the
-    metrizable space $[0,\infty]^{\mathbb{N}}$ is continuous for local convergence, so $\mu$'s
-    being a cluster point yields a strictly increasing $(n_k)$ with
-    $\mu_{n_k}(A_\ell) \to \mu(A_\ell)$ for every $\ell$ (Georgii's diagonal choice
-    $\max_{\ell \leq k}|\mu_{n_k}(A_\ell)-\mu(A_\ell)| < 1/k$). Lemma \ref{lem:cp-dynkin}
-    upgrades this to all local events, which is local convergence.
+    Enumerate $\mathcal{A}^0 = \{A_1, A_2, \dots\}$ (Lemma \ref{lem:cp-dens-countable}). The map
+    $\rho \mapsto (\rho(A_\ell))_{\ell \geq 1}$ into the metrizable space
+    $[0,\infty]^{\mathbb{N}}$ is continuous for local convergence, so there is a strictly
+    increasing $(n_k)$ with $\mu_{n_k}(A_\ell) \to \mu(A_\ell)$ for every $\ell$.
+    Lemma \ref{lem:cp-dynkin} extends this to all local events.
 \end{proof}
 
 \begin{corollary}[Georgii (4.9) and (4.15) combined]
@@ -547,12 +518,13 @@ as $\limsup$ along $l$.
     \lean{MeasureTheory.GibbsMeasure.exists_subseq_tendsto_of_locallyEquicontinuous}
     \leanok
 
-    Over a standard Borel state space and a countable $S$, every locally equicontinuous sequence
-    of random fields has a subsequence converging in the topology of local convergence.
+    Let $(E, \mathcal{E})$ be standard Borel and $S$ countable. Every locally equicontinuous
+    sequence in $\Prob(\Cfg, \mathcal{F})$ has a subsequence converging in the topology of
+    local convergence.
 \end{corollary}
 \begin{proof}
     \leanok
 
-    Proposition \ref{prop:cp-49} provides a cluster point, and
-    Proposition \ref{prop:cp-415} turns it into the limit of a subsequence.
+    Proposition \ref{prop:cp-49} gives a cluster point; Proposition \ref{prop:cp-415} makes it
+    the limit of a subsequence.
 \end{proof}

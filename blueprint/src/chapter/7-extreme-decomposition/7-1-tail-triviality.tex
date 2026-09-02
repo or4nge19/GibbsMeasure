@@ -1,7 +1,7 @@
 \section{Almost sure invariance}
 
-Chapter 7 rests on a statement about a single probability kernel, with no reference to
-specifications, potentials, or configuration spaces. It is stated here at that generality.
+The extreme decomposition rests on a statement about a single Markov kernel on a measurable space
+$(\Omega,\mathcal F)$; it is proved at that generality.
 
 \begin{definition}[The a.s.\ invariant $\sigma$-algebra, Georgii (7.3)]
     \label{def:ext-ae-invariant}
@@ -32,7 +32,8 @@ specifications, potentials, or configuration spaces. It is stated here at that g
       ProbabilityTheory.Kernel.invariant_withDensity_iff_measurable}
     \leanok
 
-    For measurable $f : \Omega \to [0,\infty]$ with $\int f \,\dd\mu < \infty$,
+    Let $\pi$, $\mu$ be as in Definition \ref{def:ext-ae-invariant}. For measurable
+    $f : \Omega \to [0,\infty]$ with $\int f \,\dd\mu < \infty$,
     \[(f\mu)\pi = f\mu \quad\Longleftrightarrow\quad f \text{ is } \mathcal I_\pi(\mu)\text{-measurable}.\]
 \end{theorem}
 \begin{proof}
@@ -43,11 +44,12 @@ specifications, potentials, or configuration spaces. It is stated here at that g
     because $\pi$ neither leaves $A$ nor enters it.
 
     ($\Rightarrow$) Fix $0 < c < \infty$ and put $A = \set{f \geq c}$. Invariance of $f\mu$ and of
-    $\mu$ give two conservation identities; combining them with the pointwise inequality
-    $(f - c)(1 - \pi(A\mid\cdot)) \geq 0$ on $A$ yields
+    $\mu$ give two conservation identities; combined with $(f - c)(1 - \pi(A\mid\cdot)) \geq 0$
+    on $A$ they yield
     $c\int_{A^c} \pi(A\mid\cdot) \leq \int_{A^c} f\,\pi(A\mid\cdot) \leq c\int_{A^c}\pi(A\mid\cdot)$.
-    Equality forces $\pi(A \mid \cdot) = 0$ a.s.\ on $A^c$, since $f < c$ there; the conservation
-    identity for $\mu$ then forces $\pi(A\mid\cdot) = 1$ a.s.\ on $A$. So $A \in \mathcal I_\pi(\mu)$.
+    Since $f < c$ on $A^c$, equality forces $\pi(A \mid \cdot) = 0$ a.s.\ on $A^c$, and the
+    conservation identity for $\mu$ then forces $\pi(A\mid\cdot) = 1$ a.s.\ on $A$. So
+    $A \in \mathcal I_\pi(\mu)$.
 \end{proof}
 
 \begin{theorem}[Extremality, Georgii (7.4)]
@@ -58,11 +60,10 @@ specifications, potentials, or configuration spaces. It is stated here at that g
       ProbabilityTheory.Kernel.mem_extremePoints_iff_trivialOn}
     \leanok
 
-    Let $\Pi$ be a non-empty family of Markov kernels and
-    $\mathcal P_\Pi$ the convex set of probability measures invariant under every member. For
-    $\mu \in \mathcal P_\Pi$ put $\mathcal I_\Pi(\mu) = \bigcap_{\pi \in \Pi} \mathcal I_\pi(\mu)$.
-    Then $\mu$ is extreme in $\mathcal P_\Pi$ if and only if $\mu$ is trivial on
-    $\mathcal I_\Pi(\mu)$.
+    Let $\Pi$ be a non-empty family of Markov kernels on $(\Omega,\mathcal F)$ and $\mathcal P_\Pi$
+    the convex set of probability measures invariant under every member. For $\mu \in \mathcal
+    P_\Pi$ put $\mathcal I_\Pi(\mu) = \bigcap_{\pi \in \Pi} \mathcal I_\pi(\mu)$. Then $\mu$ is
+    extreme in $\mathcal P_\Pi$ if and only if $\mu$ is trivial on $\mathcal I_\Pi(\mu)$.
 \end{theorem}
 \begin{proof}
     \leanok
@@ -91,11 +92,10 @@ specifications, potentials, or configuration spaces. It is stated here at that g
     $\Omega = \set{0,1,2}$ and
     \[\pi \;=\; \begin{pmatrix} 1 & 0 & 0 \\ \tfrac12 & 0 & \tfrac12 \\ 0 & 0 & 1\end{pmatrix},
       \qquad \mu \;=\; \tfrac12\delta_0 + \tfrac12\delta_2 .\]
-    Then $\mu$ is invariant, and a strictly invariant $A$ must satisfy
-    $\tfrac12\1_A(0) + \tfrac12\1_A(2) = \1_A(1)$, which for $\set{0,1}$-valued indicators
-    forces $A = \emptyset$ or $A = \Omega$. So $\mu$ is trivial on the strictly invariant sets.
-    But $\mu = \tfrac12\delta_0 + \tfrac12\delta_2$ with $\delta_0, \delta_2$ both invariant,
-    so $\mu$ is not extreme.
+    Then $\mu$ is invariant, and a strictly invariant $A$ satisfies
+    $\tfrac12\1_A(0) + \tfrac12\1_A(2) = \1_A(1)$, which forces $A = \emptyset$ or $A = \Omega$;
+    so $\mu$ is trivial on the strictly invariant sets. But $\delta_0$ and $\delta_2$ are
+    invariant, so $\mu$ is not extreme.
 \end{example}
 
 \begin{proposition}[The deterministic case is Mathlib's ergodicity]
@@ -106,17 +106,16 @@ specifications, potentials, or configuration spaces. It is stated here at that g
       ProbabilityTheory.Kernel.preErgodic_iff_trivialOn_aeInvariant}
     \leanok
 
-    Let $T : \Omega \to \Omega$ be measurable and $\pi = \delta_{T(\cdot)}$ the associated
-    deterministic kernel. Then $\mu\pi = \mu$ if and only if $T$ preserves $\mu$, and
-    $\mathcal I_\pi(\mu)$ consists of the measurable $A$ with $T^{-1}A =_\mu A$. For
-    measure-preserving $T$ on a probability space, the zero-one law over the \emph{strictly}
-    invariant sets $T^{-1}A = A$ is therefore equivalent to triviality on $\mathcal I_\pi(\mu)$, so
-    Theorem \ref{thm:ext-74} specialises to the characterisation of the ergodic measures as the
-    extreme points of the invariant ones, and extends it to random kernels and to families.
+    Let $T : \Omega \to \Omega$ be measurable and $\pi = \delta_{T(\cdot)}$. Then $\mu\pi = \mu$
+    if and only if $T$ preserves $\mu$, and $\mathcal I_\pi(\mu)$ consists of the measurable $A$
+    with $T^{-1}A =_\mu A$. For measure-preserving $T$ on a probability space, the zero-one law over
+    the \emph{strictly} invariant sets $T^{-1}A = A$ is equivalent to triviality on
+    $\mathcal I_\pi(\mu)$; Theorem \ref{thm:ext-74} thus specialises to the characterisation of the
+    ergodic measures as the extreme points of the invariant ones.
 
     The equivalence corrects an a.e.\ invariant set to a strictly invariant one by iterating $T$,
-    and so uses measurability of $T$, not merely a.e.\ measurability. By Example \ref{ex:ext-75} no
-    such correction exists for a general kernel.
+    which uses measurability of $T$; by Example \ref{ex:ext-75} no such correction exists for a
+    general kernel.
 \end{proposition}
 
 \begin{corollary}[Pre-ergodicity is an almost-everywhere notion]
@@ -150,8 +149,9 @@ specifications, potentials, or configuration spaces. It is stated here at that g
           \[\lim_{\Lambda \in \Fin} \ \sup_{B \in \mathcal F_{S \setminus \Lambda}}
             \abs{\mu(A \cap B) - \mu(A)\mu(B)} \;=\; 0 .\]
     \end{enumerate}
-    The same equivalence holds for an antitone family $(\mathcal A_i)_{i \in I}$ of
-    sub-$\sigma$-algebras indexed by any countable directed non-empty $I$, with $\Tail$ replaced by
+    The same equivalence holds on any probability space for an antitone family
+    $(\mathcal A_i)_{i \in I}$ of sub-$\sigma$-algebras indexed by a countable directed non-empty
+    $I$, with $\mathcal F_{S\setminus\Lambda}$ replaced by $\mathcal A_i$ and $\Tail$ by
     $\bigcap_{i} \mathcal A_i$.
 \end{theorem}
 \begin{proof}
@@ -168,8 +168,7 @@ specifications, potentials, or configuration spaces. It is stated here at that g
     $B = A$ gives $\abs{\mu(A) - \mu(A)^2} \leq \varepsilon$ for every $\varepsilon > 0$, whence
     $\mu(A) \in \set{0,1}$.
 
-    The directed case follows from the sequential one along a monotone cofinal sequence in $I$,
-    which exists because $I$ is countable and directed.
+    The directed case reduces to the sequential one along a monotone cofinal sequence in $I$.
 \end{proof}
 
 \section{Uniform mixing}
@@ -179,9 +178,9 @@ specifications, potentials, or configuration spaces. It is stated here at that g
     \lean{MeasureTheory.GibbsMeasure.IsUniformlyMixing}
     \leanok
 
-    A probability measure $\mu$ on the configuration space is \textbf{uniformly mixing} if for
-    every local event $A$ and every $\varepsilon > 0$, all sufficiently large $\Lambda \in \Fin$
-    satisfy $|\mu(A \mid B) - \mu(A)| \le \varepsilon$ for every non-null
+    A probability measure $\mu$ on $\Cfg$ is \textbf{uniformly mixing} if for every local event
+    $A$ and every $\varepsilon > 0$, all sufficiently large $\Lambda \in \Fin$ satisfy
+    $|\mu(A \mid B) - \mu(A)| \le \varepsilon$ for every non-null
     $B \in \Tail_\Lambda = \mathcal{F}_{\Lambda^{\mathrm{c}}}$.
 \end{definition}
 
@@ -200,17 +199,16 @@ specifications, potentials, or configuration spaces. It is stated here at that g
     \uses{lem:remark-128-2}
     \leanok
 
-    Let $\nu \in \Gibbs{\gamma}$, let $A$ be a local event and let $\varepsilon > 0$. Pick
-    $\Lambda \in \Fin$ from uniform mixing for $A$ and $\varepsilon$. Since $\gamma_\Lambda(A \mid
-    \cdot)$ is a version of $\mu[\1_A \mid \Tail_\Lambda]$, the bound on $\mu(A \mid B)$ over
-    non-null $B \in \Tail_\Lambda$ gives $|\gamma_\Lambda(A \mid \cdot) - \mu(A)| \le \varepsilon$
+    Let $\nu \in \Gibbs{\gamma}$, $A$ a local event and $\varepsilon > 0$. Pick $\Lambda \in \Fin$
+    from uniform mixing for $A$ and $\varepsilon$. Since $\gamma_\Lambda(A \mid \cdot)$ is a
+    version of $\mu[\1_A \mid \Tail_\Lambda]$, the bound on $\mu(A \mid B)$ over non-null
+    $B \in \Tail_\Lambda$ gives $|\gamma_\Lambda(A \mid \cdot) - \mu(A)| \le \varepsilon$
     $\mu$-a.s. Quasilocality provides $\Delta \in \Fin$ and an $\mathcal F_\Delta$-measurable $f$
     with $\sup_\eta |\gamma_\Lambda(A \mid \eta) - f(\eta)| \le \varepsilon$, so
     $\set{|f - \mu(A)| > 2\varepsilon} \in \mathcal F_\Delta$ is $\mu$-null, hence $\nu$-null by
-    Lemma \ref{lem:remark-128-2}, and therefore $|\gamma_\Lambda(A \mid \cdot) - \mu(A)| \le
-    3\varepsilon$ $\nu$-a.s. Integrating the DLR equation $\nu\gamma_\Lambda = \nu$ gives
-    $|\nu(A) - \mu(A)| \le 3\varepsilon$. As $\varepsilon > 0$ was arbitrary, $\nu$ and $\mu$ agree
-    on the generating $\pi$-system of local events, so $\nu = \mu$.
+    Lemma \ref{lem:remark-128-2}, and $|\gamma_\Lambda(A \mid \cdot) - \mu(A)| \le 3\varepsilon$
+    $\nu$-a.s. Integrating $\nu\gamma_\Lambda = \nu$ gives $|\nu(A) - \mu(A)| \le 3\varepsilon$.
+    Hence $\nu$ and $\mu$ agree on the generating $\pi$-system of local events, so $\nu = \mu$.
 \end{proof}
 
 \begin{proposition}[Georgii (7.11)(b)]
@@ -227,30 +225,38 @@ specifications, potentials, or configuration spaces. It is stated here at that g
       MeasureTheory.GibbsMeasure.G_lambdaSpecification_eq_singleton_iff_isUniformlyMixing_of_isFiniteMeasure}
     \leanok
 
-    Let $\gamma$ be a quasilocal specification whose finite-volume distributions are dominated by
-    a fixed finite measure, and suppose $\Gibbs{\gamma} = \set{\mu}$. Then for every local event
-    $A$ and every $\varepsilon > 0$, all sufficiently large $\Lambda \in \Fin$ satisfy
-    $|\gamma_\Lambda(A \mid \omega) - \mu(A)| \le \varepsilon$ \emph{simultaneously for all}
-    boundary conditions $\omega$; equivalently
-    $\sup_\omega |\gamma_\Lambda(A \mid \omega) - \mu(A)| \to 0$, and
-    $\gamma_\Lambda(\cdot \mid \omega) \to \mu$ in the topology of local convergence for every
-    $\omega$; the same uniform convergence holds tested against local observables
-    $f \in \mathcal{L}$, which is the form in which Georgii states it. Moreover $\mu$ is
-    uniformly mixing, so for a positive quasilocal $\lambda$-specification
-    $\Gibbs{\gamma} = \set{\mu}$ and the mixing property (7.10) of $\mu$ are equivalent. For a $\lambda$-specification
-    $\gamma = \rho\lambda$ with volumewise bounded densities over a probability a priori measure
-    the domination hypothesis is automatic.
+    Let $E$ be standard Borel and $\gamma$ a quasilocal specification such that for every
+    $\Lambda \in \Fin$ there is a finite measure $\kappa_\Lambda$ with
+    $\gamma_\Lambda(A \mid \omega) \le \kappa_\Lambda(A)$ for all $\omega \in \Cfg$ and all
+    $A \in \mathcal F_\Lambda$. Let $\mu \in \Prob(\Cfg)$ be such that every Gibbs measure of
+    $\gamma$ equals $\mu$ (in particular, $\Gibbs{\gamma} = \set{\mu}$). Then for every local
+    event $A$ and every $\varepsilon > 0$, all sufficiently large $\Lambda \in \Fin$ satisfy
+    $|\gamma_\Lambda(A \mid \omega) - \mu(A)| \le \varepsilon$ simultaneously for all
+    $\omega \in \Cfg$; hence $\sup_\omega |\gamma_\Lambda(A \mid \omega) - \mu(A)| \to 0$,
+    $\sup_\omega |\gamma_\Lambda(f \mid \omega) - \mu(f)| \to 0$ for every bounded local
+    observable $f \in \mathcal{L}$, and $\gamma_\Lambda(\cdot \mid \omega) \to \mu$ in the
+    topology of local convergence for every $\omega$. If moreover $\mu \in \Gibbs{\gamma}$, then
+    $\mu$ is uniformly mixing.
+
+    The domination hypothesis holds for a $\lambda$-specification $\gamma = \rho\lambda$ with
+    volumewise bounded densities over a probability a priori measure $\lambda$. For such $\gamma$
+    with everywhere positive densities, and for a finite non-zero $\lambda$ with densities bounded
+    relative to $\lambda/\lambda(E)$, $\Gibbs{\gamma} = \set{\mu}$ if and only if
+    $\mu \in \Gibbs{\gamma}$ is uniformly mixing.
 \end{proposition}
 \begin{proof}
     \uses{thm:exg-4-17}
     \leanok
 
-    Were the conclusion to fail, some local $A$, some $\varepsilon > 0$ and boundary conditions
-    $\omega_\Lambda$ along a subnet would keep
+    Were the first conclusion to fail, some local $A$, some $\varepsilon > 0$ and boundary
+    conditions $\omega_\Lambda$ along a subnet would keep
     $|\gamma_\Lambda(A \mid \omega_\Lambda) - \mu(A)| > \varepsilon$. The domination hypothesis
     makes the net $(\gamma_\Lambda(\cdot \mid \omega_\Lambda))_\Lambda$ locally equicontinuous, so
     it has a cluster point, which is a Gibbs measure by Theorem \ref{thm:exg-4-17} because
-    $\gamma$ is quasilocal, hence equals $\mu$ --- contradicting the separation on $A$. The mixing
-    property follows: conditioning on a non-null $B \in \Tail_\Lambda$ averages the numbers
-    $\gamma_\Lambda(A \mid \omega)$, all within $\varepsilon$ of $\mu(A)$.
+    $\gamma$ is quasilocal, hence equals $\mu$ --- contradicting the separation on $A$. A bounded
+    local observable is uniformly approximated by finite linear combinations of indicators of
+    local events, which gives the statement for $f \in \mathcal L$. Mixing follows: conditioning
+    on a non-null $B \in \Tail_\Lambda$ averages the numbers $\gamma_\Lambda(A \mid \omega)$, all
+    within $\varepsilon$ of $\mu(A)$. The equivalence combines this with Proposition
+    \ref{prop:ext-711a}.
 \end{proof}

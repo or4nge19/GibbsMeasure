@@ -1,15 +1,13 @@
 \section{Some applications}
 
-Georgii \S7.2 applies the results of \S7.1 to Kolmogorov's zero-one law (7.14), stationary
-Markov chains (7.15), exchangeability together with the zero-one law of Hewitt and Savage
-(7.16)--(7.17), and product specifications (7.18)--(7.19).  All four are reached through
-Georgii's Remark (7.13): Theorem (7.7) and Theorem (7.12)(a) hold verbatim when
-$(\Cfg, \mathcal{F})$ is an arbitrary measurable space, the finite volumes are replaced by a
-countable index set $\iota$ directed upwards, the σ-algebras $\mathcal{F}_{S \setminus \Lambda}$
-by a decreasing family $(\mathcal{T}_i)_{i \in \iota}$ with $\Tail = \bigcap_i \mathcal{T}_i$,
-and $\gamma$ by any family of proper probability kernels $\gamma_i$ from $\mathcal{T}_i$ to
-$\mathcal{F}$, the set $\Gibbs{\gamma}$ being replaced by the convex set $\Prob_\gamma$ of
-$\gamma$-invariant probability measures.
+Georgii's Remark (7.13): Theorems (7.7) and (7.12)(a) hold when the finite volumes are replaced
+by a countable directed index set $\iota$, the σ-algebras $\mathcal{F}_{S \setminus \Lambda}$ by
+a decreasing family $(\mathcal{T}_i)_{i \in \iota}$ with $\Tail = \bigcap_i \mathcal{T}_i$, and
+$\gamma$ by proper probability kernels $\gamma_i$ from $\mathcal{T}_i$ to $\mathcal{F}$, with
+$\Gibbs{\gamma}$ replaced by the convex set $\Prob_\gamma$ of $\gamma$-invariant probability
+measures.  This section applies it to Kolmogorov's zero-one law (7.14), stationary Markov chains
+(7.15), exchangeability and the Hewitt--Savage zero-one law (7.16)--(7.17), and product
+specifications (7.18)--(7.19).
 
 \subsection*{The abstract setting of Remark (7.13)}
 
@@ -22,9 +20,9 @@ $\gamma$-invariant probability measures.
     \leanok
 
     Let $(\Cfg, \mathcal{F})$ be a measurable space and $\iota$ a preorder, with no countability
-    or directedness assumption.  An \textbf{abstract specification} is the data of a decreasing
-    family $(\mathcal{T}_i)_{i \in \iota}$ of sub-σ-algebras of $\mathcal{F}$ together with
-    proper probability kernels $\gamma_i$ from $(\Cfg, \mathcal{T}_i)$ to $(\Cfg, \mathcal{F})$
+    or directedness assumption.  An \textbf{abstract specification} is a decreasing family
+    $(\mathcal{T}_i)_{i \in \iota}$ of sub-σ-algebras of $\mathcal{F}$ together with proper
+    probability kernels $\gamma_i$ from $(\Cfg, \mathcal{T}_i)$ to $(\Cfg, \mathcal{F})$
     satisfying the consistency relation
     \[\gamma_i \gamma_j = \gamma_j \qquad (i \le j).\]
     Its \textbf{tail σ-algebra} is $\Tail = \bigwedge_{i} \mathcal{T}_i$ and its
@@ -42,16 +40,14 @@ $\gamma$-invariant probability measures.
     Every specification $\gamma$ on $E^S$ is an abstract specification, indexed by
     $\iota = \Finset(S)$ with $\mathcal{T}_\Lambda = \mathcal{F}_{S \setminus \Lambda}$ and
     $\gamma_\Lambda$ the given kernels.  Its tail σ-algebra is the tail σ-algebra $\Tail$ of
-    $\Cfg = E^S$, and its invariant set is $\Gibbs{\gamma}$, the set of Gibbs probability
-    measures for $\gamma$.
+    $\Cfg = E^S$ and its invariant set is $\Gibbs{\gamma}$.
 \end{lemma}
 \begin{proof}
     \leanok
 
-    Consistency, properness and Markov-ness are the defining data of a specification, and
-    $\Lambda \mapsto \mathcal{F}_{S\setminus\Lambda}$ is decreasing because
-    $\Lambda_1 \subseteq \Lambda_2$ gives $S \setminus \Lambda_2 \subseteq S \setminus \Lambda_1$.
-    The tail σ-algebra is $\bigwedge_\Lambda \mathcal{F}_{S\setminus\Lambda}$ by definition, and
+    Consistency, properness and the Markov property are the defining data of a specification;
+    $\Lambda \mapsto \mathcal{F}_{S\setminus\Lambda}$ is decreasing.  The tail σ-algebra is
+    $\bigwedge_\Lambda \mathcal{F}_{S\setminus\Lambda}$ by definition, and
     $\mu \gamma_\Lambda = \mu$ for all $\Lambda$ is the definition of a Gibbs measure.
 \end{proof}
 
@@ -70,16 +66,15 @@ $\gamma$-invariant probability measures.
 \begin{proof}
     \leanok
 
-    If $A \in \Tail$ has $0 < \mu(A) < 1$, then properness lets $A$ be pulled out of
-    $\mu \gamma_i$, so both conditional measures $\mu(\cdot \mid A)$ and
-    $\mu(\cdot \mid A^{c})$ are again $\gamma$-invariant (Georgii (7.7)(b)), and $\mu$ is
-    their proper convex combination, hence not extreme.  Conversely, if $\mu$ is trivial on
-    $\Tail$ and $\nu \in \Prob_\gamma$ with $\nu \ll \mu$, then for each $i$ the density
-    $\mathrm{d}\nu/\mathrm{d}\mu$ may be chosen $\mathcal{T}_i$-measurable, because passing to a
-    density commutes with $\mu \mapsto \mu\gamma_i$ for proper $\gamma_i$; taking a $\limsup$
-    along a cofinal sequence produces a $\Tail$-measurable version, which tail triviality forces
-    to be a.e.\ constant, so $\nu = \mu$.  A proper convex decomposition of $\mu$ has both parts
-    absolutely continuous with respect to $\mu$, so $\mu$ is extreme.
+    If $A \in \Tail$ has $0 < \mu(A) < 1$, properness pulls $A$ out of $\mu \gamma_i$, so
+    $\mu(\cdot \mid A)$ and $\mu(\cdot \mid A^{c})$ are $\gamma$-invariant (Georgii (7.7)(b))
+    and $\mu$ is their proper convex combination.  Conversely, let $\mu$ be trivial on $\Tail$
+    and $\nu \in \Prob_\gamma$ with $\nu \ll \mu$.  For each $i$ the density
+    $\mathrm{d}\nu/\mathrm{d}\mu$ has a $\mathcal{T}_i$-measurable version, since passing to a
+    density commutes with $\mu \mapsto \mu\gamma_i$ for proper $\gamma_i$; a $\limsup$ along a
+    cofinal sequence gives a $\Tail$-measurable version, a.e.\ constant by tail triviality, so
+    $\nu = \mu$.  Both parts of a proper convex decomposition of $\mu$ are absolutely continuous
+    with respect to $\mu$, so $\mu$ is extreme.
 \end{proof}
 
 \begin{proposition}[Georgii (7.25), in the generality of Remark (7.13)]
@@ -93,23 +88,22 @@ $\gamma$-invariant probability measures.
 
     Let $\gamma$ be an abstract specification over a countable nonempty index set directed
     upwards, with $\Cfg$ standard Borel and countably generated.  If
-    $\Prob_\gamma \neq \emptyset$ then there is a probability kernel $\pi$ from
-    $(\Cfg, \Tail)$ to $(\Cfg, \mathcal{F})$ which is a version of $\mu(\cdot \mid \Tail)$
-    \emph{simultaneously} for every $\mu \in \Prob_\gamma$, and which takes all its values in
-    $\Prob_\gamma$: a $(\Prob_\gamma, \Tail)$-kernel in the sense of Georgii's Definition
-    (7.21).
+    $\Prob_\gamma \neq \emptyset$ there is a probability kernel $\pi$ from $(\Cfg, \Tail)$ to
+    $(\Cfg, \mathcal{F})$ which is a version of $\mu(\cdot \mid \Tail)$ simultaneously for
+    every $\mu \in \Prob_\gamma$ and takes all its values in $\Prob_\gamma$: a
+    $(\Prob_\gamma, \Tail)$-kernel in the sense of Georgii's Definition (7.21).
 \end{proposition}
 \begin{proof}
     \leanok
 
-    Along a cofinal sequence $(i_n)$, Lévy's downward theorem together with the invariance
-    equation identifies $\lim_n \gamma_{i_n}(A \mid \cdot)$ with $\mu(A \mid \Tail)$ for every
-    $\mu \in \Prob_\gamma$; the limit does not involve $\mu$.  Applying this to the half-lines
-    $\set{e \le q}$, $q \in \mathbb{Q}$, where $e$ is a Borel embedding of $\Cfg$ into $\R$,
-    gives a $\Tail$-measurable rational CDF, which the Stieltjes construction turns into a
-    kernel to $\R$; pulling it back along $e$ and correcting on the two bad tail events (the
-    kernel not carried by the range of $e$, or its value not $\gamma$-invariant) by a fixed
-    $\nu_0 \in \Prob_\gamma$ gives $\pi$.  Both bad sets are $\Tail$-measurable because
+    Along a cofinal sequence $(i_n)$, Lévy's downward theorem and the invariance equation
+    identify $\lim_n \gamma_{i_n}(A \mid \cdot)$ with $\mu(A \mid \Tail)$ for every
+    $\mu \in \Prob_\gamma$; the limit does not depend on $\mu$.  Applied to the half-lines
+    $\set{e \le q}$, $q \in \mathbb{Q}$, for a Borel embedding $e$ of $\Cfg$ into $\R$, this
+    gives a $\Tail$-measurable rational CDF, hence a kernel to $\R$ by the Stieltjes
+    construction.  Pull it back along $e$ and replace its value by a fixed
+    $\nu_0 \in \Prob_\gamma$ on the two tail events where the kernel is not carried by the range
+    of $e$ or its value is not $\gamma$-invariant; both events are $\Tail$-measurable since
     invariance can be tested on a countable generating π-system.
 \end{proof}
 
@@ -132,15 +126,13 @@ $\gamma$-invariant probability measures.
     countability assumption on $S$: the tail σ-algebra is the $\limsup$ of the coordinate
     σ-algebras along the cofinite filter, and the coordinates are independent under $\mu$.
 
-    For $\alpha_i = \lambda$ constant this is Georgii's route in reverse:
-    $\Gibbs{\ISSSD(\lambda)} = \set{\lambda^S}$ by Remark (1.25), so $\lambda^S$ is extreme in
-    $\Gibbs{\ISSSD(\lambda)}$, hence trivial on $\Tail$ by
-    Theorem \ref{thm:app-extreme-iff-tail-trivial}; for general $\alpha_i$, Georgii uses in the
-    same way that $\mu$ is the unique element of $\Gibbs{\gamma}$ for
+    Moreover $\mu$ is the unique element of $\Gibbs{\gamma}$ for
     \[\gamma_\Lambda f(\omega) = \int \Big(\prod_{i \in \Lambda} \alpha_i\Big)(\mathrm{d}\zeta)\,
       f(\zeta\omega_{S \setminus \Lambda}),\]
-    and both identifications $\Gibbs{\gamma} = \set{\mu}$ are instances of
-    Theorem \ref{thm:free-measure-gibbs}.
+    and for constant $\alpha_i = \lambda$ this reads $\Gibbs{\ISSSD(\lambda)} = \set{\lambda^S}$
+    (Remark (1.25)); both are instances of Theorem \ref{thm:free-measure-gibbs}.  Hence $\mu$
+    is extreme in $\Gibbs{\gamma}$ and trivial on $\Tail$ by
+    Theorem \ref{thm:app-extreme-iff-tail-trivial}.
 \end{example}
 
 \begin{example}[Georgii (7.18), product specifications]
@@ -163,12 +155,11 @@ $\gamma$-invariant probability measures.
 \begin{proof}
     \leanok
 
-    Properness of $\gamma_\Lambda$ is properness of a parallel composition of kernels, and
-    consistency follows from Fubini for parallel binds: pushing a product measure through
-    $\gamma_\Lambda$ binds the two factors separately, so
+    Properness of $\gamma_\Lambda$ is properness of a parallel composition of kernels.  By
+    Fubini for parallel binds,
     $(\mu^1 \times \mu^2)\gamma_\Lambda
-      = \mu^1\gamma^1_{\Lambda \inter S_1} \times \mu^2\gamma^2_{\Lambda \inter S_2}$. Taking
-    $\mu^k = \gamma^k_{\Lambda'_k}(\,\cdot \mid \omega^k)$ gives consistency, and taking
+      = \mu^1\gamma^1_{\Lambda \inter S_1} \times \mu^2\gamma^2_{\Lambda \inter S_2}$;
+    $\mu^k = \gamma^k_{\Lambda'_k}(\,\cdot \mid \omega^k)$ gives consistency and
     $\mu^k \in \Gibbs{\gamma^k}$ gives the inclusion.
 \end{proof}
 
@@ -210,12 +201,13 @@ $\gamma$-invariant probability measures.
       MeasureTheory.GibbsMeasure.isTailTrivial_map_symm_prod}
     \leanok
 
-    If $\mu$ is trivial on $\bigcap_i m^1_i$ and $\nu$ on $\bigcap_j m^2_j$, then
-    $\mu \otimes \nu$ is trivial on $\bigcap_i \bigcap_j m^1_i \otimes m^2_j$.  The double
-    intersection is essential: it contains
-    $(\bigcap_i m^1_i) \otimes (\bigcap_j m^2_j)$ strictly in general, and it is the double
-    intersection, not the product of the tails, that contains the tail
-    $\sigma$-algebra of $E^{S_1 \sqcup S_2}$.
+    Let $(m^1_i)_{i \in I}$, $(m^2_j)_{j \in J}$ be nonempty families of sub-σ-algebras of
+    $\mathcal{F}^1$, $\mathcal{F}^2$ and $\mu$, $\nu$ probability measures on
+    $\mathcal{F}^1$, $\mathcal{F}^2$.  If $\mu$ is trivial on $\bigcap_i m^1_i$ and $\nu$ on
+    $\bigcap_j m^2_j$, then $\mu \otimes \nu$ is trivial on
+    $\bigcap_i \bigcap_j m^1_i \otimes m^2_j$.  This double intersection contains
+    $(\bigcap_i m^1_i) \otimes (\bigcap_j m^2_j)$, strictly in general, and it contains the
+    tail σ-algebra of $E^{S_1 \sqcup S_2}$ when $m^k_\Lambda = \mathcal{F}_{S_k \setminus \Lambda}$.
 \end{lemma}
 \begin{proof}
     \leanok
@@ -238,8 +230,8 @@ $\gamma$-invariant probability measures.
     as in Georgii (3.3).  By Theorem (3.5), $\mu_P$ is the unique element of
     $\Gibbs{\gamma_P}$, hence extreme, hence trivial on $\Tail$ by
     Theorem \ref{thm:app-extreme-iff-tail-trivial}; in particular $\mu_P$ is trivial on the
-    right-sided tail $\bigcap_{n} \mathcal{F}_{\mathbb{Z} \cap [n, \infty[}$, which is contained
-    in $\Tail$, a special case of the zero-one law of Blackwell and Freedman.  Moreover
+    right-sided tail $\bigcap_{n} \mathcal{F}_{\mathbb{Z} \cap [n, \infty[} \subseteq \Tail$,
+    a special case of the zero-one law of Blackwell and Freedman.  Moreover
     $|P^n(x,y) - \alpha(y)| \to 0$, where $\alpha P = \alpha$, follows from Georgii (7.9) or
     (7.11)(b) applied to $\set{\sigma_{-n} = x} \in \Tail_{\mathbb{Z} \cap ]-n,n[}$.
 \end{example}
@@ -258,13 +250,13 @@ $(\Cfg, \mathcal{F}) = (E, \mathcal{E})^{\mathbb{N}}$.
 
     For $n \ge 0$ let $I_n$ be the group of permutations $\tau_*$ of $\mathbb{N}$ with
     $\tau_* i = i$ for $i \ge n$, acting on $\Cfg$ by
-    $\tau : \omega \mapsto (\omega_{\tau_* i})_{i \in \mathbb{N}}$; then $|I_n| = n!$ and $I_n$
-    increases with $n$.  Its union $I = \bigcup_n I_n$ is the group of permutations of finitely
+    $\tau : \omega \mapsto (\omega_{\tau_* i})_{i \in \mathbb{N}}$; $|I_n| = n!$ and $I_n$
+    increases with $n$.  The union $I = \bigcup_n I_n$ is the group of permutations of finitely
     many coordinates.  Put
     \[\mathcal{I}_n = \set{A \in \mathcal{F} : \tau^{-1}A = A \text{ for all } \tau \in I_n},
       \qquad \mathcal{I} = \bigcap_{n} \mathcal{I}_n,\]
-    the σ-algebra of \textbf{symmetric events}; the family $(\mathcal{I}_n)$ is decreasing and
-    $\mathcal{I}$ is its infimum.
+    the σ-algebra of \textbf{symmetric events}; $(\mathcal{I}_n)$ is decreasing with infimum
+    $\mathcal{I}$.
 \end{definition}
 
 \begin{definition}[The symmetrisation kernels $\gamma_n$, Georgii (7.16)]
@@ -287,16 +279,16 @@ $(\Cfg, \mathcal{F}) = (E, \mathcal{E})^{\mathbb{N}}$.
           MeasureTheory.GibbsMeasure.isConsistent_symmKernel}
     \leanok
 
-    Each $\gamma_n$ is a probability kernel from $(\Cfg, \mathcal{I}_n)$ to
-    $(\Cfg, \mathcal{F})$, it is proper, and $\gamma_m \gamma_n = \gamma_n$ for $m \le n$.
+    Each $\gamma_n$ is a proper probability kernel from $(\Cfg, \mathcal{I}_n)$ to
+    $(\Cfg, \mathcal{F})$, and $\gamma_m \gamma_n = \gamma_n$ for $m \le n$.
 \end{lemma}
 \begin{proof}
     \leanok
 
-    Markov-ness is $\gamma_n(\Cfg \mid \omega) = |I_n|^{-1}|I_n| = 1$.  Properness holds
-    because for $B \in \mathcal{I}_n$ the indicator $1_B$ is constant along the $I_n$-orbit of
-    $\omega$, so $1_{A \inter B}(\tau\omega) = 1_B(\omega)1_A(\tau\omega)$ for all
-    $\tau \in I_n$.  Consistency for $m \le n$ is the count
+    $\gamma_n(\Cfg \mid \omega) = |I_n|^{-1}|I_n| = 1$.  For $B \in \mathcal{I}_n$ the
+    indicator $1_B$ is constant along the $I_n$-orbit of $\omega$, so
+    $1_{A \inter B}(\tau\omega) = 1_B(\omega)1_A(\tau\omega)$ for all $\tau \in I_n$, which is
+    properness.  Consistency for $m \le n$ is the count
     $\sum_{\tau \in I_n} \sum_{\sigma \in I_m} 1_A(\sigma\tau\omega)
       = |I_m| \sum_{\rho \in I_n} 1_A(\rho\omega)$, obtained by translating the inner sum by
     $\tau \in I_n \supseteq I_m$.
@@ -310,8 +302,8 @@ $(\Cfg, \mathcal{F}) = (E, \mathcal{E})^{\mathbb{N}}$.
     \leanok
 
     The data $((\mathcal{I}_n)_n, (\gamma_n)_n)$ is an abstract specification in the sense of
-    Definition \ref{def:app-abstract-spec}, indexed by $\iota = \mathbb{N}$, whose tail
-    σ-algebra is $\mathcal{I}$.
+    Definition \ref{def:app-abstract-spec}, indexed by $\iota = \mathbb{N}$, with tail
+    σ-algebra $\mathcal{I}$.
 \end{definition}
 
 \begin{definition}[Exchangeable distributions]
@@ -319,7 +311,7 @@ $(\Cfg, \mathcal{F}) = (E, \mathcal{E})^{\mathbb{N}}$.
     \lean{MeasureTheory.GibbsMeasure.IsExchangeable}
     \leanok
 
-    A measure $\mu$ on $(\Cfg, \mathcal{F})$ is \textbf{exchangeable} (or \emph{symmetric}) if
+    A measure $\mu$ on $(\Cfg, \mathcal{F})$ is \textbf{exchangeable} (or symmetric) if
     $\mu \circ \tau^{-1} = \mu$ for every $\tau \in I$.  The set of exchangeable probability
     measures is written $\Prob_I$.
 \end{definition}
@@ -332,17 +324,17 @@ $(\Cfg, \mathcal{F}) = (E, \mathcal{E})^{\mathbb{N}}$.
     \leanok
 
     $\Prob_I = \set{\mu \in \Prob(\Cfg, \mathcal{F}) : \mu\gamma_n = \mu \text{ for all }
-    n}$: the exchangeable probability measures are exactly the invariant measures of the
-    abstract specification of Definition \ref{def:app-exchangeable-spec}.
+    n}$: the exchangeable probability measures are the invariant measures of the abstract
+    specification of Definition \ref{def:app-exchangeable-spec}.
 \end{theorem}
 \begin{proof}
     \leanok
 
-    Unfolding, $\mu\gamma_n(A) = |I_n|^{-1}\sum_{\tau \in I_n} \mu(\tau^{-1}A)$.  If $\mu$ is
-    exchangeable each summand is $\mu(A)$, whence $\mu\gamma_n = \mu$.  Conversely, given
-    $\mu\gamma_n = \mu$ and $\tau \in I_n$, apply the identity to $\tau^{-1}A$ and translate
-    the sum over $I_n$ on the right by $\tau$; the two sums coincide, so
-    $\mu(\tau^{-1}A) = \mu(A)$.  Every $\tau \in I$ lies in some $I_n$.
+    $\mu\gamma_n(A) = |I_n|^{-1}\sum_{\tau \in I_n} \mu(\tau^{-1}A)$.  If $\mu$ is
+    exchangeable each summand is $\mu(A)$.  Conversely, given $\mu\gamma_n = \mu$ and
+    $\tau \in I_n$, apply the identity to $\tau^{-1}A$ and translate the sum over $I_n$ by
+    $\tau$; the two sums coincide, so $\mu(\tau^{-1}A) = \mu(A)$.  Every $\tau \in I$ lies in
+    some $I_n$.
 \end{proof}
 
 \begin{corollary}[Extreme exchangeable measures are trivial on $\mathcal{I}$]
@@ -351,14 +343,14 @@ $(\Cfg, \mathcal{F}) = (E, \mathcal{E})^{\mathbb{N}}$.
     \lean{MeasureTheory.GibbsMeasure.mem_extremePoints_iff_mem_trivialOn_symmetric}
     \leanok
 
-    $\mathrm{ex}\,\Prob_I$ consists exactly of those $\mu \in \Prob_I$ which are trivial on
-    the σ-algebra $\mathcal{I}$ of symmetric events.
+    $\mathrm{ex}\,\Prob_I$ consists of those $\mu \in \Prob_I$ which are trivial on the
+    σ-algebra $\mathcal{I}$ of symmetric events.
 \end{corollary}
 \begin{proof}
     \leanok
 
-    Theorem \ref{thm:app-extreme-iff-tail-trivial} applied to the abstract specification of
-    Definition \ref{def:app-exchangeable-spec}, whose tail σ-algebra is $\mathcal{I}$, combined
+    Theorem \ref{thm:app-extreme-iff-tail-trivial} for the abstract specification of
+    Definition \ref{def:app-exchangeable-spec}, whose tail σ-algebra is $\mathcal{I}$, together
     with Theorem \ref{thm:app-exchangeable-invariant}.
 \end{proof}
 
@@ -377,7 +369,7 @@ $(\Cfg, \mathcal{F}) = (E, \mathcal{E})^{\mathbb{N}}$.
     \leanok
 
     Reindexing an infinite product measure along an injection of the index set into itself
-    leaves it invariant, and a permutation is injective.
+    leaves it invariant.
 \end{proof}
 
 \begin{theorem}[The zero-one law of Hewitt and Savage (1955), Georgii (7.16)]
@@ -398,7 +390,7 @@ $(\Cfg, \mathcal{F}) = (E, \mathcal{E})^{\mathbb{N}}$.
     by an event $B$ depending only on the coordinates $[0,k)$ (the events depending on finitely
     many coordinates form a set ring generating $\mathcal{F}$).  The block swap
     $\tau \in I_{2k}$ exchanging $[0,k)$ with $[k,2k)$ fixes $A$ and carries $B$ to an event on
-    $[k,2k)$, independent of $B$ under the product measure, so
+    $[k,2k)$, independent of $B$ under $\mu$, so
     $\mu(A) \approx \mu(B)^2 \approx \mu(A)^2$ up to $O(\varepsilon)$; letting
     $\varepsilon \to 0$ gives $\mu(A) = \mu(A)^2$.
 \end{proof}
@@ -428,7 +420,7 @@ $(\Cfg, \mathcal{F}) = (E, \mathcal{E})^{\mathbb{N}}$.
           MeasureTheory.GibbsMeasure.symmErr}
     \leanok
 
-    For $a : \mathbb{N} \times \mathbb{N} \to [0,\infty]$ put
+    For $a : \mathbb{N} \times \mathbb{N} \to [0,\infty]$ and $n \in \mathbb{N}$ put
     \[\mathrm{symmAvg}(k) = \frac{1}{|I_n|}\sum_{\tau \in I_n} \prod_{i < k} a(i, \tau i),
       \qquad \mathrm{empAvg}(i) = \frac{1}{n}\sum_{j < n} a(i,j),
       \qquad \mathrm{symmErr}(k) = \sum_{j < k} \frac{j}{n - j}.\]
@@ -445,22 +437,19 @@ $(\Cfg, \mathcal{F}) = (E, \mathcal{E})^{\mathbb{N}}$.
     \[\mathrm{symmAvg}(k) \le \prod_{i<k}\mathrm{empAvg}(i) + \mathrm{symmErr}(k)
       \qquad\text{and}\qquad
       \prod_{i<k}\mathrm{empAvg}(i) \le \mathrm{symmAvg}(k) + \mathrm{symmErr}(k),\]
-    and $\mathrm{symmErr}(k) \le k^2/(n-k) \to 0$ as $n \to \infty$ for fixed $k$.  This is a
-    two-sided bound with an explicit rate, valid for every $n$, in place of Georgii's asymptotic
-    $|M_1(k,n)|/|M(k,n)| = (n!/(n-k)!)/n^k \to 1$, where $M(k,n)$ are the maps
-    $\set{1,\dots,k} \to \set{1,\dots,n}$ and $M_1(k,n)$ the injective ones; being
-    subtraction-free it holds in $[0,\infty]$.
+    in $[0,\infty]$, and $\mathrm{symmErr}(k) \le k^2/(n-k) \to 0$ as $n \to \infty$ for fixed
+    $k$.
 \end{theorem}
 \begin{proof}
     \leanok
 
-    Induction on $k$ from the exact one-step identity
+    Induction on $k$ from the identity
     \[(n-k)\sum_{\tau \in I_n}\prod_{i<k+1} a(i,\tau i)
       = \sum_{\tau \in I_n}\Big(\prod_{i<k} a(i,\tau i)\Big)\sum_{k \le j < n} a(k, \tau j),\]
-    obtained by translating the left-hand sum by the transpositions $(k\ j)$, $k \le j < n$; no
-    counting of injections is used.  Bounding $\sum_{k \le j < n} a(k,\tau j)$ above by
-    $\sum_{j<n} a(k,j)$ gives the upper step, and bounding $\sum_{j<k} a(k,\tau j) \le k$ gives
-    the lower step; the accumulated errors telescope to $\mathrm{symmErr}$.
+    obtained by translating the left-hand sum by the transpositions $(k\ j)$, $k \le j < n$.
+    Bounding $\sum_{k \le j < n} a(k,\tau j)$ above by $\sum_{j<n} a(k,j)$ gives the upper
+    step, and $\sum_{j<k} a(k,\tau j) \le k$ gives the lower step; the accumulated errors sum to
+    $\mathrm{symmErr}$.
 \end{proof}
 
 \begin{theorem}[Georgii (7.17), the substantial half, in coordinates]
@@ -469,22 +458,22 @@ $(\Cfg, \mathcal{F}) = (E, \mathcal{E})^{\mathbb{N}}$.
     \lean{MeasureTheory.GibbsMeasure.measure_rangePi_eq_prod_of_mem_extremePoints}
     \leanok
 
-    Let $\mu \in \mathrm{ex}\,\Prob_I$, with no hypothesis on the state space
-    $(E, \mathcal{E})$.  Then for all $A_0, \dots, A_{k-1} \in \mathcal{E}$
+    Let $\mu \in \mathrm{ex}\,\Prob_I$, with no hypothesis on $(E, \mathcal{E})$.  Then for
+    all $A_0, \dots, A_{k-1} \in \mathcal{E}$
     \[\mu\big(A_0 \times \cdots \times A_{k-1} \times E^{\set{k, k+1, \dots}}\big)
       = \prod_{i<k} \mu(\sigma_0 \in A_i).\]
 \end{theorem}
 \begin{proof}
     \leanok
 
-    Under $\gamma_n$ a box is exactly the symmetrised product of the indicator rows
-    $a(i,j) = 1_{A_i}(\omega_j)$, and $\gamma_n(\sigma_0 \in A_i \mid \omega)$ is exactly the
-    empirical average of the $i$-th row.  Since $\mu$ is extreme it is trivial on
-    $\mathcal{I}$ (Corollary \ref{cor:app-extreme-exchangeable}), so by Lévy's downward theorem
-    $\gamma_n(B \mid \cdot) \to \mu(B)$ $\mu$-a.s.\ for every measurable $B$.  Integrating the
+    Under $\gamma_n$ a box is the symmetrised product of the indicator rows
+    $a(i,j) = 1_{A_i}(\omega_j)$, and $\gamma_n(\sigma_0 \in A_i \mid \omega)$ is the
+    empirical average of the $i$-th row.  Since $\mu$ is trivial on $\mathcal{I}$
+    (Corollary \ref{cor:app-extreme-exchangeable}), Lévy's downward theorem gives
+    $\gamma_n(B \mid \cdot) \to \mu(B)$ $\mu$-a.s.\ for every measurable $B$.  Integrate the
     two-sided estimate of Theorem \ref{thm:app-symm-estimate} against $\mu$, using
-    $\mu\gamma_n = \mu$ on the left and dominated convergence on the right, and letting
-    $n \to \infty$ with $k$ fixed, squeezes the two sides together.
+    $\mu\gamma_n = \mu$ on the left and dominated convergence on the right, and let
+    $n \to \infty$ with $k$ fixed.
 \end{proof}
 
 \begin{theorem}[Georgii (7.17), the substantial half]
@@ -500,7 +489,7 @@ $(\Cfg, \mathcal{F}) = (E, \mathcal{E})^{\mathbb{N}}$.
     \leanok
 
     Two probability measures on $E^{\mathbb{N}}$ agreeing on all finite-dimensional boxes are
-    equal; Theorem \ref{thm:app-boxes} says $\mu$ agrees on boxes with the product of its
+    equal; by Theorem \ref{thm:app-boxes} $\mu$ agrees on boxes with the product of its
     marginal, after padding a finite index set with $E$ in the unused coordinates.
 \end{proof}
 
@@ -527,10 +516,10 @@ $(\Cfg, \mathcal{F}) = (E, \mathcal{E})^{\mathbb{N}}$.
     \lean{MeasureTheory.GibbsMeasure.existsUnique_mixing_of_isExchangeable}
     \leanok
 
-    Let $(E, \mathcal{E})$ be standard Borel.  Then every exchangeable probability measure
-    $\mu$ on $(E, \mathcal{E})^{\mathbb{N}}$ admits a representation
+    Let $(E, \mathcal{E})$ be standard Borel.  Every exchangeable probability measure $\mu$ on
+    $(E, \mathcal{E})^{\mathbb{N}}$ admits a representation
     \[\mu = \int_{\Prob(E, \mathcal{E})} \lambda^{\mathbb{N}}\, m(\mathrm{d}\lambda)\]
-    with a \emph{unique} probability measure $m$ on the measures on $E$ giving mass $0$ to the
+    with a unique probability measure $m$ on the measures on $E$ giving mass $0$ to the
     complement of $\Prob(E, \mathcal{E})$, equivalently a unique probability measure on
     $\Prob(E, \mathcal{E})$.
 \end{theorem}
@@ -539,13 +528,13 @@ $(\Cfg, \mathcal{F}) = (E, \mathcal{E})^{\mathbb{N}}$.
 
     $\Prob_I$ is the invariant set of the abstract specification of Definition
     \ref{def:app-exchangeable-spec} (Theorem \ref{thm:app-exchangeable-invariant}), so
-    Proposition \ref{prop:app-pa-kernel} supplies a $(\Prob_I, \mathcal{I})$-kernel $\pi$ and
-    with it, by Georgii (7.22), a unique probability weight $w$ on $\Prob_I$ carried by
-    $\Prob_I \inter \Prob_{\mathcal{I}} = \mathrm{ex}\,\Prob_I$ and with barycentre $\mu$.  By
-    Theorem \ref{thm:app-7-17} every measure carried by $w$ is $\nu = (\sigma_1\nu)^{\mathbb{N}}$,
-    so pushing $w$ forward along $\nu \mapsto \sigma_1\nu$ gives $m$, and pushing $m$ forward
-    along $\lambda \mapsto \lambda^{\mathbb{N}}$ recovers $w$; the two maps are mutually
-    inverse on the relevant carriers, so uniqueness of $w$ transfers to uniqueness of $m$.
+    Proposition \ref{prop:app-pa-kernel} supplies a $(\Prob_I, \mathcal{I})$-kernel $\pi$ and,
+    by Georgii (7.22), a unique probability weight $w$ on $\Prob_I$ carried by
+    $\Prob_I \inter \Prob_{\mathcal{I}} = \mathrm{ex}\,\Prob_I$ with barycentre $\mu$.  By
+    Theorem \ref{thm:app-7-17} every measure carried by $w$ is $\nu = (\sigma_1\nu)^{\mathbb{N}}$;
+    pushing $w$ forward along $\nu \mapsto \sigma_1\nu$ gives $m$, and pushing $m$ forward
+    along $\lambda \mapsto \lambda^{\mathbb{N}}$ recovers $w$.  The two maps are mutually
+    inverse on the relevant carriers, so uniqueness of $w$ transfers to $m$.
 \end{proof}
 
 \begin{lemma}[Converse: mixtures of i.i.d.\ measures are exchangeable]
@@ -556,8 +545,7 @@ $(\Cfg, \mathcal{F}) = (E, \mathcal{E})^{\mathbb{N}}$.
 
     If $m$ is a measure on the measures on $E$ giving mass $0$ to the complement of the
     probability measures, then $\int \lambda^{\mathbb{N}} m(\mathrm{d}\lambda)$ is
-    exchangeable.  Hence the representation of Theorem \ref{thm:app-de-finetti}
-    \emph{characterises} exchangeability.
+    exchangeable.
 \end{lemma}
 \begin{proof}
     \leanok
@@ -587,8 +575,7 @@ $(\Cfg, \mathcal{F}) = (E, \mathcal{E})^{\mathbb{N}}$.
       \qquad
       |\mathrm{ex}\,\Gibbs{\gamma}| = |\mathrm{ex}\,\Gibbs{\gamma^1}|\,
         |\mathrm{ex}\,\Gibbs{\gamma^2}|.\]
-    As a complement, $\Tail = \Tail^1 \times \Tail^2$ $\mu$-a.s.\ for every
-    $\mu \in \Gibbs{\gamma}$.
+    Moreover $\Tail = \Tail^1 \times \Tail^2$ $\mu$-a.s.\ for every $\mu \in \Gibbs{\gamma}$.
 \end{example}
 
 \begin{remark}[Where (7.31) is used: Georgii's Example (2.27)]
@@ -600,17 +587,16 @@ $(\Cfg, \mathcal{F}) = (E, \mathcal{E})^{\mathbb{N}}$.
           MeasureTheory.GibbsMeasure.Exchangeable.not_countable_gibbsMeasures}
     \leanok
 
-    Georgii's Example (2.27) takes $E = \set{0,1}$, $S = \mathbb{N}$,
-    $\lambda^y = y\delta_1 + (1-y)\delta_0$, $\mu^y = (\lambda^y)^{\mathbb{N}}$, and glues the
-    independent specifications $\ISSSD(\lambda^y)$ along the tail function
-    $\xi = \liminf_n n^{-1}\sum_{i<n}\sigma_i$ into a single specification $\gamma$.  Every
-    $\mu^x$, $x \in [0,1]$, is a Gibbs measure for $\gamma$, and since $\xi$ separates their
-    supports, $\Gibbs{\gamma}$ is uncountable; this $\gamma$ is not quasilocal, which is why
-    the quasilocality condition cannot be dropped from Georgii's Definition (8.6).
+    Let $E = \set{0,1}$, $S = \mathbb{N}$, $\lambda^y = y\delta_1 + (1-y)\delta_0$,
+    $\mu^y = (\lambda^y)^{\mathbb{N}}$, and let $\gamma$ be the specification obtained by gluing
+    the independent specifications $\ISSSD(\lambda^y)$ along the tail function
+    $\xi = \liminf_n n^{-1}\sum_{i<n}\sigma_i$.  Every $\mu^x$, $x \in [0,1]$, is a Gibbs
+    measure for $\gamma$, and since $\xi$ separates their supports, $\Gibbs{\gamma}$ is
+    uncountable.  This $\gamma$ is not quasilocal; hence the quasilocality condition cannot be
+    dropped from Georgii's Definition (8.6).
 
-    Georgii's further identification
-    $\Gibbs{\gamma} = \set{\int w(\mathrm{d}x)\,\mu^x : w \in \Prob([0,1])}$ follows from
-    $\mu\gamma_\Lambda = \mu$ alone; de Finetti's theorem, Theorem \ref{thm:app-de-finetti}, is
-    needed only to identify that set with the set of all exchangeable random fields on
+    Moreover $\Gibbs{\gamma} = \set{\int w(\mathrm{d}x)\,\mu^x : w \in \Prob([0,1])}$, which
+    follows from $\mu\gamma_\Lambda = \mu$ alone; by de Finetti's theorem, Theorem
+    \ref{thm:app-de-finetti}, this is the set of all exchangeable random fields on
     $\set{0,1}^{\mathbb{N}}$.
 \end{remark}

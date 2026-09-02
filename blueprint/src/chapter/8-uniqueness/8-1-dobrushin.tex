@@ -10,15 +10,15 @@
 
     For measures $\alpha_1, \alpha_2$ on $(E,\mathcal{E})$ put
     $\lVert\alpha_1 - \alpha_2\rVert = \sup_{A \in \mathcal{E}}(\alpha_1(A) - \alpha_2(A))$, the
-    uniform distance (8.1). The \textbf{interdependence coefficients} of a specification $\gamma$
-    are
+    uniform distance (8.1), with truncated subtraction in $[0,\infty]$. The
+    \textbf{interdependence coefficients} of a specification $\gamma$ are
     \[C_{ij}(\gamma) = \sup\set{\lVert\gamma_{\{i\}}(\sigma_i \in \cdot \mid \zeta)
         - \gamma_{\{i\}}(\sigma_i \in \cdot \mid \eta)\rVert :
         \zeta_k = \eta_k \text{ for all } k \neq j},\]
     and $\gamma$ satisfies \textbf{Dobrushin's condition} (8.6) iff $\gamma$ is quasilocal and
-    $c(\gamma) = \sup_i \sum_{j} C_{ij}(\gamma) < 1$. The quasilocality conjunct is not implied by
-    the second one: the glued specification of Example \ref{ex:ql-2-27} has $c(\gamma) = 0$ and
-    uncountably many Gibbs measures.
+    $c(\gamma) = \sup_i \sum_{j} C_{ij}(\gamma) < 1$. The first conjunct does not follow from the
+    second: the specification of Example \ref{ex:ql-2-27} has $c(\gamma) = 0$ and uncountably
+    many Gibbs measures.
 \end{definition}
 
 \begin{theorem}[Dobrushin's uniqueness theorem, Georgii (8.7) and (8.23)]
@@ -33,13 +33,15 @@
       MeasureTheory.GibbsMeasure.Dobrushin.ofReal_abs_toReal_sub_le_interdepTail_of_mem_GP}
     \leanok
 
-    A quasilocal specification satisfying Dobrushin's condition has at most one Gibbs measure, and
-    exactly one if $E$ is non-empty and standard Borel. In the latter case, for \emph{every}
-    boundary condition $\eta$ the finite-volume distributions $\gamma_{\Delta}(\cdot \mid \eta)$
-    converge to the unique $\mu$ in the topology of local convergence as $\Delta \uparrow S$
-    ((8.23)(ii)), with the uniform speed estimate
+    Let $\gamma$ be a quasilocal specification satisfying Dobrushin's condition, with no
+    assumption on $S$ or $(E,\mathcal{E})$. Then $|\Gibbs{\gamma}| \leq 1$, and
+    $|\Gibbs{\gamma}| = 1$ as soon as $\Gibbs{\gamma} \neq \emptyset$, in particular when $E$ is
+    non-empty and standard Borel. If $E$ is standard Borel, then for every
+    $\mu \in \Gibbs{\gamma}$ and every boundary condition $\eta$ the finite-volume distributions
+    $\gamma_{\Delta}(\cdot \mid \eta)$ converge to $\mu$ in the topology of local convergence
+    along the net $\Delta \in \Fin$ ((8.23)(ii)), with
     \[|\gamma_{\Delta}(A|\eta) - \mu(A)| \leq \sum_{i \in \Lambda} \sup_j C^{\Delta}_{ij}\]
-    on $\Lambda$-local events.
+    for $A \in \mathcal{F}_\Lambda$.
 \end{theorem}
 
 \begin{theorem}[The comparison theorem, Georgii (8.20)]
@@ -49,13 +51,16 @@
       MeasureTheory.GibbsMeasure.Dobrushin.comparison}
     \leanok
 
-    Let $\gamma$ be quasilocal and satisfy Dobrushin's condition, let $\mu \in \Gibbs{\gamma}$ and
-    $\nu \in \Gibbs{\tilde\gamma}$, and let $b_i : \Cfg \to [0,\infty]$ be measurable with
+    Let $\gamma$ be quasilocal and satisfy Dobrushin's condition, let $\tilde\gamma$ be a
+    specification, and let $\mu, \nu \in \Prob(\Cfg)$ with $\mu\gamma_{\{i\}} = \mu$ and
+    $\nu\tilde\gamma_{\{i\}} = \nu$ for all $i \in S$ (in particular $\mu \in \Gibbs{\gamma}$,
+    $\nu \in \Gibbs{\tilde\gamma}$). Let $b_i : \Cfg \to [0,\infty]$ be measurable with
     $\lVert\gamma_{\{i\}}(\sigma_i \in \cdot \mid \omega)
       - \tilde\gamma_{\{i\}}(\sigma_i \in \cdot \mid \omega)\rVert \leq b_i(\omega)$ for all
-    $i, \omega$. Then, with $D = \sum_{n \geq 0} C(\gamma)^n$ the Dobrushin matrix,
+    $i, \omega$. Then, with $D = \sum_{n \geq 0} C(\gamma)^n$,
     \[|\mu(f) - \nu(f)| \;\leq\; \sum_{i,j} \delta_i(f)\, D_{ij}\, \nu(b_j)\]
-    for every local function $f$, where $\delta_i(f)$ is the oscillation of $f$ at the site $i$.
+    for every bounded local function $f$, where $\delta_i(f)$ is the oscillation (8.14) of $f$ at
+    the site $i$.
 \end{theorem}
 
 \subsection*{The single-site criterion}
@@ -73,20 +78,19 @@
       MeasureTheory.GibbsMeasure.Dobrushin.isDobrushin_gibbsSpecification}
     \leanok
 
-    Let $(E,\mathcal{E})$ be any state space, $\lambda$ a $\sigma$-finite non-zero a priori
-    measure, and $\Phi$ a $\lambda$-admissible potential in the sense of Definition (2.2). Then
+    Let $S$ be countable, $(E,\mathcal{E})$ any measurable space, $\lambda$ a $\sigma$-finite
+    non-zero a priori measure, $\Phi$ a potential in the sense of Definition (2.2), and
+    $\beta \in \R$ such that $\beta\Phi$ is $\lambda$-admissible. Then for $i \neq j$
     \[C_{ij}(\gamma^{\beta\Phi}) \;\leq\;
-      \tanh\Bigl(\tfrac{|\beta|}{2}\sum_{A \supseteq \{i,j\}} \delta(\Phi_A)\Bigr) \;\leq\;
-      \tfrac{|\beta|}{2}\sum_{A \supseteq \{i,j\}} \delta(\Phi_A)
-      \qquad (i \neq j),\]
-    so $|\beta| \sup_i \sum_{A \ni i} (|A|-1)\, \delta(\Phi_A) < 2$ implies Dobrushin's condition,
-    quasilocality of $\gamma^{\beta\Phi}$ being supplied by Theorem
-    \ref{thm:ql-gibbsian-quasilocal}. The primary estimate is the two-measure normalisation bound:
-    if $m\mu_0 \leq \mu_1 \leq M\mu_0$ setwise with $0 < m \leq M < \infty$ and $\mu_0, \mu_1$
-    finite and non-zero, then
+      \tfrac{|\beta|}{2}\sum_{A \supseteq \{i,j\}} \delta(\Phi_A),\]
+    and $C_{ij}(\gamma^{\beta\Phi}) \leq
+      \tanh\bigl(\tfrac{|\beta|}{2}\sum_{A \supseteq \{i,j\}} \delta(\Phi_A)\bigr)$ whenever the
+    sum is finite. Consequently $\gamma^{\beta\Phi}$ satisfies Dobrushin's condition if
+    $|\beta| \sup_i \sum_{A \ni i} (|A|-1)\, \delta(\Phi_A) < 2$. The underlying estimate: if
+    $\mu_0, \mu_1$ are finite measures, $\mu_0 \neq 0$, and $m\mu_0 \leq \mu_1 \leq M\mu_0$
+    setwise with $0 < m \leq M < \infty$, then their normalisations $\bar\mu_k$ satisfy
     \[\lVert\bar\mu_1 - \bar\mu_0\rVert \;\leq\; \frac{\sqrt M - \sqrt m}{\sqrt M + \sqrt m}
-      \;=\; \tanh\bigl(\tfrac14 \log (M/m)\bigr),\]
-    which is the $\tanh$ form (8.10) of (8.9)(2) over an arbitrary state space.
+      \;=\; \tanh\bigl(\tfrac14 \log (M/m)\bigr).\]
 \end{theorem}
 
 \section{One-dimensional uniqueness}
@@ -98,8 +102,8 @@
       MeasureTheory.GibbsMeasure.subsingleton_G_of_isUniformlyDominated}
     \leanok
 
-    Let $S$ be countable and $\gamma$ a specification, with no quasilocality assumed. If there is
-    $c > 0$ such that every cylinder event $A$ admits a finite volume $\Lambda$ with
+    Let $S$ be countable and $\gamma$ a specification, not assumed quasilocal. If there is
+    $c > 0$ such that every local event $A$ admits $\Lambda \in \Fin$ with
     $\gamma_{\Lambda}(A \mid \zeta) \geq c\, \gamma_{\Lambda}(A \mid \eta)$ for all
     $\zeta, \eta \in \Cfg$, then $|\Gibbs{\gamma}| \leq 1$.
 \end{theorem}
@@ -119,16 +123,21 @@
       MeasureTheory.GibbsMeasure.subsingleton_G_lambdaSpecification_of_pair_rpow_le}
     \leanok
 
-    Let $S$ be countable and ordered, and exhausted by volumes with at most $m$ boundary sites:
-    every finite set is contained in some $\Lambda$ admitting $D$ with $|D| \leq m$ such that every
-    $A$ meeting both $\Lambda$ and $S \setminus \Lambda$ spans a site of $D$ (for
-    $S = \mathbb{Z}$, $\Lambda = \,]-n,n]$ and $m = 2$; for $S = \mathbb{N}$, $\Lambda = [0,n]$ and
-    $m = 1$). Let $\lambda$ be a $\sigma$-finite non-zero a priori measure and $\Phi$ a
-    $\lambda$-admissible potential satisfying (8.40),
-    \[\sup_{i \in S} \sum_{A : \min A \leq i < \max A} \delta(\Phi_A) < \infty.\]
-    Then $|\Gibbs{\Phi}| \leq 1$. For $S = \mathbb{Z}$ and shift-invariant oscillations, (8.40) is
-    equivalent to $\sum_{A : \min A = 0} \operatorname{diam}(A)\, \delta(\Phi_A) < \infty$ and to
-    $\sum_{A \ni 0} \frac{\operatorname{diam}(A)}{|A|} \delta(\Phi_A) < \infty$ (Comments
-    (8.41)(1)), and it holds for a shift-invariant potential supported on pairs with
-    $\delta(\Phi_{\{0,n\}}) \leq c\,n^{-p}$ for some $p > 2$ ((8.41)(3)).
+    Let $S$ be countable and preordered, and exhausted by volumes with at most $m$ boundary
+    sites: every $\Lambda_0 \in \Fin$ is contained in some $\Lambda \in \Fin$ admitting
+    $D \subseteq S$ with $|D| \leq m$ such that every $A \in \Fin$ meeting both $\Lambda$ and
+    $S \setminus \Lambda$ \emph{spans} a site $k \in D$, i.e.\ $a \leq k < b$ for some
+    $a, b \in A$ (for $S = \mathbb{Z}$, $\Lambda = \,]-n,n]$ and $m = 2$; for $S = \mathbb{N}$,
+    $\Lambda = [0,n]$ and $m = 1$). Let $\lambda$ be a $\sigma$-finite non-zero a priori
+    measure, $\Phi$ a potential in
+    the sense of Definition (2.2), and $\beta \in \R$ such that $\beta\Phi$ is
+    $\lambda$-admissible. If (8.40) holds,
+    \[\sup_{i \in S} \sum_{A \text{ spanning } i} \delta(\Phi_A) < \infty
+      \qquad (\text{for } S = \mathbb{Z}\text{: } \min A \leq i < \max A),\]
+    then $|\Gibbs{\beta\Phi}| \leq 1$. For $S = \mathbb{Z}$ and $\delta(\Phi_{A+n}) = \delta(\Phi_A)$
+    for all $n$, the sum in (8.40) does not depend on $i$ and equals
+    $\sum_{A : \min A = 0} \operatorname{diam}(A)\, \delta(\Phi_A)
+      = \sum_{A \ni 0} \frac{\operatorname{diam}(A)}{|A|} \delta(\Phi_A)$ (Comments (8.41)(1)); it
+    is finite if moreover $\delta(\Phi_A) = 0$ for $|A| \geq 3$ and
+    $\delta(\Phi_{\{0,n\}}) \leq c\,n^{-p}$ for all $n \geq 1$ and some $p > 2$ ((8.41)(3)).
 \end{theorem}

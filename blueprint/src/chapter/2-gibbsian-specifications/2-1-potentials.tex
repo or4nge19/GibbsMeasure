@@ -1,11 +1,11 @@
 \section{Potentials}
 
-Throughout, $(E, \mathcal{E})$ is a measurable space, $S$ is an arbitrary set of sites,
-$(\Cfg, \mathcal{F}) = (E, \mathcal{E})^S$, and $\Fin$ is the set of finite subsets of $S$;
-potentials are indexed by all of $\Finset(S)$, and Georgii's normalization $\Phi_\emptyset = 0$
-is part of membership in $\Bspace$. Every definition below carries an inverse temperature
-$\beta \in \R$, so that the Boltzmann factor is $e^{-\beta H^\Phi_\Lambda}$ and Georgii's
-statements are the case $\beta = 1$.
+Throughout, $(E, \mathcal{E})$ is a measurable space, $S$ a set of sites,
+$(\Cfg, \mathcal{F}) = (E, \mathcal{E})^S$, $\Fin$ the set of finite subsets of $S$, and
+$\beta \in \R$ an inverse temperature, so that the Boltzmann factor is
+$e^{-\beta H^\Phi_\Lambda}$ and Georgii's statements are the case $\beta = 1$. Potentials are
+indexed by all of $\Finset(S)$; the normalization $\Phi_\emptyset = 0$ is part of membership in
+$\Bspace$.
 
 \begin{definition}[Interaction potential, Georgii (2.2)(i)]
     \label{def:pot-potential}
@@ -31,9 +31,9 @@ statements are the case $\beta = 1$.
 \begin{proof}
     \leanok
 
-    A real-valued $\mathcal{F}_A$-measurable function is constant on the fibres of the
-    restriction map $\eta \mapsto \eta_A$, since no set of $\mathcal{F}_A$ separates two
-    configurations agreeing on $A$.
+    A real-valued $\mathcal{F}_A$-measurable function is constant on the fibres of
+    $\eta \mapsto \eta_A$, since no set of $\mathcal{F}_A$ separates two configurations
+    agreeing on $A$.
 \end{proof}
 
 \begin{definition}[Hamiltonian, Georgii (2.1), (2.2)(ii) and (2.3)]
@@ -50,8 +50,8 @@ statements are the case $\beta = 1$.
     \[ \Bigl( \sum_{A \inter \Lambda \neq \emptyset,\ A \subset \Delta} \Phi_A(\omega)
       \Bigr)_{\Delta \in \Fin} , \]
     indexed by the finite volumes $\Delta$ ordered by inclusion, converges. Its limit
-    $H^\Phi_\Lambda$ is the \textbf{Hamiltonian} in $\Lambda$; the summands are the $\Phi_A$
-    with the terms disjoint from $\Lambda$ set to $0$.
+    $H^\Phi_\Lambda$ is the \textbf{Hamiltonian} in $\Lambda$; its summands are the $\Phi_A$,
+    with $\Phi_A$ replaced by $0$ when $A \inter \Lambda = \emptyset$.
 \end{definition}
 
 \begin{definition}[Boltzmann factor, Georgii (2.4)]
@@ -60,8 +60,8 @@ statements are the case $\beta = 1$.
     \lean{Potential.boltzmannFactor}
     \leanok
 
-    $h_\Lambda^\Phi = \exp[-\beta H_\Lambda^\Phi]$, valued in $[0, \infty]$ so that it can serve
-    as a density. It is everywhere strictly positive and finite.
+    $h_\Lambda^\Phi = \exp[-\beta H_\Lambda^\Phi]$, regarded as a $[0, \infty]$-valued density.
+    It is everywhere strictly positive and finite.
 \end{definition}
 
 \begin{lemma}[Georgii (2.6)]
@@ -84,9 +84,8 @@ statements are the case $\beta = 1$.
 
     Each term of the difference series is indexed by an $A$ disjoint from $\Lambda$, and such a
     $\Phi_A$ depends only on the coordinates outside $\Lambda$ by
-    Lemma~\ref{lem:pot-depends-on}. The property is preserved by finite partial sums and by
-    passing to the limit along the summation net, since a pointwise limit of functions
-    depending only on $\Lambda^c$ depends only on $\Lambda^c$.
+    Lemma~\ref{lem:pot-depends-on}. The property passes to finite partial sums and to the limit
+    along the summation net.
 \end{proof}
 
 \begin{proposition}[Georgii, Proposition (2.5)]
@@ -95,21 +94,20 @@ statements are the case $\beta = 1$.
     \lean{Potential.isPremodifier_boltzmannFactor, Potential.boltzmannFactor_pos}
     \leanok
 
-    Let $S$ be countable and $\Phi$ a summable interaction potential. Then the family
-    $(h_\Lambda^\Phi)_{\Lambda \in \Fin}$ is a pre-modification --- each $h^\Phi_\Lambda$ is
-    measurable and the exchange identity holds --- and it is everywhere strictly positive.
-    Countability is used only for the measurability of $H^\Phi_\Lambda$ as a pointwise limit of
-    finite sums, and is not needed for a potential of finite range.
+    Let $S$ be countable and $\Phi$ a summable interaction potential. Then
+    $(h_\Lambda^\Phi)_{\Lambda \in \Fin}$ is a pre-modification: each $h^\Phi_\Lambda$ is
+    measurable, and $h_\Delta^\Phi(\zeta) h_\Lambda^\Phi(\eta) = h_\Lambda^\Phi(\zeta)
+    h_\Delta^\Phi(\eta)$ whenever $\Lambda \subset \Delta$ and $\zeta_{S \setminus \Lambda} =
+    \eta_{S \setminus \Lambda}$. It is everywhere strictly positive.
 \end{proposition}
 \begin{proof}
     \leanok
 
-    For $\emptyset \neq \Lambda \subset \Delta$ and $\zeta_{S \setminus \Lambda} =
+    Measurability: $H^\Phi_\Lambda$ is a pointwise limit of finite sums of measurable
+    functions. For $\emptyset \neq \Lambda \subset \Delta$ and $\zeta_{S \setminus \Lambda} =
     \eta_{S \setminus \Lambda}$, Lemma~\ref{lem:pot-hamiltonian-diff} gives
     $H_\Lambda^\Phi(\zeta) + H_\Delta^\Phi(\eta) = H_\Delta^\Phi(\zeta) +
-    H_\Lambda^\Phi(\eta)$. Applying $x \mapsto e^{-\beta x}$ turns this additive identity into
-    $h_\Delta^\Phi(\zeta) h_\Lambda^\Phi(\eta) = h_\Lambda^\Phi(\zeta) h_\Delta^\Phi(\eta)$,
-    which is the pre-modification identity. Positivity is $e^{x} > 0$.
+    H_\Lambda^\Phi(\eta)$; apply $x \mapsto e^{-\beta x}$. Positivity is $e^{x} > 0$.
 \end{proof}
 
 \begin{definition}[Partition function and $\lambda$-admissibility, Georgii (2.7)--(2.8)]
@@ -119,16 +117,14 @@ statements are the case $\beta = 1$.
       Potential.sigmaFinitePartitionFunction, Potential.partitionFunction}
     \leanok
 
-    Fix an a priori measure $\lambda \in \Meas(E, \mathcal{E})$. A potential $\Phi$ is
-    \textbf{$\lambda$-admissible} if the partition function
+    Fix a $\sigma$-finite nonzero a priori measure $\lambda \in \Meas(E, \mathcal{E})$. A
+    potential $\Phi$ is \textbf{$\lambda$-admissible} if the partition function
     \[ Z_\Lambda^\Phi(\omega) = \lambda_\Lambda h^\Phi_\Lambda(\omega)
        = \int \lambda^\Lambda(\mathrm{d}\zeta)\,
          \exp[-\beta H^\Phi_\Lambda(\juxtBy{\omega}(\zeta))] \]
     is finite for all $\Lambda \in \Fin$ and $\omega \in \Cfg$. Since $h^\Phi_\Lambda > 0$, an
     admissible $\Phi$ has $Z^\Phi_\Lambda > 0$ as well, so
-    $\rho^\Phi_\Lambda = h^\Phi_\Lambda / Z^\Phi_\Lambda$ is defined. The partition function is
-    formed for a $\sigma$-finite nonzero $\lambda$ in general, and by a finite sum when $\Phi$
-    has finite range.
+    $\rho^\Phi_\Lambda = h^\Phi_\Lambda / Z^\Phi_\Lambda$ is defined.
 \end{definition}
 
 \begin{definition}[Gibbsian specification, Georgii Definition (2.9)]
@@ -145,12 +141,13 @@ statements are the case $\beta = 1$.
         \exp[-\beta H^\Phi_\Lambda(\juxtBy{\omega}(\zeta))]\,
         1_A(\juxtBy{\omega}(\zeta)) , \]
     and $\gamma^\Phi = \rho^\Phi \lambda$ is the \textbf{Gibbsian specification} for $\Phi$ and
-    $\lambda$. It is constructed in three regimes: for a summable interaction potential and a
-    $\sigma$-finite nonzero $\lambda$ with admissibility assumed; for $\Phi \in \Bspace$ and a
-    probability measure $\lambda$, where admissibility is automatic by
-    Corollary~\ref{cor:pot-admissible}; and for a finite range $\Phi$ over a probability
-    $\lambda$ with $Z^\Phi_\Lambda \neq \infty$ assumed pointwise. The first two require $S$
-    countable, as in Proposition~\ref{prop:pot-premodification}.
+    $\lambda$. It is a specification in each of the following cases: $S$ countable, $\Phi$ a
+    summable interaction potential, $\lambda$ $\sigma$-finite nonzero and $\Phi$
+    $\lambda$-admissible; $S$ countable, $\Phi$ an absolutely summable interaction potential and
+    $\lambda$ a probability measure, admissibility holding by
+    Corollary~\ref{cor:pot-admissible}; $S$ arbitrary, $\Phi$ a finite range interaction
+    potential, $\lambda$ a probability measure and $Z^\Phi_\Lambda(\omega) < \infty$ for all
+    $\Lambda, \omega$.
 \end{definition}
 
 \begin{remark}[Gibbs measures and phase transitions, Georgii (2.9)--(2.10)]
@@ -170,8 +167,8 @@ statements are the case $\beta = 1$.
 
     $\Phi$ is \textbf{absolutely summable} if for all $i \in S$
     \[ \|\Phi\|_i = \sum_{A \in \Fin,\ A \ni i} \|\Phi_A\| < \infty , \]
-    where $\|\Phi_A\| = \sup_\eta |\Phi_A(\eta)|$ is the sup-norm and the unordered sum is taken
-    in $[0, \infty]$.
+    where $\|\Phi_A\| = \sup_\eta |\Phi_A(\eta)|$ and the unordered sum is taken in
+    $[0, \infty]$.
 \end{definition}
 
 \begin{lemma}[Georgii (2.11) $\Rightarrow$ (2.2)(ii)]
@@ -187,12 +184,10 @@ statements are the case $\beta = 1$.
 \begin{proof}
     \leanok
 
-    The summand indexed by $A$ is bounded in norm by
-    $\|\Phi_A\| 1_{A \inter \Lambda \neq \emptyset}$, and
-    $\sum_A \|\Phi_A\| 1_{A \inter \Lambda \neq \emptyset} \leq \sum_{i \in \Lambda}
-    \|\Phi\|_i < \infty$, because an $A$ meeting $\Lambda$ contains at least one $i \in
-    \Lambda$. So the family is absolutely summable, hence summable, and unconditional
-    summability implies convergence of the net of Convention (2.1).
+    The summand indexed by $A$ is bounded by $\|\Phi_A\| 1_{A \inter \Lambda \neq \emptyset}$,
+    and $\sum_A \|\Phi_A\| 1_{A \inter \Lambda \neq \emptyset} \leq \sum_{i \in \Lambda}
+    \|\Phi\|_i < \infty$, because an $A$ meeting $\Lambda$ contains some $i \in \Lambda$.
+    Unconditional summability implies convergence of the net of Convention (2.1).
 \end{proof}
 
 \begin{remark}[Uniform convergence, Georgii (2.11) and (2.13)]
@@ -221,8 +216,8 @@ statements are the case $\beta = 1$.
 
     By Lemma~\ref{lem:pot-abs-summable-summable} the Hamiltonian is the unconditional sum of
     its terms, so the triangle inequality bounds it by
-    $\sum_A \|\Phi_A\| 1_{A \inter \Lambda \neq \emptyset}$, which is at most
-    $\sum_{i \in \Lambda} \|\Phi\|_i$ as in that proof.
+    $\sum_A \|\Phi_A\| 1_{A \inter \Lambda \neq \emptyset} \leq \sum_{i \in \Lambda}
+    \|\Phi\|_i$.
 \end{proof}
 
 \begin{corollary}[Georgii (2.14) $\Rightarrow$ $\lambda$-admissibility]
@@ -233,23 +228,24 @@ statements are the case $\beta = 1$.
       Potential.isSigmaFiniteLambdaAdmissible_boltzmannFactor}
     \leanok
 
-    Let $\Phi \in \Bspace$ and $\beta \in \R$. Relative to an arbitrary reference specification
-    $\gamma$ --- in particular for the $\lambda$-specification of a finite nonzero $\lambda$,
-    which gives $\lambda$-admissibility --- the partition functions obey, for all
-    $\Lambda, \omega$,
+    Let $\Phi$ be absolutely summable and $\beta \in \R$. For every specification $\gamma$,
+    with no assumption on $S$, the partition functions $Z^\Phi_\Lambda = \gamma_\Lambda
+    h^\Phi_\Lambda$ obey, for all $\Lambda, \omega$,
     \[ e^{-|\beta| \sum_{i \in \Lambda}\|\Phi\|_i} \ \leq\ Z^\Phi_\Lambda(\omega)\ \leq\
        e^{|\beta| \sum_{i \in \Lambda}\|\Phi\|_i} , \]
-    so they are nonzero and finite, and the normalized density obeys $\rho^\Phi_\Lambda \leq
-    e^{2|\beta| \sum_{i \in \Lambda}\|\Phi\|_i}$.
+    so they are nonzero and finite, and $\rho^\Phi_\Lambda = h^\Phi_\Lambda / Z^\Phi_\Lambda
+    \leq e^{2|\beta| \sum_{i \in \Lambda}\|\Phi\|_i}$. In particular $\Phi$ is
+    $\lambda$-admissible for every finite nonzero $\lambda$.
 \end{corollary}
 \begin{proof}
     \leanok
 
     By Theorem~\ref{thm:pot-hamiltonian-bound}, $|H^\Phi_\Lambda| \leq \sum_{i \in \Lambda}
-    \|\Phi\|_i$ uniformly in the configuration, so the Boltzmann factor is squeezed between
-    the two constants $e^{\mp |\beta| \sum_{i \in \Lambda}\|\Phi\|_i}$. Integrating against a
-    probability kernel preserves the constants, giving both bounds on $Z$; dividing gives the
-    bound on $\rho^\Phi_\Lambda$.
+    \|\Phi\|_i$ uniformly in the configuration, so $h^\Phi_\Lambda$ lies between the constants
+    $e^{\mp |\beta| \sum_{i \in \Lambda}\|\Phi\|_i}$. Integrating against a probability kernel
+    preserves the constants, giving both bounds on $Z$; dividing gives the bound on
+    $\rho^\Phi_\Lambda$. For finite nonzero $\lambda$, normalize $\lambda$ and take $\gamma$
+    the $\lambda$-specification.
 \end{proof}
 
 \begin{definition}[The space $\Bspace$, Georgii (2.11)]
@@ -280,15 +276,13 @@ statements are the case $\beta = 1$.
 \begin{proof}
     \leanok
 
-    The topology is the one generated by the seminorm family, so convergence is seminorm
-    convergence. The seminorms separate points: if $\|\Phi\|_i = 0$ for every $i$ then every
-    $\sup_\eta|\Phi_A(\eta)|$ with $A \ni i$ vanishes, and every nonempty $A$ contains some
-    site, so $\Phi = 0$; hence $T_1$. For countable $S$ the family is countable, so the
-    uniformity is countably generated and the separated space is metrizable. Completeness: a
-    Cauchy sequence is Cauchy in each $\|\cdot\|_i$, hence each $\Phi_A(\eta)$ converges
-    (a single term is dominated by $\|\cdot\|_i$ for any $i \in A$); the limit is absolutely
-    summable by lower semicontinuity of $\|\cdot\|_i$ along pointwise convergence, and the
-    convergence holds in every seminorm.
+    Convergence in the topology generated by a seminorm family is seminorm convergence. The
+    seminorms separate points: if $\|\Phi\|_i = 0$ for every $i$ then $\sup_\eta|\Phi_A(\eta)|
+    = 0$ for every nonempty $A$, so $\Phi = 0$; hence $T_1$. For countable $S$ the family is
+    countable, so the separated space is metrizable. Completeness: a Cauchy sequence is Cauchy
+    in each $\|\cdot\|_i$, hence each $\Phi_A(\eta)$ converges (a single term is dominated by
+    $\|\cdot\|_i$ for any $i \in A$); the limit is absolutely summable by lower semicontinuity
+    of $\|\cdot\|_i$ under pointwise convergence, and the convergence holds in every seminorm.
 \end{proof}
 
 \begin{lemma}[Convergence in $\Bspace$ makes Hamiltonians converge uniformly]
@@ -308,10 +302,10 @@ statements are the case $\beta = 1$.
 \begin{proof}
     \leanok
 
-    Linearity in $\Phi$ holds termwise and passes to the unconditional sums of
+    Linearity holds termwise and passes to the unconditional sums of
     Lemma~\ref{lem:pot-abs-summable-summable}, so $H^{\Phi - \Psi}_\Lambda = H^\Phi_\Lambda -
     H^\Psi_\Lambda$. Apply Theorem~\ref{thm:pot-hamiltonian-bound} to $\Phi - \Psi$; the bound
-    is the finite sum $\sum_{i \in \Lambda} \|\Phi - \Psi\|_i$ of seminorms, which tends to $0$
+    $\sum_{i \in \Lambda} \|\Phi - \Psi\|_i$ is a finite sum of seminorms, which tends to $0$
     along a net converging in $\Bspace$ by Theorem~\ref{thm:pot-frechet}.
 \end{proof}
 
@@ -329,21 +323,22 @@ statements are the case $\beta = 1$.
     \[ \bigl\| \gamma^\Psi_\Lambda f - \gamma^\Phi_\Lambda f \bigr\|
        \leq 2\|f\| \bigl( e^{|\beta| D} - 1 \bigr) , \]
     uniformly in the boundary condition. Hence, for a net $(\Phi_x)$ in $\Bspace$ with
-    $\Phi_x \to \Phi \in \Bspace$ along any filter, $\gamma^{\Phi_x} \to \gamma^{\Phi}$
-    uniformly on every volume and bounded observable.
+    $\Phi_x \to \Phi \in \Bspace$ along any filter, $\gamma^{\Phi_x}_\Lambda f \to
+    \gamma^{\Phi}_\Lambda f$ uniformly, for every $\Lambda \in \Fin$ and bounded measurable
+    $f$.
 \end{proposition}
 \begin{proof}
     \leanok
 
     Write $\gamma^\Phi_\Lambda f = \lambda_\Lambda(h^\Phi_\Lambda f) /
-    \lambda_\Lambda(h^\Phi_\Lambda)$. The elementary estimate $|e^x - e^y| \leq
+    \lambda_\Lambda(h^\Phi_\Lambda)$. The estimate $|e^x - e^y| \leq
     e^{y}(e^{|x-y|} - 1)$ gives $|h^\Psi_\Lambda - h^\Phi_\Lambda| \leq h^\Phi_\Lambda
     (e^{|\beta| D} - 1)$ pointwise, hence $|Z^\Psi_\Lambda - Z^\Phi_\Lambda| \leq
     Z^\Phi_\Lambda (e^{|\beta| D} - 1)$ and $|\lambda_\Lambda(h^\Psi_\Lambda f) -
     \lambda_\Lambda(h^\Phi_\Lambda f)| \leq \|f\| Z^\Phi_\Lambda(e^{|\beta| D} - 1)$.
     Splitting $A/Z' - B/Z = A(Z - Z')/(Z'Z) + (A-B)/Z$ and using
     $|\lambda_\Lambda(h^\Psi_\Lambda f)| \leq \|f\| Z^\Psi_\Lambda$ bounds each half by
-    $\|f\|(e^{|\beta| D} - 1)$. The limit statement follows by
+    $\|f\|(e^{|\beta| D} - 1)$. The limit statement follows from
     Lemma~\ref{lem:pot-hamiltonian-uniform} and $e^t - 1 \to 0$ as $t \to 0$.
 \end{proof}
 
@@ -355,9 +350,9 @@ statements are the case $\beta = 1$.
     \leanok
 
     $\Phi$ is of \textbf{finite range} if for each $i \in S$ there is $\Delta_i \in \Fin$ such
-    that $\Phi_A = 0$ unless $A \subset \Delta_i$ for all $i \in A$. For such a $\Phi$ and
-    $\Lambda \in \Fin$, the set of supports $A$ meeting $\Lambda$ with $\Phi_A \neq 0$ is
-    finite, and the Hamiltonian in $\Lambda$ is the corresponding finite sum.
+    that $\Phi_A = 0$ whenever $i \in A$ and $A \not\subset \Delta_i$. For such a $\Phi$ and
+    $\Lambda \in \Fin$, the set of $A$ meeting $\Lambda$ with $\Phi_A \neq 0$ is finite, and
+    the Hamiltonian in $\Lambda$ is the corresponding finite sum.
 \end{definition}
 
 \begin{lemma}[Finite range potentials are summable]
@@ -374,14 +369,14 @@ statements are the case $\beta = 1$.
     \leanok
 
     The summands vanish off a finite set of supports, so the net of partial sums is eventually
-    constant and converges to the finite sum.
+    constant.
 \end{proof}
 
 \begin{remark}[Pair potentials, Georgii (2.16)]
     \label{rmk:pot-pair}
     \uses{def:pot-potential}
 
-    A \textbf{pair potential} is a potential with $\Phi_A = 0$ whenever $|A| > 2$; the concrete
+    A \textbf{pair potential} is a potential with $\Phi_A = 0$ whenever $|A| > 2$; the standard
     examples are $\Phi_{\set{i,j}}(\omega) = J(i,j)\varphi(\omega_i, \omega_j)$,
     $\Phi_{\set{i}}(\omega) = J(i,i)\psi(\omega_i)$, with $J$ and $\varphi$ symmetric and
     $\varphi, \psi$ measurable.
@@ -397,11 +392,11 @@ statements are the case $\beta = 1$.
     \textbf{nearest-neighbour} (or Markov) potential if $\Phi_A = 0$ except when $A$ is a
     complete subgraph of $(S, B)$. For a spin observable $\sigma : E \to \R$, a coupling
     $J \in \R$ and a field $h \in \R$, the \textbf{nearest-neighbour pair potential} of
-    $(G, J, h, \sigma)$ is the member
+    $(G, J, h, \sigma)$ is
     \[ \Phi_{\set{i}}(\eta) = -h\,\sigma(\eta_i), \qquad
        \Phi_{\set{i,j}}(\eta) = -J\,\sigma(\eta_i)\sigma(\eta_j)
-       \ \text{ for } \set{i,j} \in B, \qquad \Phi_A = 0 \text{ otherwise}\]
-    of this class, with the coefficients of (3.13). The Ising models are the case
+       \ \text{ for } \set{i,j} \in B, \qquad \Phi_A = 0 \text{ otherwise},\]
+    with the coefficients of (3.13). The Ising models are the case
     $E = \set{-1, +1}$, $\sigma = \mathrm{id}$.
 \end{definition}
 
@@ -426,8 +421,8 @@ statements are the case $\beta = 1$.
     sum or product of coordinate evaluations at sites of $A$. Finite range: a nonzero support
     containing $i$ is either $\set{i}$ or an edge at $i$, so it lies in
     $\set{i} \union N(i)$, which is finite by local finiteness. Absolute summability: only the
-    supports inside $\set{i} \union N(i)$ contribute to $\|\Phi\|_i$, and each contributes at
-    most $|h||c| + |J|c^2$, so the sum is a finite sum of finite terms.
+    supports inside $\set{i} \union N(i)$ contribute to $\|\Phi\|_i$, each at most
+    $|h||c| + |J|c^2$.
 \end{proof}
 
 \begin{definition}[Self-potentials, Georgii (2.18)]
@@ -452,13 +447,13 @@ statements are the case $\beta = 1$.
     \lean{Potential.lambdaSpecification_eq_gibbsSpecificationFamily}
     \leanok
 
-    Let $S$ be countable, $\Phi$ a summable potential and $\eta_0 \in \Cfg$ a reference
-    configuration such that the many-body part $\Phi^{\geq 2}$ recentred at $\eta_0$ is
-    absolutely summable. Let $\nu_i = c_i^{-1} e^{-\beta \Phi_{\set{i}}}\lambda$ with
-    $c_i \in (0, \infty)$ be the resulting per-site probability measures. Then the
-    $\lambda$-specification of $\Phi$ equals the Gibbsian specification of the recentred
-    many-body part over the family $(\nu_i)_{i \in S}$: moving the self-energies into the a
-    priori measure does not change the specification.
+    Let $S$ be countable, $\lambda$ $\sigma$-finite and nonzero, $\Phi$ a summable
+    $\lambda$-admissible interaction potential, and $\eta_0 \in \Cfg$ such that the recentred
+    many-body part $\bigl(\Phi^{\geq 2}_A - \Phi^{\geq 2}_A(\eta_0)\bigr)_{A \in \Fin}$ is
+    absolutely summable. Let $c_i \in (0, \infty)$ be such that
+    $\nu_i = c_i^{-1} e^{-\beta \Phi_{\set{i}}}\lambda$ is a probability measure for each
+    $i \in S$. Then the $\lambda$-specification $\gamma^\Phi$ equals the Gibbsian specification
+    of the recentred many-body part over the family $(\nu_i)_{i \in S}$.
 \end{proposition}
 \begin{proof}
     \leanok
@@ -466,7 +461,7 @@ statements are the case $\beta = 1$.
     By Definition~\ref{def:pot-self-potential} the Boltzmann factor factorizes as
     $h^\Phi_\Lambda(\sigma) = e^{-\beta H^{\Phi^{\geq 2}}_\Lambda(\eta_0)}\cdot
     h^{\mathrm{many, centred}}_\Lambda(\sigma) \cdot \prod_{i \in \Lambda}
-    e^{-\beta \Phi_{\set{i}}(\sigma)}$. The last product is exactly the density turning
+    e^{-\beta \Phi_{\set{i}}(\sigma)}$. The last product is the density turning
     $\lambda^\Lambda$ into $\bigotimes_{i \in \Lambda}(c_i \nu_i)$, and the volume-dependent
     constant in front cancels in the normalization. So the two normalized kernels agree on
     every volume and boundary condition.

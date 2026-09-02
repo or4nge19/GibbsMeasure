@@ -1,10 +1,9 @@
 \section{Markov specifications on the integers}
 
-Throughout this section the parameter set is $S = \mathbb{Z}$, the state space $E$ is a finite
-non-empty set with $\mathcal{E}$ its power set, and the a priori measure $\lambda$ is the uniform
-probability measure on $E$; Georgii takes counting measure instead, and by Remark (1.28)(3) the
-two choices have the same modifications and hence the same Gibbs measures. For
-$\Lambda \subseteq \mathbb{Z}$,
+Throughout this section $S = \mathbb{Z}$, $E$ is a finite non-empty set with $\mathcal{E}$ its
+power set, and the a priori measure $\lambda$ is the uniform probability measure on $E$
+(counting measure gives the same modifications, hence the same Gibbs measures, by Remark
+(1.28)(3)). For $\Lambda \subseteq \mathbb{Z}$,
 \[
     \partial\Lambda = \set{i \in \mathbb{Z}\setminus\Lambda : |i - j| = 1 \text{ for some }
     j \in \Lambda} \qquad (3.4)
@@ -32,11 +31,11 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
     \lean{Specification.eq_of_forall_singleton_eq, MeasureTheory.GibbsMeasure.Markov.eq_markovSpecification_of_forall_singleton}
     \leanok
 
-    Two specifications with equal singleton kernels agree, provided those kernels are densities,
+    Two specifications with equal singleton kernels agree whenever those kernels are densities,
     nowhere $0$ or $\infty$, against a disjointly consistent $\lambda$-independent family
-    (Theorem (1.33)); this applies to the specifications of this section. Hence a positive
-    homogeneous Markov specification is determined by the $g$ of Definition
-    \ref{def:mkv-pos-hom-markov}, which is called its \textbf{determining function}.
+    (Theorem (1.33)); the specifications of this section are of this kind. A positive
+    homogeneous Markov specification is therefore determined by the $g$ of Definition
+    \ref{def:mkv-pos-hom-markov}, its \textbf{determining function}.
 \end{remark}
 
 \begin{definition}[The homogeneous nearest-neighbour potential of a matrix, Georgii (3.9)]
@@ -51,11 +50,10 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
             0 & \text{otherwise.}
         \end{cases}
     \]
-    This is a homogeneous nearest-neighbour potential (with $\varphi_1 = 0$ and
-    $\varphi_2 = -\log P$): each $\Phi^P_A$ is $\mathcal{F}_A$-measurable, the interactions
-    containing $i$ lie inside $[i-1, i+1]$, so $\Phi^P$ has finite range, and
-    $|\Phi^P_A| \le \sum_{x,y}|\log P(x,y)|$ uniformly, so with only three sets $A \ni i$
-    contributing $\Phi^P$ is absolutely summable, $\Phi^P \in \Bspace$.
+    This is a homogeneous nearest-neighbour potential ($\varphi_1 = 0$, $\varphi_2 = -\log P$):
+    $\Phi^P_A$ is $\mathcal{F}_A$-measurable, the sets $A \ni i$ with $\Phi^P_A \neq 0$ lie in
+    $[i-1, i+1]$ (finite range), and $|\Phi^P_A| \le \sum_{x,y}|\log P(x,y)|$, so
+    $\Phi^P \in \Bspace$.
 \end{definition}
 
 \begin{definition}[The Markov specification of a matrix, Georgii (3.6)]
@@ -64,11 +62,10 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
     \lean{MeasureTheory.GibbsMeasure.Markov.markovSpecification}
     \leanok
 
-    For a positive stochastic matrix $P$, $\gamma_P$ is the Gibbsian specification of the
-    potential $\Phi^P$ of Definition \ref{def:mkv-potential} at inverse temperature $1$, with the
-    uniform probability measure on $E$ as a priori measure: $\gamma_P$ is the modification of
-    $\ISSSD(\lambda)$ by the normalised Boltzmann factor
-    $e^{-H_\Lambda^{\Phi^P}} / Z_\Lambda$. In particular $\gamma_P$ is proper and consistent.
+    For a positive stochastic matrix $P$, $\gamma_P$ is the Gibbsian specification of $\Phi^P$
+    (Definition \ref{def:mkv-potential}) at inverse temperature $1$ with a priori measure the
+    uniform probability measure on $E$: the modification of $\ISSSD(\lambda)$ by the normalised
+    Boltzmann factor $e^{-H_\Lambda^{\Phi^P}} / Z_\Lambda$.
 \end{definition}
 
 \begin{lemma}[Perron--Frobenius, Georgii Appendix 3.A and Comment (3.8)(2)]
@@ -76,17 +73,17 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
     \lean{Matrix.exists_unique_perron, Matrix.perronRoot, Matrix.perronVector, Matrix.mulVec_perronVector, Matrix.exists_eq_smul_perronVector}
     \leanok
 
-    A matrix $Q$ on $E$ with all entries strictly positive has a strictly positive eigenvalue
-    $q$ admitting a strictly positive right eigenvector $r$; $q$ is the only eigenvalue with a
-    strictly positive eigenvector, and every eigenvector for $q$ is a multiple of $r$.
+    A matrix $Q$ on $E$ with strictly positive entries has a strictly positive eigenvalue $q$
+    with a strictly positive right eigenvector $r$; $q$ is the only eigenvalue with a strictly
+    positive eigenvector, and every eigenvector for $q$ is a multiple of $r$.
 \end{lemma}
 \begin{proof}
     \leanok
 
     Collatz--Wielandt: maximise $y \mapsto \min_i (Qy)_i / y_i$ over the compact image of the
-    standard simplex under the normalised map $y \mapsto Qy/\sum_i (Qy)_i$. A maximiser is a
-    positive eigenvector with positive eigenvalue. If $Qv = rv$ and $Qw = sw$ with $v, w > 0$,
-    comparing $v$ and $w$ at a site where $v/w$ is extremal forces $r = s$ and $v \in \mathbb{R}w$.
+    standard simplex under $y \mapsto Qy/\sum_i (Qy)_i$. A maximiser is a positive eigenvector
+    with positive eigenvalue. If $Qv = rv$ and $Qw = sw$ with $v, w > 0$, comparing $v$ and $w$
+    at a site where $v/w$ is extremal forces $r = s$ and $v \in \mathbb{R}w$.
 \end{proof}
 
 \begin{lemma}[Doeblin's ergodic theorem, Georgii Appendix 3.A]
@@ -94,20 +91,21 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
     \lean{Matrix.exists_stationary, Matrix.exists_unique_stationary, Matrix.tendsto_pow_apply, Matrix.abs_pow_apply_sub_le, Matrix.pos_of_vecMul_eq_self}
     \leanok
 
-    Let $P$ be a stochastic matrix on $E$ with strictly positive entries. Then there is a unique
-    probability vector $\alpha_P$ with $\alpha_P P = \alpha_P$, it satisfies
-    $\alpha_P \in \,]0,1[^E$, and $\lim_{k\to\infty} P^k(x, \cdot) = \alpha_P$ uniformly in
-    $x \in E$: with $\varepsilon = \min_{x,y} P(x,y)$ and
-    $\rho = 1 - |E|\varepsilon \in [0,1[$ one has $|P^k(x,y) - \alpha_P(y)| \le 2\rho^k$.
+    Let $P$ be a stochastic matrix on $E$ with strictly positive entries. There is a unique
+    probability vector $\alpha_P$ with $\alpha_P P = \alpha_P$; it lies in $]0,1[^E$, and with
+    $\varepsilon = \min_{x,y} P(x,y)$ and $\rho = 1 - |E|\varepsilon \in [0,1[$,
+    \[
+        |P^k(x,y) - \alpha_P(y)| \le 2\rho^k \qquad (x, y \in E,\ k \in \mathbb{N}),
+    \]
+    so $P^k(x, \cdot) \to \alpha_P$ uniformly in $x$.
 \end{lemma}
 \begin{proof}
     \leanok
 
-    Left multiplication by $P$ contracts the $\ell^1$-norm of a sum-zero vector by the Dobrushin
-    factor $\rho = 1 - |E|\varepsilon < 1$. Hence $(\mu P^k)_k$ is Cauchy for any probability
-    vector $\mu$; its limit is stationary, the contraction gives uniqueness and the geometric
-    rate, and taking $\mu$ a point mass at $x$ gives the entrywise statement. Positivity of
-    $\alpha_P$ follows from $\alpha_P = \alpha_P P$ and $P > 0$.
+    The map $\mu \mapsto \mu P$ contracts the $\ell^1$-norm of a sum-zero vector by
+    $\rho < 1$. Hence $(\mu P^k)_k$ is Cauchy for every probability vector $\mu$; its limit is
+    stationary, the contraction gives uniqueness and the geometric rate, and $\mu = \delta_x$
+    gives the entrywise bound. $\alpha_P > 0$ follows from $\alpha_P = \alpha_P P$ and $P > 0$.
 \end{proof}
 
 \begin{definition}[The stationary Markov chain $\mu_P$, Georgii (3.3)]
@@ -117,16 +115,15 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
     \leanok
 
     For a stochastic matrix $P$ with non-vanishing entries, $\mu_P \in \Prob(\Cfg, \mathcal{F})$
-    is the distribution of the stationary Markov chain with transition matrix $P$: the unique
-    probability measure with
+    is the unique probability measure with
     \[
         \mu_P(\sigma_i = x_0, \dots, \sigma_{i+n} = x_n)
           = \alpha_P(x_0) P(x_0,x_1)\cdots P(x_{n-1},x_n) \qquad (3.3)
     \]
-    where $\alpha_P$ is the stationary vector of Lemma \ref{lem:mkv-doeblin}. These interval
-    weights form a projective family --- the right endpoint is dropped using
-    $\sum_y P(x,y) = 1$, the left endpoint using $\alpha_P P = \alpha_P$ --- and $\mu_P$ is their
-    projective limit by the Kolmogorov extension theorem.
+    for all $i \in \mathbb{Z}$, $n \ge 0$, $x_0, \dots, x_n \in E$, where $\alpha_P$ is the
+    stationary vector of Lemma \ref{lem:mkv-doeblin}. The weights (3.3) form a projective family
+    (the right endpoint is summed out by $\sum_y P(x,y) = 1$, the left by
+    $\alpha_P P = \alpha_P$), and $\mu_P$ is their projective limit.
 \end{definition}
 
 \begin{theorem}[Cylinder probabilities of $\mu_P$, Georgii (3.3)]
@@ -135,7 +132,7 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
     \lean{MeasureTheory.GibbsMeasure.Markov.markovChain_cylinder}
     \leanok
 
-    For $a \le b$ and any $\sigma \in \Cfg$,
+    For $a \le b$ and $\sigma \in \Cfg$,
     \[
         \mu_P\bigl(\set{\tau : \tau_k = \sigma_k \text{ for all } k \in [a,b]}\bigr)
           = \alpha_P(\sigma_a) \prod_{k=a}^{b-1} P(\sigma_k, \sigma_{k+1}).
@@ -144,9 +141,9 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
 \begin{proof}
     \leanok
 
-    A one-point cylinder over $[a,b]$ is the preimage of a singleton under the restriction map,
-    so its $\mu_P$-measure is the corresponding finite-dimensional weight by the projective limit
-    property of Definition \ref{def:mkv-chain}.
+    The cylinder is the preimage of a point under restriction to $[a,b]$; its measure is the
+    finite-dimensional weight (3.3) by the projective limit property of Definition
+    \ref{def:mkv-chain}.
 \end{proof}
 
 \begin{theorem}[Georgii, Comment (3.8)(1), one block]
@@ -166,13 +163,12 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
 \begin{proof}
     \leanok
 
-    The Hamiltonian of $\Phi^P$ on $[a,b]$ is $\sum_{j=a-1}^{b} -\log P(\sigma_j,\sigma_{j+1})$,
+    The Hamiltonian of $\Phi^P$ on $[a,b]$ is $-\sum_{j=a-1}^{b} \log P(\sigma_j,\sigma_{j+1})$,
     so the Boltzmann factor is the path weight $\prod_{j=a-1}^{b} P(\sigma_j, \sigma_{j+1})$.
-    Integrating that path weight against the independent kernel on $[a,b]$ contracts the path
-    into a matrix power by induction on $n$ (summing out the top site turns $g$ into $Pg$), so the
-    partition function is $|E|^{-(n+1)} P^{n+2}(\omega_{a-1}, \omega_{b+1})$. The numerator is the
-    single surviving term of the cylinder integral, carrying the same volume factor
-    $|E|^{-(n+1)}$, which cancels.
+    Integrating it against the independent kernel on $[a,b]$ contracts the path into a matrix
+    power by induction on $n$ (summing out the top site replaces $g$ by $Pg$), so
+    $Z_\Lambda = |E|^{-(n+1)} P^{n+2}(\omega_{a-1}, \omega_{b+1})$. The cylinder integral has a
+    single term, with the same factor $|E|^{-(n+1)}$, which cancels.
 \end{proof}
 
 \begin{theorem}[Georgii, Comment (3.8)(1), one block inside an interval]
@@ -194,11 +190,10 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
 \begin{proof}
     \leanok
 
-    Split $\Delta$ into the two outer blocks $[a, l-1]$, $[m+1, b]$ and the middle block
-    $\Lambda$. Integrating the path weight over the outer blocks contracts each of them into a
-    matrix power, by the same induction as in Theorem \ref{thm:mkv-38-1-single}, leaving the
-    middle path weight untouched; the cylinder indicator then pins the middle block to $\zeta$.
-    Dividing by the partition function of $\Delta$ cancels the volume factors.
+    Split $\Delta$ into $[a, l-1]$, $\Lambda$, $[m+1, b]$. Integrating the path weight over the
+    two outer blocks contracts each into a matrix power, by the induction of Theorem
+    \ref{thm:mkv-38-1-single}; the cylinder indicator pins the middle block to $\zeta$. Dividing
+    by $Z_\Delta$ cancels the volume factors.
 \end{proof}
 
 \begin{theorem}[The determining function of $\gamma_P$, Georgii (3.11)]
@@ -211,16 +206,16 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
     \[
         \gamma_{P,\set{i}}(\sigma_i = y \mid \omega)
           = g_P(\omega_{i-1}, y, \omega_{i+1}), \qquad
-        g_P(x,y,z) = \frac{P(x,y)P(y,z)}{P^2(x,z)} \qquad (3.11)
+        g_P(x,y,z) = \frac{P(x,y)P(y,z)}{P^2(x,z)}, \qquad (3.11)
     \]
     so $\gamma_P$ is a positive homogeneous Markov specification with determining function $g_P$.
 \end{theorem}
 \begin{proof}
     \leanok
 
-    Theorem \ref{thm:mkv-38-1-single} with $\Lambda = [i,i]$, i.e.\ $n = 0$: the numerator is
-    $P(\omega_{i-1}, y)P(y, \omega_{i+1})$ and the partition function is
-    $P^2(\omega_{i-1},\omega_{i+1})$. Positivity of $g_P$ is positivity of $P$.
+    Theorem \ref{thm:mkv-38-1-single} with $\Lambda = [i,i]$, $n = 0$: the numerator is
+    $P(\omega_{i-1}, y)P(y, \omega_{i+1})$ and $Z_{\set i} = P^2(\omega_{i-1},\omega_{i+1})$.
+    $g_P > 0$ since $P > 0$.
 \end{proof}
 
 \begin{definition}[The matrix attached to a determining function, Georgii (3.7)]
@@ -243,18 +238,16 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
     \lean{MeasureTheory.GibbsMeasure.Markov.matrixOfDetFun_pos, MeasureTheory.GibbsMeasure.Markov.matrixOfDetFun_mem_rowStochastic, MeasureTheory.GibbsMeasure.Markov.matrixOfDetFun_eq_of_eigen}
     \leanok
 
-    Equation (3.7) is a well-defined map from the positive functions $g$ on $E^3$ to the positive
-    stochastic matrices on $E$: the matrix of Definition \ref{def:mkv-matrix-of-det-fun} has
-    strictly positive entries, its rows sum to $1$, and it does not depend on the choice of
-    Perron eigenvector $r$ (any positive eigenpair $(q', r')$ of $Q$ gives the same $P$).
+    The matrix $P$ of Definition \ref{def:mkv-matrix-of-det-fun} has strictly positive entries,
+    its rows sum to $1$, and it is independent of the choice of positive eigenpair: any
+    $(q', r')$ with $q' > 0$, $r' > 0$, $Qr' = q'r'$ gives the same $P$ in (3.7).
 \end{proposition}
 \begin{proof}
     \leanok
 
-    Positivity is clear from $Q > 0$, $r > 0$, $q > 0$. For stochasticity, sum (3.7) over $y$ and
-    use $Qr = qr$. Independence of the choice: by Lemma \ref{lem:mkv-perron} a positive
-    eigenvector is unique up to a positive scalar and its eigenvalue is $q$, and the scalar
-    cancels between $r(y)$ and $r(x)$ in (3.7).
+    Positivity: $Q, r, q > 0$. Stochasticity: sum (3.7) over $y$ and use $Qr = qr$.
+    Independence: by Lemma \ref{lem:mkv-perron} a positive eigenvector is unique up to a
+    positive scalar and has eigenvalue $q$; the scalar cancels between $r(y)$ and $r(x)$.
 \end{proof}
 
 \begin{theorem}[Georgii, step 2 of the proof of (3.5)]
@@ -263,16 +256,16 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
     \lean{MeasureTheory.GibbsMeasure.Markov.matrixOfDetFun_markovDeterminingFun}
     \leanok
 
-    Let $P$ be a positive stochastic matrix and $a \in E$. Then formula (3.7) applied to the
-    determining function $g_P$ of (3.11) returns $P$ itself.
+    Let $P$ be a positive stochastic matrix and $a \in E$. Then (3.7) applied to the
+    determining function $g_P$ of (3.11) returns $P$.
 \end{theorem}
 \begin{proof}
     \leanok
 
-    From (3.11), $Q(x,y) = g_P(a,x,y)/g_P(a,a,y) = P(a,x)P(x,y)/(P(a,a)P(a,y))$. Setting
+    From (3.11), $Q(x,y) = g_P(a,x,y)/g_P(a,a,y) = P(a,x)P(x,y)/(P(a,a)P(a,y))$. With
     $q = 1/P(a,a)$ and $r(x) = P(a,x)$ this reads $Q(x,y)r(y) = q\,r(x)P(x,y)$; summing over $y$
-    and using that $P$ is stochastic shows $(q,r)$ is a positive eigenpair of $Q$. By Proposition
-    \ref{prop:mkv-38-2} it may be used in (3.7), which then returns $P$.
+    shows $(q,r)$ is a positive eigenpair of $Q$. By Proposition \ref{prop:mkv-38-2} it may be
+    used in (3.7), which then returns $P$.
 \end{proof}
 
 \begin{corollary}[Georgii, Theorem (3.5): injectivity of $P \mapsto \gamma_P$]
@@ -286,9 +279,8 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
 \begin{proof}
     \leanok
 
-    Evaluating the singleton kernels at $i = 0$ on the boundary condition
-    $\omega = (x \text{ at } -1, z \text{ elsewhere})$ and using (3.11) gives $g_P = g_{P'}$.
-    Now apply Theorem \ref{thm:mkv-step2} to both.
+    Evaluating the singleton kernels at $i = 0$ on $\omega = (x \text{ at } -1, z \text{
+    elsewhere})$ and using (3.11) gives $g_P = g_{P'}$; apply Theorem \ref{thm:mkv-step2}.
 \end{proof}
 
 \begin{theorem}[Georgii, step 4 of the proof of (3.5): equation (3.12)]
@@ -307,13 +299,12 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
 \begin{proof}
     \leanok
 
-    Take $\Lambda = \set{1,2}$ and a boundary condition $\omega$ with $\omega_0 = a$,
-    $\omega_3 = z$, and write $[xy] = \gamma_\Lambda(\sigma_1 = x, \sigma_2 = y \mid \omega)$.
-    Properness of $\gamma$ plus the consistency equations
-    $\gamma_\Lambda = \gamma_\Lambda\gamma_{\set{1}} = \gamma_\Lambda\gamma_{\set{2}}$ give
-    $[xy] = g(a,x,y)\sum_u [uy] = g(x,y,z)\sum_v [xv]$, whence
-    $g(a,x,y)/g(a,a,y) = [xy]/[ay]$ and $g(x,y,z)/g(x,a,z) = [xy]/[xa]$. Both sides of (3.12)
-    equal $[xy]/[aa]$. All the $[xy]$ are strictly positive because $g$ is.
+    Take $\Lambda = \set{1,2}$ and $\omega$ with $\omega_0 = a$, $\omega_3 = z$, and write
+    $[xy] = \gamma_\Lambda(\sigma_1 = x, \sigma_2 = y \mid \omega)$. Properness and the
+    consistency equations $\gamma_\Lambda = \gamma_\Lambda\gamma_{\set{1}} =
+    \gamma_\Lambda\gamma_{\set{2}}$ give $[xy] = g(a,x,y)\sum_u [uy] = g(x,y,z)\sum_v [xv]$,
+    whence $g(a,x,y)/g(a,a,y) = [xy]/[ay]$ and $g(x,y,z)/g(x,a,z) = [xy]/[xa]$. Both sides of
+    (3.12) equal $[xy]/[aa]$; all $[xy] > 0$ because $g > 0$.
 \end{proof}
 
 \begin{theorem}[Georgii, step 3 of the proof of (3.5): (3.12) $\Rightarrow$ (3.11)]
@@ -323,20 +314,20 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
     \leanok
 
     Let $g > 0$ on $E^3$ be normalised, $\sum_y g(x,y,z) = 1$, and satisfy (3.12), and let
-    $Q = (g(a,x,y)/g(a,a,y))_{x,y}$. Then for every $q > 0$ and every $v \in \,]0,\infty[^E$ ---
-    no eigenvector equation assumed --- the matrix $M(x,y) = Q(x,y)v(y)/(q\,v(x))$ has $g$ as its
-    determining function (3.11): $g(x,y,z) = M(x,y)M(y,z)/M^2(x,z)$. Taking for $(q,v)$ the
-    Perron pair of $Q$ gives the matrix $P$ of (3.7).
+    $Q = (g(a,x,y)/g(a,a,y))_{x,y}$. Then for arbitrary $q > 0$ and $v \in \,]0,\infty[^E$ the
+    matrix $M(x,y) = Q(x,y)v(y)/(q\,v(x))$ satisfies $g(x,y,z) = M(x,y)M(y,z)/M^2(x,z)$, i.e.\
+    $g$ is the determining function (3.11) of $M$. For $(q,v)$ the Perron pair of $Q$, $M$ is the
+    matrix $P$ of (3.7).
 \end{theorem}
 \begin{proof}
     \leanok
 
     Equation (3.12) rearranges to $g(x,y,z)\,Q(x,a) = g(x,a,z)\,Q(x,y)Q(y,z)$, and the shape of
     $M$ gives $M(x,y)M(y,z)\,q^2v(x) = Q(x,y)Q(y,z)v(z)$, in particular
-    $M(x,a)M(a,z)\,q^2v(x) = Q(x,a)v(z)$ since $Q(a,z) = 1$. Combining,
-    $g(x,y,z)\,M(x,a)M(a,z) = g(x,a,z)\,M(x,y)M(y,z)$; summing over $y$ and using
-    $\sum_y g(x,y,z) = 1$ identifies $M(x,a)M(a,z) = g(x,a,z)M^2(x,z)$, and substituting back
-    gives (3.11).
+    $M(x,a)M(a,z)\,q^2v(x) = Q(x,a)v(z)$ since $Q(a,z) = 1$. Hence
+    $g(x,y,z)\,M(x,a)M(a,z) = g(x,a,z)\,M(x,y)M(y,z)$; summing over $y$ with
+    $\sum_y g(x,y,z) = 1$ gives $M(x,a)M(a,z) = g(x,a,z)M^2(x,z)$, and substituting back gives
+    (3.11).
 \end{proof}
 
 \begin{theorem}[Georgii, Theorem (3.5): surjectivity of $P \mapsto \gamma_P$]
@@ -345,18 +336,17 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
     \lean{MeasureTheory.GibbsMeasure.Markov.exists_matrix_eq_markovSpecification, MeasureTheory.GibbsMeasure.Markov.eq_markovSpecification_of_determiningFun}
     \leanok
 
-    Every positive homogeneous Markov specification $\gamma$ on $\mathbb{Z}$ is of the form
-    $\gamma = \gamma_P$ for a positive stochastic matrix $P$, namely the matrix computed from the
-    determining function of $\gamma$ by (3.7).
+    Every positive homogeneous Markov specification $\gamma$ on $\mathbb{Z}$ equals $\gamma_P$
+    for a positive stochastic matrix $P$, namely the matrix (3.7) of the determining function
+    of $\gamma$.
 \end{theorem}
 \begin{proof}
     \leanok
 
-    Let $g$ be the determining function of $\gamma$ and let $P$ be given by (3.7). By Theorem
+    Let $g$ be the determining function of $\gamma$ and $P$ the matrix (3.7). By Theorem
     \ref{thm:mkv-312} $g$ is normalised and satisfies (3.12), so by Theorem \ref{thm:mkv-step3}
-    $g = g_P$ is the determining function of $\gamma_P$ as in (3.11). Thus $\gamma$ and
-    $\gamma_P$ have the same singleton kernels, and Remark \ref{rmk:mkv-comment-32} gives
-    $\gamma = \gamma_P$.
+    $g = g_P$. Thus $\gamma$ and $\gamma_P$ have the same singleton kernels, and Remark
+    \ref{rmk:mkv-comment-32} gives $\gamma = \gamma_P$.
 \end{proof}
 
 \begin{theorem}[Georgii, step 1 of the proof of (3.5): existence]
@@ -365,19 +355,18 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
     \lean{MeasureTheory.GibbsMeasure.Markov.isGibbsMeasure_markovSpecification_stationaryChain}
     \leanok
 
-    For every positive stochastic matrix $P$, the stationary Markov chain $\mu_P$ is a Gibbs
-    measure for $\gamma_P$: $\mu_P \in \Gibbs{\gamma_P}$.
+    For every positive stochastic matrix $P$, $\mu_P \in \Gibbs{\gamma_P}$.
 \end{theorem}
 \begin{proof}
     \leanok
 
-    By Theorem (1.33) for Gibbs measures it suffices that $\mu_P\gamma_{P,\set{i}} = \mu_P$ for
-    every site $i$, and by a $\pi$-system argument it suffices to check this on interval
-    cylinders $[a,b]$ with $a < i < b$. Theorem \ref{thm:mkv-chain-cylinder} and
-    Chapman--Kolmogorov ($\sum_y P(x,y)P(y,z) = P^2(x,z)$) give the three-point identity
+    By Theorem (1.33) it suffices that $\mu_P\gamma_{P,\set{i}} = \mu_P$ for every $i$, and by a
+    $\pi$-system argument it suffices to check this on interval cylinders $[a,b]$ with
+    $a < i < b$. Theorem \ref{thm:mkv-chain-cylinder} and Chapman--Kolmogorov
+    ($\sum_y P(x,y)P(y,z) = P^2(x,z)$) give
     $\mu_P(\sigma_{[a,b]} = \zeta) = g_P(\zeta_{i-1},\zeta_i,\zeta_{i+1})\,
-    \mu_P(\sigma_{[a,b]\setminus\set{i}} = \zeta)$, which combined with (3.11) and properness of
-    $\gamma_P$ is exactly the required invariance.
+    \mu_P(\sigma_{[a,b]\setminus\set{i}} = \zeta)$, which with (3.11) and properness of
+    $\gamma_P$ is the required invariance.
 \end{proof}
 
 \begin{lemma}[Georgii, step 5 of the proof of (3.5): the Doeblin limit]
@@ -386,8 +375,8 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
     \lean{MeasureTheory.GibbsMeasure.Markov.tendsto_markovSpecification_Icc_apply_cyl}
     \leanok
 
-    Fix $\Lambda = [l,m]$ with $m = l+d$ and put $\Delta(k) = [l-1-k, m+1+k]$. Then for every
-    $\zeta$ and every boundary condition $\omega$,
+    Let $\Lambda = [l,m]$ with $m = l+d$ and $\Delta(k) = [l-1-k, m+1+k]$. For every $\zeta$ and
+    every boundary condition $\omega$,
     \[
         \lim_{k \to \infty} \gamma_{P,\Delta(k)}(\sigma_\Lambda = \zeta_\Lambda \mid \omega)
           = \alpha_P(\zeta_l) P(\zeta_l,\zeta_{l+1}) \cdots P(\zeta_{m-1},\zeta_m).
@@ -400,10 +389,10 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
     $P^{k+2}(\omega_{l-2-k}, \zeta_l)\,\pi(\zeta)\,P^{k+2}(\zeta_m, \omega_{m+2+k})
     / P^{d+2k+4}(\omega_{l-2-k}, \omega_{m+2+k})$ with
     $\pi(\zeta) = \prod_{j=l}^{m-1}P(\zeta_j,\zeta_{j+1})$. By Lemma \ref{lem:mkv-doeblin} each
-    matrix power is within $2\rho^k$ of $\alpha_P$ at the relevant entry. The two boundary sites
-    move with $k$, so the ratio is estimated rather than the individual limits: since
-    $\alpha_P \ge c > 0$, the numerator and denominator factors at the varying site cancel to
-    $1 + O(\rho^k)$, and the remaining factor tends to $\alpha_P(\zeta_l)$.
+    matrix power is within $2\rho^k$ of $\alpha_P$ at the relevant entry. The boundary sites
+    depend on $k$, so the ratio is estimated directly: since $\alpha_P \ge c > 0$, the factors
+    at the varying site cancel to $1 + O(\rho^k)$ and the remaining factor tends to
+    $\alpha_P(\zeta_l)$.
 \end{proof}
 
 \begin{theorem}[Georgii, Theorem (3.5): uniqueness]
@@ -414,18 +403,18 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
 
     Let $P$ be a positive stochastic matrix. Every $\mu \in \Gibbs{\gamma_P}$ satisfies
     $\mu(\sigma_\Lambda = \zeta_\Lambda) = \alpha_P(\zeta_l)\prod_{j=l}^{m-1}
-    P(\zeta_j,\zeta_{j+1})$ for every interval $\Lambda = [l,m]$; consequently
+    P(\zeta_j,\zeta_{j+1})$ for every interval $\Lambda = [l,m]$; hence
     $\Gibbs{\gamma_P}$ has at most one element.
 \end{theorem}
 \begin{proof}
     \leanok
 
-    For $\mu \in \Gibbs{\gamma_P}$ one has $\mu\gamma_{P,\Delta(k)} = \mu$, so
+    For $\mu \in \Gibbs{\gamma_P}$, $\mu\gamma_{P,\Delta(k)} = \mu$, so
     $\mu(\sigma_\Lambda = \zeta_\Lambda) = \int \gamma_{P,\Delta(k)}(\sigma_\Lambda =
-    \zeta_\Lambda\mid\omega)\,\mu(d\omega)$ for all $k$. Dominated convergence and Lemma
-    \ref{lem:mkv-doeblin-limit} identify the limit as the chain value. Interval cylinders
-    determine a cylinder of an arbitrary finite volume by summing over the extra sites, and the
-    cylinders form a $\pi$-system generating $\mathcal{F}$, so $\mu$ is determined.
+    \zeta_\Lambda\mid\omega)\,\mu(d\omega)$ for all $k$; dominated convergence and Lemma
+    \ref{lem:mkv-doeblin-limit} give the interval formula. A cylinder over a finite volume is a
+    finite disjoint union of interval cylinders, and cylinders form a $\pi$-system generating
+    $\mathcal{F}$, so $\mu$ is determined.
 \end{proof}
 
 \begin{theorem}[Georgii (3.6)]
@@ -435,22 +424,21 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
       MeasureTheory.GibbsMeasure.Markov.isCondExp_markovSpecification_stationaryChain}
     \leanok
 
-    For every $\Lambda \in \Fin$, every $\zeta$ and every --- not merely almost every ---
+    For every $\Lambda \in \Fin$, every $\zeta$ and every (not only $\mu_P$-almost every)
     boundary condition $\omega$,
     \[\gamma_{P,\Lambda}(\sigma_\Lambda = \zeta \mid \omega) =
       \mu_P(\sigma_\Lambda = \zeta \mid \sigma_{\partial\Lambda} = \omega_{\partial\Lambda}),\]
-    the conditioning on the finite boundary $\partial\Lambda$ of (3.4) being on an event of
-    positive $\mu_P$-measure, so that the right-hand side is an elementary conditional
-    probability. Moreover $\gamma_{P,\Lambda}$ is a version of the conditional distribution of
-    $\mu_P$ given the whole exterior $\sigma$-algebra $\mathcal{F}_{\mathbb{Z}\setminus\Lambda}$.
+    an elementary conditional probability since the event
+    $\set{\sigma_{\partial\Lambda} = \omega_{\partial\Lambda}}$ has positive $\mu_P$-measure.
+    Moreover $\gamma_{P,\Lambda}$ is a version of the conditional distribution of $\mu_P$ given
+    $\mathcal{F}_{\mathbb{Z}\setminus\Lambda}$.
 \end{theorem}
 \begin{proof}
     \leanok
 
-    Both sides are ratios of Boltzmann weights of the Markov potential: the left-hand side by
-    the definition of the Markov specification, the right-hand side by the single-site exchange
-    identity for $\mu_P$, inducting over the sites of $\Lambda$. The version statement for the
-    exterior $\sigma$-algebra is Theorem \ref{thm:mkv-step1}.
+    Both sides are ratios of Boltzmann weights of $\Phi^P$: the left by definition of
+    $\gamma_P$, the right by the single-site exchange identity for $\mu_P$, inducting over the
+    sites of $\Lambda$. The second statement is Theorem \ref{thm:mkv-step1}.
 \end{proof}
 
 \begin{theorem}[Georgii (3.5)]
@@ -459,22 +447,22 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
     \lean{MeasureTheory.GibbsMeasure.Markov.georgii_3_5, MeasureTheory.GibbsMeasure.Markov.gibbsMeasure_eq_singleton, MeasureTheory.GibbsMeasure.Markov.existsUnique_isGibbsMeasure}
     \leanok
 
-    The relation $\Gibbs{\gamma} = \set{\mu_P}$ establishes a one-to-one correspondence
-    $\gamma \leftrightarrow P$ between the set of all positive homogeneous Markov specifications
-    on $\mathbb{Z}$ and the set of all stochastic matrices on $E$ with non-vanishing entries. For
-    a given $P$ the corresponding $\gamma$ is determined by (3.6), and conversely $P$ is
-    expressed in terms of the determining function $g$ of $\gamma$ by (3.7).
+    The relation $\Gibbs{\gamma} = \set{\mu_P}$ is a one-to-one correspondence
+    $\gamma \leftrightarrow P$ between the positive homogeneous Markov specifications on
+    $\mathbb{Z}$ and the stochastic matrices on $E$ with non-vanishing entries. For given $P$
+    the corresponding $\gamma$ is determined by (3.6); conversely $P$ is given in terms of the
+    determining function $g$ of $\gamma$ by (3.7).
 \end{theorem}
 \begin{proof}
     \leanok
 
     Step 1: $\mu_P \in \Gibbs{\gamma_P}$ (Theorem \ref{thm:mkv-step1}), with determining
-    function (3.11) (Theorem \ref{thm:mkv-311}). Step 2: $P$ is recovered from $g_P$ by (3.7),
-    whence injectivity (Theorem \ref{thm:mkv-step2}, Corollary \ref{cor:mkv-inj}). Steps 3 and 4:
+    function (3.11) (Theorem \ref{thm:mkv-311}). Step 2: (3.7) recovers $P$ from $g_P$, whence
+    injectivity (Theorem \ref{thm:mkv-step2}, Corollary \ref{cor:mkv-inj}). Steps 3 and 4:
     every determining function satisfies (3.12), and (3.12) forces the shape (3.11), whence
     surjectivity (Theorems \ref{thm:mkv-312}, \ref{thm:mkv-step3}, \ref{thm:mkv-surj}). Step 5:
-    the ergodic theorem for Markov chains gives $\Gibbs{\gamma_P} \subseteq \set{\mu_P}$
-    (Theorem \ref{thm:mkv-uniqueness}).
+    Doeblin's theorem gives $\Gibbs{\gamma_P} \subseteq \set{\mu_P}$ (Theorem
+    \ref{thm:mkv-uniqueness}).
 \end{proof}
 
 \begin{corollary}[Georgii (3.9)]
@@ -486,11 +474,11 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
     \leanok
 
     A specification $\gamma$ is a positive homogeneous Markov specification if and only if
-    $\gamma$ is Gibbsian for some homogeneous nearest-neighbour potential $\Phi$, i.e.\ one with
-    $\Phi_{\set{i}} = \varphi_1(\sigma_i)$ and $\Phi_{\set{i,i+1}} =
-    \varphi_2(\sigma_i,\sigma_{i+1})$; in the forward direction $\gamma = \gamma_P$ is Gibbsian
-    for $\Phi^P = -\log P$ of Definition \ref{def:mkv-potential} by Theorem \ref{thm:mkv-surj}.
-    Consequently, by (2.35)(b), for a fixed $\alpha \in \Prob(E,\mathcal{E})$ the relation
+    $\gamma$ is Gibbsian for a homogeneous nearest-neighbour potential $\Phi$, i.e.\ one with
+    $\Phi_{\set{i}} = \varphi_1(\sigma_i)$, $\Phi_{\set{i,i+1}} =
+    \varphi_2(\sigma_i,\sigma_{i+1})$ and $\Phi_A = 0$ otherwise; for $\gamma = \gamma_P$
+    (Theorem \ref{thm:mkv-surj}) one may take $\Phi^P$ of Definition \ref{def:mkv-potential}.
+    Consequently, by (2.35)(b), for fixed $\alpha \in \Prob(E,\mathcal{E})$ the relation
     $\Gibbs{\Phi} = \set{\mu_P}$ is a bijection between the $\alpha$-normalised homogeneous
     nearest-neighbour potentials and the positive stochastic matrices.
 \end{corollary}
@@ -508,16 +496,15 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
       MeasureTheory.GibbsMeasure.Markov.integral_spin_stationaryChain_isingChainP}
     \leanok
 
-    Take $S = \mathbb{Z}$ with the nearest-neighbour graph, $E = \set{\pm 1}$, and the Ising
-    potential $\Phi^{J,h}$ of (3.13): $\Phi_{\set i} = -h\sigma_i$,
-    $\Phi_{\set{i,i+1}} = -J\sigma_i\sigma_{i+1}$, which is the homogeneous nearest-neighbour
-    potential of $\varphi_1 = -h\sigma$, $\varphi_2 = -J\sigma\sigma$. Its determining function
-    is (3.14); the associated matrix $Q$ has Perron--Frobenius eigenvalue
-    $q_{J,h} = e^{-h}\bigl(\cosh h + \sqrt{e^{-4J} + \sinh^2 h}\bigr)$ (3.16); formula (3.7)
-    produces the transition matrix $P_{J,h}$ of (3.17); and therefore, by Theorem
-    \ref{thm:mkv-35}, $\Gibbs{\beta\Phi^{J,h}} = \set{\mu_{\beta J,\beta h}}$ is a singleton
-    (3.15) --- no phase transition in one dimension at any temperature. The stationary
-    distribution is (3.18) and the magnetisation is
+    Let $S = \mathbb{Z}$ with the nearest-neighbour graph, $E = \set{\pm 1}$, and
+    $\Phi^{J,h}$ the Ising potential (3.13), $\Phi_{\set i} = -h\sigma_i$,
+    $\Phi_{\set{i,i+1}} = -J\sigma_i\sigma_{i+1}$: the homogeneous nearest-neighbour potential
+    with $\varphi_1 = -h\sigma$, $\varphi_2 = -J\sigma\sigma'$. Its determining function is
+    (3.14); the matrix $Q$ has Perron root
+    $q_{J,h} = e^{-h}\bigl(\cosh h + \sqrt{e^{-4J} + \sinh^2 h}\bigr)$ (3.16); (3.7) gives the
+    transition matrix $P_{J,h}$ of (3.17); and by Theorem \ref{thm:mkv-35},
+    $\Gibbs{\beta\Phi^{J,h}} = \set{\mu_{\beta J,\beta h}}$ for every $\beta$ (3.15). The
+    stationary distribution is (3.18) and
     $\mu_{J,h}(\sigma_i) = \sinh h / \sqrt{e^{-4J} + \sinh^2 h}$ (3.19).
 \end{example}
 
@@ -525,7 +512,6 @@ is the boundary of $\Lambda$; for an interval $\Lambda = [a,b]$ it is $\set{a-1,
     \label{rmk:mkv-half-line}
     \uses{thm:mkv-35}
 
-    Theorem (3.5) has a straightforward modification for $S = \mathbb{N}$, with $\mu_P$ replaced
-    by the Markov chain with transition matrix $P$ started at time $0$ in a fixed state
-    $a \in E$.
+    Theorem (3.5) holds for $S = \mathbb{N}$ with $\mu_P$ replaced by the Markov chain with
+    transition matrix $P$ started at time $0$ in a fixed state $a \in E$.
 \end{remark}

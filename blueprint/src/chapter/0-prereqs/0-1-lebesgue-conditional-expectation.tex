@@ -1,7 +1,7 @@
 \section{Lebesgue conditional expectation}
 
-Let $(X, \MCX)$ be a measurable space, let $\MCB$ be a sub $\sigma$-algebra of $\MCX$, and let
-$\mu$ be a measure on $(X, \MCX)$ whose restriction $\mu|_\MCB$ to $\MCB$ is $\sigma$-finite.
+Let $(X, \MCX)$ be a measurable space, $\MCB \leq \MCX$ a sub-$\sigma$-algebra, and $\mu$ a measure
+on $(X, \MCX)$ whose restriction $\mu|_\MCB$ to $\MCB$ is $\sigma$-finite.
 
 \begin{definition}[Lebesgue conditional expectation]
   \label{def:lebesgue-cond-exp}
@@ -9,7 +9,7 @@ $\mu$ be a measure on $(X, \MCX)$ whose restriction $\mu|_\MCB$ to $\MCB$ is $\s
   \lean{MeasureTheory.condLExp}
   \leanok{}
 
-  The {\bf conditional expectation} of a $\MCX$-measurable function $f : X \to [0, \infty]$ is the
+  The {\bf conditional expectation} of a $\MCX$-measurable $f : X \to [0, \infty]$ is the
   Radon--Nikodym derivative
   \[\mu[f | \MCB] = \frac{\partial (f\mu)|_\MCB}{\partial \mu|_\MCB},\]
   where $f\mu$ is the measure with density $f$ relative to $\mu$.
@@ -21,15 +21,16 @@ $\mu$ be a measure on $(X, \MCX)$ whose restriction $\mu|_\MCB$ to $\MCB$ is $\s
   \lean{MeasureTheory.ae_eq_condLExp}
   \leanok{}
 
-  If $f : X \to [0, \infty]$ is a $\MCX$-measurable function, then $\mu[f | \MCB]$ is the $\mu$-ae unique $\MCB$-measurable function $X \to [0, \infty]$ such that
-  \[\int_B \mu[f | \MCB]\ \partial\mu = \int_B f\ \partial\mu\]
-  for all $B \in \MCB$.
+  For $\MCX$-measurable $f : X \to [0, \infty]$, $\mu[f | \MCB]$ is the $\mu$-a.e.\ unique
+  $\MCB$-measurable function $X \to [0, \infty]$ with
+  \[\int_B \mu[f | \MCB]\ \partial\mu = \int_B f\ \partial\mu \quad (B \in \MCB).\]
 \end{lemma}
 \begin{proof}
   % \uses{}
   % \leanok
 
-  Standard machine.
+  Uniqueness of the Radon--Nikodym derivative of $(f\mu)|_\MCB$ with respect to the
+  $\sigma$-finite measure $\mu|_\MCB$.
 \end{proof}
 
 \section{Sub-\texorpdfstring{$\sigma$}{sigma}-algebras modulo null sets}
@@ -43,41 +44,39 @@ $\mu$ be a measure on $(X, \MCX)$ whose restriction $\mu|_\MCB$ to $\MCB$ is $\s
       MeasureTheory.exists_countablyGenerated_le_ae}
     \leanok
 
-    Let $\mu$ be a finite separable measure on $(X, \mathcal{M})$ --- for instance any finite
-    measure on a countably generated $\mathcal{M}$, hence any finite measure on a standard Borel
-    space --- and let $\mathcal{M}_0 \leq \mathcal{M}$ be a sub-$\sigma$-algebra, subject to no
-    countability hypothesis. Then there is a countable $D \subseteq \mathcal{M}_0$ such that every
-    $A \in \mathcal{M}_0$ satisfies $\mu(A \mathbin{\Delta} B) = 0$ for some $B \in \sigma(D)$.
+    Let $\mu$ be a finite separable measure on $(X, \mathcal{M})$, or an s-finite measure on a
+    countably generated $(X, \mathcal{M})$, and let $\mathcal{M}_0 \leq \mathcal{M}$ be a
+    sub-$\sigma$-algebra, with no countability assumption on $\mathcal{M}_0$. Then there is a
+    countable $D \subseteq \mathcal{M}_0$ such that every $A \in \mathcal{M}_0$ satisfies
+    $\mu(A \mathbin{\Delta} B) = 0$ for some $B \in \sigma(D)$.
 \end{theorem}
 \begin{proof}
     \leanok
 
-    The constant-one indicators $\1_A$, $A \in \mathcal{M}_0$, form a subset of $L^1(\mu)$, which
-    is second-countable because $\mu$ is separable; second-countability passes to subsets, so that
-    family admits a countable dense subset, which we realise as $\set{\1_B : B \in D}$ for a
-    countable $D \subseteq \mathcal{M}_0$. Since
-    $\norm{\1_A - \1_B}_{L^1} = \mu(A \mathbin{\Delta} B)$, this is approximation in measure.
+    The indicators $\1_A$, $A \in \mathcal{M}_0$, form a subset of $L^1(\mu)$, which is
+    second-countable because $\mu$ is separable; hence they have a countable dense subset
+    $\set{\1_B : B \in D}$ with $D \subseteq \mathcal{M}_0$ countable. Since
+    $\norm{\1_A - \1_B}_{L^1} = \mu(A \mathbin{\Delta} B)$, every $A \in \mathcal{M}_0$ is
+    approximated in measure from $D$.
 
-    To pass from approximation to equality, choose $B_n \in \sigma(D)$ with
-    $\mu(A \mathbin{\Delta} B_n) < 2^{-n}$ and put $B = \limsup_n B_n \in \sigma(D)$. Then
-    $A \mathbin{\Delta} B \subseteq \limsup_n (A \mathbin{\Delta} B_n)$, and the latter is null by
-    Borel--Cantelli because $\sum_n \mu(A \mathbin{\Delta} B_n) \leq \sum_n 2^{-n} < \infty$.
+    Given $A$, choose $B_n \in \sigma(D)$ with $\mu(A \mathbin{\Delta} B_n) < 2^{-n}$ and put
+    $B = \limsup_n B_n \in \sigma(D)$. Then
+    $A \mathbin{\Delta} B \subseteq \limsup_n (A \mathbin{\Delta} B_n)$, which is null by
+    Borel--Cantelli. For s-finite $\mu$ on a countably generated $\mathcal{M}$, apply this to an
+    equivalent finite measure.
 \end{proof}
 
 \begin{remark}[What this does not give]
     \label{rmk:pre-cg-mod-null-limits}
     \uses{thm:pre-cg-mod-null, thm:pre-blackwell-dubins}
 
-    The tail $\sigma$-algebra of a product space is a sub-$\sigma$-algebra which is not countably
-    generated: its atoms are the classes of the eventual-agreement relation $E_0$, and a countable
-    generating family would exhibit $E_0$ as smooth, contradicting Glimm--Effros. Theorem
-    \ref{thm:pre-cg-mod-null} covers it, but does not remove the countable-generation hypotheses
-    carried by the tail-$\sigma$-algebra results of Chapter 7: the approximating set it returns
-    depends on the set approximated, so it reproduces exactly the $A$-dependent null sets those
-    hypotheses exist to union together, and no countable exhaustion of $\Tail$ is available.
-
-    Nor could anything else remove them: the conclusions so guarded are false in Georgii's setting,
-    by Theorem \ref{thm:pre-blackwell-dubins}.
+    The tail $\sigma$-algebra $\Tail$ of an infinite product is not countably generated: its atoms
+    are the classes of the eventual-agreement relation $E_0$, and a countable generating family
+    would make $E_0$ smooth, contradicting Glimm--Effros. Theorem \ref{thm:pre-cg-mod-null}
+    applies to $\Tail$, but the approximant $B$ it returns depends on $A$, so the null sets
+    $A \mathbin{\Delta} B$ cannot be collected into a single one, as a countable generating family
+    of $\Tail$ would allow. No refinement can: a proper version of $\mu(\cdot \mid \Tail)$ does
+    not exist, by Theorem \ref{thm:pre-blackwell-dubins}.
 \end{remark}
 
 
@@ -94,13 +93,18 @@ $\mu$ be a measure on $(X, \MCX)$ whose restriction $\mu|_\MCB$ to $\MCB$ is $\s
       MeasureTheory.GibbsMeasure.not_ae_forall_tailKernel_apply_eq_indicator}
     \leanok
 
-    Let $\mu = \bigotimes_i \mu_i$ be an independent product over an infinite countable site set
-    with a uniform atom bound $\mu_i\set{x} \leq c < 1$, and finite state space. The tail
-    $\sigma$-algebra is the $\limsup$ of the coordinate $\sigma$-algebras along the cofinite
-    filter, so Kolmogorov's zero--one law makes $\mu$ tail trivial; consequently the tail
-    conditional kernel is $\mu$-a.e.\ equal to $\mu$ itself. But the eventual-agreement class of
-    $\omega$ is a $\mu$-null tail event containing $\omega$, so
-    \[\neg\; \forall^{\mu}\text{-a.e. } \omega,\ \forall A \in \Tail:\
-      \mu(A \mid \Tail)(\omega) = \1_A(\omega):\]
-    no proper regular conditional distribution given $\Tail$ exists.
+    Let $S$ be countably infinite, $E$ a finite standard Borel space, and
+    $\mu = \bigotimes_{i \in S} \mu_i$ a product of probability measures with a uniform atom bound
+    $\mu_i\set{x} \leq c < 1$.
+    \begin{enumerate}
+        \item[(i)] $\Tail$ is the $\limsup$ of the coordinate $\sigma$-algebras along the
+          cofinite filter on $S$; hence $\mu$ is trivial on $\Tail$ (Kolmogorov).
+        \item[(ii)] $\mu(\cdot \mid \Tail)(\omega) = \mu$ for $\mu$-a.e.\ $\omega$.
+        \item[(iii)] The eventual-agreement class
+          $\set{\zeta : \zeta_i \neq \omega_i \text{ for finitely many } i}$ of $\omega$ is a
+          $\mu$-null tail event containing $\omega$; consequently
+          \[\neg\; \forall^{\mu}\text{-a.e. } \omega,\ \forall A \in \Tail:\
+            \mu(A \mid \Tail)(\omega) = \1_A(\omega),\]
+          so no version of $\mu(\cdot \mid \Tail)$ is proper.
+    \end{enumerate}
 \end{theorem}
