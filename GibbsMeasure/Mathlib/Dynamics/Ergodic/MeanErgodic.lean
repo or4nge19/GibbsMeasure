@@ -18,7 +18,7 @@ public import GibbsMeasure.Mathlib.Probability.Kernel.InvariantSigmaAlgebra
 # The mean ergodic theorem along Følner sets
 
 Let a group `G` act on a finite measure space `(Ω, μ)` by measure-preserving maps, let `𝓘` be the
-σ-algebra `MeasurableSpace.invariants G Ω` of strictly invariant events, and let `F : κ → Finset G`
+σ-algebra `MeasurableSpace.smulInvariants G Ω` of strictly invariant events, and let `F : κ → Finset G`
 be a *Følner net* of finite sets along a filter `l`: eventually non-empty, with
 `|(g • F k) ∆ F k| / |F k| → 0` for every `g`. For `f : Ω → E` put
 `R_k f = |F k|⁻¹ ∑_{i ∈ F k} f ∘ (i • ·)`. Then
@@ -36,7 +36,7 @@ Georgii states both for `ℤ^d` acting on a probability space along a sequence o
 `Λ_n` with `|Λ_n| → ∞`. Nothing in the proof uses the cubes beyond the Følner property, nor the
 group beyond its acting by measure-preserving maps; the statements here are at that generality.
 For an additive group acting by `+ᵥ`, see the `Additive` section: the invariant σ-algebra is then
-`MeasurableSpace.invariants (Multiplicative G) Ω`
+`MeasurableSpace.smulInvariants (Multiplicative G) Ω`
 (`MeasureTheory.tendsto_eLpNorm_inv_card_smul_sum_vadd_sub_condExp_one` and companions).
 
 ## The Hilbert space theorem
@@ -329,7 +329,7 @@ on the invariant null set `⋃_g {f ∘ (g • ·) ≠ f}`. Countability is used
 nowhere else; no invariance of `μ` is needed. -/
 theorem _root_.MeasurableSpace.exists_stronglyMeasurable_invariants_ae_eq [Countable G]
     {f : Ω → X} (hf : StronglyMeasurable f) (hae : ∀ g : G, (fun ω ↦ f (g • ω)) =ᵐ[μ] f) :
-    ∃ f' : Ω → X, StronglyMeasurable[MeasurableSpace.invariants G Ω] f' ∧ f =ᵐ[μ] f' := by
+    ∃ f' : Ω → X, StronglyMeasurable[MeasurableSpace.smulInvariants G Ω] f' ∧ f =ᵐ[μ] f' := by
   classical
   set P : Ω → Prop := fun ω ↦ ∀ g : G, f (g • ω) = f ω with hP
   have hPinv : ∀ (c : G) ω, P (c • ω) ↔ P ω := by
@@ -368,7 +368,7 @@ theorem _root_.MeasurableSpace.exists_stronglyMeasurable_invariants_ae_eq [Count
         have hc' : c • ω ∉ Nᶜ := fun h ↦ h ((hmem _).2 hc)
         rw [Set.indicator_of_notMem hω', Set.indicator_of_notMem hc']
     borelize X
-    exact (stronglyMeasurable_iff_measurable_separable (m := MeasurableSpace.invariants G Ω)).2
+    exact (stronglyMeasurable_iff_measurable_separable (m := MeasurableSpace.smulInvariants G Ω)).2
       ⟨MeasurableSpace.measurable_invariants_of_forall_smul_eq hf'.measurable hinv,
         hf'.isSeparable_range⟩
   · filter_upwards [measure_eq_zero_iff_ae_notMem.1 hN0] with ω hω
@@ -417,7 +417,7 @@ lemma Lp.coeFn_inv_card_smul_sum_compMeasurePreservingₗᵢ_smul (F : Finset G)
 /-- Over a countable group, the `𝓘`-measurable classes in `L^p` are exactly the common fixed
 points of the Koopman operators. The forward direction holds for any group. -/
 theorem Lp.mem_lpMeas_invariants_iff [Countable G] (f : Lp E p μ) :
-    f ∈ lpMeas E ℝ (MeasurableSpace.invariants G Ω) p μ ↔
+    f ∈ lpMeas E ℝ (MeasurableSpace.smulInvariants G Ω) p μ ↔
       ∀ g : G, Lp.compMeasurePreservingₗᵢ ℝ (g • ·) (measurePreserving_smul g μ) f = f := by
   constructor
   · intro h g
@@ -457,12 +457,12 @@ theorem Lp.tendsto_inv_card_smul_sum_compMeasurePreservingₗᵢ_smul_condExpL2
     (f : Lp E 2 μ) :
     Tendsto (fun k ↦ ((F k).card : ℝ)⁻¹ •
         ∑ i ∈ F k, Lp.compMeasurePreservingₗᵢ ℝ (i • ·) (measurePreserving_smul i μ) f) l
-      (𝓝 (condExpL2 E ℝ (MeasurableSpace.invariants_le (M := G)) f : Lp E 2 μ)) := by
-  have : Fact (MeasurableSpace.invariants G Ω ≤ _) := ⟨MeasurableSpace.invariants_le (M := G)⟩
+      (𝓝 (condExpL2 E ℝ (MeasurableSpace.smulInvariants_le (M := G)) f : Lp E 2 μ)) := by
+  have : Fact (MeasurableSpace.smulInvariants G Ω ≤ _) := ⟨MeasurableSpace.smulInvariants_le (M := G)⟩
   have h := LinearIsometry.tendsto_inv_card_smul_sum_starProjection_of_foelner
     (fun g : G ↦ Lp.compMeasurePreservingₗᵢ ℝ (g • ·) (measurePreserving_smul g μ))
     (fun g i f ↦ Lp.compMeasurePreservingₗᵢ_smul_compMeasurePreservingₗᵢ_smul g i f)
-    (K := lpMeas E ℝ (MeasurableSpace.invariants G Ω) 2 μ)
+    (K := lpMeas E ℝ (MeasurableSpace.smulInvariants G Ω) 2 μ)
     (fun f ↦ Lp.mem_lpMeas_invariants_iff f) hne hF f
   exact h
 
@@ -472,7 +472,7 @@ theorem tendsto_eLpNorm_inv_card_smul_sum_sub_condExp_two (hne : ∀ᶠ k in l, 
     (hF : ∀ g : G, Tendsto (fun k ↦ (((g • F k) ∆ F k).card : ℝ) / (F k).card) l (𝓝 0))
     {f : Ω → E} (hf : MemLp f 2 μ) :
     Tendsto (fun k ↦ eLpNorm (fun ω ↦ ((F k).card : ℝ)⁻¹ • ∑ i ∈ F k, f (i • ω) -
-      (μ[f | MeasurableSpace.invariants G Ω]) ω) 2 μ) l (𝓝 0) := by
+      (μ[f | MeasurableSpace.smulInvariants G Ω]) ω) 2 μ) l (𝓝 0) := by
   have h := (Lp.tendsto_Lp_iff_tendsto_eLpNorm' _ _).1
     (Lp.tendsto_inv_card_smul_sum_compMeasurePreservingₗᵢ_smul_condExpL2 hne hF (hf.toLp f))
   refine h.congr fun k ↦ eLpNorm_congr_ae ?_
@@ -480,7 +480,7 @@ theorem tendsto_eLpNorm_inv_card_smul_sum_sub_condExp_two (hne : ∀ᶠ k in l, 
   have h2 : ∀ᵐ ω ∂μ, ∀ i ∈ F k, (hf.toLp f) (i • ω) = f (i • ω) := by
     rw [eventually_all_finset]
     exact fun i _ ↦ (measurePreserving_smul i μ).quasiMeasurePreserving.ae_eq_comp hf.coeFn_toLp
-  have h3 := hf.condExpL2_ae_eq_condExp (𝕜 := ℝ) (MeasurableSpace.invariants_le (M := G))
+  have h3 := hf.condExpL2_ae_eq_condExp (𝕜 := ℝ) (MeasurableSpace.smulInvariants_le (M := G))
   filter_upwards [h1, h2, h3] with ω hω1 hω2 hω3
   simp only [Pi.sub_apply, hω1, hω3, Finset.sum_congr rfl hω2]
 
@@ -492,8 +492,8 @@ theorem Lp.tendsto_inv_card_smul_sum_compMeasurePreservingₗᵢ_smul_condExpL1C
     {s : Lp E 1 μ} {s₂ : Lp E 2 μ} (hss₂ : ⇑s₂ =ᵐ[μ] ⇑s) :
     Tendsto (fun k ↦ ((F k).card : ℝ)⁻¹ •
         ∑ i ∈ F k, Lp.compMeasurePreservingₗᵢ ℝ (i • ·) (measurePreserving_smul i μ) s) l
-      (𝓝 (condExpL1CLM E (MeasurableSpace.invariants_le (M := G)) μ s)) := by
-  have hm : MeasurableSpace.invariants G Ω ≤ _ := MeasurableSpace.invariants_le (M := G)
+      (𝓝 (condExpL1CLM E (MeasurableSpace.smulInvariants_le (M := G)) μ s)) := by
+  have hm : MeasurableSpace.smulInvariants G Ω ≤ _ := MeasurableSpace.smulInvariants_le (M := G)
   have h2 := (Lp.tendsto_Lp_iff_tendsto_eLpNorm' _ _).1
     (Lp.tendsto_inv_card_smul_sum_compMeasurePreservingₗᵢ_smul_condExpL2 hne hF s₂)
   rw [Lp.tendsto_Lp_iff_tendsto_eLpNorm']
@@ -509,15 +509,15 @@ theorem Lp.tendsto_inv_card_smul_sum_compMeasurePreservingₗᵢ_smul_condExpL1C
     have e3 : ∀ᵐ ω ∂μ, ∀ i ∈ F k, s₂ (i • ω) = s (i • ω) := by
       rw [eventually_all_finset]
       exact fun i _ ↦ (measurePreserving_smul i μ).quasiMeasurePreserving.ae_eq_comp hss₂
-    have e4 : ⇑(condExpL1CLM E hm μ s) =ᵐ[μ] μ[⇑s | MeasurableSpace.invariants G Ω] := by
+    have e4 : ⇑(condExpL1CLM E hm μ s) =ᵐ[μ] μ[⇑s | MeasurableSpace.smulInvariants G Ω] := by
       have := condExp_ae_eq_condExpL1CLM hm (L1.integrable_coeFn s)
       rw [Integrable.toL1_coeFn] at this
       exact this.symm
-    have e5 : μ[⇑s | MeasurableSpace.invariants G Ω] =ᵐ[μ]
-        μ[⇑s₂ | MeasurableSpace.invariants G Ω] :=
+    have e5 : μ[⇑s | MeasurableSpace.smulInvariants G Ω] =ᵐ[μ]
+        μ[⇑s₂ | MeasurableSpace.smulInvariants G Ω] :=
       condExp_congr_ae hss₂.symm
     have e6 : ⇑(condExpL2 E ℝ hm s₂ : Lp E 2 μ) =ᵐ[μ]
-        μ[⇑s₂ | MeasurableSpace.invariants G Ω] := by
+        μ[⇑s₂ | MeasurableSpace.smulInvariants G Ω] := by
       have := (Lp.memLp s₂).condExpL2_ae_eq_condExp (𝕜 := ℝ) hm
       rwa [Lp.toLp_coeFn] at this
     filter_upwards [e1, e2, e3, e4, e5, e6] with ω h1 h2 h3 h4 h5 h6
@@ -547,8 +547,8 @@ theorem Lp.tendsto_inv_card_smul_sum_compMeasurePreservingₗᵢ_smul_condExpL1C
     (f : Lp E 1 μ) :
     Tendsto (fun k ↦ ((F k).card : ℝ)⁻¹ •
         ∑ i ∈ F k, Lp.compMeasurePreservingₗᵢ ℝ (i • ·) (measurePreserving_smul i μ) f) l
-      (𝓝 (condExpL1CLM E (MeasurableSpace.invariants_le (M := G)) μ f)) := by
-  have hm : MeasurableSpace.invariants G Ω ≤ _ := MeasurableSpace.invariants_le (M := G)
+      (𝓝 (condExpL1CLM E (MeasurableSpace.smulInvariants_le (M := G)) μ f)) := by
+  have hm : MeasurableSpace.smulInvariants G Ω ≤ _ := MeasurableSpace.smulInvariants_le (M := G)
   have hclosed : IsClosed {f : Lp E 1 μ | Tendsto (fun k ↦ ((F k).card : ℝ)⁻¹ •
       ∑ i ∈ F k, Lp.compMeasurePreservingₗᵢ ℝ (i • ·) (measurePreserving_smul i μ) f) l
         (𝓝 (condExpL1CLM E hm μ f))} :=
@@ -575,7 +575,7 @@ theorem tendsto_eLpNorm_inv_card_smul_sum_sub_condExp_one (hne : ∀ᶠ k in l, 
     (hF : ∀ g : G, Tendsto (fun k ↦ (((g • F k) ∆ F k).card : ℝ) / (F k).card) l (𝓝 0))
     {f : Ω → E} (hf : Integrable f μ) :
     Tendsto (fun k ↦ eLpNorm (fun ω ↦ ((F k).card : ℝ)⁻¹ • ∑ i ∈ F k, f (i • ω) -
-      (μ[f | MeasurableSpace.invariants G Ω]) ω) 1 μ) l (𝓝 0) := by
+      (μ[f | MeasurableSpace.smulInvariants G Ω]) ω) 1 μ) l (𝓝 0) := by
   have h := (Lp.tendsto_Lp_iff_tendsto_eLpNorm' _ _).1
     (Lp.tendsto_inv_card_smul_sum_compMeasurePreservingₗᵢ_smul_condExpL1CLM hne hF (hf.toL1 f))
   refine h.congr fun k ↦ eLpNorm_congr_ae ?_
@@ -583,7 +583,7 @@ theorem tendsto_eLpNorm_inv_card_smul_sum_sub_condExp_one (hne : ∀ᶠ k in l, 
   have h2 : ∀ᵐ ω ∂μ, ∀ i ∈ F k, (hf.toL1 f) (i • ω) = f (i • ω) := by
     rw [eventually_all_finset]
     exact fun i _ ↦ (measurePreserving_smul i μ).quasiMeasurePreserving.ae_eq_comp hf.coeFn_toL1
-  have h3 := condExp_ae_eq_condExpL1CLM (MeasurableSpace.invariants_le (M := G)) hf
+  have h3 := condExp_ae_eq_condExpL1CLM (MeasurableSpace.smulInvariants_le (M := G)) hf
   filter_upwards [h1, h2, h3] with ω hω1 hω2 hω3
   simp only [Pi.sub_apply, hω1, ← hω3, Finset.sum_congr rfl hω2]
 
@@ -594,10 +594,10 @@ theorem tendsto_integral_norm_inv_card_smul_sum_sub_condExp (hne : ∀ᶠ k in l
     (hF : ∀ g : G, Tendsto (fun k ↦ (((g • F k) ∆ F k).card : ℝ) / (F k).card) l (𝓝 0))
     {f : Ω → E} (hf : Integrable f μ) :
     Tendsto (fun k ↦ ∫ ω, ‖((F k).card : ℝ)⁻¹ • ∑ i ∈ F k, f (i • ω) -
-      (μ[f | MeasurableSpace.invariants G Ω]) ω‖ ∂μ) l (𝓝 0) := by
+      (μ[f | MeasurableSpace.smulInvariants G Ω]) ω‖ ∂μ) l (𝓝 0) := by
   have h := tendsto_eLpNorm_inv_card_smul_sum_sub_condExp_one hne hF hf
   have hmeas : ∀ k, AEStronglyMeasurable (fun ω ↦ ((F k).card : ℝ)⁻¹ • ∑ i ∈ F k, f (i • ω) -
-      (μ[f | MeasurableSpace.invariants G Ω]) ω) μ := fun k ↦
+      (μ[f | MeasurableSpace.smulInvariants G Ω]) ω) μ := fun k ↦
     (((integrable_finsetSum (F k) fun i _ ↦
       (measurePreserving_smul i μ).integrable_comp_of_integrable hf).smul _).sub
         integrable_condExp).aestronglyMeasurable
@@ -614,7 +614,7 @@ end Mul
 /-! ### Additive groups
 
 For an additive group acting by `+ᵥ`, the invariant σ-algebra of the action is
-`MeasurableSpace.invariants (Multiplicative G) Ω`: `MeasurableSpace.invariants` is stated for
+`MeasurableSpace.smulInvariants (Multiplicative G) Ω`: `MeasurableSpace.smulInvariants` is stated for
 `SMul`, and `Multiplicative G` acts on `Ω` by `ofAdd g • ω = g +ᵥ ω`. The statements are
 transported along this identification. -/
 
@@ -671,10 +671,10 @@ lemma tendsto_card_smul_map_ofAdd_symmDiff_div_card (g : Multiplicative G) :
 /-- **Georgii (14.A3), the `L²` ergodic theorem**, for an additive group acting by `+ᵥ`
 (Georgii's `ℤ^d`): for `f ∈ L²(μ)` and a Følner net of finite sets,
 `‖|F k|⁻¹ ∑_{i ∈ F k} f ∘ (i +ᵥ ·) - μ[f | 𝓘]‖₂ → 0`, where `𝓘` is the invariant σ-algebra
-`MeasurableSpace.invariants (Multiplicative G) Ω`. -/
+`MeasurableSpace.smulInvariants (Multiplicative G) Ω`. -/
 theorem tendsto_eLpNorm_inv_card_smul_sum_vadd_sub_condExp_two {f : Ω → E} (hf : MemLp f 2 μ) :
     Tendsto (fun k ↦ eLpNorm (fun ω ↦ ((F k).card : ℝ)⁻¹ • ∑ i ∈ F k, f (i +ᵥ ω) -
-      (μ[f | MeasurableSpace.invariants (Multiplicative G) Ω]) ω) 2 μ) l (𝓝 0) := by
+      (μ[f | MeasurableSpace.smulInvariants (Multiplicative G) Ω]) ω) 2 μ) l (𝓝 0) := by
   have : MeasurableConstSMul (Multiplicative G) Ω :=
     ⟨fun c ↦ measurable_const_vadd (Multiplicative.toAdd c)⟩
   have : SMulInvariantMeasure (Multiplicative G) Ω μ :=
@@ -689,11 +689,11 @@ theorem tendsto_eLpNorm_inv_card_smul_sum_vadd_sub_condExp_two {f : Ω → E} (h
 /-- **Georgii (14.A5), the mean ergodic theorem**, for an additive group acting by `+ᵥ`
 (Georgii's `ℤ^d`): for integrable `f` and a Følner net of finite sets,
 `‖|F k|⁻¹ ∑_{i ∈ F k} f ∘ (i +ᵥ ·) - μ[f | 𝓘]‖₁ → 0`, where `𝓘` is the invariant σ-algebra
-`MeasurableSpace.invariants (Multiplicative G) Ω`. -/
+`MeasurableSpace.smulInvariants (Multiplicative G) Ω`. -/
 theorem tendsto_eLpNorm_inv_card_smul_sum_vadd_sub_condExp_one {f : Ω → E}
     (hf : Integrable f μ) :
     Tendsto (fun k ↦ eLpNorm (fun ω ↦ ((F k).card : ℝ)⁻¹ • ∑ i ∈ F k, f (i +ᵥ ω) -
-      (μ[f | MeasurableSpace.invariants (Multiplicative G) Ω]) ω) 1 μ) l (𝓝 0) := by
+      (μ[f | MeasurableSpace.smulInvariants (Multiplicative G) Ω]) ω) 1 μ) l (𝓝 0) := by
   have : MeasurableConstSMul (Multiplicative G) Ω :=
     ⟨fun c ↦ measurable_const_vadd (Multiplicative.toAdd c)⟩
   have : SMulInvariantMeasure (Multiplicative G) Ω μ :=
@@ -711,7 +711,7 @@ by `+ᵥ`: for integrable `f` and a Følner net of finite sets,
 theorem tendsto_integral_norm_inv_card_smul_sum_vadd_sub_condExp {f : Ω → E}
     (hf : Integrable f μ) :
     Tendsto (fun k ↦ ∫ ω, ‖((F k).card : ℝ)⁻¹ • ∑ i ∈ F k, f (i +ᵥ ω) -
-      (μ[f | MeasurableSpace.invariants (Multiplicative G) Ω]) ω‖ ∂μ) l (𝓝 0) := by
+      (μ[f | MeasurableSpace.smulInvariants (Multiplicative G) Ω]) ω‖ ∂μ) l (𝓝 0) := by
   have : MeasurableConstSMul (Multiplicative G) Ω :=
     ⟨fun c ↦ measurable_const_vadd (Multiplicative.toAdd c)⟩
   have : SMulInvariantMeasure (Multiplicative G) Ω μ :=

@@ -66,7 +66,7 @@ variable (Θ : Subgroup (Transformation S E))
 /-- **Georgii (14.2).** The σ-algebra `𝓘` of `Θ`-invariant events: the measurable sets fixed by
 every transformation in `Θ`. -/
 abbrev invariantEvents : MeasurableSpace (S → E) :=
-  MeasurableSpace.invariants Θ (S → E)
+  MeasurableSpace.smulInvariants Θ (S → E)
 
 /-- **Georgii (14.1).** The set `𝓟_Θ` of `Θ`-invariant random fields: the probability measures
 on configuration space invariant under every transformation in `Θ`. -/
@@ -113,7 +113,7 @@ lemma mem_invariantFields_iff_forall_kernel_invariant {μ : Measure (S → E)} :
 of every transformation in `Θ`. -/
 lemma measurableSet_invariantEvents {A : Set (S → E)} :
     MeasurableSet[invariantEvents Θ] A ↔ MeasurableSet A ∧ ∀ τ ∈ Θ, τ.toFun ⁻¹' A = A := by
-  rw [MeasurableSpace.measurableSet_invariants]
+  rw [MeasurableSpace.measurableSet_smulInvariants]
   refine and_congr_right fun _ ↦ ?_
   constructor
   · intro h τ hτ
@@ -126,7 +126,7 @@ open scoped Pointwise in
 every `θ ∈ Θ`. -/
 lemma measurableSet_invariantEvents_iff_image {A : Set (S → E)} :
     MeasurableSet[invariantEvents Θ] A ↔ MeasurableSet A ∧ ∀ τ ∈ Θ, τ.toFun '' A = A := by
-  rw [MeasurableSpace.measurableSet_invariants_iff_smul_eq]
+  rw [MeasurableSpace.measurableSet_smulInvariants_iff_smul_eq]
   refine and_congr_right fun _ ↦ ?_
   constructor
   · intro h τ hτ

@@ -587,7 +587,7 @@ alignment:
       note: >-
         For any countable subgroup of the transformation group, as Georgii's footnote licenses,
         not only the shift group. The general facts live in the Mathlib layer
-        (MeasurableSpace.invariants, smulInvariantMeasure_iff_exists_withDensity,
+        (MeasurableSpace.smulInvariants, smulInvariantMeasure_iff_exists_withDensity,
         eq_of_forall_measurableSet_invariants_eq, exists_measurableSet_invariants_eq_one_eq_zero)
         for a countable group acting measurably on any measurable space. (14.5)(d) is singularity
         on the invariant sigma-algebra, as Georgii states it. Georgii's shift group is shiftGroup.

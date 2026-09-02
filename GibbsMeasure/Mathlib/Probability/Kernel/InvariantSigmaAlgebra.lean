@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import Mathlib.MeasureTheory.MeasurableSpace.Invariants
 public import Mathlib.Probability.Kernel.Invariance
 public import Mathlib.MeasureTheory.Integral.Lebesgue.Markov
 public import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
@@ -59,7 +60,7 @@ while its invariant measures form a segment, so triviality on it does not imply 
 ## The strictly invariant σ-algebra of a countable group action
 
 For a *group action* the situation of Example (7.5) cannot occur once the group is countable:
-`MeasurableSpace.invariants M Ω` is Georgii's σ-algebra `𝓘` (14.2) of strictly invariant
+`MeasurableSpace.smulInvariants M Ω` is Georgii's σ-algebra `𝓘` (14.2) of strictly invariant
 measurable sets, a measurable function is `𝓘`-measurable iff it is invariant
 (`MeasurableSpace.measurable_invariants_iff`, Remark (14.3)(1)), and over a countable group every
 a.e. invariant set or density can be corrected to a strictly invariant one
@@ -94,11 +95,13 @@ variable {M Ω : Type*} [m : MeasurableSpace Ω] [SMul M Ω]
 
 variable (M Ω) in
 /-- **Georgii (14.2).** The σ-algebra `𝓘` of strictly invariant measurable sets of an action:
-the measurable `A` with `(c • ·) ⁻¹' A = A` for every `c`. For a group action these are exactly
+the measurable `A` with `(c • ·) ⁻¹' A = A` for every `c`. It is the infimum over `c : M` of
+Mathlib's single-map `MeasurableSpace.invariants (c • ·)` inside `m`
+(`MeasurableSpace.smulInvariants_eq_inf_iInf_invariants`). For a group action these are exactly
 the measurable sets with `g • A = A` for all `g`
-(`MeasurableSpace.measurableSet_invariants_iff_smul_eq`). -/
+(`MeasurableSpace.measurableSet_smulInvariants_iff_smul_eq`). -/
 @[instance_reducible]
-def invariants : MeasurableSpace Ω where
+def smulInvariants : MeasurableSpace Ω where
   MeasurableSet' A := MeasurableSet A ∧ ∀ c : M, (c • ·) ⁻¹' A = A
   measurableSet_empty := ⟨.empty, fun _ ↦ Set.preimage_empty⟩
   measurableSet_compl A hA := ⟨hA.1.compl, fun c ↦ by
@@ -107,23 +110,32 @@ def invariants : MeasurableSpace Ω where
     rw [Set.preimage_iUnion]
     exact Set.iUnion_congr fun n ↦ (hf n).2 c⟩
 
-@[simp] lemma measurableSet_invariants {A : Set Ω} :
-    MeasurableSet[invariants M Ω] A ↔ MeasurableSet A ∧ ∀ c : M, (c • ·) ⁻¹' A = A := Iff.rfl
+@[simp] lemma measurableSet_smulInvariants {A : Set Ω} :
+    MeasurableSet[smulInvariants M Ω] A ↔ MeasurableSet A ∧ ∀ c : M, (c • ·) ⁻¹' A = A := Iff.rfl
 
-lemma invariants_le : invariants M Ω ≤ m := fun _ h ↦ h.1
+lemma smulInvariants_le : smulInvariants M Ω ≤ m := fun _ h ↦ h.1
+
+/-- The action-invariant σ-algebra is the infimum, inside `m`, of Mathlib's single-map
+`MeasurableSpace.invariants (c • ·)` over the acting elements. -/
+lemma smulInvariants_eq_inf_iInf_invariants :
+    smulInvariants M Ω = m ⊓ ⨅ c : M, invariants (c • · : Ω → Ω) := by
+  ext A
+  rw [measurableSet_smulInvariants, measurableSet_inf, measurableSet_iInf]
+  simp only [measurableSet_invariants]
+  exact ⟨fun h ↦ ⟨h.1, fun c ↦ ⟨h.1, h.2 c⟩⟩, fun h ↦ ⟨h.1, fun c ↦ (h.2 c).2⟩⟩
 
 /-- Georgii (14.3)(1), the easy direction: a measurable invariant function is
 `𝓘`-measurable. -/
 lemma measurable_invariants_of_forall_smul_eq {X : Type*} [MeasurableSpace X] {f : Ω → X}
     (hfm : Measurable f) (hf : ∀ (c : M) (ω : Ω), f (c • ω) = f ω) :
-    Measurable[invariants M Ω] f := fun _U hU ↦
+    Measurable[smulInvariants M Ω] f := fun _U hU ↦
   ⟨hfm hU, fun c ↦ by ext ω; simp [hf c ω]⟩
 
 /-- Georgii (14.3)(1), the substantial direction: an `𝓘`-measurable function into a space with
 measurable singletons is invariant, because each fibre `f ⁻¹' {f ω}` is a strictly invariant
 set containing `ω`. -/
 lemma smul_eq_of_measurable_invariants {X : Type*} [MeasurableSpace X]
-    [MeasurableSingletonClass X] {f : Ω → X} (hf : Measurable[invariants M Ω] f) (c : M)
+    [MeasurableSingletonClass X] {f : Ω → X} (hf : Measurable[smulInvariants M Ω] f) (c : M)
     (ω : Ω) : f (c • ω) = f ω := by
   have h := (hf (measurableSet_singleton (f ω))).2 c
   have hmem : ω ∈ f ⁻¹' {f ω} := rfl
@@ -135,16 +147,16 @@ is measurable for the invariant σ-algebra `𝓘` if and only if it is invariant
 `f (c • ω) = f ω` for all `c` and `ω`. -/
 theorem measurable_invariants_iff {X : Type*} [MeasurableSpace X] [MeasurableSingletonClass X]
     {f : Ω → X} :
-    Measurable[invariants M Ω] f ↔ Measurable f ∧ ∀ (c : M) (ω : Ω), f (c • ω) = f ω :=
-  ⟨fun hf ↦ ⟨hf.mono invariants_le le_rfl, smul_eq_of_measurable_invariants hf⟩,
+    Measurable[smulInvariants M Ω] f ↔ Measurable f ∧ ∀ (c : M) (ω : Ω), f (c • ω) = f ω :=
+  ⟨fun hf ↦ ⟨hf.mono smulInvariants_le le_rfl, smul_eq_of_measurable_invariants hf⟩,
     fun hf ↦ measurable_invariants_of_forall_smul_eq hf.1 hf.2⟩
 
 open scoped Pointwise in
 /-- For a group action, the strictly invariant sets are the measurable sets fixed setwise by
 every group element — Georgii's (14.2) as literally stated, `θ_i A = A`. -/
-lemma measurableSet_invariants_iff_smul_eq {G : Type*} [Group G] [MulAction G Ω] {A : Set Ω} :
-    MeasurableSet[invariants G Ω] A ↔ MeasurableSet A ∧ ∀ g : G, g • A = A := by
-  rw [measurableSet_invariants]
+lemma measurableSet_smulInvariants_iff_smul_eq {G : Type*} [Group G] [MulAction G Ω] {A : Set Ω} :
+    MeasurableSet[smulInvariants G Ω] A ↔ MeasurableSet A ∧ ∀ g : G, g • A = A := by
+  rw [measurableSet_smulInvariants]
   refine and_congr_right fun _ ↦ ?_
   constructor
   · intro h g
@@ -863,7 +875,7 @@ theorem ergodicSMul_iff_mem_extremePoints [IsProbabilityMeasure μ]
 /-- Strictly invariant sets are almost surely invariant: `𝓘 ≤ I_Π(μ)`. -/
 lemma invariants_le_aeInvariantSigmaAlgebraFamily [IsFiniteMeasure μ]
     (hμ : ∀ g : G, Invariant (smulKernel G g) μ) :
-    MeasurableSpace.invariants G Ω ≤ aeInvariantSigmaAlgebraFamily (smulKernel G) hμ :=
+    MeasurableSpace.smulInvariants G Ω ≤ aeInvariantSigmaAlgebraFamily (smulKernel G) hμ :=
   fun A hA ↦ (measurableSet_aeInvariantSigmaAlgebraFamily_smul hμ).2
     ⟨hA.1, fun g ↦ by rw [hA.2 g]; exact Filter.EventuallyEq.rfl⟩
 
@@ -884,7 +896,7 @@ orbit-wise supremum. -/
 lemma exists_measurable_invariants_ae_eq [Countable G] [IsFiniteMeasure μ]
     (hμ : ∀ g : G, Invariant (smulKernel G g) μ) {f : Ω → ℝ≥0∞}
     (hf : Measurable[aeInvariantSigmaAlgebraFamily (smulKernel G) hμ] f) :
-    ∃ g : Ω → ℝ≥0∞, Measurable[MeasurableSpace.invariants G Ω] g ∧ f =ᵐ[μ] g := by
+    ∃ g : Ω → ℝ≥0∞, Measurable[MeasurableSpace.smulInvariants G Ω] g ∧ f =ᵐ[μ] g := by
   have hne : Nonempty G := ⟨1⟩
   have hfm : Measurable f := hf.mono (aeInvariantSigmaAlgebraFamily_le hμ) le_rfl
   refine ⟨fun ω ↦ ⨆ i : G, f (i • ω), ?_, ?_⟩
@@ -904,7 +916,7 @@ under each group element agrees `μ`-a.e. with a strictly invariant set: the a.s
 `⋃ g, (g • ·) ⁻¹' A` of `A`. -/
 lemma exists_measurableSet_invariants_ae_eq [Countable G] {A : Set Ω} (hA : MeasurableSet A)
     (hae : ∀ g : G, (g • ·) ⁻¹' A =ᵐ[μ] A) :
-    ∃ B, MeasurableSet[MeasurableSpace.invariants G Ω] B ∧ μ (A ∆ B) = 0 := by
+    ∃ B, MeasurableSet[MeasurableSpace.smulInvariants G Ω] B ∧ μ (A ∆ B) = 0 := by
   refine ⟨⋃ g : G, (g • ·) ⁻¹' A,
     ⟨MeasurableSet.iUnion fun g ↦ measurable_const_smul g hA, fun c ↦ ?_⟩, ?_⟩
   · rw [Set.preimage_iUnion]
@@ -929,7 +941,7 @@ lemma exists_measurableSet_invariants_ae_eq [Countable G] {A : Set Ω} (hA : Mea
 /-- Triviality on the strictly invariant σ-algebra extends to every a.e. invariant set, over a
 countable group. -/
 lemma measure_eq_zero_or_one_of_forall_preimage_smul_ae_eq [Countable G]
-    (htriv : ∀ B, MeasurableSet[MeasurableSpace.invariants G Ω] B → μ B = 0 ∨ μ B = 1)
+    (htriv : ∀ B, MeasurableSet[MeasurableSpace.smulInvariants G Ω] B → μ B = 0 ∨ μ B = 1)
     {A : Set Ω} (hA : MeasurableSet A) (hae : ∀ g : G, (g • ·) ⁻¹' A =ᵐ[μ] A) :
     μ A = 0 ∨ μ A = 1 := by
   obtain ⟨B, hB, hAB⟩ := exists_measurableSet_invariants_ae_eq hA hae
@@ -943,7 +955,7 @@ the group is what allows the a.e. invariant sets to be corrected to strictly inv
 theorem ergodicSMul_iff_forall_measurableSet_invariants [Countable G] [IsProbabilityMeasure μ]
     (hμ : SMulInvariantMeasure G Ω μ) :
     ErgodicSMul G Ω μ ↔
-      ∀ A, MeasurableSet[MeasurableSpace.invariants G Ω] A → μ A = 0 ∨ μ A = 1 := by
+      ∀ A, MeasurableSet[MeasurableSpace.smulInvariants G Ω] A → μ A = 0 ∨ μ A = 1 := by
   constructor
   · intro herg A hA
     have hae : ∀ g : G, (g • ·) ⁻¹' A =ᵐ[μ] A := fun g ↦ by
@@ -966,7 +978,7 @@ theorem mem_extremePoints_iff_forall_measurableSet_invariants [Countable G]
     [IsProbabilityMeasure μ] (hμ : SMulInvariantMeasure G Ω μ) :
     μ ∈ ({ν : Measure Ω | IsProbabilityMeasure ν ∧ SMulInvariantMeasure G Ω ν} :
         Set (Measure Ω)).extremePoints ℝ≥0∞ ↔
-      ∀ A, MeasurableSet[MeasurableSpace.invariants G Ω] A → μ A = 0 ∨ μ A = 1 :=
+      ∀ A, MeasurableSet[MeasurableSpace.smulInvariants G Ω] A → μ A = 0 ∨ μ A = 1 :=
   (ergodicSMul_iff_mem_extremePoints hμ).symm.trans
     (ergodicSMul_iff_forall_measurableSet_invariants hμ)
 
@@ -974,7 +986,7 @@ theorem mem_extremePoints_iff_forall_measurableSet_invariants [Countable G]
 again invariant. This is the direction of Georgii (14.5)(b) that needs no countability. -/
 theorem smulInvariantMeasure_withDensity_of_measurable_invariants [IsFiniteMeasure μ]
     (hμ : SMulInvariantMeasure G Ω μ) {f : Ω → ℝ≥0∞}
-    (hf : Measurable[MeasurableSpace.invariants G Ω] f) :
+    (hf : Measurable[MeasurableSpace.smulInvariants G Ω] f) :
     SMulInvariantMeasure G Ω (μ.withDensity f) := by
   have hinv : ∀ g : G, Invariant (smulKernel G g) μ :=
     smulInvariantMeasure_iff_forall_invariant.1 hμ
@@ -989,7 +1001,7 @@ theorem smulInvariantMeasure_withDensity_iff [Countable G] [IsFiniteMeasure μ]
     (hμ : SMulInvariantMeasure G Ω μ) {f : Ω → ℝ≥0∞} (hf : Measurable f)
     (hfin : ∫⁻ ω, f ω ∂μ ≠ ∞) :
     SMulInvariantMeasure G Ω (μ.withDensity f) ↔
-      ∃ g, Measurable[MeasurableSpace.invariants G Ω] g ∧ f =ᵐ[μ] g := by
+      ∃ g, Measurable[MeasurableSpace.smulInvariants G Ω] g ∧ f =ᵐ[μ] g := by
   have hinv : ∀ g : G, Invariant (smulKernel G g) μ :=
     smulInvariantMeasure_iff_forall_invariant.1 hμ
   constructor
@@ -1009,7 +1021,7 @@ invariant σ-algebra `𝓘`. -/
 theorem smulInvariantMeasure_iff_exists_withDensity [Countable G] [IsProbabilityMeasure μ]
     (hμ : SMulInvariantMeasure G Ω μ) {ν : Measure Ω} [IsProbabilityMeasure ν] (hνμ : ν ≪ μ) :
     SMulInvariantMeasure G Ω ν ↔
-      ∃ f, Measurable[MeasurableSpace.invariants G Ω] f ∧ ν = μ.withDensity f := by
+      ∃ f, Measurable[MeasurableSpace.smulInvariants G Ω] f ∧ ν = μ.withDensity f := by
   constructor
   · intro hν
     set f := ν.rnDeriv μ with hfdef
@@ -1031,7 +1043,7 @@ invariant σ-algebra `𝓘`. -/
 theorem eq_of_forall_measurableSet_invariants_eq [Countable G] {μ ν : Measure Ω}
     [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
     (hμ : SMulInvariantMeasure G Ω μ) (hν : SMulInvariantMeasure G Ω ν)
-    (h : ∀ A, MeasurableSet[MeasurableSpace.invariants G Ω] A → μ A = ν A) : μ = ν := by
+    (h : ∀ A, MeasurableSet[MeasurableSpace.smulInvariants G Ω] A → μ A = ν A) : μ = ν := by
   set ρ : Measure Ω := (2⁻¹ : ℝ≥0∞) • μ + (2⁻¹ : ℝ≥0∞) • ν with hρdef
   have hρp : IsProbabilityMeasure ρ := ⟨by
     simp only [hρdef, Measure.coe_add, Measure.coe_smul, Pi.add_apply, Pi.smul_apply,
@@ -1051,9 +1063,9 @@ theorem eq_of_forall_measurableSet_invariants_eq [Countable G] {μ ν : Measure 
     exact (mul_eq_zero.1 (add_eq_zero.1 h0).2).resolve_left hhalf
   obtain ⟨f, hfI, hμf⟩ := (smulInvariantMeasure_iff_exists_withDensity hρinv hμρ).1 hμ
   obtain ⟨g, hgI, hνg⟩ := (smulInvariantMeasure_iff_exists_withDensity hρinv hνρ).1 hν
-  have hm : MeasurableSpace.invariants G Ω ≤ m := MeasurableSpace.invariants_le
+  have hm : MeasurableSpace.smulInvariants G Ω ≤ m := MeasurableSpace.smulInvariants_le
   have htrim : μ.trim hm = ν.trim hm :=
-    @Measure.ext _ (MeasurableSpace.invariants G Ω) _ _ fun A hA ↦ by
+    @Measure.ext _ (MeasurableSpace.smulInvariants G Ω) _ _ fun A hA ↦ by
       rw [trim_measurableSet_eq hm hA, trim_measurableSet_eq hm hA]
       exact h A hA
   have h1 : (ρ.trim hm).withDensity f = (ρ.trim hm).withDensity g := by
@@ -1074,18 +1086,18 @@ theorem exists_measurableSet_invariants_eq_one_eq_zero [Countable G] {μ ν : Me
     (hν : ν ∈ ({ρ : Measure Ω | IsProbabilityMeasure ρ ∧ SMulInvariantMeasure G Ω ρ} :
       Set (Measure Ω)).extremePoints ℝ≥0∞)
     (hne : μ ≠ ν) :
-    ∃ A, MeasurableSet[MeasurableSpace.invariants G Ω] A ∧ μ A = 1 ∧ ν A = 0 := by
+    ∃ A, MeasurableSet[MeasurableSpace.smulInvariants G Ω] A ∧ μ A = 1 ∧ ν A = 0 := by
   have hμm := hμ.1
   have hνm := hν.1
   have hμp : IsProbabilityMeasure μ := hμm.1
   have hνp : IsProbabilityMeasure ν := hνm.1
   have htrivμ := (mem_extremePoints_iff_forall_measurableSet_invariants hμm.2).1 hμ
   have htrivν := (mem_extremePoints_iff_forall_measurableSet_invariants hνm.2).1 hν
-  obtain ⟨A, hA, hAne⟩ : ∃ A, MeasurableSet[MeasurableSpace.invariants G Ω] A ∧ μ A ≠ ν A := by
+  obtain ⟨A, hA, hAne⟩ : ∃ A, MeasurableSet[MeasurableSpace.smulInvariants G Ω] A ∧ μ A ≠ ν A := by
     by_contra hall
     push Not at hall
     exact hne (eq_of_forall_measurableSet_invariants_eq hμm.2 hνm.2 hall)
-  have hAm : MeasurableSet A := MeasurableSpace.invariants_le _ hA
+  have hAm : MeasurableSet A := MeasurableSpace.smulInvariants_le _ hA
   rcases htrivμ A hA with hμ0 | hμ1 <;> rcases htrivν A hA with hν0 | hν1
   · exact absurd (hμ0.trans hν0.symm) hAne
   · exact ⟨Aᶜ, hA.compl, (prob_compl_eq_one_iff hAm).2 hμ0, (prob_compl_eq_zero_iff hAm).2 hν1⟩
@@ -1102,7 +1114,7 @@ theorem mutuallySingular_of_mem_extremePoints_smulInvariant [Countable G] {μ ν
     (hne : μ ≠ ν) : μ.MutuallySingular ν := by
   obtain ⟨A, hA, hμA, hνA⟩ := exists_measurableSet_invariants_eq_one_eq_zero hμ hν hne
   have hμp : IsProbabilityMeasure μ := hμ.1.1
-  have hAm : MeasurableSet A := MeasurableSpace.invariants_le _ hA
+  have hAm : MeasurableSet A := MeasurableSpace.smulInvariants_le _ hA
   exact ⟨Aᶜ, hAm.compl, (prob_compl_eq_zero_iff hAm).2 hμA, by rwa [compl_compl]⟩
 
 
