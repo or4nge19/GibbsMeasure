@@ -25,7 +25,7 @@ sources:
     authors: ["Hans-Otto Georgii"]
     id: "ISBN 978-3-11-025029-9; de Gruyter Studies in Mathematics 9"
     type: "book"
-    location: "Chapters 1-8 (principally 2.30, 2.33-2.34, 3.5, 4.15-4.23, 5.1-5.21, 6.9, 7.7-7.31, 8.5-8.23, 8.38-8.42)"
+    location: "Chapters 1-8 (principally 2.30, 2.33-2.34, 3.5, 4.15-4.23, 5.1-5.21, 6.9, 7.7-7.31, 8.5-8.23, 8.38-8.42); 9.1-9.16; 10.2-10.11; 11.1-11.10; 14.1-14.25; 15.1-15.11"
     relationship: "formalizes"
     author_endorsement: "not-contacted"
 
@@ -166,6 +166,42 @@ status:
       comparator_config: "Comparator/config_Sharpness.json"
     - declaration: "MeasureTheory.GibbsMeasure.PeierlsSharp.isBrokenSymmetry_spinFlip"
       file: "GibbsMeasure/Model/SymmetryBreaking.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.measurePreserving_gibbsSpecificationOfSigmaFiniteAdmissible_of_isLocalizedVersion"
+      file: "GibbsMeasure/Specification/SymmetryInheritance.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.measurePreserving_of_pairDefectBound_ne_top"
+      file: "GibbsMeasure/Model/OneDimensionalSymmetry.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Markov.isOneSidedMarkov_iff_isGlobalMarkov"
+      file: "GibbsMeasure/Specification/MarkovInt.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Markov.IsMarkovChain.isGibbsMeasure_chainSpecification"
+      file: "GibbsMeasure/Specification/MarkovInt.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Markov.isGibbsMeasure_transferSpecification_boundaryLawMeasure"
+      file: "GibbsMeasure/Model/BoundaryLaw.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.ergodicDecomposition_invariantFields"
+      file: "GibbsMeasure/Specification/InvariantDecomposition.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.ergodicDecomposition_invariantG"
+      file: "GibbsMeasure/Specification/InvariantDecomposition.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.ae_tendsto_shiftAverage_withLocalConvergence_cube"
+      file: "GibbsMeasure/Specification/ErgodicGibbsLimits.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.ae_tendsto_inv_card_smul_sum_vadd_condExp_cube"
+      file: "GibbsMeasure/Mathlib/Dynamics/Ergodic/Pointwise.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
 
