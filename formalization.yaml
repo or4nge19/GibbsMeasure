@@ -563,6 +563,18 @@ alignment:
         of the subgroup H_n — whose boundary fractions vanish; the cubes of Z^d are the instance.
         Ergodicity of v_n uses (14.9) and tail triviality of the tile product. No ergodic theorem
         is used.
+    - source: "Theorem (14.A8), the multidimensional individual ergodic theorem"
+      lean: "MeasureTheory.ae_tendsto_inv_card_smul_sum_vadd_condExp_cube"
+      module: "GibbsMeasure/Mathlib/Dynamics/Ergodic/Pointwise.lean"
+      status: "proved"
+      note: >-
+        Pointwise convergence of the averages over increasing cubes of Z^d to E[f | I], for any
+        integrable f, as the instance of a Tempelman-type theorem: an additive group acting
+        measure-preservingly on a finite measure space, along an increasing Foelner sequence with
+        |F_n - F_n + F_n| <= C |F_n|, C finite. Proof from the mean ergodic theorem on simple
+        functions plus the maximal inequality, following Georgii's estimate. Mathlib has no
+        pointwise ergodic theorem of any kind. Also the simultaneous version for countably many
+        f, which the ergodic decomposition (14.10) consumes, and the Foelner property of cubes.
     - source: "Theorems (14.A3), (14.A5): the L2 and L1 mean ergodic theorems"
       lean: "MeasureTheory.tendsto_integral_norm_inv_card_smul_sum_sub_condExp"
       module: "GibbsMeasure/Mathlib/Dynamics/Ergodic/MeanErgodic.lean"

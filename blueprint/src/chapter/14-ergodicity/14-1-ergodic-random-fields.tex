@@ -278,6 +278,32 @@ $(\Cfg, \mathcal{F})$, specialised to a subgroup $\Theta$ of the transformation 
     invariance, let $|\Delta| \to \infty$ along a F\o lner sequence of windows and $N \to \infty$.
 \end{proof}
 
+\begin{theorem}[Georgii (14.A8), the individual ergodic theorem]
+    \label{thm:erg-14A8}
+    \uses{thm:erg-14A3, lem:erg-14A6}
+    \lean{MeasureTheory.ae_tendsto_inv_card_smul_sum_vadd_condExp,
+      MeasureTheory.ae_forall_tendsto_inv_card_smul_sum_vadd_condExp,
+      MeasureTheory.ae_tendsto_inv_card_smul_sum_vadd_condExp_cube,
+      MeasureTheory.tendsto_card_vadd_cube_symmDiff_div_card}
+    \leanok
+
+    Let a countable additive group act on a finite measure space by measure-preserving maps and
+    let $(F_n)$ be an increasing F\o lner sequence of nonempty finite sets with
+    $|F_n - F_n + F_n| \le C|F_n|$, $C < \infty$. For integrable $f$,
+    $R_n f \to \mu(f \mid \mathcal{I})$ almost everywhere; for countably many $f$ simultaneously.
+    Increasing cubes in $\mathbb{Z}^d$ are such a sequence with $C = 3^d$.
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    For a simple $g$ with $\|f - g\|_1 < \varepsilon^2/(C+1)$ and $N$ with
+    $\|R_N g - \mu(g\mid\mathcal{I})\|_1$ small (Theorem \ref{thm:erg-14A3}),
+    $R_n g - R_n(R_N g) \to 0$ everywhere as an average of coboundaries, and the maximal
+    inequality (Lemma \ref{lem:erg-14A6}) applied to $f - g$ and to $R_N g - \mu(g\mid\mathcal{I})$,
+    with Markov's inequality on $\mu(f - g \mid \mathcal{I})$, bound
+    $\mu(\limsup_n |R_n f - \mu(f\mid\mathcal{I})| \ge 4\varepsilon)$ by $3\varepsilon$.
+\end{proof}
+
 \begin{remark}[The rest of Chapter 14]
     \label{rmk:erg-145bc}
     \uses{thm:erg-145}
