@@ -108,6 +108,103 @@ $(\Cfg, \mathcal{F})$, specialised to a subgroup $\Theta$ of the transformation 
     triviality of both on $\mathcal{I}$ forces the values $1$ and $0$.
 \end{proof}
 
+\begin{proposition}[Georgii (14.9)]
+    \label{prop:erg-149}
+    \uses{def:erg-invariant-events, def:tail}
+    \lean{MeasureTheory.GibbsMeasure.exists_measurableSet_tail_measure_symmDiff_eq_zero,
+      MeasureTheory.GibbsMeasure.ergodicSMul_of_mem_trivialOn_tail,
+      MeasureTheory.GibbsMeasure.shiftGroup_exists_disjoint_sites_preimage,
+      MeasureTheory.exists_measurableSet_iInf_measure_symmDiff_eq_zero}
+    \leanok
+
+    Let $\Theta$ be a group of transformations moving every finite volume off itself: for each
+    $\Lambda \in \Fin$ some $\tau \in \Theta$ has $\tau_*^{-1}\Lambda \cap \Lambda = \emptyset$
+    (the shift group of an infinite site group, or any group containing a shift of infinite
+    order). For $\mu \in \Prob_\Theta$ and $A \in \mathcal{I}$ there is $B \in \Tail$ with
+    $\mu(A \mathbin{\triangle} B) = 0$. In particular a tail-trivial $\mu \in \Prob_\Theta$ is
+    ergodic.
+\end{proposition}
+\begin{proof}
+    \leanok
+
+    Choose local events $B_n$ with $\mu(A \mathbin{\triangle} B_n) \le 2^{-n}$, shift each by a
+    $\tau_n \in \Theta$ moving its volume off itself, so that $\tau_n B_n$ is measurable for the
+    tail of the exhaustion at stage $n$ and, by invariance, still within $2^{-n}$ of $A$; then
+    $B = \limsup_n \tau_n B_n$ is a tail event and Borel--Cantelli gives
+    $\mu(A \mathbin{\triangle} B) = 0$.
+\end{proof}
+
+\begin{definition}[Georgii (14.14)]
+    \label{def:erg-invariantG}
+    \uses{def:gibbs-meas, def:erg-invariant-events}
+    \lean{MeasureTheory.GibbsMeasure.invariantG}
+    \leanok
+
+    $\mathcal{G}_\Theta(\gamma) = \Gibbs{\gamma} \cap \Prob_\Theta$, the $\Theta$-invariant
+    Gibbs measures.
+\end{definition}
+
+\begin{theorem}[Georgii (14.15)]
+    \label{thm:erg-1415}
+    \uses{def:erg-invariantG, thm:erg-145, prop:erg-149, thm:ext-invariant-density}
+    \lean{MeasureTheory.GibbsMeasure.isExtreme_invariantG,
+      MeasureTheory.GibbsMeasure.extremePoints_invariantG,
+      MeasureTheory.GibbsMeasure.mem_extremePoints_invariantG_iff_ergodicSMul,
+      MeasureTheory.GibbsMeasure.mem_invariantG_of_absolutelyContinuous,
+      MeasureTheory.GibbsMeasure.eq_of_forall_measurableSet_invariantEvents_eq_of_mem_invariantG,
+      MeasureTheory.GibbsMeasure.exists_measurableSet_invariantEvents_eq_one_eq_zero_of_mem_extremePoints_invariantG}
+    \leanok
+
+    Let $\Theta$ be as in Proposition \ref{prop:erg-149} and $\gamma$ a specification.
+    \begin{enumerate}
+        \item[(a)] $\mathrm{ex}\,\mathcal{G}_\Theta(\gamma) = \mathcal{G}_\Theta(\gamma) \cap
+              \mathrm{ex}\,\Prob_\Theta$: $\mu \in \mathcal{G}_\Theta(\gamma)$ is extreme there
+              iff it is ergodic.
+        \item[(b)] If $\mu \in \mathcal{G}_\Theta(\gamma)$, $\nu \in \Prob_\Theta$ and
+              $\nu \ll \mu$, then $\nu \in \mathcal{G}_\Theta(\gamma)$.
+        \item[(c)] $\mathcal{G}_\Theta(\gamma)$ is a face of $\Prob_\Theta$.
+    \end{enumerate}
+    Parts (c), (d) of Theorem \ref{thm:erg-145} hold with $\mathcal{G}_\Theta(\gamma)$ in place
+    of $\Prob_\Theta$.
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    (b): by Theorem \ref{thm:erg-145}(b), $\nu = f\mu$ with $f$ $\mathcal{I}$-measurable; by
+    Proposition \ref{prop:erg-149} the events of $\mathcal{I}$ are $\mu$-a.s.\ invariant for
+    every kernel $\gamma_\Lambda$, so $f\mu$ is again $\gamma$-invariant by
+    Theorem \ref{thm:ext-invariant-density}. (c) is (b) applied to the two summands of a convex
+    combination, and (a) is (c): the extreme points of a face are the extreme points of the
+    ambient set that lie in it.
+\end{proof}
+
+\begin{lemma}[Georgii (14.A6), the maximal inequality]
+    \label{lem:erg-14A6}
+    \lean{MeasureTheory.ergodicMaximalFunction,
+      MeasureTheory.mul_measure_lt_ergodicMaximalFunction_le,
+      MeasureTheory.mul_measure_lt_ergodicMaximalFunction_le_of_monotone,
+      MeasureTheory.measure_exists_lt_abs_div_card_le_cube,
+      Finset.exists_subset_pairwiseDisjoint_subset_biUnion}
+    \leanok
+
+    Let an additive commutative group act on $(\Cfg, \mu)$ by measure-preserving maps and let
+    $(F_n)$ be an increasing sequence of finite sets with $|F_n - F_n + F_n| \le C|F_n|$. For
+    measurable $f \ge 0$, $R_n f = |F_n|^{-1}\sum_{i \in F_n} f \circ \theta_i$ and $c > 0$,
+    \[ c\,\mu\bigl(\sup_n R_n f > c\bigr) \le C \int f\,\mathrm{d}\mu . \]
+    For increasing cubes in $\mathbb{Z}^d$ one may take $C = 3^d$, which is Georgii's
+    $\mu(\sup_n |R_n f| > c) \le 3^d\mu(|f|)/c$ for real integrable $f$.
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    For a finite window $\Delta$ and a configuration $\omega$, each site $i \in \Delta$ at which
+    the truncated maximal average exceeds $c$ has a witness $F_{n(i)} + i$; the greedy selection
+    of Mathlib's Vitali covering lemma, largest rank first, yields pairwise disjoint witnesses
+    whose enlargements $F_n - F_n + F_n + i$ cover the exceptional set, so
+    $c\,|\Delta_\omega| \le C \sum_{j \in \Delta + F_N} f(\theta_j\omega)$. Integrate, use
+    invariance, let $|\Delta| \to \infty$ along a F\o lner sequence of windows and $N \to \infty$.
+\end{proof}
+
 \begin{remark}[The rest of Chapter 14]
     \label{rmk:erg-145bc}
     \uses{thm:erg-145}
