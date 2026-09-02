@@ -5,6 +5,8 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Potential.Transformation
+public import GibbsMeasure.Mathlib.MeasureTheory.Measure.UniformOfFintype
 public import GibbsMeasure.Mathlib.GroupTheory.Foelner
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.UniformAverage
 public import GibbsMeasure.Specification.InvariantFields
@@ -1068,6 +1070,65 @@ theorem exists_mem_GP_and_forall_measurePreserving_of_compactGroup
 end Compact
 
 end InvariantWeight
+
+/-! ### Georgii Example (5.17)(2): adding a finite group of site automorphisms -/
+
+section SiteAutomorphisms
+
+variable {S E : Type*} [MeasurableSpace E] [AddGroup S] {γ : Specification S E}
+
+/-- **Georgii Example (5.17)(2).** Let the site set be an additive group (Georgii's `ℤ^d`), let
+`H` be a *finite* group acting on it by additive bijections — Georgii's reflection group `R`,
+which contains all lattice rotations — and let `γ` be invariant under the shifts and under the
+induced transformations.  If `γ` has a shift-invariant Gibbs measure, then it has one invariant
+under the shifts *and* under `H`: `𝒢_{H ∘ Θ}(γ) ≠ ∅`.
+
+This is Theorem (5.15)(i) with `I₀ = Θ` and `I₁ = H`: a finite group carries a left-invariant
+probability measure, namely the uniform one, and the shift group is normalised by every additive
+site bijection (`siteEquiv_comp_shift`), which is Georgii's `τ ∘ Θ = Θ ∘ τ`. -/
+theorem exists_isGibbsMeasure_shift_and_siteEquiv_invariant
+    {H : Type*} [Group H] [Fintype H] [MeasurableSpace H] [MeasurableSingletonClass H]
+    [MeasurableMul H] (ρ : H →* Equiv.Perm S)
+    (hadd : ∀ (g : H) (i j : S), ρ g (i + j) = ρ g i + ρ g j)
+    (hγshift : ∀ j : S, Specification.IsInvariant (shift E j) γ)
+    (hγH : ∀ g : H, Specification.IsInvariant (siteEquiv E (ρ g)) γ)
+    {ν : Measure (S → E)} [IsProbabilityMeasure ν] (hν : γ.IsGibbsMeasure ν)
+    (hνshift : ∀ j : S, ν.map (shift E j).toFun = ν) :
+    ∃ μ : Measure (S → E), IsProbabilityMeasure μ ∧ γ.IsGibbsMeasure μ ∧
+      (∀ j : S, μ.map (shift E j).toFun = μ) ∧
+        ∀ g : H, μ.map (siteEquiv E (ρ g)).toFun = μ := by
+  classical
+  have hev : Measurable fun p : H × (S → E) ↦ (siteEquiv E (ρ p.1)).toFun p.2 :=
+    measurable_from_prod_countable_right fun g ↦ (siteEquiv E (ρ g)).measurable_toFun
+  refine exists_isGibbsMeasure_and_forall_map_eq_of_invariantWeight_of_map_eq
+    (Φ := fun g : H ↦ siteEquiv E (ρ g)) (T₀ := fun j : S ↦ shift E j)
+    hν hev (fun g h ↦ ?_) hγH (fun j g ↦ ?_) hνshift
+    (Measure.uniformOfFintype H) (Measure.map_mul_left_uniformOfFintype)
+  · show siteEquiv E (ρ (g * h)) = (siteEquiv E (ρ g)).comp (siteEquiv E (ρ h))
+    rw [siteEquiv_comp, map_mul]
+    rfl
+  · -- the shift group is normalised: `θ_j ∘ τ_e = τ_e ∘ θ_{e⁻¹ j}`
+    refine ⟨(ρ g).symm j, ?_⟩
+    have hbij : ∀ (i j : S), ρ g (i + j) = ρ g i + ρ g j := hadd g
+    have h : (siteEquiv E (ρ g)).comp (shift E ((ρ g).symm j))
+        = (shift E j).comp (siteEquiv E (ρ g)) := by
+      refine Transformation.ext ?_ ?_
+      · ext i
+        show ρ g (i + (ρ g).symm j) = ρ g i + j
+        rw [hbij, Equiv.apply_symm_apply]
+      · rfl
+    have h' := congrArg Transformation.toFun h.symm
+    show (shift E j).toFun ∘ (siteEquiv E (ρ g)).toFun
+      = (siteEquiv E (ρ g)).toFun ∘ (shift E ((ρ g).symm j)).toFun
+    funext ω
+    have e1 : ((shift E j).comp (siteEquiv E (ρ g))).toFun ω
+        = (shift E j).toFun ((siteEquiv E (ρ g)).toFun ω) := Transformation.comp_toFun _ _ ω
+    have e2 : ((siteEquiv E (ρ g)).comp (shift E ((ρ g).symm j))).toFun ω
+        = (siteEquiv E (ρ g)).toFun ((shift E ((ρ g).symm j)).toFun ω) :=
+      Transformation.comp_toFun _ _ ω
+    rw [Function.comp_apply, Function.comp_apply, ← e1, ← e2, h]
+
+end SiteAutomorphisms
 
 end MeasureTheory.GibbsMeasure
 

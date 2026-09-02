@@ -599,15 +599,41 @@ and over volumes in the other.
     is empty, so the F\o lner ratio is $0$.
 \end{proof}
 
-\begin{remark}[Georgii (5.17)(2)--(4), (5.20)(3)]
-    \label{rmk:sym-5-20-others}
-    \uses{thm:sym-5-19, thm:sym-5-15, prop:sym-5-18}
+\begin{theorem}[Georgii Example (5.17)(2)]
+    \label{thm:sym-5-17-2}
+    \uses{thm:sym-5-15-weight, def:sym-invariant-fields}
+    \lean{MeasureTheory.GibbsMeasure.siteEquiv,
+      MeasureTheory.GibbsMeasure.siteEquiv_comp_shift,
+      MeasureTheory.GibbsMeasure.exists_isGibbsMeasure_shift_and_siteEquiv_invariant,
+      MeasureTheory.Measure.uniformOfFintype,
+      MeasureTheory.Measure.map_mul_left_uniformOfFintype}
+    \leanok
 
-    Further groups of symmetries on $\mathbb{Z}^d$ are treated the same way. The reflection and
-    lattice-rotation groups $R \circ \Theta$ and the spin-rotation groups
-    $U \circ R \circ \Theta$ of (5.17)(2)--(3), and the even/odd sublattice flips of (5.17)(4),
-    are instances of Theorem \ref{thm:sym-5-15} with $I_0 = \Theta$ rather than of its
-    $I_0 = \set{\mathrm{id}}$ case. Periodic boundary conditions (5.20)(3) use the periodic
+    Let the site set be an additive group and let a finite group $H$ act on it by additive
+    bijections, inducing the transformations $\tau_e : \omega \mapsto (\omega_{e^{-1}i})_i$ ---
+    Georgii's reflection group $R$ on $\mathbb{Z}^d$, which contains all lattice rotations. If
+    $\gamma$ is invariant under the shifts and under every $\tau_e$, and has a shift-invariant
+    Gibbs measure, then it has one invariant under the shifts and under $H$:
+    $\mathcal{G}_{H \circ \Theta}(\gamma) \neq \emptyset$.
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    Theorem \ref{thm:sym-5-15-weight} with $I_0 = \Theta$ and $I_1 = H$. A finite group carries a
+    left-invariant probability measure, the uniform one, which supplies the invariant weight, and
+    an additive site bijection conjugates shifts into shifts,
+    $\tau_e \circ \theta_j = \theta_{ej} \circ \tau_e$, which is Georgii's
+    $\tau \circ \Theta = \Theta \circ \tau$ and gives the commutation hypothesis.
+\end{proof}
+
+\begin{remark}[Georgii (5.17)(3)--(4), (5.20)(3)]
+    \label{rmk:sym-5-20-others}
+    \uses{thm:sym-5-19, thm:sym-5-15, prop:sym-5-18, thm:sym-5-17-2}
+
+    The remaining groups on $\mathbb{Z}^d$ are treated the same way. The spin-rotation groups
+    $U \circ R \circ \Theta$ of (5.17)(3), $U$ compact and commuting with every spatial
+    transformation, and the even/odd sublattice flips $F$ of (5.17)(4), are further instances of
+    Theorem \ref{thm:sym-5-15} with $I_0 = R \circ \Theta$ and $I_0 = \Theta$ respectively. Periodic boundary conditions (5.20)(3) use the periodic
     modifications $\tilde\Phi^{\Delta_N}$ of Example (4.20)(2) together with the form of
     Proposition \ref{prop:sym-5-18} in which the transformation varies, $\tau_N$ being the
     $\Delta_N$-periodic modification of $\tau$.

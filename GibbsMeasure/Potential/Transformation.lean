@@ -82,6 +82,38 @@ def shift (j : S) : Transformation S E where
     (shift E j).inv.toFun ω i = ω (i + j) := by
   simp [shift, Transformation.inv, Transformation.toFun]
 
+/-! ### Site bijections (Georgii (5.2)(2)) -/
+
+variable (E) in
+/-- **Georgii (5.2)(2).** The transformation induced by a bijection of the site set: it acts on
+configurations by `ω ↦ (ω_{e⁻¹ i})_i` and leaves the spins alone.  The reflections and lattice
+rotations of Georgii's group `R` are of this form, and so is the shift
+(`shift_eq_siteEquiv`). -/
+def siteEquiv (e : S ≃ S) : Transformation S E where
+  sites := e
+  spin _ := MeasurableEquiv.refl E
+
+@[simp] lemma siteEquiv_toFun_apply (e : S ≃ S) (ω : S → E) (i : S) :
+    (siteEquiv E e).toFun ω i = ω (e.symm i) := rfl
+
+@[simp] lemma siteEquiv_sites (e : S ≃ S) : (siteEquiv E e).sites = e := rfl
+
+lemma siteEquiv_comp (e f : S ≃ S) :
+    (siteEquiv E e).comp (siteEquiv E f) = siteEquiv E (f.trans e) := rfl
+
+lemma shift_eq_siteEquiv [AddGroup S] (j : S) : shift E j = siteEquiv E (Equiv.addRight j) := rfl
+
+/-- **Georgii, in the proof of (5.17)(2): a site automorphism conjugates shifts into shifts,**
+`τ_e ∘ θ_j = θ_{e j} ∘ τ_e`.  This is what makes the shift group normal in `R ∘ Θ`. -/
+lemma siteEquiv_comp_shift [AddGroup S] (e : S ≃+ S) (j : S) :
+    (siteEquiv E (e : S ≃ S)).comp (shift E j)
+      = (shift E (e j)).comp (siteEquiv E (e : S ≃ S)) := by
+  refine Transformation.ext ?_ ?_
+  · ext i
+    show e (i + j) = e i + e j
+    exact map_add e i j
+  · rfl
+
 end MeasureTheory.GibbsMeasure
 
 namespace Potential
