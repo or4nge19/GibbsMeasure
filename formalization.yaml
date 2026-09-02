@@ -535,7 +535,7 @@ alignment:
         case), and (15.7) as a supremum over finite partitions via the countably-generated
         reduction. Sequences rather than nets, since Mathlib's martingale convergence is N-indexed.
     - source: "Lemma (15.11), the d-dimensional subadditive limit"
-      lean: "Subadditive.Cubes"
+      lean: "BoxSubadditive.tendsto_div_card"
       module: "GibbsMeasure/Mathlib/Analysis/Subadditive/Cubes.lean"
       status: "proved"
       note: >-

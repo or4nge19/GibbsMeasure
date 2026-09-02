@@ -178,6 +178,32 @@ $(\Cfg, \mathcal{F})$, specialised to a subgroup $\Theta$ of the transformation 
     ambient set that lie in it.
 \end{proof}
 
+\begin{theorem}[Georgii (14.A3), (14.A5): the mean ergodic theorems]
+    \label{thm:erg-14A3}
+    \uses{def:erg-invariant-events}
+    \lean{MeasureTheory.tendsto_eLpNorm_inv_card_smul_sum_sub_condExp_two,
+      MeasureTheory.tendsto_eLpNorm_inv_card_smul_sum_sub_condExp_one,
+      MeasureTheory.tendsto_integral_norm_inv_card_smul_sum_sub_condExp,
+      MeasureTheory.Lp.tendsto_inv_card_smul_sum_compMeasurePreservingₗᵢ_smul_condExpL2}
+    \leanok
+
+    Let a countable group $G$ act on $(\Cfg, \mu)$ by measure-preserving maps, and let $(F_k)$
+    be a net of nonempty finite sets with $|gF_k \mathbin{\triangle} F_k| / |F_k| \to 0$ for every
+    $g$. For $R_k f = |F_k|^{-1}\sum_{i \in F_k} f \circ (i\,\cdot)$: if $f \in L^2(\mu)$ then
+    $R_k f \to \mu(f \mid \mathcal{I})$ in $L^2$, and if $\mu$ is finite and $f \in L^1(\mu)$
+    then in $L^1$.
+\end{theorem}
+\begin{proof}
+    \leanok
+
+    In $L^2$ the Koopman operators are isometries; $L^2 = \mathcal{K} \oplus \overline{\mathrm{span}}\{Sx - x\}$
+    with $\mathcal{K}$ their common fixed space, the averages fix $\mathcal{K}$, contract a
+    coboundary by $|gF_k \mathbin{\triangle} F_k|/|F_k|$, and are equicontinuous, so they converge
+    to the projection onto $\mathcal{K}$; countability of $G$ identifies $\mathcal{K}$ with
+    $L^2(\mathcal{I})$ and the projection with $\mu(\cdot \mid \mathcal{I})$. The $L^1$ statement
+    follows by density of simple functions and the contraction $\|R_k f\|_1 \le \|f\|_1$.
+\end{proof}
+
 \begin{lemma}[Georgii (14.A6), the maximal inequality]
     \label{lem:erg-14A6}
     \lean{MeasureTheory.ergodicMaximalFunction,

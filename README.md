@@ -432,13 +432,25 @@ consumed by any proof (`GibbsMeasure/Specification/ErgodicGibbs.lean`). Of Appen
 Georgii's `μ(sup_n |R_n f| > c) ≤ 3^d μ(|f|)/c` for increasing cubes in `ℤ^d`, as the instance of
 a Tempelman-type inequality over any additive group acting by measure-preserving maps, with the
 greedy Vitali selection a corollary of Mathlib's covering lemma. Mathlib has no pointwise ergodic
-theorem at all — not even for a single transformation — so the mean and individual theorems
-(14.A3), (14.A5), (14.A8) are being built on top of this.
+theorem at all — not even for a single transformation. The **mean ergodic theorems (14.A3)/(14.A5)**
+are proved (`GibbsMeasure/Mathlib/Dynamics/Ergodic/MeanErgodic.lean`) for any countable group acting
+by measure-preserving maps along any Følner net, in `L²` (no finiteness of `μ`) and `L¹`, by
+adapting the strategy of Mathlib's single-operator von Neumann theorem; the individual theorem
+(14.A8) is next.
+
+**Chapter 15, first steps** (`GibbsMeasure/Mathlib/InformationTheory/RelativeEntropy.lean`,
+`GibbsMeasure/Mathlib/Analysis/Subadditive/Cubes.lean`): Georgii's relative entropy on a
+sub-σ-algebra *is* Mathlib's `klDiv` of the trimmed measures and his `ψ` is `klFun`, so §15.1 is
+lemmas about `klDiv`: joint convexity, the monotone convergence (15.6) along an increasing sequence
+of σ-algebras, and (15.7) as a supremum over finite partitions. Lemma **(15.11)**, Fekete's lemma in
+`d` dimensions for translation-invariant box-subadditive functions, is the prerequisite of the
+specific entropy (15.12) and the pressure (15.30).
 
 Not yet done: the inhomogeneous Ising chains of §6.1, Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Mermin–Wagner
 (9.20), the rest of Chapter 14 — the mean and individual ergodic theorems (14.A3)/(14.A5)/(14.A8),
-(14.7), (14.10)–(14.12), (14.16)–(14.25) — and Chapters 10–13 and 15–20 (Markov fields on trees,
+(14.7), (14.10)–(14.12), (14.16)–(14.25) — the rest of Chapter 15 from (15.10) on, and Chapters
+10–13 and 16–20 (Markov fields on trees,
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).
 

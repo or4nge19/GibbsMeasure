@@ -1,0 +1,104 @@
+\section{Relative entropy and specific entropy}
+
+Georgii's relative entropy on a sub-$\sigma$-algebra is the Kullback--Leibler divergence of the
+trimmed measures; $\psi(x) = 1 - x + x\log x$ of (15.4) is Mathlib's \texttt{klFun}. Everything
+below is stated for finite measures in Mathlib's normalisation.
+
+\begin{definition}[Georgii (15.1)]
+    \label{def:ent-relative}
+    \lean{InformationTheory.klDiv, InformationTheory.klDiv_trim_eq_lintegral_klFun_condExp,
+      InformationTheory.klDiv_trim_eq_lintegral_klFun_of_trim_eq_withDensity}
+    \leanok
+
+    For finite measures $\mu, \nu$ on $(\Omega, \mathcal{F})$ and a sub-$\sigma$-algebra
+    $\mathcal{A}$, $\mathcal{H}_{\mathcal{A}}(\mu \mid \nu) = \operatorname{klDiv}(\mu|_\mathcal{A}, \nu|_\mathcal{A})$.
+    When $\mu|_\mathcal{A} = f \, \nu|_\mathcal{A}$ with $f$ $\mathcal{A}$-measurable,
+    $\mathcal{H}_{\mathcal{A}}(\mu \mid \nu) = \int \psi \circ f \, \mathrm{d}\nu$, and $f$ may be
+    taken to be $\nu(\mathrm{d}\mu/\mathrm{d}\nu \mid \mathcal{A})$.
+\end{definition}
+
+\begin{proposition}[Georgii (15.2), (15.5)]
+    \label{prop:ent-155}
+    \uses{def:ent-relative}
+    \lean{InformationTheory.toReal_klDiv_smul_smul, InformationTheory.klDiv_trim_eq_zero_iff,
+      InformationTheory.klDiv_trim_mono, InformationTheory.klDiv_add_add_le,
+      InformationTheory.klDiv_smul_add_smul_le}
+    \leanok
+
+    $\mathcal{H}_{\mathcal{A}}(a\mu \mid b\nu) = a\mathcal{H}_{\mathcal{A}}(\mu\mid\nu) +
+    a\mu(\Omega)\log(a/b) + (b-a)\nu(\Omega)$. Moreover $\mathcal{H}_{\mathcal{A}}(\mu\mid\nu) \ge 0$
+    with equality iff $\mu = \nu$ on $\mathcal{A}$; it is increasing in $\mathcal{A}$; and it is
+    jointly convex: $\mathcal{H}(a\mu_1 + b\mu_2 \mid a\nu_1 + b\nu_2) \le
+    a\mathcal{H}(\mu_1\mid\nu_1) + b\mathcal{H}(\mu_2\mid\nu_2)$.
+\end{proposition}
+\begin{proof}
+    \leanok
+
+    Scaling and the zero case are Mathlib's \texttt{klDiv} API; monotonicity is data processing
+    for the trim. Joint subadditivity follows from $\mathrm{d}(\mu_1+\mu_2)/\mathrm{d}(\nu_1+\nu_2)
+    = \sum_k \frac{\mathrm{d}\nu_k}{\mathrm{d}(\nu_1+\nu_2)} \frac{\mathrm{d}\mu_k}{\mathrm{d}\nu_k}$
+    and convexity of $\psi$; scaling then gives joint convexity.
+\end{proof}
+
+\begin{proposition}[Georgii (15.6)]
+    \label{prop:ent-156}
+    \uses{def:ent-relative}
+    \lean{InformationTheory.tendsto_klDiv_trim, InformationTheory.iSup_klDiv_trim,
+      InformationTheory.monotone_klDiv_trim}
+    \leanok
+
+    For an increasing sequence $(\mathcal{A}_n)$ of sub-$\sigma$-algebras with
+    $\mathcal{A} = \sigma(\bigcup_n \mathcal{A}_n)$,
+    $\mathcal{H}_{\mathcal{A}_n}(\mu\mid\nu) \uparrow \mathcal{H}_{\mathcal{A}}(\mu\mid\nu)$.
+\end{proposition}
+\begin{proof}
+    \leanok
+
+    If $\mu \ll \nu$ on $\mathcal{A}$, Lévy's upward theorem gives
+    $\nu(f \mid \mathcal{A}_n) \to f$ a.e.\ and Fatou's lemma the lower bound; monotonicity gives
+    the upper one. Otherwise a $\nu$-null $\mu$-charged set of $\mathcal{A}$ is approximated by
+    sets of $\bigcup_n \mathcal{A}_n$ and the two-set lower bound forces the left side to
+    $\infty$.
+\end{proof}
+
+\begin{corollary}[Georgii (15.7)]
+    \label{cor:ent-157}
+    \uses{prop:ent-156}
+    \lean{InformationTheory.klDiv_trim_eq_iSup_finset_partition,
+      InformationTheory.klDiv_trim_eq_iSup_sum,
+      InformationTheory.toReal_klDiv_trim_generateFrom_eq_sum}
+    \leanok
+
+    $\mathcal{H}_{\mathcal{A}}(\mu \mid \nu)$ is the supremum over finite $\mathcal{A}$-measurable
+    partitions $P$ of $\sum_{A \in P} \mu(A)\log(\mu(A)/\nu(A))$ (in Mathlib's normalisation),
+    with the value $\infty$ as soon as some $\nu(A) = 0 < \mu(A)$.
+\end{corollary}
+\begin{proof}
+    \leanok
+
+    The density is measurable for the countably generated $\sigma(f)$, which is the supremum of
+    an increasing sequence of finite partitions; Proposition \ref{prop:ent-156} and the
+    finite-partition formula give the supremum.
+\end{proof}
+
+\begin{lemma}[Georgii (15.11)]
+    \label{lem:ent-1511}
+    \lean{BoxSubadditive, BoxSubadditive.tendsto_div_card,
+      BoxSubadditive.tendsto_div_card_of_bddBelow,
+      Subadditive.tendsto_lim_of_tendsto_div_card}
+    \leanok
+
+    Let $a$ be a function on the boxes of $\mathbb{Z}^d$ with values in $[-\infty, \infty)$,
+    translation invariant and subadditive on disjoint unions that are boxes. Along cubes
+    $\Lambda_n$ with $|\Lambda_n| \to \infty$,
+    \[ \lim_n |\Lambda_n|^{-1} a(\Lambda_n) = \inf_\Delta |\Delta|^{-1} a(\Delta). \]
+    At $d = 1$ this is Mathlib's \texttt{Subadditive.tendsto\_lim}.
+\end{lemma}
+\begin{proof}
+    \leanok
+
+    Fix a box $\Delta$ with $|\Delta|^{-1}a(\Delta) < c$. Tile $\Lambda_n$ by $N_n$ disjoint
+    translates of $\Delta$ and a boundary remainder of singletons; subadditivity and
+    translation invariance give $a(\Lambda_n) \le N_n a(\Delta) + (|\Lambda_n| - N_n|\Delta|)a(\{0\})$,
+    and $|\Lambda_n|/(N_n|\Delta|) \to 1$.
+\end{proof}
