@@ -178,6 +178,32 @@ $(\Cfg, \mathcal{F})$, specialised to a subgroup $\Theta$ of the transformation 
     ambient set that lie in it.
 \end{proof}
 
+\begin{proposition}[Georgii (14.7)]
+    \label{prop:erg-147}
+    \uses{def:erg-invariant-events, thm:erg-14A3, thm:erg-145}
+    \lean{MeasureTheory.GibbsMeasure.ergodicSMul_shiftGroup_tfae,
+      MeasureTheory.tendstoUniformlyOn_inv_card_mul_sum_measureReal_inter_smul,
+      MeasureTheory.ergodicSMul_of_forall_mem_tendsto_inv_card_mul_sum_measureReal_inter_smul,
+      MeasureTheory.tendsto_measureReal_of_isPiSystem_of_le}
+    \leanok
+
+    Let $\mu \in \Prob_\Theta$ and $(\Lambda_n)$ be a F\o lner sequence of nonempty finite
+    sets of sites. The following are equivalent: (i) $\mu$ is ergodic; (ii) for every measurable
+    $A$, $\sup_B |\,|\Lambda_n|^{-1}\sum_{i \in \Lambda_n}\mu(A \cap \theta_i B) - \mu(A)\mu(B)| \to 0$;
+    (iii) $|\Lambda_n|^{-1}\sum_{i\in\Lambda_n}\mu(A \cap \theta_i B) \to \mu(A)\mu(B)$ for all
+    local events $A, B$. (iii) $\Rightarrow$ (i) uses no F\o lner property.
+\end{proposition}
+\begin{proof}
+    \leanok
+
+    (i) $\Rightarrow$ (ii): the average is $\int_B (R_n 1_A - \mu(A))\,\mathrm{d}\mu$, bounded
+    by $\|R_n 1_A - \mu(A)\|_1 \to 0$ by Theorem \ref{thm:erg-14A3}, as
+    $\mu(1_A \mid \mathcal{I}) = \mu(A)$ for ergodic $\mu$. (iii) $\Rightarrow$ (i): for fixed
+    $A$ the events $B$ satisfying the limit relation form a Dynkin system containing the local
+    events, hence all of $\mathcal{F}$, and likewise in $A$; for $A \in \mathcal{I}$ the average
+    is constantly $\mu(A)$, so $\mu(A) = \mu(A)^2$.
+\end{proof}
+
 \begin{theorem}[Georgii (14.12)]
     \label{thm:erg-1412}
     \uses{def:erg-invariant-events, prop:erg-149, thm:erg-145}

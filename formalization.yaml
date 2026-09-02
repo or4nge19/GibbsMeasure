@@ -553,6 +553,16 @@ alignment:
         theorem and a new a.e. monotone convergence theorem for condExp
         (tendsto_ae_condExp_of_monotone, sigma-finite trim, no finiteness). The liminf and limsup
         halves are separate lemmas.
+    - source: "Proposition (14.7), ergodicity as cube-averaged mixing"
+      lean: "MeasureTheory.GibbsMeasure.ergodicSMul_shiftGroup_tfae"
+      module: "GibbsMeasure/Specification/ErgodicMixing.lean"
+      status: "proved"
+      note: >-
+        (i) ergodic, (ii) uniform-in-B convergence of the averaged mu(A cap theta_i B) to
+        mu(A)mu(B), (iii) the same for local events, along any Foelner sequence; (iii) => (i)
+        needs no Foelner hypothesis. The Dynkin step is the general lemma
+        tendsto_measureReal_of_isPiSystem_of_le (setwise convergence of dominated measures
+        extends from a generating pi-system), absent from Mathlib.
     - source: "Theorem (14.12), dense extreme boundary of P_Theta"
       lean: "MeasureTheory.GibbsMeasure.closure_setOf_mem_extremePoints_invariantFields_shiftGroup"
       module: "GibbsMeasure/Specification/ErgodicDense.lean"
