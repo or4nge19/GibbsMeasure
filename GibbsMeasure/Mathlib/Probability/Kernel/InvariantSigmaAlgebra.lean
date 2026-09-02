@@ -56,16 +56,104 @@ invariance cannot be weakened to strict invariance, and `Example75` below is Geo
 (7.5) proving it: a stochastic matrix on three points whose strictly invariant σ-algebra is trivial
 while its invariant measures form a segment, so triviality on it does not imply extremality.
 
+## The strictly invariant σ-algebra of a countable group action
+
+For a *group action* the situation of Example (7.5) cannot occur once the group is countable:
+`MeasurableSpace.invariants M Ω` is Georgii's σ-algebra `𝓘` (14.2) of strictly invariant
+measurable sets, a measurable function is `𝓘`-measurable iff it is invariant
+(`MeasurableSpace.measurable_invariants_iff`, Remark (14.3)(1)), and over a countable group every
+a.e. invariant set or density can be corrected to a strictly invariant one
+(`exists_measurableSet_invariants_ae_eq`, `exists_measurable_invariants_ae_eq`,
+Remark (14.3)(2) — the a.s. invariant σ-algebra `𝓘(μ)` is the `μ`-completion of `𝓘`). This
+upgrades the a.s. statements to Georgii's Theorem (14.5) as literally stated: extremality in the
+invariant probability measures is triviality on `𝓘`
+(`mem_extremePoints_iff_forall_measurableSet_invariants`, (14.5)(a) and Definition (14.6) via
+`ergodicSMul_iff_forall_measurableSet_invariants`), an absolutely continuous probability measure
+is invariant iff its density is `𝓘`-measurable (`smulInvariantMeasure_iff_exists_withDensity`,
+(14.5)(b)), an invariant probability measure is determined by its restriction to `𝓘`
+(`eq_of_forall_measurableSet_invariants_eq`, (14.5)(c)), and distinct extreme invariant
+probability measures are separated by a set in `𝓘`
+(`exists_measurableSet_invariants_eq_one_eq_zero`, (14.5)(d)).
+
 ## References
 
-Hans-Otto Georgii, *Gibbs Measures and Phase Transitions*, 2nd ed., Proposition (7.3) and
-Corollary (7.4).
+Hans-Otto Georgii, *Gibbs Measures and Phase Transitions*, 2nd ed., Proposition (7.3),
+Corollary (7.4), and §14.1: (14.2), Remark (14.3), Theorem (14.5), Definition (14.6).
 -/
 
 @[expose] public section
 
 open Filter MeasureTheory Set
-open scoped ENNReal
+open scoped ENNReal symmDiff
+
+/-! ### The strictly invariant σ-algebra of an action (Georgii (14.2)) -/
+
+namespace MeasurableSpace
+
+variable {M Ω : Type*} [m : MeasurableSpace Ω] [SMul M Ω]
+
+variable (M Ω) in
+/-- **Georgii (14.2).** The σ-algebra `𝓘` of strictly invariant measurable sets of an action:
+the measurable `A` with `(c • ·) ⁻¹' A = A` for every `c`. For a group action these are exactly
+the measurable sets with `g • A = A` for all `g`
+(`MeasurableSpace.measurableSet_invariants_iff_smul_eq`). -/
+@[instance_reducible]
+def invariants : MeasurableSpace Ω where
+  MeasurableSet' A := MeasurableSet A ∧ ∀ c : M, (c • ·) ⁻¹' A = A
+  measurableSet_empty := ⟨.empty, fun _ ↦ Set.preimage_empty⟩
+  measurableSet_compl A hA := ⟨hA.1.compl, fun c ↦ by
+    rw [Set.preimage_compl, hA.2 c]⟩
+  measurableSet_iUnion f hf := ⟨.iUnion fun n ↦ (hf n).1, fun c ↦ by
+    rw [Set.preimage_iUnion]
+    exact Set.iUnion_congr fun n ↦ (hf n).2 c⟩
+
+@[simp] lemma measurableSet_invariants {A : Set Ω} :
+    MeasurableSet[invariants M Ω] A ↔ MeasurableSet A ∧ ∀ c : M, (c • ·) ⁻¹' A = A := Iff.rfl
+
+lemma invariants_le : invariants M Ω ≤ m := fun _ h ↦ h.1
+
+/-- Georgii (14.3)(1), the easy direction: a measurable invariant function is
+`𝓘`-measurable. -/
+lemma measurable_invariants_of_forall_smul_eq {X : Type*} [MeasurableSpace X] {f : Ω → X}
+    (hfm : Measurable f) (hf : ∀ (c : M) (ω : Ω), f (c • ω) = f ω) :
+    Measurable[invariants M Ω] f := fun _U hU ↦
+  ⟨hfm hU, fun c ↦ by ext ω; simp [hf c ω]⟩
+
+/-- Georgii (14.3)(1), the substantial direction: an `𝓘`-measurable function into a space with
+measurable singletons is invariant, because each fibre `f ⁻¹' {f ω}` is a strictly invariant
+set containing `ω`. -/
+lemma smul_eq_of_measurable_invariants {X : Type*} [MeasurableSpace X]
+    [MeasurableSingletonClass X] {f : Ω → X} (hf : Measurable[invariants M Ω] f) (c : M)
+    (ω : Ω) : f (c • ω) = f ω := by
+  have h := (hf (measurableSet_singleton (f ω))).2 c
+  have hmem : ω ∈ f ⁻¹' {f ω} := rfl
+  rw [← h] at hmem
+  exact hmem
+
+/-- **Georgii, Remark (14.3)(1).** A measurable function into a space with measurable singletons
+is measurable for the invariant σ-algebra `𝓘` if and only if it is invariant:
+`f (c • ω) = f ω` for all `c` and `ω`. -/
+theorem measurable_invariants_iff {X : Type*} [MeasurableSpace X] [MeasurableSingletonClass X]
+    {f : Ω → X} :
+    Measurable[invariants M Ω] f ↔ Measurable f ∧ ∀ (c : M) (ω : Ω), f (c • ω) = f ω :=
+  ⟨fun hf ↦ ⟨hf.mono invariants_le le_rfl, smul_eq_of_measurable_invariants hf⟩,
+    fun hf ↦ measurable_invariants_of_forall_smul_eq hf.1 hf.2⟩
+
+open scoped Pointwise in
+/-- For a group action, the strictly invariant sets are the measurable sets fixed setwise by
+every group element — Georgii's (14.2) as literally stated, `θ_i A = A`. -/
+lemma measurableSet_invariants_iff_smul_eq {G : Type*} [Group G] [MulAction G Ω] {A : Set Ω} :
+    MeasurableSet[invariants G Ω] A ↔ MeasurableSet A ∧ ∀ g : G, g • A = A := by
+  rw [measurableSet_invariants]
+  refine and_congr_right fun _ ↦ ?_
+  constructor
+  · intro h g
+    have hg := h g⁻¹
+    rwa [Set.preimage_smul, inv_inv] at hg
+  · intro h g
+    rw [Set.preimage_smul, h g⁻¹]
+
+end MeasurableSpace
 
 namespace ProbabilityTheory.Kernel
 
@@ -668,6 +756,30 @@ theorem preErgodic_iff_trivialOn_aeInvariant [IsProbabilityMeasure μ] (hT : Mea
     rw [measure_congr hteq]
     exact h t hA
 
+/-- A function measurable for the a.s. invariant σ-algebra of the deterministic kernel of `T` is
+`μ`-a.e. `T`-invariant: countably many rational super-level sets, each a.s. invariant, pin
+`f (T ω)` to `f ω`. -/
+lemma ae_comp_eq_of_measurable_aeInvariantSigmaAlgebra [IsFiniteMeasure μ] (hT : Measurable T)
+    (hinv : Invariant (Kernel.deterministic T hT) μ) {f : Ω → ℝ≥0∞}
+    (hf : Measurable[aeInvariantSigmaAlgebra hinv] f) :
+    (fun ω ↦ f (T ω)) =ᵐ[μ] f := by
+  have hlev : ∀ q : ℚ, ∀ᵐ ω ∂μ,
+      ((Real.toNNReal q : ℝ≥0∞) ≤ f (T ω) ↔ (Real.toNNReal q : ℝ≥0∞) ≤ f ω) := by
+    intro q
+    have h := ((mem_aeInvariantSets_deterministic_iff hT).1
+      (hf (measurableSet_Ici (a := (Real.toNNReal q : ℝ≥0∞))))).2
+    exact Filter.eventuallyEq_set.1 h
+  have hall : ∀ᵐ ω ∂μ, ∀ q : ℚ,
+      ((Real.toNNReal q : ℝ≥0∞) ≤ f (T ω) ↔ (Real.toNNReal q : ℝ≥0∞) ≤ f ω) :=
+    ae_all_iff.2 hlev
+  filter_upwards [hall] with ω hω
+  by_contra hne
+  rcases lt_or_gt_of_ne hne with hlt | hlt
+  · obtain ⟨q, -, hq1, hq2⟩ := ENNReal.lt_iff_exists_rat_btwn.1 hlt
+    exact absurd ((hω q).2 hq2.le) (not_le.2 hq1)
+  · obtain ⟨q, -, hq1, hq2⟩ := ENNReal.lt_iff_exists_rat_btwn.1 hlt
+    exact absurd ((hω q).1 hq2.le) (not_le.2 hq1)
+
 end Deterministic
 
 /-! ### Specialisation to a group action: ergodicity as extremality -/
@@ -747,6 +859,252 @@ theorem ergodicSMul_iff_mem_extremePoints [IsProbabilityMeasure μ]
     rcases htriv s hA with h | h
     · exact Or.inl (ae_eq_empty.2 h)
     · exact Or.inr (ae_eq_univ.2 ((prob_compl_eq_zero_iff hsm).2 h))
+
+/-- Strictly invariant sets are almost surely invariant: `𝓘 ≤ I_Π(μ)`. -/
+lemma invariants_le_aeInvariantSigmaAlgebraFamily [IsFiniteMeasure μ]
+    (hμ : ∀ g : G, Invariant (smulKernel G g) μ) :
+    MeasurableSpace.invariants G Ω ≤ aeInvariantSigmaAlgebraFamily (smulKernel G) hμ :=
+  fun A hA ↦ (measurableSet_aeInvariantSigmaAlgebraFamily_smul hμ).2
+    ⟨hA.1, fun g ↦ by rw [hA.2 g]; exact Filter.EventuallyEq.rfl⟩
+
+/-- A function measurable for the a.s. invariant σ-algebra `I_Π(μ)` of a group action is a.e.
+invariant under every group element. -/
+lemma ae_comp_smul_eq_of_measurable [IsFiniteMeasure μ]
+    (hμ : ∀ g : G, Invariant (smulKernel G g) μ) {f : Ω → ℝ≥0∞}
+    (hf : Measurable[aeInvariantSigmaAlgebraFamily (smulKernel G) hμ] f) (g : G) :
+    (fun ω ↦ f (g • ω)) =ᵐ[μ] f := by
+  have hg : Invariant (Kernel.deterministic (fun ω : Ω ↦ g • ω) (measurable_const_smul g)) μ :=
+    hμ g
+  exact ae_comp_eq_of_measurable_aeInvariantSigmaAlgebra (measurable_const_smul g) hg
+    ((measurable_aeInvariantSigmaAlgebraFamily_iff hμ).1 hf g)
+
+/-- **Georgii (14.3)(2), function form.** Over a countable group, a function measurable for the
+a.s. invariant σ-algebra `I_Π(μ)` agrees `μ`-a.e. with a *strictly* invariant function — its
+orbit-wise supremum. -/
+lemma exists_measurable_invariants_ae_eq [Countable G] [IsFiniteMeasure μ]
+    (hμ : ∀ g : G, Invariant (smulKernel G g) μ) {f : Ω → ℝ≥0∞}
+    (hf : Measurable[aeInvariantSigmaAlgebraFamily (smulKernel G) hμ] f) :
+    ∃ g : Ω → ℝ≥0∞, Measurable[MeasurableSpace.invariants G Ω] g ∧ f =ᵐ[μ] g := by
+  have hne : Nonempty G := ⟨1⟩
+  have hfm : Measurable f := hf.mono (aeInvariantSigmaAlgebraFamily_le hμ) le_rfl
+  refine ⟨fun ω ↦ ⨆ i : G, f (i • ω), ?_, ?_⟩
+  · refine MeasurableSpace.measurable_invariants_of_forall_smul_eq
+      (Measurable.iSup fun i ↦ hfm.comp (measurable_const_smul i)) fun c ω ↦ ?_
+    have h := Equiv.iSup_comp (g := fun i : G ↦ f (i • ω)) (e := Equiv.mulRight c)
+    simpa only [Equiv.coe_mulRight, mul_smul] using h
+  · have hall : ∀ᵐ ω ∂μ, ∀ i : G, f (i • ω) = f ω :=
+      ae_all_iff.2 fun i ↦ ae_comp_smul_eq_of_measurable hμ hf i
+    filter_upwards [hall] with ω hω
+    simp only [hω]
+    exact iSup_const.symm
+
+/-- **Georgii (14.3)(2).** Over a countable group, every measurable set that is a.e. invariant
+under each group element agrees `μ`-a.e. with a strictly invariant set: the a.s. invariant
+σ-algebra `𝓘(μ)` is the `μ`-completion of `𝓘`. The strictly invariant companion is the orbit
+`⋃ g, (g • ·) ⁻¹' A` of `A`. -/
+lemma exists_measurableSet_invariants_ae_eq [Countable G] {A : Set Ω} (hA : MeasurableSet A)
+    (hae : ∀ g : G, (g • ·) ⁻¹' A =ᵐ[μ] A) :
+    ∃ B, MeasurableSet[MeasurableSpace.invariants G Ω] B ∧ μ (A ∆ B) = 0 := by
+  refine ⟨⋃ g : G, (g • ·) ⁻¹' A,
+    ⟨MeasurableSet.iUnion fun g ↦ measurable_const_smul g hA, fun c ↦ ?_⟩, ?_⟩
+  · rw [Set.preimage_iUnion]
+    have hcomp : ∀ g : G, (c • ·) ⁻¹' ((g • ·) ⁻¹' A) = ((g * c) • ·) ⁻¹' A := fun g ↦ by
+      ext ω; simp [mul_smul]
+    calc ⋃ g : G, (c • ·) ⁻¹' ((g • ·) ⁻¹' A)
+        = ⋃ g : G, ((g * c) • ·) ⁻¹' A := Set.iUnion_congr hcomp
+      _ = ⋃ g : G, (g • ·) ⁻¹' A := by
+          rw [← Set.iSup_eq_iUnion, ← Set.iSup_eq_iUnion]
+          have h := Equiv.iSup_comp (g := fun g : G ↦ (g • ·) ⁻¹' A) (e := Equiv.mulRight c)
+          simpa only [Equiv.coe_mulRight] using h
+  · have hsub : A ⊆ ⋃ g : G, (g • ·) ⁻¹' A := fun ω hω ↦
+      Set.mem_iUnion.2 ⟨1, by simpa using hω⟩
+    rw [symmDiff_of_le hsub]
+    refine measure_mono_null ?_ (measure_iUnion_null fun g ↦
+      measure_mono_null (fun ω hω ↦ mem_symmDiff.2 (Or.inl hω))
+        (measure_symmDiff_eq_zero_iff.2 (hae g)))
+    rintro ω ⟨hmem, hnot⟩
+    obtain ⟨g, hg⟩ := Set.mem_iUnion.1 hmem
+    exact Set.mem_iUnion.2 ⟨g, hg, hnot⟩
+
+/-- Triviality on the strictly invariant σ-algebra extends to every a.e. invariant set, over a
+countable group. -/
+lemma measure_eq_zero_or_one_of_forall_preimage_smul_ae_eq [Countable G]
+    (htriv : ∀ B, MeasurableSet[MeasurableSpace.invariants G Ω] B → μ B = 0 ∨ μ B = 1)
+    {A : Set Ω} (hA : MeasurableSet A) (hae : ∀ g : G, (g • ·) ⁻¹' A =ᵐ[μ] A) :
+    μ A = 0 ∨ μ A = 1 := by
+  obtain ⟨B, hB, hAB⟩ := exists_measurableSet_invariants_ae_eq hA hae
+  rw [measure_congr (measure_symmDiff_eq_zero_iff.1 hAB)]
+  exact htriv B hB
+
+/-- **Georgii (14.6) at the level of a countable group action.** Ergodicity in Mathlib's
+almost-sure sense is triviality on the *strictly* invariant σ-algebra `𝓘`. The countability of
+the group is what allows the a.e. invariant sets to be corrected to strictly invariant ones
+(Remark (14.3)(2)). -/
+theorem ergodicSMul_iff_forall_measurableSet_invariants [Countable G] [IsProbabilityMeasure μ]
+    (hμ : SMulInvariantMeasure G Ω μ) :
+    ErgodicSMul G Ω μ ↔
+      ∀ A, MeasurableSet[MeasurableSpace.invariants G Ω] A → μ A = 0 ∨ μ A = 1 := by
+  constructor
+  · intro herg A hA
+    have hae : ∀ g : G, (g • ·) ⁻¹' A =ᵐ[μ] A := fun g ↦ by
+      rw [hA.2 g]; exact Filter.EventuallyEq.rfl
+    rcases eventuallyConst_set'.1
+      (ErgodicSMul.aeconst_of_forall_preimage_smul_ae_eq hA.1 hae) with h | h
+    · exact Or.inl (ae_eq_empty.1 h)
+    · exact Or.inr ((prob_compl_eq_zero_iff hA.1).1 (ae_eq_univ.1 h))
+  · intro htriv
+    refine ⟨fun {s} hsm hae ↦ ?_⟩
+    rw [eventuallyConst_set']
+    rcases measure_eq_zero_or_one_of_forall_preimage_smul_ae_eq htriv hsm hae with h | h
+    · exact Or.inl (ae_eq_empty.2 h)
+    · exact Or.inr (ae_eq_univ.2 ((prob_compl_eq_zero_iff hsm).2 h))
+
+/-- **Georgii (14.5)(a), strict form.** For a countable group, an invariant probability measure
+is extreme among the invariant probability measures iff it is trivial on the strictly invariant
+σ-algebra `𝓘` — Georgii's own phrasing of (14.5)(a). -/
+theorem mem_extremePoints_iff_forall_measurableSet_invariants [Countable G]
+    [IsProbabilityMeasure μ] (hμ : SMulInvariantMeasure G Ω μ) :
+    μ ∈ ({ν : Measure Ω | IsProbabilityMeasure ν ∧ SMulInvariantMeasure G Ω ν} :
+        Set (Measure Ω)).extremePoints ℝ≥0∞ ↔
+      ∀ A, MeasurableSet[MeasurableSpace.invariants G Ω] A → μ A = 0 ∨ μ A = 1 :=
+  (ergodicSMul_iff_mem_extremePoints hμ).symm.trans
+    (ergodicSMul_iff_forall_measurableSet_invariants hμ)
+
+/-- If the density is measurable for the strictly invariant σ-algebra, the weighted measure is
+again invariant. This is the direction of Georgii (14.5)(b) that needs no countability. -/
+theorem smulInvariantMeasure_withDensity_of_measurable_invariants [IsFiniteMeasure μ]
+    (hμ : SMulInvariantMeasure G Ω μ) {f : Ω → ℝ≥0∞}
+    (hf : Measurable[MeasurableSpace.invariants G Ω] f) :
+    SMulInvariantMeasure G Ω (μ.withDensity f) := by
+  have hinv : ∀ g : G, Invariant (smulKernel G g) μ :=
+    smulInvariantMeasure_iff_forall_invariant.1 hμ
+  refine smulInvariantMeasure_iff_forall_invariant.2 fun g ↦ ?_
+  exact invariant_withDensity_of_measurable (hinv g)
+    (hf.mono ((invariants_le_aeInvariantSigmaAlgebraFamily hinv).trans (iInf_le _ g)) le_rfl)
+
+/-- **Georgii (14.5)(b), density form.** For an invariant finite measure `μ` and a density `f` of
+finite mass, `f·μ` is invariant iff `f` agrees `μ`-a.e. with a function measurable for the
+strictly invariant σ-algebra `𝓘`. -/
+theorem smulInvariantMeasure_withDensity_iff [Countable G] [IsFiniteMeasure μ]
+    (hμ : SMulInvariantMeasure G Ω μ) {f : Ω → ℝ≥0∞} (hf : Measurable f)
+    (hfin : ∫⁻ ω, f ω ∂μ ≠ ∞) :
+    SMulInvariantMeasure G Ω (μ.withDensity f) ↔
+      ∃ g, Measurable[MeasurableSpace.invariants G Ω] g ∧ f =ᵐ[μ] g := by
+  have hinv : ∀ g : G, Invariant (smulKernel G g) μ :=
+    smulInvariantMeasure_iff_forall_invariant.1 hμ
+  constructor
+  · intro hν
+    have hinvν : ∀ g : G, Invariant (smulKernel G g) (μ.withDensity f) :=
+      smulInvariantMeasure_iff_forall_invariant.1 hν
+    exact exists_measurable_invariants_ae_eq hinv
+      ((measurable_aeInvariantSigmaAlgebraFamily_iff hinv).2 fun g ↦
+        measurable_of_invariant_withDensity (hinv g) hf hfin (hinvν g))
+  · rintro ⟨g, hg, hfg⟩
+    rw [withDensity_congr_ae hfg]
+    exact smulInvariantMeasure_withDensity_of_measurable_invariants hμ hg
+
+/-- **Georgii, Theorem (14.5)(b).** For an invariant probability measure `μ` and a probability
+measure `ν ≪ μ`, `ν` is invariant iff `ν = f·μ` for a density `f` measurable for the strictly
+invariant σ-algebra `𝓘`. -/
+theorem smulInvariantMeasure_iff_exists_withDensity [Countable G] [IsProbabilityMeasure μ]
+    (hμ : SMulInvariantMeasure G Ω μ) {ν : Measure Ω} [IsProbabilityMeasure ν] (hνμ : ν ≪ μ) :
+    SMulInvariantMeasure G Ω ν ↔
+      ∃ f, Measurable[MeasurableSpace.invariants G Ω] f ∧ ν = μ.withDensity f := by
+  constructor
+  · intro hν
+    set f := ν.rnDeriv μ with hfdef
+    have hfm : Measurable f := ν.measurable_rnDeriv μ
+    have hwd : μ.withDensity f = ν := Measure.withDensity_rnDeriv_eq ν μ hνμ
+    have hmass : ∫⁻ ω, f ω ∂μ = 1 := by
+      have h := congrArg (fun m : Measure Ω ↦ m Set.univ) hwd
+      simpa [withDensity_apply _ MeasurableSet.univ, setLIntegral_univ] using h
+    have hfin : ∫⁻ ω, f ω ∂μ ≠ ∞ := by rw [hmass]; exact ENNReal.one_ne_top
+    have hν' : SMulInvariantMeasure G Ω (μ.withDensity f) := hwd ▸ hν
+    obtain ⟨g, hg, hfg⟩ := (smulInvariantMeasure_withDensity_iff hμ hfm hfin).1 hν'
+    exact ⟨g, hg, by rw [← hwd, withDensity_congr_ae hfg]⟩
+  · rintro ⟨f, hfI, rfl⟩
+    exact smulInvariantMeasure_withDensity_of_measurable_invariants hμ hfI
+
+/-- **Georgii, Theorem (14.5)(c).** An invariant probability measure of a countable group action
+is determined, among invariant probability measures, by its restriction to the strictly
+invariant σ-algebra `𝓘`. -/
+theorem eq_of_forall_measurableSet_invariants_eq [Countable G] {μ ν : Measure Ω}
+    [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (hμ : SMulInvariantMeasure G Ω μ) (hν : SMulInvariantMeasure G Ω ν)
+    (h : ∀ A, MeasurableSet[MeasurableSpace.invariants G Ω] A → μ A = ν A) : μ = ν := by
+  set ρ : Measure Ω := (2⁻¹ : ℝ≥0∞) • μ + (2⁻¹ : ℝ≥0∞) • ν with hρdef
+  have hρp : IsProbabilityMeasure ρ := ⟨by
+    simp only [hρdef, Measure.coe_add, Measure.coe_smul, Pi.add_apply, Pi.smul_apply,
+      smul_eq_mul, measure_univ, mul_one]
+    exact ENNReal.inv_two_add_inv_two⟩
+  have hρinv : SMulInvariantMeasure G Ω ρ := ⟨fun c s hs ↦ by
+    simp only [hρdef, Measure.coe_add, Measure.coe_smul, Pi.add_apply, Pi.smul_apply,
+      smul_eq_mul, hμ.measure_preimage_smul c hs, hν.measure_preimage_smul c hs]⟩
+  have hhalf : (2⁻¹ : ℝ≥0∞) ≠ 0 := ENNReal.inv_ne_zero.2 ENNReal.ofNat_ne_top
+  have hμρ : μ ≪ ρ := Measure.AbsolutelyContinuous.mk fun s _hs h0 ↦ by
+    simp only [hρdef, Measure.coe_add, Measure.coe_smul, Pi.add_apply, Pi.smul_apply,
+      smul_eq_mul] at h0
+    exact (mul_eq_zero.1 (add_eq_zero.1 h0).1).resolve_left hhalf
+  have hνρ : ν ≪ ρ := Measure.AbsolutelyContinuous.mk fun s _hs h0 ↦ by
+    simp only [hρdef, Measure.coe_add, Measure.coe_smul, Pi.add_apply, Pi.smul_apply,
+      smul_eq_mul] at h0
+    exact (mul_eq_zero.1 (add_eq_zero.1 h0).2).resolve_left hhalf
+  obtain ⟨f, hfI, hμf⟩ := (smulInvariantMeasure_iff_exists_withDensity hρinv hμρ).1 hμ
+  obtain ⟨g, hgI, hνg⟩ := (smulInvariantMeasure_iff_exists_withDensity hρinv hνρ).1 hν
+  have hm : MeasurableSpace.invariants G Ω ≤ m := MeasurableSpace.invariants_le
+  have htrim : μ.trim hm = ν.trim hm :=
+    @Measure.ext _ (MeasurableSpace.invariants G Ω) _ _ fun A hA ↦ by
+      rw [trim_measurableSet_eq hm hA, trim_measurableSet_eq hm hA]
+      exact h A hA
+  have h1 : (ρ.trim hm).withDensity f = (ρ.trim hm).withDensity g := by
+    rw [← trim_withDensity hm hfI, ← trim_withDensity hm hgI, ← hμf, ← hνg]
+    exact htrim
+  have hfg : f =ᵐ[ρ] g :=
+    ae_of_ae_trim hm
+      ((withDensity_eq_iff_of_sigmaFinite hfI.aemeasurable hgI.aemeasurable).1 h1)
+  rw [hμf, hνg]
+  exact withDensity_congr_ae hfg
+
+/-- **Georgii, Theorem (14.5)(d).** Distinct extreme invariant probability measures of a
+countable group action are mutually singular *on the strictly invariant σ-algebra* `𝓘`: some
+strictly invariant `A` has `μ A = 1` and `ν A = 0`. -/
+theorem exists_measurableSet_invariants_eq_one_eq_zero [Countable G] {μ ν : Measure Ω}
+    (hμ : μ ∈ ({ρ : Measure Ω | IsProbabilityMeasure ρ ∧ SMulInvariantMeasure G Ω ρ} :
+      Set (Measure Ω)).extremePoints ℝ≥0∞)
+    (hν : ν ∈ ({ρ : Measure Ω | IsProbabilityMeasure ρ ∧ SMulInvariantMeasure G Ω ρ} :
+      Set (Measure Ω)).extremePoints ℝ≥0∞)
+    (hne : μ ≠ ν) :
+    ∃ A, MeasurableSet[MeasurableSpace.invariants G Ω] A ∧ μ A = 1 ∧ ν A = 0 := by
+  have hμm := hμ.1
+  have hνm := hν.1
+  have hμp : IsProbabilityMeasure μ := hμm.1
+  have hνp : IsProbabilityMeasure ν := hνm.1
+  have htrivμ := (mem_extremePoints_iff_forall_measurableSet_invariants hμm.2).1 hμ
+  have htrivν := (mem_extremePoints_iff_forall_measurableSet_invariants hνm.2).1 hν
+  obtain ⟨A, hA, hAne⟩ : ∃ A, MeasurableSet[MeasurableSpace.invariants G Ω] A ∧ μ A ≠ ν A := by
+    by_contra hall
+    push Not at hall
+    exact hne (eq_of_forall_measurableSet_invariants_eq hμm.2 hνm.2 hall)
+  have hAm : MeasurableSet A := MeasurableSpace.invariants_le _ hA
+  rcases htrivμ A hA with hμ0 | hμ1 <;> rcases htrivν A hA with hν0 | hν1
+  · exact absurd (hμ0.trans hν0.symm) hAne
+  · exact ⟨Aᶜ, hA.compl, (prob_compl_eq_one_iff hAm).2 hμ0, (prob_compl_eq_zero_iff hAm).2 hν1⟩
+  · exact ⟨A, hA, hμ1, hν0⟩
+  · exact absurd (hμ1.trans hν1.symm) hAne
+
+/-- **Georgii, Theorem (14.5)(d)**, measure form: distinct extreme invariant probability measures
+are mutually singular. -/
+theorem mutuallySingular_of_mem_extremePoints_smulInvariant [Countable G] {μ ν : Measure Ω}
+    (hμ : μ ∈ ({ρ : Measure Ω | IsProbabilityMeasure ρ ∧ SMulInvariantMeasure G Ω ρ} :
+      Set (Measure Ω)).extremePoints ℝ≥0∞)
+    (hν : ν ∈ ({ρ : Measure Ω | IsProbabilityMeasure ρ ∧ SMulInvariantMeasure G Ω ρ} :
+      Set (Measure Ω)).extremePoints ℝ≥0∞)
+    (hne : μ ≠ ν) : μ.MutuallySingular ν := by
+  obtain ⟨A, hA, hμA, hνA⟩ := exists_measurableSet_invariants_eq_one_eq_zero hμ hν hne
+  have hμp : IsProbabilityMeasure μ := hμ.1.1
+  have hAm : MeasurableSet A := MeasurableSpace.invariants_le _ hA
+  exact ⟨Aᶜ, hAm.compl, (prob_compl_eq_zero_iff hAm).2 hμA, by rwa [compl_compl]⟩
+
 
 end SMul
 
