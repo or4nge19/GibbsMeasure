@@ -522,6 +522,18 @@ alignment:
         lambda-preserving symmetries; Z^d with Theta <= I <= T_lambda^(m) o R o Theta is the
         instance (mem_GP_and_measurePreserving_of_mapClusterPt_latticePeriodic). Phi is taken in
         B, the Gibbsian specification the tree has, rather than "finite range or B".
+    - source: "Theorems (14.A3), (14.A5): the L2 and L1 mean ergodic theorems"
+      lean: "MeasureTheory.tendsto_integral_norm_inv_card_smul_sum_sub_condExp"
+      module: "GibbsMeasure/Mathlib/Dynamics/Ergodic/MeanErgodic.lean"
+      status: "proved"
+      note: >-
+        For any group acting by measure-preserving maps and any Foelner net of finsets (left
+        translates), the averages R_F f converge to E[f | I] in L2 (no finiteness of mu needed;
+        limit condExpL2 in Lp) and in L1 (finite mu). Proved by adapting the strategy of Mathlib's
+        single-operator von Neumann theorem (fixed space + closure of coboundaries), not Georgii's
+        minimal-norm argument. Countability of the group is genuinely needed to identify the fixed
+        space of the Koopman operators with the I-measurable functions (counterexample recorded).
+        Additive (Z^d) versions transported through Multiplicative G.
     - source: "Lemma (14.A6), the ergodic maximal inequality"
       lean: "MeasureTheory.measure_exists_lt_abs_div_card_le_cube"
       module: "GibbsMeasure/Mathlib/Dynamics/Ergodic/MaximalInequality.lean"

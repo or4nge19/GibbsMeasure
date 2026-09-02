@@ -39,6 +39,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Measure.RegularContent
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.WithSetwiseTopology
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.WithDensity
 public import GibbsMeasure.Mathlib.Probability.ConditionalProbability
+public import GibbsMeasure.Mathlib.Dynamics.Ergodic.MeanErgodic
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.MaximalInequality
 public import GibbsMeasure.Mathlib.GroupTheory.Foelner
 public import GibbsMeasure.Mathlib.Probability.Kernel.StieltjesPoint
