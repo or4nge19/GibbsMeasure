@@ -1,0 +1,114 @@
+\section{Two-sided and one-sided Markov property}
+
+Throughout this section $S = \mathbb{Z}$ and $(E, \mathcal E)$ is an arbitrary measurable space.
+For $V \subseteq \mathbb Z$, $\partial V = \set{i \notin V : i + 1 \in V \text{ or } i - 1 \in V}$.
+
+\begin{definition}[Markov specification, Georgii (10.2)]
+    \label{def:mfi-markov-spec}
+    \uses{def:spec, def:cylinder-event, def:premodif}
+    \lean{Specification.IsMarkovInt, Specification.IsMarkovianInt, Specification.isMarkovInt_lambdaSpecification}
+    \leanok
+
+    A specification $\gamma$ is \textbf{Markov} if $\gamma_{]i,k[}(A \mid \cdot)$ is
+    $\mathcal F_{\set{i,k}}$-measurable for all $i + 1 < k$ and $A \in \mathcal F_{]i,k[}$. A
+    family of densities $\rho$ is \textbf{Markovian} if $\rho_{]i,k[}$ is
+    $\mathcal F_{[i,k]}$-measurable for all $i + 1 < k$; the $\lambda$-specification of a
+    Markovian pre-modification is Markov.
+\end{definition}
+
+\begin{example}[Georgii (10.3)]
+    \label{ex:mfi-10-3}
+    \uses{def:mfi-markov-spec, def:isssd-spec}
+    \lean{Specification.chainDensity, Specification.chainSpecification, Specification.isMarkovInt_chainSpecification}
+    \leanok
+
+    Let $\lambda$ be a probability measure on $E$ and $p = (p_j)_{j \in \mathbb Z}$ measurable
+    functions $E \times E \to [0,\infty]$ such that
+    $\rho_\Lambda(\omega) = \prod_{j} p_j(\omega_{j-1}, \omega_j)$, the product over the bonds
+    $\set{j-1, j}$ meeting $\Lambda$, is a $\lambda$-admissible pre-modification (for instance,
+    $p$ positive and bounded). Then $\rho\lambda$ is a Markov specification.
+\end{example}
+
+\begin{definition}[Markov chain, Georgii (10.4)--(10.5)]
+    \label{def:mfi-markov-chain}
+    \uses{def:cylinder-event}
+    \lean{MeasureTheory.GibbsMeasure.Markov.IsMarkovChain, MeasureTheory.GibbsMeasure.Markov.chainKernel, MeasureTheory.GibbsMeasure.Markov.IsMarkovChain.measure_rect, MeasureTheory.GibbsMeasure.Markov.isMarkovChain_iff_forall_measure_rect}
+    \leanok
+
+    Let $P = (P_i)_{i \in \mathbb Z}$ be probability kernels on $E$. A probability measure $\mu$
+    on $\Cfg$ is a \textbf{Markov chain} with transition kernels $P$ if
+    $\mu(\sigma_i \in A \mid \mathcal F_{]-\infty, i[}) = P_i(\sigma_{i-1}, A)$ $\mu$-a.s.\ for
+    all $i$ and $A \in \mathcal E$; equivalently,
+    \[
+        \mu(\sigma_i \in B_i, \dots, \sigma_{i+n} \in B_{i+n})
+        = \int_{B_i} \mu(\sigma_i \in dx)\, \bigl(P_{i+1} 1_{B_{i+1}} \cdots P_{i+n} 1_{B_{i+n}}\bigr)(x)
+        \tag{10.5}
+    \]
+    for all $i$, $n$ and $B_i, \dots, B_{i+n} \in \mathcal E$.
+\end{definition}
+
+\begin{definition}[Markov properties, Georgii (10.6)--(10.8), (10.10)]
+    \label{def:mfi-markov-properties}
+    \uses{def:cylinder-event}
+    \lean{MeasureTheory.GibbsMeasure.Markov.boundarySet, MeasureTheory.GibbsMeasure.Markov.IsMarkovOn, MeasureTheory.GibbsMeasure.Markov.IsMarkovField, MeasureTheory.GibbsMeasure.Markov.IsLeftMarkov, MeasureTheory.GibbsMeasure.Markov.IsRightMarkov, MeasureTheory.GibbsMeasure.Markov.IsOneSidedMarkov, MeasureTheory.GibbsMeasure.Markov.IsLocalMarkov, MeasureTheory.GibbsMeasure.Markov.IsGlobalMarkov}
+    \leanok
+
+    For a probability measure $\mu$ on $\Cfg$ and $V \subseteq \mathbb Z$, $\mu$ is
+    \textbf{Markov on $V$} if
+    $\mu(A \mid \mathcal F_{\mathbb Z \setminus V}) = \mu(A \mid \mathcal F_{\partial V})$
+    $\mu$-a.s.\ for all $A \in \mathcal F_V$ (10.10). $\mu$ is a \textbf{Markov field} if it is
+    Markov on every $]i,k[$ with $i + 1 < k$ (10.6); \textbf{left Markov} if
+    $\mu(A \mid \mathcal F_{]-\infty,i]}) = \mu(A \mid \mathcal F_{\set i})$ for $A \in
+    \mathcal F_{[i,\infty[}$ (10.7); \textbf{right Markov} symmetrically (10.8);
+    \textbf{one-sided Markov} if both; \textbf{locally Markov} if Markov on every finite $V$;
+    \textbf{globally Markov} if Markov on every $V \subseteq \mathbb Z$.
+\end{definition}
+
+\begin{theorem}[Georgii (10.9)]
+    \label{thm:mfi-10-9}
+    \uses{def:mfi-markov-properties, def:mfi-markov-chain}
+    \lean{MeasureTheory.GibbsMeasure.Markov.isLeftMarkov_iff_isRightMarkov, MeasureTheory.GibbsMeasure.Markov.isMarkovField_iff_isLocalMarkov, MeasureTheory.GibbsMeasure.Markov.isOneSidedMarkov_iff_isGlobalMarkov, MeasureTheory.GibbsMeasure.Markov.IsOneSidedMarkov.isMarkovField, MeasureTheory.GibbsMeasure.Markov.IsMarkovChain.isLeftMarkov, MeasureTheory.GibbsMeasure.Markov.IsMarkovChain.isRightMarkov}
+    \leanok
+
+    Let $\mu$ be a probability measure on $\Cfg$.
+    \begin{enumerate}
+    \item $\mu$ is a Markov field iff $\mu$ is locally Markov.
+    \item $\mu$ is left Markov iff it is right Markov iff it is globally Markov.
+    \item A one-sided Markov field is a Markov field; a Markov chain is one-sided Markov.
+    \end{enumerate}
+\end{theorem}
+\begin{proof}
+    \leanok
+    Markov on $V_1$ and on $V_2$ gives Markov on $V_1 \cup V_2$ when $V_1$, $V_2$ are not
+    adjacent; every $V$ is the union of its maximal intervals, and Markov on each component of
+    $V$ gives Markov on $V$. The two one-sided properties are equivalent by the symmetry of
+    conditional independence. A Markov chain satisfies (10.7) by (10.5).
+\end{proof}
+
+\begin{example}[Georgii (10.11)]
+    \label{ex:mfi-10-11}
+    \uses{def:mfi-markov-chain, ex:mfi-10-3, def:gibbs-meas}
+    \lean{MeasureTheory.GibbsMeasure.Markov.IsMarkovChain.isGibbsMeasure_chainSpecification}
+    \leanok
+
+    In the setting of Example \ref{ex:mfi-10-3}, if $P_j(x, \cdot) = p_j(x, \cdot)\lambda$ are
+    probability kernels and $\mu$ is a Markov chain with transition kernels $P$, then
+    $\mu \in \mathcal G(\rho\lambda)$.
+\end{example}
+\begin{proof}
+    \leanok
+    On an interval $\Lambda = [a,b]$, (10.5) identifies $\mu(A \cap \set{\sigma_\Lambda \in B})$
+    with $\int_A \gamma_\Lambda(\sigma_\Lambda \in B \mid \cdot)\, d\mu$ for
+    $A \in \mathcal F_{\mathbb Z \setminus \Lambda}$; the intervals are cofinal in $\mathcal S$.
+\end{proof}
+
+\begin{proposition}[Chapter 3 as an instance]
+    \label{prop:mfi-finite-state}
+    \uses{def:mfi-markov-spec, def:mfi-markov-chain, def:mkv-specification, def:mkv-chain}
+    \lean{MeasureTheory.GibbsMeasure.Markov.isMarkovInt_markovSpecification, MeasureTheory.GibbsMeasure.Markov.isMarkovChain_stationaryChain}
+    \leanok
+
+    For a finite $E$ and a positive stochastic matrix $P$, the Markov specification $\gamma_P$ of
+    Chapter 3 is Markov in the sense of Definition \ref{def:mfi-markov-spec}, and the stationary
+    chain $\mu_P$ is a Markov chain with transition kernels $P(x, \cdot)$.
+\end{proposition}

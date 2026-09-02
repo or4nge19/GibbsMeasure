@@ -447,7 +447,17 @@ convergence for reversed martingales, with an a.e. monotone convergence theorem 
 expectations that Mathlib also lacks. **Theorem (14.12)** (`GibbsMeasure/Specification/ErgodicDense.lean`): the ergodic
 fields are dense in `𝓟_Θ` — Georgii's periodised product `μ_n` and its shift average `v_n`, for a
 countable infinite abelian site group with tilings of vanishing boundary fraction, cubes of `ℤ^d`
-the instance; no ergodic theorem is used.
+the instance; no ergodic theorem is used. **Theorem (14.10)** and **Corollary (14.11)**
+(`GibbsMeasure/Specification/InvariantDecomposition.lean`): a `(𝓟_Θ, 𝓘)`-kernel for the shift group
+of any countable abelian site group with a regular Følner sequence, built from the individual
+ergodic theorem on a countable generating class, and the ergodic decomposition of `𝓟_Θ`; the
+extreme-decomposition package is abstracted over any `(P, 𝒜)`-kernel, so (7.26)–(7.30) and (14.10)
+are one theorem. **Theorem (14.17)**, **Corollary (14.18)** and **Corollary (14.25)**: the ergodic
+decomposition within `𝒢_Θ(γ)`, linear independence counting `ex 𝒢_Θ(γ)`, and `𝒢_Θ(γ)` as the closed
+convex hull of its limit points. **Theorem (14.20)** (`GibbsMeasure/Specification/ErgodicGibbsLimits.lean`):
+extreme invariant Gibbs measures are a.s. limits of the shift averages of `γ_Λ`, weakly and — for
+λ-modifications — in the topology of local convergence, where Georgii's application of (14.19) to
+unbounded averages is repaired by truncation; cubes of `ℤ^d` as the instance.
 
 **Chapter 15, first steps** (`GibbsMeasure/Mathlib/InformationTheory/RelativeEntropy.lean`,
 `GibbsMeasure/Mathlib/Analysis/Subadditive/Cubes.lean`): Georgii's relative entropy on a
@@ -471,6 +481,13 @@ potential on `ℤ` from (9.6), by Georgii's cyclic rotation of an interval, with
 interaction (9.8)(1) as the instance. On the way (5.5)/(5.6)/(5.9)(b) are proved over a σ-finite a
 priori measure.
 
+**Chapter 10, §10.1** (`GibbsMeasure/Specification/MarkovInt.lean`): Markov specifications and
+Markovian densities on `ℤ` (10.2), the chain specification of transition densities (10.3), Markov
+chains (10.4) with (10.5) as an equivalence, the two-sided, one-sided, local and global Markov
+properties (10.6)–(10.8), (10.10), **Theorem (10.9)** in all three parts, and **Example (10.11)**:
+a Markov chain with transition densities is a Gibbs measure for the chain specification; Chapter 3
+is the finite-state instance (`GibbsMeasure/Model/MarkovChainInt.lean`).
+
 **Chapter 11, first steps** (`GibbsMeasure/Model/BoundaryLaw.lean`,
 `GibbsMeasure/Mathlib/Probability/Kernel/CountableMatrix.lean`): sites `ℤ`, a *countable* state
 space, counting measure. A positive matrix `Q` with finite powers (11.1) is Mathlib's kernel
@@ -485,9 +502,9 @@ the way.
 
 Not yet done: the inhomogeneous Ising chains of §6.1, Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), (9.7)(1),(3), (9.13)–(9.17),
-Mermin–Wagner (9.20), the rest of Chapter 14 — (14.10)–(14.11), (14.16)–(14.18), (14.20)–(14.25) — the rest of
-Chapter 15 from (15.10) on, Chapter 11 from (11.9)(b) on, and Chapters 10, 12–13 and 16–20 (Markov
-fields on the integers and on trees,
+Mermin–Wagner (9.20), (14.13), (14.16), (14.21)–(14.24), the rest of
+Chapter 15 from (15.10) on, Chapter 11 from (11.9)(b) on, §§10.2–10.3, and Chapters 12–13 and
+16–20 (Markov fields on trees,
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).
 

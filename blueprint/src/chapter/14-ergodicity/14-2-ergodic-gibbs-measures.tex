@@ -1,0 +1,144 @@
+\section{Ergodic Gibbs measures}
+
+Throughout, $\Theta$ is a countable subgroup of the transformation group $T$ of $\Cfg$, $\mathcal I$
+its invariant $\sigma$-algebra, $\Prob_\Theta$ the $\Theta$-invariant random fields and
+$\mathcal G_\Theta(\gamma) = \mathcal G(\gamma) \cap \Prob_\Theta$.
+
+\begin{theorem}[Georgii (14.10)]
+    \label{thm:erg-1410}
+    \uses{def:erg-invariant, def:erg-invariant-events, thm:erg-145, prop:app-pa-kernel}
+    \lean{MeasureTheory.GibbsMeasure.exists_isPAKernel_invariantFields_shiftGroup, MeasureTheory.GibbsMeasure.exists_isPAKernel_invariantFields_shiftGroup_int, MeasureTheory.GibbsMeasure.ergodicDecomposition_invariantFields}
+    \leanok
+
+    Let $E$ be standard Borel and $S$ countable. If $\Theta$ is the shift group of a countable
+    abelian site group admitting an increasing Følner sequence $(F_n)$ with
+    $|F_n - F_n + F_n| \leq C |F_n|$ (for instance $\mathbb Z^d$ with the cubes $[0,n)^d$), and
+    $\Prob_\Theta \neq \emptyset$, there is a $(\Prob_\Theta, \mathcal I)$-kernel $\pi$. For any
+    countable $\Theta$ with such a kernel: $\operatorname{ex} \Prob_\Theta \neq \emptyset$; every
+    $\mu \in \Prob_\Theta$ is $\mu = \int \nu\, w_\mu(d\nu)$ for a unique probability weight
+    $w_\mu$ on $\operatorname{ex} \Prob_\Theta$; $\mu \mapsto w_\mu$ is an affine bijection of
+    $\Prob_\Theta$ onto these weights; $w_\mu$ is the image of $\mu$ under
+    $\omega \mapsto \pi(\cdot \mid \omega)$; and
+    $w_\mu(\nu(A) \leq c) = \mu(\mu(A \mid \mathcal I) \leq c)$ for measurable $A$ and real $c$.
+\end{theorem}
+\begin{proof}
+    \uses{thm:erg-14A8, thm:ext-726}
+    \leanok
+    The individual ergodic theorem \ref{thm:erg-14A8} gives, on a set $\Omega_0 \in \mathcal I$ of
+    full measure for every $\mu \in \Prob_\Theta$, the limits of the averages of the indicators
+    of a countable generating class; these limits are the distribution functions of a kernel
+    $\pi(\cdot \mid \omega)$ which is a version of $\mu(\cdot \mid \mathcal I)$ for every
+    $\mu \in \Prob_\Theta$, and $\pi(\cdot \mid \omega)$ is invariant and ergodic. The rest is the
+    abstract extreme decomposition governed by a $(P, \mathcal A)$-kernel.
+\end{proof}
+
+\begin{corollary}[Georgii (14.11)]
+    \label{cor:erg-1411}
+    \uses{thm:erg-1410}
+    \lean{MeasureTheory.GibbsMeasure.weight_map_of_mem_normalizer}
+    \leanok
+
+    In the setting of Theorem \ref{thm:erg-1410}, if $\tau \in T$ normalises $\Theta$ then
+    $w_{\tau\mu} = \tau w_\mu$ for all $\mu \in \Prob_\Theta$.
+\end{corollary}
+\begin{proof}
+    \leanok
+    $\tau$ maps $\Prob_\Theta$ and $\operatorname{ex}\Prob_\Theta$ to themselves; apply the
+    uniqueness in Theorem \ref{thm:erg-1410}.
+\end{proof}
+
+\begin{theorem}[Georgii (14.17)]
+    \label{thm:erg-1417}
+    \uses{thm:erg-1410, thm:erg-1415, prop:erg-149}
+    \lean{MeasureTheory.GibbsMeasure.ae_mem_invariantG_of_isPAKernel_invariantFields, MeasureTheory.GibbsMeasure.weight_extremePoints_invariantG_compl, MeasureTheory.GibbsMeasure.ergodicDecomposition_invariantG}
+    \leanok
+
+    Let $\gamma$ be a specification, $\Theta$ countable with a $(\Prob_\Theta, \mathcal I)$-kernel
+    $\pi$, and suppose every $\Lambda \in \mathcal S$ is moved off itself by some
+    $\tau \in \Theta$. Then $\pi(\cdot \mid \omega) \in \mathcal G_\Theta(\gamma)$ for
+    $\mu$-a.e.\ $\omega$, for every $\mu \in \mathcal G_\Theta(\gamma)$; $w_\mu$ is carried by
+    $\operatorname{ex}\mathcal G_\Theta(\gamma)$; every $\mu \in \mathcal G_\Theta(\gamma)$ has a
+    unique extreme decomposition within $\mathcal G_\Theta(\gamma)$; and $\mu \mapsto w_\mu$ is an
+    affine bijection of $\mathcal G_\Theta(\gamma)$ onto the probability weights on
+    $\operatorname{ex}\mathcal G_\Theta(\gamma)$.
+\end{theorem}
+\begin{proof}
+    \leanok
+    By Proposition \ref{prop:erg-149}, $\mathcal I \subseteq \mathcal T$ modulo $\mu$, so
+    $\mu(\cdot \mid \mathcal I) = \mu(\mu(\cdot \mid \mathcal T) \mid \mathcal I)$ and the DLR
+    equations pass to $\pi(\cdot \mid \omega)$; the rest is Theorem \ref{thm:erg-1410} restricted
+    to the face $\mathcal G_\Theta(\gamma)$ of $\Prob_\Theta$ (Theorem \ref{thm:erg-1415}).
+\end{proof}
+
+\begin{corollary}[Georgii (14.18)]
+    \label{cor:erg-1418}
+    \uses{thm:erg-1417}
+    \lean{MeasureTheory.GibbsMeasure.le_encard_extremePoints_invariantG_iff}
+    \leanok
+
+    In the setting of Theorem \ref{thm:erg-1417}, for $N \in \mathbb N$:
+    $|\operatorname{ex}\mathcal G_\Theta(\gamma)| \geq N$ iff $\mathcal G_\Theta(\gamma)$
+    contains $N$ linearly independent elements.
+\end{corollary}
+\begin{proof}
+    \leanok
+    Distinct extreme points are linearly independent by the uniqueness of weights; conversely
+    $N$ linearly independent measures cannot lie in the span of fewer than $N$ extreme points.
+\end{proof}
+
+\begin{theorem}[Georgii (14.20)]
+    \label{thm:erg-1420}
+    \uses{thm:erg-1415, thm:erg-14A8, lem:erg-1419, def:sym-trans-average}
+    \lean{MeasureTheory.GibbsMeasure.ae_tendsto_integral_kernel_inv_card_smul_sum_shift_of_mem_extremePoints_invariantG, MeasureTheory.GibbsMeasure.ae_tendsto_shiftAverage_weakly_of_mem_extremePoints_invariantG, Specification.ae_tendsto_shiftAverage_withLocalConvergence_of_mem_extremePoints_invariantG, MeasureTheory.GibbsMeasure.ae_tendsto_shiftAverage_withLocalConvergence_cube}
+    \leanok
+
+    Let $\Theta$ be the shift group of a countable abelian site group $S$ with an increasing
+    Følner sequence $(F_n)$ satisfying $|F_n - F_n + F_n| \leq C|F_n|$, $(\Lambda_n)$ an
+    increasing sequence of finite volumes, and $\mu \in \operatorname{ex}\mathcal G_\Theta(\gamma)$.
+    \begin{enumerate}
+    \item For every bounded measurable $f$,
+      $\gamma_{\Lambda_n}\bigl(|F_n|^{-1}\sum_{i \in F_n} f \circ \theta_i \,\big|\, \omega\bigr)
+      \to \mu(f)$ for $\mu$-a.e.\ $\omega$.
+    \item If $E$ is compact metrizable, $S$ countable and $\gamma$ shift-invariant, then
+      $|F_n|^{-1}\sum_{i \in F_n} \gamma_{\Lambda_n + i}(\cdot \mid \theta_i\omega) \to \mu$
+      weakly for $\mu$-a.e.\ $\omega$.
+    \item If $\gamma = \rho\lambda$ is a $\lambda$-modification of the independent specification
+      of a probability measure $\lambda$ and
+      $|\{i \in F_n : \delta - i \notin \Lambda_n\}|/|F_n| \to 0$ for every $\delta \in S$, the
+      convergence in (2) holds in the topology of local convergence.
+    \end{enumerate}
+    On $\mathbb Z^d$ the cubes $F_n = \Lambda_n = [-n,n]^d$ satisfy the hypotheses.
+\end{theorem}
+\begin{proof}
+    \leanok
+    (1) is the individual ergodic theorem \ref{thm:erg-14A8} for $\mu$, trivial on $\mathcal I$,
+    composed with the reversed martingale $\mu(\cdot \mid \mathcal T_{\Lambda_n})$ through Lemma
+    \ref{lem:erg-1419}. (2) follows from (1) on a countable dense set of continuous functions.
+    (3): for a cylinder event $A \in \mathcal F_\Delta$ the averaged kernel has density
+    $\tilde\rho^n_\Delta = |F_n|^{-1}\sum_i \rho_\Delta \circ \tilde\theta_i$ relative to
+    $\lambda^S$ on $\mathcal T_\Delta \otimes \mathcal F_\Delta$; by (14.22) its conditional
+    expectation is $\mu$-a.s.\ equal to $\rho_\Delta$'s, and the truncated averages
+    $\min(\tilde\rho^n_\Delta, M)$ converge by \ref{thm:erg-14A8} and \ref{lem:erg-1419} to a
+    limit dominating $\min(\bar\rho_\Delta, M)$; letting $M \to \infty$ and using
+    $\int \tilde\rho^n_\Delta = \int \bar\rho_\Delta$, a one-sided Scheffé lemma gives
+    $L^1(\lambda^\Delta)$ convergence, hence (3).
+\end{proof}
+
+\begin{corollary}[Georgii (14.25)]
+    \label{cor:erg-1425}
+    \uses{thm:erg-1417, thm:erg-1420, def:ql-quasilocal-spec}
+    \lean{MeasureTheory.GibbsMeasure.setOf_mem_invariantG_eq_closure_convexCombos}
+    \leanok
+
+    Let $\gamma$ be quasilocal and $\Theta$, $\pi$ as in Theorem \ref{thm:erg-1417}. If
+    $L \subseteq \mathcal G_\Theta(\gamma)$ contains $\operatorname{ex}\mathcal G_\Theta(\gamma)$
+    (for instance the set of limits of Theorem \ref{thm:erg-1420}), then
+    $\mathcal G_\Theta(\gamma)$ is the closed convex hull of $L$ in the topology of local
+    convergence.
+\end{corollary}
+\begin{proof}
+    \leanok
+    $\mathcal G_\Theta(\gamma)$ is closed and convex, and by Theorem \ref{thm:erg-1417} each of
+    its elements is a barycentre of extreme points, approximated by finite convex combinations
+    as in the density step of Theorem (7.30).
+\end{proof}

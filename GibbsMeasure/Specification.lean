@@ -2630,4 +2630,24 @@ lemma IsPremodifier.isConsistent_modificationKer_sigmaFinitePremodifierNorm
 
 end Modifier
 
+/-- The independent kernel on a singleton resamples the single coordinate: `λ_{i}(·|ω)` is the
+image of `ν` under `x ↦ update ω i x`. -/
+lemma isssd_singleton_eq_map {S E : Type*} [DecidableEq S] [MeasurableSpace E] (ν : Measure E)
+    [IsProbabilityMeasure ν] (i : S) (ω : S → E) :
+    isssd (S := S) ν {i} ω = ν.map (Function.update ω i) := by
+  have hpi : (Measure.pi fun _ : (({i} : Finset S) : Type _) ↦ ν) =
+      ν.map (MeasurableEquiv.funUnique (({i} : Finset S) : Type _) E).symm :=
+    ((measurePreserving_funUnique ν _).symm _).map_eq.symm
+  change Measure.map (juxt (({i} : Finset S) : Set S) ω)
+    (Measure.pi fun _ : (({i} : Finset S) : Type _) ↦ ν) = _
+  rw [hpi, Measure.map_map Measurable.juxt
+    (MeasurableEquiv.funUnique (({i} : Finset S) : Type _) E).symm.measurable]
+  congr 1
+  funext y j
+  by_cases hj : j = i
+  · subst hj
+    rw [Function.comp_apply, juxt_apply_of_mem (by simp), Function.update_self]
+    rfl
+  · rw [Function.comp_apply, juxt_apply_of_not_mem (by simpa using hj), Function.update_of_ne hj]
+
 end Specification

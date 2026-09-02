@@ -57,6 +57,7 @@ public import GibbsMeasure.Mathlib.Probability.Kernel.Proper
 public import GibbsMeasure.Mathlib.Probability.Martingale.DominatedBackward
 public import GibbsMeasure.Mathlib.Probability.Martingale.Convergence
 public import GibbsMeasure.Mathlib.Probability.TailTriviality
+public import GibbsMeasure.Prereqs.IntervalBoundary
 public import GibbsMeasure.Prereqs.CylinderEvents
 public import GibbsMeasure.Prereqs.Filtration.Consistent
 public import GibbsMeasure.Prereqs.Juxt
@@ -75,6 +76,7 @@ public import GibbsMeasure.Potential.FreeBoundary
 public import GibbsMeasure.Potential.GibbsTransformation
 public import GibbsMeasure.Potential.UniformConvergence
 public import GibbsMeasure.Model.BoundaryLaw
+public import GibbsMeasure.Model.MarkovChainInt
 public import GibbsMeasure.Model.Ising
 public import GibbsMeasure.Model.IsingDobrushin
 public import GibbsMeasure.Model.IsingFKG
@@ -152,6 +154,7 @@ public import GibbsMeasure.Specification.Rescaling
 public import GibbsMeasure.Specification.ProductSpecification
 public import GibbsMeasure.Specification.QuasilocalSpecification
 public import GibbsMeasure.Specification.Singleton
+public import GibbsMeasure.Specification.MarkovInt
 public import GibbsMeasure.Specification.Structure
 public import GibbsMeasure.Topology.ConfigurationSpace
 public import GibbsMeasure.Topology.ClusterPoints

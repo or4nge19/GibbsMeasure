@@ -6,6 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Specification.Singleton
+public import GibbsMeasure.Prereqs.IntervalBoundary
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PerronFrobenius
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.Doeblin
 public import GibbsMeasure.Potential.Existence
@@ -148,74 +149,6 @@ lemma pair_succ_inj {i j : ℤ} (h : ({i, i + 1} : Finset ℤ) = {j, j + 1}) : i
   omega
 
 /-! ### The boundary of a finite volume (Georgii (3.4)) -/
-
-/-- Georgii (3.4): the boundary `∂Λ = {i ∈ ℤ ∖ Λ : |i - j| = 1 for some j ∈ Λ}` of a finite
-volume `Λ ⊆ ℤ`. -/
-def boundary (Λ : Finset ℤ) : Finset ℤ := (Λ.image (· + 1) ∪ Λ.image (· - 1)) \ Λ
-
-lemma mem_boundary {Λ : Finset ℤ} {i : ℤ} :
-    i ∈ boundary Λ ↔ i ∉ Λ ∧ ∃ j ∈ Λ, |i - j| = 1 := by
-  simp only [boundary, Finset.mem_sdiff, Finset.mem_union, Finset.mem_image]
-  constructor
-  · rintro ⟨⟨j, hj, rfl⟩ | ⟨j, hj, rfl⟩, hi⟩ <;>
-      exact ⟨hi, j, hj, by rw [abs_eq (by norm_num : (0 : ℤ) ≤ 1)]; omega⟩
-  · rintro ⟨hi, j, hj, habs⟩
-    rw [abs_eq (by norm_num : (0 : ℤ) ≤ 1)] at habs
-    refine ⟨?_, hi⟩
-    rcases habs with h | h
-    · exact Or.inl ⟨j, hj, by omega⟩
-    · exact Or.inr ⟨j, hj, by omega⟩
-
-lemma disjoint_boundary (Λ : Finset ℤ) : Disjoint Λ (boundary Λ) :=
-  Finset.disjoint_sdiff
-
-lemma succ_mem_union_boundary {Λ : Finset ℤ} {i : ℤ} (hi : i ∈ Λ) :
-    i + 1 ∈ Λ ∪ boundary Λ := by
-  by_cases h : i + 1 ∈ Λ
-  · exact Finset.mem_union_left _ h
-  · exact Finset.mem_union_right _ (mem_boundary.2 ⟨h, i, hi, by
-      rw [show i + 1 - i = (1 : ℤ) by omega, abs_one]⟩)
-
-lemma pred_mem_union_boundary {Λ : Finset ℤ} {i : ℤ} (hi : i ∈ Λ) :
-    i - 1 ∈ Λ ∪ boundary Λ := by
-  by_cases h : i - 1 ∈ Λ
-  · exact Finset.mem_union_left _ h
-  · exact Finset.mem_union_right _ (mem_boundary.2 ⟨h, i, hi, by
-      rw [show i - 1 - i = (-1 : ℤ) by omega, abs_neg, abs_one]⟩)
-
-/-- The boundary of an interval is the two-point set of Georgii (3.8)(1). -/
-lemma boundary_Icc {a b : ℤ} (hab : a ≤ b) :
-    boundary (Finset.Icc a b) = {a - 1, b + 1} := by
-  ext i
-  rw [mem_boundary]
-  simp only [Finset.mem_Icc, Finset.mem_insert, Finset.mem_singleton]
-  constructor
-  · rintro ⟨hi, j, hj, habs⟩
-    rw [abs_eq (by norm_num : (0 : ℤ) ≤ 1)] at habs
-    omega
-  · rintro (rfl | rfl)
-    · exact ⟨by omega, a, ⟨le_rfl, hab⟩, by rw [abs_eq (by norm_num : (0 : ℤ) ≤ 1)]; omega⟩
-    · exact ⟨by omega, b, ⟨hab, le_rfl⟩, by rw [abs_eq (by norm_num : (0 : ℤ) ≤ 1)]; omega⟩
-
-/-- The left endpoints of the bonds `{j, j + 1}` meeting a finite volume `Λ ⊆ ℤ`. -/
-def bondsOf (Λ : Finset ℤ) : Finset ℤ := Λ ∪ Λ.image (· - 1)
-
-lemma mem_bondsOf {Λ : Finset ℤ} {j : ℤ} : j ∈ bondsOf Λ ↔ j ∈ Λ ∨ j + 1 ∈ Λ := by
-  simp only [bondsOf, Finset.mem_union, Finset.mem_image]
-  constructor
-  · rintro (h | ⟨k, hk, rfl⟩)
-    · exact Or.inl h
-    · exact Or.inr (by simpa using hk)
-  · rintro (h | h)
-    · exact Or.inl h
-    · exact Or.inr ⟨j + 1, h, by omega⟩
-
-lemma bondsOf_Icc {a b : ℤ} (hab : a ≤ b) :
-    bondsOf (Finset.Icc a b) = Finset.Ico (a - 1) (b + 1) := by
-  ext j
-  rw [mem_bondsOf]
-  simp only [Finset.mem_Icc, Finset.mem_Ico]
-  omega
 
 open Classical in
 /-- Georgii, Corollary (3.9): the homogeneous nearest-neighbour potential of a matrix `P`:
@@ -2216,25 +2149,6 @@ lemma boltzmannFactor_singleton (hpos : ∀ x y, 0 < P x y) (i : ℤ) (σ : ℤ 
       Real.log (P (σ (i - 1)) (σ i)) + Real.log (P (σ i) (σ (i + 1))) by ring,
     Real.exp_add, Real.exp_log h1, Real.exp_log h2]
 
-omit [Fintype E] [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
-/-- The independent kernel on a singleton resamples the single coordinate: `λ_{i}(·|ω)` is the
-image of `ν` under `x ↦ update ω i x`. -/
-lemma isssd_singleton_eq_map (ν : Measure E) [IsProbabilityMeasure ν] (i : ℤ) (ω : ℤ → E) :
-    Specification.isssd (S := ℤ) ν {i} ω = ν.map (Function.update ω i) := by
-  have hpi : (Measure.pi fun _ : (({i} : Finset ℤ) : Type) ↦ ν) =
-      ν.map (MeasurableEquiv.funUnique (({i} : Finset ℤ) : Type) E).symm :=
-    ((measurePreserving_funUnique ν _).symm _).map_eq.symm
-  show Measure.map (juxt (({i} : Finset ℤ) : Set ℤ) ω)
-    (Measure.pi fun _ : (({i} : Finset ℤ) : Type) ↦ ν) = _
-  rw [hpi, Measure.map_map Measurable.juxt (MeasurableEquiv.measurable _)]
-  congr 1
-  funext y j
-  simp only [Function.comp_apply, MeasurableEquiv.funUnique_symm_apply, Function.update_apply]
-  by_cases hj : j = i
-  · subst hj
-    simp [juxt, uniqueElim_const]
-  · simp [juxt, hj]
-
 end Singleton
 
 /-! ### Finite configurations: extension and cylinder sums -/
@@ -2627,17 +2541,6 @@ variable (P : Matrix E E ℝ) (α : E → ℝ)
 
 open scoped Matrix
 
-/-- A symmetric interval bound for a finite volume: `Λ ⊆ [-boundOf Λ, boundOf Λ]`. -/
-def boundOf (Λ : Finset ℤ) : ℤ := ((Λ.sup fun i ↦ i.natAbs : ℕ) : ℤ)
-
-lemma boundOf_nonneg (Λ : Finset ℤ) : 0 ≤ boundOf Λ := Int.natCast_nonneg _
-
-lemma subset_Icc_boundOf (Λ : Finset ℤ) : Λ ⊆ Finset.Icc (-boundOf Λ) (boundOf Λ) := by
-  intro i hi
-  have h := Finset.le_sup (f := fun j : ℤ ↦ j.natAbs) hi
-  simp only [Finset.mem_Icc, boundOf]
-  omega
-
 /-- The finite-dimensional distribution of the stationary chain on the volume `Λ`
 (Georgii (3.3)): restrict the interval measure of any interval containing `Λ` to `Λ`. -/
 def finDist (Λ : Finset ℤ) : Measure (Π _k : Λ, E) :=
@@ -2848,7 +2751,7 @@ lemma premodifierZ_singleton (hpos : ∀ x y, 0 < P x y) (i : ℤ) (ω : ℤ →
     intro x
     rw [uniformOn_univ, Measure.count_singleton, one_div]
 
-  rw [Specification.premodifierZ, Specification.relZ, isssd_singleton_eq_map,
+  rw [Specification.premodifierZ, Specification.relZ, Specification.isssd_singleton_eq_map,
     lintegral_map (hpre.measurable {i}) hupd, lintegral_fintype]
   simp_rw [hρi, hνx]
   rw [← Finset.sum_mul, pow_two, Matrix.mul_apply,

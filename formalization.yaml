@@ -44,9 +44,10 @@ classification:
 status:
   scope: >-
     Georgii Chapters 1-8, complete for the results listed under main_results. Of Chapters 9-20:
-    Chapter 14 (ergodicity) except (14.10)-(14.11), (14.16)-(14.18), (14.20)-(14.25); Section
+    Chapter 14 (ergodicity) except (14.13), (14.16), (14.21)-(14.24); Section
     15.1 (relative entropy) and Lemma (15.11); Section 11.1 up to Theorem (11.9)(a) (transfer
-    matrices, boundary laws, the Gibbs measure of a boundary law); Section 9.1 (symmetry
+    matrices, boundary laws, the Gibbs measure of a boundary law); Section 10.1 (the Markov
+    properties (10.2)-(10.11)); Section 9.1 (symmetry
     inheritance (9.1), localized symmetries (9.3), one-dimensional pair interactions (9.5),
     (9.11), (9.16)). The rest is not formalized.
   sorry_count: 0
@@ -802,6 +803,61 @@ alignment:
         interaction phi_k = -beta k^{-a} s(x) s(y), a > 1, is shift-invariant
         (measurePreserving_shift_longRangeIsing). Not formalized: (9.7)(1), (9.7)(3), the first
         half of (9.7)(2), (9.8)(2), (9.13), (9.15), (9.17), and Section 9.2 (Mermin-Wagner).
+    - source: "Theorem (14.10), Corollary (14.11)"
+      lean: "MeasureTheory.GibbsMeasure.ergodicDecomposition_invariantFields"
+      module: "GibbsMeasure/Specification/InvariantDecomposition.lean"
+      status: "proved"
+      note: >-
+        A (P_Theta, I)-kernel exists for the shift group of a countable abelian site group with an
+        increasing regular Foelner sequence (exists_isPAKernel_invariantFields_shiftGroup; Z^d with
+        the cubes [0,n)^d), built from the individual ergodic theorem (14.A8) on a countable
+        generating class and Mathlib's kernelOfMeasurableRat. Given such a kernel, for any countable
+        Theta: ex P_Theta nonempty, unique extreme decomposition, mu -> w_mu an affine bijection,
+        w_mu = image of mu under the kernel, and w_mu(nu(A) <= c) = mu(mu(A|I) <= c). (14.11) for
+        tau in the normaliser of Theta (weight_map_of_mem_normalizer). The extreme-decomposition
+        package is abstracted over IsPAKernel P A pi (namespace IsPAKernel), so that (7.26)-(7.30)
+        and (14.10) are one theorem.
+    - source: "Theorem (14.17), Corollary (14.18), Corollary (14.25)"
+      lean: "MeasureTheory.GibbsMeasure.ergodicDecomposition_invariantG"
+      module: "GibbsMeasure/Specification/InvariantDecomposition.lean"
+      status: "proved"
+      note: >-
+        For Theta moving every finite volume off itself (hypothesis of (14.9)): the kernel of
+        (14.10) is a (G_Theta(gamma), I)-kernel, w_mu is carried by ex G_Theta(gamma), unique
+        decomposition within G_Theta(gamma); (14.18) linear independence counts ex G_Theta(gamma);
+        (14.25) for quasilocal gamma: G_Theta(gamma) is the closed convex hull of any L with
+        ex G_Theta(gamma) subset L subset G_Theta(gamma) — the inclusion ex G_Theta(gamma) subset
+        G_{Theta,lim}(gamma) is (14.20)(c). (14.13), (14.16) and (14.21)-(14.24) are not formalized
+        as separate statements.
+    - source: "Theorem (14.20)"
+      lean: "MeasureTheory.GibbsMeasure.ae_tendsto_shiftAverage_withLocalConvergence_cube"
+      module: "GibbsMeasure/Specification/ErgodicGibbsLimits.lean"
+      status: "proved"
+      note: >-
+        (a) for any measure-preserving action along an increasing regular Foelner sequence, then
+        for the shift group; (b) weak convergence of the shift averages of gamma_Lambda for compact
+        metrizable E and shift-invariant gamma; (c) convergence in the topology of local
+        convergence for a lambda-modification of the independent specification of a probability
+        measure lambda, with the coupling hypothesis |{i in F_n : delta - i not in Lambda_n}| / |F_n|
+        -> 0 in place of Georgii's |Lambda_n minus Lambda'_n| / |Lambda_n| -> 0; cubes of Z^d as the
+        instance. Georgii applies Lemma (14.19) to the unbounded averages of rho_Delta, whose
+        maximal function need not be integrable; the proof here truncates at M, passes to the
+        limit in M, and closes with a one-sided Scheffe lemma.
+    - source: "Section 10.1: Definitions (10.2), (10.4), (10.6)-(10.8), (10.10); Example (10.3); Theorem (10.9); Example (10.11)"
+      lean: "MeasureTheory.GibbsMeasure.Markov.isOneSidedMarkov_iff_isGlobalMarkov"
+      module: "GibbsMeasure/Specification/MarkovInt.lean"
+      status: "proved"
+      note: >-
+        S = Z, E any measurable space. Markov specifications and Markovian densities (10.2), with
+        the lambda-specification of a Markovian pre-modification Markov; the chain specification
+        of transition densities (10.3) (chainSpecification; Georgii's fallback rho = g_{i,k-1} on
+        {Z = 0} for non-admissible densities is not formalized); Markov chains (10.4) with (10.5)
+        as an iff for probability kernels; the two-sided, one-sided, local and global Markov
+        properties; Theorem (10.9): Markov field iff locally Markov, left iff right iff globally
+        Markov, one-sided implies two-sided, Markov chains are one-sided; Example (10.11): a Markov
+        chain with transition densities p_j is a Gibbs measure for the chain specification.
+        Chapter 3's gamma_P and mu_P are instances (Model/MarkovChainInt.lean). Sections 10.2-10.3
+        are not formalized.
 
 acknowledgements: >-
   Builds on Mathlib. Kolmogorov extension material adapted from RemyDegenne/kolmogorov_extension4.
