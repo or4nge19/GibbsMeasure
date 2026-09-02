@@ -450,19 +450,26 @@ and over volumes in the other.
     \label{prop:sym-5-18}
     \uses{def:sym-average, lem:sym-average-transport, def:sym-invariant-fields}
     \lean{MeasureTheory.GibbsMeasure.measurePreserving_of_mapClusterPt_average,
-          MeasureTheory.GibbsMeasure.measurePreserving_of_mapClusterPt_average_net}
+          MeasureTheory.GibbsMeasure.measurePreserving_of_mapClusterPt_average_net,
+          MeasureTheory.GibbsMeasure.measurePreserving_of_mapClusterPt_average_of_eventually_preimage_eq}
     \leanok
 
-    Let $\tau \in T$ be fixed and let $D$ be a directed set. Suppose given, for each
-    $\alpha \in D$, a $\tau$-invariant specification $\gamma^\alpha$, a $\tau$-invariant random
-    field $\nu_\alpha$ and a non-empty finite $\mathcal{R}_\alpha \subseteq \Fin$ with
+    Let $D$ be a directed set and suppose given, for each $\alpha \in D$, a transformation
+    $\tau_\alpha$, a $\tau_\alpha$-invariant specification $\gamma^\alpha$, a
+    $\tau_\alpha$-invariant random field $\nu_\alpha$ and a non-empty finite
+    $\mathcal{R}_\alpha \subseteq \Fin$ with
     \[
-      |\set{\tau_*\Lambda : \Lambda \in \mathcal{R}_\alpha} \mathbin{\triangle}
-        \mathcal{R}_\alpha| \, / \, |\mathcal{R}_\alpha| \longrightarrow 0 .
+      |\set{\tau_{\alpha*}\Lambda : \Lambda \in \mathcal{R}_\alpha} \mathbin{\triangle}
+        \mathcal{R}_\alpha| \, / \, |\mathcal{R}_\alpha| \longrightarrow 0 ,
     \]
-    Then every cluster point of
+    and let $\tau \in T$ satisfy $\norm{f \circ \tau_\alpha - f \circ \tau} \to 0$ for every
+    $f \in \mathcal{L}$. Then every cluster point of
     $\mu_\alpha = |\mathcal{R}_\alpha|^{-1}\sum_{\Lambda \in \mathcal{R}_\alpha}
     \nu_\alpha \gamma^\alpha_\Lambda$ in the topology of local convergence is $\tau$-invariant.
+    On indicators of local events the last hypothesis reads
+    $\tau_\alpha^{-1}A = \tau^{-1}A$ eventually, which is the form used; the two are equivalent,
+    since a $\set{0,1}$-valued function within sup-distance $< 1$ of another agrees with it, and
+    conversely local functions are uniformly approximated by simple functions over a fixed volume.
 \end{proposition}
 \begin{proof}
     \leanok

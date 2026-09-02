@@ -13,9 +13,14 @@ public import GibbsMeasure.Specification.Transformation
 # Averaged Gibbs distributions
 
 Georgii Proposition (5.18): every cluster point of the averages
-`μ_α = |R_α|⁻¹ ∑_{Λ ∈ R_α} ν γ_Λ` is `τ`-invariant when `γ` and `ν` are and the index families
-`R_α` are asymptotically invariant. The lattice instance (cubes on `ℤ^d`, Georgii (5.20)(1)) is
-in `GibbsMeasure/Model/ShiftAverage.lean`.
+`μ_α = |R_α|⁻¹ ∑_{Λ ∈ R_α} ν_α γ^α_Λ` is `τ`-invariant when the `γ^α` and `ν_α` are `τ_α`-invariant,
+the index families `R_α` are asymptotically `τ_α`-invariant, and `‖f ∘ τ_α - f ∘ τ‖ → 0` for every
+local `f`. This full form, with a *varying* transformation `τ_α`
+(`measurePreserving_of_mapClusterPt_average_of_eventually_preimage_eq`), is what Georgii's
+Example (5.20)(3) (periodic boundary conditions) needs; the constant-`τ` sequence form is
+`measurePreserving_of_mapClusterPt_average`. The lattice instances (cubes on `ℤ^d`, Georgii
+(5.20)(1) and (5.20)(2)) are in `GibbsMeasure/Model/ShiftAverage.lean`, the periodic one
+(Georgii (5.20)(3)) in `GibbsMeasure/Model/PeriodicSymmetry.lean`.
 
 `Specification.isGibbsMeasure_bind` is the continuous companion of these finite averages: a
 mixture `∫ w(dx) μ^x` of a measurable family of Gibbs measures is a Gibbs measure.
@@ -43,6 +48,15 @@ lemma average_apply (γ : Specification S E) (ν : Measure (S → E)) (R : Finse
     (A : Set (S → E)) :
     γ.average ν R A = (R.card : ℝ≥0∞)⁻¹ * ∑ Λ ∈ R, ν.bind (γ Λ) A :=
   MeasureTheory.uniformAverage_apply _ R A
+
+/-- The average of Georgii (5.18) over a single volume `R = {Λ}` is the finite-volume Gibbs
+distribution `ν γ_Λ` itself; this is the family Georgii uses in Examples (5.20)(2) and
+(5.20)(3). -/
+@[simp] lemma average_singleton (γ : Specification S E) (ν : Measure (S → E)) (Λ : Finset S) :
+    γ.average ν {Λ} = ν.bind (γ Λ) := by
+  unfold average MeasureTheory.uniformAverage
+  rw [Finset.card_singleton, Finset.sum_singleton]
+  simp
 
 /-- The average of Georgii (5.18) over a nonempty family is a probability measure. -/
 lemma isProbabilityMeasure_average (γ : Specification S E) (ν : Measure (S → E))
@@ -165,6 +179,73 @@ variable {S E : Type*} [MeasurableSpace E] [DecidableEq S]
 
 /-! ### Georgii Proposition (5.18) -/
 
+/-- **Georgii Proposition (5.18)**, in Georgii's full generality: the transformations `τ_α`, the
+specifications `γ^α`, the boundary fields `ν_α` and the volume families `𝓡_α` all vary along an
+arbitrary net. If each `γ^α` and `ν_α` is `τ_α`-invariant, `|τ_{α*} 𝓡_α ∆ 𝓡_α| / |𝓡_α| → 0`, and
+`τ_α → τ` in Georgii's sense `‖f ∘ τ_α - f ∘ τ‖ → 0` for all `f ∈ 𝓛`, then every cluster point of
+`μ_α = |𝓡_α|⁻¹ ∑_{Λ ∈ 𝓡_α} ν_α γ^α_Λ` is `τ`-invariant.
+
+Georgii's hypothesis is stated for the local functions `f ∈ 𝓛`; on the indicators `f = 1_A` of
+local events — which determine the topology of local convergence, and, being `{0,1}`-valued, force
+`1_A ∘ τ_α = 1_A ∘ τ` as soon as `‖1_A ∘ τ_α - 1_A ∘ τ‖ < 1` — it reads `τ_α⁻¹ A = τ⁻¹ A`
+eventually, which is the form `hτs` assumed here.  (Conversely `hτs` gives Georgii's hypothesis
+back for every `f ∈ 𝓛`, by uniform approximation with simple functions over a fixed volume.)
+
+Example (5.20)(3), periodic boundary conditions, is the case of a genuinely varying `τ_α`:
+there `τ_N` is the `Δ_N`-periodic modification of `τ`. -/
+theorem measurePreserving_of_mapClusterPt_average_of_eventually_preimage_eq {ι : Type*}
+    {l : Filter ι} {τ : Transformation S E} {τs : ι → Transformation S E}
+    {γs : ι → Specification S E} {νs : ι → ProbabilityMeasure (S → E)}
+    (hγ : ∀ a, Specification.IsInvariant (τs a) (γs a))
+    (hν : ∀ a, MeasurePreserving (τs a).toFun (νs a : Measure (S → E)) (νs a))
+    {R : ι → Finset (Finset S)} (hR : ∀ a, (R a).Nonempty)
+    (hlim : Tendsto (fun a ↦
+      (((R a).map (Finset.mapEmbedding (τs a).sites.toEmbedding).toEmbedding ∆ R a).card : ℝ) /
+        (R a).card) l (𝓝 0))
+    (hτs : ∀ A ∈ localEvents S E, ∀ᶠ a in l, (τs a).toFun ⁻¹' A = τ.toFun ⁻¹' A)
+    {μs : ι → ProbabilityMeasure (S → E)}
+    (hμs : ∀ a, (μs a : Measure (S → E)) = (γs a).average (νs a) (R a))
+    {μ : ProbabilityMeasure (S → E)}
+    (hμ : MapClusterPt (WithSetwiseTopology.ofMeasure μ : WithLocalConvergence S E) l
+      fun a ↦ WithSetwiseTopology.ofMeasure (μs a)) :
+    MeasurePreserving τ.toFun μ μ := by
+  obtain ⟨U, hUle, hU⟩ := mapClusterPt_iff_ultrafilter.1 hμ
+  refine ⟨τ.measurable_toFun, ?_⟩
+  have hmap : IsProbabilityMeasure ((μ : Measure (S → E)).map τ.toFun) :=
+    Measure.isProbabilityMeasure_map τ.measurable_toFun.aemeasurable
+  refine separatesOn_localEvents hmap inferInstance fun A hA ↦ ?_
+  have hAm : MeasurableSet A := .of_mem_measurableCylinders hA
+  rw [Measure.map_apply τ.measurable_toFun hAm]
+  -- evaluations on the local events `A` and `τ⁻¹ A` converge along the ultrafilter `U`
+  have h1 : Tendsto (fun a ↦ ((μs a : Measure (S → E)) A).toReal) U
+      (𝓝 (((μ : Measure (S → E)) A).toReal)) :=
+    (ENNReal.tendsto_toReal (measure_ne_top _ _)).comp
+      (tendsto_withLocalConvergence_iff.1 hU A hA)
+  have h2 : Tendsto (fun a ↦ ((μs a : Measure (S → E)) (τ.toFun ⁻¹' A)).toReal) U
+      (𝓝 (((μ : Measure (S → E)) (τ.toFun ⁻¹' A)).toReal)) :=
+    (ENNReal.tendsto_toReal (measure_ne_top _ _)).comp
+      (tendsto_withLocalConvergence_iff.1 hU _ (τ.preimage_mem_localEvents hA))
+  -- `μ_α(τ_α⁻¹ A)` is the average over `τ_{α*} 𝓡_α` evaluated at `A` (by `map_average`)
+  have hn : ∀ a, ((μs a : Measure (S → E)) ((τs a).toFun ⁻¹' A)).toReal =
+      ((γs a).average (νs a)
+        ((R a).map (Finset.mapEmbedding (τs a).sites.toEmbedding).toEmbedding)).real A := by
+    intro a
+    rw [measureReal_def, ← Specification.map_average (hγ a) (hν a),
+      Measure.map_apply (τs a).measurable_toFun hAm, hμs]
+  -- the difference `μ_α(τ⁻¹ A) - μ_α(A)` tends to `0`, by the estimate of (5.18)
+  have hdiff : Tendsto (fun a ↦ ((μs a : Measure (S → E)) (τ.toFun ⁻¹' A)).toReal -
+      ((μs a : Measure (S → E)) A).toReal) l (𝓝 0) := by
+    refine squeeze_zero_norm' ?_ hlim
+    filter_upwards [hτs A hA] with a ha
+    rw [Real.norm_eq_abs, ← ha, hn a, ← measureReal_def, hμs a]
+    have h := Specification.abs_average_real_sub_le_of_card_eq (γ := γs a) (ν := νs a)
+      (R := (R a).map (Finset.mapEmbedding (τs a).sites.toEmbedding).toEmbedding) (R' := R a)
+      (hR a).map (Finset.card_map _) A
+    rwa [Finset.card_map] at h
+  have h3 := tendsto_nhds_unique (h2.sub h1) (hdiff.mono_left hUle)
+  rw [sub_eq_zero] at h3
+  exact (ENNReal.toReal_eq_toReal_iff' (measure_ne_top _ _) (measure_ne_top _ _)).1 h3
+
 /-- **Georgii Proposition (5.18)** (constant `τ`, `γ`, `ν`): if `|τ_* R_n ∆ R_n| / |R_n| → 0`, every
 cluster point of the averages `μ_n = |R_n|⁻¹ ∑_{Λ ∈ R_n} ν γ_Λ` is `τ`-invariant. -/
 theorem measurePreserving_of_mapClusterPt_average {τ : Transformation S E}
@@ -179,41 +260,10 @@ theorem measurePreserving_of_mapClusterPt_average {τ : Transformation S E}
     {μ : ProbabilityMeasure (S → E)}
     (hμ : MapClusterPt (WithSetwiseTopology.ofMeasure μ : WithLocalConvergence S E) atTop
       fun n ↦ WithSetwiseTopology.ofMeasure (μs n)) :
-    MeasurePreserving τ.toFun μ μ := by
-  obtain ⟨U, hUle, hU⟩ := mapClusterPt_iff_ultrafilter.1 hμ
-  refine ⟨τ.measurable_toFun, ?_⟩
-  have hmap : IsProbabilityMeasure ((μ : Measure (S → E)).map τ.toFun) :=
-    Measure.isProbabilityMeasure_map τ.measurable_toFun.aemeasurable
-  refine separatesOn_localEvents hmap inferInstance fun A hA ↦ ?_
-  have hAm : MeasurableSet A := .of_mem_measurableCylinders hA
-  rw [Measure.map_apply τ.measurable_toFun hAm]
-  -- evaluations on the local events `A` and `τ⁻¹ A` converge along the ultrafilter `U`
-  have h1 : Tendsto (fun n ↦ ((μs n : Measure (S → E)) A).toReal) U
-      (𝓝 (((μ : Measure (S → E)) A).toReal)) :=
-    (ENNReal.tendsto_toReal (measure_ne_top _ _)).comp
-      (tendsto_withLocalConvergence_iff.1 hU A hA)
-  have h2 : Tendsto (fun n ↦ ((μs n : Measure (S → E)) (τ.toFun ⁻¹' A)).toReal) U
-      (𝓝 (((μ : Measure (S → E)) (τ.toFun ⁻¹' A)).toReal)) :=
-    (ENNReal.tendsto_toReal (measure_ne_top _ _)).comp
-      (tendsto_withLocalConvergence_iff.1 hU _ (τ.preimage_mem_localEvents hA))
-  -- `μ_n(τ⁻¹ A)` is the average over `τ_* R_n` evaluated at `A` (by `map_average`)
-  have hn : ∀ n, ((μs n : Measure (S → E)) (τ.toFun ⁻¹' A)).toReal =
-      (γ.average ν ((R n).map (Finset.mapEmbedding τ.sites.toEmbedding).toEmbedding)).real A := by
-    intro n
-    rw [measureReal_def, ← Specification.map_average hγ hν,
-      Measure.map_apply τ.measurable_toFun hAm, hμs]
-  -- the difference `μ_n(τ⁻¹ A) - μ_n(A)` tends to `0`, by the estimate of (5.18)
-  have hdiff : Tendsto (fun n ↦ ((μs n : Measure (S → E)) (τ.toFun ⁻¹' A)).toReal -
-      ((μs n : Measure (S → E)) A).toReal) atTop (𝓝 0) := by
-    refine squeeze_zero_norm (fun n ↦ ?_) hlim
-    rw [Real.norm_eq_abs, hn n, ← measureReal_def, hμs n]
-    have h := Specification.abs_average_real_sub_le_of_card_eq (γ := γ) (ν := ν)
-      (R := (R n).map (Finset.mapEmbedding τ.sites.toEmbedding).toEmbedding) (R' := R n)
-      (hR n).map (Finset.card_map _) A
-    rwa [Finset.card_map] at h
-  have h3 := tendsto_nhds_unique (h2.sub h1) (hdiff.mono_left hUle)
-  rw [sub_eq_zero] at h3
-  exact (ENNReal.toReal_eq_toReal_iff' (measure_ne_top _ _) (measure_ne_top _ _)).1 h3
+    MeasurePreserving τ.toFun μ μ :=
+  measurePreserving_of_mapClusterPt_average_of_eventually_preimage_eq
+    (τs := fun _ ↦ τ) (γs := fun _ ↦ γ) (νs := fun _ ↦ ⟨ν, inferInstance⟩)
+    (fun _ ↦ hγ) (fun _ ↦ hν) hR hlim (fun _ _ ↦ Eventually.of_forall fun _ ↦ rfl) hμs hμ
 
 /-! ### Cluster points of two nets that agree asymptotically on local events -/
 
