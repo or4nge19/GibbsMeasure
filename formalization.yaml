@@ -489,6 +489,26 @@ alignment:
         which is what the tail of the product needs, the product of the tails being too small —
         is new Mathlib API in
         GibbsMeasure/Mathlib/MeasureTheory/Measure/ProdZeroOne.lean.
+    - source: "Example (5.17)(2)"
+      lean: "MeasureTheory.GibbsMeasure.exists_isGibbsMeasure_shift_and_siteEquiv_invariant"
+      module: "GibbsMeasure/Specification/InvariantExistenceGroup.lean"
+      status: "proved"
+      note: >-
+        Georgii's reflection group R is finite but does not commute modulo the shifts, so this is
+        branch (i) of (5.15), not (ii): the invariant weight is the uniform measure on a finite
+        group (Measure.uniformOfFintype). Stated for an arbitrary additive site group and an
+        arbitrary finite group acting on it by additive bijections; Z^d with the hyperoctahedral
+        group is the instance. Examples (5.17)(3)-(4) are the same theorem with I0 = R o Theta and
+        I0 = Theta.
+    - source: "Example (5.20)(2)"
+      lean: "MeasureTheory.GibbsMeasure.mem_GP_and_measurePreserving_of_mapClusterPt_truncation"
+      module: "GibbsMeasure/Model/ShiftAverage.lean"
+      status: "proved"
+      note: >-
+        Free boundary conditions. Gibbs half from Example (4.20)(1), symmetry half from
+        Proposition (5.18) with the one-element volume family R_n = {Delta_n}, whose Foelner ratio
+        is zero. The missing ingredient was that truncation transports,
+        Potential.map_truncation.
     - source: "Theorem (5.15)(ii)"
       lean: "MeasureTheory.GibbsMeasure.exists_mem_GP_and_forall_measurePreserving_sup_of_commute_mod_of_measurePreserving"
       module: "GibbsMeasure/Specification/InvariantExistenceGroup.lean"

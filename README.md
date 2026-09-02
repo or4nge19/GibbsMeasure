@@ -95,7 +95,7 @@ Example (4.16): a genuine (proper, consistent) specification — a single partic
 random site — with **no Gibbs measure**; it is not quasilocal (`not_isQuasilocal_specification`),
 so quasilocality cannot be dropped from (4.17)/(4.22).
 
-Chapter 5, §5.1 and most of §5.2: everything in (5.1)–(5.13) and (5.17)(1)/(5.18)/(5.20)(1) is
+Chapter 5, §5.1 and §5.2: everything in (5.1)–(5.13), (5.17)(1)–(2), (5.18) and (5.20)(1)–(2) is
 formalised; Theorem **(5.19)**, Georgii's counterpart to the general
 existence theorem (4.22) — a locally equicontinuous net of Cesàro averages of `I`-invariant
 finite-volume distributions has a cluster point in `𝒢_I(γ)` — is
@@ -148,6 +148,20 @@ the Ising model on `ℤ^d` has a shift-invariant Gibbs measure at every coupling
 temperature (`exists_latticeIsing_mem_GP_forall_measurePreserving_shift`, Georgii (5.17)(1)); the shift `θ_j` on `ℤ^d`, shift-invariant
 potentials and the closed subspace `ℬ_Θ` ((5.2)(1), (5.8)); the Ising potential on `ℤ^d` is
 shift-invariant.
+
+Proposition **(5.18)** is proved in Georgii's full generality, with the transformations `τ_α`
+varying along the net — the form Example (5.20)(3) needs, since there `τ_N` is the
+`Δ_N`-periodic modification of `τ`. Example **(5.17)(2)** adds a *finite* group of site
+automorphisms to the shift invariance
+(`exists_isGibbsMeasure_shift_and_siteEquiv_invariant`): Georgii's reflection group `R` does not
+commute modulo the shifts, so this is branch (i) of (5.15), with the uniform measure on a finite
+group as the invariant weight (`Measure.uniformOfFintype`); the general fact behind it is that an
+additive site bijection conjugates shifts into shifts, `τ_e ∘ θ_j = θ_{ej} ∘ τ_e`. Example
+**(5.20)(2)**, free boundary conditions, is
+`mem_GP_and_measurePreserving_of_mapClusterPt_truncation`: cluster points of the truncated-potential
+net are `I`-invariant Gibbs measures whenever `Φ` is `I`-invariant and the spatial parts of `I`
+fix the volumes, because truncation transports (`Potential.map_truncation`) and (5.18) applies
+with the one-element family `{Δ_n}`, whose Følner ratio is zero.
 
 Prerequisites filled for Chapter 3 (uniqueness on `ℤ`, Theorem (3.5)), all absent from Mathlib:
 the Perron–Frobenius theorem for positive matrices
