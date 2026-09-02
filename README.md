@@ -457,6 +457,20 @@ of σ-algebras, and (15.7) as a supremum over finite partitions. Lemma **(15.11)
 `d` dimensions for translation-invariant box-subadditive functions, is the prerequisite of the
 specific entropy (15.12) and the pressure (15.30).
 
+**Chapter 9, §9.1** (`GibbsMeasure/Specification/SymmetryInheritance.lean`,
+`GibbsMeasure/Model/OneDimensionalSymmetry.lean`): **Proposition (9.1)** — a symmetry `τ` of `γ`
+dominated in the sense of (9.2) is a symmetry of every Gibbs measure — for extreme Gibbs measures
+by (7.7)(d) alone (`Countable S`), and for all of `𝒢(γ)` through the extreme decomposition;
+**Theorem (9.3)**, the localized-symmetry criterion, for the Gibbs specification of a λ-admissible
+potential over any σ-finite `λ`, with the energy condition exactly as Georgii states it and his
+`Δ ⊆ Λ` never used; **Theorem (9.11)** for pair interactions (9.10) on any locally finite linear
+order with predecessors (so `ℤ` and `ℕ`), from the defect bound (9.12), at Georgii's summability
+(2.2) rather than absolute summability; **Corollary (9.16)**, non-existence under a dissipative
+symmetry; and **Theorem (9.5)**, shift invariance of the Gibbs measures of a shift-invariant pair
+potential on `ℤ` from (9.6), by Georgii's cyclic rotation of an interval, with the long-range Ising
+interaction (9.8)(1) as the instance. On the way (5.5)/(5.6)/(5.9)(b) are proved over a σ-finite a
+priori measure.
+
 **Chapter 11, first steps** (`GibbsMeasure/Model/BoundaryLaw.lean`,
 `GibbsMeasure/Mathlib/Probability/Kernel/CountableMatrix.lean`): sites `ℤ`, a *countable* state
 space, counting measure. A positive matrix `Q` with finite powers (11.1) is Mathlib's kernel
@@ -470,8 +484,8 @@ a Gibbs measure for `γ^Q`. Chapter 3 is the finite-state instance (`Q = P` stoc
 the way.
 
 Not yet done: the inhomogeneous Ising chains of §6.1, Shlosman's random staircases of §6.3
-(Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Mermin–Wagner
-(9.20), the rest of Chapter 14 — (14.10)–(14.11), (14.16)–(14.18), (14.20)–(14.25) — the rest of
+(Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), (9.7)(1),(3), (9.13)–(9.17),
+Mermin–Wagner (9.20), the rest of Chapter 14 — (14.10)–(14.11), (14.16)–(14.18), (14.20)–(14.25) — the rest of
 Chapter 15 from (15.10) on, Chapter 11 from (11.9)(b) on, and Chapters 10, 12–13 and 16–20 (Markov
 fields on the integers and on trees,
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the

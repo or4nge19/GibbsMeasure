@@ -696,8 +696,7 @@ def IsPureSpin (τ : Transformation S E) : Prop := τ.sites = Equiv.refl S
 
 lemma IsPureSpin.toFun_apply (h : τ.IsPureSpin) (ω : Ω) (i : S) :
     τ.toFun ω i = τ.spin i (ω i) := by
-  simp [Transformation.toFun, IsPureSpin] at h ⊢
-  rw [h]; rfl
+  rw [Transformation.toFun, h]; rfl
 
 lemma IsPureSpin.inv (h : τ.IsPureSpin) : τ.inv.IsPureSpin := by
   simp only [IsPureSpin, Transformation.inv] at h ⊢

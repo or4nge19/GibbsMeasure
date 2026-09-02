@@ -46,7 +46,9 @@ status:
     Georgii Chapters 1-8, complete for the results listed under main_results. Of Chapters 9-20:
     Chapter 14 (ergodicity) except (14.10)-(14.11), (14.16)-(14.18), (14.20)-(14.25); Section
     15.1 (relative entropy) and Lemma (15.11); Section 11.1 up to Theorem (11.9)(a) (transfer
-    matrices, boundary laws, the Gibbs measure of a boundary law). The rest is not formalized.
+    matrices, boundary laws, the Gibbs measure of a boundary law); Section 9.1 (symmetry
+    inheritance (9.1), localized symmetries (9.3), one-dimensional pair interactions (9.5),
+    (9.11), (9.16)). The rest is not formalized.
   sorry_count: 0
   sorry_in_definitions: 0
   axioms: ["propext", "Classical.choice", "Quot.sound"]
@@ -748,6 +750,58 @@ alignment:
         markovSpecification_eq_transferSpecification and stationaryChain_eq_boundaryLawMeasure
         (Q = P stochastic, l_i = alpha_P, r_i = 1). (11.9)(b), the converse for shift-invariant
         Gibbs measures, and (11.11)-(11.19) are not formalized.
+    - source: "Proposition (9.1), hypothesis (9.2)"
+      lean: "MeasureTheory.GibbsMeasure.IsSymmetryDominated.measurePreserving"
+      module: "GibbsMeasure/Specification/SymmetryInheritance.lean"
+      status: "proved"
+      note: >-
+        IsSymmetryDominated gamma tau a b is (9.2): for every local event A there is a volume
+        Lambda with gamma_Lambda(A | .) <= a gamma_Lambda(tau^{-1} A | .) + b gamma_Lambda(tau A | .).
+        For a tau-invariant gamma every mu in G(gamma) is tau-invariant. The extreme case
+        (map_eq_of_mem_extremePoints) needs only Countable S, through (7.7)(d); the general case
+        reduces to it by the extreme decomposition (7.26)/(7.28), hence StandardBorelSpace E.
+    - source: "Theorem (9.3): localized versions of a symmetry"
+      lean: "MeasureTheory.GibbsMeasure.measurePreserving_gibbsSpecificationOfSigmaFiniteAdmissible_of_isLocalizedVersion"
+      module: "GibbsMeasure/Specification/SymmetryInheritance.lean"
+      status: "proved"
+      note: >-
+        Transformation.IsLocalizedVersion tau' tau Delta Lambda is (9.3)(i) on configurations.
+        For a sigma-finite lambda, a lambda-admissible Phi, a lambda-preserving tau with
+        tau Phi = Phi and 0 <= c <= 1: if every Delta admits a localized version tau' with
+        beta (c H_Lambda(tau' .) + (1 - c) H_Lambda(tau'^{-1} .) - H_Lambda) <= C, every Gibbs
+        measure for gamma^{beta Phi} is tau-invariant. Georgii's Delta subset Lambda is not used.
+        Variants for finite reference measures and absolutely summable potentials. On the way:
+        (5.5), (5.6), (5.9)(b) over a sigma-finite a priori measure, Remark (1.28)(2), pure-spin
+        transformations (9.9), pair potentials (9.10).
+    - source: "Theorem (9.11), display (9.12)"
+      lean: "MeasureTheory.GibbsMeasure.measurePreserving_of_pairDefectBound_ne_top"
+      module: "GibbsMeasure/Model/OneDimensionalSymmetry.lean"
+      status: "proved"
+      note: >-
+        Any locally finite linear order with predecessors as site set (Z and N), a pair potential
+        (9.10) that is IsSummable (Georgii's (2.2), not absolute summability), beta >= 0, a
+        lambda-preserving pure-spin symmetry of the pair interaction, and the defect bound (9.12)
+        sup_n sum_{i <= n < j} J(i, j) < infinity with J the pair defect: every Gibbs measure is
+        tau-invariant.
+    - source: "Corollary (9.16), non-existence for a dissipative symmetry"
+      lean: "MeasureTheory.GibbsMeasure.G_eq_empty_of_pairDefectBound_ne_top_of_dissipative"
+      module: "GibbsMeasure/Model/OneDimensionalSymmetry.lean"
+      status: "proved"
+      note: >-
+        Under the hypotheses of (9.11), if some bounded measurable f with lambda(f) > 0 satisfies
+        f(tau_i^k x) -> 0 lambda-a.e., then G(gamma) is empty.
+    - source: "Theorem (9.5), display (9.6); Example (9.8)(1)"
+      lean: "MeasureTheory.GibbsMeasure.measurePreserving_shift_of_shiftDefect_ne_top"
+      module: "GibbsMeasure/Model/OneDimensionalSymmetry.lean"
+      status: "proved"
+      note: >-
+        Shift-invariant pair potentials on Z (9.4) with lambda finite and Phi absolutely summable:
+        if sum_k k |phi_{k+p} - phi_k| < infinity (shiftDefect phi p) then every Gibbs measure is
+        invariant under the shift by p, by Georgii's cyclic rotation of [m, n] (localizedShift)
+        and Theorem (9.3). Second half of (9.7)(2) (shiftDefect_mul_le); the long-range Ising
+        interaction phi_k = -beta k^{-a} s(x) s(y), a > 1, is shift-invariant
+        (measurePreserving_shift_longRangeIsing). Not formalized: (9.7)(1), (9.7)(3), the first
+        half of (9.7)(2), (9.8)(2), (9.13), (9.15), (9.17), and Section 9.2 (Mermin-Wagner).
 
 acknowledgements: >-
   Builds on Mathlib. Kolmogorov extension material adapted from RemyDegenne/kolmogorov_extension4.

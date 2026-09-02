@@ -1,0 +1,195 @@
+\section{Discrete symmetries in one dimension}
+
+Throughout, $\gamma$ is a specification on $\Cfg = E^S$ and $\tau$ a transformation of $\Cfg$
+(Definition \ref{def:trans-transformation}).
+
+\begin{definition}[Hypothesis (9.2)]
+    \label{def:sb-dominated}
+    \uses{def:spec, def:trans-transformation}
+    \lean{MeasureTheory.GibbsMeasure.IsSymmetryDominated}
+    \leanok
+
+    $\tau$ is \textbf{dominated} for $\gamma$ with constants $a, b \geq 0$ if for every local event
+    $A$ there is $\Lambda \in \mathcal S$ with
+    \[
+        \gamma_\Lambda(A \mid \cdot) \leq a\, \gamma_\Lambda(\tau^{-1} A \mid \cdot)
+            + b\, \gamma_\Lambda(\tau A \mid \cdot) . \tag{9.2}
+    \]
+\end{definition}
+
+\begin{proposition}[Georgii (9.1)]
+    \label{prop:sb-9-1}
+    \uses{def:sb-dominated, def:trans-invariant, def:gibbs-meas}
+    \lean{MeasureTheory.GibbsMeasure.IsSymmetryDominated.map_eq_of_mem_extremePoints, MeasureTheory.GibbsMeasure.IsSymmetryDominated.measurePreserving}
+    \leanok
+
+    Let $S$ be countable, $\gamma$ be $\tau$-invariant and $\tau$ dominated for $\gamma$. Then
+    every $\mu \in \operatorname{ex} \mathcal G(\gamma)$ is $\tau$-invariant, and, if $E$ is
+    standard Borel, so is every $\mu \in \mathcal G(\gamma)$.
+\end{proposition}
+\begin{proof}
+    \uses{thm:ext-77-concrete, thm:ext-726, cor:ext-728-730}
+    \leanok
+    Let $\mu$ be extreme. By Theorem (7.7)(d), $\mu$ and $\mu \circ \tau^{-1}$ (again extreme, as
+    $\gamma$ is $\tau$-invariant) are equal or singular on the tail $\sigma$-algebra. If singular,
+    there is a local $A$ with $\mu(A) > 1 - \varepsilon$ and $\mu(\tau^{-1} A) + \mu(\tau A)
+    < \varepsilon$; integrating (9.2) against $\mu$ contradicts this for $\varepsilon$ small.
+    For general $\mu$, apply the extreme case to the weights of the extreme decomposition
+    (Theorem (7.26)); a measure whose weights on $\operatorname{ex}\mathcal G(\gamma)$ are
+    $\tau$-invariant is $\tau$-invariant (Theorem (7.28)).
+\end{proof}
+
+\begin{definition}[Localized version, Georgii (9.3)(i)]
+    \label{def:sb-localized}
+    \uses{def:trans-transformation}
+    \lean{MeasureTheory.GibbsMeasure.Transformation.IsLocalizedVersion}
+    \leanok
+
+    For $\Delta, \Lambda \in \mathcal S$, a transformation $\tau'$ is a \textbf{localized version}
+    of $\tau$ on $(\Delta, \Lambda)$ if $(\tau'\omega)_\Delta = (\tau\omega)_\Delta$,
+    $(\tau'^{-1}\omega)_\Delta = (\tau^{-1}\omega)_\Delta$ and
+    $(\tau'\omega)_{S \setminus \Lambda} = (\tau'^{-1}\omega)_{S \setminus \Lambda}
+    = \omega_{S \setminus \Lambda}$ for all $\omega$.
+\end{definition}
+
+\begin{theorem}[Georgii (9.3)]
+    \label{thm:sb-9-3}
+    \uses{def:sb-localized, def:pot-gibbs-spec, def:trans-lambda-preserving, def:trans-potential-map}
+    \lean{MeasureTheory.GibbsMeasure.measurePreserving_gibbsSpecificationOfSigmaFiniteAdmissible_of_isLocalizedVersion, MeasureTheory.GibbsMeasure.measurePreserving_gibbsSpecificationOfFiniteReference_of_isLocalizedVersion, MeasureTheory.GibbsMeasure.measurePreserving_gibbsSpecificationOfAbsolutelySummable_of_isLocalizedVersion}
+    \leanok
+
+    Let $S$ be countable, $E$ standard Borel, $\lambda$ $\sigma$-finite, $\Phi$ a
+    $\lambda$-admissible potential, $\beta \in \mathbb R$, $\tau$ $\lambda$-preserving with
+    $\tau\Phi = \Phi$, $0 \leq c \leq 1$ and $C \in \mathbb R$. Suppose every $\Delta \in \mathcal S$
+    admits $\Lambda \in \mathcal S$ and a $\lambda$-preserving localized version $\tau'$ of
+    $\tau$ on $(\Delta, \Lambda)$ with
+    \[
+        \beta\bigl(c\, H_\Lambda \circ \tau' + (1-c)\, H_\Lambda \circ \tau'^{-1} - H_\Lambda\bigr)
+        \leq C .
+    \]
+    Then every $\mu \in \mathcal G(\gamma^{\beta\Phi})$ is $\tau$-invariant.
+\end{theorem}
+\begin{proof}
+    \uses{prop:sb-9-1}
+    \leanok
+    For a local event $A$ measurable on $\Delta$, $\gamma_\Lambda(\tau^{-1}A \mid \cdot)
+    = \gamma_\Lambda(\tau'^{-1}A \mid \cdot)$ and likewise for $\tau A$. Since $\tau'$ preserves
+    $\lambda_\Lambda$ and $Z_\Lambda$, the energy condition and Jensen's inequality give
+    $\gamma_\Lambda(A \mid \cdot) \leq e^{C}\bigl(c\,\gamma_\Lambda(\tau'^{-1}A \mid \cdot)
+    + (1-c)\,\gamma_\Lambda(\tau' A \mid \cdot)\bigr)$, which is (9.2); conclude by Proposition
+    \ref{prop:sb-9-1}.
+\end{proof}
+
+\begin{definition}[Pure spin transformation, Georgii (9.9)]
+    \label{def:sb-pure-spin}
+    \uses{def:trans-transformation}
+    \lean{MeasureTheory.GibbsMeasure.Transformation.IsPureSpin}
+    \leanok
+
+    $\tau$ is a \textbf{pure spin transformation} if its spatial part is the identity:
+    $\tau\omega = (\tau_i \omega_i)_{i \in S}$.
+\end{definition}
+
+\begin{definition}[Pair potential, Georgii (9.10)]
+    \label{def:sb-pair-potential}
+    \uses{def:pot-potential}
+    \lean{Potential.pair, Potential.pairTerms}
+    \leanok
+
+    Let $S$ be linearly ordered and $\varphi \colon \set{(i,j) : i < j} \to (E \times E \to \mathbb R)$.
+    The \textbf{pair potential} $\Phi^\varphi$ is $\Phi^\varphi_{\set{i,j}}(\omega)
+    = \varphi_{ij}(\omega_i, \omega_j)$ for $i < j$ and $\Phi^\varphi_A = 0$ otherwise.
+\end{definition}
+
+\begin{theorem}[Georgii (9.11)]
+    \label{thm:sb-9-11}
+    \uses{def:sb-pair-potential, def:sb-pure-spin, def:pot-gibbs-spec, thm:sb-9-3}
+    \lean{MeasureTheory.GibbsMeasure.pairDefect, MeasureTheory.GibbsMeasure.pairDefectBound, MeasureTheory.GibbsMeasure.measurePreserving_of_pairDefectBound_ne_top}
+    \leanok
+
+    Let $S$ be a countable locally finite linear order in which every element has a predecessor,
+    $E$ standard Borel, $\lambda$ $\sigma$-finite, $\beta \geq 0$, $\Phi^\varphi$ a summable
+    $\lambda$-admissible pair potential, and $\tau$ a $\lambda$-preserving pure spin
+    transformation with $\varphi_{ij}(\tau_i x, \tau_j y) = \varphi_{ij}(x,y)$. Put
+    \[
+        J(i,j) = \sup_{x,y}\bigl[\varphi_{ij}(\tau_i x, y) + \varphi_{ij}(x, \tau_j y)
+            - 2\varphi_{ij}(x,y)\bigr]^+ .
+    \]
+    If
+    \[
+        \sup_{n \in S} \sum_{i \leq n < j} J(i,j) < \infty, \tag{9.12}
+    \]
+    then every $\mu \in \mathcal G(\gamma^{\beta\Phi^\varphi})$ is $\tau$-invariant.
+\end{theorem}
+\begin{proof}
+    \leanok
+    For $\Delta \subseteq [m, n]$ take $\Lambda = [m,n]$ and $\tau'$ the pure spin transformation
+    acting by $\tau_i$ on $\Lambda$ and trivially off $\Lambda$; then
+    $H_\Lambda \circ \tau' + H_\Lambda \circ \tau'^{-1} - 2 H_\Lambda \leq 2 C$ with $C$ the
+    supremum in (9.12), as only the pairs straddling $m - 1$ or $n$ contribute. Apply Theorem
+    \ref{thm:sb-9-3} with $c = 1/2$.
+\end{proof}
+
+\begin{corollary}[Georgii (9.16)]
+    \label{cor:sb-9-16}
+    \uses{thm:sb-9-11}
+    \lean{MeasureTheory.GibbsMeasure.G_eq_empty_of_pairDefectBound_ne_top_of_dissipative}
+    \leanok
+
+    In the setting of Theorem \ref{thm:sb-9-11}, suppose for some $i \in S$ there is a bounded
+    measurable $f \geq 0$ on $E$ with $\lambda(f) > 0$ and $f(\tau_i^k x) \to 0$ for
+    $\lambda$-a.e.\ $x$. Then $\mathcal G(\gamma^{\beta\Phi^\varphi}) = \emptyset$.
+\end{corollary}
+\begin{proof}
+    \leanok
+    A $\mu \in \mathcal G$ is $\tau^k$-invariant for all $k$, so $\mu(f(\sigma_i)) =
+    \mu(f(\tau_i^k \sigma_i)) \to 0$ by dominated convergence, as the law of $\sigma_i$ under
+    $\mu$ is absolutely continuous with respect to $\lambda$ (Remark (1.28)(2)); but
+    $\mu(f(\sigma_i)) > 0$ for the same reason.
+\end{proof}
+
+\begin{definition}[Shift-invariant pair potential on $\mathbb Z$, Georgii (9.4)]
+    \label{def:sb-pair-shift}
+    \uses{def:sb-pair-potential}
+    \lean{Potential.pairShift, MeasureTheory.GibbsMeasure.shiftDefect}
+    \leanok
+
+    For $\varphi \colon \mathbb Z \to (E \times E \to \mathbb R)$, $\Phi^\varphi$ is the pair
+    potential with $\varphi_{ij} = \varphi_{j-i}$; it is shift-invariant. For $p \geq 1$ put
+    $K_p(\varphi) = \sum_{k \geq 1} k\,\|\varphi_{k+p} - \varphi_k\|$.
+\end{definition}
+
+\begin{theorem}[Georgii (9.5)]
+    \label{thm:sb-9-5}
+    \uses{def:sb-pair-shift, def:pot-abs-summable, thm:sb-9-3, ex:trans-shift}
+    \lean{MeasureTheory.GibbsMeasure.localizedShift, MeasureTheory.GibbsMeasure.measurePreserving_shift_of_shiftDefect_ne_top}
+    \leanok
+
+    Let $E$ be standard Borel, $\lambda$ finite, $\beta \in \mathbb R$, $\Phi^\varphi$ absolutely
+    summable and $p \geq 1$ with
+    \[
+        K_p(\varphi) < \infty . \tag{9.6}
+    \]
+    Then every $\mu \in \mathcal G(\gamma^{\beta\Phi^\varphi})$ is invariant under the shift by
+    $p$.
+\end{theorem}
+\begin{proof}
+    \leanok
+    For $\Delta \subseteq [m + p, n]$, take $\Lambda = [m, n]$ and $\tau'$ the cyclic rotation
+    of $[m,n]$ by $p$ sites, a localized version of the shift preserving $\lambda_\Lambda$. Then
+    $|H_\Lambda \circ \tau' - H_\Lambda| \leq 2p\|\Phi\|_0 + 2 K_p(\varphi)$: pairs inside
+    $[m+p, n]$ are moved to pairs of the same distance, and the remaining pairs straddling the cut
+    contribute at most $\sum_{k} k\,\|\varphi_{k+p} - \varphi_k\|$ on each side. Apply Theorem
+    \ref{thm:sb-9-3} with $c = 1$.
+\end{proof}
+
+\begin{example}[Georgii (9.8)(1)]
+    \label{ex:sb-9-8-1}
+    \uses{thm:sb-9-5}
+    \lean{MeasureTheory.GibbsMeasure.longRangeIsing, MeasureTheory.GibbsMeasure.shiftDefect_longRangeIsing_ne_top, MeasureTheory.GibbsMeasure.measurePreserving_shift_longRangeIsing}
+    \leanok
+
+    Let $s \colon E \to [-1,1]$ be measurable, $a > 1$ and $\varphi_k(x,y) = -\beta k^{-a} s(x)s(y)$
+    for $k \geq 1$. Then $\Phi^\varphi$ is absolutely summable and satisfies (9.6) for every
+    $p \geq 1$; hence every Gibbs measure for $\Phi^\varphi$ is shift-invariant.
+\end{example}
