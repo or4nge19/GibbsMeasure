@@ -522,6 +522,18 @@ alignment:
         lambda-preserving symmetries; Z^d with Theta <= I <= T_lambda^(m) o R o Theta is the
         instance (mem_GP_and_measurePreserving_of_mapClusterPt_latticePeriodic). Phi is taken in
         B, the Gibbsian specification the tree has, rather than "finite range or B".
+    - source: "Lemma (14.A6), the ergodic maximal inequality"
+      lean: "MeasureTheory.measure_exists_lt_abs_div_card_le_cube"
+      module: "GibbsMeasure/Mathlib/Dynamics/Ergodic/MaximalInequality.lean"
+      status: "proved"
+      note: >-
+        Georgii's statement mu(sup_n |R_n f| > c) <= 3^d mu(|f|)/c for an increasing sequence of
+        cubes in Z^d, as the instance of an abstract Tempelman-type inequality
+        (mul_measure_lt_ergodicMaximalFunction_le): a sequence of finite sets each containing 0
+        with an "enlargement" swallowing every intersecting lower-rank translate, constant
+        |enlargement|/|F_n|; for increasing F_n the enlargement F_n - F_n + F_n works. The
+        greedy Vitali selection is Finset.exists_subset_pairwiseDisjoint_subset_biUnion. No
+        countability of the group, no finiteness of mu, f measurable rather than integrable.
     - source: "Proposition (14.9), display (14.14), Theorem (14.15)"
       lean: "MeasureTheory.GibbsMeasure.extremePoints_invariantG"
       module: "GibbsMeasure/Specification/ErgodicGibbs.lean"
