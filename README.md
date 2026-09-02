@@ -510,12 +510,18 @@ space, counting measure. A positive matrix `Q` with finite powers (11.1) is Math
 the probability measure with the cylinder probabilities (11.10), built by Kolmogorov extension, is
 a Gibbs measure for `γ^Q`. Chapter 3 is the finite-state instance (`Q = P` stochastic, `ℓ_i = α_P`,
 `r_i = 1`). Georgii (1.33) is proved for the λ-specification of any σ-finite a priori measure on
-the way.
+the way. **Theorem (11.9)(b)** (`GibbsMeasure/Model/BoundaryLawUniqueness.lean`): every Markov
+chain in `𝒢(γ^Q)` is the measure of a boundary law, with the transition matrices (11.11);
+(11.12), the sufficiency half of (11.13) (`𝒢_Θ(γ^Q) ≠ ∅` when `Q` is equivalent to a stochastic
+matrix with an invariant probability vector), (11.16), and the extreme case of **(11.15)** —
+periodicity of an extreme boundary-law measure under `inf_x Q^p(x,x) > 0`. The recurrence theory
+(11.6)–(11.7) behind the uniqueness halves of (11.13)–(11.19) is absent from Mathlib and not yet
+built.
 
 Not yet done: the inhomogeneous Ising chains of §6.1, Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), (9.7)(1),(3), (9.13)–(9.17), the
 plane-rotator and Heisenberg instances (9.22)–(9.24), (14.13), (14.16), (14.21)–(14.24), the rest of
-Chapter 15 from (15.10) on, Chapter 11 from (11.9)(b) on, §§10.2–10.3, and Chapters 12–13 and
+Chapter 15 from (15.10) on, Chapter 11 from (11.9)(c) and the recurrence theory (11.6)–(11.7) on, §§10.2–10.3, and Chapters 12–13 and
 16–20 (Markov fields on trees,
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).

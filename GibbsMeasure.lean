@@ -80,6 +80,7 @@ public import GibbsMeasure.Potential.FreeBoundary
 public import GibbsMeasure.Potential.GibbsTransformation
 public import GibbsMeasure.Potential.UniformConvergence
 public import GibbsMeasure.Model.BoundaryLaw
+public import GibbsMeasure.Model.BoundaryLawUniqueness
 public import GibbsMeasure.Model.MarkovChainInt
 public import GibbsMeasure.Model.Ising
 public import GibbsMeasure.Model.IsingDobrushin

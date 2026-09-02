@@ -24,3 +24,11 @@ theorem ENNReal.tsum_comp_eq_tsum_encard_preimage_mul {α β : Type*} (f : α �
   refine tsum_congr fun b ↦ ?_
   rw [← ENNReal.tsum_set_const]
   exact tsum_congr fun x ↦ by simp [Equiv.sigmaFiberEquiv, x.2]
+
+/-- Subtraction of `ℝ≥0∞`-valued sums, general index (Mathlib's `ENNReal.tsum_sub` is stated for
+`ℕ`): if `g ≤ f` pointwise and `∑ g < ∞`, then `∑ (f - g) = ∑ f - ∑ g`. -/
+lemma ENNReal.tsum_tsub {ι : Type*} {f g : ι → ℝ≥0∞} (hfg : ∀ i, g i ≤ f i)
+    (hg : ∑' i, g i ≠ ⊤) : ∑' i, (f i - g i) = ∑' i, f i - ∑' i, g i := by
+  refine ENNReal.eq_sub_of_add_eq hg ?_
+  rw [← ENNReal.tsum_add]
+  exact tsum_congr fun i ↦ tsub_add_cancel_of_le (hfg i)

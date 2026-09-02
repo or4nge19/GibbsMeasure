@@ -264,4 +264,25 @@ theorem isFiniteKernel_pow {α : Type*} {mα : MeasurableSpace α} (κ : Kernel 
     have := isFiniteKernel_pow κ n
     exact (inferInstance : IsFiniteKernel ((κ ^ n) ∘ₖ κ))
 
+/-- Supermultiplicativity of the diagonal of kernel powers on a countable space, Georgii's
+remark after (11.6): `κ^m(x, {x}) κ^n(x, {x}) ≤ κ^{m+n}(x, {x})`. -/
+lemma pow_apply_singleton_mul_le {E : Type*} [MeasurableSpace E] [Countable E]
+    [MeasurableSingletonClass E] (κ : Kernel E E) (m n : ℕ)
+    (x : E) : (κ ^ m) x {x} * (κ ^ n) x {x} ≤ (κ ^ (m + n)) x {x} := by
+  rw [pow_add]
+  change (κ ^ m) x {x} * (κ ^ n) x {x} ≤ ((κ ^ m) ∘ₖ (κ ^ n)) x {x}
+  rw [comp_apply_eq_tsum _ _ _ (measurableSet_singleton x), mul_comm]
+  exact ENNReal.le_tsum x
+
+lemma pow_le_pow_mul_apply_singleton {E : Type*} [MeasurableSpace E] [Countable E]
+    [MeasurableSingletonClass E] (κ : Kernel E E) (k n : ℕ)
+    (x : E) : (κ ^ n) x {x} ^ k ≤ (κ ^ (k * n)) x {x} := by
+  induction k with
+  | zero =>
+    rw [Nat.zero_mul, Kernel.pow_zero_apply_singleton, pow_zero,
+      Set.indicator_of_mem (Set.mem_singleton x), Pi.one_apply]
+  | succ k ih =>
+    rw [pow_succ, Nat.succ_mul]
+    exact (mul_le_mul' ih le_rfl).trans (κ.pow_apply_singleton_mul_le _ _ x)
+
 end ProbabilityTheory.Kernel
