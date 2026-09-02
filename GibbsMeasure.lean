@@ -1,5 +1,7 @@
 module
 
+public import GibbsMeasure.Mathlib.Analysis.Subadditive.Cubes
+public import GibbsMeasure.Mathlib.InformationTheory.RelativeEntropy
 public import GibbsMeasure.Mathlib.Analysis.Normed.Algebra.ClosedSubalgebra
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Tanh
 public import GibbsMeasure.Mathlib.Analysis.Normed.Lp.lpSpace

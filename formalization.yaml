@@ -522,6 +522,27 @@ alignment:
         lambda-preserving symmetries; Z^d with Theta <= I <= T_lambda^(m) o R o Theta is the
         instance (mem_GP_and_measurePreserving_of_mapClusterPt_latticePeriodic). Phi is taken in
         B, the Gibbsian specification the tree has, rather than "finite range or B".
+    - source: "Section 15.1, relative entropy (15.1)-(15.7)"
+      lean: "InformationTheory.tendsto_klDiv_trim"
+      module: "GibbsMeasure/Mathlib/InformationTheory/RelativeEntropy.lean"
+      status: "proved"
+      note: >-
+        Georgii's H_A(mu|nu) is Mathlib's klDiv (mu.trim) (nu.trim) and psi (15.4) is klFun;
+        no Georgii-named definition. (15.2) and (15.5)(a)-(c) are Mathlib or one-liners;
+        genuinely new: joint convexity klDiv_smul_add_smul_le, (15.6) monotone convergence along
+        an increasing sequence of sigma-algebras (Levy upward + Fatou, with a set-approximation
+        argument replacing Georgii's uniform-integrability step in the non-absolutely-continuous
+        case), and (15.7) as a supremum over finite partitions via the countably-generated
+        reduction. Sequences rather than nets, since Mathlib's martingale convergence is N-indexed.
+    - source: "Lemma (15.11), the d-dimensional subadditive limit"
+      lean: "Subadditive.Cubes"
+      module: "GibbsMeasure/Mathlib/Analysis/Subadditive/Cubes.lean"
+      status: "proved"
+      note: >-
+        Fekete's lemma on boxes of Z^d: a translation-invariant function on boxes, subadditive on
+        disjoint unions that are boxes, has lim |Lambda_n|^{-1} a(Lambda_n) = inf over boxes along
+        cubes with |Lambda_n| -> infinity, via the tiling lemma. Mathlib has only the 1D
+        Subadditive.tendsto_lim. Prerequisite of (15.12) and (15.30).
     - source: "Theorems (14.A3), (14.A5): the L2 and L1 mean ergodic theorems"
       lean: "MeasureTheory.tendsto_integral_norm_inv_card_smul_sum_sub_condExp"
       module: "GibbsMeasure/Mathlib/Dynamics/Ergodic/MeanErgodic.lean"
