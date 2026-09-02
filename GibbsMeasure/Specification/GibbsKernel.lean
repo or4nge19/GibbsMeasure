@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Specification.AbstractPAKernel
 public import GibbsMeasure.Specification.PAKernel
 public import GibbsMeasure.Specification.ChoquetLaw
 public import GibbsMeasure.Mathlib.Probability.Martingale.Convergence
@@ -19,9 +20,13 @@ fixed `ν₀ ∈ G(γ)` (Georgii's fallback value off the good tail set), and no
 disintegrates: it is a version of `μ(· | 𝓣)` for every `μ ∈ G(γ)` (Definition (7.21)), with all
 its values in `G(γ)`.
 
-Instead of Georgii's countable core we use Mathlib's disintegration toolkit: along the exhaustion
-`exhaustionVolumes`, Lévy's downward theorem (`limUnder_condExp_ae_eq_condExp_iInf`) and the DLR
-equation identify `lim_n γ_{Λ_n}(A | ·)` with `μ(A | 𝓣)`; applying this to the half-lines
+The construction exists once, for an `AbstractSpecification` in the abstract setting of Georgii's
+Remark (7.13) (`GibbsMeasure/Specification/AbstractPAKernel.lean`), parameterised by a monotone
+cofinal sequence of indices. This file only specialises it along `Specification.toAbstract` at
+the exhaustion `exhaustionVolumes`: every definition below is definitionally the abstract one,
+and every lemma is a one-line instance of its abstract counterpart. Concretely, along the
+exhaustion, Lévy's downward theorem (`limUnder_condExp_ae_eq_condExp_iInf`) and the DLR equation
+identify `lim_n γ_{Λ_n}(A | ·)` with `μ(A | 𝓣)`; applying this to the half-lines
 `{embeddingReal (S → E) ≤ q}`, `q : ℚ`, gives a tail-measurable rational CDF, which
 `stieltjesOfMeasurableRat` turns into a kernel to `ℝ`, pulled back to `S → E` by `comapRight`.
 For a Gibbs measure `μ` this kernel is `μ`-a.e. equal to `tailKernel μ = condExpKernel μ 𝓣`,
@@ -29,6 +34,8 @@ which is a.e. Gibbs by the tower property; the remaining bad tail set is sent to
 -/
 
 @[expose] public section
+
+set_option backward.isDefEq.respectTransparency false
 
 open MeasureTheory ProbabilityTheory Set Filter
 open scoped ENNReal Topology
@@ -57,6 +64,35 @@ lemma iInf_exhaustionFiltration :
     (⨅ n, exhaustionFiltration S E n) = (@tailSigmaAlgebra S E _ : MeasurableSpace (S → E)) :=
   (tailSigmaAlgebra_eq_iInf_exhaustion (S := S) (E := E)).symm
 
+/-! ### The abstract specification of `γ`, along the exhaustion
+
+`Specification.toAbstract` realises `γ` as an `AbstractSpecification (S → E) (Finset S)` with
+`toAbstract.sub Λ = 𝓕_{Λᶜ}`, `toAbstract.ker Λ = γ Λ` and `toAbstract.tail = 𝓣`, all by `rfl`;
+the exhaustion `exhaustionVolumes` is a monotone cofinal sequence in `Finset S`. The following
+bridges identify `G γ` with the abstract invariant measures. -/
+
+section ToAbstract
+
+variable {γ : Specification S E} {μ : Measure (S → E)}
+
+omit [Countable S] in
+/-- The invariant measures of `γ.toAbstract` are exactly the Gibbs probability measures `G γ`. -/
+lemma _root_.Specification.toAbstract_invariant_eq_G (γ : Specification S E) :
+    γ.toAbstract.invariant = G γ :=
+  γ.toAbstract_invariant
+
+omit [Countable S] in
+lemma mem_toAbstract_invariant_of_isGibbsMeasure [IsProbabilityMeasure μ]
+    (hμ : γ.IsGibbsMeasure μ) : μ ∈ γ.toAbstract.invariant :=
+  (γ.mem_toAbstract_invariant_iff μ).2 ⟨‹_›, hμ⟩
+
+omit [Countable S] in
+lemma mem_toAbstract_invariant_of_mem_G {ν : Measure (S → E)} (hν : ν ∈ G γ) :
+    ν ∈ γ.toAbstract.invariant :=
+  (γ.mem_toAbstract_invariant_iff ν).2 hν
+
+end ToAbstract
+
 section Levy
 
 variable {γ : Specification S E} {μ : Measure (S → E)}
@@ -74,21 +110,9 @@ lemma condExp_exhaustionFiltration_ae_eq (hμ : γ.IsGibbsMeasure μ) {A : Set (
 lemma limUnder_ae_eq_condExp_tail [IsProbabilityMeasure μ] (hμ : γ.IsGibbsMeasure μ)
     {A : Set (S → E)} (hA : MeasurableSet A) :
     (fun ω ↦ limUnder atTop fun n ↦ (γ (exhaustionVolumes n) ω A).toReal) =ᵐ[μ]
-      μ[A.indicator (fun _ ↦ (1 : ℝ)) | @tailSigmaAlgebra S E _] := by
-  have hg : Integrable (A.indicator (fun _ ↦ (1 : ℝ))) μ :=
-    (integrable_const (1 : ℝ)).indicator hA
-  have h1 := limUnder_condExp_ae_eq_condExp_iInf (μ := μ)
-    (antitone_exhaustionFiltration (S := S) (E := E)) exhaustionFiltration_le_pi hg
-  rw [iInf_exhaustionFiltration] at h1
-  have h2 : ∀ᵐ ω ∂μ, ∀ n,
-      μ[A.indicator (fun _ ↦ (1 : ℝ)) | exhaustionFiltration S E n] ω
-        = (γ (exhaustionVolumes n) ω A).toReal :=
-    ae_all_iff.2 fun n ↦ condExp_exhaustionFiltration_ae_eq hμ hA n
-  filter_upwards [h1, h2] with ω h1ω h2ω
-  rw [← h1ω]
-  congr 1
-  funext n
-  exact (h2ω n).symm
+      μ[A.indicator (fun _ ↦ (1 : ℝ)) | @tailSigmaAlgebra S E _] :=
+  AbstractSpecification.tailLimit_ae_eq_condExp exhaustionVolumes_monotone
+    exhaustionVolumes_cofinal (mem_toAbstract_invariant_of_isGibbsMeasure hμ) hA
 
 end Levy
 
@@ -99,21 +123,19 @@ variable (γ : Specification S E)
 /-- The tail limit `lim_n γ_{Λ_n}(A | ω)` along the exhaustion (as a `limUnder`, hence defined
 everywhere). -/
 noncomputable def tailLimit (A : Set (S → E)) (ω : S → E) : ℝ :=
-  limUnder atTop fun n ↦ (γ (exhaustionVolumes n) ω A).toReal
+  γ.toAbstract.tailLimit exhaustionVolumes A ω
 
 lemma measurable_tailLimit {A : Set (S → E)} (hA : MeasurableSet A) :
-    Measurable[@tailSigmaAlgebra S E _] (tailLimit γ A) := by
-  rw [← iInf_exhaustionFiltration]
-  refine (stronglyMeasurable_iInf_limUnder_of_antitone
-    (antitone_exhaustionFiltration (S := S) (E := E))
-    (f := fun n ω ↦ (γ (exhaustionVolumes n) ω A).toReal) fun n ↦ ?_).measurable
-  exact (Kernel.measurable_coe (γ (exhaustionVolumes n)) hA).ennreal_toReal.stronglyMeasurable
+    Measurable[@tailSigmaAlgebra S E _] (tailLimit γ A) :=
+  γ.toAbstract.measurable_tailLimit exhaustionVolumes exhaustionVolumes_monotone
+    exhaustionVolumes_cofinal hA
 
 lemma tailLimit_ae_eq_condExp {μ : Measure (S → E)} [IsProbabilityMeasure μ]
     {γ : Specification S E}
     (hμ : γ.IsGibbsMeasure μ) {A : Set (S → E)} (hA : MeasurableSet A) :
     tailLimit γ A =ᵐ[μ] μ[A.indicator (fun _ ↦ (1 : ℝ)) | @tailSigmaAlgebra S E _] :=
-  limUnder_ae_eq_condExp_tail hμ hA
+  AbstractSpecification.tailLimit_ae_eq_condExp exhaustionVolumes_monotone
+    exhaustionVolumes_cofinal (mem_toAbstract_invariant_of_isGibbsMeasure hμ) hA
 
 end TailLimit
 
@@ -124,19 +146,16 @@ variable [StandardBorelSpace E] (γ : Specification S E)
 /-- The rational tail CDF `ω ↦ (q ↦ lim_n γ_{Λ_n}({e ≤ q} | ω))`, where
 `e = embeddingReal (S → E)`. -/
 noncomputable def tailRatCDF (ω : S → E) (q : ℚ) : ℝ :=
-  tailLimit γ (embeddingReal (S → E) ⁻¹' Iic (q : ℝ)) ω
+  γ.toAbstract.tailRatCDF exhaustionVolumes ω q
 
-lemma measurable_tailRatCDF : Measurable[@tailSigmaAlgebra S E _] (tailRatCDF γ) := by
-  have h : ∀ q : ℚ, MeasurableSet (embeddingReal (S → E) ⁻¹' Iic (q : ℝ)) := fun q ↦
-    measurableSet_Iic.preimage (measurable_embeddingReal _)
-  let _ : MeasurableSpace (S → E) := @tailSigmaAlgebra S E _
-  exact measurable_pi_iff.2 fun q ↦ measurable_tailLimit γ (h q)
+lemma measurable_tailRatCDF : Measurable[@tailSigmaAlgebra S E _] (tailRatCDF γ) :=
+  γ.toAbstract.measurable_tailRatCDF exhaustionVolumes exhaustionVolumes_monotone
+    exhaustionVolumes_cofinal
 
 /-- The tail-measurable kernel to `ℝ` obtained from the rational tail CDF. -/
 noncomputable def tailRealKernel : Kernel[@tailSigmaAlgebra S E _] (S → E) ℝ :=
-  letI : MeasurableSpace (S → E) := @tailSigmaAlgebra S E _
-  ⟨fun ω ↦ (stieltjesOfMeasurableRat (tailRatCDF γ) (measurable_tailRatCDF γ) ω).measure,
-    measurable_measure_stieltjesOfMeasurableRat _⟩
+  γ.toAbstract.tailRealKernel exhaustionVolumes exhaustionVolumes_monotone
+    exhaustionVolumes_cofinal
 
 lemma tailRealKernel_apply (ω : S → E) :
     tailRealKernel γ ω =
@@ -144,40 +163,13 @@ lemma tailRealKernel_apply (ω : S → E) :
         (measurable_tailRatCDF γ) ω).measure := rfl
 
 instance : IsMarkovKernel (tailRealKernel γ) := by
-  let _ : MeasurableSpace (S → E) := @tailSigmaAlgebra S E _
-  exact ⟨fun ω ↦ ⟨by rw [tailRealKernel_apply]; exact measure_stieltjesOfMeasurableRat_univ _ _⟩⟩
+  unfold tailRealKernel; infer_instance
 
 lemma tailRealKernel_apply_Iic {ω : S → E} (hω : IsRatStieltjesPoint (tailRatCDF γ) ω) (q : ℚ) :
-    tailRealKernel γ ω (Iic (q : ℝ)) = ENNReal.ofReal (tailRatCDF γ ω q) := by
-  let _ : MeasurableSpace (S → E) := @tailSigmaAlgebra S E _
-  rw [tailRealKernel_apply, measure_stieltjesOfMeasurableRat_Iic, stieltjesOfMeasurableRat_eq,
-    toRatCDF_of_isRatStieltjesPoint hω]
+    tailRealKernel γ ω (Iic (q : ℝ)) = ENNReal.ofReal (tailRatCDF γ ω q) :=
+  kernelOfMeasurableRat_apply_Iic _ _ hω q
 
 end RatCDF
-
-section StieltjesPoint
-
-/-- A function agreeing on the rationals with the CDF of a probability measure on `ℝ` is a
-Stieltjes point. -/
-lemma isRatStieltjesPoint_of_forall_eq_real_Iic {α : Type*} {f : α → ℚ → ℝ} {a : α}
-    (ν : Measure ℝ) [IsProbabilityMeasure ν] (h : ∀ q : ℚ, f a q = ν.real (Iic (q : ℝ))) :
-    IsRatStieltjesPoint f a := by
-  have hf : f a = fun q : ℚ ↦ cdf ν (q : ℝ) := funext fun q ↦ by rw [h, cdf_eq_real]
-  refine ⟨?_, ?_, ?_, ?_⟩
-  · rw [hf]; exact fun q r hqr ↦ monotone_cdf ν (by exact_mod_cast hqr)
-  · rw [hf]; exact (tendsto_cdf_atTop ν).comp (tendsto_ratCast_atTop_iff.2 tendsto_id)
-  · rw [hf]; exact (tendsto_cdf_atBot ν).comp (tendsto_ratCast_atBot_iff.2 tendsto_id)
-  · intro t
-    rw [hf]
-    show ⨅ r : Ioi t, cdf ν ((r : ℚ) : ℝ) = cdf ν (t : ℝ)
-    rw [← (cdf ν).iInf_rat_gt_eq (t : ℝ)]
-    exact Equiv.iInf_congr
-      { toFun := fun r ↦ ⟨r.1, by exact_mod_cast Set.mem_Ioi.1 r.2⟩
-        invFun := fun r ↦ ⟨r.1, Set.mem_Ioi.2 (by exact_mod_cast r.2)⟩
-        left_inv := fun _ ↦ rfl
-        right_inv := fun _ ↦ rfl } fun _ ↦ rfl
-
-end StieltjesPoint
 
 section Identification
 
@@ -191,77 +183,27 @@ lemma tailKernel_real_ae_eq_condExp {A : Set (S → E)} (hA : MeasurableSet A) :
 
 lemma ae_forall_tailRatCDF_eq (hμ : γ.IsGibbsMeasure μ) :
     ∀ᵐ ω ∂μ, ∀ q : ℚ, tailRatCDF γ ω q =
-      ((tailKernel μ ω).map (embeddingReal (S → E))).real (Iic (q : ℝ)) := by
-  refine ae_all_iff.2 fun q ↦ ?_
-  have hA : MeasurableSet (embeddingReal (S → E) ⁻¹' Iic (q : ℝ)) :=
-    measurableSet_Iic.preimage (measurable_embeddingReal _)
-  filter_upwards [tailLimit_ae_eq_condExp hμ hA, tailKernel_real_ae_eq_condExp μ hA] with ω h1 h2
-  rw [map_measureReal_apply (measurable_embeddingReal _) measurableSet_Iic]
-  exact h1.trans h2.symm
+      ((tailKernel μ ω).map (embeddingReal (S → E))).real (Iic (q : ℝ)) :=
+  AbstractSpecification.ae_forall_tailRatCDF_eq μ exhaustionVolumes_monotone
+    exhaustionVolumes_cofinal (mem_toAbstract_invariant_of_isGibbsMeasure hμ)
 
 lemma ae_tailRealKernel_eq_map (hμ : γ.IsGibbsMeasure μ) :
-    ∀ᵐ ω ∂μ, tailRealKernel γ ω = (tailKernel μ ω).map (embeddingReal (S → E)) := by
-  filter_upwards [ae_forall_tailRatCDF_eq μ hμ] with ω hω
-  set ν : Measure ℝ := (tailKernel μ ω).map (embeddingReal (S → E)) with hν
-  have : IsProbabilityMeasure ν :=
-    Measure.isProbabilityMeasure_map (measurable_embeddingReal _).aemeasurable
-  have hpt : IsRatStieltjesPoint (tailRatCDF γ) ω :=
-    isRatStieltjesPoint_of_forall_eq_real_Iic ν hω
-  have hS : @stieltjesOfMeasurableRat (S → E) (@tailSigmaAlgebra S E _) (tailRatCDF γ)
-      (measurable_tailRatCDF γ) ω = cdf ν := by
-    let _ : MeasurableSpace (S → E) := @tailSigmaAlgebra S E _
-    ext x
-    rw [← (cdf ν).iInf_rat_gt_eq x]
-    show IsMeasurableRatCDF.stieltjesFunctionAux (toRatCDF (tailRatCDF γ)) ω x = _
-    rw [IsMeasurableRatCDF.stieltjesFunctionAux_def]
-    refine iInf_congr fun r ↦ ?_
-    rw [toRatCDF_of_isRatStieltjesPoint hpt, hω, cdf_eq_real]
-  rw [tailRealKernel_apply, hS, measure_cdf]
+    ∀ᵐ ω ∂μ, tailRealKernel γ ω = (tailKernel μ ω).map (embeddingReal (S → E)) :=
+  AbstractSpecification.ae_tailRealKernel_eq_map μ exhaustionVolumes_monotone
+    exhaustionVolumes_cofinal (mem_toAbstract_invariant_of_isGibbsMeasure hμ)
 
 /-- Tower property: the tail conditional measures of a Gibbs measure are a.e. fixed by `γ Λ`
 on any measurable set. -/
 lemma ae_bind_tailKernel_apply_eq (hμ : γ.IsGibbsMeasure μ) (Λ : Finset S) {B : Set (S → E)}
     (hB : MeasurableSet B) :
-    ∀ᵐ ω ∂μ, (tailKernel μ ω).bind (γ Λ) B = tailKernel μ ω B := by
-  have hm : (@tailSigmaAlgebra S E _ : MeasurableSpace (S → E)) ≤ MeasurableSpace.pi :=
-    tailSigmaAlgebra_le_pi
-  have hmeasγ : Measurable (γ Λ : (S → E) → Measure (S → E)) :=
-    (γ Λ).measurable.mono cylinderEvents_le_pi le_rfl
-  set g : (S → E) → ℝ := fun x ↦ (γ Λ x B).toReal with hg
-  have hg_meas : Measurable g :=
-    ((Kernel.measurable_coe (γ Λ) hB).mono cylinderEvents_le_pi le_rfl).ennreal_toReal
-  have hg_int : ∀ (ν : Measure (S → E)) [IsFiniteMeasure ν], Integrable g ν := fun ν _ ↦
-    (memLp_top_of_bound hg_meas.aestronglyMeasurable 1 (ae_of_all _ fun x ↦ by
-      rw [Real.norm_of_nonneg ENNReal.toReal_nonneg]
-      exact ENNReal.toReal_le_of_le_ofReal zero_le_one (by simpa using prob_le_one))).integrable
-      le_top
-  have h1 : μ[g | @tailSigmaAlgebra S E _] =ᵐ[μ] fun ω ↦ ∫ y, g y ∂(tailKernel μ ω) :=
-    condExp_ae_eq_integral_condExpKernel hm (hg_int μ)
-  have h2 : g =ᵐ[μ] μ[B.indicator (fun _ ↦ (1 : ℝ)) |
-      cylinderEvents (X := fun _ : S ↦ E) ((Λ : Set S)ᶜ)] :=
-    (@Kernel.IsCondExp.condExp_ae_eq_kernel_apply _ _ _ _ _ (hμ Λ) B hB).symm
-  have h3 : μ[g | @tailSigmaAlgebra S E _] =ᵐ[μ]
-      μ[B.indicator (fun _ ↦ (1 : ℝ)) | @tailSigmaAlgebra S E _] :=
-    (condExp_congr_ae h2).trans
-      (condExp_condExp_of_le (tailSigmaAlgebra_le_cylinderEvents Λ) cylinderEvents_le_pi)
-  filter_upwards [h1, h3, tailKernel_real_ae_eq_condExp μ hB] with ω h1ω h3ω h4ω
-  have hint : ∫ y, g y ∂(tailKernel μ ω) = (tailKernel μ ω).real B := by
-    rw [← h1ω, h3ω, h4ω]
-  have hlint : ∫⁻ x, γ Λ x B ∂(tailKernel μ ω) = ENNReal.ofReal (∫ y, g y ∂(tailKernel μ ω)) := by
-    rw [ofReal_integral_eq_lintegral_ofReal (hg_int _) (ae_of_all _ fun x ↦ ENNReal.toReal_nonneg)]
-    exact lintegral_congr fun x ↦ (ENNReal.ofReal_toReal (measure_ne_top _ _)).symm
-  rw [Measure.bind_apply hB hmeasγ.aemeasurable, hlint, hint, measureReal_def,
-    ENNReal.ofReal_toReal (measure_ne_top _ _)]
+    ∀ᵐ ω ∂μ, (tailKernel μ ω).bind (γ Λ) B = tailKernel μ ω B :=
+  AbstractSpecification.ae_bind_tailCondKernel_apply_eq (γ := γ.toAbstract)
+    (mem_toAbstract_invariant_of_isGibbsMeasure hμ) Λ hB
 
 lemma ae_isGibbsCore_tailKernel (hμ : γ.IsGibbsMeasure μ) :
-    ∀ᵐ ω ∂μ, IsGibbsCore γ (tailKernel μ ω) := by
-  have h : ∀ᵐ ω ∂μ, ∀ (Λ : Finset S) (t : Finset ℕ),
-      (tailKernel μ ω).bind (γ Λ) (piNatGen (Ω := S → E) t) =
-        tailKernel μ ω (piNatGen (Ω := S → E) t) :=
-    ae_all_iff.2 fun Λ ↦ ae_all_iff.2 fun t ↦
-      ae_bind_tailKernel_apply_eq μ hμ Λ (measurableSet_piNatGen t)
-  filter_upwards [h] with ω hω
-  exact ⟨measure_univ, hω⟩
+    ∀ᵐ ω ∂μ, IsGibbsCore γ (tailKernel μ ω) :=
+  AbstractSpecification.ae_isInvariantCore_tailCondKernel (γ := γ.toAbstract)
+    (mem_toAbstract_invariant_of_isGibbsMeasure hμ)
 
 end Identification
 
@@ -271,82 +213,69 @@ variable [StandardBorelSpace E] (γ : Specification S E) (ν₀ : Measure (S →
 
 /-- The tail event on which `tailRealKernel γ` is carried by the range of `embeddingReal`. -/
 def rangeSet : Set (S → E) :=
-  {ω | tailRealKernel γ ω (range (embeddingReal (S → E))) = 1}
+  γ.toAbstract.rangeSet exhaustionVolumes exhaustionVolumes_monotone exhaustionVolumes_cofinal
 
 lemma measurableSet_rangeSet : MeasurableSet[@tailSigmaAlgebra S E _] (rangeSet γ) :=
-  (measurableSet_singleton 1).preimage
-    (Kernel.measurable_coe _ (measurableEmbedding_embeddingReal _).measurableSet_range)
+  γ.toAbstract.measurableSet_rangeSet exhaustionVolumes exhaustionVolumes_monotone
+    exhaustionVolumes_cofinal
 
 open Classical in
 /-- `tailRealKernel γ`, replaced off `rangeSet γ` by the pushforward of `ν₀`. -/
 noncomputable def tailRealKernel' : Kernel[@tailSigmaAlgebra S E _] (S → E) ℝ :=
-  Kernel.piecewise (measurableSet_rangeSet γ) (tailRealKernel γ)
-    (@Kernel.const (S → E) ℝ (@tailSigmaAlgebra S E _) _ (ν₀.map (embeddingReal (S → E))))
+  AbstractSpecification.tailRealKernel' γ.toAbstract exhaustionVolumes
+    exhaustionVolumes_monotone exhaustionVolumes_cofinal ν₀
 
 lemma tailRealKernel'_apply_range [IsProbabilityMeasure ν₀] (ω : S → E) :
-    tailRealKernel' γ ν₀ ω (range (embeddingReal (S → E))) = 1 := by
-  classical
-  rw [tailRealKernel', Kernel.piecewise_apply]
-  split_ifs with h
-  · exact h
-  · rw [Kernel.const_apply, Measure.map_apply (measurable_embeddingReal _)
-      (measurableEmbedding_embeddingReal _).measurableSet_range, preimage_range, measure_univ]
+    tailRealKernel' γ ν₀ ω (range (embeddingReal (S → E))) = 1 :=
+  AbstractSpecification.tailRealKernel'_apply_range γ.toAbstract exhaustionVolumes
+    exhaustionVolumes_monotone exhaustionVolumes_cofinal ν₀ ω
 
 /-- The candidate `(G(γ), 𝓣)`-kernel, before correction on the bad tail set. -/
 noncomputable def gibbsKernelAux : Kernel[@tailSigmaAlgebra S E _] (S → E) (S → E) :=
-  Kernel.comapRight (tailRealKernel' γ ν₀) (measurableEmbedding_embeddingReal (S → E))
+  AbstractSpecification.paKernelAux γ.toAbstract exhaustionVolumes
+    exhaustionVolumes_monotone exhaustionVolumes_cofinal ν₀
 
-instance [IsProbabilityMeasure ν₀] : IsMarkovKernel (gibbsKernelAux γ ν₀) :=
-  Kernel.IsMarkovKernel.comapRight _ _ (tailRealKernel'_apply_range γ ν₀)
+instance [IsProbabilityMeasure ν₀] : IsMarkovKernel (gibbsKernelAux γ ν₀) := by
+  unfold gibbsKernelAux; infer_instance
 
 /-- The tail event on which `gibbsKernelAux γ ν₀` is a Gibbs measure. -/
-def gibbsSet : Set (S → E) := {ω | IsGibbsCore γ (gibbsKernelAux γ ν₀ ω)}
+def gibbsSet : Set (S → E) :=
+  AbstractSpecification.invariantSet γ.toAbstract exhaustionVolumes
+    exhaustionVolumes_monotone exhaustionVolumes_cofinal ν₀
 
 lemma measurableSet_gibbsSet : MeasurableSet[@tailSigmaAlgebra S E _] (gibbsSet γ ν₀) :=
-  (measurableSet_isGibbsCore γ).preimage (gibbsKernelAux γ ν₀).measurable
+  AbstractSpecification.measurableSet_invariantSet γ.toAbstract exhaustionVolumes
+    exhaustionVolumes_monotone exhaustionVolumes_cofinal ν₀
 
 open Classical in
 /-- Georgii (7.25): the `μ`-independent `(G(γ), 𝓣)`-kernel, equal to `ν₀` off `gibbsSet γ ν₀`. -/
 noncomputable def gibbsKernel : Kernel[@tailSigmaAlgebra S E _] (S → E) (S → E) :=
-  Kernel.piecewise (measurableSet_gibbsSet γ ν₀) (gibbsKernelAux γ ν₀)
-    (@Kernel.const (S → E) (S → E) (@tailSigmaAlgebra S E _) _ ν₀)
+  AbstractSpecification.paKernel γ.toAbstract exhaustionVolumes
+    exhaustionVolumes_monotone exhaustionVolumes_cofinal ν₀
 
 instance [IsProbabilityMeasure ν₀] : IsMarkovKernel (gibbsKernel γ ν₀) := by
   unfold gibbsKernel; infer_instance
 
-lemma gibbsKernel_mem_G (hν₀ : ν₀ ∈ G γ) (ω : S → E) : gibbsKernel γ ν₀ ω ∈ G γ := by
-  classical
-  rw [gibbsKernel, Kernel.piecewise_apply]
-  split_ifs with h
-  · exact ⟨⟨h.1⟩, isGibbsMeasure_of_isGibbsCore γ h⟩
-  · rw [Kernel.const_apply]; exact hν₀
+lemma gibbsKernel_mem_G (hν₀ : ν₀ ∈ G γ) (ω : S → E) : gibbsKernel γ ν₀ ω ∈ G γ :=
+  γ.toAbstract_invariant_eq_G ▸
+    AbstractSpecification.paKernel_mem_invariant γ.toAbstract exhaustionVolumes
+      exhaustionVolumes_monotone exhaustionVolumes_cofinal ν₀
+      (mem_toAbstract_invariant_of_mem_G hν₀) ω
 
 variable {μ : Measure (S → E)} [IsProbabilityMeasure μ]
 
 lemma ae_gibbsKernel_eq_tailKernel {γ : Specification S E} (hμ : γ.IsGibbsMeasure μ) :
-    ∀ᵐ ω ∂μ, gibbsKernel γ ν₀ ω = tailKernel μ ω := by
-  classical
-  filter_upwards [ae_tailRealKernel_eq_map μ hμ, ae_isGibbsCore_tailKernel μ hμ] with ω h1 h2
-  have hrange : ω ∈ rangeSet γ := by
-    show tailRealKernel γ ω (range (embeddingReal (S → E))) = 1
-    rw [h1, Measure.map_apply (measurable_embeddingReal _)
-      (measurableEmbedding_embeddingReal _).measurableSet_range, preimage_range, measure_univ]
-  have haux : gibbsKernelAux γ ν₀ ω = tailKernel μ ω := by
-    rw [gibbsKernelAux, Kernel.comapRight_apply, tailRealKernel', Kernel.piecewise_apply,
-      ite_eq_left hrange, h1, (measurableEmbedding_embeddingReal _).comap_map]
-  have hgood : ω ∈ gibbsSet γ ν₀ := by
-    show IsGibbsCore γ (gibbsKernelAux γ ν₀ ω)
-    rw [haux]; exact h2
-  rw [gibbsKernel, Kernel.piecewise_apply, ite_eq_left hgood, haux]
+    ∀ᵐ ω ∂μ, gibbsKernel γ ν₀ ω = tailKernel μ ω :=
+  AbstractSpecification.ae_paKernel_eq_tailCondKernel
+    (mem_toAbstract_invariant_of_isGibbsMeasure hμ)
 
 /-- Georgii (7.21)(i) for `gibbsKernel`: it is a version of `μ(· | 𝓣)` for every Gibbs `μ`. -/
 theorem condExp_ae_eq_gibbsKernel {γ : Specification S E} (hμ : γ.IsGibbsMeasure μ)
     {A : Set (S → E)} (hA : MeasurableSet A) :
     μ[A.indicator (fun _ ↦ (1 : ℝ)) | @tailSigmaAlgebra S E _] =ᵐ[μ]
-      fun ω ↦ (gibbsKernel γ ν₀ ω A).toReal := by
-  filter_upwards [ae_gibbsKernel_eq_tailKernel ν₀ hμ, tailKernel_real_ae_eq_condExp μ hA]
-    with ω h1 h2
-  rw [h1, ← h2, measureReal_def]
+      fun ω ↦ (gibbsKernel γ ν₀ ω A).toReal :=
+  AbstractSpecification.condExp_ae_eq_paKernel
+    (mem_toAbstract_invariant_of_isGibbsMeasure hμ) hA
 
 end GibbsKernel
 
@@ -356,9 +285,10 @@ variable [StandardBorelSpace E] (γ : Specification S E) (ν₀ : Measure (S →
 
 theorem isPAKernel_gibbsKernel (hν₀ : ν₀ ∈ G γ) :
     IsPAKernel (G γ) (@tailSigmaAlgebra S E _) (gibbsKernel γ ν₀) :=
-  ⟨fun μ hμ A hA ↦ by
-    have := hμ.1
-    exact (condExp_ae_eq_gibbsKernel ν₀ hμ.2 hA).symm, gibbsKernel_mem_G γ ν₀ hν₀⟩
+  γ.toAbstract_invariant_eq_G ▸
+    AbstractSpecification.isPAKernel_paKernel γ.toAbstract exhaustionVolumes
+      exhaustionVolumes_monotone exhaustionVolumes_cofinal ν₀
+      (mem_toAbstract_invariant_of_mem_G hν₀)
 
 /-- **Georgii, Proposition (7.25)**: if `G(γ) ≠ ∅` then there is a `(G(γ), 𝓣)`-kernel, which can be
 taken with all its values in `G(γ)`. -/
