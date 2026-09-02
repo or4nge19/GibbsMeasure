@@ -532,7 +532,8 @@ alignment:
         (mul_measure_lt_ergodicMaximalFunction_le): a sequence of finite sets each containing 0
         with an "enlargement" swallowing every intersecting lower-rank translate, constant
         |enlargement|/|F_n|; for increasing F_n the enlargement F_n - F_n + F_n works. The
-        greedy Vitali selection is Finset.exists_subset_pairwiseDisjoint_subset_biUnion. No
+        greedy Vitali selection is Finset.exists_subset_pairwiseDisjoint_subset_biUnion, a corollary of
+        Mathlib's Vitali.exists_disjoint_subfamily_covering_enlargement. No
         countability of the group, no finiteness of mu, f measurable rather than integrable.
     - source: "Proposition (14.9), display (14.14), Theorem (14.15)"
       lean: "MeasureTheory.GibbsMeasure.extremePoints_invariantG"
