@@ -19,8 +19,10 @@ For a specification `γ` on `S → E` (`S` countable, `E` standard Borel) with `
 weight `w_μ` on `Measure (S → E)` carried by `ex G(γ)`; the map `μ ↦ w_μ` is an affine bijection
 from `G(γ)` onto these weights, induced by the `(G(γ), 𝓣)`-kernel `gibbsKernel γ ν₀`.
 
-We combine Theorem (7.7)(a) (`extremePoints_G_eq_inter_trivialOn`), Proposition (7.22)
-(`IsPAKernel.exists_unique_representing_weight`) and Proposition (7.25) (`isPAKernel_gibbsKernel`).
+Every statement is the instance `P = G(γ)`, `𝒜 = 𝓣` of the abstract extreme decomposition of
+`GibbsMeasure/Specification/PAKernel.lean` (namespace `IsPAKernel`), fed with Theorem (7.7)(a)
+(`extremePoints_G_eq_inter_trivialOn`), the measurability of `G(γ)` (`measurableSet_G`) and
+Proposition (7.25) (`isPAKernel_gibbsKernel`).
 -/
 
 @[expose] public section
@@ -65,42 +67,41 @@ lemma extremePoints_G_eq_inter_trivialOn :
 
 variable {γ}
 
+/-- The Gibbs measure `hG.some` chosen from a nonempty `G(γ)` is a probability measure. -/
+instance isProbabilityMeasure_nonempty_G_some (hG : (G γ).Nonempty) :
+    IsProbabilityMeasure hG.some :=
+  hG.some_mem.1
+
+/-- Proposition (7.25) for the chosen Gibbs measure `hG.some`: `gibbsKernel γ hG.some` is a
+`(G(γ), 𝓣)`-kernel. -/
+lemma isPAKernel_gibbsKernel_some (hG : (G γ).Nonempty) :
+    IsPAKernel (G γ) (@tailSigmaAlgebra S E _) (gibbsKernel γ hG.some) :=
+  isPAKernel_gibbsKernel γ _ hG.some_mem
+
 /-! ### Existence and uniqueness of the representing weight -/
 
 /-- Georgii (7.26): `ex G(γ) ≠ ∅` as soon as `G(γ) ≠ ∅`. -/
 theorem nonempty_extremePoints_G (hG : (G γ).Nonempty) :
-    ((G γ).extremePoints ℝ≥0∞).Nonempty := by
-  obtain ⟨ν₀, hν₀⟩ := hG
-  have := hν₀.1
-  rw [extremePoints_G_eq_inter_trivialOn]
-  exact (isPAKernel_gibbsKernel γ ν₀ hν₀).nonempty_inter_trivialOn tailSigmaAlgebra_le_pi
-    (fun μ hμ ↦ hμ.1) ⟨ν₀, hν₀⟩
+    ((G γ).extremePoints ℝ≥0∞).Nonempty :=
+  (isPAKernel_gibbsKernel_some hG).nonempty_extremePoints tailSigmaAlgebra_le_pi
+    (fun _ hμ ↦ hμ.1) (extremePoints_G_eq_inter_trivialOn γ) hG
 
 /-- **Georgii, Theorem (7.26)** (existence and uniqueness): every `μ ∈ G(γ)` is represented,
 `μ = ∫ ν w(dν)`, by a unique probability weight `w` carried by `ex G(γ)`. -/
 theorem exists_unique_weight_extremePoints (hG : (G γ).Nonempty) {μ : Measure Ω}
     (hμ : μ ∈ G γ) :
     ∃! w : Measure (Measure Ω), IsProbabilityMeasure w ∧
-      w ((G γ).extremePoints ℝ≥0∞)ᶜ = 0 ∧ Measure.join w = μ := by
-  obtain ⟨ν₀, hν₀⟩ := hG
-  have := hν₀.1
-  rw [extremePoints_G_eq_inter_trivialOn]
-  exact (isPAKernel_gibbsKernel γ ν₀ hν₀).exists_unique_representing_weight
-    tailSigmaAlgebra_le_pi (fun μ hμ ↦ hμ.1) (measurableSet_G γ) hμ
+      w ((G γ).extremePoints ℝ≥0∞)ᶜ = 0 ∧ Measure.join w = μ :=
+  (isPAKernel_gibbsKernel_some hG).exists_unique_weight_extremePoints tailSigmaAlgebra_le_pi
+    (fun _ hμ ↦ hμ.1) (measurableSet_G γ) (extremePoints_G_eq_inter_trivialOn γ) hμ
 
 /-! ### Surjectivity: barycentres of weights on `G(γ)` are Gibbs measures -/
 
 omit [Countable S] [StandardBorelSpace E] in
 /-- The barycentre of a probability weight carried by `G(γ)` is a probability measure. -/
 lemma isProbabilityMeasure_join_of_G_compl (w : Measure (Measure Ω)) [IsProbabilityMeasure w]
-    (hw : w (G γ)ᶜ = 0) : IsProbabilityMeasure (Measure.join w) := by
-  constructor
-  rw [Measure.join_apply MeasurableSet.univ]
-  calc ∫⁻ ν, ν univ ∂w = ∫⁻ _, (1 : ℝ≥0∞) ∂w := by
-        refine lintegral_congr_ae ?_
-        filter_upwards [ae_iff.2 hw] with ν hν
-        exact hν.1.measure_univ
-    _ = 1 := by simp
+    (hw : w (G γ)ᶜ = 0) : IsProbabilityMeasure (Measure.join w) :=
+  isProbabilityMeasure_join_of_ae w ((ae_iff.2 hw).mono fun _ hν ↦ hν.1)
 
 omit [Countable S] [StandardBorelSpace E] in
 /-- The barycentre `∫ ν w(dν)` of a probability weight carried by `G(γ)` lies in `G(γ)`:
@@ -140,33 +141,28 @@ instance isProbabilityMeasure_weightOf (hG : (G γ).Nonempty) (μ : Measure Ω)
 
 /-- `w_μ` is carried by `ex G(γ)`. -/
 lemma weightOf_extremePoints_compl (hG : (G γ).Nonempty) {μ : Measure Ω} (hμ : μ ∈ G γ) :
-    weightOf hG μ ((G γ).extremePoints ℝ≥0∞)ᶜ = 0 := by
-  have := hμ.1
-  have := hG.some_mem.1
-  rw [extremePoints_G_eq_inter_trivialOn]
-  exact (isPAKernel_gibbsKernel γ _ hG.some_mem).weight_compl_eq_zero tailSigmaAlgebra_le_pi
-    (measurableSet_G γ) hμ
+    weightOf hG μ ((G γ).extremePoints ℝ≥0∞)ᶜ = 0 :=
+  (isPAKernel_gibbsKernel_some hG).weight_extremePoints_compl tailSigmaAlgebra_le_pi
+    (fun _ hμ ↦ hμ.1) (measurableSet_G γ) (extremePoints_G_eq_inter_trivialOn γ) hμ
 
 /-- `w_μ` represents `μ`: `∫ ν w_μ(dν) = μ`. -/
 lemma join_weightOf (hG : (G γ).Nonempty) {μ : Measure Ω} (hμ : μ ∈ G γ) :
-    Measure.join (weightOf hG μ) = μ := by
-  have := hμ.1
-  have := hG.some_mem.1
-  exact (isPAKernel_gibbsKernel γ _ hG.some_mem).join_weight tailSigmaAlgebra_le_pi hμ
+    Measure.join (weightOf hG μ) = μ :=
+  haveI := hμ.1
+  (isPAKernel_gibbsKernel_some hG).join_weight tailSigmaAlgebra_le_pi hμ
 
 /-- Uniqueness: a weight carried by `ex G(γ)` representing `μ` is `w_μ`. -/
 theorem eq_weightOf_of_join_eq (hG : (G γ).Nonempty) {μ : Measure Ω} {w : Measure (Measure Ω)}
     (hw : w ((G γ).extremePoints ℝ≥0∞)ᶜ = 0) (hjoin : Measure.join w = μ) :
-    w = weightOf hG μ := by
-  have := hG.some_mem.1
-  rw [extremePoints_G_eq_inter_trivialOn] at hw
-  exact (isPAKernel_gibbsKernel γ _ hG.some_mem).eq_weight_of_join_eq tailSigmaAlgebra_le_pi
-    (fun μ hμ ↦ hμ.1) (ae_iff.2 hw) hjoin
+    w = weightOf hG μ :=
+  (isPAKernel_gibbsKernel_some hG).eq_weight_of_join_eq' tailSigmaAlgebra_le_pi
+    (fun _ hμ ↦ hμ.1) (extremePoints_G_eq_inter_trivialOn γ) hw hjoin
 
 /-- `μ ↦ w_μ` inverts `w ↦ ∫ ν w(dν)` on weights carried by `ex G(γ)`. -/
 theorem weightOf_join (hG : (G γ).Nonempty) (w : Measure (Measure Ω))
     (hw : w ((G γ).extremePoints ℝ≥0∞)ᶜ = 0) : weightOf hG (Measure.join w) = w :=
-  (eq_weightOf_of_join_eq hG hw rfl).symm
+  (isPAKernel_gibbsKernel_some hG).weight_join
+    tailSigmaAlgebra_le_pi (fun _ hμ ↦ hμ.1) (extremePoints_G_eq_inter_trivialOn γ) w hw
 
 /-- The weight of a Gibbs measure does not depend on the choice of the `(G(γ), 𝓣)`-kernel. -/
 lemma weight_gibbsKernel_eq {ν₀ ν₁ : Measure Ω} (hν₀ : ν₀ ∈ G γ) (hν₁ : ν₁ ∈ G γ)
@@ -205,24 +201,19 @@ noncomputable def extremeDecomposition (hG : (G γ).Nonempty) :
 
 /-- **Georgii, Theorem (7.26)** (affinity): `μ ↦ w_μ` is affine. -/
 theorem weightOf_add_smul (hG : (G γ).Nonempty) (μ ν : Measure Ω) (a b : ℝ≥0∞) :
-    weightOf hG (a • μ + b • ν) = a • weightOf hG μ + b • weightOf hG ν := by
-  simp only [weightOf, weight]
-  rw [Measure.map_add _ _ (measurable_kernel_of_le tailSigmaAlgebra_le_pi), Measure.map_smul,
-    Measure.map_smul]
+    weightOf hG (a • μ + b • ν) = a • weightOf hG μ + b • weightOf hG ν :=
+  IsPAKernel.weight_add_smul tailSigmaAlgebra_le_pi μ ν a b
 
 /-- **Georgii, Theorem (7.26)** (bijection, set form): `μ ↦ w_μ` maps `G(γ)` bijectively onto
 the probability weights carried by `ex G(γ)`. -/
 theorem bijOn_weightOf (hG : (G γ).Nonempty) :
     BijOn (weightOf hG) (G γ)
-      {w : Measure (Measure Ω) | IsProbabilityMeasure w ∧ w ((G γ).extremePoints ℝ≥0∞)ᶜ = 0} := by
-  refine ⟨fun μ hμ ↦ ?_, fun μ hμ ν hν h ↦ ?_, fun w hw ↦ ?_⟩
-  · have := hμ.1
-    exact ⟨inferInstance, weightOf_extremePoints_compl hG hμ⟩
-  · rw [← join_weightOf hG hμ, ← join_weightOf hG hν, h]
-  · have := hw.1
-    exact ⟨Measure.join w,
-      join_mem_G w (measure_mono_null (compl_subset_compl.2 extremePoints_subset) hw.2),
-      weightOf_join hG w hw.2⟩
+      {w : Measure (Measure Ω) | IsProbabilityMeasure w ∧ w ((G γ).extremePoints ℝ≥0∞)ᶜ = 0} :=
+  (isPAKernel_gibbsKernel_some hG).bijOn_weight
+    tailSigmaAlgebra_le_pi (fun _ hμ ↦ hμ.1) (measurableSet_G γ)
+    (extremePoints_G_eq_inter_trivialOn γ) fun w hw hw' ↦
+      haveI := hw
+      join_mem_G w (measure_mono_null (compl_subset_compl.2 extremePoints_subset) hw')
 
 /-- **Georgii, Theorem (7.26)**, summary: if `G(γ) ≠ ∅` then `ex G(γ) ≠ ∅`; every `μ ∈ G(γ)` is
 represented by a unique probability weight carried by `ex G(γ)`; `μ ↦ w_μ` is an affine bijection
