@@ -28,7 +28,6 @@ instead of `β ≥ 8 log 2 ≈ 5.5452`.
 
 set_option autoImplicit false
 set_option relaxedAutoImplicit false
-set_option maxHeartbeats 1000000
 
 open MeasureTheory MeasureTheory.GibbsMeasure MeasureTheory.GibbsMeasure.Peierls
 open ProbabilityTheory Set Filter Topology

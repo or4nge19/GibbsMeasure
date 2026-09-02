@@ -39,7 +39,6 @@ The underlying notions — `unifDist` (8.1), `interdep` (8.5), `IsDobrushin` (8.
 
 @[expose] public section
 
-set_option maxHeartbeats 1000000
 set_option backward.isDefEq.respectTransparency false
 
 open Filter Function MeasureTheory MeasureTheory.GibbsMeasure ProbabilityTheory Set

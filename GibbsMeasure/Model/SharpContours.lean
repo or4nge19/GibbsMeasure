@@ -22,7 +22,6 @@ two bonds, whence `ℓ · 3 ^ (ℓ - 1)`.  This file develops that circuit struc
 
 set_option autoImplicit false
 set_option relaxedAutoImplicit false
-set_option maxHeartbeats 1000000
 
 
 open MeasureTheory MeasureTheory.GibbsMeasure MeasureTheory.GibbsMeasure.Peierls Set
@@ -681,9 +680,28 @@ lemma dualRev_dualRev {c : Set (Sym2 Site)} {p : Sym2 Site × Site} (hp : DualSt
   have h := otherPlaq_otherPlaq (mem_bondsAt.1 hp).1
   simp only [dualRev, h]
 
+section Irreducible
+-- `partner` is a `dite` on `Finset.Nonempty` for a `Finset (Sym2 Site)` cut out of a `Set` by
+-- classical decidability, and `otherPlaq` a four-way `if` on `Sym2 Site` equalities. Unfolding
+-- either during `whnf`/`isDefEq` is what made this file need a five-fold `maxHeartbeats` bump:
+-- the traversal lemmas below need only their API, so both are sealed here.
+attribute [local irreducible] partner otherPlaq
+
+@[simp] lemma dualStep_fst (c : Set (Sym2 Site)) (p : Sym2 Site × Site) :
+    (dualStep c p).1 = partner c p.2 p.1 := rfl
+
+@[simp] lemma dualStep_snd (c : Set (Sym2 Site)) (p : Sym2 Site × Site) :
+    (dualStep c p).2 = otherPlaq (partner c p.2 p.1) p.2 := rfl
+
+@[simp] lemma dualRev_fst (p : Sym2 Site × Site) : (dualRev p).1 = p.1 := rfl
+
+@[simp] lemma dualRev_snd (p : Sym2 Site × Site) : (dualRev p).2 = otherPlaq p.1 p.2 := rfl
+
 lemma dualState_dualStep {c : Set (Sym2 Site)} {p : Sym2 Site × Site}
     (h2 : dualDeg c p.2 = 2) (hp : DualState c p) : DualState c (dualStep c p) := by
   obtain ⟨h1, h3⟩ := mem_bondsAt.1 (partner_mem h2 hp)
+  show (dualStep c p).1 ∈ bondsAt c (dualStep c p).2
+  rw [dualStep_fst, dualStep_snd]
   exact mem_bondsAt.2 ⟨otherPlaq_mem h1, h3⟩
 
 lemma dualStep_fst_ne {c : Set (Sym2 Site)} {p : Sym2 Site × Site}
@@ -695,13 +713,14 @@ lemma dualStep_dualRev_dualStep {c : Set (Sym2 Site)} {p : Sym2 Site × Site}
     dualStep c (dualRev (dualStep c p)) = dualRev p := by
   have hfm : partner c p.2 p.1 ∈ bondsAt c p.2 := partner_mem h2 hp
   have hrev : dualRev (dualStep c p) = (partner c p.2 p.1, p.2) := by
-    simp only [dualStep, dualRev]
-    rw [otherPlaq_otherPlaq (mem_bondsAt.1 hfm).1]
+    refine Prod.ext ?_ ?_
+    · rw [dualRev_fst, dualStep_fst]
+    · rw [dualRev_snd, dualStep_fst, dualStep_snd,
+        otherPlaq_otherPlaq (mem_bondsAt.1 hfm).1]
   rw [hrev]
-  show (partner c p.2 (partner c p.2 p.1), otherPlaq (partner c p.2 (partner c p.2 p.1)) p.2)
-    = dualRev p
-  rw [partner_partner h2 hp]
-  rfl
+  refine Prod.ext ?_ ?_
+  · rw [dualStep_fst, dualRev_fst, partner_partner h2 hp]
+  · rw [dualStep_snd, dualRev_snd, partner_partner h2 hp]
 
 /-- The traversal step is injective on states. -/
 lemma dualStep_inj {c : Set (Sym2 Site)} {p q : Sym2 Site × Site}
@@ -726,6 +745,8 @@ lemma dualStep_inj {c : Set (Sym2 Site)} {p q : Sym2 Site × Site}
       _ = partner c q.2 (partner c q.2 q.1) := by rw [hfg']
       _ = q.1 := partner_partner h2q hq
   exact Prod.ext h1 hx
+
+end Irreducible
 
 
 /-! ### The traversal of a circuit -/
