@@ -93,6 +93,7 @@ public import GibbsMeasure.Model.PhaseTransition
 public import GibbsMeasure.Model.SharpContours
 public import GibbsMeasure.Model.SharpPhaseTransition
 public import GibbsMeasure.Model.PeriodicSymmetry
+public import GibbsMeasure.Model.OneDimensionalSymmetry
 public import GibbsMeasure.Model.ShiftAverage
 public import GibbsMeasure.Potential.Existence
 public import GibbsMeasure.Potential.FiniteReference
@@ -128,6 +129,7 @@ public import GibbsMeasure.Specification.Existence
 public import GibbsMeasure.Specification.InvariantFields
 public import GibbsMeasure.Specification.NoGibbsMeasure
 public import GibbsMeasure.Specification.Transformation
+public import GibbsMeasure.Specification.SymmetryInheritance
 public import GibbsMeasure.Specification.Extremal
 public import GibbsMeasure.Specification.QuasilocalAlgebra
 public import GibbsMeasure.Specification.LocalContinuity
