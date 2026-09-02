@@ -28,6 +28,14 @@ rectangular boxes.
 The final section proves Georgii (4.20)'s statement that for a potential supported in `Δ` — the
 free-boundary truncation `Φ^Δ` of Example (4.20)(1) as well as the periodic modification `Φ̃^Δ` —
 the restriction of `γ^Ψ_Δ(·|ω)` to `𝓕_Δ` does not depend on `ω`.
+
+Georgii Example (5.20)(3) builds on the same torus machinery: `periodizeSitesEquiv` and
+`periodize` are the periodic modification `τ_N` of a transformation `τ` (for `τ` periodizable
+along the torus, `IsPeriodizable`), `periodicExtend_periodize` is the key identity
+`σ̃_Δ ∘ τ_N = τ ∘ σ̃_Δ`, `map_periodize_periodicModification` is Georgii's displayed computation
+that `Φ̃^Δ` is `τ_N`-invariant, and `eventually_preimage_periodize_eq` is the convergence
+`f ∘ τ_N → f ∘ τ` on the local events; the example itself is assembled in
+`GibbsMeasure/Model/PeriodicSymmetry.lean`.
 -/
 
 @[expose] public section
@@ -693,6 +701,456 @@ theorem abs_hamiltonian_periodicModification_sub_le [Countable S] [IsPotential �
     ENNReal.toReal_mul] using h
 
 end PeriodicModification
+
+/-! ### Georgii (5.20)(3): the periodic modification `τ_N` of a transformation -/
+
+section PeriodizeSites
+
+variable {S : Type*} [AddCommGroup S] {G : AddSubgroup S} {Δ : Finset S} {π : S → S}
+  {e : S ≃ S} {g i : S}
+
+/-- **Georgii (5.20)(3).** The periodic modification of a map `e` of the sites along the torus
+reduction `π`: `i ↦ π (e (π i)) + (i - π i)`. For a congruence-respecting bijection `e` it
+satisfies Georgii's two defining conditions: (i) it commutes with the period translations
+(`periodizeSites_add_of_mem`), and (ii) on the box `Δ` it is the reduction of `e`
+(`periodizeSites_of_mem`, `periodizeSites_mem`, `periodizeSites_sub_mem`). -/
+def periodizeSites (π e : S → S) (i : S) : S := π (e (π i)) + (i - π i)
+
+lemma periodizeSites_apply (π e : S → S) (i : S) :
+    periodizeSites π e i = π (e (π i)) + (i - π i) := rfl
+
+/-- Georgii (5.20)(3), condition (i): `τ_{N*}(i + g) = τ_{N*} i + g` for periods `g ∈ G`. -/
+lemma periodizeSites_add_of_mem (hπ : IsTorusReduction G Δ π) (e : S → S) (hg : g ∈ G) (i : S) :
+    periodizeSites π e (i + g) = periodizeSites π e i + g := by
+  unfold periodizeSites
+  rw [hπ.add_mem i hg]
+  abel
+
+/-- Georgii (5.20)(3), condition (ii): on the box, the periodic modification of `e` is the
+reduction of `e`. -/
+lemma periodizeSites_of_mem (hπ : IsTorusReduction G Δ π) (e : S → S) (hi : i ∈ Δ) :
+    periodizeSites π e i = π (e i) := by
+  unfold periodizeSites
+  rw [hπ.eq_self i hi, sub_self, add_zero]
+
+/-- Georgii (5.20)(3), condition (ii): `τ_{N*} i ∈ Δ` for `i ∈ Δ`. -/
+lemma periodizeSites_mem (hπ : IsTorusReduction G Δ π) (e : S → S) (hi : i ∈ Δ) :
+    periodizeSites π e i ∈ Δ := by
+  rw [periodizeSites_of_mem hπ e hi]
+  exact hπ.mapsTo _
+
+/-- Georgii (5.20)(3), condition (ii): `τ_{N*} i ≡ τ_* i` for `i ∈ Δ`. -/
+lemma periodizeSites_sub_mem (hπ : IsTorusReduction G Δ π) (e : S → S) (hi : i ∈ Δ) :
+    periodizeSites π e i - e i ∈ G := by
+  rw [periodizeSites_of_mem hπ e hi]
+  exact hπ.sub_mem' _
+
+/-- A congruence-respecting bijection descends through the reduction: `π (e (π i)) = π (e i)`. -/
+lemma IsTorusReduction.pi_apply_pi (hπ : IsTorusReduction G Δ π)
+    (hcong : ∀ i j : S, i - j ∈ G → e i - e j ∈ G) (i : S) : π (e (π i)) = π (e i) :=
+  hπ.reduce_eq _ _ (hcong _ _ (hπ.sub_mem' i))
+
+/-- `τ_{N*} ∘ π = π ∘ τ_*`: the periodic modification covers `e` through the reduction. -/
+lemma periodizeSites_pi (hπ : IsTorusReduction G Δ π)
+    (hcong : ∀ i j : S, i - j ∈ G → e i - e j ∈ G) (i : S) :
+    periodizeSites π (⇑e) (π i) = π (e i) := by
+  rw [periodizeSites_of_mem hπ _ (hπ.mapsTo i)]
+  exact hπ.pi_apply_pi hcong i
+
+lemma pi_periodizeSites (hπ : IsTorusReduction G Δ π)
+    (hcong : ∀ i j : S, i - j ∈ G → e i - e j ∈ G) (i : S) :
+    π (periodizeSites π (⇑e) i) = π (e i) := by
+  unfold periodizeSites
+  rw [hπ.add_mem _ (hπ.sub_mem i), hπ.idem]
+  exact hπ.pi_apply_pi hcong i
+
+/-- The reduction composed with a congruence-respecting bijection is injective on the box; this
+is where the finiteness of the fundamental domain is used (a surjective self-map of a finite set
+is injective). -/
+lemma injOn_pi_comp (hπ : IsTorusReduction G Δ π)
+    (hcong : ∀ i j : S, i - j ∈ G → e i - e j ∈ G) : Set.InjOn (fun x ↦ π (e x)) Δ := by
+  refine Finset.injOn_of_surjOn_of_card_le _ (fun x _ ↦ Finset.mem_coe.2 (hπ.mapsTo _))
+    (fun y hy ↦ ⟨π (e.symm y), Finset.mem_coe.2 (hπ.mapsTo _), ?_⟩) le_rfl
+  show π (e (π (e.symm y))) = y
+  rw [hπ.pi_apply_pi hcong, Equiv.apply_symm_apply, hπ.eq_self y (Finset.mem_coe.1 hy)]
+
+lemma injective_periodizeSites (hπ : IsTorusReduction G Δ π)
+    (hcong : ∀ i j : S, i - j ∈ G → e i - e j ∈ G) :
+    Function.Injective (periodizeSites π (⇑e)) := by
+  intro i i' h
+  have hpi : π i = π i' := by
+    refine injOn_pi_comp hπ hcong (Finset.mem_coe.2 (hπ.mapsTo i))
+      (Finset.mem_coe.2 (hπ.mapsTo i')) ?_
+    show π (e (π i)) = π (e (π i'))
+    rw [hπ.pi_apply_pi hcong, hπ.pi_apply_pi hcong, ← pi_periodizeSites hπ hcong i,
+      ← pi_periodizeSites hπ hcong i', h]
+  have h' := h
+  unfold periodizeSites at h'
+  rw [hpi] at h'
+  have h2 : i - π i' = i' - π i' := add_left_cancel h'
+  have h3 := congrArg (· + π i') h2
+  simpa using h3
+
+/-- The periodic modifications of `e` and `e.symm` are inverse bijections. -/
+lemma periodizeSites_symm_rightInverse (hπ : IsTorusReduction G Δ π)
+    (hcong : ∀ i j : S, i - j ∈ G → e i - e j ∈ G) (y : S) :
+    periodizeSites π (⇑e) (periodizeSites π (⇑e.symm) y) = y := by
+  have hb : π (periodizeSites π (⇑e.symm) y) = π (e.symm (π y)) := by
+    unfold periodizeSites
+    rw [hπ.add_mem _ (hπ.sub_mem y), hπ.idem]
+  rw [periodizeSites_apply π (⇑e), hb, hπ.pi_apply_pi hcong, Equiv.apply_symm_apply, hπ.idem,
+    periodizeSites_apply]
+  abel
+
+/-- **Georgii (5.20)(3).** The periodic modification of a congruence-respecting bijection of the
+sites is again a bijection of the sites: Georgii's `τ_{N*}`, with inverse the periodic
+modification of `τ_*⁻¹`. -/
+def periodizeSitesEquiv (hπ : IsTorusReduction G Δ π) (e : S ≃ S)
+    (hcong : ∀ i j : S, i - j ∈ G → e i - e j ∈ G) : S ≃ S where
+  toFun := periodizeSites π ⇑e
+  invFun := periodizeSites π ⇑e.symm
+  right_inv := periodizeSites_symm_rightInverse hπ hcong
+  left_inv := fun _ ↦ injective_periodizeSites hπ hcong
+    (periodizeSites_symm_rightInverse hπ hcong _)
+
+@[simp] lemma periodizeSitesEquiv_apply (hπ : IsTorusReduction G Δ π)
+    (hcong : ∀ i j : S, i - j ∈ G → e i - e j ∈ G) (i : S) :
+    periodizeSitesEquiv hπ e hcong i = periodizeSites π (⇑e) i := rfl
+
+@[simp] lemma periodizeSitesEquiv_symm_apply (hπ : IsTorusReduction G Δ π)
+    (hcong : ∀ i j : S, i - j ∈ G → e i - e j ∈ G) (i : S) :
+    (periodizeSitesEquiv hπ e hcong).symm i = periodizeSites π (⇑e.symm) i := rfl
+
+/-- `τ_{N*}⁻¹ ∘ π = π ∘ τ_*⁻¹`: the inverse of the periodic modification covers `τ_*⁻¹` through
+the reduction. -/
+lemma periodizeSitesEquiv_symm_pi (hπ : IsTorusReduction G Δ π)
+    (hcong : ∀ i j : S, i - j ∈ G → e i - e j ∈ G) (i : S) :
+    (periodizeSitesEquiv hπ e hcong).symm (π i) = π (e.symm i) := by
+  rw [periodizeSitesEquiv_symm_apply, periodizeSites_of_mem hπ _ (hπ.mapsTo i)]
+  refine injOn_pi_comp hπ hcong (Finset.mem_coe.2 (hπ.mapsTo _))
+    (Finset.mem_coe.2 (hπ.mapsTo _)) ?_
+  show π (e (π (e.symm (π i)))) = π (e (π (e.symm i)))
+  rw [hπ.pi_apply_pi hcong, hπ.pi_apply_pi hcong, Equiv.apply_symm_apply, Equiv.apply_symm_apply,
+    hπ.idem]
+
+/-- On the box, the periodic modification agrees with `e` wherever `e` stays in the box. -/
+lemma periodizeSitesEquiv_apply_of_mem (hπ : IsTorusReduction G Δ π)
+    (hcong : ∀ i j : S, i - j ∈ G → e i - e j ∈ G) (hi : i ∈ Δ) (hei : e i ∈ Δ) :
+    periodizeSitesEquiv hπ e hcong i = e i := by
+  rw [periodizeSitesEquiv_apply, periodizeSites_of_mem hπ _ hi, hπ.eq_self _ hei]
+
+/-- On the box, the inverse of the periodic modification agrees with `e.symm` wherever `e.symm`
+stays in the box. -/
+lemma periodizeSitesEquiv_symm_apply_of_mem (hπ : IsTorusReduction G Δ π)
+    (hcong : ∀ i j : S, i - j ∈ G → e i - e j ∈ G) (hi : i ∈ Δ) (hei : e.symm i ∈ Δ) :
+    (periodizeSitesEquiv hπ e hcong).symm i = e.symm i := by
+  rw [periodizeSitesEquiv_symm_apply, periodizeSites_of_mem hπ _ hi, hπ.eq_self _ hei]
+
+/-- **Georgii (5.20)(3): `τ_{N*} Δ = Δ`** — the box is stable under the periodic modification. -/
+lemma map_periodizeSitesEquiv_box (hπ : IsTorusReduction G Δ π) (e : S ≃ S)
+    (hcong : ∀ i j : S, i - j ∈ G → e i - e j ∈ G) :
+    Δ.map (periodizeSitesEquiv hπ e hcong).toEmbedding = Δ := by
+  ext y
+  rw [Finset.mem_map_equiv]
+  constructor
+  · intro h
+    have h1 := periodizeSites_mem hπ (⇑e) h
+    rwa [show periodizeSites π (⇑e) ((periodizeSitesEquiv hπ e hcong).symm y) = y from
+      (periodizeSitesEquiv hπ e hcong).apply_symm_apply y] at h1
+  · intro h
+    exact periodizeSites_mem hπ (⇑e.symm) h
+
+/-- The image of a `G`-translate under a bijection sending `G`-translations to `G`-translations
+is a `G`-translate of the image. -/
+lemma map_translate_of_forall_add {e : S ≃ S} {g g' : S} (h : ∀ i, e (i + g) = e i + g')
+    (B : Finset S) :
+    (translate B g).map e.toEmbedding = translate (B.map e.toEmbedding) g' := by
+  ext y
+  rw [Finset.mem_map_equiv, mem_translate, mem_translate, Finset.mem_map_equiv]
+  have key : e.symm y - g = e.symm (y - g') := by
+    have h1 : e (e.symm (y - g') + g) = y := by
+      rw [h, Equiv.apply_symm_apply, sub_add_cancel]
+    have h2 : e.symm y = e.symm (y - g') + g := by
+      conv_lhs => rw [← h1]
+      rw [Equiv.symm_apply_apply]
+    rw [h2, add_sub_cancel_right]
+  rw [key]
+
+/-- Congruence-respecting bijections transport the projections `A ↦ A*`:
+`(τ_* B)* = τ_{N*} B*` (Georgii's first justification of the displayed computation in
+(5.20)(3)). -/
+lemma starImage_map [DecidableEq S] (hπ : IsTorusReduction G Δ π) (e : S ≃ S)
+    (hcong : ∀ i j : S, i - j ∈ G → e i - e j ∈ G) (B : Finset S) :
+    starImage π (B.map e.toEmbedding)
+      = (starImage π B).map (periodizeSitesEquiv hπ e hcong).toEmbedding := by
+  rw [Finset.map_eq_image, Finset.map_eq_image, starImage, starImage, Finset.image_image,
+    Finset.image_image]
+  exact Finset.image_congr fun b _ ↦ (periodizeSites_pi hπ hcong b).symm
+
+/-- The inverse form of `starImage_map`: `(τ_*⁻¹ B)* = τ_{N*}⁻¹ B*`. -/
+lemma starImage_map_symm [DecidableEq S] (hπ : IsTorusReduction G Δ π) (e : S ≃ S)
+    (hcong : ∀ i j : S, i - j ∈ G → e i - e j ∈ G) (B : Finset S) :
+    starImage π (B.map e.symm.toEmbedding)
+      = (starImage π B).map (periodizeSitesEquiv hπ e hcong).symm.toEmbedding := by
+  rw [Finset.map_eq_image, Finset.map_eq_image, starImage, starImage, Finset.image_image,
+    Finset.image_image]
+  exact Finset.image_congr fun b _ ↦ (periodizeSitesEquiv_symm_pi hπ hcong b).symm
+
+end PeriodizeSites
+
+/-! ### Georgii (5.20)(3): periodizable transformations and the modification `τ_N` -/
+
+section Periodize
+
+variable {S E : Type*} [MeasurableSpace E] [AddCommGroup S] {G : AddSubgroup S} {Δ : Finset S}
+  {π : S → S} {τ : Transformation S E} {g i : S}
+
+/-- **Georgii (5.20)(3).** A transformation is *periodizable* along the torus `S / G` when its
+spatial part maps `G`-translations to `G`-translations — in both directions, as the compositions
+of translations, reflections and rotations in Georgii's group `T_λ^{(m)} ∘ R ∘ Θ` do — and its
+spin parts are constant on the congruence classes modulo `G`, as `m`-periodic spins are whenever
+the periods lie in `m·S`. Under these hypotheses Georgii's periodic modification `τ_N` of `τ` is
+again a transformation (`Potential.periodize`), and the periodic modification `Φ̃^Δ` of a
+`τ`-invariant potential is `τ_N`-invariant (`map_periodize_periodicModification`). -/
+structure IsPeriodizable (G : AddSubgroup S) (τ : Transformation S E) : Prop where
+  /-- The spins are constant on the congruence classes modulo the periods. -/
+  spin_congr : ∀ ⦃i j : S⦄, i - j ∈ G → τ.spin i = τ.spin j
+  /-- The spatial part maps the translation by a period to a translation by a period. -/
+  exists_sites_add : ∀ g ∈ G, ∃ g' ∈ G, ∀ i, τ.sites (i + g) = τ.sites i + g'
+  /-- The inverse spatial part maps the translation by a period to a translation by a period. -/
+  exists_symm_add : ∀ g ∈ G, ∃ g' ∈ G, ∀ i, τ.sites.symm (i + g) = τ.sites.symm i + g'
+
+namespace IsPeriodizable
+
+variable (hτ : IsPeriodizable G τ)
+include hτ
+
+/-- The spatial part of a periodizable transformation respects the congruence. -/
+lemma sites_sub_mem : ∀ i j : S, i - j ∈ G → τ.sites i - τ.sites j ∈ G := by
+  intro i j hij
+  obtain ⟨g', hg', h⟩ := hτ.exists_sites_add (i - j) hij
+  have h1 : τ.sites i = τ.sites j + g' := by
+    rw [← h j]
+    congr 1
+    abel
+  rw [h1]
+  simpa using hg'
+
+/-- The inverse spatial part of a periodizable transformation respects the congruence. -/
+lemma symm_sites_sub_mem : ∀ i j : S, i - j ∈ G → τ.sites.symm i - τ.sites.symm j ∈ G := by
+  intro i j hij
+  obtain ⟨g', hg', h⟩ := hτ.exists_symm_add (i - j) hij
+  have h1 : τ.sites.symm i = τ.sites.symm j + g' := by
+    rw [← h j]
+    congr 1
+    abel
+  rw [h1]
+  simpa using hg'
+
+end IsPeriodizable
+
+/-- Translations are periodizable along every torus (Georgii (5.20)(3): the lower bound
+`Θ ⊆ I`). -/
+lemma isPeriodizable_shift (G : AddSubgroup S) (t : S) : IsPeriodizable G (shift E t) where
+  spin_congr _ _ _ := rfl
+  exists_sites_add g hg := ⟨g, hg, fun i ↦ by
+    simp only [MeasureTheory.GibbsMeasure.shift, Equiv.coe_addRight]
+    abel⟩
+  exists_symm_add g hg := ⟨g, hg, fun i ↦ by
+    simp only [MeasureTheory.GibbsMeasure.shift, Equiv.addRight_symm, Equiv.coe_addRight]
+    abel⟩
+
+/-- **Georgii (5.20)(3).** The *periodic modification* `τ_N = (τ_{N*}; τ_i, i ∈ S)` of a
+transformation `τ` along a torus reduction: the spatial part is the periodic modification
+`periodizeSitesEquiv` of `τ_*`, the spins are those of `τ`. -/
+def periodize (τ : Transformation S E) (hπ : IsTorusReduction G Δ π)
+    (hτ : IsPeriodizable G τ) : Transformation S E where
+  sites := periodizeSitesEquiv hπ τ.sites hτ.sites_sub_mem
+  spin := τ.spin
+
+@[simp] lemma periodize_sites (hπ : IsTorusReduction G Δ π) (hτ : IsPeriodizable G τ) :
+    (periodize τ hπ hτ).sites = periodizeSitesEquiv hπ τ.sites hτ.sites_sub_mem := rfl
+
+@[simp] lemma periodize_spin (hπ : IsTorusReduction G Δ π) (hτ : IsPeriodizable G τ) :
+    (periodize τ hπ hτ).spin = τ.spin := rfl
+
+/-- Georgii (5.20)(3): `τ_{N*} Δ = Δ` — the box is stable under the periodic modification of a
+transformation. -/
+lemma map_periodize_sites_box (hπ : IsTorusReduction G Δ π) (hτ : IsPeriodizable G τ) :
+    Δ.map (periodize τ hπ hτ).sites.toEmbedding = Δ :=
+  map_periodizeSitesEquiv_box hπ τ.sites hτ.sites_sub_mem
+
+/-- **Georgii (5.20)(3), the key computation: `σ̃_Δ ∘ τ_N = τ ∘ σ̃_Δ`** — the periodic continuation
+intertwines the periodic modification `τ_N` with `τ` itself. -/
+lemma periodicExtend_periodize (hπ : IsTorusReduction G Δ π) (hτ : IsPeriodizable G τ)
+    (ω : S → E) :
+    periodicExtend π ((periodize τ hπ hτ).toFun ω) = τ.toFun (periodicExtend π ω) := by
+  funext i
+  show (periodize τ hπ hτ).spin (π i) (ω ((periodize τ hπ hτ).sites.symm (π i)))
+      = τ.spin i (ω (π (τ.sites.symm i)))
+  rw [periodize_spin, periodize_sites, periodizeSitesEquiv_symm_pi hπ hτ.sites_sub_mem,
+    hτ.spin_congr (hπ.sub_mem' i)]
+
+/-- The inverse form of `periodicExtend_periodize`: `σ̃_Δ ∘ τ_N⁻¹ = τ⁻¹ ∘ σ̃_Δ`. -/
+lemma periodicExtend_periodize_inv (hπ : IsTorusReduction G Δ π) (hτ : IsPeriodizable G τ)
+    (η : S → E) :
+    periodicExtend π ((periodize τ hπ hτ).inv.toFun η) = τ.inv.toFun (periodicExtend π η) := by
+  have h := periodicExtend_periodize hπ hτ ((periodize τ hπ hτ).inv.toFun η)
+  rw [(periodize τ hπ hτ).toFun_inv_toFun] at h
+  rw [h, τ.inv_toFun_toFun]
+
+end Periodize
+
+/-! ### Georgii (5.20)(3): `τ_N`-invariance of the periodic modification `Φ̃^Δ` -/
+
+section MapPeriodize
+
+variable {S E : Type*} [MeasurableSpace E] [AddCommGroup S] [DecidableEq S]
+  {G : AddSubgroup S} {Δ : Finset S} {π : S → S} {anchor : Finset S → S}
+  {Φ : Potential S E} {τ : Transformation S E}
+
+omit [DecidableEq S] in
+/-- The reindexing `B ↦ ℛ(e_* B)` of representatives along translation-respecting bijections is
+inverted by `C ↦ ℛ(f_* C)` when `f` inverts `e`. -/
+lemma red_map_red (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor) {e f : S ≃ S}
+    (hf : ∀ g ∈ G, ∃ g' ∈ G, ∀ i, f (i + g) = f i + g')
+    (hef : ∀ C : Finset S, (C.map e.toEmbedding).map f.toEmbedding = C)
+    {B : Finset S} (hB : IsRep Δ anchor B) :
+    red π anchor ((red π anchor (B.map e.toEmbedding)).map f.toEmbedding) = B := by
+  obtain ⟨v, hv, hmap⟩ := hf (π (anchor (B.map e.toEmbedding)) - anchor (B.map e.toEmbedding))
+    (hπ.sub_mem' _)
+  have h1 : (red π anchor (B.map e.toEmbedding)).map f.toEmbedding
+      = translate ((B.map e.toEmbedding).map f.toEmbedding) v := by
+    rw [red]
+    exact map_translate_of_forall_add hmap _
+  rw [h1, hef, red_translate hπ ha hv hB.1, red_eq_self hπ hB]
+
+/-- **Georgii (5.20)(3), the reindexing step of the displayed computation**: for a
+translation-respecting bijection `e` of the sites, `{ℛ(e_* B) : B ∈ ℛ, (e_* B)* = A}` is a
+complete set of representatives over `A`, and the value `Φ_C ∘ σ̃_Δ` is constant on the classes,
+so the two representative sums agree. -/
+lemma tsum_indicator_isRep_starImage_map (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor)
+    (hΦs : Φ.IsShiftInvariant) {e : S ≃ S}
+    (hadd : ∀ g ∈ G, ∃ g' ∈ G, ∀ i, e (i + g) = e i + g')
+    (hsymm : ∀ g ∈ G, ∃ g' ∈ G, ∀ i, e.symm (i + g) = e.symm i + g')
+    (A : Finset S) (η : S → E) :
+    ∑' B : Finset S, {B : Finset S | IsRep Δ anchor B
+        ∧ starImage π (B.map e.toEmbedding) = A}.indicator
+          (fun B ↦ Φ (B.map e.toEmbedding) (periodicExtend π η)) B
+      = ∑' B : Finset S, {B : Finset S | IsRep Δ anchor B ∧ starImage π B = A}.indicator
+          (fun B ↦ Φ B (periodicExtend π η)) B := by
+  classical
+  set S₁ : Set (Finset S) :=
+    {B : Finset S | IsRep Δ anchor B ∧ starImage π (B.map e.toEmbedding) = A} with hS₁
+  set S₂ : Set (Finset S) := {B : Finset S | IsRep Δ anchor B ∧ starImage π B = A} with hS₂
+  have hTo : ∀ B : Finset S, B ∈ S₁ → red π anchor (B.map e.toEmbedding) ∈ S₂ := by
+    rintro B ⟨hBrep, hBstar⟩
+    exact ⟨isRep_red hπ ha (Finset.map_nonempty.2 hBrep.1), by
+      rw [starImage_red hπ]; exact hBstar⟩
+  have hInv : ∀ C : Finset S, C ∈ S₂ → red π anchor (C.map e.symm.toEmbedding) ∈ S₁ := by
+    rintro C ⟨hCrep, hCstar⟩
+    refine ⟨isRep_red hπ ha (Finset.map_nonempty.2 hCrep.1), ?_⟩
+    obtain ⟨v, hv, hmap⟩ := hadd (π (anchor (C.map e.symm.toEmbedding))
+      - anchor (C.map e.symm.toEmbedding)) (hπ.sub_mem' _)
+    have h1 : (red π anchor (C.map e.symm.toEmbedding)).map e.toEmbedding
+        = translate ((C.map e.symm.toEmbedding).map e.toEmbedding) v := by
+      rw [red]
+      exact map_translate_of_forall_add hmap _
+    rw [h1, Finset.map_map_symm, starImage_translate hπ hv]
+    exact hCstar
+  let Ω : S₁ ≃ S₂ :=
+    { toFun := fun B ↦ ⟨red π anchor ((B : Finset S).map e.toEmbedding), hTo _ B.2⟩
+      invFun := fun C ↦ ⟨red π anchor ((C : Finset S).map e.symm.toEmbedding), hInv _ C.2⟩
+      left_inv := fun B ↦ Subtype.ext
+        (red_map_red hπ ha hsymm (fun C ↦ Finset.map_symm_map e C) B.2.1)
+      right_inv := fun C ↦ Subtype.ext
+        (red_map_red hπ ha hadd (fun C ↦ Finset.map_map_symm e C) C.2.1) }
+  calc ∑' B : Finset S, S₁.indicator (fun B ↦ Φ (B.map e.toEmbedding) (periodicExtend π η)) B
+      = ∑' B : S₁, Φ ((B : Finset S).map e.toEmbedding) (periodicExtend π η) :=
+        (tsum_subtype S₁ _).symm
+    _ = ∑' B : S₁, Φ ((Ω B : Finset S)) (periodicExtend π η) :=
+        tsum_congr fun B ↦
+          (apply_periodicExtend_translate hπ hΦs (red_vector_mem hπ _) _ η).symm
+    _ = ∑' C : S₂, Φ (C : Finset S) (periodicExtend π η) :=
+        Ω.tsum_eq fun C : S₂ ↦ Φ (C : Finset S) (periodicExtend π η)
+    _ = ∑' C : Finset S, S₂.indicator (fun C ↦ Φ C (periodicExtend π η)) C :=
+        tsum_subtype S₂ fun C ↦ Φ C (periodicExtend π η)
+
+/-- **Georgii (5.20)(3), the displayed computation:** the periodic modification `Φ̃^Δ` of a
+`τ`-invariant shift-invariant potential `Φ` is invariant under the periodic modification `τ_N`
+of `τ`: `Φ̃^Δ_{τ_{N*} A} ∘ τ_N = Φ̃^Δ_A`. -/
+theorem map_periodize_periodicModification (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor)
+    (hΦs : Φ.IsShiftInvariant) (hτ : IsPeriodizable G τ) (hτΦ : Potential.map τ Φ = Φ) :
+    Potential.map (periodize τ hπ hτ) (periodicModification Φ Δ π anchor)
+      = periodicModification Φ Δ π anchor := by
+  classical
+  funext A η
+  rw [Potential.map_apply, periodicModification_apply, periodicModification_apply]
+  simp only [periodize_sites, periodicExtend_periodize_inv hπ hτ η]
+  have hval : ∀ B : Finset S, Φ B (τ.inv.toFun (periodicExtend π η))
+      = Φ (B.map τ.sites.toEmbedding) (periodicExtend π η) := by
+    intro B
+    have h := (map_eq_iff τ Φ).1 hτΦ B (τ.inv.toFun (periodicExtend π η))
+    rw [τ.toFun_inv_toFun] at h
+    exact h.symm
+  have hsets : {B : Finset S | IsRep Δ anchor B ∧ starImage π B
+      = A.map (periodizeSitesEquiv hπ τ.sites hτ.sites_sub_mem).symm.toEmbedding}
+      = {B : Finset S | IsRep Δ anchor B
+          ∧ starImage π (B.map τ.sites.toEmbedding) = A} := by
+    ext B
+    refine and_congr_right fun _ ↦ ?_
+    rw [starImage_map hπ τ.sites hτ.sites_sub_mem]
+    constructor
+    · intro h
+      rw [h, Finset.map_map_symm]
+    · intro h
+      rw [← h, Finset.map_symm_map]
+  rw [hsets]
+  simp only [hval]
+  exact tsum_indicator_isRep_starImage_map hπ ha hΦs hτ.exists_sites_add hτ.exists_symm_add A η
+
+end MapPeriodize
+
+/-! ### Georgii (5.20)(3): `τ_N → τ` on the local events -/
+
+section PeriodizeLocal
+
+variable {S E : Type*} [MeasurableSpace E] [AddCommGroup S] [DecidableEq S]
+  {G : AddSubgroup S} {Δ : Finset S} {π : S → S} {τ : Transformation S E}
+
+omit [DecidableEq S] in
+/-- On events seen through a volume that lies inside the box together with its `τ_*⁻¹`-image,
+the periodic modification `τ_N` acts as `τ`. -/
+lemma preimage_periodize_eq (hπ : IsTorusReduction G Δ π) (hτ : IsPeriodizable G τ)
+    {Λ : Finset S} {A : Set (S → E)}
+    (hA : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)] A)
+    (hΛ : Λ ⊆ Δ) (hΛ' : ∀ i ∈ Λ, τ.sites.symm i ∈ Δ) :
+    (periodize τ hπ hτ).toFun ⁻¹' A = τ.toFun ⁻¹' A := by
+  ext ω
+  simp only [Set.mem_preimage]
+  refine mem_congr_of_measurableSet_cylinderEvents hA fun i hi ↦ ?_
+  have hiΛ : i ∈ Λ := hi
+  show (periodize τ hπ hτ).spin i (ω ((periodize τ hπ hτ).sites.symm i))
+      = τ.spin i (ω (τ.sites.symm i))
+  rw [periodize_spin, periodize_sites,
+    periodizeSitesEquiv_symm_apply_of_mem hπ hτ.sites_sub_mem (hΛ hiΛ) (hΛ' i hiΛ)]
+
+/-- **Georgii (5.20)(3): `f ∘ τ_N = f ∘ τ` eventually for `f ∈ 𝓛`.** Along an exhausting net of
+boxes, the periodic modifications `τ_N` of `τ` eventually agree with `τ` on every local event —
+the convergence hypothesis of Proposition (5.18) in its indicator form. -/
+lemma eventually_preimage_periodize_eq {ι : Type*} {l : Filter ι} {Gs : ι → AddSubgroup S}
+    {Δs : ι → Finset S} {πs : ι → S → S} (hπ : ∀ a, IsTorusReduction (Gs a) (Δs a) (πs a))
+    (τ : Transformation S E) (hτ : ∀ a, IsPeriodizable (Gs a) τ)
+    (hΔ : Filter.Tendsto Δs l Filter.atTop) {A : Set (S → E)} (hA : A ∈ localEvents S E) :
+    ∀ᶠ a in l, (periodize τ (hπ a) (hτ a)).toFun ⁻¹' A = τ.toFun ⁻¹' A := by
+  obtain ⟨Λ, hΛ⟩ := mem_localEvents_iff_cylinderEvents.1 hA
+  filter_upwards [hΔ.eventually (Filter.eventually_ge_atTop (Λ ∪ Λ.image τ.sites.symm))]
+    with a haΔ
+  exact preimage_periodize_eq (hπ a) (hτ a) hΛ
+    (fun i hi ↦ haΔ (Finset.mem_union_left _ hi))
+    fun i hi ↦ haΔ (Finset.mem_union_right _ (Finset.mem_image_of_mem _ hi))
+
+end PeriodizeLocal
 
 /-! ### Georgii Example (4.20)(2): periodic boundary conditions -/
 

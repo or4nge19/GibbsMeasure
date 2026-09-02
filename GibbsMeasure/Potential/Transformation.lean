@@ -57,65 +57,6 @@ instance (τ : Transformation S E) (Φ : Potential S E) [IsPotential Φ] :
 
 end Potential
 
-/-! ### The shift (Georgii (5.2)(1))
-
-Georgii's shift is stated on `ℤ^d`, but nothing in it uses more than the additive group structure
-of the site set: `Equiv.addRight` needs only `[AddGroup S]`, and `Transformation S E` is already
-generic in `S`. It is therefore defined here for an arbitrary additive group of sites, `ℤ^d` being
-the instance Georgii uses. -/
-
-namespace MeasureTheory.GibbsMeasure
-
-variable {S E : Type*} [MeasurableSpace E] [AddGroup S]
-
-variable (E) in
-/-- **Georgii (5.2)(1).** The shift `θ_j : ω ↦ (ω_{i - j})_i` on an additive group of sites. -/
-def shift (j : S) : Transformation S E where
-  sites := Equiv.addRight j
-  spin _ := MeasurableEquiv.refl E
-
-@[simp] lemma shift_toFun_apply (j : S) (ω : S → E) (i : S) :
-    (shift E j).toFun ω i = ω (i - j) := by
-  simp [shift, Transformation.toFun, sub_eq_add_neg]
-
-@[simp] lemma shift_inv_toFun_apply (j : S) (ω : S → E) (i : S) :
-    (shift E j).inv.toFun ω i = ω (i + j) := by
-  simp [shift, Transformation.inv, Transformation.toFun]
-
-/-! ### Site bijections (Georgii (5.2)(2)) -/
-
-variable (E) in
-/-- **Georgii (5.2)(2).** The transformation induced by a bijection of the site set: it acts on
-configurations by `ω ↦ (ω_{e⁻¹ i})_i` and leaves the spins alone.  The reflections and lattice
-rotations of Georgii's group `R` are of this form, and so is the shift
-(`shift_eq_siteEquiv`). -/
-def siteEquiv (e : S ≃ S) : Transformation S E where
-  sites := e
-  spin _ := MeasurableEquiv.refl E
-
-@[simp] lemma siteEquiv_toFun_apply (e : S ≃ S) (ω : S → E) (i : S) :
-    (siteEquiv E e).toFun ω i = ω (e.symm i) := rfl
-
-@[simp] lemma siteEquiv_sites (e : S ≃ S) : (siteEquiv E e).sites = e := rfl
-
-lemma siteEquiv_comp (e f : S ≃ S) :
-    (siteEquiv E e).comp (siteEquiv E f) = siteEquiv E (f.trans e) := rfl
-
-lemma shift_eq_siteEquiv [AddGroup S] (j : S) : shift E j = siteEquiv E (Equiv.addRight j) := rfl
-
-/-- **Georgii, in the proof of (5.17)(2): a site automorphism conjugates shifts into shifts,**
-`τ_e ∘ θ_j = θ_{e j} ∘ τ_e`.  This is what makes the shift group normal in `R ∘ Θ`. -/
-lemma siteEquiv_comp_shift [AddGroup S] (e : S ≃+ S) (j : S) :
-    (siteEquiv E (e : S ≃ S)).comp (shift E j)
-      = (shift E (e j)).comp (siteEquiv E (e : S ≃ S)) := by
-  refine Transformation.ext ?_ ?_
-  · ext i
-    show e (i + j) = e i + e j
-    exact map_add e i j
-  · rfl
-
-end MeasureTheory.GibbsMeasure
-
 namespace Potential
 
 variable {S E : Type*} [MeasurableSpace E] [AddGroup S]
