@@ -522,6 +522,18 @@ alignment:
         lambda-preserving symmetries; Z^d with Theta <= I <= T_lambda^(m) o R o Theta is the
         instance (mem_GP_and_measurePreserving_of_mapClusterPt_latticePeriodic). Phi is taken in
         B, the Gibbsian specification the tree has, rather than "finite range or B".
+    - source: "Proposition (14.9), display (14.14), Theorem (14.15)"
+      lean: "MeasureTheory.GibbsMeasure.extremePoints_invariantG"
+      module: "GibbsMeasure/Specification/ErgodicGibbs.lean"
+      status: "proved"
+      note: >-
+        (14.9): the invariant sigma-algebra is contained in the tail sigma-algebra mod mu, for any
+        group of transformations that moves every finite volume off itself (shift group on an
+        infinite site group; any group containing a shift of infinite order). (14.14):
+        invariantG = G(gamma) inter P_Theta. (14.15)(c) is proved first — invariantG is a face of
+        P_Theta — and (a), ex G_Theta = G_Theta inter ex P_Theta, follows as Georgii remarks;
+        (b) via the a.s.-invariant sigma-algebra of the kernels. No shift-invariance of gamma is
+        consumed by the proofs; no standard Borel assumption anywhere.
     - source: "Theorem (14.5)(b)-(d), Remark (14.3), Definition (14.6)"
       lean: "MeasureTheory.GibbsMeasure.mem_invariantFields_iff_exists_withDensity"
       module: "GibbsMeasure/Specification/Ergodicity.lean"

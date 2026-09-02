@@ -113,6 +113,36 @@ theorem exists_measurableSet_measure_symmDiff_eq_zero {m' : MeasurableSpace X} {
       rw [ENNReal.tsum_geometric, ENNReal.one_sub_inv_two]
       simp
 
+
+/-! ### Borel–Cantelli for an infimum of σ-algebras -/
+
+
+/-- **Borel–Cantelli upgrade along an infimum of σ-algebras.** If `s` is approximated by sets
+`t n` with summable errors `μ (s ∆ t n)`, and for each `i` the approximants are eventually
+`M i`-measurable, then `limsup t` is `⨅ i, M i`-measurable and agrees with `s` up to a null set.
+
+The constant family recovers `exists_measurableSet_measure_symmDiff_eq_zero`; the case of interest
+is a tail σ-algebra `⨅ Λ, 𝓕_{Λᶜ}`, approximated by sets living in `𝓕_{Λₙᶜ}` along a cofinal
+sequence `Λₙ` (Georgii, proof of (14.9)). -/
+theorem exists_measurableSet_iInf_measure_symmDiff_eq_zero {ι : Sort*}
+    {M : ι → MeasurableSpace X} {s : Set X} {t : ℕ → Set X}
+    (ht : ∀ i, ∀ᶠ n in atTop, MeasurableSet[M i] (t n)) (hsum : ∑' n, μ (s ∆ t n) ≠ ∞) :
+    ∃ u, MeasurableSet[⨅ i, M i] u ∧ μ (s ∆ u) = 0 := by
+  refine ⟨limsup t atTop, ?_, ?_⟩
+  · rw [MeasurableSpace.measurableSet_iInf]
+    intro i
+    obtain ⟨k, hk⟩ := eventually_atTop.1 (ht i)
+    rw [← limsup_nat_add t k, limsup_eq_iInf_iSup_of_nat']
+    simpa only [Set.iInf_eq_iInter, Set.iSup_eq_iUnion] using
+      MeasurableSet.iInter fun n ↦ MeasurableSet.iUnion fun j ↦ hk (j + n + k) (by omega)
+  -- `s ∆ limsup t ⊆ limsup (fun n ↦ s ∆ t n)`, whose measure vanishes by Borel–Cantelli.
+  · refine measure_mono_null (fun x hx ↦ ?_) (measure_limsup_atTop_eq_zero hsum)
+    rw [Filter.mem_limsup_iff_frequently_mem]
+    rcases hx with ⟨hxs, hxA⟩ | ⟨hxA, hxs⟩
+    · rw [Filter.mem_limsup_iff_frequently_mem, Filter.not_frequently] at hxA
+      exact (hxA.mono fun n hn ↦ Or.inl ⟨hxs, hn⟩).frequently
+    · rw [Filter.mem_limsup_iff_frequently_mem] at hxA
+      exact hxA.mono fun n hn ↦ Or.inr ⟨hn, hxs⟩
 /-- **Every sub-σ-algebra of a separable finite measure space is countably generated modulo null
 sets.** No countability hypothesis is placed on `m₀`; the tail σ-algebra of a product space is a
 sub-σ-algebra that is *not* countably generated, yet is covered here. -/
