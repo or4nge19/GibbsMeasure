@@ -447,4 +447,39 @@ def IsUniformlyConvergent (Φ : Potential S E) : Prop :=
 
 end UniformlyConvergent
 
+/-- The Hamiltonian of the empty volume vanishes. -/
+lemma hamiltonian_empty (Φ : Potential S E)
+    (η : S → E) : Φ.hamiltonian ∅ η = 0 := by
+  unfold hamiltonian
+  have : Φ.hamiltonianTerms ∅ η = 0 :=
+    funext fun A ↦ hamiltonianTerms_of_disjoint (Finset.disjoint_empty_right A) η
+  rw [this]
+  exact tsum_zero
+
+/-- `H_{Λ₁ ∪ Λ₂} = H_{Λ₂} + ∑_{A ∩ Λ₁ ≠ ∅, A ∩ Λ₂ = ∅} Φ_A`, for an absolutely summable
+potential. -/
+lemma hamiltonian_union_eq_add_tsum [DecidableEq S] [IsAbsolutelySummable Φ] (Λ₁ Λ₂ : Finset S) (η : S → E) :
+    Φ.hamiltonian (Λ₁ ∪ Λ₂) η = Φ.hamiltonian Λ₂ η +
+      ∑' A : Finset S, (if Disjoint A Λ₂ then Φ.hamiltonianTerms Λ₁ η A else 0) := by
+  rw [hamiltonian_eq_tsum, hamiltonian_eq_tsum]
+  have hind : (fun A : Finset S ↦ if Disjoint A Λ₂ then Φ.hamiltonianTerms Λ₁ η A else 0) =
+      {A : Finset S | Disjoint A Λ₂}.indicator (Φ.hamiltonianTerms Λ₁ η) := by
+    funext A
+    rw [Set.indicator_apply]
+    congr
+  have hs : Summable fun A : Finset S ↦
+      if Disjoint A Λ₂ then Φ.hamiltonianTerms Λ₁ η A else 0 := by
+    rw [hind]
+    exact (summable_hamiltonianTerms Λ₁ η).indicator _
+  rw [← (summable_hamiltonianTerms Λ₂ η).tsum_add hs]
+  refine tsum_congr fun A ↦ ?_
+  by_cases h2 : Disjoint A Λ₂
+  · rw [hamiltonianTerms_of_disjoint h2, ite_eq_left h2, zero_add]
+    by_cases h1 : Disjoint A Λ₁
+    · rw [hamiltonianTerms_of_disjoint h1, hamiltonianTerms_of_disjoint (Finset.disjoint_union_right.2 ⟨h1, h2⟩)]
+    · rw [hamiltonianTerms_of_not_disjoint h1, hamiltonianTerms_of_not_disjoint
+        (fun h ↦ h1 (Finset.disjoint_union_right.1 h).1)]
+  · rw [hamiltonianTerms_of_not_disjoint h2, ite_eq_right h2, add_zero,
+      hamiltonianTerms_of_not_disjoint (fun h ↦ h2 (Finset.disjoint_union_right.1 h).2)]
+
 end Potential

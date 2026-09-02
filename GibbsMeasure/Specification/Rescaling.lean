@@ -641,6 +641,17 @@ namespace Specification
 
 variable {S E : Type*} {mE : MeasurableSpace E} {ρ : Finset S → (S → E) → ℝ≥0∞}
 
+/-- `lambdaSpecification` only depends on the density family. -/
+lemma lambdaSpecification_congr (ν : Measure E) [SigmaFinite ν] [NeZero ν]
+    {ρ₁ ρ₂ : Finset S → (S → E) → ℝ≥0∞} (h : ρ₁ = ρ₂)
+    (hρ₁ : IsPremodifier (S := S) (E := E) ρ₁)
+    (hZ₁ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ₁)
+    (hρ₂ : IsPremodifier (S := S) (E := E) ρ₂)
+    (hZ₂ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ₂) :
+    lambdaSpecification (S := S) (E := E) ν ρ₁ hρ₁ hZ₁
+      = lambdaSpecification (S := S) (E := E) ν ρ₂ hρ₂ hZ₂ := by
+  subst h; rfl
+
 /-- For a probability a priori measure the λ-specification is the normalized modification of the
 independent specification `isssd ν`, i.e. `(isssd ν).modification (premodifierNorm ν ρ)`. -/
 theorem lambdaSpecification_eq_modification_isssd (ν : Measure E) [IsProbabilityMeasure ν]

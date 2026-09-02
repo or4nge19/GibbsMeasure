@@ -257,6 +257,39 @@ lemma toMeasurableEquiv_eq_piCongr :
 
 end Transformation
 
+/-! ### Pure spin transformations, Georgii (9.9) -/
+
+namespace Transformation
+
+variable {S E : Type*} [MeasurableSpace E] {τ : Transformation S E}
+
+/-- **Georgii (9.9).** A transformation is a *pure spin transformation* if its spatial part is the
+identity: `τ ω = (τ_i ω_i)_{i ∈ S}`. -/
+def IsPureSpin (τ : Transformation S E) : Prop := τ.sites = Equiv.refl S
+
+lemma IsPureSpin.toFun_apply (h : τ.IsPureSpin) (ω : S → E) (i : S) :
+    τ.toFun ω i = τ.spin i (ω i) := by
+  rw [Transformation.toFun, h]; rfl
+
+lemma IsPureSpin.inv (h : τ.IsPureSpin) : τ.inv.IsPureSpin := by
+  simp only [IsPureSpin, Transformation.inv] at h ⊢
+  rw [h]; rfl
+
+lemma IsPureSpin.inv_toFun_apply (h : τ.IsPureSpin) (ω : S → E) (i : S) :
+    τ.inv.toFun ω i = (τ.spin i).symm (ω i) := by
+  rw [h.inv.toFun_apply]
+  simp only [Transformation.inv, IsPureSpin] at h ⊢
+  rw [h]; rfl
+
+/-- The iterates of a pure spin transformation act site-wise by the iterates of the spins. -/
+lemma IsPureSpin.iterate_toFun_apply (h : τ.IsPureSpin) (k : ℕ) (ω : S → E) (i : S) :
+    τ.toFun^[k] ω i = (τ.spin i)^[k] (ω i) := by
+  induction k generalizing ω with
+  | zero => rfl
+  | succ k ih => rw [Function.iterate_succ_apply, Function.iterate_succ_apply, ih, h.toFun_apply]
+
+end Transformation
+
 /-! ### The shift (Georgii (5.2)(1))
 
 Georgii's shift is stated on `ℤ^d`, but nothing in it uses more than the additive group structure

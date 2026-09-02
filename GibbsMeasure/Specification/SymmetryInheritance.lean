@@ -97,11 +97,6 @@ lemma measurableSet_of_mem_localEvents {A : Set Ω} (hA : A ∈ localEvents S E)
   obtain ⟨Λ, hΛ⟩ := mem_localEvents_iff_cylinderEvents.1 hA
   exact cylinderEvents_le_pi _ hΛ
 
-/-- The kernel measurability `ω ↦ γ_Λ(B | ω)`, for the product σ-algebra. -/
-lemma measurable_apply_kernel (γ : Specification S E) (Λ : Finset S) {B : Set Ω}
-    (hB : MeasurableSet B) : Measurable fun ω ↦ γ Λ ω B :=
-  (Measure.measurable_coe hB).comp (γ.measurable_kernel_toMeasure Λ)
-
 /-- Georgii, first display in the proof of (9.1): for `μ ∈ 𝒢(γ)` and a cylinder event `A`,
 `a μ(τ⁻¹ A) + b μ(τ A) ≥ μ(A)`. -/
 lemma IsSymmetryDominated.measure_le_of_mem_localEvents (h : IsSymmetryDominated γ τ a b)
@@ -116,9 +111,9 @@ lemma IsSymmetryDominated.measure_le_of_mem_localEvents (h : IsSymmetryDominated
     conv_lhs => rw [← hbind]
     exact Measure.bind_apply hB hκ
   rw [key A hAm, key _ (τ.measurable_toFun hAm), key _ (τ.inv.measurable_toFun hAm),
-    ← lintegral_const_mul _ (measurable_apply_kernel γ Λ (τ.measurable_toFun hAm)),
-    ← lintegral_const_mul _ (measurable_apply_kernel γ Λ (τ.inv.measurable_toFun hAm)),
-    ← lintegral_add_left ((measurable_apply_kernel γ Λ (τ.measurable_toFun hAm)).const_mul _)]
+    ← lintegral_const_mul _ (γ.measurable_apply_kernel Λ (τ.measurable_toFun hAm)),
+    ← lintegral_const_mul _ (γ.measurable_apply_kernel Λ (τ.inv.measurable_toFun hAm)),
+    ← lintegral_add_left ((γ.measurable_apply_kernel Λ (τ.measurable_toFun hAm)).const_mul _)]
   exact lintegral_mono fun ω ↦ hΛ ω
 
 /-- Georgii, proof of (9.1), the monotone class step: the inequality
@@ -333,32 +328,6 @@ open MeasureTheory.GibbsMeasure Transformation
 variable {S E : Type*} [MeasurableSpace E] (ν : Measure E) [SigmaFinite ν]
   (τ : Transformation S E)
 
-/-- **Georgii (5.6)(a)** for the σ-finite reference kernels of Notation (1.26):
-`τ(λ_·)_Λ(· | ω) = λ_{τ_*⁻¹ Λ}(τ⁻¹ · | τ⁻¹ ω) = λ_Λ(· | ω)` when `τ` is `λ`-preserving. -/
-lemma sigmaFiniteLambdaFun_map_toFun (hτ : ∀ i, MeasurePreserving (τ.spin i) ν ν) (Λ : Finset S)
-    (ω : S → E) :
-    (sigmaFiniteLambdaFun (S := S) (E := E) ν (Λ.map τ.sites.symm.toEmbedding)
-      (τ.inv.toFun ω)).map τ.toFun = sigmaFiniteLambdaFun (S := S) (E := E) ν Λ ω := by
-  rw [sigmaFiniteLambdaFun_apply_eq_map, sigmaFiniteLambdaFun_apply_eq_map,
-    Measure.map_map τ.measurable_toFun Measurable.juxt, τ.toFun_comp_juxt,
-    ← Measure.map_map Measurable.juxt (τ.measurePreserving_spin_piCongrLeft hτ Λ).measurable,
-    (τ.measurePreserving_spin_piCongrLeft hτ Λ).map_eq]
-
-/-- **Georgii (5.5)** for `λ_·` over a σ-finite `λ`:
-`λ_Λ(f ∘ τ⁻¹) = λ_{τ_*⁻¹ Λ}(f) ∘ τ⁻¹` when `τ` is `λ`-preserving. -/
-lemma lintegral_sigmaFiniteLambdaFun_comp_inv (hτ : ∀ i, MeasurePreserving (τ.spin i) ν ν)
-    (Λ : Finset S) (ω : S → E) (f : (S → E) → ℝ≥0∞) :
-    ∫⁻ x, f (τ.inv.toFun x) ∂sigmaFiniteLambdaFun (S := S) (E := E) ν Λ ω =
-      ∫⁻ x, f x ∂sigmaFiniteLambdaFun (S := S) (E := E) ν (Λ.map τ.sites.symm.toEmbedding)
-        (τ.inv.toFun ω) := by
-  rw [← sigmaFiniteLambdaFun_map_toFun ν τ hτ Λ ω]
-  have h := lintegral_map_equiv (μ := sigmaFiniteLambdaFun (S := S) (E := E) ν
-    (Λ.map τ.sites.symm.toEmbedding) (τ.inv.toFun ω)) (fun x ↦ f (τ.inv.toFun x))
-    τ.toMeasurableEquiv
-  rw [show (τ.toMeasurableEquiv : (S → E) → (S → E)) = τ.toFun from rfl] at h
-  rw [h]
-  simp only [τ.inv_toFun_toFun]
-
 variable {ν τ}
 
 /-- The reference kernel `λ_Λ(· | ω)` depends on `ω` only through `ω_{S ∖ Λ}`. -/
@@ -446,123 +415,6 @@ theorem lambdaSpecification_apply_le_of_isLocalizedVersion [NeZero ν]
 
 end Specification
 
-/-! ### Georgii (5.6)(b),(c) and (5.9)(b) for a σ-finite a priori measure -/
-
-namespace Specification
-
-open MeasureTheory.GibbsMeasure Transformation
-
-variable {S E : Type*} [MeasurableSpace E] (ν : Measure E) [SigmaFinite ν]
-  (τ : Transformation S E) (hτ : ∀ i, MeasurePreserving (τ.spin i) ν ν)
-  (ρ : Finset S → (S → E) → ℝ≥0∞)
-include hτ
-
-/-- **Georgii (5.6)(c), the partition function**, over a σ-finite `λ`:
-`Z^{τ(ρ)}_Λ = Z^ρ_{τ_*⁻¹ Λ} ∘ τ⁻¹`. -/
-lemma sigmaFiniteLambdaZ_map (Λ : Finset S) (η : S → E) :
-    sigmaFiniteLambdaZ (S := S) (E := E) ν
-        (fun Λ η ↦ ρ (Λ.map τ.sites.symm.toEmbedding) (τ.inv.toFun η)) Λ η =
-      sigmaFiniteLambdaZ (S := S) (E := E) ν ρ (Λ.map τ.sites.symm.toEmbedding)
-        (τ.inv.toFun η) :=
-  lintegral_sigmaFiniteLambdaFun_comp_inv ν τ hτ Λ η _
-
-/-- **Georgii (5.6)(c), normalized densities**, over a σ-finite `λ`: `τ(ρ)/Z^{τ(ρ)} = τ(ρ/Z^ρ)`. -/
-lemma sigmaFinitePremodifierNorm_map (Λ : Finset S) (η : S → E) :
-    sigmaFinitePremodifierNorm (S := S) (E := E) ν
-        (fun Λ η ↦ ρ (Λ.map τ.sites.symm.toEmbedding) (τ.inv.toFun η)) Λ η =
-      sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ (Λ.map τ.sites.symm.toEmbedding)
-        (τ.inv.toFun η) := by
-  simp only [sigmaFinitePremodifierNorm, sigmaFiniteLambdaZ_map ν τ hτ]
-
-omit hτ in
-/-- The image `τ(ρ)` of a premodifier under a transformation is a premodifier. -/
-lemma IsPremodifier.map (hρ : IsPremodifier (S := S) (E := E) ρ) :
-    IsPremodifier (S := S) (E := E)
-      fun Λ η ↦ ρ (Λ.map τ.sites.symm.toEmbedding) (τ.inv.toFun η) where
-  measurable Λ := (hρ.measurable _).comp τ.inv.measurable_toFun
-  comm_of_subset Λ₁ Λ₂ ζ η hΛ hres := by
-    refine hρ.comm_of_subset (Finset.map_subset_map.2 hΛ) fun s hs ↦ ?_
-    have hs' : τ.sites s ∉ Λ₁ := by
-      rwa [Finset.mem_map_equiv, Equiv.symm_symm] at hs
-    simp only [Transformation.inv, Transformation.toFun, Equiv.symm_symm, hres _ hs']
-
-/-- `λ`-admissibility is transported by (5.3) over a σ-finite `λ`. -/
-lemma IsSigmaFiniteLambdaAdmissible.map
-    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ) :
-    IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν
-      fun Λ η ↦ ρ (Λ.map τ.sites.symm.toEmbedding) (τ.inv.toFun η) := fun Λ η ↦ by
-  rw [sigmaFiniteLambdaZ_map ν τ hτ]
-  exact hZ _ _
-
-/-- **Georgii (5.6)(b)** over a σ-finite `λ`: `τ(ρ λ_·) = τ(ρ) λ_·` for a `λ`-preserving `τ`. -/
-theorem lambdaSpecification_map [NeZero ν] (hρ : IsPremodifier (S := S) (E := E) ρ)
-    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ) :
-    (lambdaSpecification (S := S) (E := E) ν ρ hρ hZ).map τ =
-      lambdaSpecification (S := S) (E := E) ν
-        (fun Λ η ↦ ρ (Λ.map τ.sites.symm.toEmbedding) (τ.inv.toFun η)) (hρ.map τ)
-        (hZ.map ν τ hτ) := by
-  refine Specification.ext fun Λ ↦ Kernel.ext fun ω ↦ ?_
-  rw [map_apply, lambdaSpecification_apply, lambdaSpecification_apply,
-    show (τ.toFun : (S → E) → (S → E)) = τ.toMeasurableEquiv from rfl,
-    MeasurableEquiv.map_withDensity,
-    show (τ.toMeasurableEquiv : (S → E) → (S → E)) = τ.toFun from rfl,
-    sigmaFiniteLambdaFun_map_toFun ν τ hτ]
-  congr 1
-  funext x
-  exact (sigmaFinitePremodifierNorm_map ν τ hτ ρ Λ x).symm
-
-end Specification
-
-namespace Potential
-
-open MeasureTheory.GibbsMeasure Transformation Specification
-
-variable {S E : Type*} [MeasurableSpace E] (Φ : Potential S E) (β : ℝ) (τ : Transformation S E)
-
-/-- The Boltzmann factors of `τ(Φ)` are the `τ`-image (5.3) of those of `Φ`. -/
-lemma boltzmannFactor_map_eq :
-    (Potential.map τ Φ).boltzmannFactor β =
-      fun Λ η ↦ Φ.boltzmannFactor β (Λ.map τ.sites.symm.toEmbedding) (τ.inv.toFun η) :=
-  funext fun Λ ↦ funext fun η ↦ boltzmannFactor_map' τ Φ β Λ η
-
-variable (ν : Measure E) [SigmaFinite ν] (hτ : ∀ i, MeasurePreserving (τ.spin i) ν ν)
-include hτ
-
-/-- `λ`-admissibility of `Φ` transports to `τ(Φ)` for a `λ`-preserving `τ`. -/
-lemma isSigmaFiniteLambdaAdmissible_boltzmannFactor_map
-    (hadm : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν (Φ.boltzmannFactor β)) :
-    IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν
-      ((Potential.map τ Φ).boltzmannFactor β) := by
-  rw [boltzmannFactor_map_eq Φ β τ]
-  exact hadm.map ν τ hτ
-
-variable [Countable S] [IsPotential Φ] [IsSummable Φ] [NeZero ν]
-
-/-- **Georgii (5.6)(c) at the specification level, over a σ-finite `λ`.** `τ(γ^Φ) = γ^{τ(Φ)}`
-for a `λ`-preserving `τ` and a `λ`-admissible `Φ`; `τ(Φ)` is again `λ`-admissible
-(`isSigmaFiniteLambdaAdmissible_boltzmannFactor_map`). -/
-theorem map_gibbsSpecificationOfSigmaFiniteAdmissible
-    (hadm : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν (Φ.boltzmannFactor β))
-    (hadm' : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν
-      ((Potential.map τ Φ).boltzmannFactor β)) :
-    (gibbsSpecificationOfSigmaFiniteAdmissible Φ ν β hadm).map τ =
-      gibbsSpecificationOfSigmaFiniteAdmissible (Potential.map τ Φ) ν β hadm' := by
-  unfold gibbsSpecificationOfSigmaFiniteAdmissible
-  rw [Specification.lambdaSpecification_map ν τ hτ]
-  exact Specification.lambdaSpecification_congr ν (boltzmannFactor_map_eq Φ β τ).symm _ _ _ _
-
-/-- **Georgii (5.9)(b) over a σ-finite `λ`.** If the `λ`-admissible `Φ` is `τ`-invariant and `τ`
-is `λ`-preserving, then `γ^Φ` is `τ`-invariant. -/
-theorem isInvariant_gibbsSpecificationOfSigmaFiniteAdmissible
-    (hadm : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν (Φ.boltzmannFactor β))
-    (h : Potential.map τ Φ = Φ) :
-    Specification.IsInvariant τ (gibbsSpecificationOfSigmaFiniteAdmissible Φ ν β hadm) := by
-  unfold Specification.IsInvariant gibbsSpecificationOfSigmaFiniteAdmissible
-  rw [Specification.lambdaSpecification_map ν τ hτ]
-  refine Specification.lambdaSpecification_congr ν ?_ _ _ _ _
-  rw [← boltzmannFactor_map_eq Φ β τ, h]
-
-end Potential
 
 /-! ### Georgii (9.3) -/
 
@@ -640,15 +492,6 @@ theorem measurePreserving_gibbsSpecificationOfSigmaFiniteAdmissible_of_isLocaliz
     (Potential.isPremodifier_boltzmannFactor (Φ := Φ) β) hadm hloc hτ'ν
     (boltzmannFactor_le_of_hamiltonian_le hc0 hc1 hH) ω (cylinderEvents_le_pi _ hΔ)
 
-omit [MeasurableSpace E] in
-/-- The Hamiltonian of the empty volume vanishes. -/
-lemma _root_.Potential.hamiltonian_empty {E : Type*} [MeasurableSpace E] (Φ : Potential S E)
-    (η : S → E) : Φ.hamiltonian ∅ η = 0 := by
-  unfold Potential.hamiltonian
-  have : Φ.hamiltonianTerms ∅ η = 0 :=
-    funext fun A ↦ Potential.hamiltonianTerms_of_disjoint (Finset.disjoint_empty_right A) η
-  rw [this]
-  exact tsum_zero
 
 /-- **Georgii, Proposition (9.3)** for an absolutely summable potential and a finite a priori
 measure (the setting of Theorem (9.5)). -/
@@ -684,36 +527,10 @@ theorem measurePreserving_gibbsSpecificationOfAbsolutelySummable_of_isLocalizedV
   exact measurePreserving_gibbsSpecificationOfFiniteReference_of_isLocalizedVersion ν β hτν hτΦ
     hc0 hc1 h hμ
 
-/-! ### Pure spin transformations, Georgii (9.9) -/
 
 namespace Transformation
 
 variable {τ : Transformation S E}
-
-/-- **Georgii (9.9).** A transformation is a *pure spin transformation* if its spatial part is the
-identity: `τ ω = (τ_i ω_i)_{i ∈ S}`. -/
-def IsPureSpin (τ : Transformation S E) : Prop := τ.sites = Equiv.refl S
-
-lemma IsPureSpin.toFun_apply (h : τ.IsPureSpin) (ω : Ω) (i : S) :
-    τ.toFun ω i = τ.spin i (ω i) := by
-  rw [Transformation.toFun, h]; rfl
-
-lemma IsPureSpin.inv (h : τ.IsPureSpin) : τ.inv.IsPureSpin := by
-  simp only [IsPureSpin, Transformation.inv] at h ⊢
-  rw [h]; rfl
-
-lemma IsPureSpin.inv_toFun_apply (h : τ.IsPureSpin) (ω : Ω) (i : S) :
-    τ.inv.toFun ω i = (τ.spin i).symm (ω i) := by
-  rw [h.inv.toFun_apply]
-  simp only [Transformation.inv, IsPureSpin] at h ⊢
-  rw [h]; rfl
-
-/-- The iterates of a pure spin transformation act site-wise by the iterates of the spins. -/
-lemma IsPureSpin.iterate_toFun_apply (h : τ.IsPureSpin) (k : ℕ) (ω : Ω) (i : S) :
-    τ.toFun^[k] ω i = (τ.spin i)^[k] (ω i) := by
-  induction k generalizing ω with
-  | zero => rfl
-  | succ k ih => rw [Function.iterate_succ_apply, Function.iterate_succ_apply, ih, h.toFun_apply]
 
 section SpinLocalize
 
@@ -728,13 +545,13 @@ def spinLocalize (τ : Transformation S E) (Λ : Finset S) : Transformation S E 
 lemma isPureSpin_spinLocalize (τ : Transformation S E) (Λ : Finset S) :
     (τ.spinLocalize Λ).IsPureSpin := rfl
 
-@[simp] lemma spinLocalize_toFun_apply (τ : Transformation S E) (Λ : Finset S) (ω : Ω) (i : S) :
+@[simp] lemma spinLocalize_toFun_apply (τ : Transformation S E) (Λ : Finset S) (ω : S → E) (i : S) :
     (τ.spinLocalize Λ).toFun ω i = if i ∈ Λ then τ.spin i (ω i) else ω i := by
   rw [(τ.isPureSpin_spinLocalize Λ).toFun_apply]
   simp only [spinLocalize]
   split_ifs <;> rfl
 
-@[simp] lemma spinLocalize_inv_toFun_apply (τ : Transformation S E) (Λ : Finset S) (ω : Ω)
+@[simp] lemma spinLocalize_inv_toFun_apply (τ : Transformation S E) (Λ : Finset S) (ω : S → E)
     (i : S) :
     (τ.spinLocalize Λ).inv.toFun ω i = if i ∈ Λ then (τ.spin i).symm (ω i) else ω i := by
   rw [(τ.isPureSpin_spinLocalize Λ).inv_toFun_apply]
@@ -765,84 +582,5 @@ end Transformation
 
 end MeasureTheory.GibbsMeasure
 
-/-! ### Georgii, Remark (1.28)(2): single-site marginals of Gibbs measures -/
-
-namespace Specification
-
-open MeasureTheory.GibbsMeasure
-
-variable {S E : Type*} [MeasurableSpace E] (ν : Measure E) [SigmaFinite ν]
-
-/-- `λ_{{i}}(σ_i ∈ B | ω) = λ(B)`: resampling the single site `i` from `λ`. -/
-lemma sigmaFiniteLambdaFun_singleton_eval_preimage (i : S) (ω : S → E) {B : Set E}
-    (hB : MeasurableSet B) :
-    sigmaFiniteLambdaFun (S := S) (E := E) ν {i} ω ((fun ω : S → E ↦ ω i) ⁻¹' B) = ν B := by
-  rw [sigmaFiniteLambdaFun_apply_eq_map,
-    Measure.map_apply Measurable.juxt (measurable_pi_apply i hB)]
-  have hi : i ∈ ({i} : Finset S) := Finset.mem_singleton_self i
-  have hset : juxt (({i} : Finset S) : Set S) ω ⁻¹' ((fun ω : S → E ↦ ω i) ⁻¹' B) =
-      (MeasurableEquiv.piUnique fun _ : ({i} : Finset S) ↦ E) ⁻¹' B := by
-    ext ζ
-    simp only [Set.mem_preimage, juxt_apply_of_mem (Finset.mem_coe.2 hi),
-      MeasurableEquiv.piUnique_apply]
-    rfl
-  have hmp := measurePreserving_piUnique fun _ : ({i} : Finset S) ↦ ν
-  rw [hset, ← Measure.map_apply hmp.measurable hB, hmp.map_eq]
-
-variable [NeZero ν] {ρ : Finset S → (S → E) → ℝ≥0∞} (hρ : IsPremodifier (S := S) (E := E) ρ)
-  (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
-include hρ hZ
-
-/-- **Georgii, Remark (1.28)(2), first half.** For a Gibbs measure `μ` of a `λ`-specification
-`ρ λ_·`, the single-site marginal `σ_i(μ)` is absolutely continuous with respect to `λ`. -/
-theorem map_eval_absolutelyContinuous_of_mem_G {μ : Measure (S → E)}
-    (hμ : μ ∈ G (lambdaSpecification (S := S) (E := E) ν ρ hρ hZ)) (i : S) :
-    μ.map (fun ω ↦ ω i) ≪ ν := by
-  refine Measure.AbsolutelyContinuous.mk fun B hB hνB ↦ ?_
-  have hprob : IsProbabilityMeasure μ := hμ.1
-  have hBm : MeasurableSet ((fun ω : S → E ↦ ω i) ⁻¹' B) := measurable_pi_apply i hB
-  have hbind := (isGibbsMeasure_iff_forall_bind_eq.1 hμ.2) {i}
-  rw [Measure.map_apply (measurable_pi_apply i) hB]
-  conv_lhs => rw [← hbind]
-  rw [Measure.bind_apply hBm
-    ((lambdaSpecification ν ρ hρ hZ).measurable_kernel_toMeasure {i}).aemeasurable]
-  refine (lintegral_eq_zero_iff (measurable_apply_kernel _ {i} hBm)).2
-    (Filter.Eventually.of_forall fun ω ↦ ?_)
-  simp only [Pi.zero_apply, lambdaSpecification_apply]
-  rw [withDensity_apply _ hBm, Measure.restrict_eq_zero.2 (by
-    rw [sigmaFiniteLambdaFun_singleton_eval_preimage ν i ω hB]; exact hνB), lintegral_zero_measure]
-
-/-- **Georgii, Remark (1.28)(2), second half.** If the densities `ρ_Λ` are strictly positive —
-as the Boltzmann factors `e^{-β H_Λ}` of a `λ`-admissible potential are — then `λ` is absolutely
-continuous with respect to the single-site marginal `σ_i(μ)` of every Gibbs measure `μ`; together
-with the first half, `σ_i(μ)` and `λ` are equivalent. -/
-theorem absolutelyContinuous_map_eval_of_mem_G (hρ0 : ∀ (Λ : Finset S) (η : S → E), ρ Λ η ≠ 0)
-    {μ : Measure (S → E)} (hμ : μ ∈ G (lambdaSpecification (S := S) (E := E) ν ρ hρ hZ))
-    (i : S) : ν ≪ μ.map (fun ω ↦ ω i) := by
-  refine Measure.AbsolutelyContinuous.mk fun B hB hμB ↦ ?_
-  have hprob : IsProbabilityMeasure μ := hμ.1
-  have hae : (ae μ).NeBot := IsProbabilityMeasure.ae_neBot
-  have hBm : MeasurableSet ((fun ω : S → E ↦ ω i) ⁻¹' B) := measurable_pi_apply i hB
-  have hbind := (isGibbsMeasure_iff_forall_bind_eq.1 hμ.2) {i}
-  rw [Measure.map_apply (measurable_pi_apply i) hB] at hμB
-  have hμB' : μ.bind ((lambdaSpecification ν ρ hρ hZ) {i}) ((fun ω : S → E ↦ ω i) ⁻¹' B) = 0 :=
-    by rwa [hbind]
-  rw [Measure.bind_apply hBm
-    ((lambdaSpecification ν ρ hρ hZ).measurable_kernel_toMeasure {i}).aemeasurable,
-    lintegral_eq_zero_iff (measurable_apply_kernel _ {i} hBm)] at hμB'
-  obtain ⟨ω, hω⟩ := hμB'.exists
-  simp only [Pi.zero_apply, lambdaSpecification_apply] at hω
-  rw [withDensity_sigmaFinitePremodifierNorm_apply (S := S) (E := E) ν hρ hBm, mul_eq_zero,
-    ENNReal.inv_eq_zero] at hω
-  rcases hω with hω | hω
-  · exact absurd hω (hZ.ne_top _ _)
-  · rw [lintegral_eq_zero_iff (hρ.measurable {i}), Filter.EventuallyEq, ae_iff] at hω
-    have huniv : {x | ¬ ρ {i} x = (0 : (S → E) → ℝ≥0∞) x} = Set.univ :=
-      Set.eq_univ_of_forall fun x ↦ hρ0 _ x
-    rw [huniv, Measure.restrict_apply_univ,
-      sigmaFiniteLambdaFun_singleton_eval_preimage ν i ω hB] at hω
-    exact hω
-
-end Specification
 
 end

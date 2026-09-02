@@ -55,6 +55,11 @@ lemma measurable_kernel_toMeasure (γ : Specification S E) (Λ : Finset S) :
   (Kernel.measurable (γ Λ)).mono
     (MeasureTheory.cylinderEvents_le_pi (X := fun _ : S ↦ E) (Δ := ((Λ : Set S)ᶜ))) le_rfl
 
+/-- The kernel measurability `ω ↦ γ_Λ(B | ω)`, for the product σ-algebra. -/
+lemma measurable_apply_kernel (γ : Specification S E) (Λ : Finset S) {B : Set (S → E)}
+    (hB : MeasurableSet B) : Measurable fun ω ↦ γ Λ ω B :=
+  (Measure.measurable_coe hB).comp (γ.measurable_kernel_toMeasure Λ)
+
 lemma isProbabilityMeasure_bind (γ : Specification S E) (Λ : Finset S) (μ : Measure (S → E))
     [IsProbabilityMeasure μ] : IsProbabilityMeasure (μ.bind (γ Λ)) := by
   constructor

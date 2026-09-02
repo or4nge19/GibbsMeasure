@@ -8,6 +8,8 @@ module
 public import GibbsMeasure.Specification
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.WithDensity
 public import GibbsMeasure.Specification.Rescaling
+public import GibbsMeasure.Specification.Extremal
+public import GibbsMeasure.Specification.Existence
 
 /-!
 # Georgii, Theorem (1.33): a specification is determined by its singleton part
@@ -335,17 +337,6 @@ section SigmaFiniteLambda
 
 variable {S E : Type*} {mE : MeasurableSpace E} {ρ : Finset S → (S → E) → ℝ≥0∞}
 
-/-- `lambdaSpecification` only depends on the density family. -/
-lemma lambdaSpecification_congr (ν : Measure E) [SigmaFinite ν] [NeZero ν]
-    {ρ₁ ρ₂ : Finset S → (S → E) → ℝ≥0∞} (h : ρ₁ = ρ₂)
-    (hρ₁ : IsPremodifier (S := S) (E := E) ρ₁)
-    (hZ₁ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ₁)
-    (hρ₂ : IsPremodifier (S := S) (E := E) ρ₂)
-    (hZ₂ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ₂) :
-    lambdaSpecification (S := S) (E := E) ν ρ₁ hρ₁ hZ₁
-      = lambdaSpecification (S := S) (E := E) ν ρ₂ hρ₂ hZ₂ := by
-  subst h; rfl
-
 /-- **Georgii, Remark (1.28)(3) for λ-specifications.** The λ-specification of `ν` and `ρ` is the
 λ-specification of the rescaled a priori measure `r · ν` and the rescaled densities. -/
 theorem lambdaSpecification_eq_lambdaSpecification_withDensity (ν : Measure E) [SigmaFinite ν]
@@ -465,6 +456,86 @@ theorem eq_lambdaSpecification_of_forall_singleton_eq
       hrtop hρ hZ i η) hγ'
 
 end SigmaFiniteLambda
+
+end Specification
+
+/-! ### Georgii, Remark (1.28)(2): single-site marginals of Gibbs measures -/
+
+namespace Specification
+
+open MeasureTheory.GibbsMeasure
+
+variable {S E : Type*} [MeasurableSpace E] (ν : Measure E) [SigmaFinite ν]
+
+/-- `λ_{{i}}(σ_i ∈ B | ω) = λ(B)`: resampling the single site `i` from `λ`. -/
+lemma sigmaFiniteLambdaFun_singleton_eval_preimage (i : S) (ω : S → E) {B : Set E}
+    (hB : MeasurableSet B) :
+    sigmaFiniteLambdaFun (S := S) (E := E) ν {i} ω ((fun ω : S → E ↦ ω i) ⁻¹' B) = ν B := by
+  rw [sigmaFiniteLambdaFun_apply_eq_map,
+    Measure.map_apply Measurable.juxt (measurable_pi_apply i hB)]
+  have hi : i ∈ ({i} : Finset S) := Finset.mem_singleton_self i
+  have hset : juxt (({i} : Finset S) : Set S) ω ⁻¹' ((fun ω : S → E ↦ ω i) ⁻¹' B) =
+      (MeasurableEquiv.piUnique fun _ : ({i} : Finset S) ↦ E) ⁻¹' B := by
+    ext ζ
+    simp only [Set.mem_preimage, juxt_apply_of_mem (Finset.mem_coe.2 hi),
+      MeasurableEquiv.piUnique_apply]
+    rfl
+  have hmp := measurePreserving_piUnique fun _ : ({i} : Finset S) ↦ ν
+  rw [hset, ← Measure.map_apply hmp.measurable hB, hmp.map_eq]
+
+variable [NeZero ν] {ρ : Finset S → (S → E) → ℝ≥0∞} (hρ : IsPremodifier (S := S) (E := E) ρ)
+  (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
+include hρ hZ
+
+/-- **Georgii, Remark (1.28)(2), first half.** For a Gibbs measure `μ` of a `λ`-specification
+`ρ λ_·`, the single-site marginal `σ_i(μ)` is absolutely continuous with respect to `λ`. -/
+theorem map_eval_absolutelyContinuous_of_mem_G {μ : Measure (S → E)}
+    (hμ : μ ∈ G (lambdaSpecification (S := S) (E := E) ν ρ hρ hZ)) (i : S) :
+    μ.map (fun ω ↦ ω i) ≪ ν := by
+  refine Measure.AbsolutelyContinuous.mk fun B hB hνB ↦ ?_
+  have hprob : IsProbabilityMeasure μ := hμ.1
+  have hBm : MeasurableSet ((fun ω : S → E ↦ ω i) ⁻¹' B) := measurable_pi_apply i hB
+  have hbind := (isGibbsMeasure_iff_forall_bind_eq.1 hμ.2) {i}
+  rw [Measure.map_apply (measurable_pi_apply i) hB]
+  conv_lhs => rw [← hbind]
+  rw [Measure.bind_apply hBm
+    ((lambdaSpecification ν ρ hρ hZ).measurable_kernel_toMeasure {i}).aemeasurable]
+  refine (lintegral_eq_zero_iff (measurable_apply_kernel _ {i} hBm)).2
+    (Filter.Eventually.of_forall fun ω ↦ ?_)
+  simp only [Pi.zero_apply, lambdaSpecification_apply]
+  rw [withDensity_apply _ hBm, Measure.restrict_eq_zero.2 (by
+    rw [sigmaFiniteLambdaFun_singleton_eval_preimage ν i ω hB]; exact hνB), lintegral_zero_measure]
+
+/-- **Georgii, Remark (1.28)(2), second half.** If the densities `ρ_Λ` are strictly positive —
+as the Boltzmann factors `e^{-β H_Λ}` of a `λ`-admissible potential are — then `λ` is absolutely
+continuous with respect to the single-site marginal `σ_i(μ)` of every Gibbs measure `μ`; together
+with the first half, `σ_i(μ)` and `λ` are equivalent. -/
+theorem absolutelyContinuous_map_eval_of_mem_G (hρ0 : ∀ (Λ : Finset S) (η : S → E), ρ Λ η ≠ 0)
+    {μ : Measure (S → E)} (hμ : μ ∈ G (lambdaSpecification (S := S) (E := E) ν ρ hρ hZ))
+    (i : S) : ν ≪ μ.map (fun ω ↦ ω i) := by
+  refine Measure.AbsolutelyContinuous.mk fun B hB hμB ↦ ?_
+  have hprob : IsProbabilityMeasure μ := hμ.1
+  have hae : (ae μ).NeBot := IsProbabilityMeasure.ae_neBot
+  have hBm : MeasurableSet ((fun ω : S → E ↦ ω i) ⁻¹' B) := measurable_pi_apply i hB
+  have hbind := (isGibbsMeasure_iff_forall_bind_eq.1 hμ.2) {i}
+  rw [Measure.map_apply (measurable_pi_apply i) hB] at hμB
+  have hμB' : μ.bind ((lambdaSpecification ν ρ hρ hZ) {i}) ((fun ω : S → E ↦ ω i) ⁻¹' B) = 0 :=
+    by rwa [hbind]
+  rw [Measure.bind_apply hBm
+    ((lambdaSpecification ν ρ hρ hZ).measurable_kernel_toMeasure {i}).aemeasurable,
+    lintegral_eq_zero_iff (measurable_apply_kernel _ {i} hBm)] at hμB'
+  obtain ⟨ω, hω⟩ := hμB'.exists
+  simp only [Pi.zero_apply, lambdaSpecification_apply] at hω
+  rw [withDensity_sigmaFinitePremodifierNorm_apply (S := S) (E := E) ν hρ hBm, mul_eq_zero,
+    ENNReal.inv_eq_zero] at hω
+  rcases hω with hω | hω
+  · exact absurd hω (hZ.ne_top _ _)
+  · rw [lintegral_eq_zero_iff (hρ.measurable {i}), Filter.EventuallyEq, ae_iff] at hω
+    have huniv : {x | ¬ ρ {i} x = (0 : (S → E) → ℝ≥0∞) x} = Set.univ :=
+      Set.eq_univ_of_forall fun x ↦ hρ0 _ x
+    rw [huniv, Measure.restrict_apply_univ,
+      sigmaFiniteLambdaFun_singleton_eval_preimage ν i ω hB] at hω
+    exact hω
 
 end Specification
 

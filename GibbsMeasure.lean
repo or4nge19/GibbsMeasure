@@ -104,6 +104,7 @@ public import GibbsMeasure.Potential.PerSiteExistence
 public import GibbsMeasure.Potential.Periodic
 public import GibbsMeasure.Potential.Space
 public import GibbsMeasure.Potential.Transformation
+public import GibbsMeasure.Potential.Pair
 public import GibbsMeasure.Specification
 public import GibbsMeasure.Specification.ChoquetLaw
 public import GibbsMeasure.Specification.DeFinetti
@@ -112,6 +113,8 @@ public import GibbsMeasure.Specification.DobrushinComparison
 public import GibbsMeasure.Specification.DobrushinUniqueness
 public import GibbsMeasure.Specification.Average
 public import GibbsMeasure.Specification.ErgodicDense
+public import GibbsMeasure.Specification.ErgodicGibbsLimits
+public import GibbsMeasure.Specification.InvariantDecomposition
 public import GibbsMeasure.Specification.ErgodicMixing
 public import GibbsMeasure.Specification.ErgodicGibbs
 public import GibbsMeasure.Specification.Ergodicity
