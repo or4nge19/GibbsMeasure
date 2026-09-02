@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import Mathlib.MeasureTheory.Covering.Vitali
 public import GibbsMeasure.Mathlib.GroupTheory.Foelner
 public import Mathlib.Analysis.Normed.Group.Real
 public import Mathlib.Data.Fintype.Pi
@@ -82,31 +83,42 @@ theorem exists_subset_pairwiseDisjoint_subset_biUnion (U V : α → Finset α) (
     ∀ D : Finset α, (∀ i ∈ D, i ∈ U i) →
       (∀ i ∈ D, ∀ i' ∈ D, rk i' ≤ rk i → (U i' ∩ U i).Nonempty → U i' ⊆ V i) →
       ∃ W ⊆ D, (W : Set α).PairwiseDisjoint U ∧ D ⊆ W.biUnion V := by
-  intro D
-  induction D using Finset.strongInduction with
-  | H D ih =>
-  intro hU hV
-  rcases D.eq_empty_or_nonempty with rfl | hne
-  · exact ⟨∅, Subset.rfl, by simp, by simp⟩
-  obtain ⟨i₀, hi₀, hmax⟩ := D.exists_max_image rk hne
-  have hi₀V : i₀ ∈ V i₀ :=
-    hV i₀ hi₀ i₀ hi₀ le_rfl ⟨i₀, Finset.mem_inter.2 ⟨hU i₀ hi₀, hU i₀ hi₀⟩⟩ (hU i₀ hi₀)
-  have hss : D.filter (fun i ↦ i ∉ V i₀) ⊂ D :=
-    Finset.filter_ssubset.2 ⟨i₀, hi₀, not_not.2 hi₀V⟩
-  obtain ⟨W', hW'D, hdisj, hcov⟩ := ih _ hss (fun i hi ↦ hU i (Finset.mem_of_mem_filter i hi))
-    fun i hi i' hi' ↦ hV i (Finset.mem_of_mem_filter i hi) i' (Finset.mem_of_mem_filter i' hi')
-  refine ⟨insert i₀ W', Finset.insert_subset hi₀ (hW'D.trans (Finset.filter_subset _ _)), ?_, ?_⟩
-  · rw [Finset.coe_insert]
-    refine hdisj.insert fun i hi _ ↦ ?_
-    obtain ⟨hiD, hiV⟩ := Finset.mem_filter.1 (hW'D hi)
-    rw [Finset.disjoint_left]
-    intro a ha₀ ha
-    exact hiV (hV i₀ hi₀ i hiD (hmax i hiD) ⟨a, Finset.mem_inter.2 ⟨ha, ha₀⟩⟩ (hU i hiD))
-  · intro i hi
-    by_cases h : i ∈ V i₀
-    · exact Finset.mem_biUnion.2 ⟨i₀, Finset.mem_insert_self _ _, h⟩
-    · obtain ⟨j, hj, hij⟩ := Finset.mem_biUnion.1 (hcov (Finset.mem_filter.2 ⟨hi, h⟩))
-      exact Finset.mem_biUnion.2 ⟨j, Finset.mem_insert_of_mem hj, hij⟩
+  classical
+  intro D hU hV
+  -- bound the ranks on the finite family
+  obtain ⟨R, hR⟩ : ∃ R : ℕ, ∀ i ∈ D, rk i ≤ R := ⟨D.sup rk, fun i hi ↦ Finset.le_sup hi⟩
+  -- Mathlib's Vitali lemma compares ranks only up to a factor `τ > 1`; on integer ranks bounded
+  -- by `R`, `τ = 1 + 1/(2R+1)` makes that comparison exact.
+  set τ : ℝ := 1 + 1 / (2 * R + 1) with hτ
+  have hτ1 : 1 < τ := by
+    rw [hτ]
+    have : (0 : ℝ) < 1 / (2 * R + 1) := by positivity
+    linarith
+  obtain ⟨u, huD, hdisj, hcov⟩ := Vitali.exists_disjoint_subfamily_covering_enlargement
+    (fun i ↦ ((U i : Finset α) : Set α)) (D : Set α) (fun i ↦ (rk i : ℝ)) τ hτ1
+    (fun a _ ↦ by positivity) R (fun a ha ↦ by exact_mod_cast hR a ha)
+    (fun a ha ↦ ⟨a, by exact_mod_cast hU a ha⟩)
+  have hufin : u.Finite := D.finite_toSet.subset huD
+  refine ⟨hufin.toFinset, ?_, ?_, ?_⟩
+  · intro x hx; exact huD (hufin.mem_toFinset.1 hx)
+  · intro x hx y hy hxy
+    exact Finset.disjoint_coe.1 (hdisj (hufin.mem_toFinset.1 hx) (hufin.mem_toFinset.1 hy) hxy)
+  · intro a ha
+    obtain ⟨b, hb, hab, hδ⟩ := hcov a ha
+    have hrk : rk a ≤ rk b := by
+      have hb' : rk b ≤ R := hR b (huD hb)
+      have h1 : (rk a : ℝ) ≤ rk b + rk b / (2 * R + 1) := by
+        have := hδ
+        rw [hτ, add_mul, one_mul, one_div, inv_mul_eq_div] at this
+        exact this
+      have h2 : (rk b : ℝ) / (2 * R + 1) < 1 := by
+        rw [div_lt_one (by positivity)]; exact_mod_cast (by omega : rk b < 2 * R + 1)
+      have : (rk a : ℝ) < rk b + 1 := by linarith
+      exact_mod_cast Nat.lt_succ_iff.1 (by exact_mod_cast this)
+    have hab' : (U a ∩ U b).Nonempty := by
+      obtain ⟨x, hx⟩ := hab
+      exact ⟨x, Finset.mem_inter.2 ⟨by exact_mod_cast hx.1, by exact_mod_cast hx.2⟩⟩
+    exact Finset.mem_biUnion.2 ⟨b, hufin.mem_toFinset.2 hb, hV b (huD hb) a ha hrk hab' (hU a ha)⟩
 
 end Finset
 
