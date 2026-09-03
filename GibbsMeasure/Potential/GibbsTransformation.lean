@@ -328,4 +328,18 @@ theorem isInvariant_gibbsSpecificationOfSigmaFiniteAdmissible
 
 end Potential
 
+namespace Potential
+
+/-- **Georgii (5.9)(b) for the shift.** The Gibbsian specification of a shift-invariant `Φ ∈ ℬ`
+on an additive group of sites is shift-invariant. -/
+theorem isInvariant_shift_gibbsSpecification {S E : Type*} [AddCommGroup S] [Countable S]
+    [MeasurableSpace E] {Φ : Potential S E} [IsPotential Φ] [IsAbsolutelySummable Φ]
+    (hΦ : Φ.IsShiftInvariant) (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ) (j : S) :
+    Specification.IsInvariant (MeasureTheory.GibbsMeasure.shift E j)
+      (gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) :=
+  isInvariant_gibbsSpecification (MeasureTheory.GibbsMeasure.shift E j) Φ ν β
+    (MeasureTheory.GibbsMeasure.measurePreserving_shift_spin ν j) (hΦ j)
+
+end Potential
+
 end

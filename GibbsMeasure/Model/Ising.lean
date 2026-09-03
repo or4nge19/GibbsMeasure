@@ -245,8 +245,7 @@ theorem isInvariant_shift_gibbsSpecification {Φ : Potential (Fin d → ℤ) E}
     (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ) (j : Fin d → ℤ) :
     Specification.IsInvariant (shift E j)
       (Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) :=
-  Potential.isInvariant_gibbsSpecification (shift E j) Φ ν β (measurePreserving_shift_spin ν j)
-    (hΦ j)
+  Potential.isInvariant_shift_gibbsSpecification hΦ ν β j
 
 /-- **The Ising specification on `ℤ^d` is shift-invariant** (Georgii (5.8), (5.9)(b)). -/
 theorem isInvariant_shift_isingSpecification (d : ℕ) (J h β : ℝ) (j : Fin d → ℤ) :
