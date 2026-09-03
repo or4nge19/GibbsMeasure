@@ -514,8 +514,10 @@ specification; the counting-kernel and cylinder calculus lives once, for any sit
 
 **Chapter 13, first steps** (`GibbsMeasure/Model/GaussianField.lean`): a Gauss field *is* Mathlib's
 `IsGaussianProcess` for the coordinate process, with the Fourier characterisation (13.2) and (13.3),
-and the Gaussian potential (13.11)–(13.12); λ-admissibility and (13.13) wait for the
-`n`-dimensional Gaussian integral, absent from Mathlib.
+and the Gaussian potential (13.11)–(13.12); the `n`-dimensional Gaussian integral and the Gaussian
+density measure with its mean and covariance (both absent from Mathlib) are built under
+`GibbsMeasure/Mathlib/`, giving λ-admissibility of `βΦ^{J,h}` and **(13.13)** — the finite-volume
+Gibbs distribution is the Gaussian with precision `β𝒥_Λ` — for finite-range `J`.
 
 **§9.2, Mermin–Wagner** (`GibbsMeasure/Model/MerminWagner.lean`): **Theorem (9.20)** — for a
 pair potential on a site set with a planar norm (ℤ² with the maximum norm the instance), any real
@@ -566,7 +568,7 @@ Gibbs measure is unique ((6.7)(2)).
 
 Not yet done: Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
-plane-rotator and Heisenberg instances (9.22)–(9.24), (14.13), (14.16), (14.21)–(14.24), (15.14)(c), (15.16)–(15.20), (15.26)(1), (15.40), Chapter 11 from (11.9)(c) and the uniqueness halves of (11.13)–(11.19) on, Examples (10.24), §12.2, (13.4)–(13.13), §§13.2–13.3, and Chapters
+plane-rotator and Heisenberg instances (9.22)–(9.24), (14.13), (14.16), (14.21)–(14.24), (15.14)(c), (15.16)–(15.20), (15.26)(1), (15.40), Chapter 11 from (11.9)(c) and the uniqueness halves of (11.13)–(11.19) on, Examples (10.24), §12.2, (13.4)–(13.10), §§13.2–13.3, and Chapters
 16–20 (
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).

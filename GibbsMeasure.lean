@@ -18,6 +18,7 @@ public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Tanh
 public import GibbsMeasure.Mathlib.Analysis.Normed.Lp.lpSpace
 public import GibbsMeasure.Mathlib.Data.ENNReal.Basic
 public import GibbsMeasure.Mathlib.Data.Finset.Map
+public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PosDef
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.Doeblin
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PerronFrobenius
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.CompactSystemCylinders

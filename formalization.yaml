@@ -54,7 +54,7 @@ status:
     properties (10.2)-(10.11)), Section 10.2 ((10.12)-(10.26) except Examples (10.24)), Section 10.3 ((10.30)-(10.37)); Section 9.1 (symmetry
     inheritance (9.1), localized symmetries (9.3), one-dimensional pair interactions (9.5),
     (9.11), (9.16)); Section 9.2 (Mermin-Wagner (9.20) with Lemmas (9.28), (9.33)); Section 13.1 (13.1)-(13.3),
-    (13.11)-(13.12). The rest is not formalized.
+    (13.11)-(13.13) for finite-range J. The rest is not formalized.
   sorry_count: 0
   sorry_in_definitions: 0
   axioms: ["propext", "Classical.choice", "Quot.sound"]
@@ -1122,10 +1122,15 @@ alignment:
         A Gauss field is Mathlib's IsGaussianProcess for the coordinate process (no second
         definition); the Fourier characterisation (13.2) and nonnegative definiteness of the
         covariance (13.3); the Gaussian potential Phi^{J,h} as a Potential (measurable for any J, h)
-        and its finite-volume matrix. Not formalized: lambda-admissibility and (13.13) — Mathlib has
-        no n-dimensional Gaussian integral (only the 1-D one; multivariateGaussian has no Lebesgue
-        density) — the integral is being built under GibbsMeasure/Mathlib; (13.4)-(13.10) and
-        Sections 13.2-13.3.
+        and its finite-volume matrix. The n-dimensional Gaussian integral (absent from Mathlib) and the Gaussian density measure
+        with its mean and covariance are built under GibbsMeasure/Mathlib; with them, for J
+        symmetric of finite row support with every J_Lambda positive definite: the Hamiltonian as
+        a quadratic form, lambda-admissibility of beta Phi^{J,h} (beta > 0), gaussianSpecification,
+        and (13.13): gamma_Lambda(.|omega) is the Gaussian with precision beta J_Lambda and mean
+        -J_Lambda^{-1}(h_Lambda + J_{Lambda Lambda^c} omega) — the sign follows the tree's convention
+        Phi_i = J(i,i)/2 sigma_i^2 + h_i sigma_i (Georgii's is -h_i sigma_i; to be aligned). Not
+        formalized: the converse of (13.13), infinite-range J, (13.4)-(13.10), Sections 13.2-13.3,
+        the identification of the density measure with Mathlib's multivariateGaussian.
 
 acknowledgements: >-
   Builds on Mathlib. Kolmogorov extension material adapted from RemyDegenne/kolmogorov_extension4.

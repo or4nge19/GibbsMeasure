@@ -2713,4 +2713,27 @@ lemma isssd_eq_map_juxt_restrict [Countable S] (ν : Measure E) [IsProbabilityMe
 
 end IsssdRestrict
 
+section JuxtInvariance
+
+variable {S E : Type*} [DecidableEq S] [MeasurableSpace E]
+
+lemma sigmaFiniteLambdaFun_juxt_eq (ν : Measure E) [SigmaFinite ν] (Λ : Finset S)
+    (ω : S → E) (ζ : Λ → E) :
+    sigmaFiniteLambdaFun (S := S) (E := E) ν Λ (juxt (Λ : Set S) ω ζ) =
+      sigmaFiniteLambdaFun (S := S) (E := E) ν Λ ω := by
+  rw [sigmaFiniteLambdaFun_apply_eq_map,
+    sigmaFiniteLambdaFun_apply_eq_map]
+  congr 1
+  funext ξ
+  exact juxt_juxt (Λ : Set S) ω ζ ξ
+
+lemma sigmaFiniteLambdaZ_juxt_eq (ν : Measure E) [SigmaFinite ν]
+    (ρ : Finset S → (S → E) → ℝ≥0∞) (Λ : Finset S) (ω : S → E) (ζ : Λ → E) :
+    sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ (juxt (Λ : Set S) ω ζ) =
+      sigmaFiniteLambdaZ (S := S) (E := E) ν ρ Λ ω := by
+  rw [sigmaFiniteLambdaZ, sigmaFiniteLambdaZ,
+    sigmaFiniteLambdaFun_juxt_eq]
+
+end JuxtInvariance
+
 end Specification

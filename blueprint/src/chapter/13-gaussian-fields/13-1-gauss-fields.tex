@@ -24,3 +24,24 @@ Throughout, $E = \mathbb R$ with Lebesgue measure and $S$ is countable.
     and $\Phi_{\set{i,j}}(\sigma) = J(i,j)\sigma_i\sigma_j$ for $i \neq j$, and $\Phi_A = 0$
     otherwise; $\mathcal J_\Lambda = (J(i,j))_{i,j\in\Lambda}$ is its finite-volume matrix.
 \end{definition}
+
+\begin{theorem}[Georgii (13.13)]
+    \label{thm:gf-13-13}
+    \uses{def:gf-13-11, def:pot-gibbs-spec}
+    \lean{Potential.hamiltonian_gaussianPotential_juxt_eq, Potential.isSigmaFiniteLambdaAdmissible_gaussianPotential_boltzmannFactor, Potential.gaussianSpecification, Potential.gaussianMean, Potential.gaussianSpecification_apply}
+    \leanok
+
+    Let $J$ be symmetric with finitely many nonzero entries in each row and every
+    $\mathcal J_\Lambda$ positive definite, and $\beta > 0$. Then $\beta\Phi^{J,h}$ is
+    $\lambda$-admissible, $H_\Lambda(\sigma_\Lambda\omega_{\Lambda^c}) = \tfrac12 \sigma_\Lambda \cdot \mathcal J_\Lambda\sigma_\Lambda + (h_\Lambda + J_{\Lambda\Lambda^c}\omega_{\Lambda^c})\cdot\sigma_\Lambda$,
+    and $\gamma^{\beta\Phi}_\Lambda(\cdot \mid \omega)$ is the image under
+    $\sigma_\Lambda \mapsto \sigma_\Lambda\omega_{\Lambda^c}$ of the Gaussian measure on
+    $\mathbb R^\Lambda$ with precision matrix $\beta\mathcal J_\Lambda$ and mean
+    $-\mathcal J_\Lambda^{-1}(h_\Lambda + J_{\Lambda\Lambda^c}\omega_{\Lambda^c})$.
+\end{theorem}
+\begin{proof}
+    \leanok
+    The Hamiltonian is the quadratic form above; completing the square and the
+    $n$-dimensional Gaussian integral give the partition function and the density of
+    $\gamma_\Lambda$ against $\lambda_\Lambda$, which is the Gaussian density.
+\end{proof}
