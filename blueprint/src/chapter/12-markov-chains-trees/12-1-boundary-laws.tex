@@ -1,0 +1,83 @@
+\section{Markov chains and boundary laws}
+
+Throughout, $S$ is the vertex set of a locally finite graph $G$ (a tree where stated), $E$ a
+countable set with the discrete $\sigma$-algebra and counting measure $\lambda$, and for
+$\Lambda \in \mathcal S$, $\partial\Lambda$ its outer boundary and $\operatorname{bonds}(\Lambda)$
+the edges meeting $\Lambda$.
+
+\begin{definition}[Markov specification, Markov chain on a graph, Georgii (12.1)--(12.2)]
+    \label{def:tr-markov}
+    \uses{def:spec, def:cylinder-event}
+    \lean{MeasureTheory.GibbsMeasure.Tree.IsMarkovSpecification, MeasureTheory.GibbsMeasure.Tree.IsMarkovChain, SimpleGraph.past}
+    \leanok
+
+    A specification $\gamma$ is \textbf{Markov} if $\gamma_\Lambda(\sigma_\Lambda = \zeta_\Lambda \mid \cdot)$
+    is $\mathcal F_{\partial\Lambda}$-measurable for every $\Lambda$. A probability measure $\mu$ is
+    a \textbf{Markov chain} on $G$ if for every edge $ij$ and $y \in E$,
+    $\mu(\sigma_j = y \mid \mathcal F_{\operatorname{past}(i,j)}) = \mu(\sigma_j = y \mid \sigma_i)$,
+    where $\operatorname{past}(i,j)$ is the set of sites closer to $i$ than to $j$.
+\end{definition}
+
+\begin{definition}[Transfer families and $\gamma^Q$, Georgii (12.7)--(12.9)]
+    \label{def:tr-transfer}
+    \uses{def:tr-markov, def:premodif}
+    \lean{MeasureTheory.GibbsMeasure.Tree.IsTransferFamily, MeasureTheory.GibbsMeasure.Tree.transferWeight, MeasureTheory.GibbsMeasure.Tree.transferSpecification, MeasureTheory.GibbsMeasure.Tree.isMarkovSpecification_transferSpecification}
+    \leanok
+
+    A \textbf{transfer family} is a symmetric family $Q = (Q_{ij})$ of positive matrices with
+    finite entries on the edges of $G$, whose partition functions $Z_\Lambda$ are finite. The
+    specification $\gamma^Q$ is the $\lambda$-specification of the weights
+    $\prod_{b \in \operatorname{bonds}(\Lambda)} Q_b(\sigma)$; it is Markov.
+\end{definition}
+
+\begin{definition}[Boundary law on a graph, Georgii (12.10)]
+    \label{def:tr-boundary-law}
+    \uses{def:tr-transfer}
+    \lean{MeasureTheory.GibbsMeasure.Tree.IsBoundaryLaw, MeasureTheory.GibbsMeasure.Tree.Markov.IsBoundaryLaw.isBoundaryLaw_hasse_int}
+    \leanok
+
+    A \textbf{boundary law} for $Q$ is a family $(\ell_{ij})$ of positive finite functions on $E$,
+    indexed by the oriented edges, with
+    $\ell_{ij} \propto \prod_{k \in \partial i \setminus \set j} \ell_{ki} Q_{ki}$ for every
+    oriented edge $ij$, and finite mass $\sum_x \prod_{k \in \partial i}(\ell_{ki}Q_{ki})(x)$.
+    On $\mathbb Z$ a boundary law in the sense of Chapter 11 is a boundary law on the Hasse graph
+    (Georgii (12.11)).
+\end{definition}
+
+\begin{theorem}[Georgii (12.12)]
+    \label{thm:tr-12-12}
+    \uses{def:tr-boundary-law, def:gibbs-meas, thm:bl-11-9a}
+    \lean{MeasureTheory.GibbsMeasure.Tree.boundaryLawMeasure, MeasureTheory.GibbsMeasure.Tree.IsBoundaryLaw.boundaryLawMeasure_cyl, MeasureTheory.GibbsMeasure.Tree.IsBoundaryLaw.isGibbsMeasure_transferSpecification_boundaryLawMeasure, MeasureTheory.GibbsMeasure.Tree.IsBoundaryLaw.isMarkovChain_boundaryLawMeasure, MeasureTheory.GibbsMeasure.Tree.IsMarkovChain.exists_isBoundaryLaw_eq_boundaryLawMeasure}
+    \leanok
+
+    Let $G$ be a tree and $Q$ a transfer family. (a) Every boundary law $\ell$ defines a
+    probability measure $\mu_\ell$ on $\Cfg$ with
+    \[
+        \mu_\ell(\sigma_{\Lambda \cup \partial\Lambda} = \zeta)
+        = z_\Lambda \prod_{k \in \partial\Lambda} \ell_{k k_\Lambda}(\zeta_k)
+          \prod_{b \in \operatorname{bonds}(\Lambda)} Q_b(\zeta) \tag{12.13}
+    \]
+    for connected $\Lambda$, and $\mu_\ell \in \mathcal G(\gamma^Q)$ is a Markov chain. (b)
+    Conversely every Markov chain in $\mathcal G(\gamma^Q)$ is $\mu_\ell$ for some boundary law
+    $\ell$.
+\end{theorem}
+\begin{proof}
+    \leanok
+    (a) The right-hand side of (12.13) is consistent along connected volumes, by induction over
+    the leaves attached at the boundary (12.14); Kolmogorov extension; the DLR equation for
+    singletons follows from (1.33). (b) $\ell_{ij}(x) = P_{ji}(a,x)/Q_{ji}(a,x)$ for the
+    transition probabilities $P$ of the chain and a reference $a$; the Markov property and the
+    Gibbs property identify the cylinder probabilities with (12.13).
+\end{proof}
+
+\begin{proposition}[Georgii (12.15)--(12.17)]
+    \label{prop:tr-12-16}
+    \uses{def:tr-boundary-law}
+    \lean{MeasureTheory.GibbsMeasure.Tree.IsBoundaryLaw.eq_prod_div_of_normalized, MeasureTheory.GibbsMeasure.Tree.isBoundaryLaw_const_iff}
+    \leanok
+
+    Normalised boundary laws ($\ell_{ij}(a) = 1$) satisfy $\ell_{ij} = \prod_{k \in \partial i \setminus\set j}(\ell_{ki}Q_{ki})/(\ell_{ki}Q_{ki})(a)$.
+    On a regular tree of degree $d + 1$ with a constant transfer matrix $Q_0$, a constant
+    normalised $\ell_0$ is a boundary law iff $\ell_0(x) = \bigl(\ell_0 Q_0(x)/\ell_0 Q_0(a)\bigr)^d$
+    and $\sum_x (\ell_0 Q_0(x))^{d+1} < \infty$.
+\end{proposition}

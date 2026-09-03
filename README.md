@@ -490,6 +490,13 @@ priori measure. Comments (9.7) and (9.13), Examples (9.8)(2), (9.15) and (9.17)
 (`GibbsMeasure/Model/OneDimensionalSymmetryExamples.lean`) complete the section, with the two
 inputs Georgii imports from elsewhere — (20.21) and (6.4) — as explicit hypotheses.
 
+**Chapter 12, §12.1** (`GibbsMeasure/Model/TreeBoundaryLaw.lean`): transfer families and `γ^Q`
+on any locally finite graph, Markov chains on a graph (12.2), boundary laws indexed by oriented
+edges (12.10), and **Theorem (12.12)** on trees in both directions — the measure of a boundary law
+with the cylinder formula (12.13), Gibbs and Markov, and every Markov chain in `𝒢(γ^Q)` a
+boundary-law measure — plus (12.14)–(12.17); Chapter 11's boundary laws are boundary laws on the
+Hasse graph of `ℤ` (12.11).
+
 **§9.2, Mermin–Wagner** (`GibbsMeasure/Model/MerminWagner.lean`): **Theorem (9.20)** — for a
 pair potential on a site set with a planar norm (ℤ² with the maximum norm the instance), any real
 `β`, and a one-parameter group of λ-preserving pure-spin symmetries whose interaction is `C²` in
@@ -527,8 +534,8 @@ characterisations are not, since Mathlib has no strong Markov property.
 
 Not yet done: the inhomogeneous Ising chains of §6.1, Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
-plane-rotator and Heisenberg instances (9.22)–(9.24), (14.13), (14.16), (14.21)–(14.24), (15.14)(c), (15.16)–(15.20), (15.28), (15.30)(b), (15.32)–(15.39), Chapter 11 from (11.9)(c) and the uniqueness halves of (11.13)–(11.19) on, §§10.2–10.3, and Chapters 12–13 and
-16–20 (Markov fields on trees,
+plane-rotator and Heisenberg instances (9.22)–(9.24), (14.13), (14.16), (14.21)–(14.24), (15.14)(c), (15.16)–(15.20), (15.28), (15.30)(b), (15.32)–(15.39), Chapter 11 from (11.9)(c) and the uniqueness halves of (11.13)–(11.19) on, §§10.2–10.3, §12.2, and Chapters 13 and
+16–20 (
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).
 

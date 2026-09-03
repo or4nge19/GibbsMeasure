@@ -48,7 +48,8 @@ status:
     15.1 (relative entropy), Lemma (15.11), Section 15.2 (strong subadditivity (15.10), the specific
     entropy (15.12)-(15.13), (15.14)(a)-(b)), Section 15.3 (specific energy, the pressure (15.30)(a)
     and its Lipschitz continuity and convexity (16.1)(a)); Section 11.1 up to Theorem (11.9)(b), (11.11)-(11.12), the sufficiency half of (11.13), (11.16),
-    and the extreme case of (11.15); Section 10.1 (the Markov
+    and the extreme case of (11.15), (11.6)-(11.7); Section 12.1 ((12.1)-(12.2), (12.7)-(12.17) except
+    (12.3)(2)-(6), (12.5)-(12.6), uniqueness of boundary laws up to a factor, (12.18)); Section 10.1 (the Markov
     properties (10.2)-(10.11)); Section 9.1 (symmetry
     inheritance (9.1), localized symmetries (9.3), one-dimensional pair interactions (9.5),
     (9.11), (9.16)); Section 9.2 (Mermin-Wagner (9.20) with Lemmas (9.28), (9.33)). The rest is not
@@ -989,6 +990,21 @@ alignment:
         irreducible recurrent kernel rather than Georgii's hitting times. Not formalized: the
         first-passage characterisations (Mathlib has hitting times and Ionescu-Tulcea but no
         strong Markov property or renewal decomposition), and Vere-Jones' theorem (cited, not used).
+    - source: "Section 12.1: (12.1)-(12.2), (12.7)-(12.13), (12.14)-(12.17)"
+      lean: "MeasureTheory.GibbsMeasure.Tree.IsBoundaryLaw.isGibbsMeasure_transferSpecification_boundaryLawMeasure"
+      module: "GibbsMeasure/Model/TreeBoundaryLaw.lean"
+      status: "proved"
+      note: >-
+        Any locally finite graph for the definitions, a tree for the theorems; E countable with
+        counting measure; Georgii's finite E enters only as finiteness of the partition functions
+        and of the boundary-law mass, both automatic for finite E. gamma^Q as the
+        lambda-specification of the bond weights, Markov; boundary laws indexed by oriented edges;
+        Theorem (12.12)(a) (the measure by Kolmogorov extension with (12.13), in G(gamma^Q), a
+        Markov chain) and (b) (every Markov chain in G(gamma^Q) comes from a boundary law); (12.11)
+        Chapter 11 boundary laws are boundary laws on the Hasse graph of Z; (12.15) and the
+        constant case (12.16)-(12.17). Not formalized: (12.3)(2)-(6), (12.5), (12.6), uniqueness of
+        the boundary law up to a factor, (12.18). The Z-specific lemmas of Model/BoundaryLaw.lean are
+        instances of the tree lemmas and are being re-derived from them.
 
 acknowledgements: >-
   Builds on Mathlib. Kolmogorov extension material adapted from RemyDegenne/kolmogorov_extension4.
