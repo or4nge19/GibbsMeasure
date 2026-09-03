@@ -8,6 +8,7 @@ module
 public import GibbsMeasure.Mathlib.Probability.Martingale.Convergence
 public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.TrivialOn
 public import GibbsMeasure.Mathlib.Order.Cofinal
+public import GibbsMeasure.Prereqs.CylinderEvents
 
 /-!
 # Tail triviality is asymptotic independence
@@ -148,5 +149,63 @@ theorem forall_measure_eq_zero_or_one_iInf_iff_of_directed {ι : Type*} [Preorde
     obtain ⟨N, hN⟩ := hfcof i₀
     filter_upwards [eventually_ge_atTop N] with n hn
     exact hi₀ (f n) (hN.trans (hfmono hn))
+
+section Freezing
+
+/-- **The "freezing" argument behind Georgii's Theorem (12.6).** If `μ` is trivial on
+`⨅ n, cylinderEvents (T n)` for a family `T : ℕ → Set S` of coordinate sets avoiding a fixed site
+`i` (`i ∉ T n` for every `n`), then every function measurable for `⨅ n, cylinderEvents ({i} ∪ T
+n)` is `μ`-a.e. a function of the single coordinate `σ i`. Unlike the analogous two-coordinate
+statement `exists_ae_eq_pair_of_forall_measure_eq_zero_or_one` in
+`GibbsMeasure/Specification/MarkovIntChains.lean` (needed there because Georgii's hypothesis
+(10.19) genuinely involves both endpoints `σ_{j-1}, σ_j` of a step of `ℤ`), no resampling and no
+Fubini argument is needed here: fixing the single coordinate directly produces, for every `x`, an
+a.e.-constant function (tail triviality), and the countably many resulting null sets (one per `x
+∈ E`, `E` countable) are combined by `Filter.ae_all_iff`. Intended home:
+`Mathlib.MeasureTheory.MeasurableSpace.CountablyGenerated`, next to
+`measurable_cylinderEvents_iff_dependsOn`. -/
+theorem exists_ae_eq_single_of_forall_measure_eq_zero_or_one
+    {S E : Type*} [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E]
+    {μ : Measure (S → E)} [IsProbabilityMeasure μ] {i : S} {T : ℕ → Set S} (hi : ∀ n, i ∉ T n)
+    (htriv : ∀ A, MeasurableSet[⨅ n, cylinderEvents (X := fun _ : S ↦ E) (T n)] A →
+      μ A = 0 ∨ μ A = 1)
+    {f : (S → E) → ℝ}
+    (hf : Measurable[⨅ n, cylinderEvents (X := fun _ : S ↦ E) ({i} ∪ T n)] f) :
+    ∃ q : E → ℝ, Measurable q ∧ f =ᵐ[μ] fun σ ↦ q (σ i) := by
+  classical
+  have hf' : Measurable f := hf.mono ((iInf_le _ (0 : ℕ)).trans cylinderEvents_le_pi) le_rfl
+  set q : E → ℝ := fun x ↦ ∫ ω, f (Function.update ω i x) ∂μ with hq_def
+  refine ⟨q, measurable_of_countable q, ?_⟩
+  have hconst : ∀ x : E, ∀ᵐ ω ∂μ, f (Function.update ω i x) = q x := by
+    intro x
+    have hshift : Measurable fun ω : S → E ↦ f (Function.update ω i x) :=
+      hf'.comp measurable_update_left
+    have hmeasT : Measurable[⨅ n, cylinderEvents (X := fun _ : S ↦ E) (T n)]
+        fun ω ↦ f (Function.update ω i x) := by
+      rw [measurable_iInf_iff_forall]
+      intro n
+      have hdep : DependsOn f ({i} ∪ T n) :=
+        (hf.mono (iInf_le _ n) le_rfl).dependsOn_of_cylinderEvents
+      refine hshift.cylinderEvents_of_dependsOn fun ω ω' hωω' ↦ hdep fun k hk ↦ ?_
+      rcases hk with hk | hk
+      · rw [Set.mem_singleton_iff] at hk
+        subst hk
+        simp
+      · have hki : k ≠ i := fun h ↦ (h ▸ hi n) hk
+        simp only [Function.update_of_ne hki]
+        exact hωω' k hk
+    obtain ⟨c, hc⟩ := exists_ae_eq_const_of_forall_measure_eq_zero_or_one
+      ((iInf_le _ (0 : ℕ)).trans cylinderEvents_le_pi) htriv hmeasT
+    have hqc : q x = c := by
+      simp only [hq_def]
+      rw [integral_congr_ae hc, integral_const]
+      simp
+    rw [hqc]
+    exact hc
+  filter_upwards [ae_all_iff.2 hconst] with ω hω
+  have h := hω (ω i)
+  rwa [Function.update_eq_self] at h
+
+end Freezing
 
 end MeasureTheory

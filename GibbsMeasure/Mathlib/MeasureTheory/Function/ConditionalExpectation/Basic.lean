@@ -235,4 +235,26 @@ lemma setLIntegral_ofReal_of_ae_eq_condExp (hm : m ≤ m0) [IsFiniteMeasure μ]
 
 end SetLIntegralOfReal
 
+section Sandwich
+
+/-- **The "sandwich" property of conditional expectation.** If the conditional expectations of an
+integrable `f` with respect to two nested sub-σ-algebras `m₁ ≤ m₂ ≤ m₃ ≤ m0` agree `μ`-a.e. with
+the conditional expectation with respect to the *largest* one `m₃`, then `m₁` and `m₂` already
+agree with each other. Two applications of the tower property (`condExp_condExp_of_le`). Intended
+home: `Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic`, next to
+`condExp_condExp_of_le` itself. -/
+theorem condExp_eq_condExp_of_le_of_condExp_eq
+    {Ω : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω} [IsFiniteMeasure μ]
+    {m₁ m₂ m₃ : MeasurableSpace Ω}
+    (h12 : m₁ ≤ m₂) (h23 : m₂ ≤ m₃) (h3 : m₃ ≤ m0) {f : Ω → ℝ}
+    (heq : μ[f | m₁] =ᵐ[μ] μ[f | m₃]) : μ[f | m₁] =ᵐ[μ] μ[f | m₂] := by
+  have hm2 : m₂ ≤ m0 := h23.trans h3
+  calc μ[f | m₁] = μ[μ[f | m₁] | m₂] :=
+        (condExp_of_stronglyMeasurable hm2 (stronglyMeasurable_condExp.mono h12)
+          integrable_condExp).symm
+    _ =ᵐ[μ] μ[μ[f | m₃] | m₂] := condExp_congr_ae heq
+    _ =ᵐ[μ] μ[f | m₂] := condExp_condExp_of_le h23 h3
+
+end Sandwich
+
 end MeasureTheory
