@@ -476,8 +476,9 @@ Lipschitz and convex (Georgii (16.1)(a)). **§15.4** (`GibbsMeasure/Specificatio
 (15.28), (15.30)(b), (15.32)–(15.35), **Theorem (15.37)** (a shift-invariant `μ` with vanishing
 specific relative entropy against a Gibbs `ν` of a quasilocal `γ` is Gibbs; Georgii's three steps
 as three theorems, the third for any site set) and the **variational principle (15.39)**:
-`k(μ|Φ) = P(Φ) + μ(f_Φ) − h(μ) ≥ 0` on `𝓟_Θ`, zero exactly on `𝒢_Θ(γ^Φ)` given that set is
-non-empty.
+`k(μ|Φ) = P(Φ) + μ(f_Φ) − h(μ) ≥ 0` on `𝓟_Θ`, zero exactly on `𝒢_Θ(γ^Φ)` — unconditionally for
+standard Borel `E`, where `𝒢_Θ(γ^Φ) ≠ ∅` comes from (4.23) and (5.16) for any countable abelian site
+group.
 
 **Chapter 9, §9.1** (`GibbsMeasure/Specification/SymmetryInheritance.lean`,
 `GibbsMeasure/Model/OneDimensionalSymmetry.lean`): **Proposition (9.1)** — a symmetry `τ` of `γ`
