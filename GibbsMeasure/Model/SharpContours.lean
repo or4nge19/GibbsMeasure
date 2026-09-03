@@ -104,7 +104,7 @@ def stepSum (f : Site → Site → ZMod 2) {p q : Site} (w : (latticeGraph 2).Wa
 lemma stepSum_coboundary (g : Site → ZMod 2) {p q : Site} (w : (latticeGraph 2).Walk p q) :
     stepSum (fun a b ↦ g a + g b) w = g p + g q := by
   induction w with
-  | nil => simp; exact (by decide : ∀ z : ZMod 2, (0 : ZMod 2) = z + z) _
+  | nil => simp only [stepSum_nil]; exact (by decide : ∀ z : ZMod 2, (0 : ZMod 2) = z + z) _
   | cons h w ih =>
     rw [stepSum_cons, ih]
     exact (by decide : ∀ a b c : ZMod 2, a + b + (b + c) = a + c) _ _ _

@@ -90,7 +90,7 @@ lemma convexCombo_mem_GP (γ : Specification S E)
       (ProbabilityTheory.Kernel.measurable (γ Λ)).mono
         (MeasureTheory.cylinderEvents_le_pi (X := fun _ : S ↦ E) (Δ := ((Λ : Set S)ᶜ)))
         le_rfl
-    simp [ProbabilityMeasure.coe_convexCombo]
+    simp only [ProbabilityMeasure.coe_convexCombo]
     rw [Measure.bind_add (μ := unitInterval.toNNReal p • (μ : Measure (S → E)))
       (ν := unitInterval.toNNReal (unitInterval.symm p) • (ν : Measure (S → E)))
       (f := γ Λ) hmeas]
