@@ -53,18 +53,68 @@ laws `{ℓ_i, r_i}` of Definition (11.8) with their measures (11.10) (`boundaryL
   proof of (11.15); `ProbabilityTheory.Kernel.pow_apply_singleton_mul_le` is the
   supermultiplicativity `κ^m(x,x) κ^n(x,x) ≤ κ^{m+n}(x,x)` noted after (11.6), for any kernel
   on a countable space.
-* `lazy_stochastic`, `le_lazy_apply_self`, `tsum_mul_lazy` — **Georgii Comment (11.18)(1)**:
-  `Q = tP + (1 - t)I` is a positive stochastic matrix with `inf_x Q(x, x) ≥ 1 - t` and the same
-  invariant vectors as `P`, so it satisfies the hypotheses of the existence half of (11.13) and of
-  (11.15).
+* `lazy_stochastic`, `le_lazy_apply_self`, `tsum_mul_lazy`, `lazy_isTransferMatrix`,
+  `iInf_lazy_apply_self_pos`, `boundaryLawMeasure_const_lazy_mem_invariantG` — **Georgii Comment
+  (11.18)(1)**: `Q = tP + (1 - t)I` is a transfer matrix with `inf_x Q(x, x) ≥ 1 - t > 0` and the
+  same invariant vectors as `P`, so `Q` satisfies both hypotheses that Corollary (11.17) combines:
+  the existence hypothesis of Theorem (11.13) and the periodicity hypothesis of Theorem
+  (11.15)/(11.16) at `p = 1`. (Corollary (11.17) itself is not provable here; see below.)
 
-## What is not here
+## What is not here, and exactly why
 
-Theorem (11.9)(c), the "only if" half and the uniqueness clause of Theorem (11.13), Corollary
-(11.14), Theorem (11.15) for arbitrary extreme points, Corollary (11.17) and Corollary (11.19)
-all rest on §10.2–10.3 (Theorems (10.21), (10.35), Example (10.24)(2), the ergodic theorem
-(10.34)) and on Remark (11.7), none of which is in the library; see the module docstring of
-`GibbsMeasure/Model/BoundaryLaw.lean` and the report accompanying this file.
+**Theorem (11.9)(c)** (a representing boundary law for every `μ ∈ ex 𝒢(Q)`), the **"only if" half
+and the uniqueness clause of Theorem (11.13)**, **Corollary (11.14)**, **Theorem (11.15)** for an
+arbitrary extreme point of `𝒢(Q)` (only the case where `μ` is already known to be the measure of a
+boundary law is proved above), **Corollary (11.17)**, **Comment (11.18)(3)** and **Corollary
+(11.19)** all go, in Georgii's own proof, through Theorem (10.21) and Theorem (10.35) applied to
+`γ^Q` — via Example (10.24)(2), i.e. with `ρ = transferWeight Q` as the Markovian λ-modification.
+None of these are here, and the obstruction is more precise than "§10.2–10.3 is not imported":
+
+`GibbsMeasure/Specification/MarkovIntChains.lean` and `GibbsMeasure/Specification/
+MarkovIntUniqueness.lean` prove Theorems (10.21), (10.25) and (10.35) — `Specification.
+IsIrreducibleInt`, `exists_isMarkovChain_of_measurePreserving_shift`,
+`eq_of_isGibbsMeasure_of_measurePreserving_shift` — **only for a *probability* a priori measure
+`ν`** (`variable {ν : Measure E} [IsProbabilityMeasure ν]` fixed for those files). `γ^Q` is built
+from `Measure.count`, which is a probability measure only when `E` is finite (already Theorem
+(3.5)'s territory). For infinite countable `E` this is a genuine type mismatch, not a missing
+`import`: `IsIrreducibleInt (Measure.count) (transferWeight Q)` does not even typecheck.
+
+The bridge is Georgii's own aside before (10.13) — "we may assume `λ ∈ 𝒫(E, 𝓔)`" — which
+`MarkovIntUniqueness.lean`'s docstring already flags as unformalized (its "Example (10.24)(2)"
+paragraph, gaps (a) and (b)). Contrary to what that docstring suggests, gap (b) (aperiodicity ⇒
+eventual positivity, Breiman) is *not* needed here: `IsTransferMatrix.pos` already gives
+`Q(x, y) > 0` for **every** pair, so the witnessing integer in Definition (10.23) can be taken to
+be the constant `1`. What remains, concretely, is gap (a): a genuine construction, not merely
+book-keeping. The measure-theoretic engine for it already exists —
+`GibbsMeasure/Specification/Rescaling.lean` has
+`MeasureTheory.Measure.exists_measurable_pos_isProbabilityMeasure_withDensity` (a positive
+measurable `r : E → ℝ≥0∞` with `(Measure.count).withDensity r` a probability measure, for any
+countable `E`), `Specification.rescale r ρ` (`ρ̃_Λ(ω) = ρ_Λ(ω) / ∏_{i ∈ Λ} r(ω_i)`) and
+`Specification.modificationKer_sigmaFiniteLambdaFun_of_withDensity` (`ρ̃ · (count.withDensity r)_· =
+ρ · count_·`, i.e. `transferSpecification Q hQ` is *unchanged* by the rescaling) — but nobody has
+yet checked that `Specification.IsMarkovianInt`, `Specification.IsHomogeneousInt` and
+`Specification.IsIrreducibleInt` survive `rescale r`. `IsMarkovianInt` and `IsHomogeneousInt`
+transfer for free (the extra factor `∏_{i ∈ Λ} r(ω_i)` for `Λ = Finset.Ioo i k` is itself
+`cylinderEvents (Set.Icc i k)`-measurable, and does not involve the `ℤ`-index at all, so it does
+not disturb (10.23)'s shift-covariance). `IsIrreducibleInt (count.withDensity r) (rescale r
+(transferWeight Q))` is the real remaining construction: with `n(N) ≡ 1` (justified by strict
+positivity as above), `C_N` a monotone exhaustion of the countable `E` by finite sets, and
+`h_N(x) := (inf_{y, y' ∈ C_N} Q(y, x) Q(x, y')) / r(x)` (finite infimum of positive reals, hence
+positive), the defining inequality of (10.23) becomes exactly `transferWeight_singleton` — this is
+plausible but unproved. Even granting it, identifying the transition kernel `P` produced by
+(10.25) with a matrix equivalent to `Q` (Georgii's own hand-wave to "Theorem (2.34)", or the direct
+computation quoted in the proof of (11.13)) is a *second*, independent gap: it needs that two
+boundary laws for `Q` representing the *same* measure are proportional by a single constant, which
+is not a corollary of anything already proved in `GibbsMeasure/Model/BoundaryLaw.lean` or this
+file (the construction in `IsMarkovChain.exists_isBoundaryLaw_eq_boundaryLawMeasure` produces *one*
+boundary law, not a proof that any other representation of the same measure is a scalar multiple
+of it).
+
+Comment (11.18)(2) is a free-standing numerical remark (a lower bound `C^{-1} ≤ Q(x,y)/(u(x)v(y))
+≤ C` forces `∑_x ∑_{n ≤ N} Q^n(x,x) < ∞`, hence cannot coexist with the hypothesis of (11.15) when
+`E` is infinite) that does not depend on Corollary (11.17)'s statement and could be formalized
+independently of the gap above; it is not attempted here for lack of time, not for a mathematical
+reason.
 -/
 
 @[expose] public section
@@ -1173,6 +1223,59 @@ lemma tsum_mul_lazy {α : E → ℝ≥0∞} (hαP : ∀ y, ∑' x, α x * P x y 
   simp_rw [mul_left_comm (α _) t, mul_left_comm (α _) (1 - t)]
   rw [ENNReal.tsum_mul_left, ENNReal.tsum_mul_left, hαP, tsum_eq_single y fun x hx ↦ by simp [hx]]
   simp [← add_mul, add_tsub_cancel_of_le ht]
+
+end Lazy
+
+/-! ## Georgii Comment (11.18)(1): `Q = tP + (1 - t)I` satisfies the hypotheses of Theorem (11.13)
+(existence half) and of Theorem (11.15)/(11.16) at `p = 1`
+
+Comment (11.18)(1) asserts that "the uniqueness condition of Corollary (11.17) certainly holds
+whenever `Q = tP + (1-t)I` with `0 < t < 1` and `P` a positive recurrent positive stochastic
+matrix". Corollary (11.17) itself (`𝒢(Q) = {μ_P}` or `𝒢(Q) = ∅`) is **not** in this file: its
+proof needs the "only if" half of Theorem (11.13) — see the module docstring for exactly what
+that half needs and why it is not here. What Comment (11.18)(1) actually *certifies* about `Q`,
+and what is proved below, is that `Q` satisfies the two hypotheses that feed into (11.17): the
+existence hypothesis of Theorem (11.13) (`Q` equivalent to a positive recurrent positive
+stochastic matrix — here, trivially, to itself) and the periodicity hypothesis of Theorem
+(11.15)/(11.16), `inf_x Q(x, x) > 0`, at `p = 1`. -/
+
+section Lazy
+
+variable [Nonempty E] {P : E → E → ℝ≥0∞} {t : ℝ≥0∞} (hpos : ∀ x y, 0 < P x y)
+  (hP : ∀ x, ∑' y, P x y = 1) (ht0 : t ≠ 0) (ht1 : t < 1)
+include hpos hP ht0 ht1
+
+omit [Nonempty E] in
+/-- **Georgii Comment (11.18)(1), first clause.** For `0 < t < 1` and a positive stochastic `P`,
+`Q = tP + (1 - t)I` is again a transfer matrix. -/
+theorem lazy_isTransferMatrix : IsTransferMatrix (lazy P t) :=
+  isTransferMatrix_of_stochastic (lazy_pos hpos ht0) (lazy_stochastic hP ht1.le)
+
+omit [Nonempty E] hpos hP ht0 in
+/-- **Georgii Comment (11.18)(1), periodicity clause.** `inf_x Q(x, x) ≥ 1 - t > 0`: the
+hypothesis of Theorem (11.15)/(11.16) at `p = 1` (with `N = 1` in Georgii's stated form
+`inf_x ∑_{n=1}^N Q^n(x, x) > 0`). -/
+theorem iInf_lazy_apply_self_pos :
+    0 < ⨅ x, (Kernel.ofMatrix (lazy P t) ^ 1) x {x} :=
+  lt_of_lt_of_le (tsub_pos_of_lt ht1) (le_iInf fun x ↦ by
+    rw [Kernel.ofMatrix_pow_one_apply_singleton]; exact le_lazy_apply_self x)
+
+variable {α : E → ℝ≥0∞} (hα0 : ∀ x, 0 < α x) (hαt : ∀ x, α x ≠ ⊤) (hα1 : ∑' x, α x = 1)
+  (hαP : ∀ y, ∑' x, α x * P x y = α y)
+include hα0 hαt hα1 hαP
+
+/-- **Georgii Comment (11.18)(1), existence clause.** An invariant probability vector `α` of `P`
+is also invariant for `Q = tP + (1 - t)I`, so Georgii's `μ_Q` lies in `𝒢_Θ(Q)` by the existence
+half of Theorem (11.13) (`boundaryLawMeasure_const_mem_invariantG`). Together with
+`lazy_isTransferMatrix` and `iInf_lazy_apply_self_pos`, this assembles the whole content of
+Comment (11.18)(1) that does not require the "only if" half of Theorem (11.13). -/
+theorem boundaryLawMeasure_const_lazy_mem_invariantG :
+    boundaryLawMeasure (isBoundaryLaw_const (lazy_stochastic hP ht1.le) hα0 hαt hα1
+        (tsum_mul_lazy hαP ht1.le))
+      ∈ invariantG (transferSpecification (lazy P t) (lazy_isTransferMatrix hpos hP ht0 ht1))
+        (shiftGroup ℤ E) :=
+  boundaryLawMeasure_const_mem_invariantG (lazy_pos hpos ht0) (lazy_stochastic hP ht1.le) hα0 hαt
+    hα1 (tsum_mul_lazy hαP ht1.le) (lazy_isTransferMatrix hpos hP ht0 ht1) rfl
 
 end Lazy
 

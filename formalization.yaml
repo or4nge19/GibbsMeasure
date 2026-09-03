@@ -987,11 +987,13 @@ alignment:
         kernels P_i(x,y) r_{i-1}(x) = Q(x,y) r_i(y) (11.11); (11.12) in division-free form; if
         Q ~ P with P stochastic with an invariant probability vector then mu_P in G_Theta(gamma^Q);
         (11.16); (11.15) for a boundary-law measure extreme in G(gamma^Q): theta_p mu = mu when
-        inf_x Q^p(x,x) > 0, and theta_{N!} mu = mu under Georgii's hypothesis on sum_{n<=N} Q^n(x,x).
-        Not formalized: (11.9)(c) (needs (10.21)), the uniqueness half of (11.13) and (11.14),
-        (11.17), the conclusions of (11.18) and (11.19) (need (11.6)-(11.7): the convergence
-        parameter L(Q) and recurrence theory, absent from Mathlib), (11.18)(2) (comparison with
-        (8.39)).
+        inf_x Q^p(x,x) > 0, and theta_{N!} mu = mu under Georgii's hypothesis on sum_{n<=N} Q^n(x,x);
+        (11.18)(1): tP + (1-t)I is a transfer matrix with inf_x Q(x,x) > 0 and mu_Q in G_Theta(Q).
+        Not formalized: (11.9)(c), the uniqueness half of (11.13), (11.14), (11.17), (11.18)(2)-(3),
+        (11.19): they route through (10.35) for gamma^Q, which needs (i) transport of the Markov
+        theory of Chapter 10 (stated for a probability a priori measure) to counting measure via
+        Specification.rescale, with irreducibility (10.23) for a positive Q, and (ii) that two
+        boundary laws representing the same measure are proportional.
     - source: "Comments (9.7), Example (9.8)(2), Comments (9.13), Examples (9.15), (9.17)"
       lean: "MeasureTheory.GibbsMeasure.G_gradientPotential_eq_empty"
       module: "GibbsMeasure/Model/OneDimensionalSymmetryExamples.lean"
