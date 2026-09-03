@@ -84,13 +84,6 @@ omit [DecidableEq S] in
   funext ω
   rw [condDensity, Finset.sdiff_self, isssd_empty_apply, lintegral_dirac' _ hρ]
 
-/-- Georgii (1.25) in measure form: resampling `Λ₁` and then `Λ₂` resamples `Λ₁ ∪ Λ₂`. -/
-lemma isssd_bind_isssd (Λ₁ Λ₂ : Finset S) (ω : S → E) :
-    (isssd ν Λ₁ ω).bind (isssd ν Λ₂) = isssd ν (Λ₂ ∪ Λ₁) ω := by
-  have h := DFunLike.congr_fun (isssd_comp_isssd (ν := ν) Λ₂ Λ₁) ω
-  rw [Kernel.comp_apply] at h
-  simpa [Kernel.comap_apply] using h
-
 /-- **The key identity of Georgii's proof of (7.12)(c)**: for `f` measurable with respect to the
 events outside `Λ ∖ Δ` — in particular for every `f` measurable with respect to the events of `Δ` —
 the finite-volume Gibbs distribution `γ_Λ(· | ω)` integrates `f` against the density `ρ_Δ^Λ` and the

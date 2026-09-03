@@ -2650,4 +2650,26 @@ lemma isssd_singleton_eq_map {S E : Type*} [DecidableEq S] [MeasurableSpace E] (
     rfl
   · rw [Function.comp_apply, juxt_apply_of_not_mem (by simpa using hj), Function.update_of_ne hj]
 
+section IsssdBind
+
+variable {S E : Type*} [MeasurableSpace E] {ν : Measure E} [IsProbabilityMeasure ν]
+  {μ : Measure (S → E)}
+
+lemma measurable_isssd_coe (Λ : Finset S) : Measurable (isssd (S := S) ν Λ) :=
+  (isssd ν Λ).measurable.mono cylinderEvents_le_pi le_rfl
+/-- Resampling `Λ₂` and then `Λ₁` is resampling `Λ₁ ∪ Λ₂` (strong consistency of `isssd`, as an
+identity of measures). -/
+lemma isssd_bind_isssd [DecidableEq S] (Λ₁ Λ₂ : Finset S) (η : S → E) :
+    (isssd ν Λ₂ η).bind (isssd ν Λ₁) = isssd ν (Λ₁ ∪ Λ₂) η := by
+  have := DFunLike.congr_fun (isssd_comp_isssd (S := S) (ν := ν) Λ₁ Λ₂) η
+  simp only [Kernel.comp_apply, Kernel.comap_apply, id_eq] at this
+  rw [← this]
+  congr 1
+instance isProbabilityMeasure_bind_isssd [IsProbabilityMeasure μ] (Λ : Finset S) :
+    IsProbabilityMeasure (μ.bind (isssd ν Λ)) :=
+  ⟨by rw [Measure.bind_apply MeasurableSet.univ (measurable_isssd_coe Λ).aemeasurable,
+    lintegral_congr fun η ↦ measure_univ (μ := isssd ν Λ η), lintegral_one, measure_univ]⟩
+
+end IsssdBind
+
 end Specification

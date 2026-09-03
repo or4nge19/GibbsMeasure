@@ -510,7 +510,10 @@ Markovian densities on `ℤ` (10.2), the chain specification of transition densi
 chains (10.4) with (10.5) as an equivalence, the two-sided, one-sided, local and global Markov
 properties (10.6)–(10.8), (10.10), **Theorem (10.9)** in all three parts, and **Example (10.11)**:
 a Markov chain with transition densities is a Gibbs measure for the chain specification; Chapter 3
-is the finite-state instance (`GibbsMeasure/Model/MarkovChainInt.lean`).
+is the finite-state instance (`GibbsMeasure/Model/MarkovChainInt.lean`). **§10.2**
+(`GibbsMeasure/Specification/MarkovIntChains.lean`): the marginal densities and the backward
+martingale (10.12)–(10.20), **Theorem (10.21)** — every extreme Gibbs measure of a Markov
+specification is a Markov chain, for any state space — and Corollary (10.22).
 
 **Chapter 11, first steps** (`GibbsMeasure/Model/BoundaryLaw.lean`,
 `GibbsMeasure/Mathlib/Probability/Kernel/CountableMatrix.lean`): sites `ℤ`, a *countable* state
@@ -534,7 +537,7 @@ characterisations are not, since Mathlib has no strong Markov property.
 
 Not yet done: the inhomogeneous Ising chains of §6.1, Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
-plane-rotator and Heisenberg instances (9.22)–(9.24), (14.13), (14.16), (14.21)–(14.24), (15.14)(c), (15.16)–(15.20), (15.28), (15.30)(b), (15.32)–(15.39), Chapter 11 from (11.9)(c) and the uniqueness halves of (11.13)–(11.19) on, §§10.2–10.3, §12.2, and Chapters 13 and
+plane-rotator and Heisenberg instances (9.22)–(9.24), (14.13), (14.16), (14.21)–(14.24), (15.14)(c), (15.16)–(15.20), (15.28), (15.30)(b), (15.32)–(15.39), Chapter 11 from (11.9)(c) and the uniqueness halves of (11.13)–(11.19) on, (10.23)–(10.26), §10.3, §12.2, and Chapters 13 and
 16–20 (
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).

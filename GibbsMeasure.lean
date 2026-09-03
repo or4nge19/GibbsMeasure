@@ -41,6 +41,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Measure.CountablyGeneratedModNu
 public import GibbsMeasure.Mathlib.MeasureTheory.Order.StochasticDomination
 public import GibbsMeasure.Mathlib.MeasureTheory.Order.Holley
 public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.TrivialOn
+public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.DoobDynkin
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.AEMeasurable
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.GiryMonad
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.RegularContent
@@ -165,6 +166,7 @@ public import GibbsMeasure.Specification.ProductSpecification
 public import GibbsMeasure.Specification.QuasilocalSpecification
 public import GibbsMeasure.Specification.Singleton
 public import GibbsMeasure.Specification.MarkovInt
+public import GibbsMeasure.Specification.MarkovIntChains
 public import GibbsMeasure.Specification.Pressure
 public import GibbsMeasure.Specification.SpecificEntropy
 public import GibbsMeasure.Specification.Structure

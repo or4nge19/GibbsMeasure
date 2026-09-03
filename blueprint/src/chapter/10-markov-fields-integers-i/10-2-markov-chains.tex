@@ -1,0 +1,69 @@
+\section{Markov fields which are Markov chains}
+
+Throughout, $\lambda$ is a probability measure on $E$, $\gamma = \rho\lambda$ a Markov
+specification on $\mathbb Z$ with Markovian densities $\rho$ (Definition \ref{def:mfi-markov-spec}),
+and for $\mu \in \mathcal G(\gamma)$, $\nu_j = \mu\lambda_{\set{j-1,j}}$.
+
+\begin{definition}[Marginal densities, Georgii (10.12)--(10.16)]
+    \label{def:mfc-marginal}
+    \uses{def:mfi-markov-spec}
+    \lean{Specification.marginalDensity, Specification.absolutelyContinuous_bind_isssd_of_subset}
+    \leanok
+
+    For $j \in \Lambda$, $\rho^j_\Lambda = \lambda_{\Lambda \setminus\set j}\rho_\Lambda$ is the
+    density of $\sigma_j$ under $\gamma_\Lambda$ once the other sites are integrated out; for
+    $\mu \in \mathcal G(\gamma)$, $\mu \ll \mu\lambda_\Delta$ and $\mu\lambda_\Lambda \ll \mu\lambda_\Delta$
+    for $\Lambda \subseteq \Delta$.
+\end{definition}
+
+\begin{lemma}[Georgii (10.20)]
+    \label{lem:mfc-10-20}
+    \uses{def:mfc-marginal, def:mfi-markov-chain}
+    \lean{MeasureTheory.GibbsMeasure.Markov.IsGibbsMeasure.exists_density_of_ae_eq, MeasureTheory.GibbsMeasure.Markov.IsGibbsMeasure.exists_isMarkovChain_of_forall_exists_ae_eq, MeasureTheory.GibbsMeasure.Markov.IsGibbsMeasure.exists_isMarkovChain_of_forall_condExp_iInf_ae_eq}
+    \leanok
+
+    Let $\mu \in \mathcal G(\gamma)$ and suppose that for every $j$ the conditional density
+    $\rho^j_{]j-1,\infty[}$ (the backward-martingale limit (10.17)--(10.18)) is $\nu_j$-a.s.\ a
+    function $q_j(\sigma_{j-1}, \sigma_j)$. Then there are transition densities
+    $p_j \colon E \times E \to [0,\infty]$, measurable with $\int p_j(x,y)\lambda(dy) = 1$, such
+    that $p_j(\sigma_{j-1},\sigma_j) = \nu_j(\rho_{\set j} \mid \mathcal F_{]-\infty,j]})$
+    $\nu_j$-a.s., and $\mu$ is a Markov chain with transition kernels $p_j(x,\cdot)\lambda$.
+\end{lemma}
+\begin{proof}
+    \leanok
+    Normalise $q_j$ in its second variable, using $\mu \ll \nu_j$ and the DLR equation for
+    $\set j$ to identify $\int_D p_j(\sigma_{j-1},\sigma_j)\,d\nu_j = \mu(D)$ for
+    $D \in \mathcal F_{]-\infty,j]}$.
+\end{proof}
+
+\begin{theorem}[Georgii (10.21)]
+    \label{thm:mfc-10-21}
+    \uses{lem:mfc-10-20, thm:ext-77-concrete}
+    \lean{MeasureTheory.GibbsMeasure.Markov.exists_ae_eq_pair_of_forall_measure_eq_zero_or_one, MeasureTheory.GibbsMeasure.Markov.exists_isMarkovChain_of_mem_extremePoints}
+    \leanok
+
+    Every extreme $\mu \in \mathcal G(\gamma)$ is a Markov chain with transition densities as
+    in Lemma \ref{lem:mfc-10-20}.
+\end{theorem}
+\begin{proof}
+    \leanok
+    The right tail $\bigcap_n \mathcal F_{[j+1+n,\infty[}$ is contained in $\mathcal T$, hence
+    trivial under $\mu$ by Theorem (7.7)(a). Resampling the two sites $j-1, j$ and freezing their
+    values turns $\rho^j_{]j-1,\infty[}$ into a right-tail-measurable function, hence a.s.\ a
+    constant depending measurably on the two values; Fubini removes the exceptional set, and
+    Lemma \ref{lem:mfc-10-20} applies. No assumption on $E$ is needed.
+\end{theorem}
+
+\begin{corollary}[Georgii (10.22)]
+    \label{cor:mfc-10-22}
+    \uses{thm:mfc-10-21, thm:ext-726}
+    \lean{MeasureTheory.GibbsMeasure.Markov.exists_isMarkovChain_of_nonempty_G}
+    \leanok
+
+    If $E$ is standard Borel and $\mathcal G(\gamma) \neq \emptyset$, then $\mathcal G(\gamma)$
+    contains a Markov chain.
+\end{corollary}
+\begin{proof}
+    \leanok
+    $\operatorname{ex}\mathcal G(\gamma) \neq \emptyset$ by Theorem (7.26).
+\end{proof}

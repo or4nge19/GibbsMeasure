@@ -1,6 +1,7 @@
 module
 
 public import Mathlib.MeasureTheory.Measure.GiryMonad
+public import Mathlib.MeasureTheory.Measure.WithDensity
 
 public section
 
@@ -73,3 +74,43 @@ lemma bind_finset_sum {ι : Type*} (s : Finset ι) (m : ι → Measure α) (f : 
 
 end MeasureTheory.Measure
 
+namespace MeasureTheory
+
+section WithDensityBind
+
+variable {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+
+/-- `withDensity` commutes with the Giry `bind`:
+`(μ.bind κ).withDensity f = μ.bind fun a ↦ (κ a).withDensity f`.
+Intended home: `Mathlib/MeasureTheory/Measure/WithDensity.lean`. -/
+lemma Measure.withDensity_bind {μ : Measure α} {κ : α → Measure β} (hκ : Measurable κ)
+    {f : β → ℝ≥0∞} (hf : Measurable f) :
+    (μ.bind κ).withDensity f = μ.bind fun a ↦ (κ a).withDensity f := by
+  have hκ' : Measurable fun a ↦ (κ a).withDensity f := by
+    refine Measure.measurable_of_measurable_coe _ fun s hs ↦ ?_
+    simp_rw [withDensity_apply _ hs, ← lintegral_indicator hs]
+    exact (Measure.measurable_lintegral (hf.indicator hs)).comp hκ
+  ext s hs
+  rw [withDensity_apply _ hs, ← lintegral_indicator hs,
+    Measure.lintegral_bind hκ.aemeasurable (hf.indicator hs).aemeasurable,
+    Measure.bind_apply hs hκ'.aemeasurable]
+  exact lintegral_congr fun a ↦ by rw [withDensity_apply _ hs, lintegral_indicator hs]
+
+end WithDensityBind
+
+section BindAbsolutelyContinuous
+
+variable {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+
+/-- Absolute continuity passes to the Giry `bind`: if `μ ≪ ν` then `μ κ ≪ ν κ`.
+Intended home: `Mathlib/MeasureTheory/Measure/GiryMonad.lean`. -/
+lemma Measure.AbsolutelyContinuous.bind {μ ν : Measure α} {κ : α → Measure β}
+    (h : μ ≪ ν) (hκ : Measurable κ) : μ.bind κ ≪ ν.bind κ := by
+  refine Measure.AbsolutelyContinuous.mk fun s hs h0 ↦ ?_
+  have hm : Measurable fun a ↦ κ a s := (Measure.measurable_coe hs).comp hκ
+  rw [Measure.bind_apply hs hκ.aemeasurable] at h0 ⊢
+  exact (lintegral_eq_zero_iff hm).2 (h.ae_eq ((lintegral_eq_zero_iff hm).1 h0))
+
+end BindAbsolutelyContinuous
+
+end MeasureTheory

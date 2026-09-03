@@ -50,7 +50,7 @@ status:
     and its Lipschitz continuity and convexity (16.1)(a)); Section 11.1 up to Theorem (11.9)(b), (11.11)-(11.12), the sufficiency half of (11.13), (11.16),
     and the extreme case of (11.15), (11.6)-(11.7); Section 12.1 ((12.1)-(12.2), (12.7)-(12.17) except
     (12.3)(2)-(6), (12.5)-(12.6), uniqueness of boundary laws up to a factor, (12.18)); Section 10.1 (the Markov
-    properties (10.2)-(10.11)); Section 9.1 (symmetry
+    properties (10.2)-(10.11)), Section 10.2 ((10.12)-(10.22)); Section 9.1 (symmetry
     inheritance (9.1), localized symmetries (9.3), one-dimensional pair interactions (9.5),
     (9.11), (9.16)); Section 9.2 (Mermin-Wagner (9.20) with Lemmas (9.28), (9.33)). The rest is not
     formalized.
@@ -1005,6 +1005,17 @@ alignment:
         constant case (12.16)-(12.17). Not formalized: (12.3)(2)-(6), (12.5), (12.6), uniqueness of
         the boundary law up to a factor, (12.18). The Z-specific lemmas of Model/BoundaryLaw.lean are
         instances of the tree lemmas and are being re-derived from them.
+    - source: "Section 10.2: (10.12)-(10.20), Theorem (10.21), Corollary (10.22)"
+      lean: "MeasureTheory.GibbsMeasure.Markov.exists_isMarkovChain_of_mem_extremePoints"
+      module: "GibbsMeasure/Specification/MarkovIntChains.lean"
+      status: "proved"
+      note: >-
+        Marginal densities and local absolute continuity (10.12)-(10.16), the backward martingale
+        (10.17)-(10.18), Lemma (10.20) in Georgii's three-part form, Theorem (10.21) for any
+        measurable E (only tail triviality (7.7)(a) is used), Corollary (10.22) with
+        StandardBorelSpace E through (7.26). The OCR of the book's statement of (10.21) is
+        corrupted in reference_docs; the statement was reconstructed from the surviving text and
+        the wiki. Not formalized: (10.23)-(10.26) (irreducibility and uniqueness), Section 10.3.
 
 acknowledgements: >-
   Builds on Mathlib. Kolmogorov extension material adapted from RemyDegenne/kolmogorov_extension4.

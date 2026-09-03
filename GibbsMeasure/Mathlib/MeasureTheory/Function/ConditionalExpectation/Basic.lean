@@ -163,4 +163,76 @@ lemma toReal_ae_eq_indicator_condExp_iff_forall_meas_inter_eq (hm : m ≤ m0)
     · intro t ht hμt
       simpa using (h_eq t ht).symm
 
+section CondExpToReal
+
+variable {α : Type*} {m m0 : MeasurableSpace α} {μ : Measure α}
+
+/-- An `m`-measurable `ℝ≥0∞`-valued function `g` whose set integrals over all `m`-measurable sets
+agree with those of `f` is (the real part of) the conditional expectation `μ[f | m]`.
+Intended home: `Mathlib/MeasureTheory/Function/ConditionalExpectation/Basic.lean`. -/
+lemma toReal_ae_eq_condExp_toReal_of_forall_setLIntegral_eq (hm : m ≤ m0) [IsFiniteMeasure μ]
+    {f g : α → ℝ≥0∞} (hf : AEMeasurable f μ) (hg : Measurable[m] g)
+    (hfi : ∫⁻ x, f x ∂μ ≠ ⊤) (hgi : ∫⁻ x, g x ∂μ ≠ ⊤)
+    (h : ∀ t, MeasurableSet[m] t → ∫⁻ x in t, g x ∂μ = ∫⁻ x in t, f x ∂μ) :
+    (fun x ↦ (g x).toReal) =ᵐ[μ] μ[fun x ↦ (f x).toReal | m] := by
+  have hg' : AEMeasurable g μ := (hg.mono hm le_rfl).aemeasurable
+  have hfint : Integrable (fun x ↦ (f x).toReal) μ := integrable_toReal_of_lintegral_ne_top hf hfi
+  have hgint : Integrable (fun x ↦ (g x).toReal) μ := integrable_toReal_of_lintegral_ne_top hg' hgi
+  refine ae_eq_condExp_of_forall_setIntegral_eq hm hfint (fun s _ _ ↦ hgint.integrableOn)
+    (fun s hs _ ↦ ?_) (hg.ennreal_toReal.stronglyMeasurable.aestronglyMeasurable)
+  rw [integral_toReal hg'.restrict (ae_restrict_of_ae (ae_lt_top' hg' hgi)),
+    integral_toReal hf.restrict (ae_restrict_of_ae (ae_lt_top' hf hfi)), h s hs]
+
+/-- Two `ℝ≥0∞`-valued functions with finite integrals whose real parts have the same integral
+over a set have the same set integral. -/
+lemma setLIntegral_eq_of_setIntegral_toReal_eq {f g : α → ℝ≥0∞} {s : Set α}
+    (hf : AEMeasurable f μ) (hg : AEMeasurable g μ) (hfi : ∫⁻ x, f x ∂μ ≠ ⊤)
+    (hgi : ∫⁻ x, g x ∂μ ≠ ⊤)
+    (h : ∫ x in s, (f x).toReal ∂μ = ∫ x in s, (g x).toReal ∂μ) :
+    ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂μ := by
+  rw [integral_toReal hf.restrict (ae_restrict_of_ae (ae_lt_top' hf hfi)),
+    integral_toReal hg.restrict (ae_restrict_of_ae (ae_lt_top' hg hgi))] at h
+  exact (ENNReal.toReal_eq_toReal_iff' (ne_top_of_le_ne_top hfi (setLIntegral_le_lintegral _ _))
+    (ne_top_of_le_ne_top hgi (setLIntegral_le_lintegral _ _))).1 h
+
+end CondExpToReal
+
+section AEEqOfSetLIntegral
+
+variable {α : Type*} {m m0 : MeasurableSpace α} {μ : Measure α}
+
+/-- Two `m`-measurable `ℝ≥0∞`-valued functions with the same integral over every `m`-measurable
+set agree almost everywhere, for a finite measure on `m0 ≥ m`.
+Intended home: `Mathlib/MeasureTheory/Function/AEEqOfLIntegral.lean`. -/
+lemma ae_eq_of_forall_setLIntegral_eq_of_le (hm : m ≤ m0) [IsFiniteMeasure μ] {f g : α → ℝ≥0∞}
+    (hf : Measurable[m] f) (hg : Measurable[m] g)
+    (h : ∀ s, MeasurableSet[m] s → ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂μ) : f =ᵐ[μ] g :=
+  ae_eq_of_ae_eq_trim (ae_eq_of_forall_setLIntegral_eq_of_sigmaFinite (μ := μ.trim hm) hf hg
+    fun s hs _ ↦ by rw [setLIntegral_trim hm hf hs, setLIntegral_trim hm hg hs, h s hs])
+
+end AEEqOfSetLIntegral
+
+section SetLIntegralOfReal
+
+variable {α : Type*} {m m0 : MeasurableSpace α} {μ : Measure α}
+
+/-- A nonnegative real version `g` of the conditional expectation `μ[f.toReal | m]` of an
+`ℝ≥0∞`-valued `f` with finite integral has, after `ENNReal.ofReal`, the same integrals as `f`
+over `m`-measurable sets.
+Intended home: `Mathlib/MeasureTheory/Function/ConditionalExpectation/Basic.lean`. -/
+lemma setLIntegral_ofReal_of_ae_eq_condExp (hm : m ≤ m0) [IsFiniteMeasure μ]
+    {f : α → ℝ≥0∞} {g : α → ℝ} (hf : AEMeasurable f μ) (hfi : ∫⁻ x, f x ∂μ ≠ ⊤)
+    (hg0 : 0 ≤ᵐ[μ] g) (hg : g =ᵐ[μ] μ[fun x ↦ (f x).toReal | m])
+    {s : Set α} (hs : MeasurableSet[m] s) :
+    ∫⁻ x in s, ENNReal.ofReal (g x) ∂μ = ∫⁻ x in s, f x ∂μ := by
+  have hfint : Integrable (fun x ↦ (f x).toReal) μ := integrable_toReal_of_lintegral_ne_top hf hfi
+  have hgint : Integrable g μ := integrable_condExp.congr hg.symm
+  have h1 : ∫ x in s, g x ∂μ = ∫ x in s, (f x).toReal ∂μ :=
+    (integral_congr_ae (ae_restrict_of_ae hg)).trans (setIntegral_condExp hm hfint hs)
+  rw [← ofReal_integral_eq_lintegral_ofReal hgint.restrict (ae_restrict_of_ae hg0), h1,
+    integral_toReal hf.restrict (ae_restrict_of_ae (ae_lt_top' hf hfi)),
+    ENNReal.ofReal_toReal (ne_top_of_le_ne_top hfi (setLIntegral_le_lintegral _ _))]
+
+end SetLIntegralOfReal
+
 end MeasureTheory
