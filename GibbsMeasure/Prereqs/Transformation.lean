@@ -388,6 +388,12 @@ def shift (j : S) : Transformation S E where
     (shift E j).inv.toFun ω i = ω (i + j) := by
   simp [shift, Transformation.inv, Transformation.toFun]
 
+open MeasureTheory in
+/-- The shift `θ_j` preserves every single-spin measure (Georgii, remark after (5.9)). -/
+lemma measurePreserving_shift_spin (ν : Measure E) (j i : S) :
+    MeasurePreserving ((shift E j).spin i) ν ν :=
+  MeasurePreserving.id ν
+
 /-- The inverse of the shift `θ_j` is `θ_{-j}`. -/
 lemma shift_neg_toFun_eq {S : Type*} [AddGroup S] (j : S) :
     (shift E (-j)).toFun = (shift E j).inv.toFun := by

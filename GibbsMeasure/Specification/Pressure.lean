@@ -611,11 +611,6 @@ section Shift
 
 variable [AddCommGroup S]
 
-/-- The shift `θ_j` preserves every single-spin measure (Georgii, remark after (5.9)). -/
-lemma measurePreserving_shift_spin (ν : Measure E) (j i : S) :
-    MeasurePreserving ((shift E j).spin i) ν ν :=
-  MeasurePreserving.id ν
-
 variable (ν : Measure E) [IsProbabilityMeasure ν]
 
 /-- **Georgii (5.6)(c) for the shift.** `Z_{Λ + j}(θ_j ω) = Z_Λ(ω)` for a shift-invariant

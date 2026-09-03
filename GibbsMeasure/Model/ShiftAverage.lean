@@ -15,9 +15,10 @@ public import GibbsMeasure.Model.Ising
 
 Georgii (5.17)(1): a shift-invariant specification with `𝒢(γ)` non-empty and compact has a
 shift-invariant Gibbs measure, by Corollary (5.16) since the shift group `Θ` is abelian
-(`exists_mem_GP_forall_measurePreserving_shift_of_isCompact`, no hypothesis on the state space);
-in particular for the Gibbsian specification of a shift-invariant absolutely summable potential
-over a standard Borel state space (Theorem (4.23)(a)).
+(`exists_mem_GP_forall_measurePreserving_shift_of_isCompact`, no hypothesis on the state space,
+proved in `GibbsMeasure/Specification/InvariantExistenceGroup.lean`); in particular for the
+Gibbsian specification of a shift-invariant absolutely summable potential over a standard Borel
+state space (Theorem (4.23)(a)).
 
 Georgii Example (5.20)(1): cluster points of the cube-averaged finite-volume Gibbs
 distributions `|Λ_N|⁻¹ ∑_{i ∈ Λ_N} γ_{Λ_N + i}(· | ω)` with a constant boundary condition are
@@ -26,7 +27,8 @@ shift-invariant Gibbs measures; for finite `E` they exist, in particular for the
 Georgii Theorem (5.15) with `I₀ = Θ` and Example (5.17)(2): a further symmetrisation over an
 abelian group of symmetries commuting with the shift group — or over a single involution, the
 shape of the `F`-steps in Examples (5.17)(2)–(4) — preserves the shift-invariance
-(`exists_mem_GP_forall_measurePreserving_shift_and_measurePreserving_of_isCompact`). The
+(`exists_mem_GP_forall_measurePreserving_shift_and_measurePreserving_of_isCompact`, likewise in
+`GibbsMeasure/Specification/InvariantExistenceGroup.lean`). The
 concrete instance is the spin flip `pureSpin S boolNot` of the zero-field Ising model:
 `𝒢_{F∘Θ} ≠ ∅` for `F = {id, flip}`
 (`exists_latticeIsing_mem_GP_forall_measurePreserving_shift_and_spinFlip`).
@@ -255,116 +257,27 @@ lemma card_symmDiff_map_cubeTranslates_shift (j : Fin d → ℤ) (N k : ℕ) :
     ← Finset.image_symmDiff _ _ (map_addRight_cube_injective N),
     Finset.card_image_of_injective _ (map_addRight_cube_injective N)]
 
-/-! ### Georgii (5.17)(1): existence of shift-invariant Gibbs measures -/
+/-! ### Georgii (5.17)(1) on `ℤ^d`
 
-section ShiftGroup
-variable [AddCommGroup S]
-
-/-- On an abelian group of sites, `j ↦ θ_j` is a homomorphism into the transformation group:
-`θ_{j + j'} = θ_j ∘ θ_{j'}` (Georgii (5.2)(1): the shift group `Θ`). -/
-lemma shift_add (j j' : S) : shift E (j + j') = shift E j * shift E j' := by
-  refine Transformation.ext (Equiv.ext fun x ↦ ?_) rfl
-  show x + (j + j') = x + j' + j
-  rw [add_comm j j', ← add_assoc]
-
-/-- **Georgii (5.17)(1).** A shift-invariant specification on an abelian group of sites whose
-set of Gibbs measures is non-empty and compact in the topology of local convergence admits a
-shift-invariant Gibbs measure, by Corollary (5.16) since the shift group `Θ` is abelian. No
-hypothesis on the state space is needed. -/
-theorem exists_mem_GP_forall_measurePreserving_shift_of_isCompact {γ : Specification S E}
-    (hγ : ∀ j, Specification.IsInvariant (shift E j) γ)
-    (hcpt : IsCompact {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP (S := S) (E := E) γ})
-    (hne : (GP (S := S) (E := E) γ).Nonempty) :
-    ∃ μ ∈ GP (S := S) (E := E) γ,
-      ∀ j : S, MeasurePreserving (shift E j).toFun (μ : Measure (S → E)) μ :=
-  exists_mem_GP_and_forall_measurePreserving_of_isCompact (Φ := shift E)
-    (fun j j' ↦ shift_add j j') hγ hcpt hne
-
-/-- **Georgii Theorem (5.15)(ii) with the shift group as inner subgroup `I₀ = Θ`.** Let `γ` be
-invariant under the shifts and under an abelian group `A` of symmetries `Φ`, each commuting with
-the shift group in Georgii's sense `Φ x ∘ Θ = Θ ∘ Φ x` (i.e. `θ_j ∘ Φ x = Φ x ∘ θ_{j'}` for some
-`j'`). If `𝒢(γ)` is non-empty and compact in the topology of local convergence, then `𝒢(γ)`
-contains a measure invariant under all shifts and all `Φ x` simultaneously:
-`𝒢_{⟨Φ⟩∘Θ}(γ) ≠ ∅`. Example (5.17)(1) supplies the shift-invariant starting measure, and
-Theorem (5.15)(ii) preserves its shift-invariance while averaging over `A`. -/
-theorem exists_mem_GP_forall_measurePreserving_shift_and_measurePreserving_of_isCompact
-    {A : Type*} [AddCommGroup A] {γ : Specification S E} {Φ : A → Transformation S E}
-    (hΦ : ∀ x y, Φ (x + y) = Φ x * Φ y)
-    (hcomm : ∀ (j : S) (x : A), ∃ j',
-      (shift E j).toFun ∘ (Φ x).toFun = (Φ x).toFun ∘ (shift E j').toFun)
-    (hγs : ∀ j, Specification.IsInvariant (shift E j) γ)
-    (hγΦ : ∀ x, Specification.IsInvariant (Φ x) γ)
-    (hcpt : IsCompact {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP (S := S) (E := E) γ})
-    (hne : (GP (S := S) (E := E) γ).Nonempty) :
-    ∃ μ ∈ GP (S := S) (E := E) γ,
-      (∀ j : S, MeasurePreserving (shift E j).toFun (μ : Measure (S → E)) μ) ∧
-        ∀ x : A, MeasurePreserving (Φ x).toFun (μ : Measure (S → E)) μ := by
-  obtain ⟨ν, hν, hνs⟩ :=
-    exists_mem_GP_forall_measurePreserving_shift_of_isCompact hγs hcpt hne
-  exact exists_mem_GP_and_forall_measurePreserving_of_isCompact_of_measurePreserving
-    (T₀ := shift E) hΦ hcomm hγΦ hcpt hν hνs
-
-/-- **Georgii Theorem (5.15)(ii) with `I₀ = Θ` and an involution generating `I₁`** — the shape
-of the `F`-steps in Georgii's Examples (5.17)(2)–(4): a specification invariant under the shifts
-and under an involution `τ` commuting with the shift group has, when `𝒢(γ)` is non-empty and
-compact in the topology of local convergence, a Gibbs measure invariant under `τ` and all shifts
-simultaneously: `𝒢_{{id,τ}∘Θ}(γ) ≠ ∅`. -/
-theorem exists_mem_GP_forall_measurePreserving_shift_and_involution_of_isCompact
-    {γ : Specification S E} {τ : Transformation S E} (hτ : τ * τ = 1)
-    (hcomm : ∀ j : S, ∃ j', (shift E j).toFun ∘ τ.toFun = τ.toFun ∘ (shift E j').toFun)
-    (hγs : ∀ j, Specification.IsInvariant (shift E j) γ)
-    (hγτ : Specification.IsInvariant τ γ)
-    (hcpt : IsCompact {μ : WithLocalConvergence S E | μ.toMeasure ∈ GP (S := S) (E := E) γ})
-    (hne : (GP (S := S) (E := E) γ).Nonempty) :
-    ∃ μ ∈ GP (S := S) (E := E) γ,
-      (∀ j : S, MeasurePreserving (shift E j).toFun (μ : Measure (S → E)) μ) ∧
-        MeasurePreserving τ.toFun (μ : Measure (S → E)) μ := by
-  have key : ∀ n : ℤ, τ ^ n = 1 ∨ τ ^ n = τ := by
-    intro n
-    obtain ⟨k, hk⟩ | ⟨k, hk⟩ := Int.even_or_odd n
-    · left
-      rw [hk, ← two_mul, zpow_mul, zpow_two, hτ, one_zpow]
-    · right
-      rw [hk, zpow_add, zpow_one, zpow_mul, zpow_two, hτ, one_zpow, one_mul]
-  have hγΦ : ∀ n : ℤ, Specification.IsInvariant (τ ^ n) γ := by
-    intro n
-    obtain h | h := key n
-    · rw [h]
-      exact Specification.isInvariant_id γ
-    · rw [h]
-      exact hγτ
-  have hcomm' : ∀ (j : S) (n : ℤ), ∃ j',
-      (shift E j).toFun ∘ (τ ^ n).toFun = (τ ^ n).toFun ∘ (shift E j').toFun := by
-    intro j n
-    obtain h | h := key n
-    · refine ⟨j, ?_⟩
-      rw [h]
-      funext ω
-      simp only [Function.comp_apply, Transformation.one_def, Transformation.id_toFun]
-    · rw [h]
-      exact hcomm j
-  obtain ⟨μ, hμ, hs, hall⟩ :=
-    exists_mem_GP_forall_measurePreserving_shift_and_measurePreserving_of_isCompact
-      (Φ := fun n : ℤ ↦ τ ^ n) (fun x y ↦ zpow_add τ x y) hcomm' hγs hγΦ hcpt hne
-  refine ⟨μ, hμ, hs, ?_⟩
-  have h1 := hall 1
-  rwa [zpow_one] at h1
-
-end ShiftGroup
+The general statements live in `GibbsMeasure/Specification/InvariantExistenceGroup.lean`, next to
+Corollary (5.16): `exists_mem_GP_forall_measurePreserving_shift_of_isCompact` is Example
+(5.17)(1) for an arbitrary abelian site group, and `..._and_measurePreserving_of_isCompact`,
+`..._and_involution_of_isCompact` are Theorem (5.15)(ii) with `I₀ = Θ`. -/
 
 /-- **Georgii (5.17)(1) for Gibbsian specifications.** Over a standard Borel state space, the
 Gibbsian specification of a shift-invariant absolutely summable potential on `ℤ^d` admits a
-shift-invariant Gibbs measure: `𝒢(βΦ)` is non-empty and compact by Theorem (4.23)(a). -/
+shift-invariant Gibbs measure: the `S = ℤ^d` case of
+`Potential.invariantG_gibbsSpecification_shiftGroup_nonempty`, spelled with `GP` and
+`MeasurePreserving` instead of `𝒢_Θ`. -/
 theorem exists_mem_GP_gibbsSpecification_forall_measurePreserving_shift [StandardBorelSpace E]
     {Φ : Potential (Fin d → ℤ) E} [Potential.IsPotential Φ] [Potential.IsAbsolutelySummable Φ]
     (hΦ : Φ.IsShiftInvariant) (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ) :
     ∃ μ ∈ GP (S := Fin d → ℤ) (E := E)
         (Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β),
-      ∀ j, MeasurePreserving (shift E j).toFun (μ : Measure ((Fin d → ℤ) → E)) μ :=
-  exists_mem_GP_forall_measurePreserving_shift_of_isCompact
-    (isInvariant_shift_gibbsSpecification hΦ ν β)
-    (Potential.isCompact_setOf_mem_GP_gibbsSpecification ν β)
-    (Potential.GP_gibbsSpecification_nonempty ν β)
+      ∀ j, MeasurePreserving (shift E j).toFun (μ : Measure ((Fin d → ℤ) → E)) μ := by
+  obtain ⟨μ, hμ⟩ := Potential.invariantG_gibbsSpecification_shiftGroup_nonempty (Φ := Φ) ν β hΦ
+  obtain ⟨hp, hG, -⟩ := mem_invariantG.1 hμ
+  exact ⟨⟨μ, hp⟩, hG, (mem_invariantFields_shiftGroup.1 hμ.2).2⟩
 
 /-! ### Georgii Example (5.20)(1): configurational boundary conditions on `ℤ^d` -/
 

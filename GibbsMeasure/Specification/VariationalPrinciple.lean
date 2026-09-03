@@ -56,8 +56,9 @@ The two inputs are §15.2 (`Specification/SpecificEntropy.lean`: `relativeEntrop
   (`Potential.specificEntropy_le_specificEnergy_add_pressure`,
   `Potential.specificEntropy_eq_specificEnergy_add_pressure`) the specific free energy
   `⟨·, Φ⟩ − 𝓀(·)` attains its minimum `−P(Φ)` exactly on `𝒢_Θ(Φ)`.
-* `Potential.invariantG_gibbsSpecification_shiftGroup_nonempty`, **Georgii Theorem (4.23)(a) and
-  Corollary (5.16)**: over a standard Borel state space `𝒢_Θ(Φ) ≠ ∅`, so
+* `Potential.invariantG_gibbsSpecification_shiftGroup_nonempty` (**Georgii Theorem (4.23)(a) and
+  Corollary (5.16)**, proved in `GibbsMeasure/Specification/InvariantExistenceGroup.lean`) gives
+  `𝒢_Θ(Φ) ≠ ∅` over a standard Borel state space, so
   `Potential.specificRelativeEntropy_eq_zero_iff_mem_invariantG'` and
   `Potential.specificEntropy_eq_specificEnergy_add_pressure_iff_mem_invariantG` are (15.39) and
   its free-energy form with no hypothesis beyond `[StandardBorelSpace E]`.
@@ -72,7 +73,7 @@ The two inputs are §15.2 (`Specification/SpecificEntropy.lean`: `relativeEntrop
 No other hypothesis on `E` is used, so that form applies whenever a shift-invariant Gibbs measure
 is known by other means. Georgii produces `ρ` from Theorem (4.23) and Corollary (5.16), which need
 `(E, ℰ)` to be standard Borel; that is
-`Potential.invariantG_gibbsSpecification_shiftGroup_nonempty` here, and it turns the primed
+`Potential.invariantG_gibbsSpecification_shiftGroup_nonempty`, and it turns the primed
 statements `Potential.mem_invariantG_of_specificRelativeEntropy_eq_zero'`,
 `Potential.specificRelativeEntropy_eq_zero_iff_mem_invariantG'` and
 `Potential.specificEntropy_eq_specificEnergy_add_pressure_iff_mem_invariantG` into unconditional
@@ -1140,46 +1141,6 @@ theorem relativeEntropyIn_gibbsSpecification_le_relativeEntropyIn_add {μ ρ : M
         cylinderEvents_le_pi le_rfl) ω
   have h := relativeEntropyIn_bind_le_add (Φ := Φ) ν (μ := μ) Λ (Measure.dirac ω) ρ
   rwa [hdirac, hbind] at h
-
-end Potential
-
-/-! ### Georgii Theorem (4.23) and Corollary (5.16): `𝒢_Θ(Φ) ≠ ∅` -/
-
-namespace Potential
-
-section ShiftInvariantExistence
-
-variable {S E : Type*} [Countable S] [AddCommGroup S] [MeasurableSpace E] [StandardBorelSpace E]
-  {Φ : Potential S E} [IsPotential Φ] [IsAbsolutelySummable Φ]
-  (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ)
-
-/-- **Georgii Theorem (4.23)(a) and Corollary (5.16).** Over a standard Borel state space, the
-Gibbsian specification of a shift-invariant absolutely summable potential on a countable abelian
-group of sites has a *shift-invariant* Gibbs measure: `𝒢_Θ(γ^Φ) ≠ ∅` in the notation (14.14).
-Georgii's site set is `ℤ^d`, spelled `ι → ℤ` for a finite `ι` below; nothing beyond
-`[Countable S]` and `[AddCommGroup S]` is used.
-
-Nothing new is proved here. Theorem (4.23)(a) supplies `𝒢(γ^Φ) ≠ ∅`
-(`Potential.GP_gibbsSpecification_nonempty`) and its compactness in the topology of local
-convergence (`Potential.isCompact_setOf_mem_GP_gibbsSpecification`); (5.9)(b)
-(`Potential.isInvariant_gibbsSpecification`) makes `γ^Φ` shift invariant, the shift group is
-abelian (`MeasureTheory.GibbsMeasure.shiftHom`), and Corollary (5.16)
-(`MeasureTheory.GibbsMeasure.exists_mem_GP_and_forall_measurePreserving_of_isCompact`) averages a
-Gibbs measure over Følner sets of shifts into a shift-invariant one. -/
-theorem invariantG_gibbsSpecification_shiftGroup_nonempty (hΦ : Φ.IsShiftInvariant) :
-    (invariantG (gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β)
-      (shiftGroup S E)).Nonempty := by
-  obtain ⟨μ, hμ, hinv⟩ :=
-    exists_mem_GP_and_forall_measurePreserving_of_isCompact
-      (γ := gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) (Φ := shift E)
-      (fun x y ↦ (shiftHom E).map_mul (Multiplicative.ofAdd x) (Multiplicative.ofAdd y))
-      (fun j ↦ isInvariant_gibbsSpecification (shift E j) Φ ν β (fun _ ↦ .id ν) (hΦ j))
-      (isCompact_setOf_mem_GP_gibbsSpecification ν β)
-      (GP_gibbsSpecification_nonempty ν β)
-  exact ⟨(μ : Measure (S → E)), mem_invariantG.2
-    ⟨inferInstance, hμ, (mem_invariantFields_shiftGroup.2 ⟨inferInstance, hinv⟩).2⟩⟩
-
-end ShiftInvariantExistence
 
 end Potential
 

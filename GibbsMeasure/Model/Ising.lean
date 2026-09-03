@@ -238,11 +238,6 @@ end Shift
 section ShiftSpecification
 variable {E : Type*} [MeasurableSpace E] {d : ℕ}
 
-/-- The shift `θ_j` preserves every single-spin measure (Georgii, remark after (5.9)). -/
-lemma measurePreserving_shift_spin (j : Fin d → ℤ) (ν : Measure E) (i : Fin d → ℤ) :
-    MeasurePreserving ((shift E j).spin i) ν ν :=
-  MeasurePreserving.id ν
-
 /-- **Georgii (5.9)(b) for the shift.** The Gibbsian specification of a shift-invariant `Φ ∈ ℬ`
 on `ℤ^d` is shift-invariant (Georgii (5.8)). -/
 theorem isInvariant_shift_gibbsSpecification {Φ : Potential (Fin d → ℤ) E}
@@ -250,7 +245,7 @@ theorem isInvariant_shift_gibbsSpecification {Φ : Potential (Fin d → ℤ) E}
     (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ) (j : Fin d → ℤ) :
     Specification.IsInvariant (shift E j)
       (Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) :=
-  Potential.isInvariant_gibbsSpecification (shift E j) Φ ν β (measurePreserving_shift_spin j ν)
+  Potential.isInvariant_gibbsSpecification (shift E j) Φ ν β (measurePreserving_shift_spin ν j)
     (hΦ j)
 
 /-- **The Ising specification on `ℤ^d` is shift-invariant** (Georgii (5.8), (5.9)(b)). -/
