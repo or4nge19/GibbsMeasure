@@ -520,12 +520,14 @@ chain in `𝒢(γ^Q)` is the measure of a boundary law, with the transition matr
 (11.12), the sufficiency half of (11.13) (`𝒢_Θ(γ^Q) ≠ ∅` when `Q` is equivalent to a stochastic
 matrix with an invariant probability vector), (11.16), and the extreme case of **(11.15)** —
 periodicity of an extreme boundary-law measure under `inf_x Q^p(x,x) > 0`. The recurrence theory
-(11.6)–(11.7) behind the uniqueness halves of (11.13)–(11.19) is absent from Mathlib and not yet
-built.
+(11.6)–(11.7) — the convergence parameter `L(Q)`, the recurrence/transience dichotomy, and
+Proposition (11.7) in all three parts — is built at the Mathlib layer
+(`GibbsMeasure/Mathlib/Probability/Kernel/CountableMatrix/Recurrence.lean`); the first-passage
+characterisations are not, since Mathlib has no strong Markov property.
 
 Not yet done: the inhomogeneous Ising chains of §6.1, Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
-plane-rotator and Heisenberg instances (9.22)–(9.24), (14.13), (14.16), (14.21)–(14.24), (15.14)(c), (15.16)–(15.20), (15.28), (15.30)(b), (15.32)–(15.39), Chapter 11 from (11.9)(c) and the recurrence theory (11.6)–(11.7) on, §§10.2–10.3, and Chapters 12–13 and
+plane-rotator and Heisenberg instances (9.22)–(9.24), (14.13), (14.16), (14.21)–(14.24), (15.14)(c), (15.16)–(15.20), (15.28), (15.30)(b), (15.32)–(15.39), Chapter 11 from (11.9)(c) and the uniqueness halves of (11.13)–(11.19) on, §§10.2–10.3, and Chapters 12–13 and
 16–20 (Markov fields on trees,
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).

@@ -207,3 +207,34 @@ on $E$; its powers $Q^n$ are the powers of this kernel.
     $\mathcal G(\gamma^Q)$, and $\delta\,\theta_p\mu \leq \mu$ on cylinders by (11.16); extremality
     forces equality. The second statement follows from $Q^{N!}(x,x) \geq (1 \wedge \varepsilon/N)^{N!}$.
 \end{proof}
+
+\begin{definition}[Convergence parameter, Georgii (11.6)]
+    \label{def:bl-11-6}
+    \uses{def:bl-transfer-matrix}
+    \lean{ProbabilityTheory.Kernel.convergenceNorm, ProbabilityTheory.Kernel.tendsto_convergenceNorm_of_forall_pos, ProbabilityTheory.Kernel.convergenceNorm_eq_of_forall_pos, ProbabilityTheory.Kernel.tsum_pow_apply_singleton_mul_pow_ne_top, ProbabilityTheory.Kernel.tsum_pow_apply_singleton_mul_pow_eq_top}
+    \leanok
+
+    For a positive matrix $Q$ on $E$, $L(Q) = \lim_n Q^n(x,x)^{1/n} \in [0,\infty]$ exists and
+    does not depend on $x$, and $L(Q)^{-1}$ is the radius of convergence of
+    $\sum_{n \geq 1} Q^n(x,x) z^n$.
+\end{definition}
+
+\begin{proposition}[Georgii (11.7)]
+    \label{prop:bl-11-7}
+    \uses{def:bl-11-6, rmk:bl-11-4}
+    \lean{ProbabilityTheory.Kernel.IsRecurrent, ProbabilityTheory.Kernel.IsTransient, ProbabilityTheory.Kernel.IsPositiveRecurrent, ProbabilityTheory.Kernel.isRecurrent_or_isTransient, ProbabilityTheory.Kernel.eq_of_apply_eq_mul_div_of_isRecurrent_of_convergenceNorm_eq_one, ProbabilityTheory.Kernel.isTransient_iff_of_apply_eq_mul_div_of_convergenceNorm_eq_one, ProbabilityTheory.Kernel.isPositiveRecurrent_of_apply_eq_mul_div}
+    \leanok
+
+    A positive stochastic matrix $P$ is either recurrent ($\sum_n P^n(x,y) = \infty$ for all
+    $x, y$) or transient ($< \infty$ for all $x, y$); it is positive recurrent if moreover it
+    admits an invariant probability vector. Let $P$, $Q$ be positive stochastic matrices with
+    $P(x,y) = Q(x,y)\, r(y) / q\, r(x)$ and $L(P) = L(Q) = 1$. If $P$ is recurrent then $P = Q$;
+    $P$ is transient iff $Q$ is; and if $P$ is positive recurrent then so is $Q$.
+\end{proposition}
+\begin{proof}
+    \leanok
+    $P^n(x,x) = Q^n(x,x)/q^n$ gives $q = 1$. Recurrence is a class property by irreducibility.
+    For recurrent $P$, $r$ is $P$-harmonic; the Liouville property of an irreducible recurrent
+    kernel (via the Riesz decomposition of superharmonic functions) makes $r$ constant, so
+    $P = Q$. Georgii's argument through hitting times is replaced by this one.
+\end{proof}

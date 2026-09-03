@@ -52,6 +52,7 @@ public import GibbsMeasure.Mathlib.Dynamics.Ergodic.MeanErgodic
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.MaximalInequality
 public import GibbsMeasure.Mathlib.GroupTheory.Foelner
 public import GibbsMeasure.Mathlib.Probability.Kernel.CountableMatrix
+public import GibbsMeasure.Mathlib.Probability.Kernel.CountableMatrix.Recurrence
 public import GibbsMeasure.Mathlib.Probability.Kernel.StieltjesPoint
 public import GibbsMeasure.Mathlib.Probability.Kernel.InvariantSigmaAlgebra
 public import GibbsMeasure.Mathlib.Probability.ProductMeasure

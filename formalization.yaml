@@ -975,6 +975,20 @@ alignment:
         upper semicontinuous on all of P(Omega) in the topology of local convergence. Not
         formalized: compactness of {k >= c} for standard Borel E ((15.14)(c)), (15.16)-(15.20).
         lambda is a probability measure (Georgii's finite lambda is normalised, as he does himself).
+    - source: "Display (11.6), Proposition (11.7): the convergence parameter and recurrence"
+      lean: "ProbabilityTheory.Kernel.eq_of_apply_eq_mul_div_of_isRecurrent_of_convergenceNorm_eq_one"
+      module: "GibbsMeasure/Mathlib/Probability/Kernel/CountableMatrix/Recurrence.lean"
+      status: "proved"
+      note: >-
+        Mathlib-layer recurrence theory for kernels on a countable state space: L(Q) as the limit
+        of Q^n(x,x)^{1/n} (Fekete), independent of x for positive Q, Cauchy-Hadamard for the
+        diagonal series; the Green kernel, recurrence/transience as a dichotomy for irreducible
+        kernels (Mathlib's phi-irreducibility with counting measure), positive recurrence as
+        recurrence plus an invariant probability; (11.7) in all three parts for P(x,y) = Q(x,y)
+        r(y)/(q r(x)) with L(P) = L(Q) = 1, the recurrent case through the Liouville property of an
+        irreducible recurrent kernel rather than Georgii's hitting times. Not formalized: the
+        first-passage characterisations (Mathlib has hitting times and Ionescu-Tulcea but no
+        strong Markov property or renewal decomposition), and Vere-Jones' theorem (cited, not used).
 
 acknowledgements: >-
   Builds on Mathlib. Kolmogorov extension material adapted from RemyDegenne/kolmogorov_extension4.
