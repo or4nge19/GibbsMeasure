@@ -517,7 +517,9 @@ specification; the counting-kernel and cylinder calculus lives once, for any sit
 and the Gaussian potential (13.11)–(13.12); the `n`-dimensional Gaussian integral and the Gaussian
 density measure with its mean and covariance (both absent from Mathlib) are built under
 `GibbsMeasure/Mathlib/`, giving λ-admissibility of `βΦ^{J,h}` and **(13.13)** — the finite-volume
-Gibbs distribution is the Gaussian with precision `β𝒥_Λ` — for finite-range `J`.
+Gibbs distribution is the Gaussian with precision `β𝒥_Λ` — for finite-range `J`; the tail event
+`Ω_J` (13.9), the glued Gaussian specification (13.18) as an instance of the tree's gluing, and the
+mean set (13.21) (`GibbsMeasure/Model/GaussianSpecification.lean`).
 
 **§9.2, Mermin–Wagner** (`GibbsMeasure/Model/MerminWagner.lean`): **Theorem (9.20)** — for a
 pair potential on a site set with a planar norm (ℤ² with the maximum norm the instance), any real

@@ -53,7 +53,7 @@ status:
     properties (10.2)-(10.11)), Section 10.2 ((10.12)-(10.26) except Examples (10.24)), Section 10.3 ((10.30)-(10.37)); Section 9.1 (symmetry
     inheritance (9.1), localized symmetries (9.3), one-dimensional pair interactions (9.5),
     (9.11), (9.16)); Section 9.2 (Mermin-Wagner (9.20) with Lemmas (9.28), (9.33)); Section 13.1 (13.1)-(13.3),
-    (13.11)-(13.13) for finite-range J. The rest is not formalized.
+    (13.9), (13.11)-(13.13) for finite-range J, (13.18) glued, (13.21). The rest is not formalized.
   sorry_count: 0
   sorry_in_definitions: 0
   axioms: ["propext", "Classical.choice", "Quot.sound"]
@@ -1178,6 +1178,17 @@ alignment:
         (dense G_delta) conclusion of (14.13) (needs compact metrizability of P_Theta and Baire
         category), Example (14.16) (a zero-temperature one-dimensional antiferromagnet, a Model
         construction).
+    - source: "Displays (13.9), (13.18), (13.21)"
+      lean: "Potential.gaussianGluedSpecification_eq_gaussianSpecification"
+      module: "GibbsMeasure/Model/GaussianSpecification.lean"
+      status: "proved"
+      note: >-
+        The convergence set Omega_J as a tail-measurable linear subspace; the glued Gaussian
+        specification (13.18) through Specification.glued (no second gluing), equal to
+        gaussianSpecification for finite-range J; the mean set M_{J,h} as a coset of M_{J,0}. Not
+        formalized: (13.18) for genuinely infinite-range J (needs the boundary field as a
+        convergent series on Omega_J), Theorem (13.22) (needs (13.A6) and an independence
+        reconstruction lemma), Sections 13.2-13.3 proper.
 
 acknowledgements: >-
   Builds on Mathlib. Kolmogorov extension material adapted from RemyDegenne/kolmogorov_extension4.

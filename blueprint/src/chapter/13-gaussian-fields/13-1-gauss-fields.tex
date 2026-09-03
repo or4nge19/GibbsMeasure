@@ -45,3 +45,16 @@ Throughout, $E = \mathbb R$ with Lebesgue measure and $S$ is countable.
     $n$-dimensional Gaussian integral give the partition function and the density of
     $\gamma_\Lambda$ against $\lambda_\Lambda$, which is the Gaussian density.
 \end{proof}
+
+\begin{definition}[Georgii (13.9), (13.18), (13.21)]
+    \label{def:gf-13-18}
+    \uses{thm:gf-13-13, def:ql-tail}
+    \lean{Potential.gaussianConvergenceSet, Potential.measurableSet_tail_gaussianConvergenceSet, Specification.zeroDirac, Potential.gaussianGluedSpecification, Potential.gaussianGluedSpecification_eq_gaussianSpecification, Potential.gaussianMeanSet, Potential.gaussianMeanSubmodule}
+    \leanok
+
+    $\Omega_J = \set{\omega : \sum_j |J(i,j)\omega_j| < \infty \ \forall i}$ is a tail-measurable
+    linear subspace (13.9), all of $\Omega$ for $J$ of finite range. The Gaussian specification
+    $\gamma^{J,h}$ (13.18) is the specification $\gamma^{\beta\Phi}$ on $\Omega_J$ glued with the
+    Dirac specification at $0_\Lambda\omega_{\Lambda^c}$ off $\Omega_J$; for finite-range $J$ it is
+    $\gamma^{\beta\Phi}$. $M_{J,h} = \set{m : h + Jm = 0}$ (13.21) is a coset of the subspace $M_{J,0}$.
+\end{definition}
