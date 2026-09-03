@@ -182,6 +182,8 @@ open MeasureTheory MeasureTheory.GibbsMeasure
 
 /-! ### Georgii Comment (14.13), for `E` compact metric: `ex 𝒫_Θ(Ω,𝓕)` is weakly dense -/
 
+namespace MeasureTheory.GibbsMeasure
+
 section EquiCube
 
 variable {E : Type*} [MeasurableSpace E] {d : ℕ} [NeZero d]
@@ -232,6 +234,8 @@ theorem invariantFields_subset_closure_extremePoints_probabilityMeasure_int
   rwa [hPφ, hDφ] at hsub
 
 end EquiCube
+
+end MeasureTheory.GibbsMeasure
 
 /-! ### Georgii (14.23)–(14.24), untruncated -/
 
