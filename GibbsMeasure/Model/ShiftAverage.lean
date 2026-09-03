@@ -557,21 +557,6 @@ lemma map_pureSpin_boolNot_isingPotential (G : SimpleGraph S) (J : ℝ) :
       simp
     · rw [ite_eq_right h1, ite_eq_right h1, ite_eq_right h2, ite_eq_right h2]
 
-/-- The spin flip preserves the uniform a-priori spin measure. This generalises
-`Peierls.measurePreserving_boolNot`. -/
-lemma measurePreserving_boolNot_uniformSpinMeasure :
-    MeasurePreserving ⇑boolNot uniformSpinMeasure uniformSpinMeasure := by
-  refine ⟨boolNot.measurable, ?_⟩
-  have hsingle : ∀ c : Bool, uniformSpinMeasure {c} = 2⁻¹ := by
-    intro c
-    rw [uniformSpinMeasure, Measure.smul_apply, Measure.count_singleton, smul_eq_mul, mul_one]
-  refine Measure.ext_of_singleton fun c ↦ ?_
-  rw [Measure.map_apply boolNot.measurable (measurableSet_singleton c)]
-  have hpre : (⇑boolNot ⁻¹' {c}) = {!c} := by
-    ext d
-    cases c <;> cases d <;> simp
-  rw [hpre, hsingle, hsingle]
-
 /-- **Georgii (5.9)(b) for the spin flip.** At zero external field, the Ising specification on
 any countable locally finite graph is invariant under the spin flip. This generalises
 `Peierls.isInvariant_spinFlip` (the case `G = latticeGraph 2`, `J = 1`). -/

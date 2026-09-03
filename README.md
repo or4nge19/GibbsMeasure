@@ -535,7 +535,12 @@ Proposition (11.7) in all three parts — is built at the Mathlib layer
 (`GibbsMeasure/Mathlib/Probability/Kernel/CountableMatrix/Recurrence.lean`); the first-passage
 characterisations are not, since Mathlib has no strong Markov property.
 
-Not yet done: the inhomogeneous Ising chains of §6.1, Shlosman's random staircases of §6.3
+**§6.1** (`GibbsMeasure/Model/InhomogeneousIsingChain.lean`): **Theorem (6.4)** in both
+directions — under `∑ e^{-2J_n} < ∞` the inhomogeneous Ising chain has exactly the Gibbs measures
+`[μ₋, μ₊]`, with `μ₊` the limit of `γ_{Λ_N}(·|ω)` along eventually-positive `ω`; without it the
+Gibbs measure is unique ((6.7)(2)).
+
+Not yet done: Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
 plane-rotator and Heisenberg instances (9.22)–(9.24), (14.13), (14.16), (14.21)–(14.24), (15.14)(c), (15.16)–(15.20), (15.28), (15.30)(b), (15.32)–(15.39), Chapter 11 from (11.9)(c) and the uniqueness halves of (11.13)–(11.19) on, (10.23)–(10.26), §10.3, §12.2, and Chapters 13 and
 16–20 (

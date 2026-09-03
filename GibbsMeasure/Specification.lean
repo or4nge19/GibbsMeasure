@@ -2513,6 +2513,20 @@ lemma setLIntegral_isssd_eq_setLIntegral_juxt
     by rw [sigmaFiniteLambdaFun_eq_isssdFun (ν := ν) Λ₀]; rfl]
   exact setLIntegral_sigmaFiniteLambdaFun_eq_setLIntegral_juxt ν hf hA η
 
+/-- Integrating against the independent kernel of a finite state space: a finite sum over the
+configurations of the volume, weighted by the product of the single-spin probabilities. -/
+lemma lintegral_isssd_fintype {S E : Type*} [DecidableEq S] [MeasurableSpace E] [Fintype E]
+    [MeasurableSingletonClass E] (ν : Measure E) [IsProbabilityMeasure ν] (Λ : Finset S)
+    (η : S → E) {F : (S → E) → ℝ≥0∞} (hF : Measurable F) :
+    ∫⁻ x, F x ∂(isssd (S := S) (E := E) ν Λ η)
+      = ∑ ζ : (Λ → E), F (juxt (Λ : Set S) η ζ) * ∏ i : Λ, ν {ζ i} := by
+  have hker : (isssd (S := S) (E := E) ν Λ η)
+      = Measure.map (juxt (Λ : Set S) η) (Measure.pi fun _ : Λ ↦ ν) := rfl
+  rw [hker, lintegral_map hF Measurable.juxt, lintegral_fintype]
+  refine Finset.sum_congr rfl fun ζ _ ↦ ?_
+  rw [Measure.pi_singleton]
+  rfl
+
 /-- Integrating against `isssd ν Δ (· | τ)` is integrating along `juxt Δ τ` against `ν^Δ`:
 the full-integral change of variables. -/
 lemma lintegral_isssd_eq {ν : Measure E} [IsProbabilityMeasure ν] (Δ : Finset S) (τ : S → E)

@@ -1247,8 +1247,6 @@ namespace MeasureTheory.GibbsMeasure
 
 open Potential Transformation
 
-lemma spin_not (b : Bool) : spin (!b) = -spin b := by cases b <;> simp [spin]
-
 lemma abs_spin (b : Bool) : |spin b| = 1 := by cases b <;> simp [spin]
 
 /-- **Georgii, Example (9.15).** The nearest-neighbour potential on `S = ℕ`, `E = {−1, 1}²`,

@@ -86,6 +86,7 @@ public import GibbsMeasure.Model.BoundaryLaw
 public import GibbsMeasure.Model.BoundaryLawUniqueness
 public import GibbsMeasure.Model.TreeBoundaryLaw
 public import GibbsMeasure.Model.MarkovChainInt
+public import GibbsMeasure.Model.InhomogeneousIsingChain
 public import GibbsMeasure.Model.Ising
 public import GibbsMeasure.Model.IsingDobrushin
 public import GibbsMeasure.Model.IsingFKG

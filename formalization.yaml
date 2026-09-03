@@ -43,7 +43,8 @@ classification:
 
 status:
   scope: >-
-    Georgii Chapters 1-8, complete for the results listed under main_results. Of Chapters 9-20:
+    Georgii Chapters 1-8, complete for the results listed under main_results (Section 6.1, Theorem (6.4),
+    included). Of Chapters 9-20:
     Chapter 14 (ergodicity) except (14.13), (14.16), (14.21)-(14.24); Section
     15.1 (relative entropy), Lemma (15.11), Section 15.2 (strong subadditivity (15.10), the specific
     entropy (15.12)-(15.13), (15.14)(a)-(b)), Section 15.3 (specific energy, the pressure (15.30)(a)
@@ -1016,6 +1017,17 @@ alignment:
         StandardBorelSpace E through (7.26). The OCR of the book's statement of (10.21) is
         corrupted in reference_docs; the statement was reconstructed from the surviving text and
         the wiki. Not formalized: (10.23)-(10.26) (irreducibility and uniqueness), Section 10.3.
+    - source: "Section 6.1: (6.2)-(6.3), (6.5)-(6.6), Theorem (6.4) in both directions, Comment (6.7)(2)"
+      lean: "MeasureTheory.GibbsMeasure.exists_G_isingChainSpecification_eq"
+      module: "GibbsMeasure/Model/InhomogeneousIsingChain.lean"
+      status: "proved"
+      note: >-
+        S = N, E = Bool with the uniform spin measure, the chain as Potential.pair. Under (6.1):
+        mu_+ and mu_- = tau mu_+ with positive/negative magnetisation at every site, and
+        G(gamma) = [mu_-, mu_+] (both inclusions; the interval as ENNReal-weighted combinations);
+        if (6.1) fails, |G(gamma)| = 1 ((6.7)(2)). Not formalized: (6.7)(1), (6.7)(3). The
+        conclusion needed by Example (9.15) is exists_mem_G_integral_spin_pos, on N -> Bool; the
+        two-layer example needs a marginal/product-specification lemma to transport it.
 
 acknowledgements: >-
   Builds on Mathlib. Kolmogorov extension material adapted from RemyDegenne/kolmogorov_extension4.

@@ -406,10 +406,8 @@ lemma lintegral_isssd_uniformSpinMeasure (Λ : Finset Site) (ω : Site → Bool)
     {f : (Site → Bool) → ℝ≥0∞} (hf : Measurable f) :
     ∫⁻ ζ, f ζ ∂(Specification.isssd uniformSpinMeasure Λ ω) =
       ∑ x : ↥Λ → Bool, f (juxt (↑Λ) ω x) * (2⁻¹ : ℝ≥0∞) ^ Λ.card := by
-  change ∫⁻ ζ, f ζ ∂(Measure.map (juxt (↑Λ) ω) (Measure.pi fun _ : ↥Λ ↦ uniformSpinMeasure)) = _
-  rw [lintegral_map hf Measurable.juxt, lintegral_fintype]
-  refine Finset.sum_congr rfl fun x _ ↦ ?_
-  rw [pi_uniformSpinMeasure_singleton]
+  rw [MeasureTheory.GibbsMeasure.lintegral_isssd_uniformSpinMeasure Λ ω hf, Finset.sum_mul,
+    Fintype.card_coe]
 
 /-- **Georgii (6.15) in edge-boundary form.** For the two-dimensional Ising model with coupling `1`
 and no field, at any inverse temperature `β`, and any `D ⊆ Λ`, the finite-volume Gibbs

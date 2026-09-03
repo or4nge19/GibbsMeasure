@@ -218,22 +218,13 @@ private lemma pi_uniformSpinMeasure_singleton (Λ : Finset S) (ζ : Λ → Bool)
   rw [Measure.pi_singleton]
   simp [h1, Finset.prod_const]
 
-private lemma lintegral_isssd_uniform (Λ : Finset S) (η : S → Bool) {F : (S → Bool) → ℝ≥0∞}
-    (hF : Measurable F) :
-    ∫⁻ x, F x ∂(Specification.isssd (S := S) (E := Bool) uniformSpinMeasure Λ η)
-      = (∑ ζ : (Λ → Bool), F (juxt (Λ : Set S) η ζ)) * (2 : ℝ≥0∞)⁻¹ ^ Fintype.card Λ := by
-  have hker : (Specification.isssd (S := S) (E := Bool) uniformSpinMeasure Λ η)
-      = Measure.map (juxt (Λ : Set S) η) (Measure.pi fun _ : Λ ↦ uniformSpinMeasure) := rfl
-  rw [hker, lintegral_map hF Measurable.juxt, lintegral_fintype, Finset.sum_mul]
-  exact Finset.sum_congr rfl fun ζ _ ↦ by rw [pi_uniformSpinMeasure_singleton]
-
 private lemma relZ_ising (Λ : Finset S) (ω : S → Bool) (ζ : Λ → Bool) :
     Specification.relZ (Specification.isssd (S := S) (E := Bool) uniformSpinMeasure)
         ((isingPotential G J h).boltzmannFactor β) Λ (juxt (Λ : Set S) ω ζ)
       = (∑ ξ : (Λ → Bool), ENNReal.ofReal (isingWeight G J h β Λ ω ξ)) *
           (2 : ℝ≥0∞)⁻¹ ^ Fintype.card Λ := by
   rw [Specification.relZ,
-    lintegral_isssd_uniform Λ _ (Potential.measurable_boltzmannFactor
+    lintegral_isssd_uniformSpinMeasure Λ _ (Potential.measurable_boltzmannFactor
       (Φ := isingPotential G J h) β Λ)]
   congr 1
   refine Finset.sum_congr rfl fun ξ _ ↦ ?_
@@ -280,7 +271,7 @@ theorem isingSpecification_apply_eq (Λ : Finset S) (ω : S → Bool) {A : Set (
     · rw [Set.indicator_of_notMem hmem, Set.indicator_of_notMem hmem]
       simp
   rw [hmod, withDensity_apply _ hA, ← lintegral_indicator hA (ρ Λ),
-    lintegral_isssd_uniform Λ ω (hρmeas.indicator hA), Finset.sum_mul, ← hcdef]
+    lintegral_isssd_uniformSpinMeasure Λ ω (hρmeas.indicator hA), Finset.sum_mul, ← hcdef]
   rw [Finset.sum_congr rfl fun ζ _ ↦ hterm ζ, ← ENNReal.ofReal_sum_of_nonneg]
   intro ζ _
   exact mul_nonneg (isingDensity_nonneg G J h β Λ ω ζ)

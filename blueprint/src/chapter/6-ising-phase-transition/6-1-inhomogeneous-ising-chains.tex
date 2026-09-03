@@ -1,0 +1,56 @@
+\section{Inhomogeneous Ising chains}
+
+Throughout, $S = \mathbb N$, $E = \set{\pm 1}$ with the uniform a priori measure, $J_n > 0$ the
+couplings, $\Lambda_N = \set{0, \dots, N-1}$, and $\gamma$ the Gibbs specification of the
+nearest-neighbour potential $\Phi_{\set{n, n+1}}(\sigma) = -J_n \sigma_n \sigma_{n+1}$ (6.2).
+
+\begin{lemma}[Georgii (6.5)--(6.6)]
+    \label{lem:iic-6-5}
+    \uses{def:pot-gibbs-spec, def:sb-pair-potential}
+    \lean{MeasureTheory.GibbsMeasure.isingChainSpecification, MeasureTheory.GibbsMeasure.chainZ_eq_prod, MeasureTheory.GibbsMeasure.chainMag_eq, MeasureTheory.GibbsMeasure.isingChainSpecification_range_apply_setOf_eq, MeasureTheory.GibbsMeasure.isingChainSpecification_range_apply_eq_sum}
+    \leanok
+
+    $Z_{\Lambda_N} = 2^N \prod_{i < N} \cosh J_i$, and for $n < N$
+    \[
+        \gamma_{\Lambda_N}(\sigma_n = x \mid \omega)
+        = \tfrac12\Bigl(1 + x\,\omega_N \prod_{i=n}^{N-1} \tanh J_i\Bigr) ; \tag{6.5}
+    \]
+    for $A \in \mathcal F_{\Lambda_n}$ and $n \leq N$,
+    $\gamma_{\Lambda_N}(A \mid \omega) = \sum_x \gamma_{\Lambda_n}(A \mid x)\,\gamma_{\Lambda_N}(\sigma_n = x \mid \omega)$ (6.6).
+\end{lemma}
+\begin{proof}
+    \leanok
+    Transfer-matrix recursion in the boundary spin; (6.6) is the Markov property of $\gamma$
+    composed with the consistency $\gamma_{\Lambda_N}\gamma_{\Lambda_n} = \gamma_{\Lambda_N}$.
+\end{proof}
+
+\begin{theorem}[Georgii (6.4)]
+    \label{thm:iic-6-4}
+    \uses{lem:iic-6-5, def:gibbs-meas, thm:trans-b-theta-closed}
+    \lean{MeasureTheory.GibbsMeasure.exists_mem_GP_tendsto, MeasureTheory.GibbsMeasure.eq_smul_add_smul_of_isGibbsMeasure, MeasureTheory.GibbsMeasure.exists_G_isingChainSpecification_eq, MeasureTheory.GibbsMeasure.exists_mem_G_integral_spin_pos}
+    \leanok
+
+    Suppose $\sum_n e^{-2J_n} < \infty$ (6.1). Then there are $\mu_+, \mu_- \in \mathcal G(\gamma)$
+    with $\mu_- = \tau\mu_+$ for the spin flip $\tau$, $\mu_+(\sigma_n) > 0 > \mu_-(\sigma_n)$
+    for all $n$, and $\mathcal G(\gamma) = \set{s\mu_+ + (1-s)\mu_- : 0 \leq s \leq 1}$; in
+    particular $|\mathcal G(\gamma)| > 1$.
+\end{theorem}
+\begin{proof}
+    \leanok
+    (6.1) makes $\prod_{i \geq n}\tanh J_i$ converge to a positive limit, so by (6.6)
+    $\gamma_{\Lambda_N}(\cdot \mid \omega)$ converges on local events for every $\omega$ eventually
+    $+1$; a cluster point (Theorem (4.17)) is the limit $\mu_+$, and $\mu_- = \tau\mu_+$ is the
+    limit for $\omega$ eventually $-1$. For $\mu \in \mathcal G(\gamma)$, $\mu(\sigma_n \neq \sigma_{n+1}) = \frac12(1 - \tanh J_n) \leq e^{-2J_n}$,
+    so by Borel--Cantelli $\mu(A_+ \cup A_-) = 1$ with $A_\pm$ the eventually-constant
+    configurations, and the DLR equations give $\mu = \mu(A_+)\mu_+ + \mu(A_-)\mu_-$.
+\end{proof}
+
+\begin{remark}[Georgii (6.7)(2)]
+    \label{rmk:iic-6-7}
+    \uses{thm:iic-6-4}
+    \lean{MeasureTheory.GibbsMeasure.exists_G_eq_singleton_of_not_summable}
+    \leanok
+
+    If $\sum_n e^{-2J_n} = \infty$ then $\prod_{i \geq n} \tanh J_i = 0$, the limit in (6.6) is
+    independent of $\omega$, and $|\mathcal G(\gamma)| = 1$.
+\end{remark}

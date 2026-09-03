@@ -708,8 +708,6 @@ def spinFlip : Transformation Site Bool where
 @[simp] lemma spinFlip_inv_toFun_apply (z : Site → Bool) (i : Site) :
     spinFlip.inv.toFun z i = !(z i) := rfl
 
-lemma spin_not (c : Bool) : spin (!c) = - spin c := by cases c <;> simp [spin]
-
 /-- The Ising potential with vanishing external field is invariant under the spin flip. -/
 lemma map_spinFlip_isingPotential :
     Potential.map spinFlip (isingPotential (latticeGraph 2) 1 0)
@@ -734,18 +732,8 @@ lemma map_spinFlip_isingPotential :
 
 /-- The uniform spin measure is invariant under negation. -/
 lemma measurePreserving_boolNot :
-    MeasurePreserving Bool.not uniformSpinMeasure uniformSpinMeasure := by
-  refine ⟨Measurable.of_discrete, ?_⟩
-  have hsingle : ∀ c : Bool, uniformSpinMeasure {c} = 2⁻¹ := by
-    intro c
-    show ((2 : ℝ≥0∞)⁻¹ • Measure.count) {c} = 2⁻¹
-    rw [Measure.smul_apply, Measure.count_singleton, smul_eq_mul, mul_one]
-  refine Measure.ext_of_singleton fun c ↦ ?_
-  rw [Measure.map_apply Measurable.of_discrete (measurableSet_singleton c)]
-  have hpre : (Bool.not ⁻¹' {c}) = {!c} := by
-    ext d
-    cases c <;> cases d <;> simp
-  rw [hpre, hsingle, hsingle]
+    MeasurePreserving Bool.not uniformSpinMeasure uniformSpinMeasure :=
+  MeasureTheory.GibbsMeasure.measurePreserving_boolNot_uniformSpinMeasure
 
 /-- **Georgii (5.9)(b)/(6.9)**: the Ising specification is invariant under the spin flip. -/
 lemma isInvariant_spinFlip (b : ℝ) :

@@ -46,6 +46,8 @@ lemma measurable_spin : Measurable spin := Measurable.of_discrete
 
 lemma abs_spin_le (b : Bool) : |spin b| ≤ 1 := by cases b <;> simp [spin]
 
+lemma spin_not (b : Bool) : spin (!b) = -spin b := by cases b <;> simp [spin]
+
 /-- The Ising potential on a graph `G` with coupling `J` and external field `h`. -/
 noncomputable def isingPotential {S : Type*} (G : SimpleGraph S) (J h : ℝ) :
     Potential S Bool :=
@@ -266,5 +268,33 @@ theorem measurePreserving_shift_of_GP_isingSpecification_eq_singleton (d : ℕ) 
   (isInvariant_shift_isingSpecification d J h β j).measurePreserving_of_GP_eq_singleton hGP
 
 end ShiftSpecification
+
+/-- The spin flip preserves the uniform a-priori spin measure. This generalises
+`Peierls.measurePreserving_boolNot`. -/
+lemma measurePreserving_boolNot_uniformSpinMeasure :
+    MeasurePreserving ⇑boolNot uniformSpinMeasure uniformSpinMeasure := by
+  refine ⟨boolNot.measurable, ?_⟩
+  have hsingle : ∀ c : Bool, uniformSpinMeasure {c} = 2⁻¹ := by
+    intro c
+    rw [uniformSpinMeasure, Measure.smul_apply, Measure.count_singleton, smul_eq_mul, mul_one]
+  refine Measure.ext_of_singleton fun c ↦ ?_
+  rw [Measure.map_apply boolNot.measurable (measurableSet_singleton c)]
+  have hpre : (⇑boolNot ⁻¹' {c}) = {!c} := by
+    ext d
+    cases c <;> cases d <;> simp
+  rw [hpre, hsingle, hsingle]
+
+/-- The uniform-spin case of `Specification.lintegral_isssd_fintype`: the `2^{-|Λ|}` weights are
+constant. -/
+lemma lintegral_isssd_uniformSpinMeasure {S : Type*} [DecidableEq S] (Λ : Finset S)
+    (η : S → Bool) {F : (S → Bool) → ℝ≥0∞} (hF : Measurable F) :
+    ∫⁻ x, F x ∂(Specification.isssd (S := S) (E := Bool) uniformSpinMeasure Λ η)
+      = (∑ ζ : (Λ → Bool), F (juxt (Λ : Set S) η ζ)) * (2 : ℝ≥0∞)⁻¹ ^ Fintype.card Λ := by
+  have hsingle : ∀ b : Bool, uniformSpinMeasure {b} = (2 : ℝ≥0∞)⁻¹ := fun b ↦ by
+    change ((2 : ℝ≥0∞)⁻¹ • Measure.count) {b} = _
+    rw [Measure.smul_apply, smul_eq_mul, Measure.count_singleton, mul_one]
+  rw [Specification.lintegral_isssd_fintype uniformSpinMeasure Λ η hF, Finset.sum_mul]
+  refine Finset.sum_congr rfl fun ζ _ ↦ ?_
+  simp only [hsingle, Finset.prod_const, Finset.card_univ]
 
 end MeasureTheory.GibbsMeasure
