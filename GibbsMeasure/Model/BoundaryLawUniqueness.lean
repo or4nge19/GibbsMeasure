@@ -10,6 +10,7 @@ public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.ENNReal
 public import GibbsMeasure.Model.MarkovChainInt
 public import GibbsMeasure.Specification.ErgodicGibbs
 public import GibbsMeasure.Specification.ExtremeDecomposition
+public import GibbsMeasure.Specification.MarkovIntUniqueness
 
 /-!
 # Georgii §11.1, from Theorem (11.9)(b) on: Markov chains in `𝒢(Q)`, shift invariance, and the
@@ -21,7 +22,8 @@ laws `{ℓ_i, r_i}` of Definition (11.8) with their measures (11.10) (`boundaryL
 
 ## Main declarations
 
-* `isMarkovChain_ofMatrix_of_forall_intervalCylinder`, `IsMarkovChain.measure_intervalCylinder_succ`:
+* `isMarkovChain_ofMatrix_of_forall_intervalCylinder`,
+`IsMarkovChain.measure_intervalCylinder_succ`:
   on a countable state space, `μ` is a Markov chain with transition matrices `p_i` (Definition
   (10.4)) iff `μ(σ_a = x_a, …, σ_{b+1} = x_{b+1}) = μ(σ_a = x_a, …, σ_b = x_b) p_{b+1}(x_b,
       x_{b+1})`.
@@ -787,6 +789,109 @@ theorem IsBoundaryLaw.mem_invariantFields_shiftGroup_of_const (hℓ : ∀ i j x,
 
 end Shift
 
+/-! ## Two boundary laws representing the same measure are proportional -/
+
+section Proportionality
+
+variable [Nonempty E] {Q : E → E → ℝ≥0∞} (hQ : IsTransferMatrix Q)
+  {ℓ r ℓ' r' : ℤ → E → ℝ≥0∞} (hbl : IsBoundaryLaw Q ℓ r) (hbl' : IsBoundaryLaw Q ℓ' r')
+include hQ hbl hbl'
+
+/-- **The proportionality underlying Georgii's identification, in the proof of Theorem (11.13),
+of the transition matrix produced by (10.25) with a matrix equivalent to `Q`.** If two boundary
+laws `{ℓ_i, r_i}` and `{ℓ'_i, r'_i}` for a positive transfer matrix `Q` have the same measure
+(11.10), they are proportional by a single constant `c` independent of `i`: `ℓ_i = c ℓ'_i` and
+`r'_i = c r_i` for all `i`, with `0 < c < ∞`.
+
+Derived from the cylinder probabilities (11.10) at intervals of length one (`ℓ_i r_i = ℓ'_i r'_i`,
+Georgii's `μ(σ_i = x)`) and length two (`ℓ_i(x) Q(x,y) r_{i+1}(y) = ℓ'_i(x) Q(x,y) r'_{i+1}(y)`,
+`μ(σ_i = x, σ_{i+1} = y)`): the length-two identity separates variables into a factor of `x` and a
+factor of `y`, forcing both to be independent of `i`'s companion coordinate and hence equal to a
+constant `C_i` depending only on `i`; the length-one identity then forces `C_i = C_{i-1}` for every
+`i`, so `C` is itself constant. -/
+theorem IsBoundaryLaw.exists_const_of_boundaryLawMeasure_eq
+    (heq : boundaryLawMeasure hbl = boundaryLawMeasure hbl') :
+    ∃ c : ℝ≥0∞, 0 < c ∧ c ≠ ⊤ ∧ (∀ i x, ℓ i x = c * ℓ' i x) ∧ ∀ i x, r' i x = c * r i x := by
+  obtain ⟨x₀⟩ := ‹Nonempty E›
+  -- (11.10) at length one
+  have hA : ∀ i x, ℓ i x * r i x = ℓ' i x * r' i x := by
+    intro i x
+    have e1 : boundaryLawMeasure hbl (intervalCylinder i i (fun _ ↦ x)) = ℓ i x * r i x := by
+      rw [hbl.boundaryLawMeasure_intervalCylinder le_rfl, pathProd_self, mul_one]
+    have e2 : boundaryLawMeasure hbl' (intervalCylinder i i (fun _ ↦ x)) = ℓ' i x * r' i x := by
+      rw [hbl'.boundaryLawMeasure_intervalCylinder le_rfl, pathProd_self, mul_one]
+    rw [← e1, ← e2, heq]
+  -- (11.10) at length two
+  have hB : ∀ i x y, ℓ i x * r (i + 1) y = ℓ' i x * r' (i + 1) y := by
+    intro i x y
+    set σ : ℤ → E := Function.update (fun _ ↦ x) (i + 1) y with hσdef
+    have hσi : σ i = x := Function.update_of_ne (by omega) _ _
+    have hσi1 : σ (i + 1) = y := Function.update_self _ _ _
+    have e1 : boundaryLawMeasure hbl (intervalCylinder i (i + 1) σ)
+        = ℓ i x * Q x y * r (i + 1) y := by
+      rw [hbl.boundaryLawMeasure_intervalCylinder (by omega), pathProd_succ, hσi, hσi1]
+    have e2 : boundaryLawMeasure hbl' (intervalCylinder i (i + 1) σ)
+        = ℓ' i x * Q x y * r' (i + 1) y := by
+      rw [hbl'.boundaryLawMeasure_intervalCylinder (by omega), pathProd_succ, hσi, hσi1]
+    have hB0 : ℓ i x * Q x y * r (i + 1) y = ℓ' i x * Q x y * r' (i + 1) y := by
+      rw [← e1, ← e2, heq]
+    have hQxy0 : Q x y ≠ 0 := (hQ.pos x y).ne'
+    have hQxyt : Q x y ≠ ⊤ := hQ.ne_top x y
+    rw [mul_right_comm (ℓ i x), mul_right_comm (ℓ' i x)] at hB0
+    exact (ENNReal.mul_left_inj hQxy0 hQxyt).1 hB0
+  -- the constant `C i = r'_{i+1}(x₀) / r_{i+1}(x₀)`, separating `x` from `y` in `hB`
+  set C : ℤ → ℝ≥0∞ := fun i ↦ r' (i + 1) x₀ / r (i + 1) x₀ with hCdef
+  have hCpos : ∀ i, 0 < C i := fun i ↦
+    ENNReal.div_pos (hbl'.right_pos _ _).ne' (hbl.right_ne_top _ _)
+  have hCne : ∀ i, C i ≠ ⊤ := fun i ↦
+    ENNReal.div_ne_top (hbl'.right_ne_top _ _) (hbl.right_pos _ _).ne'
+  have hℓeq : ∀ i x, ℓ i x = C i * ℓ' i x := by
+    intro i x
+    have hr0 : r (i + 1) x₀ ≠ 0 := (hbl.right_pos _ _).ne'
+    have hrt : r (i + 1) x₀ ≠ ⊤ := hbl.right_ne_top _ _
+    have h := hB i x x₀
+    rw [mul_comm (ℓ i x)] at h
+    have heq2 : ℓ i x = (ℓ' i x * r' (i + 1) x₀) / r (i + 1) x₀ := (ENNReal.eq_div_iff hr0 hrt).2 h
+    simp only [hCdef, div_eq_mul_inv]
+    rw [heq2, div_eq_mul_inv]
+    ring
+  have hreq : ∀ i y, r' (i + 1) y = C i * r (i + 1) y := by
+    intro i y
+    have h := hB i x₀ y
+    rw [hℓeq i x₀] at h
+    have hne0 : ℓ' i x₀ ≠ 0 := (hbl'.left_pos _ _).ne'
+    have hnet : ℓ' i x₀ ≠ ⊤ := hbl'.left_ne_top _ _
+    rw [show C i * ℓ' i x₀ * r (i + 1) y = ℓ' i x₀ * (C i * r (i + 1) y) by ring] at h
+    exact ((ENNReal.mul_right_inj hne0 hnet).1 h).symm
+  -- `C` does not depend on `i`
+  have hstep : ∀ i, C (i + 1) = C i := by
+    intro i
+    have hA' := hA (i + 1) x₀
+    rw [hℓeq (i + 1) x₀, hreq i x₀] at hA'
+    have hne0 : ℓ' (i + 1) x₀ * r (i + 1) x₀ ≠ 0 :=
+      mul_ne_zero (hbl'.left_pos _ _).ne' (hbl.right_pos _ _).ne'
+    have hnet : ℓ' (i + 1) x₀ * r (i + 1) x₀ ≠ ⊤ :=
+      ENNReal.mul_ne_top (hbl'.left_ne_top _ _) (hbl.right_ne_top _ _)
+    rw [show C (i + 1) * ℓ' (i + 1) x₀ * r (i + 1) x₀
+          = (ℓ' (i + 1) x₀ * r (i + 1) x₀) * C (i + 1) by ring,
+      show ℓ' (i + 1) x₀ * (C i * r (i + 1) x₀) = (ℓ' (i + 1) x₀ * r (i + 1) x₀) * C i by
+        ring] at hA'
+    exact (ENNReal.mul_right_inj hne0 hnet).1 hA'
+  have hCconst : ∀ i, C i = C 0 := by
+    intro i
+    induction i using Int.induction_on with
+    | zero => rfl
+    | succ i ih => rw [hstep i, ih]
+    | pred i ih =>
+      rw [← ih, ← hstep (-(i : ℤ) - 1)]
+      simp only [sub_add_cancel]
+  refine ⟨C 0, hCpos 0, hCne 0, fun i x ↦ ?_, fun i x ↦ ?_⟩
+  · rw [hℓeq i x, hCconst i]
+  · obtain ⟨j, rfl⟩ : ∃ j, i = j + 1 := ⟨i - 1, by ring⟩
+    rw [hreq j x, hCconst j]
+
+end Proportionality
+
 /-! ## Georgii Theorem (11.13), the existence half: positive recurrent `P ~ Q` gives `μ_P ∈ 𝒢_Θ(Q)`
 -/
 
@@ -1278,6 +1383,206 @@ theorem boundaryLawMeasure_const_lazy_mem_invariantG :
     hα1 (tsum_mul_lazy hαP ht1.le) (lazy_isTransferMatrix hpos hP ht0 ht1) rfl
 
 end Lazy
+
+/-! ## Obstruction (i): `γ^Q` as the λ-specification of a probability measure
+
+`transferSpecification Q hQ` is the λ-specification of *counting* measure (`Model/BoundaryLaw.
+lean`), while Chapter 10's Markov theory (`Specification.IsMarkovianInt`,
+`Specification.IsHomogeneousInt`, `Specification.IsIrreducibleInt`, Theorem (10.35)
+`MeasureTheory.GibbsMeasure.Markov.eq_of_isGibbsMeasure_of_measurePreserving_shift`,
+`Specification/MarkovIntUniqueness.lean`) is stated for a `λ`-modification of a *probability*
+measure `ν`. Georgii's own aside before (10.13), "we may assume `λ ∈ 𝒫(E, 𝓔)`", bridges the two:
+`Specification/Rescaling.lean`'s `MeasureTheory.Measure.
+exists_measurable_pos_isProbabilityMeasure_withDensity` supplies a positive measurable `r` with
+`count.withDensity r` a probability measure, and `Specification.
+lambdaSpecification_eq_isssd_withDensity` (Remark (1.28)(3), generalized here from its singleton
+case) identifies `γ^Q` with the `isssd`-density form Chapter 10 expects, unchanged as a
+specification. -/
+
+section MarkovBridge
+
+variable [Nonempty E]
+
+/-- **Georgii, aside before (10.13).** A fixed choice of the positive measurable density that
+turns counting measure on the countable `E` into a probability measure (Georgii's `r` with
+`λ(r) = 1`). -/
+noncomputable def countProbDensity : E → ℝ≥0∞ :=
+  (Measure.exists_measurable_pos_isProbabilityMeasure_withDensity
+    (Measure.count : Measure E)).choose
+
+lemma measurable_countProbDensity : Measurable (countProbDensity (E := E)) :=
+  (Measure.exists_measurable_pos_isProbabilityMeasure_withDensity
+    (Measure.count : Measure E)).choose_spec.1
+
+lemma countProbDensity_ne_zero (x : E) : countProbDensity (E := E) x ≠ 0 :=
+  (Measure.exists_measurable_pos_isProbabilityMeasure_withDensity
+    (Measure.count : Measure E)).choose_spec.2.1 x
+
+lemma countProbDensity_ne_top (x : E) : countProbDensity (E := E) x ≠ ⊤ :=
+  (Measure.exists_measurable_pos_isProbabilityMeasure_withDensity
+    (Measure.count : Measure E)).choose_spec.2.2.1 x
+
+instance isProbabilityMeasure_count_withDensity_countProbDensity :
+    IsProbabilityMeasure ((Measure.count : Measure E).withDensity (countProbDensity (E := E))) :=
+  (Measure.exists_measurable_pos_isProbabilityMeasure_withDensity
+    (Measure.count : Measure E)).choose_spec.2.2.2
+
+/-- **Georgii's rescaled probability a priori measure `λ̃ = r · count`** for counting measure on a
+countable `E`. An `abbrev` (not a `def`): it is definitionally, and for typeclass search
+transparently, `count.withDensity (countProbDensity E)`, so `isProbabilityMeasure_count_
+withDensity_countProbDensity` already supplies `IsProbabilityMeasure (countProb E)`. -/
+noncomputable abbrev countProb : Measure E :=
+  (Measure.count : Measure E).withDensity (countProbDensity (E := E))
+
+lemma countProb_def :
+    countProb (E := E) = (Measure.count : Measure E).withDensity (countProbDensity (E := E)) :=
+  rfl
+
+/-- **Georgii's rescaled Markovian λ-modification `ρ̃`** for `γ^Q`, Remark (1.28)(3): the
+normalized density of `Specification.rescale (countProbDensity E) (transferWeight Q)` against
+`countProb`. -/
+noncomputable def rescaledTransferDensity (Q : E → E → ℝ≥0∞) :
+    Finset ℤ → (ℤ → E) → ℝ≥0∞ :=
+  Specification.premodifierNorm (countProb (E := E))
+    (Specification.rescale (countProbDensity (E := E)) (transferWeight Q))
+
+variable (Q : E → E → ℝ≥0∞) (hQ : IsTransferMatrix Q)
+
+lemma measurable_rescaledTransferDensity (Λ : Finset ℤ) :
+    Measurable (rescaledTransferDensity Q Λ) := by
+  rw [rescaledTransferDensity, Specification.premodifierNorm_eq_sigmaFinitePremodifierNorm]
+  exact Specification.sigmaFinitePremodifierNorm_measurable (countProb (E := E))
+    (Specification.isPremodifier_rescale measurable_countProbDensity countProbDensity_ne_zero
+      countProbDensity_ne_top (isPremodifier_transferWeight Q)) Λ
+
+/-- **Obstruction (i), first bullet.** `γ^Q = transferSpecification Q hQ` is the λ-specification
+of the *probability* measure `countProb`, with Markovian density `rescaledTransferDensity Q`. -/
+theorem transferSpecification_eq_isssd_withDensity (Λ : Finset ℤ) (η : ℤ → E) :
+    transferSpecification Q hQ Λ η
+      = (Specification.isssd (S := ℤ) (E := E) (countProb (E := E)) Λ η).withDensity
+          (rescaledTransferDensity Q Λ) := by
+  unfold transferSpecification rescaledTransferDensity countProb
+  rw [Specification.lambdaSpecification_eq_lambdaSpecification_withDensity (S := ℤ) (E := E)
+      Measure.count measurable_countProbDensity countProbDensity_ne_zero countProbDensity_ne_top
+      (isPremodifier_transferWeight Q) hQ.isSigmaFiniteLambdaAdmissible,
+    Specification.lambdaSpecification_eq_modification_isssd, Specification.modification_apply]
+
+/-! ### Obstruction (i), second and third bullets: `rescaledTransferDensity Q` is Markovian and
+homogeneous -/
+
+omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] [Nonempty E] hQ in
+/-- The bonds meeting the open interval `]i, k[` are exactly `[i, k[`. -/
+lemma bondsOf_Ioo {i k : ℤ} (hik : i + 1 < k) : bondsOf (Finset.Ioo i k) = Finset.Ico i k := by
+  ext j
+  rw [mem_bondsOf]
+  simp only [Finset.mem_Ioo, Finset.mem_Ico]
+  omega
+
+omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] [Nonempty E] hQ in
+/-- The transfer weight of the open interval `]i, k[` is the bond product over `[i, k[`. -/
+lemma transferWeight_Ioo {i k : ℤ} (hik : i + 1 < k) (σ : ℤ → E) :
+    transferWeight Q (Finset.Ioo i k) σ = pathProd Q i k σ := by
+  rw [transferWeight, bondsOf_Ioo hik]; rfl
+
+omit [Nonempty E] hQ in
+/-- **Georgii (11.2), the partition function of an open interval.** `Z_{]i,k[}(ω) =
+Q^{k-i}(ω_i, ω_k)`. -/
+lemma sigmaFiniteLambdaZ_transferWeight_Ioo {i k : ℤ} (hik : i + 1 < k) (ω : ℤ → E) :
+    Specification.sigmaFiniteLambdaZ (S := ℤ) (E := E) Measure.count (transferWeight Q)
+        (Finset.Ioo i k) ω
+      = (Kernel.ofMatrix Q ^ (k - i).toNat) (ω i) {ω k} := by
+  have hΛ : Finset.Ioo i k = Finset.Icc (i + 1) (k - 1) := by
+    ext j
+    simp only [Finset.mem_Ioo, Finset.mem_Icc]
+    omega
+  have he1 : i + 1 - 1 = i := by omega
+  have he2 : k - 1 + 1 = k := by omega
+  have he3 : (k - 1 - (i + 1) + 2).toNat = (k - i).toNat := by omega
+  rw [hΛ, sigmaFiniteLambdaZ_transferWeight_Icc Q (by omega : i + 1 ≤ k - 1), he1, he2, he3]
+
+omit [Nonempty E] in
+/-- Two coordinate evaluations, composed with an arbitrary function of a countable state space,
+are cylinder-events measurable on any set containing both coordinates. -/
+lemma measurable_cylinderEvents_pair {Δ : Set ℤ} (g : E → E → ℝ≥0∞) {j l : ℤ}
+    (hj : j ∈ Δ) (hl : l ∈ Δ) :
+    Measurable[cylinderEvents Δ] (fun σ : ℤ → E ↦ g (σ j) (σ l)) :=
+  (measurable_of_countable fun p : E × E ↦ g p.1 p.2).comp
+    (f := fun σ : ℤ → E ↦ (σ j, σ l))
+    ((measurable_cylinderEvent_apply hj).prodMk (measurable_cylinderEvent_apply hl))
+
+omit [Nonempty E] hQ in
+lemma measurable_cylinderEvents_transferWeight_Ioo {i k : ℤ} (hik : i + 1 < k) :
+    Measurable[cylinderEvents (Set.Icc i k)] fun ω : ℤ → E ↦
+      transferWeight Q (Finset.Ioo i k) ω := by
+  have h : (fun ω : ℤ → E ↦ transferWeight Q (Finset.Ioo i k) ω)
+      = fun ω ↦ ∏ j ∈ Finset.Ico i k, Q (ω j) (ω (j + 1)) := funext (transferWeight_Ioo Q hik)
+  rw [h]
+  refine Finset.measurable_prod _ fun j hj ↦ ?_
+  simp only [Finset.mem_Ico] at hj
+  have hj1 : j ∈ Set.Icc i k := Set.mem_Icc.2 (by omega)
+  have hj2 : j + 1 ∈ Set.Icc i k := Set.mem_Icc.2 (by omega)
+  exact measurable_cylinderEvents_pair Q hj1 hj2
+
+lemma measurable_cylinderEvents_lambdaWeight_countProbDensity {Δ : Set ℤ} {Λ : Finset ℤ}
+    (hΛ : (Λ : Set ℤ) ⊆ Δ) :
+    Measurable[cylinderEvents Δ] fun ω : ℤ → E ↦
+      Specification.lambdaWeight (S := ℤ) (E := E) (fun _ ↦ countProbDensity (E := E)) Λ ω := by
+  refine Finset.measurable_prod _ fun j hj ↦ ?_
+  exact (measurable_of_countable (countProbDensity (E := E))).comp
+    (measurable_cylinderEvent_apply (hΛ (Finset.mem_coe.2 hj)))
+
+omit [Nonempty E] hQ in
+lemma measurable_cylinderEvents_sigmaFiniteLambdaZ_transferWeight_Ioo {i k : ℤ}
+    (hik : i + 1 < k) :
+    Measurable[cylinderEvents (Set.Icc i k)] fun ω : ℤ → E ↦
+      Specification.sigmaFiniteLambdaZ (S := ℤ) (E := E) Measure.count (transferWeight Q)
+        (Finset.Ioo i k) ω := by
+  have h : (fun ω : ℤ → E ↦ Specification.sigmaFiniteLambdaZ (S := ℤ) (E := E) Measure.count
+        (transferWeight Q) (Finset.Ioo i k) ω)
+      = fun ω ↦ (Kernel.ofMatrix Q ^ (k - i).toNat) (ω i) {ω k} :=
+    funext (sigmaFiniteLambdaZ_transferWeight_Ioo Q hik)
+  rw [h]
+  have hi : i ∈ Set.Icc i k := Set.mem_Icc.2 (by omega)
+  have hk : k ∈ Set.Icc i k := Set.mem_Icc.2 (by omega)
+  exact measurable_cylinderEvents_pair (fun x y ↦ (Kernel.ofMatrix Q ^ (k - i).toNat) x {y}) hi hk
+
+omit hQ in
+/-- The unfolded form of `rescaledTransferDensity`, in terms of the unrescaled transfer weight,
+the counting-measure partition function, and the rescaling weight of `countProbDensity`. -/
+lemma rescaledTransferDensity_apply (Λ : Finset ℤ) (ω : ℤ → E) :
+    rescaledTransferDensity Q Λ ω
+      = (transferWeight Q Λ ω / Specification.lambdaWeight (S := ℤ) (E := E)
+            (fun _ ↦ countProbDensity (E := E)) Λ ω)
+          / Specification.sigmaFiniteLambdaZ (S := ℤ) (E := E) Measure.count
+              (transferWeight Q) Λ ω := by
+  unfold rescaledTransferDensity countProb
+  rw [Specification.premodifierNorm_eq_sigmaFinitePremodifierNorm,
+    Specification.sigmaFinitePremodifierNorm, Specification.rescale_apply,
+    Specification.sigmaFiniteLambdaZ_rescale Measure.count measurable_countProbDensity
+      countProbDensity_ne_zero countProbDensity_ne_top (fun Λ ↦ measurable_transferWeight Q Λ)]
+
+omit hQ in
+/-- **Obstruction (i), second bullet.** `rescaledTransferDensity Q` is Markovian
+(`Specification.IsMarkovianInt`): a genuine construction from the closed forms of the transfer
+weight and the counting-measure partition function of an open interval. -/
+theorem isMarkovianInt_rescaledTransferDensity :
+    Specification.IsMarkovianInt (rescaledTransferDensity Q) := by
+  intro i k hik
+  have h : rescaledTransferDensity Q (Finset.Ioo i k) = fun ω ↦
+      (transferWeight Q (Finset.Ioo i k) ω / Specification.lambdaWeight (S := ℤ) (E := E)
+            (fun _ ↦ countProbDensity (E := E)) (Finset.Ioo i k) ω)
+        / Specification.sigmaFiniteLambdaZ (S := ℤ) (E := E) Measure.count
+            (transferWeight Q) (Finset.Ioo i k) ω :=
+    funext (rescaledTransferDensity_apply Q (Finset.Ioo i k))
+  rw [h]
+  have hsub : (Finset.Ioo i k : Set ℤ) ⊆ Set.Icc i k := fun x hx ↦ by
+    rw [Finset.mem_coe, Finset.mem_Ioo] at hx
+    exact Set.mem_Icc.2 (by omega)
+  exact ((measurable_cylinderEvents_transferWeight_Ioo Q hik).div
+      (measurable_cylinderEvents_lambdaWeight_countProbDensity hsub)).div
+    (measurable_cylinderEvents_sigmaFiniteLambdaZ_transferWeight_Ioo Q hik)
+
+end MarkovBridge
 
 end MeasureTheory.GibbsMeasure.Markov
 

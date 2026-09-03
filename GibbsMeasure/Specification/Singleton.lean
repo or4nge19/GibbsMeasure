@@ -359,6 +359,23 @@ theorem lambdaSpecification_eq_lambdaSpecification_withDensity (ν : Measure E) 
         (isPremodifier_rescale (S := S) (E := E) hr h0 htop hρ))
       (sigmaFinitePremodifierNorm_measurable (S := S) (E := E) (ρ := ρ) ν hρ)]
 
+/-- **Georgii, Remark (1.28)(3) for λ-specifications, at an arbitrary finite volume.** The
+λ-specification of a σ-finite non-zero `ν` and `ρ`, evaluated at any `Λ`, is the density change of
+the independent specification of the rescaled *probability* measure `r · ν` by the correspondingly
+rescaled and normalized density family. Chaining
+`lambdaSpecification_eq_lambdaSpecification_withDensity` (Remark (1.28)(3) itself) with
+`lambdaSpecification_eq_modification_isssd` (the probability case). -/
+theorem lambdaSpecification_eq_isssd_withDensity (ν : Measure E) [SigmaFinite ν]
+    [NeZero ν] {r : E → ℝ≥0∞} (hr : Measurable r) (h0 : ∀ x, r x ≠ 0) (htop : ∀ x, r x ≠ ⊤)
+    [IsProbabilityMeasure (ν.withDensity r)] (hρ : IsPremodifier (S := S) (E := E) ρ)
+    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ) (Λ : Finset S) (η : S → E) :
+    lambdaSpecification (S := S) (E := E) ν ρ hρ hZ Λ η
+      = (isssd (S := S) (E := E) (ν.withDensity r) Λ η).withDensity
+        (premodifierNorm (S := S) (E := E) (ν.withDensity r)
+          (rescale (S := S) (E := E) r ρ) Λ) := by
+  rw [lambdaSpecification_eq_lambdaSpecification_withDensity (S := S) (E := E) ν hr h0 htop hρ hZ,
+    lambdaSpecification_eq_modification_isssd, modification_apply]
+
 /-- The singleton kernels of a λ-specification as density changes of the independent
 specification of the rescaled probability measure `r · ν`. -/
 lemma lambdaSpecification_singleton_eq_isssd_withDensity (ν : Measure E) [SigmaFinite ν]
@@ -368,9 +385,8 @@ lemma lambdaSpecification_singleton_eq_isssd_withDensity (ν : Measure E) [Sigma
     lambdaSpecification (S := S) (E := E) ν ρ hρ hZ {i} η
       = (isssd (S := S) (E := E) (ν.withDensity r) {i} η).withDensity
         (premodifierNorm (S := S) (E := E) (ν.withDensity r)
-          (rescale (S := S) (E := E) r ρ) {i}) := by
-  rw [lambdaSpecification_eq_lambdaSpecification_withDensity (S := S) (E := E) ν hr h0 htop hρ hZ,
-    lambdaSpecification_eq_modification_isssd, modification_apply]
+          (rescale (S := S) (E := E) r ρ) {i}) :=
+  lambdaSpecification_eq_isssd_withDensity (S := S) (E := E) ν hr h0 htop hρ hZ {i} η
 
 lemma premodifierNorm_rescale_ne_zero (ν : Measure E) [SigmaFinite ν] {r : E → ℝ≥0∞}
     (hr : Measurable r) (h0 : ∀ x, r x ≠ 0) (htop : ∀ x, r x ≠ ⊤)

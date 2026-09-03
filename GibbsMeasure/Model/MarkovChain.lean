@@ -2693,14 +2693,18 @@ lemma markovSingletonDensity_eq (hpos : ∀ x y, 0 < P x y) (i : ℤ) (ω : ℤ 
     ENNReal.div_eq_inv_mul, ENNReal.mul_inv (Or.inl hD0) (Or.inl hDtop), inv_inv]
   ring
 
+omit [DecidableEq E] in
 lemma markovSingletonDensity_ne_zero (hpos : ∀ x y, 0 < P x y) (i : ℤ) (ω : ℤ → E) :
     markovSingletonDensity P i ω ≠ 0 := by
+  classical
   rw [markovSingletonDensity_eq P hpos]
   exact mul_ne_zero (ENNReal.ofReal_pos.2 (markovDeterminingFun_pos hpos _ _ _)).ne'
     (Nat.cast_ne_zero.2 Fintype.card_ne_zero)
 
+omit [DecidableEq E] in
 lemma markovSingletonDensity_ne_top (hpos : ∀ x y, 0 < P x y) (i : ℤ) (ω : ℤ → E) :
     markovSingletonDensity P i ω ≠ ⊤ := by
+  classical
   rw [markovSingletonDensity_eq P hpos]
   exact ENNReal.mul_ne_top ENNReal.ofReal_ne_top (ENNReal.natCast_ne_top _)
 
