@@ -6,6 +6,8 @@ Authors: Matteo Cipollina
 module
 
 public import Mathlib.Data.Finset.Sort
+public import Mathlib.Algebra.Group.Embedding
+public import Mathlib.Data.Finset.Image
 public import Mathlib.Order.Hom.Basic
 
 /-!
@@ -39,3 +41,27 @@ def finsetOrderIso (σ : α ≃ β) : Finset α ≃o Finset β where
     σ.finsetOrderIso.symm B = B.map σ.symm.toEmbedding := rfl
 
 end Equiv
+
+section Translate
+
+variable {G : Type*} [AddCommGroup G]
+
+/-- Translating a finite set twice is translating it by the sum.
+(Intended home: `Mathlib/Data/Finset/Image.lean`.) -/
+lemma Finset.map_addRightEmbedding_map (s : Finset G) (a b : G) :
+    (s.map (addRightEmbedding a)).map (addRightEmbedding b)
+      = s.map (addRightEmbedding (a + b)) := by
+  rw [Finset.map_map]
+  congr 1
+  exact Function.Embedding.ext fun x ↦ by simp [addRightEmbedding]
+
+/-- Translating a finite set by `a` and then by `-a` gives it back.
+(Intended home: `Mathlib/Data/Finset/Image.lean`.) -/
+lemma Finset.map_addRightEmbedding_neg (s : Finset G) (a : G) :
+    (s.map (addRightEmbedding a)).map (addRightEmbedding (-a)) = s := by
+  rw [Finset.map_addRightEmbedding_map, add_neg_cancel]
+  have : addRightEmbedding (0 : G) = Function.Embedding.refl G :=
+    Function.Embedding.ext fun x ↦ by simp [addRightEmbedding]
+  rw [this, Finset.map_refl]
+
+end Translate

@@ -1,0 +1,69 @@
+\section{The variational principle}
+
+Throughout, $S = \mathbb Z^d$, $\lambda$ is a probability measure on $E$, $\Phi$ a
+shift-invariant absolutely summable potential with Gibbs specification $\gamma^\Phi$, $h$ the
+specific entropy of Theorem \ref{thm:sent-15-12} and $P$ the pressure of Theorem
+\ref{thm:pr-15-30}.
+
+\begin{proposition}[Georgii (15.28)--(15.30)(b), (15.33)--(15.35)]
+    \label{prop:vp-15-30b}
+    \uses{thm:sent-15-12, thm:pr-15-30, prop:pr-15-25, def:erg-invariant}
+    \lean{Potential.relativeEntropyIn_bind_le_add, Potential.tendsto_relativeEntropyIn_bind_div_card_congr, Potential.tendsto_relativeEntropyIn_div_card, Potential.specificRelativeEntropy, Potential.tendsto_relativeEntropyIn_gibbsSpecification_div_card_zero, Potential.relativeEntropyIn_gibbsSpecification_eq, Potential.specificRelativeEntropy_nonneg, Potential.specificRelativeEntropy_eq_zero_of_mem_invariantG}
+    \leanok
+
+    For probability measures $\mu, \rho, \rho'$ and any volume $\Lambda$,
+    $\mathcal H_\Lambda(\mu \mid \rho\gamma^\Phi_\Lambda) \leq \mathcal H_\Lambda(\mu \mid \rho'\gamma^\Phi_\Lambda) + 4\, t(\Lambda)$
+    with $t(\Lambda)$ the boundary sum of (15.25). For $\mu \in \Prob_\Theta$ and any
+    $\rho \in \mathcal G(\gamma^\Phi)$,
+    $|\Lambda_n|^{-1}\mathcal H_{\Lambda_n}(\mu \mid \rho) \to k(\mu \mid \Phi) := P(\Phi) + \mu(f_\Phi) - h(\mu) \geq 0$
+    (15.30)(b), (15.32), (15.35); for $\mu \in \mathcal G(\gamma^\Phi)$, without shift invariance,
+    $|\Lambda_n|^{-1}\mathcal H_{\Lambda_n}(\mu \mid \mu\gamma^\Phi_{\Lambda_n}) \to 0$ (15.33); and
+    $k(\mu \mid \Phi) = 0$ for $\mu \in \mathcal G_\Theta(\gamma^\Phi)$.
+\end{proposition}
+\begin{proof}
+    \leanok
+    (15.29) writes $\rho\gamma_\Lambda$ on $\mathcal F_\Lambda$ as a density against $\lambda^S$
+    and (15.34) expresses $\mathcal H_\Lambda(\mu \mid \rho\gamma_\Lambda)$ through
+    $\mathcal H_\Lambda(\mu)$, $\mu(H_\Lambda)$ and $\log Z_\Lambda$; the boundary estimate
+    (15.25) and Theorems \ref{thm:sent-15-12}, \ref{thm:pr-15-30} give the limits.
+\end{proof}
+
+\begin{theorem}[Georgii (15.37)]
+    \label{thm:vp-15-37}
+    \uses{def:ql-quasilocal-spec, def:erg-invariant, def:gibbs-meas}
+    \lean{MeasureTheory.GibbsMeasure.exists_subset_relativeEntropyIn_sub_le, MeasureTheory.GibbsMeasure.exists_density_of_relativeEntropyIn_sub_le, MeasureTheory.GibbsMeasure.isGibbsMeasure_of_forall_exists_density, MeasureTheory.GibbsMeasure.isGibbsMeasure_of_tendsto_relativeEntropyIn_div_card}
+    \leanok
+
+    Let $\gamma$ be quasilocal, $\mu, \nu$ shift-invariant probability measures with
+    $\nu \in \mathcal G(\gamma)$, and suppose $|\Lambda_n|^{-1}\mathcal H_{\Lambda_n}(\mu \mid \nu) \to 0$
+    along every family of boxes with all side lengths tending to infinity. Then
+    $\mu \in \mathcal G(\gamma)$.
+\end{theorem}
+\begin{proof}
+    \leanok
+    Tile $[0, N(2R+1))^d$ by $N^d$ translates of $[-R,R]^d$; by monotonicity and shift
+    invariance some translate $\Delta$ satisfies
+    $\mathcal H_{\Delta \cup \Lambda}(\mu\mid\nu) - \mathcal H_{\Delta}(\mu\mid\nu) \leq \varepsilon$
+    for the given $\Lambda$. The chain rule (15.38) turns this into a density
+    $\tilde g$ of $\mu$ against $\nu$ on $\mathcal F_{\Delta\cup\Lambda}$ close to $1$ in
+    $L^1$ relative to $\mathcal F_\Delta$; quasilocality of $\gamma$ and the DLR equation for
+    $\nu$ then bound $|\mu(f) - \mu(\gamma_\Lambda f)|$ for local $f$ by $\varepsilon$-terms.
+\end{proof}
+
+\begin{theorem}[Variational principle, Georgii (15.39)]
+    \label{thm:vp-15-39}
+    \uses{prop:vp-15-30b, thm:vp-15-37}
+    \lean{Potential.specificRelativeEntropy_eq_zero_iff_mem_invariantG, Potential.mem_invariantG_of_specificRelativeEntropy_eq_zero, Potential.specificEntropy_le_specificEnergy_add_pressure}
+    \leanok
+
+    For $\mu \in \Prob_\Theta$, $h(\mu) \leq \mu(f_\Phi) + P(\Phi)$, and, provided
+    $\mathcal G_\Theta(\gamma^\Phi) \neq \emptyset$, equality holds iff
+    $\mu \in \mathcal G_\Theta(\gamma^\Phi)$.
+\end{theorem}
+\begin{proof}
+    \leanok
+    Proposition \ref{prop:vp-15-30b} gives $k(\mu\mid\Phi) \geq 0$ with equality on
+    $\mathcal G_\Theta(\gamma^\Phi)$; conversely $k(\mu\mid\Phi) = 0$ and
+    $\rho \in \mathcal G_\Theta(\gamma^\Phi)$ give $|\Lambda_n|^{-1}\mathcal H_{\Lambda_n}(\mu\mid\rho) \to 0$
+    by (15.30)(b), and Theorem \ref{thm:vp-15-37} applies.
+\end{proof}

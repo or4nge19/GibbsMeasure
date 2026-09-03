@@ -472,7 +472,12 @@ as an infimum over boxes with convergence along any boxes with all side lengths 
 the energy density and specific energy (15.22)–(15.24), the boundary estimate (15.25) with an
 explicit finite-volume bound, and **Theorem (15.30)(a)**: the pressure `P(Φ)` exists along any boxes
 with all side lengths → ∞, for every choice of boundary conditions, with `|P(Φ)| ≤ ‖Φ‖₀`; `P` is
-Lipschitz and convex (Georgii (16.1)(a)).
+Lipschitz and convex (Georgii (16.1)(a)). **§15.4** (`GibbsMeasure/Specification/VariationalPrinciple.lean`):
+(15.28), (15.30)(b), (15.32)–(15.35), **Theorem (15.37)** (a shift-invariant `μ` with vanishing
+specific relative entropy against a Gibbs `ν` of a quasilocal `γ` is Gibbs; Georgii's three steps
+as three theorems, the third for any site set) and the **variational principle (15.39)**:
+`k(μ|Φ) = P(Φ) + μ(f_Φ) − h(μ) ≥ 0` on `𝓟_Θ`, zero exactly on `𝒢_Θ(γ^Φ)` given that set is
+non-empty.
 
 **Chapter 9, §9.1** (`GibbsMeasure/Specification/SymmetryInheritance.lean`,
 `GibbsMeasure/Model/OneDimensionalSymmetry.lean`): **Proposition (9.1)** — a symmetry `τ` of `γ`
@@ -487,8 +492,10 @@ symmetry; and **Theorem (9.5)**, shift invariance of the Gibbs measures of a shi
 potential on `ℤ` from (9.6), by Georgii's cyclic rotation of an interval, with the long-range Ising
 interaction (9.8)(1) as the instance. On the way (5.5)/(5.6)/(5.9)(b) are proved over a σ-finite a
 priori measure. Comments (9.7) and (9.13), Examples (9.8)(2), (9.15) and (9.17)
-(`GibbsMeasure/Model/OneDimensionalSymmetryExamples.lean`) complete the section, with the two
-inputs Georgii imports from elsewhere — (20.21) and (6.4) — as explicit hypotheses.
+(`GibbsMeasure/Model/OneDimensionalSymmetryExamples.lean`) complete the section, with (20.21) as an explicit
+hypothesis; the (6.4) input of (9.15) is discharged at `K = 0` through the pullback theory of
+`GibbsMeasure/Specification/Pullback.lean` (a potential pulled back along `Prod.fst` has Gibbs
+measures projecting onto those of the original).
 
 **Chapter 12, §12.1** (`GibbsMeasure/Model/TreeBoundaryLaw.lean`): transfer families and `γ^Q`
 on any locally finite graph, Markov chains on a graph (12.2), boundary laws indexed by oriented
@@ -545,7 +552,7 @@ Gibbs measure is unique ((6.7)(2)).
 
 Not yet done: Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
-plane-rotator and Heisenberg instances (9.22)–(9.24), (14.13), (14.16), (14.21)–(14.24), (15.14)(c), (15.16)–(15.20), (15.28), (15.30)(b), (15.32)–(15.39), Chapter 11 from (11.9)(c) and the uniqueness halves of (11.13)–(11.19) on, (10.23)–(10.26), §10.3, §12.2, and Chapters 13 and
+plane-rotator and Heisenberg instances (9.22)–(9.24), (14.13), (14.16), (14.21)–(14.24), (15.14)(c), (15.16)–(15.20), (15.26)(1), (15.40), Chapter 11 from (11.9)(c) and the uniqueness halves of (11.13)–(11.19) on, (10.23)–(10.26), §10.3, §12.2, and Chapters 13 and
 16–20 (
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).

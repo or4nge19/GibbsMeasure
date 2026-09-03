@@ -9,6 +9,8 @@ public import GibbsMeasure.Model.OneDimensionalSymmetry
 public import GibbsMeasure.Specification.OneDimensionalUniqueness
 public import GibbsMeasure.Mathlib.Algebra.Order.SecondDifference
 public import GibbsMeasure.Model.Ising
+public import GibbsMeasure.Model.InhomogeneousIsingChain
+public import GibbsMeasure.Specification.Pullback
 public import Mathlib.MeasureTheory.Integral.Marginal
 public import Mathlib.Analysis.SpecialFunctions.Gaussian.GaussianIntegral
 
@@ -77,10 +79,18 @@ Phase Transitions*, §9.1, on top of `GibbsMeasure/Model/OneDimensionalSymmetry.
 * `not_measurePreserving_squareFlip₁_of_integral_pos`: a measure with `μ(σ_{i1}) > 0` is not
   `τ⁽¹⁾`-invariant. Georgii obtains such a `μ₊ ∈ 𝒢(Φ)` from Theorem (6.4) (`K = 0`) and from
   Griffiths' inequalities (`K > 0`, the existence of the limit `lim γ_{[1,N]}(·|ω⁺)` and its
-  monotonicity in `K`); neither the infinite-volume limit nor Theorem (6.4) is in this library,
-  so the existence of `μ₊` stays a hypothesis (`exists_not_measurePreserving_squareFlip₁`).
-  The finite-volume GKS inequalities of `Model/GKSInequalities.lean` are for `V → Bool` spins
-  and are not bridged to `E = Bool × Bool` here.
+  monotonicity in `K`). For an arbitrary specification the existence of `μ₊` is the hypothesis of
+  `exists_not_measurePreserving_squareFlip₁`; at `K = 0` it is a **theorem**,
+  `exists_not_measurePreserving_squareFlip₁_of_summable`, under Georgii's condition (6.1): the
+  potential is then the pullback of the inhomogeneous chain potential (6.2) along the projection
+  onto the first layer (`comap_fst_isingChainPotential`), so Theorem (6.4)
+  (`exists_mem_G_integral_spin_pos`) and the transport of `GibbsMeasure/Specification/Pullback.lean`
+  produce `μ₊ = μ₊^{(6.4)} ⊗ λ^ℕ`. For `K > 0` the existence of `μ₊` is still open here: the
+  finite-volume GKS inequalities of `Model/GKSInequalities.lean` are stated for `V → Bool` spins
+  and a general ferromagnetic multi-body interaction — which does cover the two-layer chain on
+  `V = Λ × Fin 2` — but the bridge from `γ_{Λ_N}(·|ω⁺)` for `E = Bool × Bool` to `GKS.corr`
+  (the analogue of `Model/LebowitzMartinLof.lean`'s `fvMag_eq_corr` for the single-layer Ising
+  model) is not written, and neither is the `N → ∞` limit for the two-layer chain.
 
 ## Example (9.17)
 
@@ -1402,6 +1412,63 @@ theorem exists_not_measurePreserving_squareFlip₁ {γ : Specification ℕ (Bool
     ∃ μ ∈ G γ, ¬ MeasurePreserving squareFlip₁.toFun μ μ :=
   let ⟨μ, hμ, h⟩ := hex
   ⟨μ, hμ, not_measurePreserving_squareFlip₁_of_integral_pos i h⟩
+
+/-- **Georgii, Example (9.15) at `K = 0`.** The two-layer potential reads only the first layer: it
+is the pullback of the inhomogeneous Ising chain potential (6.2) along `Prod.fst`. -/
+theorem comap_fst_isingChainPotential (J : ℕ → ℝ) :
+    (isingChainPotential J).comap (Prod.fst : Bool × Bool → Bool)
+      = pair (squarePotential J 0) := by
+  rw [isingChainPotential, Potential.comap_pair]
+  congr 1
+  funext i j x y
+  simp only [squarePotential, isingChainPair]
+  split_ifs <;> ring
+
+/-- **Georgii, Example (9.15) at `K = 0`: the symmetry `τ⁽¹⁾` is broken.** For `K = 0` the two
+layers decouple and Georgii invokes Theorem (6.4) for the first one. Under the hypotheses of (6.4)
+— `J_n > 0` and `∑_n e^{-2J_n} < ∞`, Georgii (6.1) — the chain has a Gibbs measure `μ₊` with
+`μ₊(σ_n) > 0` at every site (`exists_mem_G_integral_spin_pos`); the product `μ₊ ⊗ λ^ℕ` with a free
+second layer is a Gibbs measure for `Φ = pair (squarePotential J 0)`
+(`mem_G_map_symm_prod_infinitePi_comap_fst`) whose first-layer magnetisation is again `μ₊(σ_n)`,
+so it is not `τ⁽¹⁾`-invariant. The a priori measure is Georgii's equidistribution on the four
+vertices of the square, `λ = λ₁ ⊗ λ₁`. -/
+theorem exists_not_measurePreserving_squareFlip₁_of_summable {J : ℕ → ℝ} (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) (i : ℕ) :
+    haveI := isPotential_pair_squarePotential J 0
+    haveI := isAbsolutelySummable_pair_squarePotential J 0
+    ∃ μ ∈ G (gibbsSpecificationOfFiniteReference (pair (squarePotential J 0))
+        (uniformSpinMeasure.prod uniformSpinMeasure) 1),
+      ¬ MeasurePreserving squareFlip₁.toFun μ μ := by
+  have := isPotential_pair_squarePotential J 0
+  have := isAbsolutelySummable_pair_squarePotential J 0
+  obtain ⟨μ₁, hμ₁, hpos⟩ := exists_mem_G_integral_spin_pos hJ h61
+  have : IsProbabilityMeasure μ₁ := hμ₁.1
+  set e := MeasurableEquiv.arrowProdEquivProdArrow Bool Bool ℕ with he
+  set μ := (μ₁.prod (Measure.infinitePi fun _ : ℕ ↦ uniformSpinMeasure)).map e.symm with hμdef
+  have hlift : μ ∈ G (gibbsSpecificationOfAbsolutelySummable
+      (Φ := (isingChainPotential J).comap (Prod.fst : Bool × Bool → Bool))
+      (uniformSpinMeasure.prod uniformSpinMeasure) 1) :=
+    mem_G_map_symm_prod_infinitePi_comap_fst (isingChainPotential J) uniformSpinMeasure
+      uniformSpinMeasure 1 hμ₁
+  have hspec : gibbsSpecificationOfFiniteReference (pair (squarePotential J 0))
+      (uniformSpinMeasure.prod uniformSpinMeasure) 1
+      = gibbsSpecificationOfAbsolutelySummable
+        (Φ := (isingChainPotential J).comap (Prod.fst : Bool × Bool → Bool))
+        (uniformSpinMeasure.prod uniformSpinMeasure) 1 := by
+    rw [gibbsSpecificationOfFiniteReference_eq_of_isProbabilityMeasure]
+    exact gibbsSpecification_congr _ 1 (comap_fst_isingChainPotential J) |>.symm
+  have hq : Measurable fun ω : ℕ → Bool × Bool ↦ fun j ↦ (ω j).1 :=
+    measurable_pi_lambda _ fun j ↦ (measurable_pi_apply j).fst
+  have hmar : μ.map (fun ω j ↦ (ω j).1) = μ₁ :=
+    map_fst_map_arrowProdEquivProdArrow_symm_prod μ₁ _
+  have hint : ∫ ω, spin (ω i).1 ∂μ = ∫ x, spin (x i) ∂μ₁ := by
+    have h := integral_map (μ := μ) (φ := fun ω : ℕ → Bool × Bool ↦ fun j ↦ (ω j).1)
+      (f := fun x : ℕ → Bool ↦ spin (x i)) hq.aemeasurable
+      (((Measurable.of_discrete (f := spin)).comp (measurable_pi_apply i)).aestronglyMeasurable)
+    rw [hmar] at h
+    exact h.symm
+  exact ⟨μ, hspec ▸ hlift,
+    not_measurePreserving_squareFlip₁_of_integral_pos i (hint ▸ hpos i)⟩
 
 end MeasureTheory.GibbsMeasure
 

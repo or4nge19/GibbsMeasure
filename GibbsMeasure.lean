@@ -3,6 +3,7 @@ module
 public import GibbsMeasure.Mathlib.Algebra.Order.SecondDifference
 public import GibbsMeasure.Mathlib.Analysis.Calculus.IteratedDeriv.SecondDifference
 public import GibbsMeasure.Mathlib.Analysis.PSeries
+public import GibbsMeasure.Mathlib.Topology.Instances.EReal
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.ENNReal
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Finite
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Connectivity
@@ -168,6 +169,7 @@ public import GibbsMeasure.Specification.NetEquicontinuity
 public import GibbsMeasure.Specification.Quasilocality
 public import GibbsMeasure.Specification.Rescaling
 public import GibbsMeasure.Specification.ProductSpecification
+public import GibbsMeasure.Specification.Pullback
 public import GibbsMeasure.Specification.QuasilocalSpecification
 public import GibbsMeasure.Specification.Singleton
 public import GibbsMeasure.Specification.CountingKernel
@@ -175,6 +177,7 @@ public import GibbsMeasure.Specification.MarkovInt
 public import GibbsMeasure.Specification.MarkovIntChains
 public import GibbsMeasure.Specification.Pressure
 public import GibbsMeasure.Specification.SpecificEntropy
+public import GibbsMeasure.Specification.VariationalPrinciple
 public import GibbsMeasure.Specification.Structure
 public import GibbsMeasure.Topology.ConfigurationSpace
 public import GibbsMeasure.Topology.ClusterPoints

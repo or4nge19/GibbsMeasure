@@ -132,3 +132,34 @@ lemma monotone_juxt [Preorder E] (ω : S → E) : Monotone (juxt Λ ω) := by
   · simp [hx]
 
 end order
+
+section Restrict
+
+variable {S E : Type*} [MeasurableSpace E]
+
+/-- `σ ↦ σ_Λ ω_{S∖Λ}` is measurable for the cylinder σ-algebra `𝓕_Λ`: it only reads the
+coordinates in `Λ`. (Intended home: `GibbsMeasure/Prereqs/Juxt.lean`.) -/
+lemma measurable_cylinderEvents_juxt_restrict (Λ : Set S) (ω : S → E) :
+    Measurable[cylinderEvents (X := fun _ : S ↦ E) Λ]
+      fun σ : S → E ↦ juxt Λ ω fun i ↦ σ i := by
+  have hmeas : Measurable fun σ : S → E ↦ juxt Λ ω fun i ↦ σ i := by
+    refine measurable_pi_lambda _ fun i ↦ ?_
+    by_cases hi : i ∈ Λ
+    · simpa only [juxt_apply_of_mem hi] using measurable_pi_apply i
+    · simpa only [juxt_apply_of_not_mem hi] using measurable_const
+  refine hmeas.cylinderEvents_of_dependsOn fun σ σ' h ↦ ?_
+  funext i
+  by_cases hi : i ∈ Λ
+  · simp only [juxt_apply_of_mem hi]
+    exact h i hi
+  · simp only [juxt_apply_of_not_mem hi]
+
+/-- Resampling inside `Λ` does not change membership in an `𝓕_Λ`-event.
+(Intended home: `GibbsMeasure/Prereqs/Juxt.lean`.) -/
+lemma preimage_juxt_restrict_eq (Λ : Set S) (ω : S → E) {A : Set (S → E)}
+    (hA : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) Λ] A) :
+    (fun σ : S → E ↦ juxt Λ ω fun i ↦ σ i) ⁻¹' A = A := by
+  ext σ
+  exact mem_congr_of_measurableSet_cylinderEvents hA fun i hi ↦ juxt_apply_of_mem hi _
+
+end Restrict

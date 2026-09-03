@@ -658,4 +658,401 @@ theorem klDiv_trim_eq_iSup_sum (hm : m ≤ m𝓧) :
 
 end FinitePartition
 
+section DensityAndTotalVariation
+
+/-- **Chain rule for the relative entropy through a density measurable for a sub-σ-algebra.**
+Let `ν = g • lam` with `g` measurable for `m ≤ m𝓧`, and suppose `μ = ν` on `m`. Then
+`𝓗(μ | lam) = 𝓗(μ | ν) + 𝓗_m(μ | lam)`, in `[0, ∞]`. (Georgii uses this in the proofs of (15.10)
+and (15.16): `𝓗_Λ(μ) − 𝓗_{Λ ∪ Δ}(μ) = 𝓗_{Λ ∪ Δ}(μ | μ λ_{Δ ∖ Λ})`.) -/
+theorem klDiv_eq_add_klDiv_trim_of_withDensity {m m𝓧 : MeasurableSpace 𝓧} (hm : m ≤ m𝓧)
+    {μ ν lam : Measure 𝓧} [IsFiniteMeasure μ] [IsFiniteMeasure ν] [IsFiniteMeasure lam]
+    {g : 𝓧 → ℝ≥0∞} (hg : Measurable[m] g) (hν : ν = lam.withDensity g)
+    (hμν : μ.trim hm = ν.trim hm) :
+    klDiv μ lam = klDiv μ ν + klDiv (μ.trim hm) (lam.trim hm) := by
+  have hg' : Measurable g := hg.mono hm le_rfl
+  have hνl : ν ≪ lam := hν ▸ withDensity_absolutelyContinuous _ _
+  have hνm : ν.trim hm = (lam.trim hm).withDensity g := by rw [hν, trim_withDensity hm hg]
+  by_cases hac : μ ≪ lam
+  swap
+  · have hac' : ¬ μ ≪ ν := fun h ↦ hac (h.trans hνl)
+    rw [klDiv_of_not_ac hac, klDiv_of_not_ac hac', top_add]
+  -- `μ` does not charge `{g = 0}`, hence `μ ≪ ν`
+  have hZ : MeasurableSet[m] {x | g x = 0} := hg (measurableSet_singleton 0)
+  have hμZ : μ {x | g x = 0} = 0 := by
+    calc μ {x | g x = 0} = μ.trim hm {x | g x = 0} := (trim_measurableSet_eq hm hZ).symm
+      _ = ν.trim hm {x | g x = 0} := by rw [hμν]
+      _ = ν {x | g x = 0} := trim_measurableSet_eq hm hZ
+      _ = 0 := by
+        rw [hν, withDensity_apply_eq_zero hg']
+        have : {x | g x ≠ 0} ∩ {x | g x = 0} = ∅ := by ext x; simp
+        rw [this, measure_empty]
+  have hμν' : μ ≪ ν := by
+    refine Measure.AbsolutelyContinuous.mk fun s hs hνs ↦ ?_
+    rw [hν, withDensity_apply_eq_zero hg'] at hνs
+    have h1 : μ ({x | g x ≠ 0} ∩ s) = 0 := hac hνs
+    have h2 : μ ({x | g x = 0} ∩ s) = 0 := measure_mono_null Set.inter_subset_left hμZ
+    refine le_antisymm ?_ zero_le
+    calc μ s = μ (({x | g x ≠ 0} ∩ s) ∪ ({x | g x = 0} ∩ s)) := by
+          congr 1
+          ext x
+          by_cases hx : g x = 0 <;> simp [hx]
+      _ ≤ μ ({x | g x ≠ 0} ∩ s) + μ ({x | g x = 0} ∩ s) := measure_union_le _ _
+      _ = 0 := by rw [h1, h2, add_zero]
+  -- the log-likelihood ratios: `llr μ lam = llr μ ν + log g` `μ`-a.e.
+  have hgν : ν.rnDeriv lam =ᵐ[lam] g := hν ▸ Measure.rnDeriv_withDensity lam hg'
+  have hchain : μ.rnDeriv ν * ν.rnDeriv lam =ᵐ[lam] μ.rnDeriv lam :=
+    Measure.rnDeriv_mul_rnDeriv hμν'
+  have hgpos : ∀ᵐ x ∂μ, g x ≠ 0 := by
+    rw [ae_iff]
+    simpa using hμZ
+  have hgne : ∀ᵐ x ∂μ, g x ≠ ∞ := by
+    refine hac.ae_le ?_
+    filter_upwards [hgν, Measure.rnDeriv_ne_top ν lam] with x hx hx'
+    rwa [hx] at hx'
+  have hllr : llr μ lam =ᵐ[μ] fun x ↦ llr μ ν x + log (g x).toReal := by
+    filter_upwards [hac.ae_le hchain, hac.ae_le hgν, Measure.rnDeriv_pos hμν',
+      hμν'.ae_le (Measure.rnDeriv_ne_top μ ν), hgpos, hgne] with x h1 h2 h3 h4 h5 h6
+    simp only [llr_def]
+    rw [← h1, Pi.mul_apply, h2, ENNReal.toReal_mul, Real.log_mul]
+    · exact (ENNReal.toReal_pos h3.ne' h4).ne'
+    · exact (ENNReal.toReal_pos h5 h6).ne'
+  -- the relative entropy on `m` is `μ(log g)`
+  have hgm : StronglyMeasurable[m] fun x ↦ log (g x).toReal :=
+    (Real.measurable_log.comp (ENNReal.measurable_toReal.comp hg)).stronglyMeasurable
+  have hac_trim : μ.trim hm ≪ lam.trim hm := hac.trim hm
+  have hllr_trim : llr (μ.trim hm) (lam.trim hm) =ᵐ[μ.trim hm] fun x ↦ log (g x).toReal := by
+    have h1 : (μ.trim hm).rnDeriv (lam.trim hm) =ᵐ[lam.trim hm] g := by
+      rw [hμν, hνm]
+      exact Measure.rnDeriv_withDensity _ hg
+    filter_upwards [hac_trim.ae_le h1] with x hx
+    simp only [llr_def, hx]
+  by_cases hA : Integrable (llr μ lam) μ
+  swap
+  · rw [klDiv_of_not_integrable hA]
+    by_cases hB : Integrable (llr μ ν) μ
+    · have hC : ¬ Integrable (fun x ↦ log (g x).toReal) μ := fun hC ↦
+        hA ((hB.add hC).congr hllr.symm)
+      have : klDiv (μ.trim hm) (lam.trim hm) = ∞ :=
+        klDiv_of_not_integrable fun h ↦ hC (integrable_of_integrable_trim hm (h.congr hllr_trim))
+      rw [this, add_top]
+    · rw [klDiv_of_not_integrable hB, top_add]
+  -- all three relative entropies are finite
+  have hBtrim : Integrable (llr (μ.trim hm) (lam.trim hm)) (μ.trim hm) := by
+    have h := klDiv_ne_top hac hA
+    have h' : klDiv (μ.trim hm) (lam.trim hm) ≠ ∞ := ne_top_of_le_ne_top h (klDiv_trim_le μ lam hm)
+    exact (klDiv_ne_top_iff.1 h').2
+  have hC : Integrable (fun x ↦ log (g x).toReal) μ :=
+    integrable_of_integrable_trim hm (hBtrim.congr hllr_trim)
+  have hB : Integrable (llr μ ν) μ := by
+    refine (hA.sub hC).congr ?_
+    filter_upwards [hllr] with x hx
+    simp only [Pi.sub_apply]
+    rw [hx]
+    ring
+  rw [klDiv_of_ac_of_integrable hac hA, klDiv_of_ac_of_integrable hμν' hB,
+    klDiv_of_ac_of_integrable hac_trim hBtrim,
+    ← ENNReal.ofReal_add (integral_llr_add_sub_measure_univ_nonneg hμν' hB)
+      (integral_llr_add_sub_measure_univ_nonneg hac_trim hBtrim)]
+  congr 1
+  have hνμ : ν.real Set.univ = μ.real Set.univ := by
+    simp only [measureReal_def]
+    rw [← trim_measurableSet_eq hm MeasurableSet.univ, ← hμν,
+      trim_measurableSet_eq hm MeasurableSet.univ]
+  have hint : ∫ x, llr μ lam x ∂μ = ∫ x, llr μ ν x ∂μ + ∫ x, log (g x).toReal ∂μ := by
+    rw [← integral_add hB hC]
+    exact integral_congr_ae hllr
+  have htrim : ∫ x, llr (μ.trim hm) (lam.trim hm) x ∂(μ.trim hm)
+      = ∫ x, log (g x).toReal ∂μ := by
+    rw [integral_congr_ae hllr_trim, ← integral_trim hm hgm]
+  have huniv : (μ.trim hm).real Set.univ = μ.real Set.univ := by
+    simp [measureReal_def, trim_measurableSet_eq hm MeasurableSet.univ]
+  have huniv' : (lam.trim hm).real Set.univ = lam.real Set.univ := by
+    simp [measureReal_def, trim_measurableSet_eq hm MeasurableSet.univ]
+  rw [htrim, huniv, huniv', hint, hνμ]
+  ring
+
+variable {𝓧 α : Type*} {mα : MeasurableSpace α} {μ lam : Measure α}
+
+/-- **The relative entropy against a measure given by a density.** If `ν = g · λ` with `g`
+measurable and `λ`-a.e. in `(0, ∞)`, and if `μ`, `λ`, `ν` are probability measures, then
+`𝓗(μ | ν) = 𝓗(μ | λ) − μ(log g)`, written here without `EReal` subtraction as
+`𝓗(μ | ν) + μ(log g) = 𝓗(μ | λ)`. Georgii uses this in the proofs of (15.28) and (15.30). -/
+theorem klDiv_withDensity_add_integral_log [IsProbabilityMeasure μ] [IsProbabilityMeasure lam]
+    {g : α → ℝ≥0∞} (hg : Measurable g) (hg0 : ∀ᵐ x ∂lam, g x ≠ 0) (hgtop : ∀ᵐ x ∂lam, g x ≠ ∞)
+    (hprob : IsProbabilityMeasure (lam.withDensity g))
+    (hint : Integrable (fun x ↦ log (g x).toReal) μ) :
+    (klDiv μ (lam.withDensity g) : EReal) + ((∫ x, log (g x).toReal ∂μ : ℝ) : EReal)
+      = (klDiv μ lam : EReal) := by
+  set ν := lam.withDensity g with hνdef
+  have hνlam : ν ≪ lam := withDensity_absolutelyContinuous _ _
+  have hlamν : lam ≪ ν := withDensity_absolutelyContinuous' hg.aemeasurable hg0
+  by_cases hac : μ ≪ lam
+  swap
+  · rw [klDiv_of_not_ac hac, klDiv_of_not_ac fun h ↦ hac (h.trans hνlam)]
+    simp
+  have hacν : μ ≪ ν := hac.trans hlamν
+  -- `llr μ lam = llr μ ν + log g` `μ`-a.e.
+  have hgν : ν.rnDeriv lam =ᵐ[lam] g := Measure.rnDeriv_withDensity lam hg
+  have hchain : μ.rnDeriv ν * ν.rnDeriv lam =ᵐ[lam] μ.rnDeriv lam :=
+    Measure.rnDeriv_mul_rnDeriv hacν
+  have hllr : llr μ lam =ᵐ[μ] fun x ↦ llr μ ν x + log (g x).toReal := by
+    filter_upwards [hac.ae_le hchain, hac.ae_le hgν, Measure.rnDeriv_pos hacν,
+      hacν.ae_le (Measure.rnDeriv_ne_top μ ν), hac.ae_le hg0, hac.ae_le hgtop]
+      with x h1 h2 h3 h4 h5 h6
+    simp only [llr_def]
+    rw [← h1, Pi.mul_apply, h2, ENNReal.toReal_mul, Real.log_mul]
+    · exact (ENNReal.toReal_pos h3.ne' h4).ne'
+    · exact (ENNReal.toReal_pos h5 h6).ne'
+  by_cases hB : Integrable (llr μ ν) μ
+  swap
+  · rw [klDiv_of_not_integrable hB, klDiv_of_not_integrable ?_]
+    · simp
+    · intro hA
+      exact hB ((hA.sub hint).congr (by filter_upwards [hllr] with x hx; simp [hx]))
+  have hA : Integrable (llr μ lam) μ := (hB.add hint).congr hllr.symm
+  have hint_eq : ∫ x, llr μ lam x ∂μ = (∫ x, llr μ ν x ∂μ) + ∫ x, log (g x).toReal ∂μ := by
+    rw [← integral_add hB hint]
+    exact integral_congr_ae hllr
+  have hnn1 : 0 ≤ ∫ x, llr μ ν x ∂μ := by
+    have := integral_llr_add_sub_measure_univ_nonneg hacν hB
+    simpa using this
+  have hnn2 : 0 ≤ ∫ x, llr μ lam x ∂μ := by
+    have := integral_llr_add_sub_measure_univ_nonneg hac hA
+    simpa using this
+  rw [klDiv_of_ac_of_integrable hacν hB, klDiv_of_ac_of_integrable hac hA]
+  simp only [measure_univ, measureReal_def, ENNReal.toReal_one, add_sub_cancel_right]
+  rw [EReal.coe_ennreal_ofReal, EReal.coe_ennreal_ofReal, max_eq_left hnn1, max_eq_left hnn2,
+    hint_eq, EReal.coe_add]
+
+
+/-- If `ρ ≤ c σ`, the density of `ρ` with respect to `σ` is at most `c`, `σ`-almost everywhere.
+(Intended home: `Mathlib/MeasureTheory/Measure/Decomposition/RadonNikodym.lean`.) -/
+lemma _root_.MeasureTheory.Measure.rnDeriv_le_of_le_smul {ρ σ : Measure α} [IsFiniteMeasure ρ]
+    [SigmaFinite σ] {c : ℝ≥0} (hc0 : c ≠ 0) (h : ρ ≤ c • σ) :
+    ρ.rnDeriv σ ≤ᵐ[σ] fun _ ↦ (c : ℝ≥0∞) := by
+  have hc : (c : ℝ≥0∞) ≠ 0 := by simpa using hc0
+  have h1 : ρ.rnDeriv (c • σ) ≤ᵐ[c • σ] 1 := Measure.rnDeriv_le_one_of_le h
+  have h1' : ρ.rnDeriv (c • σ) ≤ᵐ[σ] 1 :=
+    (Measure.absolutelyContinuous_smul (μ := σ) (c := (c : ℝ≥0∞)) hc).ae_le h1
+  have h2 : ρ.rnDeriv (c • σ) =ᵐ[σ] c⁻¹ • ρ.rnDeriv σ := Measure.rnDeriv_smul_right ρ σ hc0
+  filter_upwards [h1', h2] with x hx hx'
+  rw [hx'] at hx
+  simp only [Pi.smul_apply, ENNReal.smul_def, smul_eq_mul, Pi.one_apply,
+    ENNReal.coe_inv hc0] at hx
+  calc ρ.rnDeriv σ x = (c : ℝ≥0∞) * (((c : ℝ≥0∞))⁻¹ * ρ.rnDeriv σ x) := by
+        rw [← mul_assoc, ENNReal.mul_inv_cancel hc (by simp), one_mul]
+    _ ≤ (c : ℝ≥0∞) * 1 := by gcongr
+    _ = (c : ℝ≥0∞) := mul_one _
+
+/-- **The relative entropy against two comparable reference measures.** If the probability
+measures `ν₁` and `ν₂` are within a factor `c` of each other, then for every probability measure
+`μ`, `𝓗(μ | ν₂) ≤ 𝓗(μ | ν₁) + log c`. This is the quantitative content of Georgii's Lemma
+(15.28): two Gibbs distributions in `Λ` with different boundary conditions have densities within
+`e^{2 r(Λ, Φ)}` of each other on `𝓕_Λ`. -/
+theorem klDiv_le_klDiv_add_ofReal_log_of_le_smul {μ ν₁ ν₂ : Measure α} [IsProbabilityMeasure μ]
+    [IsProbabilityMeasure ν₁] [IsProbabilityMeasure ν₂] {c : ℝ≥0}
+    (h₁ : ν₁ ≤ c • ν₂) (h₂ : ν₂ ≤ c • ν₁) :
+    klDiv μ ν₂ ≤ klDiv μ ν₁ + ENNReal.ofReal (log c) := by
+  have hc1 : (1 : ℝ≥0∞) ≤ (c : ℝ≥0∞) := by simpa using h₁ Set.univ
+  have hc0 : c ≠ 0 := by rintro rfl; simp at hc1
+  have hcne : (c : ℝ≥0∞) ≠ 0 := by simpa using hc0
+  have hcR : (1 : ℝ) ≤ (c : ℝ) := by exact_mod_cast hc1
+  have hlogc : 0 ≤ log (c : ℝ) := Real.log_nonneg hcR
+  have hcpos : (0 : ℝ) < (c : ℝ) := lt_of_lt_of_le one_pos hcR
+  have hsmul : ∀ ρ : Measure α, (c : ℝ≥0∞) • ρ ≪ ρ :=
+    fun ρ ↦ Measure.AbsolutelyContinuous.mk fun s _ hs ↦ by simp [hs]
+  have h21 : ν₂ ≪ ν₁ := (Measure.absolutelyContinuous_of_le h₂).trans (hsmul ν₁)
+  have h12 : ν₁ ≪ ν₂ := (Measure.absolutelyContinuous_of_le h₁).trans (hsmul ν₂)
+  -- The density of `ν₂` with respect to `ν₁`, truncated to the interval `[c⁻¹, c]` in which it
+  -- almost surely lies; the truncation makes all the bounds below hold *everywhere*, so that the
+  -- logarithm is integrable against the arbitrary probability measure `μ`.
+  set g : α → ℝ≥0∞ := fun x ↦ max (min (ν₂.rnDeriv ν₁ x) (c : ℝ≥0∞)) ((c : ℝ≥0∞))⁻¹ with hgdef
+  have hinvle : ((c : ℝ≥0∞))⁻¹ ≤ (c : ℝ≥0∞) := (ENNReal.inv_le_one.2 hc1).trans hc1
+  have hgle : ∀ x, g x ≤ (c : ℝ≥0∞) := fun x ↦ max_le (min_le_right _ _) hinvle
+  have hgge : ∀ x, ((c : ℝ≥0∞))⁻¹ ≤ g x := fun x ↦ le_max_right _ _
+  have hgm : Measurable g :=
+    ((ν₂.measurable_rnDeriv ν₁).min measurable_const).max measurable_const
+  have hg0 : ∀ x, g x ≠ 0 := fun x ↦
+    (lt_of_lt_of_le (ENNReal.inv_pos.2 ENNReal.coe_ne_top) (hgge x)).ne'
+  have hgtop : ∀ x, g x ≠ ∞ := fun x ↦ (lt_of_le_of_lt (hgle x) (by simp)).ne
+  -- `g` is a version of the Radon–Nikodym derivative
+  have hd_le : ν₂.rnDeriv ν₁ ≤ᵐ[ν₁] fun _ ↦ (c : ℝ≥0∞) := Measure.rnDeriv_le_of_le_smul hc0 h₂
+  have hd_ge : (fun _ ↦ ((c : ℝ≥0∞))⁻¹) ≤ᵐ[ν₁] ν₂.rnDeriv ν₁ := by
+    have h1c : ν₁.rnDeriv ν₂ ≤ᵐ[ν₂] fun _ ↦ (c : ℝ≥0∞) := Measure.rnDeriv_le_of_le_smul hc0 h₁
+    have hmul : ν₂.rnDeriv ν₁ * ν₁.rnDeriv ν₂ =ᵐ[ν₂] ν₂.rnDeriv ν₂ :=
+      Measure.rnDeriv_mul_rnDeriv h21
+    refine h12.ae_le ?_
+    filter_upwards [h1c, hmul, ν₂.rnDeriv_self] with x hx hx' hx''
+    have hx1 : ν₂.rnDeriv ν₁ x * ν₁.rnDeriv ν₂ x = 1 := by
+      simpa only [Pi.mul_apply, hx'', Pi.one_apply] using hx'
+    have h1 : (1 : ℝ≥0∞) ≤ ν₂.rnDeriv ν₁ x * (c : ℝ≥0∞) := by rw [← hx1]; gcongr
+    calc ((c : ℝ≥0∞))⁻¹ = 1 * ((c : ℝ≥0∞))⁻¹ := (one_mul _).symm
+      _ ≤ ν₂.rnDeriv ν₁ x * (c : ℝ≥0∞) * ((c : ℝ≥0∞))⁻¹ := by gcongr
+      _ = ν₂.rnDeriv ν₁ x := by
+          rw [mul_assoc, ENNReal.mul_inv_cancel hcne (by simp), mul_one]
+  have hae : g =ᵐ[ν₁] ν₂.rnDeriv ν₁ := by
+    filter_upwards [hd_le, hd_ge] with x hx hx'
+    simp only [hgdef, min_eq_left hx, max_eq_left hx']
+  have hwd : ν₁.withDensity g = ν₂ := by
+    rw [withDensity_congr_ae hae, Measure.withDensity_rnDeriv_eq ν₂ ν₁ h21]
+  -- the log-density is bounded by `log c` in absolute value, everywhere
+  have hbound : ∀ x, |log (g x).toReal| ≤ log (c : ℝ) := fun x ↦ by
+    have hx1 : (g x).toReal ≤ (c : ℝ) := by
+      simpa using ENNReal.toReal_mono ENNReal.coe_ne_top (hgle x)
+    have hx2 : ((c : ℝ))⁻¹ ≤ (g x).toReal := by
+      have := ENNReal.toReal_mono (hgtop x) (hgge x)
+      rwa [ENNReal.toReal_inv, ENNReal.coe_toReal] at this
+    have hpos : 0 < (g x).toReal := lt_of_lt_of_le (by positivity) hx2
+    rw [abs_le]
+    refine ⟨?_, Real.log_le_log hpos hx1⟩
+    have := Real.log_le_log (by positivity) hx2
+    rwa [Real.log_inv] at this
+  have hint : Integrable (fun x ↦ log (g x).toReal) μ :=
+    Integrable.mono' (integrable_const (log (c : ℝ)))
+      ((Real.measurable_log.comp (ENNReal.measurable_toReal.comp hgm)).aestronglyMeasurable)
+      (.of_forall fun x ↦ by simpa only [Real.norm_eq_abs] using hbound x)
+  have hprob : IsProbabilityMeasure (ν₁.withDensity g) := by rw [hwd]; infer_instance
+  have key := klDiv_withDensity_add_integral_log (μ := μ) (lam := ν₁) hgm
+    (.of_forall hg0) (.of_forall hgtop) hprob hint
+  rw [hwd] at key
+  have hIge : -log (c : ℝ) ≤ ∫ x, log (g x).toReal ∂μ := by
+    have := integral_mono_ae (integrable_const (-log (c : ℝ))) hint
+      (.of_forall fun x ↦ (abs_le.1 (hbound x)).1)
+    simpa using this
+  refine EReal.coe_ennreal_le_coe_ennreal_iff.1 ?_
+  rw [EReal.coe_ennreal_add, EReal.coe_ennreal_ofReal, max_eq_left hlogc]
+  calc ((klDiv μ ν₂ : ℝ≥0∞) : EReal)
+      = ((klDiv μ ν₂ : ℝ≥0∞) : EReal) + ((∫ x, log (g x).toReal ∂μ : ℝ) : EReal)
+          + ((-∫ x, log (g x).toReal ∂μ : ℝ) : EReal) := by
+        rw [add_assoc, ← EReal.coe_add, add_neg_cancel, EReal.coe_zero, add_zero]
+    _ = ((klDiv μ ν₁ : ℝ≥0∞) : EReal) + ((-∫ x, log (g x).toReal ∂μ : ℝ) : EReal) := by rw [key]
+    _ ≤ ((klDiv μ ν₁ : ℝ≥0∞) : EReal) + ((log (c : ℝ) : ℝ) : EReal) := by
+        gcongr
+        linarith
+
+/-- If two probability measures are within a factor `c` of each other, their relative entropy is
+at most `log c`. -/
+theorem klDiv_le_ofReal_log_of_le_smul {μ ν : Measure α} [IsProbabilityMeasure μ]
+    [IsProbabilityMeasure ν] {c : ℝ≥0} (h₁ : μ ≤ c • ν) (h₂ : ν ≤ c • μ) :
+    klDiv μ ν ≤ ENNReal.ofReal (log c) := by
+  simpa using klDiv_le_klDiv_add_ofReal_log_of_le_smul (μ := μ) (ν₁ := μ) (ν₂ := ν) h₁ h₂
+
+/-- **The elementary inequality behind Georgii's Step 2 in the proof of (15.37)**, "a glance at
+the graph of `ψ` shows that there is a number `0 < r < ∞` such that `|x − 1| ≤ r ψ(x) + ε` for all
+`x ≥ 0`", where `ψ = klFun` is `x log x + 1 − x`. For `x ≥ e²` one may take `r = 1`; on the compact
+set `{x ∈ [0, e²] : |x − 1| ≥ ε}` the continuous function `ψ` has a positive minimum.
+(Intended home: `Mathlib/InformationTheory/KullbackLeibler/KLFun.lean`.) -/
+theorem exists_abs_sub_one_le_mul_klFun_add {ε : ℝ} (hε : 0 < ε) :
+    ∃ r : ℝ, 0 < r ∧ ∀ x : ℝ, 0 ≤ x → |x - 1| ≤ r * klFun x + ε := by
+  set M : ℝ := Real.exp 2 with hMdef
+  have hM1 : (1 : ℝ) ≤ M := Real.one_le_exp (by norm_num)
+  -- for `x ≥ e²` the inequality already holds with `r = 1`
+  have hbig : ∀ x : ℝ, M ≤ x → |x - 1| ≤ klFun x := fun x hx ↦ by
+    have hxpos : (0 : ℝ) < x := lt_of_lt_of_le (lt_of_lt_of_le one_pos hM1) hx
+    have hlog : (2 : ℝ) ≤ Real.log x := by
+      rw [← Real.log_exp 2]; exact Real.log_le_log (Real.exp_pos 2) hx
+    have hmul : 2 * x ≤ x * Real.log x := by nlinarith
+    rw [abs_of_nonneg (by linarith : (0 : ℝ) ≤ x - 1), klFun_apply]
+    linarith
+  -- on `[0, e²]` away from `1` the function `ψ` is bounded below by a positive constant
+  set K : Set ℝ := Set.Icc 0 M ∩ {x : ℝ | ε ≤ |x - 1|} with hKdef
+  have hKle : ∀ x ∈ K, |x - 1| ≤ M := fun x hx ↦ by
+    obtain ⟨⟨hx0, hxM⟩, -⟩ := hx
+    rw [abs_le]; constructor <;> linarith
+  have hKc : IsCompact K :=
+    isCompact_Icc.inter_right (isClosed_le continuous_const ((continuous_id.sub
+      continuous_const).abs))
+  rcases K.eq_empty_or_nonempty with hKe | hKne
+  · refine ⟨1, one_pos, fun x hx ↦ ?_⟩
+    rcases le_or_gt M x with hxM | hxM
+    · have := hbig x hxM
+      have : (0 : ℝ) ≤ klFun x := klFun_nonneg hx
+      nlinarith [hbig x hxM]
+    · have hnot : ¬ ε ≤ |x - 1| := fun hc ↦ by
+        rw [Set.eq_empty_iff_forall_notMem] at hKe
+        exact hKe x ⟨⟨hx, hxM.le⟩, hc⟩
+      have := klFun_nonneg hx
+      have := not_le.1 hnot
+      linarith
+  · obtain ⟨x₀, hx₀K, hx₀⟩ := hKc.exists_isMinOn hKne continuous_klFun.continuousOn
+    have hx₀0 : 0 ≤ x₀ := hx₀K.1.1
+    have hx₀1 : x₀ ≠ 1 := fun hc ↦ by
+      have := hx₀K.2
+      simp only [Set.mem_ofPred_eq, hc, sub_self, abs_zero] at this
+      exact absurd this hε.not_ge
+    have hc : 0 < klFun x₀ :=
+      (klFun_nonneg hx₀0).lt_of_ne fun hc ↦ hx₀1 ((klFun_eq_zero_iff hx₀0).1 hc.symm)
+    refine ⟨max 1 (M / klFun x₀), lt_of_lt_of_le one_pos (le_max_left _ _), fun x hx ↦ ?_⟩
+    have hkl : (0 : ℝ) ≤ klFun x := klFun_nonneg hx
+    rcases le_or_gt M x with hxM | hxM
+    · have h1 := hbig x hxM
+      have : klFun x ≤ max 1 (M / klFun x₀) * klFun x :=
+        le_mul_of_one_le_left hkl (le_max_left _ _)
+      linarith
+    rcases le_or_gt ε |x - 1| with hεx | hεx
+    · have hxK : x ∈ K := ⟨⟨hx, hxM.le⟩, hεx⟩
+      have hmin : klFun x₀ ≤ klFun x := hx₀ hxK
+      have h1 : M / klFun x₀ * klFun x₀ ≤ M / klFun x₀ * klFun x := by
+        exact mul_le_mul_of_nonneg_left hmin (by positivity)
+      have h2 : M / klFun x₀ * klFun x₀ = M := div_mul_cancel₀ M hc.ne'
+      have h3 : M / klFun x₀ * klFun x ≤ max 1 (M / klFun x₀) * klFun x :=
+        mul_le_mul_of_nonneg_right (le_max_right _ _) hkl
+      have h4 : |x - 1| ≤ M := hKle x hxK
+      linarith
+    · have : (0 : ℝ) ≤ max 1 (M / klFun x₀) * klFun x :=
+        mul_nonneg (le_trans zero_le_one (le_max_left _ _)) hkl
+      linarith
+
+/-- **Georgii, Step 2 in the proof of (15.37)**, the inequality he attributes to Csiszár (1967) in
+the sharper `‖p − q‖₁² ≤ 2 𝓗(p | q)` form: a small relative entropy makes two probability measures
+close in total variation. Here the modulus is Georgii's: given `|x − 1| ≤ r ψ(x) + ε` for `x ≥ 0`
+(`exists_abs_sub_one_le_mul_klFun_add`), `|p(A) − q(A)| ≤ r 𝓗(p | q) + ε` for every measurable `A`.
+(Intended home: `Mathlib/InformationTheory/KullbackLeibler/Basic.lean`.) -/
+theorem abs_measureReal_sub_measureReal_le_of_klDiv {p q : Measure α}
+    [IsProbabilityMeasure p] [IsProbabilityMeasure q] {r ε : ℝ}
+    (hr : ∀ x : ℝ, 0 ≤ x → |x - 1| ≤ r * klFun x + ε) (hfin : klDiv p q ≠ ∞) (A : Set α) :
+    |p.real A - q.real A| ≤ r * (klDiv p q).toReal + ε := by
+  obtain ⟨hac, hint⟩ := klDiv_ne_top_iff.1 hfin
+  set h : α → ℝ := fun x ↦ (p.rnDeriv q x).toReal with hhdef
+  have hhint : Integrable h q := Measure.integrable_toReal_rnDeriv
+  have hklint : Integrable (fun x ↦ klFun (h x)) q := (integrable_klFun_rnDeriv_iff hac).2 hint
+  have habs : Integrable (fun x ↦ |h x - 1|) q := (hhint.sub (integrable_const 1)).abs
+  have hpA : p.real A = ∫ x in A, h x ∂q := (Measure.setIntegral_toReal_rnDeriv hac A).symm
+  have hqA : q.real A = ∫ _ in A, (1 : ℝ) ∂q := by
+    rw [setIntegral_const, smul_eq_mul, mul_one]
+  calc |p.real A - q.real A| = |∫ x in A, (h x - 1) ∂q| := by
+        rw [hpA, hqA, ← integral_sub hhint.integrableOn (integrable_const 1)]
+    _ ≤ ∫ x in A, |h x - 1| ∂q := abs_integral_le_integral_abs
+    _ ≤ ∫ x, |h x - 1| ∂q :=
+        setIntegral_le_integral habs (.of_forall fun _ ↦ abs_nonneg _)
+    _ ≤ ∫ x, (r * klFun (h x) + ε) ∂q :=
+        integral_mono habs ((hklint.const_mul r).add (integrable_const ε))
+          fun x ↦ hr _ ENNReal.toReal_nonneg
+    _ = r * (klDiv p q).toReal + ε := by
+        rw [integral_add (hklint.const_mul r) (integrable_const ε), integral_const_mul,
+          integral_const, toReal_klDiv_eq_integral_klFun hac, hhdef]
+        simp
+
+/-- **Georgii (15.38), the chain rule behind Step 2 of the proof of (15.37).** Let `m ≤ m𝓧` and
+let `g = dμ/dν` on `m`. Then `ν g` is a probability measure agreeing with `μ` on `m`, and
+`𝓗(μ | ν g) + 𝓗_m(μ | ν) = 𝓗(μ | ν)`; so the entropy increment `𝓗(μ | ν) − 𝓗_m(μ | ν)` is the
+relative entropy of `μ` with respect to the conditioned measure `ν g`.
+(Intended home: `Mathlib/InformationTheory/KullbackLeibler/ChainRule.lean`.) -/
+theorem klDiv_withDensity_rnDeriv_add_klDiv_trim {m m𝓧 : MeasurableSpace 𝓧}
+    (hm : m ≤ m𝓧) {μ ν : Measure 𝓧} [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (hac : μ.trim hm ≪ ν.trim hm) :
+    klDiv μ (ν.withDensity ((μ.trim hm).rnDeriv (ν.trim hm)))
+        + klDiv (μ.trim hm) (ν.trim hm) = klDiv μ ν := by
+  set g : 𝓧 → ℝ≥0∞ := (μ.trim hm).rnDeriv (ν.trim hm) with hgdef
+  have hg : Measurable[m] g := (μ.trim hm).measurable_rnDeriv (ν.trim hm)
+  have htrim : (ν.withDensity g).trim hm = μ.trim hm := by
+    rw [trim_withDensity hm hg, Measure.withDensity_rnDeriv_eq _ _ hac]
+  have hprob : IsProbabilityMeasure (ν.withDensity g) := by
+    refine ⟨?_⟩
+    rw [← trim_measurableSet_eq hm MeasurableSet.univ, htrim,
+      trim_measurableSet_eq hm MeasurableSet.univ, measure_univ]
+  exact (klDiv_eq_add_klDiv_trim_of_withDensity hm hg rfl htrim.symm).symm
+
+end DensityAndTotalVariation
+
 end InformationTheory

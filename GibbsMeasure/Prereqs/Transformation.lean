@@ -230,7 +230,7 @@ instance : Group (Transformation S E) where
   mul_one τ := ext (Equiv.refl_trans _) (funext fun _ ↦ MeasurableEquiv.ext rfl)
   inv_mul_cancel τ := by
     refine ext (Equiv.self_trans_symm _) (funext fun i ↦ ?_)
-    show (τ.spin (τ.sites.symm.symm i)).trans (τ.spin (τ.sites i)).symm = MeasurableEquiv.refl E
+    change (τ.spin (τ.sites.symm.symm i)).trans (τ.spin (τ.sites i)).symm = MeasurableEquiv.refl E
     simp only [Equiv.symm_symm]
     exact MeasurableEquiv.self_trans_symm _
 
@@ -299,7 +299,7 @@ lemma IsPureSpin.one : (1 : Transformation S E).IsPureSpin := rfl
 
 lemma IsPureSpin.mul (hτ : τ.IsPureSpin) (hσ : σ.IsPureSpin) : (τ * σ).IsPureSpin := by
   simp only [IsPureSpin] at hτ hσ ⊢
-  show σ.sites.trans τ.sites = Equiv.refl S
+  change σ.sites.trans τ.sites = Equiv.refl S
   rw [hτ, hσ]
   rfl
 

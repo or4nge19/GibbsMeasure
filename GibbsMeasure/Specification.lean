@@ -2686,4 +2686,24 @@ instance isProbabilityMeasure_bind_isssd [IsProbabilityMeasure μ] (Λ : Finset 
 
 end IsssdBind
 
+section IsssdRestrict
+
+variable {S E : Type*} [MeasurableSpace E]
+
+/-- The independent kernel `λ_Λ(·|ω)` is the image of the product measure `λ^S` under the
+resampling `σ ↦ σ_Λ ω_{S∖Λ}`. (Intended home: `GibbsMeasure/Specification.lean`, next to
+`Specification.isssd_apply_of_mem_cylinderEvents`.) -/
+lemma isssd_eq_map_juxt_restrict [Countable S] (ν : Measure E) [IsProbabilityMeasure ν]
+    (Λ : Finset S) (ω : S → E) :
+    Specification.isssd (S := S) (E := E) ν Λ ω
+      = Measure.map (fun σ : S → E ↦ juxt (Λ : Set S) ω fun i ↦ σ i)
+          (Measure.infinitePi fun _ : S ↦ ν) := by
+  have h : (Specification.isssd (S := S) (E := E) ν Λ) ω
+      = Measure.map (juxt (Λ : Set S) ω) (Measure.pi fun _ : Λ ↦ ν) := rfl
+  rw [h, ← Measure.infinitePi_map_restrict (μ := fun _ : S ↦ ν) (I := Λ),
+    Measure.map_map Measurable.juxt Λ.measurable_restrict]
+  rfl
+
+end IsssdRestrict
+
 end Specification
