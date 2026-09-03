@@ -81,3 +81,26 @@ the edges meeting $\Lambda$.
     normalised $\ell_0$ is a boundary law iff $\ell_0(x) = \bigl(\ell_0 Q_0(x)/\ell_0 Q_0(a)\bigr)^d$
     and $\sum_x (\ell_0 Q_0(x))^{d+1} < \infty$.
 \end{proposition}
+
+\begin{proposition}[Georgii (12.3)(2),(4), (12.5); uniqueness in (12.12)(b)]
+    \label{prop:tr-12-3}
+    \uses{def:tr-markov, thm:tr-12-12}
+    \lean{MeasureTheory.GibbsMeasure.Tree.IsMarkovChain.exists_parent_measure_cyl_eq, MeasureTheory.GibbsMeasure.Tree.transitionProb_mul_transitionProb_swap_eq, MeasureTheory.GibbsMeasure.Tree.tsum_transitionProb_eq_one, MeasureTheory.GibbsMeasure.Tree.IsBoundaryLaw.exists_const_mul_eq_of_boundaryLawMeasure_eq}
+    \leanok
+
+    For a Markov chain $\mu$ on a tree, the cylinder probabilities factorise along the edges
+    from a root (12.4), the transition probabilities $P_{ij}$ are stochastic and satisfy the
+    reversibility relation (12.5). Two boundary laws whose measures (12.13) coincide differ by a
+    positive constant on each oriented edge.
+\end{proposition}
+
+\begin{theorem}[Georgii (12.17), the correspondence]
+    \label{thm:tr-12-17}
+    \uses{prop:tr-12-16, prop:tr-12-3}
+    \lean{MeasureTheory.GibbsMeasure.Tree.IsCompletelyHomogeneousMarkovChain, MeasureTheory.GibbsMeasure.Tree.isCompletelyHomogeneousMarkovChain_iff_exists_isBoundaryLaw_const_solves, MeasureTheory.GibbsMeasure.Tree.eq_of_isBoundaryLaw_const_boundaryLawMeasure_eq}
+    \leanok
+
+    On a regular tree with constant transfer matrix $Q_0$, $\mu \in \mathcal G(\gamma^{Q_0})$ is
+    a completely homogeneous Markov chain iff $\mu$ is the measure of a constant normalised
+    boundary law solving (12.16); that solution is unique.
+\end{theorem}

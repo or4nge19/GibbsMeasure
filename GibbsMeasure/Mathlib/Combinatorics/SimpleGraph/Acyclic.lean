@@ -397,4 +397,50 @@ lemma IsAcyclic.bondsOf_eq_filter_union_image (hG : G.IsAcyclic) {Λ : Finset V}
 
 end InnerBonds
 
+section BondsInsert
+
+variable {V : Type*} {G : SimpleGraph V} [DecidableEq V] [G.LocallyFinite]
+
+open Classical in
+/-- In a tree, growing a connected `Λ` by one outer-boundary vertex `i` adds exactly one bond with
+both endpoints in the new set: the bond from `i` to its anchor `G.anchor Λ i` in `Λ`. Every other
+bond with both endpoints in `insert i Λ` already had both endpoints in `Λ`. -/
+theorem IsAcyclic.bondsOf_filter_insert_eq (hG : G.IsAcyclic) {Λ : Finset V}
+    (hΛ : (G.induce (Λ : Set V)).Connected) {i : V} (hi : i ∈ G.outerBoundary Λ) :
+    (G.bondsOf (insert i Λ)).filter (fun b ↦ ∀ v ∈ b, v ∈ insert i Λ)
+      = insert (s(G.anchor Λ i, i)) ((G.bondsOf Λ).filter (fun b ↦ ∀ v ∈ b, v ∈ Λ)) := by
+  ext b
+  refine Sym2.inductionOn b fun x y ↦ ?_
+  simp only [Finset.mem_filter, Finset.mem_insert, mk_mem_bondsOf, Sym2.mem_iff]
+  constructor
+  · rintro ⟨⟨hadj, -⟩, hmem⟩
+    have hx : x = i ∨ x ∈ Λ := hmem x (Or.inl rfl)
+    have hy : y = i ∨ y ∈ Λ := hmem y (Or.inr rfl)
+    rcases hx with rfl | hxΛ
+    · have hyΛ : y ∈ Λ := hy.resolve_left fun hyi ↦ hadj.ne' hyi
+      exact Or.inl (by rw [hG.anchor_eq hΛ hi hyΛ hadj, Sym2.eq_swap])
+    · rcases hy with rfl | hyΛ
+      · exact Or.inl (by rw [hG.anchor_eq hΛ hi hxΛ hadj.symm])
+      · exact Or.inr ⟨⟨hadj, Or.inl hxΛ⟩, fun v hv ↦ hv.elim (· ▸ hxΛ) (· ▸ hyΛ)⟩
+  · rintro (h | ⟨⟨hadj, -⟩, hmem⟩)
+    · rcases Sym2.eq_iff.1 h with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+      · exact ⟨⟨(G.adj_anchor hi).symm, Or.inr (Or.inl rfl)⟩,
+          fun v hv ↦ hv.elim (fun h ↦ h ▸ Or.inr (G.anchor_mem hi)) fun h ↦ h ▸ Or.inl rfl⟩
+      · exact ⟨⟨G.adj_anchor hi, Or.inl (Or.inl rfl)⟩,
+          fun v hv ↦ hv.elim (fun h ↦ h ▸ Or.inl rfl) fun h ↦ h ▸ Or.inr (G.anchor_mem hi)⟩
+    · have hxΛ := hmem x (Or.inl rfl)
+      have hyΛ := hmem y (Or.inr rfl)
+      exact ⟨⟨hadj, Or.inl (Or.inr hxΛ)⟩,
+        fun v hv ↦ hv.elim (fun h ↦ h ▸ Or.inr hxΛ) fun h ↦ h ▸ Or.inr hyΛ⟩
+
+open Classical in
+/-- The new bond of `IsAcyclic.bondsOf_filter_insert_eq` is not among the old ones: it has `i` as
+an endpoint, and `i ∉ Λ`. -/
+theorem notMem_bondsOf_filter_of_mem_outerBoundary {Λ : Finset V} {i : V}
+    (hi : i ∈ G.outerBoundary Λ) :
+    s(G.anchor Λ i, i) ∉ (G.bondsOf Λ).filter (fun b ↦ ∀ v ∈ b, v ∈ Λ) := fun h ↦
+  G.notMem_of_mem_outerBoundary hi ((Finset.mem_filter.1 h).2 i (Sym2.mem_mk_right _ _))
+
+end BondsInsert
+
 end SimpleGraph
