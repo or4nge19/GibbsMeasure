@@ -238,3 +238,26 @@ on $E$; its powers $Q^n$ are the powers of this kernel.
     kernel (via the Riesz decomposition of superharmonic functions) makes $r$ constant, so
     $P = Q$. Georgii's argument through hitting times is replaced by this one.
 \end{proof}
+
+\begin{theorem}[Georgii (11.9)(c), (11.14), (11.15), (11.17)]
+    \label{thm:bl-11-14}
+    \uses{thm:bl-11-13, thm:bl-11-15, thm:mfc-10-21, thm:ext-726}
+    \lean{MeasureTheory.GibbsMeasure.Markov.exists_isBoundaryLaw_boundaryLawMeasure_eq_of_mem_extremePoints, MeasureTheory.GibbsMeasure.Markov.isInvariant_shift_transferSpecification, MeasureTheory.GibbsMeasure.Markov.map_shift_eq_self_of_map_shift_eq_of_mem_G, MeasureTheory.GibbsMeasure.Markov.eq_singleton_boundaryLawMeasure_const_or_infinite_extremePoints_G, MeasureTheory.GibbsMeasure.Markov.eq_empty_G_or_infinite_extremePoints_G, MeasureTheory.GibbsMeasure.Markov.G_eq_invariantG_of_forall_le_sum, MeasureTheory.GibbsMeasure.Markov.eq_singleton_boundaryLawMeasure_const_G_of_forall_le_sum, MeasureTheory.GibbsMeasure.Markov.eq_empty_G_of_forall_le_sum}
+    \leanok
+
+    Every extreme $\mu \in \mathcal G(\gamma^Q)$ is the measure of a boundary law (11.9)(c).
+    If $\mu \in \mathcal G(\gamma^Q)$ satisfies $\theta_i\mu = \theta_j\mu$ for some $i \neq j$,
+    then $\mu$ is shift-invariant (11.14)(a); hence $\mathcal G(\gamma^Q)$ is either $\set{\mu_P}$
+    or has infinitely many extreme points, and is either empty, $\set{\mu_P}$, or has infinitely
+    many extreme points ((11.14)(b),(c)). If $\inf_x \sum_{n=1}^N Q^n(x,x) > 0$, then
+    $\mathcal G(\gamma^Q) = \mathcal G_\Theta(\gamma^Q)$ (11.15), so $\mathcal G(\gamma^Q)$ is
+    $\set{\mu_P}$ if $Q$ is equivalent to a positive recurrent $P$ and empty otherwise (11.17).
+\end{theorem}
+\begin{proof}
+    \leanok
+    (11.9)(c) is Theorem (10.21) for $\gamma^Q$ followed by (11.9)(b). For (11.14)(a) the Cesàro
+    average of $\theta_k\mu$, $0 \leq k < p$, is shift-invariant, hence extreme by Theorem
+    \ref{thm:bl-11-13}, and an extreme point that is a nontrivial average of Gibbs measures equals
+    each of them. (11.15) combines (11.9)(c) with the extreme case and the extreme decomposition
+    (7.26); (11.17) is (11.15) and Theorem \ref{thm:bl-11-13}.
+\end{proof}
