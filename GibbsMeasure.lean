@@ -175,6 +175,7 @@ public import GibbsMeasure.Specification.Singleton
 public import GibbsMeasure.Specification.CountingKernel
 public import GibbsMeasure.Specification.MarkovInt
 public import GibbsMeasure.Specification.MarkovIntChains
+public import GibbsMeasure.Specification.MarkovIntUniqueness
 public import GibbsMeasure.Specification.Pressure
 public import GibbsMeasure.Specification.SpecificEntropy
 public import GibbsMeasure.Specification.VariationalPrinciple

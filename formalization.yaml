@@ -52,7 +52,7 @@ status:
     variational principle (15.39), for standard Borel E); Section 11.1 up to Theorem (11.9)(b), (11.11)-(11.12), the sufficiency half of (11.13), (11.16),
     and the extreme case of (11.15), (11.6)-(11.7); Section 12.1 ((12.1)-(12.2), (12.7)-(12.17) except
     (12.3)(2)-(6), (12.5)-(12.6), uniqueness of boundary laws up to a factor, (12.18)); Section 10.1 (the Markov
-    properties (10.2)-(10.11)), Section 10.2 ((10.12)-(10.22)); Section 9.1 (symmetry
+    properties (10.2)-(10.11)), Section 10.2 ((10.12)-(10.26) except Examples (10.24)), Section 10.3 ((10.30)-(10.37)); Section 9.1 (symmetry
     inheritance (9.1), localized symmetries (9.3), one-dimensional pair interactions (9.5),
     (9.11), (9.16)); Section 9.2 (Mermin-Wagner (9.20) with Lemmas (9.28), (9.33)). The rest is not
     formalized.
@@ -1095,6 +1095,20 @@ alignment:
         two-layer chain of (9.15) is the pullback of the inhomogeneous Ising chain, so the
         first-layer flip is broken under (6.1) at beta J, for any beta > 0 (uniform a priori measure). K > 0 needs a
         Griffiths bridge from GKSInequalities.lean to Specification kernels on Bool x Bool: not built.
+    - source: "Definition (10.23), Theorem (10.25), Proposition (10.26); Section 10.3: (10.30)-(10.37), Theorem (10.35)"
+      lean: "MeasureTheory.GibbsMeasure.Markov.eq_of_isGibbsMeasure_of_measurePreserving_shift"
+      module: "GibbsMeasure/Specification/MarkovIntUniqueness.lean"
+      status: "proved"
+      note: >-
+        Homogeneous irreducible Markovian densities (10.23); Proposition (10.26) by Georgii's
+        two-copy argument with the estimate (10.28) in three lemmas; Theorem (10.25): every
+        shift-invariant Gibbs measure is a Markov chain with a homogeneous transition density;
+        the n-step densities as a backward martingale (10.30)-(10.32), positivity of the invariant
+        density (10.33), the L^1 ergodic theorem (10.34); (10.36)-(10.37) with the extension from
+        cylinder events to all measurable events; Theorem (10.35): shift-invariant Gibbs measures
+        are extreme, hence at most one (StandardBorelSpace E). Not formalized: Examples (10.24)
+        ((1) needs the Gibbsian formula from Potential/, (2) the aperiodicity fact Georgii cites
+        from Breiman).
 
 acknowledgements: >-
   Builds on Mathlib. Kolmogorov extension material adapted from RemyDegenne/kolmogorov_extension4.

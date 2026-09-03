@@ -2684,6 +2684,13 @@ instance isProbabilityMeasure_bind_isssd [IsProbabilityMeasure μ] (Λ : Finset 
   ⟨by rw [Measure.bind_apply MeasurableSet.univ (measurable_isssd_coe Λ).aemeasurable,
     lintegral_congr fun η ↦ measure_univ (μ := isssd ν Λ η), lintegral_one, measure_univ]⟩
 
+/-- Resampling `insert b Δ` is resampling `{b}` and then `Δ`. -/
+lemma isssd_insert [DecidableEq S] (Δ : Finset S) (b : S) (η : S → E) :
+    isssd (S := S) ν (insert b Δ) η = (isssd ν {b} η).bind (isssd ν Δ) := by
+  have h : insert b Δ = Δ ∪ {b} := by rw [Finset.union_comm, Finset.insert_eq]
+  rw [h]
+  exact (isssd_bind_isssd Δ {b} η).symm
+
 end IsssdBind
 
 section IsssdRestrict

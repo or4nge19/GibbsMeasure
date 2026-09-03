@@ -524,7 +524,11 @@ a Markov chain with transition densities is a Gibbs measure for the chain specif
 is the finite-state instance (`GibbsMeasure/Model/MarkovChainInt.lean`). **§10.2**
 (`GibbsMeasure/Specification/MarkovIntChains.lean`): the marginal densities and the backward
 martingale (10.12)–(10.20), **Theorem (10.21)** — every extreme Gibbs measure of a Markov
-specification is a Markov chain, for any state space — and Corollary (10.22).
+specification is a Markov chain, for any state space — and Corollary (10.22). **§10.3**
+(`GibbsMeasure/Specification/MarkovIntUniqueness.lean`): irreducibility (10.23), **Theorem (10.25)**
+and Proposition (10.26) (shift-invariant Gibbs measures of an irreducible homogeneous Markov
+specification are Markov chains), the backward-martingale ergodic theorem (10.30)–(10.34), and
+**Theorem (10.35)**: at most one shift-invariant Gibbs measure, every such being extreme.
 
 **Chapter 11, first steps** (`GibbsMeasure/Model/BoundaryLaw.lean`,
 `GibbsMeasure/Mathlib/Probability/Kernel/CountableMatrix.lean`): sites `ℤ`, a *countable* state
@@ -553,7 +557,7 @@ Gibbs measure is unique ((6.7)(2)).
 
 Not yet done: Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
-plane-rotator and Heisenberg instances (9.22)–(9.24), (14.13), (14.16), (14.21)–(14.24), (15.14)(c), (15.16)–(15.20), (15.26)(1), (15.40), Chapter 11 from (11.9)(c) and the uniqueness halves of (11.13)–(11.19) on, (10.23)–(10.26), §10.3, §12.2, and Chapters 13 and
+plane-rotator and Heisenberg instances (9.22)–(9.24), (14.13), (14.16), (14.21)–(14.24), (15.14)(c), (15.16)–(15.20), (15.26)(1), (15.40), Chapter 11 from (11.9)(c) and the uniqueness halves of (11.13)–(11.19) on, Examples (10.24), §12.2, and Chapters 13 and
 16–20 (
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).

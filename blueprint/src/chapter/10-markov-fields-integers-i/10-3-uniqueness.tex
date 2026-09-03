@@ -1,0 +1,74 @@
+\section{Uniqueness of the shift-invariant Markov field}
+
+Throughout, $\lambda$ is a probability measure on $E$ and $\gamma = \rho\lambda$ a Markov
+specification on $\mathbb Z$ with Markovian densities $\rho$ (Definition \ref{def:mfi-markov-spec});
+$\rho$ is \emph{homogeneous} if $\rho_{\Lambda + 1} = \rho_\Lambda \circ \theta_{-1}$.
+
+\begin{definition}[Irreducibility, Georgii (10.23)]
+    \label{def:mfu-irreducible}
+    \uses{def:mfi-markov-spec}
+    \lean{Specification.IsHomogeneousInt, Specification.IsIrreducibleInt}
+    \leanok
+
+    A homogeneous Markovian $\rho$ is \textbf{irreducible} if there are sets
+    $C_N \uparrow E$, integers $n(N) \geq 1$ and measurable $h_N \geq 0$ on $E$ with
+    $\lambda(h_N) > 0$ for large $N$, such that
+    $\rho^0_{]-n(N), n(N)[}(\omega) \geq h_N(\omega_0)$ whenever
+    $\omega_{-n(N)}, \omega_{n(N)} \in C_N$.
+\end{definition}
+
+\begin{theorem}[Georgii (10.25)--(10.26)]
+    \label{thm:mfu-10-25}
+    \uses{def:mfu-irreducible, lem:mfc-10-20, def:erg-invariant}
+    \lean{MeasureTheory.GibbsMeasure.Markov.exists_ae_eq_pair_of_isIrreducibleInt, MeasureTheory.GibbsMeasure.Markov.exists_isMarkovChain_of_measurePreserving_shift}
+    \leanok
+
+    Let $\rho$ be irreducible and $\mu \in \mathcal G(\gamma)$ shift-invariant. Then the
+    conditional density $\rho^0_{]-1,\infty[}$ is $\nu_0$-a.s.\ a function of
+    $(\sigma_{-1}, \sigma_0)$ (Proposition (10.26)), and hence $\mu$ is a Markov chain with a
+    homogeneous transition density (Theorem (10.25)).
+\end{theorem}
+\begin{proof}
+    \leanok
+    Two copies of $\mu$ coupled through the tail kernel are compared on the exterior of
+    $]-n, n[$; irreducibility bounds the averaged density $\bar\varphi$ away from zero, and the
+    estimate (10.28) forces the two-sided conditional densities to agree (Georgii's three steps,
+    each a separate lemma). Lemma \ref{lem:mfc-10-20} completes the chain.
+\end{proof}
+
+\begin{theorem}[Georgii (10.30)--(10.34)]
+    \label{thm:mfu-10-34}
+    \uses{thm:mfu-10-25}
+    \lean{MeasureTheory.GibbsMeasure.Markov.toReal_densityPow_ae_eq_condExp, MeasureTheory.GibbsMeasure.Markov.tendsto_lintegral_ofReal_abs_densityPow_sub, MeasureTheory.GibbsMeasure.Markov.mul_le_stationaryDensity_of_irreducibility}
+    \leanok
+
+    For the chain of Theorem \ref{thm:mfu-10-25} with transition kernel $P$ and invariant
+    one-dimensional marginal density $\alpha$: the $n$-step densities $p^{(n)}(x, \cdot)$ form a
+    backward martingale (10.30) converging to $\alpha$ in $L^1(\lambda)$ (10.34), and
+    $\alpha \geq c\, h_N$ on $C_N$ (10.33), so $\alpha > 0$ $\lambda$-a.e.
+\end{theorem}
+\begin{proof}
+    \leanok
+    (10.30)–(10.32) identify $p^{(n)}(\sigma_0, \sigma_n)$ with a conditional expectation of
+    $\rho_{\set 0}$ under $\nu_0$; reversed-martingale convergence and the tail triviality of the
+    chain give the limit.
+\end{proof}
+
+\begin{theorem}[Georgii (10.35)]
+    \label{thm:mfu-10-35}
+    \uses{thm:mfu-10-34, thm:ext-77-concrete}
+    \lean{MeasureTheory.GibbsMeasure.Markov.exists_abs_measureReal_inter_sub_le_of_cylinderEvents, MeasureTheory.GibbsMeasure.Markov.isTailTrivial_of_isMarkovChain, MeasureTheory.GibbsMeasure.Markov.mem_extremePoints_G_of_measurePreserving_shift, MeasureTheory.GibbsMeasure.Markov.eq_of_isGibbsMeasure_of_measurePreserving_shift}
+    \leanok
+
+    Let $E$ be standard Borel and $\rho$ irreducible. Then every shift-invariant
+    $\mu \in \mathcal G(\gamma)$ is extreme in $\mathcal G(\gamma)$, and $\mathcal G(\gamma)$
+    contains at most one shift-invariant measure.
+\end{theorem}
+\begin{proof}
+    \leanok
+    (10.36)–(10.37): the mixing bound of Theorem \ref{thm:mfu-10-34} gives
+    $|\mu(A \cap B) - \mu(A)\mu(B)| \leq \varepsilon$ for $A$ local and $B$ far away, first for
+    cylinder $B$ and then for all measurable $B$ by approximation; hence $\mu$ is tail trivial and
+    extreme (Theorem (7.7)). Two distinct shift-invariant Gibbs measures would have an extreme
+    midpoint, a contradiction.
+\end{proof}
