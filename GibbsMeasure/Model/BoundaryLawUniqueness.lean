@@ -155,7 +155,7 @@ lemma measurableSet_cylinderEvents_intervalCylinder {V : Set ℤ} {a b : ℤ}
     (h : Set.Icc a b ⊆ V) (σ : ℤ → E) :
     MeasurableSet[cylinderEvents V] (intervalCylinder a b σ) := by
   rw [intervalCylinder_eq_cyl]
-  exact measurableSet_cylinderEvents_cyl (Λ := Finset.Icc a b) (by simpa using h) σ
+  exact measurableSet_cylinderEvents_cyl (Δ := Finset.Icc a b) (by simpa using h) σ
 
 /-- The measure of the whole space is the sum of the point masses (countable `E`). -/
 lemma measure_univ_eq_tsum_singleton (ν : Measure E) : ν univ = ∑' x, ν {x} := by
@@ -201,7 +201,8 @@ theorem isMarkovChain_ofMatrix_of_forall_intervalCylinder [Nonempty E] [IsProbab
   -- the identity on point cylinders over `[i - n - 1, i - 1]`
   have core : ∀ (n : ℕ) (η : ℤ → E),
       μ ((fun σ ↦ σ i) ⁻¹' A ∩ cyl (Finset.Icc (i - n - 1) (i - 1)) η)
-        = ∫⁻ σ in cyl (Finset.Icc (i - n - 1) (i - 1)) η, Kernel.ofMatrix (p i) (σ (i - 1)) A ∂μ := by
+        = ∫⁻ σ in cyl (Finset.Icc (i - n - 1) (i - 1)) η,
+            Kernel.ofMatrix (p i) (σ (i - 1)) A ∂μ := by
     intro n η
     set W := Finset.Icc (i - n - 1) (i - 1) with hW
     have hiW : i ∉ W := by simp [hW]
