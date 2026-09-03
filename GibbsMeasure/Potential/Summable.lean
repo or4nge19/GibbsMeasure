@@ -115,7 +115,7 @@ lemma hamiltonianTerms_sub (hΛ : Λ₁ ⊆ Λ₂) (η : S → E) :
   funext A
   by_cases h₁ : Disjoint A Λ₁
   · by_cases h₂ : Disjoint A Λ₂
-    · simp [hamiltonianTerms, Set.indicator_of_notMem, h₁, h₂, not_not]
+    · simp [hamiltonianTerms, Set.indicator_of_notMem, h₁, h₂]
     · rw [Pi.sub_apply, hamiltonianTerms_of_not_disjoint h₂, hamiltonianTerms_of_disjoint h₁,
         Set.indicator_of_mem (show A ∈ {A : Finset S | ¬ Disjoint A Λ₂ ∧ Disjoint A Λ₁} from
           ⟨h₂, h₁⟩), sub_zero]

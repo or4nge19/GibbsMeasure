@@ -77,7 +77,7 @@ omit [DecidableEq S] in
   have h : juxt (((∅ : Finset S) : Set S)) ω = fun _ ↦ ω := by
     funext ζ x
     exact juxt_apply_of_not_mem (by simp) ζ
-  simp [isssdFun_apply, h, Measure.map_const]
+  simp [h, Measure.map_const]
 
 @[simp] lemma condDensity_self {Δ : Finset S} (hρ : Measurable (ρ Δ)) :
     condDensity ν ρ Δ Δ = ρ Δ := by

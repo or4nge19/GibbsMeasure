@@ -754,7 +754,7 @@ theorem ae_tailKernel_eq_of_isTailTrivial
             refine (MeasureTheory.ae_iff (μ := μt) (p := fun ω => ω ∈ B)).2 ?_
             convert hcompl0
             ext a
-            simp [B, Set.mem_compl, Set.mem_preimage]
+            simp [B, Set.mem_preimage]
           simpa [B] using this
       have : ∃ c : ℝ≥0∞, g =ᶠ[ae μt] fun _ => c :=
         Filter.exists_eventuallyEq_const_of_forall_separating (l := ae μt)

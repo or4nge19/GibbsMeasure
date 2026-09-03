@@ -132,7 +132,7 @@ private lemma condExp_simpleFunc_ae_eq_integral_kernel (f : @SimpleFunc X 𝓧 �
   refine @SimpleFunc.induction _ _ _ _ (fun f => condExp 𝓑 μ f =ᵐ[μ]
     (fun x₀ => ∫ x, f x ∂(π x₀))) ?_ ?_ f
   · intro c s hs
-    simp [SimpleFunc.coe_piecewise, SimpleFunc.coe_const, Function.const]
+    simp [SimpleFunc.coe_piecewise, SimpleFunc.coe_const]
     exact condExp_const_indicator_ae_eq_integral_kernel (μ := μ) (π := π) (A := s) c hs
   · intro f g _disj hf hg
     have hf_int : Integrable f μ := SimpleFunc.integrable_of_isFiniteMeasure f
