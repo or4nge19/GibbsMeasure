@@ -193,3 +193,67 @@ Throughout, $\gamma$ is a specification on $\Cfg = E^S$ and $\tau$ a transformat
     for $k \geq 1$. Then $\Phi^\varphi$ is absolutely summable and satisfies (9.6) for every
     $p \geq 1$; hence every Gibbs measure for $\Phi^\varphi$ is shift-invariant.
 \end{example}
+
+\begin{remark}[Georgii (9.7)]
+    \label{rmk:sb-9-7}
+    \uses{thm:sb-9-5, def:sb-pair-shift}
+    \lean{MeasureTheory.GibbsMeasure.shiftDefectSubgroup, MeasureTheory.GibbsMeasure.shiftDefectSubgroup_le_shiftInvariantSubgroup, MeasureTheory.GibbsMeasure.tsum_pairNorm_le_shiftDefect, MeasureTheory.GibbsMeasure.shiftDefect_mul_eq, MeasureTheory.GibbsMeasure.recentre, MeasureTheory.GibbsMeasure.shiftDefect_recentre_le}
+    \leanok
+
+    (1) The $p$ with $K_p(\varphi) < \infty$ form a subgroup of $\mathbb Z$, contained in the
+    group of periods of $\mathcal G(\Phi^\varphi)$. (2) If $\|\varphi_k\| \to 0$ then
+    $\sum_k \|\varphi_k\| \leq K_p(\varphi)$ for every $p \geq 1$, and $K_{mp}(\varphi) \leq m K_p(\varphi)$
+    with equality in the telescoped form. (3) $\tilde\varphi_k = \varphi_k - \inf\varphi_k$ gives
+    a potential equivalent to $\Phi^\varphi$ with $K_p(\tilde\varphi) \leq 2\,\Delta(\Phi^\varphi)$,
+    $\Delta$ the span-oscillation diameter (8.42).
+\end{remark}
+
+\begin{example}[Georgii (9.8)(2)]
+    \label{ex:sb-9-8-2}
+    \uses{ex:sb-9-8-1}
+    \lean{MeasureTheory.GibbsMeasure.longRangeIsingAlt, MeasureTheory.GibbsMeasure.measurePreserving_shift_two_longRangeIsingAlt, MeasureTheory.GibbsMeasure.bijOn_map_alternatingFlip, MeasureTheory.GibbsMeasure.exists_not_measurePreserving_shift_one_longRangeIsingAlt}
+    \leanok
+
+    For $\varphi_k(x,y) = -\beta (-1)^k k^{-a} s(x)s(y)$, $a > 1$: every Gibbs measure is
+    invariant under $\theta_2$; the alternating spin flip is a bijection between
+    $\mathcal G(\Phi^{\varphi})$ and $\mathcal G$ of the long-range Ising interaction commuting
+    with $\theta_2$; hence any Gibbs measure of the latter which is not spin-flip invariant yields
+    a Gibbs measure of $\Phi^\varphi$ which is not $\theta_1$-invariant.
+\end{example}
+
+\begin{remark}[Georgii (9.13)]
+    \label{rmk:sb-9-13}
+    \uses{thm:sb-9-11}
+    \lean{MeasureTheory.GibbsMeasure.pairOscBound, MeasureTheory.GibbsMeasure.pairDefectBound_le_two_mul_pairOscBound, MeasureTheory.GibbsMeasure.pairDefectBound_pow_le, MeasureTheory.GibbsMeasure.pairOscSymmetries, MeasureTheory.GibbsMeasure.pairDefectBound_ne_top_of_oscSpan_le}
+    \leanok
+
+    (1) The defect (9.12) is at most twice the oscillation bound (9.14). (2) The bound for
+    $\tau^k$ is at most $k^2$ times that for $\tau$, so the symmetries satisfying (9.14) form a
+    group. (3) (9.14) is implied by a bound on the span oscillation (8.40).
+\end{remark}
+
+\begin{example}[Georgii (9.15)]
+    \label{ex:sb-9-15}
+    \uses{thm:sb-9-11}
+    \lean{MeasureTheory.GibbsMeasure.squarePotential, MeasureTheory.GibbsMeasure.measurePreserving_squareFlip₂, MeasureTheory.GibbsMeasure.not_measurePreserving_squareFlip₁_of_integral_pos}
+    \leanok
+
+    For the two-layer Ising interaction with couplings $J_n \geq 0$ between layers and $K \geq 0$
+    within a site, $S = \mathbb N$, $E = \set{\pm1}^2$: every Gibbs measure is invariant under the
+    flip of the second layer (the bound (9.14) equals $2K$), while a Gibbs measure with positive
+    first-layer magnetisation is not invariant under the flip of the first layer.
+\end{example}
+
+\begin{example}[Georgii (9.17)]
+    \label{ex:sb-9-17}
+    \uses{cor:sb-9-16}
+    \lean{MeasureTheory.GibbsMeasure.gradientPotential, MeasureTheory.GibbsMeasure.isSigmaFiniteLambdaAdmissible_gradientPotential, MeasureTheory.GibbsMeasure.pairDefectBound_gradientPotential, MeasureTheory.GibbsMeasure.G_gradientPotential_eq_empty, MeasureTheory.GibbsMeasure.G_gaussianGradient_eq_empty, MeasureTheory.GibbsMeasure.G_intGaussianGradient_eq_empty}
+    \leanok
+
+    Let $E$ be an additive group with a translation-invariant $\sigma$-finite $\lambda$,
+    $u \geq 0$ measurable with $\int e^{-u}\,d\lambda < \infty$, and $\Phi_{\set{i,i+1}}(\omega)
+    = u(\omega_{i+1} - \omega_i)$. Then $\Phi$ is $\lambda$-admissible, the defect of the
+    translation by $c$ is the second-difference bound of $u$ along $c$, and if this is finite and
+    $u(x + kc) \to \infty$ then $\mathcal G(\Phi) = \emptyset$; in particular for $u(x) = \beta x^2$
+    on $\mathbb R$ with Lebesgue measure and on $\mathbb Z$ with counting measure.
+\end{example}

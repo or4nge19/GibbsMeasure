@@ -524,23 +524,6 @@ lemma shift_toFun_comp_pureSpin_toFun [AddGroup S] (e : E ≃ᵐ E) (j : S) :
   funext ω i
   simp only [Function.comp_apply, shift_toFun_apply, pureSpin_toFun_apply]
 
-/-- Negation of a `Bool` spin as a measurable equivalence: the single-site spin flip of Georgii
-(5.2)(2). -/
-def boolNot : Bool ≃ᵐ Bool where
-  toFun := Bool.not
-  invFun := Bool.not
-  left_inv := Bool.not_not
-  right_inv := Bool.not_not
-  measurable_toFun := Measurable.of_discrete
-  measurable_invFun := Measurable.of_discrete
-
-@[simp] lemma boolNot_apply (b : Bool) : boolNot b = !b := rfl
-
-@[simp] lemma boolNot_symm_apply (b : Bool) : boolNot.symm b = !b := rfl
-
-lemma boolNot_trans_boolNot : boolNot.trans boolNot = MeasurableEquiv.refl Bool :=
-  MeasurableEquiv.ext (funext fun b ↦ Bool.not_not b)
-
 /-- The spin flip is an involution of configuration space. -/
 lemma pureSpin_boolNot_mul_self :
     pureSpin S boolNot * pureSpin S boolNot = (1 : Transformation S Bool) := by
@@ -675,7 +658,7 @@ theorem mem_GP_and_measurePreserving_of_mapClusterPt_truncation
           (Finset.mapEmbedding τ.sites.toEmbedding).toEmbedding = {Δs n} := by
         rw [Finset.map_singleton]
         congr 1
-        show (Finset.mapEmbedding τ.sites.toEmbedding) (Δs n) = Δs n
+        change (Finset.mapEmbedding τ.sites.toEmbedding) (Δs n) = Δs n
         rw [Finset.mapEmbedding_apply, hΔinv τ hτ n]
       rw [hmap, symmDiff_self]
       simp

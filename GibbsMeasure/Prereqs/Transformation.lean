@@ -313,6 +313,41 @@ def shift (j : S) : Transformation S E where
     (shift E j).inv.toFun ω i = ω (i + j) := by
   simp [shift, Transformation.inv, Transformation.toFun]
 
+/-- The inverse of the shift `θ_j` is `θ_{-j}`. -/
+lemma shift_neg_toFun_eq {S : Type*} [AddGroup S] (j : S) :
+    (shift E (-j)).toFun = (shift E j).inv.toFun := by
+  funext ω i
+  simp [sub_neg_eq_add]
+/-- `θ_{j + k} = θ_k ∘ θ_j`. -/
+lemma shift_add_toFun_eq {S : Type*} [AddGroup S] (j k : S) :
+    (shift E (j + k)).toFun = (shift E k).toFun ∘ (shift E j).toFun := by
+  funext ω i
+  simp [sub_add_eq_sub_sub_swap]
+/-- The composition of two shifts: `θ_a ∘ θ_b = θ_{a + b}` (Georgii (5.2)(1)). -/
+lemma shift_toFun_comp_shift_toFun {S : Type*} [AddCommGroup S] (a b : S) :
+    (shift E a).toFun ∘ (shift E b).toFun = (shift E (a + b)).toFun := by
+  funext ω i
+  simp only [Function.comp_apply, shift_toFun_apply, sub_sub]
+/-- `θ_i ∘ θ_j = θ_{i + j}` (Georgii (5.2)(1)), in the transformation group. -/
+lemma shift_mul_shift {S : Type*} [AddCommGroup S] (i j : S) : shift E i * shift E j = shift E (i + j) := by
+  refine Transformation.ext (Equiv.ext fun k ↦ ?_) rfl
+  change k + j + i = k + (i + j)
+  rw [add_assoc, add_comm j i]
+
+/-! ### The spin flip of `Bool` -/
+
+/-- The spin flip `b ↦ !b` of `Bool` as a measurable equivalence: the single-site spin flip of
+Georgii (5.2)(2). -/
+def boolNot : Bool ≃ᵐ Bool :=
+  MeasurableEquiv.ofInvolutive not (fun b ↦ Bool.not_not b) Measurable.of_discrete
+
+@[simp] lemma boolNot_apply (b : Bool) : boolNot b = !b := rfl
+
+@[simp] lemma boolNot_symm_apply (b : Bool) : boolNot.symm b = !b := rfl
+
+lemma boolNot_trans_boolNot : boolNot.trans boolNot = MeasurableEquiv.refl Bool :=
+  MeasurableEquiv.ext (funext fun b ↦ Bool.not_not b)
+
 /-! ### Site bijections (Georgii (5.2)(2)) -/
 
 variable (E) in

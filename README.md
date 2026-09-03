@@ -483,7 +483,9 @@ order with predecessors (so `ℤ` and `ℕ`), from the defect bound (9.12), at G
 symmetry; and **Theorem (9.5)**, shift invariance of the Gibbs measures of a shift-invariant pair
 potential on `ℤ` from (9.6), by Georgii's cyclic rotation of an interval, with the long-range Ising
 interaction (9.8)(1) as the instance. On the way (5.5)/(5.6)/(5.9)(b) are proved over a σ-finite a
-priori measure.
+priori measure. Comments (9.7) and (9.13), Examples (9.8)(2), (9.15) and (9.17)
+(`GibbsMeasure/Model/OneDimensionalSymmetryExamples.lean`) complete the section, with the two
+inputs Georgii imports from elsewhere — (20.21) and (6.4) — as explicit hypotheses.
 
 **§9.2, Mermin–Wagner** (`GibbsMeasure/Model/MerminWagner.lean`): **Theorem (9.20)** — for a
 pair potential on a site set with a planar norm (ℤ² with the maximum norm the instance), any real
@@ -519,7 +521,7 @@ periodicity of an extreme boundary-law measure under `inf_x Q^p(x,x) > 0`. The r
 built.
 
 Not yet done: the inhomogeneous Ising chains of §6.1, Shlosman's random staircases of §6.3
-(Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), (9.7)(1),(3), (9.13)–(9.17), the
+(Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
 plane-rotator and Heisenberg instances (9.22)–(9.24), (14.13), (14.16), (14.21)–(14.24), the rest of
 Chapter 15 from (15.10) on, Chapter 11 from (11.9)(c) and the recurrence theory (11.6)–(11.7) on, §§10.2–10.3, and Chapters 12–13 and
 16–20 (Markov fields on trees,

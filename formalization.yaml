@@ -948,6 +948,18 @@ alignment:
         (11.17), the conclusions of (11.18) and (11.19) (need (11.6)-(11.7): the convergence
         parameter L(Q) and recurrence theory, absent from Mathlib), (11.18)(2) (comparison with
         (8.39)).
+    - source: "Comments (9.7), Example (9.8)(2), Comments (9.13), Examples (9.15), (9.17)"
+      lean: "MeasureTheory.GibbsMeasure.G_gradientPotential_eq_empty"
+      module: "GibbsMeasure/Model/OneDimensionalSymmetryExamples.lean"
+      status: "proved"
+      note: >-
+        (9.7)(1)-(3) with the quantitative form K_p(recentred phi) <= 2 Delta(Phi); (9.8)(2) with
+        the (20.21) input (a Gibbs measure of the long-range Ising interaction breaking the spin
+        flip) as an explicit hypothesis; (9.13)(1)-(3) with the constant C <= 2 (9.14);
+        (9.15) with the existence of mu_+ with positive magnetisation as a hypothesis (Theorem
+        (6.4), Section 6.1, is not formalized); (9.17) for any additive group E with a
+        translation-invariant sigma-finite lambda, Gaussian instances on R and Z; u = beta |x|^p,
+        0 < p < 2, not formalized.
 
 acknowledgements: >-
   Builds on Mathlib. Kolmogorov extension material adapted from RemyDegenne/kolmogorov_extension4.

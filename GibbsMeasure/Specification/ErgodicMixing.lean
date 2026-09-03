@@ -259,12 +259,6 @@ def shiftEmbedding (E : Type*) [MeasurableSpace E] : S ↪ shiftGroup S E where
     ((shiftEmbedding E j : shiftGroup S E) : Transformation S E) = shift E j :=
   rfl
 
-/-- `θ_i ∘ θ_j = θ_{i + j}` (Georgii (5.2)(1)), in the transformation group. -/
-lemma shift_mul_shift (i j : S) : shift E i * shift E j = shift E (i + j) := by
-  refine Transformation.ext (Equiv.ext fun k ↦ ?_) rfl
-  show k + j + i = k + (i + j)
-  rw [add_assoc, add_comm j i]
-
 lemma shiftEmbedding_mul (i j : S) :
     shiftEmbedding E i * shiftEmbedding E j = shiftEmbedding E (i + j) :=
   Subtype.ext (shift_mul_shift i j)

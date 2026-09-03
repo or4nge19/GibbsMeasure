@@ -1,5 +1,6 @@
 module
 
+public import GibbsMeasure.Mathlib.Algebra.Order.SecondDifference
 public import GibbsMeasure.Mathlib.Analysis.Calculus.IteratedDeriv.SecondDifference
 public import GibbsMeasure.Mathlib.Analysis.PSeries
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.ENNReal
@@ -101,6 +102,7 @@ public import GibbsMeasure.Model.SharpContours
 public import GibbsMeasure.Model.SharpPhaseTransition
 public import GibbsMeasure.Model.PeriodicSymmetry
 public import GibbsMeasure.Model.OneDimensionalSymmetry
+public import GibbsMeasure.Model.OneDimensionalSymmetryExamples
 public import GibbsMeasure.Model.MerminWagner
 public import GibbsMeasure.Model.ShiftAverage
 public import GibbsMeasure.Potential.Existence

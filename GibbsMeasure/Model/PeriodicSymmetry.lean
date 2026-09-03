@@ -70,7 +70,7 @@ lemma Transformation.measurePreserving_infinitePi (τ : Transformation S E) {ν 
       ⇑(MeasurableEquiv.piCongrLeft (fun _ : S ↦ E) τ.sites) := by
     funext ω i
     obtain ⟨j, rfl⟩ := τ.sites.surjective i
-    show τ.spin _ (ω (τ.sites.symm (τ.sites j)))
+    change τ.spin _ (ω (τ.sites.symm (τ.sites j)))
         = τ.spin _ ((MeasurableEquiv.piCongrLeft (fun _ : S ↦ E) τ.sites) ω (τ.sites j))
     rw [MeasurableEquiv.piCongrLeft_apply_apply, Equiv.symm_apply_apply]
   calc (Measure.infinitePi fun _ : S ↦ ν).map τ.toFun

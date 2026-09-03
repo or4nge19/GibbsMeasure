@@ -274,12 +274,6 @@ theorem tileProduct_apply_of_measurableSet_cylinderEvents {A : Set (S → E)}
     Measure.infinitePi_map_eval (fun _ : H ↦ μ.map C.restrict) 0,
     Measure.map_apply (Finset.measurable_restrict C) hB]
 
-/-- The composition of two shifts: `θ_a ∘ θ_b = θ_{a + b}` (Georgii (5.2)(1)). -/
-lemma shift_toFun_comp_shift_toFun (a b : S) :
-    (shift E a).toFun ∘ (shift E b).toFun = (shift E (a + b)).toFun := by
-  funext ω i
-  simp only [Function.comp_apply, shift_toFun_apply, sub_sub]
-
 /-- **Georgii, proof of (14.12): `θ_{(2n+1) i}(μ_n) = μ_n`.** `μ_n` is invariant under the shifts
 of the tiling subgroup `H`, since these permute the tiles and the tile marginals are all equal. -/
 theorem map_shift_tileProduct {k : S} (hk : k ∈ H) :
