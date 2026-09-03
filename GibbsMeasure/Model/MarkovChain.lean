@@ -6,6 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Specification.Singleton
+public import GibbsMeasure.Specification.CountingKernel
 public import GibbsMeasure.Prereqs.IntervalBoundary
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PerronFrobenius
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.Doeblin
@@ -265,22 +266,6 @@ def markovSpecification (P : Matrix E E ℝ) : Specification ℤ E :=
     (uniformOn (Set.univ : Set E)) 1
 
 /-! ### Integrals against the independent kernel over finitely many sites -/
-
-/-- The cylinder event `{σ_Λ = η_Λ}`. -/
-def cyl (Λ : Finset ℤ) (η : ℤ → E) : Set (ℤ → E) := {σ | ∀ k ∈ Λ, σ k = η k}
-
-omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
-lemma mem_cyl {Λ : Finset ℤ} {η σ : ℤ → E} : σ ∈ cyl Λ η ↔ ∀ k ∈ Λ, σ k = η k := Iff.rfl
-
-omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
-lemma cyl_eq_pi (Λ : Finset ℤ) (η : ℤ → E) : cyl Λ η = (Λ : Set ℤ).pi fun k ↦ {η k} := by
-  ext σ
-  simp [cyl, Set.mem_pi]
-
-omit [Fintype E] [DecidableEq E] [Nonempty E] in
-lemma measurableSet_cyl (Λ : Finset ℤ) (η : ℤ → E) : MeasurableSet (cyl Λ η) := by
-  rw [cyl_eq_pi]
-  exact measurableSet_finset_pi Λ _ fun _ ↦ measurableSet_singleton _
 
 omit [DecidableEq E] [Nonempty E] in
 lemma uniformOn_univ_singleton (x : E) :
@@ -724,16 +709,14 @@ lemma lintegral_isssd_indicator_cyl (Λ : Finset ℤ) (ζ σ₀ : ℤ → E) {f 
   · rw [Set.indicator_of_notMem, zero_mul]
     intro hmem
     refine hξ (funext fun k ↦ ?_)
-    have := hmem k.1 (by simpa using k.2)
+    have := mem_cyl.1 hmem k.1 (by simpa using k.2)
     rwa [juxt_apply_of_mem k.2] at this
   · have hjuxt : juxt (Λ : Set ℤ) σ₀ (fun k : (Λ : Set ℤ) ↦ ζ k.1) = overwrite Λ ζ σ₀ := by
       funext k
       by_cases hk : k ∈ Λ
       · rw [juxt_apply_of_mem (by simpa using hk), overwrite_apply_of_mem hk]
       · rw [juxt_apply_of_not_mem (by simpa using hk), overwrite_apply_of_notMem hk]
-    rw [hjuxt, Set.indicator_of_mem]
-    intro k hk
-    rw [overwrite_apply_of_mem hk]
+    rw [hjuxt, Set.indicator_of_mem (mem_cyl.2 fun k hk ↦ overwrite_apply_of_mem hk ζ σ₀)]
 
 omit [DecidableEq E] in
 /-- Evaluating `markovSpecification` on a `𝓕`-event: unnormalised Boltzmann integral over the
@@ -1086,6 +1069,7 @@ theorem markovSpecification_Icc_apply_cyl_of_subset (hpos : ∀ x y, 0 < P x y)
           simp only [Finset.mem_union, Finset.mem_Icc] at hk ⊢
           omega)
         have hiff : σ' ∈ cyl (Finset.Icc l m) ζ ↔ σ ∈ cyl (Finset.Icc l m) ζ := by
+          simp only [mem_cyl]
           constructor
           · exact fun h k hk ↦ (hagree k hk) ▸ h k hk
           · exact fun h k hk ↦ (hagree k hk).trans (h k hk)
@@ -1289,60 +1273,13 @@ theorem isGibbsMeasure_apply_cyl (hP : P ∈ Matrix.rowStochastic ℝ E) (hpos :
       (𝓝 (ENNReal.ofReal (α (ζ l) * pathWeight P l m ζ))) := Filter.Tendsto.congr heq hlim
   exact tendsto_nhds_unique tendsto_const_nhds hconst
 
-/-! ### The π-system of cylinder events -/
-
-variable (E) in
-/-- The collection of cylinder events `{σ_Λ = η_Λ}` with `Λ` finite. -/
-def cylinders : Set (Set (ℤ → E)) := {A | ∃ (Λ : Finset ℤ) (η : ℤ → E), A = cyl Λ η}
-
-omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
-lemma isPiSystem_cylinders : IsPiSystem (cylinders E) := by
-  rintro s ⟨Λ₁, η₁, rfl⟩ t ⟨Λ₂, η₂, rfl⟩ ⟨σ, hσ₁, hσ₂⟩
-  refine ⟨Λ₁ ∪ Λ₂, σ, ?_⟩
-  ext τ
-  simp only [Set.mem_inter_iff, cyl, Set.mem_ofPred_eq, Finset.mem_union]
-  constructor
-  · rintro ⟨h1, h2⟩ k (hk | hk)
-    · rw [h1 k hk, hσ₁ k hk]
-    · rw [h2 k hk, hσ₂ k hk]
-  · exact fun h ↦ ⟨fun k hk ↦ (h k (Or.inl hk)).trans (hσ₁ k hk),
-      fun k hk ↦ (h k (Or.inr hk)).trans (hσ₂ k hk)⟩
-
-omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] in
-lemma univ_mem_cylinders : (Set.univ : Set (ℤ → E)) ∈ cylinders E := by
-  obtain ⟨e⟩ := ‹Nonempty E›
-  refine ⟨∅, fun _ ↦ e, ?_⟩
-  ext σ
-  simp [cyl]
-
-omit [DecidableEq E] [Nonempty E] in
-lemma generateFrom_cylinders :
-    (inferInstance : MeasurableSpace (ℤ → E)) = MeasurableSpace.generateFrom (cylinders E) := by
-  refine le_antisymm ?_ (MeasurableSpace.generateFrom_le ?_)
-  · refine iSup_le fun i ↦ ?_
-    rintro _ ⟨s, hs, rfl⟩
-    have hset : (fun σ : ℤ → E ↦ σ i) ⁻¹' s = ⋃ x ∈ s, cyl {i} (fun _ ↦ x) := by
-      ext σ
-      simp only [Set.mem_preimage, Set.mem_iUnion, cyl, Set.mem_ofPred_eq, Finset.mem_singleton,
-        exists_prop]
-      refine ⟨fun h ↦ ⟨σ i, h, fun k hk ↦ by rw [hk]⟩, ?_⟩
-      rintro ⟨x, hx, h⟩
-      rw [h i rfl]
-      exact hx
-    rw [hset]
-    exact MeasurableSet.biUnion (Set.toFinite s).countable fun x _ ↦
-      MeasurableSpace.measurableSet_generateFrom ⟨{i}, fun _ ↦ x, rfl⟩
-  · rintro _ ⟨Λ, η, rfl⟩
-    exact measurableSet_cyl Λ η
+/-! ### Two measures agreeing on the cylinder events -/
 
 omit [DecidableEq E] in
 /-- Two probability measures on `ℤ → E` agreeing on all cylinder events are equal. -/
 lemma ext_of_forall_cyl {μ μ' : Measure (ℤ → E)} [IsProbabilityMeasure μ]
-    (h : ∀ (Λ : Finset ℤ) (η : ℤ → E), μ (cyl Λ η) = μ' (cyl Λ η)) : μ = μ' := by
-  refine Measure.ext_of_generateFrom_of_iUnion_univ (cylinders E) generateFrom_cylinders
-    isPiSystem_cylinders univ_mem_cylinders (by simp) ?_
-  rintro _ ⟨Λ, η, rfl⟩
-  exact h Λ η
+    (h : ∀ (Λ : Finset ℤ) (η : ℤ → E), μ (cyl Λ η) = μ' (cyl Λ η)) : μ = μ' :=
+  ext_of_forall_exists_cyl_eq fun Λ ↦ ⟨Λ, subset_rfl, h Λ⟩
 
 /-! ### From interval cylinders to arbitrary cylinders -/
 
@@ -1355,7 +1292,7 @@ omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E
 lemma cyl_eq_iUnion (Δ Λ : Finset ℤ) (hΛ : Λ ⊆ Δ) (η : ℤ → E) :
     cyl Λ η = ⋃ ξ : ↥(Δ \ Λ) → E, cyl Δ (fillOutside Δ Λ η ξ) := by
   ext σ
-  simp only [Set.mem_iUnion, cyl, Set.mem_ofPred_eq]
+  simp only [Set.mem_iUnion, mem_cyl]
   refine ⟨fun h ↦ ⟨fun j ↦ σ j.1, fun k hk ↦ ?_⟩, ?_⟩
   · rw [fillOutside]
     by_cases hk' : k ∈ Δ \ Λ
@@ -1374,8 +1311,8 @@ lemma pairwise_disjoint_cyl_fillOutside (Δ Λ : Finset ℤ) (η : ℤ → E) :
     Pairwise (Function.onFun Disjoint fun ξ : ↥(Δ \ Λ) → E ↦ cyl Δ (fillOutside Δ Λ η ξ)) := by
   intro ξ ξ' hne
   refine Set.disjoint_left.2 fun σ hσ hσ' ↦ hne (funext fun j ↦ ?_)
-  have h1 := hσ j.1 (Finset.mem_sdiff.1 j.2).1
-  have h2 := hσ' j.1 (Finset.mem_sdiff.1 j.2).1
+  have h1 := mem_cyl.1 hσ j.1 (Finset.mem_sdiff.1 j.2).1
+  have h2 := mem_cyl.1 hσ' j.1 (Finset.mem_sdiff.1 j.2).1
   rw [fillOutside, dite_eq_left j.2] at h1
   rw [fillOutside, dite_eq_left j.2] at h2
   rw [← h1, ← h2]
@@ -1404,8 +1341,8 @@ lemma measure_cyl_eq_sum_juxt (μ : Measure (ℤ → E)) {Λ₁ Λ₂ : Finset �
     intro ξ ξ' hne
     refine Set.disjoint_left.2 fun σ hσ hσ' ↦ hne (funext fun k ↦ ?_)
     have hmem : k.1 ∈ Λ₁ ∪ Λ₂ := Finset.mem_union_left _ k.2
-    have h1 := hσ k.1 hmem
-    have h2 := hσ' k.1 hmem
+    have h1 := mem_cyl.1 hσ k.1 hmem
+    have h2 := mem_cyl.1 hσ' k.1 hmem
     rw [juxt_apply_of_mem (Finset.mem_coe.2 k.2)] at h1 h2
     exact h1.symm.trans h2
   rw [hdecomp, measure_iUnion hdisj fun ξ ↦ measurableSet_cyl _ _, tsum_fintype]
@@ -1473,7 +1410,8 @@ theorem markovSpecification_singleton_apply (hpos : ∀ x y, 0 < P x y) (i : ℤ
       = ENNReal.ofReal (markovDeterminingFun P (ω (i - 1)) y (ω (i + 1))) := by
   have hset : {σ : ℤ → E | σ i = y} = cyl (Finset.Icc i i) (Function.update ω i y) := by
     ext σ
-    simp [cyl, Finset.Icc_self, Function.update_self]
+    rw [Set.mem_ofPred_eq, mem_cyl]
+    simp only [Finset.Icc_self, Finset.mem_singleton, forall_eq, Function.update_self]
   have hη : ∀ k ∉ Finset.Icc i i, Function.update ω i y k = ω k := by
     intro k hk
     rw [Finset.Icc_self, Finset.mem_singleton] at hk
@@ -1734,14 +1672,8 @@ theorem isPositiveHomogeneousMarkov_markovSpecification (hpos : ∀ x y, 0 < P x
 
 omit [Fintype E] [DecidableEq E] [Nonempty E] in
 lemma measurableSet_cyl_cylinderEvents {Δ : Set ℤ} {Λ : Finset ℤ} (hΛ : ↑Λ ⊆ Δ) (η : ℤ → E) :
-    MeasurableSet[cylinderEvents Δ] (cyl Λ η) := by
-  have hrw : cyl Λ η = ⋂ k ∈ Λ, {σ : ℤ → E | σ k = η k} := by
-    ext σ
-    simp [cyl]
-  rw [hrw]
-  refine Finset.measurableSet_biInter _ fun k hk ↦ ?_
-  exact (measurable_cylinderEvent_apply (X := fun _ : ℤ ↦ E) (hΛ hk))
-    (measurableSet_singleton (η k))
+    MeasurableSet[cylinderEvents Δ] (cyl Λ η) :=
+  measurableSet_cylinderEvents_cyl hΛ η
 
 omit [Fintype E] [DecidableEq E] [Nonempty E] in
 lemma measurableSet_eq_apply (i : ℤ) (y : E) : MeasurableSet {σ : ℤ → E | σ i = y} := by
@@ -1759,7 +1691,7 @@ lemma singleton_eq_of_forall_apply (γ γ' : Specification ℤ E) (i : ℤ)
   by_cases hi : i ∈ Λ
   · have hsplit : cyl Λ η = {σ : ℤ → E | σ i = η i} ∩ cyl (Λ.erase i) η := by
       ext σ
-      simp only [Set.mem_inter_iff, Set.mem_ofPred_eq, cyl, Finset.mem_erase]
+      simp only [Set.mem_inter_iff, Set.mem_ofPred_eq, mem_cyl, Finset.mem_erase]
       refine ⟨fun hσ ↦ ⟨hσ i hi, fun k hk ↦ hσ k hk.2⟩, ?_⟩
       rintro ⟨h1, h2⟩ k hk
       by_cases hki : k = i
@@ -2173,12 +2105,6 @@ lemma extendBy_of_notMem {Λ : Finset ℤ} {i : ℤ} (x : Π _k : Λ, E) (h : i 
   funext k
   exact dite_eq_left k.2
 
-omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
-lemma restrict_update_of_notMem {Λ : Finset ℤ} {j : ℤ} (h : j ∉ Λ) (σ : ℤ → E) (z : E) :
-    Λ.restrict (Function.update σ j z) = Λ.restrict σ := by
-  funext k
-  exact Function.update_of_ne (ne_of_mem_of_not_mem k.2 h) z σ
-
 /-- The sum of `G` over all configurations supported on the finite volume `Δ`. -/
 def cylSum (Δ : Finset ℤ) (G : (ℤ → E) → ℝ≥0∞) : ℝ≥0∞ :=
   ∑ x : Π _k : Δ, E, G (extendBy Δ x)
@@ -2196,28 +2122,6 @@ omit [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] in
 lemma cylSum_sum {ι : Type*} (Δ : Finset ℤ) (s : Finset ι) (H : ι → (ℤ → E) → ℝ≥0∞) :
     cylSum Δ (fun σ ↦ ∑ z ∈ s, H z σ) = ∑ z ∈ s, cylSum Δ (H z) :=
   Finset.sum_comm
-
-/-- Splitting off the coordinate `j` of a dependent product over `insert j Δ`. -/
-def insertPiEquiv (Δ : Finset ℤ) (j : ℤ) (hj : j ∉ Δ) :
-    (Π _k : (insert j Δ : Finset ℤ), E) ≃ (Π _k : Δ, E) × E where
-  toFun x := (fun k ↦ x ⟨↑k, Finset.mem_insert_of_mem k.2⟩, x ⟨j, Finset.mem_insert_self j Δ⟩)
-  invFun p := fun k ↦ if h : (k : ℤ) ∈ Δ then p.1 ⟨↑k, h⟩ else p.2
-  left_inv x := by
-    funext k
-    obtain ⟨k, hk⟩ := k
-    by_cases h : k ∈ Δ
-    · simp only [dite_eq_left h]
-    · have hkj : k = j := by
-        rcases Finset.mem_insert.1 hk with h' | h'
-        · exact h'
-        · exact absurd h' h
-      subst hkj
-      simp only [dite_eq_right h]
-  right_inv p := by
-    refine Prod.ext ?_ ?_
-    · funext k
-      exact dite_eq_left k.2
-    · exact dite_eq_right hj
 
 omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] in
 lemma extendBy_insertPiEquiv_symm {Δ : Finset ℤ} {j : ℤ} (hj : j ∉ Δ) (y : Π _k : Δ, E) (z : E) :
@@ -2691,20 +2595,11 @@ lemma stationaryChain_intervalCylinder {a b : ℤ} (hab : a ≤ b)
 /-- **Georgii (3.3)**: the finite-dimensional distributions of `μ_P` on intervals:
 `μ_P(σ_a = x_a, …, σ_b = x_b) = α_P(x_a) P(x_a, x_{a+1}) ⋯ P(x_{b-1}, x_b)`. -/
 theorem markovChain_cylinder {a b : ℤ} (hab : a ≤ b) (σ : ℤ → E) :
-    stationaryChain P hP hpos {τ : ℤ → E | ∀ k ∈ Finset.Icc a b, τ k = σ k}
+    stationaryChain P hP hpos (cyl (Finset.Icc a b) σ)
       = ENNReal.ofReal (stationaryDist P hP hpos (σ a)
           * ∏ k ∈ Finset.Ico a b, P (σ k) (σ (k + 1))) := by
-  have hset : {τ : ℤ → E | ∀ k ∈ Finset.Icc a b, τ k = σ k}
-      = (Finset.Icc a b).restrict ⁻¹'
-          ({(Finset.Icc a b).restrict σ} : Set (Π _k : (Finset.Icc a b : Finset ℤ), E)) := by
-    ext τ
-    simp only [Set.mem_ofPred_eq, Set.mem_preimage, Set.mem_singleton_iff, funext_iff]
-    constructor
-    · intro h k
-      exact h ↑k k.2
-    · intro h k hk
-      exact h ⟨k, hk⟩
-  rw [hset, stationaryChain_intervalCylinder P hP hpos hab]
+  rw [← restrict_preimage_singleton (Finset.Icc a b) σ,
+    stationaryChain_intervalCylinder P hP hpos hab]
   congr 1
   exact chainWeight_congr P _ hab fun k hk ↦ by rw [extendBy_of_mem _ hk]; rfl
 
@@ -2723,7 +2618,7 @@ lemma stationaryChain_cyl_pos (Λ : Finset ℤ) (ω : ℤ → E) :
     _ = stationaryChain P hP hpos (cyl (Finset.Icc a b) ω) :=
         (markovChain_cylinder P hP hpos hab ω).symm
     _ ≤ stationaryChain P hP hpos (cyl Λ ω) :=
-        measure_mono fun σ hσ k hk ↦ hσ k (hΛ hk)
+        measure_mono (cyl_mono hΛ ω)
 
 end StationaryChain
 
@@ -2818,6 +2713,13 @@ def intervalCylinder (a b : ℤ) (σ : ℤ → E) : Set (ℤ → E) :=
 omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
 lemma mem_intervalCylinder {a b : ℤ} {σ τ : ℤ → E} :
     τ ∈ intervalCylinder a b σ ↔ ∀ k ∈ Finset.Icc a b, τ k = σ k := Iff.rfl
+
+omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- An interval cylinder is the cylinder over the finite volume `[a, b]`. -/
+lemma intervalCylinder_eq_cyl (a b : ℤ) (σ : ℤ → E) :
+    intervalCylinder a b σ = cyl (Finset.Icc a b) σ := by
+  ext τ
+  rw [mem_intervalCylinder, mem_cyl]
 
 omit [Fintype E] [DecidableEq E] [Nonempty E] in
 lemma measurableSet_intervalCylinder (a b : ℤ) (σ : ℤ → E) :
@@ -3055,7 +2957,7 @@ lemma stationaryChain_intervalCylinder_eq {a b i : ℤ} (hai : a < i) (hib : i <
   have hαnn : ∀ x, 0 ≤ stationaryDist P hP hpos x := fun x ↦ (stationaryDist_pos P hP hpos x).le
   have hcw : ∀ τ : ℤ → E, stationaryChain P hP hpos (intervalCylinder a b τ)
       = ENNReal.ofReal (chainWeight P (stationaryDist P hP hpos) a b τ) :=
-    fun τ ↦ markovChain_cylinder P hP hpos hab τ
+    fun τ ↦ by rw [intervalCylinder_eq_cyl]; exact markovChain_cylinder P hP hpos hab τ
   rw [hcw σ, chainWeight_eq_middle P (stationaryDist P hP hpos) hai hib,
     measure_puncturedCylinder _ hi]
   simp_rw [hcw]
@@ -4339,8 +4241,9 @@ theorem stationaryChain_apply_eq_stationaryDist (i : ℤ) (x : E) :
     stationaryChain P hP hpos {σ : ℤ → E | σ i = x}
       = ENNReal.ofReal (stationaryDist P hP hpos x) := by
   have h := markovChain_cylinder P hP hpos (le_refl i) (fun _ ↦ x)
-  have hset : {τ : ℤ → E | ∀ k ∈ Finset.Icc i i, τ k = x} = {σ : ℤ → E | σ i = x} := by
+  have hset : cyl (Finset.Icc i i) (fun _ ↦ x) = {σ : ℤ → E | σ i = x} := by
     ext τ
+    rw [mem_cyl, Set.mem_ofPred_eq]
     simp [Finset.Icc_self]
   rw [hset] at h
   simpa using h

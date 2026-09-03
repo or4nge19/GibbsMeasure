@@ -79,11 +79,10 @@ lemma rect_eq_iUnion_cyl (W : Finset ℤ) (B : ℤ → Set E) :
     refine ⟨fun j ↦ σ j.1, ?_⟩
     have hc : ∀ j : W, (fun j : W ↦ σ j.1) j ∈ B j.1 := fun j ↦ h j.1 j.2
     rw [ite_eq_left hc]
-    intro k hk
-    rw [juxt_apply_of_mem (Finset.mem_coe.2 hk)]
+    exact mem_cyl.2 fun k hk ↦ by rw [juxt_apply_of_mem (Finset.mem_coe.2 hk)]
   · rintro ⟨ξ, hξ⟩ k hk
     split_ifs at hξ with hB
-    · have := hξ k hk
+    · have := mem_cyl.1 hξ k hk
       rw [juxt_apply_of_mem (Finset.mem_coe.2 hk)] at this
       rw [this]
       exact hB ⟨k, hk⟩
@@ -98,8 +97,8 @@ lemma pairwise_disjoint_ite_cyl (W : Finset ℤ) (B : ℤ → Set E) :
   simp only [Function.onFun]
   split_ifs with h₁ h₂
   · refine Set.disjoint_left.2 fun σ hσ hσ' ↦ hne (funext fun j ↦ ?_)
-    have h1 := hσ j.1 j.2
-    have h2 := hσ' j.1 j.2
+    have h1 := mem_cyl.1 hσ j.1 j.2
+    have h2 := mem_cyl.1 hσ' j.1 j.2
     rw [juxt_apply_of_mem (Finset.mem_coe.2 j.2)] at h1 h2
     exact h1.symm.trans h2
   all_goals simp
@@ -137,16 +136,16 @@ theorem isMarkovChain_stationaryChain (P : Matrix E E ℝ) (hP : P ∈ Matrix.ro
       · rintro ⟨hσA, hσ⟩
         refine ⟨σ i, ?_⟩
         rw [ite_eq_left hσA]
-        intro k hk
+        refine mem_cyl.2 fun k hk ↦ ?_
         rcases Finset.mem_insert.1 hk with rfl | hk
         · simp
         · rw [Function.update_of_ne (ne_of_mem_of_not_mem hk hiW), hσ k hk]
       · rintro ⟨y, hy⟩
         split_ifs at hy with hyA
-        · have hi := hy i (Finset.mem_insert_self _ _)
+        · have hi := mem_cyl.1 hy i (Finset.mem_insert_self _ _)
           rw [Function.update_self] at hi
           refine ⟨hi ▸ hyA, fun k hk ↦ ?_⟩
-          rw [hy k (Finset.mem_insert_of_mem hk),
+          rw [mem_cyl.1 hy k (Finset.mem_insert_of_mem hk),
             Function.update_of_ne (ne_of_mem_of_not_mem hk hiW)]
         · exact absurd hy (Set.notMem_empty σ)
     have hdisj : Pairwise (Function.onFun Disjoint fun y : E ↦
@@ -155,8 +154,8 @@ theorem isMarkovChain_stationaryChain (P : Matrix E E ℝ) (hP : P ∈ Matrix.ro
       simp only [Function.onFun]
       split_ifs
       · refine Set.disjoint_left.2 fun σ hσ hσ' ↦ hne ?_
-        have h1 := hσ i (Finset.mem_insert_self _ _)
-        have h2 := hσ' i (Finset.mem_insert_self _ _)
+        have h1 := mem_cyl.1 hσ i (Finset.mem_insert_self _ _)
+        have h2 := mem_cyl.1 hσ' i (Finset.mem_insert_self _ _)
         simp only [Function.update_self] at h1 h2
         exact h1.symm.trans h2
       all_goals simp
@@ -198,7 +197,7 @@ theorem isMarkovChain_stationaryChain (P : Matrix E E ℝ) (hP : P ∈ Matrix.ro
       · exact MeasurableSet.empty), tsum_fintype]
     -- right-hand side: the integrand is constant on the cylinder
     rw [setLIntegral_congr_fun (measurableSet_cyl W η) (g := fun _ ↦ K (η (i - 1)) A)
-      (fun σ hσ ↦ by rw [hσ (i - 1) hi1W]), setLIntegral_const, hcylW, hK, Finset.sum_mul]
+      (fun σ hσ ↦ by rw [mem_cyl.1 hσ (i - 1) hi1W]), setLIntegral_const, hcylW, hK, Finset.sum_mul]
     refine Finset.sum_congr rfl fun y _ ↦ ?_
     by_cases hy : y ∈ A
     · rw [ite_eq_left hy, Set.indicator_of_mem hy, hcyl, mul_comm]

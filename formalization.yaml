@@ -1004,8 +1004,10 @@ alignment:
         Markov chain) and (b) (every Markov chain in G(gamma^Q) comes from a boundary law); (12.11)
         Chapter 11 boundary laws are boundary laws on the Hasse graph of Z; (12.15) and the
         constant case (12.16)-(12.17). Not formalized: (12.3)(2)-(6), (12.5), (12.6), uniqueness of
-        the boundary law up to a factor, (12.18). The Z-specific lemmas of Model/BoundaryLaw.lean are
-        instances of the tree lemmas and are being re-derived from them.
+        the boundary law up to a factor, (12.18). The counting-kernel and cylinder lemmas live once in
+        Specification/CountingKernel.lean for any site set; Chapter 11's gamma^Q is the Hasse-graph
+        instance of the tree specification (transferSpecification_eq_transferSpecification_hasse_int),
+        with (11.1) giving the tree admissibility.
     - source: "Section 10.2: (10.12)-(10.20), Theorem (10.21), Corollary (10.22)"
       lean: "MeasureTheory.GibbsMeasure.Markov.exists_isMarkovChain_of_mem_extremePoints"
       module: "GibbsMeasure/Specification/MarkovIntChains.lean"

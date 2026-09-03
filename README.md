@@ -495,7 +495,10 @@ on any locally finite graph, Markov chains on a graph (12.2), boundary laws inde
 edges (12.10), and **Theorem (12.12)** on trees in both directions — the measure of a boundary law
 with the cylinder formula (12.13), Gibbs and Markov, and every Markov chain in `𝒢(γ^Q)` a
 boundary-law measure — plus (12.14)–(12.17); Chapter 11's boundary laws are boundary laws on the
-Hasse graph of `ℤ` (12.11).
+Hasse graph of `ℤ` (12.11), and Chapter 11's `γ^Q` is the Hasse-graph instance of the tree
+specification; the counting-kernel and cylinder calculus lives once, for any site set, in
+`GibbsMeasure/Specification/CountingKernel.lean`, with the graph combinatorics under
+`GibbsMeasure/Mathlib/Combinatorics/SimpleGraph/`.
 
 **§9.2, Mermin–Wagner** (`GibbsMeasure/Model/MerminWagner.lean`): **Theorem (9.20)** — for a
 pair potential on a site set with a planar norm (ℤ² with the maximum norm the instance), any real

@@ -57,11 +57,11 @@ open scoped ENNReal
 
 noncomputable section
 
-/-! ## The counting-measure reference kernel on `ℤ`
+/-! ## Georgii's `γ^Q`: the transfer matrix as a pre-modification
 
-For counting measure on a countable `E`, `λ_Λ(·|η)` is the sum of the Dirac measures at the
-configurations agreeing with `η` off `Λ`; integrating against `λ_{Λ ∪ {j}}` sums over the free
-coordinate `j`. -/
+The counting-measure reference kernel `λ_Λ(·|η)` and its calculus (`lintegral_lambdaCount`,
+`setLIntegral_lambdaCount_cyl`, `cyl`, …) live in `GibbsMeasure/Specification/CountingKernel.lean`
+for an arbitrary site space; here they are used at `S = ℤ`. -/
 
 namespace MeasureTheory.GibbsMeasure.Markov
 
@@ -69,114 +69,12 @@ variable {E : Type*} [MeasurableSpace E] [Countable E] [MeasurableSingletonClass
 
 local notation "λ₀" => Specification.sigmaFiniteLambdaFun (S := ℤ) (E := E) Measure.count
 
-omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
-lemma juxt_restrict (Λ : Finset ℤ) (η : ℤ → E) : juxt (Λ : Set ℤ) η (Λ.restrict η) = η := by
-  funext k
-  by_cases hk : k ∈ Λ
-  · rw [juxt_apply_of_mem (Finset.mem_coe.2 hk)]; rfl
-  · rw [juxt_apply_of_not_mem (by simpa using hk)]
-
-omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
-lemma juxt_insertPiEquiv_symm {Λ : Finset ℤ} {j : ℤ} (hj : j ∉ Λ) (η : ℤ → E) (x : Λ → E)
-    (y : E) :
-    juxt ((insert j Λ : Finset ℤ) : Set ℤ) η ((insertPiEquiv Λ j hj).symm (x, y))
-      = Function.update (juxt (Λ : Set ℤ) η x) j y := by
-  funext i
-  by_cases hij : i = j
-  · subst hij
-    rw [Function.update_self, juxt_apply_of_mem (Finset.mem_coe.2 (Finset.mem_insert_self i Λ))]
-    exact dite_eq_right hj
-  · rw [Function.update_of_ne hij]
-    by_cases hiΛ : i ∈ Λ
-    · rw [juxt_apply_of_mem (Finset.mem_coe.2 (Finset.mem_insert_of_mem hiΛ)),
-        juxt_apply_of_mem (Finset.mem_coe.2 hiΛ)]
-      exact dite_eq_left hiΛ
-    · rw [juxt_apply_of_not_mem (show i ∉ ((insert j Λ : Finset ℤ) : Set ℤ) by simp [hij, hiΛ]),
-        juxt_apply_of_not_mem (show i ∉ (Λ : Set ℤ) by simpa using hiΛ)]
-
-/-- For counting measure, integrating against `λ_Λ(·|η)` sums over the configurations on `Λ`. -/
-lemma lintegral_lambdaCount (Λ : Finset ℤ) (η : ℤ → E) {F : (ℤ → E) → ℝ≥0∞}
-    (hF : Measurable F) :
-    ∫⁻ ζ, F ζ ∂(λ₀ Λ η) = ∑' x : Λ → E, F (juxt (Λ : Set ℤ) η x) := by
-  rw [Specification.sigmaFiniteLambdaFun_apply_eq_map, lintegral_map hF Measurable.juxt]
-  erw [Measure.pi_count (X := fun _ : ((Λ : Set ℤ) : Type _) ↦ E)]
-  rw [lintegral_count]
-  rfl
-
-lemma lintegral_lambdaCount_congr (Λ : Finset ℤ) (η : ℤ → E) {F G : (ℤ → E) → ℝ≥0∞}
-    (hF : Measurable F) (hG : Measurable G) (h : ∀ ζ, (∀ k ∉ Λ, ζ k = η k) → F ζ = G ζ) :
-    ∫⁻ ζ, F ζ ∂(λ₀ Λ η) = ∫⁻ ζ, G ζ ∂(λ₀ Λ η) := by
-  rw [lintegral_lambdaCount Λ η hF, lintegral_lambdaCount Λ η hG]
-  exact tsum_congr fun x ↦ h _ (juxt_agree_on_compl Λ η x)
-
-lemma lintegral_lambdaCount_empty (η : ℤ → E) {F : (ℤ → E) → ℝ≥0∞} (hF : Measurable F) :
-    ∫⁻ ζ, F ζ ∂(λ₀ ∅ η) = F η := by
-  rw [lintegral_lambdaCount ∅ η hF]
-  have : IsEmpty ((∅ : Finset ℤ) : Type) := ⟨fun k ↦ absurd k.2 (Finset.notMem_empty _)⟩
-  have hj : ∀ x : ((∅ : Finset ℤ) : Type) → E, juxt ((∅ : Finset ℤ) : Set ℤ) η x = η :=
-    fun x ↦ funext fun k ↦ juxt_apply_of_not_mem (show k ∉ ((∅ : Finset ℤ) : Set ℤ) by simp) x
-  simp_rw [hj]
-  rw [tsum_fintype, Fintype.sum_unique]
-
-/-- Integrating against `λ_{Λ ∪ {j}}(·|η)` for counting measure: sum over the free coordinate
-`j`, then integrate against `λ_Λ(·|η)`. -/
-lemma lintegral_lambdaCount_insert {Λ : Finset ℤ} {j : ℤ} (hj : j ∉ Λ) (η : ℤ → E)
-    {F : (ℤ → E) → ℝ≥0∞} (hF : Measurable F) :
-    ∫⁻ ζ, F ζ ∂(λ₀ (insert j Λ) η) = ∫⁻ ζ, ∑' y, F (Function.update ζ j y) ∂(λ₀ Λ η) := by
-  have hG : Measurable fun ζ : ℤ → E ↦ ∑' y, F (Function.update ζ j y) :=
-    Measurable.tsum fun y ↦ hF.comp (measurable_update_left j y)
-  rw [lintegral_lambdaCount _ _ hF, lintegral_lambdaCount _ _ hG]
-  calc ∑' x : ↥(insert j Λ) → E, F (juxt ((insert j Λ : Finset ℤ) : Set ℤ) η x)
-      = ∑' p : (Λ → E) × E, F (juxt ((insert j Λ : Finset ℤ) : Set ℤ) η
-          ((insertPiEquiv Λ j hj).symm p)) := (Equiv.tsum_eq _ _).symm
-    _ = ∑' (x : Λ → E) (y : E), F (juxt ((insert j Λ : Finset ℤ) : Set ℤ) η
-          ((insertPiEquiv Λ j hj).symm (x, y))) :=
-        ENNReal.tsum_prod (f := fun x y ↦ F (juxt ((insert j Λ : Finset ℤ) : Set ℤ) η
-          ((insertPiEquiv Λ j hj).symm (x, y))))
-    _ = ∑' (x : Λ → E) (y : E), F (Function.update (juxt (Λ : Set ℤ) η x) j y) := by
-        simp_rw [juxt_insertPiEquiv_symm hj η]
-
-lemma lintegral_lambdaCount_singleton (j : ℤ) (η : ℤ → E) {F : (ℤ → E) → ℝ≥0∞}
-    (hF : Measurable F) :
-    ∫⁻ ζ, F ζ ∂(λ₀ {j} η) = ∑' y, F (Function.update η j y) := by
-  rw [← Finset.insert_empty, lintegral_lambdaCount_insert (Finset.notMem_empty j) η hF,
-    lintegral_lambdaCount_empty (F := fun ζ ↦ ∑' y, F (Function.update ζ j y)) _
-      (Measurable.tsum fun y ↦ hF.comp (measurable_update_left j y))]
-
-/-- Integrating over the cylinder `{σ_Λ = σ_Λ}` against `λ_Λ(·|η)` evaluates at the configuration
-`σ_Λ η_{Λᶜ}`. -/
-lemma setLIntegral_lambdaCount_cyl' (Λ : Finset ℤ) (η σ : ℤ → E) {F : (ℤ → E) → ℝ≥0∞}
-    (hF : Measurable F) :
-    ∫⁻ ζ in cyl Λ σ, F ζ ∂(λ₀ Λ η) = F (juxt (Λ : Set ℤ) η (Λ.restrict σ)) := by
-  rw [← lintegral_indicator (measurableSet_cyl Λ σ), lintegral_lambdaCount Λ η
-    (hF.indicator (measurableSet_cyl Λ σ))]
-  rw [tsum_eq_single (Λ.restrict σ) fun x hx ↦ ?_]
-  · exact Set.indicator_of_mem (show juxt (Λ : Set ℤ) η (Λ.restrict σ) ∈ cyl Λ σ from
-      fun k hk ↦ juxt_apply_of_mem (Finset.mem_coe.2 hk) _) _
-  · refine Set.indicator_of_notMem (fun h ↦ hx (funext fun k ↦ ?_)) _
-    have := h k k.2
-    rwa [juxt_apply_of_mem (Finset.mem_coe.2 k.2)] at this
-
-/-- Integrating over the cylinder `{σ_Λ = η_Λ}` against `λ_Λ(·|η)` evaluates at `η`. -/
-lemma setLIntegral_lambdaCount_cyl (Λ : Finset ℤ) (η : ℤ → E) {F : (ℤ → E) → ℝ≥0∞}
-    (hF : Measurable F) :
-    ∫⁻ ζ in cyl Λ η, F ζ ∂(λ₀ Λ η) = F η := by
-  rw [setLIntegral_lambdaCount_cyl' Λ η η hF, juxt_restrict]
-
-/-! ## Georgii's `γ^Q`: the transfer matrix as a pre-modification -/
-
 section TransferWeight
 
 variable (Q : E → E → ℝ≥0∞)
 
-lemma measurable_coord (g : E → ℝ≥0∞) (k : ℤ) :
-    Measurable fun σ : ℤ → E ↦ g (σ k) :=
-  (measurable_of_countable g).comp (measurable_pi_apply k)
-
 lemma measurable_bond (j : ℤ) : Measurable fun σ : ℤ → E ↦ Q (σ j) (σ (j + 1)) :=
-  (measurable_of_countable fun p : E × E ↦ Q p.1 p.2).comp
-    (f := fun σ : ℤ → E ↦ (σ j, σ (j + 1)))
-    ((measurable_pi_apply j).prodMk (measurable_pi_apply (j + 1)))
+  measurable_pair Q j (j + 1)
 
 /-- Georgii (11.2)–(11.3) before normalisation: the weight
 `ρ^Q_Λ(σ) = ∏_{j ∈ bondsOf Λ} Q(σ_j, σ_{j+1})` of the bonds meeting `Λ`. For `Q = e^{-Φ}` with `Φ`
@@ -423,16 +321,6 @@ section Admissible
 
 variable {ρ : Finset ℤ → (ℤ → E) → ℝ≥0∞}
 
-/-- The partition function of a pre-modification for counting measure dominates the weight of the
-boundary condition itself. -/
-lemma sigmaFiniteLambdaZ_count_ne_zero (hρ : Specification.IsPremodifier ρ) {Λ : Finset ℤ}
-    {ω : ℤ → E} (h : ρ Λ ω ≠ 0) :
-    Specification.sigmaFiniteLambdaZ (S := ℤ) (E := E) Measure.count ρ Λ ω ≠ 0 := by
-  rw [Specification.sigmaFiniteLambdaZ, lintegral_lambdaCount Λ ω (hρ.measurable Λ)]
-  refine ne_of_gt ((pos_iff_ne_zero.2 h).trans_le ?_)
-  have := ENNReal.le_tsum (f := fun x : Λ → E ↦ ρ Λ (juxt (Λ : Set ℤ) ω x)) (Λ.restrict ω)
-  rwa [juxt_restrict] at this
-
 /-- **Monotonicity of admissibility for counting measure.** Restricting the sum defining `Z_Δ` to
 the configurations agreeing with `ω` on `Δ \ Λ` gives `Z_Λ(ω) ρ_Δ(ω) ≤ Z_Δ(ω) ρ_Λ(ω)`. -/
 lemma sigmaFiniteLambdaZ_count_mul_le_of_subset (hρ : Specification.IsPremodifier ρ)
@@ -534,7 +422,7 @@ theorem transferSpecification_Icc_apply_intervalCylinder {a b : ℤ} (hab : a �
     transferSpecification Q hQ (Finset.Icc a b) ω (intervalCylinder a b ω)
       = pathProd Q (a - 1) (b + 1) ω
           / (Kernel.ofMatrix Q ^ (b - a + 2).toNat) (ω (a - 1)) {ω (b + 1)} := by
-  rw [show intervalCylinder a b ω = cyl (Finset.Icc a b) ω from rfl,
+  rw [intervalCylinder_eq_cyl a b ω,
     transferSpecification_apply_cyl, transferWeight_Icc Q hab,
     sigmaFiniteLambdaZ_transferWeight_Icc Q hab]
 
@@ -702,11 +590,6 @@ end Factorisation
 /-! ## Georgii Remark (11.4): equivalent transfer matrices -/
 
 section Equivalence
-
-lemma measurable_pair (g : E → E → ℝ≥0∞) (k l : ℤ) :
-    Measurable fun σ : ℤ → E ↦ g (σ k) (σ l) :=
-  (measurable_of_countable fun p : E × E ↦ g p.1 p.2).comp
-    (f := fun σ : ℤ → E ↦ (σ k, σ l)) ((measurable_pi_apply k).prodMk (measurable_pi_apply l))
 
 variable [Nonempty E] {P Q : E → E → ℝ≥0∞}
 
@@ -956,49 +839,11 @@ lemma boundaryLawWeight_congr {a b : ℤ} {σ τ : ℤ → E} (h : ∀ k ∈ Fin
   rw [boundaryLawWeight, boundaryLawWeight, pathProd_congr Q h,
     h a (Finset.mem_Icc.2 ⟨le_rfl, hab⟩), h b (Finset.mem_Icc.2 ⟨hab, le_rfl⟩)]
 
-/-- Marginalising a density on `Λ ∪ {j}` to `Λ` sums the free coordinate. -/
-lemma map_restrict_withDensity_insert {Λ : Finset ℤ} {j : ℤ} (hj : j ∉ Λ) (η : ℤ → E)
-    {w w' : (ℤ → E) → ℝ≥0∞} (hw : Measurable w)
-    (h : ∀ ζ, ∑' y, w (Function.update ζ j y) = w' ζ) :
-    ((λ₀ (insert j Λ) η).withDensity w).map Λ.restrict
-      = ((λ₀ Λ η).withDensity w').map Λ.restrict := by
-  ext A hA
-  have hA' : MeasurableSet (Λ.restrict ⁻¹' A : Set (ℤ → E)) :=
-    Finset.measurable_restrict (X := fun _ : ℤ ↦ E) Λ hA
-  rw [Measure.map_apply (Finset.measurable_restrict (X := fun _ : ℤ ↦ E) Λ) hA,
-    Measure.map_apply (Finset.measurable_restrict (X := fun _ : ℤ ↦ E) Λ) hA,
-    withDensity_apply _ hA', withDensity_apply _ hA', ← lintegral_indicator hA',
-    ← lintegral_indicator hA', lintegral_lambdaCount_insert hj η (hw.indicator hA')]
-  refine lintegral_congr fun ζ ↦ ?_
-  by_cases hζ : ζ ∈ Λ.restrict ⁻¹' A
-  · have hmem : ∀ y, Function.update ζ j y ∈ Λ.restrict ⁻¹' A := fun y ↦ by
-      change Λ.restrict (Function.update ζ j y) ∈ A
-      rwa [restrict_update_of_notMem hj]
-    simp_rw [Set.indicator_of_mem (hmem _), Set.indicator_of_mem hζ, h]
-  · have hmem : ∀ y, Function.update ζ j y ∉ Λ.restrict ⁻¹' A := fun y hy ↦ by
-      change Λ.restrict (Function.update ζ j y) ∈ A at hy
-      rw [restrict_update_of_notMem hj] at hy
-      exact hζ hy
-    simp_rw [Set.indicator_of_notMem (hmem _), Set.indicator_of_notMem hζ, tsum_zero]
-
-omit [Countable E] [MeasurableSingletonClass E] in
-lemma map_restrict_eq_of_subset {μ ν : Measure (ℤ → E)} {Λ Δ : Finset ℤ} (h : Λ ⊆ Δ)
-    (hμν : μ.map Δ.restrict = ν.map Δ.restrict) : μ.map Λ.restrict = ν.map Λ.restrict := by
-  rw [← Finset.restrict₂_comp_restrict (π := fun _ : ℤ ↦ E) h,
-    ← Measure.map_map (Finset.measurable_restrict₂ (X := fun _ : ℤ ↦ E) h)
-      (Finset.measurable_restrict (X := fun _ : ℤ ↦ E) Δ),
-    ← Measure.map_map (Finset.measurable_restrict₂ (X := fun _ : ℤ ↦ E) h)
-      (Finset.measurable_restrict (X := fun _ : ℤ ↦ E) Δ), hμν]
-
 omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
 lemma boundOf_mono {Λ Δ : Finset ℤ} (h : Λ ⊆ Δ) : boundOf Λ ≤ boundOf Δ :=
   Nat.cast_le.2 (Finset.sup_mono h)
 
 variable [Nonempty E]
-
-/-- A fixed configuration, playing the role of the boundary condition of the reference kernel
-`λ_{[a,b]}`; the marginal of `intervalLaw` on `[a, b]` does not depend on it. -/
-def baseConfig : ℤ → E := fun _ ↦ Classical.arbitrary E
 
 /-- The measure `ρ λ_{[a,b]}(·|ω₀)` on `ℤ → E` with the density (11.10) on the interval `[a, b]`
 with respect to counting measure, and the fixed configuration `baseConfig` outside. -/
@@ -1185,7 +1030,7 @@ theorem boundaryLawMeasure_intervalCylinder {a b : ℤ} (hab : a ≤ b) (σ : �
       (measurableSet_singleton _),
     ← intervalCylinder_eq_preimage, intervalLaw,
     withDensity_apply _ (measurableSet_intervalCylinder a b σ),
-    show intervalCylinder a b σ = cyl (Finset.Icc a b) σ from rfl,
+    intervalCylinder_eq_cyl a b σ,
     setLIntegral_lambdaCount_cyl' _ _ _ (measurable_boundaryLawWeight Q ℓ r a b),
     boundaryLawWeight_congr Q ℓ r (τ := σ)
       (fun k hk ↦ juxt_apply_of_mem (Finset.mem_coe.2 hk) _) hab]
@@ -1367,8 +1212,7 @@ theorem stationaryChain_eq_boundaryLawMeasure :
   refine (isBoundaryLaw_stationaryDist P hP hpos).eq_boundaryLawMeasure_of_forall_intervalCylinder
     fun a b hab σ ↦ ?_
   have hα := stationaryDist_mem_stdSimplex P hP hpos
-  rw [show intervalCylinder a b σ = {τ | ∀ k ∈ Finset.Icc a b, τ k = σ k} from rfl,
-    markovChain_cylinder P hP hpos hab σ, mul_one, pathProd,
+  rw [intervalCylinder_eq_cyl a b σ, markovChain_cylinder P hP hpos hab σ, mul_one, pathProd,
     ENNReal.ofReal_mul (hα.1 _), ENNReal.ofReal_prod_of_nonneg fun _ _ ↦ (hpos _ _).le]
 
 end FiniteState
