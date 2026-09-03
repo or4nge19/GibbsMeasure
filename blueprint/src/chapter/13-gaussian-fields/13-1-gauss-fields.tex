@@ -1,0 +1,26 @@
+\section{Gauss fields as Gibbs measures}
+
+Throughout, $E = \mathbb R$ with Lebesgue measure and $S$ is countable.
+
+\begin{definition}[Gauss field, Georgii (13.1)--(13.3)]
+    \label{def:gf-13-1}
+    \lean{MeasureTheory.GibbsMeasure.integral_cexp_I_sum_eq_of_isGaussianProcess, MeasureTheory.GibbsMeasure.posSemidef_covar_of_isGaussianProcess, Matrix.posSemidef_covariance}
+    \leanok
+
+    A probability measure $\mu$ on $\mathbb R^S$ is a \textbf{Gauss field} if the coordinate
+    process is a Gaussian process (every finite-dimensional marginal is Gaussian). Then
+    $\mu\bigl(e^{i\sum_{j\in\Lambda} t_j\sigma_j}\bigr) = \exp\bigl(i\sum_j t_j m_j - \tfrac12\sum_{j,k} t_j t_k c_{jk}\bigr)$
+    with $m$ the mean and $c$ the covariance function (13.2), and $c$ is nonnegative definite (13.3).
+\end{definition}
+
+\begin{definition}[Gaussian potential, Georgii (13.11)--(13.12)]
+    \label{def:gf-13-11}
+    \uses{def:pot-potential, def:sb-pair-potential}
+    \lean{Potential.gaussianPotential, Potential.isPotential_gaussianPotential, Potential.gaussianCovMatrix}
+    \leanok
+
+    For a symmetric $J \colon S \times S \to \mathbb R$ and $h \colon S \to \mathbb R$, the
+    \textbf{Gaussian potential} has $\Phi_{\set i}(\sigma) = \tfrac12 J(i,i)\sigma_i^2 - h_i\sigma_i$
+    and $\Phi_{\set{i,j}}(\sigma) = J(i,j)\sigma_i\sigma_j$ for $i \neq j$, and $\Phi_A = 0$
+    otherwise; $\mathcal J_\Lambda = (J(i,j))_{i,j\in\Lambda}$ is its finite-volume matrix.
+\end{definition}

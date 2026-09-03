@@ -39,6 +39,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Function.StronglyMeasurable.Bas
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.Bochner.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.DominatedConvergence
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.IntegrableOn
+public import GibbsMeasure.Mathlib.Probability.Moments.Covariance
 public import GibbsMeasure.Mathlib.Probability.UniformOn
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.SetwiseConvergence
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ProdZeroOne
@@ -113,6 +114,7 @@ public import GibbsMeasure.Model.PeriodicSymmetry
 public import GibbsMeasure.Model.OneDimensionalSymmetry
 public import GibbsMeasure.Model.OneDimensionalSymmetryExamples
 public import GibbsMeasure.Model.MerminWagner
+public import GibbsMeasure.Model.GaussianField
 public import GibbsMeasure.Model.ShiftAverage
 public import GibbsMeasure.Potential.Existence
 public import GibbsMeasure.Potential.FiniteReference
