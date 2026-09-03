@@ -18,7 +18,8 @@ public import GibbsMeasure.Mathlib.Probability.Kernel.InvariantSigmaAlgebra
 # The mean ergodic theorem along Følner sets
 
 Let a group `G` act on a finite measure space `(Ω, μ)` by measure-preserving maps, let `𝓘` be the
-σ-algebra `MeasurableSpace.smulInvariants G Ω` of strictly invariant events, and let `F : κ → Finset G`
+σ-algebra `MeasurableSpace.smulInvariants G Ω` of strictly invariant events, and let `F : κ →
+    Finset G`
 be a *Følner net* of finite sets along a filter `l`: eventually non-empty, with
 `|(g • F k) ∆ F k| / |F k| → 0` for every `g`. For `f : Ω → E` put
 `R_k f = |F k|⁻¹ ∑_{i ∈ F k} f ∘ (i • ·)`. Then
@@ -458,7 +459,8 @@ theorem Lp.tendsto_inv_card_smul_sum_compMeasurePreservingₗᵢ_smul_condExpL2
     Tendsto (fun k ↦ ((F k).card : ℝ)⁻¹ •
         ∑ i ∈ F k, Lp.compMeasurePreservingₗᵢ ℝ (i • ·) (measurePreserving_smul i μ) f) l
       (𝓝 (condExpL2 E ℝ (MeasurableSpace.smulInvariants_le (M := G)) f : Lp E 2 μ)) := by
-  have : Fact (MeasurableSpace.smulInvariants G Ω ≤ _) := ⟨MeasurableSpace.smulInvariants_le (M := G)⟩
+  have : Fact (MeasurableSpace.smulInvariants G Ω ≤ _) := ⟨MeasurableSpace.smulInvariants_le (M
+      := G)⟩
   have h := LinearIsometry.tendsto_inv_card_smul_sum_starProjection_of_foelner
     (fun g : G ↦ Lp.compMeasurePreservingₗᵢ ℝ (g • ·) (measurePreserving_smul g μ))
     (fun g i f ↦ Lp.compMeasurePreservingₗᵢ_smul_compMeasurePreservingₗᵢ_smul g i f)

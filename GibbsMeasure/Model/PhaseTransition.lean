@@ -324,7 +324,7 @@ theorem minus_event_subset_iUnion (N : ℕ) (a : Site) :
     · rw [← Finset.mem_coe, hccoe]; exact hbond
     · rw [hccoe]; exact edgeBoundary_interiorOf_outerBoundary hDfin
     · rw [hccoe, coe_cube_eq_box N]; exact interiorOf_outerBoundary_subset_box hDbox
-  · show (↑c : Set (Sym2 Site)) ⊆ discordant ζ
+  · change (↑c : Set (Sym2 Site)) ⊆ discordant ζ
     rw [hccoe]
     exact outerBoundary_minusCluster_subset_discordant a ζ
 

@@ -234,14 +234,16 @@ lemma integral_condExp_indicator_mul_indicator (hm : m ≤ mΩ) (A : Set Ω)
     (hD : MeasurableSet[mΩ] D) :
     ∫ x, (μ[A.indicator (1 : Ω → ℝ) | m]) x * D.indicator (1 : Ω → ℝ) x ∂μ
       = ∫ x, (μ[A.indicator (1 : Ω → ℝ) | m]) x * (μ[D.indicator (1 : Ω → ℝ) | m]) x ∂μ := by
-  rw [← integral_condExp hm (f := fun x ↦ (μ[A.indicator (1 : Ω → ℝ) | m]) x * D.indicator (1 : Ω → ℝ) x)]
+  rw [← integral_condExp hm (f := fun x ↦ (μ[A.indicator (1 : Ω → ℝ) | m]) x * D.indicator (1 : Ω
+      → ℝ) x)]
   exact integral_congr_ae (condExp_stronglyMeasurable_mul_of_bound hm stronglyMeasurable_condExp
     (integrable_indicator_one hD) 1 (ae_norm_condExp_indicator_one_le m A))
 
 /-- Symmetry of the conditional covariance: `∫_D μ(A|m) = ∫_A μ(D|m)`. -/
 lemma setIntegral_condExp_indicator_comm (hm : m ≤ mΩ) (hA : MeasurableSet[mΩ] A)
     (hD : MeasurableSet[mΩ] D) :
-    ∫ x in D, (μ[A.indicator (1 : Ω → ℝ) | m]) x ∂μ = ∫ x in A, (μ[D.indicator (1 : Ω → ℝ) | m]) x ∂μ := by
+    ∫ x in D, (μ[A.indicator (1 : Ω → ℝ) | m]) x ∂μ = ∫ x in A, (μ[D.indicator (1 : Ω → ℝ) | m])
+        x ∂μ := by
   rw [← integral_mul_indicator_one hD, ← integral_mul_indicator_one hA,
     integral_condExp_indicator_mul_indicator hm A hD,
     integral_condExp_indicator_mul_indicator hm D hA]
@@ -252,10 +254,12 @@ conditioning side: `∫_D μ(A|m') = μ(A ∩ D)` for all `D ∈ m₀`. -/
 lemma condExp_indicator_ae_eq_iff_forall_setIntegral (hm' : m' ≤ m₀) (hm₀ : m₀ ≤ mΩ)
     (hA : MeasurableSet[mΩ] A) :
     μ[A.indicator (1 : Ω → ℝ) | m₀] =ᵐ[μ] μ[A.indicator (1 : Ω → ℝ) | m'] ↔
-      ∀ D, MeasurableSet[m₀] D → ∫ x in D, (μ[A.indicator (1 : Ω → ℝ) | m']) x ∂μ = μ.real (A ∩ D) := by
+      ∀ D, MeasurableSet[m₀] D → ∫ x in D, (μ[A.indicator (1 : Ω → ℝ) | m']) x ∂μ = μ.real (A ∩
+          D) := by
   constructor
   · intro h D hD
-    rw [← setIntegral_indicator_one' hA D, ← setIntegral_condExp hm₀ (integrable_indicator_one hA) hD]
+    rw [← setIntegral_indicator_one' hA D, ← setIntegral_condExp hm₀ (integrable_indicator_one
+        hA) hD]
     exact setIntegral_congr_ae (hm₀ _ hD) (h.mono fun x hx _ ↦ hx.symm)
   · intro h
     refine (ae_eq_condExp_of_forall_setIntegral_eq hm₀ (integrable_indicator_one hA)
@@ -268,7 +272,8 @@ lemma condExp_indicator_ae_eq_iff_forall_setIntegral (hm' : m' ≤ m₀) (hm₀ 
 lemma condExp_indicator_ae_eq_iff_forall_setIntegral' (hm' : m' ≤ m₀) (hm₀ : m₀ ≤ mΩ)
     (hA : MeasurableSet[mΩ] A) :
     μ[A.indicator (1 : Ω → ℝ) | m₀] =ᵐ[μ] μ[A.indicator (1 : Ω → ℝ) | m'] ↔
-      ∀ D, MeasurableSet[m₀] D → ∫ x in A, (μ[D.indicator (1 : Ω → ℝ) | m']) x ∂μ = μ.real (A ∩ D) := by
+      ∀ D, MeasurableSet[m₀] D → ∫ x in A, (μ[D.indicator (1 : Ω → ℝ) | m']) x ∂μ = μ.real (A ∩
+          D) := by
   rw [condExp_indicator_ae_eq_iff_forall_setIntegral hm' hm₀ hA]
   refine forall₂_congr fun D hD ↦ ?_
   rw [setIntegral_condExp_indicator_comm (hm'.trans hm₀) hA (hm₀ _ hD)]
@@ -276,9 +281,11 @@ lemma condExp_indicator_ae_eq_iff_forall_setIntegral' (hm' : m' ≤ m₀) (hm₀
 /-- The functional form of `μ(A | m₀) = μ(A | m')`: for every bounded `m₀`-measurable `f`,
 `∫ f 1_A = ∫ f μ(A|m')`. -/
 lemma integral_mul_indicator_eq_of_condExp_ae_eq (hm₀ : m₀ ≤ mΩ)
-    (hA : MeasurableSet[mΩ] A) (h : μ[A.indicator (1 : Ω → ℝ) | m₀] =ᵐ[μ] μ[A.indicator (1 : Ω → ℝ) | m'])
+    (hA : MeasurableSet[mΩ] A) (h : μ[A.indicator (1 : Ω → ℝ) | m₀] =ᵐ[μ] μ[A.indicator (1 : Ω →
+        ℝ) | m'])
     {f : Ω → ℝ} (hf : StronglyMeasurable[m₀] f) {c : ℝ} (hfc : ∀ᵐ x ∂μ, ‖f x‖ ≤ c) :
-    ∫ x, f x * A.indicator (1 : Ω → ℝ) x ∂μ = ∫ x, f x * (μ[A.indicator (1 : Ω → ℝ) | m']) x ∂μ := by
+    ∫ x, f x * A.indicator (1 : Ω → ℝ) x ∂μ = ∫ x, f x * (μ[A.indicator (1 : Ω → ℝ) | m']) x ∂μ
+        := by
   rw [← integral_condExp hm₀ (f := fun x ↦ f x * A.indicator (1 : Ω → ℝ) x)]
   refine integral_congr_ae ((condExp_stronglyMeasurable_mul_of_bound hm₀ hf
     (integrable_indicator_one hA) c hfc).trans ?_)
@@ -292,7 +299,8 @@ lemma integral_mul_indicator_eq_integral_mul_condExp (hm : m ≤ mΩ) (hA : Meas
 
 /-- Monotonicity in the conditioning σ-algebra: if `μ(A|m₀) = μ(A|m')` and `m' ≤ m₁ ≤ m₀`, then
 `μ(A|m₁) = μ(A|m')`. -/
-lemma condExp_indicator_ae_eq_of_le (hm'₁ : m' ≤ m₁) (hm₁₀ : m₁ ≤ m₀) (hm₀ : m₀ ≤ mΩ) (h : μ[A.indicator (1 : Ω → ℝ) | m₀] =ᵐ[μ] μ[A.indicator (1 : Ω → ℝ) | m']) :
+lemma condExp_indicator_ae_eq_of_le (hm'₁ : m' ≤ m₁) (hm₁₀ : m₁ ≤ m₀) (hm₀ : m₀ ≤ mΩ) (h :
+    μ[A.indicator (1 : Ω → ℝ) | m₀] =ᵐ[μ] μ[A.indicator (1 : Ω → ℝ) | m']) :
     μ[A.indicator (1 : Ω → ℝ) | m₁] =ᵐ[μ] μ[A.indicator (1 : Ω → ℝ) | m'] := by
   calc μ[A.indicator (1 : Ω → ℝ) | m₁] =ᵐ[μ] μ[μ[A.indicator (1 : Ω → ℝ) | m₀] | m₁] :=
         (condExp_condExp_of_le (μ := μ) hm₁₀ hm₀).symm
@@ -876,7 +884,8 @@ lemma _root_.Set.OrdConnected.exists_eq_Icc_int {s : Set ℤ} (hs : s.OrdConnect
 /-- A nonempty order-connected subset of `ℤ` is `ℤ`, a half-line, or a closed interval. -/
 lemma _root_.Set.OrdConnected.eq_univ_or_Ici_or_Iic_or_Icc_int {s : Set ℤ} (hs : s.OrdConnected)
     (hne : s.Nonempty) :
-    s = Set.univ ∨ (∃ a, s = Set.Ici a) ∨ (∃ b, s = Set.Iic b) ∨ ∃ a b, a ≤ b ∧ s = Set.Icc a b := by
+    s = Set.univ ∨ (∃ a, s = Set.Ici a) ∨ (∃ b, s = Set.Iic b) ∨ ∃ a b, a ≤ b ∧ s = Set.Icc a b
+        := by
   by_cases hb : BddBelow s <;> by_cases hb' : BddAbove s
   · exact Or.inr (Or.inr (Or.inr (hs.exists_eq_Icc_int hne hb hb')))
   · obtain ⟨a, ha, hamin⟩ := Int.exists_least_of_bdd (P := (· ∈ s))
@@ -906,13 +915,15 @@ lemma isMarkovField_iff : IsMarkovField μ ↔ ∀ i k : ℤ, i + 1 < k → IsMa
   refine forall₃_congr fun i k hik ↦ ?_
   rw [IsMarkovOn, boundarySet_Ioo hik]
 
-lemma IsMarkovField.isMarkovOn_Ioo (h : IsMarkovField μ) (i k : ℤ) : IsMarkovOn μ (Set.Ioo i k) := by
+lemma IsMarkovField.isMarkovOn_Ioo (h : IsMarkovField μ) (i k : ℤ) : IsMarkovOn μ (Set.Ioo i k)
+    := by
   by_cases hik : i + 1 < k
   · exact isMarkovField_iff.1 h i k hik
   · rw [Ioo_eq_empty_of_le (by omega)]
     exact isMarkovOn_empty
 
-lemma IsMarkovField.isMarkovOn_Icc (h : IsMarkovField μ) (a b : ℤ) : IsMarkovOn μ (Set.Icc a b) := by
+lemma IsMarkovField.isMarkovOn_Icc (h : IsMarkovField μ) (a b : ℤ) : IsMarkovOn μ (Set.Icc a b)
+    := by
   rw [Icc_eq_Ioo]
   exact h.isMarkovOn_Ioo _ _
 
@@ -1324,7 +1335,8 @@ lemma chainKernel_update_last_apply_univ (n : ℕ) (k : ℤ) (x : E) {S : Set E}
 /-- **Georgii, Definition (10.4).** A probability measure `μ` on `E^ℤ` is a *Markov chain with
 transition kernels* `(P_i)_{i ∈ ℤ}` if it satisfies (10.4)(ii):
 `μ(σ_i ∈ A | 𝓕_{]-∞,i[}) = P_i(σ_{i-1}, A)` `μ`-a.s. for all `i ∈ ℤ` and `A ∈ 𝓔`.
-The equivalent finite-dimensional formula (10.4)(i)/(10.5) is `isMarkovChain_iff_forall_measure_rect`. -/
+The equivalent finite-dimensional formula (10.4)(i)/(10.5) is
+    `isMarkovChain_iff_forall_measure_rect`. -/
 structure IsMarkovChain (P : ℤ → Kernel E E) (μ : Measure (ℤ → E)) : Prop where
   isProbabilityMeasure : IsProbabilityMeasure μ
   condExp_preimage : ∀ (i : ℤ) (A : Set E), MeasurableSet A →
@@ -1441,7 +1453,8 @@ lemma map_restrict_rect_of_forall_measure_rect
       = ((μ.map (fun σ ↦ σ i)).restrict (B i)).bind (chainKernel P hB n i) := by
   classical
   ext S hS
-  rw [Measure.map_apply (measurable_pi_apply _) hS, Measure.restrict_apply (measurable_pi_apply _ hS),
+  rw [Measure.map_apply (measurable_pi_apply _) hS, Measure.restrict_apply (measurable_pi_apply _
+      hS),
     Measure.bind_apply hS (Kernel.aemeasurable _)]
   cases n with
   | zero =>
@@ -1459,7 +1472,8 @@ lemma map_restrict_rect_of_forall_measure_rect
       by_cases hj : j = i + n + 1
       · subst hj; simp only [hB', Function.update_self]; exact (hB _).inter hS
       · simp only [hB', Function.update_of_ne hj]; exact hB j
-    have hset : (fun σ : ℤ → E ↦ σ (i + (n + 1 : ℕ))) ⁻¹' S ∩ rect (Finset.Icc i (i + (n + 1 : ℕ))) B
+    have hset : (fun σ : ℤ → E ↦ σ (i + (n + 1 : ℕ))) ⁻¹' S ∩ rect (Finset.Icc i (i + (n + 1 :
+        ℕ))) B
         = rect (Finset.Icc i (i + (n + 1 : ℕ))) B' := by
       rw [hB', rect_update (by simp only [Finset.mem_Icc]; omega), rect_eq_erase_inter
         (B := B) (show i + (n + 1 : ℕ) ∈ Finset.Icc i (i + (n + 1 : ℕ)) by
@@ -1923,7 +1937,7 @@ theorem isPremodifierAdmissible_chainDensity (ν : Measure E) [IsProbabilityMeas
   intro Λ η
   have := isMarkovKernel_isssdFun (ν := ν) (S := ℤ) Λ
   constructor
-  · show (∫⁻ x, chainDensity p Λ x ∂(isssd ν Λ η)) ≠ 0
+  · change (∫⁻ x, chainDensity p Λ x ∂(isssd ν Λ η)) ≠ 0
     rw [ne_eq, lintegral_eq_zero_iff (measurable_chainDensity hp Λ)]
     intro h
     have hpos' : ∀ σ, chainDensity p Λ σ ≠ 0 := fun σ ↦
@@ -1934,7 +1948,7 @@ theorem isPremodifierAdmissible_chainDensity (ν : Measure E) [IsProbabilityMeas
       Set.eq_univ_of_forall fun a ↦ hpos' a
     rw [huniv, measure_univ] at h'
     exact one_ne_zero h'
-  · show (∫⁻ x, chainDensity p Λ x ∂(isssd ν Λ η)) ≠ ⊤
+  · change (∫⁻ x, chainDensity p Λ x ∂(isssd ν Λ η)) ≠ ⊤
     refine ne_top_of_le_ne_top (b := C ^ (rightBonds Λ).card * (isssd ν Λ η) Set.univ) ?_ ?_
     · exact ENNReal.mul_ne_top (ENNReal.pow_ne_top hC) (measure_ne_top _ _)
     · rw [← lintegral_const]
@@ -2021,8 +2035,10 @@ lemma lintegral_isssd_union_singleton (Λ : Finset ℤ) (j : ℤ) (ω : ℤ → 
     congr 1
   have hmeas : Measurable fun ω' ↦ ∫⁻ σ, F σ ∂(isssd ν Λ ω') :=
     (Measurable.lintegral_kernel (κ := isssd ν Λ) hF).mono cylinderEvents_le_pi le_rfl
-  rw [h1, Measure.lintegral_bind ((isssd ν Λ).measurable.mono cylinderEvents_le_pi le_rfl).aemeasurable
-    hF.aemeasurable, Specification.isssd_singleton_eq_map, lintegral_map hmeas (measurable_update ω)]
+  rw [h1, Measure.lintegral_bind ((isssd ν Λ).measurable.mono cylinderEvents_le_pi
+      le_rfl).aemeasurable
+    hF.aemeasurable, Specification.isssd_singleton_eq_map, lintegral_map hmeas (measurable_update
+        ω)]
 
 /-! ### The joint law of two coordinates of a Markov chain -/
 
@@ -2044,9 +2060,11 @@ theorem IsMarkovChain.map_prodMk_eq_compProd [∀ k, IsMarkovKernel (P k)] (h : 
     by_cases hk : k = i
     · subst hk; simp only [hB'', Function.update_self]; exact (hB _).inter hs
     · simp only [hB'', Function.update_of_ne hk]; exact hB k
-  have hset : (fun σ : ℤ → E ↦ σ i) ⁻¹' s ∩ (fun σ ↦ σ (i + n)) ⁻¹' t ∩ rect (Finset.Icc i (i + n)) B
+  have hset : (fun σ : ℤ → E ↦ σ i) ⁻¹' s ∩ (fun σ ↦ σ (i + n)) ⁻¹' t ∩ rect (Finset.Icc i (i +
+      n)) B
       = (fun σ ↦ σ (i + n)) ⁻¹' t ∩ (Set.univ ∩ rect (Finset.Icc i (i + n)) B'') := by
-    rw [hB'', rect_update (by simp), rect_eq_erase_inter (B := B) (show i ∈ Finset.Icc i (i + n) by simp)]
+    rw [hB'', rect_update (by simp), rect_eq_erase_inter (B := B) (show i ∈ Finset.Icc i (i + n)
+        by simp)]
     ext σ
     simp only [Set.mem_inter_iff, Set.mem_preimage, Set.mem_univ, true_and]
     tauto
@@ -2054,7 +2072,8 @@ theorem IsMarkovChain.map_prodMk_eq_compProd [∀ k, IsMarkovKernel (P k)] (h : 
   have hM := h.map_restrict_inter_rect hB''m i (D := Set.univ) MeasurableSet.univ n
   have h1 := congrArg (fun ν : Measure E ↦ ν t) hM
   simp only [Measure.restrict_univ] at h1
-  rw [Measure.map_apply (measurable_pi_apply _) ht, Measure.restrict_apply (measurable_pi_apply _ ht),
+  rw [Measure.map_apply (measurable_pi_apply _) ht, Measure.restrict_apply (measurable_pi_apply _
+      ht),
     Measure.bind_apply ht (Kernel.aemeasurable _)] at h1
   rw [h1, show B'' i = s ∩ B i by rw [hB'', Function.update_self, Set.inter_comm]]
   refine setLIntegral_congr_fun (hs.inter (hB i)) fun x _ ↦ ?_
@@ -2189,7 +2208,8 @@ lemma boundaryCfg_eq_update (i : ℤ) (n : ℕ) (x y : E) :
 variable (ν p) in
 /-- Georgii's `Z_{i,k}` at the boundary values `x` (at `i`) and `y` (at `k = i + n`). -/
 def Ztilde (i : ℤ) (n : ℕ) (x y : E) : ℝ≥0∞ :=
-  ∫⁻ σ, chainDensity p (Finset.Ioo i (i + n)) σ ∂(isssd ν (Finset.Ioo i (i + n)) (boundaryCfg i n x y))
+  ∫⁻ σ, chainDensity p (Finset.Ioo i (i + n)) σ ∂(isssd ν (Finset.Ioo i (i + n)) (boundaryCfg i n
+      x y))
 
 variable (ν p) in
 /-- `∫_{σ_Λ ∈ B} g_{i,k} dλ_Λ` at the boundary values `x`, `y`. -/
@@ -2200,7 +2220,8 @@ def Gtilde (i : ℤ) (n : ℕ) (B : ℤ → Set E) (x y : E) : ℝ≥0∞ :=
 lemma measurable_Ztilde (hp : ∀ j, Measurable (Function.uncurry (p j))) (i : ℤ) (n : ℕ) :
     Measurable fun z : E × E ↦ Ztilde ν p i n z.1 z.2 :=
   ((Measurable.lintegral_kernel (κ := isssd ν (Finset.Ioo i (i + n)))
-    (measurable_chainDensity hp _)).mono cylinderEvents_le_pi le_rfl).comp (measurable_boundaryCfg i n)
+    (measurable_chainDensity hp _)).mono cylinderEvents_le_pi le_rfl).comp
+        (measurable_boundaryCfg i n)
 
 lemma measurable_Gtilde (hp : ∀ j, Measurable (Function.uncurry (p j)))
     (hB : ∀ k, MeasurableSet (B k)) (i : ℤ) (n : ℕ) :
@@ -2493,7 +2514,8 @@ theorem IsMarkovChain.condExp_rect_ae_eq [∀ k, IsMarkovKernel (P k)] (hμ : Is
         = MeasurableSpace.generateFrom (interSets (cylinderEvents ({i} : Set ℤ))
           (cylinderEvents ({i + n} : Set ℤ))) := by
       rw [Set.insert_eq, cylinderEvents_union, sup_eq_generateFrom_interSets]
-    have := ext_on_measurableSpace_of_generate_finite MeasurableSpace.pi (μ := μ.restrict (rect Λ B))
+    have := ext_on_measurableSpace_of_generate_finite MeasurableSpace.pi (μ := μ.restrict (rect Λ
+        B))
       (ν := μ.withDensity fun ω ↦ γ Λ ω (rect Λ B)) _ ?_ cylinderEvents_le_pi hgen
       (isPiSystem_interSets _ _) ?_ hD
     · rwa [Measure.restrict_apply' hS₁m, withDensity_apply _ (cylinderEvents_le_pi _ hD),
@@ -2540,7 +2562,8 @@ theorem IsMarkovChain.isCondExp_chainSpecification_Ioo [∀ k, IsMarkovKernel (P
     have := ext_on_measurableSpace_of_generate_finite MeasurableSpace.pi (μ := μ.restrict t)
       (ν := (μ.restrict t).bind (γ Λ)) _ ?_ cylinderEvents_le_pi hgen
       (isPiSystem_rectangles monotone_const) ?_ hS₁
-    · rwa [Measure.restrict_apply' ht', Measure.bind_apply (cylinderEvents_le_pi _ hS₁) haem.restrict]
+    · rwa [Measure.restrict_apply' ht', Measure.bind_apply (cylinderEvents_le_pi _ hS₁)
+        haem.restrict]
         at this
     · rintro _ ⟨_, B, hB, rfl⟩
       rw [Measure.restrict_apply' ht', Measure.bind_apply (measurableSet_rect hB) haem.restrict]
@@ -2551,7 +2574,8 @@ theorem IsMarkovChain.isCondExp_chainSpecification_Ioo [∀ k, IsMarkovKernel (P
       exact (toReal_ae_eq_indicator_condExp_iff_forall_meas_inter_eq cylinderEvents_le_pi
         (measurableSet_rect hB) (measure_ne_top _ _) hgm.stronglyMeasurable.aestronglyMeasurable
         (ae_of_all _ fun _ ↦ measure_ne_top _ _)).1 h1.symm t ht
-    · rw [Measure.restrict_apply' ht', Measure.bind_apply MeasurableSet.univ haem.restrict, Set.univ_inter]
+    · rw [Measure.restrict_apply' ht', Measure.bind_apply MeasurableSet.univ haem.restrict,
+        Set.univ_inter]
       simp
   refine ⟨fun S hS ↦ ?_⟩
   have hgm : Measurable[cylinderEvents (Λ : Set ℤ)ᶜ] fun ω ↦ γ Λ ω S := (γ Λ).measurable_coe hS
@@ -2582,7 +2606,8 @@ theorem IsMarkovChain.isCondExp_chainSpecification_Ioo [∀ k, IsMarkovKernel (P
     ext ω
     simp only [Set.mem_inter_iff]
     tauto
-  · rw [Measure.restrict_apply' ht', Measure.bind_apply MeasurableSet.univ haem.restrict, Set.univ_inter]
+  · rw [Measure.restrict_apply' ht', Measure.bind_apply MeasurableSet.univ haem.restrict,
+      Set.univ_inter]
     simp
 
 /-- **Georgii, Example (10.11).** A Markov chain whose transition kernels have densities

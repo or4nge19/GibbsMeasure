@@ -344,7 +344,7 @@ nonempty support, and on `∅` by definition of `ℬ`. -/
 lemma eq_zero_of_forall_seminormAt_eq_zero {Φ : absolutelySummable S E}
     (h : ∀ i, seminormAt S E i Φ = 0) : Φ = 0 := by
   refine Subtype.ext (funext fun A ↦ funext fun η ↦ ?_)
-  show (Φ : Potential S E) A η = 0
+  change (Φ : Potential S E) A η = 0
   rcases A.eq_empty_or_nonempty with rfl | ⟨i, hi⟩
   · rw [coe_apply_empty]; rfl
   · have hfin := IsAbsolutelySummable.normAt_ne_top (Φ := (Φ : Potential S E)) i
@@ -784,7 +784,7 @@ theorem isClosed_graph_GP :
   have hne : NeBot (𝓝 q ⊓ 𝓟 G) := hq
   have : NeBot ((𝓝 q ⊓ 𝓟 G) ×ˢ (atTop : Filter (Finset S))) :=
     Filter.prod_neBot.2 ⟨hne, inferInstance⟩
-  show q.2.toMeasure ∈ GP (S := S) (E := E) (BSpace.gibbsSpecification ν β q.1)
+  change q.2.toMeasure ∈ GP (S := S) (E := E) (BSpace.gibbsSpecification ν β q.1)
   refine mem_GP_of_tendsto_withLocalConvergence
     (l := (𝓝 q ⊓ 𝓟 G) ×ˢ (atTop : Filter (Finset S)))
     (BSpace.isQuasilocal_gibbsSpecification ν β q.1)

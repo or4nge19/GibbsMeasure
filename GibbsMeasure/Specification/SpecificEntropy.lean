@@ -214,7 +214,8 @@ theorem setLIntegral_eq_of_indep_sup {m₁ m₂ m₃ mΩ : MeasurableSpace Ω} {
             = ∫⁻ x, A.indicator f x * B.indicator (fun _ ↦ (1 : ℝ≥0∞)) x ∂μ :=
               lintegral_congr fun x ↦ by rw [← Set.inter_indicator_mul]; simp
           _ = (∫⁻ x, A.indicator f x ∂μ) * ∫⁻ x, B.indicator (fun _ ↦ (1 : ℝ≥0∞)) x ∂μ := by
-              refine lintegral_mul_eq_lintegral_mul_lintegral_of_indepFun'' (hfA.mono h₂ le_rfl).aemeasurable
+              refine lintegral_mul_eq_lintegral_mul_lintegral_of_indepFun'' (hfA.mono h₂
+                  le_rfl).aemeasurable
                 (hB1.mono h₃ le_rfl).aemeasurable ?_
               rw [IndepFun_iff_Indep]
               exact indep_of_indep_of_le hind (measurable_iff_comap_le.1 hfA)
@@ -223,7 +224,8 @@ theorem setLIntegral_eq_of_indep_sup {m₁ m₂ m₃ mΩ : MeasurableSpace Ω} {
               rw [lintegral_indicator (h₃ B hB), setLIntegral_const, one_mul]
       rw [hind' hg, hind' (hg'.mono h₁₂ le_rfl), lintegral_indicator (h₁ A hA),
         lintegral_indicator (h₁ A hA), h A hA]
-    · rw [trim_measurableSet_eq hle MeasurableSet.univ, trim_measurableSet_eq hle MeasurableSet.univ,
+    · rw [trim_measurableSet_eq hle MeasurableSet.univ, trim_measurableSet_eq hle
+        MeasurableSet.univ,
         withDensity_apply _ MeasurableSet.univ, withDensity_apply _ MeasurableSet.univ,
         h _ MeasurableSet.univ]
   intro s hs
@@ -287,7 +289,8 @@ theorem smul_klDiv_add_smul_klDiv_le {α : Type*} {mα : MeasurableSpace α} {μ
     [IsProbabilityMeasure μ₁] [IsProbabilityMeasure μ₂] [IsProbabilityMeasure ν] {s t : ℝ≥0}
     (hs : 0 < s) (ht : 0 < t) (hst : s + t = 1) :
     s * klDiv μ₁ ν + t * klDiv μ₂ ν
-      ≤ klDiv (s • μ₁ + t • μ₂) ν + ENNReal.ofReal (-(s * log s)) + ENNReal.ofReal (-(t * log t)) := by
+      ≤ klDiv (s • μ₁ + t • μ₂) ν + ENNReal.ofReal (-(s * log s)) + ENNReal.ofReal (-(t * log t))
+          := by
   by_cases hac : s • μ₁ + t • μ₂ ≪ ν
   swap
   · simp [klDiv_of_not_ac hac]
@@ -337,7 +340,8 @@ theorem smul_klDiv_add_smul_klDiv_le {α : Type*} {mα : MeasurableSpace α} {μ
           congr 1
           ring
   rw [klDiv_eq_lintegral_klFun_of_ac hac, klDiv_eq_lintegral_klFun_of_ac h₁,
-    klDiv_eq_lintegral_klFun_of_ac h₂, ← lintegral_const_mul _ (hm μ₁), ← lintegral_const_mul _ (hm μ₂),
+    klDiv_eq_lintegral_klFun_of_ac h₂, ← lintegral_const_mul _ (hm μ₁), ← lintegral_const_mul _
+        (hm μ₂),
     ← lintegral_add_left ((hm μ₁).const_mul _), hconst h₁ hcs, hconst h₂ hct,
     ← lintegral_add_left (by fun_prop), ← lintegral_add_left (by fun_prop)]
   refine lintegral_mono_ae ?_
@@ -467,13 +471,17 @@ theorem relativeEntropyIn_add_relativeEntropyIn_le [IsProbabilityMeasure μ] (Λ
     cylinderEvents_le_pi
   have hD : cylinderEvents (X := fun _ : S ↦ E) (Δ \ Λ) ≤ MeasurableSpace.pi :=
     cylinderEvents_le_pi
-  have hΛ_le : cylinderEvents (X := fun _ : S ↦ E) Λ ≤ cylinderEvents (X := fun _ : S ↦ E) (Λ ∪ Δ) :=
+  have hΛ_le : cylinderEvents (X := fun _ : S ↦ E) Λ ≤ cylinderEvents (X := fun _ : S ↦ E) (Λ ∪
+      Δ) :=
     cylinderEvents_mono Set.subset_union_left
-  have hΔ_le : cylinderEvents (X := fun _ : S ↦ E) Δ ≤ cylinderEvents (X := fun _ : S ↦ E) (Λ ∪ Δ) :=
+  have hΔ_le : cylinderEvents (X := fun _ : S ↦ E) Δ ≤ cylinderEvents (X := fun _ : S ↦ E) (Λ ∪
+      Δ) :=
     cylinderEvents_mono Set.subset_union_right
-  have hI_le : cylinderEvents (X := fun _ : S ↦ E) (Λ ∩ Δ) ≤ cylinderEvents (X := fun _ : S ↦ E) Λ :=
+  have hI_le : cylinderEvents (X := fun _ : S ↦ E) (Λ ∩ Δ) ≤ cylinderEvents (X := fun _ : S ↦ E)
+      Λ :=
     cylinderEvents_mono Set.inter_subset_left
-  have hI_leΔ : cylinderEvents (X := fun _ : S ↦ E) (Λ ∩ Δ) ≤ cylinderEvents (X := fun _ : S ↦ E) Δ :=
+  have hI_leΔ : cylinderEvents (X := fun _ : S ↦ E) (Λ ∩ Δ) ≤ cylinderEvents (X := fun _ : S ↦ E)
+      Δ :=
     cylinderEvents_mono Set.inter_subset_right
   by_cases hac : μ.trim hΛΔ ≪ γ.trim hΛΔ
   swap
@@ -506,7 +514,8 @@ theorem relativeEntropyIn_add_relativeEntropyIn_le [IsProbabilityMeasure μ] (Λ
     rw [trim_measurableSet_eq hΔ hs, withDensity_apply _ hs, restrict_trim hΔ γ hs,
       lintegral_trim hΔ (hg'.mono hI_leΔ le_rfl), hν_def, withDensity_apply _ (hΔ s hs)]
     have hsup : cylinderEvents (X := fun _ : S ↦ E) Δ
-        = cylinderEvents (X := fun _ : S ↦ E) (Λ ∩ Δ) ⊔ cylinderEvents (X := fun _ : S ↦ E) (Δ \ Λ) := by
+        = cylinderEvents (X := fun _ : S ↦ E) (Λ ∩ Δ) ⊔ cylinderEvents (X := fun _ : S ↦ E) (Δ \
+            Λ) := by
       rw [← cylinderEvents_union]
       congr 1
       ext x
@@ -538,7 +547,8 @@ theorem relativeEntropyIn_add_relativeEntropyIn_le [IsProbabilityMeasure μ] (Λ
   change klDiv (μ.trim hΛ) (γ.trim hΛ) + klDiv (μ.trim hΔ) (γ.trim hΔ)
     ≤ klDiv (μ.trim hI) (γ.trim hI) + klDiv (μ.trim hΛΔ) (γ.trim hΛΔ)
   rw [hB1, hB2]
-  calc klDiv (μ.trim hΛ) (γ.trim hΛ) + (klDiv (μ.trim hΔ) (ν.trim hΔ) + klDiv (μ.trim hI) (γ.trim hI))
+  calc klDiv (μ.trim hΛ) (γ.trim hΛ) + (klDiv (μ.trim hΔ) (ν.trim hΔ) + klDiv (μ.trim hI) (γ.trim
+      hI))
       = klDiv (μ.trim hI) (γ.trim hI)
           + (klDiv (μ.trim hΔ) (ν.trim hΔ) + klDiv (μ.trim hΛ) (γ.trim hΛ)) := by ring
     _ ≤ klDiv (μ.trim hI) (γ.trim hI)
@@ -604,7 +614,8 @@ theorem smul_entropyIn_add_smul_entropyIn_le {μ₁ μ₂ : Measure (S → E)} [
     [IsFiniteMeasure μ₂] {s t : ℝ≥0} (hst : s + t = 1) (Λ : Set S) :
     ((s : ℝ) : EReal) * entropyIn lam Λ μ₁ + ((t : ℝ) : EReal) * entropyIn lam Λ μ₂
       ≤ entropyIn lam Λ (s • μ₁ + t • μ₂) := by
-  have h := klDiv_smul_add_smul_le (μ₁ := μ₁.trim (cylinderEvents_le_pi (X := fun _ : S ↦ E) (Δ := Λ)))
+  have h := klDiv_smul_add_smul_le (μ₁ := μ₁.trim (cylinderEvents_le_pi (X := fun _ : S ↦ E) (Δ
+      := Λ)))
     (μ₂ := μ₂.trim cylinderEvents_le_pi)
     (ν₁ := (Measure.infinitePi fun _ ↦ lam).trim cylinderEvents_le_pi)
     (ν₂ := (Measure.infinitePi fun _ ↦ lam).trim cylinderEvents_le_pi) s t
@@ -620,7 +631,8 @@ theorem entropyIn_smul_add_smul_le {μ₁ μ₂ : Measure (S → E)} [IsProbabil
     entropyIn lam Λ (s • μ₁ + t • μ₂)
       ≤ ((s : ℝ) : EReal) * entropyIn lam Λ μ₁ + ((t : ℝ) : EReal) * entropyIn lam Λ μ₂
         + ((-(s * log s) + -(t * log t) : ℝ) : EReal) := by
-  have h := smul_klDiv_add_smul_klDiv_le (μ₁ := μ₁.trim (cylinderEvents_le_pi (X := fun _ : S ↦ E) (Δ := Λ)))
+  have h := smul_klDiv_add_smul_klDiv_le (μ₁ := μ₁.trim (cylinderEvents_le_pi (X := fun _ : S ↦
+      E) (Δ := Λ)))
     (μ₂ := μ₂.trim cylinderEvents_le_pi)
     (ν := (Measure.infinitePi fun _ ↦ lam).trim cylinderEvents_le_pi) hs ht hst
   rw [← Measure.trim_smul, ← Measure.trim_smul, ← trim_add] at h
@@ -768,7 +780,8 @@ theorem specificEntropy_smul_add_smul_le [Nonempty ι] {μ₁ μ₂ : Measure ((
     (hμ₂ : μ₂ ∈ invariantFields (shiftGroup (ι → ℤ) E)) {s t : ℝ≥0} (hs : 0 < s) (ht : 0 < t)
     (hst : s + t = 1) :
     specificEntropy lam (s • μ₁ + t • μ₂)
-      ≤ ((s : ℝ) : EReal) * specificEntropy lam μ₁ + ((t : ℝ) : EReal) * specificEntropy lam μ₂ := by
+      ≤ ((s : ℝ) : EReal) * specificEntropy lam μ₁ + ((t : ℝ) : EReal) * specificEntropy lam μ₂
+          := by
   have hμ := smul_add_smul_mem_invariantFields_shiftGroup hμ₁ hμ₂ hst
   have : IsProbabilityMeasure μ₁ := (mem_invariantFields_shiftGroup.1 hμ₁).1
   have : IsProbabilityMeasure μ₂ := (mem_invariantFields_shiftGroup.1 hμ₂).1
@@ -779,7 +792,8 @@ theorem specificEntropy_smul_add_smul_le [Nonempty ι] {μ₁ μ₂ : Measure ((
   have h₁ := tendsto_entropyIn_div_card lam hμ₁ hside
   have h₂ := tendsto_entropyIn_div_card lam hμ₂ hside
   set c : ℝ := -(s * log s) + -(t * log t) with hc_def
-  have hc : Tendsto (fun N : ℕ ↦ (c : EReal) / (#(Icc (fun _ : ι ↦ (0 : ℤ)) fun _ ↦ (N : ℤ)) : EReal))
+  have hc : Tendsto (fun N : ℕ ↦ (c : EReal) / (#(Icc (fun _ : ι ↦ (0 : ℤ)) fun _ ↦ (N : ℤ)) :
+      EReal))
       atTop (𝓝 0) := by
     have : ∀ N : ℕ, (c : EReal) / (#(Icc (fun _ : ι ↦ (0 : ℤ)) fun _ ↦ (N : ℤ)) : EReal)
         = ((c / #(Icc (fun _ : ι ↦ (0 : ℤ)) fun _ ↦ (N : ℤ)) : ℝ) : EReal) := fun N ↦ by
@@ -792,7 +806,8 @@ theorem specificEntropy_smul_add_smul_le [Nonempty ι] {μ₁ μ₂ : Measure ((
       Tendsto (fun N ↦ (a : EReal) * u N) atTop (𝓝 ((a : EReal) * x)) := by
     intro a x u ha hx hu
     have hcont : ContinuousAt (fun p : EReal × EReal ↦ p.1 * p.2) ((a : EReal), x) :=
-      EReal.continuousAt_mul (Or.inl (EReal.coe_ne_zero.2 ha.ne')) (Or.inl (EReal.coe_ne_zero.2 ha.ne'))
+      EReal.continuousAt_mul (Or.inl (EReal.coe_ne_zero.2 ha.ne')) (Or.inl (EReal.coe_ne_zero.2
+          ha.ne'))
         (Or.inl (EReal.coe_ne_bot _)) (Or.inl (EReal.coe_ne_top _))
     exact hcont.tendsto.comp (tendsto_const_nhds.prodMk_nhds hu)
   have hne : ∀ {a : ℝ} {x : EReal}, 0 < a → x ≤ 0 → (a : EReal) * x ≠ ⊤ := by
@@ -821,7 +836,8 @@ theorem specificEntropy_smul_add_smul_le [Nonempty ι] {μ₁ μ₂ : Measure ((
         (𝓝 (((s : ℝ) : EReal) * specificEntropy lam μ₁
           + ((t : ℝ) : EReal) * specificEntropy lam μ₂)) := by
       have hcont : ContinuousAt (fun p : EReal × EReal ↦ p.1 + p.2)
-          (((s : ℝ) : EReal) * specificEntropy lam μ₁, ((t : ℝ) : EReal) * specificEntropy lam μ₂) :=
+          (((s : ℝ) : EReal) * specificEntropy lam μ₁, ((t : ℝ) : EReal) * specificEntropy lam
+              μ₂) :=
         EReal.continuousAt_add (Or.inl (hne hs' (specificEntropy_nonpos lam)))
           (Or.inr (hne ht' (specificEntropy_nonpos lam)))
       exact hcont.tendsto.comp (hA.prodMk_nhds hB)
@@ -900,7 +916,8 @@ theorem lowerSemicontinuous_relativeEntropyIn (Λ : Finset S) :
         rw [Set.indicator_of_notMem (by simpa using hμA)]
         simp [measureReal_def, hμA, hνA]
     rw [this]
-    exact (isOpen_ne.preimage (WithSetwiseTopology.continuous_apply_enn hA')).lowerSemicontinuous_indicator
+    exact (isOpen_ne.preimage (WithSetwiseTopology.continuous_apply_enn
+        hA')).lowerSemicontinuous_indicator
       bot_le
   · simp only [hνA, false_and, ↓reduceIte]
     exact hcont.lowerSemicontinuous

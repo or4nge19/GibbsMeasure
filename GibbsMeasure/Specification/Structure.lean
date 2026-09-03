@@ -69,11 +69,13 @@ lemma convexCombo_mem_GP (γ : Specification S E)
   have hμ' :
       ∀ Λ : Finset S, (μ : Measure (S → E)).bind (γ Λ) = (μ : Measure (S → E)) := by
     have : γ.IsGibbsMeasure (μ : Measure (S → E)) := hμ
-    simpa [Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (S := S) (E := E) (γ := γ)] using this
+    simpa [Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (S := S) (E := E) (γ := γ)]
+        using this
   have hν' :
       ∀ Λ : Finset S, (ν : Measure (S → E)).bind (γ Λ) = (ν : Measure (S → E)) := by
     have : γ.IsGibbsMeasure (ν : Measure (S → E)) := hν
-    simpa [Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (S := S) (E := E) (γ := γ)] using this
+    simpa [Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (S := S) (E := E) (γ := γ)]
+        using this
   have hfix :
       ∀ Λ : Finset S,
         ((ProbabilityMeasure.convexCombo (Ω := (S → E)) (p := p) μ ν :
@@ -100,7 +102,8 @@ lemma convexCombo_mem_GP (γ : Specification S E)
       ((ProbabilityMeasure.convexCombo (Ω := (S → E)) (p := p) μ ν :
           ProbabilityMeasure (S → E)) :
         Measure (S → E)) := by
-    simpa [Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (S := S) (E := E) (γ := γ)] using hfix
+    simpa [Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (S := S) (E := E) (γ := γ)]
+        using hfix
   exact this
 
 /-! ### Tail σ-algebra -/
@@ -150,7 +153,8 @@ variable {μ : ProbabilityMeasure (S → E)}
 
 /-- A tail-trivial probability measure makes every **tail-measurable** function into a countably
 separated measurable space a.e. constant. -/
-theorem ae_eq_const_of_measurable {X : Type*} [MeasurableSpace X] [MeasurableSpace.CountablySeparated X]
+theorem ae_eq_const_of_measurable {X : Type*} [MeasurableSpace X]
+    [MeasurableSpace.CountablySeparated X]
     [Nonempty X]
     (hμ : IsTailTrivial (S := S) (E := E) μ) {f : (S → E) → X}
     (hf : Measurable[@tailSigmaAlgebra S E _] f) :

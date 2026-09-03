@@ -322,7 +322,7 @@ theorem exists_subset_relativeEntropyIn_sub_le
     have hsd : W.map (addRightEmbedding (-(w i))) \ Λ
         = (W \ Lf i).map (addRightEmbedding (-(w i))) := by
       rw [Finset.map_sdiff, hLmap]
-    show h (W.map (addRightEmbedding (-(w i))))
+    change h (W.map (addRightEmbedding (-(w i))))
       - h (W.map (addRightEmbedding (-(w i))) \ Λ) ≤ δ
     rw [hsd, hshift, hshift]
     exact hile.trans hbound

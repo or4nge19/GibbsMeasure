@@ -27,7 +27,8 @@ variable {ι : Type*} {X : ι → Type*} [∀ i, MeasurableSpace (X i)]
 
 /-- The cylinder σ-algebra of a union is the supremum of the cylinder σ-algebras. -/
 public lemma cylinderEvents_union (Δ₁ Δ₂ : Set ι) :
-    cylinderEvents (X := X) (Δ₁ ∪ Δ₂) = cylinderEvents (X := X) Δ₁ ⊔ cylinderEvents (X := X) Δ₂ := by
+    cylinderEvents (X := X) (Δ₁ ∪ Δ₂) = cylinderEvents (X := X) Δ₁ ⊔ cylinderEvents (X := X) Δ₂
+        := by
   simp only [cylinderEvents]
   exact _root_.iSup_union
 

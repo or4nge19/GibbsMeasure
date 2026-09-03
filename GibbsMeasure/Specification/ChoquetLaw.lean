@@ -33,7 +33,8 @@ what lets the `A`-dependent null sets be unioned.
 
 **The guarded conclusions are false in that setting, not merely unprovable** — now a theorem:
 `not_ae_forall_tailKernel_apply_eq_indicator` in `Specification/NoProperTailKernel.lean` — so they
-cannot be repaired and there is no missing uniqueness lemma to supply. `tailKernel μ` is `condExpKernel μ 𝓣`,
+cannot be repaired and there is no missing uniqueness lemma to supply. `tailKernel μ` is
+    `condExpKernel μ 𝓣`,
 a regular conditional distribution on the *ambient* σ-algebra, and the ambient σ-algebra of a
 standard Borel `E` over countable `S` *is* countably generated. So for a tail-trivial `μ` — a
 product measure, say — one null set suffices for a countable generating π-system and
@@ -88,7 +89,8 @@ lemma measurableSet_piNatGen (t : Finset ℕ) : MeasurableSet (piNatGen (Ω := �
   simpa [natGen] using (MeasurableSpace.measurableSet_natGeneratingSequence (α := Ω) n)
 
 /-- The countable π-system of finite intersections of the generating sequence. -/
-def piNatGenSet (Ω : Type*) [MeasurableSpace Ω] [MeasurableSpace.CountablyGenerated Ω] : Set (Set Ω) :=
+def piNatGenSet (Ω : Type*) [MeasurableSpace Ω] [MeasurableSpace.CountablyGenerated Ω] : Set (Set
+    Ω) :=
   Set.range (piNatGen (Ω := Ω))
 
 lemma isPiSystem_piNatGenSet : IsPiSystem (piNatGenSet Ω) := by
@@ -162,7 +164,8 @@ noncomputable def tailPiNatGen (t : Finset ℕ) : Set Ω := by
   letI : MeasurableSpace Ω := (@tailSigmaAlgebra S E _)
   haveI : MeasurableSpace.CountablyGenerated Ω := by
     rcases ( (inferInstance :
-        MeasurableSpace.CountableOrCountablyGenerated Ω Ω).countableOrCountablyGenerated ) with hΩ | hcg
+        MeasurableSpace.CountableOrCountablyGenerated Ω Ω).countableOrCountablyGenerated ) with
+            hΩ | hcg
     · haveI : Countable Ω := hΩ
       infer_instance
     · exact hcg
@@ -175,7 +178,8 @@ lemma measurableSet_tailPiNatGen_tail (t : Finset ℕ) :
   letI : MeasurableSpace Ω := (@tailSigmaAlgebra S E _)
   haveI : MeasurableSpace.CountablyGenerated Ω := by
     rcases ( (inferInstance :
-        MeasurableSpace.CountableOrCountablyGenerated Ω Ω).countableOrCountablyGenerated ) with hΩ | hcg
+        MeasurableSpace.CountableOrCountablyGenerated Ω Ω).countableOrCountablyGenerated ) with
+            hΩ | hcg
     · haveI : Countable Ω := hΩ
       infer_instance
     · exact hcg
@@ -355,7 +359,8 @@ lemma measurableSet_isGibbsCore :
       _root_.MeasureTheory.Measure.measurable_bind' hγmeas
     have h_eval : Measurable fun μ : Measure Ω => μ (piNatGen (t := t)) :=
       Measure.measurable_coe (measurableSet_piNatGen (t := t))
-    have hL : Measurable fun μ : Measure Ω => (μ.bind (fun ω => (γ Λ ω : Measure Ω))) (piNatGen (t := t)) :=
+    have hL : Measurable fun μ : Measure Ω => (μ.bind (fun ω => (γ Λ ω : Measure Ω))) (piNatGen
+        (t := t)) :=
       h_eval.comp hbind
     exact measurableSet_eq_fun hL h_eval
   have hAll :
@@ -469,7 +474,8 @@ theorem ae_mem_extremePoints_G_tailKernelLaw
     exact ⟨hGcore, hTcore⟩
   have hae :
       ∀ᵐ ω ∂μ, goodSet (S := S) (E := E) γ (tailKernel (S := S) (E := E) (μ := μ) ω) := by
-    exact MeasureTheory.ae_of_ae_trim (hm := tailSigmaAlgebra_le_pi (S := S) (E := E)) (μ := μ) hae_trim
+    exact MeasureTheory.ae_of_ae_trim (hm := tailSigmaAlgebra_le_pi (S := S) (E := E)) (μ := μ)
+        hae_trim
   have hker_meas : AEMeasurable (tailKernel (S := S) (E := E) (μ := μ)) μ := by
     exact (measurable_tailKernel_pi (S := S) (E := E) (μ := μ)).aemeasurable
   have hae_law :
@@ -487,7 +493,8 @@ theorem ae_mem_extremePoints_G_tailKernelLaw
     haveI : IsProbabilityMeasure ν := ⟨hν.1.1⟩
     have hν_memG : ν ∈ G (γ := γ) := by
       exact ⟨by infer_instance, hνGibbs⟩
-    have hν_tail : IsTailTrivial (S := S) (E := E) (⟨ν, inferInstance⟩ : ProbabilityMeasure (S → E)) :=
+    have hν_tail : IsTailTrivial (S := S) (E := E) (⟨ν, inferInstance⟩ : ProbabilityMeasure (S →
+        E)) :=
       isTailTrivial_of_isTailTrivialCore (S := S) (E := E) (ν := ν) hν.2
     exact mem_extremePoints_G_of_isTailTrivial (S := S) (E := E) (γ := γ)
       (hμG := hν_memG) (hμtail := hν_tail)
@@ -537,7 +544,8 @@ theorem tailKernelLaw_goodSet_eq_one
     convert this
     ext ν
     simp [Set.mem_compl]
-  exact (prob_compl_eq_zero_iff (μ := tailKernelLaw (S := S) (E := E) (μ := μ)) hgood_meas).1 hcompl0
+  exact (prob_compl_eq_zero_iff (μ := tailKernelLaw (S := S) (E := E) (μ := μ)) hgood_meas).1
+      hcompl0
 
 /-- Any measure in `goodSet γ` is an extreme point of `G(γ)`. -/
 theorem mem_extremePoints_G_of_mem_goodSet
@@ -548,7 +556,8 @@ theorem mem_extremePoints_G_of_mem_goodSet
     isGibbsMeasure_of_isGibbsCore (S := S) (E := E) (γ := γ) hν.1
   haveI : IsProbabilityMeasure ν := ⟨hν.1.1⟩
   have hν_memG : ν ∈ G (γ := γ) := ⟨by infer_instance, hνGibbs⟩
-  have hν_tail : IsTailTrivial (S := S) (E := E) (⟨ν, inferInstance⟩ : ProbabilityMeasure (S → E)) :=
+  have hν_tail : IsTailTrivial (S := S) (E := E) (⟨ν, inferInstance⟩ : ProbabilityMeasure (S →
+      E)) :=
     isTailTrivial_of_isTailTrivialCore (S := S) (E := E) (ν := ν) hν.2
   exact mem_extremePoints_G_of_isTailTrivial (S := S) (E := E) (γ := γ)
     (hμG := hν_memG) (hμtail := hν_tail)

@@ -1707,7 +1707,8 @@ specification (12.8) of the family `Q_{(i,i+1)} = Q`, `Q_{(i,i-1)} = Qᵀ` on th
 theorem Markov.transferSpecification_eq_transferSpecification_hasse_int [Nonempty E]
     (hQ : Markov.IsTransferMatrix Q) :
     Markov.transferSpecification Q hQ
-      = transferSpecification (hasse ℤ) (Markov.IsTransferMatrix.isTransferFamily_hasse_int hQ) := by
+      = transferSpecification (hasse ℤ) (Markov.IsTransferMatrix.isTransferFamily_hasse_int hQ)
+          := by
   have key : ∀ ρ₁ ρ₂ : Finset ℤ → (ℤ → E) → ℝ≥0∞, ρ₁ = ρ₂ →
       ∀ (p₁ : Specification.IsPremodifier ρ₁)
         (z₁ : Specification.IsSigmaFiniteLambdaAdmissible (S := ℤ) (E := E) Measure.count ρ₁)

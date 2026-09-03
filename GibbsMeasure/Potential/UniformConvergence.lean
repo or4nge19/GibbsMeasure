@@ -22,7 +22,8 @@ The conclusion is verbatim the uniform-convergence hypothesis of Georgii (4.17)/
 Georgii (4.20) and to (4.23)(c).
 
 Georgii additionally concludes that the limit potential is λ-admissible; here admissibility is
-automatic for `Φ ∈ ℬ` and a probability reference measure (`isPremodifierAdmissible_boltzmannFactor`),
+automatic for `Φ ∈ ℬ` and a probability reference measure
+    (`isPremodifierAdmissible_boltzmannFactor`),
 and `ℬ`-membership of the limit is assumed since `γ^Φ` is only defined on `ℬ`.
 -/
 

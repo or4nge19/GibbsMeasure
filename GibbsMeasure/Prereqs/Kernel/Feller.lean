@@ -71,7 +71,8 @@ lemma norm_integral_le_norm (f : β →ᵇ ℝ) (a : α) :
   simpa [probReal_univ, one_mul] using h
 
 /-- The action of a Feller Markov kernel on bounded continuous observables. -/
-noncomputable def continuousAction (κ : Kernel[mα] α β) [IsMarkovKernel κ] [IsFeller κ] (f : β →ᵇ ℝ) :
+noncomputable def continuousAction (κ : Kernel[mα] α β) [IsMarkovKernel κ] [IsFeller κ] (f : β →ᵇ
+    ℝ) :
     α →ᵇ ℝ :=
   BoundedContinuousFunction.ofNormedAddCommGroup
     (fun a => ∫ b, f b ∂(κ a))
@@ -102,13 +103,16 @@ noncomputable def continuousActionCLM (κ : Kernel[mα] α β) [IsMarkovKernel �
       map_add' := by
         intro f g
         ext a
-        have hf : Integrable (fun b : β => f b) (κ a) := integrable_boundedContinuousFunction (κ := κ) f a
-        have hg : Integrable (fun b : β => g b) (κ a) := integrable_boundedContinuousFunction (κ := κ) g a
+        have hf : Integrable (fun b : β => f b) (κ a) := integrable_boundedContinuousFunction (κ
+            := κ) f a
+        have hg : Integrable (fun b : β => g b) (κ a) := integrable_boundedContinuousFunction (κ
+            := κ) g a
         simp [continuousAction, integral_add hf hg]
       map_smul' := by
         intro c f
         ext a
-        have hf : Integrable (fun b : β => f b) (κ a) := integrable_boundedContinuousFunction (κ := κ) f a
+        have hf : Integrable (fun b : β => f b) (κ a) := integrable_boundedContinuousFunction (κ
+            := κ) f a
         simpa [continuousAction] using (integral_smul c (fun b : β => f b) (μ := κ a)) }
   (T.mkContinuous 1 fun f => by
     change ‖continuousAction (κ := κ) f‖ ≤ 1 * ‖f‖

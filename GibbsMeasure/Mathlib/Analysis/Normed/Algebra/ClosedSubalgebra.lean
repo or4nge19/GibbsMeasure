@@ -36,7 +36,7 @@ def evalAlgHom (x : α) : lp (fun _ : α ↦ ℝ) ∞ →ₐ[ℝ] ℝ where
   map_zero' := by rw [lp.coeFn_zero]; rfl
   map_add' f g := by rw [lp.coeFn_add]; rfl
   commutes' r := by
-    show ((algebraMap ℝ (lp (fun _ : α ↦ ℝ) ∞) r : lp (fun _ : α ↦ ℝ) ∞) : α → ℝ) x = r
+    change ((algebraMap ℝ (lp (fun _ : α ↦ ℝ) ∞) r : lp (fun _ : α ↦ ℝ) ∞) : α → ℝ) x = r
     rw [Algebra.algebraMap_eq_smul_one, lp.coeFn_smul]
     simp [lp.infty_coeFn_one]
 

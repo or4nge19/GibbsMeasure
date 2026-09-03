@@ -140,7 +140,7 @@ theorem sharp_minus_event_subset_iUnion (N : ℕ) (a : Site) :
     refine ⟨mem_anchoredCircuitFinset hcirc rfl hkc hbondC, ?_, ?_⟩
     · rw [hCcoe]; exact edgeBoundary_interiorOf_outerBoundary hDfin
     · rw [hCcoe, coe_cube_eq_box N]; exact interiorOf_outerBoundary_subset_box hDbox
-  · show (↑C : Set (Sym2 Site)) ⊆ discordant ζ
+  · change (↑C : Set (Sym2 Site)) ⊆ discordant ζ
     rw [hCcoe]
     exact outerBoundary_minusCluster_subset_discordant a ζ
 
@@ -167,7 +167,8 @@ lemma isingSpecification_sharpContourUnion_le (b : ℝ) (N : ℕ) (a : Site) (l 
     push_cast
     ring
   · rw [nsmul_eq_mul]
-    have hle : ((sharpContourFinset (cube 2 N) a (l + 1)).card : ℝ≥0∞) ≤ ((l : ℝ≥0∞) + 1) * 3 ^ l := by
+    have hle : ((sharpContourFinset (cube 2 N) a (l + 1)).card : ℝ≥0∞) ≤ ((l : ℝ≥0∞) + 1) * 3 ^ l
+        := by
       have h := card_sharpContourFinset_le (cube 2 N) a (l + 1)
       simp only [Nat.add_sub_cancel] at h
       have h' : (((sharpContourFinset (cube 2 N) a (l + 1)).card : ℕ) : ℝ≥0∞)
@@ -213,7 +214,8 @@ theorem isingSpecification_cube_eq_false_le' (b : ℝ) (N : ℕ) (a : Site) :
 For `log 9 ≤ 2β` — i.e. `β ≥ log 3 ≈ 1.0986`, against the `8 log 2 ≈ 5.5452` of
 `Peierls.exists_two_shiftInvariant_gibbs` — the two-dimensional Ising ferromagnet with coupling
 `1` and no external field has two distinct shift-invariant Gibbs measures `μ₋ = τ(μ₊)`,
-exchanged by the spin flip, with `μ₊(σ₀ = -1) < 1/2 < μ₋(σ₀ = -1)`: spontaneous magnetisation. `Peierls.exists_two_shiftInvariant_gibbs_of_cube` instantiated with the sharpened cube
+exchanged by the spin flip, with `μ₊(σ₀ = -1) < 1/2 < μ₋(σ₀ = -1)`: spontaneous magnetisation.
+    `Peierls.exists_two_shiftInvariant_gibbs_of_cube` instantiated with the sharpened cube
 estimate `isingSpecification_cube_eq_false_le'` and threshold `r'_le_quarter`. -/
 theorem exists_two_shiftInvariant_gibbs_sharp (b : ℝ) (hb : Real.log 9 ≤ 2 * b) :
     ∃ mp mm : ProbabilityMeasure (Site → Bool),

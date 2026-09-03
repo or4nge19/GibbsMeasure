@@ -43,7 +43,8 @@ lemma boltzmannFactor_eq_ofReal_boltzmann [IsAbsolutelySummable Φ] (β : ℝ) :
 quasilocal: Proposition (2.24)(b) applied to the bounded quasilocal Hamiltonians of `Φ ∈ ℬ`, the
 case singled out in (2.25)(ii); the stronger conclusion `ρ_Λ^Φ ∈ 𝓛̄` is
 `exists_mem_quasilocalFunctions_toReal_premodifierNorm_boltzmannFactor`
-(`Potential/FiniteReference.lean`). Georgii's a priori measure is finite in this case ((2.11): `Φ ∈ ℬ` is `λ`-admissible
+(`Potential/FiniteReference.lean`). Georgii's a priori measure is finite in this case ((2.11): `Φ
+    ∈ ℬ` is `λ`-admissible
 iff `λ` is finite); `ν` is its normalization. -/
 theorem isQuasilocal_gibbsSpecificationOfAbsolutelySummable
     [Countable S] [IsPotential Φ] [IsAbsolutelySummable Φ] (β : ℝ) :

@@ -52,7 +52,7 @@ lemma summable_termLp [IsAbsolutelySummable Φ] (Λ : Finset S) : Summable (Φ.t
 
 lemma termLp_mem_localFunctionsOn [IsPotential Φ] [IsAbsolutelySummable Φ] (Λ A : Finset S) :
     Φ.termLp Λ A ∈ localFunctionsOn S E A := by
-  show Measurable[cylinderEvents (X := fun _ : S ↦ E) (A : Set S)]
+  change Measurable[cylinderEvents (X := fun _ : S ↦ E) (A : Set S)]
     (fun η ↦ Φ.hamiltonianTerms Λ η A)
   by_cases h : Disjoint A Λ
   · simpa only [hamiltonianTerms_of_disjoint h] using measurable_const (a := (0 : ℝ))

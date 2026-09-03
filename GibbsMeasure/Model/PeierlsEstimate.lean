@@ -360,7 +360,8 @@ lemma measurableSet_edgeBoundary_subset_discordant (D : Finset Site) :
     ext ζ
     simp [Set.subset_def]
   rw [this]
-  exact (edgeBoundary_finset_finite D).measurableSet_biInter fun e _ ↦ measurableSet_mem_discordant e
+  exact (edgeBoundary_finset_finite D).measurableSet_biInter fun e _ ↦
+      measurableSet_mem_discordant e
 
 lemma measurableSet_disjoint_edgeBoundary_discordant (D : Finset Site) :
     MeasurableSet {ζ : Site → Bool | Disjoint (edgeBoundary ↑D) (discordant ζ)} := by

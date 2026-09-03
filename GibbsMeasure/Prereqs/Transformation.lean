@@ -307,14 +307,14 @@ lemma IsPureSpin.mul (hτ : τ.IsPureSpin) (hσ : σ.IsPureSpin) : (τ * σ).IsP
 lemma IsPureSpin.mul_spin_apply (hτ : τ.IsPureSpin) (σ : Transformation S E) (i : S) (x : E) :
     (τ * σ).spin i x = τ.spin i (σ.spin i x) := by
   have h : τ.sites.symm i = i := by rw [hτ]; rfl
-  show (σ.spin (τ.sites.symm i)).trans (τ.spin i) x = _
+  change (σ.spin (τ.sites.symm i)).trans (τ.spin i) x = _
   rw [h]
   rfl
 
 lemma IsPureSpin.inv_spin_apply (hτ : τ.IsPureSpin) (i : S) (x : E) :
     τ⁻¹.spin i x = (τ.spin i).symm x := by
   have h : τ.sites i = i := by rw [hτ]; rfl
-  show (τ.spin (τ.sites i)).symm x = _
+  change (τ.spin (τ.sites i)).symm x = _
   rw [h]
 
 lemma IsPureSpin.pow (hτ : τ.IsPureSpin) (k : ℕ) : (τ ^ k).IsPureSpin := by
@@ -410,7 +410,8 @@ lemma shift_toFun_comp_shift_toFun {S : Type*} [AddCommGroup S] (a b : S) :
   funext ω i
   simp only [Function.comp_apply, shift_toFun_apply, sub_sub]
 /-- `θ_i ∘ θ_j = θ_{i + j}` (Georgii (5.2)(1)), in the transformation group. -/
-lemma shift_mul_shift {S : Type*} [AddCommGroup S] (i j : S) : shift E i * shift E j = shift E (i + j) := by
+lemma shift_mul_shift {S : Type*} [AddCommGroup S] (i j : S) : shift E i * shift E j = shift E (i
+    + j) := by
   refine Transformation.ext (Equiv.ext fun k ↦ ?_) rfl
   change k + j + i = k + (i + j)
   rw [add_assoc, add_comm j i]
@@ -457,7 +458,7 @@ lemma siteEquiv_comp_shift [AddGroup S] (e : S ≃+ S) (j : S) :
       = (shift E (e j)).comp (siteEquiv E (e : S ≃ S)) := by
   refine Transformation.ext ?_ ?_
   · ext i
-    show e (i + j) = e i + e j
+    change e (i + j) = e i + e j
     exact map_add e i j
   · rfl
 

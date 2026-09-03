@@ -73,7 +73,7 @@ instance : IsProbabilityMeasure uniformSpinMeasure := by
   have hcount : Measure.count (Set.univ : Set Bool) = 2 := by
     rw [Measure.count_univ, ENat.card_eq_coe_fintype_card, Fintype.card_bool]
     norm_num
-  show ((2 : ℝ≥0∞)⁻¹ • Measure.count) Set.univ = 1
+  change ((2 : ℝ≥0∞)⁻¹ • Measure.count) Set.univ = 1
   rw [Measure.smul_apply, smul_eq_mul, hcount,
     ENNReal.inv_mul_cancel (by norm_num) (by norm_num)]
 
@@ -185,7 +185,7 @@ variable {d : ℕ}
 
 lemma latticeGraph_adj_sub_iff (j : Fin d → ℤ) {a b : Fin d → ℤ} :
     (latticeGraph d).Adj (a - j) (b - j) ↔ (latticeGraph d).Adj a b := by
-  show (∑ i, ((a - j) i - (b - j) i).natAbs = 1) ↔ (∑ i, (a i - b i).natAbs = 1)
+  change (∑ i, ((a - j) i - (b - j) i).natAbs = 1) ↔ (∑ i, (a i - b i).natAbs = 1)
   simp only [Pi.sub_apply, sub_sub_sub_cancel_right]
 
 /-- **Georgii (5.8) for the Ising model**: the Ising potential on `ℤ^d` is shift-invariant. -/

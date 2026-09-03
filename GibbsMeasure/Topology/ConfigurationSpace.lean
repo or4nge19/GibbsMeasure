@@ -89,7 +89,8 @@ variable (S E)
 /-- If `S` is countable and `E` is second-countable Borel, then the product measurable space on
 `S → E` is the Borel σ-algebra of the product topology. -/
 lemma measurableSpace_pi_eq_borel
-    [Countable S] [TopologicalSpace E] [MeasurableSpace E] [SecondCountableTopology E] [BorelSpace E] :
+    [Countable S] [TopologicalSpace E] [MeasurableSpace E] [SecondCountableTopology E]
+        [BorelSpace E] :
     (inferInstance : MeasurableSpace (S → E)) = borel (S → E) := by
   simpa using (BorelSpace.measurable_eq (α := S → E))
 

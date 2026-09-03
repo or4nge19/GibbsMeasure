@@ -165,7 +165,7 @@ lemma mk_add_e1 (a b : ℤ) : mk a b + e1 = mk a (b + 1) := by
 /-- Adjacency in `ℤ²` in terms of coordinates. -/
 lemma latticeGraph_two_adj_iff (x y : Site) :
     (latticeGraph 2).Adj x y ↔ (x 0 - y 0).natAbs + (x 1 - y 1).natAbs = 1 := by
-  show (∑ i, (x i - y i).natAbs = 1) ↔ _
+  change (∑ i, (x i - y i).natAbs = 1) ↔ _
   rw [Fin.sum_univ_two]
 
 /-- A neighbour of `x` in `ℤ²` is `x ± e0` or `x ± e1`. -/

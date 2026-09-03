@@ -16,7 +16,8 @@ For a family indexed by `Finset ι`, `SummationFilter.volume ι` sums along the 
 over `{A | A ⊆ Δ}`, `Δ : Finset ι` ranging over `atTop`.
 
 This is the summation convention of Georgii, *Gibbs Measures and Phase Transitions*, (2.1). It is
-coarser than unconditional summation, so `Summable f` implies `Summable f (SummationFilter.volume ι)`
+coarser than unconditional summation, so `Summable f` implies `Summable f (SummationFilter.volume
+    ι)`
 with the same sum.
 -/
 

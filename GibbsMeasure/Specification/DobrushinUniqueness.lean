@@ -745,7 +745,7 @@ lemma proj_eq_of_agree (γ : Specification S E) (i : S) {ζ η : S → E}
 /-- Georgii, used in the proof of (8.18): `C_{ii}(γ) = 0`. -/
 @[simp] lemma interdep_self_eq_zero (γ : Specification S E) (i : S) : interdep γ i i = 0 :=
   le_antisymm (iSup₂_le fun ζ η ↦ iSup_le fun h ↦ by
-    show unifDist (proj γ i ζ) (proj γ i η) ≤ 0
+    change unifDist (proj γ i ζ) (proj γ i η) ≤ 0
     rw [proj_eq_of_agree γ i h]; simp) bot_le
 
 lemma coe_action_eq_act (γ : Specification S E) (i : S) (f : lp (fun _ : S → E ↦ ℝ) ∞) :
@@ -1535,7 +1535,8 @@ theorem isDobrushin_condSpec {γ : Specification S E} (hd : IsDobrushin γ) (V :
     (ω : S → E) :
     IsDobrushin (condSpec γ V ω) := by
   obtain ⟨hq, c, hc, hle⟩ := hd
-  exact ⟨isQuasilocal_condSpec hq V ω, c, hc, fun i ↦ (ENNReal.tsum_le_tsum fun j ↦ interdep_condSpec_le γ V ω i j).trans (hle i)⟩
+  exact ⟨isQuasilocal_condSpec hq V ω, c, hc, fun i ↦ (ENNReal.tsum_le_tsum fun j ↦
+      interdep_condSpec_le γ V ω i j).trans (hle i)⟩
 
 /-- **Georgii (8.22)(ii).** For finite `V`, `γ_V(·|ω)` is a Gibbs measure for `γ^{(V,ω)}`. -/
 theorem bind_condSpec_eq (γ : Specification S E) (V : Finset S) (ω : S → E) (Λ : Finset S) :

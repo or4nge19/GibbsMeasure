@@ -118,7 +118,7 @@ theorem mapClusterPt_bindPM_periodicModification_congr
           lintegral_congr fun ω ↦
             gibbsSpecification_periodicModification_apply_eq ν β (hπ a) ω ω₀ hAd
       _ = _ := by rw [lintegral_const, measure_univ, mul_one]
-  show (0 : ℝ) = _ - _
+  change (0 : ℝ) = _ - _
   rw [measureReal_def, measureReal_def, hbind (νs a), hbind (νs' a), sub_self]
 
 /-- **Georgii Example (5.20)(3): periodic boundary conditions produce symmetric Gibbs
@@ -179,7 +179,7 @@ theorem mem_GP_and_measurePreserving_of_mapClusterPt_periodicModification [l.NeB
       = {Δ a} := by
     rw [Finset.map_singleton]
     congr 1
-    show (Finset.mapEmbedding (periodize τ (hπ a) (hI τ hτmem a)).sites.toEmbedding) (Δ a) = Δ a
+    change (Finset.mapEmbedding (periodize τ (hπ a) (hI τ hτmem a)).sites.toEmbedding) (Δ a) = Δ a
     rw [Finset.mapEmbedding_apply, map_periodize_sites_box]
   rw [hmap, symmDiff_self]
   simp
@@ -256,16 +256,16 @@ lemma affine_and_periodic_spin_comp_siteEquiv_shift {ν : Measure E} {m : ℕ}
   have hsites : ∀ i, (τ0.comp ((siteEquiv E (r : (Fin d → ℤ) ≃ (Fin d → ℤ))).comp
       (shift E t))).sites i = r (i + t) := by
     intro i
-    show τ0.sites (r (Equiv.addRight t i)) = r (i + t)
+    change τ0.sites (r (Equiv.addRight t i)) = r (i + t)
     rw [h0]
     simp
   refine ⟨⟨r, fun i ↦ ?_⟩, fun i j hij ↦ ?_, fun i ↦ ?_⟩
   · rw [hsites, hsites, zero_add, _root_.map_add]
-  · show (((siteEquiv E (r : (Fin d → ℤ) ≃ (Fin d → ℤ))).comp (shift E t)).spin
+  · change (((siteEquiv E (r : (Fin d → ℤ) ≃ (Fin d → ℤ))).comp (shift E t)).spin
         (τ0.sites.symm i)).trans (τ0.spin i) = _
     rw [h0per i j hij]
     rfl
-  · show MeasurePreserving ((((siteEquiv E (r : (Fin d → ℤ) ≃ (Fin d → ℤ))).comp
+  · change MeasurePreserving ((((siteEquiv E (r : (Fin d → ℤ) ≃ (Fin d → ℤ))).comp
         (shift E t)).spin (τ0.sites.symm i)).trans (τ0.spin i)) ν ν
     exact h0ν i
 

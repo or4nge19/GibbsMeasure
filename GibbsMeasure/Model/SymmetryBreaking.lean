@@ -32,7 +32,8 @@ theorem isBrokenSymmetry_spinFlip {b : ℝ} (hb : Real.log 9 ≤ 2 * b) :
   obtain ⟨mp, mm, hne, hp, -, -, -, hflip, -, -, -⟩ := exists_two_shiftInvariant_gibbs_sharp b hb
   refine ⟨Peierls.isInvariant_spinFlip b, mp, hp, fun h ↦
     hne (ProbabilityMeasure.toMeasure_injective ?_)⟩
-  rw [hflip, ← ProbabilityMeasure.toMeasure_map (hf := Peierls.spinFlip.measurable_toFun.aemeasurable), h]
+  rw [hflip, ← ProbabilityMeasure.toMeasure_map (hf :=
+      Peierls.spinFlip.measurable_toFun.aemeasurable), h]
 
 /-- **Georgii (6.9) as a symmetry breaking.** At `β ≥ log 3` the spin flip is a symmetry of the
 two-dimensional Ising specification in zero field, and it is broken. -/

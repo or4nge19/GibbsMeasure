@@ -771,7 +771,7 @@ lemma injOn_pi_comp (hπ : IsTorusReduction G Δ π)
     (hcong : ∀ i j : S, i - j ∈ G → e i - e j ∈ G) : Set.InjOn (fun x ↦ π (e x)) Δ := by
   refine Finset.injOn_of_surjOn_of_card_le _ (fun x _ ↦ Finset.mem_coe.2 (hπ.mapsTo _))
     (fun y hy ↦ ⟨π (e.symm y), Finset.mem_coe.2 (hπ.mapsTo _), ?_⟩) le_rfl
-  show π (e (π (e.symm y))) = y
+  change π (e (π (e.symm y))) = y
   rw [hπ.pi_apply_pi hcong, Equiv.apply_symm_apply, hπ.eq_self y (Finset.mem_coe.1 hy)]
 
 lemma injective_periodizeSites (hπ : IsTorusReduction G Δ π)
@@ -781,7 +781,7 @@ lemma injective_periodizeSites (hπ : IsTorusReduction G Δ π)
   have hpi : π i = π i' := by
     refine injOn_pi_comp hπ hcong (Finset.mem_coe.2 (hπ.mapsTo i))
       (Finset.mem_coe.2 (hπ.mapsTo i')) ?_
-    show π (e (π i)) = π (e (π i'))
+    change π (e (π i)) = π (e (π i'))
     rw [hπ.pi_apply_pi hcong, hπ.pi_apply_pi hcong, ← pi_periodizeSites hπ hcong i,
       ← pi_periodizeSites hπ hcong i', h]
   have h' := h
@@ -829,7 +829,7 @@ lemma periodizeSitesEquiv_symm_pi (hπ : IsTorusReduction G Δ π)
   rw [periodizeSitesEquiv_symm_apply, periodizeSites_of_mem hπ _ (hπ.mapsTo i)]
   refine injOn_pi_comp hπ hcong (Finset.mem_coe.2 (hπ.mapsTo _))
     (Finset.mem_coe.2 (hπ.mapsTo _)) ?_
-  show π (e (π (e.symm (π i)))) = π (e (π (e.symm i)))
+  change π (e (π (e.symm (π i)))) = π (e (π (e.symm i)))
   rw [hπ.pi_apply_pi hcong, hπ.pi_apply_pi hcong, Equiv.apply_symm_apply, Equiv.apply_symm_apply,
     hπ.idem]
 
@@ -986,7 +986,7 @@ lemma periodicExtend_periodize (hπ : IsTorusReduction G Δ π) (hτ : IsPeriodi
     (ω : S → E) :
     periodicExtend π ((periodize τ hπ hτ).toFun ω) = τ.toFun (periodicExtend π ω) := by
   funext i
-  show (periodize τ hπ hτ).spin (π i) (ω ((periodize τ hπ hτ).sites.symm (π i)))
+  change (periodize τ hπ hτ).spin (π i) (ω ((periodize τ hπ hτ).sites.symm (π i)))
       = τ.spin i (ω (π (τ.sites.symm i)))
   rw [periodize_spin, periodize_sites, periodizeSitesEquiv_symm_pi hπ hτ.sites_sub_mem,
     hτ.spin_congr (hπ.sub_mem' i)]
@@ -1130,7 +1130,7 @@ lemma preimage_periodize_eq (hπ : IsTorusReduction G Δ π) (hτ : IsPeriodizab
   simp only [Set.mem_preimage]
   refine mem_congr_of_measurableSet_cylinderEvents hA fun i hi ↦ ?_
   have hiΛ : i ∈ Λ := hi
-  show (periodize τ hπ hτ).spin i (ω ((periodize τ hπ hτ).sites.symm i))
+  change (periodize τ hπ hτ).spin i (ω ((periodize τ hπ hτ).sites.symm i))
       = τ.spin i (ω (τ.sites.symm i))
   rw [periodize_spin, periodize_sites,
     periodizeSitesEquiv_symm_apply_of_mem hπ hτ.sites_sub_mem (hΛ hiΛ) (hΛ' i hiΛ)]
@@ -1457,7 +1457,7 @@ lemma lexAnchor_translate {B : Finset (Fin d → ℤ)} (hB : B.Nonempty) (g : Fi
       calc (B.map (toLexEmb d)).min' h1 + toLex g ≤ toLex (c - g) + toLex g :=
             add_le_add hle le_rfl
         _ = toLexEmb d c := by
-            show toLex (c - g + g) = toLex c
+            change toLex (c - g + g) = toLex c
             rw [hcg]
         _ = ((translate B g).map (toLexEmb d)).min' h2 := hEq
   rw [lexAnchor_of_nonempty hBg h2, lexAnchor_of_nonempty hB h1, key]

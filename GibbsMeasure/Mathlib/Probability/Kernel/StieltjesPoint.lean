@@ -54,7 +54,7 @@ lemma isRatStieltjesPoint_of_forall_eq_real_Iic (ν : Measure ℝ) [IsProbabilit
   · rw [hf]; exact (tendsto_cdf_atBot ν).comp (tendsto_ratCast_atBot_iff.2 tendsto_id)
   · intro t
     rw [hf]
-    show ⨅ r : Ioi t, cdf ν ((r : ℚ) : ℝ) = cdf ν (t : ℝ)
+    change ⨅ r : Ioi t, cdf ν ((r : ℚ) : ℝ) = cdf ν (t : ℝ)
     rw [← (cdf ν).iInf_rat_gt_eq (t : ℝ)]
     exact Equiv.iInf_congr
       { toFun := fun r ↦ ⟨r.1, by exact_mod_cast Set.mem_Ioi.1 r.2⟩

@@ -1191,7 +1191,8 @@ induced transformations.  If `γ` has a shift-invariant Gibbs measure, then it h
 under the shifts *and* under `H`: `𝒢_{H ∘ Θ}(γ) ≠ ∅`.
 
 This is Theorem (5.15)(i) with `I₀ = Θ` and `I₁ = H`: a finite group carries a left-invariant
-probability measure, namely `uniformOn Set.univ`, and the shift group is normalised by every additive
+probability measure, namely `uniformOn Set.univ`, and the shift group is normalised by every
+    additive
 site bijection (`siteEquiv_comp_shift`), which is Georgii's `τ ∘ Θ = Θ ∘ τ`. -/
 theorem exists_isGibbsMeasure_shift_and_siteEquiv_invariant
     {H : Type*} [Group H] [Fintype H] [MeasurableSpace H] [MeasurableSingletonClass H]
@@ -1212,7 +1213,7 @@ theorem exists_isGibbsMeasure_shift_and_siteEquiv_invariant
     hν hev (fun g h ↦ ?_) hγH (fun j g ↦ ?_) hνshift
     (ProbabilityTheory.uniformOn (Set.univ : Set H))
     (ProbabilityTheory.map_mul_left_uniformOn_univ)
-  · show siteEquiv E (ρ (g * h)) = (siteEquiv E (ρ g)).comp (siteEquiv E (ρ h))
+  · change siteEquiv E (ρ (g * h)) = (siteEquiv E (ρ g)).comp (siteEquiv E (ρ h))
     rw [siteEquiv_comp, map_mul]
     rfl
   · -- the shift group is normalised: `θ_j ∘ τ_e = τ_e ∘ θ_{e⁻¹ j}`
@@ -1222,11 +1223,11 @@ theorem exists_isGibbsMeasure_shift_and_siteEquiv_invariant
         = (shift E j).comp (siteEquiv E (ρ g)) := by
       refine Transformation.ext ?_ ?_
       · ext i
-        show ρ g (i + (ρ g).symm j) = ρ g i + j
+        change ρ g (i + (ρ g).symm j) = ρ g i + j
         rw [hbij, Equiv.apply_symm_apply]
       · rfl
     have h' := congrArg Transformation.toFun h.symm
-    show (shift E j).toFun ∘ (siteEquiv E (ρ g)).toFun
+    change (shift E j).toFun ∘ (siteEquiv E (ρ g)).toFun
       = (siteEquiv E (ρ g)).toFun ∘ (shift E ((ρ g).symm j)).toFun
     funext ω
     have e1 : ((shift E j).comp (siteEquiv E (ρ g))).toFun ω

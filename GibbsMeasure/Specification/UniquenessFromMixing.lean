@@ -274,13 +274,13 @@ lemma ae_abs_real_apply_sub_le_of_forall_cond_abs_le [IsFiniteMeasure μ]
       linarith)
     rw [one_div] at hn
     refine Set.mem_iUnion.2 ⟨n, Set.mem_union_left _ ?_⟩
-    show μ.real A + ε + ((n : ℝ) + 1)⁻¹ ≤ (γ Λ η).real A
+    change μ.real A + ε + ((n : ℝ) + 1)⁻¹ ≤ (γ Λ η).real A
     linarith
   · obtain ⟨n, hn⟩ := exists_nat_one_div_lt (show (0 : ℝ) < μ.real A - (γ Λ η).real A - ε by
       linarith)
     rw [one_div] at hn
     refine Set.mem_iUnion.2 ⟨n, Set.mem_union_right _ ?_⟩
-    show (γ Λ η).real A ≤ μ.real A - ε - ((n : ℝ) + 1)⁻¹
+    change (γ Λ η).real A ≤ μ.real A - ε - ((n : ℝ) + 1)⁻¹
     linarith
 
 end MeasureTheory.GibbsMeasure
@@ -318,7 +318,7 @@ lemma IsQuasilocal.exists_measurable_cylinderEvents_dist_le (hqc : γ.IsQuasiloc
   refine ⟨Δ, ⇑g, hΔ, fun η ↦ ?_⟩
   have h1 : (γ.action Λ indA : (S → E) → ℝ) η = (γ Λ η).real A := by
     rw [action_apply]
-    show (∫ x, A.indicator (fun _ ↦ (1 : ℝ)) x ∂(γ Λ η)) = _
+    change (∫ x, A.indicator (fun _ ↦ (1 : ℝ)) x ∂(γ Λ η)) = _
     simpa [Pi.one_def] using integral_indicator_one (μ := γ Λ η) hApi
   have h2 : |(γ.action Λ indA : (S → E) → ℝ) η - g η| ≤ dist (γ.action Λ indA) g := by
     have h := lp.norm_apply_le_norm ENNReal.top_ne_zero (γ.action Λ indA - g) η
@@ -374,7 +374,7 @@ theorem IsGibbsMeasure.lambdaSpecification_null_iff {μ : Measure (S → E)}
     rw [hγdef, lambdaSpecification_apply, withDensity_apply_eq_zero hdensmeas]
     have huniv : {σ | sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Δ σ ≠ 0} = Set.univ := by
       refine Set.eq_univ_of_forall fun σ ↦ ?_
-      show sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Δ σ ≠ 0
+      change sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Δ σ ≠ 0
       rw [sigmaFinitePremodifierNorm]
       simp only [ne_eq, ENNReal.div_eq_zero_iff, not_or]
       exact ⟨hpos Δ σ, hZ.ne_top Δ σ⟩

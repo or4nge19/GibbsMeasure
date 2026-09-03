@@ -27,7 +27,8 @@ Throughout, `Φ` is an absolutely summable potential (`Potential.IsAbsolutelySum
 * `Potential.couplingWeight Φ Λ Δ = ∑_{A ∩ Λ ≠ ∅, A ∩ Δ ≠ ∅} ‖Φ_A‖`, the interactions coupling
   two volumes.
 * `Potential.logZ ν Φ Λ ω = log Z^Φ_Λ(ω)` and `Potential.logSupZ ν Φ Λ = log sup_ω Z^Φ_Λ(ω)`,
-  the finite-volume pressures; `Potential.pressureTerm ν Φ Λ = logSupZ Λ + ∑_{A ∩ Λ ≠ ∅, A ⊄ Λ} ‖Φ_A‖`
+  the finite-volume pressures; `Potential.pressureTerm ν Φ Λ = logSupZ Λ + ∑_{A ∩ Λ ≠ ∅, A ⊄ Λ}
+      ‖Φ_A‖`
   is the corrected, exactly subadditive version.
 * `Potential.pressure ν Φ`, Georgii's pressure `P(Φ)` (15.31), (15.36), defined as the infimum
   of `|Δ|⁻¹ pressureTerm Δ` over boxes, in the manner of Mathlib's `Subadditive.lim`.
@@ -550,7 +551,8 @@ lemma premodifierZ_boltzmannFactor_union_eq [DecidableEq S] (Λ Δ : Finset S) (
     Specification.premodifierZ (S := S) (E := E) ν (Φ.boltzmannFactor 1) (Λ ∪ Δ) ω
       = ∫⁻ η, ∫⁻ ζ, Φ.boltzmannFactor 1 (Λ ∪ Δ) ζ ∂(Specification.isssd ν Λ η)
           ∂(Specification.isssd ν Δ ω) := by
-  have hcomp := congrArg (fun κ ↦ κ ω) (Specification.isssdFun_comp_isssdFun (S := S) (E := E) ν Λ Δ)
+  have hcomp := congrArg (fun κ ↦ κ ω) (Specification.isssdFun_comp_isssdFun (S := S) (E := E) ν
+      Λ Δ)
   simp only [Kernel.comap_apply, id] at hcomp
   change ∫⁻ x, Φ.boltzmannFactor 1 (Λ ∪ Δ) x ∂(Specification.isssdFun ν (Λ ∪ Δ) ω) = _
   rw [← hcomp, Kernel.lintegral_comp _ _ _ (measurable_boltzmannFactor (Φ := Φ) 1 (Λ ∪ Δ))]
@@ -727,11 +729,11 @@ lemma translate_Icc_const_subset {m n i : ι → ℤ} {R : ℕ}
   refine ⟨fun k ↦ ?_, fun k ↦ ?_⟩
   · have h1 : -(R : ℤ) ≤ x k - i k := hx.1 k
     have h3 : m k + R ≤ i k := hi.1 k
-    show m k ≤ x k
+    change m k ≤ x k
     omega
   · have h2 : x k - i k ≤ R := hx.2 k
     have h4 : i k ≤ n k - R := hi.2 k
-    show x k ≤ n k
+    change x k ≤ n k
     omega
 
 lemma Icc_add_sub_subset (m n : ι → ℤ) (R : ℕ) :
@@ -1330,7 +1332,8 @@ lemma premodifierZ_boltzmannFactor_le_exp_hamiltonianBound_mul (Λ : Finset S) (
 theorem logZ_sub_logZ_le (Λ : Finset S) (ω : S → E) :
     Φ.logZ ν Λ ω - Ψ.logZ ν Λ ω ≤ (Φ - Ψ).hamiltonianBound Λ := by
   have h := ENNReal.toReal_mono
-    (ENNReal.mul_ne_top ENNReal.ofReal_ne_top (premodifierZ_boltzmannFactor_ne_top ν (Φ := Ψ) 1 Λ ω))
+    (ENNReal.mul_ne_top ENNReal.ofReal_ne_top (premodifierZ_boltzmannFactor_ne_top ν (Φ := Ψ) 1 Λ
+        ω))
     (premodifierZ_boltzmannFactor_le_exp_hamiltonianBound_mul ν (Φ := Φ) (Ψ := Ψ) Λ ω)
   rw [ENNReal.toReal_mul, ENNReal.toReal_ofReal (Real.exp_pos _).le] at h
   rw [sub_le_iff_le_add, logZ, logZ, ← Real.log_exp ((Φ - Ψ).hamiltonianBound Λ),
@@ -1444,7 +1447,8 @@ omit [IsPotential Φ] [IsAbsolutelySummable Φ] [IsPotential Ψ] [IsAbsolutelySu
 /-- **Georgii Proposition (16.1)(a).** The pressure is a convex function on the shift-invariant
 potentials of `ℬ` (Georgii's `ℬ_Θ`). -/
 theorem convexOn_pressure :
-    ConvexOn ℝ {Φ : Potential (ι → ℤ) E | Φ.IsShiftInvariant ∧ Φ.IsAbsolutelySummable ∧ IsPotential Φ}
+    ConvexOn ℝ {Φ : Potential (ι → ℤ) E | Φ.IsShiftInvariant ∧ Φ.IsAbsolutelySummable ∧
+        IsPotential Φ}
       fun Φ ↦ Φ.pressure ν := by
   refine ⟨?_, ?_⟩
   · intro Φ hΦ Ψ hΨ a b ha hb hab

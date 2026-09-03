@@ -736,7 +736,7 @@ theorem preErgodic_congr_ae [IsProbabilityMeasure μ] {T' : Ω → Ω}
     PreErgodic T μ ↔ PreErgodic T' μ := by
   have hpre : ∀ s : Set Ω, T ⁻¹' s =ᵐ[μ] T' ⁻¹' s := fun s ↦ by
     filter_upwards [h] with ω hω
-    show (T ω ∈ s) = (T' ω ∈ s)
+    change (T ω ∈ s) = (T' ω ∈ s)
     rw [hω]
   rw [preErgodic_iff_forall_nullMeasurableSet hmp, preErgodic_iff_forall_nullMeasurableSet hmp']
   constructor

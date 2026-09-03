@@ -131,7 +131,7 @@ lemma continuous_apply_real {A : Set Ω} (hA : A ∈ 𝒞) :
       ((μ.toMeasure : Measure Ω) A)) μ := (continuous_apply_enn hA).continuousAt
   have h2 : ContinuousAt ENNReal.toReal ((μ.toMeasure : Measure Ω) A) :=
     ENNReal.continuousAt_toReal (measure_ne_top _ _)
-  show ContinuousAt _ μ
+  change ContinuousAt _ μ
   simpa [measureReal_def, ContinuousAt, Function.comp_def] using Filter.Tendsto.comp h2 h1
 
 end WithSetwiseTopology

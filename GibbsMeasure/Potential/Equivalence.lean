@@ -206,7 +206,8 @@ lemma oscOutside_centre (η₀ : S → E) (A : Finset S) :
     _root_.oscOutside (∅ : Set S) (Φ.centre η₀ A) = _root_.oscOutside (∅ : Set S) (Φ A) := by
   simp only [_root_.oscOutside, centre_apply, edist_eq_enorm_sub, sub_sub_sub_cancel_right]
 
-@[simp] lemma oscNormAt_centre (η₀ : S → E) (i : S) : (Φ.centre η₀).oscNormAt i = Φ.oscNormAt i := by
+@[simp] lemma oscNormAt_centre (η₀ : S → E) (i : S) : (Φ.centre η₀).oscNormAt i = Φ.oscNormAt i
+    := by
   simp only [oscNormAt, oscOutside_centre]
 
 /-- Centring makes `‖·‖ᵢ` collapse onto the oscillation: this is the point of the normalisation

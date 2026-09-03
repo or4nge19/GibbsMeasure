@@ -31,7 +31,8 @@ lemma le_oscOutside {ζ η : ∀ i, X i} (h : ∀ i ∈ s, ζ i = η i) :
     edist (f ζ) (f η) ≤ oscOutside s f :=
   le_iSup_of_le ζ (le_iSup_of_le η (le_iSup_of_le h le_rfl))
 
-lemma oscOutside_le {c : ℝ≥0∞} (h : ∀ ζ η : ∀ i, X i, (∀ i ∈ s, ζ i = η i) → edist (f ζ) (f η) ≤ c) :
+lemma oscOutside_le {c : ℝ≥0∞} (h : ∀ ζ η : ∀ i, X i, (∀ i ∈ s, ζ i = η i) → edist (f ζ) (f η) ≤
+    c) :
     oscOutside s f ≤ c :=
   iSup_le fun ζ ↦ iSup_le fun η ↦ iSup_le fun hζη ↦ h ζ η hζη
 

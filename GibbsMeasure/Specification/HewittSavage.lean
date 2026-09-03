@@ -325,7 +325,7 @@ theorem mem_exchangeableSpec_invariant_iff (μ : Measure (ℕ → E)) :
       ← bind_symmKernel_apply μ n hA, hbn]
   · rintro ⟨hp, hex⟩
     refine ⟨hp, fun n ↦ ?_⟩
-    show μ.bind (symmKernel E n) = μ
+    change μ.bind (symmKernel E n) = μ
     refine Measure.ext fun A hA ↦ ?_
     rw [bind_symmKernel_apply μ n hA]
     have hcst : ∀ σ : finPerm n, μ (permute (σ : Equiv.Perm ℕ) ⁻¹' A) = μ A := fun σ ↦ by
@@ -381,7 +381,8 @@ lemma exists_cylinder_measure_symmDiff_lt (μ : Measure (ℕ → E)) [IsFiniteMe
       MeasurableSet[cylinderEvents (X := fun _ : ℕ ↦ E) (Set.Iio k)] B ∧ μ (B ∆ A) < ε := by
   obtain ⟨B, ⟨k, hk⟩, hlt⟩ :=
     exists_measure_symmDiff_lt_of_generateFrom_isSetRing (μ := μ) isSetRing_finiteCoordEvents
-      ⟨{univ}, countable_singleton _, by rintro s rfl; exact ⟨0, @MeasurableSet.univ _ (cylinderEvents (X := fun _ : ℕ ↦ E) (Iio 0))⟩, by simp⟩
+      ⟨{univ}, countable_singleton _, by rintro s rfl; exact ⟨0, @MeasurableSet.univ _
+          (cylinderEvents (X := fun _ : ℕ ↦ E) (Iio 0))⟩, by simp⟩
       generateFrom_finiteCoordEvents hA hε
   exact ⟨k, B, hk, hlt⟩
 

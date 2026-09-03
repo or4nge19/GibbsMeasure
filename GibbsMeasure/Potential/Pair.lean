@@ -484,7 +484,8 @@ lemma IsAbsolutelySummable.of_isFiniteRange {Φ : Potential S E} [IsFiniteRange 
           · rw [Set.indicator_of_notMem (show A ∉ {A : Finset S | i ∈ A} from hi)]
             exact bot_le
       _ = ∑ A ∈ Δ.powerset, ⨆ η, ‖Φ A η‖ₑ := by
-          rw [tsum_eq_sum (s := Δ.powerset) fun A hA ↦ Set.indicator_of_notMem (by simpa using hA) _]
+          rw [tsum_eq_sum (s := Δ.powerset) fun A hA ↦ Set.indicator_of_notMem (by simpa using
+              hA) _]
           exact Finset.sum_congr rfl fun A hA ↦ Set.indicator_of_mem (by simpa using hA) _
 
 variable [LinearOrder S]

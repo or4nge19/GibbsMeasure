@@ -279,7 +279,7 @@ theorem isGibbsMeasure_map_symm_prod_comap_fst [Countable S] (ν₁ : Measure E�
         Measure.bind_map (MeasurableEquiv.measurable _) hmeasγ
     _ = (μ₁.prod μ₂).bind (fun p ↦ ((κ₁ p.1).prod (κ₂ p.2)).map e.symm) := by
         refine Measure.bind_congr_right (.of_forall fun p ↦ ?_)
-        show γ Λ (e.symm p) = ((κ₁ p.1).prod (κ₂ p.2)).map e.symm
+        change γ Λ (e.symm p) = ((κ₁ p.1).prod (κ₂ p.2)).map e.symm
         rw [hc₁, hc₂]
         exact hker p
     _ = ((μ₁.prod μ₂).bind (fun p ↦ (κ₁ p.1).prod (κ₂ p.2))).map e.symm := by

@@ -310,7 +310,8 @@ def tileAverage : Measure (S → E) :=
 
 omit [IsProbabilityMeasure μ] in
 lemma tileAverage_apply (A : Set (S → E)) :
-    tileAverage hCH μ A = (C.card : ℝ≥0∞)⁻¹ * ∑ j ∈ C, (tileProduct hCH μ).map (shift E j).toFun A :=
+    tileAverage hCH μ A = (C.card : ℝ≥0∞)⁻¹ * ∑ j ∈ C, (tileProduct hCH μ).map (shift E j).toFun
+        A :=
   uniformAverage_apply _ C A
 
 instance isProbabilityMeasure_map_shift (j : S) :
@@ -327,7 +328,8 @@ instance isProbabilityMeasure_tileAverage : IsProbabilityMeasure (tileAverage hC
 /-- `tileAverage` as a probability measure, for use inside statements about the topology of local
 convergence. -/
 noncomputable def tileAveragePM (μ : ProbabilityMeasure (S → E)) : ProbabilityMeasure (S → E) :=
-  ⟨tileAverage hCH (μ : Measure (S → E)), isProbabilityMeasure_tileAverage hCH (μ : Measure (S → E))⟩
+  ⟨tileAverage hCH (μ : Measure (S → E)), isProbabilityMeasure_tileAverage hCH (μ : Measure (S →
+      E))⟩
 
 @[simp] lemma coe_tileAveragePM (μ : ProbabilityMeasure (S → E)) :
     (tileAveragePM hCH μ : Measure (S → E)) = tileAverage hCH (μ : Measure (S → E)) := rfl
@@ -365,7 +367,8 @@ theorem map_shift_tileAverage (j' : S) :
             tileRep_sub_of_mem hCH _ (tileIdx hCH _).2, coe_tileRep_of_mem hCH hj]
         · have h1 : (tileRep hCH (j - j') : S) = j - j' - tileIdx hCH (j - j') :=
             eq_sub_of_add_eq (coe_tileRep_add_coe_tileIdx hCH _)
-          rw [h1, show j' + (j - j' - (tileIdx hCH (j - j') : S)) = j - tileIdx hCH (j - j') by abel,
+          rw [h1, show j' + (j - j' - (tileIdx hCH (j - j') : S)) = j - tileIdx hCH (j - j') by
+              abel,
             tileRep_sub_of_mem hCH _ (tileIdx hCH _).2, coe_tileRep_of_mem hCH hj]
 
 /-- `v_n ∈ 𝓟_Θ`: the averaged tile product is a shift-invariant random field. -/
@@ -382,7 +385,8 @@ theorem tileAverage_apply_of_measurableSet_invariantEvents {A : Set (S → E)}
   obtain ⟨hAm, hAinv⟩ := measurableSet_invariantEvents.1 hA
   rw [tileAverage_apply]
   have hterm : ∀ j ∈ C, (tileProduct hCH μ).map (shift E j).toFun A = tileProduct hCH μ A :=
-    fun j _ ↦ by rw [Measure.map_apply (shift E j).measurable_toFun hAm, hAinv _ (shift_mem_shiftGroup j)]
+    fun j _ ↦ by rw [Measure.map_apply (shift E j).measurable_toFun hAm, hAinv _
+        (shift_mem_shiftGroup j)]
   rw [Finset.sum_congr rfl hterm, Finset.sum_const, nsmul_eq_mul, ← mul_assoc,
     ENNReal.inv_mul_cancel (by exact_mod_cast (nonempty_of_isComplement hCH).card_pos.ne')
       (ENNReal.natCast_ne_top _), one_mul]
@@ -514,13 +518,16 @@ Følner-type condition on the tiles), the averaged tile products of `μ ∈ 𝓟
 theorem tendsto_tileAverage (hCH : ∀ n, AddSubgroup.IsComplement (C n : Set S) (H n : Set S))
     (hfol : ∀ δ : S, Tendsto (fun n ↦ (({j ∈ C n | δ - j ∉ C n} : Finset S).card : ℝ) /
       (C n).card) atTop (𝓝 0))
-    {μ : ProbabilityMeasure (S → E)} (hμ : (μ : Measure (S → E)) ∈ invariantFields (shiftGroup S E)) :
-    Tendsto (fun n ↦ (WithSetwiseTopology.ofMeasure (tileAveragePM (hCH n) μ) : WithLocalConvergence S E)) atTop
+    {μ : ProbabilityMeasure (S → E)} (hμ : (μ : Measure (S → E)) ∈ invariantFields (shiftGroup S
+        E)) :
+    Tendsto (fun n ↦ (WithSetwiseTopology.ofMeasure (tileAveragePM (hCH n) μ) :
+        WithLocalConvergence S E)) atTop
       (𝓝 (WithSetwiseTopology.ofMeasure μ)) := by
   rw [tendsto_withLocalConvergence_iff]
   intro A hA
   obtain ⟨Δ, hΔ⟩ := mem_localEvents_iff_cylinderEvents.1 hA
-  change Tendsto (fun n ↦ ((tileAveragePM (hCH n) μ : ProbabilityMeasure (S → E)) : Measure (S → E)) A)
+  change Tendsto (fun n ↦ ((tileAveragePM (hCH n) μ : ProbabilityMeasure (S → E)) : Measure (S →
+      E)) A)
     atTop (𝓝 ((μ : Measure (S → E)) A))
   simp only [coe_tileAveragePM]
   rw [← ENNReal.tendsto_toReal_iff (fun _ ↦ measure_ne_top _ _) (measure_ne_top _ _),

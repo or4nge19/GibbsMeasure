@@ -601,7 +601,8 @@ lemma pairDefect_le_two_mul_pairOsc {i j : S}
       φ i j ((τ.spin i).symm x) y - φ i j (τ.spin i ((τ.spin i).symm x)) y := by
     rw [← hsym ((τ.spin i).symm x) y, MeasurableEquiv.apply_symm_apply]
   calc ENNReal.ofReal (φ i j (τ.spin i x) y + φ i j x (τ.spin j y) - 2 * φ i j x y)
-      = ENNReal.ofReal ((φ i j (τ.spin i x) y - φ i j x y) + (φ i j x (τ.spin j y) - φ i j x y)) := by
+      = ENNReal.ofReal ((φ i j (τ.spin i x) y - φ i j x y) + (φ i j x (τ.spin j y) - φ i j x y))
+          := by
         ring_nf
     _ ≤ ‖φ i j (τ.spin i x) y - φ i j x y‖ₑ + ‖φ i j x (τ.spin j y) - φ i j x y‖ₑ :=
         ENNReal.ofReal_add_le.trans (add_le_add
@@ -805,7 +806,7 @@ def pairOscSymmetries (ν : Measure E) : Subgroup (Transformation S E) where
   mul_mem' := by
     rintro τ σ ⟨hτ, hτν, hτΦ, hτb⟩ ⟨hσ, hσν, hσΦ, hσb⟩
     refine ⟨hτ.mul hσ, fun i ↦ ?_, ?_, ?_⟩
-    · show MeasurePreserving ((σ.spin (τ.sites.symm i)).trans (τ.spin i)) ν ν
+    · change MeasurePreserving ((σ.spin (τ.sites.symm i)).trans (τ.spin i)) ν ν
       rw [MeasurableEquiv.coe_trans]
       exact (hτν i).comp (hσν _)
     · rw [mul_def, ← Potential.map_map, hσΦ, hτΦ]
@@ -813,7 +814,7 @@ def pairOscSymmetries (ν : Measure E) : Subgroup (Transformation S E) where
   inv_mem' := by
     rintro τ ⟨hτ, hτν, hτΦ, hτb⟩
     refine ⟨hτ.inv, fun i ↦ ?_, ?_, ?_⟩
-    · show MeasurePreserving (τ.spin (τ.sites i)).symm ν ν
+    · change MeasurePreserving (τ.spin (τ.sites i)).symm ν ν
       exact (hτν _).symm _
     · have := congrArg (Potential.map τ⁻¹) hτΦ
       rw [Potential.map_map, ← mul_def, inv_mul_cancel, one_def, Potential.map_id] at this
@@ -940,7 +941,8 @@ theorem shiftDefect_longRangeIsingAlt_two_ne_top (ha : 1 < a) (hs : ∀ x, |s x|
   exact ne_top_of_le_ne_top (ENNReal.add_ne_top.2 ⟨h, h⟩) (shiftDefect_add_le _ 1 1)
 
 lemma normAt_pairShift_longRangeIsingAlt (i : ℤ) :
-    (pairShift (longRangeIsingAlt s β a)).normAt i = (pairShift (longRangeIsing s β a)).normAt i := by
+    (pairShift (longRangeIsingAlt s β a)).normAt i = (pairShift (longRangeIsing s β a)).normAt i
+        := by
   unfold normAt
   refine tsum_congr fun A ↦ ?_
   by_cases hi : i ∈ A
@@ -1044,7 +1046,8 @@ theorem map_alternatingFlip_pairShift_longRangeIsing (hf : ∀ x, s (f x) = -s x
     Equiv.refl_symm, Equiv.refl_toEmbedding, Finset.map_refl]
   simp only [pairShift, pair_apply]
   refine pairTerms_congr (fun i j _ ↦ ?_) A
-  rw [(isPureSpin_alternatingFlip f).inv_toFun_apply, (isPureSpin_alternatingFlip f).inv_toFun_apply,
+  rw [(isPureSpin_alternatingFlip f).inv_toFun_apply, (isPureSpin_alternatingFlip
+      f).inv_toFun_apply,
     longRangeIsingAlt, longRangeIsing, longRangeIsing, hε, hε, ← hpar]
   ring
 
@@ -1057,7 +1060,7 @@ lemma alternatingFlip_mul_self (hff : ∀ x, f (f x) = x) :
   · funext i
     apply MeasurableEquiv.ext
     funext x
-    show (alternatingFlip E f).spin i ((alternatingFlip E f).spin i x) = x
+    change (alternatingFlip E f).spin i ((alternatingFlip E f).spin i x) = x
     rw [alternatingFlip_spin_apply, alternatingFlip_spin_apply]
     split_ifs <;> simp [hff]
 
@@ -1164,10 +1167,10 @@ theorem alternatingFlip_mul_shift_two :
   · funext i
     apply MeasurableEquiv.ext
     funext x
-    show (alternatingFlip E f).spin i (((shift E (2 : ℤ)).spin i) x) =
+    change (alternatingFlip E f).spin i (((shift E (2 : ℤ)).spin i) x) =
       ((shift E (2 : ℤ)).spin i) (((alternatingFlip E f).spin ((shift E (2 : ℤ)).sites.symm i)) x)
     rw [alternatingFlip_spin_apply, alternatingFlip_spin_apply]
-    show (if Even i then x else f x) = if Even (i + -2) then x else f x
+    change (if Even i then x else f x) = if Even (i + -2) then x else f x
     simp only [hpar]
 
 /-- **Georgii (9.8)(2)**: as `τ` commutes with `θ_2`, `θ_2`-invariance passes from `μ` to
@@ -1191,7 +1194,7 @@ lemma shift_one_comp_alternatingFlip (hff : ∀ x, f (f x) = x) :
   funext ω i
   simp only [Function.comp_apply, shift_toFun_apply, (isPureSpin_alternatingFlip f).toFun_apply,
     (isPureSpin_spinFlip f).toFun_apply, alternatingFlip_spin_apply]
-  show (if Even (i - 1) then ω (i - 1) else f (ω (i - 1))) =
+  change (if Even (i - 1) then ω (i - 1) else f (ω (i - 1))) =
     if Even i then f (ω (i - 1)) else f (f (ω (i - 1)))
   have hpar : Even (i - 1) ↔ ¬ Even i := by
     rw [Int.even_sub]

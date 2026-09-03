@@ -294,7 +294,7 @@ def chainSnocEquiv (N : ℕ) :
       funext fun i ↦ chainSnoc_of_lt x v (Finset.mem_range.1 i.2)⟩
   right_inv u := by
     funext i
-    show chainSnoc N _ _ i = u i
+    change chainSnoc N _ _ i = u i
     by_cases h : (i : ℕ) < N
     · exact chainSnoc_of_lt _ _ h
     · rw [chainSnoc_of_not_lt _ _ h]
@@ -535,7 +535,8 @@ theorem isingChainSpecification_range_apply (N : ℕ) (ω : ℕ → Bool) {A : S
     · rw [Set.indicator_of_notMem hmem, Set.indicator_of_notMem hmem]
       simp
   rw [hmod, withDensity_apply _ hA, ← lintegral_indicator hA (ρ Λ),
-    MeasureTheory.GibbsMeasure.lintegral_isssd_uniformSpinMeasure Λ ω (hρmeas.indicator hA), Finset.sum_mul,
+    MeasureTheory.GibbsMeasure.lintegral_isssd_uniformSpinMeasure Λ ω (hρmeas.indicator hA),
+        Finset.sum_mul,
     ← hcdef, Finset.sum_congr rfl fun ζ _ ↦ hterm ζ, ← ENNReal.ofReal_sum_of_nonneg,
     ← Finset.sum_div]
   intro ζ _

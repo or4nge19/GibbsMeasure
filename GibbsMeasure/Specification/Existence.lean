@@ -338,7 +338,7 @@ distribution of a larger volume, by consistency. -/
 lemma finiteVolumeDistributions_apply_le {Λ Λ' : Finset S} (h : Λ ⊆ Λ') (η : S → E)
     {A : Set (S → E)} (hA : MeasurableSet A) {c : ℝ≥0∞} (hc : ∀ ω, γ Λ ω A ≤ c) :
     (finiteVolumeDistributions γ η Λ' : Measure (S → E)) A ≤ c := by
-  show (γ Λ' η) A ≤ c
+  change (γ Λ' η) A ≤ c
   rw [← Specification.bind (γ := γ) (hΛ := h) (η := η),
     Measure.bind_apply hA (γ.measurable_kernel_toMeasure Λ).aemeasurable]
   calc ∫⁻ ω, γ Λ ω A ∂(γ Λ' η) ≤ ∫⁻ _, c ∂(γ Λ' η) := lintegral_mono hc
@@ -369,7 +369,7 @@ theorem isClosed_setOf_mem_GP (hγ : γ.IsQuasilocal) :
   haveI hne : NeBot (𝓝 μ ⊓ 𝓟 G) := hcp
   haveI : NeBot ((𝓝 μ ⊓ 𝓟 G) ×ˢ (atTop : Filter (Finset S))) :=
     Filter.prod_neBot.2 ⟨hne, inferInstance⟩
-  show μ.toMeasure ∈ GP (S := S) (E := E) γ
+  change μ.toMeasure ∈ GP (S := S) (E := E) γ
   refine mem_GP_of_tendsto_withLocalConvergence
     (l := (𝓝 μ ⊓ 𝓟 G) ×ˢ (atTop : Filter (Finset S))) hγ
     (γs := fun _ ↦ γ) (Λs := Prod.snd) (νs := fun p ↦ (p.1).toMeasure)
@@ -560,7 +560,7 @@ theorem existence_of_gibbsMeasure_of_isTight_weak
       have hpre : μs ⁻¹' s = (Set.univ : Set (Finset S)) := by
         ext Λ
         exact ⟨fun _ ↦ trivial, fun _ ↦ hsub ⟨Λ, rfl⟩⟩
-      show s ∈ Filter.map μs Filter.atTop
+      change s ∈ Filter.map μs Filter.atTop
       rw [Filter.mem_map, hpre]
       exact Filter.univ_mem
     exact hF_range.trans (Filter.principal_mono.2 subset_closure)

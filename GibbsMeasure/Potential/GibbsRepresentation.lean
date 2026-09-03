@@ -1689,7 +1689,7 @@ theorem isNormalized_normalizedPotential (hmeas : ∀ Λ, Measurable (ρ Λ))
     rw [abs_mul, abs_pow, abs_neg, abs_one, one_pow, one_mul]
     exact abs_avgOff_le hM C x
   funext η
-  show avgOn α {i} (normalizedPotential ρ α A) η = 0
+  change avgOn α {i} (normalizedPotential ρ α A) η = 0
   have h1 : avgOn α {i} (normalizedPotential ρ α A) η
       = -avgOn α {i}
           (fun x ↦ ∑ C ∈ A.powerset,
@@ -2226,7 +2226,8 @@ theorem eq_of_isNormalized_of_sigmaFinitePremodifierNorm_eq [Countable S]
       _ ≤ |Φ B η| + |Ψ B η| := abs_sub _ _
       _ ≤ M1 + M2 := add_le_add (h1 η) (h2 η)
   have h : (Φ - Ψ) A ω = 0 :=
-    eq_zero_of_isNormalized α hsubb (IsNormalized.sub α hΦb hΨb hΦn hΨn) (IsUniformlyConvergent.sub hΦu hΨu)
+    eq_zero_of_isNormalized α hsubb (IsNormalized.sub α hΦb hΨb hΦn hΨn)
+        (IsUniformlyConvergent.sub hΦu hΨu)
       (fun Λ ↦ dependsOn_hamiltonian_sub_of_sigmaFinitePremodifierNorm_eq ν hΦa hΨa heq Λ) hA ω
   have h' : Φ A ω - Ψ A ω = 0 := h
   linarith

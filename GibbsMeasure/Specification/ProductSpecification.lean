@@ -636,7 +636,7 @@ theorem exists_eq_map_prod_of_mem_extremePoints_G_prod [Countable S₁] [Countab
         (A₁ ×ˢ (univ : Set (S₂ → E)))) := by
       rw [Measure.fst_apply (tailSigmaAlgebra_le_pi _ hA₁), ← Set.prod_univ, hρ,
         MeasurableEquiv.map_apply]
-    show ρ.fst A₁ = 0 ∨ ρ.fst A₁ = 1
+    change ρ.fst A₁ = 0 ∨ ρ.fst A₁ = 1
     rw [hval]
     exact tailTrivial_of_mem_extremePoints_G hμ _ (measurableSet_tail_preimage_prod_univ hA₁)
   have htail₂ :
@@ -646,7 +646,7 @@ theorem exists_eq_map_prod_of_mem_extremePoints_G_prod [Countable S₁] [Countab
         ((univ : Set (S₁ → E)) ×ˢ A₂)) := by
       rw [Measure.snd_apply (tailSigmaAlgebra_le_pi _ hA₂), ← Set.univ_prod, hρ,
         MeasurableEquiv.map_apply]
-    show ρ.snd A₂ = 0 ∨ ρ.snd A₂ = 1
+    change ρ.snd A₂ = 0 ∨ ρ.snd A₂ = 1
     rw [hval]
     exact tailTrivial_of_mem_extremePoints_G hμ _ (measurableSet_tail_preimage_univ_prod hA₂)
   exact ⟨ρ.fst, mem_extremePoints_G_of_isTailTrivial hG₁ htail₁, ρ.snd,

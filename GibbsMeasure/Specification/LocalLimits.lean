@@ -111,7 +111,8 @@ form a separable space: `C(X, ℝ)` is second countable, hence separable, and it
 theorem separableSpace_boundedContinuousFunction {X : Type*} [TopologicalSpace X] [CompactSpace X]
     [SecondCountableTopology X] [LocallyCompactSpace X] :
     TopologicalSpace.SeparableSpace (X →ᵇ ℝ) :=
-  (ContinuousMap.isometryEquivBoundedOfCompact X ℝ).toHomeomorph.surjective.denseRange.separableSpace
+  (ContinuousMap.isometryEquivBoundedOfCompact X
+      ℝ).toHomeomorph.surjective.denseRange.separableSpace
     (ContinuousMap.isometryEquivBoundedOfCompact X ℝ).toHomeomorph.continuous
 
 end WeakConvergenceViaDenseSet
@@ -139,7 +140,7 @@ theorem limitGibbs_subset_GP (hγ : γ.IsQuasilocal) :
   have hdirac : ∀ n, γ.bindPM (Λ n) ⟨Measure.dirac (ω n), inferInstance⟩ =
       finiteVolumeDistributions γ (ω n) (Λ n) := fun n ↦
     Subtype.ext (Measure.dirac_bind (γ.measurable_kernel_toMeasure (Λ n)) (ω n))
-  show ν ∈ GP γ
+  change ν ∈ GP γ
   refine mem_GP_of_tendsto_withLocalConvergence (l := (atTop : Filter ℕ)) hγ
     (γs := fun _ ↦ γ) (Λs := Λ) (νs := fun n ↦ ⟨Measure.dirac (ω n), inferInstance⟩) hΛ
     (fun Λ f _ ↦ by simp) ?_

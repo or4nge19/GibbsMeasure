@@ -15,7 +15,8 @@ public import Mathlib.MeasureTheory.Function.Floor
 # Bounded measurable functions
 
 The bounded real functions on `α` form the commutative Banach algebra `lp (fun _ : α ↦ ℝ) ∞`. Inside
-it, the ones measurable for a σ-algebra `m` form a closed subalgebra `MeasureTheory.boundedMeasurable m`.
+it, the ones measurable for a σ-algebra `m` form a closed subalgebra
+    `MeasureTheory.boundedMeasurable m`.
 
 ## Main declarations
 
@@ -46,23 +47,23 @@ and Phase Transitions*, Definition (2.20)). -/
 def boundedMeasurable (m : MeasurableSpace α) : Subalgebra ℝ (lp (fun _ : α ↦ ℝ) ∞) where
   carrier := {f | Measurable[m] (⇑f : α → ℝ)}
   mul_mem' {f g} hf hg := by
-    show Measurable[m] (⇑(f * g) : α → ℝ)
+    change Measurable[m] (⇑(f * g) : α → ℝ)
     rw [lp.infty_coeFn_mul]
     exact Measurable.mul (m := m) hf hg
   one_mem' := by
-    show Measurable[m] (⇑(1 : lp (fun _ : α ↦ ℝ) ∞) : α → ℝ)
+    change Measurable[m] (⇑(1 : lp (fun _ : α ↦ ℝ) ∞) : α → ℝ)
     rw [lp.infty_coeFn_one]
     exact measurable_one
   add_mem' {f g} hf hg := by
-    show Measurable[m] (⇑(f + g) : α → ℝ)
+    change Measurable[m] (⇑(f + g) : α → ℝ)
     rw [lp.coeFn_add]
     exact Measurable.add (m := m) hf hg
   zero_mem' := by
-    show Measurable[m] (⇑(0 : lp (fun _ : α ↦ ℝ) ∞) : α → ℝ)
+    change Measurable[m] (⇑(0 : lp (fun _ : α ↦ ℝ) ∞) : α → ℝ)
     rw [lp.coeFn_zero]
     exact measurable_zero
   algebraMap_mem' r := by
-    show Measurable[m] (⇑(algebraMap ℝ (lp (fun _ : α ↦ ℝ) ∞) r) : α → ℝ)
+    change Measurable[m] (⇑(algebraMap ℝ (lp (fun _ : α ↦ ℝ) ∞) r) : α → ℝ)
     have h : ⇑(algebraMap ℝ (lp (fun _ : α ↦ ℝ) ∞) r) = fun _ : α ↦ r := by
       rw [Algebra.algebraMap_eq_smul_one]
       funext x

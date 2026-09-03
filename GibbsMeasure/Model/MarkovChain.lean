@@ -834,7 +834,8 @@ lemma lintegral_isssd_left_block (hpos : ∀ x y, 0 < P x y) {p : ℕ} {a l : �
           * ENNReal.ofReal ((P ^ (p + 2)) (ω (a - 1)) (ζ l)) := by
   have hcongr : ∀ σ : ℤ → E, (∀ k ∉ Finset.Icc a (l - 1), σ k = ω k) →
       ENNReal.ofReal (pathWeight P (a - 1) l (Function.update σ l (ζ l)))
-        = ENNReal.ofReal (P (ω (a - 1)) (σ a) * pathWeight P a (l - 1) σ * P (σ (l - 1)) (ζ l)) := by
+        = ENNReal.ofReal (P (ω (a - 1)) (σ a) * pathWeight P a (l - 1) σ * P (σ (l - 1)) (ζ l))
+            := by
     intro σ hσ
     rw [pathWeight_split (show a - 1 ≤ a by omega) (show a ≤ l by omega),
       pathWeight_split (show a ≤ l - 1 by omega) (show l - 1 ≤ l by omega),
@@ -1877,7 +1878,7 @@ theorem eq_312_of_isPositiveHomogeneousMarkovWith {γ : Specification ℤ E} {g 
         = ∫⁻ ξ, ({σ : ℤ → E | σ 2 = y}).indicator
             (fun _ ↦ ENNReal.ofReal (g a x y)) ξ ∂(γ ({1, 2} : Finset ℤ) ω) := by
       refine lintegral_congr_ae (hae.mono fun ξ hξ ↦ ?_)
-      show ({σ : ℤ → E | σ 2 = y}).indicator 1 ξ * ENNReal.ofReal (g (ξ 0) x (ξ 2))
+      change ({σ : ℤ → E | σ 2 = y}).indicator 1 ξ * ENNReal.ofReal (g (ξ 0) x (ξ 2))
         = ({σ : ℤ → E | σ 2 = y}).indicator (fun _ ↦ ENNReal.ofReal (g a x y)) ξ
       by_cases hmem : ξ ∈ {σ : ℤ → E | σ 2 = y}
       · rw [Set.indicator_of_mem hmem, Set.indicator_of_mem hmem, Pi.one_apply, one_mul, hξ, hω0,
@@ -1910,7 +1911,7 @@ theorem eq_312_of_isPositiveHomogeneousMarkovWith {γ : Specification ℤ E} {g 
         = ∫⁻ ξ, ({σ : ℤ → E | σ 1 = x}).indicator
             (fun _ ↦ ENNReal.ofReal (g x y z)) ξ ∂(γ ({1, 2} : Finset ℤ) ω) := by
       refine lintegral_congr_ae (hae.mono fun ξ hξ ↦ ?_)
-      show ({σ : ℤ → E | σ 1 = x}).indicator 1 ξ * ENNReal.ofReal (g (ξ 1) y (ξ 3))
+      change ({σ : ℤ → E | σ 1 = x}).indicator 1 ξ * ENNReal.ofReal (g (ξ 1) y (ξ 3))
         = ({σ : ℤ → E | σ 1 = x}).indicator (fun _ ↦ ENNReal.ofReal (g x y z)) ξ
       by_cases hmem : ξ ∈ {σ : ℤ → E | σ 1 = x}
       · rw [Set.indicator_of_mem hmem, Set.indicator_of_mem hmem, Pi.one_apply, one_mul, hξ, hω3,
@@ -2670,7 +2671,8 @@ lemma measurable_markovSingletonDensity (i : ℤ) : Measurable (markovSingletonD
 /-- The singleton density is `ρ_i(σ) = |E| · g(σ_{i-1}, σ_i, σ_{i+1})` with `g` as in (3.11). -/
 lemma markovSingletonDensity_eq (hpos : ∀ x y, 0 < P x y) (i : ℤ) (ω : ℤ → E) :
     markovSingletonDensity P i ω
-      = ENNReal.ofReal (markovDeterminingFun P (ω (i - 1)) (ω i) (ω (i + 1))) * (Fintype.card E : ℝ≥0∞) := by
+      = ENNReal.ofReal (markovDeterminingFun P (ω (i - 1)) (ω i) (ω (i + 1))) * (Fintype.card E :
+          ℝ≥0∞) := by
   have hD0 : ENNReal.ofReal ((P ^ 2) (ω (i - 1)) (ω (i + 1))) ≠ 0 :=
     (ENNReal.ofReal_pos.2 (pow_apply_pos hpos 1 _ _)).ne'
   have hDtop : ENNReal.ofReal ((P ^ 2) (ω (i - 1)) (ω (i + 1))) ≠ ⊤ := ENNReal.ofReal_ne_top
@@ -3482,7 +3484,7 @@ lemma gibbsSpecification_singleton_apply_of_boltzmannFactor
     have hcongr : Specification.isssd (S := ℤ) ν {i} (Function.update ω i x)
         = Specification.isssd (S := ℤ) ν {i} ω :=
       isssd_congr {i} (fun k hk ↦ Function.update_of_ne (by simpa using hk) _ _)
-    show ∫⁻ σ, ρ {i} σ ∂(Specification.isssd (S := ℤ) ν {i} (Function.update ω i x)) = _
+    change ∫⁻ σ, ρ {i} σ ∂(Specification.isssd (S := ℤ) ν {i} (Function.update ω i x)) = _
     rw [hcongr, lintegral_isssd_singleton i ω hmeasρ]
     congr 1
     rw [Finset.sum_congr rfl fun x _ ↦ hb x,
@@ -3491,7 +3493,7 @@ lemma gibbsSpecification_singleton_apply_of_boltzmannFactor
   have hdens : ∀ x : E, Specification.premodifierNorm ν ρ {i} (Function.update ω i x)
       = ENNReal.ofReal (w x) / ((Fintype.card E : ℝ≥0∞)⁻¹ * ENNReal.ofReal (∑ x, w x)) := by
     intro x
-    show ρ {i} (Function.update ω i x) / Specification.premodifierZ ν ρ {i}
+    change ρ {i} (Function.update ω i x) / Specification.premodifierZ ν ρ {i}
       (Function.update ω i x) = _
     rw [hZ x, hb x]
   have hSmeas : MeasurableSet {σ : ℤ → E | σ i = y} := measurableSet_eq_apply i y

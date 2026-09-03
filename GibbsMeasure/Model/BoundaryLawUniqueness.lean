@@ -23,7 +23,8 @@ laws `{ℓ_i, r_i}` of Definition (11.8) with their measures (11.10) (`boundaryL
 
 * `isMarkovChain_ofMatrix_of_forall_intervalCylinder`, `IsMarkovChain.measure_intervalCylinder_succ`:
   on a countable state space, `μ` is a Markov chain with transition matrices `p_i` (Definition
-  (10.4)) iff `μ(σ_a = x_a, …, σ_{b+1} = x_{b+1}) = μ(σ_a = x_a, …, σ_b = x_b) p_{b+1}(x_b, x_{b+1})`.
+  (10.4)) iff `μ(σ_a = x_a, …, σ_{b+1} = x_{b+1}) = μ(σ_a = x_a, …, σ_b = x_b) p_{b+1}(x_b,
+      x_{b+1})`.
 * `transitionMatrix Q r i` — **Georgii (11.11)**, `P_i(x, y) = Q(x, y) r_i(y) / r_{i-1}(x)`;
   `IsBoundaryLaw.isMarkovChain_boundaryLawMeasure`: the measure (11.10) of a boundary law is a
   Markov chain with these transition matrices (the "Markov chain" clause of Theorem (11.9)(a)).
@@ -343,7 +344,8 @@ lemma IsBoundaryLaw.boundaryLawMeasure_intervalCylinder_succ {a b : ℤ} (hab : 
     boundaryLawMeasure hbl (intervalCylinder a (b + 1) σ)
       = boundaryLawMeasure hbl (intervalCylinder a b σ)
           * transitionMatrix Q r (b + 1) (σ b) (σ (b + 1)) := by
-  rw [hbl.boundaryLawMeasure_intervalCylinder (by omega), hbl.boundaryLawMeasure_intervalCylinder hab,
+  rw [hbl.boundaryLawMeasure_intervalCylinder (by omega), hbl.boundaryLawMeasure_intervalCylinder
+      hab,
     pathProd_succ_top Q hab]
   calc ℓ a (σ a) * (pathProd Q a b σ * Q (σ b) (σ (b + 1))) * r (b + 1) (σ (b + 1))
       = ℓ a (σ a) * pathProd Q a b σ * (Q (σ b) (σ (b + 1)) * r (b + 1) (σ (b + 1))) := by ring
@@ -509,12 +511,14 @@ theorem IsMarkovChain.mul_mul_eq_of_isGibbsMeasure (i : ℤ) (x y z : E) :
       hσ2, hσ3, mul_comm]
   rw [measure_puncturedCylinder_tsum μ hi σ] at key
   simp_rw [hμ.measure_intervalCylinder_pred_succ, Function.update_self,
-    Function.update_of_ne (show i - 1 ≠ i by omega), Function.update_of_ne (show i + 1 ≠ i by omega),
+    Function.update_of_ne (show i - 1 ≠ i by omega), Function.update_of_ne (show i + 1 ≠ i by
+        omega),
     hσ1, hσ2, hσ3] at key
   have hre : ∀ y', μ ((fun τ : ℤ → E ↦ τ (i - 1)) ⁻¹' {x}) * P i x {y'} * P (i + 1) y' {z}
       = μ ((fun τ : ℤ → E ↦ τ (i - 1)) ⁻¹' {x}) * (P i x {y'} * P (i + 1) y' {z}) :=
     fun y' ↦ by ring
-  simp_rw [hre, ENNReal.tsum_mul_left, ← Kernel.comp_apply_eq_tsum _ _ _ (measurableSet_singleton z)]
+  simp_rw [hre, ENNReal.tsum_mul_left, ← Kernel.comp_apply_eq_tsum _ _ _ (measurableSet_singleton
+      z)]
     at key
   have hm0 : μ ((fun τ : ℤ → E ↦ τ (i - 1)) ⁻¹' {x}) ≠ 0 :=
     (hμ.measure_preimage_singleton_pos hQ hG (i - 1) x).ne'
@@ -697,11 +701,13 @@ include hbl
 /-- The shift `θ_j(μ)` of the measure (11.10) of a boundary law is the measure of the shifted
 boundary law `{ℓ_{i-j}, r_{i-j}}`. -/
 theorem IsBoundaryLaw.boundaryLawMeasure_map_shift (j : ℤ) :
-    (boundaryLawMeasure hbl).map (GibbsMeasure.shift E j).toFun = boundaryLawMeasure (hbl.shift j) := by
+    (boundaryLawMeasure hbl).map (GibbsMeasure.shift E j).toFun = boundaryLawMeasure (hbl.shift
+        j) := by
   have : IsProbabilityMeasure ((boundaryLawMeasure hbl).map (GibbsMeasure.shift E j).toFun) :=
     Measure.isProbabilityMeasure_map (GibbsMeasure.shift E j).measurable_toFun.aemeasurable
   refine (hbl.shift j).eq_boundaryLawMeasure_of_forall_intervalCylinder fun a b hab σ ↦ ?_
-  rw [Measure.map_apply (GibbsMeasure.shift E j).measurable_toFun (measurableSet_intervalCylinder a b σ),
+  rw [Measure.map_apply (GibbsMeasure.shift E j).measurable_toFun (measurableSet_intervalCylinder
+      a b σ),
     shift_preimage_intervalCylinder, hbl.boundaryLawMeasure_intervalCylinder (by omega),
     pathProd_shift]
   simp only [sub_add_cancel]
@@ -724,7 +730,8 @@ theorem IsBoundaryLaw.boundaryLawMeasure_map_shift_eq_self_of_periodic {p : ℤ}
 theorem IsBoundaryLaw.mem_invariantFields_shiftGroup_of_const (hℓ : ∀ i j x, ℓ i x = ℓ j x)
     (hr : ∀ i j x, r i x = r j x) :
     boundaryLawMeasure hbl ∈ invariantFields (shiftGroup ℤ E) :=
-  mem_invariantFields_shiftGroup.2 ⟨inferInstance, fun j ↦ ⟨(GibbsMeasure.shift E j).measurable_toFun,
+  mem_invariantFields_shiftGroup.2 ⟨inferInstance, fun j ↦ ⟨(GibbsMeasure.shift E
+      j).measurable_toFun,
     hbl.boundaryLawMeasure_map_shift_eq_self_of_periodic (c := 1)
       (fun i x ↦ by rw [one_mul, hℓ]) (fun i x ↦ by rw [one_mul, hr])⟩⟩
 
@@ -832,7 +839,8 @@ theorem exists_pos_lt_pow_factorial_apply_of_le_sum {N : ℕ} (hN : 0 < N) {ε :
   calc η ^ N.factorial ≤ η ^ k := pow_le_pow_of_le_one zero_le hη1 hkN
     _ ≤ (Kernel.ofMatrix Q ^ n) x {x} ^ k :=
         pow_le_pow_left' ((min_le_right _ _).trans hnx) k
-    _ ≤ (Kernel.ofMatrix Q ^ (k * n)) x {x} := (Kernel.ofMatrix Q).pow_le_pow_mul_apply_singleton k n x
+    _ ≤ (Kernel.ofMatrix Q ^ (k * n)) x {x} := (Kernel.ofMatrix Q).pow_le_pow_mul_apply_singleton
+        k n x
     _ = _ := by rw [hk, mul_comm]
 
 variable {Q} {ℓ r : ℤ → E → ℝ≥0∞} (hbl : IsBoundaryLaw Q ℓ r)
@@ -1045,7 +1053,8 @@ theorem IsBoundaryLaw.boundaryLawMeasure_map_shift_eq_self_of_mem_extremePoints
       (∀ a b σ, t * (ℓ₁ a (σ a) * pathProd Q a b σ * r₁ b (σ b))
         + (1 - t) * (ℓ₂ a (σ a) * pathProd Q a b σ * r₂ b (σ b))
         = ℓ a (σ a) * pathProd Q a b σ * r b (σ b)) →
-      boundaryLawMeasure hbl ∈ openSegment ℝ≥0∞ (boundaryLawMeasure h₁) (boundaryLawMeasure h₂) := by
+      boundaryLawMeasure hbl ∈ openSegment ℝ≥0∞ (boundaryLawMeasure h₁) (boundaryLawMeasure h₂)
+          := by
     intro ℓ₁ ℓ₂ r₁ r₂ h₁ h₂ hcyl
     refine ⟨t, 1 - t, pos_iff_ne_zero.2 ht0, pos_iff_ne_zero.2 h1t0, hsum, ?_⟩
     have : IsProbabilityMeasure (t • boundaryLawMeasure h₁ + (1 - t) • boundaryLawMeasure h₂) :=

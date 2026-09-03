@@ -257,7 +257,8 @@ lemma inv_toFun_eq_of_notMem (ω : Ω) {i : S} (hi : i ∉ Λ) : τ'.inv.toFun �
   exact this.symm
 
 /-- `τ'⁻¹ A = τ⁻¹ A` for `A ∈ 𝓕_Δ`. -/
-lemma preimage_eq {A : Set Ω} (hA : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)] A) :
+lemma preimage_eq {A : Set Ω} (hA : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (Δ : Set
+    S)] A) :
     τ'.toFun ⁻¹' A = τ.toFun ⁻¹' A :=
   Set.ext fun ω ↦ mem_congr_of_measurableSet_cylinderEvents hA fun i hi ↦
     h.toFun_eq_of_mem ω i (Finset.mem_coe.1 hi)

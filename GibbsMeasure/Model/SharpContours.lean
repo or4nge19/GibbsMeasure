@@ -700,7 +700,7 @@ attribute [local irreducible] partner otherPlaq
 lemma dualState_dualStep {c : Set (Sym2 Site)} {p : Sym2 Site × Site}
     (h2 : dualDeg c p.2 = 2) (hp : DualState c p) : DualState c (dualStep c p) := by
   obtain ⟨h1, h3⟩ := mem_bondsAt.1 (partner_mem h2 hp)
-  show (dualStep c p).1 ∈ bondsAt c (dualStep c p).2
+  change (dualStep c p).1 ∈ bondsAt c (dualStep c p).2
   rw [dualStep_fst, dualStep_snd]
   exact mem_bondsAt.2 ⟨otherPlaq_mem h1, h3⟩
 

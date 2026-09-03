@@ -591,7 +591,8 @@ private lemma enorm_remainderPair_sub_le (hp : 0 < p) (hL : 2 * (p : ℤ) + 1 �
     ‖remainderPair φ (Finset.Icc (m + p) n) (Finset.Icc m (m + p - 1))
         ((localizedShift E m n p (by positivity) (by omega)).toFun ω) q -
       remainderPair φ (Finset.Icc m (n - p)) (Finset.Icc (n - p + 1) n) ω
-        (rotateIcc m n p (by positivity) (by omega) q.1, rotateIcc m n p (by positivity) (by omega) q.2)‖ₑ
+        (rotateIcc m n p (by positivity) (by omega) q.1, rotateIcc m n p (by positivity) (by
+            omega) q.2)‖ₑ
       ≤ boundTwo φ m n p q + boundThree φ m n p q := by
   obtain ⟨i, j⟩ := q
   simp only [remainderPair, boundTwo, boundThree, localizedShift_toFun_apply,

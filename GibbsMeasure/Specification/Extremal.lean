@@ -83,7 +83,8 @@ lemma isGibbsMeasure_restrict_of_measurableSet_tail
   -- `μ.restrict A` is not a probability measure in general, so use the finite-measure fixed-point lemma.
   haveI : IsFiniteMeasure μ := by infer_instance
   haveI : IsFiniteMeasure (μ.restrict A) := by infer_instance
-  exact (_root_.Specification.isGibbsMeasure_iff_forall_bind_eq (γ := γ) (μ := μ.restrict A)).2 hfix_restrict
+  exact (_root_.Specification.isGibbsMeasure_iff_forall_bind_eq (γ := γ) (μ := μ.restrict A)).2
+      hfix_restrict
 
 end Restrict
 
@@ -269,7 +270,8 @@ lemma exhaustionVolumes_cofinal (Λ : Finset S) :
   · let f : ℕ → S := Classical.choose (exists_surjective_nat S)
     classical
     have hf : Function.Surjective f := Classical.choose_spec (exists_surjective_nat S)
-    have hexh : (exhaustionVolumes (S := S) : ℕ → Finset S) = fun n => (Finset.range n).image f := by
+    have hexh : (exhaustionVolumes (S := S) : ℕ → Finset S) = fun n => (Finset.range n).image f
+        := by
       simp [exhaustionVolumes, hS, f]
     classical
     have : ∀ x : S, x ∈ Λ → ∃ n, f n = x := by
@@ -308,7 +310,8 @@ lemma tailSigmaAlgebra_eq_iInf_exhaustion :
     (@tailSigmaAlgebra S E _ : MeasurableSpace Ω)
       =
       ⨅ n : ℕ,
-        cylinderEvents (X := fun _ : S ↦ E) (((exhaustionVolumes (S := S) n : Finset S) : Set S)ᶜ) := by
+        cylinderEvents (X := fun _ : S ↦ E) (((exhaustionVolumes (S := S) n : Finset S) : Set
+            S)ᶜ) := by
   refine iInf_eq_iInf_comp_of_cofinal
     (m := fun Λ : Finset S => cylinderEvents (X := fun _ : S ↦ E) ((Λ : Set S)ᶜ))
     (fun Λ₁ Λ₂ h => cylinderEvents_mono (X := fun _ : S ↦ E)
@@ -318,7 +321,8 @@ lemma tailSigmaAlgebra_eq_iInf_exhaustion :
 
 omit [Countable S] in
 lemma bind_eq_bind_trim (Λ : Finset S) (μ : Measure Ω) {A : Set Ω} (hA : MeasurableSet A) :
-    (μ.trim (MeasureTheory.cylinderEvents_le_pi (X := fun _ : S ↦ E) (Δ := ((Λ : Set S)ᶜ)))).bind (γ Λ) A
+    (μ.trim (MeasureTheory.cylinderEvents_le_pi (X := fun _ : S ↦ E) (Δ := ((Λ : Set S)ᶜ)))).bind
+        (γ Λ) A
       =
     μ.bind (γ Λ) A :=
   AbstractSpecification.bind_trim (γ := γ.toAbstract) Λ μ hA
@@ -367,7 +371,8 @@ theorem eq_of_absolutelyContinuous_of_isTailTrivial
     (hμG : _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ μ)
     (hνG : _root_.Specification.IsGibbsMeasure (S := S) (E := E) γ ν)
     [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
-    (hμtail : IsTailTrivial (S := S) (E := E) (⟨μ, ‹IsProbabilityMeasure μ›⟩ : ProbabilityMeasure Ω))
+    (hμtail : IsTailTrivial (S := S) (E := E) (⟨μ, ‹IsProbabilityMeasure μ›⟩ : ProbabilityMeasure
+        Ω))
     (hνμ : ν ≪ μ) :
     ν = μ := by
   have hμ' : μ ∈ γ.toAbstract.invariant :=

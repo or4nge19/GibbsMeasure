@@ -711,7 +711,7 @@ theorem Subadditive.boxSubadditive_card {u : ℕ → ℝ} (h : Subadditive u) :
     BoxSubadditive fun Λ : Finset (ι → ℤ) ↦ u #Λ where
   image_add_right Λ _ i := by simp only [card_image_of_injective _ (add_left_injective i)]
   union_le Λ Δ _ _ hd _ := by
-    show u #(Λ ∪ Δ) ≤ u #Λ + u #Δ
+    change u #(Λ ∪ Δ) ≤ u #Λ + u #Δ
     rw [card_union_of_disjoint hd]
     exact h _ _
 
@@ -743,7 +743,7 @@ theorem Subadditive.tendsto_lim_of_tendsto_div_card {u : ℕ → ℝ} (h : Subad
   have key := (h.boxSubadditive_card (ι := Unit)).tendsto_div_card_of_bddBelow hbdd' (l := atTop)
     (m := fun (_ : ℕ) _ ↦ (0 : ℤ)) (n := fun (j : ℕ) _ ↦ (j : ℤ) - 1) fun _ ↦
       tendsto_atTop_atTop.2 fun b ↦ ⟨(b + 1).toNat, fun j hj ↦ by
-        show b ≤ (j : ℤ) - 1 - 0
+        change b ≤ (j : ℤ) - 1 - 0
         omega⟩
   rw [himage] at key
   rw [Subadditive.lim]

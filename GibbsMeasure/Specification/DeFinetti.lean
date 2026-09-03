@@ -746,7 +746,7 @@ theorem existsUnique_mixing_of_isExchangeable (hμ : IsExchangeable μ) :
           simp
         filter_upwards [hae'] with lam hlam
         haveI := hlam
-        show (Measure.infinitePi fun _ : ℕ ↦ lam).map (fun ω ↦ ω 0) = lam
+        change (Measure.infinitePi fun _ : ℕ ↦ lam).map (fun ω ↦ ω 0) = lam
         exact Measure.infinitePi_map_eval (μ := fun _ : ℕ ↦ lam) 0
       rw [Measure.map_map measurable_marg measurable_iid,
         show ((fun ν : Measure (ℕ → E) ↦ ν.map fun ω ↦ ω 0)

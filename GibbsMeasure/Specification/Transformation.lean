@@ -43,7 +43,7 @@ def map (τ : Transformation S E) (γ : Specification S E) : Specification S E w
     intro Λ₁ Λ₂ h
     refine Kernel.ext fun ω ↦ ?_
     rw [Kernel.comp_apply]
-    show ⇑((((γ (Λ₁.map τ.sites.symm.toEmbedding)).comap τ.inv.toFun
+    change ⇑((((γ (Λ₁.map τ.sites.symm.toEmbedding)).comap τ.inv.toFun
         (τ.measurable_inv_toFun_cylinderEvents_compl Λ₁)).map τ.toFun).comap id
         cylinderEvents_le_pi) ∘ₘ
       ((((γ (Λ₂.map τ.sites.symm.toEmbedding)).comap τ.inv.toFun
@@ -68,7 +68,7 @@ def map (τ : Transformation S E) (γ : Specification S E) : Specification S E w
     have hB' : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E)
         ((Λ.map τ.sites.symm.toEmbedding : Finset S) : Set S)ᶜ] (τ.toFun ⁻¹' B) :=
       τ.measurable_toFun_cylinderEvents_compl Λ hB
-    show ((γ (Λ.map τ.sites.symm.toEmbedding)).comap τ.inv.toFun
+    change ((γ (Λ.map τ.sites.symm.toEmbedding)).comap τ.inv.toFun
         (τ.measurable_inv_toFun_cylinderEvents_compl Λ)).map τ.toFun x (A ∩ B) =
       B.indicator 1 x * ((γ (Λ.map τ.sites.symm.toEmbedding)).comap τ.inv.toFun
         (τ.measurable_inv_toFun_cylinderEvents_compl Λ)).map τ.toFun x A
@@ -84,7 +84,7 @@ def map (τ : Transformation S E) (γ : Specification S E) : Specification S E w
 @[simp] lemma map_apply (τ : Transformation S E) (γ : Specification S E) (Λ : Finset S)
     (ω : S → E) :
     (γ.map τ) Λ ω = ((γ (Λ.map τ.sites.symm.toEmbedding)) (τ.inv.toFun ω)).map τ.toFun := by
-  show ((γ (Λ.map τ.sites.symm.toEmbedding)).comap τ.inv.toFun
+  change ((γ (Λ.map τ.sites.symm.toEmbedding)).comap τ.inv.toFun
     (τ.measurable_inv_toFun_cylinderEvents_compl Λ)).map τ.toFun ω = _
   rw [Kernel.map_apply _ τ.measurable_toFun, Kernel.comap_apply]
 
@@ -217,16 +217,16 @@ def symmetryGroup (γ : Specification S E) : Subgroup (Transformation S E) where
   carrier := {τ | IsInvariant τ γ}
   mul_mem' := by
     intro τ σ hτ hσ
-    show IsInvariant (τ * σ) γ
+    change IsInvariant (τ * σ) γ
     rw [Transformation.mul_def]
     exact hτ.comp hσ
   one_mem' := by
-    show IsInvariant 1 γ
+    change IsInvariant 1 γ
     rw [Transformation.one_def]
     exact isInvariant_id γ
   inv_mem' := by
     intro τ hτ
-    show IsInvariant τ⁻¹ γ
+    change IsInvariant τ⁻¹ γ
     have h : γ.map (τ⁻¹ * τ) = γ.map τ⁻¹ := by
       rw [Transformation.mul_def, map_comp, show γ.map τ = γ from hτ]
     rwa [inv_mul_cancel, Transformation.one_def, map_id, eq_comm] at h
