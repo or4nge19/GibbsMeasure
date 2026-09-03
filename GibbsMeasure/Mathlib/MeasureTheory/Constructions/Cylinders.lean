@@ -18,3 +18,36 @@ public lemma mem_congr_of_measurableSet_cylinderEvents {Δ : Set S} {B : Set (S 
     simp only [mem_preimage, h i hiΔ]
   · rw [iSup_neg hiΔ, MeasurableSpace.measurableSet_bot_iff] at hi
     rcases hi with rfl | rfl <;> exact iff_of_eq rfl
+
+namespace MeasureTheory
+
+section CylinderEventsUnion
+
+variable {ι : Type*} {X : ι → Type*} [∀ i, MeasurableSpace (X i)]
+
+/-- The cylinder σ-algebra of a union is the supremum of the cylinder σ-algebras. -/
+public lemma cylinderEvents_union (Δ₁ Δ₂ : Set ι) :
+    cylinderEvents (X := X) (Δ₁ ∪ Δ₂) = cylinderEvents (X := X) Δ₁ ⊔ cylinderEvents (X := X) Δ₂ := by
+  simp only [cylinderEvents]
+  exact _root_.iSup_union
+
+@[simp] public lemma cylinderEvents_empty : cylinderEvents (X := X) (∅ : Set ι) = ⊥ := by
+  simp [cylinderEvents]
+
+variable {E : Type*} [MeasurableSpace E]
+
+/-- Precomposing configurations with a map of sites pulls the cylinder σ-algebra of `Δ` back to
+the cylinder σ-algebra of the image of `Δ`. -/
+public lemma cylinderEvents_comap_precomp (σ : ι → ι) (Δ : Set ι) :
+    (cylinderEvents (X := fun _ : ι ↦ E) Δ).comap (fun ω : ι → E ↦ fun i ↦ ω (σ i))
+      = cylinderEvents (X := fun _ : ι ↦ E) (σ '' Δ) := by
+  rw [cylinderEvents, cylinderEvents, _root_.iSup_image, MeasurableSpace.comap_iSup]
+  refine iSup_congr fun i ↦ ?_
+  rw [MeasurableSpace.comap_iSup]
+  refine iSup_congr fun _ ↦ ?_
+  rw [MeasurableSpace.comap_comp]
+  rfl
+
+end CylinderEventsUnion
+
+end MeasureTheory

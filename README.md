@@ -465,7 +465,10 @@ sub-σ-algebra *is* Mathlib's `klDiv` of the trimmed measures and his `ψ` is `k
 lemmas about `klDiv`: joint convexity, the monotone convergence (15.6) along an increasing sequence
 of σ-algebras, and (15.7) as a supremum over finite partitions. Lemma **(15.11)**, Fekete's lemma in
 `d` dimensions for translation-invariant box-subadditive functions, is the prerequisite of the
-specific entropy (15.12) and the pressure (15.30). **§15.3** (`GibbsMeasure/Specification/Pressure.lean`):
+specific entropy (15.12) and the pressure (15.30). **§15.2** (`GibbsMeasure/Specification/SpecificEntropy.lean`):
+strong subadditivity **(15.10)** for arbitrary sets of sites, the **specific entropy (15.12)–(15.13)**
+as an infimum over boxes with convergence along any boxes with all side lengths → ∞, affine on
+`𝓟_Θ` and upper semicontinuous in the topology of local convergence ((15.14)(a)–(b)). **§15.3** (`GibbsMeasure/Specification/Pressure.lean`):
 the energy density and specific energy (15.22)–(15.24), the boundary estimate (15.25) with an
 explicit finite-volume bound, and **Theorem (15.30)(a)**: the pressure `P(Φ)` exists along any boxes
 with all side lengths → ∞, for every choice of boundary conditions, with `|P(Φ)| ≤ ‖Φ‖₀`; `P` is
@@ -522,8 +525,7 @@ built.
 
 Not yet done: the inhomogeneous Ising chains of §6.1, Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
-plane-rotator and Heisenberg instances (9.22)–(9.24), (14.13), (14.16), (14.21)–(14.24), the rest of
-Chapter 15 from (15.10) on, Chapter 11 from (11.9)(c) and the recurrence theory (11.6)–(11.7) on, §§10.2–10.3, and Chapters 12–13 and
+plane-rotator and Heisenberg instances (9.22)–(9.24), (14.13), (14.16), (14.21)–(14.24), (15.14)(c), (15.16)–(15.20), (15.28), (15.30)(b), (15.32)–(15.39), Chapter 11 from (11.9)(c) and the recurrence theory (11.6)–(11.7) on, §§10.2–10.3, and Chapters 12–13 and
 16–20 (Markov fields on trees,
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).

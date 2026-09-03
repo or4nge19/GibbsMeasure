@@ -164,6 +164,7 @@ public import GibbsMeasure.Specification.QuasilocalSpecification
 public import GibbsMeasure.Specification.Singleton
 public import GibbsMeasure.Specification.MarkovInt
 public import GibbsMeasure.Specification.Pressure
+public import GibbsMeasure.Specification.SpecificEntropy
 public import GibbsMeasure.Specification.Structure
 public import GibbsMeasure.Topology.ConfigurationSpace
 public import GibbsMeasure.Topology.ClusterPoints

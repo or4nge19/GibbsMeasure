@@ -1,0 +1,61 @@
+\section{Specific entropy}
+
+Throughout, $\lambda$ is a probability measure on $E$, $\lambda^S$ the product measure on
+$\Cfg$, $\mathcal H_\Lambda(\mu \mid \nu)$ the relative entropy on $\mathcal F_\Lambda$
+(Definition \ref{def:ent-relative}), and $\mathcal H_\Lambda(\mu) = -\mathcal H_\Lambda(\mu \mid \lambda^S) \in [-\infty, 0]$.
+
+\begin{proposition}[Georgii (15.10)]
+    \label{prop:sent-15-10}
+    \uses{def:ent-relative, prop:ent-155}
+    \lean{MeasureTheory.GibbsMeasure.relativeEntropyIn, MeasureTheory.GibbsMeasure.relativeEntropyIn_add_relativeEntropyIn_le, MeasureTheory.GibbsMeasure.entropyIn_add_entropyIn_le, MeasureTheory.GibbsMeasure.entropyIn_union_le, MeasureTheory.GibbsMeasure.relativeEntropyIn_image_add, MeasureTheory.GibbsMeasure.entropyIn_image_add}
+    \leanok
+
+    For a probability measure $\mu$ on $\Cfg$ and arbitrary $\Lambda, \Delta \subseteq S$,
+    \[
+        \mathcal H_{\Lambda \cup \Delta}(\mu) + \mathcal H_{\Lambda \cap \Delta}(\mu)
+        \leq \mathcal H_\Lambda(\mu) + \mathcal H_\Delta(\mu),
+    \]
+    and $\mathcal H_{\Lambda + i}(\mu) = \mathcal H_\Lambda(\mu)$ for shift-invariant $\mu$.
+\end{proposition}
+\begin{proof}
+    \leanok
+    Chain rule $\mathcal H(\mu \mid \lambda^S) = \mathcal H(\mu \mid g\lambda^S) + \mathcal H_m(\mu \mid \lambda^S)$
+    for an $m$-measurable density $g$ with $\mu = g\lambda^S$ on $m$, applied with
+    $m = \mathcal F_{\Lambda \cap \Delta}$ and the Markov property of the independent
+    $\sigma$-algebras $\mathcal F_{\Lambda \setminus \Delta}$, $\mathcal F_{\Lambda \cap \Delta}$,
+    $\mathcal F_{\Delta \setminus \Lambda}$ under $\lambda^S$.
+\end{proof}
+
+\begin{theorem}[Specific entropy, Georgii (15.12)--(15.13)]
+    \label{thm:sent-15-12}
+    \uses{prop:sent-15-10, lem:ent-1511, def:erg-invariant}
+    \lean{MeasureTheory.GibbsMeasure.specificEntropy, MeasureTheory.GibbsMeasure.boxSubadditive_entropyIn, MeasureTheory.GibbsMeasure.tendsto_entropyIn_div_card, MeasureTheory.GibbsMeasure.tendsto_entropyIn_div_card_cube, MeasureTheory.GibbsMeasure.specificEntropy_nonpos}
+    \leanok
+
+    Let $S = \mathbb Z^d$ and $\mu \in \Prob_\Theta$. Then
+    $h(\mu) = \lim_n |\Lambda_n|^{-1}\mathcal H_{\Lambda_n}(\mu) \in [-\infty, 0]$ exists along
+    every sequence of boxes all of whose side lengths tend to infinity, and equals the infimum
+    of $|\Lambda|^{-1}\mathcal H_\Lambda(\mu)$ over all boxes $\Lambda$.
+\end{theorem}
+\begin{proof}
+    \leanok
+    Proposition \ref{prop:sent-15-10} makes $\Lambda \mapsto -\mathcal H_\Lambda(\mu)$
+    shift-invariant and box-subadditive; Lemma \ref{lem:ent-1511}.
+\end{proof}
+
+\begin{proposition}[Georgii (15.14)(a),(b)]
+    \label{prop:sent-15-14}
+    \uses{thm:sent-15-12, def:lc-topology}
+    \lean{MeasureTheory.GibbsMeasure.smul_specificEntropy_add_smul_specificEntropy_le, MeasureTheory.GibbsMeasure.specificEntropy_smul_add_smul_le, MeasureTheory.GibbsMeasure.upperSemicontinuous_specificEntropy}
+    \leanok
+
+    For $d \geq 1$, $h$ is affine on $\Prob_\Theta$, and $\mu \mapsto h(\mu)$ is upper
+    semicontinuous on $\Prob(\Cfg)$ in the topology of local convergence.
+\end{proposition}
+\begin{proof}
+    \leanok
+    Concavity is that of $\mathcal H_\Lambda$; convexity up to the defect
+    $s\log(1/s) + t\log(1/t)$ in each finite volume, which vanishes after division by
+    $|\Lambda_n| \to \infty$. Upper semicontinuity: each $\mathcal H_\Lambda(\cdot \mid \lambda^S)$
+    is a supremum over finite partitions of continuous functions.
+\end{proof}

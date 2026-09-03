@@ -51,7 +51,7 @@ of Corollary (7.4).
 @[expose] public section
 
 open Filter MeasureTheory ProbabilityTheory ProbabilityTheory.Kernel Set
-open scoped ENNReal
+open scoped ENNReal NNReal
 
 namespace MeasureTheory.GibbsMeasure
 
@@ -263,6 +263,21 @@ lemma mem_invariantFields_shiftGroup {μ : Measure (S → E)} :
   refine and_congr_right fun _ ↦ ⟨fun h j ↦ h _ (shift_mem_shiftGroup j), ?_⟩
   rintro h τ ⟨j, rfl⟩
   exact h j
+
+/-- Convex combinations of shift-invariant random fields are shift invariant: `𝓟_Θ` is convex
+(Georgii, (14.1)). -/
+lemma smul_add_smul_mem_invariantFields_shiftGroup {μ₁ μ₂ : Measure (S → E)}
+    (hμ₁ : μ₁ ∈ invariantFields (shiftGroup S E))
+    (hμ₂ : μ₂ ∈ invariantFields (shiftGroup S E)) {s t : ℝ≥0} (hst : s + t = 1) :
+    s • μ₁ + t • μ₂ ∈ invariantFields (shiftGroup S E) := by
+  obtain ⟨h₁, h₁'⟩ := mem_invariantFields_shiftGroup.1 hμ₁
+  obtain ⟨h₂, h₂'⟩ := mem_invariantFields_shiftGroup.1 hμ₂
+  refine mem_invariantFields_shiftGroup.2 ⟨⟨?_⟩, fun j ↦ ⟨(shift E j).measurable_toFun, ?_⟩⟩
+  · rw [Measure.add_apply, Measure.smul_apply, Measure.smul_apply, measure_univ, measure_univ,
+      ENNReal.smul_def, ENNReal.smul_def, smul_eq_mul, smul_eq_mul, mul_one, mul_one,
+      ← ENNReal.coe_add, hst, ENNReal.coe_one]
+  · rw [Measure.map_add _ _ (shift E j).measurable_toFun, Measure.map_smul, Measure.map_smul,
+      (h₁' j).map_eq, (h₂' j).map_eq]
 
 end ShiftGroup
 

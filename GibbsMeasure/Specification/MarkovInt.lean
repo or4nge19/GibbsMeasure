@@ -6,6 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Specification.Singleton
+public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.Cylinders
 public import GibbsMeasure.Prereqs.IntervalBoundary
 public import GibbsMeasure.Specification.Extremal
 public import GibbsMeasure.Potential.Existence
@@ -504,16 +505,6 @@ lemma boundarySet_subset_compl_of_disjoint_union' (h : Disjoint V (W ∪ boundar
       Or.inl (by rwa [show i - 1 + 1 = i by omega])⟩)
 
 /-! ### Cylinder σ-algebras on `ℤ` -/
-
-lemma cylinderEvents_union (V W : Set ℤ) :
-    cylinderEvents (X := fun _ : ℤ ↦ E) (V ∪ W)
-      = cylinderEvents (X := fun _ : ℤ ↦ E) V ⊔ cylinderEvents (X := fun _ : ℤ ↦ E) W := by
-  simp only [cylinderEvents]
-  exact iSup_union
-
-@[simp] lemma cylinderEvents_empty :
-    cylinderEvents (X := fun _ : ℤ ↦ E) (∅ : Set ℤ) = ⊥ := by
-  simp [cylinderEvents]
 
 /-! ### The Markov property (10.10) at a set of sites -/
 

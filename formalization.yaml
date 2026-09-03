@@ -45,7 +45,8 @@ status:
   scope: >-
     Georgii Chapters 1-8, complete for the results listed under main_results. Of Chapters 9-20:
     Chapter 14 (ergodicity) except (14.13), (14.16), (14.21)-(14.24); Section
-    15.1 (relative entropy), Lemma (15.11), Section 15.3 (specific energy, the pressure (15.30)(a)
+    15.1 (relative entropy), Lemma (15.11), Section 15.2 (strong subadditivity (15.10), the specific
+    entropy (15.12)-(15.13), (15.14)(a)-(b)), Section 15.3 (specific energy, the pressure (15.30)(a)
     and its Lipschitz continuity and convexity (16.1)(a)); Section 11.1 up to Theorem (11.9)(b), (11.11)-(11.12), the sufficiency half of (11.13), (11.16),
     and the extreme case of (11.15); Section 10.1 (the Markov
     properties (10.2)-(10.11)); Section 9.1 (symmetry
@@ -960,6 +961,20 @@ alignment:
         (6.4), Section 6.1, is not formalized); (9.17) for any additive group E with a
         translation-invariant sigma-finite lambda, Gaussian instances on R and Z; u = beta |x|^p,
         0 < p < 2, not formalized.
+    - source: "Proposition (15.10), Theorem (15.12), Definition (15.13), Proposition (15.14)(a)-(b)"
+      lean: "MeasureTheory.GibbsMeasure.tendsto_entropyIn_div_card"
+      module: "GibbsMeasure/Specification/SpecificEntropy.lean"
+      status: "proved"
+      note: >-
+        Relative entropy on F_Lambda is klDiv of the trimmed measures (relativeEntropyIn, any
+        Lambda subset S); strong subadditivity for arbitrary Lambda, Delta via the chain rule and
+        the Markov property of independent sigma-algebras; specific entropy in EReal (values in
+        [-infinity, 0]; -infinity is a genuine case) as the infimum over boxes, with convergence
+        along any boxes with all side lengths -> infinity for mu in P_Theta; affine on P_Theta (needs
+        d >= 1, which Georgii leaves implicit: on Z^0 the specific entropy is strictly concave);
+        upper semicontinuous on all of P(Omega) in the topology of local convergence. Not
+        formalized: compactness of {k >= c} for standard Borel E ((15.14)(c)), (15.16)-(15.20).
+        lambda is a probability measure (Georgii's finite lambda is normalised, as he does himself).
 
 acknowledgements: >-
   Builds on Mathlib. Kolmogorov extension material adapted from RemyDegenne/kolmogorov_extension4.

@@ -57,38 +57,6 @@ section ProductField
 
 variable {S E : Type*} [MeasurableSpace E]
 
-/-- A transformation whose spins preserve `λ` preserves the product field `λ^S`: Georgii's remark
-in Examples (5.20)(2)–(3) that the boundary fields may be taken to be
-`ν = (λ(E)⁻¹ λ)^S ∈ 𝓟_I(Ω, 𝓕)`. In particular the product field is invariant under every
-periodic modification `τ_N`, whose spins are those of `τ`. -/
-lemma Transformation.measurePreserving_infinitePi (τ : Transformation S E) {ν : Measure E}
-    [IsProbabilityMeasure ν] (hτ : ∀ i, MeasurePreserving (τ.spin i) ν ν) :
-    MeasurePreserving τ.toFun (Measure.infinitePi fun _ : S ↦ ν)
-      (Measure.infinitePi fun _ : S ↦ ν) := by
-  refine ⟨τ.measurable_toFun, ?_⟩
-  have hfun : τ.toFun = (fun x (i : S) ↦ τ.spin i (x i)) ∘
-      ⇑(MeasurableEquiv.piCongrLeft (fun _ : S ↦ E) τ.sites) := by
-    funext ω i
-    obtain ⟨j, rfl⟩ := τ.sites.surjective i
-    change τ.spin _ (ω (τ.sites.symm (τ.sites j)))
-        = τ.spin _ ((MeasurableEquiv.piCongrLeft (fun _ : S ↦ E) τ.sites) ω (τ.sites j))
-    rw [MeasurableEquiv.piCongrLeft_apply_apply, Equiv.symm_apply_apply]
-  calc (Measure.infinitePi fun _ : S ↦ ν).map τ.toFun
-      = ((Measure.infinitePi fun _ : S ↦ ν).map
-          (MeasurableEquiv.piCongrLeft (fun _ : S ↦ E) τ.sites)).map
-            fun x (i : S) ↦ τ.spin i (x i) := by
-        rw [Measure.map_map (measurable_pi_lambda (fun x (i : S) ↦ τ.spin i (x i))
-            fun i ↦ (τ.spin i).measurable.comp (measurable_pi_apply i))
-          (MeasurableEquiv.piCongrLeft (fun _ : S ↦ E) τ.sites).measurable, ← hfun]
-    _ = (Measure.infinitePi fun _ : S ↦ ν).map fun x (i : S) ↦ τ.spin i (x i) := by
-        rw [Measure.infinitePi_map_piCongrLeft (μ := fun _ : S ↦ ν) τ.sites]
-    _ = Measure.infinitePi fun i : S ↦ ν.map (τ.spin i) :=
-        Measure.infinitePi_map_pi (fun _ ↦ ν) fun i ↦ (τ.spin i).measurable
-    _ = Measure.infinitePi fun _ : S ↦ ν := by
-        congr 1
-        funext i
-        exact (hτ i).map_eq
-
 end ProductField
 
 /-! ### Georgii Example (5.20)(3): the general form -/
