@@ -569,7 +569,7 @@ Gibbs measure is unique ((6.7)(2)).
 
 Not yet done: Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
-plane-rotator and Heisenberg instances (9.22)–(9.24), (14.13), (14.16), (14.21)–(14.24), (15.14)(c), (15.16)–(15.20), (15.26)(1), (15.40), (11.18)(2)–(3), (11.19), Examples (10.24), §12.2, (13.4)–(13.10), §§13.2–13.3, and Chapters
+plane-rotator and Heisenberg instances (9.22)–(9.24), the Poulsen-simplex half of (14.13), (14.16), (15.14)(c), (15.16)–(15.20), (15.26)(1), (15.40), (11.18)(2)–(3), (11.19), Examples (10.24), §12.2, (13.4)–(13.10), §§13.2–13.3, and Chapters
 16–20 (
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).

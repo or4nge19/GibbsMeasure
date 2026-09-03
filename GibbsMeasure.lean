@@ -139,6 +139,7 @@ public import GibbsMeasure.Specification.DobrushinUniqueness
 public import GibbsMeasure.Specification.Average
 public import GibbsMeasure.Specification.ErgodicDense
 public import GibbsMeasure.Specification.ErgodicGibbsLimits
+public import GibbsMeasure.Specification.ErgodicExamples
 public import GibbsMeasure.Specification.InvariantDecomposition
 public import GibbsMeasure.Specification.ErgodicMixing
 public import GibbsMeasure.Specification.ErgodicGibbs

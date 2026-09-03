@@ -45,7 +45,7 @@ status:
   scope: >-
     Georgii Chapters 1-8, complete for the results listed under main_results (Section 6.1, Theorem (6.4),
     included). Of Chapters 9-20:
-    Chapter 14 (ergodicity) except (14.13), (14.16), (14.21)-(14.24); Section
+    Chapter 14 (ergodicity) except the dense-G_delta half of (14.13) and Example (14.16); Section
     15.1 (relative entropy), Lemma (15.11), Section 15.2 (strong subadditivity (15.10), the specific
     entropy (15.12)-(15.13), (15.14)(a)-(b)), Section 15.3 (specific energy, the pressure (15.30)(a)
     and its Lipschitz continuity and convexity (16.1)(a)), Section 15.4 (Theorem (15.37) and the
@@ -1165,6 +1165,19 @@ alignment:
         Phi_i = J(i,i)/2 sigma_i^2 + h_i sigma_i. Not
         formalized: the converse of (13.13), infinite-range J, (13.4)-(13.10), Sections 13.2-13.3,
         the identification of the density measure with Mathlib's multivariateGaussian.
+    - source: "Displays (14.21)-(14.24); Comment (14.13), first half"
+      lean: "Specification.ae_tendsto_toReal_shiftAvgDensity"
+      module: "GibbsMeasure/Specification/ErgodicExamples.lean"
+      status: "proved"
+      note: >-
+        (14.21)-(14.22) were already in ErgodicGibbsLimits.lean (shiftAvgCondDensity and its
+        conditional-expectation identity); (14.23)-(14.24) as Georgii states them, for the
+        untruncated averaged density along a Foelner sequence, from the individual ergodic theorem
+        for integrable functions; (14.13): continuity of local convergence into the weak topology
+        for compact E and weak density of ex P_Theta in P_Theta. Not formalized: the Poulsen-simplex
+        (dense G_delta) conclusion of (14.13) (needs compact metrizability of P_Theta and Baire
+        category), Example (14.16) (a zero-temperature one-dimensional antiferromagnet, a Model
+        construction).
 
 acknowledgements: >-
   Builds on Mathlib. Kolmogorov extension material adapted from RemyDegenne/kolmogorov_extension4.
