@@ -770,4 +770,17 @@ theorem isPositiveRecurrent_of_apply_eq_mul_div [IsMarkovKernel κ] [IsMarkovKer
 
 end ChangeOfMeasure
 
+open scoped Classical in
+/-- A positive matrix, seen as a kernel on a countable state space, is irreducible with respect to
+counting measure: from any state, every nonempty set is reached in exactly one step. -/
+lemma isIrreducible_count_ofMatrix_of_forall_pos [Countable α] [MeasurableSingletonClass α] {P : α → α → ℝ≥0∞} (hP : ∀ x y, 0 < P x y) :
+    ProbabilityTheory.Kernel.IsIrreducible (Measure.count : Measure α) (Kernel.ofMatrix P) where
+  irreducible A _ hcount a := by
+    obtain ⟨y, hy⟩ := Measure.count_ne_zero_iff.1 hcount.ne'
+    refine ⟨1, ?_⟩
+    rw [pow_one]
+    calc (0 : ℝ≥0∞) < P a y := hP a y
+      _ = Kernel.ofMatrix P a {y} := (Kernel.ofMatrix_apply_singleton P a y).symm
+      _ ≤ Kernel.ofMatrix P a A := measure_mono (Set.singleton_subset_iff.2 hy)
+
 end ProbabilityTheory.Kernel

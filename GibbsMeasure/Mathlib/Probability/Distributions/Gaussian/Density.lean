@@ -347,6 +347,7 @@ private lemma integral_exp_neg_half_add_mul_dotProduct {A : Matrix ι ι ℝ} (h
   simp only [smul_dotProduct, mulVec_smul, dotProduct_smul, smul_eq_mul] at h
   rwa [show t * (t * (v ⬝ᵥ A⁻¹ *ᵥ v)) = t ^ 2 * (v ⬝ᵥ A⁻¹ *ᵥ v) by ring] at h
 
+omit [DecidableEq ι] in
 /-- Differentiating `integral_exp_neg_half_add_mul_dotProduct` under the integral sign, at any
 basepoint `t₀`: **Leibniz's rule**, via `hasDerivAt_integral_of_dominated_loc_of_deriv_le` and
 the domination bound `abs_mul_exp_le`. -/
@@ -354,6 +355,7 @@ private lemma hasDerivAt_integral_exp_neg_half_add_mul_dotProduct {A : Matrix ι
     (hA : A.PosDef) (v : ι → ℝ) (t₀ : ℝ) :
     HasDerivAt (fun t : ℝ ↦ ∫ x : ι → ℝ, Real.exp (-(1 / 2) * (x ⬝ᵥ A *ᵥ x) + t * (v ⬝ᵥ x)))
       (∫ x : ι → ℝ, (v ⬝ᵥ x) * Real.exp (-(1 / 2) * (x ⬝ᵥ A *ᵥ x) + t₀ * (v ⬝ᵥ x))) t₀ := by
+  classical
   have hs : Set.Ioo (t₀ - 1) (t₀ + 1) ∈ nhds t₀ :=
     Ioo_mem_nhds (by linarith) (by linarith)
   have hF_meas : ∀ᶠ t in nhds t₀,
@@ -438,6 +440,7 @@ private lemma integral_dotProduct_mul_exp_neg_half_add_mul_dotProduct {A : Matri
   rw [hfun] at hleft
   exact hleft.unique hclosed
 
+omit [DecidableEq ι] in
 /-- Differentiating `integral_dotProduct_mul_exp_neg_half_add_mul_dotProduct` under the integral
 sign, at `t₀ = 0`: the second application of Leibniz's rule, via the quadratic domination bound
 `sq_mul_exp_le`. -/
@@ -446,6 +449,7 @@ private lemma hasDerivAt_integral_dotProduct_mul_exp_neg_half_add_mul_dotProduct
     HasDerivAt
       (fun t : ℝ ↦ ∫ x : ι → ℝ, (v ⬝ᵥ x) * Real.exp (-(1 / 2) * (x ⬝ᵥ A *ᵥ x) + t * (v ⬝ᵥ x)))
       (∫ x : ι → ℝ, (v ⬝ᵥ x) ^ 2 * Real.exp (-(1 / 2) * (x ⬝ᵥ A *ᵥ x))) 0 := by
+  classical
   have hs : Set.Ioo (-1 : ℝ) 1 ∈ nhds (0 : ℝ) := Ioo_mem_nhds (by norm_num) (by norm_num)
   have hF_meas : ∀ᶠ t in nhds (0 : ℝ),
       AEStronglyMeasurable

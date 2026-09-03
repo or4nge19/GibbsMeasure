@@ -61,62 +61,106 @@ laws `{ℓ_i, r_i}` of Definition (11.8) with their measures (11.10) (`boundaryL
   same invariant vectors as `P`, so `Q` satisfies both hypotheses that Corollary (11.17) combines:
   the existence hypothesis of Theorem (11.13) and the periodicity hypothesis of Theorem
   (11.15)/(11.16) at `p = 1`. (Corollary (11.17) itself is not provable here; see below.)
+* **Obstruction (i) resolved.** `countProbDensity`, `countProb`, `rescaledTransferDensity Q`
+  (Georgii's rescaled probability a priori measure and Markovian λ-modification, Remark (1.28)(3)),
+  `transferSpecification_eq_isssd_withDensity` (`γ^Q = (isssd countProb Λ ·).withDensity
+  (rescaledTransferDensity Q Λ)`), `isMarkovianInt_rescaledTransferDensity`,
+  `isHomogeneousInt_rescaledTransferDensity` (**Specification.IsHomogeneousInt**, for *every*
+  finite volume, via the shift-covariance of `transferWeight`, of the constant
+  `countProbDensity`-weight (elementary `Finset` combinatorics on `bondsOf`), and of the
+  counting-measure partition function `sigmaFiniteLambdaFun`/`sigmaFiniteLambdaZ` — the last via
+  the same juxtaposition/reindexing argument that gives `isssd` its shift-equivariance
+  (`MeasureTheory.GibbsMeasure.Transformation.toFun_comp_juxt`,
+  `.measurePreserving_spin_piCongrLeft`, which need only `[SigmaFinite ν]`, not
+  `[IsProbabilityMeasure ν]`) — and `isIrreducibleInt_rescaledTransferDensity` (**Specification.
+  IsIrreducibleInt**, Georgii's Definition (10.23), with `n(N) ≡ 1`, `C_N := countExhaustion N` a
+  finite exhaustion of `E` built from a fixed enumeration `enumE : ℕ → E`, and the witness
+  `irreducibleWitness Q N x := (inf_{y, y' ∈ C_N} Q(y, x) Q(x, y') / Q²(y, y')) /
+  countProbDensity(x)`, a finite infimum of positive finite reals). Both gaps (a) and (b) that the
+  previous version of this docstring recorded as open are closed: gap (b) (aperiodicity ⇒ eventual
+  positivity) was never needed (`IsTransferMatrix.pos` already gives `Q > 0` everywhere), and gap
+  (a) (the genuine construction) is `isIrreducibleInt_rescaledTransferDensity` above.
+* `mem_extremePoints_G_transferSpecification_of_measurePreserving_shift`,
+  `eq_of_isGibbsMeasure_transferSpecification_of_measurePreserving_shift`,
+  `exists_isMarkovChain_transferSpecification_of_measurePreserving_shift` — **Georgii Theorems
+  (10.35) and (10.25), instantiated at `γ^Q`**: every shift-invariant Gibbs measure for `γ^Q` is
+  extreme in `𝒢(γ^Q)`; `𝒢_Θ(γ^Q)` is a subsingleton (unconditionally, not only when it is known to
+  come from a boundary law); every shift-invariant Gibbs measure for `γ^Q` is a Markov chain for a
+  *single* transition kernel.
+* `Kernel.isIrreducible_count_ofMatrix_of_forall_pos`,
+  `exists_transferMatrix_equiv_and_isPositiveRecurrent_of_invariantG_nonempty` — **Georgii Theorem
+  (11.13), the "only if" half**: if `𝒢_Θ(γ^Q) ≠ ∅`, `Q` is equivalent, in the sense of (11.5), to
+  a positive recurrent stochastic matrix. See below for exactly how this closes the gaps the
+  previous version of this docstring recorded, and what remains.
 
-## What is not here, and exactly why
+## Georgii Theorem (11.13), in full, and what is not here
 
-**Theorem (11.9)(c)** (a representing boundary law for every `μ ∈ ex 𝒢(Q)`), the **"only if" half
-and the uniqueness clause of Theorem (11.13)**, **Corollary (11.14)**, **Theorem (11.15)** for an
-arbitrary extreme point of `𝒢(Q)` (only the case where `μ` is already known to be the measure of a
-boundary law is proved above), **Corollary (11.17)**, **Comment (11.18)(3)** and **Corollary
-(11.19)** all go, in Georgii's own proof, through Theorem (10.21) and Theorem (10.35) applied to
-`γ^Q` — via Example (10.24)(2), i.e. with `ρ = transferWeight Q` as the Markovian λ-modification.
-None of these are here, and the obstruction is more precise than "§10.2–10.3 is not imported":
+Both directions are now in the library, each as its own theorem (an explicit `iff` packaging the
+two together is not — see below):
 
-`GibbsMeasure/Specification/MarkovIntChains.lean` and `GibbsMeasure/Specification/
-MarkovIntUniqueness.lean` prove Theorems (10.21), (10.25) and (10.35) — `Specification.
-IsIrreducibleInt`, `exists_isMarkovChain_of_measurePreserving_shift`,
-`eq_of_isGibbsMeasure_of_measurePreserving_shift` — **only for a *probability* a priori measure
-`ν`** (`variable {ν : Measure E} [IsProbabilityMeasure ν]` fixed for those files). `γ^Q` is built
-from `Measure.count`, which is a probability measure only when `E` is finite (already Theorem
-(3.5)'s territory). For infinite countable `E` this is a genuine type mismatch, not a missing
-`import`: `IsIrreducibleInt (Measure.count) (transferWeight Q)` does not even typecheck.
+* **"if"**: `stationaryChain_mem_invariantG` / `invariantG_nonempty_of_rel` (`Q ~ P` for a positive
+  stochastic `P` with an invariant probability vector `α` gives `𝒢_Θ(γ^Q) ≠ ∅`).
+* **"only if"**: `exists_transferMatrix_equiv_and_isPositiveRecurrent_of_invariantG_nonempty`
+  (`𝒢_Θ(γ^Q) ≠ ∅` gives `Q ~ P` for a positive recurrent stochastic `P`).
+* **uniqueness**: `eq_of_isGibbsMeasure_transferSpecification_of_measurePreserving_shift` shows
+  `𝒢_Θ(γ^Q)` is a subsingleton *unconditionally* (not merely "if non-empty"), which is the
+  uniqueness clause of (11.13) together with more.
 
-The bridge is Georgii's own aside before (10.13) — "we may assume `λ ∈ 𝒫(E, 𝓔)`" — which
-`MarkovIntUniqueness.lean`'s docstring already flags as unformalized (its "Example (10.24)(2)"
-paragraph, gaps (a) and (b)). Contrary to what that docstring suggests, gap (b) (aperiodicity ⇒
-eventual positivity, Breiman) is *not* needed here: `IsTransferMatrix.pos` already gives
-`Q(x, y) > 0` for **every** pair, so the witnessing integer in Definition (10.23) can be taken to
-be the constant `1`. What remains, concretely, is gap (a): a genuine construction, not merely
-book-keeping. The measure-theoretic engine for it already exists —
-`GibbsMeasure/Specification/Rescaling.lean` has
-`MeasureTheory.Measure.exists_measurable_pos_isProbabilityMeasure_withDensity` (a positive
-measurable `r : E → ℝ≥0∞` with `(Measure.count).withDensity r` a probability measure, for any
-countable `E`), `Specification.rescale r ρ` (`ρ̃_Λ(ω) = ρ_Λ(ω) / ∏_{i ∈ Λ} r(ω_i)`) and
-`Specification.modificationKer_sigmaFiniteLambdaFun_of_withDensity` (`ρ̃ · (count.withDensity r)_· =
-ρ · count_·`, i.e. `transferSpecification Q hQ` is *unchanged* by the rescaling) — but nobody has
-yet checked that `Specification.IsMarkovianInt`, `Specification.IsHomogeneousInt` and
-`Specification.IsIrreducibleInt` survive `rescale r`. `IsMarkovianInt` and `IsHomogeneousInt`
-transfer for free (the extra factor `∏_{i ∈ Λ} r(ω_i)` for `Λ = Finset.Ioo i k` is itself
-`cylinderEvents (Set.Icc i k)`-measurable, and does not involve the `ℤ`-index at all, so it does
-not disturb (10.23)'s shift-covariance). `IsIrreducibleInt (count.withDensity r) (rescale r
-(transferWeight Q))` is the real remaining construction: with `n(N) ≡ 1` (justified by strict
-positivity as above), `C_N` a monotone exhaustion of the countable `E` by finite sets, and
-`h_N(x) := (inf_{y, y' ∈ C_N} Q(y, x) Q(x, y')) / r(x)` (finite infimum of positive reals, hence
-positive), the defining inequality of (10.23) becomes exactly `transferWeight_singleton` — this is
-plausible but unproved. Even granting it, identifying the transition kernel `P` produced by
-(10.25) with a matrix equivalent to `Q` (Georgii's own hand-wave to "Theorem (2.34)", or the direct
-computation quoted in the proof of (11.13)) is a *second*, independent gap: it needs that two
-boundary laws for `Q` representing the *same* measure are proportional by a single constant, which
-is not a corollary of anything already proved in `GibbsMeasure/Model/BoundaryLaw.lean` or this
-file (the construction in `IsMarkovChain.exists_isBoundaryLaw_eq_boundaryLawMeasure` produces *one*
-boundary law, not a proof that any other representation of the same measure is a scalar multiple
-of it).
+The genuine mathematical content of the "only if" direction turned out to need **less** than the
+previous version of this docstring anticipated. It expected a hard rigidity argument: Theorem
+(10.25) supplies a single transition kernel `P` for `μ ∈ 𝒢_Θ(γ^Q)`; Theorem (11.9)(b)
+(`IsMarkovChain.exists_isBoundaryLaw_eq_boundaryLawMeasure`, already in this file before this
+revision) represents `μ` by a boundary law `{ℓ_i, r_i}` for `Q` with `P(x, y) r_{i-1}(x) =
+Q(x, y) r_i(y)` for *every* `i`; identifying `P` with a matrix equivalent to `Q` in the fixed,
+`i`-independent sense of (11.5) seemed to need the sequence `r_i` itself to be (eventually)
+`i`-independent, which in turn looked like it would need a cocycle-rigidity argument on the
+constants `c_j` relating `{ℓ_i, r_i}` to its shift `{ℓ_{i-j}, r_{i-j}}` (both representing `μ`,
+since `μ` is shift-invariant): `j ↦ c_j` is a homomorphism `ℤ → (0, ∞)`, and ruling out `c_j ≠ 1`
+looked like the missing ingredient. **It is not needed.** The (11.11) relation is used at the
+*single* index `i = 0` only: `P(x, y) r_{-1}(x) = Q(x, y) r_0(y)`, and the *single* proportionality
+constant `c := c_1` (`IsBoundaryLaw.exists_const_of_boundaryLawMeasure_eq` applied once, at the
+shift `j = 1`, using only `θ_1(μ) = μ`) gives `r_{-1}(x) = c \, r_0(x)` directly, which turns the
+`i = 0` relation into exactly `P(x, y) = Q(x, y) r_0(y) / (c \, r_0(x))` — Georgii's (11.5), with
+`q := c`, `r := r_0`. No homomorphism, no rigidity, no case on `c_j`. Positive recurrence of `P` is
+comparatively routine given the library already in the tree:
+`IsMarkovChain.kernel_singleton_pos` gives `P(x, y) > 0` for every pair, hence `Kernel.ofMatrix P`
+is irreducible for counting measure (`Kernel.isIrreducible_count_ofMatrix_of_forall_pos`, new, general:
+belongs upstream next to `ProbabilityTheory.Kernel.isRecurrent_of_invariant` in
+`GibbsMeasure/Mathlib/Probability/Kernel/CountableMatrix/Recurrence.lean`); the shift-invariant
+marginal `α(x) := μ(σ_0 = x)` is an invariant probability measure for `P`
+(`IsMarkovChain.tsum_measure_preimage_mul` plus shift-invariance of the marginals,
+`map_eval_eq_of_measurePreserving_shift`); and `isRecurrent_of_invariant`, already in
+`Recurrence.lean`, does the rest.
 
-Comment (11.18)(2) is a free-standing numerical remark (a lower bound `C^{-1} ≤ Q(x,y)/(u(x)v(y))
-≤ C` forces `∑_x ∑_{n ≤ N} Q^n(x,x) < ∞`, hence cannot coexist with the hypothesis of (11.15) when
-`E` is infinite) that does not depend on Corollary (11.17)'s statement and could be formalized
-independently of the gap above; it is not attempted here for lack of time, not for a mathematical
-reason.
+**What genuinely remains**, and is not attempted here:
+
+* An explicit `iff` combining `invariantG_nonempty_of_rel` and
+  `exists_transferMatrix_equiv_and_isPositiveRecurrent_of_invariantG_nonempty` into one
+  biconditional statement of (11.13). This is bookkeeping, not new mathematics: the only missing
+  step is extracting, from an arbitrary `IsPositiveRecurrent (Kernel.ofMatrix P)`'s invariant
+  probability measure `μ`, the *positivity* `∀ x, 0 < μ {x}` that `invariantG_nonempty_of_rel`'s
+  hypothesis `hα0` demands (from `P` positive everywhere plus `Invariant.apply_singleton_eq_tsum`,
+  `μ {y} ≥ P z y \cdot μ {z}` for a single `z` with `μ {z} > 0`, itself from `μ ≠ 0` on a countable
+  space) — routine, not attempted for lack of time.
+* **Theorem (11.9)(c)** (a representing boundary law for *every* `μ ∈ ex 𝒢(Q)`, not only those
+  already known to be Markov chains) and hence **Theorem (11.15)** for an arbitrary extreme point
+  (only the case where `μ` is already the measure of a boundary law is proved above, in
+  `IsBoundaryLaw.boundaryLawMeasure_map_shift_eq_self_of_mem_extremePoints`) still go, in Georgii's
+  own proof, through Theorem (10.21) applied to `γ^Q`; this file's new
+  `isHomogeneousInt_rescaledTransferDensity` / `isIrreducibleInt_rescaledTransferDensity` supply
+  exactly the missing hypotheses for that instantiation, so `exists_isMarkovChain_of_mem_
+  extremePoints` (Theorem (10.21), already in `MarkovIntChains.lean`) is now directly applicable
+  to `γ^Q` — this file does not yet state that instantiation.
+* **Corollary (11.14)(a)** (uniqueness for `Q^p`, `p ≥ 1`): not attempted; it needs relating
+  `𝒢_Θ(γ^{Q^p})` to `𝒢_Θ(γ^Q)`, which is not otherwise touched here.
+* **Corollary (11.17)**: combines the existence half of (11.13) with the periodicity hypothesis of
+  (11.15)/(11.16); (11.15) itself is only proved above for `μ` already known to be a boundary-law
+  measure (see Theorem (11.9)(c) above), so (11.17) inherits that same gap.
+* **Comment (11.18)(3)** and **Corollary (11.19)** build on (11.17).
+* **Comment (11.18)(2)** is a free-standing numerical remark (a lower bound
+  `C^{-1} ≤ Q(x,y)/(u(x)v(y)) ≤ C` forces `∑_x ∑_{n ≤ N} Q^n(x,x) < ∞`, hence cannot coexist with
+  the hypothesis of (11.15) when `E` is infinite) independent of the gaps above; not attempted for
+  lack of time.
 -/
 
 @[expose] public section
@@ -1581,6 +1625,428 @@ theorem isMarkovianInt_rescaledTransferDensity :
   exact ((measurable_cylinderEvents_transferWeight_Ioo Q hik).div
       (measurable_cylinderEvents_lambdaWeight_countProbDensity hsub)).div
     (measurable_cylinderEvents_sigmaFiniteLambdaZ_transferWeight_Ioo Q hik)
+
+/-! ### Obstruction (i), fourth bullet: `rescaledTransferDensity Q` is homogeneous
+
+`IsHomogeneousInt` quantifies over *every* finite `Λ : Finset ℤ`, not only intervals, so this needs
+shift-covariance of `transferWeight`, of the constant `countProbDensity`-weight, and of the
+counting-measure partition function `sigmaFiniteLambdaZ`, each for an arbitrary volume. The first
+two are elementary `Finset` combinatorics on `bondsOf`. The third is not: `sigmaFiniteLambdaZ`
+is built from `Specification.sigmaFiniteLambdaFun`, an s-finite reference kernel assembled from
+`Kernel.sum`/`sfiniteSeq`, and *that* is shift-covariant for the same structural reason `isssd` is
+(`Specification.isssdFun_map_toFun`, `GibbsMeasure/Specification/Transformation.lean`) —
+`Specification.sigmaFiniteLambdaFun_apply_eq_map` identifies it with `Measure.map (juxt Λ η)
+(Measure.pi fun _ ↦ ν)`, the same closed form `isssdFun_apply` gives for probability `ν`, and the
+juxtaposition/reindexing lemmas of `MeasureTheory.GibbsMeasure.Transformation`
+(`toFun_comp_juxt`, `measurePreserving_spin_piCongrLeft`) need only `[SigmaFinite ν]`, not
+`[IsProbabilityMeasure ν]`. -/
+
+section Homogeneous
+
+variable (Q : E → E → ℝ≥0∞)
+
+omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- The bonds meeting a translate `Λ.image (·+a)` are the translate of the bonds meeting `Λ`. -/
+lemma bondsOf_image_add (Λ : Finset ℤ) (a : ℤ) :
+    bondsOf (Λ.image (· + a)) = (bondsOf Λ).image (· + a) := by
+  ext j
+  rw [Finset.mem_image, mem_bondsOf]
+  constructor
+  · rintro (h | h)
+    · obtain ⟨k, hk, rfl⟩ := Finset.mem_image.1 h
+      exact ⟨k, mem_bondsOf.2 (Or.inl hk), rfl⟩
+    · obtain ⟨k, hk, hjk⟩ := Finset.mem_image.1 h
+      refine ⟨k - 1, mem_bondsOf.2 (Or.inr ?_), by omega⟩
+      have hk1 : k - 1 + 1 = k := by ring
+      rwa [hk1]
+  · rintro ⟨k, hk, rfl⟩
+    rcases mem_bondsOf.1 hk with h | h
+    · exact Or.inl (Finset.mem_image.2 ⟨k, h, rfl⟩)
+    · exact Or.inr (Finset.mem_image.2 ⟨k + 1, h, by ring⟩)
+
+omit [Countable E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- `transferWeight Q` is shift-covariant for every finite volume, not merely intervals:
+`ρ^Q_{Λ+a}(ω) = ρ^Q_Λ(θ_{-a} ω)`. -/
+lemma transferWeight_image_add (Λ : Finset ℤ) (a : ℤ) (ω : ℤ → E) :
+    transferWeight Q (Λ.image (· + a)) ω = transferWeight Q Λ (transl E a ω) := by
+  unfold transferWeight
+  rw [bondsOf_image_add, Finset.prod_image fun x _ y _ h ↦ by omega]
+  refine Finset.prod_congr rfl fun k _ ↦ ?_
+  have h1 : transl E a ω k = ω (k + a) := transl_apply a ω k
+  have h2 : transl E a ω (k + 1) = ω (k + a + 1) := by
+    rw [transl_apply]; congr 1; ring
+  rw [h1, h2]
+
+/-- The constant `countProbDensity`-weight is shift-covariant for every finite volume. -/
+lemma lambdaWeight_countProbDensity_image_add (Λ : Finset ℤ) (a : ℤ) (ω : ℤ → E) :
+    Specification.lambdaWeight (S := ℤ) (E := E) (fun _ ↦ countProbDensity (E := E))
+        (Λ.image (· + a)) ω
+      = Specification.lambdaWeight (S := ℤ) (E := E) (fun _ ↦ countProbDensity (E := E)) Λ
+          (transl E a ω) := by
+  unfold Specification.lambdaWeight
+  rw [Finset.prod_image fun x _ y _ h ↦ by omega]
+  exact Finset.prod_congr rfl fun k _ ↦ by rw [transl_apply]
+
+omit [Countable E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- `(shift E (-a)).sites.symm y = y + a`: the site part of `θ_{-a}` inverted. -/
+lemma shift_neg_sites_symm_apply (a y : ℤ) : (shift E (-a)).sites.symm y = y + a := by
+  have h : (shift E (-a)).sites (y + a) = y := by
+    rw [show (shift E (-a)).sites = Equiv.addRight (-a) from rfl, Equiv.coe_addRight]
+    ring
+  exact ((shift E (-a)).sites.symm_apply_eq).2 h.symm
+
+omit [Countable E] [MeasurableSingletonClass E] [Nonempty E] in
+lemma map_shift_neg_sites_symm_toEmbedding (Λ : Finset ℤ) (a : ℤ) :
+    Λ.map (shift E (-a)).sites.symm.toEmbedding = Λ.image (· + a) := by
+  ext x
+  simp only [Finset.mem_map, Finset.mem_image, Equiv.coe_toEmbedding]
+  constructor
+  · rintro ⟨k, hk, rfl⟩
+    exact ⟨k, hk, (shift_neg_sites_symm_apply a k).symm⟩
+  · rintro ⟨k, hk, rfl⟩
+    exact ⟨k, hk, shift_neg_sites_symm_apply a k⟩
+
+omit [Nonempty E] in
+/-- **Shift-covariance of the σ-finite counting reference kernel**, for every finite volume.
+`sigmaFiniteLambdaZ` for counting measure is built from `Kernel.sum` over `sfiniteSeq`
+(`Specification.sigmaFiniteLambdaFun`), which the closed form `sigmaFiniteLambdaFun_apply_eq_map`
+identifies with `Measure.map (juxt Λ η) (Measure.pi fun _ ↦ ν)` — the same shape `isssdFun` has for
+a probability measure, so the same reindexing argument
+(`MeasureTheory.GibbsMeasure.Transformation.toFun_comp_juxt`,
+`.measurePreserving_spin_piCongrLeft`) applies, `SigmaFinite ν` being all it needs. -/
+lemma sigmaFiniteLambdaFun_count_map_transl_aux (a : ℤ) (Λ : Finset ℤ) (ζ : ℤ → E) :
+    (Specification.sigmaFiniteLambdaFun (S := ℤ) (E := E) Measure.count
+        (Λ.map (shift E (-a)).sites.symm.toEmbedding) ((shift E (-a)).inv.toFun ζ)).map
+        (shift E (-a)).toFun
+      = Specification.sigmaFiniteLambdaFun (S := ℤ) (E := E) Measure.count Λ ζ := by
+  have hτ : ∀ i : ℤ, MeasurePreserving ((shift E (-a)).spin i) (Measure.count : Measure E)
+      (Measure.count : Measure E) := fun i ↦ measurePreserving_shift_spin Measure.count (-a) i
+  simp only [Specification.sigmaFiniteLambdaFun_apply_eq_map]
+  rw [Measure.map_map (shift E (-a)).measurable_toFun Measurable.juxt,
+    (shift E (-a)).toFun_comp_juxt,
+    ← Measure.map_map Measurable.juxt
+      ((shift E (-a)).measurePreserving_spin_piCongrLeft hτ Λ).measurable,
+    ((shift E (-a)).measurePreserving_spin_piCongrLeft hτ Λ).map_eq]
+
+omit [Nonempty E] in
+/-- **Shift-covariance of `sigmaFiniteLambdaZ` for counting measure**, at every finite volume:
+`Z_{Λ+a}(ω) = Z_Λ(θ_{-a} ω)` in the pushforward sense that makes `Georgii's `ρ^Q`, integrated
+against it, shift-covariant too (`transferWeight_image_add`). -/
+lemma sigmaFiniteLambdaFun_count_map_transl (a : ℤ) (Λ : Finset ℤ) (ω : ℤ → E) :
+    (Specification.sigmaFiniteLambdaFun (S := ℤ) (E := E) Measure.count (Λ.image (· + a))
+        ω).map (transl E a)
+      = Specification.sigmaFiniteLambdaFun (S := ℤ) (E := E) Measure.count Λ (transl E a ω) := by
+  have hΛ : Λ.map (shift E (-a)).sites.symm.toEmbedding = Λ.image (· + a) :=
+    map_shift_neg_sites_symm_toEmbedding Λ a
+  have hfun : (shift E (-a)).toFun = transl E a := by
+    funext η i
+    rw [shift_toFun_apply, transl_apply, sub_neg_eq_add]
+  have hinv : (shift E (-a)).inv.toFun (transl E a ω) = ω := by
+    funext i
+    rw [shift_inv_toFun_apply, transl_apply]
+    congr 1
+    ring
+  have key := sigmaFiniteLambdaFun_count_map_transl_aux a Λ (transl E a ω)
+  rwa [hΛ, hfun, hinv] at key
+
+omit [Nonempty E] in
+/-- **Shift-covariance of the counting-measure partition function of `transferWeight Q`**, at
+every finite volume: `Z^Q_{Λ+a}(ω) = Z^Q_Λ(θ_{-a} ω)`. -/
+lemma sigmaFiniteLambdaZ_transferWeight_image_add (Λ : Finset ℤ) (a : ℤ) (ω : ℤ → E) :
+    Specification.sigmaFiniteLambdaZ (S := ℤ) (E := E) Measure.count (transferWeight Q)
+        (Λ.image (· + a)) ω
+      = Specification.sigmaFiniteLambdaZ (S := ℤ) (E := E) Measure.count (transferWeight Q) Λ
+          (transl E a ω) := by
+  unfold Specification.sigmaFiniteLambdaZ
+  rw [lintegral_congr fun x ↦ transferWeight_image_add Q Λ a x,
+    ← lintegral_map (measurable_transferWeight Q Λ) (measurable_transl a),
+    sigmaFiniteLambdaFun_count_map_transl]
+
+/-- **Obstruction (i), fourth bullet.** `rescaledTransferDensity Q` is homogeneous
+(`Specification.IsHomogeneousInt`), for *every* finite volume `Λ`, not only intervals. -/
+theorem isHomogeneousInt_rescaledTransferDensity :
+    Specification.IsHomogeneousInt (rescaledTransferDensity Q) := by
+  intro Λ a ω
+  have heq : (fun i ↦ ω (i + a)) = transl E a ω := funext fun i ↦ (transl_apply a ω i).symm
+  rw [heq, rescaledTransferDensity_apply, rescaledTransferDensity_apply,
+    transferWeight_image_add, lambdaWeight_countProbDensity_image_add,
+    sigmaFiniteLambdaZ_transferWeight_image_add]
+
+end Homogeneous
+
+/-! ### Obstruction (i), fifth bullet: `rescaledTransferDensity Q` is irreducible
+
+Georgii's Definition (10.23), instantiated with `n(N) ≡ 1` (justified by `IsTransferMatrix.pos`:
+`Q(x, y) > 0` for *every* pair, so no witnessing integer beyond `1` is ever needed), a finite
+exhaustion `C_N ↑ E` built from a fixed enumeration of the countable `E`, and the witness
+`h_N(x) := (inf_{y, y' ∈ C_N} Q(y, x) Q(x, y') / Q²(y, y')) / countProbDensity(x)`, a finite
+infimum of positive finite reals (hence positive and finite) since `C_N` is finite. The defining
+inequality of (10.23) at `n(N) = 1`, `Finset.Ioo (-1) 1 = {0}`, is exactly
+`transferWeight_singleton` after `marginalDensity` collapses over the empty erased set
+(`isssd_empty`). -/
+
+section Irreducible
+
+open scoped Classical
+
+/-- A fixed enumeration `ℕ → E` of the countable, nonempty state space. -/
+noncomputable def enumE : ℕ → E := (exists_surjective_nat E).choose
+
+omit [MeasurableSpace E] [MeasurableSingletonClass E] in
+lemma surjective_enumE : Function.Surjective (enumE (E := E)) :=
+  (exists_surjective_nat E).choose_spec
+
+/-- **Georgii's finite exhaustion `C_N`** of Definition (10.23): the image of the first `N`
+values of a fixed enumeration of `E`. -/
+noncomputable def countExhaustion (N : ℕ) : Finset E := (Finset.range N).image (enumE (E := E))
+
+omit [MeasurableSpace E] [MeasurableSingletonClass E] in
+lemma countExhaustion_mono : Monotone (countExhaustion (E := E)) := by
+  intro N N' hNN'
+  apply Finset.image_subset_image
+  intro k hk
+  simp only [Finset.mem_range] at hk ⊢
+  omega
+
+omit [MeasurableSpace E] [MeasurableSingletonClass E] in
+lemma iUnion_countExhaustion_eq_univ :
+    ⋃ N, (countExhaustion (E := E) N : Set E) = Set.univ := by
+  refine Set.eq_univ_of_forall fun x ↦ ?_
+  obtain ⟨n, hn⟩ := surjective_enumE x
+  refine Set.mem_iUnion.2 ⟨n + 1, ?_⟩
+  rw [countExhaustion, Finset.coe_image]
+  exact ⟨n, by simp, hn⟩
+
+omit [MeasurableSpace E] [MeasurableSingletonClass E] in
+lemma countExhaustion_nonempty {N : ℕ} (hN : 1 ≤ N) :
+    (countExhaustion (E := E) N).Nonempty :=
+  ⟨enumE 0, by rw [countExhaustion]; exact Finset.mem_image_of_mem _ (Finset.mem_range.2 (by
+    omega))⟩
+
+/-- **Georgii's witness `h_N`** of Definition (10.23), at `n(N) ≡ 1`:
+`h_N(x) = (inf_{y, y' ∈ C_N} Q(y, x) Q(x, y') / Q²(y, y')) / countProbDensity(x)`. A finite
+infimum over the finite exhaustion `countExhaustion N`, `⊤` if `N = 0`. -/
+noncomputable def irreducibleWitness (N : ℕ) (x : E) : ℝ≥0∞ :=
+  ((countExhaustion (E := E) N).inf fun y ↦
+      (countExhaustion (E := E) N).inf fun y' ↦
+        Q y x * Q x y' / (Kernel.ofMatrix Q ^ 2) y {y'})
+    / countProbDensity x
+
+lemma measurable_irreducibleWitness (N : ℕ) : Measurable (irreducibleWitness Q N) :=
+  measurable_of_countable _
+
+include hQ
+
+/-- `h_N(x) > 0` whenever `C_N` is non-empty. -/
+lemma irreducibleWitness_pos {N : ℕ} (hN : 1 ≤ N) (x : E) : 0 < irreducibleWitness Q N x := by
+  have hne := countExhaustion_nonempty (E := E) hN
+  have hpos : 0 < (countExhaustion (E := E) N).inf fun y ↦ (countExhaustion (E := E) N).inf
+      fun y' ↦ Q y x * Q x y' / (Kernel.ofMatrix Q ^ 2) y {y'} := by
+    rw [← Finset.inf'_eq_inf hne]
+    refine (Finset.lt_inf'_iff hne).2 fun y _ ↦ ?_
+    rw [← Finset.inf'_eq_inf hne]
+    refine (Finset.lt_inf'_iff hne).2 fun y' _ ↦ ?_
+    exact ENNReal.div_pos (mul_ne_zero (hQ.pos y x).ne' (hQ.pos x y').ne')
+      (hQ.pow_two_ne_top y y')
+  exact ENNReal.div_pos hpos.ne' (countProbDensity_ne_top x)
+
+/-- **Georgii Definition (10.23) at `n(N) ≡ 1`.** `rescaledTransferDensity Q` is irreducible for
+the probability measure `countProb`. -/
+theorem isIrreducibleInt_rescaledTransferDensity :
+    Specification.IsIrreducibleInt (countProb (E := E)) (rescaledTransferDensity Q) := by
+  refine ⟨fun N ↦ (countExhaustion (E := E) N : Set E), fun _ ↦ 1, irreducibleWitness Q,
+    fun N ↦ Set.Countable.measurableSet (countExhaustion (E := E) N).countable_toSet,
+    fun _ _ hNN' ↦ Finset.coe_subset.2 (countExhaustion_mono hNN'),
+    iUnion_countExhaustion_eq_univ, measurable_irreducibleWitness Q, fun _ ↦ le_rfl, ?_, ?_⟩
+  · filter_upwards [Filter.eventually_ge_atTop 1] with N hN
+    have hfun : Function.support (irreducibleWitness Q N) = Set.univ :=
+      Function.support_eq_univ fun x ↦ (irreducibleWitness_pos Q hQ hN x).ne'
+    have hmeas : Measurable (irreducibleWitness Q N) := measurable_irreducibleWitness Q N
+    rw [lintegral_pos_iff_support hmeas, hfun, measure_univ]
+    exact one_pos
+  · intro N ω h1 h2
+    have hΛ : Finset.Ioo (-((1 : ℕ) : ℤ)) ((1 : ℕ) : ℤ) = ({0} : Finset ℤ) := by
+      ext k; simp only [Nat.cast_one, Finset.mem_Ioo, Finset.mem_singleton]; omega
+    rw [hΛ]
+    have hmarg : Specification.marginalDensity (S := ℤ) (E := E) (countProb (E := E))
+        (rescaledTransferDensity Q) ({0} : Finset ℤ) 0 ω
+      = rescaledTransferDensity Q ({0} : Finset ℤ) ω := by
+      rw [Specification.marginalDensity]
+      have herase : ({0} : Finset ℤ).erase 0 = (∅ : Finset ℤ) := by simp
+      rw [herase, isssd_empty, lintegral_dirac' _ (measurable_rescaledTransferDensity Q _)]
+    rw [hmarg, rescaledTransferDensity_apply, transferWeight_singleton,
+      sigmaFiniteLambdaZ_transferWeight_singleton]
+    have hLW : Specification.lambdaWeight (S := ℤ) (E := E)
+        (fun _ ↦ countProbDensity (E := E)) ({0} : Finset ℤ) ω = countProbDensity (ω 0) := by
+      unfold Specification.lambdaWeight; simp
+    rw [hLW]
+    have hstep : (countExhaustion (E := E) N).inf (fun y ↦ (countExhaustion (E := E) N).inf
+          fun y' ↦ Q y (ω 0) * Q (ω 0) y' / (Kernel.ofMatrix Q ^ 2) y {y'})
+        ≤ Q (ω (-1)) (ω 0) * Q (ω 0) (ω 1) / (Kernel.ofMatrix Q ^ 2) (ω (-1)) {ω 1} :=
+      (Finset.inf_le h1).trans (Finset.inf_le h2)
+    calc irreducibleWitness Q N (ω 0)
+        = (countExhaustion (E := E) N).inf (fun y ↦ (countExhaustion (E := E) N).inf
+              fun y' ↦ Q y (ω 0) * Q (ω 0) y' / (Kernel.ofMatrix Q ^ 2) y {y'})
+            / countProbDensity (ω 0) := rfl
+      _ ≤ (Q (ω (-1)) (ω 0) * Q (ω 0) (ω 1) / (Kernel.ofMatrix Q ^ 2) (ω (-1)) {ω 1})
+            / countProbDensity (ω 0) := ENNReal.div_le_div hstep le_rfl
+      _ = Q (ω (-1)) (ω 0) * Q (ω 0) (ω 1) / countProbDensity (ω 0)
+            / (Kernel.ofMatrix Q ^ 2) (ω (-1)) {ω 1} := by
+          rw [div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv]
+          ring
+
+end Irreducible
+
+/-! ### Georgii Theorem (10.35) for `γ^Q`: at most one shift-invariant Gibbs measure
+
+`E` is `StandardBorelSpace` automatically: `[Countable E] [MeasurableSingletonClass E]` gives
+`DiscreteMeasurableSpace E` (`MeasurableSingletonClass.toDiscreteMeasurableSpace`), and
+`DiscreteMeasurableSpace` on a countable type gives `StandardBorelSpace`
+(`standardBorelSpace_of_discreteMeasurableSpace`); no extra hypothesis is needed. -/
+
+section TheoremOneOThreeFive
+
+/-- **Georgii Theorem (10.35), `𝒢_Θ(γ^Q) ⊆ ex 𝒢(γ^Q)`, instantiated at `γ^Q`.** Every
+shift-invariant Gibbs measure for `γ^Q = transferSpecification Q hQ` is extreme in `𝒢(γ^Q)`. -/
+theorem mem_extremePoints_G_transferSpecification_of_measurePreserving_shift
+    {μ : Measure (ℤ → E)} [IsProbabilityMeasure μ]
+    (hμ : (transferSpecification Q hQ).IsGibbsMeasure μ)
+    (hshift : ∀ a : ℤ, MeasurePreserving (shift E a).toFun μ μ) :
+    μ ∈ (G (transferSpecification Q hQ)).extremePoints ℝ≥0∞ :=
+  mem_extremePoints_G_of_measurePreserving_shift (transferSpecification_eq_isssd_withDensity Q hQ)
+    (measurable_rescaledTransferDensity Q) (isMarkovianInt_rescaledTransferDensity Q)
+    (isHomogeneousInt_rescaledTransferDensity Q) (isIrreducibleInt_rescaledTransferDensity Q hQ)
+    hμ hshift
+
+/-- **Georgii Theorem (10.25), instantiated at `γ^Q`.** Every shift-invariant Gibbs measure for
+`γ^Q` is a Markov chain for a *single* transition kernel `P(x, ·) = p(x, ·) · countProb`. -/
+theorem exists_isMarkovChain_transferSpecification_of_measurePreserving_shift
+    {μ : Measure (ℤ → E)} [IsProbabilityMeasure μ]
+    (hμ : (transferSpecification Q hQ).IsGibbsMeasure μ)
+    (hshift : ∀ a : ℤ, MeasurePreserving (shift E a).toFun μ μ) :
+    ∃ (p : E → E → ℝ≥0∞) (P : Kernel E E), Measurable (Function.uncurry p) ∧
+      (∀ x, P x = (countProb (E := E)).withDensity (p x)) ∧ IsMarkovKernel P ∧
+      IsMarkovChain (fun _ ↦ P) μ :=
+  exists_isMarkovChain_of_measurePreserving_shift (transferSpecification_eq_isssd_withDensity Q hQ)
+    (measurable_rescaledTransferDensity Q) (isMarkovianInt_rescaledTransferDensity Q)
+    (isHomogeneousInt_rescaledTransferDensity Q) (isIrreducibleInt_rescaledTransferDensity Q hQ)
+    hμ hshift
+
+/-- **Georgii Theorem (10.35), instantiated at `γ^Q`.** `𝒢_Θ(γ^Q)` is a subsingleton: any two
+shift-invariant Gibbs measures for `γ^Q = transferSpecification Q hQ` coincide. -/
+theorem eq_of_isGibbsMeasure_transferSpecification_of_measurePreserving_shift
+    {μ₁ μ₂ : Measure (ℤ → E)} [IsProbabilityMeasure μ₁] [IsProbabilityMeasure μ₂]
+    (hμ₁ : (transferSpecification Q hQ).IsGibbsMeasure μ₁)
+    (hμ₂ : (transferSpecification Q hQ).IsGibbsMeasure μ₂)
+    (hshift₁ : ∀ a : ℤ, MeasurePreserving (shift E a).toFun μ₁ μ₁)
+    (hshift₂ : ∀ a : ℤ, MeasurePreserving (shift E a).toFun μ₂ μ₂) :
+    μ₁ = μ₂ :=
+  eq_of_isGibbsMeasure_of_measurePreserving_shift (transferSpecification_eq_isssd_withDensity Q hQ)
+    (measurable_rescaledTransferDensity Q) (isMarkovianInt_rescaledTransferDensity Q)
+    (isHomogeneousInt_rescaledTransferDensity Q) (isIrreducibleInt_rescaledTransferDensity Q hQ)
+    hμ₁ hμ₂ hshift₁ hshift₂
+
+end TheoremOneOThreeFive
+
+/-! ### Georgii Theorem (11.13), the "only if" half
+
+If `𝒢_Θ(γ^Q) ≠ ∅`, take `μ` in it. Theorem (10.25) (just instantiated) supplies a *single* Markov
+transition kernel `P` for `μ`; Theorem (11.9)(b) (`IsMarkovChain.
+exists_isBoundaryLaw_eq_boundaryLawMeasure`, already in this file) represents `μ` as the measure
+of a boundary law `{ℓ_i, r_i}` for `Q` with `P(x, y) r_{i-1}(x) = Q(x, y) r_i(y)` for *every* `i`.
+Because `μ` is shift-invariant, `θ_1(μ) = μ`, so the shifted boundary law `{ℓ_{i-1}, r_{i-1}}` also
+represents `μ`; the proportionality lemma (`IsBoundaryLaw.exists_const_of_boundaryLawMeasure_eq`,
+already in this file) gives a single constant `c` with `r_{i-1}(x) = c · r_i(x)` for every `i` —
+in particular at `i = 0` — which turns the (11.11) relation at `i = 0` directly into Georgii's
+(11.5) equivalence `P(x, y) = Q(x, y) r(y) / (q r(x))` with `q := c`, `r := r_0`. No cocycle/
+rigidity argument on the constants `c_j` (`j ↦ c_j` a homomorphism `ℤ → (0, ∞)`) is needed: a
+single application of the proportionality lemma, at the single shift `j = 1`, already produces the
+(11.5) data.
+
+`P` is positive recurrent: `IsMarkovChain.kernel_singleton_pos` gives `P(x, y) > 0` for every pair
+(so `Kernel.ofMatrix P` is irreducible for counting measure, `isIrreducible_count_ofMatrix_of_
+forall_pos`), and the shift-invariant marginal `α(x) := μ(σ_0 = x)` is an invariant probability
+vector for `P` (`IsMarkovChain.tsum_measure_preimage_mul` plus the shift-invariance of the
+marginals), so `isRecurrent_of_invariant` applies. -/
+
+section OnlyIf
+
+/-- **Georgii Theorem (11.13), the "only if" half.** If `𝒢_Θ(γ^Q)` is non-empty, `Q` is
+equivalent, in the sense of (11.5), to a positive recurrent stochastic matrix `P`. -/
+theorem exists_transferMatrix_equiv_and_isPositiveRecurrent_of_invariantG_nonempty
+    (hne : (invariantG (transferSpecification Q hQ) (shiftGroup ℤ E)).Nonempty) :
+    ∃ (P : E → E → ℝ≥0∞) (q : ℝ≥0∞) (r : E → ℝ≥0∞), 0 < q ∧ q ≠ ⊤ ∧ (∀ x, 0 < r x) ∧
+      (∀ x, r x ≠ ⊤) ∧ (∀ x y, P x y = Q x y * r y / (q * r x)) ∧ (∀ x, ∑' y, P x y = 1) ∧
+      ProbabilityTheory.Kernel.IsPositiveRecurrent (Kernel.ofMatrix P) := by
+  obtain ⟨μ, ⟨hprob, hGibbs⟩, hinv⟩ := hne
+  have := hprob
+  obtain ⟨-, hshift⟩ := mem_invariantFields_shiftGroup.1 hinv
+  obtain ⟨p, Pk, hpmeas, hPapply, hPmarkov, hchain⟩ :=
+    exists_isMarkovChain_transferSpecification_of_measurePreserving_shift Q hQ hGibbs hshift
+  have hmarkovP : ∀ k : ℤ, IsMarkovKernel ((fun _ : ℤ ↦ Pk) k) := fun _ ↦ hPmarkov
+  -- **(11.9)(b)**: `μ` is the measure of a boundary law for `Q`, with the (11.11) relation.
+  obtain ⟨ℓ, r, hbl, hμeq, hrel⟩ :=
+    hchain.exists_isBoundaryLaw_eq_boundaryLawMeasure (Q := Q) hQ hGibbs
+  -- shift-invariance of `μ` transports to the boundary law: `θ_1(μ) = μ` gives the same measure
+  -- for the shift `{ℓ_{i-1}, r_{i-1}}`.
+  have hshift1 : (boundaryLawMeasure hbl).map (shift E (1 : ℤ)).toFun = boundaryLawMeasure hbl := by
+    have h := hshift 1
+    rw [hμeq] at h
+    exact h.2
+  have heqshift : boundaryLawMeasure hbl = boundaryLawMeasure (hbl.shift 1) := by
+    rw [← hbl.boundaryLawMeasure_map_shift 1, hshift1]
+  -- the proportionality lemma, at the single shift `j = 1`.
+  obtain ⟨c, hc0, hct, hℓc, hrc⟩ :=
+    hbl.exists_const_of_boundaryLawMeasure_eq hQ (hbl.shift 1) heqshift
+  -- `r_{-1}(x) = c · r_0(x)`, from the proportionality at `i = 0`.
+  have hr1 : ∀ x, r (-1) x = c * r 0 x := fun x ↦ hrc 0 x
+  -- Georgii's (11.5) data: `q := c`, the transfer matrix `P x y := Pk x {y}`.
+  set P : E → E → ℝ≥0∞ := fun x y ↦ Pk x {y} with hP_def
+  have hPQ : ∀ x y, P x y = Q x y * r 0 y / (c * r 0 x) := by
+    intro x y
+    have h11 : Pk x {y} * r (-1) x = Q x y * r 0 y := by
+      have h := hrel 0 x y
+      rwa [show (0 : ℤ) - 1 = -1 by ring] at h
+    rw [hr1 x] at h11
+    change Pk x {y} = Q x y * r 0 y / (c * r 0 x)
+    refine (ENNReal.eq_div_iff (mul_ne_zero hc0.ne' (hbl.right_pos 0 x).ne')
+      (ENNReal.mul_ne_top hct (hbl.right_ne_top 0 x))).2 ?_
+    rw [mul_comm]
+    exact h11
+  have hPpos : ∀ x y, 0 < P x y := fun x y ↦ hchain.kernel_singleton_pos hQ hGibbs 0 x y
+  have hofP : Kernel.ofMatrix P = Pk := Kernel.ofMatrix_entries Pk
+  have hmarkovOfP : IsMarkovKernel (Kernel.ofMatrix P) := by rw [hofP]; exact hPmarkov
+  have hirrP := Kernel.isIrreducible_count_ofMatrix_of_forall_pos hPpos
+  -- the invariant marginal `α(x) = μ(σ_0 = x)`
+  have hαprob : IsProbabilityMeasure (μ.map (fun ω : ℤ → E ↦ ω 0)) :=
+    Measure.isProbabilityMeasure_map (measurable_pi_apply 0).aemeasurable
+  have hmarg := map_eval_eq_of_measurePreserving_shift hshift
+  have hinvP : (Kernel.ofMatrix P).Invariant (μ.map (fun ω : ℤ → E ↦ ω 0)) := by
+    change (μ.map (fun ω : ℤ → E ↦ ω 0)).bind (Kernel.ofMatrix P) = μ.map (fun ω : ℤ → E ↦ ω 0)
+    refine Measure.ext_of_singleton fun y ↦ ?_
+    rw [Measure.bind_apply (measurableSet_singleton y) (Kernel.ofMatrix P).aemeasurable,
+      MeasureTheory.lintegral_countable']
+    have hstep := hchain.tsum_measure_preimage_mul 0 y
+    simp only [zero_add] at hstep
+    have hx0 : ∀ x, μ ((fun τ : ℤ → E ↦ τ (0 : ℤ)) ⁻¹' {x})
+        = (μ.map (fun ω : ℤ → E ↦ ω 0)) {x} := fun x ↦
+      (Measure.map_apply (measurable_pi_apply 0) (measurableSet_singleton x)).symm
+    have hy1 : μ ((fun τ : ℤ → E ↦ τ (1 : ℤ)) ⁻¹' {y})
+        = (μ.map (fun ω : ℤ → E ↦ ω 0)) {y} := by
+      rw [← Measure.map_apply (measurable_pi_apply 1) (measurableSet_singleton y), hmarg 1]
+    simp only [hx0] at hstep
+    rw [hy1] at hstep
+    refine (tsum_congr fun x ↦ ?_).trans hstep
+    rw [Kernel.ofMatrix_apply_singleton, hP_def, mul_comm]
+  have hPstoch : ∀ x, ∑' y, P x y = 1 := fun x ↦ by
+    have h1 : ∑' y, P x y = ∑' y, Pk x {y} := rfl
+    rw [h1, ← measure_univ_eq_tsum_singleton (Pk x)]
+    exact measure_univ
+  refine ⟨P, c, r 0, hc0, hct, fun x ↦ hbl.right_pos 0 x, fun x ↦ hbl.right_ne_top 0 x, hPQ,
+    hPstoch, Kernel.isRecurrent_of_invariant hinvP, μ.map (fun ω : ℤ → E ↦ ω 0),
+    Measure.isProbabilityMeasure_map (measurable_pi_apply 0).aemeasurable, hinvP⟩
+
+end OnlyIf
 
 end MarkovBridge
 
