@@ -9,12 +9,14 @@ public import GibbsMeasure.Model.BoundaryLaw
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.ENNReal
 public import GibbsMeasure.Model.MarkovChainInt
 public import GibbsMeasure.Specification.ErgodicGibbs
+public import GibbsMeasure.Specification.ExtremeCorollaries
 public import GibbsMeasure.Specification.ExtremeDecomposition
+public import GibbsMeasure.Specification.InvariantDecomposition
 public import GibbsMeasure.Specification.MarkovIntUniqueness
 
 /-!
-# Georgii §11.1, from Theorem (11.9)(b) on: Markov chains in `𝒢(Q)`, shift invariance, and the
-periodicity argument of Theorem (11.15)
+# Georgii §11.1, from Theorem (11.9)(b) on: Markov chains in `𝒢(Q)`, boundary laws for extreme
+points, Corollaries (11.14) and (11.17), and Theorem (11.15) in full
 
 Sites `ℤ`, a countable state space `E`, counting measure, a positive matrix `Q` with finite
 powers (Georgii (11.1)), its specification `γ^Q = transferSpecification Q hQ`, and the boundary
@@ -92,6 +94,19 @@ laws `{ℓ_i, r_i}` of Definition (11.8) with their measures (11.10) (`boundaryL
   (11.13), the "only if" half**: if `𝒢_Θ(γ^Q) ≠ ∅`, `Q` is equivalent, in the sense of (11.5), to
   a positive recurrent stochastic matrix. See below for exactly how this closes the gaps the
   previous version of this docstring recorded, and what remains.
+* `exists_isBoundaryLaw_boundaryLawMeasure_eq_of_mem_extremePoints` — **Georgii Theorem
+  (11.9)(c)**, representation clause: every `μ ∈ ex 𝒢(Q)` is the measure of a boundary law.
+* `isInvariant_shift_transferSpecification`, `mem_G_map_shift_of_mem_G`,
+  `mem_extremePoints_G_map_shift_of_mem_extremePoints` — shift-covariance of `γ^Q` as a
+  specification, and Remarks (5.10)/(7.2) for it.
+* `map_shift_eq_self_of_map_shift_eq_of_mem_G` — **Georgii Corollary (11.14)(a)**, in full
+  generality, by a Cesàro-averaging argument (see the module doc above `section
+  CorollaryOneOneFourteenA`) that needs no `Q^p` subsampling.
+* `eq_singleton_boundaryLawMeasure_const_or_infinite_extremePoints_G`,
+  `eq_empty_G_or_infinite_extremePoints_G` — **Georgii Corollary (11.14)(b), (c)**.
+* `G_eq_invariantG_of_forall_le_sum` — **Georgii Theorem (11.15)**, for a general extreme point.
+* `eq_singleton_boundaryLawMeasure_const_G_of_forall_le_sum`, `eq_empty_G_of_forall_le_sum` —
+  **Georgii Corollary (11.17)**, both halves.
 
 ## Georgii Theorem (11.13), in full, and what is not here
 
@@ -124,7 +139,8 @@ shift `j = 1`, using only `θ_1(μ) = μ`) gives `r_{-1}(x) = c \, r_0(x)` direc
 `q := c`, `r := r_0`. No homomorphism, no rigidity, no case on `c_j`. Positive recurrence of `P` is
 comparatively routine given the library already in the tree:
 `IsMarkovChain.kernel_singleton_pos` gives `P(x, y) > 0` for every pair, hence `Kernel.ofMatrix P`
-is irreducible for counting measure (`Kernel.isIrreducible_count_ofMatrix_of_forall_pos`, new, general:
+is irreducible for counting measure (`Kernel.isIrreducible_count_ofMatrix_of_forall_pos`, new,
+    general:
 belongs upstream next to `ProbabilityTheory.Kernel.isRecurrent_of_invariant` in
 `GibbsMeasure/Mathlib/Probability/Kernel/CountableMatrix/Recurrence.lean`); the shift-invariant
 marginal `α(x) := μ(σ_0 = x)` is an invariant probability measure for `P`
@@ -132,35 +148,88 @@ marginal `α(x) := μ(σ_0 = x)` is an invariant probability measure for `P`
 `map_eval_eq_of_measurePreserving_shift`); and `isRecurrent_of_invariant`, already in
 `Recurrence.lean`, does the rest.
 
-**What genuinely remains**, and is not attempted here:
+**What genuinely remains** of Theorem (11.13) itself:
 
 * An explicit `iff` combining `invariantG_nonempty_of_rel` and
   `exists_transferMatrix_equiv_and_isPositiveRecurrent_of_invariantG_nonempty` into one
-  biconditional statement of (11.13). This is bookkeeping, not new mathematics: the only missing
-  step is extracting, from an arbitrary `IsPositiveRecurrent (Kernel.ofMatrix P)`'s invariant
-  probability measure `μ`, the *positivity* `∀ x, 0 < μ {x}` that `invariantG_nonempty_of_rel`'s
-  hypothesis `hα0` demands (from `P` positive everywhere plus `Invariant.apply_singleton_eq_tsum`,
+  biconditional statement. This is bookkeeping, not new mathematics: the only missing step is
+  extracting, from an arbitrary `IsPositiveRecurrent (Kernel.ofMatrix P)`'s invariant probability
+  measure `μ`, the *positivity* `∀ x, 0 < μ {x}` that `invariantG_nonempty_of_rel`'s hypothesis
+  `hα0` demands (from `P` positive everywhere plus `Invariant.apply_singleton_eq_tsum`,
   `μ {y} ≥ P z y \cdot μ {z}` for a single `z` with `μ {z} > 0`, itself from `μ ≠ 0` on a countable
   space) — routine, not attempted for lack of time.
-* **Theorem (11.9)(c)** (a representing boundary law for *every* `μ ∈ ex 𝒢(Q)`, not only those
-  already known to be Markov chains) and hence **Theorem (11.15)** for an arbitrary extreme point
-  (only the case where `μ` is already the measure of a boundary law is proved above, in
-  `IsBoundaryLaw.boundaryLawMeasure_map_shift_eq_self_of_mem_extremePoints`) still go, in Georgii's
-  own proof, through Theorem (10.21) applied to `γ^Q`; this file's new
-  `isHomogeneousInt_rescaledTransferDensity` / `isIrreducibleInt_rescaledTransferDensity` supply
-  exactly the missing hypotheses for that instantiation, so `exists_isMarkovChain_of_mem_
-  extremePoints` (Theorem (10.21), already in `MarkovIntChains.lean`) is now directly applicable
-  to `γ^Q` — this file does not yet state that instantiation.
-* **Corollary (11.14)(a)** (uniqueness for `Q^p`, `p ≥ 1`): not attempted; it needs relating
-  `𝒢_Θ(γ^{Q^p})` to `𝒢_Θ(γ^Q)`, which is not otherwise touched here.
-* **Corollary (11.17)**: combines the existence half of (11.13) with the periodicity hypothesis of
-  (11.15)/(11.16); (11.15) itself is only proved above for `μ` already known to be a boundary-law
-  measure (see Theorem (11.9)(c) above), so (11.17) inherits that same gap.
-* **Comment (11.18)(3)** and **Corollary (11.19)** build on (11.17).
-* **Comment (11.18)(2)** is a free-standing numerical remark (a lower bound
-  `C^{-1} ≤ Q(x,y)/(u(x)v(y)) ≤ C` forces `∑_x ∑_{n ≤ N} Q^n(x,x) < ∞`, hence cannot coexist with
-  the hypothesis of (11.15) when `E` is infinite) independent of the gaps above; not attempted for
-  lack of time.
+
+## Theorem (11.9)(c) through Corollary (11.17): all now in the library
+
+* **Theorem (11.9)(c), representation clause**:
+  `exists_isBoundaryLaw_boundaryLawMeasure_eq_of_mem_extremePoints` — every `μ ∈ ex 𝒢(Q)` is the
+  measure of a boundary law, via Theorem (10.21) (`exists_isMarkovChain_of_mem_extremePoints`,
+  already in `MarkovIntChains.lean`) instantiated at `γ^Q` through
+  `transferSpecification_eq_isssd_withDensity` / `measurable_rescaledTransferDensity` /
+  `isMarkovianInt_rescaledTransferDensity`, then Theorem (11.9)(b). Georgii's quantitative
+  "moreover" clause (the explicit limit formula for `ℓ_i`, `r_i`) is not proved: it is not needed
+  for anything below. `map_shift_factorial_eq_self_of_mem_extremePoints` packages the immediate
+  consequence: every extreme point satisfies `θ_{N!}(μ) = μ` under Georgii's hypothesis.
+* **Shift-covariance of `γ^Q` as a specification** (`isInvariant_shift_transferSpecification`,
+  from `transferSpecification_map_transl`, assembled from the shift-covariance of `transferWeight`,
+  `sigmaFiniteLambdaZ`, and `sigmaFiniteLambdaFun` already used for
+  `isHomogeneousInt_rescaledTransferDensity`, but there never combined into the covariance of the
+  *specification itself*): gives Remark (5.10) for `γ^Q` (`mem_G_map_shift_of_mem_G`) and Remark
+  (7.2) for `γ^Q` (`mem_extremePoints_G_map_shift_of_mem_extremePoints`), neither available for a
+  general `transferSpecification` before this file.
+* **Corollary (11.14)(a)** (`map_shift_eq_self_of_map_shift_eq_of_mem_G`): if `θ_i(μ) = θ_j(μ)`
+  for `μ ∈ 𝒢(Q)` and `i ≠ j`, then `θ_a(μ) = μ` for every `a`. Georgii's own proof subsamples `Q`
+  to `Q^p` and identifies the law of `(σ_{pi})_i` as a Gibbs measure for `γ^{Q^p}`; the proof here
+  takes a shorter route through convexity alone (Cesàro-averaging the `θ_k(μ)`, `0 ≤ k < p`, using
+  only `centerMass_mem_G` — a finite-average form of convexity of `𝒢(Q)` from `add_smul_mem_G` —
+  the shift-covariance above, and Theorem (10.35) already generalised to `γ^Q`
+  (`mem_extremePoints_G_transferSpecification_of_measurePreserving_shift`); see the module
+  docstring immediately above `section CorollaryOneOneFourteenA` for the argument in full. No
+  `Q^p` machinery, no subsampling map, and no second instantiation of Theorem (10.21) is needed.
+* **Corollary (11.14)(b), (c)** (`eq_singleton_boundaryLawMeasure_const_or_infinite_
+  extremePoints_G`, `eq_empty_G_or_infinite_extremePoints_G`): via Theorem (7.26)
+  (`exists_mem_extremePoints_G_not_mem_invariantG_of_exists_not_mem_invariantG`, using
+  `join_mem_invariantFields` to show an extreme point escaping `𝒢_Θ(Q)` exists whenever some
+  Gibbs measure does), Corollary (11.14)(a) in the contrapositive
+  (`injective_map_shift_of_not_mem_invariantG`), and Remark (7.2)
+  (`infinite_extremePoints_G_of_exists_not_mem_invariantG`).
+* **Theorem (11.15), general extreme point** (`G_eq_invariantG_of_forall_le_sum`): the same
+  "escape" argument as (11.14)(b), (c) run in the contrapositive
+  (`G_eq_invariantG_of_extremePoints_G_subset_invariantG`), fed by (11.9)(c)'s periodicity
+  consequence and (11.14)(a).
+* **Corollary (11.17)**, both halves (`eq_singleton_boundaryLawMeasure_const_G_of_forall_le_sum`,
+  `eq_empty_G_of_forall_le_sum`): Theorem (11.15) combined with Theorem (11.13), packaged as the
+  set equalities `invariantG_eq_singleton_boundaryLawMeasure_const` /
+  `invariantG_eq_empty_of_not_exists_isPositiveRecurrent`.
+
+## What is not attempted, and precisely why
+
+* **Comment (11.18)(3)** (`Q = tP + (1-t)I` for `P` null recurrent or transient with `L(P) = 1`
+  satisfies (11.17)'s non-existence hypothesis): `lazy`, `lazy_stochastic`, `lazy_isTransferMatrix`,
+  `iInf_lazy_apply_self_pos` already supply the periodicity hypothesis of (11.17) at `N = 1`
+  (`inf_x Q(x,x) ≥ 1 - t > 0`). What is missing is Georgii's computation `L(Q) = tL(P) + 1 - t = 1`
+  itself, from the binomial identity `Q^n(x,x) = ∑_k C(n,k) t^k P^k(x,x) (1-t)^{n-k}` (needs a
+  binomial theorem for the commuting pair `(Kernel.ofMatrix P, Kernel.id)` under `(+, ∘ₖ)`, not
+  otherwise in the tree) feeding `Recurrence.lean`'s `convergenceNorm_eq_div_of_apply_eq_mul_div`
+  and `isPositiveRecurrent_of_apply_eq_mul_div`. A softer argument avoiding the binomial identity
+  was checked and does not work: from a hypothetical (11.5)-relation `R x y = Q x y r y/(q r x)`
+  with `R` stochastic and positive recurrent, summing over `y` gives `Q r = q r` (`r` a right
+  eigenvector of `Q` with eigenvalue `q`), but `r` is only known pointwise positive and finite, not
+  uniformly bounded or bounded away from `0`, so no sup/inf argument forces `q = 1` without the
+  genuine generating-function computation. This is a real, self-contained gap, not attempted here.
+* **Corollary (11.19)** (`E = ℤ^N`, homogeneous `Q` with `∑_x Q(0,x) < ∞` gives `𝒢(Q) = ∅`) needs
+  Georgii's own large-deviation argument (Cramér/Legendre transform: a minimiser `s₀` of
+  `φ(s) = ∑_x Q(0,x) e^{s\cdot x}` over `ℝ^N` with `φ(s₀) ≤ L(Q)`, obtained via a truncation and
+  Stirling-type lower bound `L(\tilde Q) ≥ \tildeφ(\tilde s)` on a finite-range approximation).
+  None of this — the convex-analysis minimisation, the combinatorial path-counting lower bound, or
+  the passage to the limit over the truncation — is in Mathlib or elsewhere in this tree; it is a
+  substantial standalone development, well beyond a §11.1 corollary, and is not attempted here.
+* **Comment (11.18)(2)** (a lower bound `C^{-1} ≤ Q(x,y)/(u(x)v(y)) ≤ C` forces
+  `∑_x ∑_{n ≤ N} Q^n(x,x) < ∞`, hence Theorem (8.39)'s and Corollary (11.17)'s uniqueness
+  conditions exclude each other when `E` is infinite) is a self-contained inequality (not
+  attempted here for lack of time) but its *conclusion* additionally needs Theorem (8.39)'s actual
+  statement, which lives in a different chapter's file (`Dobrushin.lean`, per the project's own
+  ontology notes) and is not touched by this one.
 -/
 
 @[expose] public section
@@ -2047,6 +2116,562 @@ theorem exists_transferMatrix_equiv_and_isPositiveRecurrent_of_invariantG_nonemp
     Measure.isProbabilityMeasure_map (measurable_pi_apply 0).aemeasurable, hinvP⟩
 
 end OnlyIf
+
+/-! ### Georgii Theorem (11.9)(c): a representing boundary law for every extreme point
+
+Theorem (10.21) (`exists_isMarkovChain_of_mem_extremePoints`, already in `MarkovIntChains.lean`)
+applies to `γ^Q = transferSpecification Q hQ` through `transferSpecification_eq_isssd_withDensity`,
+`measurable_rescaledTransferDensity`, and `isMarkovianInt_rescaledTransferDensity` (irreducibility
+and homogeneity are not needed for this half of (10.21), only the Markovian `λ`-modification
+structure): every extreme `μ ∈ ex 𝒢(Q)` is a Markov chain. Theorem (11.9)(b)
+(`IsMarkovChain.exists_isBoundaryLaw_eq_boundaryLawMeasure`, already in this file) then represents
+it by a boundary law for `Q`. Georgii's "moreover" clause of (11.9)(c) — the explicit limit
+formula `ℓ_i(x)/ℓ_0(a) = lim_n Q^{n+i}(x_n,x)/Q^n(x_n,a)` along a sequence `x_n → -∞` (and
+similarly for `r_i`) — is not proved here: it is a quantitative refinement of the representation
+below (via the backward martingale theorem and the left-tail triviality already used inside
+Theorem (10.21)'s own proof), not needed for Theorem (11.15). -/
+
+section ExtremePointsBoundaryLaw
+
+/-- **Georgii Theorem (11.9)(c), representation clause.** Every `μ ∈ ex 𝒢(Q)` is the measure
+(11.10) of a boundary law for `Q`. -/
+theorem exists_isBoundaryLaw_boundaryLawMeasure_eq_of_mem_extremePoints
+    {μ : Measure (ℤ → E)} [IsProbabilityMeasure μ]
+    (hμ : μ ∈ (G (transferSpecification Q hQ)).extremePoints ℝ≥0∞) :
+    ∃ (ℓ r : ℤ → E → ℝ≥0∞) (hbl : IsBoundaryLaw Q ℓ r), μ = boundaryLawMeasure hbl := by
+  obtain ⟨_p, P, -, -, hPmarkov, -, hchain⟩ :=
+    exists_isMarkovChain_of_mem_extremePoints (transferSpecification_eq_isssd_withDensity Q hQ)
+      (measurable_rescaledTransferDensity Q) (isMarkovianInt_rescaledTransferDensity Q) hμ
+  have : ∀ k, IsMarkovKernel (P k) := hPmarkov
+  obtain ⟨ℓ, r, hbl, hμeq, -⟩ :=
+    hchain.exists_isBoundaryLaw_eq_boundaryLawMeasure (Q := Q) hQ hμ.1.2
+  exact ⟨ℓ, r, hbl, hμeq⟩
+
+/-- **A first consequence of Theorem (11.9)(c): periodicity of every extreme point.** If
+`inf_x ∑_{n=1}^N Q^n(x,x) > 0` then every `μ ∈ ex 𝒢(Q)` satisfies `θ_{N!}(μ) = μ` — Georgii's own
+reduction in the proof of Theorem (11.15), applied through the boundary law representing `μ`
+supplied by (11.9)(c) above and the periodicity argument
+`IsBoundaryLaw.boundaryLawMeasure_map_shift_factorial_eq_self`. -/
+theorem map_shift_factorial_eq_self_of_mem_extremePoints
+    {μ : Measure (ℤ → E)} [IsProbabilityMeasure μ]
+    (hμ : μ ∈ (G (transferSpecification Q hQ)).extremePoints ℝ≥0∞)
+    {N : ℕ} (hN : 0 < N) {ε : ℝ≥0∞} (hε : 0 < ε)
+    (h : ∀ x, ε ≤ ∑ n ∈ Finset.Icc 1 N, (Kernel.ofMatrix Q ^ n) x {x}) :
+    μ.map (GibbsMeasure.shift E (N.factorial : ℤ)).toFun = μ := by
+  obtain ⟨ℓ, r, hbl, rfl⟩ :=
+    exists_isBoundaryLaw_boundaryLawMeasure_eq_of_mem_extremePoints Q hQ hμ
+  exact hbl.boundaryLawMeasure_map_shift_factorial_eq_self hQ hμ hN hε h
+
+end ExtremePointsBoundaryLaw
+
+/-! ### Shift-covariance of `γ^Q`: Georgii's implicit homogeneity, and Remarks (5.10)/(7.2) for it
+
+Georgii calls `γ^Q` "homogeneous" from the outset (the matrix `Q` does not depend on position);
+in this library that is the kernel-level statement `Specification.IsInvariant (shift E a)
+(transferSpecification Q hQ)` for every `a : ℤ`, assembled here from the shift-covariance of
+`transferWeight` (`transferWeight_image_add`), of the counting-measure partition function
+(`sigmaFiniteLambdaZ_transferWeight_image_add`), and of the σ-finite reference kernel itself
+(`sigmaFiniteLambdaFun_count_map_transl`) — all three already proved above for
+`isHomogeneousInt_rescaledTransferDensity`, but there only combined into the covariance of the
+*density* `rescaledTransferDensity Q`, not of the full specification `γ^Q` as a kernel. This is
+the input Corollary (11.14)(a) needs for Remark (5.10) (`θ_a(μ) ∈ 𝒢(Q)` whenever `μ ∈ 𝒢(Q)`) and
+Remark (7.2) (`θ_a` preserves extreme points), neither of which is otherwise available for
+`transferSpecification`. -/
+
+section ShiftCovariance
+
+/-- **Shift-covariance of `γ^Q` as a specification**, in terms of `transl E a = θ_{-a}`:
+`γ^Q_Λ(θ_{-a} ω) = (γ^Q_{Λ+a} ω).map θ_{-a}`. -/
+theorem transferSpecification_map_transl (Λ : Finset ℤ) (a : ℤ) (ω : ℤ → E) :
+    transferSpecification Q hQ Λ (transl E a ω)
+      = (transferSpecification Q hQ (Λ.image (· + a)) ω).map (transl E a) := by
+  refine Measure.ext fun A hA ↦ ?_
+  have hA' : MeasurableSet ((transl E a) ⁻¹' A) := (measurable_transl a) hA
+  rw [Measure.map_apply (measurable_transl a) hA,
+    transferSpecification_apply Q hQ Λ (transl E a ω) hA,
+    transferSpecification_apply Q hQ (Λ.image (· + a)) ω hA',
+    ← sigmaFiniteLambdaFun_count_map_transl a Λ ω,
+    setLIntegral_map hA (measurable_transferWeight Q Λ) (measurable_transl a),
+    sigmaFiniteLambdaZ_transferWeight_image_add Q Λ a ω,
+    setLIntegral_congr_fun hA' (fun ζ (_ : ζ ∈ (transl E a) ⁻¹' A) ↦
+      (transferWeight_image_add Q Λ a ζ).symm)]
+
+omit [Countable E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- `transl E (-a) = θ_a` in coordinates. -/
+lemma transl_neg_eq_shift_toFun (a : ℤ) : transl E (-a) = (shift E a).toFun := by
+  funext ω i
+  rw [transl_apply, shift_toFun_apply, sub_eq_add_neg]
+
+omit [Countable E] [MeasurableSingletonClass E] [Nonempty E] in
+lemma finset_map_shift_sites_toEmbedding (Λ : Finset ℤ) (a : ℤ) :
+    Λ.map (shift E a).sites.toEmbedding = Λ.image (· + a) := by
+  rw [Finset.map_eq_image]
+  rfl
+
+include hQ in
+/-- **Georgii's homogeneity of `γ^Q`, as `Specification.IsInvariant`.** `θ_a` is a symmetry of
+`γ^Q` for every `a : ℤ`. -/
+theorem isInvariant_shift_transferSpecification (a : ℤ) :
+    Specification.IsInvariant (shift E a) (transferSpecification Q hQ) := by
+  rw [Specification.isInvariant_iff]
+  intro Λ ω
+  rw [finset_map_shift_sites_toEmbedding, ← transl_neg_eq_shift_toFun a]
+  have key := transferSpecification_map_transl Q hQ (Λ.image (· + a)) (-a) ω
+  have himg : (Λ.image (· + a)).image (· + (-a)) = Λ := by
+    rw [Finset.image_image]
+    simp
+  rw [himg] at key
+  exact key.symm
+
+include hQ in
+/-- **Georgii, Remark (5.10) for `γ^Q`.** If `μ ∈ 𝒢(Q)` then `θ_a(μ) ∈ 𝒢(Q)` for every `a : ℤ`. -/
+theorem mem_G_map_shift_of_mem_G (a : ℤ) {μ : Measure (ℤ → E)}
+    (hμ : μ ∈ G (transferSpecification Q hQ)) :
+    μ.map (shift E a).toFun ∈ G (transferSpecification Q hQ) :=
+  map_mem_G (isInvariant_shift_transferSpecification Q hQ a) hμ
+
+include hQ in
+/-- **Georgii, Remark (7.2) for `γ^Q`.** If `μ ∈ ex 𝒢(Q)` then `θ_a(μ) ∈ ex 𝒢(Q)` for every
+`a : ℤ`. -/
+theorem mem_extremePoints_G_map_shift_of_mem_extremePoints (a : ℤ) {μ : Measure (ℤ → E)}
+    (hμ : μ ∈ (G (transferSpecification Q hQ)).extremePoints ℝ≥0∞) :
+    μ.map (shift E a).toFun ∈ (G (transferSpecification Q hQ)).extremePoints ℝ≥0∞ :=
+  map_mem_extremePoints_G (isInvariant_shift_transferSpecification Q hQ a) hμ
+
+end ShiftCovariance
+
+/-! ### Georgii Corollary (11.14)(a): periodicity forces shift-invariance
+
+Georgii's own proof goes through subsampling `Q` to `Q^p` and identifying the law of
+`(σ_{pi})_{i∈ℤ}` as a Gibbs measure for `γ^{Q^p}`. The argument below reaches the same conclusion
+by a shorter route through convexity, using only facts already in this file:
+
+If `θ_i(μ) = θ_j(μ)` for `i ≠ j`, put `p := |i - j| ≥ 1`; then `θ_p(μ) = μ`. Consider the
+Cesàro average `ν := p⁻¹ ∑_{k=0}^{p-1} θ_k(μ)`. Since `𝒢(Q)` is closed under (finite, equal-weight)
+convex combinations (`centerMass_mem_G`, from `add_smul_mem_G`) and each `θ_k(μ) ∈ 𝒢(Q)` (Remark
+(5.10), `mem_G_map_shift_of_mem_G`), `ν ∈ 𝒢(Q)`. Because `θ_p(μ) = μ` re-indexes the cyclic sum
+into itself, `θ_1(ν) = ν`; iterating (`map_shift_eq_self_of_map_shift_one_eq_self`) gives `θ_a(ν) =
+ν` for every `a`, so `ν ∈ 𝒢_Θ(Q)` and, by Theorem (10.35) (already generalised to `γ^Q` in this
+file, `mem_extremePoints_G_transferSpecification_of_measurePreserving_shift`), `ν ∈ ex 𝒢(Q)`.
+Peeling the last term off the Cesàro sum exhibits `ν` itself as a two-point convex combination of
+`θ_{p-1}(μ) ∈ 𝒢(Q)` and the average of the other `p - 1` terms `∈ 𝒢(Q)`; extremality of `ν` forces
+`θ_{p-1}(μ) = ν`. Since `ν` is `θ`-invariant, so is `θ_{p-1}(μ)`, and undoing the shift by `p - 1`
+(using `θ_p(μ) = μ`) shows `μ = θ_{p-1}(μ)` is `θ`-invariant too. -/
+
+section CorollaryOneOneFourteenA
+
+omit [Countable E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- `θ_0 = id`. -/
+lemma map_shift_zero_toFun (μ : Measure (ℤ → E)) : μ.map (shift E (0 : ℤ)).toFun = μ := by
+  have h : (shift E (0 : ℤ)).toFun = id := by
+    funext ω i
+    rw [shift_toFun_apply, sub_zero]
+    rfl
+  rw [h, Measure.map_id]
+
+omit [Countable E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- Pushforward composes additively along the shift group: `θ_b(θ_a(μ)) = θ_{a+b}(μ)`. -/
+lemma map_shift_add_toFun (μ : Measure (ℤ → E)) (a b : ℤ) :
+    (μ.map (shift E a).toFun).map (shift E b).toFun = μ.map (shift E (a + b)).toFun := by
+  rw [Measure.map_map (shift E b).measurable_toFun (shift E a).measurable_toFun,
+    shift_toFun_comp_shift_toFun, add_comm b a]
+
+omit [Countable E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- If `ν` is invariant under `θ_1` it is invariant under every `θ_a`. -/
+lemma map_shift_eq_self_of_map_shift_one_eq_self {ν : Measure (ℤ → E)}
+    (h1 : ν.map (shift E (1 : ℤ)).toFun = ν) (a : ℤ) : ν.map (shift E a).toFun = ν := by
+  have hm1 : ν.map (shift E (-1 : ℤ)).toFun = ν := by
+    have key := congrArg (fun μ ↦ μ.map (shift E (-1 : ℤ)).toFun) h1
+    rw [map_shift_add_toFun, show (1 : ℤ) + (-1) = 0 by ring, map_shift_zero_toFun] at key
+    exact key.symm
+  induction a using Int.induction_on with
+  | zero => exact map_shift_zero_toFun ν
+  | succ i ih => rw [← map_shift_add_toFun, ih, h1]
+  | pred i ih =>
+    rw [show (-(i : ℤ) - 1) = (-(i : ℤ)) + (-1) by ring, ← map_shift_add_toFun, ih, hm1]
+
+omit [Countable E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- Pushforward along a fixed shift commutes with finite sums of measures. -/
+lemma map_shift_finset_sum (a : ℤ) {ι : Type*} (s : Finset ι) (x : ι → Measure (ℤ → E)) :
+    (∑ k ∈ s, x k).map (shift E a).toFun = ∑ k ∈ s, (x k).map (shift E a).toFun := by
+  classical
+  induction s using Finset.induction_on with
+  | empty => simp
+  | @insert b s hnotmem ih =>
+    rw [Finset.sum_insert hnotmem, Finset.sum_insert hnotmem,
+      Measure.map_add _ _ (shift E a).measurable_toFun, ih]
+
+omit [Countable E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- The two-term convex split of an equal-weighted Cesàro average of `n + 1` terms. -/
+lemma centerMass_succ_eq {n : ℕ} (hn : 1 ≤ n) (x : ℕ → Measure (ℤ → E)) :
+    ((n + 1 : ℕ) : ℝ≥0∞)⁻¹ • ∑ k ∈ Finset.range (n + 1), x k
+      = ((n : ℝ≥0∞) / ((n : ℝ≥0∞) + 1)) • ((n : ℝ≥0∞)⁻¹ • ∑ k ∈ Finset.range n, x k)
+        + ((1 : ℝ≥0∞) / ((n : ℝ≥0∞) + 1)) • x n := by
+  have hn0 : (n : ℝ≥0∞) ≠ 0 := Nat.cast_ne_zero.2 (by omega)
+  have hcast : ((n + 1 : ℕ) : ℝ≥0∞) = (n : ℝ≥0∞) + 1 := by push_cast; ring
+  have hscalar : (n : ℝ≥0∞) / ((n : ℝ≥0∞) + 1) * (n : ℝ≥0∞)⁻¹ = ((n : ℝ≥0∞) + 1)⁻¹ := by
+    rw [div_eq_mul_inv, mul_right_comm, ENNReal.mul_inv_cancel hn0 (ENNReal.natCast_ne_top n),
+      one_mul]
+  have ha : ((n : ℝ≥0∞) / ((n : ℝ≥0∞) + 1)) • ((n : ℝ≥0∞)⁻¹ • ∑ k ∈ Finset.range n, x k)
+      = ((n : ℝ≥0∞) + 1)⁻¹ • ∑ k ∈ Finset.range n, x k := by
+    rw [smul_smul, hscalar]
+  have hb : ((1 : ℝ≥0∞) / ((n : ℝ≥0∞) + 1)) • x n = ((n : ℝ≥0∞) + 1)⁻¹ • x n := by
+    rw [one_div]
+  rw [Finset.sum_range_succ, smul_add, hcast, ha, hb]
+
+/-- **`𝒢(Q)` is closed under equal-weighted Cesàro averages of any finite positive size.** -/
+theorem centerMass_mem_G {n : ℕ} (hn : 1 ≤ n) (x : ℕ → Measure (ℤ → E))
+    (hx : ∀ k, x k ∈ G (transferSpecification Q hQ)) :
+    (n : ℝ≥0∞)⁻¹ • ∑ k ∈ Finset.range n, x k ∈ G (transferSpecification Q hQ) := by
+  induction n, hn using Nat.le_induction with
+  | base =>
+    rw [Finset.sum_range_one, Nat.cast_one, inv_one, one_smul]
+    exact hx 0
+  | succ n hn ih =>
+    rw [centerMass_succ_eq hn]
+    refine add_smul_mem_G ih (hx n) ?_
+    rw [ENNReal.div_add_div_same, ENNReal.div_self (by positivity) (by finiteness)]
+
+omit [Countable E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- The Cesàro-average identity underlying the shift-invariance of `ν` in the proof of
+Corollary (11.14)(a): if `θ_p(μ) = μ` then re-indexing the cyclic sum
+`∑_{k<p} θ_{k+1}(μ) = ∑_{k<p} θ_k(μ)`. -/
+lemma sum_range_map_shift_succ_eq {μ : Measure (ℤ → E)} {p : ℕ} (hp1 : 1 ≤ p)
+    (hp : μ.map (shift E (p : ℤ)).toFun = μ) :
+    ∑ k ∈ Finset.range p, μ.map (shift E (((k + 1 : ℕ) : ℤ))).toFun
+      = ∑ k ∈ Finset.range p, μ.map (shift E (k : ℤ)).toFun := by
+  obtain ⟨n, rfl⟩ : ∃ n, p = n + 1 := ⟨p - 1, by omega⟩
+  have hf0 : μ.map (shift E (((0 : ℕ) : ℤ))).toFun = μ := by
+    simpa using map_shift_zero_toFun μ
+  rw [Finset.sum_range_succ (fun k : ℕ ↦ μ.map (shift E (((k + 1 : ℕ) : ℤ))).toFun) n,
+    Finset.sum_range_succ' (fun k : ℕ ↦ μ.map (shift E (k : ℤ)).toFun) n, hp, hf0]
+
+include hQ in
+/-- **Georgii, Corollary (11.14)(a).** For `μ ∈ 𝒢(Q)`: either `μ` is shift-invariant, or its
+translates `θ_i(μ)` (`i ∈ ℤ`) are pairwise distinct. Equivalently, in the contrapositive form used
+here: if `θ_i(μ) = θ_j(μ)` for some `i ≠ j`, then `θ_a(μ) = μ` for every `a : ℤ`. -/
+theorem map_shift_eq_self_of_map_shift_eq_of_mem_G {μ : Measure (ℤ → E)} [IsProbabilityMeasure μ]
+    (hμ : μ ∈ G (transferSpecification Q hQ)) {i j : ℤ} (hij : i ≠ j)
+    (heq : μ.map (shift E i).toFun = μ.map (shift E j).toFun) (a : ℤ) :
+    μ.map (shift E a).toFun = μ := by
+  set p : ℕ := (i - j).natAbs with hpdef
+  have hpne : i - j ≠ 0 := sub_ne_zero.2 hij
+  have hp1 : 1 ≤ p := by rw [hpdef]; omega
+  have hp : μ.map (shift E (p : ℤ)).toFun = μ := by
+    rcases le_total 0 (i - j) with hnn | hnp
+    · have hcast : (p : ℤ) = i - j := by rw [hpdef, Int.natAbs_of_nonneg hnn]
+      rw [hcast]
+      have key := congrArg (fun ν ↦ ν.map (shift E (-j)).toFun) heq
+      rwa [map_shift_add_toFun, map_shift_add_toFun, show i + (-j) = i - j by ring,
+        show j + (-j) = 0 by ring, map_shift_zero_toFun] at key
+    · have hnatabs : (i - j).natAbs = (j - i).natAbs := by
+        rw [← Int.natAbs_neg (i - j)]; congr 1; ring
+      have hcast : (p : ℤ) = j - i := by
+        rw [hpdef, hnatabs, Int.natAbs_of_nonneg (by omega : (0:ℤ) ≤ j - i)]
+      rw [hcast]
+      have key := congrArg (fun ν ↦ ν.map (shift E (-i)).toFun) heq
+      rw [map_shift_add_toFun, map_shift_add_toFun, show i + (-i) = 0 by ring,
+        show j + (-i) = j - i by ring, map_shift_zero_toFun] at key
+      exact key.symm
+  set f : ℕ → Measure (ℤ → E) := fun k ↦ μ.map (shift E (k : ℤ)).toFun with hfdef
+  have hf0 : f 0 = μ := by rw [hfdef]; exact map_shift_zero_toFun μ
+  have hfp : f p = μ := hp
+  suffices hfin : ∀ b : ℤ, μ.map (shift E b).toFun = μ from hfin a
+  rcases eq_or_lt_of_le hp1 with hp1' | hp2
+  · -- `p = 1`: `μ` is itself invariant under `θ_1`.
+    refine map_shift_eq_self_of_map_shift_one_eq_self ?_
+    have hp1'' : (1 : ℤ) = (p : ℤ) := by exact_mod_cast hp1'
+    rw [hp1'']
+    exact hfp
+  · -- `p ≥ 2`: the Cesàro-average argument.
+    obtain ⟨n, hn⟩ : ∃ n, p = n + 1 := ⟨p - 1, by omega⟩
+    have hn1 : 1 ≤ n := by omega
+    set ν : Measure (ℤ → E) := (p : ℝ≥0∞)⁻¹ • ∑ k ∈ Finset.range p, f k with hνdef
+    have hνG : ν ∈ G (transferSpecification Q hQ) :=
+      centerMass_mem_G Q hQ hp1 f fun k ↦ mem_G_map_shift_of_mem_G Q hQ (k : ℤ) hμ
+    have hνprob : IsProbabilityMeasure ν := ((G.mem_iff ν).1 hνG).1
+    have hνGibbs : (transferSpecification Q hQ).IsGibbsMeasure ν := ((G.mem_iff ν).1 hνG).2
+    have hνshift1 : ν.map (shift E (1 : ℤ)).toFun = ν := by
+      rw [hνdef, Measure.map_smul, map_shift_finset_sum]
+      congr 1
+      have hstep : ∀ k : ℕ, (f k).map (shift E (1 : ℤ)).toFun
+          = μ.map (shift E (((k + 1 : ℕ) : ℤ))).toFun := by
+        intro k
+        have hcast : (k : ℤ) + 1 = (((k + 1 : ℕ)) : ℤ) := by push_cast; ring
+        change (μ.map (shift E (k : ℤ)).toFun).map (shift E (1 : ℤ)).toFun = _
+        rw [map_shift_add_toFun, hcast]
+      rw [Finset.sum_congr rfl fun k _ ↦ hstep k]
+      exact sum_range_map_shift_succ_eq hp1 hfp
+    have hνshiftall : ∀ b : ℤ, ν.map (shift E b).toFun = ν :=
+      map_shift_eq_self_of_map_shift_one_eq_self hνshift1
+    have hνext : ν ∈ (G (transferSpecification Q hQ)).extremePoints ℝ≥0∞ := by
+      have := hνprob
+      exact mem_extremePoints_G_transferSpecification_of_measurePreserving_shift Q hQ hνGibbs
+        (fun b ↦ ⟨(shift E b).measurable_toFun, hνshiftall b⟩)
+    -- Peel the last term `f n = f (p - 1)` off the Cesàro sum.
+    have hsplit : ν = ((n : ℝ≥0∞) / ((n : ℝ≥0∞) + 1)) • ((n : ℝ≥0∞)⁻¹ • ∑ k ∈ Finset.range n, f k)
+        + ((1 : ℝ≥0∞) / ((n : ℝ≥0∞) + 1)) • f n := by
+      rw [hνdef, hn, centerMass_succ_eq hn1]
+    have hTG : ((n : ℝ≥0∞)⁻¹ • ∑ k ∈ Finset.range n, f k) ∈ G (transferSpecification Q hQ) :=
+      centerMass_mem_G Q hQ hn1 f fun k ↦ mem_G_map_shift_of_mem_G Q hQ (k : ℤ) hμ
+    have hfnG : f n ∈ G (transferSpecification Q hQ) :=
+      mem_G_map_shift_of_mem_G Q hQ (n : ℤ) hμ
+    have hwsum : ((n : ℝ≥0∞) / ((n : ℝ≥0∞) + 1)) + ((1 : ℝ≥0∞) / ((n : ℝ≥0∞) + 1)) = 1 := by
+      rw [ENNReal.div_add_div_same, ENNReal.div_self (by positivity) (by finiteness)]
+    have hb1 : (n : ℝ≥0∞) + 1 ≠ ⊤ := by finiteness
+    have hn0' : (n : ℝ≥0∞) ≠ 0 := Nat.cast_ne_zero.2 (by omega)
+    have hseg : ν ∈ openSegment ℝ≥0∞ ((n : ℝ≥0∞)⁻¹ • ∑ k ∈ Finset.range n, f k) (f n) :=
+      ⟨_, _, ENNReal.div_pos hn0' hb1, ENNReal.div_pos one_ne_zero hb1, hwsum, hsplit.symm⟩
+    obtain ⟨-, hfnν⟩ := (mem_extremePoints.1 hνext).2 _ hTG _ hfnG hseg
+    -- `f n = ν` is `θ`-invariant; undo the shift by `n` (recall `p = n + 1` and `θ_p(μ) = μ`).
+    have hfnshift : ∀ b : ℤ, (f n).map (shift E b).toFun = f n := by
+      rw [hfnν]; exact hνshiftall
+    have keyshift : μ = f n := by
+      have h1 := hfnshift (-(n : ℤ))
+      change (μ.map (shift E (n : ℤ)).toFun).map (shift E (-(n : ℤ))).toFun
+        = μ.map (shift E (n : ℤ)).toFun at h1
+      rw [map_shift_add_toFun, show (n : ℤ) + (-(n : ℤ)) = 0 by ring,
+        map_shift_zero_toFun] at h1
+      exact h1
+    intro b
+    rw [keyshift]
+    exact hfnshift b
+
+end CorollaryOneOneFourteenA
+
+/-! ### Georgii Corollary (11.14)(b), (c): phase transition or uniqueness
+
+If `G(γ^Q) \ 𝒢_Θ(Q)` is non-empty, some *extreme* point escapes `𝒢_Θ(Q)` too — Georgii's use of
+Theorem (7.26): the weight `w_{μ₀}` of any `μ₀ ∈ G(Q) \ 𝒢_Θ(Q)` is carried by `ex 𝒢(Q)`, and if
+every extreme point were `Θ`-invariant, the barycentre `μ₀ = ∫ ν w_{μ₀}(dν)` would be too
+(`join_mem_invariantFields`), contradicting `μ₀ ∉ 𝒢_Θ(Q)`. Combined with Corollary (11.14)(a)
+(giving pairwise-distinct translates of such an extreme point) and Remark (7.2)
+(`mem_extremePoints_G_map_shift_of_mem_extremePoints`, already proved: translates of an extreme
+point are extreme), this yields an injection `ℤ ↪ ex 𝒢(Q)`, so `|ex 𝒢(Q)| = ∞`. -/
+
+section CorollaryOneOneFourteenBC
+
+include hQ in
+/-- If `G(Q) \ 𝒢_Θ(Q)` is non-empty, so is `ex 𝒢(Q) \ 𝒢_Θ(Q)` — Georgii's use of Theorem (7.26)
+in the proof of Corollary (11.14)(b), (c). -/
+theorem exists_mem_extremePoints_G_not_mem_invariantG_of_exists_not_mem_invariantG
+    {μ₀ : Measure (ℤ → E)} (hμ₀G : μ₀ ∈ G (transferSpecification Q hQ))
+    (hμ₀ : μ₀ ∉ invariantG (transferSpecification Q hQ) (shiftGroup ℤ E)) :
+    ∃ μ, μ ∈ (G (transferSpecification Q hQ)).extremePoints ℝ≥0∞ ∧
+      μ ∉ invariantG (transferSpecification Q hQ) (shiftGroup ℤ E) := by
+  by_contra hcon
+  push Not at hcon
+  have := hμ₀G.1
+  have hGne : (G (transferSpecification Q hQ)).Nonempty := ⟨μ₀, hμ₀G⟩
+  have hsub : (invariantFields (shiftGroup ℤ E) : Set (Measure (ℤ → E)))ᶜ ⊆
+      ((G (transferSpecification Q hQ)).extremePoints ℝ≥0∞)ᶜ :=
+    compl_subset_compl.2 fun ν hν ↦ invariantG_subset_invariantFields (hcon ν hν)
+  have hwc : (weightOf hGne μ₀) ((invariantFields (shiftGroup ℤ E))ᶜ) = 0 :=
+    measure_mono_null hsub (weightOf_extremePoints_compl hGne hμ₀G)
+  have hjoin := join_mem_invariantFields (weightOf hGne μ₀) hwc
+  rw [join_weightOf hGne hμ₀G] at hjoin
+  exact hμ₀ ⟨hμ₀G, hjoin⟩
+
+include hQ in
+/-- If `μ ∈ 𝒢(Q)` is not `Θ`-invariant, its translates `θ_i(μ)` are pairwise distinct — the
+contrapositive of Corollary (11.14)(a). -/
+theorem injective_map_shift_of_not_mem_invariantG {μ : Measure (ℤ → E)} [IsProbabilityMeasure μ]
+    (hμ : μ ∈ G (transferSpecification Q hQ))
+    (hnotinv : μ ∉ invariantG (transferSpecification Q hQ) (shiftGroup ℤ E)) :
+    Function.Injective (fun i : ℤ ↦ μ.map (shift E i).toFun) := by
+  intro i j hij
+  by_contra hne
+  refine hnotinv ⟨hμ, mem_invariantFields_shiftGroup.2 ⟨inferInstance, fun a ↦
+    ⟨(shift E a).measurable_toFun, ?_⟩⟩⟩
+  exact map_shift_eq_self_of_map_shift_eq_of_mem_G Q hQ hμ hne hij a
+
+include hQ in
+/-- If some `μ₀ ∈ 𝒢(Q)` is not `Θ`-invariant, then `ex 𝒢(Q)` is infinite — the shared conclusion
+of Corollary (11.14)(b), (c). -/
+theorem infinite_extremePoints_G_of_exists_not_mem_invariantG {μ₀ : Measure (ℤ → E)}
+    (hμ₀G : μ₀ ∈ G (transferSpecification Q hQ))
+    (hμ₀ : μ₀ ∉ invariantG (transferSpecification Q hQ) (shiftGroup ℤ E)) :
+    ((G (transferSpecification Q hQ)).extremePoints ℝ≥0∞).Infinite := by
+  obtain ⟨μ, hμext, hμninv⟩ :=
+    exists_mem_extremePoints_G_not_mem_invariantG_of_exists_not_mem_invariantG Q hQ hμ₀G hμ₀
+  have hμprob : IsProbabilityMeasure μ := hμext.1.1
+  have hinj := injective_map_shift_of_not_mem_invariantG Q hQ hμext.1 hμninv
+  have hrange : Set.range (fun i : ℤ ↦ μ.map (shift E i).toFun)
+      ⊆ (G (transferSpecification Q hQ)).extremePoints ℝ≥0∞ := by
+    rintro _ ⟨i, rfl⟩
+    exact mem_extremePoints_G_map_shift_of_mem_extremePoints Q hQ i hμext
+  exact Set.Infinite.mono hrange (Set.infinite_range_of_injective hinj)
+
+include hQ in
+/-- **Georgii, Theorem (11.13), packaged as a set equality.** The `Θ`-invariant Gibbs measures for
+`γ^Q` are exactly `{μ_P}` when `Q ~ P` for a positive recurrent stochastic matrix `P` with positive
+entries. -/
+theorem invariantG_eq_singleton_boundaryLawMeasure_const
+    {P : E → E → ℝ≥0∞} (hpos : ∀ x y, 0 < P x y) (hP : ∀ x, ∑' y, P x y = 1)
+    {α : E → ℝ≥0∞} (hα0 : ∀ x, 0 < α x) (hαt : ∀ x, α x ≠ ⊤) (hα1 : ∑' x, α x = 1)
+    (hαP : ∀ y, ∑' x, α x * P x y = α y)
+    (heq : transferSpecification Q hQ
+      = transferSpecification P (isTransferMatrix_of_stochastic hpos hP)) :
+    invariantG (transferSpecification Q hQ) (shiftGroup ℤ E)
+      = {boundaryLawMeasure (isBoundaryLaw_const hP hα0 hαt hα1 hαP)} := by
+  set μP := boundaryLawMeasure (isBoundaryLaw_const hP hα0 hαt hα1 hαP) with hμPdef
+  have hμPinv : μP ∈ invariantG (transferSpecification Q hQ) (shiftGroup ℤ E) :=
+    boundaryLawMeasure_const_mem_invariantG hpos hP hα0 hαt hα1 hαP hQ heq
+  ext ν
+  constructor
+  · rintro ⟨⟨hνprob, hνGibbs⟩, hνinv⟩
+    have := hνprob
+    have hμPGibbs : (transferSpecification Q hQ).IsGibbsMeasure μP := hμPinv.1.2
+    have hνshift := (mem_invariantFields_shiftGroup.1 hνinv).2
+    have hμPshift := (mem_invariantFields_shiftGroup.1 hμPinv.2).2
+    exact Set.mem_singleton_iff.2
+      (eq_of_isGibbsMeasure_transferSpecification_of_measurePreserving_shift Q hQ hνGibbs
+        hμPGibbs hνshift hμPshift)
+  · rintro rfl
+    exact hμPinv
+
+include hQ in
+/-- **Georgii, Theorem (11.13), "only if" half, packaged as a set equality.** The `Θ`-invariant
+Gibbs measures for `γ^Q` are empty when `Q` is not equivalent to any positive recurrent stochastic
+matrix with positive entries. -/
+theorem invariantG_eq_empty_of_not_exists_isPositiveRecurrent
+    (hnotequiv : ¬ ∃ (P : E → E → ℝ≥0∞) (q : ℝ≥0∞) (r : E → ℝ≥0∞), 0 < q ∧ q ≠ ⊤ ∧
+      (∀ x, 0 < r x) ∧ (∀ x, r x ≠ ⊤) ∧ (∀ x y, P x y = Q x y * r y / (q * r x)) ∧
+      (∀ x, ∑' y, P x y = 1) ∧
+      ProbabilityTheory.Kernel.IsPositiveRecurrent (Kernel.ofMatrix P)) :
+    invariantG (transferSpecification Q hQ) (shiftGroup ℤ E) = ∅ := by
+  by_contra hne
+  obtain ⟨ν, hν⟩ := Set.nonempty_iff_ne_empty.2 hne
+  obtain ⟨P, q, r, hq0, hqt, hr0, hrt, hPQ, hPstoch, hposrec⟩ :=
+    exists_transferMatrix_equiv_and_isPositiveRecurrent_of_invariantG_nonempty Q hQ ⟨ν, hν⟩
+  exact hnotequiv ⟨P, q, r, hq0, hqt, hr0, hrt, hPQ, hPstoch, hposrec⟩
+
+include hQ in
+/-- **Georgii, Corollary (11.14)(b).** If `Q ~ P` for a positive recurrent stochastic matrix `P`
+with positive entries (`P` stochastic with invariant probability vector `α`), then either
+`𝒢(Q) = {μ_P}` or `|ex 𝒢(Q)| = ∞`. -/
+theorem eq_singleton_boundaryLawMeasure_const_or_infinite_extremePoints_G
+    {P : E → E → ℝ≥0∞} (hpos : ∀ x y, 0 < P x y) (hP : ∀ x, ∑' y, P x y = 1)
+    {α : E → ℝ≥0∞} (hα0 : ∀ x, 0 < α x) (hαt : ∀ x, α x ≠ ⊤) (hα1 : ∑' x, α x = 1)
+    (hαP : ∀ y, ∑' x, α x * P x y = α y)
+    (heq : transferSpecification Q hQ
+      = transferSpecification P (isTransferMatrix_of_stochastic hpos hP)) :
+    G (transferSpecification Q hQ)
+        = {boundaryLawMeasure (isBoundaryLaw_const hP hα0 hαt hα1 hαP)}
+      ∨ ((G (transferSpecification Q hQ)).extremePoints ℝ≥0∞).Infinite := by
+  set μP := boundaryLawMeasure (isBoundaryLaw_const hP hα0 hαt hα1 hαP) with hμPdef
+  have hinvsingle := invariantG_eq_singleton_boundaryLawMeasure_const Q hQ hpos hP hα0 hαt hα1 hαP
+    heq
+  have hμPG : μP ∈ G (transferSpecification Q hQ) :=
+    (hinvsingle ▸ Set.mem_singleton μP : μP ∈ invariantG _ _).1
+  rcases eq_or_ne (G (transferSpecification Q hQ)) {μP} with heqG | hneG
+  · exact Or.inl heqG
+  · refine Or.inr ?_
+    have hex : ∃ μ₀ ∈ G (transferSpecification Q hQ),
+        μ₀ ∉ invariantG (transferSpecification Q hQ) (shiftGroup ℤ E) := by
+      by_contra hcon
+      push Not at hcon
+      refine hneG (Set.Subset.antisymm (fun ν hν ↦ ?_) (fun ν hν ↦ ?_))
+      · rw [hinvsingle] at hcon; exact hcon ν hν
+      · rw [Set.mem_singleton_iff.1 hν]; exact hμPG
+    obtain ⟨μ₀, hμ₀G, hμ₀⟩ := hex
+    exact infinite_extremePoints_G_of_exists_not_mem_invariantG Q hQ hμ₀G hμ₀
+
+include hQ in
+/-- **Georgii, Corollary (11.14)(c).** If `Q` is not equivalent to any positive recurrent
+stochastic matrix with positive entries, then either `𝒢(Q) = ∅` or `|ex 𝒢(Q)| = ∞`. -/
+theorem eq_empty_G_or_infinite_extremePoints_G
+    (hnotequiv : ¬ ∃ (P : E → E → ℝ≥0∞) (q : ℝ≥0∞) (r : E → ℝ≥0∞), 0 < q ∧ q ≠ ⊤ ∧
+      (∀ x, 0 < r x) ∧ (∀ x, r x ≠ ⊤) ∧ (∀ x y, P x y = Q x y * r y / (q * r x)) ∧
+      (∀ x, ∑' y, P x y = 1) ∧
+      ProbabilityTheory.Kernel.IsPositiveRecurrent (Kernel.ofMatrix P)) :
+    G (transferSpecification Q hQ) = ∅
+      ∨ ((G (transferSpecification Q hQ)).extremePoints ℝ≥0∞).Infinite := by
+  rcases Set.eq_empty_or_nonempty (G (transferSpecification Q hQ)) with hempty | ⟨μ₀, hμ₀⟩
+  · exact Or.inl hempty
+  · exact Or.inr (infinite_extremePoints_G_of_exists_not_mem_invariantG Q hQ hμ₀
+      (by rw [invariantG_eq_empty_of_not_exists_isPositiveRecurrent Q hQ hnotequiv]
+          exact Set.notMem_empty μ₀))
+
+end CorollaryOneOneFourteenBC
+
+/-! ### Georgii Theorem (11.15), general extreme point, and Corollary (11.17)
+
+`ex 𝒢(Q) ⊆ 𝒢_Θ(Q)` (from the periodicity `θ_{N!}(μ) = μ` of every extreme point, Corollary
+(11.14)(a), and `N! ≠ 0`) together with Theorem (7.26) (every `μ ∈ 𝒢(Q)` is a barycentre of `ex
+𝒢(Q)`) gives `𝒢(Q) = 𝒢_Θ(Q)` — the same "escape" argument as Corollary (11.14)(b), (c), run in the
+contrapositive. Corollary (11.17) then combines this with Theorem (11.13)
+(`invariantG_eq_singleton_boundaryLawMeasure_const`,
+`invariantG_eq_empty_of_not_exists_isPositiveRecurrent`, both already proved above). -/
+
+section TheoremOneOneFifteen
+
+include hQ in
+/-- If every extreme point of `𝒢(Q)` is `Θ`-invariant, then `𝒢(Q) = 𝒢_Θ(Q)` — the contrapositive
+of `exists_mem_extremePoints_G_not_mem_invariantG_of_exists_not_mem_invariantG`, combined with
+`invariantG_subset_G`. -/
+theorem G_eq_invariantG_of_extremePoints_G_subset_invariantG
+    (hsub : (G (transferSpecification Q hQ)).extremePoints ℝ≥0∞ ⊆
+      invariantG (transferSpecification Q hQ) (shiftGroup ℤ E)) :
+    G (transferSpecification Q hQ) = invariantG (transferSpecification Q hQ) (shiftGroup ℤ E) := by
+  refine Set.Subset.antisymm (fun μ₀ hμ₀G ↦ ?_) invariantG_subset_G
+  by_contra hμ₀
+  obtain ⟨μ, hμext, hμninv⟩ :=
+    exists_mem_extremePoints_G_not_mem_invariantG_of_exists_not_mem_invariantG Q hQ hμ₀G hμ₀
+  exact hμninv (hsub hμext)
+
+include hQ in
+/-- **Georgii, Theorem (11.15), for a general extreme point.** If
+`inf_x ∑_{n=1}^N Q^n(x,x) > 0` for some `N ≥ 1`, then `𝒢(Q) = 𝒢_Θ(Q)`. -/
+theorem G_eq_invariantG_of_forall_le_sum {N : ℕ} (hN : 0 < N) {ε : ℝ≥0∞} (hε : 0 < ε)
+    (h : ∀ x, ε ≤ ∑ n ∈ Finset.Icc 1 N, (Kernel.ofMatrix Q ^ n) x {x}) :
+    G (transferSpecification Q hQ) = invariantG (transferSpecification Q hQ) (shiftGroup ℤ E) := by
+  refine G_eq_invariantG_of_extremePoints_G_subset_invariantG Q hQ fun μ hμ ↦ ?_
+  have hμprob : IsProbabilityMeasure μ := hμ.1.1
+  have hμG : μ ∈ G (transferSpecification Q hQ) := hμ.1
+  have hper : μ.map (shift E (N.factorial : ℤ)).toFun = μ :=
+    map_shift_factorial_eq_self_of_mem_extremePoints Q hQ hμ hN hε h
+  have hne : (N.factorial : ℤ) ≠ (0 : ℤ) := Int.natCast_ne_zero.2 (Nat.factorial_ne_zero N)
+  have heq0 : μ.map (shift E (N.factorial : ℤ)).toFun = μ.map (shift E (0 : ℤ)).toFun :=
+    hper.trans (map_shift_zero_toFun μ).symm
+  have hshift : ∀ a : ℤ, μ.map (shift E a).toFun = μ := fun a ↦
+    map_shift_eq_self_of_map_shift_eq_of_mem_G Q hQ hμG hne heq0 a
+  exact ⟨hμG, mem_invariantFields_shiftGroup.2 ⟨inferInstance, fun a ↦
+    ⟨(shift E a).measurable_toFun, hshift a⟩⟩⟩
+
+include hQ in
+/-- **Georgii, Corollary (11.17), existence-uniqueness half.** If `Q ~ P` for a positive recurrent
+stochastic matrix `P` with positive entries, and `inf_x ∑_{n=1}^N Q^n(x,x) > 0` for some `N ≥ 1`,
+then `𝒢(Q) = {μ_P}`. -/
+theorem eq_singleton_boundaryLawMeasure_const_G_of_forall_le_sum
+    {P : E → E → ℝ≥0∞} (hpos : ∀ x y, 0 < P x y) (hP : ∀ x, ∑' y, P x y = 1)
+    {α : E → ℝ≥0∞} (hα0 : ∀ x, 0 < α x) (hαt : ∀ x, α x ≠ ⊤) (hα1 : ∑' x, α x = 1)
+    (hαP : ∀ y, ∑' x, α x * P x y = α y)
+    (heq : transferSpecification Q hQ
+      = transferSpecification P (isTransferMatrix_of_stochastic hpos hP))
+    {N : ℕ} (hN : 0 < N) {ε : ℝ≥0∞} (hε : 0 < ε)
+    (h : ∀ x, ε ≤ ∑ n ∈ Finset.Icc 1 N, (Kernel.ofMatrix Q ^ n) x {x}) :
+    G (transferSpecification Q hQ)
+      = {boundaryLawMeasure (isBoundaryLaw_const hP hα0 hαt hα1 hαP)} := by
+  rw [G_eq_invariantG_of_forall_le_sum Q hQ hN hε h,
+    invariantG_eq_singleton_boundaryLawMeasure_const Q hQ hpos hP hα0 hαt hα1 hαP heq]
+
+include hQ in
+/-- **Georgii, Corollary (11.17), non-existence half.** If `Q` is not equivalent to any positive
+recurrent stochastic matrix with positive entries, and `inf_x ∑_{n=1}^N Q^n(x,x) > 0` for some
+`N ≥ 1`, then `𝒢(Q) = ∅`. -/
+theorem eq_empty_G_of_forall_le_sum
+    (hnotequiv : ¬ ∃ (P : E → E → ℝ≥0∞) (q : ℝ≥0∞) (r : E → ℝ≥0∞), 0 < q ∧ q ≠ ⊤ ∧
+      (∀ x, 0 < r x) ∧ (∀ x, r x ≠ ⊤) ∧ (∀ x y, P x y = Q x y * r y / (q * r x)) ∧
+      (∀ x, ∑' y, P x y = 1) ∧
+      ProbabilityTheory.Kernel.IsPositiveRecurrent (Kernel.ofMatrix P))
+    {N : ℕ} (hN : 0 < N) {ε : ℝ≥0∞} (hε : 0 < ε)
+    (h : ∀ x, ε ≤ ∑ n ∈ Finset.Icc 1 N, (Kernel.ofMatrix Q ^ n) x {x}) :
+    G (transferSpecification Q hQ) = ∅ := by
+  rw [G_eq_invariantG_of_forall_le_sum Q hQ hN hε h,
+    invariantG_eq_empty_of_not_exists_isPositiveRecurrent Q hQ hnotequiv]
+
+end TheoremOneOneFifteen
 
 end MarkovBridge
 
