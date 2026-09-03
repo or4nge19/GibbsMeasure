@@ -13,6 +13,7 @@ public import GibbsMeasure.Mathlib.Data.Countable.Basic
 public import GibbsMeasure.Mathlib.Analysis.Subadditive.Cubes
 public import GibbsMeasure.Mathlib.InformationTheory.RelativeEntropy
 public import GibbsMeasure.Mathlib.Analysis.Normed.Algebra.ClosedSubalgebra
+public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Gaussian.Multivariate
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Tanh
 public import GibbsMeasure.Mathlib.Analysis.Normed.Lp.lpSpace
 public import GibbsMeasure.Mathlib.Data.ENNReal.Basic
