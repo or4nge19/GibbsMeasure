@@ -40,6 +40,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Function.StronglyMeasurable.Bas
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.Bochner.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.DominatedConvergence
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.IntegrableOn
+public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Density
 public import GibbsMeasure.Mathlib.Probability.Moments.Covariance
 public import GibbsMeasure.Mathlib.Probability.UniformOn
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.SetwiseConvergence
