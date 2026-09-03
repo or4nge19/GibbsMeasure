@@ -446,4 +446,84 @@ lemma normAt_eq_of_isShiftInvariant {S : Type*} [AddGroup S] {Φ : Potential S E
 
 end Potential
 
+/-! ### General lemmas on pair potentials -/
+
+namespace Potential
+
+variable {S E : Type*} [MeasurableSpace E]
+
+/-- A potential of finite range with bounded interaction terms is absolutely summable. -/
+lemma IsAbsolutelySummable.of_isFiniteRange {Φ : Potential S E} [IsFiniteRange Φ]
+    (h : ∀ A : Finset S, (⨆ η, ‖Φ A η‖ₑ) ≠ ⊤) : IsAbsolutelySummable Φ where
+  normAt_ne_top i := by
+    classical
+    obtain ⟨Δ, hΔ⟩ := IsFiniteRange.exists_finset (Φ := Φ) i
+    refine ne_top_of_le_ne_top (b := ∑ A ∈ Δ.powerset, ⨆ η, ‖Φ A η‖ₑ)
+      (ENNReal.sum_ne_top.2 fun A _ ↦ h A) ?_
+    calc Φ.normAt i
+        ≤ ∑' A : Finset S, (↑Δ.powerset : Set (Finset S)).indicator (fun A ↦ ⨆ η, ‖Φ A η‖ₑ) A := by
+          refine ENNReal.tsum_le_tsum fun A ↦ ?_
+          by_cases hi : i ∈ A
+          · rw [Set.indicator_of_mem (show A ∈ {A : Finset S | i ∈ A} from hi)]
+            by_cases hA : Φ A = 0
+            · simp [hA]
+            · rw [Set.indicator_of_mem (show A ∈ (↑Δ.powerset : Set (Finset S)) by
+                simpa using hΔ A hi hA)]
+          · rw [Set.indicator_of_notMem (show A ∉ {A : Finset S | i ∈ A} from hi)]
+            exact bot_le
+      _ = ∑ A ∈ Δ.powerset, ⨆ η, ‖Φ A η‖ₑ := by
+          rw [tsum_eq_sum (s := Δ.powerset) fun A hA ↦ Set.indicator_of_notMem (by simpa using hA) _]
+          exact Finset.sum_congr rfl fun A hA ↦ Set.indicator_of_mem (by simpa using hA) _
+
+variable [LinearOrder S]
+
+/-- A pair potential whose interactions are confined to a locally finite family of sites has
+finite range: `Δ i` is a finite set of sites containing `i` and every partner of `i`. -/
+lemma isFiniteRange_pair {φ : S → S → E → E → ℝ} (Δ : S → Finset S) (hΔ : ∀ i, i ∈ Δ i)
+    (h : ∀ i j, i < j → (∃ x y, φ i j x y ≠ 0) → j ∈ Δ i ∧ i ∈ Δ j) :
+    IsFiniteRange (pair φ) where
+  exists_finset i := by
+    refine ⟨Δ i, fun A hiA hA ↦ ?_⟩
+    rcases exists_lt_pair_or A with ⟨a, b, hab, rfl⟩ | hA'
+    · have hne : ∃ x y, φ a b x y ≠ 0 := by
+        by_contra hcon
+        push Not at hcon
+        exact hA (funext fun η ↦ by rw [pair_pair φ hab, hcon]; rfl)
+      simp only [Finset.mem_insert, Finset.mem_singleton] at hiA
+      rcases hiA with hi | hi <;> rw [hi]
+      · exact Finset.insert_subset (hΔ a) (Finset.singleton_subset_iff.2 (h a b hab hne).1)
+      · exact Finset.insert_subset (h a b hab hne).2 (Finset.singleton_subset_iff.2 (hΔ b))
+    · exact absurd (pair_eq_zero φ hA') hA
+
+/-- The interaction terms of a pair potential are bounded by the pairwise sup norms. -/
+lemma iSup_enorm_pair_ne_top {φ : S → S → E → E → ℝ}
+    (h : ∀ i j, i < j → (⨆ (x : E) (y : E), ‖φ i j x y‖ₑ) ≠ ⊤) (A : Finset S) :
+    (⨆ η, ‖pair φ A η‖ₑ) ≠ ⊤ := by
+  rcases exists_lt_pair_or A with ⟨a, b, hab, rfl⟩ | hA
+  · refine ne_top_of_le_ne_top (h a b hab) (iSup_le fun η ↦ ?_)
+    rw [pair_pair φ hab]
+    exact le_iSup₂ (f := fun x y ↦ ‖φ a b x y‖ₑ) (η a) (η b)
+  · rw [pair_eq_zero φ hA]
+    simp
+
+variable (φ : ℤ → E → E → ℝ)
+
+omit [MeasurableSpace E] in
+/-- The triangle inequality for `‖φ_a − φ_c‖`. -/
+lemma pairDist_le_add (a b c : ℤ) : pairDist φ a c ≤ pairDist φ a b + pairDist φ b c := by
+  refine iSup₂_le fun x y ↦ ?_
+  calc ‖φ a x y - φ c x y‖ₑ = ‖(φ a x y - φ b x y) + (φ b x y - φ c x y)‖ₑ := by ring_nf
+    _ ≤ ‖φ a x y - φ b x y‖ₑ + ‖φ b x y - φ c x y‖ₑ := enorm_add_le _ _
+    _ ≤ _ := add_le_add (enorm_sub_le_pairDist φ a b x y) (enorm_sub_le_pairDist φ b c x y)
+
+omit [MeasurableSpace E] in
+lemma pairDist_le_pairNorm_add (a b : ℤ) : pairDist φ a b ≤ pairNorm φ a + pairNorm φ b :=
+  iSup₂_le fun x y ↦ enorm_sub_le.trans
+    (add_le_add (enorm_le_pairNorm φ a x y) (enorm_le_pairNorm φ b x y))
+
+omit [MeasurableSpace E] in
+@[simp] lemma pairDist_self (a : ℤ) : pairDist φ a a = 0 := by simp [pairDist]
+
+end Potential
+
 end

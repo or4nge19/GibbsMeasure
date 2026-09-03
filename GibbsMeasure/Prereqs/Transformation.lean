@@ -290,6 +290,46 @@ lemma IsPureSpin.iterate_toFun_apply (h : τ.IsPureSpin) (k : ℕ) (ω : S → E
 
 end Transformation
 
+namespace Transformation
+
+variable {S E : Type*} [MeasurableSpace E] {τ σ : Transformation S E}
+
+lemma IsPureSpin.one : (1 : Transformation S E).IsPureSpin := rfl
+
+lemma IsPureSpin.mul (hτ : τ.IsPureSpin) (hσ : σ.IsPureSpin) : (τ * σ).IsPureSpin := by
+  simp only [IsPureSpin] at hτ hσ ⊢
+  show σ.sites.trans τ.sites = Equiv.refl S
+  rw [hτ, hσ]
+  rfl
+
+/-- The spins of a product with a pure spin transformation compose site-wise. -/
+lemma IsPureSpin.mul_spin_apply (hτ : τ.IsPureSpin) (σ : Transformation S E) (i : S) (x : E) :
+    (τ * σ).spin i x = τ.spin i (σ.spin i x) := by
+  have h : τ.sites.symm i = i := by rw [hτ]; rfl
+  show (σ.spin (τ.sites.symm i)).trans (τ.spin i) x = _
+  rw [h]
+  rfl
+
+lemma IsPureSpin.inv_spin_apply (hτ : τ.IsPureSpin) (i : S) (x : E) :
+    τ⁻¹.spin i x = (τ.spin i).symm x := by
+  have h : τ.sites i = i := by rw [hτ]; rfl
+  show (τ.spin (τ.sites i)).symm x = _
+  rw [h]
+
+lemma IsPureSpin.pow (hτ : τ.IsPureSpin) (k : ℕ) : (τ ^ k).IsPureSpin := by
+  induction k with
+  | zero => exact IsPureSpin.one
+  | succ k ih => rw [pow_succ]; exact ih.mul hτ
+
+/-- The spins of `τ ^ k` are the iterates of the spins of the pure spin transformation `τ`. -/
+lemma IsPureSpin.pow_spin_apply (hτ : τ.IsPureSpin) (k : ℕ) (i : S) (x : E) :
+    (τ ^ k).spin i x = (τ.spin i)^[k] x := by
+  induction k generalizing x with
+  | zero => rfl
+  | succ k ih => rw [pow_succ, (hτ.pow k).mul_spin_apply, ih, Function.iterate_succ_apply]
+
+end Transformation
+
 /-! ### The shift (Georgii (5.2)(1))
 
 Georgii's shift is stated on `ℤ^d`, but nothing in it uses more than the additive group structure

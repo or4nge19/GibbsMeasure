@@ -109,86 +109,6 @@ open scoped ENNReal NNReal Topology
 
 noncomputable section
 
-/-! ### General lemmas on pair potentials -/
-
-namespace Potential
-
-variable {S E : Type*} [MeasurableSpace E]
-
-/-- A potential of finite range with bounded interaction terms is absolutely summable. -/
-lemma IsAbsolutelySummable.of_isFiniteRange {Φ : Potential S E} [IsFiniteRange Φ]
-    (h : ∀ A : Finset S, (⨆ η, ‖Φ A η‖ₑ) ≠ ⊤) : IsAbsolutelySummable Φ where
-  normAt_ne_top i := by
-    classical
-    obtain ⟨Δ, hΔ⟩ := IsFiniteRange.exists_finset (Φ := Φ) i
-    refine ne_top_of_le_ne_top (b := ∑ A ∈ Δ.powerset, ⨆ η, ‖Φ A η‖ₑ)
-      (ENNReal.sum_ne_top.2 fun A _ ↦ h A) ?_
-    calc Φ.normAt i
-        ≤ ∑' A : Finset S, (↑Δ.powerset : Set (Finset S)).indicator (fun A ↦ ⨆ η, ‖Φ A η‖ₑ) A := by
-          refine ENNReal.tsum_le_tsum fun A ↦ ?_
-          by_cases hi : i ∈ A
-          · rw [Set.indicator_of_mem (show A ∈ {A : Finset S | i ∈ A} from hi)]
-            by_cases hA : Φ A = 0
-            · simp [hA]
-            · rw [Set.indicator_of_mem (show A ∈ (↑Δ.powerset : Set (Finset S)) by
-                simpa using hΔ A hi hA)]
-          · rw [Set.indicator_of_notMem (show A ∉ {A : Finset S | i ∈ A} from hi)]
-            exact bot_le
-      _ = ∑ A ∈ Δ.powerset, ⨆ η, ‖Φ A η‖ₑ := by
-          rw [tsum_eq_sum (s := Δ.powerset) fun A hA ↦ Set.indicator_of_notMem (by simpa using hA) _]
-          exact Finset.sum_congr rfl fun A hA ↦ Set.indicator_of_mem (by simpa using hA) _
-
-variable [LinearOrder S]
-
-/-- A pair potential whose interactions are confined to a locally finite family of sites has
-finite range: `Δ i` is a finite set of sites containing `i` and every partner of `i`. -/
-lemma isFiniteRange_pair {φ : S → S → E → E → ℝ} (Δ : S → Finset S) (hΔ : ∀ i, i ∈ Δ i)
-    (h : ∀ i j, i < j → (∃ x y, φ i j x y ≠ 0) → j ∈ Δ i ∧ i ∈ Δ j) :
-    IsFiniteRange (pair φ) where
-  exists_finset i := by
-    refine ⟨Δ i, fun A hiA hA ↦ ?_⟩
-    rcases exists_lt_pair_or A with ⟨a, b, hab, rfl⟩ | hA'
-    · have hne : ∃ x y, φ a b x y ≠ 0 := by
-        by_contra hcon
-        push Not at hcon
-        exact hA (funext fun η ↦ by rw [pair_pair φ hab, hcon]; rfl)
-      simp only [Finset.mem_insert, Finset.mem_singleton] at hiA
-      rcases hiA with hi | hi <;> rw [hi]
-      · exact Finset.insert_subset (hΔ a) (Finset.singleton_subset_iff.2 (h a b hab hne).1)
-      · exact Finset.insert_subset (h a b hab hne).2 (Finset.singleton_subset_iff.2 (hΔ b))
-    · exact absurd (pair_eq_zero φ hA') hA
-
-/-- The interaction terms of a pair potential are bounded by the pairwise sup norms. -/
-lemma iSup_enorm_pair_ne_top {φ : S → S → E → E → ℝ}
-    (h : ∀ i j, i < j → (⨆ (x : E) (y : E), ‖φ i j x y‖ₑ) ≠ ⊤) (A : Finset S) :
-    (⨆ η, ‖pair φ A η‖ₑ) ≠ ⊤ := by
-  rcases exists_lt_pair_or A with ⟨a, b, hab, rfl⟩ | hA
-  · refine ne_top_of_le_ne_top (h a b hab) (iSup_le fun η ↦ ?_)
-    rw [pair_pair φ hab]
-    exact le_iSup₂ (f := fun x y ↦ ‖φ a b x y‖ₑ) (η a) (η b)
-  · rw [pair_eq_zero φ hA]
-    simp
-
-variable (φ : ℤ → E → E → ℝ)
-
-omit [MeasurableSpace E] in
-/-- The triangle inequality for `‖φ_a − φ_c‖`. -/
-lemma pairDist_le_add (a b c : ℤ) : pairDist φ a c ≤ pairDist φ a b + pairDist φ b c := by
-  refine iSup₂_le fun x y ↦ ?_
-  calc ‖φ a x y - φ c x y‖ₑ = ‖(φ a x y - φ b x y) + (φ b x y - φ c x y)‖ₑ := by ring_nf
-    _ ≤ ‖φ a x y - φ b x y‖ₑ + ‖φ b x y - φ c x y‖ₑ := enorm_add_le _ _
-    _ ≤ _ := add_le_add (enorm_sub_le_pairDist φ a b x y) (enorm_sub_le_pairDist φ b c x y)
-
-omit [MeasurableSpace E] in
-lemma pairDist_le_pairNorm_add (a b : ℤ) : pairDist φ a b ≤ pairNorm φ a + pairNorm φ b :=
-  iSup₂_le fun x y ↦ enorm_sub_le.trans
-    (add_le_add (enorm_le_pairNorm φ a x y) (enorm_le_pairNorm φ b x y))
-
-omit [MeasurableSpace E] in
-@[simp] lemma pairDist_self (a : ℤ) : pairDist φ a a = 0 := by simp [pairDist]
-
-end Potential
-
 /-! ### Georgii, Comment (9.7)(1): the periods satisfying (9.6) form a subgroup -/
 
 namespace MeasureTheory.GibbsMeasure
@@ -614,46 +534,6 @@ end MeasureTheory.GibbsMeasure
 
 /-! ### Pure spin transformations and the group structure -/
 
-namespace MeasureTheory.GibbsMeasure.Transformation
-
-variable {S E : Type*} [MeasurableSpace E] {τ σ : Transformation S E}
-
-lemma IsPureSpin.one : (1 : Transformation S E).IsPureSpin := rfl
-
-lemma IsPureSpin.mul (hτ : τ.IsPureSpin) (hσ : σ.IsPureSpin) : (τ * σ).IsPureSpin := by
-  simp only [IsPureSpin] at hτ hσ ⊢
-  show σ.sites.trans τ.sites = Equiv.refl S
-  rw [hτ, hσ]
-  rfl
-
-/-- The spins of a product with a pure spin transformation compose site-wise. -/
-lemma IsPureSpin.mul_spin_apply (hτ : τ.IsPureSpin) (σ : Transformation S E) (i : S) (x : E) :
-    (τ * σ).spin i x = τ.spin i (σ.spin i x) := by
-  have h : τ.sites.symm i = i := by rw [hτ]; rfl
-  show (σ.spin (τ.sites.symm i)).trans (τ.spin i) x = _
-  rw [h]
-  rfl
-
-lemma IsPureSpin.inv_spin_apply (hτ : τ.IsPureSpin) (i : S) (x : E) :
-    τ⁻¹.spin i x = (τ.spin i).symm x := by
-  have h : τ.sites i = i := by rw [hτ]; rfl
-  show (τ.spin (τ.sites i)).symm x = _
-  rw [h]
-
-lemma IsPureSpin.pow (hτ : τ.IsPureSpin) (k : ℕ) : (τ ^ k).IsPureSpin := by
-  induction k with
-  | zero => exact IsPureSpin.one
-  | succ k ih => rw [pow_succ]; exact ih.mul hτ
-
-/-- The spins of `τ ^ k` are the iterates of the spins of the pure spin transformation `τ`. -/
-lemma IsPureSpin.pow_spin_apply (hτ : τ.IsPureSpin) (k : ℕ) (i : S) (x : E) :
-    (τ ^ k).spin i x = (τ.spin i)^[k] x := by
-  induction k generalizing x with
-  | zero => rfl
-  | succ k ih => rw [pow_succ, (hτ.pow k).mul_spin_apply, ih, Function.iterate_succ_apply]
-
-end MeasureTheory.GibbsMeasure.Transformation
-
 /-! ### Georgii, Comments (9.13) -/
 
 namespace MeasureTheory.GibbsMeasure
@@ -983,30 +863,6 @@ theorem pairDefectBound_ne_top_of_oscSpan_le {s : ℝ≥0∞} (hs : s ≠ ⊤)
     (ne_top_of_le_ne_top hs (pairOscBound_le_iSup_oscSpan.trans (iSup_le h)))
 
 end MeasureTheory.GibbsMeasure
-
-/-! ### Transport of Gibbs measures along a transformation -/
-
-namespace Specification
-
-variable {S E : Type*} [MeasurableSpace E]
-
-/-- **Georgii (5.10)**, `Measure` form: `μ ∈ 𝒢(γ)` implies `τ(μ) ∈ 𝒢(τ(γ))`. -/
-theorem map_mem_G_map {γ : Specification S E} (τ : Transformation S E) {μ : Measure (S → E)}
-    (hμ : μ ∈ G γ) : μ.map τ.toFun ∈ G (γ.map τ) := by
-  obtain ⟨hprob, hgibbs⟩ := (G.mem_iff μ).1 hμ
-  have h2 := Specification.map_mem_GP τ
-    (show (⟨μ, hprob⟩ : ProbabilityMeasure (S → E)) ∈ GP γ from hgibbs)
-  have h3 : Specification.IsGibbsMeasure (γ.map τ)
-      ((ProbabilityMeasure.map (⟨μ, hprob⟩ : ProbabilityMeasure (S → E))
-        τ.measurable_toFun.aemeasurable : ProbabilityMeasure (S → E)) : Measure (S → E)) := h2
-  have hmeq : ((ProbabilityMeasure.map (⟨μ, hprob⟩ : ProbabilityMeasure (S → E))
-      τ.measurable_toFun.aemeasurable : ProbabilityMeasure (S → E)) : Measure (S → E)) =
-      μ.map τ.toFun :=
-    ProbabilityMeasure.toMeasure_map (⟨μ, hprob⟩ : ProbabilityMeasure (S → E))
-      τ.measurable_toFun.aemeasurable
-  exact ⟨Measure.isProbabilityMeasure_map τ.measurable_toFun.aemeasurable, hmeq ▸ h3⟩
-
-end Specification
 
 namespace Potential
 

@@ -6,6 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Specification.Existence
+public import GibbsMeasure.Specification.Extremal
 public import GibbsMeasure.Prereqs.Transformation
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.GiryMonad
 public import GibbsMeasure.Mathlib.Probability.Kernel.Composition.MapComap
@@ -266,6 +267,30 @@ theorem isssdFun_map_toFun (ν : Measure E) [IsProbabilityMeasure ν] (τ : Tran
   rw [Measure.map_map τ.measurable_toFun Measurable.juxt, τ.toFun_comp_juxt,
     ← Measure.map_map Measurable.juxt (τ.measurePreserving_spin_piCongrLeft hτ Λ).measurable,
     (τ.measurePreserving_spin_piCongrLeft hτ Λ).map_eq]
+
+end Specification
+
+/-! ### Transport of Gibbs measures along a transformation -/
+
+namespace Specification
+
+variable {S E : Type*} [MeasurableSpace E]
+
+/-- **Georgii (5.10)**, `Measure` form: `μ ∈ 𝒢(γ)` implies `τ(μ) ∈ 𝒢(τ(γ))`. -/
+theorem map_mem_G_map {γ : Specification S E} (τ : Transformation S E) {μ : Measure (S → E)}
+    (hμ : μ ∈ G γ) : μ.map τ.toFun ∈ G (γ.map τ) := by
+  obtain ⟨hprob, hgibbs⟩ := (G.mem_iff μ).1 hμ
+  have h2 := Specification.map_mem_GP τ
+    (show (⟨μ, hprob⟩ : ProbabilityMeasure (S → E)) ∈ GP γ from hgibbs)
+  have h3 : Specification.IsGibbsMeasure (γ.map τ)
+      ((ProbabilityMeasure.map (⟨μ, hprob⟩ : ProbabilityMeasure (S → E))
+        τ.measurable_toFun.aemeasurable : ProbabilityMeasure (S → E)) : Measure (S → E)) := h2
+  have hmeq : ((ProbabilityMeasure.map (⟨μ, hprob⟩ : ProbabilityMeasure (S → E))
+      τ.measurable_toFun.aemeasurable : ProbabilityMeasure (S → E)) : Measure (S → E)) =
+      μ.map τ.toFun :=
+    ProbabilityMeasure.toMeasure_map (⟨μ, hprob⟩ : ProbabilityMeasure (S → E))
+      τ.measurable_toFun.aemeasurable
+  exact ⟨Measure.isProbabilityMeasure_map τ.measurable_toFun.aemeasurable, hmeq ▸ h3⟩
 
 end Specification
 

@@ -113,7 +113,8 @@ lemma summable_volume_map_iff :
   exists_congr fun a ↦ hasSum_volume_map_iff σ f a
 
 lemma tsum_volume_map [T2Space α] :
-    ∑'[SummationFilter.volume S] A, f (A.map σ.toEmbedding) = ∑'[SummationFilter.volume S] B, f B := by
+    ∑'[SummationFilter.volume S] A, f (A.map σ.toEmbedding)
+      = ∑'[SummationFilter.volume S] B, f B := by
   by_cases h : Summable f (SummationFilter.volume S)
   · exact ((hasSum_volume_map_iff σ f _).2 h.hasSum).tsum_eq
   · rw [tsum_eq_zero_of_not_summable h,
