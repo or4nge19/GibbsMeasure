@@ -126,7 +126,7 @@ theorem integral_exp_neg_half_dotProduct_mulVec (hA : A.PosDef) :
   have hquad : ∀ y : ι → ℝ,
       (Matrix.toLin' U y) ⬝ᵥ A *ᵥ (Matrix.toLin' U y) = y ⬝ᵥ (diagonal d *ᵥ y) := by
     intro y
-    show (U *ᵥ y) ⬝ᵥ A *ᵥ (U *ᵥ y) = y ⬝ᵥ (diagonal d *ᵥ y)
+    change (U *ᵥ y) ⬝ᵥ A *ᵥ (U *ᵥ y) = y ⬝ᵥ (diagonal d *ᵥ y)
     rw [hAeq, mulVec_mulVec, Matrix.mul_assoc (U * diagonal d) Uᵀ U, hUU, Matrix.mul_one,
       ← mulVec_mulVec, dotProduct_mulVec, vecMul_mulVec, hUU, vecMul_one]
   simp_rw [hquad]
@@ -196,11 +196,13 @@ theorem integral_exp_neg_half_dotProduct_mulVec_add_dotProduct (hA : A.PosDef) (
       (fun x : ι → ℝ => Real.exp (-(1 / 2) * (x ⬝ᵥ A *ᵥ x))) (A⁻¹ *ᵥ b),
     integral_exp_neg_half_dotProduct_mulVec hA]
 
+omit [DecidableEq ι] in
 /-- The integrand of `integral_exp_neg_half_dotProduct_mulVec_add_dotProduct` is integrable: a
 nonnegative function whose Bochner integral is nonzero must be integrable, since a
 non-integrable function's Bochner integral is `0` by convention. -/
 theorem integrable_exp_neg_half_dotProduct_mulVec_add_dotProduct (hA : A.PosDef) (b : ι → ℝ) :
     Integrable (fun x : ι → ℝ => Real.exp (-(1 / 2) * (x ⬝ᵥ A *ᵥ x) + b ⬝ᵥ x)) := by
+  classical
   by_contra h
   have hz := MeasureTheory.integral_undef h
   rw [integral_exp_neg_half_dotProduct_mulVec_add_dotProduct hA b] at hz

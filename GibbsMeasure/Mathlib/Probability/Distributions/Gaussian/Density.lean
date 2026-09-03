@@ -187,6 +187,7 @@ lemma abs_le_exp_add_exp (x : ℝ) : |x| ≤ Real.exp x + Real.exp (-x) := by
   · nlinarith [Real.add_one_le_exp (-x), Real.exp_pos x]
   · nlinarith [Real.add_one_le_exp x, Real.exp_pos (-x)]
 
+omit [DecidableEq ι] in
 /-- The odd moment `y ↦ (v ⬝ᵥ y) * exp (-(1/2) * (y ⬝ᵥ A *ᵥ y))` is integrable for every
 `v : ι → ℝ`, by comparison with the (already integrable, by
 `Matrix.PosDef.integrable_exp_neg_half_dotProduct_mulVec_add_dotProduct`) functions at `b = v`
@@ -195,6 +196,7 @@ lemma integrable_dotProduct_mul_exp_neg_half_dotProduct_mulVec {A : Matrix ι ι
     (hA : A.PosDef) (v : ι → ℝ) :
     Integrable
       (fun y : ι → ℝ ↦ (v ⬝ᵥ y) * Real.exp (-(1 / 2) * (y ⬝ᵥ A *ᵥ y))) := by
+  classical
   have hbound : Integrable (fun y : ι → ℝ ↦
       Real.exp (-(1 / 2) * (y ⬝ᵥ A *ᵥ y) + v ⬝ᵥ y) +
         Real.exp (-(1 / 2) * (y ⬝ᵥ A *ᵥ y) + (-v) ⬝ᵥ y)) :=
