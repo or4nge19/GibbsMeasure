@@ -218,6 +218,38 @@ status:
       file: "GibbsMeasure/Model/TreeBoundaryLaw.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "Potential.specificRelativeEntropy_eq_zero_iff_mem_invariantG"
+      file: "GibbsMeasure/Specification/VariationalPrinciple.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.exists_G_isingChainSpecification_eq"
+      file: "GibbsMeasure/Model/InhomogeneousIsingChain.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Tree.IsBoundaryLaw.isGibbsMeasure_transferSpecification_boundaryLawMeasure"
+      file: "GibbsMeasure/Model/TreeBoundaryLaw.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Markov.exists_isMarkovChain_of_mem_extremePoints"
+      file: "GibbsMeasure/Specification/MarkovIntChains.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.measurePreserving_of_logDecay"
+      file: "GibbsMeasure/Model/MerminWagner.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.tendsto_entropyIn_div_card"
+      file: "GibbsMeasure/Specification/SpecificEntropy.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "Potential.tendsto_logZ_div_card_pressure"
+      file: "GibbsMeasure/Specification/Pressure.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "ProbabilityTheory.Kernel.eq_of_apply_eq_mul_div_of_isRecurrent_of_convergenceNorm_eq_one"
+      file: "GibbsMeasure/Mathlib/Probability/Kernel/CountableMatrix/Recurrence.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
 
 automation:
   methods:
