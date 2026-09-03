@@ -44,6 +44,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Integral.IntegrableOn
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Density
 public import GibbsMeasure.Mathlib.Probability.Moments.Covariance
 public import GibbsMeasure.Mathlib.Probability.UniformOn
+public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Tsum
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.SetwiseConvergence
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ProdZeroOne
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.CountablyGeneratedModNull
@@ -166,6 +167,7 @@ public import GibbsMeasure.Specification.LocalContinuity
 public import GibbsMeasure.Specification.LocalLimits
 public import GibbsMeasure.Specification.BrokenSymmetry
 public import GibbsMeasure.Specification.GluedFamily
+public import GibbsMeasure.Specification.ZeroDirac
 public import GibbsMeasure.Specification.InvariantExistence
 public import GibbsMeasure.Specification.HewittSavage
 public import GibbsMeasure.Specification.InhomogeneousReference
