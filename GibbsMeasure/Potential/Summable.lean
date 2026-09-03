@@ -196,6 +196,14 @@ lemma boltzmannFactor_pos (β : ℝ) (Λ : Finset S) (η : S → E) : 0 < Φ.bol
 lemma boltzmannFactor_ne_top (β : ℝ) (Λ : Finset S) (η : S → E) :
     Φ.boltzmannFactor β Λ η ≠ ⊤ := by simp [boltzmannFactor]
 
+/-- `(h^Φ_β)^c = h^Φ_{βc}` for `c ≥ 0`. -/
+lemma boltzmannFactor_rpow (β : ℝ) {c : ℝ} (hc : 0 ≤ c) (Λ : Finset S) (σ : S → E) :
+    Φ.boltzmannFactor β Λ σ ^ c = Φ.boltzmannFactor (β * c) Λ σ := by
+  rw [boltzmannFactor, boltzmannFactor, ENNReal.ofReal_rpow_of_nonneg (Real.exp_pos _).le hc,
+    ← Real.exp_mul]
+  congr 2
+  ring
+
 private lemma ofReal_exp_mul_comm {a b c d : ℝ} (h : a + b = c + d) :
     ENNReal.ofReal (Real.exp a) * ENNReal.ofReal (Real.exp b)
       = ENNReal.ofReal (Real.exp c) * ENNReal.ofReal (Real.exp d) := by
@@ -394,6 +402,16 @@ lemma le_premodifierZ_boltzmannFactor [IsAbsolutelySummable Φ] (β : ℝ) (Λ :
     ENNReal.ofReal (Real.exp (-(|β| * Φ.hamiltonianBound Λ)))
       ≤ Specification.premodifierZ (S := S) (E := E) ν (Φ.boltzmannFactor β) Λ η :=
   le_relZ_boltzmannFactor (γ := Specification.isssd ν) β Λ η
+
+lemma premodifierZ_boltzmannFactor_pos [IsAbsolutelySummable Φ] (β : ℝ) (Λ : Finset S)
+    (ω : S → E) :
+    0 < Specification.premodifierZ (S := S) (E := E) ν (Φ.boltzmannFactor β) Λ ω :=
+  lt_of_lt_of_le (by simp [Real.exp_pos]) (le_premodifierZ_boltzmannFactor ν (Φ := Φ) β Λ ω)
+
+lemma premodifierZ_boltzmannFactor_ne_top [IsAbsolutelySummable Φ] (β : ℝ) (Λ : Finset S)
+    (ω : S → E) :
+    Specification.premodifierZ (S := S) (E := E) ν (Φ.boltzmannFactor β) Λ ω ≠ ⊤ :=
+  ne_top_of_le_ne_top ENNReal.ofReal_ne_top (premodifierZ_boltzmannFactor_le ν (Φ := Φ) β Λ ω)
 
 theorem isPremodifierAdmissible_boltzmannFactor [IsAbsolutelySummable Φ] (β : ℝ) :
     Specification.IsPremodifierAdmissible (S := S) (E := E) ν (Φ.boltzmannFactor β) :=

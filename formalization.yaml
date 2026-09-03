@@ -49,7 +49,7 @@ status:
     15.1 (relative entropy), Lemma (15.11), Section 15.2 (strong subadditivity (15.10), the specific
     entropy (15.12)-(15.13), (15.14)(a)-(b)), Section 15.3 (specific energy, the pressure (15.30)(a)
     and its Lipschitz continuity and convexity (16.1)(a)), Section 15.4 (Theorem (15.37) and the
-    variational principle (15.39), the latter's converse given G_Theta(gamma^Phi) nonempty); Section 11.1 up to Theorem (11.9)(b), (11.11)-(11.12), the sufficiency half of (11.13), (11.16),
+    variational principle (15.39), for standard Borel E); Section 11.1 up to Theorem (11.9)(b), (11.11)-(11.12), the sufficiency half of (11.13), (11.16),
     and the extreme case of (11.15), (11.6)-(11.7); Section 12.1 ((12.1)-(12.2), (12.7)-(12.17) except
     (12.3)(2)-(6), (12.5)-(12.6), uniqueness of boundary laws up to a factor, (12.18)); Section 10.1 (the Markov
     properties (10.2)-(10.11)), Section 10.2 ((10.12)-(10.22)); Section 9.1 (symmetry
@@ -1081,9 +1081,9 @@ alignment:
         relative entropy k(mu|Phi) in EReal, nonneg, zero on G_Theta; Theorem (15.37) with the
         hypothesis along every family of boxes with side lengths -> infinity (Georgii: liminf
         along one sequence of cubes), Georgii's three steps as three theorems, Step 3 for any site
-        set; (15.39): k(mu|Phi) = 0 iff mu in G_Theta(gamma^Phi), where the "only if" takes a
-        rho in G_Theta(gamma^Phi) as hypothesis (Georgii supplies it from (4.23)+(5.16), standard
-        Borel E). Not formalized: Example (15.40), Remark (15.26)(1).
+        set; (15.39): k(mu|Phi) = 0 iff mu in G_Theta(gamma^Phi) — unconditionally for standard
+        Borel E (G_Theta(gamma^Phi) nonempty from (4.23)+(5.16), for any countable abelian site group),
+        and for any E given some rho in G_Theta(gamma^Phi). Not formalized: Example (15.40), Remark (15.26)(1).
     - source: "Pullback of a potential along a map of the single-spin space; Example (9.15) from Theorem (6.4)"
       lean: "MeasureTheory.GibbsMeasure.exists_not_measurePreserving_squareFlip₁_of_summable"
       module: "GibbsMeasure/Specification/Pullback.lean"
@@ -1093,7 +1093,7 @@ alignment:
         nu_1 x nu_2 is gamma^Phi tensor the independent specification of nu_2, and mu -> mu^1 maps
         G(f^*Phi) onto G(Phi) (both directions, Specification/Pullback.lean). Instance: at K = 0 the
         two-layer chain of (9.15) is the pullback of the inhomogeneous Ising chain, so the
-        first-layer flip is broken under (6.1) (beta = 1, uniform a priori measure). K > 0 needs a
+        first-layer flip is broken under (6.1) at beta J, for any beta > 0 (uniform a priori measure). K > 0 needs a
         Griffiths bridge from GKSInequalities.lean to Specification kernels on Bool x Bool: not built.
 
 acknowledgements: >-

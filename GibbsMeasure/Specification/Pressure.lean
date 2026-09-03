@@ -90,16 +90,6 @@ Not in this file: Lemma (15.28), Theorem (15.30)(b), (15.32)–(15.35) are state
 specific entropy `𝓀(μ)` of Theorem (15.12) and the relative entropy `𝓗_Λ(μ | ν γ_Λ)`, which are
 not yet formalized; they are the variational principle proper (§15.4). Remark (15.26)(1) is the
 ergodic theorem (14.A8), also not formalized.
-
-## General lemmas that belong in Mathlib or elsewhere in this library
-
-The first section collects statements with no Georgii content: `IsPotential`/`IsSummable`
-instances for `+` and `•` and the corresponding `hamiltonian_add`, `hamiltonian_smul`
-(next to `hamiltonian_sub` in `Potential/Space.lean`); the ratio of the cardinalities of nested
-integer boxes tends to `1` when all sides tend to infinity
-(`Finset.tendsto_card_Icc_div_card_Icc`), and cubes of cardinality tending to infinity have
-sides tending to infinity (`Finset.tendsto_sub_atTop_of_tendsto_card_Icc_cube`), both for
-`Mathlib/Data/Pi/Interval.lean` or `Mathlib/Analysis/Subadditive/Cubes.lean`.
 -/
 
 @[expose] public section
@@ -111,102 +101,6 @@ open Filter Finset Function MeasureTheory MeasureTheory.GibbsMeasure Probability
 open scoped ENNReal Topology
 
 noncomputable section
-
-/-! ### Missing general lemmas -/
-
-namespace Potential
-
-variable {S E : Type*} [MeasurableSpace E] {Φ Ψ : Potential S E}
-
-instance [IsPotential Φ] [IsPotential Ψ] : IsPotential (Φ + Ψ) where
-  measurable Δ := by
-    let : MeasurableSpace (S → E) := cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)
-    exact (IsPotential.measurable (Φ := Φ) Δ).add (IsPotential.measurable (Φ := Ψ) Δ)
-
-instance (c : ℝ) [IsPotential Φ] : IsPotential (c • Φ) where
-  measurable Δ := by
-    let : MeasurableSpace (S → E) := cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)
-    exact (IsPotential.measurable (Φ := Φ) Δ).const_mul c
-
-lemma hamiltonianTerms_add (Λ : Finset S) (η : S → E) :
-    (Φ + Ψ).hamiltonianTerms Λ η = Φ.hamiltonianTerms Λ η + Ψ.hamiltonianTerms Λ η := by
-  funext A
-  by_cases h : Disjoint A Λ
-  · simp [hamiltonianTerms_of_disjoint h]
-  · simp [Pi.add_apply, hamiltonianTerms_of_not_disjoint h]
-
-lemma hamiltonianTerms_smul (c : ℝ) (Λ : Finset S) (η : S → E) :
-    (c • Φ).hamiltonianTerms Λ η = c • Φ.hamiltonianTerms Λ η := by
-  funext A
-  by_cases h : Disjoint A Λ
-  · simp [hamiltonianTerms_of_disjoint h]
-  · simp [Pi.smul_apply, hamiltonianTerms_of_not_disjoint h]
-
-lemma hasSum_hamiltonianTerms_add [IsSummable Φ] [IsSummable Ψ] (Λ : Finset S) (η : S → E) :
-    HasSum ((Φ + Ψ).hamiltonianTerms Λ η) (Φ.hamiltonian Λ η + Ψ.hamiltonian Λ η)
-      (SummationFilter.volume S) := by
-  rw [hamiltonianTerms_add]
-  exact (hasSum_hamiltonian (Φ := Φ) Λ η).add (hasSum_hamiltonian (Φ := Ψ) Λ η)
-
-lemma hasSum_hamiltonianTerms_smul [IsSummable Φ] (c : ℝ) (Λ : Finset S) (η : S → E) :
-    HasSum ((c • Φ).hamiltonianTerms Λ η) (c * Φ.hamiltonian Λ η) (SummationFilter.volume S) := by
-  rw [hamiltonianTerms_smul]
-  exact (hasSum_hamiltonian (Φ := Φ) Λ η).mul_left c
-
-instance [IsSummable Φ] [IsSummable Ψ] : IsSummable (Φ + Ψ) :=
-  ⟨fun Λ η ↦ ⟨_, hasSum_hamiltonianTerms_add Λ η⟩⟩
-
-instance (c : ℝ) [IsSummable Φ] : IsSummable (c • Φ) :=
-  ⟨fun Λ η ↦ ⟨_, hasSum_hamiltonianTerms_smul c Λ η⟩⟩
-
-/-- The Hamiltonian is additive in the potential. -/
-theorem hamiltonian_add [IsSummable Φ] [IsSummable Ψ] (Λ : Finset S) (η : S → E) :
-    (Φ + Ψ).hamiltonian Λ η = Φ.hamiltonian Λ η + Ψ.hamiltonian Λ η :=
-  (hasSum_hamiltonianTerms_add Λ η).tsum_eq
-
-/-- The Hamiltonian is homogeneous in the potential. -/
-theorem hamiltonian_smul [IsSummable Φ] (c : ℝ) (Λ : Finset S) (η : S → E) :
-    (c • Φ).hamiltonian Λ η = c * Φ.hamiltonian Λ η :=
-  (hasSum_hamiltonianTerms_smul c Λ η).tsum_eq
-
-/-- Scaling the potential scales the inverse temperature: `h^{cΦ}_β = h^Φ_{βc}`. -/
-lemma boltzmannFactor_smul [IsSummable Φ] (β c : ℝ) :
-    (c • Φ).boltzmannFactor β = Φ.boltzmannFactor (β * c) := by
-  funext Λ η
-  rw [boltzmannFactor, boltzmannFactor, hamiltonian_smul, ← mul_assoc, neg_mul, neg_mul]
-
-lemma map_sub (τ : Transformation S E) (Φ Ψ : Potential S E) :
-    Potential.map τ (Φ - Ψ) = Potential.map τ Φ - Potential.map τ Ψ := rfl
-
-section ShiftInvariant
-
-variable [AddGroup S]
-
-lemma IsShiftInvariant.add (hΦ : Φ.IsShiftInvariant) (hΨ : Ψ.IsShiftInvariant) :
-    (Φ + Ψ).IsShiftInvariant := fun j ↦ by rw [map_add, hΦ j, hΨ j]
-
-lemma IsShiftInvariant.sub (hΦ : Φ.IsShiftInvariant) (hΨ : Ψ.IsShiftInvariant) :
-    (Φ - Ψ).IsShiftInvariant := fun j ↦ by rw [map_sub, hΦ j, hΨ j]
-
-lemma IsShiftInvariant.smul (c : ℝ) (hΦ : Φ.IsShiftInvariant) : (c • Φ).IsShiftInvariant :=
-  fun j ↦ by rw [map_smul, hΦ j]
-
-/-- Georgii (2.12) is constant along the sites for a shift-invariant potential:
-`‖Φ‖ᵢ = ‖Φ‖₀`. -/
-lemma IsShiftInvariant.normAt_eq (hΦ : Φ.IsShiftInvariant) (i : S) : Φ.normAt i = Φ.normAt 0 := by
-  have h := normAt_map (shift E i) Φ 0
-  rw [hΦ i] at h
-  simpa [shift] using h
-
-/-- Georgii (2.14) for a shift-invariant potential: the Hamiltonian bound is `|Λ| ‖Φ‖₀`. -/
-lemma IsShiftInvariant.hamiltonianBound_eq (hΦ : Φ.IsShiftInvariant) (Λ : Finset S) :
-    Φ.hamiltonianBound Λ = #Λ * (Φ.normAt 0).toReal := by
-  simp only [hamiltonianBound, hΦ.normAt_eq, sum_const, nsmul_eq_mul, ENNReal.toReal_mul,
-    ENNReal.toReal_natCast]
-
-end ShiftInvariant
-
-end Potential
 
 /-! ### The energy density (Georgii (15.22)) -/
 
@@ -896,45 +790,6 @@ theorem tail_Icc_le [IsAbsolutelySummable Φ] (hΦ : Φ.IsShiftInvariant) (m n :
     (ENNReal.mul_ne_top (by simp) (IsAbsolutelySummable.normAt_ne_top 0)),
     ENNReal.toReal_mul, ENNReal.toReal_mul, ENNReal.toReal_natCast, ENNReal.toReal_natCast] at this
 
-/-- One-dimensional case of `Finset.tendsto_card_Icc_div_card_Icc`. -/
-private lemma tendsto_card_Icc_div_card_Icc_int {κ : Type*} {l : Filter κ} {a b : κ → ℤ}
-    (h : Tendsto (fun j ↦ b j - a j) l atTop) (R : ℕ) :
-    Tendsto (fun j ↦ (#(Icc (a j + R) (b j - R)) : ℝ) / #(Icc (a j) (b j))) l (𝓝 1) := by
-  have hL : Tendsto (fun j ↦ ((b j + 1 - a j : ℤ) : ℝ)) l atTop := by
-    refine tendsto_intCast_atTop_atTop.comp ?_
-    have := h.atTop_add (tendsto_const_nhds (x := (1 : ℤ)))
-    refine this.congr fun j ↦ ?_
-    ring
-  have key : Tendsto (fun j ↦ 1 - (2 * R : ℝ) / ((b j + 1 - a j : ℤ) : ℝ)) l (𝓝 1) := by
-    simpa using tendsto_const_nhds.sub (tendsto_const_nhds.div_atTop hL)
-  refine key.congr' ?_
-  filter_upwards [h.eventually_ge_atTop (2 * R)] with j hj
-  rw [Int.card_Icc, Int.card_Icc]
-  have h1 : (0 : ℤ) ≤ b j + 1 - a j := by omega
-  have h2 : (0 : ℤ) ≤ b j - R + 1 - (a j + R) := by omega
-  have e1 : (((b j + 1 - a j).toNat : ℕ) : ℝ) = ((b j + 1 - a j : ℤ) : ℝ) := by
-    exact_mod_cast Int.toNat_of_nonneg h1
-  have e2 : (((b j - R + 1 - (a j + R)).toNat : ℕ) : ℝ) = ((b j - R + 1 - (a j + R) : ℤ) : ℝ) := by
-    exact_mod_cast Int.toNat_of_nonneg h2
-  have h3 : ((b j + 1 - a j : ℤ) : ℝ) ≠ 0 := by
-    exact_mod_cast (show b j + 1 - a j ≠ 0 by omega)
-  rw [e1, e2, eq_comm, eq_sub_iff_add_eq, ← add_div, div_eq_one_iff_eq h3]
-  push_cast
-  ring
-
-/-- **Boundary layers of boxes are negligible.** If all sides of the boxes `Icc (m j) (n j)` tend
-to infinity, the fraction of sites at distance more than `R` from the boundary tends to `1`. -/
-theorem _root_.Finset.tendsto_card_Icc_div_card_Icc {κ : Type*} {l : Filter κ}
-    {m n : κ → ι → ℤ} (h : ∀ k, Tendsto (fun j ↦ n j k - m j k) l atTop) (R : ℕ) :
-    Tendsto (fun j ↦ (#(Icc (fun k ↦ m j k + R) (fun k ↦ n j k - R)) : ℝ) / #(Icc (m j) (n j)))
-      l (𝓝 1) := by
-  have hcard : ∀ a b : ι → ℤ, (#(Icc a b) : ℝ) = ∏ k, (#(Icc (a k) (b k)) : ℝ) := fun a b ↦ by
-    rw [Pi.card_Icc, Nat.cast_prod]
-  simp_rw [hcard, ← Finset.prod_div_distrib]
-  have := tendsto_finsetProd (univ : Finset ι)
-    fun k _ ↦ tendsto_card_Icc_div_card_Icc_int (h k) R
-  simpa using this
-
 /-- **Georgii, the estimate (15.25).** For a shift-invariant `Φ ∈ ℬ`, the boundary term
 `∑_{A ∩ Λ ≠ ∅, A ⊄ Λ} ‖Φ_A‖` is `o(|Λ|)` along boxes all of whose sides tend to infinity. -/
 theorem tendsto_tail_div_card [IsAbsolutelySummable Φ] (hΦ : Φ.IsShiftInvariant) {κ : Type*}
@@ -1226,14 +1081,6 @@ def pressureTerm (Λ : Finset S) : ℝ := Φ.logSupZ ν Λ + Φ.tail Λ Λ
 
 variable [IsAbsolutelySummable Φ]
 
-lemma premodifierZ_boltzmannFactor_pos (β : ℝ) (Λ : Finset S) (ω : S → E) :
-    0 < Specification.premodifierZ (S := S) (E := E) ν (Φ.boltzmannFactor β) Λ ω :=
-  lt_of_lt_of_le (by simp [Real.exp_pos]) (le_premodifierZ_boltzmannFactor ν (Φ := Φ) β Λ ω)
-
-lemma premodifierZ_boltzmannFactor_ne_top (β : ℝ) (Λ : Finset S) (ω : S → E) :
-    Specification.premodifierZ (S := S) (E := E) ν (Φ.boltzmannFactor β) Λ ω ≠ ⊤ :=
-  ne_top_of_le_ne_top ENNReal.ofReal_ne_top (premodifierZ_boltzmannFactor_le ν (Φ := Φ) β Λ ω)
-
 lemma toReal_premodifierZ_boltzmannFactor_pos (β : ℝ) (Λ : Finset S) (ω : S → E) :
     0 < (Specification.premodifierZ (S := S) (E := E) ν (Φ.boltzmannFactor β) Λ ω).toReal :=
   ENNReal.toReal_pos (premodifierZ_boltzmannFactor_pos ν β Λ ω).ne'
@@ -1352,26 +1199,6 @@ section Pressure
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 
-/-- If the cubes `∏ₖ [mⱼₖ, mⱼₖ + sⱼ]` have cardinality tending to infinity, so do their sides. -/
-lemma _root_.Finset.tendsto_sub_atTop_of_tendsto_card_Icc_cube {κ : Type*} {l : Filter κ}
-    {m : κ → ι → ℤ} {s : κ → ℕ}
-    (hs : Tendsto (fun j ↦ #(Icc (m j) fun k ↦ m j k + s j)) l atTop) (k : ι) :
-    Tendsto (fun j ↦ (m j k + s j) - m j k) l atTop := by
-  classical
-  simp only [add_sub_cancel_left]
-  rcases l.eq_or_neBot with rfl | hl
-  · exact tendsto_bot
-  have : Nonempty ι := ⟨k⟩
-  have hcard : ∀ j, #(Icc (m j) fun k ↦ m j k + s j) = (s j + 1) ^ Fintype.card ι := fun j ↦ by
-    have : ∀ k, (m j k + (s j : ℤ) + 1 - m j k).toNat = s j + 1 := fun k ↦ by omega
-    simp only [Pi.card_Icc, Int.card_Icc, this, prod_const, card_univ]
-  simp only [hcard] at hs
-  refine tendsto_natCast_atTop_atTop.comp (tendsto_atTop.2 fun b ↦ ?_)
-  have hd : Fintype.card ι ≠ 0 := Fintype.card_ne_zero
-  filter_upwards [tendsto_atTop.1 hs ((b + 1) ^ Fintype.card ι)] with j hj
-  have := (Nat.pow_le_pow_iff_left hd).1 hj
-  omega
-
 variable {Φ : Potential (ι → ℤ) E} (ν : Measure E) [IsProbabilityMeasure ν]
 
 variable (Φ) in
@@ -1479,14 +1306,6 @@ section FiniteVolumeConvexity
 
 variable (ν : Measure E) [IsProbabilityMeasure ν]
 
-/-- `(h^Φ_β)^c = h^Φ_{βc}` for `c ≥ 0`. -/
-lemma boltzmannFactor_rpow [IsSummable Φ] (β : ℝ) {c : ℝ} (hc : 0 ≤ c) (Λ : Finset S)
-    (σ : S → E) : Φ.boltzmannFactor β Λ σ ^ c = Φ.boltzmannFactor (β * c) Λ σ := by
-  rw [boltzmannFactor, boltzmannFactor, ENNReal.ofReal_rpow_of_nonneg (Real.exp_pos _).le hc,
-    ← Real.exp_mul]
-  congr 2
-  ring
-
 /-- The Boltzmann factor of a combination of potentials is the product of the Boltzmann
 factors: `h^{aΦ + bΨ} = h^Φ_a h^Ψ_b`. -/
 lemma boltzmannFactor_smul_add_smul [IsSummable Φ] [IsSummable Ψ] (a b : ℝ) (Λ : Finset S)
@@ -1496,9 +1315,6 @@ lemma boltzmannFactor_smul_add_smul [IsSummable Φ] [IsSummable Ψ] (a b : ℝ) 
   rw [← ENNReal.ofReal_mul (Real.exp_pos _).le, ← Real.exp_add]
   congr 2
   ring
-
-lemma hamiltonianBound_neg (Λ : Finset S) : (-Φ).hamiltonianBound Λ = Φ.hamiltonianBound Λ := by
-  simp only [hamiltonianBound, normAt_neg]
 
 variable [IsAbsolutelySummable Φ] [IsAbsolutelySummable Ψ]
 

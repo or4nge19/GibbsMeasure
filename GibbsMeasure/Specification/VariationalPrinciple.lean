@@ -6,6 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Specification.ErgodicGibbs
+public import GibbsMeasure.Specification.InvariantExistenceGroup
 public import GibbsMeasure.Specification.Pressure
 public import GibbsMeasure.Specification.SpecificEntropy
 public import GibbsMeasure.Mathlib.Topology.Instances.EReal
@@ -55,6 +56,11 @@ The two inputs are §15.2 (`Specification/SpecificEntropy.lean`: `relativeEntrop
   (`Potential.specificEntropy_le_specificEnergy_add_pressure`,
   `Potential.specificEntropy_eq_specificEnergy_add_pressure`) the specific free energy
   `⟨·, Φ⟩ − 𝓀(·)` attains its minimum `−P(Φ)` exactly on `𝒢_Θ(Φ)`.
+* `Potential.invariantG_gibbsSpecification_shiftGroup_nonempty`, **Georgii Theorem (4.23)(a) and
+  Corollary (5.16)**: over a standard Borel state space `𝒢_Θ(Φ) ≠ ∅`, so
+  `Potential.specificRelativeEntropy_eq_zero_iff_mem_invariantG'` and
+  `Potential.specificEntropy_eq_specificEnergy_add_pressure_iff_mem_invariantG` are (15.39) and
+  its free-energy form with no hypothesis beyond `[StandardBorelSpace E]`.
 
 ## Hypotheses of the two directions of (15.39)
 
@@ -63,9 +69,14 @@ The two inputs are §15.2 (`Specification/SpecificEntropy.lean`: `relativeEntrop
 
 `→` (`Potential.mem_invariantG_of_specificRelativeEntropy_eq_zero`) needs, in addition, that
 **`𝒢_Θ(Φ)` be nonempty**: a shift-invariant Gibbs measure `ρ` is a hypothesis of the theorem.
-Georgii produces it from Theorem (4.23) and Corollary (5.16), which need `(E, ℰ)` to be standard
-Borel (and `Φ` to be `λ`-admissible with `λ` finite); that existence statement is not invoked
-here, so the direction is stated with `ρ` given. No other hypothesis on `E` is used.
+No other hypothesis on `E` is used, so that form applies whenever a shift-invariant Gibbs measure
+is known by other means. Georgii produces `ρ` from Theorem (4.23) and Corollary (5.16), which need
+`(E, ℰ)` to be standard Borel; that is
+`Potential.invariantG_gibbsSpecification_shiftGroup_nonempty` here, and it turns the primed
+statements `Potential.mem_invariantG_of_specificRelativeEntropy_eq_zero'`,
+`Potential.specificRelativeEntropy_eq_zero_iff_mem_invariantG'` and
+`Potential.specificEntropy_eq_specificEnergy_add_pressure_iff_mem_invariantG` into unconditional
+theorems over a standard Borel `E`.
 
 ## Proof of (15.37)
 
@@ -1132,6 +1143,46 @@ theorem relativeEntropyIn_gibbsSpecification_le_relativeEntropyIn_add {μ ρ : M
 
 end Potential
 
+/-! ### Georgii Theorem (4.23) and Corollary (5.16): `𝒢_Θ(Φ) ≠ ∅` -/
+
+namespace Potential
+
+section ShiftInvariantExistence
+
+variable {S E : Type*} [Countable S] [AddCommGroup S] [MeasurableSpace E] [StandardBorelSpace E]
+  {Φ : Potential S E} [IsPotential Φ] [IsAbsolutelySummable Φ]
+  (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ)
+
+/-- **Georgii Theorem (4.23)(a) and Corollary (5.16).** Over a standard Borel state space, the
+Gibbsian specification of a shift-invariant absolutely summable potential on a countable abelian
+group of sites has a *shift-invariant* Gibbs measure: `𝒢_Θ(γ^Φ) ≠ ∅` in the notation (14.14).
+Georgii's site set is `ℤ^d`, spelled `ι → ℤ` for a finite `ι` below; nothing beyond
+`[Countable S]` and `[AddCommGroup S]` is used.
+
+Nothing new is proved here. Theorem (4.23)(a) supplies `𝒢(γ^Φ) ≠ ∅`
+(`Potential.GP_gibbsSpecification_nonempty`) and its compactness in the topology of local
+convergence (`Potential.isCompact_setOf_mem_GP_gibbsSpecification`); (5.9)(b)
+(`Potential.isInvariant_gibbsSpecification`) makes `γ^Φ` shift invariant, the shift group is
+abelian (`MeasureTheory.GibbsMeasure.shiftHom`), and Corollary (5.16)
+(`MeasureTheory.GibbsMeasure.exists_mem_GP_and_forall_measurePreserving_of_isCompact`) averages a
+Gibbs measure over Følner sets of shifts into a shift-invariant one. -/
+theorem invariantG_gibbsSpecification_shiftGroup_nonempty (hΦ : Φ.IsShiftInvariant) :
+    (invariantG (gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β)
+      (shiftGroup S E)).Nonempty := by
+  obtain ⟨μ, hμ, hinv⟩ :=
+    exists_mem_GP_and_forall_measurePreserving_of_isCompact
+      (γ := gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) (Φ := shift E)
+      (fun x y ↦ (shiftHom E).map_mul (Multiplicative.ofAdd x) (Multiplicative.ofAdd y))
+      (fun j ↦ isInvariant_gibbsSpecification (shift E j) Φ ν β (fun _ ↦ .id ν) (hΦ j))
+      (isCompact_setOf_mem_GP_gibbsSpecification ν β)
+      (GP_gibbsSpecification_nonempty ν β)
+  exact ⟨(μ : Measure (S → E)), mem_invariantG.2
+    ⟨inferInstance, hμ, (mem_invariantFields_shiftGroup.2 ⟨inferInstance, hinv⟩).2⟩⟩
+
+end ShiftInvariantExistence
+
+end Potential
+
 /-! ### Georgii (15.30)(b), (15.32)–(15.35): the specific relative entropy on `ℤ^d` -/
 
 namespace Potential
@@ -1413,5 +1464,57 @@ theorem specificRelativeEntropy_eq_zero_iff_mem_invariantG (hΦ : Φ.IsShiftInva
         (shiftGroup (ι → ℤ) E) :=
   ⟨fun h ↦ mem_invariantG_of_specificRelativeEntropy_eq_zero ν hΦ hμ hρ h,
     fun h ↦ specificRelativeEntropy_eq_zero_of_mem_invariantG ν hΦ h⟩
+
+/-! ### Georgii Theorem (15.39) over a standard Borel state space -/
+
+section StandardBorel
+
+variable [StandardBorelSpace E]
+
+/-- **Georgii Theorem (15.39), the converse direction, unconditional.** Over a standard Borel
+state space the shift-invariant Gibbs measure that
+`Potential.mem_invariantG_of_specificRelativeEntropy_eq_zero` takes as a hypothesis is supplied by
+Theorem (4.23) and Corollary (5.16)
+(`Potential.invariantG_gibbsSpecification_shiftGroup_nonempty`): a shift-invariant random field
+with vanishing specific relative entropy is a shift-invariant Gibbs measure. -/
+theorem mem_invariantG_of_specificRelativeEntropy_eq_zero' (hΦ : Φ.IsShiftInvariant)
+    [IsProbabilityMeasure μ] (hμ : μ ∈ invariantFields (shiftGroup (ι → ℤ) E))
+    (h0 : Φ.specificRelativeEntropy ν μ = 0) :
+    μ ∈ invariantG (gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν 1)
+      (shiftGroup (ι → ℤ) E) := by
+  obtain ⟨ρ, hρ⟩ := invariantG_gibbsSpecification_shiftGroup_nonempty (Φ := Φ) ν 1 hΦ
+  have : IsProbabilityMeasure ρ := hρ.1.1
+  exact mem_invariantG_of_specificRelativeEntropy_eq_zero ν hΦ hμ hρ h0
+
+/-- **Georgii Theorem (15.39), the variational principle**, unconditional over a standard Borel
+state space: for a shift-invariant absolutely summable potential `Φ` and a shift-invariant random
+field `μ ∈ 𝓟_Θ`, the specific relative entropy `𝓀(μ|Φ) = P(Φ) + ⟨μ, Φ⟩ − 𝓀(μ)` vanishes exactly
+on `𝒢_Θ(Φ)`. This is `Potential.specificRelativeEntropy_eq_zero_iff_mem_invariantG` with the
+hypothesis `𝒢_Θ(Φ) ≠ ∅` discharged by Theorem (4.23) and Corollary (5.16). -/
+theorem specificRelativeEntropy_eq_zero_iff_mem_invariantG' (hΦ : Φ.IsShiftInvariant)
+    [IsProbabilityMeasure μ] (hμ : μ ∈ invariantFields (shiftGroup (ι → ℤ) E)) :
+    Φ.specificRelativeEntropy ν μ = 0 ↔
+      μ ∈ invariantG (gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν 1)
+        (shiftGroup (ι → ℤ) E) :=
+  ⟨fun h ↦ mem_invariantG_of_specificRelativeEntropy_eq_zero' ν hΦ hμ h,
+    fun h ↦ specificRelativeEntropy_eq_zero_of_mem_invariantG ν hΦ h⟩
+
+/-- **Georgii Theorem (15.39), free-energy form.** Over a standard Borel state space, a
+shift-invariant random field `μ ∈ 𝓟_Θ` attains the minimum `−P(Φ)` of the specific free energy
+`⟨·, Φ⟩ − 𝓀(·)` — equivalently `𝓀(μ) = ⟨μ, Φ⟩ + P(Φ)` — if and only if `μ ∈ 𝒢_Θ(Φ)`. The
+inequality `𝓀(μ) ≤ ⟨μ, Φ⟩ + P(Φ)` on all of `𝓟_Θ` is
+`Potential.specificEntropy_le_specificEnergy_add_pressure` and needs no hypothesis on `E`. -/
+theorem specificEntropy_eq_specificEnergy_add_pressure_iff_mem_invariantG
+    (hΦ : Φ.IsShiftInvariant) [IsProbabilityMeasure μ]
+    (hμ : μ ∈ invariantFields (shiftGroup (ι → ℤ) E)) :
+    specificEntropy ν μ = ((Φ.specificEnergy μ + Φ.pressure ν : ℝ) : EReal) ↔
+      μ ∈ invariantG (gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν 1)
+        (shiftGroup (ι → ℤ) E) := by
+  refine ⟨fun h ↦ mem_invariantG_of_specificRelativeEntropy_eq_zero' ν hΦ hμ ?_,
+    fun h ↦ specificEntropy_eq_specificEnergy_add_pressure ν hΦ hμ h.1.2⟩
+  rw [specificRelativeEntropy, add_comm (Φ.pressure ν), h, ← EReal.coe_sub, sub_self,
+    EReal.coe_zero]
+
+end StandardBorel
 
 end Potential

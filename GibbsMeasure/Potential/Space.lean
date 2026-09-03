@@ -62,6 +62,16 @@ instance : Module ℝ (Potential S E) :=
 
 @[simp] lemma zero_apply (A : Finset S) (η : S → E) : (0 : Potential S E) A η = 0 := rfl
 
+instance {Φ Ψ : Potential S E} [IsPotential Φ] [IsPotential Ψ] : IsPotential (Φ + Ψ) where
+  measurable Δ := by
+    let : MeasurableSpace (S → E) := cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)
+    exact (IsPotential.measurable (Φ := Φ) Δ).add (IsPotential.measurable (Φ := Ψ) Δ)
+
+instance (c : ℝ) {Φ : Potential S E} [IsPotential Φ] : IsPotential (c • Φ) where
+  measurable Δ := by
+    let : MeasurableSpace (S → E) := cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)
+    exact (IsPotential.measurable (Φ := Φ) Δ).const_mul c
+
 /-! ### The one-body and many-body parts of a potential
 
 Georgii absorbs the single-site terms `Φ_{i}` of a potential into the a priori measure in the
@@ -181,6 +191,11 @@ end BodySplit
 
 lemma normAt_neg (Φ : Potential S E) (i : S) : (-Φ).normAt i = Φ.normAt i := by
   simp [normAt]
+
+/-- Georgii (2.14) is invariant under a sign change of the potential. -/
+lemma hamiltonianBound_neg (Φ : Potential S E) (Λ : Finset S) :
+    (-Φ).hamiltonianBound Λ = Φ.hamiltonianBound Λ := by
+  simp only [hamiltonianBound, normAt_neg]
 
 /-- Subadditivity of Georgii's `‖·‖ᵢ`: the `enorm` triangle inequality under `iSup`, summed by
 `ENNReal.tsum_add`. -/
@@ -585,6 +600,68 @@ Georgii (2.14) applied to a *difference* of potentials bounds the Hamiltonian di
 `|H_Λ^Φ − H_Λ^Ψ|` by the constant `hamiltonianBound (Φ - Ψ) Λ = ∑_{i ∈ Λ} ‖Φ − Ψ‖ᵢ`, which
 tends to `0` along any net converging in the topology of `ℬ` — exactly the bound-function
 hypothesis of the repo's Georgii (4.19), `Potential.tendsto_dist_action_gibbsSpecification`. -/
+
+lemma hamiltonianTerms_add (Φ Ψ : Potential S E) (Λ : Finset S) (η : S → E) :
+    (Φ + Ψ).hamiltonianTerms Λ η = Φ.hamiltonianTerms Λ η + Ψ.hamiltonianTerms Λ η := by
+  funext A
+  by_cases h : Disjoint A Λ
+  · simp [hamiltonianTerms_of_disjoint h]
+  · simp [Pi.add_apply, hamiltonianTerms_of_not_disjoint h]
+
+lemma hamiltonianTerms_smul (c : ℝ) (Φ : Potential S E) (Λ : Finset S) (η : S → E) :
+    (c • Φ).hamiltonianTerms Λ η = c • Φ.hamiltonianTerms Λ η := by
+  funext A
+  by_cases h : Disjoint A Λ
+  · simp [hamiltonianTerms_of_disjoint h]
+  · simp [Pi.smul_apply, hamiltonianTerms_of_not_disjoint h]
+
+lemma hasSum_hamiltonianTerms_add (Φ Ψ : Potential S E) [IsSummable Φ] [IsSummable Ψ]
+    (Λ : Finset S) (η : S → E) :
+    HasSum ((Φ + Ψ).hamiltonianTerms Λ η) (Φ.hamiltonian Λ η + Ψ.hamiltonian Λ η)
+      (SummationFilter.volume S) := by
+  rw [hamiltonianTerms_add]
+  exact (hasSum_hamiltonian (Φ := Φ) Λ η).add (hasSum_hamiltonian (Φ := Ψ) Λ η)
+
+lemma hasSum_hamiltonianTerms_smul (c : ℝ) (Φ : Potential S E) [IsSummable Φ]
+    (Λ : Finset S) (η : S → E) :
+    HasSum ((c • Φ).hamiltonianTerms Λ η) (c * Φ.hamiltonian Λ η) (SummationFilter.volume S) := by
+  rw [hamiltonianTerms_smul]
+  exact (hasSum_hamiltonian (Φ := Φ) Λ η).mul_left c
+
+instance {Φ Ψ : Potential S E} [IsSummable Φ] [IsSummable Ψ] : IsSummable (Φ + Ψ) :=
+  ⟨fun Λ η ↦ ⟨_, hasSum_hamiltonianTerms_add Φ Ψ Λ η⟩⟩
+
+instance (c : ℝ) {Φ : Potential S E} [IsSummable Φ] : IsSummable (c • Φ) :=
+  ⟨fun Λ η ↦ ⟨_, hasSum_hamiltonianTerms_smul c Φ Λ η⟩⟩
+
+/-- The Hamiltonian is additive in the potential. -/
+theorem hamiltonian_add (Φ Ψ : Potential S E) [IsSummable Φ] [IsSummable Ψ]
+    (Λ : Finset S) (η : S → E) :
+    (Φ + Ψ).hamiltonian Λ η = Φ.hamiltonian Λ η + Ψ.hamiltonian Λ η :=
+  (hasSum_hamiltonianTerms_add Φ Ψ Λ η).tsum_eq
+
+/-- The Hamiltonian is homogeneous in the potential. -/
+theorem hamiltonian_smul (c : ℝ) (Φ : Potential S E) [IsSummable Φ] (Λ : Finset S) (η : S → E) :
+    (c • Φ).hamiltonian Λ η = c * Φ.hamiltonian Λ η :=
+  (hasSum_hamiltonianTerms_smul c Φ Λ η).tsum_eq
+
+/-- Scaling the potential scales the inverse temperature: `h^{cΦ}_β = h^Φ_{βc}`. -/
+lemma boltzmannFactor_smul (c : ℝ) (Φ : Potential S E) [IsSummable Φ] (β : ℝ) :
+    (c • Φ).boltzmannFactor β = Φ.boltzmannFactor (β * c) := by
+  funext Λ η
+  rw [boltzmannFactor, boltzmannFactor, hamiltonian_smul, ← mul_assoc, neg_mul, neg_mul]
+
+/-- **Scaling the potential scales the inverse temperature**: `γ^{cΦ, β} = γ^{Φ, βc}`. In
+particular `γ^{βΦ, 1} = γ^{Φ, β}`, so a Gibbsian specification at inverse temperature `β` is the
+specification of the potential `βΦ`. -/
+theorem gibbsSpecificationOfAbsolutelySummable_smul [Countable S] (c : ℝ) (Φ : Potential S E)
+    [IsPotential Φ] [IsAbsolutelySummable Φ] (ν : Measure E) [IsProbabilityMeasure ν] (β : ℝ) :
+    gibbsSpecificationOfAbsolutelySummable (Φ := c • Φ) ν β
+      = gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν (β * c) := by
+  refine Specification.ext fun Λ ↦ ?_
+  ext η A hA
+  simp only [gibbsSpecificationOfAbsolutelySummable, Specification.modification_apply,
+    boltzmannFactor_smul]
 
 lemma hamiltonianTerms_sub_eq (Φ Ψ : Potential S E) (Λ : Finset S) (η : S → E) :
     (Φ - Ψ).hamiltonianTerms Λ η = Φ.hamiltonianTerms Λ η - Ψ.hamiltonianTerms Λ η := by

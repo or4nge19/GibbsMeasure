@@ -81,7 +81,8 @@ Phase Transitions*, §9.1, on top of `GibbsMeasure/Model/OneDimensionalSymmetry.
   Griffiths' inequalities (`K > 0`, the existence of the limit `lim γ_{[1,N]}(·|ω⁺)` and its
   monotonicity in `K`). For an arbitrary specification the existence of `μ₊` is the hypothesis of
   `exists_not_measurePreserving_squareFlip₁`; at `K = 0` it is a **theorem**,
-  `exists_not_measurePreserving_squareFlip₁_of_summable`, under Georgii's condition (6.1): the
+  `exists_not_measurePreserving_squareFlip₁_of_summable`, at every inverse temperature `β > 0`
+  under Georgii's condition (6.1) for `βJ`: the
   potential is then the pullback of the inhomogeneous chain potential (6.2) along the projection
   onto the first layer (`comap_fst_isingChainPotential`), so Theorem (6.4)
   (`exists_mem_G_integral_spin_pos`) and the transport of `GibbsMeasure/Specification/Pullback.lean`
@@ -1425,38 +1426,43 @@ theorem comap_fst_isingChainPotential (J : ℕ → ℝ) :
   split_ifs <;> ring
 
 /-- **Georgii, Example (9.15) at `K = 0`: the symmetry `τ⁽¹⁾` is broken.** For `K = 0` the two
-layers decouple and Georgii invokes Theorem (6.4) for the first one. Under the hypotheses of (6.4)
-— `J_n > 0` and `∑_n e^{-2J_n} < ∞`, Georgii (6.1) — the chain has a Gibbs measure `μ₊` with
-`μ₊(σ_n) > 0` at every site (`exists_mem_G_integral_spin_pos`); the product `μ₊ ⊗ λ^ℕ` with a free
-second layer is a Gibbs measure for `Φ = pair (squarePotential J 0)`
-(`mem_G_map_symm_prod_infinitePi_comap_fst`) whose first-layer magnetisation is again `μ₊(σ_n)`,
-so it is not `τ⁽¹⁾`-invariant. The a priori measure is Georgii's equidistribution on the four
-vertices of the square, `λ = λ₁ ⊗ λ₁`. -/
-theorem exists_not_measurePreserving_squareFlip₁_of_summable {J : ℕ → ℝ} (hJ : ∀ n, 0 < J n)
-    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) (i : ℕ) :
+layers decouple and Georgii invokes Theorem (6.4) for the first one. At an inverse temperature
+`β > 0`, under the hypotheses of (6.4) for the couplings `βJ` — `J_n > 0` and
+`∑_n e^{-2βJ_n} < ∞`, Georgii (6.1) — the chain has a Gibbs measure `μ₊` with `μ₊(σ_n) > 0` at
+every site (`exists_mem_G_integral_spin_pos`, transported to `β` by
+`isingChainSpecification_smul`); the product `μ₊ ⊗ λ^ℕ` with a free second layer is a Gibbs
+measure for `Φ = pair (squarePotential J 0)` (`mem_G_map_symm_prod_infinitePi_comap_fst`) whose
+first-layer magnetisation is again `μ₊(σ_n)`, so it is not `τ⁽¹⁾`-invariant. The a priori measure
+is Georgii's equidistribution on the four vertices of the square, `λ = λ₁ ⊗ λ₁`. -/
+theorem exists_not_measurePreserving_squareFlip₁_of_summable {J : ℕ → ℝ} {β : ℝ} (hβ : 0 < β)
+    (hJ : ∀ n, 0 < J n) (h61 : Summable fun n ↦ Real.exp (-2 * (β * J n))) (i : ℕ) :
     haveI := isPotential_pair_squarePotential J 0
     haveI := isAbsolutelySummable_pair_squarePotential J 0
     ∃ μ ∈ G (gibbsSpecificationOfFiniteReference (pair (squarePotential J 0))
-        (uniformSpinMeasure.prod uniformSpinMeasure) 1),
+        (uniformSpinMeasure.prod uniformSpinMeasure) β),
       ¬ MeasurePreserving squareFlip₁.toFun μ μ := by
   have := isPotential_pair_squarePotential J 0
   have := isAbsolutelySummable_pair_squarePotential J 0
-  obtain ⟨μ₁, hμ₁, hpos⟩ := exists_mem_G_integral_spin_pos hJ h61
+  obtain ⟨μ₁, hμ₁', hpos⟩ := exists_mem_G_integral_spin_pos (J := β • J)
+    (fun n ↦ mul_pos hβ (hJ n)) (by simpa using h61)
+  rw [isingChainSpecification_smul] at hμ₁'
+  have hμ₁ : μ₁ ∈ G (gibbsSpecificationOfAbsolutelySummable (Φ := isingChainPotential J)
+    uniformSpinMeasure β) := hμ₁'
   have : IsProbabilityMeasure μ₁ := hμ₁.1
   set e := MeasurableEquiv.arrowProdEquivProdArrow Bool Bool ℕ with he
   set μ := (μ₁.prod (Measure.infinitePi fun _ : ℕ ↦ uniformSpinMeasure)).map e.symm with hμdef
   have hlift : μ ∈ G (gibbsSpecificationOfAbsolutelySummable
       (Φ := (isingChainPotential J).comap (Prod.fst : Bool × Bool → Bool))
-      (uniformSpinMeasure.prod uniformSpinMeasure) 1) :=
+      (uniformSpinMeasure.prod uniformSpinMeasure) β) :=
     mem_G_map_symm_prod_infinitePi_comap_fst (isingChainPotential J) uniformSpinMeasure
-      uniformSpinMeasure 1 hμ₁
+      uniformSpinMeasure β hμ₁
   have hspec : gibbsSpecificationOfFiniteReference (pair (squarePotential J 0))
-      (uniformSpinMeasure.prod uniformSpinMeasure) 1
+      (uniformSpinMeasure.prod uniformSpinMeasure) β
       = gibbsSpecificationOfAbsolutelySummable
         (Φ := (isingChainPotential J).comap (Prod.fst : Bool × Bool → Bool))
-        (uniformSpinMeasure.prod uniformSpinMeasure) 1 := by
+        (uniformSpinMeasure.prod uniformSpinMeasure) β := by
     rw [gibbsSpecificationOfFiniteReference_eq_of_isProbabilityMeasure]
-    exact gibbsSpecification_congr _ 1 (comap_fst_isingChainPotential J) |>.symm
+    exact gibbsSpecification_congr _ β (comap_fst_isingChainPotential J) |>.symm
   have hq : Measurable fun ω : ℕ → Bool × Bool ↦ fun j ↦ (ω j).1 :=
     measurable_pi_lambda _ fun j ↦ (measurable_pi_apply j).fst
   have hmar : μ.map (fun ω j ↦ (ω j).1) = μ₁ :=

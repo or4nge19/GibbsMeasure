@@ -53,12 +53,14 @@ specific entropy of Theorem \ref{thm:sent-15-12} and $P$ the pressure of Theorem
 \begin{theorem}[Variational principle, Georgii (15.39)]
     \label{thm:vp-15-39}
     \uses{prop:vp-15-30b, thm:vp-15-37}
-    \lean{Potential.specificRelativeEntropy_eq_zero_iff_mem_invariantG, Potential.mem_invariantG_of_specificRelativeEntropy_eq_zero, Potential.specificEntropy_le_specificEnergy_add_pressure}
+    \lean{Potential.invariantG_gibbsSpecification_shiftGroup_nonempty, Potential.specificRelativeEntropy_eq_zero_iff_mem_invariantG, Potential.specificRelativeEntropy_eq_zero_iff_mem_invariantG', Potential.specificEntropy_le_specificEnergy_add_pressure, Potential.specificEntropy_eq_specificEnergy_add_pressure_iff_mem_invariantG}
     \leanok
 
-    For $\mu \in \Prob_\Theta$, $h(\mu) \leq \mu(f_\Phi) + P(\Phi)$, and, provided
-    $\mathcal G_\Theta(\gamma^\Phi) \neq \emptyset$, equality holds iff
-    $\mu \in \mathcal G_\Theta(\gamma^\Phi)$.
+    For $\mu \in \Prob_\Theta$, $h(\mu) \leq \mu(f_\Phi) + P(\Phi)$, with equality iff
+    $\mu \in \mathcal G_\Theta(\gamma^\Phi)$; here $E$ is standard Borel, which makes
+    $\mathcal G_\Theta(\gamma^\Phi) \neq \emptyset$ by Theorem (4.23) and Corollary (5.16), and
+    without that assumption the equivalence holds for every $\Phi$ with
+    $\mathcal G_\Theta(\gamma^\Phi) \neq \emptyset$.
 \end{theorem}
 \begin{proof}
     \leanok

@@ -112,6 +112,12 @@ lemma pairTerms_add (f g : S → S → α) (A : Finset S) :
   · rw [pairTerms_pair hij, pairTerms_pair hij, pairTerms_pair hij]
   · rw [pairTerms_eq_zero hA, pairTerms_eq_zero hA, pairTerms_eq_zero hA, add_zero]
 
+lemma pairTerms_smul {M : Type*} [Monoid M] [DistribMulAction M α] (c : M) (f : S → S → α)
+    (A : Finset S) : pairTerms (fun i j ↦ c • f i j) A = c • pairTerms f A := by
+  rcases exists_lt_pair_or A with ⟨i, j, hij, rfl⟩ | hA
+  · rw [pairTerms_pair hij, pairTerms_pair hij]
+  · rw [pairTerms_eq_zero hA, pairTerms_eq_zero hA, smul_zero]
+
 lemma pairTerms_sub {α : Type*} [AddCommGroup α] (f g : S → S → α) (A : Finset S) :
     pairTerms (fun i j ↦ f i j - g i j) A = pairTerms f A - pairTerms g A := by
   rcases exists_lt_pair_or A with ⟨i, j, hij, rfl⟩ | hA
@@ -223,6 +229,12 @@ lemma pair_pair {i j : S} (hij : i < j) (η : S → E) : pair φ {i, j} η = φ 
 
 lemma pair_eq_zero {A : Finset S} (hA : ∀ i j, i < j → A ≠ {i, j}) : pair φ A = 0 :=
   funext fun _ ↦ pairTerms_eq_zero hA
+
+/-- The pair potential is homogeneous in the interaction: `Φ^{cφ} = c Φ^φ`. -/
+lemma pair_smul (c : ℝ) : pair (fun i j x y ↦ c * φ i j x y) = c • pair φ := by
+  funext A η
+  simpa [pair_apply, smul_apply, smul_eq_mul] using
+    pairTerms_smul c (fun i j ↦ φ i j (η i) (η j)) A
 
 /-- A pair potential with measurable `φ_{ij}` is a potential in the sense of Georgii (2.2)(i). -/
 lemma isPotential_pair (hφ : ∀ i j, Measurable (Function.uncurry (φ i j))) :

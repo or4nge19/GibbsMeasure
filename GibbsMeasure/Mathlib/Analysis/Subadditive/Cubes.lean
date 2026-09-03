@@ -44,6 +44,12 @@ on boxes and subadditive on pairs of disjoint boxes whose union is a box — Geo
   versions; the latter, with a `BddBelow` hypothesis and a real infimum, has the shape of
   Mathlib's one-dimensional Fekete lemma `Subadditive.tendsto_lim`.
 
+Two elementary facts about boxes, used in the proofs and in the applications, are stated
+separately: `Finset.tendsto_card_Icc_div_card_Icc`, boundary layers of a fixed thickness are
+negligible when all sides tend to infinity, and
+`Finset.tendsto_sub_atTop_of_tendsto_card_Icc_cube`, cubes of cardinality tending to infinity
+have all sides tending to infinity.
+
 Georgii uses (15.11) for the existence of the specific entropy (Theorem (15.12)) and of the
 pressure (Theorem (15.30)).
 
@@ -418,6 +424,64 @@ lemma eventually_le_of_tendsto_sub [Finite ι] {κ : Type*} {l : Filter κ} {m n
   eventually_all.2 fun k ↦ ((h k).eventually_ge_atTop 0).mono fun _ hj ↦ by
     simpa [sub_nonneg] using hj
 
+/-- One-dimensional case of `Finset.tendsto_card_Icc_div_card_Icc`. -/
+private lemma tendsto_card_Icc_div_card_Icc_int {κ : Type*} {l : Filter κ} {a b : κ → ℤ}
+    (h : Tendsto (fun j ↦ b j - a j) l atTop) (R : ℕ) :
+    Tendsto (fun j ↦ (#(Icc (a j + R) (b j - R)) : ℝ) / #(Icc (a j) (b j))) l (𝓝 1) := by
+  have hL : Tendsto (fun j ↦ ((b j + 1 - a j : ℤ) : ℝ)) l atTop := by
+    refine tendsto_intCast_atTop_atTop.comp ?_
+    have := h.atTop_add (tendsto_const_nhds (x := (1 : ℤ)))
+    refine this.congr fun j ↦ ?_
+    ring
+  have key : Tendsto (fun j ↦ 1 - (2 * R : ℝ) / ((b j + 1 - a j : ℤ) : ℝ)) l (𝓝 1) := by
+    simpa using tendsto_const_nhds.sub (tendsto_const_nhds.div_atTop hL)
+  refine key.congr' ?_
+  filter_upwards [h.eventually_ge_atTop (2 * R)] with j hj
+  rw [Int.card_Icc, Int.card_Icc]
+  have h1 : (0 : ℤ) ≤ b j + 1 - a j := by omega
+  have h2 : (0 : ℤ) ≤ b j - R + 1 - (a j + R) := by omega
+  have e1 : (((b j + 1 - a j).toNat : ℕ) : ℝ) = ((b j + 1 - a j : ℤ) : ℝ) := by
+    exact_mod_cast Int.toNat_of_nonneg h1
+  have e2 : (((b j - R + 1 - (a j + R)).toNat : ℕ) : ℝ) = ((b j - R + 1 - (a j + R) : ℤ) : ℝ) := by
+    exact_mod_cast Int.toNat_of_nonneg h2
+  have h3 : ((b j + 1 - a j : ℤ) : ℝ) ≠ 0 := by
+    exact_mod_cast (show b j + 1 - a j ≠ 0 by omega)
+  rw [e1, e2, eq_comm, eq_sub_iff_add_eq, ← add_div, div_eq_one_iff_eq h3]
+  push_cast
+  ring
+
+/-- **Boundary layers of boxes are negligible.** If all sides of the boxes `Icc (m j) (n j)` tend
+to infinity, the fraction of sites at distance more than `R` from the boundary tends to `1`. -/
+theorem Finset.tendsto_card_Icc_div_card_Icc {κ : Type*} {l : Filter κ}
+    {m n : κ → ι → ℤ} (h : ∀ k, Tendsto (fun j ↦ n j k - m j k) l atTop) (R : ℕ) :
+    Tendsto (fun j ↦ (#(Icc (fun k ↦ m j k + R) (fun k ↦ n j k - R)) : ℝ) / #(Icc (m j) (n j)))
+      l (𝓝 1) := by
+  have hcard : ∀ a b : ι → ℤ, (#(Icc a b) : ℝ) = ∏ k, (#(Icc (a k) (b k)) : ℝ) := fun a b ↦ by
+    rw [Pi.card_Icc, Nat.cast_prod]
+  simp_rw [hcard, ← Finset.prod_div_distrib]
+  have := tendsto_finsetProd (univ : Finset ι)
+    fun k _ ↦ tendsto_card_Icc_div_card_Icc_int (h k) R
+  simpa using this
+
+/-- If the cubes `∏ₖ [mⱼₖ, mⱼₖ + sⱼ]` have cardinality tending to infinity, so do their sides. -/
+theorem Finset.tendsto_sub_atTop_of_tendsto_card_Icc_cube {κ : Type*} {l : Filter κ}
+    {m : κ → ι → ℤ} {s : κ → ℕ}
+    (hs : Tendsto (fun j ↦ #(Icc (m j) fun k ↦ m j k + s j)) l atTop) (k : ι) :
+    Tendsto (fun j ↦ (m j k + s j) - m j k) l atTop := by
+  simp only [add_sub_cancel_left]
+  rcases l.eq_or_neBot with rfl | hl
+  · exact tendsto_bot
+  have : Nonempty ι := ⟨k⟩
+  have hcard : ∀ j, #(Icc (m j) fun k ↦ m j k + s j) = (s j + 1) ^ Fintype.card ι := fun j ↦ by
+    have : ∀ k, (m j k + (s j : ℤ) + 1 - m j k).toNat = s j + 1 := fun k ↦ by omega
+    simp only [Pi.card_Icc, Int.card_Icc, this, prod_const, card_univ]
+  simp only [hcard] at hs
+  refine tendsto_natCast_atTop_atTop.comp (tendsto_atTop.2 fun b ↦ ?_)
+  have hd : Fintype.card ι ≠ 0 := Fintype.card_ne_zero
+  filter_upwards [tendsto_atTop.1 hs ((b + 1) ^ Fintype.card ι)] with j hj
+  have := (Nat.pow_le_pow_iff_left hd).1 hj
+  omega
+
 namespace BoxSubadditive
 
 /-- **Georgii Lemma (15.11), real-valued case.** Let `a` be a real-valued box-subadditive
@@ -637,25 +701,7 @@ theorem tendsto_div_card_of_tendsto_card {a : Finset (ι → ℤ) → EReal} (ha
     Tendsto (fun j ↦ a (Icc (m j) fun k ↦ m j k + s j) /
       (#(Icc (m j) fun k ↦ m j k + s j) : EReal)) l
       (𝓝 (⨅ Δ, ⨅ (_ : Δ.IsBox), a Δ / (#Δ : EReal))) := by
-  refine ha.tendsto_div_card ha' fun k ↦ ?_
-  simp only [add_sub_cancel_left]
-  rcases l.eq_or_neBot with rfl | hl
-  · exact tendsto_bot
-  have hcard : ∀ j, #(Icc (m j) fun k ↦ m j k + s j) = (s j + 1) ^ Fintype.card ι := fun j ↦ by
-    have : ∀ k, (m j k + (s j : ℤ) + 1 - m j k).toNat = s j + 1 := fun k ↦ by omega
-    simp only [Pi.card_Icc, Int.card_Icc, this, prod_const, card_univ]
-  simp only [hcard] at hs
-  refine tendsto_natCast_atTop_atTop.comp (tendsto_atTop.2 fun b ↦ ?_)
-  rcases isEmpty_or_nonempty ι with hι | hι
-  · exfalso
-    have := hι
-    simp only [Fintype.card_eq_zero, pow_zero] at hs
-    obtain ⟨j, hj⟩ := (tendsto_atTop.1 hs 2).exists
-    omega
-  · have hd : Fintype.card ι ≠ 0 := Fintype.card_ne_zero
-    filter_upwards [tendsto_atTop.1 hs ((b + 1) ^ Fintype.card ι)] with j hj
-    have := (Nat.pow_le_pow_iff_left hd).1 hj
-    omega
+  exact ha.tendsto_div_card ha' (Finset.tendsto_sub_atTop_of_tendsto_card_Icc_cube hs)
 
 end BoxSubadditive
 

@@ -259,6 +259,9 @@ lemma map_mem_absolutelySummable {Φ : Potential S E} (hΦ : Φ ∈ absolutelySu
 lemma map_add (Φ Ψ : Potential S E) :
     Potential.map τ (Φ + Ψ) = Potential.map τ Φ + Potential.map τ Ψ := rfl
 
+lemma map_sub (Φ Ψ : Potential S E) :
+    Potential.map τ (Φ - Ψ) = Potential.map τ Φ - Potential.map τ Ψ := rfl
+
 lemma map_smul (c : ℝ) : Potential.map τ (c • Φ) = c • Potential.map τ Φ := rfl
 
 end Map
@@ -272,6 +275,30 @@ lemma isShiftInvariant_iff (Φ : Potential S E) :
     Φ.IsShiftInvariant ↔ ∀ (j : S) (A : Finset S) (η : S → E),
       Φ (A.map (Equiv.addRight j).toEmbedding) ((shift E j).toFun η) = Φ A η :=
   forall_congr' fun j ↦ map_eq_iff (shift E j) Φ
+
+variable {Φ Ψ : Potential S E}
+
+lemma IsShiftInvariant.add (hΦ : Φ.IsShiftInvariant) (hΨ : Ψ.IsShiftInvariant) :
+    (Φ + Ψ).IsShiftInvariant := fun j ↦ by rw [map_add, hΦ j, hΨ j]
+
+lemma IsShiftInvariant.sub (hΦ : Φ.IsShiftInvariant) (hΨ : Ψ.IsShiftInvariant) :
+    (Φ - Ψ).IsShiftInvariant := fun j ↦ by rw [map_sub, hΦ j, hΨ j]
+
+lemma IsShiftInvariant.smul (c : ℝ) (hΦ : Φ.IsShiftInvariant) : (c • Φ).IsShiftInvariant :=
+  fun j ↦ by rw [map_smul, hΦ j]
+
+/-- Georgii (2.12) is constant along the sites for a shift-invariant potential:
+`‖Φ‖ᵢ = ‖Φ‖₀`. -/
+lemma IsShiftInvariant.normAt_eq (hΦ : Φ.IsShiftInvariant) (i : S) : Φ.normAt i = Φ.normAt 0 := by
+  have h := normAt_map (shift E i) Φ 0
+  rw [hΦ i] at h
+  simpa [shift] using h
+
+/-- Georgii (2.14) for a shift-invariant potential: the Hamiltonian bound is `|Λ| ‖Φ‖₀`. -/
+lemma IsShiftInvariant.hamiltonianBound_eq (hΦ : Φ.IsShiftInvariant) (Λ : Finset S) :
+    Φ.hamiltonianBound Λ = Λ.card * (Φ.normAt 0).toReal := by
+  simp only [hamiltonianBound, hΦ.normAt_eq, Finset.sum_const, nsmul_eq_mul, ENNReal.toReal_mul,
+    ENNReal.toReal_natCast]
 
 end Shift
 

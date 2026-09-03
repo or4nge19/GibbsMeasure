@@ -157,6 +157,17 @@ instance isAbsolutelySummable_isingChainPotential :
       rw [Real.enorm_eq_ofReal_abs]
       exact ENNReal.ofReal_le_ofReal (abs_isingChainPair_le i j x y)))
 
+/-- **Scaling the couplings scales the potential**: `Φ^{βJ} = β Φ^J`, so the inhomogeneous
+chain at inverse temperature `β` is the chain with couplings `βJ` at `β = 1`
+(`Potential.gibbsSpecificationOfAbsolutelySummable_smul`). -/
+lemma isingChainPotential_smul (β : ℝ) :
+    isingChainPotential (β • J) = β • isingChainPotential J := by
+  rw [isingChainPotential, isingChainPotential, ← Potential.pair_smul]
+  congr 1
+  funext i j x y
+  simp only [isingChainPair, Pi.smul_apply, smul_eq_mul]
+  split_ifs <;> ring
+
 /-! ### The Hamiltonian of an initial interval
 
 Georgii's volumes are `Λ_N = {1, …, N}`; with `ℕ` indexed from `0` they are `Finset.range N`,
@@ -428,6 +439,16 @@ inhomogeneous Ising chain, with the uniform a priori spin measure. The inverse t
 absorbed into the couplings: `γ^{βΦ}` is the chain with couplings `βJ`. -/
 def isingChainSpecification : Specification ℕ Bool :=
   gibbsSpecificationOfAbsolutelySummable (Φ := isingChainPotential J) uniformSpinMeasure 1
+
+/-- **The inverse temperature is absorbed into the couplings**: the chain with couplings `βJ` is
+the chain with couplings `J` at inverse temperature `β`. -/
+lemma isingChainSpecification_smul (β : ℝ) :
+    isingChainSpecification (β • J)
+      = gibbsSpecificationOfAbsolutelySummable (Φ := isingChainPotential J)
+          uniformSpinMeasure β := by
+  rw [isingChainSpecification,
+    Potential.gibbsSpecification_congr uniformSpinMeasure 1 (isingChainPotential_smul J β),
+    Potential.gibbsSpecificationOfAbsolutelySummable_smul, one_mul]
 
 variable {J}
 
