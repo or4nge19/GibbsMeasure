@@ -128,7 +128,7 @@ Fubini-bind statement under `IsMarkovKernel` and integrability hypotheses. -/
 private lemma condExp_simpleFunc_ae_eq_integral_kernel (f : @SimpleFunc X 𝓧 ℝ) :
     condExp 𝓑 μ f =ᵐ[μ] (fun x₀ ↦ ∫ x, f x ∂(π x₀)) := by
   classical
-  letI : MeasurableSpace X := 𝓧
+  let : MeasurableSpace X := 𝓧
   refine @SimpleFunc.induction _ _ _ _ (fun f => condExp 𝓑 μ f =ᵐ[μ]
     (fun x₀ => ∫ x, f x ∂(π x₀))) ?_ ?_ f
   · intro c s hs

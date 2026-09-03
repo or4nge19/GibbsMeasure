@@ -197,7 +197,7 @@ private lemma premodifierZ_eq_ofReal (Λ : Finset S) (ξ : S → E) :
     Specification.premodifierZ (S := S) (E := E) ν (Φ.boltzmannFactor β) Λ ξ
       = ENNReal.ofReal (∫ x, Real.exp (-β * Φ.hamiltonian Λ x)
           ∂(Specification.isssd (S := S) (E := E) ν Λ ξ)) := by
-  haveI : IsProbabilityMeasure (Specification.isssd (S := S) (E := E) ν Λ ξ) := inferInstance
+  have : IsProbabilityMeasure (Specification.isssd (S := S) (E := E) ν Λ ξ) := inferInstance
   have h : Specification.premodifierZ (S := S) (E := E) ν (Φ.boltzmannFactor β) Λ ξ
       = ∫⁻ x, ENNReal.ofReal (Real.exp (-β * Φ.hamiltonian Λ x))
           ∂(Specification.isssd (S := S) (E := E) ν Λ ξ) := rfl
@@ -213,7 +213,7 @@ private lemma integral_gibbs_eq (Λ : Finset S) (η : S → E) (F : (S → E) �
         / ∫ x, Real.exp (-β * Φ.hamiltonian Λ x)
             ∂(Specification.isssd (S := S) (E := E) ν Λ η) := by
   classical
-  haveI : IsProbabilityMeasure (Specification.isssd (S := S) (E := E) ν Λ η) := inferInstance
+  have : IsProbabilityMeasure (Specification.isssd (S := S) (E := E) ν Λ η) := inferInstance
   set Zc : ℝ := ∫ x, Real.exp (-β * Φ.hamiltonian Λ x)
       ∂(Specification.isssd (S := S) (E := E) ν Λ η) with hZc
   have hZcpos : 0 < Zc := by rw [hZc]; exact integral_expB_pos (Φ := Φ) β Λ _
@@ -293,7 +293,7 @@ private lemma abs_integral_gibbs_sub_le (Λ : Finset S) (η : S → E)
     |(∫ x, F x ∂(gibbsSpecificationOfAbsolutelySummable (Φ := Ψ) ν β Λ η))
       - ∫ x, F x ∂(gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β Λ η)|
       ≤ 2 * nf * (Real.exp (|β| * Dv) - 1) := by
-  haveI : IsProbabilityMeasure (Specification.isssd (S := S) (E := E) ν Λ η) := inferInstance
+  have : IsProbabilityMeasure (Specification.isssd (S := S) (E := E) ν Λ η) := inferInstance
   have hDv0 : 0 ≤ Dv := le_trans (abs_nonneg _) (hDv η)
   rw [integral_gibbs_eq (Φ := Ψ) ν β Λ η F, integral_gibbs_eq (Φ := Φ) ν β Λ η F]
   refine abs_integral_div_sub_le (Specification.isssd (S := S) (E := E) ν Λ η)

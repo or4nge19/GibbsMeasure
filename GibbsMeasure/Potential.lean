@@ -552,7 +552,7 @@ lemma partitionFunction_ne_top_of_boltzmannWeight_le
     (hbound : ∀ σ : S → E, boltzmannWeight (Φ := Φ) β Λ σ ≤ C) :
     partitionFunction (S := S) (E := E) Φ β ν Λ η ≠ ⊤ := by
   let μ : Measure (S → E) := Specification.isssd (S := S) (E := E) ν Λ η
-  haveI : IsProbabilityMeasure μ := by
+  have : IsProbabilityMeasure μ := by
     dsimp [μ]
     exact ProbabilityTheory.IsMarkovKernel.isProbabilityMeasure
       (κ := Specification.isssd (S := S) (E := E) ν Λ) η

@@ -51,7 +51,7 @@ lemma measurableSet_vanishOff (Λ : Finset S) :
 omit [Countable S] in
 lemma measurable_zeroOn (Λ : Finset S) :
     Measurable[cylinderEvents (X := fun _ : S ↦ Bool) ((Λ : Set S)ᶜ)] (zeroOn Λ) := by
-  letI : MeasurableSpace (S → Bool) := cylinderEvents (X := fun _ : S ↦ Bool) ((Λ : Set S)ᶜ)
+  let : MeasurableSpace (S → Bool) := cylinderEvents (X := fun _ : S ↦ Bool) ((Λ : Set S)ᶜ)
   refine measurable_pi_lambda _ fun i ↦ ?_
   by_cases hi : i ∈ Λ
   · simpa [zeroOn, hi] using (measurable_const : Measurable fun _ : S → Bool ↦ false)
@@ -89,7 +89,7 @@ instance (Λ : Finset S) : IsMarkovKernel (kernel (S := S) Λ) := by
   unfold kernel
   split_ifs with h
   · exact Kernel.isMarkovKernel_deterministic _
-  · haveI : Fact Λ.Nonempty := ⟨Finset.nonempty_iff_ne_empty.2 h⟩
+  · have : Fact Λ.Nonempty := ⟨Finset.nonempty_iff_ne_empty.2 h⟩
     infer_instance
 
 omit [Countable S] in
@@ -114,7 +114,7 @@ lemma indicator_eq_of_eqOn_compl {Λ : Finset S} {B : Set (S → Bool)}
     B.indicator (1 : (S → Bool) → ℝ≥0∞) ω' = B.indicator 1 ω := by
   have hmeas : Measurable[cylinderEvents (X := fun _ : S ↦ Bool) ((Λ : Set S)ᶜ)]
       (B.indicator (1 : (S → Bool) → ℝ≥0∞)) := by
-    letI : MeasurableSpace (S → Bool) := cylinderEvents (X := fun _ : S ↦ Bool) ((Λ : Set S)ᶜ)
+    let : MeasurableSpace (S → Bool) := cylinderEvents (X := fun _ : S ↦ Bool) ((Λ : Set S)ᶜ)
     exact measurable_const.indicator hB
   exact hmeas.dependsOn_of_cylinderEvents fun i hi ↦ h i (by simpa using hi)
 
@@ -149,13 +149,13 @@ lemma kernel_apply_of_mem {Λ : Finset S} (hΛ : Λ ≠ ∅) {x : S → Bool} (h
     kernel (S := S) Λ x = spikeMeasure Λ := by
   classical
   unfold kernel
-  rw [dif_neg hΛ, Kernel.piecewise_apply, if_pos hx, Kernel.const_apply]
+  rw [dif_neg hΛ, Kernel.piecewise_apply, ite_eq_left hx, Kernel.const_apply]
 
 lemma kernel_apply_of_not_mem {Λ : Finset S} (hΛ : Λ ≠ ∅) {x : S → Bool}
     (hx : x ∉ vanishOff Λ) : kernel (S := S) Λ x = Measure.dirac (zeroOn Λ x) := by
   classical
   unfold kernel
-  rw [dif_neg hΛ, Kernel.piecewise_apply, if_neg hx, Kernel.deterministic_apply]
+  rw [dif_neg hΛ, Kernel.piecewise_apply, ite_eq_right hx, Kernel.deterministic_apply]
 
 lemma kernel_empty_apply (x : S → Bool) : kernel (S := S) ∅ x = Measure.dirac x := by
   unfold kernel
@@ -247,9 +247,9 @@ lemma isConsistent_kernel : IsConsistent (kernel (S := S)) := by
       rw [Finset.sum_congr rfl hkern, ← Finset.sum_sdiff h, ← Finset.sum_sdiff h]
       have hA : ∀ a ∈ Λ₂ \ Λ₁, (if a ∈ Λ₁ then spikeMeasure Λ₁ s else Measure.dirac (spike a) s)
           = Measure.dirac (spike a) s := fun a ha ↦ by
-        rw [if_neg (Finset.mem_sdiff.1 ha).2]
+        rw [ite_eq_right (Finset.mem_sdiff.1 ha).2]
       have hB : ∀ a ∈ Λ₁, (if a ∈ Λ₁ then spikeMeasure Λ₁ s else Measure.dirac (spike a) s)
-          = spikeMeasure Λ₁ s := fun a ha ↦ by rw [if_pos ha]
+          = spikeMeasure Λ₁ s := fun a ha ↦ by rw [ite_eq_left ha]
       rw [Finset.sum_congr rfl hA, Finset.sum_congr rfl hB, Finset.sum_const, nsmul_eq_mul,
         spikeMeasure, Measure.smul_apply, smul_eq_mul, Measure.finsetSum_apply,
         ← mul_assoc, ENNReal.mul_inv_cancel hne (ENNReal.natCast_ne_top _), one_mul]
@@ -340,10 +340,10 @@ lemma kernel_apply_spike_le {Λ : Finset S} {a : S} (ha : a ∈ Λ) (ω : S → 
       rw [Measure.dirac_apply' _ hmeas]
       by_cases hb : b = a
       · subst hb; simp
-      · rw [if_neg hb, Set.indicator_of_notMem]
+      · rw [ite_eq_right hb, Set.indicator_of_notMem]
         intro h
         exact hb (spike_injective (by simpa using h))
-    rw [Finset.sum_congr rfl h1, Finset.sum_ite_eq' Λ a, if_pos ha, mul_one]
+    rw [Finset.sum_congr rfl h1, Finset.sum_ite_eq' Λ a, ite_eq_left ha, mul_one]
   · rw [kernel_apply_of_not_mem hΛ hω, Measure.dirac_apply' _ hmeas, Set.indicator_of_notMem]
     · simp
     · intro h

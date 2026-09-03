@@ -1135,10 +1135,10 @@ noncomputable def ker : Kernel (Fin 3) (Fin 3) :=
 lemma ker_apply (i : Fin 3) :
     ker i = if i = 1 then (2⁻¹ : ℝ≥0∞) • dirac 0 + (2⁻¹ : ℝ≥0∞) • dirac 2 else dirac i := rfl
 
-lemma ker_zero : ker 0 = dirac 0 := by rw [ker_apply, if_neg (by decide)]
-lemma ker_two : ker 2 = dirac 2 := by rw [ker_apply, if_neg (by decide)]
+lemma ker_zero : ker 0 = dirac 0 := by rw [ker_apply, ite_eq_right (by decide)]
+lemma ker_two : ker 2 = dirac 2 := by rw [ker_apply, ite_eq_right (by decide)]
 lemma ker_one : ker 1 = (2⁻¹ : ℝ≥0∞) • dirac 0 + (2⁻¹ : ℝ≥0∞) • dirac 2 := by
-  rw [ker_apply, if_pos rfl]
+  rw [ker_apply, ite_eq_left rfl]
 
 instance : IsMarkovKernel ker := by
   refine ⟨fun i ↦ ⟨?_⟩⟩

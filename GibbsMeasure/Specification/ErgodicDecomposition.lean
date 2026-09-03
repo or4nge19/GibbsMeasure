@@ -144,7 +144,7 @@ lemma condExp_tail_of_measurableSet (A : Set (S → E))
       = A.indicator fun _ : S → E => (1 : ℝ) := by
   have hm : (@tailSigmaAlgebra S E _ : MeasurableSpace (S → E)) ≤ MeasurableSpace.pi :=
     tailSigmaAlgebra_le_pi (S := S) (E := E)
-  haveI : SigmaFinite (μ.trim hm) := by infer_instance
+  have : SigmaFinite (μ.trim hm) := by infer_instance
   have hSM : StronglyMeasurable[@tailSigmaAlgebra S E _] (A.indicator fun _ : S → E => (1 : ℝ)) :=
     (stronglyMeasurable_const.indicator hA)
   have hA_pi : MeasurableSet A := hm _ hA
@@ -315,7 +315,7 @@ lemma tailKernel_apply_eq_indicator_ae_of_measurableSet {A : Set (S → E)}
         (A.indicator (fun _ : S → E => (1 : ℝ)) ω) := by
     simpa [MeasureTheory.measureReal_def] using hω
   have hleft_ne_top : (tailKernel (S := S) (E := E) μ ω) A ≠ (⊤ : ℝ≥0∞) := by
-    haveI : IsProbabilityMeasure (tailKernel (S := S) (E := E) μ ω) :=
+    have : IsProbabilityMeasure (tailKernel (S := S) (E := E) μ ω) :=
       ProbabilityTheory.IsMarkovKernel.isProbabilityMeasure (κ := tailKernel (S := S) (E := E) μ) ω
     exact measure_ne_top _ _
   have hright_ne_top : (A.indicator (fun _ : S → E => (1 : ℝ≥0∞)) ω) ≠ (⊤ : ℝ≥0∞) := by
@@ -343,7 +343,7 @@ lemma tailKernelTail_ae_eq_id
   have hm : (@tailSigmaAlgebra S E _ : MeasurableSpace (S → E)) ≤ MeasurableSpace.pi :=
     tailSigmaAlgebra_le_pi (S := S) (E := E)
   let μT : Measure[@tailSigmaAlgebra S E _] (S → E) := μ.trim hm
-  haveI : IsProbabilityMeasure μT := by
+  have : IsProbabilityMeasure μT := by
     refine ⟨?_⟩
     have : μT Set.univ = μ Set.univ := by
       simpa [μT] using
@@ -378,8 +378,8 @@ lemma tailKernelTail_ae_eq_id
         (show IsPiSystem C from
           (@isPiSystem_prod (α := (S → E)) (β := (S → E))
             (@tailSigmaAlgebra S E _) (@tailSigmaAlgebra S E _)))
-    haveI : IsProbabilityMeasure (μT ⊗ₘ tailKernelTail (S := S) (E := E) μ) := by infer_instance
-    haveI :
+    have : IsProbabilityMeasure (μT ⊗ₘ tailKernelTail (S := S) (E := E) μ) := by infer_instance
+    have :
         IsProbabilityMeasure
           (μT ⊗ₘ
             (ProbabilityTheory.Kernel.id :
@@ -435,14 +435,14 @@ lemma tailKernelTail_ae_eq_id
           = ∫⁻ ω in A, (B.indicator (fun _ : S → E => (1 : ℝ≥0∞)) ω) ∂μT := by
       simp [MeasureTheory.lintegral_congr_ae hB_val_restrict]
     simp [hLHS, hRHS, hI]
-  haveI : MeasurableSpace.CountableOrCountablyGenerated (S → E) (S → E) :=
+  have : MeasurableSpace.CountableOrCountablyGenerated (S → E) (S → E) :=
     MeasurableSpace.instCountableOrCountablyGeneratedOfCountablyGenerated
-  haveI :
+  have :
       IsFiniteKernel
         (ProbabilityTheory.Kernel.id :
           Kernel[@tailSigmaAlgebra S E _, @tailSigmaAlgebra S E _] (S → E) (S → E)) := by
     infer_instance
-  haveI : MeasurableSpace.CountablyGenerated (S → E) :=
+  have : MeasurableSpace.CountablyGenerated (S → E) :=
     countablyGenerated_of_standardBorel
   have h :=
     ProbabilityTheory.Kernel.ae_eq_of_compProd_eq (μ := μT)
@@ -506,7 +506,7 @@ lemma ae_lintegral_tailKernel_eq
     simpa [tailKernelTail_apply (S := S) (E := E) (μ := μ) ω] using hlintegral
   have hdirac :
       (∫⁻ x, f x ∂(tailKernelTail (S := S) (E := E) μ ω)) = f ω := by
-    letI : MeasurableSpace (S → E) := @tailSigmaAlgebra S E _
+    let : MeasurableSpace (S → E) := @tailSigmaAlgebra S E _
     have : (tailKernelTail (S := S) (E := E) μ ω) = Measure.dirac ω := by
       simpa [ProbabilityTheory.Kernel.id_apply (mα := (@tailSigmaAlgebra S E _)) ω] using hω
     simpa [this] using (MeasureTheory.lintegral_dirac' (a := ω) hf)
@@ -533,7 +533,7 @@ lemma ae_tailKernel_inter_eq_indicator_mul
       simpa [Set.indicator_of_mem, hωB] using (hω B hB)
     have h_ae : ∀ᵐ x ∂(tailKernel (S := S) (E := E) μ ω), x ∈ B := by
       have h_zero : (tailKernel (S := S) (E := E) μ ω) (Bᶜ) = 0 := by
-        haveI : IsProbabilityMeasure (tailKernel (S := S) (E := E) μ ω) :=
+        have : IsProbabilityMeasure (tailKernel (S := S) (E := E) μ ω) :=
           ProbabilityTheory.IsMarkovKernel.isProbabilityMeasure
             (κ := tailKernel (S := S) (E := E) μ) ω
         simp [h_one, hB_pi]
@@ -669,7 +669,7 @@ private lemma ae_lintegral_indicator_eq_indicator_lintegral
       simpa [Set.indicator_of_mem, hωB] using hω B hB
     have h_aeB : ∀ᵐ x ∂(tailKernel (S := S) (E := E) μ ω), x ∈ B := by
       have h_zero : (tailKernel (S := S) (E := E) μ ω) (Bᶜ) = 0 := by
-        haveI : IsProbabilityMeasure (tailKernel (S := S) (E := E) μ ω) :=
+        have : IsProbabilityMeasure (tailKernel (S := S) (E := E) μ ω) :=
           ProbabilityTheory.IsMarkovKernel.isProbabilityMeasure
             (κ := tailKernel (S := S) (E := E) μ) ω
         simp [h_one, hB_pi]
@@ -721,7 +721,7 @@ lemma ae_comp_comap_tailKernel_eq_tailKernel
   let hm : (@tailSigmaAlgebra S E _ : MeasurableSpace (S → E)) ≤ MeasurableSpace.pi :=
     tailSigmaAlgebra_le_pi (S := S) (E := E)
   let μT : Measure[@tailSigmaAlgebra S E _] (S → E) := μ.trim hm
-  haveI : IsProbabilityMeasure μT := by
+  have : IsProbabilityMeasure μT := by
     refine ⟨?_⟩
     have : μT Set.univ = μ Set.univ := by
       simpa [μT] using
@@ -752,10 +752,10 @@ lemma ae_comp_comap_tailKernel_eq_tailKernel
         (show IsPiSystem C from
           (@isPiSystem_prod (α := (S → E)) (β := (S → E))
             (@tailSigmaAlgebra S E _) MeasurableSpace.pi))
-    haveI : IsMarkovKernel κ₁ := by infer_instance
-    haveI : IsMarkovKernel κ₂ := by infer_instance
-    haveI : IsProbabilityMeasure (μT ⊗ₘ κ₁) := by infer_instance
-    haveI : IsProbabilityMeasure (μT ⊗ₘ κ₂) := by infer_instance
+    have : IsMarkovKernel κ₁ := by infer_instance
+    have : IsMarkovKernel κ₂ := by infer_instance
+    have : IsProbabilityMeasure (μT ⊗ₘ κ₁) := by infer_instance
+    have : IsProbabilityMeasure (μT ⊗ₘ κ₂) := by infer_instance
     refine
       MeasureTheory.Measure.ext_of_generate_finite_of_isProbabilityMeasure (C := C)
         (m0 := (@Prod.instMeasurableSpace (S → E) (S → E) (@tailSigmaAlgebra S E _)
@@ -837,8 +837,8 @@ lemma ae_comp_comap_tailKernel_eq_tailKernel
       _ = (μT ⊗ₘ κ₂) (B ×ˢ A) := by
               symm
               simp [MeasureTheory.Measure.compProd_apply_prod hB' hA']
-  haveI : MeasurableSpace.CountablyGenerated (S → E) := countablyGenerated_of_standardBorel
-  haveI : MeasurableSpace.CountableOrCountablyGenerated (S → E) (S → E) :=
+  have : MeasurableSpace.CountablyGenerated (S → E) := countablyGenerated_of_standardBorel
+  have : MeasurableSpace.CountableOrCountablyGenerated (S → E) (S → E) :=
     MeasurableSpace.instCountableOrCountablyGeneratedOfCountablyGenerated
   have hkernel : κ₁ =ᵐ[μT] κ₂ :=
     ProbabilityTheory.Kernel.ae_eq_of_compProd_eq (μ := μT) (κ := κ₁) (η := κ₂) hcompProd
@@ -883,7 +883,7 @@ lemma ae_forall_bind_eq_tailKernel
       rw [Measure.bind_apply hA hAEM, Measure.bind_apply hA hAEM']
       simp [ProbabilityTheory.Kernel.comap_apply]
     simpa [hsame] using hω
-  haveI : Countable (Finset S) := by infer_instance
+  have : Countable (Finset S) := by infer_instance
   simpa [MeasureTheory.ae_all_iff] using (MeasureTheory.ae_all_iff.2 hΛ')
 
 /-- **Georgii step:** if `μ` is Gibbs, then its tail conditional measures are Gibbs `μ.trim 𝓣`-a.e. -/
@@ -893,7 +893,7 @@ theorem ae_isGibbsMeasure_tailKernel
     ∀ᵐ ω ∂μ.trim (tailSigmaAlgebra_le_pi (S := S) (E := E)),
       γ.IsGibbsMeasure (tailKernel (S := S) (E := E) μ ω) := by
   filter_upwards [ae_forall_bind_eq_tailKernel (S := S) (E := E) (μ := μ) (γ := γ) hμ] with ω hω
-  haveI : IsProbabilityMeasure (tailKernel (S := S) (E := E) μ ω) :=
+  have : IsProbabilityMeasure (tailKernel (S := S) (E := E) μ ω) :=
     ProbabilityTheory.IsMarkovKernel.isProbabilityMeasure
       (κ := tailKernel (S := S) (E := E) μ) ω
   exact (Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ)).2 hω

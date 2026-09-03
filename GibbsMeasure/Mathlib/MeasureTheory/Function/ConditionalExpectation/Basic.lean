@@ -65,7 +65,7 @@ lemma toReal_ae_eq_indicator_condExp_of_forall_setLIntegral_eq (hm : m ≤ m0)
     (fun a ↦ (g a).toReal) =ᵐ[μ] μ[s.indicator 1|m] := by
   have hf : Integrable (s.indicator fun _ ↦ (1 : ℝ)) μ := by
     rw [integrable_indicator_iff hs_meas]
-    letI : IsFiniteMeasure (μ.restrict s) := inferInstance
+    let : IsFiniteMeasure (μ.restrict s) := inferInstance
     simpa [IntegrableOn] using integrable_const (1 : ℝ) (μ := μ.restrict s)
   refine ae_eq_condExp_of_forall_setIntegral_eq (E := ℝ) hm hf
     (fun t ht hμt ↦ integrableOn_toReal hm hgm hg_int_finite ht hμt) (fun t ht hμt ↦ ?_)
@@ -99,7 +99,7 @@ lemma toReal_ae_eq_indicator_condExp_iff_forall_meas_inter_eq (hm : m ≤ m0)
   constructor
   · intro h_eq t ht
     have hOnes : IntegrableOn (fun _ : α => (1 : ℝ)) s μ := by
-      letI : IsFiniteMeasure (μ.restrict s) := inferInstance
+      let : IsFiniteMeasure (μ.restrict s) := inferInstance
       simpa [IntegrableOn] using integrable_const (1 : ℝ) (μ := μ.restrict s)
     have h_int : Integrable (s.indicator fun _ : α => (1 : ℝ)) μ :=
       IntegrableOn.integrable_indicator hOnes hs_meas

@@ -362,7 +362,7 @@ instance [Finite E] [MeasurableSingletonClass E] :
       funext i
       simp [hsec, i.2]
     set ν : Finset S → Measure (S → E) := fun Λ ↦ Measure.count.map (sec Λ) with hν
-    haveI : ∀ Λ, IsFiniteMeasure (ν Λ) := fun Λ ↦ by
+    have : ∀ Λ, IsFiniteMeasure (ν Λ) := fun Λ ↦ by
       rw [hν]
       exact Measure.isFiniteMeasure_map _ _
     have hdom : (univ : Set (WithLocalConvergence S E)) = dominatedBy S E ν := by

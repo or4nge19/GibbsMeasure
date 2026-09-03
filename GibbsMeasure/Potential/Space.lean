@@ -270,14 +270,14 @@ def absolutelySummable : Submodule ℝ (Potential S E) where
   add_mem' {Φ Ψ} hΦ hΨ := by
     refine ⟨hΦ.1.add hΨ.1, funext fun η ↦ ?_, ⟨fun Δ ↦ ?_⟩⟩
     · rw [add_apply, hΦ.2.1, hΨ.2.1]; simp
-    · letI : MeasurableSpace (S → E) := cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)
+    · let : MeasurableSpace (S → E) := cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)
       exact (hΦ.2.2.measurable Δ).add (hΨ.2.2.measurable Δ)
   zero_mem' := ⟨inferInstanceAs (IsAbsolutelySummable (0 : Potential S E)), rfl,
     ⟨fun Δ ↦ @measurable_const _ _ _ (cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)) _⟩⟩
   smul_mem' c {Φ} hΦ := by
     refine ⟨hΦ.1.smul c, funext fun η ↦ ?_, ⟨fun Δ ↦ ?_⟩⟩
     · rw [smul_apply, hΦ.2.1]; simp
-    · letI : MeasurableSpace (S → E) := cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)
+    · let : MeasurableSpace (S → E) := cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)
       exact (hΦ.2.2.measurable Δ).const_mul c
 
 @[simp] lemma mem_absolutelySummable {Φ : Potential S E} :
@@ -403,7 +403,7 @@ lemma normAt_le_liminf {Φs : ℕ → Potential S E} {Ψ : Potential S E}
     (h : ∀ A η, Tendsto (fun n ↦ Φs n A η) atTop (𝓝 (Ψ A η))) (i : S) :
     Ψ.normAt i ≤ liminf (fun n ↦ (Φs n).normAt i) atTop := by
   classical
-  letI : MeasurableSpace (Finset S) := ⊤
+  let : MeasurableSpace (Finset S) := ⊤
   have hterm : ∀ A : Finset S,
       (⨆ η, ‖Ψ A η‖ₑ) ≤ liminf (fun n ↦ ⨆ η, ‖Φs n A η‖ₑ) atTop := by
     intro A
@@ -496,7 +496,7 @@ instance [Countable S] : CompleteSpace (absolutelySummable S E) := by
   have hconv : ∀ A η, Tendsto (fun n ↦ (u n : Potential S E) A η) atTop (𝓝 (Ψ A η)) := by
     intro A η
     by_cases hA : A.Nonempty
-    · simp only [hΨ, if_pos hA]
+    · simp only [hΨ, ite_eq_left hA]
       exact hL A η hA
     · rw [Finset.not_nonempty_iff_eq_empty] at hA
       subst hA
@@ -536,7 +536,7 @@ instance [Countable S] : CompleteSpace (absolutelySummable S E) := by
     rcases Δ.eq_empty_or_nonempty with rfl | _
     · rw [hΨ_empty]
       exact @measurable_const _ _ _ (cylinderEvents (X := fun _ : S ↦ E) (∅ : Finset S)) _
-    · letI : MeasurableSpace (S → E) := cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)
+    · let : MeasurableSpace (S → E) := cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)
       exact measurable_of_tendsto_metrizable (fun n ↦ (u n).2.2.2.measurable Δ)
         (tendsto_pi_nhds.2 fun η ↦ hconv Δ η)
   set Ψ' : absolutelySummable S E := ⟨Ψ, hΨ_summable, hΨ_empty, hΨ_pot⟩ with hΨ'

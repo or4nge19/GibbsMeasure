@@ -587,7 +587,7 @@ theorem mem_extremePoints_exchangeable_iff {μ : Measure (ℕ → E)} :
         ∧ μ = Measure.infinitePi fun _ : ℕ ↦ lam := by
   constructor
   · intro hμ
-    haveI : IsProbabilityMeasure μ := hμ.1.1
+    have : IsProbabilityMeasure μ := hμ.1.1
     exact ⟨μ.map fun ω ↦ ω 0,
       Measure.isProbabilityMeasure_map (measurable_pi_apply 0).aemeasurable,
       eq_infinitePi_of_mem_extremePoints hμ⟩
@@ -607,7 +607,7 @@ omit [StandardBorelSpace E] [Nonempty E] [IsProbabilityMeasure μ] in
 private lemma iid_mem_inter (lam : Measure E) (hlam : IsProbabilityMeasure lam) :
     Measure.infinitePi (fun _ : ℕ ↦ lam)
       ∈ (exchangeableSpec E).invariant ∩ trivialOn ((exchangeableSpec E).tail) := by
-  haveI := hlam
+  have := hlam
   exact ⟨(mem_exchangeableSpec_invariant_iff _).2 ⟨inferInstance, isExchangeable_infinitePi⟩,
     mem_trivialOn_symmetricSigmaAlgebra_infinitePi⟩
 
@@ -616,7 +616,7 @@ omit [StandardBorelSpace E] [Nonempty E] [IsProbabilityMeasure μ] in
 private lemma eq_iid_of_mem_inter {ν : Measure (ℕ → E)}
     (hν : ν ∈ (exchangeableSpec E).invariant ∩ trivialOn ((exchangeableSpec E).tail)) :
     ν = Measure.infinitePi fun _ : ℕ ↦ ν.map fun ω ↦ ω 0 := by
-  haveI : IsProbabilityMeasure ν := hν.1.1
+  have : IsProbabilityMeasure ν := hν.1.1
   exact eq_infinitePi_of_mem_extremePoints
     (AbstractSpecification.mem_extremePoints_of_mem_trivialOn hν.1 hν.2)
 
@@ -666,7 +666,7 @@ theorem existsUnique_mixing_of_isExchangeable (hμ : IsExchangeable μ) :
   · rw [Measure.map_apply measurable_marg measurableSet_probSet.compl]
     refine measure_mono_null (fun ν hν ↦ ?_) hwcompl
     intro hmem
-    haveI : IsProbabilityMeasure ν := (hP ν hmem.1)
+    have : IsProbabilityMeasure ν := (hP ν hmem.1)
     exact hν (Measure.isProbabilityMeasure_map (measurable_pi_apply 0).aemeasurable)
   · -- `(w.map marg).bind iid = w.join = μ`
     refine Measure.ext fun B hB ↦ ?_
@@ -715,8 +715,8 @@ theorem existsUnique_mixing_of_isExchangeable (hμ : IsExchangeable μ) :
           · intro htriv t
             conv_lhs => rw [eq_iid_of_mem_inter ⟨hν, htriv⟩]
           · intro hd
-            haveI : IsProbabilityMeasure ν := hν.1
-            haveI : IsProbabilityMeasure (marg ν) :=
+            have : IsProbabilityMeasure ν := hν.1
+            have : IsProbabilityMeasure (marg ν) :=
               Measure.isProbabilityMeasure_map (measurable_pi_apply 0).aemeasurable
             have hext : ν = iid (marg ν) := by
               refine ext_of_generate_finite (piNatGenSet (ℕ → E))
@@ -728,7 +728,7 @@ theorem existsUnique_mixing_of_isExchangeable (hμ : IsExchangeable μ) :
         rw [hPD, Measure.map_apply measurable_iid (hPm.inter hDmeas).compl]
         refine measure_mono_null (fun lam hlam ↦ ?_) hmcompl
         intro hprob
-        haveI : IsProbabilityMeasure lam := hprob
+        have : IsProbabilityMeasure lam := hprob
         refine hlam ?_
         rw [← hPD]
         exact iid_mem_inter lam inferInstance
@@ -745,7 +745,7 @@ theorem existsUnique_mixing_of_isExchangeable (hμ : IsExchangeable μ) :
           ext lam
           simp
         filter_upwards [hae'] with lam hlam
-        haveI := hlam
+        have := hlam
         change (Measure.infinitePi fun _ : ℕ ↦ lam).map (fun ω ↦ ω 0) = lam
         exact Measure.infinitePi_map_eval (μ := fun _ : ℕ ↦ lam) 0
       rw [Measure.map_map measurable_marg measurable_iid,
@@ -777,7 +777,7 @@ theorem isExchangeable_bind_infinitePi {m : Measure (Measure E)}
     ext lam
     simp
   filter_upwards [hae] with lam hlam
-  haveI := hlam
+  have := hlam
   calc Measure.infinitePi (fun _ : ℕ ↦ lam) (permute σ ⁻¹' B)
       = (Measure.infinitePi fun _ : ℕ ↦ lam).map (permute σ) B :=
         (Measure.map_apply (measurable_permute σ) hB).symm

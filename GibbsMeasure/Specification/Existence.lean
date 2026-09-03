@@ -190,13 +190,13 @@ theorem mem_GP_of_tendsto_withLocalConvergence {ι : Type*} {l : Filter ι} [l.N
   intro Λ
   suffices key : (μ : Measure (S → E)).bind (γ Λ) = (μ : Measure (S → E)) from
     Subtype.ext key
-  haveI hbp : IsProbabilityMeasure ((μ : Measure (S → E)).bind (γ Λ)) :=
+  have hbp : IsProbabilityMeasure ((μ : Measure (S → E)).bind (γ Λ)) :=
     γ.isProbabilityMeasure_bind Λ _
   refine separatesOn_localEvents hbp inferInstance fun A hA ↦ ?_
   have hAmeas : MeasurableSet A := MeasurableSet.of_mem_measurableCylinders hA
   set P : ι → Measure (S → E) := fun i ↦ ((γs i).bindPM (Λs i) (νs i) : Measure (S → E))
     with hP
-  haveI hPprob : ∀ i, IsProbabilityMeasure (P i) := fun i ↦
+  have hPprob : ∀ i, IsProbabilityMeasure (P i) := fun i ↦
     ((γs i).bindPM (Λs i) (νs i)).2
   -- the quasilocal observable `γ_Λ 1_A`
   have hfloc : indicatorLp A ∈ localFunctions S E := indicatorLp_mem_localFunctions hA
@@ -313,7 +313,7 @@ theorem exists_isLocalThermodynamicLimit_mem_GP [StandardBorelSpace E]
     (hγ : γ.IsQuasilocal) (η : S → E)
     (hle : LocallyEquicontinuous atTop (finiteVolumeDistributions γ η)) :
     ∃ μ ∈ GP (S := S) (E := E) γ, IsLocalThermodynamicLimit γ η μ := by
-  haveI : NeBot (Filter.atTop : Filter (Finset S)) := inferInstance
+  have : NeBot (Filter.atTop : Filter (Finset S)) := inferInstance
   have hdirac : ∀ Λ : Finset S,
       γ.bindPM Λ ⟨Measure.dirac η, inferInstance⟩ = finiteVolumeDistributions γ η Λ := by
     intro Λ
@@ -366,8 +366,8 @@ theorem isClosed_setOf_mem_GP (hγ : γ.IsQuasilocal) :
   intro μ hcp
   set G : Set (WithLocalConvergence S E) :=
     {ν : WithLocalConvergence S E | ν.toMeasure ∈ GP (S := S) (E := E) γ} with hG
-  haveI hne : NeBot (𝓝 μ ⊓ 𝓟 G) := hcp
-  haveI : NeBot ((𝓝 μ ⊓ 𝓟 G) ×ˢ (atTop : Filter (Finset S))) :=
+  have hne : NeBot (𝓝 μ ⊓ 𝓟 G) := hcp
+  have : NeBot ((𝓝 μ ⊓ 𝓟 G) ×ˢ (atTop : Filter (Finset S))) :=
     Filter.prod_neBot.2 ⟨hne, inferInstance⟩
   change μ.toMeasure ∈ GP (S := S) (E := E) γ
   refine mem_GP_of_tendsto_withLocalConvergence
@@ -460,11 +460,11 @@ theorem _root_.Specification.continuous_bindPM (Λ : Finset S) :
       (fun μ : ProbabilityMeasure (S → E) =>
           ∫ x, g x ∂(μ : Measure (S → E))) := by
     funext μ
-    haveI : IsProbabilityMeasure ((μ : Measure (S → E)).bind (γ Λ)) :=
+    have : IsProbabilityMeasure ((μ : Measure (S → E)).bind (γ Λ)) :=
       γ.isProbabilityMeasure_bind Λ _
     have hf_int : Integrable (fun x : S → E => f x) ((μ : Measure (S → E)).bind (γ Λ)) := by
       simpa using (BoundedContinuousFunction.integrable (μ := (μ : Measure (S → E)).bind (γ Λ)) f)
-    haveI : IsMarkovKernel ((γ Λ).comap id (MeasureTheory.cylinderEvents_le_pi
+    have : IsMarkovKernel ((γ Λ).comap id (MeasureTheory.cylinderEvents_le_pi
         (X := fun _ : S ↦ E) (Δ := ((Λ : Set S)ᶜ)))) :=
       Kernel.IsMarkovKernel.comap _ _
     have := Measure.integral_bind (κ := (γ Λ).comap id (MeasureTheory.cylinderEvents_le_pi
@@ -517,10 +517,10 @@ weak-topology argument; it is not a replacement for Georgii's local/quasilocal t
 theorem existence_of_gibbsMeasure_compact_weak (η : S → E) :
     (GP (S := S) (E := E) γ).Nonempty := by
   classical
-  haveI : CompactSpace (ProbabilityMeasure (S → E)) := by infer_instance
+  have : CompactSpace (ProbabilityMeasure (S → E)) := by infer_instance
   let μs : Finset S → ProbabilityMeasure (S → E) := finiteVolumeDistributions γ η
   let F : Filter (ProbabilityMeasure (S → E)) := Filter.map μs (Filter.atTop)
-  haveI : NeBot F := Filter.map_neBot
+  have : NeBot F := Filter.map_neBot
   obtain ⟨μ, hμ⟩ : ∃ μ : ProbabilityMeasure (S → E), ClusterPt μ F :=
     exists_clusterPt_of_compactSpace F
   exact ⟨μ, isGibbsMeasure_of_isWeakThermodynamicLimit (η := η) hμ⟩
@@ -552,7 +552,7 @@ theorem existence_of_gibbsMeasure_of_isTight_weak
     simpa [Sset] using
       (isCompact_closure_of_isTightMeasureSet (E := (S → E)) (S := Sset) (hS := hT))
   let F : Filter (ProbabilityMeasure (S → E)) := Filter.map μs (Filter.atTop)
-  haveI : NeBot F := Filter.map_neBot
+  have : NeBot F := Filter.map_neBot
   have hF_le : F ≤ 𝓟 (closure Sset) := by
     have hF_range : F ≤ 𝓟 (Set.range μs) := by
       intro s hs

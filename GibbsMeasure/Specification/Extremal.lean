@@ -81,8 +81,8 @@ lemma isGibbsMeasure_restrict_of_measurableSet_tail
             bind_restrict_eq_of_measurableSet_tail (γ := γ) (Λ := Λ) (hA := hA) μ
       _ = μ.restrict A := by simp [hfix Λ]
   -- `μ.restrict A` is not a probability measure in general, so use the finite-measure fixed-point lemma.
-  haveI : IsFiniteMeasure μ := by infer_instance
-  haveI : IsFiniteMeasure (μ.restrict A) := by infer_instance
+  have : IsFiniteMeasure μ := by infer_instance
+  have : IsFiniteMeasure (μ.restrict A) := by infer_instance
   exact (_root_.Specification.isGibbsMeasure_iff_forall_bind_eq (γ := γ) (μ := μ.restrict A)).2
       hfix_restrict
 

@@ -52,7 +52,7 @@ variable {s : Set X}
 private lemma isFiniteMeasure_bind_restrict
     [IsFiniteMeasure μ] [IsMarkovKernel π] (h𝓑𝓧 : 𝓑 ≤ 𝓧) (s : Set X) :
     IsFiniteMeasure (((μ.restrict s).bind π)) := by
-  haveI : IsFiniteMeasure (μ.restrict s) := inferInstance
+  have : IsFiniteMeasure (μ.restrict s) := inferInstance
   refine ⟨?_⟩
   have h_bind_univ :
       ((μ.restrict s).bind π) Set.univ
@@ -202,7 +202,7 @@ private lemma integrable_toReal_lintegral_ofReal_simpleFunc
     rw [Measure.lintegral_bind hκ (SimpleFunc.measurable φ).enorm.aemeasurable]
   have h_fin :
       (∫⁻ x, ∫⁻ y, ENNReal.ofReal (φ y) ∂(π x) ∂μ) < ∞ := by
-    haveI : IsFiniteMeasure (μ.bind π) :=
+    have : IsFiniteMeasure (μ.bind π) :=
       isFiniteMeasure_bind (μ := μ) (π := π) h𝓑𝓧
     have h_intφ : Integrable φ (μ.bind π) := SimpleFunc.integrable_of_isFiniteMeasure φ
     have h_enorm :
@@ -221,7 +221,7 @@ private lemma integral_bind_kernel_restrict_simple
       = ∫ x in s, ∫ y, (φ y) ∂(π x) ∂ μ := by
   have hκ : AEMeasurable (fun x => π x) (μ.restrict s) :=
     (π.measurable.mono h𝓑𝓧 le_rfl).aemeasurable.restrict
-  haveI : IsFiniteMeasure (((μ.restrict s).bind π)) :=
+  have : IsFiniteMeasure (((μ.restrict s).bind π)) :=
     isFiniteMeasure_bind_restrict (μ := μ) (π := π) h𝓑𝓧 s
   have hφ_int : Integrable (fun y => φ y) (((μ.restrict s).bind π)) :=
     SimpleFunc.integrable_of_isFiniteMeasure φ
@@ -321,7 +321,7 @@ private lemma tendsto_setIntegral_integral_approxOn
             = ∫⁻ y, ‖f y‖ₑ ∂((μ.restrict s).bind π) := by
         rw [Measure.lintegral_bind hκ hf.enorm.aemeasurable]
       simpa [h_eq] using (hasFiniteIntegral_iff_enorm.mp hf_int.2)
-    haveI : IsSFiniteKernel π := inferInstance
+    have : IsSFiniteKernel π := inferInstance
     have hf_enorm : Measurable fun y : X => ‖f y‖ₑ := hf.enorm
     have h_meas : Measurable (fun x => ∫⁻ y, ‖f y‖ₑ ∂(π x)) :=
       ((Measurable.lintegral_kernel (κ := π) (f := fun y => ‖f y‖ₑ) hf_enorm).mono h𝓑𝓧 le_rfl)
@@ -337,7 +337,7 @@ private lemma tendsto_setIntegral_integral_approxOn
     intro n
     refine integrable_integral_of_integrable_bind (μ := μ) (π := π) h𝓑𝓧
       (s := s) (f := φ n) (hf_meas := (SimpleFunc.measurable _)) ?_
-    haveI : IsFiniteMeasure (((μ.restrict s).bind π)) :=
+    have : IsFiniteMeasure (((μ.restrict s).bind π)) :=
       isFiniteMeasure_bind_restrict (μ := μ) (π := π) h𝓑𝓧 s
     exact SimpleFunc.integrable_of_isFiniteMeasure _
   have h_bound : ∀ n, ∀ᵐ x ∂(μ.restrict s),
@@ -378,7 +378,7 @@ private lemma integral_bind_kernel_restrict
     (hf_int : Integrable f (((μ.restrict s).bind π))) :
     ∫ y, f y ∂(((μ.restrict s).bind π))
       = ∫ x in s, ∫ y, f y ∂(π x) ∂ μ := by
-  haveI : IsFiniteMeasure (((μ.restrict s).bind π)) :=
+  have : IsFiniteMeasure (((μ.restrict s).bind π)) :=
     isFiniteMeasure_bind_restrict (μ := μ) (π := π) h𝓑𝓧 s
   let f₀ := hf_int.aestronglyMeasurable.mk f
   have hf₀_meas : Measurable f₀ := hf_int.aestronglyMeasurable.measurable_mk

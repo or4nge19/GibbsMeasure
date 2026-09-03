@@ -57,7 +57,7 @@ lemma ext_of_generate_finite_of_isProbabilityMeasure
     (hC : IsPiSystem C)
     (hμν : ∀ s ∈ C, μ s = ν s) :
     μ = ν := by
-  haveI : IsFiniteMeasure μ := by infer_instance
+  have : IsFiniteMeasure μ := by infer_instance
   exact MeasureTheory.ext_of_generate_finite (m0 := m0) (μ := μ) (ν := ν) C hA hC hμν (by simp)
 
 end MeasureTheory.Measure

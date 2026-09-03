@@ -167,7 +167,7 @@ theorem existsUnique_isProjectiveLimit_of_standardBorel {α : ι → Type*}
     {P : ∀ J : Finset ι, Measure (Π j : J, α j)}
     [∀ I, IsFiniteMeasure (P I)] (hP : IsProjectiveMeasureFamily P) :
     ∃! μ : Measure (Π i, α i), IsProjectiveLimit μ P := by
-  letI : ∀ i, TopologicalSpace (α i) := fun i ↦ (upgradeStandardBorel (α i)).toTopologicalSpace
+  let : ∀ i, TopologicalSpace (α i) := fun i ↦ (upgradeStandardBorel (α i)).toTopologicalSpace
   have h1 : ∀ i, BorelSpace (α i) := fun i ↦ (upgradeStandardBorel (α i)).toBorelSpace
   have h2 : ∀ i, PolishSpace (α i) := fun i ↦ (upgradeStandardBorel (α i)).toPolishSpace
   exact ⟨projectiveLimit P hP, isProjectiveLimit_projectiveLimit hP,

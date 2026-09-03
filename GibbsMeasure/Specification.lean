@@ -278,7 +278,7 @@ downstream files call.
 
 lemma isGibbsMeasure_iff_forall_bind_eq_of_prob [IsProbabilityMeasure μ] :
     γ.IsGibbsMeasure μ ↔ ∀ Λ, μ.bind (γ Λ) = μ := by
-  haveI : IsFiniteMeasure μ := by infer_instance
+  have : IsFiniteMeasure μ := by infer_instance
   simpa using (isGibbsMeasure_iff_forall_bind_eq (γ := γ) (μ := μ))
 
 lemma isGibbsMeasure_iff_frequently_bind_eq [IsFiniteMeasure μ] :
@@ -291,7 +291,7 @@ lemma isGibbsMeasure_iff_frequently_bind_eq [IsFiniteMeasure μ] :
 
 lemma isGibbsMeasure_iff_frequently_bind_eq_of_prob [IsProbabilityMeasure μ] :
     γ.IsGibbsMeasure μ ↔ ∃ᶠ Λ in .atTop, μ.bind (γ Λ) = μ := by
-  haveI : IsFiniteMeasure μ := by infer_instance
+  have : IsFiniteMeasure μ := by infer_instance
   simpa using (isGibbsMeasure_iff_frequently_bind_eq (γ := γ) (μ := μ))
 
 end IsGibbsMeasure
@@ -388,7 +388,7 @@ lemma map_juxt_apply_squareCylinder_of_measure
   rw [Measure.map_apply (Measurable.juxt (Λ := (Λ : Set S)) (η := η) (𝓔 := mE)) hmeas_rect]
   by_cases hP : ∀ i ∈ (s : Set S), i ∉ (Λ : Set S) → η i ∈ t i
   · rw [preimage_juxt_squareCylinder_eq_univ_pi_of_forall (S := S) (E := E) hP]
-    rw [if_pos hP]
+    rw [ite_eq_left hP]
     rfl
   · rw [preimage_juxt_squareCylinder_eq_empty_of_not_forall (S := S) (E := E) hP]
     have hP' : ¬ ∀ i ∈ s, i ∉ Λ → η i ∈ t i := by
@@ -436,8 +436,8 @@ lemma measurable_map_juxt_apply_squareCylinder_of_measure
       (S := S) (E := E) (Λ := Λ) (s := s) μΛ t ht η
   have hP : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)ᶜ] {η | P η} := by
     simpa [P] using measurableSet_forall_mem_not_mem (S := S) (E := E) Λ s ht
-  letI : MeasurableSpace (S → E) := cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)ᶜ
-  haveI : DecidablePred P := fun η => Classical.propDecidable (P η)
+  let : MeasurableSpace (S → E) := cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)ᶜ
+  have : DecidablePred P := fun η => Classical.propDecidable (P η)
   simpa [h_eval] using
     (Measurable.ite (p := P) (hp := by simpa using hP) measurable_const measurable_const)
 
@@ -468,7 +468,7 @@ lemma measurable_map_juxt_of_isFiniteMeasure
     simpa [C] using (generateFrom_squareCylindersMeas S E)
   let μ' : (S → E) → Measure (S → E) :=
     fun η ↦ Measure.map (juxt (Λ := (Λ : Set S)) η) μΛ
-  haveI : ∀ η, IsFiniteMeasure (μ' η) := by
+  have : ∀ η, IsFiniteMeasure (μ' η) := by
     intro η
     refine ⟨?_⟩
     have hjuxt : Measurable (juxt (Λ := (Λ : Set S)) (η := η)) :=
@@ -546,7 +546,7 @@ instance sigmaFiniteLambdaFun.instIsSFiniteKernel
   rw [sigmaFiniteLambdaFun]
   refine ProbabilityTheory.Kernel.isSFiniteKernel_sum_of_denumerable ?_
   intro n
-  haveI : IsFiniteKernel
+  have : IsFiniteKernel
       (juxtMapKernel (S := S) (E := E) (Λ := Λ)
         (sfiniteSeq (Measure.pi fun _ : Λ => ν) n)) := by
     infer_instance
@@ -646,7 +646,7 @@ lemma measure_pi_univ_pi_if_mem_eq_prod_inter
     (Measure.pi fun _ : Λ ↦ ν)
         (Set.univ.pi fun j : Λ => if (j : S) ∈ (s : Set S) then t j else Set.univ) =
       ∏ i ∈ s ∩ Λ, ν (t i) := by
-  haveI : SigmaFinite ν := by infer_instance
+  have : SigmaFinite ν := by infer_instance
   have hpi :
       (Measure.pi fun _ : Λ ↦ ν)
           (Set.univ.pi fun j : Λ => if (j : S) ∈ (s : Set S) then t j else Set.univ) =
@@ -686,9 +686,9 @@ lemma isssdFun_apply_squareCylinder
     simp
   by_cases hP : ∀ i ∈ (s : Set S), i ∉ (Λ : Set S) → η i ∈ t i
   · have hP' : ∀ i ∈ s, i ∉ Λ → η i ∈ t i := hP_iff.mp hP
-    rw [if_pos hP, if_pos hP']
+    rw [ite_eq_left hP, ite_eq_left hP']
   · have hP' : ¬ ∀ i ∈ s, i ∉ Λ → η i ∈ t i := fun h => hP (hP_iff.mpr h)
-    rw [if_neg hP, if_neg hP']
+    rw [ite_eq_right hP, ite_eq_right hP']
 
 /-- A square-cylinder event depending only outside `Λ` can be written as a coordinate box with
 unconstrained coordinates on `Λ`. -/
@@ -858,12 +858,12 @@ lemma isssdFun_apply_forall_not_mem
           by_cases hU :
               ∀ i ∈ (s : Set S), i ∉ (Λ₁ ∪ Λ₂ : Finset S) → η i ∈ t i
           · have hleft := hpred.mpr hU
-            rw [if_pos hleft, if_pos hU, hprodSet]
+            rw [ite_eq_left hleft, ite_eq_left hU, hprodSet]
           · have hleft : ¬
                 (∀ i ∈ s, i ∉ Λ₂ →
                   η i ∈ (if i ∈ (Λ₁ : Set S) then Set.univ else t i)) :=
               fun h => hU (hpred.mp h)
-            rw [if_neg hleft, if_neg hU]
+            rw [ite_eq_right hleft, ite_eq_right hU]
 
 /-- Integral of a constant on a measurable predicate, written with an `if`. -/
 lemma lintegral_ite_const_eq_mul
@@ -914,7 +914,7 @@ lemma lintegral_isssdFun_apply_squareCylinder_of_forall
   have h_outer :
       (isssdFun ν Λ₂ η) {b : S → E | P b} = ∏ i ∈ s ∩ (Λ₂ \ Λ₁), ν (t i) := by
     have h := isssdFun_apply_forall_not_mem (ν := ν) (mE := mE) Λ₁ Λ₂ s t ht η
-    rw [h, if_pos hU]
+    rw [h, ite_eq_left hU]
   calc
     ∫⁻ b, isssdFun ν Λ₁ b ((s : Set S).pi t) ∂isssdFun ν Λ₂ η =
         (∏ i ∈ s ∩ Λ₁, ν (t i)) * (isssdFun ν Λ₂ η) {b : S → E | P b} := by
@@ -937,7 +937,7 @@ lemma lintegral_isssdFun_apply_squareCylinder_of_not_forall
     ∀ i ∈ (s : Set S), i ∉ (Λ₁ : Set S) → b i ∈ t i
   have h_outer : (isssdFun ν Λ₂ η) {b : S → E | P b} = 0 := by
     have h := isssdFun_apply_forall_not_mem (ν := ν) (mE := mE) Λ₁ Λ₂ s t ht η
-    rw [h, if_neg hU]
+    rw [h, ite_eq_right hU]
   calc
     ∫⁻ b, isssdFun ν Λ₁ b ((s : Set S).pi t) ∂isssdFun ν Λ₂ η =
         (∏ i ∈ s ∩ Λ₁, ν (t i)) * (isssdFun ν Λ₂ η) {b : S → E | P b} := by
@@ -960,20 +960,20 @@ lemma lintegral_isssdFun_apply_squareCylinder_eq_union
       exact hU i (by simpa using hi) hiU
     rw [lintegral_isssdFun_apply_squareCylinder_of_forall
       (ν := ν) (mE := mE) Λ₁ Λ₂ s t ht η hU]
-    simpa [if_pos hU'] using
+    simpa [ite_eq_left hU'] using
       (isssdFun_apply_squareCylinder (ν := ν) (mE := mE) (Λ₁ ∪ Λ₂) s t ht η).symm
   · have hU' : ¬ ∀ i ∈ s, i ∉ Λ₁ ∪ Λ₂ → η i ∈ t i := by
       intro h
       exact hU (fun i hi hiU => h i (by simpa using hi) hiU)
     rw [lintegral_isssdFun_apply_squareCylinder_of_not_forall
       (ν := ν) (mE := mE) Λ₁ Λ₂ s t ht η hU]
-    simpa [if_neg hU'] using
+    simpa [ite_eq_right hU'] using
       (isssdFun_apply_squareCylinder (ν := ν) (mE := mE) (Λ₁ ∪ Λ₂) s t ht η).symm
 
 /-- Each `isssdFun` value is a probability measure. -/
 lemma isProbabilityMeasure_isssdFun_apply (Λ : Finset S) (η : S → E) :
     IsProbabilityMeasure (isssdFun (S := S) (E := E) ν Λ η) := by
-  haveI : IsProbabilityMeasure (Measure.pi (fun _ : Λ ↦ ν)) := by infer_instance
+  have : IsProbabilityMeasure (Measure.pi (fun _ : Λ ↦ ν)) := by infer_instance
   simpa [isssdFun_apply] using
     Measure.isProbabilityMeasure_map
       (μ := Measure.pi (fun _ : Λ ↦ ν))
@@ -983,7 +983,7 @@ lemma isProbabilityMeasure_isssdFun_apply (Λ : Finset S) (η : S → E) :
 /-- Every independent finite-volume kernel has total mass one. -/
 lemma isssdFun_apply_univ (Λ : Finset S) (η : S → E) :
     isssdFun (S := S) (E := E) ν Λ η Set.univ = 1 := by
-  haveI : IsProbabilityMeasure (isssdFun (S := S) (E := E) ν Λ η) :=
+  have : IsProbabilityMeasure (isssdFun (S := S) (E := E) ν Λ η) :=
     isProbabilityMeasure_isssdFun_apply (S := S) (E := E) ν Λ η
   simpa using (IsProbabilityMeasure.measure_univ (μ := isssdFun ν Λ η))
 
@@ -991,9 +991,9 @@ lemma isssdFun_apply_univ (Λ : Finset S) (η : S → E) :
 lemma isssdFun_comp_isssdFun_apply_univ (Λ₁ Λ₂ : Finset S) (η : S → E) :
     (((isssdFun ν Λ₁).comap id cylinderEvents_le_pi ∘ₖ isssdFun ν Λ₂) η) Set.univ = 1 := by
   have huniv_meas : MeasurableSet (Set.univ : Set (S → E)) := MeasurableSet.univ
-  haveI : IsProbabilityMeasure (isssdFun ν Λ₂ η) :=
+  have : IsProbabilityMeasure (isssdFun ν Λ₂ η) :=
     isProbabilityMeasure_isssdFun_apply (S := S) (E := E) ν Λ₂ η
-  haveI :
+  have :
       IsProbabilityMeasure
         (Measure.map (juxt (Λ := (Λ₂ : Set S)) (η := η)) (Measure.pi fun _ : Λ₂ ↦ ν)) := by
     simpa [isssdFun_apply] using
@@ -1375,13 +1375,13 @@ lemma isGibbsMeasure_isssd_infinitePi (ν : Measure E) [IsProbabilityMeasure ν]
   classical
   intro Λ
   let μ : Measure (S → E) := Measure.infinitePi (fun _ : S ↦ ν)
-  haveI : IsFiniteMeasure μ := inferInstance
+  have : IsFiniteMeasure μ := inferInstance
   have hproper : (isssd (S := S) (E := E) ν).IsProper :=
     Specification.IsProper.isssd (S := S) (E := E) (mE := mE) (ν := ν)
   have hπ : (isssd (S := S) (E := E) ν Λ).IsProper := hproper Λ
-  haveI : IsMarkovKernel (isssd (S := S) (E := E) ν Λ) := by
+  have : IsMarkovKernel (isssd (S := S) (E := E) ν Λ) := by
     infer_instance
-  haveI : SigmaFinite (μ.trim (cylinderEvents_le_pi (X := fun _ : S ↦ E) (Δ := (Λ : Set S)ᶜ))) := by
+  have : SigmaFinite (μ.trim (cylinderEvents_le_pi (X := fun _ : S ↦ E) (Δ := (Λ : Set S)ᶜ))) := by
     infer_instance
   have h_bind : μ.bind (isssd (S := S) (E := E) ν Λ) = μ := by
     simpa [μ] using infinitePi_bind_isssd (S := S) (E := E) ν Λ
@@ -1402,7 +1402,7 @@ lemma isssd_apply_squareCylinder_of_subset (ν : Measure E) [IsProbabilityMeasur
   have h := isssdFun_apply_squareCylinder (ν := ν) (mE := mE) Λ s t ht η
   rw [hinter] at h
   rw [show (isssd ν Λ) η = isssdFun ν Λ η from rfl, h]
-  exact if_pos hcond
+  exact ite_eq_left hcond
 
 variable (γ) in
 /-- `γ` has *free measure* `μ₀` if on the events inside the volume it forgets the boundary

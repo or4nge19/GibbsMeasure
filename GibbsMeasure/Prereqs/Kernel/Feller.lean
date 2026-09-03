@@ -47,7 +47,7 @@ omit [TopologicalSpace α] [κ.IsFeller] in
 lemma integrable_boundedContinuousFunction (f : β →ᵇ ℝ) (a : α) :
     Integrable (fun b : β => f b) (κ a) := by
   -- For a Markov kernel, `κ a` is a probability measure.
-  haveI : IsProbabilityMeasure (κ a) := (IsMarkovKernel.isProbabilityMeasure (κ := κ) a)
+  have : IsProbabilityMeasure (κ a) := (IsMarkovKernel.isProbabilityMeasure (κ := κ) a)
   have hf_meas : Measurable (fun b : β => f b) := f.continuous.measurable
   have hf_ae : AEStronglyMeasurable (fun b : β => f b) (κ a) :=
     hf_meas.aestronglyMeasurable
@@ -61,7 +61,7 @@ lemma integrable_boundedContinuousFunction (f : β →ᵇ ℝ) (a : α) :
 omit [TopologicalSpace α] [OpensMeasurableSpace β] [κ.IsFeller] in
 lemma norm_integral_le_norm (f : β →ᵇ ℝ) (a : α) :
     ‖∫ b, f b ∂(κ a)‖ ≤ ‖f‖ := by
-  haveI : IsProbabilityMeasure (κ a) := (IsMarkovKernel.isProbabilityMeasure (κ := κ) a)
+  have : IsProbabilityMeasure (κ a) := (IsMarkovKernel.isProbabilityMeasure (κ := κ) a)
   have hbound : ∀ᵐ b ∂(κ a), ‖f b‖ ≤ (‖f‖ : ℝ) := by
     filter_upwards with b
     exact f.norm_coe_le_norm b
