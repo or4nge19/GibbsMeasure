@@ -133,7 +133,8 @@ omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
 lemma intervalCylinder_self (a : ℤ) (σ : ℤ → E) :
     intervalCylinder a a σ = (fun τ : ℤ → E ↦ τ a) ⁻¹' {σ a} := by
   ext τ
-  simp [intervalCylinder]
+  rw [mem_intervalCylinder]
+  simp
 
 omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
 lemma intervalCylinder_succ_eq_inter {a b : ℤ} (hab : a ≤ b) (σ : ℤ → E) :
@@ -154,7 +155,7 @@ lemma measurableSet_cylinderEvents_intervalCylinder {V : Set ℤ} {a b : ℤ}
     (h : Set.Icc a b ⊆ V) (σ : ℤ → E) :
     MeasurableSet[cylinderEvents V] (intervalCylinder a b σ) := by
   rw [intervalCylinder_eq_cyl]
-  exact measurableSet_cyl_cylinderEvents (Λ := Finset.Icc a b) (by simpa using h) σ
+  exact measurableSet_cylinderEvents_cyl (Λ := Finset.Icc a b) (by simpa using h) σ
 
 /-- The measure of the whole space is the sum of the point masses (countable `E`). -/
 lemma measure_univ_eq_tsum_singleton (ν : Measure E) : ν univ = ∑' x, ν {x} := by
@@ -179,7 +180,7 @@ theorem IsMarkovChain.measure_intervalCylinder_succ [∀ k, IsMarkovKernel (P k)
     show b + 1 - 1 = b by ring,
     setLIntegral_congr_fun (measurableSet_intervalCylinder a b σ)
       (g := fun _ ↦ P (b + 1) (σ b) {σ (b + 1)})
-      (fun τ hτ ↦ by rw [hτ b (Finset.mem_Icc.2 ⟨hab, le_rfl⟩)]),
+      (fun τ hτ ↦ by rw [mem_intervalCylinder.1 hτ b (Finset.mem_Icc.2 ⟨hab, le_rfl⟩)]),
     setLIntegral_const, mul_comm]
 
 /-- On a countable state space, a probability measure whose interval-cylinder probabilities
@@ -414,7 +415,7 @@ omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] [Nonempty E]
 lemma puncturedCylinder_succ_self (i : ℤ) (σ : ℤ → E) :
     puncturedCylinder i (i + 1) i σ = (fun τ : ℤ → E ↦ τ (i + 1)) ⁻¹' {σ (i + 1)} := by
   ext τ
-  simp only [puncturedCylinder, Finset.mem_erase, Finset.mem_Icc, mem_ofPred_eq, mem_preimage,
+  simp only [mem_puncturedCylinder, Finset.mem_erase, Finset.mem_Icc, mem_preimage,
     mem_singleton_iff]
   constructor
   · intro h

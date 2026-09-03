@@ -447,27 +447,28 @@ theorem transferSpecification_singleton_apply_intervalCylinder {a b i : ℤ} (ha
   have hi2 : i + 1 ∈ (Finset.Icc a b).erase i := by
     simp only [Finset.mem_erase, Finset.mem_Icc]; omega
   by_cases hω : ω ∈ puncturedCylinder a b i σ
-  · rw [Set.indicator_of_mem hω, tsum_eq_single (σ i) fun y hy ↦ ?_]
+  · have hω' := mem_puncturedCylinder.1 hω
+    rw [Set.indicator_of_mem hω, tsum_eq_single (σ i) fun y hy ↦ ?_]
     · have hmem : Function.update ω i (σ i) ∈ intervalCylinder a b σ := by
-        intro k hk
+        refine mem_intervalCylinder.2 fun k hk ↦ ?_
         by_cases hki : k = i
         · subst hki; exact Function.update_self ..
         · rw [Function.update_of_ne hki]
-          exact hω k (Finset.mem_erase.2 ⟨hki, hk⟩)
+          exact hω' k (Finset.mem_erase.2 ⟨hki, hk⟩)
       rw [Set.indicator_of_mem hmem, transferWeight_singleton, Function.update_self,
         Function.update_of_ne (show i - 1 ≠ i by omega),
-        Function.update_of_ne (show i + 1 ≠ i by omega), hω _ hi1, hω _ hi2,
+        Function.update_of_ne (show i + 1 ≠ i by omega), hω' _ hi1, hω' _ hi2,
         ENNReal.div_eq_inv_mul]
     · refine Set.indicator_of_notMem (fun h ↦ hy ?_) _
-      have := h i hi
+      have := mem_intervalCylinder.1 h i hi
       rwa [Function.update_self] at this
   · rw [Set.indicator_of_notMem hω]
     have : ∀ y, (intervalCylinder a b σ).indicator (transferWeight Q {i})
         (Function.update ω i y) = 0 := fun y ↦
-      Set.indicator_of_notMem (fun h ↦ hω fun k hk ↦ by
+      Set.indicator_of_notMem (fun h ↦ hω (mem_puncturedCylinder.2 fun k hk ↦ by
         have hki := (Finset.mem_erase.1 hk).1
-        have := h k (Finset.mem_erase.1 hk).2
-        rwa [Function.update_of_ne hki] at this) _
+        have := mem_intervalCylinder.1 h k (Finset.mem_erase.1 hk).2
+        rwa [Function.update_of_ne hki] at this)) _
     simp [this]
 
 end TransferSpecification
@@ -679,7 +680,8 @@ lemma transferSpecification_tripleConfig (hQ : IsTransferMatrix Q) (i : ℤ) (x 
       = Q x y * Q y z / (Kernel.ofMatrix Q ^ 2) x {z} := by
   rw [transferSpecification_singleton_apply_intervalCylinder Q hQ (show i - 1 < i by omega)
     (show i < i + 1 by omega), Set.indicator_of_mem (show tripleConfig i x y z ∈
-      puncturedCylinder (i - 1) (i + 1) i (tripleConfig i x y z) from fun _ _ ↦ rfl)]
+      puncturedCylinder (i - 1) (i + 1) i (tripleConfig i x y z) from
+      mem_puncturedCylinder.2 fun _ _ ↦ rfl)]
   simp [tripleConfig, show i ≠ i - 1 by omega, show i + 1 ≠ i - 1 by omega,
     show i + 1 ≠ i by omega]
 

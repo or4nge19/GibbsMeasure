@@ -1671,11 +1671,6 @@ theorem isPositiveHomogeneousMarkov_markovSpecification (hpos : ∀ x y, 0 < P x
 /-! ### A specification is determined by its singleton kernels (Georgii (1.33)) -/
 
 omit [Fintype E] [DecidableEq E] [Nonempty E] in
-lemma measurableSet_cyl_cylinderEvents {Δ : Set ℤ} {Λ : Finset ℤ} (hΛ : ↑Λ ⊆ Δ) (η : ℤ → E) :
-    MeasurableSet[cylinderEvents Δ] (cyl Λ η) :=
-  measurableSet_cylinderEvents_cyl hΛ η
-
-omit [Fintype E] [DecidableEq E] [Nonempty E] in
 lemma measurableSet_eq_apply (i : ℤ) (y : E) : MeasurableSet {σ : ℤ → E | σ i = y} := by
   have hrw : {σ : ℤ → E | σ i = y} = (fun σ : ℤ → E ↦ σ i) ⁻¹' {y} := rfl
   rw [hrw]
@@ -1698,14 +1693,14 @@ lemma singleton_eq_of_forall_apply (γ γ' : Specification ℤ E) (i : ℤ)
       · rw [hki]; exact h1
       · exact h2 k ⟨hki, hk⟩
     have hB : MeasurableSet[cylinderEvents ((({i} : Finset ℤ) : Set ℤ)ᶜ)] (cyl (Λ.erase i) η) := by
-      refine measurableSet_cyl_cylinderEvents (fun k hk ↦ ?_) η
+      refine measurableSet_cylinderEvents_cyl (fun k hk ↦ ?_) η
       simp only [Finset.coe_erase, Set.mem_sdiff, Finset.coe_singleton, Set.mem_singleton_iff,
         Set.mem_compl_iff] at hk ⊢
       exact hk.2
     rw [hsplit, γ.isProper.inter_eq_indicator_mul {i} (measurableSet_eq_apply i (η i)) hB ω,
       γ'.isProper.inter_eq_indicator_mul {i} (measurableSet_eq_apply i (η i)) hB ω, h (η i) ω]
   · have hB : MeasurableSet[cylinderEvents ((({i} : Finset ℤ) : Set ℤ)ᶜ)] (cyl Λ η) := by
-      refine measurableSet_cyl_cylinderEvents (fun k hk ↦ ?_) η
+      refine measurableSet_cylinderEvents_cyl (fun k hk ↦ ?_) η
       simp only [Finset.mem_coe] at hk
       simp only [Finset.coe_singleton, Set.mem_compl_iff, Set.mem_singleton_iff]
       rintro rfl
@@ -2706,30 +2701,22 @@ end Density
 
 section Cylinders
 
-/-- The cylinder event fixing a configuration on the interval `[a, b]`. -/
-def intervalCylinder (a b : ℤ) (σ : ℤ → E) : Set (ℤ → E) :=
-  {τ : ℤ → E | ∀ k ∈ Finset.Icc a b, τ k = σ k}
+/-- The cylinder event fixing a configuration on the interval `[a, b]`: the cylinder `cyl` over
+the finite volume `Finset.Icc a b`. -/
+abbrev intervalCylinder (a b : ℤ) (σ : ℤ → E) : Set (ℤ → E) := cyl (Finset.Icc a b) σ
 
 omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
 lemma mem_intervalCylinder {a b : ℤ} {σ τ : ℤ → E} :
-    τ ∈ intervalCylinder a b σ ↔ ∀ k ∈ Finset.Icc a b, τ k = σ k := Iff.rfl
+    τ ∈ intervalCylinder a b σ ↔ ∀ k ∈ Finset.Icc a b, τ k = σ k := mem_cyl
 
 omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
 /-- An interval cylinder is the cylinder over the finite volume `[a, b]`. -/
 lemma intervalCylinder_eq_cyl (a b : ℤ) (σ : ℤ → E) :
-    intervalCylinder a b σ = cyl (Finset.Icc a b) σ := by
-  ext τ
-  rw [mem_intervalCylinder, mem_cyl]
+    intervalCylinder a b σ = cyl (Finset.Icc a b) σ := rfl
 
 omit [Fintype E] [DecidableEq E] [Nonempty E] in
 lemma measurableSet_intervalCylinder (a b : ℤ) (σ : ℤ → E) :
-    MeasurableSet (intervalCylinder a b σ) := by
-  have h : intervalCylinder a b σ
-      = ⋂ k : ℤ, ⋂ _ : k ∈ Finset.Icc a b, (fun τ : ℤ → E ↦ τ k) ⁻¹' {σ k} := by
-    ext τ; simp [intervalCylinder]
-  rw [h]
-  exact MeasurableSet.iInter fun k ↦ MeasurableSet.iInter fun _ ↦
-    (measurable_pi_apply k) (measurableSet_singleton _)
+    MeasurableSet (intervalCylinder a b σ) := measurableSet_cyl _ _
 
 /-- The interval cylinders whose interval contains the site `c` in its interior. -/
 def centredCylinders (c : ℤ) : Set (Set (ℤ → E)) :=
@@ -2741,9 +2728,9 @@ in the cylinder over the union of the two (overlapping) intervals. -/
 lemma isPiSystem_centredCylinders (c : ℤ) : IsPiSystem (centredCylinders (E := E) c) := by
   rintro S₁ ⟨a₁, b₁, σ₁, ha₁, hb₁, rfl⟩ S₂ ⟨a₂, b₂, σ₂, ha₂, hb₂, rfl⟩ ⟨τ₀, hτ₁, hτ₂⟩
   refine ⟨min a₁ a₂, max b₁ b₂, τ₀, by omega, by omega, ?_⟩
+  simp only [mem_intervalCylinder, Finset.mem_Icc] at hτ₁ hτ₂
   ext τ
-  simp only [Set.mem_inter_iff, intervalCylinder, Set.mem_ofPred_eq, Finset.mem_Icc]
-  simp only [intervalCylinder, Set.mem_ofPred_eq, Finset.mem_Icc] at hτ₁ hτ₂
+  simp only [Set.mem_inter_iff, mem_intervalCylinder, Finset.mem_Icc]
   constructor
   · rintro ⟨h1, h2⟩ k hk
     rcases le_or_gt k c with hkc | hkc
@@ -2782,7 +2769,7 @@ lemma generateFrom_centredCylinders [Countable E] (c : ℤ) :
               intervalCylinder a b (extendBy (Finset.Icc a b) x) := by
         ext τ
         simp only [Set.mem_preimage, Set.mem_singleton_iff, Set.mem_iUnion, Set.mem_ofPred_eq,
-          intervalCylinder, exists_prop]
+          mem_intervalCylinder, exists_prop]
         constructor
         · intro hτ
           refine ⟨(Finset.Icc a b).restrict τ, hτ, fun j hj ↦ ?_⟩
@@ -2816,13 +2803,7 @@ lemma ext_of_centredCylinders [Countable E] {μ₁ μ₂ : Measure (ℤ → E)} 
 omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
 lemma intervalCylinder_eq_preimage (a b : ℤ) (σ : ℤ → E) :
     intervalCylinder a b σ = (Finset.Icc a b).restrict ⁻¹'
-      ({(Finset.Icc a b).restrict σ} : Set (↥(Finset.Icc a b) → E)) := by
-  ext τ
-  constructor
-  · intro h
-    exact funext fun k ↦ h k k.2
-  · intro h k hk
-    exact congrFun h ⟨k, hk⟩
+      ({(Finset.Icc a b).restrict σ} : Set (↥(Finset.Icc a b) → E)) := rfl
 
 end Cylinders
 
@@ -2830,48 +2811,36 @@ end Cylinders
 
 section Punctured
 
-/-- The cylinder over `[a, b]` with the coordinate at the site `i` left free. -/
-def puncturedCylinder (a b i : ℤ) (σ : ℤ → E) : Set (ℤ → E) :=
-  {τ : ℤ → E | ∀ k ∈ (Finset.Icc a b).erase i, τ k = σ k}
+/-- The cylinder over `[a, b]` with the coordinate at the site `i` left free: the cylinder `cyl`
+over the finite volume `(Finset.Icc a b).erase i`. -/
+abbrev puncturedCylinder (a b i : ℤ) (σ : ℤ → E) : Set (ℤ → E) := cyl ((Finset.Icc a b).erase i) σ
+
+omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
+lemma mem_puncturedCylinder {a b i : ℤ} {σ τ : ℤ → E} :
+    τ ∈ puncturedCylinder a b i σ ↔ ∀ k ∈ (Finset.Icc a b).erase i, τ k = σ k := mem_cyl
 
 omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
 lemma intervalCylinder_eq_inter {a b i : ℤ} (hi : i ∈ Finset.Icc a b) (σ : ℤ → E) :
     intervalCylinder a b σ = {τ : ℤ → E | τ i = σ i} ∩ puncturedCylinder a b i σ := by
-  ext τ
-  simp only [intervalCylinder, puncturedCylinder, Set.mem_inter_iff, Set.mem_ofPred_eq,
-    Finset.mem_erase]
-  constructor
-  · intro h
-    exact ⟨h i hi, fun k hk ↦ h k hk.2⟩
-  · rintro ⟨h1, h2⟩ k hk
-    by_cases hki : k = i
-    · rw [hki]; exact h1
-    · exact h2 k ⟨hki, hk⟩
+  have h := cyl_insert_eq_inter ((Finset.Icc a b).erase i) i σ
+  rwa [Finset.insert_erase hi] at h
 
 omit [Fintype E] [DecidableEq E] [Nonempty E] in
 lemma measurableSet_cylinderEvents_puncturedCylinder (a b i : ℤ) (σ : ℤ → E) :
-    MeasurableSet[cylinderEvents ((({i} : Finset ℤ) : Set ℤ)ᶜ)] (puncturedCylinder a b i σ) := by
-  have h : puncturedCylinder a b i σ
-      = ⋂ k : ℤ, ⋂ _ : k ∈ (Finset.Icc a b).erase i, (fun τ : ℤ → E ↦ τ k) ⁻¹' {σ k} := by
-    ext τ; simp [puncturedCylinder]
-  rw [h]
-  refine MeasurableSet.iInter fun k ↦ MeasurableSet.iInter fun hk ↦ ?_
-  have hki : k ≠ i := (Finset.mem_erase.1 hk).1
-  exact measurable_cylinderEvent_apply (X := fun _ : ℤ ↦ E)
-    (Δ := ((({i} : Finset ℤ) : Set ℤ)ᶜ)) (by simpa using hki) (measurableSet_singleton _)
+    MeasurableSet[cylinderEvents ((({i} : Finset ℤ) : Set ℤ)ᶜ)] (puncturedCylinder a b i σ) :=
+  measurableSet_cylinderEvents_cyl
+    (fun k hk ↦ by simpa using (Finset.mem_erase.1 (Finset.mem_coe.1 hk)).1) σ
 
 omit [Fintype E] [DecidableEq E] [Nonempty E] in
 lemma measurableSet_puncturedCylinder (a b i : ℤ) (σ : ℤ → E) :
-    MeasurableSet (puncturedCylinder a b i σ) :=
-  cylinderEvents_le_pi _ (measurableSet_cylinderEvents_puncturedCylinder a b i σ)
+    MeasurableSet (puncturedCylinder a b i σ) := measurableSet_cyl _ _
 
 omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
 /-- Summing the free coordinate recovers the punctured cylinder. -/
 lemma puncturedCylinder_eq_iUnion {a b i : ℤ} (σ : ℤ → E) :
     puncturedCylinder a b i σ = ⋃ y : E, intervalCylinder a b (Function.update σ i y) := by
   ext τ
-  simp only [puncturedCylinder, intervalCylinder, Set.mem_ofPred_eq, Set.mem_iUnion,
-    Finset.mem_erase]
+  simp only [mem_puncturedCylinder, mem_intervalCylinder, Set.mem_iUnion, Finset.mem_erase]
   constructor
   · intro h
     refine ⟨τ i, fun k hk ↦ ?_⟩
@@ -2888,13 +2857,8 @@ lemma pairwise_disjoint_intervalCylinder_update {a b i : ℤ} (hi : i ∈ Finset
     (σ : ℤ → E) :
     Pairwise (Function.onFun Disjoint
       fun y : E ↦ intervalCylinder a b (Function.update σ i y)) := by
-  intro y y' hyy'
-  rw [Function.onFun, Set.disjoint_left]
-  rintro τ hτ hτ'
-  have h1 := hτ i hi
-  have h2 := hτ' i hi
-  rw [Function.update_self] at h1 h2
-  exact hyy' (h1.symm.trans h2)
+  have h := pairwise_disjoint_cyl_insert_update ((Finset.Icc a b).erase i) i σ
+  rwa [Finset.insert_erase hi] at h
 
 omit [Fintype E] [DecidableEq E] [Nonempty E] in
 /-- The measure of a punctured cylinder is the sum over the free coordinate. -/
@@ -2902,8 +2866,9 @@ lemma measure_puncturedCylinder_tsum [Countable E] (μ : Measure (ℤ → E)) {a
     (hi : i ∈ Finset.Icc a b) (σ : ℤ → E) :
     μ (puncturedCylinder a b i σ)
       = ∑' y : E, μ (intervalCylinder a b (Function.update σ i y)) := by
-  rw [puncturedCylinder_eq_iUnion, measure_iUnion (pairwise_disjoint_intervalCylinder_update hi σ)
-    fun y ↦ measurableSet_intervalCylinder a b _]
+  have h := measure_cyl_eq_tsum_insert μ (Λ := (Finset.Icc a b).erase i) (j := i)
+    (Finset.notMem_erase i _) σ
+  rwa [Finset.insert_erase hi] at h
 
 omit [DecidableEq E] [Nonempty E] in
 /-- The measure of a punctured cylinder is the sum of the measures of the interval cylinders
@@ -2988,9 +2953,9 @@ lemma lintegral_markovSpecification_singleton_intervalCylinder {i a b : ℤ}
       markovSpecification_singleton_apply hpos i (σ i) ω]
     by_cases hω : ω ∈ puncturedCylinder a b i σ
     · have h1 : ω (i - 1) = σ (i - 1) :=
-        hω (i - 1) (by simp only [Finset.mem_erase, Finset.mem_Icc]; omega)
+        mem_puncturedCylinder.1 hω (i - 1) (by simp only [Finset.mem_erase, Finset.mem_Icc]; omega)
       have h2 : ω (i + 1) = σ (i + 1) :=
-        hω (i + 1) (by simp only [Finset.mem_erase, Finset.mem_Icc]; omega)
+        mem_puncturedCylinder.1 hω (i + 1) (by simp only [Finset.mem_erase, Finset.mem_Icc]; omega)
       rw [h1, h2]
     · rw [Set.indicator_of_notMem hω]
       simp
