@@ -371,6 +371,7 @@ variable {P : Matrix E E ℝ}
 def pathWeight (P : Matrix E E ℝ) (a c : ℤ) (σ : ℤ → E) : ℝ :=
   ∏ j ∈ Finset.Ico a c, P (σ j) (σ (j + 1))
 
+omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
 @[simp] lemma pathWeight_self (a : ℤ) (σ : ℤ → E) : pathWeight P a a σ = 1 := by
   simp [pathWeight]
 
@@ -1139,7 +1140,7 @@ lemma exists_doeblin_bound (hP : P ∈ Matrix.rowStochastic ℝ E) (hpos : ∀ x
   have h := Matrix.abs_pow_apply_sub_le P hP hε hα hαP x y k
   linarith
 
-omit [MeasurableSpace E] [MeasurableSingletonClass E] in
+omit [MeasurableSpace E] [MeasurableSingletonClass E] [DecidableEq E] in
 /-- The stationary distribution of a positive stochastic matrix is bounded below by a positive
 constant (Georgii (3.3): `α_P ∈ ]0, 1[^E`). -/
 lemma exists_pos_le_stationary (hpos : ∀ x y, 0 < P x y) {α : E → ℝ}
@@ -1148,7 +1149,7 @@ lemma exists_pos_le_stationary (hpos : ∀ x y, 0 < P x y) {α : E → ℝ}
   exact ⟨α y₀, Matrix.pos_of_vecMul_eq_self P hpos hα hαP y₀,
     fun y ↦ hmin y (Finset.mem_univ y)⟩
 
-omit [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] in
+omit [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Fintype E] [Nonempty E] in
 /-- The ratio limit of Georgii's step 5: if `A k → β u`, `B k` and `D k` both approximate
 `β (v k)` at the geometric rate `ρ ^ k`, and `β` is bounded below by `c > 0`, then
 `A k B k / D k → β u`, even though `v k` may vary with `k`. -/
@@ -1677,6 +1678,7 @@ lemma measurableSet_eq_apply (i : ℤ) (y : E) : MeasurableSet {σ : ℤ → E |
   rw [hrw]
   exact (measurable_pi_apply i) (measurableSet_singleton y)
 
+omit [DecidableEq E] in
 /-- Two specifications whose singleton kernel at `i` gives the same mass to each event
 `{σ_i = y}` have the same singleton kernel at `i`. -/
 lemma singleton_eq_of_forall_apply (γ γ' : Specification ℤ E) (i : ℤ)
@@ -1721,6 +1723,7 @@ lemma markovSpecification_eq_withDensity (Λ : Finset ℤ) (η : ℤ → E) :
           (Specification.premodifierNorm (uniformOn (Set.univ : Set E))
             ((markovPotential P).boltzmannFactor 1) Λ) := rfl
 
+omit [DecidableEq E] in
 /-- **Georgii (1.33) for `markovSpecification P`.** A specification with the same singleton
 kernels as `markovSpecification P` equals it. -/
 theorem eq_markovSpecification_of_forall_singleton
@@ -2064,6 +2067,7 @@ lemma hamiltonian_singleton (i : ℤ) (σ : ℤ → E) :
   rw [e1, markovPotential_pair, markovPotential_pair, sub_add_cancel]
   ring
 
+omit [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
 /-- The Boltzmann factor of `markovPotential P` in `{i}` at inverse temperature `1` is
 `P(σ_{i-1}, σ_i) P(σ_i, σ_{i+1})`. -/
 lemma boltzmannFactor_singleton (hpos : ∀ x y, 0 < P x y) (i : ℤ) (σ : ℤ → E) :
@@ -2096,6 +2100,7 @@ omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E
 lemma extendBy_of_notMem {Λ : Finset ℤ} {i : ℤ} (x : Π _k : Λ, E) (h : i ∉ Λ) :
     extendBy Λ x i = Classical.arbitrary E := dite_eq_right h
 
+omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] in
 @[simp] lemma restrict_extendBy (Λ : Finset ℤ) (x : Π _k : Λ, E) :
     Λ.restrict (extendBy Λ x) = x := by
   funext k
@@ -2291,6 +2296,7 @@ variable (hPnn : ∀ x y, 0 ≤ P x y) (hrow : ∀ x, ∑ y, P x y = 1) (hαnn :
   (hstat : α ᵥ* P = α)
 
 include hPnn hrow hαnn in
+omit [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] in
 /-- Dropping the right endpoint of the interval (`∑_y P(x, y) = 1`). -/
 lemma cylSum_chainWeight_insert_right {a b : ℤ} (hab : a ≤ b) {G : (ℤ → E) → ℝ≥0∞}
     (hG : ∀ σ z, G (Function.update σ (b + 1) z) = G σ) :
@@ -2314,6 +2320,7 @@ lemma cylSum_chainWeight_insert_right {a b : ℤ} (hab : a ≤ b) {G : (ℤ → 
     ← Finset.mul_sum, hrow, mul_one]
 
 include hPnn hrow hαnn hstat in
+omit [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] in
 /-- Dropping the left endpoint of the interval (stationarity `α P = α`). -/
 lemma cylSum_chainWeight_insert_left {a b : ℤ} (hab : a ≤ b) {G : (ℤ → E) → ℝ≥0∞}
     (hG : ∀ σ z, G (Function.update σ (a - 1) z) = G σ) :

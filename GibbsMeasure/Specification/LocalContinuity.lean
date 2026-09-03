@@ -129,6 +129,7 @@ def indicatorLp (A : Set (S → E)) : lp (fun _ : S → E ↦ ℝ) ∞ :=
   ⟨A.indicator (fun _ ↦ (1 : ℝ)), memℓp_infty ⟨1, by
     rintro _ ⟨x, rfl⟩; by_cases hx : x ∈ A <;> simp [hx]⟩⟩
 
+omit [MeasurableSpace E] in
 @[simp] lemma coeFn_indicatorLp (A : Set (S → E)) :
     ⇑(indicatorLp (S := S) (E := E) A) = A.indicator (fun _ ↦ (1 : ℝ)) := rfl
 

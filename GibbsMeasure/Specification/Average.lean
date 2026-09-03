@@ -268,6 +268,7 @@ theorem measurePreserving_of_mapClusterPt_average {τ : Transformation S E}
 /-! ### Cluster points of two nets that agree asymptotically on local events -/
 
 
+omit [DecidableEq S] in
 lemma mapClusterPt_of_tendsto_real_sub {ι : Type*} {l : Filter ι}
     {μs μs' : ι → ProbabilityMeasure (S → E)} {μ : ProbabilityMeasure (S → E)}
     (hμ : MapClusterPt (WithSetwiseTopology.ofMeasure μ : WithLocalConvergence S E) l

@@ -156,12 +156,14 @@ variable (E) in
 noncomputable def symmSum (n : ℕ) (A : Set (ℕ → E)) (ω : ℕ → E) : ℝ≥0∞ :=
   ∑ σ : finPerm n, A.indicator 1 (permute (σ : Equiv.Perm ℕ) ω)
 
+omit [MeasurableSpace E] in
 lemma symmSum_permute {n : ℕ} (A : Set (ℕ → E)) {τ : Equiv.Perm ℕ} (hτ : τ ∈ finPerm n)
     (ω : ℕ → E) : symmSum E n A (permute τ ω) = symmSum E n A ω := by
   refine Fintype.sum_equiv (Equiv.mulLeft (⟨τ, hτ⟩ : finPerm n)) _ _ fun σ ↦ ?_
   rw [permute_permute]
   rfl
 
+omit [MeasurableSpace E] in
 /-- Right translation by an element of `Iₙ` leaves the symmetrised indicator unchanged. -/
 lemma sum_indicator_permute_mul_right {n : ℕ} (A : Set (ℕ → E)) {σ : Equiv.Perm ℕ}
     (hσ : σ ∈ finPerm n) (ω : ℕ → E) :
@@ -174,6 +176,7 @@ lemma measurable_symmSum {n : ℕ} {A : Set (ℕ → E)} (hA : MeasurableSet A) 
     (Finset.measurable_sum _ fun σ _ ↦ (measurable_one.indicator hA).comp (measurable_permute _))
     fun _ hτ _ ↦ symmSum_permute A hτ _
 
+omit [MeasurableSpace E] in
 @[simp] lemma symmSum_univ (n : ℕ) (ω : ℕ → E) :
     symmSum E n (univ : Set (ℕ → E)) ω = Fintype.card (finPerm n) := by
   simp [symmSum, Finset.card_univ]

@@ -190,6 +190,7 @@ theorem IsQuasilocalFun.exists_measurable_dependsOn {f : (S → E) → ℝ} (hme
     exact hΔ η (T η) fun i hi ↦ by simp [hT, hi]
   · exact ⟨∅, f, hmeas, by intro ω ω' _; exact (hne ⟨ω⟩).elim, fun η ↦ (hne ⟨η⟩).elim⟩
 
+omit [MeasurableSpace E] in
 /-- Scaling preserves quasilocality in the sense of Georgii's (2.22). -/
 theorem IsQuasilocalFun.const_mul {f : (S → E) → ℝ} (hf : IsQuasilocalFun f) (c : ℝ) :
     IsQuasilocalFun fun η ↦ c * f η := by
@@ -683,6 +684,7 @@ noncomputable def boltzmann (H : lp (fun _ : S → E ↦ ℝ) ∞) : lp (fun _ :
     rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
     exact Real.exp_le_exp.2 (le_trans (neg_le_abs _) (lp.norm_apply_le_norm ENNReal.top_ne_zero H η))⟩⟩
 
+omit [MeasurableSpace E] in
 @[simp] lemma coeFn_boltzmann (H : lp (fun _ : S → E ↦ ℝ) ∞) :
     ⇑(boltzmann H) = fun η ↦ Real.exp (-(⇑H) η) := rfl
 
@@ -694,6 +696,7 @@ lemma boltzmann_mem_quasilocalFunctions {H : lp (fun _ : S → E ↦ ℝ) ∞}
     (F := fun t ↦ Real.exp (-t)) (Real.continuous_exp.comp continuous_neg).continuousOn
     (fun _ ↦ rfl)
 
+omit [MeasurableSpace E] in
 lemma le_boltzmann (H : lp (fun _ : S → E ↦ ℝ) ∞) (η : S → E) :
     Real.exp (-‖H‖) ≤ (⇑(boltzmann H)) η :=
   Real.exp_le_exp.2 (neg_le_neg (le_trans (le_abs_self _) (lp.norm_apply_le_norm ENNReal.top_ne_zero H η)))

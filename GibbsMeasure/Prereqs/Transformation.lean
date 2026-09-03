@@ -441,16 +441,21 @@ def siteEquiv (e : S ≃ S) : Transformation S E where
   sites := e
   spin _ := MeasurableEquiv.refl E
 
+omit [AddGroup S] in
 @[simp] lemma siteEquiv_toFun_apply (e : S ≃ S) (ω : S → E) (i : S) :
     (siteEquiv E e).toFun ω i = ω (e.symm i) := rfl
 
+omit [AddGroup S] in
 @[simp] lemma siteEquiv_sites (e : S ≃ S) : (siteEquiv E e).sites = e := rfl
 
+omit [AddGroup S] in
 lemma siteEquiv_comp (e f : S ≃ S) :
     (siteEquiv E e).comp (siteEquiv E f) = siteEquiv E (f.trans e) := rfl
 
+omit [AddGroup S] in
 lemma shift_eq_siteEquiv [AddGroup S] (j : S) : shift E j = siteEquiv E (Equiv.addRight j) := rfl
 
+omit [AddGroup S] in
 /-- **Georgii, in the proof of (5.17)(2): a site automorphism conjugates shifts into shifts,**
 `τ_e ∘ θ_j = θ_{e j} ∘ τ_e`.  This is what makes the shift group normal in `R ∘ Θ`. -/
 lemma siteEquiv_comp_shift [AddGroup S] (e : S ≃+ S) (j : S) :

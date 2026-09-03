@@ -377,6 +377,7 @@ theorem tileAverage_mem_invariantFields_shiftGroup :
   mem_invariantFields_shiftGroup.2 ⟨inferInstance, fun j ↦
     ⟨(shift E j).measurable_toFun, map_shift_tileAverage hCH μ j⟩⟩
 
+omit [IsProbabilityMeasure μ] in
 /-- On the invariant σ-algebra `𝓘`, `v_n` and `μ_n` agree: `θ_j(μ_n)(A) = μ_n(A)` for `A ∈ 𝓘`
 (Georgii, proof of (14.12)). -/
 theorem tileAverage_apply_of_measurableSet_invariantEvents {A : Set (S → E)}

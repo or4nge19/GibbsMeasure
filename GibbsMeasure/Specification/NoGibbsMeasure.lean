@@ -39,6 +39,7 @@ def zeroOn (Λ : Finset S) (ω : S → Bool) : S → Bool := fun i ↦ if i ∈ 
 /-- The guard `ω = 0 off Λ`. -/
 def vanishOff (Λ : Finset S) : Set (S → Bool) := {ω | ∀ i, i ∉ Λ → ω i = false}
 
+omit [DecidableEq S] in
 lemma measurableSet_vanishOff (Λ : Finset S) :
     MeasurableSet[cylinderEvents (X := fun _ : S ↦ Bool) ((Λ : Set S)ᶜ)] (vanishOff Λ) := by
   have : vanishOff Λ = ⋂ i ∈ ((Λ : Set S)ᶜ), (fun ω : S → Bool ↦ ω i) ⁻¹' {false} := by
@@ -47,6 +48,7 @@ lemma measurableSet_vanishOff (Λ : Finset S) :
   refine MeasurableSet.biInter (Set.to_countable _) fun i hi ↦ ?_
   exact measurable_cylinderEvent_apply hi (measurableSet_singleton false)
 
+omit [Countable S] in
 lemma measurable_zeroOn (Λ : Finset S) :
     Measurable[cylinderEvents (X := fun _ : S ↦ Bool) ((Λ : Set S)ᶜ)] (zeroOn Λ) := by
   letI : MeasurableSpace (S → Bool) := cylinderEvents (X := fun _ : S ↦ Bool) ((Λ : Set S)ᶜ)
@@ -90,6 +92,7 @@ instance (Λ : Finset S) : IsMarkovKernel (kernel (S := S) Λ) := by
   · haveI : Fact Λ.Nonempty := ⟨Finset.nonempty_iff_ne_empty.2 h⟩
     infer_instance
 
+omit [Countable S] in
 /-- Spikes at sites of `Λ` agree with a configuration vanishing off `Λ`, outside `Λ`. -/
 lemma spike_eqOn_compl {Λ : Finset S} {a : S} (ha : a ∈ Λ) {ω : S → Bool} (hω : ω ∈ vanishOff Λ)
     {i : S} (hi : i ∉ Λ) : spike a i = ω i := by
@@ -98,9 +101,11 @@ lemma spike_eqOn_compl {Λ : Finset S} {a : S} (ha : a ∈ Λ) {ω : S → Bool}
     rintro rfl; exact hi ha
   rw [h1, hω i hi]
 
+omit [Countable S] in
 lemma zeroOn_eqOn_compl (Λ : Finset S) (ω : S → Bool) {i : S} (hi : i ∉ Λ) :
     zeroOn Λ ω i = ω i := by simp [zeroOn, hi]
 
+omit [Countable S] [DecidableEq S] in
 /-- A `cylinderEvents Λᶜ`-measurable set has the same indicator at configurations agreeing
 outside `Λ`. -/
 lemma indicator_eq_of_eqOn_compl {Λ : Finset S} {B : Set (S → Bool)}
@@ -156,6 +161,7 @@ lemma kernel_empty_apply (x : S → Bool) : kernel (S := S) ∅ x = Measure.dira
   unfold kernel
   rw [dif_pos rfl, Kernel.deterministic_apply, id_eq]
 
+omit [Countable S] in
 /-- A spike at `a` vanishes off `Λ` iff `a ∈ Λ`. -/
 lemma spike_mem_vanishOff_iff {Λ : Finset S} {a : S} : spike a ∈ vanishOff Λ ↔ a ∈ Λ := by
   constructor
@@ -182,6 +188,7 @@ lemma zeroOn_mem_vanishOff_iff {Λ Λ' : Finset S} {x : S → Bool} :
     · rw [zeroOn_eqOn_compl Λ x hiΛ]
       exact h i (by simp [hiΛ, hi])
 
+omit [Countable S] in
 lemma zeroOn_zeroOn_of_subset {Λ₁ Λ₂ : Finset S} (h : Λ₁ ⊆ Λ₂) (x : S → Bool) :
     zeroOn Λ₁ (zeroOn Λ₂ x) = zeroOn Λ₂ x := by
   funext i
@@ -189,6 +196,7 @@ lemma zeroOn_zeroOn_of_subset {Λ₁ Λ₂ : Finset S} (h : Λ₁ ⊆ Λ₂) (x 
   · simp [zeroOn, hi, h hi]
   · simp [zeroOn, hi]
 
+omit [Countable S] in
 lemma zeroOn_spike_of_not_mem {Λ : Finset S} {a : S} (ha : a ∉ Λ) : zeroOn Λ (spike a) = spike a := by
   funext i
   by_cases hi : i ∈ Λ
@@ -261,8 +269,10 @@ def specification : Specification S Bool where
   isMarkovKernel' := fun Λ ↦ by change IsMarkovKernel (kernel Λ); infer_instance
   isProper' := fun Λ ↦ isProper_kernel Λ
 
+omit [Countable S] in
 lemma spike_apply_self (a : S) : spike a a = true := by simp [spike]
 
+omit [Countable S] in
 lemma spike_injective : Function.Injective (spike (S := S)) := by
   intro a b h
   have := congrArg (fun ω : S → Bool ↦ ω a) h

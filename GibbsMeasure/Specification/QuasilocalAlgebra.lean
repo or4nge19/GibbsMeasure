@@ -106,11 +106,13 @@ section Oscillation
 noncomputable abbrev oscOutside (Λ : Finset S) (f : (S → E) → ℝ) : ℝ≥0∞ :=
   _root_.oscOutside (Λ : Set S) f
 
+omit [MeasurableSpace E] in
 lemma le_oscOutside {Λ : Finset S} {f : (S → E) → ℝ} {ζ η : S → E}
     (h : ∀ i ∈ Λ, ζ i = η i) : ENNReal.ofReal |f ζ - f η| ≤ oscOutside Λ f := by
   rw [← Real.dist_eq, ← edist_dist]
   exact _root_.le_oscOutside fun i hi ↦ h i (by exact_mod_cast hi)
 
+omit [MeasurableSpace E] in
 lemma oscOutside_le {Λ : Finset S} {f : (S → E) → ℝ} {c : ℝ≥0∞}
     (h : ∀ ζ η : S → E, (∀ i ∈ Λ, ζ i = η i) → ENNReal.ofReal |f ζ - f η| ≤ c) :
     oscOutside Λ f ≤ c :=
@@ -118,6 +120,7 @@ lemma oscOutside_le {Λ : Finset S} {f : (S → E) → ℝ} {c : ℝ≥0∞}
     rw [edist_dist, Real.dist_eq]
     exact h ζ η fun i hi ↦ hζη i (by exact_mod_cast hi)
 
+omit [MeasurableSpace E] in
 lemma oscOutside_antitone {f : (S → E) → ℝ} : Antitone fun Λ : Finset S ↦ oscOutside Λ f :=
   fun _ _ h ↦ _root_.oscOutside_antitone (by exact_mod_cast h)
 
@@ -316,6 +319,7 @@ lemma continuous_of_mem_localFunctions [DiscreteTopology E]
   exact (continuous_of_discreteTopology (α := ∀ i : (Λ : Set S), E)).comp
     (continuous_pi fun i ↦ continuous_apply _)
 
+omit [MeasurableSpace E] in
 /-- Uniform limits of continuous observables are continuous. -/
 lemma isClosed_continuous_lp :
     IsClosed {f : lp (fun _ : S → E ↦ ℝ) ∞ | Continuous (⇑f : (S → E) → ℝ)} := by

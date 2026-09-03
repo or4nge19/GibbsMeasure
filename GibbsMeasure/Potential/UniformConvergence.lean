@@ -155,6 +155,7 @@ private lemma measurable_expB (Λ : Finset S) :
     Measurable fun x : S → E ↦ Real.exp (-β * Φ.hamiltonian Λ x) :=
   (measurable_const.mul (measurable_hamiltonian (Φ := Φ) Λ)).exp
 
+omit [Countable S] [Φ.IsPotential] in
 private lemma expB_le (Λ : Finset S) (x : S → E) :
     Real.exp (-β * Φ.hamiltonian Λ x) ≤ Real.exp (|β| * Φ.hamiltonianBound Λ) := by
   refine Real.exp_le_exp.2 ?_
@@ -163,6 +164,7 @@ private lemma expB_le (Λ : Finset S) (x : S → E) :
     _ ≤ |β| * Φ.hamiltonianBound Λ :=
         mul_le_mul_of_nonneg_left (abs_hamiltonian_le Λ x) (abs_nonneg _)
 
+omit [Countable S] [Φ.IsPotential] in
 private lemma le_expB (Λ : Finset S) (x : S → E) :
     Real.exp (-(|β| * Φ.hamiltonianBound Λ)) ≤ Real.exp (-β * Φ.hamiltonian Λ x) := by
   refine Real.exp_le_exp.2 ?_

@@ -37,9 +37,11 @@ variable {S E : Type*} [MeasurableSpace E] {ω : S → E}
 at only finitely many sites. -/
 def eventualAgreementClass (ω : S → E) : Set (S → E) := {ζ | {i | ζ i ≠ ω i}.Finite}
 
+omit [MeasurableSpace E] in
 lemma self_mem_eventualAgreementClass (ω : S → E) : ω ∈ eventualAgreementClass ω := by
   simp [eventualAgreementClass]
 
+omit [MeasurableSpace E] in
 lemma eventualAgreementClass_eq_iUnion (ω : S → E) :
     eventualAgreementClass ω = ⋃ Λ : Finset S, {ζ : S → E | ∀ i ∉ Λ, ζ i = ω i} := by
   ext ζ
