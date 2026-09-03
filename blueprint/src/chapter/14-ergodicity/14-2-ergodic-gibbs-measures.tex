@@ -142,3 +142,20 @@ $\mathcal G_\Theta(\gamma) = \mathcal G(\gamma) \cap \Prob_\Theta$.
     its elements is a barycentre of extreme points, approximated by finite convex combinations
     as in the density step of Theorem (7.30).
 \end{proof}
+
+\begin{proposition}[Georgii (14.21)--(14.24); Comment (14.13)]
+    \label{prop:erg-1424}
+    \uses{thm:erg-1420, thm:erg-14A8, thm:erg-1412}
+    \lean{Specification.shiftAvgCondDensity, Specification.toReal_shiftAvgCondDensity_ae_eq_condExp, MeasureTheory.GibbsMeasure.ae_tendsto_inv_card_smul_sum_shift_of_mem_trivialOn_of_integrable, Specification.ae_tendsto_toReal_shiftAvgDensity, MeasureTheory.GibbsMeasure.continuous_toMeasure_withLocalConvergence, invariantFields_subset_closure_extremePoints_probabilityMeasure_int}
+    \leanok
+
+    For $\gamma = \rho\lambda$ and $\mu \in \operatorname{ex}\mathcal G_\Theta(\gamma)$, the
+    averaged conditional densities $\tilde\rho^n_\Delta = |\Lambda'_n|^{-1}\sum_{i \in \Lambda'_n}\rho_\Delta\circ\tilde\theta_i$
+    of (14.21) have $\mu$-conditional expectation $\bar\rho_\Delta$ on
+    $\mathcal T_\Delta \otimes \mathcal F_\Delta$ (14.22), and
+    $\tilde\rho^n_\Delta(\omega,\zeta) \to \bar\rho_\Delta(\zeta)$ for $\mu$-a.e.\ $\omega$ and
+    $\lambda^\Delta$-a.e.\ $\zeta$ along any Følner sequence, by the individual ergodic theorem for
+    integrable functions ((14.23)--(14.24)). For compact $E$, local convergence is continuous into
+    the weak topology and $\operatorname{ex}\Prob_\Theta$ is weakly dense in $\Prob_\Theta$ (the
+    first half of (14.13)).
+\end{proposition}
