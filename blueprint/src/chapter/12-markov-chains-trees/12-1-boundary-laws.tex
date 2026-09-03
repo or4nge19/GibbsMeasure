@@ -123,3 +123,24 @@ the edges meeting $\Lambda$.
     to $\mu(\sigma_j = y \mid \mathcal T_{\mathrm{past}})$, which by tail triviality (7.7)(a) is
     $\mu(\sigma_j = y \mid \sigma_i)$ after freezing the single coordinate $\sigma_i$ ($E$ countable).
 \end{proof}
+
+\begin{corollary}[Georgii (12.18)]
+    \label{cor:tr-12-18}
+    \uses{thm:tr-12-12, prop:tr-12-3}
+    \lean{MeasureTheory.GibbsMeasure.Tree.not_isMarkovChain_sum_smul_of_forall_adj_exists_boundaryLaw_eq}
+    \leanok
+
+    Let $\mu_1, \dots, \mu_N$ be distinct measures of normalised boundary laws $\ell^{(n)}$ for
+    a transfer family on a locally finite tree such that every oriented edge $ji$ has a neighbour
+    $k \neq j$ of $i$ with $\ell^{(n)}_{ki} = \ell^{(n)}_{ji}$ for all $n$. Then no nontrivial
+    convex combination of the $\mu_n$ is a Markov chain.
+\end{corollary}
+\begin{proof}
+    \leanok
+    A convex combination is Gibbs; if it were a Markov chain it would be the measure of a
+    boundary law $\ell$ by Theorem \ref{thm:tr-12-12}. The cylinder formula (12.13) at
+    singleton volumes gives $\ell_{ji}(x)\ell_{ji}(y) = \sum_n w_n \ell^{(n)}_{ji}(x)\ell^{(n)}_{ji}(y)$
+    and $\ell_{ji}(z) = \sum_n w_n \ell^{(n)}_{ji}(z)$; the equality case of Jensen's inequality
+    for $x \mapsto x^2$ forces all $\ell^{(n)}_{ji}$ with $w_n > 0$ to agree, hence the
+    corresponding $\mu_n$, contradicting distinctness.
+\end{proof}

@@ -7,8 +7,10 @@ module
 
 public import GibbsMeasure.Model.TreeBoundaryLaw
 public import GibbsMeasure.Specification.Extremal
+public import GibbsMeasure.Specification.ExtremeCorollaries
 public import GibbsMeasure.Mathlib.Probability.TailTriviality
 public import GibbsMeasure.Prereqs.MeasureExt
+public import Mathlib.Analysis.Convex.SpecificFunctions.Deriv
 
 /-!
 # Georgii §12.1: Markov chains and boundary laws on trees, continued
@@ -23,9 +25,10 @@ previous pass of this file claimed (12.6) was blocked on "the backward martingal
 theorem"; that tool (Lévy's downward theorem, `Integrable.tendsto_ae_condExp_of_antitone` in
 `GibbsMeasure/Mathlib/Probability/Martingale/Convergence.lean`) was already in the library, and
 Georgii's own proof of (12.6) needs nothing more exotic — see the `## Georgii Theorem (12.6)`
-section below for the full account, including exactly which hypotheses are used. Comments
-(12.3)(3), (5), (6), and Corollary (12.18) are **not formalised**; see below for exactly why in
-each case.
+section below for the full account, including exactly which hypotheses are used. **Corollary
+(12.18)** is now formalised too (see its own section below), generalised to any locally finite
+tree and any transfer family (Georgii's `𝒞𝒯(d)`/complete homogeneity are not used by the proof).
+Comments (12.3)(3), (5), (6) remain **not formalised**; see below for exactly why in each case.
 
 ## What is proved here
 
@@ -38,48 +41,30 @@ each case.
   (`condExp_eq_condExp_of_le_of_condExp_eq`, `exists_ae_eq_single_of_forall_measure_eq_zero_or_one`,
   `IsMarkovSpecification.dependsOn_apply(_cyl)`,
   `IsGibbsMeasure.condExp_indicator_ae_eq_toReal_of_isMarkovSpecification`) belong once upstreamed.
+* **Corollary (12.18)**: `not_isMarkovChain_sum_smul_of_forall_adj_exists_boundaryLaw_eq`, in the
+  section `## Georgii Corollary (12.18)` — see that section's own header for the exact hypotheses,
+  the (weaker, still Georgii-faithful) generality at which it is proved, and the general lemmas
+  along the way (`boundaryLawWeight_singleton_eq`, `normalizeBoundaryLaw` and its two properties,
+  `MeasureTheory.GibbsMeasure.sum_smul_mem_G` for the convexity of `𝒢(γ)`, and the equality case of
+  Jensen's inequality, `StrictConvexOn.map_sum_eq_iff_of_nonneg`, for the quadratic/linear
+  identity).
 
-## What is not formalised, beyond (12.6)
+## What is not formalised, beyond (12.6) and (12.18)
 
 * **Comments (12.3)(3) and (12.3)(6)** are not formalised: (3) needs a formal notion of a graph
   embedding `ℤ ↪ S` (an embedded bi-infinite geodesic) that does not yet exist anywhere in the tree
   combinatorics files, and (6) needs a `𝒯_Λ`-style "local tail" σ-algebra and its associated
   generated-π-system argument, neither of which exists yet either; both are genuine follow-on
   constructions rather than gaps in the argument given here.
-* **Corollary (12.18)** (a non-trivial convex mixture of pairwise distinct Markov chains, whose
-  normalised boundary laws agree at every bond in the sense of the corollary's hypothesis, is not a
-  Markov chain) is **not formalised**. Two independent things are needed, neither of them a small
-  step, and neither present yet:
-  1. **Convexity of `𝒢(γ)` is not yet in the project.** Georgii's proof applies (12.12)(b) to the
-     mixture `μ = Σ tₙ μₙ` itself, which needs `μ ∈ 𝒢(γ^Q)` — i.e. that a finite convex combination
-     of Gibbs measures for the same specification is again a Gibbs measure. This is true and not
-     hard (`Specification.IsGibbsMeasure` is the affine condition `μ.bind (γ Λ) = μ`, so it reduces
-     to `Measure.bind` being additive and positively homogeneous in its base measure, via
-     `lintegral_add_measure`/`lintegral_smul_measure`), but no such lemma — for `Measure.bind`, or
-     for `Specification.IsGibbsMeasure` — exists anywhere in `GibbsMeasure/Specification/` today;
-     it would need to be built first.
-  2. **The quadratic/linear identity and its equality-case argument.** From (12.13) at singleton
-     volumes one derives, for the mixture's own normalised boundary law `ℓ`, an identity
-     `ℓ_ji(x) ℓ_ji(y) = Σ_n wₙ ℓ_ji⁽ⁿ⁾(x) ℓ_ji⁽ⁿ⁾(y)` with `Σ wₙ = 1`, `wₙ ≥ 0`; setting `x = y = z`
-     and comparing with the *linear* identity `ℓ_ji(z) = Σ wₙ ℓ_ji⁽ⁿ⁾(z)` (obtained by setting
-     `y = a` instead) forces the discrete-variance identity `Σ_n wₙ ℓ_ji⁽ⁿ⁾(z)² = (Σ_n wₙ
-     ℓ_ji⁽ⁿ⁾(z))²`. Unlike Georgii's own route (an explicit sum-of-squares identity, delicate in
-     `ℝ≥0∞` since subtraction there is truncated), the clean way to close this step is the
-     *equality case of Jensen's inequality* for the strictly convex `x ↦ x²`:
-     `StrictConvexOn.map_sum_eq_iff_of_nonneg` (`Mathlib/Analysis/Convex/Jensen.lean`), fed
-     `Even.strictConvexOn_pow`/`strictConvexOn_pow` (`Mathlib/Analysis/Convex/SpecificFunctions/
-     Deriv.lean`), gives exactly "equal weighted linear and quadratic averages ⇒ equal values on
-     the support of `w`" — but only over a field with subtraction (`ℝ`), so the identity must first
-     be transported out of `ℝ≥0∞` via `ENNReal.toReal` (sound here since every `ℓ_ji⁽ⁿ⁾(z)` is
-     finite, `IsBoundaryLaw.ne_top`). What remains, beyond locating this lemma, is: extracting the
-     positive finite constants `cₙ` from the ratios of (12.13)'s normalising `z_{\{i\}}`'s across
-     `μ, μ₁, …, μ_N`; using the corollary's hypothesis (`∀ ij, ∃ k ∈ ∂i∖{j}, ℓ_ki⁽ⁿ⁾ = ℓ_ji⁽ⁿ⁾ ∀n`)
-     to transport the identity from the bond `ki` where it is derived to the bond `ji` where it is
-     needed; and closing the final contradiction (equal boundary laws on every bond ⇒ equal
-     measures, `IsBoundaryLaw.eq_boundaryLawMeasure_of_forall_cyl`, against pairwise distinctness).
-  Formalising both of these is a substantial independent undertaking — item 1 is a small new
-  general lemma, item 2 a proof of comparable size to the (12.12)(b)/(12.17) development above —
-  and was not completed in this pass.
+* **Comment (12.3)(5)** (a positive stochastic matrix is the transition matrix of a completely
+  homogeneous Markov chain iff it is reversible, and in that case the chain is invariant under the
+  full graph-automorphism group `I(B)` of `S`) is not formalised: the reversibility half already
+  follows from `isCompletelyHomogeneousMarkovChain_iff_exists_isBoundaryLaw_const_solves` above
+  (Corollary (12.17)) combined with `isBoundaryLaw_const_iff` (12.16)'s reversibility content, but
+  the automorphism-invariance half needs a formal notion of a graph automorphism of `S` (`I(B)`)
+  and the fact from (12.4) that `boundaryLawMeasure` of a *constant* boundary law is invariant
+  under it; no such automorphism-group infrastructure exists yet in the tree combinatorics files,
+  and building it is a genuine follow-on construction, not a gap in the argument given here.
 -/
 
 @[expose] public section
@@ -760,78 +745,6 @@ Markov-specification lemmas above need only `G.LocallyFinite`.
 
 section GeneralLemmas
 
-/-- **The "sandwich" property of conditional expectation.** If the conditional expectations of an
-integrable `f` with respect to two nested sub-σ-algebras `m₁ ≤ m₂ ≤ m₃ ≤ m0` agree `μ`-a.e. with
-the conditional expectation with respect to the *largest* one `m₃`, then `m₁` and `m₂` already
-agree with each other. Two applications of the tower property (`condExp_condExp_of_le`). Intended
-home: `Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic`, next to
-`condExp_condExp_of_le` itself. -/
-theorem _root_.MeasureTheory.condExp_eq_condExp_of_le_of_condExp_eq
-    {Ω : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω} [IsFiniteMeasure μ]
-    {m₁ m₂ m₃ : MeasurableSpace Ω}
-    (h12 : m₁ ≤ m₂) (h23 : m₂ ≤ m₃) (h3 : m₃ ≤ m0) {f : Ω → ℝ}
-    (heq : μ[f | m₁] =ᵐ[μ] μ[f | m₃]) : μ[f | m₁] =ᵐ[μ] μ[f | m₂] := by
-  have hm2 : m₂ ≤ m0 := h23.trans h3
-  calc μ[f | m₁] = μ[μ[f | m₁] | m₂] :=
-        (condExp_of_stronglyMeasurable hm2 (stronglyMeasurable_condExp.mono h12)
-          integrable_condExp).symm
-    _ =ᵐ[μ] μ[μ[f | m₃] | m₂] := condExp_congr_ae heq
-    _ =ᵐ[μ] μ[f | m₂] := condExp_condExp_of_le h23 h3
-
-/-- **The "freezing" argument behind Georgii's Theorem (12.6).** If `μ` is trivial on
-`⨅ n, cylinderEvents (T n)` for a family `T : ℕ → Set S` of coordinate sets avoiding a fixed site
-`i` (`i ∉ T n` for every `n`), then every function measurable for `⨅ n, cylinderEvents ({i} ∪ T
-n)` is `μ`-a.e. a function of the single coordinate `σ i`. Unlike the analogous two-coordinate
-statement `exists_ae_eq_pair_of_forall_measure_eq_zero_or_one` in
-`GibbsMeasure/Specification/MarkovIntChains.lean` (needed there because Georgii's hypothesis
-(10.19) genuinely involves both endpoints `σ_{j-1}, σ_j` of a step of `ℤ`), no resampling and no
-Fubini argument is needed here: fixing the single coordinate directly produces, for every `x`, an
-a.e.-constant function (tail triviality), and the countably many resulting null sets (one per `x
-∈ E`, `E` countable) are combined by `Filter.ae_all_iff`. Intended home:
-`Mathlib.MeasureTheory.MeasurableSpace.CountablyGenerated`, next to
-`measurable_cylinderEvents_iff_dependsOn`. -/
-theorem _root_.MeasureTheory.exists_ae_eq_single_of_forall_measure_eq_zero_or_one
-    {S E : Type*} [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E]
-    {μ : Measure (S → E)} [IsProbabilityMeasure μ] {i : S} {T : ℕ → Set S} (hi : ∀ n, i ∉ T n)
-    (htriv : ∀ A, MeasurableSet[⨅ n, cylinderEvents (X := fun _ : S ↦ E) (T n)] A →
-      μ A = 0 ∨ μ A = 1)
-    {f : (S → E) → ℝ}
-    (hf : Measurable[⨅ n, cylinderEvents (X := fun _ : S ↦ E) ({i} ∪ T n)] f) :
-    ∃ q : E → ℝ, Measurable q ∧ f =ᵐ[μ] fun σ ↦ q (σ i) := by
-  classical
-  have hf' : Measurable f := hf.mono ((iInf_le _ (0 : ℕ)).trans cylinderEvents_le_pi) le_rfl
-  set q : E → ℝ := fun x ↦ ∫ ω, f (Function.update ω i x) ∂μ with hq_def
-  refine ⟨q, measurable_of_countable q, ?_⟩
-  have hconst : ∀ x : E, ∀ᵐ ω ∂μ, f (Function.update ω i x) = q x := by
-    intro x
-    have hshift : Measurable fun ω : S → E ↦ f (Function.update ω i x) :=
-      hf'.comp measurable_update_left
-    have hmeasT : Measurable[⨅ n, cylinderEvents (X := fun _ : S ↦ E) (T n)]
-        fun ω ↦ f (Function.update ω i x) := by
-      rw [measurable_iInf_iff_forall]
-      intro n
-      have hdep : DependsOn f ({i} ∪ T n) :=
-        (hf.mono (iInf_le _ n) le_rfl).dependsOn_of_cylinderEvents
-      refine hshift.cylinderEvents_of_dependsOn fun ω ω' hωω' ↦ hdep fun k hk ↦ ?_
-      rcases hk with hk | hk
-      · rw [Set.mem_singleton_iff] at hk
-        subst hk
-        simp
-      · have hki : k ≠ i := fun h ↦ (h ▸ hi n) hk
-        simp only [Function.update_of_ne hki]
-        exact hωω' k hk
-    obtain ⟨c, hc⟩ := exists_ae_eq_const_of_forall_measure_eq_zero_or_one
-      ((iInf_le _ (0 : ℕ)).trans cylinderEvents_le_pi) htriv hmeasT
-    have hqc : q x = c := by
-      simp only [hq_def]
-      rw [integral_congr_ae hc, integral_const]
-      simp
-    rw [hqc]
-    exact hc
-  filter_upwards [ae_all_iff.2 hconst] with ω hω
-  have h := hω (ω i)
-  rwa [Function.update_eq_self] at h
-
 end GeneralLemmas
 
 /-! ## Markov specifications: `𝓕_{∂Λ}`-measurability extends from cylinder atoms
@@ -1133,5 +1046,412 @@ theorem exists_isMarkovChain_of_mem_extremePoints [Countable S] {G : SimpleGraph
     hpastij_le ((iInf_le _ (0 : ℕ)).trans cylinderEvents_le_pi) hEQ5).symm
 
 end TheoremTwelvePointSix
+
+/-! ## General lemma: the singleton-volume weight, for any `ℓ`
+
+Reusable form of the `hbw` step inside `IsBoundaryLaw.exists_const_mul_eq_of_boundaryLawMeasure_eq`
+above: it needs no `IsBoundaryLaw` hypothesis at all, only `G.outerBoundary {i} =
+G.neighborFinset i` and `G.anchor {i} k = i`. Intended home, once upstreamed: next to
+`boundaryLawWeight` in `GibbsMeasure/Model/TreeBoundaryLaw.lean`. (Left duplicated, rather than
+factored out of `exists_const_mul_eq_of_boundaryLawMeasure_eq`, to avoid touching that
+already-compiling proof; see the report for this note.) -/
+
+section SingletonBoundaryLawWeight
+
+variable {G : SimpleGraph S} [G.LocallyFinite] {Q : S → S → E → E → ℝ≥0∞}
+
+omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
+theorem boundaryLawWeight_singleton_eq (hs : ∀ i j x y, Q i j x y = Q j i y x)
+    (ℓ' : S → S → E → ℝ≥0∞) (i : S) (ζ : S → E) :
+    boundaryLawWeight G Q hs ℓ' {i} ζ
+      = (∏ k ∈ G.neighborFinset i, ℓ' k i (ζ k)) * transferWeight G Q hs {i} ζ := by
+  rw [boundaryLawWeight, SimpleGraph.outerBoundary_singleton]
+  congr 1
+  exact Finset.prod_congr rfl fun k hk ↦ by
+    rw [SimpleGraph.anchor_singleton (SimpleGraph.outerBoundary_singleton (G := G) i ▸ hk)]
+
+end SingletonBoundaryLawWeight
+
+/-! ## General lemmas: per-bond normalisation of a boundary law
+
+Georgii's remark preceding Corollary (12.17) ("It is sometimes useful ... to introduce a
+normalization ... We will say that a boundary law is normalized at a reference state `a` if
+`ℓ_{ij}(a) = 1`") is used below in the proof of Corollary (12.18): *every* boundary law can be
+replaced by one representing the *same* measure and normalised at `a`, simply by dividing each
+`ℓ_{ij}` by its own value `ℓ_{ij}(a)` (positive and finite, by `IsBoundaryLaw.pos`/`ne_top`). This
+generalises `IsBoundaryLaw.div_const` / `IsBoundaryLaw.boundaryLawMeasure_div_const_eq` above
+(which rescale every bond by the *same* global constant `κ`) to a per-bond constant `ℓ_{ij}(a)`.
+Intended home, once upstreamed: next to those two lemmas in
+`GibbsMeasure/Model/TreeBoundaryLaw.lean`. -/
+
+section NormalizeBoundaryLaw
+
+variable [Nonempty E] {G : SimpleGraph S} [G.LocallyFinite] {Q : S → S → E → E → ℝ≥0∞}
+  (hQ : IsTransferFamily G Q) (hG : G.IsTree) {ℓ : S → S → E → ℝ≥0∞}
+
+/-- Rescaling a boundary law bond-by-bond by its own value at a reference state `a`. -/
+def normalizeBoundaryLaw (ℓ : S → S → E → ℝ≥0∞) (a : E) : S → S → E → ℝ≥0∞ :=
+  fun i j x ↦ ℓ i j x / ℓ i j a
+
+omit [Nonempty E] [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
+/-- The rescaled family is again a boundary law: the per-bond constant `c_{ij}` of
+`IsBoundaryLaw.consistent` picks up the finite factor `(∏_{k ∈ ∂i∖{j}} ℓ_{ki}(a)) / ℓ_{ij}(a)`. -/
+theorem IsBoundaryLaw.isBoundaryLaw_normalizeAt (hℓ : IsBoundaryLaw G Q ℓ) (a : E) :
+    IsBoundaryLaw G Q (normalizeBoundaryLaw ℓ a) where
+  pos i j hij x := ENNReal.div_pos (hℓ.pos hij x).ne' (hℓ.ne_top hij a)
+  ne_top i j hij x := ENNReal.div_ne_top (hℓ.ne_top hij x) (hℓ.pos hij a).ne'
+  consistent i j hij := by
+    obtain ⟨c, hc0, hct, hc⟩ := hℓ.consistent hij
+    have hterm : ∀ (x : E) (k : S), ∑' y, normalizeBoundaryLaw ℓ a k i y * Q k i y x
+        = (∑' y, ℓ k i y * Q k i y x) / ℓ k i a := fun x k ↦ by
+      simp_rw [normalizeBoundaryLaw, div_eq_mul_inv, mul_right_comm]
+      exact ENNReal.tsum_mul_right
+    set K := ∏ k ∈ (G.neighborFinset i).erase j, ℓ k i a with hKdef
+    have hK0 : K ≠ 0 := Finset.prod_ne_zero_iff.2 fun k hk ↦
+      (hℓ.pos ((G.mem_neighborFinset i k).1 (Finset.mem_of_mem_erase hk)).symm a).ne'
+    have hKt : K ≠ ⊤ := ENNReal.prod_ne_top fun k hk ↦
+      hℓ.ne_top ((G.mem_neighborFinset i k).1 (Finset.mem_of_mem_erase hk)).symm a
+    have hprod : ∀ x, ∏ k ∈ (G.neighborFinset i).erase j, ∑' y,
+        normalizeBoundaryLaw ℓ a k i y * Q k i y x
+        = (∏ k ∈ (G.neighborFinset i).erase j, ∑' y, ℓ k i y * Q k i y x) / K := by
+      intro x
+      simp_rw [hterm x]
+      exact ENNReal.prod_div_distrib_of_ne_top fun k hk ↦
+        hℓ.ne_top ((G.mem_neighborFinset i k).1 (Finset.mem_of_mem_erase hk)).symm a
+    have hija0 : ℓ i j a ≠ 0 := (hℓ.pos hij a).ne'
+    have hijat : ℓ i j a ≠ ⊤ := hℓ.ne_top hij a
+    refine ⟨c * K / ℓ i j a, ENNReal.div_ne_zero.2 ⟨mul_ne_zero hc0 hK0, hijat⟩,
+      ENNReal.div_ne_top (ENNReal.mul_ne_top hct hKt) hija0, fun x ↦ ?_⟩
+    rw [hprod x, normalizeBoundaryLaw, div_eq_mul_inv (c * K), div_eq_mul_inv]
+    calc ℓ i j x * (ℓ i j a)⁻¹
+        = c * (∏ k ∈ (G.neighborFinset i).erase j, ∑' y, ℓ k i y * Q k i y x)
+            * (ℓ i j a)⁻¹ := by rw [hc x]
+      _ = c * (∏ k ∈ (G.neighborFinset i).erase j, ∑' y, ℓ k i y * Q k i y x) * (ℓ i j a)⁻¹
+          * (K * K⁻¹) := by rw [ENNReal.mul_inv_cancel hK0 hKt, mul_one]
+      _ = c * K * (ℓ i j a)⁻¹
+          * ((∏ k ∈ (G.neighborFinset i).erase j, ∑' y, ℓ k i y * Q k i y x) * K⁻¹) := by ring
+  mass_ne_top i := by
+    have hterm : ∀ (x : E) (k : S), ∑' y, normalizeBoundaryLaw ℓ a k i y * Q k i y x
+        = (∑' y, ℓ k i y * Q k i y x) / ℓ k i a := fun x k ↦ by
+      simp_rw [normalizeBoundaryLaw, div_eq_mul_inv, mul_right_comm]
+      exact ENNReal.tsum_mul_right
+    set Kfull := ∏ k ∈ G.neighborFinset i, ℓ k i a with hKfulldef
+    have hKfull0 : Kfull ≠ 0 := Finset.prod_ne_zero_iff.2 fun k hk ↦
+      (hℓ.pos ((G.mem_neighborFinset i k).1 hk).symm a).ne'
+    have heq : ∀ x, ∏ k ∈ G.neighborFinset i, ∑' y, normalizeBoundaryLaw ℓ a k i y * Q k i y x
+        = (∏ k ∈ G.neighborFinset i, ∑' y, ℓ k i y * Q k i y x) / Kfull := fun x ↦ by
+      simp_rw [hterm x]
+      exact ENNReal.prod_div_distrib_of_ne_top fun k hk ↦
+        hℓ.ne_top ((G.mem_neighborFinset i k).1 hk).symm a
+    simp_rw [heq, div_eq_mul_inv]
+    rw [ENNReal.tsum_mul_right]
+    exact ENNReal.mul_ne_top (hℓ.mass_ne_top i) (ENNReal.inv_ne_top.2 hKfull0)
+
+omit [Nonempty E] [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
+/-- `normalizeBoundaryLaw` is normalised at `a`: `ℓ_{ij}(a) / ℓ_{ij}(a) = 1`. -/
+theorem normalizeBoundaryLaw_apply_self (hℓ : IsBoundaryLaw G Q ℓ) {i j : S} (hij : G.Adj i j)
+    (a : E) : normalizeBoundaryLaw ℓ a i j a = 1 :=
+  ENNReal.div_self (hℓ.pos hij a).ne' (hℓ.ne_top hij a)
+
+/-- `boundaryLawMeasure` is unchanged by `normalizeBoundaryLaw`: the same computation as
+`IsBoundaryLaw.boundaryLawMeasure_div_const_eq` above, with the single global `κ` there replaced by
+the `Λ`-dependent (but `ζ`-independent) constant `∏_{k ∈ ∂Λ} ℓ_{k, k_Λ}(a)`. -/
+theorem IsBoundaryLaw.boundaryLawMeasure_normalizeAt_eq (hℓ : IsBoundaryLaw G Q ℓ) (a : E)
+    (hℓ' : IsBoundaryLaw G Q (normalizeBoundaryLaw ℓ a)) :
+    boundaryLawMeasure hQ hℓ' hG = boundaryLawMeasure hQ hℓ hG := by
+  have hbw : ∀ (Λ : Finset S) (ζ' : S → E),
+      boundaryLawWeight G Q hQ.symm (normalizeBoundaryLaw ℓ a) Λ ζ'
+        = boundaryLawWeight G Q hQ.symm ℓ Λ ζ'
+          / ∏ k ∈ G.outerBoundary Λ, ℓ k (G.anchor Λ k) a := by
+    intro Λ ζ'
+    have hprod : ∏ k ∈ G.outerBoundary Λ, normalizeBoundaryLaw ℓ a k (G.anchor Λ k) (ζ' k)
+        = (∏ k ∈ G.outerBoundary Λ, ℓ k (G.anchor Λ k) (ζ' k))
+          / ∏ k ∈ G.outerBoundary Λ, ℓ k (G.anchor Λ k) a :=
+      ENNReal.prod_div_distrib_of_ne_top fun k hk ↦ hℓ.ne_top (G.adj_anchor hk) a
+    calc boundaryLawWeight G Q hQ.symm (normalizeBoundaryLaw ℓ a) Λ ζ'
+        = ((∏ k ∈ G.outerBoundary Λ, ℓ k (G.anchor Λ k) (ζ' k))
+              / ∏ k ∈ G.outerBoundary Λ, ℓ k (G.anchor Λ k) a)
+            * transferWeight G Q hQ.symm Λ ζ' := by rw [boundaryLawWeight, hprod]
+      _ = ((∏ k ∈ G.outerBoundary Λ, ℓ k (G.anchor Λ k) (ζ' k)) * transferWeight G Q hQ.symm Λ ζ')
+            / ∏ k ∈ G.outerBoundary Λ, ℓ k (G.anchor Λ k) a := by
+          rw [div_eq_mul_inv, div_eq_mul_inv]; ring
+      _ = boundaryLawWeight G Q hQ.symm ℓ Λ ζ' / ∏ k ∈ G.outerBoundary Λ, ℓ k (G.anchor Λ k) a := by
+          rw [boundaryLawWeight]
+  have hvw : ∀ Λ : Finset S, volumeLaw G Q hQ.symm (normalizeBoundaryLaw ℓ a) Λ Set.univ
+      = volumeLaw G Q hQ.symm ℓ Λ Set.univ / ∏ k ∈ G.outerBoundary Λ, ℓ k (G.anchor Λ k) a := by
+    intro Λ
+    rw [volumeLaw_univ_eq_lintegral, volumeLaw_univ_eq_lintegral, div_eq_mul_inv,
+      ← lintegral_mul_const _ (measurable_boundaryLawWeight G Q hQ.symm ℓ Λ)]
+    refine lintegral_congr fun ζ' ↦ ?_
+    rw [hbw Λ ζ', div_eq_mul_inv]
+  refine hℓ.eq_boundaryLawMeasure_of_forall_cyl hQ hG fun Λ hΛ ζ ↦ ?_
+  rw [hℓ'.boundaryLawMeasure_cyl hQ hG hΛ, hbw Λ ζ, hvw Λ]
+  set V := volumeLaw G Q hQ.symm ℓ Λ Set.univ with hVdef
+  set W := boundaryLawWeight G Q hQ.symm ℓ Λ ζ with hWdef
+  set c := ∏ k ∈ G.outerBoundary Λ, ℓ k (G.anchor Λ k) a with hcdef
+  have hcn0 : c ≠ 0 := Finset.prod_ne_zero_iff.2 fun k hk ↦ (hℓ.pos (G.adj_anchor hk) a).ne'
+  have hcnt : c ≠ ⊤ := ENNReal.prod_ne_top fun k hk ↦ hℓ.ne_top (G.adj_anchor hk) a
+  have hV0 : V ≠ 0 := volumeLaw_univ_ne_zero G Q hQ.symm ℓ hQ.pos hℓ.pos Λ
+  have hVt : V ≠ ⊤ := hℓ.volumeLaw_univ_ne_top hQ.symm hG.isAcyclic hΛ
+  have hVc : (V / c)⁻¹ = V⁻¹ * c := by
+    rw [div_eq_mul_inv, ENNReal.mul_inv (Or.inl hV0) (Or.inl hVt), inv_inv]
+  rw [hVc, div_eq_mul_inv]
+  calc V⁻¹ * c * (W * c⁻¹) = V⁻¹ * W * (c * c⁻¹) := by ring
+    _ = V⁻¹ * W * 1 := by rw [ENNReal.mul_inv_cancel hcn0 hcnt]
+    _ = V⁻¹ * W := by ring
+
+end NormalizeBoundaryLaw
+
+/-! ## Georgii Corollary (12.18): a non-trivial mixture of distinct Markov chains fails to be one
+
+Georgii states this for `S = 𝒞𝒯(d)` and a *completely homogeneous* positive Markov specification
+(a single transfer matrix `Q` on every bond). **Neither hypothesis is used anywhere in the proof
+below** — only `G.LocallyFinite`, `G.IsTree`, and positivity/finiteness of a (possibly
+bond-dependent) transfer family `Q` via `IsTransferFamily` — so it is proved here at this weaker,
+still Georgii-faithful, hypothesis: any locally finite tree and any transfer family. Taking `Q`
+constant and `G` regular recovers Georgii's literal statement (Weakest hypotheses, per the project
+conventions).
+
+Each `μ n` is represented, via **Theorem (12.12)**, by its own boundary law `ℓ n` for `Q`; Georgii's
+own reduction ("we will say a boundary law is normalized at `a` if `ℓ_{ij}(a) = 1`", the remark
+preceding Corollary (12.17)) lets us take it normalised at a common reference state `a`
+(`IsBoundaryLaw.isBoundaryLaw_normalizeAt` / `IsBoundaryLaw.boundaryLawMeasure_normalizeAt_eq`
+above) — this is exactly Georgii's "let ... `{ℓ_{ij}^{(n)}}` be the associated boundary laws for
+`γ` which are normalized at some `a`". Georgii's hypothesis `hcor` is that for every oriented bond
+`ij` there is some *other* neighbour `k` of `i` at which every `ℓ n` agrees with its own value at
+`ji`: `ℓ n k i = ℓ n j i` for all `n`.
+
+Given, for contradiction, that the mixture `μ = ∑ t n • μ n` is itself a Markov chain: it is Gibbs
+for `γ := transferSpecification G hQ` (convexity of `𝒢(γ)`, `sum_smul_mem_G`), so by (12.12)(b) it
+too has a (normalised) boundary law `ℓ0`. Applying (12.13) at `Λ = {i}` to a configuration constant
+at `a` off the two neighbours `j, k` and comparing the mixture's representation with each `μ n`'s
+gives, after the volume/transfer-weight normalising factors cancel, weights `w n ≥ 0` (built from
+`t n` and the volume-law masses) with `∑ w n = 1` and the identity
+`ℓ0 j i x * ℓ0 k i y = ∑ n, w n * ℓ n j i x * ℓ n j i y`. Two specialisations (`y := a`, `x := a`)
+turn this into the *linear* identity `ℓ0 j i z = ℓ0 k i z = ∑ n, w n * ℓ n j i z`, and the diagonal
+specialisation `x = y = z` into the *quadratic* one
+`(∑ n, w n * ℓ n j i z) ^ 2 = ∑ n, w n * (ℓ n j i z) ^ 2`: exactly the equality case of Jensen's
+inequality for the strictly convex `t ↦ t ^ 2` (`StrictConvexOn.map_sum_eq_iff_of_nonneg`, fed
+`strictConvexOn_pow`), after transporting out of `ℝ≥0∞` via `ENNReal.toReal` (sound since every
+value involved is finite: `IsBoundaryLaw.ne_top` for the `ℓ`'s, and the `w n`'s are finite since
+`t n ≤ 1` and the volume-law masses are positive and finite). This forces `ℓ n j i z = ℓ m j i z`
+for every `n, m` with `w n, w m ≠ 0` (equivalently `t n, t m ≠ 0`, since `w n`'s other factors are
+always positive and finite) — for *every* `z` and *every* bond `ji`. Given two indices `m ≠ n` with
+`t m, t n ≠ 0` (the "non-trivial mixture" hypothesis), this makes `ℓ m` and `ℓ n` agree on every
+adjacent pair, so `boundaryLawMeasure hQ (hℓ n) hG = boundaryLawMeasure hQ (hℓ m) hG`
+(`IsBoundaryLaw.boundaryLawMeasure_eq_of_forall_adj` above), i.e. `μ n = μ m`, contradicting
+pairwise distinctness. -/
+
+section CorollaryTwelvePointEighteen
+
+variable [Countable S] [Nonempty E] {G : SimpleGraph S} [G.LocallyFinite]
+  {Q : S → S → E → E → ℝ≥0∞} (hQ : IsTransferFamily G Q) (hG : G.IsTree)
+
+/-- **Georgii Corollary (12.18)** (generalised, see the section docstring for why: any locally
+finite tree, any transfer family, no regularity or homogeneity needed). A finite family
+`μ : Fin N → Measure (S → E)` of pairwise distinct measures, each equal to `boundaryLawMeasure` of
+its own boundary law `ℓ n` for `Q`, each normalised at a common reference state `a`, such that every
+oriented bond `ij` has some *other* neighbour `k` of `i` at which `ℓ n k i = ℓ n j i` for every `n`
+— under a non-trivial convex combination (some `t m, t n ≠ 0` with `m ≠ n`), the mixture
+`∑ n, t n • μ n` is *not* a Markov chain. -/
+theorem not_isMarkovChain_sum_smul_of_forall_adj_exists_boundaryLaw_eq
+    {N : ℕ} {t : Fin N → ℝ≥0∞} (ht : ∑ n, t n = 1) {a : E} {μ : Fin N → Measure (S → E)}
+    {ℓ : Fin N → S → S → E → ℝ≥0∞} (hℓ : ∀ n, IsBoundaryLaw G Q (ℓ n))
+    (hℓa : ∀ n, ∀ ⦃i j⦄, G.Adj i j → ℓ n i j a = 1)
+    (hμeq : ∀ n, μ n = boundaryLawMeasure hQ (hℓ n) hG)
+    (hμdistinct : Function.Injective μ)
+    (hcor : ∀ ⦃i j⦄, G.Adj i j → ∃ k ∈ (G.neighborFinset i).erase j, ∀ n, ℓ n k i = ℓ n j i)
+    (htnontrivial : ∃ m n : Fin N, m ≠ n ∧ t m ≠ 0 ∧ t n ≠ 0) :
+    ¬ IsMarkovChain G (∑ n, t n • μ n) := by
+  intro hMarkovMix
+  -- **Convexity of `𝒢(γ)`**: the mixture is Gibbs for `γ := transferSpecification G hQ`.
+  have hμGibbs : ∀ n, (transferSpecification G hQ).IsGibbsMeasure (μ n) := fun n ↦
+    hμeq n ▸ (hℓ n).isGibbsMeasure_transferSpecification_boundaryLawMeasure hQ hG
+  have hμIP : ∀ n, IsProbabilityMeasure (μ n) := fun n ↦
+    hμeq n ▸ isProbabilityMeasure_boundaryLawMeasure hQ (hℓ n) hG
+  have hμmemG : ∀ n, μ n ∈ MeasureTheory.GibbsMeasure.G (transferSpecification G hQ) := fun n ↦
+    (MeasureTheory.GibbsMeasure.G.mem_iff (μ n)).2 ⟨hμIP n, hμGibbs n⟩
+  have hmixmemG : (∑ n, t n • μ n) ∈ MeasureTheory.GibbsMeasure.G (transferSpecification G hQ) :=
+    MeasureTheory.GibbsMeasure.sum_smul_mem_G hμmemG ht
+  obtain ⟨hmixIP, hmixGibbs⟩ :=
+    (MeasureTheory.GibbsMeasure.G.mem_iff (∑ n, t n • μ n)).1 hmixmemG
+  have := hmixIP
+  -- **The mixture's own boundary law**, via (12.12)(b), immediately normalised at `a`.
+  set ℓmix0 := chainBoundaryLaw Q (∑ n, t n • μ n) a with hℓmix0def
+  have hℓmix0 : IsBoundaryLaw G Q ℓmix0 :=
+    hMarkovMix.isBoundaryLaw_chainBoundaryLaw hQ hmixGibbs hG a
+  set ℓ0 := normalizeBoundaryLaw ℓmix0 a with hℓ0def
+  have hℓ0 : IsBoundaryLaw G Q ℓ0 := hℓmix0.isBoundaryLaw_normalizeAt a
+  have hℓ0a : ∀ ⦃p q⦄, G.Adj p q → ℓ0 p q a = 1 := fun p q hpq ↦
+    normalizeBoundaryLaw_apply_self hℓmix0 hpq a
+  have hμ0eq : (∑ n, t n • μ n) = boundaryLawMeasure hQ hℓ0 hG := by
+    rw [hℓmix0.boundaryLawMeasure_normalizeAt_eq hQ hG a hℓ0]
+    exact hMarkovMix.eq_boundaryLawMeasure hQ hmixGibbs hG a
+  -- **The singleton-volume product collapses** at a configuration constant at `a` off two
+  -- neighbours `j, k` of `i`, for any boundary law normalised at `a`.
+  have hprodcollapse : ∀ (ℓ' : S → S → E → ℝ≥0∞), (∀ ⦃p q⦄, G.Adj p q → ℓ' p q a = 1) →
+      ∀ {i j k : S}, j ∈ G.neighborFinset i → k ∈ (G.neighborFinset i).erase j → ∀ x y : E,
+      ∏ m ∈ G.neighborFinset i,
+          ℓ' m i (Function.update (Function.update (fun _ ↦ a) k y) j x m)
+        = ℓ' j i x * ℓ' k i y := by
+    intro ℓ' hℓ'norm i j k hjmem hkmem x y
+    have hjk : j ≠ k := (Finset.ne_of_mem_erase hkmem).symm
+    set ζ : S → E := Function.update (Function.update (fun _ ↦ a) k y) j x with hζdef
+    have hζj : ζ j = x := by rw [hζdef, Function.update_self]
+    have hζk : ζ k = y := by rw [hζdef, Function.update_of_ne hjk.symm, Function.update_self]
+    rw [← Finset.mul_prod_erase _ _ hjmem, hζj, ← Finset.mul_prod_erase _ _ hkmem, hζk]
+    have hrest : ∏ m ∈ ((G.neighborFinset i).erase j).erase k, ℓ' m i (ζ m) = 1 := by
+      refine Finset.prod_eq_one fun m hm ↦ ?_
+      have hmk : m ≠ k := (Finset.mem_erase.1 hm).1
+      have hmj : m ≠ j := (Finset.mem_erase.1 (Finset.mem_of_mem_erase hm)).1
+      have hζm : ζ m = a := by rw [hζdef, Function.update_of_ne hmj, Function.update_of_ne hmk]
+      rw [hζm]
+      exact hℓ'norm ((G.mem_neighborFinset i m).1
+        (Finset.mem_of_mem_erase (Finset.mem_of_mem_erase hm))).symm
+    rw [hrest, mul_one]
+  -- **The core comparison**: for every oriented bond `ij`, every `z`, and every `n, m` with
+  -- positive weight `t`, `ℓ n j i z = ℓ m j i z`.
+  have hbond : ∀ ⦃i j⦄ (_ : G.Adj i j), ∀ n0 m0 : Fin N, t n0 ≠ 0 → t m0 ≠ 0 →
+      ∀ z, ℓ n0 j i z = ℓ m0 j i z := by
+    intro i j hij n0 m0 htn0 htm0 z
+    obtain ⟨k, hkmem, hcorij⟩ := hcor hij
+    have hjmem : j ∈ G.neighborFinset i := (G.mem_neighborFinset i j).2 hij
+    have hkmem' : k ∈ G.neighborFinset i := Finset.mem_of_mem_erase hkmem
+    have hki : G.Adj k i := ((G.mem_neighborFinset i k).1 hkmem').symm
+    set V0 := volumeLaw G Q hQ.symm ℓ0 {i} Set.univ with hV0def
+    set Vn : Fin N → ℝ≥0∞ := fun n ↦ volumeLaw G Q hQ.symm (ℓ n) {i} Set.univ with hVndef
+    have hV00 : V0 ≠ 0 := volumeLaw_univ_ne_zero G Q hQ.symm ℓ0 hQ.pos hℓ0.pos {i}
+    have hV0t : V0 ≠ ⊤ := hℓ0.volumeLaw_singleton_univ_ne_top hQ.symm i
+    have hVn0 : ∀ n, Vn n ≠ 0 := fun n ↦
+      volumeLaw_univ_ne_zero G Q hQ.symm (ℓ n) hQ.pos (hℓ n).pos {i}
+    have hVnt : ∀ n, Vn n ≠ ⊤ := fun n ↦ (hℓ n).volumeLaw_singleton_univ_ne_top hQ.symm i
+    have hbw0 : ∀ x y, boundaryLawWeight G Q hQ.symm ℓ0 {i}
+        (Function.update (Function.update (fun _ ↦ a) k y) j x)
+        = (ℓ0 j i x * ℓ0 k i y) * transferWeight G Q hQ.symm {i}
+            (Function.update (Function.update (fun _ ↦ a) k y) j x) := fun x y ↦ by
+      rw [boundaryLawWeight_singleton_eq hQ.symm ℓ0 i, hprodcollapse ℓ0 hℓ0a hjmem hkmem x y]
+    have hbwn : ∀ n x y, boundaryLawWeight G Q hQ.symm (ℓ n) {i}
+        (Function.update (Function.update (fun _ ↦ a) k y) j x)
+        = (ℓ n j i x * ℓ n j i y) * transferWeight G Q hQ.symm {i}
+            (Function.update (Function.update (fun _ ↦ a) k y) j x) := fun n x y ↦ by
+      rw [boundaryLawWeight_singleton_eq hQ.symm (ℓ n) i,
+        hprodcollapse (ℓ n) (hℓa n) hjmem hkmem x y, congrFun (hcorij n) y]
+    have hident : ∀ x y : E, V0⁻¹ * ((ℓ0 j i x * ℓ0 k i y) * transferWeight G Q hQ.symm {i}
+          (Function.update (Function.update (fun _ ↦ a) k y) j x))
+        = ∑ n, t n * ((Vn n)⁻¹ * ((ℓ n j i x * ℓ n j i y) * transferWeight G Q hQ.symm {i}
+            (Function.update (Function.update (fun _ ↦ a) k y) j x))) := by
+      intro x y
+      set ζ := Function.update (Function.update (fun _ ↦ a) k y) j x with hζdef
+      have hbw0ζ : boundaryLawWeight G Q hQ.symm ℓ0 {i} ζ
+          = (ℓ0 j i x * ℓ0 k i y) * transferWeight G Q hQ.symm {i} ζ := by
+        rw [hζdef]; exact hbw0 x y
+      have hbwnζ : ∀ n, boundaryLawWeight G Q hQ.symm (ℓ n) {i} ζ
+          = (ℓ n j i x * ℓ n j i y) * transferWeight G Q hQ.symm {i} ζ := fun n ↦ by
+        rw [hζdef]; exact hbwn n x y
+      have hmix : (∑ n, t n • μ n) (cyl (({i} : Finset S) ∪ G.outerBoundary {i}) ζ)
+          = ∑ n, t n * μ n (cyl (({i} : Finset S) ∪ G.outerBoundary {i}) ζ) := by
+        rw [Measure.finsetSum_apply]
+        exact Finset.sum_congr rfl fun n _ ↦ by rw [Measure.smul_apply, smul_eq_mul]
+      rw [hμ0eq, hℓ0.boundaryLawMeasure_cyl hQ hG (connected_induce_singleton i)] at hmix
+      have hn : ∀ n, μ n (cyl (({i} : Finset S) ∪ G.outerBoundary {i}) ζ)
+          = (Vn n)⁻¹ * boundaryLawWeight G Q hQ.symm (ℓ n) {i} ζ := fun n ↦ by
+        rw [hμeq n, (hℓ n).boundaryLawMeasure_cyl hQ hG (connected_induce_singleton i)]
+      simp_rw [hn] at hmix
+      rw [← hbw0ζ]
+      simp_rw [← hbwnζ]
+      exact hmix
+    have hcancel : ∀ x y, V0⁻¹ * (ℓ0 j i x * ℓ0 k i y)
+        = ∑ n, t n * ((Vn n)⁻¹ * (ℓ n j i x * ℓ n j i y)) := by
+      intro x y
+      set T := transferWeight G Q hQ.symm {i}
+        (Function.update (Function.update (fun _ ↦ a) k y) j x) with hTdef
+      have hT0 : T ≠ 0 := (hQ.transferWeight_pos ({i} : Finset S) _).ne'
+      have hTt : T ≠ ⊤ := hQ.transferWeight_ne_top ({i} : Finset S) _
+      refine (ENNReal.mul_left_inj hT0 hTt).1 ?_
+      calc V0⁻¹ * (ℓ0 j i x * ℓ0 k i y) * T
+          = V0⁻¹ * ((ℓ0 j i x * ℓ0 k i y) * T) := by ring
+        _ = ∑ n, t n * ((Vn n)⁻¹ * ((ℓ n j i x * ℓ n j i y) * T)) := hident x y
+        _ = (∑ n, t n * ((Vn n)⁻¹ * (ℓ n j i x * ℓ n j i y))) * T := by
+            rw [Finset.sum_mul]; exact Finset.sum_congr rfl fun n _ ↦ by ring
+    set w : Fin N → ℝ≥0∞ := fun n ↦ t n * (Vn n)⁻¹ * V0 with hwdef
+    have hMAIN : ∀ x y, ℓ0 j i x * ℓ0 k i y = ∑ n, w n * (ℓ n j i x * ℓ n j i y) := by
+      intro x y
+      have hV0eq : V0 * (V0⁻¹ * (ℓ0 j i x * ℓ0 k i y)) = ℓ0 j i x * ℓ0 k i y := by
+        rw [← mul_assoc, ENNReal.mul_inv_cancel hV00 hV0t, one_mul]
+      rw [← hV0eq, hcancel x y, Finset.mul_sum]
+      exact Finset.sum_congr rfl fun n _ ↦ by rw [hwdef]; ring
+    have hℓ0_ji_a : ℓ0 j i a = 1 := hℓ0a hij.symm
+    have hℓ0_ki_a : ℓ0 k i a = 1 := hℓ0a hki
+    have hℓ_ji_a : ∀ n, ℓ n j i a = 1 := fun n ↦ hℓa n hij.symm
+    have hw_sum1 : ∑ n, w n = 1 := by
+      have h1 := hMAIN a a
+      rw [hℓ0_ji_a, hℓ0_ki_a, mul_one] at h1
+      simp_rw [hℓ_ji_a, mul_one] at h1
+      exact h1.symm
+    have hw_lin : ∀ z, ℓ0 j i z = ∑ n, w n * ℓ n j i z := by
+      intro z
+      have h2 := hMAIN z a
+      rw [hℓ0_ki_a, mul_one] at h2
+      simp_rw [hℓ_ji_a, mul_one] at h2
+      exact h2
+    have hw_link : ∀ z, ℓ0 k i z = ∑ n, w n * ℓ n j i z := by
+      intro z
+      have h3 := hMAIN a z
+      rw [hℓ0_ji_a, one_mul] at h3
+      simp_rw [hℓ_ji_a, one_mul] at h3
+      exact h3
+    have hMAINzz : ∀ z, ℓ0 j i z * ℓ0 k i z = ∑ n, w n * ℓ n j i z ^ 2 := fun z ↦ by
+      rw [hMAIN z z]; exact Finset.sum_congr rfl fun n _ ↦ by rw [sq]
+    have hjieqki : ∀ z, ℓ0 j i z = ℓ0 k i z := fun z ↦ (hw_lin z).trans (hw_link z).symm
+    have hFinalsq : ∀ z, (∑ n, w n * ℓ n j i z) ^ 2 = ∑ n, w n * ℓ n j i z ^ 2 := by
+      intro z
+      rw [sq, ← hw_lin z, congrArg (ℓ0 j i z * ·) (hjieqki z)]
+      exact hMAINzz z
+    have htnt : ∀ n, t n ≠ ⊤ := fun n ↦ by
+      have hle : t n ≤ 1 := ht ▸ Finset.single_le_sum (fun _ _ ↦ zero_le) (Finset.mem_univ n)
+      exact ne_top_of_le_ne_top ENNReal.one_ne_top hle
+    have hwnt : ∀ n, w n ≠ ⊤ := fun n ↦
+      ENNReal.mul_ne_top (ENNReal.mul_ne_top (htnt n) (ENNReal.inv_ne_top.2 (hVn0 n))) hV0t
+    have hwn0iff : ∀ n, w n ≠ 0 ↔ t n ≠ 0 := fun n ↦ by
+      simp only [hwdef, ne_eq, mul_eq_zero, ENNReal.inv_eq_zero, not_or]
+      exact ⟨fun h ↦ h.1.1, fun h ↦ ⟨⟨h, hVnt n⟩, hV00⟩⟩
+    -- **Transport to `ℝ` and the Jensen equality case.**
+    have hLt : (∑ n, w n * ℓ n j i z) ≠ ⊤ := by
+      rw [← hw_lin z]; exact hℓ0.ne_top hij.symm z
+    have hsumR : (∑ n, w n * ℓ n j i z).toReal
+        = ∑ n, (w n).toReal * (ℓ n j i z).toReal := by
+      rw [ENNReal.toReal_sum (fun n _ ↦ ENNReal.mul_ne_top (hwnt n) ((hℓ n).ne_top hij.symm z))]
+      exact Finset.sum_congr rfl fun n _ ↦ ENNReal.toReal_mul
+    have hRsumR : (∑ n, w n * ℓ n j i z ^ 2).toReal
+        = ∑ n, (w n).toReal * (ℓ n j i z).toReal ^ 2 := by
+      rw [ENNReal.toReal_sum (fun n _ ↦ ENNReal.mul_ne_top (hwnt n)
+        (ENNReal.pow_ne_top ((hℓ n).ne_top hij.symm z)))]
+      exact Finset.sum_congr rfl fun n _ ↦ by rw [ENNReal.toReal_mul, ENNReal.toReal_pow]
+    have hReal : (∑ n, (w n).toReal * (ℓ n j i z).toReal) ^ 2
+        = ∑ n, (w n).toReal * (ℓ n j i z).toReal ^ 2 := by
+      rw [← hsumR, ← hRsumR, ← ENNReal.toReal_pow, hFinalsq z]
+    have hw_sum1R : ∑ n, (w n).toReal = 1 := by
+      rw [← ENNReal.toReal_sum (fun n _ ↦ hwnt n), hw_sum1, ENNReal.toReal_one]
+    have hJ := (strictConvexOn_pow (n := 2) le_rfl).map_sum_eq_iff_of_nonneg
+        (t := (Finset.univ : Finset (Fin N))) (w := fun n ↦ (w n).toReal)
+        (p := fun n ↦ (ℓ n j i z).toReal) (fun n _ ↦ ENNReal.toReal_nonneg) hw_sum1R
+        (fun n _ ↦ ENNReal.toReal_nonneg)
+    simp only [smul_eq_mul] at hJ
+    have hwR_ne_zero_iff : ∀ n, (w n).toReal ≠ 0 ↔ w n ≠ 0 := fun n ↦
+      not_congr (by rw [ENNReal.toReal_eq_zero_iff]; simp [hwnt n])
+    have hpnm := hJ.1 hReal (Finset.mem_univ n0) ((hwR_ne_zero_iff n0).2 ((hwn0iff n0).2 htn0))
+      (Finset.mem_univ m0) ((hwR_ne_zero_iff m0).2 ((hwn0iff m0).2 htm0))
+    exact (ENNReal.toReal_eq_toReal_iff' ((hℓ n0).ne_top hij.symm z)
+      ((hℓ m0).ne_top hij.symm z)).1 hpnm
+  -- **Conclusion**: two positively-weighted indices agree everywhere, contradicting distinctness.
+  obtain ⟨m0, n0, hmn, htm0, htn0⟩ := htnontrivial
+  have hkey : ∀ ⦃p q⦄, G.Adj p q → ∀ z, ℓ n0 p q z = ℓ m0 p q z := fun p q hpq z ↦
+    hbond hpq.symm n0 m0 htn0 htm0 z
+  have hboundaryEq : boundaryLawMeasure hQ (hℓ n0) hG = boundaryLawMeasure hQ (hℓ m0) hG :=
+    (hℓ n0).boundaryLawMeasure_eq_of_forall_adj hQ hG (hℓ m0) hkey
+  have hμeqmn : μ n0 = μ m0 := by rw [hμeq n0, hμeq m0, hboundaryEq]
+  exact hmn (hμdistinct hμeqmn).symm
+
+end CorollaryTwelvePointEighteen
 
 end MeasureTheory.GibbsMeasure.Tree

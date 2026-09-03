@@ -50,7 +50,7 @@ status:
     entropy (15.12)-(15.13), (15.14)(a)-(b)), Section 15.3 (specific energy, the pressure (15.30)(a)
     and its Lipschitz continuity and convexity (16.1)(a)), Section 15.4 (Theorem (15.37) and the
     variational principle (15.39), for standard Borel E); Section 11.1 up to Theorem (11.9)(b), (11.11)-(11.12), the sufficiency half of (11.13), (11.16),
-    and the extreme case of (11.15), (11.6)-(11.7); Section 12.1 ((12.1)-(12.17) except (12.3)(3),(5),(6), (12.18)); Section 10.1 (the Markov
+    and the extreme case of (11.15), (11.6)-(11.7); Section 12.1 ((12.1)-(12.18) except (12.3)(3),(5),(6)); Section 10.1 (the Markov
     properties (10.2)-(10.11)), Section 10.2 ((10.12)-(10.26) except Examples (10.24)), Section 10.3 ((10.30)-(10.37)); Section 9.1 (symmetry
     inheritance (9.1), localized symmetries (9.3), one-dimensional pair interactions (9.5),
     (9.11), (9.16)); Section 9.2 (Mermin-Wagner (9.20) with Lemmas (9.28), (9.33)); Section 13.1 (13.1)-(13.3),
@@ -1049,7 +1049,8 @@ alignment:
         full correspondence (12.17) with completely homogeneous chains (Model/TreeBoundaryLawChains.lean).
         Theorem (12.6): extreme Gibbs measures of a Markov specification on a countable locally
         finite tree are Markov chains, by Levy's downward theorem along the past of each edge and
-        tail triviality (7.7)(a). Not formalized: (12.3)(3),(5),(6), (12.18). The counting-kernel and cylinder lemmas live once in
+        tail triviality (7.7)(a); Corollary (12.18) for any locally finite tree and transfer family.
+        Not formalized: (12.3)(3),(5),(6). The counting-kernel and cylinder lemmas live once in
         Specification/CountingKernel.lean for any site set; Chapter 11's gamma^Q is the Hasse-graph
         instance of the tree specification (transferSpecification_eq_transferSpecification_hasse_int),
         with (11.1) giving the tree admissibility.
