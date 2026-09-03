@@ -6,6 +6,9 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Model.TreeBoundaryLaw
+public import GibbsMeasure.Specification.Extremal
+public import GibbsMeasure.Mathlib.Probability.TailTriviality
+public import GibbsMeasure.Prereqs.MeasureExt
 
 /-!
 # Georgii §12.1: Markov chains and boundary laws on trees, continued
@@ -13,12 +16,28 @@ public import GibbsMeasure.Model.TreeBoundaryLaw
 Continues `GibbsMeasure.Model.TreeBoundaryLaw` (which has Definitions (12.1), (12.2), (12.8)–
 (12.10), Theorem (12.12)(a), (12.12)(b)'s existence clause, and Corollary (12.17)'s "construction"
 direction) with the remaining numbered items of §12.1: Comments (12.3)(2), (4), equation (12.5),
-the uniqueness-up-to-a-factor clause of Theorem (12.12)(b), and the full Markov-chain
-correspondence of Corollary (12.17) (both directions, and its uniqueness). Comments (12.3)(3),
-(5), (6), Theorem (12.6), and Corollary (12.18) are **not formalised**; see below for exactly why
-in each case.
+the uniqueness-up-to-a-factor clause of Theorem (12.12)(b), the full Markov-chain correspondence of
+Corollary (12.17) (both directions, and its uniqueness), and **Theorem (12.6)** itself — every
+extreme Gibbs measure of a Markov specification on a locally finite tree is a Markov chain. A
+previous pass of this file claimed (12.6) was blocked on "the backward martingale convergence
+theorem"; that tool (Lévy's downward theorem, `Integrable.tendsto_ae_condExp_of_antitone` in
+`GibbsMeasure/Mathlib/Probability/Martingale/Convergence.lean`) was already in the library, and
+Georgii's own proof of (12.6) needs nothing more exotic — see the `## Georgii Theorem (12.6)`
+section below for the full account, including exactly which hypotheses are used. Comments
+(12.3)(3), (5), (6), and Corollary (12.18) are **not formalised**; see below for exactly why in
+each case.
 
 ## What is proved here
+
+* Comment (12.3)(2) (equation (12.4)), Comment (12.3)(4) (equation (12.5)), the uniqueness clause
+  of Theorem (12.12)(b), and the two-directional Corollary (12.17), as in the previous pass of this
+  file (sections below, unchanged).
+* **Theorem (12.6)**: `exists_isMarkovChain_of_mem_extremePoints`, in the section
+  `## Georgii Theorem (12.6)` — see that section's own module-doc-style header for the exact
+  statements of every lemma along the way, the hypotheses used, and where the general lemmas
+  (`condExp_eq_condExp_of_le_of_condExp_eq`, `exists_ae_eq_single_of_forall_measure_eq_zero_or_one`,
+  `IsMarkovSpecification.dependsOn_apply(_cyl)`,
+  `IsGibbsMeasure.condExp_indicator_ae_eq_toReal_of_isMarkovSpecification`) belong once upstreamed.
 
 ## What is not formalised, beyond (12.6)
 
@@ -65,8 +84,8 @@ in each case.
 
 @[expose] public section
 
-open MeasureTheory ProbabilityTheory Set
-open scoped ENNReal
+open MeasureTheory ProbabilityTheory Set Filter
+open scoped ENNReal Topology
 
 noncomputable section
 
@@ -683,5 +702,436 @@ theorem isCompletelyHomogeneousMarkovChain_iff_exists_isBoundaryLaw_const_solves
   exact hℓ0.isCompletelyHomogeneousMarkovChain_boundaryLawMeasure hQ hG
 
 end CTChainsConverse
+
+/-! ## Georgii Theorem (12.6): extreme Gibbs measures of a Markov specification are Markov chains
+
+Georgii's own proof of (12.6) is *not* the (10.21) machinery of `Specification/MarkovIntChains.lean`
+transplanted to a tree (that theorem produces explicit transition densities from Georgii's stronger
+hypothesis (10.19), via `isssd`-resampling and a Fubini argument needed only because `ℤ`'s proof
+does not get to assume `E` countable at that step). Theorem (12.6) itself needs nothing beyond:
+tail-triviality of extreme Gibbs measures (`tailTrivial_of_mem_extremePoints_G`, already in the
+library, no `Countable S` needed for *this* direction), the backward martingale convergence theorem
+(`Integrable.tendsto_ae_condExp_of_antitone`, Lévy's downward theorem, already in
+`GibbsMeasure/Mathlib/Probability/Martingale/Convergence.lean`), and the Markov property of `γ` on
+connected volumes (`IsMarkovSpecification`, Definition (12.1)). Because Chapter 12 already assumes
+`E` countable, the "freezing" step of Georgii's proof needs no resampling and no Fubini argument at
+all: fixing the single coordinate `σ_i` collapses a tail-trivial-conditioned function to a function
+of `σ_i` alone by nothing more than a countable intersection of a.e. statements
+(`exists_ae_eq_single_of_forall_measure_eq_zero_or_one` below), because every function out of a
+countable, measurably-singleton space is automatically measurable.
+
+### What is proved
+
+* `IsMarkovSpecification.dependsOn_apply_cyl`, `IsMarkovSpecification.dependsOn_apply`: Definition
+  (12.1)'s literal hypothesis (`𝓕_{∂Λ}`-measurability of `γ_Λ(σ_Λ = ζ | ·)`) extends from cylinder
+  atoms `cyl Λ ζ` to *every* `A ∈ 𝓕_Λ`, via `measure_cyl_eq_lintegral_lambdaCount` (disintegrating a
+  coarser cylinder into the finer ones) for the atom case and `ext_of_generate_finite_of_isProbability
+  Measure` (agreeing on the generating π-system `cylindersIn (Λ : Set S)`) for the general case.
+* `IsGibbsMeasure.condExp_indicator_ae_eq_toReal_of_isMarkovSpecification`: the basic "Markov ⇒
+  conditioning on any `Δ` between `∂Λ` and `Λᶜ` is the same as conditioning on all of `Λᶜ`" fact,
+  by the tower property (`condExp_condExp_of_le`) plus the `𝓕_{∂Λ}`-measurability just established.
+  This is the general fact used implicitly throughout Georgii's Chapter 12 whenever he writes
+  `μ(A | 𝓕_Δ) = γ_Λ(A | ·)` for `Δ ⊇ ∂Λ`.
+* `exists_ae_eq_single_of_forall_measure_eq_zero_or_one`: the "freezing" lemma described above.
+* `condExp_eq_condExp_of_le_of_condExp_eq`: the elementary "sandwich" fact (two applications of the
+  tower property) that closes Georgii's proof: if `μ[f | m₁] =ᵐ μ[f | m₃]` for `m₁ ≤ m₂ ≤ m₃`, then
+  already `μ[f | m₁] =ᵐ μ[f | m₂]`.
+* `treeExhaustion`: Georgii's `Λ(n)`, built as the connected hull (`SimpleGraph.hull`) of
+  `exhaustionVolumes n ∩ G.past root cut`, rooted at `root`; it exhausts `G.past root cut`
+  (`treeExhaustion_cofinal`) and, being connected and containing `root`, has outer boundary confined
+  to `{cut} ∪ (G.past root cut \ treeExhaustion n)` by `IsAcyclic.mem_past_of_mem_union_outerBoundary`
+  (`outerBoundary_treeExhaustion_subset`) — this replaces Georgii's literal metric ball `Δ(n)`, which
+  needs no counterpart here since only these two properties of `Λ(n)` are ever used.
+* `exists_isMarkovChain_of_mem_extremePoints`: **Theorem (12.6)** itself.
+
+### Hypotheses, exactly
+
+`Countable S` is used only to build `treeExhaustion` (via the global exhaustion
+`GibbsMeasure.exhaustionVolumes`, which needs it); it is automatic for a locally finite connected
+graph (a routine breadth-first-search argument) but is taken as a standing hypothesis here rather
+than derived, to keep this addition to its stated scope. `Nonempty E` is used for
+`cylinderEvents_eq_generateFrom_cylindersIn`; Georgii's own standing hypothesis in Chapter 12,
+`Countable E` with the discrete σ-algebra, is otherwise all that is needed — no `StandardBorelSpace
+E` (Theorem (12.6) is not an existence statement) and no extra countability of `E` beyond what
+Chapter 12 already assumes throughout. `G.LocallyFinite` and `G.IsTree` are Georgii's own standing
+hypotheses (the local-finiteness/tree structure of Definition preceding (12.1)); the general
+Markov-specification lemmas above need only `G.LocallyFinite`.
+-/
+
+section GeneralLemmas
+
+/-- **The "sandwich" property of conditional expectation.** If the conditional expectations of an
+integrable `f` with respect to two nested sub-σ-algebras `m₁ ≤ m₂ ≤ m₃ ≤ m0` agree `μ`-a.e. with
+the conditional expectation with respect to the *largest* one `m₃`, then `m₁` and `m₂` already
+agree with each other. Two applications of the tower property (`condExp_condExp_of_le`). Intended
+home: `Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic`, next to
+`condExp_condExp_of_le` itself. -/
+theorem _root_.MeasureTheory.condExp_eq_condExp_of_le_of_condExp_eq
+    {Ω : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω} [IsFiniteMeasure μ]
+    {m₁ m₂ m₃ : MeasurableSpace Ω}
+    (h12 : m₁ ≤ m₂) (h23 : m₂ ≤ m₃) (h3 : m₃ ≤ m0) {f : Ω → ℝ}
+    (heq : μ[f | m₁] =ᵐ[μ] μ[f | m₃]) : μ[f | m₁] =ᵐ[μ] μ[f | m₂] := by
+  have hm2 : m₂ ≤ m0 := h23.trans h3
+  calc μ[f | m₁] = μ[μ[f | m₁] | m₂] :=
+        (condExp_of_stronglyMeasurable hm2 (stronglyMeasurable_condExp.mono h12)
+          integrable_condExp).symm
+    _ =ᵐ[μ] μ[μ[f | m₃] | m₂] := condExp_congr_ae heq
+    _ =ᵐ[μ] μ[f | m₂] := condExp_condExp_of_le h23 h3
+
+/-- **The "freezing" argument behind Georgii's Theorem (12.6).** If `μ` is trivial on
+`⨅ n, cylinderEvents (T n)` for a family `T : ℕ → Set S` of coordinate sets avoiding a fixed site
+`i` (`i ∉ T n` for every `n`), then every function measurable for `⨅ n, cylinderEvents ({i} ∪ T
+n)` is `μ`-a.e. a function of the single coordinate `σ i`. Unlike the analogous two-coordinate
+statement `exists_ae_eq_pair_of_forall_measure_eq_zero_or_one` in
+`GibbsMeasure/Specification/MarkovIntChains.lean` (needed there because Georgii's hypothesis
+(10.19) genuinely involves both endpoints `σ_{j-1}, σ_j` of a step of `ℤ`), no resampling and no
+Fubini argument is needed here: fixing the single coordinate directly produces, for every `x`, an
+a.e.-constant function (tail triviality), and the countably many resulting null sets (one per `x
+∈ E`, `E` countable) are combined by `Filter.ae_all_iff`. Intended home:
+`Mathlib.MeasureTheory.MeasurableSpace.CountablyGenerated`, next to
+`measurable_cylinderEvents_iff_dependsOn`. -/
+theorem _root_.MeasureTheory.exists_ae_eq_single_of_forall_measure_eq_zero_or_one
+    {S E : Type*} [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E]
+    {μ : Measure (S → E)} [IsProbabilityMeasure μ] {i : S} {T : ℕ → Set S} (hi : ∀ n, i ∉ T n)
+    (htriv : ∀ A, MeasurableSet[⨅ n, cylinderEvents (X := fun _ : S ↦ E) (T n)] A →
+      μ A = 0 ∨ μ A = 1)
+    {f : (S → E) → ℝ}
+    (hf : Measurable[⨅ n, cylinderEvents (X := fun _ : S ↦ E) ({i} ∪ T n)] f) :
+    ∃ q : E → ℝ, Measurable q ∧ f =ᵐ[μ] fun σ ↦ q (σ i) := by
+  classical
+  have hf' : Measurable f := hf.mono ((iInf_le _ (0 : ℕ)).trans cylinderEvents_le_pi) le_rfl
+  set q : E → ℝ := fun x ↦ ∫ ω, f (Function.update ω i x) ∂μ with hq_def
+  refine ⟨q, measurable_of_countable q, ?_⟩
+  have hconst : ∀ x : E, ∀ᵐ ω ∂μ, f (Function.update ω i x) = q x := by
+    intro x
+    have hshift : Measurable fun ω : S → E ↦ f (Function.update ω i x) :=
+      hf'.comp measurable_update_left
+    have hmeasT : Measurable[⨅ n, cylinderEvents (X := fun _ : S ↦ E) (T n)]
+        fun ω ↦ f (Function.update ω i x) := by
+      rw [measurable_iInf_iff_forall]
+      intro n
+      have hdep : DependsOn f ({i} ∪ T n) :=
+        (hf.mono (iInf_le _ n) le_rfl).dependsOn_of_cylinderEvents
+      refine hshift.cylinderEvents_of_dependsOn fun ω ω' hωω' ↦ hdep fun k hk ↦ ?_
+      rcases hk with hk | hk
+      · rw [Set.mem_singleton_iff] at hk
+        subst hk
+        simp
+      · have hki : k ≠ i := fun h ↦ (h ▸ hi n) hk
+        simp only [Function.update_of_ne hki]
+        exact hωω' k hk
+    obtain ⟨c, hc⟩ := exists_ae_eq_const_of_forall_measure_eq_zero_or_one
+      ((iInf_le _ (0 : ℕ)).trans cylinderEvents_le_pi) htriv hmeasT
+    have hqc : q x = c := by
+      simp only [hq_def]
+      rw [integral_congr_ae hc, integral_const]
+      simp
+    rw [hqc]
+    exact hc
+  filter_upwards [ae_all_iff.2 hconst] with ω hω
+  have h := hω (ω i)
+  rwa [Function.update_eq_self] at h
+
+end GeneralLemmas
+
+/-! ## Markov specifications: `𝓕_{∂Λ}`-measurability extends from cylinder atoms
+
+Definition (12.1) is stated for the cylinder atoms `cyl Λ ζ` only; the general fact used
+throughout §12.1 (whenever Georgii writes `μ(A | 𝓕_Δ) = γ_Λ(A | ·)`, `Δ ⊇ ∂Λ`) needs it for
+*every* `A ∈ 𝓕_Λ`. Both lemmas need only `G.LocallyFinite`, not `G.IsTree`. -/
+
+section MarkovSpecificationGeneral
+
+variable {G : SimpleGraph S} [G.LocallyFinite] {γ : Specification S E}
+
+/-- `IsMarkovSpecification` extends from the cylinder atom `cyl Λ ζ` to the cylinder `cyl W ζ` of
+any sub-volume `W ⊆ Λ`: disintegrate the coarser cylinder into the finer ones over the extra
+coordinates `Λ ∖ W` (`measure_cyl_eq_lintegral_lambdaCount`), where the two kernel values already
+agree by hypothesis. -/
+theorem IsMarkovSpecification.dependsOn_apply_cyl (hγM : IsMarkovSpecification G γ)
+    (Λ W : Finset S) (hW : W ⊆ Λ) (ζ : S → E) :
+    DependsOn (fun ω ↦ γ Λ ω (cyl W ζ)) (G.outerBoundary Λ : Set S) := by
+  intro ω ω' hωω'
+  change γ Λ ω (cyl W ζ) = γ Λ ω' (cyl W ζ)
+  have hdisj : Disjoint W (Λ \ W) := Finset.disjoint_sdiff
+  have hUW : W ∪ (Λ \ W) = Λ := Finset.union_sdiff_of_subset hW
+  have h1 := measure_cyl_eq_lintegral_lambdaCount (γ Λ ω) hdisj ζ
+  have h2 := measure_cyl_eq_lintegral_lambdaCount (γ Λ ω') hdisj ζ
+  rw [hUW] at h1 h2
+  rw [h1, h2]
+  exact lintegral_congr fun ξ ↦ (hγM Λ ξ).dependsOn_of_cylinderEvents hωω'
+
+variable [Nonempty E]
+
+/-- `IsMarkovSpecification` extends from cylinder atoms to *every* `A ∈ 𝓕_Λ`: the trimmed kernel
+values `(γ Λ ω).trim`, `(γ Λ ω').trim` at `𝓕_Λ` are probability measures agreeing on the
+generating π-system `cylindersIn (Λ : Set S)` (by `dependsOn_apply_cyl`), hence equal
+(`ext_of_generate_finite_of_isProbabilityMeasure`). -/
+theorem IsMarkovSpecification.dependsOn_apply (hγM : IsMarkovSpecification G γ) (Λ : Finset S)
+    {A : Set (S → E)} (hA : MeasurableSet[cylinderEvents (Λ : Set S)] A) :
+    DependsOn (fun ω ↦ γ Λ ω A) (G.outerBoundary Λ : Set S) := by
+  intro ω ω' hωω'
+  have hle : cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S) ≤ MeasurableSpace.pi :=
+    cylinderEvents_le_pi
+  have hp : IsProbabilityMeasure ((γ Λ ω).trim hle) :=
+    ⟨by rw [trim_measurableSet_eq hle MeasurableSet.univ, measure_univ]⟩
+  have hp' : IsProbabilityMeasure ((γ Λ ω').trim hle) :=
+    ⟨by rw [trim_measurableSet_eq hle MeasurableSet.univ, measure_univ]⟩
+  have heq : (γ Λ ω).trim hle = (γ Λ ω').trim hle := by
+    have := hp
+    have := hp'
+    refine MeasureTheory.Measure.ext_of_generate_finite_of_isProbabilityMeasure
+      (cylindersIn (E := E) (Λ : Set S)) (cylinderEvents_eq_generateFrom_cylindersIn (Λ : Set S))
+      (isPiSystem_cylindersIn (Λ : Set S)) fun B hB ↦ ?_
+    obtain ⟨W, ζ, hW, rfl⟩ := hB
+    rw [trim_measurableSet_eq hle (measurableSet_cylinderEvents_cyl hW ζ),
+      trim_measurableSet_eq hle (measurableSet_cylinderEvents_cyl hW ζ)]
+    exact IsMarkovSpecification.dependsOn_apply_cyl hγM Λ W (Finset.coe_subset.1 hW) ζ hωω'
+  calc γ Λ ω A = (γ Λ ω).trim hle A := (trim_measurableSet_eq hle hA).symm
+    _ = (γ Λ ω').trim hle A := by rw [heq]
+    _ = γ Λ ω' A := trim_measurableSet_eq hle hA
+
+/-- **The basic fact behind Georgii's Chapter 12 whenever he writes `μ(A | 𝓕_Δ) = γ_Λ(A | ·)`,
+`Δ ⊇ ∂Λ`.** For a Markov specification `γ`, a Gibbs measure `μ`, a finite volume `Λ`, a set `Δ`
+with `∂Λ ⊆ Δ ⊆ Λᶜ`, and an event `A` local to `Λ`: conditioning `μ` on `Δ` gives the same result
+as conditioning on all of `Λᶜ`, namely `γ_Λ(A | ·)`. Proof: `γ_Λ(A | ·)` is already `𝓕_Δ`-measurable
+(`IsMarkovSpecification.dependsOn_apply`, since `∂Λ ⊆ Δ`), so conditioning the DLR equation
+`μ(A | 𝓕_{Λᶜ}) = γ_Λ(A | ·)` down from `𝓕_{Λᶜ}` to the smaller `𝓕_Δ` (tower property,
+`condExp_condExp_of_le`) does nothing. -/
+theorem IsGibbsMeasure.condExp_indicator_ae_eq_toReal_of_isMarkovSpecification
+    (hγM : IsMarkovSpecification G γ) {μ : Measure (S → E)} [IsProbabilityMeasure μ]
+    (hμ : γ.IsGibbsMeasure μ) {Λ : Finset S} {Δ : Set S}
+    (hΔ1 : (G.outerBoundary Λ : Set S) ⊆ Δ) (hΔ2 : Δ ⊆ (Λ : Set S)ᶜ) {A : Set (S → E)}
+    (hA : MeasurableSet[cylinderEvents (Λ : Set S)] A) :
+    μ[A.indicator (1 : (S → E) → ℝ) | cylinderEvents Δ] =ᵐ[μ] fun ω ↦ (γ Λ ω A).toReal := by
+  have hA' : MeasurableSet A := cylinderEvents_le_pi _ hA
+  have hΔle : cylinderEvents (X := fun _ : S ↦ E) Δ ≤ cylinderEvents ((Λ : Set S)ᶜ) :=
+    cylinderEvents_mono hΔ2
+  have h1 : μ[A.indicator (1 : (S → E) → ℝ) | cylinderEvents ((Λ : Set S)ᶜ)]
+      =ᵐ[μ] fun ω ↦ (γ Λ ω A).toReal := (hμ Λ).condExp_ae_eq_kernel_apply hA'
+  have hInt : Integrable (fun ω ↦ (γ Λ ω A).toReal) μ := integrable_condExp.congr h1
+  have hMeasBase : Measurable fun ω ↦ (γ Λ ω A).toReal :=
+    ((Kernel.measurable_coe (γ Λ) hA').mono cylinderEvents_le_pi le_rfl).ennreal_toReal
+  have hDepends : DependsOn (fun ω ↦ (γ Λ ω A).toReal) (G.outerBoundary Λ : Set S) :=
+    fun ω ω' hωω' ↦ congrArg ENNReal.toReal (IsMarkovSpecification.dependsOn_apply hγM Λ hA hωω')
+  have hMeasΔ : Measurable[cylinderEvents Δ] fun ω ↦ (γ Λ ω A).toReal :=
+    (hMeasBase.cylinderEvents_of_dependsOn hDepends).mono (cylinderEvents_mono hΔ1) le_rfl
+  calc μ[A.indicator (1 : (S → E) → ℝ) | cylinderEvents Δ]
+      =ᵐ[μ] μ[μ[A.indicator (1 : (S → E) → ℝ) | cylinderEvents ((Λ : Set S)ᶜ)] | cylinderEvents Δ] :=
+        (condExp_condExp_of_le hΔle cylinderEvents_le_pi).symm
+    _ =ᵐ[μ] μ[(fun ω ↦ (γ Λ ω A).toReal) | cylinderEvents Δ] := condExp_congr_ae h1
+    _ = fun ω ↦ (γ Λ ω A).toReal :=
+        condExp_of_stronglyMeasurable cylinderEvents_le_pi hMeasΔ.stronglyMeasurable hInt
+
+end MarkovSpecificationGeneral
+
+/-! ## The tree-specific exhaustion `treeExhaustion` and Theorem (12.6) -/
+
+section TreeExhaustion
+
+variable [Countable S] (G : SimpleGraph S)
+
+/-- The generating finite subsets of `G.past root cut` used to build `treeExhaustion`: the global
+exhaustion `GibbsMeasure.exhaustionVolumes` of `S`, intersected with `G.past root cut`. -/
+noncomputable def pastGenerators (root cut : S) (n : ℕ) : Finset S :=
+  haveI := Classical.decPred (· ∈ G.past root cut)
+  (GibbsMeasure.exhaustionVolumes n).filter (· ∈ G.past root cut)
+
+omit [DecidableEq S] in
+theorem mem_pastGenerators_iff {root cut : S} {n : ℕ} {x : S} :
+    x ∈ pastGenerators G root cut n ↔
+      x ∈ GibbsMeasure.exhaustionVolumes n ∧ x ∈ G.past root cut := by
+  classical
+  simp [pastGenerators]
+
+/-- **Georgii's `Λ(n)`.** The connected hull, rooted at `root`, of `pastGenerators root cut n`:
+a finite connected set containing `root`, staying inside `G.past root cut`
+(`treeExhaustion_subset_past`), monotone in `n` (`monotone_treeExhaustion`), and exhausting
+`G.past root cut` (`treeExhaustion_cofinal`). -/
+noncomputable def treeExhaustion (hGc : G.Connected) (root cut : S) (n : ℕ) : Finset S :=
+  SimpleGraph.hull hGc root (pastGenerators G root cut n)
+
+variable {root cut : S} (hGc : G.Connected)
+
+theorem mem_treeExhaustion_self (n : ℕ) : root ∈ treeExhaustion G hGc root cut n :=
+  SimpleGraph.mem_hull_self hGc root (pastGenerators G root cut n)
+
+theorem treeExhaustion_subset_past (hG : G.IsAcyclic) (hrc : G.Adj root cut) (n : ℕ) :
+    ∀ x ∈ treeExhaustion G hGc root cut n, x ∈ G.past root cut :=
+  hG.hull_subset_past hGc hrc fun _k hk ↦ (mem_pastGenerators_iff G).1 hk |>.2
+
+theorem connected_induce_treeExhaustion (n : ℕ) :
+    (G.induce ((treeExhaustion G hGc root cut n : Finset S) : Set S)).Connected :=
+  SimpleGraph.connected_induce_hull hGc root (pastGenerators G root cut n)
+
+theorem monotone_treeExhaustion : Monotone (treeExhaustion G hGc root cut) := by
+  intro m n hmn
+  refine SimpleGraph.hull_mono hGc root fun x hx ↦ ?_
+  obtain ⟨hx1, hx2⟩ := (mem_pastGenerators_iff G).1 hx
+  exact (mem_pastGenerators_iff G).2 ⟨GibbsMeasure.exhaustionVolumes_monotone hmn hx1, hx2⟩
+
+/-- `treeExhaustion` exhausts `G.past root cut`: every finite `Λ₀` is eventually contained, once
+restricted to `G.past root cut`. -/
+theorem treeExhaustion_cofinal (Λ₀ : Finset S) :
+    ∃ n, ∀ x ∈ Λ₀, x ∈ G.past root cut → x ∈ treeExhaustion G hGc root cut n := by
+  obtain ⟨n, hn⟩ := GibbsMeasure.exhaustionVolumes_cofinal (S := S) Λ₀
+  refine ⟨n, fun x hxΛ₀ hxpast ↦ ?_⟩
+  exact SimpleGraph.subset_hull hGc root (pastGenerators G root cut n)
+    ((mem_pastGenerators_iff G).2 ⟨hn hxΛ₀, hxpast⟩)
+
+end TreeExhaustion
+
+omit [DecidableEq S] in
+/-- On any graph, the two "sides" `G.past j i` and `G.past i j` of an oriented pair are disjoint:
+`x ∈ G.past j i` means `dist x i = dist x j + 1`, while `x ∈ G.past i j` means
+`dist x j = dist x i + 1`; both together force `dist x i = dist x i + 2`. Purely arithmetic, no
+tree structure needed. -/
+theorem notMem_past_of_mem_past_swap {G : SimpleGraph S} {i j x : S} (hx : x ∈ G.past j i) :
+    x ∉ G.past i j := by
+  intro hx'
+  rw [SimpleGraph.mem_past] at hx hx'
+  omega
+
+section OuterBoundaryTreeExhaustion
+
+variable [Countable S] (G : SimpleGraph S) [G.LocallyFinite] (hGc : G.Connected) {root cut : S}
+
+/-- **Georgii's boundary control on `Λ(n)`.** The outer boundary of `treeExhaustion` is confined
+to `{cut} ∪ (G.past root cut \ treeExhaustion n)`: this replaces the metric-ball argument Georgii
+uses for his literal `Δ(n)`, since only this containment (together with `treeExhaustion_cofinal`)
+is used in the proof of Theorem (12.6). -/
+theorem outerBoundary_treeExhaustion_subset (hG : G.IsAcyclic) (hrc : G.Adj root cut) (n : ℕ) :
+    (G.outerBoundary (treeExhaustion G hGc root cut n) : Set S)
+      ⊆ ({cut} : Set S) ∪ (G.past root cut \ (treeExhaustion G hGc root cut n : Set S)) := by
+  intro k hk
+  by_cases hkc : k = cut
+  · exact Or.inl hkc
+  · refine Or.inr ⟨hG.mem_past_of_mem_union_outerBoundary hrc
+      (connected_induce_treeExhaustion G hGc n) (mem_treeExhaustion_self G hGc n)
+      (treeExhaustion_subset_past G hGc hG hrc n) (Finset.mem_union_right _ hk) hkc,
+      G.notMem_of_mem_outerBoundary hk⟩
+
+end OuterBoundaryTreeExhaustion
+
+section TheoremTwelvePointSix
+
+/-- **Georgii, Theorem (12.6).** Every extreme Gibbs measure of a Markov specification `γ` on a
+locally finite tree is a Markov chain (Definition (12.2)). Mirrors Georgii's own proof (not the
+(10.21)/`Specification.MarkovIntChains` machinery, see the module doc above): freeze the parent
+coordinate `σ_i` using tail-triviality along the past of the oriented bond `ij`, identify both
+resulting limits with `lim_n γ_{Λ(n)}(σ_j = y | ·)` via Lévy's downward theorem, and close with the
+elementary "sandwich" property of conditional expectation. -/
+theorem exists_isMarkovChain_of_mem_extremePoints [Countable S] {G : SimpleGraph S}
+    [G.LocallyFinite] (hGT : G.IsTree) {γ : Specification S E} (hγM : IsMarkovSpecification G γ)
+    {μ : Measure (S → E)} (hμ : μ ∈ (GibbsMeasure.G (γ := γ)).extremePoints ℝ≥0∞) :
+    IsMarkovChain G μ := by
+  have hμIP : IsProbabilityMeasure μ := hμ.1.1
+  have hμG : γ.IsGibbsMeasure μ := hμ.1.2
+  refine ⟨hμIP, fun i j hij y ↦ ?_⟩
+  have : Nonempty E := ⟨y⟩
+  set Λn : ℕ → Finset S := treeExhaustion G hGT.connected j i with hΛndef
+  set T : ℕ → Set S := fun n ↦ (G.past j i : Set S) \ (Λn n : Set S) with hTdef
+  set A : Set (S → E) := (fun σ : S → E ↦ σ j) ⁻¹' {y} with hAdef
+  set f : (S → E) → ℝ := A.indicator (1 : (S → E) → ℝ) with hfdef
+  have hA' : MeasurableSet A := measurable_pi_apply j (measurableSet_singleton y)
+  have hAcyl : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) ({j} : Set S)] A :=
+    measurable_cylinderEvent_apply (X := fun _ : S ↦ E) (Set.mem_singleton j)
+      (measurableSet_singleton y)
+  have hjΛn : ∀ n, j ∈ Λn n := fun n ↦ mem_treeExhaustion_self G hGT.connected n
+  have hAΛn : ∀ n, MeasurableSet[cylinderEvents (Λn n : Set S)] A := fun n ↦
+    cylinderEvents_mono (Set.singleton_subset_iff.2 (hjΛn n)) A hAcyl
+  have hΛnPast : ∀ n, ∀ x ∈ Λn n, x ∈ G.past j i :=
+    fun n ↦ treeExhaustion_subset_past G hGT.connected hGT.isAcyclic hij.symm n
+  have hiNotPastji : i ∉ G.past j i := SimpleGraph.notMem_past_self j i
+  have hiNotinΛn : ∀ n, i ∉ Λn n := fun n hin ↦ hiNotPastji (hΛnPast n i hin)
+  have hiNotinT : ∀ n, i ∉ T n := fun n hin ↦ hiNotPastji hin.1
+  have hΛnMono : Monotone Λn := monotone_treeExhaustion G hGT.connected
+  have hTAnti : Antitone T := fun m n hmn ↦
+    Set.sdiff_subset_sdiff_right (Finset.coe_subset.2 (hΛnMono hmn))
+  have houterSubset : ∀ n, (G.outerBoundary (Λn n) : Set S) ⊆ ({i} : Set S) ∪ T n :=
+    fun n ↦ outerBoundary_treeExhaustion_subset G hGT.connected hGT.isAcyclic hij.symm n
+  have hΛnComplSubset : ∀ n, ({i} : Set S) ∪ T n ⊆ (Λn n : Set S)ᶜ := by
+    intro n x hx
+    rcases hx with hx | hx
+    · rw [Set.mem_singleton_iff] at hx
+      exact hx ▸ hiNotinΛn n
+    · exact hx.2
+  have hPastIJSubsetCompl : ∀ n, (G.past i j : Set S) ⊆ (Λn n : Set S)ᶜ := by
+    intro n x hx hx'
+    exact notMem_past_of_mem_past_swap (hΛnPast n x hx') hx
+  have hTle : (⨅ n, cylinderEvents (X := fun _ : S ↦ E) (T n)) ≤ tailSigmaAlgebra S E := by
+    refine le_iInf fun Λ₀ ↦ ?_
+    obtain ⟨n, hn⟩ := treeExhaustion_cofinal G hGT.connected Λ₀
+    refine le_trans (iInf_le _ n) (cylinderEvents_mono ?_)
+    intro x hx
+    simp only [Set.mem_compl_iff, Finset.mem_coe]
+    intro hxΛ₀
+    exact hx.2 (hn x hxΛ₀ hx.1)
+  have htrivT : ∀ B, MeasurableSet[⨅ n, cylinderEvents (X := fun _ : S ↦ E) (T n)] B →
+      μ B = 0 ∨ μ B = 1 := fun B hB ↦ tailTrivial_of_mem_extremePoints_G hμ B (hTle B hB)
+  have hIntf : Integrable f μ := (integrable_const (1 : ℝ)).indicator hA'
+  -- **The freezing step**: `μ[f | cylinderEvents {i}] =ᵐ μ[f | ⨅ n, cylinderEvents ({i} ∪ T n)]`.
+  set g : (S → E) → ℝ :=
+    μ[f | ⨅ n, cylinderEvents (X := fun _ : S ↦ E) (({i} : Set S) ∪ T n)] with hgdef
+  have hgmeas : Measurable[⨅ n, cylinderEvents (X := fun _ : S ↦ E) (({i} : Set S) ∪ T n)] g :=
+    stronglyMeasurable_condExp.measurable
+  obtain ⟨q, hqmeas, hqae⟩ :=
+    exists_ae_eq_single_of_forall_measure_eq_zero_or_one hiNotinT htrivT hgmeas
+  have hqmeasξ : Measurable[cylinderEvents (X := fun _ : S ↦ E) ({i} : Set S)]
+      (fun σ ↦ q (σ i)) :=
+    (hqmeas.comp (measurable_pi_apply i)).cylinderEvents_of_dependsOn
+      fun ω ω' hωω' ↦ congrArg q (hωω' i (Set.mem_singleton i))
+  have hcyl_le_H : cylinderEvents (X := fun _ : S ↦ E) ({i} : Set S)
+      ≤ ⨅ n, cylinderEvents (X := fun _ : S ↦ E) (({i} : Set S) ∪ T n) :=
+    le_iInf fun n ↦ cylinderEvents_mono Set.subset_union_left
+  have hHlepi : (⨅ n, cylinderEvents (X := fun _ : S ↦ E) (({i} : Set S) ∪ T n))
+      ≤ MeasurableSpace.pi := (iInf_le _ (0 : ℕ)).trans cylinderEvents_le_pi
+  have hqintegrable : Integrable (fun σ ↦ q (σ i)) μ := integrable_condExp.congr hqae
+  have hEQ1 : μ[f | cylinderEvents (X := fun _ : S ↦ E) ({i} : Set S)] =ᵐ[μ] g := by
+    calc μ[f | cylinderEvents (X := fun _ : S ↦ E) ({i} : Set S)]
+        =ᵐ[μ] μ[g | cylinderEvents (X := fun _ : S ↦ E) ({i} : Set S)] := by
+          rw [hgdef]; exact (condExp_condExp_of_le hcyl_le_H hHlepi).symm
+      _ =ᵐ[μ] μ[(fun σ ↦ q (σ i)) | cylinderEvents (X := fun _ : S ↦ E) ({i} : Set S)] :=
+          condExp_congr_ae hqae
+      _ = fun σ ↦ q (σ i) := condExp_of_stronglyMeasurable cylinderEvents_le_pi
+          hqmeasξ.stronglyMeasurable hqintegrable
+      _ =ᵐ[μ] g := hqae.symm
+  -- **Comparing the two limits of `n ↦ γ_{Λ(n)}(A | ·)`** via Lévy's downward theorem.
+  have hAntiΛ : Antitone (fun n ↦ cylinderEvents (X := fun _ : S ↦ E) ((Λn n : Set S)ᶜ)) :=
+    fun m n hmn ↦
+      cylinderEvents_mono (Set.compl_subset_compl.2 (Finset.coe_subset.2 (hΛnMono hmn)))
+  have hAntiT : Antitone (fun n ↦ cylinderEvents (X := fun _ : S ↦ E) (({i} : Set S) ∪ T n)) :=
+    fun m n hmn ↦ cylinderEvents_mono (Set.union_subset_union_right _ (hTAnti hmn))
+  have hTendstoΛ := hIntf.tendsto_ae_condExp_of_antitone hAntiΛ (fun _ ↦ cylinderEvents_le_pi)
+  have hTendstoT := hIntf.tendsto_ae_condExp_of_antitone hAntiT (fun _ ↦ cylinderEvents_le_pi)
+  have hEqΛ : ∀ n, μ[f | cylinderEvents (X := fun _ : S ↦ E) ((Λn n : Set S)ᶜ)]
+      =ᵐ[μ] fun ω ↦ (γ (Λn n) ω A).toReal := fun n ↦ (hμG (Λn n)).condExp_ae_eq_kernel_apply hA'
+  have hEqT : ∀ n, μ[f | cylinderEvents (X := fun _ : S ↦ E) (({i} : Set S) ∪ T n)]
+      =ᵐ[μ] fun ω ↦ (γ (Λn n) ω A).toReal := fun n ↦
+    IsGibbsMeasure.condExp_indicator_ae_eq_toReal_of_isMarkovSpecification hγM hμG
+      (houterSubset n) (hΛnComplSubset n) (hAΛn n)
+  have hEQ4 : μ[f | ⨅ n, cylinderEvents (X := fun _ : S ↦ E) (({i} : Set S) ∪ T n)]
+      =ᵐ[μ] μ[f | ⨅ n, cylinderEvents (X := fun _ : S ↦ E) ((Λn n : Set S)ᶜ)] := by
+    filter_upwards [hTendstoΛ, hTendstoT, ae_all_iff.2 hEqΛ, ae_all_iff.2 hEqT]
+      with ω h1 h2 h3 h4
+    have e1 : Tendsto (fun n ↦ (γ (Λn n) ω A).toReal) atTop
+        (𝓝 (μ[f | ⨅ n, cylinderEvents (X := fun _ : S ↦ E) ((Λn n : Set S)ᶜ)] ω)) :=
+      h1.congr fun n ↦ h3 n
+    have e2 : Tendsto (fun n ↦ (γ (Λn n) ω A).toReal) atTop
+        (𝓝 (μ[f | ⨅ n, cylinderEvents (X := fun _ : S ↦ E) (({i} : Set S) ∪ T n)] ω)) :=
+      h2.congr fun n ↦ h4 n
+    exact tendsto_nhds_unique e2 e1
+  have hEQ5 : μ[f | cylinderEvents (X := fun _ : S ↦ E) ({i} : Set S)]
+      =ᵐ[μ] μ[f | ⨅ n, cylinderEvents (X := fun _ : S ↦ E) ((Λn n : Set S)ᶜ)] := hEQ1.trans hEQ4
+  -- **The sandwich step**, closing the proof.
+  have hiInPastij : ({i} : Set S) ⊆ (G.past i j : Set S) :=
+    Set.singleton_subset_iff.2 (SimpleGraph.mem_past_self_of_adj hij)
+  have hpastij_le : cylinderEvents (X := fun _ : S ↦ E) (G.past i j : Set S)
+      ≤ ⨅ n, cylinderEvents (X := fun _ : S ↦ E) ((Λn n : Set S)ᶜ) :=
+    le_iInf fun n ↦ cylinderEvents_mono (hPastIJSubsetCompl n)
+  exact (MeasureTheory.condExp_eq_condExp_of_le_of_condExp_eq (cylinderEvents_mono hiInPastij)
+    hpastij_le ((iInf_le _ (0 : ℕ)).trans cylinderEvents_le_pi) hEQ5).symm
+
+end TheoremTwelvePointSix
 
 end MeasureTheory.GibbsMeasure.Tree

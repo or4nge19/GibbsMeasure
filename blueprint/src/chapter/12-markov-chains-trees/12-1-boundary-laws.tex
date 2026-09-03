@@ -104,3 +104,22 @@ the edges meeting $\Lambda$.
     a completely homogeneous Markov chain iff $\mu$ is the measure of a constant normalised
     boundary law solving (12.16); that solution is unique.
 \end{theorem}
+
+\begin{theorem}[Georgii (12.6)]
+    \label{thm:tr-12-6}
+    \uses{def:tr-markov, thm:ext-77-concrete}
+    \lean{MeasureTheory.GibbsMeasure.Tree.IsMarkovSpecification.dependsOn_apply, MeasureTheory.GibbsMeasure.Tree.exists_isMarkovChain_of_mem_extremePoints}
+    \leanok
+
+    Let $G$ be a locally finite tree with countable vertex set and $\gamma$ a Markov
+    specification on $E^S$, $E$ countable. Then every extreme $\mu \in \mathcal G(\gamma)$ is a
+    Markov chain on $G$.
+\end{theorem}
+\begin{proof}
+    \leanok
+    Fix an oriented edge $ij$ and exhaust the past of $ij$ by connected volumes $\Lambda(n)$.
+    By the Markov property, $\mu(\sigma_j = y \mid \mathcal F_{\Lambda(n)^c})$ depends only on
+    $\sigma_i$ and the configuration outside $\Lambda(n)$; the reversed martingale converges
+    to $\mu(\sigma_j = y \mid \mathcal T_{\mathrm{past}})$, which by tail triviality (7.7)(a) is
+    $\mu(\sigma_j = y \mid \sigma_i)$ after freezing the single coordinate $\sigma_i$ ($E$ countable).
+\end{proof}

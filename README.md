@@ -504,7 +504,8 @@ edges (12.10), and **Theorem (12.12)** on trees in both directions — the measu
 with the cylinder formula (12.13), Gibbs and Markov, and every Markov chain in `𝒢(γ^Q)` a
 boundary-law measure — plus (12.14)–(12.17); Chapter 11's boundary laws are boundary laws on the
 Hasse graph of `ℤ` (12.11); (12.3)–(12.5), uniqueness of boundary laws up to a factor and the full
-correspondence (12.17) with completely homogeneous chains (`GibbsMeasure/Model/TreeBoundaryLawChains.lean`);
+correspondence (12.17) with completely homogeneous chains, and **Theorem (12.6)** — extreme Gibbs
+measures of a Markov specification on a tree are Markov chains (`GibbsMeasure/Model/TreeBoundaryLawChains.lean`);
 and Chapter 11's `γ^Q` is the Hasse-graph instance of the tree
 specification; the counting-kernel and cylinder calculus lives once, for any site set, in
 `GibbsMeasure/Specification/CountingKernel.lean`, with the graph combinatorics under
