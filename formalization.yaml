@@ -249,6 +249,42 @@ status:
       file: "GibbsMeasure/Mathlib/Probability/Kernel/CountableMatrix/Recurrence.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Tree.exists_isMarkovChain_of_mem_extremePoints"
+      file: "GibbsMeasure/Model/TreeBoundaryLawChains.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Tree.not_isMarkovChain_sum_smul_of_forall_adj_exists_boundaryLaw_eq"
+      file: "GibbsMeasure/Model/TreeBoundaryLawChains.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "Potential.gaussianSpecification_apply"
+      file: "GibbsMeasure/Model/GaussianField.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Markov.exists_transferMatrix_equiv_and_isPositiveRecurrent_of_invariantG_nonempty"
+      file: "GibbsMeasure/Model/BoundaryLawUniqueness.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Markov.G_eq_invariantG_of_forall_le_sum"
+      file: "GibbsMeasure/Model/BoundaryLawUniqueness.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Markov.eq_of_isGibbsMeasure_transferSpecification_of_measurePreserving_shift"
+      file: "GibbsMeasure/Model/BoundaryLawUniqueness.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Tree.isCompletelyHomogeneousMarkovChain_iff_exists_isBoundaryLaw_const_solves"
+      file: "GibbsMeasure/Model/TreeBoundaryLawChains.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "Matrix.PosDef.integral_exp_neg_half_dotProduct_mulVec_add_dotProduct"
+      file: "GibbsMeasure/Mathlib/Analysis/SpecialFunctions/Gaussian/Multivariate.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "ProbabilityTheory.integral_sub_mul_sub_multivariateGaussianPi"
+      file: "GibbsMeasure/Mathlib/Probability/Distributions/Gaussian/Density.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
 
 automation:
   methods:
