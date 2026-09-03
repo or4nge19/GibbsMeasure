@@ -210,6 +210,14 @@ status:
       file: "GibbsMeasure/Mathlib/Dynamics/Ergodic/Pointwise.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.isGibbsMeasure_of_tendsto_relativeEntropyIn_div_card"
+      file: "GibbsMeasure/Specification/VariationalPrinciple.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Tree.IsMarkovChain.exists_isBoundaryLaw_eq_boundaryLawMeasure"
+      file: "GibbsMeasure/Model/TreeBoundaryLaw.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
 
 automation:
   methods:
