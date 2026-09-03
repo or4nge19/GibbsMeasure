@@ -239,6 +239,28 @@ on $E$; its powers $Q^n$ are the powers of this kernel.
     $P = Q$. Georgii's argument through hitting times is replaced by this one.
 \end{proof}
 
+\begin{theorem}[Georgii (11.13)]
+    \label{thm:bl-11-13}
+    \uses{prop:bl-11-13, prop:bl-11-7, thm:mfu-10-35, def:mfu-irreducible}
+    \lean{MeasureTheory.GibbsMeasure.Markov.isHomogeneousInt_rescaledTransferDensity, MeasureTheory.GibbsMeasure.Markov.isIrreducibleInt_rescaledTransferDensity, MeasureTheory.GibbsMeasure.Markov.eq_of_isGibbsMeasure_transferSpecification_of_measurePreserving_shift, MeasureTheory.GibbsMeasure.Markov.mem_extremePoints_G_transferSpecification_of_measurePreserving_shift, MeasureTheory.GibbsMeasure.Markov.exists_transferMatrix_equiv_and_isPositiveRecurrent_of_invariantG_nonempty}
+    \leanok
+
+    Let $Q$ be a transfer matrix. $\mathcal G_\Theta(\gamma^Q) \neq \emptyset$ iff $Q$ is
+    equivalent (11.5) to a positive recurrent stochastic matrix $P$, and then
+    $\mathcal G_\Theta(\gamma^Q) = \set{\mu_P}$; every shift-invariant $\mu \in \mathcal G(\gamma^Q)$
+    is extreme.
+\end{theorem}
+\begin{proof}
+    \leanok
+    $\gamma^Q$ is the $\lambda$-modification of the independent specification of a probability
+    measure equivalent to counting measure, with homogeneous irreducible densities (Definition
+    \ref{def:mfu-irreducible}, with $n(N) = 1$ and finite exhaustions of $E$); Theorem
+    \ref{thm:mfu-10-35} gives uniqueness and extremality. A shift-invariant Gibbs measure is a
+    Markov chain (Theorem (10.25)); its transition matrix satisfies (11.11), and the proportionality
+    of the boundary laws of $\mu$ and $\theta_1\mu$ turns this into (11.5); positivity of $P$ and
+    the invariant marginal give positive recurrence. The converse is Proposition \ref{prop:bl-11-13}.
+\end{proof}
+
 \begin{theorem}[Georgii (11.9)(c), (11.14), (11.15), (11.17)]
     \label{thm:bl-11-14}
     \uses{thm:bl-11-13, thm:bl-11-15, thm:mfc-10-21, thm:ext-726}

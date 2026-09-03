@@ -65,10 +65,9 @@ convergence condition, not treated here).
   `Φ^{J,h}_A = 0` otherwise.
 * `Potential.gaussianCovMatrix J Λ`: **Georgii (13.12)**, the matrix `𝒥_Λ = (J(i,j))_{i,j ∈ Λ}`.
 * `Potential.gaussianBoundaryField J hFin Λ ω i`: `(J_{Λ,Λᶜ} ω)_i = ∑_{j ∉ Λ} J(i,j) ω(j)`.
-* `Potential.gaussianMean J h hFin Λ ω`: **the mean of (13.13)**,
-  `m_Λ(ω) = -𝒥_Λ⁻¹ (h|_Λ + J_{Λ,Λᶜ} ω|_{Λᶜ})` — see its docstring for why the overall sign is `-`,
-  not Georgii's naive-looking `𝒥_Λ⁻¹(h - J_{Λ,Λᶜ}ω)`: it is forced by completing the square against
-  the actual sign convention already fixed by `Potential.gaussianPotential`'s `+ h i * x` term.
+* `Potential.gaussianMean J h hFin Λ ω`: **the mean of (13.13)**, literally Georgii's display
+  `m_Λ(ω) = -𝒥_Λ⁻¹ (h|_Λ + J_{Λ,Λᶜ} ω|_{Λᶜ})`; see its docstring for the derivation by completing
+  the square in the Boltzmann factor against `Potential.gaussianPotential`'s `+ h i * x` site term.
 * `Potential.gaussianSpecification J h hSymm hFin hPD β hβ`: **Georgii Definition (2.9) for
   `Φ^{J,h}`**, the Gibbsian specification over Lebesgue measure, given `J` symmetric with finite
   row support, every `𝒥_Λ` positive definite, and `β > 0`.
@@ -555,16 +554,15 @@ def gaussianBoundaryField (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite) (Λ : Fin
     (i : S) : ℝ :=
   ∑ j ∈ (hFin i).toFinset \ Λ, J i j * ω j
 
-/-- **Georgii's mean** `m_Λ(ω) = -𝒥_Λ⁻¹ (h|_Λ + J_{Λ,Λᶜ} ω|_{Λᶜ})` for `Φ^{J,h}`'s finite-volume
-Gibbs distribution. The overall `-` sign is forced by completing the square in the Boltzmann
-factor `exp(-β H_Λ)` against `hamiltonian_gaussianPotential_juxt_eq`'s
+/-- **Georgii's mean (13.13)**, literally: `m_Λ(ω) = -𝒥_Λ⁻¹ (h|_Λ + J_{Λ,Λᶜ} ω|_{Λᶜ})` for
+`Φ^{J,h}`'s finite-volume Gibbs distribution. The overall `-` sign is exactly Georgii's display and
+is confirmed independently by completing the square in the Boltzmann factor `exp(-β H_Λ)` against
+`hamiltonian_gaussianPotential_juxt_eq`'s
 `H_Λ(ζ_Λ ω_{Λᶜ}) = (1/2)(ζ ⬝ᵥ 𝒥_Λ *ᵥ ζ) + (h|_Λ + J_{Λ,Λᶜ} ω|_{Λᶜ}) ⬝ᵥ ζ`: the *linear* term of
 `-β H_Λ` in `ζ` is `-β (h|_Λ + J_{Λ,Λᶜ} ω|_{Λᶜ})`, and matching
 `Matrix.PosDef.neg_half_dotProduct_mulVec_add_dotProduct_eq` (`b = A m`, `A = β 𝒥_Λ`) gives
 `m = (β 𝒥_Λ)⁻¹ (-β (h|_Λ + J_{Λ,Λᶜ} ω|_{Λᶜ})) = -𝒥_Λ⁻¹ (h|_Λ + J_{Λ,Λᶜ} ω|_{Λᶜ})`, independent of
-`β`. This is the sign that is actually forced by `Potential.gaussianPotential`'s `+ h i * x` site
-term (see this file's module docstring): the naive expectation `m = 𝒥_Λ⁻¹(h - J_{Λ,Λᶜ}ω)` would
-hold only for a potential with a `- h i * x` site term, which is *not* what is coded here. -/
+`β`. -/
 def gaussianMean (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite) (Λ : Finset S) (ω : S → ℝ) : Λ → ℝ :=
   -((gaussianCovMatrix J Λ)⁻¹ *ᵥ (fun i : Λ ↦ h i.1 + gaussianBoundaryField J hFin Λ ω i.1))
 

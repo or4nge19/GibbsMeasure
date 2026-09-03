@@ -553,9 +553,10 @@ a Gibbs measure for `γ^Q`. Chapter 3 is the finite-state instance (`Q = P` stoc
 `r_i = 1`). Georgii (1.33) is proved for the λ-specification of any σ-finite a priori measure on
 the way. **Theorem (11.9)(b)** (`GibbsMeasure/Model/BoundaryLawUniqueness.lean`): every Markov
 chain in `𝒢(γ^Q)` is the measure of a boundary law, with the transition matrices (11.11);
-(11.12), the sufficiency half of (11.13) (`𝒢_Θ(γ^Q) ≠ ∅` when `Q` is equivalent to a stochastic
-matrix with an invariant probability vector), (11.16), and the extreme case of **(11.15)** —
-periodicity of an extreme boundary-law measure under `inf_x Q^p(x,x) > 0`. The recurrence theory
+(11.12), **Theorem (11.13)** in both directions — `𝒢_Θ(γ^Q) ≠ ∅` iff `Q` is equivalent to a
+positive-recurrent stochastic matrix, and then it is a singleton, via the irreducibility of `γ^Q`'s
+densities and (10.35) — **(11.9)(c)**, **(11.14)**, **(11.15)** for every extreme point, **(11.17)**,
+and (11.16). The recurrence theory
 (11.6)–(11.7) — the convergence parameter `L(Q)`, the recurrence/transience dichotomy, and
 Proposition (11.7) in all three parts — is built at the Mathlib layer
 (`GibbsMeasure/Mathlib/Probability/Kernel/CountableMatrix/Recurrence.lean`); the first-passage
@@ -568,7 +569,7 @@ Gibbs measure is unique ((6.7)(2)).
 
 Not yet done: Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
-plane-rotator and Heisenberg instances (9.22)–(9.24), (14.13), (14.16), (14.21)–(14.24), (15.14)(c), (15.16)–(15.20), (15.26)(1), (15.40), Chapter 11 from (11.9)(c) and the uniqueness halves of (11.13)–(11.19) on, Examples (10.24), §12.2, (13.4)–(13.10), §§13.2–13.3, and Chapters
+plane-rotator and Heisenberg instances (9.22)–(9.24), (14.13), (14.16), (14.21)–(14.24), (15.14)(c), (15.16)–(15.20), (15.26)(1), (15.40), (11.18)(2)–(3), (11.19), Examples (10.24), §12.2, (13.4)–(13.10), §§13.2–13.3, and Chapters
 16–20 (
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).
