@@ -45,7 +45,7 @@ status:
   scope: >-
     Georgii Chapters 1-8, complete for the results listed under main_results (Section 6.1, Theorem (6.4),
     included). Of Chapters 9-20:
-    Chapter 14 (ergodicity) except the dense-G_delta half of (14.13) and Example (14.16); Section
+    Chapter 14 (ergodicity) except the dense-G_delta half of (14.13); Section
     15.1 (relative entropy), Lemma (15.11), Section 15.2 (strong subadditivity (15.10), the specific
     entropy (15.12)-(15.13), (15.14)(a)-(b)), Section 15.3 (specific energy, the pressure (15.30)(a)
     and its Lipschitz continuity and convexity (16.1)(a)), Section 15.4 (Theorem (15.37) and the
@@ -282,6 +282,10 @@ status:
       axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "ProbabilityTheory.integral_sub_mul_sub_multivariateGaussianPi"
       file: "GibbsMeasure/Mathlib/Probability/Distributions/Gaussian/Density.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Antiferromagnet.georgii_14_16"
+      file: "GibbsMeasure/Model/Antiferromagnet.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
 
@@ -943,8 +947,8 @@ alignment:
         decomposition within G_Theta(gamma); (14.18) linear independence counts ex G_Theta(gamma);
         (14.25) for quasilocal gamma: G_Theta(gamma) is the closed convex hull of any L with
         ex G_Theta(gamma) subset L subset G_Theta(gamma) — the inclusion ex G_Theta(gamma) subset
-        G_{Theta,lim}(gamma) is (14.20)(c). (14.13), (14.16) and (14.21)-(14.24) are not formalized
-        as separate statements.
+        G_{Theta,lim}(gamma) is (14.20)(c). (14.13) and (14.21)-(14.24) are entries of their own
+        below; Example (14.16) is Model/Antiferromagnet.lean.
     - source: "Theorem (14.20)"
       lean: "MeasureTheory.GibbsMeasure.ae_tendsto_shiftAverage_withLocalConvergence_cube"
       module: "GibbsMeasure/Specification/ErgodicGibbsLimits.lean"
@@ -1177,8 +1181,20 @@ alignment:
         for integrable functions; (14.13): continuity of local convergence into the weak topology
         for compact E and weak density of ex P_Theta in P_Theta. Not formalized: the Poulsen-simplex
         (dense G_delta) conclusion of (14.13) (needs compact metrizability of P_Theta and Baire
-        category), Example (14.16) (a zero-temperature one-dimensional antiferromagnet, a Model
-        construction).
+        category).
+    - source: "Example (14.16)"
+      lean: "MeasureTheory.GibbsMeasure.Antiferromagnet.georgii_14_16"
+      module: "GibbsMeasure/Model/Antiferromagnet.lean"
+      status: "proved"
+      note: >-
+        The zero-temperature one-dimensional Ising antiferromagnet without external field, on
+        S = Z, E = Bool. The specification is built directly as proper deterministic Markov
+        kernels (the Z = 0 fallback of Example (10.3) coincides with the Z > 0 branch at this p_j,
+        and the determining matrix has zero diagonal, so neither transferSpecification nor the
+        lambdaSpecification builder applies). Both alternating Dirac measures are extreme in
+        G(gamma) (tail-trivial); their midpoint is shift-invariant, trivial on the invariant
+        sigma-algebra of the full shift group, hence in ex G_Theta(gamma) by (14.15)(a), and not
+        extreme in G(gamma).
     - source: "Displays (13.9), (13.18), (13.21)"
       lean: "Potential.gaussianGluedSpecification_eq_gaussianSpecification"
       module: "GibbsMeasure/Model/GaussianSpecification.lean"

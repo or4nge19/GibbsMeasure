@@ -119,6 +119,7 @@ public import GibbsMeasure.Model.PeriodicSymmetry
 public import GibbsMeasure.Model.OneDimensionalSymmetry
 public import GibbsMeasure.Model.OneDimensionalSymmetryExamples
 public import GibbsMeasure.Model.MerminWagner
+public import GibbsMeasure.Model.Antiferromagnet
 public import GibbsMeasure.Model.GaussianField
 public import GibbsMeasure.Model.GaussianSpecification
 public import GibbsMeasure.Model.ShiftAverage

@@ -427,7 +427,11 @@ transformations that moves every finite volume off itself (hence tail-trivial �
 a Borel–Cantelli lemma for an *infimum* of σ-algebras now in the Mathlib layer; **(14.14)**
 `𝒢_Θ(γ) = 𝒢(γ) ∩ 𝓟_Θ` and **Theorem (14.15)** follow in Georgii's own order — (c) `𝒢_Θ(γ)` is a
 face of `𝓟_Θ`, then (a) `ex 𝒢_Θ(γ) = 𝒢_Θ(γ) ∩ ex 𝓟_Θ` and (b) — with no shift-invariance of `γ`
-consumed by any proof (`GibbsMeasure/Specification/ErgodicGibbs.lean`). Of Appendix 14.A, the
+consumed by any proof (`GibbsMeasure/Specification/ErgodicGibbs.lean`). **Example (14.16)**
+(`GibbsMeasure/Model/Antiferromagnet.lean`) exhibits `ex 𝒢_Θ(γ) \ ex 𝒢(γ) ≠ ∅`: for the
+zero-temperature one-dimensional antiferromagnet, built directly as deterministic proper kernels,
+the two alternating Dirac measures are extreme in `𝒢(γ)` and their midpoint is extreme in `𝒢_Θ(γ)`
+but not in `𝒢(γ)`. Of Appendix 14.A, the
 **ergodic maximal inequality (14.A6)** is proved (`GibbsMeasure/Mathlib/Dynamics/Ergodic/MaximalInequality.lean`):
 Georgii's `μ(sup_n |R_n f| > c) ≤ 3^d μ(|f|)/c` for increasing cubes in `ℤ^d`, as the instance of
 a Tempelman-type inequality over any additive group acting by measure-preserving maps, with the
@@ -571,7 +575,7 @@ Gibbs measure is unique ((6.7)(2)).
 
 Not yet done: Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
-plane-rotator and Heisenberg instances (9.22)–(9.24), the Poulsen-simplex half of (14.13), (14.16), (15.14)(c), (15.16)–(15.20), (15.26)(1), (15.40), (11.18)(2), (11.19), Examples (10.24), §12.2, (13.4)–(13.10), §§13.2–13.3, and Chapters
+plane-rotator and Heisenberg instances (9.22)–(9.24), the Poulsen-simplex half of (14.13), (15.14)(c), (15.16)–(15.20), (15.26)(1), (15.40), (11.18)(2), (11.19), Examples (10.24), §12.2, (13.4)–(13.10), §§13.2–13.3, and Chapters
 16–20 (
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).

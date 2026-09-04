@@ -47,6 +47,30 @@ $\mathcal G_\Theta(\gamma) = \mathcal G(\gamma) \cap \Prob_\Theta$.
     uniqueness in Theorem \ref{thm:erg-1410}.
 \end{proof}
 
+\begin{example}[Georgii (14.16)]
+    \label{ex:erg-1416}
+    \uses{def:erg-invariantG, thm:erg-1415, thm:ext-77}
+    \lean{MeasureTheory.GibbsMeasure.Antiferromagnet.antiferromagnetSpecification, MeasureTheory.GibbsMeasure.Antiferromagnet.dirac_altPM_mem_extremePoints_G, MeasureTheory.GibbsMeasure.Antiferromagnet.altMidpoint_mem_extremePoints_invariantG, MeasureTheory.GibbsMeasure.Antiferromagnet.altMidpoint_notMem_extremePoints_G, MeasureTheory.GibbsMeasure.Antiferromagnet.georgii_14_16}
+    \leanok
+
+    Let $S = \mathbb Z$, $E = \{-1, 1\}$ and $\gamma$ the specification with
+    $\gamma_\Lambda(\cdot \mid \omega)$ the Dirac mass at the configuration continuing the
+    alternation of $\omega$ from the left boundary of each maximal run of $\Lambda$ (the
+    zero-temperature Ising antiferromagnet without external field). Let $\omega^{+-}, \omega^{-+}$
+    be the two alternating configurations and $\Theta$ the shift group. Then
+    $\delta_{\omega^{+-}}, \delta_{\omega^{-+}} \in \operatorname{ex}\mathcal G(\gamma)$ and
+    $(\delta_{\omega^{+-}} + \delta_{\omega^{-+}})/2 \in
+    \operatorname{ex}\mathcal G_\Theta(\gamma) \setminus \operatorname{ex}\mathcal G(\gamma)$.
+\end{example}
+\begin{proof}
+    \leanok
+    Alternating configurations are fixed by every resampling, so their Dirac masses are Gibbs
+    measures; they are tail-trivial, hence extreme by Theorem \ref{thm:ext-77}. The midpoint is
+    shift-invariant, and the shift by $1$ swaps its two atoms, so it is trivial on the invariant
+    $\sigma$-algebra and extreme in $\mathcal G_\Theta(\gamma)$ by Theorem \ref{thm:erg-1415}(a);
+    it is an interior point of a segment between two distinct elements of $\mathcal G(\gamma)$.
+\end{proof}
+
 \begin{theorem}[Georgii (14.17)]
     \label{thm:erg-1417}
     \uses{thm:erg-1410, thm:erg-1415, prop:erg-149}
