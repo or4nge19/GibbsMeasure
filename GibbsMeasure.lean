@@ -2,6 +2,7 @@ module
 
 public import GibbsMeasure.Mathlib.Algebra.Order.SecondDifference
 public import GibbsMeasure.Mathlib.Analysis.Calculus.IteratedDeriv.SecondDifference
+public import GibbsMeasure.Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
 public import GibbsMeasure.Mathlib.Analysis.PSeries
 public import GibbsMeasure.Mathlib.Algebra.Order.BigOperators.Ring.Finset
 public import GibbsMeasure.Mathlib.Topology.Instances.EReal
@@ -16,6 +17,9 @@ public import GibbsMeasure.Mathlib.Data.Countable.Basic
 public import GibbsMeasure.Mathlib.Analysis.Subadditive.Cubes
 public import GibbsMeasure.Mathlib.InformationTheory.RelativeEntropy
 public import GibbsMeasure.Mathlib.Analysis.Normed.Algebra.ClosedSubalgebra
+public import GibbsMeasure.Mathlib.Analysis.InnerProductSpace.ExpSkewAdjoint
+public import GibbsMeasure.Mathlib.Analysis.InnerProductSpace.OrthogonalExtend
+public import GibbsMeasure.Mathlib.Analysis.InnerProductSpace.PlaneRotations
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Gaussian.Multivariate
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Tanh
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Tanh.InfiniteProd
@@ -31,6 +35,7 @@ public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.Doeblin
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PerronFrobenius
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.CompactSystemCylinders
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.Cylinders
+public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.HaarToSphere
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.PiWithDensity
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.KolmogorovExtension
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
@@ -135,6 +140,7 @@ public import GibbsMeasure.Model.PeriodicSymmetry
 public import GibbsMeasure.Model.OneDimensionalSymmetry
 public import GibbsMeasure.Model.OneDimensionalSymmetryExamples
 public import GibbsMeasure.Model.MerminWagner
+public import GibbsMeasure.Model.MerminWagnerExamples
 public import GibbsMeasure.Model.Antiferromagnet
 public import GibbsMeasure.Model.GaussianField
 public import GibbsMeasure.Model.GaussianSpecification

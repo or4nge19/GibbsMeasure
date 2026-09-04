@@ -52,7 +52,7 @@ status:
     variational principle (15.39), for standard Borel E); Section 11.1 ((11.1)-(11.17), (11.18)(1),(3), (11.6)-(11.7); not (11.18)(2), (11.19)); Section 12.1 ((12.1)-(12.18) except (12.3)(3),(5),(6)); Section 10.1 (the Markov
     properties (10.2)-(10.11)), Section 10.2 ((10.12)-(10.26) except Examples (10.24)), Section 10.3 ((10.30)-(10.37)); Section 9.1 (symmetry
     inheritance (9.1), localized symmetries (9.3), one-dimensional pair interactions (9.5),
-    (9.11), (9.16)); Section 9.2 (Mermin-Wagner (9.20) with Lemmas (9.28), (9.33)); Section 13.1 (13.1)-(13.3),
+    (9.11), (9.16)); Section 9.2 (Mermin-Wagner (9.20) with Lemmas (9.28), (9.33), Examples (9.22)-(9.24)); Section 13.1 (13.1)-(13.3),
     (13.9), (13.11)-(13.13) for finite-range J, (13.18) glued, (13.21). The rest is not formalized.
   sorry_count: 0
   sorry_in_definitions: 0
@@ -338,6 +338,14 @@ status:
       axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.georgii_13_10"
       file: "GibbsMeasure/Model/GaussianSpecification.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.measurePreserving_sphereRotation_of_det_pos_heisenbergPair_int_lex"
+      file: "GibbsMeasure/Model/MerminWagnerExamples.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.G_eq_empty_of_logDecay_of_dissipative"
+      file: "GibbsMeasure/Model/MerminWagner.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
 
@@ -1067,7 +1075,12 @@ alignment:
         partial sums of the Hamiltonian; (9.33) with the explicit bound
         1096 c_0 (N+1)^2 K / log(1+L), splitting the pairs at d(i,j) <= (|i|-N)^3 (Georgii splits
         at the square; the cubic split is what the tail estimate used here supports). The
-        plane-rotator and Heisenberg instances (9.22)-(9.24) are not formalized.
+        Examples (9.22)(1),(2) (long-range plane rotor with p >= 4, Shlosman's rotator) and (9.23)
+        (Heisenberg models on S^{N-1}, invariance under all of SO(N) via Cartan-Dieudonne: every
+        positive-determinant isometry is a product of plane rotations, Mathlib layer
+        Analysis/InnerProductSpace/{OrthogonalExtend,PlaneRotations,ExpSkewAdjoint}.lean) and
+        Corollary (9.24) (dissipative symmetry group: G(beta Phi) empty) are in
+        Model/MerminWagnerExamples.lean and Model/MerminWagner.lean.
     - source: "Theorem (11.9)(b),(c), (11.11)-(11.17), (11.18)(1)"
       lean: "MeasureTheory.GibbsMeasure.Markov.exists_transferMatrix_equiv_and_isPositiveRecurrent_of_invariantG_nonempty"
       module: "GibbsMeasure/Model/BoundaryLawUniqueness.lean"

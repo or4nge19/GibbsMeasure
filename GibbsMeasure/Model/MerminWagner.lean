@@ -69,8 +69,17 @@ diamond) with the maximum norm, `isPlanarSiteNorm_int_lex`.
   `u = 1`; here the profile is scaled by `u` and (9.33) is applied with `C = 1 / (u² + 1)`), and
   `measurePreserving_of_logDecay_int_lex` on `ℤ² = ℤ ×ₗ ℤ` (`isPlanarSiteNorm_int_lex`).
 
-Georgii's Examples (9.22)–(9.23) (plane rotators, Heisenberg models) and Corollary (9.24) are
-not formalised here.
+* `MeasureTheory.GibbsMeasure.G_eq_empty_of_logDecay_of_dissipative`: **Corollary (9.24)**,
+  non-existence of Gibbs measures when the one-parameter group is dissipative, from (9.20) and
+  the dissipation argument of (9.16)
+  (`G_gibbsSpecificationOfSigmaFiniteAdmissible_eq_empty_of_dissipative`).
+* `MerminWagner.logDecay_of_le_div_pow_four`, `MerminWagner.logDecay_of_finite_range`: the decay
+  condition (9.21) for couplings `J(i, j) ≤ β / d(i, j)⁴` (Georgii's computation in (9.22)(1))
+  and for bounded couplings of finite range, from a bound `|{d(i, ·) = m}| ≤ c₀ (m + 1)` on the
+  spheres around every site (`encard_setOf_intLexDist_eq_le` on `ℤ²`).
+
+Georgii's Examples (9.22)–(9.23) (plane rotators, Heisenberg models) are in
+`GibbsMeasure/Model/MerminWagnerExamples.lean`.
 
 ## Conventions
 
@@ -550,6 +559,170 @@ lemma IsPlanarSiteNorm.finite_lt (hgeo : IsPlanarSiteNorm nrm d c₀) (M : ℕ) 
   exact (Finset.range M).finite_toSet.biUnion fun m _ ↦
     Set.finite_of_encard_le_coe (hgeo.encard_le m)
 
+/-! ### Sufficient conditions for the decay condition (9.21)
+
+Georgii verifies (9.21) in Examples (9.22)–(9.23) by counting the spheres `{‖·‖ = k}` of `ℤ²`;
+here the count enters through a bound `|{d(i, ·) = m}| ≤ c₀ (m + 1)` on the spheres of the
+distance `d` around every site. -/
+
+section Criteria
+
+variable (hshell : ∀ i m, {j | d i j = m}.encard ≤ (c₀ * (m + 1) : ℕ))
+include hshell
+
+/-- Sums of a function of the distance to `i` over the site set, from the bound on the spheres:
+`∑_j g(d(i, j)) ≤ ∑_m c₀ (m + 1) g(m)` in `ℝ≥0∞`. -/
+lemma tsum_comp_dist_le (i : S) (g : ℕ → ℝ≥0∞) :
+    ∑' j, g (d i j) ≤ ∑' m, (c₀ * (m + 1) : ℕ) * g m := by
+  rw [ENNReal.tsum_comp_eq_tsum_encard_preimage_mul (d i) g]
+  refine ENNReal.tsum_le_tsum fun m ↦ ?_
+  gcongr
+  have h := ENat.toENNReal_le.2 (hshell i m)
+  rw [ENat.toENNReal_coe] at h
+  exact h
+
+/-- The spheres `{d(i, ·) = m}` are finite. -/
+lemma finite_setOf_dist_eq (i : S) (m : ℕ) : {j | d i j = m}.Finite :=
+  Set.finite_of_encard_le_coe (hshell i m)
+
+/-- The balls `{d(i, ·) ≤ n}` are finite. -/
+lemma finite_setOf_dist_le (i : S) (n : ℕ) : {j | d i j ≤ n}.Finite := by
+  have : {j | d i j ≤ n} = ⋃ m ∈ Finset.range (n + 1), {j | d i j = m} := by
+    ext j
+    simp
+  rw [this]
+  exact (Finset.range (n + 1)).finite_toSet.biUnion fun m _ ↦ finite_setOf_dist_eq hshell i m
+
+/-- The sum in (9.21) from a bound `d(i, j)² J(i, j) ≤ g(d(i, j))` and the bound on the spheres:
+`∑_{0 < d(i,j) ≤ n} d(i, j)² J(i, j) ≤ ∑_{m = 1}^n c₀ (m + 1) g(m)`. -/
+lemma tsum_sq_mul_le_sum_of_encard_le (hJ0 : ∀ i j, 0 ≤ J i j) {g : ℕ → ℝ}
+    (hg : ∀ m, 0 ≤ g m) (hJg : ∀ i j, 0 < d i j → (d i j : ℝ) ^ 2 * J i j ≤ g (d i j)) (i : S)
+    (n : ℕ) :
+    ∑' j, (if 0 < d i j ∧ d i j ≤ n then (d i j : ℝ) ^ 2 * J i j else 0) ≤
+      ∑ m ∈ Finset.Icc 1 n, (c₀ * (m + 1) : ℕ) * g m := by
+  set f : S → ℝ := fun j ↦ if 0 < d i j ∧ d i j ≤ n then (d i j : ℝ) ^ 2 * J i j else 0 with hf
+  have hf0 : ∀ j, 0 ≤ f j := fun j ↦ by
+    simp only [hf]
+    split_ifs
+    · exact mul_nonneg (by positivity) (hJ0 i j)
+    · exact le_rfl
+  have hsum : Summable f := by
+    refine summable_of_ne_finset_zero (s := (finite_setOf_dist_le hshell i n).toFinset)
+      fun j hj ↦ ?_
+    simp only [hf]
+    rw [ite_eq_right]
+    rintro ⟨-, h2⟩
+    exact hj ((finite_setOf_dist_le hshell i n).mem_toFinset.2 h2)
+  set G : ℕ → ℝ≥0∞ := fun m ↦ if 0 < m ∧ m ≤ n then ENNReal.ofReal (g m) else 0 with hG
+  have hrhs0 : 0 ≤ ∑ m ∈ Finset.Icc 1 n, ((c₀ * (m + 1) : ℕ) : ℝ) * g m :=
+    Finset.sum_nonneg fun m _ ↦ mul_nonneg (by positivity) (hg m)
+  rw [← ENNReal.ofReal_le_ofReal_iff hrhs0, ENNReal.ofReal_tsum_of_nonneg hf0 hsum]
+  calc ∑' j, ENNReal.ofReal (f j)
+      ≤ ∑' j, G (d i j) := by
+        refine ENNReal.tsum_le_tsum fun j ↦ ?_
+        simp only [hf, hG]
+        split_ifs with h
+        · exact ENNReal.ofReal_le_ofReal (hJg i j h.1)
+        · simp
+    _ ≤ ∑' m, (c₀ * (m + 1) : ℕ) * G m := tsum_comp_dist_le hshell i G
+    _ = ∑ m ∈ Finset.Icc 1 n, (c₀ * (m + 1) : ℕ) * G m := by
+        refine tsum_eq_sum fun m hm ↦ ?_
+        simp only [hG, Finset.mem_Icc] at hm ⊢
+        rw [ite_eq_right (by omega), mul_zero]
+    _ = ENNReal.ofReal (∑ m ∈ Finset.Icc 1 n, ((c₀ * (m + 1) : ℕ) : ℝ) * g m) := by
+        rw [ENNReal.ofReal_sum_of_nonneg fun m _ ↦ mul_nonneg (by positivity) (hg m)]
+        refine Finset.sum_congr rfl fun m hm ↦ ?_
+        simp only [hG, Finset.mem_Icc] at hm ⊢
+        rw [ite_eq_left (by omega), ENNReal.ofReal_mul (by positivity), ENNReal.ofReal_natCast]
+
+/-- **Georgii (9.22)(1), the decay estimate**: couplings `J(i, j) ≤ β / d(i, j)⁴` satisfy the
+decay condition (9.21) with `K = 5 c₀ β`, since
+`∑_{0 < d ≤ n} d² J ≤ ∑_{m=1}^n c₀ (m + 1) β / m² ≤ 2 c₀ β (1 + log n) ≤ 5 c₀ β log n`. -/
+lemma logDecay_of_le_div_pow_four (hJ0 : ∀ i j, 0 ≤ J i j) {β : ℝ} (hβ : 0 ≤ β)
+    (hJ : ∀ i j, 0 < d i j → J i j ≤ β / (d i j : ℝ) ^ 4) : LogDecay d J (5 * c₀ * β) := by
+  intro i n hn
+  have hg : ∀ m : ℕ, 0 ≤ β / (m : ℝ) ^ 2 := fun m ↦ by positivity
+  refine (tsum_sq_mul_le_sum_of_encard_le hshell hJ0 hg (fun i j hd ↦ ?_) i n).trans ?_
+  · have hd' : (0 : ℝ) < d i j := by exact_mod_cast hd
+    calc (d i j : ℝ) ^ 2 * J i j ≤ (d i j : ℝ) ^ 2 * (β / (d i j : ℝ) ^ 4) := by
+          gcongr; exact hJ i j hd
+      _ = β / (d i j : ℝ) ^ 2 := by field_simp
+  · have hn' : (2 : ℝ) ≤ n := by exact_mod_cast hn
+    have hlog2 : (0.6931471803 : ℝ) < Real.log 2 := Real.log_two_gt_d9
+    have hlogn : Real.log 2 ≤ Real.log n := Real.log_le_log (by norm_num) hn'
+    have hharm := harmonic_le_one_add_log n
+    rw [harmonic_eq_sum_Icc] at hharm
+    push_cast at hharm
+    calc ∑ m ∈ Finset.Icc 1 n, ((c₀ * (m + 1) : ℕ) : ℝ) * (β / (m : ℝ) ^ 2)
+        ≤ ∑ m ∈ Finset.Icc 1 n, 2 * c₀ * β * ((m : ℝ)⁻¹) := by
+          refine Finset.sum_le_sum fun m hm ↦ ?_
+          have hm1 : (1 : ℝ) ≤ m := by exact_mod_cast (Finset.mem_Icc.1 hm).1
+          push_cast
+          rw [show (c₀ : ℝ) * ((m : ℝ) + 1) * (β / (m : ℝ) ^ 2) =
+            c₀ * β * (((m : ℝ) + 1) / (m : ℝ) ^ 2) by ring,
+            show 2 * (c₀ : ℝ) * β * (m : ℝ)⁻¹ = c₀ * β * (2 / (m : ℝ)) by ring]
+          refine mul_le_mul_of_nonneg_left ?_ (mul_nonneg (Nat.cast_nonneg c₀) hβ)
+          rw [div_le_div_iff₀ (by positivity) (by positivity)]
+          nlinarith
+      _ = 2 * c₀ * β * ∑ m ∈ Finset.Icc 1 n, ((m : ℝ)⁻¹) := by rw [Finset.mul_sum]
+      _ ≤ 2 * c₀ * β * (1 + Real.log n) := by gcongr
+      _ ≤ 5 * c₀ * β * Real.log n := by nlinarith [mul_nonneg (Nat.cast_nonneg c₀) hβ]
+
+/-- **Georgii (9.22)(2), the decay estimate**: nonnegative couplings bounded by `M` and of finite
+range `R` satisfy the decay condition (9.21) with `K = c₀ (R + 1)⁴ M / log 2`. -/
+lemma logDecay_of_finite_range (hJ0 : ∀ i j, 0 ≤ J i j) {M : ℝ} (hM : 0 ≤ M) {R : ℕ}
+    (hJM : ∀ i j, J i j ≤ M) (hJR : ∀ i j, R < d i j → J i j = 0) :
+    LogDecay d J (c₀ * (R + 1) ^ 4 * M / Real.log 2) := by
+  intro i n hn
+  set g : ℕ → ℝ := fun m ↦ if m ≤ R then (m : ℝ) ^ 2 * M else 0 with hg
+  have hg0 : ∀ m, 0 ≤ g m := fun m ↦ by
+    simp only [hg]
+    split_ifs
+    · positivity
+    · exact le_rfl
+  refine (tsum_sq_mul_le_sum_of_encard_le hshell hJ0 hg0 (fun i j hd ↦ ?_) i n).trans ?_
+  · simp only [hg]
+    split_ifs with h
+    · exact mul_le_mul_of_nonneg_left (hJM i j) (by positivity)
+    · rw [hJR i j (not_le.1 h), mul_zero]
+  · have hn' : (2 : ℝ) ≤ n := by exact_mod_cast hn
+    have hlog2 : 0 < Real.log 2 := Real.log_pos (by norm_num)
+    have hlogn : Real.log 2 ≤ Real.log n := Real.log_le_log (by norm_num) hn'
+    have hR : ∀ m ∈ Finset.Icc 1 n, ((c₀ * (m + 1) : ℕ) : ℝ) * g m ≤
+        if m ≤ R then (c₀ : ℝ) * (R + 1) ^ 3 * M else 0 := by
+      intro m hm
+      simp only [hg]
+      split_ifs with h
+      · have hmR : (m : ℝ) ≤ R := by exact_mod_cast h
+        have hm0 : (0 : ℝ) ≤ m := Nat.cast_nonneg m
+        push_cast
+        calc (c₀ : ℝ) * ((m : ℝ) + 1) * ((m : ℝ) ^ 2 * M)
+            ≤ (c₀ : ℝ) * ((R : ℝ) + 1) * (((R : ℝ) + 1) ^ 2 * M) := by gcongr; linarith
+          _ = (c₀ : ℝ) * ((R : ℝ) + 1) ^ 3 * M := by ring
+      · simp
+    have hcard : (((Finset.Icc 1 n).filter (· ≤ R)).card : ℝ) ≤ (R : ℝ) + 1 := by
+      have : ((Finset.Icc 1 n).filter (· ≤ R)).card ≤ R + 1 :=
+        calc ((Finset.Icc 1 n).filter (· ≤ R)).card ≤ (Finset.Icc 1 R).card := by
+              refine Finset.card_le_card fun m hm ↦ ?_
+              simp only [Finset.mem_filter, Finset.mem_Icc] at hm ⊢
+              omega
+          _ ≤ R + 1 := by simp
+      exact_mod_cast this
+    calc ∑ m ∈ Finset.Icc 1 n, ((c₀ * (m + 1) : ℕ) : ℝ) * g m
+        ≤ ∑ m ∈ Finset.Icc 1 n, if m ≤ R then (c₀ : ℝ) * (R + 1) ^ 3 * M else 0 :=
+          Finset.sum_le_sum hR
+      _ = ∑ m ∈ (Finset.Icc 1 n).filter (· ≤ R), (c₀ : ℝ) * (R + 1) ^ 3 * M := by
+          rw [Finset.sum_filter]
+      _ = ((Finset.Icc 1 n).filter (· ≤ R)).card * ((c₀ : ℝ) * (R + 1) ^ 3 * M) := by
+          rw [Finset.sum_const, nsmul_eq_mul]
+      _ ≤ ((R : ℝ) + 1) * ((c₀ : ℝ) * (R + 1) ^ 3 * M) := by gcongr
+      _ = (c₀ : ℝ) * (R + 1) ^ 4 * M := by ring
+      _ = (c₀ * (R + 1) ^ 4 * M / Real.log 2) * Real.log 2 := by
+          rw [div_mul_cancel₀ _ hlog2.ne']
+      _ ≤ (c₀ * (R + 1) ^ 4 * M / Real.log 2) * Real.log n := by gcongr
+
+end Criteria
+
 /-! ### `ℤ²` with the maximum norm
 
 Georgii's site set `S = ℤ²`, as the lexicographic type synonym `ℤ ×ₗ ℤ` (a linear order, as
@@ -601,6 +774,21 @@ theorem isPlanarSiteNorm_int_lex : IsPlanarSiteNorm intLexNorm intLexDist 8 wher
     refine ⟨ofLex j, ?_, rfl⟩
     simp only [Set.mem_prod, Set.mem_Icc]
     omega
+
+/-- `‖i − j‖ = intLexDist i j`: the distance is the maximum norm of the difference. -/
+lemma intLexDist_eq_intLexNorm_sub (i j : ℤ ×ₗ ℤ) : intLexDist i j = intLexNorm (i - j) := rfl
+
+/-- The spheres `{‖· − i‖ = m}` around any site of `ℤ²` have at most `8 (m + 1)` points, as the
+sphere `{‖·‖ = m}` around the origin has. -/
+lemma encard_setOf_intLexDist_eq_le (i : ℤ ×ₗ ℤ) (m : ℕ) :
+    {j | intLexDist i j = m}.encard ≤ (8 * (m + 1) : ℕ) := by
+  have hinj : Function.Injective fun j : ℤ ×ₗ ℤ ↦ i - j := fun a b h ↦ by
+    simpa using h
+  have hrange : {k : ℤ ×ₗ ℤ | intLexNorm k = m} ⊆ Set.range fun j : ℤ ×ₗ ℤ ↦ i - j :=
+    fun k _ ↦ ⟨i - k, by simp⟩
+  have : {j | intLexDist i j = m} = (fun j : ℤ ×ₗ ℤ ↦ i - j) ⁻¹' {k | intLexNorm k = m} := rfl
+  rw [this, Set.encard_preimage_of_injective_subset_range hinj hrange]
+  exact isPlanarSiteNorm_int_lex.encard_le m
 
 /-! ### Georgii, Lemma (9.33) -/
 
@@ -1276,6 +1464,34 @@ theorem measurePreserving_of_logDecay [Countable S] [StandardBorelSpace E]
           ENNReal.ofReal (u ^ 2) * ENNReal.ofReal (1 / (u ^ 2 + 1)) := by gcongr
       have key := ENNReal.ofReal_le_one.1 (h28.trans (hE'.trans hu))
       linarith
+
+/-- **Georgii, Corollary (9.24).** In the setting of Theorem (9.20)
+(`measurePreserving_of_logDecay`), suppose that `(τ^t)_{t ∈ ℝ}` is *dissipative*: there are a
+site `i`, a bounded measurable `f ≥ 0` on `E` with `λ(f) > 0`, and a sequence `(t(k))` in `ℝ`
+with `f ∘ τ_i^{t(k)} → 0` `λ`-a.s. Then `𝒢(βΦ) = ∅`. The proof is that of Corollary (9.16):
+every `μ ∈ 𝒢(βΦ)` would be `τ^{t(k)}`-invariant, and dominated convergence contradicts the
+equivalence of `σ_i(μ)` and `λ`
+(`G_gibbsSpecificationOfSigmaFiniteAdmissible_eq_empty_of_dissipative`). -/
+theorem G_eq_empty_of_logDecay_of_dissipative [Countable S] [StandardBorelSpace E]
+    [IsPotential (pair φ)] [IsSummable (pair φ)] (ν : Measure E) [SigmaFinite ν] [NeZero ν]
+    (hadm : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν
+      ((pair φ).boltzmannFactor β))
+    (hτ : ∀ u, (τ u).IsPureSpin) (hgrp : ∀ s t, τ s * τ t = τ (s + t))
+    (hτν : ∀ u i, MeasurePreserving ((τ u).spin i) ν ν)
+    (hsym : ∀ u i j, i < j → ∀ x y, φ i j ((τ u).spin i x) ((τ u).spin j y) = φ i j x y)
+    (hφ : ∀ i j, i < j → ∀ x y, ContDiff ℝ 2 fun u ↦ φ i j x ((τ u).spin j y))
+    (hJ : ∀ i j, i < j → ∀ x y u,
+      β * iteratedDeriv 2 (fun u ↦ φ i j x ((τ u).spin j y)) u ≤ J i j)
+    (hJ0 : ∀ i j, 0 ≤ J i j) (hJsymm : ∀ i j, J i j = J j i)
+    {nrm : S → ℕ} {d : S → S → ℕ} {c₀ : ℕ} (hgeo : MerminWagner.IsPlanarSiteNorm nrm d c₀)
+    {K : ℝ} (hdecay : MerminWagner.LogDecay d J K)
+    {f : E → ℝ≥0∞} (hf : Measurable f) {M : ℝ≥0∞} (hM : M ≠ ⊤) (hfM : ∀ x, f x ≤ M)
+    (hf0 : ∫⁻ x, f x ∂ν ≠ 0) (i : S) {t : ℕ → ℝ}
+    (hdiss : ∀ᵐ x ∂ν, Tendsto (fun k ↦ f ((τ (t k)).spin i x)) atTop (𝓝 0)) :
+    G (gibbsSpecificationOfSigmaFiniteAdmissible (pair φ) ν β hadm) = ∅ :=
+  G_gibbsSpecificationOfSigmaFiniteAdmissible_eq_empty_of_dissipative ν β hadm hf hM hfM hf0 i
+    (τ := fun k ↦ τ (t k)) (fun k ↦ hτ (t k)) hdiss fun _ hμ k ↦
+      measurePreserving_of_logDecay ν hadm hτ hgrp hτν hsym hφ hJ hJ0 hJsymm hgeo hdecay hμ (t k)
 
 /-- **Georgii, Theorem (9.20)** on `S = ℤ²` (as `ℤ ×ₗ ℤ`, with the maximum norm and its
 distance `intLexDist`). -/

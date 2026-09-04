@@ -296,6 +296,12 @@ namespace Transformation
 
 variable {S E : Type*} [MeasurableSpace E] {τ σ : Transformation S E}
 
+/-- The action of `τ ^ k` is the `k`-th iterate of the action of `τ`. -/
+lemma pow_toFun (τ : Transformation S E) (k : ℕ) : (τ ^ k).toFun = τ.toFun^[k] := by
+  induction k with
+  | zero => funext ω; simp
+  | succ k ih => funext ω; rw [pow_succ', mul_def, comp_toFun, ih, Function.iterate_succ_apply']
+
 lemma IsPureSpin.one : (1 : Transformation S E).IsPureSpin := rfl
 
 lemma IsPureSpin.mul (hτ : τ.IsPureSpin) (hσ : σ.IsPureSpin) : (τ * σ).IsPureSpin := by
@@ -434,6 +440,52 @@ def boolNot : Bool ≃ᵐ Bool :=
 
 lemma boolNot_trans_boolNot : boolNot.trans boolNot = MeasurableEquiv.refl Bool :=
   MeasurableEquiv.ext (funext fun b ↦ Bool.not_not b)
+
+/-! ### Pure spin transformations with a common spin map (Georgii (5.2)(2)/(5.20)) -/
+
+variable (S) in
+/-- Georgii (5.2)(2)/(5.20): the **pure spin transformation** applying the same measurable
+bijection `e` of the state space at every site; its spatial part is the identity. The spin flip
+of the Ising model is `pureSpin S boolNot`, and a one-parameter group `(τ^t)_{t ∈ ℝ}` of
+pure spin symmetries (Georgii (9.18)) is `t ↦ pureSpin S (e t)` for a one-parameter group `e` of
+measurable bijections of `E`. -/
+def pureSpin (e : E ≃ᵐ E) : Transformation S E where
+  sites := Equiv.refl S
+  spin _ := e
+
+omit [AddGroup S] in
+lemma isPureSpin_pureSpin (e : E ≃ᵐ E) : (pureSpin S e).IsPureSpin := rfl
+
+omit [AddGroup S] in
+@[simp] lemma pureSpin_spin (e : E ≃ᵐ E) (i : S) : (pureSpin S e).spin i = e := rfl
+
+omit [AddGroup S] in
+@[simp] lemma pureSpin_toFun_apply (e : E ≃ᵐ E) (ω : S → E) (i : S) :
+    (pureSpin S e).toFun ω i = e (ω i) := rfl
+
+omit [AddGroup S] in
+@[simp] lemma pureSpin_inv_toFun_apply (e : E ≃ᵐ E) (ω : S → E) (i : S) :
+    (pureSpin S e).inv.toFun ω i = e.symm (ω i) := rfl
+
+omit [AddGroup S] in
+lemma pureSpin_mul (e f : E ≃ᵐ E) :
+    pureSpin S e * pureSpin S f = pureSpin S (f.trans e) := rfl
+
+omit [AddGroup S] in
+lemma pureSpin_refl : pureSpin S (MeasurableEquiv.refl E) = 1 := rfl
+
+/-- Pure spin transformations commute with the shifts (Georgii (5.20): elements of `T⁰` commute
+elementwise with the spatial transformations). -/
+lemma shift_toFun_comp_pureSpin_toFun (e : E ≃ᵐ E) (j : S) :
+    (shift E j).toFun ∘ (pureSpin S e).toFun = (pureSpin S e).toFun ∘ (shift E j).toFun := by
+  funext ω i
+  simp only [Function.comp_apply, shift_toFun_apply, pureSpin_toFun_apply]
+
+omit [AddGroup S] in
+/-- The spin flip is an involution of configuration space. -/
+lemma pureSpin_boolNot_mul_self :
+    pureSpin S boolNot * pureSpin S boolNot = (1 : Transformation S Bool) := by
+  rw [pureSpin_mul, boolNot_trans_boolNot, pureSpin_refl]
 
 /-! ### Site bijections (Georgii (5.2)(2)) -/
 

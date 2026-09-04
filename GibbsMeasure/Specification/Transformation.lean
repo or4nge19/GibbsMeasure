@@ -268,6 +268,24 @@ theorem isssdFun_map_toFun (ν : Measure E) [IsProbabilityMeasure ν] (τ : Tran
     ← Measure.map_map Measurable.juxt (τ.measurePreserving_spin_piCongrLeft hτ Λ).measurable,
     (τ.measurePreserving_spin_piCongrLeft hτ Λ).map_eq]
 
+/-- The shift `θ_k` maps `μ λ_{j}` to `(θ_k μ) λ_{j + k}`, Georgii (5.6)(a) for a single site. -/
+lemma bind_isssd_singleton_map_shift [AddCommGroup S] (ν : Measure E) [IsProbabilityMeasure ν]
+    {μ : Measure (S → E)} (j k : S) :
+    (μ.bind (isssd ν {j})).map (shift E k).toFun
+      = (μ.map (shift E k).toFun).bind (isssd ν {j + k}) := by
+  rw [Measure.map_bind (measurable_isssd_coe _) (shift E k).measurable_toFun,
+    Measure.bind_map (shift E k).measurable_toFun (measurable_isssd_coe _)]
+  congr 1
+  funext ω
+  have h := isssdFun_map_toFun ν (shift E k) (fun _ ↦ MeasurePreserving.id ν) {j + k}
+    ((shift E k).toFun ω)
+  rw [Transformation.inv_toFun_toFun] at h
+  have hmap : Finset.map (shift E k).sites.symm.toEmbedding {j + k} = {j} := by
+    rw [Finset.map_singleton]
+    simp [shift, Equiv.addRight_symm]
+  rw [hmap] at h
+  exact h
+
 end Specification
 
 /-! ### Transport of Gibbs measures along a transformation -/

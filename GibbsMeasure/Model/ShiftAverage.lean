@@ -409,38 +409,10 @@ theorem exists_latticeIsing_mem_GP_forall_measurePreserving_shift (d : ℕ) (J h
     (isInvariant_shift_isingSpecification d J h β)
 
 
-/-! ### Georgii Example (5.17)(2): pure spin symmetries composed with the shifts -/
+/-! ### Georgii Example (5.17)(2): pure spin symmetries composed with the shifts
 
-variable (S) in
-/-- Georgii (5.2)(2)/(5.20): the **pure spin transformation** applying the same measurable
-bijection `e` of the state space at every site; its spatial part is the identity. The spin flip
-of the Ising model is `pureSpin S boolNot`. -/
-def pureSpin (e : E ≃ᵐ E) : Transformation S E where
-  sites := Equiv.refl S
-  spin _ := e
-
-@[simp] lemma pureSpin_toFun_apply (e : E ≃ᵐ E) (ω : S → E) (i : S) :
-    (pureSpin S e).toFun ω i = e (ω i) := rfl
-
-@[simp] lemma pureSpin_inv_toFun_apply (e : E ≃ᵐ E) (ω : S → E) (i : S) :
-    (pureSpin S e).inv.toFun ω i = e.symm (ω i) := rfl
-
-lemma pureSpin_mul (e f : E ≃ᵐ E) :
-    pureSpin S e * pureSpin S f = pureSpin S (f.trans e) := rfl
-
-lemma pureSpin_refl : pureSpin S (MeasurableEquiv.refl E) = 1 := rfl
-
-/-- Pure spin transformations commute with the shifts (Georgii (5.20): elements of `T⁰` commute
-elementwise with the spatial transformations). -/
-lemma shift_toFun_comp_pureSpin_toFun [AddGroup S] (e : E ≃ᵐ E) (j : S) :
-    (shift E j).toFun ∘ (pureSpin S e).toFun = (pureSpin S e).toFun ∘ (shift E j).toFun := by
-  funext ω i
-  simp only [Function.comp_apply, shift_toFun_apply, pureSpin_toFun_apply]
-
-/-- The spin flip is an involution of configuration space. -/
-lemma pureSpin_boolNot_mul_self :
-    pureSpin S boolNot * pureSpin S boolNot = (1 : Transformation S Bool) := by
-  rw [pureSpin_mul, boolNot_trans_boolNot, pureSpin_refl]
+The pure spin transformation `pureSpin S e` itself lives in
+`GibbsMeasure/Prereqs/Transformation.lean`. -/
 
 /-- The zero-field Ising potential on any graph is invariant under the spin flip: the pair terms
 are even in the spins, and the odd single-site terms carry the factor `h = 0`. This generalises

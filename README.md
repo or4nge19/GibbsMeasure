@@ -552,6 +552,10 @@ the group parameter with second derivative dominated by a `J` obeying the decay 
 every Gibbs measure is invariant under the whole group — via the spin-wave localized versions,
 Lemma (9.28) (a two-sided Taylor bound on the Hamiltonian's partial sums) and Lemma (9.33) (the
 Dirichlet energy of the logarithmic profile, with an explicit constant), assembled against (9.3).
+**Examples (9.22)–(9.24)** (`GibbsMeasure/Model/MerminWagnerExamples.lean`): the long-range plane rotor
+(`p ≥ 4`) and Shlosman's rotator on the circle, the Heisenberg models on `S^{N-1}` with invariance
+under all of `SO(N)` (every positive-determinant isometry is a product of plane rotations, Cartan–Dieudonné,
+in the Mathlib layer), and **Corollary (9.24)**: a dissipative symmetry group forces `𝒢(βΦ) = ∅`.
 
 **Chapter 10, §10.1** (`GibbsMeasure/Specification/MarkovInt.lean`): Markov specifications and
 Markovian densities on `ℤ` (10.2), the chain specification of transition densities (10.3), Markov
@@ -603,7 +607,7 @@ neighbouring spins has a unique infinite component almost surely under every Gib
 
 Not yet done: Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
-plane-rotator and Heisenberg instances (9.22)–(9.24), the Markov-chain instance of (15.40), (11.18)(2), (11.19), §12.2, §§13.2–13.3, and Chapters
+the Markov-chain instance of (15.40), (11.18)(2), (11.19), §12.2, §§13.2–13.3, and Chapters
 16–20 (
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).

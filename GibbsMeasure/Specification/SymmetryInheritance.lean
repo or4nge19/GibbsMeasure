@@ -583,5 +583,94 @@ end Transformation
 
 end MeasureTheory.GibbsMeasure
 
+/-! ### Non-existence from a dissipative symmetry (Georgii, proofs of (9.16) and (9.24))
+
+Georgii's Corollaries (9.16) and (9.24) share one argument: if every Gibbs measure `μ` of a
+`λ`-specification with positive densities has a marginal `σ_i(μ)` (equivalent to `λ`, Remark
+(1.28)(2)) that is invariant under a *dissipative* sequence of maps `T_k` — `f ∘ T_k → 0`
+`λ`-a.s. for some bounded `f ≥ 0` with `λ(f) > 0` — then dominated convergence forces
+`σ_i(μ)(f) = 0`, contradicting `λ ≪ σ_i(μ)`. -/
+
+namespace Specification
+
+variable {S E : Type*} [MeasurableSpace E] {ν : Measure E} [SigmaFinite ν] [NeZero ν]
+  {ρ : Finset S → (S → E) → ℝ≥0∞}
+
+open Filter Topology in
+/-- **Georgii, the dissipation argument of Corollaries (9.16) and (9.24).** Let `γ = ρ λ_·` be a
+`λ`-specification with strictly positive densities, `i` a site, `f ≥ 0` a bounded measurable
+function on `E` with `λ(f) > 0`, and `(T_k)` a sequence of measurable maps of `E` with
+`f ∘ T_k → 0` `λ`-a.s. If the marginal at `i` of every `μ ∈ 𝒢(γ)` is `T_k`-invariant for every
+`k`, then `𝒢(γ) = ∅`. -/
+theorem G_lambdaSpecification_eq_empty_of_dissipative
+    (hρ : IsPremodifier (S := S) (E := E) ρ)
+    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
+    (hρ0 : ∀ (Λ : Finset S) (η : S → E), ρ Λ η ≠ 0)
+    {f : E → ℝ≥0∞} (hf : Measurable f) {M : ℝ≥0∞} (hM : M ≠ ⊤) (hfM : ∀ x, f x ≤ M)
+    (hf0 : ∫⁻ x, f x ∂ν ≠ 0) (i : S) {T : ℕ → E → E} (hT : ∀ k, Measurable (T k))
+    (hdiss : ∀ᵐ x ∂ν, Tendsto (fun k ↦ f (T k x)) atTop (𝓝 0))
+    (hinv : ∀ μ ∈ G (lambdaSpecification (S := S) (E := E) ν ρ hρ hZ), ∀ k,
+      (μ.map (fun ω ↦ ω i)).map (T k) = μ.map (fun ω ↦ ω i)) :
+    G (lambdaSpecification (S := S) (E := E) ν ρ hρ hZ) = ∅ := by
+  rw [Set.eq_empty_iff_forall_notMem]
+  intro μ hμ
+  have hprob : IsProbabilityMeasure μ := hμ.1
+  set mi := μ.map (fun ω ↦ ω i) with hmi
+  have hac1 : mi ≪ ν := map_eval_absolutelyContinuous_of_mem_G ν hρ hZ hμ i
+  have hac2 : ν ≪ mi := absolutelyContinuous_map_eval_of_mem_G ν hρ hZ hρ0 hμ i
+  have hpos : ∫⁻ x, f x ∂mi ≠ 0 := by
+    intro h0
+    rw [lintegral_eq_zero_iff hf] at h0
+    exact hf0 (by rw [lintegral_congr_ae (hac2.ae_le h0)]; simp)
+  have hlim : ∀ᵐ ω ∂μ, Tendsto (fun k ↦ f (T k (ω i))) atTop (𝓝 0) :=
+    ae_of_ae_map (measurable_pi_apply i).aemeasurable (hac1.ae_le hdiss)
+  have hconst : ∀ k, ∫⁻ ω, f (T k (ω i)) ∂μ = ∫⁻ x, f x ∂mi := fun k ↦ by
+    calc ∫⁻ ω, f (T k (ω i)) ∂μ = ∫⁻ x, f (T k x) ∂mi := by
+          rw [hmi, lintegral_map (f := fun x ↦ f (T k x)) (hf.comp (hT k)) (measurable_pi_apply i)]
+      _ = ∫⁻ y, f y ∂(mi.map (T k)) := (lintegral_map hf (hT k)).symm
+      _ = ∫⁻ x, f x ∂mi := by rw [hinv μ hμ k]
+  have htend := tendsto_lintegral_of_dominated_convergence (μ := μ)
+    (F := fun k ω ↦ f (T k (ω i))) (f := fun _ ↦ 0) (fun _ ↦ M)
+    (fun k ↦ hf.comp ((hT k).comp (measurable_pi_apply i)))
+    (fun k ↦ Filter.Eventually.of_forall fun ω ↦ hfM _)
+    (by simp [hM]) hlim
+  simp only [hconst, lintegral_zero] at htend
+  exact hpos (tendsto_nhds_unique tendsto_const_nhds htend)
+
+end Specification
+
+namespace MeasureTheory.GibbsMeasure
+
+variable {S E : Type*} [MeasurableSpace E]
+
+open Filter Topology in
+/-- **Georgii, the dissipation argument of Corollaries (9.16) and (9.24)** for the Gibbs
+specification of a `λ`-admissible potential and a sequence `(τ_k)` of pure spin transformations
+preserving every Gibbs measure: if `f ∘ (τ_k)_i → 0` `λ`-a.s. for a bounded measurable `f ≥ 0`
+with `λ(f) > 0`, then `𝒢(Φ) = ∅`. -/
+theorem G_gibbsSpecificationOfSigmaFiniteAdmissible_eq_empty_of_dissipative [Countable S]
+    {Φ : Potential S E} [Potential.IsPotential Φ] [Potential.IsSummable Φ] (ν : Measure E)
+    [SigmaFinite ν] [NeZero ν] (β : ℝ)
+    (hadm : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν
+      (Φ.boltzmannFactor β))
+    {f : E → ℝ≥0∞} (hf : Measurable f) {M : ℝ≥0∞} (hM : M ≠ ⊤) (hfM : ∀ x, f x ≤ M)
+    (hf0 : ∫⁻ x, f x ∂ν ≠ 0) (i : S) {τ : ℕ → Transformation S E} (hτ : ∀ k, (τ k).IsPureSpin)
+    (hdiss : ∀ᵐ x ∂ν, Tendsto (fun k ↦ f ((τ k).spin i x)) atTop (𝓝 0))
+    (hpres : ∀ μ ∈ G (Potential.gibbsSpecificationOfSigmaFiniteAdmissible Φ ν β hadm), ∀ k,
+      MeasurePreserving (τ k).toFun μ μ) :
+    G (Potential.gibbsSpecificationOfSigmaFiniteAdmissible Φ ν β hadm) = ∅ := by
+  refine Specification.G_lambdaSpecification_eq_empty_of_dissipative _ hadm
+    (fun Λ η ↦ (Potential.boltzmannFactor_pos (Φ := Φ) β Λ η).ne') hf hM hfM hf0 i
+    (fun k ↦ ((τ k).spin i).measurable) hdiss fun μ hμ k ↦ ?_
+  have hprob : IsProbabilityMeasure μ := hμ.1
+  rw [Measure.map_map ((τ k).spin i).measurable (measurable_pi_apply i)]
+  have : ((τ k).spin i) ∘ (fun ω : S → E ↦ ω i) = (fun ω ↦ ω i) ∘ (τ k).toFun := by
+    funext ω
+    simp only [Function.comp_apply, (hτ k).toFun_apply]
+  rw [this, ← Measure.map_map (measurable_pi_apply i) (τ k).measurable_toFun, (hpres μ hμ k).map_eq]
+
+end MeasureTheory.GibbsMeasure
+
+
 
 end

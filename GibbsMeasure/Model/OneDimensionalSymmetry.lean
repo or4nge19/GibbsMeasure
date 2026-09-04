@@ -363,38 +363,12 @@ theorem G_eq_empty_of_pairDefectBound_ne_top_of_dissipative [Countable S] [Stand
     (hC : pairDefectBound φ τ ≠ ⊤) {f : E → ℝ≥0∞} (hf : Measurable f) {M : ℝ≥0∞} (hM : M ≠ ⊤)
     (hfM : ∀ x, f x ≤ M) (hf0 : ∫⁻ x, f x ∂ν ≠ 0) (i : S)
     (hdiss : ∀ᵐ x ∂ν, Tendsto (fun k ↦ f ((τ.spin i)^[k] x)) atTop (𝓝 0)) :
-    G (gibbsSpecificationOfSigmaFiniteAdmissible (pair φ) ν β hadm) = ∅ := by
-  rw [Set.eq_empty_iff_forall_notMem]
-  intro μ hμ
-  have hprob : IsProbabilityMeasure μ := hμ.1
-  have hpres := measurePreserving_of_pairDefectBound_ne_top ν hβ hadm hτ hτν hsym hC hμ
-  set mi := μ.map (fun ω ↦ ω i) with hmi
-  have hac1 : mi ≪ ν :=
-    Specification.map_eval_absolutelyContinuous_of_mem_G ν
-      (isPremodifier_boltzmannFactor (Φ := pair φ) β) hadm hμ i
-  have hac2 : ν ≪ mi :=
-    Specification.absolutelyContinuous_map_eval_of_mem_G ν
-      (isPremodifier_boltzmannFactor (Φ := pair φ) β) hadm
-      (fun Λ η ↦ (boltzmannFactor_pos (Φ := pair φ) β Λ η).ne') hμ i
-  have hpos : ∫⁻ x, f x ∂mi ≠ 0 := by
-    intro h0
-    rw [lintegral_eq_zero_iff hf] at h0
-    exact hf0 (by rw [lintegral_congr_ae (hac2.ae_le h0)]; simp)
-  have hlim : ∀ᵐ ω ∂μ, Tendsto (fun k ↦ f ((τ.spin i)^[k] (ω i))) atTop (𝓝 0) :=
-    ae_of_ae_map (measurable_pi_apply i).aemeasurable (hac1.ae_le hdiss)
-  have hconst : ∀ k, ∫⁻ ω, f ((τ.spin i)^[k] (ω i)) ∂μ = ∫⁻ x, f x ∂mi := fun k ↦ by
-    rw [hmi, lintegral_map hf (measurable_pi_apply i)]
-    have := (hpres.iterate k).lintegral_comp (f := fun ω ↦ f (ω i))
-      (hf.comp (measurable_pi_apply i))
-    rw [← this]
-    exact lintegral_congr fun ω ↦ by rw [hτ.iterate_toFun_apply]
-  have htend := tendsto_lintegral_of_dominated_convergence (μ := μ)
-    (F := fun k ω ↦ f ((τ.spin i)^[k] (ω i))) (f := fun _ ↦ 0) (fun _ ↦ M)
-    (fun k ↦ hf.comp (((τ.spin i).measurable.iterate k).comp (measurable_pi_apply i)))
-    (fun k ↦ Filter.Eventually.of_forall fun ω ↦ hfM _)
-    (by simp [hM]) hlim
-  simp only [hconst, lintegral_zero] at htend
-  exact hpos (tendsto_nhds_unique tendsto_const_nhds htend)
+    G (gibbsSpecificationOfSigmaFiniteAdmissible (pair φ) ν β hadm) = ∅ :=
+  G_gibbsSpecificationOfSigmaFiniteAdmissible_eq_empty_of_dissipative ν β hadm hf hM hfM hf0 i
+    (τ := fun k ↦ τ ^ k) (fun k ↦ hτ.pow k)
+    (by simpa only [hτ.pow_spin_apply] using hdiss) fun μ hμ k ↦ by
+      rw [Transformation.pow_toFun]
+      exact (measurePreserving_of_pairDefectBound_ne_top ν hβ hadm hτ hτν hsym hC hμ).iterate k
 
 end Bound
 

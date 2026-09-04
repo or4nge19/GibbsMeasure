@@ -519,6 +519,79 @@ lemma iSup_enorm_pair_ne_top {φ : S → S → E → E → ℝ}
   · rw [pair_eq_zero φ hA]
     simp
 
+/-- The site norm of a pair potential is bounded by the row sums of a symmetric bound on the
+interactions: `‖Φ‖_i ≤ ∑_j M(i, j)` whenever `‖φ_{ij}‖_∞ ≤ M(i, j) = M(j, i)` for `i < j`. -/
+theorem normAt_pair_le {φ : S → S → E → E → ℝ} {M : S → S → ℝ≥0∞}
+    (hM : ∀ i j, i < j → ∀ x y, ‖φ i j x y‖ₑ ≤ M i j) (hMsymm : ∀ i j, M i j = M j i) (i : S) :
+    (pair φ).normAt i ≤ ∑' j, M i j := by
+  classical
+  let N : S → S → ℝ≥0∞ := fun a b ↦ if a = i ∨ b = i then M a b else 0
+  have hpt : ∀ A : Finset S,
+      {A : Finset S | i ∈ A}.indicator (fun A ↦ ⨆ η, ‖pair φ A η‖ₑ) A ≤ pairTerms N A := by
+    intro A
+    rcases exists_lt_pair_or A with ⟨a, b, hab, rfl⟩ | hA
+    · rw [pairTerms_pair hab]
+      by_cases hi : i ∈ ({a, b} : Finset S)
+      · rw [Set.indicator_of_mem (show ({a, b} : Finset S) ∈ {A : Finset S | i ∈ A} from hi)]
+        simp only [N, Finset.mem_insert, Finset.mem_singleton] at hi ⊢
+        rw [ite_eq_left (show a = i ∨ b = i by rcases hi with rfl | rfl <;> simp)]
+        refine iSup_le fun η ↦ ?_
+        rw [pair_pair φ hab]
+        exact hM a b hab _ _
+      · rw [Set.indicator_of_notMem (show ({a, b} : Finset S) ∉ {A : Finset S | i ∈ A} from hi)]
+        exact bot_le
+    · rw [pairTerms_eq_zero hA]
+      by_cases hi : i ∈ A
+      · rw [Set.indicator_of_mem (show A ∈ {A : Finset S | i ∈ A} from hi)]
+        refine iSup_le fun η ↦ ?_
+        rw [pair_apply, pairTerms_eq_zero hA, enorm_zero]
+      · rw [Set.indicator_of_notMem (show A ∉ {A : Finset S | i ∈ A} from hi)]
+  refine le_trans (ENNReal.tsum_le_tsum hpt) ?_
+  rw [tsum_pairTerms]
+  let G₁ : S × S → ℝ≥0∞ := fun q ↦ if q.1 = i then (if i < q.2 then M i q.2 else 0) else 0
+  let G₂ : S × S → ℝ≥0∞ := fun q ↦ if q.2 = i then (if q.1 < i then M q.1 i else 0) else 0
+  have hsplit : ∀ q : S × S, (if q.1 < q.2 then N q.1 q.2 else 0) ≤ G₁ q + G₂ q := by
+    intro q
+    simp only [N, G₁, G₂]
+    by_cases h : q.1 < q.2
+    · rw [ite_eq_left h]
+      by_cases h1 : q.1 = i
+      · rw [ite_eq_left (Or.inl h1), ite_eq_left h1, h1, ite_eq_left (h1 ▸ h)]
+        exact le_self_add
+      · by_cases h2 : q.2 = i
+        · rw [ite_eq_left (Or.inr h2), ite_eq_right h1, ite_eq_left h2, h2, ite_eq_left (h2 ▸ h),
+            zero_add]
+        · rw [ite_eq_right (by tauto)]
+          exact bot_le
+    · rw [ite_eq_right h]
+      exact bot_le
+  refine le_trans (ENNReal.tsum_le_tsum hsplit) ?_
+  rw [ENNReal.tsum_add]
+  have h₁ : ∑' q : S × S, G₁ q = ∑' j, if i < j then M i j else 0 := by
+    rw [ENNReal.tsum_prod' (f := G₁)]
+    simp only [G₁]
+    rw [show (∑' a, ∑' b, if a = i then (if i < b then M i b else 0) else 0) =
+        ∑' a, if a = i then (∑' b, if i < b then M i b else 0) else 0 from
+      tsum_congr fun a ↦ by split_ifs <;> simp]
+    exact tsum_ite_eq i _
+  have h₂ : ∑' q : S × S, G₂ q = ∑' j, if j < i then M j i else 0 := by
+    rw [ENNReal.tsum_prod' (f := G₂)]
+    simp only [G₂]
+    exact tsum_congr fun a ↦ tsum_ite_eq i _
+  rw [h₁, h₂, ← ENNReal.tsum_add]
+  refine ENNReal.tsum_le_tsum fun j ↦ ?_
+  rcases lt_trichotomy i j with h | rfl | h
+  · rw [ite_eq_left h, ite_eq_right (not_lt.2 h.le), add_zero]
+  · simp
+  · rw [ite_eq_right (not_lt.2 h.le), ite_eq_left h, zero_add, hMsymm]
+
+/-- A pair potential is absolutely summable when the interactions admit a symmetric bound with
+finite row sums: `‖φ_{ij}‖_∞ ≤ M(i, j) = M(j, i)` and `∑_j M(i, j) < ∞` for every `i`. -/
+theorem isAbsolutelySummable_pair {φ : S → S → E → E → ℝ} {M : S → S → ℝ≥0∞}
+    (hM : ∀ i j, i < j → ∀ x y, ‖φ i j x y‖ₑ ≤ M i j) (hMsymm : ∀ i j, M i j = M j i)
+    (hfin : ∀ i, ∑' j, M i j ≠ ⊤) : IsAbsolutelySummable (pair φ) where
+  normAt_ne_top i := ne_top_of_le_ne_top (hfin i) (normAt_pair_le hM hMsymm i)
+
 variable (φ : ℤ → E → E → ℝ)
 
 omit [MeasurableSpace E] in

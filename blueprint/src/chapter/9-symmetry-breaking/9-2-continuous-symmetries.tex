@@ -88,3 +88,41 @@ $\mathbb Z^2$ with the maximum norm, $c_0 = 8$.
     profile is a localized version of $\tau^u$ on $(\Delta, \set{\|\cdot\| < N + L})$, and Lemma
     \ref{lem:cs-9-28} gives the energy condition of Theorem \ref{thm:sb-9-3} with $c = 1/2$.
 \end{proof}
+
+\begin{example}[Georgii (9.22)--(9.23): plane rotors and Heisenberg models]
+    \label{ex:cs-9-22}
+    \uses{thm:cs-9-20, def:cs-log-decay}
+    \lean{MeasureTheory.GibbsMeasure.longRangeRotor, MeasureTheory.GibbsMeasure.measurePreserving_spinRotation_longRangeRotor, MeasureTheory.GibbsMeasure.shlosmanRotor, MeasureTheory.GibbsMeasure.measurePreserving_spinRotation_shlosmanRotor, MeasureTheory.GibbsMeasure.heisenbergPair, MeasureTheory.GibbsMeasure.measurePreserving_sphereRotation_heisenbergPair, MeasureTheory.GibbsMeasure.measurePreserving_sphereRotation_of_det_pos_heisenbergPair, MeasureTheory.GibbsMeasure.measurePreserving_sphereRotation_of_det_pos_heisenbergPair_int_lex, LinearIsometryEquiv.exists_list_orthogonalExtend_rotation_prod_of_det_pos}
+    \leanok
+
+    On $S = \mathbb Z^2$ with $E = S^1$ and Haar measure: (1) the long-range plane rotor
+    $\varphi_{ij}(x, y) = -|i - j|^{-p}\cos(y - x)$, $p \geq 4$, and (2) Shlosman's rotator with
+    $-\cos$ on the diagonal bonds and $\cos^2$ on the nearest-neighbour bonds, have every Gibbs
+    measure, at every $\beta$, invariant under all rotations. (9.23): for $E = S^{N-1}$ with the
+    surface measure and $\varphi_{ij}(x,y) = -K(i,j)\langle x, y\rangle$, $|K(i,j)| \leq
+    K_0|i-j|^{-4}$, every Gibbs measure is invariant under $SO(N)$, $N \geq 2$.
+\end{example}
+\begin{proof}
+    \leanok
+    Theorem \ref{thm:cs-9-20}: rotor interactions depend on $y - x$, and $\sum_{j}|i-j|^{-4}
+    d(i,j)^2 \leq K\log n$ on $\mathbb Z^2$; bounded finite range gives (9.21) directly. For
+    $SO(N)$, every rotation with positive determinant is a product of plane rotations
+    (Cartan--Dieudonn\'e), each a one-parameter group with $C^2$ orbits.
+\end{proof}
+
+\begin{corollary}[Georgii (9.24)]
+    \label{cor:cs-9-24}
+    \uses{thm:cs-9-20}
+    \lean{MeasureTheory.GibbsMeasure.G_eq_empty_of_logDecay_of_dissipative}
+    \leanok
+
+    Under the hypotheses of Theorem \ref{thm:cs-9-20}, if the symmetry group is dissipative
+    at some site $i$ (there are $t_k$ and a bounded measurable $f \geq 0$ with
+    $\lambda(f) \neq 0$ and $f \circ \tau_i^{t_k} \to 0$ $\lambda$-a.s.) then
+    $\mathcal G(\beta\Phi) = \emptyset$.
+\end{corollary}
+\begin{proof}
+    \leanok
+    An invariant probability measure gives $\mu(f) = \mu(f\circ\tau^{t_k}) \to 0$ against the
+    single-site marginal, which is equivalent to $\lambda$.
+\end{proof}
