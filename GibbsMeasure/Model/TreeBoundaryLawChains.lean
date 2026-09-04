@@ -29,8 +29,9 @@ Georgii's own proof of (12.6) needs nothing more exotic — see the `## Georgii 
 section below for the full account, including exactly which hypotheses are used. **Corollary
 (12.18)** is now formalised too (see its own section below), generalised to any locally finite
 tree and any transfer family (Georgii's `𝒞𝒯(d)`/complete homogeneity are not used by the proof).
-**Comments (12.3)(3), (5), (6)** and Georgii's remark after Definition (12.1) (Gibbs measures of
-a Markov specification are Markov fields) are formalised in the last four sections of this file.
+**Comments (12.3)(1), (3), (5), (6)** and Georgii's remark after Definition (12.1) (Gibbs measures
+of a Markov specification are Markov fields) are formalised in the last five sections of this
+file.
 
 ## What is proved here
 
@@ -54,6 +55,15 @@ a Markov specification are Markov fields) are formalised in the last four sectio
 * **Georgii, after Definition (12.1)**: `IsGibbsMeasure.isMarkovField_of_isMarkovSpecification`
   — every Gibbs measure of a Markov specification is a Markov field (`IsMarkovField`, defined in
   `TreeBoundaryLaw.lean`).
+* **Comment (12.3)(1)**: `IsMarkovChain.condExp_cylinderEvents_past_ae_eq` — a Markov chain on a
+  locally finite tree satisfies `μ(A | 𝓕_{]-∞, ij[}) = μ(A | 𝓕_{i})` for *every* event `A` of the
+  future `𝓕_{]ij, ∞[}`, not only for `A = {σ_j = y}` as Definition (12.2) demands;
+  `isMarkovChain_iff_forall_condExp_cylinderEvents_past` is the resulting equivalent form of
+  Definition (12.2) (the companion of `isMarkovChain_iff_forall_measure_preimage_inter` in
+  `TreeBoundaryLaw.lean`). The two sides of the bond are `G.past i j` and `G.past j i`, so the
+  future needs no definition of its own; the graph input is that the bond `ij` is the only bond
+  joining them (`SimpleGraph.IsAcyclic.eq_of_adj_of_mem_past_of_mem_past_swap`) and that they
+  cover `S` (`SimpleGraph.IsTree.mem_past_or_mem_past_swap`).
 * **Comment (12.3)(6)**: `IsMarkovChain.isMarkovField` — every Markov chain on a locally finite
   tree is a Markov field, by Georgii's argument: the factorisation
   `IsMarkovChain.exists_measure_cyl_eq_mul` of `μ(σ_Δ = ·)` from (12.4), the summed identity
@@ -847,17 +857,6 @@ theorem treeExhaustion_cofinal (Λ₀ : Finset S) :
 
 end TreeExhaustion
 
-omit [DecidableEq S] in
-/-- On any graph, the two "sides" `G.past j i` and `G.past i j` of an oriented pair are disjoint:
-`x ∈ G.past j i` means `dist x i = dist x j + 1`, while `x ∈ G.past i j` means
-`dist x j = dist x i + 1`; both together force `dist x i = dist x i + 2`. Purely arithmetic, no
-tree structure needed. -/
-theorem notMem_past_of_mem_past_swap {G : SimpleGraph S} {i j x : S} (hx : x ∈ G.past j i) :
-    x ∉ G.past i j := by
-  intro hx'
-  rw [SimpleGraph.mem_past] at hx hx'
-  omega
-
 section OuterBoundaryTreeExhaustion
 
 variable [Countable S] (G : SimpleGraph S) [G.LocallyFinite] (hGc : G.Connected) {root cut : S}
@@ -924,7 +923,7 @@ theorem exists_isMarkovChain_of_mem_extremePoints [Countable S] {G : SimpleGraph
     · exact hx.2
   have hPastIJSubsetCompl : ∀ n, (G.past i j : Set S) ⊆ (Λn n : Set S)ᶜ := by
     intro n x hx hx'
-    exact notMem_past_of_mem_past_swap (hΛnPast n x hx') hx
+    exact SimpleGraph.notMem_past_of_mem_past_swap (hΛnPast n x hx') hx
   have hTle : (⨅ n, cylinderEvents (X := fun _ : S ↦ E) (T n)) ≤ tailSigmaAlgebra S E := by
     refine le_iInf fun Λ₀ ↦ ?_
     obtain ⟨n, hn⟩ := treeExhaustion_cofinal G hGT.connected Λ₀
@@ -1685,6 +1684,335 @@ theorem IsMarkovChain.isMarkovField [Nonempty E] (hμ : IsMarkovChain G μ) (hG 
   exact h1.symm.trans h2
 
 end MarkovChainIsMarkovField
+
+/-! ## Comment (12.3)(1): the one-sided Markov property for arbitrary future events
+
+Definition (12.2) requires `μ(σ_j = y | 𝓕_{]-∞, ij[}) = μ(σ_j = y | 𝓕_{i})` only for the single
+site `j`. Georgii's Comment (12.3)(1) is that "standard arguments" upgrade this to
+`μ(A | 𝓕_{]-∞, ij[}) = μ(A | 𝓕_{i})` for every event `A ∈ 𝓕_{]ij, ∞[}` of the whole future.
+Here `]-∞, ij[ = G.past i j` and `]ij, ∞[ = G.past j i` (Georgii's two "intervals" are the two
+sides of the bond, so the future needs no separate definition).
+
+The standard argument is the one Georgii himself runs for (12.4) and (12.3)(6): grow a connected
+`Δ ∋ i` outward from `{i}`, one boundary vertex at a time. Every transition factor
+`P_{am}(ξ_a, ξ_m)` produced by that induction has both endpoints on the same side of the bond `ij`
+-- because the bond `ij` is the *only* bond of a tree joining the two sides
+(`SimpleGraph.IsAcyclic.eq_of_adj_of_mem_past_of_mem_past_swap`), and every vertex lies on one of
+them (`SimpleGraph.IsTree.mem_past_or_mem_past_swap`) -- so `μ(σ_Δ = ξ)` factorises into a
+function of the future spins together with `ξ_i` and a function of the past spins
+(`IsMarkovChain.exists_measure_cyl_eq_mul_past`). Summing out the spins outside a past set `W ∋ i`
+and a future set `D` turns this into the finite-dimensional conditional independence
+`μ(σ_W = ·, σ_D = ·) μ(σ_i = ·) = μ(σ_i = ·, σ_D = ·) μ(σ_W = ·)`
+(`IsMarkovChain.measure_cyl_union_mul_measure_cyl_singleton`), and two π-system extensions
+(`measure_eq_of_forall_cyl`, once in the future variable and once in the past variable) give the
+comment. -/
+
+section MarkovChainPastFuture
+
+variable {G : SimpleGraph S} [G.LocallyFinite] {μ : Measure (S → E)}
+
+/-- **The factorisation behind Comment (12.3)(1).** For a Markov chain `μ` on a tree, an oriented
+bond `ij` and a connected `Δ ∋ i`, the cylinder probabilities `μ(σ_Δ = ξ)` factorise as `F(ξ) H(ξ)`
+with `F` a function of the spins on the future `]ij, ∞[` together with `ξ_i` and `H` a function of
+the spins on the past `]-∞, ij[`: growing `Δ` from `{i}` one boundary vertex at a time (Georgii's
+induction for (12.4)), each new transition factor `P_{am}(ξ_a, ξ_m)` has both endpoints on the
+same side of `ij`, except for the factor of the bond `ij` itself, which is a function of
+`(ξ_i, ξ_j)`. -/
+theorem IsMarkovChain.exists_measure_cyl_eq_mul_past (hμ : IsMarkovChain G μ) (hG : G.IsTree)
+    {i j : S} (hij : G.Adj i j) {Δ : Finset S} (hΔ : (G.induce (Δ : Set S)).Connected)
+    (hiΔ : i ∈ Δ) :
+    ∃ F H : (S → E) → ℝ≥0∞, Measurable F ∧ Measurable H ∧
+      DependsOn F (insert i (G.past j i)) ∧ DependsOn H (G.past i j) ∧
+      ∀ ξ, μ (cyl Δ ξ) = F ξ * H ξ := by
+  refine SimpleGraph.connected_induction (P := fun Δ' ↦ ∃ F H : (S → E) → ℝ≥0∞,
+      Measurable F ∧ Measurable H ∧ DependsOn F (insert i (G.past j i)) ∧
+      DependsOn H (G.past i j) ∧ ∀ ξ, μ (cyl Δ' ξ) = F ξ * H ξ)
+    (connected_induce_singleton i) hΔ (Finset.singleton_subset_iff.2 hiΔ) ?_ ?_
+  · refine ⟨fun _ ↦ 1, fun ξ ↦ μ (cyl {i} ξ), measurable_const, measurable_measure_cyl μ _,
+      fun _ _ _ ↦ rfl, fun ξ ξ' h ↦ ?_, fun ξ ↦ (one_mul _).symm⟩
+    exact congrArg μ (cyl_congr fun m hm ↦ by
+      rw [Finset.mem_singleton.1 hm]
+      exact h i (SimpleGraph.mem_past_self_of_adj hij))
+  · rintro Λ hΛ hΛ₀ - m - hm ⟨F, H, hF, hH, hFdep, hHdep, hFH⟩
+    have hiΛ : i ∈ Λ := hΛ₀ (Finset.mem_singleton_self i)
+    set a := G.anchor Λ m with ha
+    have hmΛ : m ∉ Λ := G.notMem_of_mem_outerBoundary hm
+    have haΛ : a ∈ Λ := G.anchor_mem hm
+    have ham : G.Adj a m := (G.adj_anchor hm).symm
+    have hpast : (Λ : Set S) ⊆ G.past a m := fun x hx ↦
+      hG.isAcyclic.mem_past_anchor hΛ hm (Finset.mem_union_left _ (Finset.mem_coe.1 hx))
+        (by rintro rfl; exact hmΛ (Finset.mem_coe.1 hx))
+    have hstep : ∀ ξ, μ (cyl (insert m Λ) ξ)
+        = transitionProb μ a m (ξ a) (ξ m) * μ (cyl Λ ξ) := fun ξ ↦ by
+      rw [cyl_insert_eq_inter]
+      exact hμ.measure_preimage_inter_cyl ham hpast haΛ ξ (ξ m)
+    set φ : (S → E) → ℝ≥0∞ := fun ξ ↦ transitionProb μ a m (ξ a) (ξ m) with hφ
+    have hφm : Measurable φ := measurable_pair (transitionProb μ a m) a m
+    have hφdep : ∀ T : Set S, a ∈ T → m ∈ T → DependsOn φ T := fun T haT hmT ξ ξ' h ↦ by
+      simp only [hφ, h a haT, h m hmT]
+    rcases hG.mem_past_or_mem_past_swap hij m with hmp | hmp
+    · have hap : a ∈ G.past i j := by
+        rcases hG.mem_past_or_mem_past_swap hij a with hap | hap
+        · exact hap
+        · exact absurd hiΛ ((hG.isAcyclic.eq_of_adj_of_mem_past_of_mem_past_swap hG.connected
+            hij.symm hap hmp ham).2 ▸ hmΛ)
+      refine ⟨F, fun ξ ↦ H ξ * φ ξ, hF, hH.mul hφm, hFdep, fun ξ ξ' h ↦ ?_, fun ξ ↦ ?_⟩
+      · simp only
+        rw [hHdep h, hφdep _ hap hmp h]
+      · rw [hstep, hFH]; ring
+    · have hap : a ∈ insert i (G.past j i) := by
+        rcases hG.mem_past_or_mem_past_swap hij a with hap | hap
+        · exact Set.mem_insert_iff.2 (Or.inl
+            (hG.isAcyclic.eq_of_adj_of_mem_past_of_mem_past_swap hG.connected hij hap hmp ham).1)
+        · exact Set.mem_insert_of_mem _ hap
+      refine ⟨fun ξ ↦ F ξ * φ ξ, H, hF.mul hφm, hH, fun ξ ξ' h ↦ ?_, hHdep, fun ξ ↦ ?_⟩
+      · simp only
+        rw [hFdep h, hφdep _ hap (Set.mem_insert_of_mem _ hmp) h]
+      · rw [hstep, hFH]; ring
+
+/-- **The finite-dimensional conditional independence behind Comment (12.3)(1).** For a Markov
+chain on a tree, a finite `W ∋ i` on the past side `]-∞, ij[` of a bond and a finite `D` on the
+future side `]ij, ∞[`, `μ(σ_W = ξ, σ_D = ξ) μ(σ_i = ξ_i) = μ(σ_i = ξ_i, σ_D = ξ) μ(σ_W = ξ)`:
+past and future are independent given the spin at `i`. -/
+theorem IsMarkovChain.measure_cyl_union_mul_measure_cyl_singleton (hμ : IsMarkovChain G μ)
+    (hG : G.IsTree) {i j : S} (hij : G.Adj i j) {W D : Finset S}
+    (hW : ∀ k ∈ W, k ∈ G.past i j) (hiW : i ∈ W) (hD : ∀ k ∈ D, k ∈ G.past j i) (ξ : S → E) :
+    μ (cyl (W ∪ D) ξ) * μ (cyl {i} ξ) = μ (cyl (insert i D) ξ) * μ (cyl W ξ) := by
+  classical
+  set Δ := SimpleGraph.hull hG.connected i (W ∪ D) with hΔdef
+  have hsubΔ : W ∪ D ⊆ Δ := SimpleGraph.subset_hull hG.connected i (W ∪ D)
+  obtain ⟨F, H, hF, hH, hFdep, hHdep, hFH⟩ := hμ.exists_measure_cyl_eq_mul_past hG hij
+    (SimpleGraph.connected_induce_hull hG.connected i (W ∪ D))
+    (SimpleGraph.mem_hull_self hG.connected i (W ∪ D))
+  set Δp := Δ.filter (fun k ↦ k ∈ G.past i j) with hΔpdef
+  set Δf := Δ.filter (fun k ↦ k ∈ G.past j i) with hΔfdef
+  have hΔp : ∀ k, k ∈ Δp ↔ k ∈ Δ ∧ k ∈ G.past i j := fun k ↦ by rw [hΔpdef, Finset.mem_filter]
+  have hΔf : ∀ k, k ∈ Δf ↔ k ∈ Δ ∧ k ∈ G.past j i := fun k ↦ by rw [hΔfdef, Finset.mem_filter]
+  have hWΔp : W ⊆ Δp := fun k hk ↦ (hΔp k).2 ⟨hsubΔ (Finset.mem_union_left _ hk), hW k hk⟩
+  have hDΔf : D ⊆ Δf := fun k hk ↦ (hΔf k).2 ⟨hsubΔ (Finset.mem_union_right _ hk), hD k hk⟩
+  have hiΔp : ({i} : Finset S) ⊆ Δp := Finset.singleton_subset_iff.2 (hWΔp hiW)
+  have key : ∀ P Q : Finset S, P ⊆ Δp → i ∈ P → Q ⊆ Δf →
+      μ (cyl (P ∪ Q) ξ)
+        = (∫⁻ ζ, F ζ ∂(λ₀ (Δf \ Q) ξ)) * ∫⁻ ζ, H ζ ∂(λ₀ (Δp \ P) ξ) := by
+    intro P Q hP hiP hQ
+    have hPQ : P ∪ Q ⊆ Δ := Finset.union_subset
+      (hP.trans fun k hk ↦ ((hΔp k).1 hk).1) (hQ.trans fun k hk ↦ ((hΔf k).1 hk).1)
+    have hMeq : Δ \ (P ∪ Q) = Δp \ P ∪ Δf \ Q := by
+      ext k
+      simp only [Finset.mem_sdiff, Finset.mem_union, hΔp, hΔf]
+      constructor
+      · rintro ⟨hkΔ, hk⟩
+        rcases hG.mem_past_or_mem_past_swap hij k with h | h
+        · exact Or.inl ⟨⟨hkΔ, h⟩, fun hkP ↦ hk (Or.inl hkP)⟩
+        · exact Or.inr ⟨⟨hkΔ, h⟩, fun hkQ ↦ hk (Or.inr hkQ)⟩
+      · rintro (⟨⟨hkΔ, hkp⟩, hkP⟩ | ⟨⟨hkΔ, hkf⟩, hkQ⟩)
+        · exact ⟨hkΔ, fun h ↦ h.elim hkP fun hkQ ↦
+            SimpleGraph.notMem_past_of_mem_past_swap ((hΔf k).1 (hQ hkQ)).2 hkp⟩
+        · exact ⟨hkΔ, fun h ↦ h.elim (fun hkP ↦
+            SimpleGraph.notMem_past_of_mem_past_swap hkf ((hΔp k).1 (hP hkP)).2) hkQ⟩
+    have hMdisj : Disjoint (Δp \ P) (Δf \ Q) := Finset.disjoint_left.2 fun k hk hk' ↦
+      SimpleGraph.notMem_past_of_mem_past_swap ((hΔf k).1 (Finset.mem_sdiff.1 hk').1).2
+        ((hΔp k).1 (Finset.mem_sdiff.1 hk).1).2
+    have hT₁ : ∀ k ∈ G.past i j, k ∉ Δf \ Q := fun k hk hk' ↦
+      SimpleGraph.notMem_past_of_mem_past_swap ((hΔf k).1 (Finset.mem_sdiff.1 hk').1).2 hk
+    have hT₂ : ∀ k ∈ insert i (G.past j i), k ∉ Δp \ P := by
+      rintro k hk hk'
+      rcases Set.mem_insert_iff.1 hk with rfl | hk
+      · exact (Finset.mem_sdiff.1 hk').2 hiP
+      · exact SimpleGraph.notMem_past_of_mem_past_swap hk ((hΔp k).1 (Finset.mem_sdiff.1 hk').1).2
+    have hΦm : Measurable fun ζ : S → E ↦ ∫⁻ ζ', F ζ' ∂(λ₀ (Δf \ Q) ζ) :=
+      measurable_lintegral_lambdaCount _ hF
+    have hΦdep : DependsOn (fun ζ : S → E ↦ ∫⁻ ζ', F ζ' ∂(λ₀ (Δf \ Q) ζ))
+        (insert i (G.past j i)) := fun ζ ζ' h ↦
+      lintegral_lambdaCount_congr_of_dependsOn hF hFdep fun k hk _ ↦ h k hk
+    have hinner : ∀ ζ : S → E, ∫⁻ ζ', μ (cyl Δ ζ') ∂(λ₀ (Δf \ Q) ζ)
+        = (∫⁻ ζ', F ζ' ∂(λ₀ (Δf \ Q) ζ)) * H ζ := fun ζ ↦
+      calc ∫⁻ ζ', μ (cyl Δ ζ') ∂(λ₀ (Δf \ Q) ζ)
+          = ∫⁻ ζ', H ζ' * F ζ' ∂(λ₀ (Δf \ Q) ζ) :=
+            lintegral_congr fun ζ' ↦ (hFH ζ').trans (mul_comm _ _)
+        _ = H ζ * ∫⁻ ζ', F ζ' ∂(λ₀ (Δf \ Q) ζ) :=
+            lintegral_lambdaCount_mul_of_dependsOn hH hF hHdep hT₁ ζ
+        _ = (∫⁻ ζ', F ζ' ∂(λ₀ (Δf \ Q) ζ)) * H ζ := mul_comm _ _
+    calc μ (cyl (P ∪ Q) ξ)
+        = ∫⁻ ζ, μ (cyl (P ∪ Q ∪ (Δ \ (P ∪ Q))) ζ) ∂(λ₀ (Δ \ (P ∪ Q)) ξ) :=
+          measure_cyl_eq_lintegral_lambdaCount μ Finset.disjoint_sdiff ξ
+      _ = ∫⁻ ζ, μ (cyl Δ ζ) ∂(λ₀ (Δp \ P ∪ Δf \ Q) ξ) := by
+          rw [Finset.union_sdiff_of_subset hPQ, hMeq]
+      _ = ∫⁻ ζ, ∫⁻ ζ', μ (cyl Δ ζ') ∂(λ₀ (Δf \ Q) ζ) ∂(λ₀ (Δp \ P) ξ) :=
+          lintegral_lambdaCount_union hMdisj ξ (measurable_measure_cyl μ Δ)
+      _ = ∫⁻ ζ, (∫⁻ ζ', F ζ' ∂(λ₀ (Δf \ Q) ζ)) * H ζ ∂(λ₀ (Δp \ P) ξ) :=
+          lintegral_congr hinner
+      _ = (∫⁻ ζ, F ζ ∂(λ₀ (Δf \ Q) ξ)) * ∫⁻ ζ, H ζ ∂(λ₀ (Δp \ P) ξ) :=
+          lintegral_lambdaCount_mul_of_dependsOn hΦm hH hΦdep hT₂ ξ
+  have h1 := key W D hWΔp hiW hDΔf
+  have h2 := key {i} ∅ hiΔp (Finset.mem_singleton_self i) (Finset.empty_subset _)
+  have h3 := key {i} D hiΔp (Finset.mem_singleton_self i) hDΔf
+  have h4 := key W ∅ hWΔp hiW (Finset.empty_subset _)
+  rw [Finset.union_empty] at h2 h4
+  rw [← Finset.insert_eq] at h3
+  rw [h1, h2, h3, h4]
+  ring
+
+/-- **Comment (12.3)(1), the conditional independence for an arbitrary future event.** For a
+Markov chain on a tree, an event `A ∈ 𝓕_{]ij, ∞[}` of the future and a finite `W ∋ i` in the past,
+`μ(A, σ_W = η) μ(σ_i = η_i) = μ(A, σ_i = η_i) μ(σ_W = η)`: the cylinders over the future are a
+π-system generating `𝓕_{]ij, ∞[}`, on which the two finite measures
+`μ(σ_i = η_i) μ(· ∩ {σ_W = η})` and `μ(σ_W = η) μ(· ∩ {σ_i = η_i})` agree by
+`IsMarkovChain.measure_cyl_union_mul_measure_cyl_singleton`. -/
+theorem IsMarkovChain.measure_inter_cyl_mul_measure_cyl_singleton [Nonempty E]
+    (hμ : IsMarkovChain G μ) (hG : G.IsTree) {i j : S} (hij : G.Adj i j) {A : Set (S → E)}
+    (hA : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (G.past j i)] A)
+    {W : Finset S} (hW : ∀ k ∈ W, k ∈ G.past i j) (hiW : i ∈ W) (η : S → E) :
+    μ (A ∩ cyl W η) * μ (cyl {i} η) = μ (A ∩ cyl {i} η) * μ (cyl W η) := by
+  classical
+  have hprob := hμ.isProbabilityMeasure
+  have hAm : MeasurableSet A := cylinderEvents_le_pi _ hA
+  have hfin₁ : IsFiniteMeasure
+      ((μ.restrict (cyl W η)).withDensity fun _ ↦ μ (cyl ({i} : Finset S) η)) :=
+    isFiniteMeasure_withDensity (by
+      rw [lintegral_const]
+      exact ENNReal.mul_ne_top (measure_ne_top _ _) (measure_ne_top _ _))
+  have hfin₂ : IsFiniteMeasure
+      ((μ.restrict (cyl ({i} : Finset S) η)).withDensity fun _ ↦ μ (cyl W η)) :=
+    isFiniteMeasure_withDensity (by
+      rw [lintegral_const]
+      exact ENNReal.mul_ne_top (measure_ne_top _ _) (measure_ne_top _ _))
+  have key : ∀ (D : Finset S) (ω : S → E), (D : Set S) ⊆ G.past j i →
+      ((μ.restrict (cyl W η)).withDensity fun _ ↦ μ (cyl ({i} : Finset S) η)) (cyl D ω)
+        = ((μ.restrict (cyl ({i} : Finset S) η)).withDensity fun _ ↦ μ (cyl W η)) (cyl D ω) := by
+    intro D ω hD
+    have hDp : ∀ k ∈ D, k ∈ G.past j i := fun k hk ↦ hD (Finset.mem_coe.2 hk)
+    have hdisj : Disjoint W D := Finset.disjoint_left.2 fun k hk hk' ↦
+      SimpleGraph.notMem_past_of_mem_past_swap (hDp k hk') (hW k hk)
+    set ζ : S → E := fun k ↦ if k ∈ W then η k else ω k with hζdef
+    have hζW : ∀ k ∈ W, ζ k = η k := fun k hk ↦ by simp [hζdef, hk]
+    have hζD : ∀ k ∈ D, ζ k = ω k := fun k hk ↦ by
+      simp [hζdef, Finset.disjoint_right.1 hdisj hk]
+    have hζi : ∀ k ∈ ({i} : Finset S), ζ k = η k := fun k hk ↦ by
+      obtain rfl : k = i := Finset.mem_singleton.1 hk
+      exact hζW _ hiW
+    have hcyl2 : ∀ P : Finset S, (∀ k ∈ P, k ∈ W) → cyl D ω ∩ cyl P η = cyl (P ∪ D) ζ := by
+      intro P hP
+      ext σ
+      simp only [Set.mem_inter_iff, mem_cyl, Finset.mem_union]
+      refine ⟨fun h k hk ↦ ?_, fun h ↦ ⟨fun k hk ↦ (h k (Or.inr hk)).trans (hζD k hk),
+        fun k hk ↦ (h k (Or.inl hk)).trans (hζW k (hP k hk))⟩⟩
+      rcases hk with hk | hk
+      · rw [h.2 k hk, hζW k (hP k hk)]
+      · rw [h.1 k hk, hζD k hk]
+    have hcylW : cyl D ω ∩ cyl W η = cyl (W ∪ D) ζ := hcyl2 W fun _ hk ↦ hk
+    have hcyli : cyl D ω ∩ cyl ({i} : Finset S) η = cyl (insert i D) ζ := by
+      rw [hcyl2 {i} (fun k hk ↦ by
+        obtain rfl : k = i := Finset.mem_singleton.1 hk
+        exact hiW), ← Finset.insert_eq]
+    have hmain := hμ.measure_cyl_union_mul_measure_cyl_singleton hG hij hW hiW hDp ζ
+    rw [cyl_congr (Λ := W) hζW, cyl_congr (Λ := ({i} : Finset S)) hζi] at hmain
+    rw [withDensity_apply _ (measurableSet_cyl _ _), withDensity_apply _ (measurableSet_cyl _ _),
+      setLIntegral_const, setLIntegral_const, Measure.restrict_apply (measurableSet_cyl _ _),
+      Measure.restrict_apply (measurableSet_cyl _ _), hcylW, hcyli,
+      mul_comm (μ (cyl ({i} : Finset S) η)), hmain, mul_comm]
+  have h := measure_eq_of_forall_cyl (V := G.past j i) key hA
+  rw [withDensity_apply _ hAm, withDensity_apply _ hAm, setLIntegral_const, setLIntegral_const,
+    Measure.restrict_apply hAm, Measure.restrict_apply hAm] at h
+  calc μ (A ∩ cyl W η) * μ (cyl ({i} : Finset S) η)
+      = μ (cyl ({i} : Finset S) η) * μ (A ∩ cyl W η) := mul_comm _ _
+    _ = μ (cyl W η) * μ (A ∩ cyl ({i} : Finset S) η) := h
+    _ = μ (A ∩ cyl ({i} : Finset S) η) * μ (cyl W η) := mul_comm _ _
+
+/-- **Georgii, Comment (12.3)(1).** Every Markov chain on a locally finite tree satisfies
+`μ(A | 𝓕_{]-∞, ij[}) = μ(A | 𝓕_{i})` `μ`-a.s. for every oriented bond `ij` and every event `A` of
+the future `𝓕_{]ij, ∞[}`, and not only for `A = {σ_j = y}` as required by Definition (12.2). Both
+sides are the `𝓕_{i}`-measurable function `μ(A, σ_i = ·) / μ(σ_i = ·)`. -/
+theorem IsMarkovChain.condExp_cylinderEvents_past_ae_eq [Nonempty E] (hμ : IsMarkovChain G μ)
+    (hG : G.IsTree) {i j : S} (hij : G.Adj i j) {A : Set (S → E)}
+    (hA : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (G.past j i)] A) :
+    μ[A.indicator (1 : (S → E) → ℝ) | cylinderEvents (X := fun _ : S ↦ E) (G.past i j)]
+      =ᵐ[μ] μ[A.indicator (1 : (S → E) → ℝ)
+        | cylinderEvents (X := fun _ : S ↦ E) ({i} : Set S)] := by
+  have hprob := hμ.isProbabilityMeasure
+  have hAm : MeasurableSet A := cylinderEvents_le_pi _ hA
+  have hiP : i ∈ G.past i j := SimpleGraph.mem_past_self_of_adj hij
+  have hiPs : ({i} : Set S) ⊆ G.past i j := Set.singleton_subset_iff.2 hiP
+  set g : (S → E) → ℝ≥0∞ := fun ξ ↦ (μ.restrict A) (cyl {i} ξ) / μ (cyl {i} ξ) with hgdef
+  have hgm : Measurable g := (measurable_measure_cyl _ _).div (measurable_measure_cyl μ _)
+  have hgdep : DependsOn g ({i} : Set S) := fun ξ ξ' h ↦ by
+    simp only [hgdef]
+    rw [cyl_congr (Λ := ({i} : Finset S)) fun m hm ↦
+      h m (Set.mem_singleton_iff.2 (Finset.mem_singleton.1 hm))]
+  have hgB : Measurable[cylinderEvents (X := fun _ : S ↦ E) ({i} : Set S)] g :=
+    hgm.cylinderEvents_of_dependsOn hgdep
+  have hgP : Measurable[cylinderEvents (X := fun _ : S ↦ E) (G.past i j)] g :=
+    hgB.mono (cylinderEvents_mono hiPs) le_rfl
+  have hgle : ∀ ξ, g ξ ≤ 1 := fun ξ ↦
+    ENNReal.div_le_of_le_mul (by rw [one_mul]; exact Measure.restrict_le_self _)
+  have hgfin : ∀ᵐ ξ ∂μ, g ξ ≠ ⊤ :=
+    ae_of_all _ fun ξ ↦ ne_top_of_le_ne_top ENNReal.one_ne_top (hgle ξ)
+  have hfin : IsFiniteMeasure (μ.withDensity g) :=
+    isFiniteMeasure_withDensity (ne_top_of_le_ne_top (measure_ne_top μ Set.univ)
+      ((lintegral_mono hgle).trans_eq lintegral_one))
+  -- the two finite measures `μ(A ∩ ·)` and `∫_· g dμ` agree on the cylinders over `]-∞, ij[`
+  have hcyl : ∀ (W : Finset S) (ω : S → E), (W : Set S) ⊆ G.past i j →
+      (μ.restrict A) (cyl W ω) = (μ.withDensity g) (cyl W ω) := by
+    intro W ω hWp
+    have hdisj : Disjoint W (insert i W \ W) := Finset.disjoint_sdiff
+    have hunion : W ∪ (insert i W \ W) = insert i W :=
+      Finset.union_sdiff_of_subset (Finset.subset_insert i W)
+    rw [measure_cyl_eq_lintegral_lambdaCount _ hdisj ω,
+      measure_cyl_eq_lintegral_lambdaCount _ hdisj ω, hunion]
+    refine lintegral_congr fun ξ ↦ ?_
+    have hW' : ∀ k ∈ insert i W, k ∈ G.past i j := by
+      intro k hk
+      rcases Finset.mem_insert.1 hk with rfl | hk
+      · exact hiP
+      · exact hWp (Finset.mem_coe.2 hk)
+    have hkey := hμ.measure_inter_cyl_mul_measure_cyl_singleton hG hij hA hW'
+      (Finset.mem_insert_self i W) ξ
+    have hgξ : g ξ = μ (A ∩ cyl ({i} : Finset S) ξ) / μ (cyl ({i} : Finset S) ξ) := by
+      simp only [hgdef]
+      rw [Measure.restrict_apply (measurableSet_cyl _ _),
+        Set.inter_comm (cyl ({i} : Finset S) ξ) A]
+    rw [Measure.restrict_apply (measurableSet_cyl _ _), Set.inter_comm,
+      withDensity_apply _ (measurableSet_cyl _ _),
+      setLIntegral_congr_fun (measurableSet_cyl _ _) (g := fun _ ↦ g ξ) (fun σ hσ ↦
+        hgdep fun m hm ↦ mem_cyl.1 hσ m (by
+          rw [Set.mem_singleton_iff.1 hm]
+          exact Finset.mem_insert_self i W)),
+      setLIntegral_const, hgξ]
+    by_cases h0 : μ (cyl ({i} : Finset S) ξ) = 0
+    · have hsub : cyl (insert i W) ξ ⊆ cyl ({i} : Finset S) ξ :=
+        cyl_mono (Finset.singleton_subset_iff.2 (Finset.mem_insert_self i W)) ξ
+      rw [measure_mono_null (Set.inter_subset_right.trans hsub) h0,
+        measure_mono_null (Set.inter_subset_right (s := A)) h0, ENNReal.zero_div, zero_mul]
+    · rw [div_eq_mul_inv, mul_right_comm, ← div_eq_mul_inv, ← hkey,
+        ENNReal.mul_div_cancel_right h0 (measure_ne_top _ _)]
+  have key : ∀ t, MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (G.past i j)] t →
+      μ (A ∩ t) = ∫⁻ σ in t, g σ ∂μ := fun t ht ↦ by
+    rw [← withDensity_apply _ (cylinderEvents_le_pi _ ht), ← measure_eq_of_forall_cyl hcyl ht,
+      Measure.restrict_apply (cylinderEvents_le_pi _ ht), Set.inter_comm]
+  have h1 := (toReal_ae_eq_indicator_condExp_iff_forall_meas_inter_eq cylinderEvents_le_pi hAm
+    (measure_ne_top _ _) hgP.stronglyMeasurable.aestronglyMeasurable hgfin).2 key
+  have h2 := (toReal_ae_eq_indicator_condExp_iff_forall_meas_inter_eq cylinderEvents_le_pi hAm
+    (measure_ne_top _ _) hgB.stronglyMeasurable.aestronglyMeasurable hgfin).2
+    fun t ht ↦ key t (cylinderEvents_mono hiPs t ht)
+  exact h1.symm.trans h2
+
+/-- **Definition (12.2) and Comment (12.3)(1) are equivalent** on a locally finite tree: a
+probability measure `μ` on `E^S` is a Markov chain iff `μ(A | 𝓕_{]-∞, ij[}) = μ(A | 𝓕_{i})`
+`μ`-a.s. for every oriented bond `ij` and every `A ∈ 𝓕_{]ij, ∞[}`. The forward implication is
+Comment (12.3)(1); the converse is Definition (12.2) itself, the case `A = {σ_j = y}`. -/
+theorem isMarkovChain_iff_forall_condExp_cylinderEvents_past [Nonempty E]
+    [IsProbabilityMeasure μ] (hG : G.IsTree) :
+    IsMarkovChain G μ ↔ ∀ ⦃i j⦄, G.Adj i j → ∀ A : Set (S → E),
+      MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (G.past j i)] A →
+        μ[A.indicator (1 : (S → E) → ℝ) | cylinderEvents (X := fun _ : S ↦ E) (G.past i j)]
+          =ᵐ[μ] μ[A.indicator (1 : (S → E) → ℝ)
+            | cylinderEvents (X := fun _ : S ↦ E) ({i} : Set S)] :=
+  ⟨fun hμ _ _ hij _ hA ↦ hμ.condExp_cylinderEvents_past_ae_eq hG hij hA,
+    fun h ↦ ⟨inferInstance, fun _ _ hij y ↦ h hij _ (measurable_cylinderEvent_apply
+      (X := fun _ : S ↦ E) (SimpleGraph.mem_past_self_of_adj hij.symm)
+      (measurableSet_singleton y))⟩⟩
+
+end MarkovChainPastFuture
 
 /-! ## Comment (12.3)(3): the marginal of a Markov chain on an embedded copy of `ℤ`
 

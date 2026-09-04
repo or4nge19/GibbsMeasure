@@ -304,6 +304,10 @@ status:
       file: "GibbsMeasure/Model/TreeBoundaryLawChains.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Tree.isMarkovChain_iff_forall_condExp_cylinderEvents_past"
+      file: "GibbsMeasure/Model/TreeBoundaryLawChains.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.isCompact_setOf_le_specificEntropy"
       file: "GibbsMeasure/Specification/SpecificEntropy.lean"
       sorry_count: 0
@@ -1171,6 +1175,10 @@ alignment:
         Theorem (12.6): extreme Gibbs measures of a Markov specification on a countable locally
         finite tree are Markov chains, by Levy's downward theorem along the past of each edge and
         tail triviality (7.7)(a); Corollary (12.18) for any locally finite tree and transfer family.
+        (12.3)(1): for a bond ij and A in the future field, mu(A | F_{]-inf,ij[}) = mu(A | F_i)
+        a.s., and this characterises Markov chains (condExp_cylinderEvents_past_ae_eq,
+        isMarkovChain_iff_forall_condExp_cylinderEvents_past); the two sides of a bond are the
+        existing SimpleGraph.past with swapped arguments, no new definition.
         (12.3)(6): Markov chains on trees are Markov fields (IsMarkovField, the local Markov
         property with T_Lambda = F_{S minus Lambda}); (12.3)(3): the marginal on an embedded copy of
         Z is a (10.4)-chain; (12.3)(5): reversibility alpha(x)P(x,y) = alpha(y)P(y,x) is necessary

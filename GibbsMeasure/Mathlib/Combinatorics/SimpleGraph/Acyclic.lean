@@ -17,7 +17,10 @@ one neighbour in `Λ` (`SimpleGraph.IsAcyclic.anchor_eq`), the outer boundary of
 `(∂Λ \ {i}) ∪ (∂i \ {i_Λ})`, and the bonds meeting `insert i Λ` are those meeting `Λ` together
 with the bonds `{i, k}`, `k ∈ ∂i \ {i_Λ}`.
 
-`SimpleGraph.past G i j` is the set of vertices on the `i`-side of an oriented bond `ij`; a graph
+`SimpleGraph.past G i j` is the set of vertices on the `i`-side of an oriented bond `ij`. The two
+sides of a bond of a tree are disjoint (`SimpleGraph.notMem_past_of_mem_past_swap`), cover the
+vertex set (`SimpleGraph.IsTree.mem_past_or_mem_past_swap`), and are joined by that bond only
+(`SimpleGraph.IsAcyclic.eq_of_adj_of_mem_past_of_mem_past_swap`). A graph
 automorphism maps the two sides of a bond onto the two sides of its image
 (`SimpleGraph.Iso.mem_past_iff`, via `SimpleGraph.Iso.dist_eq`), and the image of `]-∞, n[` under
 an embedding `hasse ℤ ↪g G` of `ℤ` into a tree lies on the `f (n - 1)`-side of `f (n - 1) f n`
@@ -307,6 +310,47 @@ lemma IsAcyclic.mem_past_of_mem_support (hG : G.IsAcyclic) {i j k : V} (hij : G.
 lemma notMem_past_self (i j : V) : j ∉ G.past i j := by
   rw [mem_past, dist_self]
   omega
+
+/-- The two sides `G.past i j` and `G.past j i` of an oriented pair are disjoint: `x ∈ G.past j i`
+means `dist x i = dist x j + 1`, while `x ∈ G.past i j` means `dist x j = dist x i + 1`; both
+together force `dist x i = dist x i + 2`. Purely arithmetic, no tree structure needed. -/
+lemma notMem_past_of_mem_past_swap {i j x : V} (hx : x ∈ G.past j i) : x ∉ G.past i j := by
+  intro hx'
+  rw [mem_past] at hx hx'
+  omega
+
+/-- **The two sides of a bond of a tree cover the whole vertex set**: `G.past i j` are the
+vertices closer to `i` and `G.past j i` those closer to `j`, and in a tree every vertex is
+strictly closer to one of the two endpoints of a bond. -/
+lemma IsTree.mem_past_or_mem_past_swap (hG : G.IsTree) {i j : V} (hij : G.Adj i j) (k : V) :
+    k ∈ G.past i j ∨ k ∈ G.past j i :=
+  (hG.dist_eq_dist_add_one_of_adj k hij).symm.imp mem_past.2 mem_past.2
+
+/-- **The bond `ij` is the only bond of a tree joining its two sides**: if `a` lies on the side of
+`i` of `ij`, `m` on the side of `j`, and `a` and `m` are adjacent, then `a = i` and `m = j`.
+(Removing the edge `{i, j}` from a tree disconnects it into the two sides.) -/
+lemma IsAcyclic.eq_of_adj_of_mem_past_of_mem_past_swap (hG : G.IsAcyclic) (hconn : G.Connected)
+    {i j a m : V} (hij : G.Adj i j) (ha : a ∈ G.past i j) (hm : m ∈ G.past j i)
+    (ham : G.Adj a m) : a = i ∧ m = j := by
+  classical
+  obtain ⟨p, hp⟩ : ∃ p : G.Walk i a, p.IsPath :=
+    ⟨(hconn.preconnected i a).some.bypass, Walk.bypass_isPath _⟩
+  have hmp : m ∉ p.support := fun h ↦
+    G.notMem_past_of_mem_past_swap hm (hG.mem_past_of_mem_support hij hp ha h)
+  have hjp' : j ∈ (p.concat ham).support := by
+    by_contra h
+    exact G.notMem_past_of_mem_past_swap hm
+      (hG.mem_past_of_notMem_support hij (hp.concat hmp ham) h)
+  rw [Walk.support_concat, List.mem_append, List.mem_singleton] at hjp'
+  have hmj : m = j :=
+    ((or_iff_right (hG.notMem_support_of_mem_past hij hp ha)).1 hjp').symm
+  subst hmj
+  refine ⟨?_, rfl⟩
+  have h1 : G.dist a m = G.dist a i + 1 := ha
+  have h2 : G.dist a m = 1 := G.dist_eq_one_iff_adj.2 ham
+  have h3 : G.dist a i = 0 := by omega
+  exact (dist_eq_zero_iff_eq_or_not_reachable.1 h3).resolve_right
+    fun h ↦ h (hconn.preconnected a i)
 
 /-- On a tree, for `Λ` connected with `i ∈ Λ` on the side of `i` of `ij`, every vertex of
 `Λ ∪ ∂Λ` other than `j` lies on that side. -/

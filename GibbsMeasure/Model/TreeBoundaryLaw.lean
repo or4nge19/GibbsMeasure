@@ -31,7 +31,9 @@ lives in `GibbsMeasure/Mathlib/Combinatorics/SimpleGraph/`, and the counting-mea
 
 * `IsMarkovSpecification` — **Definition (12.1)**; `isMarkovSpecification_transferSpecification`.
 * `IsMarkovChain` — **Definition (12.2)** (via conditional expectations);
-  `isMarkovChain_iff_forall_measure_preimage_inter` is its set-integral form,
+  `isMarkovChain_iff_forall_measure_preimage_inter` is its set-integral form (and
+  `isMarkovChain_iff_forall_condExp_cylinderEvents_past`, in `TreeBoundaryLawChains.lean`, is
+  Comment (12.3)(1): the same property for an arbitrary event of the future),
   `IsMarkovChain.measure_preimage_inter_cyl` its finite-volume content, and
   `IsMarkovChain.measure_cyl_union_eq_mul_prod` the consequence of **(12.4)** used in (12.12)(b).
   `transitionProb` is Georgii's transition matrix `P_{ij}(x, y) = μ(σ_j = y | σ_i = x)`;
@@ -1191,7 +1193,13 @@ theorem IsMarkovChain.measure_preimage_inter_eq_lintegral (hμ : IsMarkovChain G
 omit [DecidableEq S] in
 /-- **Definition (12.2), set-integral form.** A probability measure `μ` is a Markov chain on `G`
 iff `μ(σ_j = y, t) = ∫_t P_{ij}(σ_i, y) dμ` for every oriented bond `ij`, `y ∈ E` and
-`t ∈ 𝓕_{]-∞, ij[}`, with `P_{ij} = transitionProb μ i j`. -/
+`t ∈ 𝓕_{]-∞, ij[}`, with `P_{ij} = transitionProb μ i j`.
+
+On a tree, Definition (12.2) has a second equivalent form, Georgii's Comment (12.3)(1):
+`μ(A | 𝓕_{]-∞, ij[}) = μ(A | 𝓕_{i})` for every event `A` of the whole future `𝓕_{]ij, ∞[}`. That
+is `isMarkovChain_iff_forall_condExp_cylinderEvents_past` in
+`GibbsMeasure/Model/TreeBoundaryLawChains.lean`, where the tree combinatorics it needs is
+available. -/
 theorem isMarkovChain_iff_forall_measure_preimage_inter [IsProbabilityMeasure μ] :
     IsMarkovChain G μ ↔ ∀ ⦃i j⦄, G.Adj i j → ∀ (y : E) (t : Set (S → E)),
       MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (G.past i j)] t →

@@ -94,6 +94,27 @@ the edges meeting $\Lambda$.
     positive constant on each oriented edge.
 \end{proposition}
 
+\begin{proposition}[Georgii (12.3)(1)]
+    \label{prop:tr-12-3-a}
+    \uses{def:tr-markov}
+    \lean{MeasureTheory.GibbsMeasure.Tree.IsMarkovChain.condExp_cylinderEvents_past_ae_eq, MeasureTheory.GibbsMeasure.Tree.isMarkovChain_iff_forall_condExp_cylinderEvents_past, MeasureTheory.GibbsMeasure.Tree.IsMarkovChain.exists_measure_cyl_eq_mul_past, SimpleGraph.IsTree.mem_past_or_mem_past_swap}
+    \leanok
+
+    Let $\mu$ be a Markov chain on a tree and $ij$ a bond. For every
+    $A \in \mathcal F_{]ij,\infty[}$,
+    $\mu(A \mid \mathcal F_{]-\infty,ij[}) = \mu(A \mid \mathcal F_{\{i\}})$ $\mu$-a.s.;
+    conversely this property for all bonds characterises Markov chains. Here
+    $]-\infty,ij[$ and $]ij,\infty[$ are the two sides of the bond, the pasts of $j$ before $i$
+    and of $i$ before $j$.
+\end{proposition}
+\begin{proof}
+    \leanok
+    The factorisation (12.4), run so that each transition factor lands on one side of the bond,
+    gives $\mu(\sigma_{W \cup D} = \xi)\,\mu(\sigma_i = \xi_i) = \mu(\sigma_{\{i\}\cup D} = \xi)\,
+    \mu(\sigma_W = \xi)$ for $W$ on one side and $D$ on the other; extend in the future variable
+    by the $\pi$-system lemma. The converse is Definition (12.2), the case $A = \{\sigma_j = y\}$.
+\end{proof}
+
 \begin{proposition}[Georgii (12.3)(3),(5),(6)]
     \label{prop:tr-12-3-b}
     \uses{def:tr-markov, prop:tr-12-3, thm:tr-12-12, def:mfi-markov-chain}
