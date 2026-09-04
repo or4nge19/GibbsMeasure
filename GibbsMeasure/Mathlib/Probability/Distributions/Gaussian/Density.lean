@@ -657,6 +657,27 @@ theorem integral_sub_mul_sub_multivariateGaussianPi {A : Matrix ι ι ℝ} (hA :
 
 end Covariance
 
+section Translation
+
+/-- **Translation covariance of the multivariate Gaussian density measure.** The pushforward of
+`multivariateGaussianPi A m` along `x ↦ x + v` is `multivariateGaussianPi A (m + v)`: the density
+depends on `x` and `m` only through `x - m`, and Lebesgue measure on `ι → ℝ` is invariant under
+translations. -/
+theorem multivariateGaussianPi_map_add_right (A : Matrix ι ι ℝ) (m v : ι → ℝ) :
+    (multivariateGaussianPi A m).map (· + v) = multivariateGaussianPi A (m + v) := by
+  have hJ : Measurable fun x : ι → ℝ ↦ x + v := measurable_add_const v
+  have hpdf : (fun x : ι → ℝ ↦ multivariateGaussianPDF A (m + v) (x + v)) =
+      multivariateGaussianPDF A m := by
+    funext x
+    rw [multivariateGaussianPDF, multivariateGaussianPDF, multivariateGaussianPDFReal,
+      multivariateGaussianPDFReal, show x + v - (m + v) = x - m from by abel]
+  rw [multivariateGaussianPi, multivariateGaussianPi, ← hpdf,
+    map_withDensity_comp volume hJ (measurable_multivariateGaussianPDF A (m + v)),
+    map_add_right_eq_self volume v]
+
+end Translation
+
+
 section Unique
 
 /-- **The one-dimensional multivariate Gaussian is `gaussianReal`.** For a singleton index type

@@ -252,4 +252,259 @@ theorem isAbsolutelySummable_centre_iff [Nonempty E] :
 
 end Centring
 
+/-! ### Georgii (2.34): the converse implications
+
+The direct implications (i) ⇒ (ii) ⇒ (iii) are above. Here we close the circle: (ii) ⇒ (i) is
+already available in `DependsOn` form from `Potential.dependsOn_hamiltonian_sub_of_`
+`sigmaFinitePremodifierNorm_eq`, and (iii) ⇒ (ii) and (iv) ⇒ (i) need Georgii's topological
+hypotheses — a topology on `E` whose Borel sets are `𝓔`, an *everywhere dense* a priori measure
+(`MeasureTheory.Measure.IsOpenPosMeasure`), and continuity of `H_Λ^{Φ-Ψ}`. -/
+
+/-! ### Continuity of the Hamiltonians
+
+Georgii states (2.34) (iii) ⇒ (ii) and (iv) ⇒ (i) under continuity of the interactions
+`Φ_A - Ψ_A`; in the proof of (iv) ⇒ (i) he notes that what is actually used is that
+`H_Λ^{Φ-Ψ}` is a *uniform* limit of continuous functions, "and thereby continuous". Continuity of
+the individual interactions alone does not give continuity of the sum, so uniform convergence
+(Georgii (2.13)) is recorded as a hypothesis wherever the Hamiltonian has to be continuous. -/
+
+section Continuity
+
+variable [TopologicalSpace E]
+
+omit [Countable S] in
+/-- The partial Hamiltonians `∑_{A ⊆ Δ, A ∩ Λ ≠ ∅} Φ_A` of a potential with continuous
+interactions are continuous. -/
+lemma continuous_sum_hamiltonianTerms (hc : ∀ A : Finset S, Continuous (Φ A))
+    (Λ Δ : Finset S) :
+    Continuous fun η : S → E ↦ ∑ A ∈ Δ.powerset, Φ.hamiltonianTerms Λ η A := by
+  classical
+  refine continuous_finsetSum _ fun A _ ↦ ?_
+  by_cases hA : Disjoint A Λ
+  · simpa only [hamiltonianTerms_of_disjoint hA] using continuous_const
+  · simpa only [hamiltonianTerms_of_not_disjoint hA] using hc A
+
+omit [Countable S] in
+/-- **A uniformly convergent potential with continuous interactions has continuous Hamiltonians.**
+This is the continuity input to Georgii (2.34), (iii) ⇒ (ii) and (iv) ⇒ (i). -/
+theorem continuous_hamiltonian_of_isUniformlyConvergent [IsSummable Φ]
+    (hu : IsUniformlyConvergent Φ) (hc : ∀ A : Finset S, Continuous (Φ A)) (Λ : Finset S) :
+    Continuous (Φ.hamiltonian Λ) := by
+  classical
+  set F : Finset S → (S → E) → ℝ :=
+    fun Δ η ↦ ∑ A ∈ Δ.powerset, Φ.hamiltonianTerms Λ η A with hF
+  have hTU : TendstoUniformly F (Φ.hamiltonian Λ) (Filter.atTop : Filter (Finset S)) := by
+    rw [Metric.tendstoUniformly_iff]
+    intro ε hε
+    obtain ⟨Δ₀, hΔ₀⟩ := hu Λ (half_pos hε)
+    filter_upwards [Filter.eventually_ge_atTop Δ₀] with Δ hΔ η
+    have h := hΔ₀ Δ hΔ η
+    rw [Real.dist_eq, abs_sub_comm]
+    linarith [half_lt_self hε]
+  exact hTU.continuous (Filter.Eventually.frequently
+    (Filter.Eventually.of_forall fun Δ ↦ continuous_sum_hamiltonianTerms hc Λ Δ))
+
+end Continuity
+
+
+section Converse
+
+/-- **Georgii (2.34), (ii) ⇒ (i).** Two `λ`-admissible potentials which define the same
+`λ`-modification are equivalent in the sense of Definition (2.33). This is
+`Potential.dependsOn_hamiltonian_sub_of_sigmaFinitePremodifierNorm_eq` upgraded from `DependsOn`
+to `𝓣_Λ`-measurability by `Measurable.cylinderEvents_of_dependsOn`. -/
+theorem isEquivalent_of_sigmaFinitePremodifierNorm_eq [IsPotential Φ] [IsSummable Φ]
+    [IsPotential Ψ] [IsSummable Ψ]
+    (hΦ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν (Φ.boltzmannFactor 1))
+    (hΨ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν (Ψ.boltzmannFactor 1))
+    (heq : Specification.sigmaFinitePremodifierNorm (S := S) (E := E) ν (Φ.boltzmannFactor 1)
+      = Specification.sigmaFinitePremodifierNorm (S := S) (E := E) ν (Ψ.boltzmannFactor 1)) :
+    IsEquivalent Φ Ψ := by
+  have : IsPotential (Φ - Ψ) := isPotential_sub
+  have : IsSummable (Φ - Ψ) := isSummable_sub Φ Ψ
+  exact fun Λ ↦ (measurable_hamiltonian (Φ := Φ - Ψ) Λ).cylinderEvents_of_dependsOn
+    (dependsOn_hamiltonian_sub_of_sigmaFinitePremodifierNorm_eq ν hΦ hΨ heq Λ)
+
+/-- **Georgii (2.34), (i) ⇔ (ii).** For `λ`-admissible potentials, equivalence of potentials is
+exactly equality of the associated `λ`-modifications. -/
+theorem isEquivalent_iff_sigmaFinitePremodifierNorm_eq [IsPotential Φ] [IsSummable Φ]
+    [IsPotential Ψ] [IsSummable Ψ]
+    (hΦ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν (Φ.boltzmannFactor 1))
+    (hΨ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν (Ψ.boltzmannFactor 1)) :
+    IsEquivalent Φ Ψ ↔
+      Specification.sigmaFinitePremodifierNorm (S := S) (E := E) ν (Φ.boltzmannFactor 1)
+        = Specification.sigmaFinitePremodifierNorm (S := S) (E := E) ν (Ψ.boltzmannFactor 1) :=
+  ⟨fun h ↦ sigmaFinitePremodifierNorm_eq_of_isEquivalent ν h 1,
+    isEquivalent_of_sigmaFinitePremodifierNorm_eq ν hΦ hΨ⟩
+
+omit [Countable S] in
+/-- The pointwise form of `Potential.hamiltonian_sub_eq_log_sigmaFiniteLambdaZ`: wherever the two
+normalized densities agree, `H_Λ^{Φ-Ψ} = log(Z_Λ^Ψ/Z_Λ^Φ)`. -/
+lemma hamiltonian_sub_eq_log_sigmaFiniteLambdaZ_of_apply_eq [IsSummable Φ] [IsSummable Ψ]
+    (hΦ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν (Φ.boltzmannFactor 1))
+    (hΨ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν (Ψ.boltzmannFactor 1))
+    {Λ : Finset S} {ω : S → E}
+    (h : Specification.sigmaFinitePremodifierNorm (S := S) (E := E) ν (Φ.boltzmannFactor 1) Λ ω
+      = Specification.sigmaFinitePremodifierNorm (S := S) (E := E) ν
+          (Ψ.boltzmannFactor 1) Λ ω) :
+    (Φ - Ψ).hamiltonian Λ ω
+      = Real.log (Specification.sigmaFiniteLambdaZ (S := S) (E := E) ν
+            (Ψ.boltzmannFactor 1) Λ ω).toReal
+        - Real.log (Specification.sigmaFiniteLambdaZ (S := S) (E := E) ν
+            (Φ.boltzmannFactor 1) Λ ω).toReal := by
+  set ZΦ := Specification.sigmaFiniteLambdaZ (S := S) (E := E) ν (Φ.boltzmannFactor 1) Λ ω
+    with hZΦ
+  set ZΨ := Specification.sigmaFiniteLambdaZ (S := S) (E := E) ν (Ψ.boltzmannFactor 1) Λ ω
+    with hZΨ
+  have hZΦpos : (0 : ℝ) < ZΦ.toReal := ENNReal.toReal_pos (hΦ Λ ω).1 (hΦ Λ ω).2
+  have hZΨpos : (0 : ℝ) < ZΨ.toReal := ENNReal.toReal_pos (hΨ Λ ω).1 (hΨ Λ ω).2
+  have hquot : Φ.boltzmannFactor 1 Λ ω / ZΦ = Ψ.boltzmannFactor 1 Λ ω / ZΨ := by
+    simpa [Specification.sigmaFinitePremodifierNorm, hZΦ, hZΨ] using h
+  have hreal : Real.exp (-1 * Φ.hamiltonian Λ ω) / ZΦ.toReal
+      = Real.exp (-1 * Ψ.hamiltonian Λ ω) / ZΨ.toReal := by
+    have h2 := congrArg ENNReal.toReal hquot
+    rwa [ENNReal.toReal_div, ENNReal.toReal_div, toReal_boltzmannFactor,
+      toReal_boltzmannFactor] at h2
+  have hlog := congrArg Real.log hreal
+  rw [Real.log_div (Real.exp_ne_zero _) hZΦpos.ne', Real.log_div (Real.exp_ne_zero _) hZΨpos.ne',
+    Real.log_exp, Real.log_exp] at hlog
+  rw [hamiltonian_sub Φ Ψ Λ ω]
+  linarith
+
+end Converse
+
+/-! ### Georgii (2.34) under his topological hypotheses
+
+`λ` *everywhere dense* is `MeasureTheory.Measure.IsOpenPosMeasure`; the `𝓔 = Borel` hypothesis
+enters only through the requirement that the continuous functions in play be measurable, which is
+already part of `IsPotential`. Georgii's second countability of the topology is not needed: the
+finite-volume product `λ^Λ` is everywhere dense for any topology on `E`
+(`MeasureTheory.Measure.pi.isOpenPosMeasure`). -/
+
+section Dense
+
+variable [TopologicalSpace E]
+
+omit [Countable S] in
+/-- Juxtaposition is continuous for the product topologies. (An observation about `juxt`; it
+belongs next to `juxt` in `GibbsMeasure/Prereqs/Juxt.lean`.) -/
+lemma continuous_juxt {Λ : Set S} (η : S → E) : Continuous (juxt Λ η) := by
+  refine continuous_pi fun x ↦ ?_
+  by_cases hx : x ∈ Λ
+  · simpa only [juxt_apply_of_mem hx] using continuous_apply (⟨x, hx⟩ : Λ)
+  · simpa only [juxt_apply_of_not_mem hx] using continuous_const
+
+variable [ν.IsOpenPosMeasure]
+
+/-- **Georgii (2.34), (iii) ⇒ (i)**, and hence (iii) ⇒ (ii) by `sigmaFinitePremodifierNorm_eq_`
+`of_isEquivalent`.
+
+If two `λ`-admissible potentials define the same λ-specification, and the Hamiltonians of their
+difference are continuous, then they are equivalent. Georgii's argument: `γ_Λ^Φ(·|ω) =
+γ_Λ^Ψ(·|ω)` forces `λ^Λ(A_Λ) = 0` for the set `A_Λ` of interior configurations at which the two
+densities differ; `A_Λ` is open because `H_Λ^{Φ-Ψ}` is continuous and the partition functions do
+not depend on the interior, and `λ^Λ` is everywhere dense, so `A_Λ = ∅`. -/
+theorem isEquivalent_of_lambdaSpecification_eq [NeZero ν]
+    [IsPotential Φ] [IsSummable Φ] [IsPotential Ψ] [IsSummable Ψ]
+    (hcont : ∀ Λ : Finset S, Continuous ((Φ - Ψ).hamiltonian Λ))
+    {hρΦ : Specification.IsPremodifier (S := S) (E := E) (Φ.boltzmannFactor 1)}
+    {hΦ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν (Φ.boltzmannFactor 1)}
+    {hρΨ : Specification.IsPremodifier (S := S) (E := E) (Ψ.boltzmannFactor 1)}
+    {hΨ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν (Ψ.boltzmannFactor 1)}
+    (heq : Specification.lambdaSpecification (S := S) (E := E) ν (Φ.boltzmannFactor 1) hρΦ hΦ
+      = Specification.lambdaSpecification (S := S) (E := E) ν (Ψ.boltzmannFactor 1) hρΨ hΨ) :
+    IsEquivalent Φ Ψ := by
+  classical
+  have hPsub : IsPotential (Φ - Ψ) := isPotential_sub
+  have hSsub : IsSummable (Φ - Ψ) := isSummable_sub Φ Ψ
+  refine fun Λ ↦ (measurable_hamiltonian (Φ := Φ - Ψ) Λ).cylinderEvents_of_dependsOn ?_
+  intro x y hxy
+  have hxy' : ∀ s ∉ Λ, juxt (Λ : Set S) x (fun i ↦ y i) s = x s := by
+    intro s hs
+    rw [juxt_apply_of_not_mem (by simpa using hs)]
+  -- the constant value of `H_Λ^{Φ-Ψ}` on the fibre over `x`
+  set c : ℝ := Real.log (Specification.sigmaFiniteLambdaZ (S := S) (E := E) ν
+      (Ψ.boltzmannFactor 1) Λ x).toReal
+    - Real.log (Specification.sigmaFiniteLambdaZ (S := S) (E := E) ν
+      (Φ.boltzmannFactor 1) Λ x).toReal with hc
+  have key : ∀ ζ : ↥(Λ : Set S) → E, (Φ - Ψ).hamiltonian Λ (juxt (Λ : Set S) x ζ) = c := by
+    intro ζ₀
+    -- densities agree a.e. for the reference kernel at `x`
+    have h0 : (Specification.sigmaFiniteLambdaFun (S := S) (E := E) ν Λ x).withDensity
+          (Specification.sigmaFinitePremodifierNorm (S := S) (E := E) ν (Φ.boltzmannFactor 1) Λ)
+        = (Specification.sigmaFiniteLambdaFun (S := S) (E := E) ν Λ x).withDensity
+          (Specification.sigmaFinitePremodifierNorm (S := S) (E := E) ν
+            (Ψ.boltzmannFactor 1) Λ) := by
+      have h := congrArg (fun γ : Specification S E ↦ γ Λ x) heq
+      simpa only [Specification.lambdaSpecification_apply] using h
+    have hone : ∫⁻ ω, Specification.sigmaFinitePremodifierNorm (S := S) (E := E) ν
+        (Φ.boltzmannFactor 1) Λ ω ∂(Specification.sigmaFiniteLambdaFun (S := S) (E := E) ν Λ x)
+          = 1 := by
+      have h1 : Specification.lambdaSpecification (S := S) (E := E) ν (Φ.boltzmannFactor 1)
+          hρΦ hΦ Λ x Set.univ = 1 := measure_univ
+      rwa [Specification.lambdaSpecification_apply, withDensity_apply _ MeasurableSet.univ,
+        setLIntegral_univ] at h1
+    have hae := (withDensity_eq_iff
+      (Specification.sigmaFinitePremodifierNorm_measurable (S := S) (E := E)
+        (ρ := Φ.boltzmannFactor 1) ν hρΦ Λ).aemeasurable
+      (Specification.sigmaFinitePremodifierNorm_measurable (S := S) (E := E)
+        (ρ := Ψ.boltzmannFactor 1) ν hρΨ Λ).aemeasurable (by rw [hone]; exact ENNReal.one_ne_top)).1 h0
+    set N : Set (S → E) :=
+      {ω | Specification.sigmaFinitePremodifierNorm (S := S) (E := E) ν
+          (Φ.boltzmannFactor 1) Λ ω
+        ≠ Specification.sigmaFinitePremodifierNorm (S := S) (E := E) ν
+          (Ψ.boltzmannFactor 1) Λ ω} with hNdef
+    have hNmeas : MeasurableSet N :=
+      (measurableSet_eq_fun
+        (Specification.sigmaFinitePremodifierNorm_measurable (S := S) (E := E)
+          (ρ := Φ.boltzmannFactor 1) ν hρΦ Λ)
+        (Specification.sigmaFinitePremodifierNorm_measurable (S := S) (E := E)
+          (ρ := Ψ.boltzmannFactor 1) ν hρΨ Λ)).compl
+    have hN : Specification.sigmaFiniteLambdaFun (S := S) (E := E) ν Λ x N = 0 := hae
+    have hpre : (Measure.pi fun _ : Λ ↦ ν) (juxt (Λ : Set S) x ⁻¹' N) = 0 := by
+      rw [← Measure.map_apply
+        (Measurable.juxt (Λ := (Λ : Set S)) (η := x) (𝓔 := mE)) hNmeas,
+        ← Specification.sigmaFiniteLambdaFun_apply_eq_map ν Λ x]
+      exact hN
+    -- the open set where the Hamiltonian misses `c`
+    set U : Set (↥(Λ : Set S) → E) :=
+      {ζ | (Φ - Ψ).hamiltonian Λ (juxt (Λ : Set S) x ζ) ≠ c} with hUdef
+    have hUopen : IsOpen U :=
+      isOpen_ne_fun ((hcont Λ).comp (continuous_juxt (Λ := (Λ : Set S)) x)) continuous_const
+    have hsub : U ⊆ juxt (Λ : Set S) x ⁻¹' N := by
+      intro ζ hζ
+      by_contra hmem
+      refine hζ ?_
+      have hEq : Specification.sigmaFinitePremodifierNorm (S := S) (E := E) ν
+            (Φ.boltzmannFactor 1) Λ (juxt (Λ : Set S) x ζ)
+          = Specification.sigmaFinitePremodifierNorm (S := S) (E := E) ν
+            (Ψ.boltzmannFactor 1) Λ (juxt (Λ : Set S) x ζ) := by
+        simpa [hNdef, Set.mem_preimage] using hmem
+      have hζx : ∀ s ∉ Λ, juxt (Λ : Set S) x ζ s = x s := fun s hs ↦ by
+        rw [juxt_apply_of_not_mem (by simpa using hs)]
+      rw [hamiltonian_sub_eq_log_sigmaFiniteLambdaZ_of_apply_eq ν hΦ hΨ hEq,
+        Specification.sigmaFiniteLambdaZ_congr_of_eqOn_compl (ρ := Ψ.boltzmannFactor 1) ν
+          (measurable_boltzmannFactor (Φ := Ψ) 1 Λ) hζx,
+        Specification.sigmaFiniteLambdaZ_congr_of_eqOn_compl (ρ := Φ.boltzmannFactor 1) ν
+          (measurable_boltzmannFactor (Φ := Φ) 1 Λ) hζx]
+    have hUzero : (Measure.pi fun _ : Λ ↦ ν) U = 0 :=
+      measure_mono_null hsub hpre
+    have hUempty : U = ∅ := hUopen.eq_empty_of_measure_zero hUzero
+    by_contra hne
+    exact absurd (hUempty ▸ (show ζ₀ ∈ U from hne)) (Set.notMem_empty ζ₀)
+  have hx : juxt (Λ : Set S) x (fun i ↦ x (i : S)) = x := by
+    funext s
+    by_cases hs : s ∈ (Λ : Set S)
+    · rw [juxt_apply_of_mem hs]
+    · rw [juxt_apply_of_not_mem hs]
+  have hy : juxt (Λ : Set S) x (fun i ↦ y (i : S)) = y := by
+    funext s
+    by_cases hs : s ∈ (Λ : Set S)
+    · rw [juxt_apply_of_mem hs]
+    · rw [juxt_apply_of_not_mem hs]
+      exact hxy s (by simpa using hs)
+  rw [← hx, ← hy, key, key]
+
+end Dense
+
 end Potential

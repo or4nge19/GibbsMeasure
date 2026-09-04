@@ -10,6 +10,7 @@ public import GibbsMeasure.Specification.GluedFamily
 public import GibbsMeasure.Specification.ZeroDirac
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Tsum
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.ENNReal
+public import GibbsMeasure.Specification.CondExpGibbs
 
 /-!
 # Georgii §13.2: Gibbs measures for Gaussian specifications
@@ -702,5 +703,85 @@ theorem condExp_indicator_ae_eq_gaussianSpecification_singleton [Countable S] [L
     · rw [Function.update_of_ne hj, juxt_apply_of_not_mem (by simpa using hj)]
   rw [hfun]
   rfl
+
+/-! ## Georgii Theorem (13.20): a Markovian Gauss field is a Gibbs measure
+
+Georgii's proof is "combine Proposition (13.7), Lemma (13.10), Proposition (13.13), and
+Theorem (1.33)": (13.7) produces `J` and `h` out of the conditional covariances and the mean of
+`μ`, together with its finite range, its positive definiteness and (13.5); (13.10) plus (13.13)
+identify `μ(A | 𝒯_{\{i\}})` with `γ^{J,h}_{\{i\}}(A | ·)`
+(`condExp_indicator_ae_eq_gaussianSpecification_singleton`); and (1.33)
+(`Specification.isGibbsMeasure_of_forall_singleton_condExp_ae_eq`, the conditional-probability
+form of `Specification.lambdaSpecification_isGibbsMeasure_iff_forall_singleton_bind_eq` proved in
+`GibbsMeasure/Specification/CondExpGibbs.lean`) upgrades the single-site identities to the full
+DLR equations. -/
+
+section Theorem13_20
+
+/-- For a Markovian Gaussian field — Georgii (13.20)(ii): `ξ_i^μ` has an `𝓕_{∂i}`-measurable
+version for a finite `∂i` — the coupling `J = condCoupling μ` of Proposition (13.7) has finite row
+support, `{j : J(i,j) ≠ 0} ⊆ ∂i ∪ {i}`. This is Georgii's finite range (2.15) for `Φ^{J,h}`, and
+the hypothesis `hFin` of `Potential.gaussianSpecification`. -/
+theorem finite_setOf_condCoupling_ne_zero [DecidableEq S]
+    (hμ : ProbabilityTheory.IsGaussianProcess (fun i (ω : S → ℝ) ↦ ω i) μ)
+    {N : S → Finset S}
+    (hMarkov : ∀ i, AEStronglyMeasurable[cylinderEvents (N i : Set S)] (condExpOutside μ i) μ)
+    (i : S) : {j : S | condCoupling μ i j ≠ 0}.Finite := by
+  refine Set.Finite.subset (insert i (N i) : Finset S).finite_toSet fun j hj ↦ ?_
+  by_contra hjmem
+  rw [Finset.mem_coe, Finset.mem_insert, not_or] at hjmem
+  exact hj (condCoupling_eq_zero_of_notMem hμ (hMarkov i) hjmem.1 hjmem.2)
+
+/-- **Georgii Theorem (13.20).** Let `μ` be a Gaussian field such that
+
+* (i) `Γ(i, i) = μ((σ_i - μ(σ_i | 𝒯_{\{i\}}))²) > 0` for all `i` — Georgii's
+  `μ(σ_i ≠ μ(σ_i|𝒯_{\{i\}})) > 0`, i.e. the spin at `i` is not a.s. determined by the others; and
+* (ii) for each `i` there is a finite `∂i ∌ i` with `μ(σ_i | 𝒯_{\{i\}}) = μ(σ_i | 𝓕_{∂i})` a.s.
+
+Define `J = condCoupling μ` and `h = condExternalField μ` from the conditional covariances and the
+mean of `μ` as in Proposition (13.7). Then `γ^{J,h}` is well defined — `J` is symmetric
+(`condCoupling_comm`), of finite range (`finite_setOf_condCoupling_ne_zero`) and every `𝒥_Λ` is
+positive definite (`posDef_gaussianCovMatrix_condCoupling`), which is exactly what
+`Potential.gaussianSpecification` consumes — and `μ ∈ 𝒢(γ^{J,h})`. -/
+theorem georgii_13_20 [Countable S] [LinearOrder S] [DecidableEq S]
+    (hμ : ProbabilityTheory.IsGaussianProcess (fun i (ω : S → ℝ) ↦ ω i) μ)
+    (hΓ : ∀ j, 0 < condCovariance μ j j) (N : S → Finset S) (hN : ∀ i, i ∉ N i)
+    (hMarkov : ∀ i, AEStronglyMeasurable[cylinderEvents (N i : Set S)] (condExpOutside μ i) μ) :
+    (Potential.gaussianSpecification (condCoupling μ) (condExternalField μ)
+      (fun i j ↦ condCoupling_comm i j)
+      (finite_setOf_condCoupling_ne_zero hμ hMarkov)
+      (fun Λ ↦ posDef_gaussianCovMatrix_condCoupling hμ hΓ N hN hMarkov Λ) 1
+      one_pos).IsGibbsMeasure μ := by
+  classical
+  have hP := hμ.isProbabilityMeasure
+  set J := condCoupling μ with hJdef
+  set hh := condExternalField μ with hhdef
+  have hSymm : ∀ i j, J i j = J j i := fun i j ↦ condCoupling_comm i j
+  have hFin : ∀ i, {j : S | J i j ≠ 0}.Finite := finite_setOf_condCoupling_ne_zero hμ hMarkov
+  have hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef :=
+    fun Λ ↦ posDef_gaussianCovMatrix_condCoupling hμ hΓ N hN hMarkov Λ
+  have hvar : ∀ i, ∫ ω, (ω i - condExpOutside μ i ω) ^ 2 ∂μ = (J i i)⁻¹ := by
+    intro i
+    rw [hJdef, condCoupling_self (hΓ i).ne', inv_inv]
+    unfold condCovariance
+    exact integral_congr_ae (Filter.Eventually.of_forall fun ω ↦ sq _)
+  have h135 := (georgii_13_7 hμ hΓ N hN hMarkov).2.2
+  have := Potential.isPotential_gaussianPotential J hh
+  have := Potential.isFiniteRange_gaussianPotential J hh hSymm hFin
+  have hadm := Potential.isSigmaFiniteLambdaAdmissible_gaussianPotential_boltzmannFactor J hh
+    hSymm hFin hPD 1 one_pos
+  have hEq : Potential.gaussianSpecification J hh hSymm hFin hPD 1 one_pos =
+      Specification.lambdaSpecification (S := S) (E := ℝ) volume
+        ((Potential.gaussianPotential J hh).boltzmannFactor 1)
+        (Potential.isPremodifier_boltzmannFactor 1) hadm := rfl
+  rw [hEq]
+  refine Specification.isGibbsMeasure_of_forall_singleton_condExp_ae_eq volume _
+    (fun Λ ω ↦ (Potential.boltzmannFactor_pos 1 Λ ω).ne')
+    (fun Λ ω ↦ Potential.boltzmannFactor_ne_top 1 Λ ω) hadm ?_
+  intro i A hA
+  rw [← hEq]
+  exact condExp_indicator_ae_eq_gaussianSpecification_singleton hSymm hFin hPD hμ hvar h135 i hA
+
+end Theorem13_20
 
 end MeasureTheory.GibbsMeasure
