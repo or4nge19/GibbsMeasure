@@ -16,6 +16,7 @@ public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Connectivity
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Acyclic
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Hasse
 public import GibbsMeasure.Mathlib.Data.Countable.Basic
+public import GibbsMeasure.Mathlib.Data.Set.CardTranslate
 public import GibbsMeasure.Mathlib.Analysis.Subadditive.Cubes
 public import GibbsMeasure.Mathlib.InformationTheory.RelativeEntropy
 public import GibbsMeasure.Mathlib.InformationTheory.KullbackLeibler.KLFun
@@ -26,6 +27,7 @@ public import GibbsMeasure.Mathlib.Analysis.InnerProductSpace.OrthogonalExtend
 public import GibbsMeasure.Mathlib.Analysis.InnerProductSpace.PlaneRotations
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Gaussian.Multivariate
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Tanh
+public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.ExpNegSq
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Tanh.InfiniteProd
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Log.Summable
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
@@ -33,6 +35,7 @@ public import GibbsMeasure.Mathlib.Analysis.Normed.Lp.lpSpace
 public import GibbsMeasure.Mathlib.Analysis.Normed.Lp.LpEquiv
 public import GibbsMeasure.Mathlib.Analysis.Normed.Field.Lemmas
 public import GibbsMeasure.Mathlib.Data.ENNReal.Basic
+public import GibbsMeasure.Mathlib.Data.ENNReal.TsumPi
 public import GibbsMeasure.Mathlib.Data.Finset.Map
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PosDef
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.SymmetricRange
@@ -151,6 +154,7 @@ public import GibbsMeasure.Model.PeierlsEstimate
 public import GibbsMeasure.Model.PhaseTransition
 public import GibbsMeasure.Model.SharpContours
 public import GibbsMeasure.Model.SharpPhaseTransition
+public import GibbsMeasure.Model.RandomStaircase
 public import GibbsMeasure.Model.PeriodicSymmetry
 public import GibbsMeasure.Model.OneDimensionalSymmetry
 public import GibbsMeasure.Model.OneDimensionalSymmetryExamples

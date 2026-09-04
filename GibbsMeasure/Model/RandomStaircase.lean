@@ -5,10 +5,13 @@ Authors: Matteo Cipollina
 -/
 module
 
-public import GibbsMeasure.Model.PeierlsEstimate
+public import GibbsMeasure.Model.SharpContours
+public import GibbsMeasure.Model.SharpPhaseTransition
 public import GibbsMeasure.Potential.FiniteReference
 public import GibbsMeasure.Mathlib.Data.Set.CardTranslate
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.ExpNegSq
+public import GibbsMeasure.Mathlib.Data.ENNReal.TsumPi
+public import GibbsMeasure.Mathlib.Probability.Kernel.CountableMatrix
 
 /-!
 # Georgii §6.3: Shlosman's random staircases
@@ -18,9 +21,39 @@ public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.ExpNegSq
 `Φ_A = (σ_i - σ_j)²` if `A = {i, j}` with `|i - j| = 1`, `Φ_A = 0` otherwise.
 
 The contour machinery of §6.2 (`GibbsMeasure/Model/Contours.lean`,
-`GibbsMeasure/Model/PeierlsEstimate.lean`) is reused verbatim: the sites, the lattice graph, the
-"infinite outside" `outside D` of a finite `D ⊆ ℤ²`, the outer boundary and the fact that it is a
-circuit. Only the *state space* and the *contour weight* change.
+`GibbsMeasure/Model/PeierlsEstimate.lean`, `GibbsMeasure/Model/SharpContours.lean` and the
+anchored-circuit count of `GibbsMeasure/Model/SharpPhaseTransition.lean`) is reused verbatim: the
+sites, the lattice graph, the "infinite outside" `outside D` of a finite `D ⊆ ℤ²`, the outer
+boundary, the fact that it is a circuit, and Georgii's count `ℓ · 3^{ℓ-1}` of the circuits of
+length `ℓ` anchored at a site (Lemma (6.13)).  Only the *state space* and the *contour weight*
+change.
+
+## Contents
+
+* `Potential.discreteGaussian`, `Shlosman.dgPotential` — **(6.16)**;
+  `Shlosman.isSigmaFiniteLambdaAdmissible_dgPotential` — the `λ`-admissibility of `βΦ`;
+  `Shlosman.dgSpecification` — the Gibbsian specification `γ^{βΦ}` over counting measure.
+* `Shlosman.map_dgPotential_eq` — **Remark (6.17)(i)–(v)**: the five symmetries preserve `Φ`.
+* `Potential.IsGroundState` — **Definition (6.18)**; `Shlosman.staircase` — **(6.19)**;
+  `Shlosman.isGroundState_staircase` — **Remark (6.20)**.
+* `Shlosman.exists_circuit_contour_dg` — **Lemma (6.22)**; `Shlosman.stepDown` — **(6.23)**;
+  `Shlosman.card_bdIdx_le_hamiltonian_sub_stepDown` — **Lemma (6.24)**.
+* `Shlosman.dgSpecification_abs_excess_le` — **Lemma (6.25)**, in the sharpened form
+  `γ_{Λ_N}(|σ_a - ω^z_a| ≥ k | ω^z) ≤ 2 r'(β/2)^k` with `r'` the circuit series of
+  `MeasureTheory.GibbsMeasure.PeierlsSharp.r'` (Georgii's `r(β) = 1 ∧ 6 r'(β/2)`).
+* `Shlosman.staircasePhase`, `Shlosman.staircasePhase_spec`,
+  `Shlosman.infinite_GP_dgSpecification_of_log_twelve` and the five
+  `Shlosman.map_*_staircasePhase_ne` — **Theorem (6.21)**: the random staircases, their
+  concentration on `ω^z`, their pairwise distinctness, and the breaking of `t`, `τ`, `θ_j`, `r₀`
+  and `r₁`.
+
+Not formalised here: the *invariance* half of (6.21)(ii) (`μ_z^β` invariant under `θ_{(0,1)}`,
+`t^{-z} ∘ θ_{(1,0)}`, `r₁ ∘ τ`, `r₂`, and `τ(μ_z^β) = r₁(μ_z^β) = μ_{-z}^β`), which in Georgii
+comes from Example (5.20)(1) applied to the *shift-averaged* sequence
+`ν_{N,z} = |Λ_N|^{-1} ∑_{i ∈ Λ_N} γ_{Λ_N + i}(· | ω^z)` and to an equivariant choice of cluster
+point; and the `ℓ¹` linear independence of (6.21)(iii), which needs signed measures.  What is
+proved instead of (iii) is the pairwise separation `staircasePhase_ne` (and the `map_*_ne`
+lemmas), which already gives `|𝒢(βΦ)| = ∞` and the symmetry breaking Georgii emphasises.
 -/
 
 @[expose] public section
@@ -635,8 +668,8 @@ least `1 ∓ 2z`, and the two horizontal orientations occur equally often
 (`sum_bdIdx_fst_dir_eq_zero`), so the `z`-terms cancel. -/
 theorem card_bdIdx_le_hamiltonian_sub_stepDown (z k : ℤ)
     {Λ D : Finset Site} (hDΛ : D ⊆ Λ) {ζ : Site → ℤ}
-    (hc : ∀ i ∈ D, ∀ v ∈ dirs, i + v ∉ D →
-      k ≤ ζ i - staircase z i ∧ ζ (i + v) - staircase z (i + v) < k) :
+    (hc : ∀ i ∈ D, ∀ j ∉ D, (latticeGraph 2).Adj i j →
+      k ≤ ζ i - staircase z i ∧ ζ j - staircase z j < k) :
     ((bdIdx D).card : ℝ)
       ≤ dgPotential.hamiltonian Λ ζ - dgPotential.hamiltonian Λ (stepDown ↑D ζ) := by
   classical
@@ -705,14 +738,15 @@ theorem card_bdIdx_le_hamiltonian_sub_stepDown (z k : ℤ)
     intro q hq
     obtain ⟨h1, h2, h3⟩ := mem_bdIdx.1 hq
     have hz : (1 : ℤ) - z * q.2 0 ≤ ζ q.1 - ζ (q.1 + q.2) := by
-      obtain ⟨hA, hB⟩ := hc q.1 h1 q.2 h2 h3
+      obtain ⟨hA, hB⟩ := hc q.1 h1 (q.1 + q.2) h3 (adj_add_dir h2)
       have hC : staircase z q.1 - staircase z (q.1 + q.2) = -(z * q.2 0) :=
         staircase_sub_add z q.1 q.2
       omega
     have := (Int.cast_le (R := ℝ)).2 hz
     push_cast at this ⊢
     linarith
-  have hsum : ((bdIdx D).card : ℝ) ≤ ∑ q ∈ bdIdx D, (2 * ((ζ q.1 - ζ (q.1 + q.2) : ℤ) : ℝ) - 1) := by
+  have hsum : ((bdIdx D).card : ℝ)
+      ≤ ∑ q ∈ bdIdx D, (2 * ((ζ q.1 - ζ (q.1 + q.2) : ℤ) : ℝ) - 1) := by
     refine le_trans (le_of_eq ?_) (Finset.sum_le_sum hterm)
     rw [Finset.sum_sub_distrib, Finset.sum_const, nsmul_eq_mul, mul_one,
       ← Finset.mul_sum]
@@ -723,5 +757,1699 @@ theorem card_bdIdx_le_hamiltonian_sub_stepDown (z k : ℤ)
     simp
   rw [hdiff, hsplit, hbd]
   linarith [hsum]
+
+end MeasureTheory.GibbsMeasure.Shlosman
+
+namespace MeasureTheory.GibbsMeasure.Shlosman
+
+open Potential Peierls
+
+/-! ### λ-admissibility of `βΦ` for counting measure (Georgii, first display of §6.3) -/
+
+/-- Georgii's first energy bound: `H_Λ^Φ(ξ) ≥ ∑_{i ∈ Λ} (ξ_i - ξ_{i - (1,0)})²`, the horizontal
+bonds entering `Λ` from the left being pairwise distinct bonds meeting `Λ` and every bond energy
+being nonnegative. -/
+theorem sum_sq_horiz_le_hamiltonian (Λ : Finset Site) (ξ : Site → ℤ) :
+    ∑ i ∈ Λ, ((ξ i - ξ (i - e0) : ℤ) : ℝ) ^ 2 ≤ dgPotential.hamiltonian Λ ξ := by
+  classical
+  set g : Site × Site → ℝ := fun p ↦ ((ξ p.1 - ξ p.2 : ℤ) : ℝ) ^ 2 with hg
+  set P : Finset (Site × Site) := Λ.image fun i ↦ (i, i - e0) with hP
+  set P' : Finset (Site × Site) := Λ.image fun i ↦ (i - e0, i) with hP'
+  have hinj : Set.InjOn (fun i : Site ↦ (i, i - e0)) (Λ : Set Site) := fun a _ b _ h ↦ by
+    simpa using (Prod.ext_iff.1 h).1
+  have hinj' : Set.InjOn (fun i : Site ↦ (i - e0, i)) (Λ : Set Site) := fun a _ b _ h ↦ by
+    simpa using (Prod.ext_iff.1 h).2
+  have hPd : P ⊆ dirBonds Λ := by
+    rintro p hp
+    obtain ⟨i, hi, rfl⟩ := Finset.mem_image.1 hp
+    exact mem_dirBonds.2 ⟨adj_iff_sub_mem_dirs.2 (by simp [mem_dirs]), Or.inl hi⟩
+  have hP'd : P' ⊆ dirBonds Λ := by
+    rintro p hp
+    obtain ⟨i, hi, rfl⟩ := Finset.mem_image.1 hp
+    exact mem_dirBonds.2 ⟨adj_iff_sub_mem_dirs.2 (by simp [mem_dirs]), Or.inr hi⟩
+  have hdisj : Disjoint P P' := by
+    rw [Finset.disjoint_left]
+    rintro p hp hp'
+    obtain ⟨i, -, rfl⟩ := Finset.mem_image.1 hp
+    obtain ⟨j, -, hj⟩ := Finset.mem_image.1 hp'
+    obtain ⟨h1, h2⟩ := Prod.ext_iff.1 hj
+    simp only at h1 h2
+    subst h2
+    have := congrFun h1 0
+    simp only [Pi.sub_apply, e0_zero] at this
+    omega
+  have hnonneg : ∀ p ∈ dirBonds Λ, 0 ≤ g p := fun p _ ↦ by positivity
+  have hstep : ∑ p ∈ P ∪ P', g p ≤ ∑ p ∈ dirBonds Λ, g p :=
+    Finset.sum_le_sum_of_subset_of_nonneg (Finset.union_subset hPd hP'd)
+      fun p hp _ ↦ hnonneg p hp
+  have hsplit : ∑ p ∈ P ∪ P', g p = 2 * ∑ i ∈ Λ, ((ξ i - ξ (i - e0) : ℤ) : ℝ) ^ 2 := by
+    rw [Finset.sum_union hdisj, hP, hP', Finset.sum_image hinj, Finset.sum_image hinj']
+    have hsw : ∀ i : Site, g (i - e0, i) = g (i, i - e0) := fun i ↦ by
+      show ((ξ (i - e0) - ξ i : ℤ) : ℝ) ^ 2 = ((ξ i - ξ (i - e0) : ℤ) : ℝ) ^ 2
+      rw [show ξ (i - e0) - ξ i = -(ξ i - ξ (i - e0)) by ring]
+      push_cast
+      ring
+    simp only [hsw]
+    show (∑ i ∈ Λ, ((ξ i - ξ (i - e0) : ℤ) : ℝ) ^ 2) + ∑ i ∈ Λ, ((ξ i - ξ (i - e0) : ℤ) : ℝ) ^ 2
+      = 2 * ∑ i ∈ Λ, ((ξ i - ξ (i - e0) : ℤ) : ℝ) ^ 2
+    ring
+  rw [dgPotential_hamiltonian_eq]
+  have := hsplit ▸ hstep
+  linarith
+
+end MeasureTheory.GibbsMeasure.Shlosman
+
+namespace MeasureTheory.GibbsMeasure.Shlosman
+
+open Potential Peierls
+
+/-- The horizontal increments inside `Λ` of a configuration with a fixed boundary condition:
+Georgii's substitution `ζ ↦ (ζ_i - ζ_{i - (1,0)})_{i ∈ Λ}`. -/
+def horizGrad (Λ : Finset Site) (η : Site → ℤ) (ζ : ↥Λ → ℤ) : ↥Λ → ℤ :=
+  fun i ↦ juxt (Λ : Set Site) η ζ (i : Site)
+    - juxt (Λ : Set Site) η ζ ((i : Site) - e0)
+
+/-- **Georgii's injection.** A configuration agreeing with `η` off `Λ` is determined by its
+horizontal increments inside `Λ`: walking left along a row one leaves `Λ`, where the configuration
+is prescribed. -/
+theorem horizGrad_injective (Λ : Finset Site) (η : Site → ℤ) :
+    Function.Injective (horizGrad Λ η) := by
+  classical
+  intro ζ ζ' h
+  set ξ := juxt (Λ : Set Site) η ζ with hξ
+  set ξ' := juxt (Λ : Set Site) η ζ' with hξ'
+  have hout : ∀ x : Site, x ∉ Λ → ξ x = ξ' x := fun x hx ↦ by
+    have hx' : x ∉ (Λ : Set Site) := by simpa using hx
+    rw [hξ, hξ', juxt_apply_of_not_mem hx', juxt_apply_of_not_mem hx']
+  have hstep : ∀ x : Site, x ∈ Λ → ξ x - ξ ((x : Site) - e0) = ξ' x - ξ' ((x : Site) - e0) := by
+    intro x hx
+    exact congrFun h ⟨x, by simpa using hx⟩
+  have hall : ∀ x : Site, ξ x = ξ' x := by
+    by_contra hcon
+    obtain ⟨x₀, hx₀⟩ : ∃ x : Site, ξ x ≠ ξ' x := by
+      by_contra h'
+      exact hcon fun x ↦ not_not.1 fun hne ↦ h' ⟨x, hne⟩
+    set T : Finset Site := Λ.filter fun i ↦ ξ i ≠ ξ' i with hT
+    have hx₀Λ : x₀ ∈ Λ := by
+      by_contra hx
+      exact hx₀ (hout x₀ hx)
+    have hTne : T.Nonempty := ⟨x₀, Finset.mem_filter.2 ⟨hx₀Λ, hx₀⟩⟩
+    obtain ⟨i, hiT, hmin⟩ := T.exists_min_image (fun i ↦ i 0) hTne
+    obtain ⟨hiΛ, hine⟩ := Finset.mem_filter.1 hiT
+    have hprev : ξ ((i : Site) - e0) ≠ ξ' ((i : Site) - e0) := by
+      have := hstep i hiΛ
+      omega
+    have hprevΛ : (i : Site) - e0 ∈ Λ := by
+      by_contra hx
+      exact hprev (hout _ hx)
+    have := hmin _ (Finset.mem_filter.2 ⟨hprevΛ, hprev⟩)
+    simp only [Pi.sub_apply, e0_zero] at this
+    omega
+  funext i
+  have hi : (i : Site) ∈ (Λ : Set Site) := by simp
+  have h2 := hall (i : Site)
+  rwa [hξ, hξ', juxt_apply_of_mem hi, juxt_apply_of_mem hi] at h2
+
+end MeasureTheory.GibbsMeasure.Shlosman
+
+namespace MeasureTheory.GibbsMeasure.Shlosman
+
+open Potential Peierls
+
+/-- The single-spin Gaussian weight `e^{-βx²}` of Georgii's admissibility bound. -/
+def spinWeight (β : ℝ) (x : ℤ) : ℝ≥0∞ := ENNReal.ofReal (Real.exp (-β * (x : ℝ) ^ 2))
+
+lemma tsum_spinWeight_ne_top {β : ℝ} (hβ : 0 < β) : (∑' x : ℤ, spinWeight β x) ≠ ⊤ :=
+  ENNReal.tsum_ofReal_exp_neg_mul_sq_ne_top hβ
+
+/-- **Georgii's admissibility bound, bond by bond.** The Boltzmann factor of a configuration with
+boundary condition `η` is at most the product of the Gaussian weights of its horizontal
+increments. -/
+theorem boltzmannFactor_le_prod_spinWeight {β : ℝ} (hβ : 0 ≤ β) (Λ : Finset Site) (η : Site → ℤ)
+    (ζ : ↥Λ → ℤ) :
+    dgPotential.boltzmannFactor β Λ (juxt (Λ : Set Site) η ζ)
+      ≤ ∏ i : ↥Λ, spinWeight β (horizGrad Λ η ζ i) := by
+  classical
+  set ξ := juxt (Λ : Set Site) η ζ with hξ
+  have hsum : ∑ i ∈ Λ, ((ξ i - ξ (i - e0) : ℤ) : ℝ) ^ 2 ≤ dgPotential.hamiltonian Λ ξ :=
+    sum_sq_horiz_le_hamiltonian Λ ξ
+  have hexp : Real.exp (-β * dgPotential.hamiltonian Λ ξ)
+      ≤ Real.exp (-β * ∑ i ∈ Λ, ((ξ i - ξ (i - e0) : ℤ) : ℝ) ^ 2) := by
+    refine Real.exp_le_exp.2 ?_
+    nlinarith
+  have hprod : Real.exp (-β * ∑ i ∈ Λ, ((ξ i - ξ (i - e0) : ℤ) : ℝ) ^ 2)
+      = ∏ i ∈ Λ, Real.exp (-β * ((ξ i - ξ (i - e0) : ℤ) : ℝ) ^ 2) := by
+    rw [Finset.mul_sum, Real.exp_sum]
+  have hcast : ∏ i ∈ Λ, ENNReal.ofReal (Real.exp (-β * ((ξ i - ξ (i - e0) : ℤ) : ℝ) ^ 2))
+      = ∏ i : ↥Λ, spinWeight β (horizGrad Λ η ζ i) := by
+    rw [← Finset.prod_coe_sort Λ
+      (fun i ↦ ENNReal.ofReal (Real.exp (-β * ((ξ i - ξ (i - e0) : ℤ) : ℝ) ^ 2)))]
+    rfl
+  calc dgPotential.boltzmannFactor β Λ ξ
+      = ENNReal.ofReal (Real.exp (-β * dgPotential.hamiltonian Λ ξ)) := rfl
+    _ ≤ ENNReal.ofReal (Real.exp (-β * ∑ i ∈ Λ, ((ξ i - ξ (i - e0) : ℤ) : ℝ) ^ 2)) :=
+        ENNReal.ofReal_le_ofReal hexp
+    _ = ENNReal.ofReal (∏ i ∈ Λ, Real.exp (-β * ((ξ i - ξ (i - e0) : ℤ) : ℝ) ^ 2)) := by
+        rw [hprod]
+    _ = ∏ i ∈ Λ, ENNReal.ofReal (Real.exp (-β * ((ξ i - ξ (i - e0) : ℤ) : ℝ) ^ 2)) :=
+        ENNReal.ofReal_prod_of_nonneg fun i _ ↦ (Real.exp_pos _).le
+    _ = ∏ i : ↥Λ, spinWeight β (horizGrad Λ η ζ i) := hcast
+
+/-- The partition function of the discrete Gaussian potential over counting measure is the sum of
+the Boltzmann factors over the configurations inside `Λ`. -/
+theorem sigmaFiniteLambdaZ_dgPotential (β : ℝ) (Λ : Finset Site) (η : Site → ℤ) :
+    Specification.sigmaFiniteLambdaZ (S := Site) (E := ℤ) Measure.count
+        (dgPotential.boltzmannFactor β) Λ η
+      = ∑' ζ : ↥Λ → ℤ, dgPotential.boltzmannFactor β Λ (juxt (Λ : Set Site) η ζ) := by
+  have hpi : (Measure.pi fun _ : ↥Λ ↦ (Measure.count : Measure ℤ)) = Measure.count :=
+    Measure.pi_count
+  rw [Specification.sigmaFiniteLambdaZ,
+    Specification.sigmaFiniteLambdaFun_apply_eq_map Measure.count Λ η,
+    lintegral_map (Potential.measurable_boltzmannFactor β Λ) Measurable.juxt, hpi,
+    lintegral_count]
+  rfl
+
+end MeasureTheory.GibbsMeasure.Shlosman
+
+namespace MeasureTheory.GibbsMeasure.Shlosman
+
+open Potential Peierls
+
+/-- **Georgii §6.3, first display.** Every positive multiple `βΦ` of the discrete Gaussian
+potential (6.16) is `λ`-admissible for counting measure `λ` on `ℤ`:
+
+`Z_Λ^{βΦ}(ω) = ∑_{ζ : ζ_{S∖Λ} = ω_{S∖Λ}} e^{-βH_Λ^Φ(ζ)} ≤ (∑_{x ∈ ℤ} e^{-βx²})^{|Λ|} < ∞`,
+
+and it is nonzero because the Boltzmann factor is strictly positive.  The middle inequality is
+Georgii's: the map `ζ ↦ (ζ_i - ζ_{i-(1,0)})_{i ∈ Λ}` is injective on the configurations with the
+given boundary condition (`horizGrad_injective`). -/
+theorem isSigmaFiniteLambdaAdmissible_dgPotential {β : ℝ} (hβ : 0 < β) :
+    Specification.IsSigmaFiniteLambdaAdmissible (S := Site) (E := ℤ) Measure.count
+      (dgPotential.boltzmannFactor β) := by
+  intro Λ η
+  rw [sigmaFiniteLambdaZ_dgPotential]
+  refine ⟨fun h ↦ ?_, ?_⟩
+  · have h0 := (ENNReal.tsum_eq_zero.1 h) (fun _ ↦ 0)
+    exact absurd h0 (Potential.boltzmannFactor_pos (Φ := dgPotential) β Λ _).ne'
+  · have h1 : ∑' ζ : ↥Λ → ℤ, dgPotential.boltzmannFactor β Λ (juxt (Λ : Set Site) η ζ)
+        ≤ ∑' ζ : ↥Λ → ℤ, ∏ i : ↥Λ, spinWeight β (horizGrad Λ η ζ i) :=
+      ENNReal.tsum_le_tsum fun ζ ↦ boltzmannFactor_le_prod_spinWeight hβ.le Λ η ζ
+    have h2 : ∑' ζ : ↥Λ → ℤ, ∏ i : ↥Λ, spinWeight β (horizGrad Λ η ζ i)
+        ≤ ∑' d : ↥Λ → ℤ, ∏ i : ↥Λ, spinWeight β (d i) :=
+      ENNReal.tsum_comp_le_tsum_of_injective (horizGrad_injective Λ η)
+        (fun d : ↥Λ → ℤ ↦ ∏ i : ↥Λ, spinWeight β (d i))
+    have h3 : ∑' d : ↥Λ → ℤ, ∏ i : ↥Λ, spinWeight β (d i)
+        ≤ (∑' x : ℤ, spinWeight β x) ^ Fintype.card ↥Λ :=
+      ENNReal.tsum_pi_prod_le (spinWeight β)
+    exact ne_top_of_le_ne_top (ENNReal.pow_ne_top (tsum_spinWeight_ne_top hβ))
+      (h1.trans (h2.trans h3))
+
+instance : NeZero (Measure.count : Measure ℤ) :=
+  ⟨fun h ↦ by simpa [h] using (Measure.count_singleton (0 : ℤ))⟩
+
+/-- **Georgii §6.3.** The Gibbsian specification `γ^{βΦ}` of the discrete Gaussian potential
+(6.16) on `ℤ²`, over counting measure on the state space `E = ℤ`, at inverse temperature
+`β > 0`. -/
+noncomputable def dgSpecification {β : ℝ} (hβ : 0 < β) : Specification Site ℤ :=
+  Potential.gibbsSpecificationOfSigmaFiniteAdmissible dgPotential Measure.count β
+    (isSigmaFiniteLambdaAdmissible_dgPotential hβ)
+
+/-- Georgii (2.9) for the discrete Gaussian model: `γ_Λ(A|η) = Z_Λ(η)⁻¹ ∫_A e^{-βH_Λ} dλ_Λ(·|η)`.
+-/
+theorem dgSpecification_apply_set {β : ℝ} (hβ : 0 < β) (Λ : Finset Site) (η : Site → ℤ)
+    {A : Set (Site → ℤ)} (hA : MeasurableSet A) :
+    dgSpecification hβ Λ η A
+      = (Specification.sigmaFiniteLambdaZ (S := Site) (E := ℤ) Measure.count
+          (dgPotential.boltzmannFactor β) Λ η)⁻¹ *
+        ∫⁻ ω in A, dgPotential.boltzmannFactor β Λ ω
+          ∂(Specification.sigmaFiniteLambdaFun (S := Site) (E := ℤ) Measure.count Λ η) :=
+  Potential.gibbsSpecificationOfSigmaFiniteAdmissible_apply_set dgPotential Measure.count β
+    (isSigmaFiniteLambdaAdmissible_dgPotential hβ) Λ η hA
+
+end MeasureTheory.GibbsMeasure.Shlosman
+
+namespace MeasureTheory.GibbsMeasure.Shlosman
+
+open Potential Peierls PeierlsSharp
+
+/-! ### Georgii Lemma (6.22): existence of a `(z, k)`-contour around an excess site -/
+
+/-- The set of sites where `ζ` exceeds the staircase `ω^z` by at least `k`. -/
+def excess (z k : ℤ) (ζ : Site → ℤ) : Set Site := {i | k ≤ ζ i - staircase z i}
+
+/-- The connected cluster of `a` inside the `k`-excess sites of `ζ`: Georgii's set `D` in the
+proof of (6.14), used again for (6.22). -/
+def excessCluster (z k : ℤ) (ζ : Site → ℤ) (a : Site) : Set Site :=
+  {i | ReachIn (latticeGraph 2) (excess z k ζ) a i}
+
+lemma mem_excessCluster_self {z k : ℤ} {ζ : Site → ℤ} {a : Site} (ha : a ∈ excess z k ζ) :
+    a ∈ excessCluster z k ζ a := ReachIn.refl ha
+
+lemma excessCluster_subset {z k : ℤ} {ζ : Site → ℤ} {a : Site} :
+    excessCluster z k ζ a ⊆ excess z k ζ := fun _ h ↦ h.mem_right
+
+lemma mem_excessCluster_of_adj {z k : ℤ} {ζ : Site → ℤ} {a i j : Site}
+    (hi : i ∈ excessCluster z k ζ a) (hadj : (latticeGraph 2).Adj i j) (hj : j ∈ excess z k ζ) :
+    j ∈ excessCluster z k ζ a :=
+  hi.trans (ReachIn.of_adj (excessCluster_subset hi) hj hadj)
+
+/-- A reachability cluster is connected in the induced graph. -/
+lemma cluster_connected {A : Set Site} {a : Site} (ha : a ∈ A) :
+    ((latticeGraph 2).induce {i | ReachIn (latticeGraph 2) A a i}).Connected := by
+  refine induce_connected_iff.2 ⟨⟨a, ReachIn.refl ha⟩, fun u v hu hv ↦ ?_⟩
+  have huv : ReachIn (latticeGraph 2) A u v := hu.symm.trans hv
+  refine huv.induction (P := fun x ↦ ReachIn (latticeGraph 2)
+    {i | ReachIn (latticeGraph 2) A a i} u x) (ReachIn.refl hu) ?_
+  intro p q _ hq hpq hup
+  exact hup.trans (ReachIn.of_adj hup.mem_right
+    (hup.mem_right.trans (ReachIn.of_adj hup.mem_right.mem_right hq hpq)) hpq)
+
+lemma excessCluster_connected {z k : ℤ} {ζ : Site → ℤ} {a : Site} (ha : a ∈ excess z k ζ) :
+    ((latticeGraph 2).induce (excessCluster z k ζ a)).Connected := cluster_connected ha
+
+/-- Off the box, a configuration equal to the staircase has no `k`-excess (`k ≥ 1`). -/
+lemma excess_subset_box {z k : ℤ} (hk : 1 ≤ k) {N : ℕ} {ζ : Site → ℤ}
+    (hout : ∀ i ∉ cube 2 N, ζ i = staircase z i) : excess z k ζ ⊆ box N := by
+  intro i hi
+  by_contra hib
+  have heq : ζ i = staircase z i := hout i (by rwa [← Finset.mem_coe, coe_cube_eq_box])
+  have hi' : k ≤ ζ i - staircase z i := hi
+  rw [heq, sub_self] at hi'
+  omega
+
+/-- **Georgii Lemma (6.22).** If `ζ` agrees with the staircase `ω^z` outside the box `Λ_N` and
+`ζ_a - ω^z_a ≥ k ≥ 1`, then there is a `(z, k)`-contour for `ζ` surrounding `a`: a circuit `C` of
+dual bonds, anchored on the horizontal half-line from `a`, whose interior contains `a`, lies in
+`Λ_N`, and across every bond of which the inner spin satisfies `ζ - ω^z ≥ k` and the outer one
+`ζ - ω^z < k`.
+
+The proof is Georgii's proof of (6.14), reused verbatim: `C` is the outer boundary of the
+connected cluster of `a` in `{ζ - ω^z ≥ k}`. -/
+theorem exists_circuit_contour_dg (z : ℤ) {k : ℤ} (hk : 1 ≤ k) (N : ℕ) (a : Site) {ζ : Site → ℤ}
+    (ha : k ≤ ζ a - staircase z a) (hout : ∀ i ∉ cube 2 N, ζ i = staircase z i) :
+    ∃ C : Finset (Sym2 Site), IsCircuit C ∧ 0 < C.card ∧
+      (∃ m < C.card, s(a + m • e0, a + (m + 1) • e0) ∈ C) ∧
+      a ∈ interiorOf (C : Set (Sym2 Site)) ∧
+      interiorOf (C : Set (Sym2 Site)) ⊆ box N ∧
+      edgeBoundary (interiorOf (C : Set (Sym2 Site))) = (C : Set (Sym2 Site)) ∧
+      ∀ i ∈ interiorOf (C : Set (Sym2 Site)), ∀ j ∉ interiorOf (C : Set (Sym2 Site)),
+        (latticeGraph 2).Adj i j → k ≤ ζ i - staircase z i ∧ ζ j - staircase z j < k := by
+  classical
+  have haE : a ∈ excess z k ζ := ha
+  set D : Set Site := excessCluster z k ζ a with hD
+  have haD : a ∈ D := mem_excessCluster_self haE
+  have hDbox : D ⊆ box N :=
+    excessCluster_subset.trans (excess_subset_box hk hout)
+  have hDfin : D.Finite := (box_finite N).subset hDbox
+  have hOBfin : (outerBoundary D).Finite := outerBoundary_finite hDfin
+  have hcoe : (↑(hOBfin.toFinset) : Set (Sym2 Site)) = outerBoundary D := Set.Finite.coe_toFinset _
+  have hcard : hOBfin.toFinset.card = (outerBoundary D).ncard := by
+    rw [← Set.ncard_coe_finset, Set.Finite.coe_toFinset]
+  refine ⟨hOBfin.toFinset, isCircuit_outerBoundary hDfin ⟨a, haD⟩ (excessCluster_connected haE),
+    ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · rw [Finset.card_pos, Set.Finite.toFinset_nonempty]
+    exact outerBoundary_nonempty hDfin ⟨a, haD⟩
+  · obtain ⟨m, hm, hbond⟩ := exists_anchor_bond hDfin haD
+    exact ⟨m, by rw [hcard]; exact hm, (Set.Finite.mem_toFinset _).2 hbond⟩
+  · rw [hcoe]; exact subset_interiorOf_outerBoundary hDfin haD
+  · rw [hcoe]; exact interiorOf_outerBoundary_subset_box hDbox
+  · rw [hcoe]; exact edgeBoundary_interiorOf_outerBoundary hDfin
+  · rw [hcoe]
+    intro i hi j hj hadj
+    have hedge : s(i, j) ∈ edgeBoundary (interiorOf (outerBoundary D)) := ⟨i, hi, j, hj, hadj, rfl⟩
+    rw [edgeBoundary_interiorOf_outerBoundary hDfin] at hedge
+    rcases (mem_outerBoundary_iff hadj).1 hedge with ⟨hiD, hjout⟩ | ⟨hjD, -⟩
+    · refine ⟨excessCluster_subset hiD, ?_⟩
+      by_contra hcon
+      exact notMem_of_mem_outside hjout
+        (mem_excessCluster_of_adj hiD hadj (by simpa [excess] using not_lt.1 hcon))
+    · exact absurd (subset_interiorOf_outerBoundary hDfin hjD) hj
+
+end MeasureTheory.GibbsMeasure.Shlosman
+
+namespace Potential
+
+variable {S : Type*} {G : SimpleGraph S} {g : ℤ → ℝ}
+
+open MeasureTheory.GibbsMeasure Transformation
+
+/-- **The symmetries of a gradient potential.** If the site map of `τ` is an automorphism of `G`
+and all its spin maps are one and the same `f` whose inverse preserves `g` on differences, then
+`τ` preserves `Φ` (Georgii (5.3): `τ(Φ) = Φ`).
+
+Georgii's Remark (6.17) is five instances of this: the lattice translations, the two lattice
+reflections and the lattice rotation (`f = id`), the spin reflection (`f = -·`, `g` even) and the
+spin translation (`f = · - 1`). -/
+theorem map_nearestNeighbourDiff_eq {τ : Transformation S ℤ} {f : ℤ ≃ᵐ ℤ}
+    [DecidableEq S]
+    (hspin : ∀ i, τ.spin i = f)
+    (hsites : ∀ i j, G.Adj (τ.sites i) (τ.sites j) ↔ G.Adj i j)
+    (hg : ∀ x y : ℤ, g (f.symm x - f.symm y) = g (x - y)) :
+    Potential.map τ (nearestNeighbourDiff G g) = nearestNeighbourDiff G g := by
+  classical
+  funext A η
+  set A' : Finset S := A.map τ.sites.symm.toEmbedding with hA'
+  have hmemA' : ∀ i : S, i ∈ A' ↔ τ.sites i ∈ A := by
+    intro i
+    simp [hA', Finset.mem_map_equiv]
+  have hη' : ∀ i : S, τ.inv.toFun η i = f.symm (η (τ.sites i)) := by
+    intro i
+    simp [Transformation.inv, Transformation.toFun, hspin]
+  have hcond : (A'.card = 2 ∧ ∃ i ∈ A', ∃ j ∈ A', G.Adj i j)
+      ↔ (A.card = 2 ∧ ∃ i ∈ A, ∃ j ∈ A, G.Adj i j) := by
+    rw [hA', Finset.card_map]
+    refine and_congr_right fun _ ↦ ⟨?_, ?_⟩
+    · rintro ⟨i, hi, j, hj, hij⟩
+      exact ⟨τ.sites i, (hmemA' i).1 hi, τ.sites j, (hmemA' j).1 hj, (hsites i j).2 hij⟩
+    · rintro ⟨i, hi, j, hj, hij⟩
+      refine ⟨τ.sites.symm i, (hmemA' _).2 (by simpa using hi),
+        τ.sites.symm j, (hmemA' _).2 (by simpa using hj), ?_⟩
+      rw [← hsites (τ.sites.symm i) (τ.sites.symm j)]
+      simpa using hij
+  by_cases hA : A.card = 2 ∧ ∃ i ∈ A, ∃ j ∈ A, G.Adj i j
+  · rw [Potential.map_apply, nearestNeighbourDiff_apply_of hA,
+      nearestNeighbourDiff_apply_of (hcond.2 hA)]
+    congr 1
+    refine Finset.sum_nbij' (i := fun p ↦ (τ.sites p.1, τ.sites p.2))
+      (j := fun q ↦ (τ.sites.symm q.1, τ.sites.symm q.2)) ?_ ?_ ?_ ?_ ?_
+    · rintro p hp
+      obtain ⟨h1, h2, h3⟩ := Finset.mem_offDiag.1 hp
+      exact Finset.mem_offDiag.2 ⟨(hmemA' _).1 h1, (hmemA' _).1 h2,
+        fun h ↦ h3 (τ.sites.injective h)⟩
+    · rintro q hq
+      obtain ⟨h1, h2, h3⟩ := Finset.mem_offDiag.1 hq
+      exact Finset.mem_offDiag.2 ⟨(hmemA' _).2 (by simpa using h1),
+        (hmemA' _).2 (by simpa using h2), fun h ↦ h3 (τ.sites.symm.injective h)⟩
+    · rintro p -; simp
+    · rintro q -; simp
+    · rintro p -
+      rw [hη', hη']
+      simpa using hg (η (τ.sites p.1)) (η (τ.sites p.2))
+  · rw [Potential.map_apply, nearestNeighbourDiff_apply_of_not (fun h ↦ hA (hcond.1 h)),
+      nearestNeighbourDiff_apply_of_not hA]
+
+end Potential
+
+namespace Potential
+
+open MeasureTheory.GibbsMeasure Transformation
+
+/-- Negation of the spin variable, as a measurable equivalence of `ℤ`. -/
+def intNeg : ℤ ≃ᵐ ℤ where
+  toEquiv := Equiv.neg ℤ
+  measurable_toFun := Measurable.of_discrete
+  measurable_invFun := Measurable.of_discrete
+
+@[simp] lemma intNeg_symm_apply (x : ℤ) : intNeg.symm x = -x := rfl
+
+/-- **Georgii (6.17)(i).** The gradient potential of the lattice `ℤ^d` is shift-invariant
+(Georgii (5.2)(1)). -/
+theorem isShiftInvariant_nearestNeighbourDiff {d : ℕ} (g : ℤ → ℝ) :
+    (nearestNeighbourDiff (latticeGraph d) g).IsShiftInvariant := by
+  intro j
+  refine map_nearestNeighbourDiff_eq (f := MeasurableEquiv.refl ℤ) (fun _ ↦ rfl) (fun a b ↦ ?_)
+    (fun x y ↦ rfl)
+  have : (shift ℤ j).sites = Equiv.addRight j := rfl
+  rw [this]
+  change (latticeGraph d).Adj (a + j) (b + j) ↔ (latticeGraph d).Adj a b
+  rw [← latticeGraph_adj_sub_iff j (a := a + j) (b := b + j)]
+  simp
+
+/-- **Georgii (6.17)(iv).** The spin reflection `τ : ω ↦ -ω` preserves the gradient potential of
+an even `g` (Georgii (5.2)(2)). -/
+def spinReflection (S : Type*) : Transformation S ℤ where
+  sites := Equiv.refl S
+  spin _ := intNeg
+
+/-- **Georgii (6.17)(v).** The spin translation `t : ω ↦ ω - 1`: the constant case `m = -1` of
+`MeasureTheory.GibbsMeasure.spinTranslation`. -/
+abbrev staircaseShift (S : Type*) : Transformation S ℤ :=
+  MeasureTheory.GibbsMeasure.spinTranslation fun _ : S ↦ (-1 : ℤ)
+
+@[simp] lemma spinReflection_toFun {S : Type*} (ω : S → ℤ) (i : S) :
+    (spinReflection S).toFun ω i = -ω i := rfl
+
+@[simp] lemma staircaseShift_toFun_apply {S : Type*} (ω : S → ℤ) (i : S) :
+    (staircaseShift S).toFun ω i = ω i - 1 := by
+  simp [staircaseShift, sub_eq_add_neg]
+
+variable {S : Type*} [DecidableEq S] {G : SimpleGraph S} {g : ℤ → ℝ}
+
+/-- **Georgii (6.17)(iv).** `τ(Φ) = Φ` for the spin reflection, when `g` is even. -/
+theorem map_spinReflection_nearestNeighbourDiff (heven : ∀ x : ℤ, g (-x) = g x) :
+    Potential.map (spinReflection S) (nearestNeighbourDiff G g) = nearestNeighbourDiff G g := by
+  refine map_nearestNeighbourDiff_eq (f := intNeg) (fun _ ↦ rfl) (fun a b ↦ Iff.rfl) fun x y ↦ ?_
+  rw [intNeg_symm_apply, intNeg_symm_apply, show -x - -y = -(x - y) by ring, heven]
+
+/-- **Georgii (6.17)(v).** `t(Φ) = Φ` for the spin translation. -/
+theorem map_spinTranslation_nearestNeighbourDiff :
+    Potential.map (staircaseShift S) (nearestNeighbourDiff G g) = nearestNeighbourDiff G g := by
+  refine map_nearestNeighbourDiff_eq (f := MeasurableEquiv.addRight (-1 : ℤ)) (fun _ ↦ rfl)
+    (fun a b ↦ Iff.rfl) fun x y ↦ ?_
+  have hsymm : ∀ w : ℤ, (MeasurableEquiv.addRight (-1 : ℤ)).symm w = w + 1 := fun w ↦ by
+    simp [MeasurableEquiv.addRight]
+  rw [hsymm, hsymm]
+  ring_nf
+
+end Potential
+
+namespace MeasureTheory.GibbsMeasure.Shlosman
+
+open Potential Peierls MeasureTheory.GibbsMeasure Transformation
+
+/-! ### Georgii Remark (6.17)(ii)–(iii): the lattice reflections and the lattice rotation -/
+
+/-- The lattice reflection in the second axis, `(i₁, i₂) ↦ (-i₁, i₂)`. -/
+def reflectFst : Site ≃ Site :=
+  Function.Involutive.toPerm (fun x ↦ mk (-(x 0)) (x 1)) fun x ↦ by
+    rw [site_ext_iff]; simp
+
+/-- The lattice reflection in the first axis, `(i₁, i₂) ↦ (i₁, -i₂)`. -/
+def reflectSnd : Site ≃ Site :=
+  Function.Involutive.toPerm (fun x ↦ mk (x 0) (-(x 1))) fun x ↦ by
+    rw [site_ext_iff]; simp
+
+/-- The quarter-turn of the lattice: its inverse is Georgii's `i ↦ (i₂, -i₁)`. -/
+def rotateSite : Site ≃ Site where
+  toFun x := mk (-(x 1)) (x 0)
+  invFun x := mk (x 1) (-(x 0))
+  left_inv x := by rw [site_ext_iff]; simp
+  right_inv x := by rw [site_ext_iff]; simp
+
+@[simp] lemma reflectFst_apply (x : Site) : reflectFst x = mk (-(x 0)) (x 1) := rfl
+@[simp] lemma reflectSnd_apply (x : Site) : reflectSnd x = mk (x 0) (-(x 1)) := rfl
+@[simp] lemma rotateSite_apply (x : Site) : rotateSite x = mk (-(x 1)) (x 0) := rfl
+@[simp] lemma rotateSite_symm_apply (x : Site) : rotateSite.symm x = mk (x 1) (-(x 0)) := rfl
+
+lemma adj_reflectFst (x y : Site) :
+    (latticeGraph 2).Adj (reflectFst x) (reflectFst y) ↔ (latticeGraph 2).Adj x y := by
+  rw [latticeGraph_two_adj_iff, latticeGraph_two_adj_iff]
+  simp only [reflectFst_apply, Peierls.mk_zero, Peierls.mk_one]
+  omega
+
+lemma adj_reflectSnd (x y : Site) :
+    (latticeGraph 2).Adj (reflectSnd x) (reflectSnd y) ↔ (latticeGraph 2).Adj x y := by
+  rw [latticeGraph_two_adj_iff, latticeGraph_two_adj_iff]
+  simp only [reflectSnd_apply, Peierls.mk_zero, Peierls.mk_one]
+  omega
+
+lemma adj_rotateSite (x y : Site) :
+    (latticeGraph 2).Adj (rotateSite x) (rotateSite y) ↔ (latticeGraph 2).Adj x y := by
+  rw [latticeGraph_two_adj_iff, latticeGraph_two_adj_iff]
+  simp only [rotateSite_apply, Peierls.mk_zero, Peierls.mk_one]
+  omega
+
+/-- **Georgii (6.17)(ii).** The lattice reflection `r₁`, `(r₁ω)_i = ω_{(-i₁, i₂)}`. -/
+def latticeReflFst : Transformation Site ℤ where
+  sites := reflectFst
+  spin _ := MeasurableEquiv.refl ℤ
+
+/-- **Georgii (6.17)(ii).** The lattice reflection `r₂`, `(r₂ω)_i = ω_{(i₁, -i₂)}`. -/
+def latticeReflSnd : Transformation Site ℤ where
+  sites := reflectSnd
+  spin _ := MeasurableEquiv.refl ℤ
+
+/-- **Georgii (6.17)(iii).** The lattice rotation `r₀`, `(r₀ω)_i = ω_{(i₂, -i₁)}`. -/
+def latticeRot : Transformation Site ℤ where
+  sites := rotateSite
+  spin _ := MeasurableEquiv.refl ℤ
+
+@[simp] lemma latticeReflFst_toFun (ω : Site → ℤ) (i : Site) :
+    latticeReflFst.toFun ω i = ω (mk (-(i 0)) (i 1)) := by
+  simp [latticeReflFst, Transformation.toFun, reflectFst, Function.Involutive.toPerm]
+
+@[simp] lemma latticeReflSnd_toFun (ω : Site → ℤ) (i : Site) :
+    latticeReflSnd.toFun ω i = ω (mk (i 0) (-(i 1))) := by
+  simp [latticeReflSnd, Transformation.toFun, reflectSnd, Function.Involutive.toPerm]
+
+@[simp] lemma latticeRot_toFun (ω : Site → ℤ) (i : Site) :
+    latticeRot.toFun ω i = ω (mk (i 1) (-(i 0))) := by
+  simp [latticeRot, Transformation.toFun]
+
+/-- **Georgii Remark (6.17)(ii).** `r₁` preserves the gradient potential on `ℤ²`. -/
+theorem map_latticeReflFst_nearestNeighbourDiff (g : ℤ → ℝ) :
+    Potential.map latticeReflFst (nearestNeighbourDiff (latticeGraph 2) g)
+      = nearestNeighbourDiff (latticeGraph 2) g :=
+  map_nearestNeighbourDiff_eq (f := MeasurableEquiv.refl ℤ) (fun _ ↦ rfl) adj_reflectFst
+    (fun _ _ ↦ rfl)
+
+/-- **Georgii Remark (6.17)(ii).** `r₂` preserves the gradient potential on `ℤ²`. -/
+theorem map_latticeReflSnd_nearestNeighbourDiff (g : ℤ → ℝ) :
+    Potential.map latticeReflSnd (nearestNeighbourDiff (latticeGraph 2) g)
+      = nearestNeighbourDiff (latticeGraph 2) g :=
+  map_nearestNeighbourDiff_eq (f := MeasurableEquiv.refl ℤ) (fun _ ↦ rfl) adj_reflectSnd
+    (fun _ _ ↦ rfl)
+
+/-- **Georgii Remark (6.17)(iii).** `r₀` preserves the gradient potential on `ℤ²`. -/
+theorem map_latticeRot_nearestNeighbourDiff (g : ℤ → ℝ) :
+    Potential.map latticeRot (nearestNeighbourDiff (latticeGraph 2) g)
+      = nearestNeighbourDiff (latticeGraph 2) g :=
+  map_nearestNeighbourDiff_eq (f := MeasurableEquiv.refl ℤ) (fun _ ↦ rfl) adj_rotateSite
+    (fun _ _ ↦ rfl)
+
+/-- **Georgii Remark (6.17).** The five families of transformations of `Ω = ℤ^{ℤ²}` listed by
+Georgii all preserve the discrete Gaussian potential (6.16): the lattice translations `θ_i`, the
+lattice reflections `r₁` and `r₂`, the lattice rotation `r₀`, the spin reflection `τ : ω ↦ -ω`
+and the spin translation `t : ω ↦ ω - 1`. -/
+theorem map_dgPotential_eq :
+    (∀ j : Site, Potential.map (shift ℤ j) dgPotential = dgPotential) ∧
+      Potential.map latticeReflFst dgPotential = dgPotential ∧
+      Potential.map latticeReflSnd dgPotential = dgPotential ∧
+      Potential.map latticeRot dgPotential = dgPotential ∧
+      Potential.map (spinReflection Site) dgPotential = dgPotential ∧
+      Potential.map (staircaseShift Site) dgPotential = dgPotential :=
+  ⟨isShiftInvariant_nearestNeighbourDiff _,
+    map_latticeReflFst_nearestNeighbourDiff _,
+    map_latticeReflSnd_nearestNeighbourDiff _,
+    map_latticeRot_nearestNeighbourDiff _,
+    map_spinReflection_nearestNeighbourDiff (fun x ↦ by push_cast; ring),
+    map_spinTranslation_nearestNeighbourDiff⟩
+
+end MeasureTheory.GibbsMeasure.Shlosman
+
+namespace MeasureTheory
+
+/-- **Counting measure is preserved by every measurable automorphism** of the state space.
+Mathlib has the inequality `Function.Injective.map_count_le`; applying it to `e` and to `e.symm`
+turns it into an equality. -/
+lemma measurePreserving_count_of_measurableEquiv {α : Type*} [MeasurableSpace α] (e : α ≃ᵐ α) :
+    MeasurePreserving e (Measure.count : Measure α) Measure.count := by
+  refine ⟨e.measurable, le_antisymm (e.injective.map_count_le e.measurable) ?_⟩
+  have h1 : (Measure.count : Measure α).map e.symm ≤ Measure.count :=
+    e.symm.injective.map_count_le e.symm.measurable
+  have h2 := Measure.map_mono h1 e.measurable
+  rwa [Measure.map_map e.measurable e.symm.measurable,
+    show (e ∘ e.symm) = id from funext fun x ↦ e.apply_symm_apply x, Measure.map_id] at h2
+
+end MeasureTheory
+
+namespace MeasureTheory.GibbsMeasure.Shlosman
+
+open Potential Peierls
+
+variable {β : ℝ}
+
+/-! ### The finite-volume kernel as a ratio of sums over the configurations inside `Λ` -/
+
+/-- Every event depending on one coordinate is measurable, the state space `ℤ` being discrete. -/
+lemma measurableSet_apply_mem (a : Site) (A : Set ℤ) :
+    MeasurableSet {ζ : Site → ℤ | ζ a ∈ A} :=
+  measurable_pi_apply a MeasurableSet.of_discrete
+
+/-- **Georgii (2.9) over counting measure.** The reference kernel `λ_Λ(·|η)` is the image of
+counting measure on `ℤ^Λ` under `juxt`, so `γ_Λ(A|η)` is a ratio of two sums over the
+configurations inside `Λ`. -/
+theorem dgSpecification_apply_eq_tsum (hβ : 0 < β) (Λ : Finset Site) (η : Site → ℤ)
+    {A : Set (Site → ℤ)} (hA : MeasurableSet A) :
+    dgSpecification hβ Λ η A
+      = (∑' ζ : ↥Λ → ℤ, dgPotential.boltzmannFactor β Λ (juxt (Λ : Set Site) η ζ))⁻¹
+        * ∑' ζ : ↥Λ → ℤ,
+            A.indicator (dgPotential.boltzmannFactor β Λ) (juxt (Λ : Set Site) η ζ) := by
+  have hpi : (Measure.pi fun _ : ↥Λ ↦ (Measure.count : Measure ℤ)) = Measure.count :=
+    Measure.pi_count
+  rw [dgSpecification_apply_set hβ Λ η hA, sigmaFiniteLambdaZ_dgPotential]
+  congr 1
+  rw [← lintegral_indicator hA,
+    Specification.sigmaFiniteLambdaFun_apply_eq_map Measure.count Λ η,
+    lintegral_map ((Potential.measurable_boltzmannFactor β Λ).indicator hA) Measurable.juxt,
+    hpi, lintegral_count]
+  rfl
+
+/-- The configurations that fail to agree with `η` off `Λ` form a measurable set. -/
+lemma measurableSet_not_boundary (Λ : Finset Site) (η : Site → ℤ) :
+    MeasurableSet {ζ : Site → ℤ | ¬ ∀ i ∉ Λ, ζ i = η i} := by
+  have hset : {ζ : Site → ℤ | ¬ ∀ i ∉ Λ, ζ i = η i}
+      = ⋃ i : {i : Site // i ∉ Λ}, {ζ : Site → ℤ | ζ (i : Site) ≠ η i} := by
+    ext ζ
+    simp only [Set.mem_ofPred_eq, Set.mem_iUnion, not_forall, Subtype.exists]
+  rw [hset]
+  exact MeasurableSet.iUnion fun i ↦
+    measurableSet_apply_mem (i : Site) {x : ℤ | x ≠ η (i : Site)}
+
+/-- **Properness of `γ^{βΦ}`, concretely.** The kernel `γ_Λ(·|η)` is carried by the
+configurations agreeing with `η` off `Λ`. -/
+lemma dgSpecification_boundary_null (hβ : 0 < β) (Λ : Finset Site) (η : Site → ℤ) :
+    dgSpecification hβ Λ η {ζ : Site → ℤ | ¬ ∀ i ∉ Λ, ζ i = η i} = 0 := by
+  rw [dgSpecification_apply_eq_tsum hβ Λ η (measurableSet_not_boundary Λ η)]
+  refine mul_eq_zero_of_right _ (ENNReal.tsum_eq_zero.2 fun ζ ↦ ?_)
+  refine Set.indicator_of_notMem (fun hmem ↦ ?_) _
+  exact hmem fun i hi ↦ juxt_apply_of_not_mem (by simpa using hi) ζ
+
+end MeasureTheory.GibbsMeasure.Shlosman
+
+namespace MeasureTheory.GibbsMeasure.Shlosman
+
+open Potential Peierls
+
+variable {β : ℝ}
+
+/-! ### Georgii's contour events, and the injection `t_c` of (6.23) -/
+
+/-- **Georgii's `(z, k)`-contour condition**, indexed by the finite set `D` of sites surrounded
+by the contour: across every boundary bond of `D` the inner spin exceeds the staircase `ω^z` by
+at least `k`, the outer one by less than `k`.  `bdIdx D` indexes the boundary bonds of `D` by
+their inner endpoint and their direction. -/
+def contourEvent (z k : ℤ) (D : Finset Site) : Set (Site → ℤ) :=
+  ⋂ q ∈ bdIdx D, {ζ : Site → ℤ | k ≤ ζ q.1 - staircase z q.1 ∧
+    ζ (q.1 + q.2) - staircase z (q.1 + q.2) < k}
+
+lemma measurableSet_contourEvent (z k : ℤ) (D : Finset Site) :
+    MeasurableSet (contourEvent z k D) := by
+  refine MeasurableSet.iInter fun q ↦ MeasurableSet.iInter fun _ ↦ ?_
+  have hsplit : {ζ : Site → ℤ | k ≤ ζ q.1 - staircase z q.1 ∧
+        ζ (q.1 + q.2) - staircase z (q.1 + q.2) < k}
+      = {ζ : Site → ℤ | ζ q.1 ∈ {x : ℤ | k ≤ x - staircase z q.1}} ∩
+        {ζ : Site → ℤ | ζ (q.1 + q.2) ∈
+          {x : ℤ | x - staircase z (q.1 + q.2) < k}} := rfl
+  rw [hsplit]
+  exact (measurableSet_apply_mem _ _).inter (measurableSet_apply_mem _ _)
+
+/-- Membership in `contourEvent` in Georgii's own phrasing: the condition across every bond with
+one endpoint inside `D` and one outside. -/
+lemma contourEvent_spec {z k : ℤ} {D : Finset Site} {ζ : Site → ℤ}
+    (hζ : ζ ∈ contourEvent z k D) :
+    ∀ i ∈ D, ∀ j ∉ D, (latticeGraph 2).Adj i j →
+      k ≤ ζ i - staircase z i ∧ ζ j - staircase z j < k := by
+  intro i hi j hj hadj
+  have hv : j - i ∈ dirs := adj_iff_sub_mem_dirs.1 hadj
+  have hij : i + (j - i) = j := by abel
+  have hq : (i, j - i) ∈ bdIdx D := mem_bdIdx.2 ⟨hi, hv, by rwa [hij]⟩
+  have := Set.mem_iInter₂.1 hζ (i, j - i) hq
+  simpa [hij] using this
+
+open Classical in
+/-- **Georgii (6.23) inside `Λ`.** `t_c` lowers by one the spins on `D`; on the configurations of
+the finite volume `Λ` it is a bijection, which is Georgii's "injection from `A₁` into `A₂`". -/
+def stepDownRestrict (Λ D : Finset Site) : (↥Λ → ℤ) ≃ (↥Λ → ℤ) where
+  toFun ζ i := if (i : Site) ∈ D then ζ i - 1 else ζ i
+  invFun ζ i := if (i : Site) ∈ D then ζ i + 1 else ζ i
+  left_inv ζ := by funext i; by_cases h : (i : Site) ∈ D <;> simp [h]
+  right_inv ζ := by funext i; by_cases h : (i : Site) ∈ D <;> simp [h]
+
+open Classical in
+/-- `t_c` commutes with the boundary condition: lowering the spins of `Λ` on `D ⊆ Λ` is
+`stepDown D` on the full configuration. -/
+lemma juxt_stepDownRestrict {Λ D : Finset Site} (hDΛ : D ⊆ Λ) (η : Site → ℤ) (ζ : ↥Λ → ℤ) :
+    juxt (Λ : Set Site) η (stepDownRestrict Λ D ζ)
+      = stepDown (↑D : Set Site) (juxt (Λ : Set Site) η ζ) := by
+  funext x
+  by_cases hx : x ∈ Λ
+  · by_cases hxD : x ∈ D
+    · rw [juxt_apply_of_mem (by simpa using hx), stepDown_of_mem (by simpa using hxD),
+        juxt_apply_of_mem (by simpa using hx)]
+      simp [stepDownRestrict, hxD]
+    · rw [juxt_apply_of_mem (by simpa using hx), stepDown_of_notMem (by simpa using hxD),
+        juxt_apply_of_mem (by simpa using hx)]
+      simp [stepDownRestrict, hxD]
+  · have hxD : x ∉ D := fun h ↦ hx (hDΛ h)
+    rw [juxt_apply_of_not_mem (by simpa using hx), stepDown_of_notMem (by simpa using hxD),
+      juxt_apply_of_not_mem (by simpa using hx)]
+
+/-- **Georgii's contour estimate, unnormalised.** The Boltzmann sum over the configurations
+which have an excess `≥ k` at `a` and for which `D` is the interior of a `(z, k)`-contour is at
+most `e^{-β|c|}` times the Boltzmann sum over the configurations with excess `≥ k - 1` at `a`.
+This is Lemma (6.24) fed through the injection `t_c` of (6.23). -/
+theorem tsum_indicator_contour_le (hβ : 0 < β) (z k : ℤ) (a : Site) {Λ D : Finset Site}
+    (hDΛ : D ⊆ Λ) :
+    ∑' ζ : ↥Λ → ℤ, ({ω : Site → ℤ | k ≤ ω a - staircase z a} ∩ contourEvent z k D).indicator
+        (dgPotential.boltzmannFactor β Λ) (juxt (Λ : Set Site) (staircase z) ζ)
+      ≤ ENNReal.ofReal (Real.exp (-β * ((bdIdx D).card : ℝ)))
+        * ∑' ζ : ↥Λ → ℤ, {ω : Site → ℤ | k - 1 ≤ ω a - staircase z a}.indicator
+            (dgPotential.boltzmannFactor β Λ) (juxt (Λ : Set Site) (staircase z) ζ) := by
+  classical
+  set c := ENNReal.ofReal (Real.exp (-β * ((bdIdx D).card : ℝ))) with hc
+  set g : (↥Λ → ℤ) → ℝ≥0∞ := fun ζ ↦ {ω : Site → ℤ | k - 1 ≤ ω a - staircase z a}.indicator
+    (dgPotential.boltzmannFactor β Λ) (juxt (Λ : Set Site) (staircase z) ζ) with hg
+  have key : ∀ ζ : ↥Λ → ℤ,
+      ({ω : Site → ℤ | k ≤ ω a - staircase z a} ∩ contourEvent z k D).indicator
+        (dgPotential.boltzmannFactor β Λ) (juxt (Λ : Set Site) (staircase z) ζ)
+        ≤ c * g (stepDownRestrict Λ D ζ) := by
+    intro ζ
+    set ω : Site → ℤ := juxt (Λ : Set Site) (staircase z) ζ with hω
+    by_cases hmem : ω ∈ {ω : Site → ℤ | k ≤ ω a - staircase z a} ∩ contourEvent z k D
+    · obtain ⟨hexc, hcont⟩ := hmem
+      have hcc := contourEvent_spec hcont
+      have hE : (((bdIdx D).card : ℕ) : ℝ)
+          ≤ dgPotential.hamiltonian Λ ω - dgPotential.hamiltonian Λ (stepDown (↑D : Set Site) ω) :=
+        card_bdIdx_le_hamiltonian_sub_stepDown z k hDΛ hcc
+      -- the image is in `A₂`
+      have hdown : stepDown (↑D : Set Site) ω ∈ {ω : Site → ℤ | k - 1 ≤ ω a - staircase z a} := by
+        by_cases haD : a ∈ (↑D : Set Site)
+        · rw [Set.mem_ofPred_eq, stepDown_of_mem haD]
+          have : k ≤ ω a - staircase z a := hexc
+          omega
+        · rw [Set.mem_ofPred_eq, stepDown_of_notMem haD]
+          have : k ≤ ω a - staircase z a := hexc
+          omega
+      have hgval : g (stepDownRestrict Λ D ζ)
+          = dgPotential.boltzmannFactor β Λ (stepDown (↑D : Set Site) ω) := by
+        rw [hg]
+        simp only
+        rw [juxt_stepDownRestrict hDΛ, ← hω, Set.indicator_of_mem hdown]
+      -- the energy bound
+      have hexp : Real.exp (-β * dgPotential.hamiltonian Λ ω)
+          ≤ Real.exp (-β * ((bdIdx D).card : ℝ))
+            * Real.exp (-β * dgPotential.hamiltonian Λ (stepDown (↑D : Set Site) ω)) := by
+        rw [← Real.exp_add]
+        refine Real.exp_le_exp.2 ?_
+        nlinarith [hE, hβ]
+      rw [Set.indicator_of_mem
+        (show ω ∈ {ω : Site → ℤ | k ≤ ω a - staircase z a} ∩ contourEvent z k D from
+          ⟨hexc, hcont⟩), hgval, hc]
+      calc dgPotential.boltzmannFactor β Λ ω
+          = ENNReal.ofReal (Real.exp (-β * dgPotential.hamiltonian Λ ω)) := rfl
+        _ ≤ ENNReal.ofReal (Real.exp (-β * ((bdIdx D).card : ℝ))
+              * Real.exp (-β * dgPotential.hamiltonian Λ (stepDown (↑D : Set Site) ω))) :=
+            ENNReal.ofReal_le_ofReal hexp
+        _ = ENNReal.ofReal (Real.exp (-β * ((bdIdx D).card : ℝ)))
+              * dgPotential.boltzmannFactor β Λ (stepDown (↑D : Set Site) ω) :=
+            ENNReal.ofReal_mul (Real.exp_nonneg _)
+    · rw [Set.indicator_of_notMem hmem]
+      exact zero_le
+  calc ∑' ζ : ↥Λ → ℤ,
+        ({ω : Site → ℤ | k ≤ ω a - staircase z a} ∩ contourEvent z k D).indicator
+          (dgPotential.boltzmannFactor β Λ) (juxt (Λ : Set Site) (staircase z) ζ)
+      ≤ ∑' ζ : ↥Λ → ℤ, c * g (stepDownRestrict Λ D ζ) := ENNReal.tsum_le_tsum key
+    _ = c * ∑' ζ : ↥Λ → ℤ, g (stepDownRestrict Λ D ζ) := ENNReal.tsum_mul_left
+    _ = c * ∑' ζ : ↥Λ → ℤ, g ζ := by rw [(stepDownRestrict Λ D).tsum_eq g]
+
+end MeasureTheory.GibbsMeasure.Shlosman
+
+namespace MeasureTheory.GibbsMeasure.Shlosman
+
+open Potential Peierls PeierlsSharp
+
+variable {β : ℝ}
+
+/-! ### From circuits to the sets they surround -/
+
+open Classical in
+/-- The set of sites surrounded by a contour candidate `C`, as a `Finset` of the finite volume
+`Λ` (the candidates used below have their interior inside `Λ`). -/
+def contourInterior (Λ : Finset Site) (C : Finset (Sym2 Site)) : Finset Site :=
+  Λ.filter (· ∈ interiorOf (↑C : Set (Sym2 Site)))
+
+lemma contourInterior_subset (Λ : Finset Site) (C : Finset (Sym2 Site)) :
+    contourInterior Λ C ⊆ Λ := by
+  classical
+  exact Finset.filter_subset _ _
+
+lemma coe_contourInterior {Λ : Finset Site} {C : Finset (Sym2 Site)}
+    (hsub : interiorOf (↑C : Set (Sym2 Site)) ⊆ (↑Λ : Set Site)) :
+    (↑(contourInterior Λ C) : Set Site) = interiorOf (↑C : Set (Sym2 Site)) := by
+  classical
+  ext x
+  simp only [contourInterior, Finset.coe_filter, Set.mem_ofPred_eq]
+  exact ⟨fun h ↦ h.2, fun h ↦ ⟨by simpa using hsub h, h⟩⟩
+
+/-- **Georgii's `|c|`.** The boundary bonds of `D`, indexed by their inner endpoint and their
+direction, are in bijection with the bonds of the edge boundary of `D`; so when `D` is the
+interior of a contour `C` the number `|bdIdx D|` entering Lemma (6.24) is the length `|C|` of the
+contour. -/
+theorem card_bdIdx_eq_card {D : Finset Site} {C : Finset (Sym2 Site)}
+    (h : edgeBoundary (↑D : Set Site) = (↑C : Set (Sym2 Site))) :
+    (bdIdx D).card = C.card := by
+  classical
+  refine Finset.card_bij (fun q _ ↦ s(q.1, q.1 + q.2)) ?_ ?_ ?_
+  · rintro q hq
+    obtain ⟨h1, h2, h3⟩ := mem_bdIdx.1 hq
+    have hmem : s(q.1, q.1 + q.2) ∈ edgeBoundary (↑D : Set Site) :=
+      ⟨q.1, by simpa using h1, q.1 + q.2, by simpa using h3, adj_add_dir h2, rfl⟩
+    rw [h] at hmem
+    exact hmem
+  · rintro ⟨i, v⟩ hq ⟨i', v'⟩ hq' heq
+    obtain ⟨h1, h2, h3⟩ := mem_bdIdx.1 hq
+    obtain ⟨h1', h2', h3'⟩ := mem_bdIdx.1 hq'
+    simp only at h1 h3 h1' h3' heq
+    rw [Sym2.eq_iff] at heq
+    rcases heq with ⟨rfl, hb⟩ | ⟨ha, hb⟩
+    · have : v = v' := by
+        have := hb
+        simpa using this
+      simp [this]
+    · exact absurd (ha ▸ h1) h3'
+  · rintro e he
+    have he' : e ∈ edgeBoundary (↑D : Set Site) := by rw [h]; exact he
+    obtain ⟨i, hi, j, hj, hadj, rfl⟩ := he'
+    refine ⟨(i, j - i), mem_bdIdx.2 ⟨by simpa using hi, adj_iff_sub_mem_dirs.1 hadj, ?_⟩, ?_⟩
+    · have : i + (j - i) = j := by abel
+      rw [this]
+      simpa using hj
+    · have : i + (j - i) = j := by abel
+      rw [this]
+
+/-! ### Georgii Lemma (6.22) as a covering of the excess event -/
+
+/-- **Georgii Lemma (6.22), as a covering.** A configuration equal to the staircase `ω^z` off the
+box `Λ_N` and with an excess `≥ k ≥ 1` at `a` carries a `(z, k)`-contour surrounding `a`: it lies
+in the contour event of the interior of one of the anchored circuit candidates. -/
+theorem excess_subset_iUnion_contourEvent (z : ℤ) {k : ℤ} (hk : 1 ≤ k) (N : ℕ) (a : Site) :
+    {ζ : Site → ℤ | k ≤ ζ a - staircase z a} ∩
+        {ζ : Site → ℤ | ∀ i ∉ cube 2 N, ζ i = staircase z i} ⊆
+      ⋃ l : ℕ, ⋃ C ∈ sharpContourFinset (cube 2 N) a (l + 1),
+        {ζ : Site → ℤ | k ≤ ζ a - staircase z a} ∩
+          contourEvent z k (contourInterior (cube 2 N) C) := by
+  classical
+  rintro ζ ⟨ha, hout⟩
+  obtain ⟨C, hcirc, hpos, ⟨m, hm, hbond⟩, haC, hbox, hbdeq, hcont⟩ :=
+    exists_circuit_contour_dg z hk N a ha hout
+  have hsub : interiorOf (↑C : Set (Sym2 Site)) ⊆ (↑(cube 2 N) : Set Site) := by
+    rw [coe_cube_eq_box]; exact hbox
+  have hsucc : C.card - 1 + 1 = C.card := by omega
+  refine Set.mem_iUnion.2 ⟨C.card - 1, ?_⟩
+  refine Set.mem_iUnion₂.2 ⟨C, ?_, ?_⟩
+  · rw [mem_sharpContourFinset, hsucc]
+    exact ⟨mem_anchoredCircuitFinset hcirc rfl hm hbond, hbdeq, hsub⟩
+  refine ⟨ha, ?_⟩
+  · refine Set.mem_iInter₂.2 fun q hq ↦ ?_
+    obtain ⟨h1, h2, h3⟩ := mem_bdIdx.1 hq
+    rw [← Finset.mem_coe, coe_contourInterior hsub] at h1
+    have h3' : q.1 + q.2 ∉ interiorOf (↑C : Set (Sym2 Site)) := by
+      rw [← coe_contourInterior hsub, Finset.mem_coe]
+      exact h3
+    exact hcont _ h1 _ h3' (adj_add_dir h2)
+
+end MeasureTheory.GibbsMeasure.Shlosman
+
+namespace MeasureTheory.GibbsMeasure.Shlosman
+
+open Potential Peierls PeierlsSharp
+
+variable {β : ℝ}
+
+/-! ### Georgii Lemma (6.25): the excess of the discrete Gaussian model decays geometrically -/
+
+/-- **Georgii's contour estimate at the level of the specification.** -/
+theorem dgSpecification_contourEvent_le (hβ : 0 < β) (z k : ℤ) (a : Site) {Λ D : Finset Site}
+    (hDΛ : D ⊆ Λ) :
+    dgSpecification hβ Λ (staircase z)
+        ({ζ : Site → ℤ | k ≤ ζ a - staircase z a} ∩ contourEvent z k D)
+      ≤ ENNReal.ofReal (Real.exp (-β * ((bdIdx D).card : ℝ)))
+        * dgSpecification hβ Λ (staircase z)
+            {ζ : Site → ℤ | k - 1 ≤ ζ a - staircase z a} := by
+  have hA1 : MeasurableSet ({ζ : Site → ℤ | k ≤ ζ a - staircase z a} ∩ contourEvent z k D) :=
+    (measurableSet_apply_mem a {x : ℤ | k ≤ x - staircase z a}).inter
+      (measurableSet_contourEvent z k D)
+  have hA2 : MeasurableSet {ζ : Site → ℤ | k - 1 ≤ ζ a - staircase z a} :=
+    measurableSet_apply_mem a {x : ℤ | k - 1 ≤ x - staircase z a}
+  rw [dgSpecification_apply_eq_tsum hβ Λ _ hA1, dgSpecification_apply_eq_tsum hβ Λ _ hA2]
+  calc (∑' ζ : ↥Λ → ℤ,
+          dgPotential.boltzmannFactor β Λ (juxt (Λ : Set Site) (staircase z) ζ))⁻¹
+        * ∑' ζ : ↥Λ → ℤ,
+            ({ζ : Site → ℤ | k ≤ ζ a - staircase z a} ∩ contourEvent z k D).indicator
+              (dgPotential.boltzmannFactor β Λ) (juxt (Λ : Set Site) (staircase z) ζ)
+      ≤ (∑' ζ : ↥Λ → ℤ,
+            dgPotential.boltzmannFactor β Λ (juxt (Λ : Set Site) (staircase z) ζ))⁻¹
+          * (ENNReal.ofReal (Real.exp (-β * ((bdIdx D).card : ℝ)))
+            * ∑' ζ : ↥Λ → ℤ, {ζ : Site → ℤ | k - 1 ≤ ζ a - staircase z a}.indicator
+                (dgPotential.boltzmannFactor β Λ) (juxt (Λ : Set Site) (staircase z) ζ)) :=
+        mul_le_mul' le_rfl (tsum_indicator_contour_le hβ z k a hDΛ)
+    _ = ENNReal.ofReal (Real.exp (-β * ((bdIdx D).card : ℝ)))
+          * ((∑' ζ : ↥Λ → ℤ,
+              dgPotential.boltzmannFactor β Λ (juxt (Λ : Set Site) (staircase z) ζ))⁻¹
+            * ∑' ζ : ↥Λ → ℤ, {ζ : Site → ℤ | k - 1 ≤ ζ a - staircase z a}.indicator
+                (dgPotential.boltzmannFactor β Λ) (juxt (Λ : Set Site) (staircase z) ζ)) :=
+        mul_left_comm _ _ _
+
+/-- **The Peierls sum over the contours of one length**, Georgii's `∑_{ℓ} ℓ 3^{ℓ-1} e^{-βℓ}` term
+by term: the contours of `ℓ = l + 1` bonds anchored at `a` are at most `(l+1) 3^l` in number
+(Lemma (6.13), `card_sharpContourFinset_le`) and each contributes at most `e^{-β(l+1)}` times
+the probability of an excess `≥ k - 1`. -/
+theorem dgSpecification_contourUnion_le (hβ : 0 < β) (z k : ℤ) (N : ℕ) (a : Site) (l : ℕ) :
+    dgSpecification hβ (cube 2 N) (staircase z)
+        (⋃ C ∈ sharpContourFinset (cube 2 N) a (l + 1),
+          {ζ : Site → ℤ | k ≤ ζ a - staircase z a} ∩
+            contourEvent z k (contourInterior (cube 2 N) C))
+      ≤ ((l : ℝ≥0∞) + 1) * 3 ^ l * ENNReal.ofReal (Real.exp (-β * ((l : ℝ) + 1)))
+        * dgSpecification hβ (cube 2 N) (staircase z)
+            {ζ : Site → ℤ | k - 1 ≤ ζ a - staircase z a} := by
+  classical
+  set G := dgSpecification hβ (cube 2 N) (staircase z)
+    {ζ : Site → ℤ | k - 1 ≤ ζ a - staircase z a} with hG
+  set X := ENNReal.ofReal (Real.exp (-β * ((l : ℝ) + 1))) * G with hX
+  refine le_trans (measure_biUnion_finset_le _ _) ?_
+  refine le_trans (Finset.sum_le_card_nsmul _ _ X fun C hC ↦ ?_) ?_
+  · obtain ⟨hCanch, hbd, hsub⟩ := mem_sharpContourFinset.1 hC
+    have hcard : C.card = l + 1 := card_eq_of_mem_anchoredCircuitFinset hCanch
+    have hDcoe : (↑(contourInterior (cube 2 N) C) : Set Site) = interiorOf (↑C : Set (Sym2 Site))
+        := coe_contourInterior hsub
+    have hbdD : edgeBoundary (↑(contourInterior (cube 2 N) C) : Set Site)
+        = (↑C : Set (Sym2 Site)) := by rw [hDcoe, hbd]
+    have hbdcard : (bdIdx (contourInterior (cube 2 N) C)).card = l + 1 := by
+      rw [card_bdIdx_eq_card hbdD, hcard]
+    have h := dgSpecification_contourEvent_le hβ z k a
+      (contourInterior_subset (cube 2 N) C)
+    rw [hbdcard] at h
+    refine le_trans h (le_of_eq ?_)
+    rw [hX, hG]
+    congr 2
+    push_cast
+    ring
+  · rw [nsmul_eq_mul, hX, ← mul_assoc]
+    refine mul_le_mul' ?_ le_rfl
+    have hle : ((sharpContourFinset (cube 2 N) a (l + 1)).card : ℝ≥0∞)
+        ≤ ((l : ℝ≥0∞) + 1) * 3 ^ l := by
+      have h := card_sharpContourFinset_le (cube 2 N) a (l + 1)
+      simp only [Nat.add_sub_cancel] at h
+      have h' : (((sharpContourFinset (cube 2 N) a (l + 1)).card : ℕ) : ℝ≥0∞)
+          ≤ (((l + 1) * 3 ^ l : ℕ) : ℝ≥0∞) := Nat.cast_le.2 h
+      push_cast at h'
+      exact h'
+    exact mul_le_mul' hle le_rfl
+
+/-- **Georgii Lemma (6.25), the induction step.** For `k ≥ 1`, `β > 0` and the staircase boundary
+condition `ω^z` in the box `Λ_N`,
+
+`γ_{Λ_N}(σ_a - ω^z_a ≥ k | ω^z) ≤ r'(β/2) · γ_{Λ_N}(σ_a - ω^z_a ≥ k - 1 | ω^z)`,
+
+where `r'(β/2) = ∑_{ℓ ≥ 1} ℓ 3^{ℓ-1} e^{-βℓ}` is Georgii's Peierls series `PeierlsSharp.r'`
+evaluated at `β/2` (its bond weight is `e^{-2b}`, and here Lemma (6.24) gives only `e^{-β}` per
+bond).  Georgii writes the series as `r(β)/2 = ∑_{ℓ≥1} ℓ 3^ℓ e^{-βℓ}`, three times as large,
+because he does not use his own `ℓ 3^{ℓ-1}` count at this point. -/
+theorem dgSpecification_excess_le_mul (hβ : 0 < β) (z : ℤ) {k : ℤ} (hk : 1 ≤ k) (N : ℕ)
+    (a : Site) :
+    dgSpecification hβ (cube 2 N) (staircase z) {ζ : Site → ℤ | k ≤ ζ a - staircase z a}
+      ≤ r' (β / 2)
+        * dgSpecification hβ (cube 2 N) (staircase z)
+            {ζ : Site → ℤ | k - 1 ≤ ζ a - staircase z a} := by
+  classical
+  set G := dgSpecification hβ (cube 2 N) (staircase z)
+    {ζ : Site → ℤ | k - 1 ≤ ζ a - staircase z a} with hG
+  have hr : r' (β / 2)
+      = ∑' l : ℕ, ((l : ℝ≥0∞) + 1) * 3 ^ l
+          * ENNReal.ofReal (Real.exp (-β * ((l : ℝ) + 1))) := by
+    rw [r']
+    refine tsum_congr fun l ↦ ?_
+    rw [show -2 * (β / 2) * ((l : ℝ) + 1) = -β * ((l : ℝ) + 1) from by ring]
+  have hsplit : {ζ : Site → ℤ | k ≤ ζ a - staircase z a} ⊆
+      ({ζ : Site → ℤ | k ≤ ζ a - staircase z a} ∩
+        {ζ : Site → ℤ | ∀ i ∉ cube 2 N, ζ i = staircase z i}) ∪
+      {ζ : Site → ℤ | ¬ ∀ i ∉ cube 2 N, ζ i = staircase z i} := by
+    intro ζ hζ
+    by_cases h : ∀ i ∉ cube 2 N, ζ i = staircase z i
+    · exact Or.inl ⟨hζ, h⟩
+    · exact Or.inr h
+  calc dgSpecification hβ (cube 2 N) (staircase z)
+        {ζ : Site → ℤ | k ≤ ζ a - staircase z a}
+      ≤ dgSpecification hβ (cube 2 N) (staircase z)
+          (({ζ : Site → ℤ | k ≤ ζ a - staircase z a} ∩
+            {ζ : Site → ℤ | ∀ i ∉ cube 2 N, ζ i = staircase z i}) ∪
+            {ζ : Site → ℤ | ¬ ∀ i ∉ cube 2 N, ζ i = staircase z i}) := measure_mono hsplit
+    _ ≤ dgSpecification hβ (cube 2 N) (staircase z)
+          ({ζ : Site → ℤ | k ≤ ζ a - staircase z a} ∩
+            {ζ : Site → ℤ | ∀ i ∉ cube 2 N, ζ i = staircase z i})
+        + dgSpecification hβ (cube 2 N) (staircase z)
+          {ζ : Site → ℤ | ¬ ∀ i ∉ cube 2 N, ζ i = staircase z i} := measure_union_le _ _
+    _ = dgSpecification hβ (cube 2 N) (staircase z)
+          ({ζ : Site → ℤ | k ≤ ζ a - staircase z a} ∩
+            {ζ : Site → ℤ | ∀ i ∉ cube 2 N, ζ i = staircase z i}) := by
+        rw [dgSpecification_boundary_null hβ (cube 2 N) (staircase z), add_zero]
+    _ ≤ dgSpecification hβ (cube 2 N) (staircase z)
+          (⋃ l : ℕ, ⋃ C ∈ sharpContourFinset (cube 2 N) a (l + 1),
+            {ζ : Site → ℤ | k ≤ ζ a - staircase z a} ∩
+              contourEvent z k (contourInterior (cube 2 N) C)) :=
+        measure_mono (excess_subset_iUnion_contourEvent z hk N a)
+    _ ≤ ∑' l : ℕ, dgSpecification hβ (cube 2 N) (staircase z)
+          (⋃ C ∈ sharpContourFinset (cube 2 N) a (l + 1),
+            {ζ : Site → ℤ | k ≤ ζ a - staircase z a} ∩
+              contourEvent z k (contourInterior (cube 2 N) C)) := measure_iUnion_le _
+    _ ≤ ∑' l : ℕ, (((l : ℝ≥0∞) + 1) * 3 ^ l
+          * ENNReal.ofReal (Real.exp (-β * ((l : ℝ) + 1)))) * G :=
+        ENNReal.tsum_le_tsum fun l ↦ dgSpecification_contourUnion_le hβ z k N a l
+    _ = (∑' l : ℕ, ((l : ℝ≥0∞) + 1) * 3 ^ l
+          * ENNReal.ofReal (Real.exp (-β * ((l : ℝ) + 1)))) * G := ENNReal.tsum_mul_right
+    _ = r' (β / 2) * G := by rw [hr]
+
+end MeasureTheory.GibbsMeasure.Shlosman
+
+namespace MeasureTheory.GibbsMeasure.Shlosman
+
+open Potential Peierls PeierlsSharp
+
+variable {β : ℝ}
+
+/-! ### Georgii Lemma (6.25) -/
+
+/-- **Georgii's iteration in the proof of (6.25)**: `γ_{Λ_N}(σ_a - ω^z_a ≥ k | ω^z) ≤ r'(β/2)^k`
+for every `k ≥ 0`, by induction on `k` from `dgSpecification_excess_le_mul`. -/
+theorem dgSpecification_excess_le_pow (hβ : 0 < β) (z : ℤ) (N : ℕ) (a : Site) (k : ℕ) :
+    dgSpecification hβ (cube 2 N) (staircase z)
+        {ζ : Site → ℤ | (k : ℤ) ≤ ζ a - staircase z a} ≤ r' (β / 2) ^ k := by
+  induction k with
+  | zero => simpa using prob_le_one
+  | succ k ih =>
+    have h := dgSpecification_excess_le_mul hβ z (k := (k : ℤ) + 1) (by omega) N a
+    rw [add_sub_cancel_right] at h
+    calc dgSpecification hβ (cube 2 N) (staircase z)
+          {ζ : Site → ℤ | ((k + 1 : ℕ) : ℤ) ≤ ζ a - staircase z a}
+        = dgSpecification hβ (cube 2 N) (staircase z)
+            {ζ : Site → ℤ | (k : ℤ) + 1 ≤ ζ a - staircase z a} := by push_cast; rfl
+      _ ≤ r' (β / 2) * dgSpecification hβ (cube 2 N) (staircase z)
+            {ζ : Site → ℤ | (k : ℤ) ≤ ζ a - staircase z a} := h
+      _ ≤ r' (β / 2) * r' (β / 2) ^ k := mul_le_mul' le_rfl ih
+      _ = r' (β / 2) ^ (k + 1) := by rw [pow_succ, mul_comm]
+
+/-- **Georgii Remark (6.17)(iv) applied to the specification.** The spin reflection `τ : ω ↦ -ω`
+leaves `γ^{βΦ}` invariant. -/
+theorem isInvariant_spinReflection_dgSpecification (hβ : 0 < β) :
+    Specification.IsInvariant (spinReflection Site) (dgSpecification hβ) :=
+  Potential.isInvariant_gibbsSpecificationOfSigmaFiniteAdmissible dgPotential β
+    (spinReflection Site) Measure.count
+    (fun _ ↦ measurePreserving_count_of_measurableEquiv intNeg)
+    (isSigmaFiniteLambdaAdmissible_dgPotential hβ)
+    (map_spinReflection_nearestNeighbourDiff fun x ↦ by push_cast; ring)
+
+/-- **Georgii's `τ`-step in the proof of (6.25)**: reflecting the spins turns a deficit below the
+staircase `ω^z` into an excess above the staircase `ω^{-z}`. -/
+theorem dgSpecification_deficit_eq (hβ : 0 < β) (z k : ℤ) (Λ : Finset Site) (a : Site) :
+    dgSpecification hβ Λ (staircase z) {ζ : Site → ℤ | ζ a - staircase z a ≤ -k}
+      = dgSpecification hβ Λ (staircase (-z)) {ζ : Site → ℤ | k ≤ ζ a - staircase (-z) a} := by
+  have hA : MeasurableSet {ζ : Site → ℤ | ζ a - staircase z a ≤ -k} :=
+    measurableSet_apply_mem a {x : ℤ | x - staircase z a ≤ -k}
+  have hinv : (dgSpecification hβ).map (spinReflection Site) = dgSpecification hβ :=
+    isInvariant_spinReflection_dgSpecification hβ
+  have hΛ : Λ.map (spinReflection Site).sites.symm.toEmbedding = Λ := by
+    simp [spinReflection]
+  have hη : (spinReflection Site).inv.toFun (staircase z) = staircase (-z) := by
+    funext i
+    simp [spinReflection, Transformation.inv, Transformation.toFun, staircase]
+  have hset : (spinReflection Site).toFun ⁻¹' {ζ : Site → ℤ | ζ a - staircase z a ≤ -k}
+      = {ζ : Site → ℤ | k ≤ ζ a - staircase (-z) a} := by
+    ext ζ
+    simp only [Set.mem_preimage, Set.mem_ofPred_eq, spinReflection_toFun, staircase_apply,
+      neg_mul]
+    omega
+  conv_lhs => rw [← hinv]
+  rw [Specification.map_apply' _ _ _ _ hA, hΛ, hη, hset]
+
+/-- **Georgii Lemma (6.25).** In the box `Λ_N` with the staircase boundary condition `ω^z`, the
+spin at `a` differs from `ω^z_a` by at least `k` with probability at most `2 r'(β/2)^k`:
+
+`γ_{Λ_N}^{βΦ}(|σ_a - ω^z_a| ≥ k | ω^z) ≤ 2 r'(β/2)^k`,
+
+`r'(β/2) = ∑_{ℓ ≥ 1} ℓ 3^{ℓ-1} e^{-βℓ}`.  Georgii states it as `≤ r(β)^k` with
+`r(β) = 1 ∧ 2 ∑_{ℓ≥1} ℓ (3e^{-β})^ℓ = 1 ∧ 6 r'(β/2)`; the bound proved here is sharper (and, for
+`k = 0`, weaker only in that `2 ≥ 1`).  The two halves are Georgii's: an excess is controlled by
+`dgSpecification_excess_le_pow`, a deficit is an excess for `ω^{-z}` by the spin reflection. -/
+theorem dgSpecification_abs_excess_le (hβ : 0 < β) (z : ℤ) (N : ℕ) (a : Site) (k : ℕ) :
+    dgSpecification hβ (cube 2 N) (staircase z)
+        {ζ : Site → ℤ | (k : ℤ) ≤ |ζ a - staircase z a|} ≤ 2 * r' (β / 2) ^ k := by
+  have hsub : {ζ : Site → ℤ | (k : ℤ) ≤ |ζ a - staircase z a|} ⊆
+      {ζ : Site → ℤ | (k : ℤ) ≤ ζ a - staircase z a} ∪
+        {ζ : Site → ℤ | ζ a - staircase z a ≤ -(k : ℤ)} := by
+    intro ζ hζ
+    have : (k : ℤ) ≤ |ζ a - staircase z a| := hζ
+    rcases lt_or_ge (ζ a - staircase z a) 0 with h | h
+    · rw [abs_of_neg h] at this
+      exact Or.inr (show ζ a - staircase z a ≤ -(k : ℤ) by omega)
+    · rw [abs_of_nonneg h] at this
+      exact Or.inl this
+  have h2 : dgSpecification hβ (cube 2 N) (staircase z)
+      {ζ : Site → ℤ | ζ a - staircase z a ≤ -(k : ℤ)} ≤ r' (β / 2) ^ k := by
+    rw [dgSpecification_deficit_eq hβ z (k : ℤ) (cube 2 N) a]
+    exact dgSpecification_excess_le_pow hβ (-z) N a k
+  calc dgSpecification hβ (cube 2 N) (staircase z)
+        {ζ : Site → ℤ | (k : ℤ) ≤ |ζ a - staircase z a|}
+      ≤ dgSpecification hβ (cube 2 N) (staircase z)
+          ({ζ : Site → ℤ | (k : ℤ) ≤ ζ a - staircase z a} ∪
+            {ζ : Site → ℤ | ζ a - staircase z a ≤ -(k : ℤ)}) := measure_mono hsub
+    _ ≤ dgSpecification hβ (cube 2 N) (staircase z)
+          {ζ : Site → ℤ | (k : ℤ) ≤ ζ a - staircase z a}
+        + dgSpecification hβ (cube 2 N) (staircase z)
+          {ζ : Site → ℤ | ζ a - staircase z a ≤ -(k : ℤ)} := measure_union_le _ _
+    _ ≤ r' (β / 2) ^ k + r' (β / 2) ^ k :=
+        add_le_add (dgSpecification_excess_le_pow hβ z N a k) h2
+    _ = 2 * r' (β / 2) ^ k := by rw [two_mul]
+
+end MeasureTheory.GibbsMeasure.Shlosman
+
+namespace MeasureTheory.GibbsMeasure
+
+/-- **Georgii Corollary (4.13)** in the form the discrete Gaussian model needs: a family of random
+fields whose single-spin distributions are *uniformly tight* — for every site `i` and every
+`ε > 0` one finite window `F ⊆ E` carries all of them up to `ε` — is locally equicontinuous, and
+hence (Proposition (4.9)) has a cluster point in the topology of local convergence.
+
+Georgii states (4.13) for a Polish `E` and compact windows; over the countable `E = ℤ` of §6.3
+the compact windows are the finite ones, and the proof is the one below: outside a finite window
+in each of the finitely many coordinates of `Λ` there is mass at most `ε`, and inside it only
+finitely many `Λ`-configurations occur, so an antitone sequence of `𝓕_Λ`-events with empty
+intersection eventually misses the window entirely.
+
+This is a statement about `LocallyEquicontinuous` and belongs beside it in
+`GibbsMeasure/Topology/ClusterPoints.lean`. -/
+theorem locallyEquicontinuous_of_uniformlyTight {S E ι : Type*} [MeasurableSpace E] [Nonempty E]
+    {l : Filter ι} {μs : ι → ProbabilityMeasure (S → E)}
+    (htight : ∀ (i : S) (ε : ℝ≥0∞), 0 < ε → ∃ F : Finset E,
+      ∀ n, (μs n : Measure (S → E)) {ω : S → E | ω i ∉ F} ≤ ε) :
+    LocallyEquicontinuous l μs := by
+  classical
+  intro Λ A hmeas hanti hempty
+  rw [ENNReal.tendsto_atTop_zero]
+  intro ε hε
+  set ε' : ℝ≥0∞ := ε / ((Λ.card : ℝ≥0∞) + 1) with hε'def
+  have hne : ((Λ.card : ℝ≥0∞) + 1) ≠ 0 := by simp
+  have hnt : ((Λ.card : ℝ≥0∞) + 1) ≠ ⊤ := by simp
+  have hε' : 0 < ε' := ENNReal.div_pos hε.ne' hnt
+  have hsum : (Λ.card : ℝ≥0∞) * ε' ≤ ε := by
+    calc (Λ.card : ℝ≥0∞) * ε' ≤ ((Λ.card : ℝ≥0∞) + 1) * ε' := by
+          exact mul_le_mul' le_self_add le_rfl
+      _ = ε := by rw [hε'def, ENNReal.mul_div_cancel' (fun h ↦ absurd h hne) (fun h ↦ absurd h hnt)]
+  choose F hF using fun i : S ↦ htight i ε' hε'
+  set K : Set (S → E) := {ω : S → E | ∀ i ∈ Λ, ω i ∈ F i} with hK
+  have hKc : ∀ n, (μs n : Measure (S → E)) Kᶜ ≤ ε := by
+    intro n
+    have hsub : (Kᶜ : Set (S → E)) ⊆ ⋃ i ∈ Λ, {ω : S → E | ω i ∉ F i} := by
+      intro ω hω
+      simp only [hK, Set.mem_compl_iff, Set.mem_ofPred_eq, not_forall] at hω
+      obtain ⟨i, hi, hωi⟩ := hω
+      exact Set.mem_biUnion hi hωi
+    calc (μs n : Measure (S → E)) Kᶜ
+        ≤ (μs n : Measure (S → E)) (⋃ i ∈ Λ, {ω : S → E | ω i ∉ F i}) := measure_mono hsub
+      _ ≤ ∑ i ∈ Λ, (μs n : Measure (S → E)) {ω : S → E | ω i ∉ F i} :=
+          measure_biUnion_finset_le _ _
+      _ ≤ ∑ _i ∈ Λ, ε' := Finset.sum_le_sum fun i _ ↦ hF i n
+      _ = (Λ.card : ℝ≥0∞) * ε' := by rw [Finset.sum_const, nsmul_eq_mul]
+      _ ≤ ε := hsum
+  set sec : (↥Λ → E) → (S → E) :=
+    fun x j ↦ if hj : j ∈ Λ then x ⟨j, hj⟩ else Classical.arbitrary E with hsec
+  have hex : ∀ x : ↥Λ → E, ∃ m : ℕ, sec x ∉ A m := by
+    intro x
+    by_contra hcon
+    push Not at hcon
+    have hmem : sec x ∈ ⋂ m, A m := Set.mem_iInter.2 hcon
+    rw [hempty] at hmem
+    exact hmem
+  choose mfun hmfun using hex
+  set T : Finset (↥Λ → E) := Fintype.piFinset fun i : ↥Λ ↦ F (i : S) with hT
+  refine ⟨T.sup mfun, fun m hm ↦ ?_⟩
+  have hAsub : A m ⊆ Kᶜ := by
+    intro ω hωA hωK
+    set x : ↥Λ → E := fun i ↦ ω (i : S) with hx
+    have hxT : x ∈ T := Fintype.mem_piFinset.2 fun i ↦ hωK (i : S) i.2
+    have hle : mfun x ≤ m := le_trans (Finset.le_sup hxT) hm
+    have hωm : ω ∈ A (mfun x) := hanti hle hωA
+    have hagree : ∀ i ∈ (Λ : Set S), sec x i = ω i := by
+      intro i hi
+      have hiΛ : i ∈ Λ := by simpa using hi
+      simp [hsec, hiΛ, hx]
+    exact hmfun x ((mem_congr_of_measurableSet_cylinderEvents (hmeas (mfun x)) hagree).2 hωm)
+  exact Filter.limsup_le_of_le (h := Filter.Eventually.of_forall fun n ↦
+    le_trans (measure_mono hAsub) (hKc n))
+
+end MeasureTheory.GibbsMeasure
+
+namespace MeasureTheory.GibbsMeasure.Shlosman
+
+open Potential Peierls PeierlsSharp Filter Topology
+
+variable {β : ℝ}
+
+/-! ### Quasilocality of `γ^{βΦ}` -/
+
+/-- The finite-volume Hamiltonian of the discrete Gaussian potential depends only on the halo of
+`Λ`: it is a finite sum of bond energies over the bonds meeting `Λ`. -/
+lemma dgPotential_hamiltonian_congr (Λ : Finset Site) {ζ η : Site → ℤ}
+    (h : ∀ i ∈ halo Λ, ζ i = η i) :
+    dgPotential.hamiltonian Λ ζ = dgPotential.hamiltonian Λ η := by
+  rw [dgPotential_hamiltonian_eq, dgPotential_hamiltonian_eq]
+  congr 1
+  refine Finset.sum_congr rfl fun p hp ↦ ?_
+  rw [h p.1 (fst_mem_halo hp), h p.2 (by simpa using fst_mem_halo (swap_mem_dirBonds hp))]
+
+/-- **Georgii Proposition (2.24)(b) for the discrete Gaussian model.** `γ^{βΦ}` is quasilocal:
+its Hamiltonians are local functions (they involve only the bonds meeting `Λ`). -/
+theorem isQuasilocal_dgSpecification (hβ : 0 < β) : (dgSpecification hβ).IsQuasilocal :=
+  Potential.isQuasilocal_gibbsSpecificationOfSigmaFiniteAdmissible dgPotential Measure.count β
+    (isSigmaFiniteLambdaAdmissible_dgPotential hβ)
+    fun Λ ε hε ↦ ⟨halo Λ, fun ζ η hagree ↦ by
+      show |β * dgPotential.hamiltonian Λ ζ - β * dgPotential.hamiltonian Λ η| ≤ ε
+      rw [dgPotential_hamiltonian_congr Λ hagree, sub_self, abs_zero]
+      exact hε.le⟩
+
+/-! ### Georgii Theorem (6.21): the random staircases -/
+
+/-- The one-site event `{|σ_a - ω^z_a| ≥ k}` is a local event. -/
+lemma absExcess_mem_localEvents (z : ℤ) (a : Site) (k : ℕ) :
+    {ζ : Site → ℤ | (k : ℤ) ≤ |ζ a - staircase z a|} ∈ localEvents Site ℤ := by
+  refine mem_localEvents_of_cylinderEvents {a} ?_
+  have hmem : a ∈ (({a} : Finset Site) : Set Site) := by simp
+  exact measurable_cylinderEvent_apply (X := fun _ : Site ↦ ℤ) hmem
+    (MeasurableSet.of_discrete (s := {x : ℤ | (k : ℤ) ≤ |x - staircase z a|}))
+
+/-- **Uniform tightness of the finite-volume distributions with staircase boundary condition**,
+Georgii's `lim_{k→∞} sup_N ν_{N,z}(|σ_a| ≥ k) = 0`: the input to Corollary (4.13). -/
+theorem locallyEquicontinuous_dg_cube (hβ : 0 < β) (hr : r' (β / 2) < 1) (z : ℤ) :
+    LocallyEquicontinuous atTop
+      (fun N : ℕ ↦ finiteVolumeDistributions (dgSpecification hβ) (staircase z) (cube 2 N)) := by
+  classical
+  have hpow : Tendsto (fun k : ℕ ↦ 2 * r' (β / 2) ^ k) atTop (𝓝 0) := by
+    have h := ENNReal.tendsto_pow_atTop_nhds_zero_of_lt_one hr
+    simpa using ENNReal.Tendsto.const_mul h (Or.inr (by simp))
+  refine locallyEquicontinuous_of_uniformlyTight fun a ε hε ↦ ?_
+  obtain ⟨k, hk⟩ := (ENNReal.tendsto_atTop_zero.1 hpow) ε hε
+  refine ⟨Finset.Icc (staircase z a - (k : ℤ) + 1) (staircase z a + (k : ℤ) - 1), fun N ↦ ?_⟩
+  refine le_trans (measure_mono ?_) (le_trans
+    (dgSpecification_abs_excess_le hβ z N a k) (hk k le_rfl))
+  intro ω hω
+  have hω' : ω a ∉ Finset.Icc (staircase z a - (k : ℤ) + 1) (staircase z a + (k : ℤ) - 1) := hω
+  rw [Finset.mem_Icc] at hω'
+  have hcase : ω a < staircase z a - (k : ℤ) + 1 ∨ staircase z a + (k : ℤ) - 1 < ω a := by
+    omega
+  show (k : ℤ) ≤ |ω a - staircase z a|
+  rcases hcase with h | h
+  · rw [abs_of_nonpos (by omega)]
+    omega
+  · rw [abs_of_nonneg (by omega)]
+    omega
+
+/-- **Georgii Theorem (6.21), the construction.** For every `z ∈ ℤ` and every `β > 0` at which
+Georgii's Peierls series converges (`r'(β/2) < 1`), the finite-volume Gibbs distributions in the
+boxes `Λ_N` with the staircase boundary condition `ω^z` have a cluster point `μ_z^β`; it is a
+Gibbs measure for `βΦ` and inherits the estimate of Lemma (6.25):
+
+`μ_z^β(|σ_a - ω^z_a| ≥ k) ≤ 2 r'(β/2)^k`  for all `a ∈ S`, `k ≥ 0`.
+
+Georgii's `ν_{N,z}` are the *shift averages* of these distributions over the translates of `Λ_N`;
+he averages only in order to get the invariance statement (ii) out of Example (5.20)(1). -/
+theorem exists_staircasePhase (hβ : 0 < β) (hr : r' (β / 2) < 1) (z : ℤ) :
+    ∃ μ : ProbabilityMeasure (Site → ℤ),
+      μ ∈ GP (S := Site) (E := ℤ) (dgSpecification hβ) ∧
+        ∀ (a : Site) (k : ℕ),
+          (μ : Measure (Site → ℤ)) {ζ : Site → ℤ | (k : ℤ) ≤ |ζ a - staircase z a|}
+            ≤ 2 * r' (β / 2) ^ k := by
+  classical
+  set μs : ℕ → ProbabilityMeasure (Site → ℤ) :=
+    fun N ↦ finiteVolumeDistributions (dgSpecification hβ) (staircase z) (cube 2 N) with hμs
+  obtain ⟨μ, hcp⟩ := exists_mapClusterPt_of_locallyEquicontinuous
+    (μs := fun N : ℕ ↦ (WithSetwiseTopology.ofMeasure (μs N) : WithLocalConvergence Site ℤ))
+    (locallyEquicontinuous_dg_cube hβ hr z)
+  have hbind : ∀ N : ℕ, (dgSpecification hβ).bindPM (cube 2 N)
+      ⟨Measure.dirac (staircase z), inferInstance⟩ = μs N := by
+    intro N
+    exact Subtype.ext
+      (Measure.dirac_bind ((dgSpecification hβ).measurable_kernel_toMeasure (cube 2 N))
+        (staircase z))
+  refine ⟨μ.toMeasure, ?_, fun a k ↦ ?_⟩
+  · refine mem_GP_of_mapClusterPt (l := (atTop : Filter ℕ)) (isQuasilocal_dgSpecification hβ)
+      (γs := fun _ ↦ dgSpecification hβ) (Λs := fun N ↦ cube 2 N)
+      (νs := fun _ ↦ ⟨Measure.dirac (staircase z), inferInstance⟩)
+      tendsto_cube_atTop (fun Λ f _ ↦ by simp) ?_
+    have hfun : (fun N : ℕ ↦ (WithSetwiseTopology.ofMeasure
+          ((dgSpecification hβ).bindPM (cube 2 N)
+            (⟨Measure.dirac (staircase z), inferInstance⟩ : ProbabilityMeasure (Site → ℤ))) :
+          WithLocalConvergence Site ℤ))
+        = fun N : ℕ ↦ (WithSetwiseTopology.ofMeasure (μs N) : WithLocalConvergence Site ℤ) :=
+      funext fun N ↦ congrArg _ (hbind N)
+    rw [hfun]
+    exact hcp
+  · exact eval_le_of_mapClusterPt (absExcess_mem_localEvents z a k) hcp
+      (.of_forall fun N ↦ dgSpecification_abs_excess_le hβ z N a k)
+
+end MeasureTheory.GibbsMeasure.Shlosman
+
+namespace MeasureTheory.GibbsMeasure.PeierlsSharp
+
+/-- **A strict version of `PeierlsSharp.r'_le_quarter`**, needed for the strict inequality
+`μ_z^β(σ_a = ω^z_a) > 1/2` of Georgii (6.21)(i): `r' b ≤ 4/27 < 1/4` as soon as
+`b ≥ (1/2) log 12 ≈ 1.242`.  (This belongs beside `r'_le_quarter` in
+`GibbsMeasure/Model/SharpContours.lean`.) -/
+theorem r'_lt_quarter {b : ℝ} (hb : Real.log 12 ≤ 2 * b) : r' b < 4⁻¹ := by
+  set y := ENNReal.ofReal (Real.exp (-2 * b)) with hy
+  have hexp : Real.exp (-2 * b) ≤ 1 / 12 := by
+    have h1 : Real.exp (-2 * b) ≤ Real.exp (-Real.log 12) := Real.exp_le_exp.2 (by linarith)
+    rwa [Real.exp_neg, Real.exp_log (by norm_num : (0:ℝ) < 12), ← one_div] at h1
+  have hy12 : y ≤ ENNReal.ofReal (1 / 12) := ENNReal.ofReal_le_ofReal hexp
+  have h3y : 3 * y ≤ ENNReal.ofReal (1 / 4) := by
+    calc 3 * y ≤ 3 * ENNReal.ofReal (1 / 12) := by gcongr
+      _ = ENNReal.ofReal (1 / 4) := by
+          rw [show (3 : ℝ≥0∞) = ENNReal.ofReal 3 from by simp,
+            ← ENNReal.ofReal_mul (by norm_num : (0:ℝ) ≤ 3)]
+          norm_num
+  have hsubl : ENNReal.ofReal (3 / 4) ≤ 1 - 3 * y := by
+    refine le_trans (le_of_eq ?_) (tsub_le_tsub_left h3y 1)
+    rw [show (1 : ℝ≥0∞) = ENNReal.ofReal 1 from ENNReal.ofReal_one.symm,
+      ← ENNReal.ofReal_sub _ (by norm_num : (0:ℝ) ≤ 1 / 4)]
+    norm_num
+  have hinv : (1 - 3 * y)⁻¹ ≤ ENNReal.ofReal (4 / 3) := by
+    refine le_trans (ENNReal.inv_le_inv.2 hsubl) (le_of_eq ?_)
+    rw [← ENNReal.ofReal_inv_of_pos (by norm_num : (0:ℝ) < 3 / 4)]
+    norm_num
+  rw [r'_eq]
+  refine lt_of_le_of_lt (mul_le_mul' hy12 (mul_le_mul' hinv hinv)) ?_
+  rw [← ENNReal.ofReal_mul (by norm_num : (0:ℝ) ≤ 4 / 3),
+    ← ENNReal.ofReal_mul (by norm_num : (0:ℝ) ≤ 1 / 12),
+    show (4 : ℝ≥0∞)⁻¹ = ENNReal.ofReal (1 / 4) from by
+      rw [show (1 / 4 : ℝ) = (4 : ℝ)⁻¹ from by norm_num,
+        ENNReal.ofReal_inv_of_pos (by norm_num : (0:ℝ) < 4)]
+      norm_num]
+  rw [ENNReal.ofReal_lt_ofReal_iff (by norm_num)]
+  norm_num
+
+end MeasureTheory.GibbsMeasure.PeierlsSharp
+
+namespace MeasureTheory.GibbsMeasure.Shlosman
+
+open Potential Peierls PeierlsSharp Filter Topology Transformation
+
+variable {β : ℝ}
+
+/-! ### Georgii Theorem (6.21): the family `(μ_z^β)_{z ∈ ℤ}` -/
+
+/-- **Georgii Theorem (6.21): the random staircase `μ_z^β`**, a Gibbs measure for `βΦ` obtained
+as a cluster point of the finite-volume distributions in the boxes `Λ_N` with the staircase
+boundary condition `ω^z`. -/
+noncomputable def staircasePhase (hβ : 0 < β) (hr : r' (β / 2) < 1) (z : ℤ) :
+    ProbabilityMeasure (Site → ℤ) :=
+  (exists_staircasePhase hβ hr z).choose
+
+/-- `μ_z^β ∈ 𝒢(βΦ)`. -/
+theorem staircasePhase_mem_GP (hβ : 0 < β) (hr : r' (β / 2) < 1) (z : ℤ) :
+    staircasePhase hβ hr z ∈ GP (S := Site) (E := ℤ) (dgSpecification hβ) :=
+  (exists_staircasePhase hβ hr z).choose_spec.1
+
+/-- **Georgii (6.21)(i), the estimate**: `μ_z^β(|σ_a - ω^z_a| ≥ k) ≤ 2 r'(β/2)^k`. -/
+theorem staircasePhase_absExcess_le (hβ : 0 < β) (hr : r' (β / 2) < 1) (z : ℤ) (a : Site)
+    (k : ℕ) :
+    (staircasePhase hβ hr z : Measure (Site → ℤ))
+        {ζ : Site → ℤ | (k : ℤ) ≤ |ζ a - staircase z a|} ≤ 2 * r' (β / 2) ^ k :=
+  (exists_staircasePhase hβ hr z).choose_spec.2 a k
+
+lemma compl_spin_eq_staircase (z : ℤ) (a : Site) :
+    {ζ : Site → ℤ | ζ a = staircase z a}ᶜ
+      = {ζ : Site → ℤ | (1 : ℤ) ≤ |ζ a - staircase z a|} := by
+  ext ζ
+  simp only [Set.mem_compl_iff, Set.mem_ofPred_eq]
+  constructor
+  · intro h
+    have h0 : ζ a - staircase z a ≠ 0 := sub_ne_zero.2 h
+    have := abs_pos.2 h0
+    omega
+  · intro h heq
+    rw [heq, sub_self, abs_zero] at h
+    omega
+
+/-- **Georgii Theorem (6.21)(i).** If `2 r'(β/2) < 1/2` — Georgii's `r(β) < 1/2` — then the
+random staircase carries more than half of its mass on the staircase value at every site:
+`μ_z^β(σ_a = ω^z_a) > 1/2`. -/
+theorem half_lt_staircasePhase (hβ : 0 < β) (hr : r' (β / 2) < 1)
+    (hq : 2 * r' (β / 2) < 2⁻¹) (z : ℤ) (a : Site) :
+    2⁻¹ < (staircasePhase hβ hr z : Measure (Site → ℤ))
+      {ζ : Site → ℤ | ζ a = staircase z a} := by
+  set μ := (staircasePhase hβ hr z : Measure (Site → ℤ)) with hμ
+  have hA : MeasurableSet {ζ : Site → ℤ | ζ a = staircase z a} :=
+    measurableSet_apply_mem a {x : ℤ | x = staircase z a}
+  have hcompl : μ {ζ : Site → ℤ | ζ a = staircase z a}ᶜ < 2⁻¹ := by
+    rw [compl_spin_eq_staircase]
+    refine lt_of_le_of_lt ?_ hq
+    simpa using staircasePhase_absExcess_le hβ hr z a 1
+  have hsum : μ {ζ : Site → ℤ | ζ a = staircase z a}
+      + μ {ζ : Site → ℤ | ζ a = staircase z a}ᶜ = 1 := by
+    rw [measure_add_measure_compl hA]
+    simp
+  by_contra hcon
+  push Not at hcon
+  have : (1 : ℝ≥0∞) < 2⁻¹ + 2⁻¹ := by
+    calc (1 : ℝ≥0∞) = μ {ζ : Site → ℤ | ζ a = staircase z a}
+          + μ {ζ : Site → ℤ | ζ a = staircase z a}ᶜ := hsum.symm
+      _ < 2⁻¹ + 2⁻¹ := by
+          exact ENNReal.add_lt_add_of_le_of_lt (by finiteness) hcon hcompl
+  rw [ENNReal.inv_two_add_inv_two] at this
+  exact absurd this (lt_irrefl 1)
+
+/-- Two probability measures each putting more than half of its mass on a *different* value of
+the same spin are different: this is the separation argument behind Georgii (6.21)(iii). -/
+lemma ne_of_half_lt {μ ν : Measure (Site → ℤ)} [IsProbabilityMeasure μ]
+    {a : Site} {c d : ℤ} (hcd : c ≠ d)
+    (hμ : 2⁻¹ < μ {ζ : Site → ℤ | ζ a = c}) (hν : 2⁻¹ < ν {ζ : Site → ℤ | ζ a = d}) :
+    μ ≠ ν := by
+  rintro rfl
+  have hdisj : Disjoint {ζ : Site → ℤ | ζ a = c} {ζ : Site → ℤ | ζ a = d} := by
+    rw [Set.disjoint_left]
+    intro ζ h1 h2
+    exact hcd (h1.symm.trans h2)
+  have hmd : MeasurableSet {ζ : Site → ℤ | ζ a = d} :=
+    measurableSet_apply_mem a {x : ℤ | x = d}
+  have hle : μ {ζ : Site → ℤ | ζ a = c} + μ {ζ : Site → ℤ | ζ a = d} ≤ 1 := by
+    rw [← measure_union hdisj hmd]
+    exact prob_le_one
+  have hgt : (1 : ℝ≥0∞) < μ {ζ : Site → ℤ | ζ a = c} + μ {ζ : Site → ℤ | ζ a = d} := by
+    calc (1 : ℝ≥0∞) = 2⁻¹ + 2⁻¹ := (ENNReal.inv_two_add_inv_two).symm
+      _ < _ := ENNReal.add_lt_add_of_lt_of_le (by finiteness) hμ hν.le
+  exact absurd hle (not_le.2 hgt)
+
+/-- **Georgii Theorem (6.21)(iii), the separation of the `μ_z^β`.** Distinct slopes give
+distinct Gibbs measures. -/
+theorem staircasePhase_ne (hβ : 0 < β) (hr : r' (β / 2) < 1) (hq : 2 * r' (β / 2) < 2⁻¹)
+    {z w : ℤ} (hzw : z ≠ w) : staircasePhase hβ hr z ≠ staircasePhase hβ hr w := by
+  intro h
+  refine ne_of_half_lt (μ := (staircasePhase hβ hr z : Measure (Site → ℤ)))
+    (ν := (staircasePhase hβ hr w : Measure (Site → ℤ))) (a := e0) (c := z) (d := w) hzw ?_ ?_ ?_
+  · simpa [staircase] using half_lt_staircasePhase hβ hr hq z e0
+  · simpa [staircase] using half_lt_staircasePhase hβ hr hq w e0
+  · exact congrArg (fun m : ProbabilityMeasure (Site → ℤ) ↦ (m : Measure (Site → ℤ))) h
+
+/-- **Georgii Theorem (6.21), the punchline**: at low temperature the discrete Gaussian model on
+`ℤ²` has infinitely many Gibbs measures. -/
+theorem infinite_GP_dgSpecification (hβ : 0 < β) (hr : r' (β / 2) < 1)
+    (hq : 2 * r' (β / 2) < 2⁻¹) :
+    (GP (S := Site) (E := ℤ) (dgSpecification hβ)).Infinite := by
+  refine Set.infinite_of_injective_forall_mem (f := fun z : ℤ ↦ staircasePhase hβ hr z)
+    (fun z w h ↦ ?_) (fun z ↦ staircasePhase_mem_GP hβ hr z)
+  by_contra hzw
+  exact staircasePhase_ne hβ hr hq hzw h
+
+end MeasureTheory.GibbsMeasure.Shlosman
+
+namespace MeasureTheory.GibbsMeasure.Shlosman
+
+open Potential Peierls PeierlsSharp Filter Topology Transformation
+
+variable {β : ℝ}
+
+/-! ### Georgii Theorem (6.21): the broken symmetries -/
+
+lemma map_toFun_spin_eq (τ : Transformation Site ℤ) (μ : Measure (Site → ℤ))
+    (a : Site) (d : ℤ) :
+    (μ.map τ.toFun) {ζ : Site → ℤ | ζ a = d} = μ {ω : Site → ℤ | τ.toFun ω a = d} :=
+  Measure.map_apply τ.measurable_toFun (measurableSet_apply_mem a {x : ℤ | x = d})
+
+variable (hβ : 0 < β) (hr : r' (β / 2) < 1) (hq : 2 * r' (β / 2) < 2⁻¹)
+include hβ hr hq
+
+/-- **Georgii Theorem (6.21): the spin translation `t` is broken.** `t(μ_z^β) ≠ μ_z^β` for every
+`z`; equivalently `μ_z^β` and `t^n(μ_z^β)` are distinct Gibbs measures. -/
+theorem map_spinTranslation_staircasePhase_ne (z : ℤ) :
+    Measure.map (staircaseShift Site).toFun (staircasePhase hβ hr z : Measure (Site → ℤ))
+      ≠ (staircasePhase hβ hr z : Measure (Site → ℤ)) := by
+  have : IsProbabilityMeasure (Measure.map (staircaseShift Site).toFun
+      (staircasePhase hβ hr z : Measure (Site → ℤ))) :=
+    Measure.isProbabilityMeasure_map (staircaseShift Site).measurable_toFun.aemeasurable
+  refine ne_of_half_lt (a := (0 : Site)) (c := -1) (d := 0) (by omega) ?_ ?_
+  · rw [map_toFun_spin_eq]
+    have hset : {ω : Site → ℤ | (staircaseShift Site).toFun ω (0 : Site) = -1}
+        = {ζ : Site → ℤ | ζ (0 : Site) = staircase z (0 : Site)} := by
+      ext ω
+      simp only [Set.mem_ofPred_eq, staircaseShift_toFun_apply, staircase_apply, Pi.zero_apply,
+        mul_zero]
+      omega
+    rw [hset]
+    exact half_lt_staircasePhase hβ hr hq z 0
+  · have h0 : staircase z (0 : Site) = 0 := by simp [staircase]
+    simpa [h0] using half_lt_staircasePhase hβ hr hq z 0
+
+/-- **Georgii Theorem (6.21): the spin reflection `τ` is broken** for `z ≠ 0`. -/
+theorem map_spinReflection_staircasePhase_ne {z : ℤ} (hz : z ≠ 0) :
+    Measure.map (spinReflection Site).toFun (staircasePhase hβ hr z : Measure (Site → ℤ))
+      ≠ (staircasePhase hβ hr z : Measure (Site → ℤ)) := by
+  have : IsProbabilityMeasure (Measure.map (spinReflection Site).toFun
+      (staircasePhase hβ hr z : Measure (Site → ℤ))) :=
+    Measure.isProbabilityMeasure_map (spinReflection Site).measurable_toFun.aemeasurable
+  refine ne_of_half_lt (a := e0) (c := -z) (d := z) (by omega) ?_ ?_
+  · rw [map_toFun_spin_eq]
+    have hset : {ω : Site → ℤ | (spinReflection Site).toFun ω e0 = -z}
+        = {ζ : Site → ℤ | ζ e0 = staircase z e0} := by
+      ext ω
+      simp only [Set.mem_ofPred_eq, spinReflection_toFun, staircase_apply, e0_zero, mul_one]
+      omega
+    rw [hset]
+    exact half_lt_staircasePhase hβ hr hq z e0
+  · simpa [staircase] using half_lt_staircasePhase hβ hr hq z e0
+
+/-- **Georgii Theorem (6.21): the lattice translation `θ_j` is broken** whenever it moves the
+staircase, i.e. whenever `z · j₁ ≠ 0`. -/
+theorem map_shift_staircasePhase_ne {z : ℤ} {j : Site} (hzj : z * j 0 ≠ 0) :
+    Measure.map (shift ℤ j).toFun (staircasePhase hβ hr z : Measure (Site → ℤ))
+      ≠ (staircasePhase hβ hr z : Measure (Site → ℤ)) := by
+  have : IsProbabilityMeasure (Measure.map (shift ℤ j).toFun
+      (staircasePhase hβ hr z : Measure (Site → ℤ))) :=
+    Measure.isProbabilityMeasure_map (shift ℤ j).measurable_toFun.aemeasurable
+  refine ne_of_half_lt (a := j) (c := 0) (d := z * j 0) (Ne.symm hzj) ?_ ?_
+  · rw [map_toFun_spin_eq]
+    have hset : {ω : Site → ℤ | (shift ℤ j).toFun ω j = 0}
+        = {ζ : Site → ℤ | ζ (0 : Site) = staircase z (0 : Site)} := by
+      ext ω
+      simp only [Set.mem_ofPred_eq, shift_toFun_apply, sub_self, staircase_apply, Pi.zero_apply,
+        mul_zero]
+    rw [hset]
+    exact half_lt_staircasePhase hβ hr hq z 0
+  · simpa [staircase] using half_lt_staircasePhase hβ hr hq z j
+
+/-- **Georgii Theorem (6.21): the lattice rotation `r₀` is broken** for `z ≠ 0`. -/
+theorem map_latticeRot_staircasePhase_ne {z : ℤ} (hz : z ≠ 0) :
+    Measure.map latticeRot.toFun (staircasePhase hβ hr z : Measure (Site → ℤ))
+      ≠ (staircasePhase hβ hr z : Measure (Site → ℤ)) := by
+  have : IsProbabilityMeasure (Measure.map latticeRot.toFun
+      (staircasePhase hβ hr z : Measure (Site → ℤ))) :=
+    Measure.isProbabilityMeasure_map latticeRot.measurable_toFun.aemeasurable
+  refine ne_of_half_lt (a := e1) (c := z) (d := 0) hz ?_ ?_
+  · rw [map_toFun_spin_eq]
+    have hset : {ω : Site → ℤ | latticeRot.toFun ω e1 = z}
+        = {ζ : Site → ℤ | ζ (mk 1 0) = staircase z (mk 1 0)} := by
+      ext ω
+      simp only [Set.mem_ofPred_eq, latticeRot_toFun, e1_zero, e1_one, neg_zero,
+        staircase_apply, Peierls.mk_zero, mul_one]
+    rw [hset]
+    exact half_lt_staircasePhase hβ hr hq z (mk 1 0)
+  · simpa [staircase] using half_lt_staircasePhase hβ hr hq z e1
+
+/-- **Georgii Theorem (6.21): the lattice reflection `r₁` is broken** for `z ≠ 0`. -/
+theorem map_latticeReflFst_staircasePhase_ne {z : ℤ} (hz : z ≠ 0) :
+    Measure.map latticeReflFst.toFun (staircasePhase hβ hr z : Measure (Site → ℤ))
+      ≠ (staircasePhase hβ hr z : Measure (Site → ℤ)) := by
+  have : IsProbabilityMeasure (Measure.map latticeReflFst.toFun
+      (staircasePhase hβ hr z : Measure (Site → ℤ))) :=
+    Measure.isProbabilityMeasure_map latticeReflFst.measurable_toFun.aemeasurable
+  refine ne_of_half_lt (a := e0) (c := -z) (d := z) (by omega) ?_ ?_
+  · rw [map_toFun_spin_eq]
+    have hset : {ω : Site → ℤ | latticeReflFst.toFun ω e0 = -z}
+        = {ζ : Site → ℤ | ζ (mk (-1) 0) = staircase z (mk (-1) 0)} := by
+      ext ω
+      simp only [Set.mem_ofPred_eq, latticeReflFst_toFun, e0_zero, e0_one,
+        staircase_apply, Peierls.mk_zero]
+      omega
+    rw [hset]
+    exact half_lt_staircasePhase hβ hr hq z (mk (-1) 0)
+  · simpa [staircase] using half_lt_staircasePhase hβ hr hq z e0
+
+end MeasureTheory.GibbsMeasure.Shlosman
+
+namespace MeasureTheory.GibbsMeasure.Shlosman
+
+open Potential Peierls PeierlsSharp
+
+/-! ### Georgii Theorem (6.21) at an explicit temperature threshold -/
+
+/-- `log 12 ≤ β` forces `β > 0`. -/
+lemma pos_of_log_twelve {β : ℝ} (hlog : Real.log 12 ≤ β) : 0 < β :=
+  lt_of_lt_of_le (Real.log_pos (by norm_num)) hlog
+
+/-- **Georgii's requirement `r(β) < 1/2`**, in the sharpened form `2 r'(β/2) < 1/2`, holds as
+soon as `β ≥ log 12 ≈ 2.4849`. -/
+lemma two_mul_r'_half_lt {β : ℝ} (hlog : Real.log 12 ≤ β) : 2 * r' (β / 2) < 2⁻¹ := by
+  have h : r' (β / 2) < 4⁻¹ := by
+    refine r'_lt_quarter ?_
+    rw [show 2 * (β / 2) = β from by ring]
+    exact hlog
+  calc (2 : ℝ≥0∞) * r' (β / 2) < 2 * 4⁻¹ := by
+        rw [mul_comm (2 : ℝ≥0∞) (r' (β / 2)), mul_comm (2 : ℝ≥0∞) ((4 : ℝ≥0∞)⁻¹)]
+        exact ENNReal.mul_lt_mul_left (a := (2 : ℝ≥0∞)) (by norm_num) (by norm_num) h
+    _ = 2⁻¹ := by
+        rw [show (4 : ℝ≥0∞) = 2 * 2 from by norm_num,
+          ENNReal.mul_inv (by norm_num) (by norm_num), ← mul_assoc,
+          ENNReal.mul_inv_cancel (by norm_num) (by norm_num), one_mul]
+
+/-- The Peierls series converges at `β ≥ log 12`. -/
+lemma r'_half_lt_one {β : ℝ} (hlog : Real.log 12 ≤ β) : r' (β / 2) < 1 := by
+  have h : r' (β / 2) < 4⁻¹ := by
+    refine r'_lt_quarter ?_
+    rw [show 2 * (β / 2) = β from by ring]
+    exact hlog
+  exact lt_trans h (ENNReal.inv_lt_one.2 (by norm_num))
+
+/-- **Georgii Theorem (6.21), the phase-transition conclusion at an explicit threshold.**
+For `β ≥ log 12 ≈ 2.4849` the discrete Gaussian model (6.16) on `ℤ²` has infinitely many Gibbs
+measures: the random staircases `μ_z^β`, `z ∈ ℤ`, are pairwise distinct. -/
+theorem infinite_GP_dgSpecification_of_log_twelve {β : ℝ} (hlog : Real.log 12 ≤ β) :
+    (GP (S := Site) (E := ℤ) (dgSpecification (pos_of_log_twelve hlog))).Infinite :=
+  infinite_GP_dgSpecification (pos_of_log_twelve hlog) (r'_half_lt_one hlog)
+    (two_mul_r'_half_lt hlog)
+
+/-- **Georgii Theorem (6.21), packaged at the explicit threshold `β ≥ log 12`.**  For every
+`z ∈ ℤ` the random staircase `μ_z^β` is a Gibbs measure for `βΦ` which
+
+* is a random perturbation of the staircase `ω^z`: `μ_z^β(|σ_a - ω^z_a| ≥ k) ≤ 2 r'(β/2)^k`
+  for every site `a` and every `k` (Lemma (6.25));
+* satisfies `μ_z^β(σ_a = ω^z_a) > 1/2` at every site — Georgii (6.21)(i);
+* is distinct from `μ_w^β` for `w ≠ z` — part of Georgii (6.21)(iii).
+
+The symmetry breaking of (6.21) is `map_spinTranslation_staircasePhase_ne`,
+`map_spinReflection_staircasePhase_ne`, `map_shift_staircasePhase_ne`,
+`map_latticeRot_staircasePhase_ne` and `map_latticeReflFst_staircasePhase_ne`. -/
+theorem staircasePhase_spec {β : ℝ} (hlog : Real.log 12 ≤ β) (z : ℤ) :
+    staircasePhase (pos_of_log_twelve hlog) (r'_half_lt_one hlog) z
+        ∈ GP (S := Site) (E := ℤ) (dgSpecification (pos_of_log_twelve hlog)) ∧
+      (∀ (a : Site) (k : ℕ),
+        (staircasePhase (pos_of_log_twelve hlog) (r'_half_lt_one hlog) z :
+            Measure (Site → ℤ)) {ζ : Site → ℤ | (k : ℤ) ≤ |ζ a - staircase z a|}
+          ≤ 2 * r' (β / 2) ^ k) ∧
+      (∀ a : Site, 2⁻¹ < (staircasePhase (pos_of_log_twelve hlog) (r'_half_lt_one hlog) z :
+          Measure (Site → ℤ)) {ζ : Site → ℤ | ζ a = staircase z a}) ∧
+      (∀ w : ℤ, w ≠ z → staircasePhase (pos_of_log_twelve hlog) (r'_half_lt_one hlog) w
+        ≠ staircasePhase (pos_of_log_twelve hlog) (r'_half_lt_one hlog) z) :=
+  ⟨staircasePhase_mem_GP _ _ z,
+    staircasePhase_absExcess_le _ _ z,
+    half_lt_staircasePhase _ _ (two_mul_r'_half_lt hlog) z,
+    fun _ hw ↦ staircasePhase_ne _ _ (two_mul_r'_half_lt hlog) hw⟩
+
+end MeasureTheory.GibbsMeasure.Shlosman
+
+namespace MeasureTheory.GibbsMeasure.Shlosman
+
+open Potential Peierls PeierlsSharp
+
+variable {β : ℝ} (hβ : 0 < β) (hr : r' (β / 2) < 1)
+include hβ hr
+
+/-- **Georgii Theorem (6.21)(i), the low-temperature limit, in finite volume.**  On every finite
+volume `Λ` the random staircase agrees with the staircase `ω^z` with probability at least
+`1 - 2 |Λ| r'(β/2)`.  Since `r'(β/2) → 0` as `β → ∞`, this is Georgii's statement that
+`μ_z^β → δ_{ω^z}`: the Gibbs measure is a random perturbation of the staircase which freezes
+onto it at low temperature. -/
+theorem staircasePhase_agree_ge (z : ℤ) (Λ : Finset Site) :
+    1 - (Λ.card : ℝ≥0∞) * (2 * r' (β / 2))
+      ≤ (staircasePhase hβ hr z : Measure (Site → ℤ))
+          {ζ : Site → ℤ | ∀ i ∈ Λ, ζ i = staircase z i} := by
+  classical
+  set μ := (staircasePhase hβ hr z : Measure (Site → ℤ)) with hμ
+  set A : Set (Site → ℤ) := {ζ : Site → ℤ | ∀ i ∈ Λ, ζ i = staircase z i} with hAdef
+  have hmeas : MeasurableSet A := by
+    have hiInter : A = ⋂ i ∈ Λ, {ζ : Site → ℤ | ζ i = staircase z i} := by
+      ext ζ
+      simp only [hAdef, Set.mem_ofPred_eq, Set.mem_iInter]
+    rw [hiInter]
+    exact MeasurableSet.iInter fun i ↦ MeasurableSet.iInter fun _ ↦
+      measurableSet_apply_mem i {x : ℤ | x = staircase z i}
+  have hcompl : μ Aᶜ ≤ (Λ.card : ℝ≥0∞) * (2 * r' (β / 2)) := by
+    have hsub : Aᶜ ⊆ ⋃ i ∈ Λ, {ζ : Site → ℤ | (1 : ℤ) ≤ |ζ i - staircase z i|} := by
+      intro ζ hζ
+      have hζ' : ¬ ∀ i ∈ Λ, ζ i = staircase z i := hζ
+      push Not at hζ'
+      obtain ⟨i, hi, hne⟩ := hζ'
+      refine Set.mem_biUnion hi ?_
+      have h0 : ζ i - staircase z i ≠ 0 := sub_ne_zero.2 hne
+      have hpos := abs_pos.2 h0
+      show (1 : ℤ) ≤ |ζ i - staircase z i|
+      omega
+    calc μ Aᶜ ≤ μ (⋃ i ∈ Λ, {ζ : Site → ℤ | (1 : ℤ) ≤ |ζ i - staircase z i|}) :=
+          measure_mono hsub
+      _ ≤ ∑ i ∈ Λ, μ {ζ : Site → ℤ | (1 : ℤ) ≤ |ζ i - staircase z i|} :=
+          measure_biUnion_finset_le _ _
+      _ ≤ ∑ _i ∈ Λ, 2 * r' (β / 2) := Finset.sum_le_sum fun i _ ↦ by
+            simpa using staircasePhase_absExcess_le hβ hr z i 1
+      _ = (Λ.card : ℝ≥0∞) * (2 * r' (β / 2)) := by rw [Finset.sum_const, nsmul_eq_mul]
+  rw [tsub_le_iff_right]
+  calc (1 : ℝ≥0∞) = μ A + μ Aᶜ := by rw [measure_add_measure_compl hmeas]; simp
+    _ ≤ μ A + (Λ.card : ℝ≥0∞) * (2 * r' (β / 2)) := add_le_add le_rfl hcompl
 
 end MeasureTheory.GibbsMeasure.Shlosman

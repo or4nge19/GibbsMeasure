@@ -328,6 +328,10 @@ status:
       file: "GibbsMeasure/Potential/Equivalence.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Shlosman.dgSpecification_abs_excess_le"
+      file: "GibbsMeasure/Model/RandomStaircase.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.isCompact_setOf_le_specificEntropy"
       file: "GibbsMeasure/Specification/SpecificEntropy.lean"
       sorry_count: 0
@@ -1167,6 +1171,24 @@ alignment:
         is proved in Specification/Dobrushin.lean. Not formalized: the second-derivative half of
         (16.17), which is Corollary (8.37) and rests on Proposition (8.34), the covariance bound
         by the Dobrushin interdependence matrix; neither is in the tree.
+    - source: "Section 6.3: (6.16)-(6.21), (6.25)"
+      lean: "MeasureTheory.GibbsMeasure.Shlosman.infinite_GP_dgSpecification_of_log_twelve"
+      module: "GibbsMeasure/Model/RandomStaircase.lean"
+      status: "partial"
+      note: >-
+        Shlosman's discrete Gaussian staircase model on Z^2 with E = Z and counting measure:
+        lambda-admissibility of beta Phi, the five symmetries (6.17), the staircases as ground
+        states (6.18)-(6.20), the contour construction (6.22)-(6.24), and (6.25), the sharp bound
+        gamma_{Lambda}(|sigma_a - omega^z_a| >= k | omega^z) <= 2 r'(beta/2)^k, sharper than
+        Georgii's r(beta)^k, reusing the anchored-circuit count of Model/SharpPhaseTransition.lean.
+        (6.21): for beta >= log 12 each slope z gives a Gibbs measure mu_z with
+        mu_z(sigma_a = omega^z_a) > 1/2 everywhere, distinct slopes give distinct measures, and
+        mu_z differs from its images under the spin translation, the spin reflection, the shifts
+        and the lattice rotations and reflections, so G(beta Phi) is infinite and all five
+        symmetries are broken. Not formalized: (6.21)(ii), the invariance of mu_z under the
+        subgroup fixing omega^z (needs Example (5.20)(1) averaged over a subgroup, not just the
+        full shift group), (6.21)(iii) verbatim as linear independence (needs signed measures),
+        and mu_z^beta -> delta_{omega^z} as a limit (only the finite-volume bound is proved).
     - source: "Comment (11.18)(2), Corollary (11.19)"
       lean: "MeasureTheory.GibbsMeasure.Markov.eq_empty_G_transferSpecification_randomWalk"
       module: "GibbsMeasure/Model/BoundaryLawExamples.lean"

@@ -1,0 +1,52 @@
+\section{Shlosman's random staircases}
+
+\begin{definition}[The discrete Gaussian staircase model, Georgii (6.16)--(6.20)]
+    \label{def:rs-6-16}
+    \uses{def:pot-nearest-neighbour, def:pot-gibbs-spec}
+    \lean{Potential.discreteGaussian, MeasureTheory.GibbsMeasure.Shlosman.dgPotential, MeasureTheory.GibbsMeasure.Shlosman.isSigmaFiniteLambdaAdmissible_dgPotential, MeasureTheory.GibbsMeasure.Shlosman.dgSpecification, MeasureTheory.GibbsMeasure.Shlosman.map_dgPotential_eq, MeasureTheory.GibbsMeasure.Shlosman.staircase, MeasureTheory.GibbsMeasure.Shlosman.isGroundState_staircase}
+    \leanok
+
+    On $S = \mathbb Z^2$ with $E = \mathbb Z$ and counting measure, the potential with
+    $H_\Lambda(\zeta) = \tfrac12\sum_{\langle i,j\rangle}(\zeta_i - \zeta_j)^2$ is
+    $\lambda$-admissible for $\beta > 0$, invariant under the five symmetries (6.17)(i)--(v), and
+    the staircases $\omega^z_i = z i_1 + i_2$, translated by any $n$, are its ground states.
+\end{definition}
+
+\begin{theorem}[Georgii (6.25)]
+    \label{thm:rs-6-25}
+    \uses{def:rs-6-16, thm:ising-betac-bounds}
+    \lean{MeasureTheory.GibbsMeasure.Shlosman.exists_circuit_contour_dg, MeasureTheory.GibbsMeasure.Shlosman.stepDown, MeasureTheory.GibbsMeasure.Shlosman.card_bdIdx_le_hamiltonian_sub_stepDown, MeasureTheory.GibbsMeasure.Shlosman.dgSpecification_abs_excess_le}
+    \leanok
+
+    For $\beta > 0$, every $z$, every box $\Lambda_N$, every site $a$ and every $k$,
+    $\gamma_{\Lambda_N}(\abs{\sigma_a - \omega^z_a} \geq k \mid \omega^z) \leq 2 r'(\beta/2)^k$,
+    where $r'$ is the Peierls series of the sharp contour estimate.
+\end{theorem}
+\begin{proof}
+    \leanok
+    A configuration deviating at $a$ carries a circuit contour around $a$; the step-down map
+    $t_c$ lowers the spins inside it, gains a factor $e^{-\beta}$ per contour bond by (6.24), and
+    is injective, so the excess event is bounded by the anchored-circuit series; iterate in $k$
+    and use the reflection symmetry to cover both signs.
+\end{proof}
+
+\begin{theorem}[Georgii (6.21)]
+    \label{thm:rs-6-21}
+    \uses{thm:rs-6-25, prop:cp-49}
+    \lean{MeasureTheory.GibbsMeasure.Shlosman.staircasePhase, MeasureTheory.GibbsMeasure.Shlosman.staircasePhase_mem_GP, MeasureTheory.GibbsMeasure.Shlosman.half_lt_staircasePhase, MeasureTheory.GibbsMeasure.Shlosman.staircasePhase_agree_ge, MeasureTheory.GibbsMeasure.Shlosman.staircasePhase_ne, MeasureTheory.GibbsMeasure.Shlosman.infinite_GP_dgSpecification_of_log_twelve, MeasureTheory.GibbsMeasure.Shlosman.map_spinTranslation_staircasePhase_ne, MeasureTheory.GibbsMeasure.Shlosman.map_spinReflection_staircasePhase_ne, MeasureTheory.GibbsMeasure.Shlosman.map_shift_staircasePhase_ne, MeasureTheory.GibbsMeasure.Shlosman.map_latticeRot_staircasePhase_ne, MeasureTheory.GibbsMeasure.Shlosman.map_latticeReflFst_staircasePhase_ne, MeasureTheory.GibbsMeasure.locallyEquicontinuous_of_uniformlyTight}
+    \leanok
+
+    For $\beta \geq \log 12$ and every slope $z$ there is $\mu_z^\beta \in \mathcal G(\beta\Phi)$
+    with $\mu_z^\beta(\sigma_a = \omega^z_a) > \tfrac12$ at every site and
+    $\mu_z^\beta(\sigma_i = \omega^z_i \text{ on } \Lambda) \geq 1 - 2\abs{\Lambda}r'(\beta/2)$.
+    Distinct slopes give distinct measures, and $\mu_z^\beta$ differs from its images under the
+    spin translation, the spin reflection, the shifts and the lattice rotations and reflections;
+    in particular $\mathcal G(\beta\Phi)$ is infinite and all five symmetries (6.17) are broken.
+\end{theorem}
+\begin{proof}
+    \leanok
+    Theorem \ref{thm:rs-6-25} makes the one-spin marginals uniformly tight, hence the finite-volume
+    kernels locally equicontinuous, so a cluster point $\mu_z^\beta$ exists by Proposition
+    \ref{prop:cp-49}; the same estimate transfers to it and pins the spin at each site to
+    $\omega^z$ with probability above $\tfrac12$, which separates the phases.
+\end{proof}

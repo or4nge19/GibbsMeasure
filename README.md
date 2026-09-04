@@ -519,6 +519,15 @@ which required the converse half of **Theorem (2.34)**, now proved (`GibbsMeasur
 is differentiable with derivative `−⟨μ_Φ, Ψ⟩`. Its second-derivative half is Corollary (8.37), which
 rests on the covariance bound (8.34); neither is in the tree.
 
+**§6.3, Shlosman's random staircases** (`GibbsMeasure/Model/RandomStaircase.lean`): the discrete
+Gaussian model on `ℤ²`, its five symmetries, the staircases as ground states, and **(6.25)** — the
+contour bound `γ_Λ(|σ_a − ω^z_a| ≥ k | ω^z) ≤ 2r'(β/2)^k`, sharper than the book's, reusing the
+anchored-circuit count of the sharp Peierls estimate. **(6.21)**: for `β ≥ log 12` every slope gives
+a Gibbs measure pinned to its staircase with probability above one half, distinct slopes give
+distinct measures, and each differs from its images under all five symmetries, so `𝒢(βΦ)` is
+infinite and every symmetry is broken. Still open there: the invariance half of (6.21)(ii), which
+needs the cluster-point construction averaged over a subgroup rather than the full shift group.
+
 **Chapter 9, §9.1** (`GibbsMeasure/Specification/SymmetryInheritance.lean`,
 `GibbsMeasure/Model/OneDimensionalSymmetry.lean`): **Proposition (9.1)** — a symmetry `τ` of `γ`
 dominated in the sense of (9.2) is a symmetry of every Gibbs measure — for extreme Gibbs measures
@@ -645,8 +654,7 @@ Gibbs measure is unique ((6.7)(2)); **(6.7)(1)**: `𝒢(βΦ) = [μ₋^β, μ₊
 `μ_±` are the extreme points, carried by the disjoint tail events `A_±`, and the bond graph of equal
 neighbouring spins has a unique infinite component almost surely under every Gibbs measure.
 
-Not yet done: Shlosman's random staircases of §6.3
-(Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
+Not yet done: Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
 §12.2, the rest of §13.2 and §13.3, and Chapters
 17–20 (
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
