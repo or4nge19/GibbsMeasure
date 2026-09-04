@@ -21,7 +21,9 @@ uniformly along the family. Over a standard Borel state space every locally equi
 has a cluster point in the topology of local convergence (Georgii (4.9)); the proof is Georgii's:
 a pointwise ultrafilter limit in the compact space `ℝ≥0∞`, σ-additive on each finite volume by
 equicontinuity, extends to a random field by the Kolmogorov extension theorem. Uniform domination
-by finite measures yields compact sets of random fields (Georgii (4.10)).
+by finite measures yields compact sets of random fields (Georgii (4.10)), and uniform tightness
+of the one-spin marginals yields local equicontinuity (Georgii (4.13),
+`locallyEquicontinuous_of_uniformlyTight`).
 -/
 
 @[expose] public section
@@ -305,6 +307,77 @@ lemma locallyEquicontinuous_of_eventually_le {l : Filter ι}
     rwa [hempty, measure_empty] at h
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hν
     (fun _ ↦ zero_le) hbound
+
+/-! ### Georgii (4.13): uniform tightness of the one-spin marginals -/
+
+/-- **Georgii Corollary (4.13).** A family of random fields whose single-spin distributions are
+*uniformly tight* — for every site `i` and every `ε > 0` there is one finite window `F ⊆ E`
+carrying all of them up to `ε` — is locally equicontinuous, and hence (Proposition (4.9)) has a
+cluster point in the topology of local convergence.
+
+Georgii states (4.13) for a Polish `E` and compact windows; over a countable `E` the compact
+windows are the finite ones, and the proof is the one below: outside a finite window in each of
+the finitely many coordinates of `Λ` there is mass at most `ε`, and inside it only finitely many
+`Λ`-configurations occur, so an antitone sequence of `𝓕_Λ`-events with empty intersection
+eventually misses the window entirely. -/
+theorem locallyEquicontinuous_of_uniformlyTight [Nonempty E] {l : Filter ι}
+    {μs : ι → ProbabilityMeasure (S → E)}
+    (htight : ∀ (i : S) (ε : ℝ≥0∞), 0 < ε → ∃ F : Finset E,
+      ∀ n, (μs n : Measure (S → E)) {ω : S → E | ω i ∉ F} ≤ ε) :
+    LocallyEquicontinuous l μs := by
+  classical
+  intro Λ A hmeas hanti hempty
+  rw [ENNReal.tendsto_atTop_zero]
+  intro ε hε
+  set ε' : ℝ≥0∞ := ε / ((Λ.card : ℝ≥0∞) + 1) with hε'def
+  have hne : ((Λ.card : ℝ≥0∞) + 1) ≠ 0 := by simp
+  have hnt : ((Λ.card : ℝ≥0∞) + 1) ≠ ⊤ := by simp
+  have hε' : 0 < ε' := ENNReal.div_pos hε.ne' hnt
+  have hsum : (Λ.card : ℝ≥0∞) * ε' ≤ ε := by
+    calc (Λ.card : ℝ≥0∞) * ε' ≤ ((Λ.card : ℝ≥0∞) + 1) * ε' := by
+          exact mul_le_mul' le_self_add le_rfl
+      _ = ε := by rw [hε'def, ENNReal.mul_div_cancel' (fun h ↦ absurd h hne) (fun h ↦ absurd h hnt)]
+  choose F hF using fun i : S ↦ htight i ε' hε'
+  set K : Set (S → E) := {ω : S → E | ∀ i ∈ Λ, ω i ∈ F i} with hK
+  have hKc : ∀ n, (μs n : Measure (S → E)) Kᶜ ≤ ε := by
+    intro n
+    have hsub : (Kᶜ : Set (S → E)) ⊆ ⋃ i ∈ Λ, {ω : S → E | ω i ∉ F i} := by
+      intro ω hω
+      simp only [hK, Set.mem_compl_iff, Set.mem_ofPred_eq, not_forall] at hω
+      obtain ⟨i, hi, hωi⟩ := hω
+      exact Set.mem_biUnion hi hωi
+    calc (μs n : Measure (S → E)) Kᶜ
+        ≤ (μs n : Measure (S → E)) (⋃ i ∈ Λ, {ω : S → E | ω i ∉ F i}) := measure_mono hsub
+      _ ≤ ∑ i ∈ Λ, (μs n : Measure (S → E)) {ω : S → E | ω i ∉ F i} :=
+          measure_biUnion_finset_le _ _
+      _ ≤ ∑ _i ∈ Λ, ε' := Finset.sum_le_sum fun i _ ↦ hF i n
+      _ = (Λ.card : ℝ≥0∞) * ε' := by rw [Finset.sum_const, nsmul_eq_mul]
+      _ ≤ ε := hsum
+  set sec : (↥Λ → E) → (S → E) :=
+    fun x j ↦ if hj : j ∈ Λ then x ⟨j, hj⟩ else Classical.arbitrary E with hsec
+  have hex : ∀ x : ↥Λ → E, ∃ m : ℕ, sec x ∉ A m := by
+    intro x
+    by_contra hcon
+    push Not at hcon
+    have hmem : sec x ∈ ⋂ m, A m := Set.mem_iInter.2 hcon
+    rw [hempty] at hmem
+    exact hmem
+  choose mfun hmfun using hex
+  set T : Finset (↥Λ → E) := Fintype.piFinset fun i : ↥Λ ↦ F (i : S) with hT
+  refine ⟨T.sup mfun, fun m hm ↦ ?_⟩
+  have hAsub : A m ⊆ Kᶜ := by
+    intro ω hωA hωK
+    set x : ↥Λ → E := fun i ↦ ω (i : S) with hx
+    have hxT : x ∈ T := Fintype.mem_piFinset.2 fun i ↦ hωK (i : S) i.2
+    have hle : mfun x ≤ m := le_trans (Finset.le_sup hxT) hm
+    have hωm : ω ∈ A (mfun x) := hanti hle hωA
+    have hagree : ∀ i ∈ (Λ : Set S), sec x i = ω i := by
+      intro i hi
+      have hiΛ : i ∈ Λ := by simpa using hi
+      simp [hsec, hiΛ, hx]
+    exact hmfun x ((mem_congr_of_measurableSet_cylinderEvents (hmeas (mfun x)) hagree).2 hωm)
+  exact Filter.limsup_le_of_le (h := Filter.Eventually.of_forall fun n ↦
+    le_trans (measure_mono hAsub) (hKc n))
 
 lemma isClosed_dominatedBy (ν : Finset S → Measure (S → E)) :
     IsClosed (dominatedBy S E ν) := by

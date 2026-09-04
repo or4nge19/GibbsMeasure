@@ -704,6 +704,7 @@ theorem ncard_connectedBondSets_le_pow (e₀ : Sym2 Site) (ℓ : ℕ) :
 
 /-! ### Coordinates -/
 
+/-- Two sites of `ℤ²` given in coordinates are equal iff their coordinates are. -/
 lemma mk_eq_mk {a b c d : ℤ} : mk a b = mk c d ↔ a = c ∧ b = d := by
   rw [site_ext_iff]; simp
 

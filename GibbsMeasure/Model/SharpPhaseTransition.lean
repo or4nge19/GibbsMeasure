@@ -12,7 +12,8 @@ public import GibbsMeasure.Model.CriticalTemperature
 # Georgii Theorem (6.9) at the sharp Peierls threshold
 
 This file re-derives the Peierls estimate and the two-dimensional Ising phase transition with
-Georgii's *own* contour count `ℓ · 3 ^ (ℓ - 1)` (`PeierlsSharp.ncard_anchored_circuits_le`)
+Georgii's *own* contour count `ℓ · 3 ^ (ℓ - 1)` (`PeierlsSharp.card_anchoredCircuitFinset_le`,
+proved with the circuit geometry in `GibbsMeasure/Model/SharpContours.lean`)
 in place of the crude connected-bond-set count `4096 ^ ℓ` used in
 `GibbsMeasure/Model/PhaseTransition.lean`.  The resulting threshold is
 
@@ -37,45 +38,7 @@ noncomputable section
 
 namespace MeasureTheory.GibbsMeasure.PeierlsSharp
 
-/-! ### M1: the anchored circuits of a given length, as a finset -/
-
-/-- The circuits of `ℓ` bonds meeting the horizontal half-line to the right of `a` at one of its
-first `ℓ` bonds, as a `Finset`.  This is the index set of Georgii's count (6.13). -/
-def anchoredCircuitFinset (a : Site) (ℓ : ℕ) : Finset (Finset (Sym2 Site)) :=
-  (Finset.range ℓ).biUnion (fun k ↦
-    (finite_circuitSets (hBond (a 0 + k) (a 1)) (mk (a 0 + k) (a 1))
-      (hBond_mem_plaquette_mk _ _) ℓ).toFinset)
-
-lemma mem_anchoredCircuitFinset {a : Site} {ℓ : ℕ} {C : Finset (Sym2 Site)}
-    (hc : IsCircuit C) (hcard : C.card = ℓ) {k : ℕ} (hk : k < ℓ)
-    (hmem : s(a + k • e0, a + (k + 1) • e0) ∈ C) : C ∈ anchoredCircuitFinset a ℓ := by
-  rw [anchoredCircuitFinset]
-  refine Finset.mem_biUnion.2 ⟨k, Finset.mem_range.2 hk, ?_⟩
-  rw [Set.Finite.mem_toFinset]
-  exact ⟨hc, by rwa [anchor_bond_eq] at hmem, hcard⟩
-
-lemma card_eq_of_mem_anchoredCircuitFinset {a : Site} {ℓ : ℕ} {C : Finset (Sym2 Site)}
-    (hC : C ∈ anchoredCircuitFinset a ℓ) : C.card = ℓ := by
-  rw [anchoredCircuitFinset] at hC
-  obtain ⟨k, -, hk⟩ := Finset.mem_biUnion.1 hC
-  rw [Set.Finite.mem_toFinset] at hk
-  exact hk.2.2
-
-/-- **Georgii Lemma (6.13)**: at most `ℓ · 3 ^ (ℓ - 1)` circuits of length `ℓ` are anchored on
-the horizontal half-line from `a`. -/
-lemma card_anchoredCircuitFinset_le (a : Site) (ℓ : ℕ) :
-    (anchoredCircuitFinset a ℓ).card ≤ ℓ * 3 ^ (ℓ - 1) := by
-  rw [anchoredCircuitFinset]
-  refine le_trans (Finset.card_biUnion_le_card_mul _ _ (3 ^ (ℓ - 1)) fun k _ ↦ ?_) ?_
-  · have hcast : ((finite_circuitSets (hBond (a 0 + k) (a 1)) (mk (a 0 + k) (a 1))
-        (hBond_mem_plaquette_mk _ _) ℓ).toFinset).card
-      = (circuitSets (hBond (a 0 + k) (a 1)) ℓ).ncard := by
-      rw [← Set.ncard_coe_finset, Set.Finite.coe_toFinset]
-    rw [hcast]
-    exact ncard_circuitSets_le _ _ (hBond_mem_plaquette_mk _ _) ℓ
-  · rw [Finset.card_range]
-
-/-! ### M2: sharp contour candidates -/
+/-! ### Sharp contour candidates -/
 
 open Classical in
 /-- Sharp contour candidates: anchored circuits of `ℓ` bonds whose interior is closed and
@@ -99,7 +62,7 @@ lemma card_sharpContourFinset_le (Λ : Finset Site) (a : Site) (ℓ : ℕ) :
   classical
   exact le_trans (Finset.card_filter_le _ _) (card_anchoredCircuitFinset_le a ℓ)
 
-/-! ### M3: the covering of the event `σ_a = -1` by circuits -/
+/-! ### The covering of the event `σ_a = -1` by circuits -/
 
 /-- The union of the circuit-contour events of length `l + 1` anchored at `a`. -/
 def sharpContourUnion (N : ℕ) (a : Site) (l : ℕ) : Set (Site → Bool) :=
@@ -144,7 +107,7 @@ theorem sharp_minus_event_subset_iUnion (N : ℕ) (a : Site) :
     rw [hCcoe]
     exact outerBoundary_minusCluster_subset_discordant a ζ
 
-/-! ### M4: the sharpened Peierls sum -/
+/-! ### The sharpened Peierls sum -/
 
 /-- The Peierls bound for the circuits of a given length: the sharp count `ℓ · 3 ^ (ℓ - 1)`
 in place of the crude `4096 ^ ℓ` of `Peierls.isingSpecification_contourUnion_le`. -/
@@ -208,7 +171,7 @@ theorem isingSpecification_cube_eq_false_le' (b : ℝ) (N : ℕ) (a : Site) :
           (sharpContourUnion N a l) := measure_iUnion_le _
     _ ≤ r' b := ENNReal.tsum_le_tsum (isingSpecification_sharpContourUnion_le b N a)
 
-/-! ### M5: the plus phase at the sharp threshold -/
+/-! ### The plus phase at the sharp threshold -/
 
 /-- **Georgii Theorem (6.9), the "in particular" part, at the sharp threshold.**
 For `log 9 ≤ 2β` — i.e. `β ≥ log 3 ≈ 1.0986`, against the `8 log 2 ≈ 5.5452` of

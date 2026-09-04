@@ -40,18 +40,15 @@ def hBond (t u : ℤ) : Sym2 Site := s(mk t u, mk (t + 1) u)
 /-- The vertical bond from `(t, u)` to `(t, u + 1)`. -/
 def vBond (t u : ℤ) : Sym2 Site := s(mk t u, mk t (u + 1))
 
-lemma mk_inj {a b c d : ℤ} : mk a b = mk c d ↔ a = c ∧ b = d := by
-  rw [site_ext_iff]; simp
-
 @[simp] lemma hBond_inj {t u t' u' : ℤ} : hBond t u = hBond t' u' ↔ t = t' ∧ u = u' := by
-  simp only [hBond, Sym2.eq_iff, mk_inj]; omega
+  simp only [hBond, Sym2.eq_iff, mk_eq_mk]; omega
 
 @[simp] lemma vBond_inj {t u t' u' : ℤ} : vBond t u = vBond t' u' ↔ t = t' ∧ u = u' := by
-  simp only [vBond, Sym2.eq_iff, mk_inj]; omega
+  simp only [vBond, Sym2.eq_iff, mk_eq_mk]; omega
 
 @[simp] lemma hBond_ne_vBond (t u t' u' : ℤ) : hBond t u ≠ vBond t' u' := by
   intro h
-  rw [hBond, vBond, Sym2.eq_iff, mk_inj, mk_inj, mk_inj, mk_inj] at h
+  rw [hBond, vBond, Sym2.eq_iff, mk_eq_mk, mk_eq_mk, mk_eq_mk, mk_eq_mk] at h
   omega
 
 @[simp] lemma vBond_ne_hBond (t u t' u' : ℤ) : vBond t u ≠ hBond t' u' :=
@@ -576,23 +573,23 @@ lemma eq_or_eq_otherPlaq {e : Sym2 Site} {x y : Site} (hx : e ∈ plaquette x)
   · rw [mem_plaquette_hBond] at hy
     rw [otherPlaq_hBond_bot]
     rcases hy.2 with h | h
-    · exact Or.inl (by rw [← mk_eta y, ← mk_eta x, mk_inj]; exact ⟨hy.1, h⟩)
-    · exact Or.inr (by rw [← mk_eta y, mk_inj]; exact ⟨hy.1, h⟩)
+    · exact Or.inl (by rw [← mk_eta y, ← mk_eta x, mk_eq_mk]; exact ⟨hy.1, h⟩)
+    · exact Or.inr (by rw [← mk_eta y, mk_eq_mk]; exact ⟨hy.1, h⟩)
   · rw [mem_plaquette_vBond] at hy
     rw [otherPlaq_vBond_left]
     rcases hy.2 with h | h
-    · exact Or.inl (by rw [← mk_eta y, ← mk_eta x, mk_inj]; exact ⟨h, hy.1⟩)
-    · exact Or.inr (by rw [← mk_eta y, mk_inj]; exact ⟨h, hy.1⟩)
+    · exact Or.inl (by rw [← mk_eta y, ← mk_eta x, mk_eq_mk]; exact ⟨h, hy.1⟩)
+    · exact Or.inr (by rw [← mk_eta y, mk_eq_mk]; exact ⟨h, hy.1⟩)
   · rw [mem_plaquette_vBond] at hy
     rw [otherPlaq_vBond_right]
     rcases hy.2 with h | h
-    · exact Or.inr (by rw [← mk_eta y, mk_inj]; exact ⟨h, hy.1⟩)
-    · exact Or.inl (by rw [← mk_eta y, ← mk_eta x, mk_inj]; exact ⟨by omega, hy.1⟩)
+    · exact Or.inr (by rw [← mk_eta y, mk_eq_mk]; exact ⟨h, hy.1⟩)
+    · exact Or.inl (by rw [← mk_eta y, ← mk_eta x, mk_eq_mk]; exact ⟨by omega, hy.1⟩)
   · rw [mem_plaquette_hBond] at hy
     rw [otherPlaq_hBond_top]
     rcases hy.2 with h | h
-    · exact Or.inr (by rw [← mk_eta y, mk_inj]; exact ⟨hy.1, h⟩)
-    · exact Or.inl (by rw [← mk_eta y, ← mk_eta x, mk_inj]; exact ⟨hy.1, by omega⟩)
+    · exact Or.inr (by rw [← mk_eta y, mk_eq_mk]; exact ⟨hy.1, h⟩)
+    · exact Or.inl (by rw [← mk_eta y, ← mk_eta x, mk_eq_mk]; exact ⟨hy.1, by omega⟩)
 
 
 /-! ### Circuits and the traversal step -/
@@ -1141,9 +1138,31 @@ lemma hBond_mem_plaquette_mk (t u : ℤ) : hBond t u ∈ plaquette (mk t u) :=
 lemma anchor_bond_eq (a : Site) (k : ℕ) :
     s(a + k • e0, a + (k + 1) • e0) = hBond (a 0 + k) (a 1) := by
   have h2 : a + (k + 1) • e0 = mk (a 0 + k + 1) (a 1) := by
-    rw [add_nsmul_e0_eq, mk_inj]
+    rw [add_nsmul_e0_eq, mk_eq_mk]
     exact ⟨by push_cast; ring, rfl⟩
   rw [add_nsmul_e0_eq, h2, hBond]
+
+/-- The circuits of `ℓ` bonds meeting the horizontal half-line to the right of `a` at one of its
+first `ℓ` bonds, as a `Finset`.  This is the index set of Georgii's count (6.13). -/
+def anchoredCircuitFinset (a : Site) (ℓ : ℕ) : Finset (Finset (Sym2 Site)) :=
+  (Finset.range ℓ).biUnion (fun k ↦
+    (finite_circuitSets (hBond (a 0 + k) (a 1)) (mk (a 0 + k) (a 1))
+      (hBond_mem_plaquette_mk _ _) ℓ).toFinset)
+
+lemma mem_anchoredCircuitFinset {a : Site} {ℓ : ℕ} {C : Finset (Sym2 Site)}
+    (hc : IsCircuit C) (hcard : C.card = ℓ) {k : ℕ} (hk : k < ℓ)
+    (hmem : s(a + k • e0, a + (k + 1) • e0) ∈ C) : C ∈ anchoredCircuitFinset a ℓ := by
+  rw [anchoredCircuitFinset]
+  refine Finset.mem_biUnion.2 ⟨k, Finset.mem_range.2 hk, ?_⟩
+  rw [Set.Finite.mem_toFinset]
+  exact ⟨hc, by rwa [anchor_bond_eq] at hmem, hcard⟩
+
+lemma card_eq_of_mem_anchoredCircuitFinset {a : Site} {ℓ : ℕ} {C : Finset (Sym2 Site)}
+    (hC : C ∈ anchoredCircuitFinset a ℓ) : C.card = ℓ := by
+  rw [anchoredCircuitFinset] at hC
+  obtain ⟨k, -, hk⟩ := Finset.mem_biUnion.1 hC
+  rw [Set.Finite.mem_toFinset] at hk
+  exact hk.2.2
 
 /-- **Georgii Lemma (6.13), in anchored form**: at most `ℓ · 3^(ℓ-1)` circuits of length `ℓ`
 cross the horizontal half-line to the right of `a` at one of its first `ℓ` bonds.  Georgii
@@ -1151,37 +1170,30 @@ derives his count for the circuits *surrounding* `a` from this, using that such 
 cross that half-line; here the contour comes out of `exists_circuit_contour` already anchored
 (`exists_anchor_bond`), so the anchored form is the one the Peierls sum needs.  Compare the
 `4096 ^ ℓ` bound of `GibbsMeasure/Model/PeierlsEstimate.lean`. -/
+theorem card_anchoredCircuitFinset_le (a : Site) (ℓ : ℕ) :
+    (anchoredCircuitFinset a ℓ).card ≤ ℓ * 3 ^ (ℓ - 1) := by
+  rw [anchoredCircuitFinset]
+  refine le_trans (Finset.card_biUnion_le_card_mul _ _ (3 ^ (ℓ - 1)) fun k _ ↦ ?_) ?_
+  · have hcast : ((finite_circuitSets (hBond (a 0 + k) (a 1)) (mk (a 0 + k) (a 1))
+        (hBond_mem_plaquette_mk _ _) ℓ).toFinset).card
+      = (circuitSets (hBond (a 0 + k) (a 1)) ℓ).ncard := by
+      rw [← Set.ncard_coe_finset, Set.Finite.coe_toFinset]
+    rw [hcast]
+    exact ncard_circuitSets_le _ _ (hBond_mem_plaquette_mk _ _) ℓ
+  · rw [Finset.card_range]
+
+/-- **Georgii Lemma (6.13)** as a statement about the *set* of anchored circuits: the `Set.ncard`
+form of `card_anchoredCircuitFinset_le`. -/
 theorem ncard_anchored_circuits_le (a : Site) (ℓ : ℕ) :
     {C : Finset (Sym2 Site) | IsCircuit C ∧ C.card = ℓ ∧
-        ∃ k < ℓ, s(a + k • e0, a + (k + 1) • e0) ∈ C}.ncard ≤ ℓ * 3 ^ (ℓ - 1) := by
-  classical
-  set T : Finset (Finset (Sym2 Site)) := (Finset.range ℓ).biUnion (fun k ↦
-    (finite_circuitSets (hBond (a 0 + k) (a 1)) (mk (a 0 + k) (a 1))
-      (hBond_mem_plaquette_mk _ _) ℓ).toFinset) with hT
-  have hsub : {C : Finset (Sym2 Site) | IsCircuit C ∧ C.card = ℓ ∧
-      ∃ k < ℓ, s(a + k • e0, a + (k + 1) • e0) ∈ C} ⊆ (↑T : Set (Finset (Sym2 Site))) := by
-    rintro C ⟨hc, hcard, k, hk, hmem⟩
-    rw [Finset.mem_coe, hT]
-    refine Finset.mem_biUnion.2 ⟨k, Finset.mem_range.2 hk, ?_⟩
-    rw [Set.Finite.mem_toFinset]
-    exact ⟨hc, by rwa [anchor_bond_eq] at hmem, hcard⟩
-  have hcardT : T.card ≤ ℓ * 3 ^ (ℓ - 1) := by
-    rw [hT]
-    refine le_trans (Finset.card_biUnion_le_card_mul _ _ (3 ^ (ℓ - 1)) fun k _ ↦ ?_) ?_
-    · have hcast : ((finite_circuitSets (hBond (a 0 + k) (a 1)) (mk (a 0 + k) (a 1))
-            (hBond_mem_plaquette_mk _ _) ℓ).toFinset).card
-          = (circuitSets (hBond (a 0 + k) (a 1)) ℓ).ncard := by
-        rw [← Set.ncard_coe_finset, Set.Finite.coe_toFinset]
-      rw [hcast]
-      exact ncard_circuitSets_le _ _ (hBond_mem_plaquette_mk _ _) ℓ
-    · rw [Finset.card_range]
+        ∃ k < ℓ, s(a + k • e0, a + (k + 1) • e0) ∈ C}.ncard ≤ ℓ * 3 ^ (ℓ - 1) :=
   calc {C : Finset (Sym2 Site) | IsCircuit C ∧ C.card = ℓ ∧
         ∃ k < ℓ, s(a + k • e0, a + (k + 1) • e0) ∈ C}.ncard
-      ≤ (↑T : Set (Finset (Sym2 Site))).ncard :=
-        Set.ncard_le_ncard hsub (Finset.finite_toSet T)
-    _ = T.card := Set.ncard_coe_finset T
-    _ ≤ ℓ * 3 ^ (ℓ - 1) := hcardT
-
+      ≤ (↑(anchoredCircuitFinset a ℓ) : Set (Finset (Sym2 Site))).ncard :=
+        Set.ncard_le_ncard (fun _ h ↦ mem_anchoredCircuitFinset h.1 h.2.1 h.2.2.choose_spec.1
+          h.2.2.choose_spec.2) (anchoredCircuitFinset a ℓ).finite_toSet
+    _ = (anchoredCircuitFinset a ℓ).card := Set.ncard_coe_finset _
+    _ ≤ ℓ * 3 ^ (ℓ - 1) := card_anchoredCircuitFinset_le a ℓ
 
 /-! ### M3: the sharpened Peierls series and the improved threshold -/
 
@@ -1281,6 +1293,41 @@ theorem r'_le_quarter {b : ℝ} (hb : Real.log 9 ≤ 2 * b) : r' b ≤ 4⁻¹ :=
           show (1 / 9 : ℝ) * (3 / 2 * (3 / 2)) = (4 : ℝ)⁻¹ from by norm_num,
           ENNReal.ofReal_inv_of_pos (by norm_num : (0:ℝ) < 4)]
         norm_num
+
+/-- **A strict version of `r'_le_quarter`.**  `r' b ≤ 4/27 < 1/4` as soon as
+`b ≥ (1/2) log 12 ≈ 1.242`.  This is the threshold behind the strict inequality
+`μ_z^β(σ_a = ω^z_a) > 1/2` of Georgii (6.21)(i) in `GibbsMeasure/Model/RandomStaircase.lean`. -/
+theorem r'_lt_quarter {b : ℝ} (hb : Real.log 12 ≤ 2 * b) : r' b < 4⁻¹ := by
+  set y := ENNReal.ofReal (Real.exp (-2 * b)) with hy
+  have hexp : Real.exp (-2 * b) ≤ 1 / 12 := by
+    have h1 : Real.exp (-2 * b) ≤ Real.exp (-Real.log 12) := Real.exp_le_exp.2 (by linarith)
+    rwa [Real.exp_neg, Real.exp_log (by norm_num : (0:ℝ) < 12), ← one_div] at h1
+  have hy12 : y ≤ ENNReal.ofReal (1 / 12) := ENNReal.ofReal_le_ofReal hexp
+  have h3y : 3 * y ≤ ENNReal.ofReal (1 / 4) := by
+    calc 3 * y ≤ 3 * ENNReal.ofReal (1 / 12) := by gcongr
+      _ = ENNReal.ofReal (1 / 4) := by
+          rw [show (3 : ℝ≥0∞) = ENNReal.ofReal 3 from by simp,
+            ← ENNReal.ofReal_mul (by norm_num : (0:ℝ) ≤ 3)]
+          norm_num
+  have hsubl : ENNReal.ofReal (3 / 4) ≤ 1 - 3 * y := by
+    refine le_trans (le_of_eq ?_) (tsub_le_tsub_left h3y 1)
+    rw [show (1 : ℝ≥0∞) = ENNReal.ofReal 1 from ENNReal.ofReal_one.symm,
+      ← ENNReal.ofReal_sub _ (by norm_num : (0:ℝ) ≤ 1 / 4)]
+    norm_num
+  have hinv : (1 - 3 * y)⁻¹ ≤ ENNReal.ofReal (4 / 3) := by
+    refine le_trans (ENNReal.inv_le_inv.2 hsubl) (le_of_eq ?_)
+    rw [← ENNReal.ofReal_inv_of_pos (by norm_num : (0:ℝ) < 3 / 4)]
+    norm_num
+  rw [r'_eq]
+  refine lt_of_le_of_lt (mul_le_mul' hy12 (mul_le_mul' hinv hinv)) ?_
+  rw [← ENNReal.ofReal_mul (by norm_num : (0:ℝ) ≤ 4 / 3),
+    ← ENNReal.ofReal_mul (by norm_num : (0:ℝ) ≤ 1 / 12),
+    show (4 : ℝ≥0∞)⁻¹ = ENNReal.ofReal (1 / 4) from by
+      rw [show (1 / 4 : ℝ) = (4 : ℝ)⁻¹ from by norm_num,
+        ENNReal.ofReal_inv_of_pos (by norm_num : (0:ℝ) < 4)]
+      norm_num]
+  rw [ENNReal.ofReal_lt_ofReal_iff (by norm_num)]
+  norm_num
 
 /-- The analogue, for the sharpened series `r'`, of Georgii's requirement `r(β) < 1/2` in the
 proof of (6.9): `r' β < 1/2` as soon as `β ≥ (1/2) log (20/3) ≈ 0.9486`.  (Georgii's own
