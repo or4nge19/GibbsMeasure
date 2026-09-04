@@ -7,6 +7,7 @@ module
 
 public import GibbsMeasure.Specification.ErgodicGibbs
 public import GibbsMeasure.Specification.ExtremeDecomposition
+public import GibbsMeasure.Specification.Transformation
 public import Mathlib.Data.Int.ConditionallyCompleteOrder
 
 /-!
@@ -52,7 +53,10 @@ kernels, along the pattern of `Specification.NoGibbsMeasure`'s `Example416.kerne
   `n` is determined by any one value via parity: `σ (n + d) = parityFlip d (σ n)`.
 * `altFill Λ ω`: the deterministic resampling map of the specification, and its properties
   (`altFill_apply_of_notMem`, `altFill_of_alternating`, `altFill_altFill_of_subset`).
-* `antiferromagnetSpecification`: the specification `γ` itself.
+* `antiferromagnetSpecification`: the specification `γ` itself, and its shift-invariance
+  `isInvariant_shift_antiferromagnetSpecification` (Georgii: "a shift-invariant
+  `λ`-specification"), from the equivariance `runStart_map_addRight`, `altFill_map_addRight` of
+  the resampling map under translation.
 * `altPM`, `altMP`: the alternating configurations `ω^{+-}, ω^{-+}`;
   `dirac_altPM_mem_extremePoints_G`, `dirac_altMP_mem_extremePoints_G`:
   **`δ_{ω^{+-}}, δ_{ω^{-+}} ∈ ex 𝒢(γ)`**, via tail-triviality of Dirac measures
@@ -129,6 +133,24 @@ lemma runStart_le_runStart_of_subset {Λ1 Λ2 : Finset ℤ} (h : Λ1 ⊆ Λ2) (j
     runStart Λ2 j ≤ runStart Λ1 j :=
   le_runStart_of_le_of_notMem (runStart_le Λ2 j) fun hmem ↦ runStart_notMem Λ2 j (h hmem)
 
+lemma mem_map_addRight_iff (Λ : Finset ℤ) (j i : ℤ) :
+    i ∈ Λ.map (Equiv.addRight j).toEmbedding ↔ i - j ∈ Λ := by
+  rw [Finset.mem_map_equiv, Equiv.addRight_symm, Equiv.coe_addRight, sub_eq_add_neg]
+
+/-- `runStart` is equivariant under translation of `ℤ`: the `sSup` defining it translates. -/
+lemma runStart_map_addRight (Λ : Finset ℤ) (j i : ℤ) :
+    runStart (Λ.map (Equiv.addRight j).toEmbedding) (i + j) = runStart Λ i + j := by
+  refine le_antisymm ?_ ?_
+  · have h1 : runStart (Λ.map (Equiv.addRight j).toEmbedding) (i + j) - j ≤ i := by
+      have := runStart_le (Λ.map (Equiv.addRight j).toEmbedding) (i + j); omega
+    have h2 : runStart (Λ.map (Equiv.addRight j).toEmbedding) (i + j) - j ∉ Λ :=
+      fun hmem ↦ runStart_notMem (Λ.map (Equiv.addRight j).toEmbedding) (i + j)
+        ((mem_map_addRight_iff Λ j _).2 hmem)
+    have := le_runStart_of_le_of_notMem h1 h2; omega
+  · refine le_runStart_of_le_of_notMem (by have := runStart_le Λ i; omega) fun hmem ↦ ?_
+    rw [mem_map_addRight_iff, add_sub_cancel_right] at hmem
+    exact runStart_notMem Λ i hmem
+
 /-- Flip `b : Bool` according to the parity of `n : ℤ`. -/
 def parityFlip (n : ℤ) (b : Bool) : Bool := if Even n then b else !b
 
@@ -204,6 +226,17 @@ lemma altFill_altFill_of_subset {Λ1 Λ2 : Finset ℤ} (h : Λ1 ⊆ Λ2) (ω : �
   rw [altFill_apply, altFill_apply, altFill_apply, hrun, ← parityFlip_add,
     show (j - runStart Λ1 j) + (runStart Λ1 j - runStart Λ2 j) = j - runStart Λ2 j by ring]
 
+/-- The resampling maps are equivariant under the shift `θ_j`: resampling the translate `Λ + j`
+of the translated configuration `θ_j ω` is the translate of the resampling of `ω` on `Λ`. -/
+lemma altFill_map_addRight (Λ : Finset ℤ) (j : ℤ) (ω : ℤ → Bool) :
+    altFill (Λ.map (Equiv.addRight j).toEmbedding) ((shift Bool j).toFun ω) =
+      (shift Bool j).toFun (altFill Λ ω) := by
+  funext i
+  have h := runStart_map_addRight Λ j (i - j)
+  rw [sub_add_cancel] at h
+  rw [shift_toFun_apply, altFill_apply, altFill_apply, h, shift_toFun_apply, add_sub_cancel_right,
+    show i - (runStart Λ (i - j) + j) = i - j - runStart Λ (i - j) by ring]
+
 /-- Measurability, as a function of the boundary condition, of `altFill Λ`. -/
 lemma measurable_altFill (Λ : Finset ℤ) :
     Measurable[cylinderEvents (X := fun _ : ℤ ↦ Bool) ((Λ : Set ℤ)ᶜ)] (altFill Λ) := by
@@ -272,6 +305,17 @@ def antiferromagnetSpecification : Specification ℤ Bool where
   toPreSpecification := { toFun := antiferroKer, isConsistent' := isConsistent_antiferroKer }
   isMarkovKernel' := fun Λ ↦ isMarkovKernel_antiferroKer Λ
   isProper' := isProper_antiferroKer
+
+/-- **Georgii, Example (14.16): `γ` is a shift-invariant specification.** The `∀ j` shape
+consumed by the ergodic-limit theorems is this statement itself, `j` being explicit. -/
+theorem isInvariant_shift_antiferromagnetSpecification (j : ℤ) :
+    Specification.IsInvariant (shift Bool j) antiferromagnetSpecification := by
+  rw [Specification.isInvariant_iff]
+  intro Λ ω
+  change (antiferroKer Λ ω).map (shift Bool j).toFun =
+    antiferroKer (Λ.map (Equiv.addRight j).toEmbedding) ((shift Bool j).toFun ω)
+  rw [antiferroKer_apply, antiferroKer_apply, Measure.map_dirac' (shift Bool j).measurable_toFun,
+    altFill_map_addRight]
 
 /-! ## The two alternating configurations -/
 
