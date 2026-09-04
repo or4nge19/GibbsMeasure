@@ -5,9 +5,12 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Hasse
 public import GibbsMeasure.Model.Ising
 public import GibbsMeasure.Potential.Pair
 public import GibbsMeasure.Specification.ExtremeCorollaries
+public import GibbsMeasure.Topology.LocalMetric
+public import Mathlib.Analysis.Normed.Group.Tannery
 public import Mathlib.Analysis.SpecialFunctions.Log.Summable
 
 /-!
@@ -46,9 +49,26 @@ adjacent boundary site; Georgii's `∏_{i=n}^N tanh J_i` is `∏ i ∈ Finset.Ic
   `μ₋ = τ(μ₊)`, `μ₊(σ_n) > 0 > μ₋(σ_n)` and `μ₊ ≠ μ₋`, in both directions.
 * `exists_G_eq_singleton_of_not_summable`: **Comment (6.7)(2)**, `|𝒢(Φ)| = 1` when (6.1) fails,
   so (6.1) is necessary as well as sufficient.
-
-Georgii's Comments (6.7)(1) (the `β → ∞` limit `𝒢(βΦ) → [δ₋, δ₊]`) and (6.7)(3) (the
-percolation reformulation of `A₊ ∪ A₋`) are not formalised here.
+* `plusPhase`, `minusPhase`: Georgii's `μ₊ = lim_N γ_{Λ_N}(· | ω⁺)` and `μ₋ = τ(μ₊)` as named
+  objects, with `G_isingChainSpecification_eq` (Theorem (6.4) in terms of them) and
+  `integral_spin_plusPhase`: `μ₊(σ_n) = ∏_{i ≥ n} tanh J_i`.
+* **Comment (6.7)(1)**: `isingChainPotential_constConfig_le` (`ω^±` are ground states),
+  `exists_G_gibbsSpecification_smul_eq` (`𝒢(βΦ) = [μ₋^β, μ₊^β]` for `β ≥ 1`),
+  `tendsto_tprod_tanh_smul_atTop` and `tendsto_integral_spin_plusPhase_smul_atTop`
+  (`μ₊^β(σ_n) = ∏_{i ≥ n} tanh βJ_i → 1`), `tendsto_localDist_plusPhase_smul_atTop` and
+  `tendsto_localDist_minusPhase_smul_atTop` (`μ₊^β → δ₊`, `μ₋^β → δ₋` locally), and
+  `lim_{β → ∞} 𝒢(βΦ) = [δ₋, δ₊]` in three forms: the endpoints
+  (`tendsto_localDistSet_GP_gibbsSpecification_dirac`), the whole segment pointwise
+  (`tendsto_smul_plusPhase_add_smul_minusPhase_atTop`), and the reverse inclusion — every local
+  limit of Gibbs measures `μ^β ∈ 𝒢(βΦ)` lies in `[δ₋, δ₊]`
+  (`exists_eq_smul_dirac_add_smul_dirac_of_tendsto`).
+* **Comment (6.7)(3)**: `measurableSet_tail_eventuallyConst` (`A₊`, `A₋` are tail events),
+  `plusPhase_apply_eventuallyConst_true`, `minusPhase_apply_eventuallyConst_false`
+  (`μ₊(A₊) = μ₋(A₋) = 1`), `plusPhase_mem_extremePoints_G`, `minusPhase_mem_extremePoints_G`
+  (`μ₊`, `μ₋` are the extreme points), the random graph `chainGraph` with its two descriptions
+  (`chainGraph_adj_iff_forall_le`), the percolation characterisation
+  `mem_eventuallyConst_union_iff_existsUnique_infinite_supp` of `A₊ ∪ A₋`, and
+  `apply_setOf_exists_infinite_supp_eq_one`: every Gibbs measure percolates.
 
 ## Lemmas that belong elsewhere
 
@@ -97,9 +117,31 @@ protected lemma div_mul_cancel_right {a b c : ℝ≥0∞} (hc0 : c ≠ 0) (hct :
 
 end ENNReal
 
-namespace Specification
+namespace Finset
 
-end Specification
+/-- **Weierstrass' product inequality**: `∏ (1 - f i) ≥ 1 - ∑ f i` when `0 ≤ f i ≤ 1`.
+Intended home: `Mathlib/Algebra/Order/BigOperators/Ring/Finset.lean`. -/
+theorem one_sub_sum_le_prod_one_sub {ι R : Type*} [CommRing R] [PartialOrder R]
+    [IsOrderedRing R] {f : ι → R} {s : Finset ι} (h0 : ∀ i ∈ s, 0 ≤ f i)
+    (h1 : ∀ i ∈ s, f i ≤ 1) : 1 - ∑ i ∈ s, f i ≤ ∏ i ∈ s, (1 - f i) := by
+  classical
+  induction s using Finset.induction_on with
+  | empty => simp
+  | insert a s ha ih =>
+    rw [Finset.prod_insert ha, Finset.sum_insert ha]
+    have h0a := h0 a (Finset.mem_insert_self a s)
+    have h1a := h1 a (Finset.mem_insert_self a s)
+    have ih' := ih (fun i hi ↦ h0 i (Finset.mem_insert_of_mem hi))
+      fun i hi ↦ h1 i (Finset.mem_insert_of_mem hi)
+    have hsum : 0 ≤ ∑ i ∈ s, f i :=
+      Finset.sum_nonneg fun i hi ↦ h0 i (Finset.mem_insert_of_mem hi)
+    have hring : 1 - (f a + ∑ i ∈ s, f i)
+        = (1 - f a) * (1 - ∑ i ∈ s, f i) - f a * ∑ i ∈ s, f i := by ring
+    rw [hring]
+    exact (sub_le_self _ (mul_nonneg h0a hsum)).trans
+      (mul_le_mul_of_nonneg_left ih' (sub_nonneg.2 h1a))
+
+end Finset
 
 
 namespace MeasureTheory.GibbsMeasure
@@ -646,6 +688,65 @@ theorem exists_tendsto_prod_Ico_tanh (hJ : ∀ n, 0 < J n)
   filter_upwards [eventually_ge_atTop n] with N hN
   rw [div_eq_iff hden.ne', mul_comm]
   exact (Finset.prod_range_mul_prod_Ico _ hN).symm
+
+/-- **Georgii's `∏_{i ≥ n} tanh J_i` as an infinite product.** Under (6.1) the partial products
+`∏_{n ≤ i < N} tanh J_i` converge to `∏'_k tanh J_{n+k}`. -/
+theorem tendsto_prod_Ico_tanh (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) (n : ℕ) :
+    Tendsto (fun N ↦ ∏ i ∈ Finset.Ico n N, Real.tanh (J i)) atTop
+      (𝓝 (∏' k, Real.tanh (J (n + k)))) := by
+  have hpos : ∀ k, 0 < Real.tanh (J (n + k)) := fun k ↦ tanh_pos_of_pos (hJ _)
+  have hsummable : Summable fun k ↦ Real.tanh (J (n + k)) - 1 := by
+    refine Summable.of_norm_bounded
+      ((h61.comp_injective (add_right_injective n)).mul_left 2) fun k ↦ ?_
+    rw [Real.norm_eq_abs, abs_sub_comm, abs_of_nonneg
+      (by linarith [Real.tanh_lt_one (J (n + k))] : (0 : ℝ) ≤ 1 - Real.tanh (J (n + k)))]
+    exact one_sub_tanh_le (J (n + k))
+  have hlog : Summable fun k ↦ Real.log (Real.tanh (J (n + k))) := by
+    simpa using Real.summable_log_one_add_of_summable hsummable
+  have hmul : Multipliable fun k ↦ Real.tanh (J (n + k)) :=
+    Real.multipliable_of_summable_log hpos hlog
+  have h := hmul.hasProd.tendsto_prod_nat.comp (tendsto_sub_atTop_nat n)
+  refine h.congr fun N ↦ ?_
+  simp only [Function.comp_def]
+  rw [Finset.prod_Ico_eq_prod_range]
+
+/-- Under (6.1), `0 < ∏_{i ≥ n} tanh J_i`. -/
+lemma tprod_tanh_pos (hJ : ∀ n, 0 < J n) (h61 : Summable fun n ↦ Real.exp (-2 * J n))
+    (n : ℕ) : 0 < ∏' k, Real.tanh (J (n + k)) := by
+  obtain ⟨T, hT, hTend⟩ := exists_tendsto_prod_Ico_tanh hJ h61 n
+  rwa [tendsto_nhds_unique (tendsto_prod_Ico_tanh hJ h61 n) hTend]
+
+/-- Under (6.1), `∏_{i ≥ n} tanh J_i ≤ 1`. -/
+lemma tprod_tanh_le_one (hJ : ∀ n, 0 < J n) (h61 : Summable fun n ↦ Real.exp (-2 * J n))
+    (n : ℕ) : ∏' k, Real.tanh (J (n + k)) ≤ 1 :=
+  le_of_tendsto' (tendsto_prod_Ico_tanh hJ h61 n) fun _ ↦
+    Finset.prod_le_one (fun i _ ↦ (tanh_pos_of_pos (hJ i)).le) fun i _ ↦
+      (Real.tanh_lt_one (J i)).le
+
+/-- **The quantitative form of `∏_{i ≥ n} tanh J_i > 0`.** By Weierstrass' inequality and
+`1 - tanh J ≤ 2 e^{-2J}`, `1 - ∏_{i ≥ n} tanh J_i ≤ 2 ∑_i e^{-2 J_i}`. -/
+theorem one_sub_tprod_tanh_le (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) (n : ℕ) :
+    1 - ∏' k, Real.tanh (J (n + k)) ≤ 2 * ∑' i, Real.exp (-2 * J i) := by
+  rw [sub_le_comm]
+  refine ge_of_tendsto' (tendsto_prod_Ico_tanh hJ h61 n) fun N ↦ ?_
+  have h1 : 1 - ∑ i ∈ Finset.Ico n N, (1 - Real.tanh (J i))
+      ≤ ∏ i ∈ Finset.Ico n N, Real.tanh (J i) := by
+    have := Finset.one_sub_sum_le_prod_one_sub (f := fun i ↦ 1 - Real.tanh (J i))
+      (s := Finset.Ico n N) (fun i _ ↦ by linarith [Real.tanh_lt_one (J i)])
+      fun i _ ↦ by linarith [tanh_pos_of_pos (hJ i)]
+    simpa using this
+  have h2 : ∑ i ∈ Finset.Ico n N, (1 - Real.tanh (J i))
+      ≤ 2 * ∑' i, Real.exp (-2 * J i) := by
+    calc ∑ i ∈ Finset.Ico n N, (1 - Real.tanh (J i))
+        ≤ ∑ i ∈ Finset.Ico n N, 2 * Real.exp (-2 * J i) :=
+          Finset.sum_le_sum fun i _ ↦ one_sub_tanh_le (J i)
+      _ = 2 * ∑ i ∈ Finset.Ico n N, Real.exp (-2 * J i) := by rw [Finset.mul_sum]
+      _ ≤ 2 * ∑' i, Real.exp (-2 * J i) := by
+          gcongr
+          exact h61.sum_le_tsum _ fun i _ ↦ (Real.exp_pos _).le
+  linarith
 
 /-! ### Step 1 of Georgii (6.4): the plus phase
 
@@ -1470,6 +1571,781 @@ theorem exists_G_eq_singleton_of_not_summable (hJ : ∀ n, 0 < J n)
     exists_tendsto_isingChainSpecification_range_apply_of_not_summable hJ h61 hA
   rw [apply_eq_of_tendsto_of_isGibbsMeasure hνG hA ha,
     apply_eq_of_tendsto_of_isGibbsMeasure (μ := (μ : Measure (ℕ → Bool))) hμGP hA ha]
+
+/-! ### Georgii, Comment (6.7)(1): ground states and the zero-temperature limit
+
+The constant configurations `ω⁺`, `ω⁻` minimise every `Φ_A`, so they are the ground states of
+`Φ`.  Since `γ^{βΦ}` is the chain with couplings `βJ` and (6.1) is inherited by `βJ` for
+`β ≥ 1`, Theorem (6.4) gives `𝒢(βΦ) = [μ₋^β, μ₊^β]` for all `β ≥ 1`, and Lemma (6.5) gives
+`μ₊^β(σ_n) = ∏_{i ≥ n} tanh βJ_i → 1` as `β → ∞`; hence `μ₊^β → δ₊`, `μ₋^β → δ₋` in the
+topology of local convergence, and `𝒢(βΦ) → [δ₋, δ₊]`. -/
+
+/-- **Georgii (6.7)(1): `ω⁺` and `ω⁻` are ground states.** For ferromagnetic couplings
+`J_n ≥ 0` the constant configurations minimise `Φ_A` for every finite set of sites `A`. -/
+theorem isingChainPotential_constConfig_le (hJ : ∀ n, 0 ≤ J n) (A : Finset ℕ) (x : Bool)
+    (σ : ℕ → Bool) : isingChainPotential J A (constConfig x) ≤ isingChainPotential J A σ := by
+  refine Potential.pairTerms_le_pairTerms (fun i j _ ↦ ?_) A
+  simp only [isingChainPair, constConfig_apply]
+  split_ifs with h
+  · rw [spin_mul_self]
+    have : spin (σ i) * spin (σ j) ≤ 1 := by cases σ i <;> cases σ j <;> norm_num [spin]
+    nlinarith [hJ i]
+  · exact le_rfl
+
+lemma smul_pos_of_pos (hJ : ∀ n, 0 < J n) {β : ℝ} (hβ : 0 < β) (n : ℕ) : 0 < (β • J) n :=
+  mul_pos hβ (hJ n)
+
+/-- Under (6.1), the couplings `βJ` satisfy (6.1) for every `β ≥ 1`. -/
+lemma summable_exp_neg_two_mul_smul (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) {β : ℝ} (hβ : 1 ≤ β) :
+    Summable fun n ↦ Real.exp (-2 * (β • J) n) :=
+  h61.of_nonneg_of_le (fun _ ↦ (Real.exp_pos _).le) fun n ↦ by
+    simp only [Pi.smul_apply, smul_eq_mul]
+    exact Real.exp_le_exp.2 (by nlinarith [hJ n])
+
+/-- **Georgii (6.7)(1): `𝒢(βΦ) = [μ₋^β, μ₊^β]` for `β ≥ 1`.** Theorem (6.4) at inverse
+temperature `β ≥ 1`, for the Gibbsian specification `γ^{βΦ}` of the potential (6.2). -/
+theorem exists_G_gibbsSpecification_smul_eq (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) {β : ℝ} (hβ : 1 ≤ β) :
+    ∃ μplus ∈ G (gibbsSpecificationOfAbsolutelySummable (Φ := isingChainPotential J)
+        uniformSpinMeasure β),
+      ∃ μminus ∈ G (gibbsSpecificationOfAbsolutelySummable (Φ := isingChainPotential J)
+        uniformSpinMeasure β),
+      μminus = μplus.map chainFlip.toFun ∧
+        (∀ n : ℕ, 0 < ∫ ω, spin (ω n) ∂μplus) ∧
+        (∀ n : ℕ, ∫ ω, spin (ω n) ∂μminus < 0) ∧
+        μplus ≠ μminus ∧
+        G (gibbsSpecificationOfAbsolutelySummable (Φ := isingChainPotential J)
+          uniformSpinMeasure β)
+          = {μ | ∃ s : ℝ≥0∞, s ≤ 1 ∧ μ = s • μplus + (1 - s) • μminus} := by
+  rw [← isingChainSpecification_smul]
+  exact exists_G_isingChainSpecification_eq (smul_pos_of_pos hJ (by linarith))
+    (summable_exp_neg_two_mul_smul hJ h61 hβ)
+
+/-! #### The phases `μ₊` and `μ₋ = τ(μ₊)` as named objects -/
+
+variable (J) in
+/-- **Georgii's plus phase `μ₊`.** A Gibbs measure of the chain which is a cluster point, in the
+topology of local convergence, of `γ_{Λ_N}(· | ω⁺)`, and which takes the limit value on every
+local event on which that sequence converges (`exists_mem_GP_eq_of_tendsto`).  For `J_n > 0` the
+sequence converges on every local event (`exists_tendsto_isingChainSpecification_range_apply`
+under (6.1), `exists_tendsto_isingChainSpecification_range_apply_of_not_summable` otherwise),
+so `μ₊ = lim_N γ_{Λ_N}(· | ω⁺)` is then uniquely determined: it is Georgii's `μ₊` of
+Theorem (6.4) (`tendsto_isingChainSpecification_range_plusPhase`). -/
+def plusPhase : ProbabilityMeasure (ℕ → Bool) :=
+  (exists_mem_GP_eq_of_tendsto (J := J) true).choose
+
+lemma plusPhase_mem_GP : plusPhase J ∈ GP (isingChainSpecification J) :=
+  (exists_mem_GP_eq_of_tendsto (J := J) true).choose_spec.1
+
+lemma isGibbsMeasure_plusPhase :
+    (isingChainSpecification J).IsGibbsMeasure (plusPhase J : Measure (ℕ → Bool)) :=
+  plusPhase_mem_GP
+
+lemma plusPhase_apply_eq_of_tendsto {A : Set (ℕ → Bool)} (hA : A ∈ localEvents ℕ Bool)
+    {a : ℝ≥0∞}
+    (ha : Tendsto (fun N ↦ isingChainSpecification J (Finset.range N) (constConfig true) A)
+      atTop (𝓝 a)) :
+    (plusPhase J : Measure (ℕ → Bool)) A = a :=
+  (exists_mem_GP_eq_of_tendsto (J := J) true).choose_spec.2 A hA a ha
+
+/-- **Georgii (6.4), step 1, for `μ₊`.** Under (6.1), `μ₊ = lim_N γ_{Λ_N}(· | ω)` on every
+local event, for every boundary condition `ω ∈ A₊`. -/
+theorem tendsto_isingChainSpecification_range_plusPhase (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) {A : Set (ℕ → Bool)}
+    (hA : A ∈ localEvents ℕ Bool) {ω : ℕ → Bool} (hω : ω ∈ eventuallyConst true) :
+    Tendsto (fun N ↦ isingChainSpecification J (Finset.range N) ω A) atTop
+      (𝓝 ((plusPhase J : Measure (ℕ → Bool)) A)) := by
+  obtain ⟨a, ha⟩ := exists_tendsto_isingChainSpecification_range_apply hJ h61 true hA
+  rw [plusPhase_apply_eq_of_tendsto hA (ha _ (constConfig_mem_eventuallyConst true))]
+  exact ha ω hω
+
+/-- **Lemma (6.5) in the limit, for `μ₊`.** Under (6.1),
+`μ₊(σ_n = +1) = (1 + ∏_{i ≥ n} tanh J_i)/2`. -/
+theorem plusPhase_apply_setOf_true (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) (n : ℕ) :
+    (plusPhase J : Measure (ℕ → Bool)) {σ : ℕ → Bool | σ n = true}
+      = ENNReal.ofReal ((1 + ∏' k, Real.tanh (J (n + k))) / 2) := by
+  obtain ⟨T, hT0, hTend⟩ := tendsto_isingChainSpecification_setOf_true hJ h61 n
+  obtain ⟨T', -, hTend'⟩ := exists_tendsto_prod_Ico_tanh hJ h61 n
+  have hT : T = ∏' k, Real.tanh (J (n + k)) := by
+    have h1 := tendsto_nhds_unique hTend' (tendsto_prod_Ico_tanh hJ h61 n)
+    have h2 : Tendsto
+        (fun N ↦ isingChainSpecification J (Finset.range N) (constConfig true)
+          {σ : ℕ → Bool | σ n = true}) atTop (𝓝 (ENNReal.ofReal ((1 + T') / 2))) := by
+      have hcont : Tendsto
+          (fun N ↦ ENNReal.ofReal ((1 + ∏ i ∈ Finset.Ico n N, Real.tanh (J i)) / 2)) atTop
+          (𝓝 (ENNReal.ofReal ((1 + T') / 2))) :=
+        (ENNReal.continuous_ofReal.tendsto _).comp
+          ((tendsto_const_nhds.add hTend').div_const 2)
+      refine hcont.congr' ?_
+      filter_upwards [eventually_gt_atTop n] with N hN
+      rw [isingChainSpecification_range_apply_setOf_eq hN true (constConfig true)]
+      norm_num [constConfig, spin]
+    have h3 := tendsto_nhds_unique hTend h2
+    rw [ENNReal.ofReal_eq_ofReal_iff (by linarith)
+      (by linarith [tprod_tanh_pos hJ h61 n, h1])] at h3
+    linarith
+  rw [← hT]
+  exact plusPhase_apply_eq_of_tendsto (setOf_apply_eq_mem_localEvents n true) hTend
+
+/-- **Georgii (6.4)/(6.7)(1): the magnetisation of the plus phase**,
+`μ₊(σ_n) = ∏_{i ≥ n} tanh J_i`. -/
+theorem integral_spin_plusPhase (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) (n : ℕ) :
+    ∫ ω, spin (ω n) ∂(plusPhase J : Measure (ℕ → Bool)) = ∏' k, Real.tanh (J (n + k)) := by
+  rw [integral_spin_apply _ n, plusPhase_apply_setOf_true hJ h61 n,
+    ENNReal.toReal_ofReal (by linarith [tprod_tanh_pos hJ h61 n])]
+  ring
+
+
+variable (J) in
+/-- **Georgii's minus phase `μ₋ = τ(μ₊)`**, the spin-flip image of the plus phase. -/
+def minusPhase : ProbabilityMeasure (ℕ → Bool) :=
+  (plusPhase J).map chainFlip.measurable_toFun.aemeasurable
+
+lemma minusPhase_toMeasure :
+    (minusPhase J : Measure (ℕ → Bool))
+      = (plusPhase J : Measure (ℕ → Bool)).map chainFlip.toFun :=
+  ProbabilityMeasure.toMeasure_map _ _
+
+lemma minusPhase_mem_GP : minusPhase J ∈ GP (isingChainSpecification J) :=
+  (isInvariant_chainFlip (J := J)).map_mem_GP plusPhase_mem_GP
+
+lemma isGibbsMeasure_minusPhase :
+    (isingChainSpecification J).IsGibbsMeasure (minusPhase J : Measure (ℕ → Bool)) :=
+  minusPhase_mem_GP
+
+/-- **Georgii (6.4), step 2, for `μ₋`.** Under (6.1), `μ₋ = lim_N γ_{Λ_N}(· | ω)` on every
+local event, for every boundary condition `ω ∈ A₋`. -/
+theorem tendsto_isingChainSpecification_range_minusPhase (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) {A : Set (ℕ → Bool)}
+    (hA : A ∈ localEvents ℕ Bool) {ω : ℕ → Bool} (hω : ω ∈ eventuallyConst false) :
+    Tendsto (fun N ↦ isingChainSpecification J (Finset.range N) ω A) atTop
+      (𝓝 ((minusPhase J : Measure (ℕ → Bool)) A)) := by
+  rw [minusPhase_toMeasure]
+  exact tendsto_map_chainFlip_of_tendsto
+    (fun A hA ω hω ↦ tendsto_isingChainSpecification_range_plusPhase hJ h61 hA hω) hA hω
+
+/-- `μ₋(σ_n) = -∏_{i ≥ n} tanh J_i`. -/
+theorem integral_spin_minusPhase (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) (n : ℕ) :
+    ∫ ω, spin (ω n) ∂(minusPhase J : Measure (ℕ → Bool)) = -∏' k, Real.tanh (J (n + k)) := by
+  rw [minusPhase_toMeasure, integral_spin_map_chainFlip, integral_spin_plusPhase hJ h61]
+
+/-- **Georgii, Theorem (6.4), with the named phases.** Under (6.1),
+`𝒢(Φ) = [μ₋, μ₊] = {s μ₊ + (1 - s) μ₋ : 0 ≤ s ≤ 1}`. -/
+theorem G_isingChainSpecification_eq (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) :
+    G (isingChainSpecification J)
+      = {μ | ∃ s : ℝ≥0∞, s ≤ 1 ∧ μ = s • (plusPhase J : Measure (ℕ → Bool))
+          + (1 - s) • (minusPhase J : Measure (ℕ → Bool))} := by
+  refine Set.ext fun μ ↦ ⟨?_, ?_⟩
+  · rintro ⟨hprob, hG⟩
+    have := hprob
+    refine ⟨μ (eventuallyConst true), prob_le_one, ?_⟩
+    have hcompl : μ (eventuallyConst false) = 1 - μ (eventuallyConst true) :=
+      ENNReal.eq_sub_of_add_eq (measure_ne_top μ _)
+        (by rw [add_comm]; exact apply_eventuallyConst_true_add_false h61 hG)
+    rw [← hcompl, minusPhase_toMeasure]
+    exact eq_smul_add_smul_of_isGibbsMeasure h61
+      (fun A hA ω hω ↦ tendsto_isingChainSpecification_range_plusPhase hJ h61 hA hω) hG
+  · rintro ⟨s, hs, rfl⟩
+    have hν : ∀ i : Fin 2, ![(plusPhase J : Measure (ℕ → Bool)),
+        (minusPhase J : Measure (ℕ → Bool))] i ∈ G (isingChainSpecification J) := by
+      intro i
+      fin_cases i
+      · exact ⟨(plusPhase J).2, plusPhase_mem_GP⟩
+      · exact ⟨(minusPhase J).2, minusPhase_mem_GP⟩
+    have hc : ∑ i : Fin 2, ![s, 1 - s] i = 1 := by
+      simp [Fin.sum_univ_two, add_tsub_cancel_of_le hs]
+    simpa [Fin.sum_univ_two] using sum_smul_mem_G hν hc
+
+/-! #### The zero-temperature limit `β → ∞` -/
+
+/-- **Georgii (6.7)(1), the analytic input.** Under (6.1), `∑_i e^{-2βJ_i} → 0` as `β → ∞`
+(dominated convergence for series, the bound being `e^{-2J_i}` for `β ≥ 1`). -/
+theorem tendsto_tsum_exp_neg_two_mul_smul_atTop (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) :
+    Tendsto (fun β : ℝ ↦ ∑' i, Real.exp (-2 * (β • J) i)) atTop (𝓝 0) := by
+  have h := tendsto_tsum_of_dominated_convergence (𝓕 := atTop)
+    (f := fun (β : ℝ) (i : ℕ) ↦ Real.exp (-2 * (β • J) i)) (g := fun _ ↦ (0 : ℝ)) h61
+    (fun i ↦ ?_) ?_
+  · simpa using h
+  · simp only [Pi.smul_apply, smul_eq_mul]
+    refine Real.tendsto_exp_atBot.comp ?_
+    have : Tendsto (fun β : ℝ ↦ β * (-2 * J i)) atTop atBot :=
+      Tendsto.atTop_mul_const_of_neg (by linarith [hJ i]) tendsto_id
+    exact this.congr fun β ↦ by ring
+  · filter_upwards [eventually_ge_atTop (1 : ℝ)] with β hβ i
+    rw [Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+    simp only [Pi.smul_apply, smul_eq_mul]
+    exact Real.exp_le_exp.2 (by nlinarith [hJ i])
+
+/-- **Georgii (6.7)(1): `lim_{β → ∞} ∏_{i ≥ n} tanh βJ_i = 1`.** -/
+theorem tendsto_tprod_tanh_smul_atTop (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) (n : ℕ) :
+    Tendsto (fun β : ℝ ↦ ∏' k, Real.tanh ((β • J) (n + k))) atTop (𝓝 1) := by
+  have hc := tendsto_tsum_exp_neg_two_mul_smul_atTop hJ h61
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le' (g := fun β ↦ 1 - 2 * ∑' i,
+    Real.exp (-2 * (β • J) i)) (h := fun _ ↦ 1) ?_ tendsto_const_nhds ?_ ?_
+  · simpa using (hc.const_mul 2).const_sub 1
+  · filter_upwards [eventually_ge_atTop (1 : ℝ)] with β hβ
+    have := one_sub_tprod_tanh_le (smul_pos_of_pos hJ (by linarith))
+      (summable_exp_neg_two_mul_smul hJ h61 hβ) n
+    linarith
+  · filter_upwards [eventually_ge_atTop (1 : ℝ)] with β hβ
+    exact tprod_tanh_le_one (smul_pos_of_pos hJ (by linarith))
+      (summable_exp_neg_two_mul_smul hJ h61 hβ) n
+
+/-- **Georgii (6.7)(1): `lim_{β → ∞} μ₊^β(σ_n) = 1`** for every site `n`. -/
+theorem tendsto_integral_spin_plusPhase_smul_atTop (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) (n : ℕ) :
+    Tendsto (fun β : ℝ ↦ ∫ ω, spin (ω n) ∂(plusPhase (β • J) : Measure (ℕ → Bool))) atTop
+      (𝓝 1) := by
+  refine (tendsto_tprod_tanh_smul_atTop hJ h61 n).congr' ?_
+  filter_upwards [eventually_ge_atTop (1 : ℝ)] with β hβ
+  exact (integral_spin_plusPhase (smul_pos_of_pos hJ (by linarith))
+    (summable_exp_neg_two_mul_smul hJ h61 hβ) n).symm
+
+/-- The per-site estimate behind the zero-temperature limit: under (6.1),
+`μ₊(σ_a ≠ +1) = (1 - ∏_{i ≥ a} tanh J_i)/2 ≤ ∑_i e^{-2J_i}`, uniformly in the site `a`. -/
+theorem plusPhase_real_ne_le (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) (a : ℕ) :
+    (plusPhase J : Measure (ℕ → Bool)).real {ζ : ℕ → Bool | ζ a ≠ constConfig true a}
+      ≤ ∑' i, Real.exp (-2 * J i) := by
+  have hprob : IsProbabilityMeasure (plusPhase J : Measure (ℕ → Bool)) := (plusPhase J).2
+  have hset : {ζ : ℕ → Bool | ζ a ≠ constConfig true a} = {ζ : ℕ → Bool | ζ a = true}ᶜ := by
+    ext ζ; simp
+  rw [hset, measureReal_def, prob_compl_eq_one_sub (measurableSet_setOf_apply_eq a true),
+    plusPhase_apply_setOf_true hJ h61 a,
+    ENNReal.toReal_sub_of_le (ENNReal.ofReal_le_one.2 (by
+      linarith [tprod_tanh_le_one hJ h61 a])) ENNReal.one_ne_top,
+    ENNReal.toReal_one, ENNReal.toReal_ofReal (by linarith [tprod_tanh_pos hJ h61 a])]
+  linarith [one_sub_tprod_tanh_le hJ h61 a]
+
+/-- The same estimate for the minus phase: `μ₋(σ_a ≠ -1) ≤ ∑_i e^{-2J_i}`. -/
+theorem minusPhase_real_ne_le (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) (a : ℕ) :
+    (minusPhase J : Measure (ℕ → Bool)).real {ζ : ℕ → Bool | ζ a ≠ constConfig false a}
+      ≤ ∑' i, Real.exp (-2 * J i) := by
+  have hmeas : MeasurableSet {ζ : ℕ → Bool | ζ a ≠ constConfig false a} :=
+    measurableSet_ne_apply _ a
+  rw [minusPhase_toMeasure, measureReal_def, Measure.map_apply chainFlip.measurable_toFun hmeas,
+    ← measureReal_def]
+  refine le_of_eq_of_le ?_ (plusPhase_real_ne_le hJ h61 a)
+  congr 1
+  ext ζ
+  simp
+
+/-- **Georgii (6.7)(1): `lim_{β → ∞} μ₊^β = δ₊`** in the topology of local convergence, measured
+by the metric `localDist` of Remark (4.3)(3). -/
+theorem tendsto_localDist_plusPhase_smul_atTop (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) :
+    Tendsto (fun β : ℝ ↦ localDist (plusPhase (β • J)) (diracProb (constConfig true))) atTop
+      (𝓝 0) := by
+  refine tendsto_localDist_diracProb (c := fun β ↦ ∑' i, Real.exp (-2 * (β • J) i))
+    (tendsto_tsum_exp_neg_two_mul_smul_atTop hJ h61) ?_
+  filter_upwards [eventually_ge_atTop (1 : ℝ)] with β hβ a
+  exact plusPhase_real_ne_le (smul_pos_of_pos hJ (by linarith))
+    (summable_exp_neg_two_mul_smul hJ h61 hβ) a
+
+/-- **Georgii (6.7)(1): `lim_{β → ∞} μ₋^β = δ₋`** in the topology of local convergence. -/
+theorem tendsto_localDist_minusPhase_smul_atTop (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) :
+    Tendsto (fun β : ℝ ↦ localDist (minusPhase (β • J)) (diracProb (constConfig false))) atTop
+      (𝓝 0) := by
+  refine tendsto_localDist_diracProb (c := fun β ↦ ∑' i, Real.exp (-2 * (β • J) i))
+    (tendsto_tsum_exp_neg_two_mul_smul_atTop hJ h61) ?_
+  filter_upwards [eventually_ge_atTop (1 : ℝ)] with β hβ a
+  exact minusPhase_real_ne_le (smul_pos_of_pos hJ (by linarith))
+    (summable_exp_neg_two_mul_smul hJ h61 hβ) a
+
+
+/-- Local convergence `μ₊^β → δ₊`, evaluated on a local event. -/
+theorem tendsto_plusPhase_smul_apply_atTop (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) {A : Set (ℕ → Bool)}
+    (hA : A ∈ localEvents ℕ Bool) :
+    Tendsto (fun β : ℝ ↦ (plusPhase (β • J) : Measure (ℕ → Bool)) A) atTop
+      (𝓝 (Measure.dirac (constConfig true) A)) :=
+  tendsto_withLocalConvergence_iff.1
+    (tendsto_withLocalConvergence_iff_tendsto_localDist.2
+      (tendsto_localDist_plusPhase_smul_atTop hJ h61)) A hA
+
+/-- Local convergence `μ₋^β → δ₋`, evaluated on a local event. -/
+theorem tendsto_minusPhase_smul_apply_atTop (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) {A : Set (ℕ → Bool)}
+    (hA : A ∈ localEvents ℕ Bool) :
+    Tendsto (fun β : ℝ ↦ (minusPhase (β • J) : Measure (ℕ → Bool)) A) atTop
+      (𝓝 (Measure.dirac (constConfig false) A)) :=
+  tendsto_withLocalConvergence_iff.1
+    (tendsto_withLocalConvergence_iff_tendsto_localDist.2
+      (tendsto_localDist_minusPhase_smul_atTop hJ h61)) A hA
+
+/-- **Georgii (6.7)(1): `lim_{β → ∞} 𝒢(βΦ) = [δ₋, δ₊]`, the segment converges.** Every point
+`s μ₊^β + (1 - s) μ₋^β` of `𝒢(βΦ) = [μ₋^β, μ₊^β]` converges locally, as `β → ∞`, to the
+corresponding point `s δ₊ + (1 - s) δ₋` of `[δ₋, δ₊]`. -/
+theorem tendsto_smul_plusPhase_add_smul_minusPhase_atTop (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) {s : ℝ≥0∞} (hs : s ≤ 1) {A : Set (ℕ → Bool)}
+    (hA : A ∈ localEvents ℕ Bool) :
+    Tendsto (fun β : ℝ ↦ (s • (plusPhase (β • J) : Measure (ℕ → Bool))
+        + (1 - s) • (minusPhase (β • J) : Measure (ℕ → Bool))) A) atTop
+      (𝓝 ((s • Measure.dirac (constConfig true)
+        + (1 - s) • Measure.dirac (constConfig false)) A)) := by
+  simp only [Measure.add_apply, Measure.smul_apply, smul_eq_mul]
+  exact (ENNReal.Tendsto.const_mul (tendsto_plusPhase_smul_apply_atTop hJ h61 hA)
+      (Or.inr (ne_top_of_le_ne_top ENNReal.one_ne_top hs))).add
+    (ENNReal.Tendsto.const_mul (tendsto_minusPhase_smul_apply_atTop hJ h61 hA)
+      (Or.inr (ne_top_of_le_ne_top ENNReal.one_ne_top tsub_le_self)))
+
+/-- **Georgii (6.7)(1): `lim_{β → ∞} 𝒢(βΦ) = [δ₋, δ₊]`, the endpoints.** In Georgii's distance
+`d(F, μ) = inf_{ν ∈ F} d(ν, μ)` from a set of random fields (as in Theorem (6.9)),
+`d(𝒢(βΦ), δ₊) → 0` and `d(𝒢(βΦ), δ₋) → 0` as `β → ∞`. -/
+theorem tendsto_localDistSet_GP_gibbsSpecification_dirac (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) :
+    Tendsto (fun β : ℝ ↦ localDistSet
+      (GP (gibbsSpecificationOfAbsolutelySummable (Φ := isingChainPotential J)
+        uniformSpinMeasure β)) (diracProb (constConfig true))) atTop (𝓝 0) ∧
+    Tendsto (fun β : ℝ ↦ localDistSet
+      (GP (gibbsSpecificationOfAbsolutelySummable (Φ := isingChainPotential J)
+        uniformSpinMeasure β)) (diracProb (constConfig false))) atTop (𝓝 0) := by
+  constructor
+  · refine tendsto_localDistSet_diracProb (μs := fun β ↦ plusPhase (β • J))
+      (fun β ↦ isingChainSpecification_smul J β ▸ plusPhase_mem_GP)
+      (c := fun β ↦ ∑' i, Real.exp (-2 * (β • J) i))
+      (tendsto_tsum_exp_neg_two_mul_smul_atTop hJ h61) ?_
+    filter_upwards [eventually_ge_atTop (1 : ℝ)] with β hβ a
+    exact plusPhase_real_ne_le (smul_pos_of_pos hJ (by linarith))
+      (summable_exp_neg_two_mul_smul hJ h61 hβ) a
+  · refine tendsto_localDistSet_diracProb (μs := fun β ↦ minusPhase (β • J))
+      (fun β ↦ isingChainSpecification_smul J β ▸ minusPhase_mem_GP)
+      (c := fun β ↦ ∑' i, Real.exp (-2 * (β • J) i))
+      (tendsto_tsum_exp_neg_two_mul_smul_atTop hJ h61) ?_
+    filter_upwards [eventually_ge_atTop (1 : ℝ)] with β hβ a
+    exact minusPhase_real_ne_le (smul_pos_of_pos hJ (by linarith))
+      (summable_exp_neg_two_mul_smul hJ h61 hβ) a
+
+
+/-- **Georgii (6.4), step 3, at inverse temperature `β ≥ 1`.** Every Gibbs measure of `γ^{βΦ}`
+is the mixture `μ = μ(A₊) μ₊^β + μ(A₋) μ₋^β`, with `μ(A₊) + μ(A₋) = 1`. -/
+theorem eq_smul_plusPhase_add_smul_minusPhase_of_mem_G (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) {β : ℝ} (hβ : 1 ≤ β) {μ : Measure (ℕ → Bool)}
+    (hμ : μ ∈ G (gibbsSpecificationOfAbsolutelySummable (Φ := isingChainPotential J)
+      uniformSpinMeasure β)) :
+    μ = μ (eventuallyConst true) • (plusPhase (β • J) : Measure (ℕ → Bool))
+        + μ (eventuallyConst false) • (minusPhase (β • J) : Measure (ℕ → Bool))
+      ∧ μ (eventuallyConst true) + μ (eventuallyConst false) = 1 := by
+  rw [← isingChainSpecification_smul] at hμ
+  obtain ⟨hprob, hG⟩ := hμ
+  have hJ' := smul_pos_of_pos hJ (show (0 : ℝ) < β by linarith)
+  have h61' := summable_exp_neg_two_mul_smul hJ h61 hβ
+  refine ⟨?_, apply_eventuallyConst_true_add_false h61' hG⟩
+  rw [minusPhase_toMeasure]
+  exact eq_smul_add_smul_of_isGibbsMeasure h61'
+    (fun A hA ω hω ↦ tendsto_isingChainSpecification_range_plusPhase hJ' h61' hA hω) hG
+
+/-- **Georgii (6.7)(1): `lim_{β → ∞} 𝒢(βΦ) ⊆ [δ₋, δ₊]`.** If `μ^β ∈ 𝒢(βΦ)` for all `β ≥ 1`
+and `μ^β → ν` in the topology of local convergence as `β → ∞`, then `ν ∈ [δ₋, δ₊]`. Together
+with `tendsto_smul_plusPhase_add_smul_minusPhase_atTop` (every point of `[δ₋, δ₊]` is such a
+limit) this is Georgii's `lim_{β → ∞} 𝒢(βΦ) = [δ₋, δ₊]`. -/
+theorem exists_eq_smul_dirac_add_smul_dirac_of_tendsto (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) {μ : ℝ → Measure (ℕ → Bool)}
+    (hμ : ∀ β : ℝ, 1 ≤ β → μ β ∈ G (gibbsSpecificationOfAbsolutelySummable
+      (Φ := isingChainPotential J) uniformSpinMeasure β))
+    {ν : Measure (ℕ → Bool)} [IsProbabilityMeasure ν]
+    (hlim : ∀ A ∈ localEvents ℕ Bool, Tendsto (fun β ↦ μ β A) atTop (𝓝 (ν A))) :
+    ∃ s : ℝ≥0∞, s ≤ 1 ∧ ν = s • Measure.dirac (constConfig true)
+      + (1 - s) • Measure.dirac (constConfig false) := by
+  set A₀ : Set (ℕ → Bool) := {σ | σ 0 = true} with hA₀
+  have hA₀m : MeasurableSet A₀ := measurableSet_setOf_apply_eq 0 true
+  have hA₀l : A₀ ∈ localEvents ℕ Bool := setOf_apply_eq_mem_localEvents 0 true
+  set p : ℝ → ℝ≥0∞ := fun β ↦ μ β (eventuallyConst true) with hp
+  set q : ℝ → ℝ≥0∞ := fun β ↦ μ β (eventuallyConst false) with hq
+  set s : ℝ≥0∞ := ν A₀ with hs
+  have hs1 : s ≤ 1 := prob_le_one
+  have hmix : ∀ β : ℝ, 1 ≤ β → ∀ A, MeasurableSet A →
+      μ β A = p β * (plusPhase (β • J) : Measure (ℕ → Bool)) A
+        + q β * (minusPhase (β • J) : Measure (ℕ → Bool)) A := fun β hβ A _ ↦ by
+    have h := (eq_smul_plusPhase_add_smul_minusPhase_of_mem_G hJ h61 hβ (hμ β hβ)).1
+    conv_lhs => rw [h]
+    simp only [Measure.add_apply, Measure.smul_apply, smul_eq_mul]
+    rfl
+  have hpq : ∀ β : ℝ, 1 ≤ β → p β + q β = 1 := fun β hβ ↦
+    (eq_smul_plusPhase_add_smul_minusPhase_of_mem_G hJ h61 hβ (hμ β hβ)).2
+  have hp1 : ∀ β : ℝ, 1 ≤ β → p β ≤ 1 := fun β hβ ↦ (hpq β hβ) ▸ le_self_add
+  have hq1 : ∀ β : ℝ, 1 ≤ β → q β ≤ 1 := fun β hβ ↦ (hpq β hβ) ▸ le_add_self
+  -- the limits of the phases on `A₀`
+  have hplus : Tendsto (fun β : ℝ ↦ (plusPhase (β • J) : Measure (ℕ → Bool)) A₀) atTop (𝓝 1) := by
+    have := tendsto_plusPhase_smul_apply_atTop hJ h61 hA₀l
+    rwa [Measure.dirac_apply_of_mem (show constConfig true ∈ A₀ from rfl)] at this
+  have hminus : Tendsto (fun β : ℝ ↦ (minusPhase (β • J) : Measure (ℕ → Bool)) A₀) atTop
+      (𝓝 0) := by
+    have := tendsto_minusPhase_smul_apply_atTop hJ h61 hA₀l
+    rwa [Measure.dirac_apply' _ hA₀m,
+      Set.indicator_of_notMem (show constConfig false ∉ A₀ by simp [A₀, constConfig])] at this
+  -- `p β → s`, by a sandwich
+  have hptend : Tendsto p atTop (𝓝 s) := by
+    have hlow : Tendsto (fun β ↦ μ β A₀ - (minusPhase (β • J) : Measure (ℕ → Bool)) A₀) atTop
+        (𝓝 s) := by
+      have := ENNReal.Tendsto.sub (hlim A₀ hA₀l) hminus (Or.inr ENNReal.zero_ne_top)
+      rwa [tsub_zero] at this
+    have hup : Tendsto (fun β ↦ μ β A₀ + (1 - (plusPhase (β • J) : Measure (ℕ → Bool)) A₀))
+        atTop (𝓝 s) := by
+      have := (hlim A₀ hA₀l).add (ENNReal.Tendsto.sub tendsto_const_nhds hplus
+        (Or.inl ENNReal.one_ne_top))
+      rwa [tsub_self, add_zero] at this
+    refine tendsto_of_tendsto_of_tendsto_of_le_of_le' hlow hup ?_ ?_
+    · filter_upwards [eventually_ge_atTop (1 : ℝ)] with β hβ
+      rw [tsub_le_iff_right, hmix β hβ A₀ hA₀m]
+      calc p β * (plusPhase (β • J) : Measure (ℕ → Bool)) A₀
+            + q β * (minusPhase (β • J) : Measure (ℕ → Bool)) A₀
+          ≤ p β * 1 + 1 * (minusPhase (β • J) : Measure (ℕ → Bool)) A₀ := by
+            gcongr
+            · exact prob_le_one
+            · exact hq1 β hβ
+        _ = p β + (minusPhase (β • J) : Measure (ℕ → Bool)) A₀ := by rw [mul_one, one_mul]
+    · filter_upwards [eventually_ge_atTop (1 : ℝ)] with β hβ
+      rw [hmix β hβ A₀ hA₀m]
+      calc p β = p β * ((plusPhase (β • J) : Measure (ℕ → Bool)) A₀
+            + (1 - (plusPhase (β • J) : Measure (ℕ → Bool)) A₀)) := by
+            rw [add_tsub_cancel_of_le prob_le_one, mul_one]
+        _ = p β * (plusPhase (β • J) : Measure (ℕ → Bool)) A₀
+            + p β * (1 - (plusPhase (β • J) : Measure (ℕ → Bool)) A₀) := mul_add _ _ _
+        _ ≤ (p β * (plusPhase (β • J) : Measure (ℕ → Bool)) A₀
+            + q β * (minusPhase (β • J) : Measure (ℕ → Bool)) A₀)
+            + 1 * (1 - (plusPhase (β • J) : Measure (ℕ → Bool)) A₀) := by
+            gcongr
+            · exact le_self_add
+            · exact hp1 β hβ
+        _ = _ := by rw [one_mul]
+  have hqtend : Tendsto q atTop (𝓝 (1 - s)) := by
+    have := ENNReal.Tendsto.sub (tendsto_const_nhds (x := (1 : ℝ≥0∞))) hptend
+      (Or.inl ENNReal.one_ne_top)
+    refine this.congr' ?_
+    filter_upwards [eventually_ge_atTop (1 : ℝ)] with β hβ
+    exact (ENNReal.eq_sub_of_add_eq (ne_top_of_le_ne_top ENNReal.one_ne_top (hp1 β hβ))
+      (by rw [add_comm]; exact hpq β hβ)).symm
+  -- identify `ν` on the local events
+  refine ⟨s, hs1, Measure.ext_of_generateFrom_of_iUnion_univ (localEvents ℕ Bool)
+    generateFrom_measurableCylinders.symm isPiSystem_measurableCylinders
+    (univ_mem_measurableCylinders _) (by simp) fun A hA ↦ ?_⟩
+  have hAm : MeasurableSet A := .of_mem_measurableCylinders hA
+  have h1 : Tendsto (fun β ↦ μ β A) atTop
+      (𝓝 (s * Measure.dirac (constConfig true) A
+        + (1 - s) * Measure.dirac (constConfig false) A)) := by
+    have hconv := (ENNReal.Tendsto.mul hptend (Or.inr (measure_ne_top _ _))
+        (tendsto_plusPhase_smul_apply_atTop hJ h61 hA)
+        (Or.inr (ne_top_of_le_ne_top ENNReal.one_ne_top hs1))).add
+      (ENNReal.Tendsto.mul hqtend (Or.inr (measure_ne_top _ _))
+        (tendsto_minusPhase_smul_apply_atTop hJ h61 hA)
+        (Or.inr (ne_top_of_le_ne_top ENNReal.one_ne_top tsub_le_self)))
+    refine hconv.congr' ?_
+    filter_upwards [eventually_ge_atTop (1 : ℝ)] with β hβ
+    exact (hmix β hβ A hAm).symm
+  rw [Measure.add_apply, Measure.smul_apply, Measure.smul_apply, smul_eq_mul, smul_eq_mul]
+  exact tendsto_nhds_unique (hlim A hA) h1
+
+/-! ### Georgii, Comment (6.7)(3): disjoint tail supports, and percolation
+
+Step 3 of (6.4) also gives `μ₊(A₊) = μ₋(A₋) = 1`: the two extreme points `μ₊`, `μ₋` are carried
+by the disjoint tail events `A₊`, `A₋`, which the spin flip `τ` exchanges.  Moreover
+`ω ∈ A₊ ∪ A₋` iff the random graph `G(ω)` on `ℕ` with the bonds `{i, i+1}` satisfying
+`ω_i = ω_{i+1}` — the bonds on which `Φ_{{i,i+1}}` attains its minimum — has an (automatically
+unique) infinite connected component; so every Gibbs measure percolates. -/
+
+/-- The spin flip exchanges `A₊` and `A₋`. -/
+lemma preimage_chainFlip_eventuallyConst (x : Bool) :
+    chainFlip.toFun ⁻¹' eventuallyConst x = eventuallyConst (!x) := by
+  ext σ
+  simp only [Set.mem_preimage, mem_eventuallyConst_iff, chainFlip_toFun_apply]
+  exact Filter.eventually_congr
+    (Filter.Eventually.of_forall fun n ↦ by cases σ n <;> cases x <;> simp)
+
+lemma eventuallyConst_eq_iUnion_iInter (x : Bool) (M : ℕ) :
+    eventuallyConst x = ⋃ m ∈ Set.Ici M, ⋂ n ∈ Set.Ici m, {σ : ℕ → Bool | σ n = x} := by
+  ext σ
+  simp only [eventuallyConst, Set.mem_ofPred_eq, Filter.eventually_atTop, Set.mem_iUnion,
+    Set.mem_iInter, Set.mem_Ici, exists_prop]
+  constructor
+  · rintro ⟨m, hm⟩
+    exact ⟨max m M, le_max_right _ _, fun n hn ↦ hm n ((le_max_left _ _).trans hn)⟩
+  · rintro ⟨m, -, hm⟩
+    exact ⟨m, hm⟩
+
+/-- **Georgii (6.7)(3): `A₊` and `A₋` are tail events.** -/
+lemma measurableSet_tail_eventuallyConst (x : Bool) :
+    MeasurableSet[@tailSigmaAlgebra ℕ Bool _] (eventuallyConst x) := by
+  refine MeasurableSpace.measurableSet_iInf.2 fun Λ ↦ ?_
+  rw [eventuallyConst_eq_iUnion_iInter x (Λ.sup id + 1)]
+  refine MeasurableSet.biUnion (Set.to_countable _) fun m hm ↦
+    MeasurableSet.biInter (Set.to_countable _) fun n hn ↦ ?_
+  have hn' : n ∈ ((Λ : Set ℕ))ᶜ := by
+    intro hnΛ
+    have := Finset.le_sup (f := id) hnΛ
+    simp only [id_eq, Set.mem_Ici] at this hm hn
+    omega
+  exact measurable_cylinderEvent_apply (X := fun _ : ℕ ↦ Bool) hn' (measurableSet_singleton x)
+
+/-- **Georgii (6.7)(3): `μ₊(A₊) = 1`.** The plus phase is carried by the tail event `A₊`. -/
+theorem plusPhase_apply_eventuallyConst_true (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) :
+    (plusPhase J : Measure (ℕ → Bool)) (eventuallyConst true) = 1 := by
+  set μ : Measure (ℕ → Bool) := (plusPhase J : Measure (ℕ → Bool)) with hμdef
+  have hprob : IsProbabilityMeasure μ := (plusPhase J).2
+  have hG : (isingChainSpecification J).IsGibbsMeasure μ := plusPhase_mem_GP
+  set A : Set (ℕ → Bool) := {σ | σ 0 = true} with hAdef
+  have hAm : MeasurableSet A := measurableSet_setOf_apply_eq 0 true
+  have hmix := apply_eq_of_isGibbsMeasure h61 (μplus := μ)
+    (fun A hA ω hω ↦ tendsto_isingChainSpecification_range_plusPhase hJ h61 hA hω) hG
+    (setOf_apply_eq_mem_localEvents 0 true)
+  have hflip : (μ.map chainFlip.toFun) A = 1 - μ A := by
+    rw [Measure.map_apply chainFlip.measurable_toFun hAm, ← prob_compl_eq_one_sub hAm]
+    congr 1
+    ext σ
+    simp [A]
+  have hsum := apply_eventuallyConst_true_add_false h61 hG
+  have hA : μ A = ENNReal.ofReal ((1 + ∏' k, Real.tanh (J (0 + k))) / 2) :=
+    plusPhase_apply_setOf_true hJ h61 0
+  have hT := tprod_tanh_pos hJ h61 0
+  -- pass to real numbers
+  set p := μ (eventuallyConst true) with hp
+  set q := μ (eventuallyConst false) with hq
+  have hp1 : p ≤ 1 := prob_le_one
+  have hq1 : q ≤ 1 := prob_le_one
+  have hA1 : μ A ≤ 1 := prob_le_one
+  rw [hflip] at hmix
+  have hreal := congrArg ENNReal.toReal hmix
+  rw [ENNReal.toReal_add (ENNReal.mul_ne_top (ne_top_of_le_ne_top ENNReal.one_ne_top hp1)
+      (ne_top_of_le_ne_top ENNReal.one_ne_top hA1))
+      (ENNReal.mul_ne_top (ne_top_of_le_ne_top ENNReal.one_ne_top hq1)
+      (ne_top_of_le_ne_top ENNReal.one_ne_top tsub_le_self)),
+    ENNReal.toReal_mul, ENNReal.toReal_mul, ENNReal.toReal_sub_of_le hA1 ENNReal.one_ne_top,
+    ENNReal.toReal_one] at hreal
+  have hsumr := congrArg ENNReal.toReal hsum
+  rw [ENNReal.toReal_add (ne_top_of_le_ne_top ENNReal.one_ne_top hp1)
+    (ne_top_of_le_ne_top ENNReal.one_ne_top hq1), ENNReal.toReal_one] at hsumr
+  have hAr : (μ A).toReal = (1 + ∏' k, Real.tanh (J (0 + k))) / 2 := by
+    rw [hA, ENNReal.toReal_ofReal (by linarith)]
+  rw [hAr] at hreal
+  have hpr : p.toReal = 1 := by nlinarith [ENNReal.toReal_nonneg (a := p)]
+  exact (ENNReal.toReal_eq_one_iff p).1 hpr
+
+/-- **Georgii (6.7)(3): `μ₊(A₋) = 0`.** -/
+theorem plusPhase_apply_eventuallyConst_false (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) :
+    (plusPhase J : Measure (ℕ → Bool)) (eventuallyConst false) = 0 := by
+  have h := apply_eventuallyConst_true_add_false h61 (isGibbsMeasure_plusPhase (J := J))
+  rw [plusPhase_apply_eventuallyConst_true hJ h61] at h
+  calc (plusPhase J : Measure (ℕ → Bool)) (eventuallyConst false)
+      = 1 + (plusPhase J : Measure (ℕ → Bool)) (eventuallyConst false) - 1 :=
+        (ENNReal.add_sub_cancel_left ENNReal.one_ne_top).symm
+    _ = 0 := by rw [h, tsub_self]
+
+/-- **Georgii (6.7)(3): `μ₋(A₋) = 1`.** The minus phase is carried by the tail event `A₋`. -/
+theorem minusPhase_apply_eventuallyConst_false (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) :
+    (minusPhase J : Measure (ℕ → Bool)) (eventuallyConst false) = 1 := by
+  rw [minusPhase_toMeasure, Measure.map_apply chainFlip.measurable_toFun
+    (measurableSet_eventuallyConst false), preimage_chainFlip_eventuallyConst]
+  exact plusPhase_apply_eventuallyConst_true hJ h61
+
+/-- **Georgii (6.7)(3): `μ₋(A₊) = 0`.** -/
+theorem minusPhase_apply_eventuallyConst_true (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) :
+    (minusPhase J : Measure (ℕ → Bool)) (eventuallyConst true) = 0 := by
+  rw [minusPhase_toMeasure, Measure.map_apply chainFlip.measurable_toFun
+    (measurableSet_eventuallyConst true), preimage_chainFlip_eventuallyConst]
+  exact plusPhase_apply_eventuallyConst_false hJ h61
+
+
+/-- **A Gibbs measure carried by `A₊` is `μ₊`.** -/
+theorem eq_plusPhase_of_apply_eventuallyConst_true_eq_one (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) {μ : Measure (ℕ → Bool)}
+    (hμ : μ ∈ G (isingChainSpecification J)) (h1 : μ (eventuallyConst true) = 1) :
+    μ = plusPhase J := by
+  obtain ⟨hprob, hG⟩ := hμ
+  have h0 : μ (eventuallyConst false) = 0 := by
+    have h := apply_eventuallyConst_true_add_false h61 hG
+    rw [h1] at h
+    calc μ (eventuallyConst false) = 1 + μ (eventuallyConst false) - 1 :=
+          (ENNReal.add_sub_cancel_left ENNReal.one_ne_top).symm
+      _ = 0 := by rw [h, tsub_self]
+  refine (eq_smul_add_smul_of_isGibbsMeasure h61 (μplus := plusPhase J)
+    (fun A hA ω hω ↦ tendsto_isingChainSpecification_range_plusPhase hJ h61 hA hω) hG).trans ?_
+  rw [h1, h0, one_smul, zero_smul, add_zero]
+
+/-- **A Gibbs measure carried by `A₋` is `μ₋`.** -/
+theorem eq_minusPhase_of_apply_eventuallyConst_false_eq_one (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) {μ : Measure (ℕ → Bool)}
+    (hμ : μ ∈ G (isingChainSpecification J)) (h1 : μ (eventuallyConst false) = 1) :
+    μ = minusPhase J := by
+  obtain ⟨hprob, hG⟩ := hμ
+  have h0 : μ (eventuallyConst true) = 0 := by
+    have h := apply_eventuallyConst_true_add_false h61 hG
+    rw [h1, add_comm] at h
+    calc μ (eventuallyConst true) = 1 + μ (eventuallyConst true) - 1 :=
+          (ENNReal.add_sub_cancel_left ENNReal.one_ne_top).symm
+      _ = 0 := by rw [h, tsub_self]
+  refine (eq_smul_add_smul_of_isGibbsMeasure h61 (μplus := plusPhase J)
+    (fun A hA ω hω ↦ tendsto_isingChainSpecification_range_plusPhase hJ h61 hA hω) hG).trans ?_
+  rw [h1, h0, one_smul, zero_smul, zero_add, minusPhase_toMeasure]
+
+/-- **Georgii (6.7)(3): `μ₊` is an extreme point of `𝒢(Φ)`.** -/
+theorem plusPhase_mem_extremePoints_G (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) :
+    (plusPhase J : Measure (ℕ → Bool)) ∈ (G (isingChainSpecification J)).extremePoints ℝ≥0∞ := by
+  refine ⟨⟨(plusPhase J).2, plusPhase_mem_GP⟩, fun μ₁ hμ₁ μ₂ hμ₂ hseg ↦ ?_⟩
+  obtain ⟨a, b, ha, hb, hab, hsum⟩ := hseg
+  have ha1 : a ≤ 1 := hab ▸ le_self_add
+  have hb1 : b ≤ 1 := hab ▸ le_add_self
+  have hp₁ := hμ₁.1
+  have hp₂ := hμ₂.1
+  have hsumA : μ₁ (eventuallyConst true) * a + μ₂ (eventuallyConst true) * b = 1 := by
+    have := congrArg (fun m : Measure (ℕ → Bool) ↦ m (eventuallyConst true)) hsum
+    simp only [Measure.add_apply, Measure.smul_apply, smul_eq_mul] at this
+    rw [mul_comm, mul_comm _ b, this]
+    exact plusPhase_apply_eventuallyConst_true hJ h61
+  refine eq_plusPhase_of_apply_eventuallyConst_true_eq_one hJ h61 hμ₁ ?_
+  by_contra hne
+  have hlt : μ₁ (eventuallyConst true) < 1 := lt_of_le_of_ne prob_le_one hne
+  have key : μ₁ (eventuallyConst true) * a + μ₂ (eventuallyConst true) * b < 1 * a + 1 * b :=
+    ENNReal.add_lt_add_of_lt_of_le
+      (ENNReal.mul_ne_top (measure_ne_top _ _) (ne_top_of_le_ne_top ENNReal.one_ne_top hb1))
+      (ENNReal.mul_lt_mul_left ha.ne' (ne_top_of_le_ne_top ENNReal.one_ne_top ha1) hlt)
+      (mul_le_mul_left prob_le_one b)
+  rw [one_mul, one_mul, hab, hsumA] at key
+  exact lt_irrefl _ key
+
+/-- **Georgii (6.7)(3): `μ₋` is an extreme point of `𝒢(Φ)`.** -/
+theorem minusPhase_mem_extremePoints_G (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) :
+    (minusPhase J : Measure (ℕ → Bool)) ∈ (G (isingChainSpecification J)).extremePoints ℝ≥0∞ := by
+  refine ⟨⟨(minusPhase J).2, minusPhase_mem_GP⟩, fun μ₁ hμ₁ μ₂ hμ₂ hseg ↦ ?_⟩
+  obtain ⟨a, b, ha, hb, hab, hsum⟩ := hseg
+  have ha1 : a ≤ 1 := hab ▸ le_self_add
+  have hb1 : b ≤ 1 := hab ▸ le_add_self
+  have hp₁ := hμ₁.1
+  have hp₂ := hμ₂.1
+  have hsumA : μ₁ (eventuallyConst false) * a + μ₂ (eventuallyConst false) * b = 1 := by
+    have := congrArg (fun m : Measure (ℕ → Bool) ↦ m (eventuallyConst false)) hsum
+    simp only [Measure.add_apply, Measure.smul_apply, smul_eq_mul] at this
+    rw [mul_comm, mul_comm _ b, this]
+    exact minusPhase_apply_eventuallyConst_false hJ h61
+  refine eq_minusPhase_of_apply_eventuallyConst_false_eq_one hJ h61 hμ₁ ?_
+  by_contra hne
+  have hlt : μ₁ (eventuallyConst false) < 1 := lt_of_le_of_ne prob_le_one hne
+  have key : μ₁ (eventuallyConst false) * a + μ₂ (eventuallyConst false) * b < 1 * a + 1 * b :=
+    ENNReal.add_lt_add_of_lt_of_le
+      (ENNReal.mul_ne_top (measure_ne_top _ _) (ne_top_of_le_ne_top ENNReal.one_ne_top hb1))
+      (ENNReal.mul_lt_mul_left ha.ne' (ne_top_of_le_ne_top ENNReal.one_ne_top ha1) hlt)
+      (mul_le_mul_left prob_le_one b)
+  rw [one_mul, one_mul, hab, hsumA] at key
+  exact lt_irrefl _ key
+
+/-! #### The random graph `G(ω)` and percolation -/
+
+variable (ω : ℕ → Bool) in
+/-- **Georgii (6.7)(3): the random graph `G(ω)`.** The subgraph of the half-line `hasse ℕ`
+whose bonds are the `{i, i+1}` with `ω_i = ω_{i+1}`; equivalently
+(`chainGraph_adj_iff_forall_le`) the nearest-neighbour bonds `A` on which `Φ_A(ω) = min Φ_A`. -/
+def chainGraph : SimpleGraph ℕ :=
+  SimpleGraph.hasse ℕ ⊓ SimpleGraph.fromRel fun i j ↦ ω i = ω j
+
+lemma chainGraph_adj {ω : ℕ → Bool} {i j : ℕ} :
+    (chainGraph ω).Adj i j ↔ (SimpleGraph.hasse ℕ).Adj i j ∧ ω i = ω j := by
+  simp only [chainGraph, SimpleGraph.inf_adj, SimpleGraph.fromRel_adj]
+  constructor
+  · rintro ⟨h, -, h' | h'⟩
+    · exact ⟨h, h'⟩
+    · exact ⟨h, h'.symm⟩
+  · rintro ⟨h, h'⟩
+    exact ⟨h, h.ne, Or.inl h'⟩
+
+lemma chainGraph_adj_succ {ω : ℕ → Bool} (i : ℕ) :
+    (chainGraph ω).Adj i (i + 1) ↔ ω i = ω (i + 1) := by
+  rw [chainGraph_adj, SimpleGraph.hasse_nat_adj]
+  simp
+
+lemma chainGraph_le_hasse (ω : ℕ → Bool) : chainGraph ω ≤ SimpleGraph.hasse ℕ := inf_le_left
+
+lemma isingChainPotential_pair_succ (i : ℕ) (σ : ℕ → Bool) :
+    isingChainPotential J {i, i + 1} σ = -J i * (spin (σ i) * spin (σ (i + 1))) := by
+  rw [isingChainPotential, Potential.pair_pair _ (Nat.lt_succ_self i), isingChainPair_succ]
+
+/-- On a nearest-neighbour bond `{i, i+1}`, `Φ_{{i,i+1}}(ω) = min Φ_{{i,i+1}}` iff
+`ω_i = ω_{i+1}` (for `J_i > 0`). -/
+lemma isingChainPotential_pair_succ_le_iff (hJ : ∀ n, 0 < J n) (i : ℕ) (ω : ℕ → Bool) :
+    (∀ σ, isingChainPotential J {i, i + 1} ω ≤ isingChainPotential J {i, i + 1} σ)
+      ↔ ω i = ω (i + 1) := by
+  simp only [isingChainPotential_pair_succ]
+  constructor
+  · intro h
+    have := h (constConfig true)
+    simp only [constConfig_apply, spin_mul_self, mul_one] at this
+    by_contra hne
+    rw [spin_mul_spin_of_ne (Ne.symm hne)] at this
+    linarith [hJ i]
+  · intro h σ
+    rw [h, spin_mul_self]
+    have : spin (σ i) * spin (σ (i + 1)) ≤ 1 := by
+      cases σ i <;> cases σ (i + 1) <;> norm_num [spin]
+    nlinarith [hJ i]
+
+/-- **Georgii (6.7)(3): the two descriptions of `G(ω)` agree.** The bonds of `G(ω)` are the
+nearest-neighbour pairs `A = {i, j}` on which `Φ_A(ω) = min Φ_A`. -/
+theorem chainGraph_adj_iff_forall_le (hJ : ∀ n, 0 < J n) {ω : ℕ → Bool} {i j : ℕ} :
+    (chainGraph ω).Adj i j ↔ (SimpleGraph.hasse ℕ).Adj i j ∧
+      ∀ σ, isingChainPotential J {i, j} ω ≤ isingChainPotential J {i, j} σ := by
+  rw [chainGraph_adj]
+  refine and_congr_right fun hij ↦ ?_
+  rcases (SimpleGraph.hasse_nat_adj i j).1 hij with rfl | rfl
+  · exact (isingChainPotential_pair_succ_le_iff hJ i ω).symm
+  · rw [Finset.pair_comm, eq_comm]
+    exact (isingChainPotential_pair_succ_le_iff hJ j ω).symm
+
+/-- **Georgii (6.7)(3): `A₊ ∪ A₋` is the percolation event.** A configuration `ω` is eventually
+constant iff the random graph `G(ω)` has an infinite connected component. -/
+theorem mem_eventuallyConst_union_iff_exists_infinite_supp {ω : ℕ → Bool} :
+    ω ∈ eventuallyConst true ∪ eventuallyConst false
+      ↔ ∃ C : (chainGraph ω).ConnectedComponent, C.supp.Infinite := by
+  rw [SimpleGraph.exists_infinite_supp_iff (chainGraph_le_hasse ω)]
+  simp only [chainGraph_adj_succ]
+  constructor
+  · intro h
+    have h' : ∃ x : Bool, ω ∈ eventuallyConst x := by
+      rcases h with h | h
+      · exact ⟨true, h⟩
+      · exact ⟨false, h⟩
+    obtain ⟨x, hx⟩ := h'
+    obtain ⟨v, hv⟩ := Filter.eventually_atTop.1 (mem_eventuallyConst_iff.1 hx)
+    exact ⟨v, fun i hi ↦ by rw [hv i hi, hv (i + 1) (by omega)]⟩
+  · rintro ⟨v, hv⟩
+    exact mem_eventuallyConst_union_of_eventually_eq (Filter.eventually_atTop.2 ⟨v, hv⟩)
+
+/-- **Georgii (6.7)(3)**, with the uniqueness: `ω ∈ A₊ ∪ A₋` iff `G(ω)` has a *unique* infinite
+connected component. -/
+theorem mem_eventuallyConst_union_iff_existsUnique_infinite_supp {ω : ℕ → Bool} :
+    ω ∈ eventuallyConst true ∪ eventuallyConst false
+      ↔ ∃! C : (chainGraph ω).ConnectedComponent, C.supp.Infinite := by
+  rw [mem_eventuallyConst_union_iff_exists_infinite_supp]
+  constructor
+  · rintro ⟨C, hC⟩
+    exact ⟨C, hC, fun D hD ↦
+      SimpleGraph.ConnectedComponent.eq_of_infinite_supp (chainGraph_le_hasse ω) hD hC⟩
+  · rintro ⟨C, hC, -⟩
+    exact ⟨C, hC⟩
+
+/-- **Georgii (6.7)(3): every Gibbs measure percolates.** Under (6.1), for every Gibbs measure
+`μ` of the chain, the random graph `G(·)` has an infinite connected component `μ`-a.s. -/
+theorem apply_setOf_exists_infinite_supp_eq_one (h61 : Summable fun n ↦ Real.exp (-2 * J n))
+    {μ : Measure (ℕ → Bool)} [IsProbabilityMeasure μ]
+    (hμ : (isingChainSpecification J).IsGibbsMeasure μ) :
+    μ {ω : ℕ → Bool | ∃ C : (chainGraph ω).ConnectedComponent, C.supp.Infinite} = 1 := by
+  have h : {ω : ℕ → Bool | ∃ C : (chainGraph ω).ConnectedComponent, C.supp.Infinite}
+      = eventuallyConst true ∪ eventuallyConst false :=
+    Set.ext fun _ ↦ mem_eventuallyConst_union_iff_exists_infinite_supp.symm
+  rw [h]
+  exact apply_eventuallyConst_union_eq_one h61 hμ
 
 end MeasureTheory.GibbsMeasure
 

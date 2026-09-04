@@ -54,3 +54,41 @@ nearest-neighbour potential $\Phi_{\set{n, n+1}}(\sigma) = -J_n \sigma_n \sigma_
     If $\sum_n e^{-2J_n} = \infty$ then $\prod_{i \geq n} \tanh J_i = 0$, the limit in (6.6) is
     independent of $\omega$, and $|\mathcal G(\gamma)| = 1$.
 \end{remark}
+
+\begin{remark}[Georgii (6.7)(1), the low-temperature limit]
+    \label{rmk:iic-6-7-1}
+    \uses{thm:iic-6-4, def:lc-topology}
+    \lean{MeasureTheory.GibbsMeasure.plusPhase, MeasureTheory.GibbsMeasure.minusPhase, MeasureTheory.GibbsMeasure.exists_G_gibbsSpecification_smul_eq, MeasureTheory.GibbsMeasure.integral_spin_plusPhase, MeasureTheory.GibbsMeasure.tendsto_integral_spin_plusPhase_smul_atTop, MeasureTheory.GibbsMeasure.tendsto_localDist_plusPhase_smul_atTop, MeasureTheory.GibbsMeasure.tendsto_localDistSet_GP_gibbsSpecification_dirac, MeasureTheory.GibbsMeasure.exists_eq_smul_dirac_add_smul_dirac_of_tendsto}
+    \leanok
+
+    Let $J_n > 0$ with $\sum_n e^{-2J_n} < \infty$. The constant configurations $\omega^\pm$ are
+    ground states, $\mathcal G(\beta\Phi) = [\mu_-^\beta, \mu_+^\beta]$ for $\beta \geq 1$,
+    $\mu_+^\beta(\sigma_n) = \prod_{i \geq n}\tanh(\beta J_i) \to 1$ as $\beta \to \infty$, and
+    $\mu_\pm^\beta \to \delta_{\omega^\pm}$ in the topology of local convergence; every local
+    limit of $\mu^\beta \in \mathcal G(\beta\Phi)$ is of the form
+    $s\delta_{\omega^+} + (1-s)\delta_{\omega^-}$.
+\end{remark}
+\begin{proof}
+    \leanok
+    $\mu_\pm(\sigma_a \neq \pm 1) \leq \sum_i e^{-2J_i}$ uniformly in $a$, and
+    $\sum_i e^{-2\beta J_i} \to 0$ by Tannery's theorem.
+\end{proof}
+
+\begin{remark}[Georgii (6.7)(3), percolation]
+    \label{rmk:iic-6-7-3}
+    \uses{thm:iic-6-4, thm:ext-77-concrete}
+    \lean{MeasureTheory.GibbsMeasure.plusPhase_apply_eventuallyConst_true, MeasureTheory.GibbsMeasure.plusPhase_mem_extremePoints_G, MeasureTheory.GibbsMeasure.minusPhase_mem_extremePoints_G, MeasureTheory.GibbsMeasure.chainGraph, MeasureTheory.GibbsMeasure.chainGraph_adj_iff_forall_le, MeasureTheory.GibbsMeasure.mem_eventuallyConst_union_iff_existsUnique_infinite_supp, MeasureTheory.GibbsMeasure.apply_setOf_exists_infinite_supp_eq_one, SimpleGraph.exists_infinite_supp_iff}
+    \leanok
+
+    Under (6.1), $\mu_+(A_+) = 1 = \mu_-(A_-)$ for the disjoint tail events
+    $A_\pm = \{\omega \text{ eventually } \pm 1\}$, and $\mu_\pm$ are the extreme points of
+    $\mathcal G(\gamma)$. For $\omega$ let $G(\omega)$ be the graph on $\mathbb N$ with a bond
+    $\{i, i+1\}$ iff $\omega_i = \omega_{i+1}$, i.e.\ iff $\Phi_{\{i,i+1\}}(\omega)$ is minimal.
+    Then $\omega \in A_+ \cup A_-$ iff $G(\omega)$ has a (unique) infinite connected component,
+    which has $\mu$-probability one for every $\mu \in \mathcal G(\gamma)$.
+\end{remark}
+\begin{proof}
+    \leanok
+    A subgraph of the half-line has an infinite component iff all but finitely many bonds are
+    present; $\mu_\pm(A_\pm) = 1$ from the site probabilities of (6.4) and Borel--Cantelli.
+\end{proof}

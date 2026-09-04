@@ -588,7 +588,10 @@ characterisations are not, since Mathlib has no strong Markov property.
 **§6.1** (`GibbsMeasure/Model/InhomogeneousIsingChain.lean`): **Theorem (6.4)** in both
 directions — under `∑ e^{-2J_n} < ∞` the inhomogeneous Ising chain has exactly the Gibbs measures
 `[μ₋, μ₊]`, with `μ₊` the limit of `γ_{Λ_N}(·|ω)` along eventually-positive `ω`; without it the
-Gibbs measure is unique ((6.7)(2)).
+Gibbs measure is unique ((6.7)(2)); **(6.7)(1)**: `𝒢(βΦ) = [μ₋^β, μ₊^β]`, `μ₊^β(σ_n) → 1` and
+`μ_±^β → δ_±` locally as `β → ∞`, every local limit a mixture of the two ground states; **(6.7)(3)**:
+`μ_±` are the extreme points, carried by the disjoint tail events `A_±`, and the bond graph of equal
+neighbouring spins has a unique infinite component almost surely under every Gibbs measure.
 
 Not yet done: Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the

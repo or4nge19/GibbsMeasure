@@ -328,6 +328,14 @@ status:
       file: "GibbsMeasure/Specification/VariationalPrinciple.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.exists_eq_smul_dirac_add_smul_dirac_of_tendsto"
+      file: "GibbsMeasure/Model/InhomogeneousIsingChain.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.apply_setOf_exists_infinite_supp_eq_one"
+      file: "GibbsMeasure/Model/InhomogeneousIsingChain.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
 
 automation:
   methods:
@@ -1163,7 +1171,7 @@ alignment:
         StandardBorelSpace E through (7.26). The OCR of the book's statement of (10.21) is
         corrupted in reference_docs; the statement was reconstructed from the surviving text and
         the wiki. Not formalized: (10.23)-(10.26) (irreducibility and uniqueness), Section 10.3.
-    - source: "Section 6.1: (6.2)-(6.3), (6.5)-(6.6), Theorem (6.4) in both directions, Comment (6.7)(2)"
+    - source: "Section 6.1: (6.2)-(6.3), (6.5)-(6.6), Theorem (6.4) in both directions, Comments (6.7)(1)-(3)"
       lean: "MeasureTheory.GibbsMeasure.exists_G_isingChainSpecification_eq"
       module: "GibbsMeasure/Model/InhomogeneousIsingChain.lean"
       status: "proved"
@@ -1171,7 +1179,14 @@ alignment:
         S = N, E = Bool with the uniform spin measure, the chain as Potential.pair. Under (6.1):
         mu_+ and mu_- = tau mu_+ with positive/negative magnetisation at every site, and
         G(gamma) = [mu_-, mu_+] (both inclusions; the interval as ENNReal-weighted combinations);
-        if (6.1) fails, |G(gamma)| = 1 ((6.7)(2)). Not formalized: (6.7)(1), (6.7)(3). The
+        if (6.1) fails, |G(gamma)| = 1 ((6.7)(2)). (6.7)(1): omega^+- are ground states,
+        G(beta Phi) = [mu_-^beta, mu_+^beta] for beta >= 1, mu_+^beta(sigma_n) -> 1 and
+        mu_+-^beta -> delta_+- in local convergence, every local limit of G(beta Phi) is a mixture
+        of delta_+ and delta_- (exists_eq_smul_dirac_add_smul_dirac_of_tendsto). (6.7)(3):
+        mu_+-(A_+-) = 1 on disjoint tail events, mu_+- extreme, and the bond graph {i,i+1 :
+        omega_i = omega_{i+1}} has a unique infinite component a.s. for every Gibbs measure
+        (apply_setOf_exists_infinite_supp_eq_one; half-line component lemmas in
+        Mathlib/Combinatorics/SimpleGraph/Hasse.lean). The
         conclusion needed by Example (9.15) is exists_mem_G_integral_spin_pos, on N -> Bool; the
         two-layer example needs a marginal/product-specification lemma to transport it.
     - source: "Lemma (15.28), Theorem (15.30)(b), (15.32)-(15.35), Theorem (15.37), Theorem (15.39)"

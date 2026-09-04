@@ -8,13 +8,21 @@ module
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Finite
 public import Mathlib.Combinatorics.SimpleGraph.Hasse
 public import Mathlib.Data.Int.SuccPred
+public import Mathlib.Data.Nat.SuccPred
+public import Mathlib.Order.Interval.Set.Infinite
 
 /-!
-# The Hasse graph of `ℤ`
+# The Hasse graphs of `ℤ` and `ℕ`
 
 `SimpleGraph.hasse ℤ` is the nearest-neighbour graph of `ℤ`: `i` and `j` are adjacent iff
 `|i - j| = 1`. It is locally finite, with `∂i = {i - 1, i + 1}`; `SimpleGraph.hasseIntWalk a n` is
 the walk `a → a + 1 → ⋯ → a + n`.
+
+`SimpleGraph.hasse ℕ` is the half-line. In a subgraph `G ≤ hasse ℕ` (a bond configuration on the
+half-line) the connected component of `v` is infinite iff every bond `{i, i + 1}` with `i ≥ v` is
+present (`SimpleGraph.infinite_supp_connectedComponentMk_iff`), so `G` has an infinite connected
+component iff all but finitely many bonds are present (`SimpleGraph.exists_infinite_supp_iff`),
+and such a component is unique (`SimpleGraph.ConnectedComponent.eq_of_infinite_supp`).
 -/
 
 @[expose] public section
@@ -83,5 +91,74 @@ lemma mem_support_hasseIntWalk {a x : ℤ} : ∀ {n : ℕ}, x ∈ (hasseIntWalk 
       omega
     · push_cast
       omega
+
+/-! ### The Hasse graph of `ℕ` and its subgraphs -/
+
+lemma hasse_nat_adj (i j : ℕ) : (hasse ℕ).Adj i j ↔ i + 1 = j ∨ j + 1 = i := by
+  rw [hasse_adj, Nat.covBy_iff_add_one_eq, Nat.covBy_iff_add_one_eq]
+
+variable {G : SimpleGraph ℕ}
+
+/-- In a subgraph of the half-line, a walk starting at or below `i` that cannot use the bond
+`{i, i + 1}` stays at or below `i`. -/
+lemma le_of_reachable_of_not_adj_succ (hG : G ≤ hasse ℕ) {i v w : ℕ}
+    (hi : ¬ G.Adj i (i + 1)) (hv : v ≤ i) (h : G.Reachable v w) : w ≤ i := by
+  rw [reachable_iff_reflTransGen] at h
+  induction h with
+  | refl => exact hv
+  | tail _ hadj ih =>
+    rcases (hasse_nat_adj _ _).1 (hG hadj) with h1 | h1
+    · rcases lt_or_eq_of_le ih with hlt | rfl
+      · omega
+      · exact absurd (h1 ▸ hadj) hi
+    · omega
+
+/-- In a subgraph of the half-line, `w ≥ v` is reachable from `v` as soon as all the bonds
+between them are present. -/
+lemma reachable_of_forall_adj_succ {v w : ℕ} (hvw : v ≤ w)
+    (h : ∀ i, v ≤ i → i < w → G.Adj i (i + 1)) : G.Reachable v w := by
+  induction w, hvw using Nat.le_induction with
+  | base => exact Reachable.refl v
+  | succ k hk ih =>
+    exact (ih fun i hi hik ↦ h i hi (Nat.lt_succ_of_lt hik)).trans
+      (h k hk (Nat.lt_succ_self k)).reachable
+
+/-- In a subgraph `G` of the half-line `hasse ℕ`, the connected component of `v` is infinite iff
+every bond `{i, i + 1}` with `i ≥ v` is present in `G`. -/
+theorem infinite_supp_connectedComponentMk_iff (hG : G ≤ hasse ℕ) (v : ℕ) :
+    (G.connectedComponentMk v).supp.Infinite ↔ ∀ i, v ≤ i → G.Adj i (i + 1) := by
+  constructor
+  · intro hinf i hvi
+    by_contra hadj
+    refine hinf ((Set.finite_Iic i).subset fun w hw ↦ ?_)
+    rw [ConnectedComponent.mem_supp_iff, ConnectedComponent.eq] at hw
+    exact le_of_reachable_of_not_adj_succ hG hadj hvi hw.symm
+  · intro h
+    refine (Set.Ici_infinite v).mono fun w hw ↦ ?_
+    rw [ConnectedComponent.mem_supp_iff, ConnectedComponent.eq]
+    exact (reachable_of_forall_adj_succ hw fun i hi _ ↦ h i hi).symm
+
+/-- A subgraph of the half-line has an infinite connected component iff all but finitely many
+bonds `{i, i + 1}` are present. -/
+theorem exists_infinite_supp_iff (hG : G ≤ hasse ℕ) :
+    (∃ C : G.ConnectedComponent, C.supp.Infinite) ↔ ∃ v, ∀ i, v ≤ i → G.Adj i (i + 1) := by
+  constructor
+  · rintro ⟨C, hC⟩
+    induction C using ConnectedComponent.ind with
+    | h v => exact ⟨v, (infinite_supp_connectedComponentMk_iff hG v).1 hC⟩
+  · rintro ⟨v, hv⟩
+    exact ⟨G.connectedComponentMk v, (infinite_supp_connectedComponentMk_iff hG v).2 hv⟩
+
+/-- A subgraph of the half-line has at most one infinite connected component. -/
+theorem ConnectedComponent.eq_of_infinite_supp (hG : G ≤ hasse ℕ) {C D : G.ConnectedComponent}
+    (hC : C.supp.Infinite) (hD : D.supp.Infinite) : C = D := by
+  induction C using ConnectedComponent.ind with
+  | h v =>
+  induction D using ConnectedComponent.ind with
+  | h w =>
+  rw [infinite_supp_connectedComponentMk_iff hG] at hC hD
+  exact ConnectedComponent.sound
+    ((reachable_of_forall_adj_succ (le_max_left v w) fun i hi _ ↦ hC i hi).trans
+      (reachable_of_forall_adj_succ (le_max_right v w) fun i hi _ ↦ hD i hi).symm)
 
 end SimpleGraph
