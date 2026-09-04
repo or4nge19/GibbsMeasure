@@ -720,6 +720,57 @@ theorem eq_of_apply_eq_mul_div_of_isRecurrent [IsMarkovKernel κ] [IsMarkovKerne
   refine ext_of_singleton fun x y ↦ ?_
   rw [h, hconst y x, mul_div_assoc, ENNReal.div_self (hr0 x) (hrt x), mul_one]
 
+/-- The division-free form of `eq_of_apply_eq_mul_div_of_isRecurrent`: two Markov kernels on a
+countable space whose entries satisfy `η x {y} * s x = κ x {y} * s y` for an everywhere positive
+and finite `s`, with `κ` irreducible and recurrent, are equal. -/
+theorem eq_of_mul_eq_mul_of_isRecurrent [IsMarkovKernel κ] [IsMarkovKernel η]
+    [IsIrreducible Measure.count κ] (hrec : IsRecurrent κ) {s : α → ℝ≥0∞}
+    (hs0 : ∀ x, s x ≠ 0) (hst : ∀ x, s x ≠ ∞)
+    (h : ∀ x y, η x {y} * s x = κ x {y} * s y) : η = κ :=
+  eq_of_apply_eq_mul_div_of_isRecurrent hrec hs0 hst fun x y ↦
+    (ENNReal.eq_div_iff (hs0 x) (hst x)).2 (by rw [← h x y]; ring)
+
+private lemma mul_div_mul_div_denom {A B u v w : ℝ≥0∞} (hB0 : B ≠ 0) (hBt : B ≠ ∞)
+    (hv0 : v ≠ 0) (hvt : v ≠ ∞) : A * u / (B * v) * (v / w) = A * u / (B * w) := by
+  rw [div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv,
+    ENNReal.mul_inv (Or.inl hB0) (Or.inl hBt), ENNReal.mul_inv (Or.inl hB0) (Or.inl hBt)]
+  calc A * u * (B⁻¹ * v⁻¹) * (v * w⁻¹)
+      = A * u * B⁻¹ * w⁻¹ * (v⁻¹ * v) := by ring
+    _ = A * u * (B⁻¹ * w⁻¹) := by rw [ENNReal.inv_mul_cancel hv0 hvt, mul_one]; ring
+
+private lemma mul_div_mul_div_num {A B u u' w : ℝ≥0∞} (hu0 : u ≠ 0) (hut : u ≠ ∞) :
+    A * u / (B * w) * (u' / u) = A * u' / (B * w) := by
+  rw [div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv]
+  calc A * u * (B * w)⁻¹ * (u' * u⁻¹)
+      = A * u' * (B * w)⁻¹ * (u * u⁻¹) := by ring
+    _ = A * u' * (B * w)⁻¹ := by rw [ENNReal.mul_inv_cancel hu0 hut, mul_one]
+
+/-- **Two change-of-measure representations of the same matrix coincide when one of them is
+recurrent.** If `P` and `P'` both arise from `Q` by Georgii's relation (11.5) with the same
+constant `q` and positive finite vectors `r`, `r'`, and if `ofMatrix P` is an irreducible
+recurrent Markov kernel while `ofMatrix P'` is Markov, then `P' = P`. This is Georgii's
+Remark (11.7) in the form in which it is applied: the ratio `r'/r` is harmonic, hence constant. -/
+theorem eq_of_apply_eq_mul_div_of_apply_eq_mul_div_of_isRecurrent {Q P P' : α → α → ℝ≥0∞}
+    {q : ℝ≥0∞} {r r' : α → ℝ≥0∞} (hq0 : q ≠ 0) (hqt : q ≠ ∞)
+    (hr0 : ∀ x, r x ≠ 0) (hrt : ∀ x, r x ≠ ∞) (hr'0 : ∀ x, r' x ≠ 0) (hr't : ∀ x, r' x ≠ ∞)
+    (hP : ∀ x y, P x y = Q x y * r y / (q * r x))
+    (hP' : ∀ x y, P' x y = Q x y * r' y / (q * r' x))
+    [IsMarkovKernel (ofMatrix P)] [IsMarkovKernel (ofMatrix P')]
+    [IsIrreducible Measure.count (ofMatrix P)] (hrec : IsRecurrent (ofMatrix P)) :
+    P' = P := by
+  have hs0 : ∀ x, r' x / r x ≠ 0 := fun x ↦ by
+    simp [ENNReal.div_eq_zero_iff, hr'0 x, hrt x]
+  have hst : ∀ x, r' x / r x ≠ ∞ := fun x ↦ by
+    simp [ENNReal.div_eq_top, hr0 x, hr't x]
+  have key : ∀ x y, ofMatrix P' x {y} * (r' x / r x) = ofMatrix P x {y} * (r' y / r y) := by
+    intro x y
+    rw [ofMatrix_apply_singleton, ofMatrix_apply_singleton, hP, hP',
+      mul_div_mul_div_denom hq0 hqt (hr'0 x) (hr't x),
+      mul_div_mul_div_num (hr0 y) (hrt y)]
+  have hEq := eq_of_mul_eq_mul_of_isRecurrent hrec hs0 hst key
+  funext x y
+  rw [← ofMatrix_apply_singleton P' x y, ← ofMatrix_apply_singleton P x y, hEq]
+
 /-- Related Markov kernels `η x {y} = κ x {y} r y / (q r x)` with `κ` irreducible and
 recurrent and `convergenceNorm η = 1` at some state coincide. (For a recurrent Markov kernel
 `convergenceNorm κ = 1` holds automatically, `IsRecurrent.convergenceNorm_eq_one`.) -/

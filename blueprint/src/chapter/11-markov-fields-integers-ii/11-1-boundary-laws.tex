@@ -295,3 +295,44 @@ on $E$; its powers $Q^n$ are the powers of this kernel.
     $L(Q) = 1$; hence $\mathcal G(\gamma^Q) = \set{\mu_Q}$ if $P$ is positive recurrent and
     $\mathcal G(\gamma^Q) = \emptyset$ otherwise.
 \end{remark}
+
+\begin{remark}[Georgii (11.18)(2)]
+    \label{rmk:bl-11-18-2}
+    \uses{def:bl-transfer-matrix, thm:bl-11-14}
+    \lean{MeasureTheory.GibbsMeasure.Markov.ratioMatrix, MeasureTheory.GibbsMeasure.Markov.transferSpecification_eq_gibbsSpecificationOfFiniteReference, MeasureTheory.GibbsMeasure.Markov.transferSpecification_eq_gibbsSpecification_of_bounded_ratio, MeasureTheory.GibbsMeasure.Markov.tsum_mul_ne_top_of_mul_le, MeasureTheory.GibbsMeasure.Markov.not_exists_pos_forall_le_sum_pow_of_bounded_ratio}
+    \leanok
+
+    Suppose $C^{-1} \leq Q(x,y)/(u(x)v(y)) \leq C$ for positive finite $u, v$ and some
+    $C \geq 1$. Then $\gamma^Q$ is the Gibbsian specification of the nearest-neighbour potential
+    $\Phi_{i,i+1}(\sigma) = -\log[Q(\sigma_i,\sigma_{i+1})/(u(\sigma_i)v(\sigma_{i+1}))]$ with
+    a priori measure $(uv)\lambda$, which is necessarily finite, and
+    $\sum_x Q^{n}(x,x) \leq [C\sum_x u(x)v(x)]^{n}$. On an infinite $E$ no $\varepsilon > 0$
+    bounds $\sum_{n \leq N} Q^n(x,x)$ from below, so this hypothesis and the uniqueness
+    condition of Theorem \ref{thm:bl-11-14} exclude each other.
+\end{remark}
+\begin{proof}
+    \leanok
+    Multiplying a pre-modification by a weight depending only on the configuration outside
+    $\Lambda$ leaves the $\lambda$-specification unchanged, and $\rho^Q_\Lambda$ factorises as
+    the Boltzmann factor of $\Phi$ times $\prod_{i \in \Lambda} u(\omega_i)v(\omega_i)$ times
+    such a boundary weight.
+\end{proof}
+
+\begin{corollary}[Georgii (11.19)]
+    \label{cor:bl-11-19}
+    \uses{def:bl-transfer-matrix}
+    \lean{MeasureTheory.GibbsMeasure.Markov.eq_empty_G_transferSpecification_of_translationInvariant, MeasureTheory.GibbsMeasure.Markov.eq_empty_G_transferSpecification_randomWalk, ProbabilityTheory.Kernel.not_isPositiveRecurrent_ofMatrix_of_translationInvariant}
+    \leanok
+
+    Let $E$ be an infinite countable additive group and $Q$ positive with
+    $Q(x+z,y+z) = Q(x,y)$ and $\sum_x Q(0,x) < \infty$; for instance $E = \mathbb Z^N$ and the
+    random walk kernel. Then $\mathcal G(\gamma^Q) = \emptyset$.
+\end{corollary}
+\begin{proof}
+    \leanok
+    The stochastic matrix equivalent to $Q$ is itself translation invariant: each translate is
+    again a $(11.5)$-change of measure of $Q$, so Remark (11.7) forces it to equal $P$. A
+    homogeneous stochastic matrix on an infinite group is never positive recurrent, since an
+    invariant probability vector is a bounded harmonic function of the transpose, hence constant.
+    Theorem (11.17) then gives $\mathcal G(\gamma^Q) = \emptyset$.
+\end{proof}

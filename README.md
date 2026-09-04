@@ -600,7 +600,13 @@ and (11.16). The recurrence theory
 (11.6)–(11.7) — the convergence parameter `L(Q)`, the recurrence/transience dichotomy, and
 Proposition (11.7) in all three parts — is built at the Mathlib layer
 (`GibbsMeasure/Mathlib/Probability/Kernel/CountableMatrix/Recurrence.lean`); the first-passage
-characterisations are not, since Mathlib has no strong Markov property.
+characterisations are not, since Mathlib has no strong Markov property. **Comment (11.18)(2)** and
+**Corollary (11.19)** (`GibbsMeasure/Model/BoundaryLawExamples.lean`): a transfer matrix with
+`Q/(uv)` bounded above and below is Gibbsian for the nearest-neighbour potential `−log[Q/(uv)]`,
+whose a priori measure is then finite, and that hypothesis is incompatible with the uniqueness
+condition of (11.17); for a translation-invariant summable positive `Q` on an infinite countable
+group, `𝒢(γ^Q) = ∅`, because the equivalent stochastic matrix inherits homogeneity from (11.7) and
+a homogeneous stochastic matrix on an infinite group is never positive recurrent.
 
 **§6.1** (`GibbsMeasure/Model/InhomogeneousIsingChain.lean`): **Theorem (6.4)** in both
 directions — under `∑ e^{-2J_n} < ∞` the inhomogeneous Ising chain has exactly the Gibbs measures
@@ -612,7 +618,7 @@ neighbouring spins has a unique infinite component almost surely under every Gib
 
 Not yet done: Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
-(11.18)(2), (11.19), §12.2, §§13.2–13.3, and Chapters
+the |𝒢| = 1 half of (11.18)(2), §12.2, §§13.2–13.3, and Chapters
 16–20 (
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).

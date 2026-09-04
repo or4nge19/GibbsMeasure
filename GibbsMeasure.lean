@@ -92,6 +92,7 @@ public import GibbsMeasure.Mathlib.Dynamics.Ergodic.MaximalInequality
 public import GibbsMeasure.Mathlib.GroupTheory.Foelner
 public import GibbsMeasure.Mathlib.Probability.Kernel.CountableMatrix
 public import GibbsMeasure.Mathlib.Probability.Kernel.CountableMatrix.Recurrence
+public import GibbsMeasure.Mathlib.Probability.Kernel.CountableMatrix.Homogeneous
 public import GibbsMeasure.Mathlib.Probability.Kernel.StieltjesPoint
 public import GibbsMeasure.Mathlib.Probability.Kernel.InvariantSigmaAlgebra
 public import GibbsMeasure.Mathlib.Probability.ProductMeasure
@@ -122,6 +123,7 @@ public import GibbsMeasure.Potential.GibbsTransformation
 public import GibbsMeasure.Potential.UniformConvergence
 public import GibbsMeasure.Model.BoundaryLaw
 public import GibbsMeasure.Model.BoundaryLawUniqueness
+public import GibbsMeasure.Model.BoundaryLawExamples
 public import GibbsMeasure.Model.TreeBoundaryLaw
 public import GibbsMeasure.Model.TreeBoundaryLawChains
 public import GibbsMeasure.Model.MarkovChainInt

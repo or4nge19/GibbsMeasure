@@ -49,7 +49,7 @@ status:
     15.1 (relative entropy), Lemma (15.11), Section 15.2 (strong subadditivity (15.10), the specific
     entropy (15.12)-(15.13), (15.14), (15.16)-(15.20)), Section 15.3 (specific energy, the pressure (15.30)(a)
     and its Lipschitz continuity and convexity (16.1)(a)), Section 15.4 (Theorem (15.37) and the
-    variational principle (15.39), for standard Borel E); Section 11.1 ((11.1)-(11.17), (11.18)(1),(3), (11.6)-(11.7); not (11.18)(2), (11.19)); Section 12.1 ((12.1)-(12.18) except (12.3)(3),(5),(6)); Section 10.1 (the Markov
+    variational principle (15.39), for standard Borel E); Section 11.1 ((11.1)-(11.17), (11.18)(1),(3), (11.6)-(11.7), (11.18)(2) representation, (11.19)); Section 12.1 ((12.1)-(12.18) except (12.3)(3),(5),(6)); Section 10.1 (the Markov
     properties (10.2)-(10.11)), Section 10.2 ((10.12)-(10.26) except Examples (10.24)), Section 10.3 ((10.30)-(10.37)); Section 9.1 (symmetry
     inheritance (9.1), localized symmetries (9.3), one-dimensional pair interactions (9.5),
     (9.11), (9.16)); Section 9.2 (Mermin-Wagner (9.20) with Lemmas (9.28), (9.33), Examples (9.22)-(9.24)); Section 13.1 (13.1)-(13.3),
@@ -306,6 +306,10 @@ status:
       axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.Tree.isMarkovChain_iff_forall_condExp_cylinderEvents_past"
       file: "GibbsMeasure/Model/TreeBoundaryLawChains.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Markov.eq_empty_G_transferSpecification_randomWalk"
+      file: "GibbsMeasure/Model/BoundaryLawExamples.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.isCompact_setOf_le_specificEntropy"
@@ -1105,6 +1109,24 @@ alignment:
         L(Q) = t L(P) + 1 - t. Not formalized: (11.18)(2) (needs the nearest-neighbour potential of
         Q/(uv) on infinite E and the sigma-finite reference measure uv.lambda), (11.19) (Georgii's
         Cramer/Stirling lower bound on path counts, not in Mathlib).
+    - source: "Comment (11.18)(2), Corollary (11.19)"
+      lean: "MeasureTheory.GibbsMeasure.Markov.eq_empty_G_transferSpecification_randomWalk"
+      module: "GibbsMeasure/Model/BoundaryLawExamples.lean"
+      status: "partial"
+      note: >-
+        (11.18)(2): under C^{-1} <= Q/(uv) <= C, gamma^Q is the Gibbsian specification of the
+        nearest-neighbour potential -log[Q/(uv)] with a priori measure (uv)lambda, which is then
+        finite, sum_x Q^n(x,x) <= [C sum_x u v]^n, and on an infinite E no epsilon > 0 bounds
+        sum_{n<=N} Q^n(x,x) below, so this hypothesis and (11.17)'s uniqueness condition exclude
+        each other. Not formalized: the |G(Q)| = 1 half, which is Theorem (8.39) applied to this
+        representation. (11.19): for an infinite countable additive group and a translation
+        invariant summable positive Q, G(gamma^Q) is empty. Georgii's Stirling/Cramer path-count
+        bound is not needed: each translate of the equivalent stochastic matrix is again a (11.5)
+        change of measure of Q, so (11.7) makes it homogeneous, and a homogeneous stochastic
+        matrix on an infinite group is never positive recurrent (an invariant probability vector
+        is a bounded harmonic function of the transpose, hence constant).
+
+
     - source: "Comments (9.7), Example (9.8)(2), Comments (9.13), Examples (9.15), (9.17)"
       lean: "MeasureTheory.GibbsMeasure.G_gradientPotential_eq_empty"
       module: "GibbsMeasure/Model/OneDimensionalSymmetryExamples.lean"
