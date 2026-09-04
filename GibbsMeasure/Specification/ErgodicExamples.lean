@@ -7,6 +7,8 @@ module
 
 public import GibbsMeasure.Specification.ErgodicGibbsLimits
 public import GibbsMeasure.Specification.LocalContinuity
+public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ProbabilityMeasure
+public import GibbsMeasure.Mathlib.Topology.Metrizable.Basic
 public import Mathlib.Topology.UniformSpace.HeineCantor
 
 /-!
@@ -50,39 +52,42 @@ These four displays sit inside Georgii's proof of Theorem (14.20)(c) and are alr
   the averaging sequence, rather than the two-step "average over `F n`, then transfer to the
   covering indices" route that forces truncation in the `_min` lemma).
 
-## (14.13): a Comment, not a theorem — proved only in part
+## (14.13): a Comment, proved in full
 
 Georgii's Comment, for `E` a compact metric space: (i) `𝒫_Θ(Ω,𝓕)` is compact metrizable in the
 *weak* topology; (ii) since the weak topology is coarser than the `𝓛`-topology (Remark (4.3)(3)),
 Theorem (14.12) implies `ex 𝒫_Θ(Ω,𝓕)` is *weakly* dense; (iii) it is moreover a dense `G_δ`, i.e.
 `𝒫_Θ(Ω,𝓕) ∖ ex 𝒫_Θ(Ω,𝓕)` is meager (a Poulsen simplex).
 
-What is proved below is exactly (ii), at Georgii's own hypothesis (`E` compact metric): the
-identity map `WithLocalConvergence S E → ProbabilityMeasure (S → E)` (`𝓛`-topology to Mathlib's
-ambient weak topology on `ProbabilityMeasure`) is continuous — the compact-`E` case of Remark
-(4.3)(3), proved via Georgii (2.21)(2) (`mem_quasilocalFunctions_of_uniformContinuous`) together
-with Heine–Cantor (on a compact space every continuous function is uniformly continuous) — and the
-resulting weak-density statement, transported along Theorem (14.12)'s closure identity.
+(ii) is proved at Georgii's own hypothesis (`E` compact metric): the identity map
+`WithLocalConvergence S E → ProbabilityMeasure (S → E)` (`𝓛`-topology to Mathlib's ambient weak
+topology on `ProbabilityMeasure`) is continuous — the compact-`E` case of Remark (4.3)(3), proved
+via Georgii (2.21)(2) (`mem_quasilocalFunctions_of_uniformContinuous`) together with Heine–Cantor
+(on a compact space every continuous function is uniformly continuous) — and the resulting
+weak-density statement, `invariantFields_subset_closure_extremePoints_probabilityMeasure_int`, is
+Theorem (14.12)'s closure identity transported along it.
 
-(i) and (iii) are **not proved**. Precisely:
+(i) is proved in the form it is used: `𝒫_Θ` is weakly *closed* for any subgroup `Θ` of
+continuous transformations (`isClosed_setOf_mem_invariantFields_probabilityMeasure`, from
+Mathlib's `ProbabilityMeasure.continuous_map`), hence compact and metrizable as a closed subset of
+`ProbabilityMeasure (S → E)`, which Mathlib already knows to be compact
+(`instCompactSpaceProbabilityMeasure`, Prokhorov) and metrizable
+(`instMetrizableSpaceProbabilityMeasure`, Lévy–Prokhorov) for `S → E` compact metrizable.
 
-* (i) needs `ProbabilityMeasure (S → E)` bundled as a *metric* space in the weak topology
-  (`MeasureTheory.LevyProkhorov`, `.instMetricSpaceProbabilityMeasure`, and the homeomorphism
-  `ProbabilityMeasure Ω ≃ₜ LevyProkhorov (ProbabilityMeasure Ω)` in
-  `Mathlib.MeasureTheory.Measure.LevyProkhorovMetric`) together with compactness
-  (`instCompactSpaceProbabilityMeasure` in `Mathlib.MeasureTheory.Measure.Prokhorov`), and then
-  transferring both to the *subset* `𝒫_Θ` (as a subtype of `ProbabilityMeasure (S → E)`, cut out
-  by shift-invariance, itself weakly closed).
-* (iii) needs, on top of (i): the elementary convexity fact that a point of a convex set fails to
-  be extreme iff it is the *midpoint* of two distinct points of the set (not merely a non-trivial
-  convex combination at some other ratio) — used to identify `𝒫_Θ ∖ ex 𝒫_Θ` with Georgii's
-  countable union `⋃ₙ Kₙ` of compact sets — and then the Baire category theorem for the resulting
-  compact metric space.
-
-None of this is in the codebase (`Topology/`, `Specification/`) under any name; building it is a
-self-contained topology project (general convexity + Prokhorov/Lévy–Prokhorov bookkeeping +
-Baire category), not a corollary of the ergodic-theory results proved elsewhere in Chapter 14, and
-is left undone here rather than hand-waved.
+(iii) is `isGδ_setOf_mem_extremePoints_invariantFields_probabilityMeasure`: for any countable `S`,
+any compact metrizable `E` and any subgroup `Θ` of continuous transformations, `ex 𝒫_Θ` is a weak
+`G_δ`. It is the classical Choquet-theory fact that the extreme boundary of a compact metrizable
+set is a `G_δ`, `IsCompact.isGδ_extremePoints` in
+`GibbsMeasure/Mathlib/Analysis/Convex/ExtremeGDelta.lean` — Georgii's `⋃ₙ Kₙ` argument, done
+without choosing a metric: `K ∖ ex K` is the image of the *open* set `{a > 0, b > 0, μ ≠ ν}` of
+the compact metrizable space `Δ × K × K` under `(a, b, μ, ν) ↦ aμ + bν`, hence σ-compact, so
+`ex K = K ∖ ⋃ₙ Kₙ` is a `G_δ` — transported to `ProbabilityMeasure (S → E)` in
+`ProbabilityMeasure.isGδ_preimage_extremePoints` (`GibbsMeasure/Mathlib/MeasureTheory/Measure/
+ProbabilityMeasure.lean`) along the embedding into the topological `ℝ≥0`-module
+`FiniteMeasure (S → E)` and the change of scalars `ℝ≥0∞ ↔ ℝ≥0` (`extremePoints_ennreal`). On
+`ℤ^d`, (ii) and (iii) together are
+`isGδ_and_closure_eq_setOf_mem_extremePoints_invariantFields_probabilityMeasure_int`: `𝒫_Θ` is a
+Poulsen simplex in the weak topology.
 
 ## (14.16): an Example, not proved — needs a `Model/` instance
 
@@ -123,6 +128,9 @@ Both belong upstream of this file:
   `MeasureTheory.GibbsMeasure.continuous_toMeasure_withLocalConvergence` belong with
   `GibbsMeasure/Topology/LocalConvergence.lean` / `GibbsMeasure/Specification/LocalContinuity.lean`
   as the compact-`E` case of Georgii's Remark (4.3)(3).
+* `MeasureTheory.GibbsMeasure.continuous_shift_toFun` and
+  `MeasureTheory.GibbsMeasure.continuous_toFun_of_mem_shiftGroup` belong next to `shift` in
+  `GibbsMeasure/Prereqs/Transformation.lean`.
 -/
 
 namespace MeasureTheory.GibbsMeasure
@@ -184,6 +192,69 @@ open MeasureTheory MeasureTheory.GibbsMeasure
 
 namespace MeasureTheory.GibbsMeasure
 
+section WeakClosedGDelta
+
+variable {S E : Type*} [MeasurableSpace E] [TopologicalSpace E] [Countable S]
+
+omit [Countable S] in
+/-- The shift `θ_j` (Georgii (5.2)(1)) is continuous on configuration space. -/
+lemma continuous_shift_toFun [AddGroup S] (j : S) : Continuous (shift E j).toFun :=
+  continuous_pi fun i ↦ by simpa only [shift_toFun_apply] using continuous_apply (i - j)
+
+omit [Countable S] in
+/-- Every element of the shift group `Θ` of Georgii (5.2)(1) is continuous on configuration
+space. -/
+lemma continuous_toFun_of_mem_shiftGroup [AddGroup S] {τ : Transformation S E}
+    (hτ : τ ∈ shiftGroup S E) : Continuous τ.toFun := by
+  obtain ⟨j, rfl⟩ := hτ
+  exact continuous_shift_toFun j
+
+/-- **Georgii, Comment (14.13), (i), closedness.** For `E` pseudo-metrizable second countable
+Borel, `S` countable and `Θ` a subgroup of continuous transformations (e.g. the shift group),
+`𝒫_Θ(Ω,𝓕)` is closed in the weak topology of `ProbabilityMeasure (S → E)`: it is the intersection
+over `τ ∈ Θ` of the closed sets `{μ : τ(μ) = μ}`
+(`ProbabilityMeasure.isClosed_setOf_measurePreserving`). -/
+theorem isClosed_setOf_mem_invariantFields_probabilityMeasure
+    [TopologicalSpace.PseudoMetrizableSpace E] [SecondCountableTopology E] [BorelSpace E]
+    {Θ : Subgroup (Transformation S E)} (hΘ : ∀ τ ∈ Θ, Continuous τ.toFun) :
+    IsClosed {μ : ProbabilityMeasure (S → E) | (μ : Measure (S → E)) ∈ invariantFields Θ} := by
+  have : {μ : ProbabilityMeasure (S → E) | (μ : Measure (S → E)) ∈ invariantFields Θ} =
+      ⋂ τ, ⋂ (_ : τ ∈ Θ),
+        {μ : ProbabilityMeasure (S → E) | MeasurePreserving τ.toFun μ μ} := by
+    ext μ
+    simp only [mem_ofPred_eq, mem_iInter, mem_invariantFields_iff]
+    exact ⟨fun h ↦ h.2, fun h ↦ ⟨inferInstance, h⟩⟩
+  rw [this]
+  exact isClosed_iInter fun τ ↦ isClosed_iInter fun hτ ↦
+    ProbabilityMeasure.isClosed_setOf_measurePreserving (hΘ τ hτ)
+
+/-- **Georgii, Comment (14.13), (iii), the `G_δ` half, for any continuous `Θ`.** For `E` compact
+metrizable (Borel `𝓔`), `S` countable and `Θ` a subgroup of continuous transformations, the
+extreme points `ex 𝒫_Θ(Ω,𝓕)` of the `Θ`-invariant random fields form a `G_δ` in the weak topology
+of `ProbabilityMeasure (S → E)`. This is the Choquet-theory fact `IsCompact.isGδ_extremePoints`
+(the extreme boundary of a compact metrizable set is a `G_δ`), applied through
+`ProbabilityMeasure.isGδ_preimage_extremePoints` to the weakly closed set `𝒫_Θ`. -/
+theorem isGδ_setOf_mem_extremePoints_invariantFields_probabilityMeasure
+    [TopologicalSpace.MetrizableSpace E] [CompactSpace E] [BorelSpace E]
+    {Θ : Subgroup (Transformation S E)} (hΘ : ∀ τ ∈ Θ, Continuous τ.toFun) :
+    IsGδ {μ : ProbabilityMeasure (S → E) |
+      (μ : Measure (S → E)) ∈ (invariantFields Θ).extremePoints ℝ≥0∞} :=
+  ProbabilityMeasure.isGδ_preimage_extremePoints
+    (isClosed_setOf_mem_invariantFields_probabilityMeasure hΘ)
+    fun _ hμ ↦ (mem_invariantFields.1 hμ).1
+
+/-- **Georgii, Comment (14.13), (iii), the `G_δ` half, for the shift group.** For `E` compact
+metrizable and `S` a countable additive group, the ergodic shift-invariant random fields
+`ex 𝒫_Θ(Ω,𝓕)` form a weak `G_δ`. -/
+theorem isGδ_setOf_mem_extremePoints_invariantFields_shiftGroup_probabilityMeasure [AddGroup S]
+    [TopologicalSpace.MetrizableSpace E] [CompactSpace E] [BorelSpace E] :
+    IsGδ {μ : ProbabilityMeasure (S → E) |
+      (μ : Measure (S → E)) ∈ (invariantFields (shiftGroup S E)).extremePoints ℝ≥0∞} :=
+  isGδ_setOf_mem_extremePoints_invariantFields_probabilityMeasure fun _ ↦
+    continuous_toFun_of_mem_shiftGroup
+
+end WeakClosedGDelta
+
 section EquiCube
 
 variable {E : Type*} [MeasurableSpace E] {d : ℕ} [NeZero d]
@@ -232,6 +303,41 @@ theorem invariantFields_subset_closure_extremePoints_probabilityMeasure_int
     exact ⟨fun ⟨ν, hν, hνμ⟩ ↦ hνμ ▸ hν,
       fun hμ ↦ ⟨WithSetwiseTopology.ofMeasure μ, hμ, rfl⟩⟩
   rwa [hPφ, hDφ] at hsub
+
+/-- **Georgii, Comment (14.13), (ii) as a closure identity, on `ℤ^d`.** For `E` compact metric,
+the weak closure of the ergodic shift-invariant random fields `ex 𝒫_Θ(Ω,𝓕)` is exactly
+`𝒫_Θ(Ω,𝓕)`: `𝒫_Θ` is weakly closed and `ex 𝒫_Θ` is weakly dense in it. -/
+theorem closure_setOf_mem_extremePoints_invariantFields_probabilityMeasure_int
+    [MetricSpace E] [CompactSpace E] [BorelSpace E] :
+    closure {μ : ProbabilityMeasure ((Fin d → ℤ) → E) |
+        (μ : Measure ((Fin d → ℤ) → E)) ∈
+          (invariantFields (shiftGroup (Fin d → ℤ) E)).extremePoints ℝ≥0∞} =
+      {μ : ProbabilityMeasure ((Fin d → ℤ) → E) |
+        (μ : Measure ((Fin d → ℤ) → E)) ∈ invariantFields (shiftGroup (Fin d → ℤ) E)} :=
+  subset_antisymm
+    (closure_minimal
+      (fun _ hμ ↦ extremePoints_subset (A := invariantFields (shiftGroup (Fin d → ℤ) E)) hμ)
+      (isClosed_setOf_mem_invariantFields_probabilityMeasure fun _ ↦
+        continuous_toFun_of_mem_shiftGroup))
+    invariantFields_subset_closure_extremePoints_probabilityMeasure_int
+
+/-- **Georgii, Comment (14.13), on `ℤ^d`: `𝒫_Θ(Ω,𝓕)` is a Poulsen simplex.** For `E` a compact
+metric space (Borel `𝓔`), the ergodic shift-invariant random fields `ex 𝒫_Θ(Ω,𝓕)` form a dense
+`G_δ` in `𝒫_Θ(Ω,𝓕)` for the weak topology: a `G_δ` of `ProbabilityMeasure ((Fin d → ℤ) → E)`
+whose closure is `𝒫_Θ(Ω,𝓕)`. Equivalently, `𝒫_Θ ∖ ex 𝒫_Θ` is of first Baire category: a
+"typical" shift-invariant random field is ergodic. -/
+theorem isGδ_and_closure_eq_setOf_mem_extremePoints_invariantFields_probabilityMeasure_int
+    [MetricSpace E] [CompactSpace E] [BorelSpace E] :
+    IsGδ {μ : ProbabilityMeasure ((Fin d → ℤ) → E) |
+        (μ : Measure ((Fin d → ℤ) → E)) ∈
+          (invariantFields (shiftGroup (Fin d → ℤ) E)).extremePoints ℝ≥0∞} ∧
+      closure {μ : ProbabilityMeasure ((Fin d → ℤ) → E) |
+          (μ : Measure ((Fin d → ℤ) → E)) ∈
+            (invariantFields (shiftGroup (Fin d → ℤ) E)).extremePoints ℝ≥0∞} =
+        {μ : ProbabilityMeasure ((Fin d → ℤ) → E) |
+          (μ : Measure ((Fin d → ℤ) → E)) ∈ invariantFields (shiftGroup (Fin d → ℤ) E)} :=
+  ⟨isGδ_setOf_mem_extremePoints_invariantFields_shiftGroup_probabilityMeasure,
+    closure_setOf_mem_extremePoints_invariantFields_probabilityMeasure_int⟩
 
 end EquiCube
 

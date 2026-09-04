@@ -231,6 +231,27 @@ $(\Cfg, \mathcal{F})$, specialised to a subgroup $\Theta$ of the transformation 
     \in \set{0,1}$.
 \end{proof}
 
+\begin{theorem}[Georgii (14.13)]
+    \label{thm:erg-1413}
+    \uses{def:erg-invariant, thm:erg-1412}
+    \lean{IsCompact.isGδ_extremePoints, MeasureTheory.ProbabilityMeasure.isGδ_preimage_extremePoints, MeasureTheory.GibbsMeasure.isClosed_setOf_mem_invariantFields_probabilityMeasure, MeasureTheory.GibbsMeasure.isGδ_setOf_mem_extremePoints_invariantFields_probabilityMeasure, MeasureTheory.GibbsMeasure.closure_setOf_mem_extremePoints_invariantFields_probabilityMeasure_int, MeasureTheory.GibbsMeasure.isGδ_and_closure_eq_setOf_mem_extremePoints_invariantFields_probabilityMeasure_int}
+    \leanok
+
+    Let $E$ be compact metrizable and $S$ countable. For any group $\Theta$ of transformations
+    acting continuously, $\Prob_\Theta$ is weakly closed and $\operatorname{ex}\Prob_\Theta$
+    is a $G_\delta$ in the weak topology. For $S = \mathbb Z^d$ and the shift group,
+    $\operatorname{ex}\Prob_\Theta$ is a dense $G_\delta$ in $\Prob_\Theta$: a Poulsen simplex.
+\end{theorem}
+\begin{proof}
+    \leanok
+    The extreme boundary of a compact metrizable subset $K$ of a Hausdorff topological module
+    is a $G_\delta$: $K \setminus \operatorname{ex} K$ is the image of the open set
+    $\{(a,b,y,z) : a, b > 0,\ y \neq z\}$ of $\Delta \times K \times K$ under
+    $(a,b,y,z) \mapsto ay + bz$, hence $\sigma$-compact. $\Prob(\Omega)$ is compact metrizable
+    (Prokhorov, Lévy--Prokhorov) and $\Prob_\Theta$ is closed in it; transport along the
+    embedding into the finite measures. Density is Theorem \ref{thm:erg-1412}.
+\end{proof}
+
 \begin{theorem}[Georgii (14.A3), (14.A5): the mean ergodic theorems]
     \label{thm:erg-14A3}
     \uses{def:erg-invariant-events}

@@ -427,7 +427,11 @@ transformations that moves every finite volume off itself (hence tail-trivial �
 a Borel–Cantelli lemma for an *infimum* of σ-algebras now in the Mathlib layer; **(14.14)**
 `𝒢_Θ(γ) = 𝒢(γ) ∩ 𝓟_Θ` and **Theorem (14.15)** follow in Georgii's own order — (c) `𝒢_Θ(γ)` is a
 face of `𝓟_Θ`, then (a) `ex 𝒢_Θ(γ) = 𝒢_Θ(γ) ∩ ex 𝓟_Θ` and (b) — with no shift-invariance of `γ`
-consumed by any proof (`GibbsMeasure/Specification/ErgodicGibbs.lean`). **Example (14.16)**
+consumed by any proof (`GibbsMeasure/Specification/ErgodicGibbs.lean`). **Theorem (14.13)** in full (`GibbsMeasure/Specification/ErgodicExamples.lean`): for compact metrizable `E`,
+`ex 𝓟_Θ` is a weak `G_δ` whose closure is `𝓟_Θ` on `ℤ^d`, a Poulsen simplex; the Choquet input, that the
+extreme points of a compact metrizable subset of a Hausdorff topological module form a `G_δ`, is
+`GibbsMeasure/Mathlib/Analysis/Convex/ExtremeGDelta.lean`, with Prokhorov and Lévy–Prokhorov from Mathlib.
+**Example (14.16)**
 (`GibbsMeasure/Model/Antiferromagnet.lean`) exhibits `ex 𝒢_Θ(γ) \ ex 𝒢(γ) ≠ ∅`: for the
 zero-temperature one-dimensional antiferromagnet, built directly as deterministic proper kernels,
 the two alternating Dirac measures are extreme in `𝒢(γ)` and their midpoint is extreme in `𝒢_Θ(γ)`
@@ -580,7 +584,7 @@ Gibbs measure is unique ((6.7)(2)).
 
 Not yet done: Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
-plane-rotator and Heisenberg instances (9.22)–(9.24), the Poulsen-simplex half of (14.13), (15.14)(c), (15.16)–(15.20), (15.26)(1), (15.40), (11.18)(2), (11.19), §12.2, (13.4)–(13.10), §§13.2–13.3, and Chapters
+plane-rotator and Heisenberg instances (9.22)–(9.24), (15.14)(c), (15.16)–(15.20), (15.26)(1), (15.40), (11.18)(2), (11.19), §12.2, (13.4)–(13.10), §§13.2–13.3, and Chapters
 16–20 (
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).

@@ -57,6 +57,11 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Measure.GiryMonad
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.RegularContent
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.WithSetwiseTopology
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.WithDensity
+public import GibbsMeasure.Mathlib.Analysis.Convex.Extreme
+public import GibbsMeasure.Mathlib.Analysis.Convex.ExtremeGDelta
+public import GibbsMeasure.Mathlib.Topology.Compactness.SigmaCompact
+public import GibbsMeasure.Mathlib.Topology.Metrizable.Basic
+public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ProbabilityMeasure
 public import GibbsMeasure.Mathlib.Probability.ConditionalProbability
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.Pointwise
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.MeanErgodic
