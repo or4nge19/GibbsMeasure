@@ -1411,9 +1411,14 @@ alignment:
         whose covariance inverts J gives a Gibbs measure, so G is nonempty. Not formalized:
         (13.22) necessity (needs the first two moments of the Gaussian kernel), (13.23)(d) (needs
         Remark (7.2) and that no probability measure on R is translation invariant), (13.24)-(13.25)
-        (need (7.12) and (13.A5)), and (13.26)-(13.31) proper, all blocked on Georgii (13.A7), the
-        existence of a Gaussian process with prescribed nonnegative-definite covariance, which
-        Mathlib lacks.
+        (need (7.12) and (13.A5)), and the first half of (13.26) (hypothesis (13.27) produces the
+        covariance as the limit (13.25), by monotonicity of the inverse coupling matrices).
+        Georgii (13.A7), existence and uniqueness of a centred Gaussian process with prescribed
+        nonnegative-definite covariance, is proved in
+        Mathlib/Probability/Distributions/Gaussian/Existence.lean (Kolmogorov extension of the
+        finite-dimensional marginals; Mathlib had the projectivity of multivariate Gaussians only
+        in its Brownian motion files, specialised to min s t), and with it the existence half of
+        (13.26).
     - source: "Displays (14.21)-(14.24); Theorem (14.13)"
       lean: "Specification.ae_tendsto_toReal_shiftAvgDensity"
       module: "GibbsMeasure/Specification/ErgodicExamples.lean"

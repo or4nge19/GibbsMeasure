@@ -568,8 +568,11 @@ satisfy (13.5)); **Lemma (13.10)**: under (i)–(iii) the conditional law of `σ
 from Gaussian regression, closure under conditioning and `L¹`-limits of Gaussians in the Mathlib layer.
 **§13.2** (`GibbsMeasure/Model/GaussianGibbs.lean`): **(13.20)** a Gauss field is a Gibbs measure for
 the specification of its own conditional couplings, **(13.22)** in the sufficient direction, and
-**(13.23)** the translation structure of `𝒢(γ^{J,h})`. What remains there is blocked on the existence
-of a Gaussian process with prescribed nonnegative-definite covariance, which Mathlib does not have.
+**(13.23)** the translation structure of `𝒢(γ^{J,h})`. **Georgii (13.A7)** — existence and uniqueness of a
+centred Gaussian process with prescribed nonnegative-definite covariance — is proved in
+`GibbsMeasure/Mathlib/Probability/Distributions/Gaussian/Existence.lean` by Kolmogorov extension
+(Mathlib had the projectivity of multivariate Gaussians only inside its Brownian motion files,
+specialised to one covariance), and with it the existence half of **(13.26)**.
 
 **§9.2, Mermin–Wagner** (`GibbsMeasure/Model/MerminWagner.lean`): **Theorem (9.20)** — for a
 pair potential on a site set with a planar norm (ℤ² with the maximum norm the instance), any real

@@ -55,6 +55,32 @@
 
     If $\mu_C$ is a centred Gauss field whose covariance inverts $J$, then
     $\tau^m(\mu_C) \in \mathcal G(\gamma^{J,h})$ for every $m \in M_{J,h}$; in particular
-    $\mathcal G(\gamma^{J,h}) \neq \emptyset$. The existence of $\mu_C$ itself is Georgii (13.A7),
-    a Gaussian process with prescribed nonnegative-definite covariance, which Mathlib does not have.
+    $\mathcal G(\gamma^{J,h}) \neq \emptyset$.
 \end{proposition}
+
+\begin{theorem}[Georgii (13.A7)]
+    \label{thm:gs-13-A7}
+    \lean{ProbabilityTheory.covMatrix, ProbabilityTheory.gaussianField, ProbabilityTheory.exists_isGaussianProcess_covariance_eq, ProbabilityTheory.existsUnique_isGaussianProcess_covariance_eq, ProbabilityTheory.covariance_eval_gaussianField}
+    \leanok
+
+    For a symmetric $C : \iota \times \iota \to \mathbb R$ all of whose finite submatrices are
+    nonnegative definite there is a unique centred Gaussian process on $\mathbb R^\iota$ with
+    covariance $C$.
+\end{theorem}
+\begin{proof}
+    \leanok
+    The finite-dimensional marginals are the multivariate Gaussians of the submatrices, which are
+    consistent under restriction; Kolmogorov extension glues them. Degeneracy is harmless because
+    a multivariate Gaussian is the image of a standard one under a square root of its covariance.
+\end{proof}
+
+\begin{corollary}[Georgii (13.26), existence]
+    \label{cor:gs-13-26}
+    \uses{prop:gs-13-26, thm:gs-13-A7}
+    \lean{MeasureTheory.GibbsMeasure.nonempty_G_gaussianSpecification_of_posSemidef_of_isInverse}
+    \leanok
+
+    If $J$ is symmetric with finite rows, every $\mathcal J_\Lambda$ positive definite, and $C$ is
+    nonnegative definite with $\sum_j J(i,j)C(j,k) = \delta_{ik}$, then
+    $\mathcal G(\gamma^{J,h}) \neq \emptyset$ for every $h$ with $M_{J,h} \neq \emptyset$.
+\end{corollary}

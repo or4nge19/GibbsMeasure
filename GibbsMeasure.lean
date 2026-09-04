@@ -61,6 +61,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Integral.Bochner.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.DominatedConvergence
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.IntegrableOn
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Density
+public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Existence
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.CondExp
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Limit
 public import GibbsMeasure.Mathlib.Probability.Moments.Covariance

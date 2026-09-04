@@ -6,6 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Model.GaussianSpecification
+public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Existence
 public import GibbsMeasure.Specification.Transformation
 
 /-!
@@ -70,6 +71,13 @@ Definition (13.18) is vacuous, and `γ^{J,h}` is `Potential.gaussianSpecificatio
   `μ_C` whose covariance `C` inverts `J` exists, then `τ^m(μ_C) ∈ 𝒢(γ^{J,h})` for every
   `m ∈ M_{J,h}`, so `𝒢(γ^{J,h}) ≠ ∅` whenever `M_{J,h} ≠ ∅`. This is (13.22)(b) ⟹ (a) at `h = 0`
   followed by (13.23)(b), exactly as Georgii closes both proofs.
+* **Georgii Theorem (13.26), the existence half, granted the limit (13.25)**,
+  `MeasureTheory.GibbsMeasure.nonempty_G_gaussianSpecification_of_posSemidef_of_isInverse`: if
+  `C : S × S → ℝ` is nonnegative definite and inverts `J`, then `𝒢(γ^{J,h}) ≠ ∅` for every `h`
+  with `M_{J,h} ≠ ∅`. The centred Gauss field `μ_C` of Proposition (13.A7) is now available as
+  `ProbabilityTheory.gaussianField`
+  (`GibbsMeasure/Mathlib/Probability/Distributions/Gaussian/Existence.lean`), so this is the
+  previous item with its hypothesis discharged.
 
 ## What is *not* proved here, and why
 
@@ -96,18 +104,19 @@ Definition (13.18) is vacuous, and `γ^{J,h}` is `Potential.gaussianSpecificatio
   `mem_extremePoints_G_iff_isTailTrivial` reduces it to the invariance of the tail σ-algebra under
   `τ^m`; and the injectivity of `t ↦ τ^{t m}(μ)`, which amounts to the fact that no probability
   measure on `ℝ` is invariant under a non-zero translation, also not in the tree.
-* **Georgii Theorems (13.24) and (13.26)/(13.31) proper.** Beyond the last step recorded above,
-  (13.24) needs Theorem (7.12) (every extreme Gibbs measure is a local limit
-  `lim_n γ_{Λ_n}(·|ω)`) together with Proposition (13.A5) (a local limit of Gaussian fields is
-  Gaussian), and (13.26)/(13.31) need Proposition (13.A7): the **existence of a centred Gaussian
-  field with a prescribed nonnegative definite covariance function**. (13.A7) is a Kolmogorov
-  extension of a projective family of possibly degenerate multivariate Gaussians; Mathlib has no
-  such construction (`Mathlib.Probability.Distributions.Gaussian.IsGaussianProcess` contains no
-  existence theorem, and `multivariateGaussianPi` here is a Lebesgue density, so it needs a
-  *positive definite* covariance). That is the single missing input which keeps (13.26)'s and
-  (13.31)'s existence statements — and, with them, Comment (13.28) and Examples (13.29), (13.30)
-  — out of reach; the monotonicity argument for (13.27) and the potential-theoretic identity of
-  (13.28) are not attempted either.
+* **Georgii Theorems (13.24) and (13.26)/(13.31) proper.** (13.24) needs Theorem (7.12) (every
+  extreme Gibbs measure is a local limit `lim_n γ_{Λ_n}(·|ω)`) together with Proposition (13.A5)
+  (a local limit of Gaussian fields is Gaussian). Proposition (13.A7) — the existence of a centred
+  Gaussian field with a prescribed nonnegative definite covariance function — is no longer
+  missing: it is `ProbabilityTheory.gaussianField` in
+  `GibbsMeasure/Mathlib/Probability/Distributions/Gaussian/Existence.lean`, a Kolmogorov extension
+  of the projective family of (possibly degenerate) multivariate Gaussians
+  `ProbabilityTheory.multivariateGaussian`. What is still missing for (13.26) is the *first* half
+  of its proof: that hypothesis (13.27), `sup_Λ 𝒥_Λ⁻¹(i,i) < ∞`, forces the limits (13.25) to
+  exist, via the monotonicity `∑_{i,j ∈ Λ} 𝒥_Λ⁻¹(i,j) t_i t_j ≤ ∑_{i,j ∈ Λ} 𝒥_Δ⁻¹(i,j) t_i t_j`
+  for `Λ ⊆ Δ` (a statement about `γ^{J,h}`, proved from Proposition (13.13) and Jensen). Likewise
+  (13.31) needs the Fourier-analytic input (13.A8)/(13.A9). The potential-theoretic identity of
+  Comment (13.28) is not attempted either.
 
 ## General lemmas proved in the Mathlib layer for this file
 
@@ -738,5 +747,42 @@ theorem nonempty_G_gaussianSpecification_of_centered_of_isInverse [LinearOrder S
   · exact isGibbsMeasure_map_add_of_centered_of_isInverse hFin hμ hC hSymm hPD hcentred hm
 
 end Theorem13_22
+
+section Theorem13_26
+
+variable {S : Type*} [Countable S] [DecidableEq S] [LinearOrder S] {J : S → S → ℝ} {h : S → ℝ}
+
+/-- **Georgii Theorem (13.26), the existence half, with the limit (13.25) supplied.** Let `J` be
+symmetric of finite range with every `𝒥_Λ` positive definite, and let `C : S × S → ℝ` be a
+nonnegative definite symmetric function (every finite submatrix `(C(i,j))_{i,j ∈ I}` is positive
+semidefinite) which is an inverse of `J` in the sense of Theorem (13.22),
+`∑_{j ∈ S} J(i,j) C(j,k) = δ_{ik}`. Then `𝒢(γ^{J,h}) ≠ ∅` for every `h` with `M_{J,h} ≠ ∅`.
+
+This is Georgii's closing paragraph of the proof of (13.26): the centred Gauss field `μ_C` with
+covariance `C` exists by Proposition (13.A7)
+(`ProbabilityTheory.gaussianField`, `GibbsMeasure/Mathlib/Probability/Distributions/Gaussian/
+Existence.lean`), it satisfies condition (b) of Theorem (13.22) with `h = 0`, and Remark (13.23)(b)
+transports it to `τ^m(μ_C) ∈ 𝒢(γ^{J,h})`.
+
+What is *not* supplied here is the earlier half of Georgii's proof, namely that his hypothesis
+(13.27), `sup_Λ 𝒥_Λ⁻¹(i,i) < ∞`, produces such a `C` as the limit (13.25): that is the
+monotonicity argument `∑_{i,j ∈ Λ} 𝒥_Λ⁻¹(i,j) t_i t_j ≤ ∑_{i,j ∈ Λ} 𝒥_Δ⁻¹(i,j) t_i t_j` for
+`Λ ⊆ Δ`, which is a statement about the specification `γ^{J,h}` and not about Gauss fields. -/
+theorem nonempty_G_gaussianSpecification_of_posSemidef_of_isInverse
+    (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite) (hSymm : ∀ i j, J i j = J j i)
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef)
+    (C : S → S → ℝ) (hCpsd : ∀ I : Finset S, (ProbabilityTheory.covMatrix C I).PosSemidef)
+    (hCinv : ∀ i k, ∑' j, J i j * C j k = if i = k then 1 else 0)
+    {m : S → ℝ} (hm : m ∈ Potential.gaussianMeanSet J h) :
+    (MeasureTheory.GibbsMeasure.G
+      (Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos)).Nonempty := by
+  refine nonempty_G_gaussianSpecification_of_centered_of_isInverse
+    (μ := ProbabilityTheory.gaussianField C hCpsd) hFin
+    (ProbabilityTheory.isGaussianProcess_gaussianField hCpsd) ?_ hSymm hPD
+    (ProbabilityTheory.integral_eval_gaussianField hCpsd) hm
+  intro i k
+  simpa only [ProbabilityTheory.covariance_eval_gaussianField hCpsd] using hCinv i k
+
+end Theorem13_26
 
 end MeasureTheory.GibbsMeasure
