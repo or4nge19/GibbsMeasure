@@ -5,6 +5,8 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Potential.Equivalence
+public import GibbsMeasure.Specification.DobrushinUniqueness
 public import GibbsMeasure.Specification.TangentFunctional
 public import GibbsMeasure.Specification.VariationalPrinciple
 
@@ -60,10 +62,32 @@ linear functional `j(μ) = −⟨μ, ·⟩` on `ℬ_Θ`.
   `Potential.BTheta.gateauxDifferentiable_pressure_iff_eq_singleton`: the pressure is Gateaux
   differentiable at `Φ` if and only if `Φ` has exactly one shift-invariant Gibbs measure.
 
-Georgii's Corollaries (16.15) and (16.16) are not here: they rest on the converse half of Theorem
-(2.34) (`Φ ∼ Ψ` iff `𝒢(Φ) ∩ 𝒢(Ψ) ≠ ∅`) and on (2.35), of which only the direct half
-(`Potential.lambdaSpecification_eq_of_isEquivalent`) is available. Corollary (16.17) is the
-Dobrushin-regime differentiability and needs (8.37).
+* `Potential.BTheta.isEquivalent_iff_forall_pressure_smul_add_smul_eq`: **Georgii Corollary
+  (16.15)(a)**, for continuous potentials over an everywhere dense a priori measure, `Φ ∼ Ψ` iff
+  `P` is affine on `[Φ, Ψ]`. The convex-analytic half is
+  `Potential.BTheta.exists_mem_subgradientAt_pressure_inter_iff`; the potential-theoretic half is
+  Theorem (2.34) in the two forms `Potential.gibbsSpecificationOfAbsolutelySummable_eq_of_`
+  `isEquivalent` ((i) ⇒ (iii)) and `Potential.isEquivalent_of_isGibbsMeasure_gibbsSpecification`
+  ((iv) ⇒ (i)).
+* `Potential.BTheta.pressure_smul_add_smul_lt_of_isNormalized`: **Georgii Corollary (16.15)(b)**,
+  the pressure is strictly convex on the continuous `α`-normalized potentials of `ℬ_Θ`, by (a) and
+  Theorem (2.35)(a) (`Potential.eq_zero_of_isNormalized`).
+* `Potential.BTheta.isEquivalent_of_specificEnergy_sub_eq`: **Georgii Corollary (16.16)**, if
+  `μ ∈ 𝒢_Θ(Φ)` and `v ∈ 𝒢_Θ(Ψ)` give `Φ − Ψ` the same specific energy then `Φ ∼ Ψ`.
+* `Potential.BTheta.dobrushinRegion`,
+  `Potential.BTheta.leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_of_mem_dobrushinRegion`:
+  **Georgii Corollary (16.17)**, first-derivative half. On Georgii's region
+  `𝒟 = {Φ : ∑_{A ∋ 0} |A| ‖Φ_A‖ < 1}` of (8.36) the specification satisfies Dobrushin's condition
+  (`MeasureTheory.GibbsMeasure.Dobrushin.isDobrushin_gibbsSpecification_of_cardNormAt_le`), so
+  `𝒢_Θ(Φ) = {μ_Φ}`, so `∂P(Φ) = {j(μ_Φ)}` by (16.14) and
+  `∂/∂t P(Φ + tΨ)|_{t=0} = −⟨μ_Φ, Ψ⟩` in every direction `Ψ ∈ ℬ_Θ`.
+
+The second half of Corollary (16.17) — that `P` is *twice* continuously differentiable on `𝒟` in
+the directions of `ℬ̃_Θ`, with
+`∂²/∂s∂t P(Φ + sΨ + tΨ̃)|_0 = ∑_i [μ_Φ(f_Ψ̃ f_Ψ ∘ θ_i) − μ_Φ(f_Ψ̃) μ_Φ(f_Ψ)]` — is not proved here.
+It is Georgii's Corollary (8.37), the differentiability of `Φ ↦ μ_Φ(g)` on `𝒟`, which rests on the
+covariance estimate of Proposition (8.34); neither (8.34) nor (8.37) is in this library, and the
+second derivative does not follow from (16.14) alone.
 -/
 
 @[expose] public section
@@ -1109,6 +1133,369 @@ theorem gateauxDifferentiable_pressure_iff_eq_singleton [StandardBorelSpace E] :
     exact Set.subsingleton_singleton
 
 end Fenchel
+
+/-! ### Georgii Corollaries (16.15) and (16.16): flat pieces of the pressure
+
+Georgii states (16.15) for potentials with continuous interactions over a complete separable
+metric state space with an everywhere dense a priori measure; the topological hypotheses enter
+only through the converse half of Theorem (2.34)
+(`Potential.isEquivalent_of_isGibbsMeasure_gibbsSpecification`), which needs `λ` everywhere dense
+(`MeasureTheory.Measure.IsOpenPosMeasure`) and continuity of the Hamiltonians `H_Λ^{Φ-Ψ}`
+(`Potential.continuous_hamiltonian_of_isUniformlyConvergent` supplies this from continuity of the
+interactions and uniform convergence).
+
+The convex-analytic half is elementary and is proved first: a point of the segment `[Φ, Ψ]` at
+which the convex function `P` takes its affine interpolation shares its subgradients with both
+endpoints. (These three lemmas are statements about an arbitrary convex function on a real vector
+space; they belong next to `subgradientAt` in
+`GibbsMeasure/Mathlib/Analysis/Convex/TangentFunctional.lean`.) -/
+
+section Affine
+
+variable {ι E : Type*} [Fintype ι] [DecidableEq ι] [MeasurableSpace E]
+  (ν : Measure E) [IsProbabilityMeasure ν]
+
+/-- If the pressure is affine on the segment `[Φ, Ψ]` at an interior point `t`, then every
+tangent functional at `t • Φ + (1 - t) • Ψ` is tangent at both endpoints. -/
+theorem mem_subgradientAt_pressure_of_pressure_eq {Φ Ψ : BTheta (ι → ℤ) E} {t : ℝ}
+    (ht0 : 0 < t) (ht1 : t < 1)
+    (heq : pressure ν (t • Φ + (1 - t) • Ψ)
+      = t * pressure ν Φ + (1 - t) * pressure ν Ψ)
+    {L : BTheta (ι → ℤ) E →ₗ[ℝ] ℝ}
+    (hL : L ∈ subgradientAt (pressure ν) (t • Φ + (1 - t) • Ψ)) :
+    L ∈ subgradientAt (pressure ν) Φ ∧ L ∈ subgradientAt (pressure ν) Ψ := by
+  set X : BTheta (ι → ℤ) E := t • Φ + (1 - t) • Ψ with hX
+  have h1 : L (Φ - X) ≤ pressure ν Φ - pressure ν X := by
+    have := mem_subgradientAt.1 hL (Φ - X)
+    rwa [add_sub_cancel] at this
+  have h2 : L (Ψ - X) ≤ pressure ν Ψ - pressure ν X := by
+    have := mem_subgradientAt.1 hL (Ψ - X)
+    rwa [add_sub_cancel] at this
+  have hzero : t • (Φ - X) + (1 - t) • (Ψ - X) = 0 := by rw [hX]; module
+  have hsum : t * L (Φ - X) + (1 - t) * L (Ψ - X) = 0 := by
+    have h : L (t • (Φ - X) + (1 - t) • (Ψ - X)) = L 0 := by rw [hzero]
+    simpa using h
+  have e1 : L (Φ - X) = pressure ν Φ - pressure ν X := by nlinarith [h1, h2, hsum, heq]
+  have e2 : L (Ψ - X) = pressure ν Ψ - pressure ν X := by nlinarith [h1, h2, hsum, heq]
+  constructor
+  · refine mem_subgradientAt.2 fun Χ ↦ ?_
+    have := mem_subgradientAt.1 hL ((Φ - X) + Χ)
+    rw [show X + ((Φ - X) + Χ) = Φ + Χ by abel, L.map_add (Φ - X) Χ, e1] at this
+    linarith
+  · refine mem_subgradientAt.2 fun Χ ↦ ?_
+    have := mem_subgradientAt.1 hL ((Ψ - X) + Χ)
+    rw [show X + ((Ψ - X) + Χ) = Ψ + Χ by abel, L.map_add (Ψ - X) Χ, e2] at this
+    linarith
+
+/-- A functional tangent to the pressure at both `Φ` and `Ψ` forces the pressure to be affine on
+the whole segment `[Φ, Ψ]`. -/
+theorem pressure_smul_add_smul_eq_of_mem_subgradientAt {Φ Ψ : BTheta (ι → ℤ) E}
+    {L : BTheta (ι → ℤ) E →ₗ[ℝ] ℝ} (hΦ : L ∈ subgradientAt (pressure ν) Φ)
+    (hΨ : L ∈ subgradientAt (pressure ν) Ψ) {t : ℝ} (ht : t ∈ Set.Icc (0 : ℝ) 1) :
+    pressure ν (t • Φ + (1 - t) • Ψ) = t * pressure ν Φ + (1 - t) * pressure ν Ψ := by
+  set X : BTheta (ι → ℤ) E := t • Φ + (1 - t) • Ψ with hX
+  have h1 : L (X - Φ) ≤ pressure ν X - pressure ν Φ := by
+    have := mem_subgradientAt.1 hΦ (X - Φ)
+    rwa [add_sub_cancel] at this
+  have h2 : L (X - Ψ) ≤ pressure ν X - pressure ν Ψ := by
+    have := mem_subgradientAt.1 hΨ (X - Ψ)
+    rwa [add_sub_cancel] at this
+  have hzero : t • (X - Φ) + (1 - t) • (X - Ψ) = 0 := by rw [hX]; module
+  have hsum : t * L (X - Φ) + (1 - t) * L (X - Ψ) = 0 := by
+    have h : L (t • (X - Φ) + (1 - t) • (X - Ψ)) = L 0 := by rw [hzero]
+    simpa using h
+  have hconv : pressure ν X ≤ t * pressure ν Φ + (1 - t) * pressure ν Ψ :=
+    (convexOn_pressure ν).2 (Set.mem_univ Φ) (Set.mem_univ Ψ) ht.1 (by linarith [ht.2])
+      (by ring)
+  nlinarith [h1, h2, hsum, ht.1, ht.2]
+
+/-- **Georgii (16.15)(a), convex-analytic half.** The pressure is affine on `[Φ, Ψ]` if and only
+if some functional is tangent to `P` at `Φ` and at `Ψ` simultaneously. -/
+theorem exists_mem_subgradientAt_pressure_inter_iff {Φ Ψ : BTheta (ι → ℤ) E} :
+    (∃ L : BTheta (ι → ℤ) E →ₗ[ℝ] ℝ,
+        L ∈ subgradientAt (pressure ν) Φ ∧ L ∈ subgradientAt (pressure ν) Ψ) ↔
+      ∀ t ∈ Set.Icc (0 : ℝ) 1, pressure ν (t • Φ + (1 - t) • Ψ)
+        = t * pressure ν Φ + (1 - t) * pressure ν Ψ := by
+  refine ⟨fun ⟨L, hΦ, hΨ⟩ t ht ↦ pressure_smul_add_smul_eq_of_mem_subgradientAt ν hΦ hΨ ht,
+    fun h ↦ ?_⟩
+  obtain ⟨L, hL⟩ := subgradientAt_pressure_nonempty ν ((2 : ℝ)⁻¹ • Φ + (1 - (2 : ℝ)⁻¹) • Ψ)
+  exact ⟨L, mem_subgradientAt_pressure_of_pressure_eq ν (by norm_num) (by norm_num)
+    (h _ ⟨by norm_num, by norm_num⟩) hL⟩
+
+end Affine
+
+/-! ### Georgii Corollaries (16.15)(a) and (16.16) -/
+
+section GibbsAffine
+
+variable {ι E : Type*} [Fintype ι] [DecidableEq ι] [MeasurableSpace E] [StandardBorelSpace E]
+  [TopologicalSpace E] [OpensMeasurableSpace E]
+  (ν : Measure E) [IsProbabilityMeasure ν] [ν.IsOpenPosMeasure]
+
+/-- **Georgii Corollary (16.15)(a).** For continuous potentials `Φ, Ψ ∈ ℬ_Θ` over a state space
+whose a priori measure `λ` is everywhere dense, `Φ ∼ Ψ` if and only if the pressure is affine on
+the segment `[Φ, Ψ]`.
+
+By Theorem (16.14) a functional tangent to `P` at both `Φ` and `Ψ` is exactly a *common*
+shift-invariant Gibbs measure of `Φ` and `Ψ`, and by Theorem (2.34) such a measure exists exactly
+when `Φ ∼ Ψ`; the convex-analytic half — a common tangent exists iff `P` is affine on `[Φ, Ψ]` —
+is `Potential.BTheta.exists_mem_subgradientAt_pressure_inter_iff`.
+
+Continuity of the interactions enters through the hypothesis that the Hamiltonians of `Φ - Ψ` are
+continuous; `Potential.continuous_hamiltonian_of_isUniformlyConvergent` derives it from Georgii's
+hypotheses. -/
+theorem isEquivalent_iff_forall_pressure_smul_add_smul_eq {Φ Ψ : BTheta (ι → ℤ) E}
+    (hcont : ∀ Λ : Finset (ι → ℤ),
+      Continuous (((Φ : Potential (ι → ℤ) E) - (Ψ : Potential (ι → ℤ) E)).hamiltonian Λ)) :
+    Potential.IsEquivalent (Φ : Potential (ι → ℤ) E) (Ψ : Potential (ι → ℤ) E) ↔
+      ∀ t ∈ Set.Icc (0 : ℝ) 1, pressure ν (t • Φ + (1 - t) • Ψ)
+        = t * pressure ν Φ + (1 - t) * pressure ν Ψ := by
+  rw [← exists_mem_subgradientAt_pressure_inter_iff ν]
+  constructor
+  · intro h
+    obtain ⟨μ, hμ⟩ := invariantG_gibbsSpecification_shiftGroup_nonempty
+      (Φ := (Φ : Potential (ι → ℤ) E)) ν 1 (isShiftInvariant Φ)
+    have hprob : IsProbabilityMeasure μ := hμ.1.1
+    refine ⟨specificEnergyFunctional μ, mem_subgradientAt_pressure_of_mem_invariantG ν hμ, ?_⟩
+    refine mem_subgradientAt_pressure_of_mem_invariantG ν ?_
+    rwa [Potential.gibbsSpecificationOfAbsolutelySummable_eq_of_isEquivalent ν h 1] at hμ
+  · rintro ⟨L, hLΦ, hLΨ⟩
+    obtain ⟨μ, hμf, hμG⟩ := exists_mem_fieldsOf_mem_invariantG ν hLΦ
+    obtain ⟨μ', hμ'f, hμ'G⟩ := exists_mem_fieldsOf_mem_invariantG ν hLΨ
+    have hμμ' : μ = μ' := fieldsOf_subsingleton L hμf hμ'f
+    have hprob : IsProbabilityMeasure μ := hμG.1.1
+    refine Potential.isEquivalent_of_isGibbsMeasure_gibbsSpecification ν hcont
+      (mem_invariantG.1 hμG).2.1 ?_
+    rw [hμμ']
+    exact (mem_invariantG.1 hμ'G).2.1
+
+omit [StandardBorelSpace E] [TopologicalSpace E] [OpensMeasurableSpace E] in
+/-- Every interaction term of a potential of `ℬ_Θ` is bounded uniformly in the configuration: by
+`‖Φ‖₀` on a nonempty support (`Potential.BTheta.abs_apply_le_norm`) and by `0` on `∅`. -/
+lemma exists_forall_abs_coe_apply_le {S : Type*} [AddGroup S] (Φ : BTheta S E) (A : Finset S) :
+    ∃ M : ℝ, ∀ η : S → E, |(Φ : Potential S E) A η| ≤ M := by
+  rcases A.eq_empty_or_nonempty with rfl | ⟨i, hi⟩
+  · exact ⟨0, fun η ↦ by simp [coe_apply_empty Φ]⟩
+  · exact ⟨‖Φ‖, fun η ↦ abs_apply_le_norm Φ hi η⟩
+
+/-- **Georgii Corollary (16.15)(b).** For each `α ∈ 𝓟(E, 𝓔)` the pressure is *strictly* convex on
+the continuous `α`-normalized potentials of `ℬ_Θ`: distinct such potentials cannot both be tangent
+to a common affine function.
+
+Georgii deduces this from (a) and Theorem (2.35): equality in the convexity inequality at one
+interior point of `[Φ, Ψ]` makes `P` affine on the whole segment
+(`Potential.BTheta.mem_subgradientAt_pressure_of_pressure_eq` and
+`Potential.BTheta.pressure_smul_add_smul_eq_of_mem_subgradientAt`), hence `Φ ∼ Ψ` by (a); and an
+`α`-normalized potential whose Hamiltonians are all `𝓣_Λ`-measurable vanishes
+(`Potential.eq_zero_of_isNormalized`, Georgii (2.35)(a)) — the uniform convergence that (2.35)(a)
+requires is automatic on `ℬ_Θ` by
+`Potential.isUniformlyConvergent_of_isAbsolutelySummable`. -/
+theorem pressure_smul_add_smul_lt_of_isNormalized (α : Measure E) [IsProbabilityMeasure α]
+    {Φ Ψ : BTheta (ι → ℤ) E}
+    (hcont : ∀ Λ : Finset (ι → ℤ),
+      Continuous (((Φ : Potential (ι → ℤ) E) - (Ψ : Potential (ι → ℤ) E)).hamiltonian Λ))
+    (hΦn : Potential.IsNormalized α (Φ : Potential (ι → ℤ) E))
+    (hΨn : Potential.IsNormalized α (Ψ : Potential (ι → ℤ) E))
+    (hne : Φ ≠ Ψ) {t : ℝ} (ht0 : 0 < t) (ht1 : t < 1) :
+    pressure ν (t • Φ + (1 - t) • Ψ) < t * pressure ν Φ + (1 - t) * pressure ν Ψ := by
+  have hconv : pressure ν (t • Φ + (1 - t) • Ψ) ≤ t * pressure ν Φ + (1 - t) * pressure ν Ψ :=
+    (convexOn_pressure ν).2 (Set.mem_univ Φ) (Set.mem_univ Ψ) ht0.le (by linarith) (by ring)
+  rcases lt_or_eq_of_le hconv with h | h
+  · exact h
+  exfalso
+  obtain ⟨L, hL⟩ := subgradientAt_pressure_nonempty ν (t • Φ + (1 - t) • Ψ)
+  obtain ⟨hLΦ, hLΨ⟩ := mem_subgradientAt_pressure_of_pressure_eq ν ht0 ht1 h hL
+  have hequiv : Potential.IsEquivalent (Φ : Potential (ι → ℤ) E) (Ψ : Potential (ι → ℤ) E) :=
+    (isEquivalent_iff_forall_pressure_smul_add_smul_eq ν hcont).2
+      ((exists_mem_subgradientAt_pressure_inter_iff ν).1 ⟨L, hLΦ, hLΨ⟩)
+  have hpot : Potential.IsPotential
+      ((Φ : Potential (ι → ℤ) E) - (Ψ : Potential (ι → ℤ) E)) := Potential.isPotential_sub
+  refine hne (Subtype.ext (funext fun A ↦ ?_))
+  rcases A.eq_empty_or_nonempty with rfl | hA
+  · rw [coe_apply_empty Φ, coe_apply_empty Ψ]
+  refine funext fun η ↦ ?_
+  have h0 : ((Φ : Potential (ι → ℤ) E) - (Ψ : Potential (ι → ℤ) E)) A η = 0 :=
+    Potential.eq_zero_of_isNormalized α
+      (fun B ↦ by
+        obtain ⟨M₁, hM₁⟩ := exists_forall_abs_coe_apply_le Φ B
+        obtain ⟨M₂, hM₂⟩ := exists_forall_abs_coe_apply_le Ψ B
+        exact ⟨M₁ + M₂, fun ζ ↦ (abs_sub _ _).trans (add_le_add (hM₁ ζ) (hM₂ ζ))⟩)
+      (Potential.IsNormalized.sub α (exists_forall_abs_coe_apply_le Φ)
+        (exists_forall_abs_coe_apply_le Ψ) hΦn hΨn)
+      Potential.isUniformlyConvergent_of_isAbsolutelySummable
+      (fun Λ ↦ (measurable_cylinderEvents_iff_dependsOn.1 (hequiv Λ)).2) hA η
+  have h1 : (Φ : Potential (ι → ℤ) E) A η - (Ψ : Potential (ι → ℤ) E) A η = 0 := h0
+  linarith
+
+/-- **Georgii Corollary (16.16).** If `μ ∈ 𝒢_Θ(Φ)` and `v ∈ 𝒢_Θ(Ψ)` give the same specific energy
+to `Φ - Ψ`, then `Φ ∼ Ψ`.
+
+Tangency of `j(μ)` at `Φ` and of `j(v)` at `Ψ` (Theorem (16.14)) gives
+`2P(½Φ + ½Ψ) - P(Φ) - P(Ψ) ≥ ½⟨μ, Φ - Ψ⟩ + ½⟨v, Ψ - Φ⟩ = 0`, and convexity forces equality, so
+`P` is affine on `[Φ, Ψ]`. In particular a potential in `ℬ_Θ` is determined up to equivalence by
+the specific energies it and its competitors receive from their own Gibbs measures. -/
+theorem isEquivalent_of_specificEnergy_sub_eq {Φ Ψ : BTheta (ι → ℤ) E}
+    (hcont : ∀ Λ : Finset (ι → ℤ),
+      Continuous (((Φ : Potential (ι → ℤ) E) - (Ψ : Potential (ι → ℤ) E)).hamiltonian Λ))
+    {μ v : Measure ((ι → ℤ) → E)}
+    (hμ : μ ∈ invariantG (gibbsSpecificationOfAbsolutelySummable
+      (Φ := (Φ : Potential (ι → ℤ) E)) ν 1) (shiftGroup (ι → ℤ) E))
+    (hv : v ∈ invariantG (gibbsSpecificationOfAbsolutelySummable
+      (Φ := (Ψ : Potential (ι → ℤ) E)) ν 1) (shiftGroup (ι → ℤ) E))
+    (henergy : (Φ : Potential (ι → ℤ) E).specificEnergy μ
+        - (Ψ : Potential (ι → ℤ) E).specificEnergy μ
+      = (Φ : Potential (ι → ℤ) E).specificEnergy v
+        - (Ψ : Potential (ι → ℤ) E).specificEnergy v) :
+    Potential.IsEquivalent (Φ : Potential (ι → ℤ) E) (Ψ : Potential (ι → ℤ) E) := by
+  have hprobμ : IsProbabilityMeasure μ := hμ.1.1
+  have hprobv : IsProbabilityMeasure v := hv.1.1
+  have hLμ := mem_subgradientAt_pressure_of_mem_invariantG ν hμ
+  have hLv := mem_subgradientAt_pressure_of_mem_invariantG ν hv
+  set M : BTheta (ι → ℤ) E := (2 : ℝ)⁻¹ • Φ + (1 - (2 : ℝ)⁻¹) • Ψ with hM
+  have h1 : specificEnergyFunctional μ (M - Φ) ≤ pressure ν M - pressure ν Φ := by
+    have := mem_subgradientAt.1 hLμ (M - Φ)
+    rwa [add_sub_cancel] at this
+  have h2 : specificEnergyFunctional v (M - Ψ) ≤ pressure ν M - pressure ν Ψ := by
+    have := mem_subgradientAt.1 hLv (M - Ψ)
+    rwa [add_sub_cancel] at this
+  have hMΦ : M - Φ = (2 : ℝ)⁻¹ • (Ψ - Φ) := by rw [hM]; module
+  have hMΨ : M - Ψ = (2 : ℝ)⁻¹ • (Φ - Ψ) := by rw [hM]; module
+  have e1 : specificEnergyFunctional μ (M - Φ)
+      = (2 : ℝ)⁻¹ * ((Φ : Potential (ι → ℤ) E).specificEnergy μ
+          - (Ψ : Potential (ι → ℤ) E).specificEnergy μ) := by
+    rw [hMΦ, _root_.map_smul, smul_eq_mul, _root_.map_sub, specificEnergyFunctional_apply,
+      specificEnergyFunctional_apply]
+    ring
+  have e2 : specificEnergyFunctional v (M - Ψ)
+      = (2 : ℝ)⁻¹ * ((Ψ : Potential (ι → ℤ) E).specificEnergy v
+          - (Φ : Potential (ι → ℤ) E).specificEnergy v) := by
+    rw [hMΨ, _root_.map_smul, smul_eq_mul, _root_.map_sub, specificEnergyFunctional_apply,
+      specificEnergyFunctional_apply]
+    ring
+  have hconv : pressure ν M ≤ (2 : ℝ)⁻¹ * pressure ν Φ + (1 - (2 : ℝ)⁻¹) * pressure ν Ψ :=
+    (convexOn_pressure ν).2 (Set.mem_univ Φ) (Set.mem_univ Ψ) (by norm_num) (by norm_num)
+      (by ring)
+  have hmid : pressure ν M = (2 : ℝ)⁻¹ * pressure ν Φ + (1 - (2 : ℝ)⁻¹) * pressure ν Ψ := by
+    rw [e1] at h1
+    rw [e2] at h2
+    norm_num at hconv ⊢
+    linarith
+  obtain ⟨L, hL⟩ := subgradientAt_pressure_nonempty ν M
+  obtain ⟨hLΦ, hLΨ⟩ := mem_subgradientAt_pressure_of_pressure_eq ν (t := (2 : ℝ)⁻¹)
+    (by norm_num) (by norm_num) hmid hL
+  refine (isEquivalent_iff_forall_pressure_smul_add_smul_eq ν hcont).2 ?_
+  exact (exists_mem_subgradientAt_pressure_inter_iff ν).1 ⟨L, hLΦ, hLΨ⟩
+
+end GibbsAffine
+
+/-! ### Georgii Corollary (16.17): the pressure in the Dobrushin regime -/
+
+section DobrushinRegime
+
+variable {ι E : Type*} [Fintype ι] [DecidableEq ι] [MeasurableSpace E] [StandardBorelSpace E]
+  (ν : Measure E) [IsProbabilityMeasure ν]
+
+variable (ι E) in
+/-- **Georgii's region `𝒟`** of (8.36)/§16.2: the potentials of `ℬ_Θ` whose norm
+`‖Φ‖ = ∑_{A ∋ 0} |A| ‖Φ_A‖` — `MeasureTheory.GibbsMeasure.Dobrushin.cardNormAt` — is `< 1`. On
+`𝒟` the Gibbsian specification satisfies Dobrushin's condition, by Proposition (8.8). -/
+def dobrushinRegion : Set (BTheta (ι → ℤ) E) :=
+  {Φ | Dobrushin.cardNormAt (Φ : Potential (ι → ℤ) E) 0 < 1}
+
+variable {ν} {Φ : BTheta (ι → ℤ) E}
+
+omit [Fintype ι] [DecidableEq ι] [StandardBorelSpace E] in
+lemma mem_dobrushinRegion_iff :
+    Φ ∈ dobrushinRegion ι E ↔ Dobrushin.cardNormAt (Φ : Potential (ι → ℤ) E) 0 < 1 := Iff.rfl
+
+variable (ν) in
+omit [DecidableEq ι] [StandardBorelSpace E] in
+/-- **Georgii (8.8) on `𝒟`.** A potential of `ℬ_Θ` with `‖Φ‖ < 1` has a Gibbsian specification
+satisfying Dobrushin's condition; shift invariance makes the norm (8.36) the same at every
+site. -/
+theorem isDobrushin_gibbsSpecification_of_mem_dobrushinRegion (hΦ : Φ ∈ dobrushinRegion ι E) :
+    Dobrushin.IsDobrushin (gibbsSpecificationOfAbsolutelySummable
+      (Φ := (Φ : Potential (ι → ℤ) E)) ν 1) :=
+  Dobrushin.isDobrushin_gibbsSpecification_of_cardNormAt_le ν hΦ
+    fun i ↦ le_of_eq (Dobrushin.cardNormAt_eq_of_isShiftInvariant (isShiftInvariant Φ) i)
+
+variable (ν) in
+omit [DecidableEq ι] in
+/-- **Georgii's `𝒢(Φ) = 𝒢_Θ(Φ) = {μ_Φ}` on `𝒟`** (Theorem (8.7) with Proposition (8.8), and
+Corollary (5.16) for the shift invariance of the unique Gibbs measure): a potential of `ℬ_Θ` with
+`‖Φ‖ < 1` has exactly one shift-invariant Gibbs measure. -/
+theorem exists_invariantG_eq_singleton_of_mem_dobrushinRegion [Nonempty E]
+    (hΦ : Φ ∈ dobrushinRegion ι E) :
+    ∃ μ : Measure ((ι → ℤ) → E), invariantG (gibbsSpecificationOfAbsolutelySummable
+      (Φ := (Φ : Potential (ι → ℤ) E)) ν 1) (shiftGroup (ι → ℤ) E) = {μ} := by
+  have hd := isDobrushin_gibbsSpecification_of_mem_dobrushinRegion ν hΦ
+  obtain ⟨μ, hμ⟩ := invariantG_gibbsSpecification_shiftGroup_nonempty
+    (Φ := (Φ : Potential (ι → ℤ) E)) ν 1 (isShiftInvariant Φ)
+  refine ⟨μ, Set.Subsingleton.eq_singleton_of_mem ?_ hμ⟩
+  intro μ₁ hμ₁ μ₂ hμ₂
+  have h₁ : IsProbabilityMeasure μ₁ := hμ₁.1.1
+  have h₂ : IsProbabilityMeasure μ₂ := hμ₂.1.1
+  have hGP : ∀ σ : Measure ((ι → ℤ) → E), ∀ _ : IsProbabilityMeasure σ,
+      σ ∈ invariantG (gibbsSpecificationOfAbsolutelySummable
+        (Φ := (Φ : Potential (ι → ℤ) E)) ν 1) (shiftGroup (ι → ℤ) E) →
+      (⟨σ, ‹_›⟩ : ProbabilityMeasure ((ι → ℤ) → E)) ∈
+        GP (gibbsSpecificationOfAbsolutelySummable (Φ := (Φ : Potential (ι → ℤ) E)) ν 1) :=
+    fun σ _ hσ ↦ hσ.1.2
+  exact congrArg (fun p : ProbabilityMeasure ((ι → ℤ) → E) ↦ (p : Measure ((ι → ℤ) → E)))
+    (Dobrushin.subsingleton_GP_of_isDobrushin hd.isQuasilocal hd (hGP μ₁ h₁ hμ₁) (hGP μ₂ h₂ hμ₂))
+
+variable (ν) in
+/-- **Georgii Theorem (16.14) at a potential with a unique shift-invariant Gibbs measure.**
+`∂P(Φ) = {j(μ)}`. -/
+theorem subgradientAt_pressure_eq_singleton_of_invariantG_eq_singleton
+    {μ : Measure ((ι → ℤ) → E)} [IsProbabilityMeasure μ]
+    (hμ : invariantG (gibbsSpecificationOfAbsolutelySummable
+      (Φ := (Φ : Potential (ι → ℤ) E)) ν 1) (shiftGroup (ι → ℤ) E) = {μ}) :
+    subgradientAt (pressure ν) Φ = {specificEnergyFunctional μ} := by
+  have hmem : μ ∈ invariantG (gibbsSpecificationOfAbsolutelySummable
+      (Φ := (Φ : Potential (ι → ℤ) E)) ν 1) (shiftGroup (ι → ℤ) E) := by
+    rw [hμ]; exact rfl
+  refine Set.eq_singleton_iff_unique_mem.2
+    ⟨mem_subgradientAt_pressure_of_mem_invariantG ν hmem, fun L hL ↦ ?_⟩
+  obtain ⟨μ', hμ'f, hμ'G⟩ := exists_mem_fieldsOf_mem_invariantG ν hL
+  have hμ'μ : μ' = μ := by rw [hμ] at hμ'G; exact hμ'G
+  have hprob' : IsProbabilityMeasure μ' := hμ'G.1.1
+  refine LinearMap.ext fun Ψ ↦ ?_
+  rw [specificEnergyFunctional_apply, ← hμ'μ, hμ'f.2 Ψ, neg_neg]
+
+variable (ν) in
+/-- **Georgii Corollary (16.17), the first-derivative formula.** For a potential `Φ` of `ℬ_Θ` in
+the region `𝒟 = {‖Φ‖ < 1}` of (8.36), the pressure is Gateaux differentiable at `Φ` and
+`∂/∂t P(Φ + tΨ)|_{t=0} = −⟨μ_Φ, Ψ⟩` for every direction `Ψ ∈ ℬ_Θ`, where `μ_Φ` is the unique
+Gibbs measure of `Φ`.
+
+Georgii proves this by combining Theorem (16.14) — which identifies `∂P(Φ)` with `j(𝒢_Θ(Φ))` —
+with (8.7)/(8.8), which make `𝒢_Θ(Φ)` a singleton on `𝒟`, and Remark (16.6)(2), which turns a
+one-point subgradient into equal one-sided directional derivatives.
+
+Georgii's Corollary (16.17) asserts more: that `P` is *twice* continuously differentiable on `𝒟`
+in the directions of `ℬ̃_Θ`, with second derivative `∑_i [μ_Φ(f_Ψ̃ f_Ψ ∘ θ_i) − μ_Φ(f_Ψ̃)μ_Φ(f_Ψ)]`.
+That half rests on Corollary (8.37) — differentiability of `Φ ↦ μ_Φ(g)` on `𝒟` — which in turn
+rests on the covariance estimate of Proposition (8.34); neither is in this library, and neither
+follows from what is. -/
+theorem leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_of_mem_dobrushinRegion [Nonempty E]
+    (hΦ : Φ ∈ dobrushinRegion ι E) :
+    ∃ μ : Measure ((ι → ℤ) → E), invariantG (gibbsSpecificationOfAbsolutelySummable
+        (Φ := (Φ : Potential (ι → ℤ) E)) ν 1) (shiftGroup (ι → ℤ) E) = {μ} ∧
+      ∀ Ψ : BTheta (ι → ℤ) E,
+        leftDirDeriv (pressure ν) Φ Ψ = -(Ψ : Potential (ι → ℤ) E).specificEnergy μ ∧
+          rightDirDeriv (pressure ν) Φ Ψ = -(Ψ : Potential (ι → ℤ) E).specificEnergy μ := by
+  obtain ⟨μ, hμ⟩ := exists_invariantG_eq_singleton_of_mem_dobrushinRegion ν hΦ
+  have hmem : μ ∈ invariantG (gibbsSpecificationOfAbsolutelySummable
+      (Φ := (Φ : Potential (ι → ℤ) E)) ν 1) (shiftGroup (ι → ℤ) E) := by
+    rw [hμ]; exact rfl
+  have hprob : IsProbabilityMeasure μ := hmem.1.1
+  refine ⟨μ, hμ, fun Ψ ↦ ?_⟩
+  exact leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_of_subgradientAt_eq_singleton ν
+    (subgradientAt_pressure_eq_singleton_of_invariantG_eq_singleton ν hμ) Ψ
+
+end DobrushinRegime
+
 
 end BTheta
 

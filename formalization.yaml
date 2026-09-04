@@ -320,6 +320,14 @@ status:
       file: "GibbsMeasure/Specification/PhaseTransition.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "Potential.BTheta.pressure_smul_add_smul_lt_of_isNormalized"
+      file: "GibbsMeasure/Specification/PhaseTransition.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "Potential.isEquivalent_iff_exists_common_isGibbsMeasure"
+      file: "GibbsMeasure/Potential/Equivalence.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.isCompact_setOf_le_specificEntropy"
       file: "GibbsMeasure/Specification/SpecificEntropy.lean"
       sorry_count: 0
@@ -1149,8 +1157,16 @@ alignment:
         G_Theta(Phi) is a singleton, which for finite E happens on a dense G_delta.
         Also: B_Theta is separable for finite E (rational potentials over finitely many translate
         classes), so the Mazur corollary of Section 16.1 no longer carries that hypothesis.
-        Not formalized: (16.15)-(16.16), which need the converse half of Theorem (2.34) and (2.35),
-        and (16.17), which needs Corollary (8.37).
+        (16.15)(a),(b) and (16.16): the pressure is affine on the segment between two potentials
+        exactly when they are equivalent, and strictly convex between distinct normalised ones;
+        this needed the converse half of Theorem (2.34), now proved in Potential/Equivalence.lean
+        ((ii),(iii),(iv) => (i), the last under G(Phi) union G(Psi) nonempty). (16.17), first
+        derivative: on the Dobrushin region D = {sum_{A ni 0} |A| ||Phi_A|| < 1} the shift-invariant
+        Gibbs measure is unique and the pressure is Gateaux differentiable with derivative
+        -<mu_Phi, Psi>; Georgii (8.36), the comparison of that norm with the interaction strength,
+        is proved in Specification/Dobrushin.lean. Not formalized: the second-derivative half of
+        (16.17), which is Corollary (8.37) and rests on Proposition (8.34), the covariance bound
+        by the Dobrushin interdependence matrix; neither is in the tree.
     - source: "Comment (11.18)(2), Corollary (11.19)"
       lean: "MeasureTheory.GibbsMeasure.Markov.eq_empty_G_transferSpecification_randomWalk"
       module: "GibbsMeasure/Model/BoundaryLawExamples.lean"

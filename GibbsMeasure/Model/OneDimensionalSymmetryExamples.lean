@@ -101,7 +101,7 @@ Phase Transitions*, §9.1, on top of `GibbsMeasure/Model/OneDimensionalSymmetry.
   computation `λ_Λ h_Λ ≤ λ(e^{-u})^{|Λ|}`, by integrating out the sites of `Λ` from the top
   (`lmarginal_prod_translate_eq_pow`, Mathlib's `lmarginal`).
 * `pairDefectBound_gradientPotential`: `C(Φ, τ) = c(u) = sup_x [u(x+1) + u(x−1) − 2u(x)]₊` for
-  the spin translation `τ ω = (ω_i + 1)_i` (`spinTranslation`).
+  the spin translation `τ ω = (ω_i + 1)_i` (`constSpinTranslation`).
 * `G_gradientPotential_eq_empty`: **Example (9.17)**: `𝒢(Φ) = ∅` when `λ(e^{-u}) < ∞`,
   `c(u) < ∞` and `u(x + k) → ∞`; `G_gaussianGradient_eq_empty` is the case `E = ℝ`, Lebesgue
   measure, `u(x) = β x²` (`β > 0`), where `λ(e^{-u}) = √(π/β)` is finite by Mathlib's Gaussian
@@ -1525,35 +1525,35 @@ def gradientPotential (u : E → ℝ) : ℤ → ℤ → E → E → ℝ :=
   fun i j x y ↦ if j = i + 1 then u (y - x) else 0
 
 variable (E) in
-/-- Georgii (9.17): the spin translation `τ ω = (ω_i + c)_i`. -/
-def spinTranslation (c : E) : Transformation ℤ E where
-  sites := Equiv.refl ℤ
-  spin _ := MeasurableEquiv.addRight c
+/-- Georgii (9.17): the spin translation `τ ω = (ω_i + c)_i`, the constant case of the general
+`MeasureTheory.GibbsMeasure.spinTranslation` of `Prereqs/Transformation.lean`. -/
+abbrev constSpinTranslation (c : E) : Transformation ℤ E := spinTranslation fun _ : ℤ ↦ c
 
 variable (c : E)
 
 omit [MeasurableSub₂ E] in
-lemma isPureSpin_spinTranslation : (spinTranslation E c).IsPureSpin := rfl
+lemma isPureSpin_constSpinTranslation : (constSpinTranslation E c).IsPureSpin := rfl
 
 omit [MeasurableSub₂ E] in
-lemma spinTranslation_spin_apply (i : ℤ) (x : E) : (spinTranslation E c).spin i x = x + c := rfl
+lemma constSpinTranslation_spin_apply (i : ℤ) (x : E) :
+    (constSpinTranslation E c).spin i x = x + c := rfl
 
 omit [MeasurableSub₂ E] in
-lemma spinTranslation_spin_iterate (i : ℤ) (k : ℕ) (x : E) :
-    ((spinTranslation E c).spin i)^[k] x = x + k • c := by
+lemma constSpinTranslation_spin_iterate (i : ℤ) (k : ℕ) (x : E) :
+    ((constSpinTranslation E c).spin i)^[k] x = x + k • c := by
   induction k with
   | zero => simp
   | succ k ih =>
-    rw [Function.iterate_succ_apply', ih, spinTranslation_spin_apply, succ_nsmul, add_assoc]
+    rw [Function.iterate_succ_apply', ih, constSpinTranslation_spin_apply, succ_nsmul, add_assoc]
 
 variable (u : E → ℝ)
 
 omit [MeasurableSub₂ E] in
 /-- Georgii (9.17): `Φ` is invariant under the spin translation. -/
-theorem map_spinTranslation_gradientPotential :
-    Potential.map (spinTranslation E c) (pair (gradientPotential u)) = pair (gradientPotential u) :=
-  (map_pair_eq_iff _ (isPureSpin_spinTranslation c)).2 fun i j _ x y ↦ by
-    simp only [gradientPotential, spinTranslation_spin_apply, add_sub_add_right_eq_sub]
+theorem map_constSpinTranslation_gradientPotential :
+    Potential.map (constSpinTranslation E c) (pair (gradientPotential u)) = pair (gradientPotential u) :=
+  (map_pair_eq_iff _ (isPureSpin_constSpinTranslation c)).2 fun i j _ x y ↦ by
+    simp only [gradientPotential, constSpinTranslation_spin_apply, add_sub_add_right_eq_sub]
 
 omit [MeasurableAdd E] in
 theorem isPotential_pair_gradientPotential (hu : Measurable u) :
@@ -1711,7 +1711,7 @@ def quadDefect : ℝ≥0∞ := ⨆ x : E, ENNReal.ofReal (u (x + c) + u (x - c) 
 omit [MeasurableSub₂ E] in
 /-- Georgii (9.17): `J(i, i+1) = c(u)` and `J(i, j) = 0` for `j ≠ i + 1`. -/
 lemma pairDefect_gradientPotential (i j : ℤ) :
-    pairDefect (gradientPotential u) (spinTranslation E c) i j =
+    pairDefect (gradientPotential u) (constSpinTranslation E c) i j =
       if j = i + 1 then quadDefect c u else 0 := by
   unfold pairDefect quadDefect
   split_ifs with hj
@@ -1719,7 +1719,7 @@ lemma pairDefect_gradientPotential (i j : ℤ) :
         u ((y - x) + c) + u ((y - x) - c) - 2 * u (y - x) := fun x y ↦ by
       rw [show y - (x + c) = y - x - c by abel, show y + c - x = y - x + c by abel]
       ring
-    simp only [gradientPotential, ite_eq_left hj, spinTranslation_spin_apply, key]
+    simp only [gradientPotential, ite_eq_left hj, constSpinTranslation_spin_apply, key]
     refine le_antisymm (iSup₂_le fun x y ↦
       le_iSup (fun z ↦ ENNReal.ofReal (u (z + c) + u (z - c) - 2 * u z)) (y - x))
       (iSup_le fun z ↦ ?_)
@@ -1730,7 +1730,7 @@ lemma pairDefect_gradientPotential (i j : ℤ) :
 
 omit [MeasurableSub₂ E] in
 theorem cutSum_pairDefect_gradientPotential (n : ℤ) :
-    cutSum (pairDefect (gradientPotential u) (spinTranslation E c)) n = quadDefect c u := by
+    cutSum (pairDefect (gradientPotential u) (constSpinTranslation E c)) n = quadDefect c u := by
   unfold cutSum
   rw [tsum_eq_single (n, n + 1)]
   · simp [pairDefect_gradientPotential]
@@ -1745,7 +1745,7 @@ theorem cutSum_pairDefect_gradientPotential (n : ℤ) :
 omit [MeasurableSub₂ E] in
 /-- **Georgii (9.17): `C(Φ, τ) = c(u)`.** -/
 theorem pairDefectBound_gradientPotential :
-    pairDefectBound (gradientPotential u) (spinTranslation E c) = quadDefect c u := by
+    pairDefectBound (gradientPotential u) (constSpinTranslation E c) = quadDefect c u := by
   simp only [pairDefectBound, cutSum_pairDefect_gradientPotential, iSup_const]
 
 /-- **Georgii, Example (9.17).** Let `S = ℤ`, `E` an additive group of spins with a
@@ -1764,12 +1764,12 @@ theorem G_gradientPotential_eq_empty [StandardBorelSpace E] (ν : Measure E) [Si
       (isSigmaFiniteLambdaAdmissible_gradientPotential u ν hu hu0 hν)) = ∅ := by
   have := isPotential_pair_gradientPotential u hu
   have := isFiniteRange_pair_gradientPotential u
-  have hsym := (map_pair_eq_iff _ (isPureSpin_spinTranslation c)).1
-    (map_spinTranslation_gradientPotential c u)
+  have hsym := (map_pair_eq_iff _ (isPureSpin_constSpinTranslation c)).1
+    (map_constSpinTranslation_gradientPotential c u)
   have hf : Measurable fun x : E ↦ ENNReal.ofReal (Real.exp (-u x)) :=
     (Real.measurable_exp.comp hu.neg).ennreal_ofReal
   refine G_eq_empty_of_pairDefectBound_ne_top_of_dissipative ν zero_le_one _
-    (isPureSpin_spinTranslation c) (fun _ ↦ measurePreserving_add_right ν c) hsym
+    (isPureSpin_constSpinTranslation c) (fun _ ↦ measurePreserving_add_right ν c) hsym
     (by rw [pairDefectBound_gradientPotential]; exact hc) hf (M := 1) ENNReal.one_ne_top
     (fun x ↦ ENNReal.ofReal_le_one.2 (Real.exp_le_one_iff.2 (neg_nonpos.2 (hu0 x)))) ?_ 0 ?_
   · intro h0
@@ -1778,7 +1778,7 @@ theorem G_gradientPotential_eq_empty [StandardBorelSpace E] (ν : Measure E) [Si
       h0.mono fun x hx ↦ (ENNReal.ofReal_pos.2 (Real.exp_pos _)).ne' hx
     exact NeZero.ne ν (ae_eq_bot.1 (Filter.eventually_false_iff_eq_bot.1 this))
   · refine Filter.Eventually.of_forall fun x ↦ ?_
-    simp only [spinTranslation_spin_iterate]
+    simp only [constSpinTranslation_spin_iterate]
     have := ENNReal.tendsto_ofReal (Real.tendsto_exp_neg_atTop_nhds_zero.comp (hdiv x))
     simpa [Function.comp_def] using this
 

@@ -8,6 +8,7 @@ module
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Tanh
 public import GibbsMeasure.Potential.Existence
 public import GibbsMeasure.Potential.FiniteReference
+public import GibbsMeasure.Potential.Transformation
 public import GibbsMeasure.Specification.Oscillation
 public import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 public import Mathlib.MeasureTheory.Integral.Layercake
@@ -24,6 +25,10 @@ measure `λ`, a `λ`-admissible potential — `Potential.IsSummable` plus finite
 functions, with no absolute-summability restriction on the self-potential — and
 `sup_i |β| ∑_{A ∋ i} (|A| − 1) δ(Φ_A) < 2`. The probability/absolutely-summable case is the
 corollary `Dobrushin.isDobrushin_gibbsSpecification`.
+
+Georgii's norm (8.36) `‖Φ‖ = ∑_{A ∋ i} |A| ‖Φ_A‖` and the region `𝒟 = {‖Φ‖ < 1}` of §8.2 are
+`Dobrushin.cardNormAt` and `Dobrushin.isDobrushin_gibbsSpecification_of_cardNormAt_le`: on `𝒟`
+the criterion (8.8) holds with `c = 2‖Φ‖ < 2`.
 
 The Ising instances live in `GibbsMeasure/Model/IsingDobrushin.lean`: a `Specification/` file
 states criteria, a `Model/` file applies them.
@@ -1441,6 +1446,97 @@ theorem isDobrushin_gibbsSpecification_of_iSup_lt
     (fun i ↦ le_iSup (fun i ↦ ENNReal.ofReal |β| * interactionStrength Φ i) i)
 
 end Prop88bProb
+
+
+/-! ### Georgii (8.36): the norm `‖Φ‖ = ∑_{A ∋ i} |A| ‖Φ_A‖` and the region `𝒟` -/
+
+section CardNorm
+
+variable {Φ : Potential S E}
+
+/-- **Georgii (8.36).** `‖Φ‖ᵢ' = ∑_{A ∋ i} |A| ‖Φ_A‖`. Georgii's Banach space `ℬ̃_Θ` of §8.2 is
+the space of shift-invariant potentials with `‖Φ‖ = ‖Φ‖₀' < ∞`, and his region of Dobrushin
+uniqueness is `𝒟 = {Φ ∈ ℬ̃_Θ : ‖Φ‖ < 1}`. -/
+def cardNormAt (Φ : Potential S E) (i : S) : ℝ≥0∞ :=
+  ∑' A : Finset S,
+    {A : Finset S | i ∈ A}.indicator (fun A ↦ (A.card : ℝ≥0∞) * ⨆ η, ‖Φ A η‖ₑ) A
+
+/-- Georgii (2.12) is dominated by Georgii (8.36): `‖Φ‖ᵢ ≤ ‖Φ‖ᵢ'`, since `|A| ≥ 1` for `A ∋ i`.
+In particular a potential of finite `(8.36)`-norm is absolutely summable. -/
+lemma normAt_le_cardNormAt (Φ : Potential S E) (i : S) : Φ.normAt i ≤ cardNormAt Φ i := by
+  rw [Potential.normAt, cardNormAt]
+  refine ENNReal.tsum_le_tsum fun A ↦ ?_
+  by_cases h : i ∈ A
+  · rw [Set.indicator_of_mem (show A ∈ {A : Finset S | i ∈ A} from h),
+      Set.indicator_of_mem (show A ∈ {A : Finset S | i ∈ A} from h)]
+    exact le_mul_of_one_le_left zero_le
+      (by exact_mod_cast Nat.one_le_iff_ne_zero.2 (Finset.card_ne_zero_of_mem h))
+  · rw [Set.indicator_of_notMem (show A ∉ {A : Finset S | i ∈ A} from h)]
+    exact bot_le
+
+/-- The interaction strength of Georgii (8.8) is dominated by twice the norm (8.36):
+`∑_{A ∋ i} (|A| − 1) δ(Φ_A) ≤ 2 ∑_{A ∋ i} |A| ‖Φ_A‖`. -/
+lemma interactionStrength_le_two_mul_cardNormAt (Φ : Potential S E) (i : S) :
+    interactionStrength Φ i ≤ 2 * cardNormAt Φ i := by
+  rw [interactionStrength, cardNormAt, ← ENNReal.tsum_mul_left]
+  refine ENNReal.tsum_le_tsum fun A ↦ ?_
+  by_cases h : i ∈ A
+  · rw [Set.indicator_of_mem (show A ∈ {A : Finset S | i ∈ A} from h),
+      Set.indicator_of_mem (show A ∈ {A : Finset S | i ∈ A} from h)]
+    calc ((A.card - 1 : ℕ) : ℝ≥0∞) * osc (Φ A)
+        ≤ (A.card : ℝ≥0∞) * (2 * ⨆ η, ‖Φ A η‖ₑ) :=
+          mul_le_mul' (by exact_mod_cast Nat.sub_le _ _) (osc_le_two_mul_iSup _)
+      _ = 2 * ((A.card : ℝ≥0∞) * ⨆ η, ‖Φ A η‖ₑ) := by ring
+  · rw [Set.indicator_of_notMem (show A ∉ {A : Finset S | i ∈ A} from h),
+      Set.indicator_of_notMem (show A ∉ {A : Finset S | i ∈ A} from h)]
+    simp
+
+/-- Georgii (8.36) is transported by (5.3), exactly as Georgii (2.12) is
+(`Potential.normAt_map`): `‖τ(Φ)‖'_{τ_* i} = ‖Φ‖ᵢ'`. -/
+theorem cardNormAt_map (τ : Transformation S E) (Φ : Potential S E) (i : S) :
+    cardNormAt (Potential.map τ Φ) (τ.sites i) = cardNormAt Φ i := by
+  rw [cardNormAt, cardNormAt]
+  refine (τ.sites.finsetOrderIso.toEquiv.tsum_eq _).symm.trans (tsum_congr fun A ↦ ?_)
+  change ({B : Finset S | τ.sites i ∈ B}.indicator
+      (fun B ↦ (B.card : ℝ≥0∞) * ⨆ η, ‖Potential.map τ Φ B η‖ₑ))
+    (A.map τ.sites.toEmbedding) = _
+  by_cases h : i ∈ A
+  · rw [Set.indicator_of_mem (show A ∈ {A : Finset S | i ∈ A} from h), Set.indicator_of_mem
+      (show A.map τ.sites.toEmbedding ∈ {B : Finset S | τ.sites i ∈ B} by
+        simpa [Finset.mem_map_equiv] using h)]
+    simp only [Potential.map_apply, Finset.map_symm_map, Finset.card_map]
+    exact congrArg _ (τ.toMeasurableEquiv.symm.toEquiv.iSup_comp (g := fun η ↦ ‖Φ A η‖ₑ))
+  · rw [Set.indicator_of_notMem (show A ∉ {A : Finset S | i ∈ A} from h),
+      Set.indicator_of_notMem
+        (show A.map τ.sites.toEmbedding ∉ {B : Finset S | τ.sites i ∈ B} by
+          simpa [Finset.mem_map_equiv] using h)]
+
+/-- Georgii (8.36) is constant along the sites for a shift-invariant potential, so on `ℬ̃_Θ` it
+is the single number `‖Φ‖ = ‖Φ‖₀'`. -/
+lemma cardNormAt_eq_of_isShiftInvariant {S : Type*} [AddGroup S] {Φ : Potential S E}
+    (hΦ : Φ.IsShiftInvariant) (i : S) : cardNormAt Φ i = cardNormAt Φ 0 := by
+  have h := cardNormAt_map (shift E i) Φ 0
+  rw [hΦ i] at h
+  simpa [shift] using h
+
+variable [Countable S] [Potential.IsPotential Φ] [Potential.IsAbsolutelySummable Φ]
+  (ν : Measure E) [IsProbabilityMeasure ν]
+
+/-- **Georgii's region `𝒟` of §8.2.** If `‖Φ‖ᵢ' = ∑_{A ∋ i} |A| ‖Φ_A‖ ≤ c < 1` at every site,
+then the Gibbsian specification of `Φ` (at inverse temperature `1`) satisfies Dobrushin's
+condition: `∑_{A ∋ i} (|A| − 1) δ(Φ_A) ≤ 2c < 2`, which is the hypothesis of Proposition (8.8). -/
+theorem isDobrushin_gibbsSpecification_of_cardNormAt_le {c : ℝ≥0∞} (hc : c < 1)
+    (hΦ : ∀ i, cardNormAt Φ i ≤ c) :
+    IsDobrushin (Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν 1) := by
+  refine isDobrushin_gibbsSpecification ν 1 (c := 2 * c) ?_ fun i ↦ ?_
+  · calc (2 : ℝ≥0∞) * c < 2 * 1 :=
+        ENNReal.mul_right_strictMono (by norm_num) (by norm_num) hc
+      _ = 2 := mul_one 2
+  · rw [abs_one, ENNReal.ofReal_one, one_mul]
+    exact (interactionStrength_le_two_mul_cardNormAt Φ i).trans
+      (mul_le_mul' le_rfl (hΦ i))
+
+end CardNorm
 
 
 end MeasureTheory.GibbsMeasure.Dobrushin

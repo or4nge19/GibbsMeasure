@@ -26,10 +26,12 @@ Definition (13.18) is vacuous, and `γ^{J,h}` is `Potential.gaussianSpecificatio
 
 ## Main definitions
 
-* `MeasureTheory.GibbsMeasure.spinTranslation m`: **Georgii's `τ^m`** (the display opening §13.2),
-  `τ^m ω = ω + m`, as a `Transformation S ℝ` (5.1) — the sites are fixed and the spin at `i` is
-  translated by `m_i`. `Specification.map` (5.4) and Georgii (5.10)
-  (`Specification.map_mem_G_map`) then apply verbatim.
+Georgii's `τ^m` (the display opening §13.2), `τ^m ω = ω + m`, is
+`MeasureTheory.GibbsMeasure.spinTranslation m : Transformation S ℝ` (5.1) — the sites are fixed
+and the spin at `i` is translated by `m_i` — defined in general in
+`GibbsMeasure/Prereqs/Transformation.lean`. `Specification.map` (5.4) and Georgii (5.10)
+(`Specification.map_mem_G_map`) then apply verbatim.
+
 * `Potential.gaussianRowForm J hFin i`: **Georgii's `X_i = ∑_{j ∈ S} J(i,j) σ_j`** in the proof of
   Theorem (13.22); a finite sum, since `J` has finite row support.
 
@@ -134,32 +136,6 @@ open Finset Function MeasureTheory ProbabilityTheory Matrix Set
 open scoped ENNReal NNReal
 
 noncomputable section
-
-namespace MeasureTheory.GibbsMeasure
-
-/-! ## Georgii's spin translation `τ^m` -/
-
-variable {S : Type*}
-
-/-- **Georgii's spin translation `τ^m`** (the display opening §13.2): `τ^m ω = ω + m`, as a
-transformation (5.1) of the configuration space acting trivially on the sites and by the
-translation `x ↦ x + m_i` on the spin at site `i`. -/
-def spinTranslation (m : S → ℝ) : Transformation S ℝ where
-  sites := Equiv.refl S
-  spin i := MeasurableEquiv.addRight (m i)
-
-@[simp] lemma spinTranslation_toFun (m ω : S → ℝ) : (spinTranslation m).toFun ω = ω + m := by
-  funext i
-  simp [Transformation.toFun, spinTranslation]
-
-@[simp] lemma spinTranslation_inv_toFun (m ω : S → ℝ) :
-    (spinTranslation m).inv.toFun ω = ω - m := by
-  funext i
-  simp [Transformation.toFun, Transformation.inv, spinTranslation, sub_eq_add_neg]
-
-@[simp] lemma spinTranslation_sites (m : S → ℝ) : (spinTranslation m).sites = Equiv.refl S := rfl
-
-end MeasureTheory.GibbsMeasure
 
 /-! ## The mean of `γ^{J,h}_Λ` under a spin translation -/
 

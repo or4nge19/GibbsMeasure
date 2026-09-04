@@ -59,3 +59,37 @@
     which by the variational principle characterises $\mathcal G_\Theta(\Phi)$; surjectivity is
     Theorem \ref{thm:gv-16-11} with the attainment of the infimum.
 \end{proof}
+
+\begin{theorem}[Georgii (16.15), (16.16)]
+    \label{thm:gv-16-15}
+    \uses{thm:gv-16-14, thm:equiv-tfae}
+    \lean{Potential.BTheta.isEquivalent_iff_forall_pressure_smul_add_smul_eq, Potential.BTheta.pressure_smul_add_smul_lt_of_isNormalized, Potential.BTheta.isEquivalent_of_specificEnergy_sub_eq}
+    \leanok
+
+    (a) $\Phi \sim \Psi$ iff $P$ is affine on the segment from $\Phi$ to $\Psi$. (b) If $\Phi$ and
+    $\Psi$ are normalised and distinct, $P$ is strictly convex on that segment. (16.16): equality
+    of specific energies on $\mathcal G_\Theta$ forces equivalence.
+\end{theorem}
+\begin{proof}
+    \leanok
+    Affineness at one interior point gives a common tangent functional, hence by Theorem
+    \ref{thm:gv-16-14} a common Gibbs measure, hence equivalence by Theorem \ref{thm:equiv-tfae};
+    normalisation upgrades equivalence to equality.
+\end{proof}
+
+\begin{theorem}[Georgii (16.17), first derivative]
+    \label{thm:gv-16-17}
+    \uses{thm:gv-16-14, thm:dob-uniqueness}
+    \lean{MeasureTheory.GibbsMeasure.Dobrushin.cardNormAt, MeasureTheory.GibbsMeasure.Dobrushin.isDobrushin_gibbsSpecification_of_cardNormAt_le, Potential.BTheta.dobrushinRegion, Potential.BTheta.exists_invariantG_eq_singleton_of_mem_dobrushinRegion, Potential.BTheta.leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_of_mem_dobrushinRegion}
+    \leanok
+
+    On the Dobrushin region $\mathcal D = \{\Phi : \sum_{A \ni 0}\abs{A}\norm{\Phi_A} < 1\}$ the
+    shift-invariant Gibbs measure is unique and $P$ is Gateaux differentiable, with
+    $\frac{d}{dt}P(\Phi + t\Psi)\big|_{t=0} = -\langle\mu_\Phi,\Psi\rangle$.
+\end{theorem}
+\begin{proof}
+    \leanok
+    Georgii (8.36): the norm of $\widetilde{\mathcal B}_\Theta$ dominates the interaction strength,
+    so $\mathcal D$ lies in Dobrushin's regime (8.8) and uniqueness is (8.7); differentiability is
+    Theorem \ref{thm:gv-16-14} with a single tangent functional.
+\end{proof}

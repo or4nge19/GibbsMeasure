@@ -512,7 +512,12 @@ classes are dense. **§16.2** (`GibbsMeasure/Specification/PhaseTransition.lean`
 hypograph of the specific entropy, closed because its level sets are compact; and **(16.14)** — that
 map carries `𝒢_Θ(Φ)` bijectively onto the tangent functionals of the pressure at `Φ`, so the pressure
 is Gateaux differentiable exactly where the shift-invariant Gibbs measure is unique, which for finite
-`E` is a dense `G_δ` of potentials.
+`E` is a dense `G_δ` of potentials. **(16.15)–(16.16)**: the pressure is affine along a segment exactly
+when the endpoints are equivalent potentials, and strictly convex between distinct normalised ones —
+which required the converse half of **Theorem (2.34)**, now proved (`GibbsMeasure/Potential/Equivalence.lean`).
+**(16.17)** in its first-derivative half: on the Dobrushin region the phase is unique and the pressure
+is differentiable with derivative `−⟨μ_Φ, Ψ⟩`. Its second-derivative half is Corollary (8.37), which
+rests on the covariance bound (8.34); neither is in the tree.
 
 **Chapter 9, §9.1** (`GibbsMeasure/Specification/SymmetryInheritance.lean`,
 `GibbsMeasure/Model/OneDimensionalSymmetry.lean`): **Proposition (9.1)** — a symmetry `τ` of `γ`

@@ -520,6 +520,45 @@ lemma siteEquiv_toFun_preimage_coord (e : S ≃ S) (i : S) (B : Set E) :
     (siteEquiv E e).toFun ⁻¹' ((fun ω : S → E ↦ ω i) ⁻¹' B)
       = (fun ω : S → E ↦ ω (e.symm i)) ⁻¹' B := rfl
 
+/-! ### Spin translations -/
+
+section SpinTranslation
+
+variable {S E : Type*} [MeasurableSpace E] [AddGroup E] [MeasurableAdd E]
+
+/-- The **spin translation** by `m : S → E`: the transformation of `S → E` acting trivially on
+the sites and by `x ↦ x + m i` on the spin at site `i`, so `τ^m ω = ω + m`.  Georgii uses it for
+the constant shifts of (6.17)(v) and (9.17) and for the site-dependent translations of §13.2. -/
+def spinTranslation (m : S → E) : Transformation S E where
+  sites := Equiv.refl S
+  spin i := MeasurableEquiv.addRight (m i)
+
+@[simp] lemma spinTranslation_sites (m : S → E) : (spinTranslation m).sites = Equiv.refl S := rfl
+
+@[simp] lemma spinTranslation_spin (m : S → E) (i : S) :
+    (spinTranslation m).spin i = MeasurableEquiv.addRight (m i) := rfl
+
+lemma isPureSpin_spinTranslation_const (c : E) :
+    (spinTranslation (fun _ : S ↦ c)).IsPureSpin := rfl
+
+@[simp] lemma spinTranslation_toFun_apply (m : S → E) (ω : S → E) (i : S) :
+    (spinTranslation m).toFun ω i = ω i + m i := rfl
+
+@[simp] lemma spinTranslation_toFun (m ω : S → E) : (spinTranslation m).toFun ω = ω + m := rfl
+
+@[simp] lemma spinTranslation_inv_toFun_apply (m : S → E) (ω : S → E) (i : S) :
+    (spinTranslation m).inv.toFun ω i = ω i - m i := by
+  simp [Transformation.inv, Transformation.toFun, spinTranslation, sub_eq_add_neg]
+
+@[simp] lemma spinTranslation_inv_toFun (m ω : S → E) :
+    (spinTranslation m).inv.toFun ω = ω - m := by
+  funext i; simp
+
+lemma spinTranslation_toFun_zero (ω : S → E) : (spinTranslation (0 : S → E)).toFun ω = ω := by
+  funext i; simp
+
+end SpinTranslation
+
 variable (E) in
 /-- **Georgii (5.2)(2) as a group homomorphism**: `e ↦ τ_e` from the permutations of the site set
 into the transformation group `T`. -/
