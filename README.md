@@ -497,6 +497,16 @@ the pressure as the logarithm of the Perron root, the specific energy, `k(μ|Φ)
 relative entropy of the one-step conditional distribution against the transition row, and
 `k(μ|Φ) = 0` exactly at the stationary chain.
 
+**Chapter 16, §16.1** (`GibbsMeasure/Specification/TangentFunctional.lean`): Georgii's `ℬ_Θ` as a
+Banach space, on which the pressure is convex and `1`-Lipschitz (16.1), and its tangent-functional
+theory (16.2)–(16.9) — one-sided directional derivatives, the dense-`G_δ` differentiability theorem
+and Mazur's theorem, `f`-bounded and tangent functionals, the attainment criterion, existence of a
+tangent functional in every admissible direction by Hahn–Banach, and Bishop–Phelps. None of this
+convex analysis was in Mathlib, so it lives in the Mathlib layer
+(`GibbsMeasure/Mathlib/Analysis/Convex/TangentFunctional.lean`). Separability of `ℬ_Θ` is a
+hypothesis of the Mazur corollary rather than a theorem; the identification of `𝒢_Θ(Φ)` with the
+tangent functionals of the pressure is §16.2 and is not yet done.
+
 **Chapter 9, §9.1** (`GibbsMeasure/Specification/SymmetryInheritance.lean`,
 `GibbsMeasure/Model/OneDimensionalSymmetry.lean`): **Proposition (9.1)** — a symmetry `τ` of `γ`
 dominated in the sense of (9.2) is a symmetry of every Gibbs measure — for extreme Gibbs measures
@@ -619,7 +629,7 @@ neighbouring spins has a unique infinite component almost surely under every Gib
 Not yet done: Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
 the |𝒢| = 1 half of (11.18)(2), §12.2, §§13.2–13.3, and Chapters
-16–20 (
+17–20 (
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).
 

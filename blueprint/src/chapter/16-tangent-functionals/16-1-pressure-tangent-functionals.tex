@@ -1,0 +1,113 @@
+\section{The pressure and its tangent functionals}
+
+Throughout, $S = \mathbb Z^d$, $\lambda$ is a probability measure on $E$, $\Theta$ the shift group,
+and $\mathcal B_\Theta$ the space of shift-invariant absolutely summable potentials with the norm
+$\norm{\Phi} = \norm{\Phi}_0$ of (2.12).
+
+\begin{definition}[The Banach space $\mathcal B_\Theta$]
+    \label{def:tf-btheta}
+    \uses{def:pot-abs-summable}
+    \lean{Potential.BTheta, Potential.BTheta.instCompleteSpace, Potential.BTheta.pressure}
+    \leanok
+
+    $\mathcal B_\Theta$ is the submodule of shift-invariant potentials in $\mathcal B$, normed by
+    $\norm{\Phi}_0$; it is a Banach space, and $P$ restricts to it.
+\end{definition}
+
+\begin{proposition}[Georgii (16.1)]
+    \label{prop:tf-16-1}
+    \uses{def:tf-btheta, thm:pr-15-30}
+    \lean{Potential.BTheta.convexOn_pressure, Potential.BTheta.lipschitzWith_pressure}
+    \leanok
+
+    $P$ is convex and $1$-Lipschitz on $\mathcal B_\Theta$.
+\end{proposition}
+\begin{proof}
+    \leanok
+    Hölder for the partition functions, and $\abs{P(\Phi) - P(\Psi)} \leq \norm{\Phi - \Psi}$
+    from the finite-volume bound.
+\end{proof}
+
+\begin{definition}[One-sided directional derivatives, Georgii (16.2)]
+    \label{def:tf-16-2}
+    \uses{prop:tf-16-1}
+    \lean{ConvexOn.rightDirDeriv, ConvexOn.leftDirDeriv, ConvexOn.leftDirDeriv_le_rightDirDeriv, ConvexOn.tendsto_dirSlope_rightDirDeriv, ConvexOn.tendsto_dirSlope_leftDirDeriv, Potential.BTheta.leftDirDeriv_le_rightDirDeriv_pressure}
+    \leanok
+
+    For $f$ convex, $\partial^+_\Psi f(x) = \inf_{t > 0} t^{-1}(f(x + t\Psi) - f(x))$ is the limit
+    of the difference quotients as $t \downarrow 0$, dually $\partial^-_\Psi f(x)$, and
+    $\partial^-_\Psi f(x) \leq \partial^+_\Psi f(x)$.
+\end{definition}
+
+\begin{theorem}[Georgii (16.3) and Mazur's theorem]
+    \label{thm:tf-16-3}
+    \uses{def:tf-16-2}
+    \lean{ConvexOn.isGδ_dense_setOf_differentiable_directions, ConvexOn.isGδ_dense_setOf_gateauxDifferentiable, Potential.BTheta.isGδ_dense_setOf_differentiable_directions_pressure, Potential.BTheta.isGδ_dense_setOf_gateauxDifferentiable_pressure}
+    \leanok
+
+    Let $f$ be convex and Lipschitz on a Banach space $E$. For a countable $\mathcal C$, the set
+    of $x$ at which $\partial^-_\Psi f(x) = \partial^+_\Psi f(x)$ for all $\Psi$ in the closed span
+    of $\mathcal C$ is a dense $G_\delta$. If $E$ is separable, $f$ is Gateaux differentiable on a
+    dense $G_\delta$.
+\end{theorem}
+\begin{proof}
+    \leanok
+    For each $\Psi$ and $\varepsilon$ the set where the two-sided slopes differ by less than
+    $\varepsilon$ is open and dense, by monotonicity of the difference quotients; intersect over a
+    countable family and apply Baire.
+\end{proof}
+
+\begin{definition}[Bounded functionals and tangent functionals, Georgii (16.4)]
+    \label{def:tf-16-4}
+    \uses{prop:tf-16-1}
+    \lean{ConvexOn.IsBoundedBy, ConvexOn.isBoundedBy_iff, ConvexOn.subgradientAt}
+    \leanok
+
+    A linear $L$ is bounded by $f$ if $L \leq f + c$ for some $c$; $L$ is tangent to $f$ at $x$,
+    written $L \in \partial f(x)$, if $L(y) \leq f(x + y) - f(x)$ for all $y$.
+\end{definition}
+
+\begin{proposition}[Georgii (16.5)]
+    \label{prop:tf-16-5}
+    \uses{def:tf-16-4}
+    \lean{ConvexOn.negFenchel, ConvexOn.negFenchel_le, ConvexOn.mem_subgradientAt_iff, ConvexOn.isBoundedBy_of_mem_subgradientAt, ConvexOn.negFenchel_eq_of_mem_subgradientAt}
+    \leanok
+
+    With $\mathcal A(L) = \inf_y (f(y) - L(y))$: $L$ is tangent to $f$ at $x$ iff $L$ is bounded by
+    $f$ and the infimum is attained at $x$.
+\end{proposition}
+
+\begin{theorem}[Georgii (16.6)]
+    \label{thm:tf-16-6}
+    \uses{def:tf-16-2, def:tf-16-4}
+    \lean{ConvexOn.leftDirDeriv_le_of_mem_subgradientAt, ConvexOn.le_rightDirDeriv_of_mem_subgradientAt, ConvexOn.subgradientAt_subsingleton, ConvexOn.exists_mem_subgradientAt_apply_eq, ConvexOn.subgradientAt_nonempty, ConvexOn.leftDirDeriv_eq_and_rightDirDeriv_eq_of_subgradientAt_eq_singleton, Potential.BTheta.subgradientAt_pressure_nonempty, Potential.BTheta.subgradientAt_pressure_subsingleton}
+    \leanok
+
+    (1) $\partial^-_\Psi f(x) \leq L(\Psi) \leq \partial^+_\Psi f(x)$ for every $L \in \partial f(x)$,
+    so $f$ has at most one tangent functional at a point of differentiability. (2) For every
+    $a \in [\partial^-_\Psi f(x), \partial^+_\Psi f(x)]$ there is $L \in \partial f(x)$ with
+    $L(\Psi) = a$; in particular $\partial f(x) \neq \emptyset$, and if it is a singleton then $f$
+    is differentiable at $x$ with derivative $L$.
+\end{theorem}
+\begin{proof}
+    \leanok
+    $\Psi \mapsto \partial^+_\Psi f(x)$ is sublinear and dominates $f(x + \cdot) - f(x)$; extend
+    the prescribed value on $\mathbb R\Psi$ by Hahn--Banach.
+\end{proof}
+
+\begin{theorem}[Bishop--Phelps, Georgii (16.7)--(16.9)]
+    \label{thm:tf-16-7}
+    \uses{thm:tf-16-6, prop:tf-16-5}
+    \lean{ConvexOn.exists_mem_subgradientAt_of_isBoundedBy, ConvexOn.IsBoundedBy.continuous, Potential.BTheta.exists_mem_subgradientAt_pressure_of_isBoundedBy}
+    \leanok
+
+    Let $f$ be convex and Lipschitz, $C$ a closed convex cone, $L_0$ bounded by $f$, and
+    $\varepsilon > 0$. Then there are $x \in x_0 + C$ and $L \in \partial f(x)$ with
+    $\varepsilon\norm{x - x_0} \leq f(x_0) - L_0(x_0) - \mathcal A(L_0)$ and
+    $L(\Psi) \geq L_0(\Psi) - \varepsilon\norm{\Psi}$ for $\Psi \in C$.
+\end{theorem}
+\begin{proof}
+    \leanok
+    Georgii's nested-set construction inside the cone, with the separation of the epigraph from an
+    open cone in $E \times \mathbb R$.
+\end{proof}

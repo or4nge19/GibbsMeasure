@@ -82,6 +82,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Measure.WithSetwiseTopology
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.WithDensity
 public import GibbsMeasure.Mathlib.Analysis.Convex.Extreme
 public import GibbsMeasure.Mathlib.Analysis.Convex.ExtremeGDelta
+public import GibbsMeasure.Mathlib.Analysis.Convex.TangentFunctional
 public import GibbsMeasure.Mathlib.Topology.Compactness.SigmaCompact
 public import GibbsMeasure.Mathlib.Topology.Metrizable.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ProbabilityMeasure
@@ -226,6 +227,7 @@ public import GibbsMeasure.Specification.MarkovIntUniqueness
 public import GibbsMeasure.Specification.Pressure
 public import GibbsMeasure.Specification.SpecificEntropy
 public import GibbsMeasure.Specification.VariationalPrinciple
+public import GibbsMeasure.Specification.TangentFunctional
 public import GibbsMeasure.Specification.Structure
 public import GibbsMeasure.Topology.ConfigurationSpace
 public import GibbsMeasure.Topology.ClusterPoints

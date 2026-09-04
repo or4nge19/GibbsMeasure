@@ -312,6 +312,10 @@ status:
       file: "GibbsMeasure/Model/BoundaryLawExamples.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "Potential.BTheta.exists_mem_subgradientAt_pressure_of_isBoundedBy"
+      file: "GibbsMeasure/Specification/TangentFunctional.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.isCompact_setOf_le_specificEntropy"
       file: "GibbsMeasure/Specification/SpecificEntropy.lean"
       sorry_count: 0
@@ -1109,6 +1113,22 @@ alignment:
         L(Q) = t L(P) + 1 - t. Not formalized: (11.18)(2) (needs the nearest-neighbour potential of
         Q/(uv) on infinite E and the sigma-finite reference measure uv.lambda), (11.19) (Georgii's
         Cramer/Stirling lower bound on path counts, not in Mathlib).
+    - source: "Section 16.1: Proposition (16.1), (16.2)-(16.9)"
+      lean: "Potential.BTheta.exists_mem_subgradientAt_pressure_of_isBoundedBy"
+      module: "GibbsMeasure/Specification/TangentFunctional.lean"
+      status: "proved"
+      note: >-
+        Georgii's B_Theta as a Banach space (Potential.BTheta, a submodule of Potential S E normed
+        by ||Phi||_0, complete; kept off the Frechet space of Potential/Space.lean to avoid a
+        topology diamond), with P convex and 1-Lipschitz on it (16.1). Convex analysis in the
+        Mathlib layer (Mathlib/Analysis/Convex/TangentFunctional.lean, none of it in Mathlib):
+        one-sided directional derivatives (16.2), the dense-G_delta differentiability theorem
+        (16.3) and Mazur's theorem, f-bounded and tangent functionals (16.4), the negative Fenchel
+        transform and the attainment criterion (16.5), the sandwich and Hahn-Banach existence of
+        tangent functionals (16.6), and Bishop-Phelps (16.7)-(16.9). Separability of B_Theta for
+        finite E (Georgii's remark that rational finite-range potentials are dense) is a hypothesis
+        of the Mazur corollary, not yet proved. The identification of G_Theta(Phi) with the tangent
+        functionals of P is Section 16.2, not attempted.
     - source: "Comment (11.18)(2), Corollary (11.19)"
       lean: "MeasureTheory.GibbsMeasure.Markov.eq_empty_G_transferSpecification_randomWalk"
       module: "GibbsMeasure/Model/BoundaryLawExamples.lean"
