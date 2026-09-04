@@ -7,6 +7,7 @@ public import GibbsMeasure.Mathlib.Analysis.PSeries
 public import GibbsMeasure.Mathlib.Algebra.Order.BigOperators.Ring.Finset
 public import GibbsMeasure.Mathlib.Algebra.BigOperators.Group.Finset.Sigma
 public import GibbsMeasure.Mathlib.Topology.Instances.EReal
+public import GibbsMeasure.Mathlib.Data.EReal.Inv
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.ENNReal
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.Order
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.NatInt
@@ -17,6 +18,8 @@ public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Hasse
 public import GibbsMeasure.Mathlib.Data.Countable.Basic
 public import GibbsMeasure.Mathlib.Analysis.Subadditive.Cubes
 public import GibbsMeasure.Mathlib.InformationTheory.RelativeEntropy
+public import GibbsMeasure.Mathlib.InformationTheory.KullbackLeibler.KLFun
+public import GibbsMeasure.Mathlib.InformationTheory.KullbackLeibler.CountWithDensity
 public import GibbsMeasure.Mathlib.Analysis.Normed.Algebra.ClosedSubalgebra
 public import GibbsMeasure.Mathlib.Analysis.InnerProductSpace.ExpSkewAdjoint
 public import GibbsMeasure.Mathlib.Analysis.InnerProductSpace.OrthogonalExtend
@@ -25,6 +28,7 @@ public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Gaussian.Multivaria
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Tanh
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Tanh.InfiniteProd
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Log.Summable
+public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
 public import GibbsMeasure.Mathlib.Analysis.Normed.Lp.lpSpace
 public import GibbsMeasure.Mathlib.Analysis.Normed.Lp.LpEquiv
 public import GibbsMeasure.Mathlib.Analysis.Normed.Field.Lemmas
@@ -40,6 +44,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.HaarToSphere
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.PiWithDensity
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.KolmogorovExtension
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
+public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Indicator
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Unique
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalLExpectation
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.L1Space.Integrable
@@ -59,8 +64,10 @@ public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Density
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.CondExp
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Limit
 public import GibbsMeasure.Mathlib.Probability.Moments.Covariance
+public import GibbsMeasure.Mathlib.Probability.Independence.Integration
 public import GibbsMeasure.Mathlib.Probability.UniformOn
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Tsum
+public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Trim
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.SetwiseConvergence
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ProdZeroOne
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.CountablyGeneratedModNull
@@ -119,6 +126,7 @@ public import GibbsMeasure.Model.TreeBoundaryLaw
 public import GibbsMeasure.Model.TreeBoundaryLawChains
 public import GibbsMeasure.Model.MarkovChainInt
 public import GibbsMeasure.Model.MarkovChainReindex
+public import GibbsMeasure.Model.MarkovChainVariational
 public import GibbsMeasure.Model.InhomogeneousIsingChain
 public import GibbsMeasure.Model.Ising
 public import GibbsMeasure.Model.IsingDobrushin

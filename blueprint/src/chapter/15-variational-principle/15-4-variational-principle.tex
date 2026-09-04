@@ -70,21 +70,32 @@ specific entropy of Theorem \ref{thm:sent-15-12} and $P$ the pressure of Theorem
     by (15.30)(b), and Theorem \ref{thm:vp-15-37} applies.
 \end{proof}
 
-\begin{example}[Georgii (15.40), the mechanism]
+\begin{example}[Georgii (15.40)]
     \label{ex:vp-15-40}
-    \uses{thm:vp-15-39}
-    \lean{Potential.mem_invariantG_of_G_eq_singleton, Potential.specificRelativeEntropy_eq_zero_iff_eq_of_G_eq_singleton, Potential.specificEntropy_eq_specificEnergy_add_pressure_iff_eq_of_G_eq_singleton}
+    \uses{thm:vp-15-39, prop:sent-15-19, thm:mkv-35}
+    \lean{Potential.mem_invariantG_of_G_eq_singleton, Potential.specificRelativeEntropy_eq_zero_iff_eq_of_G_eq_singleton, MeasureTheory.GibbsMeasure.Markov.pressure_markovPotential_reindex_eq_log_perronRoot, MeasureTheory.GibbsMeasure.Markov.tendsto_neg_log_markovSpecification_Icc_apply_cyl_const_div, MeasureTheory.GibbsMeasure.Markov.hamiltonian_Icc_sub_hamiltonian_const, MeasureTheory.GibbsMeasure.Markov.specificEnergy_markovPotential_reindex, MeasureTheory.GibbsMeasure.Markov.specificRelativeEntropy_markovPotential_reindex_eq_lintegral_klDiv, MeasureTheory.GibbsMeasure.Markov.specificRelativeEntropy_markovPotential_reindex_eq_zero_iff, MeasureTheory.GibbsMeasure.Markov.condExp_ae_eq_iff_eq_stationaryChain_map}
     \leanok
 
-    If $\mathcal G(\gamma^\Phi) = \{\rho\}$ then $\rho \in \mathcal G_\Theta(\gamma^\Phi)$ and,
-    for $\mu \in \Prob_\Theta$, $k(\mu \mid \Phi) = 0$ iff $\mu = \rho$, i.e.\ $h(\mu) = \langle\mu,\Phi\rangle + P(\Phi)$
-    iff $\mu = \rho$. Georgii's instance is the stationary Markov chain $\mu_Q$ of a positive
-    matrix $Q$ on $S = \mathbb Z$ (Theorem (3.5)), with $P(\Phi) = -\log Q(a,a)$ and
-    $k(\mu\mid\Phi)$ the integrated relative entropy of the one-step conditional
-    distributions (15.19).
+    If $\mathcal G(\gamma^\Phi) = \{\rho\}$ then $\rho \in \mathcal G_\Theta(\gamma^\Phi)$ and, for
+    $\mu \in \Prob_\Theta$, $k(\mu \mid \Phi) = 0$ iff $\mu = \rho$. For the nearest-neighbour
+    potential of a positive stochastic matrix $Q$ on $S = \mathbb Z$, with $\mu_Q$ the stationary
+    chain of Theorem \ref{thm:mkv-35}:
+    $\gamma_{[1,n]}(\sigma \equiv a \mid \omega^a) = Q(a,a)^{n+1}/Q^{n+1}(a,a)$,
+    $P(\Phi) = -\log Q(a,a)$,
+    $H_{[1,n]}(\omega) = \log\prod_i Q(a,a)/Q(\omega_i,\omega_{i+1})$,
+    $\langle\mu,\Phi\rangle = \mu(\log Q(a,a)/Q(\sigma_{-1},\sigma_0))$, and
+    $k(\mu \mid \Phi) = \int \mathcal H\bigl(\mu(\sigma_0 \in \cdot \mid \mathcal F_{]-\infty,0[})
+    \bigm| Q(\omega_{-1},\cdot)\bigr)\,\mu(d\omega)$, which vanishes iff $\mu = \mu_Q$.
 \end{example}
 \begin{proof}
     \leanok
-    Uniqueness gives shift invariance (Georgii (5.11)); the variational principle
-    \ref{thm:vp-15-39} identifies the zeros of $k(\cdot\mid\Phi)$ with $\mathcal G_\Theta(\gamma^\Phi) = \{\rho\}$.
+    Uniqueness gives shift invariance (Georgii (5.11)), and \ref{thm:vp-15-39} identifies the zeros
+    of $k(\cdot\mid\Phi)$ with $\mathcal G_\Theta(\gamma^\Phi) = \{\rho\}$. For the chain: the
+    pressure is $\log$ of the Perron root of $Q$ (which is $1$ when $Q$ is stochastic), the specific
+    energy is $-\mu(\log Q(\sigma_{-1},\sigma_0))$, and (15.19) turns $k(\mu\mid\Phi)$ into the
+    integrated relative entropy of the one-step conditional distribution against the transition row;
+    it vanishes iff those agree $\mu$-a.s., i.e.\ iff $\mu = \mu_Q$ (Proposition (15.5)).
+    The two normalisations differ by constants that cancel in $k$: Georgii uses counting measure
+    and the gas transform with vacuum $a$, the library a probability a priori measure and $\Phi$
+    itself.
 \end{proof}

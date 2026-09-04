@@ -123,6 +123,56 @@ lemma lintegral_apply_eq {μ : Measure Ω} [IsProbabilityMeasure μ] (hμ : μ �
   rw [htoReal, measureReal_def] at hreal
   exact (ENNReal.toReal_eq_toReal_iff' hne (measure_ne_top _ _)).1 hreal
 
+/-- `∫_A π(B | ω) μ(dω) = μ(A ∩ B)` for `A ∈ 𝒜`, `μ ∈ P`. -/
+lemma setLIntegral_apply_eq {μ : Measure Ω}
+    [IsProbabilityMeasure μ] (hμ : μ ∈ P) {A : Set Ω} (hA : MeasurableSet[𝒜] A) {B : Set Ω}
+    (hB : MeasurableSet B) :
+    ∫⁻ ω in A, π ω B ∂μ = μ (A ∩ B) := by
+  have : SigmaFinite (μ.trim h𝒜) := inferInstance
+  have hA' : MeasurableSet A := h𝒜 _ hA
+  have hreal : ∫ ω in A, (π ω).real B ∂μ = μ.real (A ∩ B) := by
+    calc ∫ ω in A, (π ω).real B ∂μ
+        = ∫ ω in A, (μ[B.indicator (fun _ ↦ (1 : ℝ)) | 𝒜]) ω ∂μ :=
+          integral_congr_ae (ae_restrict_of_ae (hπ.1 μ hμ B hB))
+      _ = ∫ ω in A, B.indicator (fun _ ↦ (1 : ℝ)) ω ∂μ :=
+          setIntegral_condExp h𝒜 ((integrable_const _).indicator hB) hA
+      _ = μ.real (A ∩ B) := by
+          rw [integral_indicator hB, Measure.restrict_restrict hB, setIntegral_const, smul_eq_mul,
+            mul_one, Set.inter_comm]
+  have hmeas : Measurable fun ω ↦ π ω B := measurable_kernel_coe_of_le h𝒜 hB
+  have htoReal : ∫ ω in A, (π ω).real B ∂μ = (∫⁻ ω in A, π ω B ∂μ).toReal := by
+    simp only [measureReal_def]
+    exact integral_toReal hmeas.aemeasurable (Eventually.of_forall fun ω ↦ measure_lt_top _ _)
+  have hne : ∫⁻ ω in A, π ω B ∂μ ≠ ⊤ := by
+    refine ne_top_of_le_ne_top (b := ∫⁻ _ in A, (1 : ℝ≥0∞) ∂μ) (by simp) ?_
+    exact lintegral_mono fun ω ↦ prob_le_one
+  rw [htoReal, measureReal_def] at hreal
+  exact (ENNReal.toReal_eq_toReal_iff' hne (measure_ne_top _ _)).1 hreal
+
+/-- `∫_A π(F | ω) μ(dω) = ∫_A F dμ` for `A ∈ 𝒜`, `μ ∈ P` and measurable `F ≥ 0`: a `(P, 𝒜)`-kernel
+is a version of the conditional expectation `μ(· | 𝒜)` on nonnegative functions. -/
+lemma setLIntegral_lintegral_eq {μ : Measure Ω}
+    [IsProbabilityMeasure μ] (hμ : μ ∈ P) {A : Set Ω} (hA : MeasurableSet[𝒜] A) {F : Ω → ℝ≥0∞}
+    (hF : Measurable F) :
+    ∫⁻ ω in A, ∫⁻ ω', F ω' ∂(π ω) ∂μ = ∫⁻ ω in A, F ω ∂μ := by
+  refine Measurable.ennreal_induction
+    (motive := fun F ↦ ∫⁻ ω in A, ∫⁻ ω', F ω' ∂(π ω) ∂μ = ∫⁻ ω in A, F ω ∂μ) ?_ ?_ ?_ hF
+  · intro c B hB
+    simp_rw [lintegral_indicator_const hB]
+    rw [lintegral_const_mul _ (measurable_kernel_coe_of_le h𝒜 hB),
+      hπ.setLIntegral_apply_eq h𝒜 hμ hA hB, Measure.restrict_apply hB, Set.inter_comm]
+  · intro f g _ hf hg ihf ihg
+    have hf' : Measurable fun ω ↦ ∫⁻ ω', f ω' ∂(π ω) :=
+      (Measurable.lintegral_kernel hf).mono h𝒜 le_rfl
+    simp_rw [Pi.add_apply, lintegral_add_left hf]
+    rw [lintegral_add_left hf', ihf, ihg]
+  · intro f hfm hfmono ih
+    have hf' : ∀ n, Measurable fun ω ↦ ∫⁻ ω', f n ω' ∂(π ω) := fun n ↦
+      (Measurable.lintegral_kernel (hfm n)).mono h𝒜 le_rfl
+    simp_rw [lintegral_iSup hfm hfmono]
+    rw [lintegral_iSup hf' fun a b hab ω ↦ lintegral_mono fun ω' ↦ hfmono hab ω']
+    exact iSup_congr ih
+
 /-- `μ.bind π = μ` for `μ ∈ P` (Georgii's `μπ = μ`). -/
 lemma bind_eq {μ : Measure Ω} [IsProbabilityMeasure μ] (hμ : μ ∈ P) : μ.bind π = μ := by
   ext A hA

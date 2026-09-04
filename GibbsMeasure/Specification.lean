@@ -2701,6 +2701,109 @@ lemma isssd_insert [DecidableEq S] (Δ : Finset S) (b : S) (η : S → E) :
 
 end IsssdBind
 
+section IsssdTrim
+
+/-! ### Resampling a finite volume and the cylinder σ-algebras
+
+The resampled measure `μ λ_Δ = μ.bind (isssd ν Δ)` agrees with `μ` on `𝓕_{Δᶜ}`, and on `𝓕_Λ` it is
+determined by the law of `μ` on `𝓕_{Λ ∖ Δ}`. -/
+
+variable {S E : Type*} [MeasurableSpace E] (ν : Measure E) [IsProbabilityMeasure ν]
+  {μ : Measure (S → E)}
+
+/-- The resampled measure `μ λ_Δ` agrees with `μ` on `𝓕_{Δᶜ}` (properness of `λ_Δ`). -/
+lemma bind_isssd_apply_of_measurableSet_cylinderEvents_compl (Δ : Finset S) {A : Set (S → E)}
+    (hA : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) ((Δ : Set S)ᶜ)] A) :
+    μ.bind (isssd ν Δ) A = μ A := by
+  rw [Measure.bind_apply (cylinderEvents_le_pi _ hA)
+    (measurable_isssd_coe Δ).aemeasurable]
+  have h : ∀ ω, isssd ν Δ ω A = A.indicator 1 ω := fun ω ↦ by
+    rw [((isssd ν).isProper Δ).apply_eq_indicator_mul_univ cylinderEvents_le_pi hA
+      ω, measure_univ, mul_one]
+  simp_rw [h]
+  exact lintegral_indicator_one (cylinderEvents_le_pi _ hA)
+
+/-- `μ λ_Δ = μ` on `𝓕_Λ` when `Λ` is disjoint from `Δ`. -/
+lemma bind_isssd_trim_eq_of_disjoint (Δ : Finset S) {Λ : Set S} (h : Disjoint Λ (Δ : Set S)) :
+    (μ.bind (isssd ν Δ)).trim (cylinderEvents_le_pi (X := fun _ : S ↦ E) (Δ := Λ))
+      = μ.trim cylinderEvents_le_pi :=
+  @Measure.ext _ (cylinderEvents Λ) _ _ fun A hA ↦ by
+    rw [trim_measurableSet_eq _ hA, trim_measurableSet_eq _ hA]
+    exact bind_isssd_apply_of_measurableSet_cylinderEvents_compl ν Δ
+      (cylinderEvents_mono h.subset_compl_right _ hA)
+
+/-- For `A ∈ 𝓕_Λ`, the resampling probability `ω ↦ λ_Δ(A | ω)` depends only on the coordinates in
+`Λ ∖ Δ`. -/
+lemma measurable_isssd_apply_of_measurableSet_cylinderEvents (Δ : Finset S) {Λ : Set S}
+    {A : Set (S → E)} (hA : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) Λ] A) :
+    Measurable[cylinderEvents (X := fun _ : S ↦ E) (Λ \ Δ)]
+      fun ω ↦ isssd ν Δ ω A := by
+  have hA' : MeasurableSet A := cylinderEvents_le_pi _ hA
+  refine measurable_cylinderEvents_iff_dependsOn.2
+    ⟨((isssd ν Δ).measurable_coe hA').mono cylinderEvents_le_pi le_rfl, ?_⟩
+  intro ω ω' hωω'
+  change Measure.map (juxt (Δ : Set S) ω) (Measure.pi fun _ : Δ ↦ ν) A
+    = Measure.map (juxt (Δ : Set S) ω') (Measure.pi fun _ : Δ ↦ ν) A
+  rw [Measure.map_apply Measurable.juxt hA', Measure.map_apply Measurable.juxt hA']
+  congr 1
+  ext ζ
+  simp only [Set.mem_preimage]
+  refine mem_congr_of_measurableSet_cylinderEvents hA fun i hi ↦ ?_
+  by_cases hiΔ : i ∈ Δ
+  · rw [juxt_apply_of_mem (by simpa using hiΔ), juxt_apply_of_mem (by simpa using hiΔ)]
+  · rw [juxt_apply_of_not_mem (by simpa using hiΔ), juxt_apply_of_not_mem (by simpa using hiΔ)]
+    exact hωω' i ⟨hi, hiΔ⟩
+
+/-- **The resampled measure through a density.** If `μ = g λ^S` on `𝓕_{Λ ∖ Δ}` with `g`
+`𝓕_{Λ ∖ Δ}`-measurable, then `μ λ_Δ = g λ^S` on `𝓕_Λ`: resampling `Δ` from `λ` and then
+restricting to `𝓕_Λ` only sees the law of the coordinates in `Λ ∖ Δ`. -/
+lemma bind_isssd_trim_eq_withDensity (Δ : Finset S) {Λ : Set S} {g : (S → E) → ℝ≥0∞}
+    (hg : Measurable[cylinderEvents (X := fun _ : S ↦ E) (Λ \ Δ)] g)
+    (hμ : μ.trim (cylinderEvents_le_pi (X := fun _ : S ↦ E) (Δ := Λ \ Δ))
+      = ((Measure.infinitePi fun _ : S ↦ ν).trim cylinderEvents_le_pi).withDensity g) :
+    (μ.bind (isssd ν Δ)).trim (cylinderEvents_le_pi (X := fun _ : S ↦ E) (Δ := Λ))
+      = ((Measure.infinitePi fun _ : S ↦ ν).trim cylinderEvents_le_pi).withDensity g := by
+  set γ : Measure (S → E) := Measure.infinitePi fun _ : S ↦ ν with hγ
+  have hΛ : cylinderEvents (X := fun _ : S ↦ E) Λ ≤ MeasurableSpace.pi := cylinderEvents_le_pi
+  have hΛΔ : cylinderEvents (X := fun _ : S ↦ E) (Λ \ Δ) ≤ MeasurableSpace.pi :=
+    cylinderEvents_le_pi
+  have hle : cylinderEvents (X := fun _ : S ↦ E) (Λ \ Δ) ≤ cylinderEvents Λ :=
+    cylinderEvents_mono Set.sdiff_subset
+  have hg' : Measurable g := hg.mono hΛΔ le_rfl
+  have hgdep : DependsOn g (Λ \ Δ) := (measurable_cylinderEvents_iff_dependsOn.1 hg).2
+  refine @Measure.ext _ (cylinderEvents Λ) _ _ fun A hA ↦ ?_
+  have hA' : MeasurableSet A := hΛ _ hA
+  set φ : (S → E) → ℝ≥0∞ := fun ω ↦ isssd ν Δ ω A with hφ_def
+  have hφ : Measurable[cylinderEvents (X := fun _ : S ↦ E) (Λ \ Δ)] φ :=
+    measurable_isssd_apply_of_measurableSet_cylinderEvents ν Δ hA
+  have hgj : ∀ ω (ζ : Δ → E), g (juxt (Δ : Set S) ω ζ) = g ω := fun ω ζ ↦
+    hgdep fun i hi ↦ juxt_apply_of_not_mem (by simpa using hi.2) ζ
+  calc (μ.bind (isssd ν Δ)).trim hΛ A
+      = ∫⁻ ω, φ ω ∂μ := by
+        rw [trim_measurableSet_eq hΛ hA,
+          Measure.bind_apply hA' (measurable_isssd_coe Δ).aemeasurable]
+    _ = ∫⁻ ω, φ ω ∂(μ.trim hΛΔ) := (lintegral_trim hΛΔ hφ).symm
+    _ = ∫⁻ ω, g ω * φ ω ∂γ := by
+        rw [hμ, lintegral_withDensity_eq_lintegral_mul _ hg hφ, lintegral_trim hΛΔ (hg.mul hφ)]
+        rfl
+    _ = ∫⁻ ω, ∫⁻ σ, A.indicator g σ ∂(isssd ν Δ ω) ∂γ := by
+        refine lintegral_congr fun ω ↦ ?_
+        rw [lintegral_isssd_eq Δ ω (hg'.indicator hA')]
+        change g ω * Measure.map (juxt (Δ : Set S) ω) (Measure.pi fun _ : Δ ↦ ν) A = _
+        rw [Measure.map_apply Measurable.juxt hA', ← lintegral_indicator_one (Measurable.juxt hA'),
+          ← lintegral_const_mul _ (measurable_one.indicator (Measurable.juxt hA'))]
+        refine lintegral_congr fun ζ ↦ ?_
+        by_cases hζ : juxt (Δ : Set S) ω ζ ∈ A <;> simp [Set.indicator, hζ, hgj ω ζ]
+    _ = ∫⁻ σ, A.indicator g σ ∂(γ.bind (isssd ν Δ)) :=
+        (Measure.lintegral_bind (measurable_isssd_coe Δ).aemeasurable
+          (hg'.indicator hA').aemeasurable).symm
+    _ = ∫⁻ σ in A, g σ ∂γ := by
+        rw [hγ, infinitePi_bind_isssd, lintegral_indicator hA']
+    _ = (γ.trim hΛ).withDensity g A := by
+        rw [withDensity_apply _ hA, restrict_trim hΛ γ hA, lintegral_trim hΛ (hg.mono hle le_rfl)]
+
+end IsssdTrim
+
 section IsssdRestrict
 
 variable {S E : Type*} [MeasurableSpace E]

@@ -491,7 +491,11 @@ specific relative entropy against a Gibbs `ν` of a quasilocal `γ` is Gibbs; Ge
 as three theorems, the third for any site set) and the **variational principle (15.39)**:
 `k(μ|Φ) = P(Φ) + μ(f_Φ) − h(μ) ≥ 0` on `𝓟_Θ`, zero exactly on `𝒢_Θ(γ^Φ)` — unconditionally for
 standard Borel `E`, where `𝒢_Θ(γ^Φ) ≠ ∅` comes from (4.23) and (5.16) for any countable abelian site
-group.
+group. **Example (15.40)** (`GibbsMeasure/Model/MarkovChainVariational.lean`) carries this to the
+nearest-neighbour potential of a positive stochastic matrix, transported from `ℤ` to `Unit → ℤ`:
+the pressure as the logarithm of the Perron root, the specific energy, `k(μ|Φ)` as the integrated
+relative entropy of the one-step conditional distribution against the transition row, and
+`k(μ|Φ) = 0` exactly at the stationary chain.
 
 **Chapter 9, §9.1** (`GibbsMeasure/Specification/SymmetryInheritance.lean`,
 `GibbsMeasure/Model/OneDimensionalSymmetry.lean`): **Proposition (9.1)** — a symmetry `τ` of `γ`
@@ -607,7 +611,7 @@ neighbouring spins has a unique infinite component almost surely under every Gib
 
 Not yet done: Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
-the Markov-chain instance of (15.40), (11.18)(2), (11.19), §12.2, §§13.2–13.3, and Chapters
+(11.18)(2), (11.19), §12.2, §§13.2–13.3, and Chapters
 16–20 (
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).

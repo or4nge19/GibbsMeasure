@@ -8,7 +8,10 @@ module
 public import Mathlib.Topology.Instances.EReal.Lemmas
 
 /-!
-# A two-sided squeeze for `EReal`-valued limits
+# Limits and continuity in `EReal`
+
+* `EReal.tendsto_of_le_add_coe`: a two-sided squeeze for `EReal`-valued limits.
+* `EReal.continuous_div_natCast`: division by a positive natural number is continuous.
 -/
 
 @[expose] public section
@@ -65,3 +68,16 @@ lemma EReal.tendsto_of_le_add_coe {κ : Type*} {l : Filter κ} {u v : κ → ERe
     calc u j + (ε j : EReal) < (c : EReal) + ((b - c : ℝ) : EReal) :=
           EReal.add_lt_add hj (EReal.coe_lt_coe_iff.2 hje)
       _ = (b : EReal) := by rw [← EReal.coe_add]; norm_num
+
+/-- Division by a positive natural number is continuous on `EReal`. -/
+lemma EReal.continuous_div_natCast {n : ℕ} (hn : n ≠ 0) :
+    Continuous fun x : EReal ↦ x / (n : EReal) := by
+  have hinv : ((n : EReal))⁻¹ ≠ 0 := by
+    rw [← EReal.coe_natCast, ← EReal.coe_inv, Ne, EReal.coe_eq_zero]
+    exact inv_ne_zero (Nat.cast_ne_zero.2 hn)
+  refine continuous_iff_continuousAt.2 fun x ↦ ?_
+  have hcont : ContinuousAt (fun p : EReal × EReal ↦ p.1 * p.2) (x, ((n : EReal))⁻¹) :=
+    EReal.continuousAt_mul (Or.inr (EReal.bot_lt_inv _).ne') (Or.inr (EReal.inv_lt_top _).ne)
+      (Or.inr hinv) (Or.inr hinv)
+  exact hcont.comp (f := fun x : EReal ↦ (x, ((n : EReal))⁻¹))
+    (continuous_id.prodMk continuous_const).continuousAt

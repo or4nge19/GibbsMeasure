@@ -98,6 +98,19 @@ lemma IsBox.image_add_right {Λ : Finset (ι → ℤ)} (h : Λ.IsBox) (i : ι �
   rw [image_add_right_Icc]
   exact isBox_Icc (add_le_add hmn le_rfl)
 
+/-- Every finite subset of `ι → ℤ` is contained in a box. -/
+lemma exists_isBox_subset (Λ : Finset (ι → ℤ)) : ∃ Δ : Finset (ι → ℤ), Δ.IsBox ∧ Λ ⊆ Δ := by
+  classical
+  set R : ℕ := Λ.sup fun x ↦ Finset.univ.sup fun k ↦ (x k).natAbs with hR
+  refine ⟨Icc (fun _ ↦ -(R : ℤ)) fun _ ↦ (R : ℤ), isBox_Icc fun k ↦ by simp, fun x hx ↦ ?_⟩
+  have hxR : ∀ k, |x k| ≤ R := fun k ↦ by
+    have h1 : (x k).natAbs ≤ Finset.univ.sup fun k ↦ (x k).natAbs :=
+      Finset.le_sup (f := fun k ↦ (x k).natAbs) (Finset.mem_univ k)
+    have h2 := Finset.le_sup (f := fun x ↦ Finset.univ.sup fun k ↦ (x k).natAbs) hx
+    rw [Int.abs_eq_natAbs]
+    exact_mod_cast h1.trans h2
+  exact Finset.mem_Icc.2 ⟨fun k ↦ (abs_le.1 (hxR k)).1, fun k ↦ (abs_le.1 (hxR k)).2⟩
+
 /-- Cutting a box along the coordinate hyperplane `xₖ = t`: `Icc m n` is the union of the two
 boxes `{x ∈ Icc m n | xₖ ≤ t}` and `{x ∈ Icc m n | t < xₖ}`. -/
 lemma Icc_eq_union_Icc_update (m n : ι → ℤ) (k : ι) {t : ℤ} (hmt : m k ≤ t) (htn : t ≤ n k) :

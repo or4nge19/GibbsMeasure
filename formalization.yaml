@@ -344,6 +344,10 @@ status:
       file: "GibbsMeasure/Model/MerminWagnerExamples.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Markov.specificRelativeEntropy_markovPotential_reindex_eq_zero_iff"
+      file: "GibbsMeasure/Model/MarkovChainVariational.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.G_eq_empty_of_logDecay_of_dissipative"
       file: "GibbsMeasure/Model/MerminWagner.lean"
       sorry_count: 0
@@ -1220,10 +1224,18 @@ alignment:
         Borel E (G_Theta(gamma^Phi) nonempty from (4.23)+(5.16), for any countable abelian site group),
         and for any E given some rho in G_Theta(gamma^Phi). Remark (15.26)(1): the a.s. limit of
         H_Lambda_n/|Lambda_n| along cubes with arbitrary boundary conditions is mu(f_Phi | I)
-        (ae_tendsto_hamiltonian_juxt_div_card, from (15.25) and (14.A8)). Example (15.40), the
-        mechanism: G(gamma^Phi) = {rho} gives rho in G_Theta and k(mu|Phi) = 0 iff mu = rho
-        (specificRelativeEntropy_eq_zero_iff_eq_of_G_eq_singleton); the Chapter 3 Markov-chain
-        instance is on sites Z while Section 15 is on Z^d, and its explicit k(mu|Phi) is (15.19).
+        (ae_tendsto_hamiltonian_juxt_div_card, from (15.25) and (14.A8)). Example (15.40) in full:
+        G(gamma^Phi) = {rho} gives rho in G_Theta and k(mu|Phi) = 0 iff mu = rho
+        (specificRelativeEntropy_eq_zero_iff_eq_of_G_eq_singleton), and for the nearest-neighbour
+        potential of a positive stochastic matrix Q, transported from Z to Unit -> Z, all of
+        Georgii's displays: the constant-configuration specification value, P(Phi) = -log Q(a,a)
+        (as log of the Perron root, Mathlib/LinearAlgebra/Matrix/PerronStochastic.lean), the
+        Hamiltonian difference, the specific energy, k(mu|Phi) as the integrated relative entropy
+        of the one-step conditional distribution against the transition row (both as a sum and as
+        klDiv), and k(mu|Phi) = 0 iff mu = mu_Q, also in Georgii's direct conditional-expectation
+        form (Model/MarkovChainVariational.lean). The library normalises with a probability a
+        priori measure rather than counting measure and the gas transform; the two constants
+        cancel in k(mu|Phi).
     - source: "Transport along a bijection of site sets (Georgii (5.4)-(5.6) for S ≃ S'); Example (15.40), the instance"
       lean: "MeasureTheory.GibbsMeasure.Markov.gibbsMeasure_reindex_eq_singleton"
       module: "GibbsMeasure/Model/MarkovChainReindex.lean"

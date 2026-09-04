@@ -213,48 +213,55 @@ end Core
 
 /-! ### The `(𝓟_G, 𝓘)`-kernel of an action along a regular Følner sequence
 
-Georgii's construction in the proof of (14.10): the countable core `𝒞` of `𝓕` is replaced by the
-half-lines `{e ≤ q}`, `q : ℚ`, of the Borel embedding `e = embeddingReal Ω`; `Ω₀` is the
-invariant set on which the ergodic averages of their indicators converge; on `Ω₀` the limits form a
-rational CDF, hence (via `kernelOfMeasurableRat` and `Kernel.comapRight`) a probability measure on
-`Ω`; the multidimensional ergodic theorem (14.A8) shows that for every invariant `μ` this measure
-is `μ`-a.s. the conditional distribution `μ(· | 𝓘)`; the bad invariant set is sent to a fixed
-invariant probability measure `ν₀`. -/
+Georgii's construction in the proof of (14.10), for an *observable* `φ : Ω → X` with values in a
+standard Borel space `X`: the countable core `𝒞` of `𝓕` is replaced by the half-lines
+`{e ∘ φ ≤ q}`, `q : ℚ`, of the Borel embedding `e = embeddingReal X`; `Ω₀` is the invariant set
+on which the ergodic averages of their indicators converge; on `Ω₀` the limits form a rational
+CDF, hence (via `kernelOfMeasurableRat` and `Kernel.comapRight`) a probability measure on `X`;
+the multidimensional ergodic theorem (14.A8) shows that for every invariant `μ` this measure is
+`μ`-a.s. the image under `φ` of the conditional distribution `μ(· | 𝓘)`. The kernel is built over
+any σ-algebra `m` on `Ω` making the rational ergodic CDF `m`-measurable; the Følner property
+gives this for `m = 𝓘` (`measurable_ergodicRatCDF`). Georgii's kernel is the case `X = Ω`,
+`φ = id`, `m = 𝓘`, corrected on the bad invariant set to a fixed invariant probability measure
+`ν₀`. -/
 
 section ErgodicKernel
 
-variable {G : Type*} (Ω : Type*) [AddCommGroup G] [AddAction G Ω] [MeasurableSpace Ω]
-  [MeasurableConstVAdd G Ω] [StandardBorelSpace Ω] (F : ℕ → Finset G)
+variable {G Ω X : Type*} [AddCommGroup G] [AddAction G Ω] [MeasurableSpace Ω]
+  [MeasurableConstVAdd G Ω] [MeasurableSpace X] [StandardBorelSpace X] (F : ℕ → Finset G)
+  (φ : Ω → X)
 
 /-- The invariant σ-algebra `𝓘` of the action. -/
 local notation "𝓘" => MeasurableSpace.smulInvariants (Multiplicative G) Ω
 
-/-- Georgii's `Ω₀`: the points at which the ergodic averages of the indicators of all the
-half-lines `{e ≤ q}`, `q : ℚ`, converge. -/
+/-- Georgii's `Ω₀` for the observable `φ`: the points at which the ergodic averages of the
+indicators of all the half-lines `{e ∘ φ ≤ q}`, `q : ℚ`, of `e = embeddingReal X` converge. -/
 def ergodicConvergenceSet : Set Ω :=
   ⋂ q : ℚ, {ω | ∃ c : ℝ, Tendsto (fun n ↦ ((F n).card : ℝ)⁻¹ • ∑ i ∈ F n,
-    (embeddingReal Ω ⁻¹' Iic (q : ℝ)).indicator (fun _ ↦ (1 : ℝ)) (i +ᵥ ω)) atTop (𝓝 c)}
+    (φ ⁻¹' (embeddingReal X ⁻¹' Iic (q : ℝ))).indicator (fun _ ↦ (1 : ℝ)) (i +ᵥ ω)) atTop (𝓝 c)}
 
-omit [MeasurableConstVAdd G Ω] in
+omit [MeasurableSpace Ω] [MeasurableConstVAdd G Ω] in
 lemma mem_ergodicConvergenceSet {ω : Ω} :
-    ω ∈ ergodicConvergenceSet Ω F ↔ ∀ q : ℚ, ∃ c : ℝ, Tendsto (fun n ↦ ((F n).card : ℝ)⁻¹ •
-      ∑ i ∈ F n, (embeddingReal Ω ⁻¹' Iic (q : ℝ)).indicator (fun _ ↦ (1 : ℝ)) (i +ᵥ ω)) atTop
-        (𝓝 c) :=
+    ω ∈ ergodicConvergenceSet F φ ↔ ∀ q : ℚ, ∃ c : ℝ, Tendsto (fun n ↦ ((F n).card : ℝ)⁻¹ •
+      ∑ i ∈ F n, (φ ⁻¹' (embeddingReal X ⁻¹' Iic (q : ℝ))).indicator (fun _ ↦ (1 : ℝ)) (i +ᵥ ω))
+        atTop (𝓝 c) :=
   Set.mem_iInter
 
-omit [StandardBorelSpace Ω] in
 lemma measurable_inv_card_smul_sum_vadd {f : Ω → ℝ} (hf : Measurable f) (n : ℕ) :
     Measurable fun ω : Ω ↦ ((F n).card : ℝ)⁻¹ • ∑ i ∈ F n, f (i +ᵥ ω) := by
   fun_prop
 
-lemma measurableSet_ergodicConvergenceSet : MeasurableSet (ergodicConvergenceSet Ω F) :=
+variable {φ}
+
+lemma measurableSet_ergodicConvergenceSet (hφ : Measurable φ) :
+    MeasurableSet (ergodicConvergenceSet F φ) :=
   MeasurableSet.iInter fun _ ↦ measurableSet_exists_tendsto fun n ↦
-    measurable_inv_card_smul_sum_vadd Ω F (measurable_const.indicator
-      (measurableSet_Iic.preimage (measurable_embeddingReal Ω))) n
+    measurable_inv_card_smul_sum_vadd F (measurable_const.indicator
+      ((measurableSet_Iic.preimage (measurable_embeddingReal X)).preimage hφ)) n
 
-variable {Ω F}
+variable {F}
 
-omit [MeasurableSpace Ω] [MeasurableConstVAdd G Ω] [StandardBorelSpace Ω] in
+omit [MeasurableSpace Ω] [MeasurableConstVAdd G Ω] in
 /-- Along a Følner sequence, the ergodic averages of a bounded function at `ω` and at `g +ᵥ ω`
 have the same limits. -/
 lemma tendsto_inv_card_smul_sum_vadd_vadd_iff [DecidableEq G]
@@ -272,98 +279,140 @@ lemma tendsto_inv_card_smul_sum_vadd_vadd_iff [DecidableEq G]
   · intro h
     simpa using h.add hdiff
 
-omit [MeasurableConstVAdd G Ω] in
+omit [MeasurableSpace Ω] [MeasurableConstVAdd G Ω] in
+/-- Two points at which the ergodic averages of all the half-line indicators have the same
+limits are both in `Ω₀` or both outside it. -/
+lemma mem_ergodicConvergenceSet_iff_of_forall_tendsto_iff {ω ω' : Ω}
+    (h : ∀ (q : ℚ) (c : ℝ), Tendsto (fun n ↦ ((F n).card : ℝ)⁻¹ • ∑ i ∈ F n,
+        (φ ⁻¹' (embeddingReal X ⁻¹' Iic (q : ℝ))).indicator (fun _ ↦ (1 : ℝ)) (i +ᵥ ω)) atTop
+          (𝓝 c) ↔
+      Tendsto (fun n ↦ ((F n).card : ℝ)⁻¹ • ∑ i ∈ F n,
+        (φ ⁻¹' (embeddingReal X ⁻¹' Iic (q : ℝ))).indicator (fun _ ↦ (1 : ℝ)) (i +ᵥ ω')) atTop
+          (𝓝 c)) :
+    ω ∈ ergodicConvergenceSet F φ ↔ ω' ∈ ergodicConvergenceSet F φ := by
+  simp only [mem_ergodicConvergenceSet]
+  exact forall_congr' fun q ↦ exists_congr fun c ↦ h q c
+
+omit [MeasurableSpace Ω] [MeasurableConstVAdd G Ω] in
+lemma abs_indicator_preimage_Iic_le_one (q : ℚ) (ω : Ω) :
+    |(φ ⁻¹' (embeddingReal X ⁻¹' Iic (q : ℝ))).indicator (fun _ ↦ (1 : ℝ)) ω| ≤ 1 := by
+  by_cases h : ω ∈ φ ⁻¹' (embeddingReal X ⁻¹' Iic (q : ℝ)) <;> simp [h]
+
+omit [MeasurableSpace Ω] [MeasurableConstVAdd G Ω] in
 /-- Georgii's `Ω₀` is invariant: `Ω₀ ∈ 𝓘`. -/
 lemma vadd_mem_ergodicConvergenceSet [DecidableEq G]
     (hFol : ∀ g : G, Tendsto (fun n ↦ (((g +ᵥ F n) ∆ F n).card : ℝ) / (F n).card) atTop (𝓝 0))
-    {ω : Ω} (hω : ω ∈ ergodicConvergenceSet Ω F) (g : G) : g +ᵥ ω ∈ ergodicConvergenceSet Ω F := by
-  rw [mem_ergodicConvergenceSet] at hω ⊢
-  intro q
-  obtain ⟨c, hc⟩ := hω q
-  refine ⟨c, (tendsto_inv_card_smul_sum_vadd_vadd_iff hFol (M := 1) (fun ω ↦ ?_) g ω).2 hc⟩
-  by_cases h : ω ∈ embeddingReal Ω ⁻¹' Iic (q : ℝ) <;> simp [h]
+    {ω : Ω} (hω : ω ∈ ergodicConvergenceSet F φ) (g : G) :
+    g +ᵥ ω ∈ ergodicConvergenceSet F φ :=
+  (mem_ergodicConvergenceSet_iff_of_forall_tendsto_iff fun q _ ↦
+    (tendsto_inv_card_smul_sum_vadd_vadd_iff hFol (abs_indicator_preimage_Iic_le_one q) g
+      ω).symm).1 hω
 
-lemma measurableSet_smulInvariants_ergodicConvergenceSet [DecidableEq G]
+lemma measurableSet_smulInvariants_ergodicConvergenceSet [DecidableEq G] (hφ : Measurable φ)
     (hFol : ∀ g : G, Tendsto (fun n ↦ (((g +ᵥ F n) ∆ F n).card : ℝ) / (F n).card) atTop (𝓝 0)) :
-    MeasurableSet[𝓘] (ergodicConvergenceSet Ω F) := by
-  refine ⟨measurableSet_ergodicConvergenceSet Ω F, fun c ↦ Set.ext fun ω ↦ ⟨fun h ↦ ?_, fun h ↦ ?_⟩⟩
+    MeasurableSet[𝓘] (ergodicConvergenceSet F φ) := by
+  refine ⟨measurableSet_ergodicConvergenceSet F hφ,
+    fun c ↦ Set.ext fun ω ↦ ⟨fun h ↦ ?_, fun h ↦ ?_⟩⟩
   · have := vadd_mem_ergodicConvergenceSet hFol h (-Multiplicative.toAdd c)
     rwa [show (-Multiplicative.toAdd c) +ᵥ (c • ω) = ω from
       neg_vadd_vadd (Multiplicative.toAdd c) ω] at this
   · exact vadd_mem_ergodicConvergenceSet hFol h (Multiplicative.toAdd c)
 
-variable (Ω F) in
-/-- The rational ergodic CDF `ω ↦ (q ↦ lim_n |F n|⁻¹ ∑_{i ∈ F n} 1_{e ≤ q} (i +ᵥ ω))` on `Ω₀`,
-and `0` off `Ω₀`. -/
+variable (F φ) in
+/-- The rational ergodic CDF of the observable `φ`,
+`ω ↦ (q ↦ lim_n |F n|⁻¹ ∑_{i ∈ F n} 1_{e ∘ φ ≤ q} (i +ᵥ ω))` on `Ω₀`, and `0` off `Ω₀`. -/
 noncomputable def ergodicRatCDF (ω : Ω) : ℚ → ℝ :=
-  (ergodicConvergenceSet Ω F).indicator (fun ω q ↦ limUnder atTop fun n ↦ ((F n).card : ℝ)⁻¹ •
-    ∑ i ∈ F n, (embeddingReal Ω ⁻¹' Iic (q : ℝ)).indicator (fun _ ↦ (1 : ℝ)) (i +ᵥ ω)) ω
+  (ergodicConvergenceSet F φ).indicator (fun ω q ↦ limUnder atTop fun n ↦ ((F n).card : ℝ)⁻¹ •
+    ∑ i ∈ F n, (φ ⁻¹' (embeddingReal X ⁻¹' Iic (q : ℝ))).indicator (fun _ ↦ (1 : ℝ)) (i +ᵥ ω)) ω
 
-omit [MeasurableConstVAdd G Ω] in
-lemma ergodicRatCDF_of_mem {ω : Ω} (hω : ω ∈ ergodicConvergenceSet Ω F) (q : ℚ) :
-    ergodicRatCDF Ω F ω q = limUnder atTop fun n ↦ ((F n).card : ℝ)⁻¹ •
-      ∑ i ∈ F n, (embeddingReal Ω ⁻¹' Iic (q : ℝ)).indicator (fun _ ↦ (1 : ℝ)) (i +ᵥ ω) := by
+omit [MeasurableSpace Ω] [MeasurableConstVAdd G Ω] in
+lemma ergodicRatCDF_of_mem {ω : Ω} (hω : ω ∈ ergodicConvergenceSet F φ) (q : ℚ) :
+    ergodicRatCDF F φ ω q = limUnder atTop fun n ↦ ((F n).card : ℝ)⁻¹ •
+      ∑ i ∈ F n, (φ ⁻¹' (embeddingReal X ⁻¹' Iic (q : ℝ))).indicator (fun _ ↦ (1 : ℝ)) (i +ᵥ ω) := by
   simp [ergodicRatCDF, hω]
 
-lemma measurable_ergodicRatCDF' : Measurable (ergodicRatCDF Ω F) := by
-  refine Measurable.indicator ?_ (measurableSet_ergodicConvergenceSet Ω F)
+omit [MeasurableSpace Ω] [MeasurableConstVAdd G Ω] in
+lemma ergodicRatCDF_of_notMem {ω : Ω} (hω : ω ∉ ergodicConvergenceSet F φ) :
+    ergodicRatCDF F φ ω = 0 := by
+  simp [ergodicRatCDF, hω]
+
+lemma measurable_ergodicRatCDF' (hφ : Measurable φ) : Measurable (ergodicRatCDF F φ) := by
+  refine Measurable.indicator ?_ (measurableSet_ergodicConvergenceSet F hφ)
   refine measurable_pi_iff.2 fun q ↦ ?_
   exact (StronglyMeasurable.limUnder fun n ↦ Measurable.stronglyMeasurable
-    (measurable_inv_card_smul_sum_vadd Ω F (measurable_const.indicator
-      (measurableSet_Iic.preimage (measurable_embeddingReal Ω))) n)).measurable
+    (measurable_inv_card_smul_sum_vadd F (measurable_const.indicator
+      ((measurableSet_Iic.preimage (measurable_embeddingReal X)).preimage hφ)) n)).measurable
 
-omit [MeasurableConstVAdd G Ω] in
+omit [MeasurableSpace Ω] [MeasurableConstVAdd G Ω] in
+/-- The rational ergodic CDF takes the same value at two points at which the ergodic averages of
+all the half-line indicators have the same limits. -/
+lemma ergodicRatCDF_eq_of_forall_tendsto_iff {ω ω' : Ω}
+    (h : ∀ (q : ℚ) (c : ℝ), Tendsto (fun n ↦ ((F n).card : ℝ)⁻¹ • ∑ i ∈ F n,
+        (φ ⁻¹' (embeddingReal X ⁻¹' Iic (q : ℝ))).indicator (fun _ ↦ (1 : ℝ)) (i +ᵥ ω)) atTop
+          (𝓝 c) ↔
+      Tendsto (fun n ↦ ((F n).card : ℝ)⁻¹ • ∑ i ∈ F n,
+        (φ ⁻¹' (embeddingReal X ⁻¹' Iic (q : ℝ))).indicator (fun _ ↦ (1 : ℝ)) (i +ᵥ ω')) atTop
+          (𝓝 c)) :
+    ergodicRatCDF F φ ω = ergodicRatCDF F φ ω' := by
+  by_cases hω : ω ∈ ergodicConvergenceSet F φ
+  · have hω' := (mem_ergodicConvergenceSet_iff_of_forall_tendsto_iff h).1 hω
+    funext q
+    rw [ergodicRatCDF_of_mem hω, ergodicRatCDF_of_mem hω']
+    obtain ⟨c, hc⟩ := (mem_ergodicConvergenceSet F φ).1 hω q
+    rw [hc.limUnder_eq, ((h q c).1 hc).limUnder_eq]
+  · have hω' : ω' ∉ ergodicConvergenceSet F φ := fun h' ↦
+      hω ((mem_ergodicConvergenceSet_iff_of_forall_tendsto_iff h).2 h')
+    rw [ergodicRatCDF_of_notMem hω, ergodicRatCDF_of_notMem hω']
+
+omit [MeasurableSpace Ω] [MeasurableConstVAdd G Ω] in
 /-- The rational ergodic CDF is invariant, hence `𝓘`-measurable (Georgii: "`π(A | ·)` is
 `𝓘`-measurable for `A ∈ 𝒞`"). -/
 lemma ergodicRatCDF_vadd [DecidableEq G]
     (hFol : ∀ g : G, Tendsto (fun n ↦ (((g +ᵥ F n) ∆ F n).card : ℝ) / (F n).card) atTop (𝓝 0))
-    (g : G) (ω : Ω) : ergodicRatCDF Ω F (g +ᵥ ω) = ergodicRatCDF Ω F ω := by
-  by_cases hω : ω ∈ ergodicConvergenceSet Ω F
-  · have hgω := vadd_mem_ergodicConvergenceSet hFol hω g
-    funext q
-    rw [ergodicRatCDF_of_mem hω, ergodicRatCDF_of_mem hgω]
-    obtain ⟨c, hc⟩ := (mem_ergodicConvergenceSet Ω F).1 hω q
-    have hgc := (tendsto_inv_card_smul_sum_vadd_vadd_iff hFol (M := 1) (fun ω ↦ by
-      by_cases h : ω ∈ embeddingReal Ω ⁻¹' Iic (q : ℝ) <;> simp [h]) g ω).2 hc
-    rw [hgc.limUnder_eq, hc.limUnder_eq]
-  · have hgω : g +ᵥ ω ∉ ergodicConvergenceSet Ω F := fun h ↦ hω (by
-      simpa using vadd_mem_ergodicConvergenceSet hFol h (-g))
-    simp [ergodicRatCDF, hω, hgω]
+    (g : G) (ω : Ω) : ergodicRatCDF F φ (g +ᵥ ω) = ergodicRatCDF F φ ω :=
+  ergodicRatCDF_eq_of_forall_tendsto_iff fun q _ ↦
+    tendsto_inv_card_smul_sum_vadd_vadd_iff hFol (abs_indicator_preimage_Iic_le_one q) g ω
 
-lemma measurable_ergodicRatCDF [DecidableEq G]
+lemma measurable_ergodicRatCDF [DecidableEq G] (hφ : Measurable φ)
     (hFol : ∀ g : G, Tendsto (fun n ↦ (((g +ᵥ F n) ∆ F n).card : ℝ) / (F n).card) atTop (𝓝 0)) :
-    Measurable[𝓘] (ergodicRatCDF Ω F) :=
-  MeasurableSpace.measurable_invariants_of_forall_smul_eq measurable_ergodicRatCDF'
+    Measurable[𝓘] (ergodicRatCDF F φ) :=
+  MeasurableSpace.measurable_invariants_of_forall_smul_eq (measurable_ergodicRatCDF' hφ)
     fun c ω ↦ ergodicRatCDF_vadd hFol (Multiplicative.toAdd c) ω
 
-variable (Ω F) [DecidableEq G]
-  (hFol : ∀ g : G, Tendsto (fun n ↦ (((g +ᵥ F n) ∆ F n).card : ℝ) / (F n).card) atTop (𝓝 0))
+end ErgodicKernel
 
-/-- The `𝓘`-measurable kernel to `ℝ` obtained from the rational ergodic CDF. -/
-noncomputable def ergodicRealKernel : Kernel[𝓘] Ω ℝ :=
-  kernelOfMeasurableRat 𝓘 (ergodicRatCDF Ω F) (measurable_ergodicRatCDF hFol)
+/-! ### The kernel of an observable over a σ-algebra making its rational ergodic CDF measurable -/
 
-instance : IsMarkovKernel (ergodicRealKernel Ω F hFol) := isMarkovKernel_kernelOfMeasurableRat _ _ _
+section ErgodicKernelOfSigmaAlgebra
 
-variable (ν₀ : Measure Ω)
+variable {G Ω X : Type*} [AddCommGroup G] [AddAction G Ω] [MeasurableSpace X]
+  [StandardBorelSpace X] (F : ℕ → Finset G) (φ : Ω → X) {m : MeasurableSpace Ω}
+  (hm : Measurable[m] (ergodicRatCDF F φ))
 
-/-- The invariant event on which `ergodicRealKernel` is carried by the range of `embeddingReal`. -/
-def ergodicRangeSet : Set Ω := {ω | ergodicRealKernel Ω F hFol ω (range (embeddingReal Ω)) = 1}
+/-- The `m`-measurable kernel to `ℝ` obtained from the rational ergodic CDF. -/
+noncomputable def ergodicRealKernel : Kernel[m] Ω ℝ :=
+  kernelOfMeasurableRat m (ergodicRatCDF F φ) hm
 
-lemma measurableSet_ergodicRangeSet : MeasurableSet[𝓘] (ergodicRangeSet Ω F hFol) :=
+instance : IsMarkovKernel (ergodicRealKernel F φ hm) := isMarkovKernel_kernelOfMeasurableRat _ _ _
+
+/-- The `m`-measurable event on which `ergodicRealKernel` is carried by the range of
+`embeddingReal X`. -/
+def ergodicRangeSet : Set Ω := {ω | ergodicRealKernel F φ hm ω (range (embeddingReal X)) = 1}
+
+lemma measurableSet_ergodicRangeSet : MeasurableSet[m] (ergodicRangeSet F φ hm) :=
   (measurableSet_singleton 1).preimage
     (Kernel.measurable_coe _ (measurableEmbedding_embeddingReal _).measurableSet_range)
 
-variable {Ω}
+variable (ν₀ : Measure X)
 
 open Classical in
 /-- `ergodicRealKernel`, replaced off `ergodicRangeSet` by the pushforward of `ν₀`. -/
-noncomputable def ergodicRealKernel' : Kernel[𝓘] Ω ℝ :=
-  Kernel.piecewise (measurableSet_ergodicRangeSet Ω F hFol) (ergodicRealKernel Ω F hFol)
-    (@Kernel.const Ω ℝ 𝓘 _ (ν₀.map (embeddingReal Ω)))
+noncomputable def ergodicRealKernel' : Kernel[m] Ω ℝ :=
+  Kernel.piecewise (measurableSet_ergodicRangeSet F φ hm) (ergodicRealKernel F φ hm)
+    (@Kernel.const Ω ℝ m _ (ν₀.map (embeddingReal X)))
 
 lemma ergodicRealKernel'_apply_range [IsProbabilityMeasure ν₀] (ω : Ω) :
-    ergodicRealKernel' F hFol ν₀ ω (range (embeddingReal Ω)) = 1 := by
+    ergodicRealKernel' F φ hm ν₀ ω (range (embeddingReal X)) = 1 := by
   classical
   rw [ergodicRealKernel', Kernel.piecewise_apply]
   split_ifs with h
@@ -371,26 +420,136 @@ lemma ergodicRealKernel'_apply_range [IsProbabilityMeasure ν₀] (ω : Ω) :
   · rw [Kernel.const_apply, Measure.map_apply (measurable_embeddingReal _)
       (measurableEmbedding_embeddingReal _).measurableSet_range, preimage_range, measure_univ]
 
-/-- The candidate `(𝓟_G, 𝓘)`-kernel, before correction on the bad invariant set. -/
-noncomputable def ergodicKernelAux : Kernel[𝓘] Ω Ω :=
-  Kernel.comapRight (ergodicRealKernel' F hFol ν₀) (measurableEmbedding_embeddingReal Ω)
+/-- The `m`-measurable kernel from `Ω` to `X` whose values are the limits of the ergodic averages
+of the observable `φ` (Georgii's `π(· | ω)` restricted to the events `φ⁻¹(B)`), equal to `ν₀`
+where the rational ergodic CDF is not carried by `X`. -/
+noncomputable def ergodicKernelAux : Kernel[m] Ω X :=
+  Kernel.comapRight (ergodicRealKernel' F φ hm ν₀) (measurableEmbedding_embeddingReal X)
 
-instance [IsProbabilityMeasure ν₀] : IsMarkovKernel (ergodicKernelAux F hFol ν₀) :=
-  Kernel.IsMarkovKernel.comapRight _ _ (ergodicRealKernel'_apply_range F hFol ν₀)
+instance [IsProbabilityMeasure ν₀] : IsMarkovKernel (ergodicKernelAux F φ hm ν₀) :=
+  Kernel.IsMarkovKernel.comapRight _ _ (ergodicRealKernel'_apply_range F φ hm ν₀)
 
-variable [Countable G]
+end ErgodicKernelOfSigmaAlgebra
 
-/-- The invariant event on which `ergodicKernelAux` is an invariant probability measure. -/
-def ergodicInvariantSet : Set Ω := {ω | IsVAddInvariantCore G (ergodicKernelAux F hFol ν₀ ω)}
+/-! ### Identification of the ergodic kernel with `μ(· | 𝓘)` -/
+
+section ErgodicKernelCondExp
+
+variable {G Ω X : Type*} {m : MeasurableSpace Ω} [AddCommGroup G] [Countable G] [AddAction G Ω]
+  [MeasurableSpace Ω] [MeasurableConstVAdd G Ω] [StandardBorelSpace Ω] [MeasurableSpace X]
+  [StandardBorelSpace X] {F : ℕ → Finset G} {φ : Ω → X}
+  (hm : Measurable[m] (ergodicRatCDF F φ)) {ν₀ : Measure X} [DecidableEq G]
+  (hFol : ∀ g : G, Tendsto (fun n ↦ (((g +ᵥ F n) ∆ F n).card : ℝ) / (F n).card) atTop (𝓝 0))
+  {μ : Measure Ω} [IsProbabilityMeasure μ] [VAddInvariantMeasure G Ω μ] {C : ℝ≥0∞}
+
+/-- The invariant σ-algebra `𝓘` of the action. -/
+local notation "𝓘" => MeasurableSpace.smulInvariants (Multiplicative G) Ω
+
+omit [StandardBorelSpace Ω] in
+include hFol in
+/-- The multidimensional ergodic theorem (14.A8) on the countable core: for `μ`-a.e. `ω`, the
+ergodic averages of all the half-line indicators converge to `μ(e ∘ φ ≤ q | 𝓘)(ω)`. -/
+lemma ae_forall_tendsto_inv_card_smul_sum_vadd_indicator (hφ : Measurable φ) (hF : Monotone F)
+    (hne : (F 0).Nonempty) (hC : ∀ n, ((F n - F n + F n).card : ℝ≥0∞) ≤ C * (F n).card)
+    (hC' : C ≠ ∞) :
+    ∀ᵐ ω ∂μ, ∀ q : ℚ, Tendsto (fun n ↦ ((F n).card : ℝ)⁻¹ •
+      ∑ i ∈ F n, (φ ⁻¹' (embeddingReal X ⁻¹' Iic (q : ℝ))).indicator (fun _ ↦ (1 : ℝ)) (i +ᵥ ω))
+        atTop (𝓝 ((μ[(φ ⁻¹' (embeddingReal X ⁻¹' Iic (q : ℝ))).indicator
+          (fun _ ↦ (1 : ℝ)) | 𝓘]) ω)) :=
+  ae_forall_tendsto_inv_card_smul_sum_vadd_condExp hF hne hFol hC hC' fun _ ↦
+    (integrable_const (1 : ℝ)).indicator
+      ((measurableSet_Iic.preimage (measurable_embeddingReal X)).preimage hφ)
+
+omit [StandardBorelSpace Ω] in
+include hFol in
+lemma ae_mem_ergodicConvergenceSet (hφ : Measurable φ) (hF : Monotone F) (hne : (F 0).Nonempty)
+    (hC : ∀ n, ((F n - F n + F n).card : ℝ≥0∞) ≤ C * (F n).card) (hC' : C ≠ ∞) :
+    ∀ᵐ ω ∂μ, ω ∈ ergodicConvergenceSet F φ := by
+  filter_upwards [ae_forall_tendsto_inv_card_smul_sum_vadd_indicator (μ := μ) hFol hφ hF hne hC
+    hC'] with ω hω
+  exact (mem_ergodicConvergenceSet F φ).2 fun q ↦ ⟨_, hω q⟩
+
+include hFol in
+/-- On `Ω₀`, the rational ergodic CDF is `μ`-a.s. the CDF of the image under `e ∘ φ` of the
+conditional distribution `μ(· | 𝓘)`. -/
+lemma ae_forall_ergodicRatCDF_eq (hφ : Measurable φ) (hF : Monotone F) (hne : (F 0).Nonempty)
+    (hC : ∀ n, ((F n - F n + F n).card : ℝ≥0∞) ≤ C * (F n).card) (hC' : C ≠ ∞) :
+    ∀ᵐ ω ∂μ, ∀ q : ℚ, ergodicRatCDF F φ ω q =
+      (((condExpKernel μ 𝓘 ω).map φ).map (embeddingReal X)).real (Iic (q : ℝ)) := by
+  have hle : 𝓘 ≤ ‹MeasurableSpace Ω› := MeasurableSpace.smulInvariants_le
+  have hker : ∀ᵐ ω ∂μ, ∀ q : ℚ,
+      (condExpKernel μ 𝓘 ω).real (φ ⁻¹' (embeddingReal X ⁻¹' Iic (q : ℝ))) =
+        (μ[(φ ⁻¹' (embeddingReal X ⁻¹' Iic (q : ℝ))).indicator (fun _ ↦ (1 : ℝ)) | 𝓘]) ω :=
+    ae_all_iff.2 fun q ↦ condExpKernel_ae_eq_condExp hle
+      ((measurableSet_Iic.preimage (measurable_embeddingReal X)).preimage hφ)
+  filter_upwards [ae_forall_tendsto_inv_card_smul_sum_vadd_indicator (μ := μ) hFol hφ hF hne hC
+    hC', hker] with ω hω hkω
+  have hω₀ : ω ∈ ergodicConvergenceSet F φ := (mem_ergodicConvergenceSet F φ).2 fun q ↦ ⟨_, hω q⟩
+  intro q
+  rw [ergodicRatCDF_of_mem hω₀, (hω q).limUnder_eq, ← hkω q,
+    map_measureReal_apply (measurable_embeddingReal _) measurableSet_Iic,
+    map_measureReal_apply hφ (measurableSet_Iic.preimage (measurable_embeddingReal X))]
+
+include hFol in
+lemma ae_ergodicRealKernel_eq_map (hφ : Measurable φ) (hF : Monotone F) (hne : (F 0).Nonempty)
+    (hC : ∀ n, ((F n - F n + F n).card : ℝ≥0∞) ≤ C * (F n).card) (hC' : C ≠ ∞) :
+    ∀ᵐ ω ∂μ, ergodicRealKernel F φ hm ω =
+      ((condExpKernel μ 𝓘 ω).map φ).map (embeddingReal X) := by
+  filter_upwards [ae_forall_ergodicRatCDF_eq (μ := μ) hFol hφ hF hne hC hC'] with ω hω
+  have h1 : IsProbabilityMeasure ((condExpKernel μ 𝓘 ω).map φ) :=
+    Measure.isProbabilityMeasure_map hφ.aemeasurable
+  have : IsProbabilityMeasure (((condExpKernel μ 𝓘 ω).map φ).map (embeddingReal X)) :=
+    Measure.isProbabilityMeasure_map (measurable_embeddingReal _).aemeasurable
+  exact kernelOfMeasurableRat_eq m hm _ hω
+
+include hFol in
+/-- `ergodicKernelAux` is `μ`-a.s. the image under `φ` of the conditional distribution
+`μ(· | 𝓘)`, for every invariant probability measure `μ`. -/
+lemma ae_ergodicKernelAux_eq_map [IsProbabilityMeasure ν₀] (hφ : Measurable φ)
+    (hF : Monotone F) (hne : (F 0).Nonempty)
+    (hC : ∀ n, ((F n - F n + F n).card : ℝ≥0∞) ≤ C * (F n).card) (hC' : C ≠ ∞) :
+    ∀ᵐ ω ∂μ, ergodicKernelAux F φ hm ν₀ ω = (condExpKernel μ 𝓘 ω).map φ := by
+  classical
+  filter_upwards [ae_ergodicRealKernel_eq_map (μ := μ) hm hFol hφ hF hne hC hC'] with ω h1
+  have : IsProbabilityMeasure ((condExpKernel μ 𝓘 ω).map φ) :=
+    Measure.isProbabilityMeasure_map hφ.aemeasurable
+  have hrange : ω ∈ ergodicRangeSet F φ hm := by
+    change ergodicRealKernel F φ hm ω (range (embeddingReal X)) = 1
+    rw [h1, Measure.map_apply (measurable_embeddingReal _)
+      (measurableEmbedding_embeddingReal _).measurableSet_range, preimage_range, measure_univ]
+  rw [ergodicKernelAux, Kernel.comapRight_apply, ergodicRealKernel', Kernel.piecewise_apply,
+    ite_eq_left hrange, h1, (measurableEmbedding_embeddingReal _).comap_map]
+
+end ErgodicKernelCondExp
+
+/-! ### Georgii's kernel: the observable `φ = id`, corrected on the bad invariant set -/
+
+section InvariantKernel
+
+variable {G Ω : Type*} [AddCommGroup G] [AddAction G Ω] [MeasurableSpace Ω]
+  [MeasurableConstVAdd G Ω] [StandardBorelSpace Ω] (F : ℕ → Finset G) [DecidableEq G]
+  (hFol : ∀ g : G, Tendsto (fun n ↦ (((g +ᵥ F n) ∆ F n).card : ℝ) / (F n).card) atTop (𝓝 0))
+  (ν₀ : Measure Ω) [Countable G]
+
+/-- The invariant σ-algebra `𝓘` of the action. -/
+local notation "𝓘" => MeasurableSpace.smulInvariants (Multiplicative G) Ω
+
+/-- The invariant event on which `ergodicKernelAux` (for the observable `id`) is an invariant
+probability measure. -/
+def ergodicInvariantSet : Set Ω :=
+  {ω | IsVAddInvariantCore G
+    (ergodicKernelAux F id (measurable_ergodicRatCDF measurable_id hFol) ν₀ ω)}
 
 lemma measurableSet_ergodicInvariantSet : MeasurableSet[𝓘] (ergodicInvariantSet F hFol ν₀) :=
-  (measurableSet_isVAddInvariantCore G Ω).preimage (ergodicKernelAux F hFol ν₀).measurable
+  (measurableSet_isVAddInvariantCore G Ω).preimage
+    (ergodicKernelAux F id (measurable_ergodicRatCDF measurable_id hFol) ν₀).measurable
 
 open Classical in
 /-- **Georgii (14.10), the `(𝓟_Θ, 𝓘)`-kernel**: the `μ`-independent kernel from `(Ω, 𝓘)` to
 `(Ω, 𝓕)`, equal to `ν₀` off `ergodicInvariantSet`. -/
 noncomputable def ergodicKernel : Kernel[𝓘] Ω Ω :=
-  Kernel.piecewise (measurableSet_ergodicInvariantSet F hFol ν₀) (ergodicKernelAux F hFol ν₀)
+  Kernel.piecewise (measurableSet_ergodicInvariantSet F hFol ν₀)
+    (ergodicKernelAux F id (measurable_ergodicRatCDF measurable_id hFol) ν₀)
     (@Kernel.const Ω Ω 𝓘 _ ν₀)
 
 instance [IsProbabilityMeasure ν₀] : IsMarkovKernel (ergodicKernel F hFol ν₀) := by
@@ -406,56 +565,8 @@ lemma ergodicKernel_mem [IsProbabilityMeasure ν₀] [VAddInvariantMeasure G Ω 
   · exact isVAddInvariantCore_iff.1 h
   · rw [Kernel.const_apply]; exact ⟨‹_›, ‹_›⟩
 
-/-! #### Identification with `μ(· | 𝓘)` -/
-
 variable {F ν₀} {μ : Measure Ω} [IsProbabilityMeasure μ] [VAddInvariantMeasure G Ω μ]
   {C : ℝ≥0∞}
-
-include hFol in
-/-- The multidimensional ergodic theorem (14.A8) on the countable core: for `μ`-a.e. `ω`, the
-ergodic averages of all the half-line indicators converge to `μ(e ≤ q | 𝓘)(ω)`. -/
-lemma ae_forall_tendsto_inv_card_smul_sum_vadd_indicator (hF : Monotone F) (hne : (F 0).Nonempty)
-    (hC : ∀ n, ((F n - F n + F n).card : ℝ≥0∞) ≤ C * (F n).card) (hC' : C ≠ ∞) :
-    ∀ᵐ ω ∂μ, ∀ q : ℚ, Tendsto (fun n ↦ ((F n).card : ℝ)⁻¹ •
-      ∑ i ∈ F n, (embeddingReal Ω ⁻¹' Iic (q : ℝ)).indicator (fun _ ↦ (1 : ℝ)) (i +ᵥ ω)) atTop
-        (𝓝 ((μ[(embeddingReal Ω ⁻¹' Iic (q : ℝ)).indicator (fun _ ↦ (1 : ℝ)) | 𝓘]) ω)) :=
-  ae_forall_tendsto_inv_card_smul_sum_vadd_condExp hF hne hFol hC hC' fun _ ↦
-    (integrable_const (1 : ℝ)).indicator (measurableSet_Iic.preimage (measurable_embeddingReal Ω))
-
-include hFol in
-lemma ae_mem_ergodicConvergenceSet (hF : Monotone F) (hne : (F 0).Nonempty)
-    (hC : ∀ n, ((F n - F n + F n).card : ℝ≥0∞) ≤ C * (F n).card) (hC' : C ≠ ∞) :
-    ∀ᵐ ω ∂μ, ω ∈ ergodicConvergenceSet Ω F := by
-  filter_upwards [ae_forall_tendsto_inv_card_smul_sum_vadd_indicator (μ := μ) hFol hF hne hC hC']
-    with ω hω
-  exact (mem_ergodicConvergenceSet Ω F).2 fun q ↦ ⟨_, hω q⟩
-
-include hFol in
-/-- On `Ω₀`, the rational ergodic CDF is `μ`-a.s. the CDF of the image under `embeddingReal` of
-the conditional distribution `μ(· | 𝓘)`. -/
-lemma ae_forall_ergodicRatCDF_eq (hF : Monotone F) (hne : (F 0).Nonempty)
-    (hC : ∀ n, ((F n - F n + F n).card : ℝ≥0∞) ≤ C * (F n).card) (hC' : C ≠ ∞) :
-    ∀ᵐ ω ∂μ, ∀ q : ℚ, ergodicRatCDF Ω F ω q =
-      ((condExpKernel μ 𝓘 ω).map (embeddingReal Ω)).real (Iic (q : ℝ)) := by
-  have hle : 𝓘 ≤ ‹MeasurableSpace Ω› := MeasurableSpace.smulInvariants_le
-  have hker : ∀ᵐ ω ∂μ, ∀ q : ℚ, (condExpKernel μ 𝓘 ω).real (embeddingReal Ω ⁻¹' Iic (q : ℝ)) =
-      (μ[(embeddingReal Ω ⁻¹' Iic (q : ℝ)).indicator (fun _ ↦ (1 : ℝ)) | 𝓘]) ω :=
-    ae_all_iff.2 fun q ↦ condExpKernel_ae_eq_condExp hle
-      (measurableSet_Iic.preimage (measurable_embeddingReal Ω))
-  filter_upwards [ae_forall_tendsto_inv_card_smul_sum_vadd_indicator (μ := μ) hFol hF hne hC hC',
-    hker] with ω hω hkω
-  have hω₀ : ω ∈ ergodicConvergenceSet Ω F := (mem_ergodicConvergenceSet Ω F).2 fun q ↦ ⟨_, hω q⟩
-  intro q
-  rw [ergodicRatCDF_of_mem hω₀, (hω q).limUnder_eq, ← hkω q,
-    map_measureReal_apply (measurable_embeddingReal _) measurableSet_Iic]
-
-lemma ae_ergodicRealKernel_eq_map (hF : Monotone F) (hne : (F 0).Nonempty)
-    (hC : ∀ n, ((F n - F n + F n).card : ℝ≥0∞) ≤ C * (F n).card) (hC' : C ≠ ∞) :
-    ∀ᵐ ω ∂μ, ergodicRealKernel Ω F hFol ω = (condExpKernel μ 𝓘 ω).map (embeddingReal Ω) := by
-  filter_upwards [ae_forall_ergodicRatCDF_eq (μ := μ) hFol hF hne hC hC'] with ω hω
-  have : IsProbabilityMeasure ((condExpKernel μ 𝓘 ω).map (embeddingReal Ω)) :=
-    Measure.isProbabilityMeasure_map (measurable_embeddingReal _).aemeasurable
-  exact kernelOfMeasurableRat_eq 𝓘 (measurable_ergodicRatCDF hFol) _ hω
 
 omit [DecidableEq G] in
 /-- The conditional distributions `μ(· | 𝓘)` of an invariant probability measure are `μ`-a.s.
@@ -477,6 +588,7 @@ lemma ae_isVAddInvariantCore_condExpKernel :
   filter_upwards [h] with ω hω
   exact ⟨measure_univ, hω⟩
 
+include hFol in
 /-- `ergodicKernel` is `μ`-a.s. the conditional distribution `μ(· | 𝓘)`, for every invariant
 probability measure `μ`. -/
 lemma ae_ergodicKernel_eq_condExpKernel [IsProbabilityMeasure ν₀] (hF : Monotone F)
@@ -484,20 +596,16 @@ lemma ae_ergodicKernel_eq_condExpKernel [IsProbabilityMeasure ν₀] (hF : Monot
     (hC' : C ≠ ∞) :
     ∀ᵐ ω ∂μ, ergodicKernel F hFol ν₀ ω = condExpKernel μ 𝓘 ω := by
   classical
-  filter_upwards [ae_ergodicRealKernel_eq_map (μ := μ) hFol hF hne hC hC',
+  filter_upwards [ae_ergodicKernelAux_eq_map (μ := μ) (ν₀ := ν₀)
+    (measurable_ergodicRatCDF measurable_id hFol) hFol measurable_id hF hne hC hC',
     ae_isVAddInvariantCore_condExpKernel (G := G) (μ := μ)] with ω h1 h2
-  have hrange : ω ∈ ergodicRangeSet Ω F hFol := by
-    change ergodicRealKernel Ω F hFol ω (range (embeddingReal Ω)) = 1
-    rw [h1, Measure.map_apply (measurable_embeddingReal _)
-      (measurableEmbedding_embeddingReal _).measurableSet_range, preimage_range, measure_univ]
-  have haux : ergodicKernelAux F hFol ν₀ ω = condExpKernel μ 𝓘 ω := by
-    rw [ergodicKernelAux, Kernel.comapRight_apply, ergodicRealKernel', Kernel.piecewise_apply,
-      ite_eq_left hrange, h1, (measurableEmbedding_embeddingReal _).comap_map]
+  rw [Measure.map_id] at h1
   have hgood : ω ∈ ergodicInvariantSet F hFol ν₀ := by
-    change IsVAddInvariantCore G (ergodicKernelAux F hFol ν₀ ω)
-    rw [haux]; exact h2
-  rw [ergodicKernel, Kernel.piecewise_apply, ite_eq_left hgood, haux]
+    change IsVAddInvariantCore G _
+    rw [h1]; exact h2
+  rw [ergodicKernel, Kernel.piecewise_apply, ite_eq_left hgood, h1]
 
+include hFol in
 /-- Georgii (7.21)(i) for `ergodicKernel`: it is a version of `μ(· | 𝓘)` for every invariant
 probability measure `μ`. -/
 theorem condExp_ae_eq_ergodicKernel [IsProbabilityMeasure ν₀] (hF : Monotone F)
@@ -541,7 +649,7 @@ theorem exists_isPAKernel_of_vaddInvariant (hF : Monotone F) (hne : (F 0).Nonemp
   exact ⟨ergodicKernel F hFol ν₀, inferInstance,
     isPAKernel_ergodicKernel Ω F hFol ν₀ hF hne hC hC' hP⟩
 
-end ErgodicKernel
+end InvariantKernel
 
 namespace IsPAKernel
 

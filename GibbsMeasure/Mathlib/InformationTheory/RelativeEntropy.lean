@@ -6,6 +6,8 @@ Authors: Matteo Cipollina
 module
 
 public import Mathlib.InformationTheory.KullbackLeibler.DataProcessing
+public import Mathlib.Probability.Kernel.RadonNikodym
+public import Mathlib.Probability.UniformOn
 public import Mathlib.MeasureTheory.Function.ConditionalExpectation.RadonNikodym
 public import Mathlib.MeasureTheory.Measure.MeasuredSets
 public import Mathlib.Probability.Martingale.Convergence
@@ -431,7 +433,9 @@ lemma _root_.Set.PairwiseDisjoint.isPiSystem {S : Set (Set 𝓧)} (h : S.Pairwis
     exact hst.ne_empty (Set.disjoint_iff_inter_eq_empty.mp (h hs ht hne))
   simpa using hs
 
-private lemma klFun_div_mul {x y : ℝ} (hy : y ≠ 0) :
+/-- `klFun (x / y) * y = x log (x / y) + y - x`: the summand of Georgii's (15.7) in Mathlib's
+normalisation. -/
+lemma klFun_div_mul {x y : ℝ} (hy : y ≠ 0) :
     klFun (x / y) * y = x * log (x / y) + y - x := by
   rw [klFun_apply]
   field_simp
@@ -1054,5 +1058,381 @@ theorem klDiv_withDensity_rnDeriv_add_klDiv_trim {m m𝓧 : MeasurableSpace 𝓧
   exact (klDiv_eq_add_klDiv_trim_of_withDensity hm hg rfl htrim.symm).symm
 
 end DensityAndTotalVariation
+
+section Comap
+
+/-! ### Relative entropy on a preimage σ-algebra -/
+
+/-- If a measurable `f` preserves `μ` and `ν`, the relative entropy on a sub-σ-algebra `m` is at
+most the relative entropy on its preimage `f⁻¹ m`: this is the data processing inequality
+`klDiv_map_le` for `f : (𝓧, f⁻¹ m) → (𝓧, m)`. Both measures being invariant, `f⁻¹ m` and `m`
+give the same relative entropy as soon as `m` is itself a preimage (as for translates). -/
+theorem klDiv_trim_le_klDiv_trim_comap {m m𝓧 : MeasurableSpace 𝓧} {μ ν : Measure 𝓧}
+    [IsFiniteMeasure μ] [IsFiniteMeasure ν]
+    (hm : m ≤ m𝓧) {f : 𝓧 → 𝓧} (hf : Measurable f) (hμ : μ.map f = μ)
+    (hν : ν.map f = ν) :
+    klDiv (μ.trim hm) (ν.trim hm)
+      ≤ klDiv (μ.trim (hf.mono le_rfl hm).comap_le) (ν.trim (hf.mono le_rfl hm).comap_le) := by
+  have key : ∀ ρ : Measure 𝓧, ρ.map f = ρ →
+      ρ.trim hm = @Measure.map _ _ (m.comap f) m f (ρ.trim (hf.mono le_rfl hm).comap_le) := by
+    intro ρ hρ
+    rw [map_trim_comap (hf.mono le_rfl hm)]
+    conv_lhs => rw [← hρ]
+    rw [trim_eq_map, Measure.map_map (measurable_id'' hm) hf]
+    rfl
+  rw [key μ hμ, key ν hν]
+  exact klDiv_map_le _ _ (Measurable.of_comap_le le_rfl)
+
+/-- **Invariance of the relative entropy on a sub-σ-algebra under a measurable bijection.** If the
+measurable map `f` has a two-sided inverse `g` (automatically measurable from `m` to `f⁻¹ m`), the
+relative entropy of the images `f_* μ`, `f_* ν` on `m` is the relative entropy of `μ`, `ν` on the
+preimage σ-algebra `f⁻¹ m`. Both inequalities are the data processing inequality `klDiv_map_le`,
+for `f` and for `g`. -/
+theorem klDiv_trim_map_eq_klDiv_trim_comap {𝓧 : Type*} {m m𝓧 : MeasurableSpace 𝓧}
+    {μ ν : Measure 𝓧} [IsFiniteMeasure μ] [IsFiniteMeasure ν] (hm : m ≤ m𝓧) {f g : 𝓧 → 𝓧}
+    (hf : Measurable f) (hfg : ∀ x, f (g x) = x) (hgf : ∀ x, g (f x) = x) :
+    klDiv ((μ.map f).trim hm) ((ν.map f).trim hm)
+      = klDiv (μ.trim (hf.mono le_rfl hm).comap_le) (ν.trim (hf.mono le_rfl hm).comap_le) := by
+  have key : ∀ ρ : Measure 𝓧, (ρ.map f).trim hm
+      = @Measure.map _ _ (m.comap f) m f (ρ.trim (hf.mono le_rfl hm).comap_le) := by
+    intro ρ
+    rw [map_trim_comap (hf.mono le_rfl hm), trim_eq_map, Measure.map_map (measurable_id'' hm) hf]
+    rfl
+  rw [key μ, key ν]
+  have hf' : Measurable[m.comap f, m] f := Measurable.of_comap_le le_rfl
+  have hg' : Measurable[m, m.comap f] g := by
+    rintro _ ⟨t, ht, rfl⟩
+    have : g ⁻¹' (f ⁻¹' t) = t := by ext x; simp [hfg]
+    rw [this]
+    exact ht
+  refine le_antisymm (klDiv_map_le _ _ hf') ?_
+  have hback : ∀ ρ : @Measure 𝓧 (m.comap f),
+      @Measure.map _ _ m (m.comap f) g (@Measure.map _ _ (m.comap f) m f ρ) = ρ := by
+    intro ρ
+    rw [@Measure.map_map _ _ _ (m.comap f) m (m.comap f) _ _ _ hg' hf']
+    have : g ∘ f = id := funext hgf
+    rw [this, Measure.map_id]
+  calc klDiv (μ.trim (hf.mono le_rfl hm).comap_le) (ν.trim (hf.mono le_rfl hm).comap_le)
+      = klDiv (@Measure.map _ _ m (m.comap f) g
+            (@Measure.map _ _ (m.comap f) m f (μ.trim (hf.mono le_rfl hm).comap_le)))
+          (@Measure.map _ _ m (m.comap f) g
+            (@Measure.map _ _ (m.comap f) m f (ν.trim (hf.mono le_rfl hm).comap_le))) := by
+        rw [hback, hback]
+    _ ≤ _ := klDiv_map_le _ _ hg'
+
+end Comap
+
+section ConvexityDefect
+
+/-- The pointwise inequality behind `smul_klDiv_add_smul_klDiv_le`: for `s + t = 1` and
+`x, y ≥ 0`, `s ψ(x) + t ψ(y) ≤ ψ(s x + t y) + s x log (1/s) + t y log (1/t)`, where `ψ = klFun`.
+It follows from `log x ≤ log (s x + t y) - log s`. -/
+private lemma smul_klFun_add_smul_klFun_le {s t x y : ℝ} (hs : 0 < s) (ht : 0 < t) (hst : s + t = 1)
+    (hx : 0 ≤ x) (hy : 0 ≤ y) :
+    s * klFun x + t * klFun y
+      ≤ klFun (s * x + t * y) + s * x * (-log s) + t * y * (-log t) := by
+  have key : ∀ {a u : ℝ}, 0 < a → 0 ≤ u → a * u ≤ s * x + t * y →
+      a * u * log u ≤ a * u * log (s * x + t * y) - a * u * log a := by
+    intro a u ha hu hle
+    rcases hu.eq_or_lt with rfl | hu'
+    · simp
+    · have h1 : log (a * u) ≤ log (s * x + t * y) := Real.log_le_log (by positivity) hle
+      rw [Real.log_mul ha.ne' hu'.ne'] at h1
+      have := mul_le_mul_of_nonneg_left h1 (by positivity : 0 ≤ a * u)
+      linarith
+  have h1 := key hs hx (by nlinarith)
+  have h2 := key ht hy (by nlinarith)
+  simp only [klFun_apply]
+  nlinarith
+
+/-- **The convexity defect of the Kullback–Leibler divergence in its first argument** (Georgii,
+in the proof of Proposition (15.14)): for probability measures and `s + t = 1`,
+`s 𝓗(μ₁ | ν) + t 𝓗(μ₂ | ν) ≤ 𝓗(s μ₁ + t μ₂ | ν) + s log (1/s) + t log (1/t)`. Together with the
+convexity `klDiv_smul_add_smul_le` this makes `μ ↦ 𝓗(μ | ν)` affine up to a bounded error. -/
+theorem smul_klDiv_add_smul_klDiv_le {α : Type*} {mα : MeasurableSpace α} {μ₁ μ₂ ν : Measure α}
+    [IsProbabilityMeasure μ₁] [IsProbabilityMeasure μ₂] [IsProbabilityMeasure ν] {s t : ℝ≥0}
+    (hs : 0 < s) (ht : 0 < t) (hst : s + t = 1) :
+    s * klDiv μ₁ ν + t * klDiv μ₂ ν
+      ≤ klDiv (s • μ₁ + t • μ₂) ν + ENNReal.ofReal (-(s * log s)) + ENNReal.ofReal (-(t * log t))
+          := by
+  by_cases hac : s • μ₁ + t • μ₂ ≪ ν
+  swap
+  · simp [klDiv_of_not_ac hac]
+  have hs1 : (s : ℝ) ≤ 1 := by
+    have : (s : ℝ) + t = 1 := by exact_mod_cast hst
+    linarith [NNReal.coe_pos.2 ht]
+  have ht1 : (t : ℝ) ≤ 1 := by
+    have : (s : ℝ) + t = 1 := by exact_mod_cast hst
+    linarith [NNReal.coe_pos.2 hs]
+  have hlogs : 0 ≤ -log (s : ℝ) := neg_nonneg.2 (Real.log_nonpos s.coe_nonneg hs1)
+  have hlogt : 0 ≤ -log (t : ℝ) := neg_nonneg.2 (Real.log_nonpos t.coe_nonneg ht1)
+  have hcs : 0 ≤ (s : ℝ) * (-log s) := mul_nonneg s.coe_nonneg hlogs
+  have hct : 0 ≤ (t : ℝ) * (-log t) := mul_nonneg t.coe_nonneg hlogt
+  have hac' : ∀ {a : ℝ≥0} {ρ ρ' : Measure α}, 0 < a → a • ρ + ρ' ≪ ν → ρ ≪ ν := by
+    intro a ρ ρ' ha h
+    refine Measure.AbsolutelyContinuous.mk fun A hA hν ↦ ?_
+    have := h hν
+    rw [Measure.add_apply, Measure.smul_apply, add_eq_zero, smul_eq_zero] at this
+    exact this.1.resolve_left (by exact_mod_cast ha.ne')
+  have h₁ : μ₁ ≪ ν := hac' hs hac
+  have h₂ : μ₂ ≪ ν := hac' ht (by rwa [add_comm] at hac)
+  have hf : (s • μ₁ + t • μ₂).rnDeriv ν =ᵐ[ν] fun x ↦ s * μ₁.rnDeriv ν x + t * μ₂.rnDeriv ν x := by
+    filter_upwards [Measure.rnDeriv_add (s • μ₁) (t • μ₂) ν, Measure.rnDeriv_smul_left μ₁ ν s,
+      Measure.rnDeriv_smul_left μ₂ ν t] with x hx h1 h2
+    rw [hx, Pi.add_apply, h1, h2]
+    rfl
+  have hm : ∀ ρ : Measure α, Measurable fun x ↦ ENNReal.ofReal (klFun (ρ.rnDeriv ν x).toReal) :=
+    fun ρ ↦ ENNReal.measurable_ofReal.comp (measurable_klFun.comp
+      (ENNReal.measurable_toReal.comp (Measure.measurable_rnDeriv _ _)))
+  -- the two constants as integrals against `ν`
+  have hconst : ∀ {a : ℝ≥0} {ρ : Measure α} [IsProbabilityMeasure ρ], ρ ≪ ν →
+      0 ≤ (a : ℝ) * (-log a) →
+      ENNReal.ofReal (-(a * log a))
+        = ∫⁻ x, ENNReal.ofReal (a * (ρ.rnDeriv ν x).toReal * (-log a)) ∂ν := by
+    intro a ρ _ hρ ha
+    calc ENNReal.ofReal (-(a * log a)) = ENNReal.ofReal (a * (-log a)) * ρ Set.univ := by
+          rw [measure_univ, mul_one, mul_neg]
+      _ = ENNReal.ofReal (a * (-log a)) * ∫⁻ x, ρ.rnDeriv ν x ∂ν := by
+          rw [Measure.lintegral_rnDeriv hρ]
+      _ = ∫⁻ x, ENNReal.ofReal (a * (-log a)) * ρ.rnDeriv ν x ∂ν :=
+          (lintegral_const_mul _ (Measure.measurable_rnDeriv _ _)).symm
+      _ = _ := by
+          refine lintegral_congr_ae ?_
+          filter_upwards [Measure.rnDeriv_ne_top ρ ν] with x hx
+          conv_lhs => rw [← ENNReal.ofReal_toReal hx]
+          rw [← ENNReal.ofReal_mul ha]
+          congr 1
+          ring
+  rw [klDiv_eq_lintegral_klFun_of_ac hac, klDiv_eq_lintegral_klFun_of_ac h₁,
+    klDiv_eq_lintegral_klFun_of_ac h₂, ← lintegral_const_mul _ (hm μ₁), ← lintegral_const_mul _
+        (hm μ₂),
+    ← lintegral_add_left ((hm μ₁).const_mul _), hconst h₁ hcs, hconst h₂ hct,
+    ← lintegral_add_left (by fun_prop), ← lintegral_add_left (by fun_prop)]
+  refine lintegral_mono_ae ?_
+  filter_upwards [hf, Measure.rnDeriv_ne_top μ₁ ν, Measure.rnDeriv_ne_top μ₂ ν] with x hx h1 h2
+  rw [hx]
+  set x₁ := (μ₁.rnDeriv ν x).toReal with hx₁_def
+  set x₂ := (μ₂.rnDeriv ν x).toReal with hx₂_def
+  have hx₁ : 0 ≤ x₁ := ENNReal.toReal_nonneg
+  have hx₂ : 0 ≤ x₂ := ENNReal.toReal_nonneg
+  have hu : ((s : ℝ≥0∞) * μ₁.rnDeriv ν x + t * μ₂.rnDeriv ν x).toReal = s * x₁ + t * x₂ := by
+    rw [ENNReal.toReal_add (by finiteness) (by finiteness), ENNReal.toReal_mul,
+      ENNReal.toReal_mul, ENNReal.coe_toReal, ENNReal.coe_toReal]
+  rw [hu]
+  have hu₀ : 0 ≤ (s : ℝ) * x₁ + t * x₂ :=
+    add_nonneg (mul_nonneg s.coe_nonneg hx₁) (mul_nonneg t.coe_nonneg hx₂)
+  calc (s : ℝ≥0∞) * ENNReal.ofReal (klFun x₁) + t * ENNReal.ofReal (klFun x₂)
+      = ENNReal.ofReal (s * klFun x₁ + t * klFun x₂) := by
+        rw [ENNReal.ofReal_add (mul_nonneg s.coe_nonneg (klFun_nonneg hx₁))
+          (mul_nonneg t.coe_nonneg (klFun_nonneg hx₂)), ENNReal.ofReal_mul s.coe_nonneg,
+          ENNReal.ofReal_mul t.coe_nonneg, ENNReal.ofReal_coe_nnreal, ENNReal.ofReal_coe_nnreal]
+    _ ≤ ENNReal.ofReal (klFun (s * x₁ + t * x₂) + s * x₁ * (-log s) + t * x₂ * (-log t)) :=
+        ENNReal.ofReal_le_ofReal (smul_klFun_add_smul_klFun_le (by exact_mod_cast hs)
+          (by exact_mod_cast ht) (by exact_mod_cast hst) hx₁ hx₂)
+    _ = _ := by
+        rw [ENNReal.ofReal_add (add_nonneg (klFun_nonneg hu₀)
+            (mul_nonneg (mul_nonneg s.coe_nonneg hx₁) hlogs))
+            (mul_nonneg (mul_nonneg t.coe_nonneg hx₂) hlogt),
+          ENNReal.ofReal_add (klFun_nonneg hu₀) (mul_nonneg (mul_nonneg s.coe_nonneg hx₁) hlogs)]
+
+end ConvexityDefect
+
+section Kernel
+
+/-- **Measurability of `a ↦ 𝓗(κ a | η a)`** for finite kernels into a countably generated space:
+on `{κ a ≪ η a}` it is the integral of `klFun` of the jointly measurable kernel Radon–Nikodym
+derivative, and `∞` elsewhere. -/
+theorem measurable_klDiv_kernel {α γ : Type*} {mα : MeasurableSpace α} {mγ : MeasurableSpace γ}
+    [MeasurableSpace.CountablyGenerated γ] (κ η : Kernel α γ) [IsFiniteKernel κ]
+    [IsFiniteKernel η] :
+    Measurable fun a ↦ klDiv (κ a) (η a) := by
+  classical
+  have hf : Measurable fun a ↦ ∫⁻ x, ENNReal.ofReal (klFun (κ.rnDeriv η a x).toReal) ∂(η a) :=
+    Measurable.lintegral_kernel_prod_right' (κ := η)
+      (f := fun p : α × γ ↦ ENNReal.ofReal (klFun (κ.rnDeriv η p.1 p.2).toReal))
+      (ENNReal.measurable_ofReal.comp (measurable_klFun.comp
+        (ENNReal.measurable_toReal.comp (Kernel.measurable_rnDeriv κ η))))
+  have heq : (fun a ↦ klDiv (κ a) (η a)) = fun a ↦
+      if κ a ≪ η a then ∫⁻ x, ENNReal.ofReal (klFun (κ.rnDeriv η a x).toReal) ∂(η a) else ∞ := by
+    funext a
+    split_ifs with h
+    · rw [klDiv_eq_lintegral_klFun_of_ac h]
+      refine lintegral_congr_ae ?_
+      filter_upwards [Kernel.rnDeriv_eq_rnDeriv_measure (κ := κ) (η := η) (a := a)] with x hx
+      rw [hx]
+    · exact klDiv_of_not_ac h
+  rw [heq]
+  exact Measurable.ite (Kernel.measurableSet_absolutelyContinuous κ η) hf measurable_const
+
+end Kernel
+
+section UniformAbsoluteContinuity
+
+/-- **Uniform absolute continuity from an entropy bound** (Georgii, Step 3 in the proof of
+Proposition (15.14)): for every bound `b < ∞` and `ε > 0` there is `δ > 0` such that every
+probability measure `μ` with `𝓗(μ | ν) ≤ b` satisfies `μ A ≤ ε` on every measurable `A` with
+`ν A ≤ δ`. With `f = dμ/dν` and a threshold `C`,
+`μ A ≤ C ν A + ∫_{f > C} f dν` and `∫_{f > C} f dν ≤ (𝓗(μ | ν) + 1) / log C`. -/
+theorem exists_forall_measure_le_of_klDiv_le {α : Type*} {mα : MeasurableSpace α} {b : ℝ≥0∞}
+    (hb : b ≠ ∞) {ε : ℝ≥0∞} (hε : 0 < ε) :
+    ∃ δ : ℝ≥0∞, 0 < δ ∧ ∀ (μ ν : Measure α) [IsProbabilityMeasure μ] [IsFiniteMeasure ν],
+      klDiv μ ν ≤ b → ∀ ⦃A : Set α⦄, MeasurableSet A → ν A ≤ δ → μ A ≤ ε := by
+  by_cases hεtop : ε = ∞
+  · exact ⟨1, one_pos, fun μ ν _ _ _ A _ _ ↦ by rw [hεtop]; exact le_top⟩
+  set e : ℝ := ε.toReal with he
+  have he0 : 0 < e := ENNReal.toReal_pos hε.ne' hεtop
+  set C : ℝ := Real.exp (2 * (b.toReal + 1) / e) with hC
+  have hC1 : 1 < C := by
+    rw [hC, ← Real.exp_zero]
+    exact Real.exp_lt_exp.2 (by positivity)
+  have hlogC : Real.log C = 2 * (b.toReal + 1) / e := by rw [hC, Real.log_exp]
+  have hlogC0 : 0 < Real.log C := by rw [hlogC]; positivity
+  refine ⟨ENNReal.ofReal (e / (2 * C)), ENNReal.ofReal_pos.2 (by positivity), ?_⟩
+  intro μ ν _ _ hkl A hA hνA
+  have hac : μ ≪ ν := by
+    by_contra h
+    rw [klDiv_of_not_ac h] at hkl
+    exact hb (top_le_iff.1 hkl)
+  set f := μ.rnDeriv ν with hf
+  have hfm : Measurable f := Measure.measurable_rnDeriv _ _
+  set T : Set α := {x | ENNReal.ofReal C < f x} with hT
+  have hTm : MeasurableSet T := measurableSet_lt measurable_const hfm
+  -- pointwise, `f ≤ C + f 1_{f > C}`
+  have hpt : ∀ x, f x ≤ ENNReal.ofReal C + T.indicator f x := by
+    intro x
+    by_cases hx : x ∈ T
+    · rw [Set.indicator_of_mem hx]
+      exact le_add_self
+    · rw [Set.indicator_of_notMem hx, add_zero]
+      exact not_lt.1 hx
+  -- on `{f > C}`, `log C · f ≤ ψ(f) + f`
+  have hkey : ∀ x, f x ≠ ∞ → ENNReal.ofReal (Real.log C) * T.indicator f x
+      ≤ ENNReal.ofReal (klFun (f x).toReal) + T.indicator f x := by
+    intro x hx
+    by_cases hxT : x ∈ T
+    · rw [Set.indicator_of_mem hxT]
+      have hCx : C < (f x).toReal :=
+        (ENNReal.ofReal_lt_iff_lt_toReal (by linarith) hx).1 hxT
+      have hx0 : 0 < (f x).toReal := by linarith
+      have hreal : Real.log C * (f x).toReal ≤ klFun (f x).toReal + (f x).toReal := by
+        rw [klFun_apply]
+        have h1 := Real.log_le_log (by linarith) hCx.le
+        nlinarith [mul_le_mul_of_nonneg_left h1 hx0.le]
+      calc ENNReal.ofReal (Real.log C) * f x
+          = ENNReal.ofReal (Real.log C * (f x).toReal) := by
+            rw [ENNReal.ofReal_mul hlogC0.le, ENNReal.ofReal_toReal hx]
+        _ ≤ ENNReal.ofReal (klFun (f x).toReal + (f x).toReal) := ENNReal.ofReal_le_ofReal hreal
+        _ = ENNReal.ofReal (klFun (f x).toReal) + f x := by
+            rw [ENNReal.ofReal_add (klFun_nonneg ENNReal.toReal_nonneg) ENNReal.toReal_nonneg,
+              ENNReal.ofReal_toReal hx]
+    · rw [Set.indicator_of_notMem hxT, mul_zero]
+      exact zero_le
+  have hTint : ∫⁻ x, T.indicator f x ∂ν ≤ ENNReal.ofReal (e / 2) := by
+    have h1 : (∫⁻ x, T.indicator f x ∂ν) * ENNReal.ofReal (Real.log C) ≤ b + 1 := by
+      rw [mul_comm, ← lintegral_const_mul _ (hfm.indicator hTm)]
+      calc ∫⁻ x, ENNReal.ofReal (Real.log C) * T.indicator f x ∂ν
+          ≤ ∫⁻ x, ENNReal.ofReal (klFun (f x).toReal) + T.indicator f x ∂ν := by
+            refine lintegral_mono_ae ?_
+            filter_upwards [Measure.rnDeriv_ne_top μ ν] with x hx using hkey x hx
+        _ = klDiv μ ν + ∫⁻ x, T.indicator f x ∂ν := by
+            rw [lintegral_add_left (f := fun x ↦ ENNReal.ofReal (klFun (f x).toReal))
+              (by fun_prop), klDiv_eq_lintegral_klFun_of_ac hac]
+        _ ≤ b + 1 := by
+            refine add_le_add hkl ?_
+            rw [lintegral_indicator hTm, Measure.setLIntegral_rnDeriv hac]
+            exact prob_le_one
+    have hlog : ENNReal.ofReal (Real.log C) ≠ 0 := (ENNReal.ofReal_pos.2 hlogC0).ne'
+    rw [← ENNReal.le_div_iff_mul_le (Or.inl hlog) (Or.inl ENNReal.ofReal_ne_top)] at h1
+    refine h1.trans (le_of_eq ?_)
+    rw [← ENNReal.ofReal_toReal hb, ← ENNReal.ofReal_one,
+      ← ENNReal.ofReal_add ENNReal.toReal_nonneg zero_le_one, ← ENNReal.ofReal_div_of_pos hlogC0,
+      hlogC]
+    congr 1
+    field_simp
+  calc μ A = ∫⁻ x in A, f x ∂ν := (Measure.setLIntegral_rnDeriv hac A).symm
+    _ ≤ ∫⁻ x in A, ENNReal.ofReal C + T.indicator f x ∂ν := lintegral_mono hpt
+    _ = ENNReal.ofReal C * ν A + ∫⁻ x in A, T.indicator f x ∂ν := by
+        rw [lintegral_add_left measurable_const, setLIntegral_const]
+    _ ≤ ENNReal.ofReal C * ENNReal.ofReal (e / (2 * C)) + ENNReal.ofReal (e / 2) := by
+        gcongr
+        exact (lintegral_mono' Measure.restrict_le_self le_rfl).trans hTint
+    _ = ε := by
+        rw [← ENNReal.ofReal_mul (by positivity), ← ENNReal.ofReal_add (by positivity)
+          (by positivity)]
+        have : C * (e / (2 * C)) + e / 2 = e := by field_simp; ring
+        rw [this, he, ENNReal.ofReal_toReal hεtop]
+
+end UniformAbsoluteContinuity
+
+section FiniteType
+
+/-- **The relative entropy on a finite type** with measurable singletons is Georgii's sum
+`∑_x μ{x} log (μ{x} / ν{x})` (in Mathlib's normalisation, with the correction
+`ν{x} - μ{x}` per point), provided `ν{x} = 0 → μ{x} = 0` for all `x`; otherwise it is `∞`
+(`klDiv_eq_top_of_measure_eq_zero`). -/
+theorem klDiv_eq_sum_singleton {α : Type*} [Fintype α] {mα : MeasurableSpace α}
+    [MeasurableSingletonClass α] {μ ν : Measure α} [IsFiniteMeasure μ] [IsFiniteMeasure ν]
+    (hac : ∀ x, ν {x} = 0 → μ {x} = 0) :
+    klDiv μ ν = ∑ x, ENNReal.ofReal
+      (μ.real {x} * log (μ.real {x} / ν.real {x}) + ν.real {x} - μ.real {x}) := by
+  classical
+  set P : Finset (Set α) := Finset.univ.image fun x ↦ ({x} : Set α) with hP
+  have hmemP : ∀ A, A ∈ P ↔ ∃ x, A = {x} := fun A ↦ by
+    simp only [hP, Finset.mem_image, Finset.mem_univ, true_and, eq_comm]
+  have hP_disj : (P : Set (Set α)).PairwiseDisjoint id := by
+    intro A hA B hB hAB
+    obtain ⟨x, rfl⟩ := (hmemP A).1 hA
+    obtain ⟨y, rfl⟩ := (hmemP B).1 hB
+    exact Set.disjoint_singleton.2 fun h ↦ hAB (h ▸ rfl)
+  have hP_cover : ⋃₀ (P : Set (Set α)) = Set.univ :=
+    Set.eq_univ_of_forall fun x ↦ Set.mem_sUnion.2 ⟨{x}, (hmemP _).2 ⟨x, rfl⟩, rfl⟩
+  have hP_meas : ∀ A ∈ P, MeasurableSet A := fun A hA ↦ by
+    obtain ⟨x, rfl⟩ := (hmemP A).1 hA
+    exact measurableSet_singleton x
+  have hgen : MeasurableSpace.generateFrom (P : Set (Set α)) = mα := by
+    refine le_antisymm (MeasurableSpace.generateFrom_le hP_meas) fun s _ ↦ ?_
+    rw [← Set.biUnion_of_singleton s]
+    exact MeasurableSet.biUnion s.to_countable fun x _ ↦
+      MeasurableSpace.measurableSet_generateFrom ((hmemP _).2 ⟨x, rfl⟩)
+  have h := klDiv_trim_generateFrom_eq_sum (μ := μ) (ν := ν) hP_disj hP_cover hP_meas
+    fun A hA ↦ by obtain ⟨x, rfl⟩ := (hmemP A).1 hA; exact hac x
+  rw [klDiv_trim_congr hgen _ le_rfl, trim_eq_self, trim_eq_self] at h
+  rw [h, hP, Finset.sum_image fun x _ y _ hxy ↦ Set.singleton_injective hxy]
+
+/-- **Shannon's formula.** The relative entropy of a probability measure `μ` on a finite type
+with respect to the uniform distribution is `∑_x μ{x} log μ{x} + log |α|`, the difference
+between the maximal entropy `log |α|` and the entropy `-∑_x μ{x} log μ{x}` of `μ`. -/
+theorem klDiv_uniformOn_univ {α : Type*} [Fintype α] [Nonempty α] {mα : MeasurableSpace α}
+    [MeasurableSingletonClass α] (μ : Measure α) [IsProbabilityMeasure μ] :
+    klDiv μ (uniformOn Set.univ)
+      = ENNReal.ofReal (∑ x, μ.real {x} * log (μ.real {x}) + log (Fintype.card α)) := by
+  have hcard : (0 : ℝ) < Fintype.card α := by exact_mod_cast Fintype.card_pos
+  have hν : ∀ x, (uniformOn (Set.univ : Set α)).real {x} = 1 / Fintype.card α := fun x ↦ by
+    rw [measureReal_def, uniformOn_univ, Measure.count_singleton, ENNReal.toReal_div,
+      ENNReal.toReal_one, ENNReal.toReal_natCast]
+  have hterm : ∀ x, μ.real {x} * log (μ.real {x} / (1 / Fintype.card α)) + 1 / Fintype.card α
+      - μ.real {x} = μ.real {x} * log (μ.real {x}) + μ.real {x} * log (Fintype.card α)
+        + 1 / Fintype.card α - μ.real {x} := fun x ↦ by
+    by_cases hx : μ.real {x} = 0
+    · simp [hx]
+    · rw [div_div_eq_mul_div, div_one, log_mul hx hcard.ne', mul_add]
+  have hnn : ∀ x, 0 ≤ μ.real {x} * log (μ.real {x} / (1 / Fintype.card α)) + 1 / Fintype.card α
+      - μ.real {x} := fun x ↦ by
+    rw [← klFun_div_mul (by positivity)]
+    exact mul_nonneg (klFun_nonneg (div_nonneg measureReal_nonneg (by positivity)))
+      (by positivity)
+  rw [klDiv_eq_sum_singleton fun x h ↦ absurd h (by
+      rw [uniformOn_univ, Measure.count_singleton]
+      exact (ENNReal.div_pos one_ne_zero (ENNReal.natCast_ne_top _)).ne')]
+  simp_rw [hν]
+  rw [← ENNReal.ofReal_sum_of_nonneg fun x _ ↦ hnn x]
+  congr 1
+  simp_rw [hterm]
+  rw [Finset.sum_sub_distrib, Finset.sum_add_distrib, Finset.sum_add_distrib, ← Finset.sum_mul,
+    sum_measureReal_singleton, Finset.coe_univ, probReal_univ, one_mul, Finset.sum_const,
+    Finset.card_univ, nsmul_eq_mul, mul_one_div_cancel hcard.ne']
+  ring
+
+end FiniteType
 
 end InformationTheory
