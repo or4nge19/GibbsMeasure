@@ -9,6 +9,7 @@ public import GibbsMeasure.Model.GaussianField
 public import GibbsMeasure.Specification.GluedFamily
 public import GibbsMeasure.Specification.ZeroDirac
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Tsum
+public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.ENNReal
 
 /-!
 # Georgii §13.2: Gibbs measures for Gaussian specifications
@@ -103,13 +104,14 @@ Remark (13.23).
   does not exist in this checkout's pinned mathlib (only a differently-typed `Measurable.tsum` for
   `SummationFilter`s does). Restated here under a fresh name to avoid the deprecation warning;
   intended eventual home is wherever the dangling deprecation gets fixed.
-* `summable_abs_iff_tsum_ofReal_ne_top`: for `F : ι → ℝ` nonnegative, `Summable F` iff
-  `∑' i, ENNReal.ofReal (F i) ≠ ⊤`. Intended home: `Mathlib/Topology/Algebra/InfiniteSum/ENNReal.lean`,
-  next to `ENNReal.tsum_coe_ne_top_iff_summable`.
-* `ProbabilityTheory.multivariateGaussianPi_unique`: on a singleton index type, the multivariate
-  Gaussian with precision `A` and mean `m` is `gaussianReal (m default) (A default default)⁻¹`
-  pushed forward along `x ↦ (fun _ ↦ x)`. Intended home:
-  `GibbsMeasure/Mathlib/Probability/Distributions/Gaussian/Density.lean`.
+* `ENNReal.tsum_ofReal_ne_top_iff_summable`
+  (`GibbsMeasure/Mathlib/Topology/Algebra/InfiniteSum/ENNReal.lean`, next to
+  `ENNReal.tsum_coe_ne_top_iff_summable`): for `F : ι → ℝ` nonnegative, `∑' i, ENNReal.ofReal (F i)
+  ≠ ⊤` iff `Summable F` — the converse of Mathlib's `Summable.tsum_ofReal_ne_top`.
+* `ProbabilityTheory.multivariateGaussianPi_unique`
+  (`GibbsMeasure/Mathlib/Probability/Distributions/Gaussian/Density.lean`): on a singleton index
+  type, the multivariate Gaussian with precision `A` and mean `m` is
+  `gaussianReal (m default) (A default default)⁻¹` pushed forward along `x ↦ (fun _ ↦ x)`.
 -/
 
 @[expose] public section
@@ -187,7 +189,8 @@ theorem measurableSet_gaussianConvergenceSet : MeasurableSet (gaussianConvergenc
       ⋂ i, {ω : S → ℝ | (∑' j, ENNReal.ofReal |J i j * ω j|) ≠ ⊤} := by
     ext ω
     simp only [gaussianConvergenceSet, Set.mem_iInter, Set.mem_ofPred_eq]
-    exact forall_congr' fun i ↦ summable_abs_iff_tsum_ofReal_ne_top _ fun j ↦ abs_nonneg _
+    exact forall_congr' fun i ↦
+      (ENNReal.tsum_ofReal_ne_top_iff_summable fun j ↦ abs_nonneg (J i j * ω j)).symm
   rw [hset]
   refine MeasurableSet.iInter fun i ↦ ?_
   have hmeas : Measurable fun ω : S → ℝ ↦ ∑' j, ENNReal.ofReal |J i j * ω j| :=
@@ -326,10 +329,8 @@ end Potential
 /-! ## A general reference specification: the Dirac mass vanishing on `Λ`
 
 This is Georgii's "otherwise" branch of Definition (13.18): `γ_Λ(·|ω) = δ_{0_Λ ω_{S∖Λ}}`. It is
-completely general (any `S`, any `E` with a `Zero`), not specific to the Gaussian setting, so it
-belongs at the level of `Specification`, not `Potential`. Intended home: `GibbsMeasure/Specification/`
-(e.g. next to `Specification.isssd` in `GibbsMeasure/Specification.lean`), no `Potential`/Gaussian
-import needed. -/
+completely general (any `S`, any `E` with a `Zero`), and lives at the level of `Specification`
+(`GibbsMeasure/Specification/ZeroDirac.lean`), with no `Potential` or Gaussian import. -/
 
 /-! ## Georgii, Definition (13.18): the glued specification, finite range
 

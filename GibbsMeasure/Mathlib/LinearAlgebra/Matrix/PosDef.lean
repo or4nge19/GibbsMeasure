@@ -8,19 +8,10 @@ module
 public import Mathlib.LinearAlgebra.Matrix.PosDef
 
 /-!
-# Positive definiteness is preserved by positive scalars
+# Positive definiteness over an arbitrary index type via finite principal submatrices
 -/
 
 @[expose] public section
-
-theorem Matrix.PosDef.smul_of_pos {ι : Type*} [Finite ι] {A : Matrix ι ι ℝ} (hA : A.PosDef)
-    {c : ℝ} (hc : 0 < c) : (c • A).PosDef := by
-  have := Fintype.ofFinite ι
-  refine Matrix.PosDef.of_dotProduct_mulVec_pos (hA.isHermitian.smul (IsSelfAdjoint.all c))
-    fun x hx ↦ ?_
-  have hpos := hA.dotProduct_mulVec_pos hx
-  rw [Matrix.smul_mulVec, dotProduct_smul, smul_eq_mul]
-  exact mul_pos hc hpos
 
 /-- A real matrix over an arbitrary index type is positive definite (in the finitely supported
 sense of `Matrix.PosDef`) iff every finite principal submatrix is positive definite. This is the

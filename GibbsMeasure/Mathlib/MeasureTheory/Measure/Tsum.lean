@@ -11,7 +11,7 @@ public import Mathlib.Topology.Algebra.InfiniteSum.ENNReal
 public import Mathlib.Analysis.SpecificLimits.Basic
 
 /-!
-# Measurability of `ℝ≥0∞`-valued series, and absolute summability through `ENNReal.ofReal`
+# Measurability of `ℝ≥0∞`-valued series
 -/
 
 @[expose] public section
@@ -26,10 +26,3 @@ theorem measurable_ennreal_tsum {α ι : Type*} [MeasurableSpace α] [Countable 
   exact Measurable.iSup fun s ↦ s.measurable_fun_sum fun i _ ↦ hf i
 
 end MeasureTheory
-
-theorem summable_abs_iff_tsum_ofReal_ne_top {ι : Type*} (F : ι → ℝ) (hF : ∀ j, 0 ≤ F j) :
-    Summable F ↔ (∑' j, ENNReal.ofReal (F j)) ≠ ⊤ := by
-  have hFg : F = fun j ↦ ((F j).toNNReal : ℝ) := funext fun j ↦ (Real.coe_toNNReal _ (hF j)).symm
-  conv_lhs => rw [hFg]
-  rw [NNReal.summable_coe, ← ENNReal.tsum_coe_ne_top_iff_summable]
-  simp [ENNReal.ofReal]

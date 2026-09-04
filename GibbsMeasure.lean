@@ -5,6 +5,7 @@ public import GibbsMeasure.Mathlib.Analysis.Calculus.IteratedDeriv.SecondDiffere
 public import GibbsMeasure.Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
 public import GibbsMeasure.Mathlib.Analysis.PSeries
 public import GibbsMeasure.Mathlib.Algebra.Order.BigOperators.Ring.Finset
+public import GibbsMeasure.Mathlib.Algebra.BigOperators.Group.Finset.Sigma
 public import GibbsMeasure.Mathlib.Topology.Instances.EReal
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.ENNReal
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.Order
@@ -156,6 +157,7 @@ public import GibbsMeasure.Potential.Space
 public import GibbsMeasure.Potential.Transformation
 public import GibbsMeasure.Potential.Reindex
 public import GibbsMeasure.Potential.Pair
+public import GibbsMeasure.Potential.Site
 public import GibbsMeasure.Specification
 public import GibbsMeasure.Specification.ChoquetLaw
 public import GibbsMeasure.Specification.DeFinetti

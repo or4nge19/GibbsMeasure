@@ -7,6 +7,8 @@ module
 
 public import GibbsMeasure.Potential.FiniteReference
 public import GibbsMeasure.Potential.Pair
+public import GibbsMeasure.Potential.Site
+public import GibbsMeasure.Mathlib.Algebra.BigOperators.Group.Finset.Sigma
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PosDef
 public import Mathlib.Probability.Distributions.Gaussian.IsGaussianProcess.Basic
 public import Mathlib.Probability.Distributions.Gaussian.HasGaussianLaw.Basic
@@ -31,26 +33,25 @@ multivariate Gaussian distribution (13.13) — for `J` symmetric with finite row
 finite-range case (2.15); his Chapter 13 also allows a genuinely infinite-range `J` under a
 convergence condition, not treated here).
 
-## General lemma missing from Mathlib
+## General lemmas used here, proved in the Mathlib layer
 
-* `ProbabilityTheory.covariance_sum_smul_sum_smul`: the bilinear expansion
-  `cov[∑ᵢ aᵢ • Xᵢ, ∑ⱼ bⱼ • Xⱼ] = ∑ᵢ∑ⱼ aᵢ bⱼ cov[Xᵢ, Xⱼ]` of the covariance of two finite linear
-  combinations of an `L²` family. Intended home: `Mathlib/Probability/Moments/Covariance.lean`,
-  next to `covariance_sum_left'`/`covariance_sum_right'`.
-* `Matrix.posSemidef_covariance`: the covariance "matrix" `(i, j) ↦ cov[Xᵢ, Xⱼ; μ]` of an
-  arbitrary (possibly infinite) `L²` family is `Matrix.PosSemidef`. Intended home: the same file,
-  or a new `Mathlib/Probability/Moments/CovarianceMatrix.lean`. `Matrix.PosSemidef`/`Matrix.PosDef`
-  are already stated over `n →₀ R` (finitely supported coefficients), so no `Fintype`/`Finset`
-  bookkeeping is needed to match Georgii's (13.3), which is exactly the finitely-supported
-  condition.
-* `Matrix.PosDef.smul`: a positive definite real matrix scaled by a positive real is positive
-  definite. Intended home: `Mathlib/LinearAlgebra/Matrix/PosDef.lean`.
+* `ProbabilityTheory.covariance_sum_smul_sum_smul` and `Matrix.posSemidef_covariance`
+  (`GibbsMeasure/Mathlib/Probability/Moments/Covariance.lean`): the bilinear expansion
+  `cov[∑ᵢ aᵢ • Xᵢ, ∑ⱼ bⱼ • Xⱼ] = ∑ᵢ∑ⱼ aᵢ bⱼ cov[Xᵢ, Xⱼ]`, and the fact that the covariance
+  "matrix" `(i, j) ↦ cov[Xᵢ, Xⱼ; μ]` of an arbitrary (possibly infinite) `L²` family is
+  `Matrix.PosSemidef`. `Matrix.PosSemidef`/`Matrix.PosDef` are stated over `n →₀ R` (finitely
+  supported coefficients), which is exactly Georgii's (13.3).
+* `Finset.sum_sum_eq_sum_diag_add_two_nsmul_sum_lt`
+  (`GibbsMeasure/Mathlib/Algebra/BigOperators/Group/Finset/Sigma.lean`): the diagonal/off-diagonal
+  expansion `∑_{i,j ∈ s} f i j = ∑_{i ∈ s} f i i + 2 ∑_{i < j} f i j` of a symmetric `f`.
+* `Potential.site` and its API (`GibbsMeasure/Potential/Site.lean`): the one-body half of a
+  potential.
 
 ## General lemma missing from `GibbsMeasure/Specification.lean`
 
 * `Specification.sigmaFiniteLambdaFun_juxt_eq`: the σ-finite reference kernel `λ_Λ(·|η)` depends
   on the boundary condition `η` only through `η|_{Λᶜ}` — resampling inside `Λ` first does not
-  change it. Intended home: next to `Specification.sigmaFiniteLambdaFun_apply_eq_map`.
+  change it (`GibbsMeasure/Specification.lean`).
 
 ## Main definitions
 
@@ -243,82 +244,6 @@ end MeasureTheory.GibbsMeasure
 namespace Potential
 
 variable {S E : Type*} [MeasurableSpace E] [LinearOrder S]
-
-section SiteTerms
-
-variable {α : Type*} [AddCommMonoid α]
-
-/-- The family `A ↦ f i` if `A = {i}`, and `0` otherwise, written as a `Finset.sum` so that it is
-manifestly measurable in any parameters of `f`. The single-site counterpart of
-`Potential.pairTerms`. -/
-def siteTerms (f : S → α) (A : Finset S) : α :=
-  ∑ i ∈ A, if A = {i} then f i else 0
-
-variable {f g : S → α}
-
-lemma siteTerms_singleton (i : S) : siteTerms f {i} = f i := by simp [siteTerms]
-
-lemma siteTerms_eq_zero {A : Finset S} (hA : ∀ i, A ≠ {i}) : siteTerms f A = 0 :=
-  Finset.sum_eq_zero fun i _ ↦ ite_eq_right (hA i)
-
-/-- Summing `siteTerms f` over the powerset of `Δ` is summing `f` over `Δ`: only the singletons
-`{i}`, `i ∈ Δ`, are both in `Δ.powerset` and possibly nonzero. The site-term counterpart of
-`Potential.sum_powerset_pairTerms`. -/
-lemma sum_powerset_siteTerms (Δ : Finset S) (f : S → α) :
-    ∑ A ∈ Δ.powerset, siteTerms f A = ∑ i ∈ Δ, f i := by
-  classical
-  have hsub : Δ.image (fun i ↦ ({i} : Finset S)) ⊆ Δ.powerset := by
-    intro A hA
-    obtain ⟨i, hi, rfl⟩ := Finset.mem_image.1 hA
-    simpa using hi
-  have hzero : ∀ A ∈ Δ.powerset, A ∉ Δ.image (fun i ↦ ({i} : Finset S)) → siteTerms f A = 0 := by
-    intro A hA hAim
-    refine siteTerms_eq_zero fun k hk ↦ hAim ?_
-    have hkΔ : k ∈ Δ := Finset.mem_powerset.1 hA (hk ▸ Finset.mem_singleton_self k)
-    exact Finset.mem_image.2 ⟨k, hkΔ, hk.symm⟩
-  rw [← Finset.sum_subset hsub hzero,
-    Finset.sum_image (fun a _ b _ hab ↦ Finset.singleton_injective hab)]
-  exact Finset.sum_congr rfl fun i _ ↦ siteTerms_singleton i
-
-end SiteTerms
-
-/-- **The single-site half of a potential**: `Φ_{\{i\}} = f i (η i)`, and `Φ_A = 0` for every
-other `A`. The counterpart of `Potential.pair` for singletons, needed because Georgii's (13.11)
-is a one-body term (site) plus a pair term. -/
-def site (f : S → E → ℝ) : Potential S E := fun A η ↦ siteTerms (fun i ↦ f i (η i)) A
-
-variable {f : S → E → ℝ}
-
-lemma site_apply (A : Finset S) (η : S → E) : site f A η = siteTerms (fun i ↦ f i (η i)) A := rfl
-
-lemma site_singleton (i : S) (η : S → E) : site f {i} η = f i (η i) :=
-  siteTerms_singleton i
-
-lemma site_eq_zero {A : Finset S} (hA : ∀ i, A ≠ {i}) : site f A = 0 :=
-  funext fun _ ↦ siteTerms_eq_zero hA
-
-/-- A single-site potential with measurable `f i` is a potential in the sense of Georgii
-(2.2)(i). -/
-lemma isPotential_site (hf : ∀ i, Measurable (f i)) : IsPotential (site f) where
-  measurable A := by
-    unfold site siteTerms
-    refine Finset.measurable_sum _ fun i hi ↦ ?_
-    by_cases hA : A = {i}
-    · simp only [ite_eq_left hA]
-      exact (hf i).comp (measurable_cylinderEvent_apply (X := fun _ : S ↦ E) (Finset.mem_coe.2 hi))
-    · simp only [ite_eq_right hA]
-      exact measurable_const
-
-/-- A single-site potential has finite range unconditionally: each site interacts only with
-itself. (Intended home: next to `Potential.site`, if `site` is ever generalized out of this
-file.) -/
-lemma isFiniteRange_site : IsFiniteRange (site f) where
-  exists_finset i := ⟨{i}, fun A hiA hΦ ↦ by
-    by_cases hA : A = {i}
-    · rw [hA]
-    · exact absurd (site_eq_zero fun k hk ↦ hA (by
-        have hik : i = k := Finset.mem_singleton.1 (hk ▸ hiA)
-        rw [hik, hk])) hΦ⟩
 
 variable (J : S → S → ℝ) (h : S → ℝ)
 
@@ -539,7 +464,8 @@ theorem hamiltonian_gaussianPotential_eq (hSymm : ∀ i j, J i j = J j i)
     intro Δ hΔT hΔ
     rcases Finset.mem_union.1 hΔT with hΔp | hΔb
     · rcases Δ.eq_empty_or_nonempty with rfl | hΔne
-      · exact gaussianPotential_eq_zero J h (fun i hi ↦ absurd hi.symm (Finset.singleton_ne_empty i))
+      · exact gaussianPotential_eq_zero J h
+          (fun i hi ↦ absurd hi.symm (Finset.singleton_ne_empty i))
           (fun i j _ hij ↦ absurd hij.symm (Finset.insert_ne_empty i {j})) η
       · have hΔΛ : ((Δ : Set S) ∩ (Λ : Set S)).Nonempty := by
           obtain ⟨x, hxΔ⟩ := hΔne
@@ -584,54 +510,17 @@ is confirmed independently by completing the square in the Boltzmann factor `exp
 def gaussianMean (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite) (Λ : Finset S) (ω : S → ℝ) : Λ → ℝ :=
   -((gaussianCovMatrix J Λ)⁻¹ *ᵥ (fun i : Λ ↦ h i.1 + gaussianBoundaryField J hFin Λ ω i.1))
 
-/-- **Diagonal/off-diagonal expansion of a symmetric bilinear form.** For `J` symmetric,
-`∑_{i,j ∈ Λ} J(i,j) η_i η_j = ∑_{i ∈ Λ} J(i,i) η_i² + 2 ∑_{i < j, i,j ∈ Λ} J(i,j) η_i η_j`.
-(Intended home, if generalized past `J`: a `Finset`-sum lemma for symmetric `f : S → S → α` next
-to `Potential.pairTerms`.) -/
+/-- **Diagonal/off-diagonal expansion of the quadratic form of `J`.** For `J` symmetric,
+`∑_{i,j ∈ Λ} J(i,j) η_i η_j = ∑_{i ∈ Λ} J(i,i) η_i² + 2 ∑_{i < j, i,j ∈ Λ} J(i,j) η_i η_j`:
+`Finset.sum_sum_eq_sum_diag_add_two_nsmul_sum_lt` at `f i j = J(i,j) η_i η_j`. -/
 private lemma sum_sum_eq_sum_diag_add_two_mul_sum_lt (hSymm : ∀ i j, J i j = J j i)
     (Λ : Finset S) (η : S → ℝ) :
     ∑ i ∈ Λ, ∑ j ∈ Λ, J i j * η i * η j =
       ∑ i ∈ Λ, J i i * η i ^ 2 +
         2 * ∑ i ∈ Λ, ∑ j ∈ Λ, (if i < j then J i j * η i * η j else 0) := by
-  classical
-  set f : S → S → ℝ := fun i j ↦ J i j * η i * η j with hf
-  have hsplit : ∀ i j : S, f i j =
-      (if i < j then f i j else 0) + (if i = j then f i j else 0) +
-        (if j < i then f i j else 0) := by
-    intro i j
-    rcases lt_trichotomy i j with hlt | heq | hgt
-    · rw [ite_eq_left hlt, ite_eq_right hlt.ne, ite_eq_right (not_lt.2 hlt.le)]
-      ring
-    · subst heq
-      rw [ite_eq_right (lt_irrefl i), ite_eq_left rfl]
-      ring
-    · rw [ite_eq_right (not_lt.2 hgt.le), ite_eq_right hgt.ne', ite_eq_left hgt]
-      ring
-  have hstep : ∑ i ∈ Λ, ∑ j ∈ Λ, f i j =
-      (∑ i ∈ Λ, ∑ j ∈ Λ, (if i < j then f i j else 0)) +
-        (∑ i ∈ Λ, ∑ j ∈ Λ, (if i = j then f i j else 0)) +
-        ∑ i ∈ Λ, ∑ j ∈ Λ, (if j < i then f i j else 0) := by
-    rw [← Finset.sum_add_distrib, ← Finset.sum_add_distrib]
-    refine Finset.sum_congr rfl fun i _ ↦ ?_
-    rw [← Finset.sum_add_distrib, ← Finset.sum_add_distrib]
-    exact Finset.sum_congr rfl fun j _ ↦ hsplit i j
-  have hdiag : ∑ i ∈ Λ, ∑ j ∈ Λ, (if i = j then f i j else 0) = ∑ i ∈ Λ, J i i * η i ^ 2 := by
-    refine Finset.sum_congr rfl fun i hi ↦ ?_
-    rw [Finset.sum_ite_eq Λ i (fun j ↦ f i j), ite_eq_left hi]
-    simp only [hf]
-    ring
-  have hlast : ∑ i ∈ Λ, ∑ j ∈ Λ, (if j < i then f i j else 0) =
-      ∑ i ∈ Λ, ∑ j ∈ Λ, (if i < j then f i j else 0) := by
-    rw [Finset.sum_comm]
-    refine Finset.sum_congr rfl fun j _ ↦ Finset.sum_congr rfl fun i _ ↦ ?_
-    by_cases hij : j < i
-    · rw [ite_eq_left hij, ite_eq_left hij]
-      simp only [hf]
-      rw [hSymm i j]
-      ring
-    · rw [ite_eq_right hij, ite_eq_right hij]
-  rw [hstep, hdiag, hlast]
-  ring
+  have h := Finset.sum_sum_eq_sum_diag_add_two_nsmul_sum_lt (M := ℝ) Λ
+    (f := fun i j ↦ J i j * η i * η j) fun i j ↦ by rw [hSymm i j]; ring
+  simpa [Finset.sum_filter, nsmul_eq_mul, pow_two, mul_assoc] using h
 
 omit [LinearOrder S] in
 /-- The quadratic form `ζ ⬝ᵥ 𝒥_Λ *ᵥ ζ` evaluated at the `Λ`-restriction of a juxtaposition
@@ -699,14 +588,7 @@ theorem hamiltonian_gaussianPotential_juxt_eq (hSymm : ∀ i j, J i j = J j i)
 
 end HamiltonianQuadraticForm
 
-/-! ### Georgii Proposition (13.13): λ-admissibility
-
-## General lemma missing from Mathlib
-
-* `Matrix.PosDef.smul`: a positive definite real matrix scaled by a positive real scalar is
-  positive definite. Intended home: `Mathlib/LinearAlgebra/Matrix/PosDef.lean`, next to
-  `Matrix.PosDef.posSemidef`.
--/
+/-! ### Georgii Proposition (13.13): λ-admissibility -/
 
 section LambdaAdmissibility
 
@@ -730,7 +612,7 @@ private lemma sigmaFiniteLambdaZ_gaussianPotential_boltzmannFactor_eq
   have := isFiniteRange_gaussianPotential J h hSymm hFin
   have := isPotential_gaussianPotential J h
   set A : Matrix Λ Λ ℝ := β • gaussianCovMatrix J Λ with hAdef
-  have hA : A.PosDef := Matrix.PosDef.smul_of_pos (hPD Λ) hβ
+  have hA : A.PosDef := (hPD Λ).smul hβ
   set b : Λ → ℝ := -β • (fun i : Λ ↦ h i.1 + gaussianBoundaryField J hFin Λ η i.1) with hbdef
   have hmeas : Measurable ((gaussianPotential J h).boltzmannFactor β Λ) :=
     measurable_boltzmannFactor β Λ
@@ -767,7 +649,7 @@ theorem isSigmaFiniteLambdaAdmissible_gaussianPotential_boltzmannFactor
       ((gaussianPotential J h).boltzmannFactor β) := by
   intro Λ η
   rw [sigmaFiniteLambdaZ_gaussianPotential_boltzmannFactor_eq J h hSymm hFin hPD β hβ Λ η]
-  have hdetpos : 0 < (β • gaussianCovMatrix J Λ).det := (Matrix.PosDef.smul_of_pos (hPD Λ) hβ).det_pos
+  have hdetpos : 0 < (β • gaussianCovMatrix J Λ).det := ((hPD Λ).smul hβ).det_pos
   have hposval : 0 < Real.sqrt ((2 * Real.pi) ^ Fintype.card Λ / (β • gaussianCovMatrix J Λ).det) *
       Real.exp ((1 / 2) * ((-β • fun i : Λ ↦ h i.1 + gaussianBoundaryField J hFin Λ η i.1) ⬝ᵥ
         (β • gaussianCovMatrix J Λ)⁻¹ *ᵥ
@@ -792,7 +674,7 @@ noncomputable def gaussianSpecification (hSymm : ∀ i j, J i j = J j i)
 
 * `Specification.sigmaFiniteLambdaFun_juxt_eq`: the σ-finite reference kernel `λ_Λ(·|η)` depends
   on the boundary condition `η` only through `η|_{Λᶜ}`: resampling inside `Λ` first does not
-  change it. Intended home: next to `Specification.sigmaFiniteLambdaFun_apply_eq_map`.
+  change it (`GibbsMeasure/Specification.lean`).
 -/
 
 /-- **Georgii Proposition (13.13).** The finite-volume Gibbs distribution `γ_Λ^{J,h}(·|ω)` is the
@@ -811,7 +693,7 @@ theorem gaussianSpecification_apply (hSymm : ∀ i j, J i j = J j i)
   have := isFiniteRange_gaussianPotential J h hSymm hFin
   have := isPotential_gaussianPotential J h
   set A : Matrix Λ Λ ℝ := β • gaussianCovMatrix J Λ with hAdef
-  have hA : A.PosDef := Matrix.PosDef.smul_of_pos (hPD Λ) hβ
+  have hA : A.PosDef := (hPD Λ).smul hβ
   set b : Λ → ℝ := -β • (fun i : Λ ↦ h i.1 + gaussianBoundaryField J hFin Λ ω i.1) with hbdef
   have hJdet : (gaussianCovMatrix J Λ).det ≠ 0 := (hPD Λ).det_pos.ne'
   have hJinv : gaussianCovMatrix J Λ * (gaussianCovMatrix J Λ)⁻¹ = 1 :=
