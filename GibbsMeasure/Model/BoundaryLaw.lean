@@ -78,34 +78,34 @@ lemma measurable_bond (j : ℤ) : Measurable fun σ : ℤ → E ↦ Q (σ j) (σ
   measurable_pair Q j (j + 1)
 
 /-- Georgii (11.2)–(11.3) before normalisation: the weight
-`ρ^Q_Λ(σ) = ∏_{j ∈ bondsOf Λ} Q(σ_j, σ_{j+1})` of the bonds meeting `Λ`. For `Q = e^{-Φ}` with `Φ`
-the nearest-neighbour potential of the transfer matrix `Q`, this is the Boltzmann factor
-`e^{-H_Λ}`. -/
-def transferWeight (Λ : Finset ℤ) (σ : ℤ → E) : ℝ≥0∞ := ∏ j ∈ bondsOf Λ, Q (σ j) (σ (j + 1))
+`ρ^Q_Λ(σ) = ∏_{j ∈ bondsOf Λ} Q(σ_j, σ_{j+1})` of the bonds meeting `Λ`
+(`transferWeight_eq_prod_bondsOf`). It is the chain density `g_Λ` of Georgii's Example (10.3)
+for the constant family of transition densities `p_j = Q`. For `Q = e^{-Φ}` with `Φ` the
+nearest-neighbour potential of the transfer matrix `Q`, this is the Boltzmann factor `e^{-H_Λ}`. -/
+abbrev transferWeight : Finset ℤ → (ℤ → E) → ℝ≥0∞ := Specification.chainDensity fun _ ↦ Q
+
+omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
+lemma transferWeight_eq_prod_bondsOf (Λ : Finset ℤ) (σ : ℤ → E) :
+    transferWeight Q Λ σ = ∏ j ∈ bondsOf Λ, Q (σ j) (σ (j + 1)) := rfl
 
 lemma measurable_transferWeight (Λ : Finset ℤ) : Measurable (transferWeight Q Λ) :=
-  Finset.measurable_prod _ fun j _ ↦ measurable_bond Q j
+  Specification.measurable_chainDensity (fun _ ↦ measurable_of_countable _) Λ
 
 omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
 lemma transferWeight_pos (hQ : ∀ x y, 0 < Q x y) (Λ : Finset ℤ) (σ : ℤ → E) :
     0 < transferWeight Q Λ σ :=
-  pos_iff_ne_zero.2 (Finset.prod_ne_zero_iff.2 fun _ _ ↦ (hQ _ _).ne')
+  Specification.chainDensity_pos (fun _ ↦ hQ) Λ σ
 
 omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
 lemma transferWeight_ne_top (hQ : ∀ x y, Q x y ≠ ⊤) (Λ : Finset ℤ) (σ : ℤ → E) :
     transferWeight Q Λ σ ≠ ⊤ :=
-  (ENNReal.prod_lt_top fun _ _ ↦ (hQ _ _).lt_top).ne
+  Specification.chainDensity_ne_top (fun _ ↦ hQ) Λ σ
 
 omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
 lemma transferWeight_congr {Λ : Finset ℤ} {σ τ : ℤ → E}
     (h : ∀ j ∈ bondsOf Λ, σ j = τ j ∧ σ (j + 1) = τ (j + 1)) :
     transferWeight Q Λ σ = transferWeight Q Λ τ :=
-  Finset.prod_congr rfl fun j hj ↦ by rw [(h j hj).1, (h j hj).2]
-
-omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
-lemma bondsOf_mono {Λ₁ Λ₂ : Finset ℤ} (h : Λ₁ ⊆ Λ₂) : bondsOf Λ₁ ⊆ bondsOf Λ₂ := fun _ hj ↦ by
-  rw [mem_bondsOf] at hj ⊢
-  exact hj.imp (fun h' ↦ h h') fun h' ↦ h h'
+  Specification.chainDensity_congr h
 
 omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
 /-- The transfer weights form a pre-modification (Georgii (1.28)(5)): the weights of the bonds
@@ -113,46 +113,11 @@ not meeting `Λ₁` factor out. -/
 lemma transferWeight_mul_comm_of_subset {Λ₁ Λ₂ : Finset ℤ} (hΛ : Λ₁ ⊆ Λ₂) {ζ η : ℤ → E}
     (h : ∀ s ∉ Λ₁, ζ s = η s) :
     transferWeight Q Λ₂ ζ * transferWeight Q Λ₁ η
-      = transferWeight Q Λ₁ ζ * transferWeight Q Λ₂ η := by
-  have hsplit : ∀ ω : ℤ → E, transferWeight Q Λ₂ ω
-      = (∏ j ∈ bondsOf Λ₂ \ bondsOf Λ₁, Q (ω j) (ω (j + 1))) * transferWeight Q Λ₁ ω := fun ω ↦
-    (Finset.prod_sdiff (bondsOf_mono hΛ)).symm
-  have hdiff : (∏ j ∈ bondsOf Λ₂ \ bondsOf Λ₁, Q (ζ j) (ζ (j + 1)))
-      = ∏ j ∈ bondsOf Λ₂ \ bondsOf Λ₁, Q (η j) (η (j + 1)) :=
-    Finset.prod_congr rfl fun j hj ↦ by
-      have hj' := (Finset.mem_sdiff.1 hj).2
-      rw [mem_bondsOf, not_or] at hj'
-      rw [h j hj'.1, h (j + 1) hj'.2]
-  rw [hsplit ζ, hsplit η, hdiff]
-  ring
+      = transferWeight Q Λ₁ ζ * transferWeight Q Λ₂ η :=
+  Specification.chainDensity_mul_comm_of_subset hΛ h
 
-lemma isPremodifier_transferWeight : Specification.IsPremodifier (transferWeight Q) where
-  measurable := measurable_transferWeight Q
-  comm_of_subset _ _ _ _ hΛ h := transferWeight_mul_comm_of_subset Q hΛ h
-
-omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
-/-- Georgii's `bondsOf Λ` of §11.1 (the left endpoints of the bonds `{j, j + 1}` meeting `Λ`) and
-the `rightBonds Λ` of Example (10.3) (their right endpoints) index the same bonds. -/
-lemma rightBonds_eq_image_bondsOf (Λ : Finset ℤ) :
-    Specification.rightBonds Λ = (bondsOf Λ).image (· + 1) := by
-  ext j
-  rw [Specification.mem_rightBonds, Finset.mem_image]
-  constructor
-  · intro h
-    exact ⟨j - 1, mem_bondsOf.2 (by rw [sub_add_cancel]; exact h.symm), by omega⟩
-  · rintro ⟨k, hk, rfl⟩
-    rw [add_sub_cancel_right]
-    exact (mem_bondsOf.1 hk).symm
-
-omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
-/-- The transfer weight (11.2)–(11.3) of the matrix `Q` is the chain density `g_Λ` of Georgii's
-Example (10.3) for the constant family `p_j = Q`: the same product over the bonds meeting `Λ`,
-indexed by the right endpoint `j` of the bond `{j - 1, j}` instead of the left one. -/
-lemma transferWeight_eq_chainDensity (Λ : Finset ℤ) (σ : ℤ → E) :
-    transferWeight Q Λ σ = Specification.chainDensity (fun _ ↦ Q) Λ σ := by
-  rw [transferWeight, Specification.chainDensity, rightBonds_eq_image_bondsOf,
-    Finset.prod_image fun _ _ _ _ h ↦ add_right_cancel h]
-  simp only [add_sub_cancel_right]
+lemma isPremodifier_transferWeight : Specification.IsPremodifier (transferWeight Q) :=
+  Specification.isPremodifier_chainDensity fun _ ↦ measurable_of_countable _
 
 end TransferWeight
 
@@ -261,15 +226,13 @@ lemma measurable_pathProd (a b : ℤ) : Measurable (pathProd Q a b) :=
 omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
 /-- The weight of an interval volume is the weight of the bonds from `a - 1` to `b + 1`. -/
 lemma transferWeight_Icc {a b : ℤ} (hab : a ≤ b) (σ : ℤ → E) :
-    transferWeight Q (Finset.Icc a b) σ = pathProd Q (a - 1) (b + 1) σ := by
-  rw [transferWeight, bondsOf_Icc hab]
-  rfl
+    transferWeight Q (Finset.Icc a b) σ = pathProd Q (a - 1) (b + 1) σ :=
+  Specification.chainDensity_Icc hab σ
 
 omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
 lemma transferWeight_singleton (i : ℤ) (σ : ℤ → E) :
-    transferWeight Q {i} σ = Q (σ (i - 1)) (σ i) * Q (σ i) (σ (i + 1)) := by
-  rw [← Finset.Icc_self, transferWeight_Icc Q le_rfl, pathProd_pred_bot Q (by omega),
-    pathProd_succ]
+    transferWeight Q {i} σ = Q (σ (i - 1)) (σ i) * Q (σ i) (σ (i + 1)) :=
+  Specification.chainDensity_singleton i σ
 
 /-! ### The partition function of an interval: Georgii (11.2) -/
 
@@ -521,22 +484,6 @@ lemma lintegral_lambdaCount_union {Λ₁ Λ₂ : Finset ℤ} (h : Disjoint Λ₁
     exact lintegral_congr fun ζ ↦ (lintegral_lambdaCount_insert hj ζ hF).symm
 
 omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
-lemma bondsOf_union (Λ₁ Λ₂ : Finset ℤ) : bondsOf (Λ₁ ∪ Λ₂) = bondsOf Λ₁ ∪ bondsOf Λ₂ := by
-  ext j
-  simp only [mem_bondsOf, Finset.mem_union]
-  tauto
-
-omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
-lemma subset_bondsOf (Λ : Finset ℤ) : Λ ⊆ bondsOf Λ := fun _ hj ↦ mem_bondsOf.2 (Or.inl hj)
-
-omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
-/-- Volumes with disjoint bonds are disjoint and non-adjacent. -/
-lemma disjoint_of_disjoint_bondsOf {Λ₁ Λ₂ : Finset ℤ} (h : Disjoint (bondsOf Λ₁) (bondsOf Λ₂)) :
-    Disjoint Λ₁ Λ₂ :=
-  Finset.disjoint_of_subset_left (subset_bondsOf Λ₁)
-    (Finset.disjoint_of_subset_right (subset_bondsOf Λ₂) h)
-
-omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
 /-- For non-adjacent volumes, the weight of `Λ₁` does not depend on the spins in `Λ₂`. -/
 lemma transferWeight_congr_of_disjoint_bondsOf {Λ₁ Λ₂ : Finset ℤ}
     (h : Disjoint (bondsOf Λ₁) (bondsOf Λ₂)) {ζ η : ℤ → E} (hζη : ∀ k ∉ Λ₂, ζ k = η k) :
@@ -547,9 +494,8 @@ lemma transferWeight_congr_of_disjoint_bondsOf {Λ₁ Λ₂ : Finset ℤ}
 
 omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
 lemma transferWeight_union {Λ₁ Λ₂ : Finset ℤ} (h : Disjoint (bondsOf Λ₁) (bondsOf Λ₂))
-    (σ : ℤ → E) : transferWeight Q (Λ₁ ∪ Λ₂) σ = transferWeight Q Λ₁ σ * transferWeight Q Λ₂ σ := by
-  rw [transferWeight, bondsOf_union, Finset.prod_union h]
-  rfl
+    (σ : ℤ → E) : transferWeight Q (Λ₁ ∪ Λ₂) σ = transferWeight Q Λ₁ σ * transferWeight Q Λ₂ σ :=
+  Specification.chainDensity_union h σ
 
 /-- The partition function of `Λ₂` depends only on the spins outside a non-adjacent volume. -/
 lemma sigmaFiniteLambdaZ_transferWeight_congr {Λ₁ Λ₂ : Finset ℤ}
@@ -1163,7 +1109,7 @@ lemma boltzmannFactor_markovPotential [Finite E] (hpos : ∀ x y, 0 < P x y) :
     (markovPotential P).boltzmannFactor 1 = transferWeight fun x y ↦ ENNReal.ofReal (P x y) := by
   cases nonempty_fintype E
   funext Λ σ
-  rw [boltzmannFactor_eq_prod_bondsOf hpos, transferWeight,
+  rw [boltzmannFactor_eq_prod_bondsOf hpos, transferWeight_eq_prod_bondsOf,
     ENNReal.ofReal_prod_of_nonneg fun _ _ ↦ (hpos _ _).le]
 
 omit [Countable E] [MeasurableSingletonClass E] [Fintype E] [DecidableEq E] [Nonempty E] in

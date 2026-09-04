@@ -1882,7 +1882,7 @@ omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
 theorem transferWeight_intTransferFamily (Λ : Finset ℤ) (σ : ℤ → E) :
     transferWeight (hasse ℤ) (intTransferFamily Q) (intTransferFamily_symm Q) Λ σ
       = Markov.transferWeight Q Λ σ := by
-  rw [transferWeight, bondsOf_hasse_int, Markov.transferWeight,
+  rw [transferWeight, bondsOf_hasse_int, Markov.transferWeight_eq_prod_bondsOf,
     Finset.prod_image fun j _ k _ h ↦ injective_mk_succ_int h]
   exact Finset.prod_congr rfl fun j _ ↦ by
     rw [bondWeight_mk, intTransferFamily_of_succ Q rfl]

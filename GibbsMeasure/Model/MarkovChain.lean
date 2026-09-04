@@ -660,25 +660,13 @@ lemma overwrite_apply_of_notMem {Λ : Finset ℤ} {k : ℤ} (hk : k ∉ Λ) (ζ 
     overwrite Λ ζ σ k = σ k := Λ.piecewise_eq_of_notMem _ _ hk
 
 omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
-/-- Cylinders over disjoint volumes intersect in the cylinder of the overwritten
-configuration. -/
-lemma cyl_inter_cyl {Λ₁ Λ₂ : Finset ℤ} (h : Disjoint Λ₁ Λ₂) (ω ζ : ℤ → E) :
-    cyl Λ₁ ω ∩ cyl Λ₂ ζ = cyl (Λ₁ ∪ Λ₂) (overwrite Λ₂ ζ ω) := by
-  ext σ
-  simp only [Set.mem_inter_iff, mem_cyl, Finset.mem_union]
-  constructor
-  · rintro ⟨h₁, h₂⟩ k hk
-    rcases hk with hk | hk
-    · rw [overwrite_apply_of_notMem (Finset.disjoint_left.1 h hk)]
-      exact h₁ k hk
-    · rw [overwrite_apply_of_mem hk]
-      exact h₂ k hk
-  · intro hσ
-    refine ⟨fun k hk ↦ ?_, fun k hk ↦ ?_⟩
-    · have := hσ k (Or.inl hk)
-      rwa [overwrite_apply_of_notMem (Finset.disjoint_left.1 h hk)] at this
-    · have := hσ k (Or.inr hk)
-      rwa [overwrite_apply_of_mem hk] at this
+/-- `overwrite Λ ζ σ` is the resampling `juxt` of `σ` by `ζ` on `Λ`. -/
+lemma overwrite_eq_juxt (Λ : Finset ℤ) (ζ σ : ℤ → E) :
+    overwrite Λ ζ σ = juxt (Λ : Set ℤ) σ (Λ.restrict ζ) := by
+  funext k
+  by_cases hk : k ∈ Λ
+  · rw [overwrite_apply_of_mem hk, juxt_apply_of_mem (Finset.mem_coe.2 hk)]; rfl
+  · rw [overwrite_apply_of_notMem hk, juxt_apply_of_not_mem (Finset.mem_coe.not.2 hk)]
 
 omit [Fintype E] [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty E] in
 /-- Overwriting on `Λ` only reads the base configuration off `Λ`. -/
@@ -712,12 +700,9 @@ lemma lintegral_isssd_indicator_cyl (Λ : Finset ℤ) (ζ σ₀ : ℤ → E) {f 
     refine hξ (funext fun k ↦ ?_)
     have := mem_cyl.1 hmem k.1 (by simpa using k.2)
     rwa [juxt_apply_of_mem k.2] at this
-  · have hjuxt : juxt (Λ : Set ℤ) σ₀ (fun k : (Λ : Set ℤ) ↦ ζ k.1) = overwrite Λ ζ σ₀ := by
-      funext k
-      by_cases hk : k ∈ Λ
-      · rw [juxt_apply_of_mem (by simpa using hk), overwrite_apply_of_mem hk]
-      · rw [juxt_apply_of_not_mem (by simpa using hk), overwrite_apply_of_notMem hk]
-    rw [hjuxt, Set.indicator_of_mem (mem_cyl.2 fun k hk ↦ overwrite_apply_of_mem hk ζ σ₀)]
+  · rw [show juxt (Λ : Set ℤ) σ₀ (fun k : (Λ : Set ℤ) ↦ ζ k.1) = overwrite Λ ζ σ₀ from
+      (overwrite_eq_juxt Λ ζ σ₀).symm,
+      Set.indicator_of_mem (mem_cyl.2 fun k hk ↦ overwrite_apply_of_mem hk ζ σ₀)]
 
 omit [DecidableEq E] in
 /-- Evaluating `markovSpecification` on a `𝓕`-event: unnormalised Boltzmann integral over the
@@ -3196,7 +3181,7 @@ theorem markovSpecification_apply_cyl_eq_cond (Λ : Finset ℤ) (ζ ω : ℤ →
       (markovPotential P).boltzmannFactor 1 Λ (juxt (Λ : Set ℤ) ω ξ)) ≠ ⊤ :=
     ENNReal.sum_ne_top.2 fun ξ _ ↦ Potential.boltzmannFactor_ne_top 1 Λ _
   rw [hLHS, ProbabilityTheory.cond_apply (measurableSet_cyl _ _),
-    cyl_inter_cyl (disjoint_boundary Λ).symm ω ζ, Finset.union_comm (boundary Λ) Λ]
+    Set.inter_comm, cyl_inter_cyl_of_disjoint (disjoint_boundary Λ) ζ ω, ← overwrite_eq_juxt]
   calc (markovPotential P).boltzmannFactor 1 Λ (overwrite Λ ζ ω)
         * (∑ ξ : Λ → E, (markovPotential P).boltzmannFactor 1 Λ (juxt (Λ : Set ℤ) ω ξ))⁻¹
       = (stationaryChain P hP hpos (cyl (boundary Λ) ω))⁻¹

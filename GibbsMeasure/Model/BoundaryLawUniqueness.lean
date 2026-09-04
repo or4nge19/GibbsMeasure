@@ -1591,18 +1591,10 @@ theorem transferSpecification_eq_isssd_withDensity (Λ : Finset ℤ) (η : ℤ �
 homogeneous -/
 
 omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] [Nonempty E] hQ in
-/-- The bonds meeting the open interval `]i, k[` are exactly `[i, k[`. -/
-lemma bondsOf_Ioo {i k : ℤ} (hik : i + 1 < k) : bondsOf (Finset.Ioo i k) = Finset.Ico i k := by
-  ext j
-  rw [mem_bondsOf]
-  simp only [Finset.mem_Ioo, Finset.mem_Ico]
-  omega
-
-omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] [Nonempty E] hQ in
 /-- The transfer weight of the open interval `]i, k[` is the bond product over `[i, k[`. -/
 lemma transferWeight_Ioo {i k : ℤ} (hik : i + 1 < k) (σ : ℤ → E) :
-    transferWeight Q (Finset.Ioo i k) σ = pathProd Q i k σ := by
-  rw [transferWeight, bondsOf_Ioo hik]; rfl
+    transferWeight Q (Finset.Ioo i k) σ = pathProd Q i k σ :=
+  Specification.chainDensity_Ioo_eq_prod_Ico hik σ
 
 omit [Nonempty E] hQ in
 /-- **Georgii (11.2), the partition function of an open interval.** `Z_{]i,k[}(ω) =
@@ -1721,32 +1713,13 @@ section Homogeneous
 
 variable (Q : E → E → ℝ≥0∞)
 
-omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] [Nonempty E] in
-/-- The bonds meeting a translate `Λ.image (·+a)` are the translate of the bonds meeting `Λ`. -/
-lemma bondsOf_image_add (Λ : Finset ℤ) (a : ℤ) :
-    bondsOf (Λ.image (· + a)) = (bondsOf Λ).image (· + a) := by
-  ext j
-  rw [Finset.mem_image, mem_bondsOf]
-  constructor
-  · rintro (h | h)
-    · obtain ⟨k, hk, rfl⟩ := Finset.mem_image.1 h
-      exact ⟨k, mem_bondsOf.2 (Or.inl hk), rfl⟩
-    · obtain ⟨k, hk, hjk⟩ := Finset.mem_image.1 h
-      refine ⟨k - 1, mem_bondsOf.2 (Or.inr ?_), by omega⟩
-      have hk1 : k - 1 + 1 = k := by ring
-      rwa [hk1]
-  · rintro ⟨k, hk, rfl⟩
-    rcases mem_bondsOf.1 hk with h | h
-    · exact Or.inl (Finset.mem_image.2 ⟨k, h, rfl⟩)
-    · exact Or.inr (Finset.mem_image.2 ⟨k + 1, h, by ring⟩)
-
 omit [Countable E] [MeasurableSingletonClass E] [Nonempty E] in
 /-- `transferWeight Q` is shift-covariant for every finite volume, not merely intervals:
 `ρ^Q_{Λ+a}(ω) = ρ^Q_Λ(θ_{-a} ω)`. -/
 lemma transferWeight_image_add (Λ : Finset ℤ) (a : ℤ) (ω : ℤ → E) :
     transferWeight Q (Λ.image (· + a)) ω = transferWeight Q Λ (transl E a ω) := by
-  unfold transferWeight
-  rw [bondsOf_image_add, Finset.prod_image fun x _ y _ h ↦ by omega]
+  rw [transferWeight_eq_prod_bondsOf, transferWeight_eq_prod_bondsOf, bondsOf_image_add,
+    Finset.prod_image fun x _ y _ h ↦ by omega]
   refine Finset.prod_congr rfl fun k _ ↦ ?_
   have h1 : transl E a ω k = ω (k + a) := transl_apply a ω k
   have h2 : transl E a ω (k + 1) = ω (k + a + 1) := by
@@ -1946,8 +1919,8 @@ lemma lintegral_lambdaCount_transferWeight_Ioo_erase (P : E → E → ℝ≥0∞
       omega
     have hW : transferWeight P (Finset.Ioo (-(n : ℤ)) n) = transferWeight P (A ∪ B) := by
       funext σ
-      unfold transferWeight
-      rw [bondsOf_union, bondsOf_Ioo (by omega), hbA, hbB]
+      rw [transferWeight_eq_prod_bondsOf, transferWeight_eq_prod_bondsOf, bondsOf_union,
+        bondsOf_Ioo (by omega), hbA, hbB]
       congr 1
       ext k
       simp only [Finset.mem_Ico, Finset.mem_union]

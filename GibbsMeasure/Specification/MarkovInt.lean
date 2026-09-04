@@ -1850,82 +1850,110 @@ theorem isMarkovInt_lambdaSpecification (ν : Measure E) [SigmaFinite ν] [NeZer
 
 /-! ### Georgii, Example (10.3): transition densities -/
 
-/-- The bonds `{j - 1, j}` meeting a finite volume `Λ ⊆ ℤ`, indexed by their right endpoint:
-`j ∈ Λ` or `j - 1 ∈ Λ`. -/
-def rightBonds (Λ : Finset ℤ) : Finset ℤ := Λ ∪ Λ.image (· + 1)
-
-omit [MeasurableSpace E] in
-lemma mem_rightBonds {Λ : Finset ℤ} {j : ℤ} : j ∈ rightBonds Λ ↔ j ∈ Λ ∨ j - 1 ∈ Λ := by
-  simp only [rightBonds, Finset.mem_union, Finset.mem_image]
-  constructor
-  · rintro (h | ⟨i, hi, rfl⟩)
-    · exact Or.inl h
-    · exact Or.inr (by simpa using hi)
-  · rintro (h | h)
-    · exact Or.inl h
-    · exact Or.inr ⟨j - 1, h, by ring⟩
-
-omit [MeasurableSpace E] in
-lemma rightBonds_mono {Λ₁ Λ₂ : Finset ℤ} (h : Λ₁ ⊆ Λ₂) : rightBonds Λ₁ ⊆ rightBonds Λ₂ :=
-  fun _ hj ↦ mem_rightBonds.2 ((mem_rightBonds.1 hj).imp (h ·) (h ·))
-
-omit [MeasurableSpace E] in
-lemma rightBonds_Ioo {i k : ℤ} (h : i + 1 < k) : rightBonds (Finset.Ioo i k) = Finset.Ioc i k := by
-  ext j
-  simp only [mem_rightBonds, Finset.mem_Ioo, Finset.mem_Ioc]
-  omega
-
-/-- **Georgii, Example (10.3).** The family `g_Λ(ω) = ∏_{j} p_j(ω_{j-1}, ω_j)`, the product over
-the bonds `{j-1, j}` meeting `Λ`; for an interval `Λ = ]i,k[` this is Georgii's
-`g_{i,k}(ω) = ∏_{j=i+1}^{k} p_j(ω_{j-1}, ω_j)`. -/
+/-- **Georgii, Example (10.3).** The family `g_Λ(ω) = ∏_{j} p_{j+1}(ω_j, ω_{j+1})`, the product
+over the bonds `{j, j + 1}` meeting `Λ` (`bondsOf Λ`, indexed by the left endpoint `j`), the factor
+of the bond `{j, j + 1}` being the transition density `p_{j+1}` into its right endpoint; for an
+interval `Λ = ]i,k[` this is Georgii's `g_{i,k}(ω) = ∏_{j=i+1}^{k} p_j(ω_{j-1}, ω_j)`
+(`chainDensity_Ioo`). -/
 def chainDensity (p : ℤ → E → E → ℝ≥0∞) (Λ : Finset ℤ) (ω : ℤ → E) : ℝ≥0∞ :=
-  ∏ j ∈ rightBonds Λ, p j (ω (j - 1)) (ω j)
+  ∏ j ∈ bondsOf Λ, p (j + 1) (ω j) (ω (j + 1))
 
 variable {p : ℤ → E → E → ℝ≥0∞}
 
 omit [MeasurableSpace E] in
+lemma chainDensity_Ioo_eq_prod_Ico {i k : ℤ} (h : i + 1 < k) (ω : ℤ → E) :
+    chainDensity p (Finset.Ioo i k) ω = ∏ j ∈ Finset.Ico i k, p (j + 1) (ω j) (ω (j + 1)) := by
+  rw [chainDensity, bondsOf_Ioo h]
+
+omit [MeasurableSpace E] in
+/-- Georgii's `g_{i,k}(ω) = ∏_{j=i+1}^{k} p_j(ω_{j-1}, ω_j)` of Example (10.3). -/
 lemma chainDensity_Ioo {i k : ℤ} (h : i + 1 < k) (ω : ℤ → E) :
     chainDensity p (Finset.Ioo i k) ω = ∏ j ∈ Finset.Ioc i k, p j (ω (j - 1)) (ω j) := by
-  rw [chainDensity, rightBonds_Ioo h]
+  rw [chainDensity_Ioo_eq_prod_Ico h]
+  refine Finset.prod_nbij' (· + 1) (· - 1) (fun j hj ↦ ?_) (fun j hj ↦ ?_) (fun _ _ ↦ by omega)
+    (fun _ _ ↦ by omega) fun j _ ↦ by rw [add_sub_cancel_right]
+  · simp only [Finset.mem_Ico, Finset.mem_Ioc] at hj ⊢; omega
+  · simp only [Finset.mem_Ico, Finset.mem_Ioc] at hj ⊢; omega
+
+omit [MeasurableSpace E] in
+lemma chainDensity_Icc {a b : ℤ} (hab : a ≤ b) (ω : ℤ → E) :
+    chainDensity p (Finset.Icc a b) ω
+      = ∏ j ∈ Finset.Ico (a - 1) (b + 1), p (j + 1) (ω j) (ω (j + 1)) := by
+  rw [chainDensity, bondsOf_Icc hab]
+
+omit [MeasurableSpace E] in
+lemma chainDensity_singleton (i : ℤ) (ω : ℤ → E) :
+    chainDensity p {i} ω = p i (ω (i - 1)) (ω i) * p (i + 1) (ω i) (ω (i + 1)) := by
+  rw [chainDensity, bondsOf_singleton, Finset.prod_pair (by omega), sub_add_cancel]
+
+omit [MeasurableSpace E] in
+/-- `g_Λ` depends only on the spins on the bonds meeting `Λ`. -/
+lemma chainDensity_congr {Λ : Finset ℤ} {ω ω' : ℤ → E}
+    (h : ∀ j ∈ bondsOf Λ, ω j = ω' j ∧ ω (j + 1) = ω' (j + 1)) :
+    chainDensity p Λ ω = chainDensity p Λ ω' :=
+  Finset.prod_congr rfl fun j hj ↦ by rw [(h j hj).1, (h j hj).2]
+
+omit [MeasurableSpace E] in
+lemma chainDensity_pos (hpos : ∀ j x y, 0 < p j x y) (Λ : Finset ℤ) (ω : ℤ → E) :
+    0 < chainDensity p Λ ω :=
+  pos_iff_ne_zero.2 (Finset.prod_ne_zero_iff.2 fun _ _ ↦ (hpos _ _ _).ne')
+
+omit [MeasurableSpace E] in
+lemma chainDensity_ne_top (htop : ∀ j x y, p j x y ≠ ⊤) (Λ : Finset ℤ) (ω : ℤ → E) :
+    chainDensity p Λ ω ≠ ⊤ :=
+  (ENNReal.prod_lt_top fun _ _ ↦ (htop _ _ _).lt_top).ne
+
+omit [MeasurableSpace E] in
+/-- `g_{Λ₁ ∪ Λ₂} = g_{Λ₁} g_{Λ₂}` for volumes with no common bond. -/
+lemma chainDensity_union {Λ₁ Λ₂ : Finset ℤ} (h : Disjoint (bondsOf Λ₁) (bondsOf Λ₂))
+    (ω : ℤ → E) : chainDensity p (Λ₁ ∪ Λ₂) ω = chainDensity p Λ₁ ω * chainDensity p Λ₂ ω := by
+  rw [chainDensity, bondsOf_union, Finset.prod_union h]
+  rfl
+
+omit [MeasurableSpace E] in
+/-- The chain densities commute in the sense of Georgii (1.28)(5): the factors of `g_{Λ₂}` that
+are not factors of `g_{Λ₁}` live on bonds not meeting `Λ₁`, hence agree on configurations agreeing
+off `Λ₁`. -/
+lemma chainDensity_mul_comm_of_subset {Λ₁ Λ₂ : Finset ℤ} (hΛ : Λ₁ ⊆ Λ₂) {ζ η : ℤ → E}
+    (hζη : ∀ s ∉ Λ₁, ζ s = η s) :
+    chainDensity p Λ₂ ζ * chainDensity p Λ₁ η = chainDensity p Λ₁ ζ * chainDensity p Λ₂ η := by
+  have hsplit : ∀ σ : ℤ → E, chainDensity p Λ₂ σ
+      = (∏ j ∈ bondsOf Λ₂ \ bondsOf Λ₁, p (j + 1) (σ j) (σ (j + 1))) * chainDensity p Λ₁ σ :=
+    fun σ ↦ (Finset.prod_sdiff (bondsOf_mono hΛ)).symm
+  have hrest : ∏ j ∈ bondsOf Λ₂ \ bondsOf Λ₁, p (j + 1) (ζ j) (ζ (j + 1))
+      = ∏ j ∈ bondsOf Λ₂ \ bondsOf Λ₁, p (j + 1) (η j) (η (j + 1)) := by
+    refine Finset.prod_congr rfl fun j hj ↦ ?_
+    have hj' := (Finset.mem_sdiff.1 hj).2
+    rw [mem_bondsOf, not_or] at hj'
+    rw [hζη _ hj'.1, hζη _ hj'.2]
+  rw [hsplit ζ, hsplit η, hrest]
+  ring
 
 lemma measurable_chainDensity (hp : ∀ j, Measurable (Function.uncurry (p j))) (Λ : Finset ℤ) :
     Measurable (chainDensity p Λ) := by
   refine Finset.measurable_prod _ fun j _ ↦ ?_
-  exact Measurable.comp (hp j) (f := fun a : ℤ → E ↦ (a (j - 1), a j))
-    ((measurable_pi_apply (j - 1)).prodMk (measurable_pi_apply j))
+  exact Measurable.comp (hp (j + 1)) (f := fun a : ℤ → E ↦ (a j, a (j + 1)))
+    ((measurable_pi_apply j).prodMk (measurable_pi_apply (j + 1)))
 
-/-- The chain densities form a pre-modification (Georgii (1.31)): the factors of `g_{Λ₂}` that are
-not factors of `g_{Λ₁}` live on bonds not meeting `Λ₁`, hence agree on configurations agreeing
-off `Λ₁`. -/
+/-- The chain densities form a pre-modification (Georgii (1.31)). -/
 theorem isPremodifier_chainDensity (hp : ∀ j, Measurable (Function.uncurry (p j))) :
     IsPremodifier (chainDensity p) where
   measurable := measurable_chainDensity hp
-  comm_of_subset := by
-    intro Λ₁ Λ₂ ζ η hΛ hζη
-    have hsplit : ∀ σ : ℤ → E, chainDensity p Λ₂ σ
-        = (∏ j ∈ rightBonds Λ₂ \ rightBonds Λ₁, p j (σ (j - 1)) (σ j)) * chainDensity p Λ₁ σ :=
-      fun σ ↦ (Finset.prod_sdiff (rightBonds_mono hΛ)).symm
-    have hrest : ∏ j ∈ rightBonds Λ₂ \ rightBonds Λ₁, p j (ζ (j - 1)) (ζ j)
-        = ∏ j ∈ rightBonds Λ₂ \ rightBonds Λ₁, p j (η (j - 1)) (η j) := by
-      refine Finset.prod_congr rfl fun j hj ↦ ?_
-      have hj' := (Finset.mem_sdiff.1 hj).2
-      rw [mem_rightBonds, not_or] at hj'
-      rw [hζη _ hj'.2, hζη _ hj'.1]
-    rw [hsplit ζ, hsplit η, hrest]
-    ring
+  comm_of_subset _ _ _ _ hΛ hζη := chainDensity_mul_comm_of_subset hΛ hζη
 
 /-- The chain densities are Markovian: `g_{]i,k[}` depends only on `ω_i, …, ω_k`. -/
 theorem isMarkovianInt_chainDensity (hp : ∀ j, Measurable (Function.uncurry (p j))) :
     IsMarkovianInt (chainDensity p) := by
   intro i k hik
-  rw [show chainDensity p (Finset.Ioo i k) = fun ω ↦ ∏ j ∈ Finset.Ioc i k, p j (ω (j - 1)) (ω j)
-    from funext (chainDensity_Ioo hik)]
+  rw [show chainDensity p (Finset.Ioo i k)
+      = fun ω ↦ ∏ j ∈ Finset.Ico i k, p (j + 1) (ω j) (ω (j + 1))
+    from funext (chainDensity_Ioo_eq_prod_Ico hik)]
   refine Finset.measurable_prod _ fun j hj ↦ ?_
-  simp only [Finset.mem_Ioc] at hj
-  exact (hp j).comp
-    ((measurable_cylinderEvent_apply (X := fun _ : ℤ ↦ E) (show j - 1 ∈ Set.Icc i k by
+  simp only [Finset.mem_Ico] at hj
+  exact (hp (j + 1)).comp
+    ((measurable_cylinderEvent_apply (X := fun _ : ℤ ↦ E) (show j ∈ Set.Icc i k by
         simp only [Set.mem_Icc]; omega)).prodMk
-      (measurable_cylinderEvent_apply (X := fun _ : ℤ ↦ E) (show j ∈ Set.Icc i k by
+      (measurable_cylinderEvent_apply (X := fun _ : ℤ ↦ E) (show j + 1 ∈ Set.Icc i k by
         simp only [Set.mem_Icc]; omega)))
 
 /-- Positive and bounded transition densities are λ-admissible for a probability a priori
@@ -1940,19 +1968,17 @@ theorem isPremodifierAdmissible_chainDensity (ν : Measure E) [IsProbabilityMeas
   · change (∫⁻ x, chainDensity p Λ x ∂(isssd ν Λ η)) ≠ 0
     rw [ne_eq, lintegral_eq_zero_iff (measurable_chainDensity hp Λ)]
     intro h
-    have hpos' : ∀ σ, chainDensity p Λ σ ≠ 0 := fun σ ↦
-      Finset.prod_ne_zero_iff.2 fun j _ ↦ (hpos j _ _).ne'
     have h' := h
     rw [Filter.EventuallyEq, ae_iff] at h'
     have huniv : {a | ¬ chainDensity p Λ a = (0 : (ℤ → E) → ℝ≥0∞) a} = Set.univ :=
-      Set.eq_univ_of_forall fun a ↦ hpos' a
+      Set.eq_univ_of_forall fun a ↦ (chainDensity_pos hpos Λ a).ne'
     rw [huniv, measure_univ] at h'
     exact one_ne_zero h'
   · change (∫⁻ x, chainDensity p Λ x ∂(isssd ν Λ η)) ≠ ⊤
-    refine ne_top_of_le_ne_top (b := C ^ (rightBonds Λ).card * (isssd ν Λ η) Set.univ) ?_ ?_
+    refine ne_top_of_le_ne_top (b := C ^ (bondsOf Λ).card * (isssd ν Λ η) Set.univ) ?_ ?_
     · exact ENNReal.mul_ne_top (ENNReal.pow_ne_top hC) (measure_ne_top _ _)
     · rw [← lintegral_const]
-      exact lintegral_mono fun σ ↦ Finset.prod_le_pow_card _ _ _ fun j _ ↦ hbd j _ _
+      exact lintegral_mono fun σ ↦ Finset.prod_le_pow_card _ _ _ fun j _ ↦ hbd _ _ _
 
 /-- **Georgii, Example (10.3)** (admissible case): the Markov specification `γ = ρλ` with
 `ρ_{]i,k[} = g_{i,k} / Z_{i,k}` built from positive bounded transition densities. -/

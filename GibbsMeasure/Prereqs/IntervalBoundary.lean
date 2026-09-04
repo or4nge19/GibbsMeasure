@@ -92,6 +92,54 @@ lemma bondsOf_Icc {a b : ℤ} (hab : a ≤ b) :
   simp only [Finset.mem_Icc, Finset.mem_Ico]
   omega
 
+lemma bondsOf_mono {Λ₁ Λ₂ : Finset ℤ} (h : Λ₁ ⊆ Λ₂) : bondsOf Λ₁ ⊆ bondsOf Λ₂ := fun _ hj ↦ by
+  rw [mem_bondsOf] at hj ⊢
+  exact hj.imp (fun h' ↦ h h') fun h' ↦ h h'
+
+lemma subset_bondsOf (Λ : Finset ℤ) : Λ ⊆ bondsOf Λ := fun _ hj ↦ mem_bondsOf.2 (Or.inl hj)
+
+lemma bondsOf_union (Λ₁ Λ₂ : Finset ℤ) : bondsOf (Λ₁ ∪ Λ₂) = bondsOf Λ₁ ∪ bondsOf Λ₂ := by
+  ext j
+  simp only [mem_bondsOf, Finset.mem_union]
+  tauto
+
+/-- Volumes with disjoint bonds are disjoint and non-adjacent. -/
+lemma disjoint_of_disjoint_bondsOf {Λ₁ Λ₂ : Finset ℤ} (h : Disjoint (bondsOf Λ₁) (bondsOf Λ₂)) :
+    Disjoint Λ₁ Λ₂ :=
+  Finset.disjoint_of_subset_left (subset_bondsOf Λ₁)
+    (Finset.disjoint_of_subset_right (subset_bondsOf Λ₂) h)
+
+/-- The two bonds `{i - 1, i}` and `{i, i + 1}` meeting a single site. -/
+lemma bondsOf_singleton (i : ℤ) : bondsOf {i} = {i - 1, i} := by
+  ext j
+  rw [mem_bondsOf]
+  simp only [Finset.mem_singleton, Finset.mem_insert]
+  omega
+
+/-- The bonds meeting the open interval `]i, k[` are exactly `[i, k[`. -/
+lemma bondsOf_Ioo {i k : ℤ} (hik : i + 1 < k) : bondsOf (Finset.Ioo i k) = Finset.Ico i k := by
+  ext j
+  rw [mem_bondsOf]
+  simp only [Finset.mem_Ioo, Finset.mem_Ico]
+  omega
+
+/-- The bonds meeting a translate `Λ.image (·+a)` are the translate of the bonds meeting `Λ`. -/
+lemma bondsOf_image_add (Λ : Finset ℤ) (a : ℤ) :
+    bondsOf (Λ.image (· + a)) = (bondsOf Λ).image (· + a) := by
+  ext j
+  rw [Finset.mem_image, mem_bondsOf]
+  constructor
+  · rintro (h | h)
+    · obtain ⟨k, hk, rfl⟩ := Finset.mem_image.1 h
+      exact ⟨k, mem_bondsOf.2 (Or.inl hk), rfl⟩
+    · obtain ⟨k, hk, hjk⟩ := Finset.mem_image.1 h
+      refine ⟨k - 1, mem_bondsOf.2 (Or.inr ?_), by omega⟩
+      rwa [sub_add_cancel]
+  · rintro ⟨k, hk, rfl⟩
+    rcases mem_bondsOf.1 hk with h | h
+    · exact Or.inl (Finset.mem_image.2 ⟨k, h, rfl⟩)
+    · exact Or.inr (Finset.mem_image.2 ⟨k + 1, h, by omega⟩)
+
 /-- A symmetric interval bound for a finite volume: `Λ ⊆ [-boundOf Λ, boundOf Λ]`. -/
 def boundOf (Λ : Finset ℤ) : ℤ := ((Λ.sup fun i ↦ i.natAbs : ℕ) : ℤ)
 
