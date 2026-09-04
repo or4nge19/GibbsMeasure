@@ -13,6 +13,45 @@ Throughout, $E = \mathbb R$ with Lebesgue measure and $S$ is countable.
     with $m$ the mean and $c$ the covariance function (13.2), and $c$ is nonnegative definite (13.3).
 \end{definition}
 
+\begin{theorem}[Georgii (13.4)--(13.8): the conditional structure of a Gauss field]
+    \label{thm:gf-13-7}
+    \uses{def:gf-13-1}
+    \lean{MeasureTheory.GibbsMeasure.condExpOutside, MeasureTheory.GibbsMeasure.condCovariance, MeasureTheory.GibbsMeasure.georgii_13_7, MeasureTheory.GibbsMeasure.exists_condExpOutside_ae_eq_affine}
+    \leanok
+
+    Let $\mu$ be a Gauss field on $S$ countable, $\xi_i^\mu = \mu(\sigma_i \mid \mathcal T_{\{i\}})$
+    (13.4) and $\Gamma(i,j) = \mu((\sigma_i - \xi_i^\mu)(\sigma_j - \xi_j^\mu))$ (13.6). If
+    $\Gamma(j,j) > 0$ for all $j$ and each $\xi_i^\mu$ is $\mathcal F_{N(i)}$-measurable for a
+    neighbourhood $N(i) \not\ni i$, then with $J(i,j) = -\Gamma(i,j)/(\Gamma(i,i)\Gamma(j,j))$-type
+    conditional couplings and $h$ the conditional external field: $J(i,j) = 0$ for
+    $j \notin N(i)$, $J$ is positive definite, and $\sigma_i - \xi_i^\mu = J(i,i)^{-1}(h_i + \sum_j J(i,j)\sigma_j)$
+    a.s.\ (13.5); (13.8): $\xi_i^\mu = u_i - \sum_{j \in \partial i}\Gamma(i,j)\Gamma(j,j)^{-1}\sigma_j$ a.s.
+\end{theorem}
+\begin{proof}
+    \leanok
+    Gaussian regression: the conditional expectation of a Gaussian family on a sub-family is
+    affine, and the residual is independent of the conditioning $\sigma$-algebra.
+\end{proof}
+
+\begin{lemma}[Georgii (13.10)]
+    \label{lem:gf-13-10}
+    \uses{thm:gf-13-7, def:gf-13-11}
+    \lean{MeasureTheory.GibbsMeasure.georgii_13_10, MeasureTheory.GibbsMeasure.condExp_indicator_ae_eq_gaussianReal_map_update, MeasureTheory.GibbsMeasure.condExp_indicator_ae_eq_gaussianSpecification_singleton}
+    \leanok
+
+    Let $J$ be positive definite and $\mu$ a Gauss field with (i) $\mu(\Omega_J) = 1$,
+    (ii) $\mu((\sigma_i - \xi_i^\mu)^2) = J(i,i)^{-1}$ and (iii) (13.5) for all $i$. Then the
+    conditional distribution of $\sigma_i$ given $\mathcal T_{\{i\}}$ is the Gaussian with mean
+    $\xi_i = -J(i,i)^{-1}(h_i + \sum_{j\neq i}J(i,j)\sigma_j)$ and variance $J(i,i)^{-1}$; for $J$
+    of finite row support this is $\gamma^{J,h}_{\{i\}}(\cdot \mid \omega)$.
+\end{lemma}
+\begin{proof}
+    \leanok
+    For every Gauss field the conditional law of $\sigma_i$ given $\mathcal T_{\{i\}}$ is
+    $\mathcal N(\xi_i^\mu, \Gamma(i,i))$, by independence of the residual; (ii) and (iii)
+    identify mean and variance.
+\end{proof}
+
 \begin{definition}[Gaussian potential, Georgii (13.11)--(13.12)]
     \label{def:gf-13-11}
     \uses{def:pot-potential, def:sb-pair-potential}

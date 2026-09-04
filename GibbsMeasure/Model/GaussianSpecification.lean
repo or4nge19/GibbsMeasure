@@ -13,16 +13,35 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Tsum
 /-!
 # Georgii §13.2: Gibbs measures for Gaussian specifications
 
-This file continues `GibbsMeasure/Model/GaussianField.lean` (Georgii §13.1, up to Proposition
-(13.13)) into the remainder of §13.1 and the start of §13.2. The book's actual numbering (read
-from `.axiomatic/reference_docs/.../13.1 Gauss fields as Gibbs measures.md` and
+This file continues `GibbsMeasure/Model/GaussianField.lean` (Georgii §13.1: (13.1)–(13.8),
+(13.11)–(13.13)) into the remainder of §13.1 and the start of §13.2. The book's actual numbering
+(read from `.axiomatic/reference_docs/.../13.1 Gauss fields as Gibbs measures.md` and
 `13.2 Gibbs measures for Gaussian specifications.md`) is: (13.9) the convergence set `Ω_J`,
-(13.11)–(13.13) already in `GaussianField.lean`, (13.18) Definition of `γ^{J,h}` by gluing the
-Gibbsian part on `Ω_J` to a Dirac reference off it, (13.21) the affine set `M_{J,h}`, (13.22) the
-theorem characterizing `𝒢(γ^{J,h})` for a *given* Gaussian field by its mean and covariance.
-§13.2 proper starts only at Remark (13.23).
+(13.10) the conditional distribution of a single spin, (13.11)–(13.13) already in
+`GaussianField.lean`, (13.18) Definition of `γ^{J,h}` by gluing the Gibbsian part on `Ω_J` to a
+Dirac reference off it, (13.21) the affine set `M_{J,h}`, (13.22) the theorem characterizing
+`𝒢(γ^{J,h})` for a *given* Gaussian field by its mean and covariance. §13.2 proper starts only at
+Remark (13.23).
 
 ## What is proved here
+
+* **Georgii Lemma (13.10)**, `MeasureTheory.GibbsMeasure.georgii_13_10`, with Georgii's exact
+  hypotheses: `J` symmetric positive definite (`Matrix.PosDef (Matrix.of J)`), `h ∈ Ω`, `μ` a
+  Gaussian field with (i) `μ(Ω_J) = 1`, (ii) `μ((σ_i - ξ_i^μ)²) = J(i,i)⁻¹`, (iii) (13.5). The
+  conclusion is that the conditional distribution of `σ_i` given `𝒯_{\{i\}}` is Gaussian with
+  mean `ξ_i = -J(i,i)⁻¹(h_i + ∑_{j ≠ i} J(i,j)σ_j)` (`gaussianCondMean`) and variance `J(i,i)⁻¹`:
+  `μ(A | 𝒯_{\{i\}})(ω) = 𝒩(ξ_i(ω), J(i,i)⁻¹)({x : ω with ω_i := x ∈ A})` a.s. The core of the
+  proof, valid for *every* Gaussian field, is
+  `MeasureTheory.GibbsMeasure.condExp_indicator_ae_eq_gaussianReal_map_update` (mean `ξ_i^μ`,
+  variance `Γ(i,i)`), built from the independence of the residual `σ_i - ξ_i^μ` from `𝒯_{\{i\}}`
+  (`indep_cylinderEvents_compl_comap_sub_condExpOutside`) and the general "conditional law of a
+  function of an independent input" `ProbabilityTheory.condExp_indicator_ae_eq_map_of_indep`
+  (`GibbsMeasure/Mathlib/Probability/Distributions/Gaussian/CondExp.lean`). Georgii's
+  restatement "the conditional distribution is Gibbsian for `Φ^{J,h}`" is
+  `condExp_indicator_ae_eq_gaussianSpecification_singleton` for `J` of finite row support:
+  `μ(A | 𝒯_{\{i\}}) = γ^{J,h}_{\{i\}}(A | ·)` a.s., via the one-dimensional identification
+  `ProbabilityTheory.multivariateGaussianPi_unique` of `multivariateGaussianPi` with
+  `gaussianReal`.
 
 * **Georgii (13.9), general `J`.** `Potential.gaussianConvergenceSet J` (`Ω_J`) and
   `Potential.gaussianConvergenceSubmodule J`: `Ω_J` is a linear subspace of `Ω = S → ℝ`, and (given
@@ -66,13 +85,14 @@ theorem characterizing `𝒢(γ^{J,h})` for a *given* Gaussian field by its mean
   combination of `(σ_j - m_j)_j`, given finite range) is mean-zero, variance `J(i,i)⁻¹`, and
   uncorrelated with — hence, by
   `ProbabilityTheory.IsGaussianProcess.indepFun_of_covariance_eq_zero` (which *is* in Mathlib),
-  independent of — every `σ_k`, `k ≠ i`. What remains beyond that computation is a "reconstruct the
-  joint law from an independent factorization compatible with `juxt`" lemma: if `ξ` depends only on
-  coordinates `≠ i` and `Y := σ_i - ξ` is independent of them with law `ν`, then
-  `μ.bind (fun ω ↦ (ν.map (ξ ω + ·)).map (fun x ↦ juxt {i} ω x)) = μ`. This reconstruction lemma is
-  not built anywhere in this tree; formalizing Theorem (13.22) is future work gated on it, not on
-  any further mathematical gap. `Potential.gaussianMeanSet`/`gaussianMeanSubmodule` above are (13.21)
-  exactly as Georgii states them, ready for that theorem's statement.
+  independent of — every `σ_k`, `k ≠ i`; that step is now Lemma (13.10) below
+  (`georgii_13_10`, `condExp_indicator_ae_eq_gaussianSpecification_singleton`). What remains for
+  (13.22)(b) ⟹ (a) is the passage from the conditional-expectation identity
+  `μ(A | 𝒯_{\{i\}}) = γ_{\{i\}}(A | ·)` a.s. to the invariance `μ γ_{\{i\}} = μ` that Theorem (1.33)
+  (`Specification.lambdaSpecification_isGibbsMeasure_iff_forall_singleton_bind_eq`) consumes, and
+  the identification `ξ_i^μ = ξ_i` from the covariance hypothesis. Neither is attempted here.
+  `Potential.gaussianMeanSet`/`gaussianMeanSubmodule` above are (13.21) exactly as Georgii states
+  them, ready for that theorem's statement.
 
 ## General lemmas (Mathlib-bound)
 
@@ -86,6 +106,10 @@ theorem characterizing `𝒢(γ^{J,h})` for a *given* Gaussian field by its mean
 * `summable_abs_iff_tsum_ofReal_ne_top`: for `F : ι → ℝ` nonnegative, `Summable F` iff
   `∑' i, ENNReal.ofReal (F i) ≠ ⊤`. Intended home: `Mathlib/Topology/Algebra/InfiniteSum/ENNReal.lean`,
   next to `ENNReal.tsum_coe_ne_top_iff_summable`.
+* `ProbabilityTheory.multivariateGaussianPi_unique`: on a singleton index type, the multivariate
+  Gaussian with precision `A` and mean `m` is `gaussianReal (m default) (A default default)⁻¹`
+  pushed forward along `x ↦ (fun _ ↦ x)`. Intended home:
+  `GibbsMeasure/Mathlib/Probability/Distributions/Gaussian/Density.lean`.
 -/
 
 @[expose] public section
@@ -97,12 +121,6 @@ open Finset Function MeasureTheory ProbabilityTheory Matrix Set
 open scoped ENNReal NNReal
 
 noncomputable section
-
-/-! ## General lemmas -/
-
-namespace MeasureTheory
-
-end MeasureTheory
 
 /-! ## Georgii (13.9): the convergence set `Ω_J` -/
 
@@ -420,3 +438,268 @@ theorem gaussianGluedSpecification_eq_gaussianSpecification :
 end GluedSpecification
 
 end Potential
+
+/-! ## Georgii Lemma (13.10): the conditional distribution of a single spin
+
+For every Gaussian field `μ` (`S` countable) and every site `i`, the residual `σ_i - ξ_i^μ` is
+jointly Gaussian with the spins off `i` (`isGaussianProcess_sum_elim_sub_condExpOutside`),
+uncorrelated with them, hence independent of `𝒯_{\{i\}}`
+(`indep_cylinderEvents_compl_comap_sub_condExpOutside`), with law `𝒩(0, Γ(i,i))`
+(`map_sub_condExpOutside_eq_gaussianReal`). Consequently the conditional distribution of `σ_i`
+given `𝒯_{\{i\}}` is Gaussian with mean `ξ_i^μ` and variance `Γ(i, i)`
+(`condExp_indicator_ae_eq_gaussianReal_map_update`); this is the content of Georgii's proof of
+(13.10) before he substitutes (13.5). Lemma (13.10) itself (`georgii_13_10`) then replaces `ξ_i^μ`
+by the explicit affine function `ξ_i = -J(i,i)⁻¹ (h_i + ∑_{j ≠ i} J(i,j) σ_j)` on `Ω_J` and
+`Γ(i, i)` by `J(i, i)⁻¹`, using its hypotheses (i)–(iii). -/
+
+namespace MeasureTheory.GibbsMeasure
+
+variable {S : Type*} {μ : Measure (S → ℝ)}
+
+/-- **Georgii's `ξ_i` in the proof of (13.10)**: the affine function
+`ξ_i = -J(i, i)⁻¹ (h_i + ∑_{j ≠ i} J(i, j) σ_j)`, which agrees with `ξ_i^μ` on `Ω_J` under (13.5).
+For `J` of finite row support this is `Potential.gaussianMean J h hFin {i}`. -/
+noncomputable def gaussianCondMean [DecidableEq S] (J : S → S → ℝ) (h : S → ℝ) (i : S)
+    (ω : S → ℝ) : ℝ :=
+  -(J i i)⁻¹ * (h i + ∑' j, if j = i then 0 else J i j * ω j)
+
+/-- On `Ω_J`, Georgii's `ξ_i` is (13.5) solved for `ξ_i^μ`. -/
+lemma gaussianCondMean_eq_of_mem [DecidableEq S] {J : S → S → ℝ} {h : S → ℝ} {i : S}
+    (hJ : J i i ≠ 0) {ω : S → ℝ} (hω : ω ∈ Potential.gaussianConvergenceSet J) :
+    gaussianCondMean J h i ω = ω i - (J i i)⁻¹ * (h i + ∑' j, J i j * ω j) := by
+  have hs : Summable fun j ↦ J i j * ω j := Potential.summable_gaussianConvergenceSet J hω i
+  rw [gaussianCondMean, hs.tsum_eq_add_tsum_ite i]
+  field_simp
+  ring
+
+section Residual
+
+variable [Countable S] (hμ : ProbabilityTheory.IsGaussianProcess (fun i (ω : S → ℝ) ↦ ω i) μ)
+include hμ
+
+/-- **The residual `σ_i - ξ_i^μ` is jointly Gaussian with the spins off `i`.** Georgii's proof
+of (13.10) obtains this from (13.5) and the closure of Gaussian vectors under a.s. limits
+(his (13.A1), (13.A5)); here it is instead the closure of a Gaussian process under conditioning
+(`ProbabilityTheory.IsGaussianProcess.sum_elim_condExp`), which needs no hypothesis on `μ`. -/
+lemma isGaussianProcess_sum_elim_sub_condExpOutside (i : S) :
+    ProbabilityTheory.IsGaussianProcess
+      (Sum.elim (fun (_ : Unit) (ω : S → ℝ) ↦ ω i - condExpOutside μ i ω)
+        fun (j : ({i}ᶜ : Set S)) (ω : S → ℝ) ↦ ω j) μ := by
+  classical
+  have hext := hμ.sum_elim_condExp (fun t ↦ measurable_pi_apply t)
+    (Set.to_countable ({i}ᶜ : Set S))
+  refine hext.of_isGaussianProcess fun r ↦ ?_
+  cases r with
+  | inl _ =>
+    exact ⟨({Sum.inl i, Sum.inr i} : Finset (S ⊕ S)),
+      { toFun x := x ⟨(Sum.inl i : S ⊕ S), by simp⟩ - x ⟨(Sum.inr i : S ⊕ S), by simp⟩
+        map_add' x y := by simp only [Pi.add_apply]; abel
+        map_smul' c x := by simp only [Pi.smul_apply, smul_eq_mul, RingHom.id_apply]; ring },
+      fun ω ↦ rfl⟩
+  | inr j =>
+    exact ⟨{Sum.inl (j : S)},
+      { toFun x := x ⟨Sum.inl (j : S), by simp⟩
+        map_add' x y := by simp
+        map_smul' c x := by simp },
+      fun ω ↦ rfl⟩
+
+/-- **The residual `σ_i - ξ_i^μ` is independent of `𝒯_{\{i\}}`** (Georgii's proof of (13.10)):
+it is uncorrelated with every `σ_j`, `j ≠ i`, and jointly Gaussian with them
+(`ProbabilityTheory.IsGaussianProcess.indepFun_of_covariance_eq_zero`, his Remark (13.A3)). -/
+lemma indep_cylinderEvents_compl_comap_sub_condExpOutside (i : S) :
+    ProbabilityTheory.Indep (cylinderEvents ({i}ᶜ : Set S))
+      (MeasurableSpace.comap (fun ω : S → ℝ ↦ ω i - condExpOutside μ i ω) inferInstance) μ := by
+  have hP := hμ.isProbabilityMeasure
+  have hL2 := memLp_two_eval hμ
+  have hW : Measurable fun ω : S → ℝ ↦ ω i - condExpOutside μ i ω :=
+    (measurable_pi_apply i).sub (stronglyMeasurable_condExp.measurable.mono cylinderEvents_le_pi
+      le_rfl)
+  have hW2 : MemLp (fun ω : S → ℝ ↦ ω i - condExpOutside μ i ω) 2 μ :=
+    (hL2 i).sub ((hL2 i).condExp one_le_two)
+  have hWmean : ∫ ω, (ω i - condExpOutside μ i ω) ∂μ = 0 :=
+    integral_sub_condExpOutside i ((hL2 i).integrable one_le_two)
+  have hcov : ∀ (_ : Unit) (j : ({i}ᶜ : Set S)),
+      cov[fun ω : S → ℝ ↦ ω i - condExpOutside μ i ω, fun ω ↦ ω j; μ] = 0 := by
+    intro _ j
+    have hji : (j : S) ≠ i := j.2
+    rw [covariance_eq_sub hW2 (hL2 j), hWmean, zero_mul, sub_zero]
+    rw [show ((fun ω : S → ℝ ↦ ω i - condExpOutside μ i ω) * fun ω ↦ ω j) =
+        fun ω ↦ ω j * (ω i - condExpOutside μ i ω) from funext fun ω ↦ mul_comm _ _]
+    exact integral_eval_mul_sub_condExpOutside_eq_zero hji (hL2 i) (hL2 j)
+  have h1 := (isGaussianProcess_sum_elim_sub_condExpOutside hμ i).indepFun_of_covariance_eq_zero
+    (fun _ ↦ hW.aemeasurable) (fun j ↦ (measurable_pi_apply (j : S)).aemeasurable) hcov
+  have h2 := h1.comp (measurable_pi_apply ()) measurable_id
+  rw [IndepFun_iff_Indep] at h2
+  refine Indep.symm ?_
+  rw [cylinderEvents_eq_comap_restrict]
+  exact h2
+
+/-- **The law of the residual**: `σ_i - ξ_i^μ ∼ 𝒩(0, Γ(i, i))`. -/
+lemma map_sub_condExpOutside_eq_gaussianReal (i : S) :
+    μ.map (fun ω : S → ℝ ↦ ω i - condExpOutside μ i ω) =
+      gaussianReal 0 (condCovariance μ i i).toNNReal := by
+  have hP := hμ.isProbabilityMeasure
+  have hL2 := memLp_two_eval hμ
+  have hW : Measurable fun ω : S → ℝ ↦ ω i - condExpOutside μ i ω :=
+    (measurable_pi_apply i).sub (stronglyMeasurable_condExp.measurable.mono cylinderEvents_le_pi
+      le_rfl)
+  have hWmean : ∫ ω, (ω i - condExpOutside μ i ω) ∂μ = 0 :=
+    integral_sub_condExpOutside i ((hL2 i).integrable one_le_two)
+  have hg : ProbabilityTheory.HasGaussianLaw (fun ω : S → ℝ ↦ ω i - condExpOutside μ i ω) μ :=
+    (isGaussianProcess_sum_elim_sub_condExpOutside hμ i).hasGaussianLaw_eval (Sum.inl ())
+  rw [hg.map_eq_gaussianReal, hWmean, variance_eq_integral hW.aemeasurable, hWmean]
+  congr 2
+  unfold condCovariance
+  exact integral_congr_ae (Filter.Eventually.of_forall fun ω ↦ by simp [pow_two])
+
+/-- **The conditional distribution of `σ_i` given the other spins of a Gaussian field is Gaussian
+with mean `ξ_i^μ` and variance `Γ(i, i)`** (the core of Georgii's proof of Lemma (13.10)): for every
+measurable `A`,
+`μ(A | 𝒯_{\{i\}})(ω) = ∫ 1_A(ω with ω_i := x) 𝒩(ξ_i^μ(ω), Γ(i,i))(dx)` a.s.
+The residual `σ_i - ξ_i^μ` is independent of `𝒯_{\{i\}}`
+(`indep_cylinderEvents_compl_comap_sub_condExpOutside`) with law `𝒩(0, Γ(i,i))`; conditionally on
+`𝒯_{\{i\}}` the configuration is therefore `ω` with `ω_i` replaced by `ξ_i^μ(ω) + W`, `W` an
+independent copy of the residual (`ProbabilityTheory.condExp_indicator_ae_eq_map_of_indep`). -/
+theorem condExp_indicator_ae_eq_gaussianReal_map_update [DecidableEq S] (i : S)
+    {A : Set (S → ℝ)} (hA : MeasurableSet A) :
+    μ[A.indicator 1 | cylinderEvents ({i}ᶜ : Set S)] =ᵐ[μ] fun ω ↦
+      ((gaussianReal (condExpOutside μ i ω) (condCovariance μ i i).toNNReal).map
+        (Function.update ω i) A).toReal := by
+  have hP := hμ.isProbabilityMeasure
+  have hξm : Measurable[cylinderEvents ({i}ᶜ : Set S)] (condExpOutside μ i) :=
+    stronglyMeasurable_condExp.measurable
+  have hW : Measurable fun ω : S → ℝ ↦ ω i - condExpOutside μ i ω :=
+    (measurable_pi_apply i).sub (hξm.mono cylinderEvents_le_pi le_rfl)
+  set G : (S → ℝ) × ℝ → (S → ℝ) :=
+    fun p ↦ Function.update p.1 i (condExpOutside μ i p.1 + p.2) with hG_def
+  have hG : Measurable[(cylinderEvents ({i}ᶜ : Set S)).prod inferInstance, MeasurableSpace.pi]
+      G := by
+    refine (@measurable_pi_iff _ _ _ ((cylinderEvents ({i}ᶜ : Set S)).prod inferInstance) _ _).2
+      fun j ↦ ?_
+    by_cases hj : j = i
+    · simp only [hG_def, hj, Function.update_self]
+      exact (hξm.comp (@measurable_fst _ _ (cylinderEvents ({i}ᶜ : Set S)) _)).add
+        (@measurable_snd _ _ (cylinderEvents ({i}ᶜ : Set S)) _)
+    · simp only [hG_def, Function.update_of_ne hj]
+      exact (measurable_cylinderEvent_apply (X := fun _ : S ↦ ℝ) (Δ := ({i}ᶜ : Set S))
+        (by simpa using hj)).comp (@measurable_fst _ _ (cylinderEvents ({i}ᶜ : Set S)) _)
+  have hGW : ∀ ω, G (ω, ω i - condExpOutside μ i ω) = ω := fun ω ↦ by
+    simp [hG_def]
+  have hmain := ProbabilityTheory.condExp_indicator_ae_eq_map_of_indep cylinderEvents_le_pi hW
+    (indep_cylinderEvents_compl_comap_sub_condExpOutside hμ i) hG hGW hA
+  refine hmain.trans (Filter.Eventually.of_forall fun ω ↦ ?_)
+  beta_reduce
+  rw [map_sub_condExpOutside_eq_gaussianReal hμ i]
+  congr 1
+  rw [show gaussianReal (condExpOutside μ i ω) (condCovariance μ i i).toNNReal =
+      (gaussianReal 0 (condCovariance μ i i).toNNReal).map (condExpOutside μ i ω + ·) by
+        rw [gaussianReal_map_const_add, zero_add],
+    Measure.map_map (measurable_update ω) (measurable_const_add _),
+    Measure.map_apply ((measurable_update ω).comp (measurable_const_add _)) hA]
+  rfl
+
+end Residual
+
+/-- **Georgii Lemma (13.10).** Let `J : S × S → ℝ` be symmetric and positive definite
+(`Matrix.PosDef`, in Georgii's finitely-supported sense (13.3)), `h ∈ Ω`, and `μ` a Gaussian field
+with (i) `μ(Ω_J) = 1`, (ii) `μ((σ_i - ξ_i^μ)²) = J(i, i)⁻¹` for all `i`, and (iii) (13.5) for all
+`i`. Then for each `i`, the conditional distribution of `σ_i` given `𝒯_{\{i\}}` is Gaussian with
+expectation `ξ_i^μ` — which on `Ω_J` is the explicit affine function
+`ξ_i = -J(i, i)⁻¹ (h_i + ∑_{j ≠ i} J(i, j) σ_j)` (`gaussianCondMean`) — and variance `J(i, i)⁻¹`:
+for every `A ∈ 𝓕`,
+`μ(A | 𝒯_{\{i\}})(ω) = ∫ 1_A(ω with ω_i := x) 𝒩(ξ_i(ω), J(i, i)⁻¹)(dx)` for `μ`-a.e. `ω`.
+Georgii's density `ρ_{\{i\}}` is the Lebesgue density of `𝒩(ξ_i(ω), J(i, i)⁻¹)`. -/
+theorem georgii_13_10 [Countable S] [DecidableEq S] {J : S → S → ℝ} {h : S → ℝ}
+    (hJ : (Matrix.of J).PosDef)
+    (hμ : ProbabilityTheory.IsGaussianProcess (fun i (ω : S → ℝ) ↦ ω i) μ)
+    (hΩ : μ (Potential.gaussianConvergenceSet J) = 1)
+    (hvar : ∀ i, ∫ ω, (ω i - condExpOutside μ i ω) ^ 2 ∂μ = (J i i)⁻¹)
+    (h135 : ∀ i, ∀ᵐ ω ∂μ, ω i - condExpOutside μ i ω = (J i i)⁻¹ * (h i + ∑' j, J i j * ω j))
+    (i : S) {A : Set (S → ℝ)} (hA : MeasurableSet A) :
+    μ[A.indicator 1 | cylinderEvents ({i}ᶜ : Set S)] =ᵐ[μ] fun ω ↦
+      ((gaussianReal (gaussianCondMean J h i ω) (Real.toNNReal (J i i)⁻¹)).map
+        (Function.update ω i) A).toReal := by
+  have hP := hμ.isProbabilityMeasure
+  have hJii : J i i ≠ 0 := by
+    have := hJ.diag_pos (i := i)
+    rw [Matrix.of_apply] at this
+    exact this.ne'
+  have hae : ∀ᵐ ω ∂μ, ω ∈ Potential.gaussianConvergenceSet J :=
+    (ae_iff_measure_eq (Potential.measurableSet_gaussianConvergenceSet J).nullMeasurableSet).2
+      (hΩ.trans measure_univ.symm)
+  have hvar' : (condCovariance μ i i).toNNReal = Real.toNNReal (J i i)⁻¹ := by
+    rw [← hvar i]
+    unfold condCovariance
+    congr 1
+    exact integral_congr_ae (Filter.Eventually.of_forall fun ω ↦ by ring)
+  refine (condExp_indicator_ae_eq_gaussianReal_map_update hμ i hA).trans ?_
+  filter_upwards [hae, h135 i] with ω hω h5
+  rw [hvar', gaussianCondMean_eq_of_mem hJii hω, ← h5, sub_sub_cancel]
+
+/-- For `J` of finite row support, Georgii's `ξ_i` of (13.10) is the mean `m_{\{i\}}(ω)` of
+Proposition (13.13) at the singleton `{i}`: `-J(i,i)⁻¹ (h_i + ∑_{j ∉ \{i\}} J(i,j) ω_j)`. -/
+lemma gaussianCondMean_eq_gaussianMean [LinearOrder S] {J : S → S → ℝ} (h : S → ℝ)
+    (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite) {i : S} (hJ : J i i ≠ 0) (ω : S → ℝ) :
+    gaussianCondMean J h i ω =
+      Potential.gaussianMean J h hFin {i} ω ⟨i, Finset.mem_singleton_self i⟩ := by
+  classical
+  have hinv : (Potential.gaussianCovMatrix J {i})⁻¹ = (J i i)⁻¹ • (1 : Matrix _ _ ℝ) := by
+    rw [Matrix.inv_def, Matrix.adjugate_subsingleton, Matrix.det_unique, Ring.inverse_eq_inv']
+    rfl
+  have hsum : ∑' j, (if j = i then 0 else J i j * ω j) =
+      Potential.gaussianBoundaryField J hFin {i} ω i := by
+    rw [Potential.gaussianBoundaryField, tsum_eq_sum (s := (hFin i).toFinset \ {i}) ?_]
+    · refine Finset.sum_congr rfl fun j hj ↦ ?_
+      rw [Finset.mem_sdiff, Finset.mem_singleton] at hj
+      rw [ite_eq_right hj.2]
+    · intro j hj
+      rw [Finset.mem_sdiff, Set.Finite.mem_toFinset, Set.mem_ofPred_eq, Finset.mem_singleton,
+        not_and_or, not_not, not_not] at hj
+      rcases hj with hj | rfl
+      · simp [hj]
+      · simp
+  rw [gaussianCondMean, Potential.gaussianMean, hinv, hsum]
+  simp [Matrix.smul_mulVec]
+
+/-- **Georgii's restatement of Lemma (13.10)** (the paragraph following it): for `J` symmetric of
+finite row support with every `𝒥_Λ` positive definite, the conditional distribution of `σ_i`
+given `𝒯_{\{i\}}` under a Gaussian field `μ` satisfying (13.10)(ii)–(iii) is *Gibbsian for
+`Φ^{J,h}`*: `μ(A | 𝒯_{\{i\}}) = γ^{J,h}_{\{i\}}(A | ·)` `μ`-a.s., with `γ^{J,h}` the Gaussian
+specification of Definition (2.9)/(13.18) at inverse temperature `1`. (Hypothesis (13.10)(i),
+`μ(Ω_J) = 1`, is automatic: `Ω_J = Ω` for finite range.) This is the input Theorem (1.33) needs
+for (13.20). -/
+theorem condExp_indicator_ae_eq_gaussianSpecification_singleton [Countable S] [LinearOrder S]
+    {J : S → S → ℝ} {h : S → ℝ} (hSymm : ∀ i j, J i j = J j i)
+    (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite)
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef)
+    (hμ : ProbabilityTheory.IsGaussianProcess (fun i (ω : S → ℝ) ↦ ω i) μ)
+    (hvar : ∀ i, ∫ ω, (ω i - condExpOutside μ i ω) ^ 2 ∂μ = (J i i)⁻¹)
+    (h135 : ∀ i, ∀ᵐ ω ∂μ, ω i - condExpOutside μ i ω = (J i i)⁻¹ * (h i + ∑' j, J i j * ω j))
+    (i : S) {A : Set (S → ℝ)} (hA : MeasurableSet A) :
+    μ[A.indicator 1 | cylinderEvents ({i}ᶜ : Set S)] =ᵐ[μ] fun ω ↦
+      (Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos {i} ω A).toReal := by
+  have hP := hμ.isProbabilityMeasure
+  have hJ : (Matrix.of J).PosDef := Matrix.posDef_iff_forall_finset_submatrix.2 fun Λ ↦ hPD Λ
+  have hΩ : μ (Potential.gaussianConvergenceSet J) = 1 := by
+    rw [Potential.gaussianConvergenceSet_eq_univ_of_finiteRowSupport J hFin, measure_univ]
+  have hJii : 0 < J i i := (hPD {i}).diag_pos (i := ⟨i, Finset.mem_singleton_self i⟩)
+  refine (georgii_13_10 hJ hμ hΩ hvar h135 i hA).trans (Filter.Eventually.of_forall fun ω ↦ ?_)
+  beta_reduce
+  rw [Potential.gaussianSpecification_apply, one_smul,
+    multivariateGaussianPi_unique (ι := ({i} : Finset S)) hJii,
+    Measure.map_map Measurable.juxt (MeasurableEquiv.measurable _),
+    gaussianCondMean_eq_gaussianMean h hFin hJii.ne']
+  have hfun : Function.update ω i = juxt (({i} : Finset S) : Set S) ω ∘
+      (MeasurableEquiv.funUnique ({i} : Finset S) ℝ).symm := by
+    funext x j
+    simp only [Function.comp_apply, MeasurableEquiv.funUnique_symm_apply]
+    by_cases hj : j = i
+    · subst hj
+      rw [Function.update_self,
+        juxt_apply_of_mem (Finset.mem_coe.2 (Finset.mem_singleton_self j))]
+      rfl
+    · rw [Function.update_of_ne hj, juxt_apply_of_not_mem (by simpa using hj)]
+  rw [hfun]
+  rfl
+
+end MeasureTheory.GibbsMeasure

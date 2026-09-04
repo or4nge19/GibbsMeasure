@@ -7,6 +7,8 @@ module
 
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Gaussian.Multivariate
 public import Mathlib.Analysis.Calculus.ParametricIntegral
+public import Mathlib.Probability.Distributions.Gaussian.Real
+public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.PiWithDensity
 public import Mathlib.MeasureTheory.Group.Integral
 public import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap
 
@@ -655,3 +657,40 @@ theorem integral_sub_mul_sub_multivariateGaussianPi {A : Matrix ι ι ℝ} (hA :
 
 end Covariance
 
+section Unique
+
+/-- **The one-dimensional multivariate Gaussian is `gaussianReal`.** For a singleton index type
+`ι`, `multivariateGaussianPi A m` (precision `A`, mean `m`) is the image of
+`gaussianReal (m default) (A default default)⁻¹` under `x ↦ (fun _ ↦ x)`, provided
+`0 < A default default`. -/
+theorem multivariateGaussianPi_unique {ι : Type*} [Fintype ι] [DecidableEq ι] [Unique ι]
+    {A : Matrix ι ι ℝ} (hA : 0 < A default default) (m : ι → ℝ) :
+    multivariateGaussianPi A m =
+      (gaussianReal (m default) (Real.toNNReal (A default default)⁻¹)).map
+        (MeasurableEquiv.funUnique ι ℝ).symm := by
+  have hv : Real.toNNReal (A default default)⁻¹ ≠ 0 := by
+    rw [Ne, Real.toNNReal_eq_zero, not_le]
+    exact inv_pos.2 hA
+  have hpdf : gaussianPDF (m default) (Real.toNNReal (A default default)⁻¹) =
+      fun x ↦ multivariateGaussianPDF A m ((MeasurableEquiv.funUnique ι ℝ).symm x) := by
+    funext x
+    rw [gaussianPDF, multivariateGaussianPDF, gaussianPDFReal, multivariateGaussianPDFReal]
+    congr 1
+    simp only [Matrix.det_unique, Fintype.card_unique, pow_one, dotProduct, Matrix.mulVec,
+      Fintype.sum_unique, Pi.sub_apply, MeasurableEquiv.funUnique_symm_apply, uniqueElim_default,
+      Real.coe_toNNReal _ (inv_pos.2 hA).le]
+    have hA0 : A default default ≠ 0 := hA.ne'
+    rw [show (2 * Real.pi * (A default default)⁻¹) = (A default default / (2 * Real.pi))⁻¹ by
+        field_simp, Real.sqrt_inv, inv_inv]
+    congr 1
+    field_simp
+  rw [gaussianReal_of_var_ne_zero _ hv, multivariateGaussianPi, hpdf,
+    map_withDensity_comp volume (MeasurableEquiv.funUnique ι ℝ).symm.measurable
+      (measurable_multivariateGaussianPDF A m),
+    ((volume_preserving_funUnique ι ℝ).symm (MeasurableEquiv.funUnique ι ℝ)).map_eq]
+  congr
+  exact Subsingleton.elim _ _
+
+end Unique
+
+end ProbabilityTheory

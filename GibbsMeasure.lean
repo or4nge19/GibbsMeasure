@@ -26,6 +26,7 @@ public import GibbsMeasure.Mathlib.Analysis.Normed.Field.Lemmas
 public import GibbsMeasure.Mathlib.Data.ENNReal.Basic
 public import GibbsMeasure.Mathlib.Data.Finset.Map
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PosDef
+public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.SymmetricRange
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.Doeblin
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PerronFrobenius
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.CompactSystemCylinders
@@ -49,6 +50,8 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Integral.Bochner.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.DominatedConvergence
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.IntegrableOn
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Density
+public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.CondExp
+public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Limit
 public import GibbsMeasure.Mathlib.Probability.Moments.Covariance
 public import GibbsMeasure.Mathlib.Probability.UniformOn
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Tsum

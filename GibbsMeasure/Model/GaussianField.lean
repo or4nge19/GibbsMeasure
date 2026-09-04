@@ -15,6 +15,8 @@ public import Mathlib.LinearAlgebra.Matrix.PosDef
 public import Mathlib.MeasureTheory.Measure.CharacteristicFunction.Basic
 public import Mathlib.Topology.Algebra.Module.ContinuousLinearMap.PiProd
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Density
+public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.CondExp
+public import Mathlib.Analysis.Matrix.Order
 
 /-!
 # Georgii §13.1: Gauss fields as Gibbs measures
@@ -104,14 +106,30 @@ convergence condition, not treated here).
   `integral_sub_mul_sub_multivariateGaussianPi`), under `γ_Λ^{J,h}(·|ω)` the mean of `σ_i` is
   `(gaussianMean J h hFin Λ ω) i` and the covariance of `(σ_i, σ_j)` is `(β • 𝒥_Λ)⁻¹ i j`.
 
+## Georgii (13.4)–(13.7): conditional expectations given the other spins
+
+* `MeasureTheory.GibbsMeasure.condExpOutside μ i`: **Georgii (13.4)**, `ξ_i^μ = μ(σ_i | 𝒯_{\{i\}})`,
+  literally Mathlib's `μ[σ_i | cylinderEvents {i}ᶜ]`.
+* `MeasureTheory.GibbsMeasure.condCovariance μ i j`: **Georgii (13.6)**, the conditional
+  covariance function `Γ(i, j) = μ((σ_i - ξ_i^μ)(σ_j - ξ_j^μ))`; `condCoupling` and
+  `condExternalField` are the `J` and `h` of Proposition (13.7).
+* `MeasureTheory.GibbsMeasure.exists_condExp_cylinderEvents_eq_affine`: **Georgii (13.A4)** for a
+  Gaussian field — the conditional expectation of `σ_i` given finitely many spins is affine in
+  them (Gaussian regression, `ProbabilityTheory.IsGaussianProcess.exists_condExp_eq_affine` in
+  `GibbsMeasure/Mathlib/Probability/Distributions/Gaussian/CondExp.lean`).
+* `MeasureTheory.GibbsMeasure.georgii_13_7`: **Georgii Proposition (13.7)**, with its hypotheses
+  (i) `Γ(i, i) > 0` and (ii) the Markov property — `ξ_i^μ` has an `𝓕_{∂i}`-measurable version for
+  a finite `∂i ∌ i` — exactly as stated: `J` has finite range, `J` is positive definite
+  (`Matrix.PosDef (Matrix.of J)`, Georgii's finitely-supported sense (13.3)), and (13.5) holds.
+  The tower of lemmas follows Georgii's proof: `condCovariance_eq_zero_of_notMem` (finite range),
+  `exists_condExpOutside_ae_eq_affine` (his (13.8)), `sub_condExpOutside_ae_eq_condCoupling`
+  ((13.5)), and `posDef_gaussianCovMatrix_condCoupling` (`Γ_Λ` is a right inverse of `𝒥_Λ`).
+* **Lemma (13.10)** lives in `GibbsMeasure/Model/GaussianSpecification.lean`
+  (`MeasureTheory.GibbsMeasure.georgii_13_10`), next to `Ω_J` (13.9), which its hypothesis (i)
+  mentions.
+
 ## What is not in this file, and why
 
-* **Propositions (13.7) and Lemma (13.10)**, i.e. items (13.4)–(13.10), identify the conditional
-  expectation `ξ_i^μ = μ(σ_i | 𝒯_{\{i\}})` and show it is affine in finitely many coordinates. This
-  needs regular conditional distributions / conditional expectation machinery for the tail
-  σ-algebra `𝒯_{\{i\}}` (`cylinderEvents ({i} : Set S)ᶜ`) that is not built anywhere in this tree
-  (`GibbsMeasure/Topology/LocalConvergence.lean` has the σ-algebra but no conditional expectation
-  theory over it). This is a genuine gap, not a missing tail-gluing step.
 * **Proposition (13.13)'s converse direction** (`𝒥_Λ` *not* positive definite `⟹` `Z_Λ^{J,h}(ω) = ∞`
   or the density is not Gaussian) is not proved: only the "if `𝒥_Λ` positive definite, then
   admissible and Gaussian" direction is formalized (matching what a genuinely infinite-range `J`
@@ -859,3 +877,469 @@ theorem gaussianSpecification_apply (hSymm : ∀ i j, J i j = J j i)
 end LambdaAdmissibility
 
 end Potential
+
+/-! ### Georgii (13.4)–(13.7): conditional expectations given the other spins
+
+`ξ_i^μ = μ(σ_i | 𝒯_{\{i\}})` (13.4), the conditional covariance function
+`Γ(i, j) = μ((σ_i - ξ_i^μ)(σ_j - ξ_j^μ))` (13.6), and Proposition (13.7): for a Markovian Gaussian
+field with `Γ(i, i) > 0`, the coupling `J(i, j) = Γ(i, j) / (Γ(i, i) Γ(j, j))` has finite range,
+is positive definite, and `σ_i - ξ_i^μ = J(i, i)⁻¹ (h_i + ∑_j J(i, j) σ_j)` (13.5). -/
+
+namespace MeasureTheory.GibbsMeasure
+
+variable {S : Type*} (μ : Measure (S → ℝ))
+
+/-- **Georgii (13.4).** `ξ_i^μ = μ(σ_i | 𝒯_{\{i\}})`: the conditional expectation of the spin at
+`i` given all the other spins. `𝒯_{\{i\}}` is Georgii's `𝓕_{S ∖ \{i\}}`, i.e.
+`cylinderEvents ({i}ᶜ)`. -/
+noncomputable abbrev condExpOutside (i : S) : (S → ℝ) → ℝ :=
+  μ[(fun ω ↦ ω i) | cylinderEvents ({i}ᶜ : Set S)]
+
+/-- **Georgii (13.6).** The conditional covariance function
+`Γ(i, j) = μ((σ_i - ξ_i^μ)(σ_j - ξ_j^μ))`; `Γ(i, i)` is the mean square interpolation error. -/
+noncomputable def condCovariance (i j : S) : ℝ :=
+  ∫ ω, (ω i - condExpOutside μ i ω) * (ω j - condExpOutside μ j ω) ∂μ
+
+/-- **The coupling of Proposition (13.7)**: `J(i, j) = Γ(i, j) / (Γ(i, i) Γ(j, j))`. -/
+noncomputable def condCoupling (i j : S) : ℝ :=
+  condCovariance μ i j / (condCovariance μ i i * condCovariance μ j j)
+
+/-- **The external field of Proposition (13.7)**: `h_i = -∑_{j ∈ S} J(i, j) m_j`, with `m` the
+mean of `μ`. -/
+noncomputable def condExternalField (i : S) : ℝ :=
+  -∑' j, condCoupling μ i j * ∫ ω, ω j ∂μ
+
+variable {μ}
+
+lemma condCovariance_comm (i j : S) : condCovariance μ i j = condCovariance μ j i := by
+  unfold condCovariance
+  exact integral_congr_ae (Filter.Eventually.of_forall fun ω ↦ mul_comm _ _)
+
+lemma condCoupling_comm (i j : S) : condCoupling μ i j = condCoupling μ j i := by
+  unfold condCoupling
+  rw [condCovariance_comm, mul_comm]
+
+lemma condCoupling_self {i : S} (h : condCovariance μ i i ≠ 0) :
+    condCoupling μ i i = (condCovariance μ i i)⁻¹ := by
+  unfold condCoupling
+  field_simp
+
+section Orthogonality
+
+variable [IsProbabilityMeasure μ]
+
+lemma cylinderEvents_compl_singleton_le (i : S) :
+    cylinderEvents (X := fun _ : S ↦ ℝ) ({i}ᶜ : Set S) ≤ MeasurableSpace.pi :=
+  cylinderEvents_le_pi
+
+/-- `σ_i - ξ_i^μ` is centered. -/
+lemma integral_sub_condExpOutside (i : S) (hi : Integrable (fun ω : S → ℝ ↦ ω i) μ) :
+    ∫ ω, (ω i - condExpOutside μ i ω) ∂μ = 0 := by
+  rw [integral_sub hi integrable_condExp, integral_condExp cylinderEvents_le_pi, sub_self]
+
+/-- **Orthogonality of the interpolation residual**: for `f` measurable given the spins off `i`
+and square integrable, `μ(f (σ_i - ξ_i^μ)) = 0`. -/
+lemma integral_mul_sub_condExpOutside_eq_zero {i : S} {f : (S → ℝ) → ℝ}
+    (hf : AEStronglyMeasurable[cylinderEvents ({i}ᶜ : Set S)] f μ) (hf2 : MemLp f 2 μ)
+    (hi : MemLp (fun ω : S → ℝ ↦ ω i) 2 μ) :
+    ∫ ω, f ω * (ω i - condExpOutside μ i ω) ∂μ = 0 :=
+  integral_mul_sub_condExp_eq_zero cylinderEvents_le_pi hf (hi.integrable one_le_two)
+    (hf2.integrable_mul hi) (hf2.integrable_mul (hi.condExp one_le_two))
+
+/-- The residual `σ_i - ξ_i^μ` is orthogonal to every other spin `σ_k`, `k ≠ i`. -/
+lemma integral_eval_mul_sub_condExpOutside_eq_zero {i k : S} (hki : k ≠ i)
+    (hi : MemLp (fun ω : S → ℝ ↦ ω i) 2 μ) (hk : MemLp (fun ω : S → ℝ ↦ ω k) 2 μ) :
+    ∫ ω, ω k * (ω i - condExpOutside μ i ω) ∂μ = 0 :=
+  integral_mul_sub_condExpOutside_eq_zero
+    (measurable_cylinderEvent_apply (X := fun _ : S ↦ ℝ) (Δ := ({i}ᶜ : Set S))
+      (by simpa using hki)).aestronglyMeasurable hk hi
+
+/-- The residual `σ_i - ξ_i^μ` is orthogonal to `ξ_i^μ` itself. -/
+lemma integral_condExpOutside_mul_sub_condExpOutside_eq_zero {i : S}
+    (hi : MemLp (fun ω : S → ℝ ↦ ω i) 2 μ) :
+    ∫ ω, condExpOutside μ i ω * (ω i - condExpOutside μ i ω) ∂μ = 0 :=
+  integral_mul_sub_condExpOutside_eq_zero stronglyMeasurable_condExp.aestronglyMeasurable
+    (hi.condExp one_le_two) hi
+
+/-- `Γ(i, i) = μ(σ_i (σ_i - ξ_i^μ))`. -/
+lemma condCovariance_self_eq_integral_eval_mul {i : S}
+    (hi : MemLp (fun ω : S → ℝ ↦ ω i) 2 μ) :
+    condCovariance μ i i = ∫ ω, ω i * (ω i - condExpOutside μ i ω) ∂μ := by
+  have h0 := integral_condExpOutside_mul_sub_condExpOutside_eq_zero hi
+  have hint1 : Integrable (fun ω ↦ ω i * (ω i - condExpOutside μ i ω)) μ :=
+    hi.integrable_mul (hi.sub (hi.condExp one_le_two))
+  have hint2 : Integrable (fun ω ↦ condExpOutside μ i ω * (ω i - condExpOutside μ i ω)) μ :=
+    (hi.condExp one_le_two).integrable_mul (hi.sub (hi.condExp one_le_two))
+  unfold condCovariance
+  rw [show (fun ω ↦ (ω i - condExpOutside μ i ω) * (ω i - condExpOutside μ i ω)) =
+      fun ω ↦ ω i * (ω i - condExpOutside μ i ω) -
+        condExpOutside μ i ω * (ω i - condExpOutside μ i ω) from funext fun ω ↦ by ring,
+    integral_sub hint1 hint2, h0, sub_zero]
+
+end Orthogonality
+
+section Markov
+
+variable [IsProbabilityMeasure μ]
+
+/-- **Georgii (13.7), first step**: under the Markov hypothesis (ii) — `ξ_i^μ` has an
+`𝓕_{Δi}`-measurable version, `i ∉ Δi` — one has `ξ_i^μ = μ(σ_i | 𝓕_{Δi})` a.s. (tower
+property). -/
+lemma condExpOutside_ae_eq_condExp_of_aestronglyMeasurable {i : S} {Δ : Finset S} (hΔ : i ∉ Δ)
+    (hMarkov : AEStronglyMeasurable[cylinderEvents (Δ : Set S)] (condExpOutside μ i) μ) :
+    condExpOutside μ i =ᵐ[μ] μ[(fun ω ↦ ω i) | cylinderEvents (Δ : Set S)] := by
+  have hle : cylinderEvents (X := fun _ : S ↦ ℝ) (Δ : Set S) ≤ cylinderEvents ({i}ᶜ : Set S) :=
+    cylinderEvents_mono fun j hj ↦ by
+      simp only [Set.mem_compl_iff, Set.mem_singleton_iff]
+      rintro rfl
+      exact hΔ (Finset.mem_coe.1 hj)
+  have h1 : μ[condExpOutside μ i | cylinderEvents (Δ : Set S)] =ᵐ[μ]
+      μ[(fun ω ↦ ω i) | cylinderEvents (Δ : Set S)] :=
+    condExp_condExp_of_le hle cylinderEvents_le_pi
+  have h2 : μ[condExpOutside μ i | cylinderEvents (Δ : Set S)] =ᵐ[μ] condExpOutside μ i :=
+    condExp_of_aestronglyMeasurable' cylinderEvents_le_pi hMarkov integrable_condExp
+  exact h2.symm.trans h1
+
+/-- **Georgii (13.7), `Γ(i, j) = 0` unless `j ∈ {i} ∪ Δi`**: if `ξ_i^μ` is `𝓕_{Δi}`-measurable and
+`j ∉ {i} ∪ Δi`, then `σ_i - ξ_i^μ` is measurable given the spins off `j`, hence orthogonal to
+`σ_j - ξ_j^μ`. -/
+lemma condCovariance_eq_zero_of_notMem {i j : S} {Δ : Finset S}
+    (hMarkov : AEStronglyMeasurable[cylinderEvents (Δ : Set S)] (condExpOutside μ i) μ)
+    (hji : j ≠ i) (hjΔ : j ∉ Δ) (hi : MemLp (fun ω : S → ℝ ↦ ω i) 2 μ)
+    (hj2 : MemLp (fun ω : S → ℝ ↦ ω j) 2 μ) :
+    condCovariance μ i j = 0 := by
+  have hij : i ≠ j := hji.symm
+  have hle : cylinderEvents (X := fun _ : S ↦ ℝ) (Δ : Set S) ≤ cylinderEvents ({j}ᶜ : Set S) :=
+    cylinderEvents_mono fun k hk ↦ by
+      simp only [Set.mem_compl_iff, Set.mem_singleton_iff]
+      rintro rfl
+      exact hjΔ (Finset.mem_coe.1 hk)
+  have hξ : AEStronglyMeasurable[cylinderEvents ({j}ᶜ : Set S)] (condExpOutside μ i) μ := by
+    obtain ⟨g, hg, hfg⟩ := hMarkov
+    exact ⟨g, hg.mono hle, hfg⟩
+  have hσ : AEStronglyMeasurable[cylinderEvents ({j}ᶜ : Set S)] (fun ω : S → ℝ ↦ ω i) μ :=
+    (measurable_cylinderEvent_apply (X := fun _ : S ↦ ℝ) (Δ := ({j}ᶜ : Set S))
+      (by simpa using hij)).aestronglyMeasurable
+  exact integral_mul_sub_condExpOutside_eq_zero (hσ.sub hξ) (hi.sub (hi.condExp one_le_two)) hj2
+
+omit [IsProbabilityMeasure μ] in
+/-- **Georgii (13.A4) for a Gaussian field**: the conditional expectation of `σ_i` given the spins
+in a finite `Δ` is an affine function of `σ_Δ`. -/
+lemma exists_condExp_cylinderEvents_eq_affine
+    (hμ : ProbabilityTheory.IsGaussianProcess (fun i (ω : S → ℝ) ↦ ω i) μ) (i : S)
+    (Δ : Finset S) :
+    ∃ (u : ℝ) (v : Δ → ℝ), μ[(fun ω ↦ ω i) | cylinderEvents (Δ : Set S)] =ᵐ[μ]
+      fun ω ↦ u + ∑ j, v j * ω j := by
+  have hjoint : ProbabilityTheory.IsGaussianProcess
+      (fun o : Option Δ ↦ o.elim (fun ω : S → ℝ ↦ ω i) fun j ω ↦ ω j) μ := by
+    have := hμ.comp_right fun o : Option Δ ↦ o.elim i Subtype.val
+    refine this.congr fun o ↦ ?_
+    cases o <;> rfl
+  obtain ⟨u, v, huv⟩ := hjoint.exists_condExp_eq_affine (measurable_pi_apply i)
+    fun j ↦ measurable_pi_apply (j : S)
+  refine ⟨u, v, ?_⟩
+  rw [cylinderEvents_eq_comap_finsetRestrict]
+  exact huv
+
+end Markov
+
+section Proposition13_7
+
+variable (hμ : ProbabilityTheory.IsGaussianProcess (fun i (ω : S → ℝ) ↦ ω i) μ)
+include hμ
+
+/-- Every spin of a Gaussian field is square integrable. -/
+lemma memLp_two_eval (i : S) : MemLp (fun ω : S → ℝ ↦ ω i) 2 μ :=
+  (hμ.hasGaussianLaw_eval i).memLp_two
+
+/-- **Georgii (13.7), identification of the regression coefficients** (his (13.8) together with
+the computation of `v_{ij}`): under the Markov hypothesis,
+`ξ_i^μ = u - ∑_{j ∈ ∂i} Γ(i,j)/Γ(j,j) σ_j` a.s. for some constant `u`. -/
+lemma exists_condExpOutside_ae_eq_affine {i : S} {Δ : Finset S} (hiΔ : i ∉ Δ)
+    (hΓ : ∀ j, 0 < condCovariance μ j j)
+    (hMarkov : AEStronglyMeasurable[cylinderEvents (Δ : Set S)] (condExpOutside μ i) μ) :
+    ∃ u : ℝ, condExpOutside μ i =ᵐ[μ]
+      fun ω ↦ u - ∑ j ∈ Δ, condCovariance μ i j / condCovariance μ j j * ω j := by
+  have hP := hμ.isProbabilityMeasure
+  obtain ⟨u, v, huv⟩ := exists_condExp_cylinderEvents_eq_affine hμ i Δ
+  have hξ : condExpOutside μ i =ᵐ[μ] fun ω ↦ u + ∑ j : Δ, v j * ω j :=
+    (condExpOutside_ae_eq_condExp_of_aestronglyMeasurable hiΔ hMarkov).trans huv
+  have hL2 := memLp_two_eval hμ
+  have hv : ∀ k : Δ, v k = -(condCovariance μ i k / condCovariance μ k k) := by
+    intro k
+    have hik : i ≠ k := fun h ↦ hiΔ (h ▸ k.2)
+    set R : (S → ℝ) → ℝ := fun ω ↦ ω k - condExpOutside μ k ω with hR_def
+    have hR2 : MemLp R 2 μ := (hL2 k).sub ((hL2 k).condExp one_le_two)
+    have hcongr : (fun ω ↦ (ω i - condExpOutside μ i ω) * (ω k - condExpOutside μ k ω)) =ᵐ[μ]
+        fun ω ↦ (ω i * R ω - u * R ω) - ∑ j : Δ, v j * (ω j * R ω) := by
+      filter_upwards [hξ] with ω hω
+      rw [hω]
+      simp only [hR_def, sub_mul, Finset.sum_mul, mul_assoc, sub_add_eq_sub_sub]
+    have hΓ_eq : condCovariance μ i k = -(v k * condCovariance μ k k) := by
+      have hint1 : Integrable (fun ω ↦ ω i * R ω) μ := (hL2 i).integrable_mul hR2
+      have hint2 : Integrable (fun ω ↦ u * R ω) μ := (hR2.integrable one_le_two).const_mul u
+      have hint3 : ∀ j : Δ, Integrable (fun ω ↦ v j * (ω j * R ω)) μ := fun j ↦
+        ((hL2 j).integrable_mul hR2).const_mul _
+      have hRHS : ∫ a, a k * R a ∂μ = condCovariance μ k k :=
+        (condCovariance_self_eq_integral_eval_mul (hL2 k)).symm
+      rw [show condCovariance μ i k =
+          ∫ ω, (ω i - condExpOutside μ i ω) * (ω k - condExpOutside μ k ω) ∂μ from rfl,
+        integral_congr_ae hcongr,
+        integral_sub (f := fun ω ↦ ω i * R ω - u * R ω) (g := fun ω ↦ ∑ j : Δ, v j * (ω j * R ω))
+          (hint1.sub hint2) (integrable_finsetSum _ fun j _ ↦ hint3 j),
+        integral_sub hint1 hint2, integral_finsetSum _ fun j _ ↦ hint3 j]
+      simp only [integral_const_mul]
+      rw [show ∫ ω, ω i * R ω ∂μ = 0 from
+          integral_eval_mul_sub_condExpOutside_eq_zero hik (hL2 k) (hL2 i),
+        show ∫ ω, R ω ∂μ = 0 from
+          integral_sub_condExpOutside (k : S) ((hL2 k).integrable one_le_two),
+        Finset.sum_eq_single k]
+      · rw [hRHS]
+        ring
+      · intro j _ hjk
+        have hjk' : (j : S) ≠ k := fun h ↦ hjk (Subtype.ext h)
+        rw [integral_eval_mul_sub_condExpOutside_eq_zero hjk' (hL2 k) (hL2 j), mul_zero]
+      · intro h
+        exact absurd (Finset.mem_univ k) h
+    have hkk : condCovariance μ k k ≠ 0 := (hΓ k).ne'
+    rw [hΓ_eq]
+    field_simp
+  refine ⟨u, hξ.trans (Filter.Eventually.of_forall fun ω ↦ ?_)⟩
+  simp only [hv, neg_mul, Finset.sum_neg_distrib, sub_eq_add_neg]
+  congr 1
+  exact (Finset.sum_coe_sort Δ fun j ↦ condCovariance μ i j / condCovariance μ j j * ω j).symm ▸
+    rfl
+
+/-- **Georgii (13.7), finite range**: `J(i, j) = 0` unless `j ∈ {i} ∪ ∂i`. -/
+lemma condCoupling_eq_zero_of_notMem {i j : S} {Δ : Finset S}
+    (hMarkov : AEStronglyMeasurable[cylinderEvents (Δ : Set S)] (condExpOutside μ i) μ)
+    (hji : j ≠ i) (hjΔ : j ∉ Δ) : condCoupling μ i j = 0 := by
+  have hP := hμ.isProbabilityMeasure
+  unfold condCoupling
+  rw [condCovariance_eq_zero_of_notMem hMarkov hji hjΔ (memLp_two_eval hμ i) (memLp_two_eval hμ j),
+    zero_div]
+
+/-- The mean of a Gaussian field, `m_i = μ(σ_i)`, against the coupling: for a Markovian field,
+`h_i = -∑_{j ∈ S} J(i, j) m_j` is the finite sum over `{i} ∪ ∂i`. -/
+lemma condExternalField_eq_sum [DecidableEq S] {i : S} {Δ : Finset S}
+    (hMarkov : AEStronglyMeasurable[cylinderEvents (Δ : Set S)] (condExpOutside μ i) μ) :
+    condExternalField μ i = -∑ j ∈ insert i Δ, condCoupling μ i j * ∫ ω, ω j ∂μ := by
+  unfold condExternalField
+  congr 1
+  refine tsum_eq_sum fun j hj ↦ ?_
+  rw [Finset.mem_insert, not_or] at hj
+  rw [condCoupling_eq_zero_of_notMem hμ hMarkov hj.1 hj.2, zero_mul]
+
+/-- **Georgii (13.5) for the coupling and field of Proposition (13.7)**, with the sum written over
+the finite set `{i} ∪ ∂i` carrying the coupling:
+`σ_i - ξ_i^μ = J(i, i)⁻¹ (h_i + ∑_{j ∈ {i} ∪ ∂i} J(i, j) σ_j)` a.s. -/
+theorem sub_condExpOutside_ae_eq_condCoupling [DecidableEq S] {i : S} {Δ : Finset S} (hiΔ : i ∉ Δ)
+    (hΓ : ∀ j, 0 < condCovariance μ j j)
+    (hMarkov : AEStronglyMeasurable[cylinderEvents (Δ : Set S)] (condExpOutside μ i) μ) :
+    ∀ᵐ ω ∂μ, ω i - condExpOutside μ i ω = (condCoupling μ i i)⁻¹ *
+      (condExternalField μ i + ∑ j ∈ insert i Δ, condCoupling μ i j * ω j) := by
+  have hP := hμ.isProbabilityMeasure
+  obtain ⟨u, hξ⟩ := exists_condExpOutside_ae_eq_affine hμ hiΔ hΓ hMarkov
+  set c : S → ℝ := fun j ↦ condCovariance μ i j / condCovariance μ j j with hc_def
+  have hcJ : ∀ j, condCovariance μ i i * condCoupling μ i j = c j := by
+    intro j
+    simp only [hc_def, condCoupling]
+    field_simp [(hΓ i).ne', (hΓ j).ne']
+  have hci : c i = 1 := div_self (hΓ i).ne'
+  have hJii : (condCoupling μ i i)⁻¹ = condCovariance μ i i := by
+    rw [condCoupling_self (hΓ i).ne', inv_inv]
+  -- The constant `u` from the mean of the residual.
+  have hu : u = ∑ j ∈ insert i Δ, c j * ∫ ω, ω j ∂μ := by
+    have h0 := integral_sub_condExpOutside (μ := μ) i ((memLp_two_eval hμ i).integrable one_le_two)
+    have hcongr : (fun ω ↦ ω i - condExpOutside μ i ω) =ᵐ[μ]
+        fun ω ↦ (ω i - u) + ∑ j ∈ Δ, c j * ω j := by
+      filter_upwards [hξ] with ω hω
+      rw [hω]
+      ring
+    have hint : ∀ j ∈ Δ, Integrable (fun ω : S → ℝ ↦ c j * ω j) μ := fun j _ ↦
+      ((memLp_two_eval hμ j).integrable one_le_two).const_mul _
+    rw [integral_congr_ae hcongr, integral_add (f := fun ω : S → ℝ ↦ ω i - u)
+      (g := fun ω ↦ ∑ j ∈ Δ, c j * ω j) (((memLp_two_eval hμ i).integrable one_le_two).sub
+      (integrable_const u)) (integrable_finsetSum _ hint), integral_sub
+      ((memLp_two_eval hμ i).integrable one_le_two) (integrable_const u), integral_finsetSum _ hint,
+      integral_const, probReal_univ, one_smul] at h0
+    simp only [integral_const_mul] at h0
+    rw [Finset.sum_insert hiΔ, hci, one_mul]
+    linarith
+  filter_upwards [hξ] with ω hω
+  rw [hω, hJii, condExternalField_eq_sum hμ hMarkov, hu, mul_add, mul_neg, Finset.mul_sum,
+    Finset.mul_sum]
+  simp only [← mul_assoc, hcJ]
+  rw [Finset.sum_insert hiΔ, Finset.sum_insert hiΔ, hci, one_mul, one_mul]
+  ring
+
+/-- **`𝒥_Λ` is nonnegative definite**: `J(i, j) = Γ(i, j) / (Γ(i, i) Γ(j, j))` is the covariance
+of the normalized residuals `(σ_i - ξ_i^μ) / Γ(i, i)`. -/
+lemma posSemidef_gaussianCovMatrix_condCoupling (hΓ : ∀ j, 0 < condCovariance μ j j)
+    (Λ : Finset S) : (Potential.gaussianCovMatrix (condCoupling μ) Λ).PosSemidef := by
+  have hP := hμ.isProbabilityMeasure
+  set Z : S → (S → ℝ) → ℝ :=
+    fun i ω ↦ (condCovariance μ i i)⁻¹ * (ω i - condExpOutside μ i ω) with hZ_def
+  have hZ2 : ∀ i, MemLp (Z i) 2 μ := fun i ↦
+    ((memLp_two_eval hμ i).sub ((memLp_two_eval hμ i).condExp one_le_two)).const_mul _
+  have hZmean : ∀ i, ∫ ω, Z i ω ∂μ = 0 := fun i ↦ by
+    simp only [hZ_def]
+    rw [integral_const_mul,
+      integral_sub_condExpOutside i ((memLp_two_eval hμ i).integrable one_le_two), mul_zero]
+  have hcov : ∀ i j : Λ, cov[Z i, Z j; μ] = condCoupling μ i j := by
+    intro i j
+    unfold ProbabilityTheory.covariance
+    rw [hZmean, hZmean]
+    simp only [sub_zero, hZ_def]
+    have hii := (hΓ i).ne'
+    have hjj := (hΓ j).ne'
+    unfold condCoupling
+    rw [eq_div_iff (mul_ne_zero hii hjj), ← integral_mul_const]
+    refine integral_congr_ae (Filter.Eventually.of_forall fun ω ↦ ?_)
+    field_simp
+  have := Matrix.posSemidef_covariance (X := fun i : Λ ↦ Z i) fun i ↦ hZ2 i
+  have hmat : (Potential.gaussianCovMatrix (condCoupling μ) Λ) =
+      (fun i j ↦ cov[Z i, Z j; μ] : Matrix Λ Λ ℝ) := by
+    ext i j
+    exact (hcov i j).symm
+  rw [hmat]
+  exact this
+
+/-- **Georgii (13.7), positive definiteness of `J`**, in the finite-volume form of (13.12): for a
+Markovian Gaussian field with `Γ(i, i) > 0`, every `𝒥_Λ = (J(i, j))_{i, j ∈ Λ}` is positive
+definite. Georgii's proof: `𝒥_Λ` is nonnegative definite, and `Γ_Λ(j, k) = μ(σ_j (σ_k - η_k^Λ))`,
+`η_k^Λ = μ(σ_k | 𝒯_Λ)`, is a right inverse of `𝒥_Λ`. -/
+theorem posDef_gaussianCovMatrix_condCoupling [DecidableEq S]
+    (hΓ : ∀ j, 0 < condCovariance μ j j) (N : S → Finset S) (hN : ∀ i, i ∉ N i)
+    (hMarkov : ∀ i, AEStronglyMeasurable[cylinderEvents (N i : Set S)] (condExpOutside μ i) μ)
+    (Λ : Finset S) : (Potential.gaussianCovMatrix (condCoupling μ) Λ).PosDef := by
+  have hP := hμ.isProbabilityMeasure
+  have hL2 := memLp_two_eval hμ
+  refine (posSemidef_gaussianCovMatrix_condCoupling hμ hΓ Λ).posDef_iff_det_ne_zero.2 ?_
+  set J := condCoupling μ with hJ_def
+  set η : S → (S → ℝ) → ℝ := fun k ↦ μ[(fun ω ↦ ω k) | cylinderEvents ((Λ : Set S)ᶜ)] with hη_def
+  set R : S → (S → ℝ) → ℝ := fun k ω ↦ ω k - η k ω with hR_def
+  have hR2 : ∀ k, MemLp (R k) 2 μ := fun k ↦ (hL2 k).sub ((hL2 k).condExp one_le_two)
+  have hΛle : ∀ i ∈ Λ, cylinderEvents (X := fun _ : S ↦ ℝ) ((Λ : Set S)ᶜ) ≤
+      cylinderEvents ({i}ᶜ : Set S) := fun i hi ↦
+    cylinderEvents_mono
+      (Set.compl_subset_compl.2 (Set.singleton_subset_iff.2 (Finset.mem_coe.2 hi)))
+  -- `Γ_Λ`, Georgii's right inverse.
+  set G : Matrix Λ Λ ℝ := fun j k ↦ ∫ ω, ω j * R k ω ∂μ with hG_def
+  -- Off-`Λ` spins are orthogonal to the residuals `R k`.
+  have hoff : ∀ j, j ∉ Λ → ∀ k : Λ, ∫ ω, ω j * R k ω ∂μ = 0 := by
+    intro j hj k
+    refine integral_mul_sub_condExp_eq_zero cylinderEvents_le_pi
+      (measurable_cylinderEvent_apply (X := fun _ : S ↦ ℝ) (Δ := ((Λ : Set S)ᶜ))
+        (by simpa using hj)).aestronglyMeasurable ((hL2 k).integrable one_le_two)
+      ((hL2 j).integrable_mul (hL2 k)) ((hL2 j).integrable_mul ((hL2 k).condExp one_le_two))
+  -- The key identity `∑_{j ∈ Λ} J(i, j) Γ_Λ(j, k) = δ_{ik}`.
+  have hJG : Potential.gaussianCovMatrix J Λ * G = 1 := by
+    ext i k
+    set T : Finset S := Λ ∪ insert (i : S) (N i) with hT_def
+    have hΛT : Λ ⊆ T := Finset.subset_union_left
+    have hiT : insert (i : S) (N i) ⊆ T := Finset.subset_union_right
+    have hJzero : ∀ j, j ∉ insert (i : S) (N i) → J i j = 0 := fun j hj ↦ by
+      rw [Finset.mem_insert, not_or] at hj
+      exact condCoupling_eq_zero_of_notMem hμ (hMarkov i) hj.1 hj.2
+    -- Rewrite the matrix product as one integral.
+    have hprod : (Potential.gaussianCovMatrix J Λ * G) i k =
+        ∫ ω, (∑ j ∈ T, J i j * ω j) * R k ω ∂μ := by
+      rw [Matrix.mul_apply]
+      simp only [Potential.gaussianCovMatrix_apply, hG_def]
+      rw [Finset.sum_coe_sort Λ (fun j ↦ J i j * ∫ ω, ω j * R k ω ∂μ)]
+      rw [Finset.sum_subset hΛT fun j _ hj ↦ by rw [hoff j hj k, mul_zero]]
+      symm
+      calc ∫ ω, (∑ j ∈ T, J i j * ω j) * R k ω ∂μ
+          = ∫ ω, ∑ j ∈ T, J i j * (ω j * R k ω) ∂μ := by
+            refine integral_congr_ae (Filter.Eventually.of_forall fun ω ↦ ?_)
+            simp only [Finset.sum_mul, mul_assoc]
+        _ = ∑ j ∈ T, J i j * ∫ ω, ω j * R k ω ∂μ := by
+            rw [integral_finsetSum (f := fun j ω ↦ J i j * (ω j * R k ω)) _
+              fun j _ ↦ ((hL2 j).integrable_mul (hR2 k)).const_mul _]
+            simp only [integral_const_mul]
+    -- (13.5) turns the sum into `J(i,i) (σ_i - ξ_i) - h_i`.
+    have h135 := sub_condExpOutside_ae_eq_condCoupling hμ (hN i) hΓ (hMarkov i)
+    have hsumT : ∀ ω : S → ℝ,
+        ∑ j ∈ T, J i j * ω j = ∑ j ∈ insert (i : S) (N i), J i j * ω j := fun ω ↦
+      (Finset.sum_subset hiT fun j _ hj ↦ by rw [hJzero j hj, zero_mul]).symm
+    have hJii : J i i ≠ 0 := by
+      rw [hJ_def, condCoupling_self (hΓ i).ne']
+      exact inv_ne_zero (hΓ i).ne'
+    have hcongr : (fun ω ↦ (∑ j ∈ T, J i j * ω j) * R k ω) =ᵐ[μ]
+        fun ω ↦ J i i * ((ω i - condExpOutside μ i ω) * R k ω) -
+          condExternalField μ i * R k ω := by
+      filter_upwards [h135] with ω hω
+      rw [hsumT]
+      have : ∑ j ∈ insert (i : S) (N i), J i j * ω j =
+          J i i * (ω i - condExpOutside μ i ω) - condExternalField μ i := by
+        rw [hω, ← mul_assoc, mul_inv_cancel₀ hJii, one_mul, add_sub_cancel_left]
+      rw [this]
+      ring
+    have hint1 : Integrable (fun ω ↦ (ω i - condExpOutside μ i ω) * R k ω) μ :=
+      ((hL2 i).sub ((hL2 i).condExp one_le_two)).integrable_mul (hR2 k)
+    rw [hprod, integral_congr_ae hcongr, integral_sub (hint1.const_mul _)
+      (((hR2 k).integrable one_le_two).const_mul _), integral_const_mul, integral_const_mul,
+      show ∫ ω, R k ω ∂μ = 0 from by
+        simp only [hR_def, hη_def]
+        rw [integral_sub ((hL2 k).integrable one_le_two) integrable_condExp,
+          integral_condExp cylinderEvents_le_pi, sub_self],
+      mul_zero, sub_zero]
+    -- `η_k^Λ` is measurable given the spins off `i`, for every `i ∈ Λ`.
+    have hηi : AEStronglyMeasurable[cylinderEvents ({(i : S)}ᶜ : Set S)] (η k) μ :=
+      (stronglyMeasurable_condExp.mono (hΛle i i.2)).aestronglyMeasurable
+    by_cases hik : i = k
+    · subst hik
+      rw [Matrix.one_apply_eq]
+      have hsplit : (fun ω ↦ (ω i - condExpOutside μ i ω) * R i ω) =
+          fun ω ↦ ω i * (ω i - condExpOutside μ i ω) -
+            η i ω * (ω i - condExpOutside μ i ω) := by
+        funext ω; simp only [hR_def]; ring
+      rw [hsplit, integral_sub (f := fun ω ↦ ω i * (ω i - condExpOutside μ i ω))
+        (g := fun ω ↦ η i ω * (ω i - condExpOutside μ i ω))
+        ((hL2 i).integrable_mul ((hL2 i).sub ((hL2 i).condExp one_le_two)))
+        (((hL2 i).condExp one_le_two).integrable_mul ((hL2 i).sub ((hL2 i).condExp one_le_two))),
+        integral_mul_sub_condExpOutside_eq_zero hηi ((hL2 i).condExp one_le_two) (hL2 i),
+        ← condCovariance_self_eq_integral_eval_mul (hL2 i), sub_zero, hJ_def,
+        condCoupling_self (hΓ i).ne', inv_mul_cancel₀ (hΓ i).ne']
+    · rw [Matrix.one_apply_ne hik]
+      have hki : (k : S) ≠ i := fun h ↦ hik (Subtype.ext h.symm)
+      have hRk : AEStronglyMeasurable[cylinderEvents ({(i : S)}ᶜ : Set S)] (R k) μ :=
+        (measurable_cylinderEvent_apply (X := fun _ : S ↦ ℝ) (Δ := ({(i : S)}ᶜ : Set S))
+          (by simpa using hki)).aestronglyMeasurable.sub hηi
+      rw [show (fun ω ↦ (ω i - condExpOutside μ i ω) * R k ω) =
+          fun ω ↦ R k ω * (ω i - condExpOutside μ i ω) from funext fun ω ↦ mul_comm _ _,
+        integral_mul_sub_condExpOutside_eq_zero hRk (hR2 k) (hL2 i), mul_zero]
+  intro hdet
+  have := congrArg Matrix.det hJG
+  rw [Matrix.det_mul, hdet, zero_mul, Matrix.det_one] at this
+  exact zero_ne_one this
+
+/-- **Georgii Proposition (13.7).** Let `μ` be a Gaussian field with mean `m`. Suppose
+(i) `Γ(i, i) > 0` for all `i`, and (ii) `μ` is Markovian: for each `i` there is a finite `∂i ∌ i`
+such that `ξ_i^μ` has an `𝓕_{∂i}`-measurable version. Define
+`J(i, j) = Γ(i, j) / (Γ(i, i) Γ(j, j))` (`condCoupling`) and `h_i = -∑_j J(i, j) m_j`
+(`condExternalField`). Then `J(i, j) = 0` unless `j ∈ {i} ∪ ∂i`, `J` is positive definite (in
+Georgii's finitely-supported sense (13.3)), and (13.5) holds for all `i`:
+`σ_i - ξ_i^μ = J(i, i)⁻¹ (h_i + ∑_j J(i, j) σ_j)` a.s., the sum over `S` being the (absolutely
+convergent) `tsum`, which reduces to the finite sum over `{i} ∪ ∂i`. -/
+theorem georgii_13_7 [DecidableEq S] (hΓ : ∀ j, 0 < condCovariance μ j j) (N : S → Finset S)
+    (hN : ∀ i, i ∉ N i)
+    (hMarkov : ∀ i, AEStronglyMeasurable[cylinderEvents (N i : Set S)] (condExpOutside μ i) μ) :
+    (∀ i j, j ≠ i → j ∉ N i → condCoupling μ i j = 0) ∧
+      Matrix.PosDef (Matrix.of (condCoupling μ)) ∧
+      ∀ i, ∀ᵐ ω ∂μ, ω i - condExpOutside μ i ω = (condCoupling μ i i)⁻¹ *
+        (condExternalField μ i + ∑' j, condCoupling μ i j * ω j) := by
+  refine ⟨fun i j hji hjN ↦ condCoupling_eq_zero_of_notMem hμ (hMarkov i) hji hjN, ?_, fun i ↦ ?_⟩
+  · exact Matrix.posDef_iff_forall_finset_submatrix.2 fun Λ ↦
+      posDef_gaussianCovMatrix_condCoupling hμ hΓ N hN hMarkov Λ
+  · filter_upwards [sub_condExpOutside_ae_eq_condCoupling hμ (hN i) hΓ (hMarkov i)] with ω hω
+    rw [hω]
+    congr 2
+    refine (tsum_eq_sum fun j hj ↦ ?_).symm
+    rw [Finset.mem_insert, not_or] at hj
+    rw [condCoupling_eq_zero_of_notMem hμ (hMarkov i) hj.1 hj.2, zero_mul]
+
+end Proposition13_7
+
+end MeasureTheory.GibbsMeasure

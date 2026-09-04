@@ -21,6 +21,15 @@ open scoped ENNReal
 
 namespace ProbabilityTheory
 
+/-- The covariance only depends on the almost-everywhere classes of its arguments. Intended home:
+`Mathlib/Probability/Moments/Covariance.lean`, next to `covariance_comm`. -/
+theorem covariance_congr_ae {Ω : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω}
+    {X X' Y Y' : Ω → ℝ} (hX : X =ᵐ[μ] X') (hY : Y =ᵐ[μ] Y') :
+    cov[X, Y; μ] = cov[X', Y'; μ] := by
+  unfold covariance
+  rw [integral_congr_ae hX, integral_congr_ae hY]
+  exact integral_congr_ae ((hX.sub Filter.EventuallyEq.rfl).mul (hY.sub Filter.EventuallyEq.rfl))
+
 variable {ι Ω : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω} [IsFiniteMeasure μ]
   {X : ι → Ω → ℝ} {s : Finset ι}
 

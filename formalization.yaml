@@ -336,6 +336,10 @@ status:
       file: "GibbsMeasure/Model/InhomogeneousIsingChain.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.georgii_13_10"
+      file: "GibbsMeasure/Model/GaussianSpecification.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
 
 automation:
   methods:
@@ -1272,8 +1276,21 @@ alignment:
         and (13.13): gamma_Lambda(.|omega) is the Gaussian with precision beta J_Lambda and mean
         -J_Lambda^{-1}(h_Lambda + J_{Lambda Lambda^c} omega) — exactly Georgii's display, with his convention
         Phi_i = J(i,i)/2 sigma_i^2 + h_i sigma_i. Not
-        formalized: the converse of (13.13), infinite-range J, (13.4)-(13.10), Sections 13.2-13.3,
+        formalized: the converse of (13.13), infinite-range J, Sections 13.2-13.3,
         the identification of the density measure with Mathlib's multivariateGaussian.
+    - source: "Displays (13.4)-(13.8), Lemma (13.10)"
+      lean: "MeasureTheory.GibbsMeasure.georgii_13_10"
+      module: "GibbsMeasure/Model/GaussianSpecification.lean"
+      status: "proved"
+      note: >-
+        xi_i = mu(sigma_i | T_i) (13.4), the conditional covariance Gamma (13.6), (13.7) with
+        Georgii's hypotheses (Gamma(j,j) > 0, xi_i F_{N(i)}-measurable): the conditional couplings
+        vanish off N(i), are positive definite, and satisfy (13.5); (13.8) the affine form of
+        xi_i; (13.10) with Georgii's (i)-(iii): the conditional law of sigma_i given T_i is
+        N(xi_i, J(i,i)^{-1}), and for finite row support it is gamma^{J,h}_{i}. Inputs built in the
+        Mathlib layer: L^1-limits of Gaussians are Gaussian (Gaussian/Limit.lean), Gaussian
+        regression and closure under conditioning, the conditional law of a function of an
+        independent input (Gaussian/CondExp.lean), Matrix/SymmetricRange.lean.
     - source: "Displays (14.21)-(14.24); Theorem (14.13)"
       lean: "Specification.ae_tendsto_toReal_shiftAvgDensity"
       module: "GibbsMeasure/Specification/ErgodicExamples.lean"

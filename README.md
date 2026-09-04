@@ -539,7 +539,11 @@ density measure with its mean and covariance (both absent from Mathlib) are buil
 `GibbsMeasure/Mathlib/`, giving λ-admissibility of `βΦ^{J,h}` and **(13.13)** — the finite-volume
 Gibbs distribution is the Gaussian with precision `β𝒥_Λ` — for finite-range `J`; the tail event
 `Ω_J` (13.9), the glued Gaussian specification (13.18) as an instance of the tree's gluing, and the
-mean set (13.21) (`GibbsMeasure/Model/GaussianSpecification.lean`).
+mean set (13.21) (`GibbsMeasure/Model/GaussianSpecification.lean`). **(13.4)–(13.8)**: `ξ_i = μ(σ_i | 𝒯_i)`, the conditional covariance `Γ`, and Theorem (13.7) with
+Georgii's hypotheses (conditional couplings vanish off the neighbourhoods, are positive definite and
+satisfy (13.5)); **Lemma (13.10)**: under (i)–(iii) the conditional law of `σ_i` given `𝒯_i` is
+`𝒩(ξ_i, J(i,i)⁻¹)`, and for finite row support it is `γ^{J,h}_{i}` (`GibbsMeasure/Model/GaussianSpecification.lean`),
+from Gaussian regression, closure under conditioning and `L¹`-limits of Gaussians in the Mathlib layer.
 
 **§9.2, Mermin–Wagner** (`GibbsMeasure/Model/MerminWagner.lean`): **Theorem (9.20)** — for a
 pair potential on a site set with a planar norm (ℤ² with the maximum norm the instance), any real
@@ -599,7 +603,7 @@ neighbouring spins has a unique infinite component almost surely under every Gib
 
 Not yet done: Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
-plane-rotator and Heisenberg instances (9.22)–(9.24), the Markov-chain instance of (15.40), (11.18)(2), (11.19), §12.2, (13.4)–(13.10), §§13.2–13.3, and Chapters
+plane-rotator and Heisenberg instances (9.22)–(9.24), the Markov-chain instance of (15.40), (11.18)(2), (11.19), §12.2, §§13.2–13.3, and Chapters
 16–20 (
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).
