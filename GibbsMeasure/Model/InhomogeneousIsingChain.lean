@@ -7,6 +7,7 @@ module
 
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Tanh.InfiniteProd
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Hasse
+public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.NatInt
 public import GibbsMeasure.Model.Ising
 public import GibbsMeasure.Potential.Pair
 public import GibbsMeasure.Specification.ExtremeCorollaries
@@ -71,11 +72,7 @@ adjacent boundary site; Georgii's `∏_{i=n}^N tanh J_i` is `∏ i ∈ Finset.Ic
   `mem_eventuallyConst_union_iff_existsUnique_infinite_supp` of `A₊ ∪ A₋`, and
   `apply_setOf_exists_infinite_supp_eq_one`: every Gibbs measure percolates.
 
-## Lemmas that belong elsewhere
-
-The `spin` arithmetic (`spin_mul_self`, `spin_mul_spin_of_ne`, `spin_not`) belongs in
-`GibbsMeasure/Model/Ising.lean` beside `abs_spin_le`.  The analysis of the tail products
-`∏_{i ≥ n} tanh J_i` under (6.1) lives in
+The analysis of the tail products `∏_{i ≥ n} tanh J_i` under (6.1) lives in
 `GibbsMeasure/Mathlib/Analysis/SpecialFunctions/Tanh/InfiniteProd.lean`.
 -/
 
@@ -85,20 +82,6 @@ open Filter MeasureTheory MeasureTheory.GibbsMeasure Potential ProbabilityTheory
 open scoped ENNReal Topology
 
 noncomputable section
-
-namespace MeasureTheory.GibbsMeasure
-
-/-- Local equicontinuity passes to a subnet.  Intended home:
-`GibbsMeasure/Topology/ClusterPoints.lean`, next to `LocallyEquicontinuous`. -/
-lemma LocallyEquicontinuous.comp {S E : Type*} [MeasurableSpace E] {ι ι' : Type*} {l : Filter ι}
-    {l' : Filter ι'} {μs : ι → ProbabilityMeasure (S → E)} (h : LocallyEquicontinuous l μs)
-    {g : ι' → ι} (hg : Filter.Tendsto g l' l) : LocallyEquicontinuous l' (μs ∘ g) := by
-  intro Λ A hA hanti hinter
-  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds (h Λ A hA hanti hinter)
-    (fun _ ↦ zero_le) fun m ↦ ?_
-  exact hg.limsup_comp_le_limsup (u := fun i ↦ (μs i : Measure (S → E)) (A m))
-
-end MeasureTheory.GibbsMeasure
 
 namespace MeasureTheory.GibbsMeasure
 
@@ -543,11 +526,6 @@ theorem isingChainSpecification_range_apply (N : ℕ) (ω : ℕ → Bool) {A : S
     (Set.indicator_nonneg (fun _ _ ↦ zero_le_one) _)) hWpos.le
 
 /-! ### Georgii Lemma (6.5) -/
-
-lemma spin_mul_self (b : Bool) : spin b * spin b = 1 := by cases b <;> norm_num [spin]
-
-lemma spin_mul_spin_of_ne {x y : Bool} (h : y ≠ x) : spin x * spin y = -1 := by
-  cases x <;> cases y <;> simp_all [spin]
 
 lemma measurableSet_setOf_apply_eq (n : ℕ) (x : Bool) :
     MeasurableSet {σ : ℕ → Bool | σ n = x} :=

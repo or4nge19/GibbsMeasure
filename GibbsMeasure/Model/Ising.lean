@@ -48,6 +48,11 @@ lemma abs_spin_le (b : Bool) : |spin b| ≤ 1 := by cases b <;> simp [spin]
 
 lemma spin_not (b : Bool) : spin (!b) = -spin b := by cases b <;> simp [spin]
 
+lemma spin_mul_self (b : Bool) : spin b * spin b = 1 := by cases b <;> norm_num [spin]
+
+lemma spin_mul_spin_of_ne {x y : Bool} (h : y ≠ x) : spin x * spin y = -1 := by
+  cases x <;> cases y <;> simp_all [spin]
+
 /-- The Ising potential on a graph `G` with coupling `J` and external field `h`. -/
 noncomputable def isingPotential {S : Type*} (G : SimpleGraph S) (J h : ℝ) :
     Potential S Bool :=

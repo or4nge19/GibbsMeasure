@@ -62,6 +62,16 @@ theorem EquicontinuousOnLocalEvents.locallyEquicontinuous {l : Filter ι}
   fun Λ A hmeas hanti hempty ↦
     h A (fun m ↦ mem_localEvents_of_cylinderEvents Λ (hmeas m)) hanti hempty
 
+/-- Local equicontinuity passes to a subnet: if `μs` is locally equicontinuous along `l` and
+`g` tends to `l` along `l'`, then `μs ∘ g` is locally equicontinuous along `l'`. -/
+lemma LocallyEquicontinuous.comp {ι' : Type*} {l : Filter ι} {l' : Filter ι'}
+    {μs : ι → ProbabilityMeasure (S → E)} (h : LocallyEquicontinuous l μs) {g : ι' → ι}
+    (hg : Tendsto g l' l) : LocallyEquicontinuous l' (μs ∘ g) := by
+  intro Λ A hA hanti hinter
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds (h Λ A hA hanti hinter)
+    (fun _ ↦ zero_le) fun m ↦ ?_
+  exact hg.limsup_comp_le_limsup (u := fun i ↦ (μs i : Measure (S → E)) (A m))
+
 /-! ### Pointwise ultrafilter limits in the compact space `ℝ≥0∞` -/
 
 /-- The pointwise limit along an ultrafilter `U` of the evaluations `i ↦ μs i A`.

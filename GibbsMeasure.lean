@@ -6,6 +6,8 @@ public import GibbsMeasure.Mathlib.Analysis.PSeries
 public import GibbsMeasure.Mathlib.Algebra.Order.BigOperators.Ring.Finset
 public import GibbsMeasure.Mathlib.Topology.Instances.EReal
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.ENNReal
+public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.Order
+public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.NatInt
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Finite
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Connectivity
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Acyclic
@@ -17,6 +19,7 @@ public import GibbsMeasure.Mathlib.Analysis.Normed.Algebra.ClosedSubalgebra
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Gaussian.Multivariate
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Tanh
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Tanh.InfiniteProd
+public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Log.Summable
 public import GibbsMeasure.Mathlib.Analysis.Normed.Lp.lpSpace
 public import GibbsMeasure.Mathlib.Analysis.Normed.Lp.LpEquiv
 public import GibbsMeasure.Mathlib.Analysis.Normed.Field.Lemmas
