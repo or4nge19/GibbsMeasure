@@ -563,7 +563,12 @@ tree's automorphism group acting by site permutation — uniqueness of boundary 
 correspondence (12.17) with completely homogeneous chains, and **Theorem (12.6)** — extreme Gibbs
 measures of a Markov specification on a tree are Markov chains — and **Corollary (12.18)**
 (`GibbsMeasure/Model/TreeBoundaryLawChains.lean`);
-and Chapter 11's `γ^Q` is the Hasse-graph instance of the tree
+**§12.2** (`GibbsMeasure/Model/IsingCayleyTree.lean`): the Ising model on a Cayley tree as an instance
+of that machinery — boundary laws are the solutions of `t = h + dφ_J(t)`, the critical field
+`h(J,d) = max_{t≥0}[dφ_J(t) − t]` has a closed form and vanishes exactly when `d tanh J ≤ 1`, the
+equation has one, two or three solutions accordingly, and the Gibbs measure is unique in the first
+case and not in the others; the alternating boundary laws on the tree's bipartition give the
+antiferromagnetic transition. Chapter 11's `γ^Q` is the Hasse-graph instance of the tree
 specification; the counting-kernel and cylinder calculus lives once, for any site set, in
 `GibbsMeasure/Specification/CountingKernel.lean`, with the graph combinatorics under
 `GibbsMeasure/Mathlib/Combinatorics/SimpleGraph/`.

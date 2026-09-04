@@ -1,0 +1,55 @@
+\section{The Ising model on Cayley trees}
+
+\begin{definition}[Georgii (12.19)--(12.24)]
+    \label{def:ict-transfer}
+    \uses{def:tr-transfer, def:tr-boundary-law, thm:tr-12-12}
+    \lean{MeasureTheory.GibbsMeasure.Tree.isingTransfer, MeasureTheory.GibbsMeasure.Tree.isTransferFamily_isingTransfer, MeasureTheory.GibbsMeasure.Tree.isingBoundaryVec, MeasureTheory.GibbsMeasure.Tree.isBoundaryLaw_isingBoundaryVec_iff, Real.logCoshRatio, MeasureTheory.GibbsMeasure.Tree.isingChain, MeasureTheory.GibbsMeasure.Tree.boundaryLawTransition_isingBoundaryVec, MeasureTheory.GibbsMeasure.Tree.integral_spin_isingChain}
+    \leanok
+
+    On a Cayley tree of degree $d + 1$ the Ising transfer family is a transfer family, and the
+    vectors $\ell_t$ are boundary laws exactly when $t$ solves $t = h + d\varphi_J(t)$, where
+    $\varphi_J = \operatorname{artanh}(\tanh J \tanh(\cdot))$ (12.23). Each solution gives a
+    completely homogeneous Markov chain with transition matrix $P_t$ and magnetization (12.25).
+\end{definition}
+
+\begin{theorem}[Georgii (12.26)--(12.30)]
+    \label{thm:ict-12-27}
+    \uses{def:ict-transfer}
+    \lean{Real.treeCriticalPoint, Real.deriv_treeField_treeCriticalPoint, Real.treeCriticalField, Real.isGreatest_treeCriticalField, Real.existsUnique_treeField_eq_of_le_or_lt, Real.exists_eq_pair_treeField_eq_of_abs_eq, Real.exists_eq_insert_treeField_eq_of_abs_lt, Real.treeCriticalField_eq, Real.treeCriticalField_eq_zero_iff, Real.criticalCoupling}
+    \leanok
+
+    Write $w = \tanh J$ and $h(J,d) = \max_{t \geq 0}[d\varphi_J(t) - t]$. The equation
+    $t = h + d\varphi_J(t)$ has one solution if $dw \leq 1$ or $h(J,d) < \abs h$, two if
+    $\abs h = h(J,d) > 0$, and three if $\abs h < h(J,d)$; and $h(J,d) = 0$ iff $dw \leq 1$, with
+    the closed form (12.30) otherwise.
+\end{theorem}
+
+\begin{theorem}[Georgii (12.31), (12.33)]
+    \label{thm:ict-12-31}
+    \uses{thm:ict-12-27, thm:tr-12-17, thm:ext-726}
+    \lean{MeasureTheory.GibbsMeasure.Tree.isingParam_eq_add_sum, MeasureTheory.GibbsMeasure.Tree.eq_isingBoundaryVec_of_unique, MeasureTheory.GibbsMeasure.Tree.G_isingTreeSpecification_eq_singleton, MeasureTheory.GibbsMeasure.Tree.exists_ne_isingChain, MeasureTheory.GibbsMeasure.Tree.exists_three_isingChain, MeasureTheory.GibbsMeasure.Tree.integral_spin_isingChain_treeCriticalPoint}
+    \leanok
+
+    If $dw \leq 1$ or $\abs h > h(J,d)$ then $\mathcal G$ is a singleton. If $dw > 1$ and
+    $\abs h \leq h(J,d)$ there are two distinct completely homogeneous chains in $\mathcal G$, and
+    three when $\abs h < h(J,d)$; at $h = -h(J,d)$ the upper phase has magnetization
+    $\sqrt{(d-w)(d-\bar w)}/(d-1)$.
+\end{theorem}
+\begin{proof}
+    \leanok
+    Every normalised boundary law has its parameters bounded by solutions of the fixed-point
+    equation, so uniqueness of the solution forces the boundary law; the extreme decomposition then
+    gives $\mathcal G = \{\mu_*\}$.
+\end{proof}
+
+\begin{proposition}[Georgii (12.34), (12.35)]
+    \label{prop:ict-12-34}
+    \uses{def:ict-transfer, cor:tr-12-18}
+    \lean{MeasureTheory.GibbsMeasure.Tree.isingAltLaw, MeasureTheory.GibbsMeasure.Tree.isBoundaryLaw_isingAltLaw_iff, MeasureTheory.GibbsMeasure.Tree.isingAltChain, MeasureTheory.GibbsMeasure.Tree.isGibbsMeasure_isingAltChain, Real.treeRecursion₂, Real.isFixedPt_treeRecursion₂_iff, Real.existsUnique_isFixedPt_treeRecursion₂, MeasureTheory.GibbsMeasure.Tree.exists_ne_isGibbsMeasure_of_isFixedPt_treeRecursion₂, SimpleGraph.IsCayleyTree.exists_bool_coloring}
+    \leanok
+
+    Alternating boundary laws along the bipartition of the tree are boundary laws exactly at the
+    fixed points of $\psi = (h + d\varphi_J)^{\circ 2}$, which is increasing for either sign of
+    $J$ and has a unique fixed point when $d\abs w \leq 1$. A fixed point of $\psi$ that does not
+    solve (12.22) gives two distinct Gibbs measures, the antiferromagnetic phase transition.
+\end{proposition}

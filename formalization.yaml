@@ -336,6 +336,10 @@ status:
       file: "GibbsMeasure/Model/SpitzerCox.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Tree.G_isingTreeSpecification_eq_singleton"
+      file: "GibbsMeasure/Model/IsingCayleyTree.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.isCompact_setOf_le_specificEntropy"
       file: "GibbsMeasure/Specification/SpecificEntropy.lean"
       sorry_count: 0
@@ -1175,6 +1179,24 @@ alignment:
         is proved in Specification/Dobrushin.lean. Not formalized: the second-derivative half of
         (16.17), which is Corollary (8.37) and rests on Proposition (8.34), the covariance bound
         by the Dobrushin interdependence matrix; neither is in the tree.
+    - source: "Section 12.2: (12.19)-(12.35)"
+      lean: "MeasureTheory.GibbsMeasure.Tree.G_isingTreeSpecification_eq_singleton"
+      module: "GibbsMeasure/Model/IsingCayleyTree.lean"
+      status: "partial"
+      note: >-
+        The Ising model on a Cayley tree as an instance of the Section 12.1 transfer family: the
+        boundary laws are the solutions of t = h + d phi_J(t) (12.21)-(12.23), each giving a
+        completely homogeneous chain with its transition matrix and magnetization (12.24)-(12.25);
+        the fixed-point analysis (12.26)-(12.30) with the critical point, the critical field
+        h(J,d) = max_{t>=0}[d phi_J(t) - t] and its closed form, and the one/two/three-solution
+        trichotomy; (12.31)(a) uniqueness of the Gibbs measure when d tanh J <= 1 or |h| > h(J,d),
+        non-uniqueness otherwise, and (12.33) the magnetization at h = -h(J,d); (12.34)-(12.35) the
+        alternating boundary laws on the bipartition of the tree, their fixed-point criterion, and
+        the antiferromagnetic phase transition. Not formalized: the three further clauses of
+        (12.31)(b) (extremality of mu_-, mu_+, infinitude of ex G outside ex G_{I(B)}, and
+        extremality of mu_#), which need the stochastic-domination argument and Corollary (7.4).
+        Book erratum: (12.27) writes h(J,d) as a min over t <= 0; by oddness of phi_J that infimum
+        is -infinity, and the formalisation uses the unambiguous max form.
     - source: "Sections 11.2-11.4: Spitzer-Cox, Kalikow, Spitzer"
       lean: "MeasureTheory.GibbsMeasure.Markov.SpitzerCox.not_countable_G"
       module: "GibbsMeasure/Model/SpitzerCox.lean"

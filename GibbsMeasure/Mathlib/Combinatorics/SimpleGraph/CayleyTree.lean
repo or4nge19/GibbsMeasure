@@ -15,8 +15,10 @@ Georgii §12.2 works on `𝒞𝒯(d)`, "the unique connected tree with `|∂i| =
 `SimpleGraph.IsCayleyTree G d` is that property: `G` is a tree, regular of degree `d + 1`.
 
 Georgii also uses that `𝒞𝒯(d)` is bipartite (for the alternating boundary laws of the
-antiferromagnetic case). That is *not* proved here: it is Mathlib's `SimpleGraph.IsTree.isBipartite`
-(a tree is `2`-colourable, `SimpleGraph.IsTree.coloringTwoOfVert`), which holds for every tree.
+antiferromagnetic case). That is Mathlib's `SimpleGraph.IsTree.isBipartite` (a tree is
+`2`-colourable), which holds for every tree; `SimpleGraph.IsTree.exists_bool_coloring` repackages
+it as Georgii's decomposition `S = S₀ ⊔ S₁`, i.e. a `c : V → Bool` with `c u ≠ c v` along every
+bond.
 
 `SimpleGraph.hasse ℤ` is a Cayley tree of degree `1` (`SimpleGraph.isCayleyTree_hasse_int`); the
 proof that it is acyclic goes through the general "cut" lemma
@@ -43,6 +45,20 @@ lemma not_reachable_of_adj_closed {S : Set V} (hS : ∀ ⦃u v⦄, G.Adj u v →
   rintro ⟨p⟩
   exact hv (p.mem_of_adj_closed hS hu)
 
+/-- **Georgii §12.2, the bipartition of a tree.** A tree admits a two-valued colouring of its
+vertices: Mathlib's `SimpleGraph.IsTree.isBipartite` says a tree is `2`-colourable, and `Fin 2`
+is `Bool`. -/
+theorem IsTree.exists_bool_coloring (hG : G.IsTree) :
+    ∃ c : V → Bool, ∀ ⦃u v⦄, G.Adj u v → c u ≠ c v := by
+  obtain ⟨C⟩ := hG.isBipartite
+  refine ⟨fun v ↦ decide ((C v : Fin 2) = 1), fun u v huv hcon ↦ C.valid huv ?_⟩
+  rw [decide_eq_decide] at hcon
+  have hiff : ((C u : Fin 2).val = 1) ↔ ((C v : Fin 2).val = 1) := by
+    simpa [Fin.ext_iff] using hcon
+  have hu : ((C u : Fin 2)).val < 2 := (C u).isLt
+  have hv : ((C v : Fin 2)).val < 2 := (C v).isLt
+  exact Fin.ext (by omega)
+
 /-! ### Cayley trees -/
 
 /-- **Georgii §12.2.** The Cayley tree `𝒞𝒯(d)`: a tree in which every vertex has exactly `d + 1`
@@ -68,6 +84,12 @@ lemma nonempty : Nonempty V := hG.connected.nonempty
 /-- A Cayley tree is bipartite (Mathlib's `SimpleGraph.IsTree.isBipartite`); this is Georgii's
 decomposition `S = S₀ ∪ S₁` used for alternating boundary laws. -/
 lemma isBipartite : G.IsBipartite := hG.isTree.isBipartite
+
+/-- **Georgii §12.2, the bipartition `S = S₀ ⊔ S₁`.** A Cayley tree carries a two-valued colouring
+of its vertices, i.e. a decomposition `S = S₀ ⊔ S₁` with `|b ∩ S₀| = |b ∩ S₁| = 1` for every bond
+`b ∈ B`. This is what Georgii's *alternating* boundary laws are indexed by. -/
+lemma exists_bool_coloring : ∃ c : V → Bool, ∀ ⦃u v⦄, G.Adj u v → c u ≠ c v :=
+  hG.isTree.exists_bool_coloring
 
 lemma card_neighborFinset (i : V) : (G.neighborFinset i).card = d + 1 := by
   rw [G.card_neighborFinset_eq_degree, hG.isRegularOfDegree i]

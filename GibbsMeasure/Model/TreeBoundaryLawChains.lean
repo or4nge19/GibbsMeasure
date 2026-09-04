@@ -2530,4 +2530,44 @@ theorem exists_isMarkovChain_transitionProb_eq_of_reversible [Finite E] [Nonempt
 
 end CompletelyHomogeneousReversible
 
+
+/-! ## From `|ex 𝒢(γ)| = 1` to `|𝒢(γ)| = 1`
+
+Georgii uses this step in Step 2) of the proof of Theorem (12.31): once every extreme Gibbs measure
+has been identified with one particular `μ₀`, Theorem (7.26) upgrades this to `𝒢(γ) = {μ₀}`,
+because the representing weight `w_μ` of any `μ ∈ 𝒢(γ)` is a probability measure carried by
+`ex 𝒢(γ) ⊆ {μ₀}`, so `μ = ∫ ν w_μ(dν) = μ₀`. The statement is about specifications only, and would
+naturally live next to `MeasureTheory.GibbsMeasure.weightOf` in
+`GibbsMeasure/Specification/ExtremeDecomposition.lean`. -/
+
+section ExtremeSingleton
+
+variable {S' E' : Type*} [MeasurableSpace E'] [Countable S'] [StandardBorelSpace E']
+  {γ : Specification S' E'}
+
+/-- **Georgii, Theorem (7.26) as a uniqueness criterion.** If `μ₀ ∈ 𝒢(γ)` and every extreme Gibbs
+measure equals `μ₀`, then `𝒢(γ) = {μ₀}`. -/
+theorem G_eq_singleton_of_extremePoints_subset_singleton {μ₀ : Measure (S' → E')}
+    (hμ₀ : μ₀ ∈ GibbsMeasure.G γ)
+    (hsub : (GibbsMeasure.G γ).extremePoints ℝ≥0∞ ⊆ {μ₀}) : GibbsMeasure.G γ = {μ₀} := by
+  refine Set.eq_singleton_iff_unique_mem.2 ⟨hμ₀, fun μ hμ ↦ ?_⟩
+  have hGne : (GibbsMeasure.G γ).Nonempty := ⟨μ₀, hμ₀⟩
+  have hμP := hμ.1
+  have hprob : IsProbabilityMeasure (GibbsMeasure.weightOf hGne μ) :=
+    GibbsMeasure.isProbabilityMeasure_weightOf hGne μ
+  have h0 := GibbsMeasure.weightOf_extremePoints_compl hGne hμ
+  rw [measure_eq_zero_iff_ae_notMem] at h0
+  have hae : ∀ᵐ ν ∂(GibbsMeasure.weightOf hGne μ), ν = μ₀ := by
+    filter_upwards [h0] with ν hν
+    exact hsub (not_not.1 hν)
+  rw [← GibbsMeasure.join_weightOf hGne hμ]
+  refine Measure.ext fun s hs ↦ ?_
+  rw [Measure.join_apply hs]
+  calc ∫⁻ ν, ν s ∂(GibbsMeasure.weightOf hGne μ)
+      = ∫⁻ _, μ₀ s ∂(GibbsMeasure.weightOf hGne μ) :=
+        lintegral_congr_ae (hae.mono fun ν hν ↦ by rw [hν])
+    _ = μ₀ s := by rw [lintegral_const, measure_univ, mul_one]
+
+end ExtremeSingleton
+
 end MeasureTheory.GibbsMeasure.Tree

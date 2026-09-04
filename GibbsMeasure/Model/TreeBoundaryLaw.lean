@@ -1726,12 +1726,55 @@ theorem IsBoundaryLaw.eq_prod_div_of_normalized (hℓ : IsBoundaryLaw G Q ℓ)
 variable (G Q)
 
 omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
+/-- **Georgii (12.16) ⇔ (12.10) for families depending only on the target vertex.** On a graph
+regular of degree `d + 1`, with a single matrix `Q₀` along every bond, a family `ℓ_{ij} = m_j` of
+positive finite vectors normalised at `a` is a boundary law iff `m_j = (m_i Q / (m_i Q)(a))^d`
+along every bond (and, for countable `E`, the singleton volumes have finite mass). Georgii's
+completely homogeneous families (`isBoundaryLaw_const_iff`) and his *alternating* families of
+§12.2 (`ℓ_{ij} = ℓ_0` or `ℓ_1` according to the side of the bipartition `j` lies in) are the two
+instances used in Chapter 12. -/
+theorem isBoundaryLaw_target_iff {d : ℕ} (hreg : G.IsRegularOfDegree (d + 1))
+    {Q₀ : E → E → ℝ≥0∞} (hpos : ∀ x y, 0 < Q₀ x y)
+    {m : S → E → ℝ≥0∞} (hmpos : ∀ i x, 0 < m i x) (hmt : ∀ i x, m i x ≠ ⊤)
+    {a : E} (ha : ∀ i, m i a = 1) :
+    IsBoundaryLaw G (fun _ _ ↦ Q₀) (fun _ j ↦ m j) ↔
+      (∀ ⦃i j⦄, G.Adj i j → ∀ x,
+          m j x = ((∑' y, m i y * Q₀ y x) / ∑' y, m i y * Q₀ y a) ^ d)
+        ∧ ∀ i, ∑' x, (∑' y, m i y * Q₀ y x) ^ (d + 1) ≠ ⊤ := by
+  have hcard : ∀ ⦃i j : S⦄, G.Adj i j → ((G.neighborFinset i).erase j).card = d := fun i j hij ↦ by
+    rw [Finset.card_erase_of_mem ((G.mem_neighborFinset i j).2 hij),
+      G.card_neighborFinset_eq_degree, hreg i, Nat.add_sub_cancel]
+  constructor
+  · intro hℓ
+    refine ⟨fun i j hij x ↦ ?_, fun i ↦ ?_⟩
+    · have hstep := hℓ.eq_prod_div_of_normalized (fun _ _ _ x y ↦ hpos x y)
+        (fun _ j _ ↦ ha j) hij x
+      rwa [Finset.prod_const, hcard hij] at hstep
+    · have hstep := hℓ.mass_ne_top i
+      simpa only [Finset.prod_const, G.card_neighborFinset_eq_degree, hreg.degree_eq] using hstep
+  · rintro ⟨h16, hm⟩
+    refine ⟨fun _ j _ x ↦ hmpos j x, fun _ j _ x ↦ hmt j x, fun i j hij ↦ ?_, fun i ↦ ?_⟩
+    · have hQa0 : ∑' y, m i y * Q₀ y a ≠ 0 :=
+        (ENNReal.mul_pos (hmpos i a).ne' (hpos a a).ne').trans_le (ENNReal.le_tsum a) |>.ne'
+      have hQat : ∑' y, m i y * Q₀ y a ≠ ⊤ := by
+        intro htop
+        refine hm i (ENNReal.tsum_eq_top_of_eq_top ⟨a, ?_⟩)
+        rw [htop, ENNReal.top_pow (Nat.succ_ne_zero d)]
+      refine ⟨((∑' y, m i y * Q₀ y a) ^ d)⁻¹, ENNReal.inv_ne_zero.2 (ENNReal.pow_ne_top hQat),
+        ENNReal.inv_ne_top.2 (pow_ne_zero d hQa0), fun x ↦ ?_⟩
+      rw [Finset.prod_const, hcard hij, h16 hij x, div_eq_mul_inv, mul_pow, ← ENNReal.inv_pow,
+        mul_comm]
+    · simp only [Finset.prod_const, G.card_neighborFinset_eq_degree, hreg.degree_eq]
+      exact hm i
+
+omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
 /-- **Georgii (12.16) ⇔ (12.10) for completely homogeneous families on the Cayley tree.** On a
 graph regular of degree `d + 1`, with a single matrix `Q` along every bond (the transfer family
 `Q_{ij} = Q` of a completely homogeneous Markov specification is necessarily symmetric, but the
 boundary-law equation does not use this), a constant family `ℓ_{ij} = ℓ` of positive finite
 vectors with `ℓ(a) = 1` is a boundary law iff `ℓ` solves `ℓ(x) = (ℓQ(x) / ℓQ(a))^d` (and, for
-countable `E`, `∑_x (ℓQ(x))^{d+1} < ∞`). -/
+countable `E`, `∑_x (ℓQ(x))^{d+1} < ∞`). The special case `m_j = ℓ` of
+`isBoundaryLaw_target_iff`. -/
 theorem isBoundaryLaw_const_iff {d : ℕ} (hreg : G.IsRegularOfDegree (d + 1))
     {Q₀ : E → E → ℝ≥0∞} (hpos : ∀ x y, 0 < Q₀ x y)
     {ℓ₀ : E → ℝ≥0∞} (hℓpos : ∀ x, 0 < ℓ₀ x) (hℓt : ∀ x, ℓ₀ x ≠ ⊤)
@@ -1739,34 +1782,10 @@ theorem isBoundaryLaw_const_iff {d : ℕ} (hreg : G.IsRegularOfDegree (d + 1))
     IsBoundaryLaw G (fun _ _ ↦ Q₀) (fun _ _ ↦ ℓ₀) ↔
       (∀ x, ℓ₀ x = ((∑' y, ℓ₀ y * Q₀ y x) / ∑' y, ℓ₀ y * Q₀ y a) ^ d)
         ∧ ∑' x, (∑' y, ℓ₀ y * Q₀ y x) ^ (d + 1) ≠ ⊤ := by
-  have hcard : ∀ ⦃i j : S⦄, G.Adj i j → ((G.neighborFinset i).erase j).card = d := fun i j hij ↦ by
-    rw [Finset.card_erase_of_mem ((G.mem_neighborFinset i j).2 hij),
-        G.card_neighborFinset_eq_degree,
-      hreg i, Nat.add_sub_cancel]
-  constructor
-  · intro hℓ
-    refine ⟨fun x ↦ ?_, ?_⟩
-    · have := hℓ.eq_prod_div_of_normalized (fun _ _ _ x y ↦ hpos x y) (fun _ _ _ ↦ ha)
-        hne.choose_spec.choose_spec x
-      rwa [Finset.prod_const, hcard hne.choose_spec.choose_spec] at this
-    · have := hℓ.mass_ne_top hne.choose
-      simp only [Finset.prod_const, G.card_neighborFinset_eq_degree, hreg.degree_eq] at this
-      exact this
-  · rintro ⟨h16, hm⟩
-    refine ⟨fun _ _ _ x ↦ hℓpos x, fun _ _ _ x ↦ hℓt x, fun i j hij ↦ ?_, fun i ↦ ?_⟩
-    · have hQa0 : ∑' y, ℓ₀ y * Q₀ y a ≠ 0 :=
-        (ENNReal.mul_pos (hℓpos a).ne' (hpos a a).ne').trans_le (ENNReal.le_tsum a) |>.ne'
-      have hQat : ∑' y, ℓ₀ y * Q₀ y a ≠ ⊤ := by
-        intro h
-        apply hm
-        refine ENNReal.tsum_eq_top_of_eq_top ⟨a, ?_⟩
-        rw [h, ENNReal.top_pow (Nat.succ_ne_zero d)]
-      refine ⟨((∑' y, ℓ₀ y * Q₀ y a) ^ d)⁻¹, ENNReal.inv_ne_zero.2 (ENNReal.pow_ne_top hQat),
-        ENNReal.inv_ne_top.2 (pow_ne_zero d hQa0), fun x ↦ ?_⟩
-      rw [Finset.prod_const, hcard hij, h16 x, div_eq_mul_inv, mul_pow, ← ENNReal.inv_pow,
-        mul_comm]
-    · simp only [Finset.prod_const, G.card_neighborFinset_eq_degree, hreg.degree_eq]
-      exact hm
+  obtain ⟨i₀, j₀, hij₀⟩ := hne
+  rw [isBoundaryLaw_target_iff G hreg hpos (m := fun _ ↦ ℓ₀) (fun _ x ↦ hℓpos x)
+    (fun _ x ↦ hℓt x) (fun _ ↦ ha)]
+  exact ⟨fun hh ↦ ⟨hh.1 hij₀, hh.2 i₀⟩, fun hh ↦ ⟨fun _ _ _ x ↦ hh.1 x, fun _ ↦ hh.2⟩⟩
 
 end Normalized
 

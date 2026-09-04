@@ -14,6 +14,7 @@ public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.NatInt
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Finite
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Connectivity
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Acyclic
+public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.CayleyTree
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Hasse
 public import GibbsMeasure.Mathlib.Data.Countable.Basic
 public import GibbsMeasure.Mathlib.Data.Set.CardTranslate
@@ -27,7 +28,10 @@ public import GibbsMeasure.Mathlib.Analysis.InnerProductSpace.OrthogonalExtend
 public import GibbsMeasure.Mathlib.Analysis.InnerProductSpace.PlaneRotations
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Gaussian.Multivariate
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Tanh
+public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.LogCoshRatio
+public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.LogCoshRatioFixedPoint
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.ExpNegSq
+public import GibbsMeasure.Mathlib.Dynamics.FixedPoints.MonotoneReal
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Tanh.InfiniteProd
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Log.Summable
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
@@ -138,6 +142,7 @@ public import GibbsMeasure.Model.SpitzerCox
 public import GibbsMeasure.Model.SpitzerBrokenInvariance
 public import GibbsMeasure.Model.TreeBoundaryLaw
 public import GibbsMeasure.Model.TreeBoundaryLawChains
+public import GibbsMeasure.Model.IsingCayleyTree
 public import GibbsMeasure.Model.MarkovChainInt
 public import GibbsMeasure.Model.MarkovChainReindex
 public import GibbsMeasure.Model.MarkovChainVariational
