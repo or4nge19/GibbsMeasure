@@ -644,7 +644,14 @@ characterisations are not, since Mathlib has no strong Markov property. **Commen
 whose a priori measure is then finite, so Theorem (8.39) gives a unique Gibbs measure, while that
 same hypothesis is incompatible with the uniqueness condition of (11.17); for a translation-invariant summable positive `Q` on an infinite countable
 group, `𝒢(γ^Q) = ∅`, because the equivalent stochastic matrix inherits homogeneity from (11.7) and
-a homogeneous stochastic matrix on an infinite group is never positive recurrent.
+a homogeneous stochastic matrix on an infinite group is never positive recurrent. **§§11.2–11.4**
+(`GibbsMeasure/Model/{SpitzerCox,Kalikow,SpitzerBrokenInvariance}.lean`): the Spitzer–Cox
+branching-with-immigration matrix, reversible with respect to the unit Poisson weights, whose
+two-parameter boundary laws give an *uncountable* Gibbs simplex; Kalikow's example with infinitely
+many extreme points but a unique shift-invariant phase, and the closed form of its powers; and
+Spitzer's critical branching, where the first-passage decomposition is built in general matrix form
+(`GibbsMeasure/Mathlib/Probability/Kernel/CountableMatrix/FirstPassage.lean`) since Mathlib has no
+hitting-time API.
 
 **§6.1** (`GibbsMeasure/Model/InhomogeneousIsingChain.lean`): **Theorem (6.4)** in both
 directions — under `∑ e^{-2J_n} < ∞` the inhomogeneous Ising chain has exactly the Gibbs measures

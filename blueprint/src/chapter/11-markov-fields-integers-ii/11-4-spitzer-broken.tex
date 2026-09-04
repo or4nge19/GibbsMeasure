@@ -1,0 +1,14 @@
+\section{Spitzer's example of totally broken shift-invariance}
+
+\begin{theorem}[Georgii (11.43)--(11.47)]
+    \label{thm:sbi-11-43}
+    \uses{def:bl-transfer-matrix, thm:bl-11-14}
+    \lean{MeasureTheory.GibbsMeasure.Markov.Spitzer.step, MeasureTheory.GibbsMeasure.Markov.Spitzer.noImmigration, MeasureTheory.GibbsMeasure.Markov.Spitzer.noImmigration_pow_apply_singleton, MeasureTheory.GibbsMeasure.Markov.Spitzer.step_pow_apply_singleton, MeasureTheory.GibbsMeasure.Markov.Spitzer.sum_firstPassage_step, MeasureTheory.GibbsMeasure.Markov.Spitzer.map_shift_ne, MeasureTheory.GibbsMeasure.Markov.Spitzer.infinite_extremePoints_G}
+    \leanok
+
+    For the critical branching matrix the powers of the no-immigration part are binomial,
+    $\ell(x, p^n, y)$ (11.45), and the first-passage decomposition (11.47) expresses $Q^n(x,y)$
+    through the taboo powers and the hitting times of a state; the extinction times satisfy
+    $\sum_{m<n} f_m(x) = (1-p^n)^x$. Every shift moves the resulting Gibbs measures, and
+    $\operatorname{ex}\mathcal G(\gamma^Q)$ is infinite.
+\end{theorem}

@@ -43,8 +43,23 @@ which satisfies `α_i Q = α_{i+1}` and reaches equilibrium in finite time.
   **the phase transition**: `μ_0` is not shift invariant (its one-site marginals at the sites `0`
   and `1` differ by `(1-s)(1-c) > 0`), its translates are pairwise distinct, and `ex 𝒢(γ^Q)` is
   infinite. This is the conclusion `|ex 𝒢(Q)| = ∞` that Georgii draws from Corollary (11.14)(b)
-  before Theorem (11.39); the full classification `ex 𝒢(Q) = {μ_Q} ∪ {μ_j : j ∈ ℤ}` of Theorem
-  (11.39) is not formalised.
+  before Theorem (11.39).
+* `powNumer`, `matrixRealPow`, `matrixRealPow_zero`, `tsum_powNumer_mul`,
+  `tsum_matrixRealPow_mul_matrixReal`, `matrix_pow_apply_singleton` — **Step 1 in the proof of
+  Theorem (11.39)**: `Q^{n+1}(x, y) = [p^{n+1} δ_{x-n-1}(y) + q^{(x-n) ∨ 0} α(x ∧ n)] α(y)/α(x)`,
+  by induction on `n`, the algebraic input being `c p^{n+1} + q α(n) = α(n+1)`
+  (`cCoeff_mul_pow_succ_add_q_mul_alpha`, from `a q = b p`), `p + c (1-q)⁻¹ = 1`
+  (`p_mul_one_sub_q_add_cCoeff`) and `pow_mul_alpha_min_succ`.
+
+The **full classification** `ex 𝒢(Q) = {μ_Q} ∪ {μ_j : j ∈ ℤ}` of Theorem (11.39), and with it the
+extreme decomposition directed by `Z = lim_{i → -∞}(σ_i + i)`, is **not** formalised. What is
+missing is not Step 1 (above) but Georgii's Steps 2 and 3: Step 2 needs the *quantitative* half of
+Theorem (11.9)(c), the limit formulas `ℓ_i/ℓ_0(0) = lim_n Q^{n+i}(x_n, ·)/Q^n(x_n, 0)` and
+`r_i/r_0(0) = lim_n Q^{n-i}(·, y_n)/Q^n(0, y_n)` for the boundary law of an extreme Gibbs measure
+— `exists_isBoundaryLaw_boundaryLawMeasure_eq_of_mem_extremePoints`
+(`GibbsMeasure/Model/BoundaryLawUniqueness.lean`) supplies the boundary law but not these formulas
+— and Step 3 needs a Borel–Cantelli argument for `Z` under each extreme element together with the
+extreme decomposition theorem (7.26).
 * `invariantG_eq_singleton` — `𝒢_Θ(Q) = {μ_Q}` (Theorem (11.13) for this `Q`), and
   `chain_intervalCylinder_eq` — `μ_0 = μ_Q` on the cylinders in `]0, ∞[`, Georgii's one-sided
   shift invariance of `μ_0`.
@@ -301,6 +316,180 @@ lemma summable_alpha_mul_matrixReal (y : ℕ) :
   · have heq : (fun x : ℕ ↦ cCoeff p q * q ^ x * alpha p q y)
         = fun x : ℕ ↦ (cCoeff p q * alpha p q y) * q ^ x := by funext x; ring
     rw [heq]; exact hgeo.mul_left _
+
+/-! ## Georgii, Step 1 in the proof of Theorem (11.39): the powers of `Q` -/
+
+omit hq hqp hp in
+/-- A `δ`-sum on `ℕ`: `∑_y 1_{x = y + m} f(y) = f(x - m)` if `m ≤ x`, and `0` otherwise. -/
+lemma tsum_ite_add_eq (m x : ℕ) (f : ℕ → ℝ) :
+    ∑' y : ℕ, (if x = y + m then f y else 0) = if m ≤ x then f (x - m) else 0 := by
+  rcases le_or_gt m x with h | h
+  · rw [ite_eq_left h]
+    refine (tsum_eq_single (x - m) fun y hy ↦ ?_).trans ?_
+    · rw [ite_eq_right (by omega)]
+    · rw [ite_eq_left (by omega)]
+  · rw [ite_eq_right (not_le.2 h)]
+    have hz : ∀ y : ℕ, (if x = y + m then f y else 0) = 0 := fun y ↦ ite_eq_right (by omega)
+    simp [hz]
+
+omit hq hqp hp in
+lemma summable_ite_add (m x : ℕ) (f : ℕ → ℝ) :
+    Summable fun y : ℕ ↦ (if x = y + m then f y else 0) :=
+  summable_of_ne_finset_zero (s := {x - m}) fun y hy ↦ by
+    simp only [Finset.mem_singleton] at hy
+    exact ite_eq_right (by omega)
+
+omit hq hqp hp in
+lemma summable_ite_eq_const (b : ℕ) (c : ℝ) :
+    Summable fun y : ℕ ↦ (if y = b then c else 0) :=
+  summable_of_ne_finset_zero (s := {b}) fun y hy ↦
+    ite_eq_right (by simpa using hy)
+
+omit hp in
+/-- `c p^{n+1} + q α(n) = α(n+1)`: the identity behind Georgii's induction step, a consequence of
+`a q = b p` in (11.34). -/
+lemma cCoeff_mul_pow_succ_add_q_mul_alpha (n : ℕ) :
+    cCoeff p q * p ^ (n + 1) + q * alpha p q n = alpha p q (n + 1) := by
+  have hab := aCoeff_mul_q hq hqp (p := p) (q := q)
+  have hc := aCoeff_sub_bCoeff hqp (p := p) (q := q)
+  simp only [alpha, ← hc, pow_succ]
+  linear_combination (p ^ n) * hab
+
+omit hq hqp hp in
+/-- `p (1 - q) + c = 1 - q`, i.e. `p + c (1 - q)⁻¹ = 1`, Georgii's `p + c(1-q)^{-1} = 1`. -/
+lemma p_mul_one_sub_q_add_cCoeff : p * (1 - q) + cCoeff p q = 1 - q := by
+  simp only [cCoeff]; ring
+
+/-- The numerator of Georgii's formula for `Q^{n+1}`:
+`A_n(x, y) = p^{n+1} δ_{x-n-1}(y) + q^{(x-n) ∨ 0} α(x ∧ n)`. -/
+def powNumer (p q : ℝ) (n x y : ℕ) : ℝ :=
+  (if x = y + (n + 1) then p ^ (n + 1) else 0) + q ^ (x - n) * alpha p q (min x n)
+
+/-- **Georgii, Step 1 in the proof of Theorem (11.39).**
+`Q^{n+1}(x, y) = [p^{n+1} δ_{x-n-1}(y) + q^{(x-n) ∨ 0} α(x ∧ n)] α(y)/α(x)`. -/
+def matrixRealPow (p q : ℝ) (n x y : ℕ) : ℝ :=
+  powNumer p q n x y * alpha p q y / alpha p q x
+
+omit hq hp in
+lemma matrixRealPow_zero (x y : ℕ) : matrixRealPow p q 0 x y = matrixReal p q x y := by
+  simp only [matrixRealPow, powNumer, matrixReal, Nat.zero_add, pow_one, Nat.sub_zero,
+    Nat.min_zero, alpha_zero hqp]
+  ring
+
+lemma powNumer_nonneg (n x y : ℕ) : 0 ≤ powNumer p q n x y := by
+  refine add_nonneg ?_ (mul_nonneg (pow_nonneg hq.le _) (alpha_pos hq hqp hp _).le)
+  split_ifs
+  · exact pow_nonneg (p_pos hq hqp).le _
+  · exact le_rfl
+
+lemma matrixRealPow_nonneg (n x y : ℕ) : 0 ≤ matrixRealPow p q n x y :=
+  div_nonneg (mul_nonneg (powNumer_nonneg hq hqp hp n x y) (alpha_pos hq hqp hp y).le)
+    (alpha_pos hq hqp hp x).le
+
+omit hp in
+/-- Georgii's identity `c p^{n+1} q^{x-n-1} 1_{[0,x]}(n+1) + q^{x-n} α(x ∧ n)
+= q^{x-n-1} α(x ∧ (n+1))`, the last equality of his induction step. -/
+lemma pow_mul_alpha_min_succ (n x : ℕ) :
+    (if n + 1 ≤ x then p ^ (n + 1) * cCoeff p q * q ^ (x - (n + 1)) else 0)
+        + q ^ (x - n) * alpha p q (min x n)
+      = q ^ (x - (n + 1)) * alpha p q (min x (n + 1)) := by
+  rcases le_or_gt (n + 1) x with h | h
+  · rw [ite_eq_left h, show min x n = n from min_eq_right (by omega),
+      show min x (n + 1) = n + 1 from min_eq_right h,
+      show x - n = x - (n + 1) + 1 from by omega, pow_succ,
+      ← cCoeff_mul_pow_succ_add_q_mul_alpha hq hqp n]
+    ring
+  · rw [ite_eq_right (by omega), show min x n = x from min_eq_left (by omega),
+      show min x (n + 1) = x from min_eq_left (by omega), show x - n = 0 from by omega,
+      show x - (n + 1) = 0 from by omega]
+    ring
+
+omit hq hqp hp in
+/-- `A_n(x, ·) Q(·, z)` split into its four summands. -/
+lemma powNumer_mul_expand (n x z y : ℕ) :
+    powNumer p q n x y * ((if y = z + 1 then p else 0) + cCoeff p q * q ^ y)
+      = (if x = y + (n + 1) then p ^ (n + 1) * (if y = z + 1 then p else 0) else 0)
+        + (if x = y + (n + 1) then p ^ (n + 1) * (cCoeff p q * q ^ y) else 0)
+        + (if y = z + 1 then q ^ (x - n) * alpha p q (min x n) * p else 0)
+        + q ^ (x - n) * alpha p q (min x n) * cCoeff p q * q ^ y := by
+  simp only [powNumer]
+  split_ifs <;> ring
+
+lemma summable_powNumer_mul (n x z : ℕ) :
+    Summable fun y : ℕ ↦ powNumer p q n x y
+      * ((if y = z + 1 then p else 0) + cCoeff p q * q ^ y) := by
+  have hgeo : Summable fun y : ℕ ↦ q ^ y :=
+    summable_geometric_of_lt_one hq.le (q_lt_one hqp hp)
+  simp only [powNumer_mul_expand]
+  exact (((summable_ite_add _ _ _).add (summable_ite_add _ _ _)).add
+    (summable_ite_eq_const _ _)).add (hgeo.mul_left _)
+
+/-- **Georgii's induction step for Step 1 of Theorem (11.39)**, on the numerators:
+`∑_y A_n(x, y) [p δ_{y-1}(z) + c q^y] = A_{n+1}(x, z)`. -/
+lemma tsum_powNumer_mul (n x z : ℕ) :
+    ∑' y : ℕ, powNumer p q n x y * ((if y = z + 1 then p else 0) + cCoeff p q * q ^ y)
+      = powNumer p q (n + 1) x z := by
+  have hq1 : q < 1 := q_lt_one hqp hp
+  have h1q : (1 : ℝ) - q ≠ 0 := by linarith
+  have hgeo : Summable fun y : ℕ ↦ q ^ y := summable_geometric_of_lt_one hq.le hq1
+  have hs1 := summable_ite_add (n + 1) x fun y ↦ p ^ (n + 1) * (if y = z + 1 then p else 0)
+  have hs2 := summable_ite_add (n + 1) x fun y ↦ p ^ (n + 1) * (cCoeff p q * q ^ y)
+  have hs3 := summable_ite_eq_const (z + 1) (q ^ (x - n) * alpha p q (min x n) * p)
+  have hs4 : Summable fun y : ℕ ↦
+      q ^ (x - n) * alpha p q (min x n) * cCoeff p q * q ^ y := hgeo.mul_left _
+  have h1 : ∑' y : ℕ,
+      (if x = y + (n + 1) then p ^ (n + 1) * (if y = z + 1 then p else 0) else 0)
+      = if x = z + (n + 1 + 1) then p ^ (n + 1 + 1) else 0 := by
+    rw [tsum_ite_add_eq]
+    rcases eq_or_ne x (z + (n + 1 + 1)) with hx | hx
+    · rw [ite_eq_left (show n + 1 ≤ x by omega), ite_eq_left (show x - (n + 1) = z + 1 by omega),
+        ite_eq_left hx]
+      ring
+    · rw [ite_eq_right hx]
+      split_ifs with h h'
+      · exact absurd (show x = z + (n + 1 + 1) by omega) hx
+      · rw [mul_zero]
+      · rfl
+  have h2 : ∑' y : ℕ, (if x = y + (n + 1) then p ^ (n + 1) * (cCoeff p q * q ^ y) else 0)
+      = if n + 1 ≤ x then p ^ (n + 1) * cCoeff p q * q ^ (x - (n + 1)) else 0 := by
+    rw [tsum_ite_add_eq]
+    split_ifs
+    · ring
+    · rfl
+  have h3 : ∑' y : ℕ, (if y = z + 1 then q ^ (x - n) * alpha p q (min x n) * p else 0)
+      = q ^ (x - n) * alpha p q (min x n) * p := by simp
+  have h4 : ∑' y : ℕ, q ^ (x - n) * alpha p q (min x n) * cCoeff p q * q ^ y
+      = q ^ (x - n) * alpha p q (min x n) * cCoeff p q * (1 - q)⁻¹ := by
+    rw [hgeo.tsum_mul_left, tsum_geometric_of_lt_one hq.le hq1]
+  have hone : p + cCoeff p q * (1 - q)⁻¹ = 1 := by
+    have hc := p_mul_one_sub_q_add_cCoeff (p := p) (q := q)
+    field_simp
+    linarith
+  have hkey := pow_mul_alpha_min_succ hq hqp n x
+  rw [tsum_congr (powNumer_mul_expand n x z), Summable.tsum_add ((hs1.add hs2).add hs3) hs4,
+    Summable.tsum_add (hs1.add hs2) hs3, Summable.tsum_add hs1 hs2, h1, h2, h3, h4, powNumer]
+  linear_combination hkey + (q ^ (x - n) * alpha p q (min x n)) * hone
+
+lemma matrixRealPow_mul_matrixReal (n x y z : ℕ) :
+    matrixRealPow p q n x y * matrixReal p q y z
+      = powNumer p q n x y * ((if y = z + 1 then p else 0) + cCoeff p q * q ^ y)
+          * (alpha p q z / alpha p q x) := by
+  have hax := alpha_ne_zero hq hqp hp x
+  have hay := alpha_ne_zero hq hqp hp y
+  simp only [matrixRealPow, matrixReal]
+  field_simp
+
+lemma summable_matrixRealPow_mul_matrixReal (n x z : ℕ) :
+    Summable fun y : ℕ ↦ matrixRealPow p q n x y * matrixReal p q y z := by
+  simp only [matrixRealPow_mul_matrixReal hq hqp hp]
+  exact (summable_powNumer_mul hq hqp hp n x z).mul_right _
+
+/-- **Georgii's induction step for Step 1 of Theorem (11.39).** `Q^{n+1} Q = Q^{n+2}` in the
+explicit form of the formula. -/
+lemma tsum_matrixRealPow_mul_matrixReal (n x z : ℕ) :
+    ∑' y : ℕ, matrixRealPow p q n x y * matrixReal p q y z = matrixRealPow p q (n + 1) x z := by
+  rw [tsum_congr (matrixRealPow_mul_matrixReal hq hqp hp n x · z), tsum_mul_right,
+    tsum_powNumer_mul hq hqp hp n x z, matrixRealPow, mul_div_assoc]
 
 /-! ## Georgii (11.38): Kalikow's entrance law -/
 
@@ -689,6 +878,25 @@ theorem chain_intervalCylinder_eq {a b : ℤ} (ha : 1 ≤ a) (hab : a ≤ b) (σ
   congr 1
   congr 1
   simp only [entrance, entranceReal, ha, ite_true, stationary]
+
+/-- **Georgii, Step 1 in the proof of Theorem (11.39).** The entries of the powers of Kalikow's
+`Q`: `Q^{n+1}(x, y) = [p^{n+1} δ_{x-n-1}(y) + q^{(x-n) ∨ 0} α(x ∧ n)] α(y)/α(x)`. -/
+theorem matrix_pow_apply_singleton (n x y : ℕ) :
+    (Kernel.ofMatrix (matrix p q) ^ (n + 1)) x {y} = ENNReal.ofReal (matrixRealPow p q n x y) := by
+  induction n generalizing y with
+  | zero =>
+      rw [zero_add, pow_one, Kernel.ofMatrix_apply_singleton, matrix, matrixRealPow_zero hqp]
+  | succ n ih =>
+      have hmul : ∀ w : ℕ, (Kernel.ofMatrix (matrix p q) ^ (n + 1)) x {w} * matrix p q w y
+          = ENNReal.ofReal (matrixRealPow p q n x w * matrixReal p q w y) := fun w ↦ by
+        rw [ih w, matrix, ← ENNReal.ofReal_mul (matrixRealPow_nonneg hq hqp hp n x w)]
+      rw [Kernel.ofMatrix_pow_succ'_apply_singleton]
+      simp only [hmul]
+      rw [← ENNReal.ofReal_tsum_of_nonneg
+          (fun w ↦ mul_nonneg (matrixRealPow_nonneg hq hqp hp n x w)
+            (matrixReal_pos hq hqp hp w y).le)
+          (summable_matrixRealPow_mul_matrixReal hq hqp hp n x y),
+        tsum_matrixRealPow_mul_matrixReal hq hqp hp n x y]
 
 end Transfer
 

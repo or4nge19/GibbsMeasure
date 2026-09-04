@@ -332,6 +332,10 @@ status:
       file: "GibbsMeasure/Model/RandomStaircase.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Markov.SpitzerCox.not_countable_G"
+      file: "GibbsMeasure/Model/SpitzerCox.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.isCompact_setOf_le_specificEntropy"
       file: "GibbsMeasure/Specification/SpecificEntropy.lean"
       sorry_count: 0
@@ -1171,6 +1175,24 @@ alignment:
         is proved in Specification/Dobrushin.lean. Not formalized: the second-derivative half of
         (16.17), which is Corollary (8.37) and rests on Proposition (8.34), the covariance bound
         by the Dobrushin interdependence matrix; neither is in the tree.
+    - source: "Sections 11.2-11.4: Spitzer-Cox, Kalikow, Spitzer"
+      lean: "MeasureTheory.GibbsMeasure.Markov.SpitzerCox.not_countable_G"
+      module: "GibbsMeasure/Model/SpitzerCox.lean"
+      status: "partial"
+      note: >-
+        11.2: the branching-with-immigration transfer matrix (11.20)-(11.27), the binomial
+        convolution (11.22) and composition (11.23), reversibility (11.28) with no condition on p,
+        the full two-parameter boundary law family (11.29) and its one-site marginals (11.30),
+        pairwise distinctness, and hence G(gamma^Q) uncountable. Not formalized: (11.31)-(11.33),
+        which need the quantitative half of (11.9)(c), the Poisson convergence theorem and (11.32).
+        11.3 Kalikow: (11.34)-(11.38) with infinitely many extreme points and a unique
+        shift-invariant Gibbs measure, plus Step 1 of (11.39), the closed form of Q^n; Steps 2-3
+        need the quantitative (11.9)(c) and Borel-Cantelli. 11.4 Spitzer: (11.43)-(11.45), the
+        first-passage decomposition (11.47) built in general matrix form
+        (Mathlib/Probability/Kernel/CountableMatrix/FirstPassage.lean: taboo matrices, hitting
+        times, and the renewal identity), and the extinction-time law. (11.46) still assumes null
+        recurrence of Q = P^2 (needs a mean-return-time characterisation of positive recurrence,
+        Vere-Jones) and nonemptiness of G (needs the Poisson convergence theorem).
     - source: "Section 6.3: (6.16)-(6.21), (6.25)"
       lean: "MeasureTheory.GibbsMeasure.Shlosman.infinite_GP_dgSpecification_of_log_twelve"
       module: "GibbsMeasure/Model/RandomStaircase.lean"

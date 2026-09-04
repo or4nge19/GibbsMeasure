@@ -1,0 +1,39 @@
+\section{The Spitzer--Cox example of phase transition}
+
+\begin{definition}[Georgii (11.20)--(11.27)]
+    \label{def:sc-matrix}
+    \uses{def:bl-transfer-matrix}
+    \lean{MeasureTheory.GibbsMeasure.Markov.SpitzerCox.binomialWeight, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.poissonWeight, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.sum_binomialWeight_mul_binomialWeight, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.hasSum_binomialWeight_mul_binomialWeight, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.matrix, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.isTransferMatrix}
+    \leanok
+
+    On $E = \mathbb Z_+$ the branching-with-immigration matrix
+    $Q(x,y) = \sum_k \ell(x,p,k)\mathfrak p(1-p, y-k)$ is a transfer matrix. The binomial weights
+    convolve, $\sum_{j \leq k}\ell(m,p,j)\ell(n,p,k-j) = \ell(m+n,p,k)$ (11.22), and compose,
+    $\sum_k \ell(n,p_1,k)\ell(k,p_2,j) = \ell(n,p_1p_2,j)$ (11.23).
+\end{definition}
+
+\begin{proposition}[Georgii (11.28)]
+    \label{prop:sc-11-28}
+    \uses{def:sc-matrix}
+    \lean{MeasureTheory.GibbsMeasure.Markov.SpitzerCox.poissonWeight_one_mul_matrixReal_comm}
+    \leanok
+
+    $Q$ is reversible with respect to the unit Poisson weights: $\alpha(x)Q(x,y) = \alpha(y)Q(y,x)$
+    with $\alpha = \mathfrak p(1,\cdot)$. No condition on $p$ is needed.
+\end{proposition}
+
+\begin{theorem}[Georgii (11.29)--(11.30)]
+    \label{thm:sc-11-29}
+    \uses{prop:sc-11-28, def:bl-boundary-law, thm:bl-11-9a}
+    \lean{MeasureTheory.GibbsMeasure.Markov.SpitzerCox.rightReal, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.isBoundaryLaw, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.chain, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.chain_intervalCylinder_self, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.eq_of_chain_eq, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.not_countable_G}
+    \leanok
+
+    For $u, v \geq 0$ the pair $\ell^u_i, r^v_i$ is a boundary law, whose Gibbs measure satisfies
+    $\mu^{u,v}(\sigma_i = x) = \mathfrak p((1+up^i)(1+vp^{-i}), x)$. Distinct parameters give
+    distinct measures, so $\mathcal G(\gamma^Q)$ is uncountable.
+\end{theorem}
+\begin{proof}
+    \leanok
+    $Qr^v_i = r^v_{i-1}$ and $\ell^u_i r^v_i = e^{uv}$ by the binomial identities; the one-site
+    marginal (11.30) at three sites separates the parameters.
+\end{proof}
