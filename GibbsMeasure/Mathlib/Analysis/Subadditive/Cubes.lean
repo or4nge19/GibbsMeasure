@@ -6,6 +6,8 @@ Authors: Matteo Cipollina
 module
 
 public import Mathlib.Analysis.Subadditive
+public import Mathlib.Algebra.Group.Pointwise.Finset.Basic
+public import Mathlib.Algebra.Group.Pointwise.Finset.Scalar
 public import Mathlib.Algebra.Order.Interval.Finset.Basic
 public import Mathlib.Algebra.Order.Pi
 public import Mathlib.Data.EReal.Inv
@@ -48,7 +50,10 @@ Two elementary facts about boxes, used in the proofs and in the applications, ar
 separately: `Finset.tendsto_card_Icc_div_card_Icc`, boundary layers of a fixed thickness are
 negligible when all sides tend to infinity, and
 `Finset.tendsto_sub_atTop_of_tendsto_card_Icc_cube`, cubes of cardinality tending to infinity
-have all sides tending to infinity.
+have all sides tending to infinity (`Finset.tendsto_atTop_of_tendsto_card_Icc_cube` for the
+common side of a sequence of cubes). The reflection `−[m, m + s]^d` of a cube is the translate
+of the standard cube `[0, s + 1)^d` (`Finset.neg_Icc_cube_eq_vadd_piFinset_Ico`), which is the
+form in which cubes enter the pointwise ergodic theorem.
 
 Georgii uses (15.11) for the existence of the specific entropy (Theorem (15.12)) and of the
 pressure (Theorem (15.30)).
@@ -481,6 +486,57 @@ theorem Finset.tendsto_sub_atTop_of_tendsto_card_Icc_cube {κ : Type*} {l : Filt
   filter_upwards [tendsto_atTop.1 hs ((b + 1) ^ Fintype.card ι)] with j hj
   have := (Nat.pow_le_pow_iff_left hd).1 hj
   omega
+
+/-- The common side `s j` of cubes `∏ₖ [mⱼₖ, mⱼₖ + sⱼ]` of cardinality tending to infinity tends
+to infinity. -/
+theorem Finset.tendsto_atTop_of_tendsto_card_Icc_cube {κ : Type*} {l : Filter κ}
+    {m : κ → ι → ℤ} {s : κ → ℕ}
+    (hs : Tendsto (fun j ↦ #(Icc (m j) fun k ↦ m j k + s j)) l atTop) :
+    Tendsto s l atTop := by
+  rcases l.eq_or_neBot with rfl | hl
+  · exact tendsto_bot
+  rcases isEmpty_or_nonempty ι with hι | ⟨⟨k⟩⟩
+  · exfalso
+    have h1 : ∀ j, #(Icc (m j) fun k ↦ m j k + s j) = 1 := fun j ↦ by
+      rw [Pi.card_Icc]
+      simp
+    simp only [h1] at hs
+    obtain ⟨j, hj⟩ := (tendsto_atTop.1 hs 2).exists
+    omega
+  · have := Finset.tendsto_sub_atTop_of_tendsto_card_Icc_cube hs k
+    simp only [add_sub_cancel_left] at this
+    exact tendsto_natCast_atTop_iff.1 this
+
+open scoped Pointwise in
+/-- The reflection `−[m, m + s]^d` of a cube is the translate by `−(m + s)` of the standard cube
+`[0, s + 1)^d`. -/
+theorem Finset.neg_Icc_cube_eq_vadd_piFinset_Ico (m : ι → ℤ) (s : ℕ) :
+    -(Icc m fun k ↦ m k + s) =
+      (fun k ↦ -(m k + s)) +ᵥ Fintype.piFinset fun _ : ι ↦ Ico (0 : ℤ) ((s + 1 : ℕ) : ℤ) := by
+  ext x
+  simp only [Finset.mem_neg, Finset.mem_Icc, Finset.mem_vadd_finset, Fintype.mem_piFinset,
+    Finset.mem_Ico, Pi.le_def]
+  constructor
+  · rintro ⟨y, ⟨hy1, hy2⟩, rfl⟩
+    refine ⟨fun k ↦ m k + s - y k, fun k ↦ ?_, ?_⟩
+    · have := hy1 k
+      have := hy2 k
+      dsimp only
+      omega
+    · funext k
+      simp only [vadd_eq_add, Pi.add_apply, Pi.neg_apply]
+      ring
+  · rintro ⟨y, hy, rfl⟩
+    refine ⟨fun k ↦ m k + s - y k, ⟨fun k ↦ ?_, fun k ↦ ?_⟩, ?_⟩
+    · have := hy k
+      dsimp only
+      omega
+    · have := hy k
+      dsimp only
+      omega
+    · funext k
+      simp only [vadd_eq_add, Pi.add_apply, Pi.neg_apply]
+      ring
 
 namespace BoxSubadditive
 

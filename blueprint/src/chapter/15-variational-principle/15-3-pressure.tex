@@ -68,3 +68,21 @@ all of whose side lengths tend to infinity.
     and $\log Z^{a\Phi + b\Psi}_\Lambda \leq a \log Z^\Phi_\Lambda + b \log Z^\Psi_\Lambda$ by
     Hölder's inequality with exponents $1/a$, $1/b$; pass to the limit.
 \end{proof}
+
+\begin{remark}[Georgii (15.26)(1)]
+    \label{rem:pr-15-26}
+    \uses{prop:pr-15-25, thm:erg-14A8}
+    \lean{Potential.ae_tendsto_hamiltonian_div_card, Potential.ae_tendsto_hamiltonian_juxt_div_card}
+    \leanok
+
+    Let $\Phi \in \mathcal B_\Theta$, $\mu \in \Prob_\Theta$, $(\Lambda_n)$ an increasing sequence
+    of cubes with $|\Lambda_n| \to \infty$ and $\omega^n$ arbitrary boundary conditions. Then
+    $|\Lambda_n|^{-1} H_{\Lambda_n}(\sigma_{\Lambda_n}\omega^n_{S\setminus\Lambda_n}) \to
+    \mu(f_\Phi \mid \mathcal I)$ $\mu$-a.s.
+\end{remark}
+\begin{proof}
+    \leanok
+    By (15.25) the Hamiltonian is within $o(|\Lambda_n|)$ of $\sum_{i \in \Lambda_n} f_\Phi\circ\theta_i$,
+    uniformly in the boundary condition; the individual ergodic theorem \ref{thm:erg-14A8} along
+    the reflected cubes gives the limit.
+\end{proof}

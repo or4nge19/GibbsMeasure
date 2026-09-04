@@ -69,3 +69,22 @@ specific entropy of Theorem \ref{thm:sent-15-12} and $P$ the pressure of Theorem
     $\rho \in \mathcal G_\Theta(\gamma^\Phi)$ give $|\Lambda_n|^{-1}\mathcal H_{\Lambda_n}(\mu\mid\rho) \to 0$
     by (15.30)(b), and Theorem \ref{thm:vp-15-37} applies.
 \end{proof}
+
+\begin{example}[Georgii (15.40), the mechanism]
+    \label{ex:vp-15-40}
+    \uses{thm:vp-15-39}
+    \lean{Potential.mem_invariantG_of_G_eq_singleton, Potential.specificRelativeEntropy_eq_zero_iff_eq_of_G_eq_singleton, Potential.specificEntropy_eq_specificEnergy_add_pressure_iff_eq_of_G_eq_singleton}
+    \leanok
+
+    If $\mathcal G(\gamma^\Phi) = \{\rho\}$ then $\rho \in \mathcal G_\Theta(\gamma^\Phi)$ and,
+    for $\mu \in \Prob_\Theta$, $k(\mu \mid \Phi) = 0$ iff $\mu = \rho$, i.e.\ $h(\mu) = \langle\mu,\Phi\rangle + P(\Phi)$
+    iff $\mu = \rho$. Georgii's instance is the stationary Markov chain $\mu_Q$ of a positive
+    matrix $Q$ on $S = \mathbb Z$ (Theorem (3.5)), with $P(\Phi) = -\log Q(a,a)$ and
+    $k(\mu\mid\Phi)$ the integrated relative entropy of the one-step conditional
+    distributions (15.19).
+\end{example}
+\begin{proof}
+    \leanok
+    Uniqueness gives shift invariance (Georgii (5.11)); the variational principle
+    \ref{thm:vp-15-39} identifies the zeros of $k(\cdot\mid\Phi)$ with $\mathcal G_\Theta(\gamma^\Phi) = \{\rho\}$.
+\end{proof}

@@ -5,7 +5,9 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Mathlib.Analysis.Normed.Field.Lemmas
 public import GibbsMeasure.Mathlib.Analysis.Subadditive.Cubes
+public import GibbsMeasure.Mathlib.Dynamics.Ergodic.Pointwise
 public import GibbsMeasure.Potential.GibbsTransformation
 public import GibbsMeasure.Potential.Periodic
 public import GibbsMeasure.Specification.Ergodicity
@@ -49,6 +51,14 @@ Throughout, `Φ` is an absolutely summable potential (`Potential.IsAbsolutelySum
   `Potential.tendsto_integral_hamiltonian_juxt_div_card`: **Georgii Theorem (15.23)**, both
   limits, for `μ ∈ 𝓟_Θ` (`invariantFields (shiftGroup _ E)`), with the finite-volume bounds
   `Potential.abs_integral_hamiltonian_sub_le`, `Potential.abs_integral_hamiltonian_juxt_sub_le`.
+* `Potential.ae_tendsto_hamiltonian_div_card`, `Potential.ae_tendsto_hamiltonian_juxt_div_card`:
+  **Georgii Remark (15.26)(1)**, for `μ ∈ 𝓟_Θ` and an increasing sequence of cubes `Λ_n` with
+  `|Λ_n| → ∞`, `|Λ_n|⁻¹ H_{Λ_n} → μ(f_Φ | 𝓘)` and
+  `|Λ_n|⁻¹ H_{Λ_n}(σ_{Λ_n} ω^n_{S∖Λ_n}) → μ(f_Φ | 𝓘)` `μ`-a.s.: the estimate (15.25) together
+  with the ergodic theorem (14.A8) (`MeasureTheory.ae_tendsto_inv_card_smul_sum_vadd_condExp_cube`),
+  applied along the reflected cubes `−Λ_n` (`Finset.neg_Icc_cube_eq_vadd_piFinset_Ico`) because
+  `f_Φ ∘ θ_{-i}` is the Koopman translate by `−i`. The passage from a sum to the Hamiltonian
+  is `Filter.Tendsto.div_of_norm_sub_le` (`GibbsMeasure/Mathlib/Analysis/Normed/Field/Lemmas`).
 * `Potential.abs_specificEnergy_sub_le`: **Georgii Remark (15.26)(2)**, `⟨μ, ·⟩` is
   `1`-Lipschitz for `‖·‖₀`, uniformly in `μ`.
 * `Potential.hamiltonian_union_add_tsum_eq`: inclusion–exclusion for the Hamiltonian,
@@ -88,9 +98,8 @@ assume that `λ ∈ 𝓟(E, ℰ)`"). For a finite `λ`, `Z^λ_Λ = λ(E)^{|Λ|} 
 (`Specification.sigmaFiniteLambdaZ_of_smul`), so the pressure for `λ` is `P + log λ(E)`.
 
 Not in this file: Lemma (15.28), Theorem (15.30)(b), (15.32)–(15.35) are statements about the
-specific entropy `𝓀(μ)` of Theorem (15.12) and the relative entropy `𝓗_Λ(μ | ν γ_Λ)`, which are
-not yet formalized; they are the variational principle proper (§15.4). Remark (15.26)(1) is the
-ergodic theorem (14.A8), also not formalized.
+specific entropy `𝓀(μ)` of Theorem (15.12) and the relative entropy `𝓗_Λ(μ | ν γ_Λ)`; they are
+the variational principle proper, in `Specification/VariationalPrinciple.lean`.
 -/
 
 @[expose] public section
@@ -1000,16 +1009,13 @@ lemma tendsto_div_card_of_abs_sub_le {u t : κ → ℝ} {c : ℝ}
     (hle : ∀ j, |u j - #(Icc (m j) (n j)) * c| ≤ t j)
     (ht : Tendsto (fun j ↦ t j / #(Icc (m j) (n j))) l (𝓝 0)) :
     Tendsto (fun j ↦ u j / #(Icc (m j) (n j))) l (𝓝 c) := by
-  have : Tendsto (fun j ↦ u j / #(Icc (m j) (n j)) - c) l (𝓝 0) := by
-    refine squeeze_zero_norm' ?_ ht
-    filter_upwards [eventually_le_of_tendsto_sub h] with j hj
-    have hj' : (0 : ℝ) < #(Icc (m j) (n j)) := by
-      exact_mod_cast (nonempty_Icc.2 hj).card_pos
-    rw [Real.norm_eq_abs, show u j / #(Icc (m j) (n j)) - c
-        = (u j - #(Icc (m j) (n j)) * c) / #(Icc (m j) (n j)) by field_simp,
-      abs_div, abs_of_pos hj']
-    exact div_le_div_of_nonneg_right (hle j) hj'.le
-  simpa using this.add_const c
+  refine Tendsto.div_of_norm_sub_le (v := fun j ↦ #(Icc (m j) (n j)) * c) ?_
+    (Eventually.of_forall hle) (by simpa only [Real.norm_natCast] using ht)
+  refine tendsto_const_nhds.congr' ?_
+  filter_upwards [eventually_le_of_tendsto_sub h] with j hj
+  have hj' : (#(Icc (m j) (n j)) : ℝ) ≠ 0 := by
+    exact_mod_cast (nonempty_Icc.2 hj).card_pos.ne'
+  exact (mul_div_cancel_left₀ c hj').symm
 
 /-- **Georgii, the estimate (15.25) as stated:** `sup_ω |∑_{i ∈ Λ} f_Φ ∘ θ_{-i} − H_Λ(ω)|` is
 `o(|Λ|)` along boxes all of whose sides tend to infinity. -/
@@ -1051,6 +1057,87 @@ theorem tendsto_integral_hamiltonian_juxt_div_card (hΦ : Φ.IsShiftInvariant)
   simpa [mul_div_assoc] using (tendsto_tail_div_card hΦ h).const_mul 3
 
 end SpecificEnergyLimit
+
+/-! ### Georgii Remark (15.26)(1): the almost sure limit -/
+
+section AlmostSureLimit
+
+open scoped Pointwise
+
+attribute [local instance] shiftAddAction measurableConstVAdd_shift
+
+variable {ι : Type*} [Fintype ι] [DecidableEq ι]
+
+variable {m : ℕ → ι → ℤ} {s : ℕ → ℕ}
+
+variable {Φ : Potential (ι → ℤ) E} [IsPotential Φ] [IsAbsolutelySummable Φ]
+  {μ : Measure ((ι → ℤ) → E)}
+
+/-- **Georgii Remark (15.26)(1), first limit.** For `Φ ∈ ℬ_Θ`, `μ ∈ 𝓟_Θ` and an increasing
+sequence of cubes `Λ_n` with `|Λ_n| → ∞`, `|Λ_n|⁻¹ H^Φ_{Λ_n} → μ(f_Φ | 𝓘)` `μ`-a.s., where `𝓘`
+is the σ-algebra of shift-invariant events. This is the estimate (15.25)
+(`abs_sum_siteEnergy_sub_hamiltonian_le`, `tendsto_tail_div_card`) together with the ergodic
+theorem (14.A8) (`ae_tendsto_inv_card_smul_sum_vadd_condExp_cube`) applied to `f_Φ` along the
+reflected cubes `−Λ_n`, since `f_Φ ∘ θ_{-i} = f_Φ ((-i) +ᵥ ·)`. -/
+theorem ae_tendsto_hamiltonian_div_card (hΦ : Φ.IsShiftInvariant)
+    (hμ : μ ∈ invariantFields (shiftGroup (ι → ℤ) E))
+    (hmono : Monotone fun n ↦ Icc (m n) fun k ↦ m n k + s n)
+    (hs : Tendsto (fun n ↦ #(Icc (m n) fun k ↦ m n k + s n)) atTop atTop) :
+    ∀ᵐ ω ∂μ, Tendsto (fun n ↦ Φ.hamiltonian (Icc (m n) fun k ↦ m n k + s n) ω
+      / #(Icc (m n) fun k ↦ m n k + s n)) atTop
+      (𝓝 ((μ[Φ.energyDensity | invariantEvents (shiftGroup (ι → ℤ) E)]) ω)) := by
+  obtain ⟨hprob, hpres⟩ := mem_invariantFields_shiftGroup.1 hμ
+  have := vaddInvariantMeasure_of_forall_measurePreserving_shift hpres
+  have hcube : ∀ n, (fun k ↦ -(m n k + s n)) +ᵥ
+      (Fintype.piFinset fun _ : ι ↦ Ico (0 : ℤ) ((s n + 1 : ℕ) : ℤ)) =
+        -(Icc (m n) fun k ↦ m n k + s n) :=
+    fun n ↦ (Finset.neg_Icc_cube_eq_vadd_piFinset_Ico (m n) (s n)).symm
+  have hr : Tendsto (fun n ↦ s n + 1) atTop atTop :=
+    tendsto_atTop_mono (fun n ↦ Nat.le_succ (s n))
+      (Finset.tendsto_atTop_of_tendsto_card_Icc_cube hs)
+  have hmono' : Monotone fun n ↦ (fun k ↦ -(m n k + s n)) +ᵥ
+      (Fintype.piFinset fun _ : ι ↦ Ico (0 : ℤ) ((s n + 1 : ℕ) : ℤ)) := by
+    intro a b hab
+    simp only [hcube]
+    exact Finset.neg_subset_neg (hmono hab)
+  have herg := ae_tendsto_inv_card_smul_sum_vadd_condExp_cube (μ := μ)
+    (fun n k ↦ -(m n k + s n)) (r := fun n ↦ s n + 1) (fun n ↦ Nat.succ_pos _) hr hmono'
+    (integrable_siteEnergy (Φ := Φ) 0 μ)
+  rw [smulInvariants_multiplicative_eq_invariantEvents_shiftGroup] at herg
+  have htail := tendsto_tail_div_card (Φ := Φ) hΦ
+    (Finset.tendsto_sub_atTop_of_tendsto_card_Icc_cube hs)
+  filter_upwards [herg] with ω hω
+  have hsum : ∀ n, ∑ i ∈ -(Icc (m n) fun k ↦ m n k + s n), Φ.siteEnergy 0 (i +ᵥ ω)
+      = ∑ i ∈ Icc (m n) fun k ↦ m n k + s n, Φ.siteEnergy i ω := fun n ↦ by
+    rw [← Finset.image_neg_eq_neg, Finset.sum_image neg_injective.injOn]
+    exact Finset.sum_congr rfl fun i _ ↦ (hΦ.siteEnergy_eq i ω).symm
+  simp only [hcube, Finset.card_neg, hsum] at hω
+  refine Tendsto.div_of_norm_sub_le (v := fun n ↦ ∑ i ∈ Icc (m n) fun k ↦ m n k + s n,
+    Φ.siteEnergy i ω) (hω.congr fun n ↦ by rw [smul_eq_mul, inv_mul_eq_div])
+    (Eventually.of_forall fun n ↦ ?_) (by simpa only [Real.norm_natCast] using htail)
+  rw [Real.norm_eq_abs, abs_sub_comm]
+  exact abs_sum_siteEnergy_sub_hamiltonian_le _ ω
+
+/-- **Georgii Remark (15.26)(1), second limit.** For `Φ ∈ ℬ_Θ`, `μ ∈ 𝓟_Θ`, an increasing
+sequence of cubes `Λ_n` with `|Λ_n| → ∞` and arbitrary boundary conditions `η_n`,
+`|Λ_n|⁻¹ H^Φ_{Λ_n}(σ_{Λ_n} (η_n)_{S∖Λ_n}) → μ(f_Φ | 𝓘)` `μ`-a.s. -/
+theorem ae_tendsto_hamiltonian_juxt_div_card (hΦ : Φ.IsShiftInvariant)
+    (hμ : μ ∈ invariantFields (shiftGroup (ι → ℤ) E))
+    (hmono : Monotone fun n ↦ Icc (m n) fun k ↦ m n k + s n)
+    (hs : Tendsto (fun n ↦ #(Icc (m n) fun k ↦ m n k + s n)) atTop atTop)
+    (η : ℕ → (ι → ℤ) → E) :
+    ∀ᵐ ω ∂μ, Tendsto (fun n ↦ Φ.hamiltonian (Icc (m n) fun k ↦ m n k + s n)
+      (juxt (Icc (m n) fun k ↦ m n k + s n : Set (ι → ℤ)) (η n) fun i ↦ ω i)
+      / #(Icc (m n) fun k ↦ m n k + s n)) atTop
+      (𝓝 ((μ[Φ.energyDensity | invariantEvents (shiftGroup (ι → ℤ) E)]) ω)) := by
+  have htail := tendsto_tail_div_card (Φ := Φ) hΦ
+    (Finset.tendsto_sub_atTop_of_tendsto_card_Icc_cube hs)
+  filter_upwards [ae_tendsto_hamiltonian_div_card hΦ hμ hmono hs] with ω hω
+  refine Tendsto.div_of_norm_sub_le hω (Eventually.of_forall fun n ↦
+    abs_hamiltonian_sub_le_of_eqOn _ fun i hi ↦ juxt_apply_of_mem hi _)
+    (by simpa only [Real.norm_natCast, mul_div_assoc, mul_zero] using htail.const_mul 2)
+
+end AlmostSureLimit
 
 /-! ### The finite-volume pressure `log Z_Λ` -/
 

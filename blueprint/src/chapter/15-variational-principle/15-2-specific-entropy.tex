@@ -59,3 +59,75 @@ $\Cfg$, $\mathcal H_\Lambda(\mu \mid \nu)$ the relative entropy on $\mathcal F_\
     $|\Lambda_n| \to \infty$. Upper semicontinuity: each $\mathcal H_\Lambda(\cdot \mid \lambda^S)$
     is a supremum over finite partitions of continuous functions.
 \end{proof}
+
+\begin{proposition}[Georgii (15.14)(c)]
+    \label{prop:sent-15-14c}
+    \uses{thm:sent-15-12, prop:sent-15-14, prop:cp-49}
+    \lean{MeasureTheory.GibbsMeasure.isCompact_setOf_le_specificEntropy, InformationTheory.exists_forall_measure_le_of_klDiv_le}
+    \leanok
+
+    Let $E$ be standard Borel and $\lambda$ a probability measure. For every $c \in \mathbb R$
+    the set $\{\mu : h(\mu) \geq c\}$ is compact in the topology of local convergence.
+\end{proposition}
+\begin{proof}
+    \leanok
+    A bound $\mathcal H(\mu \mid \nu) \leq c$ makes $\mu$ uniformly absolutely continuous with
+    respect to $\nu$; on each box this gives local equicontinuity, and Proposition
+    \ref{prop:cp-49} yields a cluster point, which lies in the set by upper semicontinuity.
+\end{proof}
+
+\begin{theorem}[Georgii (15.16)--(15.18)]
+    \label{thm:sent-15-16}
+    \uses{thm:sent-15-12, def:ent-relative}
+    \lean{MeasureTheory.GibbsMeasure.lexPast, MeasureTheory.GibbsMeasure.specificEntropy_eq_neg_relativeEntropyIn_lexPast, MeasureTheory.GibbsMeasure.specificEntropy_eq_iInf_finset, MeasureTheory.GibbsMeasure.neg_relativeEntropyIn_lexPast_le_specificEntropy, MeasureTheory.GibbsMeasure.specificEntropy_le_neg_relativeEntropyIn_lexPast, MeasureTheory.GibbsMeasure.specificEntropy_eq_neg_lintegral_klDiv_withDensity, MeasureTheory.GibbsMeasure.toReal_lintegral_update_ae_eq_condExp}
+    \leanok
+
+    Let $\mu \in \Prob_\Theta$ on $S = \mathbb Z^d$ with the lexicographic order and
+    $V(j) = \{i : i \leq j\}$. Then $h(\mu) = -\mathcal H_{V(0)}(\mu \mid \mu\lambda_0)$
+    (15.16), $h(\mu) = \inf_\Delta |\Delta|^{-1}\mathcal H_\Delta(\mu)$, and the two
+    inequalities of (15.17) hold. If $\mu\lambda_0 \gg \mu$ on $\mathcal F_{V(0)}$ with density
+    $g$, then $h(\mu) = -\int \mathcal H(q^\omega \mid \lambda)\,\mu(d\omega)$ with
+    $q^\omega = \lambda(g(\omega_{V(0)\setminus 0}\,\cdot))$ (15.18), and
+    $q^\omega(A) = \mu(\sigma_0 \in A \mid \mathcal F_{V(0)\setminus\{0\}})(\omega)$ a.s.
+\end{theorem}
+\begin{proof}
+    \leanok
+    The chain rule for the relative entropy of a resampling and shift equivariance telescope
+    $\mathcal H_\Delta(\mu)$ over the sites of $\Delta$ in lexicographic order; the martingale
+    limit of $\mathcal H_{V(0) \cap [-n,n]^d}$ gives (15.17), and (15.18) is the conditional
+    form of (15.16).
+\end{proof}
+
+\begin{proposition}[Georgii (15.19)]
+    \label{prop:sent-15-19}
+    \uses{thm:sent-15-16}
+    \lean{MeasureTheory.GibbsMeasure.specificEntropy_uniformOn_eq_neg_integral_sum_mul_log, InformationTheory.klDiv_uniformOn_univ}
+    \leanok
+
+    For finite $E$ and $\lambda$ the uniform distribution,
+    $h(\mu) = -\int \sum_{x} p_x \log p_x\,d\mu - \log|E|$ with
+    $p_x = \mu(\sigma_0 = x \mid \mathcal F_{V(0)\setminus\{0\}})$; Georgii's counting-measure
+    normalisation differs by the constant $\log|E|$.
+\end{proposition}
+\begin{proof}
+    \leanok
+    Shannon's formula for the relative entropy with respect to the uniform distribution, in (15.18).
+\end{proof}
+
+\begin{theorem}[Georgii (15.20)]
+    \label{thm:sent-15-20}
+    \uses{thm:sent-15-16, thm:erg-1410}
+    \lean{MeasureTheory.GibbsMeasure.exists_measurable_specificEntropy_eq_neg_lintegral, MeasureTheory.GibbsMeasure.specificEntropy_join_eq_neg_lintegral}
+    \leanok
+
+    Let $E$ be standard Borel. There is an $\mathcal I$-measurable $h_0 \leq 0$ with
+    $h(\mu) = \int h_0\,d\mu$ for all $\mu \in \Prob_\Theta$, and $h(\mu) = \int h(\nu)\,w_\mu(d\nu)$
+    for the ergodic decomposition $w_\mu$ of Theorem \ref{thm:erg-1410}. Georgii's $h_0$ is
+    $\mathcal I \cap \mathcal T$-measurable; the kernel of (14.10) in the tree is exposed with
+    $\mathcal I$-measurability only.
+\end{theorem}
+\begin{proof}
+    \leanok
+    $h_0 = h(\pi(\cdot \mid \omega))$ for the $(\Prob_\Theta, \mathcal I)$-kernel $\pi$; the
+    integral identity is affinity of $h$ under the decomposition.
+\end{proof}

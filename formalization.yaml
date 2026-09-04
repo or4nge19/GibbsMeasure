@@ -47,7 +47,7 @@ status:
     included). Of Chapters 9-20:
     Chapter 14 (ergodicity); Section
     15.1 (relative entropy), Lemma (15.11), Section 15.2 (strong subadditivity (15.10), the specific
-    entropy (15.12)-(15.13), (15.14)(a)-(b)), Section 15.3 (specific energy, the pressure (15.30)(a)
+    entropy (15.12)-(15.13), (15.14), (15.16)-(15.20)), Section 15.3 (specific energy, the pressure (15.30)(a)
     and its Lipschitz continuity and convexity (16.1)(a)), Section 15.4 (Theorem (15.37) and the
     variational principle (15.39), for standard Borel E); Section 11.1 ((11.1)-(11.17), (11.18)(1),(3), (11.6)-(11.7); not (11.18)(2), (11.19)); Section 12.1 ((12.1)-(12.18) except (12.3)(3),(5),(6)); Section 10.1 (the Markov
     properties (10.2)-(10.11)), Section 10.2 ((10.12)-(10.26) except Examples (10.24)), Section 10.3 ((10.30)-(10.37)); Section 9.1 (symmetry
@@ -302,6 +302,30 @@ status:
       axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.Tree.exists_isMarkovChain_transitionProb_eq_of_reversible"
       file: "GibbsMeasure/Model/TreeBoundaryLawChains.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.isCompact_setOf_le_specificEntropy"
+      file: "GibbsMeasure/Specification/SpecificEntropy.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.specificEntropy_eq_neg_relativeEntropyIn_lexPast"
+      file: "GibbsMeasure/Specification/SpecificEntropy.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.specificEntropy_uniformOn_eq_neg_integral_sum_mul_log"
+      file: "GibbsMeasure/Specification/SpecificEntropy.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.exists_measurable_specificEntropy_eq_neg_lintegral"
+      file: "GibbsMeasure/Specification/SpecificEntropy.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "Potential.ae_tendsto_hamiltonian_juxt_div_card"
+      file: "GibbsMeasure/Specification/Pressure.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "Potential.specificRelativeEntropy_eq_zero_iff_eq_of_G_eq_singleton"
+      file: "GibbsMeasure/Specification/VariationalPrinciple.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
 
@@ -1071,8 +1095,21 @@ alignment:
         [-infinity, 0]; -infinity is a genuine case) as the infimum over boxes, with convergence
         along any boxes with all side lengths -> infinity for mu in P_Theta; affine on P_Theta (needs
         d >= 1, which Georgii leaves implicit: on Z^0 the specific entropy is strictly concave);
-        upper semicontinuous on all of P(Omega) in the topology of local convergence. Not
-        formalized: compactness of {k >= c} for standard Borel E ((15.14)(c)), (15.16)-(15.20).
+        upper semicontinuous on all of P(Omega) in the topology of local convergence.
+    - source: "Proposition (15.14)(c), (15.16)-(15.20)"
+      lean: "MeasureTheory.GibbsMeasure.specificEntropy_eq_neg_relativeEntropyIn_lexPast"
+      module: "GibbsMeasure/Specification/SpecificEntropy.lean"
+      status: "proved"
+      note: >-
+        (15.14)(c) compactness of {h >= c} in local convergence for standard Borel E
+        (isCompact_setOf_le_specificEntropy, on all random fields); (15.16) h(mu) =
+        -H_{V(0)}(mu | mu lambda_0) with the lexicographic past, the infimum formula, (15.17) both
+        inequalities, (15.18) with the density and Georgii's conditional-probability display in
+        Mathlib's condExp (toReal_lintegral_update_ae_eq_condExp); (15.19) for finite E and the
+        uniform a priori measure (Shannon's formula; the counting-measure normalisation differs by
+        log |E|); (15.20) an I-measurable h_0 with h(mu) = int h_0 dmu on P_Theta and h(mu) =
+        int h dw_mu for the ergodic decomposition. Georgii's h_0 is I cap T-measurable; the (14.10)
+        kernel in InvariantDecomposition.lean is exposed with I-measurability only.
         lambda is a probability measure (Georgii's finite lambda is normalised, as he does himself).
     - source: "Display (11.6), Proposition (11.7): the convergence parameter and recurrence"
       lean: "ProbabilityTheory.Kernel.eq_of_apply_eq_mul_div_of_isRecurrent_of_convergenceNorm_eq_one"
@@ -1149,7 +1186,12 @@ alignment:
         along one sequence of cubes), Georgii's three steps as three theorems, Step 3 for any site
         set; (15.39): k(mu|Phi) = 0 iff mu in G_Theta(gamma^Phi) — unconditionally for standard
         Borel E (G_Theta(gamma^Phi) nonempty from (4.23)+(5.16), for any countable abelian site group),
-        and for any E given some rho in G_Theta(gamma^Phi). Not formalized: Example (15.40), Remark (15.26)(1).
+        and for any E given some rho in G_Theta(gamma^Phi). Remark (15.26)(1): the a.s. limit of
+        H_Lambda_n/|Lambda_n| along cubes with arbitrary boundary conditions is mu(f_Phi | I)
+        (ae_tendsto_hamiltonian_juxt_div_card, from (15.25) and (14.A8)). Example (15.40), the
+        mechanism: G(gamma^Phi) = {rho} gives rho in G_Theta and k(mu|Phi) = 0 iff mu = rho
+        (specificRelativeEntropy_eq_zero_iff_eq_of_G_eq_singleton); the Chapter 3 Markov-chain
+        instance is on sites Z while Section 15 is on Z^d, and its explicit k(mu|Phi) is (15.19).
     - source: "Pullback of a potential along a map of the single-spin space; Example (9.15) from Theorem (6.4)"
       lean: "MeasureTheory.GibbsMeasure.exists_not_measurePreserving_squareFlip₁_of_summable"
       module: "GibbsMeasure/Specification/Pullback.lean"

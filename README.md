@@ -476,7 +476,12 @@ of σ-algebras, and (15.7) as a supremum over finite partitions. Lemma **(15.11)
 specific entropy (15.12) and the pressure (15.30). **§15.2** (`GibbsMeasure/Specification/SpecificEntropy.lean`):
 strong subadditivity **(15.10)** for arbitrary sets of sites, the **specific entropy (15.12)–(15.13)**
 as an infimum over boxes with convergence along any boxes with all side lengths → ∞, affine on
-`𝓟_Θ` and upper semicontinuous in the topology of local convergence ((15.14)(a)–(b)). **§15.3** (`GibbsMeasure/Specification/Pressure.lean`):
+`𝓟_Θ` and upper semicontinuous in the topology of local convergence ((15.14)(a)–(b)), with `{h ≥ c}`
+compact for standard Borel `E` ((15.14)(c)); **(15.16)–(15.18)**: `h(μ) = −𝓗_{V(0)}(μ | μλ_0)` over the
+lexicographic past, the infimum formula, both inequalities of (15.17), and the conditional form with
+Georgii's display `μ(σ_0 ∈ · | 𝓕_{V(0)∖0})` as Mathlib's `condExp`; **(15.19)** Shannon's formula for
+finite `E`; **(15.20)** an `𝓘`-measurable `h_0` with `h(μ) = ∫ h_0 dμ` on `𝓟_Θ` and `h(μ) = ∫ h dw_μ`
+over the ergodic decomposition. **§15.3** (`GibbsMeasure/Specification/Pressure.lean`):
 the energy density and specific energy (15.22)–(15.24), the boundary estimate (15.25) with an
 explicit finite-volume bound, and **Theorem (15.30)(a)**: the pressure `P(Φ)` exists along any boxes
 with all side lengths → ∞, for every choice of boundary conditions, with `|P(Φ)| ≤ ‖Φ‖₀`; `P` is
@@ -587,7 +592,7 @@ Gibbs measure is unique ((6.7)(2)).
 
 Not yet done: Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
-plane-rotator and Heisenberg instances (9.22)–(9.24), (15.14)(c), (15.16)–(15.20), (15.26)(1), (15.40), (11.18)(2), (11.19), §12.2, (13.4)–(13.10), §§13.2–13.3, and Chapters
+plane-rotator and Heisenberg instances (9.22)–(9.24), the Markov-chain instance of (15.40), (11.18)(2), (11.19), §12.2, (13.4)–(13.10), §§13.2–13.3, and Chapters
 16–20 (
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).

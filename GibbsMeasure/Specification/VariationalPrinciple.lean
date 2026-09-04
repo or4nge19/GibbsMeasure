@@ -62,6 +62,10 @@ The two inputs are §15.2 (`Specification/SpecificEntropy.lean`: `relativeEntrop
   `Potential.specificRelativeEntropy_eq_zero_iff_mem_invariantG'` and
   `Potential.specificEntropy_eq_specificEnergy_add_pressure_iff_mem_invariantG` are (15.39) and
   its free-energy form with no hypothesis beyond `[StandardBorelSpace E]`.
+* `Potential.specificRelativeEntropy_eq_zero_iff_eq_of_G_eq_singleton` and
+  `Potential.specificEntropy_eq_specificEnergy_add_pressure_iff_eq_of_G_eq_singleton`, the
+  mechanism of **Georgii Example (15.40)**: if `𝒢(Φ) = {ρ}` then, on `𝓟_Θ`, `𝓀(μ|Φ) = 0 ↔ μ = ρ`
+  (`Potential.mem_invariantG_of_G_eq_singleton` puts `ρ` in `𝒢_Θ(Φ)`).
 
 ## Hypotheses of the two directions of (15.39)
 
@@ -124,11 +128,22 @@ specification wherever possible.
 `MeasureTheory.isssd_eq_map_juxt_restrict` (`GibbsMeasure/Specification.lean`, next to
 `Specification.isssd_apply_of_mem_cylinderEvents`).
 
+## Example (15.40)
+
+Georgii's Example (15.40) characterises the stationary Markov chain `μ_Q` of a positive stochastic
+matrix `Q` on a finite `E` by `𝓀(μ|Φ) = 0 ↔ μ = μ_Q`, `Φ` the nearest-neighbour potential with
+`𝒢(Φ) = {μ_Q}` (Theorem (3.5)). Its mechanism is the general statement
+`Potential.specificRelativeEntropy_eq_zero_iff_eq_of_G_eq_singleton` (and its free-energy form
+`Potential.specificEntropy_eq_specificEnergy_add_pressure_iff_eq_of_G_eq_singleton`): if
+`𝒢(Φ) = {ρ}` then `ρ` is shift invariant (`Potential.mem_invariantG_of_G_eq_singleton`, Georgii
+(5.11)) and (15.39) reads `𝓀(μ|Φ) = 0 ↔ μ = ρ` on `𝓟_Θ`, with no hypothesis on `E`. The Chapter 3
+instance (`Model/MarkovChain.lean`, sites `ℤ` rather than `Unit → ℤ`) and Georgii's explicit
+computation of `P(Φ)`, `⟨μ, Φ⟩` and `𝓀(μ|Φ)` for it, which uses formula (15.19), are not in this
+file.
+
 ## Not in this file
 
-Georgii's Example (15.40) (the variational characterisation of a homogeneous Markov chain on `ℤ`,
-which needs Proposition (15.16) and formula (15.19)), and the consequences drawn at the end of
-§15.4 from Theorem (15.20), Proposition (16.1) and (4.23).
+The consequences drawn at the end of §15.4 from Theorem (15.20), Proposition (16.1) and (4.23).
 -/
 
 @[expose] public section
@@ -1425,6 +1440,68 @@ theorem specificRelativeEntropy_eq_zero_iff_mem_invariantG (hΦ : Φ.IsShiftInva
         (shiftGroup (ι → ℤ) E) :=
   ⟨fun h ↦ mem_invariantG_of_specificRelativeEntropy_eq_zero ν hΦ hμ hρ h,
     fun h ↦ specificRelativeEntropy_eq_zero_of_mem_invariantG ν hΦ h⟩
+
+/-! ### Georgii Example (15.40), the general mechanism: a unique Gibbs measure -/
+
+omit [DecidableEq ι] in
+/-- If `Φ ∈ ℬ_Θ` has a unique Gibbs measure `ρ`, `𝒢(Φ) = {ρ}`, then `ρ` is shift invariant
+(Georgii (5.11), `Specification.IsInvariant.map_isGibbsMeasure` for the shifts, which are
+symmetries of `γ^Φ` by (5.9)(b)), so `ρ ∈ 𝒢_Θ(Φ)`. -/
+theorem mem_invariantG_of_G_eq_singleton (hΦ : Φ.IsShiftInvariant)
+    {ρ : Measure ((ι → ℤ) → E)}
+    (hρ : G (gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν 1) = {ρ}) :
+    ρ ∈ invariantG (gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν 1)
+      (shiftGroup (ι → ℤ) E) := by
+  have hρG : ρ ∈ G (gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν 1) :=
+    hρ ▸ Set.mem_singleton ρ
+  have : IsProbabilityMeasure ρ := hρG.1
+  refine ⟨hρG, mem_invariantFields_shiftGroup.2
+    ⟨hρG.1, fun j ↦ ⟨(shift E j).measurable_toFun, ?_⟩⟩⟩
+  have hmap : ρ.map (shift E j).toFun ∈ G (gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν 1) :=
+    ⟨Measure.isProbabilityMeasure_map (shift E j).measurable_toFun.aemeasurable,
+      (isInvariant_shift_gibbsSpecification hΦ ν 1 j).map_isGibbsMeasure hρG.2⟩
+  rw [hρ] at hmap
+  exact hmap
+
+/-- **Georgii Example (15.40), the general mechanism.** If `Φ ∈ ℬ_Θ` has a unique Gibbs measure
+`ρ`, `𝒢(Φ) = {ρ}`, then for every shift-invariant random field `μ ∈ 𝓟_Θ`, `𝓀(μ|Φ) = 0` if and
+only if `μ = ρ`: the specific relative entropy `𝓀(·|Φ)` characterises `ρ` among the
+shift-invariant random fields. This is Theorem (15.39) with `𝒢_Θ(Φ) = {ρ}`
+(`mem_invariantG_of_G_eq_singleton`); no hypothesis on `E` is needed, since `ρ` itself is the
+shift-invariant Gibbs measure the converse direction requires. Georgii's Example (15.40) is the
+instance `S = ℤ`, `E` finite, `Φ` the nearest-neighbour potential of a positive stochastic matrix
+`Q` (Theorem (3.5): `𝒢(Φ) = {μ_Q}`), `ρ = μ_Q`. -/
+theorem specificRelativeEntropy_eq_zero_iff_eq_of_G_eq_singleton (hΦ : Φ.IsShiftInvariant)
+    [IsProbabilityMeasure μ] (hμ : μ ∈ invariantFields (shiftGroup (ι → ℤ) E))
+    {ρ : Measure ((ι → ℤ) → E)}
+    (hρ : G (gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν 1) = {ρ}) :
+    Φ.specificRelativeEntropy ν μ = 0 ↔ μ = ρ := by
+  have hρ' := mem_invariantG_of_G_eq_singleton ν hΦ hρ
+  have : IsProbabilityMeasure ρ := hρ'.1.1
+  rw [specificRelativeEntropy_eq_zero_iff_mem_invariantG ν hΦ hμ hρ']
+  refine ⟨fun h ↦ ?_, ?_⟩
+  · have hG := h.1
+    rw [hρ] at hG
+    exact hG
+  · rintro rfl
+    exact hρ'
+
+/-- **Georgii Example (15.40), free-energy form.** If `𝒢(Φ) = {ρ}`, a shift-invariant random
+field `μ ∈ 𝓟_Θ` attains the minimum `−P(Φ)` of the specific free energy `⟨·, Φ⟩ − 𝓀(·)` —
+equivalently `𝓀(μ) = ⟨μ, Φ⟩ + P(Φ)` — if and only if `μ = ρ`. -/
+theorem specificEntropy_eq_specificEnergy_add_pressure_iff_eq_of_G_eq_singleton
+    (hΦ : Φ.IsShiftInvariant) [IsProbabilityMeasure μ]
+    (hμ : μ ∈ invariantFields (shiftGroup (ι → ℤ) E)) {ρ : Measure ((ι → ℤ) → E)}
+    (hρ : G (gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν 1) = {ρ}) :
+    specificEntropy ν μ = ((Φ.specificEnergy μ + Φ.pressure ν : ℝ) : EReal) ↔ μ = ρ := by
+  have hρ' := mem_invariantG_of_G_eq_singleton ν hΦ hρ
+  have : IsProbabilityMeasure ρ := hρ'.1.1
+  rw [← specificRelativeEntropy_eq_zero_iff_eq_of_G_eq_singleton ν hΦ hμ hρ]
+  refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
+  · rw [specificRelativeEntropy, add_comm (Φ.pressure ν), h, ← EReal.coe_sub, sub_self,
+      EReal.coe_zero]
+  · have hμG := (specificRelativeEntropy_eq_zero_iff_mem_invariantG ν hΦ hμ hρ').1 h
+    exact specificEntropy_eq_specificEnergy_add_pressure ν hΦ hμ hμG.1.2
 
 /-! ### Georgii Theorem (15.39) over a standard Borel state space -/
 
