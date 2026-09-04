@@ -1,0 +1,33 @@
+\section{Large deviations and equivalence of ensembles}
+
+\begin{definition}[The periodic empirical field, Georgii (15.41)--(15.44)]
+    \label{def:ld-15-41}
+    \uses{def:erg-invariant, thm:erg-14A8}
+    \lean{MeasureTheory.GibbsMeasure.periodicEmpiricalField, MeasureTheory.GibbsMeasure.abs_integral_periodicEmpiricalField_sub_le, MeasureTheory.GibbsMeasure.tendsto_integral_periodicEmpiricalField_sub_zero, MeasureTheory.GibbsMeasure.ae_tendsto_integral_periodicEmpiricalField, MeasureTheory.GibbsMeasure.tendsto_measure_setOf_abs_integral_periodicEmpiricalField_sub_lt}
+    \leanok
+
+    The periodic empirical field $°R^\omega_\Delta$ is shift invariant, differs from $R^\omega_\Delta$
+    by at most $2c\abs T/\abs\Delta$ uniformly in $\omega$ (15.43)(1), and for an ergodic
+    $\mu \in \Prob_\Theta$ satisfies $°R^\omega_{\Lambda_n}(f) \to \mu(f)$ almost surely along
+    increasing cubes and any torus reductions (15.43)(2), hence
+    $\mu(°R_{\Lambda_n} \in U) \to 1$ for every basic neighbourhood $U$ of $\mu$ (15.44).
+\end{definition}
+
+\begin{proposition}[Georgii (15.48), (15.49), (15.59)]
+    \label{prop:ld-15-49}
+    \uses{def:ld-15-41, thm:vp-15-39, prop:sent-15-14c, cor:gv-16-12}
+    \lean{Potential.BTheta.ldRate, Potential.BTheta.ldRate_nonneg, Potential.BTheta.ldRate_eq_zero_iff, Potential.BTheta.ldRate_smul_add_smul_le, Potential.BTheta.isCompact_setOf_ldRate_le, Potential.BTheta.lowerSemicontinuous_ldRate, Potential.BTheta.ldRate_eq_iSup, Potential.BTheta.iSup_sub_ldRate_eq, Potential.BTheta.exists_specificRelativeEntropy_eq_pressure_sub, Potential.BTheta.iInf_ldRate_interior_eq_iInf_closure, eq_iSup_sub_of_isClosed_convex_epigraph}
+    \leanok
+
+    The rate function $J_\Psi(\cdot\mid\Phi)$ is nonnegative, vanishes exactly on the Gibbs
+    measures, is convex with compact level sets and lower semicontinuous, and is the Legendre
+    transform $J_\Psi(x\mid\Phi) = \sup_t [t\cdot x - P(\Phi - t\cdot\Psi) + P(\Phi)]$, the
+    conjugate being attained at a shift-invariant Gibbs measure of $\Phi - t\cdot\Psi$. For convex
+    $B$ meeting the interior, the infimum over $\bar B$ and over $B^\circ$ agree (15.59).
+\end{proposition}
+\begin{proof}
+    \leanok
+    Fenchel--Moreau for a rate function: the epigraph is closed and convex, so a separating
+    hyperplane in $\mathbb R^k \times \mathbb R$ gives the supremum representation, with the
+    variational principle supplying attainment.
+\end{proof}

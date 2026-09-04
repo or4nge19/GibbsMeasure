@@ -499,6 +499,15 @@ the pressure as the logarithm of the Perron root, the specific energy, `k(μ|Φ)
 relative entropy of the one-step conditional distribution against the transition row, and
 `k(μ|Φ) = 0` exactly at the stationary chain.
 
+**§15.5** (`GibbsMeasure/Specification/LargeDeviations.lean`): the periodic empirical field, its
+uniform comparison with the empirical field, and its almost sure convergence under an ergodic
+measure — stronger than Georgii's convergence in probability; the large-deviation rate function,
+convex with compact level sets, vanishing exactly on the Gibbs measures, and equal to its Legendre
+transform, the conjugate being attained at a Gibbs measure. Mathlib has neither large-deviation
+theory nor a convex conjugate, so Fenchel–Moreau for a rate function is built model-free in the
+Mathlib layer. Still open there: (15.45)–(15.47), which need Shannon–McMillan–Breiman and Choquet
+theory, neither of which Mathlib has.
+
 **Chapter 16, §16.1** (`GibbsMeasure/Specification/TangentFunctional.lean`): Georgii's `ℬ_Θ` as a
 Banach space, on which the pressure is convex and `1`-Lipschitz (16.1), and its tangent-functional
 theory (16.2)–(16.9) — one-sided directional derivatives, the dense-`G_δ` differentiability theorem

@@ -7,6 +7,7 @@ public import GibbsMeasure.Mathlib.Analysis.PSeries
 public import GibbsMeasure.Mathlib.Algebra.Order.BigOperators.Ring.Finset
 public import GibbsMeasure.Mathlib.Algebra.BigOperators.Group.Finset.Sigma
 public import GibbsMeasure.Mathlib.Topology.Instances.EReal
+public import GibbsMeasure.Mathlib.Topology.Semicontinuity.EReal
 public import GibbsMeasure.Mathlib.Data.EReal.Inv
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.ENNReal
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.Order
@@ -73,6 +74,8 @@ public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.CondExp
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Limit
 public import GibbsMeasure.Mathlib.Probability.Moments.Covariance
 public import GibbsMeasure.Mathlib.Probability.Independence.Integration
+public import GibbsMeasure.Mathlib.Probability.LargeDeviations.Basic
+public import GibbsMeasure.Mathlib.Probability.LargeDeviations.Legendre
 public import GibbsMeasure.Mathlib.Probability.UniformOn
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Tsum
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Trim
@@ -248,6 +251,7 @@ public import GibbsMeasure.Specification.SpecificEntropy
 public import GibbsMeasure.Specification.VariationalPrinciple
 public import GibbsMeasure.Specification.TangentFunctional
 public import GibbsMeasure.Specification.PhaseTransition
+public import GibbsMeasure.Specification.LargeDeviations
 public import GibbsMeasure.Specification.Structure
 public import GibbsMeasure.Topology.ConfigurationSpace
 public import GibbsMeasure.Topology.ClusterPoints
