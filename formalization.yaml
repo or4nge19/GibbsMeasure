@@ -344,6 +344,10 @@ status:
       file: "GibbsMeasure/Specification/LargeDeviations.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.georgii_13_22_iff"
+      file: "GibbsMeasure/Model/GaussianGibbs.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.isCompact_setOf_le_specificEntropy"
       file: "GibbsMeasure/Specification/SpecificEntropy.lean"
       sorry_count: 0
@@ -1506,15 +1510,24 @@ alignment:
         couplings; the passage from conditional expectations at every singleton to the DLR
         equations is (1.33), now named in Specification/CondExpGibbs.lean (it was a two-line
         consequence of the tree's IsCondExp definition, not the gap it had been recorded as).
-        (13.22) sufficiency for finite row support, via the row forms X_i = sum_j J(i,j) sigma_j.
+        (13.22) as a full equivalence for finite row support: a Gauss field is Gibbs for gamma^{J,h}
+        iff its mean is in M_{J,h} and its covariance inverts J (the necessity half needed the
+        first two moments of the Gaussian kernel, now in Density.lean).
         (13.23) all of (a)-(c): translation by an element of the mean set maps gamma^{J,h'} to
         gamma^{J,h+h'}, G(gamma^{J,h}) is a translate of G(gamma^{J,0}), and translations by the
         mean submodule are symmetries. The closing step of (13.26)/(13.31): a centred Gauss field
         whose covariance inverts J gives a Gibbs measure, so G is nonempty. Not formalized:
         (13.22) necessity (needs the first two moments of the Gaussian kernel), (13.23)(d) (needs
-        Remark (7.2) and that no probability measure on R is translation invariant), (13.24)-(13.25)
-        (need (7.12) and (13.A5)), and the first half of (13.26) (hypothesis (13.27) produces the
-        covariance as the limit (13.25), by monotonicity of the inverse coupling matrices).
+        Remark (7.2) and that no probability measure on R is translation invariant), (13.24)-(13.25) (need (7.12) and (13.A5)).
+        The first half of (13.26) is proved: under (13.27) the entries of the inverse coupling
+        matrices converge to a nonnegative-definite inverse of J, so G is nonempty. Georgii derives
+        the underlying monotonicity from (13.13) and Jensen; here it is the linear-algebra fact
+        (A_{Lambda Lambda})^{-1} <= (A^{-1})_{Lambda Lambda} (Mathlib/LinearAlgebra/Matrix/PosDef.lean),
+        with weaker hypotheses and no measure theory. Section 13.3 is begun in
+        Model/GaussianHomogeneous.lean (translation-invariant couplings, the constant elements of
+        the mean set, and the constant shifts as symmetries when the coupling sums to zero);
+        (13.36) and (13.39)-(13.45) need Fourier analysis on K^d, which Mathlib has only in one
+        dimension.
         Georgii (13.A7), existence and uniqueness of a centred Gaussian process with prescribed
         nonnegative-definite covariance, is proved in
         Mathlib/Probability/Distributions/Gaussian/Existence.lean (Kolmogorov extension of the

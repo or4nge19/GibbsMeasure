@@ -67,12 +67,38 @@ and the spin at `i` is translated by `m_i` — defined in general in
   (`GibbsMeasure/Specification/CondExpGibbs.lean`), concludes. Because `J` has finite range, all
   the sums are finite and Georgii's Corollary (13.A6) — a.s. convergence implies `L²` convergence
   for a Gaussian family, which he needs for infinite range — is not used.
+* **Georgii Theorem (13.22), the implication (a) ⟹ (b)**, and hence the full equivalence
+  `MeasureTheory.GibbsMeasure.georgii_13_22_iff`: for `J` of finite range, a Gaussian field `μ`
+  with mean `m` and covariance `C` is in `𝒢(γ^{J,h})` iff `m ∈ M_{J,h}` and
+  `∑_{j ∈ S} J(i,j) C(j,k) = δ_{ik}`. The necessity is Georgii's proof: Proposition (13.13) at the
+  one-point volume gives the first two moments of `γ^{J,h}_{\{i\}}(·|ω)`
+  (`integral_eval_gaussianSpecification_singleton`,
+  `integral_eval_sq_gaussianSpecification_singleton`), which
+  `ProbabilityTheory.Kernel.condExp_ae_eq_integral_kernel` turns into (13.5)
+  (`condExpOutside_ae_eq_gaussianCondMean_of_isGibbsMeasure`) and into
+  `μ(σ_i² | 𝒯_{\{i\}}) = ξ_i² + J(i,i)⁻¹` (`condExp_sq_ae_eq_of_isGibbsMeasure`); hence
+  `μ((σ_i - ξ_i^μ)²) = J(i,i)⁻¹`
+  (`integral_sq_sub_condExpOutside_eq_inv_of_isGibbsMeasure`), the residual `σ_i - ξ_i` is
+  orthogonal to `L²(𝒯_{\{i\}})` (`integral_mul_sub_gaussianCondMean_eq_zero`), and Georgii's
+  computation of `μ((X_i - μ(X_i))(σ_k - m_k))` gives `m ∈ M_{J,h}`
+  (`mem_gaussianMeanSet_of_isGibbsMeasure`) and `∑_j J(i,j)C(j,k) = δ_{ik}`
+  (`isInverse_covariance_of_isGibbsMeasure`).
 * **The last step of Georgii's proofs of Theorems (13.26) and (13.31)**,
   `MeasureTheory.GibbsMeasure.isGibbsMeasure_map_add_of_centered_of_isInverse` and
   `nonempty_G_gaussianSpecification_of_centered_of_isInverse`: if a *centred* Gaussian field
   `μ_C` whose covariance `C` inverts `J` exists, then `τ^m(μ_C) ∈ 𝒢(γ^{J,h})` for every
   `m ∈ M_{J,h}`, so `𝒢(γ^{J,h}) ≠ ∅` whenever `M_{J,h} ≠ ∅`. This is (13.22)(b) ⟹ (a) at `h = 0`
   followed by (13.23)(b), exactly as Georgii closes both proofs.
+* **Georgii Theorem (13.26), the sufficiency half, in full**,
+  `MeasureTheory.GibbsMeasure.nonempty_G_gaussianSpecification_of_bddAbove`: for `J` symmetric of
+  finite range with every `𝒥_Λ` positive definite, `M_{J,h} ≠ ∅` together with Georgii's condition
+  (13.27), `sup_Λ 𝒥_Λ⁻¹(i,i) < ∞`, implies `𝒢(γ^{J,h}) ≠ ∅`. The chain is Georgii's:
+  `MeasureTheory.GibbsMeasure.dotProduct_mulVec_inv_gaussianCovMatrix_mono` (his monotonicity
+  display), `inv_gaussianCovMatrix_diag_mono` and `inv_gaussianCovMatrix_pair_mono` (his two
+  monotone functions of `Λ`), `two_mul_inv_gaussianCovMatrix_le` (his Cauchy–Schwarz step),
+  `exists_tendsto_invGaussianCovEntry` (the limits (13.25) exist),
+  `posSemidef_covMatrix_of_tendsto` and `isInverse_of_tendsto_invGaussianCovEntry` (the limit `C`
+  is nonnegative definite and inverts `J`), then the item below.
 * **Georgii Theorem (13.26), the existence half, granted the limit (13.25)**,
   `MeasureTheory.GibbsMeasure.nonempty_G_gaussianSpecification_of_posSemidef_of_isInverse`: if
   `C : S × S → ℝ` is nonnegative definite and inverts `J`, then `𝒢(γ^{J,h}) ≠ ∅` for every `h`
@@ -83,22 +109,6 @@ and the spin at `i` is translated by `m_i` — defined in general in
 
 ## What is *not* proved here, and why
 
-* **Georgii Theorem (13.22), (a) ⟹ (b)** is not proved. For finite range it does not need
-  (13.A6) either. The missing steps are: the identification of `∫ x_i dγ^{J,h}_{\{i\}}(x|ω)`
-  and `∫ x_i² dγ^{J,h}_{\{i\}}(x|ω)` with `ξ_i(ω)` and `ξ_i(ω)² + J(i,i)⁻¹` (Proposition
-  (13.13) at `Λ = {i}`, i.e. `Potential.gaussianSpecification_apply` together with
-  `ProbabilityTheory.integral_eval_multivariateGaussianPi` and
-  `integral_sub_mul_sub_multivariateGaussianPi` — the second moment additionally needs
-  `Integrable (fun ζ ↦ ζ i ^ 2) (multivariateGaussianPi A m)`, which
-  `GibbsMeasure/Mathlib/Probability/Distributions/Gaussian/Density.lean` proves only in its
-  density-weighted form `integrable_dotProduct_sq_mul_exp_neg_half_dotProduct_mulVec`); these fed
-  into `ProbabilityTheory.Kernel.condExp_ae_eq_integral_kernel`
-  (`GibbsMeasure/Prereqs/Kernel/CondExpBind.lean`) turn `μ ∈ 𝒢(γ^{J,h})` into `ξ_i^μ = ξ_i` a.s.
-  and `μ((σ_i - ξ_i^μ)²) = J(i,i)⁻¹`; from there Georgii's computation of
-  `μ((X_i - μ(X_i))(σ_k - m_k))` uses only `integral_sub_condExpOutside`,
-  `integral_eval_mul_sub_condExpOutside_eq_zero` (`GaussianField.lean`) and
-  `covariance_gaussianRowForm_eval` below. This is a self-contained further step and is simply
-  not attempted.
 * **Georgii Remark (13.23)(d)** (`M_{J,0} ≠ {0}` implies `𝒢(γ^{J,h}) = ∅` or `ex 𝒢(γ^{J,h})`
   uncountable) needs, besides (c): `ex 𝒢 ≠ ∅` when `𝒢 ≠ ∅` (Theorem (7.26)), which *is* in the
   tree as `MeasureTheory.GibbsMeasure.exists_mem_extremePoints_G_of_isGibbsMeasure`; that `τ^m`
@@ -106,25 +116,33 @@ and the spin at `i` is translated by `m_i` — defined in general in
   `mem_extremePoints_G_iff_isTailTrivial` reduces it to the invariance of the tail σ-algebra under
   `τ^m`; and the injectivity of `t ↦ τ^{t m}(μ)`, which amounts to the fact that no probability
   measure on `ℝ` is invariant under a non-zero translation, also not in the tree.
-* **Georgii Theorems (13.24) and (13.26)/(13.31) proper.** (13.24) needs Theorem (7.12) (every
-  extreme Gibbs measure is a local limit `lim_n γ_{Λ_n}(·|ω)`) together with Proposition (13.A5)
-  (a local limit of Gaussian fields is Gaussian). Proposition (13.A7) — the existence of a centred
-  Gaussian field with a prescribed nonnegative definite covariance function — is no longer
-  missing: it is `ProbabilityTheory.gaussianField` in
-  `GibbsMeasure/Mathlib/Probability/Distributions/Gaussian/Existence.lean`, a Kolmogorov extension
-  of the projective family of (possibly degenerate) multivariate Gaussians
-  `ProbabilityTheory.multivariateGaussian`. What is still missing for (13.26) is the *first* half
-  of its proof: that hypothesis (13.27), `sup_Λ 𝒥_Λ⁻¹(i,i) < ∞`, forces the limits (13.25) to
-  exist, via the monotonicity `∑_{i,j ∈ Λ} 𝒥_Λ⁻¹(i,j) t_i t_j ≤ ∑_{i,j ∈ Λ} 𝒥_Δ⁻¹(i,j) t_i t_j`
-  for `Λ ⊆ Δ` (a statement about `γ^{J,h}`, proved from Proposition (13.13) and Jensen). Likewise
-  (13.31) needs the Fourier-analytic input (13.A8)/(13.A9). The potential-theoretic identity of
-  Comment (13.28) is not attempted either.
+* **Georgii Theorems (13.24) and (13.31).** (13.24) — the description of `ex 𝒢(γ^{J,h})` as the
+  Gaussian fields with covariance `C` of (13.25) and mean in `M_{J,h}`, and hence the necessity
+  half of (13.26) — needs Theorem (7.12) (every extreme Gibbs measure is a local limit
+  `lim_n γ_{Λ_n}(·|ω)`) together with Proposition (13.A5) (a local limit of Gaussian fields is
+  Gaussian, of which `GibbsMeasure/Mathlib/Probability/Distributions/Gaussian/Limit.lean` has the
+  `L¹` version); neither step is attempted here. (13.31) needs the matrices
+  `P_V(i,j) = -J(i,j)/J(i,i)` and the Neumann series `C_V = ∑_n P_V^n / J(j,j)`, i.e. a genuinely
+  infinite-range development. The potential-theoretic identity of Comment (13.28) is not attempted
+  either.
 
 ## General lemmas proved in the Mathlib layer for this file
 
 * `ProbabilityTheory.multivariateGaussianPi_map_add_right`
   (`GibbsMeasure/Mathlib/Probability/Distributions/Gaussian/Density.lean`): the pushforward of
   `multivariateGaussianPi A m` along `x ↦ x + v` is `multivariateGaussianPi A (m + v)`.
+* `ProbabilityTheory.integral_eval_sq_multivariateGaussianPi` and the integrability lemmas
+  `integrable_eval_multivariateGaussianPi`, `integrable_sub_mul_sub_multivariateGaussianPi`,
+  `integrable_eval_sq_multivariateGaussianPi` (same file): the second moment
+  `∫ x_i² d(multivariateGaussianPi A m) = A⁻¹(i,i) + m_i²`, needed for the conditional variance in
+  Theorem (13.22).
+* `Matrix.PosDef.two_mul_dotProduct_sub_dotProduct_mulVec_le` and
+  `Matrix.PosDef.dotProduct_mulVec_inv_submatrix_le`
+  (`GibbsMeasure/Mathlib/LinearAlgebra/Matrix/PosDef.lean`): the variational characterisation
+  `t ⬝ᵥ A⁻¹ *ᵥ t = sup_x (2 (t ⬝ᵥ x) - x ⬝ᵥ A *ᵥ x)` of the quadratic form of the inverse of a
+  positive definite matrix, and the resulting positive semidefinite inequality
+  `(A_{II})⁻¹ ≤ (A⁻¹)_{II}` for a principal submatrix — Georgii's monotonicity display in the
+  proof of Theorem (13.26).
 -/
 
 @[expose] public section
@@ -760,5 +778,890 @@ theorem nonempty_G_gaussianSpecification_of_posSemidef_of_isInverse
   simpa only [ProbabilityTheory.covariance_eval_gaussianField hCpsd] using hCinv i k
 
 end Theorem13_26
+
+/-! ## Georgii Theorem (13.22), (a) ⟹ (b), for `J` of finite range
+
+The two ingredients Georgii uses are the first two moments of `γ^{J,h}_{\{i\}}(·|ω)`, read off
+Proposition (13.13) at the one-point volume `Λ = {i}`: the mean is `ξ_i(ω)` and the variance is
+`J(i,i)⁻¹`. Fed into `ProbabilityTheory.Kernel.condExp_ae_eq_integral_kernel` they turn
+`μ ∈ 𝒢(γ^{J,h})` into Georgii's (13.5), `ξ_i^μ = ξ_i` a.s., and into
+`μ((σ_i - ξ_i^μ)²) = J(i,i)⁻¹`. -/
+
+section Theorem13_22Converse
+
+variable {S : Type*} [Countable S] [LinearOrder S] {μ : Measure (S → ℝ)}
+  {J : S → S → ℝ} {h : S → ℝ}
+  (hSymm : ∀ i j, J i j = J j i) (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite)
+  (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef)
+
+omit [Countable S] in
+/-- On the one-point volume `Λ = {i}` the coupling matrix `𝒥_{\{i\}}` is the `1 × 1` matrix
+`J(i,i)`, so `𝒥_{\{i\}}⁻¹ = J(i,i)⁻¹`. This is the variance of `γ^{J,h}_{\{i\}}(·|ω)` in
+Proposition (13.13). -/
+lemma inv_gaussianCovMatrix_singleton_apply (J : S → S → ℝ) (i : S) :
+    (Potential.gaussianCovMatrix J {i})⁻¹ ⟨i, Finset.mem_singleton_self i⟩
+        ⟨i, Finset.mem_singleton_self i⟩ = (J i i)⁻¹ := by
+  have hinv : (Potential.gaussianCovMatrix J {i})⁻¹ = (J i i)⁻¹ • (1 : Matrix _ _ ℝ) := by
+    rw [Matrix.inv_def, Matrix.adjugate_subsingleton, Matrix.det_unique, Ring.inverse_eq_inv']
+    rfl
+  rw [hinv]
+  simp
+
+include hSymm hFin hPD in
+/-- **The mean of `γ^{J,h}_{\{i\}}(·|ω)`** (Proposition (13.13) at `Λ = {i}`): Georgii's
+`ξ_i(ω) = -J(i,i)⁻¹(h_i + ∑_{j ≠ i} J(i,j) ω_j)`. -/
+lemma integral_eval_gaussianSpecification_singleton (i : S) (ω : S → ℝ) :
+    ∫ x, x i ∂(Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos {i} ω)
+      = gaussianCondMean J h i ω := by
+  have hJii : 0 < J i i := (hPD {i}).diag_pos (i := ⟨i, Finset.mem_singleton_self i⟩)
+  rw [Potential.gaussianSpecification_apply, one_smul,
+    integral_map Measurable.juxt.aemeasurable (measurable_pi_apply i).aestronglyMeasurable]
+  simp only [juxt_apply_of_mem (Finset.mem_coe.2 (Finset.mem_singleton_self i))]
+  refine Eq.trans ?_ (gaussianCondMean_eq_gaussianMean h hFin hJii.ne' ω).symm
+  exact integral_eval_multivariateGaussianPi (ι := ({i} : Finset S)) (hPD {i})
+    (Potential.gaussianMean J h hFin {i} ω) ⟨i, Finset.mem_singleton_self i⟩
+
+include hSymm hFin hPD in
+/-- **The second moment of `γ^{J,h}_{\{i\}}(·|ω)`** (Proposition (13.13) at `Λ = {i}`):
+`ξ_i(ω)² + J(i,i)⁻¹`. -/
+lemma integral_eval_sq_gaussianSpecification_singleton (i : S) (ω : S → ℝ) :
+    ∫ x, x i ^ 2 ∂(Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos {i} ω)
+      = gaussianCondMean J h i ω ^ 2 + (J i i)⁻¹ := by
+  have hJii : 0 < J i i := (hPD {i}).diag_pos (i := ⟨i, Finset.mem_singleton_self i⟩)
+  rw [Potential.gaussianSpecification_apply, one_smul,
+    integral_map Measurable.juxt.aemeasurable
+      ((measurable_pi_apply i).pow_const 2).aestronglyMeasurable]
+  simp only [juxt_apply_of_mem (Finset.mem_coe.2 (Finset.mem_singleton_self i))]
+  refine Eq.trans (integral_eval_sq_multivariateGaussianPi (ι := ({i} : Finset S)) (hPD {i})
+    (Potential.gaussianMean J h hFin {i} ω) ⟨i, Finset.mem_singleton_self i⟩) ?_
+  rw [inv_gaussianCovMatrix_singleton_apply J i, gaussianCondMean_eq_gaussianMean h hFin hJii.ne']
+  ring
+
+variable (hμ : ProbabilityTheory.IsGaussianProcess (fun i (ω : S → ℝ) ↦ ω i) μ)
+
+omit [Countable S] in
+include hFin hμ in
+/-- Georgii's `ξ_i` is square integrable under a Gaussian field: for `J` of finite row support it
+is a finite affine combination of the spins `σ_j`, `j ≠ i`. -/
+lemma memLp_two_gaussianCondMean (i : S) : MemLp (gaussianCondMean J h i) 2 μ := by
+  have hP := hμ.isProbabilityMeasure
+  have hfun : (fun ω : S → ℝ ↦ ∑ j ∈ (hFin i).toFinset.erase i, J i j * ω j)
+      = ∑ j ∈ (hFin i).toFinset.erase i, fun ω : S → ℝ ↦ J i j * ω j := by
+    funext ω
+    simp [Finset.sum_apply]
+  have hsum : MemLp
+      (fun ω : S → ℝ ↦ ∑ j ∈ (hFin i).toFinset.erase i, J i j * ω j) 2 μ := by
+    rw [hfun]
+    exact memLp_finsetSum' _ fun j _ ↦ (memLp_two_eval hμ j).const_mul (J i j)
+  have hadd : MemLp
+      (fun ω : S → ℝ ↦ h i + ∑ j ∈ (hFin i).toFinset.erase i, J i j * ω j) 2 μ :=
+    (memLp_const (μ := μ) (p := 2) (h i)).add hsum
+  rw [funext (gaussianCondMean_eq_sum hFin i)]
+  exact hadd.const_mul (-(J i i)⁻¹)
+
+omit [Countable S] [LinearOrder S] in
+private lemma coe_singleton_compl (i : S) :
+    ((({i} : Finset S) : Set S))ᶜ = ({i}ᶜ : Set S) := by rw [Finset.coe_singleton]
+
+include hSymm hPD hμ in
+/-- **Georgii's equation (13.5), derived from `μ ∈ 𝒢(γ^{J,h})`.** This is the first step of the
+implication (a) ⟹ (b) of Theorem (13.22): by Proposition (13.13) the mean of
+`γ^{J,h}_{\{i\}}(·|ω)` is `ξ_i(ω)`, and `γ^{J,h}_{\{i\}}` is a conditional expectation kernel for
+`μ`, so `ξ_i^μ = ξ_i` `μ`-a.s. -/
+lemma condExpOutside_ae_eq_gaussianCondMean_of_isGibbsMeasure
+    (hGibbs : (Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos).IsGibbsMeasure μ)
+    (i : S) : condExpOutside μ i =ᵐ[μ] gaussianCondMean J h i := by
+  have hP := hμ.isProbabilityMeasure
+  have hcond := hGibbs {i}
+  have hpt : ∀ ω : S → ℝ,
+      ∫ x, x i ∂(Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos {i} ω)
+        = gaussianCondMean J h i ω :=
+    fun ω ↦ integral_eval_gaussianSpecification_singleton hSymm hFin hPD i ω
+  have hξL2 : MemLp (gaussianCondMean J h i) 2 μ := memLp_two_gaussianCondMean hFin hμ i
+  have hgm : AEStronglyMeasurable[cylinderEvents ((({i} : Finset S) : Set S))ᶜ]
+      (fun ω ↦ ∫ x, x i ∂(Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos {i} ω))
+      μ := by
+    rw [funext hpt, coe_singleton_compl i]
+    exact ((measurable_cylinderEvents_gaussianCondMean (h := h) hFin
+      i).stronglyMeasurable).aestronglyMeasurable
+  have key : μ[fun ω : S → ℝ ↦ ω i | cylinderEvents ((({i} : Finset S) : Set S))ᶜ]
+      =ᵐ[μ] gaussianCondMean J h i :=
+    (Kernel.condExp_ae_eq_integral_kernel μ
+      (Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos {i}) cylinderEvents_le_pi
+      (fun ω : S → ℝ ↦ ω i) ((memLp_two_eval hμ i).integrable one_le_two)
+      (by rw [funext hpt]; exact hξL2.integrable one_le_two) hgm).trans
+    (Filter.Eventually.of_forall hpt)
+  rw [coe_singleton_compl i] at key
+  exact key
+
+include hSymm hPD hμ in
+/-- **The conditional second moment of a single spin, derived from `μ ∈ 𝒢(γ^{J,h})`**: by
+Proposition (13.13) the law of `σ_i` under `γ^{J,h}_{\{i\}}(·|ω)` is `𝒩(ξ_i(ω), J(i,i)⁻¹)`, so
+`μ(σ_i² | 𝒯_{\{i\}}) = ξ_i² + J(i,i)⁻¹` `μ`-a.s. -/
+lemma condExp_sq_ae_eq_of_isGibbsMeasure
+    (hGibbs : (Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos).IsGibbsMeasure μ)
+    (i : S) :
+    μ[fun ω : S → ℝ ↦ ω i ^ 2 | cylinderEvents ({i}ᶜ : Set S)]
+      =ᵐ[μ] fun ω ↦ gaussianCondMean J h i ω ^ 2 + (J i i)⁻¹ := by
+  have hP := hμ.isProbabilityMeasure
+  have hcond := hGibbs {i}
+  have hpt : ∀ ω : S → ℝ,
+      ∫ x, x i ^ 2 ∂(Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos {i} ω)
+        = gaussianCondMean J h i ω ^ 2 + (J i i)⁻¹ :=
+    fun ω ↦ integral_eval_sq_gaussianSpecification_singleton hSymm hFin hPD i ω
+  have hξL2 : MemLp (gaussianCondMean J h i) 2 μ := memLp_two_gaussianCondMean hFin hμ i
+  have hgint : Integrable (fun ω ↦ gaussianCondMean J h i ω ^ 2 + (J i i)⁻¹) μ :=
+    hξL2.integrable_sq.add (integrable_const _)
+  have hgm : AEStronglyMeasurable[cylinderEvents ((({i} : Finset S) : Set S))ᶜ]
+      (fun ω ↦ ∫ x, x i ^ 2
+        ∂(Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos {i} ω)) μ := by
+    rw [funext hpt, coe_singleton_compl i]
+    exact ((((measurable_cylinderEvents_gaussianCondMean (h := h) hFin i).pow_const
+      2).add_const _).stronglyMeasurable).aestronglyMeasurable
+  have key : μ[fun ω : S → ℝ ↦ ω i ^ 2 | cylinderEvents ((({i} : Finset S) : Set S))ᶜ]
+      =ᵐ[μ] fun ω ↦ gaussianCondMean J h i ω ^ 2 + (J i i)⁻¹ :=
+    (Kernel.condExp_ae_eq_integral_kernel μ
+      (Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos {i}) cylinderEvents_le_pi
+      (fun ω : S → ℝ ↦ ω i ^ 2) (memLp_two_eval hμ i).integrable_sq
+      (by rw [funext hpt]; exact hgint) hgm).trans (Filter.Eventually.of_forall hpt)
+  rw [coe_singleton_compl i] at key
+  exact key
+
+include hSymm hPD hμ in
+/-- **The conditional variance of a single spin is `J(i,i)⁻¹`, derived from `μ ∈ 𝒢(γ^{J,h})`.**
+Combining the conditional first moment (`condExpOutside_ae_eq_gaussianCondMean_of_isGibbsMeasure`)
+with the conditional second moment (`condExp_sq_ae_eq_of_isGibbsMeasure`) and the pull-out
+property of the conditional expectation, `μ((σ_i - ξ_i^μ)²) = J(i,i)⁻¹`. -/
+lemma integral_sq_sub_condExpOutside_eq_inv_of_isGibbsMeasure
+    (hGibbs : (Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos).IsGibbsMeasure μ)
+    (i : S) : ∫ ω, (ω i - condExpOutside μ i ω) ^ 2 ∂μ = (J i i)⁻¹ := by
+  have hP := hμ.isProbabilityMeasure
+  have h5 := condExpOutside_ae_eq_gaussianCondMean_of_isGibbsMeasure hSymm hFin hPD hμ hGibbs i
+  have hξL2 : MemLp (gaussianCondMean J h i) 2 μ := memLp_two_gaussianCondMean hFin hμ i
+  have hσL2 : MemLp (fun ω : S → ℝ ↦ ω i) 2 μ := memLp_two_eval hμ i
+  have hi1 : Integrable (fun ω : S → ℝ ↦ ω i ^ 2) μ := hσL2.integrable_sq
+  have hi3 : Integrable (fun ω : S → ℝ ↦ gaussianCondMean J h i ω ^ 2) μ := hξL2.integrable_sq
+  have hmul : Integrable (fun ω : S → ℝ ↦ gaussianCondMean J h i ω * ω i) μ :=
+    hξL2.integrable_mul hσL2
+  have hi2 : Integrable (fun ω : S → ℝ ↦ 2 * (gaussianCondMean J h i ω * ω i)) μ :=
+    hmul.const_mul 2
+  -- The second moment of `σ_i`, from the conditional second moment.
+  have e1 : ∫ ω, ω i ^ 2 ∂μ = ∫ ω, (gaussianCondMean J h i ω ^ 2 + (J i i)⁻¹) ∂μ := by
+    rw [← integral_condExp (m := cylinderEvents ({i}ᶜ : Set S)) cylinderEvents_le_pi
+      (f := fun ω : S → ℝ ↦ ω i ^ 2)]
+    exact integral_congr_ae (condExp_sq_ae_eq_of_isGibbsMeasure hSymm hFin hPD hμ hGibbs i)
+  -- The mixed moment `μ(ξ_i σ_i)`, by pulling `ξ_i` out of the conditional expectation.
+  have e2 : ∫ ω, gaussianCondMean J h i ω * ω i ∂μ
+      = ∫ ω, gaussianCondMean J h i ω ^ 2 ∂μ := by
+    rw [← integral_condExp (m := cylinderEvents ({i}ᶜ : Set S)) cylinderEvents_le_pi
+      (f := fun ω : S → ℝ ↦ gaussianCondMean J h i ω * ω i)]
+    refine integral_congr_ae ?_
+    have hpull := condExp_mul_of_stronglyMeasurable_left
+      (m := cylinderEvents ({i}ᶜ : Set S)) (μ := μ)
+      (measurable_cylinderEvents_gaussianCondMean (h := h) hFin i).stronglyMeasurable
+      hmul (hσL2.integrable one_le_two)
+    filter_upwards [hpull, h5] with ω hω1 hω2
+    have hfun : (μ[gaussianCondMean J h i * fun ω : S → ℝ ↦ ω i |
+          cylinderEvents ({i}ᶜ : Set S)]) ω
+        = (μ[fun ω : S → ℝ ↦ gaussianCondMean J h i ω * ω i |
+          cylinderEvents ({i}ᶜ : Set S)]) ω := rfl
+    rw [← hfun, hω1, Pi.mul_apply]
+    change gaussianCondMean J h i ω * condExpOutside μ i ω = _
+    rw [hω2, sq]
+  have hae : ∀ᵐ ω ∂μ, (ω i - condExpOutside μ i ω) ^ 2
+      = ω i ^ 2 - 2 * (gaussianCondMean J h i ω * ω i) + gaussianCondMean J h i ω ^ 2 := by
+    filter_upwards [h5] with ω hω
+    rw [hω]
+    ring
+  have hsplit1 : ∫ ω, (ω i ^ 2 - 2 * (gaussianCondMean J h i ω * ω i)
+        + gaussianCondMean J h i ω ^ 2) ∂μ
+      = (∫ ω, (ω i ^ 2 - 2 * (gaussianCondMean J h i ω * ω i)) ∂μ)
+        + ∫ ω, gaussianCondMean J h i ω ^ 2 ∂μ := integral_add (hi1.sub hi2) hi3
+  have hsplit2 : ∫ ω, (ω i ^ 2 - 2 * (gaussianCondMean J h i ω * ω i)) ∂μ
+      = (∫ ω, ω i ^ 2 ∂μ) - ∫ ω, 2 * (gaussianCondMean J h i ω * ω i) ∂μ :=
+    integral_sub hi1 hi2
+  have hsplit3 : ∫ ω, (gaussianCondMean J h i ω ^ 2 + (J i i)⁻¹) ∂μ
+      = (∫ ω, gaussianCondMean J h i ω ^ 2 ∂μ) + ∫ _ω : S → ℝ, (J i i)⁻¹ ∂μ :=
+    integral_add hi3 (integrable_const _)
+  rw [integral_congr_ae hae, hsplit1, hsplit2, integral_const_mul, e1, hsplit3, e2,
+    integral_const]
+  simp only [probReal_univ, smul_eq_mul, one_mul]
+  ring
+
+include hSymm hPD hμ in
+/-- **The residual `σ_i - ξ_i` is centred and orthogonal to `L²(𝒯_{\{i\}})`.** For `μ ∈ 𝒢(γ^{J,h})`
+the conditional expectation of `σ_i - ξ_i` given `𝒯_{\{i\}}` vanishes
+(`condExpOutside_ae_eq_gaussianCondMean_of_isGibbsMeasure`); hence its integral against any
+square-integrable `𝒯_{\{i\}}`-measurable `g` is `0`. -/
+lemma integral_mul_sub_gaussianCondMean_eq_zero
+    (hGibbs : (Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos).IsGibbsMeasure μ)
+    (i : S) {g : (S → ℝ) → ℝ} (hgm : Measurable[cylinderEvents ({i}ᶜ : Set S)] g)
+    (hgL2 : MemLp g 2 μ) :
+    ∫ ω, g ω * (ω i - gaussianCondMean J h i ω) ∂μ = 0 := by
+  have hP := hμ.isProbabilityMeasure
+  have h5 := condExpOutside_ae_eq_gaussianCondMean_of_isGibbsMeasure hSymm hFin hPD hμ hGibbs i
+  have hξL2 : MemLp (gaussianCondMean J h i) 2 μ := memLp_two_gaussianCondMean hFin hμ i
+  have hσL2 : MemLp (fun ω : S → ℝ ↦ ω i) 2 μ := memLp_two_eval hμ i
+  have hres : MemLp (fun ω : S → ℝ ↦ ω i - gaussianCondMean J h i ω) 2 μ := hσL2.sub hξL2
+  have hint : Integrable (fun ω : S → ℝ ↦ g ω * (ω i - gaussianCondMean J h i ω)) μ :=
+    hgL2.integrable_mul hres
+  have hzero : μ[fun ω : S → ℝ ↦ ω i - gaussianCondMean J h i ω |
+      cylinderEvents ({i}ᶜ : Set S)] =ᵐ[μ] 0 := by
+    have hsub := condExp_sub (μ := μ) (hσL2.integrable one_le_two)
+      (hξL2.integrable one_le_two) (cylinderEvents ({i}ᶜ : Set S))
+    have hξc : μ[gaussianCondMean J h i | cylinderEvents ({i}ᶜ : Set S)]
+        = gaussianCondMean J h i :=
+      condExp_of_stronglyMeasurable cylinderEvents_le_pi
+        (measurable_cylinderEvents_gaussianCondMean (h := h) hFin i).stronglyMeasurable
+        (hξL2.integrable one_le_two)
+    filter_upwards [hsub, h5] with ω hω1 hω2
+    have hfun : (μ[(fun ω : S → ℝ ↦ ω i) - gaussianCondMean J h i |
+          cylinderEvents ({i}ᶜ : Set S)]) ω
+        = (μ[fun ω : S → ℝ ↦ ω i - gaussianCondMean J h i ω |
+          cylinderEvents ({i}ᶜ : Set S)]) ω := rfl
+    rw [← hfun, hω1, Pi.sub_apply, hξc]
+    change condExpOutside μ i ω - gaussianCondMean J h i ω = (0 : (S → ℝ) → ℝ) ω
+    rw [hω2, sub_self, Pi.zero_apply]
+  have hpull := condExp_mul_of_stronglyMeasurable_left (m := cylinderEvents ({i}ᶜ : Set S))
+    (μ := μ) hgm.stronglyMeasurable hint (hres.integrable one_le_two)
+  have hae : μ[fun ω : S → ℝ ↦ g ω * (ω i - gaussianCondMean J h i ω) |
+      cylinderEvents ({i}ᶜ : Set S)] =ᵐ[μ] 0 := by
+    filter_upwards [hpull, hzero] with ω hω1 hω2
+    have hfun : (μ[g * fun ω : S → ℝ ↦ ω i - gaussianCondMean J h i ω |
+          cylinderEvents ({i}ᶜ : Set S)]) ω
+        = (μ[fun ω : S → ℝ ↦ g ω * (ω i - gaussianCondMean J h i ω) |
+          cylinderEvents ({i}ᶜ : Set S)]) ω := rfl
+    rw [← hfun, hω1, Pi.mul_apply, hω2]
+    simp
+  rw [← integral_condExp (m := cylinderEvents ({i}ᶜ : Set S)) cylinderEvents_le_pi
+    (f := fun ω : S → ℝ ↦ g ω * (ω i - gaussianCondMean J h i ω)), integral_congr_ae hae]
+  simp
+
+include hSymm hPD hμ in
+/-- **The mean of the residual vanishes**: `μ(σ_i - ξ_i) = 0`, for `μ ∈ 𝒢(γ^{J,h})`. -/
+lemma integral_sub_gaussianCondMean_eq_zero
+    (hGibbs : (Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos).IsGibbsMeasure μ)
+    (i : S) : ∫ ω, (ω i - gaussianCondMean J h i ω) ∂μ = 0 := by
+  have hP := hμ.isProbabilityMeasure
+  have := integral_mul_sub_gaussianCondMean_eq_zero hSymm hFin hPD hμ hGibbs i
+    (g := fun _ ↦ (1 : ℝ)) (measurable_const) (memLp_const 1)
+  simpa using this
+
+include hSymm hPD hμ in
+/-- **Georgii's covariance identity in the proof of (13.22)(a) ⟹ (b)**:
+`cov(σ_i - ξ_i, σ_k) = δ_{ik} J(i,i)⁻¹`. For `k ≠ i` the spin `σ_k` is `𝒯_{\{i\}}`-measurable and
+the residual is conditionally centred; for `k = i` one splits `σ_i = ξ_i + (σ_i - ξ_i)` and uses
+`μ((σ_i - ξ_i^μ)²) = J(i,i)⁻¹`. -/
+lemma covariance_sub_gaussianCondMean_eval
+    (hGibbs : (Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos).IsGibbsMeasure μ)
+    (i k : S) :
+    cov[fun ω : S → ℝ ↦ ω i - gaussianCondMean J h i ω, fun ω : S → ℝ ↦ ω k; μ]
+      = if i = k then (J i i)⁻¹ else 0 := by
+  have hP := hμ.isProbabilityMeasure
+  have h5 := condExpOutside_ae_eq_gaussianCondMean_of_isGibbsMeasure hSymm hFin hPD hμ hGibbs i
+  have hξL2 : MemLp (gaussianCondMean J h i) 2 μ := memLp_two_gaussianCondMean hFin hμ i
+  have hσL2 : ∀ j : S, MemLp (fun ω : S → ℝ ↦ ω j) 2 μ := fun j ↦ memLp_two_eval hμ j
+  have hres : MemLp (fun ω : S → ℝ ↦ ω i - gaussianCondMean J h i ω) 2 μ := (hσL2 i).sub hξL2
+  have hmean0 := integral_sub_gaussianCondMean_eq_zero hSymm hFin hPD hμ hGibbs i
+  have hcovsub : cov[fun ω : S → ℝ ↦ ω i - gaussianCondMean J h i ω, fun ω : S → ℝ ↦ ω k; μ]
+      = ∫ ω, (ω i - gaussianCondMean J h i ω) * ω k ∂μ := by
+    rw [covariance_eq_sub hres (hσL2 k), hmean0]
+    simp
+  rw [hcovsub]
+  by_cases hik : i = k
+  · subst hik
+    have hsplit : ∀ ω : S → ℝ, (ω i - gaussianCondMean J h i ω) * ω i
+        = gaussianCondMean J h i ω * (ω i - gaussianCondMean J h i ω)
+          + (ω i - gaussianCondMean J h i ω) ^ 2 := by
+      intro ω; ring
+    have hi1 : Integrable (fun ω : S → ℝ ↦
+        gaussianCondMean J h i ω * (ω i - gaussianCondMean J h i ω)) μ :=
+      hξL2.integrable_mul hres
+    have hi2 : Integrable (fun ω : S → ℝ ↦ (ω i - gaussianCondMean J h i ω) ^ 2) μ :=
+      hres.integrable_sq
+    have hvar := integral_sq_sub_condExpOutside_eq_inv_of_isGibbsMeasure hSymm hFin hPD hμ
+      hGibbs i
+    have hvar' : ∫ ω, (ω i - gaussianCondMean J h i ω) ^ 2 ∂μ = (J i i)⁻¹ := by
+      rw [← hvar]
+      refine integral_congr_ae ?_
+      filter_upwards [h5] with ω hω
+      rw [hω]
+    rw [integral_congr_ae (Filter.Eventually.of_forall hsplit), integral_add hi1 hi2,
+      integral_mul_sub_gaussianCondMean_eq_zero hSymm hFin hPD hμ hGibbs i
+        (measurable_cylinderEvents_gaussianCondMean (h := h) hFin i) hξL2, hvar']
+    simp
+  · have hki : (k : S) ≠ i := fun hh ↦ hik hh.symm
+    have hgm : Measurable[cylinderEvents ({i}ᶜ : Set S)] (fun ω : S → ℝ ↦ ω k) :=
+      measurable_cylinderEvent_apply (X := fun _ : S ↦ ℝ) (Δ := ({i}ᶜ : Set S))
+        (by simpa using hki)
+    have := integral_mul_sub_gaussianCondMean_eq_zero hSymm hFin hPD hμ hGibbs i hgm (hσL2 k)
+    rw [show (fun ω : S → ℝ ↦ (ω i - gaussianCondMean J h i ω) * ω k)
+      = fun ω : S → ℝ ↦ ω k * (ω i - gaussianCondMean J h i ω) from funext fun ω ↦ mul_comm _ _,
+      this]
+    simp [hik]
+
+omit [Countable S] in
+include hPD in
+/-- Georgii's decomposition `σ_i - ξ_i = J(i,i)⁻¹ (h_i + X_i)`, i.e.
+`X_i = -h_i + J(i,i)(σ_i - ξ_i)`, for `J` of finite row support (where `Ω_J = Ω`). -/
+lemma gaussianRowForm_eq_sub_gaussianCondMean (i : S) :
+    Potential.gaussianRowForm J hFin i
+      = fun ω : S → ℝ ↦ -h i + J i i * (ω i - gaussianCondMean J h i ω) := by
+  have hJii : 0 < J i i := (hPD {i}).diag_pos (i := ⟨i, Finset.mem_singleton_self i⟩)
+  funext ω
+  have hω : ω ∈ Potential.gaussianConvergenceSet J := by
+    rw [Potential.gaussianConvergenceSet_eq_univ_of_finiteRowSupport J hFin]
+    trivial
+  rw [Potential.gaussianRowForm_eq_tsum J hFin i, gaussianCondMean_eq_of_mem hJii.ne' hω]
+  field_simp
+  ring
+
+include hSymm hPD hμ in
+/-- **Georgii Theorem (13.22), (a) ⟹ (b), the mean condition.** If `μ ∈ 𝒢(γ^{J,h})` is a Gaussian
+field then its mean `m` lies in `M_{J,h}`: integrating `σ_i - ξ_i^μ = J(i,i)⁻¹(h_i + X_i)` gives
+`h_i + ∑_{j ∈ S} J(i,j) m_j = 0`. (Georgii's condition `m ∈ Ω_J` is automatic here, `J` having
+finite range.) -/
+theorem mem_gaussianMeanSet_of_isGibbsMeasure
+    (hGibbs : (Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos).IsGibbsMeasure μ) :
+    (fun j ↦ ∫ ω, ω j ∂μ) ∈ Potential.gaussianMeanSet J h := by
+  have hP := hμ.isProbabilityMeasure
+  refine ⟨?_, fun i ↦ ?_⟩
+  · rw [Potential.gaussianConvergenceSet_eq_univ_of_finiteRowSupport J hFin]
+    trivial
+  · have hJii : 0 < J i i := (hPD {i}).diag_pos (i := ⟨i, Finset.mem_singleton_self i⟩)
+    have hXint : ∫ ω, Potential.gaussianRowForm J hFin i ω ∂μ
+        = ∑' j, J i j * ∫ ω, ω j ∂μ := by
+      rw [integral_gaussianRowForm hFin hμ i, Potential.gaussianRowForm_eq_tsum J hFin i]
+    have hzero := integral_sub_gaussianCondMean_eq_zero hSymm hFin hPD hμ hGibbs i
+    have hXL2 : MemLp (Potential.gaussianRowForm J hFin i) 2 μ :=
+      memLp_two_gaussianRowForm hFin hμ i
+    have hres : ∫ ω, Potential.gaussianRowForm J hFin i ω ∂μ
+        = -h i + J i i * ∫ ω, (ω i - gaussianCondMean J h i ω) ∂μ := by
+      rw [gaussianRowForm_eq_sub_gaussianCondMean hFin hPD i]
+      have hi : Integrable (fun ω : S → ℝ ↦ J i i * (ω i - gaussianCondMean J h i ω)) μ := by
+        have hσL2 : MemLp (fun ω : S → ℝ ↦ ω i) 2 μ := memLp_two_eval hμ i
+        exact ((hσL2.sub (memLp_two_gaussianCondMean hFin hμ i)).integrable
+          one_le_two).const_mul _
+      have hsum : ∫ ω, (-h i + J i i * (ω i - gaussianCondMean J h i ω)) ∂μ
+          = (∫ _ω : S → ℝ, -h i ∂μ) +
+            ∫ ω, J i i * (ω i - gaussianCondMean J h i ω) ∂μ :=
+        integral_add (integrable_const _) hi
+      rw [hsum, integral_const, integral_const_mul]
+      simp
+    rw [hzero] at hres
+    rw [← hXint, hres]
+    ring
+
+include hSymm hPD hμ in
+/-- **Georgii Theorem (13.22), (a) ⟹ (b), the covariance condition.** If `μ ∈ 𝒢(γ^{J,h})` is a
+Gaussian field with covariance function `C`, then `∑_{j ∈ S} J(i,j) C(j,k) = δ_{ik}`. Georgii's
+computation: `∑_j J(i,j) C(j,k) = cov(X_i, σ_k) = J(i,i) cov(σ_i - ξ_i, σ_k) = δ_{ik}`. -/
+theorem isInverse_covariance_of_isGibbsMeasure
+    (hGibbs : (Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos).IsGibbsMeasure μ)
+    (i k : S) :
+    ∑' j, J i j * cov[fun ω : S → ℝ ↦ ω j, fun ω : S → ℝ ↦ ω k; μ] = if i = k then 1 else 0 := by
+  have hP := hμ.isProbabilityMeasure
+  have hJii : 0 < J i i := (hPD {i}).diag_pos (i := ⟨i, Finset.mem_singleton_self i⟩)
+  have hres : Integrable (fun ω : S → ℝ ↦ J i i * (ω i - gaussianCondMean J h i ω)) μ :=
+    (((memLp_two_eval hμ i).sub (memLp_two_gaussianCondMean hFin hμ i)).integrable
+      one_le_two).const_mul _
+  rw [← covariance_gaussianRowForm_eval hFin hμ i k,
+    gaussianRowForm_eq_sub_gaussianCondMean hFin hPD i,
+    covariance_const_add_left hres, covariance_const_mul_left,
+    covariance_sub_gaussianCondMean_eval hSymm hFin hPD hμ hGibbs i k]
+  by_cases hik : i = k
+  · subst hik
+    simp [mul_inv_cancel₀ hJii.ne']
+  · simp [hik]
+
+include hSymm hPD hμ in
+/-- **Georgii Theorem (13.22) for `J` of finite range.** Let `μ` be a Gaussian field with mean `m`
+and covariance function `C`, let `J : S × S → ℝ` be symmetric with finite row support and every
+`𝒥_Λ` positive definite, and let `h ∈ Ω`. Then
+
+`μ ∈ 𝒢(γ^{J,h})` ⟺ `m ∈ M_{J,h}` and `∑_{j ∈ S} J(i,j) C(j,k) = δ_{ik}` for all `i, k ∈ S`.
+
+Georgii's third condition, `μ(Ω_J) = 1`, is automatic here: `Ω_J = Ω` for finite range
+(`Potential.gaussianConvergenceSet_eq_univ_of_finiteRowSupport`), which is also why Corollary
+(13.A6) — a.s. convergence implies `L²` convergence for a Gaussian family — is not needed.
+
+(a) ⟹ (b) is `mem_gaussianMeanSet_of_isGibbsMeasure` and
+`isInverse_covariance_of_isGibbsMeasure`, both read off the first two moments of
+`γ^{J,h}_{\{i\}}(·|ω)` through `ProbabilityTheory.Kernel.condExp_ae_eq_integral_kernel`;
+(b) ⟹ (a) is `georgii_13_22_of_finiteRowSupport`. -/
+theorem georgii_13_22_iff :
+    (Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos).IsGibbsMeasure μ
+      ↔ (fun j ↦ ∫ ω, ω j ∂μ) ∈ Potential.gaussianMeanSet J h ∧
+        ∀ i k, ∑' j, J i j * cov[fun ω : S → ℝ ↦ ω j, fun ω : S → ℝ ↦ ω k; μ]
+          = if i = k then 1 else 0 := by
+  refine ⟨fun hG ↦ ⟨mem_gaussianMeanSet_of_isGibbsMeasure hSymm hFin hPD hμ hG,
+    fun i k ↦ isInverse_covariance_of_isGibbsMeasure hSymm hFin hPD hμ hG i k⟩, ?_⟩
+  rintro ⟨hm, hC⟩
+  exact georgii_13_22_of_finiteRowSupport hFin hμ hC hSymm hPD hm
+
+end Theorem13_22Converse
+
+/-! ## Georgii Theorem (13.26): the limits (13.25) exist under (13.27)
+
+Georgii's monotonicity display,
+`∑_{i,j ∈ Λ} 𝒥_Λ⁻¹(i,j) t_i t_j ≤ ∑_{i,j ∈ Λ} 𝒥_Δ⁻¹(i,j) t_i t_j` for `Λ ⊆ Δ`, which he derives
+from Proposition (13.13) and Jensen's inequality, is the linear-algebra statement
+`(A_{ΛΛ})⁻¹ ≤ (A⁻¹)_{ΛΛ}` for a principal submatrix of a positive definite matrix; it is proved
+in `GibbsMeasure/Mathlib/LinearAlgebra/Matrix/PosDef.lean` as
+`Matrix.PosDef.dotProduct_mulVec_inv_submatrix_le`, by the variational characterisation
+`t ⬝ᵥ A⁻¹ *ᵥ t = sup_x (2 (t ⬝ᵥ x) - x ⬝ᵥ A *ᵥ x)` (the left-hand side is the supremum of the same
+quadratic over the vectors supported in `Λ`). -/
+
+section Theorem13_26Limits
+
+variable {S : Type*} [LinearOrder S] {J : S → S → ℝ}
+
+/-- **Georgii's monotonicity display in the proof of Theorem (13.26)**, in the coordinate-free
+form `t ⬝ᵥ 𝒥_Λ⁻¹ *ᵥ t ≤ t' ⬝ᵥ 𝒥_Δ⁻¹ *ᵥ t'` for `Λ ⊆ Δ` and `t'` any extension of `t` to `Δ`.
+Georgii derives it from Proposition (13.13) and Jensen's inequality; the underlying fact is the
+positive semidefinite inequality `(A_{ΛΛ})⁻¹ ≤ (A⁻¹)_{ΛΛ}`,
+`Matrix.PosDef.dotProduct_mulVec_inv_submatrix_le`. -/
+theorem dotProduct_mulVec_inv_gaussianCovMatrix_mono
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) {Λ Δ : Finset S}
+    (hΛΔ : Λ ⊆ Δ) (t : Λ → ℝ) (t' : Δ → ℝ) (ht : ∀ a : Λ, t' ⟨a.1, hΛΔ a.2⟩ = t a) :
+    t ⬝ᵥ (Potential.gaussianCovMatrix J Λ)⁻¹ *ᵥ t
+      ≤ t' ⬝ᵥ (Potential.gaussianCovMatrix J Δ)⁻¹ *ᵥ t' := by
+  have he : Function.Injective (fun a : Λ ↦ (⟨a.1, hΛΔ a.2⟩ : Δ)) :=
+    fun a b hab ↦ Subtype.ext (by
+      have hval := congrArg (fun z : Δ ↦ (z : S)) hab
+      simpa using hval)
+  have hsub : (Potential.gaussianCovMatrix J Δ).submatrix
+      (fun a : Λ ↦ (⟨a.1, hΛΔ a.2⟩ : Δ)) (fun a : Λ ↦ (⟨a.1, hΛΔ a.2⟩ : Δ))
+      = Potential.gaussianCovMatrix J Λ := rfl
+  have := (hPD Δ).dotProduct_mulVec_inv_submatrix_le he t t' ht
+  rwa [hsub] at this
+
+omit [LinearOrder S] in
+/-- `Pi.single a 1 ⬝ᵥ M *ᵥ Pi.single b 1 = M a b`. -/
+private lemma single_dotProduct_mulVec_single {n : Type*} [Fintype n] [DecidableEq n]
+    (M : Matrix n n ℝ) (a b : n) :
+    Pi.single a (1 : ℝ) ⬝ᵥ M *ᵥ Pi.single b (1 : ℝ) = M a b := by
+  simp [single_dotProduct, Matrix.mulVec_single]
+
+/-- **Georgii's first conclusion in the proof of (13.26)**: `𝒥_Λ⁻¹(i,i)` is an increasing function
+of `Λ`. -/
+theorem inv_gaussianCovMatrix_diag_mono
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) {Λ Δ : Finset S}
+    (hΛΔ : Λ ⊆ Δ) {i : S} (hi : i ∈ Λ) :
+    (Potential.gaussianCovMatrix J Λ)⁻¹ ⟨i, hi⟩ ⟨i, hi⟩
+      ≤ (Potential.gaussianCovMatrix J Δ)⁻¹ ⟨i, hΛΔ hi⟩ ⟨i, hΛΔ hi⟩ := by
+  classical
+  have hext : ∀ a : Λ,
+      ((Pi.single (⟨i, hΛΔ hi⟩ : Δ) (1 : ℝ) : Δ → ℝ)) (⟨a.1, hΛΔ a.2⟩ : Δ)
+      = ((Pi.single (⟨i, hi⟩ : Λ) (1 : ℝ) : Λ → ℝ)) a := by
+    intro a
+    by_cases hai : a = ⟨i, hi⟩
+    · subst hai
+      simp
+    · have h1 : (⟨a.1, hΛΔ a.2⟩ : Δ) ≠ ⟨i, hΛΔ hi⟩ := fun hh ↦
+        hai (Subtype.ext (show (a : S) = i from congrArg Subtype.val hh))
+      rw [Pi.single_eq_of_ne h1, Pi.single_eq_of_ne hai]
+  have := dotProduct_mulVec_inv_gaussianCovMatrix_mono hPD hΛΔ
+    (Pi.single (⟨i, hi⟩ : Λ) (1 : ℝ)) (Pi.single (⟨i, hΛΔ hi⟩ : Δ) (1 : ℝ)) hext
+  rwa [single_dotProduct_mulVec_single, single_dotProduct_mulVec_single] at this
+
+omit [LinearOrder S] in
+/-- `(u + v) ⬝ᵥ M *ᵥ (u + v)` for `u = e_a`, `v = e_b`. -/
+private lemma add_single_dotProduct_mulVec_add_single {n : Type*} [Fintype n] [DecidableEq n]
+    (M : Matrix n n ℝ) (a b : n) :
+    (Pi.single a (1 : ℝ) + Pi.single b (1 : ℝ)) ⬝ᵥ M *ᵥ
+        (Pi.single a (1 : ℝ) + Pi.single b (1 : ℝ))
+      = M a a + M a b + (M b a + M b b) := by
+  rw [Matrix.mulVec_add, add_dotProduct, dotProduct_add, dotProduct_add,
+    single_dotProduct_mulVec_single, single_dotProduct_mulVec_single,
+    single_dotProduct_mulVec_single, single_dotProduct_mulVec_single]
+
+/-- **Georgii's second conclusion in the proof of (13.26)**: for `i ≠ j`,
+`𝒥_Λ⁻¹(i,i) + 𝒥_Λ⁻¹(i,j) + 𝒥_Λ⁻¹(j,i) + 𝒥_Λ⁻¹(j,j)` is an increasing function of `Λ`. -/
+theorem inv_gaussianCovMatrix_pair_mono
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) {Λ Δ : Finset S}
+    (hΛΔ : Λ ⊆ Δ) {i j : S} (hi : i ∈ Λ) (hj : j ∈ Λ) :
+    (Potential.gaussianCovMatrix J Λ)⁻¹ ⟨i, hi⟩ ⟨i, hi⟩
+        + (Potential.gaussianCovMatrix J Λ)⁻¹ ⟨i, hi⟩ ⟨j, hj⟩
+        + ((Potential.gaussianCovMatrix J Λ)⁻¹ ⟨j, hj⟩ ⟨i, hi⟩
+          + (Potential.gaussianCovMatrix J Λ)⁻¹ ⟨j, hj⟩ ⟨j, hj⟩)
+      ≤ (Potential.gaussianCovMatrix J Δ)⁻¹ ⟨i, hΛΔ hi⟩ ⟨i, hΛΔ hi⟩
+        + (Potential.gaussianCovMatrix J Δ)⁻¹ ⟨i, hΛΔ hi⟩ ⟨j, hΛΔ hj⟩
+        + ((Potential.gaussianCovMatrix J Δ)⁻¹ ⟨j, hΛΔ hj⟩ ⟨i, hΛΔ hi⟩
+          + (Potential.gaussianCovMatrix J Δ)⁻¹ ⟨j, hΛΔ hj⟩ ⟨j, hΛΔ hj⟩) := by
+  classical
+  have hsingle : ∀ (k : S) (hk : k ∈ Λ) (a : Λ),
+      ((Pi.single (⟨k, hΛΔ hk⟩ : Δ) (1 : ℝ) : Δ → ℝ)) (⟨a.1, hΛΔ a.2⟩ : Δ)
+        = ((Pi.single (⟨k, hk⟩ : Λ) (1 : ℝ) : Λ → ℝ)) a := by
+    intro k hk a
+    by_cases hak : a = ⟨k, hk⟩
+    · subst hak
+      simp
+    · have h1 : (⟨a.1, hΛΔ a.2⟩ : Δ) ≠ ⟨k, hΛΔ hk⟩ := fun hh ↦
+        hak (Subtype.ext (by
+          have hval := congrArg (fun z : Δ ↦ (z : S)) hh
+          simpa using hval))
+      rw [Pi.single_eq_of_ne h1, Pi.single_eq_of_ne hak]
+  have hext : ∀ a : Λ,
+      ((Pi.single (⟨i, hΛΔ hi⟩ : Δ) (1 : ℝ) : Δ → ℝ)
+        + (Pi.single (⟨j, hΛΔ hj⟩ : Δ) (1 : ℝ) : Δ → ℝ)) (⟨a.1, hΛΔ a.2⟩ : Δ)
+      = ((Pi.single (⟨i, hi⟩ : Λ) (1 : ℝ) : Λ → ℝ)
+        + (Pi.single (⟨j, hj⟩ : Λ) (1 : ℝ) : Λ → ℝ)) a := by
+    intro a
+    rw [Pi.add_apply, Pi.add_apply, hsingle i hi a, hsingle j hj a]
+  have := dotProduct_mulVec_inv_gaussianCovMatrix_mono hPD hΛΔ
+    ((Pi.single (⟨i, hi⟩ : Λ) (1 : ℝ) : Λ → ℝ) + (Pi.single (⟨j, hj⟩ : Λ) (1 : ℝ) : Λ → ℝ))
+    ((Pi.single (⟨i, hΛΔ hi⟩ : Δ) (1 : ℝ) : Δ → ℝ)
+      + (Pi.single (⟨j, hΛΔ hj⟩ : Δ) (1 : ℝ) : Δ → ℝ)) hext
+  rwa [add_single_dotProduct_mulVec_add_single, add_single_dotProduct_mulVec_add_single] at this
+
+/-- The inverse of `𝒥_Λ` is symmetric. -/
+theorem inv_gaussianCovMatrix_symm
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) (Λ : Finset S) (a b : Λ) :
+    (Potential.gaussianCovMatrix J Λ)⁻¹ a b = (Potential.gaussianCovMatrix J Λ)⁻¹ b a := by
+  have h := (hPD Λ).inv.transpose_eq
+  exact congrFun (congrFun h b) a
+
+/-- The inverse of `𝒥_Λ` is positive semidefinite as a quadratic form. -/
+theorem dotProduct_mulVec_inv_gaussianCovMatrix_nonneg
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) (Λ : Finset S) (t : Λ → ℝ) :
+    0 ≤ t ⬝ᵥ (Potential.gaussianCovMatrix J Λ)⁻¹ *ᵥ t := by
+  simpa using (hPD Λ).inv.posSemidef.dotProduct_mulVec_nonneg t
+
+/-- The diagonal of `𝒥_Λ⁻¹` is nonnegative. -/
+theorem inv_gaussianCovMatrix_diag_nonneg
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) (Λ : Finset S) (a : Λ) :
+    0 ≤ (Potential.gaussianCovMatrix J Λ)⁻¹ a a := by
+  classical
+  have := dotProduct_mulVec_inv_gaussianCovMatrix_nonneg hPD Λ (Pi.single a (1 : ℝ))
+  rwa [single_dotProduct_mulVec_single] at this
+
+/-- The sum of the four entries of `𝒥_Λ⁻¹` at `(i, j)` is nonnegative. -/
+theorem inv_gaussianCovMatrix_pair_nonneg
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) (Λ : Finset S) (a b : Λ) :
+    0 ≤ (Potential.gaussianCovMatrix J Λ)⁻¹ a a + (Potential.gaussianCovMatrix J Λ)⁻¹ a b
+      + ((Potential.gaussianCovMatrix J Λ)⁻¹ b a
+        + (Potential.gaussianCovMatrix J Λ)⁻¹ b b) := by
+  classical
+  have := dotProduct_mulVec_inv_gaussianCovMatrix_nonneg hPD Λ
+    (Pi.single a (1 : ℝ) + Pi.single b (1 : ℝ))
+  rwa [add_single_dotProduct_mulVec_add_single] at this
+
+/-- **Georgii's Cauchy–Schwarz step in the proof of (13.26)**, in the form he only needs:
+`2 𝒥_Λ⁻¹(i,j) ≤ 𝒥_Λ⁻¹(i,i) + 𝒥_Λ⁻¹(j,j)`, from the positive semidefiniteness of `𝒥_Λ⁻¹` applied
+to `e_i - e_j`. -/
+theorem two_mul_inv_gaussianCovMatrix_le
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) (Λ : Finset S) (a b : Λ) :
+    2 * (Potential.gaussianCovMatrix J Λ)⁻¹ a b
+      ≤ (Potential.gaussianCovMatrix J Λ)⁻¹ a a + (Potential.gaussianCovMatrix J Λ)⁻¹ b b := by
+  classical
+  have hneg := dotProduct_mulVec_inv_gaussianCovMatrix_nonneg hPD Λ
+    (Pi.single a (1 : ℝ) + Pi.single b (-1 : ℝ))
+  have hexp : (Pi.single a (1 : ℝ) + Pi.single b (-1 : ℝ)) ⬝ᵥ
+      (Potential.gaussianCovMatrix J Λ)⁻¹ *ᵥ (Pi.single a (1 : ℝ) + Pi.single b (-1 : ℝ))
+      = (Potential.gaussianCovMatrix J Λ)⁻¹ a a - (Potential.gaussianCovMatrix J Λ)⁻¹ a b
+        - ((Potential.gaussianCovMatrix J Λ)⁻¹ b a
+          - (Potential.gaussianCovMatrix J Λ)⁻¹ b b) := by
+    rw [Matrix.mulVec_add, add_dotProduct, dotProduct_add, dotProduct_add]
+    simp [single_dotProduct, Matrix.mulVec_single]
+    ring
+  rw [hexp] at hneg
+  have hsym := inv_gaussianCovMatrix_symm hPD Λ a b
+  linarith
+
+/-- **Georgii's `𝒥_Λ⁻¹(i,j)` of (13.25)**, extended by `0` when `i` or `j` lies outside `Λ`, so
+that it is a function of `Λ` on the whole net `Finset S` of finite volumes. Georgii's limits
+(13.25) are the limits of this function along `Filter.atTop`. -/
+noncomputable def invGaussianCovEntry (J : S → S → ℝ) (Λ : Finset S) (i j : S) : ℝ :=
+  if h : i ∈ Λ ∧ j ∈ Λ then (Potential.gaussianCovMatrix J Λ)⁻¹ ⟨i, h.1⟩ ⟨j, h.2⟩ else 0
+
+@[simp] lemma invGaussianCovEntry_of_mem {Λ : Finset S} {i j : S} (hi : i ∈ Λ) (hj : j ∈ Λ) :
+    invGaussianCovEntry J Λ i j = (Potential.gaussianCovMatrix J Λ)⁻¹ ⟨i, hi⟩ ⟨j, hj⟩ := by
+  simp only [invGaussianCovEntry]
+  split_ifs with hh
+  · rfl
+  · exact absurd ⟨hi, hj⟩ hh
+
+lemma invGaussianCovEntry_of_notMem_left {Λ : Finset S} {i j : S} (hi : i ∉ Λ) :
+    invGaussianCovEntry J Λ i j = 0 := by
+  simp only [invGaussianCovEntry]
+  split_ifs with hh
+  · exact absurd hh.1 hi
+  · rfl
+
+lemma invGaussianCovEntry_of_notMem_right {Λ : Finset S} {i j : S} (hj : j ∉ Λ) :
+    invGaussianCovEntry J Λ i j = 0 := by
+  simp only [invGaussianCovEntry]
+  split_ifs with hh
+  · exact absurd hh.2 hj
+  · rfl
+
+lemma invGaussianCovEntry_symm
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) (Λ : Finset S) (i j : S) :
+    invGaussianCovEntry J Λ i j = invGaussianCovEntry J Λ j i := by
+  by_cases hi : i ∈ Λ
+  · by_cases hj : j ∈ Λ
+    · rw [invGaussianCovEntry_of_mem hi hj, invGaussianCovEntry_of_mem hj hi,
+        inv_gaussianCovMatrix_symm hPD]
+    · rw [invGaussianCovEntry_of_notMem_right hj, invGaussianCovEntry_of_notMem_left hj]
+  · rw [invGaussianCovEntry_of_notMem_left hi, invGaussianCovEntry_of_notMem_right hi]
+
+lemma invGaussianCovEntry_diag_nonneg
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) (Λ : Finset S) (i : S) :
+    0 ≤ invGaussianCovEntry J Λ i i := by
+  by_cases hi : i ∈ Λ
+  · rw [invGaussianCovEntry_of_mem hi hi]
+    exact inv_gaussianCovMatrix_diag_nonneg hPD Λ ⟨i, hi⟩
+  · rw [invGaussianCovEntry_of_notMem_left hi]
+
+/-- **Georgii's first conclusion in the proof of (13.26)**: `Λ ↦ 𝒥_Λ⁻¹(i,i)` is increasing. -/
+theorem monotone_invGaussianCovEntry_diag
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) (i : S) :
+    Monotone fun Λ : Finset S ↦ invGaussianCovEntry J Λ i i := by
+  intro Λ Δ hΛΔ
+  show invGaussianCovEntry J Λ i i ≤ invGaussianCovEntry J Δ i i
+  by_cases hi : i ∈ Λ
+  · rw [invGaussianCovEntry_of_mem hi hi, invGaussianCovEntry_of_mem (hΛΔ hi) (hΛΔ hi)]
+    exact inv_gaussianCovMatrix_diag_mono hPD hΛΔ hi
+  · rw [invGaussianCovEntry_of_notMem_left hi]
+    exact invGaussianCovEntry_diag_nonneg hPD Δ i
+
+/-- The four-entry sum `𝒥_Λ⁻¹(i,i) + 𝒥_Λ⁻¹(i,j) + 𝒥_Λ⁻¹(j,i) + 𝒥_Λ⁻¹(j,j)` of Georgii's second
+conclusion, extended by `0` unless both `i` and `j` lie in `Λ`. -/
+noncomputable def invGaussianCovPair (J : S → S → ℝ) (Λ : Finset S) (i j : S) : ℝ :=
+  if i ∈ Λ ∧ j ∈ Λ then
+    invGaussianCovEntry J Λ i i + invGaussianCovEntry J Λ i j
+      + (invGaussianCovEntry J Λ j i + invGaussianCovEntry J Λ j j)
+  else 0
+
+lemma invGaussianCovPair_of_mem {Λ : Finset S} {i j : S} (hi : i ∈ Λ) (hj : j ∈ Λ) :
+    invGaussianCovPair J Λ i j = invGaussianCovEntry J Λ i i + invGaussianCovEntry J Λ i j
+      + (invGaussianCovEntry J Λ j i + invGaussianCovEntry J Λ j j) := by
+  simp only [invGaussianCovPair]
+  split_ifs with hh
+  · rfl
+  · exact absurd ⟨hi, hj⟩ hh
+
+lemma invGaussianCovPair_nonneg
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) (Λ : Finset S) (i j : S) :
+    0 ≤ invGaussianCovPair J Λ i j := by
+  rw [invGaussianCovPair]
+  split_ifs with hij
+  · rw [invGaussianCovEntry_of_mem hij.1 hij.1, invGaussianCovEntry_of_mem hij.1 hij.2,
+      invGaussianCovEntry_of_mem hij.2 hij.1, invGaussianCovEntry_of_mem hij.2 hij.2]
+    exact inv_gaussianCovMatrix_pair_nonneg hPD Λ ⟨i, hij.1⟩ ⟨j, hij.2⟩
+  · exact le_rfl
+
+/-- **Georgii's second conclusion in the proof of (13.26)**: the four-entry sum is increasing. -/
+theorem monotone_invGaussianCovPair
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) (i j : S) :
+    Monotone fun Λ : Finset S ↦ invGaussianCovPair J Λ i j := by
+  intro Λ Δ hΛΔ
+  show invGaussianCovPair J Λ i j ≤ invGaussianCovPair J Δ i j
+  by_cases hij : i ∈ Λ ∧ j ∈ Λ
+  · rw [invGaussianCovPair_of_mem hij.1 hij.2,
+      invGaussianCovPair_of_mem (hΛΔ hij.1) (hΛΔ hij.2),
+      invGaussianCovEntry_of_mem hij.1 hij.1, invGaussianCovEntry_of_mem hij.1 hij.2,
+      invGaussianCovEntry_of_mem hij.2 hij.1, invGaussianCovEntry_of_mem hij.2 hij.2,
+      invGaussianCovEntry_of_mem (hΛΔ hij.1) (hΛΔ hij.1),
+      invGaussianCovEntry_of_mem (hΛΔ hij.1) (hΛΔ hij.2),
+      invGaussianCovEntry_of_mem (hΛΔ hij.2) (hΛΔ hij.1),
+      invGaussianCovEntry_of_mem (hΛΔ hij.2) (hΛΔ hij.2)]
+    exact inv_gaussianCovMatrix_pair_mono hPD hΛΔ hij.1 hij.2
+  · rw [show invGaussianCovPair J Λ i j = 0 from by simp [invGaussianCovPair, hij]]
+    exact invGaussianCovPair_nonneg hPD Δ i j
+
+/-- **Georgii Theorem (13.26): condition (13.27) forces the limits (13.25) to exist.** If
+`sup_Λ 𝒥_Λ⁻¹(i,i) < ∞` for every `i` — here: the net `Λ ↦ 𝒥_Λ⁻¹(i,i)` is bounded above — then
+`C(i,j) = lim_Λ 𝒥_Λ⁻¹(i,j)` exists for all `i, j`.
+
+Georgii's proof: `Λ ↦ 𝒥_Λ⁻¹(i,i)` is increasing (`monotone_invGaussianCovEntry_diag`), hence
+convergent; `Λ ↦ 𝒥_Λ⁻¹(i,i) + 𝒥_Λ⁻¹(i,j) + 𝒥_Λ⁻¹(j,i) + 𝒥_Λ⁻¹(j,j)` is increasing
+(`monotone_invGaussianCovPair`) and bounded above by `2 (sup_Λ 𝒥_Λ⁻¹(i,i) + sup_Λ 𝒥_Λ⁻¹(j,j))`,
+because `2 𝒥_Λ⁻¹(i,j) ≤ 𝒥_Λ⁻¹(i,i) + 𝒥_Λ⁻¹(j,j)` (Georgii's Cauchy–Schwarz step,
+`two_mul_inv_gaussianCovMatrix_le`); the off-diagonal limit is then the half-difference. -/
+theorem exists_tendsto_invGaussianCovEntry
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef)
+    (h27 : ∀ i : S, BddAbove (Set.range fun Λ : Finset S ↦ invGaussianCovEntry J Λ i i))
+    (i j : S) :
+    ∃ c : ℝ, Filter.Tendsto (fun Λ : Finset S ↦ invGaussianCovEntry J Λ i j)
+      Filter.atTop (nhds c) := by
+  classical
+  obtain ⟨Mi, hMi⟩ := h27 i
+  obtain ⟨Mj, hMj⟩ := h27 j
+  have hMi' : ∀ Λ : Finset S, invGaussianCovEntry J Λ i i ≤ Mi :=
+    fun Λ ↦ hMi ⟨Λ, rfl⟩
+  have hMj' : ∀ Λ : Finset S, invGaussianCovEntry J Λ j j ≤ Mj :=
+    fun Λ ↦ hMj ⟨Λ, rfl⟩
+  have hMi0 : 0 ≤ Mi := le_trans (invGaussianCovEntry_diag_nonneg hPD ∅ i) (hMi' ∅)
+  have hMj0 : 0 ≤ Mj := le_trans (invGaussianCovEntry_diag_nonneg hPD ∅ j) (hMj' ∅)
+  have hci := tendsto_atTop_ciSup (monotone_invGaussianCovEntry_diag hPD i) (h27 i)
+  have hcj := tendsto_atTop_ciSup (monotone_invGaussianCovEntry_diag hPD j) (h27 j)
+  -- The four-entry sum is bounded above.
+  have hpairbdd : BddAbove (Set.range fun Λ : Finset S ↦ invGaussianCovPair J Λ i j) := by
+    refine ⟨2 * (Mi + Mj), ?_⟩
+    rintro _ ⟨Λ, rfl⟩
+    show invGaussianCovPair J Λ i j ≤ 2 * (Mi + Mj)
+    by_cases hij : i ∈ Λ ∧ j ∈ Λ
+    · rw [invGaussianCovPair_of_mem hij.1 hij.2]
+      have hb := two_mul_inv_gaussianCovMatrix_le hPD Λ ⟨i, hij.1⟩ ⟨j, hij.2⟩
+      have hsym := inv_gaussianCovMatrix_symm hPD Λ (⟨j, hij.2⟩ : Λ) ⟨i, hij.1⟩
+      have ha := hMi' Λ
+      have hd := hMj' Λ
+      rw [invGaussianCovEntry_of_mem hij.1 hij.1] at ha
+      rw [invGaussianCovEntry_of_mem hij.2 hij.2] at hd
+      rw [invGaussianCovEntry_of_mem hij.1 hij.1, invGaussianCovEntry_of_mem hij.1 hij.2,
+        invGaussianCovEntry_of_mem hij.2 hij.1, invGaussianCovEntry_of_mem hij.2 hij.2]
+      linarith
+    · rw [show invGaussianCovPair J Λ i j = 0 from by simp [invGaussianCovPair, hij]]
+      linarith
+  have hcp := tendsto_atTop_ciSup (monotone_invGaussianCovPair hPD i j) hpairbdd
+  refine ⟨((⨆ Λ : Finset S, invGaussianCovPair J Λ i j)
+      - (⨆ Λ : Finset S, invGaussianCovEntry J Λ i i)
+      - ⨆ Λ : Finset S, invGaussianCovEntry J Λ j j) / 2, ?_⟩
+  refine Filter.Tendsto.congr' ?_ (((hcp.sub hci).sub hcj).div_const 2)
+  refine Filter.eventually_atTop.2 ⟨{i, j}, fun Λ hΛ ↦ ?_⟩
+  have hi : i ∈ Λ := hΛ (by simp)
+  have hj : j ∈ Λ := hΛ (by simp)
+  have hsym := inv_gaussianCovMatrix_symm hPD Λ (⟨j, hj⟩ : Λ) ⟨i, hi⟩
+  show (invGaussianCovPair J Λ i j - invGaussianCovEntry J Λ i i
+    - invGaussianCovEntry J Λ j j) / 2 = invGaussianCovEntry J Λ i j
+  rw [invGaussianCovPair_of_mem hi hj, invGaussianCovEntry_of_mem hi hi,
+    invGaussianCovEntry_of_mem hi hj, invGaussianCovEntry_of_mem hj hi,
+    invGaussianCovEntry_of_mem hj hj, hsym]
+  ring
+
+/-- For `I ⊆ Λ` the `I`-block of `𝒥_Λ⁻¹` is `ProbabilityTheory.covMatrix` of the extended entry
+function. -/
+lemma covMatrix_invGaussianCovEntry_eq_submatrix {I Λ : Finset S} (hIΛ : I ⊆ Λ) :
+    ProbabilityTheory.covMatrix (invGaussianCovEntry J Λ) I
+      = (Potential.gaussianCovMatrix J Λ)⁻¹.submatrix
+          (fun a : I ↦ (⟨a.1, hIΛ a.2⟩ : Λ)) (fun a : I ↦ (⟨a.1, hIΛ a.2⟩ : Λ)) := by
+  funext a b
+  exact invGaussianCovEntry_of_mem (hIΛ a.2) (hIΛ b.2)
+
+/-- For `I ⊆ Λ` the `I`-block of `𝒥_Λ⁻¹` is positive semidefinite. -/
+lemma posSemidef_covMatrix_invGaussianCovEntry
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) {I Λ : Finset S}
+    (hIΛ : I ⊆ Λ) : (ProbabilityTheory.covMatrix (invGaussianCovEntry J Λ) I).PosSemidef := by
+  rw [covMatrix_invGaussianCovEntry_eq_submatrix hIΛ]
+  exact (hPD Λ).inv.posSemidef.submatrix _
+
+/-- **The limiting covariance function `C` of Georgii (13.25) is nonnegative definite.** -/
+theorem posSemidef_covMatrix_of_tendsto
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) {C : S → S → ℝ}
+    (hC : ∀ i j, Filter.Tendsto (fun Λ : Finset S ↦ invGaussianCovEntry J Λ i j)
+      Filter.atTop (nhds (C i j))) (I : Finset S) :
+    (ProbabilityTheory.covMatrix C I).PosSemidef := by
+  have hsymm : ∀ i j : S, C i j = C j i := by
+    intro i j
+    refine tendsto_nhds_unique (hC i j) ?_
+    have : (fun Λ : Finset S ↦ invGaussianCovEntry J Λ j i)
+        = fun Λ : Finset S ↦ invGaussianCovEntry J Λ i j :=
+      funext fun Λ ↦ (invGaussianCovEntry_symm hPD Λ i j).symm
+    rw [← this]
+    exact hC j i
+  refine Matrix.posSemidef_iff_dotProduct_mulVec.2 ⟨?_, fun x ↦ ?_⟩
+  · refine Matrix.IsHermitian.ext fun a b ↦ ?_
+    simpa using hsymm b.1 a.1
+  · have hlim : Filter.Tendsto
+        (fun Λ : Finset S ↦ x ⬝ᵥ (ProbabilityTheory.covMatrix (invGaussianCovEntry J Λ) I) *ᵥ x)
+        Filter.atTop (nhds (x ⬝ᵥ (ProbabilityTheory.covMatrix C I) *ᵥ x)) := by
+      show Filter.Tendsto
+        (fun Λ : Finset S ↦ ∑ a : I, x a * ∑ b : I, invGaussianCovEntry J Λ a b * x b)
+        Filter.atTop (nhds (∑ a : I, x a * ∑ b : I, C a b * x b))
+      refine tendsto_finsetSum _ fun a _ ↦ Filter.Tendsto.const_mul _ ?_
+      exact tendsto_finsetSum _ fun b _ ↦ (hC a.1 b.1).mul_const _
+    have hev : ∀ᶠ Λ : Finset S in Filter.atTop,
+        (0 : ℝ) ≤ x ⬝ᵥ (ProbabilityTheory.covMatrix (invGaussianCovEntry J Λ) I) *ᵥ x := by
+      refine Filter.eventually_atTop.2 ⟨I, fun Λ hΛ ↦ ?_⟩
+      simpa using (posSemidef_covMatrix_invGaussianCovEntry hPD hΛ).dotProduct_mulVec_nonneg x
+    simpa using ge_of_tendsto hlim hev
+
+/-- **The limiting covariance function `C` of Georgii (13.25) is an inverse of `J`**, for `J` of
+finite row support: `∑_{j ∈ S} J(i,j) C(j,k) = δ_{ik}`. Georgii's computation
+`∑_{j ∈ S} J(i,j) C(j,k) = lim_Λ ∑_{j ∈ Λ} J(i,j) 𝒥_Λ⁻¹(j,k) = δ_{ik}`, where for `Λ` containing
+`i`, `k` and the (finite) support of the `i`-th row of `J` the inner sum is exactly the `(i,k)`
+entry of `𝒥_Λ 𝒥_Λ⁻¹ = 1`. -/
+theorem isInverse_of_tendsto_invGaussianCovEntry
+    (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite)
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) {C : S → S → ℝ}
+    (hC : ∀ i j, Filter.Tendsto (fun Λ : Finset S ↦ invGaussianCovEntry J Λ i j)
+      Filter.atTop (nhds (C i j))) (i k : S) :
+    ∑' j, J i j * C j k = if i = k then 1 else 0 := by
+  classical
+  set T : Finset S := (hFin i).toFinset with hT
+  have hT0 : ∀ j : S, j ∉ T → J i j = 0 := fun j hj ↦ by
+    by_contra hne
+    exact hj ((hFin i).mem_toFinset.2 hne)
+  have hts : ∑' j, J i j * C j k = ∑ j ∈ T, J i j * C j k :=
+    tsum_eq_sum fun j hj ↦ by rw [hT0 j hj, zero_mul]
+  have hlim : Filter.Tendsto (fun Λ : Finset S ↦ ∑ j ∈ T, J i j * invGaussianCovEntry J Λ j k)
+      Filter.atTop (nhds (∑ j ∈ T, J i j * C j k)) :=
+    tendsto_finsetSum _ fun j _ ↦ Filter.Tendsto.const_mul _ (hC j k)
+  have hev : ∀ᶠ Λ : Finset S in Filter.atTop,
+      ∑ j ∈ T, J i j * invGaussianCovEntry J Λ j k = if i = k then 1 else 0 := by
+    refine Filter.eventually_atTop.2 ⟨T ∪ {i, k}, fun Λ hΛ ↦ ?_⟩
+    have hTΛ : T ⊆ Λ := (Finset.subset_union_left).trans hΛ
+    have hiΛ : i ∈ Λ := hΛ (Finset.mem_union_right _ (by simp))
+    have hkΛ : k ∈ Λ := hΛ (Finset.mem_union_right _ (by simp))
+    have hmul : (Potential.gaussianCovMatrix J Λ * (Potential.gaussianCovMatrix J Λ)⁻¹)
+        ⟨i, hiΛ⟩ ⟨k, hkΛ⟩ = if i = k then 1 else 0 := by
+      rw [Matrix.mul_nonsing_inv _ (Matrix.PosDef.det_pos (hPD Λ)).ne'.isUnit, Matrix.one_apply]
+      by_cases hik : i = k
+      · subst hik
+        simp
+      · have hne : (⟨i, hiΛ⟩ : Λ) ≠ ⟨k, hkΛ⟩ := fun hh ↦ hik (by
+          have hval := congrArg (fun z : Λ ↦ (z : S)) hh
+          simpa using hval)
+        simp [hne, hik]
+    have hsumΛ : ∑ j : Λ, Potential.gaussianCovMatrix J Λ ⟨i, hiΛ⟩ j
+        * (Potential.gaussianCovMatrix J Λ)⁻¹ j ⟨k, hkΛ⟩ = if i = k then 1 else 0 := by
+      rw [← hmul, Matrix.mul_apply]
+    have hcoe : ∑ j : Λ, Potential.gaussianCovMatrix J Λ ⟨i, hiΛ⟩ j
+        * (Potential.gaussianCovMatrix J Λ)⁻¹ j ⟨k, hkΛ⟩
+        = ∑ j ∈ Λ, J i j * invGaussianCovEntry J Λ j k := by
+      rw [← Finset.sum_coe_sort Λ fun j ↦ J i j * invGaussianCovEntry J Λ j k]
+      refine Finset.sum_congr rfl fun j _ ↦ ?_
+      rw [invGaussianCovEntry_of_mem j.2 hkΛ]
+      rfl
+    have hrestrict : ∑ j ∈ Λ, J i j * invGaussianCovEntry J Λ j k
+        = ∑ j ∈ T, J i j * invGaussianCovEntry J Λ j k := by
+      refine (Finset.sum_subset hTΛ fun j _ hj ↦ ?_).symm
+      rw [hT0 j hj, zero_mul]
+    rw [← hrestrict, ← hcoe, hsumΛ]
+  rw [hts]
+  exact tendsto_nhds_unique hlim
+    (Filter.Tendsto.congr' (hev.mono fun _ hΛ ↦ hΛ.symm) tendsto_const_nhds)
+
+/-- **Georgii Theorem (13.26), the sufficiency half.** Let `J : S × S → ℝ` be symmetric with
+finite row support (`{j : J(i,j) ≠ 0} ∈ 𝒮`) and every `𝒥_Λ` positive definite, and let `h ∈ Ω`.
+If `M_{J,h} ≠ ∅` and Georgii's condition (13.27) holds — `sup_Λ 𝒥_Λ⁻¹(i,i) < ∞` for every
+`i ∈ S`, stated here as boundedness above of the net `Λ ↦ 𝒥_Λ⁻¹(i,i)` — then
+`𝒢(γ^{J,h}) ≠ ∅`.
+
+The proof is Georgii's: (13.27) and the monotonicity
+`∑_{i,j ∈ Λ} 𝒥_Λ⁻¹(i,j) t_i t_j ≤ ∑_{i,j ∈ Λ} 𝒥_Δ⁻¹(i,j) t_i t_j` produce the limits (13.25)
+(`exists_tendsto_invGaussianCovEntry`); the limit function `C` is nonnegative definite
+(`posSemidef_covMatrix_of_tendsto`) and inverts `J`
+(`isInverse_of_tendsto_invGaussianCovEntry`, using the finite range); Proposition (13.A7)
+(`ProbabilityTheory.gaussianField`) produces the centred Gauss field `μ_C`, which satisfies
+condition (b) of Theorem (13.22) at `h = 0`, and Remark (13.23)(b) transports it to
+`τ^m(μ_C) ∈ 𝒢(γ^{J,h})` for every `m ∈ M_{J,h}`. -/
+theorem nonempty_G_gaussianSpecification_of_bddAbove [Countable S]
+    (hSymm : ∀ i j, J i j = J j i) (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite)
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef)
+    (h27 : ∀ i : S, BddAbove (Set.range fun Λ : Finset S ↦ invGaussianCovEntry J Λ i i))
+    {h : S → ℝ} (hM : (Potential.gaussianMeanSet J h).Nonempty) :
+    (MeasureTheory.GibbsMeasure.G
+      (Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos)).Nonempty := by
+  classical
+  obtain ⟨m, hm⟩ := hM
+  choose C hC using exists_tendsto_invGaussianCovEntry hPD h27
+  exact nonempty_G_gaussianSpecification_of_posSemidef_of_isInverse hFin hSymm hPD C
+    (posSemidef_covMatrix_of_tendsto hPD hC)
+    (isInverse_of_tendsto_invGaussianCovEntry hFin hPD hC) hm
+
+end Theorem13_26Limits
 
 end MeasureTheory.GibbsMeasure

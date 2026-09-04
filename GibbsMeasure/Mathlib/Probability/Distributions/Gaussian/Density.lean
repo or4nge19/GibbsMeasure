@@ -43,6 +43,11 @@ Multivariate`) constructs the multivariate Gaussian on `EuclideanSpace ℝ ι` a
   `multivariateGaussianPi A m` is a probability measure.
 * `ProbabilityTheory.integral_eval_multivariateGaussianPi`: its mean is `m`.
 * `ProbabilityTheory.integral_sub_mul_sub_multivariateGaussianPi`: its covariance is `A⁻¹`.
+* `ProbabilityTheory.integral_eval_sq_multivariateGaussianPi`: its second moment is
+  `A⁻¹(i,i) + m_i²`; the integrability statements behind the first and second moments are
+  `ProbabilityTheory.integrable_eval_multivariateGaussianPi`,
+  `ProbabilityTheory.integrable_sub_mul_sub_multivariateGaussianPi` and
+  `ProbabilityTheory.integrable_eval_sq_multivariateGaussianPi`.
 * `ProbabilityTheory.multivariateGaussianPi_map_add_right`: its pushforward along `x ↦ x + v` is
   `multivariateGaussianPi A (m + v)`.
 
@@ -658,6 +663,109 @@ theorem integral_sub_mul_sub_multivariateGaussianPi {A : Matrix ι ι ℝ} (hA :
     sqrt_det_div_mul_sqrt_div_det_eq_one hA, one_mul]
 
 end Covariance
+
+section Moments
+
+/-- **Reduction of integrability against `multivariateGaussianPi A m` to Lebesgue integrability of
+the centred density-weighted integrand.** If `y ↦ exp (-(1/2) * (y ⬝ᵥ A *ᵥ y)) * g (y + m)` is
+Lebesgue integrable, then `g` is integrable for `multivariateGaussianPi A m`. -/
+lemma integrable_multivariateGaussianPi_of_integrable (A : Matrix ι ι ℝ) (m : ι → ℝ)
+    {g : (ι → ℝ) → ℝ}
+    (hg : Integrable fun y : ι → ℝ ↦ Real.exp (-(1 / 2) * (y ⬝ᵥ A *ᵥ y)) * g (y + m)) :
+    Integrable g (multivariateGaussianPi A m) := by
+  set c : ℝ := Real.sqrt (A.det / (2 * π) ^ Fintype.card ι) with hc
+  rw [multivariateGaussianPi, integrable_withDensity_iff_integrable_smul'
+    (measurable_multivariateGaussianPDF A m)
+    (ae_of_all _ (multivariateGaussianPDF_lt_top A m))]
+  have heq : (fun x : ι → ℝ ↦ (multivariateGaussianPDF A m x).toReal • g x)
+      = fun x : ι → ℝ ↦
+        (fun y : ι → ℝ ↦ c * (Real.exp (-(1 / 2) * (y ⬝ᵥ A *ᵥ y)) * g (y + m))) (x - m) := by
+    funext x
+    simp only [toReal_multivariateGaussianPDF, smul_eq_mul, multivariateGaussianPDFReal,
+      sub_add_cancel, hc]
+    ring
+  rw [heq]
+  exact (hg.const_mul c).comp_sub_right m
+
+omit [DecidableEq ι] in
+/-- The centred Gaussian weight `y ↦ exp (-(1/2) * (y ⬝ᵥ A *ᵥ y))` is Lebesgue integrable for `A`
+positive definite. -/
+lemma integrable_exp_neg_half_dotProduct_mulVec {A : Matrix ι ι ℝ} (hA : A.PosDef) :
+    Integrable fun y : ι → ℝ ↦ Real.exp (-(1 / 2) * (y ⬝ᵥ A *ᵥ y)) := by
+  simpa using
+    Matrix.PosDef.integrable_exp_neg_half_dotProduct_mulVec_add_dotProduct hA (0 : ι → ℝ)
+
+/-- The coordinate `x ↦ x i` is integrable for `multivariateGaussianPi A m`. -/
+lemma integrable_eval_multivariateGaussianPi {A : Matrix ι ι ℝ} (hA : A.PosDef) (m : ι → ℝ)
+    (i : ι) : Integrable (fun x : ι → ℝ ↦ x i) (multivariateGaussianPi A m) := by
+  refine integrable_multivariateGaussianPi_of_integrable A m ?_
+  have h1 : Integrable fun y : ι → ℝ ↦ Real.exp (-(1 / 2) * (y ⬝ᵥ A *ᵥ y)) * y i := by
+    have := integrable_dotProduct_mul_exp_neg_half_dotProduct_mulVec hA (Pi.single i (1 : ℝ))
+    simpa [single_dotProduct, mul_comm] using this
+  have h2 : Integrable fun y : ι → ℝ ↦ Real.exp (-(1 / 2) * (y ⬝ᵥ A *ᵥ y)) * m i :=
+    (integrable_exp_neg_half_dotProduct_mulVec hA).mul_const _
+  refine (h1.add h2).congr (.of_forall fun y ↦ ?_)
+  simp only [Pi.add_apply]
+  ring
+
+/-- The product of two centred coordinates is integrable for `multivariateGaussianPi A m`. -/
+lemma integrable_sub_mul_sub_multivariateGaussianPi {A : Matrix ι ι ℝ} (hA : A.PosDef)
+    (m : ι → ℝ) (i j : ι) :
+    Integrable (fun x : ι → ℝ ↦ (x i - m i) * (x j - m j)) (multivariateGaussianPi A m) := by
+  refine integrable_multivariateGaussianPi_of_integrable A m ?_
+  have hsq : ∀ k : ι, Integrable fun y : ι → ℝ ↦
+      y k ^ 2 * Real.exp (-(1 / 2) * (y ⬝ᵥ A *ᵥ y)) := fun k ↦ by
+    have := integrable_dotProduct_sq_mul_exp_neg_half_dotProduct_mulVec hA (Pi.single k (1 : ℝ))
+    simpa [single_dotProduct] using this
+  have hcross : Integrable fun y : ι → ℝ ↦
+      (y i + y j) ^ 2 * Real.exp (-(1 / 2) * (y ⬝ᵥ A *ᵥ y)) := by
+    have := integrable_dotProduct_sq_mul_exp_neg_half_dotProduct_mulVec hA
+      (Pi.single i (1 : ℝ) + Pi.single j (1 : ℝ))
+    simpa [add_dotProduct, single_dotProduct] using this
+  refine (((hcross.sub (hsq i)).sub (hsq j)).const_mul (1 / 2 : ℝ)).congr
+    (.of_forall fun y ↦ ?_)
+  simp only [Pi.add_apply, Pi.sub_apply, add_sub_cancel_right]
+  ring
+
+/-- The square of a coordinate is integrable for `multivariateGaussianPi A m`. -/
+lemma integrable_eval_sq_multivariateGaussianPi {A : Matrix ι ι ℝ} (hA : A.PosDef) (m : ι → ℝ)
+    (i : ι) : Integrable (fun x : ι → ℝ ↦ x i ^ 2) (multivariateGaussianPi A m) := by
+  have := isProbabilityMeasure_multivariateGaussianPi hA m
+  refine ((((integrable_sub_mul_sub_multivariateGaussianPi hA m i i).add
+    ((integrable_eval_multivariateGaussianPi hA m i).const_mul (2 * m i))).sub
+      (integrable_const (m i ^ 2)))).congr (.of_forall fun x ↦ ?_)
+  simp only [Pi.sub_apply, Pi.add_apply]
+  ring
+
+/-- **The second moment of the multivariate Gaussian density measure.** For `A` positive definite,
+`∫ x_i² d(multivariateGaussianPi A m) = A⁻¹(i,i) + m_i²`: the variance is `A⁻¹(i,i)`
+(`integral_sub_mul_sub_multivariateGaussianPi`) and the mean is `m_i`
+(`integral_eval_multivariateGaussianPi`). -/
+theorem integral_eval_sq_multivariateGaussianPi {A : Matrix ι ι ℝ} (hA : A.PosDef) (m : ι → ℝ)
+    (i : ι) : ∫ x, x i ^ 2 ∂(multivariateGaussianPi A m) = A⁻¹ i i + m i ^ 2 := by
+  have hP := isProbabilityMeasure_multivariateGaussianPi hA m
+  have hsq : Integrable (fun x : ι → ℝ ↦ (x i - m i) * (x i - m i))
+      (multivariateGaussianPi A m) := integrable_sub_mul_sub_multivariateGaussianPi hA m i i
+  have hlin : Integrable (fun x : ι → ℝ ↦ 2 * m i * x i) (multivariateGaussianPi A m) :=
+    (integrable_eval_multivariateGaussianPi hA m i).const_mul _
+  have hdecomp : ∫ x, x i ^ 2 ∂(multivariateGaussianPi A m)
+      = ∫ x, ((x i - m i) * (x i - m i) + 2 * m i * x i - m i ^ 2)
+          ∂(multivariateGaussianPi A m) :=
+    integral_congr_ae (.of_forall fun x ↦ by ring)
+  have hstep : ∫ x, ((x i - m i) * (x i - m i) + 2 * m i * x i - m i ^ 2)
+      ∂(multivariateGaussianPi A m)
+      = (∫ x, ((x i - m i) * (x i - m i) + 2 * m i * x i) ∂(multivariateGaussianPi A m))
+        - ∫ _x : ι → ℝ, m i ^ 2 ∂(multivariateGaussianPi A m) :=
+    integral_sub (hsq.add hlin) (integrable_const _)
+  have hstep2 : ∫ x, ((x i - m i) * (x i - m i) + 2 * m i * x i) ∂(multivariateGaussianPi A m)
+      = (∫ x, (x i - m i) * (x i - m i) ∂(multivariateGaussianPi A m))
+        + ∫ x, 2 * m i * x i ∂(multivariateGaussianPi A m) := integral_add hsq hlin
+  rw [hdecomp, hstep, hstep2, integral_sub_mul_sub_multivariateGaussianPi hA m i i,
+    integral_const_mul, integral_eval_multivariateGaussianPi hA m i, integral_const]
+  rw [probReal_univ, one_smul]
+  ring
+
+end Moments
 
 section Translation
 

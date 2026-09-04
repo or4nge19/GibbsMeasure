@@ -18,15 +18,15 @@
     identity at every singleton is the DLR equation by (1.33).
 \end{proof}
 
-\begin{theorem}[Georgii (13.22), sufficiency]
+\begin{theorem}[Georgii (13.22)]
     \label{thm:gs-13-22}
     \uses{thm:gs-13-20, def:gf-13-18}
-    \lean{MeasureTheory.GibbsMeasure.georgii_13_22_of_finiteRowSupport}
+    \lean{MeasureTheory.GibbsMeasure.georgii_13_22_of_finiteRowSupport, MeasureTheory.GibbsMeasure.georgii_13_22_iff, MeasureTheory.GibbsMeasure.isInverse_covariance_of_isGibbsMeasure, MeasureTheory.GibbsMeasure.condExpOutside_ae_eq_gaussianCondMean_of_isGibbsMeasure, ProbabilityTheory.integral_eval_sq_multivariateGaussianPi}
     \leanok
 
     Let $J$ be symmetric of finite row support with every $\mathcal J_\Lambda$ positive definite.
-    A Gauss field $\mu$ whose mean lies in $M_{J,h}$ and whose covariance $C$ satisfies
-    $\sum_j J(i,j)C(j,k) = \delta_{ik}$ belongs to $\mathcal G(\gamma^{J,h})$.
+    A Gauss field $\mu$ is a Gibbs measure for $\gamma^{J,h}$ if and only if its mean lies in
+    $M_{J,h}$ and its covariance $C$ satisfies $\sum_j J(i,j)C(j,k) = \delta_{ik}$.
 \end{theorem}
 \begin{proof}
     \leanok
@@ -84,3 +84,33 @@
     nonnegative definite with $\sum_j J(i,j)C(j,k) = \delta_{ik}$, then
     $\mathcal G(\gamma^{J,h}) \neq \emptyset$ for every $h$ with $M_{J,h} \neq \emptyset$.
 \end{corollary}
+
+\begin{theorem}[Georgii (13.26), (13.27)]
+    \label{thm:gs-13-27}
+    \uses{thm:gs-13-22, thm:gs-13-A7}
+    \lean{Matrix.PosDef.dotProduct_mulVec_inv_submatrix_le, MeasureTheory.GibbsMeasure.dotProduct_mulVec_inv_gaussianCovMatrix_mono, MeasureTheory.GibbsMeasure.exists_tendsto_invGaussianCovEntry, MeasureTheory.GibbsMeasure.isInverse_of_tendsto_invGaussianCovEntry, MeasureTheory.GibbsMeasure.nonempty_G_gaussianSpecification_of_bddAbove}
+    \leanok
+
+    If $\sup_\Lambda \mathcal J_\Lambda^{-1}(i,i) < \infty$ for every $i$ (13.27) and
+    $M_{J,h} \neq \emptyset$, then the entries $\mathcal J_\Lambda^{-1}(i,j)$ converge as
+    $\Lambda \uparrow S$ to a nonnegative-definite $C$ inverting $J$, and
+    $\mathcal G(\gamma^{J,h}) \neq \emptyset$.
+\end{theorem}
+\begin{proof}
+    \leanok
+    The monotonicity $(A_{\Lambda\Lambda})^{-1} \preceq (A^{-1})_{\Lambda\Lambda}$ is linear
+    algebra, from $2t\cdot x - x\cdot Ax \leq t\cdot A^{-1}t$ with equality at $x = A^{-1}t$;
+    Georgii derives it from (13.13) and Jensen. Monotone bounded convergence then gives $C$, and
+    Theorem \ref{thm:gs-13-A7} supplies the field.
+\end{proof}
+
+\begin{proposition}[Georgii §13.3, the homogeneous case]
+    \label{prop:gs-13-3}
+    \uses{thm:gs-13-23, thm:gs-13-27}
+    \lean{Potential.homogeneousCoupling, Potential.const_mem_gaussianMeanSet_iff, Potential.map_add_const_isGibbsMeasure_of_tsum_eq_zero, Potential.nonempty_G_homogeneousCoupling_of_bddAbove}
+    \leanok
+
+    For a translation-invariant coupling $J(i,j) = J'(j-i)$ on a countable abelian group, a
+    constant configuration lies in $M_{J,h}$ iff $h' + \hat J(1)c = 0$; when $\hat J(1) = 0$ the
+    constant shifts are symmetries of $\gamma^{J,h}$ and preserve $\mathcal G$.
+\end{proposition}

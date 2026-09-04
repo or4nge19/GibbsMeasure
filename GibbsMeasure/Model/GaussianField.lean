@@ -18,6 +18,7 @@ public import Mathlib.MeasureTheory.Measure.CharacteristicFunction.Basic
 public import Mathlib.Topology.Algebra.Module.ContinuousLinearMap.PiProd
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Density
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.CondExp
+public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Existence
 public import Mathlib.Analysis.Matrix.Order
 
 /-!
@@ -297,8 +298,17 @@ theorem isPotential_gaussianPotential : IsPotential (gaussianPotential J h) := b
   infer_instance
 
 omit [LinearOrder S] in
-/-- **Georgii (13.12).** The finite-volume interaction matrix `𝒥_Λ = (J(i,j))_{i,j ∈ Λ}`. -/
-def gaussianCovMatrix (Λ : Finset S) : Matrix Λ Λ ℝ := fun i j ↦ J i.1 j.1
+/-- **Georgii (13.12).** The finite-volume interaction matrix `𝒥_Λ = (J(i,j))_{i,j ∈ Λ}`.
+
+Despite the name — kept because it is the matrix that Georgii's (13.12) attaches to the volume
+`Λ` — this is the *coupling* (precision) matrix of `γ^{J,h}_Λ(·|ω)`, **not** its covariance: by
+Proposition (13.13) the covariance of `γ^{J,h}_Λ(·|ω)` is `𝒥_Λ⁻¹`.
+
+It is an abbreviation for `ProbabilityTheory.covMatrix J Λ`, the generic "restrict a kernel
+`S → S → ℝ` to a finite index set" operation of
+`GibbsMeasure/Mathlib/Probability/Distributions/Gaussian/Existence.lean`; the two are the same
+object and must not be duplicated. -/
+abbrev gaussianCovMatrix (Λ : Finset S) : Matrix Λ Λ ℝ := ProbabilityTheory.covMatrix J Λ
 
 omit [LinearOrder S] in
 lemma gaussianCovMatrix_apply (Λ : Finset S) (i j : Λ) :

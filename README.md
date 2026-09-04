@@ -595,8 +595,12 @@ satisfy (13.5)); **Lemma (13.10)**: under (i)–(iii) the conditional law of `σ
 `𝒩(ξ_i, J(i,i)⁻¹)`, and for finite row support it is `γ^{J,h}_{i}` (`GibbsMeasure/Model/GaussianSpecification.lean`),
 from Gaussian regression, closure under conditioning and `L¹`-limits of Gaussians in the Mathlib layer.
 **§13.2** (`GibbsMeasure/Model/GaussianGibbs.lean`): **(13.20)** a Gauss field is a Gibbs measure for
-the specification of its own conditional couplings, **(13.22)** in the sufficient direction, and
-**(13.23)** the translation structure of `𝒢(γ^{J,h})`. **Georgii (13.A7)** — existence and uniqueness of a
+the specification of its own conditional couplings, **(13.22)** as an equivalence — a Gauss field is
+Gibbs exactly when its mean lies in the mean set and its covariance inverts the coupling — and
+**(13.23)** the translation structure of `𝒢(γ^{J,h})`. **(13.26)–(13.27)**: under Georgii's
+summability hypothesis the inverse coupling matrices converge and the Gibbs simplex is nonempty;
+the monotonicity behind it is proved as linear algebra, `(A_{ΛΛ})⁻¹ ⪯ (A⁻¹)_{ΛΛ}`, rather than
+through Jensen. **§13.3** is begun in `GibbsMeasure/Model/GaussianHomogeneous.lean`. **Georgii (13.A7)** — existence and uniqueness of a
 centred Gaussian process with prescribed nonnegative-definite covariance — is proved in
 `GibbsMeasure/Mathlib/Probability/Distributions/Gaussian/Existence.lean` by Kolmogorov extension
 (Mathlib had the projectivity of multivariate Gaussians only inside its Brownian motion files,

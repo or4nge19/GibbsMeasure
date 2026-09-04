@@ -177,6 +177,7 @@ public import GibbsMeasure.Model.Antiferromagnet
 public import GibbsMeasure.Model.GaussianField
 public import GibbsMeasure.Model.GaussianSpecification
 public import GibbsMeasure.Model.GaussianGibbs
+public import GibbsMeasure.Model.GaussianHomogeneous
 public import GibbsMeasure.Model.ShiftAverage
 public import GibbsMeasure.Potential.Existence
 public import GibbsMeasure.Potential.FiniteReference
