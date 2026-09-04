@@ -1159,8 +1159,9 @@ alignment:
         transform and the attainment criterion (16.5), the sandwich and Hahn-Banach existence of
         tangent functionals (16.6), and Bishop-Phelps (16.7)-(16.9). Separability of B_Theta for
         finite E (Georgii's remark that rational finite-range potentials are dense) is a hypothesis
-        of the Mazur corollary, not yet proved. The identification of G_Theta(Phi) with the tangent
-        functionals of P is Section 16.2, not attempted.
+        of the Mazur corollary; separability for finite E is proved in the Section 16.2 entry, so the
+        corollary no longer carries that hypothesis. The identification of G_Theta(Phi) with the
+        tangent functionals of P is Section 16.2, done.
     - source: "Section 16.2: (16.10)-(16.14)"
       lean: "Potential.BTheta.gateauxDifferentiable_pressure_iff_subsingleton"
       module: "GibbsMeasure/Specification/PhaseTransition.lean"
@@ -1187,14 +1188,15 @@ alignment:
         is proved in Specification/Dobrushin.lean. Not formalized: the second-derivative half of
         (16.17), which is Corollary (8.37) and rests on Proposition (8.34), the covariance bound
         by the Dobrushin interdependence matrix; neither is in the tree.
-    - source: "Section 15.5: (15.41)-(15.44), (15.48), (15.49), (15.59), (15.60)"
+    - source: "Section 15.5: (15.41)-(15.44), (15.49), (15.59), (15.60); the properties of the rate function in (15.48)"
       lean: "Potential.BTheta.ldRate_eq_iSup"
       module: "GibbsMeasure/Specification/LargeDeviations.lean"
       status: "partial"
       note: >-
         The periodic empirical field and its comparison with the empirical field, uniform in the
         boundary condition (15.43)(1); (15.43)(2) almost surely rather than Georgii's in
-        probability, for arbitrary torus reductions, from the individual ergodic theorem; (15.44).
+        probability, and for arbitrary torus reductions, but along monotone cubes where Georgii
+        allows any cube sequence, so it neither implies nor follows from his statement; (15.44).
         The rate function: nonnegative, zero exactly on the Gibbs measures, convex, with compact
         level sets, lower semicontinuous, and equal to its Legendre transform (15.49), the
         conjugate attained at a shift-invariant Gibbs measure via the variational principle;
@@ -1202,7 +1204,10 @@ alignment:
         so the model-free Fenchel-Moreau statement for a rate function is built in
         Mathlib/Probability/LargeDeviations/Legendre.lean (itstrue home is Mathlib/Analysis/Convex).
         Not formalized: (15.45)-(15.47) (need Shannon-McMillan-Breiman and Choquet theory, neither
-        in Mathlib), (15.50)-(15.52), (15.57)-(15.58).
+        in Mathlib) and, consequently, the two displayed limsup/liminf inequalities that are the
+        substance of Corollary (15.48) — only its trailing properties of the rate function are
+        proved; also (15.50)-(15.52), (15.57)-(15.58). Throughout, the a priori measure is a
+        probability measure where Georgii assumes only a finite one.
     - source: "Section 12.2: (12.19)-(12.35)"
       lean: "MeasureTheory.GibbsMeasure.Tree.G_isingTreeSpecification_eq_singleton"
       module: "GibbsMeasure/Model/IsingCayleyTree.lean"

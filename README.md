@@ -501,14 +501,17 @@ relative entropy of the one-step conditional distribution against the transition
 
 **§15.5** (`GibbsMeasure/Specification/LargeDeviations.lean`): the periodic empirical field, its
 uniform comparison with the empirical field, and its almost sure convergence under an ergodic
-measure — stronger than Georgii's convergence in probability; the large-deviation rate function,
+measure, where Georgii states convergence in probability — a stronger mode, but proved along
+monotone cubes where he allows any sequence of cubes, so the two statements are incomparable; the large-deviation rate function,
 convex with compact level sets, vanishing exactly on the Gibbs measures, and equal to its Legendre
 transform, the conjugate being attained at a Gibbs measure. Mathlib has neither large-deviation
 theory nor a convex conjugate, so Fenchel–Moreau for a rate function is built model-free in the
 Mathlib layer. Still open there: (15.45)–(15.47), which need Shannon–McMillan–Breiman and Choquet
 theory, neither of which Mathlib has.
 
-**Chapter 16, §16.1** (`GibbsMeasure/Specification/TangentFunctional.lean`): Georgii's `ℬ_Θ` as a
+**Chapter 16** normalises the a priori measure to a probability measure throughout, where Georgii
+assumes only that it is finite; the two differ by an additive `log λ(E)` in the pressure and the
+specific entropy. **§16.1** (`GibbsMeasure/Specification/TangentFunctional.lean`): Georgii's `ℬ_Θ` as a
 Banach space, on which the pressure is convex and `1`-Lipschitz (16.1), and its tangent-functional
 theory (16.2)–(16.9) — one-sided directional derivatives, the dense-`G_δ` differentiability theorem
 and Mazur's theorem, `f`-bounded and tangent functionals, the attainment criterion, existence of a
@@ -521,8 +524,9 @@ classes are dense. **§16.2** (`GibbsMeasure/Specification/PhaseTransition.lean`
 hypograph of the specific entropy, closed because its level sets are compact; and **(16.14)** — that
 map carries `𝒢_Θ(Φ)` bijectively onto the tangent functionals of the pressure at `Φ`, so the pressure
 is Gateaux differentiable exactly where the shift-invariant Gibbs measure is unique, which for finite
-`E` is a dense `G_δ` of potentials. **(16.15)–(16.16)**: the pressure is affine along a segment exactly
-when the endpoints are equivalent potentials, and strictly convex between distinct normalised ones —
+`E` is a dense `G_δ` of potentials. **(16.15)–(16.16)**: for potentials whose Hamiltonian differences are
+continuous and an everywhere dense a priori measure, the pressure is affine along a segment exactly
+when the endpoints are equivalent, and strictly convex between distinct normalised ones —
 which required the converse half of **Theorem (2.34)**, now proved (`GibbsMeasure/Potential/Equivalence.lean`).
 **(16.17)** in its first-derivative half: on the Dobrushin region the phase is unique and the pressure
 is differentiable with derivative `−⟨μ_Φ, Ψ⟩`. Its second-derivative half is Corollary (8.37), which
