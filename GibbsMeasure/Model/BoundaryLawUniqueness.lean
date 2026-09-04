@@ -85,13 +85,23 @@ laws `{ℓ_i, r_i}` of Definition (11.8) with their measures (11.10) (`boundaryL
   (`MeasureTheory.GibbsMeasure.Transformation.toFun_comp_juxt`,
   `.measurePreserving_spin_piCongrLeft`, which need only `[SigmaFinite ν]`, not
   `[IsProbabilityMeasure ν]`) — and `isIrreducibleInt_rescaledTransferDensity` (**Specification.
-  IsIrreducibleInt**, Georgii's Definition (10.23), with `n(N) ≡ 1`, `C_N := countExhaustion N` a
-  finite exhaustion of `E` built from a fixed enumeration `enumE : ℕ → E`, and the witness
-  `irreducibleWitness Q N x := (inf_{y, y' ∈ C_N} Q(y, x) Q(x, y') / Q²(y, y')) /
-  countProbDensity(x)`, a finite infimum of positive finite reals). Both gaps (a) and (b) that the
-  previous version of this docstring recorded as open are closed: gap (b) (aperiodicity ⇒ eventual
-  positivity) was never needed (`IsTransferMatrix.pos` already gives `Q > 0` everywhere), and gap
-  (a) (the genuine construction) is `isIrreducibleInt_rescaledTransferDensity` above.
+  IsIrreducibleInt**, Georgii's Definition (10.23), with `n(N) ≡ 1` since `Q > 0` everywhere;
+  a special case of `isIrreducibleInt_rescaledTransferDensity_of_eventually`, see the next bullet).
+* `marginalDensity_rescaledTransferDensity_Ioo`,
+  `isIrreducibleInt_rescaledTransferDensity_of_eventually`,
+  `isIrreducibleInt_rescaledTransferDensity_of_isAperiodic` — **Georgii Example (10.24)(2)**, as
+  stated: for a stochastic `P` on the countable `E` that is irreducible and aperiodic, the
+  Markovian `λ`-modification `ρ` of Example (10.3) with `p_j = P` (here `rescaledTransferDensity
+  P`, Georgii's `ρ` after his reduction to the probability a priori measure `countProb`) is
+  irreducible in the sense of (10.23), with `C_N := countExhaustion N` a finite exhaustion built
+  from a fixed enumeration `enumE : ℕ → E`, `n(N)` a step count beyond which `P^n > 0` on
+  `C_N × C_N`, and the witness `irreducibleWitness P (n N) N x := (inf_{y, z ∈ C_N} P^n(y, x)
+  P^n(x, z) / P^{2n}(y, z)) / countProbDensity(x)`; the marginal density
+  `ρ^0_{]-n,n[}(ω) = P^n(ω_{-n}, ω_0) P^n(ω_0, ω_n) / (countProbDensity(ω_0) P^{2n}(ω_{-n}, ω_n))`
+  is Georgii's second display. Georgii's cited input (Breiman, Ch. 7) — an aperiodic irreducible
+  `P` has `P^n(x, y) > 0` for all large `n` — is `ProbabilityTheory.Kernel.period`,
+  `Kernel.IsAperiodic` and `Kernel.eventually_pow_apply_singleton_pos`
+  (`GibbsMeasure/Mathlib/Probability/Kernel/CountableMatrix/Recurrence.lean`).
 * `mem_extremePoints_G_transferSpecification_of_measurePreserving_shift`,
   `eq_of_isGibbsMeasure_transferSpecification_of_measurePreserving_shift`,
   `exists_isMarkovChain_transferSpecification_of_measurePreserving_shift` — **Georgii Theorems
@@ -1840,16 +1850,22 @@ theorem isHomogeneousInt_rescaledTransferDensity :
 
 end Homogeneous
 
-/-! ### Obstruction (i), fifth bullet: `rescaledTransferDensity Q` is irreducible
+/-! ### Obstruction (i), fifth bullet, and Georgii's Example (10.24)(2): irreducibility
 
-Georgii's Definition (10.23), instantiated with `n(N) ≡ 1` (justified by `IsTransferMatrix.pos`:
-`Q(x, y) > 0` for *every* pair, so no witnessing integer beyond `1` is ever needed), a finite
-exhaustion `C_N ↑ E` built from a fixed enumeration of the countable `E`, and the witness
-`h_N(x) := (inf_{y, y' ∈ C_N} Q(y, x) Q(x, y') / Q²(y, y')) / countProbDensity(x)`, a finite
-infimum of positive finite reals (hence positive and finite) since `C_N` is finite. The defining
-inequality of (10.23) at `n(N) = 1`, `Finset.Ioo (-1) 1 = {0}`, is exactly
-`transferWeight_singleton` after `marginalDensity` collapses over the empty erased set
-(`isssd_empty`). -/
+Georgii's Definition (10.23) for `γ^Q`, in the general form
+`isIrreducibleInt_rescaledTransferDensity_of_eventually`: if all powers `P^n` are finite and
+`P^n(x, y) > 0` for all large `n` (for each pair `x, y`), then `rescaledTransferDensity P` is
+irreducible, with `C_N ↑ E` a finite exhaustion built from a fixed enumeration of the countable
+`E`, `n(N) ≥ 1` any step count with `P^{n(N)} > 0` on `C_N × C_N`, and Georgii's witness
+`h_N(x) = (inf_{y, z ∈ C_N} P^n(y, x) P^n(x, z) / P^{2n}(y, z)) / countProbDensity(x)`, a finite
+infimum of positive finite reals. The defining inequality of (10.23) is the explicit marginal
+density `marginalDensity_rescaledTransferDensity_Ioo`, Georgii's second display in (10.24)(2),
+computed from the partition functions (11.2) of the two blocks `]-n, 0[` and `]0, n[`.
+
+Two instances: a transfer matrix (11.1) (`isIrreducibleInt_rescaledTransferDensity`, where
+`Q > 0` lets `n(N) ≡ 1`), and **Georgii's Example (10.24)(2)** itself
+(`isIrreducibleInt_rescaledTransferDensity_of_isAperiodic`): a stochastic `P` that is irreducible
+and aperiodic, via `ProbabilityTheory.Kernel.eventually_pow_apply_singleton_pos`. -/
 
 section Irreducible
 
@@ -1889,77 +1905,260 @@ lemma countExhaustion_nonempty {N : ℕ} (hN : 1 ≤ N) :
   ⟨enumE 0, by rw [countExhaustion]; exact Finset.mem_image_of_mem _ (Finset.mem_range.2 (by
     omega))⟩
 
-/-- **Georgii's witness `h_N`** of Definition (10.23), at `n(N) ≡ 1`:
-`h_N(x) = (inf_{y, y' ∈ C_N} Q(y, x) Q(x, y') / Q²(y, y')) / countProbDensity(x)`. A finite
-infimum over the finite exhaustion `countExhaustion N`, `⊤` if `N = 0`. -/
-noncomputable def irreducibleWitness (N : ℕ) (x : E) : ℝ≥0∞ :=
-  ((countExhaustion (E := E) N).inf fun y ↦
-      (countExhaustion (E := E) N).inf fun y' ↦
-        Q y x * Q x y' / (Kernel.ofMatrix Q ^ 2) y {y'})
+omit [Nonempty E] in
+/-- Integrating the transfer weight of `]-n, n[` over the interior sites other than `0` with
+respect to the counting kernel gives `P^n(ω_{-n}, ω_0) P^n(ω_0, ω_n)`. -/
+lemma lintegral_lambdaCount_transferWeight_Ioo_erase (P : E → E → ℝ≥0∞) {n : ℕ} (hn : 1 ≤ n)
+    (ω : ℤ → E) :
+    ∫⁻ ζ, transferWeight P (Finset.Ioo (-(n : ℤ)) n) ζ
+        ∂(Specification.sigmaFiniteLambdaFun (S := ℤ) (E := E) Measure.count
+          ((Finset.Ioo (-(n : ℤ)) n).erase 0) ω)
+      = (Kernel.ofMatrix P ^ n) (ω (-(n : ℤ))) {ω 0} * (Kernel.ofMatrix P ^ n) (ω 0) {ω n} := by
+  rcases Nat.lt_or_ge n 2 with h2 | h2
+  · obtain rfl : n = 1 := by omega
+    have hΛ : (Finset.Ioo (-((1 : ℕ) : ℤ)) ((1 : ℕ) : ℤ)).erase 0 = ∅ := by
+      ext k
+      simp only [Nat.cast_one, Finset.mem_erase, Finset.mem_Ioo, Finset.notMem_empty, iff_false]
+      omega
+    have hΛ' : Finset.Ioo (-((1 : ℕ) : ℤ)) ((1 : ℕ) : ℤ) = ({0} : Finset ℤ) := by
+      ext k
+      simp only [Nat.cast_one, Finset.mem_Ioo, Finset.mem_singleton]
+      omega
+    rw [hΛ, lintegral_lambdaCount_empty ω (measurable_transferWeight P _), hΛ',
+      transferWeight_singleton]
+    simp
+  · set A := Finset.Icc (-(n : ℤ) + 1) (-1) with hA
+    set B := Finset.Icc 1 ((n : ℤ) - 1) with hB
+    have hAB : (Finset.Ioo (-(n : ℤ)) n).erase 0 = A ∪ B := by
+      ext k
+      simp only [hA, hB, Finset.mem_erase, Finset.mem_Ioo, Finset.mem_union, Finset.mem_Icc]
+      omega
+    have hbA : bondsOf A = Finset.Ico (-(n : ℤ)) 0 := by
+      rw [hA, bondsOf_Icc (by omega)]
+      congr 1; ring
+    have hbB : bondsOf B = Finset.Ico 0 (n : ℤ) := by
+      rw [hB, bondsOf_Icc (by omega)]
+      congr 1; ring
+    have hdisj : Disjoint (bondsOf A) (bondsOf B) := by
+      rw [hbA, hbB]
+      refine Finset.disjoint_left.2 fun k hk hk' ↦ ?_
+      simp only [Finset.mem_Ico] at hk hk'
+      omega
+    have hW : transferWeight P (Finset.Ioo (-(n : ℤ)) n) = transferWeight P (A ∪ B) := by
+      funext σ
+      unfold transferWeight
+      rw [bondsOf_union, bondsOf_Ioo (by omega), hbA, hbB]
+      congr 1
+      ext k
+      simp only [Finset.mem_Ico, Finset.mem_union]
+      omega
+    rw [hAB, hW, ← Specification.sigmaFiniteLambdaZ,
+      sigmaFiniteLambdaZ_transferWeight_union P hdisj, hA, hB,
+      sigmaFiniteLambdaZ_transferWeight_Icc P (by omega),
+      sigmaFiniteLambdaZ_transferWeight_Icc P (by omega)]
+    have e1 : (-1 - (-(n : ℤ) + 1) + 2).toNat = n := by omega
+    have e2 : ((n : ℤ) - 1 - 1 + 2).toNat = n := by omega
+    have e3 : -(n : ℤ) + 1 - 1 = -(n : ℤ) := by ring
+    have e4 : (-1 : ℤ) + 1 = 0 := by ring
+    have e5 : (1 : ℤ) - 1 = 0 := by ring
+    have e6 : (n : ℤ) - 1 + 1 = n := by ring
+    rw [e1, e2, e3, e4, e5, e6]
+
+/-- **Georgii (10.12) for `γ^Q`**, the marginal density of the site `0` in `]-n, n[`:
+`ρ̃^0_{]-n,n[}(ω) = P^n(ω_{-n}, ω_0) P^n(ω_0, ω_n) / (r(ω_0) P^{2n}(ω_{-n}, ω_n))`, the second
+display of Georgii's Example (10.24)(2), after the rescaling by `countProbDensity`. -/
+lemma marginalDensity_rescaledTransferDensity_Ioo (P : E → E → ℝ≥0∞) {n : ℕ} (hn : 1 ≤ n)
+    (ω : ℤ → E) :
+    Specification.marginalDensity (S := ℤ) (E := E) (countProb (E := E))
+        (rescaledTransferDensity P) (Finset.Ioo (-(n : ℤ)) n) 0 ω
+      = (Kernel.ofMatrix P ^ n) (ω (-(n : ℤ))) {ω 0} * (Kernel.ofMatrix P ^ n) (ω 0) {ω n}
+          / countProbDensity (ω 0) / (Kernel.ofMatrix P ^ (2 * n)) (ω (-(n : ℤ))) {ω n} := by
+  set Λ := Finset.Ioo (-(n : ℤ)) n with hΛ
+  have h0Λ : (0 : ℤ) ∈ Λ := by
+    rw [hΛ, Finset.mem_Ioo]
+    omega
+  have hik : -(n : ℤ) + 1 < n := by omega
+  set r := countProbDensity (E := E) with hr
+  set LW := Specification.lambdaWeight (S := ℤ) (E := E) (fun _ ↦ r) with hLW
+  have hZ : ∀ σ : ℤ → E, (∀ j ∉ Λ.erase 0, σ j = ω j) →
+      Specification.sigmaFiniteLambdaZ (S := ℤ) (E := E) Measure.count (transferWeight P) Λ σ
+        = (Kernel.ofMatrix P ^ (2 * n)) (ω (-(n : ℤ))) {ω n} := by
+    intro σ hσ
+    rw [hΛ, sigmaFiniteLambdaZ_transferWeight_Ioo P hik, hσ _ (by simp [hΛ]),
+      hσ _ (by simp [hΛ]), show ((n : ℤ) - -(n : ℤ)).toNat = 2 * n by omega]
+  have hLWΛ : ∀ σ : ℤ → E, (∀ j ∉ Λ.erase 0, σ j = ω j) →
+      LW Λ σ = r (ω 0) * LW (Λ.erase 0) σ := by
+    intro σ hσ
+    rw [hLW, Specification.lambdaWeight, Specification.lambdaWeight,
+      ← Finset.mul_prod_erase Λ _ h0Λ, hσ 0 (by simp)]
+  have hmeas : Measurable fun σ : ℤ → E ↦ transferWeight P Λ σ / LW (Λ.erase 0) σ :=
+    (measurable_transferWeight P Λ).div (Specification.measurable_lambdaWeight (S := ℤ) (E := E)
+      (fun _ ↦ measurable_countProbDensity) _)
+  rw [Specification.marginalDensity, lintegral_isssd_congr_of_eqOn ω
+    (measurable_rescaledTransferDensity P Λ) ((hmeas.div measurable_const).div measurable_const)
+    (G := fun σ ↦ transferWeight P Λ σ / LW (Λ.erase 0) σ / r (ω 0)
+      / (Kernel.ofMatrix P ^ (2 * n)) (ω (-(n : ℤ))) {ω n}) (fun σ hσ ↦ ?_)]
+  · have hmeas' : Measurable fun σ : ℤ → E ↦ transferWeight P Λ σ * (LW (Λ.erase 0) σ)⁻¹ :=
+      (measurable_transferWeight P Λ).mul (Specification.measurable_lambdaWeight (S := ℤ) (E := E)
+        (fun _ ↦ measurable_countProbDensity) _).inv
+    simp_rw [div_eq_mul_inv]
+    rw [lintegral_mul_const (f := fun σ ↦ transferWeight P Λ σ * (LW (Λ.erase 0) σ)⁻¹
+        * (r (ω 0))⁻¹) _ (hmeas'.mul measurable_const),
+      lintegral_mul_const (f := fun σ ↦ transferWeight P Λ σ * (LW (Λ.erase 0) σ)⁻¹) _ hmeas']
+    congr 2
+    have hk : Specification.isssd (S := ℤ) (E := E) (countProb (E := E)) (Λ.erase 0) ω
+        = Specification.sigmaFiniteLambdaFun (S := ℤ) (E := E) (countProb (E := E))
+          (Λ.erase 0) ω :=
+      (congr_arg (fun κ : Kernel[cylinderEvents ((Λ.erase 0 : Finset ℤ) : Set ℤ)ᶜ] (ℤ → E) (ℤ → E)
+        ↦ κ ω) (Specification.sigmaFiniteLambdaFun_eq_isssdFun (Λ.erase 0))).symm
+    simp_rw [← div_eq_mul_inv]
+    rw [hk, hLW, hr]
+    have hdiv := Specification.lintegral_sigmaFiniteLambdaFun_withDensity_div (S := ℤ) (E := E)
+      Measure.count measurable_countProbDensity countProbDensity_ne_zero countProbDensity_ne_top
+      (Λ.erase 0) ω (measurable_transferWeight P Λ)
+    refine hdiv.trans ?_
+    rw [hΛ, lintegral_lambdaCount_transferWeight_Ioo_erase P hn ω]
+  · rw [rescaledTransferDensity_apply, hZ σ hσ, ← hLW, hLWΛ σ hσ]
+    congr 1
+    rw [div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv, ENNReal.mul_inv
+      (Or.inr (Specification.lambdaWeight_ne_top (S := ℤ) (E := E) (fun _ ↦ countProbDensity_ne_top)
+        _ _))
+      (Or.inr (Specification.lambdaWeight_ne_zero (S := ℤ) (E := E)
+        (fun _ ↦ countProbDensity_ne_zero) _ _))]
+    ring
+
+
+/-- **Georgii's witness `h_N`** of Definition (10.23) for `γ^Q`, with `n` steps:
+`h_N(x) = (inf_{y, z ∈ C_N} P^n(y, x) P^n(x, z) / P^{2n}(y, z)) / countProbDensity(x)`, a finite
+infimum over the finite exhaustion `countExhaustion N` (`⊤` if `N = 0`). Georgii's indicator
+`1_{C_N}(x)` is not needed: the infimum is already dominated by the term of any pair
+`y, z ∈ C_N`, whatever `x` is. -/
+noncomputable def irreducibleWitness (P : E → E → ℝ≥0∞) (n N : ℕ) (x : E) : ℝ≥0∞ :=
+  ((countExhaustion (E := E) N).inf fun y ↦ (countExhaustion (E := E) N).inf fun z ↦
+      (Kernel.ofMatrix P ^ n) y {x} * (Kernel.ofMatrix P ^ n) x {z}
+        / (Kernel.ofMatrix P ^ (2 * n)) y {z})
     / countProbDensity x
 
-lemma measurable_irreducibleWitness (N : ℕ) : Measurable (irreducibleWitness Q N) :=
+lemma measurable_irreducibleWitness (P : E → E → ℝ≥0∞) (n N : ℕ) :
+    Measurable (irreducibleWitness P n N) :=
   measurable_of_countable _
 
-include hQ
-
-/-- `h_N(x) > 0` whenever `C_N` is non-empty. -/
-lemma irreducibleWitness_pos {N : ℕ} (hN : 1 ≤ N) (x : E) : 0 < irreducibleWitness Q N x := by
+/-- `h_N(x) > 0` for `x ∈ C_N` as soon as `P^n > 0` on `C_N × C_N` and `P^{2n} < ∞`. -/
+lemma irreducibleWitness_pos (P : E → E → ℝ≥0∞) {n N : ℕ} (hN : 1 ≤ N)
+    (hpos : ∀ y ∈ countExhaustion (E := E) N, ∀ z ∈ countExhaustion (E := E) N,
+      0 < (Kernel.ofMatrix P ^ n) y {z})
+    (hfin : ∀ y z : E, (Kernel.ofMatrix P ^ (2 * n)) y {z} ≠ ⊤) {x : E}
+    (hx : x ∈ countExhaustion (E := E) N) : 0 < irreducibleWitness P n N x := by
   have hne := countExhaustion_nonempty (E := E) hN
-  have hpos : 0 < (countExhaustion (E := E) N).inf fun y ↦ (countExhaustion (E := E) N).inf
-      fun y' ↦ Q y x * Q x y' / (Kernel.ofMatrix Q ^ 2) y {y'} := by
+  have hpos' : 0 < (countExhaustion (E := E) N).inf fun y ↦ (countExhaustion (E := E) N).inf
+      fun z ↦ (Kernel.ofMatrix P ^ n) y {x} * (Kernel.ofMatrix P ^ n) x {z}
+        / (Kernel.ofMatrix P ^ (2 * n)) y {z} := by
     rw [← Finset.inf'_eq_inf hne]
-    refine (Finset.lt_inf'_iff hne).2 fun y _ ↦ ?_
+    refine (Finset.lt_inf'_iff hne).2 fun y hy ↦ ?_
     rw [← Finset.inf'_eq_inf hne]
-    refine (Finset.lt_inf'_iff hne).2 fun y' _ ↦ ?_
-    exact ENNReal.div_pos (mul_ne_zero (hQ.pos y x).ne' (hQ.pos x y').ne')
-      (hQ.pow_two_ne_top y y')
-  exact ENNReal.div_pos hpos.ne' (countProbDensity_ne_top x)
+    refine (Finset.lt_inf'_iff hne).2 fun z hz ↦ ?_
+    exact ENNReal.div_pos (mul_ne_zero (hpos y hy x hx).ne' (hpos x hx z hz).ne') (hfin y z)
+  exact ENNReal.div_pos hpos'.ne' (countProbDensity_ne_top x)
 
-/-- **Georgii Definition (10.23) at `n(N) ≡ 1`.** `rescaledTransferDensity Q` is irreducible for
-the probability measure `countProb`. -/
-theorem isIrreducibleInt_rescaledTransferDensity :
-    Specification.IsIrreducibleInt (countProb (E := E)) (rescaledTransferDensity Q) := by
-  refine ⟨fun N ↦ (countExhaustion (E := E) N : Set E), fun _ ↦ 1, irreducibleWitness Q,
+/-- **Georgii, Definition (10.23) for `γ^Q`, the general form of Example (10.24)(2).** If all
+powers of `P` are finite and, for every pair of states, `P^n(x, y) > 0` for all large `n`, then
+`rescaledTransferDensity P` is irreducible: `C_N` is the finite exhaustion `countExhaustion N`,
+`n(N)` is any `n ≥ 1` with `P^n > 0` on `C_N × C_N` (hence also `P^{2n} > 0` there), and `h_N`
+is `irreducibleWitness P (n N) N`. -/
+theorem isIrreducibleInt_rescaledTransferDensity_of_eventually (P : E → E → ℝ≥0∞)
+    (hfin : ∀ (n : ℕ) (x y : E), (Kernel.ofMatrix P ^ n) x {y} ≠ ⊤)
+    (hev : ∀ x y : E, ∀ᶠ n in Filter.atTop, 0 < (Kernel.ofMatrix P ^ n) x {y}) :
+    Specification.IsIrreducibleInt (countProb (E := E)) (rescaledTransferDensity P) := by
+  have hN : ∀ N : ℕ, ∃ n : ℕ, 1 ≤ n ∧ ∀ y ∈ countExhaustion (E := E) N,
+      ∀ z ∈ countExhaustion (E := E) N, 0 < (Kernel.ofMatrix P ^ n) y {z} := by
+    intro N
+    have h : ∀ᶠ n in Filter.atTop, ∀ y ∈ countExhaustion (E := E) N,
+        ∀ z ∈ countExhaustion (E := E) N, 0 < (Kernel.ofMatrix P ^ n) y {z} := by
+      rw [Filter.eventually_all_finset]
+      intro y _
+      rw [Filter.eventually_all_finset]
+      intro z _
+      exact hev y z
+    exact ((Filter.eventually_ge_atTop 1).and h).exists
+  choose n hn1 hnpos using hN
+  refine ⟨fun N ↦ (countExhaustion (E := E) N : Set E), n, fun N ↦ irreducibleWitness P (n N) N,
     fun N ↦ Set.Countable.measurableSet (countExhaustion (E := E) N).countable_toSet,
     fun _ _ hNN' ↦ Finset.coe_subset.2 (countExhaustion_mono hNN'),
-    iUnion_countExhaustion_eq_univ, measurable_irreducibleWitness Q, fun _ ↦ le_rfl, ?_, ?_⟩
+    iUnion_countExhaustion_eq_univ, fun N ↦ measurable_irreducibleWitness P (n N) N, hn1, ?_, ?_⟩
   · filter_upwards [Filter.eventually_ge_atTop 1] with N hN
-    have hfun : Function.support (irreducibleWitness Q N) = Set.univ :=
-      Function.support_eq_univ fun x ↦ (irreducibleWitness_pos Q hQ hN x).ne'
-    have hmeas : Measurable (irreducibleWitness Q N) := measurable_irreducibleWitness Q N
-    rw [lintegral_pos_iff_support hmeas, hfun, measure_univ]
-    exact one_pos
+    have hx : enumE (E := E) 0 ∈ countExhaustion (E := E) N :=
+      Finset.mem_image_of_mem _ (Finset.mem_range.2 (by omega))
+    refine lt_of_lt_of_le ?_
+      (Kernel.mul_apply_singleton_le_lintegral (countProb (E := E)) _ (enumE 0))
+    refine ENNReal.mul_pos
+      (irreducibleWitness_pos P hN (hnpos N) (fun y z ↦ hfin _ y z) hx).ne' ?_
+    rw [countProb_def, Measure.count_withDensity_apply_singleton]
+    exact countProbDensity_ne_zero _
   · intro N ω h1 h2
-    have hΛ : Finset.Ioo (-((1 : ℕ) : ℤ)) ((1 : ℕ) : ℤ) = ({0} : Finset ℤ) := by
-      ext k; simp only [Nat.cast_one, Finset.mem_Ioo, Finset.mem_singleton]; omega
-    rw [hΛ]
-    have hmarg : Specification.marginalDensity (S := ℤ) (E := E) (countProb (E := E))
-        (rescaledTransferDensity Q) ({0} : Finset ℤ) 0 ω
-      = rescaledTransferDensity Q ({0} : Finset ℤ) ω := by
-      rw [Specification.marginalDensity]
-      have herase : ({0} : Finset ℤ).erase 0 = (∅ : Finset ℤ) := by simp
-      rw [herase, isssd_empty, lintegral_dirac' _ (measurable_rescaledTransferDensity Q _)]
-    rw [hmarg, rescaledTransferDensity_apply, transferWeight_singleton,
-      sigmaFiniteLambdaZ_transferWeight_singleton]
-    have hLW : Specification.lambdaWeight (S := ℤ) (E := E)
-        (fun _ ↦ countProbDensity (E := E)) ({0} : Finset ℤ) ω = countProbDensity (ω 0) := by
-      unfold Specification.lambdaWeight; simp
-    rw [hLW]
+    rw [marginalDensity_rescaledTransferDensity_Ioo P (hn1 N) ω]
     have hstep : (countExhaustion (E := E) N).inf (fun y ↦ (countExhaustion (E := E) N).inf
-          fun y' ↦ Q y (ω 0) * Q (ω 0) y' / (Kernel.ofMatrix Q ^ 2) y {y'})
-        ≤ Q (ω (-1)) (ω 0) * Q (ω 0) (ω 1) / (Kernel.ofMatrix Q ^ 2) (ω (-1)) {ω 1} :=
+          fun z ↦ (Kernel.ofMatrix P ^ n N) y {ω 0} * (Kernel.ofMatrix P ^ n N) (ω 0) {z}
+            / (Kernel.ofMatrix P ^ (2 * n N)) y {z})
+        ≤ (Kernel.ofMatrix P ^ n N) (ω (-(n N : ℤ))) {ω 0}
+            * (Kernel.ofMatrix P ^ n N) (ω 0) {ω (n N)}
+            / (Kernel.ofMatrix P ^ (2 * n N)) (ω (-(n N : ℤ))) {ω (n N)} :=
       (Finset.inf_le h1).trans (Finset.inf_le h2)
-    calc irreducibleWitness Q N (ω 0)
+    calc irreducibleWitness P (n N) N (ω 0)
         = (countExhaustion (E := E) N).inf (fun y ↦ (countExhaustion (E := E) N).inf
-              fun y' ↦ Q y (ω 0) * Q (ω 0) y' / (Kernel.ofMatrix Q ^ 2) y {y'})
+              fun z ↦ (Kernel.ofMatrix P ^ n N) y {ω 0} * (Kernel.ofMatrix P ^ n N) (ω 0) {z}
+                / (Kernel.ofMatrix P ^ (2 * n N)) y {z})
             / countProbDensity (ω 0) := rfl
-      _ ≤ (Q (ω (-1)) (ω 0) * Q (ω 0) (ω 1) / (Kernel.ofMatrix Q ^ 2) (ω (-1)) {ω 1})
+      _ ≤ ((Kernel.ofMatrix P ^ n N) (ω (-(n N : ℤ))) {ω 0}
+            * (Kernel.ofMatrix P ^ n N) (ω 0) {ω (n N)}
+            / (Kernel.ofMatrix P ^ (2 * n N)) (ω (-(n N : ℤ))) {ω (n N)})
             / countProbDensity (ω 0) := ENNReal.div_le_div hstep le_rfl
-      _ = Q (ω (-1)) (ω 0) * Q (ω 0) (ω 1) / countProbDensity (ω 0)
-            / (Kernel.ofMatrix Q ^ 2) (ω (-1)) {ω 1} := by
+      _ = (Kernel.ofMatrix P ^ n N) (ω (-(n N : ℤ))) {ω 0}
+            * (Kernel.ofMatrix P ^ n N) (ω 0) {ω (n N)} / countProbDensity (ω 0)
+            / (Kernel.ofMatrix P ^ (2 * n N)) (ω (-(n N : ℤ))) {ω (n N)} := by
           rw [div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv]
           ring
+
+include hQ in
+/-- **Georgii Definition (10.23) for a transfer matrix (11.1).** `rescaledTransferDensity Q` is
+irreducible for the probability measure `countProb`: `Q > 0` everywhere, so every power is
+positive and Georgii's `n(N)` may be taken to be `1`. -/
+theorem isIrreducibleInt_rescaledTransferDensity :
+    Specification.IsIrreducibleInt (countProb (E := E)) (rescaledTransferDensity Q) :=
+  isIrreducibleInt_rescaledTransferDensity_of_eventually Q
+    (fun n x y ↦ by
+      cases n with
+      | zero =>
+        rw [Kernel.pow_zero_apply_singleton]
+        exact ne_top_of_le_ne_top ENNReal.one_ne_top
+          (Set.indicator_le_self' (fun _ _ ↦ zero_le_one) x)
+      | succ n => exact hQ.pow_ne_top n x y)
+    (fun x y ↦ (Filter.eventually_ge_atTop 1).mono fun n hn ↦ by
+      obtain ⟨m, rfl⟩ := Nat.exists_eq_add_of_le' hn
+      exact hQ.pow_pos m x y)
+
+/-- **Georgii, Example (10.24)(2).** Let `E` be countable, `λ` counting measure, `P` a
+stochastic matrix on `E` and `ρ` the Markovian `λ`-modification of Example (10.3) built from
+`p_j = P`: `ρ_{]i,k[}(ω) = ∏_{j=i+1}^k P(ω_{j-1}, ω_j) / P^{k-i}(ω_i, ω_k)`. If `P` is
+irreducible and aperiodic, then `ρ` is irreducible in the sense of Definition (10.23).
+
+Here `ρ` is `rescaledTransferDensity P`: Georgii's `ρ` after his reduction (before (10.13)) to
+the probability a priori measure `countProb = countProbDensity · count`, which multiplies the
+densities by `∏ countProbDensity(ω_j)⁻¹` (Remark (1.28)(3)); the `n(N)`-step marginal density
+is `marginalDensity_rescaledTransferDensity_Ioo`, Georgii's second display. Georgii's
+"well-known" input — an aperiodic irreducible `P` has `P^n(x, y) > 0` for all `n ≥ n(x, y)`,
+cited from Breiman — is `ProbabilityTheory.Kernel.eventually_pow_apply_singleton_pos`. Where
+`P^{k-i}(ω_i, ω_k) = 0` Georgii leaves `ρ` undefined; here the `ℝ≥0∞`-division makes it `0`, and
+the irreducibility bound is unaffected since `n(N)` is chosen so that `P^{n(N)}` and
+`P^{2n(N)}` are positive on `C_N`. -/
+theorem isIrreducibleInt_rescaledTransferDensity_of_isAperiodic (P : E → E → ℝ≥0∞)
+    (hP : ∀ x, ∑' y, P x y = 1)
+    [Kernel.IsIrreducible Measure.count (Kernel.ofMatrix P)]
+    (haper : (Kernel.ofMatrix P).IsAperiodic) :
+    Specification.IsIrreducibleInt (countProb (E := E)) (rescaledTransferDensity P) := by
+  have := Kernel.isMarkovKernel_ofMatrix P hP
+  exact isIrreducibleInt_rescaledTransferDensity_of_eventually P
+    (fun n x y ↦ (prob_le_one.trans_lt ENNReal.one_lt_top).ne)
+    (fun x y ↦ Kernel.eventually_pow_apply_singleton_pos haper x y)
 
 end Irreducible
 

@@ -6,6 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Potential.Summable
+public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Hasse
 public import Mathlib.Combinatorics.SimpleGraph.Clique
 public import Mathlib.Combinatorics.SimpleGraph.Finite
 
@@ -219,6 +220,103 @@ lemma isAbsolutelySummable_nearestNeighbourPair (G : SimpleGraph S) [G.LocallyFi
         rw [Real.enorm_eq_ofReal_abs]
         exact ENNReal.ofReal_le_ofReal (abs_nearestNeighbourPair_apply_le G J h hb A η)
     _ < ⊤ := ENNReal.ofReal_lt_top
+
+/-- A nearest-neighbour potential on a locally finite graph has finite range: an interaction
+support containing `i` is a clique, hence lies in `{i} ∪ ∂i`. -/
+lemma IsNearestNeighbour.isFiniteRange {G : SimpleGraph S} [G.LocallyFinite] {Φ : Potential S E}
+    (h : IsNearestNeighbour G Φ) : IsFiniteRange Φ := by
+  classical
+  refine ⟨fun i ↦ ⟨insert i (G.neighborFinset i), fun A hiA hΦ ↦ ?_⟩⟩
+  have hcl : G.IsClique (A : Set S) := by_contra fun hc ↦ hΦ (h A hc)
+  intro j hj
+  by_cases hij : j = i
+  · exact hij ▸ Finset.mem_insert_self _ _
+  · exact Finset.mem_insert_of_mem ((G.mem_neighborFinset i j).2
+      (hcl (by simpa using hiA) (by simpa using hj) (Ne.symm hij)))
+
+/-- The Hamiltonian of a single site `i` for a nearest-neighbour potential on `ℤ`: the self-energy
+`Φ_{i}` and the two bond energies `Φ_{i-1,i}`, `Φ_{i,i+1}` (the only cliques of `hasse ℤ` through
+`i`). -/
+lemma hamiltonian_singleton_of_isNearestNeighbour_hasse_int {Φ : Potential ℤ E}
+    (hΦ : IsNearestNeighbour (SimpleGraph.hasse ℤ) Φ) (i : ℤ) (η : ℤ → E) :
+    Φ.hamiltonian {i} η = Φ {i} η + Φ {i - 1, i} η + Φ {i, i + 1} η := by
+  classical
+  have hne1 : ({i} : Finset ℤ) ∉ ({{i - 1, i}, {i, i + 1}} : Finset (Finset ℤ)) := by
+    simp only [Finset.mem_insert, Finset.mem_singleton, not_or]
+    constructor
+    · intro h
+      have := Finset.ext_iff.1 h (i - 1)
+      simp at this
+    · intro h
+      have := Finset.ext_iff.1 h (i + 1)
+      simp at this
+  have hne2 : ({i - 1, i} : Finset ℤ) ∉ ({{i, i + 1}} : Finset (Finset ℤ)) := by
+    simp only [Finset.mem_singleton]
+    intro h
+    have := Finset.ext_iff.1 h (i - 1)
+    simp at this
+    omega
+  have hsum : HasSum (Φ.hamiltonianTerms {i} η)
+      (∑ A ∈ ({{i}, {i - 1, i}, {i, i + 1}} : Finset (Finset ℤ)), Φ.hamiltonianTerms {i} η A) := by
+    refine hasSum_sum_of_ne_finset_zero fun A hA ↦ ?_
+    by_cases hdisj : Disjoint A {i}
+    · exact hamiltonianTerms_of_disjoint hdisj η
+    · rw [hamiltonianTerms_of_not_disjoint hdisj η]
+      have hiA : i ∈ A := by rwa [Finset.disjoint_singleton_right, not_not] at hdisj
+      have hnc : ¬ (SimpleGraph.hasse ℤ).IsClique (A : Set ℤ) := by
+        intro hcl
+        apply hA
+        have hmem : ∀ a ∈ A, a = i - 1 ∨ a = i ∨ a = i + 1 := fun a ha ↦ by
+          by_cases hai : a = i
+          · exact Or.inr (Or.inl hai)
+          · have := (SimpleGraph.hasse_int_adj i a).1
+              (hcl (by simpa using hiA) (by simpa using ha) (Ne.symm hai))
+            omega
+        have hnot : ¬ (i - 1 ∈ A ∧ i + 1 ∈ A) := fun ⟨h1, h2⟩ ↦ by
+          have := (SimpleGraph.hasse_int_adj (i - 1) (i + 1)).1
+            (hcl (by simpa using h1) (by simpa using h2) (by omega))
+          omega
+        simp only [Finset.mem_insert, Finset.mem_singleton]
+        by_cases h1 : i - 1 ∈ A <;> by_cases h2 : i + 1 ∈ A
+        · exact absurd ⟨h1, h2⟩ hnot
+        · refine Or.inr (Or.inl (Finset.ext fun a ↦ ?_))
+          simp only [Finset.mem_insert, Finset.mem_singleton]
+          constructor
+          · intro ha
+            rcases hmem a ha with h | h | h
+            · exact Or.inl h
+            · exact Or.inr h
+            · exact absurd (h ▸ ha) h2
+          · rintro (rfl | rfl)
+            · exact h1
+            · exact hiA
+        · refine Or.inr (Or.inr (Finset.ext fun a ↦ ?_))
+          simp only [Finset.mem_insert, Finset.mem_singleton]
+          constructor
+          · intro ha
+            rcases hmem a ha with h | h | h
+            · exact absurd (h ▸ ha) h1
+            · exact Or.inl h
+            · exact Or.inr h
+          · rintro (rfl | rfl)
+            · exact hiA
+            · exact h2
+        · refine Or.inl (Finset.ext fun a ↦ ?_)
+          simp only [Finset.mem_singleton]
+          constructor
+          · intro ha
+            rcases hmem a ha with h | h | h
+            · exact absurd (h ▸ ha) h1
+            · exact h
+            · exact absurd (h ▸ ha) h2
+          · rintro rfl
+            exact hiA
+      rw [hΦ A hnc]
+      rfl
+  rw [hamiltonian, hsum.volume.tsum_eq, Finset.sum_insert hne1, Finset.sum_insert hne2,
+    Finset.sum_singleton, hamiltonianTerms_of_not_disjoint (by simp) η,
+    hamiltonianTerms_of_not_disjoint (by simp) η, hamiltonianTerms_of_not_disjoint (by simp) η,
+    add_assoc]
 
 end Potential
 end

@@ -288,6 +288,14 @@ status:
       file: "GibbsMeasure/Model/Antiferromagnet.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Markov.isIrreducibleInt_premodifierNorm_boltzmannFactor_of_isNearestNeighbour"
+      file: "GibbsMeasure/Model/MarkovChainInt.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Markov.isIrreducibleInt_rescaledTransferDensity_of_isAperiodic"
+      file: "GibbsMeasure/Model/BoundaryLawUniqueness.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
 
 automation:
   methods:
@@ -1150,9 +1158,21 @@ alignment:
         the n-step densities as a backward martingale (10.30)-(10.32), positivity of the invariant
         density (10.33), the L^1 ergodic theorem (10.34); (10.36)-(10.37) with the extension from
         cylinder events to all measurable events; Theorem (10.35): shift-invariant Gibbs measures
-        are extreme, hence at most one (StandardBorelSpace E). Not formalized: Examples (10.24)
-        ((1) needs the Gibbsian formula from Potential/, (2) the aperiodicity fact Georgii cites
-        from Breiman).
+        are extreme, hence at most one (StandardBorelSpace E).
+    - source: "Examples (10.24)"
+      lean: "MeasureTheory.GibbsMeasure.Markov.isIrreducibleInt_rescaledTransferDensity_of_isAperiodic"
+      module: "GibbsMeasure/Model/BoundaryLawUniqueness.lean"
+      status: "proved"
+      note: >-
+        (1) in Model/MarkovChainInt.lean (isIrreducibleInt_premodifierNorm_boltzmannFactor_of_isNearestNeighbour,
+        isIrreducibleInt_gibbsModifier_of_isNearestNeighbour): a shift-invariant nearest-neighbour
+        potential on Z with bounded single-site partition function and bounded self-energy and
+        bond energy on C_N x C_N has irreducible rho^Phi, n(N) = 1, h_N = 1_{C_N} e^{-2c_N}/c;
+        the Chapter 3 positive-matrix potential is an instance. (2) the countable-state Markovian
+        modification with p_j = P (rescaled to the probability a priori measure) is irreducible
+        for P irreducible and aperiodic; Breiman's eventual positivity P^n(x,y) > 0 for large n is
+        ProbabilityTheory.Kernel.eventually_pow_apply_singleton_pos (period = gcd of return times,
+        Nat.exists_mem_closure_of_ge) in Mathlib/Probability/Kernel/CountableMatrix/Recurrence.lean.
     - source: "Section 13.1: (13.1)-(13.3), (13.11)-(13.12)"
       lean: "MeasureTheory.GibbsMeasure.integral_cexp_I_sum_eq_of_isGaussianProcess"
       module: "GibbsMeasure/Model/GaussianField.lean"

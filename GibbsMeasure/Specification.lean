@@ -1196,6 +1196,14 @@ def isssd (ν : Measure E) [IsProbabilityMeasure ν] : Specification S E where
   isMarkovKernel' := isMarkovKernel_isssdFun (S := S) (E := E) ν
   isProper' := isProper_isssdFun (S := S) (E := E) ν
 
+/-- Resampling no site at all leaves the boundary condition alone. -/
+@[simp] lemma isssd_empty_apply (ω : S → E) : isssd ν (∅ : Finset S) ω = Measure.dirac ω := by
+  refine Measure.ext fun A hA ↦ ?_
+  have hA' : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (((∅ : Finset S) : Set S)ᶜ)] A := by
+    rwa [Finset.coe_empty, Set.compl_empty, cylinderEvents_univ]
+  rw [((isssd (S := S) ν).isProper ∅).apply_eq_indicator_mul_univ cylinderEvents_le_pi hA',
+    measure_univ, mul_one, Measure.dirac_apply' ω hA]
+
 /-- The ISSSD of a measure is strongly consistent. -/
 lemma isssd_comp_isssd [DecidableEq S] (Λ₁ Λ₂ : Finset S) :
     (isssd ν Λ₁).comap id cylinderEvents_le_pi ∘ₖ isssd ν Λ₂ =

@@ -48,33 +48,18 @@ public import GibbsMeasure.Mathlib.Probability.Kernel.CountableMatrix.Recurrence
     shift-invariant (`Measure.map_add`/`map_smul`), so it is itself extreme by the first bullet —
     but an extreme point cannot be a nontrivial combination of two distinct points, contradiction.
 
-## What is not proved: Examples (10.24)
+## Examples (10.24)
 
-Georgii's two examples package extra structure into `IsIrreducibleInt`'s witnesses
-`(C_N, n(N), h_N)`, and neither closes at the generality of this file without a genuine additional
-input:
+Both examples are in the library, at the level of the objects they instantiate:
 
-* **(10.24)(1)** (nearest-neighbour potentials). Georgii takes `ρ = ρ^Φ` the Gibbsian modification
-  of a shift-invariant nearest-neighbour potential `Φ` (`Φ_{\{0\}} = 0`, `Φ_A = 0` unless
-  `A = \{i, i+1\}`), and shows `sup_ω Z^Φ_{\{0\}}(ω) < ∞` together with
-  `sup_{ω_0, ω_1 ∈ C_N} Φ_{\{0,1\}}(ω) < ∞` (for some `C_N ↑ E`) forces irreducibility with
-  `n(N) = 1` and `h_N = 1_{C_N} e^{-2c_N}/c`. Formalizing this needs the Gibbsian formula
-  `ρ_Λ = e^{-H_Λ}/Z_Λ` from `GibbsMeasure/Potential/NearestNeighbour.lean`; importing it here
-  would invert the dependency (`Potential/` sits above `Specification/`), so the instance belongs
-  in `Potential/NearestNeighbour.lean`, stated against `IsIrreducibleInt` from this file.
-* **(10.24)(2)** (countable-state Markov chains). Georgii takes `E` countable, `λ` *counting*
-  measure, `ρ` built from a stochastic matrix `P` via `ρ_{[i,k[} = ∏ P(ω_{j-1},ω_j) / P^{k-i}(ω_i,
-  ω_k)`, and cites (Breiman 1968, Ch. 7 — not reproved there either) that an aperiodic irreducible
-  `P` satisfies `∀ x y, ∃ n(x,y), ∀ n ≥ n(x,y), P^n(x,y) > 0`; from that fact alone,
-  irreducibility of `ρ` follows with `C_N ↑ E` finite, `n(N) = max_{x,y ∈ C_N} n(x,y)`. Two gaps
-  remain in this library: (a) `IsIrreducibleInt` requires `[IsProbabilityMeasure ν]`, so counting
-  measure on an infinite `E` must first be replaced by an equivalent probability measure with the
-  matching Radon–Nikodym adjustment to `ρ` — Georgii's own "without loss `λ ∈ 𝒫(E,𝓔)`" reduction
-  from the setup before (10.13), not part of Example (10.24)(2) itself; (b) the aperiodic-implies-
-  eventually-positive fact has no Mathlib home yet (`GibbsMeasure/Mathlib/Probability/Kernel/
-  CountableMatrix/Recurrence.lean` has irreducibility/recurrence, not periodicity). Given (a) and
-  (b), *from* the Breiman fact `IsIrreducibleInt` is an easy corollary; neither (a) nor (b) is
-  proved here.
+* **(10.24)(1)** (nearest-neighbour potentials on `ℤ`, any state space):
+  `Markov.isIrreducibleInt_premodifierNorm_boltzmannFactor_of_isNearestNeighbour`
+  in `GibbsMeasure/Model/MarkovChainInt.lean` (with Chapter 3's `markovPotential P` as an
+  instance).
+* **(10.24)(2)** (countable state space, counting measure, an irreducible aperiodic stochastic
+  matrix): `Markov.isIrreducibleInt_rescaledTransferDensity_of_isAperiodic`
+  in `GibbsMeasure/Model/BoundaryLawUniqueness.lean`, with Georgii's cited Breiman input
+  `ProbabilityTheory.Kernel.eventually_pow_apply_singleton_pos`.
 -/
 
 @[expose] public section
@@ -376,16 +361,6 @@ end MeasureTheory
 
 namespace ProbabilityTheory
 
-/-- Powers of a Markov kernel are Markov kernels. Intended home:
-`Mathlib/Probability/Kernel/Basic.lean`, next to the other `IsMarkovKernel` closure instances
-(`IsMarkovKernel.comp`, `IsMarkovKernel.compProd`, `IsMarkovKernel.piecewise`). -/
-theorem isMarkovKernel_pow {α : Type*} [MeasurableSpace α] {Q : Kernel α α} [IsMarkovKernel Q] :
-    ∀ {n : ℕ}, 1 ≤ n → IsMarkovKernel (Q ^ n) := by
-  intro n hn
-  induction n, hn using Nat.le_induction with
-  | base => simpa using (inferInstance : IsMarkovKernel Q)
-  | succ n _ _ => rw [pow_succ]; exact ProbabilityTheory.Kernel.IsMarkovKernel.comp (Q ^ n) Q
-
 variable {E : Type*} [MeasurableSpace E] {ν : Measure E} {p : E → E → ℝ≥0∞}
 
 /-- The `n`-step transition density of a kernel `P` with `P x = p(x, ·) ν`, defined by the
@@ -548,14 +523,6 @@ abbrev transl (a : ℤ) (ω : ℤ → E) : ℤ → E := (shift E (-a)).toFun ω
 lemma measurable_transl (a : ℤ) : Measurable (transl E a) :=
   (shift E (-a)).measurable_toFun
 
-/-- Resampling no site at all leaves the configuration alone. -/
-lemma isssd_empty {S : Type*} (ω : S → E) : isssd (S := S) ν ∅ ω = Measure.dirac ω := by
-  refine Measure.ext fun A hA ↦ ?_
-  have hA' : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (((∅ : Finset S) : Set S)ᶜ)] A := by
-    rwa [Finset.coe_empty, Set.compl_empty, cylinderEvents_univ]
-  rw [((isssd (S := S) ν).isProper ∅).apply_eq_indicator_mul_univ cylinderEvents_le_pi hA',
-    measure_univ, mul_one, Measure.dirac_apply' ω hA]
-
 lemma map_transl_isssd_singleton (a j : ℤ) (ω : ℤ → E) :
     (isssd ν ({j + a} : Finset ℤ) ω).map (transl E a) = isssd ν ({j} : Finset ℤ) (transl E a ω)
         := by
@@ -577,7 +544,7 @@ lemma map_transl_isssd (a : ℤ) (Λ : Finset ℤ) (ω : ℤ → E) :
   classical
   induction Λ using Finset.induction_on generalizing ω with
   | empty =>
-      rw [Finset.image_empty, isssd_empty, isssd_empty, Measure.map_dirac' (measurable_transl a)]
+      rw [Finset.image_empty, isssd_empty_apply, isssd_empty_apply, Measure.map_dirac' (measurable_transl a)]
   | insert j Λ hj ih =>
       rw [Finset.image_insert, isssd_insert, isssd_insert,
         Measure.map_bind (measurable_isssd_coe _) (measurable_transl a)]
@@ -2454,7 +2421,6 @@ lemma tvDensity_le_two [IsMarkovKernel Q] {r : E → ℝ≥0∞} (hp : Measurabl
     (hQ : ∀ x, Q x = ν.withDensity (p x)) {α : Measure E} [IsProbabilityMeasure α]
     (_hr : Measurable r) (hα : α = ν.withDensity r) {N : ℕ} (hN : 1 ≤ N) (y : E) :
     tvDensity ν p r N y ≤ 2 := by
-  have := isMarkovKernel_pow (Q := Q) hN
   have hdn : Measurable (Kernel.densityPow ν p N y) :=
     (Kernel.measurable_uncurry_densityPow hp N).comp (measurable_const.prodMk measurable_id)
   have h1 : ∫⁻ z, Kernel.densityPow ν p N y z ∂ν = 1 := by

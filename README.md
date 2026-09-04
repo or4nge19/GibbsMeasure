@@ -545,7 +545,12 @@ specification is a Markov chain, for any state space — and Corollary (10.22). 
 (`GibbsMeasure/Specification/MarkovIntUniqueness.lean`): irreducibility (10.23), **Theorem (10.25)**
 and Proposition (10.26) (shift-invariant Gibbs measures of an irreducible homogeneous Markov
 specification are Markov chains), the backward-martingale ergodic theorem (10.30)–(10.34), and
-**Theorem (10.35)**: at most one shift-invariant Gibbs measure, every such being extreme.
+**Theorem (10.35)**: at most one shift-invariant Gibbs measure, every such being extreme. **Examples (10.24)**: a shift-invariant nearest-neighbour potential on `ℤ` with bounded
+single-site partition function has irreducible `ρ^Φ` (`GibbsMeasure/Model/MarkovChainInt.lean`), and
+the countable-state Markovian modification of an irreducible aperiodic stochastic matrix is
+irreducible (`GibbsMeasure/Model/BoundaryLawUniqueness.lean`), through Breiman's eventual
+positivity `P^n(x,y) > 0` for large `n`, proved from the period as the gcd of return times in
+`GibbsMeasure/Mathlib/Probability/Kernel/CountableMatrix/Recurrence.lean`.
 
 **Chapter 11, first steps** (`GibbsMeasure/Model/BoundaryLaw.lean`,
 `GibbsMeasure/Mathlib/Probability/Kernel/CountableMatrix.lean`): sites `ℤ`, a *countable* state
@@ -575,7 +580,7 @@ Gibbs measure is unique ((6.7)(2)).
 
 Not yet done: Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
-plane-rotator and Heisenberg instances (9.22)–(9.24), the Poulsen-simplex half of (14.13), (15.14)(c), (15.16)–(15.20), (15.26)(1), (15.40), (11.18)(2), (11.19), Examples (10.24), §12.2, (13.4)–(13.10), §§13.2–13.3, and Chapters
+plane-rotator and Heisenberg instances (9.22)–(9.24), the Poulsen-simplex half of (14.13), (15.14)(c), (15.16)–(15.20), (15.26)(1), (15.40), (11.18)(2), (11.19), §12.2, (13.4)–(13.10), §§13.2–13.3, and Chapters
 16–20 (
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).

@@ -133,6 +133,13 @@ lemma measurable_marginalDensity {Λ : Finset S} (hρ : Measurable (ρ Λ)) (j :
     Measurable (marginalDensity ν ρ Λ j) :=
   (measurable_marginalDensity_compl hρ j).mono cylinderEvents_le_pi le_rfl
 
+/-- The marginal density (10.12) of the only site of a singleton volume is the density itself. -/
+lemma marginalDensity_singleton (ν : Measure E) [IsProbabilityMeasure ν]
+    {ρ : Finset S → (S → E) → ℝ≥0∞} {j : S} (hρ : Measurable (ρ {j})) (ω : S → E) :
+    marginalDensity ν ρ {j} j ω = ρ {j} ω := by
+  rw [marginalDensity, Finset.erase_singleton, isssd_empty_apply,
+    lintegral_dirac' _ hρ]
+
 omit [DecidableEq S] in
 /-- The resampled measure `μ λ_Λ` agrees with `μ` on the events outside `Λ`. -/
 lemma bind_isssd_apply_of_measurableSet_compl {Λ : Finset S} {D : Set (S → E)}

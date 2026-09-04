@@ -71,14 +71,6 @@ lemma measurable_condDensity (hρ : ∀ Λ, Measurable (ρ Λ)) (Δ Λ : Finset 
     Measurable[cylinderEvents ((Λ \ Δ : Finset S) : Set S)ᶜ] (condDensity ν ρ Δ Λ) :=
   (hρ Λ).lintegral_kernel
 
-omit [DecidableEq S] in
-/-- Resampling no site at all leaves the boundary condition alone. -/
-@[simp] lemma isssd_empty_apply (ω : S → E) : isssd ν (∅ : Finset S) ω = Measure.dirac ω := by
-  have h : juxt (((∅ : Finset S) : Set S)) ω = fun _ ↦ ω := by
-    funext ζ x
-    exact juxt_apply_of_not_mem (by simp) ζ
-  simp [h, Measure.map_const]
-
 @[simp] lemma condDensity_self {Δ : Finset S} (hρ : Measurable (ρ Δ)) :
     condDensity ν ρ Δ Δ = ρ Δ := by
   funext ω
