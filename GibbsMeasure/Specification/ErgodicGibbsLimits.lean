@@ -1294,31 +1294,11 @@ attribute [local instance] shiftAddAction measurableConstVAdd_shift
 variable {S E : Type*} [MeasurableSpace E] [AddCommGroup S] [Countable S] [DecidableEq S]
   {μ : Measure (S → E)} {F : ℕ → Finset S} {C : ℝ≥0∞}
 
-/-- **Georgii, Theorem (14.A8) for an ergodic shift-invariant random field**: the averages
-`|F n|⁻¹ ∑_{i ∈ F n} f ∘ θ_i` of an a.e. bounded measurable `f` along an increasing regular Følner
-sequence converge `μ`-a.s. to the constant `μ(f)`. -/
-theorem ae_tendsto_inv_card_smul_sum_shift_of_mem_trivialOn [IsProbabilityMeasure μ]
-    (hμinv : ∀ j : S, MeasurePreserving (shift E j).toFun μ μ)
-    (htriv : μ ∈ trivialOn (invariantEvents (shiftGroup S E)))
-    (hF : Monotone F) (hne : (F 0).Nonempty)
-    (hFol : ∀ g : S, Tendsto (fun n ↦ (((g +ᵥ F n) ∆ F n).card : ℝ) / (F n).card) atTop (𝓝 0))
-    (hC : ∀ n, ((F n - F n + F n).card : ℝ≥0∞) ≤ C * (F n).card) (hC' : C ≠ ∞)
-    {f : (S → E) → ℝ} (hf : AEStronglyMeasurable f μ) {M : ℝ} (hM : ∀ᵐ ω ∂μ, ‖f ω‖ ≤ M) :
-    ∀ᵐ ω ∂μ, Tendsto (fun n ↦ ((F n).card : ℝ)⁻¹ • ∑ i ∈ F n, f ((shift E i).toFun ω)) atTop
-      (𝓝 (∫ x, f x ∂μ)) := by
-  let := shiftAddAction (S := S) (E := E)
-  have := vaddInvariantMeasure_of_forall_measurePreserving_shift hμinv
-  rw [mem_trivialOn, smulInvariants_multiplicative_eq_invariantEvents_shiftGroup.symm] at htriv
-  filter_upwards [ae_tendsto_inv_card_smul_sum_vadd_condExp hF hne hFol hC hC'
-    (Integrable.of_bound hf M hM), condExp_ae_eq_integral_of_forall_measure_eq_zero_or_one
-      MeasurableSpace.smulInvariants_le htriv f] with ω hω hc
-  rwa [hc] at hω
-
 /-- **Georgii, Theorem (14.A8) for an ergodic shift-invariant random field, integrable case.**
-The averages `|F n|⁻¹ ∑_{i ∈ F n} f ∘ θ_i` of a merely *integrable* measurable `f` along an
-increasing regular Følner sequence converge `μ`-a.s. to the constant `μ(f)`. Generalises
-`ae_tendsto_inv_card_smul_sum_shift_of_mem_trivialOn`, which specialises this to bounded `f` via
-`Integrable.of_bound`. -/
+The averages `|F n|⁻¹ ∑_{i ∈ F n} f ∘ θ_i` of an *integrable* `f` along an increasing regular
+Følner sequence converge `μ`-a.s. to the constant `μ(f)`: the pointwise ergodic theorem
+`ae_tendsto_inv_card_smul_sum_vadd_condExp` gives convergence to the conditional expectation of
+`f` given the shift-invariant σ-algebra, which is `μ`-trivial. -/
 theorem ae_tendsto_inv_card_smul_sum_shift_of_mem_trivialOn_of_integrable [IsProbabilityMeasure μ]
     (hμinv : ∀ j : S, MeasurePreserving (shift E j).toFun μ μ)
     (htriv : μ ∈ trivialOn (invariantEvents (shiftGroup S E)))
@@ -1335,6 +1315,22 @@ theorem ae_tendsto_inv_card_smul_sum_shift_of_mem_trivialOn_of_integrable [IsPro
     condExp_ae_eq_integral_of_forall_measure_eq_zero_or_one
       MeasurableSpace.smulInvariants_le htriv f] with ω hω hc
   rwa [hc] at hω
+
+/-- **Georgii, Theorem (14.A8) for an ergodic shift-invariant random field**: the averages
+`|F n|⁻¹ ∑_{i ∈ F n} f ∘ θ_i` of an a.e. bounded measurable `f` along an increasing regular Følner
+sequence converge `μ`-a.s. to the constant `μ(f)`. The bounded case of
+`ae_tendsto_inv_card_smul_sum_shift_of_mem_trivialOn_of_integrable`. -/
+theorem ae_tendsto_inv_card_smul_sum_shift_of_mem_trivialOn [IsProbabilityMeasure μ]
+    (hμinv : ∀ j : S, MeasurePreserving (shift E j).toFun μ μ)
+    (htriv : μ ∈ trivialOn (invariantEvents (shiftGroup S E)))
+    (hF : Monotone F) (hne : (F 0).Nonempty)
+    (hFol : ∀ g : S, Tendsto (fun n ↦ (((g +ᵥ F n) ∆ F n).card : ℝ) / (F n).card) atTop (𝓝 0))
+    (hC : ∀ n, ((F n - F n + F n).card : ℝ≥0∞) ≤ C * (F n).card) (hC' : C ≠ ∞)
+    {f : (S → E) → ℝ} (hf : AEStronglyMeasurable f μ) {M : ℝ} (hM : ∀ᵐ ω ∂μ, ‖f ω‖ ≤ M) :
+    ∀ᵐ ω ∂μ, Tendsto (fun n ↦ ((F n).card : ℝ)⁻¹ • ∑ i ∈ F n, f ((shift E i).toFun ω)) atTop
+      (𝓝 (∫ x, f x ∂μ)) :=
+  ae_tendsto_inv_card_smul_sum_shift_of_mem_trivialOn_of_integrable hμinv htriv hF hne hFol hC hC'
+    (Integrable.of_bound hf M hM)
 
 end ShiftErgodic
 

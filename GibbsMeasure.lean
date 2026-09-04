@@ -16,6 +16,7 @@ public import GibbsMeasure.Mathlib.Analysis.Normed.Algebra.ClosedSubalgebra
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Gaussian.Multivariate
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Tanh
 public import GibbsMeasure.Mathlib.Analysis.Normed.Lp.lpSpace
+public import GibbsMeasure.Mathlib.Analysis.Normed.Lp.LpEquiv
 public import GibbsMeasure.Mathlib.Data.ENNReal.Basic
 public import GibbsMeasure.Mathlib.Data.Finset.Map
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PosDef

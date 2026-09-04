@@ -6,6 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Mathlib.Analysis.Normed.Lp.lpSpace
+public import GibbsMeasure.Mathlib.Analysis.Normed.Lp.LpEquiv
 public import GibbsMeasure.Specification.QuasilocalAlgebra
 public import GibbsMeasure.Topology.LocalConvergence
 
@@ -16,12 +17,15 @@ Georgii (4.3)(2): the topology of local convergence is exactly the topology of c
 integrals of all bounded local observables. The route is Georgii's: simple functions for a finite
 volume are finite sums of evaluations, quasilocal observables are their uniform limits, and the
 `L`-continuous observables are uniformly closed.
+
+Georgii Remark (4.3)(3), compact-`E` case: the topology of local convergence is finer than the
+weak topology (`continuous_toMeasure_withLocalConvergence`).
 -/
 
 @[expose] public section
 
 open Filter MeasureTheory Set Topology
-open scoped ENNReal Topology
+open scoped ENNReal Topology BoundedContinuousFunction
 
 noncomputable section
 
@@ -167,5 +171,30 @@ theorem tendsto_iff_forall_localFunctions {ι : Type*} {l : Filter ι}
     have hconv := h (indicatorLp A) (indicatorLp_mem_localFunctions hA)
     simp only [hint] at hconv
     exact (ENNReal.tendsto_toReal_iff (fun i ↦ measure_ne_top _ _) (measure_ne_top _ _)).1 hconv
+
+/-! ### Georgii Remark (4.3)(3), compact-`E` case: the `𝓛`-topology is finer than the weak
+topology -/
+
+/-- **Georgii, Remark (4.3)(3), for `E` compact metric.** The identity map from configuration
+space's probability measures with the topology of local convergence to the same measures with
+Mathlib's ambient weak topology (`MeasureTheory.ProbabilityMeasure`) is continuous: the
+`𝓛`-topology is finer than the weak topology. On a compact space every continuous function is
+uniformly continuous (Heine–Cantor), so every bounded continuous observable is quasilocal by
+Georgii (2.21)(2) (`mem_quasilocalFunctions_of_uniformContinuous`), hence has `𝓛`-continuous
+integral (`lContinuous_of_mem_quasilocalFunctions`); Mathlib's weak topology on
+`ProbabilityMeasure (S → E)` is exactly the coarsest topology making all such integrals
+continuous (`ProbabilityMeasure.continuous_iff_forall_continuous_integral`). -/
+theorem continuous_toMeasure_withLocalConvergence [MetricSpace E] [CompactSpace E]
+    [SecondCountableTopology E] [BorelSpace E] [Countable S] :
+    Continuous (fun μ : WithLocalConvergence S E ↦ (μ.toMeasure : ProbabilityMeasure (S → E))) := by
+  rw [ProbabilityMeasure.continuous_iff_forall_continuous_integral]
+  intro f
+  have hmeas : Measurable (⇑f : (S → E) → ℝ) := f.continuous.measurable
+  have hunif : UniformContinuous (⇑f : (S → E) → ℝ) :=
+    CompactSpace.uniformContinuous_of_continuous f.continuous
+  have hql : f.toLpInfty ∈ quasilocalFunctions S E :=
+    mem_quasilocalFunctions_of_uniformContinuous hmeas hunif
+  have hLC := lContinuous_of_mem_quasilocalFunctions hql
+  simpa only [LContinuous, BoundedContinuousFunction.coe_toLpInfty] using hLC
 
 end MeasureTheory.GibbsMeasure

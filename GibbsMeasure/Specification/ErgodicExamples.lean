@@ -9,10 +9,9 @@ public import GibbsMeasure.Specification.ErgodicGibbsLimits
 public import GibbsMeasure.Specification.LocalContinuity
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ProbabilityMeasure
 public import GibbsMeasure.Mathlib.Topology.Metrizable.Basic
-public import Mathlib.Topology.UniformSpace.HeineCantor
 
 /-!
-# Georgii §14.1–14.2: the remaining items (14.13), (14.16), (14.21)–(14.24)
+# Georgii §14.1–14.2: the remaining items (14.13), (14.21)–(14.24)
 
 This file disposes of the last unclaimed numbered items of Chapter 14 that are not full theorems
 already carried by `Specification/Ergodicity.lean`, `Specification/ErgodicGibbs.lean`,
@@ -40,17 +39,14 @@ These four displays sit inside Georgii's proof of Theorem (14.20)(c) and are alr
   needed only for the *subsequent* step — combining (14.22) with (14.23)–(14.24) through Lemma
   (14.19) along the **decreasing** filtration `𝓣_{Λ_n} × 𝓕_Δ`, which does need a uniform
   dominating bound and genuinely fails for a general `ρ_Δ ∉ L log L`. That later step is not
-  reproved here. What *is* missing, and is added below, is the honest, untruncated (14.23)–(14.24)
-  themselves:
-
-* `MeasureTheory.GibbsMeasure.ae_tendsto_inv_card_smul_sum_shift_of_mem_trivialOn_of_integrable`:
-  the individual ergodic theorem (14.A8) for an ergodic shift-invariant field, for a merely
-  **integrable** (not bounded) function — the bounded case already in `ErgodicGibbsLimits.lean`
-  specialised from this.
-* `Specification.ae_tendsto_toReal_shiftAvgDensity`: (14.23)–(14.24) verbatim, for any Følner
-  sequence `G` along which the average is taken directly (matching Georgii's own use of `Λ'_n` as
-  the averaging sequence, rather than the two-step "average over `F n`, then transfer to the
-  covering indices" route that forces truncation in the `_min` lemma).
+  reproved here. What *is* added below is the honest, untruncated (14.23)–(14.24) themselves,
+  `Specification.ae_tendsto_toReal_shiftAvgDensity`: for any Følner sequence `G` along which the
+  average is taken directly (matching Georgii's own use of `Λ'_n` as the averaging sequence,
+  rather than the two-step "average over `F n`, then transfer to the covering indices" route that
+  forces truncation in the `_min` lemma). Its input is the individual ergodic theorem (14.A8) for
+  a merely **integrable** function,
+  `MeasureTheory.GibbsMeasure.ae_tendsto_inv_card_smul_sum_shift_of_mem_trivialOn_of_integrable`
+  in `ErgodicGibbsLimits.lean`, section `ShiftErgodic`.
 
 ## (14.13): a Comment, proved in full
 
@@ -61,11 +57,11 @@ Theorem (14.12) implies `ex 𝒫_Θ(Ω,𝓕)` is *weakly* dense; (iii) it is mor
 
 (ii) is proved at Georgii's own hypothesis (`E` compact metric): the identity map
 `WithLocalConvergence S E → ProbabilityMeasure (S → E)` (`𝓛`-topology to Mathlib's ambient weak
-topology on `ProbabilityMeasure`) is continuous — the compact-`E` case of Remark (4.3)(3), proved
-via Georgii (2.21)(2) (`mem_quasilocalFunctions_of_uniformContinuous`) together with Heine–Cantor
-(on a compact space every continuous function is uniformly continuous) — and the resulting
-weak-density statement, `invariantFields_subset_closure_extremePoints_probabilityMeasure_int`, is
-Theorem (14.12)'s closure identity transported along it.
+topology on `ProbabilityMeasure`) is continuous — the compact-`E` case of Remark (4.3)(3),
+`continuous_toMeasure_withLocalConvergence` in `Specification/LocalContinuity.lean` — and the
+resulting weak-density statement,
+`invariantFields_subset_closure_extremePoints_probabilityMeasure_int`, is Theorem (14.12)'s
+closure identity transported along it.
 
 (i) is proved in the form it is used: `𝒫_Θ` is weakly *closed* for any subgroup `Θ` of
 continuous transformations (`isClosed_setOf_mem_invariantFields_probabilityMeasure`, from
@@ -89,101 +85,16 @@ ProbabilityMeasure.lean`) along the embedding into the topological `ℝ≥0`-mod
 `isGδ_and_closure_eq_setOf_mem_extremePoints_invariantFields_probabilityMeasure_int`: `𝒫_Θ` is a
 Poulsen simplex in the weak topology.
 
-## (14.16): an Example, not proved — needs a `Model/` instance
+## (14.16)
 
-Georgii's Example is the one-dimensional Ising antiferromagnet at zero temperature: `S = ℤ`,
-`E = {-1,1}`, `γ` the shift-invariant `λ`-specification (`λ` = counting measure) built from
-`p_j(x,y) = 1` if `x ≠ y`, else `0` — the degenerate zero-temperature limit of Example (10.3). Its
-content is that the two alternating-configuration Dirac masses `δ_{+-}, δ_{-+}` are extreme in
-`𝒢(γ)` while their average is extreme in `𝒢_Θ(γ)`, exhibiting
-`ex 𝒢_Θ(γ) ∖ ex 𝒢(γ) ≠ ∅` (so `𝒢_Θ(γ)` is *not* a face of `𝒢(γ)`, unlike the general fact
-`Theorem (14.15)(c)` that it *is* a face of `𝒫_Θ(Ω,𝓕)`).
-
-This is **not proved**: it requires constructing a concrete specification (Example (10.3)'s
-degenerate kernel, at a state space `{-1,1}`, is a genuine `Model/`-level object, not a
-specification-level generality) and is out of place in `Specification/`. Per the project's layout,
-the honest home for it is a new `GibbsMeasure/Model/` file (e.g. alongside `Model/Ising.lean`),
-building: the degenerate `λ`-specification from `p_j`; its two ground states as Dirac measures;
-their extremality in `𝒢(γ)`; and the extremality of their average in `𝒢_Θ(γ)` via Theorem
-(14.15)(a) (already available as `MeasureTheory.GibbsMeasure.ergodicSMul_iff_mem_extremePoints_...`
-in `ErgodicGibbs.lean`) applied to the mixing/ergodicity of the average under the shift by 1. None
-of that construction is attempted here, per the brief's instruction not to touch `Model/`.
+Georgii's Example (14.16), the one-dimensional Ising antiferromagnet at zero temperature with
+`ex 𝒢_Θ(γ) ∖ ex 𝒢(γ) ≠ ∅`, is a `Model/`-level object: `GibbsMeasure/Model/Antiferromagnet.lean`.
 -/
 
 @[expose] public section
 
-open Filter MeasureTheory ProbabilityTheory Set Topology
-open scoped ENNReal Topology symmDiff Pointwise BoundedContinuousFunction
-
-/-!
-## General lemmas
-
-Both belong upstream of this file:
-
-* `MeasureTheory.GibbsMeasure.ae_tendsto_inv_card_smul_sum_shift_of_mem_trivialOn_of_integrable`
-  generalises `ae_tendsto_inv_card_smul_sum_shift_of_mem_trivialOn` in
-  `GibbsMeasure/Specification/ErgodicGibbsLimits.lean`, section `ShiftErgodic`, from a bounded to
-  a merely integrable function; the bounded lemma should be re-derived from it in place.
-* `MeasureTheory.GibbsMeasure.boundedContinuousToLp` and
-  `MeasureTheory.GibbsMeasure.continuous_toMeasure_withLocalConvergence` belong with
-  `GibbsMeasure/Topology/LocalConvergence.lean` / `GibbsMeasure/Specification/LocalContinuity.lean`
-  as the compact-`E` case of Georgii's Remark (4.3)(3).
--/
-
-namespace MeasureTheory.GibbsMeasure
-
-section ShiftErgodic
-
-attribute [local instance] shiftAddAction measurableConstVAdd_shift
-
-variable {S E : Type*} [MeasurableSpace E] [AddCommGroup S] [Countable S] [DecidableEq S]
-  {μ : Measure (S → E)} {F : ℕ → Finset S} {C : ℝ≥0∞}
-
-end ShiftErgodic
-
-/-! ### Georgii Remark (4.3)(3), compact-`E` case: the `𝓛`-topology is finer than the weak
-topology -/
-
-section WeakTopology
-
-variable {S E : Type*} [MeasurableSpace E]
-
-/-- A bounded continuous real function on configuration space, bundled as an `lp ∞` element (the
-ambient type for Georgii's `𝓛`, `𝓛̄`). -/
-def boundedContinuousToLp [TopologicalSpace E] (f : (S → E) →ᵇ ℝ) : lp (fun _ : S → E ↦ ℝ) ∞ :=
-  ⟨⇑f, memℓp_infty ⟨‖f‖, by rintro _ ⟨x, rfl⟩; exact f.norm_coe_le_norm x⟩⟩
-
-omit [MeasurableSpace E] in
-@[simp] lemma coeFn_boundedContinuousToLp [TopologicalSpace E] (f : (S → E) →ᵇ ℝ) :
-    ⇑(boundedContinuousToLp (S := S) f) = ⇑f := rfl
-
-/-- **Georgii, Remark (4.3)(3), for `E` compact metric.** The identity map from configuration
-space's probability measures with the topology of local convergence to the same measures with
-Mathlib's ambient weak topology (`MeasureTheory.ProbabilityMeasure`) is continuous: the
-`𝓛`-topology is finer than the weak topology. On a compact space every continuous function is
-uniformly continuous (Heine–Cantor), so every bounded continuous observable is quasilocal by
-Georgii (2.21)(2) (`mem_quasilocalFunctions_of_uniformContinuous`), hence has `𝓛`-continuous
-integral (`lContinuous_of_mem_quasilocalFunctions`); Mathlib's weak topology on
-`ProbabilityMeasure (S → E)` is exactly the coarsest topology making all such integrals
-continuous (`ProbabilityMeasure.continuous_iff_forall_continuous_integral`). -/
-theorem continuous_toMeasure_withLocalConvergence [MetricSpace E] [CompactSpace E]
-    [SecondCountableTopology E] [BorelSpace E] [Countable S] :
-    Continuous (fun μ : WithLocalConvergence S E ↦ (μ.toMeasure : ProbabilityMeasure (S → E))) := by
-  rw [ProbabilityMeasure.continuous_iff_forall_continuous_integral]
-  intro f
-  have hmeas : Measurable (⇑f : (S → E) → ℝ) := f.continuous.measurable
-  have hunif : UniformContinuous (⇑f : (S → E) → ℝ) :=
-    CompactSpace.uniformContinuous_of_continuous f.continuous
-  have hql : boundedContinuousToLp (S := S) f ∈ quasilocalFunctions S E :=
-    mem_quasilocalFunctions_of_uniformContinuous hmeas hunif
-  have hLC := lContinuous_of_mem_quasilocalFunctions hql
-  simpa only [LContinuous, coeFn_boundedContinuousToLp] using hLC
-
-end WeakTopology
-
-end MeasureTheory.GibbsMeasure
-
-open MeasureTheory MeasureTheory.GibbsMeasure
+open Filter MeasureTheory MeasureTheory.GibbsMeasure ProbabilityTheory Set Topology
+open scoped ENNReal Topology symmDiff Pointwise
 
 /-! ### Georgii Comment (14.13), for `E` compact metric: `ex 𝒫_Θ(Ω,𝓕)` is weakly dense -/
 
