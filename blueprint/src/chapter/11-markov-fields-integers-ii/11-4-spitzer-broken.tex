@@ -6,9 +6,11 @@
     \lean{MeasureTheory.GibbsMeasure.Markov.Spitzer.step, MeasureTheory.GibbsMeasure.Markov.Spitzer.noImmigration, MeasureTheory.GibbsMeasure.Markov.Spitzer.noImmigration_pow_apply_singleton, MeasureTheory.GibbsMeasure.Markov.Spitzer.step_pow_apply_singleton, MeasureTheory.GibbsMeasure.Markov.Spitzer.sum_firstPassage_step, MeasureTheory.GibbsMeasure.Markov.Spitzer.map_shift_ne, MeasureTheory.GibbsMeasure.Markov.Spitzer.infinite_extremePoints_G}
     \leanok
 
-    For the critical branching matrix the powers of the no-immigration part are binomial,
-    $\ell(x, p^n, y)$ (11.45), and the first-passage decomposition (11.47) expresses $Q^n(x,y)$
-    through the taboo powers and the hitting times of a state; the extinction times satisfy
-    $\sum_{m<n} f_m(x) = (1-p^n)^x$. Every shift moves the resulting Gibbs measures, and
-    $\operatorname{ex}\mathcal G(\gamma^Q)$ is infinite.
+    For Georgii's subcritical branching matrix with immigration at extinction, the powers of the
+    no-immigration part are binomial, $\ell(x, p^n, y)$ (11.45), and the first-passage
+    decomposition (11.47) expresses $P^n(x,y)$ through the taboo powers and the hitting times of a
+    state; the extinction times satisfy $\sum_{m<n} f_m(x) = (1-p^n)^x$ for $x \geq 1$. If in
+    addition no change of measure of $Q = P^2$ is positive recurrent, then every shift moves the
+    Gibbs measures and $\operatorname{ex}\mathcal G(\gamma^Q)$ is infinite; that null recurrence is
+    a hypothesis here, not a theorem, so (11.46) itself is not formalised.
 \end{theorem}

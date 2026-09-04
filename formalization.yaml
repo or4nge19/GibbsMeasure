@@ -1528,8 +1528,12 @@ alignment:
         gamma^{J,h+h'}, G(gamma^{J,h}) is a translate of G(gamma^{J,0}), and translations by the
         mean submodule are symmetries. The closing step of (13.26)/(13.31): a centred Gauss field
         whose covariance inverts J gives a Gibbs measure, so G is nonempty. Not formalized:
-        (13.22) necessity (needs the first two moments of the Gaussian kernel), (13.23)(d) (needs
-        Remark (7.2) and that no probability measure on R is translation invariant), (13.24)-(13.25) (need (7.12) and (13.A5)).
+        (13.23)(d) (needs
+        Remark (7.2) and that no probability measure on R is translation invariant), (13.24)-(13.25) (need (7.12) and (13.A5)). Note (13.13) is proved in the form
+        "gamma_Lambda(.|omega) is the pushforward of multivariateGaussianPi with mean
+        -J_Lambda^{-1}(h + J omega) and precision beta J_Lambda"; that this measure IS a Gaussian
+        field in Mathlib's sense (IsGaussian / multivariateGaussian) is still open, since the
+        characteristic function of multivariateGaussianPi is not computed.
         The first half of (13.26) is proved: under (13.27) the entries of the inverse coupling
         matrices converge to a nonnegative-definite inverse of J, so G is nonempty. Georgii derives
         the underlying monotonicity from (13.13) and Jensen; here it is the linear-algebra fact
@@ -1582,8 +1586,9 @@ alignment:
         specification (13.18) through Specification.glued (no second gluing), equal to
         gaussianSpecification for finite-range J; the mean set M_{J,h} as a coset of M_{J,0}. Not
         formalized: (13.18) for genuinely infinite-range J (needs the boundary field as a
-        convergent series on Omega_J), Theorem (13.22) (needs (13.A6) and an independence
-        reconstruction lemma), Sections 13.2-13.3 proper.
+        convergent series on Omega_J), so the glued specification is currently stated only where
+        it collapses to gaussianSpecification. Sections 13.2 and 13.3 have their own entries below;
+        (13.22) is proved there as an equivalence.
 
 acknowledgements: >-
   Builds on Mathlib. Kolmogorov extension material adapted from RemyDegenne/kolmogorov_extension4.

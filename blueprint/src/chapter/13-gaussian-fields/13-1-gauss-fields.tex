@@ -22,7 +22,7 @@ Throughout, $E = \mathbb R$ with Lebesgue measure and $S$ is countable.
     Let $\mu$ be a Gauss field on $S$ countable, $\xi_i^\mu = \mu(\sigma_i \mid \mathcal T_{\{i\}})$
     (13.4) and $\Gamma(i,j) = \mu((\sigma_i - \xi_i^\mu)(\sigma_j - \xi_j^\mu))$ (13.6). If
     $\Gamma(j,j) > 0$ for all $j$ and each $\xi_i^\mu$ is $\mathcal F_{N(i)}$-measurable for a
-    neighbourhood $N(i) \not\ni i$, then with $J(i,j) = -\Gamma(i,j)/(\Gamma(i,i)\Gamma(j,j))$-type
+    neighbourhood $N(i) \not\ni i$, then with $J(i,j) = \Gamma(i,j)/(\Gamma(i,i)\Gamma(j,j))$
     conditional couplings and $h$ the conditional external field: $J(i,j) = 0$ for
     $j \notin N(i)$, $J$ is positive definite, and $\sigma_i - \xi_i^\mu = J(i,i)^{-1}(h_i + \sum_j J(i,j)\sigma_j)$
     a.s.\ (13.5); (13.8): $\xi_i^\mu = u_i - \sum_{j \in \partial i}\Gamma(i,j)\Gamma(j,j)^{-1}\sigma_j$ a.s.
@@ -59,7 +59,7 @@ Throughout, $E = \mathbb R$ with Lebesgue measure and $S$ is countable.
     \leanok
 
     For a symmetric $J \colon S \times S \to \mathbb R$ and $h \colon S \to \mathbb R$, the
-    \textbf{Gaussian potential} has $\Phi_{\set i}(\sigma) = \tfrac12 J(i,i)\sigma_i^2 - h_i\sigma_i$
+    \textbf{Gaussian potential} has $\Phi_{\set i}(\sigma) = \tfrac12 J(i,i)\sigma_i^2 + h_i\sigma_i$
     and $\Phi_{\set{i,j}}(\sigma) = J(i,j)\sigma_i\sigma_j$ for $i \neq j$, and $\Phi_A = 0$
     otherwise; $\mathcal J_\Lambda = (J(i,j))_{i,j\in\Lambda}$ is its finite-volume matrix.
 \end{definition}
