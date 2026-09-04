@@ -56,6 +56,15 @@ Remark (13.23).
   `Potential.gaussianMeanSubmodule J` (`M_{J,0}`, a linear subspace); `M_{J,h}` is a coset of
   `M_{J,0}` (`Potential.gaussianMeanSet_iff_sub_mem_gaussianMeanSubmodule`), Georgii's remark right
   after (13.21).
+* **Georgii Theorem (13.20)**, `MeasureTheory.GibbsMeasure.georgii_13_20`: a Gaussian field `μ`
+  with (i) `Γ(i,i) > 0` for all `i` and (ii) the Markov property of Proposition (13.7) is a Gibbs
+  measure for the specification `γ^{J,h}` built from its own conditional covariances,
+  `J = condCoupling μ` and `h = condExternalField μ`. The specification is well defined because
+  `J` is symmetric, of finite row support (`finite_setOf_condCoupling_ne_zero`) and has every
+  `𝒥_Λ` positive definite (`posDef_gaussianCovMatrix_condCoupling`). Georgii's proof, verbatim:
+  (13.7), (13.10), (13.13) and (1.33), the last in the conditional-probability form
+  `Specification.isGibbsMeasure_of_forall_singleton_condExp_ae_eq`
+  (`GibbsMeasure/Specification/CondExpGibbs.lean`).
 * **Georgii (13.18), finite range.** `Specification.zeroDirac S E`, a general reference
   specification (the Dirac mass at the configuration vanishing on `Λ` and agreeing with the
   boundary condition off `Λ`), used for Georgii's "otherwise" branch. Georgii's gluing itself is
@@ -77,24 +86,17 @@ Remark (13.23).
   doc) and is not attempted here; `Potential.gaussianGluedSpecification` below is stated and proved
   only for finite row support.
 * **Georgii (13.22)**, the theorem characterizing which Gauss fields (given their mean and
-  covariance) are Gibbs for `γ^{J,h}`. Tracing through the book's proof: direction (a) ⟹ (b) uses
-  Corollary (13.A6) (a.s. convergence of `∑_j J(i,j)σ_j` implies `L²` convergence for a Gaussian
-  family), which is not in this tree. Direction (b) ⟹ (a) reduces, via Lemma (13.10) and Theorem
-  (1.33) (already in `GibbsMeasure/Specification/Singleton.lean` as
-  `Specification.isGibbsMeasure_iff_forall_singleton_bind_eq`, if `gaussianSpecification` is
-  exhibited as a `Specification.lambdaSpecification`), to a *single* fact: for `μ` Gaussian with
-  mean `m ∈ M_{J,h}` and covariance `C` an inverse of `J`, `σ_i - ξ_i^μ` (an explicit finite linear
-  combination of `(σ_j - m_j)_j`, given finite range) is mean-zero, variance `J(i,i)⁻¹`, and
-  uncorrelated with — hence, by
-  `ProbabilityTheory.IsGaussianProcess.indepFun_of_covariance_eq_zero` (which *is* in Mathlib),
-  independent of — every `σ_k`, `k ≠ i`; that step is now Lemma (13.10) below
-  (`georgii_13_10`, `condExp_indicator_ae_eq_gaussianSpecification_singleton`). What remains for
-  (13.22)(b) ⟹ (a) is the passage from the conditional-expectation identity
-  `μ(A | 𝒯_{\{i\}}) = γ_{\{i\}}(A | ·)` a.s. to the invariance `μ γ_{\{i\}} = μ` that Theorem (1.33)
-  (`Specification.lambdaSpecification_isGibbsMeasure_iff_forall_singleton_bind_eq`) consumes, and
-  the identification `ξ_i^μ = ξ_i` from the covariance hypothesis. Neither is attempted here.
+  covariance) are Gibbs for `γ^{J,h}`, is *not* proved here. Its direction (b) ⟹ (a) for `J` of
+  finite range is `MeasureTheory.GibbsMeasure.georgii_13_22_of_finiteRowSupport` in
+  `GibbsMeasure/Model/GaussianGibbs.lean`, built on Lemma (13.10) below and on Theorem (1.33) in
+  the conditional-probability form
+  `Specification.isGibbsMeasure_of_forall_singleton_condExp_ae_eq`
+  (`GibbsMeasure/Specification/CondExpGibbs.lean`); its direction (a) ⟹ (b) is still open — for
+  infinite range it needs Corollary (13.A6) (a.s. convergence of `∑_j J(i,j)σ_j` implies `L²`
+  convergence for a Gaussian family), which is not in this tree, and the missing steps in the
+  finite-range case are listed in `GaussianGibbs.lean`'s module doc.
   `Potential.gaussianMeanSet`/`gaussianMeanSubmodule` above are (13.21) exactly as Georgii states
-  them, ready for that theorem's statement.
+  them.
 
 ## General lemmas (Mathlib-bound)
 

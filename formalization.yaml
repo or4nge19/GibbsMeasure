@@ -1394,6 +1394,26 @@ alignment:
         Mathlib layer: L^1-limits of Gaussians are Gaussian (Gaussian/Limit.lean), Gaussian
         regression and closure under conditioning, the conditional law of a function of an
         independent input (Gaussian/CondExp.lean), Matrix/SymmetricRange.lean.
+    - source: "Section 13.2: (13.20), (13.22) sufficiency, (13.23), the closing step of (13.26)/(13.31)"
+      lean: "MeasureTheory.GibbsMeasure.georgii_13_20"
+      module: "GibbsMeasure/Model/GaussianGibbs.lean"
+      status: "partial"
+      note: >-
+        (13.20): a Gauss field with positive conditional variances and locally measurable
+        conditional expectations is a Gibbs measure for the specification of its conditional
+        couplings; the passage from conditional expectations at every singleton to the DLR
+        equations is (1.33), now named in Specification/CondExpGibbs.lean (it was a two-line
+        consequence of the tree's IsCondExp definition, not the gap it had been recorded as).
+        (13.22) sufficiency for finite row support, via the row forms X_i = sum_j J(i,j) sigma_j.
+        (13.23) all of (a)-(c): translation by an element of the mean set maps gamma^{J,h'} to
+        gamma^{J,h+h'}, G(gamma^{J,h}) is a translate of G(gamma^{J,0}), and translations by the
+        mean submodule are symmetries. The closing step of (13.26)/(13.31): a centred Gauss field
+        whose covariance inverts J gives a Gibbs measure, so G is nonempty. Not formalized:
+        (13.22) necessity (needs the first two moments of the Gaussian kernel), (13.23)(d) (needs
+        Remark (7.2) and that no probability measure on R is translation invariant), (13.24)-(13.25)
+        (need (7.12) and (13.A5)), and (13.26)-(13.31) proper, all blocked on Georgii (13.A7), the
+        existence of a Gaussian process with prescribed nonnegative-definite covariance, which
+        Mathlib lacks.
     - source: "Displays (14.21)-(14.24); Theorem (14.13)"
       lean: "Specification.ae_tendsto_toReal_shiftAvgDensity"
       module: "GibbsMeasure/Specification/ErgodicExamples.lean"

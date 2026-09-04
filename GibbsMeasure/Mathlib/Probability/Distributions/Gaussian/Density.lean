@@ -43,6 +43,8 @@ Multivariate`) constructs the multivariate Gaussian on `EuclideanSpace ℝ ι` a
   `multivariateGaussianPi A m` is a probability measure.
 * `ProbabilityTheory.integral_eval_multivariateGaussianPi`: its mean is `m`.
 * `ProbabilityTheory.integral_sub_mul_sub_multivariateGaussianPi`: its covariance is `A⁻¹`.
+* `ProbabilityTheory.multivariateGaussianPi_map_add_right`: its pushforward along `x ↦ x + v` is
+  `multivariateGaussianPi A (m + v)`.
 
 ## Not done in this file
 

@@ -158,6 +158,7 @@ public import GibbsMeasure.Model.MerminWagnerExamples
 public import GibbsMeasure.Model.Antiferromagnet
 public import GibbsMeasure.Model.GaussianField
 public import GibbsMeasure.Model.GaussianSpecification
+public import GibbsMeasure.Model.GaussianGibbs
 public import GibbsMeasure.Model.ShiftAverage
 public import GibbsMeasure.Potential.Existence
 public import GibbsMeasure.Potential.FiniteReference
@@ -219,6 +220,7 @@ public import GibbsMeasure.Specification.Quasilocality
 public import GibbsMeasure.Specification.Rescaling
 public import GibbsMeasure.Specification.ProductSpecification
 public import GibbsMeasure.Specification.Pullback
+public import GibbsMeasure.Specification.CondExpGibbs
 public import GibbsMeasure.Specification.Reindex
 public import GibbsMeasure.Specification.QuasilocalSpecification
 public import GibbsMeasure.Specification.Singleton

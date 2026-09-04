@@ -11,7 +11,109 @@ public import GibbsMeasure.Specification.Transformation
 /-!
 # Georgii §13.2: Gibbs measures for Gaussian specifications
 
-Placeholder module docstring, rewritten at the end.
+`GibbsMeasure/Model/GaussianField.lean` (§13.1, (13.1)–(13.13)) and
+`GibbsMeasure/Model/GaussianSpecification.lean` ((13.9), (13.10), (13.18), (13.20), (13.21))
+start from a Gaussian field `μ` and produce a Gaussian specification `γ^{J,h}` with
+`μ ∈ 𝒢(γ^{J,h})`. This file takes Georgii's opposite point of view: for a given `γ^{J,h}` it
+studies `𝒢(γ^{J,h})`.
+
+Throughout, `J : S × S → ℝ` is symmetric with **finite row support** — Georgii's finite range
+`{j : J(i,j) ≠ 0} ∈ 𝒮`, the standing hypothesis of Theorems (13.26) and (13.28) — and every
+`𝒥_Λ = (J(i,j))_{i,j ∈ Λ}` is positive definite. Then `Ω_J = Ω`
+(`Potential.gaussianConvergenceSet_eq_univ_of_finiteRowSupport`), Georgii's "otherwise" branch in
+Definition (13.18) is vacuous, and `γ^{J,h}` is `Potential.gaussianSpecification`.
+
+## Main definitions
+
+* `MeasureTheory.GibbsMeasure.spinTranslation m`: **Georgii's `τ^m`** (the display opening §13.2),
+  `τ^m ω = ω + m`, as a `Transformation S ℝ` (5.1) — the sites are fixed and the spin at `i` is
+  translated by `m_i`. `Specification.map` (5.4) and Georgii (5.10)
+  (`Specification.map_mem_G_map`) then apply verbatim.
+* `Potential.gaussianRowForm J hFin i`: **Georgii's `X_i = ∑_{j ∈ S} J(i,j) σ_j`** in the proof of
+  Theorem (13.22); a finite sum, since `J` has finite row support.
+
+## Main results
+
+* **Georgii Remark (13.23)(a)**, `Potential.gaussianSpecification_map_spinTranslation`: for
+  `m ∈ M_{J,h}`, `τ^m(γ^{J,h'}) = γ^{J,h+h'}`, i.e.
+  `γ^{J,h+h'}_Λ(·|τ^m ω) = τ^m(γ^{J,h'}_Λ(·|ω))` for all `Λ` and `ω`. Both sides are Gaussian with
+  the same covariance `𝒥_Λ⁻¹` (Proposition (13.13)); the means differ by exactly `m|_Λ`, which is
+  the content of `Potential.gaussianMean_add_eq_add` and, underneath it,
+  `Potential.gaussianCovMatrix_mulVec_add_gaussianBoundaryField`: for `m ∈ M_{J,h}` the equation
+  `h_i + ∑_{j ∈ S} J(i,j) m_j = 0` of (13.21) splits at `Λ` into `𝒥_Λ m|_Λ + J_{Λ,Λᶜ} m = -h|_Λ`.
+* **Georgii Remark (13.23)(b)**,
+  `Potential.gaussianSpecification_G_eq_image_of_mem_gaussianMeanSet`: for `m ∈ M_{J,h}`,
+  `𝒢(γ^{J,h}) = {τ^m(μ) : μ ∈ 𝒢(γ^{J,0})}`. Both inclusions are (13.23)(a) followed by Georgii
+  (5.10); the reverse one uses `-m ∈ M_{J,-h}` (`Potential.neg_mem_gaussianMeanSet`).
+* **Georgii Remark (13.23)(c)**,
+  `Potential.isInvariant_spinTranslation_gaussianSpecification` and
+  `Potential.map_add_isGibbsMeasure_of_mem_gaussianMeanSubmodule`: for `m ∈ M_{J,0}` the
+  translation `τ^m` is a symmetry of `γ^{J,h}`, so `𝒢(γ^{J,h})` is preserved by it.
+* **Georgii Theorem (13.22), (b) ⟹ (a)**,
+  `MeasureTheory.GibbsMeasure.georgii_13_22_of_finiteRowSupport`: a Gaussian field `μ` with mean
+  `m ∈ M_{J,h}` and covariance `C` satisfying `∑_{j ∈ S} J(i,j) C(j,k) = δ_{ik}` is a Gibbs
+  measure for `γ^{J,h}`. (Georgii's third condition `μ(Ω_J) = 1` is automatic for finite range.)
+  The proof is his: the residual `σ_i - ξ_i = J(i,i)⁻¹ (h_i + X_i)` is centred, uncorrelated with
+  every `σ_k`, `k ≠ i`, and jointly Gaussian with them
+  (`isGaussianProcess_sum_elim_gaussianRowForm`), hence independent of `𝒯_{\{i\}}`
+  (`indep_comap_gaussianRowForm_cylinderEvents`); therefore `ξ_i^μ = ξ_i` a.s.
+  (`condExpOutside_ae_eq_gaussianCondMean`, Georgii's (13.5)) and `μ((σ_i - ξ_i^μ)²) = J(i,i)⁻¹`
+  (`integral_sq_sub_condExpOutside_eq_inv`), which are the hypotheses of Lemma (13.10); Theorem
+  (1.33), in the conditional-probability form
+  `Specification.isGibbsMeasure_of_forall_singleton_condExp_ae_eq`
+  (`GibbsMeasure/Specification/CondExpGibbs.lean`), concludes. Because `J` has finite range, all
+  the sums are finite and Georgii's Corollary (13.A6) — a.s. convergence implies `L²` convergence
+  for a Gaussian family, which he needs for infinite range — is not used.
+* **The last step of Georgii's proofs of Theorems (13.26) and (13.31)**,
+  `MeasureTheory.GibbsMeasure.isGibbsMeasure_map_add_of_centered_of_isInverse` and
+  `nonempty_G_gaussianSpecification_of_centered_of_isInverse`: if a *centred* Gaussian field
+  `μ_C` whose covariance `C` inverts `J` exists, then `τ^m(μ_C) ∈ 𝒢(γ^{J,h})` for every
+  `m ∈ M_{J,h}`, so `𝒢(γ^{J,h}) ≠ ∅` whenever `M_{J,h} ≠ ∅`. This is (13.22)(b) ⟹ (a) at `h = 0`
+  followed by (13.23)(b), exactly as Georgii closes both proofs.
+
+## What is *not* proved here, and why
+
+* **Georgii Theorem (13.22), (a) ⟹ (b)** is not proved. For finite range it does not need
+  (13.A6) either. The missing steps are: the identification of `∫ x_i dγ^{J,h}_{\{i\}}(x|ω)`
+  and `∫ x_i² dγ^{J,h}_{\{i\}}(x|ω)` with `ξ_i(ω)` and `ξ_i(ω)² + J(i,i)⁻¹` (Proposition
+  (13.13) at `Λ = {i}`, i.e. `Potential.gaussianSpecification_apply` together with
+  `ProbabilityTheory.integral_eval_multivariateGaussianPi` and
+  `integral_sub_mul_sub_multivariateGaussianPi` — the second moment additionally needs
+  `Integrable (fun ζ ↦ ζ i ^ 2) (multivariateGaussianPi A m)`, which
+  `GibbsMeasure/Mathlib/Probability/Distributions/Gaussian/Density.lean` proves only in its
+  density-weighted form `integrable_dotProduct_sq_mul_exp_neg_half_dotProduct_mulVec`); these fed
+  into `ProbabilityTheory.Kernel.condExp_ae_eq_integral_kernel`
+  (`GibbsMeasure/Prereqs/Kernel/CondExpBind.lean`) turn `μ ∈ 𝒢(γ^{J,h})` into `ξ_i^μ = ξ_i` a.s.
+  and `μ((σ_i - ξ_i^μ)²) = J(i,i)⁻¹`; from there Georgii's computation of
+  `μ((X_i - μ(X_i))(σ_k - m_k))` uses only `integral_sub_condExpOutside`,
+  `integral_eval_mul_sub_condExpOutside_eq_zero` (`GaussianField.lean`) and
+  `covariance_gaussianRowForm_eval` below. This is a self-contained further step and is simply
+  not attempted.
+* **Georgii Remark (13.23)(d)** (`M_{J,0} ≠ {0}` implies `𝒢(γ^{J,h}) = ∅` or `ex 𝒢(γ^{J,h})`
+  uncountable) needs, besides (c): `ex 𝒢 ≠ ∅` when `𝒢 ≠ ∅` (Theorem (7.26)), which *is* in the
+  tree as `MeasureTheory.GibbsMeasure.exists_mem_extremePoints_G_of_isGibbsMeasure`; that `τ^m`
+  maps `ex 𝒢` into itself (Remark (7.2)), which is not, though
+  `mem_extremePoints_G_iff_isTailTrivial` reduces it to the invariance of the tail σ-algebra under
+  `τ^m`; and the injectivity of `t ↦ τ^{t m}(μ)`, which amounts to the fact that no probability
+  measure on `ℝ` is invariant under a non-zero translation, also not in the tree.
+* **Georgii Theorems (13.24) and (13.26)/(13.31) proper.** Beyond the last step recorded above,
+  (13.24) needs Theorem (7.12) (every extreme Gibbs measure is a local limit
+  `lim_n γ_{Λ_n}(·|ω)`) together with Proposition (13.A5) (a local limit of Gaussian fields is
+  Gaussian), and (13.26)/(13.31) need Proposition (13.A7): the **existence of a centred Gaussian
+  field with a prescribed nonnegative definite covariance function**. (13.A7) is a Kolmogorov
+  extension of a projective family of possibly degenerate multivariate Gaussians; Mathlib has no
+  such construction (`Mathlib.Probability.Distributions.Gaussian.IsGaussianProcess` contains no
+  existence theorem, and `multivariateGaussianPi` here is a Lebesgue density, so it needs a
+  *positive definite* covariance). That is the single missing input which keeps (13.26)'s and
+  (13.31)'s existence statements — and, with them, Comment (13.28) and Examples (13.29), (13.30)
+  — out of reach; the monotonicity argument for (13.27) and the potential-theoretic identity of
+  (13.28) are not attempted either.
+
+## General lemmas proved in the Mathlib layer for this file
+
+* `ProbabilityTheory.multivariateGaussianPi_map_add_right`
+  (`GibbsMeasure/Mathlib/Probability/Distributions/Gaussian/Density.lean`): the pushforward of
+  `multivariateGaussianPi A m` along `x ↦ x + v` is `multivariateGaussianPi A (m + v)`.
 -/
 
 @[expose] public section
@@ -254,6 +356,15 @@ lemma gaussianRowForm_eq_tsum (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite) (i : 
     by_contra hne
     exact hj ((hFin i).mem_toFinset.2 hne), zero_mul]
 
+/-- The row form is the boundary field of `GaussianField.lean` at `Λ = ∅`: `X_i = (J_{∅,S} ω)_i`.
+Recorded so that the two finite-sum objects of this development are visibly the same function;
+`gaussianRowForm` exists under its own name because it is Georgii's `X_i`, a full row sum and not
+a boundary term. -/
+lemma gaussianRowForm_eq_gaussianBoundaryField_empty
+    (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite) (i : S) (ω : S → ℝ) :
+    gaussianRowForm J hFin i ω = gaussianBoundaryField J hFin ∅ ω i := by
+  rw [gaussianRowForm, gaussianBoundaryField, Finset.sdiff_empty]
+
 omit [LinearOrder S] in
 lemma measurable_gaussianRowForm (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite) (i : S) :
     Measurable (gaussianRowForm J hFin i) :=
@@ -358,12 +469,13 @@ lemma gaussianCondMean_eq_sum (i : S) (ω : S → ℝ) :
   have hts : ∑' j, (if j = i then (0 : ℝ) else J i j * ω j)
       = ∑ j ∈ (hFin i).toFinset.erase i, J i j * ω j := by
     rw [tsum_eq_sum (s := (hFin i).toFinset.erase i) fun j hj ↦ ?_]
-    · exact Finset.sum_congr rfl fun j hj ↦ if_neg (Finset.mem_erase.1 hj).1
+    · exact Finset.sum_congr rfl fun j hj ↦ by simp [(Finset.mem_erase.1 hj).1]
     · by_cases hji : j = i
-      · rw [if_pos hji]
-      · rw [if_neg hji, show J i j = 0 from ?_, zero_mul]
-        by_contra hne
-        exact hj (Finset.mem_erase.2 ⟨hji, (hFin i).mem_toFinset.2 hne⟩)
+      · simp [hji]
+      · have hJ0 : J i j = 0 := by
+          by_contra hne
+          exact hj (Finset.mem_erase.2 ⟨hji, (hFin i).mem_toFinset.2 hne⟩)
+        simp [hji, hJ0]
   rw [gaussianCondMean, hts]
 
 omit [Countable S] hμ in
@@ -393,8 +505,9 @@ lemma indep_comap_gaussianRowForm_cylinderEvents (i : S) :
       cov[Potential.gaussianRowForm J hFin i, fun ω : S → ℝ ↦ ω k; μ] = 0 := by
     intro _ k
     have hki : (k : S) ≠ i := k.2
-    rw [covariance_gaussianRowForm_eval hFin hμ i (k : S), hC i (k : S),
-      if_neg fun hh ↦ hki hh.symm]
+    have hik : i ≠ (k : S) := fun hh ↦ hki hh.symm
+    rw [covariance_gaussianRowForm_eval hFin hμ i (k : S), hC i (k : S)]
+    simp [hik]
   have h1 := (isGaussianProcess_sum_elim_gaussianRowForm hFin hμ i).indepFun_of_covariance_eq_zero
     (fun _ ↦ (Potential.measurable_gaussianRowForm J hFin i).aemeasurable)
     (fun k ↦ (measurable_pi_apply (k : S)).aemeasurable) hcov
@@ -425,9 +538,11 @@ lemma covariance_gaussianRowForm_self (i : S) (hJii : J i i ≠ 0) :
     rw [covariance_comm, covariance_gaussianRowForm_eval hFin hμ i j, hC i j]
     by_cases hji : j = i
     · subst hji; simp
-    · rw [if_neg fun hh ↦ hji hh.symm, if_neg hji, mul_zero]
+    · have hij : i ≠ j := fun hh ↦ hji hh.symm
+      simp [hij, hji]
   rw [Finset.sum_congr rfl fun j _ ↦ hterm j, Finset.sum_ite_eq' ((hFin i).toFinset) i
-    (fun _ ↦ J i i), if_pos ((hFin i).mem_toFinset.2 hJii)]
+    (fun _ ↦ J i i)]
+  simp [(hFin i).mem_toFinset.2 hJii]
 
 /-- **Georgii's equation (13.5), derived from (13.22)(b).** For a Gaussian field with mean
 `m ∈ M_{J,h}` and covariance `C` an inverse of `J`, the conditional expectation `ξ_i^μ` is the
@@ -572,6 +687,55 @@ theorem georgii_13_22_of_finiteRowSupport [LinearOrder S] (hSymm : ∀ i j, J i 
   intro i A hA
   rw [← hEq]
   exact condExp_indicator_ae_eq_gaussianSpecification_singleton hSymm hFin hPD hμ hvar h135 i hA
+
+
+/-- **The last step of Georgii's proofs of Theorems (13.26) and (13.31).** Let `J` be symmetric of
+finite range with every `𝒥_Λ` positive definite, and suppose a *centred* Gaussian field `μ_C` with
+covariance `C` an inverse of `J` exists (this is what Georgii gets from (13.A7) once the limits
+(13.25) are shown to exist and to invert `J`). Then for every `h` and every `m ∈ M_{J,h}` the
+translate `τ^m(μ_C)` is a Gibbs measure for `γ^{J,h}`; in particular `𝒢(γ^{J,h}) ≠ ∅` as soon as
+`M_{J,h} ≠ ∅`.
+
+Georgii: "`μ_C` satisfies condition (b) of Theorem (13.22) with `h = 0`. Thus
+`μ_C ∈ 𝒢(γ^{J,0})`, and Remark (13.23)(b) implies that `τ^m(μ_C) ∈ 𝒢(γ^{J,h})` for each
+`m ∈ M_{J,h}`." -/
+theorem isGibbsMeasure_map_add_of_centered_of_isInverse [LinearOrder S]
+    (hSymm : ∀ i j, J i j = J j i)
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef)
+    (hcentred : ∀ j, ∫ ω, ω j ∂μ = 0) {m : S → ℝ} (hm : m ∈ Potential.gaussianMeanSet J h) :
+    (Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos).IsGibbsMeasure
+      (μ.map fun x ↦ x + m) := by
+  have hP := hμ.isProbabilityMeasure
+  have hzero : (fun j ↦ ∫ ω, ω j ∂μ) ∈ Potential.gaussianMeanSet J (0 : S → ℝ) := by
+    refine ⟨?_, fun i ↦ ?_⟩
+    · have : (fun j ↦ ∫ ω, ω j ∂μ) = (0 : S → ℝ) := funext hcentred
+      rw [this]
+      exact (Potential.gaussianConvergenceSubmodule J).zero_mem
+    · simp [hcentred]
+  have h0 : (Potential.gaussianSpecification J (0 : S → ℝ) hSymm hFin hPD 1
+      one_pos).IsGibbsMeasure μ :=
+    georgii_13_22_of_finiteRowSupport hFin hμ hC hSymm hPD hzero
+  have hmem : μ.map (fun x ↦ x + m)
+      ∈ MeasureTheory.GibbsMeasure.G (Potential.gaussianSpecification J h hSymm hFin hPD 1
+        one_pos) := by
+    rw [Potential.gaussianSpecification_G_eq_image_of_mem_gaussianMeanSet J hSymm hFin hPD 1
+      one_pos hm]
+    exact ⟨μ, ⟨inferInstance, h0⟩, rfl⟩
+  exact hmem.2
+
+/-- **`𝒢(γ^{J,h}) ≠ ∅`** under the hypotheses of
+`isGibbsMeasure_map_add_of_centered_of_isInverse`: the existence half of Georgii's Theorems
+(13.26) and (13.31), granted the centred Gauss field `μ_C` of (13.A7). -/
+theorem nonempty_G_gaussianSpecification_of_centered_of_isInverse [LinearOrder S]
+    (hSymm : ∀ i j, J i j = J j i)
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef)
+    (hcentred : ∀ j, ∫ ω, ω j ∂μ = 0) {m : S → ℝ} (hm : m ∈ Potential.gaussianMeanSet J h) :
+    (MeasureTheory.GibbsMeasure.G
+      (Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos)).Nonempty := by
+  have hP := hμ.isProbabilityMeasure
+  refine ⟨μ.map fun x ↦ x + m, ?_, ?_⟩
+  · exact Measure.isProbabilityMeasure_map (measurable_add_const m).aemeasurable
+  · exact isGibbsMeasure_map_add_of_centered_of_isInverse hFin hμ hC hSymm hPD hcentred hm
 
 end Theorem13_22
 

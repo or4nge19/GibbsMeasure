@@ -566,6 +566,10 @@ Georgii's hypotheses (conditional couplings vanish off the neighbourhoods, are p
 satisfy (13.5)); **Lemma (13.10)**: under (i)–(iii) the conditional law of `σ_i` given `𝒯_i` is
 `𝒩(ξ_i, J(i,i)⁻¹)`, and for finite row support it is `γ^{J,h}_{i}` (`GibbsMeasure/Model/GaussianSpecification.lean`),
 from Gaussian regression, closure under conditioning and `L¹`-limits of Gaussians in the Mathlib layer.
+**§13.2** (`GibbsMeasure/Model/GaussianGibbs.lean`): **(13.20)** a Gauss field is a Gibbs measure for
+the specification of its own conditional couplings, **(13.22)** in the sufficient direction, and
+**(13.23)** the translation structure of `𝒢(γ^{J,h})`. What remains there is blocked on the existence
+of a Gaussian process with prescribed nonnegative-definite covariance, which Mathlib does not have.
 
 **§9.2, Mermin–Wagner** (`GibbsMeasure/Model/MerminWagner.lean`): **Theorem (9.20)** — for a
 pair potential on a site set with a planar norm (ℤ² with the maximum norm the instance), any real
@@ -635,7 +639,7 @@ neighbouring spins has a unique infinite component almost surely under every Gib
 
 Not yet done: Shlosman's random staircases of §6.3
 (Theorem (6.21)), Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
-§12.2, §§13.2–13.3, and Chapters
+§12.2, the rest of §13.2 and §13.3, and Chapters
 17–20 (
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).

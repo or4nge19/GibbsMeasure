@@ -1,0 +1,60 @@
+\section{Gibbs measures for Gaussian specifications}
+
+\begin{theorem}[Georgii (13.20)]
+    \label{thm:gs-13-20}
+    \uses{thm:gf-13-7, lem:gf-13-10, def:gf-13-11}
+    \lean{MeasureTheory.GibbsMeasure.georgii_13_20, Specification.isGibbsMeasure_of_forall_singleton_condExp_ae_eq, Specification.bind_eq_of_condExp_ae_eq}
+    \leanok
+
+    Let $\mu$ be a Gauss field with $\Gamma(j,j) > 0$ for all $j$ and each $\xi_j^\mu$ measurable
+    with respect to a neighbourhood $N(j) \not\ni j$. Then the conditional couplings $J$ and
+    external field $h$ of Theorem \ref{thm:gf-13-7} define a Gaussian specification and
+    $\mu \in \mathcal G(\gamma^{J,h})$.
+\end{theorem}
+\begin{proof}
+    \leanok
+    (13.7) gives $J$ symmetric with finite rows and positive definite, (13.10) identifies the
+    one-site conditional distributions with $\gamma^{J,h}_{\{i\}}$, and a conditional expectation
+    identity at every singleton is the DLR equation by (1.33).
+\end{proof}
+
+\begin{theorem}[Georgii (13.22), sufficiency]
+    \label{thm:gs-13-22}
+    \uses{thm:gs-13-20, def:gf-13-18}
+    \lean{MeasureTheory.GibbsMeasure.georgii_13_22_of_finiteRowSupport}
+    \leanok
+
+    Let $J$ be symmetric of finite row support with every $\mathcal J_\Lambda$ positive definite.
+    A Gauss field $\mu$ whose mean lies in $M_{J,h}$ and whose covariance $C$ satisfies
+    $\sum_j J(i,j)C(j,k) = \delta_{ik}$ belongs to $\mathcal G(\gamma^{J,h})$.
+\end{theorem}
+\begin{proof}
+    \leanok
+    The row forms $X_i = \sum_j J(i,j)\sigma_j$ are jointly Gaussian with the field, uncorrelated
+    with every coordinate outside $\{i\}$, so the residual is independent of the exterior; this is
+    (13.5), and Theorem \ref{thm:gs-13-20} applies.
+\end{proof}
+
+\begin{theorem}[Georgii (13.23)]
+    \label{thm:gs-13-23}
+    \uses{def:gf-13-18, rmk:sym-transport-gibbs}
+    \lean{MeasureTheory.GibbsMeasure.spinTranslation, Potential.gaussianSpecification_map_spinTranslation, Potential.gaussianSpecification_G_eq_image_of_mem_gaussianMeanSet, Potential.isInvariant_spinTranslation_gaussianSpecification, Potential.map_add_isGibbsMeasure_of_mem_gaussianMeanSubmodule}
+    \leanok
+
+    For $m \in M_{J,h}$ the translation $\tau^m$ maps $\gamma^{J,h'}$ to $\gamma^{J,h+h'}$, hence
+    $\mathcal G(\gamma^{J,h})$ is the image of $\mathcal G(\gamma^{J,0})$ under $\mu \mapsto \mu(\cdot - m)$;
+    for $m \in M_{J,0}$ the translation is a symmetry of $\gamma^{J,h}$ and preserves
+    $\mathcal G(\gamma^{J,h})$.
+\end{theorem}
+
+\begin{proposition}[Georgii (13.26), (13.31), the closing step]
+    \label{prop:gs-13-26}
+    \uses{thm:gs-13-22, thm:gs-13-23}
+    \lean{MeasureTheory.GibbsMeasure.isGibbsMeasure_map_add_of_centered_of_isInverse, MeasureTheory.GibbsMeasure.nonempty_G_gaussianSpecification_of_centered_of_isInverse}
+    \leanok
+
+    If $\mu_C$ is a centred Gauss field whose covariance inverts $J$, then
+    $\tau^m(\mu_C) \in \mathcal G(\gamma^{J,h})$ for every $m \in M_{J,h}$; in particular
+    $\mathcal G(\gamma^{J,h}) \neq \emptyset$. The existence of $\mu_C$ itself is Georgii (13.A7),
+    a Gaussian process with prescribed nonnegative-definite covariance, which Mathlib does not have.
+\end{proposition}
