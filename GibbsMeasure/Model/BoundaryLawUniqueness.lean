@@ -63,6 +63,16 @@ laws `{ℓ_i, r_i}` of Definition (11.8) with their measures (11.10) (`boundaryL
   same invariant vectors as `P`, so `Q` satisfies both hypotheses that Corollary (11.17) combines:
   the existence hypothesis of Theorem (11.13) and the periodicity hypothesis of Theorem
   (11.15)/(11.16) at `p = 1`. (Corollary (11.17) itself is not provable here; see below.)
+* `ofMatrix_lazy_pow_apply_singleton`, `lazy_convergenceNorm_le`,
+  `one_le_lazy_convergenceNorm_of_convergenceNorm_eq_one`,
+  `lazy_convergenceNorm_eq_one_of_convergenceNorm_eq_one`,
+  `isPositiveRecurrent_ofMatrix_of_isPositiveRecurrent_lazy`,
+  `eq_empty_G_lazy_of_not_isPositiveRecurrent` — **Georgii Comment (11.18)(3), in full**: the
+  binomial identity for `Q = tP + (1-t)I`, the resulting `L(Q) = tL(P) + (1-t)` (both directions),
+  hence `L(P) = 1 ⟹ L(Q) = 1`, and the non-existence conclusion `𝒢(γ^Q) = ∅` when `P` is a positive
+  stochastic matrix with `L(P) = 1` that is not positive recurrent. See the docstring above
+  `Georgii Comment (11.18)(3)` (after `end MarkovBridge`, further down this file) for the argument
+  in full.
 * **Obstruction (i) resolved.** `countProbDensity`, `countProb`, `rescaledTransferDensity Q`
   (Georgii's rescaled probability a priori measure and Markovian λ-modification, Remark (1.28)(3)),
   `transferSpecification_eq_isssd_withDensity` (`γ^Q = (isssd countProb Λ ·).withDensity
@@ -204,19 +214,6 @@ marginal `α(x) := μ(σ_0 = x)` is an invariant probability measure for `P`
 
 ## What is not attempted, and precisely why
 
-* **Comment (11.18)(3)** (`Q = tP + (1-t)I` for `P` null recurrent or transient with `L(P) = 1`
-  satisfies (11.17)'s non-existence hypothesis): `lazy`, `lazy_stochastic`, `lazy_isTransferMatrix`,
-  `iInf_lazy_apply_self_pos` already supply the periodicity hypothesis of (11.17) at `N = 1`
-  (`inf_x Q(x,x) ≥ 1 - t > 0`). What is missing is Georgii's computation `L(Q) = tL(P) + 1 - t = 1`
-  itself, from the binomial identity `Q^n(x,x) = ∑_k C(n,k) t^k P^k(x,x) (1-t)^{n-k}` (needs a
-  binomial theorem for the commuting pair `(Kernel.ofMatrix P, Kernel.id)` under `(+, ∘ₖ)`, not
-  otherwise in the tree) feeding `Recurrence.lean`'s `convergenceNorm_eq_div_of_apply_eq_mul_div`
-  and `isPositiveRecurrent_of_apply_eq_mul_div`. A softer argument avoiding the binomial identity
-  was checked and does not work: from a hypothetical (11.5)-relation `R x y = Q x y r y/(q r x)`
-  with `R` stochastic and positive recurrent, summing over `y` gives `Q r = q r` (`r` a right
-  eigenvector of `Q` with eigenvalue `q`), but `r` is only known pointwise positive and finite, not
-  uniformly bounded or bounded away from `0`, so no sup/inf argument forces `q = 1` without the
-  genuine generating-function computation. This is a real, self-contained gap, not attempted here.
 * **Corollary (11.19)** (`E = ℤ^N`, homogeneous `Q` with `∑_x Q(0,x) < ∞` gives `𝒢(Q) = ∅`) needs
   Georgii's own large-deviation argument (Cramér/Legendre transform: a minimiser `s₀` of
   `φ(s) = ∑_x Q(0,x) e^{s\cdot x}` over `ℝ^N` with `φ(s₀) ≤ L(Q)`, obtained via a truncation and
@@ -2674,6 +2671,727 @@ theorem eq_empty_G_of_forall_le_sum
 end TheoremOneOneFifteen
 
 end MarkovBridge
+
+/-! ## Georgii Comment (11.18)(3): `L(Q) = tL(P) + (1-t)` for `Q = tP + (1-t)I`, and non-existence
+
+The binomial identity `Q^n(x,x) = ∑_k C(n,k) t^k (1-t)^{n-k} P^k(x,x)` (`ofMatrix_lazy_pow_apply_singleton`,
+proved by induction on `n` via Pascal's rule — the intended Mathlib home is next to
+`Kernel.ofMatrix` in `GibbsMeasure/Mathlib/Probability/Kernel/CountableMatrix.lean`, stated for a
+general commuting pair rather than specifically for `lazy`) feeds two purely analytic facts about
+`convergenceNorm` (intended Mathlib home: `GibbsMeasure/Mathlib/Probability/Kernel/
+CountableMatrix/Recurrence.lean`, as genuine generalizations of Vere-Jones' remark after (11.6)):
+
+* `lazy_convergenceNorm_le`: `L(Q) ≤ tL(P) + (1-t)`, unconditionally (only needs `P` stochastic).
+  The eventual bound `eventually_lazy_pow_le_of_lt_convergenceNorm` behind it splits `Q^n(x,x)`
+  into finitely many "junk" terms `k < k₀` (crudely bounded by `n^{k₀}(1-t)^{n-k₀}`, itself
+  exponentially dominated by any target rate via the elementary transfer lemma
+  `ENNReal_eventually_pow_le_pow_of_one_lt` from the real-analysis fact
+  `tendsto_pow_const_div_const_pow_of_one_lt`) and the "bulk" `k ≥ k₀`, bounded via the ordinary
+  binomial theorem (`add_pow`) for real numbers once `P^k(x,x) ≤ (L+δ)^k` eventually.
+* `one_le_lazy_convergenceNorm_of_convergenceNorm_eq_one`: if `L(P) = 1`, `L(Q) ≥ 1`, by the dual
+  argument (needs `P` positive, for Fekete's lemma `tendsto_convergenceNorm_of_forall_pos` to give
+  a genuine limit rather than a limsup) through `eventually_le_lazy_pow_of_lt_convergenceNorm`.
+
+Together (`lazy_convergenceNorm_eq_one_of_convergenceNorm_eq_one`): `L(P) = 1 ⟹ L(Q) = 1`. This is
+exactly the hypothesis `isPositiveRecurrent_of_apply_eq_mul_div` (Recurrence.lean) needs to rule
+out `Q` being equivalent to a positive recurrent matrix once `Q` itself is known not to be
+positive recurrent; `isPositiveRecurrent_ofMatrix_of_isPositiveRecurrent_lazy` supplies that last
+fact (an invariant probability measure of `Q = tP + (1-t)I` is already `P`-invariant, since
+`t ≠ 0`). `eq_empty_G_lazy_of_not_isPositiveRecurrent` assembles all of this into **Georgii Comment
+(11.18)(3)**: for `Q = tP + (1-t)I`, `0 < t < 1`, `P` a positive stochastic matrix with `L(P) = 1`
+which is *not* positive recurrent (Georgii's "null recurrent or transient"), `𝒢(γ^Q) = ∅`.
+Combined with the existence half already in the file (`boundaryLawMeasure_const_lazy_mem_
+invariantG`, `eq_singleton_boundaryLawMeasure_const_G_of_forall_le_sum`), both halves of Comment
+(11.18)(3) are now proved. The general formula also reproves Comment (11.18)(1) directly (no need
+for the separate `t = 1` degenerate check Georgii's own remark makes for finite `E`).
+-/
+
+
+open Filter Topology in
+theorem ENNReal_eventually_pow_le_pow_of_one_lt {r : ℝ≥0∞} (hr : 1 < r) (k : ℕ) :
+    ∀ᶠ n : ℕ in atTop, (n : ℝ≥0∞) ^ k ≤ r ^ n := by
+  rcases eq_or_ne r ⊤ with rfl | hrtop
+  · refine eventually_atTop.2 ⟨1, fun n hn ↦ ?_⟩
+    rw [ENNReal.top_pow (by omega : n ≠ 0)]
+    exact le_top
+  · have hr' : (1 : ℝ) < r.toReal := by
+      have h1 : ((1:ℝ≥0∞)).toReal < r.toReal :=
+        (ENNReal.toReal_lt_toReal (by norm_num) hrtop).2 hr
+      simpa using h1
+    have hev := tendsto_pow_const_div_const_pow_of_one_lt k hr'
+    have h1 : ∀ᶠ n : ℕ in atTop, (n : ℝ) ^ k / r.toReal ^ n < 1 :=
+      (tendsto_order.1 hev).2 1 one_pos
+    filter_upwards [h1] with n hn
+    have hpos : (0 : ℝ) < r.toReal ^ n := pow_pos (by linarith) n
+    have hlt : (n : ℝ) ^ k < r.toReal ^ n := (div_lt_one hpos).1 hn
+    have hle : ENNReal.ofReal ((n:ℝ)^k) ≤ ENNReal.ofReal (r.toReal ^ n) :=
+      (ENNReal.ofReal_le_ofReal_iff hpos.le).2 hlt.le
+    rwa [ENNReal.ofReal_pow (Nat.cast_nonneg n), ENNReal.ofReal_natCast,
+      ENNReal.ofReal_pow (by linarith : (0:ℝ) ≤ r.toReal), ENNReal.ofReal_toReal hrtop] at hle
+
+theorem ENNReal_add_le_of_two_mul_le_of_two_mul_le {a b c : ℝ≥0∞} (h1 : 2 * a ≤ c) (h2 : 2 * b ≤ c) :
+    a + b ≤ c := by
+  have h : (a + b) * 2 ≤ c * 2 := by
+    rw [add_mul]
+    calc a * 2 + b * 2 ≤ c + c := by
+          rw [mul_comm a 2, mul_comm b 2]
+          exact add_le_add h1 h2
+      _ = c * 2 := by ring
+  exact (ENNReal.mul_le_mul_iff_left (a := a + b) (b := c) (c := 2) (by norm_num) (by norm_num)).1 h
+
+theorem ofMatrix_lazy_pow_apply_singleton {E : Type*} [MeasurableSpace E] [Countable E]
+    [MeasurableSingletonClass E] (P : E → E → ℝ≥0∞) (t : ℝ≥0∞) (n : ℕ) (a c : E) :
+    (Kernel.ofMatrix (lazy P t) ^ n) a {c}
+      = ∑ k ∈ Finset.range (n + 1), (n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k)
+          * (Kernel.ofMatrix P ^ k) a {c} := by
+  induction n generalizing a c with
+  | zero =>
+    simp
+  | succ n ih =>
+    rw [Kernel.ofMatrix_pow_succ'_apply_singleton]
+    have hrw : ∀ b, (Kernel.ofMatrix (lazy P t) ^ n) a {b} * lazy P t b c
+        = ∑ k ∈ Finset.range (n + 1),
+            (t * ((n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k) * (Kernel.ofMatrix P ^ k) a {b}
+              * P b c)
+            + (1 - t) * (({c} : Set E).indicator (1 : E → ℝ≥0∞) b
+              * ((n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k) * (Kernel.ofMatrix P ^ k) a {b}))) := by
+      intro b
+      rw [ih a b, Finset.sum_mul]
+      congr 1
+      ext k
+      simp only [lazy]
+      ring
+    simp_rw [hrw]
+    rw [Summable.tsum_finsetSum (fun k _ => ENNReal.summable)]
+    have hterm : ∀ k, ∑' b,
+          (t * ((n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k) * (Kernel.ofMatrix P ^ k) a {b}
+              * P b c)
+            + (1 - t) * (({c} : Set E).indicator (1 : E → ℝ≥0∞) b
+              * ((n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k) * (Kernel.ofMatrix P ^ k) a {b})))
+        = (n.choose k : ℝ≥0∞) * t ^ (k+1) * (1 - t) ^ (n - k) * (Kernel.ofMatrix P ^ (k+1)) a {c}
+          + (n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k + 1) * (Kernel.ofMatrix P ^ k) a {c} := by
+      intro k
+      rw [ENNReal.tsum_add]
+      congr 1
+      · have step : ∀ i, t * ((n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k)
+              * (Kernel.ofMatrix P ^ k) a {i} * P i c)
+            = (t * (n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k))
+              * ((Kernel.ofMatrix P ^ k) a {i} * P i c) := by
+          intro i; ring
+        simp_rw [step, ENNReal.tsum_mul_left,
+          ← Kernel.ofMatrix_pow_succ'_apply_singleton P k a c]
+        ring
+      · have step : ∀ b, (1 - t) * (({c} : Set E).indicator (1 : E → ℝ≥0∞) b
+              * ((n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k) * (Kernel.ofMatrix P ^ k) a {b}))
+            = ((1 - t) * (n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k))
+              * (({c} : Set E).indicator (1 : E → ℝ≥0∞) b * (Kernel.ofMatrix P ^ k) a {b}) := by
+          intro b; ring
+        simp_rw [step, ENNReal.tsum_mul_left]
+        have hcol : ∑' b, ({c} : Set E).indicator (1 : E → ℝ≥0∞) b * (Kernel.ofMatrix P ^ k) a {b}
+            = (Kernel.ofMatrix P ^ k) a {c} := by
+          rw [tsum_eq_single c (fun b hb => by simp [Set.indicator_of_notMem, hb])]
+          simp
+        rw [hcol]
+        ring
+    simp_rw [hterm]
+    rw [Finset.sum_add_distrib]
+    set A := ∑ k ∈ Finset.range (n + 1),
+        (n.choose k : ℝ≥0∞) * t ^ (k + 1) * (1 - t) ^ (n - k) * (Kernel.ofMatrix P ^ (k + 1)) a {c}
+      with hA
+    set B := ∑ k ∈ Finset.range (n + 1),
+        (n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k + 1) * (Kernel.ofMatrix P ^ k) a {c}
+      with hB
+    have hCA : ∀ i ∈ Finset.range (n + 1),
+        ((n + 1).choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i) * (Kernel.ofMatrix P ^ (i + 1)) a {c}
+          = (n.choose i : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i) * (Kernel.ofMatrix P ^ (i + 1)) a {c}
+            + (n.choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i) * (Kernel.ofMatrix P ^ (i + 1)) a {c} := by
+      intro i _
+      have hp : ((n + 1).choose (i + 1) : ℝ≥0∞) = (n.choose i : ℝ≥0∞) + (n.choose (i + 1) : ℝ≥0∞) := by
+        rw [← Nat.cast_add, Nat.choose_succ_succ' n i]
+      rw [hp]; ring
+    have hCstep : ∑ i ∈ Finset.range (n + 1),
+          ((n + 1).choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i) * (Kernel.ofMatrix P ^ (i + 1)) a {c}
+        = A + ∑ i ∈ Finset.range (n + 1),
+            (n.choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i) * (Kernel.ofMatrix P ^ (i + 1)) a {c} := by
+      rw [Finset.sum_congr rfl hCA, Finset.sum_add_distrib, hA]
+    have hfront : ∑ j ∈ Finset.range (n + 1 + 1),
+        ((n + 1).choose j : ℝ≥0∞) * t ^ j * (1 - t) ^ (n + 1 - j) * (Kernel.ofMatrix P ^ j) a {c}
+        = (∑ i ∈ Finset.range (n + 1),
+              ((n + 1).choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n + 1 - (i + 1))
+                * (Kernel.ofMatrix P ^ (i + 1)) a {c})
+          + ((n + 1).choose 0 : ℝ≥0∞) * t ^ 0 * (1 - t) ^ (n + 1 - 0) * (Kernel.ofMatrix P ^ 0) a {c} :=
+      Finset.sum_range_succ' _ (n + 1)
+    have hexp : ∀ i ∈ Finset.range (n + 1),
+        ((n + 1).choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n + 1 - (i + 1))
+            * (Kernel.ofMatrix P ^ (i + 1)) a {c}
+          = ((n + 1).choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i)
+              * (Kernel.ofMatrix P ^ (i + 1)) a {c} := by
+      intro i hi
+      have hi' : i < n + 1 := Finset.mem_range.1 hi
+      have hexp : n + 1 - (i + 1) = n - i := by omega
+      rw [hexp]
+    rw [Finset.sum_congr rfl hexp] at hfront
+    have hf0 : ((n + 1).choose 0 : ℝ≥0∞) * t ^ 0 * (1 - t) ^ (n + 1 - 0) * (Kernel.ofMatrix P ^ 0) a {c}
+        = (1 - t) ^ (n + 1) * (Kernel.ofMatrix P ^ 0) a {c} := by simp
+    rw [hf0] at hfront
+    have hS12 : (∑ i ∈ Finset.range (n + 1),
+          (n.choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i) * (Kernel.ofMatrix P ^ (i + 1)) a {c})
+        = ∑ i ∈ Finset.range n,
+            (n.choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i) * (Kernel.ofMatrix P ^ (i + 1)) a {c} := by
+      rw [Finset.sum_range_succ]
+      have hz : (n.choose (n + 1) : ℝ≥0∞) = 0 := by
+        exact_mod_cast Nat.choose_eq_zero_of_lt (by omega)
+      rw [hz]
+      ring
+    have hBdecomp : B = (∑ i ∈ Finset.range n,
+            (n.choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i) * (Kernel.ofMatrix P ^ (i + 1)) a {c})
+          + (1 - t) ^ (n + 1) * (Kernel.ofMatrix P ^ 0) a {c} := by
+      rw [hB, Finset.sum_range_succ']
+      have hexp2 : ∀ i ∈ Finset.range n,
+          (n.choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - (i + 1) + 1) * (Kernel.ofMatrix P ^ (i + 1)) a {c}
+            = (n.choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i) * (Kernel.ofMatrix P ^ (i + 1)) a {c} := by
+        intro i hi
+        have hi' : i < n := Finset.mem_range.1 hi
+        have he : n - (i + 1) + 1 = n - i := by omega
+        rw [he]
+      rw [Finset.sum_congr rfl hexp2]
+      simp
+    calc A + B = A + ((∑ i ∈ Finset.range n,
+              (n.choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i) * (Kernel.ofMatrix P ^ (i + 1)) a {c})
+            + (1 - t) ^ (n + 1) * (Kernel.ofMatrix P ^ 0) a {c}) := by rw [hBdecomp]
+      _ = (A + ∑ i ∈ Finset.range (n + 1),
+              (n.choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i) * (Kernel.ofMatrix P ^ (i + 1)) a {c})
+            + (1 - t) ^ (n + 1) * (Kernel.ofMatrix P ^ 0) a {c} := by rw [hS12]; ring
+      _ = (∑ i ∈ Finset.range (n + 1),
+              ((n + 1).choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i) * (Kernel.ofMatrix P ^ (i + 1)) a {c})
+            + (1 - t) ^ (n + 1) * (Kernel.ofMatrix P ^ 0) a {c} := by rw [← hCstep]
+      _ = ∑ j ∈ Finset.range (n + 1 + 1),
+            ((n + 1).choose j : ℝ≥0∞) * t ^ j * (1 - t) ^ (n + 1 - j) * (Kernel.ofMatrix P ^ j) a {c} := hfront.symm
+
+
+open Filter Topology ProbabilityTheory in
+/-- **Helper U**: the eventual upper bound `Q^n(x,x) ≤ (t*(L+δ)+(1-t)+ε)^n` for a lazy chain,
+from the binomial identity plus the fact that finitely many "junk" terms of small `k` are
+exponentially dominated by a slightly larger geometric rate. -/
+theorem eventually_lazy_pow_le_of_lt_convergenceNorm {E : Type*} [MeasurableSpace E] [Countable E]
+    [MeasurableSingletonClass E] [Nonempty E] {P : E → E → ℝ≥0∞} {t : ℝ≥0∞}
+    (hP : ∀ x, ∑' y, P x y = 1) (ht0 : t ≠ 0) (ht1 : t < 1) (x : E)
+    {δ ε : ℝ≥0∞} (hδ0 : 0 < δ) (hδt : δ ≠ ⊤) (hε0 : 0 < ε) (hεt : ε ≠ ⊤) :
+    ∀ᶠ n : ℕ in atTop,
+      (Kernel.ofMatrix (lazy P t) ^ n) x {x}
+        ≤ (t * (Kernel.convergenceNorm (Kernel.ofMatrix P) x + δ) + (1 - t) + ε) ^ n := by
+  have hMP : ProbabilityTheory.IsMarkovKernel (Kernel.ofMatrix P) := Kernel.isMarkovKernel_ofMatrix P hP
+  set L := Kernel.convergenceNorm (Kernel.ofMatrix P) x with hLdef
+  set ρ := t * (L + δ) + (1 - t) with hρdef
+  have ht1' : t ≠ ⊤ := ht1.ne_top
+  have h1t0 : (0:ℝ≥0∞) < 1 - t := tsub_pos_of_lt ht1
+  have h1tt : (1:ℝ≥0∞) - t ≠ ⊤ := (tsub_le_self.trans_lt ENNReal.one_lt_top).ne
+  have hρpos : 0 < ρ := lt_of_lt_of_le h1t0 (by rw [hρdef]; exact le_add_self)
+  have hρtop : ρ ≠ ⊤ := by
+    rw [hρdef]
+    exact ENNReal.add_ne_top.2 ⟨ENNReal.mul_ne_top ht1' (by
+      have : L ≤ 1 := Kernel.convergenceNorm_le_one
+      exact ENNReal.add_ne_top.2 ⟨this.trans_lt ENNReal.one_lt_top |>.ne, hδt⟩), h1tt⟩
+  -- Step 1: eventually a_k < (L+δ)^k.
+  have hLne : L ≠ ⊤ := (Kernel.convergenceNorm_le_one (κ := Kernel.ofMatrix P)).trans_lt
+    ENNReal.one_lt_top |>.ne
+  obtain ⟨k0, hk0⟩ := eventually_atTop.1
+    (Kernel.eventually_lt_pow_of_convergenceNorm_lt (κ := Kernel.ofMatrix P) (x := x)
+      (show L < L + δ from ENNReal.lt_add_right hLne hδ0.ne'))
+  -- Step 2: a_k ≤ 1 for every k.
+  have ha_le_one : ∀ k, (Kernel.ofMatrix P ^ k) x {x} ≤ 1 := fun k ↦ by
+    have hprob : ProbabilityTheory.IsMarkovKernel (Kernel.ofMatrix P ^ k) := inferInstance
+    have hmono := measure_mono (μ := (Kernel.ofMatrix P ^ k) x) (Set.subset_univ ({x} : Set E))
+    rwa [measure_univ] at hmono
+  -- Step 3: ρ < ρ + ε, and the ratio ρ/(ρ+ε) < 1.
+  have hρlt : ρ < ρ + ε := ENNReal.lt_add_right hρtop hε0.ne'
+  have hρge1t : 1 - t ≤ ρ := by rw [hρdef]; exact le_add_self
+  have h1tlt : 1 - t < ρ + ε := lt_of_le_of_lt hρge1t hρlt
+  have hρepstop : ρ + ε ≠ ⊤ := ENNReal.add_ne_top.2 ⟨hρtop, hεt⟩
+  have hρepspos : 0 < ρ + ε := hρpos.trans_le le_self_add
+  have hbulk_ratio : ∀ᶠ n : ℕ in atTop, 2 * ρ ^ n ≤ (ρ + ε) ^ n := by
+    have hratio : ρ / (ρ + ε) < 1 :=
+      (ENNReal.div_lt_iff (Or.inl hρepspos.ne') (Or.inl hρepstop)).2 (by rw [one_mul]; exact hρlt)
+    have heq : ρ = ρ / (ρ + ε) * (ρ + ε) := (ENNReal.div_mul_cancel hρepspos.ne' hρepstop).symm
+    have hpow : ∀ n : ℕ, ρ ^ n = (ρ / (ρ + ε)) ^ n * (ρ + ε) ^ n := fun n ↦ by
+      rw [← mul_pow, ← heq]
+    have htwohalf : (2 : ℝ≥0∞) * (1 / 2) = 1 := by
+      rw [ENNReal.mul_div_cancel' (by norm_num) (by norm_num)]
+    have htend := ENNReal.tendsto_pow_atTop_nhds_zero_of_lt_one hratio
+    have hev : ∀ᶠ n : ℕ in atTop, (ρ / (ρ + ε)) ^ n < 1 / 2 :=
+      (tendsto_order.1 htend).2 _ (by norm_num)
+    filter_upwards [hev] with n hn
+    rw [hpow n, ← mul_assoc]
+    calc 2 * (ρ / (ρ + ε)) ^ n * (ρ + ε) ^ n
+        ≤ 1 * (ρ + ε) ^ n := by
+          gcongr
+          calc 2 * (ρ / (ρ + ε)) ^ n ≤ 2 * (1 / 2) := by gcongr
+            _ = 1 := htwohalf
+      _ = (ρ + ε) ^ n := one_mul _
+  -- Step 4: the junk terms `k < k0` are exponentially dominated.
+  have hr'1 : 1 - t < (ρ + ε) := h1tlt
+  have hr' : 1 < (ρ + ε) / (1 - t) :=
+    (ENNReal.lt_div_iff_mul_lt (Or.inl h1t0.ne') (Or.inl h1tt)).2 (by rw [one_mul]; exact hr'1)
+  set r' := (ρ + ε) / (1 - t) with hr'def
+  have hr'eq : r' * (1 - t) = ρ + ε := ENNReal.div_mul_cancel h1t0.ne' h1tt
+  have hCk0 : ((1 - t) ^ k0 : ℝ≥0∞) ≠ 0 := pow_ne_zero k0 h1t0.ne'
+  have hCk0t : ((1 - t) ^ k0 : ℝ≥0∞) ≠ ⊤ := (ENNReal.pow_ne_top h1tt)
+  set C := (k0 : ℝ≥0∞) * ((1 - t) ^ k0)⁻¹ with hCdef
+  have hCtop : C ≠ ⊤ := ENNReal.mul_ne_top (by simp) (ENNReal.inv_ne_top.2 hCk0)
+  have hjunk_eq : ∀ n : ℕ, k0 ≤ n →
+      (1 - t) ^ (n - k0) = (1 - t) ^ n * ((1 - t) ^ k0)⁻¹ := by
+    intro n hn
+    have hpa : (1 - t) ^ (n - k0) * (1 - t) ^ k0 = (1 - t) ^ n := by
+      rw [← pow_add]; congr 1; omega
+    rw [← hpa, mul_assoc, ENNReal.mul_inv_cancel hCk0 hCk0t, mul_one]
+  have hev2C : ∀ᶠ n : ℕ in atTop, 2 * C ≤ (n : ℝ≥0∞) := by
+    obtain ⟨N, hN⟩ := ENNReal.exists_nat_gt (ENNReal.mul_ne_top (by norm_num : (2:ℝ≥0∞) ≠ ⊤) hCtop)
+    exact eventually_atTop.2 ⟨N, fun n hn ↦ hN.le.trans (by exact_mod_cast hn)⟩
+  have hevcore : ∀ᶠ n : ℕ in atTop, (n : ℝ≥0∞) ^ (k0 + 1) ≤ r' ^ n :=
+    ENNReal_eventually_pow_le_pow_of_one_lt hr' (k0 + 1)
+  have hevk0 : ∀ᶠ n : ℕ in atTop, k0 ≤ n := eventually_ge_atTop k0
+  filter_upwards [hbulk_ratio, hev2C, hevcore, hevk0] with n hbulk h2C hcore hk0n
+  rw [ofMatrix_lazy_pow_apply_singleton]
+  set F : ℕ → ℝ≥0∞ := fun k ↦
+    (n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k) * (Kernel.ofMatrix P ^ k) x {x} with hFdef
+  have hsplit : ∑ k ∈ Finset.range (n + 1), F k
+      = (∑ k ∈ Finset.range k0, F k) + (∑ k ∈ Finset.Ico k0 (n + 1), F k) := by
+    rw [Finset.range_eq_Ico, Finset.range_eq_Ico]
+    exact (Finset.sum_Ico_consecutive F (Nat.zero_le k0) (by omega)).symm
+  -- Junk bound.
+  have hjunk_term : ∀ k ∈ Finset.range k0, F k ≤ (n : ℝ≥0∞) ^ k0 * (1 - t) ^ (n - k0) := by
+    intro k hk
+    have hk' : k < k0 := Finset.mem_range.1 hk
+    have hnpos : 1 ≤ n := by omega
+    have h1 : (n.choose k : ℝ≥0∞) ≤ (n : ℝ≥0∞) ^ k0 := by
+      calc (n.choose k : ℝ≥0∞) ≤ (n : ℝ≥0∞) ^ k := by exact_mod_cast Nat.choose_le_pow n k
+        _ ≤ (n : ℝ≥0∞) ^ k0 := pow_le_pow_right₀ (by exact_mod_cast hnpos) hk'.le
+    have h2 : (1 - t) ^ (n - k) ≤ (1 - t) ^ (n - k0) :=
+      pow_le_pow_of_le_one bot_le tsub_le_self (by omega)
+    calc F k = (n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k) * (Kernel.ofMatrix P ^ k) x {x} := rfl
+      _ ≤ (n : ℝ≥0∞) ^ k0 * 1 * (1 - t) ^ (n - k0) * 1 := by
+          gcongr
+          · exact pow_le_one₀ bot_le ht1.le
+          · exact ha_le_one k
+      _ = (n : ℝ≥0∞) ^ k0 * (1 - t) ^ (n - k0) := by ring
+  have hjunk_sum : (∑ k ∈ Finset.range k0, F k) ≤ (k0 : ℝ≥0∞) * ((n : ℝ≥0∞) ^ k0 * (1 - t) ^ (n - k0)) := by
+    calc (∑ k ∈ Finset.range k0, F k) ≤ ∑ k ∈ Finset.range k0, (n : ℝ≥0∞) ^ k0 * (1 - t) ^ (n - k0) :=
+          Finset.sum_le_sum hjunk_term
+      _ = (k0 : ℝ≥0∞) * ((n : ℝ≥0∞) ^ k0 * (1 - t) ^ (n - k0)) := by
+          rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul]
+  have hjunk_C : (k0 : ℝ≥0∞) * ((n : ℝ≥0∞) ^ k0 * (1 - t) ^ (n - k0)) = C * (n : ℝ≥0∞) ^ k0 * (1 - t) ^ n := by
+    rw [hjunk_eq n hk0n, hCdef]
+    ring
+  have hjunk2 : 2 * (∑ k ∈ Finset.range k0, F k) ≤ (ρ + ε) ^ n := by
+    calc 2 * (∑ k ∈ Finset.range k0, F k)
+        ≤ 2 * (C * (n : ℝ≥0∞) ^ k0 * (1 - t) ^ n) := by
+          rw [← hjunk_C]; gcongr
+      _ = ((n : ℝ≥0∞) ^ k0 * (2 * C)) * (1 - t) ^ n := by ring
+      _ ≤ ((n : ℝ≥0∞) ^ k0 * (n : ℝ≥0∞)) * (1 - t) ^ n := by
+          gcongr
+      _ = (n : ℝ≥0∞) ^ (k0 + 1) * (1 - t) ^ n := by rw [pow_succ]
+      _ ≤ r' ^ n * (1 - t) ^ n := by gcongr
+      _ = (r' * (1 - t)) ^ n := (mul_pow r' (1 - t) n).symm
+      _ = (ρ + ε) ^ n := by rw [hr'eq]
+  -- Bulk bound.
+  have hbulk_term : ∀ k ∈ Finset.Ico k0 (n + 1), F k
+      ≤ (n.choose k : ℝ≥0∞) * (t * (L + δ)) ^ k * (1 - t) ^ (n - k) := by
+    intro k hk
+    have hk' : k0 ≤ k := (Finset.mem_Ico.1 hk).1
+    have := (hk0 k hk').le
+    calc F k = (n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k) * (Kernel.ofMatrix P ^ k) x {x} := rfl
+      _ ≤ (n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k) * (L + δ) ^ k := by gcongr
+      _ = (n.choose k : ℝ≥0∞) * (t * (L + δ)) ^ k * (1 - t) ^ (n - k) := by rw [mul_pow]; ring
+  have hbulk_sum : (∑ k ∈ Finset.Ico k0 (n + 1), F k)
+      ≤ ∑ k ∈ Finset.range (n + 1), (n.choose k : ℝ≥0∞) * (t * (L + δ)) ^ k * (1 - t) ^ (n - k) := by
+    calc (∑ k ∈ Finset.Ico k0 (n + 1), F k)
+        ≤ ∑ k ∈ Finset.Ico k0 (n + 1), (n.choose k : ℝ≥0∞) * (t * (L + δ)) ^ k * (1 - t) ^ (n - k) :=
+          Finset.sum_le_sum hbulk_term
+      _ ≤ ∑ k ∈ Finset.range (n + 1), (n.choose k : ℝ≥0∞) * (t * (L + δ)) ^ k * (1 - t) ^ (n - k) := by
+          apply Finset.sum_le_sum_of_subset_of_nonneg
+          · intro k hk
+            rw [Finset.mem_Ico] at hk
+            exact Finset.mem_range.2 hk.2
+          · intro k _ _
+            positivity
+  have hbulk_eq : ∑ k ∈ Finset.range (n + 1), (n.choose k : ℝ≥0∞) * (t * (L + δ)) ^ k * (1 - t) ^ (n - k)
+      = ρ ^ n := by
+    rw [hρdef, add_pow (t * (L + δ)) (1 - t) n]
+    apply Finset.sum_congr rfl
+    intro k _
+    ring
+  have hcancel : (∑ k ∈ Finset.range k0, F k) + ρ ^ n ≤ (ρ + ε) ^ n := by
+    have h : ((∑ k ∈ Finset.range k0, F k) + ρ ^ n) * 2 ≤ (ρ + ε) ^ n * 2 := by
+      rw [add_mul]
+      calc (∑ k ∈ Finset.range k0, F k) * 2 + ρ ^ n * 2
+          ≤ (ρ + ε) ^ n + (ρ + ε) ^ n := by
+            rw [mul_comm (∑ k ∈ Finset.range k0, F k) 2, mul_comm (ρ ^ n) 2]
+            exact add_le_add hjunk2 hbulk
+        _ = (ρ + ε) ^ n * 2 := by ring
+    exact (ENNReal.mul_le_mul_iff_left (a := (∑ k ∈ Finset.range k0, F k) + ρ ^ n) (b := (ρ + ε) ^ n)
+      (c := 2) (by norm_num) (by norm_num)).1 h
+  calc ∑ k ∈ Finset.range (n + 1), F k
+      = (∑ k ∈ Finset.range k0, F k) + (∑ k ∈ Finset.Ico k0 (n + 1), F k) := hsplit
+    _ ≤ (∑ k ∈ Finset.range k0, F k) + ρ ^ n := by
+        gcongr
+        rw [← hbulk_eq]; exact hbulk_sum
+    _ ≤ (ρ + ε) ^ n := hcancel
+
+
+
+open Filter Topology ProbabilityTheory in
+theorem lazy_convergenceNorm_le {E : Type*} [MeasurableSpace E] [Countable E]
+    [MeasurableSingletonClass E] [Nonempty E] {P : E → E → ℝ≥0∞} {t : ℝ≥0∞}
+    (hP : ∀ x, ∑' y, P x y = 1) (ht0 : t ≠ 0) (ht1 : t < 1) (x : E) :
+    Kernel.convergenceNorm (Kernel.ofMatrix (lazy P t)) x
+      ≤ t * Kernel.convergenceNorm (Kernel.ofMatrix P) x + (1 - t) := by
+  set L := Kernel.convergenceNorm (Kernel.ofMatrix P) x with hLdef
+  refine ENNReal.le_of_forall_pos_le_add fun ε0 hε0 _ ↦ ?_
+  have hδpos : 0 < (ε0 : ℝ≥0∞) / 2 := ENNReal.div_pos (by exact_mod_cast hε0.ne') (by norm_num)
+  have hδtop : (ε0 : ℝ≥0∞) / 2 ≠ ⊤ := ENNReal.div_ne_top ENNReal.coe_ne_top (by norm_num)
+  have hkey := eventually_lazy_pow_le_of_lt_convergenceNorm (P := P) hP ht0 ht1 x
+    (δ := (ε0 : ℝ≥0∞) / 2) (ε := (ε0 : ℝ≥0∞) / 2) hδpos hδtop hδpos hδtop
+  have htarget_le : t * (L + (ε0 : ℝ≥0∞) / 2) + (1 - t) + (ε0 : ℝ≥0∞) / 2
+      ≤ t * L + (1 - t) + (ε0 : ℝ≥0∞) := by
+    have h1 : t * (L + (ε0 : ℝ≥0∞) / 2) ≤ t * L + (ε0 : ℝ≥0∞) / 2 := by
+      have h2 : t * ((ε0 : ℝ≥0∞) / 2) ≤ (ε0 : ℝ≥0∞) / 2 := by
+        calc t * ((ε0 : ℝ≥0∞) / 2) ≤ 1 * ((ε0 : ℝ≥0∞) / 2) := by gcongr
+          _ = (ε0 : ℝ≥0∞) / 2 := one_mul _
+      calc t * (L + (ε0 : ℝ≥0∞) / 2) = t * L + t * ((ε0 : ℝ≥0∞) / 2) := by ring
+        _ ≤ t * L + (ε0 : ℝ≥0∞) / 2 := by gcongr
+    calc t * (L + (ε0 : ℝ≥0∞) / 2) + (1 - t) + (ε0 : ℝ≥0∞) / 2
+        ≤ (t * L + (ε0 : ℝ≥0∞) / 2) + (1 - t) + (ε0 : ℝ≥0∞) / 2 := by gcongr
+      _ = (t * L + (1 - t)) + ((ε0 : ℝ≥0∞) / 2 + (ε0 : ℝ≥0∞) / 2) := by ring
+      _ = (t * L + (1 - t)) + (ε0 : ℝ≥0∞) := by rw [ENNReal.add_halves]
+  exact (Kernel.convergenceNorm_le_of_eventually hkey).trans htarget_le
+
+open Filter Topology ProbabilityTheory in
+/-- **Helper L**: the eventual lower bound `(t*(L-δ)+(1-t)-ε)^n ≤ Q^n(x,x)` for a lazy chain,
+dual to Helper U. -/
+theorem eventually_le_lazy_pow_of_lt_convergenceNorm {E : Type*} [MeasurableSpace E] [Countable E]
+    [MeasurableSingletonClass E] [Nonempty E] {P : E → E → ℝ≥0∞} {t : ℝ≥0∞}
+    (hpos : ∀ x y, 0 < P x y) (hP : ∀ x, ∑' y, P x y = 1) (ht0 : t ≠ 0) (ht1 : t < 1) (x : E)
+    {δ ε : ℝ≥0∞} (hδ0 : 0 < δ) (hε0 : 0 < ε) :
+    ∀ᶠ n : ℕ in atTop,
+      (t * (Kernel.convergenceNorm (Kernel.ofMatrix P) x - δ) + (1 - t) - ε) ^ n
+        ≤ (Kernel.ofMatrix (lazy P t) ^ n) x {x} := by
+  have hMP : ProbabilityTheory.IsMarkovKernel (Kernel.ofMatrix P) := Kernel.isMarkovKernel_ofMatrix P hP
+  set L := Kernel.convergenceNorm (Kernel.ofMatrix P) x with hLdef
+  set ρ' := t * (L - δ) + (1 - t) with hρ'def
+  have ht1' : t ≠ ⊤ := ht1.ne_top
+  have h1t0 : (0 : ℝ≥0∞) < 1 - t := tsub_pos_of_lt ht1
+  have h1tt : (1 : ℝ≥0∞) - t ≠ ⊤ := (tsub_le_self.trans_lt ENNReal.one_lt_top).ne
+  have hρ'ge : 1 - t ≤ ρ' := by rw [hρ'def]; exact le_add_self
+  have hρ'top : ρ' ≠ ⊤ := by
+    rw [hρ'def]
+    exact ENNReal.add_ne_top.2 ⟨ENNReal.mul_ne_top ht1'
+      ((tsub_le_self.trans (Kernel.convergenceNorm_le_one (κ := Kernel.ofMatrix P))).trans_lt
+        ENNReal.one_lt_top).ne, h1tt⟩
+  -- Trivial degenerate case: `L - δ = 0`, handled by the single `k = 0` term.
+  rcases eq_or_ne (L - δ) 0 with hLδ0 | hLδ0
+  · have hρ'eq : ρ' = 1 - t := by rw [hρ'def, hLδ0, mul_zero, zero_add]
+    refine eventually_atTop.2 ⟨0, fun n _ ↦ ?_⟩
+    have hterm0 : (n.choose 0 : ℝ≥0∞) * t ^ 0 * (1 - t) ^ (n - 0) * (Kernel.ofMatrix P ^ 0) x {x}
+        = (1 - t) ^ n := by
+      rw [Kernel.pow_zero_apply_singleton]
+      simp
+    have hone : (Kernel.ofMatrix (lazy P t) ^ n) x {x} ≥ (1 - t) ^ n := by
+      rw [ofMatrix_lazy_pow_apply_singleton, ← hterm0]
+      exact Finset.single_le_sum (f := fun k ↦ (n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k)
+          * (Kernel.ofMatrix P ^ k) x {x}) (fun k _ ↦ by positivity) (Finset.mem_range.2 (by omega))
+    calc (ρ' - ε) ^ n ≤ (1 - t) ^ n := by
+          rw [hρ'eq]; exact pow_le_pow_left' tsub_le_self n
+      _ ≤ _ := hone
+  -- Main case: `L - δ ≠ 0`, i.e. `δ < L`.
+  have hδL : δ < L := by
+    by_contra h; push Not at h; exact hLδ0 (tsub_eq_zero_of_le h)
+  have hLpos : 0 < L := lt_of_le_of_lt bot_le hδL
+  have hLne : L ≠ ⊤ := (Kernel.convergenceNorm_le_one (κ := Kernel.ofMatrix P)).trans_lt
+    ENNReal.one_lt_top |>.ne
+  have hLδltL : L - δ < L := ENNReal.sub_lt_self hLne hLpos.ne' hδ0.ne'
+  have hρ'gt : 1 - t < ρ' := by
+    rw [hρ'def]
+    have : 0 < t * (L - δ) := ENNReal.mul_pos ht0 (tsub_pos_iff_lt.2 hδL).ne'
+    calc (1 - t : ℝ≥0∞) = 0 + (1 - t) := (zero_add _).symm
+      _ < t * (L - δ) + (1 - t) := by gcongr
+  have hρ'pos : 0 < ρ' := h1t0.trans_le hρ'ge
+  -- eventually `(L - δ)^k < a_k`, via genuine tendsto (Fekete, uses positivity of `P`).
+  have hpos' : ∀ a b : E, 0 < (Kernel.ofMatrix P a) {b} := fun a b ↦ by
+    rw [Kernel.ofMatrix_apply_singleton]; exact hpos a b
+  have htend := Kernel.tendsto_convergenceNorm_of_forall_pos hpos' x
+  have hev1 : ∀ᶠ k : ℕ in atTop, L - δ < ((Kernel.ofMatrix P ^ k) x {x}) ^ ((k : ℝ)⁻¹) :=
+    (tendsto_order.1 htend).1 (L - δ) hLδltL
+  have hev2 : ∀ᶠ k : ℕ in atTop, (L - δ) ^ k < (Kernel.ofMatrix P ^ k) x {x} := by
+    filter_upwards [hev1, eventually_ge_atTop 1] with k hk hk1
+    have := (ENNReal.lt_rpow_inv_iff (Nat.cast_pos.2 hk1)).1 hk
+    rwa [ENNReal.rpow_natCast] at this
+  obtain ⟨k1, hk1⟩ := eventually_atTop.1 hev2
+  -- Ratio for the junk terms.
+  have hr''1 : 1 - t < ρ' := hρ'gt
+  have hr'' : 1 < ρ' / (1 - t) :=
+    (ENNReal.lt_div_iff_mul_lt (Or.inl h1t0.ne') (Or.inl h1tt)).2 (by rw [one_mul]; exact hr''1)
+  set r'' := ρ' / (1 - t) with hr''def
+  have hr''eq : r'' * (1 - t) = ρ' := ENNReal.div_mul_cancel h1t0.ne' h1tt
+  have hCk1 : ((1 - t) ^ k1 : ℝ≥0∞) ≠ 0 := pow_ne_zero k1 h1t0.ne'
+  have hCk1t : ((1 - t) ^ k1 : ℝ≥0∞) ≠ ⊤ := ENNReal.pow_ne_top h1tt
+  set C' := (k1 : ℝ≥0∞) * ((1 - t) ^ k1)⁻¹ with hC'def
+  have hC'top : C' ≠ ⊤ := ENNReal.mul_ne_top (by simp) (ENNReal.inv_ne_top.2 hCk1)
+  have hjunk'_eq : ∀ n : ℕ, k1 ≤ n → (1 - t) ^ (n - k1) = (1 - t) ^ n * ((1 - t) ^ k1)⁻¹ := by
+    intro n hn
+    have hpa : (1 - t) ^ (n - k1) * (1 - t) ^ k1 = (1 - t) ^ n := by
+      rw [← pow_add]; congr 1; omega
+    rw [← hpa, mul_assoc, ENNReal.mul_inv_cancel hCk1 hCk1t, mul_one]
+  have hev2C' : ∀ᶠ n : ℕ in atTop, 2 * C' ≤ (n : ℝ≥0∞) := by
+    obtain ⟨N, hN⟩ := ENNReal.exists_nat_gt (ENNReal.mul_ne_top (by norm_num : (2:ℝ≥0∞) ≠ ⊤) hC'top)
+    exact eventually_atTop.2 ⟨N, fun n hn ↦ hN.le.trans (by exact_mod_cast hn)⟩
+  have hevcore' : ∀ᶠ n : ℕ in atTop, (n : ℝ≥0∞) ^ (k1 + 1) ≤ r'' ^ n :=
+    ENNReal_eventually_pow_le_pow_of_one_lt hr'' (k1 + 1)
+  have hevk1 : ∀ᶠ n : ℕ in atTop, k1 ≤ n := eventually_ge_atTop k1
+  have hbulk_ratio' : ∀ᶠ n : ℕ in atTop, 2 * (ρ' - ε) ^ n ≤ ρ' ^ n := by
+    have hratio : (ρ' - ε) / ρ' < 1 :=
+      (ENNReal.div_lt_iff (Or.inl hρ'pos.ne') (Or.inl hρ'top)).2 (by
+        rw [one_mul]; exact ENNReal.sub_lt_self hρ'top hρ'pos.ne' hε0.ne')
+    have heq : ρ' - ε = (ρ' - ε) / ρ' * ρ' := (ENNReal.div_mul_cancel hρ'pos.ne' hρ'top).symm
+    have hpow : ∀ n : ℕ, (ρ' - ε) ^ n = ((ρ' - ε) / ρ') ^ n * ρ' ^ n := fun n ↦ by
+      rw [← mul_pow, ← heq]
+    have htwohalf : (2 : ℝ≥0∞) * (1 / 2) = 1 := by
+      rw [ENNReal.mul_div_cancel' (by norm_num) (by norm_num)]
+    have htend := ENNReal.tendsto_pow_atTop_nhds_zero_of_lt_one hratio
+    have hev : ∀ᶠ n : ℕ in atTop, ((ρ' - ε) / ρ') ^ n < 1 / 2 :=
+      (tendsto_order.1 htend).2 _ (by norm_num)
+    filter_upwards [hev] with n hn
+    rw [hpow n, ← mul_assoc]
+    calc 2 * ((ρ' - ε) / ρ') ^ n * ρ' ^ n
+        ≤ 1 * ρ' ^ n := by
+          gcongr
+          calc 2 * ((ρ' - ε) / ρ') ^ n ≤ 2 * (1 / 2) := by gcongr
+            _ = 1 := htwohalf
+      _ = ρ' ^ n := one_mul _
+  filter_upwards [hbulk_ratio', hev2C', hevcore', hevk1] with n hbulk h2C hcore hk1n
+  rw [ofMatrix_lazy_pow_apply_singleton]
+  set F : ℕ → ℝ≥0∞ := fun k ↦
+    (n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k) * (Kernel.ofMatrix P ^ k) x {x} with hFdef
+  set G : ℕ → ℝ≥0∞ := fun k ↦
+    (n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k) * (L - δ) ^ k with hGdef
+  have hsplitG : ∑ k ∈ Finset.range (n + 1), G k
+      = (∑ k ∈ Finset.range k1, G k) + (∑ k ∈ Finset.Ico k1 (n + 1), G k) := by
+    rw [Finset.range_eq_Ico, Finset.range_eq_Ico]
+    exact (Finset.sum_Ico_consecutive G (Nat.zero_le k1) (by omega)).symm
+  have hGeq : ∑ k ∈ Finset.range (n + 1), G k = ρ' ^ n := by
+    rw [hGdef, hρ'def, add_pow (t * (L - δ)) (1 - t) n]
+    apply Finset.sum_congr rfl
+    intro k _
+    rw [mul_pow]; ring
+  -- Junk' bound (identical shape to the upper-bound proof).
+  have hjunk'_term : ∀ k ∈ Finset.range k1, G k ≤ (n : ℝ≥0∞) ^ k1 * (1 - t) ^ (n - k1) := by
+    intro k hk
+    have hk' : k < k1 := Finset.mem_range.1 hk
+    have hnpos : 1 ≤ n := by omega
+    have h1 : (n.choose k : ℝ≥0∞) ≤ (n : ℝ≥0∞) ^ k1 := by
+      calc (n.choose k : ℝ≥0∞) ≤ (n : ℝ≥0∞) ^ k := by exact_mod_cast Nat.choose_le_pow n k
+        _ ≤ (n : ℝ≥0∞) ^ k1 := pow_le_pow_right₀ (by exact_mod_cast hnpos) hk'.le
+    have h2 : (1 - t) ^ (n - k) ≤ (1 - t) ^ (n - k1) :=
+      pow_le_pow_of_le_one bot_le tsub_le_self (by omega)
+    have hLδ1 : (L - δ) ^ k ≤ 1 := pow_le_one₀ bot_le
+      (tsub_le_self.trans (Kernel.convergenceNorm_le_one (κ := Kernel.ofMatrix P)))
+    calc G k = (n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k) * (L - δ) ^ k := rfl
+      _ ≤ (n : ℝ≥0∞) ^ k1 * 1 * (1 - t) ^ (n - k1) * 1 := by
+          gcongr
+          exact pow_le_one₀ bot_le ht1.le
+      _ = (n : ℝ≥0∞) ^ k1 * (1 - t) ^ (n - k1) := by ring
+  have hjunk'_sum : (∑ k ∈ Finset.range k1, G k) ≤ (k1 : ℝ≥0∞) * ((n : ℝ≥0∞) ^ k1 * (1 - t) ^ (n - k1)) := by
+    calc (∑ k ∈ Finset.range k1, G k) ≤ ∑ k ∈ Finset.range k1, (n : ℝ≥0∞) ^ k1 * (1 - t) ^ (n - k1) :=
+          Finset.sum_le_sum hjunk'_term
+      _ = (k1 : ℝ≥0∞) * ((n : ℝ≥0∞) ^ k1 * (1 - t) ^ (n - k1)) := by
+          rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul]
+  have hjunk'_C : (k1 : ℝ≥0∞) * ((n : ℝ≥0∞) ^ k1 * (1 - t) ^ (n - k1))
+      = C' * (n : ℝ≥0∞) ^ k1 * (1 - t) ^ n := by
+    rw [hjunk'_eq n hk1n, hC'def]; ring
+  have hjunk'2 : 2 * (∑ k ∈ Finset.range k1, G k) ≤ ρ' ^ n := by
+    calc 2 * (∑ k ∈ Finset.range k1, G k)
+        ≤ 2 * (C' * (n : ℝ≥0∞) ^ k1 * (1 - t) ^ n) := by
+          rw [← hjunk'_C]; gcongr
+      _ = ((n : ℝ≥0∞) ^ k1 * (2 * C')) * (1 - t) ^ n := by ring
+      _ ≤ ((n : ℝ≥0∞) ^ k1 * (n : ℝ≥0∞)) * (1 - t) ^ n := by gcongr
+      _ = (n : ℝ≥0∞) ^ (k1 + 1) * (1 - t) ^ n := by rw [pow_succ]
+      _ ≤ r'' ^ n * (1 - t) ^ n := by gcongr
+      _ = (r'' * (1 - t)) ^ n := (mul_pow r'' (1 - t) n).symm
+      _ = ρ' ^ n := by rw [hr''eq]
+  have hbulk_term : ∀ k ∈ Finset.Ico k1 (n + 1), G k ≤ F k := by
+    intro k hk
+    have hk' : k1 ≤ k := (Finset.mem_Ico.1 hk).1
+    have hpow : (L - δ) ^ k ≤ (Kernel.ofMatrix P ^ k) x {x} := (hk1 k hk').le
+    calc G k = (n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k) * (L - δ) ^ k := rfl
+      _ ≤ (n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k) * (Kernel.ofMatrix P ^ k) x {x} := by gcongr
+      _ = F k := rfl
+  have hbulk_lower : (∑ k ∈ Finset.Ico k1 (n + 1), G k) ≤ ∑ k ∈ Finset.Ico k1 (n + 1), F k :=
+    Finset.sum_le_sum hbulk_term
+  have hcancel : (∑ k ∈ Finset.range k1, G k) + (ρ' - ε) ^ n ≤ ρ' ^ n :=
+    ENNReal_add_le_of_two_mul_le_of_two_mul_le hjunk'2 hbulk
+  have hGrange_ne_top : (∑ k ∈ Finset.range k1, G k) ≠ ⊤ := by
+    refine (ENNReal.sum_lt_top.2 fun k _ ↦ ?_).ne
+    have h1 : (n.choose k : ℝ≥0∞) ≠ ⊤ := by simp
+    have h2 : (t ^ k : ℝ≥0∞) ≠ ⊤ := ENNReal.pow_ne_top ht1'
+    have h3 : ((1 - t) ^ (n - k) : ℝ≥0∞) ≠ ⊤ := ENNReal.pow_ne_top h1tt
+    have h4 : ((L - δ) ^ k : ℝ≥0∞) ≠ ⊤ := ENNReal.pow_ne_top
+      (tsub_le_self.trans (Kernel.convergenceNorm_le_one (κ := Kernel.ofMatrix P)) |>.trans_lt
+        ENNReal.one_lt_top).ne
+    rw [hGdef]
+    exact (ENNReal.mul_ne_top (ENNReal.mul_ne_top (ENNReal.mul_ne_top h1 h2) h3) h4).lt_top
+  have hkey : (ρ' - ε) ^ n ≤ ρ' ^ n - (∑ k ∈ Finset.range k1, G k) :=
+    ENNReal.le_sub_of_add_le_left hGrange_ne_top hcancel
+  have hGsplit_le : ρ' ^ n - (∑ k ∈ Finset.range k1, G k) ≤ ∑ k ∈ Finset.Ico k1 (n + 1), G k := by
+    rw [← hGeq, hsplitG, ENNReal.add_sub_cancel_left hGrange_ne_top]
+  calc (ρ' - ε) ^ n ≤ ρ' ^ n - (∑ k ∈ Finset.range k1, G k) := hkey
+    _ ≤ ∑ k ∈ Finset.Ico k1 (n + 1), G k := hGsplit_le
+    _ ≤ ∑ k ∈ Finset.Ico k1 (n + 1), F k := hbulk_lower
+    _ ≤ ∑ k ∈ Finset.range (n + 1), F k := by
+        apply Finset.sum_le_sum_of_subset_of_nonneg
+        · intro k hk; rw [Finset.mem_Ico] at hk; exact Finset.mem_range.2 hk.2
+        · intro k _ _; positivity
+
+
+theorem ENNReal_sub_add_sub_eq {a b c : ℝ≥0∞} (hb : b ≠ ⊤) (h1 : b ≤ a) (h2 : a ≤ c) :
+    (a - b) + (c - a) = c - b := by
+  have hsum : (a - b) + (c - a) + b = c := by
+    rw [add_right_comm, tsub_add_cancel_of_le h1, add_tsub_cancel_of_le h2]
+  exact ENNReal.eq_sub_of_add_eq hb hsum
+
+open Filter Topology ProbabilityTheory in
+/-- If `L(P) = 1`, then `L(lazy P t) ≥ 1`, hence (combined with `lazy_convergenceNorm_le`,
+which gives `≤ 1` when `L(P) = 1`) `L(lazy P t) = 1`. -/
+theorem one_le_lazy_convergenceNorm_of_convergenceNorm_eq_one {E : Type*} [MeasurableSpace E]
+    [Countable E] [MeasurableSingletonClass E] [Nonempty E] {P : E → E → ℝ≥0∞} {t : ℝ≥0∞}
+    (hpos : ∀ x y, 0 < P x y) (hP : ∀ x, ∑' y, P x y = 1) (ht0 : t ≠ 0) (ht1 : t < 1) (x : E)
+    (hL1 : Kernel.convergenceNorm (Kernel.ofMatrix P) x = 1) :
+    1 ≤ Kernel.convergenceNorm (Kernel.ofMatrix (lazy P t)) x := by
+  refine le_of_forall_lt_imp_le_of_dense fun a ha ↦ ?_
+  set ε0 := 1 - a with hε0def
+  have hε0pos : 0 < ε0 := tsub_pos_of_lt ha
+  have hε0le1 : ε0 ≤ 1 := tsub_le_self
+  set δ := ε0 / 2 with hδdef
+  have hδpos : 0 < δ := ENNReal.div_pos hε0pos.ne' (by norm_num)
+  have hkey := eventually_le_lazy_pow_of_lt_convergenceNorm hpos hP ht0 ht1 x
+    (δ := δ) (ε := δ) hδpos hδpos
+  rw [hL1] at hkey
+  have hδle1 : δ ≤ 1 := ENNReal.half_le_self.trans hε0le1
+  have hδtop : δ ≠ ⊤ := (hδle1.trans_lt ENNReal.one_lt_top).ne
+  have htδt : t * δ ≤ t := by
+    calc t * δ ≤ t * 1 := by gcongr
+      _ = t := mul_one _
+  have htδδ : t * δ ≤ δ := by
+    calc t * δ ≤ 1 * δ := by gcongr
+      _ = δ := one_mul _
+  have htδtop : t * δ ≠ ⊤ := ENNReal.mul_ne_top ht1.ne_top hδtop
+  have hmul : t * (1 - δ) = t - t * δ := by
+    rw [ENNReal.mul_sub (fun _ _ ↦ ht1.ne_top), mul_one]
+  have hident : t * (1 - δ) + (1 - t) = 1 - t * δ := by
+    rw [hmul]
+    exact ENNReal_sub_add_sub_eq htδtop htδt ht1.le
+  have htarget_ge : a ≤ t * (1 - δ) + (1 - t) - δ := by
+    rw [hident, tsub_tsub]
+    have h2δ : t * δ + δ ≤ ε0 := by
+      calc t * δ + δ ≤ δ + δ := by gcongr
+        _ = ε0 := by rw [hδdef, ENNReal.add_halves]
+    calc a = 1 - (1 - a) := (ENNReal.sub_sub_cancel (by norm_num) ha.le).symm
+      _ = 1 - ε0 := by rw [hε0def]
+      _ ≤ 1 - (t * δ + δ) := tsub_le_tsub_left h2δ 1
+  refine Kernel.le_convergenceNorm_of_frequently (Filter.Eventually.frequently (hkey.mono fun n hn ↦ ?_))
+  calc a ^ n ≤ (t * (1 - δ) + (1 - t) - δ) ^ n := by gcongr
+    _ ≤ _ := hn
+
+theorem lazy_convergenceNorm_eq_one_of_convergenceNorm_eq_one {E : Type*} [MeasurableSpace E]
+    [Countable E] [MeasurableSingletonClass E] [Nonempty E] {P : E → E → ℝ≥0∞} {t : ℝ≥0∞}
+    (hpos : ∀ x y, 0 < P x y) (hP : ∀ x, ∑' y, P x y = 1) (ht0 : t ≠ 0) (ht1 : t < 1) (x : E)
+    (hL1 : Kernel.convergenceNorm (Kernel.ofMatrix P) x = 1) :
+    Kernel.convergenceNorm (Kernel.ofMatrix (lazy P t)) x = 1 := by
+  refine le_antisymm ?_ (one_le_lazy_convergenceNorm_of_convergenceNorm_eq_one hpos hP ht0 ht1 x hL1)
+  have := lazy_convergenceNorm_le (P := P) hP ht0 ht1 x
+  rwa [hL1, mul_one, add_tsub_cancel_of_le ht1.le] at this
+
+open ProbabilityTheory in
+/-- If an invariant probability measure of `Q = lazy P t` exists, its restriction gives one for
+`P` too: `μ Q = μ` forces `μ P = μ`, since `Q = tP + (1-t)I` and `t ≠ 0`. -/
+theorem isPositiveRecurrent_ofMatrix_of_isPositiveRecurrent_lazy {E : Type*} [MeasurableSpace E]
+    [Countable E] [MeasurableSingletonClass E] {P : E → E → ℝ≥0∞} {t : ℝ≥0∞}
+    (hP : ∀ x, ∑' y, P x y = 1) (ht0 : t ≠ 0) (ht1 : t < 1)
+    (hpos : ∀ x y, 0 < P x y)
+    (hposrecQ : ProbabilityTheory.Kernel.IsPositiveRecurrent (Kernel.ofMatrix (lazy P t))) :
+    ProbabilityTheory.Kernel.IsPositiveRecurrent (Kernel.ofMatrix P) := by
+  obtain ⟨hrecQ, μ, hμprob, hμinvQ⟩ := hposrecQ
+  have hkey : ∀ b : E, ∑' a, μ {a} * P a b = μ {b} := by
+    intro b
+    have h1 : μ {b} = ∑' a, (Kernel.ofMatrix (lazy P t)) a {b} * μ {a} :=
+      hμinvQ.apply_singleton_eq_tsum b
+    simp only [Kernel.ofMatrix_apply_singleton, lazy] at h1
+    have h2 : ∑' a, (t * P a b + (1 - t) * ({b} : Set E).indicator (1 : E → ℝ≥0∞) a) * μ {a}
+        = t * (∑' a, P a b * μ {a}) + (1 - t) * μ {b} := by
+      have hstep : ∀ a, (t * P a b + (1 - t) * ({b} : Set E).indicator (1 : E → ℝ≥0∞) a) * μ {a}
+          = t * (P a b * μ {a}) + (1 - t) * (({b} : Set E).indicator (1 : E → ℝ≥0∞) a * μ {a}) := by
+        intro a; ring
+      simp_rw [hstep]
+      rw [ENNReal.tsum_add, ENNReal.tsum_mul_left, ENNReal.tsum_mul_left]
+      congr 2
+      rw [tsum_eq_single b (fun a ha ↦ by simp [Set.indicator_of_notMem, ha])]
+      simp
+    rw [h2] at h1
+    have h3 : t * μ {b} = t * (∑' a, P a b * μ {a}) := by
+      have hne : (1 - t) * μ {b} ≠ ⊤ :=
+        ENNReal.mul_ne_top (tsub_le_self.trans_lt ENNReal.one_lt_top).ne (measure_ne_top μ _)
+      have h4 : (1 - t) * μ {b} + t * μ {b} = (1 - t) * μ {b} + t * (∑' a, P a b * μ {a}) := by
+        calc (1 - t) * μ {b} + t * μ {b} = μ {b} := by
+              rw [← add_mul, tsub_add_cancel_of_le ht1.le, one_mul]
+          _ = t * (∑' a, P a b * μ {a}) + (1 - t) * μ {b} := h1
+          _ = (1 - t) * μ {b} + t * (∑' a, P a b * μ {a}) := by ring
+      exact (ENNReal.add_right_inj hne).1 h4
+    have h5 : μ {b} = ∑' a, P a b * μ {a} := (ENNReal.mul_right_inj ht0 ht1.ne_top).1 h3
+    rw [h5]
+    exact tsum_congr fun a ↦ mul_comm _ _
+  have hinvP : (Kernel.ofMatrix P).Invariant μ :=
+    Measure.ext_of_singleton fun b ↦ by
+      rw [Kernel.bind_ofMatrix_apply_singleton]; exact hkey b
+  have hMP : ProbabilityTheory.IsMarkovKernel (Kernel.ofMatrix P) := Kernel.isMarkovKernel_ofMatrix P hP
+  have hirr : ProbabilityTheory.Kernel.IsIrreducible (Measure.count : Measure E) (Kernel.ofMatrix P) :=
+    Kernel.isIrreducible_count_ofMatrix_of_forall_pos hpos
+  exact ⟨Kernel.isRecurrent_of_invariant hinvP, μ, hμprob, hinvP⟩
+
+open ProbabilityTheory in
+/-- **Georgii Comment (11.18)(3), non-existence half.** For `Q = tP + (1-t)I` with `0 < t < 1`
+and `P` a positive stochastic matrix with `L(P) = 1` which is not positive recurrent (i.e. `P` is
+null recurrent or transient), `𝒢(γ^Q) = ∅`. -/
+theorem eq_empty_G_lazy_of_not_isPositiveRecurrent {E : Type*} [MeasurableSpace E] [Countable E]
+    [MeasurableSingletonClass E] [Nonempty E] {P : E → E → ℝ≥0∞} {t : ℝ≥0∞}
+    (hpos : ∀ x y, 0 < P x y) (hP : ∀ x, ∑' y, P x y = 1) (ht0 : t ≠ 0) (ht1 : t < 1) (x : E)
+    (hL1 : Kernel.convergenceNorm (Kernel.ofMatrix P) x = 1)
+    (hnotpos : ¬ ProbabilityTheory.Kernel.IsPositiveRecurrent (Kernel.ofMatrix P)) :
+    G (transferSpecification (lazy P t) (lazy_isTransferMatrix hpos hP ht0 ht1)) = ∅ := by
+  have hQ := lazy_isTransferMatrix hpos hP ht0 ht1
+  have hnotequiv : ¬ ∃ (R : E → E → ℝ≥0∞) (q : ℝ≥0∞) (r : E → ℝ≥0∞), 0 < q ∧ q ≠ ⊤ ∧
+      (∀ x, 0 < r x) ∧ (∀ x, r x ≠ ⊤) ∧ (∀ x y, R x y = lazy P t x y * r y / (q * r x)) ∧
+      (∀ x, ∑' y, R x y = 1) ∧ Kernel.IsPositiveRecurrent (Kernel.ofMatrix R) := by
+    rintro ⟨R, q, r, hq0, hqt, hr0, hrt, hRQ, hRstoch, hRposrec⟩
+    have hRpos : ∀ x y, 0 < R x y := fun x y ↦ by
+      rw [hRQ]
+      exact ENNReal.div_pos (ENNReal.mul_pos (hQ.pos x y).ne' (hr0 y).ne').ne'
+        (ENNReal.mul_ne_top hqt (hrt x))
+    have hRirr : Kernel.IsIrreducible (Measure.count : Measure E) (Kernel.ofMatrix R) :=
+      Kernel.isIrreducible_count_ofMatrix_of_forall_pos hRpos
+    have hMR : IsMarkovKernel (Kernel.ofMatrix R) := Kernel.isMarkovKernel_ofMatrix R hRstoch
+    have hMQ : IsMarkovKernel (Kernel.ofMatrix (lazy P t)) :=
+      Kernel.isMarkovKernel_ofMatrix _ (lazy_stochastic hP ht1.le)
+    have hLQ1 : Kernel.convergenceNorm (Kernel.ofMatrix (lazy P t)) x = 1 :=
+      lazy_convergenceNorm_eq_one_of_convergenceNorm_eq_one hpos hP ht0 ht1 x hL1
+    have hRQ' : ∀ x y, (Kernel.ofMatrix R) x {y}
+        = (Kernel.ofMatrix (lazy P t)) x {y} * r y / (q * r x) := fun x y ↦ by
+      rw [Kernel.ofMatrix_apply_singleton, Kernel.ofMatrix_apply_singleton]; exact hRQ x y
+    have hposrecQ : Kernel.IsPositiveRecurrent (Kernel.ofMatrix (lazy P t)) :=
+      Kernel.isPositiveRecurrent_of_apply_eq_mul_div hq0.ne' hqt (fun x ↦ (hr0 x).ne') hrt hRQ' hLQ1 hRposrec
+    exact hnotpos (isPositiveRecurrent_ofMatrix_of_isPositiveRecurrent_lazy hP ht0 ht1 hpos hposrecQ)
+  refine eq_empty_G_of_forall_le_sum (lazy P t) hQ hnotequiv (N := 1) one_pos
+    (ε := 1 - t) (tsub_pos_of_lt ht1) fun y ↦ ?_
+  rw [Finset.Icc_self, Finset.sum_singleton, pow_one, Kernel.ofMatrix_apply_singleton]
+  exact le_lazy_apply_self y
+
 
 end MeasureTheory.GibbsMeasure.Markov
 

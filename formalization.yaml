@@ -49,7 +49,7 @@ status:
     15.1 (relative entropy), Lemma (15.11), Section 15.2 (strong subadditivity (15.10), the specific
     entropy (15.12)-(15.13), (15.14)(a)-(b)), Section 15.3 (specific energy, the pressure (15.30)(a)
     and its Lipschitz continuity and convexity (16.1)(a)), Section 15.4 (Theorem (15.37) and the
-    variational principle (15.39), for standard Borel E); Section 11.1 ((11.1)-(11.17), (11.18)(1), (11.6)-(11.7); not (11.18)(2)-(3), (11.19)); Section 12.1 ((12.1)-(12.18) except (12.3)(3),(5),(6)); Section 10.1 (the Markov
+    variational principle (15.39), for standard Borel E); Section 11.1 ((11.1)-(11.17), (11.18)(1),(3), (11.6)-(11.7); not (11.18)(2), (11.19)); Section 12.1 ((12.1)-(12.18) except (12.3)(3),(5),(6)); Section 10.1 (the Markov
     properties (10.2)-(10.11)), Section 10.2 ((10.12)-(10.26) except Examples (10.24)), Section 10.3 ((10.30)-(10.37)); Section 9.1 (symmetry
     inheritance (9.1), localized symmetries (9.3), one-dimensional pair interactions (9.5),
     (9.11), (9.16)); Section 9.2 (Mermin-Wagner (9.20) with Lemmas (9.28), (9.33)); Section 13.1 (13.1)-(13.3),
@@ -1024,9 +1024,10 @@ alignment:
         and the proportionality of boundary laws turns (11.11) into (11.5) with a positive-recurrent
         P; (11.9)(c) via (10.21) for gamma^Q; shift-covariance of gamma^Q; (11.14)(a) by a Cesaro
         average instead of Georgii's Q^p subsampling, (11.14)(b),(c); (11.15) for every extreme
-        point and (11.16); (11.17) both halves; (11.18)(1). Not formalized: (11.18)(2) (needs
-        (8.39)), (11.18)(3) (the binomial identity for powers of tP + (1-t)I), (11.19) (Georgii's
-        large-deviation lower bound on path counts, not in Mathlib).
+        point and (11.16); (11.17) both halves; (11.18)(1),(3) via the binomial identity for powers of tP + (1-t)I and
+        L(Q) = t L(P) + 1 - t. Not formalized: (11.18)(2) (needs the nearest-neighbour potential of
+        Q/(uv) on infinite E and the sigma-finite reference measure uv.lambda), (11.19) (Georgii's
+        Cramer/Stirling lower bound on path counts, not in Mathlib).
     - source: "Comments (9.7), Example (9.8)(2), Comments (9.13), Examples (9.15), (9.17)"
       lean: "MeasureTheory.GibbsMeasure.G_gradientPotential_eq_empty"
       module: "GibbsMeasure/Model/OneDimensionalSymmetryExamples.lean"

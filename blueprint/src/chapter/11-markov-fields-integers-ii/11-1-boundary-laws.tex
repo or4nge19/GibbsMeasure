@@ -283,3 +283,15 @@ on $E$; its powers $Q^n$ are the powers of this kernel.
     each of them. (11.15) combines (11.9)(c) with the extreme case and the extreme decomposition
     (7.26); (11.17) is (11.15) and Theorem \ref{thm:bl-11-13}.
 \end{proof}
+
+\begin{remark}[Georgii (11.18)(1),(3)]
+    \label{rmk:bl-11-18}
+    \uses{thm:bl-11-14, def:bl-11-6}
+    \lean{MeasureTheory.GibbsMeasure.Markov.lazy_isTransferMatrix, MeasureTheory.GibbsMeasure.Markov.boundaryLawMeasure_const_lazy_mem_invariantG, MeasureTheory.GibbsMeasure.Markov.ofMatrix_lazy_pow_apply_singleton, MeasureTheory.GibbsMeasure.Markov.lazy_convergenceNorm_eq_one_of_convergenceNorm_eq_one, MeasureTheory.GibbsMeasure.Markov.eq_empty_G_lazy_of_not_isPositiveRecurrent}
+    \leanok
+
+    For a positive stochastic $P$ and $0 < t < 1$, $Q = tP + (1-t)I$ is a transfer matrix with
+    $\inf_x Q(x,x) > 0$, $Q^n = \sum_k \binom nk t^k(1-t)^{n-k}P^k$, and $L(P) = 1$ implies
+    $L(Q) = 1$; hence $\mathcal G(\gamma^Q) = \set{\mu_Q}$ if $P$ is positive recurrent and
+    $\mathcal G(\gamma^Q) = \emptyset$ otherwise.
+\end{remark}
