@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Tanh.InfiniteProd
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Hasse
 public import GibbsMeasure.Model.Ising
 public import GibbsMeasure.Potential.Pair
@@ -72,11 +73,10 @@ adjacent boundary site; Georgii's `∏_{i=n}^N tanh J_i` is `∏ i ∈ Finset.Ic
 
 ## Lemmas that belong elsewhere
 
-The section “General lemmas” below collects statements with no Ising content; each carries its
-intended home in its docstring.  In addition, the `spin` arithmetic (`spin_mul_self`,
-`spin_mul_spin_of_ne`, `spin_not`) belongs in `GibbsMeasure/Model/Ising.lean` beside
-`abs_spin_le`, and the `tanh` bounds (`tanh_pos_of_pos`, `one_sub_tanh_le`, `le_one_sub_tanh`)
-in `Mathlib/Analysis/SpecialFunctions/Trigonometric/Basic.lean` beside `Real.tanh_lt_one`.
+The `spin` arithmetic (`spin_mul_self`, `spin_mul_spin_of_ne`, `spin_not`) belongs in
+`GibbsMeasure/Model/Ising.lean` beside `abs_spin_le`.  The analysis of the tail products
+`∏_{i ≥ n} tanh J_i` under (6.1) lives in
+`GibbsMeasure/Mathlib/Analysis/SpecialFunctions/Tanh/InfiniteProd.lean`.
 -/
 
 @[expose] public section
@@ -99,50 +99,6 @@ lemma LocallyEquicontinuous.comp {S E : Type*} [MeasurableSpace E] {ι ι' : Typ
   exact hg.limsup_comp_le_limsup (u := fun i ↦ (μs i : Measure (S → E)) (A m))
 
 end MeasureTheory.GibbsMeasure
-
-/-! ## General lemmas
-
-Nothing in this section is about Ising chains; the intended home of each lemma is recorded in
-its docstring.
--/
-
-namespace ENNReal
-
-/-- Intended home: `Mathlib/Data/ENNReal/Inv.lean`, next to `ENNReal.div_mul_cancel`. -/
-protected lemma div_mul_cancel_right {a b c : ℝ≥0∞} (hc0 : c ≠ 0) (hct : c ≠ ⊤) :
-    a / (b * c) * c = a / b := by
-  rw [div_eq_mul_inv, ENNReal.mul_inv (Or.inr hct) (Or.inr hc0), div_eq_mul_inv,
-    show a * (b⁻¹ * c⁻¹) * c = a * b⁻¹ * (c⁻¹ * c) by ring,
-    ENNReal.inv_mul_cancel hc0 hct, mul_one]
-
-end ENNReal
-
-namespace Finset
-
-/-- **Weierstrass' product inequality**: `∏ (1 - f i) ≥ 1 - ∑ f i` when `0 ≤ f i ≤ 1`.
-Intended home: `Mathlib/Algebra/Order/BigOperators/Ring/Finset.lean`. -/
-theorem one_sub_sum_le_prod_one_sub {ι R : Type*} [CommRing R] [PartialOrder R]
-    [IsOrderedRing R] {f : ι → R} {s : Finset ι} (h0 : ∀ i ∈ s, 0 ≤ f i)
-    (h1 : ∀ i ∈ s, f i ≤ 1) : 1 - ∑ i ∈ s, f i ≤ ∏ i ∈ s, (1 - f i) := by
-  classical
-  induction s using Finset.induction_on with
-  | empty => simp
-  | insert a s ha ih =>
-    rw [Finset.prod_insert ha, Finset.sum_insert ha]
-    have h0a := h0 a (Finset.mem_insert_self a s)
-    have h1a := h1 a (Finset.mem_insert_self a s)
-    have ih' := ih (fun i hi ↦ h0 i (Finset.mem_insert_of_mem hi))
-      fun i hi ↦ h1 i (Finset.mem_insert_of_mem hi)
-    have hsum : 0 ≤ ∑ i ∈ s, f i :=
-      Finset.sum_nonneg fun i hi ↦ h0 i (Finset.mem_insert_of_mem hi)
-    have hring : 1 - (f a + ∑ i ∈ s, f i)
-        = (1 - f a) * (1 - ∑ i ∈ s, f i) - f a * ∑ i ∈ s, f i := by ring
-    rw [hring]
-    exact (sub_le_self _ (mul_nonneg h0a hsum)).trans
-      (mul_le_mul_of_nonneg_left ih' (sub_nonneg.2 h1a))
-
-end Finset
-
 
 namespace MeasureTheory.GibbsMeasure
 
@@ -572,7 +528,8 @@ theorem isingChainSpecification_range_apply (N : ℕ) (ω : ℕ → Bool) {A : S
           = ENNReal.ofReal (chainWeight J N (juxt (Λ : Set ℕ) ω ζ)) / (ENNReal.ofReal W * c) := by
         rw [hρdef, Specification.premodifierNorm, Specification.relNorm, relZ_isingChain N ω ζ,
           Potential.boltzmannFactor, neg_one_mul, exp_neg_hamiltonian_range]
-      rw [hρval, ENNReal.div_mul_cancel_right hc0 hct, Pi.one_apply, mul_one,
+      rw [hρval, ENNReal.div_mul _ (Or.inr hc0) (Or.inr hct),
+        ENNReal.mul_div_cancel_right hc0 hct, Pi.one_apply, mul_one,
         ENNReal.ofReal_div_of_pos hWpos]
     · rw [Set.indicator_of_notMem hmem, Set.indicator_of_notMem hmem]
       simp
@@ -635,118 +592,6 @@ theorem isingChainSpecification_range_apply_setOf_eq {N n : ℕ} (hn : n < N) (x
   rw [hsum, chainMag_eq hn]
   have hZ : chainZ J N (ω N) ≠ 0 := (chainZ_pos N (ω N)).ne'
   field_simp
-
-/-! ### Georgii (6.1) and the tail products `∏_{i ≥ n} tanh J_i` -/
-
-lemma tanh_pos_of_pos {t : ℝ} (ht : 0 < t) : 0 < Real.tanh t := by
-  rw [Real.tanh_eq_sinh_div_cosh]
-  refine div_pos ?_ (Real.cosh_pos t)
-  rw [Real.sinh_eq]
-  have : Real.exp (-t) < Real.exp t := Real.exp_lt_exp.2 (by linarith)
-  linarith
-
-/-- `1 - tanh t = e^{-t} / cosh t ≤ 2 e^{-2t}`: the quantitative form of Georgii's
-`tanh J = 1 - 2/(1 + e^{2J})`. -/
-lemma one_sub_tanh_le (t : ℝ) : 1 - Real.tanh t ≤ 2 * Real.exp (-2 * t) := by
-  have hc : (0 : ℝ) < Real.cosh t := Real.cosh_pos t
-  have h1 : 1 - Real.tanh t = Real.exp (-t) / Real.cosh t := by
-    rw [Real.tanh_eq_sinh_div_cosh, eq_div_iff hc.ne', sub_mul, div_mul_cancel₀ _ hc.ne',
-      Real.cosh_eq, Real.sinh_eq]
-    ring
-  have h2 : Real.exp t / 2 ≤ Real.cosh t := by
-    rw [Real.cosh_eq]
-    have := (Real.exp_pos (-t)).le
-    linarith
-  have h3 : Real.exp (-t) / Real.cosh t ≤ Real.exp (-t) / (Real.exp t / 2) :=
-    div_le_div_of_nonneg_left (Real.exp_pos _).le (by positivity) h2
-  refine h1 ▸ h3.trans (le_of_eq ?_)
-  rw [Real.exp_neg, show (-2 : ℝ) * t = -t + -t by ring, Real.exp_add, Real.exp_neg]
-  field_simp
-
-/-- **Georgii (6.1) ⇒ the tail products are positive.** If `J_n > 0` and `∑_n e^{-2J_n} < ∞`,
-then for every `n` the products `∏_{n ≤ i < N} tanh J_i` converge, as `N → ∞`, to a *positive*
-limit `∏_{i ≥ n} tanh J_i`.  (Georgii: `∏_{i ≥ n} (1 - 2/(1 + e^{2J_i})) > 0`.) -/
-theorem exists_tendsto_prod_Ico_tanh (hJ : ∀ n, 0 < J n)
-    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) (n : ℕ) :
-    ∃ T : ℝ, 0 < T ∧
-      Tendsto (fun N ↦ ∏ i ∈ Finset.Ico n N, Real.tanh (J i)) atTop (𝓝 T) := by
-  have hpos : ∀ i, 0 < Real.tanh (J i) := fun i ↦ tanh_pos_of_pos (hJ i)
-  have hsummable : Summable fun i ↦ Real.tanh (J i) - 1 := by
-    refine Summable.of_norm_bounded (h61.mul_left 2) fun i ↦ ?_
-    rw [Real.norm_eq_abs, abs_sub_comm,
-      abs_of_nonneg (by linarith [Real.tanh_lt_one (J i)] : (0 : ℝ) ≤ 1 - Real.tanh (J i))]
-    exact one_sub_tanh_le (J i)
-  have hlog : Summable fun i ↦ Real.log (Real.tanh (J i)) := by
-    simpa using Real.summable_log_one_add_of_summable hsummable
-  have hprod : HasProd (fun i ↦ Real.tanh (J i))
-      (Real.exp (∑' i, Real.log (Real.tanh (J i)))) :=
-    Real.hasProd_of_hasSum_log hpos hlog.hasSum
-  have hden : 0 < ∏ i ∈ Finset.range n, Real.tanh (J i) := Finset.prod_pos fun i _ ↦ hpos i
-  refine ⟨Real.exp (∑' i, Real.log (Real.tanh (J i))) / ∏ i ∈ Finset.range n, Real.tanh (J i),
-    div_pos (Real.exp_pos _) hden, ?_⟩
-  refine (hprod.tendsto_prod_nat.div_const _).congr' ?_
-  filter_upwards [eventually_ge_atTop n] with N hN
-  rw [div_eq_iff hden.ne', mul_comm]
-  exact (Finset.prod_range_mul_prod_Ico _ hN).symm
-
-/-- **Georgii's `∏_{i ≥ n} tanh J_i` as an infinite product.** Under (6.1) the partial products
-`∏_{n ≤ i < N} tanh J_i` converge to `∏'_k tanh J_{n+k}`. -/
-theorem tendsto_prod_Ico_tanh (hJ : ∀ n, 0 < J n)
-    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) (n : ℕ) :
-    Tendsto (fun N ↦ ∏ i ∈ Finset.Ico n N, Real.tanh (J i)) atTop
-      (𝓝 (∏' k, Real.tanh (J (n + k)))) := by
-  have hpos : ∀ k, 0 < Real.tanh (J (n + k)) := fun k ↦ tanh_pos_of_pos (hJ _)
-  have hsummable : Summable fun k ↦ Real.tanh (J (n + k)) - 1 := by
-    refine Summable.of_norm_bounded
-      ((h61.comp_injective (add_right_injective n)).mul_left 2) fun k ↦ ?_
-    rw [Real.norm_eq_abs, abs_sub_comm, abs_of_nonneg
-      (by linarith [Real.tanh_lt_one (J (n + k))] : (0 : ℝ) ≤ 1 - Real.tanh (J (n + k)))]
-    exact one_sub_tanh_le (J (n + k))
-  have hlog : Summable fun k ↦ Real.log (Real.tanh (J (n + k))) := by
-    simpa using Real.summable_log_one_add_of_summable hsummable
-  have hmul : Multipliable fun k ↦ Real.tanh (J (n + k)) :=
-    Real.multipliable_of_summable_log hpos hlog
-  have h := hmul.hasProd.tendsto_prod_nat.comp (tendsto_sub_atTop_nat n)
-  refine h.congr fun N ↦ ?_
-  simp only [Function.comp_def]
-  rw [Finset.prod_Ico_eq_prod_range]
-
-/-- Under (6.1), `0 < ∏_{i ≥ n} tanh J_i`. -/
-lemma tprod_tanh_pos (hJ : ∀ n, 0 < J n) (h61 : Summable fun n ↦ Real.exp (-2 * J n))
-    (n : ℕ) : 0 < ∏' k, Real.tanh (J (n + k)) := by
-  obtain ⟨T, hT, hTend⟩ := exists_tendsto_prod_Ico_tanh hJ h61 n
-  rwa [tendsto_nhds_unique (tendsto_prod_Ico_tanh hJ h61 n) hTend]
-
-/-- Under (6.1), `∏_{i ≥ n} tanh J_i ≤ 1`. -/
-lemma tprod_tanh_le_one (hJ : ∀ n, 0 < J n) (h61 : Summable fun n ↦ Real.exp (-2 * J n))
-    (n : ℕ) : ∏' k, Real.tanh (J (n + k)) ≤ 1 :=
-  le_of_tendsto' (tendsto_prod_Ico_tanh hJ h61 n) fun _ ↦
-    Finset.prod_le_one (fun i _ ↦ (tanh_pos_of_pos (hJ i)).le) fun i _ ↦
-      (Real.tanh_lt_one (J i)).le
-
-/-- **The quantitative form of `∏_{i ≥ n} tanh J_i > 0`.** By Weierstrass' inequality and
-`1 - tanh J ≤ 2 e^{-2J}`, `1 - ∏_{i ≥ n} tanh J_i ≤ 2 ∑_i e^{-2 J_i}`. -/
-theorem one_sub_tprod_tanh_le (hJ : ∀ n, 0 < J n)
-    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) (n : ℕ) :
-    1 - ∏' k, Real.tanh (J (n + k)) ≤ 2 * ∑' i, Real.exp (-2 * J i) := by
-  rw [sub_le_comm]
-  refine ge_of_tendsto' (tendsto_prod_Ico_tanh hJ h61 n) fun N ↦ ?_
-  have h1 : 1 - ∑ i ∈ Finset.Ico n N, (1 - Real.tanh (J i))
-      ≤ ∏ i ∈ Finset.Ico n N, Real.tanh (J i) := by
-    have := Finset.one_sub_sum_le_prod_one_sub (f := fun i ↦ 1 - Real.tanh (J i))
-      (s := Finset.Ico n N) (fun i _ ↦ by linarith [Real.tanh_lt_one (J i)])
-      fun i _ ↦ by linarith [tanh_pos_of_pos (hJ i)]
-    simpa using this
-  have h2 : ∑ i ∈ Finset.Ico n N, (1 - Real.tanh (J i))
-      ≤ 2 * ∑' i, Real.exp (-2 * J i) := by
-    calc ∑ i ∈ Finset.Ico n N, (1 - Real.tanh (J i))
-        ≤ ∑ i ∈ Finset.Ico n N, 2 * Real.exp (-2 * J i) :=
-          Finset.sum_le_sum fun i _ ↦ one_sub_tanh_le (J i)
-      _ = 2 * ∑ i ∈ Finset.Ico n N, Real.exp (-2 * J i) := by rw [Finset.mul_sum]
-      _ ≤ 2 * ∑' i, Real.exp (-2 * J i) := by
-          gcongr
-          exact h61.sum_le_tsum _ fun i _ ↦ (Real.exp_pos _).le
-  linarith
 
 /-! ### Step 1 of Georgii (6.4): the plus phase
 
@@ -895,8 +740,9 @@ theorem isingChainSpecification_range_apply_eq {n N : ℕ} (hN : n < N) {A : Set
 /-- **Georgii (6.4), step 1.** Under (6.1) the finite-volume Gibbs distributions of the initial
 intervals converge, on every local event `A`, to a limit that is the *same* for all boundary
 conditions `ω` that are eventually equal to the constant spin `x`.  This is Georgii's (6.6)
-combined with Lemma (6.5) and the convergence of the tail products `∏_{i ≥ n} tanh J_i`. -/
-theorem exists_tendsto_isingChainSpecification_range_apply (hJ : ∀ n, 0 < J n)
+combined with Lemma (6.5) and the convergence of the tail products `∏_{i ≥ n} tanh J_i`; the
+convergence (not the positivity) of the tail products needs only (6.1), not `J_n > 0`. -/
+theorem exists_tendsto_isingChainSpecification_range_apply
     (h61 : Summable fun n ↦ Real.exp (-2 * J n)) (x : Bool) {A : Set (ℕ → Bool)}
     (hA : A ∈ localEvents ℕ Bool) :
     ∃ a : ℝ≥0∞, ∀ ω ∈ eventuallyConst x,
@@ -907,7 +753,10 @@ theorem exists_tendsto_isingChainSpecification_range_apply (hJ : ∀ n, 0 < J n)
   set aF := isingChainSpecification J (Finset.range n) (constConfig false) A with haF
   have haTtop : aT ≠ ⊤ := ne_top_of_le_ne_top ENNReal.one_ne_top prob_le_one
   have haFtop : aF ≠ ⊤ := ne_top_of_le_ne_top ENNReal.one_ne_top prob_le_one
-  obtain ⟨T, -, hTend⟩ := exists_tendsto_prod_Ico_tanh hJ h61 n
+  obtain ⟨T, hTend⟩ : ∃ T : ℝ,
+      Tendsto (fun N ↦ ∏ i ∈ Finset.Ico n N, Real.tanh (J i)) atTop (𝓝 T) :=
+    ⟨_, Multipliable.tendsto_prod_Ico_nat (f := fun i ↦ Real.tanh (J i))
+      (Real.multipliable_tanh (h61.comp_injective (add_left_injective n)))⟩
   refine ⟨aT * ENNReal.ofReal ((1 + spin x * T) / 2)
     + aF * ENNReal.ofReal ((1 - spin x * T) / 2), fun ω hω ↦ ?_⟩
   have hlim : Tendsto (fun N ↦
@@ -932,11 +781,16 @@ theorem tendsto_isingChainSpecification_setOf_true (hJ : ∀ n, 0 < J n)
     ∃ T : ℝ, 0 < T ∧ Filter.Tendsto
       (fun N ↦ isingChainSpecification J (Finset.range N) (constConfig true)
         {σ : ℕ → Bool | σ n = true}) atTop (𝓝 (ENNReal.ofReal ((1 + T) / 2))) := by
-  obtain ⟨T, hT, hTend⟩ := exists_tendsto_prod_Ico_tanh hJ h61 n
-  refine ⟨T, hT, ?_⟩
+  have h61n : Summable fun k ↦ Real.exp (-2 * J (k + n)) :=
+    h61.comp_injective (add_left_injective n)
+  refine ⟨∏' k, Real.tanh (J (k + n)), Real.tprod_tanh_pos (fun k ↦ hJ (k + n)) h61n, ?_⟩
+  have hTend : Tendsto (fun N ↦ ∏ i ∈ Finset.Ico n N, Real.tanh (J i)) atTop
+      (𝓝 (∏' k, Real.tanh (J (k + n)))) :=
+    Multipliable.tendsto_prod_Ico_nat (f := fun i ↦ Real.tanh (J i))
+      (Real.multipliable_tanh h61n)
   have hcont : Filter.Tendsto
       (fun N ↦ ENNReal.ofReal ((1 + ∏ i ∈ Finset.Ico n N, Real.tanh (J i)) / 2)) atTop
-      (𝓝 (ENNReal.ofReal ((1 + T) / 2))) :=
+      (𝓝 (ENNReal.ofReal ((1 + ∏' k, Real.tanh (J (k + n))) / 2))) :=
     (ENNReal.continuous_ofReal.tendsto _).comp (((tendsto_const_nhds).add hTend).div_const 2)
   refine hcont.congr' ?_
   filter_upwards [eventually_gt_atTop n] with N hN
@@ -985,14 +839,13 @@ of the inhomogeneous Ising chain which is the local limit `lim_{N} γ_{Λ_N}(· 
 boundary condition `ω ∈ A₊`.  A cluster point of `γ_{Λ_N}(· | ω⁺)` is a Gibbs measure by
 Theorem (4.17); `exists_tendsto_isingChainSpecification_range_apply` shows that the whole
 sequence converges to it, and that the limit does not depend on `ω ∈ A₊`. -/
-theorem exists_mem_GP_tendsto (hJ : ∀ n, 0 < J n)
-    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) :
+theorem exists_mem_GP_tendsto (h61 : Summable fun n ↦ Real.exp (-2 * J n)) :
     ∃ μ ∈ GP (isingChainSpecification J), ∀ A ∈ localEvents ℕ Bool, ∀ ω ∈ eventuallyConst true,
       Tendsto (fun N ↦ isingChainSpecification J (Finset.range N) ω A) atTop
         (𝓝 ((μ : Measure (ℕ → Bool)) A)) := by
   obtain ⟨μ, hμGP, hμ⟩ := exists_mem_GP_eq_of_tendsto (J := J) true
   refine ⟨μ, hμGP, fun A hA ω hω ↦ ?_⟩
-  obtain ⟨a, ha⟩ := exists_tendsto_isingChainSpecification_range_apply hJ h61 true hA
+  obtain ⟨a, ha⟩ := exists_tendsto_isingChainSpecification_range_apply h61 true hA
   rw [hμ A hA a (ha _ (constConfig_mem_eventuallyConst true))]
   exact ha ω hω
 
@@ -1016,7 +869,7 @@ theorem exists_mem_GP_apply_setOf_true (hJ : ∀ n, 0 < J n)
     ∃ μ ∈ GP (isingChainSpecification J), ∀ n : ℕ,
       ∃ T : ℝ, 0 < T ∧
         (μ : Measure (ℕ → Bool)) {σ : ℕ → Bool | σ n = true} = ENNReal.ofReal ((1 + T) / 2) := by
-  obtain ⟨μ, hμGP, hμ⟩ := exists_mem_GP_tendsto hJ h61
+  obtain ⟨μ, hμGP, hμ⟩ := exists_mem_GP_tendsto h61
   exact ⟨μ, hμGP, exists_apply_setOf_true_of_tendsto hJ h61 hμ⟩
 
 /-! ### Spontaneous magnetisation
@@ -1255,7 +1108,8 @@ theorem apply_eventuallyConst_union_eq_one
     have := Real.tanh_lt_one (J n)
     linarith
   have hsummable : Summable fun n ↦ (1 - Real.tanh (J n)) / 2 :=
-    Summable.of_nonneg_of_le hnonneg (fun n ↦ by linarith [one_sub_tanh_le (J n)]) h61
+    Summable.of_nonneg_of_le hnonneg
+      (fun n ↦ by linarith [Real.one_sub_tanh_le_two_mul_exp (J n)]) h61
   have htsum : (∑' n, μ {σ : ℕ → Bool | σ n ≠ σ (n + 1)}) ≠ ⊤ := by
     rw [tsum_congr fun n ↦ apply_setOf_ne_of_isGibbsMeasure hμ n,
       ← ENNReal.ofReal_tsum_of_nonneg hnonneg hsummable]
@@ -1389,7 +1243,7 @@ theorem exists_G_isingChainSpecification_eq (hJ : ∀ n, 0 < J n)
         G (isingChainSpecification J)
           = {μ | ∃ s : ℝ≥0∞, s ≤ 1 ∧ μ = s • μplus + (1 - s) • μminus} := by
   classical
-  obtain ⟨μp, hμpGP, hlim⟩ := exists_mem_GP_tendsto hJ h61
+  obtain ⟨μp, hμpGP, hlim⟩ := exists_mem_GP_tendsto h61
   set μplus : Measure (ℕ → Bool) := (μp : Measure (ℕ → Bool)) with hμplus
   have hprobP : IsProbabilityMeasure μplus := μp.2
   set μminus : Measure (ℕ → Bool) := μplus.map chainFlip.toFun with hμminus
@@ -1437,65 +1291,6 @@ If `∑_n e^{-2 J_n} = ∞` then `∏_{i ≥ n} tanh J_i = 0` for every `n`, so 
 convergence argument of step 3 then gives `|𝒢(Φ)| = 1`.  Together with Theorem (6.4) this says
 that (6.1) is necessary as well as sufficient for a phase transition. -/
 
-/-- `e^{-2t} ≤ 1 - tanh t` for `t ≥ 0`, the reverse of `one_sub_tanh_le`; both come from
-`1 - tanh t = e^{-t} / cosh t` and `e^t/2 ≤ cosh t ≤ e^t`. -/
-lemma le_one_sub_tanh {t : ℝ} (ht : 0 ≤ t) : Real.exp (-2 * t) ≤ 1 - Real.tanh t := by
-  have hc : (0 : ℝ) < Real.cosh t := Real.cosh_pos t
-  have h1 : 1 - Real.tanh t = Real.exp (-t) / Real.cosh t := by
-    rw [Real.tanh_eq_sinh_div_cosh, eq_div_iff hc.ne', sub_mul, div_mul_cancel₀ _ hc.ne',
-      Real.cosh_eq, Real.sinh_eq]
-    ring
-  have h2 : Real.cosh t ≤ Real.exp t := by
-    rw [Real.cosh_eq]
-    have : Real.exp (-t) ≤ Real.exp t := Real.exp_le_exp.2 (by linarith)
-    linarith
-  have h3 : Real.exp (-t) / Real.exp t ≤ Real.exp (-t) / Real.cosh t :=
-    div_le_div_of_nonneg_left (Real.exp_pos _).le hc h2
-  refine h1 ▸ le_trans (le_of_eq ?_) h3
-  rw [← Real.exp_sub]
-  ring_nf
-
-/-- **The failure of (6.1) kills the tail products.** If `J_n > 0` and `∑_n e^{-2J_n} = ∞`,
-then `∏_{n ≤ i < N} tanh J_i → 0` as `N → ∞`, for every `n`.  Indeed `1 - tanh J_i ≥ e^{-2J_i}`
-is then not summable, and `∏ tanh J_i ≤ exp(-∑ (1 - tanh J_i))`. -/
-theorem tendsto_prod_Ico_tanh_nhds_zero (hJ : ∀ n, 0 < J n)
-    (h61 : ¬ Summable fun n ↦ Real.exp (-2 * J n)) (n : ℕ) :
-    Tendsto (fun N ↦ ∏ i ∈ Finset.Ico n N, Real.tanh (J i)) atTop (𝓝 0) := by
-  have hpos : ∀ i, 0 < Real.tanh (J i) := fun i ↦ tanh_pos_of_pos (hJ i)
-  have hnonneg : ∀ i, (0 : ℝ) ≤ 1 - Real.tanh (J i) := fun i ↦ by
-    linarith [Real.tanh_lt_one (J i)]
-  have hns : ¬ Summable fun i ↦ 1 - Real.tanh (J i) := fun h ↦
-    h61 (Summable.of_nonneg_of_le (fun i ↦ (Real.exp_pos _).le)
-      (fun i ↦ le_one_sub_tanh (hJ i).le) h)
-  have hS : Tendsto (fun N ↦ ∑ i ∈ Finset.range N, (1 - Real.tanh (J i))) atTop atTop :=
-    (not_summable_iff_tendsto_nat_atTop_of_nonneg hnonneg).1 hns
-  have hbound : ∀ N : ℕ, n ≤ N → ∏ i ∈ Finset.Ico n N, Real.tanh (J i)
-      ≤ Real.exp ((∑ i ∈ Finset.range n, (1 - Real.tanh (J i)))
-        - ∑ i ∈ Finset.range N, (1 - Real.tanh (J i))) := by
-    intro N hNn
-    have hle : ∏ i ∈ Finset.Ico n N, Real.tanh (J i)
-        ≤ ∏ i ∈ Finset.Ico n N, Real.exp (Real.tanh (J i) - 1) := by
-      refine Finset.prod_le_prod (fun i _ ↦ (hpos i).le) fun i _ ↦ ?_
-      linarith [Real.add_one_le_exp (Real.tanh (J i) - 1)]
-    rw [← Real.exp_sum] at hle
-    refine hle.trans (le_of_eq (congrArg Real.exp ?_))
-    have hsplit : (∑ i ∈ Finset.range n, (1 - Real.tanh (J i)))
-        + ∑ i ∈ Finset.Ico n N, (1 - Real.tanh (J i))
-        = ∑ i ∈ Finset.range N, (1 - Real.tanh (J i)) :=
-      Finset.sum_range_add_sum_Ico _ hNn
-    rw [← hsplit]
-    simp only [Finset.sum_sub_distrib]
-    ring
-  have hSneg : Tendsto (fun N ↦ (∑ i ∈ Finset.range n, (1 - Real.tanh (J i)))
-      - ∑ i ∈ Finset.range N, (1 - Real.tanh (J i))) atTop atBot := by
-    simp only [sub_eq_add_neg]
-    exact tendsto_atBot_add_const_left _ _ (tendsto_neg_atTop_atBot.comp hS)
-  refine squeeze_zero'
-    (Filter.Eventually.of_forall fun N ↦ Finset.prod_nonneg fun i _ ↦ (hpos i).le) ?_
-    (Real.tendsto_exp_atBot.comp hSneg)
-  filter_upwards [eventually_ge_atTop n] with N hN
-  exact hbound N hN
-
 /-- **Georgii, Comment (6.7)(2).** If (6.1) fails then, for every local event `A`, the
 finite-volume Gibbs distributions `γ_{Λ_N}(A|ω)` converge to a limit that does not depend on the
 boundary condition `ω` at all. -/
@@ -1510,7 +1305,7 @@ theorem exists_tendsto_isingChainSpecification_range_apply_of_not_summable (hJ :
   set aF := isingChainSpecification J (Finset.range n) (constConfig false) A with haF
   have haTtop : aT ≠ ⊤ := ne_top_of_le_ne_top ENNReal.one_ne_top prob_le_one
   have haFtop : aF ≠ ⊤ := ne_top_of_le_ne_top ENNReal.one_ne_top prob_le_one
-  have hP := tendsto_prod_Ico_tanh_nhds_zero hJ h61 n
+  have hP := Real.tendsto_prod_Ico_tanh_nhds_zero (fun i ↦ (hJ i).le) h61 n
   refine ⟨aT * ENNReal.ofReal ((1 : ℝ) / 2) + aF * ENNReal.ofReal ((1 : ℝ) / 2), fun ω ↦ ?_⟩
   have hQ : Tendsto (fun N ↦ spin (ω N) * ∏ i ∈ Finset.Ico n N, Real.tanh (J i)) atTop (𝓝 0) := by
     refine squeeze_zero_norm (fun N ↦ ?_) (by simpa using hP.abs)
@@ -1651,12 +1446,12 @@ lemma plusPhase_apply_eq_of_tendsto {A : Set (ℕ → Bool)} (hA : A ∈ localEv
 
 /-- **Georgii (6.4), step 1, for `μ₊`.** Under (6.1), `μ₊ = lim_N γ_{Λ_N}(· | ω)` on every
 local event, for every boundary condition `ω ∈ A₊`. -/
-theorem tendsto_isingChainSpecification_range_plusPhase (hJ : ∀ n, 0 < J n)
+theorem tendsto_isingChainSpecification_range_plusPhase
     (h61 : Summable fun n ↦ Real.exp (-2 * J n)) {A : Set (ℕ → Bool)}
     (hA : A ∈ localEvents ℕ Bool) {ω : ℕ → Bool} (hω : ω ∈ eventuallyConst true) :
     Tendsto (fun N ↦ isingChainSpecification J (Finset.range N) ω A) atTop
       (𝓝 ((plusPhase J : Measure (ℕ → Bool)) A)) := by
-  obtain ⟨a, ha⟩ := exists_tendsto_isingChainSpecification_range_apply hJ h61 true hA
+  obtain ⟨a, ha⟩ := exists_tendsto_isingChainSpecification_range_apply h61 true hA
   rw [plusPhase_apply_eq_of_tendsto hA (ha _ (constConfig_mem_eventuallyConst true))]
   exact ha ω hω
 
@@ -1665,17 +1460,23 @@ theorem tendsto_isingChainSpecification_range_plusPhase (hJ : ∀ n, 0 < J n)
 theorem plusPhase_apply_setOf_true (hJ : ∀ n, 0 < J n)
     (h61 : Summable fun n ↦ Real.exp (-2 * J n)) (n : ℕ) :
     (plusPhase J : Measure (ℕ → Bool)) {σ : ℕ → Bool | σ n = true}
-      = ENNReal.ofReal ((1 + ∏' k, Real.tanh (J (n + k))) / 2) := by
+      = ENNReal.ofReal ((1 + ∏' k, Real.tanh (J (k + n))) / 2) := by
   obtain ⟨T, hT0, hTend⟩ := tendsto_isingChainSpecification_setOf_true hJ h61 n
-  obtain ⟨T', -, hTend'⟩ := exists_tendsto_prod_Ico_tanh hJ h61 n
-  have hT : T = ∏' k, Real.tanh (J (n + k)) := by
-    have h1 := tendsto_nhds_unique hTend' (tendsto_prod_Ico_tanh hJ h61 n)
+  have h61n : Summable fun k ↦ Real.exp (-2 * J (k + n)) :=
+    h61.comp_injective (add_left_injective n)
+  have hT'pos : 0 < ∏' k, Real.tanh (J (k + n)) := Real.tprod_tanh_pos (fun k ↦ hJ (k + n)) h61n
+  have hTend' : Tendsto (fun N ↦ ∏ i ∈ Finset.Ico n N, Real.tanh (J i)) atTop
+      (𝓝 (∏' k, Real.tanh (J (k + n)))) :=
+    Multipliable.tendsto_prod_Ico_nat (f := fun i ↦ Real.tanh (J i))
+      (Real.multipliable_tanh h61n)
+  have hT : T = ∏' k, Real.tanh (J (k + n)) := by
     have h2 : Tendsto
         (fun N ↦ isingChainSpecification J (Finset.range N) (constConfig true)
-          {σ : ℕ → Bool | σ n = true}) atTop (𝓝 (ENNReal.ofReal ((1 + T') / 2))) := by
+          {σ : ℕ → Bool | σ n = true}) atTop
+        (𝓝 (ENNReal.ofReal ((1 + ∏' k, Real.tanh (J (k + n))) / 2))) := by
       have hcont : Tendsto
           (fun N ↦ ENNReal.ofReal ((1 + ∏ i ∈ Finset.Ico n N, Real.tanh (J i)) / 2)) atTop
-          (𝓝 (ENNReal.ofReal ((1 + T') / 2))) :=
+          (𝓝 (ENNReal.ofReal ((1 + ∏' k, Real.tanh (J (k + n))) / 2))) :=
         (ENNReal.continuous_ofReal.tendsto _).comp
           ((tendsto_const_nhds.add hTend').div_const 2)
       refine hcont.congr' ?_
@@ -1683,8 +1484,7 @@ theorem plusPhase_apply_setOf_true (hJ : ∀ n, 0 < J n)
       rw [isingChainSpecification_range_apply_setOf_eq hN true (constConfig true)]
       norm_num [constConfig, spin]
     have h3 := tendsto_nhds_unique hTend h2
-    rw [ENNReal.ofReal_eq_ofReal_iff (by linarith)
-      (by linarith [tprod_tanh_pos hJ h61 n, h1])] at h3
+    rw [ENNReal.ofReal_eq_ofReal_iff (by linarith) (by linarith)] at h3
     linarith
   rw [← hT]
   exact plusPhase_apply_eq_of_tendsto (setOf_apply_eq_mem_localEvents n true) hTend
@@ -1693,9 +1493,11 @@ theorem plusPhase_apply_setOf_true (hJ : ∀ n, 0 < J n)
 `μ₊(σ_n) = ∏_{i ≥ n} tanh J_i`. -/
 theorem integral_spin_plusPhase (hJ : ∀ n, 0 < J n)
     (h61 : Summable fun n ↦ Real.exp (-2 * J n)) (n : ℕ) :
-    ∫ ω, spin (ω n) ∂(plusPhase J : Measure (ℕ → Bool)) = ∏' k, Real.tanh (J (n + k)) := by
+    ∫ ω, spin (ω n) ∂(plusPhase J : Measure (ℕ → Bool)) = ∏' k, Real.tanh (J (k + n)) := by
+  have hpos : 0 < ∏' k, Real.tanh (J (k + n)) :=
+    Real.tprod_tanh_pos (fun k ↦ hJ (k + n)) (h61.comp_injective (add_left_injective n))
   rw [integral_spin_apply _ n, plusPhase_apply_setOf_true hJ h61 n,
-    ENNReal.toReal_ofReal (by linarith [tprod_tanh_pos hJ h61 n])]
+    ENNReal.toReal_ofReal (by linarith)]
   ring
 
 
@@ -1718,24 +1520,24 @@ lemma isGibbsMeasure_minusPhase :
 
 /-- **Georgii (6.4), step 2, for `μ₋`.** Under (6.1), `μ₋ = lim_N γ_{Λ_N}(· | ω)` on every
 local event, for every boundary condition `ω ∈ A₋`. -/
-theorem tendsto_isingChainSpecification_range_minusPhase (hJ : ∀ n, 0 < J n)
+theorem tendsto_isingChainSpecification_range_minusPhase
     (h61 : Summable fun n ↦ Real.exp (-2 * J n)) {A : Set (ℕ → Bool)}
     (hA : A ∈ localEvents ℕ Bool) {ω : ℕ → Bool} (hω : ω ∈ eventuallyConst false) :
     Tendsto (fun N ↦ isingChainSpecification J (Finset.range N) ω A) atTop
       (𝓝 ((minusPhase J : Measure (ℕ → Bool)) A)) := by
   rw [minusPhase_toMeasure]
   exact tendsto_map_chainFlip_of_tendsto
-    (fun A hA ω hω ↦ tendsto_isingChainSpecification_range_plusPhase hJ h61 hA hω) hA hω
+    (fun A hA ω hω ↦ tendsto_isingChainSpecification_range_plusPhase h61 hA hω) hA hω
 
 /-- `μ₋(σ_n) = -∏_{i ≥ n} tanh J_i`. -/
 theorem integral_spin_minusPhase (hJ : ∀ n, 0 < J n)
     (h61 : Summable fun n ↦ Real.exp (-2 * J n)) (n : ℕ) :
-    ∫ ω, spin (ω n) ∂(minusPhase J : Measure (ℕ → Bool)) = -∏' k, Real.tanh (J (n + k)) := by
+    ∫ ω, spin (ω n) ∂(minusPhase J : Measure (ℕ → Bool)) = -∏' k, Real.tanh (J (k + n)) := by
   rw [minusPhase_toMeasure, integral_spin_map_chainFlip, integral_spin_plusPhase hJ h61]
 
 /-- **Georgii, Theorem (6.4), with the named phases.** Under (6.1),
 `𝒢(Φ) = [μ₋, μ₊] = {s μ₊ + (1 - s) μ₋ : 0 ≤ s ≤ 1}`. -/
-theorem G_isingChainSpecification_eq (hJ : ∀ n, 0 < J n)
+theorem G_isingChainSpecification_eq
     (h61 : Summable fun n ↦ Real.exp (-2 * J n)) :
     G (isingChainSpecification J)
       = {μ | ∃ s : ℝ≥0∞, s ≤ 1 ∧ μ = s • (plusPhase J : Measure (ℕ → Bool))
@@ -1749,7 +1551,7 @@ theorem G_isingChainSpecification_eq (hJ : ∀ n, 0 < J n)
         (by rw [add_comm]; exact apply_eventuallyConst_true_add_false h61 hG)
     rw [← hcompl, minusPhase_toMeasure]
     exact eq_smul_add_smul_of_isGibbsMeasure h61
-      (fun A hA ω hω ↦ tendsto_isingChainSpecification_range_plusPhase hJ h61 hA hω) hG
+      (fun A hA ω hω ↦ tendsto_isingChainSpecification_range_plusPhase h61 hA hω) hG
   · rintro ⟨s, hs, rfl⟩
     have hν : ∀ i : Fin 2, ![(plusPhase J : Measure (ℕ → Bool)),
         (minusPhase J : Measure (ℕ → Bool))] i ∈ G (isingChainSpecification J) := by
@@ -1785,18 +1587,22 @@ theorem tendsto_tsum_exp_neg_two_mul_smul_atTop (hJ : ∀ n, 0 < J n)
 /-- **Georgii (6.7)(1): `lim_{β → ∞} ∏_{i ≥ n} tanh βJ_i = 1`.** -/
 theorem tendsto_tprod_tanh_smul_atTop (hJ : ∀ n, 0 < J n)
     (h61 : Summable fun n ↦ Real.exp (-2 * J n)) (n : ℕ) :
-    Tendsto (fun β : ℝ ↦ ∏' k, Real.tanh ((β • J) (n + k))) atTop (𝓝 1) := by
+    Tendsto (fun β : ℝ ↦ ∏' k, Real.tanh ((β • J) (k + n))) atTop (𝓝 1) := by
   have hc := tendsto_tsum_exp_neg_two_mul_smul_atTop hJ h61
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le' (g := fun β ↦ 1 - 2 * ∑' i,
     Real.exp (-2 * (β • J) i)) (h := fun _ ↦ 1) ?_ tendsto_const_nhds ?_ ?_
   · simpa using (hc.const_mul 2).const_sub 1
   · filter_upwards [eventually_ge_atTop (1 : ℝ)] with β hβ
-    have := one_sub_tprod_tanh_le (smul_pos_of_pos hJ (by linarith))
-      (summable_exp_neg_two_mul_smul hJ h61 hβ) n
+    have hβJ := summable_exp_neg_two_mul_smul hJ h61 hβ
+    have h1 : 1 - ∏' k, Real.tanh ((β • J) (k + n)) ≤ 2 * ∑' k, Real.exp (-2 * (β • J) (k + n)) :=
+      Real.one_sub_tprod_tanh_le (fun k ↦ (smul_pos_of_pos hJ (by linarith) (k + n)).le)
+        (hβJ.comp_injective (add_left_injective n))
+    have h2 : ∑' k, Real.exp (-2 * (β • J) (k + n)) ≤ ∑' i, Real.exp (-2 * (β • J) i) :=
+      tsum_comp_le_tsum_of_inj hβJ (fun _ ↦ (Real.exp_pos _).le) (add_left_injective n)
     linarith
   · filter_upwards [eventually_ge_atTop (1 : ℝ)] with β hβ
-    exact tprod_tanh_le_one (smul_pos_of_pos hJ (by linarith))
-      (summable_exp_neg_two_mul_smul hJ h61 hβ) n
+    exact tprod_le_one₀ (fun k ↦ Real.tanh_nonneg (smul_pos_of_pos hJ (by linarith) (k + n)).le)
+      fun _ ↦ (Real.tanh_lt_one _).le
 
 /-- **Georgii (6.7)(1): `lim_{β → ∞} μ₊^β(σ_n) = 1`** for every site `n`. -/
 theorem tendsto_integral_spin_plusPhase_smul_atTop (hJ : ∀ n, 0 < J n)
@@ -1817,12 +1623,20 @@ theorem plusPhase_real_ne_le (hJ : ∀ n, 0 < J n)
   have hprob : IsProbabilityMeasure (plusPhase J : Measure (ℕ → Bool)) := (plusPhase J).2
   have hset : {ζ : ℕ → Bool | ζ a ≠ constConfig true a} = {ζ : ℕ → Bool | ζ a = true}ᶜ := by
     ext ζ; simp
+  have h61a : Summable fun k ↦ Real.exp (-2 * J (k + a)) :=
+    h61.comp_injective (add_left_injective a)
+  have hpos : 0 < ∏' k, Real.tanh (J (k + a)) := Real.tprod_tanh_pos (fun k ↦ hJ (k + a)) h61a
+  have hle : ∏' k, Real.tanh (J (k + a)) ≤ 1 :=
+    tprod_le_one₀ (fun k ↦ Real.tanh_nonneg (hJ (k + a)).le) fun _ ↦ (Real.tanh_lt_one _).le
+  have h1 : 1 - ∏' k, Real.tanh (J (k + a)) ≤ 2 * ∑' k, Real.exp (-2 * J (k + a)) :=
+    Real.one_sub_tprod_tanh_le (fun k ↦ (hJ (k + a)).le) h61a
+  have h2 : ∑' k, Real.exp (-2 * J (k + a)) ≤ ∑' i, Real.exp (-2 * J i) :=
+    tsum_comp_le_tsum_of_inj h61 (fun _ ↦ (Real.exp_pos _).le) (add_left_injective a)
   rw [hset, measureReal_def, prob_compl_eq_one_sub (measurableSet_setOf_apply_eq a true),
     plusPhase_apply_setOf_true hJ h61 a,
-    ENNReal.toReal_sub_of_le (ENNReal.ofReal_le_one.2 (by
-      linarith [tprod_tanh_le_one hJ h61 a])) ENNReal.one_ne_top,
-    ENNReal.toReal_one, ENNReal.toReal_ofReal (by linarith [tprod_tanh_pos hJ h61 a])]
-  linarith [one_sub_tprod_tanh_le hJ h61 a]
+    ENNReal.toReal_sub_of_le (ENNReal.ofReal_le_one.2 (by linarith)) ENNReal.one_ne_top,
+    ENNReal.toReal_one, ENNReal.toReal_ofReal (by linarith)]
+  linarith
 
 /-- The same estimate for the minus phase: `μ₋(σ_a ≠ -1) ≤ ∑_i e^{-2J_i}`. -/
 theorem minusPhase_real_ne_le (hJ : ∀ n, 0 < J n)
@@ -1942,7 +1756,7 @@ theorem eq_smul_plusPhase_add_smul_minusPhase_of_mem_G (hJ : ∀ n, 0 < J n)
   refine ⟨?_, apply_eventuallyConst_true_add_false h61' hG⟩
   rw [minusPhase_toMeasure]
   exact eq_smul_add_smul_of_isGibbsMeasure h61'
-    (fun A hA ω hω ↦ tendsto_isingChainSpecification_range_plusPhase hJ' h61' hA hω) hG
+    (fun A hA ω hω ↦ tendsto_isingChainSpecification_range_plusPhase h61' hA hω) hG
 
 /-- **Georgii (6.7)(1): `lim_{β → ∞} 𝒢(βΦ) ⊆ [δ₋, δ₊]`.** If `μ^β ∈ 𝒢(βΦ)` for all `β ≥ 1`
 and `μ^β → ν` in the topology of local convergence as `β → ∞`, then `ν ∈ [δ₋, δ₊]`. Together
@@ -2096,7 +1910,7 @@ theorem plusPhase_apply_eventuallyConst_true (hJ : ∀ n, 0 < J n)
   set A : Set (ℕ → Bool) := {σ | σ 0 = true} with hAdef
   have hAm : MeasurableSet A := measurableSet_setOf_apply_eq 0 true
   have hmix := apply_eq_of_isGibbsMeasure h61 (μplus := μ)
-    (fun A hA ω hω ↦ tendsto_isingChainSpecification_range_plusPhase hJ h61 hA hω) hG
+    (fun A hA ω hω ↦ tendsto_isingChainSpecification_range_plusPhase h61 hA hω) hG
     (setOf_apply_eq_mem_localEvents 0 true)
   have hflip : (μ.map chainFlip.toFun) A = 1 - μ A := by
     rw [Measure.map_apply chainFlip.measurable_toFun hAm, ← prob_compl_eq_one_sub hAm]
@@ -2104,9 +1918,10 @@ theorem plusPhase_apply_eventuallyConst_true (hJ : ∀ n, 0 < J n)
     ext σ
     simp [A]
   have hsum := apply_eventuallyConst_true_add_false h61 hG
-  have hA : μ A = ENNReal.ofReal ((1 + ∏' k, Real.tanh (J (0 + k))) / 2) :=
+  have hA : μ A = ENNReal.ofReal ((1 + ∏' k, Real.tanh (J (k + 0))) / 2) :=
     plusPhase_apply_setOf_true hJ h61 0
-  have hT := tprod_tanh_pos hJ h61 0
+  have hT : 0 < ∏' k, Real.tanh (J (k + 0)) :=
+    Real.tprod_tanh_pos (fun k ↦ hJ (k + 0)) (h61.comp_injective (add_left_injective 0))
   -- pass to real numbers
   set p := μ (eventuallyConst true) with hp
   set q := μ (eventuallyConst false) with hq
@@ -2124,7 +1939,7 @@ theorem plusPhase_apply_eventuallyConst_true (hJ : ∀ n, 0 < J n)
   have hsumr := congrArg ENNReal.toReal hsum
   rw [ENNReal.toReal_add (ne_top_of_le_ne_top ENNReal.one_ne_top hp1)
     (ne_top_of_le_ne_top ENNReal.one_ne_top hq1), ENNReal.toReal_one] at hsumr
-  have hAr : (μ A).toReal = (1 + ∏' k, Real.tanh (J (0 + k))) / 2 := by
+  have hAr : (μ A).toReal = (1 + ∏' k, Real.tanh (J (k + 0))) / 2 := by
     rw [hA, ENNReal.toReal_ofReal (by linarith)]
   rw [hAr] at hreal
   have hpr : p.toReal = 1 := by nlinarith [ENNReal.toReal_nonneg (a := p)]
@@ -2159,7 +1974,7 @@ theorem minusPhase_apply_eventuallyConst_true (hJ : ∀ n, 0 < J n)
 
 
 /-- **A Gibbs measure carried by `A₊` is `μ₊`.** -/
-theorem eq_plusPhase_of_apply_eventuallyConst_true_eq_one (hJ : ∀ n, 0 < J n)
+theorem eq_plusPhase_of_apply_eventuallyConst_true_eq_one
     (h61 : Summable fun n ↦ Real.exp (-2 * J n)) {μ : Measure (ℕ → Bool)}
     (hμ : μ ∈ G (isingChainSpecification J)) (h1 : μ (eventuallyConst true) = 1) :
     μ = plusPhase J := by
@@ -2171,11 +1986,11 @@ theorem eq_plusPhase_of_apply_eventuallyConst_true_eq_one (hJ : ∀ n, 0 < J n)
           (ENNReal.add_sub_cancel_left ENNReal.one_ne_top).symm
       _ = 0 := by rw [h, tsub_self]
   refine (eq_smul_add_smul_of_isGibbsMeasure h61 (μplus := plusPhase J)
-    (fun A hA ω hω ↦ tendsto_isingChainSpecification_range_plusPhase hJ h61 hA hω) hG).trans ?_
+    (fun A hA ω hω ↦ tendsto_isingChainSpecification_range_plusPhase h61 hA hω) hG).trans ?_
   rw [h1, h0, one_smul, zero_smul, add_zero]
 
 /-- **A Gibbs measure carried by `A₋` is `μ₋`.** -/
-theorem eq_minusPhase_of_apply_eventuallyConst_false_eq_one (hJ : ∀ n, 0 < J n)
+theorem eq_minusPhase_of_apply_eventuallyConst_false_eq_one
     (h61 : Summable fun n ↦ Real.exp (-2 * J n)) {μ : Measure (ℕ → Bool)}
     (hμ : μ ∈ G (isingChainSpecification J)) (h1 : μ (eventuallyConst false) = 1) :
     μ = minusPhase J := by
@@ -2187,7 +2002,7 @@ theorem eq_minusPhase_of_apply_eventuallyConst_false_eq_one (hJ : ∀ n, 0 < J n
           (ENNReal.add_sub_cancel_left ENNReal.one_ne_top).symm
       _ = 0 := by rw [h, tsub_self]
   refine (eq_smul_add_smul_of_isGibbsMeasure h61 (μplus := plusPhase J)
-    (fun A hA ω hω ↦ tendsto_isingChainSpecification_range_plusPhase hJ h61 hA hω) hG).trans ?_
+    (fun A hA ω hω ↦ tendsto_isingChainSpecification_range_plusPhase h61 hA hω) hG).trans ?_
   rw [h1, h0, one_smul, zero_smul, zero_add, minusPhase_toMeasure]
 
 /-- **Georgii (6.7)(3): `μ₊` is an extreme point of `𝒢(Φ)`.** -/
@@ -2205,7 +2020,7 @@ theorem plusPhase_mem_extremePoints_G (hJ : ∀ n, 0 < J n)
     simp only [Measure.add_apply, Measure.smul_apply, smul_eq_mul] at this
     rw [mul_comm, mul_comm _ b, this]
     exact plusPhase_apply_eventuallyConst_true hJ h61
-  refine eq_plusPhase_of_apply_eventuallyConst_true_eq_one hJ h61 hμ₁ ?_
+  refine eq_plusPhase_of_apply_eventuallyConst_true_eq_one h61 hμ₁ ?_
   by_contra hne
   have hlt : μ₁ (eventuallyConst true) < 1 := lt_of_le_of_ne prob_le_one hne
   have key : μ₁ (eventuallyConst true) * a + μ₂ (eventuallyConst true) * b < 1 * a + 1 * b :=
@@ -2231,7 +2046,7 @@ theorem minusPhase_mem_extremePoints_G (hJ : ∀ n, 0 < J n)
     simp only [Measure.add_apply, Measure.smul_apply, smul_eq_mul] at this
     rw [mul_comm, mul_comm _ b, this]
     exact minusPhase_apply_eventuallyConst_false hJ h61
-  refine eq_minusPhase_of_apply_eventuallyConst_false_eq_one hJ h61 hμ₁ ?_
+  refine eq_minusPhase_of_apply_eventuallyConst_false_eq_one h61 hμ₁ ?_
   by_contra hne
   have hlt : μ₁ (eventuallyConst false) < 1 := lt_of_le_of_ne prob_le_one hne
   have key : μ₁ (eventuallyConst false) * a + μ₂ (eventuallyConst false) * b < 1 * a + 1 * b :=

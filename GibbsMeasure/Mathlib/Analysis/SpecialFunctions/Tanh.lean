@@ -120,6 +120,11 @@ lemma tanh_nonneg {x : ℝ} (hx : 0 ≤ x) : 0 ≤ tanh x := by
   rw [tanh_eq_sinh_div_cosh]
   exact div_nonneg (sinh_nonneg_iff.2 hx) (cosh_pos x).le
 
+@[simp] lemma tanh_pos_iff {x : ℝ} : 0 < tanh x ↔ 0 < x := by
+  rw [tanh_eq_sinh_div_cosh, div_pos_iff_of_pos_right (cosh_pos x), sinh_pos_iff]
+
+lemma tanh_pos {x : ℝ} (hx : 0 < x) : 0 < tanh x := tanh_pos_iff.2 hx
+
 /-- The addition formula for `tanh`. -/
 lemma tanh_add (x y : ℝ) :
     tanh (x + y) = (tanh x + tanh y) / (1 + tanh x * tanh y) := by
@@ -186,5 +191,23 @@ theorem tanh_log_div_four {m M : ℝ} (hm : 0 < m) (hM : 0 < M) :
   rw [tanh_eq_exp_two_mul, hu]
   rw [div_sub_one hsm.ne', div_add_one hsm.ne']
   exact div_div_div_cancel_right₀ hsm.ne' _ _
+
+/-! ### The distance from `tanh x` to `1` -/
+
+/-- `1 - tanh x = 2 / (exp (2 * x) + 1)`. -/
+lemma one_sub_tanh (x : ℝ) : 1 - tanh x = 2 / (exp (2 * x) + 1) := by
+  rw [tanh_eq_exp_two_mul, eq_div_iff (by positivity), sub_mul, div_mul_cancel₀ _ (by positivity)]
+  ring
+
+/-- `1 - tanh x ≤ 2 * exp (-2 * x)`: `tanh x` tends to `1` at the rate `exp (-2 * x)`. -/
+lemma one_sub_tanh_le_two_mul_exp (x : ℝ) : 1 - tanh x ≤ 2 * exp (-2 * x) := by
+  rw [one_sub_tanh, neg_mul, exp_neg, ← div_eq_mul_inv]
+  exact div_le_div_of_nonneg_left zero_le_two (exp_pos _) (le_add_of_nonneg_right zero_le_one)
+
+/-- `exp (-2 * x) ≤ 1 - tanh x` for `0 ≤ x`, the converse of `one_sub_tanh_le_two_mul_exp`. -/
+lemma exp_le_one_sub_tanh {x : ℝ} (hx : 0 ≤ x) : exp (-2 * x) ≤ 1 - tanh x := by
+  rw [one_sub_tanh, neg_mul, exp_neg, inv_eq_one_div,
+    div_le_div_iff₀ (exp_pos _) (by positivity)]
+  linarith [one_le_exp (by positivity : (0 : ℝ) ≤ 2 * x)]
 
 end Real
