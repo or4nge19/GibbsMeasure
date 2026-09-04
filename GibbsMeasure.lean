@@ -7,6 +7,8 @@ public import GibbsMeasure.Mathlib.Analysis.PSeries
 public import GibbsMeasure.Mathlib.Algebra.Order.BigOperators.Ring.Finset
 public import GibbsMeasure.Mathlib.Algebra.BigOperators.Group.Finset.Sigma
 public import GibbsMeasure.Mathlib.Topology.Instances.EReal
+public import GibbsMeasure.Mathlib.Topology.UniformSpace.Pi
+public import GibbsMeasure.Mathlib.Topology.MetricSpace.DependsOn
 public import GibbsMeasure.Mathlib.Topology.Semicontinuity.EReal
 public import GibbsMeasure.Mathlib.Data.EReal.Inv
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.ENNReal
@@ -43,6 +45,7 @@ public import GibbsMeasure.Mathlib.Data.ENNReal.Basic
 public import GibbsMeasure.Mathlib.Data.ENNReal.TsumPi
 public import GibbsMeasure.Mathlib.Data.Finset.Map
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PosDef
+public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PerronStochastic
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.SymmetricRange
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.Doeblin
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PerronFrobenius
@@ -78,6 +81,8 @@ public import GibbsMeasure.Mathlib.Probability.LargeDeviations.Basic
 public import GibbsMeasure.Mathlib.Probability.LargeDeviations.Legendre
 public import GibbsMeasure.Mathlib.Probability.UniformOn
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Tsum
+public import GibbsMeasure.Mathlib.MeasureTheory.Integral.UniformAverage
+public import GibbsMeasure.Mathlib.MeasureTheory.Measure.UniformAverage
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Trim
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ExtIicRat
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.SetwiseConvergence

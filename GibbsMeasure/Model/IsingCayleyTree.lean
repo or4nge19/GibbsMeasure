@@ -22,8 +22,10 @@ of §12.1 in `GibbsMeasure/Model/TreeBoundaryLaw.lean` and
 ## Main declarations
 
 * `isingTransfer` — **Georgii (12.20)**, the transfer matrix `Q_{J,h}` of the Ising potential
-  (12.19) on `𝒞𝒯(d)`, and `isTransferFamily_isingTransfer` its `IsTransferFamily` property, so
-  that `isingTreeSpecification = transferSpecification` is Georgii's `γ^{J,h}`.
+  (12.19) on `𝒞𝒯(d)`, and `isTransferFamily_isingTransfer` its `IsTransferFamily` property.
+  `isingTreeSpecification` is *defined* as the transfer specification (12.8) of `Q_{J,h}`; its
+  identification with the Gibbsian specification `γ^{Φ^{J,h}}` of the potential (12.19) — the
+  step Georgii takes "in view of (12.7) and (12.9)" — is **not** proved here (see below).
 * `isingBoundaryVec` — the constant boundary law of Proposition (12.24), `ℓ_t(-) = 1`,
   `ℓ_t(+) = exp (2t - 2h/(d+1))`; `isingBoundaryVec_solves_iff` is **(12.21) ⇔ (12.22)** and
   `isBoundaryLaw_isingBoundaryVec_iff` says `ℓ_t` is a boundary law iff `t = h + d φ_J(t)`,
@@ -71,6 +73,24 @@ a non-fixed orbit of `h + d φ_J`, and a mixing property of a completely homogen
 `I(B, n)`). Those three steps are not proved in this file. His remark that
 `I(J, d) = ]-h(J,d), h(J,d)[` in the antiferromagnetic case is explicitly stated in the book as
 suggested by numerical calculations, not as a theorem.
+
+Three further gaps:
+
+* `isingTreeSpecification = γ^{Φ^{J,h}}`. The transfer weight `∏_{b ∩ Λ ≠ ∅} Q_b` equals
+  `exp (-H_Λ^{Φ^{J,h}})` times a factor depending only on `ω` off `Λ`, so the two λ-specifications
+  agree (`Specification.lambdaSpecification_eq_of_mul_boundary`); that lemma is not applied here,
+  so `𝒢` below is the Gibbs-measure set of the transfer specification, not (yet) of (12.19).
+* The existence of `𝒞𝒯(d)` for `d ≥ 2`. Every theorem here is stated for a graph carrying
+  `SimpleGraph.IsCayleyTree d`, but the only such graph built in this library is
+  `SimpleGraph.isCayleyTree_hasse_int : (hasse ℤ).IsCayleyTree 1`. Since `d = 1` forces
+  `d tanh J < 1` (`Real.mul_tanh_lt_one_of_le_one`), the hypotheses of `exists_ne_isingChain`,
+  `exists_three_isingChain`, `integral_spin_isingChain_treeCriticalPoint` and
+  `exists_ne_isGibbsMeasure_of_isFixedPt_treeRecursion₂` cannot be met by any graph in this
+  library; only (12.31)(a) can currently be instantiated.
+* The antiferromagnetic transition itself: `exists_ne_isGibbsMeasure_of_isFixedPt_treeRecursion₂`
+  *assumes* a fixed point of (12.35) that is not one of (12.22). Georgii's argument that such a
+  fixed point exists for `J < -J(d)` and `h ∈ I(J, d)` (the non-degeneracy of `I(J, d)`), and his
+  converse `|𝒢(J,h)| = 1` iff (12.35) has one solution, are not proved.
 
 -/
 

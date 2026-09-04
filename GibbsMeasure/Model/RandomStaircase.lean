@@ -59,9 +59,16 @@ change.
 (`Shlosman.staircaseUltrafilter`), the same for every `z`: this is Georgii's equivariant choice of
 cluster point, and it is what makes `τ(μ_z^β) = μ_{-z}^β`.
 
-Not formalised here: the `ℓ¹` linear independence of (6.21)(iii), which needs signed measures.
-What is proved instead of (iii) is the pairwise separation `staircasePhase_ne` (and the `map_*_ne`
-lemmas), which already gives `|𝒢(βΦ)| = ∞` and the symmetry breaking Georgii emphasises.
+## Not formalised here
+
+* The `ℓ¹` linear independence of (6.21)(iii), which needs signed measures.  What is proved
+  instead of (iii) is the pairwise separation `staircasePhase_ne` (and the `map_*_ne` lemmas),
+  which already gives `|𝒢(βΦ)| = ∞` and the symmetry breaking Georgii emphasises.
+* The low-temperature limit `μ_z^β → δ_{ω^z}` of (6.21)(i): only the finite-volume bound
+  `staircasePhase_agree_ge` is proved, at fixed `β`.
+* `r₀(μ_0^β) = μ_0^β` of (6.21)(ii).
+* Lemma (6.25) is proved for the squares `Λ_N` of `Λ_N + i`, not for Georgii's arbitrary
+  rectangles (6.10); that is all Theorem (6.21) uses.
 -/
 
 @[expose] public section
@@ -2012,8 +2019,13 @@ spin at `a` differs from `ω^z_a` by at least `k` with probability at most `2 r'
 `γ_{Λ_N}^{βΦ}(|σ_a - ω^z_a| ≥ k | ω^z) ≤ 2 r'(β/2)^k`,
 
 `r'(β/2) = ∑_{ℓ ≥ 1} ℓ 3^{ℓ-1} e^{-βℓ}`.  Georgii states it as `≤ r(β)^k` with
-`r(β) = 1 ∧ 2 ∑_{ℓ≥1} ℓ (3e^{-β})^ℓ = 1 ∧ 6 r'(β/2)`; the bound proved here is sharper (and, for
-`k = 0`, weaker only in that `2 ≥ 1`).  The two halves are Georgii's: an excess is controlled by
+`r(β) = 1 ∧ 2 ∑_{ℓ≥1} ℓ (3e^{-β})^ℓ = 1 ∧ 6 r'(β/2)`, whose truncation at `1` makes it vacuous
+for small `β`.  Against Georgii's own iterate `2 (r(β)/2)^k = 2 (3 r'(β/2))^k` the bound proved
+here is sharper by `3^k`, the factor his `r(β)` loses by using `ℓ 3^ℓ` where his Lemma (6.13)
+gives `ℓ 3^{ℓ-1}`.  Against the *stated* `r(β)^k` it is sharper whenever `2 r'(β/2)^k ≤ 1` — in
+particular throughout the regime `r(β) < 1` in which (6.25) has content, by a factor `6^k/2` —
+but not below `β ≈ 1.894`, where `2 r'(β/2) > 1 = r(β)`.  The two halves are Georgii's: an
+excess is controlled by
 `dgSpecification_excess_le_pow`, a deficit is an excess for `ω^{-z}` by the spin reflection. -/
 theorem dgSpecification_abs_excess_le (hβ : 0 < β) (z : ℤ) (N : ℕ) (a : Site) (k : ℕ) :
     dgSpecification hβ (cube 2 N) (staircase z)
@@ -2903,9 +2915,10 @@ include hβ hr
 
 /-- **Georgii Theorem (6.21)(i), the low-temperature limit, in finite volume.**  On every finite
 volume `Λ` the random staircase agrees with the staircase `ω^z` with probability at least
-`1 - 2 |Λ| r'(β/2)`.  Since `r'(β/2) → 0` as `β → ∞`, this is Georgii's statement that
-`μ_z^β → δ_{ω^z}`: the Gibbs measure is a random perturbation of the staircase which freezes
-onto it at low temperature. -/
+`1 - 2 |Λ| r'(β/2)`, and `r'(β/2) → 0` as `β → ∞`: the Gibbs measure is a random perturbation
+of the staircase which freezes onto it at low temperature.  Georgii's actual limit statement in
+(6.21)(i), `μ_z^β → δ_{ω^z}` as `β → ∞`, is *not* proved here; only this bound at fixed `β`
+is. -/
 theorem staircasePhase_agree_ge (z : ℤ) (Λ : Finset Site) :
     1 - (Λ.card : ℝ≥0∞) * (2 * r' (β / 2))
       ≤ (staircasePhase hβ hr z : Measure (Site → ℤ))
