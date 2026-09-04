@@ -89,15 +89,15 @@ from the start, so that `σ_Λ⁻¹(λ^Λ) = λ^S | 𝓕_Λ` and Georgii's `log 
   finite (`specificEntropy_uniformOn_ne_bot`). The ingredients are Shannon's formula
   `klDiv_uniformOn_univ` and Gibbs' inequality `Real.neg_log_card_le_sum_mul_log`.
 * **Georgii Theorem (15.20)** for standard Borel `E`:
-  `exists_measurable_specificEntropy_eq_neg_lintegral` provides an `𝓘`-measurable
-  `h : Ω → [-∞, 0]` with `𝓀(μ) = μ(h)` for all `μ ∈ 𝓟_Θ`, namely
-  `h = 𝓀(κ^·)` for a `(𝓟_Θ, 𝓘)`-kernel `κ` from Theorem (14.10)
-  (`IsPAKernel.specificEntropy_eq_neg_lintegral`, `IsPAKernel.measurable_specificEntropy_comp`),
-  and `specificEntropy_join_eq_neg_lintegral` is the second assertion,
-  `𝓀(∫ ν w(dν)) = ∫ 𝓀(ν) w(dν)` for a weight `w` carried by `𝓟_Θ`. Georgii's `h` is moreover
-  `𝓣`-measurable, because his kernel of (14.10) is built to be `𝓘 ∩ 𝓣 ∩ 𝓕_{V(0)}`-measurable; the
-  kernel `exists_isPAKernel_invariantFields_shiftGroup_int` of `InvariantDecomposition.lean`
-  is only exposed as `𝓘`-measurable, so only `𝓘`-measurability of `h` is stated here.
+  `exists_measurable_specificEntropy_eq_neg_lintegral` provides an `𝓘 ∩ 𝓣`-measurable
+  `h : Ω → [-∞, 0]` with `𝓀(μ) = μ(h)` for all `μ ∈ 𝓟_Θ`, namely `h = 𝓀(κ^·)` for the
+  `(𝓟_Θ, 𝓘)`-kernel `κ` of Theorem (14.10) built from ergodic averages of cylinder events
+  (`exists_isPAKernel_invariantFields_shiftGroup_int_inf_tail`), which is `𝓘 ∩ 𝓣`-measurable, as
+  Georgii notes in the proof of (14.10). The two ingredients are
+  `IsPAKernel.specificEntropy_eq_neg_lintegral` and `measurable_specificEntropy_comp`, the latter
+  reading off the measurability of `h` from that of the kernel, whatever σ-algebra it is measurable
+  for. `specificEntropy_join_eq_neg_lintegral` is the second assertion,
+  `𝓀(∫ ν w(dν)) = ∫ 𝓀(ν) w(dν)` for a weight `w` carried by `𝓟_Θ`.
 
 ## Proof of (15.10)
 
@@ -1248,11 +1248,12 @@ variable {ι E : Type*} [Fintype ι] [LinearOrder ι] [Nonempty ι] [MeasurableS
   [IsMarkovKernel κ]
 
 omit [Nonempty ι] [IsMarkovKernel κ] in
-/-- `ω ↦ 𝓗_{V(0)}(κ^ω | κ^ω λ_0)` is `𝓘`-measurable for a Markov kernel `κ` from `𝓘`
-(measurability of `𝓗_{V(0)}(·)`, Georgii's Step 1 in the proof of (15.20), through the
+/-- `ω ↦ 𝓗_{V(0)}(κ^ω | κ^ω λ_0)` is `m`-measurable for a Markov kernel `κ` from any σ-algebra
+`m` (measurability of `𝓗_{V(0)}(·)`, Georgii's Step 1 in the proof of (15.20), through the
 kernel Radon–Nikodym derivative). -/
-lemma measurable_relativeEntropyIn_lexPast_kernel [IsMarkovKernel κ] :
-    Measurable[invariantEvents (shiftGroup (ι → ℤ) E)] fun ω ↦
+lemma measurable_relativeEntropyIn_lexPast_kernel {m : MeasurableSpace ((ι → ℤ) → E)}
+    {κ : Kernel[m, MeasurableSpace.pi] ((ι → ℤ) → E) ((ι → ℤ) → E)} [IsMarkovKernel κ] :
+    Measurable[m] fun ω ↦
       relativeEntropyIn (lexPast 0) (κ ω) ((κ ω).bind (Specification.isssd lam {0})) := by
   have hV : cylinderEvents (X := fun _ : ι → ℤ ↦ E) (lexPast 0) ≤ MeasurableSpace.pi :=
     cylinderEvents_le_pi
@@ -1279,21 +1280,30 @@ lemma measurable_relativeEntropyIn_lexPast_kernel [IsMarkovKernel κ] :
   rw [heq]
   exact measurable_klDiv_kernel _ _
 
-omit [Nonempty ι] in
-/-- **Georgii Theorem (15.20), the integrand**: for a `(𝓟_Θ, 𝓘)`-kernel `κ`, the function
-`h = 𝓀(κ^·)` is `𝓘`-measurable (Georgii: `𝓘 ∩ 𝓣 ∩ 𝓕_{V(0)}`-measurable for his particular
-kernel, built from a countable core of cylinder events averaged over the past; a general
-`(𝓟_Θ, 𝓘)`-kernel only gives `𝓘`-measurability, which is all that (15.20) uses). -/
-theorem IsPAKernel.measurable_specificEntropy_comp
-    (hκ : IsPAKernel (invariantFields (shiftGroup (ι → ℤ) E))
-      (invariantEvents (shiftGroup (ι → ℤ) E)) κ) :
-    Measurable[invariantEvents (shiftGroup (ι → ℤ) E)] fun ω ↦ specificEntropy lam (κ ω) := by
+omit [Nonempty ι] [IsMarkovKernel κ] in
+/-- **Georgii Theorem (15.20), the integrand**: for a Markov kernel `κ` from any σ-algebra `m`
+whose values are `Θ`-invariant random fields, the function `h = 𝓀(κ^·)` is `m`-measurable. The
+measurability of `h` is exactly the measurability of the kernel: Georgii's kernel of (14.10) is
+`𝓘 ∩ 𝓣`-measurable (`tailErgodicKernel`), and then so is `h`. -/
+theorem measurable_specificEntropy_comp {m : MeasurableSpace ((ι → ℤ) → E)}
+    {κ : Kernel[m, MeasurableSpace.pi] ((ι → ℤ) → E) ((ι → ℤ) → E)} [IsMarkovKernel κ]
+    (hκ : ∀ ω, κ ω ∈ invariantFields (shiftGroup (ι → ℤ) E)) :
+    Measurable[m] fun ω ↦ specificEntropy lam (κ ω) := by
   have : (fun ω ↦ specificEntropy lam (κ ω)) = fun ω ↦
       -(relativeEntropyIn (lexPast 0) (κ ω) ((κ ω).bind (Specification.isssd lam {0})) : EReal) :=
-    funext fun ω ↦ specificEntropy_eq_neg_relativeEntropyIn_lexPast lam (hκ.2 ω) 0
+    funext fun ω ↦ specificEntropy_eq_neg_relativeEntropyIn_lexPast lam (hκ ω) 0
   rw [this]
   exact measurable_neg.comp
     (measurable_coe_ennreal_ereal.comp (measurable_relativeEntropyIn_lexPast_kernel lam))
+
+omit [Nonempty ι] in
+/-- **Georgii Theorem (15.20), the integrand**, for a `(𝓟_Θ, 𝓘)`-kernel `κ`: `h = 𝓀(κ^·)` is
+`𝓘`-measurable. -/
+theorem IsPAKernel.measurable_specificEntropy_comp
+    (hκ : IsPAKernel (invariantFields (shiftGroup (ι → ℤ) E))
+      (invariantEvents (shiftGroup (ι → ℤ) E)) κ) :
+    Measurable[invariantEvents (shiftGroup (ι → ℤ) E)] fun ω ↦ specificEntropy lam (κ ω) :=
+  _root_.MeasureTheory.GibbsMeasure.measurable_specificEntropy_comp lam hκ.2
 
 /-- **Georgii Theorem (15.20), main identity**: for a `(𝓟_Θ, 𝓘)`-kernel `κ` and `μ ∈ 𝓟_Θ`,
 `𝓗_{V(0)}(μ | μ λ_0) = ∫ 𝓗_{V(0)}(κ^ω | κ^ω λ_0) μ(dω)`, i.e. `𝓀(μ) = μ(h)` with
@@ -1462,18 +1472,22 @@ theorem IsPAKernel.specificEntropy_eq_neg_lintegral
   rw [specificEntropy_eq_neg_relativeEntropyIn_lexPast lam (hκ.2 ω) 0, neg_neg,
     EReal.toENNReal_coe]
 
-/-- **Georgii Theorem (15.20), existence form.** There is an `𝓘`-measurable
-`h : Ω → [-∞, 0]` (Georgii: `[-∞, log λ(E)]`) with `𝓀(μ) = μ(h)` for all `μ ∈ 𝓟_Θ`. -/
+/-- **Georgii Theorem (15.20), existence form.** There is an `𝓘 ∩ 𝓣`-measurable
+`h : Ω → [-∞, 0]` (Georgii: `[-∞, log λ(E)]`) with `𝓀(μ) = μ(h)` for all `μ ∈ 𝓟_Θ`. The
+invariance *and* tail measurability of `h` come from the kernel of (14.10) built from ergodic
+averages of cylinder events, `exists_isPAKernel_invariantFields_shiftGroup_int_inf_tail`. -/
 theorem exists_measurable_specificEntropy_eq_neg_lintegral :
-    ∃ h : ((ι → ℤ) → E) → EReal, Measurable[invariantEvents (shiftGroup (ι → ℤ) E)] h
+    ∃ h : ((ι → ℤ) → E) → EReal,
+      Measurable[invariantEvents (shiftGroup (ι → ℤ) E) ⊓ tailSigmaAlgebra (ι → ℤ) E] h
       ∧ (∀ ω, h ω ≤ 0) ∧ ∀ μ ∈ invariantFields (shiftGroup (ι → ℤ) E),
         specificEntropy lam μ = -(∫⁻ ω, (-h ω).toENNReal ∂μ : EReal) := by
   have hne : (invariantFields (shiftGroup (ι → ℤ) E)).Nonempty :=
     ⟨Measure.infinitePi fun _ ↦ lam,
       mem_invariantFields_shiftGroup.2 ⟨inferInstance, measurePreserving_shift_infinitePi lam⟩⟩
-  obtain ⟨κ, hκM, hκ⟩ := exists_isPAKernel_invariantFields_shiftGroup_int hne
-  exact ⟨fun ω ↦ specificEntropy lam (κ ω), hκ.measurable_specificEntropy_comp lam,
-    fun ω ↦ specificEntropy_nonpos lam, fun μ hμ ↦ hκ.specificEntropy_eq_neg_lintegral lam hμ⟩
+  obtain ⟨κ', hκ'M, hκ'⟩ := exists_isPAKernel_invariantFields_shiftGroup_int_inf_tail hne
+  exact ⟨fun ω ↦ specificEntropy lam (κ' ω),
+    measurable_specificEntropy_comp lam fun ω ↦ hκ'.2 ω, fun ω ↦ specificEntropy_nonpos lam,
+    fun μ hμ ↦ hκ'.specificEntropy_eq_neg_lintegral lam hμ⟩
 
 omit [IsMarkovKernel κ] in
 /-- **Georgii Theorem (15.20), second assertion.** If `μ ∈ 𝓟_Θ` is the barycentre

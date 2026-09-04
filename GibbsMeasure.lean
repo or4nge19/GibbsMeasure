@@ -68,6 +68,7 @@ public import GibbsMeasure.Mathlib.Probability.Independence.Integration
 public import GibbsMeasure.Mathlib.Probability.UniformOn
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Tsum
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Trim
+public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ExtIicRat
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.SetwiseConvergence
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ProdZeroOne
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.CountablyGeneratedModNull
@@ -75,6 +76,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Order.StochasticDomination
 public import GibbsMeasure.Mathlib.MeasureTheory.Order.Holley
 public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.TrivialOn
 public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.DoobDynkin
+public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.Inf
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.AEMeasurable
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.GiryMonad
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.RegularContent

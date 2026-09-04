@@ -6,6 +6,10 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.Pointwise
+public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.KolmogorovExtension
+public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.Inf
+public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ExtIicRat
+public import GibbsMeasure.Mathlib.MeasureTheory.Measure.GiryMonad
 public import GibbsMeasure.Mathlib.Probability.Kernel.StieltjesPoint
 public import GibbsMeasure.Specification.PAKernel
 public import GibbsMeasure.Specification.ExtremeCorollaries
@@ -59,6 +63,11 @@ measures are `invariantFields Θ`. Then:
 * `exists_isPAKernel_invariantFields_shiftGroup`, `exists_isPAKernel_invariantFields_shiftGroup_int`
   — **Theorem (14.10), existence of the `(𝓟_Θ, 𝓘)`-kernel**, along a regular Følner sequence of
   volumes and along the cubes of `ℤ^d`;
+* `exists_isPAKernel_invariantFields_shiftGroup_inf_tail`,
+  `exists_isPAKernel_invariantFields_shiftGroup_int_inf_tail` — the same kernel *as Georgii builds
+  it*, from ergodic averages of cylinder events, hence measurable for `𝓘 ∩ 𝓣` and not only for
+  `𝓘` (`tailErgodicKernel`; see the section "Georgii's kernel of (14.10) is measurable for
+  `𝓘 ∩ 𝓣`" below);
 * `ergodicDecomposition_invariantFields` — **Theorem (14.10)**, the affine bijection `μ ↦ w_μ`
   and the level-set formula, for any countable subgroup `Θ ≤ T` with a `(𝓟_Θ, 𝓘)`-kernel;
 * `weight_map_of_mem_normalizer` — **Corollary (14.11)**: `w_{τ(μ)} = τ(w_μ)` for `τ` in the
@@ -223,7 +232,9 @@ the multidimensional ergodic theorem (14.A8) shows that for every invariant `μ`
 any σ-algebra `m` on `Ω` making the rational ergodic CDF `m`-measurable; the Følner property
 gives this for `m = 𝓘` (`measurable_ergodicRatCDF`). Georgii's kernel is the case `X = Ω`,
 `φ = id`, `m = 𝓘`, corrected on the bad invariant set to a fixed invariant probability measure
-`ν₀`. -/
+`ν₀`. On configuration space the case `X = (J → E)`, `φ = ω ↦ ω_J` of a finite volume `J` is
+`marginalErgodicKernel`, where `m` can be taken to be `𝓘 ∩ 𝓣`; assembling those marginals is how
+Georgii's kernel is obtained tail measurable, see below. -/
 
 section ErgodicKernel
 
@@ -771,6 +782,36 @@ section Cube
 
 variable {ι E : Type*} [Fintype ι] [DecidableEq ι] [MeasurableSpace E] [StandardBorelSpace E]
 
+/-- **The cubes of `ℤ^d`**: `F n = [0, n + 1)^d` is an increasing regular Følner sequence of
+volumes, and for `d ≥ 1` its cardinalities `|F n| = (n + 1)^d` tend to infinity. -/
+theorem exists_monotone_regular_foelner_cube :
+    ∃ (F : ℕ → Finset (ι → ℤ)) (C : ℝ≥0∞), Monotone F ∧ (F 0).Nonempty ∧
+      (∀ g : ι → ℤ, Tendsto (fun n ↦ (((g +ᵥ F n) ∆ F n).card : ℝ) / (F n).card) atTop (𝓝 0)) ∧
+      (∀ n, ((F n - F n + F n).card : ℝ≥0∞) ≤ C * (F n).card) ∧ C ≠ ∞ ∧
+      (Nonempty ι → Tendsto (fun n ↦ ((F n).card : ℝ)) atTop atTop) := by
+  classical
+  set F : ℕ → Finset (ι → ℤ) := fun n ↦ (fun _ : ι ↦ (0 : ℤ)) +ᵥ
+    Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) ((n + 1 : ℕ) : ℤ) with hFdef
+  have hcardF : ∀ n : ℕ, (F n).card = (n + 1) ^ Fintype.card ι := by
+    intro n
+    rw [hFdef]
+    simp only
+    rw [Finset.card_vadd_finset, Fintype.card_piFinset]
+    simp
+  refine ⟨F, 3 ^ Fintype.card ι, fun a b hab ↦ Finset.image_subset_image
+      (Fintype.piFinset_subset _ _ fun _ ↦ Finset.Ico_subset_Ico le_rfl
+        (by exact_mod_cast Nat.add_le_add_right hab 1)),
+    ⟨_, Finset.mem_vadd_finset.2 ⟨0, Fintype.mem_piFinset.2 fun _ ↦ by simp, rfl⟩⟩,
+    fun g ↦ tendsto_card_vadd_cube_symmDiff_div_card (ι := ι) (fun _ _ ↦ 0) (r := fun n ↦ n + 1)
+      (tendsto_add_atTop_nat 1) g,
+    fun n ↦ by exact_mod_cast card_sub_add_cube_le (fun _ : ι ↦ (0 : ℤ)) (n + 1), by simp,
+    fun hι ↦ ?_⟩
+  have : Nonempty ι := hι
+  refine tendsto_atTop_mono (fun n ↦ ?_) (tendsto_natCast_atTop_atTop (R := ℝ))
+  have h1 : n + 1 ≤ (n + 1) ^ Fintype.card ι := Nat.le_self_pow Fintype.card_ne_zero _
+  rw [hcardF n]
+  exact_mod_cast le_trans (Nat.le_succ n) h1
+
 omit [Fintype ι] [DecidableEq ι] in
 /-- **Georgii, Theorem (14.10), first assertion, on `ℤ^d`**: for a standard Borel state space
 there is a `(𝓟_Θ, 𝓘)`-kernel for the shift group of `ℤ^d` (along the cubes `[0, n)^d`), as
@@ -783,22 +824,500 @@ theorem exists_isPAKernel_invariantFields_shiftGroup_int [Finite ι]
           (invariantEvents (shiftGroup (ι → ℤ) E)) π := by
   classical
   have := Fintype.ofFinite ι
-  set F : ℕ → Finset (ι → ℤ) := fun n ↦ (fun _ : ι ↦ (0 : ℤ)) +ᵥ
-    Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) ((n + 1 : ℕ) : ℤ) with hFdef
-  have hF : Monotone F := fun a b hab ↦ Finset.image_subset_image
-    (Fintype.piFinset_subset _ _ fun _ ↦ Finset.Ico_subset_Ico le_rfl
-      (by exact_mod_cast Nat.add_le_add_right hab 1))
-  have hne : (F 0).Nonempty :=
-    ⟨_, Finset.mem_vadd_finset.2 ⟨0, Fintype.mem_piFinset.2 fun _ ↦ by simp, rfl⟩⟩
-  have hFol : ∀ g : ι → ℤ,
-      Tendsto (fun n ↦ (((g +ᵥ F n) ∆ F n).card : ℝ) / (F n).card) atTop (𝓝 0) := fun g ↦
-    tendsto_card_vadd_cube_symmDiff_div_card (ι := ι) (fun _ _ ↦ 0) (r := fun n ↦ n + 1)
-      (tendsto_add_atTop_nat 1) g
-  have hC : ∀ n, ((F n - F n + F n).card : ℝ≥0∞) ≤ (3 ^ Fintype.card ι : ℝ≥0∞) * (F n).card :=
-    fun n ↦ by exact_mod_cast card_sub_add_cube_le (fun _ : ι ↦ (0 : ℤ)) (n + 1)
-  exact exists_isPAKernel_invariantFields_shiftGroup (F := F) hFol hF hne hC (by simp) hne'
+  obtain ⟨F, C, hF, hne, hFol, hC, hC', -⟩ := exists_monotone_regular_foelner_cube (ι := ι)
+  exact exists_isPAKernel_invariantFields_shiftGroup (F := F) hFol hF hne hC hC' hne'
 
 end Cube
+
+/-! ### Georgii's kernel of (14.10) is measurable for `𝓘 ∩ 𝓣`
+
+Georgii builds the kernel of (14.10) from a countable core *of cylinder events* (4.A13), so that
+`π(A | ·)` is a limit of ergodic averages of cylinder indicators over the cubes `Λ_n`; changing
+the configuration on a finite set `Δ` changes at most `|J - Δ|` of the `|Λ_n|` terms of the
+average of a cylinder event over the volume `J`, so the limit is unchanged and the kernel is
+measurable for the tail σ-algebra `𝓣` as well as for `𝓘`. The construction here follows that
+route: `marginalErgodicKernel` is the kernel of the *finite-volume observable* `ω ↦ ω_J`, built
+from the rational ergodic CDF of `ω ↦ e(ω_J)` whose half-lines are cylinder events over `J`,
+hence `𝓘 ∩ 𝓣`-measurable (`measurable_inf_ergodicRatCDF_restrict`); on the `𝓘 ∩ 𝓣`-event
+`ergodicProjectiveSet` where these finite-volume kernels are projective, the Kolmogorov extension
+theorem assembles them into a random field `tailErgodicKernelFun`, which is a `(𝓟_Θ, 𝓘)`-kernel
+because for every invariant `μ` the conditional distribution `μ(· | 𝓘)` has the same marginals
+(the ergodic theorem (14.A8)) and projective limits are unique. The Følner sequence must have
+`|F n| → ∞`; for a *finite* site group the statement is false (there `𝓣` is trivial, while
+`μ(· | 𝓘) = μ`). -/
+
+section ShiftLocal
+
+variable {S E : Type*} [MeasurableSpace E] [AddCommGroup S] [DecidableEq S] {F : ℕ → Finset S}
+
+attribute [local instance] shiftAddAction measurableConstVAdd_shift
+
+/-- Two configurations agreeing off a finite set `Δ` give the same value to a function depending
+only on the coordinates in a finite volume `J`, at every shift `i ∉ J - Δ`. -/
+lemma eq_vadd_of_dependsOn {f : (S → E) → ℝ} {J Δ : Finset S} (hf : DependsOn f (J : Set S))
+    {ω ω' : S → E} (hωω' : ∀ i ∉ Δ, ω i = ω' i) {i : S} (hi : i ∉ J - Δ) :
+    f (i +ᵥ ω) = f (i +ᵥ ω') := by
+  refine hf fun j hj ↦ ?_
+  have h1 : (i +ᵥ ω) j = ω (j - i) := by simp
+  have h2 : (i +ᵥ ω') j = ω' (j - i) := by simp
+  rw [h1, h2]
+  refine hωω' _ fun hmem ↦ hi (Finset.mem_sub.2 ⟨j, Finset.mem_coe.1 hj, j - i, hmem, by abel⟩)
+
+/-- The ergodic sums over `F n` of a bounded function depending only on the coordinates in a
+finite volume `J` differ, at two configurations agreeing off a finite set `Δ`, by at most
+`2 M |J - Δ|`. -/
+lemma abs_sum_vadd_sub_sum_vadd_le_of_dependsOn {f : (S → E) → ℝ} {M : ℝ} (hM : ∀ ω, |f ω| ≤ M)
+    {J Δ : Finset S} (hf : DependsOn f (J : Set S)) {ω ω' : S → E}
+    (hωω' : ∀ i ∉ Δ, ω i = ω' i) (n : ℕ) :
+    |∑ i ∈ F n, f (i +ᵥ ω) - ∑ i ∈ F n, f (i +ᵥ ω')| ≤ 2 * M * #(J - Δ) := by
+  have hM0 : 0 ≤ M := le_trans (abs_nonneg _) (hM ω)
+  rw [← Finset.sum_sub_distrib]
+  have hsub : ∑ i ∈ F n, (f (i +ᵥ ω) - f (i +ᵥ ω'))
+      = ∑ i ∈ F n ∩ (J - Δ), (f (i +ᵥ ω) - f (i +ᵥ ω')) := by
+    refine (Finset.sum_subset Finset.inter_subset_left fun i hi hni ↦ ?_).symm
+    rw [eq_vadd_of_dependsOn hf hωω' fun h ↦ hni (Finset.mem_inter.2 ⟨hi, h⟩), sub_self]
+  rw [hsub]
+  calc |∑ i ∈ F n ∩ (J - Δ), (f (i +ᵥ ω) - f (i +ᵥ ω'))|
+      ≤ ∑ i ∈ F n ∩ (J - Δ), |f (i +ᵥ ω) - f (i +ᵥ ω')| := Finset.abs_sum_le_sum_abs _ _
+    _ ≤ ∑ _i ∈ F n ∩ (J - Δ), 2 * M := by
+        refine Finset.sum_le_sum fun i _ ↦ ?_
+        calc |f (i +ᵥ ω) - f (i +ᵥ ω')| ≤ |f (i +ᵥ ω)| + |f (i +ᵥ ω')| := abs_sub _ _
+          _ ≤ M + M := add_le_add (hM _) (hM _)
+          _ = 2 * M := by ring
+    _ = #(F n ∩ (J - Δ)) * (2 * M) := by rw [Finset.sum_const, nsmul_eq_mul]
+    _ ≤ #(J - Δ) * (2 * M) := by
+        have hcard : (#(F n ∩ (J - Δ)) : ℝ) ≤ #(J - Δ) :=
+          mod_cast Finset.card_le_card Finset.inter_subset_right
+        exact mul_le_mul_of_nonneg_right hcard (by positivity)
+    _ = 2 * M * #(J - Δ) := by ring
+
+/-- The ergodic averages over a sequence of volumes with `|F n| → ∞` of a bounded function
+depending only on the coordinates in a finite volume have the same asymptotics at two
+configurations agreeing off a finite set: the difference of the averages tends to `0`. -/
+lemma tendsto_inv_card_smul_sum_vadd_sub_of_dependsOn
+    (hcard : Tendsto (fun n ↦ ((F n).card : ℝ)) atTop atTop) {f : (S → E) → ℝ} {M : ℝ}
+    (hM : ∀ ω, |f ω| ≤ M) {J Δ : Finset S} (hf : DependsOn f (J : Set S)) {ω ω' : S → E}
+    (hωω' : ∀ i ∉ Δ, ω i = ω' i) :
+    Tendsto (fun n ↦ ((F n).card : ℝ)⁻¹ • ∑ i ∈ F n, f (i +ᵥ ω)
+      - ((F n).card : ℝ)⁻¹ • ∑ i ∈ F n, f (i +ᵥ ω')) atTop (𝓝 0) := by
+  have hM0 : 0 ≤ M := le_trans (abs_nonneg _) (hM ω)
+  have hlim : Tendsto (fun n ↦ 2 * M * #(J - Δ) / ((F n).card : ℝ)) atTop (𝓝 0) :=
+    tendsto_const_nhds.div_atTop hcard
+  refine squeeze_zero_norm (fun n ↦ ?_) hlim
+  have hbound := abs_sum_vadd_sub_sum_vadd_le_of_dependsOn (F := F) hM hf hωω' n
+  have hc : (0 : ℝ) ≤ ((F n).card : ℝ)⁻¹ := by positivity
+  calc ‖((F n).card : ℝ)⁻¹ • ∑ i ∈ F n, f (i +ᵥ ω)
+        - ((F n).card : ℝ)⁻¹ • ∑ i ∈ F n, f (i +ᵥ ω')‖
+      = ((F n).card : ℝ)⁻¹ * |∑ i ∈ F n, f (i +ᵥ ω) - ∑ i ∈ F n, f (i +ᵥ ω')| := by
+        rw [smul_eq_mul, smul_eq_mul, ← mul_sub, Real.norm_eq_abs, abs_mul, abs_of_nonneg hc]
+    _ ≤ ((F n).card : ℝ)⁻¹ * (2 * M * #(J - Δ)) := by
+        exact mul_le_mul_of_nonneg_left hbound hc
+    _ = 2 * M * #(J - Δ) / ((F n).card : ℝ) := by
+        rw [div_eq_inv_mul]
+
+/-- Along a sequence of volumes with `|F n| → ∞`, the ergodic averages of a bounded function
+depending only on finitely many coordinates converge at a configuration if and only if they
+converge, to the same limit, at any configuration agreeing with it off a finite set. -/
+lemma tendsto_inv_card_smul_sum_vadd_congr_of_dependsOn
+    (hcard : Tendsto (fun n ↦ ((F n).card : ℝ)) atTop atTop) {f : (S → E) → ℝ} {M : ℝ}
+    (hM : ∀ ω, |f ω| ≤ M) {J Δ : Finset S} (hf : DependsOn f (J : Set S)) {ω ω' : S → E}
+    (hωω' : ∀ i ∉ Δ, ω i = ω' i) {c : ℝ} :
+    Tendsto (fun n ↦ ((F n).card : ℝ)⁻¹ • ∑ i ∈ F n, f (i +ᵥ ω)) atTop (𝓝 c) ↔
+      Tendsto (fun n ↦ ((F n).card : ℝ)⁻¹ • ∑ i ∈ F n, f (i +ᵥ ω')) atTop (𝓝 c) := by
+  have hdiff := tendsto_inv_card_smul_sum_vadd_sub_of_dependsOn hcard hM hf hωω'
+  constructor
+  · intro h
+    simpa using h.sub hdiff
+  · intro h
+    simpa using h.add hdiff
+
+end ShiftLocal
+
+/-! ### The rational ergodic CDF of a finite-volume observable is tail measurable -/
+
+section ShiftTail
+
+variable {S E : Type*} [MeasurableSpace E] [AddCommGroup S] [DecidableEq S]
+  [StandardBorelSpace E] {F : ℕ → Finset S}
+
+attribute [local instance] shiftAddAction measurableConstVAdd_shift
+
+omit [MeasurableSpace E] [AddCommGroup S] [DecidableEq S] [StandardBorelSpace E] in
+/-- The indicator of a cylinder event over the finite volume `J` depends only on the coordinates
+in `J`. -/
+lemma dependsOn_indicator_preimage_restrict {J : Finset S} (B : Set (∀ _ : J, E)) :
+    DependsOn ((J.restrict (π := fun _ : S ↦ E) ⁻¹' B).indicator (fun _ ↦ (1 : ℝ)))
+      (J : Set S) := by
+  intro x y hxy
+  have h : J.restrict (π := fun _ : S ↦ E) x = J.restrict y :=
+    funext fun j ↦ hxy j (Finset.mem_coe.2 j.2)
+  by_cases hx : x ∈ J.restrict (π := fun _ : S ↦ E) ⁻¹' B
+  · have hy : y ∈ J.restrict (π := fun _ : S ↦ E) ⁻¹' B := by
+      rw [Set.mem_preimage, ← h]; exact hx
+    rw [Set.indicator_of_mem hx, Set.indicator_of_mem hy]
+  · have hy : y ∉ J.restrict (π := fun _ : S ↦ E) ⁻¹' B := by
+      rw [Set.mem_preimage, ← h]; exact hx
+    rw [Set.indicator_of_notMem hx, Set.indicator_of_notMem hy]
+
+/-- **The ergodic averages of cylinder indicators are tail measurable in the limit**: for the
+observable `ω ↦ ω_J` of a finite volume `J`, the rational ergodic CDF `ergodicRatCDF` is
+unchanged by a modification of the configuration on a finite set, since only the `|J - Δ|` shifts
+`i ∈ J - Δ` see the modification while `|F n| → ∞`. -/
+lemma dependsOn_ergodicRatCDF_restrict
+    (hcard : Tendsto (fun n ↦ ((F n).card : ℝ)) atTop atTop) (J Δ : Finset S) :
+    DependsOn (ergodicRatCDF F (J.restrict (π := fun _ : S ↦ E))) ((Δ : Set S)ᶜ) := by
+  intro ω ω' hωω'
+  refine ergodicRatCDF_eq_of_forall_tendsto_iff fun q c ↦ ?_
+  exact tendsto_inv_card_smul_sum_vadd_congr_of_dependsOn hcard
+    (M := 1) (abs_indicator_preimage_Iic_le_one q)
+    (dependsOn_indicator_preimage_restrict _) (fun i hi ↦ hωω' i (by simpa using hi))
+
+/-- The rational ergodic CDF of a finite-volume observable is measurable for the tail σ-algebra
+`𝓣`. -/
+lemma measurable_tailSigmaAlgebra_ergodicRatCDF_restrict
+    (hcard : Tendsto (fun n ↦ ((F n).card : ℝ)) atTop atTop) (J : Finset S) :
+    Measurable[tailSigmaAlgebra S E] (ergodicRatCDF F (J.restrict (π := fun _ : S ↦ E))) :=
+  Measurable.iInf_measurableSpace fun Δ ↦
+    Measurable.cylinderEvents_of_dependsOn
+      (measurable_ergodicRatCDF' J.measurable_restrict)
+      (dependsOn_ergodicRatCDF_restrict hcard J Δ)
+
+end ShiftTail
+
+/-! ### The `(𝓟_Θ, 𝓘 ∩ 𝓣)`-kernel built from finite-volume ergodic averages -/
+
+section TailErgodicKernel
+
+variable {S E : Type*} [MeasurableSpace E] [AddCommGroup S] [Countable S] [DecidableEq S]
+  [StandardBorelSpace E] (F : ℕ → Finset S)
+  (hFol : ∀ g : S, Tendsto (fun n ↦ (((g +ᵥ F n) ∆ F n).card : ℝ) / (F n).card) atTop (𝓝 0))
+  (hcard : Tendsto (fun n ↦ ((F n).card : ℝ)) atTop atTop) (ν₀ : Measure (S → E))
+
+attribute [local instance] shiftAddAction measurableConstVAdd_shift
+
+/-- The invariant tail σ-algebra `𝓘 ∩ 𝓣`. -/
+local notation "𝓘𝓣" => invariantEvents (shiftGroup S E) ⊓ tailSigmaAlgebra S E
+
+include hFol hcard in
+/-- The rational ergodic CDF of the observable `ω ↦ ω_J` is `𝓘 ∩ 𝓣`-measurable: invariant by the
+Følner property, tail measurable because the observable is local. -/
+lemma measurable_inf_ergodicRatCDF_restrict (J : Finset S) :
+    Measurable[𝓘𝓣] (ergodicRatCDF F (J.restrict (π := fun _ : S ↦ E))) := by
+  refine Measurable.inf_measurableSpace ?_
+    (measurable_tailSigmaAlgebra_ergodicRatCDF_restrict hcard J)
+  rw [← smulInvariants_multiplicative_eq_invariantEvents_shiftGroup]
+  exact measurable_ergodicRatCDF J.measurable_restrict hFol
+
+/-- **Georgii's kernel of (14.10), finite-volume part**: the `𝓘 ∩ 𝓣`-measurable kernel from
+configuration space to the spins in a finite volume `J` whose values are the limits of the
+ergodic averages of the cylinder events over `J`. -/
+noncomputable def marginalErgodicKernel (J : Finset S) :
+    Kernel[𝓘𝓣] (S → E) (∀ _ : J, E) :=
+  ergodicKernelAux F (J.restrict (π := fun _ : S ↦ E))
+    (measurable_inf_ergodicRatCDF_restrict F hFol hcard J) (ν₀.map J.restrict)
+
+instance isMarkovKernel_marginalErgodicKernel [IsProbabilityMeasure ν₀] (J : Finset S) :
+    IsMarkovKernel (marginalErgodicKernel F hFol hcard ν₀ J) := by
+  have : IsProbabilityMeasure (ν₀.map (J.restrict (π := fun _ : S ↦ E))) :=
+    Measure.isProbabilityMeasure_map J.measurable_restrict.aemeasurable
+  unfold marginalErgodicKernel
+  infer_instance
+
+variable [IsProbabilityMeasure ν₀]
+
+/-- The event on which the finite-volume ergodic kernels form a projective family, i.e. are the
+marginals of a random field (Kolmogorov extension). -/
+def ergodicProjectiveSet : Set (S → E) :=
+  {ω | IsProjectiveMeasureFamily (α := fun _ : S ↦ E)
+    fun J ↦ marginalErgodicKernel F hFol hcard ν₀ J ω}
+
+include hFol hcard in
+/-- Projectivity of the finite-volume ergodic kernels is a countable family of conditions: it is
+enough to compare them on the rational half-lines of the Borel embeddings. -/
+lemma ergodicProjectiveSet_eq_iInter :
+    ergodicProjectiveSet F hFol hcard ν₀ =
+      ⋂ (I : Finset S), ⋂ (J : Finset S), ⋂ (hJI : J ⊆ I), ⋂ (q : ℚ),
+        {ω | marginalErgodicKernel F hFol hcard ν₀ J ω
+              (embeddingReal (∀ _ : J, E) ⁻¹' Iic (q : ℝ)) =
+            marginalErgodicKernel F hFol hcard ν₀ I ω
+              (Finset.restrict₂ (π := fun _ : S ↦ E) hJI ⁻¹'
+                (embeddingReal (∀ _ : J, E) ⁻¹' Iic (q : ℝ)))} := by
+  have hIic : ∀ (J : Finset S) (q : ℚ),
+      MeasurableSet (embeddingReal (∀ _ : J, E) ⁻¹' Iic (q : ℝ)) :=
+    fun J q ↦ (measurable_embeddingReal (∀ _ : J, E)) measurableSet_Iic
+  ext ω
+  simp only [ergodicProjectiveSet, Set.mem_ofPred_eq, Set.mem_iInter]
+  constructor
+  · intro h I J hJI q
+    have hh : marginalErgodicKernel F hFol hcard ν₀ J ω
+        = (marginalErgodicKernel F hFol hcard ν₀ I ω).map
+          (Finset.restrict₂ (π := fun _ : S ↦ E) hJI) := h I J hJI
+    rw [hh, Measure.map_apply (Finset.measurable_restrict₂ (X := fun _ : S ↦ E) hJI)
+      (hIic J q)]
+  · intro h I J hJI
+    show marginalErgodicKernel F hFol hcard ν₀ J ω
+        = (marginalErgodicKernel F hFol hcard ν₀ I ω).map
+          (Finset.restrict₂ (π := fun _ : S ↦ E) hJI)
+    have : IsProbabilityMeasure ((marginalErgodicKernel F hFol hcard ν₀ I ω).map
+        (Finset.restrict₂ (π := fun _ : S ↦ E) hJI)) :=
+      Measure.isProbabilityMeasure_map (Finset.measurable_restrict₂ hJI).aemeasurable
+    refine Measure.ext_of_forall_measure_preimage_embeddingReal_Iic fun q ↦ ?_
+    rw [Measure.map_apply (Finset.measurable_restrict₂ (X := fun _ : S ↦ E) hJI) (hIic J q)]
+    exact h I J hJI q
+
+include hFol hcard in
+/-- The projectivity event is `𝓘 ∩ 𝓣`-measurable: it is a countable intersection of level sets
+of the `𝓘 ∩ 𝓣`-measurable functions `ω ↦ π_J(A | ω)`. -/
+lemma measurableSet_ergodicProjectiveSet :
+    MeasurableSet[𝓘𝓣] (ergodicProjectiveSet F hFol hcard ν₀) := by
+  have hIic : ∀ (J : Finset S) (q : ℚ),
+      MeasurableSet (embeddingReal (∀ _ : J, E) ⁻¹' Iic (q : ℝ)) :=
+    fun J q ↦ (measurable_embeddingReal (∀ _ : J, E)) measurableSet_Iic
+  rw [ergodicProjectiveSet_eq_iInter]
+  refine MeasurableSet.iInter fun I ↦ MeasurableSet.iInter fun J ↦
+    MeasurableSet.iInter fun hJI ↦ MeasurableSet.iInter fun q ↦ ?_
+  exact measurableSet_eq_fun
+    ((marginalErgodicKernel F hFol hcard ν₀ J).measurable_coe (hIic J q))
+    ((marginalErgodicKernel F hFol hcard ν₀ I).measurable_coe
+      ((hIic J q).preimage (Finset.measurable_restrict₂ (X := fun _ : S ↦ E) hJI)))
+
+open Classical in
+/-- **Georgii's kernel of (14.10), as a function**: on the invariant tail event where the
+finite-volume ergodic kernels are projective, the random field having them as marginals
+(Kolmogorov extension); `ν₀` off that event. -/
+noncomputable def tailErgodicKernelFun (ω : S → E) : Measure (S → E) :=
+  haveI : ∀ J : Finset S, IsFiniteMeasure (marginalErgodicKernel F hFol hcard ν₀ J ω) :=
+    fun _ ↦ inferInstance
+  if h : IsProjectiveMeasureFamily (α := fun _ : S ↦ E)
+      (fun J ↦ marginalErgodicKernel F hFol hcard ν₀ J ω) then
+    (exists_isProjectiveLimit_of_standardBorel h).choose
+  else ν₀
+
+include hFol hcard in
+/-- On the projectivity event, `tailErgodicKernelFun` has the finite-volume ergodic kernels as
+its marginals. -/
+lemma isProjectiveLimit_tailErgodicKernelFun {ω : S → E}
+    (hω : ω ∈ ergodicProjectiveSet F hFol hcard ν₀) :
+    IsProjectiveLimit (tailErgodicKernelFun F hFol hcard ν₀ ω)
+      (fun J ↦ marginalErgodicKernel F hFol hcard ν₀ J ω) := by
+  classical
+  have hω' : IsProjectiveMeasureFamily (α := fun _ : S ↦ E)
+      (fun J ↦ marginalErgodicKernel F hFol hcard ν₀ J ω) := hω
+  have : ∀ J : Finset S, IsFiniteMeasure (marginalErgodicKernel F hFol hcard ν₀ J ω) :=
+    fun _ ↦ inferInstance
+  rw [tailErgodicKernelFun, dite_eq_left hω']
+  exact (exists_isProjectiveLimit_of_standardBorel hω').choose_spec
+
+include hFol hcard in
+/-- Off the projectivity event, `tailErgodicKernelFun` is the fixed invariant random field
+`ν₀`. -/
+lemma tailErgodicKernelFun_of_notMem {ω : S → E}
+    (hω : ω ∉ ergodicProjectiveSet F hFol hcard ν₀) :
+    tailErgodicKernelFun F hFol hcard ν₀ ω = ν₀ := by
+  classical
+  have hω' : ¬ IsProjectiveMeasureFamily (α := fun _ : S ↦ E)
+      (fun J ↦ marginalErgodicKernel F hFol hcard ν₀ J ω) := hω
+  rw [tailErgodicKernelFun, dite_eq_right hω']
+
+include hFol hcard in
+instance isProbabilityMeasure_tailErgodicKernelFun (ω : S → E) :
+    IsProbabilityMeasure (tailErgodicKernelFun F hFol hcard ν₀ ω) := by
+  by_cases hω : ω ∈ ergodicProjectiveSet F hFol hcard ν₀
+  · have : ∀ J : Finset S, IsProbabilityMeasure (marginalErgodicKernel F hFol hcard ν₀ J ω) :=
+      fun _ ↦ inferInstance
+    exact (isProjectiveLimit_tailErgodicKernelFun F hFol hcard ν₀ hω).isProbabilityMeasure
+  · rw [tailErgodicKernelFun_of_notMem F hFol hcard ν₀ hω]
+    infer_instance
+
+open Classical in
+include hFol hcard in
+/-- On a cylinder event over the finite volume `I`, the value of `tailErgodicKernelFun` is the
+value of the finite-volume ergodic kernel, on the projectivity event. -/
+lemma tailErgodicKernelFun_cylinder (I : Finset S) {B : Set (∀ _ : I, E)}
+    (hB : MeasurableSet B) :
+    (fun ω ↦ tailErgodicKernelFun F hFol hcard ν₀ ω (cylinder I B))
+      = Set.piecewise (ergodicProjectiveSet F hFol hcard ν₀)
+        (fun ω ↦ marginalErgodicKernel F hFol hcard ν₀ I ω B)
+        (fun _ ↦ ν₀ (cylinder I B)) := by
+  funext ω
+  by_cases hω : ω ∈ ergodicProjectiveSet F hFol hcard ν₀
+  · rw [Set.piecewise_eq_of_mem _ _ _ hω,
+      (isProjectiveLimit_tailErgodicKernelFun F hFol hcard ν₀ hω).measure_cylinder I hB]
+  · rw [Set.piecewise_eq_of_notMem _ _ _ hω, tailErgodicKernelFun_of_notMem F hFol hcard ν₀ hω]
+
+include hFol hcard in
+/-- **The kernel of (14.10) is `𝓘 ∩ 𝓣`-measurable**: its values on the cylinder events are the
+`𝓘 ∩ 𝓣`-measurable finite-volume ergodic averages, and the cylinder events are a π-system
+generating `𝓕`. -/
+lemma measurable_tailErgodicKernelFun :
+    Measurable[𝓘𝓣] (tailErgodicKernelFun F hFol hcard ν₀) := by
+  classical
+  refine Measure.measurable_of_isPiSystem_of_isProbabilityMeasure _
+    (S := measurableCylinders (fun _ : S ↦ E)) generateFrom_measurableCylinders.symm
+    isPiSystem_measurableCylinders fun u hu ↦ ?_
+  obtain ⟨I, B, hB, rfl⟩ := (mem_measurableCylinders _).1 hu
+  rw [tailErgodicKernelFun_cylinder F hFol hcard ν₀ I hB]
+  exact Measurable.piecewise (measurableSet_ergodicProjectiveSet F hFol hcard ν₀)
+    ((marginalErgodicKernel F hFol hcard ν₀ I).measurable_coe hB) measurable_const
+
+/-- The `𝓘 ∩ 𝓣`-kernel of the finite-volume ergodic averages, before correction on the event
+where its value is not invariant. -/
+noncomputable def tailErgodicKernelAux : Kernel[𝓘𝓣] (S → E) (S → E) :=
+  @Kernel.mk (S → E) (S → E) (invariantEvents (shiftGroup S E) ⊓ tailSigmaAlgebra S E)
+    inferInstance (tailErgodicKernelFun F hFol hcard ν₀)
+    (measurable_tailErgodicKernelFun F hFol hcard ν₀)
+
+@[simp] lemma tailErgodicKernelAux_apply (ω : S → E) :
+    tailErgodicKernelAux F hFol hcard ν₀ ω = tailErgodicKernelFun F hFol hcard ν₀ ω := rfl
+
+instance isMarkovKernel_tailErgodicKernelAux :
+    IsMarkovKernel (tailErgodicKernelAux F hFol hcard ν₀) :=
+  ⟨fun ω ↦ isProbabilityMeasure_tailErgodicKernelFun F hFol hcard ν₀ ω⟩
+
+/-- The invariant tail event on which the value of `tailErgodicKernelFun` is an invariant
+probability measure. -/
+def tailErgodicInvariantSet : Set (S → E) :=
+  {ω | IsVAddInvariantCore S (tailErgodicKernelFun F hFol hcard ν₀ ω)}
+
+include hFol hcard in
+lemma measurableSet_tailErgodicInvariantSet :
+    MeasurableSet[𝓘𝓣] (tailErgodicInvariantSet F hFol hcard ν₀) :=
+  (measurableSet_isVAddInvariantCore S (S → E)).preimage
+    (measurable_tailErgodicKernelFun F hFol hcard ν₀)
+
+open Classical in
+/-- **Georgii (14.10), the `(𝓟_Θ, 𝓘)`-kernel, `𝓘 ∩ 𝓣`-measurable version**: the random field
+with the finite-volume ergodic averages as marginals, replaced by `ν₀` where that field is not an
+invariant probability measure. -/
+noncomputable def tailErgodicKernel : Kernel[𝓘𝓣] (S → E) (S → E) :=
+  Kernel.piecewise (measurableSet_tailErgodicInvariantSet F hFol hcard ν₀)
+    (tailErgodicKernelAux F hFol hcard ν₀) (@Kernel.const (S → E) (S → E) 𝓘𝓣 _ ν₀)
+
+instance isMarkovKernel_tailErgodicKernel : IsMarkovKernel (tailErgodicKernel F hFol hcard ν₀) := by
+  unfold tailErgodicKernel
+  infer_instance
+
+include hFol hcard in
+/-- Every value of the kernel is an invariant probability measure. -/
+lemma tailErgodicKernel_mem [VAddInvariantMeasure S (S → E) ν₀] (ω : S → E) :
+    IsProbabilityMeasure (tailErgodicKernel F hFol hcard ν₀ ω) ∧
+      VAddInvariantMeasure S (S → E) (tailErgodicKernel F hFol hcard ν₀ ω) := by
+  classical
+  rw [tailErgodicKernel, Kernel.piecewise_apply]
+  split_ifs with h
+  · exact isVAddInvariantCore_iff.1 h
+  · rw [Kernel.const_apply]; exact ⟨‹_›, ‹_›⟩
+
+variable {C : ℝ≥0∞} {μ : Measure (S → E)} [IsProbabilityMeasure μ]
+  [VAddInvariantMeasure S (S → E) μ]
+
+include hFol hcard in
+/-- For every invariant `μ`, the finite-volume ergodic kernels are `μ`-a.s. the finite-volume
+marginals of the conditional distribution `μ(· | 𝓘)` (the multidimensional ergodic theorem
+(14.A8), applied to the countably many finite volumes). -/
+lemma ae_marginalErgodicKernel_eq_map (hF : Monotone F) (hne : (F 0).Nonempty)
+    (hC : ∀ n, ((F n - F n + F n).card : ℝ≥0∞) ≤ C * (F n).card) (hC' : C ≠ ∞) :
+    ∀ᵐ ω ∂μ, ∀ J : Finset S, marginalErgodicKernel F hFol hcard ν₀ J ω
+      = (condExpKernel μ (MeasurableSpace.smulInvariants (Multiplicative S) (S → E)) ω).map
+        (J.restrict (π := fun _ : S ↦ E)) := by
+  refine ae_all_iff.2 fun J ↦ ?_
+  have : IsProbabilityMeasure (ν₀.map (J.restrict (π := fun _ : S ↦ E))) :=
+    Measure.isProbabilityMeasure_map J.measurable_restrict.aemeasurable
+  exact ae_ergodicKernelAux_eq_map (μ := μ)
+    (measurable_inf_ergodicRatCDF_restrict F hFol hcard J) hFol J.measurable_restrict hF hne hC hC'
+
+include hFol hcard in
+/-- **The kernel is a version of `μ(· | 𝓘)`**: for every invariant probability measure `μ`, the
+`𝓘 ∩ 𝓣`-measurable kernel is `μ`-a.s. the conditional distribution `μ(· | 𝓘)`, because both are
+random fields with the same finite-volume marginals (uniqueness of the projective limit). -/
+lemma ae_tailErgodicKernel_eq_condExpKernel (hF : Monotone F) (hne : (F 0).Nonempty)
+    (hC : ∀ n, ((F n - F n + F n).card : ℝ≥0∞) ≤ C * (F n).card) (hC' : C ≠ ∞) :
+    ∀ᵐ ω ∂μ, tailErgodicKernel F hFol hcard ν₀ ω
+      = condExpKernel μ (MeasurableSpace.smulInvariants (Multiplicative S) (S → E)) ω := by
+  classical
+  filter_upwards [ae_marginalErgodicKernel_eq_map F hFol hcard ν₀ (μ := μ) (C := C) hF hne hC hC',
+    ae_isVAddInvariantCore_condExpKernel (G := S) (μ := μ)] with ω h1 h2
+  have hlim : IsProjectiveLimit
+      (condExpKernel μ (MeasurableSpace.smulInvariants (Multiplicative S) (S → E)) ω)
+      (fun J ↦ marginalErgodicKernel F hFol hcard ν₀ J ω) := fun J ↦ (h1 J).symm
+  have hproj : ω ∈ ergodicProjectiveSet F hFol hcard ν₀ := hlim.isProjectiveMeasureFamily
+  have : ∀ J : Finset S, IsFiniteMeasure (marginalErgodicKernel F hFol hcard ν₀ J ω) :=
+    fun _ ↦ inferInstance
+  have heq : tailErgodicKernelFun F hFol hcard ν₀ ω
+      = condExpKernel μ (MeasurableSpace.smulInvariants (Multiplicative S) (S → E)) ω :=
+    (isProjectiveLimit_tailErgodicKernelFun F hFol hcard ν₀ hproj).unique hlim
+  have hgood : ω ∈ tailErgodicInvariantSet F hFol hcard ν₀ := by
+    show IsVAddInvariantCore S _
+    rw [heq]; exact h2
+  rw [tailErgodicKernel, Kernel.piecewise_apply, ite_eq_left hgood, tailErgodicKernelAux_apply,
+    heq]
+
+include hFol hcard in
+/-- **Georgii, Theorem (14.10), first assertion, refined**: along an increasing regular Følner
+sequence of volumes whose cardinalities tend to infinity, the kernel `tailErgodicKernel` is a
+`(𝓟_Θ, 𝓘)`-kernel which is moreover measurable with respect to `𝓘 ∩ 𝓣`. -/
+theorem isPAKernel_comap_tailErgodicKernel [VAddInvariantMeasure S (S → E) ν₀]
+    (hF : Monotone F) (hne : (F 0).Nonempty)
+    (hC : ∀ n, ((F n - F n + F n).card : ℝ≥0∞) ≤ C * (F n).card) (hC' : C ≠ ∞) :
+    IsPAKernel (invariantFields (shiftGroup S E)) (invariantEvents (shiftGroup S E))
+      ((tailErgodicKernel F hFol hcard ν₀).comap id (measurable_id'' inf_le_left)) := by
+  refine ⟨fun μ hμ A hA ↦ ?_, fun ω ↦ mem_invariantFields_shiftGroup_iff_vaddInvariantMeasure.2
+    (tailErgodicKernel_mem F hFol hcard ν₀ ω)⟩
+  obtain ⟨h₁, h₂⟩ := mem_invariantFields_shiftGroup_iff_vaddInvariantMeasure.1 hμ
+  have hce : μ[A.indicator (fun _ ↦ (1 : ℝ)) | invariantEvents (shiftGroup S E)]
+      = μ[A.indicator (fun _ ↦ (1 : ℝ)) |
+        MeasurableSpace.smulInvariants (Multiplicative S) (S → E)] := by
+    rw [smulInvariants_multiplicative_eq_invariantEvents_shiftGroup]
+  rw [hce]
+  filter_upwards [ae_tailErgodicKernel_eq_condExpKernel F hFol hcard ν₀ (μ := μ) (C := C)
+      hF hne hC hC',
+    condExpKernel_ae_eq_condExp (μ := μ)
+      (MeasurableSpace.smulInvariants_le (M := Multiplicative S)) hA] with ω hω1 hω2
+  rw [Kernel.comap_apply, id_eq, hω1, hω2]
+
+include hFol hcard in
+/-- **Georgii, Theorem (14.10), first assertion, refined**: for the shift group `Θ` of a
+countable abelian site group admitting an increasing regular Følner sequence of volumes with
+`|F n| → ∞`, and a standard Borel state space, there is a `(𝓟_Θ, 𝓘)`-kernel which is measurable
+with respect to `𝓘 ∩ 𝓣`, as soon as `𝓟_Θ ≠ ∅`. -/
+theorem exists_isPAKernel_invariantFields_shiftGroup_inf_tail (hF : Monotone F)
+    (hne : (F 0).Nonempty) (hC : ∀ n, ((F n - F n + F n).card : ℝ≥0∞) ≤ C * (F n).card)
+    (hC' : C ≠ ∞) (hne' : (invariantFields (shiftGroup S E)).Nonempty) :
+    ∃ π : Kernel[invariantEvents (shiftGroup S E) ⊓ tailSigmaAlgebra S E] (S → E) (S → E),
+      IsMarkovKernel π ∧ IsPAKernel (invariantFields (shiftGroup S E))
+        (invariantEvents (shiftGroup S E)) (π.comap id (measurable_id'' inf_le_left)) := by
+  obtain ⟨ν₁, hν₁⟩ := hne'
+  obtain ⟨h₁, h₂⟩ := mem_invariantFields_shiftGroup_iff_vaddInvariantMeasure.1 hν₁
+  exact ⟨tailErgodicKernel F hFol hcard ν₁, inferInstance,
+    isPAKernel_comap_tailErgodicKernel F hFol hcard ν₁ (C := C) hF hne hC hC'⟩
+
+end TailErgodicKernel
+
+/-! #### The cubes of `ℤ^d` -/
+
+section CubeTail
+
+variable {ι E : Type*} [Fintype ι] [DecidableEq ι] [MeasurableSpace E] [StandardBorelSpace E]
+
+omit [Fintype ι] [DecidableEq ι] in
+/-- **Georgii, Theorem (14.10), first assertion, on `ℤ^d`, refined**: for a standard Borel state
+space there is a `(𝓟_Θ, 𝓘)`-kernel for the shift group of `ℤ^d` (along the cubes `[0, n)^d`)
+which is moreover measurable with respect to `𝓘 ∩ 𝓣`, as soon as `𝓟_Θ ≠ ∅`. This is the form in
+which Georgii states (14.10): his kernel is built from ergodic averages of cylinder events, whose
+limits do not see a modification of the configuration on a finite set. -/
+theorem exists_isPAKernel_invariantFields_shiftGroup_int_inf_tail [Finite ι] [Nonempty ι]
+    (hne' : (invariantFields (shiftGroup (ι → ℤ) E)).Nonempty) :
+    ∃ π : Kernel[invariantEvents (shiftGroup (ι → ℤ) E) ⊓ tailSigmaAlgebra (ι → ℤ) E]
+        ((ι → ℤ) → E) ((ι → ℤ) → E), IsMarkovKernel π ∧
+      IsPAKernel (invariantFields (shiftGroup (ι → ℤ) E))
+        (invariantEvents (shiftGroup (ι → ℤ) E)) (π.comap id (measurable_id'' inf_le_left)) := by
+  classical
+  have := Fintype.ofFinite ι
+  obtain ⟨F, C, hF, hne, hFol, hC, hC', hcard⟩ := exists_monotone_regular_foelner_cube (ι := ι)
+  exact exists_isPAKernel_invariantFields_shiftGroup_inf_tail (F := F) hFol (hcard ‹Nonempty ι›)
+    hF hne hC hC' hne'
+
+end CubeTail
 
 /-! ### `𝓟_Θ` for a countable subgroup `Θ ≤ T`: measurability, convexity, the decomposition -/
 

@@ -31,7 +31,7 @@ $\norm{\Phi} = \norm{\Phi}_0$ of (2.12).
 \begin{definition}[One-sided directional derivatives, Georgii (16.2)]
     \label{def:tf-16-2}
     \uses{prop:tf-16-1}
-    \lean{ConvexOn.rightDirDeriv, ConvexOn.leftDirDeriv, ConvexOn.leftDirDeriv_le_rightDirDeriv, ConvexOn.tendsto_dirSlope_rightDirDeriv, ConvexOn.tendsto_dirSlope_leftDirDeriv, Potential.BTheta.leftDirDeriv_le_rightDirDeriv_pressure}
+    \lean{rightDirDeriv, leftDirDeriv, ConvexOn.leftDirDeriv_le_rightDirDeriv, ConvexOn.tendsto_dirSlope_rightDirDeriv, ConvexOn.tendsto_dirSlope_leftDirDeriv, Potential.BTheta.leftDirDeriv_le_rightDirDeriv_pressure}
     \leanok
 
     For $f$ convex, $\partial^+_\Psi f(x) = \inf_{t > 0} t^{-1}(f(x + t\Psi) - f(x))$ is the limit
@@ -60,7 +60,7 @@ $\norm{\Phi} = \norm{\Phi}_0$ of (2.12).
 \begin{definition}[Bounded functionals and tangent functionals, Georgii (16.4)]
     \label{def:tf-16-4}
     \uses{prop:tf-16-1}
-    \lean{ConvexOn.IsBoundedBy, ConvexOn.isBoundedBy_iff, ConvexOn.subgradientAt}
+    \lean{IsBoundedBy, isBoundedBy_iff, subgradientAt}
     \leanok
 
     A linear $L$ is bounded by $f$ if $L \leq f + c$ for some $c$; $L$ is tangent to $f$ at $x$,
@@ -70,7 +70,7 @@ $\norm{\Phi} = \norm{\Phi}_0$ of (2.12).
 \begin{proposition}[Georgii (16.5)]
     \label{prop:tf-16-5}
     \uses{def:tf-16-4}
-    \lean{ConvexOn.negFenchel, ConvexOn.negFenchel_le, ConvexOn.mem_subgradientAt_iff, ConvexOn.isBoundedBy_of_mem_subgradientAt, ConvexOn.negFenchel_eq_of_mem_subgradientAt}
+    \lean{negFenchel, negFenchel_le, mem_subgradientAt_iff, isBoundedBy_of_mem_subgradientAt, negFenchel_eq_of_mem_subgradientAt}
     \leanok
 
     With $\mathcal A(L) = \inf_y (f(y) - L(y))$: $L$ is tangent to $f$ at $x$ iff $L$ is bounded by
@@ -98,7 +98,7 @@ $\norm{\Phi} = \norm{\Phi}_0$ of (2.12).
 \begin{theorem}[Bishop--Phelps, Georgii (16.7)--(16.9)]
     \label{thm:tf-16-7}
     \uses{thm:tf-16-6, prop:tf-16-5}
-    \lean{ConvexOn.exists_mem_subgradientAt_of_isBoundedBy, ConvexOn.IsBoundedBy.continuous, Potential.BTheta.exists_mem_subgradientAt_pressure_of_isBoundedBy}
+    \lean{ConvexOn.exists_mem_subgradientAt_of_isBoundedBy, IsBoundedBy.continuous, Potential.BTheta.exists_mem_subgradientAt_pressure_of_isBoundedBy}
     \leanok
 
     Let $f$ be convex and Lipschitz, $C$ a closed convex cone, $L_0$ bounded by $f$, and

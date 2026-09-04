@@ -1183,9 +1183,14 @@ alignment:
         inequalities, (15.18) with the density and Georgii's conditional-probability display in
         Mathlib's condExp (toReal_lintegral_update_ae_eq_condExp); (15.19) for finite E and the
         uniform a priori measure (Shannon's formula; the counting-measure normalisation differs by
-        log |E|); (15.20) an I-measurable h_0 with h(mu) = int h_0 dmu on P_Theta and h(mu) =
-        int h dw_mu for the ergodic decomposition. Georgii's h_0 is I cap T-measurable; the (14.10)
-        kernel in InvariantDecomposition.lean is exposed with I-measurability only.
+        log |E|); (15.20) an I cap T-measurable h_0 with h(mu) = int h_0 dmu on P_Theta and
+        h(mu) = int h dw_mu for the ergodic decomposition, as Georgii states it. The tail
+        measurability needed a second (P_Theta, I)-kernel: the ergodic averages of cylinder
+        indicators over a finite volume are tail measurable, so the marginal kernels are, and
+        Kolmogorov extension reassembles them (marginalErgodicKernel, tailErgodicKernel in
+        InvariantDecomposition.lean). The original kernel cannot be strengthened: its rational CDF
+        averages indicators of arbitrary Borel half-lines, which are not local. The strengthening
+        is false for a finite site group, where T is trivial; |F n| -> infinity excludes that.
         lambda is a probability measure (Georgii's finite lambda is normalised, as he does himself).
     - source: "Display (11.6), Proposition (11.7): the convergence parameter and recurrence"
       lean: "ProbabilityTheory.Kernel.eq_of_apply_eq_mul_div_of_isRecurrent_of_convergenceNorm_eq_one"

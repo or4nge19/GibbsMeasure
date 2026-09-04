@@ -117,17 +117,20 @@ $\Cfg$, $\mathcal H_\Lambda(\mu \mid \nu)$ the relative entropy on $\mathcal F_\
 \begin{theorem}[Georgii (15.20)]
     \label{thm:sent-15-20}
     \uses{thm:sent-15-16, thm:erg-1410}
-    \lean{MeasureTheory.GibbsMeasure.exists_measurable_specificEntropy_eq_neg_lintegral, MeasureTheory.GibbsMeasure.specificEntropy_join_eq_neg_lintegral}
+    \lean{MeasureTheory.GibbsMeasure.exists_measurable_specificEntropy_eq_neg_lintegral, MeasureTheory.GibbsMeasure.specificEntropy_join_eq_neg_lintegral, MeasureTheory.GibbsMeasure.tailErgodicKernel, MeasureTheory.GibbsMeasure.marginalErgodicKernel, MeasureTheory.GibbsMeasure.exists_isPAKernel_invariantFields_shiftGroup_int_inf_tail}
     \leanok
 
-    Let $E$ be standard Borel. There is an $\mathcal I$-measurable $h_0 \leq 0$ with
-    $h(\mu) = \int h_0\,d\mu$ for all $\mu \in \Prob_\Theta$, and $h(\mu) = \int h(\nu)\,w_\mu(d\nu)$
-    for the ergodic decomposition $w_\mu$ of Theorem \ref{thm:erg-1410}. Georgii's $h_0$ is
-    $\mathcal I \cap \mathcal T$-measurable; the kernel of (14.10) in the tree is exposed with
-    $\mathcal I$-measurability only.
+    Let $E$ be standard Borel and $d \geq 1$. There is an
+    $\mathcal I \cap \mathcal T$-measurable $h_0 \leq 0$ with $h(\mu) = \int h_0\,d\mu$ for all
+    $\mu \in \Prob_\Theta$, and $h(\mu) = \int h(\nu)\,w_\mu(d\nu)$ for the ergodic decomposition
+    $w_\mu$ of Theorem \ref{thm:erg-1410}.
 \end{theorem}
 \begin{proof}
     \leanok
-    $h_0 = h(\pi(\cdot \mid \omega))$ for the $(\Prob_\Theta, \mathcal I)$-kernel $\pi$; the
+    $h_0 = h(\pi(\cdot \mid \omega))$ for a $(\Prob_\Theta, \mathcal I)$-kernel $\pi$ that is
+    moreover $\mathcal I \cap \mathcal T$-measurable: the ergodic averages of the indicators of
+    cylinder events over a finite volume are tail measurable, so the marginal kernels are, and
+    Kolmogorov extension reassembles them. (This fails for a finite site group, where
+    $\mathcal T$ is trivial, and the hypothesis $\abs{F_n} \to \infty$ excludes that.) The
     integral identity is affinity of $h$ under the decomposition.
 \end{proof}

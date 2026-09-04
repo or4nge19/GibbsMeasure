@@ -113,4 +113,21 @@ lemma Measure.AbsolutelyContinuous.bind {μ ν : Measure α} {κ : α → Measur
 
 end BindAbsolutelyContinuous
 
+section PiSystemMeasurableSpace
+
+variable {α β : Type*} [MeasurableSpace β]
+
+/-- **A family of probability measures is measurable as soon as its values on a generating
+π-system are**, for a σ-algebra `mα` on the index space which need not be the ambient instance.
+`Measurable.measure_of_isPiSystem_of_isProbabilityMeasure` with the σ-algebra of the source made
+explicit, as in `MeasureTheory.Measure.measurable_of_measurable_coe`. -/
+theorem Measure.measurable_of_isPiSystem_of_isProbabilityMeasure (mα : MeasurableSpace α)
+    {μ : α → Measure β} [∀ a, IsProbabilityMeasure (μ a)] {S : Set (Set β)}
+    (hgen : ‹MeasurableSpace β› = .generateFrom S) (hpi : IsPiSystem S)
+    (h_basic : ∀ s ∈ S, Measurable[mα] fun a ↦ μ a s) : Measurable[mα] μ :=
+  letI : MeasurableSpace α := mα
+  Measurable.measure_of_isPiSystem_of_isProbabilityMeasure hgen hpi h_basic
+
+end PiSystemMeasurableSpace
+
 end MeasureTheory

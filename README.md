@@ -480,8 +480,10 @@ as an infimum over boxes with convergence along any boxes with all side lengths 
 compact for standard Borel `E` ((15.14)(c)); **(15.16)–(15.18)**: `h(μ) = −𝓗_{V(0)}(μ | μλ_0)` over the
 lexicographic past, the infimum formula, both inequalities of (15.17), and the conditional form with
 Georgii's display `μ(σ_0 ∈ · | 𝓕_{V(0)∖0})` as Mathlib's `condExp`; **(15.19)** Shannon's formula for
-finite `E`; **(15.20)** an `𝓘`-measurable `h_0` with `h(μ) = ∫ h_0 dμ` on `𝓟_Θ` and `h(μ) = ∫ h dw_μ`
-over the ergodic decomposition. **§15.3** (`GibbsMeasure/Specification/Pressure.lean`):
+finite `E`; **(15.20)** an `𝓘 ∩ 𝓣`-measurable `h_0` with `h(μ) = ∫ h_0 dμ` on `𝓟_Θ` and `h(μ) = ∫ h dw_μ`
+over the ergodic decomposition, as Georgii states it: the tail measurability needs a second
+`(𝓟_Θ, 𝓘)`-kernel, built from the ergodic averages of cylinder indicators, which are tail
+measurable, and reassembled by Kolmogorov extension. **§15.3** (`GibbsMeasure/Specification/Pressure.lean`):
 the energy density and specific energy (15.22)–(15.24), the boundary estimate (15.25) with an
 explicit finite-volume bound, and **Theorem (15.30)(a)**: the pressure `P(Φ)` exists along any boxes
 with all side lengths → ∞, for every choice of boundary conditions, with `|P(Φ)| ≤ ‖Φ‖₀`; `P` is

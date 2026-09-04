@@ -182,4 +182,16 @@ theorem exists_isProjectiveLimit_of_standardBorel {α : ι → Type*} [∀ i, Me
 
 end StandardBorel
 
+section ProjectiveLimit
+
+/-- The family of finite-dimensional marginals of a measure is projective: `IsProjectiveLimit`
+implies `IsProjectiveMeasureFamily`. -/
+theorem IsProjectiveLimit.isProjectiveMeasureFamily {μ : Measure (Π i, α i)}
+    (h : IsProjectiveLimit μ P) : IsProjectiveMeasureFamily P := by
+  intro I J hJI
+  rw [← h I, ← h J, Measure.map_map (Finset.measurable_restrict₂ hJI) I.measurable_restrict,
+    Finset.restrict₂_comp_restrict]
+
+end ProjectiveLimit
+
 end MeasureTheory
