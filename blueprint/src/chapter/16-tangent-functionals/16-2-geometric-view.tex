@@ -1,0 +1,61 @@
+\section{A geometric view of Gibbs measures}
+
+\begin{definition}[Local potentials, Georgii (16.10)]
+    \label{def:gv-16-10}
+    \uses{def:tf-btheta, def:pr-energy-density}
+    \lean{Potential.localPotential, Potential.normAt_localPotential, Potential.specificEnergy_localPotential, Potential.BTheta.specificEnergyFunctional, Potential.BTheta.specificEnergyFunctional_injective}
+    \leanok
+
+    For a finite volume $\Lambda$ and a bounded local $f$, the shift-invariant potential
+    $\Phi^{\Lambda,f}$ obtained by spreading $f$ over the translates of $\Lambda$ satisfies
+    $\norm{\Phi^{\Lambda,f}} = \abs{\Lambda}\norm{f}$ and $\langle\mu,\Phi^{\Lambda,f}\rangle =
+    \mu(f)$ for $\mu \in \Prob_\Theta$. Hence $j : \mu \mapsto (\Psi \mapsto -\langle\mu,\Psi\rangle)$
+    is injective on $\Prob_\Theta$.
+\end{definition}
+
+\begin{theorem}[Georgii (16.11)]
+    \label{thm:gv-16-11}
+    \uses{def:gv-16-10, thm:vp-15-39, prop:sent-15-14c, thm:pr-15-30}
+    \lean{Potential.BTheta.specificEntropyDual_eq_iInf, Potential.BTheta.isCompact_setOf_le_specificEntropyDual}
+    \leanok
+
+    For $E$ standard Borel and every linear $L$ on $\mathcal B_\Theta$,
+    $h^*(L) = \inf_\Phi (P(\Phi) - L(\Phi))$, where $h^*$ is the specific entropy transported
+    along $j$.
+\end{theorem}
+\begin{proof}
+    \leanok
+    The hypograph of $h^*$ is nonempty, convex and closed in the weak topology, since the level
+    sets $\{h \geq c\}$ are compact and $j$ is continuous; separate a point from it by
+    Hahn--Banach and represent the separating functional by the weak representation theorem. The
+    other inequality is Corollary (15.35), with attainment on $\mathcal G_\Theta(\Phi)$.
+\end{proof}
+
+\begin{corollary}[Georgii (16.12), (16.13)]
+    \label{cor:gv-16-12}
+    \uses{thm:gv-16-11, def:tf-16-4}
+    \lean{Potential.BTheta.specificEntropy_eq_iInf, Potential.BTheta.isBoundedBy_pressure_iff, Potential.BTheta.fieldsOf}
+    \leanok
+
+    $h(\mu) = \inf_\Phi (\langle\mu,\Phi\rangle + P(\Phi))$ for $\mu \in \Prob_\Theta$, and a
+    linear $L$ is bounded by $P$ iff $L = j(\mu)$ for some $\mu \in \Prob_\Theta$ with
+    $h(\mu) > -\infty$; such a $\mu$ is unique.
+\end{corollary}
+
+\begin{theorem}[Georgii (16.14)]
+    \label{thm:gv-16-14}
+    \uses{thm:gv-16-11, thm:tf-16-6, thm:vp-15-39}
+    \lean{Potential.BTheta.mem_subgradientAt_pressure_of_mem_invariantG, Potential.BTheta.mem_subgradientAt_pressure_iff_mem_invariantG', Potential.BTheta.exists_mem_fieldsOf_mem_invariantG, Potential.BTheta.subsingleton_invariantG_of_gateauxDifferentiable, Potential.BTheta.gateauxDifferentiable_pressure_iff_subsingleton}
+    \leanok
+
+    For $E$ standard Borel, $j$ maps $\mathcal G_\Theta(\Phi)$ bijectively onto the tangent
+    functionals of $P$ at $\Phi$. Consequently $P$ is Gateaux differentiable at $\Phi$ iff
+    $\mathcal G_\Theta(\Phi)$ is a singleton, and by Theorem \ref{thm:tf-16-3} that happens on a
+    dense $G_\delta$ when $E$ is finite.
+\end{theorem}
+\begin{proof}
+    \leanok
+    Tangency of $j(\mu)$ at $\Phi$ says exactly that $\mu$ minimises the specific free energy,
+    which by the variational principle characterises $\mathcal G_\Theta(\Phi)$; surjectivity is
+    Theorem \ref{thm:gv-16-11} with the attainment of the infimum.
+\end{proof}

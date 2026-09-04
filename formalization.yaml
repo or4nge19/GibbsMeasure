@@ -316,6 +316,10 @@ status:
       file: "GibbsMeasure/Specification/TangentFunctional.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "Potential.BTheta.gateauxDifferentiable_pressure_iff_subsingleton"
+      file: "GibbsMeasure/Specification/PhaseTransition.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.isCompact_setOf_le_specificEntropy"
       file: "GibbsMeasure/Specification/SpecificEntropy.lean"
       sorry_count: 0
@@ -1129,6 +1133,24 @@ alignment:
         finite E (Georgii's remark that rational finite-range potentials are dense) is a hypothesis
         of the Mazur corollary, not yet proved. The identification of G_Theta(Phi) with the tangent
         functionals of P is Section 16.2, not attempted.
+    - source: "Section 16.2: (16.10)-(16.14)"
+      lean: "Potential.BTheta.gateauxDifferentiable_pressure_iff_subsingleton"
+      module: "GibbsMeasure/Specification/PhaseTransition.lean"
+      status: "proved"
+      note: >-
+        (16.10) local potentials, with ||Phi^{Lambda,f}|| = |Lambda| ||f|| and specific energy
+        mu(f), so mu |-> (Psi |-> -<mu,Psi>) is injective on P_Theta; (16.11) the Fenchel identity
+        h*(L) = inf_Phi (P(Phi) - L(Phi)) for standard Borel E, by separating the hypograph (closed
+        because the level sets of the specific entropy are compact and the embedding is continuous)
+        and representing the separating functional; (16.12) h(mu) = inf_Phi (<mu,Phi> + P(Phi));
+        (16.13) the P-bounded functionals are exactly the images of shift-invariant fields with
+        specific entropy > -infinity, uniquely; (16.14) the embedding maps G_Theta(Phi) bijectively
+        onto the tangent functionals of P at Phi, so P is Gateaux differentiable at Phi iff
+        G_Theta(Phi) is a singleton, which for finite E happens on a dense G_delta.
+        Also: B_Theta is separable for finite E (rational potentials over finitely many translate
+        classes), so the Mazur corollary of Section 16.1 no longer carries that hypothesis.
+        Not formalized: (16.15)-(16.16), which need the converse half of Theorem (2.34) and (2.35),
+        and (16.17), which needs Corollary (8.37).
     - source: "Comment (11.18)(2), Corollary (11.19)"
       lean: "MeasureTheory.GibbsMeasure.Markov.eq_empty_G_transferSpecification_randomWalk"
       module: "GibbsMeasure/Model/BoundaryLawExamples.lean"

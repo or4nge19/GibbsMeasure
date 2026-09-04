@@ -230,6 +230,7 @@ public import GibbsMeasure.Specification.Pressure
 public import GibbsMeasure.Specification.SpecificEntropy
 public import GibbsMeasure.Specification.VariationalPrinciple
 public import GibbsMeasure.Specification.TangentFunctional
+public import GibbsMeasure.Specification.PhaseTransition
 public import GibbsMeasure.Specification.Structure
 public import GibbsMeasure.Topology.ConfigurationSpace
 public import GibbsMeasure.Topology.ClusterPoints

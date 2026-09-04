@@ -506,8 +506,13 @@ and Mazur's theorem, `f`-bounded and tangent functionals, the attainment criteri
 tangent functional in every admissible direction by Hahn–Banach, and Bishop–Phelps. None of this
 convex analysis was in Mathlib, so it lives in the Mathlib layer
 (`GibbsMeasure/Mathlib/Analysis/Convex/TangentFunctional.lean`). Separability of `ℬ_Θ` is a
-hypothesis of the Mazur corollary rather than a theorem; the identification of `𝒢_Θ(Φ)` with the
-tangent functionals of the pressure is §16.2 and is not yet done.
+a theorem for finite `E`, where the potentials with rational values over finitely many translate
+classes are dense. **§16.2** (`GibbsMeasure/Specification/PhaseTransition.lean`): local potentials
+(16.10) make `μ ↦ −⟨μ,·⟩` injective on `𝓟_Θ`; the Fenchel identity (16.11) comes from separating the
+hypograph of the specific entropy, closed because its level sets are compact; and **(16.14)** — that
+map carries `𝒢_Θ(Φ)` bijectively onto the tangent functionals of the pressure at `Φ`, so the pressure
+is Gateaux differentiable exactly where the shift-invariant Gibbs measure is unique, which for finite
+`E` is a dense `G_δ` of potentials.
 
 **Chapter 9, §9.1** (`GibbsMeasure/Specification/SymmetryInheritance.lean`,
 `GibbsMeasure/Model/OneDimensionalSymmetry.lean`): **Proposition (9.1)** — a symmetry `τ` of `γ`
