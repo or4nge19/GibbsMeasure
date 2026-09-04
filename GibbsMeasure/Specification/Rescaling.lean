@@ -53,6 +53,11 @@ the λ-specification layer of `GibbsMeasure/Specification.lean`.
   `Specification.lambdaSpecification_eq_modification_isssd`: the λ-specification of a finite `λ` is
   the λ-specification of `λ(E)⁻¹ · λ`, and for a probability measure it is the normalized
   modification of `Specification.isssd` used elsewhere in this development.
+* `Specification.sigmaFiniteLambdaZ_mul_boundary` and
+  `Specification.lambdaSpecification_eq_of_mul_boundary`: the operation complementary to Remark
+  (1.28)(3). A pre-modification may be multiplied by a weight `d_Λ` depending only on the
+  configuration *outside* `Λ` without changing the λ-specification, because `d_Λ` cancels between
+  the density and the partition function.
 -/
 
 @[expose] public section
@@ -671,6 +676,58 @@ theorem lambdaSpecification_eq_modification_isssd (ν : Measure E) [IsProbabilit
   rw [sigmaFiniteLambdaFun_eq_finiteLambdaFun (S := S) (E := E) ν Λ,
     finiteLambdaFun_eq_isssdFun (S := S) (E := E) ν Λ]
   rfl
+
+/-! ### Multiplying a pre-modification by a boundary weight
+
+Georgii's Remark (1.28)(3) rescales the a priori measure by a weight depending on the spin at each
+site *inside* the volume. The complementary operation multiplies the pre-modification by a weight
+depending only on the configuration *outside* the volume; that weight cancels between the density
+and the partition function, so it does not change the λ-specification at all. -/
+
+variable {ρ₁ ρ₂ d : Finset S → (S → E) → ℝ≥0∞}
+
+/-- Multiplying a pre-modification by a boundary weight multiplies the partition function by the
+same weight. -/
+lemma sigmaFiniteLambdaZ_mul_boundary (ν : Measure E) [SigmaFinite ν]
+    (h₁ : ∀ Λ, Measurable (ρ₁ Λ)) (h₂ : ∀ Λ, Measurable (ρ₂ Λ))
+    (hdep : ∀ Λ : Finset S, DependsOn (d Λ) ((Λ : Set S)ᶜ))
+    (h : ∀ Λ ω, ρ₂ Λ ω = ρ₁ Λ ω * d Λ ω) (Λ : Finset S) (ω : S → E) :
+    sigmaFiniteLambdaZ (S := S) (E := E) ν ρ₂ Λ ω
+      = sigmaFiniteLambdaZ (S := S) (E := E) ν ρ₁ Λ ω * d Λ ω := by
+  rw [sigmaFiniteLambdaZ, sigmaFiniteLambdaZ, sigmaFiniteLambdaFun_apply_eq_map,
+    lintegral_map (h₂ Λ) Measurable.juxt, lintegral_map (h₁ Λ) Measurable.juxt]
+  calc ∫⁻ ζ, ρ₂ Λ (juxt (Λ : Set S) ω ζ) ∂(Measure.pi fun _ : Λ ↦ ν)
+      = ∫⁻ ζ, ρ₁ Λ (juxt (Λ : Set S) ω ζ) * d Λ ω ∂(Measure.pi fun _ : Λ ↦ ν) := by
+        refine lintegral_congr fun ζ ↦ ?_
+        rw [h Λ (juxt (Λ : Set S) ω ζ)]
+        congr 1
+        exact hdep Λ fun i hi ↦ juxt_apply_of_not_mem hi ζ
+    _ = (∫⁻ ζ, ρ₁ Λ (juxt (Λ : Set S) ω ζ) ∂(Measure.pi fun _ : Λ ↦ ν)) * d Λ ω :=
+        lintegral_mul_const _ ((h₁ Λ).comp Measurable.juxt)
+
+/-- **A pre-modification may be multiplied by a boundary weight.** If `ρ₂ = ρ₁ · d` with
+`d Λ` everywhere positive, finite, and depending only on the configuration outside `Λ`, then
+`ρ₁` and `ρ₂` define the same λ-specification: `d` cancels between the density and the partition
+function, so the two normalized densities `ρ_Λ / λ_Λ ρ_Λ` are literally equal. -/
+theorem lambdaSpecification_eq_of_mul_boundary (ν : Measure E) [SigmaFinite ν] [NeZero ν]
+    (hρ₁ : IsPremodifier (S := S) (E := E) ρ₁)
+    (hZ₁ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ₁)
+    (hρ₂ : IsPremodifier (S := S) (E := E) ρ₂)
+    (hZ₂ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ₂)
+    (hd0 : ∀ Λ ω, d Λ ω ≠ 0) (hdt : ∀ Λ ω, d Λ ω ≠ ⊤)
+    (hdep : ∀ Λ : Finset S, DependsOn (d Λ) ((Λ : Set S)ᶜ))
+    (h : ∀ Λ ω, ρ₂ Λ ω = ρ₁ Λ ω * d Λ ω) :
+    lambdaSpecification (S := S) (E := E) ν ρ₂ hρ₂ hZ₂
+      = lambdaSpecification (S := S) (E := E) ν ρ₁ hρ₁ hZ₁ := by
+  have hnorm : ∀ Λ : Finset S, sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ₂ Λ
+      = sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ₁ Λ := fun Λ ↦ by
+    funext ω
+    rw [sigmaFinitePremodifierNorm, sigmaFinitePremodifierNorm, h Λ ω,
+      sigmaFiniteLambdaZ_mul_boundary ν hρ₁.measurable hρ₂.measurable hdep h Λ ω,
+      ENNReal.mul_div_mul_right _ _ (hd0 Λ ω) (hdt Λ ω)]
+  refine Specification.ext fun Λ ↦ ?_
+  refine Kernel.ext fun η ↦ ?_
+  rw [lambdaSpecification_apply, lambdaSpecification_apply, hnorm Λ]
 
 end Specification
 

@@ -458,14 +458,7 @@ omit [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty 
 /-- `|log Q(y, x)| ≤ ∑_{y', x'} |log Q(y', x')|`, Georgii's bound `logBound Q` on the Markov
 potential. -/
 lemma norm_neg_log_apply_le (y x : E) : ‖-log (P y x)‖ ≤ logBound P := by
-  rw [Real.norm_eq_abs, abs_neg, logBound]
-  calc |log (P y x)|
-      ≤ ∑ x', |log (P y x')| :=
-        Finset.single_le_sum (f := fun x' ↦ |log (P y x')|) (fun _ _ ↦ abs_nonneg _)
-          (Finset.mem_univ _)
-    _ ≤ ∑ y', ∑ x', |log (P y' x')| :=
-        Finset.single_le_sum (f := fun y' ↦ ∑ x', |log (P y' x')|)
-          (fun _ _ ↦ Finset.sum_nonneg fun _ _ ↦ abs_nonneg _) (Finset.mem_univ _)
+  simpa [Real.norm_eq_abs, abs_neg] using abs_log_le_logBound P y x
 
 omit [DecidableEq E] [Nonempty E] in
 /-- `ω ↦ -log Q(ω_{-1}, x)` is measurable with respect to the past `𝓕_{<0}` of the origin. -/

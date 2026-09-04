@@ -7,6 +7,7 @@ module
 
 public import GibbsMeasure.Mathlib.Probability.Kernel.CountableMatrix.Homogeneous
 public import GibbsMeasure.Model.BoundaryLawUniqueness
+public import GibbsMeasure.Specification.OneDimensionalUniqueness
 
 /-!
 # Georgii §11.1, Comment (11.18)(2) and Corollary (11.19)
@@ -31,17 +32,6 @@ powers (Georgii (11.1)), and its specification `γ^Q = transferSpecification Q h
   and `∑_x u(x)v(x) < ∞`, hence on an infinite `E` the condition `inf_x ∑_{n=1}^N Q^n(x,x) > 0`
   of Corollary (11.17) fails: the uniqueness conditions of Theorem (8.39) and of Corollary (11.17)
   exclude each other.
-* `Specification.sigmaFiniteLambdaZ_mul_boundary`,
-  `Specification.lambdaSpecification_eq_of_mul_boundary`,
-  `Specification.lambdaSpecification_withDensity` — general λ-specification theory used below:
-  a pre-modification may be multiplied by a weight depending only on the configuration outside the
-  volume, and Georgii's Remark (1.28)(3) at the level of specifications. Their home is
-  `GibbsMeasure/Specification/Rescaling.lean`.
-* `isPotential_markovPotential_of_countable`,
-  `isAbsolutelySummable_markovPotential_of_abs_log_le`,
-  `hamiltonian_markovPotential_eq_sum_bondsOf`,
-  `boltzmannFactor_markovPotential_eq_prod_bondsOf` — the API of Chapter 3's `markovPotential`
-  on a *countable* (possibly infinite) state space; see the section docstring.
 * `ratioMatrix`, `boundaryWeight`, `transferWeight_eq_mul_boundaryWeight`,
   `transferSpecification_eq_gibbsSpecificationOfFiniteReference`,
   `transferSpecification_eq_gibbsSpecification_of_bounded_ratio` — **Georgii Comment (11.18)(2)**,
@@ -49,6 +39,14 @@ powers (Georgii (11.1)), and its specification `γ^Q = transferSpecification Q h
   specification of the bounded nearest-neighbour potential
   `Φ_{{i,i+1}} = -log[Q(σ_i,σ_{i+1})/(u(σ_i)v(σ_{i+1}))]` for the (necessarily finite) a priori
   measure `(uv)λ`, `λ` counting measure.
+* `oscSpan_markovPotential`, `iSup_oscSpan_markovPotential_ne_top`,
+  `subsingleton_G_transferSpecification_of_bounded_ratio`,
+  `existsUnique_mem_GP_transferSpecification_of_bounded_ratio` — **Georgii Comment (11.18)(2)**,
+  the conclusion `|𝒢(γ^Q)| = 1`. Only the bond `{i, i+1}` spans the site `i`, so Georgii's
+  condition (8.40) for the potential above is the single bound `δ(Φ_{{i,i+1}}) ≤ 2 log C`, and
+  Theorem (8.39) (`GibbsMeasure/Specification/OneDimensionalUniqueness.lean`) applies. Existence
+  is the second half of (8.39): a countable state space with measurable singletons is standard
+  Borel.
 -/
 
 @[expose] public section
@@ -58,89 +56,6 @@ open scoped ENNReal
 
 noncomputable section
 
-/-! ## λ-specifications and boundary weights
-
-The lemma below is the one piece of general specification theory that Georgii's Comment
-(11.18)(2) needs and that the tree did not have: a pre-modification may be multiplied by a
-weight depending only on the configuration *outside* the volume without changing the
-λ-specification it defines, because that weight cancels between the density and the partition
-function. Its home is `GibbsMeasure/Specification/Rescaling.lean`, next to
-`Specification.lambdaSpecification_congr` and Georgii's Remark (1.28)(3); it is placed here
-only because `Specification/` is outside the scope of the present change.
--/
-
-namespace Specification
-
-variable {S E : Type*} {mE : MeasurableSpace E} {ρ₁ ρ₂ d : Finset S → (S → E) → ℝ≥0∞}
-
-/-- Multiplying a pre-modification by a boundary weight multiplies the partition function by the
-same weight. -/
-lemma sigmaFiniteLambdaZ_mul_boundary (ν : Measure E) [SigmaFinite ν]
-    (h₁ : ∀ Λ, Measurable (ρ₁ Λ)) (h₂ : ∀ Λ, Measurable (ρ₂ Λ))
-    (hdep : ∀ Λ : Finset S, DependsOn (d Λ) ((Λ : Set S)ᶜ))
-    (h : ∀ Λ ω, ρ₂ Λ ω = ρ₁ Λ ω * d Λ ω) (Λ : Finset S) (ω : S → E) :
-    sigmaFiniteLambdaZ (S := S) (E := E) ν ρ₂ Λ ω
-      = sigmaFiniteLambdaZ (S := S) (E := E) ν ρ₁ Λ ω * d Λ ω := by
-  rw [sigmaFiniteLambdaZ, sigmaFiniteLambdaZ, sigmaFiniteLambdaFun_apply_eq_map,
-    lintegral_map (h₂ Λ) Measurable.juxt, lintegral_map (h₁ Λ) Measurable.juxt]
-  calc ∫⁻ ζ, ρ₂ Λ (juxt (Λ : Set S) ω ζ) ∂(Measure.pi fun _ : Λ ↦ ν)
-      = ∫⁻ ζ, ρ₁ Λ (juxt (Λ : Set S) ω ζ) * d Λ ω ∂(Measure.pi fun _ : Λ ↦ ν) := by
-        refine lintegral_congr fun ζ ↦ ?_
-        rw [h Λ (juxt (Λ : Set S) ω ζ)]
-        congr 1
-        exact hdep Λ fun i hi ↦ juxt_apply_of_not_mem hi ζ
-    _ = (∫⁻ ζ, ρ₁ Λ (juxt (Λ : Set S) ω ζ) ∂(Measure.pi fun _ : Λ ↦ ν)) * d Λ ω :=
-        lintegral_mul_const _ ((h₁ Λ).comp Measurable.juxt)
-
-/-- **A pre-modification may be multiplied by a boundary weight.** If `ρ₂ = ρ₁ · d` with
-`d Λ` everywhere positive, finite, and depending only on the configuration outside `Λ`, then
-`ρ₁` and `ρ₂` define the same λ-specification: `d` cancels between the density and the partition
-function, so the two normalized densities `ρ_Λ / λ_Λ ρ_Λ` are literally equal. -/
-theorem lambdaSpecification_eq_of_mul_boundary (ν : Measure E) [SigmaFinite ν] [NeZero ν]
-    (hρ₁ : IsPremodifier (S := S) (E := E) ρ₁)
-    (hZ₁ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ₁)
-    (hρ₂ : IsPremodifier (S := S) (E := E) ρ₂)
-    (hZ₂ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ₂)
-    (hd0 : ∀ Λ ω, d Λ ω ≠ 0) (hdt : ∀ Λ ω, d Λ ω ≠ ⊤)
-    (hdep : ∀ Λ : Finset S, DependsOn (d Λ) ((Λ : Set S)ᶜ))
-    (h : ∀ Λ ω, ρ₂ Λ ω = ρ₁ Λ ω * d Λ ω) :
-    lambdaSpecification (S := S) (E := E) ν ρ₂ hρ₂ hZ₂
-      = lambdaSpecification (S := S) (E := E) ν ρ₁ hρ₁ hZ₁ := by
-  have hnorm : ∀ Λ : Finset S, sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ₂ Λ
-      = sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ₁ Λ := fun Λ ↦ by
-    funext ω
-    rw [sigmaFinitePremodifierNorm, sigmaFinitePremodifierNorm, h Λ ω,
-      sigmaFiniteLambdaZ_mul_boundary ν hρ₁.measurable hρ₂.measurable hdep h Λ ω,
-      ENNReal.mul_div_mul_right _ _ (hd0 Λ ω) (hdt Λ ω)]
-  refine Specification.ext fun Λ ↦ ?_
-  refine Kernel.ext fun η ↦ ?_
-  rw [lambdaSpecification_apply, lambdaSpecification_apply, hnorm Λ]
-
-
-/-- **Georgii, Remark (1.28)(3), at the level of specifications.** Replacing the a priori measure
-`ν` by `r · ν` and the pre-modification `ρ` by `ρ / ∏_{i ∈ Λ} r(ω_i)` does not change the
-λ-specification. (The kernel-level statement is
-`Specification.modificationKer_sigmaFiniteLambdaFun_of_withDensity`.) -/
-theorem lambdaSpecification_withDensity (ν : Measure E) [SigmaFinite ν] [NeZero ν]
-    {r : E → ℝ≥0∞} (hr : Measurable r) (h0 : ∀ x, r x ≠ 0) (htop : ∀ x, r x ≠ ⊤)
-    [SigmaFinite (ν.withDensity r)] [NeZero (ν.withDensity r)]
-    {ρ : Finset S → (S → E) → ℝ≥0∞}
-    (hρ : IsPremodifier (S := S) (E := E) ρ)
-    (hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
-    (hρ' : IsPremodifier (S := S) (E := E) (rescale (S := S) (E := E) r ρ))
-    (hZ' : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) (ν.withDensity r)
-      (rescale (S := S) (E := E) r ρ)) :
-    lambdaSpecification (S := S) (E := E) (ν.withDensity r)
-        (rescale (S := S) (E := E) r ρ) hρ' hZ'
-      = lambdaSpecification (S := S) (E := E) ν ρ hρ hZ := by
-  refine Specification.ext fun Λ ↦ ?_
-  refine Kernel.ext fun η ↦ ?_
-  rw [lambdaSpecification_apply, lambdaSpecification_apply,
-    sigmaFinitePremodifierNorm_rescale (S := S) (E := E) ν hr h0 htop hρ.measurable Λ]
-  exact withDensity_sigmaFiniteLambdaFun_withDensity_div (S := S) (E := E) ν hr h0 htop Λ η
-    (sigmaFinitePremodifierNorm_measurable (S := S) (E := E) ν hρ Λ)
-
-end Specification
 
 namespace MeasureTheory.GibbsMeasure.Markov
 
@@ -356,133 +271,6 @@ theorem not_exists_pos_forall_le_sum_pow_of_bounded_ratio [Infinite E] (hQ : IsT
 
 end BoundedRatio
 
-/-! ### The nearest-neighbour potential of a matrix on a *countable* state space
-
-Georgii's Comment (11.18)(2) needs `Potential.markovPotential M` — the homogeneous
-nearest-neighbour potential `Φ_{{i,i+1}}(σ) = -log M(σ_i, σ_{i+1})` of Corollary (3.9),
-already defined in `GibbsMeasure/Model/MarkovChain.lean` — on an *infinite* countable `E`. Its
-definition needs nothing but `[MeasurableSpace E]`; only the two class instances
-`isPotential_markovPotential`, `isAbsolutelySummable_markovPotential` and the two computations
-`hamiltonian_eq_sum_bondsOf`, `boltzmannFactor_eq_prod_bondsOf` are stated there under
-`[Fintype E]`, the first because it uses `measurable_of_finite` and the second because its bound
-`logBound M = ∑_{x,y} |log M(x,y)|` is a finite sum. The versions below replace `[Fintype E]` by
-`[Countable E] [MeasurableSingletonClass E]` and by a uniform bound `|log M(x,y)| ≤ c`; the two
-computations are then stated for an arbitrary absolutely summable `markovPotential M` and
-*subsume* the `Fintype` versions, which should be replaced by them (a change in
-`Model/MarkovChain.lean`, outside the scope of this file).
--/
-
-section CountableMarkovPotential
-
-variable {E : Type*} [Countable E] [MeasurableSpace E] [MeasurableSingletonClass E]
-
-/-- `markovPotential M` is an interaction potential on a countable state space. -/
-instance isPotential_markovPotential_of_countable (M : Matrix E E ℝ) :
-    (markovPotential M).IsPotential where
-  measurable A := by
-    by_cases h : ∃ i : ℤ, A = {i, i + 1}
-    · obtain ⟨i, rfl⟩ := h
-      have hf : markovPotential M {i, i + 1} = fun σ ↦ -Real.log (M (σ i) (σ (i + 1))) :=
-        funext fun σ ↦ markovPotential_pair M i σ
-      rw [hf]
-      have hi : Measurable[cylinderEvents (({i, i + 1} : Finset ℤ) : Set ℤ)]
-          fun σ : ℤ → E ↦ σ i := measurable_cylinderEvent_apply (by simp)
-      have hi1 : Measurable[cylinderEvents (({i, i + 1} : Finset ℤ) : Set ℤ)]
-          fun σ : ℤ → E ↦ σ (i + 1) := measurable_cylinderEvent_apply (by simp)
-      exact (measurable_of_countable (fun p : E × E ↦ -Real.log (M p.1 p.2))).comp
-        (f := fun σ : ℤ → E ↦ (σ i, σ (i + 1))) (hi.prodMk hi1)
-    · have hf : markovPotential M A = fun _ ↦ 0 :=
-        funext fun σ ↦ markovPotential_of_not_pair M h σ
-      rw [hf]
-      exact measurable_const
-
-omit [Countable E] [MeasurableSingletonClass E] in
-/-- **Georgii's "bounded nearest-neighbour potential".** `markovPotential M` is absolutely
-summable as soon as its bond energies are uniformly bounded, `|log M(x,y)| ≤ c`; no finiteness
-of `E` is needed. -/
-lemma isAbsolutelySummable_markovPotential_of_abs_log_le (M : Matrix E E ℝ) {c : ℝ}
-    (hM : ∀ x y, |Real.log (M x y)| ≤ c) : (markovPotential M).IsAbsolutelySummable := by
-  have habs : ∀ (A : Finset ℤ) (σ : ℤ → E), |markovPotential M A σ| ≤ max c 0 := by
-    intro A σ
-    by_cases h : ∃ i : ℤ, A = {i, i + 1}
-    · obtain ⟨i, rfl⟩ := h
-      rw [markovPotential_pair, abs_neg]
-      exact (hM _ _).trans (le_max_left _ _)
-    · rw [markovPotential_of_not_pair M h, abs_zero]
-      exact le_max_right _ _
-  refine ⟨fun i ↦ ?_⟩
-  have hsupp : ∀ A : Finset ℤ, A ∉ (Finset.Icc (i - 1) (i + 1)).powerset →
-      ({A : Finset ℤ | i ∈ A}.indicator
-        (fun A ↦ ⨆ η, ‖markovPotential M A η‖ₑ)) A = 0 := by
-    intro A hA
-    rw [Finset.mem_powerset] at hA
-    by_cases hiA : i ∈ A
-    · rw [Set.indicator_of_mem (show A ∈ {A : Finset ℤ | i ∈ A} from hiA)]
-      have hΦ0 : markovPotential M A = 0 := by
-        by_contra hΦ
-        exact hA (subset_Icc_of_markovPotential_ne_zero M hiA hΦ)
-      refine le_antisymm (iSup_le fun η ↦ ?_) zero_le
-      simp [hΦ0]
-    · exact Set.indicator_of_notMem (show A ∉ {A : Finset ℤ | i ∈ A} from hiA) _
-  have htsum : (markovPotential M).normAt i =
-      ∑ A ∈ (Finset.Icc (i - 1) (i + 1)).powerset,
-        ({A : Finset ℤ | i ∈ A}.indicator (fun A ↦ ⨆ η, ‖markovPotential M A η‖ₑ)) A :=
-    tsum_eq_sum hsupp
-  rw [htsum]
-  refine (ENNReal.sum_lt_top.2 fun A _ ↦ ?_).ne
-  calc ({A : Finset ℤ | i ∈ A}.indicator (fun A ↦ ⨆ η, ‖markovPotential M A η‖ₑ)) A
-      ≤ ⨆ η, ‖markovPotential M A η‖ₑ := Set.indicator_le_self _ _ A
-    _ ≤ ENNReal.ofReal (max c 0) := iSup_le fun η ↦ by
-        rw [Real.enorm_eq_ofReal_abs]
-        exact ENNReal.ofReal_le_ofReal (habs A η)
-    _ < ⊤ := ENNReal.ofReal_lt_top
-
-omit [Countable E] [MeasurableSingletonClass E] in
-/-- The Hamiltonian of `markovPotential M` on a finite volume `Λ` is the sum of the bond
-energies `-log M(σ_j, σ_{j+1})` over the bonds meeting `Λ`. (Generalises
-`hamiltonian_eq_sum_bondsOf` from `[Fintype E]` to any absolutely summable `markovPotential`.) -/
-lemma hamiltonian_markovPotential_eq_sum_bondsOf (M : Matrix E E ℝ)
-    [(markovPotential M).IsAbsolutelySummable] (Λ : Finset ℤ) (σ : ℤ → E) :
-    (markovPotential M).hamiltonian Λ σ
-      = ∑ j ∈ bondsOf Λ, -Real.log (M (σ j) (σ (j + 1))) := by
-  rw [Potential.hamiltonian_eq_tsum,
-    tsum_eq_sum (s := (bondsOf Λ).image fun i ↦ ({i, i + 1} : Finset ℤ)) (fun A hA ↦ ?_)]
-  · rw [Finset.sum_image fun i _ j _ h ↦ pair_succ_inj h]
-    refine Finset.sum_congr rfl fun i hi ↦ ?_
-    rw [Potential.hamiltonianTerms_of_not_disjoint (not_disjoint_pair_bondsOf hi),
-      markovPotential_pair]
-  · by_cases hd : Disjoint A Λ
-    · exact Potential.hamiltonianTerms_of_disjoint hd σ
-    · rw [Potential.hamiltonianTerms_of_not_disjoint hd]
-      by_cases hpair : ∃ i : ℤ, A = {i, i + 1}
-      · obtain ⟨i, rfl⟩ := hpair
-        exfalso
-        refine hA (Finset.mem_image.2 ⟨i, mem_bondsOf.2 ?_, rfl⟩)
-        obtain ⟨k, hk1, hk2⟩ := Finset.not_disjoint_iff.1 hd
-        simp only [Finset.mem_insert, Finset.mem_singleton] at hk1
-        rcases hk1 with rfl | rfl
-        · exact Or.inl hk2
-        · exact Or.inr hk2
-      · exact markovPotential_of_not_pair M hpair σ
-
-omit [Countable E] [MeasurableSingletonClass E] in
-/-- The Boltzmann factor of `markovPotential M` on a finite volume is the product of the bond
-weights `M(σ_j, σ_{j+1})` over the bonds meeting `Λ`. -/
-lemma boltzmannFactor_markovPotential_eq_prod_bondsOf (M : Matrix E E ℝ)
-    [(markovPotential M).IsAbsolutelySummable] (hpos : ∀ x y, 0 < M x y) (Λ : Finset ℤ)
-    (σ : ℤ → E) :
-    (markovPotential M).boltzmannFactor 1 Λ σ
-      = ENNReal.ofReal (∏ j ∈ bondsOf Λ, M (σ j) (σ (j + 1))) := by
-  rw [Potential.boltzmannFactor, hamiltonian_markovPotential_eq_sum_bondsOf]
-  congr 1
-  rw [show -(1 : ℝ) * ∑ j ∈ bondsOf Λ, -Real.log (M (σ j) (σ (j + 1)))
-      = ∑ j ∈ bondsOf Λ, Real.log (M (σ j) (σ (j + 1))) by
-    rw [neg_one_mul, ← Finset.sum_neg_distrib]
-    exact Finset.sum_congr rfl fun j _ ↦ neg_neg _]
-  rw [Real.exp_sum]
-  exact Finset.prod_congr rfl fun j _ ↦ Real.exp_log (hpos _ _)
-
-end CountableMarkovPotential
 
 /-! ### Georgii's Gibbsian representation of `γ^Q`, Comment (11.18)(2)
 
@@ -499,9 +287,7 @@ measure (Remark (1.28)(3)) and the last one drops out by
 section GibbsRepresentation
 
 variable {E : Type*} [Countable E] [MeasurableSpace E] [MeasurableSingletonClass E]
-  {Q u v : E → E → ℝ≥0∞}
-
-variable {u v : E → ℝ≥0∞}
+  {Q : E → E → ℝ≥0∞} {u v : E → ℝ≥0∞}
 
 omit [Countable E] [MeasurableSpace E] [MeasurableSingletonClass E] in
 /-- Every site of `Λ` is the right endpoint of a bond meeting `Λ`. -/
@@ -542,7 +328,7 @@ omit [Countable E] [MeasurableSingletonClass E] in
 (boundary weight)`. -/
 theorem transferWeight_eq_mul_boundaryWeight (hu0 : ∀ x, u x ≠ 0) (hv0 : ∀ x, v x ≠ 0)
     (hQ0 : ∀ x y, Q x y ≠ 0) (hQt : ∀ x y, Q x y ≠ ⊤) (hut : ∀ x, u x ≠ ⊤) (hvt : ∀ x, v x ≠ ⊤)
-    [(markovPotential (ratioMatrix Q u v)).IsAbsolutelySummable] (Λ : Finset ℤ) (ω : ℤ → E) :
+    (Λ : Finset ℤ) (ω : ℤ → E) :
     transferWeight Q Λ ω
       = ((markovPotential (ratioMatrix Q u v)).boltzmannFactor 1 Λ ω *
           Specification.lambdaWeight (S := ℤ) (E := E) (fun _ x ↦ u x * v x) Λ ω)
@@ -567,7 +353,7 @@ theorem transferWeight_eq_mul_boundaryWeight (hu0 : ∀ x, u x ≠ 0) (hv0 : ∀
     (Finset.prod_sdiff hΛB).symm
   have hv_split : ∏ j ∈ B', v (ω j) = (∏ j ∈ B' \ Λ, v (ω j)) * ∏ j ∈ Λ, v (ω j) :=
     (Finset.prod_sdiff hΛB').symm
-  rw [hfactor, boltzmannFactor_markovPotential_eq_prod_bondsOf M hMpos,
+  rw [hfactor, boltzmannFactor_eq_prod_bondsOf hMpos,
     ENNReal.ofReal_prod_of_nonneg fun j _ ↦ (hMpos _ _).le, ← hB, hu_split, hv_split,
     Specification.lambdaWeight, Finset.prod_mul_distrib, boundaryWeight, ← hB, ← hB']
   ring
@@ -670,8 +456,7 @@ variable [Nonempty E]
 omit [Nonempty E] in
 /-- The pre-modification `e^{-H_Λ} ∏_{i ∈ Λ} u(ω_i)v(ω_i)` obtained from Georgii's potential by
 undoing the rescaling of the a priori measure. -/
-lemma isPremodifier_boltzmannFactor_mul_lambdaWeight
-    [(markovPotential (ratioMatrix Q u v)).IsAbsolutelySummable] :
+lemma isPremodifier_boltzmannFactor_mul_lambdaWeight :
     Specification.IsPremodifier (S := ℤ) (E := E) (fun Λ ω ↦
       (markovPotential (ratioMatrix Q u v)).boltzmannFactor 1 Λ ω *
         Specification.lambdaWeight (S := ℤ) (E := E) (fun _ x ↦ u x * v x) Λ ω) where
@@ -756,16 +541,9 @@ theorem transferSpecification_eq_gibbsSpecificationOfFiniteReference
     rw [Specification.rescale_apply, hρ₁def, mul_div_assoc,
       ENNReal.div_self (Specification.lambdaWeight_ne_zero (S := ℤ) (E := E) (fun _ _ ↦ hw0 _) Λ ω)
         (Specification.lambdaWeight_ne_top (S := ℤ) (E := E) (fun _ _ ↦ hwt _) Λ ω), mul_one]
-  have hρ' : Specification.IsPremodifier (S := ℤ) (E := E)
-      (Specification.rescale (S := ℤ) (E := E) w ρ₁) :=
-    Specification.isPremodifier_rescale hwmeas hw0 hwt hρ₁
-  have hZ' : Specification.IsSigmaFiniteLambdaAdmissible (S := ℤ) (E := E)
-      (Measure.count.withDensity w) (Specification.rescale (S := ℤ) (E := E) w ρ₁) :=
-    (Specification.isSigmaFiniteLambdaAdmissible_rescale (S := ℤ) (E := E) Measure.count hwmeas
-      hw0 hwt hρ₁.measurable).2 hZ₁
-  have h2 := Specification.lambdaSpecification_withDensity (S := ℤ) (E := E) Measure.count
-    hwmeas hw0 hwt hρ₁ hZ₁ hρ' hZ'
-  rw [h3, ← h2, Potential.gibbsSpecificationOfFiniteReference,
+  have h2 := Specification.lambdaSpecification_eq_lambdaSpecification_withDensity (S := ℤ) (E := E)
+    Measure.count hwmeas hw0 hwt hρ₁ hZ₁
+  rw [h3, h2, Potential.gibbsSpecificationOfFiniteReference,
     Potential.gibbsSpecificationOfSigmaFiniteAdmissible]
   exact Specification.lambdaSpecification_congr (S := ℤ) (E := E) _ hrescale _ _ _ _
 
@@ -791,6 +569,108 @@ theorem transferSpecification_eq_gibbsSpecification_of_bounded_ratio
       (hv0 (Classical.arbitrary E)))
   have := neZero_count_withDensity_mul (u := u) (v := v) hu0 hv0
   exact transferSpecification_eq_gibbsSpecificationOfFiniteReference hQ hu0 hut hv0 hvt
+
+/-! ### Georgii, Comment (11.18)(2): `|𝒢(γ^Q)| = 1`
+
+The representation above exhibits `γ^Q` as the Gibbs specification of the *bounded*
+nearest-neighbour potential `Φ_{{i,i+1}} = -log[Q(σ_i,σ_{i+1})/(u(σ_i)v(σ_{i+1}))]`. Georgii's
+condition (8.40), `sup_i ∑_{A : min A ≤ i < max A} δ(Φ_A) < ∞`, is immediate for such a potential:
+only the bond `{i, i+1}` spans the site `i`, so the sum is the single oscillation
+`δ(Φ_{{i,i+1}}) ≤ 2 log C`. Theorem (8.39) then gives uniqueness and — over a countable, hence
+standard Borel, state space — existence as well.
+-/
+
+omit [Countable E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- Only the bond `{i, i+1}` spans the site `i`, so Georgii's sum (8.40) at `i` reduces, for a
+homogeneous nearest-neighbour potential, to the oscillation of that single bond. -/
+lemma oscSpan_markovPotential (M : Matrix E E ℝ) (i : ℤ) :
+    oscSpan (markovPotential M) i = Dobrushin.osc (markovPotential M {i, i + 1}) := by
+  rw [oscSpan, tsum_eq_single ({i, i + 1} : Finset ℤ) ?_]
+  · exact Set.indicator_of_mem
+      (show ({i, i + 1} : Finset ℤ) ∈ {A : Finset ℤ | Spans A i} from
+        ⟨⟨i, by simp, le_rfl⟩, ⟨i + 1, by simp, by omega⟩⟩) _
+  · intro A hA
+    by_cases hspan : Spans A i
+    · rw [Set.indicator_of_mem (show A ∈ {A : Finset ℤ | Spans A i} from hspan)]
+      by_cases hpair : ∃ j : ℤ, A = {j, j + 1}
+      · exfalso
+        obtain ⟨j, rfl⟩ := hpair
+        obtain ⟨⟨a, ha, hai⟩, b, hb, hib⟩ := hspan
+        simp only [Finset.mem_insert, Finset.mem_singleton] at ha hb
+        exact hA (by rw [show j = i by omega])
+      · rw [show markovPotential M A = fun _ ↦ (0 : ℝ) from
+          funext fun σ ↦ markovPotential_of_not_pair M hpair σ, Dobrushin.osc_const]
+    · exact Set.indicator_of_notMem (show A ∉ {A : Finset ℤ | Spans A i} from hspan) _
+
+omit [Countable E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- A bond energy bounded by `c` oscillates by at most `2c`. -/
+lemma osc_markovPotential_pair_le (M : Matrix E E ℝ) {c : ℝ}
+    (hM : ∀ x y, |Real.log (M x y)| ≤ c) (i : ℤ) :
+    Dobrushin.osc (markovPotential M {i, i + 1}) ≤ ENNReal.ofReal (2 * c) := by
+  refine Dobrushin.osc_le fun ζ η ↦ ENNReal.ofReal_le_ofReal ?_
+  have h1 := hM (ζ i) (ζ (i + 1))
+  have h2 := hM (η i) (η (i + 1))
+  rw [abs_le] at h1 h2
+  rw [markovPotential_pair, markovPotential_pair, abs_le]
+  constructor <;> linarith
+
+omit [Countable E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- **Georgii's condition (8.40) for a bounded nearest-neighbour potential.** If the bond energies
+of `markovPotential M` are uniformly bounded then `sup_i ∑_{A : min A ≤ i < max A} δ(Φ_A) < ∞`. -/
+theorem iSup_oscSpan_markovPotential_ne_top (M : Matrix E E ℝ) {c : ℝ}
+    (hM : ∀ x y, |Real.log (M x y)| ≤ c) :
+    ⨆ i : ℤ, oscSpan (markovPotential M) i ≠ ⊤ :=
+  ne_top_of_le_ne_top ENNReal.ofReal_ne_top
+    (iSup_le fun i ↦ (oscSpan_markovPotential M i).trans_le
+      (osc_markovPotential_pair_le M hM i))
+
+/-- **Georgii, Comment (11.18)(2), the uniqueness half.** Under `C^{-1} ≤ Q(x,y)/(u(x)v(y)) ≤ C`
+the specification `γ^Q` has at most one Gibbs measure: by
+`transferSpecification_eq_gibbsSpecification_of_bounded_ratio` it is the Gibbs specification of the
+nearest-neighbour potential `-log[Q/(uv)]`, whose bond energies are bounded by `log C`, so
+Georgii's condition (8.40) holds and Theorem (8.39) applies. -/
+theorem subsingleton_G_transferSpecification_of_bounded_ratio
+    (hQ : IsTransferMatrix Q) {C : ℝ≥0∞} (hC1 : 1 ≤ C) (hCt : C ≠ ⊤)
+    (hu0 : ∀ x, u x ≠ 0) (hut : ∀ x, u x ≠ ⊤) (hv0 : ∀ x, v x ≠ 0) (hvt : ∀ x, v x ≠ ⊤)
+    (hle : ∀ x y, Q x y ≤ C * (u x * v y)) (hge : ∀ x y, u x * v y ≤ C * Q x y) :
+    (G (transferSpecification Q hQ)).Subsingleton := by
+  have := isAbsolutelySummable_markovPotential_ratioMatrix hC1 hCt
+    (fun x y ↦ (hQ.pos x y).ne') hQ.ne_top hu0 hut hv0 hvt hle hge
+  have := isFiniteMeasure_count_withDensity_mul (u := u) (v := v)
+    (tsum_mul_ne_top_of_mul_le hQ hCt hge (hu0 (Classical.arbitrary E))
+      (hv0 (Classical.arbitrary E)))
+  have := neZero_count_withDensity_mul (u := u) (v := v) hu0 hv0
+  rw [transferSpecification_eq_gibbsSpecificationOfFiniteReference hQ hu0 hut hv0 hvt,
+    Potential.gibbsSpecificationOfFiniteReference,
+    Potential.gibbsSpecificationOfSigmaFiniteAdmissible]
+  exact subsingleton_G_lambdaSpecification_of_iSup_oscSpan_ne_top hasBoundedBoundary_int _ 1 _
+    (iSup_oscSpan_markovPotential_ne_top _
+      (abs_log_ratioMatrix_le hC1 hCt (fun x y ↦ (hQ.pos x y).ne') hQ.ne_top hu0 hut hv0 hvt
+        hle hge))
+
+/-- **Georgii, Comment (11.18)(2), in full: `|𝒢(γ^Q)| = 1`.** For a positive matrix `Q` with finite
+powers on a countable state space, the existence of `u, v : E → ]0, ∞[` and `C ≥ 1` with
+`C^{-1} ≤ Q(x,y)/(u(x)v(y)) ≤ C` forces `γ^Q` to have exactly one Gibbs measure. Uniqueness is
+Theorem (8.39); existence is its second half, available because a countable state space with
+measurable singletons is standard Borel. -/
+theorem existsUnique_mem_GP_transferSpecification_of_bounded_ratio
+    (hQ : IsTransferMatrix Q) {C : ℝ≥0∞} (hC1 : 1 ≤ C) (hCt : C ≠ ⊤)
+    (hu0 : ∀ x, u x ≠ 0) (hut : ∀ x, u x ≠ ⊤) (hv0 : ∀ x, v x ≠ 0) (hvt : ∀ x, v x ≠ ⊤)
+    (hle : ∀ x y, Q x y ≤ C * (u x * v y)) (hge : ∀ x y, u x * v y ≤ C * Q x y) :
+    ∃! μ : ProbabilityMeasure (ℤ → E), μ ∈ GP (transferSpecification Q hQ) := by
+  have := isAbsolutelySummable_markovPotential_ratioMatrix hC1 hCt
+    (fun x y ↦ (hQ.pos x y).ne') hQ.ne_top hu0 hut hv0 hvt hle hge
+  have := isFiniteMeasure_count_withDensity_mul (u := u) (v := v)
+    (tsum_mul_ne_top_of_mul_le hQ hCt hge (hu0 (Classical.arbitrary E))
+      (hv0 (Classical.arbitrary E)))
+  have := neZero_count_withDensity_mul (u := u) (v := v) hu0 hv0
+  rw [transferSpecification_eq_gibbsSpecificationOfFiniteReference hQ hu0 hut hv0 hvt,
+    Potential.gibbsSpecificationOfFiniteReference,
+    Potential.gibbsSpecificationOfSigmaFiniteAdmissible]
+  exact existsUnique_mem_GP_lambdaSpecification_of_iSup_oscSpan_ne_top hasBoundedBoundary_int _ 1 _
+    (iSup_oscSpan_markovPotential_ne_top _
+      (abs_log_ratioMatrix_le hC1 hCt (fun x y ↦ (hQ.pos x y).ne') hQ.ne_top hu0 hut hv0 hvt
+        hle hge))
 
 end GibbsRepresentation
 

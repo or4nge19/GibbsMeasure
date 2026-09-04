@@ -222,21 +222,13 @@ marginal `α(x) := μ(σ_0 = x)` is an invariant probability measure for `P`
   set equalities `invariantG_eq_singleton_boundaryLawMeasure_const` /
   `invariantG_eq_empty_of_not_exists_isPositiveRecurrent`.
 
-## What is not attempted, and precisely why
+## Continued elsewhere
 
-* **Corollary (11.19)** (`E = ℤ^N`, homogeneous `Q` with `∑_x Q(0,x) < ∞` gives `𝒢(Q) = ∅`) needs
-  Georgii's own large-deviation argument (Cramér/Legendre transform: a minimiser `s₀` of
-  `φ(s) = ∑_x Q(0,x) e^{s\cdot x}` over `ℝ^N` with `φ(s₀) ≤ L(Q)`, obtained via a truncation and
-  Stirling-type lower bound `L(\tilde Q) ≥ \tildeφ(\tilde s)` on a finite-range approximation).
-  None of this — the convex-analysis minimisation, the combinatorial path-counting lower bound, or
-  the passage to the limit over the truncation — is in Mathlib or elsewhere in this tree; it is a
-  substantial standalone development, well beyond a §11.1 corollary, and is not attempted here.
-* **Comment (11.18)(2)** (a lower bound `C^{-1} ≤ Q(x,y)/(u(x)v(y)) ≤ C` forces
-  `∑_x ∑_{n ≤ N} Q^n(x,x) < ∞`, hence Theorem (8.39)'s and Corollary (11.17)'s uniqueness
-  conditions exclude each other when `E` is infinite) is a self-contained inequality (not
-  attempted here for lack of time) but its *conclusion* additionally needs Theorem (8.39)'s actual
-  statement, which lives in a different chapter's file (`Dobrushin.lean`, per the project's own
-  ontology notes) and is not touched by this one.
+**Corollary (11.19)** (`𝒢(Q) = ∅` for a translation invariant `Q` with `∑_x Q(0,x) < ∞`) and
+**Comment (11.18)(2)** (the bounded ratio `C^{-1} ≤ Q(x,y)/(u(x)v(y)) ≤ C` gives `|𝒢(γ^Q)| = 1`,
+and excludes the uniqueness condition of Corollary (11.17) on an infinite `E`) are proved in
+`GibbsMeasure/Model/BoundaryLawExamples.lean`, which is where Theorem (8.39)
+(`GibbsMeasure/Specification/OneDimensionalUniqueness.lean`) may be imported.
 -/
 
 @[expose] public section

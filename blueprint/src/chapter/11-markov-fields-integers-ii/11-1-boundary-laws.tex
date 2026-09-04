@@ -298,8 +298,8 @@ on $E$; its powers $Q^n$ are the powers of this kernel.
 
 \begin{remark}[Georgii (11.18)(2)]
     \label{rmk:bl-11-18-2}
-    \uses{def:bl-transfer-matrix, thm:bl-11-14}
-    \lean{MeasureTheory.GibbsMeasure.Markov.ratioMatrix, MeasureTheory.GibbsMeasure.Markov.transferSpecification_eq_gibbsSpecificationOfFiniteReference, MeasureTheory.GibbsMeasure.Markov.transferSpecification_eq_gibbsSpecification_of_bounded_ratio, MeasureTheory.GibbsMeasure.Markov.tsum_mul_ne_top_of_mul_le, MeasureTheory.GibbsMeasure.Markov.not_exists_pos_forall_le_sum_pow_of_bounded_ratio}
+    \uses{def:bl-transfer-matrix, thm:bl-11-14, thm:onedim-839}
+    \lean{MeasureTheory.GibbsMeasure.Markov.ratioMatrix, MeasureTheory.GibbsMeasure.Markov.transferSpecification_eq_gibbsSpecificationOfFiniteReference, MeasureTheory.GibbsMeasure.Markov.transferSpecification_eq_gibbsSpecification_of_bounded_ratio, MeasureTheory.GibbsMeasure.Markov.tsum_mul_ne_top_of_mul_le, MeasureTheory.GibbsMeasure.Markov.not_exists_pos_forall_le_sum_pow_of_bounded_ratio, MeasureTheory.GibbsMeasure.Markov.oscSpan_markovPotential, MeasureTheory.GibbsMeasure.Markov.iSup_oscSpan_markovPotential_ne_top, MeasureTheory.GibbsMeasure.Markov.existsUnique_mem_GP_transferSpecification_of_bounded_ratio}
     \leanok
 
     Suppose $C^{-1} \leq Q(x,y)/(u(x)v(y)) \leq C$ for positive finite $u, v$ and some
@@ -308,14 +308,16 @@ on $E$; its powers $Q^n$ are the powers of this kernel.
     a priori measure $(uv)\lambda$, which is necessarily finite, and
     $\sum_x Q^{n}(x,x) \leq [C\sum_x u(x)v(x)]^{n}$. On an infinite $E$ no $\varepsilon > 0$
     bounds $\sum_{n \leq N} Q^n(x,x)$ from below, so this hypothesis and the uniqueness
-    condition of Theorem \ref{thm:bl-11-14} exclude each other.
+    condition of Theorem \ref{thm:bl-11-14} exclude each other. Moreover
+    $\abs{\mathcal G(\gamma^Q)} = 1$.
 \end{remark}
 \begin{proof}
     \leanok
     Multiplying a pre-modification by a weight depending only on the configuration outside
     $\Lambda$ leaves the $\lambda$-specification unchanged, and $\rho^Q_\Lambda$ factorises as
     the Boltzmann factor of $\Phi$ times $\prod_{i \in \Lambda} u(\omega_i)v(\omega_i)$ times
-    such a boundary weight.
+    such a boundary weight. The oscillation of the nearest-neighbour interaction is at most
+    $2\log C$, so Theorem (8.39) applies and gives uniqueness.
 \end{proof}
 
 \begin{corollary}[Georgii (11.19)]

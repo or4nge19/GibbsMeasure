@@ -1132,14 +1132,15 @@ alignment:
     - source: "Comment (11.18)(2), Corollary (11.19)"
       lean: "MeasureTheory.GibbsMeasure.Markov.eq_empty_G_transferSpecification_randomWalk"
       module: "GibbsMeasure/Model/BoundaryLawExamples.lean"
-      status: "partial"
+      status: "proved"
       note: >-
         (11.18)(2): under C^{-1} <= Q/(uv) <= C, gamma^Q is the Gibbsian specification of the
         nearest-neighbour potential -log[Q/(uv)] with a priori measure (uv)lambda, which is then
         finite, sum_x Q^n(x,x) <= [C sum_x u v]^n, and on an infinite E no epsilon > 0 bounds
         sum_{n<=N} Q^n(x,x) below, so this hypothesis and (11.17)'s uniqueness condition exclude
-        each other. Not formalized: the |G(Q)| = 1 half, which is Theorem (8.39) applied to this
-        representation. (11.19): for an infinite countable additive group and a translation
+        each other, and |G(gamma^Q)| = 1 by Theorem (8.39) (Specification/OneDimensionalUniqueness.lean),
+        whose span-oscillation hypothesis holds because the nearest-neighbour interaction has
+        oscillation at most 2 log C. (11.19): for an infinite countable additive group and a translation
         invariant summable positive Q, G(gamma^Q) is empty. Georgii's Stirling/Cramer path-count
         bound is not needed: each translate of the equivalent stochastic matrix is again a (11.5)
         change of measure of Q, so (11.7) makes it homogeneous, and a homogeneous stochastic

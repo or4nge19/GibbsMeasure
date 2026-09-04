@@ -176,7 +176,12 @@ lemma exists_pair_of_markovPotential_ne_zero (P : Matrix E E ℝ) {A : Finset �
   by_contra hA
   exact h (funext fun σ ↦ markovPotential_of_not_pair P hA σ)
 
-instance isPotential_markovPotential (P : Matrix E E ℝ) : (markovPotential P).IsPotential where
+omit [Fintype E] [DecidableEq E] [Nonempty E] in
+/-- `markovPotential P` is an interaction potential in the sense of Georgii Definition (2.2)(i).
+Only countability of the state space is needed: the bond energy is a function of the two spins
+`(σ_i, σ_{i+1})`, and every function on a countable discrete space is measurable. -/
+instance isPotential_markovPotential [Countable E] (P : Matrix E E ℝ) :
+    (markovPotential P).IsPotential where
   measurable A := by
     by_cases h : ∃ i, A = {i, i + 1}
     · obtain ⟨i, rfl⟩ := h
@@ -187,7 +192,7 @@ instance isPotential_markovPotential (P : Matrix E E ℝ) : (markovPotential P).
           fun σ : ℤ → E ↦ σ i := measurable_cylinderEvent_apply (by simp)
       have hi1 : Measurable[cylinderEvents (({i, i + 1} : Finset ℤ) : Set ℤ)]
           fun σ : ℤ → E ↦ σ (i + 1) := measurable_cylinderEvent_apply (by simp)
-      exact (measurable_of_finite (fun p : E × E ↦ -Real.log (P p.1 p.2))).comp
+      exact (measurable_of_countable (fun p : E × E ↦ -Real.log (P p.1 p.2))).comp
         (f := fun σ : ℤ → E ↦ (σ i, σ (i + 1))) (hi.prodMk hi1)
     · have hf : markovPotential P A = fun _ ↦ 0 := funext fun σ ↦ markovPotential_of_not_pair P h σ
       rw [hf]
@@ -214,49 +219,74 @@ omit [DecidableEq E] [MeasurableSpace E] [MeasurableSingletonClass E] [Nonempty 
 lemma logBound_nonneg (P : Matrix E E ℝ) : 0 ≤ logBound P :=
   Finset.sum_nonneg fun _ _ ↦ Finset.sum_nonneg fun _ _ ↦ abs_nonneg _
 
+omit [MeasurableSpace E] [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- Each single bond energy is bounded by the total `logBound P`. -/
+lemma abs_log_le_logBound (P : Matrix E E ℝ) (x y : E) :
+    |Real.log (P x y)| ≤ logBound P :=
+  calc |Real.log (P x y)| ≤ ∑ y', |Real.log (P x y')| :=
+        Finset.single_le_sum (f := fun y' ↦ |Real.log (P x y')|) (fun _ _ ↦ abs_nonneg _)
+          (Finset.mem_univ _)
+    _ ≤ ∑ x', ∑ y', |Real.log (P x' y')| :=
+        Finset.single_le_sum (f := fun x' ↦ ∑ y', |Real.log (P x' y')|)
+          (fun _ _ ↦ Finset.sum_nonneg fun _ _ ↦ abs_nonneg _) (Finset.mem_univ _)
+
 omit [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
 lemma abs_markovPotential_le (P : Matrix E E ℝ) (A : Finset ℤ) (σ : ℤ → E) :
     |markovPotential P A σ| ≤ logBound P := by
   by_cases h : ∃ i, A = {i, i + 1}
   · obtain ⟨i, rfl⟩ := h
     rw [markovPotential_pair, abs_neg]
-    calc |Real.log (P (σ i) (σ (i + 1)))| ≤ ∑ y, |Real.log (P (σ i) y)| :=
-          Finset.single_le_sum (f := fun y ↦ |Real.log (P (σ i) y)|) (fun _ _ ↦ abs_nonneg _)
-            (Finset.mem_univ _)
-      _ ≤ ∑ x, ∑ y, |Real.log (P x y)| :=
-          Finset.single_le_sum (f := fun x ↦ ∑ y, |Real.log (P x y)|)
-            (fun _ _ ↦ Finset.sum_nonneg fun _ _ ↦ abs_nonneg _) (Finset.mem_univ _)
+    exact abs_log_le_logBound P _ _
   · rw [markovPotential_of_not_pair P h, abs_zero]
     exact logBound_nonneg P
 
-instance isAbsolutelySummable_markovPotential (P : Matrix E E ℝ) :
-    (markovPotential P).IsAbsolutelySummable := by
+omit [Fintype E] [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- **Georgii's "bounded nearest-neighbour potential".** `markovPotential M` is absolutely
+summable as soon as its bond energies are uniformly bounded, `|log M(x,y)| ≤ c`; no finiteness
+of the state space is needed. -/
+lemma isAbsolutelySummable_markovPotential_of_abs_log_le (M : Matrix E E ℝ) {c : ℝ}
+    (hM : ∀ x y, |Real.log (M x y)| ≤ c) : (markovPotential M).IsAbsolutelySummable := by
+  have habs : ∀ (A : Finset ℤ) (σ : ℤ → E), |markovPotential M A σ| ≤ max c 0 := by
+    intro A σ
+    by_cases h : ∃ i : ℤ, A = {i, i + 1}
+    · obtain ⟨i, rfl⟩ := h
+      rw [markovPotential_pair, abs_neg]
+      exact (hM _ _).trans (le_max_left _ _)
+    · rw [markovPotential_of_not_pair M h, abs_zero]
+      exact le_max_right _ _
   refine ⟨fun i ↦ ?_⟩
   have hsupp : ∀ A : Finset ℤ, A ∉ (Finset.Icc (i - 1) (i + 1)).powerset →
       ({A : Finset ℤ | i ∈ A}.indicator
-        (fun A ↦ ⨆ η, ‖markovPotential P A η‖ₑ)) A = 0 := by
+        (fun A ↦ ⨆ η, ‖markovPotential M A η‖ₑ)) A = 0 := by
     intro A hA
     rw [Finset.mem_powerset] at hA
     by_cases hiA : i ∈ A
     · rw [Set.indicator_of_mem (show A ∈ {A : Finset ℤ | i ∈ A} from hiA)]
-      have hΦ0 : markovPotential P A = 0 := by
+      have hΦ0 : markovPotential M A = 0 := by
         by_contra hΦ
-        exact hA (subset_Icc_of_markovPotential_ne_zero P hiA hΦ)
+        exact hA (subset_Icc_of_markovPotential_ne_zero M hiA hΦ)
       refine le_antisymm (iSup_le fun η ↦ ?_) zero_le
       simp [hΦ0]
     · exact Set.indicator_of_notMem (show A ∉ {A : Finset ℤ | i ∈ A} from hiA) _
-  have htsum : (markovPotential P).normAt i =
+  have htsum : (markovPotential M).normAt i =
       ∑ A ∈ (Finset.Icc (i - 1) (i + 1)).powerset,
-        ({A : Finset ℤ | i ∈ A}.indicator (fun A ↦ ⨆ η, ‖markovPotential P A η‖ₑ)) A :=
+        ({A : Finset ℤ | i ∈ A}.indicator (fun A ↦ ⨆ η, ‖markovPotential M A η‖ₑ)) A :=
     tsum_eq_sum hsupp
   rw [htsum]
   refine (ENNReal.sum_lt_top.2 fun A _ ↦ ?_).ne
-  calc ({A : Finset ℤ | i ∈ A}.indicator (fun A ↦ ⨆ η, ‖markovPotential P A η‖ₑ)) A
-      ≤ ⨆ η, ‖markovPotential P A η‖ₑ := Set.indicator_le_self _ _ A
-    _ ≤ ENNReal.ofReal (logBound P) := iSup_le fun η ↦ by
+  calc ({A : Finset ℤ | i ∈ A}.indicator (fun A ↦ ⨆ η, ‖markovPotential M A η‖ₑ)) A
+      ≤ ⨆ η, ‖markovPotential M A η‖ₑ := Set.indicator_le_self _ _ A
+    _ ≤ ENNReal.ofReal (max c 0) := iSup_le fun η ↦ by
         rw [Real.enorm_eq_ofReal_abs]
-        exact ENNReal.ofReal_le_ofReal (abs_markovPotential_le P A η)
+        exact ENNReal.ofReal_le_ofReal (habs A η)
     _ < ⊤ := ENNReal.ofReal_lt_top
+
+omit [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
+/-- Over a finite state space the bond energies are bounded by `logBound P`, so
+`markovPotential P` is absolutely summable. -/
+instance isAbsolutelySummable_markovPotential (P : Matrix E E ℝ) :
+    (markovPotential P).IsAbsolutelySummable :=
+  isAbsolutelySummable_markovPotential_of_abs_log_le P (abs_log_le_logBound P)
 
 /-- The Gibbsian specification of `markovPotential P` (Georgii (3.6), Corollary (3.9)) for a
 positive stochastic matrix `P`, with the uniform probability measure on `E` as reference measure
@@ -459,19 +489,18 @@ lemma not_disjoint_pair_bondsOf {Λ : Finset ℤ} {i : ℤ} (hi : i ∈ bondsOf 
   · exact ⟨i, by simp, h⟩
   · exact ⟨i + 1, by simp, h⟩
 
-omit [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
+omit [Fintype E] [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
 /-- The Hamiltonian of `markovPotential P` on a finite volume `Λ` is the sum of the bond
-energies `-log P(σ_j, σ_{j+1})` over the bonds meeting `Λ`. -/
+energies `-log P(σ_j, σ_{j+1})` over the bonds meeting `Λ`. The series has finite support, so
+neither finiteness of the state space nor absolute summability is needed. -/
 lemma hamiltonian_eq_sum_bondsOf (P : Matrix E E ℝ) (Λ : Finset ℤ) (σ : ℤ → E) :
     (markovPotential P).hamiltonian Λ σ
       = ∑ j ∈ bondsOf Λ, -Real.log (P (σ j) (σ (j + 1))) := by
-  rw [Potential.hamiltonian_eq_tsum,
-    tsum_eq_sum (s := (bondsOf Λ).image fun i ↦ ({i, i + 1} : Finset ℤ)) (fun A hA ↦ ?_)]
-  · rw [Finset.sum_image fun i _ j _ h ↦ pair_succ_inj h]
-    refine Finset.sum_congr rfl fun i hi ↦ ?_
-    rw [Potential.hamiltonianTerms_of_not_disjoint (not_disjoint_pair_bondsOf hi),
-      markovPotential_pair]
-  · by_cases hd : Disjoint A Λ
+  classical
+  have hzero : ∀ A : Finset ℤ, A ∉ (bondsOf Λ).image (fun i ↦ ({i, i + 1} : Finset ℤ)) →
+      (markovPotential P).hamiltonianTerms Λ σ A = 0 := by
+    intro A hA
+    by_cases hd : Disjoint A Λ
     · exact Potential.hamiltonianTerms_of_disjoint hd σ
     · rw [Potential.hamiltonianTerms_of_not_disjoint hd]
       by_cases hpair : ∃ i, A = {i, i + 1}
@@ -484,8 +513,17 @@ lemma hamiltonian_eq_sum_bondsOf (P : Matrix E E ℝ) (Λ : Finset ℤ) (σ : �
         · exact Or.inl hk2
         · exact Or.inr hk2
       · exact markovPotential_of_not_pair P hpair σ
+  calc (markovPotential P).hamiltonian Λ σ
+      = ∑ A ∈ (bondsOf Λ).image (fun i ↦ ({i, i + 1} : Finset ℤ)),
+          (markovPotential P).hamiltonianTerms Λ σ A :=
+        ((hasSum_sum_of_ne_finset_zero hzero).volume).tsum_eq
+    _ = ∑ j ∈ bondsOf Λ, -Real.log (P (σ j) (σ (j + 1))) := by
+        rw [Finset.sum_image fun i _ j _ h ↦ pair_succ_inj h]
+        refine Finset.sum_congr rfl fun i hi ↦ ?_
+        rw [Potential.hamiltonianTerms_of_not_disjoint (not_disjoint_pair_bondsOf hi),
+          markovPotential_pair]
 
-omit [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
+omit [Fintype E] [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
 /-- The Hamiltonian of `markovPotential P` on the interval `[a, a+n]` is the sum of the bond
 energies `-log P(σ_j, σ_{j+1})`, `a - 1 ≤ j ≤ a + n`. -/
 lemma hamiltonian_Icc (P : Matrix E E ℝ) (a : ℤ) (n : ℕ) (σ : ℤ → E) :
@@ -493,7 +531,7 @@ lemma hamiltonian_Icc (P : Matrix E E ℝ) (a : ℤ) (n : ℕ) (σ : ℤ → E) 
       = ∑ j ∈ Finset.Ico (a - 1) (a + n + 1), -Real.log (P (σ j) (σ (j + 1))) := by
   rw [hamiltonian_eq_sum_bondsOf, bondsOf_Icc (by omega : a ≤ a + (n : ℤ))]
 
-omit [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
+omit [Fintype E] [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
 /-- The Boltzmann factor of `markovPotential P` on a finite volume `Λ` is the product of the
 transition weights over the bonds meeting `Λ`. -/
 lemma boltzmannFactor_eq_prod_bondsOf (hpos : ∀ x y, 0 < P x y) (Λ : Finset ℤ) (σ : ℤ → E) :
@@ -508,7 +546,7 @@ lemma boltzmannFactor_eq_prod_bondsOf (hpos : ∀ x y, 0 < P x y) (Λ : Finset �
   rw [Real.exp_sum]
   exact Finset.prod_congr rfl fun j _ ↦ Real.exp_log (hpos _ _)
 
-omit [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
+omit [Fintype E] [DecidableEq E] [MeasurableSingletonClass E] [Nonempty E] in
 /-- The Boltzmann factor of `markovPotential P` on `[a, a+n]` is the path weight. -/
 lemma boltzmannFactor_Icc (hpos : ∀ x y, 0 < P x y) (a : ℤ) (n : ℕ) (σ : ℤ → E) :
     (markovPotential P).boltzmannFactor 1 (Finset.Icc a (a + n)) σ
