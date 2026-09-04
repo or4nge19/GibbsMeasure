@@ -104,6 +104,7 @@ public import GibbsMeasure.Model.BoundaryLawUniqueness
 public import GibbsMeasure.Model.TreeBoundaryLaw
 public import GibbsMeasure.Model.TreeBoundaryLawChains
 public import GibbsMeasure.Model.MarkovChainInt
+public import GibbsMeasure.Model.MarkovChainReindex
 public import GibbsMeasure.Model.InhomogeneousIsingChain
 public import GibbsMeasure.Model.Ising
 public import GibbsMeasure.Model.IsingDobrushin
@@ -139,6 +140,7 @@ public import GibbsMeasure.Potential.PerSiteExistence
 public import GibbsMeasure.Potential.Periodic
 public import GibbsMeasure.Potential.Space
 public import GibbsMeasure.Potential.Transformation
+public import GibbsMeasure.Potential.Reindex
 public import GibbsMeasure.Potential.Pair
 public import GibbsMeasure.Specification
 public import GibbsMeasure.Specification.ChoquetLaw
@@ -188,6 +190,7 @@ public import GibbsMeasure.Specification.Quasilocality
 public import GibbsMeasure.Specification.Rescaling
 public import GibbsMeasure.Specification.ProductSpecification
 public import GibbsMeasure.Specification.Pullback
+public import GibbsMeasure.Specification.Reindex
 public import GibbsMeasure.Specification.QuasilocalSpecification
 public import GibbsMeasure.Specification.Singleton
 public import GibbsMeasure.Specification.CountingKernel

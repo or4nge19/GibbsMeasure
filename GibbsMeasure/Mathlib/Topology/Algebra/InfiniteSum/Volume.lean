@@ -8,6 +8,7 @@ module
 public import Mathlib.Topology.Algebra.InfiniteSum.Group
 public import Mathlib.Order.Filter.AtTopBot.CountablyGenerated
 public import Mathlib.Order.Filter.AtTopBot.Finset
+public import GibbsMeasure.Mathlib.Data.Finset.Map
 
 /-!
 # Summation over finite subsets, ordered by ambient volume
@@ -73,3 +74,53 @@ lemma volume (h : Summable f) : Summable f (SummationFilter.volume ι) :=
   h.mono_filter (SummationFilter.le_atTop (L := SummationFilter.volume ι))
 
 end Summable
+
+/-! ### Reindexing along a bijection of the index set
+
+Summation along `SummationFilter.volume` is invariant under a bijection `σ : ι ≃ κ` of the index
+set: `∑'[volume ι] A, f (A.map σ) = ∑'[volume κ] B, f B`. -/
+
+namespace SummationFilter
+
+variable {ι κ α : Type*} [AddCommMonoid α] (σ : ι ≃ κ) (f : Finset κ → α)
+
+/-- Reindexing the powerset of `Δ` along `σ` gives the powerset of `σ '' Δ`. -/
+lemma sum_powerset_map_equiv (Δ : Finset ι) :
+    ∑ A ∈ Δ.powerset, f (A.map σ.toEmbedding) = ∑ B ∈ (Δ.map σ.toEmbedding).powerset, f B := by
+  have h : Δ.powerset.map (Finset.mapEmbedding σ.toEmbedding).toEmbedding
+      = (Δ.map σ.toEmbedding).powerset := by
+    ext B
+    simp only [Finset.mem_map, Finset.mem_powerset, RelEmbedding.coe_toEmbedding,
+      Finset.mapEmbedding_apply]
+    constructor
+    · rintro ⟨A, hA, rfl⟩
+      exact Finset.map_subset_map.2 hA
+    · intro hB
+      refine ⟨B.map σ.symm.toEmbedding, ?_, Finset.map_map_symm σ B⟩
+      rw [← Finset.map_subset_map (f := σ.toEmbedding), Finset.map_map_symm]
+      exact hB
+  rw [← h, Finset.sum_map]
+  rfl
+
+variable [TopologicalSpace α]
+
+/-- Summation along `SummationFilter.volume` is invariant under a bijection of the index set. -/
+lemma hasSum_volume_map_equiv_iff (a : α) :
+    HasSum (fun A ↦ f (A.map σ.toEmbedding)) a (volume ι) ↔ HasSum f a (volume κ) := by
+  simp only [HasSum, volume_filter, Filter.tendsto_map'_iff, Function.comp_def,
+    sum_powerset_map_equiv σ f]
+  conv_rhs => rw [← σ.finsetOrderIso.map_atTop, Filter.tendsto_map'_iff]
+  exact Iff.rfl
+
+lemma summable_volume_map_equiv_iff :
+    Summable (fun A ↦ f (A.map σ.toEmbedding)) (volume ι) ↔ Summable f (volume κ) :=
+  exists_congr fun a ↦ hasSum_volume_map_equiv_iff σ f a
+
+lemma tsum_volume_map_equiv [T2Space α] :
+    ∑'[volume ι] A, f (A.map σ.toEmbedding) = ∑'[volume κ] B, f B := by
+  by_cases h : Summable f (volume κ)
+  · exact ((hasSum_volume_map_equiv_iff σ f _).2 h.hasSum).tsum_eq
+  · rw [tsum_eq_zero_of_not_summable h,
+      tsum_eq_zero_of_not_summable (mt (summable_volume_map_equiv_iff σ f).1 h)]
+
+end SummationFilter

@@ -509,7 +509,11 @@ priori measure. Comments (9.7) and (9.13), Examples (9.8)(2), (9.15) and (9.17)
 (`GibbsMeasure/Model/OneDimensionalSymmetryExamples.lean`) complete the section, with (20.21) as an explicit
 hypothesis; the (6.4) input of (9.15) is discharged at `K = 0` through the pullback theory of
 `GibbsMeasure/Specification/Pullback.lean` (a potential pulled back along `Prod.fst` has Gibbs
-measures projecting onto those of the original).
+measures projecting onto those of the original). Transport along a bijection of site sets `e : S ≃ S'` — potentials, specifications,
+transformations, `𝒢`, `ex 𝒢`, `𝓟_Θ`, `𝒢_Θ`, with `siteEquiv` and `Specification.map` as the `S' = S`
+instances — lives in `GibbsMeasure/Potential/Reindex.lean` and `GibbsMeasure/Specification/Reindex.lean`;
+`GibbsMeasure/Model/MarkovChainReindex.lean` moves Chapter 3's unique Markov-chain Gibbs measure from `ℤ`
+to `Unit → ℤ`, where Chapter 15 is stated.
 
 **Chapter 12, §12.1** (`GibbsMeasure/Model/TreeBoundaryLaw.lean`): transfer families and `γ^Q`
 on any locally finite graph, Markov chains on a graph (12.2), boundary laws indexed by oriented

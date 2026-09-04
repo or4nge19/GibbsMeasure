@@ -1207,6 +1207,19 @@ alignment:
         mechanism: G(gamma^Phi) = {rho} gives rho in G_Theta and k(mu|Phi) = 0 iff mu = rho
         (specificRelativeEntropy_eq_zero_iff_eq_of_G_eq_singleton); the Chapter 3 Markov-chain
         instance is on sites Z while Section 15 is on Z^d, and its explicit k(mu|Phi) is (15.19).
+    - source: "Transport along a bijection of site sets (Georgii (5.4)-(5.6) for S ≃ S'); Example (15.40), the instance"
+      lean: "MeasureTheory.GibbsMeasure.Markov.gibbsMeasure_reindex_eq_singleton"
+      module: "GibbsMeasure/Model/MarkovChainReindex.lean"
+      status: "proved"
+      note: >-
+        Potential.reindex, Specification.reindex and Transformation.reindex along e : S ≃ S'
+        (configurations by MeasurableEquiv.arrowCongr'), with the Gibbsian specification of the
+        reindexed potential the reindexed specification, G, GP, extreme points, P_Theta and
+        G_Theta transported bijectively, the shift group of S mapped onto that of S' for e an
+        additive equivalence; siteEquiv, Potential.map and Specification.map are the S' = S
+        instances (rfl lemmas). Instance: Chapter 3's unique Gibbs measure mu_P on Z transported
+        to Unit -> Z, where Section 15 lives, with G_Theta = {mu_P} (Potential/Reindex.lean,
+        Specification/Reindex.lean, Model/MarkovChainReindex.lean).
     - source: "Pullback of a potential along a map of the single-spin space; Example (9.15) from Theorem (6.4)"
       lean: "MeasureTheory.GibbsMeasure.exists_not_measurePreserving_squareFlip₁_of_summable"
       module: "GibbsMeasure/Specification/Pullback.lean"
