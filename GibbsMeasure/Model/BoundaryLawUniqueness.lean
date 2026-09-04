@@ -2674,7 +2674,8 @@ end MarkovBridge
 
 /-! ## Georgii Comment (11.18)(3): `L(Q) = tL(P) + (1-t)` for `Q = tP + (1-t)I`, and non-existence
 
-The binomial identity `Q^n(x,x) = ∑_k C(n,k) t^k (1-t)^{n-k} P^k(x,x)` (`ofMatrix_lazy_pow_apply_singleton`,
+The binomial identity `Q^n(x,x) = ∑_k C(n,k) t^k (1-t)^{n-k} P^k(x,x)`
+    (`ofMatrix_lazy_pow_apply_singleton`,
 proved by induction on `n` via Pascal's rule — the intended Mathlib home is next to
 `Kernel.ofMatrix` in `GibbsMeasure/Mathlib/Probability/Kernel/CountableMatrix.lean`, stated for a
 general commuting pair rather than specifically for `lazy`) feeds two purely analytic facts about
@@ -2729,7 +2730,8 @@ theorem ENNReal_eventually_pow_le_pow_of_one_lt {r : ℝ≥0∞} (hr : 1 < r) (k
     rwa [ENNReal.ofReal_pow (Nat.cast_nonneg n), ENNReal.ofReal_natCast,
       ENNReal.ofReal_pow (by linarith : (0:ℝ) ≤ r.toReal), ENNReal.ofReal_toReal hrtop] at hle
 
-theorem ENNReal_add_le_of_two_mul_le_of_two_mul_le {a b c : ℝ≥0∞} (h1 : 2 * a ≤ c) (h2 : 2 * b ≤ c) :
+theorem ENNReal_add_le_of_two_mul_le_of_two_mul_le {a b c : ℝ≥0∞} (h1 : 2 * a ≤ c) (h2 : 2 * b ≤
+    c) :
     a + b ≤ c := by
   have h : (a + b) * 2 ≤ c * 2 := by
     rw [add_mul]
