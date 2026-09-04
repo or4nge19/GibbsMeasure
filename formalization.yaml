@@ -300,6 +300,10 @@ status:
       file: "GibbsMeasure/Specification/ErgodicExamples.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Tree.exists_isMarkovChain_transitionProb_eq_of_reversible"
+      file: "GibbsMeasure/Model/TreeBoundaryLawChains.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
 
 automation:
   methods:
@@ -1101,7 +1105,13 @@ alignment:
         Theorem (12.6): extreme Gibbs measures of a Markov specification on a countable locally
         finite tree are Markov chains, by Levy's downward theorem along the past of each edge and
         tail triviality (7.7)(a); Corollary (12.18) for any locally finite tree and transfer family.
-        Not formalized: (12.3)(3),(5),(6). The counting-kernel and cylinder lemmas live once in
+        (12.3)(6): Markov chains on trees are Markov fields (IsMarkovField, the local Markov
+        property with T_Lambda = F_{S minus Lambda}); (12.3)(3): the marginal on an embedded copy of
+        Z is a (10.4)-chain; (12.3)(5): reversibility alpha(x)P(x,y) = alpha(y)P(y,x) is necessary
+        and sufficient for a chain with transition matrix P on every bond of a tree (finite E),
+        its one-site marginals are alpha and it is invariant under the tree's automorphism group
+        (graphAutomorphisms, Mathlib's SimpleGraph.Iso acting through siteEquiv).
+        The counting-kernel and cylinder lemmas live once in
         Specification/CountingKernel.lean for any site set; Chapter 11's gamma^Q is the Hasse-graph
         instance of the tree specification (transferSpecification_eq_transferSpecification_hasse_int),
         with (11.1) giving the tree admissibility.

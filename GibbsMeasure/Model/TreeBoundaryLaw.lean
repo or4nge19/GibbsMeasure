@@ -31,8 +31,16 @@ lives in `GibbsMeasure/Mathlib/Combinatorics/SimpleGraph/`, and the counting-mea
 
 * `IsMarkovSpecification` — **Definition (12.1)**; `isMarkovSpecification_transferSpecification`.
 * `IsMarkovChain` — **Definition (12.2)** (via conditional expectations);
-  `IsMarkovChain.measure_preimage_inter_cyl` is its finite-volume content, and
+  `isMarkovChain_iff_forall_measure_preimage_inter` is its set-integral form,
+  `IsMarkovChain.measure_preimage_inter_cyl` its finite-volume content, and
   `IsMarkovChain.measure_cyl_union_eq_mul_prod` the consequence of **(12.4)** used in (12.12)(b).
+  `transitionProb` is Georgii's transition matrix `P_{ij}(x, y) = μ(σ_j = y | σ_i = x)`;
+  `condExp_indicator_preimage_singleton_ae_eq` (`μ(σ_j = y | 𝓕_{i}) = P_{ij}(σ_i, y)` for any
+  probability measure), `transitionProb_mul_transitionProb_swap_eq` (**(12.5)**, Comment
+  (12.3)(4)) and `tsum_transitionProb_eq_one` are its basic API.
+* `IsMarkovField` — Georgii's *Markov field* (the local Markov property stated after Definition
+  (12.1)); that Gibbs measures of Markov specifications and Markov chains are Markov fields is in
+  `TreeBoundaryLawChains.lean`.
 * `transferWeight`, `IsTransferFamily`, `transferSpecification` — the positive Markov
   specification **(12.8)** of a family of transfer matrices **(12.9)**, as the λ-specification of
   counting measure; `transferSpecification_apply_cyl` is (12.8).
@@ -53,9 +61,8 @@ lives in `GibbsMeasure/Mathlib/Combinatorics/SimpleGraph/`, and the counting-mea
   `IsMarkovChain.eq_boundaryLawMeasure` — every Markov chain in `𝒢(γ^Q)` is the measure (12.13) of
   the boundary law `chainBoundaryLaw`, `ℓ_{ij}(x) = P_{ji}(a, x) / Q_{ji}(a, x)`.
 
-Not formalised here: Theorem (12.6) (extreme Gibbs measures of Markov specifications are Markov
-chains, which needs the backward martingale convergence theorem), the uniqueness up to a factor
-in (12.12)(b), Comments (12.3), and Corollary (12.18).
+Theorem (12.6), the uniqueness up to a factor in (12.12)(b), Comments (12.3) and Corollary
+(12.18) are in `GibbsMeasure/Model/TreeBoundaryLawChains.lean`.
 -/
 
 @[expose] public section
@@ -987,6 +994,109 @@ variable (G : SimpleGraph S)
 def transitionProb (μ : Measure (S → E)) (i j : S) (x y : E) : ℝ≥0∞ :=
   μ ((fun σ ↦ σ i) ⁻¹' {x} ∩ (fun σ ↦ σ j) ⁻¹' {y}) / μ ((fun σ ↦ σ i) ⁻¹' {x})
 
+section TransitionProb
+
+variable {G} {μ : Measure (S → E)}
+
+omit [DecidableEq S] [Countable E] [MeasurableSingletonClass E] in
+lemma transitionProb_le_one [IsFiniteMeasure μ] (i j : S) (x y : E) :
+    transitionProb μ i j x y ≤ 1 :=
+  ENNReal.div_le_of_le_mul (by rw [one_mul]; exact measure_mono Set.inter_subset_left)
+
+omit [DecidableEq S] [Countable E] [MeasurableSingletonClass E] in
+lemma transitionProb_ne_top [IsFiniteMeasure μ] (i j : S) (x y : E) :
+    transitionProb μ i j x y ≠ ⊤ :=
+  ne_top_of_le_ne_top ENNReal.one_ne_top (transitionProb_le_one i j x y)
+
+omit [DecidableEq S] [Countable E] [MeasurableSingletonClass E] in
+/-- The defining ratio of `transitionProb`, cleared of its denominator: `α_i(x) P_{ij}(x, y) =
+μ(σ_i = x, σ_j = y)`. This holds unconditionally (in particular also when `α_i(x) = 0`, in which
+case both sides vanish since `σ_i = x, σ_j = y` is a subset of `σ_i = x`). -/
+theorem transitionProb_mul_measure_eq [IsFiniteMeasure μ] (i j : S) (x y : E) :
+    μ ((fun σ : S → E ↦ σ i) ⁻¹' {x}) * transitionProb μ i j x y
+      = μ ((fun σ : S → E ↦ σ i) ⁻¹' {x} ∩ (fun σ : S → E ↦ σ j) ⁻¹' {y}) :=
+  ENNReal.mul_div_cancel' (fun h ↦ measure_mono_null Set.inter_subset_left h)
+    (fun h ↦ absurd h (measure_ne_top μ _))
+
+omit [DecidableEq S] [Countable E] [MeasurableSingletonClass E] in
+/-- **Georgii equation (12.5) / Comment (12.3)(4), necessity.** `α_i(x) P_{ij}(x, y) = α_j(y)
+P_{ji}(y, x)`, where `α_k(x) = μ(σ_k = x)` is the marginal of `μ` at `k` and `P_{ij} =
+transitionProb μ i j`. -/
+theorem transitionProb_mul_transitionProb_swap_eq [IsFiniteMeasure μ] (i j : S) (x y : E) :
+    μ ((fun σ : S → E ↦ σ i) ⁻¹' {x}) * transitionProb μ i j x y
+      = μ ((fun σ : S → E ↦ σ j) ⁻¹' {y}) * transitionProb μ j i y x := by
+  rw [transitionProb_mul_measure_eq, transitionProb_mul_measure_eq, Set.inter_comm]
+
+omit [DecidableEq S] in
+/-- `transitionProb μ i j x` is a probability vector in `y` whenever `x` has positive marginal
+probability: `∑_y P_{ij}(x, y) = 1`. Together with `transitionProb_mul_transitionProb_swap_eq`
+this is Comment (12.3)(4): `transitionProb μ i j` is a genuine stochastic matrix satisfying (12.5)
+with `α_k` the marginal of `μ`. -/
+theorem tsum_transitionProb_eq_one [IsFiniteMeasure μ] {i j : S} {x : E}
+    (hx : μ ((fun σ : S → E ↦ σ i) ⁻¹' {x}) ≠ 0) :
+    ∑' y, transitionProb μ i j x y = 1 := by
+  set A := (fun σ : S → E ↦ σ i) ⁻¹' {x} with hA
+  have hUnion : A = ⋃ y : E, A ∩ (fun σ : S → E ↦ σ j) ⁻¹' {y} := by
+    ext σ; simp [hA]
+  have hdisj : Pairwise (Function.onFun Disjoint fun y : E ↦ A ∩ (fun σ : S → E ↦ σ j) ⁻¹' {y}) :=
+    fun y y' hyy' ↦ Set.disjoint_left.2 (by
+      rintro σ ⟨-, hy⟩ ⟨-, hy'⟩; exact hyy' (hy.symm.trans hy'))
+  have hsum : μ A = ∑' y, μ (A ∩ (fun σ : S → E ↦ σ j) ⁻¹' {y}) := by
+    conv_lhs => rw [hUnion]
+    exact measure_iUnion hdisj fun y ↦ (measurable_pi_apply i (measurableSet_singleton x)).inter
+      (measurable_pi_apply j (measurableSet_singleton y))
+  simp_rw [transitionProb, ← hA, div_eq_mul_inv]
+  rw [ENNReal.tsum_mul_right, ← hsum, ENNReal.mul_inv_cancel hx (measure_ne_top μ A)]
+
+omit [DecidableEq S] [Countable E] [MeasurableSingletonClass E] in
+/-- `𝓕_{i}` is the σ-algebra generated by the single coordinate `σ_i`. -/
+lemma cylinderEvents_singleton (i : S) :
+    cylinderEvents (X := fun _ : S ↦ E) ({i} : Set S)
+      = MeasurableSpace.comap (fun σ : S → E ↦ σ i) inferInstance := by
+  simp [cylinderEvents]
+
+omit [DecidableEq S] in
+/-- **Conditioning on a single coordinate.** For any probability measure `μ` on `E^S` with `E`
+countable, `μ(σ_j = y | 𝓕_{i}) = P_{ij}(σ_i, y)` `μ`-a.s., where `P_{ij} = transitionProb μ i j`.
+No Markov property is involved: this is why the transition matrices of Definition (12.2) are
+`transitionProb` wherever the marginal at `i` is positive. -/
+theorem condExp_indicator_preimage_singleton_ae_eq [IsProbabilityMeasure μ] (i j : S) (y : E) :
+    μ[((fun σ : S → E ↦ σ j) ⁻¹' {y}).indicator (1 : (S → E) → ℝ)
+        | cylinderEvents (X := fun _ : S ↦ E) ({i} : Set S)]
+      =ᵐ[μ] fun σ ↦ (transitionProb μ i j (σ i) y).toReal := by
+  set A := (fun σ : S → E ↦ σ j) ⁻¹' {y} with hA
+  have hm : cylinderEvents (X := fun _ : S ↦ E) ({i} : Set S) ≤ MeasurableSpace.pi :=
+    cylinderEvents_le_pi
+  have hAm : MeasurableSet A := measurable_pi_apply j (measurableSet_singleton y)
+  have hgm : Measurable[cylinderEvents (X := fun _ : S ↦ E) ({i} : Set S)]
+      fun σ : S → E ↦ transitionProb μ i j (σ i) y :=
+    (measurable_of_countable fun x ↦ transitionProb μ i j x y).comp
+      (measurable_cylinderEvent_apply (X := fun _ : S ↦ E) (Set.mem_singleton i))
+  refine ((toReal_ae_eq_indicator_condExp_iff_forall_meas_inter_eq hm hAm (measure_ne_top _ _)
+    hgm.stronglyMeasurable.aestronglyMeasurable
+    (ae_of_all _ fun _ ↦ transitionProb_ne_top _ _ _ _)).2 fun t ht ↦ ?_).symm
+  rw [cylinderEvents_singleton] at ht
+  obtain ⟨B, -, rfl⟩ := MeasurableSpace.measurableSet_comap.1 ht
+  have hB : MeasurableSet B := B.to_countable.measurableSet
+  have hmeas : ∀ x : E, MeasurableSet ((fun σ : S → E ↦ σ i) ⁻¹' {x}) := fun x ↦
+    measurable_pi_apply i (measurableSet_singleton x)
+  calc μ (A ∩ (fun σ : S → E ↦ σ i) ⁻¹' B)
+      = (μ.restrict A) ((fun σ : S → E ↦ σ i) ⁻¹' B) := by
+        rw [Measure.restrict_apply (hB.preimage (measurable_pi_apply i)), Set.inter_comm]
+    _ = ∑' x : B, (μ.restrict A) ((fun σ : S → E ↦ σ i) ⁻¹' {(x : E)}) :=
+        (tsum_measure_preimage_singleton B.to_countable fun x _ ↦ hmeas x).symm
+    _ = ∑' x : B, transitionProb μ i j x y * μ ((fun σ : S → E ↦ σ i) ⁻¹' {(x : E)}) := by
+        refine tsum_congr fun x ↦ ?_
+        rw [Measure.restrict_apply (hmeas x), ← transitionProb_mul_measure_eq, mul_comm]
+    _ = ∫⁻ x in B, transitionProb μ i j x y ∂(μ.map fun σ : S → E ↦ σ i) := by
+        rw [lintegral_countable _ B.to_countable]
+        refine tsum_congr fun x ↦ ?_
+        rw [Measure.map_apply (measurable_pi_apply i) (measurableSet_singleton _)]
+    _ = ∫⁻ σ in (fun σ : S → E ↦ σ i) ⁻¹' B, transitionProb μ i j (σ i) y ∂μ :=
+        setLIntegral_map hB (measurable_of_countable _) (measurable_pi_apply i)
+
+end TransitionProb
+
 /-- **Georgii Definition (12.2).** A probability measure `μ` on `E^S` is a *Markov chain* on the
 tree `G` if for every oriented bond `ij` and `y ∈ E`,
 `μ(σ_j = y | 𝓕_{]-∞, ij[}) = μ(σ_j = y | 𝓕_{i})` `μ`-a.s., where `]-∞, ij[` is the side of `i`. -/
@@ -1047,7 +1157,103 @@ theorem IsMarkovChain.measure_preimage_inter_cyl (hμ : IsMarkovChain G μ) {i j
       ENNReal.eq_div_iff h0 (measure_ne_top _ _), Set.inter_comm D₂ A, mul_comm]
     exact hE
 
+omit [DecidableEq S] in
+/-- Definition (12.2) with the transition matrix made explicit:
+`μ(σ_j = y | 𝓕_{]-∞, ij[}) = P_{ij}(σ_i, y)` `μ`-a.s., `P_{ij} = transitionProb μ i j`. -/
+theorem IsMarkovChain.condExp_indicator_ae_eq (hμ : IsMarkovChain G μ) {i j : S}
+    (hij : G.Adj i j) (y : E) :
+    μ[((fun σ : S → E ↦ σ j) ⁻¹' {y}).indicator (1 : (S → E) → ℝ) | cylinderEvents (G.past i j)]
+      =ᵐ[μ] fun σ ↦ (transitionProb μ i j (σ i) y).toReal :=
+  have := hμ.isProbabilityMeasure
+  (hμ.condExp hij y).trans (condExp_indicator_preimage_singleton_ae_eq i j y)
+
+omit [DecidableEq S] in
+lemma measurable_cylinderEvents_past_transitionProb {i j : S} (hij : G.Adj i j) (y : E) :
+    Measurable[cylinderEvents (X := fun _ : S ↦ E) (G.past i j)]
+      fun σ : S → E ↦ transitionProb μ i j (σ i) y :=
+  (measurable_of_countable fun x ↦ transitionProb μ i j x y).comp
+    (measurable_cylinderEvent_apply (X := fun _ : S ↦ E) (SimpleGraph.mem_past_self_of_adj hij))
+
+omit [DecidableEq S] in
+/-- Definition (12.2) in set-integral form: for every `t ∈ 𝓕_{]-∞, ij[}`,
+`μ(σ_j = y, t) = ∫_t P_{ij}(σ_i, y) dμ`. -/
+theorem IsMarkovChain.measure_preimage_inter_eq_lintegral (hμ : IsMarkovChain G μ) {i j : S}
+    (hij : G.Adj i j) (y : E) {t : Set (S → E)}
+    (ht : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (G.past i j)] t) :
+    μ ((fun σ ↦ σ j) ⁻¹' {y} ∩ t) = ∫⁻ σ in t, transitionProb μ i j (σ i) y ∂μ := by
+  have := hμ.isProbabilityMeasure
+  exact (toReal_ae_eq_indicator_condExp_iff_forall_meas_inter_eq cylinderEvents_le_pi
+    (measurable_pi_apply j (measurableSet_singleton y)) (measure_ne_top _ _)
+    (measurable_cylinderEvents_past_transitionProb hij y).stronglyMeasurable.aestronglyMeasurable
+    (ae_of_all _ fun _ ↦ transitionProb_ne_top _ _ _ _)).1
+    (hμ.condExp_indicator_ae_eq hij y).symm t ht
+
+omit [DecidableEq S] in
+/-- **Definition (12.2), set-integral form.** A probability measure `μ` is a Markov chain on `G`
+iff `μ(σ_j = y, t) = ∫_t P_{ij}(σ_i, y) dμ` for every oriented bond `ij`, `y ∈ E` and
+`t ∈ 𝓕_{]-∞, ij[}`, with `P_{ij} = transitionProb μ i j`. -/
+theorem isMarkovChain_iff_forall_measure_preimage_inter [IsProbabilityMeasure μ] :
+    IsMarkovChain G μ ↔ ∀ ⦃i j⦄, G.Adj i j → ∀ (y : E) (t : Set (S → E)),
+      MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (G.past i j)] t →
+        μ ((fun σ ↦ σ j) ⁻¹' {y} ∩ t) = ∫⁻ σ in t, transitionProb μ i j (σ i) y ∂μ := by
+  refine ⟨fun hμ _ _ hij y _ ht ↦ hμ.measure_preimage_inter_eq_lintegral hij y ht,
+    fun h ↦ ⟨inferInstance, fun i j hij y ↦ ?_⟩⟩
+  have h1 := (toReal_ae_eq_indicator_condExp_iff_forall_meas_inter_eq cylinderEvents_le_pi
+    (measurable_pi_apply j (measurableSet_singleton y)) (measure_ne_top _ _)
+    (measurable_cylinderEvents_past_transitionProb hij y).stronglyMeasurable.aestronglyMeasurable
+    (ae_of_all _ fun _ ↦ transitionProb_ne_top _ _ _ _)).2 (h hij y)
+  exact h1.symm.trans (condExp_indicator_preimage_singleton_ae_eq i j y).symm
+
 end MarkovChain
+
+/-! ## Markov fields: the local Markov property (Georgii, after Definition (12.1)) -/
+
+section MarkovField
+
+variable (G : SimpleGraph S) [G.LocallyFinite]
+
+/-- **Georgii, after Definition (12.1): Markov fields.** A probability measure `μ` on `E^S` is a
+*Markov field* on the locally finite graph `G` if it has the local Markov property
+`μ(σ_Λ = ζ | 𝒯_Λ) = μ(σ_Λ = ζ | 𝓕_{∂Λ})` `μ`-a.s. for all `ζ ∈ E^Λ` and all finite `Λ`, where
+`𝒯_Λ = 𝓕_{S ∖ Λ}` is the σ-algebra of the events outside `Λ`. -/
+structure IsMarkovField (μ : Measure (S → E)) : Prop where
+  isProbabilityMeasure : IsProbabilityMeasure μ
+  condExp : ∀ (Λ : Finset S) (ζ : S → E),
+    μ[(cyl Λ ζ).indicator (1 : (S → E) → ℝ) | cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)ᶜ]
+      =ᵐ[μ] μ[(cyl Λ ζ).indicator (1 : (S → E) → ℝ)
+        | cylinderEvents (X := fun _ : S ↦ E) (G.outerBoundary Λ : Set S)]
+
+end MarkovField
+
+/-! ## Finite measures agreeing on cylinders agree on the cylinder σ-algebra -/
+
+section CylinderExt
+
+omit [DecidableEq S] in
+/-- Two finite measures on `E^S` which agree on the cylinders over the finite subsets of `V` agree
+on `𝓕_V`: the cylinders form a π-system generating `𝓕_V`
+(`cylinderEvents_eq_generateFrom_cylindersIn`). -/
+lemma measure_eq_of_forall_cyl [Nonempty E] {μ ν : Measure (S → E)} [IsFiniteMeasure μ]
+    [IsFiniteMeasure ν] {V : Set S}
+    (h : ∀ (W : Finset S) (ω : S → E), (W : Set S) ⊆ V → μ (cyl W ω) = ν (cyl W ω))
+    {t : Set (S → E)} (ht : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) V] t) :
+    μ t = ν t := by
+  have hm : cylinderEvents (X := fun _ : S ↦ E) V ≤ MeasurableSpace.pi := cylinderEvents_le_pi
+  have htrim : μ.trim hm = ν.trim hm := by
+    refine ext_of_generate_finite (cylindersIn V) (cylinderEvents_eq_generateFrom_cylindersIn V)
+      (isPiSystem_cylindersIn V) ?_ ?_
+    · rintro _ ⟨W, ω, hW, rfl⟩
+      rw [trim_measurableSet_eq hm (measurableSet_cylinderEvents_cyl hW ω),
+        trim_measurableSet_eq hm (measurableSet_cylinderEvents_cyl hW ω)]
+      exact h W ω hW
+    · rw [trim_measurableSet_eq hm MeasurableSet.univ, trim_measurableSet_eq hm MeasurableSet.univ]
+      have := h ∅ (fun _ ↦ Classical.arbitrary E) (by simp)
+      rwa [cyl_empty] at this
+  calc μ t = μ.trim hm t := (trim_measurableSet_eq hm ht).symm
+    _ = ν.trim hm t := by rw [htrim]
+    _ = ν t := trim_measurableSet_eq hm ht
+
+end CylinderExt
 
 
 /-! ## Gibbs measures for `γ^Q`: cylinder identities and positivity -/

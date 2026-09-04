@@ -16,7 +16,8 @@ public import Mathlib.Probability.ProductMeasure
 Georgii §5.1, (5.1): transformations `τ = (τ_*; τ_i)` of `S → E` built from a bijection `τ_*` of
 the sites and measurable bijections `τ_i` of the state space, acting by
 `(τ ω)_i = τ_i (ω_{τ_*⁻¹ i})`. They form a group and transport the finite-volume σ-algebras:
-`f ∘ τ` is `𝓕_{τ_*⁻¹ Λ}`-measurable when `f` is `𝓕_Λ`-measurable.
+`f ∘ τ` is `𝓕_{τ_*⁻¹ Λ}`-measurable when `f` is `𝓕_Λ`-measurable. The site bijections of
+Georgii (5.2)(2) are `siteEquiv`, a group homomorphism `siteEquivHom : Equiv.Perm S →* T`.
 -/
 
 @[expose] public section
@@ -388,6 +389,10 @@ def shift (j : S) : Transformation S E where
     (shift E j).inv.toFun ω i = ω (i + j) := by
   simp [shift, Transformation.inv, Transformation.toFun]
 
+/-- The shift `θ_j` is continuous on configuration space. -/
+lemma continuous_shift_toFun [TopologicalSpace E] (j : S) : Continuous (shift E j).toFun :=
+  continuous_pi fun i ↦ by simpa only [shift_toFun_apply] using continuous_apply (i - j)
+
 open MeasureTheory in
 /-- The shift `θ_j` preserves every single-spin measure (Georgii, remark after (5.9)). -/
 lemma measurePreserving_shift_spin (ν : Measure E) (j i : S) :
@@ -451,6 +456,28 @@ omit [AddGroup S] in
 omit [AddGroup S] in
 lemma siteEquiv_comp (e f : S ≃ S) :
     (siteEquiv E e).comp (siteEquiv E f) = siteEquiv E (f.trans e) := rfl
+
+omit [AddGroup S] in
+@[simp] lemma siteEquiv_inv_toFun_apply (e : S ≃ S) (ω : S → E) (i : S) :
+    (siteEquiv E e).inv.toFun ω i = ω (e i) := rfl
+
+omit [AddGroup S] in
+/-- The preimage of a coordinate event under the site bijection `τ_e`:
+`τ_e⁻¹{σ_i ∈ B} = {σ_{e⁻¹ i} ∈ B}`. -/
+lemma siteEquiv_toFun_preimage_coord (e : S ≃ S) (i : S) (B : Set E) :
+    (siteEquiv E e).toFun ⁻¹' ((fun ω : S → E ↦ ω i) ⁻¹' B)
+      = (fun ω : S → E ↦ ω (e.symm i)) ⁻¹' B := rfl
+
+variable (E) in
+/-- **Georgii (5.2)(2) as a group homomorphism**: `e ↦ τ_e` from the permutations of the site set
+into the transformation group `T`. -/
+def siteEquivHom : Equiv.Perm S →* Transformation S E where
+  toFun := siteEquiv E
+  map_one' := rfl
+  map_mul' _ _ := rfl
+
+omit [AddGroup S] in
+@[simp] lemma siteEquivHom_apply (e : Equiv.Perm S) : siteEquivHom E e = siteEquiv E e := rfl
 
 omit [AddGroup S] in
 lemma shift_eq_siteEquiv [AddGroup S] (j : S) : shift E j = siteEquiv E (Equiv.addRight j) := rfl

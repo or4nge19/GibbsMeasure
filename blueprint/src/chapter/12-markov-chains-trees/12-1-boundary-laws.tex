@@ -94,6 +94,39 @@ the edges meeting $\Lambda$.
     positive constant on each oriented edge.
 \end{proposition}
 
+\begin{proposition}[Georgii (12.3)(3),(5),(6)]
+    \label{prop:tr-12-3-b}
+    \uses{def:tr-markov, prop:tr-12-3, thm:tr-12-12, def:mfi-markov-chain}
+    \lean{MeasureTheory.GibbsMeasure.Tree.IsMarkovField, MeasureTheory.GibbsMeasure.Tree.IsMarkovChain.isMarkovField, MeasureTheory.GibbsMeasure.Tree.IsGibbsMeasure.isMarkovField_of_isMarkovSpecification, MeasureTheory.GibbsMeasure.Tree.IsMarkovChain.markov_isMarkovChain_map_comp, MeasureTheory.GibbsMeasure.Tree.reversible_of_forall_transitionProb_eq, MeasureTheory.GibbsMeasure.Tree.exists_isMarkovChain_transitionProb_eq_of_reversible, MeasureTheory.GibbsMeasure.Tree.graphAutomorphisms, MeasureTheory.GibbsMeasure.Tree.measurePreserving_of_mem_graphAutomorphisms}
+    \leanok
+
+    Let $\mu$ be a Markov chain on a tree $(S, B)$.
+    \begin{enumerate}
+    \item[(6)] $\mu$ is a Markov field: $\mu(\sigma_\Lambda = \zeta \mid \mathcal T_\Lambda) =
+      \mu(\sigma_\Lambda = \zeta \mid \mathcal F_{\partial\Lambda})$ a.s.\ for every finite
+      $\Lambda$; every Gibbs measure for a Markov specification is a Markov field.
+    \item[(3)] For an embedded copy $f : \mathbb Z \hookrightarrow S$ of the Hasse graph,
+      $\sigma_{f(\mathbb Z)}(\mu)$ is a Markov chain on $\mathbb Z$ in the sense of (10.4), with
+      transition matrices those of $\mu$ along the embedded bonds.
+    \item[(5)] Let $E$ be finite, $P$ positive stochastic, $\alpha$ a probability vector. A
+      Markov chain with transition matrix $P$ on every bond exists iff $\alpha(x)P(x,y) =
+      \alpha(y)P(y,x)$; then $\sigma_k(\mu) = \alpha$ for all $k$ and $\mu$ is invariant under
+      the automorphism group $I(B)$ of the tree, acting on configurations by site permutation.
+    \end{enumerate}
+\end{proposition}
+\begin{proof}
+    \leanok
+    (6) The factorisation (12.4) gives $\mu(\sigma_\Delta = \zeta\omega\eta)\,
+    \mu(\sigma_{\partial\Lambda} = \omega) = \mu(\sigma_{\Lambda\cup\partial\Lambda} = \zeta\omega)\,
+    \mu(\sigma_{\Delta\setminus\Lambda} = \omega\eta)$ on cylinders; extend from the cylinders
+    over $\Delta \setminus \Lambda$ to $\mathcal T_\Lambda$ by the $\pi$-system lemma.
+    (3) In an acyclic graph the image of $]-\infty, n-1]$ lies in the past of the bond
+    $(f(n-1), f(n))$, so the chain property (12.2) restricts. (5) Necessity is (12.5) read in
+    both orientations; sufficiency is the boundary-law measure (12.12)(a) of the boundary law
+    $\ell_{ik} = \alpha^{|\partial i| - 1}$ at one chosen bond per site and $1$ elsewhere;
+    invariance is the uniqueness consequence of (12.4) applied to the image chain.
+\end{proof}
+
 \begin{theorem}[Georgii (12.17), the correspondence]
     \label{thm:tr-12-17}
     \uses{prop:tr-12-16, prop:tr-12-3}

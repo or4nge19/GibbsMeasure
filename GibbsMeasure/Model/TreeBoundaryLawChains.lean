@@ -10,6 +10,7 @@ public import GibbsMeasure.Specification.Extremal
 public import GibbsMeasure.Specification.ExtremeCorollaries
 public import GibbsMeasure.Mathlib.Probability.TailTriviality
 public import GibbsMeasure.Prereqs.MeasureExt
+public import Mathlib.Algebra.Order.Group.End
 public import Mathlib.Analysis.Convex.SpecificFunctions.Deriv
 
 /-!
@@ -28,7 +29,8 @@ Georgii's own proof of (12.6) needs nothing more exotic — see the `## Georgii 
 section below for the full account, including exactly which hypotheses are used. **Corollary
 (12.18)** is now formalised too (see its own section below), generalised to any locally finite
 tree and any transfer family (Georgii's `𝒞𝒯(d)`/complete homogeneity are not used by the proof).
-Comments (12.3)(3), (5), (6) remain **not formalised**; see below for exactly why in each case.
+**Comments (12.3)(3), (5), (6)** and Georgii's remark after Definition (12.1) (Gibbs measures of
+a Markov specification are Markov fields) are formalised in the last four sections of this file.
 
 ## What is proved here
 
@@ -49,22 +51,27 @@ Comments (12.3)(3), (5), (6) remain **not formalised**; see below for exactly wh
   Jensen's inequality, `StrictConvexOn.map_sum_eq_iff_of_nonneg`, for the quadratic/linear
   identity).
 
-## What is not formalised, beyond (12.6) and (12.18)
-
-* **Comments (12.3)(3) and (12.3)(6)** are not formalised: (3) needs a formal notion of a graph
-  embedding `ℤ ↪ S` (an embedded bi-infinite geodesic) that does not yet exist anywhere in the tree
-  combinatorics files, and (6) needs a `𝒯_Λ`-style "local tail" σ-algebra and its associated
-  generated-π-system argument, neither of which exists yet either; both are genuine follow-on
-  constructions rather than gaps in the argument given here.
-* **Comment (12.3)(5)** (a positive stochastic matrix is the transition matrix of a completely
-  homogeneous Markov chain iff it is reversible, and in that case the chain is invariant under the
-  full graph-automorphism group `I(B)` of `S`) is not formalised: the reversibility half already
-  follows from `isCompletelyHomogeneousMarkovChain_iff_exists_isBoundaryLaw_const_solves` above
-  (Corollary (12.17)) combined with `isBoundaryLaw_const_iff` (12.16)'s reversibility content, but
-  the automorphism-invariance half needs a formal notion of a graph automorphism of `S` (`I(B)`)
-  and the fact from (12.4) that `boundaryLawMeasure` of a *constant* boundary law is invariant
-  under it; no such automorphism-group infrastructure exists yet in the tree combinatorics files,
-  and building it is a genuine follow-on construction, not a gap in the argument given here.
+* **Georgii, after Definition (12.1)**: `IsGibbsMeasure.isMarkovField_of_isMarkovSpecification`
+  — every Gibbs measure of a Markov specification is a Markov field (`IsMarkovField`, defined in
+  `TreeBoundaryLaw.lean`).
+* **Comment (12.3)(6)**: `IsMarkovChain.isMarkovField` — every Markov chain on a locally finite
+  tree is a Markov field, by Georgii's argument: the factorisation
+  `IsMarkovChain.exists_measure_cyl_eq_mul` of `μ(σ_Δ = ·)` from (12.4), the summed identity
+  `IsMarkovChain.measure_cyl_mul_measure_cyl_outerBoundary`, and the π-system extension
+  `measure_eq_of_forall_cyl` from the cylinders over `Δ ∖ Λ` to `𝒯_Λ = 𝓕_{S ∖ Λ}`.
+* **Comment (12.3)(3)**: `IsMarkovChain.markov_isMarkovChain_map_comp` — the marginal of a Markov
+  chain on a copy of `ℤ` embedded as a graph (`f : hasse ℤ ↪g G`, `SimpleGraph.Embedding`) is a
+  Markov chain in the sense of Definition (10.4) (`Markov.IsMarkovChain`), with transition kernels
+  `Kernel.ofMatrix (transitionProb μ (f (n - 1)) (f n))`.
+* **Comment (12.3)(5)**: `reversible_of_forall_transitionProb_eq` (a positive stochastic transition
+  matrix of a completely homogeneous Markov chain is reversible with respect to the marginal),
+  `measure_preimage_singleton_eq_of_reversible` (the marginals are the reversing vector `α`),
+  `exists_isMarkovChain_transitionProb_eq_of_reversible` (a reversible positive stochastic matrix is
+  the transition matrix of a completely homogeneous Markov chain, built through (12.12)(a) from an
+  explicit boundary law), and `measurePreserving_siteEquiv_of_forall_transitionProb_eq` /
+  `measurePreserving_of_mem_graphAutomorphisms` (invariance under Georgii's group `I(B)` of graph
+  automorphisms, `graphAutomorphisms`, the range of `graphAutHom : (G ≃g G) →* Transformation S E`),
+  via the uniqueness consequence `IsMarkovChain.ext_of_transitionProb_eq` of (12.4).
 -/
 
 @[expose] public section
@@ -81,63 +88,9 @@ variable {S E : Type*} [DecidableEq S] [MeasurableSpace E] [Countable E]
 
 local notation "λ₀" => Specification.sigmaFiniteLambdaFun (S := S) (E := E) Measure.count
 
-/-! ## Comment (12.3)(4), necessity, and equation (12.5)
-
-These two lemmas are about `transitionProb` (defined in `TreeBoundaryLaw.lean`) and an arbitrary
-probability measure `μ` on `S → E`; they do not use `IsMarkovChain` or any graph structure. This is
-deliberate: Georgii's `P_{ij}` in Comment (12.3)(4) is *any* stochastic matrix satisfying
-`μ(σ_j = y | 𝓕_{\{i\}}) = P_{ij}(σ_i, y)` a.s., but wherever `α_i(x) > 0` this a.s. equation pins
-`P_{ij}(x, ·)` down to the concrete ratio `transitionProb μ i j x ·`
-(`IsMarkovChain.measure_preimage_inter_cyl` with `Δ = {i}` already proves this, and is exactly how
-`chainBoundaryLaw`/(12.12)(b) uses `transitionProb` as *the* transition matrix of a Markov chain).
-So proving (12.5) for `transitionProb` is the content of Comment (12.3)(4)'s necessity direction,
-and it holds unconditionally, not just for actual Markov chains. -/
-
-section TransitionProbSwap
-
-variable {μ : Measure (S → E)} [IsProbabilityMeasure μ]
-
-omit [DecidableEq S] [Countable E] [MeasurableSingletonClass E] in
-/-- The defining ratio of `transitionProb`, cleared of its denominator: `α_i(x) P_{ij}(x, y) =
-μ(σ_i = x, σ_j = y)`. This holds unconditionally (in particular also when `α_i(x) = 0`, in which
-case both sides vanish since `σ_i = x, σ_j = y` is a subset of `σ_i = x`). -/
-theorem transitionProb_mul_measure_eq (i j : S) (x y : E) :
-    μ ((fun σ : S → E ↦ σ i) ⁻¹' {x}) * transitionProb μ i j x y
-      = μ ((fun σ : S → E ↦ σ i) ⁻¹' {x} ∩ (fun σ : S → E ↦ σ j) ⁻¹' {y}) :=
-  ENNReal.mul_div_cancel' (fun h ↦ measure_mono_null Set.inter_subset_left h)
-    (fun h ↦ absurd h (measure_ne_top μ _))
-
-omit [DecidableEq S] [Countable E] [MeasurableSingletonClass E] in
-/-- **Georgii equation (12.5) / Comment (12.3)(4), necessity.** `α_i(x) P_{ij}(x, y) = α_j(y)
-P_{ji}(y, x)`, where `α_k(x) = μ(σ_k = x)` is the marginal of `μ` at `k` and `P_{ij} =
-transitionProb μ i j`. -/
-theorem transitionProb_mul_transitionProb_swap_eq (i j : S) (x y : E) :
-    μ ((fun σ : S → E ↦ σ i) ⁻¹' {x}) * transitionProb μ i j x y
-      = μ ((fun σ : S → E ↦ σ j) ⁻¹' {y}) * transitionProb μ j i y x := by
-  rw [transitionProb_mul_measure_eq, transitionProb_mul_measure_eq, Set.inter_comm]
-
-omit [DecidableEq S] in
-/-- `transitionProb μ i j x` is a probability vector in `y` whenever `x` has positive marginal
-probability: `∑_y P_{ij}(x, y) = 1`. Together with `transitionProb_mul_transitionProb_swap_eq`
-this is Comment (12.3)(4): `transitionProb μ i j` is a genuine stochastic matrix satisfying (12.5)
-with `α_k` the marginal of `μ`. -/
-theorem tsum_transitionProb_eq_one {i j : S} {x : E}
-    (hx : μ ((fun σ : S → E ↦ σ i) ⁻¹' {x}) ≠ 0) :
-    ∑' y, transitionProb μ i j x y = 1 := by
-  set A := (fun σ : S → E ↦ σ i) ⁻¹' {x} with hA
-  have hUnion : A = ⋃ y : E, A ∩ (fun σ : S → E ↦ σ j) ⁻¹' {y} := by
-    ext σ; simp [hA]
-  have hdisj : Pairwise (Function.onFun Disjoint fun y : E ↦ A ∩ (fun σ : S → E ↦ σ j) ⁻¹' {y}) :=
-    fun y y' hyy' ↦ Set.disjoint_left.2 (by
-      rintro σ ⟨-, hy⟩ ⟨-, hy'⟩; exact hyy' (hy.symm.trans hy'))
-  have hsum : μ A = ∑' y, μ (A ∩ (fun σ : S → E ↦ σ j) ⁻¹' {y}) := by
-    conv_lhs => rw [hUnion]
-    exact measure_iUnion hdisj fun y ↦ (measurable_pi_apply i (measurableSet_singleton x)).inter
-      (measurable_pi_apply j (measurableSet_singleton y))
-  simp_rw [transitionProb, ← hA, div_eq_mul_inv]
-  rw [ENNReal.tsum_mul_right, ← hsum, ENNReal.mul_inv_cancel hx (measure_ne_top μ A)]
-
-end TransitionProbSwap
+/-! Comment (12.3)(4), necessity, and equation (12.5) — `transitionProb_mul_measure_eq`,
+`transitionProb_mul_transitionProb_swap_eq`, `tsum_transitionProb_eq_one` — live next to
+`transitionProb` in `TreeBoundaryLaw.lean`. -/
 
 /-! ## Comment (12.3)(2): equation (12.4)
 
@@ -1453,5 +1406,800 @@ theorem not_isMarkovChain_sum_smul_of_forall_adj_exists_boundaryLaw_eq
   exact hmn (hμdistinct hμeqmn).symm
 
 end CorollaryTwelvePointEighteen
+
+/-! ## Georgii, after Definition (12.1): Gibbs measures of a Markov specification are Markov
+fields -/
+
+section GibbsMarkovField
+
+variable {G : SimpleGraph S} [G.LocallyFinite] [Nonempty E] {γ : Specification S E}
+
+/-- **Georgii, after Definition (12.1).** If `γ` is a Markov specification then every `μ ∈ 𝒢(γ)`
+is a Markov field: both `μ(σ_Λ = ζ | 𝒯_Λ)` and `μ(σ_Λ = ζ | 𝓕_{∂Λ})` are `γ_Λ(σ_Λ = ζ | ·)`. -/
+theorem IsGibbsMeasure.isMarkovField_of_isMarkovSpecification (hγM : IsMarkovSpecification G γ)
+    {μ : Measure (S → E)} [IsProbabilityMeasure μ] (hμ : γ.IsGibbsMeasure μ) :
+    IsMarkovField G μ := by
+  refine ⟨inferInstance, fun Λ ζ ↦ ?_⟩
+  have hA : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)] (cyl Λ ζ) :=
+    measurableSet_cylinderEvents_cyl subset_rfl ζ
+  have hB : (G.outerBoundary Λ : Set S) ⊆ (Λ : Set S)ᶜ := fun m hm ↦ by
+    simpa using G.notMem_of_mem_outerBoundary (Finset.mem_coe.1 hm)
+  exact (IsGibbsMeasure.condExp_indicator_ae_eq_toReal_of_isMarkovSpecification hγM hμ hB
+    subset_rfl hA).trans
+    (IsGibbsMeasure.condExp_indicator_ae_eq_toReal_of_isMarkovSpecification hγM hμ subset_rfl hB
+      hA).symm
+
+end GibbsMarkovField
+
+/-! ## Comment (12.3)(6): every Markov chain is a Markov field
+
+Georgii's proof: for `Λ` finite and `Δ ⊇ Λ ∪ ∂Λ` connected, (12.4) shows that `μ(σ_Δ = ·)`
+factorises into a function of the spins on `Λ ∪ ∂Λ` and a function of the spins on `Δ ∖ Λ`
+(`IsMarkovChain.exists_measure_cyl_eq_mul`: every transition factor `P_{ij}(ξ_i, ξ_j)` of a bond of
+`Δ` has either both endpoints in `Λ ∪ ∂Λ` or both endpoints outside `Λ`). Summing over the spins in
+`Λ` and in `Δ ∖ (Λ ∪ ∂Λ)` gives `μ(σ_Δ = ζωη) μ(σ_{∂Λ} = ω) = μ(σ_{Δ∖Λ} = ωη) μ(σ_{Λ∪∂Λ} = ζω)`
+(`IsMarkovChain.measure_cyl_mul_measure_cyl_outerBoundary`), i.e. `μ(σ_Λ = ζ | 𝓕_{Δ∖Λ}) =
+μ(σ_Λ = ζ | 𝓕_{∂Λ})`; since the cylinders over the finite `Δ ∖ Λ` generate `𝒯_Λ = 𝓕_{S∖Λ}`
+(`measure_eq_of_forall_cyl`), `μ(σ_Λ = ζ | 𝒯_Λ) = μ(σ_Λ = ζ | 𝓕_{∂Λ})`. -/
+
+section MarkovChainIsMarkovField
+
+variable {G : SimpleGraph S} [G.LocallyFinite] {μ : Measure (S → E)}
+
+omit [DecidableEq S] in
+/-- Integrating over the spins in `M` a function of the spins in `T`: the boundary condition
+enters only through the coordinates of `T` outside `M`. -/
+lemma lintegral_lambdaCount_congr_of_dependsOn {M : Finset S} {T : Set S} {F : (S → E) → ℝ≥0∞}
+    (hF : Measurable F) (hdep : DependsOn F T) {η η' : S → E}
+    (h : ∀ k ∈ T, k ∉ M → η k = η' k) :
+    ∫⁻ ξ, F ξ ∂(λ₀ M η) = ∫⁻ ξ, F ξ ∂(λ₀ M η') := by
+  rw [lintegral_lambdaCount M η hF, lintegral_lambdaCount M η' hF]
+  refine tsum_congr fun x ↦ hdep fun k hk ↦ ?_
+  by_cases hkM : k ∈ (M : Set S)
+  · rw [juxt_apply_of_mem hkM, juxt_apply_of_mem hkM]
+  · rw [juxt_apply_of_not_mem hkM, juxt_apply_of_not_mem hkM]
+    exact h k hk (by simpa using hkM)
+
+omit [DecidableEq S] in
+/-- A factor depending only on coordinates outside `M` comes out of the integral over `λ_M`. -/
+lemma lintegral_lambdaCount_mul_of_dependsOn {M : Finset S} {T : Set S} {F H : (S → E) → ℝ≥0∞}
+    (hF : Measurable F) (hH : Measurable H) (hdep : DependsOn F T) (hTM : ∀ k ∈ T, k ∉ M)
+    (η : S → E) :
+    ∫⁻ ξ, F ξ * H ξ ∂(λ₀ M η) = F η * ∫⁻ ξ, H ξ ∂(λ₀ M η) := by
+  rw [← lintegral_const_mul _ hH]
+  refine lintegral_lambdaCount_congr M η (hF.mul hH) (measurable_const.mul hH) fun ξ hξ ↦ ?_
+  rw [hdep fun k hk ↦ hξ k (hTM k hk)]
+
+/-- **The factorisation behind Comment (12.3)(6).** For a Markov chain `μ` on a tree, a finite `Λ`
+containing `k`, and a connected `Δ ⊇ Λ ∪ ∂Λ`, the cylinder probabilities `μ(σ_Δ = ξ)` factorise as
+`F(ξ) H(ξ)` with `F` a function of `ξ_{Λ ∪ ∂Λ}` and `H` a function of `ξ_{Δ ∖ Λ}`: growing `Δ`
+from `{k}` one boundary vertex at a time (Georgii's induction for (12.4)), each new transition
+factor `P_{ai}(ξ_a, ξ_i)` has both endpoints in `Λ ∪ ∂Λ` or both endpoints outside `Λ`. -/
+theorem IsMarkovChain.exists_measure_cyl_eq_mul (hμ : IsMarkovChain G μ) (hG : G.IsTree)
+    {Λ Δ : Finset S} {k : S} (hk : k ∈ Λ) (hΔ : (G.induce (Δ : Set S)).Connected)
+    (hΛΔ : Λ ∪ G.outerBoundary Λ ⊆ Δ) :
+    ∃ F H : (S → E) → ℝ≥0∞, Measurable F ∧ Measurable H ∧
+      DependsOn F ((Λ ∪ G.outerBoundary Λ : Finset S) : Set S) ∧
+      DependsOn H ((Δ \ Λ : Finset S) : Set S) ∧ ∀ ξ, μ (cyl Δ ξ) = F ξ * H ξ := by
+  have hkΔ : k ∈ Δ := hΛΔ (Finset.mem_union_left _ hk)
+  refine SimpleGraph.connected_induction (P := fun Δ' ↦ ∃ F H : (S → E) → ℝ≥0∞,
+      Measurable F ∧ Measurable H ∧ DependsOn F ((Λ ∪ G.outerBoundary Λ : Finset S) : Set S) ∧
+      DependsOn H ((Δ' \ Λ : Finset S) : Set S) ∧ ∀ ξ, μ (cyl Δ' ξ) = F ξ * H ξ)
+    (connected_induce_singleton k) hΔ (Finset.singleton_subset_iff.2 hkΔ) ?_ ?_
+  · refine ⟨fun ξ ↦ μ (cyl {k} ξ), fun _ ↦ 1, measurable_measure_cyl μ _, measurable_const,
+      fun ξ ξ' h ↦ ?_, fun _ _ _ ↦ rfl, fun ξ ↦ (mul_one _).symm⟩
+    exact congrArg μ (cyl_congr fun m hm ↦ h m (Finset.mem_coe.2 (Finset.mem_union_left _
+      ((Finset.mem_singleton.1 hm) ▸ hk))))
+  · rintro Δ' hΔ' - - i - hi ⟨F, H, hF, hH, hFdep, hHdep, hFH⟩
+    set a := G.anchor Δ' i with ha
+    have hiΔ' : i ∉ Δ' := G.notMem_of_mem_outerBoundary hi
+    have haΔ' : a ∈ Δ' := G.anchor_mem hi
+    have hai : G.Adj a i := (G.adj_anchor hi).symm
+    have hpast : (Δ' : Set S) ⊆ G.past a i := fun x hx ↦
+      hG.isAcyclic.mem_past_anchor hΔ' hi (Finset.mem_union_left _ (Finset.mem_coe.1 hx))
+        (by rintro rfl; exact hiΔ' (Finset.mem_coe.1 hx))
+    have hstep : ∀ ξ, μ (cyl (insert i Δ') ξ)
+        = transitionProb μ a i (ξ a) (ξ i) * μ (cyl Δ' ξ) := fun ξ ↦ by
+      rw [cyl_insert_eq_inter]
+      exact hμ.measure_preimage_inter_cyl hai hpast haΔ' ξ (ξ i)
+    set φ : (S → E) → ℝ≥0∞ := fun ξ ↦ transitionProb μ a i (ξ a) (ξ i) with hφ
+    have hφm : Measurable φ := measurable_pair (transitionProb μ a i) a i
+    have hφdep : DependsOn φ ({a, i} : Set S) := fun ξ ξ' h ↦ by
+      simp only [hφ, h a (by simp), h i (by simp)]
+    have hsub : Δ' \ Λ ⊆ insert i Δ' \ Λ :=
+      Finset.sdiff_subset_sdiff (Finset.subset_insert i Δ') subset_rfl
+    by_cases hcase : a ∈ Λ ∪ G.outerBoundary Λ ∧ i ∈ Λ ∪ G.outerBoundary Λ
+    · refine ⟨fun ξ ↦ F ξ * φ ξ, H, hF.mul hφm, hH, fun ξ ξ' h ↦ ?_,
+        hHdep.mono (Finset.coe_subset.2 hsub), fun ξ ↦ ?_⟩
+      · simp only
+        rw [hFdep h, hφdep fun m hm ↦ h m (by
+          rcases Set.mem_insert_iff.1 hm with rfl | hm
+          · exact Finset.mem_coe.2 hcase.1
+          · rw [Set.mem_singleton_iff.1 hm]
+            exact Finset.mem_coe.2 hcase.2)]
+      · rw [hstep, hFH]; ring
+    · have hna : a ∉ Λ := fun h ↦ hcase ⟨Finset.mem_union_left _ h,
+        G.mem_union_outerBoundary_of_adj h hai⟩
+      have hni : i ∉ Λ := fun h ↦ hcase ⟨G.mem_union_outerBoundary_of_adj h hai.symm,
+        Finset.mem_union_left _ h⟩
+      refine ⟨F, fun ξ ↦ H ξ * φ ξ, hF, hH.mul hφm, hFdep, fun ξ ξ' h ↦ ?_, fun ξ ↦ ?_⟩
+      · simp only
+        rw [hHdep fun m hm ↦ h m (Finset.mem_coe.2 (hsub (Finset.mem_coe.1 hm))),
+          hφdep fun m hm ↦ h m (by
+            rcases Set.mem_insert_iff.1 hm with rfl | hm
+            · exact Finset.mem_coe.2 (Finset.mem_sdiff.2 ⟨Finset.mem_insert_of_mem haΔ', hna⟩)
+            · rw [Set.mem_singleton_iff.1 hm]
+              exact Finset.mem_coe.2 (Finset.mem_sdiff.2 ⟨Finset.mem_insert_self _ _, hni⟩))]
+      · rw [hstep, hFH]; ring
+
+/-- **Georgii's identity in the proof of Comment (12.3)(6)**, after summing over `ζ'` and `η'`:
+for a Markov chain on a tree, `Λ ∋ k`, `Δ ⊇ Λ ∪ ∂Λ` connected, and `η = ζ_Λ ξ_{S∖Λ}`,
+`μ(σ_Δ = η) μ(σ_{∂Λ} = ξ) = μ(σ_{Λ ∪ ∂Λ} = η) μ(σ_{Δ ∖ Λ} = ξ)`. -/
+theorem IsMarkovChain.measure_cyl_mul_measure_cyl_outerBoundary (hμ : IsMarkovChain G μ)
+    (hG : G.IsTree) {Λ Δ : Finset S} {k : S} (hk : k ∈ Λ)
+    (hΔ : (G.induce (Δ : Set S)).Connected) (hΛΔ : Λ ∪ G.outerBoundary Λ ⊆ Δ) {η ξ : S → E}
+    (hηξ : ∀ m ∉ Λ, η m = ξ m) :
+    μ (cyl Δ η) * μ (cyl (G.outerBoundary Λ) ξ)
+      = μ (cyl (Λ ∪ G.outerBoundary Λ) η) * μ (cyl (Δ \ Λ) ξ) := by
+  obtain ⟨F, H, hF, hH, hFdep, hHdep, hFH⟩ := hμ.exists_measure_cyl_eq_mul hG hk hΔ hΛΔ
+  set B := G.outerBoundary Λ with hB
+  set L := Λ ∪ B with hL
+  set V := Δ \ Λ with hV
+  set M := Δ \ L with hM
+  have hBΛ : Disjoint Λ B := G.disjoint_outerBoundary Λ
+  have hΛΔ' : Λ ⊆ Δ := Finset.subset_union_left.trans hΛΔ
+  have hLM : Disjoint L M := Finset.disjoint_sdiff
+  have hΛM : Disjoint Λ M := Finset.disjoint_of_subset_left Finset.subset_union_left hLM
+  have hLM' : L ∪ M = Δ := Finset.union_sdiff_of_subset hΛΔ
+  have hΛV : Disjoint V Λ := Finset.sdiff_disjoint
+  have hVΛ : V ∪ Λ = Δ := Finset.sdiff_union_of_subset hΛΔ'
+  have hB_ΛM : Disjoint B (Λ ∪ M) :=
+    Finset.disjoint_union_right.2 ⟨hBΛ.symm,
+      Finset.disjoint_of_subset_left Finset.subset_union_right hLM⟩
+  have hBΛM : B ∪ (Λ ∪ M) = Δ := by
+    rw [← Finset.union_assoc, Finset.union_comm B Λ]; exact hLM'
+  have hLM'' : ∀ m ∈ (L : Set S), m ∉ M := fun m hm ↦
+    Finset.disjoint_left.1 hLM (Finset.mem_coe.1 hm)
+  have hVΛ' : ∀ m ∈ (V : Set S), m ∉ Λ := fun m hm ↦ (Finset.mem_sdiff.1 (Finset.mem_coe.1 hm)).2
+  have hHη : H η = H ξ := hHdep fun m hm ↦ hηξ m (hVΛ' m hm)
+  have hIH : ∀ ω ω' : S → E, (∀ m ∉ Λ, ω m = ω' m) →
+      ∫⁻ ξ', H ξ' ∂(λ₀ M ω) = ∫⁻ ξ', H ξ' ∂(λ₀ M ω') := fun ω ω' h ↦
+    lintegral_lambdaCount_congr_of_dependsOn hH hHdep fun m hm _ ↦ h m (hVΛ' m hm)
+  have h1 : μ (cyl Δ η) = F η * H ξ := by rw [hFH, hHη]
+  have h2 : μ (cyl L η) = F η * ∫⁻ ξ', H ξ' ∂(λ₀ M ξ) := by
+    rw [measure_cyl_eq_lintegral_lambdaCount μ hLM η, hLM']
+    simp_rw [hFH]
+    rw [lintegral_lambdaCount_mul_of_dependsOn hF hH hFdep hLM'' η, hIH η ξ hηξ]
+  have h3 : μ (cyl V ξ) = (∫⁻ ξ', F ξ' ∂(λ₀ Λ ξ)) * H ξ := by
+    rw [measure_cyl_eq_lintegral_lambdaCount μ hΛV ξ, hVΛ]
+    simp_rw [hFH, mul_comm (F _) (H _)]
+    rw [lintegral_lambdaCount_mul_of_dependsOn hH hF hHdep hVΛ' ξ, mul_comm]
+  have h4 : μ (cyl B ξ) = (∫⁻ ξ', F ξ' ∂(λ₀ Λ ξ)) * ∫⁻ ξ', H ξ' ∂(λ₀ M ξ) := by
+    rw [measure_cyl_eq_lintegral_lambdaCount μ hB_ΛM ξ, hBΛM,
+      lintegral_lambdaCount_union hΛM ξ (measurable_measure_cyl μ Δ)]
+    simp_rw [hFH]
+    have hin : ∀ ξ₁ : S → E, ∫⁻ ξ₂, F ξ₂ * H ξ₂ ∂(λ₀ M ξ₁) = F ξ₁ * ∫⁻ ξ₂, H ξ₂ ∂(λ₀ M ξ₁) :=
+      fun ξ₁ ↦ lintegral_lambdaCount_mul_of_dependsOn hF hH hFdep hLM'' ξ₁
+    simp_rw [hin]
+    rw [← lintegral_mul_const _ hF]
+    refine lintegral_lambdaCount_congr Λ ξ (hF.mul (measurable_lintegral_lambdaCount M hH))
+      (hF.mul measurable_const) fun ξ₁ hξ₁ ↦ ?_
+    rw [hIH ξ₁ ξ hξ₁]
+  rw [h1, h2, h3, h4]
+  ring
+
+/-- **Georgii, Comment (12.3)(6).** Every Markov chain on a locally finite tree is a Markov
+field: `μ(σ_Λ = ζ | 𝒯_Λ) = μ(σ_Λ = ζ | 𝓕_{∂Λ})` `μ`-a.s., both sides being the `𝓕_{∂Λ}`-measurable
+function `μ(σ_Λ = ζ, σ_{∂Λ} = ·) / μ(σ_{∂Λ} = ·)`. -/
+theorem IsMarkovChain.isMarkovField [Nonempty E] (hμ : IsMarkovChain G μ) (hG : G.IsTree) :
+    IsMarkovField G μ := by
+  have hprob := hμ.isProbabilityMeasure
+  refine ⟨hprob, fun Λ ζ ↦ ?_⟩
+  rcases Λ.eq_empty_or_nonempty with rfl | ⟨k, hk⟩
+  · rw [cyl_empty, Set.indicator_univ]
+    have h1 : μ[(1 : (S → E) → ℝ)
+        | cylinderEvents (X := fun _ : S ↦ E) (((∅ : Finset S) : Set S))ᶜ] = fun _ ↦ 1 :=
+      condExp_const cylinderEvents_le_pi 1
+    have h2 : μ[(1 : (S → E) → ℝ)
+        | cylinderEvents (X := fun _ : S ↦ E) (G.outerBoundary ∅ : Set S)] = fun _ ↦ 1 :=
+      condExp_const cylinderEvents_le_pi 1
+    rw [h1, h2]
+  set A := cyl Λ ζ with hAdef
+  set B := G.outerBoundary Λ with hBdef
+  have hAm : MeasurableSet A := measurableSet_cyl Λ ζ
+  have hBΛ : Disjoint Λ B := G.disjoint_outerBoundary Λ
+  have hBc : (B : Set S) ⊆ (Λ : Set S)ᶜ := fun m hm ↦ by
+    simpa using G.notMem_of_mem_outerBoundary (Finset.mem_coe.1 hm)
+  set g : (S → E) → ℝ≥0∞ := fun ξ ↦ (μ.restrict A) (cyl B ξ) / μ (cyl B ξ) with hgdef
+  have hgm : Measurable g := (measurable_measure_cyl _ B).div (measurable_measure_cyl μ B)
+  have hgdep : DependsOn g (B : Set S) := fun ξ ξ' h ↦ by
+    simp only [hgdef]
+    rw [cyl_congr fun m hm ↦ h m (Finset.mem_coe.2 hm)]
+  have hgB : Measurable[cylinderEvents (X := fun _ : S ↦ E) (B : Set S)] g :=
+    hgm.cylinderEvents_of_dependsOn hgdep
+  have hgΛ : Measurable[cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)ᶜ] g :=
+    hgB.mono (cylinderEvents_mono hBc) le_rfl
+  have hgle : ∀ ξ, g ξ ≤ 1 := fun ξ ↦
+    ENNReal.div_le_of_le_mul (by rw [one_mul]; exact Measure.restrict_le_self _)
+  have hgfin : ∀ᵐ ξ ∂μ, g ξ ≠ ⊤ :=
+    ae_of_all _ fun ξ ↦ ne_top_of_le_ne_top ENNReal.one_ne_top (hgle ξ)
+  -- the pointwise identity on the cylinders over `Δ ∖ Λ`, `Δ ⊇ Λ ∪ ∂Λ` connected
+  have hpt : ∀ Δ : Finset S, (G.induce (Δ : Set S)).Connected → Λ ∪ B ⊆ Δ → ∀ ξ,
+      (μ.restrict A) (cyl (Δ \ Λ) ξ) = g ξ * μ (cyl (Δ \ Λ) ξ) := by
+    intro Δ hΔ hΛΔ ξ
+    set η := juxt (Λ : Set S) ξ (Λ.restrict ζ) with hη
+    have hηξ : ∀ m ∉ Λ, η m = ξ m := fun m hm ↦ juxt_apply_of_not_mem (by simpa using hm) _
+    have hVΛ : Disjoint Λ (Δ \ Λ) := Finset.disjoint_sdiff
+    have hΛV : Λ ∪ Δ \ Λ = Δ :=
+      Finset.union_sdiff_of_subset (Finset.subset_union_left.trans hΛΔ)
+    have hkey := hμ.measure_cyl_mul_measure_cyl_outerBoundary hG hk hΔ hΛΔ hηξ
+    have hAV : A ∩ cyl (Δ \ Λ) ξ = cyl Δ η := by
+      rw [hAdef, cyl_inter_cyl_of_disjoint hVΛ, hΛV]
+    have hAB : A ∩ cyl B ξ = cyl (Λ ∪ B) η := by rw [hAdef, cyl_inter_cyl_of_disjoint hBΛ]
+    rw [Measure.restrict_apply (measurableSet_cyl _ _), Set.inter_comm, hAV]
+    simp only [hgdef]
+    rw [Measure.restrict_apply (measurableSet_cyl _ _), Set.inter_comm, hAB]
+    by_cases h0 : μ (cyl B ξ) = 0
+    · have hsub : ∀ Δ' : Finset S, B ⊆ Δ' → cyl Δ' η ⊆ cyl B ξ := fun Δ' hΔ' σ hσ ↦
+        mem_cyl.2 fun m hm ↦ by
+          rw [mem_cyl.1 hσ m (hΔ' hm), hηξ m (Finset.disjoint_right.1 hBΛ hm)]
+      rw [measure_mono_null (hsub Δ (Finset.subset_union_right.trans hΛΔ)) h0,
+        measure_mono_null (hsub (Λ ∪ B) Finset.subset_union_right) h0, ENNReal.zero_div,
+        zero_mul]
+    · rw [← hBdef] at hkey
+      rw [div_eq_mul_inv, mul_right_comm, ← div_eq_mul_inv, ← hkey,
+        ENNReal.mul_div_cancel_right h0 (measure_ne_top _ _)]
+  -- the two finite measures `μ(A ∩ ·)` and `∫_· g dμ` agree on the cylinders over `S ∖ Λ`
+  have hcyl : ∀ (W : Finset S) (ω : S → E), (W : Set S) ⊆ (Λ : Set S)ᶜ →
+      (μ.restrict A) (cyl W ω) = (μ.withDensity g) (cyl W ω) := by
+    intro W ω hW
+    set Δ := SimpleGraph.hull hG.connected k (Λ ∪ B ∪ W) with hΔdef
+    have hΔ : (G.induce (Δ : Set S)).Connected := SimpleGraph.connected_induce_hull hG.connected k _
+    have hΛΔ : Λ ∪ B ⊆ Δ :=
+      Finset.subset_union_left.trans (SimpleGraph.subset_hull hG.connected k _)
+    have hWΔ : W ⊆ Δ \ Λ := fun m hm ↦ Finset.mem_sdiff.2
+      ⟨SimpleGraph.subset_hull hG.connected k _ (Finset.mem_union_right _ hm),
+        fun h ↦ hW (Finset.mem_coe.2 hm) (Finset.mem_coe.2 h)⟩
+    have hdisj : Disjoint W ((Δ \ Λ) \ W) := Finset.disjoint_sdiff
+    have hunion : W ∪ (Δ \ Λ) \ W = Δ \ Λ := Finset.union_sdiff_of_subset hWΔ
+    rw [measure_cyl_eq_lintegral_lambdaCount _ hdisj ω,
+      measure_cyl_eq_lintegral_lambdaCount _ hdisj ω, hunion]
+    refine lintegral_congr fun ξ ↦ ?_
+    rw [hpt Δ hΔ hΛΔ ξ, withDensity_apply _ (measurableSet_cyl _ _),
+      setLIntegral_congr_fun (measurableSet_cyl _ _) (g := fun _ ↦ g ξ) (fun σ hσ ↦ hgdep fun m hm ↦
+        mem_cyl.1 hσ m (Finset.mem_sdiff.2 ⟨hΛΔ (Finset.mem_union_right _ (Finset.mem_coe.1 hm)),
+          Finset.disjoint_right.1 hBΛ (Finset.mem_coe.1 hm)⟩)),
+      setLIntegral_const]
+  have hfin : IsFiniteMeasure (μ.withDensity g) :=
+    isFiniteMeasure_withDensity (ne_top_of_le_ne_top (measure_ne_top μ Set.univ)
+      ((lintegral_mono hgle).trans_eq lintegral_one))
+  have key : ∀ t, MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)ᶜ] t →
+      μ (A ∩ t) = ∫⁻ σ in t, g σ ∂μ := fun t ht ↦ by
+    rw [← withDensity_apply _ (cylinderEvents_le_pi _ ht), ← measure_eq_of_forall_cyl hcyl ht,
+      Measure.restrict_apply (cylinderEvents_le_pi _ ht), Set.inter_comm]
+  have h1 := (toReal_ae_eq_indicator_condExp_iff_forall_meas_inter_eq cylinderEvents_le_pi hAm
+    (measure_ne_top _ _) hgΛ.stronglyMeasurable.aestronglyMeasurable hgfin).2 key
+  have h2 := (toReal_ae_eq_indicator_condExp_iff_forall_meas_inter_eq cylinderEvents_le_pi hAm
+    (measure_ne_top _ _) hgB.stronglyMeasurable.aestronglyMeasurable hgfin).2
+    fun t ht ↦ key t (cylinderEvents_mono hBc t ht)
+  exact h1.symm.trans h2
+
+end MarkovChainIsMarkovField
+
+/-! ## Comment (12.3)(3): the marginal of a Markov chain on an embedded copy of `ℤ`
+
+A copy of `ℤ` embedded as a graph into the tree is a graph embedding `f : hasse ℤ ↪g G`
+(`SimpleGraph.Embedding`); the marginal `σ_V(μ)` of `μ` on `V = f(ℤ)` is the image of `μ` under
+`ω ↦ ω ∘ f : E^S → E^ℤ`. It is a Markov chain in the sense of Definition (10.4)
+(`Markov.IsMarkovChain`, `GibbsMeasure/Specification/MarkovInt.lean`) with transition kernels the
+transition matrices `P_{f(n-1) f(n)}` of `μ` along the embedded bonds: on a tree, `f(]-∞, n[)` lies
+on the side of `f(n-1)` of the bond `f(n-1) f(n)`
+(`SimpleGraph.IsAcyclic.embedding_hasse_int_mem_past`), so (12.2) for `μ` along that bond is
+(10.4)(ii) for the marginal. -/
+
+section EmbeddedLine
+
+variable {G : SimpleGraph S} {μ : Measure (S → E)}
+
+omit [DecidableEq S] [Countable E] [MeasurableSingletonClass E] in
+/-- Restricting configurations along a map `g` of the site sets is measurable from `𝓕_{g '' V}` to
+`𝓕_V`. -/
+lemma measurable_comp_cylinderEvents {S' : Type*} (g : S' → S) (V : Set S') :
+    Measurable[cylinderEvents (X := fun _ : S ↦ E) (g '' V),
+      cylinderEvents (X := fun _ : S' ↦ E) V] fun ω : S → E ↦ ω ∘ g :=
+  measurable_cylinderEvents_iff.2 fun _ hi ↦
+    measurable_cylinderEvent_apply (X := fun _ : S ↦ E) (Set.mem_image_of_mem g hi)
+
+omit [DecidableEq S] [Countable E] [MeasurableSingletonClass E] in
+lemma measurable_comp_sites {S' : Type*} (g : S' → S) :
+    Measurable fun ω : S → E ↦ ω ∘ g :=
+  measurable_pi_lambda _ fun i ↦ measurable_pi_apply (g i)
+
+omit [DecidableEq S] [Countable E] in
+/-- The transition matrices of the marginal `μ ∘ (ω ↦ ω ∘ g)⁻¹` are those of `μ` along `g`. -/
+lemma transitionProb_map_comp {S' : Type*} (g : S' → S) (μ : Measure (S → E)) (m n : S')
+    (x y : E) :
+    transitionProb (μ.map fun ω : S → E ↦ ω ∘ g) m n x y = transitionProb μ (g m) (g n) x y := by
+  simp only [transitionProb]
+  rw [Measure.map_apply (measurable_comp_sites g) ((measurable_pi_apply m
+      (measurableSet_singleton x)).inter (measurable_pi_apply n (measurableSet_singleton y))),
+    Measure.map_apply (measurable_comp_sites g) (measurable_pi_apply m (measurableSet_singleton x))]
+  rfl
+
+omit [DecidableEq S] in
+/-- `∑_y P_{ij}(x, y) ≤ 1`: it is `1` if `α_i(x) > 0` and `0` otherwise. -/
+lemma tsum_transitionProb_le_one [IsFiniteMeasure μ] (i j : S) (x : E) :
+    ∑' y, transitionProb μ i j x y ≤ 1 := by
+  by_cases hx : μ ((fun σ : S → E ↦ σ i) ⁻¹' {x}) = 0
+  · have : ∀ y, transitionProb μ i j x y = 0 := fun y ↦ by
+      rw [transitionProb, measure_mono_null Set.inter_subset_left hx, ENNReal.zero_div]
+    simp [this]
+  · exact (tsum_transitionProb_eq_one hx).le
+
+omit [DecidableEq S] in
+/-- **Georgii, Comment (12.3)(3).** Let `μ` be a Markov chain on a tree `G` and `f : ℤ ↪g G` a
+copy of `ℤ` embedded in `G` as a graph. Then the marginal `σ_V(μ) = μ ∘ (ω ↦ ω ∘ f)⁻¹` of `μ` on
+`V = f(ℤ)` is a Markov chain in the sense of Definition (10.4), with transition kernels the
+transition matrices `P_{f(n-1) f(n)}` of `μ` along the embedded bonds. -/
+theorem IsMarkovChain.markov_isMarkovChain_map_comp (hμ : IsMarkovChain G μ) (hG : G.IsAcyclic)
+    (f : SimpleGraph.hasse ℤ ↪g G) :
+    Markov.IsMarkovChain (fun n ↦ Kernel.ofMatrix (transitionProb μ (f (n - 1)) (f n)))
+      (μ.map fun ω : S → E ↦ ω ∘ f) := by
+  have hprob := hμ.isProbabilityMeasure
+  have hΦ : Measurable fun ω : S → E ↦ ω ∘ f := measurable_comp_sites (E := E) f
+  refine ⟨Measure.isProbabilityMeasure_map hΦ.aemeasurable, fun n A hA ↦ ?_⟩
+  set P : Kernel E E := Kernel.ofMatrix (transitionProb μ (f (n - 1)) (f n)) with hP
+  have hadj : G.Adj (f (n - 1)) (f n) :=
+    f.map_adj_iff.2 ((SimpleGraph.hasse_int_adj _ _).2 (Or.inl (by omega)))
+  have hPm : Measurable fun σ : ℤ → E ↦ P (σ (n - 1)) A :=
+    (Kernel.measurable_coe P hA).comp (measurable_pi_apply (n - 1))
+  have hgm : Measurable[cylinderEvents (X := fun _ : ℤ ↦ E) (Set.Iio n)]
+      fun σ : ℤ → E ↦ P (σ (n - 1)) A :=
+    (Kernel.measurable_coe P hA).comp (measurable_cylinderEvent_apply (X := fun _ : ℤ ↦ E)
+      (show n - 1 ∈ Set.Iio n by simp))
+  have hPfin : ∀ x, P x A ≠ ⊤ := fun x ↦ ne_top_of_le_ne_top ENNReal.one_ne_top
+    ((measure_mono (Set.subset_univ A)).trans (by
+      rw [hP, Kernel.ofMatrix_apply_univ]; exact tsum_transitionProb_le_one _ _ _))
+  refine ((toReal_ae_eq_indicator_condExp_iff_forall_meas_inter_eq cylinderEvents_le_pi
+    (measurable_pi_apply n hA) (measure_ne_top _ _) hgm.stronglyMeasurable.aestronglyMeasurable
+    (ae_of_all _ fun _ ↦ hPfin _)).2 fun t ht ↦ ?_).symm
+  have ht' : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (G.past (f (n - 1)) (f n))]
+      ((fun ω : S → E ↦ ω ∘ f) ⁻¹' t) :=
+    cylinderEvents_mono (by rintro _ ⟨m, hm, rfl⟩; exact hG.embedding_hasse_int_mem_past f hm) _
+      (measurable_comp_cylinderEvents (E := E) (⇑f) (Set.Iio n) ht)
+  have htm : MeasurableSet t := cylinderEvents_le_pi _ ht
+  rw [Measure.map_apply hΦ ((measurable_pi_apply n hA).inter htm), setLIntegral_map htm hPm hΦ,
+    Set.preimage_inter]
+  set t' := (fun ω : S → E ↦ ω ∘ f) ⁻¹' t with ht'def
+  calc μ ((fun ω : S → E ↦ ω ∘ f) ⁻¹' ((fun σ : ℤ → E ↦ σ n) ⁻¹' A) ∩ t')
+      = (μ.restrict t') ((fun ω : S → E ↦ ω (f n)) ⁻¹' A) := by
+        rw [Measure.restrict_apply (measurable_pi_apply _ hA)]; rfl
+    _ = ∑' y : A, (μ.restrict t') ((fun ω : S → E ↦ ω (f n)) ⁻¹' {(y : E)}) :=
+        (tsum_measure_preimage_singleton A.to_countable fun y _ ↦
+          measurable_pi_apply _ (measurableSet_singleton _)).symm
+    _ = ∑' y : A, ∫⁻ ω in t', transitionProb μ (f (n - 1)) (f n) (ω (f (n - 1))) y ∂μ := by
+        refine tsum_congr fun y ↦ ?_
+        rw [Measure.restrict_apply (measurable_pi_apply _ (measurableSet_singleton _))]
+        exact hμ.measure_preimage_inter_eq_lintegral hadj y ht'
+    _ = ∫⁻ ω in t', ∑' y : A, transitionProb μ (f (n - 1)) (f n) (ω (f (n - 1))) y ∂μ :=
+        (lintegral_tsum (μ := μ.restrict t')
+          (f := fun (y : A) (ω : S → E) ↦ transitionProb μ (f (n - 1)) (f n) (ω (f (n - 1))) y)
+          fun y ↦ (measurable_coord (fun x ↦ transitionProb μ (f (n - 1)) (f n) x y)
+            (f (n - 1))).aemeasurable).symm
+    _ = ∫⁻ ω in t', P (ω (f (n - 1))) A ∂μ := by
+        simp_rw [hP, Kernel.ofMatrix_apply_set]
+
+end EmbeddedLine
+
+/-! ## Comment (12.3)(5): completely homogeneous Markov chains, reversible matrices, and the
+automorphism group `I(B)`
+
+Georgii's "`P` is the transition matrix of a completely homogeneous Markov chain `μ`" is the pair
+of hypotheses `IsMarkovChain G μ` and `transitionProb μ i j x y = P x y` on every bond `ij`,
+wherever `α_i(x) = μ(σ_i = x) > 0` (Comment (12.3)(4): `transitionProb` is *the* transition matrix
+there). "`P` is reversible" is `α(x) P(x, y) = α(y) P(y, x)` for a probability vector `α`.
+
+* Necessity (`reversible_of_forall_transitionProb_eq`): (12.5) gives `α_k(x) P(x, y) =
+  α_j(y) P(y, x)` on every bond `kj`; used on both orientations it forces `α_k = α_j`, and then
+  `α = α_k` is reversible.
+* The marginals (`measure_preimage_singleton_eq_of_reversible`): if `P` is reversible for `α`
+  then (12.5) forces `α_k = α` at every site with a neighbour.
+* Sufficiency (`exists_isMarkovChain_transitionProb_eq_of_reversible`): the chain is the measure
+  (12.13) of an explicit boundary law for an explicit transfer family built from `α` and `P`
+  (Theorem (12.12)(a)); no second Kolmogorov extension is needed.
+* Automorphism invariance (`measurePreserving_siteEquiv_of_forall_transitionProb_eq`): the image
+  of `μ` under a graph automorphism is a completely homogeneous Markov chain with the same `P` and
+  the same marginals, hence equals `μ` by the uniqueness consequence of (12.4)
+  (`IsMarkovChain.ext_of_transitionProb_eq`). Georgii's group `I(B)` is `graphAutomorphisms`. -/
+
+section CompletelyHomogeneousReversible
+
+variable {G : SimpleGraph S} {μ : Measure (S → E)} {P : E → E → ℝ≥0∞}
+
+omit [DecidableEq S] in
+/-- The marginal of a probability measure at a site is a probability vector. -/
+lemma tsum_measure_preimage_singleton_eq_one [IsProbabilityMeasure μ] (k : S) :
+    ∑' x, μ ((fun σ : S → E ↦ σ k) ⁻¹' {x}) = 1 := by
+  have hd : Pairwise (Function.onFun Disjoint fun x : E ↦ (fun σ : S → E ↦ σ k) ⁻¹' {x}) :=
+    fun x y hxy ↦ Set.disjoint_left.2 fun σ hx hy ↦
+      hxy ((Set.mem_singleton_iff.1 hx).symm.trans (Set.mem_singleton_iff.1 hy))
+  rw [← measure_iUnion hd fun x ↦ measurable_pi_apply k (measurableSet_singleton x),
+    Set.eq_univ_of_forall fun σ ↦ Set.mem_iUnion.2 ⟨σ k, rfl⟩, measure_univ]
+
+omit [DecidableEq S] [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
+/-- The entries of a stochastic matrix are finite. -/
+lemma ne_top_of_tsum_eq_one (hP1 : ∀ x, ∑' y, P x y = 1) (x y : E) : P x y ≠ ⊤ :=
+  ne_top_of_le_ne_top ENNReal.one_ne_top ((ENNReal.le_tsum y).trans_eq (hP1 x))
+
+omit [DecidableEq S] [Countable E] [MeasurableSingletonClass E] in
+/-- (12.5) with the transition matrix substituted: if `P` (positive) is the transition matrix of
+`μ` on both orientations of a bond `kj` (wherever the marginals are positive), then
+`α_k(x) P(x, y) = α_j(y) P(y, x)` for all `x, y`. -/
+lemma measure_preimage_mul_eq_of_transitionProb_eq [IsFiniteMeasure μ] (hPpos : ∀ x y, 0 < P x y)
+    {k j : S}
+    (hkj : ∀ x y, 0 < μ ((fun σ : S → E ↦ σ k) ⁻¹' {x}) → transitionProb μ k j x y = P x y)
+    (hjk : ∀ x y, 0 < μ ((fun σ : S → E ↦ σ j) ⁻¹' {x}) → transitionProb μ j k x y = P x y)
+    (x y : E) :
+    μ ((fun σ : S → E ↦ σ k) ⁻¹' {x}) * P x y = μ ((fun σ : S → E ↦ σ j) ⁻¹' {y}) * P y x := by
+  have h := transitionProb_mul_transitionProb_swap_eq (μ := μ) k j x y
+  by_cases hk : μ ((fun σ : S → E ↦ σ k) ⁻¹' {x}) = 0
+  · rw [hk, zero_mul] at h ⊢
+    by_cases hj : μ ((fun σ : S → E ↦ σ j) ⁻¹' {y}) = 0
+    · rw [hj, zero_mul]
+    · rw [hjk y x (pos_iff_ne_zero.2 hj)] at h
+      exact absurd h.symm (mul_ne_zero hj (hPpos y x).ne')
+  · by_cases hj : μ ((fun σ : S → E ↦ σ j) ⁻¹' {y}) = 0
+    · rw [hj, zero_mul] at h ⊢
+      rw [hkj x y (pos_iff_ne_zero.2 hk)] at h
+      exact absurd h (mul_ne_zero hk (hPpos x y).ne')
+    · rwa [hkj x y (pos_iff_ne_zero.2 hk), hjk y x (pos_iff_ne_zero.2 hj)] at h
+
+omit [DecidableEq S] in
+/-- If a positive stochastic `P` is the transition matrix of `μ` on both orientations of a bond
+`kj`, the marginals of `μ` at `k` and at `j` coincide. -/
+lemma measure_preimage_eq_of_transitionProb_eq [IsProbabilityMeasure μ] (hPpos : ∀ x y, 0 < P x y)
+    (hP1 : ∀ x, ∑' y, P x y = 1) {k j : S}
+    (hkj : ∀ x y, 0 < μ ((fun σ : S → E ↦ σ k) ⁻¹' {x}) → transitionProb μ k j x y = P x y)
+    (hjk : ∀ x y, 0 < μ ((fun σ : S → E ↦ σ j) ⁻¹' {x}) → transitionProb μ j k x y = P x y)
+    (x : E) :
+    μ ((fun σ : S → E ↦ σ k) ⁻¹' {x}) = μ ((fun σ : S → E ↦ σ j) ⁻¹' {x}) := by
+  set α : S → E → ℝ≥0∞ := fun m x ↦ μ ((fun σ : S → E ↦ σ m) ⁻¹' {x}) with hα
+  have h1 : ∀ x y, α k x * P x y = α j y * P y x :=
+    measure_preimage_mul_eq_of_transitionProb_eq hPpos hkj hjk
+  have h2 : ∀ x y, α j x * P x y = α k y * P y x :=
+    measure_preimage_mul_eq_of_transitionProb_eq hPpos hjk hkj
+  have h3 : ∀ y, α k x * α k y = α j x * α j y := fun y ↦ by
+    have hc : P x y * P y x ≠ 0 := mul_ne_zero (hPpos x y).ne' (hPpos y x).ne'
+    have hct : P x y * P y x ≠ ⊤ :=
+      ENNReal.mul_ne_top (ne_top_of_tsum_eq_one hP1 x y) (ne_top_of_tsum_eq_one hP1 y x)
+    refine (ENNReal.mul_left_inj hc hct).1 ?_
+    calc α k x * α k y * (P x y * P y x) = (α k x * P x y) * (α k y * P y x) := by ring
+      _ = (α j y * P y x) * (α j x * P x y) := by rw [h1 x y, ← h2 x y]
+      _ = α j x * α j y * (P x y * P y x) := by ring
+  calc α k x = α k x * ∑' y, α k y := by
+        rw [hα]; simp only; rw [tsum_measure_preimage_singleton_eq_one, mul_one]
+    _ = ∑' y, α k x * α k y := ENNReal.tsum_mul_left.symm
+    _ = ∑' y, α j x * α j y := tsum_congr h3
+    _ = α j x * ∑' y, α j y := ENNReal.tsum_mul_left
+    _ = α j x := by rw [hα]; simp only; rw [tsum_measure_preimage_singleton_eq_one, mul_one]
+
+omit [DecidableEq S] in
+/-- **Georgii, Comment (12.3)(5), necessity.** If the positive stochastic matrix `P` is the
+transition matrix of a completely homogeneous Markov chain `μ` on a graph with a bond at `k`, then
+`P` is reversible with respect to the marginal `α = σ_k(μ)`: `α(x) P(x, y) = α(y) P(y, x)`. -/
+theorem reversible_of_forall_transitionProb_eq [IsProbabilityMeasure μ] (hPpos : ∀ x y, 0 < P x y)
+    (hP1 : ∀ x, ∑' y, P x y = 1)
+    (hP : ∀ ⦃i j⦄, G.Adj i j → ∀ x y, 0 < μ ((fun σ : S → E ↦ σ i) ⁻¹' {x}) →
+      transitionProb μ i j x y = P x y)
+    {k j : S} (hkj : G.Adj k j) (x y : E) :
+    μ ((fun σ : S → E ↦ σ k) ⁻¹' {x}) * P x y = μ ((fun σ : S → E ↦ σ k) ⁻¹' {y}) * P y x := by
+  rw [measure_preimage_mul_eq_of_transitionProb_eq hPpos (hP hkj) (hP hkj.symm) x y,
+    ← measure_preimage_eq_of_transitionProb_eq hPpos hP1 (hP hkj) (hP hkj.symm) y]
+
+omit [DecidableEq S] in
+/-- **Georgii, Comment (12.3)(5), the marginals.** If `μ` is a completely homogeneous Markov
+chain with positive stochastic transition matrix `P`, and `P` is reversible with respect to the
+probability vector `α`, then `σ_k(μ) = α` at every site `k` with a neighbour. -/
+theorem measure_preimage_singleton_eq_of_reversible [IsProbabilityMeasure μ]
+    (hPpos : ∀ x y, 0 < P x y) (hP1 : ∀ x, ∑' y, P x y = 1) {α : E → ℝ≥0∞}
+    (hα1 : ∑' x, α x = 1) (hrev : ∀ x y, α x * P x y = α y * P y x)
+    (hP : ∀ ⦃i j⦄, G.Adj i j → ∀ x y, 0 < μ ((fun σ : S → E ↦ σ i) ⁻¹' {x}) →
+      transitionProb μ i j x y = P x y)
+    {k j : S} (hkj : G.Adj k j) (x : E) : μ ((fun σ : S → E ↦ σ k) ⁻¹' {x}) = α x := by
+  have h1 : ∀ y, μ ((fun σ : S → E ↦ σ k) ⁻¹' {x}) * P x y
+      = μ ((fun σ : S → E ↦ σ j) ⁻¹' {y}) * P y x :=
+    measure_preimage_mul_eq_of_transitionProb_eq hPpos (hP hkj) (hP hkj.symm) x
+  have h3 : ∀ y, μ ((fun σ : S → E ↦ σ k) ⁻¹' {x}) * α y
+      = α x * μ ((fun σ : S → E ↦ σ j) ⁻¹' {y}) := fun y ↦ by
+    refine (ENNReal.mul_left_inj (hPpos y x).ne' (ne_top_of_tsum_eq_one hP1 y x)).1 ?_
+    calc μ ((fun σ : S → E ↦ σ k) ⁻¹' {x}) * α y * P y x
+        = α x * (μ ((fun σ : S → E ↦ σ k) ⁻¹' {x}) * P x y) := by
+          rw [mul_assoc, ← hrev x y]; ring
+      _ = α x * (μ ((fun σ : S → E ↦ σ j) ⁻¹' {y}) * P y x) := by rw [h1 y]
+      _ = α x * μ ((fun σ : S → E ↦ σ j) ⁻¹' {y}) * P y x := by ring
+  calc μ ((fun σ : S → E ↦ σ k) ⁻¹' {x})
+      = μ ((fun σ : S → E ↦ σ k) ⁻¹' {x}) * ∑' y, α y := by rw [hα1, mul_one]
+    _ = ∑' y, μ ((fun σ : S → E ↦ σ k) ⁻¹' {x}) * α y := ENNReal.tsum_mul_left.symm
+    _ = ∑' y, α x * μ ((fun σ : S → E ↦ σ j) ⁻¹' {y}) := tsum_congr h3
+    _ = α x * ∑' y, μ ((fun σ : S → E ↦ σ j) ⁻¹' {y}) := ENNReal.tsum_mul_left
+    _ = α x := by rw [tsum_measure_preimage_singleton_eq_one, mul_one]
+
+variable [G.LocallyFinite]
+
+/-- **Uniqueness from (12.4).** Two Markov chains on a tree with the same marginal at one site `k`
+and the same transition matrices on every bond (wherever the marginal of the first is positive)
+coincide: by (12.4) they agree on the cylinders over the connected volumes containing `k`. -/
+theorem IsMarkovChain.ext_of_transitionProb_eq [Nonempty E] {ν : Measure (S → E)}
+    (hμ : IsMarkovChain G μ) (hν : IsMarkovChain G ν) (hG : G.IsTree) {k : S}
+    (hk : ∀ x, μ ((fun σ : S → E ↦ σ k) ⁻¹' {x}) = ν ((fun σ : S → E ↦ σ k) ⁻¹' {x}))
+    (hP : ∀ ⦃i j⦄, G.Adj i j → ∀ x y, 0 < μ ((fun σ : S → E ↦ σ i) ⁻¹' {x}) →
+      transitionProb μ i j x y = transitionProb ν i j x y) :
+    μ = ν := by
+  have := hμ.isProbabilityMeasure
+  refine ext_of_forall_exists_cyl_eq fun Λ ↦ ⟨SimpleGraph.hull hG.connected k Λ,
+    SimpleGraph.subset_hull hG.connected k Λ, ?_⟩
+  refine SimpleGraph.connected_induction (P := fun Δ ↦ ∀ η, μ (cyl Δ η) = ν (cyl Δ η))
+    (connected_induce_singleton k) (SimpleGraph.connected_induce_hull hG.connected k Λ)
+    (Finset.singleton_subset_iff.2 (SimpleGraph.mem_hull_self hG.connected k Λ))
+    (fun η ↦ ?_) ?_
+  · have : cyl {k} η = (fun σ : S → E ↦ σ k) ⁻¹' {η k} := by
+      rw [preimage_singleton_eq_cyl k (η k) η, Function.update_eq_self]
+    rw [this]
+    exact hk _
+  · rintro Δ' hΔ' - - i - hi ih η
+    set a := G.anchor Δ' i with ha
+    have hiΔ' : i ∉ Δ' := G.notMem_of_mem_outerBoundary hi
+    have haΔ' : a ∈ Δ' := G.anchor_mem hi
+    have hai : G.Adj a i := (G.adj_anchor hi).symm
+    have hpast : (Δ' : Set S) ⊆ G.past a i := fun x hx ↦
+      hG.isAcyclic.mem_past_anchor hΔ' hi (Finset.mem_union_left _ (Finset.mem_coe.1 hx))
+        (by rintro rfl; exact hiΔ' (Finset.mem_coe.1 hx))
+    have h1 : μ (cyl (insert i Δ') η) = transitionProb μ a i (η a) (η i) * μ (cyl Δ' η) := by
+      rw [cyl_insert_eq_inter]; exact hμ.measure_preimage_inter_cyl hai hpast haΔ' η (η i)
+    have h2 : ν (cyl (insert i Δ') η) = transitionProb ν a i (η a) (η i) * ν (cyl Δ' η) := by
+      rw [cyl_insert_eq_inter]; exact hν.measure_preimage_inter_cyl hai hpast haΔ' η (η i)
+    rw [h1, h2, ← ih η]
+    by_cases h0 : μ ((fun σ : S → E ↦ σ a) ⁻¹' {η a}) = 0
+    · rw [measure_mono_null (fun σ hσ ↦ mem_cyl.1 hσ a haΔ') h0, mul_zero, mul_zero]
+    · rw [hP hai _ _ (pos_iff_ne_zero.2 h0)]
+
+omit [DecidableEq S] [Countable E] [G.LocallyFinite] in
+/-- The transition matrices of the image of `μ` under the site bijection `τ_e` are those of `μ`
+along `e⁻¹`. -/
+lemma transitionProb_map_siteEquiv (e : S ≃ S) (μ : Measure (S → E)) (i j : S) (x y : E) :
+    transitionProb (μ.map (siteEquiv E e).toFun) i j x y
+      = transitionProb μ (e.symm i) (e.symm j) x y := by
+  simp only [transitionProb]
+  rw [Measure.map_apply (siteEquiv E e).measurable_toFun ((measurable_pi_apply i
+      (measurableSet_singleton x)).inter (measurable_pi_apply j (measurableSet_singleton y))),
+    Measure.map_apply (siteEquiv E e).measurable_toFun
+      (measurable_pi_apply i (measurableSet_singleton x))]
+  rfl
+
+omit [DecidableEq S] [G.LocallyFinite] in
+/-- The image of a Markov chain on `G` under a graph automorphism `φ` of `G`, acting on
+configurations by `ω ↦ (ω_{φ⁻¹ i})_{i ∈ S}`, is a Markov chain on `G`: `φ` maps the two sides of
+a bond onto the two sides of its image. -/
+theorem IsMarkovChain.map_siteEquiv (hμ : IsMarkovChain G μ) (φ : G ≃g G) :
+    IsMarkovChain G (μ.map (siteEquiv E φ.toEquiv).toFun) := by
+  have := hμ.isProbabilityMeasure
+  set τ := siteEquiv E φ.toEquiv with hτ
+  have hτm : Measurable τ.toFun := τ.measurable_toFun
+  have : IsProbabilityMeasure (μ.map τ.toFun) := Measure.isProbabilityMeasure_map hτm.aemeasurable
+  refine isMarkovChain_iff_forall_measure_preimage_inter.2 fun i j hij y t ht ↦ ?_
+  have hij' : G.Adj (φ.toEquiv.symm i) (φ.toEquiv.symm j) := φ.symm.map_adj_iff.2 hij
+  have htm : MeasurableSet t := cylinderEvents_le_pi _ ht
+  have ht' : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E)
+      (G.past (φ.toEquiv.symm i) (φ.toEquiv.symm j))] (τ.toFun ⁻¹' t) := by
+    have h := τ.measurable_toFun_cylinderEvents (G.past i j) ht
+    rwa [hτ, siteEquiv_sites, show ⇑φ.toEquiv ⁻¹' G.past i j
+      = G.past (φ.toEquiv.symm i) (φ.toEquiv.symm j) from φ.preimage_past i j] at h
+  rw [Measure.map_apply hτm ((measurable_pi_apply j (measurableSet_singleton y)).inter htm),
+    setLIntegral_map htm (measurable_coord (fun x ↦ transitionProb (μ.map τ.toFun) i j x y) i)
+      hτm, Set.preimage_inter, siteEquiv_toFun_preimage_coord,
+    hμ.measure_preimage_inter_eq_lintegral hij' y ht']
+  refine setLIntegral_congr_fun (hτm htm) fun ω _ ↦ ?_
+  rw [transitionProb_map_siteEquiv]
+  rfl
+
+variable (E G) in
+/-- **Georgii's `I(B)`, Comment (12.3)(5)**: a graph automorphism `φ` of `G` acts on
+configurations by the transformation `τ_φ ω = (ω_{φ⁻¹ i})_{i ∈ S}` (spatial part `φ`, trivial
+spins, Georgii (5.2)(2)); this is a homomorphism from the automorphism group of `G` into the
+transformation group `T` of Georgii §5.1. -/
+def graphAutHom : (G ≃g G) →* Transformation S E where
+  toFun φ := siteEquiv E φ.toEquiv
+  map_one' := rfl
+  map_mul' _ _ := rfl
+
+variable (E G) in
+/-- **Georgii's group `I(B)` of all graph automorphisms of `S`**, as a subgroup of the
+transformation group `T`; for `S = ℤ` it consists of the translations and the reflections. -/
+def graphAutomorphisms : Subgroup (Transformation S E) := (graphAutHom E G).range
+
+omit [DecidableEq S] [Countable E] [MeasurableSingletonClass E] [G.LocallyFinite] in
+@[simp] lemma graphAutHom_apply (φ : G ≃g G) : graphAutHom E G φ = siteEquiv E φ.toEquiv := rfl
+
+omit [DecidableEq S] [Countable E] [MeasurableSingletonClass E] [G.LocallyFinite] in
+lemma mem_graphAutomorphisms {τ : Transformation S E} :
+    τ ∈ graphAutomorphisms E G ↔ ∃ φ : G ≃g G, siteEquiv E φ.toEquiv = τ :=
+  MonoidHom.mem_range
+
+/-- **Georgii, Comment (12.3)(5), automorphism invariance.** A completely homogeneous Markov chain
+`μ` with positive stochastic transition matrix `P`, on a locally finite tree with at least two
+vertices, is invariant under every graph automorphism `φ` of the tree acting on configurations by
+`ω ↦ (ω_{φ⁻¹ i})_{i ∈ S}`: by (12.4), the image of `μ` is again a completely homogeneous Markov
+chain with transition matrix `P` and the same marginals `α`, hence equal to `μ`. -/
+theorem measurePreserving_siteEquiv_of_forall_transitionProb_eq [Nonempty E] [Nontrivial S]
+    (hG : G.IsTree) (hμ : IsMarkovChain G μ) (hPpos : ∀ x y, 0 < P x y)
+    (hP1 : ∀ x, ∑' y, P x y = 1)
+    (hP : ∀ ⦃i j⦄, G.Adj i j → ∀ x y, 0 < μ ((fun σ : S → E ↦ σ i) ⁻¹' {x}) →
+      transitionProb μ i j x y = P x y)
+    (φ : G ≃g G) : MeasurePreserving (siteEquiv E φ.toEquiv).toFun μ μ := by
+  have := hμ.isProbabilityMeasure
+  set τ := siteEquiv E φ.toEquiv with hτ
+  refine ⟨τ.measurable_toFun, ?_⟩
+  obtain ⟨k₀⟩ : Nonempty S := inferInstance
+  obtain ⟨j₀, hkj₀⟩ := hG.connected.preconnected.exists_adj_of_nontrivial k₀
+  set α : E → ℝ≥0∞ := fun x ↦ μ ((fun σ : S → E ↦ σ k₀) ⁻¹' {x}) with hα
+  have hα1 : ∑' x, α x = 1 := tsum_measure_preimage_singleton_eq_one k₀
+  have hrev : ∀ x y, α x * P x y = α y * P y x :=
+    reversible_of_forall_transitionProb_eq hPpos hP1 hP hkj₀
+  have hmarg : ∀ k x, μ ((fun σ : S → E ↦ σ k) ⁻¹' {x}) = α x := fun k x ↦ by
+    obtain ⟨j, hkj⟩ := hG.connected.preconnected.exists_adj_of_nontrivial k
+    exact measure_preimage_singleton_eq_of_reversible hPpos hP1 hα1 hrev hP hkj x
+  have hmarg' : ∀ k x, (μ.map τ.toFun) ((fun σ : S → E ↦ σ k) ⁻¹' {x}) = α x := fun k x ↦ by
+    rw [Measure.map_apply τ.measurable_toFun (measurable_pi_apply k (measurableSet_singleton x)),
+      hτ, siteEquiv_toFun_preimage_coord, hmarg]
+  refine (hμ.map_siteEquiv φ).ext_of_transitionProb_eq hμ hG (k := k₀)
+    (fun x ↦ by rw [hmarg', hmarg]) fun i j hij x y hx ↦ ?_
+  rw [hmarg'] at hx
+  rw [transitionProb_map_siteEquiv]
+  exact (hP (φ.symm.map_adj_iff.2 hij) x y (by rw [hmarg]; exact hx)).trans
+    (hP hij x y (by rw [hmarg]; exact hx)).symm
+
+/-- **Georgii, Comment (12.3)(5), automorphism invariance**, for the group `I(B)`: a completely
+homogeneous Markov chain with positive stochastic transition matrix is invariant under every
+element of `I(B)`. -/
+theorem measurePreserving_of_mem_graphAutomorphisms [Nonempty E] [Nontrivial S]
+    (hG : G.IsTree) (hμ : IsMarkovChain G μ) (hPpos : ∀ x y, 0 < P x y)
+    (hP1 : ∀ x, ∑' y, P x y = 1)
+    (hP : ∀ ⦃i j⦄, G.Adj i j → ∀ x y, 0 < μ ((fun σ : S → E ↦ σ i) ⁻¹' {x}) →
+      transitionProb μ i j x y = P x y)
+    {τ : Transformation S E} (hτ : τ ∈ graphAutomorphisms E G) :
+    MeasurePreserving τ.toFun μ μ := by
+  obtain ⟨φ, rfl⟩ := mem_graphAutomorphisms.1 hτ
+  exact measurePreserving_siteEquiv_of_forall_transitionProb_eq hG hμ hPpos hP1 hP φ
+
+/-- **Georgii, Comment (12.3)(5), sufficiency.** On a locally finite tree with at least two
+vertices and a finite state space, a positive stochastic matrix `P` which is reversible with
+respect to a probability vector `α` is the transition matrix of a completely homogeneous Markov
+chain `μ`, and `σ_k(μ) = α` for every `k`. The chain is the measure (12.13) of the boundary law
+`ℓ_{i k}(x) = α(x)^{|∂i| - 1}` for one distinguished neighbour `k = k₀(i)` of each `i` and
+`ℓ_{ik} = 1` otherwise, for the transfer family `Q_{ij}(x, y) = α(x) P(x, y) / (ℓ_{ij}(x)
+ℓ_{ji}(y))` (symmetric by reversibility); Theorem (12.12)(a) then gives a Markov chain in
+`𝒢(γ^Q)` with transition matrices `ℓ_{ji}(y) Q_{ij}(x, y) / (ℓ_{ji} Q_{ij})(x) = P(x, y)`. -/
+theorem exists_isMarkovChain_transitionProb_eq_of_reversible [Finite E] [Nonempty E]
+    [Nontrivial S] (hG : G.IsTree) (hPpos : ∀ x y, 0 < P x y) (hP1 : ∀ x, ∑' y, P x y = 1)
+    {α : E → ℝ≥0∞} (hα1 : ∑' x, α x = 1) (hrev : ∀ x y, α x * P x y = α y * P y x) :
+    ∃ μ : Measure (S → E), IsMarkovChain G μ ∧
+      (∀ ⦃i j⦄, G.Adj i j → ∀ x y, transitionProb μ i j x y = P x y) ∧
+      ∀ k x, μ ((fun σ : S → E ↦ σ k) ⁻¹' {x}) = α x := by
+  classical
+  have hPtop : ∀ x y, P x y ≠ ⊤ := ne_top_of_tsum_eq_one hP1
+  have hαtop : ∀ x, α x ≠ ⊤ := fun x ↦
+    ne_top_of_le_ne_top ENNReal.one_ne_top ((ENNReal.le_tsum x).trans_eq hα1)
+  have hαpos : ∀ x, 0 < α x := fun x ↦ by
+    refine pos_iff_ne_zero.2 fun hx ↦ ?_
+    have h0 : ∀ y, α y = 0 := fun y ↦ by
+      have h := hrev y x
+      rw [hx, zero_mul] at h
+      exact (mul_eq_zero.1 h).resolve_right (hPpos y x).ne'
+    simp [h0] at hα1
+  have hnb : ∀ i, ∃ j, G.Adj i j := fun i ↦ hG.connected.preconnected.exists_adj_of_nontrivial i
+  set k₀ : S → S := fun i ↦ (hnb i).choose with hk₀
+  have hk₀adj : ∀ i, G.Adj i (k₀ i) := fun i ↦ (hnb i).choose_spec
+  set ℓ : S → S → E → ℝ≥0∞ := fun i k x ↦ if k = k₀ i then α x ^ (G.degree i - 1) else 1 with hℓ
+  set Q : S → S → E → E → ℝ≥0∞ := fun i j x y ↦ α x * P x y / (ℓ i j x * ℓ j i y) with hQ
+  have hℓpos : ∀ i k x, 0 < ℓ i k x := fun i k x ↦ by
+    simp only [hℓ]
+    split_ifs
+    · exact ENNReal.pow_pos (hαpos x) _
+    · exact zero_lt_one
+  have hℓtop : ∀ i k x, ℓ i k x ≠ ⊤ := fun i k x ↦ by
+    simp only [hℓ]
+    split_ifs
+    · exact ENNReal.pow_ne_top (hαtop x)
+    · exact ENNReal.one_ne_top
+  have hQsymm : ∀ i j x y, Q i j x y = Q j i y x := fun i j x y ↦ by
+    simp only [hQ]
+    rw [hrev x y, mul_comm (ℓ i j x)]
+  have hQpos : ∀ i j x y, 0 < Q i j x y := fun i j x y ↦
+    ENNReal.div_pos (mul_ne_zero (hαpos x).ne' (hPpos x y).ne')
+      (ENNReal.mul_ne_top (hℓtop _ _ _) (hℓtop _ _ _))
+  have hQtop : ∀ i j x y, Q i j x y ≠ ⊤ := fun i j x y ↦
+    ENNReal.div_ne_top (ENNReal.mul_ne_top (hαtop x) (hPtop x y))
+      (mul_ne_zero (hℓpos _ _ _).ne' (hℓpos _ _ _).ne')
+  have hQfam : IsTransferFamily G Q :=
+    isTransferFamily_of_finite hQsymm (fun _ _ _ x y ↦ hQpos _ _ x y)
+      (fun _ _ _ x y ↦ hQtop _ _ x y)
+  -- the row sums `(ℓ_{ki} Q_{ki})(x) = α(x) / ℓ_{ik}(x)`
+  have hcol : ∀ x, ∑' y, α y * P y x = α x := fun x ↦ by
+    simp_rw [← hrev x]
+    rw [ENNReal.tsum_mul_left, hP1, mul_one]
+  have hrow : ∀ k i x, ∑' y, ℓ k i y * Q k i y x = α x / ℓ i k x := fun k i x ↦ by
+    have hterm : ∀ y, ℓ k i y * Q k i y x = α y * P y x / ℓ i k x := fun y ↦ by
+      simp only [hQ]
+      rw [← mul_div_assoc, ENNReal.mul_div_mul_left _ _ (hℓpos k i y).ne' (hℓtop k i y)]
+    simp_rw [hterm, div_eq_mul_inv]
+    rw [ENNReal.tsum_mul_right, hcol]
+  have hdeg : ∀ i, (G.neighborFinset i).card = G.degree i := fun _ ↦ rfl
+  have hcons : ∀ ⦃i j⦄, G.Adj i j → ∃ c : ℝ≥0∞, c ≠ 0 ∧ c ≠ ⊤ ∧ ∀ x,
+      ℓ i j x = c * ∏ k ∈ (G.neighborFinset i).erase j, ∑' y, ℓ k i y * Q k i y x := by
+    intro i j hij
+    refine ⟨1, one_ne_zero, ENNReal.one_ne_top, fun x ↦ ?_⟩
+    simp_rw [hrow]
+    rw [one_mul]
+    have hjmem : j ∈ G.neighborFinset i := (G.mem_neighborFinset i j).2 hij
+    have hcard : ((G.neighborFinset i).erase j).card = G.degree i - 1 := by
+      rw [Finset.card_erase_of_mem hjmem, hdeg]
+    by_cases hj : j = k₀ i
+    · have hall : ∀ k ∈ (G.neighborFinset i).erase j, α x / ℓ i k x = α x := fun k hk ↦ by
+        have hk' : k ≠ k₀ i := hj ▸ (Finset.mem_erase.1 hk).1
+        simp only [hℓ, ite_eq_right hk', div_one]
+      rw [Finset.prod_congr rfl hall, Finset.prod_const, hcard]
+      simp only [hℓ, ite_eq_left hj]
+    · have hk₀mem : k₀ i ∈ (G.neighborFinset i).erase j :=
+        Finset.mem_erase.2 ⟨Ne.symm hj, (G.mem_neighborFinset i _).2 (hk₀adj i)⟩
+      rw [← Finset.mul_prod_erase _ _ hk₀mem]
+      have hrest : ∀ k ∈ ((G.neighborFinset i).erase j).erase (k₀ i), α x / ℓ i k x = α x :=
+        fun k hk ↦ by simp only [hℓ, ite_eq_right (Finset.mem_erase.1 hk).1, div_one]
+      rw [Finset.prod_congr rfl hrest, Finset.prod_const, Finset.card_erase_of_mem hk₀mem, hcard]
+      have h2 : 2 ≤ G.degree i := by
+        rw [← hdeg]
+        exact Finset.one_lt_card.2 ⟨j, hjmem, k₀ i, (G.mem_neighborFinset i _).2 (hk₀adj i), hj⟩
+      obtain ⟨d, hd⟩ : ∃ d, G.degree i = d + 2 := ⟨G.degree i - 2, by omega⟩
+      simp only [hℓ, ite_eq_left rfl, ite_eq_right hj]
+      rw [hd, show d + 2 - 1 = d + 1 by omega, show d + 1 - 1 = d by omega, pow_succ,
+        div_eq_mul_inv, ENNReal.mul_inv (Or.inl (pow_ne_zero _ (hαpos x).ne'))
+          (Or.inl (ENNReal.pow_ne_top (hαtop x)))]
+      calc (1 : ℝ≥0∞) = (α x * (α x)⁻¹) * (α x ^ d * (α x ^ d)⁻¹) := by
+            rw [ENNReal.mul_inv_cancel (hαpos x).ne' (hαtop x),
+              ENNReal.mul_inv_cancel (pow_ne_zero _ (hαpos x).ne') (ENNReal.pow_ne_top (hαtop x)),
+              mul_one]
+        _ = α x * ((α x ^ d)⁻¹ * (α x)⁻¹) * α x ^ d := by ring
+  have hℓlaw : IsBoundaryLaw G Q ℓ :=
+    IsBoundaryLaw.of_finite G Q ℓ (fun _ _ _ x y ↦ hQtop _ _ x y) (fun _ _ _ x ↦ hℓpos _ _ x)
+      (fun _ _ _ x ↦ hℓtop _ _ x) hcons
+  set μ := boundaryLawMeasure hQfam hℓlaw hG with hμdef
+  have hchain : IsMarkovChain G μ := hℓlaw.isMarkovChain_boundaryLawMeasure hQfam hG
+  have hGibbs : (transferSpecification G hQfam).IsGibbsMeasure μ :=
+    hℓlaw.isGibbsMeasure_transferSpecification_boundaryLawMeasure (hQ := hQfam) (hG := hG)
+  have hpos : ∀ i x, 0 < μ ((fun σ : S → E ↦ σ i) ⁻¹' {x}) := fun i x ↦ by
+    rw [preimage_singleton_eq_cyl i x (baseConfig (S := S) (E := E))]
+    exact measure_cyl_pos_of_isGibbsMeasure hQfam hGibbs _ _
+  have htrans : ∀ ⦃i j⦄, G.Adj i j → ∀ x y, transitionProb μ i j x y = P x y := by
+    intro i j hij x y
+    have hstep := hℓlaw.measure_preimage_inter_preimage_eq hQfam hG hij x y
+    have hnum : ∀ y', ℓ j i y' * Q i j x y' = P x y' * (α x * (ℓ i j x)⁻¹) := fun y' ↦ by
+      simp only [hQ]
+      rw [← mul_div_assoc, mul_comm (ℓ j i y'),
+        ENNReal.mul_div_mul_right _ _ (hℓpos j i y').ne' (hℓtop j i y'), div_eq_mul_inv]
+      ring
+    have hden : ∑' y', ℓ j i y' * Q i j x y' = α x * (ℓ i j x)⁻¹ := by
+      simp_rw [hnum]
+      rw [ENNReal.tsum_mul_right, hP1, one_mul]
+    have hbt : boundaryLawTransition Q ℓ i j x y = P x y := by
+      rw [boundaryLawTransition, hnum, hden,
+        ENNReal.mul_div_cancel_right
+          (mul_ne_zero (hαpos x).ne' (ENNReal.inv_ne_zero.2 (hℓtop i j x)))
+          (ENNReal.mul_ne_top (hαtop x) (ENNReal.inv_ne_top.2 (hℓpos i j x).ne'))]
+    rw [transitionProb, Set.inter_comm, hstep, hbt,
+      ENNReal.mul_div_cancel_right (hpos i x).ne' (measure_ne_top _ _)]
+  refine ⟨μ, hchain, htrans, fun k x ↦ ?_⟩
+  exact measure_preimage_singleton_eq_of_reversible hPpos hP1 hα1 hrev
+    (fun i j hij x y _ ↦ htrans hij x y) (hnb k).choose_spec x
+
+end CompletelyHomogeneousReversible
 
 end MeasureTheory.GibbsMeasure.Tree

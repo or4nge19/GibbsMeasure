@@ -108,9 +108,9 @@ volumes.
 
 ## Example (3.15): the one-dimensional Ising model
 
-* `chainGraph`: the nearest-neighbour graph of `ℤ`; `isingPotential_chainGraph`,
-  `isingSpecification_chainGraph`: the Ising potential (3.13) of `GibbsMeasure/Model/Ising.lean`
-  is the homogeneous nearest-neighbour potential `φ₁ = -h σ`, `φ₂ = -J σ σ`.
+* `isingPotential_hasse_int`, `isingSpecification_hasse_int`: the Ising potential (3.13) of
+  `GibbsMeasure/Model/Ising.lean` on the nearest-neighbour graph `SimpleGraph.hasse ℤ` of `ℤ` is
+  the homogeneous nearest-neighbour potential `φ₁ = -h σ`, `φ₂ = -J σ σ`.
 * `isingChainDetFun`, `homogeneousNNDeterminingFun_ising`: **Georgii (3.14)**.
 * `isingChainQ`, `detQ_isingChainDetFun`: Georgii's matrix `Q` for the Ising chain.
 * `isingChainPerronRoot`, `isingChainPerronRoot_char`, `perronRoot_isingChainQ`:
@@ -118,9 +118,9 @@ volumes.
   Perron–Frobenius eigenvalue of `Q`.
 * `isingChainP`, `matrixOfDetFun_isingChainDetFun`: **Georgii (3.17)** — formula (3.7) produces
   the transition matrix `P_{J,h}`.
-* `isingSpecification_chainGraph_eq_markovSpecification`,
-  `gibbsMeasure_isingSpecification_chainGraph`,
-  `existsUnique_isGibbsMeasure_isingSpecification_chainGraph`: **Georgii (3.15)** —
+* `isingSpecification_hasse_int_eq_markovSpecification`,
+  `gibbsMeasure_isingSpecification_hasse_int`,
+  `existsUnique_isGibbsMeasure_isingSpecification_hasse_int`: **Georgii (3.15)** —
   `𝒢(β Φ^{J,h}) = 𝒢(Φ^{βJ,βh}) = {μ_{βJ,βh}}`.
 * `isingChainStationary`, `stationaryDist_isingChainP`: **Georgii (3.18)**.
 * `integral_spin_stationaryChain_isingChainP`: **Georgii (3.19)** — the magnetisation
@@ -3793,68 +3793,36 @@ theorem existsUnique_isGibbsMeasure_homogeneousNNSpecification (β : ℝ) :
 ## Georgii Example (3.15): the one-dimensional Ising model
 
 The Ising potential (3.13) `Φ_{i,i+1} = -J σ_i σ_{i+1}`, `Φ_{i} = -h σ_i` on the nearest-neighbour
-graph of `ℤ` is a homogeneous nearest-neighbour potential, so Corollary (3.9) and Theorem (3.5)
-apply: its Gibbsian specification is the Markov specification of an explicit positive stochastic
-matrix `P_{J,h}`, and `𝒢(Φ^{J,h}) = {μ_{J,h}}`.
+graph `SimpleGraph.hasse ℤ` of `ℤ` (`i ~ j` iff `|i - j| = 1`, locally finite by
+`SimpleGraph.instLocallyFiniteHasseInt`) is a homogeneous nearest-neighbour potential, so
+Corollary (3.9) and Theorem (3.5) apply: its Gibbsian specification is the Markov specification of
+an explicit positive stochastic matrix `P_{J,h}`, and `𝒢(Φ^{J,h}) = {μ_{J,h}}`.
 -/
-
-/-- The nearest-neighbour graph on `ℤ`: `i ~ j` iff `|i - j| = 1`. This is the `d = 1` lattice
-graph of `GibbsMeasure/Model/Ising.lean` transported along `Fin 1 → ℤ ≃ ℤ`; the parameter set of
-Chapter 3 is `ℤ` itself. -/
-def chainGraph : SimpleGraph ℤ where
-  Adj i j := |i - j| = 1
-  symm := ⟨fun i j h ↦ by
-    have h' : |i - j| = 1 := h
-    have : |j - i| = 1 := by rw [show j - i = -(i - j) by ring, abs_neg]; exact h'
-    exact this⟩
-  loopless := ⟨fun i h ↦ by
-    have h' : |i - i| = 1 := h
-    simp at h'⟩
-
-lemma chainGraph_adj_iff {i j : ℤ} : chainGraph.Adj i j ↔ j = i + 1 ∨ i = j + 1 := by
-  constructor
-  · intro hij
-    have h : |i - j| = 1 := hij
-    rw [abs_eq (by norm_num : (0 : ℤ) ≤ 1)] at h
-    omega
-  · intro h
-    have h' : |i - j| = 1 := by rw [abs_eq (by norm_num : (0 : ℤ) ≤ 1)]; omega
-    exact h'
-
-lemma chainGraph_adj_succ (i : ℤ) : chainGraph.Adj i (i + 1) :=
-  chainGraph_adj_iff.2 (Or.inl rfl)
-
-noncomputable instance : chainGraph.LocallyFinite := fun v ↦
-  Set.Finite.fintype <| (Set.finite_range (fun b : Bool ↦ if b then v + 1 else v - 1)).subset <| by
-    rintro y hy
-    rcases chainGraph_adj_iff.1 hy with rfl | h
-    · exact ⟨true, by simp⟩
-    · exact ⟨false, by simp; omega⟩
 
 /-- **Georgii (3.13).** The one-dimensional Ising potential is the homogeneous nearest-neighbour
 potential with self-energy `φ₁(x) = -h σ(x)` and bond energy `φ₂(x,y) = -J σ(x) σ(y)`. -/
-theorem isingPotential_chainGraph (J h : ℝ) :
-    isingPotential chainGraph J h
+theorem isingPotential_hasse_int (J h : ℝ) :
+    isingPotential (SimpleGraph.hasse ℤ) J h
       = homogeneousNNPotential (fun b ↦ -h * spin b) (fun x y ↦ -J * (spin x * spin y)) := by
   funext A σ
   by_cases hb : ∃ i : ℤ, A = {i, i + 1}
   · obtain ⟨i, rfl⟩ := hb
     have hcard : ({i, i + 1} : Finset ℤ).card = 2 := Finset.card_pair (by omega)
     rw [homogeneousNNPotential_pair,
-      show isingPotential chainGraph J h {i, i + 1} σ
-        = Potential.nearestNeighbourPair chainGraph J h spin {i, i + 1} σ from rfl,
+      show isingPotential (SimpleGraph.hasse ℤ) J h {i, i + 1} σ
+        = Potential.nearestNeighbourPair (SimpleGraph.hasse ℤ) J h spin {i, i + 1} σ from rfl,
       Potential.nearestNeighbourPair_apply_pair
-        ⟨hcard, i, by simp, i + 1, by simp, chainGraph_adj_succ i⟩,
+        ⟨hcard, i, by simp, i + 1, by simp, (SimpleGraph.hasse_int_adj i (i + 1)).2 (Or.inl rfl)⟩,
       Finset.prod_pair (by omega : i ≠ i + 1)]
   · by_cases hs : ∃ i : ℤ, A = {i}
     · obtain ⟨i, rfl⟩ := hs
       rw [homogeneousNNPotential_singleton,
-        show isingPotential chainGraph J h {i} σ
-          = Potential.nearestNeighbourPair chainGraph J h spin {i} σ from rfl,
+        show isingPotential (SimpleGraph.hasse ℤ) J h {i} σ
+          = Potential.nearestNeighbourPair (SimpleGraph.hasse ℤ) J h spin {i} σ from rfl,
         Potential.nearestNeighbourPair_apply_card_one (Finset.card_singleton i),
         Finset.sum_singleton]
     · have h1 : ¬ A.card = 1 := fun hc ↦ hs (Finset.card_eq_one.1 hc)
-      have h2 : ¬ (A.card = 2 ∧ ∃ i ∈ A, ∃ j ∈ A, chainGraph.Adj i j) := by
+      have h2 : ¬ (A.card = 2 ∧ ∃ i ∈ A, ∃ j ∈ A, (SimpleGraph.hasse ℤ).Adj i j) := by
         rintro ⟨hcard, i, hiA, j, hjA, hij⟩
         have hAij : ({i, j} : Finset ℤ) = A :=
           Finset.eq_of_subset_of_card_le
@@ -3864,23 +3832,28 @@ theorem isingPotential_chainGraph (J h : ℝ) :
               · exact hiA
               · rw [Finset.mem_singleton] at hx; exact hx ▸ hjA)
             (le_of_eq (by rw [hcard, Finset.card_pair hij.ne]))
-        rcases chainGraph_adj_iff.1 hij with rfl | rfl
+        rcases (SimpleGraph.hasse_int_adj i j).1 hij with rfl | rfl
         · exact hb ⟨i, hAij.symm⟩
         · exact hb ⟨j, by rw [← hAij, Finset.pair_comm]⟩
       rw [homogeneousNNPotential_of_not _ _ hb hs,
-        show isingPotential chainGraph J h A σ
-          = Potential.nearestNeighbourPair chainGraph J h spin A σ from rfl,
+        show isingPotential (SimpleGraph.hasse ℤ) J h A σ
+          = Potential.nearestNeighbourPair (SimpleGraph.hasse ℤ) J h spin A σ from rfl,
         Potential.nearestNeighbourPair_apply_eq_zero h1 h2]
+
+@[deprecated (since := "2026-09-04")] alias isingPotential_chainGraph := isingPotential_hasse_int
 
 /-- **Georgii (3.13)/(3.15).** The Ising specification on `ℤ` at inverse temperature `β` is the
 Gibbsian specification of a homogeneous nearest-neighbour potential. -/
-theorem isingSpecification_chainGraph (J h β : ℝ) :
-    isingSpecification chainGraph J h β
+theorem isingSpecification_hasse_int (J h β : ℝ) :
+    isingSpecification (SimpleGraph.hasse ℤ) J h β
       = homogeneousNNSpecification (fun b ↦ -h * spin b)
           (fun x y ↦ -J * (spin x * spin y)) β := by
   rw [isingSpecification, Potential.gibbsSpecification_congr uniformSpinMeasure β
-      (isingPotential_chainGraph J h), homogeneousNNSpecification]
+      (isingPotential_hasse_int J h), homogeneousNNSpecification]
   simp only [uniformSpinMeasure_eq_uniformOn]
+
+@[deprecated (since := "2026-09-04")]
+alias isingSpecification_chainGraph := isingSpecification_hasse_int
 
 /-! ### The determining function (3.14) of the Ising chain -/
 
@@ -4175,8 +4148,8 @@ theorem perronRoot_isingChainQ (J h : ℝ) :
 /-- **Georgii (3.15).** The Gibbsian specification of the one-dimensional Ising potential
 `Φ^{J,h}` at inverse temperature `β` is the Markov specification of the transition matrix
 `P_{βJ,βh}` of (3.17): `β Φ^{J,h} = Φ^{βJ,βh}`. -/
-theorem isingSpecification_chainGraph_eq_markovSpecification (J h β : ℝ) :
-    isingSpecification chainGraph J h β
+theorem isingSpecification_hasse_int_eq_markovSpecification (J h β : ℝ) :
+    isingSpecification (SimpleGraph.hasse ℤ) J h β
       = markovSpecification (isingChainP (β * J) (β * h)) := by
   have hγ : IsPositiveHomogeneousMarkovWith
       (homogeneousNNSpecification (fun b ↦ -h * spin b) (fun x y ↦ -J * (spin x * spin y)) β)
@@ -4184,29 +4157,40 @@ theorem isingSpecification_chainGraph_eq_markovSpecification (J h β : ℝ) :
     have hg := isPositiveHomogeneousMarkovWith_homogeneousNNSpecification
       (fun b ↦ -h * spin b) (fun x y ↦ -J * (spin x * spin y)) β
     rwa [homogeneousNNDeterminingFun_ising J h β] at hg
-  rw [isingSpecification_chainGraph]
+  rw [isingSpecification_hasse_int]
   exact eq_markovSpecification_of_determiningFun (isingChainP_pos (β * J) (β * h)) hγ
     (markovDeterminingFun_isingChainP (β * J) (β * h)).symm
+
+@[deprecated (since := "2026-09-04")]
+alias isingSpecification_chainGraph_eq_markovSpecification :=
+  isingSpecification_hasse_int_eq_markovSpecification
 
 /-- **Georgii (3.15).** `𝒢(Φ^{βJ,βh}) = {μ_{βJ,βh}}`: the one-dimensional Ising model has, at
 every coupling, external field and inverse temperature, exactly one Gibbs measure, the stationary
 Markov chain with transition matrix `P_{βJ,βh}` of (3.17). -/
-theorem gibbsMeasure_isingSpecification_chainGraph (J h β : ℝ) :
-    GibbsMeasure.G (isingSpecification chainGraph J h β)
+theorem gibbsMeasure_isingSpecification_hasse_int (J h β : ℝ) :
+    GibbsMeasure.G (isingSpecification (SimpleGraph.hasse ℤ) J h β)
       = {stationaryChain (isingChainP (β * J) (β * h))
           (isingChainP_mem_rowStochastic (β * J) (β * h))
           (isingChainP_pos (β * J) (β * h))} := by
-  rw [isingSpecification_chainGraph_eq_markovSpecification]
+  rw [isingSpecification_hasse_int_eq_markovSpecification]
   exact gibbsMeasure_eq_singleton _ _ _
+
+@[deprecated (since := "2026-09-04")]
+alias gibbsMeasure_isingSpecification_chainGraph := gibbsMeasure_isingSpecification_hasse_int
 
 /-- **Georgii (3.15).** Existence and uniqueness of the Gibbs measure of the one-dimensional
 Ising model. -/
-theorem existsUnique_isGibbsMeasure_isingSpecification_chainGraph (J h β : ℝ) :
-    ∃! μ : Measure (ℤ → Bool),
-      IsProbabilityMeasure μ ∧ (isingSpecification chainGraph J h β).IsGibbsMeasure μ := by
-  rw [isingSpecification_chainGraph_eq_markovSpecification]
+theorem existsUnique_isGibbsMeasure_isingSpecification_hasse_int (J h β : ℝ) :
+    ∃! μ : Measure (ℤ → Bool), IsProbabilityMeasure μ
+      ∧ (isingSpecification (SimpleGraph.hasse ℤ) J h β).IsGibbsMeasure μ := by
+  rw [isingSpecification_hasse_int_eq_markovSpecification]
   exact existsUnique_isGibbsMeasure _ (isingChainP_mem_rowStochastic (β * J) (β * h))
     (isingChainP_pos (β * J) (β * h))
+
+@[deprecated (since := "2026-09-04")]
+alias existsUnique_isGibbsMeasure_isingSpecification_chainGraph :=
+  existsUnique_isGibbsMeasure_isingSpecification_hasse_int
 
 /-! ### The one-dimensional distributions of `μ_P`, and integrals of single-site observables -/
 

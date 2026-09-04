@@ -6,6 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Connectivity
+public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Hasse
 public import Mathlib.Combinatorics.SimpleGraph.Acyclic
 
 /-!
@@ -16,7 +17,11 @@ one neighbour in `Λ` (`SimpleGraph.IsAcyclic.anchor_eq`), the outer boundary of
 `(∂Λ \ {i}) ∪ (∂i \ {i_Λ})`, and the bonds meeting `insert i Λ` are those meeting `Λ` together
 with the bonds `{i, k}`, `k ∈ ∂i \ {i_Λ}`.
 
-`SimpleGraph.past G i j` is the set of vertices on the `i`-side of an oriented bond `ij`.
+`SimpleGraph.past G i j` is the set of vertices on the `i`-side of an oriented bond `ij`; a graph
+automorphism maps the two sides of a bond onto the two sides of its image
+(`SimpleGraph.Iso.mem_past_iff`, via `SimpleGraph.Iso.dist_eq`), and the image of `]-∞, n[` under
+an embedding `hasse ℤ ↪g G` of `ℤ` into a tree lies on the `f (n - 1)`-side of `f (n - 1) f n`
+(`SimpleGraph.IsAcyclic.embedding_hasse_int_mem_past`).
 -/
 
 @[expose] public section
@@ -335,6 +340,55 @@ lemma IsAcyclic.hull_subset_past (hG : G.IsAcyclic) [DecidableEq V] (hconn : G.C
     · exact mem_past_self_of_adj hij
     · exact hW k hk
   exact hG.mem_past_of_mem_support hij (Walk.bypass_isPath _) hkp (List.mem_toFinset.1 hx)
+
+/-- On a tree, the image under a graph embedding `f : ℤ ↪g G` of `]-∞, n[` lies on the side of
+`f (n - 1)` of the bond `f (n - 1) f n`: the path `f m → ⋯ → f (n - 1)` avoids `f n`. -/
+lemma IsAcyclic.embedding_hasse_int_mem_past (hG : G.IsAcyclic) (f : hasse ℤ ↪g G) {m n : ℤ}
+    (hmn : m < n) : f m ∈ G.past (f (n - 1)) (f n) := by
+  classical
+  have hadj : G.Adj (f (n - 1)) (f n) :=
+    f.map_adj_iff.2 ((hasse_int_adj _ _).2 (Or.inl (by omega)))
+  obtain ⟨k, hk⟩ : ∃ k : ℕ, n - 1 = m + k := ⟨(n - 1 - m).toNat, by omega⟩
+  let p : G.Walk (f (n - 1)) (f m) :=
+    (((hasseIntWalk m k).map f.toHom).reverse).copy (by rw [hk]; rfl) rfl
+  refine hG.mem_past_of_notMem_support hadj p.bypass_isPath fun h ↦ ?_
+  have h' := p.support_bypass_subset_support h
+  simp only [p, Walk.support_copy, Walk.support_reverse, List.mem_reverse, Walk.support_map,
+    List.mem_map] at h'
+  obtain ⟨x, hx, hfx⟩ := h'
+  have := f.injective hfx
+  have := mem_support_hasseIntWalk hx
+  omega
+
+/-! ### Graph isomorphisms and the two sides of a bond -/
+
+/-- A graph isomorphism does not increase distances. -/
+lemma Iso.dist_le {W : Type*} {H : SimpleGraph W} (φ : G ≃g H) (u v : V) :
+    H.dist (φ u) (φ v) ≤ G.dist u v := by
+  by_cases h : G.Reachable u v
+  · obtain ⟨p, hp⟩ := h.exists_walk_length_eq_dist
+    calc H.dist (φ u) (φ v) ≤ (p.map φ.toHom).length := SimpleGraph.dist_le _
+      _ = G.dist u v := by rw [Walk.length_map, hp]
+  · have h' : ¬ H.Reachable (φ u) (φ v) := fun h' ↦ h (by simpa using h'.map φ.symm.toHom)
+    rw [dist_eq_zero_iff_eq_or_not_reachable.2 (Or.inr h),
+      dist_eq_zero_iff_eq_or_not_reachable.2 (Or.inr h')]
+
+/-- A graph isomorphism preserves distances. -/
+lemma Iso.dist_eq {W : Type*} {H : SimpleGraph W} (φ : G ≃g H) (u v : V) :
+    H.dist (φ u) (φ v) = G.dist u v :=
+  le_antisymm (φ.dist_le u v) (by simpa using φ.symm.dist_le (φ u) (φ v))
+
+/-- A graph automorphism maps the side of `i` of the bond `ij` onto the side of `φ i` of the bond
+`φ i φ j`. -/
+lemma Iso.mem_past_iff (φ : G ≃g G) {i j k : V} :
+    φ k ∈ G.past (φ i) (φ j) ↔ k ∈ G.past i j := by
+  simp only [mem_past, φ.dist_eq]
+
+lemma Iso.preimage_past (φ : G ≃g G) (i j : V) :
+    ⇑φ ⁻¹' G.past i j = G.past (φ.symm i) (φ.symm j) := by
+  ext k
+  rw [Set.mem_preimage, ← φ.mem_past_iff (i := φ.symm i) (j := φ.symm j),
+    RelIso.apply_symm_apply, RelIso.apply_symm_apply]
 
 end Past
 

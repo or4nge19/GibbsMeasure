@@ -251,6 +251,12 @@ def shiftGroup : Subgroup (Transformation S E) where
 
 lemma shift_mem_shiftGroup (j : S) : shift E j ∈ shiftGroup S E := ⟨j, rfl⟩
 
+/-- Every element of the shift group is continuous on configuration space. -/
+lemma continuous_toFun_of_mem_shiftGroup [TopologicalSpace E] {τ : Transformation S E}
+    (hτ : τ ∈ shiftGroup S E) : Continuous τ.toFun := by
+  obtain ⟨j, rfl⟩ := hτ
+  exact continuous_shift_toFun j
+
 instance [Countable S] : Countable (shiftGroup S E) :=
   Set.countable_range (shift E : S → Transformation S E) |>.to_subtype
 

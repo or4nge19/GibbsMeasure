@@ -511,7 +511,10 @@ on any locally finite graph, Markov chains on a graph (12.2), boundary laws inde
 edges (12.10), and **Theorem (12.12)** on trees in both directions — the measure of a boundary law
 with the cylinder formula (12.13), Gibbs and Markov, and every Markov chain in `𝒢(γ^Q)` a
 boundary-law measure — plus (12.14)–(12.17); Chapter 11's boundary laws are boundary laws on the
-Hasse graph of `ℤ` (12.11); (12.3)–(12.5), uniqueness of boundary laws up to a factor and the full
+Hasse graph of `ℤ` (12.11); (12.3)–(12.5) in full — Markov chains on trees are Markov fields, their
+marginals on embedded copies of `ℤ` are (10.4)-chains, and a chain with a fixed positive transition
+matrix on every bond exists iff the matrix is reversible, in which case it is invariant under the
+tree's automorphism group acting by site permutation — uniqueness of boundary laws up to a factor and the full
 correspondence (12.17) with completely homogeneous chains, and **Theorem (12.6)** — extreme Gibbs
 measures of a Markov specification on a tree are Markov chains — and **Corollary (12.18)**
 (`GibbsMeasure/Model/TreeBoundaryLawChains.lean`);

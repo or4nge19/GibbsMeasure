@@ -13,7 +13,8 @@ public import Mathlib.Data.Int.SuccPred
 # The Hasse graph of `ℤ`
 
 `SimpleGraph.hasse ℤ` is the nearest-neighbour graph of `ℤ`: `i` and `j` are adjacent iff
-`|i - j| = 1`. It is locally finite, with `∂i = {i - 1, i + 1}`.
+`|i - j| = 1`. It is locally finite, with `∂i = {i - 1, i + 1}`; `SimpleGraph.hasseIntWalk a n` is
+the walk `a → a + 1 → ⋯ → a + n`.
 -/
 
 @[expose] public section
@@ -59,5 +60,28 @@ lemma mem_bondsOf_hasse_int {Λ : Finset ℤ} {e : Sym2 ℤ} :
       · exact ⟨b, by rw [h]; exact hab.symm, by rw [h, Sym2.eq_swap]⟩
   · rintro ⟨j, hj, rfl⟩
     exact mk_mem_bondsOf.2 ⟨(hasse_int_adj j (j + 1)).2 (Or.inl rfl), hj⟩
+
+/-! ### Walks along `ℤ` -/
+
+/-- The walk `a → a + 1 → ⋯ → a + n` in `hasse ℤ`. -/
+def hasseIntWalk (a : ℤ) : (n : ℕ) → (hasse ℤ).Walk a (a + n)
+  | 0 => (Walk.nil : (hasse ℤ).Walk a a).copy rfl (by simp)
+  | n + 1 => (hasseIntWalk a n).concat
+      ((hasse_int_adj (a + n) (a + (n + 1 : ℕ))).2 (Or.inl (by push_cast; omega)))
+
+/-- The support of `hasseIntWalk a n` is the interval `[a, a + n]`. -/
+lemma mem_support_hasseIntWalk {a x : ℤ} : ∀ {n : ℕ}, x ∈ (hasseIntWalk a n).support →
+    a ≤ x ∧ x ≤ a + n
+  | 0, hx => by
+    rw [hasseIntWalk, Walk.support_copy, Walk.support_nil, List.mem_singleton] at hx
+    omega
+  | n + 1, hx => by
+    rw [hasseIntWalk, Walk.support_concat, List.mem_append, List.mem_singleton] at hx
+    rcases hx with hx | hx
+    · have := mem_support_hasseIntWalk hx
+      push_cast
+      omega
+    · push_cast
+      omega
 
 end SimpleGraph

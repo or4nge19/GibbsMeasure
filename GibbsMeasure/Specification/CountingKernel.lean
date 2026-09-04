@@ -210,6 +210,24 @@ lemma cylinderEvents_eq_generateFrom_cylindersIn [Nonempty E] (V : Set S) :
   · rintro _ ⟨W, ω, hW, rfl⟩
     exact measurableSet_cylinderEvents_cyl hW ω
 
+omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
+/-- `{σ_Λ = ζ} ∩ {σ_V = ξ} = {σ_{Λ ∪ V} = ζ_Λ ξ_V}` for disjoint `Λ`, `V`. -/
+lemma cyl_inter_cyl_of_disjoint {Λ V : Finset S} (h : Disjoint Λ V) (ζ ξ : S → E) :
+    cyl Λ ζ ∩ cyl V ξ = cyl (Λ ∪ V) (juxt (Λ : Set S) ξ (Λ.restrict ζ)) := by
+  have hV : ∀ k ∈ V, k ∉ (Λ : Set S) := fun k hk ↦ by
+    simpa using Finset.disjoint_right.1 h hk
+  ext σ
+  simp only [Set.mem_inter_iff, mem_cyl, Finset.mem_union]
+  constructor
+  · rintro ⟨h1, h2⟩ k hk
+    rcases hk with hk | hk
+    · rw [h1 k hk, juxt_apply_of_mem (Finset.mem_coe.2 hk)]; rfl
+    · rw [h2 k hk, juxt_apply_of_not_mem (hV k hk)]
+  · intro h'
+    refine ⟨fun k hk ↦ ?_, fun k hk ↦ ?_⟩
+    · rw [h' k (Or.inl hk), juxt_apply_of_mem (Finset.mem_coe.2 hk)]; rfl
+    · rw [h' k (Or.inr hk), juxt_apply_of_not_mem (hV k hk)]
+
 end Cyl
 
 /-! ### Marginals -/

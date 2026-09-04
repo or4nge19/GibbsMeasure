@@ -128,9 +128,6 @@ Both belong upstream of this file:
   `MeasureTheory.GibbsMeasure.continuous_toMeasure_withLocalConvergence` belong with
   `GibbsMeasure/Topology/LocalConvergence.lean` / `GibbsMeasure/Specification/LocalContinuity.lean`
   as the compact-`E` case of Georgii's Remark (4.3)(3).
-* `MeasureTheory.GibbsMeasure.continuous_shift_toFun` and
-  `MeasureTheory.GibbsMeasure.continuous_toFun_of_mem_shiftGroup` belong next to `shift` in
-  `GibbsMeasure/Prereqs/Transformation.lean`.
 -/
 
 namespace MeasureTheory.GibbsMeasure
@@ -195,19 +192,6 @@ namespace MeasureTheory.GibbsMeasure
 section WeakClosedGDelta
 
 variable {S E : Type*} [MeasurableSpace E] [TopologicalSpace E] [Countable S]
-
-omit [Countable S] in
-/-- The shift `θ_j` (Georgii (5.2)(1)) is continuous on configuration space. -/
-lemma continuous_shift_toFun [AddGroup S] (j : S) : Continuous (shift E j).toFun :=
-  continuous_pi fun i ↦ by simpa only [shift_toFun_apply] using continuous_apply (i - j)
-
-omit [Countable S] in
-/-- Every element of the shift group `Θ` of Georgii (5.2)(1) is continuous on configuration
-space. -/
-lemma continuous_toFun_of_mem_shiftGroup [AddGroup S] {τ : Transformation S E}
-    (hτ : τ ∈ shiftGroup S E) : Continuous τ.toFun := by
-  obtain ⟨j, rfl⟩ := hτ
-  exact continuous_shift_toFun j
 
 /-- **Georgii, Comment (14.13), (i), closedness.** For `E` pseudo-metrizable second countable
 Borel, `S` countable and `Θ` a subgroup of continuous transformations (e.g. the shift group),

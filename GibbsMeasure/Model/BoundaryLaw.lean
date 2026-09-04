@@ -7,6 +7,7 @@ module
 
 public import GibbsMeasure.Mathlib.Probability.Kernel.CountableMatrix
 public import GibbsMeasure.Model.MarkovChain
+public import GibbsMeasure.Specification.MarkovInt
 
 /-!
 # Georgii §11.1: transfer matrices and boundary laws on `ℤ`
@@ -128,6 +129,30 @@ lemma transferWeight_mul_comm_of_subset {Λ₁ Λ₂ : Finset ℤ} (hΛ : Λ₁ 
 lemma isPremodifier_transferWeight : Specification.IsPremodifier (transferWeight Q) where
   measurable := measurable_transferWeight Q
   comm_of_subset _ _ _ _ hΛ h := transferWeight_mul_comm_of_subset Q hΛ h
+
+omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
+/-- Georgii's `bondsOf Λ` of §11.1 (the left endpoints of the bonds `{j, j + 1}` meeting `Λ`) and
+the `rightBonds Λ` of Example (10.3) (their right endpoints) index the same bonds. -/
+lemma rightBonds_eq_image_bondsOf (Λ : Finset ℤ) :
+    Specification.rightBonds Λ = (bondsOf Λ).image (· + 1) := by
+  ext j
+  rw [Specification.mem_rightBonds, Finset.mem_image]
+  constructor
+  · intro h
+    exact ⟨j - 1, mem_bondsOf.2 (by rw [sub_add_cancel]; exact h.symm), by omega⟩
+  · rintro ⟨k, hk, rfl⟩
+    rw [add_sub_cancel_right]
+    exact (mem_bondsOf.1 hk).symm
+
+omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
+/-- The transfer weight (11.2)–(11.3) of the matrix `Q` is the chain density `g_Λ` of Georgii's
+Example (10.3) for the constant family `p_j = Q`: the same product over the bonds meeting `Λ`,
+indexed by the right endpoint `j` of the bond `{j - 1, j}` instead of the left one. -/
+lemma transferWeight_eq_chainDensity (Λ : Finset ℤ) (σ : ℤ → E) :
+    transferWeight Q Λ σ = Specification.chainDensity (fun _ ↦ Q) Λ σ := by
+  rw [transferWeight, Specification.chainDensity, rightBonds_eq_image_bondsOf,
+    Finset.prod_image fun _ _ _ _ h ↦ add_right_cancel h]
+  simp only [add_sub_cancel_right]
 
 end TransferWeight
 
