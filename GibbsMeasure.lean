@@ -82,6 +82,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Integral.Bochner.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.DominatedConvergence
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.IntegrableOn
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.Pi
+public import GibbsMeasure.Mathlib.MeasureTheory.Integral.PiReflectionComplex
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Density
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Existence
 public import GibbsMeasure.Mathlib.Probability.Distributions.Poisson.Convergence
@@ -276,6 +277,7 @@ public import GibbsMeasure.Specification.TangentFunctional
 public import GibbsMeasure.Specification.PhaseTransition
 public import GibbsMeasure.Specification.LargeDeviations
 public import GibbsMeasure.Specification.ReflectionPositivity
+public import GibbsMeasure.Specification.PeriodicGibbs
 public import GibbsMeasure.Specification.Structure
 public import GibbsMeasure.Topology.ConfigurationSpace
 public import GibbsMeasure.Topology.ClusterPoints

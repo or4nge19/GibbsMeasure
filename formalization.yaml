@@ -340,6 +340,14 @@ status:
       file: "GibbsMeasure/Model/StarCrossing.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.abs_integral_prod_pow_le_pi"
+      file: "GibbsMeasure/Specification/ReflectionPositivity.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.abs_integral_prod_cubeView_pow_le_periodicGibbsDist"
+      file: "GibbsMeasure/Specification/PeriodicGibbs.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.Shlosman.dgSpecification_abs_excess_le"
       file: "GibbsMeasure/Model/RandomStaircase.lean"
       sorry_count: 0
@@ -1224,23 +1232,40 @@ alignment:
         and the C-potential layer of Section 17.2 (in flight), Steps 1-3 of (18.16) (the
         quasi-Gibbsian estimate on the configuration space and two planar-topology arguments), and
         (18.17)-(18.19).
-    - source: "Section 17.1: (17.6)-(17.9), Theorem (17.11) in one dimension"
-      lean: "MeasureTheory.GibbsMeasure.abs_integral_prod_pow_le"
+    - source: "Section 17.1: (17.6)-(17.11)"
+      lean: "MeasureTheory.GibbsMeasure.abs_integral_prod_pow_le_pi"
       module: "GibbsMeasure/Specification/ReflectionPositivity.lean"
-      status: "partial"
+      status: "proved"
       note: >-
         Reflection positivity (17.7) for the generalised reflection (17.6), built from the tree's
         Transformation API (a pure-spin involution composed with the site reflection z -> -1-z on
         the torus Z_{2N}); the Cauchy-Schwarz (17.8), stated with the reflection invariance of mu
-        that Georgii uses implicitly and without which it is false; Lemma (17.9) in root-free
-        form, D(alpha)^{2N} <= prod_z D(alt_z), with Georgii's two passes over the strips run as
-        one inductive core, and the exact identity for the normalising weights that replaces the
-        non-identity D(alpha^+) D(alpha^-) = D(alpha)^2 stated in the book's outline; and
-        Theorem (17.11) for d = 1, with the right-hand side nonnegative. General inputs in the
+        that Georgii uses implicitly (the symmetry of the form mu(f g*)) and without which it is
+        false, so Theorem (17.11) carries it too; Lemma (17.9) in root-free form,
+        D(alpha)^{2N} <= prod_z D(alt_z), with Georgii's two passes over the strips run as one
+        inductive core, and the exact identity for the normalising weights that replaces the
+        non-identity D(alpha^+) D(alpha^-) = D(alpha)^2 stated in the book's outline; Theorem
+        (17.11) in every dimension d >= 1 by induction on d, splitting the torus into its head
+        coordinate and its tail, with the right-hand side nonnegative. General inputs in the
         Mathlib layer: the discriminant bound for a nonnegative quadratic and Cauchy-Schwarz for a
         symmetric nonnegative bilinear form; the reflection on ZMod in natural-number coordinates.
-        Not formalized: the induction on the dimension in (17.11), and the coarse-graining
-        (17.12)-(17.17) to functions of elementary cubes; Section 17.2.
+    - source: "Section 17.1: (17.12)-(17.17); Section 17.2: (17.18)-(17.21), (17.26)"
+      lean: "MeasureTheory.GibbsMeasure.abs_integral_prod_cubeView_pow_le_periodicGibbsDist"
+      module: "GibbsMeasure/Specification/PeriodicGibbs.lean"
+      status: "partial"
+      note: >-
+        The coarse-graining to elementary cubes (17.12)-(17.15), Lemma (17.16) and Corollary
+        (17.17); C-potentials through the single function Phi_C, the periodic Hamiltonian and
+        the Gibbs distribution with periodic boundary condition (17.20), periodic and
+        r^_k-invariant when Phi_C is r_k-invariant; Theorem (17.21) under the hypothesis that
+        Phi_C is bounded below, which is the consequence of condition (iv) of (17.18) that the
+        proof uses; (17.17) for the periodic Gibbs distribution, the form used in Chapters 18 and
+        19; Lemma (17.26) with complex h, h_w and a finite measure m exactly as stated, its
+        analytic core in Mathlib/MeasureTheory/Integral/PiReflectionComplex.lean (expansion of
+        the exponential, Fubini over W^l, dominated convergence), and the finite-sum real case
+        that a nearest-neighbour model with nonnegative crossing couplings has (Example (17.30)).
+        Not formalized: the Heisenberg potentials (17.22)-(17.25), the nonnegative definiteness
+        (17.27), Theorem (17.29) and Examples (17.30)-(17.32) as stated.
     - source: "Section 16.2: (16.10)-(16.14)"
       lean: "Potential.BTheta.gateauxDifferentiable_pressure_iff_subsingleton"
       module: "GibbsMeasure/Specification/PhaseTransition.lean"

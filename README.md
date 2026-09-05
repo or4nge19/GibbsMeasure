@@ -509,12 +509,18 @@ theory nor a convex conjugate, so Fenchel–Moreau for a rate function is built 
 Mathlib layer. Still open there: (15.45)–(15.47), which need Shannon–McMillan–Breiman and Choquet
 theory, neither of which Mathlib has.
 
-**Chapter 17, §17.1** (`GibbsMeasure/Specification/ReflectionPositivity.lean`): reflection positivity
-for Georgii's generalised reflection, expressed with the existing transformation API; the
-Cauchy–Schwarz (17.8), which is false without the reflection invariance Georgii uses silently, so it
-carries that hypothesis; Lemma (17.9) in root-free form, with Georgii's two passes over the strips
-run as one inductive argument; and the chessboard estimate (17.11) in one dimension. The induction
-on the dimension and the coarse-graining to elementary cubes are not yet done.
+**Chapter 17** (`GibbsMeasure/Specification/ReflectionPositivity.lean`,
+`Specification/PeriodicGibbs.lean`): reflection positivity for Georgii's generalised reflection,
+expressed with the existing transformation API; the Cauchy–Schwarz (17.8), which is false without
+the reflection invariance Georgii uses silently, so it and (17.11) carry that hypothesis; Lemma
+(17.9) in root-free form, with Georgii's two passes over the strips run as one inductive argument;
+the chessboard estimate (17.11) in every dimension, by induction on the dimension; the
+coarse-graining to elementary cubes (17.12)–(17.17); `C`-potentials and the Gibbs distribution
+with periodic boundary condition, its reflection positivity (17.21) and the chessboard estimate
+for it, the form Chapters 18–19 use; and Lemma (17.26) with complex functions and a finite
+measure `m` as stated, its analytic core in
+`GibbsMeasure/Mathlib/MeasureTheory/Integral/PiReflectionComplex.lean`. The Heisenberg
+potentials and (17.29) with its examples are not yet done.
 
 **Chapter 18, §18.1** (`GibbsMeasure/Model/StarCrossing.lean`, graph theory in
 `GibbsMeasure/Mathlib/Combinatorics/SimpleGraph/InfiniteCluster.lean`): infinite clusters and

@@ -48,20 +48,25 @@
     $\prod Q(\alpha^+)\prod Q(\alpha^-) = (\prod Q(\alpha))^2$.
 \end{proof}
 
-\begin{theorem}[Georgii (17.11), one dimension]
+\begin{theorem}[Georgii (17.11)]
     \label{thm:rp-17-11}
     \uses{lem:rp-17-9, def:rp-17-7}
-    \lean{MeasureTheory.GibbsMeasure.wordProd, MeasureTheory.GibbsMeasure.sq_integral_wordProd_le, MeasureTheory.GibbsMeasure.integral_wordProd_shift, MeasureTheory.GibbsMeasure.abs_integral_prod_pow_le}
+    \lean{MeasureTheory.GibbsMeasure.wordProd, MeasureTheory.GibbsMeasure.sq_integral_wordProd_le, MeasureTheory.GibbsMeasure.integral_wordProd_shift, MeasureTheory.GibbsMeasure.abs_integral_prod_pow_le, MeasureTheory.GibbsMeasure.torusReflAt, MeasureTheory.GibbsMeasure.torusPosAt, MeasureTheory.GibbsMeasure.genReflectionAt, MeasureTheory.GibbsMeasure.tauPow, MeasureTheory.GibbsMeasure.IsReflectionPositive.map, MeasureTheory.GibbsMeasure.splitHead, MeasureTheory.GibbsMeasure.splitTail, MeasureTheory.GibbsMeasure.isReflectionPositive_map_splitHead, MeasureTheory.GibbsMeasure.isReflectionPositive_map_splitTail, MeasureTheory.GibbsMeasure.abs_integral_prod_pow_le_pi_abs, MeasureTheory.GibbsMeasure.integral_prod_tauPow_nonneg, MeasureTheory.GibbsMeasure.abs_integral_prod_pow_le_pi}
     \leanok
 
-    Let $\mu$ be a finite measure on $E^{\mathbb Z_{2N}}$, invariant under the shift and under
-    $\tilde r_1$, and $\tilde r_1$-positive. For bounded measurable $f_i$,
-    $\bigl|\int \prod_i f_i(\omega_i)\,d\mu\bigr|^{2N} \leq
+    Let $\Lambda = \mathbb Z_{2N}^d$, $d \geq 1$, and let $\mu$ be a finite measure on $E^\Lambda$
+    which is $\Lambda$-periodic and, for every direction $k$, $\tilde r_k$-positive and
+    $\tilde r_k$-invariant. For bounded measurable $f_i$ on $E$,
+    $\bigl|\int \prod_i f_i(\omega_i)\,d\mu\bigr|^{|\Lambda|} \leq
     \prod_j \int \prod_i f_j(\tau^i\omega_i)\,d\mu$, the right side being nonnegative.
 \end{theorem}
 \begin{proof}
     \leanok
-    Lemma \ref{lem:rp-17-8} is hypothesis (ii) of Lemma \ref{lem:rp-17-9} for
-    $D(\alpha) = |\int \prod_i \alpha_i(\omega_i)\,d\mu|$, and shift invariance is (i). The
-    induction on the dimension and the coarse-graining (17.12)--(17.17) are not formalised.
+    In one dimension Lemma \ref{lem:rp-17-8} is hypothesis (ii) of Lemma \ref{lem:rp-17-9} for
+    $D(\alpha) = |\int \prod_i \alpha_i(\omega_i)\,d\mu|$, and shift invariance is (i). In
+    dimension $d + 1$ the torus is $\mathbb Z_{2N} \times \mathbb Z_{2N}^d$; viewing $\mu$ on
+    $(E^{\mathbb Z_{2N}^d})^{\mathbb Z_{2N}}$ (the head coordinate) reduces to $d = 1$ with state
+    space $E^{\mathbb Z_{2N}^d}$ and the coordinatewise involution, and viewing it on
+    $(E^{\mathbb Z_{2N}})^{\mathbb Z_{2N}^d}$ (the tail) applies the induction hypothesis to the
+    factors, since periodicity, positivity and invariance pass to both images.
 \end{proof}

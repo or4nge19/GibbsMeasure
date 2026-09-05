@@ -1,0 +1,123 @@
+\section{Gibbs distributions with periodic boundary condition}
+
+\begin{definition}[Elementary cubes, Georgii (17.12)--(17.15)]
+    \label{def:rp-17-12}
+    \uses{def:rp-17-7}
+    \lean{MeasureTheory.GibbsMeasure.cubeCast, MeasureTheory.GibbsMeasure.cubeView, MeasureTheory.GibbsMeasure.cubeSiteRefl, MeasureTheory.GibbsMeasure.cubeRefl, MeasureTheory.GibbsMeasure.hatReflAt, MeasureTheory.GibbsMeasure.hatReflection, MeasureTheory.GibbsMeasure.hatPosAt, MeasureTheory.GibbsMeasure.cubeView_hatReflection, MeasureTheory.GibbsMeasure.cubeView_shift}
+    \leanok
+
+    $C = \{0,1\}^d$, $C(i) = C + i$ in $\Lambda = \mathbb Z_{2N}^d$, and the coarse-graining
+    $\omega \mapsto \omega^* = (\omega_{C(i)})_{i \in \Lambda} \in (E^C)^\Lambda$. The reflection
+    $r_k$ of the cube exchanges the two faces in direction $k$; the reflection $\hat r_k$ of the
+    torus in the plane through the sites $\{i_k \in \{0, N\}\}$ is $i_k \mapsto -i_k$, with
+    $\hat\Lambda_{+,k} = \{i_k \leq N\}$, and $(\hat r_k\omega)^* = \tilde r_k(\omega^*)$ where
+    $\tilde r_k$ is the generalised reflection of $(E^C)^\Lambda$ built from $r_k$.
+\end{definition}
+
+\begin{lemma}[Georgii (17.16)]
+    \label{lem:rp-17-16}
+    \uses{def:rp-17-12, def:rp-17-7}
+    \lean{MeasureTheory.GibbsMeasure.isReflectionPositive_map_cubeView, MeasureTheory.GibbsMeasure.measurePreserving_shift_map_cubeView, MeasureTheory.GibbsMeasure.measurePreserving_genReflectionAt_map_cubeView, MeasureTheory.GibbsMeasure.measurable_cubeView_cylinderEvents}
+    \leanok
+
+    If $\mu$ is $\hat r_k$-positive, resp.\ $\hat r_k$-invariant, resp.\ $\Lambda$-periodic, then
+    its image $\mu^*$ under the coarse-graining is $\tilde r_k$-positive, resp.\ invariant, resp.\
+    periodic.
+\end{lemma}
+\begin{proof}
+    \leanok
+    A function of the coordinates of $\omega^*$ in $\Lambda_{+,k}$ is a function of the
+    coordinates of $\omega$ in $\hat\Lambda_{+,k}$, and $\tilde r_k \circ (\cdot)^* = (\cdot)^*
+    \circ \hat r_k$.
+\end{proof}
+
+\begin{corollary}[Georgii (17.17)]
+    \label{cor:rp-17-17}
+    \uses{thm:rp-17-11, lem:rp-17-16}
+    \lean{MeasureTheory.GibbsMeasure.abs_integral_prod_cubeView_pow_le}
+    \leanok
+
+    If $\mu$ is $\Lambda$-periodic and, for every $k$, $\hat r_k$-positive and $\hat r_k$-invariant,
+    then for bounded measurable $f_i$ on $E^C$,
+    $\bigl|\int \prod_i f_i(\omega_{C(i)})\,d\mu\bigr|^{|\Lambda|} \leq
+    \prod_j \int \prod_i f_j(r^i\omega_{C(i)})\,d\mu$, with $r^i$ the iterated cube reflection.
+\end{corollary}
+\begin{proof}
+    \leanok
+    Theorem \ref{thm:rp-17-11} for $\mu^*$.
+\end{proof}
+
+\begin{definition}[$C$-potentials and periodic Gibbs distributions, Georgii (17.18)--(17.20)]
+    \label{def:rp-17-18}
+    \uses{def:rp-17-12}
+    \lean{MeasureTheory.GibbsMeasure.periodicHamiltonian, MeasureTheory.GibbsMeasure.periodicGibbs, MeasureTheory.GibbsMeasure.periodicGibbsDist, MeasureTheory.GibbsMeasure.periodicHamiltonian_shift, MeasureTheory.GibbsMeasure.periodicHamiltonian_hatReflection, MeasureTheory.GibbsMeasure.isFiniteMeasure_periodicGibbs, MeasureTheory.GibbsMeasure.isProbabilityMeasure_periodicGibbsDist, MeasureTheory.GibbsMeasure.measurePreserving_shift_periodicGibbs, MeasureTheory.GibbsMeasure.measurePreserving_hatReflection_periodicGibbs}
+    \leanok
+
+    A $C$-potential is determined by one function $\Phi_C : E^C \to \mathbb R$; its periodic
+    Hamiltonian on $\Lambda$ is $\sum_{i \in \Lambda} \Phi_C(\omega_{C(i)})$, and the Gibbs
+    distribution with periodic boundary condition ${}^\circ\gamma_\Lambda^\Phi$ has density
+    $e^{-\sum_i \Phi_C(\omega_{C(i)})}/{}^\circ Z$ relative to $\lambda^\Lambda$. It is a
+    probability measure as soon as $\Phi_C$ is measurable and bounded below (the consequence of
+    Georgii's condition (iv) that is used), $\Lambda$-periodic, and $\hat r_k$-invariant when
+    $\Phi_C \circ r_k = \Phi_C$ (condition (iii)).
+\end{definition}
+
+\begin{theorem}[Georgii (17.21)]
+    \label{thm:rp-17-21}
+    \uses{def:rp-17-18, def:rp-17-7}
+    \lean{MeasureTheory.GibbsMeasure.isReflectionPositive_hatReflection_pi, MeasureTheory.GibbsMeasure.IsReflectionPositive.withDensity, MeasureTheory.GibbsMeasure.IsReflectionPositive.smul, MeasureTheory.GibbsMeasure.periodicHamiltonian_eq_add_hatReflection, MeasureTheory.GibbsMeasure.isReflectionPositive_hatReflection_periodicGibbs, MeasureTheory.GibbsMeasure.isReflectionPositive_hatReflection_periodicGibbsDist}
+    \leanok
+
+    For $\Phi_C$ measurable, bounded below and $r_k$-invariant, ${}^\circ\gamma_\Lambda^\Phi$ is
+    $\hat r_k$-positive.
+\end{theorem}
+\begin{proof}
+    \leanok
+    $\lambda^\Lambda$ is $\hat r_k$-positive by Fubini, and reflection positivity passes to a
+    density of the form $h \cdot h \circ \hat r_k$ with $h \in \mathcal A_{+,k}$; the density
+    $e^{-H}$ has this form with $h = e^{-\sum_{C(i) \subseteq \hat\Lambda_{+,k}} \Phi_C(\omega_{C(i)})}$,
+    every cube lying in one closed half or being the reflection of one in the other.
+\end{proof}
+
+\begin{corollary}[Georgii (17.17) for periodic Gibbs distributions]
+    \label{cor:rp-17-17-gibbs}
+    \uses{cor:rp-17-17, thm:rp-17-21}
+    \lean{MeasureTheory.GibbsMeasure.abs_integral_prod_cubeView_pow_le_periodicGibbsDist}
+    \leanok
+
+    For a $C$-potential as in Theorem \ref{thm:rp-17-21} in every direction and a finite
+    nonzero a priori measure, the chessboard estimate of Corollary \ref{cor:rp-17-17} holds for
+    ${}^\circ\gamma_\Lambda^\Phi$. This is the form used in Chapters 18 and 19.
+\end{corollary}
+\begin{proof}
+    \leanok
+\end{proof}
+
+\begin{lemma}[Georgii (17.26)]
+    \label{lem:rp-17-26}
+    \uses{def:rp-17-7}
+    \lean{MeasureTheory.GibbsMeasure.torusPosAt_iff_torusReflAt_notMem, MeasureTheory.GibbsMeasure.isReflectionPositive_siteEquiv_pi, MeasureTheory.GibbsMeasure.isReflectionPositive_siteEquiv_withDensity, MeasureTheory.GibbsMeasure.isReflectionPositive_siteEquiv_withDensity_sum, MeasureTheory.re_integral_mul_conj_comp_nonneg, MeasureTheory.re_integral_mul_conj_comp_pow_nonneg, MeasureTheory.re_integral_mul_conj_comp_exp_nonneg, MeasureTheory.integral_mul_comp_mul_exp_nonneg, MeasureTheory.integral_mul_comp_mul_exp_sum_nonneg}
+    \leanok
+
+    The reflection $r_k$ in a plane between the sites is the site permutation $i_k \mapsto
+    -1 - i_k$, fixing no site. If a finite measure $\mu$ has a density relative to
+    $\lambda^\Lambda$ of the form $\exp[h + h^* + \int m(dw)\, h_w h_w^*]$ with $m$ a finite
+    measure, $h$ and $h_w$ complex, measurable (jointly in $w$), depending on the coordinates in
+    $\Lambda_{+,k}$ and dominated by one measurable function of those coordinates, and
+    $f^* = \overline{f \circ r_k}$, then $\mu$ is $r_k$-positive. In particular
+    $\exp[h + h\circ r_k + \sum_a g_a \cdot g_a \circ r_k]$ with real bounded $h, g_a$ gives an
+    $r_k$-positive measure, the shape of a nearest-neighbour model with nonnegative crossing
+    couplings (Example (17.30)).
+\end{lemma}
+\begin{proof}
+    \leanok
+    Expanding the exponential and applying Fubini, $\mu(ff^*)$ is a series of terms
+    $\lambda^\Lambda(gg^*) = |\lambda^{\Lambda_{+,k}}(g)|^2 \geq 0$; the truncation to
+    $\{\varphi \leq c\}$ and dominated convergence handle the unbounded case.
+\end{proof}
+
+\begin{remark}[Georgii (17.22)--(17.25), (17.27)--(17.32)]
+    \label{rmk:rp-17-29}
+    The Heisenberg potentials and the criterion (17.29), with its examples, are not formalised;
+    Lemma \ref{lem:rp-17-26} is what (17.29) is proved from.
+\end{remark}

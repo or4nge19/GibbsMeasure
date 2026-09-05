@@ -7,6 +7,7 @@ module
 
 public import GibbsMeasure.Mathlib.Algebra.QuadraticDiscriminant
 public import GibbsMeasure.Mathlib.Data.ZMod.Basic
+public import GibbsMeasure.Mathlib.Dynamics.Ergodic.MeasurePreserving
 public import GibbsMeasure.Prereqs.Transformation
 public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 
@@ -45,11 +46,19 @@ the plane `x = -1/2`, which exchanges the halves `{0, …, N - 1}` and `{N, …,
   the identifications `f* ` of Georgii's proof, and `sq_integral_wordProd_le` /
   `integral_wordProd_shift` are hypotheses (ii) and (i) of (17.9) for `D = |μ(wordProd ·)|`.
 
+* `MeasureTheory.GibbsMeasure.abs_integral_prod_pow_le_pi`: **Georgii, Theorem (17.11)** on the
+  `d`-dimensional torus `Λ = (ℤ/2N)^d`,
+  `|μ(∏_i f_i ∘ σ_i)|^{|Λ|} ≤ ∏_j μ(∏_i f_j ∘ τ^i ∘ σ_i)`, where `τ^i` is the iterated
+  involution (17.10) `tauPow τ i`.  Georgii's proof is an induction on `d`: `splitTail` views
+  `μ` on `(E^{Λ_0})^{Λ_1}` and `splitHead` views it on `(E^{Λ_1})^{Λ_0}`, the section `Split`
+  transports the three hypotheses along both views, and `abs_integral_prod_pow_le_pi_abs` runs
+  the induction with absolute values on both sides.  `integral_prod_tauPow_nonneg` then removes
+  the absolute value on the right, using reflection positivity in the direction `0` alone.
+
 ## Not formalised here
 
-Georgii's induction on the dimension `d` in the proof of (17.11) (step 2: view `μ` on
-`(E^{Λ_0})^{Λ_1}` and apply the one-dimensional case in each direction), and the coarse-graining
-(17.12)–(17.17) to functions of the elementary cubes `C(i)`.  Only `d = 1` is proved.
+Georgii's coarse-graining (17.12)–(17.17) to functions of the elementary cubes `C(i)` and his
+§17.2 are in `GibbsMeasure.Specification.PeriodicGibbs`, which imports this file.
 -/
 
 @[expose] public section
@@ -946,6 +955,17 @@ lemma integral_wordProd_shift
   refine Fintype.prod_equiv (Equiv.addRight (1 : ZMod (2 * N))) _ _ fun z ↦ ?_
   rw [Equiv.coe_addRight, shift_toFun_apply, add_sub_cancel_right]
 
+omit [IsFiniteMeasure μ] in
+/-- The right-hand side factors of Georgii's (17.11) are nonnegative: `∏_i f_j ∘ τ^i ∘ σ_i` is
+the word `(j, j̃, j, j̃, …)`, which is its own fold, hence of the form `h · h∘r̃_1`. -/
+lemma integral_prod_spinIterate_nonneg (hτ : ∀ x, τ (τ x) = x)
+    (hpos : IsReflectionPositive (torusPos N) (genReflection N τ) μ)
+    (hf : ∀ n, Measurable (f n)) {C : ℝ} (hC : ∀ n x, |f n x| ≤ C) (j : ZMod (2 * N)) :
+    0 ≤ ∫ ω, ∏ i, f j (spinIterate τ i (ω i)) ∂μ := by
+  have hnn := integral_wordProd_foldPos_nonneg hτ hpos hf hC (altConfig N flipColour (j, false))
+  rw [foldPos_altConfig] at hnn
+  simpa only [wordProd_altConfig] using hnn
+
 /-- **Georgii, Theorem (17.11) in dimension `d = 1`: the chessboard estimate.**
 
 Let `μ` be a finite measure on `E^{Λ(N)}`, `Λ(N) = ZMod (2 * N)`, which is
@@ -1007,5 +1027,501 @@ theorem abs_integral_prod_pow_le {τ : E ≃ᵐ E} (hτ : ∀ x, τ (τ x) = x)
 end Measure
 
 end Torus
+
+
+/-! ### Transport of reflection positivity along a measurable map
+
+Georgii's proof of (17.11) "thinks of `μ` as a measure on `(E^{Λ₀})^{Λ₁}`", and the coarse-graining
+(17.16) views `μ` on `(E^C)^Λ`.  Both are image measures `μ.map Ψ`, and reflection positivity is
+carried along `Ψ` as soon as `Ψ` intertwines the two reflections and carries the σ-algebra of the
+positive half into the σ-algebra of the positive half. -/
+
+section Transport
+
+variable {S S' E E' : Type*} [MeasurableSpace E] [MeasurableSpace E']
+
+/-- **Reflection positivity is pushed forward** along a measurable `Ψ` with `τ' ∘ Ψ = Ψ ∘ τ` that
+is measurable from `𝓕_{Λpos}` to `𝓕_{Λpos'}`. -/
+lemma IsReflectionPositive.map {Λpos : Set S} {Λpos' : Set S'} {τ : Transformation S E}
+    {τ' : Transformation S' E'} {μ : Measure (S → E)} (hpos : IsReflectionPositive Λpos τ μ)
+    {Ψ : (S → E) → (S' → E')} (hΨ : Measurable Ψ)
+    (hΨc : Measurable[cylinderEvents (X := fun _ : S ↦ E) Λpos,
+      cylinderEvents (X := fun _ : S' ↦ E') Λpos'] Ψ)
+    (hcomm : ∀ ω, τ'.toFun (Ψ ω) = Ψ (τ.toFun ω)) :
+    IsReflectionPositive Λpos' τ' (μ.map Ψ) := by
+  intro f hf hfb
+  have hfm : Measurable f := hf.mono cylinderEvents_le_pi le_rfl
+  rw [integral_map hΨ.aemeasurable (f := fun ω ↦ f ω * f (τ'.toFun ω))
+    (hfm.mul (hfm.comp τ'.measurable_toFun)).aestronglyMeasurable]
+  simp only [hcomm]
+  exact hpos (f ∘ Ψ) (hf.comp hΨc) (hfb.imp fun C hC ω ↦ hC _)
+
+end Transport
+
+
+/-! ### The `d`-dimensional torus: Georgii (17.1)–(17.6) and Theorem (17.11)
+
+Georgii's `Λ(N) = ]-N, N]^d ∩ ℤ^d` with the addition (17.2) is `Fin d → ZMod (2 * N)`.  The
+reflection `r_k` of (17.5) in the plane between the sites, the half `Λ_{+,k}` of (17.4), the
+generalized reflection `r̃_k` of (17.6) and the iterated involutions `τ^i` of (17.10) are
+`torusReflAt`, `torusPosAt`, `genReflectionAt` and `tauPow`. -/
+
+section Lattice
+
+variable {E : Type*} [MeasurableSpace E] {N d : ℕ}
+
+/-- **Georgii (17.5) in direction `k`.** The reflection `r_k` of the torus in the plane between
+the sites, `z ↦ -1 - z` in the `k`-th coordinate (see the module docstring for the change of
+coordinates from Georgii's labels). -/
+def torusReflAt (N : ℕ) (k : Fin d) : (Fin d → ZMod (2 * N)) ≃ (Fin d → ZMod (2 * N)) where
+  toFun i := Function.update i k (-1 - i k)
+  invFun i := Function.update i k (-1 - i k)
+  left_inv i := by simp [Function.update_idem]
+  right_inv i := by simp [Function.update_idem]
+
+lemma torusReflAt_apply (k : Fin d) (i : Fin d → ZMod (2 * N)) :
+    torusReflAt N k i = Function.update i k (-1 - i k) := rfl
+
+@[simp] lemma torusReflAt_symm (k : Fin d) : (torusReflAt N k).symm = torusReflAt N k := rfl
+
+@[simp] lemma torusReflAt_apply_self (k : Fin d) (i : Fin d → ZMod (2 * N)) :
+    torusReflAt N k i k = -1 - i k := by simp [torusReflAt_apply]
+
+lemma torusReflAt_apply_of_ne {k l : Fin d} (h : l ≠ k) (i : Fin d → ZMod (2 * N)) :
+    torusReflAt N k i l = i l := by simp [torusReflAt_apply, h]
+
+lemma torusReflAt_torusReflAt (k : Fin d) (i : Fin d → ZMod (2 * N)) :
+    torusReflAt N k (torusReflAt N k i) = i := (torusReflAt N k).left_inv i
+
+/-- **Georgii (17.4).** The positive half `Λ_{+,k} = {i : 0 ≤ i_k ≤ N - 1}` of the torus in
+direction `k`. -/
+def torusPosAt (N : ℕ) (k : Fin d) : Set (Fin d → ZMod (2 * N)) := {i | (i k).val < N}
+
+@[simp] lemma mem_torusPosAt {k : Fin d} {i : Fin d → ZMod (2 * N)} :
+    i ∈ torusPosAt N k ↔ (i k).val < N := Iff.rfl
+
+/-- **Georgii (17.6) in direction `k`.** The generalized reflection `r̃_k`: reflect the sites by
+`r_k` and apply the involution `τ_k` to every spin. -/
+def genReflectionAt (N : ℕ) (τ : Fin d → E ≃ᵐ E) (k : Fin d) :
+    Transformation (Fin d → ZMod (2 * N)) E :=
+  pureSpin (Fin d → ZMod (2 * N)) (τ k) * siteEquiv E (torusReflAt N k)
+
+@[simp] lemma genReflectionAt_toFun_apply (τ : Fin d → E ≃ᵐ E) (k : Fin d)
+    (ω : (Fin d → ZMod (2 * N)) → E) (i : Fin d → ZMod (2 * N)) :
+    (genReflectionAt N τ k).toFun ω i = τ k (ω (torusReflAt N k i)) := by
+  rw [genReflectionAt, Transformation.mul_def, Transformation.comp_toFun,
+    pureSpin_toFun_apply, siteEquiv_toFun_apply, torusReflAt_symm]
+
+/-- **Georgii (17.10).** The iterated involution `τ^i = τ_1^{i_1} ∘ ⋯ ∘ τ_d^{i_d}` of `E`, each
+`τ_k` being applied when `i_k` is odd.  Georgii assumes the `τ_k` commute, so that the order of
+composition is immaterial; here the factors are applied in the order of the coordinates, and no
+commutation is needed anywhere. -/
+def tauPow (τ : Fin d → E ≃ᵐ E) (i : Fin d → ZMod (2 * N)) (x : E) : E :=
+  Fin.foldl d (fun x k ↦ spinIterate (τ k) (i k) x) x
+
+@[simp] lemma tauPow_zero (τ : Fin 0 → E ≃ᵐ E) (i : Fin 0 → ZMod (2 * N)) (x : E) :
+    tauPow τ i x = x := Fin.foldl_zero _ _
+
+lemma tauPow_succ (τ : Fin (d + 1) → E ≃ᵐ E) (i : Fin (d + 1) → ZMod (2 * N)) (x : E) :
+    tauPow τ i x = tauPow (fun k ↦ τ k.succ) (Fin.tail i) (spinIterate (τ 0) (i 0) x) :=
+  Fin.foldl_succ _ _
+
+lemma tauPow_cons (τ : Fin (d + 1) → E ≃ᵐ E) (i₀ : ZMod (2 * N)) (i₁ : Fin d → ZMod (2 * N))
+    (x : E) :
+    tauPow τ (Fin.cons i₀ i₁) x = tauPow (fun k ↦ τ k.succ) i₁ (spinIterate (τ 0) i₀ x) := by
+  rw [tauPow_succ, Fin.cons_zero, Fin.tail_cons]
+
+lemma measurable_spinIterate (τ : E ≃ᵐ E) (i : ZMod (2 * N)) :
+    Measurable (spinIterate τ i) := by
+  unfold spinIterate
+  split_ifs <;> fun_prop
+
+lemma measurable_tauPow (τ : Fin d → E ≃ᵐ E) (i : Fin d → ZMod (2 * N)) :
+    Measurable (tauPow τ i) := by
+  induction d with
+  | zero =>
+      have h : tauPow τ i = id := funext fun x ↦ tauPow_zero τ i x
+      rw [h]; exact measurable_id
+  | succ d ih =>
+      have h : tauPow τ i = tauPow (fun k ↦ τ k.succ) (Fin.tail i) ∘ spinIterate (τ 0) (i 0) :=
+        funext fun x ↦ tauPow_succ τ i x
+      rw [h]
+      exact (ih _ _).comp (measurable_spinIterate _ _)
+
+/-- The spin involution acting coordinatewise on `T → E`: Georgii's `τ_k` viewed as an
+involution of `E^{Λ₀}` in the induction step of the proof of (17.11). -/
+abbrev coordInvolution (T : Type*) (τ : E ≃ᵐ E) : (T → E) ≃ᵐ (T → E) :=
+  MeasurableEquiv.piCongrRight fun _ : T ↦ τ
+
+@[simp] lemma coordInvolution_apply {T : Type*} (τ : E ≃ᵐ E) (ζ : T → E) (t : T) :
+    coordInvolution T τ ζ t = τ (ζ t) := rfl
+
+lemma spinIterate_coordInvolution {T : Type*} (τ : E ≃ᵐ E) (i : ZMod (2 * N)) (ζ : T → E)
+    (t : T) : spinIterate (coordInvolution T τ) i ζ t = spinIterate τ i (ζ t) := by
+  unfold spinIterate
+  split_ifs <;> rfl
+
+lemma tauPow_coordInvolution {T : Type*} (τ : Fin d → E ≃ᵐ E) (i : Fin d → ZMod (2 * N))
+    (ζ : T → E) (t : T) :
+    tauPow (fun k ↦ coordInvolution T (τ k)) i ζ t = tauPow τ i (ζ t) := by
+  induction d generalizing ζ with
+  | zero => simp
+  | succ d ih =>
+      rw [tauPow_succ, tauPow_succ, ih, spinIterate_coordInvolution]
+
+end Lattice
+
+
+/-! ### Splitting off one coordinate direction
+
+Georgii's induction step for (17.11) writes `Λ = Λ₀ × Λ₁` and views `μ` first on `(E^{Λ₀})^{Λ₁}`
+and then on `(E^{Λ₁})^{Λ₀}`.  With `Λ = Fin (d + 1) → ZMod (2 * N)`, `Λ₀` is the coordinate `0`
+and `Λ₁` the remaining ones; the two views are the image measures of `μ` under `splitTail` and
+`splitHead`. -/
+
+section Split
+
+variable {E : Type*} [MeasurableSpace E] {N d : ℕ}
+
+/-- `E^Λ` viewed as `(E^{Λ₁})^{Λ₀}`: the site `i₀ ∈ Λ₀` outside, `i₁ ∈ Λ₁` inside. -/
+def splitHead (ω : (Fin (d + 1) → ZMod (2 * N)) → E) :
+    ZMod (2 * N) → (Fin d → ZMod (2 * N)) → E :=
+  fun i₀ i₁ ↦ ω (Fin.cons i₀ i₁)
+
+/-- `E^Λ` viewed as `(E^{Λ₀})^{Λ₁}`: the site `i₁ ∈ Λ₁` outside, `i₀ ∈ Λ₀` inside. -/
+def splitTail (ω : (Fin (d + 1) → ZMod (2 * N)) → E) :
+    (Fin d → ZMod (2 * N)) → ZMod (2 * N) → E :=
+  fun i₁ i₀ ↦ ω (Fin.cons i₀ i₁)
+
+omit [MeasurableSpace E] in
+@[simp] lemma splitHead_apply (ω : (Fin (d + 1) → ZMod (2 * N)) → E) (i₀ : ZMod (2 * N))
+    (i₁ : Fin d → ZMod (2 * N)) : splitHead ω i₀ i₁ = ω (Fin.cons i₀ i₁) := rfl
+
+omit [MeasurableSpace E] in
+@[simp] lemma splitTail_apply (ω : (Fin (d + 1) → ZMod (2 * N)) → E) (i₁ : Fin d → ZMod (2 * N))
+    (i₀ : ZMod (2 * N)) : splitTail ω i₁ i₀ = ω (Fin.cons i₀ i₁) := rfl
+
+lemma measurable_splitHead : Measurable (splitHead (E := E) (N := N) (d := d)) :=
+  measurable_pi_lambda _ fun _ ↦ measurable_pi_lambda _ fun _ ↦ measurable_pi_apply _
+
+lemma measurable_splitTail : Measurable (splitTail (E := E) (N := N) (d := d)) :=
+  measurable_pi_lambda _ fun _ ↦ measurable_pi_lambda _ fun _ ↦ measurable_pi_apply _
+
+lemma abs_prod_le_pow_card {ι : Type*} [Fintype ι] {g : ι → ℝ} {C : ℝ} (hg : ∀ i, |g i| ≤ C) :
+    |∏ i, g i| ≤ C ^ Fintype.card ι := by
+  rw [Finset.abs_prod]
+  calc ∏ i, |g i| ≤ ∏ _i : ι, C := Finset.prod_le_prod (fun _ _ ↦ abs_nonneg _) fun i _ ↦ hg i
+    _ = C ^ Fintype.card ι := by rw [Finset.prod_const, Finset.card_univ]
+
+lemma cons_sub (i₀ j₀ : ZMod (2 * N)) (i₁ j₁ : Fin d → ZMod (2 * N)) :
+    (Fin.cons i₀ i₁ - Fin.cons j₀ j₁ : Fin (d + 1) → ZMod (2 * N))
+      = Fin.cons (i₀ - j₀) (i₁ - j₁) := by
+  funext l
+  refine Fin.cases ?_ (fun l ↦ ?_) l <;> simp
+
+lemma torusReflAt_cons_succ (k : Fin d) (i₀ : ZMod (2 * N)) (i₁ : Fin d → ZMod (2 * N)) :
+    torusReflAt N k.succ (Fin.cons i₀ i₁) = Fin.cons i₀ (torusReflAt N k i₁) := by
+  rw [torusReflAt_apply, torusReflAt_apply, Fin.cons_succ, Fin.cons_update]
+
+lemma torusReflAt_cons_zero (i₀ : ZMod (2 * N)) (i₁ : Fin d → ZMod (2 * N)) :
+    torusReflAt N 0 (Fin.cons i₀ i₁) = Fin.cons (-1 - i₀) i₁ := by
+  rw [torusReflAt_apply, Fin.cons_zero, Fin.update_cons_zero]
+
+/-! #### The shifts, reflections and half-space σ-algebras through the two views -/
+
+lemma splitTail_shift (j₁ : Fin d → ZMod (2 * N)) (ω : (Fin (d + 1) → ZMod (2 * N)) → E) :
+    splitTail ((shift E (Fin.cons 0 j₁)).toFun ω)
+      = (shift (ZMod (2 * N) → E) j₁).toFun (splitTail ω) := by
+  funext i₁ i₀
+  simp [cons_sub]
+
+lemma splitHead_shift (ω : (Fin (d + 1) → ZMod (2 * N)) → E) :
+    splitHead ((shift E (Fin.cons 1 0)).toFun ω)
+      = (shift ((Fin d → ZMod (2 * N)) → E) (1 : ZMod (2 * N))).toFun (splitHead ω) := by
+  funext i₀ i₁
+  simp [cons_sub]
+
+lemma splitTail_genReflectionAt (τ : Fin (d + 1) → E ≃ᵐ E) (k : Fin d)
+    (ω : (Fin (d + 1) → ZMod (2 * N)) → E) :
+    splitTail ((genReflectionAt N τ k.succ).toFun ω)
+      = (genReflectionAt N (fun k ↦ coordInvolution (ZMod (2 * N)) (τ k.succ)) k).toFun
+          (splitTail ω) := by
+  funext i₁ i₀
+  simp [torusReflAt_cons_succ]
+
+lemma splitHead_genReflectionAt (τ : Fin (d + 1) → E ≃ᵐ E)
+    (ω : (Fin (d + 1) → ZMod (2 * N)) → E) :
+    splitHead ((genReflectionAt N τ 0).toFun ω)
+      = (genReflection N (coordInvolution (Fin d → ZMod (2 * N)) (τ 0))).toFun (splitHead ω) := by
+  funext i₀ i₁
+  simp [torusReflAt_cons_zero]
+
+lemma measurable_splitTail_cylinderEvents (k : Fin d) :
+    Measurable[cylinderEvents (X := fun _ : Fin (d + 1) → ZMod (2 * N) ↦ E) (torusPosAt N k.succ),
+      cylinderEvents (X := fun _ : Fin d → ZMod (2 * N) ↦ ZMod (2 * N) → E) (torusPosAt N k)]
+      (splitTail (E := E) (N := N) (d := d)) := by
+  let : MeasurableSpace ((Fin (d + 1) → ZMod (2 * N)) → E) :=
+    cylinderEvents (X := fun _ : Fin (d + 1) → ZMod (2 * N) ↦ E) (torusPosAt N k.succ)
+  refine measurable_cylinderEvents_iff.2 fun i₁ hi₁ ↦ measurable_pi_lambda _ fun i₀ ↦ ?_
+  exact measurable_cylinderEvent_apply (X := fun _ : Fin (d + 1) → ZMod (2 * N) ↦ E)
+    (show Fin.cons i₀ i₁ ∈ torusPosAt N k.succ by simpa using hi₁)
+
+lemma measurable_splitHead_cylinderEvents :
+    Measurable[cylinderEvents (X := fun _ : Fin (d + 1) → ZMod (2 * N) ↦ E) (torusPosAt N 0),
+      cylinderEvents (X := fun _ : ZMod (2 * N) ↦ (Fin d → ZMod (2 * N)) → E) (torusPos N)]
+      (splitHead (E := E) (N := N) (d := d)) := by
+  let : MeasurableSpace ((Fin (d + 1) → ZMod (2 * N)) → E) :=
+    cylinderEvents (X := fun _ : Fin (d + 1) → ZMod (2 * N) ↦ E) (torusPosAt N 0)
+  refine measurable_cylinderEvents_iff.2 fun i₀ hi₀ ↦ measurable_pi_lambda _ fun i₁ ↦ ?_
+  exact measurable_cylinderEvent_apply (X := fun _ : Fin (d + 1) → ZMod (2 * N) ↦ E)
+    (show Fin.cons i₀ i₁ ∈ torusPosAt N 0 by simpa [torusPos] using hi₀)
+
+/-! #### Transport of the hypotheses of (17.11) to the two views -/
+
+variable {μ : Measure ((Fin (d + 1) → ZMod (2 * N)) → E)} {τ : Fin (d + 1) → E ≃ᵐ E}
+
+lemma measurePreserving_shift_map_splitTail
+    (hper : ∀ j, MeasurePreserving (shift E j).toFun μ μ) (j₁ : Fin d → ZMod (2 * N)) :
+    MeasurePreserving (shift (ZMod (2 * N) → E) j₁).toFun (μ.map splitTail) (μ.map splitTail) :=
+  (hper (Fin.cons 0 j₁)).map_of_comp_eq measurable_splitTail measurable_splitTail
+    (Transformation.measurable_toFun _) (funext fun ω ↦ (splitTail_shift j₁ ω).symm)
+
+lemma measurePreserving_shift_map_splitHead
+    (hper : ∀ j, MeasurePreserving (shift E j).toFun μ μ) :
+    MeasurePreserving (shift ((Fin d → ZMod (2 * N)) → E) (1 : ZMod (2 * N))).toFun
+      (μ.map splitHead) (μ.map splitHead) :=
+  (hper (Fin.cons 1 0)).map_of_comp_eq measurable_splitHead measurable_splitHead
+    (Transformation.measurable_toFun _) (funext fun ω ↦ (splitHead_shift ω).symm)
+
+lemma measurePreserving_genReflectionAt_map_splitTail
+    (hrefl : ∀ k, MeasurePreserving (genReflectionAt N τ k).toFun μ μ) (k : Fin d) :
+    MeasurePreserving
+      (genReflectionAt N (fun k ↦ coordInvolution (ZMod (2 * N)) (τ k.succ)) k).toFun
+      (μ.map splitTail) (μ.map splitTail) :=
+  (hrefl k.succ).map_of_comp_eq measurable_splitTail measurable_splitTail
+    (Transformation.measurable_toFun _) (funext fun ω ↦ (splitTail_genReflectionAt τ k ω).symm)
+
+lemma measurePreserving_genReflection_map_splitHead
+    (hrefl : ∀ k, MeasurePreserving (genReflectionAt N τ k).toFun μ μ) :
+    MeasurePreserving (genReflection N (coordInvolution (Fin d → ZMod (2 * N)) (τ 0))).toFun
+      (μ.map splitHead) (μ.map splitHead) :=
+  (hrefl 0).map_of_comp_eq measurable_splitHead measurable_splitHead
+    (Transformation.measurable_toFun _) (funext fun ω ↦ (splitHead_genReflectionAt τ ω).symm)
+
+lemma isReflectionPositive_map_splitTail
+    (hpos : ∀ k, IsReflectionPositive (torusPosAt N k) (genReflectionAt N τ k) μ) (k : Fin d) :
+    IsReflectionPositive (torusPosAt N k)
+      (genReflectionAt N (fun k ↦ coordInvolution (ZMod (2 * N)) (τ k.succ)) k)
+      (μ.map splitTail) :=
+  (hpos k.succ).map measurable_splitTail (measurable_splitTail_cylinderEvents k)
+    fun ω ↦ (splitTail_genReflectionAt τ k ω).symm
+
+lemma isReflectionPositive_map_splitHead
+    (hpos : IsReflectionPositive (torusPosAt N 0) (genReflectionAt N τ 0) μ) :
+    IsReflectionPositive (torusPos N)
+      (genReflection N (coordInvolution (Fin d → ZMod (2 * N)) (τ 0))) (μ.map splitHead) :=
+  hpos.map measurable_splitHead measurable_splitHead_cylinderEvents
+    fun ω ↦ (splitHead_genReflectionAt τ ω).symm
+
+lemma integral_map_splitHead {g : (ZMod (2 * N) → (Fin d → ZMod (2 * N)) → E) → ℝ}
+    (hg : Measurable g) : ∫ ω', g ω' ∂(μ.map splitHead) = ∫ ω, g (splitHead ω) ∂μ :=
+  integral_map measurable_splitHead.aemeasurable hg.aestronglyMeasurable
+
+lemma integral_map_splitTail {g : ((Fin d → ZMod (2 * N)) → ZMod (2 * N) → E) → ℝ}
+    (hg : Measurable g) : ∫ ω', g ω' ∂(μ.map splitTail) = ∫ ω, g (splitTail ω) ∂μ :=
+  integral_map measurable_splitTail.aemeasurable hg.aestronglyMeasurable
+
+variable [NeZero N]
+
+/-- A product over the torus, split along the coordinate `0`. -/
+lemma prod_cons {M : Type*} [CommMonoid M] (g : (Fin (d + 1) → ZMod (2 * N)) → M) :
+    ∏ i, g i = ∏ i₀ : ZMod (2 * N), ∏ i₁ : Fin d → ZMod (2 * N), g (Fin.cons i₀ i₁) := by
+  rw [← Fintype.prod_prod_type (fun p ↦ g (Fin.cons p.1 p.2))]
+  exact (Fintype.prod_equiv (Fin.consEquiv fun _ ↦ ZMod (2 * N)) _ _ fun _ ↦ rfl).symm
+
+lemma card_pi_zmod : Fintype.card (Fin d → ZMod (2 * N)) = (2 * N) ^ d := by
+  simp [ZMod.card]
+
+end Split
+
+
+/-! ### Georgii, Theorem (17.11): the chessboard estimate in dimension `d`
+
+Georgii's proof is an induction on `d`.  The step views `μ` on `(E^{Λ₀})^{Λ₁}` (`splitTail`),
+applies the case `d - 1` with state space `E^{Λ₀}` and the coordinatewise involutions
+`coordInvolution _ (τ_k)`, `k ≥ 2`, and then, for each of the resulting factors, views `μ` on
+`(E^{Λ₁})^{Λ₀}` (`splitHead`) and applies the one-dimensional case
+`abs_integral_prod_pow_le` with state space `E^{Λ₁}`.  The induction is run with absolute values
+on both sides, which makes the statement true (and trivial) for `d = 0` as well; for `d ≥ 1` the
+right-hand side factors are nonnegative (`integral_prod_tauPow_nonneg`) and the absolute values
+disappear, giving Georgii's inequality. -/
+
+section ChessboardPi
+
+universe u
+
+variable {N : ℕ} [NeZero N]
+
+/-- **Georgii, Theorem (17.11), with absolute values on both sides**, proved by induction on the
+dimension `d`; see `abs_integral_prod_pow_le_pi` for Georgii's statement. -/
+theorem abs_integral_prod_pow_le_pi_abs (d : ℕ) :
+    ∀ (E : Type u) [MeasurableSpace E] (μ : Measure ((Fin d → ZMod (2 * N)) → E))
+      [IsFiniteMeasure μ] (τ : Fin d → E ≃ᵐ E), (∀ k x, τ k (τ k x) = x) →
+      (∀ j, MeasurePreserving (shift E j).toFun μ μ) →
+      (∀ k, MeasurePreserving (genReflectionAt N τ k).toFun μ μ) →
+      (∀ k, IsReflectionPositive (torusPosAt N k) (genReflectionAt N τ k) μ) →
+      ∀ (f : (Fin d → ZMod (2 * N)) → E → ℝ), (∀ i, Measurable (f i)) →
+      ∀ C : ℝ, (∀ i x, |f i x| ≤ C) →
+      |∫ ω, ∏ i, f i (ω i) ∂μ| ^ ((2 * N) ^ d)
+        ≤ ∏ j, |∫ ω, ∏ i, f j (tauPow τ i (ω i)) ∂μ| := by
+  induction d with
+  | zero =>
+      intro E _ μ _ τ hτ hper hrefl hpos f hf C hC
+      simp only [pow_zero, pow_one, tauPow_zero, Fintype.prod_unique, le_refl]
+  | succ d ih =>
+      intro E _ μ _ τ hτ hper hrefl hpos f hf C hC
+      -- Step A: the induction hypothesis applied to `μ` viewed on `(E^{Λ₀})^{Λ₁}`.
+      set τ₁ : Fin d → (ZMod (2 * N) → E) ≃ᵐ (ZMod (2 * N) → E) :=
+        fun k ↦ coordInvolution (ZMod (2 * N)) (τ k.succ) with hτ₁
+      set g : (Fin d → ZMod (2 * N)) → (ZMod (2 * N) → E) → ℝ :=
+        fun i₁ ζ ↦ ∏ i₀, f (Fin.cons i₀ i₁) (ζ i₀) with hg
+      have hgm : ∀ i₁, Measurable (g i₁) := fun i₁ ↦
+        Finset.measurable_prod _ fun i₀ _ ↦ (hf _).comp (measurable_pi_apply i₀)
+      have hgC : ∀ i₁ ζ, |g i₁ ζ| ≤ C ^ (2 * N) := fun i₁ ζ ↦ by
+        have := abs_prod_le_pow_card (g := fun i₀ ↦ f (Fin.cons i₀ i₁) (ζ i₀)) (C := C)
+          fun i₀ ↦ hC _ _
+        rwa [ZMod.card] at this
+      have hτ₁' : ∀ k x, τ₁ k (τ₁ k x) = x := fun k x ↦ funext fun i₀ ↦ by simp [hτ₁, hτ]
+      have hA := ih (ZMod (2 * N) → E) (μ.map splitTail) τ₁ hτ₁'
+        (measurePreserving_shift_map_splitTail hper)
+        (measurePreserving_genReflectionAt_map_splitTail hrefl)
+        (isReflectionPositive_map_splitTail hpos) g hgm _ hgC
+      set A : (Fin d → ZMod (2 * N)) → ℝ := fun j₁ ↦
+        ∫ ω, ∏ i₁, ∏ i₀, f (Fin.cons i₀ j₁)
+          (tauPow (fun k ↦ τ k.succ) i₁ (ω (Fin.cons i₀ i₁))) ∂μ with hA_def
+      set R : (Fin (d + 1) → ZMod (2 * N)) → ℝ :=
+        fun j ↦ ∫ ω, ∏ i, f j (tauPow τ i (ω i)) ∂μ with hR
+      have hAL : ∫ ω', ∏ i₁, g i₁ (ω' i₁) ∂(μ.map splitTail) = ∫ ω, ∏ i, f i (ω i) ∂μ := by
+        rw [integral_map_splitTail (g := fun ω' ↦ ∏ i₁, g i₁ (ω' i₁))
+          (Finset.measurable_prod _ fun i₁ _ ↦ (hgm i₁).comp (measurable_pi_apply i₁))]
+        refine integral_congr_ae (Filter.Eventually.of_forall fun ω ↦ ?_)
+        simp only [hg, splitTail_apply]
+        rw [prod_cons (fun i ↦ f i (ω i)), Finset.prod_comm]
+      have hAR : ∀ j₁, ∫ ω', ∏ i₁, g j₁ (tauPow τ₁ i₁ (ω' i₁)) ∂(μ.map splitTail) = A j₁ := by
+        intro j₁
+        rw [integral_map_splitTail (g := fun ω' ↦ ∏ i₁, g j₁ (tauPow τ₁ i₁ (ω' i₁)))
+          (Finset.measurable_prod _ fun i₁ _ ↦
+            (hgm j₁).comp ((measurable_tauPow _ _).comp (measurable_pi_apply i₁)))]
+        refine integral_congr_ae (Filter.Eventually.of_forall fun ω ↦ ?_)
+        simp only [hg, hτ₁, tauPow_coordInvolution, splitTail_apply]
+      rw [hAL] at hA
+      simp only [hAR] at hA
+      -- Step B: the one-dimensional case applied to `μ` viewed on `(E^{Λ₁})^{Λ₀}`.
+      have hB : ∀ j₁, |A j₁| ^ (2 * N) ≤ ∏ j₀, R (Fin.cons j₀ j₁) := by
+        intro j₁
+        set τ₀ := coordInvolution (Fin d → ZMod (2 * N)) (τ 0) with hτ₀
+        set F : ZMod (2 * N) → ((Fin d → ZMod (2 * N)) → E) → ℝ := fun i₀ ζ ↦
+          ∏ i₁, f (Fin.cons i₀ j₁) (tauPow (fun k ↦ τ k.succ) i₁ (ζ i₁)) with hF
+        have hFm : ∀ i₀, Measurable (F i₀) := fun i₀ ↦ Finset.measurable_prod _ fun i₁ _ ↦
+          (hf _).comp ((measurable_tauPow _ _).comp (measurable_pi_apply i₁))
+        have hFC : ∀ i₀ ζ, |F i₀ ζ| ≤ C ^ ((2 * N) ^ d) := fun i₀ ζ ↦ by
+          have := abs_prod_le_pow_card
+            (g := fun i₁ ↦ f (Fin.cons i₀ j₁) (tauPow (fun k ↦ τ k.succ) i₁ (ζ i₁))) (C := C)
+            fun i₁ ↦ hC _ _
+          rwa [card_pi_zmod] at this
+        have hτ₀' : ∀ x, τ₀ (τ₀ x) = x := fun x ↦ funext fun i₁ ↦ by simp [hτ₀, hτ]
+        have key := abs_integral_prod_pow_le (μ := μ.map splitHead) (τ := τ₀) hτ₀'
+          (measurePreserving_shift_map_splitHead hper)
+          (measurePreserving_genReflection_map_splitHead hrefl)
+          (isReflectionPositive_map_splitHead (hpos 0)) hFm hFC
+        have hBL : ∫ ω', ∏ i₀, F i₀ (ω' i₀) ∂(μ.map splitHead) = A j₁ := by
+          rw [integral_map_splitHead (g := fun ω' ↦ ∏ i₀, F i₀ (ω' i₀))
+            (Finset.measurable_prod _ fun i₀ _ ↦ (hFm i₀).comp (measurable_pi_apply i₀))]
+          refine integral_congr_ae (Filter.Eventually.of_forall fun ω ↦ ?_)
+          simp only [hF, splitHead_apply]
+          exact Finset.prod_comm
+        have hBR : ∀ j₀, ∫ ω', ∏ i₀, F j₀ (spinIterate τ₀ i₀ (ω' i₀)) ∂(μ.map splitHead)
+            = R (Fin.cons j₀ j₁) := by
+          intro j₀
+          rw [integral_map_splitHead (g := fun ω' ↦ ∏ i₀, F j₀ (spinIterate τ₀ i₀ (ω' i₀)))
+            (Finset.measurable_prod _ fun i₀ _ ↦
+              (hFm j₀).comp ((measurable_spinIterate _ _).comp (measurable_pi_apply i₀)))]
+          refine integral_congr_ae (Filter.Eventually.of_forall fun ω ↦ ?_)
+          simp only [hF, hτ₀, spinIterate_coordInvolution, splitHead_apply, ← tauPow_cons]
+          exact (prod_cons fun i ↦ f (Fin.cons j₀ j₁) (tauPow τ i (ω i))).symm
+        rw [hBL] at key
+        simp only [hBR] at key
+        exact key
+      -- Assembling the two steps.
+      calc |∫ ω, ∏ i, f i (ω i) ∂μ| ^ ((2 * N) ^ (d + 1))
+          = (|∫ ω, ∏ i, f i (ω i) ∂μ| ^ ((2 * N) ^ d)) ^ (2 * N) := by rw [pow_succ, pow_mul]
+        _ ≤ (∏ j₁, |A j₁|) ^ (2 * N) := pow_le_pow_left₀ (pow_nonneg (abs_nonneg _) _) hA _
+        _ = ∏ j₁, |A j₁| ^ (2 * N) := (Finset.prod_pow _ _ _).symm
+        _ ≤ ∏ j₁, ∏ j₀, R (Fin.cons j₀ j₁) :=
+            Finset.prod_le_prod (fun _ _ ↦ pow_nonneg (abs_nonneg _) _) fun j₁ _ ↦ hB j₁
+        _ ≤ ∏ j₁, ∏ j₀, |R (Fin.cons j₀ j₁)| :=
+            Finset.prod_le_prod (fun j₁ _ ↦ (pow_nonneg (abs_nonneg _) _).trans (hB j₁))
+              fun j₁ _ ↦ (le_abs_self _).trans (le_of_eq (Finset.abs_prod _ _))
+        _ = ∏ j, |R j| := by rw [prod_cons (fun j ↦ |R j|), Finset.prod_comm]
+
+variable {E : Type*} [MeasurableSpace E] {d : ℕ}
+  {μ : Measure ((Fin (d + 1) → ZMod (2 * N)) → E)} [IsFiniteMeasure μ]
+  {τ : Fin (d + 1) → E ≃ᵐ E}
+
+omit [IsFiniteMeasure μ] in
+/-- The right-hand side factors of Georgii's (17.11) are nonnegative, by reflection positivity in
+the direction `0` alone: `∏_i f_j ∘ τ^i ∘ σ_i` is of the form `h · h∘r̃_1` once `μ` is viewed on
+`(E^{Λ₁})^{Λ₀}`. -/
+theorem integral_prod_tauPow_nonneg (hτ : ∀ k x, τ k (τ k x) = x)
+    (hpos : IsReflectionPositive (torusPosAt N 0) (genReflectionAt N τ 0) μ)
+    {f : (Fin (d + 1) → ZMod (2 * N)) → E → ℝ} (hf : ∀ i, Measurable (f i)) {C : ℝ}
+    (hC : ∀ i x, |f i x| ≤ C) (j : Fin (d + 1) → ZMod (2 * N)) :
+    0 ≤ ∫ ω, ∏ i, f j (tauPow τ i (ω i)) ∂μ := by
+  set τ₀ := coordInvolution (Fin d → ZMod (2 * N)) (τ 0) with hτ₀
+  set F : ZMod (2 * N) → ((Fin d → ZMod (2 * N)) → E) → ℝ := fun _ ζ ↦
+    ∏ i₁, f j (tauPow (fun k ↦ τ k.succ) i₁ (ζ i₁)) with hF
+  have hFm : ∀ i₀, Measurable (F i₀) := fun i₀ ↦ Finset.measurable_prod _ fun i₁ _ ↦
+    (hf _).comp ((measurable_tauPow _ _).comp (measurable_pi_apply i₁))
+  have hFC : ∀ i₀ ζ, |F i₀ ζ| ≤ C ^ ((2 * N) ^ d) := fun i₀ ζ ↦ by
+    have := abs_prod_le_pow_card
+      (g := fun i₁ ↦ f j (tauPow (fun k ↦ τ k.succ) i₁ (ζ i₁))) (C := C) fun i₁ ↦ hC _ _
+    rwa [card_pi_zmod] at this
+  have hτ₀' : ∀ x, τ₀ (τ₀ x) = x := fun x ↦ funext fun i₁ ↦ by simp [hτ₀, hτ]
+  have h := integral_prod_spinIterate_nonneg (μ := μ.map splitHead) (τ := τ₀) hτ₀'
+    (isReflectionPositive_map_splitHead hpos) hFm hFC 0
+  rw [integral_map_splitHead (g := fun ω' ↦ ∏ i₀, F 0 (spinIterate τ₀ i₀ (ω' i₀)))
+    (Finset.measurable_prod _ fun i₀ _ ↦
+      (hFm 0).comp ((measurable_spinIterate _ _).comp (measurable_pi_apply i₀)))] at h
+  refine h.trans (le_of_eq ?_)
+  refine integral_congr_ae (Filter.Eventually.of_forall fun ω ↦ ?_)
+  simp only [hF, hτ₀, spinIterate_coordInvolution, splitHead_apply, ← tauPow_cons]
+  exact (prod_cons fun i ↦ f j (tauPow τ i (ω i))).symm
+
+/-- **Georgii, Theorem (17.11): the chessboard estimate.**
+
+Let `Λ = Λ(N) = (ℤ/2N)^d` with `d ≥ 1`, and let `μ` be a finite measure on `E^Λ` which is
+* `Λ`-periodic (17.3), i.e. invariant under every rotation `θ_j`, `j ∈ Λ`, and
+* `r̃_k`-positive (17.7) and `r̃_k`-invariant for every coordinate direction `k`, where `r̃_k`
+  is the generalized reflection (17.6) built from a measurable involution `τ_k` of `E`.
+
+Then for every family `(f_i)_{i ∈ Λ}` of bounded measurable functions on `E`,
+`|μ(∏_i f_i ∘ σ_i)|^{|Λ|} ≤ ∏_j μ(∏_i f_j ∘ τ^i ∘ σ_i)`, the root-free form of Georgii's
+inequality, where `τ^i` is the iterated involution (17.10) `tauPow τ i`.  The factors on the
+right are nonnegative (`integral_prod_tauPow_nonneg`), so no absolute value is needed there.
+The invariance hypothesis `hrefl` is the one that makes the Cauchy–Schwarz inequality (17.8)
+available (`sq_integral_mul_comp_le`). -/
+theorem abs_integral_prod_pow_le_pi (hτ : ∀ k x, τ k (τ k x) = x)
+    (hper : ∀ j, MeasurePreserving (shift E j).toFun μ μ)
+    (hrefl : ∀ k, MeasurePreserving (genReflectionAt N τ k).toFun μ μ)
+    (hpos : ∀ k, IsReflectionPositive (torusPosAt N k) (genReflectionAt N τ k) μ)
+    {f : (Fin (d + 1) → ZMod (2 * N)) → E → ℝ} (hf : ∀ i, Measurable (f i)) {C : ℝ}
+    (hC : ∀ i x, |f i x| ≤ C) :
+    |∫ ω, ∏ i, f i (ω i) ∂μ| ^ ((2 * N) ^ (d + 1))
+      ≤ ∏ j, ∫ ω, ∏ i, f j (tauPow τ i (ω i)) ∂μ :=
+  (abs_integral_prod_pow_le_pi_abs (d + 1) E μ τ hτ hper hrefl hpos f hf C hC).trans
+    (le_of_eq (Finset.prod_congr rfl fun j _ ↦
+      abs_of_nonneg (integral_prod_tauPow_nonneg hτ (hpos 0) hf hC j)))
+
+end ChessboardPi
 
 end MeasureTheory.GibbsMeasure
