@@ -355,6 +355,24 @@ variable (ν : Measure E) [SigmaFinite ν] [NeZero ν]
   {hρ : IsPremodifier (S := S) (E := E) ρ}
   {hZ : IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ}
 
+/-- **Georgii, Remark (1.28)(2), the kernel step.**  A λ-specification with *positive*
+densities has the same null sets as its reference kernel: `γ_Δ(·|η) = ρ_Δ λ_Δ(·|η)` and
+`λ_Δ(·|η)` are equivalent, for every volume `Δ` and every boundary condition `η`.  This is the
+form used in Georgii's definition of a *quasi-Gibbsian* random field in §18.1. -/
+theorem lambdaSpecification_apply_eq_zero_iff (hpos : ∀ Λ η, ρ Λ η ≠ 0)
+    (Δ : Finset S) (η : S → E) (C : Set (S → E)) :
+    lambdaSpecification (S := S) (E := E) ν ρ hρ hZ Δ η C = 0 ↔
+      sigmaFiniteLambdaFun (S := S) (E := E) ν Δ η C = 0 := by
+  rw [lambdaSpecification_apply, withDensity_apply_eq_zero
+    (sigmaFinitePremodifierNorm_measurable (S := S) (E := E) ν hρ Δ)]
+  have huniv : {σ | sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Δ σ ≠ 0} = Set.univ := by
+    refine Set.eq_univ_of_forall fun σ ↦ ?_
+    change sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Δ σ ≠ 0
+    rw [sigmaFinitePremodifierNorm]
+    simp only [ne_eq, ENNReal.div_eq_zero_iff, not_or]
+    exact ⟨hpos Δ σ, hZ.ne_top Δ σ⟩
+  rw [huniv, Set.univ_inter]
+
 /-- **Georgii, Remark (1.28)(2), one measure.** A Gibbs measure for a λ-specification with
 *positive* densities annihilates an event of a finite-volume σ-algebra `𝓕_Δ` exactly when the
 reference kernel `λ_Δ` does.  In particular its null events in `𝓕_Δ` do not depend on the Gibbs
@@ -367,18 +385,8 @@ theorem IsGibbsMeasure.lambdaSpecification_null_iff {μ : Measure (S → E)}
     μ C = 0 ↔ ∀ η, sigmaFiniteLambdaFun (S := S) (E := E) ν Δ η C = 0 := by
   set γ := lambdaSpecification (S := S) (E := E) ν ρ hρ hZ with hγdef
   have hCpi : MeasurableSet C := cylinderEvents_le_pi _ hC
-  have hdensmeas : Measurable (sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Δ) :=
-    sigmaFinitePremodifierNorm_measurable (S := S) (E := E) ν hρ Δ
-  have hker : ∀ η, γ Δ η C = 0 ↔ sigmaFiniteLambdaFun (S := S) (E := E) ν Δ η C = 0 := by
-    intro η
-    rw [hγdef, lambdaSpecification_apply, withDensity_apply_eq_zero hdensmeas]
-    have huniv : {σ | sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Δ σ ≠ 0} = Set.univ := by
-      refine Set.eq_univ_of_forall fun σ ↦ ?_
-      change sigmaFinitePremodifierNorm (S := S) (E := E) ν ρ Δ σ ≠ 0
-      rw [sigmaFinitePremodifierNorm]
-      simp only [ne_eq, ENNReal.div_eq_zero_iff, not_or]
-      exact ⟨hpos Δ σ, hZ.ne_top Δ σ⟩
-    rw [huniv, Set.univ_inter]
+  have hker : ∀ η, γ Δ η C = 0 ↔ sigmaFiniteLambdaFun (S := S) (E := E) ν Δ η C = 0 :=
+    fun η ↦ lambdaSpecification_apply_eq_zero_iff ν hpos Δ η C
   have hmeasγ : Measurable fun η ↦ γ Δ η C :=
     ((γ Δ).measurable_coe hCpi).mono cylinderEvents_le_pi le_rfl
   have hbind : μ C = ∫⁻ η, γ Δ η C ∂μ := by

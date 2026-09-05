@@ -45,17 +45,68 @@
     \leanok
 \end{proof}
 
+\begin{definition}[$\mathcal G_0(\Phi)$, Georgii (17.1), (17.20), Examples (4.20)(2) and (5.20)(3)]
+    \label{def:lo-G0}
+    \uses{def:rp-17-18, def:lo-18-8}
+    \lean{MeasureTheory.GibbsMeasure.latticeToTorus, MeasureTheory.GibbsMeasure.image_latticeToTorus_latticeBox, MeasureTheory.GibbsMeasure.periodicPullback, MeasureTheory.GibbsMeasure.periodicGibbsField, MeasureTheory.GibbsMeasure.periodicGibbsField_apply_of_cylinderEvents, MeasureTheory.GibbsMeasure.cubePotential, MeasureTheory.GibbsMeasure.isPotential_cubePotential, MeasureTheory.GibbsMeasure.isSigmaFiniteLambdaAdmissible_cubePotential, MeasureTheory.GibbsMeasure.cubeGibbsSpec, MeasureTheory.GibbsMeasure.isQuasilocal_cubeGibbsSpec, MeasureTheory.GibbsMeasure.wrappedCubePotential, MeasureTheory.GibbsMeasure.interactingHamiltonian_wrappedCubePotential, MeasureTheory.GibbsMeasure.wrappedCubeGibbsSpec_periodicCube_eq_periodicGibbsField, MeasureTheory.GibbsMeasure.GZero, MeasureTheory.GibbsMeasure.mem_GP_of_mem_GZero, MeasureTheory.GibbsMeasure.measurePreserving_shift_of_mem_GZero}
+    \leanok
+
+    The torus $(\mathbb Z/2N)^d$ is the quotient of $\mathbb Z^d$ with the cube $\Lambda(N)$ as
+    fundamental domain (Georgii's $]-N,N]^d$ and the tree's $[-N,N)^d$ are translates); a cube
+    interaction $\Phi_C = \varphi$ determines the $C$-potential on $\mathbb Z^d$ ((17.18)(i)--(ii)),
+    which is $\lambda$-admissible under (iv) (Comment (17.19)(1)) and has a quasilocal Gibbs
+    specification. Its periodic modification in the sense of Example (4.20)(2) has, in $\Lambda(N)$,
+    Georgii's periodic Hamiltonian, and its Gibbs distribution there with boundary condition
+    $\omega$ is ${}^\circ\gamma_{\Lambda(N)}^\Phi \times \delta_\omega$, the torus measure (17.20)
+    pulled back periodically. $\mathcal G_0(\Phi)$ is the set of cluster points, in the local
+    topology, of the sequences $N \mapsto {}^\circ\gamma_{\Lambda(N)}^\Phi \times \delta_{\omega_N}$;
+    it lies in $\mathcal G_\Theta(\Phi)$ (Example (5.20)(3)) --- the inclusion in $\mathcal G(\Phi)$
+    needs no summability, since the periodic modification agrees with $\Phi$ near a fixed volume
+    once $N$ is large, which is why it is proved directly and not through the (4.20)(2) theorem for
+    absolutely summable potentials.
+\end{definition}
+
+\begin{proposition}[Georgii (18.12)]
+    \label{prop:lo-18-12}
+    \uses{def:lo-G0, lem:lo-18-9}
+    \lean{MeasureTheory.GibbsMeasure.IsCubeConfining, MeasureTheory.GibbsMeasure.isCubeConfining_univ, MeasureTheory.GibbsMeasure.tendsto_patternWeight_cubePi, MeasureTheory.GibbsMeasure.abs_interactingHamiltonian_cubePotential_le, MeasureTheory.GibbsMeasure.GZero_nonempty, MeasureTheory.GibbsMeasure.GZero_nonempty_of_bounded, MeasureTheory.GibbsMeasure.exists_mem_GP_and_measurePreserving_shift}
+    \leanok
+
+    For standard Borel $E$ and a $C$-potential satisfying (17.18)(iv) in either alternative,
+    $\mathcal G_0(\Phi) \neq \emptyset$, hence $\mathcal G_\Theta(\Phi) \neq \emptyset$.
+\end{proposition}
+\begin{proof}
+    \leanok
+    Georgii's proof: Corollary (4.13) for the periodic modifications, with the confinement
+    hypothesis (iii) supplied by the bound on the Hamiltonian and $t(K_\ell^C,\Phi) \to 0$, and the
+    cluster-point theorem (4.9).
+\end{proof}
+
+\begin{lemma}[Quasi-Gibbsian random fields, Georgii before (18.16)]
+    \label{lem:lo-quasi-gibbsian}
+    \uses{def:lo-G0}
+    \lean{MeasureTheory.GibbsMeasure.IsQuasiGibbsian, MeasureTheory.GibbsMeasure.isQuasiGibbsian_of_isGibbsMeasure_lambdaSpecification, MeasureTheory.GibbsMeasure.isQuasiGibbsian_of_mem_GZero, Specification.lambdaSpecification_apply_eq_zero_iff}
+    \leanok
+
+    $\mu$ is quasi-Gibbsian if for some $\lambda \in \mathcal P(E)$ and every tail event $A$ of
+    positive measure, $\mu(\cdot \mid A)$ is equivalent to $\lambda^S$ on each $\mathcal F_\Lambda$.
+    Every Gibbs measure of a $\lambda$-specification with positive densities is quasi-Gibbsian,
+    by (7.7)(b) and (1.28), in particular every $\mu \in \mathcal G_0(\Phi)$.
+\end{lemma}
+\begin{proof}
+    \leanok
+\end{proof}
+
 \begin{lemma}[Georgii (18.10), on the torus]
     \label{lem:lo-18-10}
     \uses{def:lo-18-8, cor:rp-17-17-gibbs}
-    \lean{MeasureTheory.GibbsMeasure.pi_forall_cubeView_evenSite, MeasureTheory.GibbsMeasure.pow_le_pi_forall_cubeView, MeasureTheory.GibbsMeasure.periodicGibbs_forall_notMem_le, MeasureTheory.GibbsMeasure.le_periodicGibbs_univ, MeasureTheory.GibbsMeasure.periodicGibbsDist_forall_mem_compl_le, MeasureTheory.GibbsMeasure.periodicGibbsDist_pow_le_pow, MeasureTheory.GibbsMeasure.periodicGibbsDist_forall_notMem_torusPattern_le_patternWeight, MeasureTheory.measurePreserving_blocks}
+    \lean{MeasureTheory.GibbsMeasure.pi_forall_cubeView_evenSite, MeasureTheory.GibbsMeasure.pow_le_pi_forall_cubeView, MeasureTheory.GibbsMeasure.periodicGibbs_forall_notMem_le, MeasureTheory.GibbsMeasure.le_periodicGibbs_univ, MeasureTheory.GibbsMeasure.periodicGibbsDist_forall_mem_compl_le, MeasureTheory.GibbsMeasure.periodicGibbsDist_pow_le_pow, MeasureTheory.GibbsMeasure.periodicGibbsDist_forall_notMem_torusPattern_le_patternWeight, MeasureTheory.measurePreserving_blocks, MeasureTheory.GibbsMeasure.latticePattern, MeasureTheory.GibbsMeasure.periodicGibbsField_forall_notMem_latticePattern_le_patternWeight, MeasureTheory.GibbsMeasure.forall_notMem_latticePattern_le_patternWeight}
     \leanok
 
     For $r$-symmetric measurable $G$ and any finite set $D$ of sites of the torus $\Lambda(N)$,
-    ${}^\circ\gamma_{\Lambda(N)}^\Phi(D \cap V(G,\cdot) = \emptyset) \leq t(G,\Phi)^{|D|}$. This
-    is the estimate for the periodic Gibbs distributions; its passage to the limits
-    $\mu \in \mathcal G_0(\Phi)$ waits on the transport of ${}^\circ\gamma_{\Lambda(N)}^\Phi$ to a
-    random field on $\mathbb Z^d$.
+    ${}^\circ\gamma_{\Lambda(N)}^\Phi(D \cap V(G,\cdot) = \emptyset) \leq t(G,\Phi)^{|D|}$;
+    the same for every $\mu \in \mathcal G_0(\Phi)$ by Definition \ref{def:lo-G0}, the event
+    being local.
 \end{lemma}
 \begin{proof}
     \leanok
@@ -82,6 +133,26 @@
     A quadrant in which the origin's cluster is finite is cut by a $*$-connected path of sites
     avoiding $W$; there are at most $\ell\,5^{\ell-1}$ such paths of length $\ell$ through a given
     site, and each costs $t^\ell$.
+\end{proof}
+
+\begin{theorem}[The display after (18.14), and (18.18) in quadrant form]
+    \label{thm:lo-18-18-quadrant}
+    \uses{lem:lo-18-10, lem:lo-18-14, lem:lo-18-9}
+    \lean{MeasureTheory.GibbsMeasure.le_measure_mem_infiniteClusters_latticePattern, MeasureTheory.GibbsMeasure.le_measure_cross_latticePattern, MeasureTheory.GibbsMeasure.tendsto_crossingBound_patternWeight_localGroundStates, MeasureTheory.GibbsMeasure.le_measure_mem_infiniteClusters_localGroundStates, MeasureTheory.GibbsMeasure.latticeOceanPart, MeasureTheory.GibbsMeasure.latticeOceanPart_nonempty_iff, MeasureTheory.GibbsMeasure.latticeOceanPart_shift}
+    \leanok
+
+    In the plane, for $r$-symmetric measurable $G$ and $\mu \in \mathcal G_0(\Phi)$,
+    $\mu(0 \in \xi_Q(G,\cdot)) \geq 1 - z(t(G,\Phi))$ for each quadrant $Q$ with vertex $0$, and
+    the origin lies in all four with probability at least $1 - 4z(t(G,\Phi))$; for
+    $G = G_\varepsilon(\Phi)$ and $\beta\Phi$ the bound tends to $1$ as $\beta \to \infty$. The
+    ocean part $\xi^0_P(G,\omega)$ is shift equivariant. Lemma (18.16) --- that the origin's
+    cluster in all four quadrants is almost surely the ocean part, Georgii's Steps 1--3 with
+    Poincar\'e recurrence and two planar-topology arguments given by pictures --- is not
+    formalised, so (18.17), (18.18) with $\xi^0_P$ and (18.19) are not available; (18.11), the
+    rectangle variant, is not either.
+\end{theorem}
+\begin{proof}
+    \leanok
 \end{proof}
 
 \begin{remark}[Georgii (18.15)]

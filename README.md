@@ -549,8 +549,13 @@ ground states (18.1)–(18.2), the pattern sets (18.3), the weight `t(G,Φ)` of 
 (18.9), and the key estimate (18.10) for the periodic Gibbs distribution on the torus, Georgii's
 proof from the chessboard estimate; (18.9)(2) is proved with Georgii's essential supremum
 unfolded, since a transcription through Mathlib's real `essSup`, which returns a junk value where
-his is `+∞`, would be false. What remains is the transport of the
-torus measure to a random field on `ℤ^d`, hence `𝒢₀(Φ)` and (18.12), (18.16)–(18.19).
+his is `+∞`, would be false. `Specification/PeriodicGibbsLimits.lean` identifies the torus measure,
+pulled back to `ℤ^d`, with the Gibbs distribution of the periodic modification of the `C`-potential
+(Example (4.20)(2)), defines `𝒢₀(Φ)` as its cluster points, proves `𝒢₀ ⊆ 𝒢_Θ` and (18.12) for
+standard Borel `E`; `Specification/QuasiGibbsian.lean` proves every Gibbs measure quasi-Gibbsian;
+`Model/LowEnergyOceans.lean` has the (18.14) consequences for `μ ∈ 𝒢₀(Φ)` and (18.18) in quadrant
+form. Open: (18.11), Steps 1–3 of (18.16) (two planar-topology arguments Georgii gives by
+pictures), hence (18.17), (18.18) with the ocean part, and (18.19).
 
 **Chapter 16** normalises the a priori measure to a probability measure throughout, where Georgii
 assumes only that it is finite; the two differ by an additive `log λ(E)` in the pressure and the

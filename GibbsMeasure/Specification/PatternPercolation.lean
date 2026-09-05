@@ -40,16 +40,32 @@ of Georgii's key estimate:
   — **Lemma (18.10)** on the torus, first at a fixed `δ > 0` and then with the infimum of
   (18.8).
 
-## What is *not* here
+## The passage to `𝒢₀(Φ)`
 
 Georgii states (18.10) for `μ ∈ 𝒢₀(Φ)`, the set of `𝓛`-cluster points of the sequence
 `(°γ_{Λ(N)}^Φ × δ_{ω_N})_N` of Example (5.20)(3).  The estimate above is the finite-volume
 statement his proof establishes ("it is sufficient to prove that `°γ_Λ^Φ(D ∩ V(G, ·) = ∅) ≤
-t(G, Φ)^{|D|}` whenever `Λ = Λ(N)` is so large a cube that `Λ ⊃ ⋃_{i ∈ D} C + i`"); the
-passage to a cluster point needs `𝒢₀(Φ)` itself, which is not yet defined in this library —
-neither the transport of `°γ_Λ^Φ` from the torus `(ℤ/2N)^d` to a random field on `ℤ^d`, nor
-the identification of `°γ_{Λ(N)}^Φ` with the finite-volume Gibbs distribution of the periodic
-modification `Φ̃^{Λ(N)}` of Example (4.20)(2).
+t(G, Φ)^{|D|}` whenever `Λ = Λ(N)` is so large a cube that `Λ ⊃ ⋃_{i ∈ D} C + i`").  The
+transport of `°γ_Λ^Φ` from the torus `(ℤ/2N)^d` to a random field on `ℤ^d`, its identification
+with the finite-volume Gibbs distribution of the periodic modification `Φ̃^{Λ(N)}` of Example
+(4.20)(2), the set `𝒢₀(Φ)` itself, and the passage of the estimate to a cluster point are in
+`GibbsMeasure.Specification.PeriodicGibbsLimits`
+(`MeasureTheory.GibbsMeasure.forall_notMem_latticePattern_le_patternWeight`).
+
+## What is *not* here
+
+Georgii's **Comment (18.11)** — that (18.10) also holds with `t(G, Φ)` replaced by
+
+`t̃(G, Φ) = exp[-λ-inf_{E^C∖G} Φ_C] λ^C(E^C∖G)^{1/|C|}
+             inf_R exp[λ-sup_R Φ_C] / λ^C(R)^{1/|C|}`,
+
+the infimum over the rectangles `R = ∏_{c ∈ C} R_c` with `λ(R_c) > 0` — is not proved.  Its
+only new ingredient is the identity `λ^Λ(∏_{i ∈ Λ} 1_{r^i R} ∘ σ_{C(i)}) = λ^C(R)^{|Λ|/|C|}`,
+which needs the description of the iterated reflection `r^i` of (17.14) as the permutation
+`c ↦ (if i_k is even then c_k else 1 - c_k)_k` of the corners of the cube, together with the
+observation that `r^{j-c}(c)` depends only on the parities of `j`; with that identity the
+denominator estimate `le_periodicGibbs_univ` and the chain below it go through verbatim with
+`G_δ(Φ)` replaced by `R`.
 -/
 
 @[expose] public section

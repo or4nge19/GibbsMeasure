@@ -400,6 +400,14 @@ status:
       file: "GibbsMeasure/Specification/ReflectionPositivity.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.GZero_nonempty"
+      file: "GibbsMeasure/Specification/PeriodicGibbsLimits.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.le_measure_cross_latticePattern"
+      file: "GibbsMeasure/Model/LowEnergyOceans.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.Shlosman.dgSpecification_abs_excess_le"
       file: "GibbsMeasure/Model/RandomStaircase.lean"
       sorry_count: 0
@@ -1306,9 +1314,19 @@ alignment:
         transcription would be false; Georgii's statement is correct. Lemma (18.10) for the periodic
         Gibbs distribution on the torus, by Georgii's proof from the chessboard estimate, with
         the block-independence lemmas for Measure.pi that Mathlib lacks
-        (Mathlib/MeasureTheory/Constructions/PiBlocks.lean). Not formalized: the transport of
-        the torus measure to a random field on Z^d, hence G_0(Phi), (5.20)(3), (18.10) for
-        mu in G_0(Phi), (18.11), (18.12), (18.16) Steps 1-3, (18.17)-(18.19).
+        (Mathlib/MeasureTheory/Constructions/PiBlocks.lean). Specification/PeriodicGibbsLimits.lean:
+        the torus measure pulled back to a random field on Z^d is the Gibbs distribution in the
+        cube of the periodic modification (Example (4.20)(2)) of the C-potential determined by
+        Phi_C, so (17.21) and (18.10) are statements about Georgii's periodic Gibbs distribution;
+        G_0(Phi) as the set of cluster points, contained in G_Theta(Phi) (Example (5.20)(3));
+        (18.10) for mu in G_0(Phi); (18.12) for standard Borel E under (17.18)(iv) in either
+        alternative, via (4.13) and (4.9). Specification/QuasiGibbsian.lean: quasi-Gibbsianness
+        as Georgii defines it, and every Gibbs measure of a lambda-specification with positive
+        densities has it. Model/LowEnergyOceans.lean: the display after (18.14) for mu in
+        G_0(Phi), the 1 - 4z bound, and (18.18) in quadrant form. Not formalized: (18.11), Steps
+        1-3 of (18.16) (Poincare recurrence is Mathlib's conservativity; the two planar-topology
+        arguments Georgii gives by pictures are not written), hence (18.17), (18.18) with the
+        ocean part, and (18.19), which also needs the Heisenberg model on the sphere.
     - source: "Section 18.1: (18.4)-(18.7), (18.13)-(18.15)"
       lean: "MeasureTheory.GibbsMeasure.Peierls.le_measure_forall_mem_infiniteClusters"
       module: "GibbsMeasure/Model/StarCrossing.lean"

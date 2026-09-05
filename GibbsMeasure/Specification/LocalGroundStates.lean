@@ -44,7 +44,7 @@ Georgii states (18.9)(2) with the essential supremum `λ-sup_M Φ_C = inf{c : λ
 = 0}`, which is `+∞` when `Φ_C` is essentially unbounded on `M`; over `ℝ`, Mathlib's `essSup`
 returns the junk value `sInf ∅ = 0` there instead, so transcribing (18.9)(2) with `essSup`
 would be false as soon as some positive-measure `M` carries an essentially unbounded `Φ_C`.
-`groundStateCost_eq_iInf_of_ae_le` therefore ranges over the *pairs* `(M, c)` with
+`groundStateCost_eq_iInf` therefore ranges over the *pairs* `(M, c)` with
 `λ^C(M) > 0` and `Φ_C ≤ c` `λ^C`-a.e. on `M`, which is Georgii's infimum with the `λ-sup`
 unfolded (the terms he writes with `λ-sup_M Φ_C = +∞` are `+∞` and do not affect an infimum).
 -/

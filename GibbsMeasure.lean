@@ -222,6 +222,7 @@ public import GibbsMeasure.Model.GaussianField
 public import GibbsMeasure.Model.GaussianSpecification
 public import GibbsMeasure.Model.GaussianGibbs
 public import GibbsMeasure.Model.GaussianHomogeneous
+public import GibbsMeasure.Model.LowEnergyOceans
 public import GibbsMeasure.Model.ShiftAverage
 public import GibbsMeasure.Potential.Existence
 public import GibbsMeasure.Potential.FiniteReference
@@ -304,6 +305,8 @@ public import GibbsMeasure.Specification.LocalGroundStates
 public import GibbsMeasure.Specification.PatternPercolation
 public import GibbsMeasure.Specification.ReflectionPositivity
 public import GibbsMeasure.Specification.PeriodicGibbs
+public import GibbsMeasure.Specification.PeriodicGibbsLimits
+public import GibbsMeasure.Specification.QuasiGibbsian
 public import GibbsMeasure.Specification.ShannonMcMillan
 public import GibbsMeasure.Specification.Structure
 public import GibbsMeasure.Topology.ConfigurationSpace
