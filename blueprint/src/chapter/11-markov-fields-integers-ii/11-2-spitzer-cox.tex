@@ -82,7 +82,7 @@
 \begin{corollary}[Georgii (11.33)]
     \label{cor:sc-11-33}
     \uses{prop:sc-11-32, thm:bl-11-9a, thm:bl-11-9b}
-    \lean{MeasureTheory.GibbsMeasure.Markov.IsBoundaryLaw.measure_inter_inter_preimage_mul, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.limitLawZero, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.exists_prod_of_isMarkovChain, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.exists_isMarkovChain_of_prod, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.indepFun_tilted_of_prod, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.exists_prod_of_indepFun_tilted, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.isMarkovChain_tfae, MeasureTheory.Measure.eq_fst_prod_snd_of_eq_prod, MeasureTheory.map_tilted_comp}
+    \lean{MeasureTheory.GibbsMeasure.Markov.IsBoundaryLaw.measure_inter_inter_preimage_mul, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.limitLawZero, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.exists_prod_of_isMarkovChain, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.exists_isMarkovChain_of_prod, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.indepFun_tilted_of_prod, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.exists_prod_of_indepFun_tilted, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.isMarkovChain_tfae, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.isFiniteMeasure_of_bind_chainFamily_eq, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.chainFamily_isMarkovChain, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.exists_isMarkovChain_notMem_extremePoints_G, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.exists_mem_G_not_isMarkovChain, MeasureTheory.Measure.eq_fst_prod_snd_of_eq_prod, MeasureTheory.map_tilted_comp}
     \leanok
 
     For $\mu \in \mathcal G(\gamma^Q)$ the following are equivalent: (a) $\mu$ is a Markov chain;
@@ -92,11 +92,27 @@
     the two-sided Markov property of a boundary-law measure --- past and future are conditionally
     independent given the present --- applied to the law of $(U,V)$ on $\{\sigma_0 = 0\}$;
     (c) $\Rightarrow$ (a) because the mixtures $\int \ell^u_i\,m_1(du)$, $\int r^v_i\,m_2(dv)$ form
-    a boundary law; (b) $\Leftrightarrow$ (c) by the uniqueness of the representing measure. Hence
-    not every Markov chain in $\mathcal G(\gamma^Q)$ is extreme and not every Markov field is a
-    Markov chain, so the converses of (10.9)(3) and (10.21) fail; the extreme points $\mu^{u,v}$
-    themselves are Markov chains.
+    a boundary law; (b) $\Leftrightarrow$ (c) by the uniqueness of the representing measure; and
+    (c) with arbitrary $\sigma$-finite $m_1, m_2$ forces them finite, so Georgii's ``suitable''
+    measures are the finite ones. Hence, as theorems: $\tfrac12\mu^{0,0} + \tfrac12\mu^{1,0}$ is
+    a Markov chain in $\mathcal G(\gamma^Q)$ that is not extreme (the converse of (10.21) fails),
+    $\tfrac12\mu^{0,0} + \tfrac12\mu^{1,1}$ is a Gibbs measure that is not a Markov chain (the
+    converse of (10.9)(3) fails), and every $\mu^{u,v}$ is a Markov chain.
 \end{corollary}
+\begin{proof}
+    \leanok
+\end{proof}
+
+\begin{proposition}[Temperedness, Georgii before (11.31)]
+    \label{prop:sc-tempered}
+    \uses{prop:sc-11-32}
+    \lean{MeasureTheory.GibbsMeasure.Markov.IsTempered, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.ofReal_zpow_mul_lintegral_fst_limitLaw_le, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.eq_zero_of_forall_ofReal_zpow_mul_le, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.eq_chainFamily_zero_of_isTempered, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.isTempered_chainFamily_zero, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.isTempered_iff_eq_chainFamily_zero}
+    \leanok
+
+    $\mu \in \mathcal G(\gamma^Q)$ is tempered if $\sup_{i\neq 0}\mu(\sigma_i)|i|^{-r} < \infty$ for
+    some $r \geq 1$; $\mu^{0,0}$ is the only tempered element, since $p^{\mp i}\mu(U)$, resp.\
+    $p^{\pm i}\mu(V)$, is dominated by $\mu(\sigma_i)$ and $n^r p^n \to 0$.
+\end{proposition}
 \begin{proof}
     \leanok
 \end{proof}

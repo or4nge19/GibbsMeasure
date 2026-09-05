@@ -432,6 +432,10 @@ status:
       file: "GibbsMeasure/Specification/LargeDeviationsLower.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.limsup_log_iSup_gibbsSpecification_div_card_le"
+      file: "GibbsMeasure/Specification/LargeDeviationsUpper.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.heisenbergPeriodicGibbsDist_tail_le"
       file: "GibbsMeasure/Specification/InfraredBound.lean"
       sorry_count: 0
@@ -1571,18 +1575,27 @@ alignment:
         the i.i.d. block field is ergodic, the L^1 ergodic theorem for the block log-densities,
         and the change of measure to lambda^S), along centred cubes, with (4.2), (15.44) on open
         sets and the uniform energy identity (Specification/LargeDeviationsLower.lean). Remaining
-        for (15.45)-(15.48): the upper bound (15.46), whose Step 3 is available for finite E
-        only. The lower bound (15.47) is proved (LargeDeviationsLower.lean): for any set C of
+        for (15.45)-(15.48): the upper bound (15.46) at Georgii's standard-Borel generality;
+        for a finite state space it is proved (LargeDeviationsUpper.lean): limsup |Lambda|^{-1}
+        log sup_omega gamma_Lambda(R_Lambda in C | omega) <= - inf_{closure C} A(.|Phi) for
+        C in P_Theta along cubes with sides tending to infinity, and for every Gibbs measure;
+        Steps 1-2 (the identity (15.53) with the conditional Gibbs distribution, (15.52) with tile
+        Lambda, the energy error and the L-distance to the block average) hold for any state
+        space, Step 3 is (15.54) for the EReal-valued excess free energy shifted into [0, infinity]
+        (Mathlib/Data/EReal/ShiftToENNReal.lean), its concavity from the convexity of the specific
+        entropy, Step 4 the cluster point; over a finite E Georgii's measurability hypothesis on C
+        is automatic. The standard-Borel case needs a countable core of F and the compact
+        metrizable C-topology, not formalised. The lower bound (15.47) is proved (LargeDeviationsLower.lean): for any set C of
         random fields with interior C° in P_Theta, liminf |Lambda|^{-1} log inf_omega
         gamma_Lambda(R_Lambda in C | omega) >= - inf_{C°} A(.|Phi) along increasing cubes, and the
         same for every Gibbs measure, for any state space and a priori probability measure
         (Georgii's standard Borel hypothesis is not used); the cubes increase, a hypothesis
         inherited from the pointwise ergodic theorem behind (15.44), where Georgii allows any
         sequence with |Lambda| -> infinity; the tiles meeting an arbitrary cube have cardinality
-        asymptotic to it and Folner tile indices (BlockMcMillan.lean). Consequently the two
-        displayed inequalities of Corollary (15.48) are not yet proved, only its trailing
-        properties of the rate function; also not formalized: (15.50), (15.51), (15.57)-(15.58),
-        and Georgii's remark that (15.46)-(15.47) hold for the periodic Gibbs distributions.
+        asymptotic to it and Folner tile indices (BlockMcMillan.lean). So Theorem (15.45) holds
+        for a finite state space. Not yet proved: the two displayed inequalities of Corollary
+        (15.48) (the contraction step exists), (15.50), (15.51), (15.57)-(15.58), and Georgii's
+        remark that (15.46)-(15.47) hold for the periodic Gibbs distributions.
         Throughout, the a priori measure is a
         probability measure where Georgii assumes only a finite one.
     - source: "Section 12.2: (12.19)-(12.35)"
@@ -1628,13 +1641,17 @@ alignment:
         Chebyshev and Borel-Cantelli (U and V exist a.s. under every Gibbs measure), Step 4 on the
         representing weight; the parametrised representation mu = int mu^{u,v} m(du,dv) with m
         the law of (U,V), unique, the family (u,v) |-> mu^{u,v} a measurable kernel and Georgii's
-        phi the limit of one-site expectations; Corollary (11.33) as a three-way equivalence
+        phi the limit of one-site expectations; Corollary (11.33) as a four-way equivalence
         (Model/SpitzerCoxMarkovChains.lean), with the two-sided Markov property of a boundary-law
         measure (Model/BoundaryLawMarkovProperty.lean), the tilt mu~ = e^{-UV} mu as Mathlib's
-        Measure.tilted, and Georgii's "suitable measures" shown to be necessarily finite.
+        Measure.tilted, and Georgii's "suitable measures" shown to be necessarily finite as a step
+        of the proof; its two conclusions as theorems: a Markov chain in G(gamma^Q) that is not
+        extreme and a Gibbs measure that is not a Markov chain (the converses of (10.21) and
+        (10.9)(3) fail), while every mu^{u,v} is a Markov chain; temperedness singles out mu^{0,0}
+        as Georgii says before (11.31).
         11.3 Kalikow: Theorem (11.39) in full (Model/KalikowClassification.lean): ex G = {mu_Q} u
         {mu_j}, the boundary limit Z exists a.s. under every Gibbs measure, the decomposition
-        mu = mu(Z = -infinity) mu_Q + sum_j mu(Z = j) mu_j, and every Gibbs measure is a Markov
+        mu = mu(Z = -infinity) mu_Q + sum_j mu(Z = j) mu_j with unique coefficients, and every Gibbs measure is a Markov
         chain with transition matrix Q; Borel-Cantelli as complete convergence in
         Mathlib/MeasureTheory/Function/CompleteConvergence.lean. 11.4 closing remarks: the family
         mu^c with theta_j mu^c = mu^{c p^{-2j}}, pairwise distinct, so ex G uncountable, including

@@ -49,7 +49,10 @@ argument (the pattern of Step 4 of Theorem (11.31)): the extreme decomposition (
 carried by extreme points `ν` with `ν(Z = j) = 1`, and by Steps 2–3 the only such `ν` is `μ_j`.
 The decomposition `μ = μ(Z = -∞) μ_Q + ∑_j μ(Z = j) μ_j` of an arbitrary `μ ∈ 𝒢(Q)` is obtained by
 integrating `ν(A) = ν(Z = -∞) μ_Q(A) + ∑_j ν(Z = j) μ_j(A)` (valid for every extreme `ν`) against
-the weight `w_μ` of (7.26); its uniqueness is Theorem (7.26) itself (`eq_weightOf_of_join_eq`).
+the weight `w_μ` of (7.26). Georgii's word "unique" is `eq_of_eq_add_sum`: the coefficients of
+*any* representation `μ = c μ_Q + ∑_j a_j μ_j` are forced to be `c = μ(Z = -∞)` and
+`a_j = μ(Z = j)`, since `μ_Q` and the `μ_j` are separated by the limit events (Step 3). No Gibbs
+hypothesis is needed for that, and it does not go through the weight of (7.26).
 Georgii's last sentence, "each `μ ∈ 𝒢(Q)` is a Markov chain", is proved in the stronger form
 that every `μ ∈ 𝒢(Q)` is a Markov chain *with transition matrix `Q`*: all `μ_Q`, `μ_j` are
 (their boundary laws have `r ≡ 1`, so (11.11) gives `P_i = Q`), and the one-step recursion of the
@@ -63,6 +66,9 @@ cylinder probabilities is linear in the measure.
 * `measure_eq_add_tsum_of_mem_G`, `eq_add_sum_of_mem_G`,
   `measure_escapeEvent_add_tsum_measure_limitEvent` — **Georgii Theorem (11.39)**: the extreme
   decomposition `μ = μ(Z = -∞) μ_Q + ∑_j μ(Z = j) μ_j`, whose weights sum to `1`.
+* `eq_of_eq_add_sum`, `eq_of_add_sum_eq_add_sum` — **Georgii Theorem (11.39), "the *unique*
+  extreme decomposition"**: the coefficients of any such decomposition are the masses of the
+  limit events, so two decompositions of the same measure coincide.
 * `measure_intervalCylinder_of_mem_G`, `isMarkovChain_of_mem_G` — **Georgii Theorem (11.39),
   the final sentence**: `μ ∈ 𝒢(Q)` has the cylinder probabilities (11.10) of the boundary law
   `ℓ_i = μ(Z = -∞) α + ∑_j μ(Z = j) α_{i-j}`, `r_i = 1`, and is a Markov chain with transition
@@ -526,6 +532,40 @@ theorem eq_add_sum_of_mem_G {μ : Measure (ℤ → ℕ)}
   rw [Measure.add_apply, Measure.smul_apply, smul_eq_mul, Measure.sum_apply _ hA,
     measure_eq_add_tsum_of_mem_G hq hqp hp hμ hA]
   simp only [Measure.smul_apply, smul_eq_mul]
+
+/-- **Georgii Theorem (11.39): the extreme decomposition is unique.** Georgii writes that "the
+unique extreme decomposition of `μ` is `μ = μ(Z = -∞) μ_Q + ∑_j μ(Z = j) μ_j`". The uniqueness is
+the statement that the coefficients of *any* such decomposition are the masses of the limit
+events: evaluating a representation `μ = c μ_Q + ∑_j a_j μ_j` at `{Z = -∞}` returns `c`, because
+`μ_Q(Z = -∞) = 1` and `μ_j(Z = -∞) = 0`, and evaluating it at `{Z = j}` returns `a_j`, because
+`μ_Q(Z = j) = 0` and `μ_{j'}(Z = j) = δ_{j j'}`. No Gibbs hypothesis on `μ` is needed. -/
+theorem eq_of_eq_add_sum {μ : Measure (ℤ → ℕ)} {c : ℝ≥0∞} {a : ℤ → ℝ≥0∞}
+    (h : μ = c • invariantChain hq hqp hp
+      + Measure.sum fun j : ℤ ↦ a j • shiftedChain hq hqp hp j) :
+    c = μ escapeEvent ∧ ∀ j : ℤ, a j = μ (limitEvent j) := by
+  constructor
+  · rw [h, Measure.add_apply, Measure.smul_apply, smul_eq_mul,
+      Measure.sum_apply _ measurableSet_escapeEvent, invariantChain_escapeEvent hq hqp hp, mul_one]
+    simp [Measure.smul_apply, shiftedChain_escapeEvent hq hqp hp]
+  · intro j
+    rw [h, Measure.add_apply, Measure.smul_apply, smul_eq_mul,
+      Measure.sum_apply _ (measurableSet_limitEvent j), invariantChain_limitEvent hq hqp hp j,
+      mul_zero, zero_add,
+      tsum_eq_single j fun j' hj' ↦ by
+        rw [Measure.smul_apply, shiftedChain_limitEvent_of_ne hq hqp hp hj', smul_zero],
+      Measure.smul_apply, shiftedChain_limitEvent hq hqp hp j, smul_eq_mul, mul_one]
+
+/-- Two extreme decompositions of the same measure have the same coefficients. -/
+theorem eq_of_add_sum_eq_add_sum {c c' : ℝ≥0∞} {a a' : ℤ → ℝ≥0∞}
+    (h : c • invariantChain hq hqp hp + Measure.sum (fun j : ℤ ↦ a j • shiftedChain hq hqp hp j)
+      = c' • invariantChain hq hqp hp
+        + Measure.sum fun j : ℤ ↦ a' j • shiftedChain hq hqp hp j) :
+    c = c' ∧ a = a' := by
+  obtain ⟨hc, ha⟩ := eq_of_eq_add_sum hq hqp hp (μ := c • invariantChain hq hqp hp
+    + Measure.sum fun j : ℤ ↦ a j • shiftedChain hq hqp hp j) rfl
+  obtain ⟨hc', ha'⟩ := eq_of_eq_add_sum hq hqp hp (μ := c • invariantChain hq hqp hp
+    + Measure.sum fun j : ℤ ↦ a j • shiftedChain hq hqp hp j) h
+  exact ⟨hc.trans hc'.symm, funext fun j ↦ (ha j).trans (ha' j).symm⟩
 
 /-- The weights of the extreme decomposition sum to one: `μ(Z = -∞) + ∑_j μ(Z = j) = 1`, since
 the limit `Z` exists `μ`-almost surely and the events `{Z = -∞}`, `{Z = j}` are pairwise
