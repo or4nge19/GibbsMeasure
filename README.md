@@ -602,7 +602,9 @@ specification; the counting-kernel and cylinder calculus lives once, for any sit
 and the Gaussian potential (13.11)–(13.12); the `n`-dimensional Gaussian integral and the Gaussian
 density measure with its mean and covariance (both absent from Mathlib) are built under
 `GibbsMeasure/Mathlib/`, giving λ-admissibility of `βΦ^{J,h}` and **(13.13)** — the finite-volume
-Gibbs distribution is the Gaussian with precision `β𝒥_Λ` — for finite-range `J`; the tail event
+Gibbs distribution *is* a Gauss field, the Gaussian with precision `β𝒥_Λ`, proved in Georgii's own
+form: the density measure is Gaussian in Mathlib's sense and equals `𝒩(m, (β𝒥_Λ)⁻¹)` — for
+finite-range `J`; the tail event
 `Ω_J` (13.9), the glued Gaussian specification (13.18) as an instance of the tree's gluing, and the
 mean set (13.21) (`GibbsMeasure/Model/GaussianSpecification.lean`). **(13.4)–(13.8)**: `ξ_i = μ(σ_i | 𝒯_i)`, the conditional covariance `Γ`, and Theorem (13.7) with
 Georgii's hypotheses (conditional couplings vanish off the neighbourhoods, are positive definite and
