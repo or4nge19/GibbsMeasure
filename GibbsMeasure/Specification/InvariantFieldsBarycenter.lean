@@ -37,8 +37,9 @@ locally convex Polish space `𝓕⁰ → ℝ`, into which the random fields are 
 * `MeasureTheory.GibbsMeasure.isCompact_image_evalLocalEvents`,
   `MeasureTheory.GibbsMeasure.convex_image_evalLocalEvents`: the image of a closed,
   mixture-stable set of random fields — `𝓟_Θ` in particular, by
-  `MeasureTheory.GibbsMeasure.convex_image_invariantFields_shiftGroup` — is a **compact convex**
-  subset of that space.
+  `MeasureTheory.GibbsMeasure.isCompact_and_convex_image_invariantFields`, for an arbitrary
+  subgroup `Θ` of the transformation group (`…_shiftGroup` for Georgii's shift group) — is a
+  **compact convex** subset of that space.
 * `MeasureTheory.GibbsMeasure.exists_isBarycenter_lintegral_eq`: **Georgii's display before
   (15.54)** — a random field `μ` in the closed convex hull `cx̄ C` of `C ⊆ 𝓟_Θ` is the barycentre
   of a probability measure `w_μ` carried by (the image of) `C`, and every affine lower
@@ -143,19 +144,19 @@ theorem isClosed_setOf_mem_invariantFields (Θ : Subgroup (Transformation S E)) 
   rw [this]
   exact isClosed_setOf_forall_measurePreserving _
 
-variable [AddGroup S]
-
 omit [Countable S] [Finite E] [MeasurableSingletonClass E] in
-/-- **Georgii (14.1): `𝓟_Θ` is convex.** Convex combinations of shift-invariant random fields are
-shift invariant, so the image of `𝓟_Θ` in `localEvents S E → ℝ` is convex. -/
-theorem convex_image_invariantFields_shiftGroup :
+/-- **Georgii (14.1): `𝓟_Θ` is convex.** Convex combinations of `Θ`-invariant random fields are
+`Θ`-invariant (`smul_add_smul_mem_invariantFields`), so the image of `𝓟_Θ` in
+`localEvents S E → ℝ` is convex.  `Θ` is an arbitrary subgroup of the transformation group `T`;
+no group structure on the site set is needed. -/
+theorem convex_image_invariantFields (Θ : Subgroup (Transformation S E)) :
     Convex ℝ (evalLocalEvents S E ''
       {μ : WithLocalConvergence S E |
-        (μ.toMeasure : Measure (S → E)) ∈ invariantFields (shiftGroup S E)}) := by
+        (μ.toMeasure : Measure (S → E)) ∈ invariantFields Θ}) := by
   refine convex_image_evalLocalEvents fun μ hμ ν hν a b ha hb hab ↦ ?_
   have hst : a.toNNReal + b.toNNReal = 1 := by
     rw [← Real.toNNReal_add ha hb, hab, Real.toNNReal_one]
-  have hmix := smul_add_smul_mem_invariantFields_shiftGroup hμ hν hst
+  have hmix := smul_add_smul_mem_invariantFields hμ hν hst
   refine ⟨⟨⟨_, hmix.1⟩⟩, hmix, ?_⟩
   have : (a.toNNReal : ℝ≥0) • (μ.toMeasure : Measure (S → E))
         + (b.toNNReal : ℝ≥0) • (ν.toMeasure : Measure (S → E))
@@ -167,7 +168,32 @@ theorem convex_image_invariantFields_shiftGroup :
 omit [Countable S] in
 /-- **`𝓟_Θ` is a compact convex subset of a locally convex Polish space.** This is what Georgii's
 Step 3 needs in order to apply Choquet theory; over a finite state space no change of topology is
-required. -/
+required.  Stated for an arbitrary subgroup `Θ ≤ T`, as in Georgii's remark that the theory of
+§14.1 applies to any (countable) subgroup of the transformation group. -/
+theorem isCompact_and_convex_image_invariantFields (Θ : Subgroup (Transformation S E)) :
+    IsCompact (evalLocalEvents S E ''
+        {μ : WithLocalConvergence S E |
+          (μ.toMeasure : Measure (S → E)) ∈ invariantFields Θ}) ∧
+      Convex ℝ (evalLocalEvents S E ''
+        {μ : WithLocalConvergence S E |
+          (μ.toMeasure : Measure (S → E)) ∈ invariantFields Θ}) :=
+  ⟨isCompact_image_evalLocalEvents (isClosed_setOf_mem_invariantFields _),
+    convex_image_invariantFields _⟩
+
+variable [AddGroup S]
+
+omit [Countable S] [Finite E] [MeasurableSingletonClass E] in
+/-- **Georgii (14.1): `𝓟_Θ` is convex**, for Georgii's shift group: the shift-group case of
+`convex_image_invariantFields`. -/
+theorem convex_image_invariantFields_shiftGroup :
+    Convex ℝ (evalLocalEvents S E ''
+      {μ : WithLocalConvergence S E |
+        (μ.toMeasure : Measure (S → E)) ∈ invariantFields (shiftGroup S E)}) :=
+  convex_image_invariantFields _
+
+omit [Countable S] in
+/-- **`𝓟_Θ` is a compact convex subset of a locally convex Polish space**, for Georgii's shift
+group: the shift-group case of `isCompact_and_convex_image_invariantFields`. -/
 theorem isCompact_and_convex_image_invariantFields_shiftGroup :
     IsCompact (evalLocalEvents S E ''
         {μ : WithLocalConvergence S E |
@@ -175,8 +201,7 @@ theorem isCompact_and_convex_image_invariantFields_shiftGroup :
       Convex ℝ (evalLocalEvents S E ''
         {μ : WithLocalConvergence S E |
           (μ.toMeasure : Measure (S → E)) ∈ invariantFields (shiftGroup S E)}) :=
-  ⟨isCompact_image_evalLocalEvents (isClosed_setOf_mem_invariantFields _),
-    convex_image_invariantFields_shiftGroup⟩
+  isCompact_and_convex_image_invariantFields _
 
 end InvariantFields
 
@@ -374,7 +399,7 @@ theorem exists_isBarycenter_lintegral_eq
 
 /-- **Georgii (15.54), in the tree's language.** Let `P` be a closed, mixture-stable set of random
 fields — `𝓟_Θ`, by `isClosed_setOf_mem_invariantFields` and
-`smul_add_smul_mem_invariantFields_shiftGroup` — and let `𝒜 : P → [0, ∞]` be lower semicontinuous
+`smul_add_smul_mem_invariantFields` — and let `𝒜 : P → [0, ∞]` be lower semicontinuous
 for the topology of local convergence and concave (in particular affine, as Georgii's excess free
 energy `𝒜(· | Φ)` is). Then for `C ⊆ P` the infimum of `𝒜` over the *closed convex hull of `C`
 inside `P`* — the random fields whose evaluation lies in

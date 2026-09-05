@@ -22,6 +22,8 @@ at that generality, over an arbitrary site set `S` and state space `(E, ℰ)`.
 
 ## Main results
 
+* `smul_add_smul_mem_invariantFields` — **(14.1)**: `𝓟_Θ` is convex, for an arbitrary subgroup
+  `Θ ≤ T` (`smul_add_smul_mem_invariantFields_shiftGroup` is the shift-group case).
 * `measurable_invariantEvents_iff` — **Remark (14.3)(1)**: a function is `𝓘`-measurable iff it
   is measurable and invariant, `f ∘ θ = f` for all `θ ∈ Θ`.
 * `ergodicSMul_iff_mem_trivialOn_invariantEvents` — **Definition (14.6)**: a `Θ`-invariant
@@ -109,6 +111,22 @@ lemma mem_invariantFields_iff_forall_kernel_invariant {μ : Measure (S → E)} :
       IsProbabilityMeasure μ ∧ ∀ τ : Θ, Kernel.Invariant (smulKernel Θ τ) μ :=
   mem_invariantFields.trans
     (and_congr_right fun _ ↦ smulInvariantMeasure_iff_forall_invariant)
+
+/-- **Georgii (14.1): `𝓟_Θ` is convex.** A convex combination of `Θ`-invariant random fields is
+again a `Θ`-invariant random field, for an arbitrary subgroup `Θ` of the transformation group
+`T`. -/
+lemma smul_add_smul_mem_invariantFields {μ₁ μ₂ : Measure (S → E)}
+    (hμ₁ : μ₁ ∈ invariantFields Θ) (hμ₂ : μ₂ ∈ invariantFields Θ) {s t : ℝ≥0}
+    (hst : s + t = 1) :
+    s • μ₁ + t • μ₂ ∈ invariantFields Θ := by
+  obtain ⟨h₁, h₁'⟩ := mem_invariantFields_iff.1 hμ₁
+  obtain ⟨h₂, h₂'⟩ := mem_invariantFields_iff.1 hμ₂
+  refine mem_invariantFields_iff.2 ⟨⟨?_⟩, fun τ hτ ↦ ⟨τ.measurable_toFun, ?_⟩⟩
+  · rw [Measure.add_apply, Measure.smul_apply, Measure.smul_apply, measure_univ, measure_univ,
+      ENNReal.smul_def, ENNReal.smul_def, smul_eq_mul, smul_eq_mul, mul_one, mul_one,
+      ← ENNReal.coe_add, hst, ENNReal.coe_one]
+  · rw [Measure.map_add _ _ τ.measurable_toFun, Measure.map_smul, Measure.map_smul,
+      ((h₁' τ hτ).map_eq), ((h₂' τ hτ).map_eq)]
 
 /-- **Georgii (14.2)**, membership: `A ∈ 𝓘` iff `A` is measurable and fixed under the preimage
 of every transformation in `Θ`. -/
@@ -271,19 +289,12 @@ lemma mem_invariantFields_shiftGroup {μ : Measure (S → E)} :
   exact h j
 
 /-- Convex combinations of shift-invariant random fields are shift invariant: `𝓟_Θ` is convex
-(Georgii, (14.1)). -/
+(Georgii, (14.1)).  The shift-group case of `smul_add_smul_mem_invariantFields`. -/
 lemma smul_add_smul_mem_invariantFields_shiftGroup {μ₁ μ₂ : Measure (S → E)}
     (hμ₁ : μ₁ ∈ invariantFields (shiftGroup S E))
     (hμ₂ : μ₂ ∈ invariantFields (shiftGroup S E)) {s t : ℝ≥0} (hst : s + t = 1) :
-    s • μ₁ + t • μ₂ ∈ invariantFields (shiftGroup S E) := by
-  obtain ⟨h₁, h₁'⟩ := mem_invariantFields_shiftGroup.1 hμ₁
-  obtain ⟨h₂, h₂'⟩ := mem_invariantFields_shiftGroup.1 hμ₂
-  refine mem_invariantFields_shiftGroup.2 ⟨⟨?_⟩, fun j ↦ ⟨(shift E j).measurable_toFun, ?_⟩⟩
-  · rw [Measure.add_apply, Measure.smul_apply, Measure.smul_apply, measure_univ, measure_univ,
-      ENNReal.smul_def, ENNReal.smul_def, smul_eq_mul, smul_eq_mul, mul_one, mul_one,
-      ← ENNReal.coe_add, hst, ENNReal.coe_one]
-  · rw [Measure.map_add _ _ (shift E j).measurable_toFun, Measure.map_smul, Measure.map_smul,
-      (h₁' j).map_eq, (h₂' j).map_eq]
+    s • μ₁ + t • μ₂ ∈ invariantFields (shiftGroup S E) :=
+  smul_add_smul_mem_invariantFields hμ₁ hμ₂ hst
 
 end ShiftGroup
 
