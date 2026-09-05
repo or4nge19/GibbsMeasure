@@ -9,6 +9,7 @@ public import GibbsMeasure.Mathlib.Algebra.QuadraticDiscriminant
 public import GibbsMeasure.Mathlib.Algebra.BigOperators.Group.Finset.Sigma
 public import GibbsMeasure.Mathlib.Analysis.Calculus.TiltedIntegral
 public import GibbsMeasure.Mathlib.Analysis.Convex.Barycenter
+public import GibbsMeasure.Mathlib.Analysis.Convex.BarycenterJensen
 public import GibbsMeasure.Mathlib.Topology.Instances.EReal
 public import GibbsMeasure.Mathlib.Topology.UniformSpace.Pi
 public import GibbsMeasure.Mathlib.Topology.MetricSpace.DependsOn
@@ -145,6 +146,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Function.EssSup
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.LocallyIntegrable
 public import GibbsMeasure.Mathlib.MeasureTheory.Group.Action.Synonym
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.CircleCharacter
+public import GibbsMeasure.Mathlib.MeasureTheory.Measure.SetwiseEmbedding
 public import GibbsMeasure.Mathlib.Probability.Kernel.CountableMatrix
 public import GibbsMeasure.Mathlib.Probability.Kernel.CountableMatrix.Recurrence
 public import GibbsMeasure.Mathlib.Probability.Kernel.CountableMatrix.Homogeneous
@@ -295,6 +297,7 @@ public import GibbsMeasure.Specification.QuasilocalSpecification
 public import GibbsMeasure.Specification.Singleton
 public import GibbsMeasure.Specification.CountingKernel
 public import GibbsMeasure.Specification.HeisenbergPeriodic
+public import GibbsMeasure.Specification.InvariantFieldsBarycenter
 public import GibbsMeasure.Specification.MarkovInt
 public import GibbsMeasure.Specification.MarkovIntChains
 public import GibbsMeasure.Specification.MarkovIntUniqueness

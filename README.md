@@ -517,10 +517,12 @@ finite state space. The Choquet barycentre representation (Phelps Prop. 1.2) is 
 shifted independent-block measure is `|Λ|⁻¹𝓗_Λ(γ)`, from the additivity of the relative entropy
 over a product of probability measures (`GibbsMeasure/Mathlib/InformationTheory/KullbackLeibler/Pi.lean`,
 absent from Mathlib), a tile sandwich and the `|Λ|`-ary form of (15.14); so every shift-invariant
-field is a local limit of ergodic ones with converging entropy density. Still open, and listed
-precisely in `formalization.yaml`: Phelps' Lemma 9.7 with the locally convex space of measures in
-which `𝓟_Θ` is compact convex, and a density form of Shannon–McMillan for standard Borel `E`;
-hence (15.45)–(15.48).
+field is a local limit of ergodic ones with converging entropy density. Phelps' Lemma 9.7 is proved
+for `[0,∞]`-valued affine lower semicontinuous functionals with no integrability hypothesis
+(`GibbsMeasure/Mathlib/Analysis/Convex/BarycenterJensen.lean`), the probability random fields embed
+into `𝓕⁰ → ℝ` with `𝓟_Θ` compact convex (`Specification/InvariantFieldsBarycenter.lean`), and
+Georgii's (15.54) holds there; his change of topology turned out to be unnecessary. What remains for
+(15.45)–(15.48) is the assembly of his proof, in progress.
 
 **Chapter 17** (`GibbsMeasure/Specification/ReflectionPositivity.lean`,
 `Specification/PeriodicGibbs.lean`): reflection positivity for Georgii's generalised reflection,

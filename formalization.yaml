@@ -416,6 +416,14 @@ status:
       file: "GibbsMeasure/Model/BoundaryLawLimits.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.IsBarycenter.lintegral_eq_of_affineENNReal"
+      file: "GibbsMeasure/Mathlib/Analysis/Convex/BarycenterJensen.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.iInf_closedConvexHull_eq_iInf_closure_of_lowerSemicontinuousOn"
+      file: "GibbsMeasure/Specification/InvariantFieldsBarycenter.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.Shlosman.dgSpecification_abs_excess_le"
       file: "GibbsMeasure/Model/RandomStaircase.lean"
       sorry_count: 0
@@ -1469,11 +1477,15 @@ alignment:
         where Georgii's have even side; for Step 3 of (15.46), the Choquet barycentre representation is
         now in Mathlib/Analysis/Convex/Barycenter.lean (Phelps Prop. 1.2: a point of the closed
         convex hull of a closed subset of a compact convex set is the barycentre of a probability
-        measure carried by that subset, no metrizability), and still missing are Lemma 9.7 (an
-        affine lower semicontinuous [0, infinity]-valued functional evaluated at a barycentre is
-        its integral) and the locally convex space of measures with the C-topology in which
-        P_Theta is compact convex; and, for standard Borel E, a Shannon-McMillan theorem in terms
-        of the densities d(mu|F_Lambda)/d lambda^Lambda and, consequently, the two displayed limsup/liminf inequalities that are the
+        measure carried by that subset, no metrizability), Lemma 9.7 for [0, infinity]-valued
+        affine lower semicontinuous functionals with no integrability hypothesis
+        (Mathlib/Analysis/Convex/BarycenterJensen.lean, the concave half by a partition argument),
+        the embedding of the probability random fields into F^0 -> R with P_Theta compact convex
+        (Mathlib/MeasureTheory/Measure/SetwiseEmbedding.lean, Specification/
+        InvariantFieldsBarycenter.lean), and (15.54) itself for every affine lower semicontinuous
+        A : P_Theta -> [0, infinity]; the consumer must shift the EReal-valued excess free energy
+        into [0, infinity]. Remaining for (15.45)-(15.48): the assembly of Georgii's proof
+        (in flight), and, for standard Borel E, the block form of McMillan and, consequently, the two displayed limsup/liminf inequalities that are the
         substance of Corollary (15.48) — only its trailing properties of the rate function are
         proved; also (15.50)-(15.52), (15.57)-(15.58). Throughout, the a priori measure is a
         probability measure where Georgii assumes only a finite one.
