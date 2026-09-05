@@ -57,10 +57,18 @@ of the box `Δ` (Georgii Example (4.20)(2), `Potential.IsTorusReduction`, in
   (`MeasureTheory.ae_tendsto_inv_card_smul_sum_vadd_condExp_cube`) applied along the reflected
   cubes `−Λ_n`, since `f ∘ θ_{-i} = f((-i) +ᵥ ·)`, and the Følner property of cubes
   (`MeasureTheory.GibbsMeasure.tendsto_card_filter_add_notMem_div_card`).
+* `MeasureTheory.GibbsMeasure.tendsto_eLpNorm_integral_periodicEmpiricalField_sub_one`: the same
+  convergence in `L¹(μ)`, `∫ |°R^ω_{Λ_n}(f) − μ(f)| dμ(ω) → 0`, along an **arbitrary** sequence of
+  cubes with `s_n → ∞`. This uses only the *mean* ergodic theorem (14.A5)
+  (`MeasureTheory.tendsto_eLpNorm_inv_card_smul_sum_vadd_sub_condExp_one`), whose hypothesis on
+  the volumes is the Følner property alone; Georgii's monotonicity of the cubes enters only
+  through the individual ergodic theorem (14.A8), i.e. only in the almost sure statement above.
 * `MeasureTheory.GibbsMeasure.tendsto_measure_setOf_abs_integral_periodicEmpiricalField_sub_lt`:
   **(15.44)** itself, `μ(°R_{Λ_n} ∈ U) → 1` for a basic neighbourhood
   `U = {ν : |ν(f_j) − μ(f_j)| < ε, j = 1, …, k}` of `μ` in the topology of local convergence
-  (Georgii (4.2)).
+  (Georgii (4.2)). Being a statement about convergence *in probability*, it follows from the `L¹`
+  convergence by Markov's inequality and holds along an arbitrary sequence of cubes — which is
+  how Georgii states it, and how he proves it (he refers to (14.A5), not to (14.A8)).
 
 ## The rate function, Georgii (15.48), (15.49)
 
@@ -139,24 +147,45 @@ of the box `Δ` (Georgii Example (4.20)(2), `Potential.IsTorusReduction`, in
 
 ## Not proved here
 
-The **upper bound (15.46)** of **Theorem (15.45)** is *not* proved. (Its **lower bound (15.47)**,
-with the "in particular" clause for the Gibbs measures, is proved in
-`GibbsMeasure/Specification/LargeDeviationsLower.lean`.) Consequently neither are the two
-displayed inequalities of **Corollary (15.48)**, the asymptotics (15.51) of **Example (15.50)**
-(Cramér's theorem), nor the cluster point half of **Corollary (15.58)**. Everything else that
-§15.5 asserts is proved here; in particular (15.48) apart from its two inequalities — the
+Both halves of **Theorem (15.45)** are proved, but not at Georgii's generality:
+
+* the **lower bound (15.47)**, with the "in particular" clause for the Gibbs measures, is
+  `MeasureTheory.GibbsMeasure.neg_iInf_specificRelativeEntropy_le_liminf_log_iInf_gibbsSpecification`
+  of `GibbsMeasure/Specification/LargeDeviationsLower.lean`, over an *arbitrary* measurable state
+  space;
+* the **upper bound (15.46)**, with its "in particular" clause, is
+  `MeasureTheory.GibbsMeasure.limsup_log_iSup_gibbsSpecification_div_card_le` of
+  `GibbsMeasure/Specification/LargeDeviationsUpper.lean`, but only over a **finite** state space.
+  Georgii's Step 3, the passage from `cx̄ C` to `C̄` for which he cites Phelps' Choquet theory, is
+  `iInf_closedConvexHull_eq_iInf_closure_ereal` of
+  `GibbsMeasure/Specification/InvariantFieldsBarycenter.lean`, obtained from the concavity of
+  `𝓀(·|Φ)`; the three places where finiteness of `E` is used are listed in the docstring of
+  (15.46).
+
+What §15.5 still lacks:
+
+* **Georgii's standard Borel generality for (15.46).** Steps 1 and 2 of his proof are formalised
+  over an arbitrary measurable state space; what is missing is his change of topology — a
+  countable core `𝒞 ⊆ 𝓕⁰` of `𝓕` (Corollary (4.A13)) and the compact metrizability of
+  `𝓟(Ω, 𝓕)` in the `𝒞`-topology (Comment (4.A10)(1)) — without which neither the cluster point
+  extraction of Step 2 nor Step 3 is available. Over a finite state space `𝓕⁰` is already
+  countable, the space of random fields is already compact, and `{°R_Λ ∈ C}` is an event for
+  every `C` whatsoever, which is the other half of Georgii's hypothesis `C ∈ 𝓔(𝓟_Θ)`.
+* **The Gibbs distributions with periodic boundary conditions**
+  `°γ^Φ_Λ = e^{−°H^Φ_Λ} λ^Λ / °Z^Φ_Λ`, and Georgii's remark after (15.47) that both inequalities
+  hold for them too (his proof is then *simpler*, the energy errors (15.25) being unnecessary
+  since `°H^Φ_Λ = |Λ| ⟨°R_Λ, Φ⟩` by Remark (15.43)(3),
+  `MeasureTheory.GibbsMeasure.specificEnergy_periodicEmpiricalField`). Everything downstream of
+  that remark is stated for `°γ^Φ_Λ` and is missing with it: the two displayed inequalities of
+  **Corollary (15.48)** (the contraction of (15.45) along `e_Ψ`), the asymptotics (15.51) of
+  **Example (15.50)** (Cramér's theorem), and the cluster point half of **Corollary (15.58)**,
+  whose other half — that every cluster point is Gibbsian for the tilted potential — is (15.60)
+  below.
+
+Everything else that §15.5 asserts is proved here: (15.48) apart from its two inequalities — the
 convexity of `J_Ψ(·|Φ)`, the compactness of its level sets,
 `{J_Ψ(·|Φ) = 0} = e_Ψ(𝒢_Θ(Φ))` and the Legendre formula (15.49) — and the minimum free energy
 principle (15.59), (15.60) that carries the equivalence of ensembles.
-
-Georgii's remaining input to (15.45) that is absent from this library and from Mathlib is not a
-matter of bookkeeping:
-
-* **Phelps, Choquet theory, Prop. 1.2 and Lemma 9.7** — the barycentric representation of a point
-  of the closed convex hull of `C` by a measure carried by `C̄` — which is Step 3 of the proof of
-  (15.46), the passage from `cx̄ C` to `C̄`. Mathlib has no Choquet theory, and the barycentric
-  decomposition of `Specification/InvariantDecomposition.lean` is over the *ergodic* measures,
-  not over an arbitrary closed set `C̄`, so it does not supply this step.
 
 The **theorem of McMillan** `ν(| |Λ|⁻¹ log f_Λ + 𝓀(ν)|) → 0`, which is what makes the event `A_Λ`
 in the proof of (15.47) typical for `ν̃`, is **no longer an obstruction**. Georgii invokes it only
@@ -517,15 +546,156 @@ theorem ae_tendsto_integral_periodicEmpiricalField
   simpa using hcorr.add hω
 
 open scoped Classical in
+/-- **Georgii Remark (15.43)(2), in `L¹`.** Let `μ` be an ergodic shift-invariant random field.
+Then for every bounded local observable `f` the periodic empirical averages converge to `μ(f)` in
+`L¹(μ)`,
+`∫ |°R^ω_{Λ_n}(f) − μ(f)| dμ(ω) → 0`,
+along **any** sequence of cubes `Λ_n = [m_n, m_n + s_n]^d` whose side lengths tend to infinity,
+with arbitrary torus reductions `π_n`. The cubes are *not* required to be increasing.
+
+This is Georgii's own argument for (15.44): Remark (15.43)(1)
+(`abs_integral_periodicEmpiricalField_sub_le`, a bound uniform in `ω`) together with the **mean**
+ergodic theorem (14.A5) (`MeasureTheory.tendsto_eLpNorm_inv_card_smul_sum_vadd_sub_condExp_one`)
+applied along the reflected cubes `−Λ_n`, whose only hypothesis on the volumes is the Følner
+property (`MeasureTheory.tendsto_card_vadd_cube_symmDiff_div_card`). The *individual* ergodic
+theorem (14.A8) is not needed here, and with it goes the monotonicity of the cubes that Georgii
+imposes in Section 14.A and that `ae_tendsto_integral_periodicEmpiricalField` inherits. -/
+theorem tendsto_eLpNorm_integral_periodicEmpiricalField_sub_one
+    (hμ : μ ∈ invariantFields (shiftGroup (ι → ℤ) E))
+    (htriv : ∀ A, MeasurableSet[invariantEvents (shiftGroup (ι → ℤ) E)] A → μ A = 0 ∨ μ A = 1)
+    {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
+    {G' : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
+    (hπ : ∀ n, Potential.IsTorusReduction (G' n)
+      (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
+    {B : Finset (ι → ℤ)} {f : ((ι → ℤ) → E) → ℝ} (hf : DependsOn f (B : Set (ι → ℤ)))
+    (hfm : StronglyMeasurable f) {c : ℝ} (hc : ∀ η, |f η| ≤ c) :
+    Tendsto (fun n ↦ eLpNorm (fun ω ↦ (∫ η, f η ∂(periodicEmpiricalField E (π n)
+        (Finset.Icc (m n) fun k ↦ m n k + s n) ω)) - ∫ η, f η ∂μ) 1 μ) atTop (𝓝 0) := by
+  obtain ⟨hprob, hpres⟩ := mem_invariantFields_shiftGroup.1 hμ
+  have hvadd := vaddInvariantMeasure_of_forall_measurePreserving_shift hpres
+  have hint : Integrable f μ :=
+    Integrable.of_bound hfm.aestronglyMeasurable c
+      (.of_forall fun η ↦ by rw [Real.norm_eq_abs]; exact hc η)
+  set Λ : ℕ → Finset (ι → ℤ) := fun n ↦ Finset.Icc (m n) fun k ↦ m n k + s n with hΛdef
+  have hΛne : ∀ n, (Λ n).Nonempty := fun n ↦ Finset.nonempty_Icc.2 fun k ↦ by simp
+  have hr : Tendsto (fun n ↦ s n + 1) atTop atTop :=
+    tendsto_atTop_mono (fun n ↦ Nat.le_succ (s n)) hs
+  have hcube : ∀ n, (fun k ↦ -(m n k + s n)) +ᵥ
+      (Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) ((s n + 1 : ℕ) : ℤ)) = -(Λ n) :=
+    fun n ↦ (Finset.neg_Icc_cube_eq_vadd_piFinset_Ico (m n) (s n)).symm
+  have hFne : ∀ n, ((fun k ↦ -(m n k + s n)) +ᵥ
+      (Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) ((s n + 1 : ℕ) : ℤ))).Nonempty := fun n ↦
+    ⟨fun k ↦ -(m n k + s n), Finset.mem_vadd_finset.2 ⟨0, Fintype.mem_piFinset.2 fun i ↦ by
+      simp only [Pi.zero_apply, Finset.mem_Ico, le_refl, true_and]
+      exact_mod_cast Nat.succ_pos (s n), by simp⟩⟩
+  -- the mean ergodic theorem (14.A5) along the reflected cubes
+  have hmean := tendsto_eLpNorm_inv_card_smul_sum_vadd_sub_condExp_one (μ := μ)
+    (F := fun n ↦ (fun k ↦ -(m n k + s n)) +ᵥ
+      (Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) ((s n + 1 : ℕ) : ℤ)))
+    (Eventually.of_forall hFne)
+    (tendsto_card_vadd_cube_symmDiff_div_card (fun n k ↦ -(m n k + s n))
+      (r := fun n ↦ s n + 1) hr) hint
+  -- ergodicity: the conditional expectation is the constant `μ(f)`
+  have htriv' : ∀ A, MeasurableSet[MeasurableSpace.smulInvariants (Multiplicative (ι → ℤ))
+      ((ι → ℤ) → E)] A → μ A = 0 ∨ μ A = 1 := by
+    rw [smulInvariants_multiplicative_eq_invariantEvents_shiftGroup]
+    exact htriv
+  have hconst := condExp_ae_eq_integral_of_forall_measure_eq_zero_or_one
+    (MeasurableSpace.smulInvariants_le (M := Multiplicative (ι → ℤ))) htriv' f
+  have hmean' : Tendsto (fun n ↦ eLpNorm (fun ω ↦ (#(Λ n) : ℝ)⁻¹ *
+      ∑ i ∈ Λ n, f ((shift E (-i)).toFun ω) - ∫ η, f η ∂μ) 1 μ) atTop (𝓝 0) := by
+    refine hmean.congr fun n ↦ eLpNorm_congr_ae ?_
+    filter_upwards [hconst] with ω hω
+    rw [hω]
+    have hsum : ∑ i ∈ -(Λ n), f (i +ᵥ ω) = ∑ i ∈ Λ n, f ((shift E (-i)).toFun ω) := by
+      rw [← Finset.image_neg_eq_neg, Finset.sum_image neg_injective.injOn]
+      rfl
+    rw [hcube n, Finset.card_neg, smul_eq_mul, hsum]
+  -- Remark (15.43)(1): the boundary layer of the cubes
+  set T : ℕ → Finset (ι → ℤ) := fun n ↦ B.biUnion fun b ↦ {i ∈ Λ n | b + i ∉ Λ n} with hT
+  have hTsub : ∀ n, T n ⊆ Λ n := fun n ↦
+    Finset.biUnion_subset.2 fun b _ ↦ Finset.filter_subset _ _
+  have hgood : ∀ n, ∀ i ∈ Λ n, i ∉ T n → ∀ b ∈ (B : Set (ι → ℤ)), b + i ∈ Λ n := by
+    intro n i hi hiT b hb
+    by_contra hbi
+    exact hiT (Finset.mem_biUnion.2 ⟨b, hb, Finset.mem_filter.2 ⟨hi, hbi⟩⟩)
+  have hsmall : Tendsto (fun n ↦ (#(T n) : ℝ) / #(Λ n)) atTop (𝓝 0) := by
+    have hbound : Tendsto (fun n ↦ ∑ b ∈ B, (#{i ∈ Λ n | b + i ∉ Λ n} : ℝ) / #(Λ n)) atTop
+        (𝓝 0) := by
+      simpa using tendsto_finsetSum B fun b _ ↦ tendsto_card_filter_add_notMem_div_card hs b
+    refine squeeze_zero (fun n ↦ by positivity) (fun n ↦ ?_) hbound
+    rw [← Finset.sum_div]
+    have hpos : (0 : ℝ) < #(Λ n) := by exact_mod_cast (hΛne n).card_pos
+    exact div_le_div_of_nonneg_right (by exact_mod_cast Finset.card_biUnion_le) hpos.le
+  -- the two estimates add up
+  have hXm : ∀ n, Measurable fun ω ↦ ∫ η, f η ∂(periodicEmpiricalField E (π n) (Λ n) ω) := by
+    intro n
+    have hrw : (fun ω ↦ ∫ η, f η ∂(periodicEmpiricalField E (π n) (Λ n) ω))
+        = fun ω ↦ (#(Λ n) : ℝ)⁻¹ * ∑ i ∈ Λ n,
+            f ((shift E (-i)).toFun (Potential.periodicExtend (π n) ω)) :=
+      funext fun ω ↦ integral_periodicEmpiricalField _ _ _ hfm
+    rw [hrw]
+    exact measurable_const.mul (Finset.measurable_sum _ fun i _ ↦
+      hfm.measurable.comp ((shift E (-i)).measurable_toFun.comp
+        (Potential.measurable_periodicExtend (π n))))
+  have hYm : ∀ n, Measurable fun ω : (ι → ℤ) → E ↦
+      (#(Λ n) : ℝ)⁻¹ * ∑ i ∈ Λ n, f ((shift E (-i)).toFun ω) := fun n ↦
+    measurable_const.mul (Finset.measurable_sum _ fun i _ ↦
+      hfm.measurable.comp (shift E (-i)).measurable_toFun)
+  have hsplit : ∀ n, eLpNorm (fun ω ↦ (∫ η, f η ∂(periodicEmpiricalField E (π n) (Λ n) ω))
+        - ∫ η, f η ∂μ) 1 μ
+      ≤ ENNReal.ofReal (2 * c * #(T n) / #(Λ n))
+        + eLpNorm (fun ω ↦ (#(Λ n) : ℝ)⁻¹ * ∑ i ∈ Λ n, f ((shift E (-i)).toFun ω)
+            - ∫ η, f η ∂μ) 1 μ := by
+    intro n
+    have hbd : eLpNorm (fun ω ↦ (∫ η, f η ∂(periodicEmpiricalField E (π n) (Λ n) ω))
+        - (#(Λ n) : ℝ)⁻¹ * ∑ i ∈ Λ n, f ((shift E (-i)).toFun ω)) 1 μ
+        ≤ ENNReal.ofReal (2 * c * #(T n) / #(Λ n)) := by
+      have h := eLpNorm_le_of_ae_bound (μ := μ) (p := 1)
+        (f := fun ω ↦ (∫ η, f η ∂(periodicEmpiricalField E (π n) (Λ n) ω))
+          - (#(Λ n) : ℝ)⁻¹ * ∑ i ∈ Λ n, f ((shift E (-i)).toFun ω))
+        (C := 2 * c * #(T n) / #(Λ n)) (.of_forall fun ω ↦ by
+          rw [Real.norm_eq_abs]
+          exact abs_integral_periodicEmpiricalField_sub_le (hπ n) hf hfm hc (hTsub n) (hgood n) ω)
+      simpa using h
+    have hstep := eLpNorm_add_le (μ := μ) (p := 1)
+      (f := fun ω ↦ (∫ η, f η ∂(periodicEmpiricalField E (π n) (Λ n) ω))
+        - (#(Λ n) : ℝ)⁻¹ * ∑ i ∈ Λ n, f ((shift E (-i)).toFun ω))
+      (g := fun ω ↦ (#(Λ n) : ℝ)⁻¹ * ∑ i ∈ Λ n, f ((shift E (-i)).toFun ω) - ∫ η, f η ∂μ)
+      ((hXm n).sub (hYm n)).aestronglyMeasurable
+      ((hYm n).sub measurable_const).aestronglyMeasurable le_rfl
+    have hd : ((fun ω ↦ (∫ η, f η ∂(periodicEmpiricalField E (π n) (Λ n) ω))
+          - (#(Λ n) : ℝ)⁻¹ * ∑ i ∈ Λ n, f ((shift E (-i)).toFun ω))
+        + fun ω ↦ (#(Λ n) : ℝ)⁻¹ * ∑ i ∈ Λ n, f ((shift E (-i)).toFun ω) - ∫ η, f η ∂μ)
+        = fun ω ↦ (∫ η, f η ∂(periodicEmpiricalField E (π n) (Λ n) ω)) - ∫ η, f η ∂μ := by
+      funext ω
+      simp only [Pi.add_apply]
+      ring
+    rw [hd] at hstep
+    exact hstep.trans (add_le_add hbd le_rfl)
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds ?_
+    (.of_forall fun _ ↦ bot_le) (.of_forall hsplit)
+  have h1 : Tendsto (fun n ↦ ENNReal.ofReal (2 * c * #(T n) / #(Λ n))) atTop (𝓝 0) := by
+    have h2 : Tendsto (fun n ↦ 2 * c * ((#(T n) : ℝ) / #(Λ n))) atTop (𝓝 0) := by
+      simpa using hsmall.const_mul (2 * c)
+    simpa [mul_div_assoc] using ENNReal.tendsto_ofReal h2
+  simpa using h1.add hmean'
+
+open scoped Classical in
 /-- **Georgii (15.44).** For an ergodic shift-invariant random field `μ`, the periodic empirical
 fields converge to `μ` in `μ`-probability in the topology of local convergence: for a *basic*
 neighbourhood `U = {ν : |ν(f_j) − μ(f_j)| < ε for all j}` of `μ` — Georgii (4.2), with finitely
-many bounded local observables `f_j` — one has `μ(°R_{Λ_n} ∈ U) → 1`. -/
+many bounded local observables `f_j` — one has `μ(°R_{Λ_n} ∈ U) → 1`.
+
+The cubes `Λ_n` are an arbitrary sequence with side lengths tending to infinity: (15.44) is
+convergence *in probability*, so Markov's inequality reduces it to the `L¹` convergence
+`tendsto_eLpNorm_integral_periodicEmpiricalField_sub_one`, i.e. to the mean ergodic theorem
+(14.A5). The increasing cubes of the individual ergodic theorem (14.A8), which
+`ae_tendsto_integral_periodicEmpiricalField` needs, are not required here. -/
 theorem tendsto_measure_setOf_abs_integral_periodicEmpiricalField_sub_lt
     (hμ : μ ∈ invariantFields (shiftGroup (ι → ℤ) E))
     (htriv : ∀ A, MeasurableSet[invariantEvents (shiftGroup (ι → ℤ) E)] A → μ A = 0 ∨ μ A = 1)
     {m : ℕ → ι → ℤ} {s : ℕ → ℕ}
-    (hmono : Monotone fun n ↦ Finset.Icc (m n) fun k ↦ m n k + s n)
     (hs : Tendsto s atTop atTop)
     {G' : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
     (hπ : ∀ n, Potential.IsTorusReduction (G' n)
@@ -562,20 +732,40 @@ theorem tendsto_measure_setOf_abs_integral_periodicEmpiricalField_sub_lt
         constructor <;> rintro ⟨h1, h2⟩ <;> exact ⟨by linarith, by linarith⟩
     rw [hrw]
     exact MeasurableSet.iInter fun j ↦ (hmeas n j) measurableSet_Ioo
-  have hae : ∀ᵐ ω ∂μ, ∀ᶠ n in atTop, ω ∈ A n := by
-    have hall : ∀ᵐ ω ∂μ, ∀ j : κ, Tendsto (fun n ↦
-        ∫ η, f j η ∂(periodicEmpiricalField E (π n) (Λ n) ω)) atTop (𝓝 (∫ η, f j η ∂μ)) :=
-      ae_all_iff.2 fun j ↦ ae_tendsto_integral_periodicEmpiricalField hμ htriv hmono hs hπ
-        (hf j) (hfm j) (hc j)
-    filter_upwards [hall] with ω hω
-    rw [show (fun n ↦ ω ∈ A n) = fun n ↦ ∀ j : κ,
-        |(∫ η, f j η ∂(periodicEmpiricalField E (π n) (Λ n) ω)) - ∫ η, f j η ∂μ| < ε from rfl]
-    refine Filter.eventually_all.2 fun j ↦ ?_
-    filter_upwards [(hω j).eventually (Metric.ball_mem_nhds (∫ η, f j η ∂μ) hε)] with n hn
-    rwa [Real.dist_eq] at hn
-  have h := (⟨hae, hA⟩ : AECover μ atTop A).lintegral_tendsto_of_nat
-    (f := fun _ ↦ (1 : ℝ≥0∞)) aemeasurable_const
-  simpa using h
+  -- each of the finitely many observables converges in `μ`-probability, by Markov's inequality
+  have hbad : ∀ j : κ, Tendsto (fun n ↦ μ {ω | ε ≤ |(∫ η, f j η ∂(periodicEmpiricalField E (π n)
+      (Λ n) ω)) - ∫ η, f j η ∂μ|}) atTop (𝓝 0) := by
+    intro j
+    have hL1 := tendsto_eLpNorm_integral_periodicEmpiricalField_sub_one hμ htriv hs hπ
+      (hf j) (hfm j) (hc j)
+    have hdiv : Tendsto (fun n ↦ eLpNorm (fun ω ↦ (∫ η, f j η ∂(periodicEmpiricalField E (π n)
+        (Λ n) ω)) - ∫ η, f j η ∂μ) 1 μ / ENNReal.ofReal ε) atTop (𝓝 0) := by
+      simpa using ENNReal.Tendsto.div_const hL1 (Or.inr (ENNReal.ofReal_pos.2 hε).ne')
+    refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds hdiv
+      (.of_forall fun _ ↦ bot_le) (.of_forall fun n ↦ ?_)
+    rw [eLpNorm_one_eq_lintegral_enorm]
+    refine le_trans (measure_mono ?_) (meas_ge_le_lintegral_div
+      (((hmeas n j).sub measurable_const).enorm.aemeasurable)
+      (ENNReal.ofReal_pos.2 hε).ne' ENNReal.ofReal_ne_top)
+    intro ω hω
+    rw [Set.mem_ofPred_eq, Real.enorm_eq_ofReal_abs]
+    exact ENNReal.ofReal_le_ofReal hω
+  have hcompl : ∀ n, μ (A n)ᶜ ≤ ∑ j : κ, μ {ω | ε ≤ |(∫ η, f j η ∂(periodicEmpiricalField E (π n)
+      (Λ n) ω)) - ∫ η, f j η ∂μ|} := by
+    intro n
+    refine le_trans (measure_mono ?_) (measure_iUnion_fintype_le μ _)
+    intro ω hω
+    simp only [hAdef, Set.mem_compl_iff, Set.mem_ofPred_eq, not_forall, not_lt] at hω
+    obtain ⟨j, hj⟩ := hω
+    exact Set.mem_iUnion.2 ⟨j, hj⟩
+  have hlim0 : Tendsto (fun n ↦ μ (A n)ᶜ) atTop (𝓝 0) := by
+    refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds ?_
+      (.of_forall fun _ ↦ bot_le) (.of_forall hcompl)
+    simpa using tendsto_finsetSum Finset.univ fun j _ ↦ hbad j
+  have hfinal : Tendsto (fun n ↦ 1 - μ (A n)ᶜ) atTop (𝓝 1) := by
+    simpa using ENNReal.Tendsto.sub tendsto_const_nhds hlim0 (Or.inl ENNReal.one_ne_top)
+  refine hfinal.congr fun n ↦ ?_
+  rw [← prob_compl_eq_one_sub (hA n).compl, compl_compl, hAdef]
 
 end ErgodicLimit
 

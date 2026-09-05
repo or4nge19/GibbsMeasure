@@ -3,14 +3,16 @@
 \begin{definition}[The periodic empirical field, Georgii (15.41)--(15.44)]
     \label{def:ld-15-41}
     \uses{def:erg-invariant, thm:erg-14A8}
-    \lean{MeasureTheory.GibbsMeasure.periodicEmpiricalField, MeasureTheory.GibbsMeasure.abs_integral_periodicEmpiricalField_sub_le, MeasureTheory.GibbsMeasure.tendsto_integral_periodicEmpiricalField_sub_zero, MeasureTheory.GibbsMeasure.ae_tendsto_integral_periodicEmpiricalField, MeasureTheory.GibbsMeasure.tendsto_measure_setOf_abs_integral_periodicEmpiricalField_sub_lt}
+    \lean{MeasureTheory.GibbsMeasure.periodicEmpiricalField, MeasureTheory.GibbsMeasure.abs_integral_periodicEmpiricalField_sub_le, MeasureTheory.GibbsMeasure.tendsto_integral_periodicEmpiricalField_sub_zero, MeasureTheory.GibbsMeasure.ae_tendsto_integral_periodicEmpiricalField, MeasureTheory.GibbsMeasure.tendsto_eLpNorm_integral_periodicEmpiricalField_sub_one, MeasureTheory.GibbsMeasure.tendsto_measure_setOf_abs_integral_periodicEmpiricalField_sub_lt}
     \leanok
 
     The periodic empirical field $°R^\omega_\Delta$ is shift invariant, differs from $R^\omega_\Delta$
     by at most $2c\abs T/\abs\Delta$ uniformly in $\omega$ (15.43)(1), and for an ergodic
     $\mu \in \Prob_\Theta$ satisfies $°R^\omega_{\Lambda_n}(f) \to \mu(f)$ almost surely along
-    increasing cubes and any torus reductions (15.43)(2), hence
-    $\mu(°R_{\Lambda_n} \in U) \to 1$ for every basic neighbourhood $U$ of $\mu$ (15.44).
+    increasing cubes and any torus reductions (15.43)(2), and in $L^1(\mu)$ along any cubes
+    with side lengths tending to infinity by the mean ergodic theorem (14.A5), the input Georgii
+    names in the proof of (15.44); hence $\mu(°R_{\Lambda_n} \in U) \to 1$ for every basic
+    neighbourhood $U$ of $\mu$ (15.44) along any such cubes, by Markov's inequality.
 \end{definition}
 
 \begin{theorem}[Shannon--McMillan, the input of Georgii (15.45)--(15.47)]
@@ -161,11 +163,10 @@
     For $\Phi \in \mathcal B_\Theta$, any set $C$ of random fields and $C^\circ$ its interior in
     $\mathcal P_\Theta$ for the local topology,
     $\liminf_{|\Lambda|\to\infty} |\Lambda|^{-1}\log\inf_\omega\gamma^\Phi_\Lambda({}^\circ R_\Lambda \in C \mid \omega)
-    \geq -\inf_{\nu \in C^\circ}\mathcal A(\nu\mid\Phi)$ along increasing cubes, and the same with
-    $\gamma^\Phi_\Lambda(\cdot\mid\omega)$ replaced by any $\mu \in \mathcal G(\Phi)$. Any state space
-    and any a priori probability measure: Georgii's standard Borel hypothesis is not used here. The
-    cubes are required to increase, a hypothesis inherited from the pointwise ergodic theorem behind
-    (15.44) in this tree, where Georgii allows any sequence with $|\Lambda| \to \infty$.
+    \geq -\inf_{\nu \in C^\circ}\mathcal A(\nu\mid\Phi)$ along any cubes with side lengths tending
+    to infinity, and the same with $\gamma^\Phi_\Lambda(\cdot\mid\omega)$ replaced by any
+    $\mu \in \mathcal G(\Phi)$. Any state space and any a priori probability measure: Georgii's
+    standard Borel hypothesis is not used here.
 \end{theorem}
 \begin{proof}
     \leanok
@@ -179,6 +180,31 @@
     uniformly in $\omega$, using (15.31); that event is typical for the independent-block field
     $\hat\nu \leq |C|\tilde\nu$ by (15.44) on open sets, the continuity of the energy and the block
     McMillan theorem, the tiles meeting an arbitrary cube having cardinality asymptotic to it.
+\end{proof}
+
+\begin{theorem}[Georgii (15.45), the upper bound (15.46), for a finite state space]
+    \label{thm:ld-15-46}
+    \uses{thm:ld-15-54, prop:ld-15-52, thm:ld-15-47, def:ld-15-41}
+    \lean{EReal.shiftToENNReal, EReal.biInf_eq_biInf_of_shiftToENNReal, EReal.shiftToENNReal_smul_add_smul_le, InformationTheory.klDiv_cond_self, MeasureTheory.GibbsMeasure.iInf_closedConvexHull_eq_iInf_closure_ereal, MeasureTheory.GibbsMeasure.smul_specificRelativeEntropy_add_smul_specificRelativeEntropy_le, MeasureTheory.GibbsMeasure.empiricalFieldAverage, MeasureTheory.GibbsMeasure.neg_log_gibbsSpecification_eq, MeasureTheory.GibbsMeasure.abs_integral_hamiltonian_juxt_sub_card_mul_specificEnergy_le, MeasureTheory.GibbsMeasure.abs_integral_tileAverage_sub_integral_empiricalFieldAverage_le, MeasureTheory.GibbsMeasure.evalLocalEvents_empiricalFieldAverage_mem_convexHull, MeasureTheory.GibbsMeasure.measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem, MeasureTheory.GibbsMeasure.specificRelativeEntropy_tileAverage_cond_le, MeasureTheory.GibbsMeasure.exists_mem_closedConvexHull_specificRelativeEntropy_le, MeasureTheory.GibbsMeasure.eventually_gibbsSpecification_setOf_periodicEmpiricalFieldL_mem_le, MeasureTheory.GibbsMeasure.limsup_log_iSup_gibbsSpecification_div_card_le, MeasureTheory.GibbsMeasure.limsup_log_isGibbsMeasure_div_card_le}
+    \leanok
+
+    For finite $E$, $\Phi \in \mathcal B_\Theta$ and $C \subseteq \mathcal P_\Theta$,
+    $\limsup_{|\Lambda|\to\infty}|\Lambda|^{-1}\log\sup_\omega\gamma^\Phi_\Lambda({}^\circ R_\Lambda \in C\mid\omega)
+    \leq -\inf_{\nu\in\bar C}\mathcal A(\nu\mid\Phi)$ along cubes with side lengths tending to
+    infinity, and the same for every $\mu \in \mathcal G(\Phi)$. Georgii's measurability hypothesis
+    on $C$ is automatic over a finite $E$. Steps 1 and 2 hold for any state space: the identity
+    $-|\Lambda|^{-1}\log\gamma_\Lambda(A\mid\omega) = \ldots$ of (15.53) with the conditional
+    Gibbs distribution, whose excess free energy is that of the block field with tile $\Lambda$
+    (Proposition \ref{prop:ld-15-52} for an arbitrary box), up to the energy error (15.25) and the
+    $\mathcal L$-distance between the block average and $\gamma\,{}^\circ R_\Lambda$; Step 3 is
+    Theorem \ref{thm:ld-15-54} for the $\mathrm{EReal}$-valued $\mathcal A(\cdot\mid\Phi)$, shifted
+    into $[0,\infty]$ by an order isomorphism, its concavity derived from the convexity of the
+    specific entropy; Step 4 the cluster-point argument. Georgii's standard Borel generality needs
+    a countable core of $\mathcal F$ and the compact metrizable $\mathcal C$-topology (Comment
+    (4.A10), Corollary (4.A13)), which are not formalised.
+\end{theorem}
+\begin{proof}
+    \leanok
 \end{proof}
 
 \begin{proposition}[Georgii (15.49), (15.59), and the rate-function half of (15.48)]

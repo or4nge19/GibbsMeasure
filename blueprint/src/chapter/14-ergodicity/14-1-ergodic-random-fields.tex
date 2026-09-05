@@ -304,6 +304,8 @@ $(\Cfg, \mathcal{F})$, specialised to a subgroup $\Theta$ of the transformation 
       MeasureTheory.mul_measure_lt_ergodicMaximalFunction_le,
       MeasureTheory.mul_measure_lt_ergodicMaximalFunction_le_of_monotone,
       MeasureTheory.measure_exists_lt_abs_div_card_le_cube,
+      MeasureTheory.ergodicMaximalFunction_le_of_forall_exists_subset,
+      MeasureTheory.measure_exists_lt_abs_div_card_le_of_forall_exists_subset,
       Finset.exists_subset_pairwiseDisjoint_subset_biUnion}
     \leanok
 
@@ -312,7 +314,12 @@ $(\Cfg, \mathcal{F})$, specialised to a subgroup $\Theta$ of the transformation 
     measurable $f \ge 0$, $R_n f = |F_n|^{-1}\sum_{i \in F_n} f \circ \theta_i$ and $c > 0$,
     \[ c\,\mu\bigl(\sup_n R_n f > c\bigr) \le C \int f\,\mathrm{d}\mu . \]
     For increasing cubes in $\mathbb{Z}^d$ one may take $C = 3^d$, which is Georgii's
-    $\mu(\sup_n |R_n f| > c) \le 3^d\mu(|f|)/c$ for real integrable $f$.
+    $\mu(\sup_n |R_n f| > c) \le 3^d\mu(|f|)/c$ for real integrable $f$. An arbitrary
+    sequence $(F_n)$ of nonempty sets each contained in some $F'_k$ with $|F'_k| \le D|F_n|$
+    inherits the inequality of $(F'_k)$ with constant $CD$. Georgii's monotonicity is not
+    decorative: for pairwise disjoint intervals $[a_j, a_j + j)$ of $\mathbb Z$ acting on
+    $\mathbb Z/M$ and $f = 1_{\{0\}}$, $\mu(\sup_j R_j f > c) \asymp 1/(2c^2M)$ exceeds every
+    $K\mu(f)/c$ as $c \to 0$.
 \end{lemma}
 \begin{proof}
     \leanok
@@ -331,14 +338,25 @@ $(\Cfg, \mathcal{F})$, specialised to a subgroup $\Theta$ of the transformation 
     \lean{MeasureTheory.ae_tendsto_inv_card_smul_sum_vadd_condExp,
       MeasureTheory.ae_forall_tendsto_inv_card_smul_sum_vadd_condExp,
       MeasureTheory.ae_tendsto_inv_card_smul_sum_vadd_condExp_cube,
+      MeasureTheory.ae_tendsto_inv_card_smul_sum_vadd_condExp_of_measure_exists_lt_abs_div_card_le,
+      MeasureTheory.ae_forall_tendsto_inv_card_smul_sum_vadd_condExp_of_measure_exists_lt_abs_div_card_le,
+      MeasureTheory.ae_tendsto_inv_card_smul_sum_vadd_condExp_cube_of_forall_abs_le,
+      Fintype.mem_vadd_piFinset_Ico, Finset.card_vadd_piFinset_Ico,
       MeasureTheory.tendsto_card_vadd_cube_symmDiff_div_card}
     \leanok
 
     Let a countable additive group act on a finite measure space by measure-preserving maps and
-    let $(F_n)$ be an increasing F\o lner sequence of nonempty finite sets with
-    $|F_n - F_n + F_n| \le C|F_n|$, $C < \infty$. For integrable $f$,
+    let $(F_n)$ be a F\o lner sequence of nonempty finite sets satisfying the weak $(1,1)$
+    maximal inequality with some constant $C < \infty$, for instance an increasing sequence
+    with $|F_n - F_n + F_n| \le C|F_n|$ (Lemma \ref{lem:erg-14A6}). For integrable $f$,
     $R_n f \to \mu(f \mid \mathcal{I})$ almost everywhere; for countably many $f$ simultaneously.
-    Increasing cubes in $\mathbb{Z}^d$ are such a sequence with $C = 3^d$.
+    Increasing cubes in $\mathbb{Z}^d$ are such a sequence with $C = 3^d$; more generally the
+    cubes $x_n + [0, r_n)^d$ with $r_n \to \infty$ and $|x_n| \le K r_n$ (no nesting, no size
+    ordering), with constant $3^d(2K+1)^d$, Georgii's increasing cubes being the case $K = 1$
+    after his normalisation $0 \in \Lambda_0$ of (14.A6). Some such eccentricity bound is
+    needed: for intervals of $\mathbb Z$ with unrestricted centres the maximal inequality
+    fails (Lemma \ref{lem:erg-14A6}) and so does almost sure convergence
+    (Akcoglu--del Junco 1975).
 \end{theorem}
 \begin{proof}
     \leanok

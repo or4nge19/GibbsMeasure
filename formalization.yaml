@@ -951,11 +951,18 @@ alignment:
       note: >-
         Pointwise convergence of the averages over increasing cubes of Z^d to E[f | I], for any
         integrable f, as the instance of a Tempelman-type theorem: an additive group acting
-        measure-preservingly on a finite measure space, along an increasing Foelner sequence with
+        measure-preservingly on a finite measure space, along a Foelner sequence satisfying the
+        weak (1,1) maximal inequality, for instance an increasing one with
         |F_n - F_n + F_n| <= C |F_n|, C finite. Proof from the mean ergodic theorem on simple
         functions plus the maximal inequality, following Georgii's estimate. Mathlib has no
         pointwise ergodic theorem of any kind. Also the simultaneous version for countably many
-        f, which the ergodic decomposition (14.10) consumes, and the Foelner property of cubes.
+        f, which the ergodic decomposition (14.10) consumes, the Foelner property of cubes, and
+        the sharp cube form x_n + [0, r_n)^d with r_n -> infinity and |x_n| <= K r_n (no nesting;
+        Georgii's increasing cubes are K = 1 after his normalisation 0 in Lambda_0), with the
+        maximal inequality transferred from the increasing cubes [-K(k+1), (K+1)(k+1))^d. The
+        eccentricity bound cannot be dropped: for intervals with unrestricted centres the maximal
+        inequality fails by an elementary counterexample, and so does a.s. convergence
+        (Akcoglu-del Junco 1975), so Georgii's "in addition, increasing" before (14.A6) is needed.
     - source: "Theorems (14.A3), (14.A5): the L2 and L1 mean ergodic theorems"
       lean: "MeasureTheory.tendsto_integral_norm_inv_card_smul_sum_sub_condExp"
       module: "GibbsMeasure/Mathlib/Dynamics/Ergodic/MeanErgodic.lean"
@@ -1587,11 +1594,12 @@ alignment:
         is automatic. The standard-Borel case needs a countable core of F and the compact
         metrizable C-topology, not formalised. The lower bound (15.47) is proved (LargeDeviationsLower.lean): for any set C of
         random fields with interior C° in P_Theta, liminf |Lambda|^{-1} log inf_omega
-        gamma_Lambda(R_Lambda in C | omega) >= - inf_{C°} A(.|Phi) along increasing cubes, and the
-        same for every Gibbs measure, for any state space and a priori probability measure
-        (Georgii's standard Borel hypothesis is not used); the cubes increase, a hypothesis
-        inherited from the pointwise ergodic theorem behind (15.44), where Georgii allows any
-        sequence with |Lambda| -> infinity; the tiles meeting an arbitrary cube have cardinality
+        gamma_Lambda(R_Lambda in C | omega) >= - inf_{C°} A(.|Phi) along any cubes with side
+        lengths tending to infinity, and the same for every Gibbs measure, for any state space and
+        a priori probability measure (Georgii's standard Borel hypothesis is not used); (15.44)
+        rests on the mean ergodic theorem (14.A5) in L^1, the input Georgii names, so no
+        monotonicity of the cubes is needed, while the a.s. statement (15.43)(2) keeps it as the
+        hypothesis of (14.A8); the tiles meeting an arbitrary cube have cardinality
         asymptotic to it and Folner tile indices (BlockMcMillan.lean). So Theorem (15.45) holds
         for a finite state space. Not yet proved: the two displayed inequalities of Corollary
         (15.48) (the contraction step exists), (15.50), (15.51), (15.57)-(15.58), and Georgii's

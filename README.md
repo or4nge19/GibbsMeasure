@@ -445,9 +445,13 @@ are proved (`GibbsMeasure/Mathlib/Dynamics/Ergodic/MeanErgodic.lean`) for any co
 by measure-preserving maps along any Følner net, in `L²` (no finiteness of `μ`) and `L¹`, by
 adapting the strategy of Mathlib's single-operator von Neumann theorem, and the **individual
 ergodic theorem (14.A8)** (`Pointwise.lean`) — almost-everywhere convergence of the cube averages
-of any integrable `f` to `μ(f | 𝓘)`, as the instance of a Tempelman-type theorem along increasing
-Følner sequences with `|F_n − F_n + F_n| ≤ C|F_n|`, proved from the mean theorem on simple
-functions and the maximal inequality by Georgii's `3ε` estimate. **Proposition (14.7)**
+of any integrable `f` to `μ(f | 𝓘)`, as the instance of a Tempelman-type theorem along Følner
+sequences satisfying the weak (1,1) maximal inequality, for instance increasing ones with
+`|F_n − F_n + F_n| ≤ C|F_n|`, proved from the mean theorem on simple functions and the maximal
+inequality by Georgii's `3ε` estimate; the sharp cube form is for cubes `x_n + [0, r_n)^d` with
+`r_n → ∞` and `|x_n| ≤ K r_n`, no nesting, and the eccentricity bound is not removable: with
+unrestricted centres the maximal inequality fails (an elementary counterexample on `ℤ/M`) and so
+does almost sure convergence (Akcoglu–del Junco). **Proposition (14.7)**
 (`GibbsMeasure/Specification/ErgodicMixing.lean`): ergodicity ⟺ cube-averaged mixing, whose Dynkin
 step is a general "setwise convergence extends from a π-system" lemma Mathlib lacks; **Lemma
 (14.19)** (`GibbsMeasure/Mathlib/Probability/Martingale/DominatedBackward.lean`): dominated
@@ -528,9 +532,14 @@ on any state space, from the `L¹` ergodic theorem (`Specification/BlockMcMillan
 Proposition (15.52) holds for an arbitrary box of `ℤ^d`. **The lower bound (15.47)** is proved
 (`Specification/LargeDeviationsLower.lean`): the large-deviation lower bound for the periodic
 empirical field, uniformly in the boundary condition and for every Gibbs measure, for any state
-space and any a priori law, along increasing cubes (an inherited restriction where Georgii allows
-any sequence). What remains of Theorem (15.45) is the upper bound (15.46), whose Choquet step is
-available for finite `E`.
+space and any a priori law, along any cubes with side lengths tending to infinity, since (15.44)
+needs only the mean ergodic theorem (14.A5), as Georgii says. **The upper bound (15.46)** is proved for a finite state space
+(`Specification/LargeDeviationsUpper.lean`): Steps 1–2 for any state space, Step 3 through (15.54)
+with the excess free energy shifted into `[0,∞]` and its concavity derived from the convexity of
+the specific entropy, Step 4 the cluster-point argument. So **Theorem (15.45)**, the large-deviation
+principle for the periodic empirical field, holds over a finite state space; Georgii's standard
+Borel generality needs the compact metrizable `𝒞`-topology and a countable core of `𝓕`, not yet
+formalised. Open: the two inequalities of (15.48), (15.50)–(15.51), (15.57)–(15.58).
 
 **Chapter 17** (`GibbsMeasure/Specification/ReflectionPositivity.lean`,
 `Specification/PeriodicGibbs.lean`): reflection positivity for Georgii's generalised reflection,

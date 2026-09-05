@@ -18,10 +18,10 @@ inputs that the proof of the companion upper bound (15.46) shares with it.
 
 Throughout, `S = ℤ^d` with `d ≥ 1` is spelled `Fin d → ℤ`, `λ` is an a priori *probability*
 measure on an arbitrary measurable state space `E`, and `Φ` is a shift-invariant absolutely
-summable potential, i.e. `Φ ∈ ℬ_Θ`. The volumes are Georgii's cubes: an increasing sequence
-`Λ_n = ∏_k [m_n(k), m_n(k) + s_n]` with `s_n → ∞`, each equipped with an arbitrary torus
-reduction `π_n` (`Potential.IsTorusReduction`) so that the periodic empirical field `°R_{Λ_n}` of
-Definition (15.41) is defined.
+summable potential, i.e. `Φ ∈ ℬ_Θ`. The volumes are Georgii's cubes: an arbitrary sequence
+`Λ_n = ∏_k [m_n(k), m_n(k) + s_n]` with `s_n → ∞` — Georgii's `|Λ| → ∞`, with no monotonicity —
+each equipped with an arbitrary torus reduction `π_n` (`Potential.IsTorusReduction`) so that the
+periodic empirical field `°R_{Λ_n}` of Definition (15.41) is defined.
 
 ## Main results
 
@@ -139,22 +139,23 @@ Two remarks on the hypotheses.
   `|Δ|⁻¹ γ^C_{Δ|ω}(H^Φ_Δ) = ⟨γ^C_{Δ|ω} °R_Δ, Φ⟩ + o(1)` of Step 1 of the proof of (15.46), before
   integration, and the energy bound of the event `A_Λ` in the proof of (15.47).
 
-## Not proved here
+## The companion upper bound
 
-The **upper bound (15.46)**, and hence Theorem (15.45) as a whole, is not proved. What is
-missing, precisely:
+The **upper bound (15.46)** is `limsup_log_iSup_gibbsSpecification_div_card_le` of
+`GibbsMeasure/Specification/LargeDeviationsUpper.lean`, which imports this file. It is proved
+over a **finite** state space: Step 2's cluster point extraction and Step 3 (the passage from
+`cx̄ C` to `C̄`, which is `iInf_closedConvexHull_eq_iInf_closure_ereal` of
+`GibbsMeasure/Specification/InvariantFieldsBarycenter.lean`, from the concavity of `𝓀(·|Φ)`)
+both use the compactness of the space of random fields in the topology of local convergence, and
+the event property of `{°R_Λ ∈ C}`. Georgii's standard Borel generality would need instead his
+countable core of `𝓕` and the compact metrizable `𝒞`-topology, which this library does not have.
+Proposition (15.52) is *not* an obstruction: `specificEntropy_tileAverage_Icc` of
+`GibbsMeasure/Specification/BlockEntropy.lean` covers an arbitrary box, which is what Step 2 needs
+for the cubes over which (15.46) takes its limit superior.
 
-* Step 2 forms the randomly shifted independent-block measure `γ̄^C_{Λ|ω}` whose *tile is the
-  volume `Λ` itself*, so it needs Proposition (15.52) for the arbitrary cubes over which (15.46)
-  takes its limit superior; `specificEntropy_tileAverage_Icc` now covers an arbitrary box, but the
-  compactness of the level sets of `𝓀(·|Φ)` that Step 2 then invokes
-  (`Potential.BTheta.isCompact_setOf_specificRelativeEntropy_le`) needs a **standard Borel** state
-  space.
-* Step 3, the passage from `cx̄ C` to `C̄`, is Choquet theory (Phelps, Prop. 1.2 and Lemma 9.7);
-  the barycentric decomposition available here
-  (`GibbsMeasure/Specification/InvariantFieldsBarycenter.lean`) needs a **finite** state space, so
-  (15.46) cannot be obtained at Georgii's standard Borel generality by that route. The lower
-  bound (15.47), by contrast, needs no such restriction.
+The lower bound below carries no such restriction: it holds over an arbitrary measurable state
+space, and — since (15.44) is convergence in probability, hence a consequence of the *mean*
+ergodic theorem (14.A5) — along an arbitrary sequence of cubes with `s_n → ∞`.
 --/
 
 @[expose] public section
@@ -295,7 +296,6 @@ theorem exists_measurableSet_subset_setOf_periodicEmpiricalField_mem
     (hμ : μ ∈ invariantFields (shiftGroup (ι → ℤ) E))
     (htriv : ∀ A, MeasurableSet[invariantEvents (shiftGroup (ι → ℤ) E)] A → μ A = 0 ∨ μ A = 1)
     {m : ℕ → ι → ℤ} {s : ℕ → ℕ}
-    (hmono : Monotone fun n ↦ Finset.Icc (m n) fun k ↦ m n k + s n)
     (hs : Tendsto s atTop atTop)
     {G' : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
     (hπ : ∀ n, Potential.IsTorusReduction (G' n)
@@ -337,7 +337,7 @@ theorem exists_measurableSet_subset_setOf_periodicEmpiricalField_mem
     by_cases h : η ∈ ((A : localEvents (ι → ℤ) E) : Set ((ι → ℤ) → E)) <;>
       simp [hfdef, h]
   have hlim := tendsto_measure_setOf_abs_integral_periodicEmpiricalField_sub_lt
-    (μ := μ) hμ htriv hmono hs hπ (κ := T) (B := Λ) (f := f) hdep hfm (c := fun _ ↦ (1 : ℝ)) hc
+    (μ := μ) hμ htriv hs hπ (κ := T) (B := Λ) (f := f) hdep hfm (c := fun _ ↦ (1 : ℝ)) hc
     hεR
   -- the basic window is contained in the event that `°R_Λ ∈ U`
   have hsub : ∀ n : ℕ, {ω | ∀ A : T, |(∫ η, f A η ∂(periodicEmpiricalField E (π n)
@@ -392,7 +392,6 @@ theorem tendsto_measure_setOf_periodicEmpiricalField_mem_isOpen
     (hμ : μ ∈ invariantFields (shiftGroup (ι → ℤ) E))
     (htriv : ∀ A, MeasurableSet[invariantEvents (shiftGroup (ι → ℤ) E)] A → μ A = 0 ∨ μ A = 1)
     {m : ℕ → ι → ℤ} {s : ℕ → ℕ}
-    (hmono : Monotone fun n ↦ Finset.Icc (m n) fun k ↦ m n k + s n)
     (hs : Tendsto s atTop atTop)
     {G' : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
     (hπ : ∀ n, Potential.IsTorusReduction (G' n)
@@ -403,7 +402,7 @@ theorem tendsto_measure_setOf_periodicEmpiricalField_mem_isOpen
     Tendsto (fun n ↦ μ {ω | periodicEmpiricalFieldL (π n) (hne n) ω ∈ U}) atTop (𝓝 1) := by
   have hprob : IsProbabilityMeasure μ := hμ.1
   obtain ⟨W, -, hWsub, hWlim⟩ := exists_measurableSet_subset_setOf_periodicEmpiricalField_mem
-    hμ htriv hmono hs hπ hne hU hmemU
+    hμ htriv hs hπ hne hU hmemU
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le' hWlim tendsto_const_nhds
     (.of_forall fun n ↦ measure_mono (hWsub n)) (.of_forall fun _ ↦ prob_le_one)
 
@@ -557,7 +556,7 @@ the form both of its corollaries consume.
 
 Let `Φ ∈ ℬ_Θ`, let `C` be a set of random fields, let `ν ∈ 𝓟_Θ` lie in Georgii's `C°` — the
 interior of `C` *in* `𝓟_Θ`, spelled `C ∈ 𝓝[invariantRandomFields (Fin d → ℤ) E] ν` — and let
-`r < −𝒜(ν|Φ)`. Then, along an increasing sequence of cubes `Λ_n` of `ℤ^d` whose side tends to
+`r < −𝒜(ν|Φ)`. Then, along any sequence of cubes `Λ_n` of `ℤ^d` whose side tends to
 infinity, with arbitrary torus reductions `π_n`, there is eventually an event `B` of the volume
 `Λ_n` itself, contained in `{°R_{Λ_n} ∈ C}`, with `γ^Φ_{Λ_n}(B | ω) ≥ e^{|Λ_n| r}` for *every*
 boundary condition `ω`. (The event `{°R_{Λ_n} ∈ C}` need not be measurable for an arbitrary `C`,
@@ -579,7 +578,6 @@ theorem eventually_exists_ofReal_exp_le_gibbsSpecification
     (hνC : C ∈ 𝓝[invariantRandomFields (Fin d → ℤ) E]
       (WithSetwiseTopology.ofMeasure ⟨ν, hν.1⟩ : WithLocalConvergence (Fin d → ℤ) E))
     {m : ℕ → Fin d → ℤ} {s : ℕ → ℕ}
-    (hmono : Monotone fun n ↦ Finset.Icc (m n) fun k ↦ m n k + s n)
     (hs : Tendsto s atTop atTop)
     {G' : ℕ → AddSubgroup (Fin d → ℤ)} {π : ℕ → (Fin d → ℤ) → (Fin d → ℤ)}
     (hπ : ∀ n, Potential.IsTorusReduction (G' n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
@@ -698,7 +696,7 @@ theorem eventually_exists_ofReal_exp_le_gibbsSpecification
       WithLocalConvergence (Fin d → ℤ) E) ∈ U' :=
     ⟨hiU, show Φ.specificEnergy νt < Φ.specificEnergy νt + ε by linarith⟩
   obtain ⟨W, hWmeas, hWsub, hWlim⟩ :=
-    exists_measurableSet_subset_setOf_periodicEmpiricalField_mem hνtinv hνttriv hmono hs hπ hne
+    exists_measurableSet_subset_setOf_periodicEmpiricalField_mem hνtinv hνttriv hs hπ hne
       hU'open hU'mem
   have hWC : ∀ n, W n ⊆ {η | periodicEmpiricalFieldL (π n) (hne n) η ∈ C} := by
     intro n η hη
@@ -946,7 +944,6 @@ theorem eventually_ofReal_exp_le_gibbsSpecification_setOf_periodicEmpiricalField
     (hνC : C ∈ 𝓝[invariantRandomFields (Fin d → ℤ) E]
       (WithSetwiseTopology.ofMeasure ⟨ν, hν.1⟩ : WithLocalConvergence (Fin d → ℤ) E))
     {m : ℕ → Fin d → ℤ} {s : ℕ → ℕ}
-    (hmono : Monotone fun n ↦ Finset.Icc (m n) fun k ↦ m n k + s n)
     (hs : Tendsto s atTop atTop)
     {G' : ℕ → AddSubgroup (Fin d → ℤ)} {π : ℕ → (Fin d → ℤ) → (Fin d → ℤ)}
     (hπ : ∀ n, Potential.IsTorusReduction (G' n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
@@ -957,7 +954,7 @@ theorem eventually_ofReal_exp_le_gibbsSpecification_setOf_periodicEmpiricalField
         ≤ Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) lam 1
             (Finset.Icc (m n) fun k ↦ m n k + s n) ω
             {η | periodicEmpiricalFieldL (π n) (hne n) η ∈ C} := by
-  filter_upwards [eventually_exists_ofReal_exp_le_gibbsSpecification lam hΦ hν hνC hmono hs hπ
+  filter_upwards [eventually_exists_ofReal_exp_le_gibbsSpecification lam hΦ hν hνC hs hπ
     hne hr] with n hn ω
   obtain ⟨B, -, hBsub, hB⟩ := hn
   exact (hB ω).trans (measure_mono hBsub)
@@ -974,7 +971,6 @@ theorem eventually_ofReal_exp_le_measure_setOf_periodicEmpiricalField_mem
     (hνC : C ∈ 𝓝[invariantRandomFields (Fin d → ℤ) E]
       (WithSetwiseTopology.ofMeasure ⟨ν, hν.1⟩ : WithLocalConvergence (Fin d → ℤ) E))
     {m : ℕ → Fin d → ℤ} {s : ℕ → ℕ}
-    (hmono : Monotone fun n ↦ Finset.Icc (m n) fun k ↦ m n k + s n)
     (hs : Tendsto s atTop atTop)
     {G' : ℕ → AddSubgroup (Fin d → ℤ)} {π : ℕ → (Fin d → ℤ) → (Fin d → ℤ)}
     (hπ : ∀ n, Potential.IsTorusReduction (G' n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
@@ -986,7 +982,7 @@ theorem eventually_ofReal_exp_le_measure_setOf_periodicEmpiricalField_mem
     ∀ᶠ n in atTop,
       ENNReal.ofReal (Real.exp ((#(Finset.Icc (m n) fun k ↦ m n k + s n) : ℝ) * r))
         ≤ μ {η | periodicEmpiricalFieldL (π n) (hne n) η ∈ C} := by
-  filter_upwards [eventually_exists_ofReal_exp_le_gibbsSpecification lam hΦ hν hνC hmono hs hπ
+  filter_upwards [eventually_exists_ofReal_exp_le_gibbsSpecification lam hΦ hν hνC hs hπ
     hne hr] with n hn
   obtain ⟨B, hBmeas, hBsub, hB⟩ := hn
   set γ := Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) lam 1 with hγ
@@ -1027,7 +1023,7 @@ private lemma coe_mul_div_natCast_eq (a : ℕ) (ha : a ≠ 0) (z : ℝ) :
 /-- **Georgii (15.47), the large deviation lower bound.** For `Φ ∈ ℬ_Θ` and any set `C` of random
 fields,
 `liminf |Λ|⁻¹ log inf_ω γ^Φ_Λ(°R_Λ ∈ C | ω) ≥ − inf_{ν ∈ C°} 𝒜(ν|Φ)`
-along any increasing sequence of cubes of `ℤ^d` whose side tends to infinity, with arbitrary
+along any sequence of cubes of `ℤ^d` whose side tends to infinity, with arbitrary
 torus reductions. Here `C°` is Georgii's interior of `C` *in* `𝓟_Θ`
 (`MeasureTheory.GibbsMeasure.invariantInterior`) and `𝒜(·|Φ)` is the excess free energy
 `Potential.specificRelativeEntropy`. -/
@@ -1037,7 +1033,6 @@ theorem neg_iInf_specificRelativeEntropy_le_liminf_log_iInf_gibbsSpecification
     (hΦ : Φ.IsShiftInvariant)
     (C : Set (WithLocalConvergence (Fin d → ℤ) E))
     {m : ℕ → Fin d → ℤ} {s : ℕ → ℕ}
-    (hmono : Monotone fun n ↦ Finset.Icc (m n) fun k ↦ m n k + s n)
     (hs : Tendsto s atTop atTop)
     {G' : ℕ → AddSubgroup (Fin d → ℤ)} {π : ℕ → (Fin d → ℤ) → (Fin d → ℤ)}
     (hπ : ∀ n, Potential.IsTorusReduction (G' n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
@@ -1053,7 +1048,7 @@ theorem neg_iInf_specificRelativeEntropy_le_liminf_log_iInf_gibbsSpecification
   rw [EReal.neg_le]
   refine EReal.ge_of_forall_gt_iff_ge.1 fun z hz ↦ ?_
   have hev := eventually_ofReal_exp_le_gibbsSpecification_setOf_periodicEmpiricalField_mem
-    lam hΦ hρ.1 hρ.2 hmono hs hπ hne hz
+    lam hΦ hρ.1 hρ.2 hs hπ hne hz
   refine Filter.le_liminf_of_le (by isBoundedDefault) ?_
   filter_upwards [hev] with n hn
   have hcard : (#(Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ))) ≠ 0 := (hne n).card_pos.ne'
@@ -1078,7 +1073,6 @@ theorem neg_iInf_specificRelativeEntropy_le_liminf_log_measure
     (hΦ : Φ.IsShiftInvariant)
     (C : Set (WithLocalConvergence (Fin d → ℤ) E))
     {m : ℕ → Fin d → ℤ} {s : ℕ → ℕ}
-    (hmono : Monotone fun n ↦ Finset.Icc (m n) fun k ↦ m n k + s n)
     (hs : Tendsto s atTop atTop)
     {G' : ℕ → AddSubgroup (Fin d → ℤ)} {π : ℕ → (Fin d → ℤ) → (Fin d → ℤ)}
     (hπ : ∀ n, Potential.IsTorusReduction (G' n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
@@ -1095,7 +1089,7 @@ theorem neg_iInf_specificRelativeEntropy_le_liminf_log_measure
   rw [EReal.neg_le]
   refine EReal.ge_of_forall_gt_iff_ge.1 fun z hz ↦ ?_
   have hev := eventually_ofReal_exp_le_measure_setOf_periodicEmpiricalField_mem
-    lam hΦ hρ.1 hρ.2 hmono hs hπ hne hz hμ
+    lam hΦ hρ.1 hρ.2 hs hπ hne hz hμ
   refine Filter.le_liminf_of_le (by isBoundedDefault) ?_
   filter_upwards [hev] with n hn
   have hcard : (#(Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ))) ≠ 0 := (hne n).card_pos.ne'

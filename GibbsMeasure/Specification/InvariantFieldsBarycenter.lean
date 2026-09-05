@@ -6,6 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Mathlib.Analysis.Convex.BarycenterJensen
+public import GibbsMeasure.Mathlib.Data.EReal.ShiftToENNReal
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.SetwiseEmbedding
 public import GibbsMeasure.Specification.Ergodicity
 public import GibbsMeasure.Specification.InvariantFields
@@ -451,6 +452,38 @@ theorem iInf_closedConvexHull_eq_iInf_closure_of_lowerSemicontinuousOn
     exact iInf_congr fun μ ↦ iInf_congr fun hμ ↦
       extendAlongEvalLocalEvents_apply (hPcl.closure_subset_iff.2 hC hμ)
   rw [← hL, ← hR, hmain]
+
+/-- **Georgii (15.54) for an `EReal`-valued functional bounded below.** The excess free energy
+`𝒜(· | Φ) = P(Φ) + ⟨·, Φ⟩ − 𝓀(·)` is a difference of extended reals, so it is `EReal`-valued;
+Corollary (15.35) says it is `≥ 0` on `𝓟_Θ`, and in general a functional in this situation is
+bounded below on `P` by some real `c₀`. Transporting along the order isomorphism
+`[c₀, ∞] ≃o [0, ∞]`, `t ↦ (t − c₀).toENNReal`, turns the hypotheses into the `[0, ∞]`-valued ones
+of `iInf_closedConvexHull_eq_iInf_closure_of_lowerSemicontinuousOn` and transports the conclusion
+back. -/
+theorem iInf_closedConvexHull_eq_iInf_closure_ereal
+    {𝒜' : WithLocalConvergence S E → EReal} {c₀ : ℝ}
+    (hPcl : IsClosed P)
+    (hPmix : ∀ μ ∈ P, ∀ ν ∈ P, ∀ a b : ℝ, 0 ≤ a → 0 ≤ b → a + b = 1 →
+      ∃ ρ ∈ P, (ρ.toMeasure : Measure (S → E))
+        = ENNReal.ofReal a • (μ.toMeasure : Measure (S → E))
+          + ENNReal.ofReal b • (ν.toMeasure : Measure (S → E)))
+    (hC : C ⊆ P) (hbdd : ∀ μ ∈ P, (c₀ : EReal) ≤ 𝒜' μ)
+    (h𝒜lsc : LowerSemicontinuousOn 𝒜' P)
+    (h𝒜conc : ∀ μ ∈ P, ∀ ν ∈ P, ∀ ρ ∈ P, ∀ a b : ℝ, 0 ≤ a → 0 ≤ b → a + b = 1 →
+      (ρ.toMeasure : Measure (S → E))
+        = ENNReal.ofReal a • (μ.toMeasure : Measure (S → E))
+          + ENNReal.ofReal b • (ν.toMeasure : Measure (S → E)) →
+      (a : EReal) * 𝒜' μ + (b : EReal) * 𝒜' ν ≤ 𝒜' ρ) :
+    (⨅ μ ∈ {μ | μ ∈ P ∧
+        evalLocalEvents S E μ ∈ closedConvexHull ℝ (evalLocalEvents S E '' C)}, 𝒜' μ)
+      = ⨅ μ ∈ closure C, 𝒜' μ := by
+  refine EReal.biInf_eq_biInf_of_shiftToENNReal (a := c₀) 𝒜' _ _
+    (fun μ hμ ↦ hbdd μ hμ.1) (fun μ hμ ↦ hbdd μ (hPcl.closure_subset_iff.2 hC hμ)) ?_
+  exact iInf_closedConvexHull_eq_iInf_closure_of_lowerSemicontinuousOn hPcl hPmix hC
+    (h𝒜lsc.shiftToENNReal hbdd)
+    (fun μ hμ ν hν ρ hρ a b ha hb hab hmix ↦
+      EReal.shiftToENNReal_smul_add_smul_le ha hb hab (hbdd μ hμ) (hbdd ν hν)
+        (h𝒜conc μ hμ ν hν ρ hρ a b ha hb hab hmix))
 
 end Transport
 

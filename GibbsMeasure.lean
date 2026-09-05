@@ -15,6 +15,7 @@ public import GibbsMeasure.Mathlib.Topology.UniformSpace.Pi
 public import GibbsMeasure.Mathlib.Topology.MetricSpace.DependsOn
 public import GibbsMeasure.Mathlib.Topology.Semicontinuity.EReal
 public import GibbsMeasure.Mathlib.Data.EReal.Inv
+public import GibbsMeasure.Mathlib.Data.EReal.ShiftToENNReal
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.ENNReal
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.Order
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.NatInt
@@ -29,6 +30,7 @@ public import GibbsMeasure.Mathlib.Data.ZMod.Basic
 public import GibbsMeasure.Mathlib.Data.Set.CardTranslate
 public import GibbsMeasure.Mathlib.Analysis.Subadditive.Cubes
 public import GibbsMeasure.Mathlib.InformationTheory.RelativeEntropy
+public import GibbsMeasure.Mathlib.InformationTheory.KullbackLeibler.Cond
 public import GibbsMeasure.Mathlib.InformationTheory.KullbackLeibler.KLFun
 public import GibbsMeasure.Mathlib.InformationTheory.KullbackLeibler.CountWithDensity
 public import GibbsMeasure.Mathlib.Analysis.Normed.Algebra.ClosedSubalgebra
@@ -328,6 +330,7 @@ public import GibbsMeasure.Specification.TangentFunctional
 public import GibbsMeasure.Specification.PhaseTransition
 public import GibbsMeasure.Specification.LargeDeviations
 public import GibbsMeasure.Specification.LargeDeviationsLower
+public import GibbsMeasure.Specification.LargeDeviationsUpper
 public import GibbsMeasure.Specification.LocalGroundStates
 public import GibbsMeasure.Specification.PatternPercolation
 public import GibbsMeasure.Specification.ReflectionPositivity
