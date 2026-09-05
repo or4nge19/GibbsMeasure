@@ -122,6 +122,7 @@ public import GibbsMeasure.Mathlib.Probability.ConditionalProbability
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.Pointwise
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.MeanErgodic
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.MaximalInequality
+public import GibbsMeasure.Mathlib.Dynamics.Ergodic.MeasurePreserving
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.ShannonMcMillanBreiman
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.ShannonMcMillanCube
 public import GibbsMeasure.Mathlib.GroupTheory.Foelner
