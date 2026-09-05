@@ -1103,10 +1103,13 @@ lemma norm_siteEnergyTermLp_le (i : S) (A : Finset S) :
       (ENNReal.le_tsum A))] at h
   simpa [siteEnergyTermLp, Real.enorm_eq_ofReal_abs, ENNReal.toReal_ofReal (abs_nonneg _)] using h
 
-lemma summable_siteEnergyTermLp (i : S) : Summable (Φ.siteEnergyTermLp i) := by
-  refine Summable.of_norm (Summable.of_nonneg_of_le (fun A ↦ norm_nonneg _)
-    (fun A ↦ norm_siteEnergyTermLp_le (Φ := Φ) i A) ?_)
-  exact ENNReal.summable_toReal (IsAbsolutelySummable.normAt_ne_top (Φ := Φ) i)
+lemma summable_norm_siteEnergyTermLp (i : S) : Summable fun A ↦ ‖Φ.siteEnergyTermLp i A‖ :=
+  Summable.of_nonneg_of_le (fun _ ↦ norm_nonneg _)
+    (fun A ↦ norm_siteEnergyTermLp_le (Φ := Φ) i A)
+    (ENNReal.summable_toReal (IsAbsolutelySummable.normAt_ne_top (Φ := Φ) i))
+
+lemma summable_siteEnergyTermLp (i : S) : Summable (Φ.siteEnergyTermLp i) :=
+  Summable.of_norm (summable_norm_siteEnergyTermLp (Φ := Φ) i)
 
 lemma siteEnergyTermLp_mem_localFunctionsOn [IsPotential Φ] (i : S) (A : Finset S) :
     Φ.siteEnergyTermLp i A ∈ localFunctionsOn S E A := by
@@ -1128,25 +1131,17 @@ def siteEnergyLp (i : S) : lp (fun _ : S → E ↦ ℝ) ∞ :=
 @[simp] lemma coeFn_siteEnergyLp (i : S) : ⇑(Φ.siteEnergyLp i) = Φ.siteEnergy i := rfl
 
 lemma hasSum_siteEnergyTermLp (i : S) :
-    HasSum (Φ.siteEnergyTermLp i) (Φ.siteEnergyLp i) := by
-  obtain ⟨T, hT⟩ := summable_siteEnergyTermLp (Φ := Φ) i
-  have hpt : ∀ η : S → E, (T : (S → E) → ℝ) η = Φ.siteEnergy i η := by
-    intro η
-    have h1 : HasSum (fun A ↦ (Φ.siteEnergyTermLp i A : (S → E) → ℝ) η) ((T : (S → E) → ℝ) η) := by
-      refine (lp.tendsto_apply_of_tendsto hT η).congr fun s ↦ ?_
-      simp only [siteEnergyTermLp, lp.coeFn_sum]
-      exact Finset.sum_apply _ _ _
-    exact h1.unique (summable_siteEnergyTerms (Φ := Φ) i η).hasSum
-  have hTeq : T = Φ.siteEnergyLp i := lp.ext (funext hpt)
-  exact hTeq ▸ hT
+    HasSum (Φ.siteEnergyTermLp i) (Φ.siteEnergyLp i) :=
+  MeasureTheory.GibbsMeasure.hasSum_of_summable_norm_of_hasSum_apply
+    (summable_norm_siteEnergyTermLp (Φ := Φ) i)
+    fun η ↦ (summable_siteEnergyTerms (Φ := Φ) i η).hasSum
 
 /-- **Georgii, after (15.22):** the energy density `f_Φ` is a quasilocal observable. -/
 theorem siteEnergyLp_mem_quasilocalFunctions [IsPotential Φ] (i : S) :
-    Φ.siteEnergyLp i ∈ quasilocalFunctions S E := by
-  refine (Subalgebra.isClosed_topologicalClosure (localFunctions S E)).mem_of_tendsto
-    (hasSum_siteEnergyTermLp (Φ := Φ) i) (.of_forall fun s ↦ ?_)
-  exact Subalgebra.sum_mem _ fun A _ ↦ localFunctions_le_quasilocalFunctions
-    (mem_localFunctions.2 ⟨A, siteEnergyTermLp_mem_localFunctionsOn (Φ := Φ) i A⟩)
+    Φ.siteEnergyLp i ∈ quasilocalFunctions S E :=
+  MeasureTheory.GibbsMeasure.mem_quasilocalFunctions_of_hasSum
+    (fun A ↦ mem_localFunctions.2 ⟨A, siteEnergyTermLp_mem_localFunctionsOn (Φ := Φ) i A⟩)
+    (hasSum_siteEnergyTermLp (Φ := Φ) i)
 
 /-- **Georgii (4.3)(2) and (15.22):** the specific energy `μ ↦ ⟨μ, Φ⟩` is continuous for the
 topology of local convergence. This is the continuity of `j` in the proof of (16.11). -/
