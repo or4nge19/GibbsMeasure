@@ -576,8 +576,8 @@ invariance, from **Proposition (8.34)**, the covariance bound by the interdepend
 tilting the specification and the comparison theorem; the finite-volume derivative is a tilted
 integral and the matrix-series tail algebra lives in the Mathlib layer. Georgii's opening claim of
 *continuous* differentiability in (8.37) is not established by his proof and is not proved. `GibbsMeasure/Model/IsingLargeDeviations.lean`
-exhibits the Ising potential as a nonzero element of `ℬ_Θ`, and its zero-coupling member with `|h| < 1`
-as a point of the Dobrushin region (the interacting case `|h| + 4d|J| < 1` is not yet computed), so these
+exhibits the Ising potential as a nonzero element of `ℬ_Θ` lying in the Dobrushin region exactly when
+Georgii's norm `|h| + 4d|J|` is below one, where (16.17) reads magnetisation and susceptibility, so these
 objects are not vacuous.
 
 **§6.3, Shlosman's random staircases** (`GibbsMeasure/Model/RandomStaircase.lean`): the discrete

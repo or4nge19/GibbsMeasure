@@ -80,6 +80,24 @@ instance {S : Type*} (G : SimpleGraph S) [G.LocallyFinite] (J h : ℝ) :
     Potential.IsAbsolutelySummable (isingPotential G J h) :=
   Potential.isAbsolutelySummable_nearestNeighbourPair G J h abs_spin_le
 
+/-- **The external field is a direction in potential space.** Adding `t` times the pure external
+field `Φ^{0,1}` — the Ising potential with coupling `0` and field `1`, i.e. `Φ_{i} = −σ_i` — to
+the Ising potential moves the field from `h` to `h + t` and leaves the coupling `J` alone: the
+bond terms of `Φ^{0,1}` carry the factor `0`. -/
+lemma isingPotential_add_smul_field {S : Type*} (G : SimpleGraph S) (J h t : ℝ) :
+    isingPotential G J h + t • isingPotential G 0 1 = isingPotential G J (h + t) := by
+  funext A η
+  change isingPotential G J h A η + t * isingPotential G 0 1 A η
+    = isingPotential G J (h + t) A η
+  by_cases h1 : A.card = 1
+  · simp only [isingPotential, Potential.nearestNeighbourPair_apply_card_one h1]
+    ring
+  · by_cases h2 : A.card = 2 ∧ ∃ i ∈ A, ∃ j ∈ A, G.Adj i j
+    · simp only [isingPotential, Potential.nearestNeighbourPair_apply_pair h2]
+      ring
+    · simp only [isingPotential, Potential.nearestNeighbourPair_apply_eq_zero h1 h2]
+      ring
+
 /-! ### The Hamiltonian of the Ising potential
 
 On an arbitrary locally finite graph, `H_Λ^{Φ^{J,h}}(σ) = -J ∑_{b ∩ Λ ≠ ∅} σ_i σ_j
@@ -322,6 +340,58 @@ noncomputable instance (d : ℕ) : (latticeGraph d).LocallyFinite := fun v ↦
     rcases hs with rfl | rfl
     · exact ⟨(j, true), by simp⟩
     · exact ⟨(j, false), by simp⟩
+
+/-- **`ℤ^d` is `2d`-regular.** The neighbours of `v` are exactly the `2d` points
+`v ± e_j`, `j ∈ Fin d`, which are pairwise distinct. (For `d = 0` the graph is a single
+isolated point and both sides are `0`.) -/
+lemma card_neighborFinset_latticeGraph (d : ℕ) (v : Fin d → ℤ) :
+    ((latticeGraph d).neighborFinset v).card = 2 * d := by
+  classical
+  have hone : ∀ b : Bool, (if b then (1 : ℤ) else -1).natAbs = 1 := by decide
+  have hne0 : ∀ b : Bool, (if b then (1 : ℤ) else -1) ≠ 0 := by decide
+  have hbinj : ∀ b b' : Bool, (if b then (1 : ℤ) else -1) = (if b' then (1 : ℤ) else -1) →
+      b = b' := by decide
+  set g : Fin d × Bool → (Fin d → ℤ) :=
+    fun p ↦ Function.update v p.1 (v p.1 + if p.2 then (1 : ℤ) else -1) with hgdef
+  -- every `v ± e_j` is a neighbour of `v`
+  have hstep : ∀ (j : Fin d) (s : ℤ), s.natAbs = 1 →
+      (latticeGraph d).Adj v (Function.update v j (v j + s)) := by
+    intro j s hs
+    change ∑ i, (v i - Function.update v j (v j + s) i).natAbs = 1
+    rw [Finset.sum_eq_single j]
+    · rw [Function.update_self]; omega
+    · intro i _ hi
+      rw [Function.update_of_ne hi]
+      simp
+    · intro h
+      exact absurd (Finset.mem_univ j) h
+  -- the `2d` shifts are pairwise distinct
+  have hinj : Function.Injective g := by
+    rintro ⟨j, b⟩ ⟨j', b'⟩ hpq
+    have hjj : j = j' := by
+      by_contra hne
+      have h1 := congrFun hpq j
+      rw [hgdef] at h1
+      simp only [Function.update_self, Function.update_of_ne hne] at h1
+      exact hne0 b (by omega)
+    subst hjj
+    have h2 := congrFun hpq j
+    rw [hgdef] at h2
+    simp only [Function.update_self, add_right_inj] at h2
+    rw [hbinj b b' h2]
+  have hset : (latticeGraph d).neighborFinset v = Finset.image g Finset.univ := by
+    ext y
+    rw [SimpleGraph.mem_neighborFinset, Finset.mem_image]
+    constructor
+    · intro hy
+      obtain ⟨j, s, hs, rfl⟩ := latticeGraph_adj_decomp hy
+      rcases hs with rfl | rfl
+      · exact ⟨(j, true), Finset.mem_univ _, by simp [hgdef]⟩
+      · exact ⟨(j, false), Finset.mem_univ _, by simp [hgdef]⟩
+    · rintro ⟨⟨j, b⟩, -, rfl⟩
+      exact hstep j _ (hone b)
+  rw [hset, Finset.card_image_of_injective _ hinj, Finset.card_univ, Fintype.card_prod,
+    Fintype.card_fin, Fintype.card_bool, mul_comm]
 
 /-- **Existence of Gibbs measures for the `ℤ^d` Ising model**, for every coupling, external
 field and inverse temperature. -/

@@ -107,12 +107,17 @@
 
 \begin{example}[The Ising potential as a witness]
     \label{ex:gv-ising-witness}
-    \uses{thm:gv-16-17, prop:ld-15-49}
-    \lean{MeasureTheory.GibbsMeasure.isingPotential_mem_BTheta, MeasureTheory.GibbsMeasure.isingBTheta, MeasureTheory.GibbsMeasure.isingBTheta_ne_zero, MeasureTheory.GibbsMeasure.cardNormAt_isingPotential_of_zero_coupling, MeasureTheory.GibbsMeasure.isingBTheta_mem_dobrushinRegion, MeasureTheory.GibbsMeasure.exists_ne_zero_mem_dobrushinRegion, MeasureTheory.GibbsMeasure.exists_ldRate_isingBTheta_eq_zero}
+    \uses{thm:gv-16-17, prop:ld-15-49, cor:dob-8-37}
+    \lean{MeasureTheory.GibbsMeasure.isingPotential_mem_BTheta, MeasureTheory.GibbsMeasure.isingBTheta, MeasureTheory.GibbsMeasure.isingBTheta_ne_zero, MeasureTheory.GibbsMeasure.card_neighborFinset_latticeGraph, MeasureTheory.GibbsMeasure.cardNormAt_isingPotential, MeasureTheory.GibbsMeasure.cardNormAt_isingPotential_latticeGraph, MeasureTheory.GibbsMeasure.cardNormAt_isingPotential_of_zero_coupling, MeasureTheory.GibbsMeasure.isingBTheta_mem_dobrushinRegion, MeasureTheory.GibbsMeasure.isDobrushin_isingSpecification_of_cardNormAt_lt_one, MeasureTheory.GibbsMeasure.exists_ne_zero_mem_dobrushinRegion, MeasureTheory.GibbsMeasure.exists_ldRate_isingBTheta_eq_zero, MeasureTheory.GibbsMeasure.isingPotential_add_smul_field, MeasureTheory.GibbsMeasure.leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_isingBTheta_field, MeasureTheory.GibbsMeasure.hasDerivAt_rightDirDeriv_pressure_isingBTheta_field, MeasureTheory.GibbsMeasure.exists_hasDerivAt_integral_isingGibbsMeasure_field}
     \leanok
 
     The $\mathbb Z^d$ Ising potential lies in $\mathcal B_\Theta$ and is nonzero when $h \neq 0$;
-    the pure external field has $\sum_{A\ni i}\abs A\norm{\Phi_A} = \abs h$, so for $0 < \abs h < 1$
-    it is a nonzero element of the Dobrushin region, and its rate function vanishes somewhere. None
-    of the objects of Theorem \ref{thm:gv-16-17} or Proposition \ref{prop:ld-15-49} is vacuous.
+    Georgii's norm (8.36) is exactly $\abs h + 2\deg(i)\abs J$ at every site of a locally finite
+    graph, so $\abs h + 4d\abs J$ on $\mathbb Z^d$, and for $\abs h + 4d\abs J < 1$ the potential
+    lies in the Dobrushin region (a criterion strictly smaller than (8.8)'s $2d\abs J < 1$, which
+    ignores the field). There Theorem \ref{thm:gv-16-17} reads $\partial P/\partial h =
+    \mu(\sigma_0)$, the magnetisation, and $\partial^2 P/\partial h^2 = \sum_k
+    \operatorname{cov}_\mu(\sigma_0, \sigma_k)$, the susceptibility, and Corollary
+    \ref{cor:dob-8-37} is the fluctuation--response identity with the Gibbs family constructed;
+    the rate function vanishes somewhere. None of these objects is vacuous.
 \end{example}

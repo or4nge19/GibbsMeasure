@@ -1268,15 +1268,19 @@ alignment:
         Georgii's opening claim that Phi |-> mu_Phi(g) is continuously differentiable on D, which
         his proof does not establish and (16.17) does not use.
     - source: "Worked instance for Sections 15.5 and 16.2: the Ising potential"
-      lean: "MeasureTheory.GibbsMeasure.cardNormAt_isingPotential_of_zero_coupling"
+      lean: "MeasureTheory.GibbsMeasure.hasDerivAt_rightDirDeriv_pressure_isingBTheta_field"
       module: "GibbsMeasure/Model/IsingLargeDeviations.lean"
       status: "proved"
       note: >-
-        The Z^d Ising potential is a nonzero element of B_Theta; the pure external field has
-        Georgii's norm (8.36) equal to |h| at every site — the only computation of that norm in
-        the library — so for 0 < |h| < 1 it is a nonzero element of the Dobrushin region, and its
-        rate function vanishes somewhere. An adversarial review had found that no object of
-        Sections 15.5 and 16.2 had a witness beyond the zero potential.
+        The Z^d Ising potential is a nonzero element of B_Theta; Georgii's norm (8.36) is exactly
+        |h| + 2 deg(i) |J| at every site of a locally finite graph, |h| + 4d|J| on Z^d, so for
+        |h| + 4d|J| < 1 the potential lies in the Dobrushin region (strictly smaller than the
+        (8.8) criterion 2d|J| < 1, which ignores the field, and than the tanh criterion); there
+        (16.17) reads dP/dh = magnetisation and d^2P/dh^2 = the summed spin covariance, the
+        susceptibility, and (8.37) is the fluctuation-response identity with the Gibbs family
+        constructed from Dobrushin uniqueness over Bool; the rate function vanishes somewhere. An
+        adversarial review had found first that no object of Sections 15.5 and 16.2 had a witness
+        beyond the zero potential, then that the only Dobrushin-region witness had zero coupling.
     - source: "Section 18.1: (18.1)-(18.3), (18.8)-(18.10)"
       lean: "MeasureTheory.GibbsMeasure.periodicGibbsDist_forall_notMem_torusPattern_le_patternWeight"
       module: "GibbsMeasure/Specification/PatternPercolation.lean"
