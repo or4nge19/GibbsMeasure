@@ -24,26 +24,6 @@ Sites `ℤ`, an arbitrary measurable state space `(E, 𝓔)`, a probability a pr
 `𝓕_{[i,k]}`-measurable (`Specification.IsMarkovianInt`, Definition (10.2)). The question of the
 section is which `μ ∈ 𝒢(γ)` are Markov chains (Definition (10.4)).
 
-## Missing Mathlib
-
-The section opens with general facts, stated in Mathlib's namespaces and with no Georgii
-vocabulary; their intended homes are recorded in the docstrings:
-
-* `MeasureTheory.Measure.withDensity_bind`: `withDensity` commutes with the Giry `bind`
-  (`Mathlib/MeasureTheory/Measure/WithDensity.lean`).
-* `MeasureTheory.Measure.AbsolutelyContinuous.bind`: `μ ≪ ν → μ κ ≪ ν κ`
-  (`Mathlib/MeasureTheory/Measure/GiryMonad.lean`).
-* `MeasureTheory.toReal_ae_eq_condExp_toReal_of_forall_setLIntegral_eq` and
-  `MeasureTheory.setLIntegral_ofReal_of_ae_eq_condExp`: an `m`-measurable `ℝ≥0∞`-valued function
-  with the same set integrals as `f` over all `m`-sets is (the real part of) `μ[f | m]`, and
-  conversely a nonnegative real version of `μ[f | m]` has, after `ENNReal.ofReal`, the same set
-  integrals as `f` (`Mathlib/MeasureTheory/Function/ConditionalExpectation/Basic.lean`).
-* `Measurable.exists_eq_comp_of_comap`: the Doob–Dynkin lemma for `ℝ≥0∞`-valued functions —
-  a function measurable for `m.comap f` factors measurably through `f`
-  (`Mathlib/MeasureTheory/MeasurableSpace/Basic.lean`).
-* `MeasureTheory.ae_eq_of_forall_setLIntegral_eq_of_le`
-  (`Mathlib/MeasureTheory/Function/AEEqOfLIntegral.lean`).
-
 ## The objects (10.12)–(10.18)
 
 For a general site set `S` (namespace `Specification`):
@@ -261,6 +241,33 @@ lemma update_mem_iff_of_measurableSet_cylinderEvents {Δ : Set S} {B : Set (S �
     Function.update ω i y ∈ B ↔ ω ∈ B :=
   mem_congr_of_measurableSet_cylinderEvents hB fun _ hk ↦
     Function.update_of_ne (ne_of_mem_of_not_mem hk hi) _ _
+
+/-- Resampling the single coordinate `j` inside a set which does not constrain `j`: the set
+integral over an `𝓕_{{j}ᶜ}`-event `D` against `μ λ_{{j}}` is the integral over `D` of the
+`{j}`-resampled integrand. -/
+lemma setLIntegral_bind_isssd_singleton {j : S} {D : Set (S → E)}
+    (hD : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (({j} : Set S)ᶜ)] D)
+    {F : (S → E) → ℝ≥0∞} (hF : Measurable F) :
+    ∫⁻ σ in D, F σ ∂(μ.bind (isssd ν {j}))
+      = ∫⁻ ω in D, (∫⁻ y, F (Function.update ω j y) ∂ν) ∂μ := by
+  classical
+  have hDm : MeasurableSet D := cylinderEvents_le_pi _ hD
+  have hjD : ∀ (ω : S → E) (y : E), Function.update ω j y ∈ D ↔ ω ∈ D := fun ω y ↦
+    update_mem_iff_of_measurableSet_cylinderEvents hD (by simp) ω y
+  have hinner : Measurable fun ω : S → E ↦ ∫⁻ y, F (Function.update ω j y) ∂ν := by
+    refine Measurable.lintegral_prod_right' (f := fun q : (S → E) × E ↦
+      F (Function.update q.1 j q.2)) ?_
+    exact hF.comp measurable_update'
+  rw [← lintegral_indicator hDm, lintegral_bind_isssd_singleton j (hF.indicator hDm),
+    ← lintegral_indicator hDm]
+  refine lintegral_congr fun ω ↦ ?_
+  by_cases hω : ω ∈ D
+  · rw [Set.indicator_of_mem hω]
+    refine lintegral_congr fun y ↦ ?_
+    rw [Set.indicator_of_mem ((hjD ω y).2 hω)]
+  · rw [Set.indicator_of_notMem hω]
+    refine (lintegral_congr fun y ↦ ?_).trans lintegral_zero
+    rw [Set.indicator_of_notMem fun h ↦ hω ((hjD ω y).1 h)]
 
 omit [DecidableEq S] in
 /-- Resampling a smaller volume keeps us absolutely continuous with respect to the resampling of

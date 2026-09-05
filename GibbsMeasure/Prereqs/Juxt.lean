@@ -1,7 +1,7 @@
 module
 
 public import GibbsMeasure.Mathlib.Data.Finset.Update
-public import GibbsMeasure.Prereqs.CylinderEvents
+public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.Cylinders
 public import Mathlib.MeasureTheory.Constructions.Cylinders
 
 /-!
@@ -144,3 +144,23 @@ lemma preimage_juxt_restrict_eq (Λ : Set S) (ω : S → E) {A : Set (S → E)}
   exact mem_congr_of_measurableSet_cylinderEvents hA fun i hi ↦ juxt_apply_of_mem hi _
 
 end Restrict
+
+section Continuity
+
+variable {S E : Type*} [TopologicalSpace E] {Λ : Set S}
+
+/-- Juxtaposition is continuous for the product topologies. -/
+lemma continuous_juxt (η : S → E) : Continuous (juxt Λ η) := by
+  refine continuous_pi fun x ↦ ?_
+  by_cases hx : x ∈ Λ
+  · simpa only [juxt_apply_of_mem hx] using continuous_apply (⟨x, hx⟩ : Λ)
+  · simpa only [juxt_apply_of_not_mem hx] using continuous_const
+
+/-- The boundary configuration enters `juxt` continuously. -/
+lemma continuous_juxt_boundary (ζ : Λ → E) : Continuous fun η : S → E ↦ juxt Λ η ζ := by
+  refine continuous_pi fun x ↦ ?_
+  by_cases hx : x ∈ Λ
+  · simpa only [juxt_apply_of_mem hx] using continuous_const
+  · simpa only [juxt_apply_of_not_mem hx] using continuous_apply x
+
+end Continuity

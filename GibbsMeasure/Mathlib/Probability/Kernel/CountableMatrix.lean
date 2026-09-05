@@ -286,3 +286,192 @@ lemma pow_le_pow_mul_apply_singleton {E : Type*} [MeasurableSpace E] [Countable 
     exact (mul_le_mul' ih le_rfl).trans (κ.pow_apply_singleton_mul_le _ _ x)
 
 end ProbabilityTheory.Kernel
+
+/-! ### Lazy matrices `tP + (1 - t)I` -/
+
+namespace ProbabilityTheory.Kernel
+
+variable {α : Type*}
+
+/-- The lazy matrix `Q = tP + (1 - t)I` of a matrix `P`: with probability `t` move according to
+`P`, otherwise stay put. -/
+noncomputable def lazy (P : α → α → ℝ≥0∞) (t : ℝ≥0∞) (x y : α) : ℝ≥0∞ :=
+  t * P x y + (1 - t) * ({y} : Set α).indicator 1 x
+
+variable {P : α → α → ℝ≥0∞} {t : ℝ≥0∞}
+
+lemma lazy_pos (hpos : ∀ x y, 0 < P x y) (ht : t ≠ 0) (x y : α) : 0 < lazy P t x y :=
+  add_pos_of_left (ENNReal.mul_pos ht (hpos x y).ne') _
+
+/-- `inf_x Q(x, x) ≥ 1 - t` for `Q = tP + (1 - t)I`. -/
+lemma le_lazy_apply_self (x : α) : 1 - t ≤ lazy P t x x := by
+  simp [lazy]
+
+/-- `Q = tP + (1 - t)I` is stochastic when `P` is and `t ≤ 1`. -/
+lemma lazy_stochastic (hP : ∀ x, ∑' y, P x y = 1) (ht : t ≤ 1) (x : α) :
+    ∑' y, lazy P t x y = 1 := by
+  simp only [lazy]
+  rw [ENNReal.tsum_add, ENNReal.tsum_mul_left, ENNReal.tsum_mul_left, hP,
+    tsum_eq_single x fun y hy ↦ by simp [Ne.symm hy]]
+  simp [add_tsub_cancel_of_le ht]
+
+/-- An invariant vector of `P` is invariant for `Q = tP + (1 - t)I`. -/
+lemma tsum_mul_lazy {v : α → ℝ≥0∞} (hvP : ∀ y, ∑' x, v x * P x y = v y) (ht : t ≤ 1) (y : α) :
+    ∑' x, v x * lazy P t x y = v y := by
+  simp only [lazy, mul_add]
+  rw [ENNReal.tsum_add]
+  simp_rw [mul_left_comm (v _) t, mul_left_comm (v _) (1 - t)]
+  rw [ENNReal.tsum_mul_left, ENNReal.tsum_mul_left, hvP, tsum_eq_single y fun x hx ↦ by simp [hx]]
+  simp [← add_mul, add_tsub_cancel_of_le ht]
+
+/-- The binomial formula `Q^n(x, x) = ∑_k C(n,k) t^k (1-t)^{n-k} P^k(x, x)` for the lazy matrix
+`Q = tP + (1-t)I`, by induction on `n` via Pascal's rule. -/
+theorem ofMatrix_lazy_pow_apply_singleton {E : Type*} [MeasurableSpace E] [Countable E]
+    [MeasurableSingletonClass E] (P : E → E → ℝ≥0∞) (t : ℝ≥0∞) (n : ℕ) (a c : E) :
+    (Kernel.ofMatrix (lazy P t) ^ n) a {c}
+      = ∑ k ∈ Finset.range (n + 1), (n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k)
+          * (Kernel.ofMatrix P ^ k) a {c} := by
+  induction n generalizing a c with
+  | zero =>
+    simp
+  | succ n ih =>
+    rw [Kernel.ofMatrix_pow_succ'_apply_singleton]
+    have hrw : ∀ b, (Kernel.ofMatrix (lazy P t) ^ n) a {b} * lazy P t b c
+        = ∑ k ∈ Finset.range (n + 1),
+            (t * ((n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k) * (Kernel.ofMatrix P ^ k) a {b}
+              * P b c)
+            + (1 - t) * (({c} : Set E).indicator (1 : E → ℝ≥0∞) b
+              * ((n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k)
+                  * (Kernel.ofMatrix P ^ k) a {b}))) := by
+      intro b
+      rw [ih a b, Finset.sum_mul]
+      congr 1
+      ext k
+      simp only [lazy]
+      ring
+    simp_rw [hrw]
+    rw [Summable.tsum_finsetSum (fun k _ => ENNReal.summable)]
+    have hterm : ∀ k, ∑' b,
+          (t * ((n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k) * (Kernel.ofMatrix P ^ k) a {b}
+              * P b c)
+            + (1 - t) * (({c} : Set E).indicator (1 : E → ℝ≥0∞) b
+              * ((n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k) * (Kernel.ofMatrix P ^ k) a {b})))
+        = (n.choose k : ℝ≥0∞) * t ^ (k+1) * (1 - t) ^ (n - k) * (Kernel.ofMatrix P ^ (k+1)) a {c}
+          + (n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k + 1)
+              * (Kernel.ofMatrix P ^ k) a {c} := by
+      intro k
+      rw [ENNReal.tsum_add]
+      congr 1
+      · have step : ∀ i, t * ((n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k)
+              * (Kernel.ofMatrix P ^ k) a {i} * P i c)
+            = (t * (n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k))
+              * ((Kernel.ofMatrix P ^ k) a {i} * P i c) := by
+          intro i; ring
+        simp_rw [step, ENNReal.tsum_mul_left,
+          ← Kernel.ofMatrix_pow_succ'_apply_singleton P k a c]
+        ring
+      · have step : ∀ b, (1 - t) * (({c} : Set E).indicator (1 : E → ℝ≥0∞) b
+              * ((n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k) * (Kernel.ofMatrix P ^ k) a {b}))
+            = ((1 - t) * (n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k))
+              * (({c} : Set E).indicator (1 : E → ℝ≥0∞) b * (Kernel.ofMatrix P ^ k) a {b}) := by
+          intro b; ring
+        simp_rw [step, ENNReal.tsum_mul_left]
+        have hcol : ∑' b, ({c} : Set E).indicator (1 : E → ℝ≥0∞) b * (Kernel.ofMatrix P ^ k) a {b}
+            = (Kernel.ofMatrix P ^ k) a {c} := by
+          rw [tsum_eq_single c (fun b hb => by simp [Set.indicator_of_notMem, hb])]
+          simp
+        rw [hcol]
+        ring
+    simp_rw [hterm]
+    rw [Finset.sum_add_distrib]
+    set A := ∑ k ∈ Finset.range (n + 1),
+        (n.choose k : ℝ≥0∞) * t ^ (k + 1) * (1 - t) ^ (n - k) * (Kernel.ofMatrix P ^ (k + 1)) a {c}
+      with hA
+    set B := ∑ k ∈ Finset.range (n + 1),
+        (n.choose k : ℝ≥0∞) * t ^ k * (1 - t) ^ (n - k + 1) * (Kernel.ofMatrix P ^ k) a {c}
+      with hB
+    have hCA : ∀ i ∈ Finset.range (n + 1),
+        ((n + 1).choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i)
+            * (Kernel.ofMatrix P ^ (i + 1)) a {c}
+          = (n.choose i : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i)
+              * (Kernel.ofMatrix P ^ (i + 1)) a {c}
+            + (n.choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i)
+                * (Kernel.ofMatrix P ^ (i + 1)) a {c} := by
+      intro i _
+      have hp : ((n + 1).choose (i + 1) : ℝ≥0∞)
+          = (n.choose i : ℝ≥0∞) + (n.choose (i + 1) : ℝ≥0∞) := by
+        rw [← Nat.cast_add, Nat.choose_succ_succ' n i]
+      rw [hp]; ring
+    have hCstep : ∑ i ∈ Finset.range (n + 1),
+          ((n + 1).choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i)
+              * (Kernel.ofMatrix P ^ (i + 1)) a {c}
+        = A + ∑ i ∈ Finset.range (n + 1),
+            (n.choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i)
+                * (Kernel.ofMatrix P ^ (i + 1)) a {c} := by
+      rw [Finset.sum_congr rfl hCA, Finset.sum_add_distrib, hA]
+    have hfront : ∑ j ∈ Finset.range (n + 1 + 1),
+        ((n + 1).choose j : ℝ≥0∞) * t ^ j * (1 - t) ^ (n + 1 - j) * (Kernel.ofMatrix P ^ j) a {c}
+        = (∑ i ∈ Finset.range (n + 1),
+              ((n + 1).choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n + 1 - (i + 1))
+                * (Kernel.ofMatrix P ^ (i + 1)) a {c})
+          + ((n + 1).choose 0 : ℝ≥0∞) * t ^ 0 * (1 - t) ^ (n + 1 - 0)
+              * (Kernel.ofMatrix P ^ 0) a {c} :=
+      Finset.sum_range_succ' _ (n + 1)
+    have hexp : ∀ i ∈ Finset.range (n + 1),
+        ((n + 1).choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n + 1 - (i + 1))
+            * (Kernel.ofMatrix P ^ (i + 1)) a {c}
+          = ((n + 1).choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i)
+              * (Kernel.ofMatrix P ^ (i + 1)) a {c} := by
+      intro i hi
+      have hi' : i < n + 1 := Finset.mem_range.1 hi
+      have hexp : n + 1 - (i + 1) = n - i := by omega
+      rw [hexp]
+    rw [Finset.sum_congr rfl hexp] at hfront
+    have hf0 : ((n + 1).choose 0 : ℝ≥0∞) * t ^ 0 * (1 - t) ^ (n + 1 - 0)
+        * (Kernel.ofMatrix P ^ 0) a {c}
+        = (1 - t) ^ (n + 1) * (Kernel.ofMatrix P ^ 0) a {c} := by simp
+    rw [hf0] at hfront
+    have hS12 : (∑ i ∈ Finset.range (n + 1),
+          (n.choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i)
+              * (Kernel.ofMatrix P ^ (i + 1)) a {c})
+        = ∑ i ∈ Finset.range n,
+            (n.choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i)
+                * (Kernel.ofMatrix P ^ (i + 1)) a {c} := by
+      rw [Finset.sum_range_succ]
+      have hz : (n.choose (n + 1) : ℝ≥0∞) = 0 := by
+        exact_mod_cast Nat.choose_eq_zero_of_lt (by omega)
+      rw [hz]
+      ring
+    have hBdecomp : B = (∑ i ∈ Finset.range n,
+            (n.choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i)
+                * (Kernel.ofMatrix P ^ (i + 1)) a {c})
+          + (1 - t) ^ (n + 1) * (Kernel.ofMatrix P ^ 0) a {c} := by
+      rw [hB, Finset.sum_range_succ']
+      have hexp2 : ∀ i ∈ Finset.range n,
+          (n.choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - (i + 1) + 1)
+              * (Kernel.ofMatrix P ^ (i + 1)) a {c}
+            = (n.choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i)
+                * (Kernel.ofMatrix P ^ (i + 1)) a {c} := by
+        intro i hi
+        have hi' : i < n := Finset.mem_range.1 hi
+        have he : n - (i + 1) + 1 = n - i := by omega
+        rw [he]
+      rw [Finset.sum_congr rfl hexp2]
+      simp
+    calc A + B = A + ((∑ i ∈ Finset.range n,
+              (n.choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i)
+                  * (Kernel.ofMatrix P ^ (i + 1)) a {c})
+            + (1 - t) ^ (n + 1) * (Kernel.ofMatrix P ^ 0) a {c}) := by rw [hBdecomp]
+      _ = (A + ∑ i ∈ Finset.range (n + 1),
+              (n.choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i)
+                  * (Kernel.ofMatrix P ^ (i + 1)) a {c})
+            + (1 - t) ^ (n + 1) * (Kernel.ofMatrix P ^ 0) a {c} := by rw [hS12]; ring
+      _ = (∑ i ∈ Finset.range (n + 1),
+              ((n + 1).choose (i + 1) : ℝ≥0∞) * t ^ (i + 1) * (1 - t) ^ (n - i)
+                  * (Kernel.ofMatrix P ^ (i + 1)) a {c})
+            + (1 - t) ^ (n + 1) * (Kernel.ofMatrix P ^ 0) a {c} := by rw [← hCstep]
+      _ = ∑ j ∈ Finset.range (n + 1 + 1),
+            ((n + 1).choose j : ℝ≥0∞) * t ^ j * (1 - t) ^ (n + 1 - j)
+                * (Kernel.ofMatrix P ^ j) a {c} := hfront.symm
+
+end ProbabilityTheory.Kernel

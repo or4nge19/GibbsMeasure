@@ -765,12 +765,8 @@ theorem isBoundaryLaw (hp0 : 0 < p) (hp1 : p < 1) (hu : 0 ≤ u) (hv : 0 ≤ v) 
     rw [← ENNReal.ofReal_tsum_of_nonneg hnn hsum, htsum, ENNReal.ofReal_one]
 
 /-- Georgii's `μ^{u,v}`, the Markov chain (11.10) of the boundary law `{ℓ^u_i, e^{-uv} r^v_i}`. -/
-def chain (hp0 : 0 < p) (hp1 : p < 1) (hu : 0 ≤ u) (hv : 0 ≤ v) : Measure (ℤ → ℕ) :=
+abbrev chain (hp0 : 0 < p) (hp1 : p < 1) (hu : 0 ≤ u) (hv : 0 ≤ v) : Measure (ℤ → ℕ) :=
   boundaryLawMeasure (isBoundaryLaw hp0 hp1 hu hv)
-
-instance isProbabilityMeasure_chain (hp0 : 0 < p) (hp1 : p < 1) (hu : 0 ≤ u) (hv : 0 ≤ v) :
-    IsProbabilityMeasure (chain hp0 hp1 hu hv) :=
-  inferInstanceAs (IsProbabilityMeasure (boundaryLawMeasure (isBoundaryLaw hp0 hp1 hu hv)))
 
 /-- `μ^{u,v} ∈ 𝒢(Q)`: Theorem (11.9)(a). -/
 theorem isGibbsMeasure_chain (hp0 : 0 < p) (hp1 : p < 1) (hu : 0 ≤ u) (hv : 0 ≤ v) :

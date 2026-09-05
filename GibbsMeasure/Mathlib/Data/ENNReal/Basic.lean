@@ -37,6 +37,17 @@ lemma nnreal_inv_zero_smul_eq_zero (a : ℝ≥0∞) : (0 : ℝ≥0)⁻¹ • a =
 @[simp] lemma tOReal_indicator_one (s : Set α) (a : α) :
     ENNReal.toReal (s.indicator 1 a) = s.indicator 1 a := by by_cases ha : a ∈ s <;> simp [ha]
 
+/-- If `2 * a ≤ c` and `2 * b ≤ c` then `a + b ≤ c`. -/
+theorem add_le_of_two_mul_le_of_two_mul_le {a b c : ℝ≥0∞} (h1 : 2 * a ≤ c) (h2 : 2 * b ≤ c) :
+    a + b ≤ c := by
+  have h : (a + b) * 2 ≤ c * 2 := by
+    rw [add_mul]
+    calc a * 2 + b * 2 ≤ c + c := by
+          rw [mul_comm a 2, mul_comm b 2]
+          exact add_le_add h1 h2
+      _ = c * 2 := by ring
+  exact (ENNReal.mul_le_mul_iff_left (a := a + b) (b := c) (c := 2) (by norm_num) (by norm_num)).1 h
+
 open Filter Topology in
 /-- Exponential growth beats polynomial growth in `ℝ≥0∞`: if `1 < r` then eventually
 `n ^ k ≤ r ^ n`. The `ℝ≥0∞`-valued form of

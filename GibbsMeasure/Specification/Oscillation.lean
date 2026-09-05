@@ -33,11 +33,11 @@ is the oscillation of a function on the state space `E`).
 It is the oscillation `oscOutside ∅ f` of `f` under variation of *all* coordinates; the two
 agree because the `ℝ≥0∞`-valued distance of `ℝ` is `edist a b = ENNReal.ofReal |a − b|`
 (`le_osc`, `osc_le`). -/
-noncomputable def osc (f : (S → E) → ℝ) : ℝ≥0∞ := _root_.oscOutside (∅ : Set S) f
+noncomputable abbrev osc (f : (S → E) → ℝ) : ℝ≥0∞ := _root_.oscOutside (∅ : Set S) f
 
 /-- Georgii (8.14): the single-site oscillation `δ_j(f)`, the oscillation of `f` under variation
 of the coordinate `j` alone, i.e. `oscOutside {j}ᶜ f`. -/
-noncomputable def oscAt (f : (S → E) → ℝ) (j : S) : ℝ≥0∞ := _root_.oscOutside ({j}ᶜ : Set S) f
+noncomputable abbrev oscAt (f : (S → E) → ℝ) (j : S) : ℝ≥0∞ := _root_.oscOutside ({j}ᶜ : Set S) f
 
 /-! ### Georgii (8.2), (8.14): the basic oscillation API
 
@@ -45,13 +45,6 @@ noncomputable def oscAt (f : (S → E) → ℝ) (j : S) : ℝ≥0∞ := _root_.o
 `GibbsMeasure/Mathlib/Topology/MetricSpace/DependsOn.lean`, so everything below is one line of
 that API together with the bridge `edist_ofReal_abs_sub` between the `edist` of `ℝ` and
 `ENNReal.ofReal |·|`. -/
-
-
-lemma osc_eq_oscOutside_empty (f : (S → E) → ℝ) :
-    osc f = _root_.oscOutside (∅ : Set S) f := rfl
-
-lemma oscAt_eq_oscOutside_compl (f : (S → E) → ℝ) (j : S) :
-    oscAt f j = _root_.oscOutside ({j}ᶜ : Set S) f := rfl
 
 /-- The bridge between the value type of `oscOutside` on `ℝ` and Georgii's `|f(ζ) − f(η)|`: the
 extended distance of two reals is `ENNReal.ofReal` of their absolute difference. -/

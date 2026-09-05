@@ -122,7 +122,7 @@ variable (γ : Specification S E)
 
 /-- The tail limit `lim_n γ_{Λ_n}(A | ω)` along the exhaustion (as a `limUnder`, hence defined
 everywhere). -/
-noncomputable def tailLimit (A : Set (S → E)) (ω : S → E) : ℝ :=
+noncomputable abbrev tailLimit (A : Set (S → E)) (ω : S → E) : ℝ :=
   γ.toAbstract.tailLimit exhaustionVolumes A ω
 
 lemma measurable_tailLimit {A : Set (S → E)} (hA : MeasurableSet A) :
@@ -145,7 +145,7 @@ variable [StandardBorelSpace E] (γ : Specification S E)
 
 /-- The rational tail CDF `ω ↦ (q ↦ lim_n γ_{Λ_n}({e ≤ q} | ω))`, where
 `e = embeddingReal (S → E)`. -/
-noncomputable def tailRatCDF (ω : S → E) (q : ℚ) : ℝ :=
+noncomputable abbrev tailRatCDF (ω : S → E) (q : ℚ) : ℝ :=
   γ.toAbstract.tailRatCDF exhaustionVolumes ω q
 
 lemma measurable_tailRatCDF : Measurable[@tailSigmaAlgebra S E _] (tailRatCDF γ) :=
@@ -153,7 +153,7 @@ lemma measurable_tailRatCDF : Measurable[@tailSigmaAlgebra S E _] (tailRatCDF γ
     exhaustionVolumes_cofinal
 
 /-- The tail-measurable kernel to `ℝ` obtained from the rational tail CDF. -/
-noncomputable def tailRealKernel : Kernel[@tailSigmaAlgebra S E _] (S → E) ℝ :=
+noncomputable abbrev tailRealKernel : Kernel[@tailSigmaAlgebra S E _] (S → E) ℝ :=
   γ.toAbstract.tailRealKernel exhaustionVolumes exhaustionVolumes_monotone
     exhaustionVolumes_cofinal
 
@@ -161,9 +161,6 @@ lemma tailRealKernel_apply (ω : S → E) :
     tailRealKernel γ ω =
       (@stieltjesOfMeasurableRat (S → E) (@tailSigmaAlgebra S E _) (tailRatCDF γ)
         (measurable_tailRatCDF γ) ω).measure := rfl
-
-instance : IsMarkovKernel (tailRealKernel γ) := by
-  unfold tailRealKernel; infer_instance
 
 lemma tailRealKernel_apply_Iic {ω : S → E} (hω : IsRatStieltjesPoint (tailRatCDF γ) ω) (q : ℚ) :
     tailRealKernel γ ω (Iic (q : ℝ)) = ENNReal.ofReal (tailRatCDF γ ω q) :=
@@ -212,7 +209,7 @@ section GibbsKernel
 variable [StandardBorelSpace E] (γ : Specification S E) (ν₀ : Measure (S → E))
 
 /-- The tail event on which `tailRealKernel γ` is carried by the range of `embeddingReal`. -/
-def rangeSet : Set (S → E) :=
+abbrev rangeSet : Set (S → E) :=
   γ.toAbstract.rangeSet exhaustionVolumes exhaustionVolumes_monotone exhaustionVolumes_cofinal
 
 lemma measurableSet_rangeSet : MeasurableSet[@tailSigmaAlgebra S E _] (rangeSet γ) :=
@@ -221,7 +218,7 @@ lemma measurableSet_rangeSet : MeasurableSet[@tailSigmaAlgebra S E _] (rangeSet 
 
 open Classical in
 /-- `tailRealKernel γ`, replaced off `rangeSet γ` by the pushforward of `ν₀`. -/
-noncomputable def tailRealKernel' : Kernel[@tailSigmaAlgebra S E _] (S → E) ℝ :=
+noncomputable abbrev tailRealKernel' : Kernel[@tailSigmaAlgebra S E _] (S → E) ℝ :=
   AbstractSpecification.tailRealKernel' γ.toAbstract exhaustionVolumes
     exhaustionVolumes_monotone exhaustionVolumes_cofinal ν₀
 
@@ -231,15 +228,12 @@ lemma tailRealKernel'_apply_range [IsProbabilityMeasure ν₀] (ω : S → E) :
     exhaustionVolumes_monotone exhaustionVolumes_cofinal ν₀ ω
 
 /-- The candidate `(G(γ), 𝓣)`-kernel, before correction on the bad tail set. -/
-noncomputable def gibbsKernelAux : Kernel[@tailSigmaAlgebra S E _] (S → E) (S → E) :=
+noncomputable abbrev gibbsKernelAux : Kernel[@tailSigmaAlgebra S E _] (S → E) (S → E) :=
   AbstractSpecification.paKernelAux γ.toAbstract exhaustionVolumes
     exhaustionVolumes_monotone exhaustionVolumes_cofinal ν₀
 
-instance [IsProbabilityMeasure ν₀] : IsMarkovKernel (gibbsKernelAux γ ν₀) := by
-  unfold gibbsKernelAux; infer_instance
-
 /-- The tail event on which `gibbsKernelAux γ ν₀` is a Gibbs measure. -/
-def gibbsSet : Set (S → E) :=
+abbrev gibbsSet : Set (S → E) :=
   AbstractSpecification.invariantSet γ.toAbstract exhaustionVolumes
     exhaustionVolumes_monotone exhaustionVolumes_cofinal ν₀
 

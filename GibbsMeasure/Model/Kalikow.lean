@@ -785,10 +785,7 @@ theorem isBoundaryLaw : IsBoundaryLaw (matrix p q) (entrance p q) (fun _ _ ↦ 1
 
 /-- Georgii's `μ_0`: the Markov chain for `Q` defined by the entrance law (11.38) through
 (11.10). -/
-def chain : Measure (ℤ → ℕ) := boundaryLawMeasure (isBoundaryLaw hq hqp hp)
-
-instance isProbabilityMeasure_chain : IsProbabilityMeasure (chain hq hqp hp) :=
-  inferInstanceAs (IsProbabilityMeasure (boundaryLawMeasure (isBoundaryLaw hq hqp hp)))
+abbrev chain : Measure (ℤ → ℕ) := boundaryLawMeasure (isBoundaryLaw hq hqp hp)
 
 /-- `μ_0 ∈ 𝒢(Q)`: Theorem (11.9)(a). -/
 theorem isGibbsMeasure_chain :

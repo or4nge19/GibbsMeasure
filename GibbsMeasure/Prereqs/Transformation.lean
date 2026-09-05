@@ -5,7 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
-public import GibbsMeasure.Prereqs.CylinderEvents
+public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.Cylinders
 public import GibbsMeasure.Prereqs.Juxt
 public import Mathlib.MeasureTheory.Constructions.Pi
 public import Mathlib.Probability.ProductMeasure
@@ -487,6 +487,19 @@ lemma pureSpin_boolNot_mul_self :
     pureSpin S boolNot * pureSpin S boolNot = (1 : Transformation S Bool) := by
   rw [pureSpin_mul, boolNot_trans_boolNot, pureSpin_refl]
 
+/-! ### The spin reflection (Georgii (6.17)(iv)) -/
+
+omit [AddGroup S] in
+variable (S E) in
+/-- **Georgii (6.17)(iv).** The spin reflection `τ : ω ↦ -ω`: the pure spin transformation whose
+common spin map is the negation of the state space. -/
+abbrev spinReflection [InvolutiveNeg E] [MeasurableNeg E] : Transformation S E :=
+  pureSpin S (MeasurableEquiv.neg E)
+
+omit [AddGroup S] in
+@[simp] lemma spinReflection_toFun [InvolutiveNeg E] [MeasurableNeg E] (ω : S → E) (i : S) :
+    (spinReflection S E).toFun ω i = -ω i := rfl
+
 /-! ### Site bijections (Georgii (5.2)(2)) -/
 
 variable (E) in
@@ -558,6 +571,20 @@ lemma spinTranslation_toFun_zero (ω : S → E) : (spinTranslation (0 : S → E)
   funext i; simp
 
 end SpinTranslation
+
+section StaircaseShift
+
+variable (S E : Type*) [MeasurableSpace E] [AddGroupWithOne E] [MeasurableAdd E]
+
+/-- **Georgii (6.17)(v).** The spin translation `t : ω ↦ ω - 1`: the constant case `m = -1` of
+`spinTranslation`. Georgii's random staircases (§6.3) are the phases it permutes. -/
+abbrev staircaseShift : Transformation S E := spinTranslation fun _ : S ↦ (-1 : E)
+
+@[simp] lemma staircaseShift_toFun_apply (ω : S → E) (i : S) :
+    (staircaseShift S E).toFun ω i = ω i - 1 := by
+  simp [staircaseShift, sub_eq_add_neg]
+
+end StaircaseShift
 
 variable (E) in
 /-- **Georgii (5.2)(2) as a group homomorphism**: `e ↦ τ_e` from the permutations of the site set

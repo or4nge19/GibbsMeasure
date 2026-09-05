@@ -521,6 +521,29 @@ theorem Finset.tendsto_atTop_of_tendsto_card_Icc_cube {κ : Type*} {l : Filter �
     exact tendsto_natCast_atTop_iff.1 this
 
 open scoped Pointwise in
+/-- The cube `[m, m + s]^d` is the translate by `m` of the standard cube `[0, s + 1)^d`. -/
+theorem Finset.Icc_cube_eq_vadd_piFinset_Ico (m : ι → ℤ) (s : ℕ) :
+    (Icc m fun k ↦ m k + s) = m +ᵥ Fintype.piFinset fun _ : ι ↦ Ico (0 : ℤ) ((s + 1 : ℕ) : ℤ) := by
+  ext x
+  simp only [Finset.mem_Icc, Finset.mem_vadd_finset, Fintype.mem_piFinset, Finset.mem_Ico,
+    Pi.le_def]
+  constructor
+  · rintro ⟨h1, h2⟩
+    refine ⟨fun k ↦ x k - m k, fun k ↦ ?_, ?_⟩
+    · have := h1 k
+      have := h2 k
+      dsimp only
+      omega
+    · funext k
+      simp only [vadd_eq_add, Pi.add_apply]
+      ring
+  · rintro ⟨y, hy, rfl⟩
+    refine ⟨fun k ↦ ?_, fun k ↦ ?_⟩ <;>
+      · have := hy k
+        simp only [vadd_eq_add, Pi.add_apply]
+        omega
+
+open scoped Pointwise in
 /-- The reflection `−[m, m + s]^d` of a cube is the translate by `−(m + s)` of the standard cube
 `[0, s + 1)^d`. -/
 theorem Finset.neg_Icc_cube_eq_vadd_piFinset_Ico (m : ι → ℤ) (s : ℕ) :

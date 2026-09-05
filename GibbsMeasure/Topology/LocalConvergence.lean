@@ -6,7 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.WithSetwiseTopology
-public import GibbsMeasure.Prereqs.CylinderEvents
+public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.Cylinders
 public import Mathlib.MeasureTheory.Constructions.Cylinders
 public import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
 

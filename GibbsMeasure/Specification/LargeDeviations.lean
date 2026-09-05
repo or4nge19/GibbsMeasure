@@ -372,30 +372,6 @@ attribute [local instance] shiftAddAction measurableConstVAdd_shift
 
 variable {ι E : Type*} [Fintype ι] [DecidableEq ι] [MeasurableSpace E]
 
-/-- The cube `[m, m + s]^d` is the translate by `m` of the standard cube `[0, s + 1)^d`; the
-companion of `Finset.neg_Icc_cube_eq_vadd_piFinset_Ico`, whose home is next to it. -/
-theorem Icc_cube_eq_vadd_piFinset_Ico (m : ι → ℤ) (s : ℕ) :
-    (Finset.Icc m fun k ↦ m k + s)
-      = m +ᵥ Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) ((s + 1 : ℕ) : ℤ) := by
-  ext x
-  simp only [Finset.mem_Icc, Finset.mem_vadd_finset, Fintype.mem_piFinset, Finset.mem_Ico,
-    Pi.le_def]
-  constructor
-  · rintro ⟨h1, h2⟩
-    refine ⟨fun k ↦ x k - m k, fun k ↦ ?_, ?_⟩
-    · have := h1 k
-      have := h2 k
-      dsimp only
-      omega
-    · funext k
-      simp only [vadd_eq_add, Pi.add_apply]
-      ring
-  · rintro ⟨y, hy, rfl⟩
-    refine ⟨fun k ↦ ?_, fun k ↦ ?_⟩ <;>
-      · have := hy k
-        simp only [vadd_eq_add, Pi.add_apply]
-        omega
-
 open scoped Classical in
 /-- **The Følner property of cubes in the form Georgii Remark (15.43)(1) needs.** For a fixed
 site `b`, the fraction of the cube `Λ_n = [m_n, m_n + s_n]^d` that the translation `i ↦ b + i`
@@ -411,7 +387,7 @@ theorem tendsto_card_filter_add_notMem_div_card {m : ℕ → ι → ℤ} {s : �
   refine squeeze_zero (fun n ↦ by positivity) (fun n ↦ ?_) hfol
   set F : Finset (ι → ℤ) :=
     m n +ᵥ Fintype.piFinset fun _ : ι ↦ Finset.Ico (0 : ℤ) ((s n + 1 : ℕ) : ℤ) with hF
-  have hΛ : (Finset.Icc (m n) fun k ↦ m n k + s n) = F := Icc_cube_eq_vadd_piFinset_Ico _ _
+  have hΛ : (Finset.Icc (m n) fun k ↦ m n k + s n) = F := Finset.Icc_cube_eq_vadd_piFinset_Ico _ _
   have hsub : {i ∈ F | b + i ∉ F} ⊆ ((-b) +ᵥ F) ∆ F := by
     intro i hi
     rw [Finset.mem_filter] at hi

@@ -454,25 +454,6 @@ section Dense
 
 variable [TopologicalSpace E]
 
-omit [Countable S] in
-/-- Juxtaposition is continuous for the product topologies. (An observation about `juxt`; it
-belongs next to `juxt` in `GibbsMeasure/Prereqs/Juxt.lean`.) -/
-lemma continuous_juxt {Λ : Set S} (η : S → E) : Continuous (juxt Λ η) := by
-  refine continuous_pi fun x ↦ ?_
-  by_cases hx : x ∈ Λ
-  · simpa only [juxt_apply_of_mem hx] using continuous_apply (⟨x, hx⟩ : Λ)
-  · simpa only [juxt_apply_of_not_mem hx] using continuous_const
-
-omit [Countable S] in
-/-- The boundary configuration enters `juxt` continuously. (An observation about `juxt`; it
-belongs next to `juxt` in `GibbsMeasure/Prereqs/Juxt.lean`.) -/
-lemma continuous_juxt_boundary {Λ : Set S} (ζ : ↥Λ → E) :
-    Continuous fun η : S → E ↦ juxt Λ η ζ := by
-  refine continuous_pi fun x ↦ ?_
-  by_cases hx : x ∈ Λ
-  · simpa only [juxt_apply_of_mem hx] using continuous_const
-  · simpa only [juxt_apply_of_not_mem hx] using continuous_apply x
-
 variable [ν.IsOpenPosMeasure]
 
 /-- **The core of Georgii's density argument in (2.34).** If the two normalized densities agree

@@ -8,6 +8,9 @@ module
 public import GibbsMeasure.Model.SharpContours
 public import GibbsMeasure.Model.SharpPhaseTransition
 public import GibbsMeasure.Potential.FiniteReference
+public import GibbsMeasure.Potential.GroundState
+public import GibbsMeasure.Potential.NearestNeighbour
+public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Count
 public import GibbsMeasure.Mathlib.Data.Set.CardTranslate
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.ExpNegSq
 public import GibbsMeasure.Mathlib.Data.ENNReal.TsumPi
@@ -80,140 +83,6 @@ open MeasureTheory MeasureTheory.GibbsMeasure ProbabilityTheory Set Finset
 open scoped ENNReal
 
 noncomputable section
-
-namespace Potential
-
-variable {S : Type*}
-
-open Classical in
-/-- **Georgii (6.16), for a general even weight.** The nearest-neighbour *gradient* potential of a
-graph `G` and a function `g : ℤ → ℝ`:
-`Φ_{i,j} = ½ (g(η i - η j) + g(η j - η i))` on the edges `{i, j}` of `G`, and `0` on every other
-interaction support.  The half-sum over `A.offDiag` makes the definition independent of any
-enumeration of `A`; for even `g` it is `g(η i - η j)` (`nearestNeighbourDiff_pair_of_even`).
-
-Georgii's potential (6.16) is the case `g = (·)²`, `Potential.discreteGaussian`. -/
-def nearestNeighbourDiff (G : SimpleGraph S) (g : ℤ → ℝ) : Potential S ℤ := fun A η ↦
-  if A.card = 2 ∧ ∃ i ∈ A, ∃ j ∈ A, G.Adj i j then
-    (2 : ℝ)⁻¹ * ∑ p ∈ A.offDiag, g (η p.1 - η p.2)
-  else 0
-
-variable [DecidableEq S] {G : SimpleGraph S} {g : ℤ → ℝ}
-
-open Classical in
-omit [DecidableEq S] in
-lemma nearestNeighbourDiff_apply_of_not {A : Finset S}
-    (hA : ¬ (A.card = 2 ∧ ∃ i ∈ A, ∃ j ∈ A, G.Adj i j)) (η : S → ℤ) :
-    nearestNeighbourDiff G g A η = 0 := by
-  simp only [nearestNeighbourDiff, ite_eq_right hA]
-
-open Classical in
-omit [DecidableEq S] in
-/-- The gradient potential on an interaction support carrying an edge. -/
-lemma nearestNeighbourDiff_apply_of {A : Finset S}
-    (hA : A.card = 2 ∧ ∃ i ∈ A, ∃ j ∈ A, G.Adj i j) (η : S → ℤ) :
-    nearestNeighbourDiff G g A η = (2 : ℝ)⁻¹ * ∑ p ∈ A.offDiag, g (η p.1 - η p.2) := by
-  simp only [nearestNeighbourDiff, ite_eq_left hA]
-
-/-- The value of the gradient potential on an edge. -/
-lemma nearestNeighbourDiff_pair {i j : S} (hij : G.Adj i j) (η : S → ℤ) :
-    nearestNeighbourDiff G g {i, j} η
-      = (2 : ℝ)⁻¹ * (g (η i - η j) + g (η j - η i)) := by
-  classical
-  have hcard : ({i, j} : Finset S).card = 2 := Finset.card_pair hij.ne
-  have hmem : ({i, j} : Finset S).card = 2 ∧ ∃ a ∈ ({i, j} : Finset S),
-      ∃ b ∈ ({i, j} : Finset S), G.Adj a b :=
-    ⟨hcard, i, by simp, j, by simp, hij⟩
-  have hoff : ({i, j} : Finset S).offDiag = {(i, j), (j, i)} := by
-    ext p
-    simp only [Finset.mem_offDiag, Finset.mem_insert, Finset.mem_singleton, Prod.ext_iff]
-    constructor
-    · rintro ⟨h1, h2, h3⟩
-      rcases h1 with rfl | rfl <;> rcases h2 with h | h <;> simp_all [hij.ne, hij.ne']
-    · rintro (⟨rfl, rfl⟩ | ⟨rfl, rfl⟩) <;> simp [hij.ne, hij.ne']
-  rw [nearestNeighbourDiff, ite_eq_left hmem, hoff,
-    Finset.sum_pair (by simp [Prod.ext_iff, hij.ne])]
-
-/-- **Georgii (6.16)** on an edge, for even `g`: `Φ_{i,j}(η) = g(η i - η j)`. -/
-lemma nearestNeighbourDiff_pair_of_even (heven : ∀ x : ℤ, g (-x) = g x) {i j : S}
-    (hij : G.Adj i j) (η : S → ℤ) :
-    nearestNeighbourDiff G g {i, j} η = g (η i - η j) := by
-  rw [nearestNeighbourDiff_pair hij, show η j - η i = -(η i - η j) by ring, heven]
-  ring
-
-omit [DecidableEq S] in
-@[simp] lemma nearestNeighbourDiff_empty (G : SimpleGraph S) (g : ℤ → ℝ) :
-    nearestNeighbourDiff G g ∅ = 0 :=
-  funext fun η ↦ nearestNeighbourDiff_apply_of_not (by simp) η
-
-/-- **Georgii (2.2)(i)** for the gradient potential: each interaction term is a function of
-finitely many coordinates. -/
-instance isPotential_nearestNeighbourDiff (G : SimpleGraph S) (g : ℤ → ℝ) :
-    IsPotential (nearestNeighbourDiff G g) := by
-  classical
-  refine ⟨fun Δ ↦ ?_⟩
-  by_cases hΔ : Δ.card = 2 ∧ ∃ i ∈ Δ, ∃ j ∈ Δ, G.Adj i j
-  · have hval : nearestNeighbourDiff G g Δ
-        = fun η ↦ (2 : ℝ)⁻¹ * ∑ p ∈ Δ.offDiag, g (η p.1 - η p.2) := by
-      funext η; simp only [nearestNeighbourDiff, ite_eq_left hΔ]
-    rw [hval]
-    refine Measurable.const_mul (Finset.measurable_sum _ fun p hp ↦ ?_) _
-    obtain ⟨hp1, hp2, -⟩ := Finset.mem_offDiag.1 hp
-    have m1 : Measurable[cylinderEvents (X := fun _ : S ↦ ℤ) (Δ : Set S)] fun η : S → ℤ ↦ η p.1 :=
-      measurable_cylinderEvent_apply (Finset.mem_coe.2 hp1)
-    have m2 : Measurable[cylinderEvents (X := fun _ : S ↦ ℤ) (Δ : Set S)] fun η : S → ℤ ↦ η p.2 :=
-      measurable_cylinderEvent_apply (Finset.mem_coe.2 hp2)
-    exact Measurable.of_discrete.comp (m1.sub m2)
-  · have hval : nearestNeighbourDiff G g Δ = fun _ ↦ 0 :=
-      funext fun η ↦ nearestNeighbourDiff_apply_of_not hΔ η
-    rw [hval]
-    exact measurable_const
-
-omit [DecidableEq S] in
-/-- A nonzero interaction support of the gradient potential containing `i` is an edge at `i`. -/
-lemma subset_of_nearestNeighbourDiff_ne_zero (G : SimpleGraph S)
-    [G.LocallyFinite] [DecidableEq S] {i : S} {A : Finset S} (hiA : i ∈ A)
-    (hΦ : nearestNeighbourDiff G g A ≠ 0) :
-    A ⊆ insert i (G.neighborFinset i) := by
-  by_contra hsub
-  by_cases hA : A.card = 2 ∧ ∃ a ∈ A, ∃ b ∈ A, G.Adj a b
-  · obtain ⟨hcard, a, haA, b, hbA, hab⟩ := hA
-    obtain ⟨x, hxA, hx⟩ := Finset.not_subset.1 hsub
-    have hxi : x ≠ i := fun h ↦ hx (by simp [h])
-    have hAxi : ({i, x} : Finset S) = A :=
-      Finset.eq_of_subset_of_card_le (by
-        intro y hy
-        rcases Finset.mem_insert.1 hy with rfl | hy
-        · exact hiA
-        · rw [Finset.mem_singleton] at hy; exact hy ▸ hxA)
-        (le_of_eq (by rw [hcard, Finset.card_pair (Ne.symm hxi)]))
-    -- the only adjacency inside `A = {i, x}` is `i ~ x`
-    rw [← hAxi] at haA hbA
-    simp only [Finset.mem_insert, Finset.mem_singleton] at haA hbA
-    have hix : G.Adj i x := by
-      rcases haA with rfl | rfl <;> rcases hbA with rfl | rfl <;>
-        simp_all [SimpleGraph.Adj.symm]
-    exact hx (Finset.mem_insert_of_mem (by simpa using hix))
-  · exact hΦ (funext fun η ↦ nearestNeighbourDiff_apply_of_not hA η)
-
-/-- **Georgii (2.15)** for the gradient potential on a locally finite graph. -/
-instance isFiniteRange_nearestNeighbourDiff (G : SimpleGraph S) [G.LocallyFinite] (g : ℤ → ℝ) :
-    IsFiniteRange (nearestNeighbourDiff G g) := by
-  classical
-  exact ⟨fun i ↦ ⟨insert i (G.neighborFinset i),
-    fun A hiA hΦ ↦ subset_of_nearestNeighbourDiff_ne_zero G hiA hΦ⟩⟩
-
-/-- **Georgii (6.16).** The discrete Gaussian potential of a graph:
-`Φ_{i,j} = (σ_i - σ_j)²` on edges, `0` elsewhere. -/
-abbrev discreteGaussian (G : SimpleGraph S) : Potential S ℤ :=
-  nearestNeighbourDiff G fun x ↦ (x : ℝ) ^ 2
-
-/-- **Georgii (6.16)** on an edge: `Φ_{i,j}(η) = (η i - η j)²`. -/
-lemma discreteGaussian_pair {i j : S} (hij : G.Adj i j) (η : S → ℤ) :
-    discreteGaussian G {i, j} η = ((η i - η j : ℤ) : ℝ) ^ 2 := by
-  rw [discreteGaussian, nearestNeighbourDiff_pair_of_even (fun x ↦ by push_cast; ring) hij]
-
-end Potential
 
 namespace MeasureTheory.GibbsMeasure.Shlosman
 
@@ -300,7 +169,7 @@ open Potential Peierls
 lemma dgPotential_eq_zero {A : Finset Site} (ζ : Site → ℤ)
     (hA : ¬ ∃ i j, (latticeGraph 2).Adj i j ∧ A = {i, j}) :
     dgPotential A ζ = 0 := by
-  refine nearestNeighbourDiff_apply_of_not (fun h ↦ hA ?_) ζ
+  refine nearestNeighbourSym_apply_of_not (fun h ↦ hA ?_) ζ
   obtain ⟨hcard, i, hi, j, hj, hij⟩ := h
   refine ⟨i, j, hij, ?_⟩
   symm
@@ -355,7 +224,7 @@ theorem dgPotential_hamiltonian_eq (Λ : Finset Site) (ζ : Site → ℤ) :
   | _ a b =>
   obtain ⟨hab, -⟩ := mem_bondsMeeting_mk.1 he
   rw [Sym2.toFinset_mk_eq]
-  exact nearestNeighbourDiff_apply_of ⟨Finset.card_pair hab.ne, a, by simp, b, by simp, hab⟩ ζ
+  exact nearestNeighbourSym_apply_of ⟨Finset.card_pair hab.ne, a, by simp, b, by simp, hab⟩ ζ
 
 end MeasureTheory.GibbsMeasure.Shlosman
 
@@ -451,19 +320,6 @@ theorem sum_sub_translate_eq_zero {u : Site → ℝ} {Λ : Finset Site} (hu : �
   rw [Finset.sum_sub_distrib, h1, h2, h3, sub_self]
 
 end MeasureTheory.GibbsMeasure.Shlosman
-
-namespace Potential
-
-/-- **Georgii Definition (6.18).** A configuration `ω` is a *ground state* of the potential `Ψ`
-when every finite perturbation of `ω` has at least the energy of `ω`: `H_Λ^Ψ(ζ) ≥ H_Λ^Ψ(ω)`
-whenever `Λ` is finite and `ζ = ω` off `Λ`.
-
-This is weaker than minimising every interaction term `Ψ_A`; Georgii's staircases (6.19) are
-ground states in this sense without being constant. -/
-def IsGroundState {S E : Type*} [MeasurableSpace E] (Ψ : Potential S E) (ω : S → E) : Prop :=
-  ∀ (Λ : Finset S) (ζ : S → E), (∀ i ∉ Λ, ζ i = ω i) → Ψ.hamiltonian Λ ω ≤ Ψ.hamiltonian Λ ζ
-
-end Potential
 
 namespace MeasureTheory.GibbsMeasure.Shlosman
 
@@ -1104,85 +960,14 @@ end MeasureTheory.GibbsMeasure.Shlosman
 
 namespace Potential
 
-variable {S : Type*} {G : SimpleGraph S} {g : ℤ → ℝ}
-
 open MeasureTheory.GibbsMeasure Transformation
-
-/-- **The symmetries of a gradient potential.** If the site map of `τ` is an automorphism of `G`
-and all its spin maps are one and the same `f` whose inverse preserves `g` on differences, then
-`τ` preserves `Φ` (Georgii (5.3): `τ(Φ) = Φ`).
-
-Georgii's Remark (6.17) is five instances of this: the lattice translations, the two lattice
-reflections and the lattice rotation (`f = id`), the spin reflection (`f = -·`, `g` even) and the
-spin translation (`f = · - 1`). -/
-theorem map_nearestNeighbourDiff_eq {τ : Transformation S ℤ} {f : ℤ ≃ᵐ ℤ}
-    [DecidableEq S]
-    (hspin : ∀ i, τ.spin i = f)
-    (hsites : ∀ i j, G.Adj (τ.sites i) (τ.sites j) ↔ G.Adj i j)
-    (hg : ∀ x y : ℤ, g (f.symm x - f.symm y) = g (x - y)) :
-    Potential.map τ (nearestNeighbourDiff G g) = nearestNeighbourDiff G g := by
-  classical
-  funext A η
-  set A' : Finset S := A.map τ.sites.symm.toEmbedding with hA'
-  have hmemA' : ∀ i : S, i ∈ A' ↔ τ.sites i ∈ A := by
-    intro i
-    simp [hA', Finset.mem_map_equiv]
-  have hη' : ∀ i : S, τ.inv.toFun η i = f.symm (η (τ.sites i)) := by
-    intro i
-    simp [Transformation.inv, Transformation.toFun, hspin]
-  have hcond : (A'.card = 2 ∧ ∃ i ∈ A', ∃ j ∈ A', G.Adj i j)
-      ↔ (A.card = 2 ∧ ∃ i ∈ A, ∃ j ∈ A, G.Adj i j) := by
-    rw [hA', Finset.card_map]
-    refine and_congr_right fun _ ↦ ⟨?_, ?_⟩
-    · rintro ⟨i, hi, j, hj, hij⟩
-      exact ⟨τ.sites i, (hmemA' i).1 hi, τ.sites j, (hmemA' j).1 hj, (hsites i j).2 hij⟩
-    · rintro ⟨i, hi, j, hj, hij⟩
-      refine ⟨τ.sites.symm i, (hmemA' _).2 (by simpa using hi),
-        τ.sites.symm j, (hmemA' _).2 (by simpa using hj), ?_⟩
-      rw [← hsites (τ.sites.symm i) (τ.sites.symm j)]
-      simpa using hij
-  by_cases hA : A.card = 2 ∧ ∃ i ∈ A, ∃ j ∈ A, G.Adj i j
-  · rw [Potential.map_apply, nearestNeighbourDiff_apply_of hA,
-      nearestNeighbourDiff_apply_of (hcond.2 hA)]
-    congr 1
-    refine Finset.sum_nbij' (i := fun p ↦ (τ.sites p.1, τ.sites p.2))
-      (j := fun q ↦ (τ.sites.symm q.1, τ.sites.symm q.2)) ?_ ?_ ?_ ?_ ?_
-    · rintro p hp
-      obtain ⟨h1, h2, h3⟩ := Finset.mem_offDiag.1 hp
-      exact Finset.mem_offDiag.2 ⟨(hmemA' _).1 h1, (hmemA' _).1 h2,
-        fun h ↦ h3 (τ.sites.injective h)⟩
-    · rintro q hq
-      obtain ⟨h1, h2, h3⟩ := Finset.mem_offDiag.1 hq
-      exact Finset.mem_offDiag.2 ⟨(hmemA' _).2 (by simpa using h1),
-        (hmemA' _).2 (by simpa using h2), fun h ↦ h3 (τ.sites.symm.injective h)⟩
-    · rintro p -; simp
-    · rintro q -; simp
-    · rintro p -
-      rw [hη', hη']
-      simpa using hg (η (τ.sites p.1)) (η (τ.sites p.2))
-  · rw [Potential.map_apply, nearestNeighbourDiff_apply_of_not (fun h ↦ hA (hcond.1 h)),
-      nearestNeighbourDiff_apply_of_not hA]
-
-end Potential
-
-namespace Potential
-
-open MeasureTheory.GibbsMeasure Transformation
-
-/-- Negation of the spin variable, as a measurable equivalence of `ℤ`. -/
-def intNeg : ℤ ≃ᵐ ℤ where
-  toEquiv := Equiv.neg ℤ
-  measurable_toFun := Measurable.of_discrete
-  measurable_invFun := Measurable.of_discrete
-
-@[simp] lemma intNeg_symm_apply (x : ℤ) : intNeg.symm x = -x := rfl
 
 /-- **Georgii (6.17)(i).** The gradient potential of the lattice `ℤ^d` is shift-invariant
 (Georgii (5.2)(1)). -/
 theorem isShiftInvariant_nearestNeighbourDiff {d : ℕ} (g : ℤ → ℝ) :
     (nearestNeighbourDiff (latticeGraph d) g).IsShiftInvariant := by
   intro j
-  refine map_nearestNeighbourDiff_eq (f := MeasurableEquiv.refl ℤ) (fun _ ↦ rfl) (fun a b ↦ ?_)
+  refine map_nearestNeighbourSym_eq (f := MeasurableEquiv.refl ℤ) (fun _ ↦ rfl) (fun a b ↦ ?_)
     (fun x y ↦ rfl)
   have : (shift ℤ j).sites = Equiv.addRight j := rfl
   rw [this]
@@ -1190,36 +975,21 @@ theorem isShiftInvariant_nearestNeighbourDiff {d : ℕ} (g : ℤ → ℝ) :
   rw [← latticeGraph_adj_sub_iff j (a := a + j) (b := b + j)]
   simp
 
-/-- **Georgii (6.17)(iv).** The spin reflection `τ : ω ↦ -ω` preserves the gradient potential of
-an even `g` (Georgii (5.2)(2)). -/
-def spinReflection (S : Type*) : Transformation S ℤ where
-  sites := Equiv.refl S
-  spin _ := intNeg
+variable {S : Type*} {G : SimpleGraph S} {g : ℤ → ℝ}
 
-/-- **Georgii (6.17)(v).** The spin translation `t : ω ↦ ω - 1`: the constant case `m = -1` of
-`MeasureTheory.GibbsMeasure.spinTranslation`. -/
-abbrev staircaseShift (S : Type*) : Transformation S ℤ :=
-  MeasureTheory.GibbsMeasure.spinTranslation fun _ : S ↦ (-1 : ℤ)
-
-@[simp] lemma spinReflection_toFun {S : Type*} (ω : S → ℤ) (i : S) :
-    (spinReflection S).toFun ω i = -ω i := rfl
-
-@[simp] lemma staircaseShift_toFun_apply {S : Type*} (ω : S → ℤ) (i : S) :
-    (staircaseShift S).toFun ω i = ω i - 1 := by
-  simp [staircaseShift, sub_eq_add_neg]
-
-variable {S : Type*} [DecidableEq S] {G : SimpleGraph S} {g : ℤ → ℝ}
-
-/-- **Georgii (6.17)(iv).** `τ(Φ) = Φ` for the spin reflection, when `g` is even. -/
+/-- **Georgii (6.17)(iv).** `τ(Φ) = Φ` for the spin reflection
+`MeasureTheory.GibbsMeasure.spinReflection`, when `g` is even. -/
 theorem map_spinReflection_nearestNeighbourDiff (heven : ∀ x : ℤ, g (-x) = g x) :
-    Potential.map (spinReflection S) (nearestNeighbourDiff G g) = nearestNeighbourDiff G g := by
-  refine map_nearestNeighbourDiff_eq (f := intNeg) (fun _ ↦ rfl) (fun a b ↦ Iff.rfl) fun x y ↦ ?_
-  rw [intNeg_symm_apply, intNeg_symm_apply, show -x - -y = -(x - y) by ring, heven]
+    Potential.map (spinReflection S ℤ) (nearestNeighbourDiff G g) = nearestNeighbourDiff G g := by
+  refine map_nearestNeighbourSym_eq (f := MeasurableEquiv.neg ℤ) (fun _ ↦ rfl) (fun a b ↦ Iff.rfl)
+    fun x y ↦ ?_
+  show g (-x - -y) = g (x - y)
+  rw [show -x - -y = -(x - y) by ring, heven]
 
 /-- **Georgii (6.17)(v).** `t(Φ) = Φ` for the spin translation. -/
 theorem map_spinTranslation_nearestNeighbourDiff :
-    Potential.map (staircaseShift S) (nearestNeighbourDiff G g) = nearestNeighbourDiff G g := by
-  refine map_nearestNeighbourDiff_eq (f := MeasurableEquiv.addRight (-1 : ℤ)) (fun _ ↦ rfl)
+    Potential.map (staircaseShift S ℤ) (nearestNeighbourDiff G g) = nearestNeighbourDiff G g := by
+  refine map_nearestNeighbourSym_eq (f := MeasurableEquiv.addRight (-1 : ℤ)) (fun _ ↦ rfl)
     (fun a b ↦ Iff.rfl) fun x y ↦ ?_
   have hsymm : ∀ w : ℤ, (MeasurableEquiv.addRight (-1 : ℤ)).symm w = w + 1 := fun w ↦ by
     simp [MeasurableEquiv.addRight]
@@ -1362,7 +1132,7 @@ its spatial part is a lattice translation and its (constant) spin part cancels i
 theorem map_glide_nearestNeighbourDiff (z : ℤ) (i : Site) (g : ℤ → ℝ) :
     Potential.map (glide z i) (nearestNeighbourDiff (latticeGraph 2) g)
       = nearestNeighbourDiff (latticeGraph 2) g := by
-  refine map_nearestNeighbourDiff_eq (f := MeasurableEquiv.addRight (z * i 0)) (fun _ ↦ rfl)
+  refine map_nearestNeighbourSym_eq (f := MeasurableEquiv.addRight (z * i 0)) (fun _ ↦ rfl)
     (fun a b ↦ ?_) (fun x y ↦ ?_)
   · show (latticeGraph 2).Adj (a + i) (b + i) ↔ (latticeGraph 2).Adj a b
     rw [← latticeGraph_adj_sub_iff i (a := a + i) (b := b + i)]
@@ -1375,13 +1145,13 @@ theorem map_glide_nearestNeighbourDiff (z : ℤ) (i : Site) (g : ℤ → ℝ) :
 spin reflection, `(r₁ τ ω)_i = -ω_{(-i₁, i₂)}`.  It fixes the staircase `ω^z`. -/
 def reflFstSpin : Transformation Site ℤ where
   sites := reflectFst
-  spin _ := intNeg
+  spin _ := MeasurableEquiv.neg ℤ
 
 @[simp] lemma reflFstSpin_sites : reflFstSpin.sites = reflectFst := rfl
 
 @[simp] lemma reflFstSpin_toFun (ω : Site → ℤ) (i : Site) :
     reflFstSpin.toFun ω i = -ω (mk (-(i 0)) (i 1)) := by
-  simp [reflFstSpin, Transformation.toFun, reflectFst, Function.Involutive.toPerm, intNeg]
+  simp [reflFstSpin, Transformation.toFun, reflectFst, Function.Involutive.toPerm]
 
 @[simp] lemma reflFstSpin_toFun_staircase (z : ℤ) :
     reflFstSpin.toFun (staircase z) = staircase z := by
@@ -1399,8 +1169,10 @@ on `ℤ²`. -/
 theorem map_reflFstSpin_nearestNeighbourDiff {g : ℤ → ℝ} (heven : ∀ x : ℤ, g (-x) = g x) :
     Potential.map reflFstSpin (nearestNeighbourDiff (latticeGraph 2) g)
       = nearestNeighbourDiff (latticeGraph 2) g := by
-  refine map_nearestNeighbourDiff_eq (f := intNeg) (fun _ ↦ rfl) adj_reflectFst fun x y ↦ ?_
-  rw [intNeg_symm_apply, intNeg_symm_apply, show -x - -y = -(x - y) by ring, heven]
+  refine map_nearestNeighbourSym_eq (f := MeasurableEquiv.neg ℤ) (fun _ ↦ rfl) adj_reflectFst
+    fun x y ↦ ?_
+  show g (-x - -y) = g (x - y)
+  rw [show -x - -y = -(x - y) by ring, heven]
 
 @[simp] lemma reflectFst_symm_apply (x : Site) : reflectFst.symm x = mk (-(x 0)) (x 1) := rfl
 
@@ -1432,21 +1204,21 @@ lemma map_cube_reflectSnd (n : ℕ) : (cube 2 n).map reflectSnd.toEmbedding = cu
 theorem map_latticeReflFst_nearestNeighbourDiff (g : ℤ → ℝ) :
     Potential.map latticeReflFst (nearestNeighbourDiff (latticeGraph 2) g)
       = nearestNeighbourDiff (latticeGraph 2) g :=
-  map_nearestNeighbourDiff_eq (f := MeasurableEquiv.refl ℤ) (fun _ ↦ rfl) adj_reflectFst
+  map_nearestNeighbourSym_eq (f := MeasurableEquiv.refl ℤ) (fun _ ↦ rfl) adj_reflectFst
     (fun _ _ ↦ rfl)
 
 /-- **Georgii Remark (6.17)(ii).** `r₂` preserves the gradient potential on `ℤ²`. -/
 theorem map_latticeReflSnd_nearestNeighbourDiff (g : ℤ → ℝ) :
     Potential.map latticeReflSnd (nearestNeighbourDiff (latticeGraph 2) g)
       = nearestNeighbourDiff (latticeGraph 2) g :=
-  map_nearestNeighbourDiff_eq (f := MeasurableEquiv.refl ℤ) (fun _ ↦ rfl) adj_reflectSnd
+  map_nearestNeighbourSym_eq (f := MeasurableEquiv.refl ℤ) (fun _ ↦ rfl) adj_reflectSnd
     (fun _ _ ↦ rfl)
 
 /-- **Georgii Remark (6.17)(iii).** `r₀` preserves the gradient potential on `ℤ²`. -/
 theorem map_latticeRot_nearestNeighbourDiff (g : ℤ → ℝ) :
     Potential.map latticeRot (nearestNeighbourDiff (latticeGraph 2) g)
       = nearestNeighbourDiff (latticeGraph 2) g :=
-  map_nearestNeighbourDiff_eq (f := MeasurableEquiv.refl ℤ) (fun _ ↦ rfl) adj_rotateSite
+  map_nearestNeighbourSym_eq (f := MeasurableEquiv.refl ℤ) (fun _ ↦ rfl) adj_rotateSite
     (fun _ _ ↦ rfl)
 
 /-- **Georgii Remark (6.17).** The five families of transformations of `Ω = ℤ^{ℤ²}` listed by
@@ -1458,32 +1230,16 @@ theorem map_dgPotential_eq :
       Potential.map latticeReflFst dgPotential = dgPotential ∧
       Potential.map latticeReflSnd dgPotential = dgPotential ∧
       Potential.map latticeRot dgPotential = dgPotential ∧
-      Potential.map (spinReflection Site) dgPotential = dgPotential ∧
-      Potential.map (staircaseShift Site) dgPotential = dgPotential :=
-  ⟨isShiftInvariant_nearestNeighbourDiff _,
-    map_latticeReflFst_nearestNeighbourDiff _,
-    map_latticeReflSnd_nearestNeighbourDiff _,
-    map_latticeRot_nearestNeighbourDiff _,
-    map_spinReflection_nearestNeighbourDiff (fun x ↦ by push_cast; ring),
-    map_spinTranslation_nearestNeighbourDiff⟩
+      Potential.map (spinReflection Site ℤ) dgPotential = dgPotential ∧
+      Potential.map (staircaseShift Site ℤ) dgPotential = dgPotential :=
+  ⟨isShiftInvariant_nearestNeighbourDiff (fun x ↦ (x : ℝ) ^ 2),
+    map_latticeReflFst_nearestNeighbourDiff (fun x ↦ (x : ℝ) ^ 2),
+    map_latticeReflSnd_nearestNeighbourDiff (fun x ↦ (x : ℝ) ^ 2),
+    map_latticeRot_nearestNeighbourDiff (fun x ↦ (x : ℝ) ^ 2),
+    map_spinReflection_nearestNeighbourDiff (g := fun x ↦ (x : ℝ) ^ 2) (fun x ↦ by push_cast; ring),
+    map_spinTranslation_nearestNeighbourDiff (g := fun x ↦ (x : ℝ) ^ 2)⟩
 
 end MeasureTheory.GibbsMeasure.Shlosman
-
-namespace MeasureTheory
-
-/-- **Counting measure is preserved by every measurable automorphism** of the state space.
-Mathlib has the inequality `Function.Injective.map_count_le`; applying it to `e` and to `e.symm`
-turns it into an equality. -/
-lemma measurePreserving_count_of_measurableEquiv {α : Type*} [MeasurableSpace α] (e : α ≃ᵐ α) :
-    MeasurePreserving e (Measure.count : Measure α) Measure.count := by
-  refine ⟨e.measurable, le_antisymm (e.injective.map_count_le e.measurable) ?_⟩
-  have h1 : (Measure.count : Measure α).map e.symm ≤ Measure.count :=
-    e.symm.injective.map_count_le e.symm.measurable
-  have h2 := Measure.map_mono h1 e.measurable
-  rwa [Measure.map_map e.measurable e.symm.measurable,
-    show (e ∘ e.symm) = id from funext fun x ↦ e.apply_symm_apply x, Measure.map_id] at h2
-
-end MeasureTheory
 
 namespace MeasureTheory.GibbsMeasure.Shlosman
 
@@ -1954,12 +1710,12 @@ theorem dgSpecification_excess_le_pow (hβ : 0 < β) (z : ℤ) (N : ℕ) (a : Si
 /-- **Georgii Remark (6.17)(iv) applied to the specification.** The spin reflection `τ : ω ↦ -ω`
 leaves `γ^{βΦ}` invariant. -/
 theorem isInvariant_spinReflection_dgSpecification (hβ : 0 < β) :
-    Specification.IsInvariant (spinReflection Site) (dgSpecification hβ) :=
+    Specification.IsInvariant (spinReflection Site ℤ) (dgSpecification hβ) :=
   Potential.isInvariant_gibbsSpecificationOfSigmaFiniteAdmissible dgPotential β
-    (spinReflection Site) Measure.count
-    (fun _ ↦ measurePreserving_count_of_measurableEquiv intNeg)
+    (spinReflection Site ℤ) Measure.count
+    (fun _ ↦ (MeasurableEquiv.neg ℤ).measurePreserving_count)
     (isSigmaFiniteLambdaAdmissible_dgPotential hβ)
-    (map_spinReflection_nearestNeighbourDiff fun x ↦ by push_cast; ring)
+    (map_spinReflection_nearestNeighbourDiff (g := fun x ↦ (x : ℝ) ^ 2) fun x ↦ by push_cast; ring)
 
 /-- **Georgii (6.21)(ii) at the specification level.** Every staircase glide `g^z_i` leaves
 `γ^{βΦ}` invariant: it preserves `Φ` (`map_glide_nearestNeighbourDiff`) and its spin part, a
@@ -1968,27 +1724,27 @@ theorem isInvariant_glide_dgSpecification (hβ : 0 < β) (z : ℤ) (i : Site) :
     Specification.IsInvariant (glide z i) (dgSpecification hβ) :=
   Potential.isInvariant_gibbsSpecificationOfSigmaFiniteAdmissible dgPotential β
     (glide z i) Measure.count
-    (fun _ ↦ measurePreserving_count_of_measurableEquiv (MeasurableEquiv.addRight (z * i 0)))
+    (fun _ ↦ (MeasurableEquiv.addRight (z * i 0)).measurePreserving_count)
     (isSigmaFiniteLambdaAdmissible_dgPotential hβ)
-    (map_glide_nearestNeighbourDiff z i _)
+    (map_glide_nearestNeighbourDiff z i (fun x ↦ (x : ℝ) ^ 2))
 
 /-- **Georgii (6.21)(ii) at the specification level.** `r₁ ∘ τ` leaves `γ^{βΦ}` invariant. -/
 theorem isInvariant_reflFstSpin_dgSpecification (hβ : 0 < β) :
     Specification.IsInvariant reflFstSpin (dgSpecification hβ) :=
   Potential.isInvariant_gibbsSpecificationOfSigmaFiniteAdmissible dgPotential β
     reflFstSpin Measure.count
-    (fun _ ↦ measurePreserving_count_of_measurableEquiv intNeg)
+    (fun _ ↦ (MeasurableEquiv.neg ℤ).measurePreserving_count)
     (isSigmaFiniteLambdaAdmissible_dgPotential hβ)
-    (map_reflFstSpin_nearestNeighbourDiff fun x ↦ by push_cast; ring)
+    (map_reflFstSpin_nearestNeighbourDiff (g := fun x ↦ (x : ℝ) ^ 2) fun x ↦ by push_cast; ring)
 
 /-- **Georgii (6.21)(ii) at the specification level.** `r₂` leaves `γ^{βΦ}` invariant. -/
 theorem isInvariant_latticeReflSnd_dgSpecification (hβ : 0 < β) :
     Specification.IsInvariant latticeReflSnd (dgSpecification hβ) :=
   Potential.isInvariant_gibbsSpecificationOfSigmaFiniteAdmissible dgPotential β
     latticeReflSnd Measure.count
-    (fun _ ↦ measurePreserving_count_of_measurableEquiv (MeasurableEquiv.refl ℤ))
+    (fun _ ↦ (MeasurableEquiv.refl ℤ).measurePreserving_count)
     (isSigmaFiniteLambdaAdmissible_dgPotential hβ)
-    (map_latticeReflSnd_nearestNeighbourDiff _)
+    (map_latticeReflSnd_nearestNeighbourDiff (fun x ↦ (x : ℝ) ^ 2))
 
 /-- **Georgii's `τ`-step in the proof of (6.25)**: reflecting the spins turns a deficit below the
 staircase `ω^z` into an excess above the staircase `ω^{-z}`. -/
@@ -1997,14 +1753,14 @@ theorem dgSpecification_deficit_eq (hβ : 0 < β) (z k : ℤ) (Λ : Finset Site)
       = dgSpecification hβ Λ (staircase (-z)) {ζ : Site → ℤ | k ≤ ζ a - staircase (-z) a} := by
   have hA : MeasurableSet {ζ : Site → ℤ | ζ a - staircase z a ≤ -k} :=
     measurableSet_apply_mem a {x : ℤ | x - staircase z a ≤ -k}
-  have hinv : (dgSpecification hβ).map (spinReflection Site) = dgSpecification hβ :=
+  have hinv : (dgSpecification hβ).map (spinReflection Site ℤ) = dgSpecification hβ :=
     isInvariant_spinReflection_dgSpecification hβ
-  have hΛ : Λ.map (spinReflection Site).sites.symm.toEmbedding = Λ := by
-    simp [spinReflection]
-  have hη : (spinReflection Site).inv.toFun (staircase z) = staircase (-z) := by
+  have hΛ : Λ.map (spinReflection Site ℤ).sites.symm.toEmbedding = Λ := by
+    simp [spinReflection, pureSpin]
+  have hη : (spinReflection Site ℤ).inv.toFun (staircase z) = staircase (-z) := by
     funext i
-    simp [spinReflection, Transformation.inv, Transformation.toFun, staircase]
-  have hset : (spinReflection Site).toFun ⁻¹' {ζ : Site → ℤ | ζ a - staircase z a ≤ -k}
+    simp [staircase]
+  have hset : (spinReflection Site ℤ).toFun ⁻¹' {ζ : Site → ℤ | ζ a - staircase z a ≤ -k}
       = {ζ : Site → ℤ | k ≤ ζ a - staircase (-z) a} := by
     ext ζ
     simp only [Set.mem_preimage, Set.mem_ofPred_eq, spinReflection_toFun, staircase_apply,
@@ -2391,24 +2147,24 @@ theorem measurePreserving_latticeReflSnd_staircasePhase (hβ : 0 < β) (hr : r' 
 spatial part is the identity, so it does not move the boxes, and it carries the boundary
 condition `ω^z` to `ω^{-z}`. -/
 theorem map_spinReflection_staircaseAverage (hβ : 0 < β) (z : ℤ) (N : ℕ) :
-    Measure.map (spinReflection Site).toFun (staircaseAverage hβ z N : Measure (Site → ℤ))
+    Measure.map (spinReflection Site ℤ).toFun (staircaseAverage hβ z N : Measure (Site → ℤ))
       = (staircaseAverage hβ (-z) N : Measure (Site → ℤ)) := by
   classical
-  have hinv : (dgSpecification hβ).map (spinReflection Site) = dgSpecification hβ :=
+  have hinv : (dgSpecification hβ).map (spinReflection Site ℤ) = dgSpecification hβ :=
     isInvariant_spinReflection_dgSpecification hβ
   refine Measure.ext fun A hA ↦ ?_
   have hterm : ∀ Λ : Finset Site,
-      dgSpecification hβ Λ (staircase z) ((spinReflection Site).toFun ⁻¹' A)
+      dgSpecification hβ Λ (staircase z) ((spinReflection Site ℤ).toFun ⁻¹' A)
         = dgSpecification hβ Λ (staircase (-z)) A := by
     intro Λ
-    have hΛ : Λ.map (spinReflection Site).sites.symm.toEmbedding = Λ := by
-      simp [spinReflection]
-    have hη : (spinReflection Site).inv.toFun (staircase (-z)) = staircase z := by
+    have hΛ : Λ.map (spinReflection Site ℤ).sites.symm.toEmbedding = Λ := by
+      simp [spinReflection, pureSpin]
+    have hη : (spinReflection Site ℤ).inv.toFun (staircase (-z)) = staircase z := by
       funext i
-      simp [spinReflection, Transformation.inv, Transformation.toFun, staircase]
+      simp [staircase]
     conv_rhs => rw [← hinv]
     rw [Specification.map_apply' _ _ _ _ hA, hΛ, hη]
-  rw [Measure.map_apply (spinReflection Site).measurable_toFun hA, coe_staircaseAverage,
+  rw [Measure.map_apply (spinReflection Site ℤ).measurable_toFun hA, coe_staircaseAverage,
     coe_staircaseAverage, Specification.average_apply, Specification.average_apply]
   refine congrArg _ (Finset.sum_congr rfl fun Λ _ ↦ ?_)
   rw [Measure.dirac_bind ((dgSpecification hβ).measurable_kernel_toMeasure Λ) (staircase z),
@@ -2441,13 +2197,13 @@ theorem map_staircasePhase_of_map_staircaseAverage (hβ : 0 < β) (hr : r' (β /
 /-- **Georgii Theorem (6.21)(ii): `τ(μ_z^β) = μ_{-z}^β`.**  The spin reflection carries the random
 staircase of slope `z` to the one of slope `-z`. -/
 theorem map_spinReflection_staircasePhase (hβ : 0 < β) (hr : r' (β / 2) < 1) (z : ℤ) :
-    Measure.map (spinReflection Site).toFun (staircasePhase hβ hr z : Measure (Site → ℤ))
+    Measure.map (spinReflection Site ℤ).toFun (staircasePhase hβ hr z : Measure (Site → ℤ))
       = (staircasePhase hβ hr (-z) : Measure (Site → ℤ)) :=
   map_staircasePhase_of_map_staircaseAverage hβ hr (map_spinReflection_staircaseAverage hβ z)
 
 /-- `r₁ ∘ τ` is the composite of the lattice reflection `r₁` and the spin reflection `τ`. -/
 lemma reflFstSpin_toFun_eq :
-    reflFstSpin.toFun = latticeReflFst.toFun ∘ (spinReflection Site).toFun := by
+    reflFstSpin.toFun = latticeReflFst.toFun ∘ (spinReflection Site ℤ).toFun := by
   funext ω i
   simp
 
@@ -2462,16 +2218,16 @@ of `μ_z^β` and the fact that `r₁` is an involution. -/
 theorem map_latticeReflFst_eq_map_spinReflection_staircasePhase (hβ : 0 < β)
     (hr : r' (β / 2) < 1) (z : ℤ) :
     Measure.map latticeReflFst.toFun (staircasePhase hβ hr z : Measure (Site → ℤ))
-      = Measure.map (spinReflection Site).toFun (staircasePhase hβ hr z) := by
+      = Measure.map (spinReflection Site ℤ).toFun (staircasePhase hβ hr z) := by
   set μ := (staircasePhase hβ hr z : Measure (Site → ℤ)) with hμ
   have hfix : Measure.map reflFstSpin.toFun μ = μ :=
     (measurePreserving_reflFstSpin_staircasePhase hβ hr z).map_eq
   calc Measure.map latticeReflFst.toFun μ
       = Measure.map latticeReflFst.toFun (Measure.map reflFstSpin.toFun μ) := by rw [hfix]
-    _ = Measure.map (spinReflection Site).toFun μ := by
+    _ = Measure.map (spinReflection Site ℤ).toFun μ := by
         rw [reflFstSpin_toFun_eq,
           ← Measure.map_map latticeReflFst.measurable_toFun
-            ((spinReflection Site).measurable_toFun),
+            ((spinReflection Site ℤ).measurable_toFun),
           Measure.map_map latticeReflFst.measurable_toFun latticeReflFst.measurable_toFun,
           latticeReflFst_toFun_comp_self, Measure.map_id]
 
@@ -2719,14 +2475,14 @@ include hβ hr hq
 /-- **Georgii Theorem (6.21): the spin translation `t` is broken.** `t(μ_z^β) ≠ μ_z^β` for every
 `z`; equivalently `μ_z^β` and `t^n(μ_z^β)` are distinct Gibbs measures. -/
 theorem map_spinTranslation_staircasePhase_ne (z : ℤ) :
-    Measure.map (staircaseShift Site).toFun (staircasePhase hβ hr z : Measure (Site → ℤ))
+    Measure.map (staircaseShift Site ℤ).toFun (staircasePhase hβ hr z : Measure (Site → ℤ))
       ≠ (staircasePhase hβ hr z : Measure (Site → ℤ)) := by
-  have : IsProbabilityMeasure (Measure.map (staircaseShift Site).toFun
+  have : IsProbabilityMeasure (Measure.map (staircaseShift Site ℤ).toFun
       (staircasePhase hβ hr z : Measure (Site → ℤ))) :=
-    Measure.isProbabilityMeasure_map (staircaseShift Site).measurable_toFun.aemeasurable
+    Measure.isProbabilityMeasure_map (staircaseShift Site ℤ).measurable_toFun.aemeasurable
   refine ne_of_half_lt (a := (0 : Site)) (c := -1) (d := 0) (by omega) ?_ ?_
   · rw [map_toFun_spin_eq]
-    have hset : {ω : Site → ℤ | (staircaseShift Site).toFun ω (0 : Site) = -1}
+    have hset : {ω : Site → ℤ | (staircaseShift Site ℤ).toFun ω (0 : Site) = -1}
         = {ζ : Site → ℤ | ζ (0 : Site) = staircase z (0 : Site)} := by
       ext ω
       simp only [Set.mem_ofPred_eq, staircaseShift_toFun_apply, staircase_apply, Pi.zero_apply,
@@ -2739,14 +2495,14 @@ theorem map_spinTranslation_staircasePhase_ne (z : ℤ) :
 
 /-- **Georgii Theorem (6.21): the spin reflection `τ` is broken** for `z ≠ 0`. -/
 theorem map_spinReflection_staircasePhase_ne {z : ℤ} (hz : z ≠ 0) :
-    Measure.map (spinReflection Site).toFun (staircasePhase hβ hr z : Measure (Site → ℤ))
+    Measure.map (spinReflection Site ℤ).toFun (staircasePhase hβ hr z : Measure (Site → ℤ))
       ≠ (staircasePhase hβ hr z : Measure (Site → ℤ)) := by
-  have : IsProbabilityMeasure (Measure.map (spinReflection Site).toFun
+  have : IsProbabilityMeasure (Measure.map (spinReflection Site ℤ).toFun
       (staircasePhase hβ hr z : Measure (Site → ℤ))) :=
-    Measure.isProbabilityMeasure_map (spinReflection Site).measurable_toFun.aemeasurable
+    Measure.isProbabilityMeasure_map (spinReflection Site ℤ).measurable_toFun.aemeasurable
   refine ne_of_half_lt (a := e0) (c := -z) (d := z) (by omega) ?_ ?_
   · rw [map_toFun_spin_eq]
-    have hset : {ω : Site → ℤ | (spinReflection Site).toFun ω e0 = -z}
+    have hset : {ω : Site → ℤ | (spinReflection Site ℤ).toFun ω e0 = -z}
         = {ζ : Site → ℤ | ζ e0 = staircase z e0} := by
       ext ω
       simp only [Set.mem_ofPred_eq, spinReflection_toFun, staircase_apply, e0_zero, mul_one]
@@ -2885,7 +2641,7 @@ theorem staircasePhase_spec {β : ℝ} (hlog : Real.log 12 ≤ β) (z : ℤ) :
       (∀ τ ∈ Subgroup.closure (staircaseSymmetries z), MeasurePreserving τ.toFun
         (staircasePhase (pos_of_log_twelve hlog) (r'_half_lt_one hlog) z : Measure (Site → ℤ))
         (staircasePhase (pos_of_log_twelve hlog) (r'_half_lt_one hlog) z)) ∧
-      Measure.map (spinReflection Site).toFun
+      Measure.map (spinReflection Site ℤ).toFun
           (staircasePhase (pos_of_log_twelve hlog) (r'_half_lt_one hlog) z :
             Measure (Site → ℤ))
         = (staircasePhase (pos_of_log_twelve hlog) (r'_half_lt_one hlog) (-z) :

@@ -48,6 +48,7 @@ public import GibbsMeasure.Mathlib.Analysis.Normed.Field.Lemmas
 public import GibbsMeasure.Mathlib.Data.ENNReal.Basic
 public import GibbsMeasure.Mathlib.Data.ENNReal.TsumPi
 public import GibbsMeasure.Mathlib.Data.Finset.Map
+public import GibbsMeasure.Mathlib.Data.Finset.Update
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PosDef
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PerronStochastic
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.SymmetricRange
@@ -79,6 +80,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Function.StronglyMeasurable.Bas
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.Bochner.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.DominatedConvergence
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.IntegrableOn
+public import GibbsMeasure.Mathlib.MeasureTheory.Integral.Pi
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Density
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Existence
 public import GibbsMeasure.Mathlib.Probability.Distributions.Poisson.Convergence
@@ -89,6 +91,7 @@ public import GibbsMeasure.Mathlib.Probability.Independence.Integration
 public import GibbsMeasure.Mathlib.Probability.LargeDeviations.Legendre
 public import GibbsMeasure.Mathlib.Probability.UniformOn
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Tsum
+public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Count
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.UniformAverage
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.UniformAverage
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Trim
@@ -134,7 +137,6 @@ public import GibbsMeasure.Mathlib.Probability.Martingale.Convergence
 public import GibbsMeasure.Mathlib.Probability.TailTriviality
 public import GibbsMeasure.Mathlib.Probability.Kernel.WithDensity
 public import GibbsMeasure.Prereqs.IntervalBoundary
-public import GibbsMeasure.Prereqs.CylinderEvents
 public import GibbsMeasure.Prereqs.Filtration.Consistent
 public import GibbsMeasure.Prereqs.Juxt
 public import GibbsMeasure.Prereqs.Kernel.CondExp
@@ -146,6 +148,7 @@ public import GibbsMeasure.Prereqs.SquareCylinders
 public import GibbsMeasure.Prereqs.Transformation
 public import GibbsMeasure.Potential
 public import GibbsMeasure.Potential.Summable
+public import GibbsMeasure.Potential.GroundState
 public import GibbsMeasure.Potential.Quasilocal
 public import GibbsMeasure.Potential.QuasilocalSpecification
 public import GibbsMeasure.Potential.FreeBoundary

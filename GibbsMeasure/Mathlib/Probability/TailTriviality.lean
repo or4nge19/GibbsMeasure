@@ -8,7 +8,7 @@ module
 public import GibbsMeasure.Mathlib.Probability.Martingale.Convergence
 public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.TrivialOn
 public import GibbsMeasure.Mathlib.Order.Cofinal
-public import GibbsMeasure.Prereqs.CylinderEvents
+public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.Cylinders
 
 /-!
 # Tail triviality is asymptotic independence

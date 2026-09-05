@@ -7,7 +7,7 @@ module
 
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.BoundedMeasurable
 public import GibbsMeasure.Mathlib.Logic.Function.DependsOn
-public import GibbsMeasure.Prereqs.CylinderEvents
+public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.Cylinders
 public import GibbsMeasure.Mathlib.Analysis.Normed.Algebra.ClosedSubalgebra
 public import GibbsMeasure.Mathlib.Topology.MetricSpace.DependsOn
 public import GibbsMeasure.Mathlib.Topology.UniformSpace.Pi

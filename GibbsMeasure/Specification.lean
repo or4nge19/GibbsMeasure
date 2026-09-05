@@ -6,7 +6,7 @@ Authors: Yaël Dillies, Matteo Cipollina
 module
 
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.GiryMonad
-public import GibbsMeasure.Prereqs.CylinderEvents
+public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.Cylinders
 public import GibbsMeasure.Prereqs.Filtration.Consistent
 public import GibbsMeasure.Prereqs.Juxt
 public import GibbsMeasure.Prereqs.MeasureExt
@@ -2805,8 +2805,7 @@ section IsssdRestrict
 variable {S E : Type*} [MeasurableSpace E]
 
 /-- The independent kernel `λ_Λ(·|ω)` is the image of the product measure `λ^S` under the
-resampling `σ ↦ σ_Λ ω_{S∖Λ}`. (Intended home: `GibbsMeasure/Specification.lean`, next to
-`Specification.isssd_apply_of_mem_cylinderEvents`.) -/
+resampling `σ ↦ σ_Λ ω_{S∖Λ}`. -/
 lemma isssd_eq_map_juxt_restrict [Countable S] (ν : Measure E) [IsProbabilityMeasure ν]
     (Λ : Finset S) (ω : S → E) :
     Specification.isssd (S := S) (E := E) ν Λ ω
