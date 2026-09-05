@@ -9,6 +9,9 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Measure.UniformAverage
 public import GibbsMeasure.Specification.ErgodicGibbs
 public import GibbsMeasure.Specification.InvariantFields
 public import GibbsMeasure.Specification.KolmogorovZeroOne
+public import Mathlib.Algebra.Group.Pointwise.Finset.Scalar
+public import Mathlib.Data.Int.Interval
+public import Mathlib.Data.Pi.Interval
 public import Mathlib.GroupTheory.Complement
 
 /-!
@@ -325,7 +328,8 @@ def blockEquiv {Δ : Finset S} (h : IsTileUnion hCH Δ) :
 
 @[simp] lemma blockEquiv_apply {Δ : Finset S} (h : IsTileUnion hCH Δ) (ω : Δ → E)
     (k : tileIdxImage hCH Δ) (c : C) :
-    blockEquiv (E := E) hCH h ω k c = ω ⟨(c : S) + ((k : H) : S), coe_tileRep_add_mem hCH h k.2⟩ := rfl
+    blockEquiv (E := E) hCH h ω k c =
+      ω ⟨(c : S) + ((k : H) : S), coe_tileRep_add_mem hCH h k.2⟩ := rfl
 
 /-- The site of `Δ` in the tile `k` at the position `c`. -/
 def tileSite {Δ : Finset S} (h : IsTileUnion hCH Δ) (k : tileIdxImage hCH Δ) (c : C) : Δ :=
@@ -640,6 +644,114 @@ lemma card_filter_not_forall_sub_mem_le [DecidableEq S] (C Δ : Finset S) :
   rw [not_imp] at hδ
   exact Finset.mem_biUnion.2 ⟨δ, hδ.1, Finset.mem_filter.2 ⟨hjC, hδ.2⟩⟩
 
+/-! ### The union of the tiles meeting a finite volume -/
+
+section TileHull
+
+open scoped Pointwise
+
+variable [DecidableEq S]
+
+/-- **Georgii's `Δ⁺` in the proof of (15.52)**: the union of all the tiles `C + k`, `k ∈ H`,
+that meet the finite volume `Λ`. -/
+def tileHull (Λ : Finset S) : Finset S :=
+  (tileIdxImage hCH Λ).biUnion fun k ↦ C.image (· + (k : S))
+
+lemma mem_tileHull_iff {Λ : Finset S} {x : S} :
+    x ∈ tileHull hCH Λ ↔ tileIdx hCH x ∈ tileIdxImage hCH Λ := by
+  simp only [tileHull, Finset.mem_biUnion, Finset.mem_image]
+  constructor
+  · rintro ⟨k, hk, c, hc, rfl⟩
+    rwa [tileIdx_add hCH hc k.2]
+  · intro hx
+    exact ⟨tileIdx hCH x, hx, tileRep hCH x, (tileRep hCH x).2,
+      coe_tileRep_add_coe_tileIdx hCH x⟩
+
+/-- The hull of `Λ` is a union of tiles. -/
+lemma isTileUnion_tileHull (Λ : Finset S) : IsTileUnion hCH (tileHull hCH Λ) :=
+  fun x y hxy ↦ by rw [mem_tileHull_iff, mem_tileHull_iff, hxy]
+
+lemma subset_tileHull (Λ : Finset S) : Λ ⊆ tileHull hCH Λ := fun _ hx ↦
+  (mem_tileHull_iff hCH).2 (tileIdx_mem_tileIdxImage hCH hx)
+
+/-- The hull of `Λ` meets exactly the tiles that `Λ` meets. -/
+lemma tileIdxImage_tileHull (Λ : Finset S) :
+    tileIdxImage hCH (tileHull hCH Λ) = tileIdxImage hCH Λ := by
+  refine Finset.Subset.antisymm (fun k hk ↦ ?_)
+    (Finset.image_subset_image (subset_tileHull hCH Λ))
+  obtain ⟨x, hx, rfl⟩ := Finset.mem_image.1 hk
+  exact (mem_tileHull_iff hCH).1 hx
+
+lemma card_tileHull (Λ : Finset S) :
+    (tileHull hCH Λ).card = (tileIdxImage hCH Λ).card * C.card := by
+  rw [card_of_isTileUnion hCH (isTileUnion_tileHull hCH Λ), tileIdxImage_tileHull]
+
+/-- `|Λ| ≤ |K| |C|`, `K` the set of tiles met by `Λ`. -/
+lemma card_le_card_tileIdxImage_mul (Λ : Finset S) : Λ.card ≤ (tileIdxImage hCH Λ).card * C.card :=
+  (Finset.card_le_card (subset_tileHull hCH Λ)).trans_eq (card_tileHull hCH Λ)
+
+/-- Every site of the hull of `Λ` is a site of `Λ` displaced by the difference of two positions
+in the tile: `Δ⁺ ⊆ Λ + (C − C)`. -/
+lemma exists_of_mem_tileHull {Λ : Finset S} {x : S} (hx : x ∈ tileHull hCH Λ) :
+    ∃ y ∈ Λ, ∃ c ∈ C, ∃ c' ∈ C, x = y + (c - c') := by
+  obtain ⟨y, hy, hk⟩ := Finset.mem_image.1 ((mem_tileHull_iff hCH).1 hx)
+  refine ⟨y, hy, tileRep hCH x, (tileRep hCH x).2, tileRep hCH y, (tileRep hCH y).2, ?_⟩
+  have h3 : (tileIdx hCH y : S) = tileIdx hCH x := congrArg Subtype.val hk
+  refine eq_add_of_sub_eq' ?_
+  calc x - y = ((tileRep hCH x : S) + tileIdx hCH x) - ((tileRep hCH y : S) + tileIdx hCH y) := by
+        rw [coe_tileRep_add_coe_tileIdx, coe_tileRep_add_coe_tileIdx]
+    _ = (tileRep hCH x : S) - tileRep hCH y := by rw [h3]; abel
+
+/-- The tiles met by a translate of `Λ` by `h ∈ H` are the translates by `h` of the tiles met
+by `Λ`. -/
+lemma tileIdxImage_vadd (Λ : Finset S) (h : H) :
+    tileIdxImage hCH ((h : S) +ᵥ Λ) = h +ᵥ tileIdxImage hCH Λ := by
+  ext k
+  simp only [tileIdxImage, Finset.mem_image, Finset.mem_vadd_finset, vadd_eq_add]
+  constructor
+  · rintro ⟨_, ⟨y, hy, rfl⟩, rfl⟩
+    refine ⟨tileIdx hCH y, ⟨y, hy, rfl⟩, ?_⟩
+    rw [add_comm (h : S), tileIdx_add_of_mem hCH y h.2, add_comm]
+  · rintro ⟨_, ⟨y, hy, rfl⟩, rfl⟩
+    refine ⟨(h : S) + y, ⟨y, hy, rfl⟩, ?_⟩
+    rw [add_comm (h : S), tileIdx_add_of_mem hCH y h.2, add_comm]
+
+/-- **The Følner property passes from a volume to the tiles it meets**: for `h ∈ H`,
+`|(h + K) ∆ K| ≤ |(h + Λ) ∆ Λ|`, where `K` is the set of tiles met by `Λ`. -/
+lemma card_vadd_tileIdxImage_symmDiff_le (Λ : Finset S) (h : H) :
+    ((h +ᵥ tileIdxImage hCH Λ) ∆ tileIdxImage hCH Λ).card ≤ (((h : S) +ᵥ Λ) ∆ Λ).card := by
+  rw [← tileIdxImage_vadd]
+  refine (Finset.card_le_card fun k hk ↦ ?_).trans
+    (Finset.card_image_le (s := ((h : S) +ᵥ Λ) ∆ Λ) (f := tileIdx hCH))
+  rw [Finset.mem_symmDiff] at hk
+  rw [Finset.mem_image]
+  rcases hk with ⟨hk1, hk2⟩ | ⟨hk1, hk2⟩
+  · obtain ⟨x, hx, rfl⟩ := Finset.mem_image.1 hk1
+    exact ⟨x, Finset.mem_symmDiff.2 (Or.inl ⟨hx, fun hxΛ ↦ hk2 (Finset.mem_image_of_mem _ hxΛ)⟩),
+      rfl⟩
+  · obtain ⟨x, hx, rfl⟩ := Finset.mem_image.1 hk1
+    exact ⟨x, Finset.mem_symmDiff.2 (Or.inr ⟨hx, fun hxΛ ↦ hk2 (Finset.mem_image_of_mem _ hxΛ)⟩),
+      rfl⟩
+
+omit [DecidableEq S] in
+/-- **A typical event for `γ̃` is typical for `γ̂`**: `γ̂(B) ≤ |C| γ̃(B)` for every set `B`. The
+tile position `c₀` of the origin lies in `H` (since `0 = c₀ + h₀`), so `θ_{c₀} γ̂ = γ̂` is one of
+the `|C|` equally weighted terms of the average `γ̃`. -/
+lemma tileProduct_apply_le_card_mul_tileAverage_apply (B : Set (S → E)) :
+    tileProduct hCH γ B ≤ C.card * tileAverage hCH γ B := by
+  have hc₀ : (tileRep hCH 0 : S) ∈ H := by
+    rw [eq_neg_of_add_eq_zero_left (coe_tileRep_add_coe_tileIdx hCH 0)]
+    exact neg_mem (tileIdx hCH 0).2
+  have hterm : (tileProduct hCH γ).map (shift E (tileRep hCH 0 : S)).toFun B
+      = tileProduct hCH γ B := by
+    rw [map_shift_tileProduct hCH γ hc₀]
+  rw [tileAverage_apply, ← mul_assoc,
+    ENNReal.mul_inv_cancel (by exact_mod_cast (nonempty_of_isComplement hCH).card_pos.ne')
+      (ENNReal.natCast_ne_top _), one_mul, ← hterm]
+  exact Finset.single_le_sum (fun _ _ ↦ (zero_le : (0 : ℝ≥0∞) ≤ _)) (tileRep hCH 0).2
+
+end TileHull
+
 end Tiling
 
 /-! ### Georgii Theorem (14.12) along a sequence of tilings -/
@@ -718,7 +830,7 @@ theorem closure_setOf_mem_extremePoints_invariantFields_shiftGroup
   · convert isClosed_setOf_forall_measurePreserving (S := S) (E := E)
       (shiftGroup S E : Set (Transformation S E)) using 1
     ext ν
-    simp only [mem_setOf_eq, mem_invariantFields_iff, SetLike.mem_coe]
+    simp only [Set.mem_ofPred_eq, mem_invariantFields_iff, SetLike.mem_coe]
     exact and_iff_right inferInstance
   · obtain ⟨w, hw, hlim⟩ := exists_tendsto_extremePoints_invariantFields_shiftGroup hCH hfol hν
     exact mem_closure_of_tendsto hlim (Eventually.of_forall hw)
@@ -922,6 +1034,202 @@ theorem dense_setOf_mem_extremePoints_invariantFields_shiftGroup_int :
     tendsto_card_filter_sub_notMem_piFinset_Icc_div
 
 end Lattice
+
+/-! ### The box tiling of `ℤ^d` with an arbitrary base point and arbitrary side lengths
+
+Georgii's cubes `Λ = ∏_k [m_k, m_k + p[` of Definition (15.41) have an arbitrary base point `m`
+and an arbitrary side `p`; the tiling `ℤ^d = ⋃_i (Λ + p i)` that Proposition (15.52) uses for such
+a cube is the following one. -/
+
+section BoxTiling
+
+variable {ι : Type*} [Fintype ι] [DecidableEq ι]
+
+/-- **The box tiling of `ℤ^d`.** The box `∏_k [a_k, a_k + s_k]`, of side lengths `s_k + 1`, is a
+fundamental domain of the subgroup `∏_k (s_k + 1) ℤ`: every `x ∈ ℤ^d` is uniquely `c + h` with
+`c` in the box and `h` in the subgroup, namely `c_k = a_k + (x_k − a_k) mod (s_k + 1)`. Georgii's
+cube `∏_k [m_k, m_k + p[` of (15.41) is the case `a = m`, `s_k = p − 1`; the centred cubes
+`Λ(n) = [−n, n]^d` of `isComplement_piFinset_Icc` are the case `a = −n`, `s = 2n`. -/
+theorem isComplement_Icc (a : ι → ℤ) (s : ι → ℕ) :
+    AddSubgroup.IsComplement
+      ((Finset.Icc a fun k ↦ a k + s k : Finset (ι → ℤ)) : Set (ι → ℤ))
+      (AddSubgroup.pi Set.univ fun k ↦ AddSubgroup.zmultiples ((s k : ℤ) + 1) :
+        Set (ι → ℤ)) := by
+  refine AddSubgroup.isComplement_iff_existsUnique.2 fun g ↦ ?_
+  set r : ι → ℤ := fun k ↦ a k + (g k - a k) % ((s k : ℤ) + 1) with hr
+  clear_value r
+  have hL0 : ∀ k, ((s k : ℤ) + 1) ≠ 0 := fun k ↦ by omega
+  have hLpos : ∀ k, 0 < ((s k : ℤ) + 1) := fun k ↦ by omega
+  have hr_mem : ∀ k, a k ≤ r k ∧ r k ≤ a k + s k := fun k ↦ by
+    have h1 := Int.emod_nonneg (g k - a k) (hL0 k)
+    have h2 := Int.emod_lt_of_pos (g k - a k) (hLpos k)
+    simp only [hr]
+    omega
+  have hrC : r ∈ (Finset.Icc a fun k ↦ a k + s k : Finset (ι → ℤ)) :=
+    Finset.mem_Icc.2 ⟨fun k ↦ (hr_mem k).1, fun k ↦ (hr_mem k).2⟩
+  have hqH : g - r ∈ AddSubgroup.pi Set.univ fun k ↦ AddSubgroup.zmultiples ((s k : ℤ) + 1) := by
+    refine (AddSubgroup.mem_pi _).2 fun k _ ↦
+      Int.mem_zmultiples_iff.2 ⟨(g k - a k) / ((s k : ℤ) + 1), ?_⟩
+    have := Int.emod_add_mul_ediv (g k - a k) ((s k : ℤ) + 1)
+    simp only [Pi.sub_apply, hr]
+    linarith
+  refine ⟨(⟨r, Finset.mem_coe.2 hrC⟩, ⟨g - r, SetLike.mem_coe.2 hqH⟩), by simp, ?_⟩
+  rintro ⟨⟨c, hc⟩, ⟨h, hh⟩⟩ (heq : c + h = g)
+  have hcr : c = r := by
+    have hmemC := Finset.mem_Icc.1 (Finset.mem_coe.1 hc)
+    have hsub : c - r ∈ AddSubgroup.pi Set.univ fun k ↦ AddSubgroup.zmultiples ((s k : ℤ) + 1) := by
+      have : c - r = (g - r) - h := by rw [← heq]; abel
+      rw [this]
+      exact sub_mem hqH (SetLike.mem_coe.1 hh)
+    funext k
+    have hdvd : ((s k : ℤ) + 1) ∣ (c - r) k :=
+      Int.mem_zmultiples_iff.1 ((AddSubgroup.mem_pi _).1 hsub k (Set.mem_univ k))
+    have hck1 : a k ≤ c k := hmemC.1 k
+    have hck2 : c k ≤ a k + s k := hmemC.2 k
+    obtain ⟨hrk1, hrk2⟩ := hr_mem k
+    have hlt : |(c - r) k| < (s k : ℤ) + 1 := by
+      rw [Pi.sub_apply]
+      exact abs_lt.2 ⟨by omega, by omega⟩
+    have := Int.eq_zero_of_abs_lt_dvd hdvd hlt
+    simp only [Pi.sub_apply] at this
+    linarith
+  refine Prod.ext (Subtype.ext hcr) (Subtype.ext ?_)
+  change h = g - r
+  rw [← heq, hcr, add_sub_cancel_left]
+
+/-- The cardinality of the box `∏_k [a_k, a_k + s_k]` is `∏_k (s_k + 1)`. -/
+lemma card_Icc_add (a : ι → ℤ) (s : ι → ℕ) :
+    (Finset.Icc a fun k ↦ a k + s k : Finset (ι → ℤ)).card = ∏ k, (s k + 1) := by
+  rw [Pi.card_Icc]
+  refine Finset.prod_congr rfl fun k _ ↦ ?_
+  rw [Int.card_Icc]
+  have : a k + s k + 1 - a k = ((s k + 1 : ℕ) : ℤ) := by push_cast; ring
+  rw [this, Int.toNat_natCast]
+
+/-- The union of the `(2N + 1)^d` tiles `Λ + (s + 1) i`, `i ∈ [−N, N]^d`, of the box tiling
+`isComplement_Icc a s`: the box `∏_k [a_k − N (s_k + 1), a_k + s_k + N (s_k + 1)]`. -/
+def boxUnion (a : ι → ℤ) (s : ι → ℕ) (N : ℕ) : Finset (ι → ℤ) :=
+  Finset.Icc (fun k ↦ a k - N * ((s k : ℤ) + 1)) fun k ↦ a k + s k + N * ((s k : ℤ) + 1)
+
+lemma mem_boxUnion_iff {a : ι → ℤ} {s : ι → ℕ} {N : ℕ} {x : ι → ℤ} :
+    x ∈ boxUnion a s N ↔
+      ∀ k, a k - N * ((s k : ℤ) + 1) ≤ x k ∧ x k ≤ a k + s k + N * ((s k : ℤ) + 1) := by
+  simp only [boxUnion, Finset.mem_Icc, Pi.le_def]
+  exact ⟨fun h k ↦ ⟨h.1 k, h.2 k⟩, fun h ↦ ⟨fun k ↦ (h k).1, fun k ↦ (h k).2⟩⟩
+
+/-- The elementary estimate behind "a box union is a union of tiles": for `a ≤ c ≤ a + s` and
+`p = s + 1`, `a − N p ≤ c + p i ↔ −N ≤ i` and `c + p i ≤ a + s + N p ↔ i ≤ N`. -/
+private lemma mem_boxUnion_coord_iff {a c : ℤ} {s N : ℕ} {i : ℤ} (hc : a ≤ c)
+    (hc' : c ≤ a + s) :
+    (a - N * ((s : ℤ) + 1) ≤ c + ((s : ℤ) + 1) * i
+        ∧ c + ((s : ℤ) + 1) * i ≤ a + s + N * ((s : ℤ) + 1))
+      ↔ (-(N : ℤ) ≤ i ∧ i ≤ N) := by
+  set p : ℤ := (s : ℤ) + 1 with hp
+  have hp0 : 0 < p := by omega
+  constructor
+  · rintro ⟨h1, h2⟩
+    constructor
+    · by_contra hi
+      push Not at hi
+      have : p * i ≤ p * (-(N : ℤ) - 1) := mul_le_mul_of_nonneg_left (by omega) hp0.le
+      nlinarith
+    · by_contra hi
+      push Not at hi
+      have : p * ((N : ℤ) + 1) ≤ p * i := mul_le_mul_of_nonneg_left (by omega) hp0.le
+      nlinarith
+  · rintro ⟨h1, h2⟩
+    have e1 : p * (-(N : ℤ)) ≤ p * i := mul_le_mul_of_nonneg_left h1 hp0.le
+    have e2 : p * i ≤ p * N := mul_le_mul_of_nonneg_left h2 hp0.le
+    constructor <;> nlinarith
+
+/-- **`boxUnion a s N` is a union of tiles** of the box tiling `isComplement_Icc a s`:
+membership depends only on the tile index. -/
+theorem isTileUnion_boxUnion (a : ι → ℤ) (s : ι → ℕ) (N : ℕ) :
+    IsTileUnion (isComplement_Icc a s) (boxUnion a s N) := by
+  intro x y hxy
+  set hCH := isComplement_Icc a s with hCHdef
+  have hcoe : (tileIdx hCH x : ι → ℤ) = (tileIdx hCH y : ι → ℤ) := congrArg Subtype.val hxy
+  have hrep : ∀ z : ι → ℤ, ∀ k,
+      a k ≤ (tileRep hCH z : ι → ℤ) k ∧ (tileRep hCH z : ι → ℤ) k ≤ a k + s k := by
+    intro z k
+    have hz := Finset.mem_Icc.1 (tileRep hCH z).2
+    exact ⟨hz.1 k, hz.2 k⟩
+  have hdvd : ∀ k, ((s k : ℤ) + 1) ∣ (tileIdx hCH x : ι → ℤ) k := fun k ↦
+    Int.mem_zmultiples_iff.1 ((AddSubgroup.mem_pi _).1 (tileIdx hCH x).2 k (Set.mem_univ k))
+  choose i hi using hdvd
+  have hsplit : ∀ z : ι → ℤ, ∀ k,
+      z k = (tileRep hCH z : ι → ℤ) k + (tileIdx hCH z : ι → ℤ) k := fun z k ↦
+    (congrFun (coe_tileRep_add_coe_tileIdx hCH z) k).symm
+  have hx' : ∀ k, x k = (tileRep hCH x : ι → ℤ) k + ((s k : ℤ) + 1) * i k := fun k ↦ by
+    rw [hsplit x k, hi k]
+  have hy' : ∀ k, y k = (tileRep hCH y : ι → ℤ) k + ((s k : ℤ) + 1) * i k := fun k ↦ by
+    rw [hsplit y k, ← hcoe, hi k]
+  simp only [mem_boxUnion_iff]
+  constructor <;> intro hmem k
+  · rw [hy' k, mem_boxUnion_coord_iff (hrep y k).1 (hrep y k).2,
+      ← mem_boxUnion_coord_iff (hrep x k).1 (hrep x k).2, ← hx' k]
+    exact hmem k
+  · rw [hx' k, mem_boxUnion_coord_iff (hrep x k).1 (hrep x k).2,
+      ← mem_boxUnion_coord_iff (hrep y k).1 (hrep y k).2, ← hy' k]
+    exact hmem k
+
+/-- `|boxUnion a s N| = (2N + 1)^d ∏_k (s_k + 1)`. -/
+lemma card_boxUnion (a : ι → ℤ) (s : ι → ℕ) (N : ℕ) :
+    (boxUnion a s N).card = (2 * N + 1) ^ Fintype.card ι * ∏ k, (s k + 1) := by
+  rw [boxUnion, Pi.card_Icc, ← Finset.card_univ, ← Finset.prod_const, ← Finset.prod_mul_distrib]
+  refine Finset.prod_congr rfl fun k _ ↦ ?_
+  rw [Int.card_Icc]
+  have : a k + s k + N * ((s k : ℤ) + 1) + 1 - (a k - N * ((s k : ℤ) + 1))
+      = (((2 * N + 1) * (s k + 1) : ℕ) : ℤ) := by push_cast; ring
+  rw [this, Int.toNat_natCast]
+
+/-- **Georgii's `Δ⁻` for a shifted box union.** For `m₀ ≥ |a_k|` and `j` in the tile
+`∏_k [a_k, a_k + s_k]`, every shift `Δ − j` of the box union of index `N + 1 + m₀` contains the
+box union of index `N`. -/
+lemma boxUnion_subset_image_sub (a : ι → ℤ) (s : ι → ℕ) {m₀ : ℕ} (hm₀ : ∀ k, |a k| ≤ m₀)
+    (N : ℕ) {j : ι → ℤ} (hj : j ∈ (Finset.Icc a fun k ↦ a k + s k : Finset (ι → ℤ))) :
+    boxUnion a s N ⊆ (boxUnion a s (N + 1 + m₀)).image (· - j) := by
+  intro y hy
+  refine Finset.mem_image.2 ⟨y + j, ?_, by abel⟩
+  rw [mem_boxUnion_iff] at hy ⊢
+  intro k
+  obtain ⟨hy1, hy2⟩ := hy k
+  have hj1 : a k ≤ j k := (Finset.mem_Icc.1 hj).1 k
+  have hj2 : j k ≤ a k + s k := (Finset.mem_Icc.1 hj).2 k
+  have hak := abs_le.1 (hm₀ k)
+  have hprod : (m₀ : ℤ) ≤ m₀ * ((s k : ℤ) + 1) :=
+    le_mul_of_one_le_right (by positivity) (by omega)
+  have e : ((N + 1 + m₀ : ℕ) : ℤ) * ((s k : ℤ) + 1)
+      = (N : ℤ) * ((s k : ℤ) + 1) + ((s k : ℤ) + 1) + (m₀ : ℤ) * ((s k : ℤ) + 1) := by
+    push_cast; ring
+  simp only [Pi.add_apply]
+  rw [e]
+  constructor <;> linarith
+
+/-- **Georgii's `Δ⁺` for a shifted box union.** For `m₀ ≥ |a_k|` and `j` in the tile
+`∏_k [a_k, a_k + s_k]`, every shift `Δ − j` of the box union of index `N` is contained in the box
+union of index `N + 1 + m₀`. -/
+lemma image_sub_boxUnion_subset (a : ι → ℤ) (s : ι → ℕ) {m₀ : ℕ} (hm₀ : ∀ k, |a k| ≤ m₀)
+    (N : ℕ) {j : ι → ℤ} (hj : j ∈ (Finset.Icc a fun k ↦ a k + s k : Finset (ι → ℤ))) :
+    (boxUnion a s N).image (· - j) ⊆ boxUnion a s (N + 1 + m₀) := by
+  intro z hz
+  obtain ⟨x, hx, rfl⟩ := Finset.mem_image.1 hz
+  rw [mem_boxUnion_iff] at hx ⊢
+  intro k
+  obtain ⟨hx1, hx2⟩ := hx k
+  have hj1 : a k ≤ j k := (Finset.mem_Icc.1 hj).1 k
+  have hj2 : j k ≤ a k + s k := (Finset.mem_Icc.1 hj).2 k
+  have hak := abs_le.1 (hm₀ k)
+  have hprod : (m₀ : ℤ) ≤ m₀ * ((s k : ℤ) + 1) :=
+    le_mul_of_one_le_right (by positivity) (by omega)
+  have e : ((N + 1 + m₀ : ℕ) : ℤ) * ((s k : ℤ) + 1)
+      = (N : ℤ) * ((s k : ℤ) + 1) + ((s k : ℤ) + 1) + (m₀ : ℤ) * ((s k : ℤ) + 1) := by
+    push_cast; ring
+  simp only [Pi.sub_apply]
+  rw [e]
+  constructor <;> linarith
+
+end BoxTiling
 
 end MeasureTheory.GibbsMeasure
 
