@@ -1,6 +1,7 @@
 module
 
 public import GibbsMeasure.Specification
+public import GibbsMeasure.Specification.QuasilocalAlgebra
 public import GibbsMeasure.Mathlib.Logic.Function.DependsOn
 public import Mathlib.Analysis.SpecialFunctions.Exp
 public import Mathlib.Algebra.BigOperators.Ring.Finset
@@ -14,6 +15,13 @@ public import Mathlib.Data.Set.Finite.Lattice
 * `Potential S E`: a family `Φ Δ : (S → E) → ℝ` indexed by the finite interaction supports.
 * `Potential.IsPotential`: Georgii (2.2)(i), measurability of `Φ Δ` for `cylinderEvents Δ`.
 * `Potential.IsFiniteRange`: Georgii (2.15).
+
+* `Potential.interactingHamiltonian`, `Potential.boltzmannWeight`: the finite-volume Hamiltonian
+  of a finite-range potential and its Boltzmann factor, with
+  `Potential.interactingHamiltonian_congr` (potentials agreeing on the sets meeting `Λ` have the
+  same Hamiltonian in `Λ`), `Potential.isQuasilocalFun_interactingHamiltonian` (it is a local, a
+  fortiori quasilocal, function) and `Potential.boltzmannWeight_le_of_le` (a uniform lower bound
+  on the interaction terms bounds the Boltzmann factor above).
 
 Georgii (2.2)(ii), convergence of the Hamiltonian series, is `Potential.IsSummable` in
 `GibbsMeasure/Potential/Summable.lean`.
@@ -176,6 +184,37 @@ lemma interactingHamiltonian_sub_eq_of_subset_eqOn_compl
   simp [hΦΔ]
 
 omit [DecidableEq S] in
+/-- Two finite-range potentials whose interaction terms agree on every set meeting `Λ` have the
+same Hamiltonian in `Λ`. -/
+lemma interactingHamiltonian_congr {Ψ : Potential S E} [IsFiniteRange Φ] [IsFiniteRange Ψ]
+    {Λ : Finset S} (h : ∀ A : Finset S, ((A : Set S) ∩ (Λ : Set S)).Nonempty → Φ A = Ψ A)
+    (η : S → E) :
+    interactingHamiltonian (Φ := Φ) Λ η = interactingHamiltonian (Φ := Ψ) Λ η := by
+  have hsupp : interactingSupport (Φ := Φ) Λ = interactingSupport (Φ := Ψ) Λ := by
+    ext A
+    rw [mem_interactingSupport, mem_interactingSupport]
+    exact ⟨fun ⟨h1, h2⟩ ↦ ⟨h1, fun hc ↦ h2 (by rw [h A h1]; exact hc)⟩,
+      fun ⟨h1, h2⟩ ↦ ⟨h1, fun hc ↦ h2 (by rw [← h A h1]; exact hc)⟩⟩
+  rw [interactingHamiltonian, interactingHamiltonian, hsupp]
+  refine Finset.sum_congr rfl fun A hA ↦ ?_
+  rw [h A (mem_interactingSupport.1 hA).1]
+
+omit [DecidableEq S] in
+/-- The Hamiltonian of a finite-range potential is a *local* function — it only reads the
+coordinates in `⋃ {A : A ∩ Λ ≠ ∅, Φ_A ≠ 0}` — hence quasilocal in the sense of
+Georgii (2.22). -/
+lemma isQuasilocalFun_interactingHamiltonian [IsFiniteRange Φ] [IsPotential Φ] (Λ : Finset S) :
+    MeasureTheory.GibbsMeasure.IsQuasilocalFun (interactingHamiltonian (Φ := Φ) Λ) := by
+  classical
+  intro ε hε
+  refine ⟨(interactingSupport (Φ := Φ) Λ).biUnion id, fun ζ η h ↦ ?_⟩
+  have heq : interactingHamiltonian (Φ := Φ) Λ ζ = interactingHamiltonian (Φ := Φ) Λ η :=
+    Finset.sum_congr rfl fun A hA ↦ IsPotential.eq_of_eqOn fun x hx ↦
+      h x (Finset.mem_biUnion.2 ⟨A, hA, hx⟩)
+  rw [heq]
+  simpa using hε.le
+
+omit [DecidableEq S] in
 lemma boltzmannWeight_mul_comm_of_hamiltonian_sum_eq [IsFiniteRange Φ]
     (β : ℝ) {Λ₁ Λ₂ : Finset S} {η ζ : S → E}
     (hsum :
@@ -244,6 +283,18 @@ lemma isPremodifier_boltzmannWeight (β : ℝ) [IsFiniteRange Φ] [IsPotential �
   · intro Λ₁ Λ₂ ζ η hΛ hrestrict
     exact boltzmannWeight_mul_comm_of_hamiltonian_sub_eq (Φ := Φ) β
       (interactingHamiltonian_sub_eq_of_subset_eqOn_compl (Φ := Φ) hΛ hrestrict)
+
+omit [DecidableEq S] in
+/-- A uniform lower bound on the interaction terms bounds the Boltzmann factor above. -/
+lemma boltzmannWeight_le_of_le [IsFiniteRange Φ] {c : ℝ} (h : ∀ A η, c ≤ Φ A η)
+    (Λ : Finset S) (σ : S → E) :
+    boltzmannWeight (Φ := Φ) 1 Λ σ
+      ≤ ENNReal.ofReal (Real.exp (-((interactingSupport (Φ := Φ) Λ).card • c))) := by
+  refine ENNReal.ofReal_le_ofReal (Real.exp_le_exp.2 ?_)
+  have hsum := Finset.card_nsmul_le_sum (interactingSupport (Φ := Φ) Λ)
+    (fun A ↦ Φ A σ) c fun A _ ↦ h A σ
+  simp only [interactingHamiltonian, nsmul_eq_mul] at hsum ⊢
+  linarith
 
 /-! ### Normalization (definition only) -/
 

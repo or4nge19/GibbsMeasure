@@ -51,8 +51,6 @@ monoid `Kernel E E`, and (11.1) is finiteness of their entries.
   weights of `[i, j]` over the interior `]i, j[` gives `Q^{j-i}(ω_i, ω_j)`, for every `i ≤ j`
   (including `j = i` and `j = i + 1`, which `sigmaFiniteLambdaZ_transferWeight_Icc` does not
   cover).
-* `MeasureTheory.GibbsMeasure.lintegral_lambdaCount_update_of_notMem`: freezing a coordinate
-  outside the integration volume may be done in the integrand or in the boundary condition.
 * `MeasureTheory.GibbsMeasure.Markov.isGibbsMeasure_transferSpecification_boundaryLawMeasure`:
   **Georgii Theorem (11.9)(a)**, `μ ∈ 𝒢(Q)`.
 * `MeasureTheory.GibbsMeasure.Markov.markovSpecification_eq_transferSpecification`,
@@ -70,43 +68,10 @@ noncomputable section
 /-! ## Georgii's `γ^Q`: the transfer matrix as a pre-modification
 
 The counting-measure reference kernel `λ_Λ(·|η)` and its calculus (`lintegral_lambdaCount`,
-`setLIntegral_lambdaCount_cyl`, `cyl`, …) live in `GibbsMeasure/Specification/CountingKernel.lean`
-for an arbitrary site space; here they are used at `S = ℤ`. -/
-
-namespace MeasureTheory.GibbsMeasure
-
-section LambdaCountUpdate
-
-variable {S E : Type*} [DecidableEq S] [MeasurableSpace E] [Countable E]
-  [MeasurableSingletonClass E]
-
-/-- Freezing a coordinate `j` outside the integration volume `Λ` can be done either in the
-integrand or in the boundary condition:
-`∫ F(ζ_{j ↦ x}) λ_Λ(dζ|ω) = ∫ F(ζ) λ_Λ(dζ|ω_{j ↦ x})` for `j ∉ Λ`.
-
-Intended home: `GibbsMeasure/Specification/CountingKernel.lean`, next to
-`lintegral_lambdaCount_insert`. -/
-lemma lintegral_lambdaCount_update_of_notMem {Λ : Finset S} {j : S} (hj : j ∉ Λ) (ω : S → E)
-    (x : E) {F : (S → E) → ℝ≥0∞} (hF : Measurable F) :
-    ∫⁻ ζ, F (Function.update ζ j x)
-        ∂(Specification.sigmaFiniteLambdaFun (S := S) (E := E) Measure.count Λ ω)
-      = ∫⁻ ζ, F ζ ∂(Specification.sigmaFiniteLambdaFun (S := S) (E := E) Measure.count Λ
-          (Function.update ω j x)) := by
-  rw [lintegral_lambdaCount (F := fun ζ ↦ F (Function.update ζ j x)) Λ ω
-      (hF.comp (measurable_update_left' j x)), lintegral_lambdaCount Λ _ hF]
-  refine tsum_congr fun y ↦ congrArg F (funext fun k ↦ ?_)
-  by_cases hk : k ∈ (Λ : Set S)
-  · have hkj : k ≠ j := fun h ↦ hj (h ▸ Finset.mem_coe.1 hk)
-    rw [Function.update_of_ne hkj, juxt_apply_of_mem hk, juxt_apply_of_mem hk]
-  · rw [juxt_apply_of_not_mem hk]
-    by_cases hkj : k = j
-    · subst hkj
-      rw [Function.update_self, Function.update_self]
-    · rw [Function.update_of_ne hkj, juxt_apply_of_not_mem hk, Function.update_of_ne hkj]
-
-end LambdaCountUpdate
-
-end MeasureTheory.GibbsMeasure
+`lintegral_lambdaCount_insert`, `lintegral_lambdaCount_union`,
+`lintegral_lambdaCount_update_of_notMem`, `setLIntegral_lambdaCount_cyl`, `cyl`, …) live in
+`GibbsMeasure/Specification/CountingKernel.lean` for an arbitrary site space; here they are used
+at `S = ℤ`. -/
 
 namespace MeasureTheory.GibbsMeasure.Markov
 
@@ -547,22 +512,6 @@ end TransferSpecification
 section Factorisation
 
 variable (Q : E → E → ℝ≥0∞)
-
-/-- Integrating against `λ_{Λ₁ ∪ Λ₂}` for disjoint volumes: integrate over `Λ₂`, then over `Λ₁`
-(counting measure; Georgii's Notation (1.26) `λ_{Λ₁} λ_{Λ₂} = λ_{Λ₁ ∪ Λ₂}`). -/
-lemma lintegral_lambdaCount_union {Λ₁ Λ₂ : Finset ℤ} (h : Disjoint Λ₁ Λ₂) (η : ℤ → E)
-    {F : (ℤ → E) → ℝ≥0∞} (hF : Measurable F) :
-    ∫⁻ ζ, F ζ ∂(λ₀ (Λ₁ ∪ Λ₂) η) = ∫⁻ ζ, ∫⁻ ξ, F ξ ∂(λ₀ Λ₂ ζ) ∂(λ₀ Λ₁ η) := by
-  induction Λ₂ using Finset.induction_on generalizing F with
-  | empty =>
-    simp_rw [lintegral_lambdaCount_empty _ hF]
-    rw [Finset.union_empty]
-  | insert j Λ₂ hj ih =>
-    rw [Finset.disjoint_insert_right] at h
-    have hG : Measurable fun ζ : ℤ → E ↦ ∑' y, F (Function.update ζ j y) :=
-      Measurable.tsum fun y ↦ hF.comp (measurable_update_left j y)
-    rw [Finset.union_insert, lintegral_lambdaCount_insert (by simp [h.1, hj]) η hF, ih h.2 hG]
-    exact lintegral_congr fun ζ ↦ (lintegral_lambdaCount_insert hj ζ hF).symm
 
 omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
 /-- For non-adjacent volumes, the weight of `Λ₁` does not depend on the spins in `Λ₂`. -/

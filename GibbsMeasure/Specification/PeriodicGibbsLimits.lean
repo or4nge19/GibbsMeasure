@@ -685,6 +685,94 @@ theorem forall_notMem_latticePattern_le_patternWeight
 
 end Ten
 
+/-! ### Georgii Comment (18.11) on `ℤ^d` -/
+
+section Eleven
+
+variable {φ : ((Fin (d + 1) → Fin 2) → E) → ℝ} {ν : Measure E} [IsProbabilityMeasure ν]
+  {G : Set ((Fin (d + 1) → Fin 2) → E)}
+
+/-- **Georgii, Comment (18.11) for the `2N`-periodic field on `ℤ^d`.** -/
+theorem periodicGibbsPeriodicField_forall_notMem_latticePattern_le_rectPatternWeight
+    (hφ : Measurable φ) {M : ℝ} (hM : ∀ ζ, M ≤ φ ζ)
+    (hφk : ∀ (k : Fin (d + 1)) ζ, φ (cubeRefl E k ζ) = φ ζ)
+    (hG : MeasurableSet G) (hGsym : IsRSymmetric E G) {n : ℕ}
+    {D : Finset (Fin (d + 1) → ℤ)} (hD : D ⊆ periodicCube (d + 1) n) :
+    periodicGibbsPeriodicField E φ ν n {ω | ∀ i ∈ D, i ∉ latticePattern E G ω}
+      ≤ rectPatternWeight φ ν G ^ D.card := by
+  classical
+  set D' : Finset (Fin (d + 1) → ZMod (2 * (n + 1))) := D.image (latticeToTorus n) with hD'def
+  have hcard : D'.card = D.card :=
+    Finset.card_image_of_injOn fun i hi j hj hij ↦
+      latticeToTorus_injOn_latticeBox (Finset.mem_coe.2 (hD hi)) (Finset.mem_coe.2 (hD hj)) hij
+  have hAm : MeasurableSet {ω : (Fin (d + 1) → ℤ) → E | ∀ i ∈ D, i ∉ latticePattern E G ω} :=
+    cylinderEvents_le_pi _ (measurableSet_cylinderEvents_forall_notMem_latticePattern hG D
+      fun _ hi c ↦ Finset.mem_coe.2 (mem_cubeSupport hi c))
+  have hmem : ∀ (ζ : (Fin (d + 1) → ZMod (2 * (n + 1))) → E) (i : Fin (d + 1) → ℤ),
+      i ∈ latticePattern E G (periodicPullback n ζ) ↔ latticeToTorus n i ∈ torusPattern E G ζ :=
+    fun ζ i ↦ by rw [latticePattern_periodicPullback]; exact Iff.rfl
+  have hpre : periodicPullback (E := E) n ⁻¹'
+      {ω : (Fin (d + 1) → ℤ) → E | ∀ i ∈ D, i ∉ latticePattern E G ω}
+      = {ζ | ∀ j ∈ D', j ∉ torusPattern E G ζ} := by
+    ext ζ
+    constructor
+    · intro hh j hj
+      obtain ⟨i, hi, rfl⟩ := Finset.mem_image.1 hj
+      exact fun hc ↦ hh i hi ((hmem ζ i).2 hc)
+    · intro hh i hi
+      exact fun hc ↦ hh _ (Finset.mem_image.2 ⟨i, hi, rfl⟩) ((hmem ζ i).1 hc)
+  rw [periodicGibbsPeriodicField,
+    Measure.map_apply (measurable_periodicPullback (E := E) (d := d + 1) (n := n)) hAm, hpre,
+    ← hcard]
+  exact periodicGibbsDist_forall_notMem_torusPattern_le_rectPatternWeight hφ hM hφk hG hGsym D'
+
+/-- **Georgii, Comment (18.11) for `°γ_{Λ(N)}^Φ × δ_ω`.** -/
+theorem periodicGibbsField_forall_notMem_latticePattern_le_rectPatternWeight
+    (hφ : Measurable φ) {M : ℝ} (hM : ∀ ζ, M ≤ φ ζ)
+    (hφk : ∀ (k : Fin (d + 1)) ζ, φ (cubeRefl E k ζ) = φ ζ)
+    (hG : MeasurableSet G) (hGsym : IsRSymmetric E G) {n : ℕ}
+    {D : Finset (Fin (d + 1) → ℤ)} (hn : D ∪ cubeSupport D ⊆ periodicCube (d + 1) n)
+    (ω : (Fin (d + 1) → ℤ) → E) :
+    periodicGibbsField E φ ν n ω {ω' | ∀ i ∈ D, i ∉ latticePattern E G ω'}
+      ≤ rectPatternWeight φ ν G ^ D.card := by
+  have hDsub : D ⊆ periodicCube (d + 1) n :=
+    Finset.Subset.trans Finset.subset_union_left hn
+  have hSsub : (cubeSupport D : Set (Fin (d + 1) → ℤ))
+      ⊆ (periodicCube (d + 1) n : Set (Fin (d + 1) → ℤ)) := by
+    exact_mod_cast Finset.Subset.trans Finset.subset_union_right hn
+  rw [periodicGibbsField_apply_of_cylinderEvents n ω ((cylinderEvents_mono hSsub) _
+    (measurableSet_cylinderEvents_forall_notMem_latticePattern hG D
+      fun _ hi c ↦ Finset.mem_coe.2 (mem_cubeSupport hi c)))]
+  exact periodicGibbsPeriodicField_forall_notMem_latticePattern_le_rectPatternWeight
+    hφ hM hφk hG hGsym hDsub
+
+/-- **Georgii, Comment (18.11).**  Lemma (18.10) with the rectangle weight `t̃(G, Φ)` in place of
+`t(G, Φ)`: for an `r`-symmetric pattern `G ∈ ℰ^C`, a `C`-potential `Φ` and `μ ∈ 𝒢₀(Φ)`,
+
+`μ(D ∩ V(G, ·) = ∅) ≤ t̃(G, Φ)^{|D|}`
+
+for every finite set `D` of sites of `ℤ^d`. -/
+theorem forall_notMem_latticePattern_le_rectPatternWeight
+    (hφ : Measurable φ) {M : ℝ} (hM : ∀ ζ, M ≤ φ ζ)
+    (hφk : ∀ (k : Fin (d + 1)) ζ, φ (cubeRefl E k ζ) = φ ζ)
+    (hG : MeasurableSet G) (hGsym : IsRSymmetric E G)
+    {μ : ProbabilityMeasure ((Fin (d + 1) → ℤ) → E)} (hμ : μ ∈ GZero E φ ν)
+    (D : Finset (Fin (d + 1) → ℤ)) :
+    (μ : Measure ((Fin (d + 1) → ℤ) → E)) {ω | ∀ i ∈ D, i ∉ latticePattern E G ω}
+      ≤ rectPatternWeight φ ν G ^ D.card := by
+  classical
+  obtain ⟨μs, hμs, hcp⟩ := hμ
+  refine apply_le_of_mapClusterPt_of_mem_localEvents
+    (forall_notMem_latticePattern_mem_localEvents hG D) hcp ?_
+  filter_upwards [Potential.tendsto_latticeBox_atTop.eventually
+    (eventually_ge_atTop (D ∪ cubeSupport D))] with n hn
+  obtain ⟨ω, hω⟩ := hμs n
+  rw [hω]
+  exact periodicGibbsField_forall_notMem_latticePattern_le_rectPatternWeight hφ hM hφk hG hGsym
+    hn ω
+
+end Eleven
+
 /-! ### Georgii (17.18): the `C`-potential on `ℤ^d` -/
 
 section CPotential
@@ -951,26 +1039,6 @@ section Hamiltonians
 
 variable {d n : ℕ} {E : Type*} [MeasurableSpace E] {φ : ((Fin d → Fin 2) → E) → ℝ}
 
-/-- Two finite-range potentials whose interaction terms agree on every set meeting `Λ` have the
-same Hamiltonian in `Λ`.
-
-*This lemma belongs in `GibbsMeasure/Potential.lean`, next to
-`Potential.interactingHamiltonian`.* -/
-lemma interactingHamiltonian_congr {S F : Type*} [MeasurableSpace F]
-    {Φ Ψ : Potential S F} [Potential.IsFiniteRange Φ] [Potential.IsFiniteRange Ψ] {Λ : Finset S}
-    (h : ∀ A : Finset S, ((A : Set S) ∩ (Λ : Set S)).Nonempty → Φ A = Ψ A) (η : S → F) :
-    Potential.interactingHamiltonian (Φ := Φ) Λ η
-      = Potential.interactingHamiltonian (Φ := Ψ) Λ η := by
-  have hsupp : Potential.interactingSupport (Φ := Φ) Λ
-      = Potential.interactingSupport (Φ := Ψ) Λ := by
-    ext A
-    rw [Potential.mem_interactingSupport, Potential.mem_interactingSupport]
-    exact ⟨fun ⟨h1, h2⟩ ↦ ⟨h1, fun hc ↦ h2 (by rw [h A h1]; exact hc)⟩,
-      fun ⟨h1, h2⟩ ↦ ⟨h1, fun hc ↦ h2 (by rw [← h A h1]; exact hc)⟩⟩
-  rw [Potential.interactingHamiltonian, Potential.interactingHamiltonian, hsupp]
-  refine Finset.sum_congr rfl fun A hA ↦ ?_
-  rw [h A (Potential.mem_interactingSupport.1 hA).1]
-
 /-- **The Hamiltonian of the periodic modification in the whole cube is Georgii's periodic
 Hamiltonian (17.20)**: every elementary cube `C(i)`, `i ∈ Λ(N)`, contributes `Φ_C` once. -/
 theorem interactingHamiltonian_wrappedCubePotential (η : (Fin d → ℤ) → E) :
@@ -1002,11 +1070,6 @@ theorem interactingHamiltonian_wrappedCubePotential (η : (Fin d → ℤ) → E)
   exact Finset.sum_fiberwise_of_maps_to (fun x hx ↦ Finset.mem_image_of_mem _ hx) f
 
 /-! #### The periodic modification agrees with the `C`-potential in a fixed volume -/
-
-lemma eq_zero_of_dvd_of_abs_lt {N a : ℤ} (h : N ∣ a) (hlt : |a| < N) : a = 0 := by
-  rcases eq_or_ne a 0 with rfl | ha
-  · rfl
-  · exact absurd (Int.le_of_dvd (abs_pos.2 ha) ((dvd_abs _ _).2 h)) (not_le.2 hlt)
 
 lemma intCubeCast_mem_zero_one (c : Fin d → Fin 2) (k : Fin d) :
     0 ≤ intCubeCast c k ∧ intCubeCast c k ≤ 1 := by
@@ -1046,7 +1109,7 @@ lemma isUnwrapped_of_wrappedCube_meets {m : ℕ} (hn : m + 1 ≤ n) {i : Fin d �
     exact ⟨q, by simpa [mul_comm] using hq.symm⟩
   rw [Potential.intBoxLen] at hdvd
   have hzero : Potential.latticeTorus d n (i + intCubeCast c) k - (i k + intCubeCast c k) = 0 := by
-    refine eq_zero_of_dvd_of_abs_lt hdvd ?_
+    refine Int.eq_zero_of_abs_lt_dvd hdvd ?_
     rw [abs_lt]
     constructor <;> omega
   omega
@@ -1113,20 +1176,6 @@ section GibbsSpec
 variable {d n : ℕ} {E : Type*} [MeasurableSpace E] {φ : ((Fin d → Fin 2) → E) → ℝ}
   {ν : Measure E} [IsProbabilityMeasure ν]
 
-/-- A uniform lower bound on the interaction terms bounds the Boltzmann weight above.
-
-*This lemma belongs in `GibbsMeasure/Potential.lean`, next to
-`Potential.partitionFunction_ne_top_of_boltzmannWeight_le`.* -/
-lemma boltzmannWeight_le_of_le {S F : Type*} [MeasurableSpace F] {Ψ : Potential S F}
-    [Potential.IsFiniteRange Ψ] {c : ℝ} (h : ∀ A η, c ≤ Ψ A η) (Λ : Finset S) (σ : S → F) :
-    Potential.boltzmannWeight (Φ := Ψ) 1 Λ σ
-      ≤ ENNReal.ofReal (Real.exp (-((Potential.interactingSupport (Φ := Ψ) Λ).card • c))) := by
-  refine ENNReal.ofReal_le_ofReal (Real.exp_le_exp.2 ?_)
-  have hsum := Finset.card_nsmul_le_sum (Potential.interactingSupport (Φ := Ψ) Λ)
-    (fun A ↦ Ψ A σ) c fun A _ ↦ h A σ
-  simp only [Potential.interactingHamiltonian, nsmul_eq_mul] at hsum ⊢
-  linarith
-
 /-- **Condition (iv) of Georgii (17.18)**: the interaction terms of the `C`-potential are
 bounded below. -/
 lemma le_cubePotential {M : ℝ} (hM : ∀ ζ, M ≤ φ ζ) (A : Finset (Fin d → ℤ))
@@ -1176,7 +1225,7 @@ theorem isSigmaFiniteLambdaAdmissible_cubePotential (hφ : Measurable φ) {M : �
       (C := ENNReal.ofReal (Real.exp
         (-((Potential.interactingSupport (Φ := cubePotential E φ) Λ).card • min M 0))))
       ENNReal.ofReal_ne_top
-      fun σ ↦ boltzmannWeight_le_of_le (fun A η ↦ le_cubePotential hM A η) Λ σ
+      fun σ ↦ Potential.boltzmannWeight_le_of_le (fun A η ↦ le_cubePotential hM A η) Λ σ
 
 /-- The periodic modification of a `C`-potential is `λ`-admissible for the same reason. -/
 theorem isSigmaFiniteLambdaAdmissible_wrappedCubePotential (hφ : Measurable φ) {M : ℝ}
@@ -1198,7 +1247,7 @@ theorem isSigmaFiniteLambdaAdmissible_wrappedCubePotential (hφ : Measurable φ)
         (-((Potential.interactingSupport (Φ := wrappedCubePotential E φ n) Λ).card •
           (((periodicCube d n).card : ℝ) * min M 0)))))
       ENNReal.ofReal_ne_top
-      fun σ ↦ boltzmannWeight_le_of_le (fun A η ↦ le_wrappedCubePotential hM A η) Λ σ
+      fun σ ↦ Potential.boltzmannWeight_le_of_le (fun A η ↦ le_wrappedCubePotential hM A η) Λ σ
 
 
 variable (E) in
@@ -1236,7 +1285,8 @@ theorem wrappedCubeGibbsSpec_apply_eq_cubeGibbsSpec (hφ : Measurable φ)
     rw [Potential.boltzmannFactor, Potential.boltzmannFactor,
       Potential.hamiltonian_eq_interactingHamiltonian,
       Potential.hamiltonian_eq_interactingHamiltonian,
-      interactingHamiltonian_congr (Φ := wrappedCubePotential E φ n) (Ψ := cubePotential E φ)
+      Potential.interactingHamiltonian_congr (Φ := wrappedCubePotential E φ n)
+        (Ψ := cubePotential E φ)
         (Λ := Λ)
         (fun A hA ↦ wrappedCubePotential_eq_cubePotential hn
           (hA.mono (Set.inter_subset_inter_right _ (by exact_mod_cast hΛ)))) σ]
@@ -1343,24 +1393,6 @@ theorem wrappedCubeGibbsSpec_periodicCube_eq_periodicGibbsField (hφ : Measurabl
 
 /-! ### Georgii Example (5.20)(3): `𝒢₀(Φ) ⊆ 𝒢_Θ(Φ)` -/
 
-/-- The Hamiltonian of a finite-range potential is a *local* function, hence quasilocal in the
-sense of Georgii (2.22).
-
-*This lemma belongs in `GibbsMeasure/Potential.lean`, next to
-`Potential.interactingHamiltonian`.* -/
-lemma isQuasilocalFun_interactingHamiltonian {S F : Type*} [MeasurableSpace F]
-    {Ψ : Potential S F} [Potential.IsFiniteRange Ψ] [Potential.IsPotential Ψ]
-    (Λ : Finset S) : IsQuasilocalFun (Potential.interactingHamiltonian (Φ := Ψ) Λ) := by
-  classical
-  intro ε hε
-  refine ⟨(Potential.interactingSupport (Φ := Ψ) Λ).biUnion id, fun ζ η h ↦ ?_⟩
-  have heq : Potential.interactingHamiltonian (Φ := Ψ) Λ ζ
-      = Potential.interactingHamiltonian (Φ := Ψ) Λ η :=
-    Finset.sum_congr rfl fun A hA ↦ Potential.IsPotential.eq_of_eqOn fun x hx ↦
-      h x (Finset.mem_biUnion.2 ⟨A, hA, hx⟩)
-  rw [heq]
-  simpa using hε.le
-
 /-- **Georgii Example (2.25).** The Gibbsian specification of a `C`-potential is quasilocal: its
 Hamiltonians are local functions. -/
 theorem isQuasilocal_cubeGibbsSpec (hφ : Measurable φ) (hM : ∃ M : ℝ, ∀ ζ, M ≤ φ ζ) :
@@ -1373,7 +1405,7 @@ theorem isQuasilocal_cubeGibbsSpec (hφ : Measurable φ) (hM : ∃ M : ℝ, ∀ 
     funext η
     rw [one_mul, Potential.hamiltonian_eq_interactingHamiltonian]
   rw [hfun]
-  exact isQuasilocalFun_interactingHamiltonian Λ
+  exact Potential.isQuasilocalFun_interactingHamiltonian Λ
 
 /-- The kernels of the periodic modification stabilise: in a fixed volume they eventually
 coincide with those of the `C`-potential. -/
@@ -1691,7 +1723,7 @@ theorem GZero_nonempty [StandardBorelSpace E] (hφ : Measurable φ') {M : ℝ}
         (Potential.tendsto_latticeBox_atTop (d := d + 1))) Λ
       filter_upwards [eventually_ge_atTop (m + 1)] with n hn ω' hω'
       rw [Potential.hamiltonian_eq_interactingHamiltonian,
-        interactingHamiltonian_congr (Φ := wrappedCubePotential E φ' n)
+        Potential.interactingHamiltonian_congr (Φ := wrappedCubePotential E φ' n)
           (Ψ := cubePotential E φ') (Λ := Λ)
           (fun A hA ↦ wrappedCubePotential_eq_cubePotential hn
             (hA.mono (Set.inter_subset_inter_right _ (by exact_mod_cast hm m le_rfl)))) ω']

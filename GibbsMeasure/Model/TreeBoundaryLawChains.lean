@@ -7,6 +7,7 @@ module
 
 public import GibbsMeasure.Model.TreeBoundaryLaw
 public import GibbsMeasure.Specification.Extremal
+public import GibbsMeasure.Specification.MarkovIntChains
 public import GibbsMeasure.Specification.ExtremeCorollaries
 public import GibbsMeasure.Mathlib.Probability.TailTriviality
 public import GibbsMeasure.Prereqs.MeasureExt
@@ -608,9 +609,11 @@ countable, measurably-singleton space is automatically measurable.
   Measure` (agreeing on the generating π-system `cylindersIn (Λ : Set S)`) for the general case.
 * `IsGibbsMeasure.condExp_indicator_ae_eq_toReal_of_isMarkovSpecification`: the basic "Markov ⇒
   conditioning on any `Δ` between `∂Λ` and `Λᶜ` is the same as conditioning on all of `Λᶜ`" fact,
-  by the tower property (`condExp_condExp_of_le`) plus the `𝓕_{∂Λ}`-measurability just established.
-  This is the general fact used implicitly throughout Georgii's Chapter 12 whenever he writes
-  `μ(A | 𝓕_Δ) = γ_Λ(A | ·)` for `Δ ⊇ ∂Λ`.
+  used implicitly throughout Georgii's Chapter 12 whenever he writes `μ(A | 𝓕_Δ) = γ_Λ(A | ·)` for
+  `Δ ⊇ ∂Λ`. It is the Markov instance of
+  `Specification.IsGibbsMeasure.condExp_cylinderEvents_ae_eq_toReal_of_dependsOn`, the
+  specification-level statement whose only hypothesis is `DependsOn (γ_Λ(A | ·)) Δ`; the
+  `𝓕_{∂Λ}`-measurability just established is what discharges it.
 * `exists_ae_eq_single_of_forall_measure_eq_zero_or_one`: the "freezing" lemma described above.
 * `condExp_eq_condExp_of_le_of_condExp_eq`: the elementary "sandwich" fact (two applications of the
   tower property) that closes Georgii's proof: if `μ[f | m₁] =ᵐ μ[f | m₃]` for `m₁ ≤ m₂ ≤ m₃`, then
@@ -701,34 +704,21 @@ theorem IsMarkovSpecification.dependsOn_apply (hγM : IsMarkovSpecification G γ
 /-- **The basic fact behind Georgii's Chapter 12 whenever he writes `μ(A | 𝓕_Δ) = γ_Λ(A | ·)`,
 `Δ ⊇ ∂Λ`.** For a Markov specification `γ`, a Gibbs measure `μ`, a finite volume `Λ`, a set `Δ`
 with `∂Λ ⊆ Δ ⊆ Λᶜ`, and an event `A` local to `Λ`: conditioning `μ` on `Δ` gives the same result
-as conditioning on all of `Λᶜ`, namely `γ_Λ(A | ·)`. Proof: `γ_Λ(A | ·)` is already `𝓕_Δ`-measurable
-(`IsMarkovSpecification.dependsOn_apply`, since `∂Λ ⊆ Δ`), so conditioning the DLR equation
-`μ(A | 𝓕_{Λᶜ}) = γ_Λ(A | ·)` down from `𝓕_{Λᶜ}` to the smaller `𝓕_Δ` (tower property,
-`condExp_condExp_of_le`) does nothing. -/
+as conditioning on all of `Λᶜ`, namely `γ_Λ(A | ·)`.
+
+This is the Markov case of the general
+`Specification.IsGibbsMeasure.condExp_cylinderEvents_ae_eq_toReal_of_dependsOn`, whose sole
+hypothesis is that `γ_Λ(A | ·)` depends only on the coordinates in `Δ`: for a Markov
+specification and an `A ∈ 𝓕_Λ` that is supplied by `IsMarkovSpecification.dependsOn_apply`
+together with `∂Λ ⊆ Δ`. -/
 theorem IsGibbsMeasure.condExp_indicator_ae_eq_toReal_of_isMarkovSpecification
     (hγM : IsMarkovSpecification G γ) {μ : Measure (S → E)} [IsProbabilityMeasure μ]
     (hμ : γ.IsGibbsMeasure μ) {Λ : Finset S} {Δ : Set S}
     (hΔ1 : (G.outerBoundary Λ : Set S) ⊆ Δ) (hΔ2 : Δ ⊆ (Λ : Set S)ᶜ) {A : Set (S → E)}
     (hA : MeasurableSet[cylinderEvents (Λ : Set S)] A) :
-    μ[A.indicator (1 : (S → E) → ℝ) | cylinderEvents Δ] =ᵐ[μ] fun ω ↦ (γ Λ ω A).toReal := by
-  have hA' : MeasurableSet A := cylinderEvents_le_pi _ hA
-  have hΔle : cylinderEvents (X := fun _ : S ↦ E) Δ ≤ cylinderEvents ((Λ : Set S)ᶜ) :=
-    cylinderEvents_mono hΔ2
-  have h1 : μ[A.indicator (1 : (S → E) → ℝ) | cylinderEvents ((Λ : Set S)ᶜ)]
-      =ᵐ[μ] fun ω ↦ (γ Λ ω A).toReal := (hμ Λ).condExp_ae_eq_kernel_apply hA'
-  have hInt : Integrable (fun ω ↦ (γ Λ ω A).toReal) μ := integrable_condExp.congr h1
-  have hMeasBase : Measurable fun ω ↦ (γ Λ ω A).toReal :=
-    ((Kernel.measurable_coe (γ Λ) hA').mono cylinderEvents_le_pi le_rfl).ennreal_toReal
-  have hDepends : DependsOn (fun ω ↦ (γ Λ ω A).toReal) (G.outerBoundary Λ : Set S) :=
-    fun ω ω' hωω' ↦ congrArg ENNReal.toReal (IsMarkovSpecification.dependsOn_apply hγM Λ hA hωω')
-  have hMeasΔ : Measurable[cylinderEvents Δ] fun ω ↦ (γ Λ ω A).toReal :=
-    (hMeasBase.cylinderEvents_of_dependsOn hDepends).mono (cylinderEvents_mono hΔ1) le_rfl
-  calc μ[A.indicator (1 : (S → E) → ℝ) | cylinderEvents Δ]
-      =ᵐ[μ] μ[μ[A.indicator (1 : (S → E) → ℝ) | cylinderEvents ((Λ : Set S)ᶜ)] | cylinderEvents Δ] :=
-        (condExp_condExp_of_le hΔle cylinderEvents_le_pi).symm
-    _ =ᵐ[μ] μ[(fun ω ↦ (γ Λ ω A).toReal) | cylinderEvents Δ] := condExp_congr_ae h1
-    _ = fun ω ↦ (γ Λ ω A).toReal :=
-        condExp_of_stronglyMeasurable cylinderEvents_le_pi hMeasΔ.stronglyMeasurable hInt
+    μ[A.indicator (1 : (S → E) → ℝ) | cylinderEvents Δ] =ᵐ[μ] fun ω ↦ (γ Λ ω A).toReal :=
+  hμ.condExp_cylinderEvents_ae_eq_toReal_of_dependsOn hΔ2 (cylinderEvents_le_pi _ hA)
+    ((hγM.dependsOn_apply Λ hA).mono hΔ1)
 
 end MarkovSpecificationGeneral
 

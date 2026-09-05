@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Analysis.SpecificLimits.Basic
 public import Mathlib.Order.Filter.AtTopBot.Finset
-public import Mathlib.Topology.Algebra.InfiniteSum.ENNReal
+public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.ENNReal
 
 /-!
 # The Neumann series of a nonnegative matrix over `ℝ≥0∞`
@@ -35,10 +35,6 @@ These estimates are the engine behind the convergence of Dobrushin-type iteratio
   `C^n a ≤ (sup a) c^n`, `D a ≤ (sup a)/(1 - c)` and `∑_j D_ij ≤ (1 - c)⁻¹`.
 * `ENNReal.matIter_add`, `ENNReal.matIter_const_mul`, `ENNReal.matIter_tsum` and their
   `matSeries` counterparts: the action is additive, homogeneous and commutes with countable sums.
-* `ENNReal.tendsto_tsum_mul_of_tendsto`: dominated convergence for `ℝ≥0∞`-valued series along an
-  arbitrary filter — the analogue of Tannery's theorem
-  `tendsto_tsum_of_dominated_convergence`, which does not apply because `ℝ≥0∞` is not a normed
-  group.
 * `ENNReal.tsum_tsum_matSeries_mul`: the Neumann series of a countable sum of vectors,
   tested against a weight, may be summed term by term.
 * `ENNReal.tendsto_matTail`: for `c < 1` the tail weight `∑_{j ∉ Δ} D_ij` vanishes as `Δ ↑ α`.
@@ -222,95 +218,6 @@ lemma tsum_matEntry_le (hc : ∀ i, ∑' j, C i j ≤ c) (i : α) :
   have h := matSeries_le (C := C) hc (b := fun _ ↦ (1 : ℝ≥0∞)) (B := 1) (fun _ ↦ le_rfl) i
   rw [matSeries_eq_tsum_matEntry] at h
   simpa using h
-
-/-- Splitting a `tsum` at a finite set: the terms indexed by `J` are bounded by `δ`, the others
-by `h`. -/
-lemma tsum_le_card_mul_add {ι : Type*} [DecidableEq ι] (g h : ι → ℝ≥0∞) (J : Finset ι)
-    (δ : ℝ≥0∞)
-    (h1 : ∀ j ∈ J, g j ≤ δ) (h2 : ∀ j, j ∉ J → g j ≤ h j) :
-    ∑' j, g j ≤ J.card * δ + ∑' j, (if j ∈ J then 0 else h j) := by
-  classical
-  have hstep : ∀ j, g j ≤ (if j ∈ J then δ else 0) + (if j ∈ J then 0 else h j) := by
-    intro j
-    by_cases hj : j ∈ J
-    · simpa [hj] using h1 j hj
-    · simpa [hj] using h2 j hj
-  have hsum : ∑ j ∈ J, (if j ∈ J then δ else 0) = ∑ _j ∈ J, δ :=
-    Finset.sum_congr rfl fun j hj ↦ by simp [hj]
-  calc ∑' j, g j ≤ ∑' j, ((if j ∈ J then δ else 0) + (if j ∈ J then 0 else h j)) :=
-        ENNReal.tsum_le_tsum hstep
-    _ = (∑' j, if j ∈ J then δ else 0) + ∑' j, (if j ∈ J then 0 else h j) := ENNReal.tsum_add
-    _ = J.card * δ + ∑' j, (if j ∈ J then 0 else h j) := by
-        congr 1
-        rw [tsum_eq_sum (s := J) fun b hb ↦ by simp [hb], hsum, Finset.sum_const, nsmul_eq_mul]
-
-lemma tsum_ite_compl_eq {ι : Type*} [DecidableEq ι] (f : ι → ℝ≥0∞) (J : Finset ι) :
-    ∑' j, (if j ∈ J then 0 else f j) = ∑' j : {x : ι // x ∉ J}, f j := by
-  have hsub : ∑' j : {x : ι // x ∉ J}, f j = ∑' j, Set.indicator {x : ι | x ∉ J} f j :=
-    tsum_subtype {x : ι | x ∉ J} f
-  rw [hsub]
-  exact tsum_congr fun j ↦ by by_cases hj : j ∈ J <;> simp [hj]
-
-/-- The tail of a finite `ℝ≥0∞`-valued sum can be made arbitrarily small. -/
-lemma exists_tsum_ite_compl_le {ι : Type*} [DecidableEq ι] {f : ι → ℝ≥0∞}
-    (hf : ∑' j, f j ≠ ⊤) {ε : ℝ≥0∞} (hε : 0 < ε) :
-    ∃ J : Finset ι, ∑' j, (if j ∈ J then 0 else f j) ≤ ε := by
-  have h := ENNReal.tendsto_tsum_compl_atTop_zero hf
-  rw [ENNReal.tendsto_nhds_zero] at h
-  obtain ⟨J, hJ⟩ := (h ε hε).exists
-  exact ⟨J, by rw [tsum_ite_compl_eq]; exact hJ⟩
-
-/-- **Dominated convergence for `ℝ≥0∞`-valued series.** If the weights `A k j` are bounded by a
-finite `M`, converge to `0` along `l` for each fixed `j`, and `w` is summable, then
-`∑_j A k j w j → 0`: the terms with `j` outside a large finite set are controlled by the tail of
-`∑_j w_j`, the finitely many remaining ones by the pointwise convergence.
-
-This is the `ℝ≥0∞` analogue of Tannery's theorem `tendsto_tsum_of_dominated_convergence`, which
-does not apply because `ℝ≥0∞` is not a normed group. -/
-theorem tendsto_tsum_mul_of_tendsto {ι κ : Type*} {l : Filter κ}
-    {A : κ → ι → ℝ≥0∞} {w : ι → ℝ≥0∞} {M : ℝ≥0∞} (hM : M ≠ ⊤)
-    (hA : ∀ k j, A k j ≤ M) (h0 : ∀ j, Tendsto (fun k ↦ A k j) l (𝓝 0))
-    (hw : ∑' j, w j ≠ ⊤) :
-    Tendsto (fun k ↦ ∑' j, A k j * w j) l (𝓝 0) := by
-  classical
-  rw [ENNReal.tendsto_nhds_zero]
-  intro ε hε
-  have hSw1 : (∑' j, w j) + 1 ≠ ⊤ := by
-    rw [Ne, ENNReal.add_eq_top]
-    simp [hw]
-  obtain ⟨J, hJ⟩ := exists_tsum_ite_compl_le hw (ε := ε / 2 / (M + 1))
-    (ENNReal.div_pos (ENNReal.half_pos hε.ne').ne' (by simp [hM]))
-  set δ : ℝ≥0∞ := ε / 2 / (J.card + 1) with hδ
-  have hδpos : 0 < δ := ENNReal.div_pos (ENNReal.half_pos hε.ne').ne' (by simp)
-  set η : ℝ≥0∞ := δ / ((∑' j, w j) + 1) with hη
-  have hηpos : 0 < η := ENNReal.div_pos hδpos.ne' hSw1
-  have hev : ∀ᶠ k in l, ∀ j ∈ J, A k j ≤ η := by
-    rw [Filter.eventually_all_finset]
-    exact fun j _ ↦ (ENNReal.tendsto_nhds_zero.1 (h0 j)) η hηpos
-  filter_upwards [hev] with k hk
-  have hsmall : ∀ j ∈ J, A k j * w j ≤ δ := by
-    intro j hj
-    have h1 : A k j * w j ≤ η * ∑' j, w j :=
-      mul_le_mul' (hk j hj) (ENNReal.le_tsum j)
-    have h2 : η * (∑' j, w j) ≤ δ := by
-      refine (mul_le_mul' (le_refl η) (le_self_add (b := (1 : ℝ≥0∞)))).trans ?_
-      rw [hη, ENNReal.div_mul_cancel (by simp) hSw1]
-    exact h1.trans h2
-  have hcard : (J.card : ℝ≥0∞) * δ ≤ ε / 2 := by
-    calc (J.card : ℝ≥0∞) * δ ≤ ((J.card : ℝ≥0∞) + 1) * δ := by gcongr; exact le_self_add
-      _ = ε / 2 := ENNReal.mul_div_cancel' (by simp) (by simp)
-  have htail : ∑' j, (if j ∈ J then 0 else M * w j) ≤ ε / 2 := by
-    calc ∑' j, (if j ∈ J then 0 else M * w j)
-        = M * ∑' j, (if j ∈ J then 0 else w j) := by
-          rw [← ENNReal.tsum_mul_left]
-          exact tsum_congr fun j ↦ by by_cases hj : j ∈ J <;> simp [hj]
-      _ ≤ (M + 1) * (ε / 2 / (M + 1)) := mul_le_mul' le_self_add hJ
-      _ = ε / 2 := ENNReal.mul_div_cancel' (by simp) (by simp [hM])
-  calc ∑' j, A k j * w j
-      ≤ (J.card : ℝ≥0∞) * δ + ∑' j, (if j ∈ J then 0 else M * w j) :=
-        tsum_le_card_mul_add _ _ J δ hsmall fun j _ ↦ mul_le_mul' (hA k j) le_rfl
-    _ ≤ ε / 2 + ε / 2 := add_le_add hcard htail
-    _ = ε := ENNReal.add_halves ε
 
 variable [DecidableEq α]
 

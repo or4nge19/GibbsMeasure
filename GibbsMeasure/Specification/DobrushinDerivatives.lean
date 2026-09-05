@@ -38,10 +38,10 @@ majorant of the interdependence matrices of the whole segment `Φ + tΨ`, `|t| �
 * `MeasureTheory.GibbsMeasure.Dobrushin.tilt`: the specification `γ̃ = h γ` obtained by
   normalising a single positive bounded density volume by volume, Georgii's tilt in the proof of
   (8.34).
-* `MeasureTheory.GibbsMeasure.Dobrushin.hamiltonianLp`, `hamiltonianRemLp`: the Hamiltonian
-  `H^Φ_Λ` and its boundary part `H^Ψ_Λ − ∑_{k ∈ Λ} f_Ψ ∘ θ_{−k}` as bounded quasilocal
-  observables (`hamiltonianLp_mem_quasilocalFunctions`,
-  `hamiltonianRemLp_mem_quasilocalFunctions`).
+* `MeasureTheory.GibbsMeasure.Dobrushin.hamiltonianRemLp`: the boundary part
+  `H^Ψ_Λ − ∑_{k ∈ Λ} f_Ψ ∘ θ_{−k}` of the Hamiltonian as a bounded quasilocal observable
+  (`hamiltonianRemLp_mem_quasilocalFunctions`). The Hamiltonian itself is
+  `Potential.hamiltonianLp` of `GibbsMeasure/Potential/Quasilocal.lean`.
 
 ## Main results
 
@@ -863,97 +863,6 @@ theorem hasDerivAt_integral_gibbsSpecification (Ψ : Potential S E) [IsPotential
 
 end FiniteVolumeDerivative
 
-/-! ### The Hamiltonian as a bounded quasilocal observable
-
-`H^Φ_Λ = ∑_{A ∩ Λ ≠ ∅} Φ_A` is a uniformly convergent sum of local observables, hence bounded and
-quasilocal; this is what lets Proposition (8.34) be applied to it in Georgii's estimate of `T₁`
-in the proof of Corollary (8.37). The construction copies `Potential.siteEnergyLp`.
--/
-
-section HamiltonianLp
-
-open Potential
-
-variable {S E : Type*} [Countable S] [MeasurableSpace E] {Φ : Potential S E}
-  [IsPotential Φ] [IsAbsolutelySummable Φ]
-
-variable (Φ) in
-/-- The term `Φ_A` of the Hamiltonian `H^Φ_Λ`, as a bounded observable. -/
-def hamiltonianTermLp (Λ A : Finset S) : lp (fun _ : S → E ↦ ℝ) ∞ :=
-  ⟨fun η ↦ Φ.hamiltonianTerms Λ η A, memℓp_infty ⟨(Φ.termNorm Λ A).toReal, by
-    rintro _ ⟨η, rfl⟩
-    have h := enorm_hamiltonianTerms_le_termNorm (Φ := Φ) Λ η A
-    rw [← ENNReal.toReal_le_toReal (by simp) (termNorm_ne_top (Φ := Φ) Λ A)] at h
-    simpa [Real.enorm_eq_ofReal_abs, ENNReal.toReal_ofReal (abs_nonneg _), Real.norm_eq_abs]
-      using h⟩⟩
-
-omit [Countable S] [IsPotential Φ] in
-lemma norm_hamiltonianTermLp_le (Λ A : Finset S) :
-    ‖hamiltonianTermLp Φ Λ A‖ ≤ (Φ.termNorm Λ A).toReal := by
-  refine lp.norm_le_of_forall_le ENNReal.toReal_nonneg fun η ↦ ?_
-  have h := enorm_hamiltonianTerms_le_termNorm (Φ := Φ) Λ η A
-  rw [← ENNReal.toReal_le_toReal (by simp) (termNorm_ne_top (Φ := Φ) Λ A)] at h
-  simpa [hamiltonianTermLp, Real.enorm_eq_ofReal_abs, ENNReal.toReal_ofReal (abs_nonneg _),
-    Real.norm_eq_abs] using h
-
-omit [Countable S] [IsPotential Φ] in
-lemma summable_hamiltonianTermLp (Λ : Finset S) : Summable (hamiltonianTermLp Φ Λ) := by
-  refine Summable.of_norm (Summable.of_nonneg_of_le (fun A ↦ norm_nonneg _)
-    (fun A ↦ norm_hamiltonianTermLp_le (Φ := Φ) Λ A) ?_)
-  exact ENNReal.summable_toReal (tsum_termNorm_ne_top (Φ := Φ) Λ)
-
-omit [Countable S] in
-lemma hamiltonianTermLp_mem_localFunctionsOn (Λ A : Finset S) :
-    hamiltonianTermLp Φ Λ A ∈ localFunctionsOn S E A := by
-  change Measurable[cylinderEvents (X := fun _ : S ↦ E) (A : Set S)]
-    (fun η ↦ Φ.hamiltonianTerms Λ η A)
-  by_cases h : Disjoint A Λ
-  · simp only [hamiltonianTerms_of_disjoint h]
-    exact measurable_const
-  · simp only [hamiltonianTerms_of_not_disjoint h]
-    exact IsPotential.measurable (Φ := Φ) A
-
-variable (Φ) in
-/-- Georgii's Hamiltonian `H^Φ_Λ` as a bounded observable. -/
-def hamiltonianLp (Λ : Finset S) : lp (fun _ : S → E ↦ ℝ) ∞ :=
-  ⟨Φ.hamiltonian Λ, memℓp_infty ⟨Φ.hamiltonianBound Λ, by
-    rintro _ ⟨η, rfl⟩
-    show ‖Φ.hamiltonian Λ η‖ ≤ Φ.hamiltonianBound Λ
-    rw [Real.norm_eq_abs]
-    exact abs_hamiltonian_le (Φ := Φ) Λ η⟩⟩
-
-omit [Countable S] [IsPotential Φ] in
-@[simp] lemma coeFn_hamiltonianLp (Λ : Finset S) :
-    ⇑(hamiltonianLp Φ Λ) = Φ.hamiltonian Λ := rfl
-
-omit [Countable S] [IsPotential Φ] in
-lemma hasSum_hamiltonianTermLp (Λ : Finset S) :
-    HasSum (hamiltonianTermLp Φ Λ) (hamiltonianLp Φ Λ) := by
-  obtain ⟨T, hT⟩ := summable_hamiltonianTermLp (Φ := Φ) Λ
-  have hpt : ∀ η : S → E, (T : (S → E) → ℝ) η = Φ.hamiltonian Λ η := by
-    intro η
-    have h1 : HasSum (fun A ↦ (hamiltonianTermLp Φ Λ A : (S → E) → ℝ) η)
-        ((T : (S → E) → ℝ) η) := by
-      refine (lp.tendsto_apply_of_tendsto hT η).congr fun s ↦ ?_
-      simp only [hamiltonianTermLp, lp.coeFn_sum]
-      exact Finset.sum_apply _ _ _
-    rw [hamiltonian_eq_tsum (Φ := Φ) Λ η]
-    exact h1.unique (summable_hamiltonianTerms (Φ := Φ) Λ η).hasSum
-  have hTeq : T = hamiltonianLp Φ Λ := lp.ext (funext hpt)
-  exact hTeq ▸ hT
-
-omit [Countable S] in
-/-- **Georgii (2.14)/(2.20).** The Hamiltonian of an absolutely summable potential over a finite
-volume is a bounded quasilocal observable. -/
-theorem hamiltonianLp_mem_quasilocalFunctions (Λ : Finset S) :
-    hamiltonianLp Φ Λ ∈ quasilocalFunctions S E := by
-  refine (Subalgebra.isClosed_topologicalClosure (localFunctions S E)).mem_of_tendsto
-    (hasSum_hamiltonianTermLp (Φ := Φ) Λ) (.of_forall fun s ↦ ?_)
-  exact Subalgebra.sum_mem _ fun A _ ↦ localFunctions_le_quasilocalFunctions
-    (mem_localFunctions.2 ⟨A, hamiltonianTermLp_mem_localFunctionsOn (Φ := Φ) Λ A⟩)
-
-end HamiltonianLp
-
 /-! ### Georgii's `T₁` estimate: the boundary part of the Hamiltonian
 
 Georgii's proof of Corollary (8.37) compares the Hamiltonian `H^Ψ_Λ` with the sum
@@ -1203,19 +1112,20 @@ variable (Ψ) in
 /-- Georgii's `H^Ψ_Λ − ∑_{k ∈ Λ} f_Ψ ∘ θ_{−k}`, the boundary part of the Hamiltonian, as a
 bounded observable. -/
 def hamiltonianRemLp (Λ : Finset S) : lp (fun _ : S → E ↦ ℝ) ∞ :=
-  hamiltonianLp Ψ Λ - ∑ k ∈ Λ, Ψ.siteEnergyLp k
+  Ψ.hamiltonianLp Λ - ∑ k ∈ Λ, Ψ.siteEnergyLp k
 
 omit [Countable S] [DecidableEq S] [IsPotential Ψ] in
 lemma coeFn_hamiltonianRemLp (Λ : Finset S) :
     ⇑(hamiltonianRemLp Ψ Λ) = fun η ↦ Ψ.hamiltonian Λ η - ∑ k ∈ Λ, Ψ.siteEnergy k η := by
   funext η
   rw [hamiltonianRemLp, lp.coeFn_sub, Pi.sub_apply, lp.coeFn_sum, Finset.sum_apply]
-  simp only [coeFn_hamiltonianLp, coeFn_siteEnergyLp]
+  simp only [coeFn_siteEnergyLp]
+  rfl
 
 omit [Countable S] [DecidableEq S] in
 lemma hamiltonianRemLp_mem_quasilocalFunctions (Λ : Finset S) :
     hamiltonianRemLp Ψ Λ ∈ quasilocalFunctions S E :=
-  Subalgebra.sub_mem _ (hamiltonianLp_mem_quasilocalFunctions Λ)
+  Subalgebra.sub_mem _ (hamiltonianLp_mem_quasilocalFunctions (Φ := Ψ) Λ)
     (Subalgebra.sum_mem _ fun k _ ↦ siteEnergyLp_mem_quasilocalFunctions (Φ := Ψ) k)
 
 omit [Countable S] in
@@ -1684,7 +1594,7 @@ theorem hasDerivAt_integral_gibbsMeasure_add_smul [IsPotential Φ] [IsAbsolutely
     have hcov := covariance_eq_integral_mul_sub
       (ρ := gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω) hg
       (hamiltonianLp_mem_quasilocalFunctions (Φ := Ψ) Λ)
-    rw [coeFn_hamiltonianLp] at hcov
+    rw [show ⇑(Ψ.hamiltonianLp Λ) = Ψ.hamiltonian Λ from rfl] at hcov
     rw [hcov]
     exact hasDerivAt_integral_gibbsSpecification (Φ := Φ) (ν := ν) (Ψ := Ψ) hgm hgb Λ ω s
   -- convergence of the finite-volume Gibbs distributions

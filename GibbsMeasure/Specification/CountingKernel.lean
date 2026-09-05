@@ -24,7 +24,9 @@ site space `S`:
   determined by its finite-dimensional marginals, hence by its cylinder probabilities along a
   cofinal family of volumes.
 * `lintegral_lambdaCount` and its `insert`/`singleton`/`union`/`prod` forms: integrating against
-  `λ_Λ(·|η)` is summing over the configurations on `Λ`.
+  `λ_Λ(·|η)` is summing over the configurations on `Λ`; `lintegral_lambdaCount_update_of_notMem`
+  says that freezing a coordinate outside `Λ` may be done in the integrand or in the boundary
+  condition.
 * `map_restrict_withDensity_insert`, `map_restrict_withDensity_union`: marginalising a density
   integrates out the coordinates that are dropped.
 * `sigmaFiniteLambdaZ_count_ne_zero`, `sigmaFiniteLambdaZ_count_ne_top_of_finite`: the partition
@@ -392,6 +394,25 @@ lemma lintegral_lambdaCount_singleton (j : S) (η : S → E) {F : (S → E) → 
   rw [← Finset.insert_empty, lintegral_lambdaCount_insert (Finset.notMem_empty j) η hF,
     lintegral_lambdaCount_empty (F := fun ζ ↦ ∑' y, F (Function.update ζ j y)) _
       (Measurable.tsum fun y ↦ hF.comp (measurable_update_left' j y))]
+
+/-- Freezing a coordinate `j` outside the integration volume `Λ` can be done either in the
+integrand or in the boundary condition:
+`∫ F(ζ_{j ↦ x}) λ_Λ(dζ|ω) = ∫ F(ζ) λ_Λ(dζ|ω_{j ↦ x})` for `j ∉ Λ`. -/
+lemma lintegral_lambdaCount_update_of_notMem {Λ : Finset S} {j : S} (hj : j ∉ Λ) (ω : S → E)
+    (x : E) {F : (S → E) → ℝ≥0∞} (hF : Measurable F) :
+    ∫⁻ ζ, F (Function.update ζ j x) ∂(λ₀ Λ ω)
+      = ∫⁻ ζ, F ζ ∂(λ₀ Λ (Function.update ω j x)) := by
+  rw [lintegral_lambdaCount (F := fun ζ ↦ F (Function.update ζ j x)) Λ ω
+      (hF.comp (measurable_update_left' j x)), lintegral_lambdaCount Λ _ hF]
+  refine tsum_congr fun y ↦ congrArg F (funext fun k ↦ ?_)
+  by_cases hk : k ∈ (Λ : Set S)
+  · have hkj : k ≠ j := fun h ↦ hj (h ▸ Finset.mem_coe.1 hk)
+    rw [Function.update_of_ne hkj, juxt_apply_of_mem hk, juxt_apply_of_mem hk]
+  · rw [juxt_apply_of_not_mem hk]
+    by_cases hkj : k = j
+    · subst hkj
+      rw [Function.update_self, Function.update_self]
+    · rw [Function.update_of_ne hkj, juxt_apply_of_not_mem hk, Function.update_of_ne hkj]
 
 omit [DecidableEq S] in
 /-- Integrating over the cylinder `{σ_Λ = σ_Λ}` against `λ_Λ(·|η)` evaluates at the configuration

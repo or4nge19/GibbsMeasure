@@ -2499,10 +2499,11 @@ theorem IsMarkovChain.measure_rect_inter_eq_lintegral_chainSpecification
 
 /-! ### Assembling Example (10.11) -/
 
+/-- The `S = ℤ` instance of `MeasureTheory.cylinderEvents_singleton`. -/
 lemma cylinderEvents_singleton_int (i : ℤ) :
     cylinderEvents (X := fun _ : ℤ ↦ E) ({i} : Set ℤ)
-      = MeasurableSpace.comap (fun σ : ℤ → E ↦ σ i) inferInstance := by
-  simp [cylinderEvents]
+      = MeasurableSpace.comap (fun σ : ℤ → E ↦ σ i) inferInstance :=
+  cylinderEvents_singleton (X := fun _ : ℤ ↦ E) i
 
 lemma measurableSet_cylinderEvents_singleton_iff {i : ℤ} {D : Set (ℤ → E)} :
     MeasurableSet[cylinderEvents ({i} : Set ℤ)] D

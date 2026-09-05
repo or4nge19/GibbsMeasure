@@ -43,6 +43,13 @@ public lemma cylinderEvents_iUnion {κ : Sort*} (Δ : κ → Set ι) :
 @[simp] public lemma cylinderEvents_empty : cylinderEvents (X := X) (∅ : Set ι) = ⊥ := by
   simp [cylinderEvents]
 
+/-- The cylinder σ-algebra of a single site is the pullback of that site's σ-algebra along
+evaluation at it. -/
+public lemma cylinderEvents_singleton (i : ι) :
+    cylinderEvents (X := X) ({i} : Set ι)
+      = MeasurableSpace.comap (fun σ : ∀ j, X j ↦ σ i) inferInstance := by
+  simp [cylinderEvents]
+
 variable {ι' E : Type*} [MeasurableSpace E]
 
 /-- Precomposing configurations with a map of sites `σ : ι → ι'` pulls the cylinder σ-algebra of

@@ -45,10 +45,13 @@ lemma norm_termLp_le [IsAbsolutelySummable Φ] (Λ A : Finset S) :
   rw [← ENNReal.toReal_le_toReal (by simp) (termNorm_ne_top (Φ := Φ) Λ A)] at h
   simpa [termLp, Real.enorm_eq_ofReal_abs, ENNReal.toReal_ofReal (abs_nonneg _)] using h
 
-lemma summable_termLp [IsAbsolutelySummable Φ] (Λ : Finset S) : Summable (Φ.termLp Λ) := by
-  refine Summable.of_norm (Summable.of_nonneg_of_le (fun A ↦ norm_nonneg _)
-    (fun A ↦ norm_termLp_le (Φ := Φ) Λ A) ?_)
-  exact ENNReal.summable_toReal (tsum_termNorm_ne_top (Φ := Φ) Λ)
+lemma summable_norm_termLp [IsAbsolutelySummable Φ] (Λ : Finset S) :
+    Summable fun A ↦ ‖Φ.termLp Λ A‖ :=
+  Summable.of_nonneg_of_le (fun _ ↦ norm_nonneg _) (fun A ↦ norm_termLp_le (Φ := Φ) Λ A)
+    (ENNReal.summable_toReal (tsum_termNorm_ne_top (Φ := Φ) Λ))
+
+lemma summable_termLp [IsAbsolutelySummable Φ] (Λ : Finset S) : Summable (Φ.termLp Λ) :=
+  Summable.of_norm (summable_norm_termLp (Φ := Φ) Λ)
 
 lemma termLp_mem_localFunctionsOn [IsPotential Φ] [IsAbsolutelySummable Φ] (Λ A : Finset S) :
     Φ.termLp Λ A ∈ localFunctionsOn S E A := by
@@ -70,31 +73,19 @@ def hamiltonianLp [IsAbsolutelySummable Φ] (Λ : Finset S) : lp (fun _ : S → 
     simpa [Real.norm_eq_abs] using abs_hamiltonian_le (Φ := Φ) Λ η⟩⟩
 
 lemma hasSum_termLp [IsAbsolutelySummable Φ] (Λ : Finset S) :
-    HasSum (Φ.termLp Λ) (Φ.hamiltonianLp Λ) := by
-  obtain ⟨T, hT⟩ := summable_termLp (Φ := Φ) Λ
-  have hpt : ∀ η : S → E, (T : (S → E) → ℝ) η = Φ.hamiltonian Λ η := by
-    intro η
-    have h1 : HasSum (fun A ↦ (Φ.termLp Λ A : (S → E) → ℝ) η) ((T : (S → E) → ℝ) η) := by
-      refine (lp.tendsto_apply_of_tendsto hT η).congr fun s ↦ ?_
-      simp
-    have h2 : HasSum (Φ.hamiltonianTerms Λ η) (Φ.hamiltonian Λ η) := by
-      rw [hamiltonian_eq_tsum (Φ := Φ) Λ η]
+    HasSum (Φ.termLp Λ) (Φ.hamiltonianLp Λ) :=
+  MeasureTheory.GibbsMeasure.hasSum_of_summable_norm_of_hasSum_apply
+    (summable_norm_termLp (Φ := Φ) Λ) fun η ↦ by
+      rw [show (Φ.hamiltonianLp Λ : (S → E) → ℝ) η = Φ.hamiltonian Λ η from rfl,
+        hamiltonian_eq_tsum (Φ := Φ) Λ η]
       exact (summable_hamiltonianTerms (Φ := Φ) Λ η).hasSum
-    exact h1.unique h2
-  have : T = Φ.hamiltonianLp Λ := by
-    refine lp.ext ?_
-    funext η
-    exact hpt η
-  exact this ▸ hT
 
 /-- The Hamiltonian of an absolutely summable potential is quasilocal: the hypothesis of
 Georgii (2.24)(b). -/
 theorem hamiltonianLp_mem_quasilocalFunctions [IsPotential Φ] [IsAbsolutelySummable Φ]
-    (Λ : Finset S) : Φ.hamiltonianLp Λ ∈ quasilocalFunctions S E := by
-  refine (Subalgebra.isClosed_topologicalClosure (localFunctions S E)).mem_of_tendsto
-    (hasSum_termLp (Φ := Φ) Λ) (.of_forall fun s ↦ ?_)
-  exact Subalgebra.sum_mem _ fun A _ ↦ localFunctions_le_quasilocalFunctions
-    (termLp_mem_localFunctions (Φ := Φ) Λ A)
+    (Λ : Finset S) : Φ.hamiltonianLp Λ ∈ quasilocalFunctions S E :=
+  MeasureTheory.GibbsMeasure.mem_quasilocalFunctions_of_hasSum
+    (termLp_mem_localFunctions (Φ := Φ) Λ) (hasSum_termLp (Φ := Φ) Λ)
 
 /-! ### The Boltzmann factor -/
 

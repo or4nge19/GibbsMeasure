@@ -134,6 +134,7 @@ with `Δ = {0}` but is no limit of local functions). -/
 def IsQuasilocalFun (f : (S → E) → ℝ) : Prop :=
   ∀ ε : ℝ, 0 < ε → ∃ Δ : Finset S, ∀ ζ η : S → E, (∀ i ∈ Δ, ζ i = η i) → |f ζ - f η| ≤ ε
 
+omit [MeasurableSpace E] in
 lemma isQuasilocalFun_iff_tendsto_oscOutside {f : (S → E) → ℝ} :
     IsQuasilocalFun f ↔ Tendsto (fun Λ : Finset S ↦ oscOutside Λ f) atTop (𝓝 0) := by
   constructor
@@ -233,7 +234,7 @@ theorem mem_quasilocalFunctions_of_tendsto_oscOutside
     refine measurable_pi_lambda _ fun i ↦ ?_
     by_cases hi : i ∈ Λ
     · simpa [hT, hi] using measurable_pi_apply (X := fun _ : S ↦ E) i
-    · simp only [hT, hi, if_false]
+    · simp only [hT, hi, ite_false]
       exact measurable_const
   have hgmem : ∀ Λ : Finset S, ((⇑f) ∘ T Λ) ∈ lp (fun _ : S → E ↦ ℝ) ∞ := by
     intro Λ
@@ -356,5 +357,51 @@ end Criterion
 theorem exp_mem_quasilocalFunctions {f : lp (fun _ : S → E ↦ ℝ) ∞}
     (hf : f ∈ quasilocalFunctions S E) : NormedSpace.exp f ∈ quasilocalFunctions S E :=
   NormedSpace.exp_mem (Subalgebra.isClosed_topologicalClosure _) hf
+
+
+/-! ### Summing a norm-summable family of local observables in `lp ∞`
+
+Every bounded quasilocal observable Georgii builds out of a potential — the Hamiltonian
+`H^Φ_Λ = ∑_{A ∩ Λ ≠ ∅} Φ_A` of (2.14) and the energy density `f_Φ = ∑_{A ∋ 0} |A|⁻¹ Φ_A` of
+(15.22) — is a family of local observables, summable in norm, whose partial sums converge
+pointwise; the construction is isolated here so that neither instance repeats it. -/
+
+section SumOfLocal
+
+variable {S E ι : Type*} [MeasurableSpace E]
+  {f : ι → lp (fun _ : S → E ↦ ℝ) ∞} {g : lp (fun _ : S → E ↦ ℝ) ∞}
+
+/-- A summable family of **local** observables sums, in `lp ∞`, to a **quasilocal** one: the
+partial sums lie in the subalgebra `𝓛` of local observables and `𝓛̄` is its closure. -/
+theorem mem_quasilocalFunctions_of_hasSum (hloc : ∀ a, f a ∈ localFunctions S E)
+    (hf : HasSum f g) : g ∈ quasilocalFunctions S E :=
+  (Subalgebra.isClosed_topologicalClosure (localFunctions S E)).mem_of_tendsto hf
+    (.of_forall fun _s ↦ Subalgebra.sum_mem _ fun a _ ↦
+      localFunctions_le_quasilocalFunctions (hloc a))
+
+omit [MeasurableSpace E] in
+/-- A norm-summable family in `lp ∞` whose partial sums converge pointwise to `g` has sum `g` in
+`lp ∞`. Completeness of `lp ∞` gives *some* sum `T`; `lp.tendsto_apply_of_tendsto` shows `T` and
+`g` have the same values, hence are equal. -/
+theorem hasSum_of_summable_norm_of_hasSum_apply (hf : Summable fun a ↦ ‖f a‖)
+    (hpt : ∀ η, HasSum (fun a ↦ (f a : (S → E) → ℝ) η) ((g : (S → E) → ℝ) η)) :
+    HasSum f g := by
+  obtain ⟨T, hT⟩ := hf.of_norm
+  have hval : ∀ η : S → E, (T : (S → E) → ℝ) η = (g : (S → E) → ℝ) η := fun η ↦ by
+    refine HasSum.unique ((lp.tendsto_apply_of_tendsto hT η).congr fun s ↦ ?_) (hpt η)
+    simp only [lp.coeFn_sum]
+    exact Finset.sum_apply _ _ _
+  exact lp.ext (funext hval) ▸ hT
+
+/-- **The construction behind Georgii's bounded quasilocal observables** (2.14), (15.22): a family
+of local observables that is summable in norm and converges pointwise to `g` exhibits `g` as a
+quasilocal observable. -/
+theorem mem_quasilocalFunctions_of_summable_norm_of_hasSum_apply
+    (hloc : ∀ a, f a ∈ localFunctions S E) (hf : Summable fun a ↦ ‖f a‖)
+    (hpt : ∀ η, HasSum (fun a ↦ (f a : (S → E) → ℝ) η) ((g : (S → E) → ℝ) η)) :
+    g ∈ quasilocalFunctions S E :=
+  mem_quasilocalFunctions_of_hasSum hloc (hasSum_of_summable_norm_of_hasSum_apply hf hpt)
+
+end SumOfLocal
 
 end MeasureTheory.GibbsMeasure

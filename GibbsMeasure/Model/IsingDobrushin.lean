@@ -200,23 +200,11 @@ lemma pairStrength_isingPotential_eq_zero (G : SimpleGraph S) (J h : ℝ) {i j :
     refine le_antisymm (osc_le fun _ _ ↦ ?_) bot_le
     simp
 
-/-- Each site of `ℤ^d` has at most `2d` nearest neighbours. -/
+/-- Each site of `ℤ^d` has at most `2d` nearest neighbours: the inequality form of the exact
+degree count `MeasureTheory.GibbsMeasure.card_neighborFinset_latticeGraph`. -/
 lemma card_neighborFinset_latticeGraph_le (d : ℕ) (v : Fin d → ℤ) :
-    ((latticeGraph d).neighborFinset v).card ≤ 2 * d := by
-  classical
-  set g : Fin d × Bool → (Fin d → ℤ) :=
-    fun p ↦ Function.update v p.1 (v p.1 + if p.2 then (1:ℤ) else -1) with hg
-  have hsub : (latticeGraph d).neighborFinset v ⊆ Finset.image g Finset.univ := by
-    intro y hy
-    have hadj : (latticeGraph d).Adj v y := (SimpleGraph.mem_neighborFinset _ _ _).1 hy
-    obtain ⟨j, t, ht, rfl⟩ := latticeGraph_adj_decomp hadj
-    rcases ht with rfl | rfl
-    · exact Finset.mem_image.2 ⟨(j, true), Finset.mem_univ _, by simp [hg]⟩
-    · exact Finset.mem_image.2 ⟨(j, false), Finset.mem_univ _, by simp [hg]⟩
-  calc ((latticeGraph d).neighborFinset v).card ≤ (Finset.image g Finset.univ).card :=
-        Finset.card_le_card hsub
-    _ ≤ (Finset.univ : Finset (Fin d × Bool)).card := Finset.card_image_le
-    _ = 2 * d := by simp [Finset.card_univ, mul_comm]
+    ((latticeGraph d).neighborFinset v).card ≤ 2 * d :=
+  (card_neighborFinset_latticeGraph d v).le
 
 /-- **Dobrushin's condition for the `ℤ^d` Ising model at high temperature**: Georgii's
 Proposition (8.8) applied to the nearest-neighbour spin potential of Example (8.9)(2), using
