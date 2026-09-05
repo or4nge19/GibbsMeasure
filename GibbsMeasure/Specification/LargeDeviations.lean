@@ -139,15 +139,15 @@ of the box `Δ` (Georgii Example (4.20)(2), `Potential.IsTorusReduction`, in
 
 ## Not proved here
 
-**Theorem (15.45)** — the large deviation principle (15.46), (15.47) for `°R_Λ` — is *not*
-proved; it is not even stated, since no abstract large deviation vocabulary (`limsup`/`liminf` of
-normalised log-probabilities, rate functions, contraction principle) has a consumer in this tree
-and Mathlib has none. Consequently neither are the two displayed inequalities of
-**Corollary (15.48)**, the asymptotics (15.51) of **Example (15.50)** (Cramér's theorem), nor the
-cluster point half of **Corollary (15.58)**. Everything else that §15.5 asserts is proved here;
-in particular (15.48) apart from its two inequalities — the convexity of `J_Ψ(·|Φ)`, the compactness of its
-level sets, `{J_Ψ(·|Φ) = 0} = e_Ψ(𝒢_Θ(Φ))` and the Legendre formula (15.49) — and the minimum
-free energy principle (15.59), (15.60) that carries the equivalence of ensembles.
+The **upper bound (15.46)** of **Theorem (15.45)** is *not* proved. (Its **lower bound (15.47)**,
+with the "in particular" clause for the Gibbs measures, is proved in
+`GibbsMeasure/Specification/LargeDeviationsLower.lean`.) Consequently neither are the two
+displayed inequalities of **Corollary (15.48)**, the asymptotics (15.51) of **Example (15.50)**
+(Cramér's theorem), nor the cluster point half of **Corollary (15.58)**. Everything else that
+§15.5 asserts is proved here; in particular (15.48) apart from its two inequalities — the
+convexity of `J_Ψ(·|Φ)`, the compactness of its level sets,
+`{J_Ψ(·|Φ) = 0} = e_Ψ(𝒢_Θ(Φ))` and the Legendre formula (15.49) — and the minimum free energy
+principle (15.59), (15.60) that carries the equivalence of ensembles.
 
 Georgii's remaining input to (15.45) that is absent from this library and from Mathlib is not a
 matter of bookkeeping:
@@ -177,11 +177,12 @@ The remaining inputs to (15.47) — the neighbourhood basis of the topology of l
 (15.44) for an arbitrary open set, the finite-volume Gibbs lower bound
 `γ^Φ_Λ(A | ω) ≥ e^{−b − log Z_Λ(ω)} λ^S(A)` and Georgii's estimate (15.25) in the form
 `|H_Λ(y) − |Λ| ⟨°R^y_Λ, Φ⟩| ≤ 3 ∑_{A ∩ Λ ≠ ∅, A ⊄ Λ} ‖Φ_A‖` — are in
-`GibbsMeasure/Specification/LargeDeviationsLower.lean`. The assembly of (15.47) itself is still
-missing, together with one combinatorial ingredient: for an *arbitrary* cube `Λ`, the union `Δ` of
-the tiles of `Λ(m)` meeting `Λ` satisfies `|Δ| / |Λ| → 1` and its tile-index set is a box of
-`p ℤ^d`; only the centred instance of this is proved
-(`MeasureTheory.GibbsMeasure.tileIdxImage_cubeUnion`).
+`GibbsMeasure/Specification/LargeDeviationsLower.lean`, together with the assembly of (15.47)
+itself. The combinatorial ingredient the assembly needs — for an *arbitrary* cube `Λ`, the union
+`Δ` of the tiles of `Λ(m)` meeting `Λ` satisfies `|Δ| / |Λ| → 1`, and its tile-index set is
+Følner in `p ℤ^d` — is `tendsto_card_tileHull_div_card` and
+`tendsto_card_vadd_tileIdxImage_Icc_symmDiff_div_card` (in `MeasureTheory.GibbsMeasure`,
+`GibbsMeasure/Specification/BlockMcMillan.lean`).
 
 Another input, **Proposition (15.52)** (`𝓀` of the randomly shifted independent-block measure
 `γ̄ = |Λ|⁻¹ ∑_{j ∈ Λ} θ_{-j}(∏_i θ_{-pi}(γ))` equals `|Λ|⁻¹ 𝓗_Λ(γ)`), is

@@ -428,6 +428,10 @@ status:
       file: "GibbsMeasure/Specification/BlockMcMillan.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.neg_iInf_specificRelativeEntropy_le_liminf_log_iInf_gibbsSpecification"
+      file: "GibbsMeasure/Specification/LargeDeviationsLower.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.Markov.SpitzerCox.isMarkovChain_tfae"
       file: "GibbsMeasure/Model/SpitzerCoxMarkovChains.lean"
       sorry_count: 0
@@ -1533,12 +1537,18 @@ alignment:
         the i.i.d. block field is ergodic, the L^1 ergodic theorem for the block log-densities,
         and the change of measure to lambda^S), along centred cubes, with (4.2), (15.44) on open
         sets and the uniform energy identity (Specification/LargeDeviationsLower.lean). Remaining
-        for (15.45)-(15.48): the assembly of Georgii's proof (every input he cites is a theorem;
-        the assembly also needs that the union of the tiles meeting an arbitrary cube has
-        cardinality asymptotic to the cube's, which is not yet proved); the upper bound's Step 3
-        is available for finite E only. Consequently the two displayed limsup/liminf inequalities
-        that are the substance of Corollary (15.48) are not yet proved, only its trailing
-        properties of the rate function; also not formalized: (15.50), (15.51), (15.57)-(15.58).
+        for (15.45)-(15.48): the upper bound (15.46), whose Step 3 is available for finite E
+        only. The lower bound (15.47) is proved (LargeDeviationsLower.lean): for any set C of
+        random fields with interior C° in P_Theta, liminf |Lambda|^{-1} log inf_omega
+        gamma_Lambda(R_Lambda in C | omega) >= - inf_{C°} A(.|Phi) along increasing cubes, and the
+        same for every Gibbs measure, for any state space and a priori probability measure
+        (Georgii's standard Borel hypothesis is not used); the cubes increase, a hypothesis
+        inherited from the pointwise ergodic theorem behind (15.44), where Georgii allows any
+        sequence with |Lambda| -> infinity; the tiles meeting an arbitrary cube have cardinality
+        asymptotic to it and Folner tile indices (BlockMcMillan.lean). Consequently the two
+        displayed inequalities of Corollary (15.48) are not yet proved, only its trailing
+        properties of the rate function; also not formalized: (15.50), (15.51), (15.57)-(15.58),
+        and Georgii's remark that (15.46)-(15.47) hold for the periodic Gibbs distributions.
         Throughout, the a priori measure is a
         probability measure where Georgii assumes only a finite one.
     - source: "Section 12.2: (12.19)-(12.35)"

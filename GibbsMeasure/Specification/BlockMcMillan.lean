@@ -92,6 +92,23 @@ finiteness of the state space enters anywhere.
   `γ̂(|Δ_M|⁻¹ log f_{Δ_M} ≤ −𝓀(γ̃) + ε) → 1` for every `ε > 0`, where `𝓀(γ̃)` is the specific
   entropy of the randomly shifted independent-block field of Proposition (15.52).
 
+### The tiles met by an arbitrary box
+
+Georgii's lower bound (15.47) takes its limit inferior along an *arbitrary* sequence of cubes,
+which are not unions of tiles. The volume that is fed to the block McMillan theorem is then
+Georgii's `Δ⁺`, the union `tileHull` of the tiles that meet the cube.
+
+* `MeasureTheory.GibbsMeasure.tileHull_Icc_subset` and
+  `MeasureTheory.GibbsMeasure.card_tileHull_Icc_le`: the union of the tiles meeting a box of side
+  `s + 1` is contained in the box enlarged by `2n` in each direction, so it has at most
+  `(s + 4n + 1)^d` sites; hence
+  `MeasureTheory.GibbsMeasure.tendsto_card_tileHull_div_card`, **`|Δ⁺| / |Λ| → 1`** along cubes
+  whose side tends to infinity. This is what lets an estimate that lives on a union of tiles be
+  read at the scale of an arbitrary cube.
+* `MeasureTheory.GibbsMeasure.tendsto_card_vadd_tileIdxImage_Icc_symmDiff_div_card`: the tile
+  indices met by such cubes are **Følner** in `p ℤ^d`, by
+  `MeasureTheory.GibbsMeasure.card_vadd_tileIdxImage_symmDiff_le` together with `|K| ≥ |Λ| / |C|`.
+
 ## Why no Shannon–McMillan theorem is needed
 
 The general Shannon–McMillan(–Breiman) theorem asserts `|Λ|⁻¹ log f_Λ → −𝓀(μ)` in `L¹(μ)` for
@@ -856,5 +873,155 @@ theorem tendsto_tileProduct_setOf_blockDensity_le_specificEntropy [NeZero d]
   simpa [hk] using tendsto_tileProduct_setOf_blockDensity_le_cube n lam γ hac hint hε
 
 end CubeTiling
+
+/-! ### The tiles met by an arbitrary box -/
+
+section BoxHull
+
+open scoped Pointwise
+
+variable {d : ℕ} (n : ℕ)
+
+/-- **The tiles met by a box lie within `2n` of it.** Every site of the union `Δ⁺` of the tiles
+`Λ(n) + p i` that meet the box `∏_k [a_k, a_k + s]` lies in that box enlarged by `2n` in each
+direction, because two sites of one tile differ by at most `2n` in each coordinate. -/
+lemma tileHull_Icc_subset (a : Fin d → ℤ) (s : ℕ) :
+    tileHull (isComplement_piFinset_Icc (d := d) n) (Finset.Icc a fun k ↦ a k + (s : ℤ))
+      ⊆ Finset.Icc (fun k ↦ a k - 2 * (n : ℤ))
+        (fun k ↦ (a k - 2 * (n : ℤ)) + ((s + 4 * n : ℕ) : ℤ)) := by
+  intro x hx
+  obtain ⟨y, hy, c, hc, c', hc', rfl⟩ := exists_of_mem_tileHull _ hx
+  have hy1 : ∀ k, a k ≤ y k := fun k ↦ (Finset.mem_Icc.1 hy).1 k
+  have hy2 : ∀ k, y k ≤ a k + (s : ℤ) := fun k ↦ (Finset.mem_Icc.1 hy).2 k
+  have hcb : ∀ k, |c k| ≤ (n : ℤ) := (mem_tile_iff (d := d) n).1 hc
+  have hcb' : ∀ k, |c' k| ≤ (n : ℤ) := (mem_tile_iff (d := d) n).1 hc'
+  have hle1 : ∀ k, a k - 2 * (n : ℤ) ≤ y k + (c k - c' k) := by
+    intro k
+    have h3 := abs_le.1 (hcb k)
+    have h4 := abs_le.1 (hcb' k)
+    have := hy1 k
+    omega
+  have hle2 : ∀ k, y k + (c k - c' k) ≤ (a k - 2 * (n : ℤ)) + ((s + 4 * n : ℕ) : ℤ) := by
+    intro k
+    have h3 := abs_le.1 (hcb k)
+    have h4 := abs_le.1 (hcb' k)
+    have := hy2 k
+    push_cast
+    omega
+  exact Finset.mem_Icc.2 ⟨fun k ↦ hle1 k, fun k ↦ hle2 k⟩
+
+/-- The union of the tiles met by a box of side `s + 1` has at most `(s + 4n + 1)^d` sites. -/
+lemma card_tileHull_Icc_le (a : Fin d → ℤ) (s : ℕ) :
+    (tileHull (isComplement_piFinset_Icc (d := d) n)
+        (Finset.Icc a fun k ↦ a k + (s : ℤ))).card ≤ (s + 4 * n + 1) ^ d := by
+  refine (Finset.card_le_card (tileHull_Icc_subset n a s)).trans ?_
+  rw [card_Icc_add (fun k ↦ a k - 2 * (n : ℤ)) (fun _ ↦ s + 4 * n), Finset.prod_const,
+    Finset.card_univ, Fintype.card_fin]
+
+/-- The cardinality of a box of side `s + 1` in `ℤ^d`. -/
+lemma card_Icc_cube (a : Fin d → ℤ) (s : ℕ) :
+    (Finset.Icc a fun k ↦ a k + (s : ℤ)).card = (s + 1) ^ d := by
+  rw [card_Icc_add a (fun _ ↦ s), Finset.prod_const, Finset.card_univ, Fintype.card_fin]
+
+/-- **`|Δ⁺| / |Λ| → 1`.** Along cubes whose side tends to infinity, the union `Δ⁺` of the tiles
+meeting the cube is asymptotically the cube itself. This is what lets an estimate for the
+independent-block field, which lives on a union of tiles, be read at the scale of an *arbitrary*
+cube. -/
+theorem tendsto_card_tileHull_div_card (a : ℕ → Fin d → ℤ) {s : ℕ → ℕ}
+    (hs : Tendsto s atTop atTop) :
+    Tendsto (fun j ↦ ((tileHull (isComplement_piFinset_Icc (d := d) n)
+        (Finset.Icc (a j) fun k ↦ a j k + (s j : ℤ))).card : ℝ)
+      / (Finset.Icc (a j) fun k ↦ a j k + (s j : ℤ)).card) atTop (𝓝 1) := by
+  have hcard : ∀ j : ℕ, ((Finset.Icc (a j) fun k ↦ a j k + (s j : ℤ)).card : ℝ)
+      = ((s j : ℝ) + 1) ^ d := fun j ↦ by
+    rw [card_Icc_cube]; push_cast; ring
+  have hpos : ∀ j : ℕ, (0 : ℝ) < ((s j : ℝ) + 1) ^ d := fun j ↦ by positivity
+  have hub : Tendsto (fun j ↦ (((s j : ℝ) + 4 * n + 1) ^ d) / (((s j : ℝ) + 1) ^ d)) atTop
+      (𝓝 1) := by
+    have hden : Tendsto (fun j ↦ (s j : ℝ) + 1) atTop atTop :=
+      (tendsto_natCast_atTop_atTop.comp hs).atTop_add tendsto_const_nhds
+    have h0 : Tendsto (fun j ↦ (4 * (n : ℝ)) / ((s j : ℝ) + 1)) atTop (𝓝 0) :=
+      tendsto_const_nhds.div_atTop hden
+    have h1 : Tendsto (fun j ↦ 1 + (4 * (n : ℝ)) / ((s j : ℝ) + 1)) atTop (𝓝 (1 + 0)) :=
+      tendsto_const_nhds.add h0
+    rw [add_zero] at h1
+    have hbase : Tendsto (fun j ↦ ((s j : ℝ) + 4 * n + 1) / ((s j : ℝ) + 1)) atTop (𝓝 1) := by
+      refine h1.congr fun j ↦ ?_
+      have h3 : ((s j : ℝ) + 1) ≠ 0 := by positivity
+      field_simp
+      ring
+    have h2 := hbase.pow d
+    rw [one_pow] at h2
+    exact h2.congr fun j ↦ div_pow _ _ d
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds hub
+    (.of_forall fun j ↦ ?_) (.of_forall fun j ↦ ?_)
+  · rw [hcard j, le_div_iff₀ (hpos j), one_mul, ← hcard j]
+    exact_mod_cast Finset.card_le_card (subset_tileHull _ _)
+  · rw [hcard j]
+    have hnum : ((tileHull (isComplement_piFinset_Icc (d := d) n)
+        (Finset.Icc (a j) fun k ↦ a j k + (s j : ℤ))).card : ℝ)
+        ≤ ((s j : ℝ) + 4 * n + 1) ^ d := by
+      have hle := card_tileHull_Icc_le n (a j) (s j)
+      calc ((tileHull (isComplement_piFinset_Icc (d := d) n)
+            (Finset.Icc (a j) fun k ↦ a j k + (s j : ℤ))).card : ℝ)
+          ≤ (((s j + 4 * n + 1) ^ d : ℕ) : ℝ) := by exact_mod_cast hle
+        _ = ((s j : ℝ) + 4 * n + 1) ^ d := by push_cast; ring
+    gcongr
+
+/-- **The tile-index sets of an arbitrary sequence of cubes whose sides tend to infinity form a
+Følner sequence in the tiling subgroup `p ℤ^d`.** The Følner property passes from the volumes to
+the tiles they meet (`card_vadd_tileIdxImage_symmDiff_le`), and `|K| ≥ |Λ| / |Λ(n)|`. -/
+theorem tendsto_card_vadd_tileIdxImage_Icc_symmDiff_div_card (a : ℕ → Fin d → ℤ) {s : ℕ → ℕ}
+    (hs : Tendsto s atTop atTop) (h : tileSubgroup (d := d) n) :
+    Tendsto (fun j ↦ (((h +ᵥ tileIdxImage (isComplement_piFinset_Icc (d := d) n)
+          (Finset.Icc (a j) fun k ↦ a j k + (s j : ℤ))) ∆
+        tileIdxImage (isComplement_piFinset_Icc (d := d) n)
+          (Finset.Icc (a j) fun k ↦ a j k + (s j : ℤ))).card : ℝ)
+      / (tileIdxImage (isComplement_piFinset_Icc (d := d) n)
+          (Finset.Icc (a j) fun k ↦ a j k + (s j : ℤ))).card) atTop (𝓝 0) := by
+  classical
+  set hCH := isComplement_piFinset_Icc (d := d) n with hCHdef
+  set Λ : ℕ → Finset (Fin d → ℤ) := fun j ↦ Finset.Icc (a j) fun k ↦ a j k + (s j : ℤ) with hΛ
+  set q : ℕ := (2 * n + 1) ^ d with hq
+  have hcardC : (Fintype.piFinset fun _ : Fin d ↦ Finset.Icc (-(n : ℤ)) n).card = q :=
+    card_piFinset_Icc n
+  have hΛne : ∀ j, (Λ j).Nonempty := fun j ↦
+    Finset.nonempty_Icc.2 fun k ↦ by simp only [le_add_iff_nonneg_right]; positivity
+  have hΛcard : ∀ j, (0 : ℝ) < (Λ j).card := fun j ↦ by exact_mod_cast (hΛne j).card_pos
+  have hKne : ∀ j, (tileIdxImage hCH (Λ j)).Nonempty := fun j ↦
+    Finset.image_nonempty.2 (hΛne j)
+  have hKcard : ∀ j, (0 : ℝ) < (tileIdxImage hCH (Λ j)).card := fun j ↦ by
+    exact_mod_cast (hKne j).card_pos
+  -- the Følner property of the cubes themselves
+  have hcube : ∀ j, Λ j = a j +ᵥ Fintype.piFinset fun _ : Fin d ↦
+      Finset.Ico (0 : ℤ) ((s j + 1 : ℕ) : ℤ) := fun j ↦ Finset.Icc_cube_eq_vadd_piFinset_Ico _ _
+  have hr : Tendsto (fun j ↦ s j + 1) atTop atTop :=
+    tendsto_atTop_mono (fun j ↦ Nat.le_succ (s j)) hs
+  have hfol := tendsto_card_vadd_cube_symmDiff_div_card (ι := Fin d) a (r := fun j ↦ s j + 1) hr
+    (h : Fin d → ℤ)
+  have hfol' : Tendsto (fun j ↦ ((((h : Fin d → ℤ) +ᵥ Λ j) ∆ Λ j).card : ℝ) / (Λ j).card) atTop
+      (𝓝 0) := by
+    refine hfol.congr fun j ↦ ?_
+    rw [hcube j]
+  have hbound : Tendsto (fun j ↦ (q : ℝ) *
+      (((((h : Fin d → ℤ) +ᵥ Λ j) ∆ Λ j).card : ℝ) / (Λ j).card)) atTop (𝓝 0) := by
+    simpa using hfol'.const_mul (q : ℝ)
+  refine squeeze_zero (fun j ↦ by positivity) (fun j ↦ ?_) hbound
+  rw [mul_div_assoc'] at *
+  rw [div_le_div_iff₀ (hKcard j) (hΛcard j)]
+  have h1 : (((h +ᵥ tileIdxImage hCH (Λ j)) ∆ tileIdxImage hCH (Λ j)).card : ℝ)
+      ≤ ((((h : Fin d → ℤ) +ᵥ Λ j) ∆ Λ j).card : ℝ) := by
+    exact_mod_cast card_vadd_tileIdxImage_symmDiff_le hCH (Λ j) h
+  have h2 : ((Λ j).card : ℝ) ≤ (tileIdxImage hCH (Λ j)).card * (q : ℝ) := by
+    rw [← hcardC]
+    exact_mod_cast card_le_card_tileIdxImage_mul hCH (Λ j)
+  calc (((h +ᵥ tileIdxImage hCH (Λ j)) ∆ tileIdxImage hCH (Λ j)).card : ℝ) * (Λ j).card
+      ≤ ((((h : Fin d → ℤ) +ᵥ Λ j) ∆ Λ j).card : ℝ)
+          * ((tileIdxImage hCH (Λ j)).card * (q : ℝ)) :=
+        mul_le_mul h1 h2 (Nat.cast_nonneg _) (Nat.cast_nonneg _)
+    _ = (q : ℝ) * ((((h : Fin d → ℤ) +ᵥ Λ j) ∆ Λ j).card : ℝ)
+          * (tileIdxImage hCH (Λ j)).card := by ring
+
+end BoxHull
 
 end MeasureTheory.GibbsMeasure

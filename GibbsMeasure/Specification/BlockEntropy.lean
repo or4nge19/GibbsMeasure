@@ -355,11 +355,16 @@ variable {ι E : Type*} [Fintype ι] [DecidableEq ι] [MeasurableSpace E]
 
 /-- **The limit argument of Georgii's Proposition (15.52), for any sequence of tile unions.**
 Let `Δ_m = [lo_m, hi_m]` be boxes of `ℤ^d`, each the union of `c_m` tiles of the tiling `hCH`,
-whose side lengths tend to infinity, such that for a fixed lag `r` every shift `Δ_m − j` by a tile
-point `j ∈ C` lies in `Δ_{m+r}` and contains ... more precisely `Δ_m ⊆ Δ_{m+r} − j`, and with
-`c_{m+r}/c_m → 1`, `c_m → ∞`. Then the specific entropy of the randomly shifted independent-block
-field `γ̃ = tileAverage hCH γ` is `−𝓗(γ | λ^C)/|C|`, in `[−∞, 0]`, the value `𝓗(γ | λ^C) = ∞` giving
+whose side lengths tend to infinity, and suppose that for a fixed lag `r` the box `Δ_{m+r}`
+sandwiches every shift of `Δ_m` by a tile point `j ∈ C`, in the two senses
+`Δ_m − j ⊆ Δ_{m+r}` (`hsub₁`) and `Δ_m ⊆ Δ_{m+r} − j` (`hsub₂`), and that `c_{m+r}/c_m → 1` and
+`c_m → ∞`. Then the specific entropy of the randomly shifted independent-block field
+`γ̃ = tileAverage hCH γ` is `−𝓗(γ | λ^C)/|C|`, in `[−∞, 0]`, the value `𝓗(γ | λ^C) = ∞` giving
 `−∞`.
+
+No `[Nonempty ι]` is assumed: for `ι = ∅` the site group `ℤ^ι` is a single point, so every box has
+one site, `hcard` forces `c_m = 1` and `hc` fails — the hypotheses are contradictory and the
+statement is vacuous there, which is why the instance is not required.
 
 The two sandwich inequalities `card_mul_relativeEntropyIn_tileAverage_le` and
 `le_card_mul_relativeEntropyIn_tileAverage_add` give `|C| 𝓗_{Δ_m}(γ̃) ≤ |Δ_{m+r}| 𝓗(γ|λ^C)` and

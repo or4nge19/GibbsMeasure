@@ -152,6 +152,35 @@
     \leanok
 \end{proof}
 
+\begin{theorem}[Georgii (15.45), the lower bound (15.47)]
+    \label{thm:ld-15-47}
+    \uses{thm:ld-block-mcmillan, prop:ld-15-52, def:ld-15-41}
+    \lean{MeasureTheory.GibbsMeasure.invariantRandomFields, MeasureTheory.GibbsMeasure.invariantInterior, MeasureTheory.GibbsMeasure.measurable_cylinderEvents_integral_periodicEmpiricalField, MeasureTheory.GibbsMeasure.exists_measurableSet_subset_setOf_periodicEmpiricalField_mem, MeasureTheory.GibbsMeasure.card_tileHull_Icc_le, MeasureTheory.GibbsMeasure.tendsto_card_tileHull_div_card, MeasureTheory.GibbsMeasure.tendsto_card_vadd_tileIdxImage_Icc_symmDiff_div_card, MeasureTheory.GibbsMeasure.eventually_exists_ofReal_exp_le_gibbsSpecification, MeasureTheory.GibbsMeasure.eventually_ofReal_exp_le_gibbsSpecification_setOf_periodicEmpiricalField_mem, MeasureTheory.GibbsMeasure.eventually_ofReal_exp_le_measure_setOf_periodicEmpiricalField_mem, MeasureTheory.GibbsMeasure.neg_iInf_specificRelativeEntropy_le_liminf_log_iInf_gibbsSpecification, MeasureTheory.GibbsMeasure.neg_iInf_specificRelativeEntropy_le_liminf_log_measure}
+    \leanok
+
+    For $\Phi \in \mathcal B_\Theta$, any set $C$ of random fields and $C^\circ$ its interior in
+    $\mathcal P_\Theta$ for the local topology,
+    $\liminf_{|\Lambda|\to\infty} |\Lambda|^{-1}\log\inf_\omega\gamma^\Phi_\Lambda({}^\circ R_\Lambda \in C \mid \omega)
+    \geq -\inf_{\nu \in C^\circ}\mathcal A(\nu\mid\Phi)$ along increasing cubes, and the same with
+    $\gamma^\Phi_\Lambda(\cdot\mid\omega)$ replaced by any $\mu \in \mathcal G(\Phi)$. Any state space
+    and any a priori probability measure: Georgii's standard Borel hypothesis is not used here. The
+    cubes are required to increase, a hypothesis inherited from the pointwise ergodic theorem behind
+    (15.44) in this tree, where Georgii allows any sequence with $|\Lambda| \to \infty$.
+\end{theorem}
+\begin{proof}
+    \leanok
+    Georgii's proof of (15.55): for $\nu \in C^\circ$ with $\mathcal A(\nu\mid\Phi) < \infty$ and
+    $\varepsilon > 0$, the block field $\tilde\nu$ of a large box has $\mathcal A(\tilde\nu\mid\Phi)
+    < \mathcal A(\nu\mid\Phi) + \varepsilon$ (Proposition \ref{prop:ld-15-52}: the specific entropy is
+    an infimum over boxes, so no limit is needed) and lies in $C^\circ$; on the event where
+    ${}^\circ R_\Lambda \in C^\circ$, the energy is close to $\langle\tilde\nu,\Phi\rangle$ and
+    $|\Lambda|^{-1}\log f_\Lambda \leq -\mathfrak k(\tilde\nu) + \varepsilon$, the Gibbs
+    distribution is bounded below by $e^{-|\Lambda|(\mathcal A(\nu\mid\Phi) + 4\varepsilon)}$
+    uniformly in $\omega$, using (15.31); that event is typical for the independent-block field
+    $\hat\nu \leq |C|\tilde\nu$ by (15.44) on open sets, the continuity of the energy and the block
+    McMillan theorem, the tiles meeting an arbitrary cube having cardinality asymptotic to it.
+\end{proof}
+
 \begin{proposition}[Georgii (15.49), (15.59), and the rate-function half of (15.48)]
     \label{prop:ld-15-49}
     \uses{def:ld-15-41, thm:vp-15-39, prop:sent-15-14c, cor:gv-16-12}

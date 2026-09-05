@@ -525,10 +525,12 @@ Georgii's (15.54) holds there; for finite `E` his change of topology is unnecess
 input of (15.47) is proved in the form he uses it, for the independent-block measure of any block law
 on any state space, from the `L¹` ergodic theorem (`Specification/BlockMcMillan.lean`), with (4.2),
 (15.44) on open sets and the uniform energy identity (`Specification/LargeDeviationsLower.lean`).
-Proposition (15.52) holds for an arbitrary box of `ℤ^d`, so every input Georgii cites for
-(15.45)–(15.48) is a theorem; what remains is the assembly of his proof, including one combinatorial
-ingredient it uses, that the union of the tiles meeting an arbitrary cube has cardinality
-asymptotic to the cube's.
+Proposition (15.52) holds for an arbitrary box of `ℤ^d`. **The lower bound (15.47)** is proved
+(`Specification/LargeDeviationsLower.lean`): the large-deviation lower bound for the periodic
+empirical field, uniformly in the boundary condition and for every Gibbs measure, for any state
+space and any a priori law, along increasing cubes (an inherited restriction where Georgii allows
+any sequence). What remains of Theorem (15.45) is the upper bound (15.46), whose Choquet step is
+available for finite `E`.
 
 **Chapter 17** (`GibbsMeasure/Specification/ReflectionPositivity.lean`,
 `Specification/PeriodicGibbs.lean`): reflection positivity for Georgii's generalised reflection,
