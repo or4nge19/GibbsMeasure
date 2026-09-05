@@ -697,7 +697,10 @@ two-parameter boundary laws give an *uncountable* Gibbs simplex; Kalikow's examp
 many extreme points but a unique shift-invariant phase, and the closed form of its powers; and
 Spitzer's critical branching, where the first-passage decomposition is built in general matrix form
 (`GibbsMeasure/Mathlib/Probability/Kernel/CountableMatrix/FirstPassage.lean`) since Mathlib has no
-hitting-time API.
+hitting-time API. The Poisson limit theorem in the form Georgii cites — trial count free rather
+than equal to the index, with convergence in total variation — is built in
+`GibbsMeasure/Mathlib/Probability/Distributions/Poisson/Convergence.lean`, together with a Scheffé
+lemma for series and a Tannery lemma for growing sums, none of which Mathlib has.
 
 **§6.1** (`GibbsMeasure/Model/InhomogeneousIsingChain.lean`): **Theorem (6.4)** in both
 directions — under `∑ e^{-2J_n} < ∞` the inhomogeneous Ising chain has exactly the Gibbs measures

@@ -37,3 +37,20 @@
     $Qr^v_i = r^v_{i-1}$ and $\ell^u_i r^v_i = e^{uv}$ by the binomial identities; the one-site
     marginal (11.30) at three sites separates the parameters.
 \end{proof}
+
+\begin{lemma}[The Poisson limit theorem, as used in (11.31) and (11.46)]
+    \label{lem:sc-poisson-limit}
+    \lean{ProbabilityTheory.tendsto_choose_mul_pow_of_tendsto_mul, ProbabilityTheory.tendsto_binomial_real_singleton_of_tendsto_mul, ProbabilityTheory.tendsto_tsum_abs_binomial_real_sub_of_tendsto_mul, ProbabilityTheory.tendsto_binomial_of_tendsto_mul, tendsto_finsetSum_of_dominated_convergence, ENNReal.tendsto_sum_range_of_dominated_convergence}
+    \leanok
+
+    If $x_n p_n \to c$ and $p_n \to 0$ along any filter, then $\ell(x_n, p_n, k) \to \mathfrak p(c,k)$
+    for every $k$, and the binomial laws converge to the Poisson law in total variation. Along a
+    growing family of finite sums, dominated convergence holds with a summable bound.
+\end{lemma}
+\begin{proof}
+    \leanok
+    $x\log(1+g) - xg$ is $O(|xg|\,|g|)$, and the falling factorial $\prod_{i<k}(x_n - i)p_n \to c^k$;
+    Scheff\'e's lemma for series upgrades pointwise to total-variation convergence. Mathlib's
+    version fixes the number of trials to the index and passes through an asymptotic equivalence
+    that fails when the trial count stays bounded, so it does not transfer.
+\end{proof}

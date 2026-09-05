@@ -1170,6 +1170,20 @@ alignment:
         of the Mazur corollary; separability for finite E is proved in the Section 16.2 entry, so the
         corollary no longer carries that hypothesis. The identification of G_Theta(Phi) with the
         tangent functionals of P is Section 16.2, done.
+    - source: "The Poisson limit theorem cited in (11.31) and (11.46)"
+      lean: "ProbabilityTheory.tendsto_tsum_abs_binomial_real_sub_of_tendsto_mul"
+      module: "GibbsMeasure/Mathlib/Probability/Distributions/Poisson/Convergence.lean"
+      status: "proved"
+      note: >-
+        Georgii's form: x_n p_n -> c with x_n free, not the index. Mathlib has only the version
+        with the number of trials equal to the index n, proved through an asymptotic equivalence
+        that fails when the trial count stays bounded (possible at c = 0). Built over an arbitrary
+        filter: the pointwise limit of the binomial weights, the binomial laws converging to the
+        Poisson law setwise and in total variation (via a Scheffe lemma for series, which Mathlib
+        lacks), and dominated convergence for growing finite sums (a Tannery variant Mathlib
+        lacks). Note poissonPMFReal is deprecated in this toolchain; the live object is
+        (poissonMeasure r).real {k}. The applications (11.31) Step 1 and the nonemptiness half of
+        (11.46) are not yet written.
     - source: "Proposition (8.34)"
       lean: "MeasureTheory.GibbsMeasure.Dobrushin.ofReal_abs_covariance_le"
       module: "GibbsMeasure/Specification/DobrushinDerivatives.lean"

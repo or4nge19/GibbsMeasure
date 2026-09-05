@@ -53,10 +53,14 @@ public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.Doeblin
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PerronFrobenius
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.CompactSystemCylinders
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.Cylinders
+public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.BorelSpace.Real
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.HaarToSphere
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.PiWithDensity
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.KolmogorovExtension
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
+public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Typeclasses.Finite
+public import GibbsMeasure.Mathlib.MeasureTheory.Function.AEEqOfLIntegral
+public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Real
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Indicator
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Unique
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalLExpectation
@@ -75,6 +79,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Integral.DominatedConvergence
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.IntegrableOn
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Density
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Existence
+public import GibbsMeasure.Mathlib.Probability.Distributions.Poisson.Convergence
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.CondExp
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Limit
 public import GibbsMeasure.Mathlib.Probability.Moments.Covariance
@@ -124,6 +129,7 @@ public import GibbsMeasure.Mathlib.Probability.Kernel.Proper
 public import GibbsMeasure.Mathlib.Probability.Martingale.DominatedBackward
 public import GibbsMeasure.Mathlib.Probability.Martingale.Convergence
 public import GibbsMeasure.Mathlib.Probability.TailTriviality
+public import GibbsMeasure.Mathlib.Probability.Kernel.WithDensity
 public import GibbsMeasure.Prereqs.IntervalBoundary
 public import GibbsMeasure.Prereqs.CylinderEvents
 public import GibbsMeasure.Prereqs.Filtration.Consistent
