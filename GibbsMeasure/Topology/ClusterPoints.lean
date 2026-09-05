@@ -24,6 +24,13 @@ equicontinuity, extends to a random field by the Kolmogorov extension theorem. U
 by finite measures yields compact sets of random fields (Georgii (4.10)), and uniform tightness
 of the one-spin marginals yields local equicontinuity (Georgii (4.13),
 `locallyEquicontinuous_of_uniformlyTight`).
+
+Because evaluation at a local event is continuous (Georgii (4.2)), a closed condition on that
+value passes from a net of random fields to any of its cluster points
+(`mem_of_mapClusterPt_of_isClosed` and its bounds `eval_le_of_mapClusterPt`,
+`le_eval_of_mapClusterPt`), as does an asymptotic identity between two local events
+(`eq_of_mapClusterPt_of_eventually_eq`) and hence invariance under a measurable map preserving
+the local events (`measurePreserving_of_mapClusterPt`).
 -/
 
 @[expose] public section
@@ -500,5 +507,71 @@ theorem tendsto_liminf_zero_of_mapClusterPt {l : Filter ι}
     rwa [hempty, measure_empty] at h
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hμ0
     (fun _ ↦ zero_le) hbound
+
+/-! ### Closed conditions on the values of a net pass to its local cluster points -/
+
+/-- **A closed condition on the value at a local event passes to the cluster points.**  Evaluation
+at a local event is continuous for the topology of local convergence (Georgii (4.2)), so the set
+of random fields whose value at `A` lies in a closed set `C` is closed. -/
+lemma mem_of_mapClusterPt_of_isClosed {l : Filter ι} {A : Set (S → E)}
+    (hA : A ∈ localEvents S E) {C : Set ℝ≥0∞} (hC : IsClosed C)
+    {ms : ι → ProbabilityMeasure (S → E)} {m : WithLocalConvergence S E}
+    (hm : MapClusterPt m l fun i ↦ WithSetwiseTopology.ofMeasure (ms i))
+    (hmem : ∀ᶠ i in l, (ms i : Measure (S → E)) A ∈ C) :
+    (m.toMeasure : Measure (S → E)) A ∈ C :=
+  (hC.preimage (WithSetwiseTopology.continuous_apply_enn hA)).mem_of_mapClusterPt hm hmem
+
+/-- An upper bound valid along a net at a local event passes to its cluster points. -/
+lemma eval_le_of_mapClusterPt {l : Filter ι} {A : Set (S → E)}
+    (hA : A ∈ localEvents S E) {c : ℝ≥0∞} {ms : ι → ProbabilityMeasure (S → E)}
+    {m : WithLocalConvergence S E}
+    (hm : MapClusterPt m l fun i ↦ WithSetwiseTopology.ofMeasure (ms i))
+    (hle : ∀ᶠ i in l, (ms i : Measure (S → E)) A ≤ c) :
+    (m.toMeasure : Measure (S → E)) A ≤ c :=
+  mem_of_mapClusterPt_of_isClosed hA (isClosed_Iic (a := c)) hm hle
+
+/-- A lower bound valid along a net at a local event passes to its cluster points. -/
+lemma le_eval_of_mapClusterPt {l : Filter ι} {A : Set (S → E)}
+    (hA : A ∈ localEvents S E) {c : ℝ≥0∞} {ms : ι → ProbabilityMeasure (S → E)}
+    {m : WithLocalConvergence S E}
+    (hm : MapClusterPt m l fun i ↦ WithSetwiseTopology.ofMeasure (ms i))
+    (hle : ∀ᶠ i in l, c ≤ (ms i : Measure (S → E)) A) :
+    c ≤ (m.toMeasure : Measure (S → E)) A :=
+  mem_of_mapClusterPt_of_isClosed hA (isClosed_Ici (a := c)) hm hle
+
+/-- Two local events that the net eventually gives the same value have the same value at a
+cluster point. -/
+lemma eq_of_mapClusterPt_of_eventually_eq {l : Filter ι}
+    {ms : ι → ProbabilityMeasure (S → E)} {m : WithLocalConvergence S E}
+    (hm : MapClusterPt m l fun i ↦ WithSetwiseTopology.ofMeasure (ms i))
+    {A B : Set (S → E)} (hA : A ∈ localEvents S E) (hB : B ∈ localEvents S E)
+    (h : ∀ᶠ i in l, (ms i : Measure (S → E)) A = (ms i : Measure (S → E)) B) :
+    (m.toMeasure : Measure (S → E)) A = (m.toMeasure : Measure (S → E)) B := by
+  obtain ⟨U, hUle, hUconv⟩ := mapClusterPt_iff_ultrafilter.1 hm
+  have hA' := tendsto_withLocalConvergence_iff.1 hUconv A hA
+  have hB' := tendsto_withLocalConvergence_iff.1 hUconv B hB
+  exact tendsto_nhds_unique hA' (hB'.congr' (by filter_upwards [hUle h] with i hi using hi.symm))
+
+/-- **Invariance passes to the cluster points.**  If a net of random fields is eventually invariant
+under a measurable map `f` whose preimages preserve the local events, then so is every cluster
+point in the topology of local convergence.  For a `Transformation` the two hypotheses on `f` are
+`Transformation.measurable_toFun` and `Transformation.preimage_mem_localEvents`; the closedness
+of the invariant fields themselves is
+`MeasureTheory.GibbsMeasure.isClosed_setOf_measurePreserving` (Georgii, remark after (5.12)),
+which lives with the transformations one layer up. -/
+lemma measurePreserving_of_mapClusterPt {l : Filter ι} {f : (S → E) → (S → E)}
+    (hf : Measurable f) (hfloc : ∀ A ∈ localEvents S E, f ⁻¹' A ∈ localEvents S E)
+    {ms : ι → ProbabilityMeasure (S → E)} {m : WithLocalConvergence S E}
+    (hm : MapClusterPt m l fun i ↦ WithSetwiseTopology.ofMeasure (ms i))
+    (hinv : ∀ᶠ i in l, MeasurePreserving f (ms i : Measure (S → E)) (ms i)) :
+    MeasurePreserving f (m.toMeasure : Measure (S → E)) m.toMeasure := by
+  refine ⟨hf, ?_⟩
+  have hmap : IsProbabilityMeasure ((m.toMeasure : Measure (S → E)).map f) :=
+    Measure.isProbabilityMeasure_map hf.aemeasurable
+  refine separatesOn_localEvents hmap inferInstance fun A hA ↦ ?_
+  rw [Measure.map_apply hf (.of_mem_measurableCylinders hA)]
+  refine eq_of_mapClusterPt_of_eventually_eq hm (hfloc A hA) hA ?_
+  filter_upwards [hinv] with i hi
+  rw [← Measure.map_apply hf (.of_mem_measurableCylinders hA), hi.map_eq]
 
 end MeasureTheory.GibbsMeasure

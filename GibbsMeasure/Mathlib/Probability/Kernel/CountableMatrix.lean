@@ -31,7 +31,12 @@ the monoid `Kernel α α` are the matrix powers (`pow_succ_apply_eq_tsum`). Row 
   `pow_succ'_apply_eq_tsum`: kernels on a countable space are matrices.
 * `ProbabilityTheory.Kernel.isSFiniteKernel_of_countable`: a kernel on a countable space with
   s-finite values is s-finite.
-* `ProbabilityTheory.Kernel.ofMatrix` and its API.
+* `ProbabilityTheory.Kernel.ofMatrix` and its API, including the monotonicity
+  `ProbabilityTheory.Kernel.ofMatrix_pow_apply_singleton_mono` of the powers in the matrix and
+  the powers `ofMatrix_const_mul_pow_apply_singleton`, `ofMatrix_mul_pow_succ_apply_singleton`
+  of a scalar multiple and of a rank-one matrix.
+* `MeasureTheory.Measure.le_of_forall_singleton_le`: measures on a countable space are ordered
+  by their singleton values.
 -/
 
 @[expose] public section
@@ -68,6 +73,19 @@ to counting measure, namely its singleton values. -/
 theorem eq_count_withDensity [Countable α] (μ : Measure α) :
     μ = count.withDensity fun a ↦ μ {a} :=
   ext_of_singleton fun a ↦ by rw [count_withDensity_apply_singleton]
+
+/-- Measures on a countable space with measurable singletons are ordered by their singleton
+values. -/
+theorem le_of_forall_singleton_le [Countable α] {μ ν : Measure α} (h : ∀ a, μ {a} ≤ ν {a}) :
+    μ ≤ ν :=
+  (eq_count_withDensity μ).trans_le <|
+    (withDensity_mono (Filter.Eventually.of_forall h)).trans_eq (eq_count_withDensity ν).symm
+
+/-- Measures on a countable space with measurable singletons are ordered by their singleton
+values. -/
+theorem le_iff_forall_singleton_le [Countable α] {μ ν : Measure α} :
+    μ ≤ ν ↔ ∀ a, μ {a} ≤ ν {a} :=
+  ⟨fun h a ↦ h {a}, le_of_forall_singleton_le⟩
 
 end MeasureTheory.Measure
 
@@ -254,6 +272,60 @@ theorem isFiniteKernel_ofMatrix [Finite α] (hQ : ∀ a b, Q a b ≠ ⊤) :
   exact Finset.single_le_sum (f := fun a ↦ ∑ b, Q a b) (fun _ _ ↦ zero_le) (Finset.mem_univ a)
 
 end OfMatrix
+
+/-! ### Monotonicity of matrix powers, and two explicit families of powers -/
+
+section OfMatrixMono
+
+variable {P Q : α → α → ℝ≥0∞}
+
+/-- `ofMatrix` is monotone: a pointwise inequality of matrices is an inequality of the kernels
+they define. -/
+theorem ofMatrix_mono (h : ∀ a b, P a b ≤ Q a b) : ofMatrix P ≤ ofMatrix Q := fun a ↦
+  Measure.le_of_forall_singleton_le fun b ↦ by
+    simpa only [ofMatrix_apply_singleton] using h a b
+
+/-- **Monotonicity of matrix powers**, entrywise: a pointwise inequality of matrices propagates
+to every power. -/
+theorem ofMatrix_pow_apply_singleton_mono (h : ∀ a b, P a b ≤ Q a b) (n : ℕ) (a b : α) :
+    (ofMatrix P ^ n) a {b} ≤ (ofMatrix Q ^ n) a {b} := by
+  induction n generalizing a with
+  | zero => simp
+  | succ n ih =>
+    rw [ofMatrix_pow_succ_apply_singleton, ofMatrix_pow_succ_apply_singleton]
+    exact ENNReal.tsum_le_tsum fun c ↦ mul_le_mul' (h a c) (ih c)
+
+/-- **Monotonicity of matrix powers**, as kernels. -/
+theorem ofMatrix_pow_mono (h : ∀ a b, P a b ≤ Q a b) (n : ℕ) :
+    ofMatrix P ^ n ≤ ofMatrix Q ^ n := fun a ↦
+  Measure.le_of_forall_singleton_le fun b ↦ ofMatrix_pow_apply_singleton_mono h n a b
+
+/-- Powers of a scalar multiple of a matrix: `(cQ)^n = c^n Q^n`, entrywise. -/
+theorem ofMatrix_const_mul_pow_apply_singleton (c : ℝ≥0∞) (n : ℕ) (a b : α) :
+    (ofMatrix (fun x y ↦ c * Q x y) ^ n) a {b} = c ^ n * (ofMatrix Q ^ n) a {b} := by
+  induction n generalizing a with
+  | zero => simp
+  | succ n ih =>
+    rw [ofMatrix_pow_succ_apply_singleton, ofMatrix_pow_succ_apply_singleton, pow_succ,
+      ← ENNReal.tsum_mul_left]
+    refine tsum_congr fun z ↦ ?_
+    rw [ih z]
+    ring
+
+/-- Powers of a rank-one matrix `Q(x, y) = u(x) v(y)`:
+`Q^{n+1}(x, y) = u(x) (∑_z u(z) v(z))^n v(y)`. -/
+theorem ofMatrix_mul_pow_succ_apply_singleton (u v : α → ℝ≥0∞) (n : ℕ) (a b : α) :
+    (ofMatrix (fun x y ↦ u x * v y) ^ (n + 1)) a {b} = u a * (∑' z, u z * v z) ^ n * v b := by
+  induction n generalizing a with
+  | zero => simp
+  | succ n ih =>
+    rw [ofMatrix_pow_succ_apply_singleton]
+    have hz : ∀ z : α, u a * v z * (ofMatrix (fun x y ↦ u x * v y) ^ (n + 1)) z {b}
+        = u a * (∑' w, u w * v w) ^ n * v b * (u z * v z) := fun z ↦ by rw [ih z]; ring
+    rw [tsum_congr hz, ENNReal.tsum_mul_left]
+    ring
+
+end OfMatrixMono
 
 /-- Powers of a finite kernel are finite. -/
 theorem isFiniteKernel_pow {α : Type*} {mα : MeasurableSpace α} (κ : Kernel α α)

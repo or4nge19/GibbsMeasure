@@ -561,55 +561,6 @@ lemma spin_eq_false_mem_localEvents (a : Site) :
   exact measurable_cylinderEvent_apply (X := fun _ : Site ↦ Bool) hmem
     (measurableSet_singleton false)
 
-end MeasureTheory.GibbsMeasure.Peierls
-
-namespace MeasureTheory.GibbsMeasure
-
-/-! ### Closed conditions on the values of a net pass to its local cluster points -/
-
-variable {S E : Type*} [MeasurableSpace E]
-
-/-- **A closed condition on the value at a local event passes to the cluster points.**  Evaluation
-at a local event is continuous for the topology of local convergence (Georgii (4.2)), so the set
-of random fields whose value at `A` lies in a closed set `C` is closed. -/
-lemma mem_of_mapClusterPt_of_isClosed {ι : Type*} {l : Filter ι} {A : Set (S → E)}
-    (hA : A ∈ localEvents S E) {C : Set ℝ≥0∞} (hC : IsClosed C)
-    {ms : ι → ProbabilityMeasure (S → E)} {m : WithLocalConvergence S E}
-    (hm : MapClusterPt m l fun i ↦ WithSetwiseTopology.ofMeasure (ms i))
-    (hle : ∀ᶠ i in l, (ms i : Measure (S → E)) A ∈ C) :
-    (m.toMeasure : Measure (S → E)) A ∈ C := by
-  set s : Set (WithLocalConvergence S E) := {v | (v.toMeasure : Measure (S → E)) A ∈ C} with hs
-  have hclosed : IsClosed s := hC.preimage (WithSetwiseTopology.continuous_apply_enn hA)
-  have hcl : ClusterPt m (Filter.map (fun i ↦ (WithSetwiseTopology.ofMeasure (ms i) :
-      WithLocalConvergence S E)) l) := hm
-  have hprin : (Filter.map (fun i ↦ (WithSetwiseTopology.ofMeasure (ms i) :
-      WithLocalConvergence S E)) l) ≤ 𝓟 s :=
-    Filter.le_principal_iff.2 (Filter.mem_map.2 hle)
-  have hmem : m ∈ closure s := mem_closure_iff_clusterPt.2 (hcl.mono hprin)
-  rwa [hclosed.closure_eq] at hmem
-
-/-- An upper bound valid along a net at a local event passes to its cluster points. -/
-lemma eval_le_of_mapClusterPt {ι : Type*} {l : Filter ι} {A : Set (S → E)}
-    (hA : A ∈ localEvents S E) {c : ℝ≥0∞} {ms : ι → ProbabilityMeasure (S → E)}
-    {m : WithLocalConvergence S E}
-    (hm : MapClusterPt m l fun i ↦ WithSetwiseTopology.ofMeasure (ms i))
-    (hle : ∀ᶠ i in l, (ms i : Measure (S → E)) A ≤ c) :
-    (m.toMeasure : Measure (S → E)) A ≤ c :=
-  mem_of_mapClusterPt_of_isClosed hA (isClosed_Iic (a := c)) hm hle
-
-/-- A lower bound valid along a net at a local event passes to its cluster points. -/
-lemma le_eval_of_mapClusterPt {ι : Type*} {l : Filter ι} {A : Set (S → E)}
-    (hA : A ∈ localEvents S E) {c : ℝ≥0∞} {ms : ι → ProbabilityMeasure (S → E)}
-    {m : WithLocalConvergence S E}
-    (hm : MapClusterPt m l fun i ↦ WithSetwiseTopology.ofMeasure (ms i))
-    (hle : ∀ᶠ i in l, c ≤ (ms i : Measure (S → E)) A) :
-    c ≤ (m.toMeasure : Measure (S → E)) A :=
-  mem_of_mapClusterPt_of_isClosed hA (isClosed_Ici (a := c)) hm hle
-
-end MeasureTheory.GibbsMeasure
-
-namespace MeasureTheory.GibbsMeasure.Peierls
-
 /-! ### Georgii's cube-averaged `+`-boundary distributions -/
 
 /-- **Georgii (6.9)/(5.20)(1)**: the cube-averaged Ising distributions with the all-`+` boundary

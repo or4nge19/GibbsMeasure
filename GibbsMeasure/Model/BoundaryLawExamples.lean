@@ -194,24 +194,22 @@ variable {E : Type*} [Countable E] [MeasurableSpace E] [MeasurableSingletonClass
   {Q : E → E → ℝ≥0∞} {u v : E → ℝ≥0∞} {C : ℝ≥0∞}
 
 /-- The upper half `Q(x,y) ≤ C u(x) v(y)` of Georgii's bounded-ratio condition propagates to the
-powers: `Q^{n+1}(x,y) ≤ C^{n+1} u(x) W^n v(y)` with `W = ∑_z u(z) v(z)`. -/
+powers: `Q^{n+1}(x,y) ≤ C^{n+1} u(x) W^n v(y)` with `W = ∑_z u(z) v(z)`.  This is monotonicity of
+the matrix powers (`Kernel.ofMatrix_pow_apply_singleton_mono`) applied to the rank-one dominating
+matrix `(Cu) ⊗ v`, whose powers are `Kernel.ofMatrix_mul_pow_succ_apply_singleton`. -/
 lemma pow_succ_apply_singleton_le_of_le_mul
     (hle : ∀ x y, Q x y ≤ C * (u x * v y)) (n : ℕ) (x y : E) :
     (Kernel.ofMatrix Q ^ (n + 1)) x {y} ≤ C ^ (n + 1) * u x * (∑' z, u z * v z) ^ n * v y := by
-  induction n generalizing x y with
-  | zero =>
-    rw [Kernel.ofMatrix_pow_one_apply_singleton]
-    calc Q x y ≤ C * (u x * v y) := hle x y
-      _ = C ^ 1 * u x * (∑' z, u z * v z) ^ 0 * v y := by ring
-  | succ n ih =>
-    rw [Kernel.ofMatrix_pow_succ_apply_singleton]
-    calc ∑' b, Q x b * (Kernel.ofMatrix Q ^ (n + 1)) b {y}
-        ≤ ∑' b, (C * (u x * v b)) * (C ^ (n + 1) * u b * (∑' z, u z * v z) ^ n * v y) :=
-          ENNReal.tsum_le_tsum fun b ↦ mul_le_mul' (hle x b) (ih b y)
-      _ = (C ^ (n + 1 + 1) * u x * (∑' z, u z * v z) ^ n * v y) * ∑' b, u b * v b := by
-          rw [← ENNReal.tsum_mul_left]
-          exact tsum_congr fun b ↦ by ring
-      _ = C ^ (n + 1 + 1) * u x * (∑' z, u z * v z) ^ (n + 1) * v y := by ring
+  have hW : ∑' z, C * u z * v z = C * ∑' z, u z * v z := by
+    simp_rw [mul_assoc]
+    exact ENNReal.tsum_mul_left
+  calc (Kernel.ofMatrix Q ^ (n + 1)) x {y}
+      ≤ (Kernel.ofMatrix (fun a b ↦ C * u a * v b) ^ (n + 1)) x {y} :=
+        Kernel.ofMatrix_pow_apply_singleton_mono
+          (fun a b ↦ (hle a b).trans_eq (mul_assoc _ _ _).symm) _ _ _
+    _ = C * u x * (∑' z, C * u z * v z) ^ n * v y :=
+        Kernel.ofMatrix_mul_pow_succ_apply_singleton (fun a ↦ C * u a) v n x y
+    _ = C ^ (n + 1) * u x * (∑' z, u z * v z) ^ n * v y := by rw [hW, mul_pow]; ring
 
 /-- **Georgii, Comment (11.18)(2), second display.** `∑_x Q^{n+1}(x,x) ≤ [C ∑_x u(x)v(x)]^{n+1}`. -/
 theorem tsum_pow_succ_apply_singleton_self_le_of_le_mul
@@ -231,12 +229,15 @@ of the Gibbsian representation is *necessarily finite*. -/
 theorem tsum_mul_ne_top_of_mul_le (hQ : IsTransferMatrix Q) (hCt : C ≠ ⊤)
     (hge : ∀ x y, u x * v y ≤ C * Q x y) {a : E} (hua : u a ≠ 0) (hva : v a ≠ 0) :
     ∑' z, u z * v z ≠ ⊤ := by
+  -- `u ⊗ v` is dominated by `C Q`, so its square `(uv)(a) ∑_z u(z)v(z)` is at most `C² Q²(a,a)`
   have hbound : (u a * v a) * ∑' z, u z * v z ≤ C ^ 2 * (Kernel.ofMatrix Q ^ 2) a {a} := by
-    rw [Kernel.ofMatrix_pow_two_apply_singleton, ← ENNReal.tsum_mul_left, ← ENNReal.tsum_mul_left]
-    refine ENNReal.tsum_le_tsum fun z ↦ ?_
-    calc u a * v a * (u z * v z) = (u a * v z) * (u z * v a) := by ring
-      _ ≤ (C * Q a z) * (C * Q z a) := mul_le_mul' (hge a z) (hge z a)
-      _ = C ^ 2 * (Q a z * Q z a) := by ring
+    calc (u a * v a) * ∑' z, u z * v z
+        = (Kernel.ofMatrix (fun x y ↦ u x * v y) ^ (1 + 1)) a {a} := by
+          rw [Kernel.ofMatrix_mul_pow_succ_apply_singleton]; ring
+      _ ≤ (Kernel.ofMatrix (fun x y ↦ C * Q x y) ^ (1 + 1)) a {a} :=
+          Kernel.ofMatrix_pow_apply_singleton_mono hge _ _ _
+      _ = C ^ 2 * (Kernel.ofMatrix Q ^ 2) a {a} :=
+          Kernel.ofMatrix_const_mul_pow_apply_singleton C (1 + 1) a a
   intro htop
   rw [htop, ENNReal.mul_top (mul_ne_zero hua hva)] at hbound
   exact (ENNReal.mul_ne_top (ENNReal.pow_ne_top hCt) (hQ.pow_two_ne_top a a))

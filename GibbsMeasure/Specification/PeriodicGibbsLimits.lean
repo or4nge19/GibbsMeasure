@@ -499,60 +499,6 @@ def GZero (φ : ((Fin d → Fin 2) → E) → ℝ) (ν : Measure E) :
     MapClusterPt (WithSetwiseTopology.ofMeasure μ : WithLocalConvergence (Fin d → ℤ) E) atTop
       fun n ↦ WithSetwiseTopology.ofMeasure (μs n)}
 
-/-- Transporting a bound on a local event to a cluster point in the topology of local
-convergence.
-
-*This lemma belongs in `GibbsMeasure/Topology/ClusterPoints.lean`.*  The tree already has it,
-under the name `MeasureTheory.GibbsMeasure.eval_le_of_mapClusterPt`, in
-`GibbsMeasure/Model/PhaseTransition.lean`, where a `Specification`-level file may not import
-it; the two should be merged into the `Topology` layer. -/
-lemma apply_le_of_mapClusterPt_of_mem_localEvents {S : Type*} {ι : Type*} {l : Filter ι}
-    {A : Set (S → E)} (hA : A ∈ localEvents S E) {c : ℝ≥0∞}
-    {ms : ι → ProbabilityMeasure (S → E)} {m : WithLocalConvergence S E}
-    (hm : MapClusterPt m l fun i ↦ WithSetwiseTopology.ofMeasure (ms i))
-    (hle : ∀ᶠ i in l, (ms i : Measure (S → E)) A ≤ c) :
-    (m.toMeasure : Measure (S → E)) A ≤ c := by
-  set s : Set (WithLocalConvergence S E) := {v | (v.toMeasure : Measure (S → E)) A ≤ c} with hs
-  have hclosed : IsClosed s := isClosed_Iic.preimage (WithSetwiseTopology.continuous_apply_enn hA)
-  have hcl : ClusterPt m (Filter.map (fun i ↦ (WithSetwiseTopology.ofMeasure (ms i) :
-      WithLocalConvergence S E)) l) := hm
-  have hprin : (Filter.map (fun i ↦ (WithSetwiseTopology.ofMeasure (ms i) :
-      WithLocalConvergence S E)) l) ≤ 𝓟 s :=
-    Filter.le_principal_iff.2 (Filter.mem_map.2 hle)
-  have hmem : m ∈ closure s := mem_closure_iff_clusterPt.2 (hcl.mono hprin)
-  rwa [hclosed.closure_eq] at hmem
-
-/-- Cluster points inherit shift invariance. -/
-lemma measurePreserving_shift_of_mapClusterPt {ι : Type*} {l : Filter ι} [l.NeBot]
-    {ms : ι → ProbabilityMeasure ((Fin d → ℤ) → E)} {m : WithLocalConvergence (Fin d → ℤ) E}
-    (hm : MapClusterPt m l fun i ↦ WithSetwiseTopology.ofMeasure (ms i)) (a : Fin d → ℤ)
-    (hinv : ∀ᶠ i in l, MeasurePreserving (shift E a).toFun
-      (ms i : Measure ((Fin d → ℤ) → E)) (ms i)) :
-    MeasurePreserving (shift E a).toFun (m.toMeasure : Measure ((Fin d → ℤ) → E)) m.toMeasure := by
-  set s : Set (WithLocalConvergence (Fin d → ℤ) E) := {v | MeasurePreserving (shift E a).toFun
-    (v.toMeasure : Measure ((Fin d → ℤ) → E)) v.toMeasure} with hs
-  have hclosed : IsClosed s := isClosed_setOf_measurePreserving (shift E a)
-  have hcl : ClusterPt m (Filter.map (fun i ↦ (WithSetwiseTopology.ofMeasure (ms i) :
-      WithLocalConvergence (Fin d → ℤ) E)) l) := hm
-  have hprin : (Filter.map (fun i ↦ (WithSetwiseTopology.ofMeasure (ms i) :
-      WithLocalConvergence (Fin d → ℤ) E)) l) ≤ 𝓟 s :=
-    Filter.le_principal_iff.2 (Filter.mem_map.2 hinv)
-  have hmem : m ∈ closure s := mem_closure_iff_clusterPt.2 (hcl.mono hprin)
-  rwa [hclosed.closure_eq] at hmem
-
-/-- Two local events that the net eventually gives the same value have the same value at a
-cluster point. -/
-lemma eq_of_mapClusterPt_of_eventually_eq {S : Type*} {ι : Type*} {l : Filter ι} [l.NeBot]
-    {ms : ι → ProbabilityMeasure (S → E)} {m : WithLocalConvergence S E}
-    (hm : MapClusterPt m l fun i ↦ WithSetwiseTopology.ofMeasure (ms i))
-    {A B : Set (S → E)} (hA : A ∈ localEvents S E) (hB : B ∈ localEvents S E)
-    (h : ∀ᶠ i in l, (ms i : Measure (S → E)) A = (ms i : Measure (S → E)) B) :
-    (m.toMeasure : Measure (S → E)) A = (m.toMeasure : Measure (S → E)) B := by
-  obtain ⟨U, hUle, hUconv⟩ := mapClusterPt_iff_ultrafilter.1 hm
-  have hA' := tendsto_withLocalConvergence_iff.1 hUconv A hA
-  have hB' := tendsto_withLocalConvergence_iff.1 hUconv B hB
-  exact tendsto_nhds_unique hA' (hB'.congr' (by filter_upwards [hUle h] with i hi using hi.symm))
-
 /-- **Every member of `𝒢₀(Φ)` is shift invariant**: the part of Georgii's Example (5.20)(3)
 that says `𝒢₀(Φ) ⊆ 𝒫_Θ(Ω, 𝓕)`.  The periodic Gibbs distribution `°γ_{Λ(N)}^Φ` is `Λ(N)`-periodic
 (Georgii, remark after (17.20)), hence its periodic continuation to `ℤ^d` is exactly shift
@@ -675,7 +621,7 @@ theorem forall_notMem_latticePattern_le_patternWeight
       ≤ patternWeight φ ν G ^ D.card := by
   classical
   obtain ⟨μs, hμs, hcp⟩ := hμ
-  refine apply_le_of_mapClusterPt_of_mem_localEvents
+  refine eval_le_of_mapClusterPt
     (forall_notMem_latticePattern_mem_localEvents hG D) hcp ?_
   filter_upwards [Potential.tendsto_latticeBox_atTop.eventually
     (eventually_ge_atTop (D ∪ cubeSupport D))] with n hn
@@ -762,7 +708,7 @@ theorem forall_notMem_latticePattern_le_rectPatternWeight
       ≤ rectPatternWeight φ ν G ^ D.card := by
   classical
   obtain ⟨μs, hμs, hcp⟩ := hμ
-  refine apply_le_of_mapClusterPt_of_mem_localEvents
+  refine eval_le_of_mapClusterPt
     (forall_notMem_latticePattern_mem_localEvents hG D) hcp ?_
   filter_upwards [Potential.tendsto_latticeBox_atTop.eventually
     (eventually_ge_atTop (D ∪ cubeSupport D))] with n hn
