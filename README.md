@@ -511,9 +511,11 @@ Mathlib layer. The Shannon–McMillan theorem in the `L¹` form (15.47) invokes 
 abelian group along any Følner net, with the `ℤ^d` cube case in `ShannonMcMillanCube.lean`, and
 identified with the specific entropy of §15.2 (`𝓀(μ) = h − log|E|`, no ergodicity) in
 `Specification/ShannonMcMillan.lean`, which also has Georgii's displayed form of the theorem for a
-finite state space. Still open, and listed precisely in `formalization.yaml`: the three inputs of
-Proposition (15.52), the Choquet barycentre representation of Step 3 of (15.46), and a
-density form of Shannon–McMillan for standard Borel `E`; hence (15.45)–(15.48).
+finite state space. The Choquet barycentre representation (Phelps Prop. 1.2) is in
+`GibbsMeasure/Mathlib/Analysis/Convex/Barycenter.lean`, without metrizability. Still open, and
+listed precisely in `formalization.yaml`: the three inputs of Proposition (15.52), Phelps' Lemma
+9.7 with the locally convex space of measures in which `𝓟_Θ` is compact convex, and a density form
+of Shannon–McMillan for standard Borel `E`; hence (15.45)–(15.48).
 
 **Chapter 17** (`GibbsMeasure/Specification/ReflectionPositivity.lean`,
 `Specification/PeriodicGibbs.lean`): reflection positivity for Georgii's generalised reflection,

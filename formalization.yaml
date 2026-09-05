@@ -372,6 +372,10 @@ status:
       file: "GibbsMeasure/Model/GaussianHomogeneous.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.exists_isBarycenter_of_mem_closedConvexHull"
+      file: "GibbsMeasure/Mathlib/Analysis/Convex/Barycenter.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.Shlosman.dgSpecification_abs_excess_le"
       file: "GibbsMeasure/Model/RandomStaircase.lean"
       sorry_count: 0
@@ -1390,9 +1394,14 @@ alignment:
         additivity of the relative entropy over independent blocks (klDiv of product measures),
         the existence of the entropy density for a measure invariant under a sublattice only,
         the |C|-ary affinity of (15.14) for the shifted block mixture, which together give
-        Proposition (15.52); the Choquet barycentre representation over a closed subset of
-        P_Theta (Phelps Prop. 1.2, Lemma 9.7) for Step 3 of (15.46); and, for standard Borel E,
-        a Shannon-McMillan theorem in terms of the densities d(mu|F_Lambda)/d lambda^Lambda and, consequently, the two displayed limsup/liminf inequalities that are the
+        Proposition (15.52); for Step 3 of (15.46), the Choquet barycentre representation is
+        now in Mathlib/Analysis/Convex/Barycenter.lean (Phelps Prop. 1.2: a point of the closed
+        convex hull of a closed subset of a compact convex set is the barycentre of a probability
+        measure carried by that subset, no metrizability), and still missing are Lemma 9.7 (an
+        affine lower semicontinuous [0, infinity]-valued functional evaluated at a barycentre is
+        its integral) and the locally convex space of measures with the C-topology in which
+        P_Theta is compact convex; and, for standard Borel E, a Shannon-McMillan theorem in terms
+        of the densities d(mu|F_Lambda)/d lambda^Lambda and, consequently, the two displayed limsup/liminf inequalities that are the
         substance of Corollary (15.48) — only its trailing properties of the rate function are
         proved; also (15.50)-(15.52), (15.57)-(15.58). Throughout, the a priori measure is a
         probability measure where Georgii assumes only a finite one.

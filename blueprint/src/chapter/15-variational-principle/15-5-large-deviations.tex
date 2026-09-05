@@ -48,6 +48,29 @@
     for the uniform $\bar\lambda$; no upward martingale theorem is needed.
 \end{proof}
 
+\begin{theorem}[Choquet barycentres, Phelps Prop.\ 1.2 and Lemma 9.7, the input of Step 3 of (15.46)]
+    \label{thm:ld-barycenter}
+    \lean{MeasureTheory.IsBarycenter, MeasureTheory.isBarycenter_dirac, MeasureTheory.IsBarycenter.smul_add_smul, MeasureTheory.IsBarycenter.unique, MeasureTheory.IsBarycenter.integral_continuousAffineMap, MeasureTheory.exists_isBarycenter_of_isCompact, MeasureTheory.existsUnique_isBarycenter, MeasureTheory.IsBarycenter.mem_closedConvexHull, MeasureTheory.exists_isBarycenter_of_mem_closedConvexHull, MeasureTheory.mem_closedConvexHull_iff_exists_isBarycenter, MeasureTheory.isBarycenter_integral}
+    \leanok
+
+    In a Hausdorff real topological vector space, $x$ is the barycentre of a Borel probability
+    measure $m$ if $\ell(x) = \int \ell\,dm$ for every continuous linear functional $\ell$. A
+    probability measure carried by a compact convex $K$ has a barycentre in $K$, unique when the
+    space is locally convex; for closed $C \subseteq K$, the points of the closed convex hull of
+    $C$ are exactly the barycentres of probability measures carried by $C$. No metrizability is
+    needed: Mathlib's compactness of the probability measures on a compact Hausdorff space
+    replaces Georgii's passage to the metrizable $\mathcal C$-topology.
+\end{theorem}
+\begin{proof}
+    \leanok
+    Existence by Jensen's inequality for closed convex sets applied to finitely many functionals
+    and the finite intersection property; uniqueness and the converse inclusion by the geometric
+    Hahn--Banach theorem; the representation by Prokhorov compactness of the probability measures
+    on $C$, the set of barycentres of such measures being closed, convex and containing $C$.
+    Georgii's Lemma 9.7 further evaluates an affine lower semicontinuous $[0,\infty]$-valued
+    functional at a barycentre as its integral; that identity is not yet proved.
+\end{proof}
+
 \begin{proposition}[Georgii (15.49), (15.59), and the rate-function half of (15.48)]
     \label{prop:ld-15-49}
     \uses{def:ld-15-41, thm:vp-15-39, prop:sent-15-14c, cor:gv-16-12}

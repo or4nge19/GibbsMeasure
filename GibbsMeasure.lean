@@ -8,6 +8,7 @@ public import GibbsMeasure.Mathlib.Algebra.Order.BigOperators.Ring.Finset
 public import GibbsMeasure.Mathlib.Algebra.QuadraticDiscriminant
 public import GibbsMeasure.Mathlib.Algebra.BigOperators.Group.Finset.Sigma
 public import GibbsMeasure.Mathlib.Analysis.Calculus.TiltedIntegral
+public import GibbsMeasure.Mathlib.Analysis.Convex.Barycenter
 public import GibbsMeasure.Mathlib.Topology.Instances.EReal
 public import GibbsMeasure.Mathlib.Topology.UniformSpace.Pi
 public import GibbsMeasure.Mathlib.Topology.MetricSpace.DependsOn
@@ -135,6 +136,7 @@ public import GibbsMeasure.Mathlib.GroupTheory.Foelner
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.PiBlocks
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Trivial
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.EssSup
+public import GibbsMeasure.Mathlib.MeasureTheory.Function.LocallyIntegrable
 public import GibbsMeasure.Mathlib.MeasureTheory.Group.Action.Synonym
 public import GibbsMeasure.Mathlib.Probability.Kernel.CountableMatrix
 public import GibbsMeasure.Mathlib.Probability.Kernel.CountableMatrix.Recurrence
