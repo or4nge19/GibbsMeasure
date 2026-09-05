@@ -5,6 +5,7 @@ public import GibbsMeasure.Mathlib.Analysis.Calculus.IteratedDeriv.SecondDiffere
 public import GibbsMeasure.Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
 public import GibbsMeasure.Mathlib.Analysis.PSeries
 public import GibbsMeasure.Mathlib.Algebra.Order.BigOperators.Ring.Finset
+public import GibbsMeasure.Mathlib.Algebra.QuadraticDiscriminant
 public import GibbsMeasure.Mathlib.Algebra.BigOperators.Group.Finset.Sigma
 public import GibbsMeasure.Mathlib.Topology.Instances.EReal
 public import GibbsMeasure.Mathlib.Topology.UniformSpace.Pi
@@ -20,6 +21,7 @@ public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Acyclic
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.CayleyTree
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Hasse
 public import GibbsMeasure.Mathlib.Data.Countable.Basic
+public import GibbsMeasure.Mathlib.Data.ZMod.Basic
 public import GibbsMeasure.Mathlib.Data.Set.CardTranslate
 public import GibbsMeasure.Mathlib.Analysis.Subadditive.Cubes
 public import GibbsMeasure.Mathlib.InformationTheory.RelativeEntropy
@@ -257,6 +259,7 @@ public import GibbsMeasure.Specification.VariationalPrinciple
 public import GibbsMeasure.Specification.TangentFunctional
 public import GibbsMeasure.Specification.PhaseTransition
 public import GibbsMeasure.Specification.LargeDeviations
+public import GibbsMeasure.Specification.ReflectionPositivity
 public import GibbsMeasure.Specification.Structure
 public import GibbsMeasure.Topology.ConfigurationSpace
 public import GibbsMeasure.Topology.ClusterPoints

@@ -328,6 +328,10 @@ status:
       file: "GibbsMeasure/Potential/Equivalence.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.abs_integral_prod_pow_le"
+      file: "GibbsMeasure/Specification/ReflectionPositivity.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.Shlosman.dgSpecification_abs_excess_le"
       file: "GibbsMeasure/Model/RandomStaircase.lean"
       sorry_count: 0
@@ -1162,6 +1166,23 @@ alignment:
         of the Mazur corollary; separability for finite E is proved in the Section 16.2 entry, so the
         corollary no longer carries that hypothesis. The identification of G_Theta(Phi) with the
         tangent functionals of P is Section 16.2, done.
+    - source: "Section 17.1: (17.6)-(17.9), Theorem (17.11) in one dimension"
+      lean: "MeasureTheory.GibbsMeasure.abs_integral_prod_pow_le"
+      module: "GibbsMeasure/Specification/ReflectionPositivity.lean"
+      status: "partial"
+      note: >-
+        Reflection positivity (17.7) for the generalised reflection (17.6), built from the tree's
+        Transformation API (a pure-spin involution composed with the site reflection z -> -1-z on
+        the torus Z_{2N}); the Cauchy-Schwarz (17.8), stated with the reflection invariance of mu
+        that Georgii uses implicitly and without which it is false; Lemma (17.9) in root-free
+        form, D(alpha)^{2N} <= prod_z D(alt_z), with Georgii's two passes over the strips run as
+        one inductive core, and the exact identity for the normalising weights that replaces the
+        non-identity D(alpha^+) D(alpha^-) = D(alpha)^2 stated in the book's outline; and
+        Theorem (17.11) for d = 1, with the right-hand side nonnegative. General inputs in the
+        Mathlib layer: the discriminant bound for a nonnegative quadratic and Cauchy-Schwarz for a
+        symmetric nonnegative bilinear form; the reflection on ZMod in natural-number coordinates.
+        Not formalized: the induction on the dimension in (17.11), and the coarse-graining
+        (17.12)-(17.17) to functions of elementary cubes; Section 17.2.
     - source: "Section 16.2: (16.10)-(16.14)"
       lean: "Potential.BTheta.gateauxDifferentiable_pressure_iff_subsingleton"
       module: "GibbsMeasure/Specification/PhaseTransition.lean"

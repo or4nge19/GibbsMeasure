@@ -509,6 +509,13 @@ theory nor a convex conjugate, so Fenchel–Moreau for a rate function is built 
 Mathlib layer. Still open there: (15.45)–(15.47), which need Shannon–McMillan–Breiman and Choquet
 theory, neither of which Mathlib has.
 
+**Chapter 17, §17.1** (`GibbsMeasure/Specification/ReflectionPositivity.lean`): reflection positivity
+for Georgii's generalised reflection, expressed with the existing transformation API; the
+Cauchy–Schwarz (17.8), which is false without the reflection invariance Georgii uses silently, so it
+carries that hypothesis; Lemma (17.9) in root-free form, with Georgii's two passes over the strips
+run as one inductive argument; and the chessboard estimate (17.11) in one dimension. The induction
+on the dimension and the coarse-graining to elementary cubes are not yet done.
+
 **Chapter 16** normalises the a priori measure to a probability measure throughout, where Georgii
 assumes only that it is finite; the two differ by an additive `log λ(E)` in the pressure and the
 specific entropy. **§16.1** (`GibbsMeasure/Specification/TangentFunctional.lean`): Georgii's `ℬ_Θ` as a
@@ -698,7 +705,7 @@ neighbouring spins has a unique infinite component almost surely under every Gib
 
 Not yet done: Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
 §12.2, the rest of §13.2 and §13.3, and Chapters
-17–20 (
+18–20, the rest of 17 (
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).
 

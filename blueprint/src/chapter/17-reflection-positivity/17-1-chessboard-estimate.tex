@@ -1,0 +1,67 @@
+\section{The chessboard estimate}
+
+\begin{definition}[Reflection positivity, Georgii (17.6)--(17.7)]
+    \label{def:rp-17-7}
+    \uses{def:trans-transformation}
+    \lean{MeasureTheory.GibbsMeasure.genReflection, MeasureTheory.GibbsMeasure.IsReflectionPositive}
+    \leanok
+
+    On the torus $\mathbb Z_{2N}$ the generalised reflection $\tilde r$ is the site reflection
+    $z \mapsto -1-z$ composed with a pure-spin involution. A measure $\mu$ is reflection positive
+    if $\int f\,(f\circ\tilde r)\,d\mu \geq 0$ for every bounded $f$ measurable with respect to
+    the positive half.
+\end{definition}
+
+\begin{lemma}[Georgii (17.8)]
+    \label{lem:rp-17-8}
+    \uses{def:rp-17-7}
+    \lean{MeasureTheory.GibbsMeasure.sq_integral_mul_comp_le, sq_le_mul_of_forall_quadratic_nonneg}
+    \leanok
+
+    If $\mu$ is reflection positive and invariant under the involution $\tilde r$, then
+    $\bigl(\int f\,(g\circ\tilde r)\,d\mu\bigr)^2 \leq \int f\,(f\circ\tilde r)\,d\mu
+    \int g\,(g\circ\tilde r)\,d\mu$. Without invariance the statement is false: a nonnegative
+    real form only bounds the symmetrised pairing.
+\end{lemma}
+\begin{proof}
+    \leanok
+    Expand $\int (f+tg)((f+tg)\circ\tilde r)\,d\mu \geq 0$ in $t$ and use the discriminant.
+\end{proof}
+
+\begin{lemma}[Georgii (17.9)]
+    \label{lem:rp-17-9}
+    \uses{lem:rp-17-8}
+    \lean{MeasureTheory.GibbsMeasure.altConfig, MeasureTheory.GibbsMeasure.foldPos, MeasureTheory.GibbsMeasure.foldNeg, MeasureTheory.GibbsMeasure.altConfig_of_shift_of_foldPos, MeasureTheory.GibbsMeasure.prod_foldPos_mul_prod_foldNeg, MeasureTheory.GibbsMeasure.pow_le_prod_of_chessboard}
+    \leanok
+
+    Let $D$ be a nonnegative function of words of length $2N$ over a finite alphabet with an
+    involution $t$, invariant under cyclic shift and satisfying
+    $D(\alpha)^2 \leq D(\alpha^+)D(\alpha^-)$ for the two folded words. Then
+    $D(\alpha)^{2N} \leq \prod_{z} D(\alpha_z, t\alpha_z, \alpha_z, \ldots)$.
+\end{lemma}
+\begin{proof}
+    \leanok
+    Georgii's two passes over the strips $R_{a,\ell}$, with the doubling step
+    $\ell \mapsto N \wedge 2\ell$, are one inductive argument run twice: once to see that
+    $D > 0$ propagates, once at a word maximising $D$ among words with the same letters. The
+    normalising weights obey the exact identity
+    $\prod Q(\alpha^+)\prod Q(\alpha^-) = (\prod Q(\alpha))^2$.
+\end{proof}
+
+\begin{theorem}[Georgii (17.11), one dimension]
+    \label{thm:rp-17-11}
+    \uses{lem:rp-17-9, def:rp-17-7}
+    \lean{MeasureTheory.GibbsMeasure.wordProd, MeasureTheory.GibbsMeasure.sq_integral_wordProd_le, MeasureTheory.GibbsMeasure.integral_wordProd_shift, MeasureTheory.GibbsMeasure.abs_integral_prod_pow_le}
+    \leanok
+
+    Let $\mu$ be a finite measure on $E^{\mathbb Z_{2N}}$, invariant under the shift and under
+    $\tilde r_1$, and $\tilde r_1$-positive. For bounded measurable $f_i$,
+    $\bigl|\int \prod_i f_i(\omega_i)\,d\mu\bigr|^{2N} \leq
+    \prod_j \int \prod_i f_j(\tau^i\omega_i)\,d\mu$, the right side being nonnegative.
+\end{theorem}
+\begin{proof}
+    \leanok
+    Lemma \ref{lem:rp-17-8} is hypothesis (ii) of Lemma \ref{lem:rp-17-9} for
+    $D(\alpha) = |\int \prod_i \alpha_i(\omega_i)\,d\mu|$, and shift invariance is (i). The
+    induction on the dimension and the coarse-graining (17.12)--(17.17) are not formalised.
+\end{proof}

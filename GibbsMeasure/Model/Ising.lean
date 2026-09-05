@@ -9,6 +9,7 @@ public import GibbsMeasure.Potential.Existence
 public import GibbsMeasure.Potential.NearestNeighbour
 public import GibbsMeasure.Potential.Transformation
 public import GibbsMeasure.Potential.GibbsTransformation
+public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Finite
 
 /-!
 # The Ising model, and existence of its Gibbs measures
@@ -24,6 +25,12 @@ Non-uniqueness at low temperature on `ℤ²` (Georgii Theorem (6.9)) is proved i
 `GibbsMeasure/Model/PhaseTransition.lean`, uniqueness at high temperature (Dobrushin's condition,
 Georgii (8.7)/(8.8)) in `GibbsMeasure/Model/IsingDobrushin.lean`, and the simplex structure
 (Georgii (7.26)) in `GibbsMeasure/Specification/ExtremeDecomposition.lean`.
+
+Also here, for an arbitrary locally finite graph, the decomposition of the Hamiltonian
+`hamiltonian_isingPotential`: `H_Λ(σ) = -J ∑_{b ∩ Λ ≠ ∅} σ_i σ_j - h ∑_{i ∈ Λ} σ_i`, the bond
+energies over `SimpleGraph.bondsOf Λ` (`spinBond`) and the field energies over `Λ`.  Its
+specialisations are the two-dimensional Peierls estimate (`Model/PeierlsEstimate.lean`) and the
+Cayley tree (`Model/IsingCayleyTree.lean`).
 
 What is *not* proved here: uniqueness on `ℤ` (Georgii (3.15), from Theorem (3.5)).
 -/
@@ -53,6 +60,9 @@ lemma spin_mul_self (b : Bool) : spin b * spin b = 1 := by cases b <;> norm_num 
 lemma spin_mul_spin_of_ne {x y : Bool} (h : y ≠ x) : spin x * spin y = -1 := by
   cases x <;> cases y <;> simp_all [spin]
 
+lemma spin_mul_spin (a b : Bool) : spin a * spin b = if a = b then 1 else -1 := by
+  cases a <;> cases b <;> simp [spin]
+
 /-- The Ising potential on a graph `G` with coupling `J` and external field `h`. -/
 noncomputable def isingPotential {S : Type*} (G : SimpleGraph S) (J h : ℝ) :
     Potential S Bool :=
@@ -69,6 +79,151 @@ instance {S : Type*} (G : SimpleGraph S) [G.LocallyFinite] (J h : ℝ) :
 instance {S : Type*} (G : SimpleGraph S) [G.LocallyFinite] (J h : ℝ) :
     Potential.IsAbsolutelySummable (isingPotential G J h) :=
   Potential.isAbsolutelySummable_nearestNeighbourPair G J h abs_spin_le
+
+/-! ### The Hamiltonian of the Ising potential
+
+On an arbitrary locally finite graph, `H_Λ^{Φ^{J,h}}(σ) = -J ∑_{b ∩ Λ ≠ ∅} σ_i σ_j
+- h ∑_{i ∈ Λ} σ_i`: the bond energies of the bonds meeting `Λ` (`SimpleGraph.bondsOf`) and the
+field energies of the sites of `Λ`. -/
+
+section Spins
+variable {S : Type*}
+
+/-- The product `σ_i σ_j` of the two spins on a bond `b = {i, j}`. -/
+def spinBond (σ : S → Bool) : Sym2 S → ℝ :=
+  Sym2.lift ⟨fun i j ↦ spin (σ i) * spin (σ j), fun _ _ ↦ mul_comm _ _⟩
+
+@[simp] lemma spinBond_mk (σ : S → Bool) (i j : S) :
+    spinBond σ s(i, j) = spin (σ i) * spin (σ j) := rfl
+
+/-- The sum `σ_i + σ_j` of the two spins on a bond `b = {i, j}`. -/
+def spinSum (σ : S → Bool) : Sym2 S → ℝ :=
+  Sym2.lift ⟨fun i j ↦ spin (σ i) + spin (σ j), fun _ _ ↦ add_comm _ _⟩
+
+@[simp] lemma spinSum_mk (σ : S → Bool) (i j : S) :
+    spinSum σ s(i, j) = spin (σ i) + spin (σ j) := rfl
+
+end Spins
+
+section Hamiltonian
+variable {S : Type*} [DecidableEq S] {G : SimpleGraph S} [G.LocallyFinite] {J h : ℝ}
+
+/-- Two bonds with the same pair of endpoints are equal: a bond is not a loop. -/
+lemma toFinset_injOn_bondsOf (Λ : Finset S) :
+    ∀ e ∈ G.bondsOf Λ, ∀ f ∈ G.bondsOf Λ, e.toFinset = f.toFinset → e = f := by
+  intro e he f hf hef
+  revert he hf hef
+  refine Sym2.inductionOn e fun a b ↦ Sym2.inductionOn f fun c d he hf hef ↦ ?_
+  have hab : a ≠ b := (SimpleGraph.mk_mem_bondsOf.1 he).1.ne
+  have hcd : c ≠ d := (SimpleGraph.mk_mem_bondsOf.1 hf).1.ne
+  rw [Sym2.toFinset_mk_eq, Sym2.toFinset_mk_eq] at hef
+  have hc : c ∈ ({a, b} : Finset S) := hef ▸ Finset.mem_insert_self c {d}
+  have hd : d ∈ ({a, b} : Finset S) :=
+    hef ▸ Finset.mem_insert_of_mem (Finset.mem_singleton_self d)
+  simp only [Finset.mem_insert, Finset.mem_singleton] at hc hd
+  rcases hc with rfl | rfl <;> rcases hd with rfl | rfl
+  · exact absurd rfl hcd
+  · rfl
+  · exact Sym2.eq_swap
+  · exact absurd rfl hcd
+
+/-- The interactions of the Ising potential that meet `Λ` are the sites of `Λ` and the bonds
+meeting `Λ`; every other interaction meeting `Λ` vanishes. -/
+lemma isingPotential_eq_zero_of_notMem {Λ A : Finset S} (σ : S → Bool)
+    (hd : ¬ Disjoint A Λ) (h1 : A ∉ Λ.image (fun i ↦ ({i} : Finset S)))
+    (h2 : A ∉ (G.bondsOf Λ).image Sym2.toFinset) : isingPotential G J h A σ = 0 := by
+  classical
+  by_cases hc1 : A.card = 1
+  · exfalso
+    obtain ⟨i, rfl⟩ := Finset.card_eq_one.1 hc1
+    obtain ⟨x, hxA, hxΛ⟩ := Finset.not_disjoint_iff.1 hd
+    rw [Finset.mem_singleton] at hxA
+    subst hxA
+    exact h1 (Finset.mem_image.2 ⟨x, hxΛ, rfl⟩)
+  by_cases hc2 : A.card = 2 ∧ ∃ i ∈ A, ∃ j ∈ A, G.Adj i j
+  · exfalso
+    obtain ⟨hcard, i, hi, j, hj, hij⟩ := hc2
+    have hA : A = {i, j} := by
+      refine (Finset.eq_of_subset_of_card_le ?_ ?_).symm
+      · intro x hx
+        rcases Finset.mem_insert.1 hx with rfl | hx
+        · exact hi
+        · rw [Finset.mem_singleton] at hx
+          subst hx
+          exact hj
+      · rw [hcard, Finset.card_pair hij.ne]
+    obtain ⟨x, hxA, hxΛ⟩ := Finset.not_disjoint_iff.1 hd
+    rw [hA, Finset.mem_insert, Finset.mem_singleton] at hxA
+    refine h2 (Finset.mem_image.2 ⟨s(i, j), SimpleGraph.mk_mem_bondsOf.2 ⟨hij, ?_⟩, ?_⟩)
+    · rcases hxA with rfl | rfl
+      · exact Or.inl hxΛ
+      · exact Or.inr hxΛ
+    · rw [Sym2.toFinset_mk_eq, hA]
+  · rw [isingPotential]
+    exact Potential.nearestNeighbourPair_apply_eq_zero hc1 hc2 σ
+
+/-- **The Ising Hamiltonian.**
+`H_Λ^{Φ^{J,h}}(σ) = -J ∑_{b ∩ Λ ≠ ∅} σ_i σ_j - h ∑_{i ∈ Λ} σ_i`: the bond energies of the bonds
+meeting `Λ` and the field energies of the sites of `Λ`. -/
+theorem hamiltonian_isingPotential (Λ : Finset S) (σ : S → Bool) :
+    (isingPotential G J h).hamiltonian Λ σ
+      = -J * ∑ b ∈ G.bondsOf Λ, spinBond σ b - h * ∑ i ∈ Λ, spin (σ i) := by
+  classical
+  have hsing : ∀ i ∈ Λ, (isingPotential G J h).hamiltonianTerms Λ σ {i} = -h * spin (σ i) := by
+    intro i hi
+    rw [Potential.hamiltonianTerms_of_not_disjoint
+        (Finset.not_disjoint_iff.2 ⟨i, Finset.mem_singleton_self i, hi⟩),
+      isingPotential, Potential.nearestNeighbourPair_apply_card_one (Finset.card_singleton i),
+      Finset.sum_singleton]
+  have hbond : ∀ b ∈ G.bondsOf Λ,
+      (isingPotential G J h).hamiltonianTerms Λ σ b.toFinset = -J * spinBond σ b := by
+    intro b hb
+    revert hb
+    refine Sym2.inductionOn b fun i j hb ↦ ?_
+    obtain ⟨hij, hmem⟩ := SimpleGraph.mk_mem_bondsOf.1 hb
+    have hnd : ¬ Disjoint (s(i, j).toFinset) Λ := by
+      rw [Sym2.toFinset_mk_eq, Finset.not_disjoint_iff]
+      rcases hmem with hi | hj
+      · exact ⟨i, by simp, hi⟩
+      · exact ⟨j, by simp, hj⟩
+    rw [Potential.hamiltonianTerms_of_not_disjoint hnd, Sym2.toFinset_mk_eq, isingPotential,
+      Potential.nearestNeighbourPair_apply_pair
+        ⟨Finset.card_pair hij.ne, i, by simp, j, by simp, hij⟩,
+      Finset.prod_pair hij.ne, spinBond_mk]
+  have hdisjT : Disjoint (Λ.image (fun i ↦ ({i} : Finset S)))
+      ((G.bondsOf Λ).image Sym2.toFinset) := by
+    rw [Finset.disjoint_left]
+    rintro A hA hB
+    obtain ⟨i, -, rfl⟩ := Finset.mem_image.1 hA
+    obtain ⟨b, hb, hbA⟩ := Finset.mem_image.1 hB
+    revert hb hbA
+    refine Sym2.inductionOn b fun x y hb hbA ↦ ?_
+    have hxy : x ≠ y := (SimpleGraph.mk_mem_bondsOf.1 hb).1.ne
+    rw [Sym2.toFinset_mk_eq] at hbA
+    have hcard := congrArg Finset.card hbA
+    rw [Finset.card_pair hxy, Finset.card_singleton] at hcard
+    omega
+  have hzero : ∀ A ∉ Λ.image (fun i ↦ ({i} : Finset S)) ∪ (G.bondsOf Λ).image Sym2.toFinset,
+      (isingPotential G J h).hamiltonianTerms Λ σ A = 0 := by
+    intro A hA
+    rw [Finset.mem_union, not_or] at hA
+    by_cases hdisj : Disjoint A Λ
+    · exact Potential.hamiltonianTerms_of_disjoint hdisj σ
+    · rw [Potential.hamiltonianTerms_of_not_disjoint hdisj]
+      exact isingPotential_eq_zero_of_notMem σ hdisj hA.1 hA.2
+  have hone : ∑ A ∈ Λ.image (fun i ↦ ({i} : Finset S)),
+      (isingPotential G J h).hamiltonianTerms Λ σ A = -h * ∑ i ∈ Λ, spin (σ i) := by
+    rw [Finset.sum_image (fun i _ j _ hij ↦ by simpa using hij), Finset.mul_sum]
+    exact Finset.sum_congr rfl hsing
+  have htwo : ∑ A ∈ (G.bondsOf Λ).image Sym2.toFinset,
+      (isingPotential G J h).hamiltonianTerms Λ σ A
+        = -J * ∑ b ∈ G.bondsOf Λ, spinBond σ b := by
+    rw [Finset.sum_image (toFinset_injOn_bondsOf Λ), Finset.mul_sum]
+    exact Finset.sum_congr rfl hbond
+  rw [Potential.hamiltonian_eq_tsum, tsum_eq_sum hzero, Finset.sum_union hdisjT, hone, htwo]
+  ring
+
+end Hamiltonian
 
 /-- The uniform a-priori single-spin measure on `Bool`. -/
 noncomputable def uniformSpinMeasure : Measure Bool := (2 : ℝ≥0∞)⁻¹ • Measure.count

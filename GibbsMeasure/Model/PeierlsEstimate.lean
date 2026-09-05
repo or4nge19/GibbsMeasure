@@ -18,7 +18,10 @@ Georgii, *Gibbs Measures and Phase Transitions*, Section 6.2, towards Theorem (6
   bonds `B*(τ_D ζ) ∆ B*(ζ) = ∂D`, a bijection between the configurations with no discordant
   boundary bond and those whose boundary bonds are all discordant (proof of (6.15)).
 * `hamiltonian_eq`: the Ising energy identity `-H_Λ(ζ) = |B| - 2|B*(ζ)|`, the first display
-  in the proof of (6.15), for the Ising potential with coupling `1` and no external field.
+  in the proof of (6.15), for the Ising potential with coupling `1` and no external field.  It is
+  the `J = 1`, `h = 0` case of `MeasureTheory.GibbsMeasure.hamiltonian_isingPotential`
+  (`GibbsMeasure/Model/Ising.lean`), where each bond energy is `±1` according to `discordant`;
+  `bondsMeeting` is `SimpleGraph.bondsOf (latticeGraph 2)` under Georgii's name.
 * `isingSpecification_edgeBoundary_subset_discordant_le`: the contour estimate (6.15) in
   edge-boundary form, `γ_Λ^{βΦ}({∂D ⊆ B*(·)} | ω) ≤ e^{-2β|∂D|}` for finite `D ⊆ Λ`.
 * `finite_connectedBondSets`, `ncard_connectedBondSets_le_pow`: the counting bound (6.13)
@@ -159,31 +162,17 @@ theorem bijOn_flip {D Λ : Set Site} (hD : D ⊆ Λ) (ω : Site → Bool) :
 
 /-! ### M2: the Ising energy identity (Georgii, proof of (6.15), first display) -/
 
-/-- Georgii (6.11): the nearest-neighbour bonds meeting `Λ`. -/
-def bondsMeeting (Λ : Finset Site) : Finset (Sym2 Site) :=
-  Λ.biUnion fun i ↦ (latticeGraph 2).incidenceFinset i
+/-- Georgii (6.11): the nearest-neighbour bonds meeting `Λ`. This is `SimpleGraph.bondsOf` of
+the lattice graph; the abbreviation only fixes Georgii's name. -/
+abbrev bondsMeeting (Λ : Finset Site) : Finset (Sym2 Site) := (latticeGraph 2).bondsOf Λ
 
 lemma mem_bondsMeeting {Λ : Finset Site} {e : Sym2 Site} :
-    e ∈ bondsMeeting Λ ↔ e ∈ (latticeGraph 2).edgeSet ∧ ∃ i ∈ Λ, i ∈ e := by
-  simp only [bondsMeeting, Finset.mem_biUnion, SimpleGraph.mem_incidenceFinset,
-    SimpleGraph.incidenceSet, Set.mem_ofPred_eq]
-  constructor
-  · rintro ⟨i, hi, he, hie⟩
-    exact ⟨he, i, hi, hie⟩
-  · rintro ⟨he, i, hi, hie⟩
-    exact ⟨i, hi, he, hie⟩
+    e ∈ bondsMeeting Λ ↔ e ∈ (latticeGraph 2).edgeSet ∧ ∃ i ∈ Λ, i ∈ e :=
+  SimpleGraph.mem_bondsOf
 
 lemma mem_bondsMeeting_mk {Λ : Finset Site} {i j : Site} :
-    s(i, j) ∈ bondsMeeting Λ ↔ (latticeGraph 2).Adj i j ∧ (i ∈ Λ ∨ j ∈ Λ) := by
-  rw [mem_bondsMeeting, SimpleGraph.mem_edgeSet]
-  simp only [Sym2.mem_iff]
-  constructor
-  · rintro ⟨h, k, hk, rfl | rfl⟩
-    · exact ⟨h, Or.inl hk⟩
-    · exact ⟨h, Or.inr hk⟩
-  · rintro ⟨h, hk | hk⟩
-    · exact ⟨h, i, hk, Or.inl rfl⟩
-    · exact ⟨h, j, hk, Or.inr rfl⟩
+    s(i, j) ∈ bondsMeeting Λ ↔ (latticeGraph 2).Adj i j ∧ (i ∈ Λ ∨ j ∈ Λ) :=
+  SimpleGraph.mk_mem_bondsOf
 
 lemma edgeBoundary_subset_bondsMeeting {D Λ : Finset Site} (hD : D ⊆ Λ) :
     edgeBoundary ↑D ⊆ ↑(bondsMeeting Λ) := by
@@ -193,108 +182,46 @@ lemma edgeBoundary_subset_bondsMeeting {D Λ : Finset Site} (hD : D ⊆ Λ) :
 lemma edgeBoundary_finset_finite (D : Finset Site) : (edgeBoundary ↑D).Finite :=
   edgeBoundary_finite D.finite_toSet
 
-lemma spin_mul_spin (a b : Bool) : spin a * spin b = if a = b then 1 else -1 := by
-  cases a <;> cases b <;> simp [spin]
-
-/-- The Ising interaction on a bond: `Φ_{i,j} = -σ_i σ_j` (Georgii (6.8)). -/
-lemma isingPotential_pair {i j : Site} (hij : (latticeGraph 2).Adj i j) (ζ : Site → Bool) :
-    isingPotential (latticeGraph 2) 1 0 {i, j} ζ = -(spin (ζ i) * spin (ζ j)) := by
-  rw [isingPotential, Potential.nearestNeighbourPair_apply_pair
-    ⟨Finset.card_pair hij.ne, i, by simp, j, by simp, hij⟩, Finset.prod_pair hij.ne]
-  ring
-
-/-- The Ising interaction vanishes off the bonds (Georgii (6.8)). -/
-lemma isingPotential_eq_zero {A : Finset Site} (ζ : Site → Bool)
-    (hA : ¬ ∃ i j, (latticeGraph 2).Adj i j ∧ A = {i, j}) :
-    isingPotential (latticeGraph 2) 1 0 A ζ = 0 := by
-  by_cases h1 : A.card = 1
-  · rw [isingPotential, Potential.nearestNeighbourPair_apply_card_one h1]
-    simp
-  · by_cases h2 : A.card = 2 ∧ ∃ i ∈ A, ∃ j ∈ A, (latticeGraph 2).Adj i j
-    · exfalso
-      obtain ⟨hcard, i, hi, j, hj, hij⟩ := h2
-      refine hA ⟨i, j, hij, ?_⟩
-      symm
-      apply Finset.eq_of_subset_of_card_le
-      · intro x hx
-        rcases Finset.mem_insert.1 hx with rfl | hx
-        · exact hi
-        · rw [Finset.mem_singleton] at hx
-          subst hx
-          exact hj
-      · exact le_of_eq (by rw [hcard, Finset.card_pair hij.ne])
-    · rw [isingPotential]
-      exact Potential.nearestNeighbourPair_apply_eq_zero h1 h2 ζ
-
-lemma hamiltonianTerms_eq_zero_of_notMem {Λ : Finset Site} (ζ : Site → Bool) {A : Finset Site}
-    (hA : A ∉ (bondsMeeting Λ).image Sym2.toFinset) :
-    (isingPotential (latticeGraph 2) 1 0).hamiltonianTerms Λ ζ A = 0 := by
-  by_cases hdisj : Disjoint A Λ
-  · exact Potential.hamiltonianTerms_of_disjoint hdisj ζ
-  rw [Potential.hamiltonianTerms_of_not_disjoint hdisj]
-  refine isingPotential_eq_zero ζ ?_
-  rintro ⟨i, j, hij, rfl⟩
-  refine hA (Finset.mem_image.2 ⟨s(i, j), ?_, Sym2.toFinset_mk_eq⟩)
-  obtain ⟨x, hxA, hxΛ⟩ := Finset.not_disjoint_iff.1 hdisj
-  refine mem_bondsMeeting_mk.2 ⟨hij, ?_⟩
-  rcases Finset.mem_insert.1 hxA with rfl | hx
-  · exact Or.inl hxΛ
-  · rw [Finset.mem_singleton] at hx
-    subst hx
-    exact Or.inr hxΛ
-
+/-- Two bonds meeting `Λ` with the same pair of endpoints are equal (`toFinset_injOn_bondsOf`
+for the lattice graph). -/
 lemma toFinset_injOn_bondsMeeting (Λ : Finset Site) :
-    Set.InjOn Sym2.toFinset ((bondsMeeting Λ : Finset (Sym2 Site)) : Set (Sym2 Site)) := by
-  intro e he f hf hef
-  induction e using Sym2.ind with
-  | _ a b =>
-  induction f using Sym2.ind with
-  | _ c d =>
-  have hab : a ≠ b := (mem_bondsMeeting_mk.1 (Finset.mem_coe.1 he)).1.ne
-  have hcd : c ≠ d := (mem_bondsMeeting_mk.1 (Finset.mem_coe.1 hf)).1.ne
-  rw [Sym2.toFinset_mk_eq, Sym2.toFinset_mk_eq] at hef
-  have hc : c ∈ ({a, b} : Finset Site) := hef ▸ Finset.mem_insert_self c {d}
-  have hd : d ∈ ({a, b} : Finset Site) :=
-    hef ▸ Finset.mem_insert_of_mem (Finset.mem_singleton_self d)
-  simp only [Finset.mem_insert, Finset.mem_singleton] at hc hd
-  rcases hc with rfl | rfl <;> rcases hd with rfl | rfl
-  · exact absurd rfl hcd
-  · rfl
-  · exact Sym2.eq_swap
-  · exact absurd rfl hcd
+    Set.InjOn Sym2.toFinset ((bondsMeeting Λ : Finset (Sym2 Site)) : Set (Sym2 Site)) :=
+  fun _e he _f hf hef ↦
+    toFinset_injOn_bondsOf Λ _e (Finset.mem_coe.1 he) _f (Finset.mem_coe.1 hf) hef
 
 open Classical in
-lemma hamiltonianTerms_toFinset {Λ : Finset Site} (ζ : Site → Bool) {e : Sym2 Site}
-    (he : e ∈ bondsMeeting Λ) :
-    (isingPotential (latticeGraph 2) 1 0).hamiltonianTerms Λ ζ e.toFinset =
-      -(1 - 2 * if e ∈ discordant ζ then 1 else 0) := by
+/-- The Ising bond energy `σ_i σ_j` of a lattice bond is `-1` on a discordant bond and `1`
+otherwise. -/
+lemma spinBond_eq_one_sub (ζ : Site → Bool) {e : Sym2 Site}
+    (he : e ∈ (latticeGraph 2).edgeSet) :
+    spinBond ζ e = 1 - 2 * (if e ∈ discordant ζ then (1 : ℝ) else 0) := by
   induction e using Sym2.ind with
   | _ i j =>
-  obtain ⟨hij, hΛ⟩ := mem_bondsMeeting_mk.1 he
-  have hnd : ¬ Disjoint s(i, j).toFinset Λ := by
-    rw [Sym2.toFinset_mk_eq, Finset.not_disjoint_iff]
-    rcases hΛ with h | h
-    · exact ⟨i, by simp, h⟩
-    · exact ⟨j, by simp, h⟩
-  rw [Potential.hamiltonianTerms_of_not_disjoint hnd, Sym2.toFinset_mk_eq, isingPotential_pair hij,
-    spin_mul_spin, mem_discordant_mk]
-  rcases eq_or_ne (ζ i) (ζ j) with h | h
-  · simp [h, hij]
-  · simp [h, hij]
+  have hij : (latticeGraph 2).Adj i j := (SimpleGraph.mem_edgeSet _).1 he
+  rw [spinBond_mk, spin_mul_spin]
+  rcases eq_or_ne (ζ i) (ζ j) with hz | hz
+  · have hd : s(i, j) ∉ discordant ζ := fun hc ↦ (mem_discordant_mk.1 hc).2 hz
+    simp [hz, hd]
+  · have hd : s(i, j) ∈ discordant ζ := mem_discordant_mk.2 ⟨hij, hz⟩
+    simp [hz, hd]
     norm_num
 
-
 open Classical in
+/-- **Georgii, proof of (6.15), first display**, in filter form. It is the specialisation of the
+general Ising Hamiltonian decomposition `hamiltonian_isingPotential` to `J = 1`, `h = 0` on the
+square lattice, where each bond energy is `±1` according to `discordant`. -/
 lemma hamiltonian_eq_card_filter (Λ : Finset Site) (ζ : Site → Bool) :
     (isingPotential (latticeGraph 2) 1 0).hamiltonian Λ ζ =
       -(((bondsMeeting Λ).card : ℝ) -
         2 * (((bondsMeeting Λ).filter (· ∈ discordant ζ)).card : ℝ)) := by
-  rw [Potential.hamiltonian_eq_tsum, tsum_eq_sum (s := (bondsMeeting Λ).image Sym2.toFinset)
-    (fun A hA ↦ hamiltonianTerms_eq_zero_of_notMem ζ hA),
-    Finset.sum_image (toFinset_injOn_bondsMeeting Λ),
-    Finset.sum_congr rfl (fun e he ↦ hamiltonianTerms_toFinset ζ he),
-    Finset.sum_neg_distrib, Finset.sum_sub_distrib, ← Finset.mul_sum, Finset.sum_boole,
-    Finset.sum_const, nsmul_eq_mul, mul_one]
+  have hsum : ∑ b ∈ bondsMeeting Λ, spinBond ζ b
+      = ((bondsMeeting Λ).card : ℝ)
+        - 2 * (((bondsMeeting Λ).filter (· ∈ discordant ζ)).card : ℝ) := by
+    rw [Finset.sum_congr rfl (fun e he ↦ spinBond_eq_one_sub ζ (mem_bondsMeeting.1 he).1),
+      Finset.sum_sub_distrib, ← Finset.mul_sum, Finset.sum_boole, Finset.sum_const,
+      nsmul_eq_mul, mul_one]
+  rw [hamiltonian_isingPotential, hsum]
+  ring
 
 /-- **Georgii, proof of (6.15), first display**: `-H_Λ(ζ) = |B| - 2|B*(ζ)|` for the Ising potential
 with coupling `1` and no field, where `B` is the set of bonds meeting `Λ`. -/
