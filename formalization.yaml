@@ -1439,8 +1439,10 @@ alignment:
         Mathlib/LinearAlgebra/BilinearMap/CauchySchwarz.lean). The necessity halves of
         (17.30)-(17.31) for the two-point a priori measure, by Georgii's test functions, with
         three errata (the constant is 2(2N)^{d-1}; his middle expression is 4 cosh, not 4 sinh;
-        his second test function in (17.31) must alternate transversally to k, the printed one
-        giving the same value as the first), and (17.32) for d = 2 through the Cauchy kernel
+        his second test function in (17.31) must alternate transversally to k, the one our copy of
+        the text prints, alternating along k, giving the same value as the first), and (17.32) for
+        d = 2 through the Cauchy kernel; for d = 1 only the nonnegative definiteness of |i|^{-a}
+        is stated, not the r_k-positivity conclusion
         (Mathlib/Analysis/SpecialFunctions/ExpNegAbs.lean, ImproperIntegrals.lean,
         PSeries/Euclidean.lean). Not formalized: the Berg-Maserick converse (17.28)(1), which the
         book cites without proof.
@@ -1531,10 +1533,13 @@ alignment:
         the i.i.d. block field is ergodic, the L^1 ergodic theorem for the block log-densities,
         and the change of measure to lambda^S), along centred cubes, with (4.2), (15.44) on open
         sets and the uniform energy identity (Specification/LargeDeviationsLower.lean). Remaining
-        for (15.45)-(15.48): the assembly of Georgii's proof, every input now being in place; the
-        upper bound's Step 3 is available for finite E only and, consequently, the two displayed limsup/liminf inequalities that are the
-        substance of Corollary (15.48) — only its trailing properties of the rate function are
-        proved; also (15.50)-(15.52), (15.57)-(15.58). Throughout, the a priori measure is a
+        for (15.45)-(15.48): the assembly of Georgii's proof (every input he cites is a theorem;
+        the assembly also needs that the union of the tiles meeting an arbitrary cube has
+        cardinality asymptotic to the cube's, which is not yet proved); the upper bound's Step 3
+        is available for finite E only. Consequently the two displayed limsup/liminf inequalities
+        that are the substance of Corollary (15.48) are not yet proved, only its trailing
+        properties of the rate function; also not formalized: (15.50), (15.51), (15.57)-(15.58).
+        Throughout, the a priori measure is a
         probability measure where Georgii assumes only a finite one.
     - source: "Section 12.2: (12.19)-(12.35)"
       lean: "MeasureTheory.GibbsMeasure.Tree.G_isingTreeSpecification_eq_singleton"

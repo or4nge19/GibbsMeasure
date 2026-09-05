@@ -9,6 +9,7 @@ public import GibbsMeasure.Model.BoundaryLaw
 public import GibbsMeasure.Specification.MarkovInt
 public import GibbsMeasure.Specification.CountingKernel
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Acyclic
+public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.CayleyTree
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Hasse
 
 /-!
@@ -49,8 +50,17 @@ lives in `GibbsMeasure/Mathlib/Combinatorics/SimpleGraph/`, and the counting-mea
 * `IsBoundaryLaw` — **Definition (12.10)**; `IsBoundaryLaw.eq_prod_div_of_normalized` is
   **(12.15)** and `isBoundaryLaw_const_iff` is **(12.16)** on the Cayley tree (the boundary-law
   side of **Corollary (12.17)**).
-* `Markov.IsBoundaryLaw.isBoundaryLaw_hasse_int` — **Example (12.11)**: a boundary law of
-  Definition (11.8) on `ℤ = SimpleGraph.hasse ℤ` is one of Definition (12.10).
+* **Example (12.11)**, complete from the transfer matrices down to the measures:
+  `Markov.IsTransferMatrix.isTransferFamily_hasse_int` and
+  `Markov.transferSpecification_eq_transferSpecification_hasse_int` — the matrix `Q` of (11.1) is
+  the transfer family `Q_{(i,i+1)} = Q`, `Q_{(i,i-1)} = Qᵀ` of (12.9) on
+  `ℤ = SimpleGraph.hasse ℤ` and Georgii's `γ^Q` of §11.1 is its specification (12.8);
+  `Markov.IsBoundaryLaw.isBoundaryLaw_hasse_int` — a boundary law of Definition (11.8) is one of
+  Definition (12.10); and `Markov.boundaryLawMeasure_eq_boundaryLawMeasure_hasse_int` — the
+  measure **(11.10)** of `{ℓ_i, r_i}` *is* the measure **(12.13)** of `intBoundaryLaw ℓ r`. The
+  converse of (12.11) is false:
+  `Markov.exists_isBoundaryLaw_hasse_int_ne_intBoundaryLaw` exhibits a boundary law of (12.10) on
+  `hasse ℤ` that is the `intBoundaryLaw` of no boundary law of (11.8).
 * `boundaryLawWeight`, `volumeLaw`, `normalizedVolumeLaw`, `boundaryLawFDD`,
   `boundaryLawMeasure` — the measure **(12.13)** by Kolmogorov extension; the consistency
   **(12.14)** is `IsBoundaryLaw.exists_lintegral_boundaryLawWeight_insert` /
@@ -868,22 +878,22 @@ lemma IsBoundaryLaw.isProbabilityMeasure_boundaryLawFDD (Λ : Finset S) :
     (hℓ.volumeLaw_univ_ne_top hQ.symm hG.isAcyclic
       (SimpleGraph.connected_induce_hull hG.connected (root hG) Λ))
 
-lemma IsBoundaryLaw.exists_isProjectiveLimit_boundaryLawFDD :
-    ∃ μ : Measure (S → E), IsProjectiveLimit μ (boundaryLawFDD hQ ℓ hG) := by
-  have : ∀ Λ, IsFiniteMeasure (boundaryLawFDD hQ ℓ hG Λ) := fun Λ ↦ by
-    have := hℓ.isProbabilityMeasure_boundaryLawFDD hQ hG Λ
-    infer_instance
-  exact exists_isProjectiveLimit_of_standardBorel (hℓ.isProjectiveMeasureFamily_boundaryLawFDD hQ
-      hG)
+lemma IsBoundaryLaw.isFiniteMeasure_boundaryLawFDD (Λ : Finset S) :
+    IsFiniteMeasure (boundaryLawFDD hQ ℓ hG Λ) :=
+  have := hℓ.isProbabilityMeasure_boundaryLawFDD hQ hG Λ
+  inferInstance
 
 /-- **Georgii (12.12)(a), the measure.** The probability measure `μ` on `E^S` with the cylinder
 probabilities (12.13), obtained from a boundary law on a tree by Kolmogorov's extension theorem. -/
 def boundaryLawMeasure : Measure (S → E) :=
-  (hℓ.exists_isProjectiveLimit_boundaryLawFDD hQ hG).choose
+  have := hℓ.isFiniteMeasure_boundaryLawFDD hQ hG
+  standardBorelProjectiveLimit _ (hℓ.isProjectiveMeasureFamily_boundaryLawFDD hQ hG)
 
 lemma IsBoundaryLaw.isProjectiveLimit_boundaryLawMeasure :
     IsProjectiveLimit (boundaryLawMeasure hQ hℓ hG) (boundaryLawFDD hQ ℓ hG) :=
-  (hℓ.exists_isProjectiveLimit_boundaryLawFDD hQ hG).choose_spec
+  have := hℓ.isFiniteMeasure_boundaryLawFDD hQ hG
+  isProjectiveLimit_standardBorelProjectiveLimit
+    (hℓ.isProjectiveMeasureFamily_boundaryLawFDD hQ hG)
 
 instance isProbabilityMeasure_boundaryLawMeasure :
     IsProbabilityMeasure (boundaryLawMeasure hQ hℓ hG) := by
@@ -2210,6 +2220,189 @@ theorem Markov.transferSpecification_eq_transferSpecification_hasse_int [Nonempt
     rfl
   exact key _ _
     (funext fun Λ ↦ funext fun σ ↦ (transferWeight_intTransferFamily Λ σ).symm) _ _ _ _
+
+/-! ### Georgii (11.10) is Georgii (12.13)
+
+The construction of the measure of a boundary law by Kolmogorov extension is the same on both
+sides of the dictionary: on `ℤ = hasse ℤ` the measure (11.10) of `{ℓ_i, r_i}` of
+`GibbsMeasure/Model/BoundaryLaw.lean` is the measure (12.13) of the associated boundary law
+`intBoundaryLaw ℓ r` of Definition (12.10)
+(`Markov.boundaryLawMeasure_eq_boundaryLawMeasure_hasse_int`). The proof is projective-limit
+uniqueness: both measures give the interval cylinder `[a - 1, b + 1]` the weight
+`ℓ_{a-1}(ζ_{a-1}) Q(ζ_{a-1}, ζ_a) ⋯ Q(ζ_b, ζ_{b+1}) r_{b+1}(ζ_{b+1})`, because the normalising
+constant `z_Λ` of (12.13) is `1` for the interval volume `Λ = [a, b]`
+(`volumeLaw_intBoundaryLaw_Icc_univ`, which is Georgii's normalisation `∑_x ℓ_i(x) r_i(x) = 1`
+of (11.8)).
+
+Example (12.11) is a one-way dictionary: its converse is **false**, and is proved false in
+`Markov.exists_isBoundaryLaw_hasse_int_ne_intBoundaryLaw` at the end of this section. -/
+
+/-- Georgii's boundary `∂Λ` of a finite volume `Λ ⊆ ℤ` (3.4) is the outer boundary of `Λ` in the
+graph `hasse ℤ`. -/
+lemma outerBoundary_hasse_int (Λ : Finset ℤ) :
+    (hasse ℤ).outerBoundary Λ = Markov.boundary Λ := by
+  ext i
+  rw [SimpleGraph.mem_outerBoundary, Markov.mem_boundary]
+  constructor
+  · rintro ⟨hi, j, hj, hij⟩
+    refine ⟨hi, j, hj, ?_⟩
+    rw [abs_eq (by norm_num : (0 : ℤ) ≤ 1)]
+    rcases (hasse_int_adj i j).1 hij with h | h <;> omega
+  · rintro ⟨hi, j, hj, hij⟩
+    rw [abs_eq (by norm_num : (0 : ℤ) ≤ 1)] at hij
+    exact ⟨hi, j, hj, (hasse_int_adj i j).2 (by omega)⟩
+
+/-- `Λ ∪ ∂Λ = [a - 1, b + 1]` for the interval volume `Λ = [a, b]` of `hasse ℤ`. -/
+lemma union_outerBoundary_Icc_hasse_int {a b : ℤ} (hab : a ≤ b) :
+    Finset.Icc a b ∪ (hasse ℤ).outerBoundary (Finset.Icc a b) = Finset.Icc (a - 1) (b + 1) := by
+  rw [outerBoundary_hasse_int, Markov.boundary_Icc hab]
+  ext k
+  simp only [Finset.mem_union, Finset.mem_Icc, Finset.mem_insert, Finset.mem_singleton]
+  omega
+
+/-- Nonempty intervals are connected volumes of `hasse ℤ`. -/
+lemma connected_induce_Icc_hasse_int {a b : ℤ} (hab : a ≤ b) :
+    ((hasse ℤ).induce ((Finset.Icc a b : Finset ℤ) : Set ℤ)).Connected := by
+  have key : ∀ u v : ℤ, u ≤ v → ∃ p : (hasse ℤ).Walk u v, ∀ x ∈ p.support, u ≤ x ∧ x ≤ v := by
+    intro u v huv
+    refine ⟨(hasseIntWalk u (v - u).toNat).copy rfl (by omega), fun x hx ↦ ?_⟩
+    rw [SimpleGraph.Walk.support_copy] at hx
+    have := mem_support_hasseIntWalk hx
+    omega
+  rw [SimpleGraph.connected_induce_iff_forall_exists_walk]
+  refine ⟨⟨a, by simp [hab]⟩, fun u hu v hv ↦ ?_⟩
+  simp only [Finset.coe_Icc, Set.mem_Icc] at hu hv
+  rcases le_total u v with h | h
+  · obtain ⟨p, hp⟩ := key u v h
+    refine ⟨p, fun x hx ↦ ?_⟩
+    simp only [Finset.coe_Icc, Set.mem_Icc]
+    have := hp x hx
+    omega
+  · obtain ⟨p, hp⟩ := key v u h
+    refine ⟨p.reverse, fun x hx ↦ ?_⟩
+    rw [SimpleGraph.Walk.support_reverse, List.mem_reverse] at hx
+    simp only [Finset.coe_Icc, Set.mem_Icc]
+    have := hp x hx
+    omega
+
+/-- The anchor of the left boundary point of an interval volume is its left endpoint. -/
+lemma anchor_Icc_hasse_int_left {a b : ℤ} (hab : a ≤ b) :
+    (hasse ℤ).anchor (Finset.Icc a b) (a - 1) = a :=
+  isAcyclic_hasse_int.anchor_eq (connected_induce_Icc_hasse_int hab)
+    (by rw [outerBoundary_hasse_int, Markov.boundary_Icc hab]; simp)
+    (Finset.mem_Icc.2 ⟨le_rfl, hab⟩) ((hasse_int_adj _ _).2 (Or.inl (by omega)))
+
+/-- The anchor of the right boundary point of an interval volume is its right endpoint. -/
+lemma anchor_Icc_hasse_int_right {a b : ℤ} (hab : a ≤ b) :
+    (hasse ℤ).anchor (Finset.Icc a b) (b + 1) = b :=
+  isAcyclic_hasse_int.anchor_eq (connected_induce_Icc_hasse_int hab)
+    (by rw [outerBoundary_hasse_int, Markov.boundary_Icc hab]; simp)
+    (Finset.mem_Icc.2 ⟨hab, le_rfl⟩) ((hasse_int_adj _ _).2 (Or.inr (by omega)))
+
+omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
+/-- **Georgii Example (12.11) for the weights (12.13).** On the interval volume `Λ = [a, b]` of
+`hasse ℤ` the weight (12.13) of `intBoundaryLaw ℓ r` is the weight (11.10) of `{ℓ_i, r_i}` on
+`[a - 1, b + 1]`: the two boundary factors are `ℓ_{a-1}` and `r_{b+1}`, and the bonds meeting
+`[a, b]` are the bonds of the path from `a - 1` to `b + 1`. -/
+theorem boundaryLawWeight_intBoundaryLaw_Icc
+    (hs : ∀ i j x y, intTransferFamily Q i j x y = intTransferFamily Q j i y x)
+    {a b : ℤ} (hab : a ≤ b) (ζ : ℤ → E) :
+    boundaryLawWeight (hasse ℤ) (intTransferFamily Q) hs (intBoundaryLaw ℓ r) (Finset.Icc a b) ζ
+      = Markov.boundaryLawWeight Q ℓ r (a - 1) (b + 1) ζ := by
+  have ht : transferWeight (hasse ℤ) (intTransferFamily Q) hs (Finset.Icc a b) ζ
+      = Markov.transferWeight Q (Finset.Icc a b) ζ := transferWeight_intTransferFamily _ _
+  rw [boundaryLawWeight, outerBoundary_hasse_int, Markov.boundary_Icc hab,
+    Finset.prod_pair (show a - 1 ≠ b + 1 by omega), anchor_Icc_hasse_int_left hab,
+    anchor_Icc_hasse_int_right hab, intBoundaryLaw_of_succ ℓ r (show a = a - 1 + 1 by omega),
+    intBoundaryLaw_of_pred ℓ r (show b + 1 = b + 1 from rfl), ht,
+    Markov.transferWeight_Icc Q hab, Markov.boundaryLawWeight]
+  ring
+
+/-- **The normalising constant of (12.13) on an interval is `1`.** Georgii's `z_Λ⁻¹` for the
+interval volume `Λ = [a, b]` of `hasse ℤ` is the total mass of the interval law (11.10) of
+`[a - 1, b + 1]`, which is `1` by the normalisation `∑_x ℓ_i(x) r_i(x) = 1` of (11.8). -/
+theorem volumeLaw_intBoundaryLaw_Icc_univ [Nonempty E]
+    (hs : ∀ i j x y, intTransferFamily Q i j x y = intTransferFamily Q j i y x)
+    (hbl : Markov.IsBoundaryLaw Q ℓ r) {a b : ℤ} (hab : a ≤ b) :
+    volumeLaw (hasse ℤ) (intTransferFamily Q) hs (intBoundaryLaw ℓ r) (Finset.Icc a b) Set.univ
+      = 1 := by
+  have h := hbl.intervalLaw_univ (show a - 1 ≤ b + 1 by omega)
+  rw [Markov.intervalLaw, withDensity_apply _ MeasurableSet.univ, Measure.restrict_univ] at h
+  rw [volumeLaw_univ_eq_lintegral, union_outerBoundary_Icc_hasse_int hab,
+    lintegral_congr fun ζ ↦ boundaryLawWeight_intBoundaryLaw_Icc hs hab ζ]
+  exact h
+
+/-- **Georgii Example (12.11) for the measures.** The measure **(11.10)** of a boundary law
+`{ℓ_i, r_i}` for `Q` in the sense of Definition (11.8) is the measure **(12.13)** of the
+associated boundary law `intBoundaryLaw ℓ r` in the sense of Definition (12.10), on the tree
+`ℤ = hasse ℤ` with the transfer family `Q_{(i,i+1)} = Q`, `Q_{(i,i-1)} = Qᵀ`.
+
+Both are projective limits, so it is enough to compare them on the cofinal family of interval
+cylinders `[a - 1, b + 1] = Λ ∪ ∂Λ`, `Λ = [a, b]`. -/
+theorem Markov.boundaryLawMeasure_eq_boundaryLawMeasure_hasse_int [Nonempty E]
+    (hQ : Markov.IsTransferMatrix Q) (hbl : Markov.IsBoundaryLaw Q ℓ r) :
+    Markov.boundaryLawMeasure hbl
+      = boundaryLawMeasure (Markov.IsTransferMatrix.isTransferFamily_hasse_int hQ)
+          (Markov.IsBoundaryLaw.isBoundaryLaw_hasse_int hbl) isTree_hasse_int := by
+  refine ext_of_forall_exists_cyl_eq fun Λ ↦ ?_
+  obtain ⟨N, hN0, hΛ⟩ : ∃ N : ℤ, 0 ≤ N ∧ Λ ⊆ Finset.Icc (-N) N :=
+    ⟨Markov.boundOf Λ, Markov.boundOf_nonneg Λ, Markov.subset_Icc_boundOf Λ⟩
+  have hab : -N ≤ N := by omega
+  refine ⟨Finset.Icc (-N - 1) (N + 1),
+    hΛ.trans (Finset.Icc_subset_Icc (by omega) (by omega)), fun η ↦ ?_⟩
+  have hleft : Markov.boundaryLawMeasure hbl (cyl (Finset.Icc (-N - 1) (N + 1)) η)
+      = Markov.boundaryLawWeight Q ℓ r (-N - 1) (N + 1) η :=
+    hbl.boundaryLawMeasure_intervalCylinder (by omega) η
+  rw [hleft, ← union_outerBoundary_Icc_hasse_int hab,
+    (Markov.IsBoundaryLaw.isBoundaryLaw_hasse_int hbl).boundaryLawMeasure_cyl
+      (Markov.IsTransferMatrix.isTransferFamily_hasse_int hQ) isTree_hasse_int
+      (connected_induce_Icc_hasse_int hab) η,
+    volumeLaw_intBoundaryLaw_Icc_univ _ hbl hab, inv_one, one_mul,
+    boundaryLawWeight_intBoundaryLaw_Icc _ hab]
+
+/-! ### The converse of Example (12.11) -/
+
+/-- Rescaling *both* halves of a boundary law of Definition (11.8) by one constant `κ ∈ (0, ∞)`
+still gives a boundary law of Definition (12.10) on `hasse ℤ`: this is
+`IsBoundaryLaw.div_const` read through the dictionary of Example (12.11). -/
+theorem Markov.IsBoundaryLaw.isBoundaryLaw_div_const_hasse_int (h : Markov.IsBoundaryLaw Q ℓ r)
+    {κ : ℝ≥0∞} (hκ0 : κ ≠ 0) (hκt : κ ≠ ⊤) :
+    IsBoundaryLaw (hasse ℤ) (intTransferFamily Q)
+      (intBoundaryLaw (fun i x ↦ ℓ i x / κ) (fun i x ↦ r i x / κ)) := by
+  have heq : (fun (i j : ℤ) (x : E) ↦ intBoundaryLaw ℓ r i j x / κ)
+      = intBoundaryLaw (fun i x ↦ ℓ i x / κ) (fun i x ↦ r i x / κ) := by
+    funext i j x
+    simp only [intBoundaryLaw]
+    split <;> rfl
+  exact heq ▸ (Markov.IsBoundaryLaw.isBoundaryLaw_hasse_int h).div_const hκ0 hκt
+
+/-- **The converse of Example (12.11) is false.** Not every boundary law of Definition (12.10) on
+`ℤ = hasse ℤ` is the `intBoundaryLaw ℓ' r'` of a boundary law `{ℓ'_i, r'_i}` of Definition
+(11.8): `(ℓ/2, r/2)` witnesses it. Definition (12.10) fixes `ℓ` only up to the bond constants
+`c_{ij}` — `IsBoundaryLaw.div_const` rescales a boundary law by any `κ ∈ (0, ∞)`, and
+`IsBoundaryLaw.boundaryLawMeasure_div_const_eq` says the measure (12.13) does not notice — whereas
+(11.8) pins the scale down with the normalisation `∑_x ℓ_i(x) r_i(x) = 1`, which `(ℓ/2, r/2)`
+violates: `∑_x (ℓ_i(x)/2)(r_i(x)/2) = 1/4`. -/
+theorem Markov.exists_isBoundaryLaw_hasse_int_ne_intBoundaryLaw (h : Markov.IsBoundaryLaw Q ℓ r) :
+    ∃ m : ℤ → ℤ → E → ℝ≥0∞, IsBoundaryLaw (hasse ℤ) (intTransferFamily Q) m
+      ∧ ∀ ℓ' r', Markov.IsBoundaryLaw Q ℓ' r' → m ≠ intBoundaryLaw ℓ' r' := by
+  refine ⟨intBoundaryLaw (fun i x ↦ ℓ i x / 2) (fun i x ↦ r i x / 2),
+    Markov.IsBoundaryLaw.isBoundaryLaw_div_const_hasse_int h (by norm_num) (by norm_num), ?_⟩
+  rintro ℓ' r' h' hm
+  have hℓ' : ∀ (i : ℤ) (x : E), ℓ i x / 2 = ℓ' i x := fun i x ↦ by
+    have hx := congrFun (congrFun (congrFun hm i) (i + 1)) x
+    rwa [intBoundaryLaw_of_succ _ _ rfl, intBoundaryLaw_of_succ ℓ' r' rfl] at hx
+  have hr' : ∀ (i : ℤ) (x : E), r i x / 2 = r' i x := fun i x ↦ by
+    have hx := congrFun (congrFun (congrFun hm i) (i - 1)) x
+    rwa [intBoundaryLaw_of_pred _ _ (by omega), intBoundaryLaw_of_pred ℓ' r' (by omega)] at hx
+  have hone := h'.tsum_left_mul_right 0
+  have hsplit : ∀ x : E, ℓ' 0 x * r' 0 x = ℓ 0 x * r 0 x * (2⁻¹ * 2⁻¹) := fun x ↦ by
+    rw [← hℓ', ← hr']
+    simp_rw [div_eq_mul_inv]
+    ring
+  rw [tsum_congr hsplit, ENNReal.tsum_mul_right, h.tsum_left_mul_right, one_mul,
+    ← ENNReal.mul_inv (Or.inl (by norm_num)) (Or.inl (by norm_num)), ENNReal.inv_eq_one] at hone
+  norm_num at hone
 
 end IntExample
 

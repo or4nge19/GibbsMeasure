@@ -33,7 +33,7 @@ the edges meeting $\Lambda$.
 \begin{definition}[Boundary law on a graph, Georgii (12.10)]
     \label{def:tr-boundary-law}
     \uses{def:tr-transfer}
-    \lean{MeasureTheory.GibbsMeasure.Tree.IsBoundaryLaw, MeasureTheory.GibbsMeasure.Tree.Markov.IsBoundaryLaw.isBoundaryLaw_hasse_int}
+    \lean{MeasureTheory.GibbsMeasure.Tree.IsBoundaryLaw, MeasureTheory.GibbsMeasure.Tree.Markov.IsBoundaryLaw.isBoundaryLaw_hasse_int, MeasureTheory.GibbsMeasure.Tree.Markov.boundaryLawMeasure_eq_boundaryLawMeasure_hasse_int, MeasureTheory.GibbsMeasure.Tree.Markov.exists_isBoundaryLaw_hasse_int_ne_intBoundaryLaw}
     \leanok
 
     A \textbf{boundary law} for $Q$ is a family $(\ell_{ij})$ of positive finite functions on $E$,
@@ -41,7 +41,9 @@ the edges meeting $\Lambda$.
     $\ell_{ij} \propto \prod_{k \in \partial i \setminus \set j} \ell_{ki} Q_{ki}$ for every
     oriented edge $ij$, and finite mass $\sum_x \prod_{k \in \partial i}(\ell_{ki}Q_{ki})(x)$.
     On $\mathbb Z$ a boundary law in the sense of Chapter 11 is a boundary law on the Hasse graph
-    (Georgii (12.11)).
+    (Georgii (12.11)); the measure (11.10) of a boundary law on $\mathbb Z$ is the measure (12.13)
+    of the corresponding tree boundary law, and (12.10) at the Hasse graph of $\mathbb Z$ is strictly
+    weaker than (11.8), a rescaled law satisfying it without the normalisation.
 \end{definition}
 
 \begin{theorem}[Georgii (12.12)]

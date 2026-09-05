@@ -1517,7 +1517,7 @@ closed formula for the entrance vector, with the explicit rate
 the total mass of the renewal part of `α_d` counted twice. (In `ℝ≥0∞` the truncated difference
 `a - b` is the positive part, so `(a - b) + (b - a)` is `|a - b|`.) At the site `i` of `μ^c` the
 parameter is `d = c p^{2i}`, and `∑_{i<0} e^{-c p^{2i}} < ∞`:
-`tsum_tsum_tsub_entranceChain_ne_top`. -/
+`tsum_tsum_tv_entranceChain_ne_top`. -/
 theorem tsum_tv_entranceVector_le {d : ℝ} (hd : 0 < d) :
     (∑' y : ℕ, ((entranceVector p α d y - ENNReal.ofReal (poissonWeight d y))
         + (ENNReal.ofReal (poissonWeight d y) - entranceVector p α d y)))

@@ -521,12 +521,14 @@ field is a local limit of ergodic ones with converging entropy density. Phelps' 
 for `[0,∞]`-valued affine lower semicontinuous functionals with no integrability hypothesis
 (`GibbsMeasure/Mathlib/Analysis/Convex/BarycenterJensen.lean`), the probability random fields embed
 into `𝓕⁰ → ℝ` with `𝓟_Θ` compact convex (`Specification/InvariantFieldsBarycenter.lean`), and
-Georgii's (15.54) holds there; his change of topology turned out to be unnecessary. The McMillan
+Georgii's (15.54) holds there; for finite `E` his change of topology is unnecessary, the ambient vector space being what was missing. The McMillan
 input of (15.47) is proved in the form he uses it, for the independent-block measure of any block law
 on any state space, from the `L¹` ergodic theorem (`Specification/BlockMcMillan.lean`), with (4.2),
 (15.44) on open sets and the uniform energy identity (`Specification/LargeDeviationsLower.lean`).
-Proposition (15.52) holds for an arbitrary box of `ℤ^d`, so every input of (15.45)–(15.48) is in
-place; what remains is the assembly of his proof.
+Proposition (15.52) holds for an arbitrary box of `ℤ^d`, so every input Georgii cites for
+(15.45)–(15.48) is a theorem; what remains is the assembly of his proof, including one combinatorial
+ingredient it uses, that the union of the tiles meeting an arbitrary cube has cardinality
+asymptotic to the cube's.
 
 **Chapter 17** (`GibbsMeasure/Specification/ReflectionPositivity.lean`,
 `Specification/PeriodicGibbs.lean`): reflection positivity for Georgii's generalised reflection,
@@ -544,7 +546,8 @@ halves of Examples (17.30)–(17.32), and the (17.8) erratum as a theorem: symme
 reflection invariance, and a reflection-positive non-invariant measure violates Cauchy–Schwarz;
 the necessity halves of (17.30)–(17.31) by Georgii's test functions (three errata: his constant is
 off by a factor 2, a `sinh` should read `cosh` in a middle display, and his second test function in
-(17.31) must alternate transversally to `k`), and (17.32) in `d = 2` through the Cauchy kernel.
+(17.31), as our copy prints it, would have to alternate transversally to `k`), and (17.32) in `d = 2`
+through the Cauchy kernel.
 Not done: the Berg–Maserick converse (17.28)(1), which the book cites without proof.
 
 **Chapter 18, §18.1** (`GibbsMeasure/Model/StarCrossing.lean`, graph theory in
@@ -560,7 +563,8 @@ unfolded, since a transcription through Mathlib's real `essSup`, which returns a
 his is `+∞`, would be false. `Specification/PeriodicGibbsLimits.lean` identifies the torus measure,
 pulled back to `ℤ^d`, with the Gibbs distribution of the periodic modification of the `C`-potential
 (Example (4.20)(2)), defines `𝒢₀(Φ)` as its cluster points, proves `𝒢₀ ⊆ 𝒢_Θ` and (18.12) for
-standard Borel `E`; `Specification/QuasiGibbsian.lean` proves every Gibbs measure quasi-Gibbsian;
+standard Borel `E`; `Specification/QuasiGibbsian.lean` proves every Gibbs measure of a λ-specification
+with positive densities quasi-Gibbsian;
 `Model/LowEnergyOceans.lean` has the (18.14) consequences for `μ ∈ 𝒢₀(Φ)` and (18.18) in quadrant
 form; (18.11) on the torus; Step 1 of (18.16), Poincaré recurrence for quasi-Gibbsian fields
 (`Specification/QuasiGibbsian.lean`); and the planar input of its Steps 2–3, the two-dimensional

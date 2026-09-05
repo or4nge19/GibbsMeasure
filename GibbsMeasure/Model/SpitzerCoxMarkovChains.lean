@@ -25,10 +25,11 @@ Sites `ℤ`, state space `E = ℤ₊ = ℕ`, `0 < p < 1`, and the Spitzer–Cox 
 * (b) `U` and `V` are independent under `μ̃ = e^{-UV} μ / μ(e^{-UV})`;
 * (c) `μ = ∫ m₁(du) ∫ m₂(dv) e^{uv} μ^{u,v}` for suitable (finite) measures `m₁, m₂` on `[0, ∞[`.
 
-Georgii's point: no Markov chain in `𝒢(Q)` is extreme (the extreme points are the `μ^{u,v}`, for
-which `(U, V)` is deterministic and `(c)` fails unless … it holds trivially — see the remark
-below), and no Markov *field* in `𝒢(Q)` need be a Markov chain; so the converses of Remark
-(10.9)(3) and of Theorem (10.21) fail in general.
+Georgii's point is the failure of two converses: not every Markov chain in `𝒢(Q)` is extreme
+(a nontrivial mixture `½μ^{0,0} + ½μ^{1,0}` is a Markov chain by (c) and not extreme), and not every
+Markov field in `𝒢(Q)` is a Markov chain (`½μ^{0,0} + ½μ^{1,1}` is Gibbs, hence a Markov field, but
+fails (c)); so the converses of Remark (10.9)(3) and of Theorem (10.21) fail in general. The
+extreme points `μ^{u,v}` themselves *are* Markov chains, by (c) with `m₁ = e^{-uv}δ_u`, `m₂ = δ_v`.
 
 ## The formalisation
 
