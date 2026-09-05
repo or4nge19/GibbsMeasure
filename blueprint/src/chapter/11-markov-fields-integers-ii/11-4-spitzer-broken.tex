@@ -2,15 +2,20 @@
 
 \begin{theorem}[Georgii (11.43)--(11.47)]
     \label{thm:sbi-11-43}
-    \uses{def:bl-transfer-matrix, thm:bl-11-14}
-    \lean{MeasureTheory.GibbsMeasure.Markov.Spitzer.step, MeasureTheory.GibbsMeasure.Markov.Spitzer.noImmigration, MeasureTheory.GibbsMeasure.Markov.Spitzer.noImmigration_pow_apply_singleton, MeasureTheory.GibbsMeasure.Markov.Spitzer.step_pow_apply_singleton, MeasureTheory.GibbsMeasure.Markov.Spitzer.sum_firstPassage_step, MeasureTheory.GibbsMeasure.Markov.Spitzer.map_shift_ne, MeasureTheory.GibbsMeasure.Markov.Spitzer.infinite_extremePoints_G}
+    \uses{def:bl-transfer-matrix, thm:bl-11-14, lem:sc-poisson-limit}
+    \lean{MeasureTheory.GibbsMeasure.Markov.Spitzer.step, MeasureTheory.GibbsMeasure.Markov.Spitzer.noImmigration, MeasureTheory.GibbsMeasure.Markov.Spitzer.noImmigration_pow_apply_singleton, MeasureTheory.GibbsMeasure.Markov.Spitzer.step_pow_apply_singleton, MeasureTheory.GibbsMeasure.Markov.Spitzer.sum_firstPassage_step, MeasureTheory.GibbsMeasure.Markov.Spitzer.nonempty_G, MeasureTheory.GibbsMeasure.Markov.Spitzer.isRecurrent_matrix, MeasureTheory.GibbsMeasure.Markov.Spitzer.not_isPositiveRecurrent_matrix, MeasureTheory.GibbsMeasure.Markov.Spitzer.not_exists_isPositiveRecurrent, MeasureTheory.GibbsMeasure.Markov.Spitzer.exists_null_recurrent, MeasureTheory.GibbsMeasure.Markov.Spitzer.map_shift_ne, MeasureTheory.GibbsMeasure.Markov.Spitzer.infinite_extremePoints_G, ProbabilityTheory.Kernel.tsum_tsum_taboo_pow_ne_top_of_invariant, ProbabilityTheory.Kernel.tsum_firstPassage_self_eq_one, ProbabilityTheory.Kernel.potential_pow_two_apply_singleton_self_eq_top, Real.one_sub_pow_le_exp_neg_mul}
     \leanok
 
     For Georgii's subcritical branching matrix with immigration at extinction, the powers of the
     no-immigration part are binomial, $\ell(x, p^n, y)$ (11.45), and the first-passage
     decomposition (11.47) expresses $P^n(x,y)$ through the taboo powers and the hitting times of a
-    state; the extinction times satisfy $\sum_{m<n} f_m(x) = (1-p^n)^x$ for $x \geq 1$. If in
-    addition no change of measure of $Q = P^2$ is positive recurrent, then every shift moves the
-    Gibbs measures and $\operatorname{ex}\mathcal G(\gamma^Q)$ is infinite; that null recurrence is
-    a hypothesis here, not a theorem, so (11.46) itself is not formalised.
+    state; the extinction times satisfy $\sum_{m<n} f_m(x) = (1-p^n)^x$ for $x \geq 1$.
+    $\mathcal G(\gamma^Q) \neq \emptyset$ for every immigration law $\alpha$: the entrance law
+    $\alpha_i = \lim_n P^n(x_{n-i},\cdot)$ along $x_n p^n \to c$ exists by the Poisson limit theorem
+    and dominated convergence, and its Fatou upgrade is a boundary law. With $\mu_P^0(\tau) = \infty$,
+    Georgii's null recurrence, $P$ and $Q = P^2$ are recurrent and no change of measure of $Q$ is
+    positive recurrent (Kac's inequality for the mean return time), so every shift moves the Gibbs
+    measures and $\operatorname{ex}\mathcal G(\gamma^Q)$ is infinite; and $\alpha$ can be chosen
+    so that $\mu_P^0(\tau) = \infty$, as Georgii says. The hypothesis is not removable: for
+    positive recurrent $Q$ the conclusions fail, as he remarks.
 \end{theorem}

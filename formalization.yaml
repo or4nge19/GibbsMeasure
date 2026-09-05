@@ -376,6 +376,14 @@ status:
       file: "GibbsMeasure/Mathlib/Analysis/Convex/Barycenter.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Markov.Spitzer.infinite_extremePoints_G"
+      file: "GibbsMeasure/Model/SpitzerBrokenInvariance.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Markov.Spitzer.exists_null_recurrent"
+      file: "GibbsMeasure/Model/SpitzerBrokenInvariance.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.Shlosman.dgSpecification_abs_excess_le"
       file: "GibbsMeasure/Model/RandomStaircase.lean"
       sorry_count: 0
@@ -1222,8 +1230,8 @@ alignment:
         Poisson law setwise and in total variation (via a Scheffe lemma for series, which Mathlib
         lacks), and dominated convergence for growing finite sums (a Tannery variant Mathlib
         lacks). Note poissonPMFReal is deprecated in this toolchain; the live object is
-        (poissonMeasure r).real {k}. The applications (11.31) Step 1 and the nonemptiness half of
-        (11.46) are not yet written.
+        (poissonMeasure r).real {k}. Applied in (11.31) Step 1 and in the nonemptiness half of
+        (11.46).
     - source: "Proposition (8.34)"
       lean: "MeasureTheory.GibbsMeasure.Dobrushin.ofReal_abs_covariance_le"
       module: "GibbsMeasure/Specification/DobrushinDerivatives.lean"
@@ -1443,16 +1451,27 @@ alignment:
         11.2: the branching-with-immigration transfer matrix (11.20)-(11.27), the binomial
         convolution (11.22) and composition (11.23), reversibility (11.28) with no condition on p,
         the full two-parameter boundary law family (11.29) and its one-site marginals (11.30),
-        pairwise distinctness, and hence G(gamma^Q) uncountable. Not formalized: (11.31)-(11.33),
-        which need the quantitative half of (11.9)(c), the Poisson convergence theorem and (11.32).
+        pairwise distinctness, and hence G(gamma^Q) uncountable; the power formula (11.32) and
+        Step 1 of (11.31) (the limits Q^{n+i}(x_n, .) -> l^u_i along x_n p^n -> u, and the
+        convergence of x_n p^n from that of the ratio Q^{n-1}(x_n,0)/Q^n(x_n,0)). Not formalized:
+        Steps 2-4 of (11.31) and (11.33), which need the quantitative half of (11.9)(c), the
+        left-tail triviality dual to iInf_cylinderEvents_Ici_le_tailSigmaAlgebra, the two-point
+        marginals of a boundary-law measure, the conditional probability given one coordinate,
+        and Borel-Cantelli.
         11.3 Kalikow: (11.34)-(11.38) with infinitely many extreme points and a unique
         shift-invariant Gibbs measure, plus Step 1 of (11.39), the closed form of Q^n; Steps 2-3
         need the quantitative (11.9)(c) and Borel-Cantelli. 11.4 Spitzer: (11.43)-(11.45), the
         first-passage decomposition (11.47) built in general matrix form
         (Mathlib/Probability/Kernel/CountableMatrix/FirstPassage.lean: taboo matrices, hitting
-        times, and the renewal identity), and the extinction-time law. (11.46) still assumes null
-        recurrence of Q = P^2 (needs a mean-return-time characterisation of positive recurrence,
-        Vere-Jones) and nonemptiness of G (needs the Poisson convergence theorem).
+        times, and the renewal identity), and the extinction-time law. (11.46) in full: G(gamma^Q)
+        is nonempty for every immigration law (the entrance law along x_n p^n -> c from the
+        Poisson limit theorem, dominated convergence and the Fatou upgrade); under Georgii's null
+        recurrence mu_P^0(tau) = infinity, P and Q = P^2 are recurrent and no change of measure
+        of Q is positive recurrent, by Kac's inequality for the mean return time
+        (CountableMatrix/FirstPassage.lean, Recurrence.lean), so every shift moves the Gibbs
+        measures and ex G(gamma^Q) is infinite; and alpha can be chosen with
+        mu_P^0(tau) = infinity, as Georgii says. Not formalized: the closing remarks of 11.4
+        (theta_j(mu^c) = mu^{c p^{-2j}}, uncountability of ex G(Q)), which need Borel-Cantelli.
     - source: "Section 6.3: (6.16)-(6.21), (6.25)"
       lean: "MeasureTheory.GibbsMeasure.Shlosman.infinite_GP_dgSpecification_of_log_twelve"
       module: "GibbsMeasure/Model/RandomStaircase.lean"

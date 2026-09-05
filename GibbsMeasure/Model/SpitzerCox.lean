@@ -6,8 +6,11 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Model.BoundaryLawPhaseTransition
+public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.OneSubPow
+public import GibbsMeasure.Mathlib.Probability.Distributions.Poisson.Convergence
 public import Mathlib.Probability.Distributions.Binomial
 public import Mathlib.Probability.Distributions.Poisson.Basic
+public import Mathlib.Topology.MetricSpace.Sequences
 
 /-!
 # Georgii §11.2: the Spitzer–Cox example of phase transition
@@ -32,17 +35,38 @@ while `ℓ^u_i Q = ℓ^u_{i+1}` is Georgii (11.25) followed by (11.24). The one-
 `u = v = 0`, and they determine `(u, v)`, so the `μ^{u,v}` are pairwise distinct and `𝒢(γ^Q)` is
 uncountable.
 
+The power formula **(11.32)** `Q^n(x, ·) = ℓ(x, p^n, ·) ∗ 𝔭(1 - p^n, ·)` is
+`matrix_pow_apply_singleton`, proved by Georgii's induction: (11.22) splits the thinning of the
+survivors and the immigrants of the previous step, (11.25) thins the Poisson part, (11.23)
+composes the two binomial thinnings and (11.24) merges the two Poisson parts. Together with the
+Poisson convergence theorem (`ProbabilityTheory.tendsto_choose_mul_pow_of_tendsto_mul`,
+`GibbsMeasure/Mathlib/Probability/Distributions/Poisson/Convergence.lean`) it gives the *limit*
+half of Step 1 of the proof of Theorem (11.31): `Q^{m_n}(x_n, ·) → 𝔭(1 + a, ·)` whenever
+`m_n → ∞` and `x_n p^{m_n} → a` (`tendsto_matrix_pow_apply_singleton`), hence
+`Q^{n+i}(x_n, ·) → ℓ^u_i` whenever `x_n p^n → u`
+(`tendsto_matrix_pow_apply_singleton_entrance`).
+
+**Step 1 of the proof of Theorem (11.31) is proved in full**
+(`exists_tendsto_matrix_pow_apply_singleton_of_tendsto_ratio`): if
+`c = lim_n Q^{n-1}(x_n, 0)/Q^n(x_n, 0)` exists and is positive, then `u = lim_n x_n p^n` exists
+and `Q^{n+i}(x_n, ·) → ℓ^u_i` for every `i`. Georgii's estimate
+`Q^{n-1}(x_n,0)/Q^n(x_n,0) ≤ e · exp[-x_n p^{n-1}(1 - p)]`
+(`toReal_matrix_pow_apply_zero_div_le`, using `matrix_pow_apply_zero`) bounds `(x_n p^n)`, and
+`c = ℓ^u_{-1}(0)/ℓ^u_0(0) = exp(-u(1-p)/p)` pins down the unique cluster point.
+
 The full Theorem (11.31) — `ex 𝒢(Q) = {μ^{u,v} : u, v ≥ 0}` together with the integral
-representation over the limits `U = lim_{i → -∞} σ_i p^{-i}`, `V = lim_{i → ∞} σ_i p^i` — is not
-formalised, and neither is Corollary (11.33). What is missing for it is *not* the family: it is
-the quantitative half of Theorem (11.9)(c), i.e. the explicit limit formulas
-`ℓ_i = ℓ_0(0) lim_n Q^{n+i}(x_n, ·)/Q^n(x_n, 0)` for the boundary law of an extreme Gibbs measure
-(`exists_isBoundaryLaw_boundaryLawMeasure_eq_of_mem_extremePoints` in
-`GibbsMeasure/Model/BoundaryLawUniqueness.lean` gives the existence of the boundary law but not
-these formulas), plus the Poisson convergence theorem and the power formula (11.32)
-`Q^n(x, ·) = ℓ(x, p^n, ·) ∗ 𝔭(1 - p^n, ·)`. **(11.32) is not proved here**: Georgii's induction
-needs the convolution identities (11.22)–(11.25) applied inside a double Cauchy product, and the
-generating-function route would need an identity theorem for power series.
+representation over the limits `U = lim_{i → -∞} σ_i p^{-i}`, `V = lim_{i → ∞} σ_i p^i` — is
+**not** formalised, and neither is Corollary (11.33). What is still missing is:
+
+* **the quantitative half of Theorem (11.9)(c)**, i.e. the explicit limit formulas
+  `ℓ_i = ℓ_0(0) lim_n Q^{n+i}(x_n, ·)/Q^n(x_n, 0)` (`i < 0`) and
+  `r_i = r_0(0) lim_n Q^{n-i}(·, y_n)/Q^n(0, y_n)` (`i > 0`) for the boundary law of an extreme
+  Gibbs measure. `exists_isBoundaryLaw_boundaryLawMeasure_eq_of_mem_extremePoints`
+  (`GibbsMeasure/Model/BoundaryLawUniqueness.lean`) gives the *existence* of the boundary law but
+  not these formulas; they need the backward martingale theorem together with the triviality of
+  the left tail under an extreme Gibbs measure. This is the sole obstruction to Steps 2 and 4;
+* Step 3, the Borel–Cantelli argument giving `μ^{u,v}(U = u, V = v) = 1`, and the extreme
+  decomposition theorem (7.26) bookkeeping of Step 4.
 
 ## Main declarations
 
@@ -61,6 +85,13 @@ generating-function route would need an identity theorem for power series.
   the generating functions `(1 - p + pz)^n`, `e^{a(z-1)}` and `(1 - p + pz)^x e^{(1-p)(z-1)}`.
 * `matrixReal`, `matrix` — **Georgii (11.26)–(11.27)**; `matrixReal_pos`, `tsum_matrixReal`
   (positive and stochastic), `isTransferMatrix` (Georgii (11.1)).
+* `binomialPoissonWeight`, `matrix_pow_apply_singleton` — **Georgii (11.32)**,
+  `Q^n(x, ·) = ℓ(x, p^n, ·) ∗ 𝔭(1 - p^n, ·)`; `matrix_pow_apply_zero` is its value at `y = 0`.
+* `tendsto_matrix_pow_apply_singleton`, `tendsto_matrix_pow_apply_singleton_entrance`,
+  `exists_tendsto_mul_pow_of_tendsto_ratio`,
+  `exists_tendsto_matrix_pow_apply_singleton_of_tendsto_ratio` — **Georgii Theorem (11.31),
+  Step 1**: `x_n p^n → u` implies `Q^{n+i}(x_n, ·) → ℓ^u_i`, and a positive limit of the ratios
+  `Q^{n-1}(x_n, 0)/Q^n(x_n, 0)` forces `x_n p^n` to converge.
 * `poissonWeight_one_mul_matrixReal_comm` — **Georgii (11.28)**, reversibility of `α = 𝔭(1, ·)`:
   `α(x) Q(x, y) = α(y) Q(y, x)`, both sides being the symmetric sum
   `∑_{k ≤ x ∧ y} c_k q^{x-k} q^{y-k}/((x-k)!(y-k)!)` (`reversibleSummand`).
@@ -536,6 +567,215 @@ lemma tsum_matrixReal_mul_pow (hp0 : 0 ≤ p) (hp1 : p ≤ 1) {z : ℝ} (hz : 0 
 
 end Matrix
 
+/-! ## Georgii (11.32): the powers of `Q` -/
+
+section Powers
+
+/-- The weight `ℓ(x, a, ·) ∗ 𝔭(b, ·)`: the law of the sum of a `Binomial(x, a)` variable and an
+independent `Poisson(b)` variable. Georgii's matrix (11.26) is `Q = ℓ(·, p, ·) ∗ 𝔭(1 - p, ·)`
+(`matrixReal_eq_binomialPoissonWeight`), and **(11.32)** says that its `n`-th power is
+`ℓ(·, p^n, ·) ∗ 𝔭(1 - p^n, ·)`: after `n` time units each of the original `x` individuals is
+still alive with probability `p^n`, and the immigrants of the intermediate steps have
+accumulated to an independent `Poisson(1 - p^n)` number. -/
+def binomialPoissonWeight (a b : ℝ) (x y : ℕ) : ℝ :=
+  ∑ k ∈ Finset.range (y + 1), binomialWeight x a k * poissonWeight b (y - k)
+
+/-- **Georgii (11.26)** is the case `a = p`, `b = 1 - p` of `binomialPoissonWeight`. -/
+lemma matrixReal_eq_binomialPoissonWeight (p : ℝ) (x y : ℕ) :
+    matrixReal p x y = binomialPoissonWeight p (1 - p) x y := rfl
+
+variable {a b p q : ℝ}
+
+lemma binomialPoissonWeight_nonneg (ha0 : 0 ≤ a) (ha1 : a ≤ 1) (hb : 0 ≤ b) (x y : ℕ) :
+    0 ≤ binomialPoissonWeight a b x y :=
+  Finset.sum_nonneg fun k _ ↦
+    mul_nonneg (binomialWeight_nonneg ha0 ha1 x k) (poissonWeight_nonneg hb _)
+
+/-- `ℓ(x, a, ·) ∗ 𝔭(b, ·)` summed over the *binomial* index: `ℓ(x, a, k)` vanishes for `k > x`,
+so the convolution may be summed over `range (x + 1)`, at the price of truncating the Poisson
+factor. Both forms are the sum over `k ≤ x ∧ y`. -/
+lemma binomialPoissonWeight_eq_sum_range (a b : ℝ) (x y : ℕ) :
+    binomialPoissonWeight a b x y
+      = ∑ k ∈ Finset.range (x + 1),
+          binomialWeight x a k * (if k ≤ y then poissonWeight b (y - k) else 0) := by
+  have hsub₁ : Finset.range (min x y + 1) ⊆ Finset.range (y + 1) := fun k hk ↦
+    Finset.mem_range.2 ((Finset.mem_range.1 hk).trans_le (Nat.succ_le_succ (min_le_right x y)))
+  have hsub₂ : Finset.range (min x y + 1) ⊆ Finset.range (x + 1) := fun k hk ↦
+    Finset.mem_range.2 ((Finset.mem_range.1 hk).trans_le (Nat.succ_le_succ (min_le_left x y)))
+  have h₁ : binomialPoissonWeight a b x y
+      = ∑ k ∈ Finset.range (min x y + 1), binomialWeight x a k * poissonWeight b (y - k) := by
+    refine (Finset.sum_subset hsub₁ fun k hk hk' ↦ ?_).symm
+    simp only [Finset.mem_range, Nat.lt_succ_iff] at hk hk'
+    rw [binomialWeight_eq_zero (by omega), zero_mul]
+  have h₂ : (∑ k ∈ Finset.range (x + 1),
+        binomialWeight x a k * (if k ≤ y then poissonWeight b (y - k) else 0))
+      = ∑ k ∈ Finset.range (min x y + 1),
+          binomialWeight x a k * (if k ≤ y then poissonWeight b (y - k) else 0) := by
+    refine (Finset.sum_subset hsub₂ fun k hk hk' ↦ ?_).symm
+    simp only [Finset.mem_range, Nat.lt_succ_iff] at hk hk'
+    rw [ite_eq_right (by omega), mul_zero]
+  rw [h₁, h₂]
+  refine Finset.sum_congr rfl fun k hk ↦ ?_
+  simp only [Finset.mem_range, Nat.lt_succ_iff] at hk
+  rw [ite_eq_left (by omega)]
+
+/-- The `k`-th slice of Georgii's double Cauchy product: an independent `Poisson(b)` immigration
+of `l` individuals joins `k` survivors, and the resulting `l + k` individuals are thinned by `p`.
+By (11.22) the thinning splits, and by (11.25) the Poisson part becomes `𝔭(b p, ·)`. -/
+private lemma hasSum_poissonWeight_mul_binomialWeight_add (hb : 0 ≤ b) (hp1 : p ≤ 1) (k m : ℕ) :
+    HasSum (fun l : ℕ ↦ poissonWeight b l * binomialWeight (l + k) p m)
+      (∑ i ∈ Finset.range (m + 1), binomialWeight k p i * poissonWeight (b * p) (m - i)) := by
+  have hterm : ∀ l : ℕ, poissonWeight b l * binomialWeight (l + k) p m
+      = ∑ i ∈ Finset.range (m + 1),
+          binomialWeight k p i * (poissonWeight b l * binomialWeight l p (m - i)) := by
+    intro l
+    rw [add_comm l k, ← sum_binomialWeight_mul_binomialWeight p k l m, Finset.mul_sum]
+    exact Finset.sum_congr rfl fun i _ ↦ by ring
+  exact (hasSum_sum fun i _ ↦
+    (hasSum_poissonWeight_mul_binomialWeight hb hp1 (m - i)).mul_left
+      (binomialWeight k p i)).congr_fun hterm
+
+/-- The same slice, indexed by the total population `w = l + k` rather than by the number `l` of
+immigrants. -/
+private lemma hasSum_ite_poissonWeight_mul_binomialWeight (hb : 0 ≤ b) (hp1 : p ≤ 1) (k m : ℕ) :
+    HasSum (fun w : ℕ ↦ (if k ≤ w then poissonWeight b (w - k) else 0) * binomialWeight w p m)
+      (∑ i ∈ Finset.range (m + 1), binomialWeight k p i * poissonWeight (b * p) (m - i)) := by
+  set F : ℕ → ℝ :=
+    fun w ↦ (if k ≤ w then poissonWeight b (w - k) else 0) * binomialWeight w p m with hF
+  have hshift : ∀ l : ℕ, F (l + k) = poissonWeight b l * binomialWeight (l + k) p m := fun l ↦ by
+    simp [hF, Nat.le_add_left k l]
+  have hzero : ∀ i ∈ Finset.range k, F i = 0 := fun i hi ↦ by
+    simp only [Finset.mem_range] at hi
+    simp [hF, Nat.not_le.2 hi]
+  have h := (hasSum_nat_add_iff (f := F) k).1
+    ((hasSum_poissonWeight_mul_binomialWeight_add hb hp1 k m).congr_fun hshift)
+  rwa [Finset.sum_eq_zero hzero, add_zero] at h
+
+/-- **Thinning `ℓ(x, a, ·) ∗ 𝔭(b, ·)` by `p`.** Each of the two independent summands is thinned
+separately: (11.23) turns `ℓ(x, a, ·)` into `ℓ(x, a p, ·)` and (11.25) turns `𝔭(b, ·)` into
+`𝔭(b p, ·)`. -/
+lemma hasSum_binomialPoissonWeight_mul_binomialWeight (hb : 0 ≤ b) (hp1 : p ≤ 1) (x m : ℕ) :
+    HasSum (fun w : ℕ ↦ binomialPoissonWeight a b x w * binomialWeight w p m)
+      (binomialPoissonWeight (a * p) (b * p) x m) := by
+  have hterm : ∀ w : ℕ, binomialPoissonWeight a b x w * binomialWeight w p m
+      = ∑ k ∈ Finset.range (x + 1), binomialWeight x a k *
+          ((if k ≤ w then poissonWeight b (w - k) else 0) * binomialWeight w p m) := fun w ↦ by
+    rw [binomialPoissonWeight_eq_sum_range, Finset.sum_mul]
+    exact Finset.sum_congr rfl fun k _ ↦ by ring
+  have hsum := (hasSum_sum fun k (_ : k ∈ Finset.range (x + 1)) ↦
+    (hasSum_ite_poissonWeight_mul_binomialWeight hb hp1 k m).mul_left
+      (binomialWeight x a k)).congr_fun hterm
+  have hval : (∑ k ∈ Finset.range (x + 1), binomialWeight x a k *
+      ∑ i ∈ Finset.range (m + 1), binomialWeight k p i * poissonWeight (b * p) (m - i))
+      = binomialPoissonWeight (a * p) (b * p) x m := by
+    have h1 : ∀ k ∈ Finset.range (x + 1), binomialWeight x a k *
+        ∑ i ∈ Finset.range (m + 1), binomialWeight k p i * poissonWeight (b * p) (m - i)
+        = ∑ i ∈ Finset.range (m + 1),
+            binomialWeight x a k * binomialWeight k p i * poissonWeight (b * p) (m - i) :=
+      fun k _ ↦ by rw [Finset.mul_sum]; exact Finset.sum_congr rfl fun i _ ↦ by ring
+    have h2 : ∀ i ∈ Finset.range (m + 1),
+        (∑ k ∈ Finset.range (x + 1),
+          binomialWeight x a k * binomialWeight k p i * poissonWeight (b * p) (m - i))
+        = binomialWeight x (a * p) i * poissonWeight (b * p) (m - i) := fun i _ ↦ by
+      rw [← Finset.sum_mul, sum_binomialWeight_mul_binomialWeight_left a p x i]
+    rw [Finset.sum_congr rfl h1, Finset.sum_comm, Finset.sum_congr rfl h2,
+      binomialPoissonWeight]
+  rwa [hval] at hsum
+
+/-- **Convolving the Poisson part**, Georgii's last step in the induction for (11.32):
+`(ℓ(x, a, ·) ∗ 𝔭(b, ·)) ∗ 𝔭(q, ·) = ℓ(x, a, ·) ∗ 𝔭(b + q, ·)`, by (11.24). -/
+lemma sum_binomialPoissonWeight_mul_poissonWeight (a b q : ℝ) (x y : ℕ) :
+    ∑ m ∈ Finset.range (y + 1), binomialPoissonWeight a b x m * poissonWeight q (y - m)
+      = binomialPoissonWeight a (b + q) x y := by
+  have hterm : ∀ m ∈ Finset.range (y + 1),
+      binomialPoissonWeight a b x m * poissonWeight q (y - m)
+      = ∑ k ∈ Finset.range (x + 1), binomialWeight x a k *
+          ((if k ≤ m then poissonWeight b (m - k) else 0) * poissonWeight q (y - m)) :=
+    fun m _ ↦ by
+      rw [binomialPoissonWeight_eq_sum_range, Finset.sum_mul]
+      exact Finset.sum_congr rfl fun k _ ↦ by ring
+  rw [Finset.sum_congr rfl hterm, Finset.sum_comm,
+    binomialPoissonWeight_eq_sum_range a (b + q) x y]
+  refine Finset.sum_congr rfl fun k _ ↦ ?_
+  rw [← Finset.mul_sum]
+  congr 1
+  by_cases hky : k ≤ y
+  · rw [ite_eq_left hky]
+    have hsub : Finset.Ico k (y + 1) ⊆ Finset.range (y + 1) := by
+      rw [Finset.range_eq_Ico]; exact Finset.Ico_subset_Ico (Nat.zero_le k) le_rfl
+    have hz : ∀ m ∈ Finset.range (y + 1), m ∉ Finset.Ico k (y + 1) →
+        (if k ≤ m then poissonWeight b (m - k) else 0) * poissonWeight q (y - m) = 0 := by
+      intro m hm hm'
+      simp only [Finset.mem_range, Nat.lt_succ_iff] at hm
+      simp only [Finset.mem_Ico, not_and, not_lt] at hm'
+      rw [ite_eq_right (fun h ↦ absurd (hm' h) (by omega)), zero_mul]
+    have hre : ∀ t ∈ Finset.range (y - k + 1),
+        (if k ≤ k + t then poissonWeight b (k + t - k) else 0) * poissonWeight q (y - (k + t))
+        = poissonWeight b t * poissonWeight q (y - k - t) := by
+      intro t ht
+      simp only [Finset.mem_range, Nat.lt_succ_iff] at ht
+      rw [ite_eq_left (Nat.le_add_right k t)]
+      congr 2 <;> omega
+    rw [← Finset.sum_subset hsub hz, Finset.sum_Ico_eq_sum_range,
+      show y + 1 - k = y - k + 1 from by omega, Finset.sum_congr rfl hre,
+      sum_poissonWeight_mul_poissonWeight]
+  · rw [ite_eq_right hky]
+    refine Finset.sum_eq_zero fun m hm ↦ ?_
+    simp only [Finset.mem_range, Nat.lt_succ_iff] at hm
+    rw [ite_eq_right (fun h ↦ hky (h.trans hm)), zero_mul]
+
+/-- **The Chapman–Kolmogorov step of Georgii's induction for (11.32).** Applying the matrix
+`ℓ(·, p, ·) ∗ 𝔭(q, ·)` to `ℓ(x, a, ·) ∗ 𝔭(b, ·)` gives `ℓ(x, a p, ·) ∗ 𝔭(b p + q, ·)`:
+`hasSum_binomialPoissonWeight_mul_binomialWeight` thins the pair by `p`, and
+`sum_binomialPoissonWeight_mul_poissonWeight` adds the new immigrants. -/
+lemma hasSum_binomialPoissonWeight_mul_binomialPoissonWeight (hb : 0 ≤ b) (hp1 : p ≤ 1)
+    (x y : ℕ) :
+    HasSum (fun w : ℕ ↦ binomialPoissonWeight a b x w * binomialPoissonWeight p q w y)
+      (binomialPoissonWeight (a * p) (b * p + q) x y) := by
+  have hterm : ∀ w : ℕ, binomialPoissonWeight a b x w * binomialPoissonWeight p q w y
+      = ∑ m ∈ Finset.range (y + 1),
+          binomialPoissonWeight a b x w * binomialWeight w p m * poissonWeight q (y - m) :=
+    fun w ↦ by
+      have hbp : binomialPoissonWeight p q w y
+          = ∑ m ∈ Finset.range (y + 1), binomialWeight w p m * poissonWeight q (y - m) := rfl
+      rw [hbp, Finset.mul_sum]
+      exact Finset.sum_congr rfl fun m _ ↦ by ring
+  have hsum := (hasSum_sum fun m (_ : m ∈ Finset.range (y + 1)) ↦
+    (hasSum_binomialPoissonWeight_mul_binomialWeight (a := a) hb hp1 x m).mul_right
+      (poissonWeight q (y - m))).congr_fun hterm
+  rwa [sum_binomialPoissonWeight_mul_poissonWeight] at hsum
+
+/-- `ℓ(x, 1, ·) ∗ 𝔭(0, ·) = δ_x`: the case `n = 0` of (11.32), where nobody dies and nobody
+immigrates. -/
+lemma binomialWeight_one (x k : ℕ) : binomialWeight x 1 k = if k = x then 1 else 0 := by
+  simp only [binomialWeight, one_pow, mul_one, sub_self]
+  rcases lt_trichotomy k x with h | rfl | h
+  · rw [zero_pow (by omega), mul_zero, ite_eq_right (by omega)]
+  · simp
+  · rw [Nat.choose_eq_zero_of_lt h, ite_eq_right (by omega)]
+    simp
+
+lemma poissonWeight_zero_rate (k : ℕ) : poissonWeight 0 k = if k = 0 then 1 else 0 := by
+  rcases Nat.eq_zero_or_pos k with rfl | hk
+  · simp [poissonWeight]
+  · rw [ite_eq_right hk.ne', poissonWeight, zero_pow hk.ne', mul_zero, zero_div]
+
+lemma binomialPoissonWeight_one_zero (x y : ℕ) :
+    binomialPoissonWeight 1 0 x y = if x = y then 1 else 0 := by
+  simp only [binomialPoissonWeight, binomialWeight_one, poissonWeight_zero_rate]
+  rcases le_or_gt x y with hxy | hxy
+  · rw [Finset.sum_eq_single x (fun k _ hk ↦ by rw [ite_eq_right hk, zero_mul])
+      (fun hx ↦ absurd (Finset.mem_range.2 (by omega)) hx), ite_eq_left rfl, one_mul]
+    rcases eq_or_lt_of_le hxy with rfl | hlt
+    · simp
+    · rw [ite_eq_right (by omega), ite_eq_right (by omega)]
+  · rw [ite_eq_right (by omega)]
+    refine Finset.sum_eq_zero fun k hk ↦ ?_
+    simp only [Finset.mem_range, Nat.lt_succ_iff] at hk
+    rw [ite_eq_right (by omega), zero_mul]
+
+end Powers
+
 /-! ## Georgii (11.29): the right vectors `r^v_i` -/
 
 section RightVector
@@ -670,6 +910,45 @@ because it is stochastic. -/
 lemma isTransferMatrix (hp0 : 0 < p) (hp1 : p < 1) : IsTransferMatrix (matrix p) :=
   isTransferMatrix_of_stochastic (matrix_pos hp0 hp1) (tsum_matrix hp0.le hp1.le)
 
+/-- **Georgii (11.32).** `Q^n(x, ·) = ℓ(x, p^n, ·) ∗ 𝔭(1 - p^n, ·)`: after `n` time units each of
+the `x` initial individuals is still alive with probability `p^n`, independently of the others,
+and the immigrants that arrived in the meantime form an independent `Poisson(1 - p^n)`
+population. This is Georgii's induction: (11.22) splits the thinning of the `k` survivors and the
+`l` immigrants of the previous step, (11.25) thins the Poisson part, (11.23) composes the two
+binomial thinnings, and (11.24) merges the two Poisson parts — all of it packaged in
+`hasSum_binomialPoissonWeight_mul_binomialPoissonWeight`. The identity also holds for `n = 0`,
+where `ℓ(x, 1, ·) ∗ 𝔭(0, ·) = δ_x`. -/
+theorem matrix_pow_apply_singleton (hp0 : 0 ≤ p) (hp1 : p ≤ 1) (n x y : ℕ) :
+    (Kernel.ofMatrix (matrix p) ^ n) x {y}
+      = ENNReal.ofReal (binomialPoissonWeight (p ^ n) (1 - p ^ n) x y) := by
+  induction n generalizing y with
+  | zero =>
+      rw [Kernel.pow_zero_apply_singleton, pow_zero, sub_self, binomialPoissonWeight_one_zero]
+      rcases eq_or_ne x y with rfl | hxy
+      · simp
+      · rw [Set.indicator_of_notMem (by simpa using hxy), ite_eq_right hxy,
+          ENNReal.ofReal_zero]
+  | succ n ih =>
+      have hpn0 : (0 : ℝ) ≤ p ^ n := pow_nonneg hp0 n
+      have hpn1 : p ^ n ≤ 1 := pow_le_one₀ hp0 hp1
+      have hb : (0 : ℝ) ≤ 1 - p ^ n := by linarith
+      have hq : (0 : ℝ) ≤ 1 - p := by linarith
+      have hmul : ∀ w : ℕ, (Kernel.ofMatrix (matrix p) ^ n) x {w} * matrix p w y
+          = ENNReal.ofReal (binomialPoissonWeight (p ^ n) (1 - p ^ n) x w
+              * binomialPoissonWeight p (1 - p) w y) := fun w ↦ by
+        rw [ih w,
+          show matrix p w y = ENNReal.ofReal (binomialPoissonWeight p (1 - p) w y) from rfl,
+          ← ENNReal.ofReal_mul (binomialPoissonWeight_nonneg hpn0 hpn1 hb x w)]
+      have hkey := hasSum_binomialPoissonWeight_mul_binomialPoissonWeight
+        (a := p ^ n) (q := 1 - p) hb hp1 x y
+      have hrate : (1 - p ^ n) * p + (1 - p) = 1 - p ^ (n + 1) := by rw [pow_succ]; ring
+      rw [Kernel.ofMatrix_pow_succ'_apply_singleton]
+      simp only [hmul]
+      rw [← ENNReal.ofReal_tsum_of_nonneg
+          (fun w ↦ mul_nonneg (binomialPoissonWeight_nonneg hpn0 hpn1 hb x w)
+            (binomialPoissonWeight_nonneg hp0 hp1 hq w y)) hkey.summable,
+        hkey.tsum_eq, ← pow_succ, hrate]
+
 /-- **Georgii (11.29) at `v = 0`:** `ℓ^u_i Q = ℓ^u_{i+1}`, because
 `(1 + u p^i) p + (1 - p) = 1 + u p^{i+1}`. -/
 theorem isEntranceLaw (hp0 : 0 < p) (hp1 : p < 1) (hu : 0 ≤ u) :
@@ -694,6 +973,259 @@ theorem isEntranceLaw (hp0 : 0 < p) (hp1 : p < 1) (hu : 0 ≤ u) :
         (summable_poissonWeight_mul_matrixReal (rate_pos hp0 hu i).le hp1.le y),
       tsum_poissonWeight_mul_matrixReal (rate_pos hp0 hu i).le hp1.le y, hrate]
     rfl
+
+/-! ### Georgii Theorem (11.31), Step 1: the limits of the rows `Q^n(x_n, ·)` -/
+
+section RowLimits
+
+open Filter
+open scoped Topology
+
+/-- `Q^n(x, 0) = (1 - p^n)^x e^{-(1 - p^n)}`: after `n` steps the whole initial population is
+extinct and no immigrant is alive. This is the quantity whose ratios Georgii uses in Step 1 of
+the proof of Theorem (11.31). -/
+theorem matrix_pow_apply_zero (hp0 : 0 ≤ p) (hp1 : p ≤ 1) (n x : ℕ) :
+    (Kernel.ofMatrix (matrix p) ^ n) x {0}
+      = ENNReal.ofReal ((1 - p ^ n) ^ x * Real.exp (-(1 - p ^ n))) := by
+  rw [matrix_pow_apply_singleton hp0 hp1 n x 0]
+  congr 1
+  simp [binomialPoissonWeight, binomialWeight, poissonWeight_zero]
+
+lemma continuous_poissonWeight (k : ℕ) : Continuous fun a : ℝ ↦ poissonWeight a k := by
+  unfold poissonWeight
+  fun_prop
+
+/-- **Georgii Theorem (11.31), Step 1 (the limit).** If `m_n → ∞` and `x_n p^{m_n} → a`, then
+`Q^{m_n}(x_n, ·) → 𝔭(1 + a, ·)`.
+
+By (11.32) the row `Q^m(x, ·)` is the convolution `ℓ(x, p^m, ·) ∗ 𝔭(1 - p^m, ·)`, a *finite* sum
+at each `y`; the binomial factor converges to `𝔭(a, ·)` by the Poisson limit theorem
+(`ProbabilityTheory.tendsto_choose_mul_pow_of_tendsto_mul`) and the Poisson factor to `𝔭(1, ·)`,
+and `𝔭(a, ·) ∗ 𝔭(1, ·) = 𝔭(1 + a, ·)` by (11.24). -/
+theorem tendsto_matrix_pow_apply_singleton (hp0 : 0 < p) (hp1 : p < 1)
+    {x m : ℕ → ℕ} {a : ℝ} (hm : Tendsto m atTop atTop)
+    (hlim : Tendsto (fun n ↦ (x n : ℝ) * p ^ m n) atTop (𝓝 a)) (y : ℕ) :
+    Tendsto (fun n ↦ (Kernel.ofMatrix (matrix p) ^ m n) (x n) {y}) atTop
+      (𝓝 (ENNReal.ofReal (poissonWeight (1 + a) y))) := by
+  have hpm : Tendsto (fun n ↦ p ^ m n) atTop (𝓝 0) :=
+    (tendsto_pow_atTop_nhds_zero_of_lt_one hp0.le hp1).comp hm
+  have hbin : ∀ k : ℕ, Tendsto (fun n ↦ binomialWeight (x n) (p ^ m n) k) atTop
+      (𝓝 (poissonWeight a k)) := fun k ↦
+    ProbabilityTheory.tendsto_choose_mul_pow_of_tendsto_mul hlim hpm k
+  have hpois : ∀ k : ℕ, Tendsto (fun n ↦ poissonWeight (1 - p ^ m n) k) atTop
+      (𝓝 (poissonWeight 1 k)) := fun k ↦ by
+    refine ((continuous_poissonWeight k).tendsto 1).comp ?_
+    simpa using tendsto_const_nhds.sub hpm
+  have hconv : Tendsto (fun n ↦ binomialPoissonWeight (p ^ m n) (1 - p ^ m n) (x n) y) atTop
+      (𝓝 (∑ k ∈ Finset.range (y + 1), poissonWeight a k * poissonWeight 1 (y - k))) :=
+    tendsto_finsetSum _ fun k _ ↦ (hbin k).mul (hpois (y - k))
+  have hval : (∑ k ∈ Finset.range (y + 1), poissonWeight a k * poissonWeight 1 (y - k))
+      = poissonWeight (1 + a) y := by
+    rw [sum_poissonWeight_mul_poissonWeight a 1 y, add_comm]
+  rw [← hval]
+  exact (ENNReal.tendsto_ofReal hconv).congr fun n ↦
+    (matrix_pow_apply_singleton hp0.le hp1.le (m n) (x n) y).symm
+
+/-- **Georgii Theorem (11.31), Step 1.** If `x_n p^n → u` then `Q^{n+i}(x_n, ·) → ℓ^u_i` for
+every `i ∈ ℤ`, where `ℓ^u_i = 𝔭(1 + u p^i, ·)` is Georgii's left boundary vector (11.29). -/
+theorem tendsto_matrix_pow_apply_singleton_entrance (hp0 : 0 < p) (hp1 : p < 1) {u : ℝ}
+    {x : ℕ → ℕ} (hlim : Tendsto (fun n ↦ (x n : ℝ) * p ^ n) atTop (𝓝 u)) (i : ℤ) (y : ℕ) :
+    Tendsto (fun n : ℕ ↦ (Kernel.ofMatrix (matrix p) ^ ((n : ℤ) + i).toNat) (x n) {y}) atTop
+      (𝓝 (entrance p u i y)) := by
+  have hm : Tendsto (fun n : ℕ ↦ ((n : ℤ) + i).toNat) atTop atTop := by
+    refine tendsto_atTop_atTop.2 fun b ↦ ⟨b + i.natAbs, fun n hn ↦ ?_⟩
+    have hn' : (b : ℤ) + (i.natAbs : ℤ) ≤ (n : ℤ) := by exact_mod_cast hn
+    omega
+  have heq : ∀ᶠ n : ℕ in atTop,
+      ((x n : ℝ) * p ^ n) * p ^ i = (x n : ℝ) * p ^ (((n : ℤ) + i).toNat) := by
+    filter_upwards [eventually_ge_atTop i.natAbs] with n hn
+    have hn' : (i.natAbs : ℤ) ≤ (n : ℤ) := by exact_mod_cast hn
+    have hz : ((((n : ℤ) + i).toNat : ℕ) : ℤ) = (n : ℤ) + i := by omega
+    rw [← zpow_natCast p (((n : ℤ) + i).toNat), hz, zpow_add₀ hp0.ne', zpow_natCast]
+    ring
+  exact tendsto_matrix_pow_apply_singleton hp0 hp1 hm
+    (Tendsto.congr' heq (hlim.mul_const (p ^ i))) y
+
+/-- **Georgii's Step-1 estimate** for Theorem (11.31): the ratio of two consecutive extinction
+probabilities is at most `e · exp[-x p^m (1 - p)]`, because
+`(1 - p^m)/(1 - p^{m+1}) ≤ 1 - p^m(1 - p)`. It is what forces the sequence `(x_n p^n)` to be
+bounded when the ratio has a positive limit. -/
+private lemma toReal_matrix_pow_apply_zero_div_le (hp0 : 0 < p) (hp1 : p < 1) (m x : ℕ) :
+    ((Kernel.ofMatrix (matrix p) ^ m) x {0}).toReal
+      / ((Kernel.ofMatrix (matrix p) ^ (m + 1)) x {0}).toReal
+      ≤ Real.exp 1 * Real.exp (-((x : ℝ) * (p ^ m * (1 - p)))) := by
+  set q : ℝ := p ^ m with hq
+  have hq0 : 0 < q := pow_pos hp0 m
+  have hq1 : q ≤ 1 := pow_le_one₀ hp0.le hp1.le
+  have hqp : p ^ (m + 1) = q * p := by rw [hq, pow_succ]
+  have hB1 : (0 : ℝ) < 1 - q * p := by nlinarith
+  have hA0 : (0 : ℝ) ≤ 1 - q := by linarith
+  have hAnn : (0 : ℝ) ≤ (1 - q) ^ x * Real.exp (-(1 - q)) :=
+    mul_nonneg (pow_nonneg hA0 x) (Real.exp_pos _).le
+  have hBpos : (0 : ℝ) < (1 - q * p) ^ x * Real.exp (-(1 - q * p)) :=
+    mul_pos (pow_pos hB1 x) (Real.exp_pos _)
+  rw [matrix_pow_apply_zero hp0.le hp1.le m x, matrix_pow_apply_zero hp0.le hp1.le (m + 1) x,
+    ENNReal.toReal_ofReal hAnn, hqp, ENNReal.toReal_ofReal hBpos.le]
+  have hsplit : ((1 - q) ^ x * Real.exp (-(1 - q))) / ((1 - q * p) ^ x * Real.exp (-(1 - q * p)))
+      = ((1 - q) / (1 - q * p)) ^ x * Real.exp (q - q * p) := by
+    rw [← div_mul_div_comm, ← Real.exp_sub, ← div_pow]
+    congr 2
+    ring
+  rw [hsplit]
+  have hbase : (1 - q) / (1 - q * p) ≤ 1 - q * (1 - p) := by
+    rw [div_le_iff₀ hB1]
+    nlinarith [mul_nonneg (mul_nonneg (mul_nonneg hq0.le hq0.le) hp0.le)
+      (sub_nonneg.2 hp1.le)]
+  have hpow : ((1 - q) / (1 - q * p)) ^ x ≤ Real.exp (-(q * (1 - p) * x)) :=
+    (pow_le_pow_left₀ (by positivity) hbase x).trans
+      (Real.one_sub_pow_le_exp_neg_mul (by nlinarith) x)
+  have hexp : Real.exp (q - q * p) ≤ Real.exp 1 := Real.exp_le_exp.2 (by nlinarith)
+  calc ((1 - q) / (1 - q * p)) ^ x * Real.exp (q - q * p)
+      ≤ Real.exp (-(q * (1 - p) * x)) * Real.exp 1 :=
+        mul_le_mul hpow hexp (Real.exp_pos _).le (Real.exp_pos _).le
+    _ = Real.exp 1 * Real.exp (-((x : ℝ) * (p ^ m * (1 - p)))) := by
+        rw [mul_comm]
+        congr 2
+        rw [hq]
+        ring
+
+/-- **Georgii Theorem (11.31), Step 1 (the existence of `u`).** If the ratios
+`Q^{n-1}(x_n, 0)/Q^n(x_n, 0)` converge to a positive limit `c`, then `u = lim_n x_n p^n` exists
+and is nonnegative.
+
+Georgii's estimate `toReal_matrix_pow_apply_zero_div_le` bounds the ratio by
+`e · exp[-x_n p^{n-1}(1 - p)]`, so a positive limit forces `(x_n p^n)` to be bounded; every
+cluster point `u` of the bounded sequence satisfies `c = ℓ^u_{-1}(0)/ℓ^u_0(0) = exp(-u(1-p)/p)`
+by `tendsto_matrix_pow_apply_singleton`, so the cluster point is unique and the sequence
+converges. -/
+theorem exists_tendsto_mul_pow_of_tendsto_ratio (hp0 : 0 < p) (hp1 : p < 1) {x : ℕ → ℕ} {c : ℝ}
+    (hc : 0 < c)
+    (hratio : Tendsto (fun n : ℕ ↦
+        ((Kernel.ofMatrix (matrix p) ^ (n - 1)) (x n) {0}).toReal
+          / ((Kernel.ofMatrix (matrix p) ^ n) (x n) {0}).toReal) atTop (𝓝 c)) :
+    ∃ u : ℝ, 0 ≤ u ∧ Tendsto (fun n : ℕ ↦ (x n : ℝ) * p ^ n) atTop (𝓝 u) := by
+  have hq1 : (0 : ℝ) < 1 - p := by linarith
+  set t : ℕ → ℝ := fun n ↦ (x n : ℝ) * p ^ n with hty
+  have ht0 : ∀ n, 0 ≤ t n := fun n ↦ by positivity
+  set R : ℕ → ℝ := fun n ↦ ((Kernel.ofMatrix (matrix p) ^ (n - 1)) (x n) {0}).toReal
+      / ((Kernel.ofMatrix (matrix p) ^ n) (x n) {0}).toReal with hRy
+  -- Step 1a: the sequence `(t n)` is bounded.
+  set M : ℝ := -(p * Real.log (c / (2 * Real.exp 1))) / (1 - p) with hMy
+  have hbdd : ∀ᶠ n in atTop, t n ≤ M := by
+    filter_upwards [eventually_ge_atTop 1,
+      (tendsto_order.1 hratio).1 (c / 2) (by linarith)] with n hn hgt
+    obtain ⟨m, rfl⟩ : ∃ m, n = m + 1 := ⟨n - 1, by omega⟩
+    have hle : R (m + 1) ≤ Real.exp 1 * Real.exp (-((x (m + 1) : ℝ) * (p ^ m * (1 - p)))) := by
+      simpa only [hRy, Nat.add_sub_cancel] using
+        toReal_matrix_pow_apply_zero_div_le hp0 hp1 m (x (m + 1))
+    have hpm : (0 : ℝ) < p ^ m := pow_pos hp0 m
+    have hrewrite : (x (m + 1) : ℝ) * (p ^ m * (1 - p)) = t (m + 1) * (1 - p) / p := by
+      rw [hty]
+      field_simp [pow_succ]
+      ring
+    rw [hrewrite] at hle
+    have hexp : c / (2 * Real.exp 1) < Real.exp (-(t (m + 1) * (1 - p) / p)) := by
+      have he : (0 : ℝ) < Real.exp 1 := Real.exp_pos 1
+      rw [div_lt_iff₀ (by positivity)]
+      nlinarith [Real.exp_pos (-(t (m + 1) * (1 - p) / p))]
+    have hlog := Real.log_lt_log (by positivity) hexp
+    rw [Real.log_exp] at hlog
+    have hkey : t (m + 1) * (1 - p) / p < -Real.log (c / (2 * Real.exp 1)) := by linarith
+    rw [div_lt_iff₀ hp0] at hkey
+    rw [hMy, le_div_iff₀ hq1]
+    linarith
+  -- Step 1b: every cluster point of `(t n)` equals `u₀`.
+  set u₀ : ℝ := -(p * Real.log c) / (1 - p) with hu₀y
+  have hcluster : ∀ θ : ℕ → ℕ, Tendsto θ atTop atTop → ∀ a : ℝ,
+      Tendsto (fun j ↦ t (θ j)) atTop (𝓝 a) → a = u₀ := by
+    intro θ hθ a ha
+    have hden : Tendsto (fun j ↦ (Kernel.ofMatrix (matrix p) ^ θ j) (x (θ j)) {0}) atTop
+        (𝓝 (ENNReal.ofReal (poissonWeight (1 + a) 0))) :=
+      tendsto_matrix_pow_apply_singleton hp0 hp1 hθ ha 0
+    have hθ1 : Tendsto (fun j ↦ θ j - 1) atTop atTop := by
+      refine tendsto_atTop_atTop.2 fun b ↦ ?_
+      obtain ⟨j₀, hj₀⟩ := tendsto_atTop_atTop.1 hθ (b + 1)
+      exact ⟨j₀, fun j hj ↦ by have := hj₀ j hj; omega⟩
+    have hnumlim : Tendsto (fun j ↦ (x (θ j) : ℝ) * p ^ (θ j - 1)) atTop (𝓝 (a / p)) := by
+      refine Tendsto.congr' ?_ (ha.div_const p)
+      filter_upwards [hθ.eventually_ge_atTop 1] with j hj
+      simp only [hty]
+      have hpj : p ^ (θ j) = p ^ (θ j - 1) * p := by
+        rw [← pow_succ]
+        congr 1
+        omega
+      rw [hpj]
+      field_simp
+    have hnum : Tendsto (fun j ↦ (Kernel.ofMatrix (matrix p) ^ (θ j - 1)) (x (θ j)) {0}) atTop
+        (𝓝 (ENNReal.ofReal (poissonWeight (1 + a / p) 0))) :=
+      tendsto_matrix_pow_apply_singleton hp0 hp1 hθ1 hnumlim 0
+    have hnumR : Tendsto (fun j ↦ ((Kernel.ofMatrix (matrix p) ^ (θ j - 1)) (x (θ j)) {0}).toReal)
+        atTop (𝓝 (Real.exp (-(1 + a / p)))) := by
+      have hval : (ENNReal.ofReal (poissonWeight (1 + a / p) 0)).toReal
+          = Real.exp (-(1 + a / p)) := by
+        rw [poissonWeight_zero, ENNReal.toReal_ofReal (Real.exp_pos _).le]
+      have h1 : Tendsto (fun j ↦ ((Kernel.ofMatrix (matrix p) ^ (θ j - 1)) (x (θ j)) {0}).toReal)
+          atTop (𝓝 (ENNReal.ofReal (poissonWeight (1 + a / p) 0)).toReal) :=
+        (ENNReal.tendsto_toReal ENNReal.ofReal_ne_top).comp hnum
+      rwa [hval] at h1
+    have hdenR : Tendsto (fun j ↦ ((Kernel.ofMatrix (matrix p) ^ θ j) (x (θ j)) {0}).toReal)
+        atTop (𝓝 (Real.exp (-(1 + a)))) := by
+      have hval : (ENNReal.ofReal (poissonWeight (1 + a) 0)).toReal = Real.exp (-(1 + a)) := by
+        rw [poissonWeight_zero, ENNReal.toReal_ofReal (Real.exp_pos _).le]
+      have h1 : Tendsto (fun j ↦ ((Kernel.ofMatrix (matrix p) ^ θ j) (x (θ j)) {0}).toReal)
+          atTop (𝓝 (ENNReal.ofReal (poissonWeight (1 + a) 0)).toReal) :=
+        (ENNReal.tendsto_toReal ENNReal.ofReal_ne_top).comp hden
+      rwa [hval] at h1
+    have hRlim : Tendsto (fun j ↦ R (θ j)) atTop
+        (𝓝 (Real.exp (-(1 + a / p)) / Real.exp (-(1 + a)))) :=
+      hnumR.div hdenR (Real.exp_pos _).ne'
+    have hRc : Tendsto (fun j ↦ R (θ j)) atTop (𝓝 c) := hratio.comp hθ
+    have heq : Real.exp (-(1 + a / p)) / Real.exp (-(1 + a)) = c :=
+      tendsto_nhds_unique hRlim hRc
+    rw [← Real.exp_sub] at heq
+    have hlog : -(1 + a / p) - -(1 + a) = Real.log c := by
+      rw [← heq, Real.log_exp]
+    have hpa : a - a / p = Real.log c := by linarith
+    have hpne : p ≠ 0 := hp0.ne'
+    have hmul : a * p - a = p * Real.log c := by
+      field_simp at hpa
+      linarith
+    rw [hu₀y, eq_div_iff (by linarith : (1 : ℝ) - p ≠ 0)]
+    linarith
+  -- Step 1c: a bounded sequence with a unique cluster point converges.
+  have hconv : Tendsto t atTop (𝓝 u₀) := by
+    refine tendsto_of_subseq_tendsto fun ns hns ↦ ?_
+    have hfreq : ∃ᶠ j in atTop, t (ns j) ∈ Set.Icc 0 M := by
+      refine ((hns.eventually hbdd).mono fun j hj ↦ ?_).frequently
+      exact ⟨ht0 _, hj⟩
+    obtain ⟨b, _, ms, hms, hmslim⟩ :=
+      tendsto_subseq_of_frequently_bounded (Metric.isBounded_Icc 0 M) hfreq
+    refine ⟨ms, ?_⟩
+    have hθ : Tendsto (fun j ↦ ns (ms j)) atTop atTop := hns.comp hms.tendsto_atTop
+    have hb : b = u₀ := hcluster _ hθ b hmslim
+    rw [← hb]
+    exact hmslim
+  exact ⟨u₀, ge_of_tendsto' hconv ht0, hconv⟩
+
+/-- **Georgii Theorem (11.31), Step 1**, in full: let `(x_n)` be a sequence in `E` for which
+`c = lim_n Q^{n-1}(x_n, 0)/Q^n(x_n, 0)` exists and is positive. Then `u = lim_n x_n p^n` exists
+and `lim_n Q^{n+i}(x_n, ·) = ℓ^u_i` for every `i ∈ ℤ`.
+
+This is the point at which Steps 2 and 4 of Georgii's proof read off the parameter `u` of an
+extreme Gibbs measure from the limit formulas of Theorem (11.9)(c). -/
+theorem exists_tendsto_matrix_pow_apply_singleton_of_tendsto_ratio (hp0 : 0 < p) (hp1 : p < 1)
+    {x : ℕ → ℕ} {c : ℝ} (hc : 0 < c)
+    (hratio : Tendsto (fun n : ℕ ↦
+        ((Kernel.ofMatrix (matrix p) ^ (n - 1)) (x n) {0}).toReal
+          / ((Kernel.ofMatrix (matrix p) ^ n) (x n) {0}).toReal) atTop (𝓝 c)) :
+    ∃ u : ℝ, 0 ≤ u ∧ Tendsto (fun n : ℕ ↦ (x n : ℝ) * p ^ n) atTop (𝓝 u) ∧
+      ∀ (i : ℤ) (y : ℕ), Tendsto
+        (fun n : ℕ ↦ (Kernel.ofMatrix (matrix p) ^ ((n : ℤ) + i).toNat) (x n) {y}) atTop
+        (𝓝 (entrance p u i y)) := by
+  obtain ⟨u, hu0, hu⟩ := exists_tendsto_mul_pow_of_tendsto_ratio hp0 hp1 hc hratio
+  exact ⟨u, hu0, hu, fun i y ↦ tendsto_matrix_pow_apply_singleton_entrance hp0 hp1 hu i y⟩
+
+end RowLimits
 
 /-- **Georgii (11.29).** The right vector `e^{-uv} r^v_i` of Georgii's boundary law, as an
 `ℝ≥0∞`-valued function. -/

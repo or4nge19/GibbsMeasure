@@ -165,4 +165,176 @@ theorem ofMatrix_pow_apply_singleton_eq_taboo_add (Q : α → α → ℝ≥0∞)
               firstPassage_zero]
             ring
 
+/-- A path counted by a positive power of the taboo matrix never *ends* at `z`, whatever its
+starting point: its last step avoids the deleted column. -/
+lemma tabooMatrix_pow_succ_apply_self (x : α) (n : ℕ) :
+    (ofMatrix (tabooMatrix Q z) ^ (n + 1)) x {z} = 0 := by
+  rw [ofMatrix_pow_succ'_apply_singleton]
+  simp only [tabooMatrix_apply_self, mul_zero, tsum_zero]
+
+/-- **The renewal equation** at the state `z`: `Q^{n+1}(z, z) = ∑_{m ≤ n} f_m(z) Q^{n-m}(z, z)`,
+the first-passage decomposition of a path from `z` back to `z`. -/
+theorem pow_succ_apply_singleton_self_eq_sum (n : ℕ) :
+    (ofMatrix Q ^ (n + 1)) z {z}
+      = ∑ m ∈ Finset.range (n + 1), firstPassage Q z m z * (ofMatrix Q ^ (n - m)) z {z} := by
+  rw [ofMatrix_pow_apply_singleton_eq_taboo_add Q z (n + 1) z z,
+    tabooMatrix_pow_succ_apply_self z n, zero_add]
+  exact Finset.sum_congr rfl fun m _ ↦ by rw [show n + 1 - 1 - m = n - m from by omega]
+
+/-- **Recurrence from a sure first passage** (the renewal criterion). If the first-passage
+weights of `Q` at `z` sum to `1` — for a stochastic `Q` this says that the chain started at `z`
+returns to `z` almost surely — then the Green function of `Q` at `z` is infinite,
+`∑ₙ Qⁿ(z, z) = ∞`. Indeed the renewal equation gives `U = 1 + (∑ₘ f_m) U = 1 + U` for
+`U = ∑ₙ Qⁿ(z, z)`, which is impossible for a finite `U`. -/
+theorem tsum_pow_apply_singleton_self_eq_top_of_tsum_firstPassage
+    (h : ∑' m, firstPassage Q z m z = 1) :
+    ∑' n, (ofMatrix Q ^ n) z {z} = ∞ := by
+  by_contra hfin
+  have hu0 : (ofMatrix Q ^ 0) z {z} = 1 := by
+    rw [pow_zero_apply_singleton]
+    simp
+  have hite : ∀ n : ℕ, (ofMatrix Q ^ (n + 1)) z {z}
+      = ∑' m : ℕ, (if m ≤ n then firstPassage Q z m z * (ofMatrix Q ^ (n - m)) z {z} else 0) := by
+    intro n
+    rw [pow_succ_apply_singleton_self_eq_sum n,
+      tsum_eq_sum (s := Finset.range (n + 1)) fun m hm ↦
+        ite_eq_right (by simpa [Nat.lt_succ_iff] using hm)]
+    exact (Finset.sum_congr rfl fun m hm ↦
+      ite_eq_left (Nat.lt_succ_iff.1 (Finset.mem_range.1 hm))).symm
+  have hshift : ∀ m : ℕ,
+      (∑' n : ℕ, (if m ≤ n then firstPassage Q z m z * (ofMatrix Q ^ (n - m)) z {z} else 0))
+      = firstPassage Q z m z * ∑' j : ℕ, (ofMatrix Q ^ j) z {z} := by
+    intro m
+    have hz : ∀ i ∈ Finset.range m,
+        (if m ≤ i then firstPassage Q z m z * (ofMatrix Q ^ (i - m)) z {z} else 0) = 0 :=
+      fun i hi ↦ ite_eq_right (by simpa using Nat.not_le.2 (Finset.mem_range.1 hi))
+    have hb := Summable.sum_add_tsum_nat_add'
+      (f := fun n : ℕ ↦ (if m ≤ n then firstPassage Q z m z * (ofMatrix Q ^ (n - m)) z {z}
+        else 0)) (k := m) ENNReal.summable
+    rw [Finset.sum_eq_zero hz, zero_add] at hb
+    rw [← hb, ← ENNReal.tsum_mul_left]
+    exact tsum_congr fun j ↦ by rw [ite_eq_left (Nat.le_add_left m j), Nat.add_sub_cancel]
+  have hdouble : (∑' n : ℕ, (ofMatrix Q ^ (n + 1)) z {z})
+      = ∑' n : ℕ, (ofMatrix Q ^ n) z {z} := by
+    calc (∑' n : ℕ, (ofMatrix Q ^ (n + 1)) z {z})
+        = ∑' n : ℕ, ∑' m : ℕ,
+            (if m ≤ n then firstPassage Q z m z * (ofMatrix Q ^ (n - m)) z {z} else 0) :=
+          tsum_congr hite
+      _ = ∑' m : ℕ, ∑' n : ℕ,
+            (if m ≤ n then firstPassage Q z m z * (ofMatrix Q ^ (n - m)) z {z} else 0) :=
+          ENNReal.tsum_comm
+      _ = ∑' m : ℕ, firstPassage Q z m z * ∑' j : ℕ, (ofMatrix Q ^ j) z {z} :=
+          tsum_congr hshift
+      _ = (∑' m : ℕ, firstPassage Q z m z) * ∑' j : ℕ, (ofMatrix Q ^ j) z {z} :=
+          ENNReal.tsum_mul_right
+      _ = ∑' n : ℕ, (ofMatrix Q ^ n) z {z} := by rw [h, one_mul]
+  have hsplit : (∑' n : ℕ, (ofMatrix Q ^ n) z {z})
+      = 1 + ∑' n : ℕ, (ofMatrix Q ^ n) z {z} := by
+    conv_lhs => rw [tsum_eq_zero_add' ENNReal.summable]
+    rw [hu0, hdouble]
+  have h2 : (∑' n : ℕ, (ofMatrix Q ^ n) z {z}) + 1
+      = (∑' n : ℕ, (ofMatrix Q ^ n) z {z}) + 0 := by
+    rw [add_zero, add_comm _ (1 : ℝ≥0∞), ← hsplit]
+  exact one_ne_zero ((ENNReal.add_right_inj hfin).1 h2)
+
+/-! ### Kac's inequality -/
+
+/-- **Kac's inequality, pointwise.** If `v` is an invariant vector of the matrix `Q`, then
+`v z ∑_{n < N} Tⁿ(z, y) ≤ v y` for the taboo matrix `T` at `z`: the paths that leave `z` and
+have not yet returned carry at most the mass that `v` puts on their current position. -/
+theorem mul_sum_taboo_pow_le_of_invariant {v : α → ℝ≥0∞}
+    (hv : ∀ y, ∑' x, v x * Q x y = v y) (N : ℕ) (y : α) :
+    v z * ∑ n ∈ Finset.range N, (ofMatrix (tabooMatrix Q z) ^ n) z {y} ≤ v y := by
+  induction N generalizing y with
+  | zero => simp
+  | succ N ih =>
+      have hterm : ∀ n : ℕ, (ofMatrix (tabooMatrix Q z) ^ (n + 1)) z {y}
+          = ∑' w, (ofMatrix (tabooMatrix Q z) ^ n) z {w} * tabooMatrix Q z w y := fun n ↦
+        ofMatrix_pow_succ'_apply_singleton _ n z y
+      have hhead : v z * ∑ n ∈ Finset.range (N + 1), (ofMatrix (tabooMatrix Q z) ^ n) z {y}
+          = v z * (ofMatrix (tabooMatrix Q z) ^ 0) z {y}
+            + ∑' w, (v z * ∑ n ∈ Finset.range N, (ofMatrix (tabooMatrix Q z) ^ n) z {w})
+                * tabooMatrix Q z w y := by
+        rw [Finset.sum_range_succ' _ N, mul_add, add_comm]
+        congr 1
+        rw [Finset.sum_congr rfl fun n _ ↦ hterm n,
+          ← Summable.tsum_finsetSum fun n (_ : n ∈ Finset.range N) ↦ ENNReal.summable,
+          ← ENNReal.tsum_mul_left]
+        exact tsum_congr fun w ↦ by
+          simp only [Finset.mul_sum, Finset.sum_mul, mul_assoc]
+      rw [hhead]
+      have htail : (∑' w, (v z * ∑ n ∈ Finset.range N, (ofMatrix (tabooMatrix Q z) ^ n) z {w})
+          * tabooMatrix Q z w y) ≤ ∑' w, v w * tabooMatrix Q z w y :=
+        ENNReal.tsum_le_tsum fun w ↦ mul_le_mul' (ih w) le_rfl
+      rcases eq_or_ne y z with hyz | hy
+      · have hz : ∀ w, tabooMatrix Q z w y = 0 := fun w ↦ by
+          rw [hyz]; exact tabooMatrix_apply_self w
+        simp only [hz, mul_zero, tsum_zero, add_zero]
+        rw [pow_zero_apply_singleton, Set.indicator_of_mem (by simpa using hyz.symm),
+          Pi.one_apply, mul_one, hyz]
+      · rw [pow_zero_apply_singleton, Set.indicator_of_notMem (by simpa using Ne.symm hy),
+          mul_zero, zero_add]
+        refine htail.trans (le_of_eq ?_)
+        rw [← hv y]
+        exact tsum_congr fun w ↦ by rw [tabooMatrix_apply_of_ne hy]
+
+/-- **Kac's inequality.** If `v` is an invariant vector of `Q`, then `v z ∑ₙ Tⁿ(z, y) ≤ v y`,
+`T` the taboo matrix at `z`. -/
+theorem mul_tsum_taboo_pow_le_of_invariant {v : α → ℝ≥0∞}
+    (hv : ∀ y, ∑' x, v x * Q x y = v y) (y : α) :
+    v z * ∑' n : ℕ, (ofMatrix (tabooMatrix Q z) ^ n) z {y} ≤ v y := by
+  rw [ENNReal.tsum_eq_iSup_nat, ENNReal.mul_iSup]
+  exact iSup_le fun N ↦ mul_sum_taboo_pow_le_of_invariant hv N y
+
+/-- **Kac's inequality, in total mass**: `v z` times the expected time the chain spends away from
+`z` before returning — `∑ₙ ∑_y Tⁿ(z, y) = E_z[τ_z]` for a stochastic `Q` — is at most the total
+mass of `v`. So an invariant vector of finite total mass forces a finite mean return time: a
+null recurrent matrix has no invariant probability vector. -/
+theorem mul_tsum_tsum_taboo_pow_le_of_invariant {v : α → ℝ≥0∞}
+    (hv : ∀ y, ∑' x, v x * Q x y = v y) :
+    v z * ∑' n : ℕ, ∑' y : α, (ofMatrix (tabooMatrix Q z) ^ n) z {y} ≤ ∑' y, v y := by
+  rw [ENNReal.tsum_comm, ← ENNReal.tsum_mul_left]
+  exact ENNReal.tsum_le_tsum fun y ↦ mul_tsum_taboo_pow_le_of_invariant hv y
+
+/-- **Kac's theorem, the negative half.** If `Q` has an invariant vector `v` of finite total mass
+which does not vanish at `z`, then the mean return time to `z` is finite. Contrapositively: a
+matrix whose mean return time `∑ₙ ∑_y Tⁿ(z, y)` to `z` is infinite admits no invariant vector of
+finite total mass that is positive at `z` — in particular no invariant probability vector, so a
+null recurrent stochastic matrix is never positive recurrent. -/
+theorem tsum_tsum_taboo_pow_ne_top_of_invariant {v : α → ℝ≥0∞}
+    (hv : ∀ y, ∑' x, v x * Q x y = v y) (hv0 : v z ≠ 0) (hvt : ∑' y, v y ≠ ∞) :
+    ∑' n : ℕ, ∑' y : α, (ofMatrix (tabooMatrix Q z) ^ n) z {y} ≠ ∞ := by
+  intro h
+  have hle := mul_tsum_tsum_taboo_pow_le_of_invariant (z := z) hv
+  rw [h, ENNReal.mul_top hv0] at hle
+  exact hvt (top_le_iff.1 hle)
+
+/-! ### A sure first passage -/
+
+/-- **A sure first passage propagates along a stochastic row.** If from every state `w ≠ z` the
+chain reaches `z` almost surely — `∑ₘ f_m(w) = 1` — and the row of `z` is stochastic, then the
+chain started at `z` returns to `z` almost surely. Splitting the first step gives
+`∑ₘ f_m(z) = Q(z, z) + ∑_{w ≠ z} Q(z, w) ∑ₘ f_m(w) = ∑_w Q(z, w) = 1`. -/
+theorem tsum_firstPassage_self_eq_one (hQ : ∑' y, Q z y = 1)
+    (h : ∀ w, w ≠ z → ∑' m : ℕ, firstPassage Q z m w = 1) :
+    ∑' m : ℕ, firstPassage Q z m z = 1 := by
+  have hterm : ∀ w : α, tabooMatrix Q z z w * ∑' m : ℕ, firstPassage Q z m w
+      = tabooMatrix Q z z w * 1 := by
+    intro w
+    rcases eq_or_ne w z with rfl | hw
+    · rw [tabooMatrix_apply_self, zero_mul, zero_mul]
+    · rw [h w hw]
+  calc ∑' m : ℕ, firstPassage Q z m z
+      = firstPassage Q z 0 z + ∑' m : ℕ, firstPassage Q z (m + 1) z :=
+        tsum_eq_zero_add' ENNReal.summable
+    _ = Q z z * 1 + ∑' w, tabooMatrix Q z z w * ∑' m : ℕ, firstPassage Q z m w := by
+        rw [firstPassage_zero, mul_one]
+        congr 1
+        rw [tsum_congr fun m ↦ firstPassage_succ m z, ENNReal.tsum_comm]
+        exact tsum_congr fun w ↦ ENNReal.tsum_mul_left
+    _ = Q z z * 1 + ∑' w, tabooMatrix Q z z w * (1 : ℝ≥0∞) := by rw [tsum_congr hterm]
+    _ = ∑' w, Q z w * (1 : ℝ≥0∞) :=
+        (tsum_mul_eq_add_tsum_tabooMatrix_mul z fun _ ↦ (1 : ℝ≥0∞)).symm
+    _ = 1 := by simpa using hQ
+
 end ProbabilityTheory.Kernel

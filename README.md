@@ -738,7 +738,12 @@ Spitzer's critical branching, where the first-passage decomposition is built in 
 hitting-time API. The Poisson limit theorem in the form Georgii cites — trial count free rather
 than equal to the index, with convergence in total variation — is built in
 `GibbsMeasure/Mathlib/Probability/Distributions/Poisson/Convergence.lean`, together with a Scheffé
-lemma for series and a Tannery lemma for growing sums, none of which Mathlib has.
+lemma for series and a Tannery lemma for growing sums, none of which Mathlib has. With it,
+**(11.46)** is proved in full: the Gibbs simplex is nonempty for every immigration law, and under
+Georgii's null recurrence, which is shown to be attainable, no change of measure of `Q` is positive
+recurrent (Kac's inequality, in the Mathlib layer), every shift moves the Gibbs measures and there
+are infinitely many extreme ones; the power formula (11.32) and Step 1 of (11.31) are proved, Steps
+2–4 and (11.33) are not.
 
 **§6.1** (`GibbsMeasure/Model/InhomogeneousIsingChain.lean`): **Theorem (6.4)** in both
 directions — under `∑ e^{-2J_n} < ∞` the inhomogeneous Ising chain has exactly the Gibbs measures

@@ -38,6 +38,25 @@
     marginal (11.30) at three sites separates the parameters.
 \end{proof}
 
+\begin{proposition}[Georgii (11.32), and Step 1 of Theorem (11.31)]
+    \label{prop:sc-11-32}
+    \uses{thm:sc-11-29, lem:sc-poisson-limit}
+    \lean{MeasureTheory.GibbsMeasure.Markov.SpitzerCox.matrix_pow_apply_singleton, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.matrix_pow_apply_zero, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.tendsto_matrix_pow_apply_singleton, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.tendsto_matrix_pow_apply_singleton_entrance, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.exists_tendsto_mul_pow_of_tendsto_ratio, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.exists_tendsto_matrix_pow_apply_singleton_of_tendsto_ratio}
+    \leanok
+
+    $Q^n(x,\cdot) = \ell(x,p^n,\cdot) * \mathfrak p(1-p^n,\cdot)$ by induction through the
+    convolution identities. Hence, if $m_n \to \infty$ and $x_n p^{m_n} \to a$ then
+    $Q^{m_n}(x_n,\cdot) \to \mathfrak p(1+a,\cdot)$; if $x_n p^n \to u$ then
+    $Q^{n+i}(x_n,\cdot) \to \ell^u_i$; and if $Q^{n-1}(x_n,0)/Q^n(x_n,0)$ converges to a positive
+    limit then $x_n p^n$ converges, which is Step 1 of (11.31). Steps 2--4, the identification of
+    every extreme Gibbs measure with some $\mu^{u,v}$ through the limits $U, V$ and (7.26), and
+    Corollary (11.33), are not formalised; they need the quantitative half of (11.9)(c), the
+    left-tail triviality lemma dual to the right one in the tree, and Borel--Cantelli.
+\end{proposition}
+\begin{proof}
+    \leanok
+\end{proof}
+
 \begin{lemma}[The Poisson limit theorem, as used in (11.31) and (11.46)]
     \label{lem:sc-poisson-limit}
     \lean{ProbabilityTheory.tendsto_choose_mul_pow_of_tendsto_mul, ProbabilityTheory.tendsto_binomial_real_singleton_of_tendsto_mul, ProbabilityTheory.tendsto_tsum_abs_binomial_real_sub_of_tendsto_mul, ProbabilityTheory.tendsto_binomial_of_tendsto_mul, tendsto_finsetSum_of_dominated_convergence, ENNReal.tendsto_sum_range_of_dominated_convergence}

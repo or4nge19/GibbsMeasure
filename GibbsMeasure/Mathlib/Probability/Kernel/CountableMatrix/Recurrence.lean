@@ -592,6 +592,57 @@ theorem isRecurrent_of_invariant [IsMarkovKernel κ] [IsIrreducible Measure.coun
     simp [hzero]
   exact zero_ne_one (this.symm.trans measure_univ)
 
+/-! ### Squares -/
+
+/-- **The even part of a divergent Green series still diverges**, provided the state can be held
+for one step: if `∑ₙ κⁿ(z, z) = ∞` and `κ(z, z) > 0` then `∑ₙ κ^{2n}(z, z) = ∞`, that is, `κ²` is
+recurrent at `z` whenever `κ` is. The odd part of the series is dominated by the even part,
+`κ^{2n+2}(z, z) ≥ κ(z, z) κ^{2n+1}(z, z)`. (Georgii's passage from the recurrence of `P` to that
+of `Q = P²` in §11.4.) -/
+theorem potential_pow_two_apply_singleton_self_eq_top {z : α} (hzz : κ z {z} ≠ 0)
+    (h : potential κ z {z} = ∞) : potential (κ ^ 2) z {z} = ∞ := by
+  have hA : potential (κ ^ 2) z {z} = ∑' n : ℕ, (κ ^ (2 * n)) z {z} := by
+    rw [potential_apply_singleton]
+    exact tsum_congr fun n ↦ by rw [← pow_mul]
+  by_contra hA'
+  rw [hA] at hA'
+  have hodd : ∀ n : ℕ, κ z {z} * (κ ^ (2 * n + 1)) z {z} ≤ (κ ^ (2 * (n + 1))) z {z} := fun n ↦ by
+    have hmul := mul_mul_le_pow_apply_singleton κ 1 (2 * n + 1) 0 z z z z
+    rwa [pow_zero_apply_singleton_self, mul_one, pow_one,
+      show 1 + (2 * n + 1) + 0 = 2 * (n + 1) from by ring] at hmul
+  have hB : κ z {z} * ∑' n : ℕ, (κ ^ (2 * n + 1)) z {z} ≤ ∑' n : ℕ, (κ ^ (2 * n)) z {z} := by
+    rw [← ENNReal.tsum_mul_left]
+    calc ∑' n : ℕ, κ z {z} * (κ ^ (2 * n + 1)) z {z}
+        ≤ ∑' n : ℕ, (κ ^ (2 * (n + 1))) z {z} := ENNReal.tsum_le_tsum hodd
+      _ ≤ ∑' n : ℕ, (κ ^ (2 * n)) z {z} :=
+          ENNReal.tsum_comp_le_tsum_of_injective (f := fun n : ℕ ↦ n + 1)
+            (fun a b hab ↦ by simpa using hab) fun n ↦ (κ ^ (2 * n)) z {z}
+  have hBfin : (∑' n : ℕ, (κ ^ (2 * n + 1)) z {z}) ≠ ∞ := fun hB' ↦ by
+    rw [hB', ENNReal.mul_top hzz] at hB
+    exact hA' (top_le_iff.1 hB)
+  rw [potential_apply_singleton,
+    ← tsum_even_add_odd (f := fun n : ℕ ↦ (κ ^ n) z {z}) ENNReal.summable ENNReal.summable] at h
+  exact ENNReal.add_ne_top.2 ⟨hA', hBfin⟩ h
+
+/-- **From an invariant vector of `Q²` to an invariant vector of `Q`.** If `v Q² = v` then
+`v + vQ` is invariant for `Q`; its total mass is twice that of `v`. So a matrix whose square has
+an invariant probability vector has an invariant vector of finite total mass. -/
+theorem tsum_mul_add_tsum_mul_eq_of_tsum_mul_pow_two {Q : α → α → ℝ≥0∞} {v : α → ℝ≥0∞}
+    (hv : ∀ y, ∑' x, v x * (ofMatrix Q ^ 2) x {y} = v y) (y : α) :
+    ∑' x, (v x + ∑' w, v w * Q w x) * Q x y = v y + ∑' w, v w * Q w y := by
+  have hsplit : ∀ x, (v x + ∑' w, v w * Q w x) * Q x y
+      = v x * Q x y + (∑' w, v w * Q w x) * Q x y := fun x ↦ add_mul _ _ _
+  have hsq : (∑' x, (∑' w, v w * Q w x) * Q x y) = v y := by
+    rw [← hv y]
+    have h1 : ∀ x : α, (∑' w, v w * Q w x) * Q x y = ∑' w, v w * (Q w x * Q x y) := fun x ↦ by
+      rw [← ENNReal.tsum_mul_right]
+      exact tsum_congr fun w ↦ mul_assoc _ _ _
+    rw [tsum_congr h1, ENNReal.tsum_comm]
+    exact tsum_congr fun w ↦ by
+      rw [ENNReal.tsum_mul_left, ofMatrix_pow_two_apply_singleton Q w y]
+  rw [tsum_congr hsplit, ENNReal.tsum_add, hsq]
+  exact add_comm _ _
+
 /-! ### Kernels related by a change of measure `η x {y} = κ x {y} r y / (q r x)`
 
 Two kernels `κ`, `η` on a countable space are related by the positive function `r` and the

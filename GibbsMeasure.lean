@@ -120,6 +120,7 @@ public import GibbsMeasure.Mathlib.Analysis.Convex.TangentFunctional
 public import GibbsMeasure.Mathlib.Analysis.Fourier.AddCircleMultiHerglotz
 public import GibbsMeasure.Mathlib.Analysis.Fourier.AddCircleMultiMeasure
 public import GibbsMeasure.Mathlib.Analysis.Fourier.AddCircleMultiSeries
+public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.OneSubPow
 public import GibbsMeasure.Mathlib.Data.ENNReal.OfReal
 public import GibbsMeasure.Mathlib.Data.ENNReal.Pow
 public import GibbsMeasure.Mathlib.Topology.Compactness.SigmaCompact
