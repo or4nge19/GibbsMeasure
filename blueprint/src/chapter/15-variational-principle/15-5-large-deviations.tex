@@ -99,7 +99,7 @@
 \begin{proposition}[Georgii (15.52)]
     \label{prop:ld-15-52}
     \uses{thm:ld-shannon-mcmillan, prop:sent-15-14c}
-    \lean{InformationTheory.klDiv_map_measurableEquiv, InformationTheory.klDiv_prod, InformationTheory.klDiv_pi, InformationTheory.klDiv_pi_const, InformationTheory.klDiv_trim_comap, InformationTheory.klDiv_finset_sum_smul_le, InformationTheory.finset_sum_smul_klDiv_le, MeasureTheory.GibbsMeasure.relativeEntropyIn_coe_finset, MeasureTheory.GibbsMeasure.relativeEntropyIn_map_shift, MeasureTheory.GibbsMeasure.IsTileUnion, MeasureTheory.GibbsMeasure.relativeEntropyIn_tileProduct, MeasureTheory.GibbsMeasure.card_mul_relativeEntropyIn_tileAverage_le, MeasureTheory.GibbsMeasure.le_card_mul_relativeEntropyIn_tileAverage_add, MeasureTheory.GibbsMeasure.isTileUnion_piFinset_Icc, MeasureTheory.GibbsMeasure.tileHull, MeasureTheory.GibbsMeasure.card_tileHull, MeasureTheory.GibbsMeasure.card_vadd_tileIdxImage_symmDiff_le, MeasureTheory.GibbsMeasure.tileProduct_apply_le_card_mul_tileAverage_apply, MeasureTheory.GibbsMeasure.isComplement_Icc, MeasureTheory.GibbsMeasure.boxUnion, MeasureTheory.GibbsMeasure.isTileUnion_boxUnion, MeasureTheory.GibbsMeasure.card_boxUnion, MeasureTheory.GibbsMeasure.boxUnion_subset_image_sub, MeasureTheory.GibbsMeasure.image_sub_boxUnion_subset, MeasureTheory.GibbsMeasure.specificEntropy_tileAverage, MeasureTheory.GibbsMeasure.specificEntropy_tileAveragePM, MeasureTheory.GibbsMeasure.exists_tendsto_specificEntropy}
+    \lean{InformationTheory.klDiv_map_measurableEquiv, InformationTheory.klDiv_prod, InformationTheory.klDiv_pi, InformationTheory.klDiv_pi_const, InformationTheory.klDiv_trim_comap, InformationTheory.klDiv_finset_sum_smul_le, InformationTheory.finset_sum_smul_klDiv_le, MeasureTheory.GibbsMeasure.relativeEntropyIn_coe_finset, MeasureTheory.GibbsMeasure.relativeEntropyIn_map_shift, MeasureTheory.GibbsMeasure.IsTileUnion, MeasureTheory.GibbsMeasure.relativeEntropyIn_tileProduct, MeasureTheory.GibbsMeasure.card_mul_relativeEntropyIn_tileAverage_le, MeasureTheory.GibbsMeasure.le_card_mul_relativeEntropyIn_tileAverage_add, MeasureTheory.GibbsMeasure.isTileUnion_piFinset_Icc, MeasureTheory.GibbsMeasure.tileHull, MeasureTheory.GibbsMeasure.card_tileHull, MeasureTheory.GibbsMeasure.card_vadd_tileIdxImage_symmDiff_le, MeasureTheory.GibbsMeasure.tileProduct_apply_le_card_mul_tileAverage_apply, MeasureTheory.GibbsMeasure.isComplement_Icc, MeasureTheory.GibbsMeasure.boxUnion, MeasureTheory.GibbsMeasure.isTileUnion_boxUnion, MeasureTheory.GibbsMeasure.card_boxUnion, MeasureTheory.GibbsMeasure.boxUnion_subset_image_sub, MeasureTheory.GibbsMeasure.image_sub_boxUnion_subset, MeasureTheory.GibbsMeasure.specificEntropy_tileAverage_of_sandwich, MeasureTheory.GibbsMeasure.specificEntropy_tileAverage, MeasureTheory.GibbsMeasure.specificEntropy_tileAverage_Icc, MeasureTheory.GibbsMeasure.specificEntropy_tileAveragePM, MeasureTheory.GibbsMeasure.exists_tendsto_specificEntropy}
     \leanok
 
     For a block law $\gamma$ on $E^{\Lambda}$, $\Lambda = [-n,n]^d$, the randomly shifted
@@ -107,10 +107,10 @@
     of (14.12) is ergodic and has $\mathfrak k(\tilde\gamma) = |\Lambda|^{-1}\mathcal H_\Lambda(\gamma)$,
     in $[-\infty, 0]$ including the case $\mathcal H_\Lambda(\gamma) = \infty$. Hence every
     $\mu \in \mathcal P_\Theta$ is a local limit of ergodic $\mu_n$ with
-    $\mathfrak k(\mu_n) \to \mathfrak k(\mu)$. The entropy computation is done for the tree's
-    centred cubes of odd side; the tiling of $\mathbb Z^d$ by translates of an arbitrary box
-    $\prod_k [a_k, a_k + s_k]$, with the unions $\Delta^\pm$ of tiles sandwiching a shifted box
-    union, is in place for Georgii's cubes of even side.
+    $\mathfrak k(\mu_n) \to \mathfrak k(\mu)$. The limit argument is one lemma over any sequence
+    of boxes that are unions of tiles and sandwich their shifts with a fixed lag; it is applied to
+    the centred cubes and to an arbitrary box $\prod_k [a_k, a_k + s_k]$, so Georgii's cubes of
+    even side and any base point are covered.
 \end{proposition}
 \begin{proof}
     \leanok

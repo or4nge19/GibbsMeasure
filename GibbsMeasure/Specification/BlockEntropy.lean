@@ -48,12 +48,19 @@ space `E` and let `γ` be a probability measure on the tile, i.e. on `E^C`. Geor
   Proposition (15.52)**: for `μ ∈ 𝓟_Θ` the randomly shifted independent repetitions of the
   `Λ(n)`-marginals of `μ` have specific entropy `|Λ(n)|⁻¹ 𝓗_{Λ(n)}(μ)`, so they converge to `μ`
   locally (Theorem (14.12)) with `𝓀(μ_n) → 𝓀(μ)` (Theorem (15.12)).
+* `specificEntropy_tileAverage_of_sandwich`, **the limit argument of Proposition (15.52)** for
+  any sequence of boxes of `ℤ^d` that are unions of tiles, sandwich the shifts `Δ_m - j` with a
+  fixed lag and have cardinalities `c_m |C|` with `c_{m+r}/c_m → 1`: `𝓀(γ̃) = -𝓗(γ | λ^C) / |C|`.
 * `specificEntropy_tileAverage`, **Proposition (15.52)** on `ℤ^d` (`d ≥ 1`) for the cube tiling
   `Λ(n) = [-n, n]^d`, `H = (2n+1) ℤ^d`: `𝓀(γ̃) = -𝓗(γ | λ^{Λ(n)}) / |Λ(n)|`, in Georgii's sign
   convention `𝓀(γ̃) = |Λ|⁻¹ 𝓗_Λ(γ)`. Georgii's cube `Δ` of the sandwich is `tileCube n (m+1)`,
   of radius `(m+1)p + n`; the cubes of radius `m p + n` and `(m+2) p + n` are the `Δ⁻` and `Δ⁺`
   that work simultaneously for all the shifts `Δ - j`, `j ∈ Λ(n)`
   (`isTileUnion_piFinset_Icc`, `tileCube_subset_image_sub`, `image_sub_subset_tileCube`).
+* `specificEntropy_tileAverage_Icc`, **Proposition (15.52) for an arbitrary box**
+  `∏_k [a_k, a_k + s_k]` and its tiling `isComplement_Icc a s` of `ErgodicDense.lean`, Georgii's
+  cubes of even side included: `𝓀(γ̃) = -𝓗(γ | λ^Λ) / ∏_k (s_k + 1)`, the sandwich being the
+  box unions `boxUnion a s N` with the lag `1 + ∑_k |a_k|`.
 
 ## The proof
 
@@ -70,12 +77,10 @@ Two remarks on the hypotheses.
 * Georgii's `Λ` is a cube and his `S` is `ℤ^d`; the block additivity, the sandwich and the
   averaging need only a tiling `(C, H)` of an arbitrary abelian group of sites, and are stated at
   that generality (`relativeEntropyIn_tileProduct`, `card_mul_relativeEntropyIn_tileAverage_le`,
-  `le_card_mul_relativeEntropyIn_tileAverage_add`). The `ℤ^d` instance is given for the tiling
-  this library has, `isComplement_piFinset_Icc`: the *centred* cubes `Λ(n) = [-n, n]^d` and the
-  sublattice `(2n+1) ℤ^d`, i.e. Georgii's cubes of odd side. A cube of even side needs only its
-  own `AddSubgroup.IsComplement` and the two `IsTileUnion` instances; nothing in the general
-  argument changes. Since the centred cubes are cofinal, the second assertion of (15.52) is not
-  affected.
+  `le_card_mul_relativeEntropyIn_tileAverage_add`); the limit argument is stated once, for any
+  sequence of boxes of `ℤ^d` with the sandwich property, and instantiated twice: for the centred
+  cubes `Λ(n) = [-n, n]^d` with the sublattice `(2n+1) ℤ^d`, and for an arbitrary box
+  `∏_k [a_k, a_k + s_k]` with `∏_k (s_k + 1) ℤ^d`.
 * The shifts `θ_j γ̂` are *not* shift invariant, so their entropy density is not `𝓀` of anything;
   only the average `γ̃` is a shift-invariant random field. This is why the limit is computed by
   hand on `𝓗_Δ` and only then compared with `𝓀(γ̃) = lim |Δ|⁻¹ 𝓗_Δ(γ̃)` of Theorem (15.12).
@@ -338,6 +343,210 @@ theorem le_card_mul_relativeEntropyIn_tileAverage_add {Δ Δ' : Finset S} (h' : 
 
 end Average
 
+/-! ### The limit argument of Proposition (15.52) -/
+
+section Sandwich
+
+variable {ι E : Type*} [Fintype ι] [DecidableEq ι] [MeasurableSpace E]
+  {C : Finset (ι → ℤ)} {H : AddSubgroup (ι → ℤ)}
+  (hCH : AddSubgroup.IsComplement (C : Set (ι → ℤ)) (H : Set (ι → ℤ)))
+  (lam : Measure E) [IsProbabilityMeasure lam]
+  (γ : Measure (C → E)) [IsProbabilityMeasure γ]
+
+/-- **The limit argument of Georgii's Proposition (15.52), for any sequence of tile unions.**
+Let `Δ_m = [lo_m, hi_m]` be boxes of `ℤ^d`, each the union of `c_m` tiles of the tiling `hCH`,
+whose side lengths tend to infinity, such that for a fixed lag `r` every shift `Δ_m − j` by a tile
+point `j ∈ C` lies in `Δ_{m+r}` and contains ... more precisely `Δ_m ⊆ Δ_{m+r} − j`, and with
+`c_{m+r}/c_m → 1`, `c_m → ∞`. Then the specific entropy of the randomly shifted independent-block
+field `γ̃ = tileAverage hCH γ` is `−𝓗(γ | λ^C)/|C|`, in `[−∞, 0]`, the value `𝓗(γ | λ^C) = ∞` giving
+`−∞`.
+
+The two sandwich inequalities `card_mul_relativeEntropyIn_tileAverage_le` and
+`le_card_mul_relativeEntropyIn_tileAverage_add` give `|C| 𝓗_{Δ_m}(γ̃) ≤ |Δ_{m+r}| 𝓗(γ|λ^C)` and
+`|Δ_m| 𝓗(γ|λ^C) ≤ |C| 𝓗_{Δ_{m+r}}(γ̃) + |C| log |C|`; dividing by `|Δ_m|` and letting `m → ∞`
+squeezes `|Δ_m|⁻¹ 𝓗_{Δ_m}(γ̃)` to `𝓗(γ|λ^C)/|C|`, and Theorem (15.12) identifies the limit with
+`−𝓀(γ̃)` because `γ̃` is shift invariant. -/
+theorem specificEntropy_tileAverage_of_sandwich {lo hi : ℕ → ι → ℤ} {r : ℕ} {c : ℕ → ℕ}
+    (htile : ∀ m, IsTileUnion hCH (Finset.Icc (lo m) (hi m)))
+    (hsub₁ : ∀ m, ∀ j ∈ C,
+      (Finset.Icc (lo m) (hi m)).image (· - j) ⊆ Finset.Icc (lo (m + r)) (hi (m + r)))
+    (hsub₂ : ∀ m, ∀ j ∈ C,
+      Finset.Icc (lo m) (hi m) ⊆ (Finset.Icc (lo (m + r)) (hi (m + r))).image (· - j))
+    (hcard : ∀ m, #(Finset.Icc (lo m) (hi m)) = c m * #C)
+    (hcpos : ∀ m, 0 < c m)
+    (hratio : Tendsto (fun m ↦ (c (m + r) : ℝ) / c m) atTop (𝓝 1))
+    (hc : Tendsto (fun m ↦ (c m : ℝ)) atTop atTop)
+    (hside : ∀ k, Tendsto (fun m ↦ hi m k - lo m k) atTop atTop) :
+    specificEntropy lam (tileAverage hCH γ)
+      = -((klDiv γ (Measure.pi fun _ : C ↦ lam) : ℝ≥0∞) : EReal) / (#C : EReal) := by
+  classical
+  set ν := tileAverage hCH γ with hνdef
+  set κ := klDiv γ (Measure.pi fun _ : C ↦ lam) with hκdef
+  set q : ℕ := #C with hqdef
+  set R : ℕ → ℝ≥0∞ := fun m ↦
+    relativeEntropyIn (Finset.Icc (lo m) (hi m) : Set (ι → ℤ)) ν
+      (Measure.infinitePi fun _ : ι → ℤ ↦ lam) with hRdef
+  have hq0 : 0 < q := (nonempty_of_isComplement hCH).card_pos
+  have hqR : (0 : ℝ) < (q : ℝ) := by exact_mod_cast hq0
+  have hlogq : 0 ≤ log (q : ℝ) := Real.log_nonneg (by exact_mod_cast hq0)
+  have hqE : ((q : ℕ) : ℝ≥0∞) ≠ 0 := by
+    simp only [ne_eq, Nat.cast_eq_zero]
+    exact hq0.ne'
+  have hqT : ((q : ℕ) : ℝ≥0∞) ≠ ⊤ := ENNReal.natCast_ne_top _
+  have hlohi : ∀ m, lo m ≤ hi m := fun m ↦ by
+    by_contra h
+    have h0 := hcard m
+    rw [Finset.Icc_eq_empty h, Finset.card_empty] at h0
+    exact absurd h0.symm (Nat.mul_pos (hcpos m) hq0).ne'
+  have hbox : ∀ m, (Finset.Icc (lo m) (hi m)).IsBox := fun m ↦ Finset.isBox_Icc (hlohi m)
+  have hU : ∀ m, ((q : ℕ) : ℝ≥0∞) * R m ≤ ((c (m + r) * q : ℕ) : ℝ≥0∞) * κ := fun m ↦ by
+    have h := card_mul_relativeEntropyIn_tileAverage_le hCH lam γ (htile (m + r)) (hsub₁ m)
+    rwa [hcard (m + r)] at h
+  have hL : ∀ m, ((c m * q : ℕ) : ℝ≥0∞) * κ
+      ≤ ((q : ℕ) : ℝ≥0∞) * R (m + r)
+        + ((q : ℕ) : ℝ≥0∞) * ENNReal.ofReal (log ((q : ℕ) : ℝ)) := fun m ↦ by
+    have h := le_card_mul_relativeEntropyIn_tileAverage_add hCH lam γ (htile m) (hsub₂ m)
+    rwa [hcard m] at h
+  have hcardR : ∀ m, (#(Finset.Icc (lo m) (hi m)) : ℝ) = (c m : ℝ) * q := fun m ↦ by
+    rw [hcard m]; push_cast; ring
+  by_cases hκtop : κ = ⊤
+  · -- both sides are `-∞`
+    have hRr : R r = ⊤ := by
+      have hl := hL 0
+      rw [hκtop] at hl
+      have hne : ((c 0 * q : ℕ) : ℝ≥0∞) ≠ 0 := by
+        simp only [ne_eq, Nat.cast_eq_zero]
+        exact (Nat.mul_pos (hcpos 0) hq0).ne'
+      rw [ENNReal.mul_top hne, top_le_iff, ENNReal.add_eq_top] at hl
+      rcases hl with hl | hl
+      · rcases ENNReal.mul_eq_top.1 hl with ⟨_, h2⟩ | ⟨h2, _⟩
+        · simpa using h2
+        · exact absurd h2 hqT
+      · exact absurd hl (ENNReal.mul_ne_top hqT ENNReal.ofReal_ne_top)
+    have hent : entropyIn lam (Finset.Icc (lo r) (hi r) : Set (ι → ℤ)) ν = ⊥ := by
+      change -((R r : ℝ≥0∞) : EReal) = ⊥
+      rw [hRr]
+      simp
+    have hcardr : #(Finset.Icc (lo r) (hi r)) ≠ 0 := by
+      rw [hcard r]
+      exact (Nat.mul_pos (hcpos r) hq0).ne'
+    have hbot : specificEntropy lam ν = ⊥ :=
+      le_antisymm ((specificEntropy_le_entropyIn_div_card lam (hbox r)).trans
+        (le_of_eq (by rw [hent, EReal.bot_div_natCast hcardr]))) bot_le
+    rw [hbot, hκtop, EReal.coe_ennreal_top, EReal.neg_top, EReal.bot_div_natCast hq0.ne']
+  · -- the finite case: a two-sided estimate and a squeeze
+    set Hr := κ.toReal with hHrdef
+    have hHr0 : (0 : ℝ) ≤ Hr := ENNReal.toReal_nonneg
+    have hRne : ∀ m, R m ≠ ⊤ := by
+      intro m hcon
+      have hu := hU m
+      rw [hcon, ENNReal.mul_top hqE, top_le_iff] at hu
+      exact ENNReal.mul_ne_top (ENNReal.natCast_ne_top _) hκtop hu
+    have hU' : ∀ m, (q : ℝ) * (R m).toReal ≤ (c (m + r) : ℝ) * q * Hr := by
+      intro m
+      have h1 : (((q : ℕ) : ℝ≥0∞) * R m).toReal ≤ (((c (m + r) * q : ℕ) : ℝ≥0∞) * κ).toReal :=
+        (ENNReal.toReal_le_toReal (ENNReal.mul_ne_top hqT (hRne m))
+          (ENNReal.mul_ne_top (ENNReal.natCast_ne_top _) hκtop)).2 (hU m)
+      rw [ENNReal.toReal_mul, ENNReal.toReal_mul, ENNReal.toReal_natCast,
+        ENNReal.toReal_natCast] at h1
+      refine h1.trans (le_of_eq ?_)
+      push_cast
+      ring
+    have hL' : ∀ m, (c m : ℝ) * q * Hr ≤ (q : ℝ) * (R (m + r)).toReal + (q : ℝ) * log (q : ℝ) := by
+      intro m
+      have h1 : (((c m * q : ℕ) : ℝ≥0∞) * κ).toReal
+          ≤ (((q : ℕ) : ℝ≥0∞) * R (m + r)
+              + ((q : ℕ) : ℝ≥0∞) * ENNReal.ofReal (log ((q : ℕ) : ℝ))).toReal :=
+        (ENNReal.toReal_le_toReal (ENNReal.mul_ne_top (ENNReal.natCast_ne_top _) hκtop)
+          (ENNReal.add_ne_top.2 ⟨ENNReal.mul_ne_top hqT (hRne (m + r)),
+            ENNReal.mul_ne_top hqT ENNReal.ofReal_ne_top⟩)).2 (hL m)
+      rw [ENNReal.toReal_add (ENNReal.mul_ne_top hqT (hRne (m + r)))
+          (ENNReal.mul_ne_top hqT ENNReal.ofReal_ne_top),
+        ENNReal.toReal_mul, ENNReal.toReal_mul, ENNReal.toReal_mul, ENNReal.toReal_natCast,
+        ENNReal.toReal_natCast, ENNReal.toReal_ofReal hlogq] at h1
+      refine le_trans (le_of_eq ?_) h1
+      push_cast
+      ring
+    set g : ℕ → ℝ := fun m ↦ (R m).toReal / ((c m : ℝ) * q) with hgdef
+    have hcR : ∀ m, (0 : ℝ) < (c m : ℝ) := fun m ↦ by exact_mod_cast hcpos m
+    have hNpos : ∀ m, (0 : ℝ) < (c m : ℝ) * q := fun m ↦ mul_pos (hcR m) hqR
+    have hhi : ∀ m, g m ≤ ((c (m + r) : ℝ) / c m) * (Hr / q) := by
+      intro m
+      have h2 : (R m).toReal ≤ (c (m + r) : ℝ) * Hr := by
+        have h3 := hU' m
+        nlinarith [hqR]
+      rw [hgdef]
+      simp only
+      rw [div_le_iff₀ (hNpos m)]
+      have hcm0 : (c m : ℝ) ≠ 0 := (hcR m).ne'
+      have : (c (m + r) : ℝ) / c m * (Hr / q) * ((c m : ℝ) * q) = (c (m + r) : ℝ) * Hr := by
+        field_simp
+      rw [this]
+      exact h2
+    have hlo : ∀ m, ((c m : ℝ) / c (m + r)) * (Hr / q) - log (q : ℝ) / ((c (m + r) : ℝ) * q)
+        ≤ g (m + r) := by
+      intro m
+      have h2 : (c m : ℝ) * Hr - log (q : ℝ) ≤ (R (m + r)).toReal := by
+        have h3 := hL' m
+        nlinarith [hqR]
+      rw [hgdef]
+      simp only
+      rw [le_div_iff₀ (hNpos (m + r))]
+      have hcmr0 : (c (m + r) : ℝ) ≠ 0 := (hcR (m + r)).ne'
+      have : ((c m : ℝ) / c (m + r) * (Hr / q) - log (q : ℝ) / ((c (m + r) : ℝ) * q))
+          * ((c (m + r) : ℝ) * q) = (c m : ℝ) * Hr - log (q : ℝ) := by
+        field_simp
+      rw [this]
+      exact h2
+    have hglim : Tendsto g atTop (𝓝 (Hr / q)) := by
+      rw [← tendsto_add_atTop_iff_nat r]
+      have hhi' : Tendsto (fun m : ℕ ↦ ((c (m + r + r) : ℝ) / c (m + r)) * (Hr / q))
+          atTop (𝓝 (1 * (Hr / q))) :=
+        Tendsto.mul_const _ (hratio.comp (tendsto_add_atTop_nat r))
+      have hz : Tendsto (fun m : ℕ ↦ log (q : ℝ) / ((c (m + r) : ℝ) * q)) atTop (𝓝 0) :=
+        tendsto_const_nhds.div_atTop
+          (Filter.Tendsto.atTop_mul_const hqR (hc.comp (tendsto_add_atTop_nat r)))
+      have hinv : Tendsto (fun m : ℕ ↦ ((c m : ℝ) / c (m + r))) atTop (𝓝 1) := by
+        have h := hratio.inv₀ one_ne_zero
+        rw [inv_one] at h
+        refine h.congr fun m ↦ ?_
+        rw [inv_div]
+      have hlo' : Tendsto (fun m : ℕ ↦ ((c m : ℝ) / c (m + r)) * (Hr / q)
+          - log (q : ℝ) / ((c (m + r) : ℝ) * q)) atTop (𝓝 (1 * (Hr / q) - 0)) :=
+        Tendsto.sub (Tendsto.mul_const _ hinv) hz
+      rw [one_mul] at hhi'
+      rw [one_mul, sub_zero] at hlo'
+      exact tendsto_of_tendsto_of_tendsto_of_le_of_le hlo' hhi' hlo fun m ↦ hhi (m + r)
+    have hdens : ∀ m,
+        entropyIn lam (Finset.Icc (lo m) (hi m) : Set (ι → ℤ)) ν
+            / (#(Finset.Icc (lo m) (hi m)) : EReal) = ((-g m : ℝ) : EReal) := by
+      intro m
+      have h1 : entropyIn lam (Finset.Icc (lo m) (hi m) : Set (ι → ℤ)) ν
+          = ((-(R m).toReal : ℝ) : EReal) := by
+        change -((R m : ℝ≥0∞) : EReal) = _
+        rw [← EReal.coe_ennreal_toReal (hRne m), ← EReal.coe_neg]
+      have h2 : ((#(Finset.Icc (lo m) (hi m)) : ℕ) : EReal) = (((c m : ℝ) * q : ℝ) : EReal) := by
+        rw [← EReal.coe_natCast, hcardR m]
+      rw [h1, h2, ← EReal.coe_div, hgdef]
+      congr 1
+      simp only
+      rw [neg_div]
+    have htend : Tendsto (fun m : ℕ ↦
+        entropyIn lam (Finset.Icc (lo m) (hi m) : Set (ι → ℤ)) ν
+          / (#(Finset.Icc (lo m) (hi m)) : EReal)) atTop (𝓝 (specificEntropy lam ν)) :=
+      tendsto_entropyIn_div_card (lam := lam) (μ := ν) (l := atTop)
+        (tileAverage_mem_invariantFields_shiftGroup hCH γ) (m := lo) (n := hi) hside
+    have hlim : Tendsto (fun m : ℕ ↦
+        entropyIn lam (Finset.Icc (lo m) (hi m) : Set (ι → ℤ)) ν
+          / (#(Finset.Icc (lo m) (hi m)) : EReal)) atTop (𝓝 ((-(Hr / q) : ℝ) : EReal)) :=
+      (EReal.tendsto_coe.2 hglim.neg).congr fun m ↦ (hdens m).symm
+    rw [tendsto_nhds_unique htend hlim, ← EReal.coe_ennreal_toReal hκtop, ← hHrdef,
+      ← EReal.coe_natCast (n := q), ← EReal.coe_neg, ← EReal.coe_div]
+    congr 1
+    rw [neg_div]
+
+end Sandwich
+
 /-! ### The cube tiling of `ℤ^d`
 
 Georgii's `Λ` is a cube of side `p = 2n+1` and his sublattice is `p ℤ^d`; the cubes `Λ(A)` of
@@ -550,189 +759,33 @@ theorem specificEntropy_tileAverage [NeZero d] :
     specificEntropy lam (tileAverage (isComplement_piFinset_Icc n) γ)
       = -((klDiv γ (Measure.pi fun _ ↦ lam) : ℝ≥0∞) : EReal)
           / (((2 * n + 1) ^ d : ℕ) : EReal) := by
-  classical
-  set hCH := isComplement_piFinset_Icc (d := d) n with hCHdef
-  set ν := tileAverage hCH γ with hνdef
-  set κ := klDiv γ (Measure.pi fun _ ↦ lam) with hκdef
-  set q : ℕ := (2 * n + 1) ^ d with hqdef
-  set R : ℕ → ℝ≥0∞ := fun m ↦
-    relativeEntropyIn (tileCube (d := d) n (m + 1) : Set (Fin d → ℤ)) ν
-      (Measure.infinitePi fun _ : Fin d → ℤ ↦ lam) with hRdef
-  have hq0 : 0 < q := by positivity
-  have hqR : (0 : ℝ) < (q : ℝ) := by exact_mod_cast hq0
-  have hlogq : 0 ≤ log (q : ℝ) := Real.log_nonneg (by exact_mod_cast hq0)
-  have hqE : ((q : ℕ) : ℝ≥0∞) ≠ 0 := by
-    simp only [ne_eq, Nat.cast_eq_zero]
-    exact hq0.ne'
-  have hqT : ((q : ℕ) : ℝ≥0∞) ≠ ⊤ := ENNReal.natCast_ne_top _
-  have hU : ∀ m : ℕ, ((q : ℕ) : ℝ≥0∞) * R m
-      ≤ (((2 * (m + 2) + 1) ^ d * q : ℕ) : ℝ≥0∞) * κ :=
-    fun m ↦ card_tile_mul_relativeEntropyIn_le lam n γ m
-  have hL : ∀ m : ℕ, (((2 * m + 1) ^ d * q : ℕ) : ℝ≥0∞) * κ
-      ≤ ((q : ℕ) : ℝ≥0∞) * R m
-        + ((q : ℕ) : ℝ≥0∞) * ENNReal.ofReal (log ((q : ℕ) : ℝ)) :=
-    fun m ↦ le_card_tile_mul_relativeEntropyIn_add lam n γ m
-  have hcard : ∀ m : ℕ, #(tileCube (d := d) n (m + 1)) = (2 * m + 3) ^ d * q := by
-    intro m
-    rw [card_tileCube]
-    congr 2
-  have hbox : ∀ m : ℕ, (tileCube (d := d) n (m + 1)).IsBox := fun m ↦ by
-    rw [tileCube_eq_Icc]
-    exact Finset.isBox_Icc fun k ↦ neg_le_self (Int.natCast_nonneg _)
-  by_cases hκtop : κ = ⊤
-  · -- the block law is not absolutely continuous with respect to `λ^Λ`: both sides are `-∞`
-    have hR0 : R 0 = ⊤ := by
-      have hl := hL 0
-      rw [hκtop] at hl
-      have hne : (((2 * 0 + 1) ^ d * q : ℕ) : ℝ≥0∞) ≠ 0 := by
-        simp only [ne_eq, Nat.cast_eq_zero]
-        simpa using hq0.ne'
-      rw [ENNReal.mul_top hne, top_le_iff, ENNReal.add_eq_top] at hl
-      rcases hl with hl | hl
-      · rcases ENNReal.mul_eq_top.1 hl with ⟨_, h2⟩ | ⟨h2, _⟩
-        · exact h2
-        · exact absurd h2 hqT
-      · exact absurd hl (ENNReal.mul_ne_top hqT ENNReal.ofReal_ne_top)
-    have hent : entropyIn lam (tileCube (d := d) n (0 + 1) : Set (Fin d → ℤ)) ν = ⊥ := by
-      change -((R 0 : ℝ≥0∞) : EReal) = ⊥
-      rw [hR0]
-      simp
-    have hcard0 : #(tileCube (d := d) n (0 + 1)) ≠ 0 := by
-      rw [hcard 0]
-      positivity
-    have hbot : specificEntropy lam ν = ⊥ :=
-      le_antisymm ((specificEntropy_le_entropyIn_div_card lam (hbox 0)).trans
-        (le_of_eq (by rw [hent, EReal.bot_div_natCast hcard0]))) bot_le
-    rw [hbot, hκtop, EReal.coe_ennreal_top, EReal.neg_top, EReal.bot_div_natCast hq0.ne']
-  · -- the finite case: a two-sided estimate and a squeeze
-    set Hr := κ.toReal with hHrdef
-    have hHr0 : (0 : ℝ) ≤ Hr := ENNReal.toReal_nonneg
-    have hRne : ∀ m, R m ≠ ⊤ := by
-      intro m hcon
-      have hu := hU m
-      rw [hcon, ENNReal.mul_top hqE, top_le_iff] at hu
-      exact ENNReal.mul_ne_top (ENNReal.natCast_ne_top _) hκtop hu
-    have hU' : ∀ m : ℕ, (q : ℝ) * (R m).toReal ≤ (2 * (m : ℝ) + 5) ^ d * (q : ℝ) * Hr := by
-      intro m
-      have h1 : (((q : ℕ) : ℝ≥0∞) * R m).toReal
-          ≤ ((((2 * (m + 2) + 1) ^ d * q : ℕ) : ℝ≥0∞) * κ).toReal :=
-        (ENNReal.toReal_le_toReal (ENNReal.mul_ne_top hqT (hRne m))
-          (ENNReal.mul_ne_top (ENNReal.natCast_ne_top _) hκtop)).2 (hU m)
-      rw [ENNReal.toReal_mul, ENNReal.toReal_mul, ENNReal.toReal_natCast,
-        ENNReal.toReal_natCast] at h1
-      refine h1.trans (le_of_eq ?_)
+  have hcube : ∀ m : ℕ, Finset.Icc (fun _ : Fin d ↦ -(((m + 1) * (2 * n + 1) + n : ℕ) : ℤ))
+      (fun _ : Fin d ↦ (((m + 1) * (2 * n + 1) + n : ℕ) : ℤ)) = tileCube (d := d) n (m + 1) :=
+    fun m ↦ (tileCube_eq_Icc n (m + 1)).symm
+  have h := specificEntropy_tileAverage_of_sandwich (isComplement_piFinset_Icc (d := d) n) lam γ
+    (lo := fun m _ ↦ -(((m + 1) * (2 * n + 1) + n : ℕ) : ℤ))
+    (hi := fun m _ ↦ (((m + 1) * (2 * n + 1) + n : ℕ) : ℤ)) (r := 1) (c := fun m ↦ (2 * m + 3) ^ d)
+    (fun m ↦ by rw [hcube m]; exact isTileUnion_tileCube n (m + 1))
+    (fun m j hj ↦ by rw [hcube m, hcube (m + 1)]; exact image_sub_subset_tileCube n m hj)
+    (fun m j hj ↦ by rw [hcube m, hcube (m + 1)]; exact tileCube_subset_image_sub n (m + 1) hj)
+    (fun m ↦ by rw [hcube m, card_tileCube, card_tile]; ring)
+    (fun m ↦ by positivity)
+    (by
+      have h := tendsto_ratio 2 d
+      refine h.congr fun m ↦ ?_
+      have h5 : (2 * (m : ℝ) + 3 + 2) = 2 * ((m : ℝ) + 1) + 3 := by ring
       push_cast
-      ring
-    have hL' : ∀ m : ℕ, (2 * (m : ℝ) + 1) ^ d * (q : ℝ) * Hr
-        ≤ (q : ℝ) * (R m).toReal + (q : ℝ) * log (q : ℝ) := by
-      intro m
-      have h1 : ((((2 * m + 1) ^ d * q : ℕ) : ℝ≥0∞) * κ).toReal
-          ≤ (((q : ℕ) : ℝ≥0∞) * R m
-              + ((q : ℕ) : ℝ≥0∞) * ENNReal.ofReal (log ((q : ℕ) : ℝ))).toReal :=
-        (ENNReal.toReal_le_toReal (ENNReal.mul_ne_top (ENNReal.natCast_ne_top _) hκtop)
-          (ENNReal.add_ne_top.2 ⟨ENNReal.mul_ne_top hqT (hRne m),
-            ENNReal.mul_ne_top hqT ENNReal.ofReal_ne_top⟩)).2 (hL m)
-      rw [ENNReal.toReal_add (ENNReal.mul_ne_top hqT (hRne m))
-          (ENNReal.mul_ne_top hqT ENNReal.ofReal_ne_top),
-        ENNReal.toReal_mul, ENNReal.toReal_mul, ENNReal.toReal_mul, ENNReal.toReal_natCast,
-        ENNReal.toReal_natCast, ENNReal.toReal_ofReal hlogq] at h1
-      refine le_trans (le_of_eq ?_) h1
+      rw [div_pow, h5])
+    (((tendsto_pow_atTop (NeZero.ne d)).comp
+      (((tendsto_natCast_atTop_atTop (R := ℝ)).const_mul_atTop two_pos).atTop_add
+        (tendsto_const_nhds (x := (3 : ℝ))))).congr fun m ↦ by
+          simp only [Function.comp]; push_cast; ring)
+    (fun k ↦ by
+      refine tendsto_atTop_mono (fun j ↦ ?_) (tendsto_natCast_atTop_atTop (R := ℤ))
       push_cast
-      ring
-    set g : ℕ → ℝ := fun m ↦ (R m).toReal / ((2 * (m : ℝ) + 3) ^ d * (q : ℝ)) with hgdef
-    have hNpos : ∀ m : ℕ, (0 : ℝ) < (2 * (m : ℝ) + 3) ^ d * (q : ℝ) := fun m ↦ by positivity
-    have hglim : Tendsto g atTop (𝓝 (Hr / q)) := by
-      have hhi : ∀ m : ℕ, g m ≤ ((2 * (m : ℝ) + 5) / (2 * (m : ℝ) + 3)) ^ d * (Hr / q) := by
-        intro m
-        have hp3 : (0 : ℝ) < (2 * (m : ℝ) + 3) ^ d := by positivity
-        have h2 : (R m).toReal ≤ (2 * (m : ℝ) + 5) ^ d * Hr := by
-          have h3 := hU' m
-          nlinarith
-        rw [hgdef, div_pow]
-        simp only
-        rw [div_le_iff₀ (hNpos m)]
-        have : ((2 * (m : ℝ) + 5) ^ d / (2 * (m : ℝ) + 3) ^ d * (Hr / q))
-            * ((2 * (m : ℝ) + 3) ^ d * q) = (2 * (m : ℝ) + 5) ^ d * Hr := by
-          field_simp
-        rw [this]
-        exact h2
-      have hlo : ∀ m : ℕ, ((2 * (m : ℝ) + 1) / (2 * (m : ℝ) + 3)) ^ d * (Hr / q)
-          - log (q : ℝ) / ((2 * (m : ℝ) + 3) ^ d * (q : ℝ)) ≤ g m := by
-        intro m
-        have hp3 : (0 : ℝ) < (2 * (m : ℝ) + 3) ^ d := by positivity
-        have h2 : (2 * (m : ℝ) + 1) ^ d * Hr - log (q : ℝ) ≤ (R m).toReal := by
-          have h3 := hL' m
-          nlinarith
-        rw [hgdef, div_pow]
-        simp only
-        rw [le_div_iff₀ (hNpos m)]
-        have : (((2 * (m : ℝ) + 1) ^ d / (2 * (m : ℝ) + 3) ^ d * (Hr / q))
-            - log (q : ℝ) / ((2 * (m : ℝ) + 3) ^ d * q)) * ((2 * (m : ℝ) + 3) ^ d * q)
-            = (2 * (m : ℝ) + 1) ^ d * Hr - log (q : ℝ) := by
-          field_simp
-        rw [this]
-        exact h2
-      have hhi' : Tendsto (fun m : ℕ ↦ ((2 * (m : ℝ) + 5) / (2 * (m : ℝ) + 3)) ^ d * (Hr / q))
-          atTop (𝓝 (1 * (Hr / q))) := by
-        refine Tendsto.mul_const _ ?_
-        have h := tendsto_ratio 2 d
-        refine h.congr fun m ↦ ?_
-        ring_nf
-      have hz : Tendsto (fun m : ℕ ↦ log (q : ℝ) / ((2 * (m : ℝ) + 3) ^ d * (q : ℝ)))
-          atTop (𝓝 0) := by
-        refine tendsto_const_nhds.div_atTop (Filter.Tendsto.atTop_mul_const hqR ?_)
-        exact (tendsto_pow_atTop (NeZero.ne d)).comp
-          (((tendsto_natCast_atTop_atTop (R := ℝ)).const_mul_atTop two_pos).atTop_add
-            tendsto_const_nhds)
-      have hlo' : Tendsto (fun m : ℕ ↦ ((2 * (m : ℝ) + 1) / (2 * (m : ℝ) + 3)) ^ d * (Hr / q)
-          - log (q : ℝ) / ((2 * (m : ℝ) + 3) ^ d * (q : ℝ))) atTop (𝓝 (1 * (Hr / q) - 0)) := by
-        refine Tendsto.sub (Tendsto.mul_const _ ?_) hz
-        have h := tendsto_ratio (-2) d
-        refine h.congr fun m ↦ ?_
-        ring_nf
-      rw [one_mul] at hhi'
-      rw [one_mul, sub_zero] at hlo'
-      exact tendsto_of_tendsto_of_tendsto_of_le_of_le hlo' hhi' hlo hhi
-    have hdens : ∀ m : ℕ,
-        entropyIn lam (tileCube (d := d) n (m + 1) : Set (Fin d → ℤ)) ν
-            / (#(tileCube (d := d) n (m + 1)) : EReal) = ((-g m : ℝ) : EReal) := by
-      intro m
-      have h1 : entropyIn lam (tileCube (d := d) n (m + 1) : Set (Fin d → ℤ)) ν
-          = ((-(R m).toReal : ℝ) : EReal) := by
-        change -((R m : ℝ≥0∞) : EReal) = _
-        rw [← EReal.coe_ennreal_toReal (hRne m), ← EReal.coe_neg]
-      have h2 : ((#(tileCube (d := d) n (m + 1)) : ℕ) : EReal)
-          = (((2 * (m : ℝ) + 3) ^ d * (q : ℝ) : ℝ) : EReal) := by
-        rw [hcard m, ← EReal.coe_natCast]
-        congr 1
-        push_cast
-        ring
-      rw [h1, h2, ← EReal.coe_div, hgdef]
-      congr 1
-      simp only
-      rw [neg_div]
-    have htend : Tendsto (fun m : ℕ ↦
-        entropyIn lam (tileCube (d := d) n (m + 1) : Set (Fin d → ℤ)) ν
-          / (#(tileCube (d := d) n (m + 1)) : EReal)) atTop (𝓝 (specificEntropy lam ν)) := by
-      have hinv : ν ∈ invariantFields (shiftGroup (Fin d → ℤ) E) :=
-        tileAverage_mem_invariantFields_shiftGroup hCH γ
-      have h := tendsto_entropyIn_div_card (lam := lam) (μ := ν) (l := atTop) hinv
-        (m := fun m : ℕ ↦ fun _ : Fin d ↦ -(((m + 1) * (2 * n + 1) + n : ℕ) : ℤ))
-        (n := fun m : ℕ ↦ fun _ : Fin d ↦ (((m + 1) * (2 * n + 1) + n : ℕ) : ℤ)) ?_
-      · simpa only [← tileCube_eq_Icc] using h
-      · intro k
-        have h1 : Tendsto (fun j : ℕ ↦ (j : ℤ)) atTop atTop := tendsto_natCast_atTop_atTop
-        refine tendsto_atTop_mono (fun j ↦ ?_) h1
-        push_cast
-        nlinarith [Nat.cast_nonneg (α := ℤ) n, Nat.cast_nonneg (α := ℤ) j]
-    have hlim : Tendsto (fun m : ℕ ↦
-        entropyIn lam (tileCube (d := d) n (m + 1) : Set (Fin d → ℤ)) ν
-          / (#(tileCube (d := d) n (m + 1)) : EReal)) atTop (𝓝 ((-(Hr / q) : ℝ) : EReal)) :=
-      (EReal.tendsto_coe.2 hglim.neg).congr fun m ↦ (hdens m).symm
-    rw [tendsto_nhds_unique htend hlim, ← EReal.coe_ennreal_toReal hκtop, ← hHrdef,
-      ← EReal.coe_natCast (n := q), ← EReal.coe_neg, ← EReal.coe_div]
-    congr 1
-    rw [neg_div]
+      nlinarith [Nat.cast_nonneg (α := ℤ) n, Nat.cast_nonneg (α := ℤ) j])
+  rw [card_tile] at h
+  exact h
 
 /-- **Georgii Proposition (15.52), the specific entropy of the block average is the entropy
 density of the block law.** For `μ ∈ 𝓟_Θ` and the cube `Λ(n) = [-n, n]^d`, the randomly shifted
@@ -786,5 +839,73 @@ theorem exists_tendsto_specificEntropy [NeZero d] {μ : ProbabilityMeasure ((Fin
       omega
 
 end Prop1552
+
+/-! ### Georgii Proposition (15.52) for an arbitrary box -/
+
+section Box1552
+
+variable {ι E : Type*} [Fintype ι] [DecidableEq ι] [Nonempty ι] [MeasurableSpace E]
+  (lam : Measure E) [IsProbabilityMeasure lam] (a : ι → ℤ) (s : ι → ℕ)
+  (γ : Measure ((Finset.Icc a fun k ↦ a k + s k : Finset (ι → ℤ)) → E)) [IsProbabilityMeasure γ]
+
+private lemma tendsto_ratio_shift (r D : ℕ) :
+    Tendsto (fun N : ℕ ↦ ((2 * ((N + r : ℕ) : ℝ) + 1) / (2 * (N : ℝ) + 1)) ^ D) atTop (𝓝 1) := by
+  have hden : Tendsto (fun N : ℕ ↦ (2 * (N : ℝ) + 1)) atTop atTop :=
+    ((tendsto_natCast_atTop_atTop (R := ℝ)).const_mul_atTop two_pos).atTop_add tendsto_const_nhds
+  have h0 : Tendsto (fun N : ℕ ↦ (2 * (r : ℝ)) / (2 * (N : ℝ) + 1)) atTop (𝓝 0) :=
+    tendsto_const_nhds.div_atTop hden
+  have h1 : Tendsto (fun N : ℕ ↦ (2 * ((N + r : ℕ) : ℝ) + 1) / (2 * (N : ℝ) + 1)) atTop (𝓝 1) := by
+    have h2 : Tendsto (fun N : ℕ ↦ 1 + (2 * (r : ℝ)) / (2 * (N : ℝ) + 1)) atTop (𝓝 (1 + 0)) :=
+      tendsto_const_nhds.add h0
+    rw [add_zero] at h2
+    refine h2.congr fun N ↦ ?_
+    have h3 : (2 * (N : ℝ) + 1) ≠ 0 := by positivity
+    push_cast
+    field_simp
+    ring
+  simpa using h1.pow D
+
+/-- **Georgii Proposition (15.52) for an arbitrary box.** Let `Λ = ∏_k [a_k, a_k + s_k]` be a box
+of `ℤ^d`, `d ≥ 1`, with any base point and any side lengths (Georgii's cubes of even side
+included), and let `γ` be a probability measure on `E^Λ`. The randomly shifted independent-block
+field `γ̃` of the tiling of `ℤ^d` by the translates of `Λ` has specific entropy
+`𝓀(γ̃) = -𝓗(γ | λ^Λ) / |Λ|`, with `|Λ| = ∏_k (s_k + 1)`. -/
+theorem specificEntropy_tileAverage_Icc :
+    specificEntropy lam (tileAverage (isComplement_Icc a s) γ)
+      = -((klDiv γ (Measure.pi fun _ ↦ lam) : ℝ≥0∞) : EReal)
+          / ((∏ k, (s k + 1) : ℕ) : EReal) := by
+  set m₀ : ℕ := ∑ k, (a k).natAbs with hm₀def
+  have hm₀ : ∀ k, |a k| ≤ (m₀ : ℤ) := fun k ↦ by
+    rw [Int.abs_eq_natAbs]
+    exact_mod_cast Finset.single_le_sum (fun k _ ↦ Nat.zero_le ((a k).natAbs))
+      (Finset.mem_univ k)
+  have hD : Fintype.card ι ≠ 0 := Fintype.card_ne_zero
+  have h := specificEntropy_tileAverage_of_sandwich (isComplement_Icc a s) lam γ
+    (lo := fun N k ↦ a k - N * ((s k : ℤ) + 1))
+    (hi := fun N k ↦ a k + s k + N * ((s k : ℤ) + 1))
+    (r := 1 + m₀) (c := fun N ↦ (2 * N + 1) ^ Fintype.card ι)
+    (fun N ↦ isTileUnion_boxUnion a s N)
+    (fun N j hj ↦ by rw [← Nat.add_assoc]; exact image_sub_boxUnion_subset a s hm₀ N hj)
+    (fun N j hj ↦ by rw [← Nat.add_assoc]; exact boxUnion_subset_image_sub a s hm₀ N hj)
+    (fun N ↦ by rw [card_Icc_add]; exact card_boxUnion a s N)
+    (fun N ↦ by positivity)
+    (by
+      have h := tendsto_ratio_shift (1 + m₀) (Fintype.card ι)
+      refine h.congr fun N ↦ ?_
+      push_cast
+      rw [div_pow])
+    (((tendsto_pow_atTop hD).comp
+      (((tendsto_natCast_atTop_atTop (R := ℝ)).const_mul_atTop two_pos).atTop_add
+        (tendsto_const_nhds (x := (1 : ℝ))))).congr fun N ↦ by
+          simp only [Function.comp]; push_cast; ring)
+    (fun k ↦ by
+      refine tendsto_atTop_mono (fun N ↦ ?_) (tendsto_natCast_atTop_atTop (R := ℤ))
+      have hs : (0 : ℤ) ≤ s k := Int.natCast_nonneg _
+      have hN : (0 : ℤ) ≤ N := Int.natCast_nonneg _
+      nlinarith)
+  rw [card_Icc_add] at h
+  exact h
+
+end Box1552
 
 end MeasureTheory.GibbsMeasure

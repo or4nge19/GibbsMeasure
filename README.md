@@ -525,7 +525,8 @@ Georgii's (15.54) holds there; his change of topology turned out to be unnecessa
 input of (15.47) is proved in the form he uses it, for the independent-block measure of any block law
 on any state space, from the `L¹` ergodic theorem (`Specification/BlockMcMillan.lean`), with (4.2),
 (15.44) on open sets and the uniform energy identity (`Specification/LargeDeviationsLower.lean`).
-What remains for (15.45)–(15.48) is the tiling of an arbitrary cube and the assembly of his proof.
+Proposition (15.52) holds for an arbitrary box of `ℤ^d`, so every input of (15.45)–(15.48) is in
+place; what remains is the assembly of his proof.
 
 **Chapter 17** (`GibbsMeasure/Specification/ReflectionPositivity.lean`,
 `Specification/PeriodicGibbs.lean`): reflection positivity for Georgii's generalised reflection,
