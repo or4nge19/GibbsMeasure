@@ -820,6 +820,40 @@ theorem gaussianSpecification_map_restrict (hSymm : ∀ i j, J i j = J j i)
     exact juxt_apply_of_mem (Λ := (Λ : Set S)) (η := ω) (Finset.mem_coe.2 i.2) ζ
   rw [hid, Measure.map_id]
 
+/-- **`γ_Λ^{J,h}(·|ω)` is a Gaussian measure on the spins in `Λ`**: it is
+`ProbabilityTheory.multivariateGaussianPi (β • 𝒥_Λ) m_Λ(ω)`, and that measure is Gaussian
+(`ProbabilityTheory.isGaussian_multivariateGaussianPi`). -/
+theorem isGaussian_gaussianSpecification_map_restrict (hSymm : ∀ i j, J i j = J j i)
+    (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite)
+    (hPD : ∀ Λ : Finset S, (gaussianCouplingMatrix J Λ).PosDef)
+    (β : ℝ) (hβ : 0 < β) (Λ : Finset S) (ω : S → ℝ) :
+    ProbabilityTheory.IsGaussian ((gaussianSpecification J h hSymm hFin hPD β hβ Λ ω).map
+      (fun σ : S → ℝ ↦ fun i : Λ ↦ σ i.1)) := by
+  rw [gaussianSpecification_map_restrict J h hSymm hFin hPD β hβ Λ ω]
+  exact ProbabilityTheory.isGaussian_multivariateGaussianPi ((hPD Λ).smul hβ) _
+
+/-- **Georgii Proposition (13.13), in Georgii's words.** `γ_Λ^{J,h}(·|ω)` *is* the Gaussian field
+on `Λ` with mean `m_Λ(ω) = -𝒥_Λ⁻¹(h|_Λ + J_{Λ,Λᶜ} ω|_{Λᶜ})` and covariance matrix `(β 𝒥_Λ)⁻¹`:
+transported to `EuclideanSpace ℝ Λ`, the `Λ`-marginal of `γ_Λ^{J,h}(·|ω)` is Mathlib's
+`ProbabilityTheory.multivariateGaussian`, which is *the* Gaussian measure with that mean and
+covariance (`ProbabilityTheory.IsGaussian.ext`). -/
+theorem gaussianSpecification_map_restrict_euclidean (hSymm : ∀ i j, J i j = J j i)
+    (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite)
+    (hPD : ∀ Λ : Finset S, (gaussianCouplingMatrix J Λ).PosDef)
+    (β : ℝ) (hβ : 0 < β) (Λ : Finset S) (ω : S → ℝ) :
+    (gaussianSpecification J h hSymm hFin hPD β hβ Λ ω).map
+        (fun σ : S → ℝ ↦ (WithLp.toLp 2 (fun i : Λ ↦ σ i.1) : EuclideanSpace ℝ Λ))
+      = ProbabilityTheory.multivariateGaussian
+          (WithLp.toLp 2 (gaussianMean J h hFin Λ ω))
+          ((β • gaussianCouplingMatrix J Λ)⁻¹) := by
+  have hA : (β • gaussianCouplingMatrix J Λ).PosDef := (hPD Λ).smul hβ
+  rw [show (fun σ : S → ℝ ↦ (WithLp.toLp 2 (fun i : Λ ↦ σ i.1) : EuclideanSpace ℝ Λ))
+      = (WithLp.toLp 2 : (Λ → ℝ) → EuclideanSpace ℝ Λ) ∘ (fun σ : S → ℝ ↦ fun i : Λ ↦ σ i.1)
+      from rfl,
+    ← Measure.map_map (by fun_prop) (by fun_prop),
+    gaussianSpecification_map_restrict J h hSymm hFin hPD β hβ Λ ω,
+    ProbabilityTheory.map_toLp_multivariateGaussianPi hA]
+
 /-- **The mean of `γ_Λ^{J,h}(·|ω)`, Georgii's display in (13.13)**: `m_i(Λ, ω)` is
 `gaussianMean J h hFin Λ ω` inside `Λ` and `ω_i` outside. -/
 theorem integral_eval_gaussianSpecification (hSymm : ∀ i j, J i j = J j i)
@@ -866,6 +900,42 @@ theorem covariance_eval_gaussianSpecification (hSymm : ∀ i j, J i j = J j i)
     rcases not_and_or.1 hij with hi | hj
     · simp [juxt_apply_of_not_mem (Λ := (Λ : Set S)) (η := ω) (by simpa using hi), hi]
     · simp [juxt_apply_of_not_mem (Λ := (Λ : Set S)) (η := ω) (by simpa using hj), hj]
+
+/-- **Georgii Proposition (13.13): `γ_Λ^{J,h}(·|ω)` is a Gauss field.** Every finite-dimensional
+marginal of the spin configuration under `γ_Λ^{J,h}(·|ω)` is Gaussian: reading the coordinates in
+a finite `I ⊆ S` is an affine map of the Gaussian vector `(σ_i)_{i ∈ Λ}` of
+`gaussianSpecification_map_restrict` (the coordinates outside `Λ` contribute the constants
+`ω_i`), and affine images of Gaussian measures are Gaussian. -/
+theorem isGaussianProcess_gaussianSpecification (hSymm : ∀ i j, J i j = J j i)
+    (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite)
+    (hPD : ∀ Λ : Finset S, (gaussianCouplingMatrix J Λ).PosDef)
+    (β : ℝ) (hβ : 0 < β) (Λ : Finset S) (ω : S → ℝ) :
+    ProbabilityTheory.IsGaussianProcess (fun i (σ : S → ℝ) ↦ σ i)
+      (gaussianSpecification J h hSymm hFin hPD β hβ Λ ω) := by
+  classical
+  refine ⟨fun I ↦ ⟨?_⟩⟩
+  set L : (Λ → ℝ) →L[ℝ] (I → ℝ) :=
+    ContinuousLinearMap.pi fun i : I ↦
+      if hi : (i : S) ∈ Λ then ContinuousLinearMap.proj (R := ℝ) ⟨(i : S), hi⟩ else 0 with hL
+  set c : I → ℝ := fun i ↦ if (i : S) ∈ Λ then 0 else ω i with hc
+  have hcomp : ((fun σ : S → ℝ ↦ I.restrict fun i ↦ σ i) ∘ juxt (Λ : Set S) ω)
+      = (fun x : I → ℝ ↦ x + c) ∘ L := by
+    funext ζ i
+    by_cases hi : (i : S) ∈ Λ
+    · simp only [Function.comp_apply, Finset.restrict,
+        juxt_apply_of_mem (Λ := (Λ : Set S)) (η := ω) (Finset.mem_coe.2 hi) ζ, hL, hc, hi,
+        ContinuousLinearMap.pi_apply, ↓reduceDIte, ↓reduceIte,
+        ContinuousLinearMap.proj_apply, Pi.add_apply, add_zero]
+    · simp only [Function.comp_apply, Finset.restrict,
+        juxt_apply_of_not_mem (Λ := (Λ : Set S)) (η := ω) (by simpa using hi) ζ, hL, hc, hi,
+        ContinuousLinearMap.pi_apply, ↓reduceDIte, ↓reduceIte,
+        _root_.zero_apply, Pi.add_apply, zero_add]
+  have := ProbabilityTheory.isGaussian_multivariateGaussianPi ((hPD Λ).smul hβ)
+    (gaussianMean J h hFin Λ ω)
+  rw [gaussianSpecification_apply J h hSymm hFin hPD β hβ Λ ω,
+    Measure.map_map (by fun_prop) (Measurable.juxt (Λ := (Λ : Set S)) (η := ω)), hcomp,
+    ← Measure.map_map (by fun_prop) (by fun_prop)]
+  infer_instance
 
 end LambdaAdmissibility
 

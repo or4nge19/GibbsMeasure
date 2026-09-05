@@ -1505,9 +1505,12 @@ alignment:
         a quadratic form, lambda-admissibility of beta Phi^{J,h} (beta > 0), gaussianSpecification,
         and (13.13): gamma_Lambda(.|omega) is the Gaussian with precision beta J_Lambda and mean
         -J_Lambda^{-1}(h_Lambda + J_{Lambda Lambda^c} omega) — exactly Georgii's display, with his convention
-        Phi_i = J(i,i)/2 sigma_i^2 + h_i sigma_i. Not
-        formalized: the converse of (13.13), infinite-range J, Sections 13.2-13.3,
-        the identification of the density measure with Mathlib's multivariateGaussian.
+        Phi_i = J(i,i)/2 sigma_i^2 + h_i sigma_i. In Georgii's own words
+        (gaussianSpecification_map_restrict_euclidean, isGaussianProcess_gaussianSpecification):
+        the Lambda-marginal of gamma_Lambda(.|omega), transported to EuclideanSpace, IS Mathlib's
+        multivariateGaussian with mean m_Lambda(omega) and covariance (beta J_Lambda)^{-1}, and
+        gamma_Lambda(.|omega) is a Gauss field on S. Not
+        formalized: the converse of (13.13), infinite-range J, Sections 13.2-13.3.
     - source: "Displays (13.4)-(13.8), Lemma (13.10)"
       lean: "MeasureTheory.GibbsMeasure.georgii_13_10"
       module: "GibbsMeasure/Model/GaussianSpecification.lean"
@@ -1539,11 +1542,7 @@ alignment:
         mean submodule are symmetries. The closing step of (13.26)/(13.31): a centred Gauss field
         whose covariance inverts J gives a Gibbs measure, so G is nonempty. Not formalized:
         (13.23)(d) (needs
-        Remark (7.2) and that no probability measure on R is translation invariant), (13.24)-(13.25) (need (7.12) and (13.A5)). Note (13.13) is proved in the form
-        "gamma_Lambda(.|omega) is the pushforward of multivariateGaussianPi with mean
-        -J_Lambda^{-1}(h + J omega) and precision beta J_Lambda"; that this measure IS a Gaussian
-        field in Mathlib's sense (IsGaussian / multivariateGaussian) is still open, since the
-        characteristic function of multivariateGaussianPi is not computed.
+        Remark (7.2) and that no probability measure on R is translation invariant), (13.24)-(13.25) (need (7.12) and (13.A5)).
         The first half of (13.26) is proved: under (13.27) the entries of the inverse coupling
         matrices converge to a nonnegative-definite inverse of J, so G is nonempty. Georgii derives
         the underlying monotonicity from (13.13) and Jensen; here it is the linear-algebra fact

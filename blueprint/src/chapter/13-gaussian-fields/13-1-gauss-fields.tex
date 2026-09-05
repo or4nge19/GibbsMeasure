@@ -67,7 +67,7 @@ Throughout, $E = \mathbb R$ with Lebesgue measure and $S$ is countable.
 \begin{theorem}[Georgii (13.13)]
     \label{thm:gf-13-13}
     \uses{def:gf-13-11, def:pot-gibbs-spec}
-    \lean{Potential.hamiltonian_gaussianPotential_juxt_eq, Potential.isSigmaFiniteLambdaAdmissible_gaussianPotential_boltzmannFactor, Potential.gaussianSpecification, Potential.gaussianMean, Potential.gaussianSpecification_apply}
+    \lean{Potential.hamiltonian_gaussianPotential_juxt_eq, Potential.isSigmaFiniteLambdaAdmissible_gaussianPotential_boltzmannFactor, Potential.gaussianSpecification, Potential.gaussianMean, Potential.gaussianSpecification_apply, Potential.isGaussian_gaussianSpecification_map_restrict, Potential.gaussianSpecification_map_restrict_euclidean, Potential.isGaussianProcess_gaussianSpecification, ProbabilityTheory.isGaussian_multivariateGaussianPi, ProbabilityTheory.map_toLp_multivariateGaussianPi}
     \leanok
 
     Let $J$ be symmetric with finitely many nonzero entries in each row and every
@@ -76,13 +76,18 @@ Throughout, $E = \mathbb R$ with Lebesgue measure and $S$ is countable.
     and $\gamma^{\beta\Phi}_\Lambda(\cdot \mid \omega)$ is the image under
     $\sigma_\Lambda \mapsto \sigma_\Lambda\omega_{\Lambda^c}$ of the Gaussian measure on
     $\mathbb R^\Lambda$ with precision matrix $\beta\mathcal J_\Lambda$ and mean
-    $-\mathcal J_\Lambda^{-1}(h_\Lambda + J_{\Lambda\Lambda^c}\omega_{\Lambda^c})$.
+    $-\mathcal J_\Lambda^{-1}(h_\Lambda + J_{\Lambda\Lambda^c}\omega_{\Lambda^c})$. That measure
+    \emph{is} a Gaussian field: it is Gaussian in Mathlib's sense and equals
+    $\mathcal N(m, (\beta\mathcal J_\Lambda)^{-1})$ on $\mathbb R^\Lambda$, so
+    $\gamma^{\beta\Phi}_\Lambda(\cdot\mid\omega)$ is a Gauss field as Georgii states.
 \end{theorem}
 \begin{proof}
     \leanok
     The Hamiltonian is the quadratic form above; completing the square and the
     $n$-dimensional Gaussian integral give the partition function and the density of
-    $\gamma_\Lambda$ against $\lambda_\Lambda$, which is the Gaussian density.
+    $\gamma_\Lambda$ against $\lambda_\Lambda$, which is the Gaussian density. Diagonalising the
+    precision matrix, conjugating by the orthogonal transformation and translating exhibit that
+    density measure as an affine image of a product of one-dimensional Gaussians, hence Gaussian.
 \end{proof}
 
 \begin{definition}[Georgii (13.9), (13.18), (13.21)]

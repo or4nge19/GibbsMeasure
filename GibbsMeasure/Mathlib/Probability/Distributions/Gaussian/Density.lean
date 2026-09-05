@@ -9,6 +9,7 @@ public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Gaussian.Multivaria
 public import Mathlib.Analysis.Calculus.ParametricIntegral
 public import Mathlib.Probability.Distributions.Gaussian.Real
 public import Mathlib.Probability.Distributions.Gaussian.Multivariate
+public import Mathlib.Probability.Distributions.Gaussian.Fernique
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.PiWithDensity
 public import Mathlib.MeasureTheory.Group.Integral
 public import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap
@@ -83,7 +84,7 @@ computed above.
 @[expose] public section
 
 open MeasureTheory Measure Matrix Real
-open scoped ENNReal
+open scoped ENNReal NNReal
 
 namespace ProbabilityTheory
 
@@ -834,6 +835,251 @@ theorem multivariateGaussianPi_unique {ι : Type*} [Fintype ι] [DecidableEq ι]
   exact Subsingleton.elim _ _
 
 end Unique
+
+
+section IsGaussian
+
+/-! ### `multivariateGaussianPi A m` is a Gaussian measure
+
+Three real changes of variables — a diagonal precision matrix, an orthogonal conjugation, and a
+translation — write `multivariateGaussianPi A m` as an affine image of a product of
+one-dimensional Gaussians. Being Gaussian, it is then determined by its mean and covariance, and
+so agrees with Mathlib's `multivariateGaussian`. -/
+
+/-- The product of the one-dimensional Gaussian densities with means `0` and variances `(d i)⁻¹`
+is the multivariate Gaussian density with diagonal precision matrix `diagonal d` and mean `0`. -/
+private lemma prod_gaussianPDFReal_eq_multivariateGaussianPDFReal {d : ι → ℝ}
+    (hd : ∀ i, 0 < d i) (x : ι → ℝ) :
+    ∏ i, gaussianPDFReal 0 (Real.toNNReal (d i)⁻¹) (x i)
+      = multivariateGaussianPDFReal (Matrix.diagonal d) 0 x := by
+  have hcoe : ∀ i, ((Real.toNNReal (d i)⁻¹ : ℝ≥0) : ℝ) = (d i)⁻¹ :=
+    fun i ↦ Real.coe_toNNReal _ (inv_pos.2 (hd i)).le
+  have hquad : (x - 0) ⬝ᵥ (Matrix.diagonal d) *ᵥ (x - 0) = ∑ i, d i * (x i) ^ 2 := by
+    rw [sub_zero, dotProduct]
+    exact Finset.sum_congr rfl fun i _ ↦ by rw [mulVec_diagonal]; ring
+  rw [multivariateGaussianPDFReal, Matrix.det_diagonal, hquad]
+  simp only [gaussianPDFReal, hcoe, sub_zero]
+  rw [Finset.prod_mul_distrib]
+  congr 1
+  · rw [Finset.prod_inv_distrib,
+      ← Real.sqrt_prod _ (fun i _ ↦ mul_nonneg (by positivity) (inv_nonneg.2 (hd i).le)),
+      ← Real.sqrt_inv]
+    congr 1
+    rw [Finset.prod_mul_distrib, Finset.prod_const, Finset.card_univ, Finset.prod_inv_distrib]
+    field_simp
+  · rw [← Real.exp_sum, Finset.mul_sum]
+    congr 1
+    refine Finset.sum_congr rfl fun i _ ↦ ?_
+    field_simp [(hd i).ne']
+
+/-- **A diagonal precision matrix means independent coordinates.** For `d i > 0`, the multivariate
+Gaussian density measure with precision matrix `diagonal d` and mean `0` is the product of the
+one-dimensional Gaussian distributions with means `0` and variances `(d i)⁻¹`. -/
+theorem multivariateGaussianPi_diagonal {d : ι → ℝ} (hd : ∀ i, 0 < d i) :
+    multivariateGaussianPi (Matrix.diagonal d) 0
+      = Measure.pi fun i ↦ gaussianReal 0 (Real.toNNReal (d i)⁻¹) := by
+  have hv : ∀ i, Real.toNNReal (d i)⁻¹ ≠ 0 := fun i ↦ by
+    rw [Ne, Real.toNNReal_eq_zero, not_le]; exact inv_pos.2 (hd i)
+  have hsf : ∀ i : ι, SigmaFinite
+      ((volume : Measure ℝ).withDensity (gaussianPDF 0 (Real.toNNReal (d i)⁻¹))) := fun i ↦ by
+    rw [← gaussianReal_of_var_ne_zero (0 : ℝ) (hv i)]; infer_instance
+  have hpi : (fun i ↦ gaussianReal (0 : ℝ) (Real.toNNReal (d i)⁻¹))
+      = fun i ↦ (volume : Measure ℝ).withDensity (gaussianPDF 0 (Real.toNNReal (d i)⁻¹)) :=
+    funext fun i ↦ gaussianReal_of_var_ne_zero _ (hv i)
+  rw [hpi, Measure.pi_withDensity (fun _ : ι ↦ (volume : Measure ℝ))
+      (fun i ↦ measurable_gaussianPDF 0 _),
+    show Measure.pi (fun _ : ι ↦ (volume : Measure ℝ)) = (volume : Measure (ι → ℝ)) from rfl,
+    multivariateGaussianPi]
+  congr 1
+  funext x
+  rw [multivariateGaussianPDF, ← prod_gaussianPDFReal_eq_multivariateGaussianPDFReal hd x,
+    ENNReal.ofReal_prod_of_nonneg fun i _ ↦ gaussianPDFReal_nonneg _ _ _]
+  rfl
+
+/-- **Conjugating the precision matrix by an orthogonal matrix is a pushforward.** For `U` in the
+unitary (for `ℝ`: orthogonal) group, `multivariateGaussianPi (Uᵀ * A * U) 0` pushes forward along
+`y ↦ U *ᵥ y` to `multivariateGaussianPi A 0`: multiplication by `U` preserves Lebesgue measure
+(`Matrix.measurePreserving_toLin'_of_mem_unitaryGroup`) and carries the quadratic form
+`y ⬝ᵥ (Uᵀ * A * U) *ᵥ y` to `(U *ᵥ y) ⬝ᵥ A *ᵥ (U *ᵥ y)`, while `(Uᵀ * A * U).det = A.det`. -/
+theorem multivariateGaussianPi_map_mulVec_unitary {U : Matrix ι ι ℝ}
+    (hU : U ∈ Matrix.unitaryGroup ι ℝ) (A : Matrix ι ι ℝ) :
+    (multivariateGaussianPi (Uᵀ * A * U) 0).map (fun y ↦ U *ᵥ y)
+      = multivariateGaussianPi A 0 := by
+  have hstar : (star U).det = U.det := by
+    rw [star_eq_conjTranspose, det_conjTranspose]; simp
+  have hdet1 : U.det * U.det = 1 := by
+    have h := congrArg Matrix.det (Matrix.mem_unitaryGroup_iff.mp hU)
+    rwa [Matrix.det_mul, hstar, Matrix.det_one] at h
+  have hdet : (Uᵀ * A * U).det = A.det := by
+    rw [Matrix.det_mul, Matrix.det_mul, Matrix.det_transpose,
+      show U.det * A.det * U.det = U.det * U.det * A.det from by ring, hdet1, one_mul]
+  have hfun : (fun y : ι → ℝ ↦ U *ᵥ y) = ⇑(Matrix.toLin' U) := by
+    funext y; rw [Matrix.toLin'_apply]
+  have hpdf : multivariateGaussianPDF (Uᵀ * A * U) 0
+      = fun y ↦ multivariateGaussianPDF A 0 (Matrix.toLin' U y) := by
+    funext y
+    have hq : (y - (0 : ι → ℝ)) ⬝ᵥ (Uᵀ * A * U) *ᵥ (y - 0)
+        = (Matrix.toLin' U y - (0 : ι → ℝ)) ⬝ᵥ A *ᵥ (Matrix.toLin' U y - 0) := by
+      rw [Matrix.toLin'_apply, sub_zero, sub_zero, ← Matrix.mulVec_mulVec, ← Matrix.mulVec_mulVec,
+        Matrix.dotProduct_mulVec, Matrix.vecMul_transpose]
+    rw [multivariateGaussianPDF, multivariateGaussianPDF, multivariateGaussianPDFReal,
+      multivariateGaussianPDFReal, hdet, hq]
+  rw [multivariateGaussianPi, hpdf, hfun,
+    map_withDensity_comp volume
+      (Matrix.measurePreserving_toLin'_of_mem_unitaryGroup hU).measurable
+      (measurable_multivariateGaussianPDF A 0),
+    (Matrix.measurePreserving_toLin'_of_mem_unitaryGroup hU).map_eq, multivariateGaussianPi]
+
+omit [DecidableEq ι] in
+/-- **A finite product of one-dimensional standard Gaussians is Gaussian on `ι → ℝ`.** This is
+Mathlib's `ProbabilityTheory.map_pi_eq_stdGaussian` read backwards along the (linear, continuous)
+identification of `ι → ℝ` with `EuclideanSpace ℝ ι`. -/
+theorem isGaussian_pi_gaussianReal_zero_one :
+    IsGaussian (Measure.pi fun _ : ι ↦ gaussianReal 0 1) := by
+  have h : Measure.pi (fun _ : ι ↦ gaussianReal 0 1)
+      = (stdGaussian (EuclideanSpace ℝ ι)).map (EuclideanSpace.equiv ι ℝ) := by
+    rw [← map_pi_eq_stdGaussian (ι := ι), Measure.map_map (by fun_prop) (by fun_prop),
+      show (⇑(EuclideanSpace.equiv ι ℝ) ∘ (WithLp.toLp 2 : (ι → ℝ) → EuclideanSpace ℝ ι))
+        = id from rfl, Measure.map_id]
+  rw [h]
+  infer_instance
+
+omit [DecidableEq ι] in
+/-- **The image of a Gaussian measure on `ι → ℝ` under a matrix is Gaussian**: multiplication by a
+matrix is a continuous linear map, and `ProbabilityTheory.isGaussian_map` applies. -/
+theorem isGaussian_map_mulVec {μ : Measure (ι → ℝ)} [IsGaussian μ] (M : Matrix ι ι ℝ) :
+    IsGaussian (μ.map (fun x ↦ M *ᵥ x)) := by
+  have h : (fun x : ι → ℝ ↦ M *ᵥ x)
+      = ⇑(LinearMap.toContinuousLinearMap (Matrix.mulVecLin M)) := rfl
+  rw [h]
+  infer_instance
+
+/-- **A finite product of one-dimensional centred Gaussians is Gaussian on `ι → ℝ`**: it is the
+image of the standard product under the diagonal scaling `y ↦ (√(σ i) * y i)ᵢ`. -/
+theorem isGaussian_pi_gaussianReal (σ : ι → ℝ≥0) :
+    IsGaussian (Measure.pi fun i ↦ gaussianReal 0 (σ i)) := by
+  have hsf : ∀ i : ι,
+      SigmaFinite ((gaussianReal 0 1).map (fun y : ℝ ↦ Real.sqrt (σ i) * y)) := fun i ↦ by
+    have := Measure.isProbabilityMeasure_map (μ := gaussianReal (0 : ℝ) 1)
+      (f := fun y : ℝ ↦ Real.sqrt (σ i) * y) (by fun_prop)
+    infer_instance
+  have hmap : Measure.pi (fun i ↦ gaussianReal 0 (σ i))
+      = (Measure.pi (fun _ : ι ↦ gaussianReal 0 1)).map
+        (fun y i ↦ Real.sqrt (σ i) * y i) := by
+    rw [Measure.pi_map_pi (fun i ↦ (by fun_prop :
+      AEMeasurable (fun y : ℝ ↦ Real.sqrt (σ i) * y) (gaussianReal 0 1)))]
+    refine congrArg Measure.pi (funext fun i ↦ ?_)
+    rw [show (fun y : ℝ ↦ Real.sqrt (σ i) * y) = (Real.sqrt (σ i) * ·) from rfl,
+      gaussianReal_map_const_mul]
+    simp [Real.sq_sqrt (σ i).coe_nonneg]
+  have hdiag : (fun (y : ι → ℝ) i ↦ Real.sqrt (σ i) * y i)
+      = fun y ↦ Matrix.diagonal (fun i ↦ Real.sqrt (σ i)) *ᵥ y := by
+    funext y i; rw [mulVec_diagonal]
+  have := isGaussian_pi_gaussianReal_zero_one (ι := ι)
+  rw [hmap, hdiag]
+  exact isGaussian_map_mulVec _
+
+/-- **A positive definite multivariate Gaussian density measure is a Gaussian measure.** The
+spectral theorem writes `A = U * diagonal d * Uᵀ` with `U` orthogonal and `d i > 0`, so
+`multivariateGaussianPi A m` is the image of the product measure `∏ᵢ gaussianReal 0 (d i)⁻¹`
+under the affine map `y ↦ U *ᵥ y + m` (`multivariateGaussianPi_diagonal`,
+`multivariateGaussianPi_map_mulVec_unitary`, `multivariateGaussianPi_map_add_right`); affine
+images of Gaussian measures are Gaussian. -/
+theorem isGaussian_multivariateGaussianPi {A : Matrix ι ι ℝ} (hA : A.PosDef) (m : ι → ℝ) :
+    IsGaussian (multivariateGaussianPi A m) := by
+  classical
+  set d := hA.isHermitian.eigenvalues with hd
+  set U := (hA.isHermitian.eigenvectorUnitary : Matrix ι ι ℝ) with hU
+  have hUmem : U ∈ Matrix.unitaryGroup ι ℝ := hA.isHermitian.eigenvectorUnitary.2
+  have hUtr : star U = Uᵀ := by
+    rw [star_eq_conjTranspose, conjTranspose_eq_transpose_of_trivial]
+  have hUU : Uᵀ * U = 1 := by
+    have h := Matrix.mem_unitaryGroup_iff'.mp hUmem
+    rwa [hUtr] at h
+  have hAeq : A = U * Matrix.diagonal d * Uᵀ := by
+    have hspec := hA.isHermitian.spectral_theorem
+    rw [Unitary.conjStarAlgAut_apply, hUtr] at hspec
+    simpa [Function.comp] using hspec
+  have hconj : Uᵀ * A * U = Matrix.diagonal d := by
+    calc Uᵀ * A * U = (Uᵀ * U) * Matrix.diagonal d * (Uᵀ * U) := by
+          rw [hAeq]; simp only [Matrix.mul_assoc]
+      _ = Matrix.diagonal d := by rw [hUU, Matrix.one_mul, Matrix.mul_one]
+  have h0 : multivariateGaussianPi A 0
+      = (Measure.pi fun i ↦ gaussianReal 0 (Real.toNNReal (d i)⁻¹)).map (fun y ↦ U *ᵥ y) := by
+    rw [← multivariateGaussianPi_diagonal (fun i ↦ hA.eigenvalues_pos i), ← hconj,
+      multivariateGaussianPi_map_mulVec_unitary hUmem]
+  have hm : multivariateGaussianPi A m = (multivariateGaussianPi A 0).map (· + m) := by
+    rw [multivariateGaussianPi_map_add_right A 0 m, zero_add]
+  have := isGaussian_pi_gaussianReal (fun i ↦ Real.toNNReal (d i)⁻¹)
+  have := isGaussian_map_mulVec
+    (μ := Measure.pi fun i ↦ gaussianReal 0 (Real.toNNReal (d i)⁻¹)) U
+  rw [hm, h0]
+  infer_instance
+
+/-- **The mean of `multivariateGaussianPi A m`, as a vector**: the coordinatewise statement
+`integral_eval_multivariateGaussianPi` assembled into `∫ x, x = m`. -/
+theorem integral_id_multivariateGaussianPi {A : Matrix ι ι ℝ} (hA : A.PosDef) (m : ι → ℝ) :
+    ∫ x, x ∂(multivariateGaussianPi A m) = m := by
+  have := isGaussian_multivariateGaussianPi hA m
+  funext i
+  have h := (ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : ι ↦ ℝ) i).integral_comp_comm
+    (IsGaussian.integrable_fun_id (μ := multivariateGaussianPi A m))
+  simp only [ContinuousLinearMap.proj_apply] at h
+  rw [← h]
+  exact integral_eval_multivariateGaussianPi hA m i
+
+/-- **The covariance of two coordinates of `multivariateGaussianPi A m` is `A⁻¹ i j`**, in the
+form of `ProbabilityTheory.covariance`. -/
+theorem covariance_eval_multivariateGaussianPi {A : Matrix ι ι ℝ} (hA : A.PosDef) (m : ι → ℝ)
+    (i j : ι) :
+    cov[fun x : ι → ℝ ↦ x i, fun x : ι → ℝ ↦ x j; multivariateGaussianPi A m] = A⁻¹ i j := by
+  rw [covariance]
+  simp only [integral_eval_multivariateGaussianPi hA m]
+  exact integral_sub_mul_sub_multivariateGaussianPi hA m i j
+
+/-- **The multivariate Gaussian density measure is Mathlib's multivariate Gaussian.** For `A`
+positive definite, transporting `multivariateGaussianPi A m` from `ι → ℝ` to `EuclideanSpace ℝ ι`
+gives `ProbabilityTheory.multivariateGaussian` with mean `m` and covariance matrix `A⁻¹`.
+
+Both measures are Gaussian (`isGaussian_multivariateGaussianPi`,
+`isGaussian_multivariateGaussian`), so by `ProbabilityTheory.IsGaussian.ext` it suffices to
+compare their means (`integral_id_multivariateGaussianPi`) and covariances
+(`covariance_eval_multivariateGaussianPi`). In particular `multivariateGaussianPi A m` *is* the
+Gaussian field with mean `m` and covariance `A⁻¹`. -/
+theorem map_toLp_multivariateGaussianPi {A : Matrix ι ι ℝ} (hA : A.PosDef) (m : ι → ℝ) :
+    (multivariateGaussianPi A m).map (WithLp.toLp 2)
+      = multivariateGaussian (WithLp.toLp 2 m) A⁻¹ := by
+  classical
+  have := isGaussian_multivariateGaussianPi hA m
+  have hL : ⇑((EuclideanSpace.equiv ι ℝ).symm : (ι → ℝ) →L[ℝ] EuclideanSpace ℝ ι)
+      = (WithLp.toLp 2 : (ι → ℝ) → EuclideanSpace ℝ ι) := rfl
+  have : IsGaussian ((multivariateGaussianPi A m).map (WithLp.toLp 2)) := by
+    rw [← hL]
+    exact isGaussian_map _
+  have hAinv : (A⁻¹).PosSemidef := hA.inv.posSemidef
+  refine IsGaussian.ext ?_ ?_
+  · rw [integral_map (by fun_prop) (by fun_prop)]
+    simp only [id_eq, integral_id_multivariateGaussian]
+    rw [← hL, ContinuousLinearMap.integral_comp_comm
+      ((EuclideanSpace.equiv ι ℝ).symm : (ι → ℝ) →L[ℝ] EuclideanSpace ℝ ι)
+      (IsGaussian.integrable_fun_id (μ := multivariateGaussianPi A m)),
+      integral_id_multivariateGaussianPi hA m]
+  · rw [← ContinuousLinearMap.toBilinForm_inj]
+    refine LinearMap.BilinForm.ext_basis (EuclideanSpace.basisFun ι ℝ).toBasis fun i j ↦ ?_
+    have hb : ∀ k : ι, (fun u : EuclideanSpace ℝ ι ↦
+        inner ℝ ((EuclideanSpace.basisFun ι ℝ).toBasis k) u) = fun u ↦ u k := by
+      intro k; ext u; simp [PiLp.inner_apply]
+    rw [ContinuousLinearMap.toBilinForm_apply, ContinuousLinearMap.toBilinForm_apply,
+      covarianceBilin_apply_eq_cov IsGaussian.memLp_two_id,
+      covarianceBilin_multivariateGaussian hAinv]
+    rw [hb, hb, covariance_map (by fun_prop) (by fun_prop) (by fun_prop)]
+    have hcomp : ∀ k : ι, ((fun u : EuclideanSpace ℝ ι ↦ u k) ∘
+        (WithLp.toLp 2 : (ι → ℝ) → EuclideanSpace ℝ ι)) = fun y : ι → ℝ ↦ y k :=
+      fun _ ↦ rfl
+    rw [hcomp, hcomp, covariance_eval_multivariateGaussianPi hA m i j]
+    simp
+
+end IsGaussian
 
 
 end ProbabilityTheory
