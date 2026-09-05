@@ -655,7 +655,13 @@ Gibbs exactly when its mean lies in the mean set and its covariance inverts the 
 **(13.23)** the translation structure of `𝒢(γ^{J,h})`. **(13.26)–(13.27)**: under Georgii's
 summability hypothesis the inverse coupling matrices converge and the Gibbs simplex is nonempty;
 the monotonicity behind it is proved as linear algebra, `(A_{ΛΛ})⁻¹ ⪯ (A⁻¹)_{ΛΛ}`, rather than
-through Jensen. **§13.3** is begun in `GibbsMeasure/Model/GaussianHomogeneous.lean`. **Georgii (13.A7)** — existence and uniqueness of a
+through Jensen. **§13.3** (`GibbsMeasure/Model/GaussianHomogeneous.lean`, Fourier analysis on the
+torus in `GibbsMeasure/Mathlib/Analysis/Fourier/`): the Fourier transform of a homogeneous coupling,
+(13.A8) as stated (a nonzero trigonometric polynomial vanishes only on a null set), the spectral
+covariances, (13.36) sufficiency, Herglotz (13.A9) with uniqueness, (13.42) without its
+shift-invariance clause, the harmonic crystal (13.43) with a nonempty Gibbs simplex for `d ≥ 3`,
+and a factor-`2d` erratum in Georgii's displayed transform there; all under finite range, since
+(13.22) is built for finite range. **Georgii (13.A7)** — existence and uniqueness of a
 centred Gaussian process with prescribed nonnegative-definite covariance — is proved in
 `GibbsMeasure/Mathlib/Probability/Distributions/Gaussian/Existence.lean` by Kolmogorov extension
 (Mathlib had the projectivity of multivariate Gaussians only inside its Brownian motion files,
@@ -738,7 +744,7 @@ Gibbs measure is unique ((6.7)(2)); **(6.7)(1)**: `𝒢(βΦ) = [μ₋^β, μ₊
 neighbouring spins has a unique infinite component almost surely under every Gibbs measure.
 
 Not yet done: Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
-§12.2, the rest of §13.2 and §13.3, and Chapters
+§12.2, the rest of §13.2 and §13.3 ((13.39)–(13.41), (13.44)–(13.45)), and Chapters
 19–20, the rest of 17 and 18 (
 Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
 infrared bound).

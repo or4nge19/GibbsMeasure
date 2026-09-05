@@ -364,6 +364,14 @@ status:
       file: "GibbsMeasure/Specification/PatternPercolation.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "Potential.isGibbsMeasure_iff_exists_spectralMeasure_decomposition"
+      file: "GibbsMeasure/Model/GaussianHomogeneous.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "Potential.posDef_gaussianCouplingMatrix_homogeneousCoupling_iff"
+      file: "GibbsMeasure/Model/GaussianHomogeneous.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.Shlosman.dgSpecification_abs_excess_le"
       file: "GibbsMeasure/Model/RandomStaircase.lean"
       sorry_count: 0
@@ -1704,6 +1712,30 @@ alignment:
         Mathlib layer: L^1-limits of Gaussians are Gaussian (Gaussian/Limit.lean), Gaussian
         regression and closure under conditioning, the conditional law of a function of an
         independent input (Gaussian/CondExp.lean), Matrix/SymmetricRange.lean.
+    - source: "Section 13.3: (13.32)-(13.39), (13.42)-(13.43), (13.A8)-(13.A9)"
+      lean: "Potential.isGibbsMeasure_iff_exists_spectralMeasure_decomposition"
+      module: "GibbsMeasure/Model/GaussianHomogeneous.lean"
+      status: "partial"
+      note: >-
+        The homogeneous coupling and its Fourier transform on the torus (Mathlib's characters,
+        Georgii's period-2 parametrisation being twice Mathlib's); (13.A8) as stated, positive
+        definiteness of all finite sections iff J^ >= 0 and J^ not identically 0, through the
+        theorem that a nonzero trigonometric polynomial vanishes only on a null set
+        (Mathlib/Analysis/Fourier/AddCircleMultiSeries.lean, real analyticity on R^d); the
+        spectral covariances (13.37)-(13.38), nonnegative definite and inverting J; (13.36)
+        sufficiency, and necessity for a Gauss field with homogeneous covariance; Herglotz
+        (13.A9) with uniqueness (AddCircleMultiHerglotz.lean, Fejer densities and Prokhorov);
+        (13.42) as the equivalence "Gibbs iff the covariance is C_alpha and the mean is in the
+        mean set", without the shift-invariance clause; the conclusion of (13.39) from a root of
+        J^ on the torus (uncountable mean set, symmetries by real parts of characters); the
+        harmonic crystal (13.43) with positive definite sections in every dimension, the
+        quadratic lower bound and a nonempty Gibbs simplex for d >= 3. Standing deviations: J of
+        finite range and positive definite sections, because gaussianSpecification and (13.22)
+        are built for finite range; Georgii assumes only absolute summability. Erratum: the
+        displayed transform in (13.43) is 2d times that of the coupling written there. Not
+        formalized: the root of J^ in (C minus 0)^d in (13.39), (13.40), (13.41) (needs the
+        divergence of the integral of 1/J^ near 0 and (13.36) necessity for arbitrary mu, which
+        needs (13.24)), the Theta clause of (13.42), (13.44), (13.45).
     - source: "Section 13.2: (13.20), (13.22) sufficiency, (13.23), the closing step of (13.26)/(13.31)"
       lean: "MeasureTheory.GibbsMeasure.georgii_13_20"
       module: "GibbsMeasure/Model/GaussianGibbs.lean"
@@ -1727,7 +1759,7 @@ alignment:
         matrices converge to a nonnegative-definite inverse of J, so G is nonempty. Georgii derives
         the underlying monotonicity from (13.13) and Jensen; here it is the linear-algebra fact
         (A_{Lambda Lambda})^{-1} <= (A^{-1})_{Lambda Lambda} (Mathlib/LinearAlgebra/Matrix/PosDef.lean),
-        with weaker hypotheses and no measure theory. Section 13.3 is begun in
+        with weaker hypotheses and no measure theory. Section 13.3 is in
         Model/GaussianHomogeneous.lean (translation-invariant couplings, the constant elements of
         the mean set, and the constant shifts as symmetries when the coupling sums to zero);
         (13.36) and (13.39)-(13.45) need Fourier analysis on K^d, which Mathlib has only in one

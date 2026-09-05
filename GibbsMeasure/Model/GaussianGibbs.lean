@@ -1437,6 +1437,42 @@ lemma gaussianCovEntry_diag_nonneg
     exact inv_gaussianCouplingMatrix_diag_nonneg hPD Λ ⟨i, hi⟩
   · rw [gaussianCovEntry_of_notMem_left hi]
 
+/-- **The variational characterisation of `𝒥_Λ⁻¹(i,i)`**, in the form used to bound it from
+above. The concave quadratic `x ↦ 2 x_i - x ⬝ᵥ 𝒥_Λ *ᵥ x` attains the value `𝒥_Λ⁻¹(i,i)` at
+`x = 𝒥_Λ⁻¹ e_i`; by `Matrix.PosDef.two_mul_dotProduct_sub_dotProduct_mulVec_le` that value is its
+supremum, so any upper bound for the quadratic is an upper bound for `𝒥_Λ⁻¹(i,i)`. -/
+lemma exists_dotProduct_mulVec_eq_gaussianCovEntry {Λ : Finset S}
+    (hPD : (Potential.gaussianCouplingMatrix J Λ).PosDef) {i : S} (hi : i ∈ Λ) :
+    ∃ x : Λ → ℝ, 2 * x ⟨i, hi⟩
+      - x ⬝ᵥ (Potential.gaussianCouplingMatrix J Λ) *ᵥ x = gaussianCovEntry J Λ i i := by
+  refine ⟨(Potential.gaussianCouplingMatrix J Λ)⁻¹ *ᵥ Pi.single ⟨i, hi⟩ 1, ?_⟩
+  have hAmul : Potential.gaussianCouplingMatrix J Λ
+      * (Potential.gaussianCouplingMatrix J Λ)⁻¹ = 1 :=
+    Matrix.mul_nonsing_inv _ (Matrix.PosDef.det_pos hPD).ne'.isUnit
+  have hxi : ((Potential.gaussianCouplingMatrix J Λ)⁻¹ *ᵥ Pi.single ⟨i, hi⟩ (1 : ℝ)) ⟨i, hi⟩
+      = (Potential.gaussianCouplingMatrix J Λ)⁻¹ ⟨i, hi⟩ ⟨i, hi⟩ := by
+    simp [Matrix.mulVec_single]
+  have hAt : Potential.gaussianCouplingMatrix J Λ *ᵥ
+      ((Potential.gaussianCouplingMatrix J Λ)⁻¹ *ᵥ Pi.single ⟨i, hi⟩ (1 : ℝ))
+      = Pi.single ⟨i, hi⟩ (1 : ℝ) := by
+    rw [Matrix.mulVec_mulVec, hAmul, Matrix.one_mulVec]
+  rw [gaussianCovEntry_of_mem hi hi, hxi, hAt, dotProduct_comm, single_dotProduct, one_mul, hxi]
+  ring
+
+/-- **The variational bound for `𝒥_Λ⁻¹(i,i)`**: the concave quadratic
+`x ↦ 2 x_i - x ⬝ᵥ 𝒥_Λ *ᵥ x` never exceeds `𝒥_Λ⁻¹(i,i)`. Together with
+`MeasureTheory.GibbsMeasure.exists_dotProduct_mulVec_eq_gaussianCovEntry` this says that
+`𝒥_Λ⁻¹(i,i)` *is* the supremum of that quadratic. -/
+lemma two_mul_sub_dotProduct_mulVec_le_gaussianCovEntry {Λ : Finset S}
+    (hPD : (Potential.gaussianCouplingMatrix J Λ).PosDef) {i : S} (hi : i ∈ Λ) (x : Λ → ℝ) :
+    2 * x ⟨i, hi⟩ - x ⬝ᵥ (Potential.gaussianCouplingMatrix J Λ) *ᵥ x
+      ≤ gaussianCovEntry J Λ i i := by
+  have h := hPD.two_mul_dotProduct_sub_dotProduct_mulVec_le (Pi.single ⟨i, hi⟩ 1) x
+  rw [single_dotProduct, one_mul] at h
+  refine h.trans (le_of_eq ?_)
+  rw [gaussianCovEntry_of_mem hi hi, single_dotProduct, one_mul]
+  simp [Matrix.mulVec_single]
+
 /-- **Georgii's first conclusion in the proof of (13.26)**: `Λ ↦ 𝒥_Λ⁻¹(i,i)` is increasing. -/
 theorem monotone_gaussianCovEntry_diag
     (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef) (i : S) :

@@ -1,0 +1,76 @@
+\section{The homogeneous case}
+
+\begin{definition}[Georgii (13.32)--(13.35), (13.37)--(13.38)]
+    \label{def:gh-13-35}
+    \uses{thm:gs-13-22}
+    \lean{Potential.homogeneousCoupling, Potential.fourierHomogeneousCoupling, Potential.continuous_fourierHomogeneousCoupling, Potential.conj_fourierHomogeneousCoupling, Potential.mFourierCoeff_fourierHomogeneousCoupling, Potential.spectralCovariance, Potential.posSemidef_covMatrix_spectralCovariance, Potential.tsum_homogeneousCoupling_mul_spectralCovariance, Potential.spectralCovarianceOfMeasure, Potential.posSemidef_covMatrix_spectralCovarianceOfMeasure, Potential.tsum_homogeneousCoupling_mul_spectralCovarianceOfMeasure, UnitAddTorus.mFourier, UnitAddTorus.mFourierCoeff}
+    \leanok
+
+    For an even absolutely summable $J' : \mathbb Z^d \to \mathbb R$, the homogeneous coupling
+    $J(i,j) = J'(j - i)$ and its Fourier transform $\hat J(z) = \sum_n z^n J'(n)$ on the torus
+    $G = (\mathbb R/\mathbb Z)^d$ (Mathlib's characters; Georgii's period-$2$ parametrisation is
+    twice Mathlib's). The spectral covariance $C(i,j) = \int_G z^{i-j}\hat J(z)^{-1}\,dz$ (13.37) and,
+    for a finite measure $\alpha$ on $G$, $C_\alpha(i,j) = C(i,j) + \int z^{i-j}\,d\alpha$ (13.38),
+    both nonnegative definite and inverting $J$ when $\int_G \hat J^{-1} < \infty$.
+\end{definition}
+
+\begin{theorem}[Georgii (13.A8)]
+    \label{thm:gh-13-A8}
+    \uses{def:gh-13-35}
+    \lean{Potential.posDef_gaussianCouplingMatrix_homogeneousCoupling_iff, Potential.posSemidef_gaussianCouplingMatrix_homogeneousCoupling_iff, Potential.posDef_gaussianCouplingMatrix_homogeneousCoupling, UnitAddTorus.eq_zero_of_sum_mul_mFourier_eqOn_zero, UnitAddTorus.eq_zero_of_sum_sum_mul_re_mFourierCoeff_sub_eq_zero_of_continuous}
+    \leanok
+
+    All finite sections of $J$ are positive definite iff $\hat J \geq 0$ and $\hat J \not\equiv 0$;
+    they are nonnegative definite iff $\hat J \geq 0$.
+\end{theorem}
+\begin{proof}
+    \leanok
+    $\sum_{i,j} \bar u_i u_j J'(j-i) = \int_G |\sum_i u_i z^i|^2 \hat J(z)\,dz$, and a nonzero
+    trigonometric polynomial vanishes only on a null set: read on $\mathbb R^d$ it is real analytic,
+    so it vanishes identically as soon as it vanishes on a set of positive measure. The nonnegative
+    case is Stone--Weierstrass applied to $\hat J^-$.
+\end{proof}
+
+\begin{theorem}[Georgii (13.36), sufficiency; (13.A9); (13.42) without $\Theta$]
+    \label{thm:gh-13-36}
+    \uses{thm:gh-13-A8, thm:gs-13-A7, thm:gs-13-22}
+    \lean{Potential.isGibbsMeasure_map_add_gaussianField_spectralCovariance, Potential.nonempty_G_homogeneousCoupling_of_lintegral_inv_ne_top, Potential.lintegral_inv_re_fourierHomogeneousCoupling_ne_top_of_isGibbsMeasure, Potential.two_mul_sub_dotProduct_gaussianCouplingMatrix_le_integral_inv, Potential.gaussianCovEntry_le_integral_inv, Potential.bddAbove_gaussianCovEntry_of_lintegral_inv_ne_top, UnitAddTorus.exists_isFiniteMeasure_integral_mFourier_eq, UnitAddTorus.ext_of_integral_mFourier_eq, Potential.isGibbsMeasure_gaussianField_spectralCovarianceOfMeasure_iff, Potential.isGibbsMeasure_iff_exists_spectralMeasure_decomposition}
+    \leanok
+
+    For $J$ of finite range with positive definite sections and $\int_G \hat J^{-1} < \infty$,
+    every translate by an element of the mean set of the centred Gauss field with covariance
+    $C$ is Gibbs for $\gamma^{J,h}$, so $\mathcal G(\gamma^{J,h}) \neq \emptyset$; conversely a
+    Gauss field with homogeneous covariance that is Gibbs forces $\int_G \hat J^{-1} < \infty$
+    (Georgii's necessity for an arbitrary $\mu \in \mathcal G$ needs (13.24), not yet proved).
+    Herglotz (13.A9): a nonnegative-definite sequence on $\mathbb Z^d$ is the Fourier transform of
+    a unique finite measure on $G$, by Fej\'er densities and Prokhorov compactness. Hence (13.42):
+    a Gauss field with homogeneous covariance is Gibbs for $\gamma^{J,h}$ iff its covariance is
+    $C_\alpha$ for some finite $\alpha$ and its mean lies in the mean set; the shift-invariance
+    of these fields, and therefore Georgii's $\mathcal G_\Theta$, is not yet recorded.
+\end{theorem}
+\begin{proof}
+    \leanok
+\end{proof}
+
+\begin{theorem}[Georgii (13.39), conclusion; (13.43)]
+    \label{thm:gh-13-43}
+    \uses{thm:gh-13-36, thm:gs-13-23}
+    \lean{Potential.re_mFourier_mem_gaussianMeanSubmodule, Potential.re_mFourier_ne_zero, Potential.not_countable_gaussianMeanSet_homogeneousCoupling, Potential.isInvariant_spinTranslation_re_mFourier, Potential.const_mem_gaussianMeanSet_iff, Potential.nonempty_G_homogeneousCoupling_of_pos, Potential.harmonicCrystalCoupling, Potential.re_fourierHomogeneousCoupling_harmonicCrystalCoupling, Potential.tsum_harmonicCrystalCoupling, Potential.posDef_gaussianCouplingMatrix_harmonicCrystalCoupling, Potential.mul_sq_norm_le_re_fourierHomogeneousCoupling_harmonicCrystalCoupling, Potential.lintegral_inv_re_fourierHomogeneousCoupling_harmonicCrystalCoupling_ne_top, Potential.nonempty_G_harmonicCrystalCoupling, Potential.isInvariant_spinTranslation_const_harmonicCrystalCoupling}
+    \leanok
+
+    A root $z$ of $\hat J$ on $G$ gives the real part of the character $z^{(\cdot)}$ as an element
+    of the mean submodule, so the mean set is uncountable and the spin translations by these
+    functions are symmetries; constants lie in the mean set iff $\hat J(1) = \sum J' \neq 0$ or
+    $h = 0$. The harmonic crystal $J(0) = \beta$, $J(\pm e_\ell) = -\beta/2d$ has
+    $\hat J(z_p) = (\beta/d)\sum_\ell(1 - \cos 2\pi p_\ell) \geq (8\beta/d)\|p\|^2$, vanishing at
+    $1$ only, positive definite sections in every dimension, $\int_G \hat J^{-1} < \infty$ and a
+    nonempty Gibbs simplex for $d \geq 3$, with the continuous symmetry by constant translations.
+    Erratum: Georgii's display gives $\hat J(z_p) = 2\beta\sum_\ell(1 - \cos \pi p_\ell)$, which
+    is $2d$ times the transform of the $J$ he has just written; his bound $4\beta|p|^2$ inherits
+    the factor. Not proved: the existence of a root of $\hat J$ in $(\mathbb C\setminus 0)^d$
+    (13.39), $\mathcal G = \emptyset$ for $d \leq 2$ ((13.41), which needs both the divergence of
+    $\int_G \hat J^{-1}$ near $0$ and the necessity half of (13.36)), (13.40), (13.44), (13.45).
+\end{theorem}
+\begin{proof}
+    \leanok
+\end{proof}

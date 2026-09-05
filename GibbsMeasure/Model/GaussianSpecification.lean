@@ -325,6 +325,36 @@ theorem gaussianMeanSet_iff_sub_mem_gaussianMeanSubmodule {h : S → ℝ} {m₀ 
     have e2 : h i + ∑' j, J i j * m₀ j = 0 := hm₀eq i
     linarith
 
+/-- **Georgii's conclusion in Remark (13.39).** `M_{J,0}` is a linear subspace of `Ω`, so as soon
+as it contains one non-zero element `m` it contains the whole line `ℝ m` and is uncountable. -/
+theorem not_countable_gaussianMeanSet_zero {m : S → ℝ} (hm : m ∈ gaussianMeanSet J 0)
+    (hm0 : m ≠ 0) : ¬ (gaussianMeanSet J 0).Countable := by
+  intro hcount
+  have hinj : Function.Injective fun t : ℝ ↦ t • m := fun a b hab ↦ by
+    have hab' : a • m = b • m := hab
+    by_contra hne
+    have hzero : (a - b) • m = 0 := by rw [sub_smul, hab', sub_self]
+    rcases smul_eq_zero.1 hzero with h | h
+    · exact hne (sub_eq_zero.1 h)
+    · exact hm0 h
+  have hsub : Set.range (fun t : ℝ ↦ t • m) ⊆ gaussianMeanSet J 0 := by
+    rintro _ ⟨t, rfl⟩
+    exact (gaussianMeanSubmodule J).smul_mem t hm
+  have : Countable ℝ := (Equiv.ofInjective _ hinj).countable_iff.2 (hcount.mono hsub).to_subtype
+  exact Cardinal.not_countable_real Set.countable_univ
+
+/-- **Georgii's conclusion in Remark (13.39).** `M_{J,h} = m₀ + M_{J,0}` is a coset of `M_{J,0}`,
+so it is uncountable as soon as it is non-empty and `M_{J,0} ≠ {0}`. -/
+theorem not_countable_gaussianMeanSet {h : S → ℝ} {m₀ : S → ℝ} (hm₀ : m₀ ∈ gaussianMeanSet J h)
+    {m : S → ℝ} (hm : m ∈ gaussianMeanSet J 0) (hm0 : m ≠ 0) :
+    ¬ (gaussianMeanSet J h).Countable := by
+  intro hcount
+  refine not_countable_gaussianMeanSet_zero J hm hm0 ((hcount.image fun x ↦ x - m₀).mono ?_)
+  intro x hx
+  refine ⟨x + m₀, ?_, by abel⟩
+  rw [gaussianMeanSet_iff_sub_mem_gaussianMeanSubmodule J hm₀]
+  simpa using hx
+
 end GaussianMeanSet
 
 end Potential
