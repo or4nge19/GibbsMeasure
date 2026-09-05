@@ -573,6 +573,16 @@ form; (18.11) on the torus; Step 1 of (18.16), Poincaré recurrence for quasi-Gi
 crossing lemma by mod-two duality (`GibbsMeasure/Model/PlanarCrossing.lean`). Open: the assembly of
 Steps 2–4 of (18.16), hence (18.17), (18.18) with the ocean part, and (18.19).
 
+**Chapter 20, §20.1** (`GibbsMeasure/Specification/InfraredBound.lean`): the preliminaries of the
+infrared bound on the torus — the tail estimate (20.6) for the periodic Gibbs distribution of a
+nonnegative-definite Heisenberg coupling from the chessboard estimate, its three consequences for
+any measure with that tail, and the lower bound (20.8) with only `λ({0}ᶜ) > 0`, where Georgii
+assumes rotation invariance, plus two slips in his proof; the lattice `p`-series and a layer-cake
+exponential-moment lemma in the Mathlib layer. (20.5) and (20.7) wait on Georgii's computation
+(17.24), the identification of the Heisenberg torus measure with the Gibbs distribution of the
+potential with periodic boundary condition; the Heisenberg potential is provably not absolutely
+summable, so that identification is a summation by hand.
+
 **Chapter 16** normalises the a priori measure to a probability measure throughout, where Georgii
 assumes only that it is finite; the two differ by an additive `log λ(E)` in the pressure and the
 specific entropy. **§16.1** (`GibbsMeasure/Specification/TangentFunctional.lean`): Georgii's `ℬ_Θ` as a

@@ -122,6 +122,7 @@ public import GibbsMeasure.Mathlib.Analysis.Fourier.AddCircleMultiHerglotz
 public import GibbsMeasure.Mathlib.Analysis.Fourier.AddCircleMultiMeasure
 public import GibbsMeasure.Mathlib.Analysis.Fourier.AddCircleMultiSeries
 public import GibbsMeasure.Mathlib.Analysis.PSeries.Euclidean
+public import GibbsMeasure.Mathlib.Analysis.PSeries.Lattice
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.ExpNegAbs
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.ImproperIntegrals
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.OneSubPow
@@ -143,6 +144,7 @@ public import GibbsMeasure.Mathlib.Dynamics.Ergodic.ShannonMcMillanCube
 public import GibbsMeasure.Mathlib.GroupTheory.Foelner
 public import GibbsMeasure.Mathlib.InformationTheory.KullbackLeibler.Pi
 public import GibbsMeasure.Mathlib.LinearAlgebra.BilinearMap.CauchySchwarz
+public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.DotProductReal
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PosSemidefFactor
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.PiBlocks
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.SymmetricChain
@@ -153,6 +155,8 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Function.EssSup
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.LocallyIntegrable
 public import GibbsMeasure.Mathlib.MeasureTheory.Group.Action.Synonym
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.CircleCharacter
+public import GibbsMeasure.Mathlib.MeasureTheory.Integral.ExponentialMoment
+public import GibbsMeasure.Mathlib.MeasureTheory.Measure.PositiveDotProduct
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Prod
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.SetwiseEmbedding
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Tilted
@@ -173,6 +177,7 @@ public import GibbsMeasure.Mathlib.Probability.TailTriviality
 public import GibbsMeasure.Mathlib.Probability.Kernel.WithDensity
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.BoxAverage
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.ENNRealMatrix
+public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.PiProd
 public import GibbsMeasure.Prereqs.IntervalBoundary
 public import GibbsMeasure.Prereqs.Filtration.Consistent
 public import GibbsMeasure.Prereqs.Juxt
@@ -311,6 +316,7 @@ public import GibbsMeasure.Specification.QuasilocalSpecification
 public import GibbsMeasure.Specification.Singleton
 public import GibbsMeasure.Specification.CountingKernel
 public import GibbsMeasure.Specification.HeisenbergPeriodic
+public import GibbsMeasure.Specification.InfraredBound
 public import GibbsMeasure.Specification.InvariantFieldsBarycenter
 public import GibbsMeasure.Specification.MarkovInt
 public import GibbsMeasure.Specification.MarkovIntChains

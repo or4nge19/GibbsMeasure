@@ -432,6 +432,14 @@ status:
       file: "GibbsMeasure/Specification/LargeDeviationsLower.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.heisenbergPeriodicGibbsDist_tail_le"
+      file: "GibbsMeasure/Specification/InfraredBound.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.exists_le_lintegral_dotProduct_self_heisenbergPeriodicGibbsDist"
+      file: "GibbsMeasure/Specification/InfraredBound.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.Markov.SpitzerCox.isMarkovChain_tfae"
       file: "GibbsMeasure/Model/SpitzerCoxMarkovChains.lean"
       sorry_count: 0
@@ -1345,6 +1353,28 @@ alignment:
         constructed from Dobrushin uniqueness over Bool; the rate function vanishes somewhere. An
         adversarial review had found first that no object of Sections 15.5 and 16.2 had a witness
         beyond the zero potential, then that the only Dobrushin-region witness had zero coupling.
+    - source: "Section 20.1: (20.1)-(20.4), (20.6), (20.8)"
+      lean: "MeasureTheory.GibbsMeasure.heisenbergPeriodicGibbsDist_tail_le"
+      module: "GibbsMeasure/Specification/InfraredBound.lean"
+      status: "partial"
+      note: >-
+        (20.1) is the Heisenberg potential of (17.22); (20.2) summability with the bound
+        |H| <= (1/2)||J||_0 sum |sigma_i|^2 (Georgii's constant is ||J||_0); (20.3) exponential
+        square moments of the a priori measure; (20.4) slow summability, implying (20.2), with the
+        sup norm in place of the Euclidean one (a bounded change of alpha). (20.6) on the torus:
+        the tail estimate for the periodic Gibbs distribution by the chessboard estimate for a
+        single-site event, uniformly in cube, site and dimension, and its three consequences for
+        any probability measure with that tail (exponential moments, the truncated pair product
+        with a factor 2 in place of Cauchy-Schwarz, the slow-growth set), with the lattice p-series
+        sum (e v |i|)^{-p} < infinity for p > D (Mathlib/Analysis/PSeries/Lattice.lean) and the
+        layer-cake exponential moment (Mathlib/MeasureTheory/Integral/ExponentialMoment.lean).
+        (20.8) with only lambda({0}^c) > 0 where Georgii assumes rotation invariance and
+        non-degeneracy; two slips in his proof recorded (epsilon^2 <= u, and the lower bound on Z
+        for the second estimate). Not formalized: (20.5), the specification on the tail set
+        Omega_*, and (20.7), which need the Heisenberg torus measure as a random field on Z^d,
+        i.e. Georgii's computation (17.24) as a theorem (the Heisenberg potential is provably not
+        absolutely summable, so the C-potential route does not apply; the pointwise summation via
+        (17.23) is the missing development); (20.6) is therefore not yet transferred to G_0(Phi).
     - source: "Section 18.1: (18.1)-(18.3), (18.8)-(18.10)"
       lean: "MeasureTheory.GibbsMeasure.periodicGibbsDist_forall_notMem_torusPattern_le_patternWeight"
       module: "GibbsMeasure/Specification/PatternPercolation.lean"
@@ -1445,8 +1475,12 @@ alignment:
         three errata (the constant is 2(2N)^{d-1}; his middle expression is 4 cosh, not 4 sinh;
         his second test function in (17.31) must alternate transversally to k, the one our copy of
         the text prints, alternating along k, giving the same value as the first), and (17.32) for
-        d = 2 through the Cauchy kernel; for d = 1 only the nonnegative definiteness of |i|^{-a}
-        is stated, not the r_k-positivity conclusion
+        d = 1 and d = 2 (the Cauchy kernel for d = 2); the (17.31) condition A >= 2(d-1)|B| is
+        proved necessary as well (isNonnegDefiniteAt_nextNearestNeighbour_iff), and the (17.30)
+        sufficiency needs only J(e_k) >= 0. The Heisenberg potential is provably not absolutely
+        summable, so heisenbergPeriodicGibbs is defined by its density; Georgii's computation
+        (17.24) identifying it with the Gibbs distribution of the potential with periodic boundary
+        condition is not yet a theorem
         (Mathlib/Analysis/SpecialFunctions/ExpNegAbs.lean, ImproperIntegrals.lean,
         PSeries/Euclidean.lean). Not formalized: the Berg-Maserick converse (17.28)(1), which the
         book cites without proof.

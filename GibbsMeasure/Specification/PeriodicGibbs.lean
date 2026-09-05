@@ -799,6 +799,40 @@ theorem isReflectionPositive_siteEquiv_withDensity_sum {A : Type*} [Fintype A]
     (torusReflAt N k) (fun _ ↦ rfl) (torusPosAt_iff_torusReflAt_notMem k) hφm hφdep hhm hhdep hhφ
     hgm hgdep hgφ hint (hf.mono cylinderEvents_le_pi le_rfl) hf.dependsOn_of_cylinderEvents hC
 
+/-! #### The chessboard estimate for the site reflections `r_k` -/
+
+omit [NeZero N] in
+/-- `r_k` *is* the generalized reflection (17.6) with `τ_k = id`: it is the same transformation
+of `E^Λ`, not merely the same map. -/
+lemma genReflectionAt_refl (k : Fin d) :
+    genReflectionAt N (fun _ ↦ MeasurableEquiv.refl E) k = siteEquiv E (torusReflAt N k) := by
+  simp only [genReflectionAt, Transformation.mul_def, Transformation.comp, pureSpin, siteEquiv,
+    Equiv.trans_refl]
+  congr 1
+
+/-- **Georgii, Theorem (17.11) for the reflections `r_k` of (17.5), at a single site.**
+
+If a probability measure `μ` on `E^Λ`, `Λ = (ℤ/2N)^d` with `d ≥ 1`, is `Λ`-periodic and both
+`r_k`-invariant and `r_k`-positive in every coordinate direction, then
+
+`μ(σ_{i₀} ∈ A)^{|Λ|} ≤ μ(σ_i ∈ A for all i ∈ Λ)`
+
+for every measurable `A ⊆ E` and every site `i₀`.  This is the form of the chessboard estimate
+used in Georgii's Chapter 20 (proofs of Lemmas (20.6) and (20.8)); the iterated involutions
+`τ^i` of (17.10) are trivial here (`tauPow_refl`). -/
+theorem measure_apply_pow_card_le_siteEquiv {d : ℕ}
+    {μ : Measure ((Fin (d + 1) → ZMod (2 * N)) → E)} [IsProbabilityMeasure μ]
+    (hper : ∀ j, MeasurePreserving (shift E j).toFun μ μ)
+    (hrefl : ∀ k, MeasurePreserving (siteEquiv E (torusReflAt N k)).toFun μ μ)
+    (hpos : ∀ k, IsReflectionPositive (torusPosAt N k)
+      (siteEquiv E (torusReflAt N k)) μ)
+    {A : Set E} (hA : MeasurableSet A) (i₀ : Fin (d + 1) → ZMod (2 * N)) :
+    (μ {ω | ω i₀ ∈ A}).toReal ^ ((2 * N) ^ (d + 1)) ≤ (μ {ω | ∀ i, ω i ∈ A}).toReal := by
+  have h := measure_apply_pow_card_le (μ := μ) (τ := fun _ ↦ MeasurableEquiv.refl E)
+    (fun _ _ ↦ rfl) hper (by simpa only [genReflectionAt_refl] using hrefl)
+    (by simpa only [genReflectionAt_refl] using hpos) hA i₀
+  simpa only [tauPow_refl] using h
+
 end SiteReflection
 
 end MeasureTheory.GibbsMeasure

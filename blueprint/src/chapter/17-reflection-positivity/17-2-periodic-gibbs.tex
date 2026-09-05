@@ -153,14 +153,19 @@
 \begin{example}[Georgii (17.30)--(17.32)]
     \label{ex:rp-17-30}
     \uses{thm:rp-17-29}
-    \lean{MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_of_nearestNeighbour, MeasureTheory.GibbsMeasure.isReflectionPositive_heisenbergPeriodicGibbs_nearestNeighbour, MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_of_nextNearestNeighbour, MeasureTheory.GibbsMeasure.isReflectionPositive_heisenbergPeriodicGibbs_nextNearestNeighbour, MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_rpow, MeasureTheory.integral_exp_sum_int_mul_I, MeasureTheory.GibbsMeasure.twoPointMeasure, MeasureTheory.GibbsMeasure.patternTest, MeasureTheory.GibbsMeasure.integral_patternTest_mul_comp_heisenbergPeriodicGibbs, MeasureTheory.GibbsMeasure.not_isReflectionPositive_heisenbergPeriodicGibbs_of_crossing_neg, MeasureTheory.GibbsMeasure.not_isReflectionPositive_heisenbergPeriodicGibbs_nearestNeighbour, MeasureTheory.GibbsMeasure.not_isReflectionPositive_heisenbergPeriodicGibbs_nextNearestNeighbour, MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_cauchyMixture, MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_sq_add_sq_rpow, MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_longRange_two, MeasureTheory.GibbsMeasure.isReflectionPositive_heisenbergPeriodicGibbs_longRange_two, MeasureTheory.integral_exp_mul_I_mul_exp_neg_mul_abs, MeasureTheory.integral_rpow_div_add_Ioi, summable_sum_sq_rpow_fin_two, Finset.card_filter_eval_eq}
+    \lean{MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_of_nearestNeighbour, MeasureTheory.GibbsMeasure.isReflectionPositive_heisenbergPeriodicGibbs_nearestNeighbour, MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_of_nextNearestNeighbour, MeasureTheory.GibbsMeasure.isReflectionPositive_heisenbergPeriodicGibbs_nextNearestNeighbour, MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_rpow, MeasureTheory.integral_exp_sum_int_mul_I, MeasureTheory.GibbsMeasure.twoPointMeasure, MeasureTheory.GibbsMeasure.patternTest, MeasureTheory.GibbsMeasure.integral_patternTest_mul_comp_heisenbergPeriodicGibbs, MeasureTheory.GibbsMeasure.not_isReflectionPositive_heisenbergPeriodicGibbs_of_crossing_neg, MeasureTheory.GibbsMeasure.not_isReflectionPositive_heisenbergPeriodicGibbs_nearestNeighbour, MeasureTheory.GibbsMeasure.not_isReflectionPositive_heisenbergPeriodicGibbs_nextNearestNeighbour, MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_cauchyMixture, MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_sq_add_sq_rpow, MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_longRange_two, MeasureTheory.GibbsMeasure.isReflectionPositive_heisenbergPeriodicGibbs_longRange_two, MeasureTheory.GibbsMeasure.isReflectionPositive_heisenbergPeriodicGibbs_longRange_one, MeasureTheory.GibbsMeasure.le_of_isNonnegDefiniteAt_nextNearestNeighbour, MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_nextNearestNeighbour_iff, MeasureTheory.GibbsMeasure.not_isAbsolutelySummable_heisenbergPotential, MeasureTheory.integral_exp_mul_I_mul_exp_neg_mul_abs, MeasureTheory.integral_rpow_div_add_Ioi, summable_sum_sq_rpow_fin_two, Finset.card_filter_eval_eq}
     \leanok
 
-    Nearest-neighbour couplings are nonnegative definite relative to $r_k$ iff $J(e_k) \geq 0$
-    (17.30), next-nearest-neighbour couplings iff $A \geq 2(d-1)|B|$ (17.31), and
+    Nearest-neighbour couplings give $r_k$-positive periodic Gibbs distributions iff $J(e_k) \geq 0$
+    (17.30; the sufficiency needs only $J(e_k) \geq 0$, the coupling may be antiferromagnetic
+    transverse to $k$), next-nearest-neighbour couplings are nonnegative definite relative to $r_k$
+    iff $A \geq 2(d-1)|B|$ and $r_k$-positive iff so (17.31, both directions as theorems), and
     $J(i) = |i|^{-a}$ is nonnegative definite on $\mathbb Z$ for $a > 0$ and on $\mathbb Z^2$ for
-    $a > 1$, giving $r_k$-positive periodic Gibbs distributions for the summable case $a > 2$
-    (17.32). The necessity halves are Georgii's evaluation of ${}^\circ Z\,{}^\circ\gamma(ff^*) =
+    $a > 1$, giving $r_k$-positive periodic Gibbs distributions for the summable cases $a > 1$ on
+    $\mathbb Z$ and $a > 2$ on $\mathbb Z^2$ (17.32). The Heisenberg potential is provably not
+    absolutely summable in the sense of (2.11), so the periodic Gibbs distribution (17.24) is
+    defined here by its density; its identification with the Gibbs distribution of the potential
+    with periodic boundary condition, Georgii's computation (17.24), is not yet a theorem. The necessity halves are Georgii's evaluation of ${}^\circ Z\,{}^\circ\gamma(ff^*) =
     4e^{S}\sinh\langle q, Mq\rangle$ at a $\pm 1$ pattern $q$ for the two-point a priori measure,
     with $M$ the crossing matrix; the $d = 2$ case of (17.32) represents $(k^2 + \ell^2)^{-a/2}$
     through the Cauchy kernel, whose transform is the two-sided exponential, and a Beta-type

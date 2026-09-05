@@ -10,11 +10,14 @@ public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.ExpNegAbs
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.ImproperIntegrals
 public import GibbsMeasure.Mathlib.Data.Fintype.Fiber
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PosSemidefFactor
+public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.DotProductReal
 public import Mathlib.Analysis.SpecialFunctions.Gamma.Basic
+public import Mathlib.Analysis.PSeries
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.CircleCharacter
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.BoxAverage
 public import Mathlib.Algebra.Order.Star.Real
 public import GibbsMeasure.Potential
+public import GibbsMeasure.Potential.Summable
 public import GibbsMeasure.Specification.PeriodicGibbs
 
 /-!
@@ -33,9 +36,16 @@ values in `ℝ^n`, the interaction is the Heisenberg pair potential (17.22)
   `heisenbergPotential_singleton` and `heisenbergPotential_of_forall_ne` are its values, and
   `isPotential_heisenbergPotential` is Georgii (2.2)(i).  Georgii's (17.23) is the hypothesis
   `Summable J`, which enters the theorems below.  Absolute summability in the sense of the space
-  `ℬ` (2.11) is *not* asserted: over an unbounded spin space the sup-norm `‖Φ_{{i,j}}‖` of (2.12)
-  is a supremum over all of `(ℝ^n)^{ℤ^d}` and is infinite whenever `J(i-j) ≠ 0`.  Georgii does not
-  claim it either; his standing hypotheses in §17.2 are (17.23) and the finiteness of `°Z_Λ^Φ`.
+  `ℬ` (2.11) *fails*, and this is a theorem, not a caveat: over the unbounded spin space `ℝ^n`
+  the sup-norm `‖Φ_{{i,j}}‖` of (2.12) is a supremum over all of `(ℝ^n)^{ℤ^d}` and is infinite
+  whenever `J(i-j) ≠ 0` (`iSup_enorm_heisenbergPotential_pair_eq_top`), so
+  `not_isAbsolutelySummable_heisenbergPotential`.  Georgii does not claim (2.11) either; his
+  standing hypotheses in §17.2 are (17.23) and the finiteness of `°Z_Λ^Φ`.  The consequence is
+  that *none* of the general Example (4.20)(2) machinery of `GibbsMeasure.Potential.Periodic`
+  applies to `heisenbergPotential`: `Potential.isPotential_periodicModification`,
+  `Potential.isAbsolutelySummable_periodicModification` and
+  `Potential.abs_hamiltonian_periodicModification_sub_le` are all conditioned on
+  `IsAbsolutelySummable`.  See "Not formalised" below for what this costs.
 * `periodizedCoupling`: **Georgii (17.25)**, `J_Λ(m) = ∑_{ℓ ∈ ℤ^d} J(m + 2Nℓ)` as a function on
   the torus `Λ = (ℤ/2N)^d`; it does not depend on the lift (`periodizedCoupling_eq_tsum`), it is
   even when `J` is (`periodizedCoupling_neg`), and it inherits the invariance of `J` under the
@@ -103,13 +113,19 @@ the direction that is used, (17.27) ⟹ `r_k`-positivity, is proved.
   `i_k ≥ 1` already forces `i = e_k` on the support of a nearest-neighbour `J`.
   `isReflectionPositive_heisenbergPeriodicGibbs_nearestNeighbour` is the conclusion, obtained
   directly from `posSemidef_crossingMatrix_nearestNeighbour`: for a nearest-neighbour coupling the
-  crossing matrix is *diagonal* with nonnegative entries
-  (`crossingMatrix_eq_zero_of_nearestNeighbour`), so no appeal to (17.29) is needed.
+  crossing matrix is *diagonal* (`crossingMatrix_eq_zero_of_nearestNeighbour`) with entries
+  `J(e_k)` times the number of interfaces the site sees (`crossingMatrix_diag_nearestNeighbour`),
+  so no appeal to (17.29) is needed.  Only `0 ≤ J(e_k)` is assumed, not `J ≥ 0`: a coupling may
+  be antiferromagnetic in the directions transverse to `k` and still give an `r_k`-positive
+  `°γ_Λ^Φ` — for instance `J(e_0) = 1`, `J(e_1) = -1` on `ℤ²` is `r_0`-positive.
 * **(17.31)** Next-nearest neighbour potentials.  `isNonnegDefiniteAt_of_nextNearestNeighbour`
   is Georgii's representing measure `δ_0(dz_k) [A + B ∑_{c ≠ k}(z_c + z̄_c)] ∏_{c ≠ k} ν(dz_c)`;
   the hypothesis `A ≥ 2(d-1)|B|` is exactly what makes that density nonnegative, and
   `integral_cos_mul_exp_sum_int_mul_I` computes its Fourier coefficients.
   `isReflectionPositive_heisenbergPeriodicGibbs_nextNearestNeighbour` is the conclusion.
+  `le_of_isNonnegDefiniteAt_nextNearestNeighbour` is the converse — `A ≥ 2(d-1)|B|` is also
+  *necessary* for nonnegative definiteness, by evaluating the crossing form at the `±1` patterns
+  `q_χ` — so that `isNonnegDefiniteAt_nextNearestNeighbour_iff` is an equivalence.
 * **(17.32)** Long range potentials.  `isNonnegDefiniteAt_rpow` is the radial factor in any
   dimension: `J(i) = β i_k^{-a}` for `i_k ≥ 1`, with `β ≥ 0` and `a > 0`, is nonnegative definite
   relative to `r_k`, with Georgii's representing measure `β Γ(a)⁻¹` times the image of the gamma
@@ -137,8 +153,10 @@ the direction that is used, (17.27) ⟹ `r_k`-positivity, is proved.
     kernel (`isNonnegDefiniteAt_sq_add_sq_inv`); `a > 2` reduces to `1 < a/n < 2` by
     `IsNonnegDefiniteAt.pow`, exactly as in the book.
 
-  `isReflectionPositive_heisenbergPeriodicGibbs_longRange_two` is Georgii's conclusion for `d = 2`
-  and `a > 2`, the absolute summability (17.23) being `summable_sum_sq_rpow_fin_two`
+  `isReflectionPositive_heisenbergPeriodicGibbs_longRange_one` is Georgii's conclusion for
+  `d = 1` and `a > 1`, and `isReflectionPositive_heisenbergPeriodicGibbs_longRange_two` his
+  conclusion for `d = 2` and `a > 2`, the absolute summability (17.23) being
+  `Real.summable_abs_int_rpow` resp. `summable_sum_sq_rpow_fin_two`
   (`GibbsMeasure.Mathlib.Analysis.PSeries.Euclidean`).
 
 ## The necessity halves of (17.30) and (17.31)
@@ -195,6 +213,27 @@ Georgii's converses are proved for the two-point a priori measure `λ = δ_1 + �
   `not_isReflectionPositive_heisenbergPeriodicGibbs_nextNearestNeighbour` is the conclusion.
   (The same factor `2` as in (17.30) is missing from the constant Georgii's `f` would produce.)
 
+## Invariance, normalisation, and the a priori bounds used in Chapter 20
+
+The last section of the file collects what the chessboard estimate (17.11) and Georgii's §20.1
+need from `°γ_Λ^Φ`, and is the reason `GibbsMeasure.Specification.InfraredBound` can be short.
+
+* `sum_periodizedCoupling`, `sum_abs_periodizedCoupling_le` and the two `_sub` variants: the row
+  and column sums of the periodised coupling matrix, `∑_{j ∈ Λ} |J_Λ(i-j)| ≤ ‖J‖₀`.
+* `abs_heisenbergExponent_le`: `|½ ∑_{i,j} J_Λ(i-j) σ_i·σ_j| ≤ ½‖J‖₀ ∑_i |σ_i|²`, Georgii's
+  estimate at the start of the proof of (20.6) with the sharper constant `½‖J‖₀`;
+  `le_heisenbergExponent_of_le` and `heisenbergExponent_le_of_le` are its two-sided versions on
+  configurations with prescribed pairwise scalar products, which is what Lemma (20.8) uses.
+* `heisenbergExponent_shift`, `heisenbergExponent_torusReflAt` and the four
+  `measurePreserving_*_heisenbergPeriodicGibbs(Dist)` theorems: `Λ`-periodicity (Georgii's remark
+  after (17.20)) and `r_k`-invariance, the two hypotheses of (17.11) besides `r_k`-positivity.
+* `isFiniteMeasure_heisenbergPeriodicGibbs`, `heisenbergPeriodicGibbs_univ_pos` and
+  `isProbabilityMeasure_heisenbergPeriodicGibbsDist`: `0 < °Z_Λ^Φ < ∞`.
+* `heisenbergPeriodicGibbs_forall_mem_le`, `le_heisenbergPeriodicGibbs_univ`,
+  `heisenbergPeriodicGibbs_forall_mem_le_pow` and `le_heisenbergPeriodicGibbs_univ_pow`: the four
+  `|Λ|`-th power bounds on `°Z_Λ^Φ °γ_Λ^Φ(A^Λ)` and on `°Z_Λ^Φ` that Georgii uses in (20.6) and
+  (20.8) — uniform on `A^Λ` in the first pair, one-site products in the second.
+
 ## Not formalised
 
 * Georgii's Comment (17.28)(1), the Berg–Maserick converse (see above).  It is a citation, proved
@@ -209,6 +248,25 @@ Georgii's converses are proved for the two-point a priori measure `λ = δ_1 + �
 * The closed form of Georgii's constant `c(a)` in Example (17.32) (a Beta integral); only
   `0 < c(a) < ∞` is needed (`integral_rpow_div_one_add_Ioi_pos`,
   `integrableOn_rpow_div_one_add_Ioi`), and that is proved.
+* **The identification of (17.24) with the periodic modification of `heisenbergPotential`.**
+  `heisenbergPeriodicGibbs` is *defined* by the density (17.24) and by
+  `interactingHamiltonian_heisenbergPeriodicGibbs`-style computation it is not yet identified
+  with `γ^{Φ̃^Λ}_Λ(·|ω)` for `Φ̃^Λ = Potential.periodicModification (heisenbergPotential n J)`,
+  Georgii's Example (4.20)(2).  The obstruction is *not* the statement — Georgii's own `Φ^n` in
+  the proof of (20.7) is exactly `Φ̃^Λ` and the computation is
+
+  `Φ̃^Λ_{{i,j}} = -J_Λ(i-j) σ_i·σ_j` (`i ≠ j`),   `Φ̃^Λ_{{i}} = -½ J_Λ(0) |σ_i|²`,
+
+  which sums over `Λ` to minus `heisenbergExponent` — but the *route*: the representatives
+  `ℛ(A)` of (4.20)(2) form an infinite set here (all period translates of a bond), so the
+  defining `tsum` converges only because of (17.23), and every general lemma about
+  `periodicModification` in `GibbsMeasure.Potential.Periodic` is conditioned on
+  `IsAbsolutelySummable`, which `not_isAbsolutelySummable_heisenbergPotential` shows is false.
+  What is needed is a direct enumeration of `ℛ({i,j})` and `ℛ({i})`: for a relative period
+  `r ∈ 2Nℤ^d` exactly one translate of the bond `{i, j + r}` has its `lexAnchor` in the box, and
+  for a singleton the representatives are the bonds `{i, i + r}` with `r` lex-positive — which is
+  where the factor `½` on the diagonal of (17.24) comes from.  The extra hypothesis this needs is
+  exactly `Summable J`, i.e. Georgii's (17.23).
 -/
 
 @[expose] public section
@@ -409,6 +467,69 @@ instance isPotential_heisenbergPotential : Potential.IsPotential (heisenbergPote
           (measurable_cylinderEvent_apply (X := fun _ : Fin d → ℤ ↦ (Fin n → ℝ)) hj)
     · simp only [if_neg h]
       exact measurable_const
+
+/-! ### The Heisenberg potential is not absolutely summable over an unbounded spin space -/
+
+/-- **The sup-norm (2.12) of a Heisenberg pair interaction is infinite** when the spin space is
+the whole of `ℝ^n`, `n ≥ 1`: the constant configuration with spins `t e_0` gives the pair
+interaction the value `-J(i-j) t²`, which is unbounded in `t`. -/
+theorem iSup_enorm_heisenbergPotential_pair_eq_top (hn : 0 < n) (heven : ∀ m, J (-m) = J m)
+    {i j : Fin d → ℤ} (hij : i ≠ j) (hJ : J (i - j) ≠ 0) :
+    ⨆ ω : (Fin d → ℤ) → (Fin n → ℝ), ‖heisenbergPotential n J {i, j} ω‖ₑ = ⊤ := by
+  classical
+  have hJpos : 0 < |J (i - j)| := abs_pos.2 hJ
+  refine iSup_eq_top.2 fun b hb ↦ ?_
+  set t : ℝ := Real.sqrt ((b.toReal + 1) / |J (i - j)|) with ht
+  set ω : (Fin d → ℤ) → (Fin n → ℝ) :=
+    fun _ c ↦ if c = ⟨0, hn⟩ then t else 0 with hω
+  have hdot : ω i ⬝ᵥ ω j = t ^ 2 := by
+    rw [dotProduct]
+    rw [Finset.sum_eq_single (⟨0, hn⟩ : Fin n)]
+    · simp [hω, sq]
+    · intro c _ hc
+      simp [hω, hc]
+    · intro h
+      exact absurd (Finset.mem_univ (⟨0, hn⟩ : Fin n)) h
+  have ht2 : t ^ 2 = (b.toReal + 1) / |J (i - j)| := by
+    rw [ht, Real.sq_sqrt]
+    positivity
+  have hval : ‖heisenbergPotential n J {i, j} ω‖ₑ = ENNReal.ofReal (b.toReal + 1) := by
+    rw [heisenbergPotential_pair heven hij ω, hdot, Real.enorm_eq_ofReal_abs, abs_neg, abs_mul,
+      abs_of_nonneg (sq_nonneg t), ht2]
+    congr 1
+    field_simp
+  refine ⟨ω, ?_⟩
+  rw [hval]
+  calc b = ENNReal.ofReal b.toReal := (ENNReal.ofReal_toReal hb.ne).symm
+    _ < ENNReal.ofReal (b.toReal + 1) := by
+        refine ENNReal.ofReal_lt_ofReal_iff_of_nonneg ENNReal.toReal_nonneg |>.2 (by linarith)
+
+/-- **The Heisenberg potential is not absolutely summable** (Georgii (2.11)) as soon as the spin
+space is unbounded (`n ≥ 1`) and `J` does not vanish identically off the origin.
+
+This is why none of the general theory of Georgii's Example (4.20)(2) in
+`GibbsMeasure.Potential.Periodic` applies to it: `Potential.isPotential_periodicModification`,
+`Potential.isAbsolutelySummable_periodicModification` and
+`Potential.abs_hamiltonian_periodicModification_sub_le` all require `IsAbsolutelySummable`.
+Georgii does not claim (2.11) either; his standing hypotheses in §17.2 are the summability
+(17.23) of `J` and the finiteness of `°Z_Λ^Φ`. -/
+theorem not_isAbsolutelySummable_heisenbergPotential (hn : 0 < n) (heven : ∀ m, J (-m) = J m)
+    (hJ : ∃ m : Fin d → ℤ, m ≠ 0 ∧ J m ≠ 0) :
+    ¬ Potential.IsAbsolutelySummable (heisenbergPotential n J) := by
+  classical
+  obtain ⟨m, hm0, hmJ⟩ := hJ
+  intro hsum
+  have hmem : ({m, 0} : Finset (Fin d → ℤ))
+      ∈ {A : Finset (Fin d → ℤ) | (0 : Fin d → ℤ) ∈ A} :=
+    Finset.mem_insert_of_mem (Finset.mem_singleton_self _)
+  have hterm : ⨆ ω : (Fin d → ℤ) → (Fin n → ℝ), ‖heisenbergPotential n J {m, 0} ω‖ₑ = ⊤ :=
+    iSup_enorm_heisenbergPotential_pair_eq_top hn heven hm0 (by simpa using hmJ)
+  refine hsum.normAt_ne_top (0 : Fin d → ℤ) (top_le_iff.1 ?_)
+  calc (⊤ : ℝ≥0∞) = {A : Finset (Fin d → ℤ) | (0 : Fin d → ℤ) ∈ A}.indicator
+        (fun A ↦ ⨆ ω : (Fin d → ℤ) → (Fin n → ℝ), ‖heisenbergPotential n J A ω‖ₑ)
+        ({m, 0} : Finset (Fin d → ℤ)) := by
+        rw [Set.indicator_of_mem hmem, hterm]
+    _ ≤ Potential.normAt (heisenbergPotential n J) 0 := ENNReal.le_tsum _
 
 end HeisenbergPotential
 
@@ -3095,10 +3216,157 @@ theorem crossingMatrix_eq_zero_of_nearestNeighbour
       = ∑' _ : Fin d → ℤ, (0 : ℝ) := tsum_congr hzero
     _ = 0 := tsum_zero
 
+/-- **The diagonal of the crossing matrix of a nearest-neighbour coupling.**  On the torus, a
+nearest-neighbour bond crosses the plane of `r_k` exactly at the two interfaces produced by the
+periodic boundary condition: between the layers `i_k = N-1` and `i_k = N`, and between `i_k = 2N-1`
+and `i_k = 0`.  A site of the positive half therefore sees a crossing bond iff `i_k ∈ {0, N-1}`,
+and it then contributes `J(e_k)`.  (For `N = 1` the two conditions coincide and the site sees
+both interfaces.) -/
+theorem crossingMatrix_diag_nearestNeighbour (heven : ∀ m, J (-m) = J m)
+    (hsupp : ∀ m : Fin d → ℤ, (∑ c, (m c).natAbs) ≠ 1 → J m = 0)
+    (i : Fin d → ZMod (2 * N)) :
+    crossingMatrix N J k i i
+      = (if (i k).val = N - 1 then J (Pi.single k 1) else 0)
+        + (if (i k).val = 0 then J (Pi.single k 1) else 0) := by
+  classical
+  have hN : 0 < N := Nat.pos_of_ne_zero (NeZero.ne N)
+  by_cases hi : (i k).val < N
+  swap
+  · rw [crossingMatrix_eq_zero (fun h ↦ hi h.1)]
+    have h1 : (i k).val ≠ N - 1 := by omega
+    have h2 : (i k).val ≠ 0 := by omega
+    simp [h1, h2]
+  -- the crossing index along the diagonal
+  set a : ℕ := (i k).val with ha
+  have halt : a < N := hi
+  have hidx : ∀ ℓ : Fin d → ℤ, ∀ c, c ≠ k →
+      (crossingIndex N k i i + (2 * N : ℤ) • ℓ) c = (2 * N : ℤ) * ℓ c := by
+    intro ℓ c hc
+    simp [crossingIndex_of_ne hc]
+  have hidxk : ∀ ℓ : Fin d → ℤ,
+      (crossingIndex N k i i + (2 * N : ℤ) • ℓ) k
+        = (2 * N : ℤ) - 1 - 2 * (a : ℤ) + (2 * N : ℤ) * ℓ k := by
+    intro ℓ
+    simp only [Pi.add_apply, Pi.smul_apply, crossingIndex_self, smul_eq_mul, ha]
+    ring
+  -- the natural-absolute-value sum, when the transverse coordinates vanish
+  have hsum_of : ∀ (x : Fin d → ℤ), (∀ c, c ≠ k → x c = 0) →
+      ∑ c, (x c).natAbs = (x k).natAbs := by
+    intro x hx
+    rw [← Finset.sum_erase_add _ _ (Finset.mem_univ k), Finset.sum_eq_zero, zero_add]
+    intro c hc
+    rw [hx c (Finset.ne_of_mem_erase hc)]
+    rfl
+  -- outside `{0, -e_k}` the summand vanishes
+  have hzero : ∀ ℓ : Fin d → ℤ, ℓ ∉ ({0, -(Pi.single k 1)} : Finset (Fin d → ℤ)) →
+      J (crossingIndex N k i i + (2 * N : ℤ) • ℓ) = 0 := by
+    intro ℓ hℓ
+    set x := crossingIndex N k i i + (2 * N : ℤ) • ℓ with hx
+    refine hsupp _ fun hs ↦ hℓ ?_
+    -- every transverse `ℓ c` vanishes
+    have htr : ∀ c, c ≠ k → ℓ c = 0 := by
+      intro c hc
+      by_contra hne
+      have h1 : (x c).natAbs ≤ ∑ c', (x c').natAbs :=
+        Finset.single_le_sum (f := fun c' ↦ (x c').natAbs) (fun _ _ ↦ Nat.zero_le _)
+          (Finset.mem_univ c)
+      rw [hs] at h1
+      rw [hx, hidx ℓ c hc] at h1
+      have hmul : ((2 * N : ℤ) * ℓ c).natAbs = 2 * N * (ℓ c).natAbs := by
+        rw [Int.natAbs_mul]
+        congr 1
+      rw [hmul] at h1
+      have hne1 : 1 ≤ (ℓ c).natAbs :=
+        Nat.one_le_iff_ne_zero.2 fun h ↦ hne (Int.natAbs_eq_zero.1 h)
+      have hNpos : 0 < N := Nat.pos_of_ne_zero (NeZero.ne N)
+      have hle : 2 * N ≤ 2 * N * (ℓ c).natAbs := Nat.le_mul_of_pos_right _ (by omega)
+      omega
+    have hxc : ∀ c, c ≠ k → x c = 0 := by
+      intro c hc; rw [hx, hidx ℓ c hc, htr c hc, mul_zero]
+    have hxk : (x k).natAbs = 1 := by rw [← hsum_of x hxc, hs]
+    have hval : x k = 1 ∨ x k = -1 := by omega
+    have hxkv : x k = (2 * N : ℤ) - 1 - 2 * (a : ℤ) + (2 * N : ℤ) * ℓ k := hidxk ℓ
+    have haZ : (a : ℤ) < (N : ℤ) := by exact_mod_cast halt
+    have haZ0 : (0 : ℤ) ≤ (a : ℤ) := Int.natCast_nonneg _
+    have hNZ : (0 : ℤ) < (N : ℤ) := by exact_mod_cast hN
+    have hlk : ℓ k = 0 ∨ ℓ k = -1 := by
+      rcases hval with h | h
+      · left; rw [hxkv] at h; nlinarith [h]
+      · right; rw [hxkv] at h; nlinarith [h]
+    -- so `ℓ` is `0` or `-e_k`
+    have hfin : ℓ = 0 ∨ ℓ = -(Pi.single k 1) := by
+      rcases hlk with h | h
+      · left
+        funext c
+        by_cases hc : c = k
+        · subst hc; simpa using h
+        · simpa using htr c hc
+      · right
+        funext c
+        by_cases hc : c = k
+        · subst hc; simp [h]
+        · simp [hc, htr c hc]
+    rcases hfin with h | h <;> simp [h]
+  rw [crossingMatrix_eq_tsum hi hi, tsum_eq_sum hzero,
+    Finset.sum_pair (show (0 : Fin d → ℤ) ≠ -(Pi.single k 1) by
+      intro h
+      have := congrFun h k
+      simp at this)]
+  have haZ : (a : ℤ) < (N : ℤ) := by exact_mod_cast halt
+  have haZ0 : (0 : ℤ) ≤ (a : ℤ) := Int.natCast_nonneg _
+  have hNZ : (0 : ℤ) < (N : ℤ) := by exact_mod_cast hN
+  congr 1
+  · -- the term `ℓ = 0`: the interface between the layers `N-1` and `N`
+    set x := crossingIndex N k i i + (2 * N : ℤ) • (0 : Fin d → ℤ) with hx
+    have hxc : ∀ c, c ≠ k → x c = 0 := by intro c hc; rw [hx, hidx _ c hc]; simp
+    have hxk : x k = (2 * N : ℤ) - 1 - 2 * (a : ℤ) := by rw [hx, hidxk]; simp
+    split_ifs with hcase
+    · have haN : (a : ℤ) = (N : ℤ) - 1 := by omega
+      have hxe : x = Pi.single k 1 := by
+        funext c
+        by_cases hc : c = k
+        · subst hc
+          rw [hxk, haN, Pi.single_eq_same]
+          ring
+        · rw [hxc c hc, Pi.single_eq_of_ne hc]
+      rw [hxe]
+    · refine hsupp _ ?_
+      rw [hsum_of x hxc, hxk]
+      have h1 : (a : ℤ) < (N : ℤ) - 1 := by omega
+      omega
+  · -- the term `ℓ = -e_k`: the interface produced by the periodic boundary condition
+    set x := crossingIndex N k i i + (2 * N : ℤ) • (-(Pi.single k 1) : Fin d → ℤ) with hx
+    have hxc : ∀ c, c ≠ k → x c = 0 := by
+      intro c hc; rw [hx, hidx _ c hc]; simp [hc]
+    have hxk : x k = -1 - 2 * (a : ℤ) := by
+      rw [hx, hidxk]
+      simp only [Pi.neg_apply, Pi.single_eq_same]
+      ring
+    split_ifs with hcase
+    · have haN : (a : ℤ) = 0 := by omega
+      have hxe : x = -(Pi.single k 1) := by
+        funext c
+        by_cases hc : c = k
+        · subst hc
+          rw [hxk, haN, Pi.neg_apply, Pi.single_eq_same]
+          ring
+        · rw [hxc c hc, Pi.neg_apply, Pi.single_eq_of_ne hc]
+          ring
+      rw [hxe, heven]
+    · refine hsupp _ ?_
+      rw [hsum_of x hxc, hxk]
+      have h1 : (1 : ℤ) ≤ (a : ℤ) := by omega
+      omega
+
 /-- **The crossing matrix of a ferromagnetic nearest-neighbour coupling is positive
-semidefinite**, being diagonal with nonnegative entries. -/
-theorem posSemidef_crossingMatrix_nearestNeighbour
-    (hsupp : ∀ m : Fin d → ℤ, (∑ c, (m c).natAbs) ≠ 1 → J m = 0) (hpos : ∀ m, 0 ≤ J m) :
+semidefinite**, being diagonal with nonnegative entries.
+
+Only the nonnegativity of the single coupling `J(e_k)` in the direction of the reflection is
+needed, not `J ≥ 0`: by `crossingMatrix_diag_nearestNeighbour` the diagonal entries are
+`J(e_k)` times the number of interfaces the site sees. -/
+theorem posSemidef_crossingMatrix_nearestNeighbour (heven : ∀ m, J (-m) = J m)
+    (hsupp : ∀ m : Fin d → ℤ, (∑ c, (m c).natAbs) ≠ 1 → J m = 0)
+    (hJk : 0 ≤ J (Pi.single k 1)) :
     (crossingMatrix N J k).PosSemidef := by
   classical
   have hdiag : crossingMatrix N J k
@@ -3113,14 +3381,17 @@ theorem posSemidef_crossingMatrix_nearestNeighbour
         · exact crossingMatrix_eq_zero fun h ↦ hj h.2
       · exact crossingMatrix_eq_zero fun h ↦ hi h.1
   rw [hdiag]
-  exact Matrix.PosSemidef.diagonal fun i ↦ crossingMatrix_nonneg hpos i i
+  refine Matrix.PosSemidef.diagonal fun i ↦ ?_
+  rw [crossingMatrix_diag_nearestNeighbour heven hsupp i]
+  positivity
 
 /-- **Georgii, Example (17.30).**  For a ferromagnetic nearest-neighbour Heisenberg potential —
 `J` even, supported on the bonds `|i| = 1` and nonnegative — the Gibbs distribution in the torus
 with periodic boundary condition is `r_k`-positive, for every direction `k`. -/
 theorem isReflectionPositive_heisenbergPeriodicGibbs_nearestNeighbour
     (heven : ∀ m, J (-m) = J m)
-    (hsupp : ∀ m : Fin d → ℤ, (∑ c, (m c).natAbs) ≠ 1 → J m = 0) (hpos : ∀ m, 0 ≤ J m)
+    (hsupp : ∀ m : Fin d → ℤ, (∑ c, (m c).natAbs) ≠ 1 → J m = 0)
+    (hJk : 0 ≤ J (Pi.single k 1))
     (ν : Measure (Fin n → ℝ)) [IsFiniteMeasure ν]
     (hint : Integrable (fun ω ↦ Real.exp (heisenbergExponent N n J ω))
       (Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ ν)) :
@@ -3128,7 +3399,7 @@ theorem isReflectionPositive_heisenbergPeriodicGibbs_nearestNeighbour
       (heisenbergPeriodicGibbs N n J ν) :=
   isReflectionPositive_heisenbergPeriodicGibbs_of_posSemidef heven
     (flipCoord_eq_of_nearestNeighbour hsupp heven)
-    (posSemidef_crossingMatrix_nearestNeighbour hsupp hpos) ν hint
+    (posSemidef_crossingMatrix_nearestNeighbour heven hsupp hJk) ν hint
 
 /-- **Georgii, Example (17.31).**  For a next-nearest neighbour Heisenberg potential — `J(i) = A`
 if `|i|² = 1`, `B` if `|i|² = 2`, `0` if `|i|² > 2` — with `A ≥ 2(d-1)|B|`, the Gibbs distribution
@@ -3151,12 +3422,53 @@ theorem isReflectionPositive_heisenbergPeriodicGibbs_nextNearestNeighbour {A B :
   isReflectionPositive_heisenbergPeriodicGibbs_of_isNonnegDefiniteAt hsum heven
     (isNonnegDefiniteAt_of_nextNearestNeighbour hAB hJ1 hJ2 hJ0) ν hint
 
+/-- **Georgii, Example (17.32), the case `d = 1`.**  For the long-range coupling
+`J(i) = β |i|^{-a}` on `ℤ` with `β ≥ 0` and `a > 1` — `a > d` being Georgii's summability
+(17.23) — the Gibbs distribution in the torus with periodic boundary condition is `r_0`-positive.
+
+The representing measure is the one of `isNonnegDefiniteAt_rpow`: the image of the gamma
+distribution `Γ(a)^{-1} e^{-s} s^{a-1} ds` under `s ↦ e^{-s}`, which is Georgii's case 1). -/
+theorem isReflectionPositive_heisenbergPeriodicGibbs_longRange_one {J : (Fin 1 → ℤ) → ℝ}
+    (k : Fin 1) {a : ℝ} (ha : 1 < a) {β : ℝ} (hβ : 0 ≤ β)
+    (hJ : ∀ i : Fin 1 → ℤ, i ≠ 0 → J i = β * |(i 0 : ℝ)| ^ (-a))
+    (ν : Measure (Fin n → ℝ)) [IsFiniteMeasure ν]
+    (hint : Integrable (fun ω ↦ Real.exp (heisenbergExponent N n J ω))
+      (Measure.pi fun _ : Fin 1 → ZMod (2 * N) ↦ ν)) :
+    IsReflectionPositive (torusPosAt N k) (siteEquiv (Fin n → ℝ) (torusReflAt N k))
+      (heisenbergPeriodicGibbs N n J ν) := by
+  have hk : k = 0 := Subsingleton.elim k 0
+  subst hk
+  -- (17.23): the comparison series on `ℤ`, transported along `(Fin 1 → ℤ) ≃ ℤ`.
+  have hcomp : Summable fun i : Fin 1 → ℤ ↦ β * |(i 0 : ℝ)| ^ (-a) := by
+    have hiff := Equiv.summable_iff (f := fun z : ℤ ↦ β * |(z : ℝ)| ^ (-a))
+      (Equiv.funUnique (Fin 1) ℤ)
+    exact hiff.2 ((Real.summable_abs_int_rpow ha).mul_left β)
+  have hsum : Summable J := by
+    refine Summable.of_norm_bounded_eventually hcomp ?_
+    rw [Filter.eventually_cofinite]
+    refine (Set.finite_singleton (0 : Fin 1 → ℤ)).subset fun i hi ↦ ?_
+    simp only [Set.mem_ofPred_eq, Set.mem_singleton_iff] at hi ⊢
+    by_contra hi0
+    exact hi (by rw [hJ i hi0, Real.norm_eq_abs, abs_of_nonneg (by positivity)])
+  have heven : ∀ m, J (-m) = J m := by
+    intro m
+    by_cases hm : m = 0
+    · rw [hm, neg_zero]
+    · rw [hJ (-m) (neg_ne_zero.2 hm), hJ m hm]
+      simp
+  refine isReflectionPositive_heisenbergPeriodicGibbs_of_isNonnegDefiniteAt hsum heven
+    (isNonnegDefiniteAt_rpow (a := a) (by linarith) hβ fun i hi ↦ ?_) ν hint
+  have hne : i ≠ 0 := fun h ↦ by simp [h] at hi
+  have hipos : (0 : ℝ) < ((i 0 : ℤ) : ℝ) := by exact_mod_cast (by omega : (0 : ℤ) < i 0)
+  rw [hJ i hne, abs_of_pos hipos]
+
 /-- **Georgii, Example (17.32) for `d = 2`.**  For the long range Heisenberg potential on `ℤ²`
 with coupling `J(i) = β |i|^{-a}`, `β ≥ 0`, `a > 2`, the Gibbs distribution in the torus with
 periodic boundary condition is `r_k`-positive for both `k`.  The absolute summability (17.23) is
 `summable_sum_sq_rpow_fin_two`; the hypothesis `hint` is Georgii's standing assumption that
 `°Z_Λ^Φ` is finite. -/
-theorem isReflectionPositive_heisenbergPeriodicGibbs_longRange_two {J : (Fin 2 → ℤ) → ℝ} (k : Fin 2) {a : ℝ} (ha : 2 < a) {β : ℝ} (hβ : 0 ≤ β)
+theorem isReflectionPositive_heisenbergPeriodicGibbs_longRange_two {J : (Fin 2 → ℤ) → ℝ}
+    (k : Fin 2) {a : ℝ} (ha : 2 < a) {β : ℝ} (hβ : 0 ≤ β)
     (hJ : ∀ i : Fin 2 → ℤ, i ≠ 0 → J i = β * (∑ c, (i c : ℝ) ^ 2) ^ (-(a / 2)))
     (ν : Measure (Fin n → ℝ)) [IsFiniteMeasure ν]
     (hint : Integrable (fun ω ↦ Real.exp (heisenbergExponent N n J ω))
@@ -3665,148 +3977,6 @@ lemma sum_ite_torus_coord (v : ZMod (2 * N)) (c : ℝ) :
   rw [Finset.sum_ite_eval_eq k v c, ZMod.card, Fintype.card_fin, nsmul_eq_mul]
 
 /-! ### Georgii, Example (17.30): the crossing sum of a nearest-neighbour coupling -/
-
-/-- **The diagonal of the crossing matrix of a nearest-neighbour coupling.**  On the torus, a
-nearest-neighbour bond crosses the plane of `r_k` exactly at the two interfaces produced by the
-periodic boundary condition: between the layers `i_k = N-1` and `i_k = N`, and between `i_k = 2N-1`
-and `i_k = 0`.  A site of the positive half therefore sees a crossing bond iff `i_k ∈ {0, N-1}`,
-and it then contributes `J(e_k)`.  (For `N = 1` the two conditions coincide and the site sees
-both interfaces.) -/
-theorem crossingMatrix_diag_nearestNeighbour (heven : ∀ m, J (-m) = J m)
-    (hsupp : ∀ m : Fin d → ℤ, (∑ c, (m c).natAbs) ≠ 1 → J m = 0)
-    (i : Fin d → ZMod (2 * N)) :
-    crossingMatrix N J k i i
-      = (if (i k).val = N - 1 then J (Pi.single k 1) else 0)
-        + (if (i k).val = 0 then J (Pi.single k 1) else 0) := by
-  classical
-  have hN : 0 < N := Nat.pos_of_ne_zero (NeZero.ne N)
-  by_cases hi : (i k).val < N
-  swap
-  · rw [crossingMatrix_eq_zero (fun h ↦ hi h.1)]
-    have h1 : (i k).val ≠ N - 1 := by omega
-    have h2 : (i k).val ≠ 0 := by omega
-    simp [h1, h2]
-  -- the crossing index along the diagonal
-  set a : ℕ := (i k).val with ha
-  have halt : a < N := hi
-  have hidx : ∀ ℓ : Fin d → ℤ, ∀ c, c ≠ k →
-      (crossingIndex N k i i + (2 * N : ℤ) • ℓ) c = (2 * N : ℤ) * ℓ c := by
-    intro ℓ c hc
-    simp [crossingIndex_of_ne hc]
-  have hidxk : ∀ ℓ : Fin d → ℤ,
-      (crossingIndex N k i i + (2 * N : ℤ) • ℓ) k
-        = (2 * N : ℤ) - 1 - 2 * (a : ℤ) + (2 * N : ℤ) * ℓ k := by
-    intro ℓ
-    simp only [Pi.add_apply, Pi.smul_apply, crossingIndex_self, smul_eq_mul, ha]
-    ring
-  -- the natural-absolute-value sum, when the transverse coordinates vanish
-  have hsum_of : ∀ (x : Fin d → ℤ), (∀ c, c ≠ k → x c = 0) →
-      ∑ c, (x c).natAbs = (x k).natAbs := by
-    intro x hx
-    rw [← Finset.sum_erase_add _ _ (Finset.mem_univ k), Finset.sum_eq_zero, zero_add]
-    intro c hc
-    rw [hx c (Finset.ne_of_mem_erase hc)]
-    rfl
-  -- outside `{0, -e_k}` the summand vanishes
-  have hzero : ∀ ℓ : Fin d → ℤ, ℓ ∉ ({0, -(Pi.single k 1)} : Finset (Fin d → ℤ)) →
-      J (crossingIndex N k i i + (2 * N : ℤ) • ℓ) = 0 := by
-    intro ℓ hℓ
-    set x := crossingIndex N k i i + (2 * N : ℤ) • ℓ with hx
-    refine hsupp _ fun hs ↦ hℓ ?_
-    -- every transverse `ℓ c` vanishes
-    have htr : ∀ c, c ≠ k → ℓ c = 0 := by
-      intro c hc
-      by_contra hne
-      have h1 : (x c).natAbs ≤ ∑ c', (x c').natAbs :=
-        Finset.single_le_sum (f := fun c' ↦ (x c').natAbs) (fun _ _ ↦ Nat.zero_le _)
-          (Finset.mem_univ c)
-      rw [hs] at h1
-      rw [hx, hidx ℓ c hc] at h1
-      have hmul : ((2 * N : ℤ) * ℓ c).natAbs = 2 * N * (ℓ c).natAbs := by
-        rw [Int.natAbs_mul]
-        congr 1
-      rw [hmul] at h1
-      have hne1 : 1 ≤ (ℓ c).natAbs :=
-        Nat.one_le_iff_ne_zero.2 fun h ↦ hne (Int.natAbs_eq_zero.1 h)
-      have hNpos : 0 < N := Nat.pos_of_ne_zero (NeZero.ne N)
-      have hle : 2 * N ≤ 2 * N * (ℓ c).natAbs := Nat.le_mul_of_pos_right _ (by omega)
-      omega
-    have hxc : ∀ c, c ≠ k → x c = 0 := by
-      intro c hc; rw [hx, hidx ℓ c hc, htr c hc, mul_zero]
-    have hxk : (x k).natAbs = 1 := by rw [← hsum_of x hxc, hs]
-    have hval : x k = 1 ∨ x k = -1 := by omega
-    have hxkv : x k = (2 * N : ℤ) - 1 - 2 * (a : ℤ) + (2 * N : ℤ) * ℓ k := hidxk ℓ
-    have haZ : (a : ℤ) < (N : ℤ) := by exact_mod_cast halt
-    have haZ0 : (0 : ℤ) ≤ (a : ℤ) := Int.natCast_nonneg _
-    have hNZ : (0 : ℤ) < (N : ℤ) := by exact_mod_cast hN
-    have hlk : ℓ k = 0 ∨ ℓ k = -1 := by
-      rcases hval with h | h
-      · left; rw [hxkv] at h; nlinarith [h]
-      · right; rw [hxkv] at h; nlinarith [h]
-    -- so `ℓ` is `0` or `-e_k`
-    have hfin : ℓ = 0 ∨ ℓ = -(Pi.single k 1) := by
-      rcases hlk with h | h
-      · left
-        funext c
-        by_cases hc : c = k
-        · subst hc; simpa using h
-        · simpa using htr c hc
-      · right
-        funext c
-        by_cases hc : c = k
-        · subst hc; simp [h]
-        · simp [hc, htr c hc]
-    rcases hfin with h | h <;> simp [h]
-  rw [crossingMatrix_eq_tsum hi hi, tsum_eq_sum hzero,
-    Finset.sum_pair (show (0 : Fin d → ℤ) ≠ -(Pi.single k 1) by
-      intro h
-      have := congrFun h k
-      simp at this)]
-  have haZ : (a : ℤ) < (N : ℤ) := by exact_mod_cast halt
-  have haZ0 : (0 : ℤ) ≤ (a : ℤ) := Int.natCast_nonneg _
-  have hNZ : (0 : ℤ) < (N : ℤ) := by exact_mod_cast hN
-  congr 1
-  · -- the term `ℓ = 0`: the interface between the layers `N-1` and `N`
-    set x := crossingIndex N k i i + (2 * N : ℤ) • (0 : Fin d → ℤ) with hx
-    have hxc : ∀ c, c ≠ k → x c = 0 := by intro c hc; rw [hx, hidx _ c hc]; simp
-    have hxk : x k = (2 * N : ℤ) - 1 - 2 * (a : ℤ) := by rw [hx, hidxk]; simp
-    split_ifs with hcase
-    · have haN : (a : ℤ) = (N : ℤ) - 1 := by omega
-      have hxe : x = Pi.single k 1 := by
-        funext c
-        by_cases hc : c = k
-        · subst hc
-          rw [hxk, haN, Pi.single_eq_same]
-          ring
-        · rw [hxc c hc, Pi.single_eq_of_ne hc]
-      rw [hxe]
-    · refine hsupp _ ?_
-      rw [hsum_of x hxc, hxk]
-      have h1 : (a : ℤ) < (N : ℤ) - 1 := by omega
-      omega
-  · -- the term `ℓ = -e_k`: the interface produced by the periodic boundary condition
-    set x := crossingIndex N k i i + (2 * N : ℤ) • (-(Pi.single k 1) : Fin d → ℤ) with hx
-    have hxc : ∀ c, c ≠ k → x c = 0 := by
-      intro c hc; rw [hx, hidx _ c hc]; simp [hc]
-    have hxk : x k = -1 - 2 * (a : ℤ) := by
-      rw [hx, hidxk]
-      simp only [Pi.neg_apply, Pi.single_eq_same]
-      ring
-    split_ifs with hcase
-    · have haN : (a : ℤ) = 0 := by omega
-      have hxe : x = -(Pi.single k 1) := by
-        funext c
-        by_cases hc : c = k
-        · subst hc
-          rw [hxk, haN, Pi.neg_apply, Pi.single_eq_same]
-          ring
-        · rw [hxc c hc, Pi.neg_apply, Pi.single_eq_of_ne hc]
-          ring
-      rw [hxe, heven]
-    · refine hsupp _ ?_
-      rw [hsum_of x hxc, hxk]
-      have h1 : (1 : ℤ) ≤ (a : ℤ) := by omega
-      omega
 
 /-- **Georgii, Example (17.30): the crossing form of the constant pattern.**  For a
 nearest-neighbour coupling the crossing matrix is diagonal, and its diagonal is `J(e_k)` at the
@@ -4612,6 +4782,57 @@ theorem dotProduct_transversePattern_crossingMatrix_nextNearestNeighbour {A B : 
     tsum_mul_crossingWeight_transversePattern_nextNearestNeighbour hJ1 hJ2 hJ0 hχ]
 
 
+/-- **Georgii, Example (17.31): `A ≥ 2(d-1)|B|` is *necessary* for nonnegative definiteness.**
+
+The crossing form of the `±1` pattern `q_χ` is `2(2N)^{d-1}(A + 2B ∑_{c ≠ k} χ_c)`
+(`dotProduct_transversePattern_crossingMatrix_nextNearestNeighbour`), and nonnegative
+definiteness relative to `r_k` makes the crossing matrix positive semidefinite
+(`IsNonnegDefiniteAt.posSemidef_crossingMatrix`, the analytic core of (17.29)).  Taking `χ = 1`
+and `χ = -1` gives `A + 2(d-1)B ≥ 0` and `A - 2(d-1)B ≥ 0`.
+
+Together with `isNonnegDefiniteAt_of_nextNearestNeighbour` this is
+`isNonnegDefiniteAt_nextNearestNeighbour_iff`.  Note that the argument is purely algebraic: it
+does not go through the reflection form of any measure. -/
+theorem le_of_isNonnegDefiniteAt_nextNearestNeighbour {A B : ℝ}
+    (hJ1 : ∀ m : Fin d → ℤ, (∑ c, m c ^ 2) = 1 → J m = A)
+    (hJ2 : ∀ m : Fin d → ℤ, (∑ c, m c ^ 2) = 2 → J m = B)
+    (hJ0 : ∀ m : Fin d → ℤ, 2 < (∑ c, m c ^ 2) → J m = 0)
+    (hnd : IsNonnegDefiniteAt k J) :
+    2 * ((d : ℝ) - 1) * |B| ≤ A := by
+  classical
+  have hd0 : 0 < d := k.pos
+  have hcardR : ((Finset.univ.erase k).card : ℝ) = (d : ℝ) - 1 := by
+    rw [Finset.card_erase_of_mem (Finset.mem_univ k), Finset.card_univ, Fintype.card_fin,
+      Nat.cast_sub hd0]
+    simp
+  have hpsd : (crossingMatrix 1 J k).PosSemidef :=
+    hnd.posSemidef_crossingMatrix (summable_of_nextNearestNeighbour hJ0)
+      (even_of_nextNearestNeighbour hJ1 hJ2 hJ0)
+  have hform : ∀ χ : Fin d → ℝ, (∀ c, χ c = 1 ∨ χ c = -1) →
+      0 ≤ 2 * (((2 * 1) ^ (d - 1) : ℕ) : ℝ)
+        * (A + 2 * B * ∑ c ∈ Finset.univ.erase k, χ c) := by
+    intro χ hχ
+    rw [← dotProduct_transversePattern_crossingMatrix_nextNearestNeighbour hJ1 hJ2 hJ0 hχ]
+    simpa using hpsd.dotProduct_mulVec_nonneg (transversePattern 1 k χ)
+  have hC : (0 : ℝ) < 2 * (((2 * 1) ^ (d - 1) : ℕ) : ℝ) := by positivity
+  have h1 := hform (fun _ ↦ 1) fun _ ↦ Or.inl rfl
+  have h2 := hform (fun _ ↦ -1) fun _ ↦ Or.inr rfl
+  rw [Finset.sum_const, nsmul_eq_mul, hcardR] at h1 h2
+  rcases le_or_gt 0 B with hB | hB
+  · rw [abs_of_nonneg hB]; nlinarith
+  · rw [abs_of_neg hB]; nlinarith
+
+/-- **Georgii, Example (17.31), both directions.**  A next-nearest neighbour coupling
+`J(i) = A` for `|i|² = 1`, `B` for `|i|² = 2`, `0` beyond, is nonnegative definite relative to
+`r_k` **iff** `A ≥ 2(d-1)|B|`. -/
+theorem isNonnegDefiniteAt_nextNearestNeighbour_iff {A B : ℝ}
+    (hJ1 : ∀ m : Fin d → ℤ, (∑ c, m c ^ 2) = 1 → J m = A)
+    (hJ2 : ∀ m : Fin d → ℤ, (∑ c, m c ^ 2) = 2 → J m = B)
+    (hJ0 : ∀ m : Fin d → ℤ, 2 < (∑ c, m c ^ 2) → J m = 0) :
+    IsNonnegDefiniteAt k J ↔ 2 * ((d : ℝ) - 1) * |B| ≤ A :=
+  ⟨le_of_isNonnegDefiniteAt_nextNearestNeighbour hJ1 hJ2 hJ0,
+    fun h ↦ isNonnegDefiniteAt_of_nextNearestNeighbour h hJ1 hJ2 hJ0⟩
+
 /-- **Georgii, Example (17.31): the value of the reflection form at the `±1` patterns.**  For the
 next-nearest neighbour coupling, the two-point a priori measure and the pattern `q_χ`,
 
@@ -4675,6 +4896,435 @@ theorem not_isReflectionPositive_heisenbergPeriodicGibbs_nextNearestNeighbour {A
     (transversePattern N k χ) (transversePattern_eq_one_or hχ) ?_
   rw [dotProduct_transversePattern_crossingMatrix_nextNearestNeighbour hJ1 hJ2 hJ0 hχ]
   exact mul_neg_of_pos_of_neg (by positivity) hneg
+
+/-! ### Invariance, normalisation, and the a priori bounds of Georgii §20.1
+
+The hypotheses of the chessboard estimate (17.11) for the reflections `r_k` — `Λ`-periodicity,
+`r_k`-invariance, `r_k`-positivity and `0 < °Z_Λ^Φ < ∞` — for the Heisenberg periodic Gibbs
+distribution, together with the elementary bounds on the exponent (17.24) that Georgii uses in
+the proofs of Lemmas (20.6) and (20.8).  Georgii's `‖J‖₀` of (20.2) is `∑' m, |J m|`. -/
+
+section AprioriBounds
+
+variable {ν : Measure (Fin n → ℝ)}
+
+/-! #### Summing the periodised coupling over the torus -/
+
+variable (N) in
+/-- The fibres of the projection `ℤ^d → Λ` partition `ℤ^d`, so summing a fibrewise sum over the
+torus recovers the sum over `ℤ^d`. -/
+lemma sum_tsum_ite_torus {g : (Fin d → ℤ) → ℝ} (hg : Summable g) :
+    ∑ z : Fin d → ZMod (2 * N), ∑' m : Fin d → ℤ,
+        (if (fun c ↦ ((m c : ℤ) : ZMod (2 * N))) = z then g m else 0)
+      = ∑' m : Fin d → ℤ, g m := by
+  classical
+  have hsummable : ∀ z : Fin d → ZMod (2 * N), Summable fun m : Fin d → ℤ ↦
+      if (fun c ↦ ((m c : ℤ) : ZMod (2 * N))) = z then g m else 0 := fun z ↦
+    Summable.of_norm_bounded hg.abs fun m ↦ by
+      by_cases h : (fun c ↦ ((m c : ℤ) : ZMod (2 * N))) = z <;> simp [h]
+  rw [← Summable.tsum_finsetSum fun z _ ↦ hsummable z]
+  exact tsum_congr fun m ↦ by simp [Finset.sum_ite_eq]
+
+/-- **`∑_{z ∈ Λ} J_Λ(z) = ∑_{m ∈ ℤ^d} J(m)`.** -/
+lemma sum_periodizedCoupling (hsum : Summable J) :
+    ∑ z : Fin d → ZMod (2 * N), periodizedCoupling N J z = ∑' m, J m := by
+  simp only [periodizedCoupling_eq_tsum_ite]
+  exact sum_tsum_ite_torus N hsum
+
+/-- **`∑_{z ∈ Λ} |J_Λ(z)| ≤ ‖J‖₀`**, Georgii (20.2). -/
+lemma sum_abs_periodizedCoupling_le (hsum : Summable J) :
+    ∑ z : Fin d → ZMod (2 * N), |periodizedCoupling N J z| ≤ ∑' m, |J m| := by
+  classical
+  have habs : Summable fun m : Fin d → ℤ ↦ |J m| := hsum.abs
+  have hstep : ∀ z : Fin d → ZMod (2 * N), |periodizedCoupling N J z|
+      ≤ ∑' m : Fin d → ℤ, (if (fun c ↦ ((m c : ℤ) : ZMod (2 * N))) = z then |J m| else 0) := by
+    intro z
+    rw [periodizedCoupling_eq_tsum_ite, ← Real.norm_eq_abs]
+    have hb : Summable fun m : Fin d → ℤ ↦
+        ‖(if (fun c ↦ ((m c : ℤ) : ZMod (2 * N))) = z then J m else 0)‖ :=
+      Summable.of_norm_bounded habs fun m ↦ by
+        by_cases h : (fun c ↦ ((m c : ℤ) : ZMod (2 * N))) = z <;> simp [h]
+    refine (norm_tsum_le_tsum_norm hb).trans (le_of_eq (tsum_congr fun m ↦ ?_))
+    by_cases h : (fun c ↦ ((m c : ℤ) : ZMod (2 * N))) = z <;> simp [h]
+  calc ∑ z : Fin d → ZMod (2 * N), |periodizedCoupling N J z|
+      ≤ ∑ z : Fin d → ZMod (2 * N), ∑' m : Fin d → ℤ,
+          (if (fun c ↦ ((m c : ℤ) : ZMod (2 * N))) = z then |J m| else 0) :=
+        Finset.sum_le_sum fun z _ ↦ hstep z
+    _ = ∑' m, |J m| := sum_tsum_ite_torus N habs
+
+/-- `∑_{j ∈ Λ} |J_Λ(i-j)| ≤ ‖J‖₀`: the row sums of the periodised coupling matrix. -/
+lemma sum_abs_periodizedCoupling_sub_le (hsum : Summable J) (i : Fin d → ZMod (2 * N)) :
+    ∑ j : Fin d → ZMod (2 * N), |periodizedCoupling N J (i - j)| ≤ ∑' m, |J m| := by
+  have h : ∑ j : Fin d → ZMod (2 * N), |periodizedCoupling N J (i - j)|
+      = ∑ z : Fin d → ZMod (2 * N), |periodizedCoupling N J z| :=
+    Fintype.sum_equiv (Equiv.subLeft i) _ _ fun j ↦ by simp
+  rw [h]
+  exact sum_abs_periodizedCoupling_le hsum
+
+/-- `∑_{i ∈ Λ} |J_Λ(i-j)| ≤ ‖J‖₀`: the column sums of the periodised coupling matrix. -/
+lemma sum_abs_periodizedCoupling_sub_le' (hsum : Summable J) (j : Fin d → ZMod (2 * N)) :
+    ∑ i : Fin d → ZMod (2 * N), |periodizedCoupling N J (i - j)| ≤ ∑' m, |J m| := by
+  have h : ∑ i : Fin d → ZMod (2 * N), |periodizedCoupling N J (i - j)|
+      = ∑ z : Fin d → ZMod (2 * N), |periodizedCoupling N J z| :=
+    Fintype.sum_equiv (Equiv.subRight j) _ _ fun i ↦ by simp
+  rw [h]
+  exact sum_abs_periodizedCoupling_le hsum
+
+/-- `∑_{j ∈ Λ} J_Λ(i-j) = ∑_{m ∈ ℤ^d} J(m)`. -/
+lemma sum_periodizedCoupling_sub (hsum : Summable J) (i : Fin d → ZMod (2 * N)) :
+    ∑ j : Fin d → ZMod (2 * N), periodizedCoupling N J (i - j) = ∑' m, J m := by
+  have h : ∑ j : Fin d → ZMod (2 * N), periodizedCoupling N J (i - j)
+      = ∑ z : Fin d → ZMod (2 * N), periodizedCoupling N J z :=
+    Fintype.sum_equiv (Equiv.subLeft i) _ _ fun j ↦ by simp
+  rw [h]
+  exact sum_periodizedCoupling hsum
+
+/-! #### Bounds on the exponent (17.24) -/
+
+/-- **Georgii's estimate at the start of the proof of (20.6).**
+`|½ ∑_{i,j ∈ Λ} J_Λ(i-j) σ_i·σ_j| ≤ ½ ‖J‖₀ ∑_{i ∈ Λ} |σ_i|²`, with `‖J‖₀ = ∑_m |J(m)|` the
+norm (20.2).  (Georgii states it with `‖J‖₀` in place of `½‖J‖₀`, using
+`|x·y| ≤ |x|² + |y|²` where the sharper `2|x·y| ≤ |x|² + |y|²` is available.) -/
+lemma abs_heisenbergExponent_le (hsum : Summable J)
+    (ω : (Fin d → ZMod (2 * N)) → (Fin n → ℝ)) :
+    |heisenbergExponent N n J ω| ≤ (∑' m, |J m|) / 2 * ∑ i, (ω i ⬝ᵥ ω i) := by
+  classical
+  set a : (Fin d → ZMod (2 * N)) → ℝ := fun i ↦ ω i ⬝ᵥ ω i with ha
+  have hanonneg : ∀ i, 0 ≤ a i := fun i ↦ Matrix.dotProduct_self_nonneg _
+  have hpt : ∀ i j, |periodizedCoupling N J (i - j) * (ω i ⬝ᵥ ω j)|
+      ≤ |periodizedCoupling N J (i - j)| * a i / 2
+        + |periodizedCoupling N J (i - j)| * a j / 2 := by
+    intro i j
+    rw [abs_mul]
+    have h := Matrix.two_mul_abs_dotProduct_le (ω i) (ω j)
+    have hc : (0 : ℝ) ≤ |periodizedCoupling N J (i - j)| := abs_nonneg _
+    have hmul : |periodizedCoupling N J (i - j)| * |ω i ⬝ᵥ ω j|
+        ≤ |periodizedCoupling N J (i - j)| * ((a i + a j) / 2) := by
+      refine mul_le_mul_of_nonneg_left ?_ hc
+      simp only [ha]
+      linarith
+    linarith
+  have hrow : ∑ i, ∑ j, |periodizedCoupling N J (i - j)| * a i / 2
+      ≤ (∑' m, |J m|) * (∑ i, a i) / 2 := by
+    have hstep : ∀ i : Fin d → ZMod (2 * N),
+        ∑ j, |periodizedCoupling N J (i - j)| * a i / 2 ≤ (∑' m, |J m|) * a i / 2 := by
+      intro i
+      have : ∑ j, |periodizedCoupling N J (i - j)| * a i / 2
+          = (∑ j, |periodizedCoupling N J (i - j)|) * a i / 2 := by
+        rw [Finset.sum_mul, Finset.sum_div]
+      rw [this]
+      have := sum_abs_periodizedCoupling_sub_le hsum i
+      have hai := hanonneg i
+      nlinarith
+    calc ∑ i, ∑ j, |periodizedCoupling N J (i - j)| * a i / 2
+        ≤ ∑ i, (∑' m, |J m|) * a i / 2 := Finset.sum_le_sum fun i _ ↦ hstep i
+      _ = (∑' m, |J m|) * (∑ i, a i) / 2 := by
+          rw [Finset.mul_sum, Finset.sum_div]
+  have hcol : ∑ i, ∑ j, |periodizedCoupling N J (i - j)| * a j / 2
+      ≤ (∑' m, |J m|) * (∑ i, a i) / 2 := by
+    rw [Finset.sum_comm]
+    have hstep : ∀ j : Fin d → ZMod (2 * N),
+        ∑ i, |periodizedCoupling N J (i - j)| * a j / 2 ≤ (∑' m, |J m|) * a j / 2 := by
+      intro j
+      have : ∑ i, |periodizedCoupling N J (i - j)| * a j / 2
+          = (∑ i, |periodizedCoupling N J (i - j)|) * a j / 2 := by
+        rw [Finset.sum_mul, Finset.sum_div]
+      rw [this]
+      have := sum_abs_periodizedCoupling_sub_le' hsum j
+      have haj := hanonneg j
+      nlinarith
+    calc ∑ j, ∑ i, |periodizedCoupling N J (i - j)| * a j / 2
+        ≤ ∑ j, (∑' m, |J m|) * a j / 2 := Finset.sum_le_sum fun j _ ↦ hstep j
+      _ = (∑' m, |J m|) * (∑ i, a i) / 2 := by
+          rw [Finset.mul_sum, Finset.sum_div]
+  have hmain : |∑ i, ∑ j, periodizedCoupling N J (i - j) * (ω i ⬝ᵥ ω j)|
+      ≤ (∑' m, |J m|) * ∑ i, a i := by
+    calc |∑ i, ∑ j, periodizedCoupling N J (i - j) * (ω i ⬝ᵥ ω j)|
+        ≤ ∑ i, |∑ j, periodizedCoupling N J (i - j) * (ω i ⬝ᵥ ω j)| :=
+          Finset.abs_sum_le_sum_abs _ _
+      _ ≤ ∑ i, ∑ j, |periodizedCoupling N J (i - j) * (ω i ⬝ᵥ ω j)| :=
+          Finset.sum_le_sum fun i _ ↦ Finset.abs_sum_le_sum_abs _ _
+      _ ≤ ∑ i, ∑ j, (|periodizedCoupling N J (i - j)| * a i / 2
+            + |periodizedCoupling N J (i - j)| * a j / 2) :=
+          Finset.sum_le_sum fun i _ ↦ Finset.sum_le_sum fun j _ ↦ hpt i j
+      _ = (∑ i, ∑ j, |periodizedCoupling N J (i - j)| * a i / 2)
+            + ∑ i, ∑ j, |periodizedCoupling N J (i - j)| * a j / 2 := by
+          rw [← Finset.sum_add_distrib]
+          exact Finset.sum_congr rfl fun i _ ↦ Finset.sum_add_distrib
+      _ ≤ (∑' m, |J m|) * ∑ i, a i := by linarith
+  rw [heisenbergExponent, abs_div]
+  rw [show |(2 : ℝ)| = 2 from abs_of_pos two_pos]
+  linarith
+
+/-- **The exponent (17.24) is at least `½ |Λ| u ∑_m J(m)`** on configurations whose spins have
+pairwise scalar products at least `u`, when `J ≥ 0`.  This is the lower bound on `°Z_Λ^Φ` in the
+proof of Georgii's Lemma (20.8). -/
+lemma le_heisenbergExponent_of_le (hsum : Summable J) (hJ : ∀ m, 0 ≤ J m) {u : ℝ}
+    {ω : (Fin d → ZMod (2 * N)) → (Fin n → ℝ)} (hω : ∀ i j, u ≤ ω i ⬝ᵥ ω j) :
+    ((2 * N) ^ d : ℕ) * (u * ∑' m, J m) / 2 ≤ heisenbergExponent N n J ω := by
+  have hstep : ∀ i : Fin d → ZMod (2 * N),
+      u * ∑' m, J m ≤ ∑ j, periodizedCoupling N J (i - j) * (ω i ⬝ᵥ ω j) := by
+    intro i
+    calc u * ∑' m, J m = ∑ j, periodizedCoupling N J (i - j) * u := by
+          rw [← Finset.sum_mul, sum_periodizedCoupling_sub hsum i, mul_comm]
+      _ ≤ ∑ j, periodizedCoupling N J (i - j) * (ω i ⬝ᵥ ω j) :=
+          Finset.sum_le_sum fun j _ ↦
+            mul_le_mul_of_nonneg_left (hω i j) (periodizedCoupling_nonneg hJ _)
+  have hsum' : ((2 * N) ^ d : ℕ) * (u * ∑' m, J m)
+      ≤ ∑ i, ∑ j, periodizedCoupling N J (i - j) * (ω i ⬝ᵥ ω j) := by
+    calc ((2 * N) ^ d : ℕ) * (u * ∑' m, J m)
+        = ∑ _i : Fin d → ZMod (2 * N), u * ∑' m, J m := by
+          rw [Finset.sum_const, Finset.card_univ, card_pi_zmod, nsmul_eq_mul]
+      _ ≤ ∑ i, ∑ j, periodizedCoupling N J (i - j) * (ω i ⬝ᵥ ω j) :=
+          Finset.sum_le_sum fun i _ ↦ hstep i
+  rw [heisenbergExponent]
+  linarith
+
+/-- **The exponent (17.24) is at most `½ |Λ| v ∑_m J(m)`** on configurations whose spins have
+pairwise scalar products at most `v`, when `J ≥ 0`.  This is the upper bound on the numerator in
+the proof of Georgii's Lemma (20.8). -/
+lemma heisenbergExponent_le_of_le (hsum : Summable J) (hJ : ∀ m, 0 ≤ J m) {v : ℝ}
+    {ω : (Fin d → ZMod (2 * N)) → (Fin n → ℝ)} (hω : ∀ i j, ω i ⬝ᵥ ω j ≤ v) :
+    heisenbergExponent N n J ω ≤ ((2 * N) ^ d : ℕ) * (v * ∑' m, J m) / 2 := by
+  have hstep : ∀ i : Fin d → ZMod (2 * N),
+      ∑ j, periodizedCoupling N J (i - j) * (ω i ⬝ᵥ ω j) ≤ v * ∑' m, J m := by
+    intro i
+    calc ∑ j, periodizedCoupling N J (i - j) * (ω i ⬝ᵥ ω j)
+        ≤ ∑ j, periodizedCoupling N J (i - j) * v :=
+          Finset.sum_le_sum fun j _ ↦
+            mul_le_mul_of_nonneg_left (hω i j) (periodizedCoupling_nonneg hJ _)
+      _ = v * ∑' m, J m := by
+          rw [← Finset.sum_mul, sum_periodizedCoupling_sub hsum i, mul_comm]
+  have hsum' : ∑ i, ∑ j, periodizedCoupling N J (i - j) * (ω i ⬝ᵥ ω j)
+      ≤ ((2 * N) ^ d : ℕ) * (v * ∑' m, J m) := by
+    calc ∑ i, ∑ j, periodizedCoupling N J (i - j) * (ω i ⬝ᵥ ω j)
+        ≤ ∑ _i : Fin d → ZMod (2 * N), v * ∑' m, J m :=
+          Finset.sum_le_sum fun i _ ↦ hstep i
+      _ = ((2 * N) ^ d : ℕ) * (v * ∑' m, J m) := by
+          rw [Finset.sum_const, Finset.card_univ, card_pi_zmod, nsmul_eq_mul]
+  rw [heisenbergExponent]
+  linarith
+
+
+/-! #### `Λ`-periodicity, `r_k`-invariance and normalisation of `°γ_Λ^Φ` -/
+
+lemma measurable_heisenbergDensity :
+    Measurable fun ω : (Fin d → ZMod (2 * N)) → (Fin n → ℝ) ↦
+      ENNReal.ofReal (Real.exp (heisenbergExponent N n J ω)) :=
+  ENNReal.measurable_ofReal.comp measurable_heisenbergExponent.exp
+
+/-- **The exponent (17.24) is shift invariant**: `J_Λ(i-j)` depends on the two sites only through
+their difference. -/
+lemma heisenbergExponent_shift (t : Fin d → ZMod (2 * N))
+    (ω : (Fin d → ZMod (2 * N)) → (Fin n → ℝ)) :
+    heisenbergExponent N n J ((shift (Fin n → ℝ) t).toFun ω) = heisenbergExponent N n J ω := by
+  simp only [heisenbergExponent, shift_toFun_apply]
+  congr 1
+  refine Fintype.sum_equiv (Equiv.subRight t) _ _ fun i ↦ ?_
+  refine Fintype.sum_equiv (Equiv.subRight t) _ _ fun j ↦ ?_
+  have h : i - j = (i - t) - (j - t) := by abel
+  simp only [Equiv.subRight_apply]
+  rw [h]
+
+/-- **The exponent (17.24) is `r_k`-invariant** when `J` is invariant under the flip of the `k`-th
+coordinate; by `IsNonnegDefiniteAt.flipCoord_eq` that is automatic under Georgii's hypothesis of
+(17.29). -/
+lemma heisenbergExponent_torusReflAt (hflip : ∀ m, J (flipCoord k m) = J m)
+    (ω : (Fin d → ZMod (2 * N)) → (Fin n → ℝ)) :
+    heisenbergExponent N n J ((siteEquiv (Fin n → ℝ) (torusReflAt N k)).toFun ω)
+      = heisenbergExponent N n J ω := by
+  simp only [heisenbergExponent, siteEquiv_torusReflAt_toFun, Function.comp_apply]
+  congr 1
+  refine Fintype.sum_equiv (torusReflAt N k) _ _ fun i ↦ ?_
+  refine Fintype.sum_equiv (torusReflAt N k) _ _ fun j ↦ ?_
+  rw [periodizedCoupling_torusReflAt_sub hflip]
+
+/-- **Georgii, remark after (17.20): `°γ_Λ^Φ` is `Λ`-periodic.** -/
+theorem measurePreserving_shift_heisenbergPeriodicGibbs (ν : Measure (Fin n → ℝ)) [SigmaFinite ν]
+    (t : Fin d → ZMod (2 * N)) :
+    MeasurePreserving (shift (Fin n → ℝ) t).toFun (heisenbergPeriodicGibbs N n J ν)
+      (heisenbergPeriodicGibbs N n J ν) :=
+  (measurePreserving_siteEquiv_pi (Equiv.addRight t) ν).withDensity_of_comp_eq
+    measurable_heisenbergDensity fun ω ↦
+      congrArg (fun x ↦ ENNReal.ofReal (Real.exp x)) (heisenbergExponent_shift t ω)
+
+/-- **`°γ_Λ^Φ` is `r_k`-invariant**, the hypothesis that makes the Cauchy–Schwarz inequality
+(17.8) — and hence the chessboard estimate (17.11) — available for it. -/
+theorem measurePreserving_siteEquiv_torusReflAt_heisenbergPeriodicGibbs
+    (hflip : ∀ m, J (flipCoord k m) = J m) (ν : Measure (Fin n → ℝ)) [SigmaFinite ν] :
+    MeasurePreserving (siteEquiv (Fin n → ℝ) (torusReflAt N k)).toFun
+      (heisenbergPeriodicGibbs N n J ν) (heisenbergPeriodicGibbs N n J ν) :=
+  (measurePreserving_siteEquiv_pi (torusReflAt N k) ν).withDensity_of_comp_eq
+    measurable_heisenbergDensity fun ω ↦
+      congrArg (fun x ↦ ENNReal.ofReal (Real.exp x)) (heisenbergExponent_torusReflAt hflip ω)
+
+/-- Georgii's `°Z_Λ^Φ < ∞`, his standing hypothesis in (17.24). -/
+lemma isFiniteMeasure_heisenbergPeriodicGibbs
+    (hint : Integrable (fun ω ↦ Real.exp (heisenbergExponent N n J ω))
+      (Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ ν)) :
+    IsFiniteMeasure (heisenbergPeriodicGibbs N n J ν) :=
+  isFiniteMeasure_withDensity
+    (((hasFiniteIntegral_iff_ofReal
+      (Filter.Eventually.of_forall fun _ ↦ (Real.exp_nonneg _))).1 hint.hasFiniteIntegral).ne)
+
+omit [NeZero N] in
+/-- The event that every spin lies in `A` is the cylinder `A^Λ`. -/
+lemma forall_mem_eq_univ_pi (A : Set (Fin n → ℝ)) :
+    {ω : (Fin d → ZMod (2 * N)) → (Fin n → ℝ) | ∀ i, ω i ∈ A} = Set.univ.pi fun _ ↦ A := by
+  ext ω; simp
+
+lemma heisenbergPeriodicGibbs_apply {S : Set ((Fin d → ZMod (2 * N)) → (Fin n → ℝ))}
+    (hS : MeasurableSet S) :
+    heisenbergPeriodicGibbs N n J ν S
+      = ∫⁻ ω in S, ENNReal.ofReal (Real.exp (heisenbergExponent N n J ω))
+          ∂(Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ ν) :=
+  withDensity_apply _ hS
+
+/-- **A uniform upper bound on the exponent bounds `°Z_Λ^Φ °γ_Λ^Φ(A^Λ)`.** -/
+lemma heisenbergPeriodicGibbs_forall_mem_le [SigmaFinite ν] {A : Set (Fin n → ℝ)}
+    (hA : MeasurableSet A) {M : ℝ}
+    (hM : ∀ ω : (Fin d → ZMod (2 * N)) → (Fin n → ℝ), (∀ i, ω i ∈ A) →
+      heisenbergExponent N n J ω ≤ M) :
+    heisenbergPeriodicGibbs N n J ν {ω | ∀ i, ω i ∈ A}
+      ≤ ENNReal.ofReal (Real.exp M) * ν A ^ ((2 * N) ^ d) := by
+  rw [forall_mem_eq_univ_pi, heisenbergPeriodicGibbs_apply (MeasurableSet.univ_pi fun _ ↦ hA)]
+  calc ∫⁻ ω in Set.univ.pi fun _ ↦ A, ENNReal.ofReal (Real.exp (heisenbergExponent N n J ω))
+          ∂(Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ ν)
+      ≤ ∫⁻ _ in Set.univ.pi fun _ ↦ A, ENNReal.ofReal (Real.exp M)
+          ∂(Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ ν) := by
+        refine setLIntegral_mono' (MeasurableSet.univ_pi fun _ ↦ hA) fun ω hω ↦ ?_
+        exact ENNReal.ofReal_le_ofReal (Real.exp_le_exp.2 (hM ω (by simpa using hω)))
+    _ = ENNReal.ofReal (Real.exp M)
+          * (Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ ν) (Set.univ.pi fun _ ↦ A) :=
+        setLIntegral_const _ _
+    _ = ENNReal.ofReal (Real.exp M) * ν A ^ ((2 * N) ^ d) := by
+        rw [Measure.pi_pi, Finset.prod_const, Finset.card_univ, card_pi_zmod]
+
+/-- **A uniform lower bound on the exponent bounds `°Z_Λ^Φ` from below.** -/
+lemma le_heisenbergPeriodicGibbs_univ [SigmaFinite ν] {U : Set (Fin n → ℝ)}
+    (hU : MeasurableSet U) {M : ℝ}
+    (hM : ∀ ω : (Fin d → ZMod (2 * N)) → (Fin n → ℝ), (∀ i, ω i ∈ U) →
+      M ≤ heisenbergExponent N n J ω) :
+    ENNReal.ofReal (Real.exp M) * ν U ^ ((2 * N) ^ d)
+      ≤ heisenbergPeriodicGibbs N n J ν Set.univ := by
+  rw [heisenbergPeriodicGibbs_apply MeasurableSet.univ, Measure.restrict_univ]
+  calc ENNReal.ofReal (Real.exp M) * ν U ^ ((2 * N) ^ d)
+      = ∫⁻ _ in Set.univ.pi fun _ ↦ U, ENNReal.ofReal (Real.exp M)
+          ∂(Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ ν) := by
+        rw [setLIntegral_const, Measure.pi_pi, Finset.prod_const, Finset.card_univ, card_pi_zmod]
+    _ ≤ ∫⁻ ω in Set.univ.pi fun _ ↦ U,
+          ENNReal.ofReal (Real.exp (heisenbergExponent N n J ω))
+          ∂(Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ ν) := by
+        refine setLIntegral_mono' (MeasurableSet.univ_pi fun _ ↦ hU) fun ω hω ↦ ?_
+        exact ENNReal.ofReal_le_ofReal (Real.exp_le_exp.2 (hM ω (by simpa using hω)))
+    _ ≤ ∫⁻ ω, ENNReal.ofReal (Real.exp (heisenbergExponent N n J ω))
+          ∂(Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ ν) :=
+        setLIntegral_le_lintegral _ _
+
+/-- **Georgii's product bound in the proof of (20.6).**  Since the exponent (17.24) is at most
+`½‖J‖₀ ∑_i |σ_i|²`, the mass that `°Z_Λ^Φ °γ_Λ^Φ` gives to `A^Λ` is at most the `|Λ|`-th power of
+the one-site integral `∫_A exp(½‖J‖₀ |x|²) λ(dx)`. -/
+lemma heisenbergPeriodicGibbs_forall_mem_le_pow [SigmaFinite ν] (hsum : Summable J)
+    {A : Set (Fin n → ℝ)} (hA : MeasurableSet A) :
+    heisenbergPeriodicGibbs N n J ν {ω | ∀ i, ω i ∈ A}
+      ≤ (∫⁻ x in A, ENNReal.ofReal (Real.exp ((∑' m, |J m|) / 2 * (x ⬝ᵥ x))) ∂ν)
+          ^ ((2 * N) ^ d) := by
+  have hg : Measurable fun x : Fin n → ℝ ↦
+      ENNReal.ofReal (Real.exp ((∑' m, |J m|) / 2 * (x ⬝ᵥ x))) := by
+    refine ENNReal.measurable_ofReal.comp (Real.continuous_exp.measurable.comp ?_)
+    exact (Finset.measurable_sum _ fun c _ ↦
+      (measurable_pi_apply c).mul (measurable_pi_apply c)).const_mul _
+  rw [forall_mem_eq_univ_pi, heisenbergPeriodicGibbs_apply (MeasurableSet.univ_pi fun _ ↦ hA),
+    Measure.restrict_pi_pi]
+  calc ∫⁻ ω, ENNReal.ofReal (Real.exp (heisenbergExponent N n J ω))
+          ∂(Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ ν.restrict A)
+      ≤ ∫⁻ ω, ∏ i, ENNReal.ofReal (Real.exp ((∑' m, |J m|) / 2 * (ω i ⬝ᵥ ω i)))
+          ∂(Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ ν.restrict A) := by
+        refine lintegral_mono fun ω ↦ ?_
+        rw [← ENNReal.ofReal_prod_of_nonneg fun i _ ↦ (Real.exp_nonneg _), ← Real.exp_sum]
+        refine ENNReal.ofReal_le_ofReal (Real.exp_le_exp.2 ?_)
+        have h := abs_heisenbergExponent_le hsum ω
+        rw [← Finset.mul_sum]
+        exact (le_abs_self _).trans h
+    _ = ∏ _i : Fin d → ZMod (2 * N),
+          ∫⁻ x, ENNReal.ofReal (Real.exp ((∑' m, |J m|) / 2 * (x ⬝ᵥ x))) ∂(ν.restrict A) :=
+        lintegral_pi_prod _ fun _ ↦ hg
+    _ = (∫⁻ x in A, ENNReal.ofReal (Real.exp ((∑' m, |J m|) / 2 * (x ⬝ᵥ x))) ∂ν)
+          ^ ((2 * N) ^ d) := by
+        rw [Finset.prod_const, Finset.card_univ, card_pi_zmod]
+
+/-- **Georgii's lower bound `°Z_Λ^Φ ≥ δ^{|Λ|}` in the proof of (20.6)**, with
+`δ = ∫ exp(-½‖J‖₀ |x|²) λ(dx)`: the exponent (17.24) is at least `-½‖J‖₀ ∑_i |σ_i|²`. -/
+lemma le_heisenbergPeriodicGibbs_univ_pow [SigmaFinite ν] (hsum : Summable J) :
+    (∫⁻ x, ENNReal.ofReal (Real.exp (-((∑' m, |J m|) / 2 * (x ⬝ᵥ x)))) ∂ν) ^ ((2 * N) ^ d)
+      ≤ heisenbergPeriodicGibbs N n J ν Set.univ := by
+  have hg : Measurable fun x : Fin n → ℝ ↦
+      ENNReal.ofReal (Real.exp (-((∑' m, |J m|) / 2 * (x ⬝ᵥ x)))) := by
+    refine ENNReal.measurable_ofReal.comp (Real.continuous_exp.measurable.comp ?_)
+    exact ((Finset.measurable_sum _ fun c _ ↦
+      (measurable_pi_apply c).mul (measurable_pi_apply c)).const_mul _).neg
+  rw [heisenbergPeriodicGibbs_apply MeasurableSet.univ, Measure.restrict_univ]
+  calc (∫⁻ x, ENNReal.ofReal (Real.exp (-((∑' m, |J m|) / 2 * (x ⬝ᵥ x)))) ∂ν) ^ ((2 * N) ^ d)
+      = ∏ _i : Fin d → ZMod (2 * N),
+          ∫⁻ x, ENNReal.ofReal (Real.exp (-((∑' m, |J m|) / 2 * (x ⬝ᵥ x)))) ∂ν := by
+        rw [Finset.prod_const, Finset.card_univ, card_pi_zmod]
+    _ = ∫⁻ ω, ∏ i, ENNReal.ofReal (Real.exp (-((∑' m, |J m|) / 2 * (ω i ⬝ᵥ ω i))))
+          ∂(Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ ν) :=
+        (lintegral_pi_prod _ fun _ ↦ hg).symm
+    _ ≤ ∫⁻ ω, ENNReal.ofReal (Real.exp (heisenbergExponent N n J ω))
+          ∂(Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ ν) := by
+        refine lintegral_mono fun ω ↦ ?_
+        rw [← ENNReal.ofReal_prod_of_nonneg fun i _ ↦ (Real.exp_nonneg _), ← Real.exp_sum]
+        refine ENNReal.ofReal_le_ofReal (Real.exp_le_exp.2 ?_)
+        have h := abs_heisenbergExponent_le hsum ω
+        have hneg : ∑ i, -((∑' m, |J m|) / 2 * (ω i ⬝ᵥ ω i))
+            = -((∑' m, |J m|) / 2 * ∑ i, (ω i ⬝ᵥ ω i)) := by
+          rw [Finset.mul_sum, ← Finset.sum_neg_distrib]
+        rw [hneg]
+        have := abs_le.1 h
+        linarith [this.1]
+
+/-- Georgii's `°Z_Λ^Φ > 0`: the a priori measure is nonzero and the density is everywhere
+positive. -/
+lemma heisenbergPeriodicGibbs_univ_pos [SigmaFinite ν] (hν : ν ≠ 0) :
+    0 < heisenbergPeriodicGibbs N n J ν
+      (Set.univ : Set ((Fin d → ZMod (2 * N)) → (Fin n → ℝ))) := by
+  rw [heisenbergPeriodicGibbs, withDensity_apply _ MeasurableSet.univ, Measure.restrict_univ,
+    lintegral_pos_iff_support measurable_heisenbergDensity]
+  have hsupp : Function.support (fun ω : (Fin d → ZMod (2 * N)) → (Fin n → ℝ) ↦
+      ENNReal.ofReal (Real.exp (heisenbergExponent N n J ω))) = Set.univ :=
+    Set.eq_univ_of_forall fun ω ↦ (ENNReal.ofReal_pos.2 (Real.exp_pos _)).ne'
+  rw [hsupp, Measure.pi_univ]
+  exact pos_iff_ne_zero.2 (Finset.prod_ne_zero_iff.2 fun _ _ ↦
+    (Measure.measure_univ_pos.2 hν).ne')
+
+/-- `°γ_Λ^Φ` is a probability measure as soon as `0 < °Z_Λ^Φ < ∞`. -/
+theorem isProbabilityMeasure_heisenbergPeriodicGibbsDist [IsFiniteMeasure ν] (hν : ν ≠ 0)
+    (hint : Integrable (fun ω ↦ Real.exp (heisenbergExponent N n J ω))
+      (Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ ν)) :
+    IsProbabilityMeasure (heisenbergPeriodicGibbsDist N n J ν) := by
+  have := isFiniteMeasure_heisenbergPeriodicGibbs (ν := ν) hint
+  constructor
+  rw [heisenbergPeriodicGibbsDist, Measure.smul_apply, smul_eq_mul]
+  exact ENNReal.inv_mul_cancel (heisenbergPeriodicGibbs_univ_pos hν).ne' (measure_ne_top _ _)
+
+/-- `°γ_Λ^Φ` is `Λ`-periodic. -/
+theorem measurePreserving_shift_heisenbergPeriodicGibbsDist (ν : Measure (Fin n → ℝ))
+    [SigmaFinite ν] (t : Fin d → ZMod (2 * N)) :
+    MeasurePreserving (shift (Fin n → ℝ) t).toFun (heisenbergPeriodicGibbsDist N n J ν)
+      (heisenbergPeriodicGibbsDist N n J ν) := by
+  rw [heisenbergPeriodicGibbsDist]
+  exact (measurePreserving_shift_heisenbergPeriodicGibbs ν t).smul_measure _
+
+/-- `°γ_Λ^Φ` is `r_k`-invariant. -/
+theorem measurePreserving_siteEquiv_torusReflAt_heisenbergPeriodicGibbsDist
+    (hflip : ∀ m, J (flipCoord k m) = J m) (ν : Measure (Fin n → ℝ)) [SigmaFinite ν] :
+    MeasurePreserving (siteEquiv (Fin n → ℝ) (torusReflAt N k)).toFun
+      (heisenbergPeriodicGibbsDist N n J ν) (heisenbergPeriodicGibbsDist N n J ν) := by
+  rw [heisenbergPeriodicGibbsDist]
+  exact (measurePreserving_siteEquiv_torusReflAt_heisenbergPeriodicGibbs hflip ν).smul_measure _
+
+end AprioriBounds
 
 end Heisenberg
 

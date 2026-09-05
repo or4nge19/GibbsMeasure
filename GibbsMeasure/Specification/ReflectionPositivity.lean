@@ -1464,6 +1464,17 @@ lemma measurable_spinIterate (τ : E ≃ᵐ E) (i : ZMod (2 * N)) :
   unfold spinIterate
   split_ifs <;> fun_prop
 
+/-- The iterated involution built from the identity is the identity: Georgii's `r_k` of (17.5) is
+the generalized reflection (17.6) with `τ_k = id`, and then his `τ^i` of (17.10) is trivial. -/
+@[simp] lemma spinIterate_refl (i : ZMod (2 * N)) (x : E) :
+    spinIterate (MeasurableEquiv.refl E) i x = x := by
+  rw [spinIterate]; split <;> rfl
+
+@[simp] lemma tauPow_refl : ∀ {d : ℕ} (i : Fin d → ZMod (2 * N)) (x : E),
+    tauPow (fun _ ↦ MeasurableEquiv.refl E) i x = x
+  | 0, i, x => tauPow_zero _ _ _
+  | (_ + 1), i, x => by rw [tauPow_succ, spinIterate_refl]; exact tauPow_refl _ _
+
 lemma measurable_tauPow (τ : Fin d → E ≃ᵐ E) (i : Fin d → ZMod (2 * N)) :
     Measurable (tauPow τ i) := by
   induction d with
@@ -1849,6 +1860,82 @@ theorem abs_integral_prod_pow_le_pi (hτ : ∀ k x, τ k (τ k x) = x)
   (abs_integral_prod_pow_le_pi_abs (d + 1) E μ τ hτ hper hrefl hpos f hf C hC).trans
     (le_of_eq (Finset.prod_congr rfl fun j _ ↦
       abs_of_nonneg (integral_prod_tauPow_nonneg hτ (hpos 0) hf hC j)))
+
+/-- **Georgii, Theorem (17.11) for a single-site event.**  The form in which the chessboard
+estimate is used in Chapter 20 (proofs of Lemmas (20.6) and (20.8)):
+
+`μ(σ_{i₀} ∈ A)^{|Λ|} ≤ μ(τ^i σ_i ∈ A for all i ∈ Λ)`.
+
+Taking `f_{i₀} = 1_A` and `f_i = 1` for `i ≠ i₀` in (17.11) makes all the factors on the right
+except the one at `j = i₀` equal to `μ(Ω) = 1`. -/
+theorem measure_apply_pow_card_le [IsProbabilityMeasure μ] (hτ : ∀ k x, τ k (τ k x) = x)
+    (hper : ∀ j, MeasurePreserving (shift E j).toFun μ μ)
+    (hrefl : ∀ k, MeasurePreserving (genReflectionAt N τ k).toFun μ μ)
+    (hpos : ∀ k, IsReflectionPositive (torusPosAt N k) (genReflectionAt N τ k) μ)
+    {A : Set E} (hA : MeasurableSet A) (i₀ : Fin (d + 1) → ZMod (2 * N)) :
+    (μ {ω | ω i₀ ∈ A}).toReal ^ ((2 * N) ^ (d + 1))
+      ≤ (μ {ω | ∀ i, tauPow τ i (ω i) ∈ A}).toReal := by
+  classical
+  set g : E → ℝ := fun x ↦ if x ∈ A then 1 else 0 with hg
+  have hgm : Measurable g := Measurable.ite hA measurable_const measurable_const
+  set f : (Fin (d + 1) → ZMod (2 * N)) → E → ℝ := fun i ↦ if i = i₀ then g else 1 with hf
+  have hfm : ∀ i, Measurable (f i) := fun i ↦ by
+    by_cases h : i = i₀
+    · simpa [hf, h] using hgm
+    · simpa [hf, h] using (measurable_one : Measurable (1 : E → ℝ))
+  have hfC : ∀ i x, |f i x| ≤ 1 := fun i x ↦ by
+    rw [hf]; by_cases h : i = i₀ <;> by_cases hx : x ∈ A <;> simp [h, hg, hx]
+  -- The left-hand side is the mass of the single-site event.
+  have hleft : ∀ ω : (Fin (d + 1) → ZMod (2 * N)) → E, ∏ i, f i (ω i) = g (ω i₀) := fun ω ↦ by
+    calc ∏ i, f i (ω i) = f i₀ (ω i₀) :=
+          Finset.prod_eq_single i₀ (fun b _ hb ↦ by simp [hf, hb])
+            (fun h ↦ absurd (Finset.mem_univ i₀) h)
+      _ = g (ω i₀) := by simp [hf]
+  -- A product of indicators is the indicator of the intersection.
+  have hprod : ∀ y : (Fin (d + 1) → ZMod (2 * N)) → E,
+      ∏ i, g (y i) = if (∀ i, y i ∈ A) then 1 else 0 := fun y ↦ by
+    by_cases h : ∀ i, y i ∈ A
+    · simp [h, hg]
+    · obtain ⟨i, hi⟩ := not_forall.1 h
+      rw [Finset.prod_eq_zero (Finset.mem_univ i) (by simp [hg, hi])]
+      simp [h]
+  have hmeas : MeasurableSet
+      {ω : (Fin (d + 1) → ZMod (2 * N)) → E | ∀ i, tauPow τ i (ω i) ∈ A} := by
+    have : {ω : (Fin (d + 1) → ZMod (2 * N)) → E | ∀ i, tauPow τ i (ω i) ∈ A}
+        = ⋂ i, (fun ω : (Fin (d + 1) → ZMod (2 * N)) → E ↦ tauPow τ i (ω i)) ⁻¹' A := by
+      ext ω; simp
+    rw [this]
+    exact MeasurableSet.iInter fun i ↦
+      ((measurable_tauPow τ i).comp (measurable_pi_apply i)) hA
+  have hmeas₀ : MeasurableSet {ω : (Fin (d + 1) → ZMod (2 * N)) → E | ω i₀ ∈ A} :=
+    (measurable_pi_apply i₀) hA
+  have key := abs_integral_prod_pow_le_pi (μ := μ) hτ hper hrefl hpos hfm hfC
+  -- Identify both sides.
+  have hL : ∫ ω, ∏ i, f i (ω i) ∂μ = (μ {ω | ω i₀ ∈ A}).toReal := by
+    rw [integral_congr_ae (Filter.Eventually.of_forall fun ω ↦ hleft ω)]
+    rw [show (fun ω : (Fin (d + 1) → ZMod (2 * N)) → E ↦ g (ω i₀))
+        = Set.indicator {ω : (Fin (d + 1) → ZMod (2 * N)) → E | ω i₀ ∈ A} 1 from
+      funext fun ω ↦ by by_cases h : ω i₀ ∈ A <;> simp [hg, h]]
+    exact integral_indicator_one hmeas₀
+  have hR₀ : ∫ ω, ∏ i, f i₀ (tauPow τ i (ω i)) ∂μ
+      = (μ {ω | ∀ i, tauPow τ i (ω i) ∈ A}).toReal := by
+    have hfj : f i₀ = g := by simp [hf]
+    have hcongr : ∀ ω : (Fin (d + 1) → ZMod (2 * N)) → E, ∏ i, f i₀ (tauPow τ i (ω i))
+        = Set.indicator {ω : (Fin (d + 1) → ZMod (2 * N)) → E | ∀ i, tauPow τ i (ω i) ∈ A} 1 ω := by
+      intro ω
+      rw [hfj, hprod (fun i ↦ tauPow τ i (ω i))]
+      by_cases hall : ∀ i, tauPow τ i (ω i) ∈ A <;> simp [hall]
+    rw [integral_congr_ae (Filter.Eventually.of_forall hcongr), integral_indicator_one hmeas]
+    rfl
+  have hR₁ : ∀ j, j ≠ i₀ → ∫ ω, ∏ i, f j (tauPow τ i (ω i)) ∂μ = 1 := fun j hj ↦ by
+    simp [hf, hj]
+  have hRHS : ∏ j, ∫ ω, ∏ i, f j (tauPow τ i (ω i)) ∂μ
+      = (μ {ω | ∀ i, tauPow τ i (ω i) ∈ A}).toReal := by
+    rw [Finset.prod_eq_single i₀ (fun b _ hb ↦ hR₁ b hb)
+      (fun h ↦ absurd (Finset.mem_univ i₀) h)]
+    exact hR₀
+  rw [hL, hRHS] at key
+  simpa [abs_of_nonneg ENNReal.toReal_nonneg] using key
 
 end ChessboardPi
 
