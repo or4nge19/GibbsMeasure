@@ -8,6 +8,7 @@ module
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Gaussian.Multivariate
 public import Mathlib.Analysis.Calculus.ParametricIntegral
 public import Mathlib.Probability.Distributions.Gaussian.Real
+public import Mathlib.Probability.Distributions.Gaussian.Multivariate
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.PiWithDensity
 public import Mathlib.MeasureTheory.Group.Integral
 public import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap
@@ -50,23 +51,33 @@ Multivariate`) constructs the multivariate Gaussian on `EuclideanSpace ℝ ι` a
   `ProbabilityTheory.integrable_eval_sq_multivariateGaussianPi`.
 * `ProbabilityTheory.multivariateGaussianPi_map_add_right`: its pushforward along `x ↦ x + v` is
   `multivariateGaussianPi A (m + v)`.
+* `ProbabilityTheory.isGaussian_multivariateGaussianPi`: for `A` positive definite,
+  `multivariateGaussianPi A m` is a Gaussian measure in the sense of
+  `ProbabilityTheory.IsGaussian`.
+* `ProbabilityTheory.map_toLp_multivariateGaussianPi`: transported to `EuclideanSpace ℝ ι`, it
+  *is* Mathlib's `ProbabilityTheory.multivariateGaussian` with mean `m` and covariance matrix
+  `A⁻¹`. Since `multivariateGaussian` is characterised among Gaussian measures by its mean and
+  covariance (`ProbabilityTheory.IsGaussian.ext`), this says that `multivariateGaussianPi A m` is
+  *the* Gaussian field with mean `m` and covariance `A⁻¹`.
 
-## Not done in this file
+## Route to the identification
 
-The characteristic function of `multivariateGaussianPi A m`, and its identification with
-`ProbabilityTheory.multivariateGaussian m A⁻¹` on `EuclideanSpace ℝ ι`, are not proved here: see
-the module docstring of the `Covariance` section below (in the source) for exactly what closed
-form the real-parameter moment generating function `integral_exp_neg_half_add_mul_dotProduct`
-identity does *not*, by itself, extend to. Computing the characteristic function needs a genuinely
-new complex-exponent analogue of
-`Matrix.PosDef.integral_exp_neg_half_dotProduct_mulVec_add_dotProduct` (the real-`b` normalizing
-identity in `GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Gaussian.Multivariate`), obtained by
-re-running its spectral-decomposition (`hA.isHermitian.spectral_theorem`) plus Fubini argument with
-a complex phase `I * (t ⬝ᵥ x)` in place of the real `b ⬝ᵥ x`, diagonalized against the complex
-one-dimensional Gaussian Fourier transform `fourierIntegral_gaussian`
-(`Mathlib.Analysis.SpecialFunctions.Gaussian.FourierTransform`) coordinate by coordinate. That is a
-second construction of comparable size to the real-`b` one and is not a corollary of the mean and
-covariance results proved here; it has not been attempted.
+No complex Gaussian integral is needed. The identification is obtained by three real changes of
+variables in the density, each of which is a statement about `multivariateGaussianPi` in its own
+right:
+
+* `ProbabilityTheory.multivariateGaussianPi_diagonal`: a *diagonal* precision matrix `diagonal d`
+  gives the product measure `∏ᵢ gaussianReal 0 (d i)⁻¹` (via
+  `MeasureTheory.Measure.pi_withDensity`);
+* `ProbabilityTheory.multivariateGaussianPi_map_mulVec_unitary`: conjugating the precision matrix
+  by an orthogonal `U` is the pushforward along `y ↦ U *ᵥ y` (Lebesgue measure is `U`-invariant,
+  `Matrix.measurePreserving_toLin'_of_mem_unitaryGroup`);
+* `ProbabilityTheory.multivariateGaussianPi_map_add_right`: translation moves the mean.
+
+The spectral theorem therefore exhibits `multivariateGaussianPi A m` as an affine image of a
+product of one-dimensional Gaussians, which is Gaussian; the identification with
+`multivariateGaussian m A⁻¹` is then `IsGaussian.ext` against the mean and covariance already
+computed above.
 -/
 
 @[expose] public section
@@ -823,5 +834,6 @@ theorem multivariateGaussianPi_unique {ι : Type*} [Fintype ι] [DecidableEq ι]
   exact Subsingleton.elim _ _
 
 end Unique
+
 
 end ProbabilityTheory

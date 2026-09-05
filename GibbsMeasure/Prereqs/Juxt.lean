@@ -1,5 +1,6 @@
 module
 
+public import GibbsMeasure.Mathlib.Data.Finset.Update
 public import GibbsMeasure.Prereqs.CylinderEvents
 public import Mathlib.MeasureTheory.Constructions.Cylinders
 
@@ -9,6 +10,12 @@ public import Mathlib.MeasureTheory.Constructions.Cylinders
 `juxt Λ η ζ` glues a configuration `ζ` on `Λ` to a boundary condition `η` off `Λ`. This is the
 resampling operation underlying independent specifications and the finite-volume kernels of a
 specification.
+
+Juxtaposition *is* `Function.updateSet` (the `Set` version of Mathlib's `Function.updateFinset`,
+see `GibbsMeasure/Mathlib/Data/Finset/Update.lean`) with the arguments in Georgii's order:
+`juxt Λ η ζ = Function.updateSet η Λ ζ`. It is an `abbrev`, so the two are interchangeable and the
+general lemmas are proved once, upstream; only the statements that mention `cylinderEvents` or
+Georgii's order structure live here.
 -/
 
 @[expose] public section
@@ -19,19 +26,21 @@ section juxt
 
 variable {S E : Type*} {𝓔 : MeasurableSpace E} {Λ : Set S} {η : S → E} {x : S}
 
-open Classical in
 /-- `juxt Λ η ζ` is the configuration agreeing with `ζ` on `Λ` and with `η` off `Λ`.
 
 This is Georgii's juxtaposition (Section 1.1): "if `ω ∈ E^Λ` and `ζ ∈ E^{Δ∖Λ}` then the
 juxtaposition `ωζ ∈ E^Δ` is defined by the properties `σ_Λ(ωζ) = ω` and `σ_{Δ∖Λ}(ωζ) = ζ`",
-taken with `Δ = S`, in the order `ζ_Λ η_{S∖Λ}`. -/
-noncomputable def juxt (Λ : Set S) (η : S → E) (ζ : Λ → E) (x : S) : E :=
-  if h : x ∈ Λ then ζ ⟨x, h⟩ else η x
+taken with `Δ = S`, in the order `ζ_Λ η_{S∖Λ}`.
 
-@[simp] lemma juxt_apply_of_mem (hx : x ∈ Λ) (ζ : Λ → E) : juxt Λ η ζ x = ζ ⟨x, hx⟩ := by
-  simp [juxt, hx]
-@[simp] lemma juxt_apply_of_not_mem (h : x ∉ Λ) (ζ : Λ → E) : juxt Λ η ζ x = η x := by
-  simp [juxt, h]
+It is `Function.updateSet η Λ ζ`, i.e. `Function.updateFinset` for an arbitrary set of sites,
+with the arguments permuted to Georgii's order. -/
+noncomputable abbrev juxt (Λ : Set S) (η : S → E) (ζ : Λ → E) : S → E := Function.updateSet η Λ ζ
+
+@[simp] lemma juxt_apply_of_mem (hx : x ∈ Λ) (ζ : Λ → E) : juxt Λ η ζ x = ζ ⟨x, hx⟩ :=
+  Function.updateSet_apply_of_mem (x := η) hx ζ
+
+@[simp] lemma juxt_apply_of_not_mem (h : x ∉ Λ) (ζ : Λ → E) : juxt Λ η ζ x = η x :=
+  Function.updateSet_apply_of_notMem (x := η) h ζ
 
 lemma measurable_coordinate_projection_2 {Δ : Set S} {x : S} (h : x ∈ Δ) :
     Measurable[cylinderEvents Δ] (fun σ : S → E ↦ σ x) := by
@@ -43,29 +52,14 @@ lemma measurable_coordinate_projection_2 {Δ : Set S} {x : S} (h : x ∈ Δ) :
 configuration off that site; updating it outside `Λ` commutes with `juxt`. -/
 lemma juxt_update_of_notMem [DecidableEq S] {i : S} (hi : i ∉ Λ) (η : S → E) (y : E)
     (ζ : Λ → E) :
-    juxt Λ (Function.update η i y) ζ = Function.update (juxt Λ η ζ) i y := by
-  funext x
-  by_cases hx : x ∈ Λ
-  · have hxi : x ≠ i := fun h ↦ hi (h ▸ hx)
-    rw [juxt_apply_of_mem hx, Function.update_of_ne hxi, juxt_apply_of_mem hx]
-  · by_cases hxi : x = i
-    · subst hxi
-      rw [juxt_apply_of_not_mem hx, Function.update_self, Function.update_self]
-    · rw [juxt_apply_of_not_mem hx, Function.update_of_ne hxi, Function.update_of_ne hxi,
-        juxt_apply_of_not_mem hx]
+    juxt Λ (Function.update η i y) ζ = Function.update (juxt Λ η ζ) i y :=
+  Function.updateSet_update_of_notMem hi η y ζ
 
 /-- `η ↦ juxt Λ η ζ` fixes `ζ` on `Λ` and copies `η` off `Λ`, so it is measurable for the
 exterior cylinder σ-algebra — the strongest measurability the map has. -/
 lemma measurable_cylinderEvents_juxt_boundary (ζ : Λ → E) :
     Measurable[cylinderEvents (X := fun _ : S ↦ E) Λᶜ] fun η : S → E ↦ juxt Λ η ζ := by
-  have hmeas : Measurable fun η : S → E ↦ juxt Λ η ζ := by
-    refine measurable_pi_lambda _ fun i ↦ ?_
-    by_cases hi : i ∈ Λ
-    · simp only [juxt_apply_of_mem hi]
-      exact measurable_const
-    · simp only [juxt_apply_of_not_mem hi]
-      exact measurable_pi_apply i
-  refine hmeas.cylinderEvents_of_dependsOn fun η η' h ↦ ?_
+  refine Function.measurable_updateSet_left.cylinderEvents_of_dependsOn fun η η' h ↦ ?_
   funext i
   by_cases hi : i ∈ Λ
   · simp only [juxt_apply_of_mem hi]
@@ -75,12 +69,10 @@ lemma measurable_cylinderEvents_juxt_boundary (ζ : Λ → E) :
 /-- `η ↦ juxt Λ η ζ` is measurable. -/
 lemma measurable_juxt_boundary (ζ : Λ → E) :
     Measurable fun η : S → E ↦ juxt Λ η ζ :=
-  (measurable_cylinderEvents_juxt_boundary ζ).mono cylinderEvents_le_pi le_rfl
+  Function.measurable_updateSet_left
 
-protected lemma Measurable.juxt : Measurable (juxt Λ η) := by
-  rw [measurable_pi_iff]
-  rintro x
-  by_cases hx : x ∈ Λ <;> simp [juxt, hx, measurable_pi_apply]
+protected lemma Measurable.juxt : Measurable (juxt Λ η) :=
+  Function.measurable_updateSet
 
 lemma juxt_agree_on_compl (Λ : Finset S) (η : S → E) (ζ : Λ → E) :
     ∀ x ∉ Λ, juxt (Λ : Set S) η ζ x = η x := fun x hx ↦
@@ -98,9 +90,8 @@ section order
 variable {S E : Type*} {Λ : Set S}
 
 lemma juxt_juxt (Λ : Set S) (ω : S → E) (ζ ξ : Λ → E) :
-    juxt Λ (juxt Λ ω ζ) ξ = juxt Λ ω ξ := by
-  funext x
-  by_cases hx : x ∈ Λ <;> simp [hx]
+    juxt Λ (juxt Λ ω ζ) ξ = juxt Λ ω ξ :=
+  Function.updateSet_updateSet ω ζ ξ
 
 lemma juxt_inf_juxt [SemilatticeInf E] {ω ω' : S → E} (hω : ω ≤ ω') (ζ ξ : Λ → E) :
     juxt Λ ω (ζ ⊓ ξ) = juxt Λ ω ζ ⊓ juxt Λ ω' ξ := by
@@ -119,17 +110,11 @@ lemma juxt_sup_juxt [SemilatticeSup E] {ω ω' : S → E} (hω : ω ≤ ω') (ζ
     exact (sup_eq_right.2 (hω x)).symm
 
 lemma juxt_le_juxt [Preorder E] {ω ω' : S → E} (hω : ω ≤ ω') (ζ : Λ → E) :
-    juxt Λ ω ζ ≤ juxt Λ ω' ζ := by
-  intro x
-  by_cases hx : x ∈ Λ
-  · simp [hx]
-  · simpa [hx] using hω x
+    juxt Λ ω ζ ≤ juxt Λ ω' ζ :=
+  Function.updateSet_le_updateSet hω ζ
 
-lemma monotone_juxt [Preorder E] (ω : S → E) : Monotone (juxt Λ ω) := by
-  intro ζ ξ hζξ x
-  by_cases hx : x ∈ Λ
-  · simpa [hx] using hζξ ⟨x, hx⟩
-  · simp [hx]
+lemma monotone_juxt [Preorder E] (ω : S → E) : Monotone (juxt Λ ω) :=
+  Function.monotone_updateSet ω Λ
 
 end order
 
@@ -138,15 +123,12 @@ section Restrict
 variable {S E : Type*} [MeasurableSpace E]
 
 /-- `σ ↦ σ_Λ ω_{S∖Λ}` is measurable for the cylinder σ-algebra `𝓕_Λ`: it only reads the
-coordinates in `Λ`. (Intended home: `GibbsMeasure/Prereqs/Juxt.lean`.) -/
+coordinates in `Λ`. -/
 lemma measurable_cylinderEvents_juxt_restrict (Λ : Set S) (ω : S → E) :
     Measurable[cylinderEvents (X := fun _ : S ↦ E) Λ]
       fun σ : S → E ↦ juxt Λ ω fun i ↦ σ i := by
-  have hmeas : Measurable fun σ : S → E ↦ juxt Λ ω fun i ↦ σ i := by
-    refine measurable_pi_lambda _ fun i ↦ ?_
-    by_cases hi : i ∈ Λ
-    · simpa only [juxt_apply_of_mem hi] using measurable_pi_apply i
-    · simpa only [juxt_apply_of_not_mem hi] using measurable_const
+  have hmeas : Measurable fun σ : S → E ↦ juxt Λ ω fun i ↦ σ i :=
+    Function.measurable_updateSet.comp (measurable_pi_lambda _ fun i ↦ measurable_pi_apply i.1)
   refine hmeas.cylinderEvents_of_dependsOn fun σ σ' h ↦ ?_
   funext i
   by_cases hi : i ∈ Λ
@@ -154,8 +136,7 @@ lemma measurable_cylinderEvents_juxt_restrict (Λ : Set S) (ω : S → E) :
     exact h i hi
   · simp only [juxt_apply_of_not_mem hi]
 
-/-- Resampling inside `Λ` does not change membership in an `𝓕_Λ`-event.
-(Intended home: `GibbsMeasure/Prereqs/Juxt.lean`.) -/
+/-- Resampling inside `Λ` does not change membership in an `𝓕_Λ`-event. -/
 lemma preimage_juxt_restrict_eq (Λ : Set S) (ω : S → E) {A : Set (S → E)}
     (hA : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) Λ] A) :
     (fun σ : S → E ↦ juxt Λ ω fun i ↦ σ i) ⁻¹' A = A := by

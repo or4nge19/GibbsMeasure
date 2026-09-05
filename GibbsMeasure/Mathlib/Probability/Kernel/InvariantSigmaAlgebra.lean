@@ -43,19 +43,20 @@ a strictly invariant one by iterating `T` — so it needs `T` measurable, not me
 
 `aeInvariantSets` is defined by an a.e. condition and so depends only on the a.e. class of the
 kernel outright (`aeInvariantSets_congr`), with no correction step. For a general kernel no such
-correction exists: `Example75` is a stochastic matrix whose strictly invariant σ-algebra is trivial
-while its invariant measures form a segment. Almost sure invariance is therefore the primitive
-here, and the strictly invariant sets are not an alternative definition but a special-case
-convenience.
+correction exists: `TwoAbsorbingStates` is a stochastic matrix whose strictly invariant σ-algebra
+is trivial while its invariant measures form a segment. Almost sure invariance is therefore the
+primitive here, and the strictly invariant sets are not an alternative definition but a
+special-case convenience.
 
 The `Filter.EventuallyConst` API is used in exactly one place,
 `preErgodic_iff_forall_nullMeasurableSet`, which is the only bridge to Mathlib's `PreErgodic`;
 every other statement is phrased as `μ s = 0 ∨ μ s = 1`. That lemma also consumes
 `MeasurePreserving.quasiMeasurePreserving`, so if `MeasurePreserving` is ever weakened to require
 only `AEMeasurable`, it is the single place needing an explicit `Measurable T`. Almost sure
-invariance cannot be weakened to strict invariance, and `Example75` below is Georgii's Example
-(7.5) proving it: a stochastic matrix on three points whose strictly invariant σ-algebra is trivial
-while its invariant measures form a segment, so triviality on it does not imply extremality.
+invariance cannot be weakened to strict invariance, and `TwoAbsorbingStates` below proves it
+(Georgii's Example (7.5)): a stochastic matrix on three points whose strictly invariant σ-algebra
+is trivial while its invariant measures form a segment, so triviality on it does not imply
+extremality.
 
 ## The strictly invariant σ-algebra of a countable group action
 
@@ -1120,9 +1121,16 @@ theorem mutuallySingular_of_mem_extremePoints_smulInvariant [Countable G] {μ ν
 
 end SMul
 
-/-! ### Georgii's Example (7.5): almost sure invariance is not strict invariance -/
+/-! ### A Markov kernel with two absorbing states: a.s. invariance is not strict invariance -/
 
-namespace Example75
+/-! `TwoAbsorbingStates.ker` is the Markov kernel on `Fin 3` whose states `0` and `2` are absorbing
+and whose state `1` jumps to each of them with probability `1/2`. Its strictly invariant sets are
+only `∅` and `univ`, yet its invariant probability measures form the whole segment from `δ₀` to
+`δ₂`; so triviality on the *strictly* invariant σ-algebra does not characterise extremality, and
+the almost surely invariant σ-algebra `aeInvariantSets` is the right object. (Georgii, Example
+(7.5).) -/
+
+namespace TwoAbsorbingStates
 
 open Measure
 
@@ -1203,7 +1211,7 @@ theorem not_mem_extremePoints :
     simpa [mu, Measure.dirac_apply] using this
   exact absurd hone.symm (ENNReal.inv_lt_one.2 (by norm_num : (1 : ℝ≥0∞) < 2)).ne
 
-end Example75
+end TwoAbsorbingStates
 
 end Kernel
 

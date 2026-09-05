@@ -109,6 +109,33 @@ lemma oscAt_add_le : oscAt (f + g) j ≤ oscAt f j + oscAt g j := by
         ENNReal.ofReal_add (abs_nonneg _) (abs_nonneg _)
     _ ≤ oscAt f j + oscAt g j := add_le_add (le_oscAt h) (le_oscAt h)
 
+/-- The oscillation of an affine image: `δ_j(a f + b) ≤ |a| δ_j(f)`. -/
+lemma oscAt_affine_le (f : (S → E) → ℝ) (a b : ℝ) (j : S) :
+    oscAt (fun σ ↦ a * f σ + b) j ≤ ENNReal.ofReal |a| * oscAt f j := by
+  refine oscAt_le fun ζ η h ↦ ?_
+  have habs : |a * f ζ + b - (a * f η + b)| = |a| * |f ζ - f η| := by
+    rw [show a * f ζ + b - (a * f η + b) = a * (f ζ - f η) by ring, abs_mul]
+  rw [habs, ENNReal.ofReal_mul (abs_nonneg a)]
+  gcongr
+  exact le_oscAt h
+
+/-- Georgii's oscillation (8.14) is affine-equivariant: `δ_j(a f + b) = |a| δ_j(f)` for `a ≠ 0`.
+This is what makes the covariance estimate (8.34) invariant under rescaling of its arguments. -/
+lemma oscAt_affine (f : (S → E) → ℝ) {a : ℝ} (ha : a ≠ 0) (b : ℝ) (j : S) :
+    oscAt (fun σ ↦ a * f σ + b) j = ENNReal.ofReal |a| * oscAt f j := by
+  refine le_antisymm (oscAt_affine_le f a b j) ?_
+  have h2 := oscAt_affine_le (fun σ ↦ a * f σ + b) a⁻¹ (-(a⁻¹ * b)) j
+  have hid : (fun σ ↦ a⁻¹ * (a * f σ + b) + -(a⁻¹ * b)) = f := by
+    funext σ; field_simp; ring
+  rw [hid] at h2
+  have hmul : ENNReal.ofReal |a| * ENNReal.ofReal |a⁻¹| = 1 := by
+    rw [← ENNReal.ofReal_mul (abs_nonneg a), ← abs_mul, mul_inv_cancel₀ ha]
+    simp
+  calc ENNReal.ofReal |a| * oscAt f j
+      ≤ ENNReal.ofReal |a| * (ENNReal.ofReal |a⁻¹| * oscAt (fun σ ↦ a * f σ + b) j) := by
+        gcongr
+    _ = oscAt (fun σ ↦ a * f σ + b) j := by rw [← mul_assoc, hmul, one_mul]
+
 /-- The combinatorial heart: two configurations differing only on a finite set `D` are compared by
 telescoping over `D`. Georgii (8.15). -/
 lemma ofReal_abs_sub_le_sum_oscAt (f : (S → E) → ℝ) (D : Finset S) :
@@ -1122,6 +1149,37 @@ variable {γ γ' : Specification S E} {μ ν : Measure (S → E)}
 `∑_j D_{ij}(γ) b̃_j`. -/
 noncomputable def interdepSeries (γ : Specification S E) (bt : S → ℝ≥0∞) (i : S) : ℝ≥0∞ :=
   ∑' n : ℕ, interdepIter γ n bt i
+
+/-- **Georgii (8.19), the row-sum bound.** Under Dobrushin's condition `c(γ) < 1` the matrix
+`D(γ) = ∑_{n ≥ 0} C(γ)^n` has uniformly bounded row sums: `∑_j D_ij b_j ≤ (sup_j b_j)/(1 − c)`.
+In particular `sup_i ∑_j D_ij ≤ (1 − c)⁻¹`, the finiteness Georgii uses throughout §8.2. -/
+lemma interdepSeries_le (γ : Specification S E) {c : ℝ≥0∞}
+    (hc : ∀ i, ∑' j, interdep γ i j ≤ c) {b : S → ℝ≥0∞} {B : ℝ≥0∞} (hb : ∀ j, b j ≤ B) (i : S) :
+    interdepSeries γ b i ≤ B / (1 - c) :=
+  calc interdepSeries γ b i = ∑' n : ℕ, interdepIter γ n b i := rfl
+    _ ≤ ∑' n : ℕ, B * c ^ n := ENNReal.tsum_le_tsum fun n ↦ interdepIter_le γ hc hb n i
+    _ = B * ∑' n : ℕ, c ^ n := ENNReal.tsum_mul_left
+    _ = B * (1 - c)⁻¹ := by rw [ENNReal.tsum_geometric]
+    _ = B / (1 - c) := (div_eq_mul_inv _ _).symm
+
+/-- `C(γ)^n` is homogeneous: `C^n (c a) = c (C^n a)`. -/
+lemma interdepIter_const_mul (γ : Specification S E) (c : ℝ≥0∞) (a : S → ℝ≥0∞) (n : ℕ) (i : S) :
+    interdepIter γ n (fun j ↦ c * a j) i = c * interdepIter γ n a i := by
+  induction n generalizing i with
+  | zero => rfl
+  | succ n ih =>
+      calc interdepIter γ (n + 1) (fun j ↦ c * a j) i
+          = ∑' j, interdep γ i j * interdepIter γ n (fun j ↦ c * a j) j := rfl
+        _ = ∑' j, c * (interdep γ i j * interdepIter γ n a j) := by
+            exact tsum_congr fun j ↦ by rw [ih j]; ring
+        _ = c * interdepIter γ (n + 1) a i := by
+            rw [ENNReal.tsum_mul_left]; rfl
+
+/-- Georgii (8.19) is homogeneous: `D(γ) (c b̃) = c D(γ) b̃`. -/
+lemma interdepSeries_const_mul (γ : Specification S E) (c : ℝ≥0∞) (a : S → ℝ≥0∞) (i : S) :
+    interdepSeries γ (fun j ↦ c * a j) i = c * interdepSeries γ a i := by
+  rw [interdepSeries, interdepSeries, ← ENNReal.tsum_mul_left]
+  exact tsum_congr fun n ↦ interdepIter_const_mul γ c a n i
 
 /-- Georgii, proof of (8.20): the vectors `a^{(n)} = C^n 1 + ∑_{k<n} C^k b̃`. -/
 noncomputable def comparisonVec (γ : Specification S E) (bt : S → ℝ≥0∞) (n : ℕ) (i : S) : ℝ≥0∞ :=

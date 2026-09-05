@@ -2546,27 +2546,32 @@ lemma stationaryDist_pos (y : E) : 0 < stationaryDist P hP hpos y :=
   Matrix.pos_of_vecMul_eq_self P hpos (stationaryDist_mem_stdSimplex P hP hpos)
     (vecMul_stationaryDist P hP hpos) y
 
-lemma exists_stationaryChain :
-    ∃ μ : Measure (ℤ → E), IsProjectiveLimit μ (finDist P (stationaryDist P hP hpos)) := by
-  have : ∀ Λ : Finset ℤ, IsFiniteMeasure (finDist P (stationaryDist P hP hpos) Λ) := fun Λ ↦
-    haveI := isProbabilityMeasure_finDist (fun x y ↦ (hpos x y).le)
-      (fun x ↦ Matrix.sum_row_of_mem_rowStochastic hP x)
-      (stationaryDist_mem_stdSimplex P hP hpos).1 (vecMul_stationaryDist P hP hpos)
-      (stationaryDist_mem_stdSimplex P hP hpos).2 Λ
-    inferInstance
-  exact exists_isProjectiveLimit_of_standardBorel
-    (isProjectiveMeasureFamily_finDist (fun x y ↦ (hpos x y).le)
-      (fun x ↦ Matrix.sum_row_of_mem_rowStochastic hP x)
-      (stationaryDist_mem_stdSimplex P hP hpos).1 (vecMul_stationaryDist P hP hpos))
+lemma isFiniteMeasure_finDist_stationaryDist (Λ : Finset ℤ) :
+    IsFiniteMeasure (finDist P (stationaryDist P hP hpos) Λ) :=
+  haveI := isProbabilityMeasure_finDist (fun x y ↦ (hpos x y).le)
+    (fun x ↦ Matrix.sum_row_of_mem_rowStochastic hP x)
+    (stationaryDist_mem_stdSimplex P hP hpos).1 (vecMul_stationaryDist P hP hpos)
+    (stationaryDist_mem_stdSimplex P hP hpos).2 Λ
+  inferInstance
+
+lemma isProjectiveMeasureFamily_finDist_stationaryDist :
+    IsProjectiveMeasureFamily (α := fun _ : ℤ ↦ E) (finDist P (stationaryDist P hP hpos)) :=
+  isProjectiveMeasureFamily_finDist (fun x y ↦ (hpos x y).le)
+    (fun x ↦ Matrix.sum_row_of_mem_rowStochastic hP x)
+    (stationaryDist_mem_stdSimplex P hP hpos).1 (vecMul_stationaryDist P hP hpos)
 
 /-- Georgii (3.3): the distribution `μ_P` of the unique stationary Markov chain with
 transition matrix `P`, obtained from its finite-dimensional distributions by the Kolmogorov
 extension theorem. -/
-def stationaryChain : Measure (ℤ → E) := (exists_stationaryChain P hP hpos).choose
+def stationaryChain : Measure (ℤ → E) :=
+  have := isFiniteMeasure_finDist_stationaryDist P hP hpos
+  standardBorelProjectiveLimit _ (isProjectiveMeasureFamily_finDist_stationaryDist P hP hpos)
 
 lemma isProjectiveLimit_stationaryChain :
     IsProjectiveLimit (stationaryChain P hP hpos) (finDist P (stationaryDist P hP hpos)) :=
-  (exists_stationaryChain P hP hpos).choose_spec
+  have := isFiniteMeasure_finDist_stationaryDist P hP hpos
+  isProjectiveLimit_standardBorelProjectiveLimit
+    (isProjectiveMeasureFamily_finDist_stationaryDist P hP hpos)
 
 lemma isProbabilityMeasure_stationaryChain :
     IsProbabilityMeasure (stationaryChain P hP hpos) := by

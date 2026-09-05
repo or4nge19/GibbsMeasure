@@ -4,6 +4,7 @@ public import Mathlib.Algebra.Group.Indicator
 public import Mathlib.Data.ENNReal.Action
 public import Mathlib.Data.ENNReal.Basic
 public import Mathlib.Data.ENNReal.Inv
+public import Mathlib.Analysis.SpecificLimits.Normed
 
 public section
 
@@ -35,5 +36,30 @@ lemma nnreal_inv_zero_smul_eq_zero (a : ℝ≥0∞) : (0 : ℝ≥0)⁻¹ • a =
 
 @[simp] lemma tOReal_indicator_one (s : Set α) (a : α) :
     ENNReal.toReal (s.indicator 1 a) = s.indicator 1 a := by by_cases ha : a ∈ s <;> simp [ha]
+
+open Filter Topology in
+/-- Exponential growth beats polynomial growth in `ℝ≥0∞`: if `1 < r` then eventually
+`n ^ k ≤ r ^ n`. The `ℝ≥0∞`-valued form of
+`tendsto_pow_const_div_const_pow_of_one_lt`; it also holds at `r = ⊤`. -/
+theorem eventually_pow_le_pow_of_one_lt {r : ℝ≥0∞} (hr : 1 < r) (k : ℕ) :
+    ∀ᶠ n : ℕ in atTop, (n : ℝ≥0∞) ^ k ≤ r ^ n := by
+  rcases eq_or_ne r ⊤ with rfl | hrtop
+  · refine eventually_atTop.2 ⟨1, fun n hn ↦ ?_⟩
+    rw [ENNReal.top_pow (by omega : n ≠ 0)]
+    exact le_top
+  · have hr' : (1 : ℝ) < r.toReal := by
+      have h1 : ((1 : ℝ≥0∞)).toReal < r.toReal :=
+        (ENNReal.toReal_lt_toReal (by norm_num) hrtop).2 hr
+      simpa using h1
+    have hev := tendsto_pow_const_div_const_pow_of_one_lt k hr'
+    have h1 : ∀ᶠ n : ℕ in atTop, (n : ℝ) ^ k / r.toReal ^ n < 1 :=
+      (tendsto_order.1 hev).2 1 one_pos
+    filter_upwards [h1] with n hn
+    have hpos : (0 : ℝ) < r.toReal ^ n := pow_pos (by linarith) n
+    have hlt : (n : ℝ) ^ k < r.toReal ^ n := (div_lt_one hpos).1 hn
+    have hle : ENNReal.ofReal ((n : ℝ) ^ k) ≤ ENNReal.ofReal (r.toReal ^ n) :=
+      (ENNReal.ofReal_le_ofReal_iff hpos.le).2 hlt.le
+    rwa [ENNReal.ofReal_pow (Nat.cast_nonneg n), ENNReal.ofReal_natCast,
+      ENNReal.ofReal_pow (by linarith : (0 : ℝ) ≤ r.toReal), ENNReal.ofReal_toReal hrtop] at hle
 
 end ENNReal

@@ -2850,7 +2850,7 @@ CountableMatrix/Recurrence.lean`, as genuine generalizations of Vere-Jones' rema
   The eventual bound `eventually_lazy_pow_le_of_lt_convergenceNorm` behind it splits `Q^n(x,x)`
   into finitely many "junk" terms `k < k₀` (crudely bounded by `n^{k₀}(1-t)^{n-k₀}`, itself
   exponentially dominated by any target rate via the elementary transfer lemma
-  `ENNReal_eventually_pow_le_pow_of_one_lt` from the real-analysis fact
+  `ENNReal.eventually_pow_le_pow_of_one_lt` from the real-analysis fact
   `tendsto_pow_const_div_const_pow_of_one_lt`) and the "bulk" `k ≥ k₀`, bounded via the ordinary
   binomial theorem (`add_pow`) for real numbers once `P^k(x,x) ≤ (L+δ)^k` eventually.
 * `one_le_lazy_convergenceNorm_of_convergenceNorm_eq_one`: if `L(P) = 1`, `L(Q) ≥ 1`, by the dual
@@ -2871,28 +2871,6 @@ invariantG`, `eq_singleton_boundaryLawMeasure_const_G_of_forall_le_sum`), both h
 for the separate `t = 1` degenerate check Georgii's own remark makes for finite `E`).
 -/
 
-
-open Filter Topology in
-theorem ENNReal_eventually_pow_le_pow_of_one_lt {r : ℝ≥0∞} (hr : 1 < r) (k : ℕ) :
-    ∀ᶠ n : ℕ in atTop, (n : ℝ≥0∞) ^ k ≤ r ^ n := by
-  rcases eq_or_ne r ⊤ with rfl | hrtop
-  · refine eventually_atTop.2 ⟨1, fun n hn ↦ ?_⟩
-    rw [ENNReal.top_pow (by omega : n ≠ 0)]
-    exact le_top
-  · have hr' : (1 : ℝ) < r.toReal := by
-      have h1 : ((1:ℝ≥0∞)).toReal < r.toReal :=
-        (ENNReal.toReal_lt_toReal (by norm_num) hrtop).2 hr
-      simpa using h1
-    have hev := tendsto_pow_const_div_const_pow_of_one_lt k hr'
-    have h1 : ∀ᶠ n : ℕ in atTop, (n : ℝ) ^ k / r.toReal ^ n < 1 :=
-      (tendsto_order.1 hev).2 1 one_pos
-    filter_upwards [h1] with n hn
-    have hpos : (0 : ℝ) < r.toReal ^ n := pow_pos (by linarith) n
-    have hlt : (n : ℝ) ^ k < r.toReal ^ n := (div_lt_one hpos).1 hn
-    have hle : ENNReal.ofReal ((n:ℝ)^k) ≤ ENNReal.ofReal (r.toReal ^ n) :=
-      (ENNReal.ofReal_le_ofReal_iff hpos.le).2 hlt.le
-    rwa [ENNReal.ofReal_pow (Nat.cast_nonneg n), ENNReal.ofReal_natCast,
-      ENNReal.ofReal_pow (by linarith : (0:ℝ) ≤ r.toReal), ENNReal.ofReal_toReal hrtop] at hle
 
 theorem ENNReal_add_le_of_two_mul_le_of_two_mul_le {a b c : ℝ≥0∞} (h1 : 2 * a ≤ c) (h2 : 2 * b ≤
     c) :
@@ -3114,7 +3092,7 @@ theorem eventually_lazy_pow_le_of_lt_convergenceNorm {E : Type*} [MeasurableSpac
     obtain ⟨N, hN⟩ := ENNReal.exists_nat_gt (ENNReal.mul_ne_top (by norm_num : (2:ℝ≥0∞) ≠ ⊤) hCtop)
     exact eventually_atTop.2 ⟨N, fun n hn ↦ hN.le.trans (by exact_mod_cast hn)⟩
   have hevcore : ∀ᶠ n : ℕ in atTop, (n : ℝ≥0∞) ^ (k0 + 1) ≤ r' ^ n :=
-    ENNReal_eventually_pow_le_pow_of_one_lt hr' (k0 + 1)
+    ENNReal.eventually_pow_le_pow_of_one_lt hr' (k0 + 1)
   have hevk0 : ∀ᶠ n : ℕ in atTop, k0 ≤ n := eventually_ge_atTop k0
   filter_upwards [hbulk_ratio, hev2C, hevcore, hevk0] with n hbulk h2C hcore hk0n
   rw [ofMatrix_lazy_pow_apply_singleton]
@@ -3311,7 +3289,7 @@ theorem eventually_le_lazy_pow_of_lt_convergenceNorm {E : Type*} [MeasurableSpac
     obtain ⟨N, hN⟩ := ENNReal.exists_nat_gt (ENNReal.mul_ne_top (by norm_num : (2:ℝ≥0∞) ≠ ⊤) hC'top)
     exact eventually_atTop.2 ⟨N, fun n hn ↦ hN.le.trans (by exact_mod_cast hn)⟩
   have hevcore' : ∀ᶠ n : ℕ in atTop, (n : ℝ≥0∞) ^ (k1 + 1) ≤ r'' ^ n :=
-    ENNReal_eventually_pow_le_pow_of_one_lt hr'' (k1 + 1)
+    ENNReal.eventually_pow_le_pow_of_one_lt hr'' (k1 + 1)
   have hevk1 : ∀ᶠ n : ℕ in atTop, k1 ≤ n := eventually_ge_atTop k1
   have hbulk_ratio' : ∀ᶠ n : ℕ in atTop, 2 * (ρ' - ε) ^ n ≤ ρ' ^ n := by
     have hratio : (ρ' - ε) / ρ' < 1 :=

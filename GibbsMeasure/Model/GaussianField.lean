@@ -67,7 +67,8 @@ convergence condition, not treated here).
 * `Potential.gaussianPotential J h`: **Georgii (13.11)**, the potential
   `Φ^{J,h}_{\{i\}} = J(i,i)/2 · σ_i² + h_i σ_i`, `Φ^{J,h}_{\{i,j\}} = J(i,j) σ_i σ_j` (`i ≠ j`),
   `Φ^{J,h}_A = 0` otherwise.
-* `Potential.gaussianCovMatrix J Λ`: **Georgii (13.12)**, the matrix `𝒥_Λ = (J(i,j))_{i,j ∈ Λ}`.
+* `Potential.gaussianCouplingMatrix J Λ`: **Georgii (13.12)**, the matrix
+  `𝒥_Λ = (J(i,j))_{i,j ∈ Λ}`.
 * `Potential.gaussianBoundaryField J hFin Λ ω i`: `(J_{Λ,Λᶜ} ω)_i = ∑_{j ∉ Λ} J(i,j) ω(j)`.
 * `Potential.gaussianMean J h hFin Λ ω`: **the mean of (13.13)**, literally Georgii's display
   `m_Λ(ω) = -𝒥_Λ⁻¹ (h|_Λ + J_{Λ,Λᶜ} ω|_{Λᶜ})`; see its docstring for the derivation by completing
@@ -107,6 +108,21 @@ convergence condition, not treated here).
   `ProbabilityTheory.integral_eval_multivariateGaussianPi`/
   `integral_sub_mul_sub_multivariateGaussianPi`), under `γ_Λ^{J,h}(·|ω)` the mean of `σ_i` is
   `(gaussianMean J h hFin Λ ω) i` and the covariance of `(σ_i, σ_j)` is `(β • 𝒥_Λ)⁻¹ i j`.
+* `Potential.gaussianSpecification_map_restrict_euclidean`: **Georgii Proposition (13.13) as
+  Georgii states it** — restricted to the spins in `Λ` (and transported to `EuclideanSpace ℝ Λ`),
+  `γ_Λ^{J,h}(·|ω)` *is* Mathlib's `ProbabilityTheory.multivariateGaussian` with mean `m_Λ(ω)` and
+  covariance matrix `(β 𝒥_Λ)⁻¹`, hence *the* Gaussian field with that mean and that covariance
+  (`ProbabilityTheory.IsGaussian.ext`). The Gaussianity itself is
+  `Potential.isGaussian_gaussianSpecification_map_restrict`, and the underlying general fact —
+  a positive definite Gaussian *density* measure is a Gaussian *measure*, and is Mathlib's
+  `multivariateGaussian` — is `ProbabilityTheory.isGaussian_multivariateGaussianPi` and
+  `ProbabilityTheory.map_toLp_multivariateGaussianPi`.
+* `Potential.isGaussianProcess_gaussianSpecification`,
+  `Potential.integral_eval_gaussianSpecification`,
+  `Potential.covariance_eval_gaussianSpecification`: **Georgii (13.13) for the whole
+  configuration** — `γ_Λ^{J,h}(·|ω)` is a Gauss field on `S` whose mean is `m_i(Λ, ω)` (Georgii's
+  first display: `gaussianMean J h hFin Λ ω` on `Λ`, `ω_i` off `Λ`) and whose covariance function
+  is `Γ_Λ(i,j)` (his second display: `(β 𝒥_Λ)⁻¹(i,j)` on `Λ × Λ`, `0` otherwise).
 
 ## Georgii (13.4)–(13.7): conditional expectations given the other spins
 
@@ -125,7 +141,7 @@ convergence condition, not treated here).
   (`Matrix.PosDef (Matrix.of J)`, Georgii's finitely-supported sense (13.3)), and (13.5) holds.
   The tower of lemmas follows Georgii's proof: `condCovariance_eq_zero_of_notMem` (finite range),
   `exists_condExpOutside_ae_eq_affine` (his (13.8)), `sub_condExpOutside_ae_eq_condCoupling`
-  ((13.5)), and `posDef_gaussianCovMatrix_condCoupling` (`Γ_Λ` is a right inverse of `𝒥_Λ`).
+  ((13.5)), and `posDef_gaussianCouplingMatrix_condCoupling` (`Γ_Λ` is a right inverse of `𝒥_Λ`).
 * **Lemma (13.10)** lives in `GibbsMeasure/Model/GaussianSpecification.lean`
   (`MeasureTheory.GibbsMeasure.georgii_13_10`), next to `Ω_J` (13.9), which its hypothesis (i)
   mentions.
@@ -298,21 +314,25 @@ theorem isPotential_gaussianPotential : IsPotential (gaussianPotential J h) := b
   infer_instance
 
 omit [LinearOrder S] in
-/-- **Georgii (13.12).** The finite-volume interaction matrix `𝒥_Λ = (J(i,j))_{i,j ∈ Λ}`.
+/-- **Georgii (13.12).** The finite-volume coupling matrix `𝒥_Λ = (J(i,j))_{i,j ∈ Λ}`.
 
-Despite the name — kept because it is the matrix that Georgii's (13.12) attaches to the volume
-`Λ` — this is the *coupling* (precision) matrix of `γ^{J,h}_Λ(·|ω)`, **not** its covariance: by
-Proposition (13.13) the covariance of `γ^{J,h}_Λ(·|ω)` is `𝒥_Λ⁻¹`.
+This is the *coupling* (precision) matrix of `γ^{J,h}_Λ(·|ω)`, not its covariance: by Proposition
+(13.13) (`Potential.gaussianSpecification_apply`) the covariance of
+`γ^{J,h}_Λ(·|ω)` is `𝒥_Λ⁻¹`, whose entries are
+`MeasureTheory.GibbsMeasure.gaussianCovEntry`.
 
 It is an abbreviation for `ProbabilityTheory.covMatrix J Λ`, the generic "restrict a kernel
 `S → S → ℝ` to a finite index set" operation of
 `GibbsMeasure/Mathlib/Probability/Distributions/Gaussian/Existence.lean`; the two are the same
 object and must not be duplicated. -/
-abbrev gaussianCovMatrix (Λ : Finset S) : Matrix Λ Λ ℝ := ProbabilityTheory.covMatrix J Λ
+abbrev gaussianCouplingMatrix (Λ : Finset S) : Matrix Λ Λ ℝ := ProbabilityTheory.covMatrix J Λ
+
+@[deprecated gaussianCouplingMatrix (since := "2026-09-05")]
+alias gaussianCovMatrix := gaussianCouplingMatrix
 
 omit [LinearOrder S] in
-lemma gaussianCovMatrix_apply (Λ : Finset S) (i j : Λ) :
-    gaussianCovMatrix J Λ i j = J i.1 j.1 := rfl
+lemma gaussianCouplingMatrix_apply (Λ : Finset S) (i j : Λ) :
+    gaussianCouplingMatrix J Λ i j = J i.1 j.1 := rfl
 
 /-! ### Georgii §13.1: the finite-volume Hamiltonian as a quadratic form
 
@@ -518,7 +538,7 @@ is confirmed independently by completing the square in the Boltzmann factor `exp
 `m = (β 𝒥_Λ)⁻¹ (-β (h|_Λ + J_{Λ,Λᶜ} ω|_{Λᶜ})) = -𝒥_Λ⁻¹ (h|_Λ + J_{Λ,Λᶜ} ω|_{Λᶜ})`, independent of
 `β`. -/
 def gaussianMean (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite) (Λ : Finset S) (ω : S → ℝ) : Λ → ℝ :=
-  -((gaussianCovMatrix J Λ)⁻¹ *ᵥ (fun i : Λ ↦ h i.1 + gaussianBoundaryField J hFin Λ ω i.1))
+  -((gaussianCouplingMatrix J Λ)⁻¹ *ᵥ (fun i : Λ ↦ h i.1 + gaussianBoundaryField J hFin Λ ω i.1))
 
 /-- **Diagonal/off-diagonal expansion of the quadratic form of `J`.** For `J` symmetric,
 `∑_{i,j ∈ Λ} J(i,j) η_i η_j = ∑_{i ∈ Λ} J(i,i) η_i² + 2 ∑_{i < j, i,j ∈ Λ} J(i,j) η_i η_j`:
@@ -535,19 +555,20 @@ private lemma sum_sum_eq_sum_diag_add_two_mul_sum_lt (hSymm : ∀ i j, J i j = J
 omit [LinearOrder S] in
 /-- The quadratic form `ζ ⬝ᵥ 𝒥_Λ *ᵥ ζ` evaluated at the `Λ`-restriction of a juxtaposition
 `juxt Λ ω ζ`, as the corresponding `S`-indexed double sum. -/
-private lemma dotProduct_mulVec_gaussianCovMatrix_eq_sum (Λ : Finset S) (ω : S → ℝ) (ζ : Λ → ℝ) :
-    ζ ⬝ᵥ (gaussianCovMatrix J Λ) *ᵥ ζ =
+private lemma dotProduct_mulVec_gaussianCouplingMatrix_eq_sum (Λ : Finset S) (ω : S → ℝ)
+    (ζ : Λ → ℝ) :
+    ζ ⬝ᵥ (gaussianCouplingMatrix J Λ) *ᵥ ζ =
       ∑ i ∈ Λ, ∑ j ∈ Λ, J i j * (juxt (Λ : Set S) ω ζ i) * (juxt (Λ : Set S) ω ζ j) := by
   set G : S → ℝ := juxt (Λ : Set S) ω ζ with hG
   have hζ : ∀ i : Λ, ζ i = G i.1 := fun i ↦
     (juxt_apply_of_mem (Finset.mem_coe.2 i.2) ζ).symm
-  have hLHS : ζ ⬝ᵥ (gaussianCovMatrix J Λ) *ᵥ ζ =
+  have hLHS : ζ ⬝ᵥ (gaussianCouplingMatrix J Λ) *ᵥ ζ =
       ∑ i : Λ, ∑ j ∈ Λ, J i.1 j * G i.1 * G j := by
-    change ∑ i : Λ, ζ i * ∑ j : Λ, gaussianCovMatrix J Λ i j * ζ j = _
+    change ∑ i : Λ, ζ i * ∑ j : Λ, gaussianCouplingMatrix J Λ i j * ζ j = _
     refine Finset.sum_congr rfl fun i _ ↦ ?_
     rw [hζ i, Finset.mul_sum, ← Finset.sum_coe_sort Λ (fun j ↦ J i.1 j * G i.1 * G j)]
     refine Finset.sum_congr rfl fun j _ ↦ ?_
-    rw [gaussianCovMatrix_apply, hζ j]
+    rw [gaussianCouplingMatrix_apply, hζ j]
     ring
   rw [hLHS]
   exact Finset.sum_coe_sort Λ (fun i : S ↦ ∑ j ∈ Λ, J i j * G i * G j)
@@ -556,19 +577,20 @@ private lemma dotProduct_mulVec_gaussianCovMatrix_eq_sum (Λ : Finset S) (ω : S
 boundary condition `ω` juxtaposed against a free configuration `ζ : Λ → ℝ`,
 `H_Λ(ζ_Λ ω_{Λᶜ}) = (1/2) (ζ ⬝ᵥ 𝒥_Λ *ᵥ ζ) + (h|_Λ + J_{Λ,Λᶜ} ω|_{Λᶜ}) ⬝ᵥ ζ`.
 This is exactly Georgii's display preceding (13.13), read off `hamiltonian_gaussianPotential_eq`
-by matching the site and inside-`Λ` pair terms against `dotProduct_mulVec_gaussianCovMatrix_eq_sum`
+by matching the site and inside-`Λ` pair terms against
+`dotProduct_mulVec_gaussianCouplingMatrix_eq_sum`
 (via `sum_sum_eq_sum_diag_add_two_mul_sum_lt`) and the boundary-crossing term against
 `gaussianBoundaryField`. -/
 theorem hamiltonian_gaussianPotential_juxt_eq (hSymm : ∀ i j, J i j = J j i)
     (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite) (Λ : Finset S) (ω : S → ℝ) (ζ : Λ → ℝ) :
     (gaussianPotential J h).hamiltonian Λ (juxt (Λ : Set S) ω ζ) =
-      (1 / 2) * (ζ ⬝ᵥ (gaussianCovMatrix J Λ) *ᵥ ζ) +
+      (1 / 2) * (ζ ⬝ᵥ (gaussianCouplingMatrix J Λ) *ᵥ ζ) +
         (fun i : Λ ↦ h i.1 + gaussianBoundaryField J hFin Λ ω i.1) ⬝ᵥ ζ := by
   set G : S → ℝ := juxt (Λ : Set S) ω ζ with hG
   have hζ : ∀ i : Λ, ζ i = G i.1 := fun i ↦
     (juxt_apply_of_mem (Finset.mem_coe.2 i.2) ζ).symm
   rw [hamiltonian_gaussianPotential_eq J h hSymm hFin Λ G,
-    dotProduct_mulVec_gaussianCovMatrix_eq_sum J Λ ω ζ,
+    dotProduct_mulVec_gaussianCouplingMatrix_eq_sum J Λ ω ζ,
     sum_sum_eq_sum_diag_add_two_mul_sum_lt J hSymm Λ G]
   have hbf : (fun i : Λ ↦ h i.1 + gaussianBoundaryField J hFin Λ ω i.1) ⬝ᵥ ζ =
       ∑ i ∈ Λ, (h i + gaussianBoundaryField J hFin Λ ω i) * G i := by
@@ -611,17 +633,18 @@ form of `hamiltonian_gaussianPotential_juxt_eq`, at the rescaled precision `β �
 vector `-β • (h|_Λ + J_{Λ,Λᶜ} η|_{Λᶜ})`. -/
 private lemma sigmaFiniteLambdaZ_gaussianPotential_boltzmannFactor_eq
     (hSymm : ∀ i j, J i j = J j i) (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite)
-    (hPD : ∀ Λ : Finset S, (gaussianCovMatrix J Λ).PosDef) (β : ℝ) (hβ : 0 < β) (Λ : Finset S)
+    (hPD : ∀ Λ : Finset S, (gaussianCouplingMatrix J Λ).PosDef) (β : ℝ) (hβ : 0 < β) (Λ : Finset S)
     (η : S → ℝ) :
     Specification.sigmaFiniteLambdaZ (S := S) (E := ℝ) volume
         ((gaussianPotential J h).boltzmannFactor β) Λ η =
-      ENNReal.ofReal (Real.sqrt ((2 * Real.pi) ^ Fintype.card Λ / (β • gaussianCovMatrix J Λ).det) *
+      ENNReal.ofReal (Real.sqrt ((2 * Real.pi) ^ Fintype.card Λ /
+          (β • gaussianCouplingMatrix J Λ).det) *
         Real.exp ((1 / 2) * ((-β • fun i : Λ ↦ h i.1 + gaussianBoundaryField J hFin Λ η i.1) ⬝ᵥ
-          (β • gaussianCovMatrix J Λ)⁻¹ *ᵥ
+          (β • gaussianCouplingMatrix J Λ)⁻¹ *ᵥ
             (-β • fun i : Λ ↦ h i.1 + gaussianBoundaryField J hFin Λ η i.1)))) := by
   have := isFiniteRange_gaussianPotential J h hSymm hFin
   have := isPotential_gaussianPotential J h
-  set A : Matrix Λ Λ ℝ := β • gaussianCovMatrix J Λ with hAdef
+  set A : Matrix Λ Λ ℝ := β • gaussianCouplingMatrix J Λ with hAdef
   have hA : A.PosDef := (hPD Λ).smul hβ
   set b : Λ → ℝ := -β • (fun i : Λ ↦ h i.1 + gaussianBoundaryField J hFin Λ η i.1) with hbdef
   have hmeas : Measurable ((gaussianPotential J h).boltzmannFactor β Λ) :=
@@ -654,15 +677,16 @@ potential's Boltzmann factor is admissible for Lebesgue measure: every finite-vo
 function `Z_Λ^{J,h}(η)` is finite and nonzero. -/
 theorem isSigmaFiniteLambdaAdmissible_gaussianPotential_boltzmannFactor
     (hSymm : ∀ i j, J i j = J j i) (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite)
-    (hPD : ∀ Λ : Finset S, (gaussianCovMatrix J Λ).PosDef) (β : ℝ) (hβ : 0 < β) :
+    (hPD : ∀ Λ : Finset S, (gaussianCouplingMatrix J Λ).PosDef) (β : ℝ) (hβ : 0 < β) :
     Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := ℝ) volume
       ((gaussianPotential J h).boltzmannFactor β) := by
   intro Λ η
   rw [sigmaFiniteLambdaZ_gaussianPotential_boltzmannFactor_eq J h hSymm hFin hPD β hβ Λ η]
-  have hdetpos : 0 < (β • gaussianCovMatrix J Λ).det := ((hPD Λ).smul hβ).det_pos
-  have hposval : 0 < Real.sqrt ((2 * Real.pi) ^ Fintype.card Λ / (β • gaussianCovMatrix J Λ).det) *
+  have hdetpos : 0 < (β • gaussianCouplingMatrix J Λ).det := ((hPD Λ).smul hβ).det_pos
+  have hposval : 0 < Real.sqrt ((2 * Real.pi) ^ Fintype.card Λ /
+        (β • gaussianCouplingMatrix J Λ).det) *
       Real.exp ((1 / 2) * ((-β • fun i : Λ ↦ h i.1 + gaussianBoundaryField J hFin Λ η i.1) ⬝ᵥ
-        (β • gaussianCovMatrix J Λ)⁻¹ *ᵥ
+        (β • gaussianCouplingMatrix J Λ)⁻¹ *ᵥ
           (-β • fun i : Λ ↦ h i.1 + gaussianBoundaryField J hFin Λ η i.1))) :=
     mul_pos (Real.sqrt_pos.2 (div_pos (by positivity) hdetpos)) (Real.exp_pos _)
   exact ⟨(ENNReal.ofReal_pos.2 hposval).ne', ENNReal.ofReal_ne_top⟩
@@ -671,7 +695,8 @@ theorem isSigmaFiniteLambdaAdmissible_gaussianPotential_boltzmannFactor
 Gaussian potential `Φ^{J,h}` over Lebesgue measure, for `J` symmetric with finite row support,
 `β > 0`, and every `𝒥_Λ` positive definite. -/
 noncomputable def gaussianSpecification (hSymm : ∀ i j, J i j = J j i)
-    (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite) (hPD : ∀ Λ : Finset S, (gaussianCovMatrix J Λ).PosDef)
+    (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite)
+    (hPD : ∀ Λ : Finset S, (gaussianCouplingMatrix J Λ).PosDef)
     (β : ℝ) (hβ : 0 < β) : Specification S ℝ :=
   have := isFiniteRange_gaussianPotential J h hSymm hFin
   have := isPotential_gaussianPotential J h
@@ -695,18 +720,19 @@ and mean `gaussianMean J h hFin Λ ω`. Consequently, by
 `σ_i` (`i ∈ Λ`) is `(gaussianMean J h hFin Λ ω) i` and the covariance of `(σ_i, σ_j)` is
 `(β • 𝒥_Λ)⁻¹ i j`. -/
 theorem gaussianSpecification_apply (hSymm : ∀ i j, J i j = J j i)
-    (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite) (hPD : ∀ Λ : Finset S, (gaussianCovMatrix J Λ).PosDef)
+    (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite)
+    (hPD : ∀ Λ : Finset S, (gaussianCouplingMatrix J Λ).PosDef)
     (β : ℝ) (hβ : 0 < β) (Λ : Finset S) (ω : S → ℝ) :
     gaussianSpecification J h hSymm hFin hPD β hβ Λ ω =
-      (ProbabilityTheory.multivariateGaussianPi (β • gaussianCovMatrix J Λ)
+      (ProbabilityTheory.multivariateGaussianPi (β • gaussianCouplingMatrix J Λ)
         (gaussianMean J h hFin Λ ω)).map (juxt (Λ : Set S) ω) := by
   have := isFiniteRange_gaussianPotential J h hSymm hFin
   have := isPotential_gaussianPotential J h
-  set A : Matrix Λ Λ ℝ := β • gaussianCovMatrix J Λ with hAdef
+  set A : Matrix Λ Λ ℝ := β • gaussianCouplingMatrix J Λ with hAdef
   have hA : A.PosDef := (hPD Λ).smul hβ
   set b : Λ → ℝ := -β • (fun i : Λ ↦ h i.1 + gaussianBoundaryField J hFin Λ ω i.1) with hbdef
-  have hJdet : (gaussianCovMatrix J Λ).det ≠ 0 := (hPD Λ).det_pos.ne'
-  have hJinv : gaussianCovMatrix J Λ * (gaussianCovMatrix J Λ)⁻¹ = 1 :=
+  have hJdet : (gaussianCouplingMatrix J Λ).det ≠ 0 := (hPD Λ).det_pos.ne'
+  have hJinv : gaussianCouplingMatrix J Λ * (gaussianCouplingMatrix J Λ)⁻¹ = 1 :=
     Matrix.mul_nonsing_inv _ hJdet.isUnit
   have hAdet : A.det ≠ 0 := hA.det_pos.ne'
   have hAm : A *ᵥ gaussianMean J h hFin Λ ω = b := by
@@ -765,6 +791,81 @@ theorem gaussianSpecification_apply (hSymm : ∀ i j, J i j = J j i)
       (Real.exp (-(1 / 2) * ((ζ - gaussianMean J h hFin Λ ω) ⬝ᵥ A *ᵥ
         (ζ - gaussianMean J h hFin Λ ω))) * Real.exp (1 / 2 * (b ⬝ᵥ gaussianMean J h hFin Λ ω)))
       from by ring, hsqrt1, one_mul]
+
+/-! #### Georgii Proposition (13.13): `γ_Λ^{J,h}(·|ω)` *is* the Gaussian field
+
+`gaussianSpecification_apply` exhibits `γ_Λ^{J,h}(·|ω)` as a pushforward of a measure given by a
+Lebesgue density. Georgii's statement is stronger: `γ_Λ^{J,h}(·|ω)` is *the* Gaussian field with
+mean `m_Λ(ω)` and covariance matrix `(β 𝒥_Λ)⁻¹`. That is
+`gaussianSpecification_map_restrict_euclidean` below: after restricting to the spins in `Λ` and
+transporting to `EuclideanSpace ℝ Λ`, the measure is literally Mathlib's
+`ProbabilityTheory.multivariateGaussian`, which by `ProbabilityTheory.IsGaussian.ext` is the
+unique Gaussian measure with that mean and that covariance. -/
+
+/-- **Georgii Proposition (13.13), the `Λ`-marginal.** Under `γ_Λ^{J,h}(·|ω)` the spins inside
+`Λ` are distributed according to `ProbabilityTheory.multivariateGaussianPi (β • 𝒥_Λ) m_Λ(ω)`:
+restricting to the coordinates in `Λ` undoes the `juxt` pushforward of
+`gaussianSpecification_apply`. -/
+theorem gaussianSpecification_map_restrict (hSymm : ∀ i j, J i j = J j i)
+    (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite)
+    (hPD : ∀ Λ : Finset S, (gaussianCouplingMatrix J Λ).PosDef)
+    (β : ℝ) (hβ : 0 < β) (Λ : Finset S) (ω : S → ℝ) :
+    (gaussianSpecification J h hSymm hFin hPD β hβ Λ ω).map (fun σ : S → ℝ ↦ fun i : Λ ↦ σ i.1)
+      = ProbabilityTheory.multivariateGaussianPi (β • gaussianCouplingMatrix J Λ)
+          (gaussianMean J h hFin Λ ω) := by
+  rw [gaussianSpecification_apply J h hSymm hFin hPD β hβ Λ ω,
+    Measure.map_map (by fun_prop) (Measurable.juxt (Λ := (Λ : Set S)) (η := ω))]
+  have hid : ((fun σ : S → ℝ ↦ fun i : Λ ↦ σ i.1) ∘ juxt (Λ : Set S) ω) = id := by
+    funext ζ i
+    exact juxt_apply_of_mem (Λ := (Λ : Set S)) (η := ω) (Finset.mem_coe.2 i.2) ζ
+  rw [hid, Measure.map_id]
+
+/-- **The mean of `γ_Λ^{J,h}(·|ω)`, Georgii's display in (13.13)**: `m_i(Λ, ω)` is
+`gaussianMean J h hFin Λ ω` inside `Λ` and `ω_i` outside. -/
+theorem integral_eval_gaussianSpecification (hSymm : ∀ i j, J i j = J j i)
+    (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite)
+    (hPD : ∀ Λ : Finset S, (gaussianCouplingMatrix J Λ).PosDef)
+    (β : ℝ) (hβ : 0 < β) (Λ : Finset S) (ω : S → ℝ) (i : S) :
+    ∫ σ, σ i ∂(gaussianSpecification J h hSymm hFin hPD β hβ Λ ω)
+      = if hi : i ∈ Λ then gaussianMean J h hFin Λ ω ⟨i, hi⟩ else ω i := by
+  classical
+  rw [gaussianSpecification_apply J h hSymm hFin hPD β hβ Λ ω,
+    integral_map (Measurable.juxt (Λ := (Λ : Set S)) (η := ω)).aemeasurable
+      (measurable_pi_apply i).aestronglyMeasurable]
+  by_cases hi : i ∈ Λ
+  · simp only [juxt_apply_of_mem (Λ := (Λ : Set S)) (η := ω) (Finset.mem_coe.2 hi), dif_pos hi]
+    exact ProbabilityTheory.integral_eval_multivariateGaussianPi ((hPD Λ).smul hβ) _ _
+  · haveI := ProbabilityTheory.isProbabilityMeasure_multivariateGaussianPi ((hPD Λ).smul hβ)
+      (gaussianMean J h hFin Λ ω)
+    simp [juxt_apply_of_not_mem (Λ := (Λ : Set S)) (η := ω) (by simpa using hi), hi]
+
+/-- **The covariance function of `γ_Λ^{J,h}(·|ω)`, Georgii's `Γ_Λ` in (13.13)**: `(β 𝒥_Λ)⁻¹(i,j)`
+for `i, j ∈ Λ` and `0` otherwise. -/
+theorem covariance_eval_gaussianSpecification (hSymm : ∀ i j, J i j = J j i)
+    (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite)
+    (hPD : ∀ Λ : Finset S, (gaussianCouplingMatrix J Λ).PosDef)
+    (β : ℝ) (hβ : 0 < β) (Λ : Finset S) (ω : S → ℝ) (i j : S) :
+    cov[fun σ : S → ℝ ↦ σ i, fun σ : S → ℝ ↦ σ j;
+        gaussianSpecification J h hSymm hFin hPD β hβ Λ ω]
+      = if hij : i ∈ Λ ∧ j ∈ Λ then
+          (β • gaussianCouplingMatrix J Λ)⁻¹ ⟨i, hij.1⟩ ⟨j, hij.2⟩ else 0 := by
+  classical
+  have hmean := integral_eval_gaussianSpecification J h hSymm hFin hPD β hβ Λ ω
+  rw [ProbabilityTheory.covariance]
+  simp only [hmean]
+  rw [gaussianSpecification_apply J h hSymm hFin hPD β hβ Λ ω,
+    integral_map (Measurable.juxt (Λ := (Λ : Set S)) (η := ω)).aemeasurable
+      (Measurable.aestronglyMeasurable (by fun_prop))]
+  by_cases hij : i ∈ Λ ∧ j ∈ Λ
+  · rw [dif_pos hij]
+    simp only [juxt_apply_of_mem (Λ := (Λ : Set S)) (η := ω) (Finset.mem_coe.2 hij.1),
+      juxt_apply_of_mem (Λ := (Λ : Set S)) (η := ω) (Finset.mem_coe.2 hij.2),
+      dif_pos hij.1, dif_pos hij.2]
+    exact ProbabilityTheory.integral_sub_mul_sub_multivariateGaussianPi ((hPD Λ).smul hβ) _ _ _
+  · rw [dif_neg hij]
+    rcases not_and_or.1 hij with hi | hj
+    · simp [juxt_apply_of_not_mem (Λ := (Λ : Set S)) (η := ω) (by simpa using hi), hi]
+    · simp [juxt_apply_of_not_mem (Λ := (Λ : Set S)) (η := ω) (by simpa using hj), hj]
 
 end LambdaAdmissibility
 
@@ -1067,8 +1168,8 @@ theorem sub_condExpOutside_ae_eq_condCoupling [DecidableEq S] {i : S} {Δ : Fins
 
 /-- **`𝒥_Λ` is nonnegative definite**: `J(i, j) = Γ(i, j) / (Γ(i, i) Γ(j, j))` is the covariance
 of the normalized residuals `(σ_i - ξ_i^μ) / Γ(i, i)`. -/
-lemma posSemidef_gaussianCovMatrix_condCoupling (hΓ : ∀ j, 0 < condCovariance μ j j)
-    (Λ : Finset S) : (Potential.gaussianCovMatrix (condCoupling μ) Λ).PosSemidef := by
+lemma posSemidef_gaussianCouplingMatrix_condCoupling (hΓ : ∀ j, 0 < condCovariance μ j j)
+    (Λ : Finset S) : (Potential.gaussianCouplingMatrix (condCoupling μ) Λ).PosSemidef := by
   have hP := hμ.isProbabilityMeasure
   set Z : S → (S → ℝ) → ℝ :=
     fun i ω ↦ (condCovariance μ i i)⁻¹ * (ω i - condExpOutside μ i ω) with hZ_def
@@ -1090,7 +1191,7 @@ lemma posSemidef_gaussianCovMatrix_condCoupling (hΓ : ∀ j, 0 < condCovariance
     refine integral_congr_ae (Filter.Eventually.of_forall fun ω ↦ ?_)
     field_simp
   have := Matrix.posSemidef_covariance (X := fun i : Λ ↦ Z i) fun i ↦ hZ2 i
-  have hmat : (Potential.gaussianCovMatrix (condCoupling μ) Λ) =
+  have hmat : (Potential.gaussianCouplingMatrix (condCoupling μ) Λ) =
       (fun i j ↦ cov[Z i, Z j; μ] : Matrix Λ Λ ℝ) := by
     ext i j
     exact (hcov i j).symm
@@ -1101,13 +1202,13 @@ lemma posSemidef_gaussianCovMatrix_condCoupling (hΓ : ∀ j, 0 < condCovariance
 Markovian Gaussian field with `Γ(i, i) > 0`, every `𝒥_Λ = (J(i, j))_{i, j ∈ Λ}` is positive
 definite. Georgii's proof: `𝒥_Λ` is nonnegative definite, and `Γ_Λ(j, k) = μ(σ_j (σ_k - η_k^Λ))`,
 `η_k^Λ = μ(σ_k | 𝒯_Λ)`, is a right inverse of `𝒥_Λ`. -/
-theorem posDef_gaussianCovMatrix_condCoupling [DecidableEq S]
+theorem posDef_gaussianCouplingMatrix_condCoupling [DecidableEq S]
     (hΓ : ∀ j, 0 < condCovariance μ j j) (N : S → Finset S) (hN : ∀ i, i ∉ N i)
     (hMarkov : ∀ i, AEStronglyMeasurable[cylinderEvents (N i : Set S)] (condExpOutside μ i) μ)
-    (Λ : Finset S) : (Potential.gaussianCovMatrix (condCoupling μ) Λ).PosDef := by
+    (Λ : Finset S) : (Potential.gaussianCouplingMatrix (condCoupling μ) Λ).PosDef := by
   have hP := hμ.isProbabilityMeasure
   have hL2 := memLp_two_eval hμ
-  refine (posSemidef_gaussianCovMatrix_condCoupling hμ hΓ Λ).posDef_iff_det_ne_zero.2 ?_
+  refine (posSemidef_gaussianCouplingMatrix_condCoupling hμ hΓ Λ).posDef_iff_det_ne_zero.2 ?_
   set J := condCoupling μ with hJ_def
   set η : S → (S → ℝ) → ℝ := fun k ↦ μ[(fun ω ↦ ω k) | cylinderEvents ((Λ : Set S)ᶜ)] with hη_def
   set R : S → (S → ℝ) → ℝ := fun k ω ↦ ω k - η k ω with hR_def
@@ -1126,7 +1227,7 @@ theorem posDef_gaussianCovMatrix_condCoupling [DecidableEq S]
         (by simpa using hj)).aestronglyMeasurable ((hL2 k).integrable one_le_two)
       ((hL2 j).integrable_mul (hL2 k)) ((hL2 j).integrable_mul ((hL2 k).condExp one_le_two))
   -- The key identity `∑_{j ∈ Λ} J(i, j) Γ_Λ(j, k) = δ_{ik}`.
-  have hJG : Potential.gaussianCovMatrix J Λ * G = 1 := by
+  have hJG : Potential.gaussianCouplingMatrix J Λ * G = 1 := by
     ext i k
     set T : Finset S := Λ ∪ insert (i : S) (N i) with hT_def
     have hΛT : Λ ⊆ T := Finset.subset_union_left
@@ -1135,10 +1236,10 @@ theorem posDef_gaussianCovMatrix_condCoupling [DecidableEq S]
       rw [Finset.mem_insert, not_or] at hj
       exact condCoupling_eq_zero_of_notMem hμ (hMarkov i) hj.1 hj.2
     -- Rewrite the matrix product as one integral.
-    have hprod : (Potential.gaussianCovMatrix J Λ * G) i k =
+    have hprod : (Potential.gaussianCouplingMatrix J Λ * G) i k =
         ∫ ω, (∑ j ∈ T, J i j * ω j) * R k ω ∂μ := by
       rw [Matrix.mul_apply]
-      simp only [Potential.gaussianCovMatrix_apply, hG_def]
+      simp only [Potential.gaussianCouplingMatrix_apply, hG_def]
       rw [Finset.sum_coe_sort Λ (fun j ↦ J i j * ∫ ω, ω j * R k ω ∂μ)]
       rw [Finset.sum_subset hΛT fun j _ hj ↦ by rw [hoff j hj k, mul_zero]]
       symm
@@ -1224,7 +1325,7 @@ theorem georgii_13_7 [DecidableEq S] (hΓ : ∀ j, 0 < condCovariance μ j j) (N
         (condExternalField μ i + ∑' j, condCoupling μ i j * ω j) := by
   refine ⟨fun i j hji hjN ↦ condCoupling_eq_zero_of_notMem hμ (hMarkov i) hji hjN, ?_, fun i ↦ ?_⟩
   · exact Matrix.posDef_iff_forall_finset_submatrix.2 fun Λ ↦
-      posDef_gaussianCovMatrix_condCoupling hμ hΓ N hN hMarkov Λ
+      posDef_gaussianCouplingMatrix_condCoupling hμ hΓ N hN hMarkov Λ
   · filter_upwards [sub_condExpOutside_ae_eq_condCoupling hμ (hN i) hΓ (hMarkov i)] with ω hω
     rw [hω]
     congr 2

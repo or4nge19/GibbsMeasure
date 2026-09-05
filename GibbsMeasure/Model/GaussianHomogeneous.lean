@@ -185,7 +185,7 @@ section Symmetry
 variable [Countable S] [LinearOrder S] {J' : S → ℝ}
   (hSymm : ∀ i j, homogeneousCoupling J' i j = homogeneousCoupling J' j i)
   (hFin : ∀ i, {j : S | homogeneousCoupling J' i j ≠ 0}.Finite)
-  (hPD : ∀ Λ : Finset S, (gaussianCovMatrix (homogeneousCoupling J') Λ).PosDef)
+  (hPD : ∀ Λ : Finset S, (gaussianCouplingMatrix (homogeneousCoupling J') Λ).PosDef)
 
 include hSymm hFin hPD in
 /-- **The continuous symmetry of a homogeneous Gaussian specification with `Ĵ(1) = 0`.** For every
@@ -220,7 +220,7 @@ include hSymm hFin hPD in
 theorem nonempty_G_homogeneousCoupling_of_bddAbove
     (hJ' : Summable fun k : S ↦ |J' k|) (hne : (∑' k : S, J' k) ≠ 0)
     (h27 : ∀ i : S, BddAbove (Set.range fun Λ : Finset S ↦
-      MeasureTheory.GibbsMeasure.invGaussianCovEntry (homogeneousCoupling J') Λ i i))
+      MeasureTheory.GibbsMeasure.gaussianCovEntry (homogeneousCoupling J') Λ i i))
     (h' : ℝ) :
     (MeasureTheory.GibbsMeasure.G (gaussianSpecification (homogeneousCoupling J')
       (fun _ ↦ h') hSymm hFin hPD 1 one_pos)).Nonempty :=

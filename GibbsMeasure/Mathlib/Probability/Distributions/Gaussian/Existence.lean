@@ -8,6 +8,7 @@ module
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.KolmogorovExtension
 public import Mathlib.Probability.Distributions.Gaussian.IsGaussianProcess.Basic
 public import Mathlib.Probability.Distributions.Gaussian.Multivariate
+public import Mathlib.Probability.BrownianMotion.GaussianProjectiveFamily
 
 import Mathlib.Probability.Distributions.Gaussian.Fernique
 
@@ -49,6 +50,20 @@ covered.
   covariance `C` *is* `gaussianField C hC`.
 * `ProbabilityTheory.exists_isGaussianProcess_covariance_eq` and
   `ProbabilityTheory.existsUnique_isGaussianProcess_covariance_eq`: Georgii's Proposition (13.A7).
+
+## Relation to `ProbabilityTheory.BrownianReal`
+
+Mathlib's `Mathlib/Probability/BrownianMotion/GaussianProjectiveFamily.lean` builds the
+finite-dimensional distributions of real Brownian motion by exactly this construction, at the
+single covariance kernel `C s t = min s t` on `ℝ≥0`. The family here subsumes it: `covMatrix`
+and `gaussianProjectiveFamily` specialise to `BrownianReal.covMatrix` and
+`BrownianReal.projectiveFamily` definitionally
+(`ProbabilityTheory.BrownianReal.covMatrix_eq_covMatrix`,
+`ProbabilityTheory.BrownianReal.projectiveFamily_eq_gaussianProjectiveFamily`), and, since
+`Mathlib` has no Kolmogorov extension theorem yet, `gaussianField` at that kernel supplies the
+measure on `ℝ≥0 → ℝ` that `BrownianReal.projectiveFamily` was built to be extended to
+(`ProbabilityTheory.BrownianReal.isProjectiveLimit_gaussianField`). Only the covariance kernel is
+special there; nothing else in that file is.
 
 ## Tags
 
@@ -342,5 +357,44 @@ theorem existsUnique_isGaussianProcess_covariance_eq (C : ι → ι → ℝ)
   exact eq_gaussianField hC hν hmean hcov
 
 end Existence
+
+section Brownian
+
+open scoped NNReal
+
+namespace BrownianReal
+
+/-- Mathlib's Brownian covariance matrix is the submatrix of the covariance kernel
+`C s t = min s t`. -/
+lemma covMatrix_eq_covMatrix (I : Finset ℝ≥0) :
+    covMatrix I
+      = ProbabilityTheory.covMatrix (fun s t : ℝ≥0 ↦ min (s : ℝ) (t : ℝ)) I := rfl
+
+/-- Mathlib's finite-dimensional distributions of real Brownian motion are the centred Gaussian
+marginals of the covariance kernel `C s t = min s t`. -/
+lemma projectiveFamily_eq_gaussianProjectiveFamily (I : Finset ℝ≥0) :
+    projectiveFamily I
+      = gaussianProjectiveFamily (fun s t : ℝ≥0 ↦ min (s : ℝ) (t : ℝ)) I := rfl
+
+/-- Every finite submatrix of the Brownian covariance kernel `C s t = min s t` is positive
+semidefinite, so `gaussianField` applies to it. -/
+lemma posSemidef_covMatrix_min (I : Finset ℝ≥0) :
+    (ProbabilityTheory.covMatrix (fun s t : ℝ≥0 ↦ min (s : ℝ) (t : ℝ)) I).PosSemidef :=
+  posSemidef_covMatrix I
+
+/-- **The law of real Brownian motion as a Gaussian field.** `gaussianField` at the covariance
+kernel `C s t = min s t` is a measure on `ℝ≥0 → ℝ` whose finite-dimensional marginals are
+`BrownianReal.projectiveFamily`; it is the measure that file was written to be extended to, and
+it is unique with this property by `MeasureTheory.IsProjectiveLimit.unique`. No path regularity
+is asserted. -/
+theorem isProjectiveLimit_gaussianField :
+    MeasureTheory.IsProjectiveLimit
+      (gaussianField (fun s t : ℝ≥0 ↦ min (s : ℝ) (t : ℝ)) posSemidef_covMatrix_min)
+      projectiveFamily :=
+  ProbabilityTheory.isProjectiveLimit_gaussianField posSemidef_covMatrix_min
+
+end BrownianReal
+
+end Brownian
 
 end ProbabilityTheory

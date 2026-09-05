@@ -42,7 +42,8 @@ and the spin at `i` is translated by `m_i` — defined in general in
   `γ^{J,h+h'}_Λ(·|τ^m ω) = τ^m(γ^{J,h'}_Λ(·|ω))` for all `Λ` and `ω`. Both sides are Gaussian with
   the same covariance `𝒥_Λ⁻¹` (Proposition (13.13)); the means differ by exactly `m|_Λ`, which is
   the content of `Potential.gaussianMean_add_eq_add` and, underneath it,
-  `Potential.gaussianCovMatrix_mulVec_add_gaussianBoundaryField`: for `m ∈ M_{J,h}` the equation
+  `Potential.gaussianCouplingMatrix_mulVec_add_gaussianBoundaryField`: for `m ∈ M_{J,h}` the
+  equation
   `h_i + ∑_{j ∈ S} J(i,j) m_j = 0` of (13.21) splits at `Λ` into `𝒥_Λ m|_Λ + J_{Λ,Λᶜ} m = -h|_Λ`.
 * **Georgii Remark (13.23)(b)**,
   `Potential.gaussianSpecification_G_eq_image_of_mem_gaussianMeanSet`: for `m ∈ M_{J,h}`,
@@ -93,11 +94,12 @@ and the spin at `i` is translated by `m_i` — defined in general in
   `MeasureTheory.GibbsMeasure.nonempty_G_gaussianSpecification_of_bddAbove`: for `J` symmetric of
   finite range with every `𝒥_Λ` positive definite, `M_{J,h} ≠ ∅` together with Georgii's condition
   (13.27), `sup_Λ 𝒥_Λ⁻¹(i,i) < ∞`, implies `𝒢(γ^{J,h}) ≠ ∅`. The chain is Georgii's:
-  `MeasureTheory.GibbsMeasure.dotProduct_mulVec_inv_gaussianCovMatrix_mono` (his monotonicity
-  display), `inv_gaussianCovMatrix_diag_mono` and `inv_gaussianCovMatrix_pair_mono` (his two
-  monotone functions of `Λ`), `two_mul_inv_gaussianCovMatrix_le` (his Cauchy–Schwarz step),
-  `exists_tendsto_invGaussianCovEntry` (the limits (13.25) exist),
-  `posSemidef_covMatrix_of_tendsto` and `isInverse_of_tendsto_invGaussianCovEntry` (the limit `C`
+  `MeasureTheory.GibbsMeasure.dotProduct_mulVec_inv_gaussianCouplingMatrix_mono` (his monotonicity
+  display), `inv_gaussianCouplingMatrix_diag_mono` and `inv_gaussianCouplingMatrix_pair_mono`
+  (his two monotone functions of `Λ`), `two_mul_inv_gaussianCouplingMatrix_le` (his
+  Cauchy–Schwarz step),
+  `exists_tendsto_gaussianCovEntry` (the limits (13.25) exist),
+  `posSemidef_covMatrix_of_tendsto` and `isInverse_of_tendsto_gaussianCovEntry` (the limit `C`
   is nonnegative definite and inverts `J`), then the item below.
 * **Georgii Theorem (13.26), the existence half, granted the limit (13.25)**,
   `MeasureTheory.GibbsMeasure.nonempty_G_gaussianSpecification_of_posSemidef_of_isInverse`: if
@@ -143,6 +145,23 @@ and the spin at `i` is translated by `m_i` — defined in general in
   positive definite matrix, and the resulting positive semidefinite inequality
   `(A_{II})⁻¹ ≤ (A⁻¹)_{II}` for a principal submatrix — Georgii's monotonicity display in the
   proof of Theorem (13.26).
+* `Matrix.posDef_of_sum_row_lt_diag` (same file): a real symmetric matrix with a strictly
+  dominant diagonal is positive definite. Mathlib has Gershgorin's circle theorem, hence
+  *nonsingularity* under this hypothesis (`det_ne_zero_of_sum_row_lt_diag`), but not positive
+  definiteness. It is what discharges the hypothesis `∀ Λ, (𝒥_Λ).PosDef` in the worked example
+  below.
+
+## A worked example
+
+Every theorem above assumes `∀ Λ, (𝒥_Λ).PosDef`. `posDef_gaussianCouplingMatrix_of_sum_lt_diag`
+discharges it for the whole class Georgii's Theorem (13.31) is about — `J` of finite range with a
+strictly dominant diagonal, `∑_{j ≠ i} |J(i,j)| < J(i,i)` — and
+`MeasureTheory.GibbsMeasure.NearestNeighbour` instantiates that class on `S = ℤ` at
+`J(i,i) = 2`, `J(i,j) = -1/2` for `|i - j| = 1`, `0` otherwise, so that Theorem (13.22)
+(`NearestNeighbour.isGibbsMeasure_iff`) is witnessed on a genuinely interacting coupling and not
+only on a diagonal one. Note this is *not* Georgii's Example (13.29) at `d = 1`, which is the
+critical coupling `J(i,i) = β`, `J(i,j) = -β/2`, with `Ĵ(1) = 0` and (by Pólya) `𝒢 = ∅`; the
+example here carries a mass term, and Georgii's (13.31) constant is `c = 1/2 < 1`.
 -/
 
 @[expose] public section
@@ -173,10 +192,10 @@ lemma gaussianBoundaryField_sub (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite) (Λ
 /-- **The defining property of `M_{J,h}` (13.21), split at `Λ`.** For `m ∈ M_{J,h}` and `J` of
 finite row support, `∑_{j ∈ S} J(i,j) m_j = 0 - h_i` decomposes as the inside-`Λ` matrix-vector
 product `𝒥_Λ m|_Λ` plus the boundary field `(J_{Λ,Λᶜ} m)_i`. -/
-lemma gaussianCovMatrix_mulVec_add_gaussianBoundaryField
+lemma gaussianCouplingMatrix_mulVec_add_gaussianBoundaryField
     (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite) {h m : S → ℝ} (hm : m ∈ gaussianMeanSet J h)
     (Λ : Finset S) (i : Λ) :
-    (gaussianCovMatrix J Λ *ᵥ fun k : Λ ↦ m k.1) i + gaussianBoundaryField J hFin Λ m i.1
+    (gaussianCouplingMatrix J Λ *ᵥ fun k : Λ ↦ m k.1) i + gaussianBoundaryField J hFin Λ m i.1
       = -h i.1 := by
   classical
   set T : Finset S := (hFin i.1).toFinset with hT
@@ -186,8 +205,8 @@ lemma gaussianCovMatrix_mulVec_add_gaussianBoundaryField
     exact hj (by rw [hT, Set.Finite.mem_toFinset]; exact hne)
   have hsum : ∑' j, J i.1 j * m j = ∑ j ∈ T, J i.1 j * m j :=
     tsum_eq_sum fun j hj ↦ by rw [hmemT j hj, zero_mul]
-  have hmul : (gaussianCovMatrix J Λ *ᵥ fun k : Λ ↦ m k.1) i = ∑ k ∈ Λ, J i.1 k * m k := by
-    change ∑ k : Λ, gaussianCovMatrix J Λ i k * m k.1 = _
+  have hmul : (gaussianCouplingMatrix J Λ *ᵥ fun k : Λ ↦ m k.1) i = ∑ k ∈ Λ, J i.1 k * m k := by
+    change ∑ k : Λ, gaussianCouplingMatrix J Λ i k * m k.1 = _
     rw [← Finset.sum_coe_sort Λ fun k ↦ J i.1 k * m k]
     rfl
   have h1 : ∑ k ∈ Λ, J i.1 k * m k = ∑ k ∈ T ∩ Λ, J i.1 k * m k := by
@@ -205,18 +224,18 @@ lemma gaussianCovMatrix_mulVec_add_gaussianBoundaryField
 `m ∈ M_{J,h}`. This is the computation behind Georgii Remark (13.23)(a): the two Gaussian fields
 have the same covariance `𝒥_Λ⁻¹` by Proposition (13.13), and their means differ by `m|_Λ`. -/
 lemma gaussianMean_add_eq_add (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite)
-    (hPD : ∀ Λ : Finset S, (gaussianCovMatrix J Λ).PosDef) {h m : S → ℝ}
+    (hPD : ∀ Λ : Finset S, (gaussianCouplingMatrix J Λ).PosDef) {h m : S → ℝ}
     (hm : m ∈ gaussianMeanSet J h) (h' : S → ℝ) (Λ : Finset S) (ω : S → ℝ) :
     gaussianMean J (h + h') hFin Λ ω
       = gaussianMean J h' hFin Λ (ω - m) + fun k : Λ ↦ m k.1 := by
   classical
-  set A : Matrix Λ Λ ℝ := gaussianCovMatrix J Λ with hA
+  set A : Matrix Λ Λ ℝ := gaussianCouplingMatrix J Λ with hA
   set mv : Λ → ℝ := fun k : Λ ↦ m k.1 with hmv
   have hdet : A.det ≠ 0 := (hPD Λ).det_pos.ne'
   have hinv : A⁻¹ * A = 1 := Matrix.nonsing_inv_mul _ hdet.isUnit
   have key : (fun i : Λ ↦ h i.1 + gaussianBoundaryField J hFin Λ m i.1) = -(A *ᵥ mv) := by
     funext i
-    have := gaussianCovMatrix_mulVec_add_gaussianBoundaryField J hFin hm Λ i
+    have := gaussianCouplingMatrix_mulVec_add_gaussianBoundaryField J hFin hm Λ i
     simp only [Pi.neg_apply]
     linarith
   have hsplit : (fun i : Λ ↦ (h + h') i.1 + gaussianBoundaryField J hFin Λ ω i.1)
@@ -242,14 +261,14 @@ explicit expression for these mean values". Stated for `J` of finite row support
 `Ω_J = Ω` and Georgii's restriction `ω ∈ Ω_J` is vacuous. -/
 theorem gaussianSpecification_map_spinTranslation [Countable S]
     (hSymm : ∀ i j, J i j = J j i) (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite)
-    (hPD : ∀ Λ : Finset S, (gaussianCovMatrix J Λ).PosDef) (β : ℝ) (hβ : 0 < β)
+    (hPD : ∀ Λ : Finset S, (gaussianCouplingMatrix J Λ).PosDef) (β : ℝ) (hβ : 0 < β)
     {h m : S → ℝ} (hm : m ∈ gaussianMeanSet J h) (h' : S → ℝ) :
     (gaussianSpecification J h' hSymm hFin hPD β hβ).map
         (MeasureTheory.GibbsMeasure.spinTranslation m)
       = gaussianSpecification J (h + h') hSymm hFin hPD β hβ := by
   classical
   refine Specification.ext fun Λ ↦ Kernel.ext fun ω ↦ ?_
-  set A : Matrix Λ Λ ℝ := β • gaussianCovMatrix J Λ with hAdef
+  set A : Matrix Λ Λ ℝ := β • gaussianCouplingMatrix J Λ with hAdef
   set M : Λ → ℝ := gaussianMean J h' hFin Λ (ω - m) with hMdef
   set mv : Λ → ℝ := fun k : Λ ↦ m k.1 with hmvdef
   have hΛ : Λ.map (MeasureTheory.GibbsMeasure.spinTranslation m).sites.symm.toEmbedding = Λ := by
@@ -285,7 +304,7 @@ lemma neg_mem_gaussianMeanSet {h m : S → ℝ} (hm : m ∈ gaussianMeanSet J h)
 symmetry of `γ^{J,h}`, for every external field `h`: this is (13.23)(a) with `h := 0`. -/
 theorem isInvariant_spinTranslation_gaussianSpecification [Countable S]
     (hSymm : ∀ i j, J i j = J j i) (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite)
-    (hPD : ∀ Λ : Finset S, (gaussianCovMatrix J Λ).PosDef) (β : ℝ) (hβ : 0 < β) (h : S → ℝ)
+    (hPD : ∀ Λ : Finset S, (gaussianCouplingMatrix J Λ).PosDef) (β : ℝ) (hβ : 0 < β) (h : S → ℝ)
     {m : S → ℝ} (hm : m ∈ gaussianMeanSet J 0) :
     Specification.IsInvariant (MeasureTheory.GibbsMeasure.spinTranslation m)
       (gaussianSpecification J h hSymm hFin hPD β hβ) := by
@@ -296,7 +315,7 @@ theorem isInvariant_spinTranslation_gaussianSpecification [Countable S]
 `m ∈ M_{J,0}`. -/
 theorem map_add_isGibbsMeasure_of_mem_gaussianMeanSubmodule [Countable S]
     (hSymm : ∀ i j, J i j = J j i) (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite)
-    (hPD : ∀ Λ : Finset S, (gaussianCovMatrix J Λ).PosDef) (β : ℝ) (hβ : 0 < β) (h : S → ℝ)
+    (hPD : ∀ Λ : Finset S, (gaussianCouplingMatrix J Λ).PosDef) (β : ℝ) (hβ : 0 < β) (h : S → ℝ)
     {m : S → ℝ} (hm : m ∈ gaussianMeanSet J 0) {μ : Measure (S → ℝ)} [IsProbabilityMeasure μ]
     (hμ : (gaussianSpecification J h hSymm hFin hPD β hβ).IsGibbsMeasure μ) :
     (gaussianSpecification J h hSymm hFin hPD β hβ).IsGibbsMeasure (μ.map fun x ↦ x + m) := by
@@ -308,7 +327,7 @@ theorem map_add_isGibbsMeasure_of_mem_gaussianMeanSubmodule [Countable S]
 `𝒢(γ^{J,h}) = {τ^m(μ) : μ ∈ 𝒢(γ^{J,0})}`. -/
 theorem gaussianSpecification_G_eq_image_of_mem_gaussianMeanSet [Countable S]
     (hSymm : ∀ i j, J i j = J j i) (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite)
-    (hPD : ∀ Λ : Finset S, (gaussianCovMatrix J Λ).PosDef) (β : ℝ) (hβ : 0 < β)
+    (hPD : ∀ Λ : Finset S, (gaussianCouplingMatrix J Λ).PosDef) (β : ℝ) (hβ : 0 < β)
     {h m : S → ℝ} (hm : m ∈ gaussianMeanSet J h) :
     MeasureTheory.GibbsMeasure.G (gaussianSpecification J h hSymm hFin hPD β hβ)
       = (fun μ : Measure (S → ℝ) ↦ μ.map fun x ↦ x + m) ''
@@ -656,7 +675,7 @@ them, hence independent of `𝒯_{\{i\}}` (`indep_comap_gaussianRowForm_cylinder
 in the form `condExp_indicator_ae_eq_gaussianSpecification_singleton` — and Theorem (1.33) —
 in the form `Specification.isGibbsMeasure_of_forall_singleton_condExp_ae_eq` — conclude. -/
 theorem georgii_13_22_of_finiteRowSupport [LinearOrder S] (hSymm : ∀ i j, J i j = J j i)
-    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef)
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef)
     (hm : (fun j ↦ ∫ ω, ω j ∂μ) ∈ Potential.gaussianMeanSet J h) :
     (Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos).IsGibbsMeasure μ := by
   classical
@@ -704,7 +723,7 @@ Georgii: "`μ_C` satisfies condition (b) of Theorem (13.22) with `h = 0`. Thus
 `m ∈ M_{J,h}`." -/
 theorem isGibbsMeasure_map_add_of_centered_of_isInverse [LinearOrder S]
     (hSymm : ∀ i j, J i j = J j i)
-    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef)
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef)
     (hcentred : ∀ j, ∫ ω, ω j ∂μ = 0) {m : S → ℝ} (hm : m ∈ Potential.gaussianMeanSet J h) :
     (Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos).IsGibbsMeasure
       (μ.map fun x ↦ x + m) := by
@@ -731,7 +750,7 @@ theorem isGibbsMeasure_map_add_of_centered_of_isInverse [LinearOrder S]
 (13.26) and (13.31), granted the centred Gauss field `μ_C` of (13.A7). -/
 theorem nonempty_G_gaussianSpecification_of_centered_of_isInverse [LinearOrder S]
     (hSymm : ∀ i j, J i j = J j i)
-    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef)
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef)
     (hcentred : ∀ j, ∫ ω, ω j ∂μ = 0) {m : S → ℝ} (hm : m ∈ Potential.gaussianMeanSet J h) :
     (MeasureTheory.GibbsMeasure.G
       (Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos)).Nonempty := by
@@ -764,7 +783,7 @@ monotonicity argument `∑_{i,j ∈ Λ} 𝒥_Λ⁻¹(i,j) t_i t_j ≤ ∑_{i,j �
 `Λ ⊆ Δ`, which is a statement about the specification `γ^{J,h}` and not about Gauss fields. -/
 theorem nonempty_G_gaussianSpecification_of_posSemidef_of_isInverse
     (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite) (hSymm : ∀ i j, J i j = J j i)
-    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef)
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef)
     (C : S → S → ℝ) (hCpsd : ∀ I : Finset S, (ProbabilityTheory.covMatrix C I).PosSemidef)
     (hCinv : ∀ i k, ∑' j, J i j * C j k = if i = k then 1 else 0)
     {m : S → ℝ} (hm : m ∈ Potential.gaussianMeanSet J h) :
@@ -792,16 +811,16 @@ section Theorem13_22Converse
 variable {S : Type*} [Countable S] [LinearOrder S] {μ : Measure (S → ℝ)}
   {J : S → S → ℝ} {h : S → ℝ}
   (hSymm : ∀ i j, J i j = J j i) (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite)
-  (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef)
+  (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef)
 
 omit [Countable S] in
 /-- On the one-point volume `Λ = {i}` the coupling matrix `𝒥_{\{i\}}` is the `1 × 1` matrix
 `J(i,i)`, so `𝒥_{\{i\}}⁻¹ = J(i,i)⁻¹`. This is the variance of `γ^{J,h}_{\{i\}}(·|ω)` in
 Proposition (13.13). -/
-lemma inv_gaussianCovMatrix_singleton_apply (J : S → S → ℝ) (i : S) :
-    (Potential.gaussianCovMatrix J {i})⁻¹ ⟨i, Finset.mem_singleton_self i⟩
+lemma inv_gaussianCouplingMatrix_singleton_apply (J : S → S → ℝ) (i : S) :
+    (Potential.gaussianCouplingMatrix J {i})⁻¹ ⟨i, Finset.mem_singleton_self i⟩
         ⟨i, Finset.mem_singleton_self i⟩ = (J i i)⁻¹ := by
-  have hinv : (Potential.gaussianCovMatrix J {i})⁻¹ = (J i i)⁻¹ • (1 : Matrix _ _ ℝ) := by
+  have hinv : (Potential.gaussianCouplingMatrix J {i})⁻¹ = (J i i)⁻¹ • (1 : Matrix _ _ ℝ) := by
     rw [Matrix.inv_def, Matrix.adjugate_subsingleton, Matrix.det_unique, Ring.inverse_eq_inv']
     rfl
   rw [hinv]
@@ -834,7 +853,8 @@ lemma integral_eval_sq_gaussianSpecification_singleton (i : S) (ω : S → ℝ) 
   simp only [juxt_apply_of_mem (Finset.mem_coe.2 (Finset.mem_singleton_self i))]
   refine Eq.trans (integral_eval_sq_multivariateGaussianPi (ι := ({i} : Finset S)) (hPD {i})
     (Potential.gaussianMean J h hFin {i} ω) ⟨i, Finset.mem_singleton_self i⟩) ?_
-  rw [inv_gaussianCovMatrix_singleton_apply J i, gaussianCondMean_eq_gaussianMean h hFin hJii.ne']
+  rw [inv_gaussianCouplingMatrix_singleton_apply J i,
+    gaussianCondMean_eq_gaussianMean h hFin hJii.ne']
   ring
 
 variable (hμ : ProbabilityTheory.IsGaussianProcess (fun i (ω : S → ℝ) ↦ ω i) μ)
@@ -1221,18 +1241,18 @@ form `t ⬝ᵥ 𝒥_Λ⁻¹ *ᵥ t ≤ t' ⬝ᵥ 𝒥_Δ⁻¹ *ᵥ t'` for `Λ �
 Georgii derives it from Proposition (13.13) and Jensen's inequality; the underlying fact is the
 positive semidefinite inequality `(A_{ΛΛ})⁻¹ ≤ (A⁻¹)_{ΛΛ}`,
 `Matrix.PosDef.dotProduct_mulVec_inv_submatrix_le`. -/
-theorem dotProduct_mulVec_inv_gaussianCovMatrix_mono
-    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) {Λ Δ : Finset S}
+theorem dotProduct_mulVec_inv_gaussianCouplingMatrix_mono
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef) {Λ Δ : Finset S}
     (hΛΔ : Λ ⊆ Δ) (t : Λ → ℝ) (t' : Δ → ℝ) (ht : ∀ a : Λ, t' ⟨a.1, hΛΔ a.2⟩ = t a) :
-    t ⬝ᵥ (Potential.gaussianCovMatrix J Λ)⁻¹ *ᵥ t
-      ≤ t' ⬝ᵥ (Potential.gaussianCovMatrix J Δ)⁻¹ *ᵥ t' := by
+    t ⬝ᵥ (Potential.gaussianCouplingMatrix J Λ)⁻¹ *ᵥ t
+      ≤ t' ⬝ᵥ (Potential.gaussianCouplingMatrix J Δ)⁻¹ *ᵥ t' := by
   have he : Function.Injective (fun a : Λ ↦ (⟨a.1, hΛΔ a.2⟩ : Δ)) :=
     fun a b hab ↦ Subtype.ext (by
       have hval := congrArg (fun z : Δ ↦ (z : S)) hab
       simpa using hval)
-  have hsub : (Potential.gaussianCovMatrix J Δ).submatrix
+  have hsub : (Potential.gaussianCouplingMatrix J Δ).submatrix
       (fun a : Λ ↦ (⟨a.1, hΛΔ a.2⟩ : Δ)) (fun a : Λ ↦ (⟨a.1, hΛΔ a.2⟩ : Δ))
-      = Potential.gaussianCovMatrix J Λ := rfl
+      = Potential.gaussianCouplingMatrix J Λ := rfl
   have := (hPD Δ).dotProduct_mulVec_inv_submatrix_le he t t' ht
   rwa [hsub] at this
 
@@ -1245,11 +1265,11 @@ private lemma single_dotProduct_mulVec_single {n : Type*} [Fintype n] [Decidable
 
 /-- **Georgii's first conclusion in the proof of (13.26)**: `𝒥_Λ⁻¹(i,i)` is an increasing function
 of `Λ`. -/
-theorem inv_gaussianCovMatrix_diag_mono
-    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) {Λ Δ : Finset S}
+theorem inv_gaussianCouplingMatrix_diag_mono
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef) {Λ Δ : Finset S}
     (hΛΔ : Λ ⊆ Δ) {i : S} (hi : i ∈ Λ) :
-    (Potential.gaussianCovMatrix J Λ)⁻¹ ⟨i, hi⟩ ⟨i, hi⟩
-      ≤ (Potential.gaussianCovMatrix J Δ)⁻¹ ⟨i, hΛΔ hi⟩ ⟨i, hΛΔ hi⟩ := by
+    (Potential.gaussianCouplingMatrix J Λ)⁻¹ ⟨i, hi⟩ ⟨i, hi⟩
+      ≤ (Potential.gaussianCouplingMatrix J Δ)⁻¹ ⟨i, hΛΔ hi⟩ ⟨i, hΛΔ hi⟩ := by
   classical
   have hext : ∀ a : Λ,
       ((Pi.single (⟨i, hΛΔ hi⟩ : Δ) (1 : ℝ) : Δ → ℝ)) (⟨a.1, hΛΔ a.2⟩ : Δ)
@@ -1261,7 +1281,7 @@ theorem inv_gaussianCovMatrix_diag_mono
     · have h1 : (⟨a.1, hΛΔ a.2⟩ : Δ) ≠ ⟨i, hΛΔ hi⟩ := fun hh ↦
         hai (Subtype.ext (show (a : S) = i from congrArg Subtype.val hh))
       rw [Pi.single_eq_of_ne h1, Pi.single_eq_of_ne hai]
-  have := dotProduct_mulVec_inv_gaussianCovMatrix_mono hPD hΛΔ
+  have := dotProduct_mulVec_inv_gaussianCouplingMatrix_mono hPD hΛΔ
     (Pi.single (⟨i, hi⟩ : Λ) (1 : ℝ)) (Pi.single (⟨i, hΛΔ hi⟩ : Δ) (1 : ℝ)) hext
   rwa [single_dotProduct_mulVec_single, single_dotProduct_mulVec_single] at this
 
@@ -1278,17 +1298,17 @@ private lemma add_single_dotProduct_mulVec_add_single {n : Type*} [Fintype n] [D
 
 /-- **Georgii's second conclusion in the proof of (13.26)**: for `i ≠ j`,
 `𝒥_Λ⁻¹(i,i) + 𝒥_Λ⁻¹(i,j) + 𝒥_Λ⁻¹(j,i) + 𝒥_Λ⁻¹(j,j)` is an increasing function of `Λ`. -/
-theorem inv_gaussianCovMatrix_pair_mono
-    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) {Λ Δ : Finset S}
+theorem inv_gaussianCouplingMatrix_pair_mono
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef) {Λ Δ : Finset S}
     (hΛΔ : Λ ⊆ Δ) {i j : S} (hi : i ∈ Λ) (hj : j ∈ Λ) :
-    (Potential.gaussianCovMatrix J Λ)⁻¹ ⟨i, hi⟩ ⟨i, hi⟩
-        + (Potential.gaussianCovMatrix J Λ)⁻¹ ⟨i, hi⟩ ⟨j, hj⟩
-        + ((Potential.gaussianCovMatrix J Λ)⁻¹ ⟨j, hj⟩ ⟨i, hi⟩
-          + (Potential.gaussianCovMatrix J Λ)⁻¹ ⟨j, hj⟩ ⟨j, hj⟩)
-      ≤ (Potential.gaussianCovMatrix J Δ)⁻¹ ⟨i, hΛΔ hi⟩ ⟨i, hΛΔ hi⟩
-        + (Potential.gaussianCovMatrix J Δ)⁻¹ ⟨i, hΛΔ hi⟩ ⟨j, hΛΔ hj⟩
-        + ((Potential.gaussianCovMatrix J Δ)⁻¹ ⟨j, hΛΔ hj⟩ ⟨i, hΛΔ hi⟩
-          + (Potential.gaussianCovMatrix J Δ)⁻¹ ⟨j, hΛΔ hj⟩ ⟨j, hΛΔ hj⟩) := by
+    (Potential.gaussianCouplingMatrix J Λ)⁻¹ ⟨i, hi⟩ ⟨i, hi⟩
+        + (Potential.gaussianCouplingMatrix J Λ)⁻¹ ⟨i, hi⟩ ⟨j, hj⟩
+        + ((Potential.gaussianCouplingMatrix J Λ)⁻¹ ⟨j, hj⟩ ⟨i, hi⟩
+          + (Potential.gaussianCouplingMatrix J Λ)⁻¹ ⟨j, hj⟩ ⟨j, hj⟩)
+      ≤ (Potential.gaussianCouplingMatrix J Δ)⁻¹ ⟨i, hΛΔ hi⟩ ⟨i, hΛΔ hi⟩
+        + (Potential.gaussianCouplingMatrix J Δ)⁻¹ ⟨i, hΛΔ hi⟩ ⟨j, hΛΔ hj⟩
+        + ((Potential.gaussianCouplingMatrix J Δ)⁻¹ ⟨j, hΛΔ hj⟩ ⟨i, hΛΔ hi⟩
+          + (Potential.gaussianCouplingMatrix J Δ)⁻¹ ⟨j, hΛΔ hj⟩ ⟨j, hΛΔ hj⟩) := by
   classical
   have hsingle : ∀ (k : S) (hk : k ∈ Λ) (a : Λ),
       ((Pi.single (⟨k, hΛΔ hk⟩ : Δ) (1 : ℝ) : Δ → ℝ)) (⟨a.1, hΛΔ a.2⟩ : Δ)
@@ -1309,273 +1329,276 @@ theorem inv_gaussianCovMatrix_pair_mono
         + (Pi.single (⟨j, hj⟩ : Λ) (1 : ℝ) : Λ → ℝ)) a := by
     intro a
     rw [Pi.add_apply, Pi.add_apply, hsingle i hi a, hsingle j hj a]
-  have := dotProduct_mulVec_inv_gaussianCovMatrix_mono hPD hΛΔ
+  have := dotProduct_mulVec_inv_gaussianCouplingMatrix_mono hPD hΛΔ
     ((Pi.single (⟨i, hi⟩ : Λ) (1 : ℝ) : Λ → ℝ) + (Pi.single (⟨j, hj⟩ : Λ) (1 : ℝ) : Λ → ℝ))
     ((Pi.single (⟨i, hΛΔ hi⟩ : Δ) (1 : ℝ) : Δ → ℝ)
       + (Pi.single (⟨j, hΛΔ hj⟩ : Δ) (1 : ℝ) : Δ → ℝ)) hext
   rwa [add_single_dotProduct_mulVec_add_single, add_single_dotProduct_mulVec_add_single] at this
 
 /-- The inverse of `𝒥_Λ` is symmetric. -/
-theorem inv_gaussianCovMatrix_symm
-    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) (Λ : Finset S) (a b : Λ) :
-    (Potential.gaussianCovMatrix J Λ)⁻¹ a b = (Potential.gaussianCovMatrix J Λ)⁻¹ b a := by
+theorem inv_gaussianCouplingMatrix_symm
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef) (Λ : Finset S) (a b : Λ) :
+    (Potential.gaussianCouplingMatrix J Λ)⁻¹ a b
+      = (Potential.gaussianCouplingMatrix J Λ)⁻¹ b a := by
   have h := (hPD Λ).inv.transpose_eq
   exact congrFun (congrFun h b) a
 
 /-- The inverse of `𝒥_Λ` is positive semidefinite as a quadratic form. -/
-theorem dotProduct_mulVec_inv_gaussianCovMatrix_nonneg
-    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) (Λ : Finset S) (t : Λ → ℝ) :
-    0 ≤ t ⬝ᵥ (Potential.gaussianCovMatrix J Λ)⁻¹ *ᵥ t := by
+theorem dotProduct_mulVec_inv_gaussianCouplingMatrix_nonneg
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef) (Λ : Finset S)
+    (t : Λ → ℝ) :
+    0 ≤ t ⬝ᵥ (Potential.gaussianCouplingMatrix J Λ)⁻¹ *ᵥ t := by
   simpa using (hPD Λ).inv.posSemidef.dotProduct_mulVec_nonneg t
 
 /-- The diagonal of `𝒥_Λ⁻¹` is nonnegative. -/
-theorem inv_gaussianCovMatrix_diag_nonneg
-    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) (Λ : Finset S) (a : Λ) :
-    0 ≤ (Potential.gaussianCovMatrix J Λ)⁻¹ a a := by
+theorem inv_gaussianCouplingMatrix_diag_nonneg
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef) (Λ : Finset S) (a : Λ) :
+    0 ≤ (Potential.gaussianCouplingMatrix J Λ)⁻¹ a a := by
   classical
-  have := dotProduct_mulVec_inv_gaussianCovMatrix_nonneg hPD Λ (Pi.single a (1 : ℝ))
+  have := dotProduct_mulVec_inv_gaussianCouplingMatrix_nonneg hPD Λ (Pi.single a (1 : ℝ))
   rwa [single_dotProduct_mulVec_single] at this
 
 /-- The sum of the four entries of `𝒥_Λ⁻¹` at `(i, j)` is nonnegative. -/
-theorem inv_gaussianCovMatrix_pair_nonneg
-    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) (Λ : Finset S) (a b : Λ) :
-    0 ≤ (Potential.gaussianCovMatrix J Λ)⁻¹ a a + (Potential.gaussianCovMatrix J Λ)⁻¹ a b
-      + ((Potential.gaussianCovMatrix J Λ)⁻¹ b a
-        + (Potential.gaussianCovMatrix J Λ)⁻¹ b b) := by
+theorem inv_gaussianCouplingMatrix_pair_nonneg
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef) (Λ : Finset S) (a b : Λ) :
+    0 ≤ (Potential.gaussianCouplingMatrix J Λ)⁻¹ a a + (Potential.gaussianCouplingMatrix J Λ)⁻¹ a b
+      + ((Potential.gaussianCouplingMatrix J Λ)⁻¹ b a
+        + (Potential.gaussianCouplingMatrix J Λ)⁻¹ b b) := by
   classical
-  have := dotProduct_mulVec_inv_gaussianCovMatrix_nonneg hPD Λ
+  have := dotProduct_mulVec_inv_gaussianCouplingMatrix_nonneg hPD Λ
     (Pi.single a (1 : ℝ) + Pi.single b (1 : ℝ))
   rwa [add_single_dotProduct_mulVec_add_single] at this
 
 /-- **Georgii's Cauchy–Schwarz step in the proof of (13.26)**, in the form he only needs:
 `2 𝒥_Λ⁻¹(i,j) ≤ 𝒥_Λ⁻¹(i,i) + 𝒥_Λ⁻¹(j,j)`, from the positive semidefiniteness of `𝒥_Λ⁻¹` applied
 to `e_i - e_j`. -/
-theorem two_mul_inv_gaussianCovMatrix_le
-    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) (Λ : Finset S) (a b : Λ) :
-    2 * (Potential.gaussianCovMatrix J Λ)⁻¹ a b
-      ≤ (Potential.gaussianCovMatrix J Λ)⁻¹ a a + (Potential.gaussianCovMatrix J Λ)⁻¹ b b := by
+theorem two_mul_inv_gaussianCouplingMatrix_le
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef) (Λ : Finset S) (a b : Λ) :
+    2 * (Potential.gaussianCouplingMatrix J Λ)⁻¹ a b
+      ≤ (Potential.gaussianCouplingMatrix J Λ)⁻¹ a a
+        + (Potential.gaussianCouplingMatrix J Λ)⁻¹ b b := by
   classical
-  have hneg := dotProduct_mulVec_inv_gaussianCovMatrix_nonneg hPD Λ
+  have hneg := dotProduct_mulVec_inv_gaussianCouplingMatrix_nonneg hPD Λ
     (Pi.single a (1 : ℝ) + Pi.single b (-1 : ℝ))
   have hexp : (Pi.single a (1 : ℝ) + Pi.single b (-1 : ℝ)) ⬝ᵥ
-      (Potential.gaussianCovMatrix J Λ)⁻¹ *ᵥ (Pi.single a (1 : ℝ) + Pi.single b (-1 : ℝ))
-      = (Potential.gaussianCovMatrix J Λ)⁻¹ a a - (Potential.gaussianCovMatrix J Λ)⁻¹ a b
-        - ((Potential.gaussianCovMatrix J Λ)⁻¹ b a
-          - (Potential.gaussianCovMatrix J Λ)⁻¹ b b) := by
+      (Potential.gaussianCouplingMatrix J Λ)⁻¹ *ᵥ (Pi.single a (1 : ℝ) + Pi.single b (-1 : ℝ))
+      = (Potential.gaussianCouplingMatrix J Λ)⁻¹ a a - (Potential.gaussianCouplingMatrix J Λ)⁻¹ a b
+        - ((Potential.gaussianCouplingMatrix J Λ)⁻¹ b a
+          - (Potential.gaussianCouplingMatrix J Λ)⁻¹ b b) := by
     rw [Matrix.mulVec_add, add_dotProduct, dotProduct_add, dotProduct_add]
     simp [single_dotProduct, Matrix.mulVec_single]
     ring
   rw [hexp] at hneg
-  have hsym := inv_gaussianCovMatrix_symm hPD Λ a b
+  have hsym := inv_gaussianCouplingMatrix_symm hPD Λ a b
   linarith
 
 /-- **Georgii's `𝒥_Λ⁻¹(i,j)` of (13.25)**, extended by `0` when `i` or `j` lies outside `Λ`, so
 that it is a function of `Λ` on the whole net `Finset S` of finite volumes. Georgii's limits
 (13.25) are the limits of this function along `Filter.atTop`. -/
-noncomputable def invGaussianCovEntry (J : S → S → ℝ) (Λ : Finset S) (i j : S) : ℝ :=
-  if h : i ∈ Λ ∧ j ∈ Λ then (Potential.gaussianCovMatrix J Λ)⁻¹ ⟨i, h.1⟩ ⟨j, h.2⟩ else 0
+noncomputable def gaussianCovEntry (J : S → S → ℝ) (Λ : Finset S) (i j : S) : ℝ :=
+  if h : i ∈ Λ ∧ j ∈ Λ then (Potential.gaussianCouplingMatrix J Λ)⁻¹ ⟨i, h.1⟩ ⟨j, h.2⟩ else 0
 
-@[simp] lemma invGaussianCovEntry_of_mem {Λ : Finset S} {i j : S} (hi : i ∈ Λ) (hj : j ∈ Λ) :
-    invGaussianCovEntry J Λ i j = (Potential.gaussianCovMatrix J Λ)⁻¹ ⟨i, hi⟩ ⟨j, hj⟩ := by
-  simp only [invGaussianCovEntry]
+@[simp] lemma gaussianCovEntry_of_mem {Λ : Finset S} {i j : S} (hi : i ∈ Λ) (hj : j ∈ Λ) :
+    gaussianCovEntry J Λ i j = (Potential.gaussianCouplingMatrix J Λ)⁻¹ ⟨i, hi⟩ ⟨j, hj⟩ := by
+  simp only [gaussianCovEntry]
   split_ifs with hh
   · rfl
   · exact absurd ⟨hi, hj⟩ hh
 
-lemma invGaussianCovEntry_of_notMem_left {Λ : Finset S} {i j : S} (hi : i ∉ Λ) :
-    invGaussianCovEntry J Λ i j = 0 := by
-  simp only [invGaussianCovEntry]
+lemma gaussianCovEntry_of_notMem_left {Λ : Finset S} {i j : S} (hi : i ∉ Λ) :
+    gaussianCovEntry J Λ i j = 0 := by
+  simp only [gaussianCovEntry]
   split_ifs with hh
   · exact absurd hh.1 hi
   · rfl
 
-lemma invGaussianCovEntry_of_notMem_right {Λ : Finset S} {i j : S} (hj : j ∉ Λ) :
-    invGaussianCovEntry J Λ i j = 0 := by
-  simp only [invGaussianCovEntry]
+lemma gaussianCovEntry_of_notMem_right {Λ : Finset S} {i j : S} (hj : j ∉ Λ) :
+    gaussianCovEntry J Λ i j = 0 := by
+  simp only [gaussianCovEntry]
   split_ifs with hh
   · exact absurd hh.2 hj
   · rfl
 
-lemma invGaussianCovEntry_symm
-    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) (Λ : Finset S) (i j : S) :
-    invGaussianCovEntry J Λ i j = invGaussianCovEntry J Λ j i := by
+lemma gaussianCovEntry_symm
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef) (Λ : Finset S) (i j : S) :
+    gaussianCovEntry J Λ i j = gaussianCovEntry J Λ j i := by
   by_cases hi : i ∈ Λ
   · by_cases hj : j ∈ Λ
-    · rw [invGaussianCovEntry_of_mem hi hj, invGaussianCovEntry_of_mem hj hi,
-        inv_gaussianCovMatrix_symm hPD]
-    · rw [invGaussianCovEntry_of_notMem_right hj, invGaussianCovEntry_of_notMem_left hj]
-  · rw [invGaussianCovEntry_of_notMem_left hi, invGaussianCovEntry_of_notMem_right hi]
+    · rw [gaussianCovEntry_of_mem hi hj, gaussianCovEntry_of_mem hj hi,
+        inv_gaussianCouplingMatrix_symm hPD]
+    · rw [gaussianCovEntry_of_notMem_right hj, gaussianCovEntry_of_notMem_left hj]
+  · rw [gaussianCovEntry_of_notMem_left hi, gaussianCovEntry_of_notMem_right hi]
 
-lemma invGaussianCovEntry_diag_nonneg
-    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) (Λ : Finset S) (i : S) :
-    0 ≤ invGaussianCovEntry J Λ i i := by
+lemma gaussianCovEntry_diag_nonneg
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef) (Λ : Finset S) (i : S) :
+    0 ≤ gaussianCovEntry J Λ i i := by
   by_cases hi : i ∈ Λ
-  · rw [invGaussianCovEntry_of_mem hi hi]
-    exact inv_gaussianCovMatrix_diag_nonneg hPD Λ ⟨i, hi⟩
-  · rw [invGaussianCovEntry_of_notMem_left hi]
+  · rw [gaussianCovEntry_of_mem hi hi]
+    exact inv_gaussianCouplingMatrix_diag_nonneg hPD Λ ⟨i, hi⟩
+  · rw [gaussianCovEntry_of_notMem_left hi]
 
 /-- **Georgii's first conclusion in the proof of (13.26)**: `Λ ↦ 𝒥_Λ⁻¹(i,i)` is increasing. -/
-theorem monotone_invGaussianCovEntry_diag
-    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) (i : S) :
-    Monotone fun Λ : Finset S ↦ invGaussianCovEntry J Λ i i := by
+theorem monotone_gaussianCovEntry_diag
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef) (i : S) :
+    Monotone fun Λ : Finset S ↦ gaussianCovEntry J Λ i i := by
   intro Λ Δ hΛΔ
-  show invGaussianCovEntry J Λ i i ≤ invGaussianCovEntry J Δ i i
+  show gaussianCovEntry J Λ i i ≤ gaussianCovEntry J Δ i i
   by_cases hi : i ∈ Λ
-  · rw [invGaussianCovEntry_of_mem hi hi, invGaussianCovEntry_of_mem (hΛΔ hi) (hΛΔ hi)]
-    exact inv_gaussianCovMatrix_diag_mono hPD hΛΔ hi
-  · rw [invGaussianCovEntry_of_notMem_left hi]
-    exact invGaussianCovEntry_diag_nonneg hPD Δ i
+  · rw [gaussianCovEntry_of_mem hi hi, gaussianCovEntry_of_mem (hΛΔ hi) (hΛΔ hi)]
+    exact inv_gaussianCouplingMatrix_diag_mono hPD hΛΔ hi
+  · rw [gaussianCovEntry_of_notMem_left hi]
+    exact gaussianCovEntry_diag_nonneg hPD Δ i
 
 /-- The four-entry sum `𝒥_Λ⁻¹(i,i) + 𝒥_Λ⁻¹(i,j) + 𝒥_Λ⁻¹(j,i) + 𝒥_Λ⁻¹(j,j)` of Georgii's second
 conclusion, extended by `0` unless both `i` and `j` lie in `Λ`. -/
-noncomputable def invGaussianCovPair (J : S → S → ℝ) (Λ : Finset S) (i j : S) : ℝ :=
+noncomputable def gaussianCovPair (J : S → S → ℝ) (Λ : Finset S) (i j : S) : ℝ :=
   if i ∈ Λ ∧ j ∈ Λ then
-    invGaussianCovEntry J Λ i i + invGaussianCovEntry J Λ i j
-      + (invGaussianCovEntry J Λ j i + invGaussianCovEntry J Λ j j)
+    gaussianCovEntry J Λ i i + gaussianCovEntry J Λ i j
+      + (gaussianCovEntry J Λ j i + gaussianCovEntry J Λ j j)
   else 0
 
-lemma invGaussianCovPair_of_mem {Λ : Finset S} {i j : S} (hi : i ∈ Λ) (hj : j ∈ Λ) :
-    invGaussianCovPair J Λ i j = invGaussianCovEntry J Λ i i + invGaussianCovEntry J Λ i j
-      + (invGaussianCovEntry J Λ j i + invGaussianCovEntry J Λ j j) := by
-  simp only [invGaussianCovPair]
+lemma gaussianCovPair_of_mem {Λ : Finset S} {i j : S} (hi : i ∈ Λ) (hj : j ∈ Λ) :
+    gaussianCovPair J Λ i j = gaussianCovEntry J Λ i i + gaussianCovEntry J Λ i j
+      + (gaussianCovEntry J Λ j i + gaussianCovEntry J Λ j j) := by
+  simp only [gaussianCovPair]
   split_ifs with hh
   · rfl
   · exact absurd ⟨hi, hj⟩ hh
 
-lemma invGaussianCovPair_nonneg
-    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) (Λ : Finset S) (i j : S) :
-    0 ≤ invGaussianCovPair J Λ i j := by
-  rw [invGaussianCovPair]
+lemma gaussianCovPair_nonneg
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef) (Λ : Finset S) (i j : S) :
+    0 ≤ gaussianCovPair J Λ i j := by
+  rw [gaussianCovPair]
   split_ifs with hij
-  · rw [invGaussianCovEntry_of_mem hij.1 hij.1, invGaussianCovEntry_of_mem hij.1 hij.2,
-      invGaussianCovEntry_of_mem hij.2 hij.1, invGaussianCovEntry_of_mem hij.2 hij.2]
-    exact inv_gaussianCovMatrix_pair_nonneg hPD Λ ⟨i, hij.1⟩ ⟨j, hij.2⟩
+  · rw [gaussianCovEntry_of_mem hij.1 hij.1, gaussianCovEntry_of_mem hij.1 hij.2,
+      gaussianCovEntry_of_mem hij.2 hij.1, gaussianCovEntry_of_mem hij.2 hij.2]
+    exact inv_gaussianCouplingMatrix_pair_nonneg hPD Λ ⟨i, hij.1⟩ ⟨j, hij.2⟩
   · exact le_rfl
 
 /-- **Georgii's second conclusion in the proof of (13.26)**: the four-entry sum is increasing. -/
-theorem monotone_invGaussianCovPair
-    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) (i j : S) :
-    Monotone fun Λ : Finset S ↦ invGaussianCovPair J Λ i j := by
+theorem monotone_gaussianCovPair
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef) (i j : S) :
+    Monotone fun Λ : Finset S ↦ gaussianCovPair J Λ i j := by
   intro Λ Δ hΛΔ
-  show invGaussianCovPair J Λ i j ≤ invGaussianCovPair J Δ i j
+  show gaussianCovPair J Λ i j ≤ gaussianCovPair J Δ i j
   by_cases hij : i ∈ Λ ∧ j ∈ Λ
-  · rw [invGaussianCovPair_of_mem hij.1 hij.2,
-      invGaussianCovPair_of_mem (hΛΔ hij.1) (hΛΔ hij.2),
-      invGaussianCovEntry_of_mem hij.1 hij.1, invGaussianCovEntry_of_mem hij.1 hij.2,
-      invGaussianCovEntry_of_mem hij.2 hij.1, invGaussianCovEntry_of_mem hij.2 hij.2,
-      invGaussianCovEntry_of_mem (hΛΔ hij.1) (hΛΔ hij.1),
-      invGaussianCovEntry_of_mem (hΛΔ hij.1) (hΛΔ hij.2),
-      invGaussianCovEntry_of_mem (hΛΔ hij.2) (hΛΔ hij.1),
-      invGaussianCovEntry_of_mem (hΛΔ hij.2) (hΛΔ hij.2)]
-    exact inv_gaussianCovMatrix_pair_mono hPD hΛΔ hij.1 hij.2
-  · rw [show invGaussianCovPair J Λ i j = 0 from by simp [invGaussianCovPair, hij]]
-    exact invGaussianCovPair_nonneg hPD Δ i j
+  · rw [gaussianCovPair_of_mem hij.1 hij.2,
+      gaussianCovPair_of_mem (hΛΔ hij.1) (hΛΔ hij.2),
+      gaussianCovEntry_of_mem hij.1 hij.1, gaussianCovEntry_of_mem hij.1 hij.2,
+      gaussianCovEntry_of_mem hij.2 hij.1, gaussianCovEntry_of_mem hij.2 hij.2,
+      gaussianCovEntry_of_mem (hΛΔ hij.1) (hΛΔ hij.1),
+      gaussianCovEntry_of_mem (hΛΔ hij.1) (hΛΔ hij.2),
+      gaussianCovEntry_of_mem (hΛΔ hij.2) (hΛΔ hij.1),
+      gaussianCovEntry_of_mem (hΛΔ hij.2) (hΛΔ hij.2)]
+    exact inv_gaussianCouplingMatrix_pair_mono hPD hΛΔ hij.1 hij.2
+  · rw [show gaussianCovPair J Λ i j = 0 from by simp [gaussianCovPair, hij]]
+    exact gaussianCovPair_nonneg hPD Δ i j
 
 /-- **Georgii Theorem (13.26): condition (13.27) forces the limits (13.25) to exist.** If
 `sup_Λ 𝒥_Λ⁻¹(i,i) < ∞` for every `i` — here: the net `Λ ↦ 𝒥_Λ⁻¹(i,i)` is bounded above — then
 `C(i,j) = lim_Λ 𝒥_Λ⁻¹(i,j)` exists for all `i, j`.
 
-Georgii's proof: `Λ ↦ 𝒥_Λ⁻¹(i,i)` is increasing (`monotone_invGaussianCovEntry_diag`), hence
+Georgii's proof: `Λ ↦ 𝒥_Λ⁻¹(i,i)` is increasing (`monotone_gaussianCovEntry_diag`), hence
 convergent; `Λ ↦ 𝒥_Λ⁻¹(i,i) + 𝒥_Λ⁻¹(i,j) + 𝒥_Λ⁻¹(j,i) + 𝒥_Λ⁻¹(j,j)` is increasing
-(`monotone_invGaussianCovPair`) and bounded above by `2 (sup_Λ 𝒥_Λ⁻¹(i,i) + sup_Λ 𝒥_Λ⁻¹(j,j))`,
+(`monotone_gaussianCovPair`) and bounded above by `2 (sup_Λ 𝒥_Λ⁻¹(i,i) + sup_Λ 𝒥_Λ⁻¹(j,j))`,
 because `2 𝒥_Λ⁻¹(i,j) ≤ 𝒥_Λ⁻¹(i,i) + 𝒥_Λ⁻¹(j,j)` (Georgii's Cauchy–Schwarz step,
-`two_mul_inv_gaussianCovMatrix_le`); the off-diagonal limit is then the half-difference. -/
-theorem exists_tendsto_invGaussianCovEntry
-    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef)
-    (h27 : ∀ i : S, BddAbove (Set.range fun Λ : Finset S ↦ invGaussianCovEntry J Λ i i))
+`two_mul_inv_gaussianCouplingMatrix_le`); the off-diagonal limit is then the half-difference. -/
+theorem exists_tendsto_gaussianCovEntry
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef)
+    (h27 : ∀ i : S, BddAbove (Set.range fun Λ : Finset S ↦ gaussianCovEntry J Λ i i))
     (i j : S) :
-    ∃ c : ℝ, Filter.Tendsto (fun Λ : Finset S ↦ invGaussianCovEntry J Λ i j)
+    ∃ c : ℝ, Filter.Tendsto (fun Λ : Finset S ↦ gaussianCovEntry J Λ i j)
       Filter.atTop (nhds c) := by
   classical
   obtain ⟨Mi, hMi⟩ := h27 i
   obtain ⟨Mj, hMj⟩ := h27 j
-  have hMi' : ∀ Λ : Finset S, invGaussianCovEntry J Λ i i ≤ Mi :=
+  have hMi' : ∀ Λ : Finset S, gaussianCovEntry J Λ i i ≤ Mi :=
     fun Λ ↦ hMi ⟨Λ, rfl⟩
-  have hMj' : ∀ Λ : Finset S, invGaussianCovEntry J Λ j j ≤ Mj :=
+  have hMj' : ∀ Λ : Finset S, gaussianCovEntry J Λ j j ≤ Mj :=
     fun Λ ↦ hMj ⟨Λ, rfl⟩
-  have hMi0 : 0 ≤ Mi := le_trans (invGaussianCovEntry_diag_nonneg hPD ∅ i) (hMi' ∅)
-  have hMj0 : 0 ≤ Mj := le_trans (invGaussianCovEntry_diag_nonneg hPD ∅ j) (hMj' ∅)
-  have hci := tendsto_atTop_ciSup (monotone_invGaussianCovEntry_diag hPD i) (h27 i)
-  have hcj := tendsto_atTop_ciSup (monotone_invGaussianCovEntry_diag hPD j) (h27 j)
+  have hMi0 : 0 ≤ Mi := le_trans (gaussianCovEntry_diag_nonneg hPD ∅ i) (hMi' ∅)
+  have hMj0 : 0 ≤ Mj := le_trans (gaussianCovEntry_diag_nonneg hPD ∅ j) (hMj' ∅)
+  have hci := tendsto_atTop_ciSup (monotone_gaussianCovEntry_diag hPD i) (h27 i)
+  have hcj := tendsto_atTop_ciSup (monotone_gaussianCovEntry_diag hPD j) (h27 j)
   -- The four-entry sum is bounded above.
-  have hpairbdd : BddAbove (Set.range fun Λ : Finset S ↦ invGaussianCovPair J Λ i j) := by
+  have hpairbdd : BddAbove (Set.range fun Λ : Finset S ↦ gaussianCovPair J Λ i j) := by
     refine ⟨2 * (Mi + Mj), ?_⟩
     rintro _ ⟨Λ, rfl⟩
-    show invGaussianCovPair J Λ i j ≤ 2 * (Mi + Mj)
+    show gaussianCovPair J Λ i j ≤ 2 * (Mi + Mj)
     by_cases hij : i ∈ Λ ∧ j ∈ Λ
-    · rw [invGaussianCovPair_of_mem hij.1 hij.2]
-      have hb := two_mul_inv_gaussianCovMatrix_le hPD Λ ⟨i, hij.1⟩ ⟨j, hij.2⟩
-      have hsym := inv_gaussianCovMatrix_symm hPD Λ (⟨j, hij.2⟩ : Λ) ⟨i, hij.1⟩
+    · rw [gaussianCovPair_of_mem hij.1 hij.2]
+      have hb := two_mul_inv_gaussianCouplingMatrix_le hPD Λ ⟨i, hij.1⟩ ⟨j, hij.2⟩
+      have hsym := inv_gaussianCouplingMatrix_symm hPD Λ (⟨j, hij.2⟩ : Λ) ⟨i, hij.1⟩
       have ha := hMi' Λ
       have hd := hMj' Λ
-      rw [invGaussianCovEntry_of_mem hij.1 hij.1] at ha
-      rw [invGaussianCovEntry_of_mem hij.2 hij.2] at hd
-      rw [invGaussianCovEntry_of_mem hij.1 hij.1, invGaussianCovEntry_of_mem hij.1 hij.2,
-        invGaussianCovEntry_of_mem hij.2 hij.1, invGaussianCovEntry_of_mem hij.2 hij.2]
+      rw [gaussianCovEntry_of_mem hij.1 hij.1] at ha
+      rw [gaussianCovEntry_of_mem hij.2 hij.2] at hd
+      rw [gaussianCovEntry_of_mem hij.1 hij.1, gaussianCovEntry_of_mem hij.1 hij.2,
+        gaussianCovEntry_of_mem hij.2 hij.1, gaussianCovEntry_of_mem hij.2 hij.2]
       linarith
-    · rw [show invGaussianCovPair J Λ i j = 0 from by simp [invGaussianCovPair, hij]]
+    · rw [show gaussianCovPair J Λ i j = 0 from by simp [gaussianCovPair, hij]]
       linarith
-  have hcp := tendsto_atTop_ciSup (monotone_invGaussianCovPair hPD i j) hpairbdd
-  refine ⟨((⨆ Λ : Finset S, invGaussianCovPair J Λ i j)
-      - (⨆ Λ : Finset S, invGaussianCovEntry J Λ i i)
-      - ⨆ Λ : Finset S, invGaussianCovEntry J Λ j j) / 2, ?_⟩
+  have hcp := tendsto_atTop_ciSup (monotone_gaussianCovPair hPD i j) hpairbdd
+  refine ⟨((⨆ Λ : Finset S, gaussianCovPair J Λ i j)
+      - (⨆ Λ : Finset S, gaussianCovEntry J Λ i i)
+      - ⨆ Λ : Finset S, gaussianCovEntry J Λ j j) / 2, ?_⟩
   refine Filter.Tendsto.congr' ?_ (((hcp.sub hci).sub hcj).div_const 2)
   refine Filter.eventually_atTop.2 ⟨{i, j}, fun Λ hΛ ↦ ?_⟩
   have hi : i ∈ Λ := hΛ (by simp)
   have hj : j ∈ Λ := hΛ (by simp)
-  have hsym := inv_gaussianCovMatrix_symm hPD Λ (⟨j, hj⟩ : Λ) ⟨i, hi⟩
-  show (invGaussianCovPair J Λ i j - invGaussianCovEntry J Λ i i
-    - invGaussianCovEntry J Λ j j) / 2 = invGaussianCovEntry J Λ i j
-  rw [invGaussianCovPair_of_mem hi hj, invGaussianCovEntry_of_mem hi hi,
-    invGaussianCovEntry_of_mem hi hj, invGaussianCovEntry_of_mem hj hi,
-    invGaussianCovEntry_of_mem hj hj, hsym]
+  have hsym := inv_gaussianCouplingMatrix_symm hPD Λ (⟨j, hj⟩ : Λ) ⟨i, hi⟩
+  show (gaussianCovPair J Λ i j - gaussianCovEntry J Λ i i
+    - gaussianCovEntry J Λ j j) / 2 = gaussianCovEntry J Λ i j
+  rw [gaussianCovPair_of_mem hi hj, gaussianCovEntry_of_mem hi hi,
+    gaussianCovEntry_of_mem hi hj, gaussianCovEntry_of_mem hj hi,
+    gaussianCovEntry_of_mem hj hj, hsym]
   ring
 
 /-- For `I ⊆ Λ` the `I`-block of `𝒥_Λ⁻¹` is `ProbabilityTheory.covMatrix` of the extended entry
 function. -/
-lemma covMatrix_invGaussianCovEntry_eq_submatrix {I Λ : Finset S} (hIΛ : I ⊆ Λ) :
-    ProbabilityTheory.covMatrix (invGaussianCovEntry J Λ) I
-      = (Potential.gaussianCovMatrix J Λ)⁻¹.submatrix
+lemma covMatrix_gaussianCovEntry_eq_submatrix {I Λ : Finset S} (hIΛ : I ⊆ Λ) :
+    ProbabilityTheory.covMatrix (gaussianCovEntry J Λ) I
+      = (Potential.gaussianCouplingMatrix J Λ)⁻¹.submatrix
           (fun a : I ↦ (⟨a.1, hIΛ a.2⟩ : Λ)) (fun a : I ↦ (⟨a.1, hIΛ a.2⟩ : Λ)) := by
   funext a b
-  exact invGaussianCovEntry_of_mem (hIΛ a.2) (hIΛ b.2)
+  exact gaussianCovEntry_of_mem (hIΛ a.2) (hIΛ b.2)
 
 /-- For `I ⊆ Λ` the `I`-block of `𝒥_Λ⁻¹` is positive semidefinite. -/
-lemma posSemidef_covMatrix_invGaussianCovEntry
-    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) {I Λ : Finset S}
-    (hIΛ : I ⊆ Λ) : (ProbabilityTheory.covMatrix (invGaussianCovEntry J Λ) I).PosSemidef := by
-  rw [covMatrix_invGaussianCovEntry_eq_submatrix hIΛ]
+lemma posSemidef_covMatrix_gaussianCovEntry
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef) {I Λ : Finset S}
+    (hIΛ : I ⊆ Λ) : (ProbabilityTheory.covMatrix (gaussianCovEntry J Λ) I).PosSemidef := by
+  rw [covMatrix_gaussianCovEntry_eq_submatrix hIΛ]
   exact (hPD Λ).inv.posSemidef.submatrix _
 
 /-- **The limiting covariance function `C` of Georgii (13.25) is nonnegative definite.** -/
 theorem posSemidef_covMatrix_of_tendsto
-    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) {C : S → S → ℝ}
-    (hC : ∀ i j, Filter.Tendsto (fun Λ : Finset S ↦ invGaussianCovEntry J Λ i j)
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef) {C : S → S → ℝ}
+    (hC : ∀ i j, Filter.Tendsto (fun Λ : Finset S ↦ gaussianCovEntry J Λ i j)
       Filter.atTop (nhds (C i j))) (I : Finset S) :
     (ProbabilityTheory.covMatrix C I).PosSemidef := by
   have hsymm : ∀ i j : S, C i j = C j i := by
     intro i j
     refine tendsto_nhds_unique (hC i j) ?_
-    have : (fun Λ : Finset S ↦ invGaussianCovEntry J Λ j i)
-        = fun Λ : Finset S ↦ invGaussianCovEntry J Λ i j :=
-      funext fun Λ ↦ (invGaussianCovEntry_symm hPD Λ i j).symm
+    have : (fun Λ : Finset S ↦ gaussianCovEntry J Λ j i)
+        = fun Λ : Finset S ↦ gaussianCovEntry J Λ i j :=
+      funext fun Λ ↦ (gaussianCovEntry_symm hPD Λ i j).symm
     rw [← this]
     exact hC j i
   refine Matrix.posSemidef_iff_dotProduct_mulVec.2 ⟨?_, fun x ↦ ?_⟩
   · refine Matrix.IsHermitian.ext fun a b ↦ ?_
     simpa using hsymm b.1 a.1
   · have hlim : Filter.Tendsto
-        (fun Λ : Finset S ↦ x ⬝ᵥ (ProbabilityTheory.covMatrix (invGaussianCovEntry J Λ) I) *ᵥ x)
+        (fun Λ : Finset S ↦ x ⬝ᵥ (ProbabilityTheory.covMatrix (gaussianCovEntry J Λ) I) *ᵥ x)
         Filter.atTop (nhds (x ⬝ᵥ (ProbabilityTheory.covMatrix C I) *ᵥ x)) := by
       show Filter.Tendsto
-        (fun Λ : Finset S ↦ ∑ a : I, x a * ∑ b : I, invGaussianCovEntry J Λ a b * x b)
+        (fun Λ : Finset S ↦ ∑ a : I, x a * ∑ b : I, gaussianCovEntry J Λ a b * x b)
         Filter.atTop (nhds (∑ a : I, x a * ∑ b : I, C a b * x b))
       refine tendsto_finsetSum _ fun a _ ↦ Filter.Tendsto.const_mul _ ?_
       exact tendsto_finsetSum _ fun b _ ↦ (hC a.1 b.1).mul_const _
     have hev : ∀ᶠ Λ : Finset S in Filter.atTop,
-        (0 : ℝ) ≤ x ⬝ᵥ (ProbabilityTheory.covMatrix (invGaussianCovEntry J Λ) I) *ᵥ x := by
+        (0 : ℝ) ≤ x ⬝ᵥ (ProbabilityTheory.covMatrix (gaussianCovEntry J Λ) I) *ᵥ x := by
       refine Filter.eventually_atTop.2 ⟨I, fun Λ hΛ ↦ ?_⟩
-      simpa using (posSemidef_covMatrix_invGaussianCovEntry hPD hΛ).dotProduct_mulVec_nonneg x
+      simpa using (posSemidef_covMatrix_gaussianCovEntry hPD hΛ).dotProduct_mulVec_nonneg x
     simpa using ge_of_tendsto hlim hev
 
 /-- **The limiting covariance function `C` of Georgii (13.25) is an inverse of `J`**, for `J` of
@@ -1583,10 +1606,10 @@ finite row support: `∑_{j ∈ S} J(i,j) C(j,k) = δ_{ik}`. Georgii's computati
 `∑_{j ∈ S} J(i,j) C(j,k) = lim_Λ ∑_{j ∈ Λ} J(i,j) 𝒥_Λ⁻¹(j,k) = δ_{ik}`, where for `Λ` containing
 `i`, `k` and the (finite) support of the `i`-th row of `J` the inner sum is exactly the `(i,k)`
 entry of `𝒥_Λ 𝒥_Λ⁻¹ = 1`. -/
-theorem isInverse_of_tendsto_invGaussianCovEntry
+theorem isInverse_of_tendsto_gaussianCovEntry
     (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite)
-    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef) {C : S → S → ℝ}
-    (hC : ∀ i j, Filter.Tendsto (fun Λ : Finset S ↦ invGaussianCovEntry J Λ i j)
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef) {C : S → S → ℝ}
+    (hC : ∀ i j, Filter.Tendsto (fun Λ : Finset S ↦ gaussianCovEntry J Λ i j)
       Filter.atTop (nhds (C i j))) (i k : S) :
     ∑' j, J i j * C j k = if i = k then 1 else 0 := by
   classical
@@ -1596,16 +1619,16 @@ theorem isInverse_of_tendsto_invGaussianCovEntry
     exact hj ((hFin i).mem_toFinset.2 hne)
   have hts : ∑' j, J i j * C j k = ∑ j ∈ T, J i j * C j k :=
     tsum_eq_sum fun j hj ↦ by rw [hT0 j hj, zero_mul]
-  have hlim : Filter.Tendsto (fun Λ : Finset S ↦ ∑ j ∈ T, J i j * invGaussianCovEntry J Λ j k)
+  have hlim : Filter.Tendsto (fun Λ : Finset S ↦ ∑ j ∈ T, J i j * gaussianCovEntry J Λ j k)
       Filter.atTop (nhds (∑ j ∈ T, J i j * C j k)) :=
     tendsto_finsetSum _ fun j _ ↦ Filter.Tendsto.const_mul _ (hC j k)
   have hev : ∀ᶠ Λ : Finset S in Filter.atTop,
-      ∑ j ∈ T, J i j * invGaussianCovEntry J Λ j k = if i = k then 1 else 0 := by
+      ∑ j ∈ T, J i j * gaussianCovEntry J Λ j k = if i = k then 1 else 0 := by
     refine Filter.eventually_atTop.2 ⟨T ∪ {i, k}, fun Λ hΛ ↦ ?_⟩
     have hTΛ : T ⊆ Λ := (Finset.subset_union_left).trans hΛ
     have hiΛ : i ∈ Λ := hΛ (Finset.mem_union_right _ (by simp))
     have hkΛ : k ∈ Λ := hΛ (Finset.mem_union_right _ (by simp))
-    have hmul : (Potential.gaussianCovMatrix J Λ * (Potential.gaussianCovMatrix J Λ)⁻¹)
+    have hmul : (Potential.gaussianCouplingMatrix J Λ * (Potential.gaussianCouplingMatrix J Λ)⁻¹)
         ⟨i, hiΛ⟩ ⟨k, hkΛ⟩ = if i = k then 1 else 0 := by
       rw [Matrix.mul_nonsing_inv _ (Matrix.PosDef.det_pos (hPD Λ)).ne'.isUnit, Matrix.one_apply]
       by_cases hik : i = k
@@ -1615,18 +1638,18 @@ theorem isInverse_of_tendsto_invGaussianCovEntry
           have hval := congrArg (fun z : Λ ↦ (z : S)) hh
           simpa using hval)
         simp [hne, hik]
-    have hsumΛ : ∑ j : Λ, Potential.gaussianCovMatrix J Λ ⟨i, hiΛ⟩ j
-        * (Potential.gaussianCovMatrix J Λ)⁻¹ j ⟨k, hkΛ⟩ = if i = k then 1 else 0 := by
+    have hsumΛ : ∑ j : Λ, Potential.gaussianCouplingMatrix J Λ ⟨i, hiΛ⟩ j
+        * (Potential.gaussianCouplingMatrix J Λ)⁻¹ j ⟨k, hkΛ⟩ = if i = k then 1 else 0 := by
       rw [← hmul, Matrix.mul_apply]
-    have hcoe : ∑ j : Λ, Potential.gaussianCovMatrix J Λ ⟨i, hiΛ⟩ j
-        * (Potential.gaussianCovMatrix J Λ)⁻¹ j ⟨k, hkΛ⟩
-        = ∑ j ∈ Λ, J i j * invGaussianCovEntry J Λ j k := by
-      rw [← Finset.sum_coe_sort Λ fun j ↦ J i j * invGaussianCovEntry J Λ j k]
+    have hcoe : ∑ j : Λ, Potential.gaussianCouplingMatrix J Λ ⟨i, hiΛ⟩ j
+        * (Potential.gaussianCouplingMatrix J Λ)⁻¹ j ⟨k, hkΛ⟩
+        = ∑ j ∈ Λ, J i j * gaussianCovEntry J Λ j k := by
+      rw [← Finset.sum_coe_sort Λ fun j ↦ J i j * gaussianCovEntry J Λ j k]
       refine Finset.sum_congr rfl fun j _ ↦ ?_
-      rw [invGaussianCovEntry_of_mem j.2 hkΛ]
+      rw [gaussianCovEntry_of_mem j.2 hkΛ]
       rfl
-    have hrestrict : ∑ j ∈ Λ, J i j * invGaussianCovEntry J Λ j k
-        = ∑ j ∈ T, J i j * invGaussianCovEntry J Λ j k := by
+    have hrestrict : ∑ j ∈ Λ, J i j * gaussianCovEntry J Λ j k
+        = ∑ j ∈ T, J i j * gaussianCovEntry J Λ j k := by
       refine (Finset.sum_subset hTΛ fun j _ hj ↦ ?_).symm
       rw [hT0 j hj, zero_mul]
     rw [← hrestrict, ← hcoe, hsumΛ]
@@ -1642,26 +1665,163 @@ If `M_{J,h} ≠ ∅` and Georgii's condition (13.27) holds — `sup_Λ 𝒥_Λ�
 
 The proof is Georgii's: (13.27) and the monotonicity
 `∑_{i,j ∈ Λ} 𝒥_Λ⁻¹(i,j) t_i t_j ≤ ∑_{i,j ∈ Λ} 𝒥_Δ⁻¹(i,j) t_i t_j` produce the limits (13.25)
-(`exists_tendsto_invGaussianCovEntry`); the limit function `C` is nonnegative definite
+(`exists_tendsto_gaussianCovEntry`); the limit function `C` is nonnegative definite
 (`posSemidef_covMatrix_of_tendsto`) and inverts `J`
-(`isInverse_of_tendsto_invGaussianCovEntry`, using the finite range); Proposition (13.A7)
+(`isInverse_of_tendsto_gaussianCovEntry`, using the finite range); Proposition (13.A7)
 (`ProbabilityTheory.gaussianField`) produces the centred Gauss field `μ_C`, which satisfies
 condition (b) of Theorem (13.22) at `h = 0`, and Remark (13.23)(b) transports it to
 `τ^m(μ_C) ∈ 𝒢(γ^{J,h})` for every `m ∈ M_{J,h}`. -/
 theorem nonempty_G_gaussianSpecification_of_bddAbove [Countable S]
     (hSymm : ∀ i j, J i j = J j i) (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite)
-    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef)
-    (h27 : ∀ i : S, BddAbove (Set.range fun Λ : Finset S ↦ invGaussianCovEntry J Λ i i))
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef)
+    (h27 : ∀ i : S, BddAbove (Set.range fun Λ : Finset S ↦ gaussianCovEntry J Λ i i))
     {h : S → ℝ} (hM : (Potential.gaussianMeanSet J h).Nonempty) :
     (MeasureTheory.GibbsMeasure.G
       (Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos)).Nonempty := by
   classical
   obtain ⟨m, hm⟩ := hM
-  choose C hC using exists_tendsto_invGaussianCovEntry hPD h27
+  choose C hC using exists_tendsto_gaussianCovEntry hPD h27
   exact nonempty_G_gaussianSpecification_of_posSemidef_of_isInverse hFin hSymm hPD C
     (posSemidef_covMatrix_of_tendsto hPD hC)
-    (isInverse_of_tendsto_invGaussianCovEntry hFin hPD hC) hm
+    (isInverse_of_tendsto_gaussianCovEntry hFin hPD hC) hm
 
 end Theorem13_26Limits
+
+/-! ## Strictly diagonally dominant couplings, and the nearest-neighbour chain on `ℤ`
+
+Georgii's Theorem (13.31) assumes `c = sup_i J(i,i)⁻¹ ∑_{j ≠ i} |J(i,j)| < 1`, i.e. that `J` has a
+strictly dominant diagonal. That hypothesis already gives the positive definiteness of every
+finite section `𝒥_Λ`, which is what all of §13.1–§13.2 above consumes; this section records that
+implication and instantiates it. -/
+
+section DiagonallyDominant
+
+variable {S : Type*} [LinearOrder S] {J : S → S → ℝ}
+
+/-- **A finite-range coupling with a strictly dominant diagonal has every `𝒥_Λ` positive
+definite.** `T i` is any finite superset of the `i`-th row support of `J`; the hypothesis is
+Georgii's `∑_{j ≠ i} |J(i,j)| < J(i,i)`, the `c < 1` of Theorem (13.31) written without dividing
+by `J(i,i)`. Restricting to `Λ` only removes rows and columns, so the dominance is inherited by
+`𝒥_Λ`, and `Matrix.posDef_of_sum_row_lt_diag` applies. -/
+theorem posDef_gaussianCouplingMatrix_of_sum_lt_diag {T : S → Finset S}
+    (hT : ∀ i j, j ∉ T i → J i j = 0) (hsymm : ∀ i j, J i j = J j i)
+    (hdom : ∀ i, ∑ j ∈ (T i).erase i, |J i j| < J i i) (Λ : Finset S) :
+    (Potential.gaussianCouplingMatrix J Λ).PosDef := by
+  classical
+  refine Matrix.posDef_of_sum_row_lt_diag (fun a b ↦ hsymm a.1 b.1) fun a ↦ ?_
+  refine lt_of_le_of_lt ?_ (hdom a.1)
+  set U : Finset S := ((Finset.univ : Finset Λ).erase a).image Subtype.val with hU
+  have hUne : ∀ z ∈ U, z ≠ a.1 := by
+    intro z hz
+    simp only [hU, Finset.mem_image, Finset.mem_erase] at hz
+    obtain ⟨b, ⟨hb, -⟩, rfl⟩ := hz
+    exact fun hcon ↦ hb (Subtype.ext hcon)
+  have hsum : ∑ b ∈ (Finset.univ : Finset Λ).erase a, |Potential.gaussianCouplingMatrix J Λ a b|
+      = ∑ z ∈ U, |J a.1 z| := by
+    rw [hU, Finset.sum_image fun x _ y _ hxy ↦ Subtype.ext hxy]
+    rfl
+  have hinter : ∑ z ∈ U ∩ (T a.1).erase a.1, |J a.1 z| = ∑ z ∈ U, |J a.1 z| := by
+    refine Finset.sum_subset Finset.inter_subset_left fun z hz hznot ↦ ?_
+    have hza : z ≠ a.1 := hUne z hz
+    have hzT : z ∉ T a.1 := by
+      intro hcon
+      exact hznot (Finset.mem_inter.2 ⟨hz, Finset.mem_erase.2 ⟨hza, hcon⟩⟩)
+    rw [hT a.1 z hzT, abs_zero]
+  rw [hsum, ← hinter]
+  exact Finset.sum_le_sum_of_subset_of_nonneg Finset.inter_subset_right
+    fun z _ _ ↦ abs_nonneg _
+
+end DiagonallyDominant
+
+/-! ### Georgii's Gaussian specification for the nearest-neighbour chain on `ℤ` -/
+
+namespace NearestNeighbour
+
+/-- The nearest-neighbour coupling on `S = ℤ` with a mass term: `J(i,i) = 2`, `J(i,j) = -1/2`
+when `|i - j| = 1`, and `J(i,j) = 0` otherwise. It is `Potential.homogeneousCoupling J'` for
+`J' = 2 δ_0 - (1/2)(δ_1 + δ_{-1})`, and Georgii's Theorem (13.31) constant for it is
+`c = 2⁻¹ (1/2 + 1/2) = 1/2 < 1`. It is *not* Georgii's Example (13.29) at `d = 1`, whose
+off-diagonal entries are `-β/2` and whose `Ĵ(1)` vanishes. -/
+def coupling : ℤ → ℤ → ℝ :=
+  fun i j ↦ if i = j then 2 else if i - j = 1 ∨ j - i = 1 then -(1 / 2) else 0
+
+@[simp] lemma coupling_self (i : ℤ) : coupling i i = 2 := by simp [coupling]
+
+lemma coupling_symm (i j : ℤ) : coupling i j = coupling j i := by
+  unfold coupling
+  by_cases hij : i = j
+  · simp [hij]
+  · rw [ite_eq_right hij, ite_eq_right (Ne.symm hij)]
+    by_cases hadj : i - j = 1 ∨ j - i = 1
+    · rw [ite_eq_left hadj, ite_eq_left hadj.symm]
+    · rw [ite_eq_right hadj, ite_eq_right fun hcon ↦ hadj hcon.symm]
+
+/-- `J(i,·)` vanishes off `{i-1, i, i+1}`. -/
+lemma coupling_eq_zero_of_notMem {i j : ℤ} (hj : j ∉ ({i - 1, i, i + 1} : Finset ℤ)) :
+    coupling i j = 0 := by
+  simp only [Finset.mem_insert, Finset.mem_singleton, not_or] at hj
+  have hij : ¬ i = j := fun hcon ↦ hj.2.1 hcon.symm
+  have hadj : ¬ (i - j = 1 ∨ j - i = 1) := by
+    rintro (h | h)
+    · exact hj.1 (by omega)
+    · exact hj.2.2 (by omega)
+  simp [coupling, hij, hadj]
+
+lemma finite_setOf_coupling_ne_zero (i : ℤ) : {j : ℤ | coupling i j ≠ 0}.Finite :=
+  Set.Finite.subset ({i - 1, i, i + 1} : Finset ℤ).finite_toSet fun j hj ↦ by
+    by_contra hcon
+    exact hj (coupling_eq_zero_of_notMem (by simpa using hcon))
+
+/-- The strict diagonal dominance `|J(i,i-1)| + |J(i,i+1)| = 1 < 2 = J(i,i)`. -/
+lemma sum_abs_coupling_lt (i : ℤ) :
+    ∑ j ∈ (({i - 1, i, i + 1} : Finset ℤ)).erase i, |coupling i j| < coupling i i := by
+  have herase : (({i - 1, i, i + 1} : Finset ℤ)).erase i = {i - 1, i + 1} := by
+    ext z
+    simp only [Finset.mem_erase, Finset.mem_insert, Finset.mem_singleton]
+    omega
+  have hne : i - 1 ≠ i + 1 := by omega
+  have hleft : |coupling i (i - 1)| = 1 / 2 := by
+    have h1 : ¬ i = i - 1 := by omega
+    have h2 : i - (i - 1) = 1 := by omega
+    rw [coupling, ite_eq_right h1, ite_eq_left (Or.inl h2)]
+    rw [abs_neg, abs_of_nonneg (by norm_num : (0:ℝ) ≤ 1 / 2)]
+  have hright : |coupling i (i + 1)| = 1 / 2 := by
+    have h1 : ¬ i = i + 1 := by omega
+    have h2 : i + 1 - i = 1 := by omega
+    rw [coupling, ite_eq_right h1, ite_eq_left (Or.inr h2)]
+    rw [abs_neg, abs_of_nonneg (by norm_num : (0:ℝ) ≤ 1 / 2)]
+  rw [herase, Finset.sum_pair hne, hleft, hright, coupling_self]
+  norm_num
+
+/-- **Every `𝒥_Λ` of the nearest-neighbour coupling is positive definite**, by strict diagonal
+dominance: `2 > 1/2 + 1/2`. Note that `Λ` is an arbitrary finite subset of `ℤ`, not an interval;
+deleting sites only shrinks the off-diagonal row sums. -/
+theorem posDef_gaussianCouplingMatrix_coupling (Λ : Finset ℤ) :
+    (Potential.gaussianCouplingMatrix coupling Λ).PosDef :=
+  posDef_gaussianCouplingMatrix_of_sum_lt_diag
+    (T := fun i ↦ ({i - 1, i, i + 1} : Finset ℤ))
+    (fun _ _ hj ↦ coupling_eq_zero_of_notMem hj) coupling_symm sum_abs_coupling_lt Λ
+
+/-- **Georgii's Gaussian specification `γ^{J,h}` (13.18) for the nearest-neighbour coupling.**
+Since `J` has finite range, `Ω_J = Ω` and this is the Gibbsian specification of `Φ^{J,h}`
+(13.11) over Lebesgue measure at `β = 1`. -/
+def specification (h : ℤ → ℝ) : Specification ℤ ℝ :=
+  Potential.gaussianSpecification coupling h coupling_symm finite_setOf_coupling_ne_zero
+    posDef_gaussianCouplingMatrix_coupling 1 one_pos
+
+/-- **Georgii Theorem (13.22) for the nearest-neighbour coupling on `ℤ`.** A Gauss field `μ` is a
+Gibbs measure for `γ^{J,h}` if and only if its mean lies in `M_{J,h}` and its covariance function
+inverts `J`: `∑_j J(i,j) C(j,k) = δ_{ik}`. This is `georgii_13_22_iff` with all three of its
+structural hypotheses discharged. -/
+theorem isGibbsMeasure_iff (h : ℤ → ℝ) {μ : Measure (ℤ → ℝ)}
+    (hμ : ProbabilityTheory.IsGaussianProcess (fun i (ω : ℤ → ℝ) ↦ ω i) μ) :
+    (specification h).IsGibbsMeasure μ
+      ↔ (fun j ↦ ∫ ω, ω j ∂μ) ∈ Potential.gaussianMeanSet coupling h ∧
+        ∀ i k, ∑' j, coupling i j * cov[fun ω : ℤ → ℝ ↦ ω j, fun ω : ℤ → ℝ ↦ ω k; μ]
+          = if i = k then 1 else 0 :=
+  georgii_13_22_iff coupling_symm finite_setOf_coupling_ne_zero
+    posDef_gaussianCouplingMatrix_coupling hμ
+
+end NearestNeighbour
 
 end MeasureTheory.GibbsMeasure

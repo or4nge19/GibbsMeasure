@@ -61,7 +61,7 @@ Remark (13.23).
   measure for the specification `γ^{J,h}` built from its own conditional covariances,
   `J = condCoupling μ` and `h = condExternalField μ`. The specification is well defined because
   `J` is symmetric, of finite row support (`finite_setOf_condCoupling_ne_zero`) and has every
-  `𝒥_Λ` positive definite (`posDef_gaussianCovMatrix_condCoupling`). Georgii's proof, verbatim:
+  `𝒥_Λ` positive definite (`posDef_gaussianCouplingMatrix_condCoupling`). Georgii's proof, verbatim:
   (13.7), (13.10), (13.13) and (1.33), the last in the conditional-probability form
   `Specification.isGibbsMeasure_of_forall_singleton_condExp_ae_eq`
   (`GibbsMeasure/Specification/CondExpGibbs.lean`).
@@ -353,7 +353,7 @@ variable {S : Type*} [Countable S] [LinearOrder S] (J : S → S → ℝ) (h : S 
 section GluedSpecification
 
 variable (hSymm : ∀ i j, J i j = J j i) (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite)
-  (hPD : ∀ Λ : Finset S, (gaussianCovMatrix J Λ).PosDef) (β : ℝ) (hβ : 0 < β)
+  (hPD : ∀ Λ : Finset S, (gaussianCouplingMatrix J Λ).PosDef) (β : ℝ) (hβ : 0 < β)
 
 /-- **Georgii (13.18), the two branches.** `true` is the Gibbsian Gaussian specification (used on
 `Ω_J`); `false` is the Dirac reference (used off `Ω_J`). -/
@@ -647,7 +647,7 @@ lemma gaussianCondMean_eq_gaussianMean [LinearOrder S] {J : S → S → ℝ} (h 
     gaussianCondMean J h i ω =
       Potential.gaussianMean J h hFin {i} ω ⟨i, Finset.mem_singleton_self i⟩ := by
   classical
-  have hinv : (Potential.gaussianCovMatrix J {i})⁻¹ = (J i i)⁻¹ • (1 : Matrix _ _ ℝ) := by
+  have hinv : (Potential.gaussianCouplingMatrix J {i})⁻¹ = (J i i)⁻¹ • (1 : Matrix _ _ ℝ) := by
     rw [Matrix.inv_def, Matrix.adjugate_subsingleton, Matrix.det_unique, Ring.inverse_eq_inv']
     rfl
   have hsum : ∑' j, (if j = i then 0 else J i j * ω j) =
@@ -675,7 +675,7 @@ for (13.20). -/
 theorem condExp_indicator_ae_eq_gaussianSpecification_singleton [Countable S] [LinearOrder S]
     {J : S → S → ℝ} {h : S → ℝ} (hSymm : ∀ i j, J i j = J j i)
     (hFin : ∀ i, {j : S | J i j ≠ 0}.Finite)
-    (hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef)
+    (hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef)
     (hμ : ProbabilityTheory.IsGaussianProcess (fun i (ω : S → ℝ) ↦ ω i) μ)
     (hvar : ∀ i, ∫ ω, (ω i - condExpOutside μ i ω) ^ 2 ∂μ = (J i i)⁻¹)
     (h135 : ∀ i, ∀ᵐ ω ∂μ, ω i - condExpOutside μ i ω = (J i i)⁻¹ * (h i + ∑' j, J i j * ω j))
@@ -743,7 +743,7 @@ theorem finite_setOf_condCoupling_ne_zero [DecidableEq S]
 Define `J = condCoupling μ` and `h = condExternalField μ` from the conditional covariances and the
 mean of `μ` as in Proposition (13.7). Then `γ^{J,h}` is well defined — `J` is symmetric
 (`condCoupling_comm`), of finite range (`finite_setOf_condCoupling_ne_zero`) and every `𝒥_Λ` is
-positive definite (`posDef_gaussianCovMatrix_condCoupling`), which is exactly what
+positive definite (`posDef_gaussianCouplingMatrix_condCoupling`), which is exactly what
 `Potential.gaussianSpecification` consumes — and `μ ∈ 𝒢(γ^{J,h})`. -/
 theorem georgii_13_20 [Countable S] [LinearOrder S] [DecidableEq S]
     (hμ : ProbabilityTheory.IsGaussianProcess (fun i (ω : S → ℝ) ↦ ω i) μ)
@@ -752,7 +752,7 @@ theorem georgii_13_20 [Countable S] [LinearOrder S] [DecidableEq S]
     (Potential.gaussianSpecification (condCoupling μ) (condExternalField μ)
       (fun i j ↦ condCoupling_comm i j)
       (finite_setOf_condCoupling_ne_zero hμ hMarkov)
-      (fun Λ ↦ posDef_gaussianCovMatrix_condCoupling hμ hΓ N hN hMarkov Λ) 1
+      (fun Λ ↦ posDef_gaussianCouplingMatrix_condCoupling hμ hΓ N hN hMarkov Λ) 1
       one_pos).IsGibbsMeasure μ := by
   classical
   have hP := hμ.isProbabilityMeasure
@@ -760,8 +760,8 @@ theorem georgii_13_20 [Countable S] [LinearOrder S] [DecidableEq S]
   set hh := condExternalField μ with hhdef
   have hSymm : ∀ i j, J i j = J j i := fun i j ↦ condCoupling_comm i j
   have hFin : ∀ i, {j : S | J i j ≠ 0}.Finite := finite_setOf_condCoupling_ne_zero hμ hMarkov
-  have hPD : ∀ Λ : Finset S, (Potential.gaussianCovMatrix J Λ).PosDef :=
-    fun Λ ↦ posDef_gaussianCovMatrix_condCoupling hμ hΓ N hN hMarkov Λ
+  have hPD : ∀ Λ : Finset S, (Potential.gaussianCouplingMatrix J Λ).PosDef :=
+    fun Λ ↦ posDef_gaussianCouplingMatrix_condCoupling hμ hΓ N hN hMarkov Λ
   have hvar : ∀ i, ∫ ω, (ω i - condExpOutside μ i ω) ^ 2 ∂μ = (J i i)⁻¹ := by
     intro i
     rw [hJdef, condCoupling_self (hΓ i).ne', inv_inv]

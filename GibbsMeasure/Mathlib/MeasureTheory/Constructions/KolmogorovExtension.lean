@@ -180,6 +180,48 @@ theorem exists_isProjectiveLimit_of_standardBorel {α : ι → Type*} [∀ i, Me
     ∃ μ : Measure (Π i, α i), IsProjectiveLimit μ P :=
   (existsUnique_isProjectiveLimit_of_standardBorel hP).exists
 
+/-- **Kolmogorov extension theorem, standard Borel version**, as a measure: the projective limit
+of a projective family `P` of finite measures on standard Borel spaces. It is characterised by
+`isProjectiveLimit_standardBorelProjectiveLimit`, i.e. its marginal on every finite set of
+coordinates `J` is `P J`, and it is the only such measure
+(`eq_standardBorelProjectiveLimit`).
+
+Unlike `projectiveLimit` this needs no topology on the `α i`: the Polish structure supplied by
+`StandardBorelSpace` is chosen internally, so the measure does not depend on a choice the caller
+has to make. -/
+noncomputable def standardBorelProjectiveLimit {α : ι → Type*} [∀ i, MeasurableSpace (α i)]
+    [∀ i, StandardBorelSpace (α i)] (P : ∀ J : Finset ι, Measure (Π j : J, α j))
+    [∀ I, IsFiniteMeasure (P I)] (hP : IsProjectiveMeasureFamily P) : Measure (Π i, α i) :=
+  (exists_isProjectiveLimit_of_standardBorel hP).choose
+
+section
+
+variable {α : ι → Type*} [∀ i, MeasurableSpace (α i)] [∀ i, StandardBorelSpace (α i)]
+  {P : ∀ J : Finset ι, Measure (Π j : J, α j)} [∀ I, IsFiniteMeasure (P I)]
+
+/-- The defining property of `standardBorelProjectiveLimit`: its finite-dimensional marginals
+are `P`. -/
+theorem isProjectiveLimit_standardBorelProjectiveLimit (hP : IsProjectiveMeasureFamily P) :
+    IsProjectiveLimit (standardBorelProjectiveLimit P hP) P :=
+  (exists_isProjectiveLimit_of_standardBorel hP).choose_spec
+
+/-- `standardBorelProjectiveLimit P hP` is the *only* measure with marginals `P`. -/
+theorem eq_standardBorelProjectiveLimit {μ : Measure (Π i, α i)}
+    (hP : IsProjectiveMeasureFamily P) (hμ : IsProjectiveLimit μ P) :
+    μ = standardBorelProjectiveLimit P hP :=
+  hμ.unique (isProjectiveLimit_standardBorelProjectiveLimit hP)
+
+theorem isFiniteMeasure_standardBorelProjectiveLimit (hP : IsProjectiveMeasureFamily P) :
+    IsFiniteMeasure (standardBorelProjectiveLimit P hP) :=
+  (isProjectiveLimit_standardBorelProjectiveLimit hP).isFiniteMeasure
+
+theorem isProbabilityMeasure_standardBorelProjectiveLimit [∀ I, IsProbabilityMeasure (P I)]
+    (hP : IsProjectiveMeasureFamily P) :
+    IsProbabilityMeasure (standardBorelProjectiveLimit P hP) :=
+  (isProjectiveLimit_standardBorelProjectiveLimit hP).isProbabilityMeasure
+
+end
+
 end StandardBorel
 
 section ProjectiveLimit

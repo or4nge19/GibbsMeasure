@@ -954,12 +954,10 @@ lemma isProbabilityMeasure_boundaryLawFDD (Λ : Finset ℤ) :
     MeasurableSet.univ, Set.preimage_univ]
   exact hbl.intervalLaw_univ (by have := boundOf_nonneg Λ; omega)
 
-lemma exists_isProjectiveLimit_boundaryLawFDD :
-    ∃ μ : Measure (ℤ → E), IsProjectiveLimit μ (boundaryLawFDD Q ℓ r) := by
-  have : ∀ Λ, IsFiniteMeasure (boundaryLawFDD Q ℓ r Λ) := fun Λ ↦ by
-    have := hbl.isProbabilityMeasure_boundaryLawFDD Λ
-    infer_instance
-  exact exists_isProjectiveLimit_of_standardBorel hbl.isProjectiveMeasureFamily_boundaryLawFDD
+lemma isFiniteMeasure_boundaryLawFDD (Λ : Finset ℤ) :
+    IsFiniteMeasure (boundaryLawFDD Q ℓ r Λ) :=
+  have := hbl.isProbabilityMeasure_boundaryLawFDD Λ
+  inferInstance
 
 end IsBoundaryLaw
 
@@ -969,7 +967,8 @@ variable {Q ℓ r}
 probabilities (11.10), `μ(σ_a = x_a, …, σ_b = x_b) = ℓ_a(x_a) Q(x_a, x_{a+1}) ⋯ Q(x_{b-1}, x_b)
 r_b(x_b)`, obtained from a boundary law by Kolmogorov's extension theorem. -/
 def boundaryLawMeasure (hbl : IsBoundaryLaw Q ℓ r) : Measure (ℤ → E) :=
-  hbl.exists_isProjectiveLimit_boundaryLawFDD.choose
+  have := hbl.isFiniteMeasure_boundaryLawFDD
+  standardBorelProjectiveLimit _ hbl.isProjectiveMeasureFamily_boundaryLawFDD
 
 namespace IsBoundaryLaw
 
@@ -978,7 +977,8 @@ include hbl
 
 lemma isProjectiveLimit_boundaryLawMeasure :
     IsProjectiveLimit (boundaryLawMeasure hbl) (boundaryLawFDD Q ℓ r) :=
-  hbl.exists_isProjectiveLimit_boundaryLawFDD.choose_spec
+  have := hbl.isFiniteMeasure_boundaryLawFDD
+  isProjectiveLimit_standardBorelProjectiveLimit hbl.isProjectiveMeasureFamily_boundaryLawFDD
 
 instance isProbabilityMeasure_boundaryLawMeasure :
     IsProbabilityMeasure (boundaryLawMeasure hbl) := by

@@ -59,8 +59,8 @@ Throughout, `Φ` is an absolutely summable potential (`Potential.IsAbsolutelySum
   applied along the reflected cubes `−Λ_n` (`Finset.neg_Icc_cube_eq_vadd_piFinset_Ico`) because
   `f_Φ ∘ θ_{-i}` is the Koopman translate by `−i`. The passage from a sum to the Hamiltonian
   is `Filter.Tendsto.div_of_norm_sub_le` (`GibbsMeasure/Mathlib/Analysis/Normed/Field/Lemmas`).
-* `Potential.abs_specificEnergy_sub_le`: **Georgii Remark (15.26)(2)**, `⟨μ, ·⟩` is
-  `1`-Lipschitz for `‖·‖₀`, uniformly in `μ`.
+* `Potential.abs_specificEnergy_le` and `Potential.abs_specificEnergy_sub_le`: **Georgii Remark
+  (15.26)(2)**, `|⟨μ, Φ⟩| ≤ ‖Φ‖₀` and `⟨μ, ·⟩` is `1`-Lipschitz for `‖·‖₀`, uniformly in `μ`.
 * `Potential.hamiltonian_union_add_tsum_eq`: inclusion–exclusion for the Hamiltonian,
   `H_{Λ ∪ Δ} + ∑_{A meets Λ and Δ} Φ_A = H_Λ + H_Δ`.
 * `Potential.premodifierZ_boltzmannFactor_union_le`: the factorization estimate
@@ -909,9 +909,24 @@ lemma integrable_hamiltonian_juxt (Λ : Finset S) (ω : S → E) (μ : Measure (
     Integrable (fun σ ↦ Φ.hamiltonian Λ (juxt (Λ : Set S) ω fun i ↦ σ i)) μ := by
   have hmeas : Measurable fun σ : S → E ↦ Φ.hamiltonian Λ (juxt (Λ : Set S) ω fun i ↦ σ i) :=
     (measurable_hamiltonian Λ).comp
-      (Measurable.juxt.comp (measurable_pi_lambda _ fun i ↦ measurable_pi_apply (i : S)))
+      ((Measurable.juxt (Λ := (Λ : Set S)) (η := ω)).comp
+        (measurable_pi_lambda (fun (σ : S → E) (i : (Λ : Set S)) ↦ σ i)
+          fun i ↦ measurable_pi_apply (i : S)))
   exact Integrable.of_bound hmeas.aestronglyMeasurable _
     (.of_forall fun η ↦ by rw [Real.norm_eq_abs]; exact abs_hamiltonian_le Λ _)
+
+omit [Countable S] [IsPotential Φ] in
+/-- **Georgii Remark (15.26)(2)** at `Ψ = 0`: the specific energy is dominated by the norm
+(2.12) of the potential, `|⟨μ, Φ⟩| ≤ ‖Φ‖₀`, because the energy density `f_Φ` is bounded by
+`‖Φ‖₀` pointwise (`Potential.abs_siteEnergy_le`) and `μ` is a probability measure. -/
+theorem abs_specificEnergy_le [Zero S] (μ : Measure (S → E)) [IsProbabilityMeasure μ] :
+    |Φ.specificEnergy μ| ≤ (Φ.normAt 0).toReal := by
+  rw [specificEnergy]
+  calc |∫ η, Φ.energyDensity η ∂μ| = ‖∫ η, Φ.energyDensity η ∂μ‖ := (Real.norm_eq_abs _).symm
+    _ ≤ (Φ.normAt 0).toReal * μ.real Set.univ :=
+        norm_integral_le_of_norm_le_const (.of_forall fun η ↦ by
+          rw [Real.norm_eq_abs]; exact abs_siteEnergy_le 0 η)
+    _ = (Φ.normAt 0).toReal := by simp
 
 /-- **Georgii Remark (15.26)(2).** The specific energy is `1`-Lipschitz in the potential for
 `‖·‖₀`, uniformly in `μ`: `|⟨μ, Φ⟩ − ⟨μ, Ψ⟩| ≤ ‖Φ − Ψ‖₀`. -/

@@ -41,6 +41,31 @@ tends to `±∞` at `±∞`, there is always at least one solution; the whole qu
   (iii) (exactly three when `|h| < h(J,d)`); `exists_lt_and_treeField_eq` is the existence half of
   (ii) and (iii) at once. The three branches of the field function that make the count are
   `strictMonoOn_treeField_Iic`, `strictAntiOn_treeField_Icc`, `strictMonoOn_treeField_Ici`.
+
+## A note on the names
+
+`treeRecursion`, `treeField`, `criticalCoupling`, `treeCriticalPoint` and `treeCriticalField`
+carry the vocabulary of the model the family comes from (the Ising model on a Cayley tree of
+branching number `d`, with coupling `J` and external field `h`), and they are deliberately kept.
+Nothing here mentions a graph, a configuration or a measure: every statement in this file is a
+statement about the one real function `Real.logCoshRatio` and the two real parameters `d, J`, and
+the declarations live in `Real` next to `Real.logCoshRatio` itself. What the names buy is the
+characterisation, which purely descriptive names would hide:
+
+* `criticalCoupling d = artanh (1 / d)` is the unique `J` with `d * tanh J = 1`
+  (`le_criticalCoupling_iff`), i.e. the coupling at which `deriv (treeField d J) 0` changes sign
+  (`deriv_treeField_zero`). A name recording only the formula (`artanhOneDiv`) would say nothing
+  about why `artanh (1 / d)` is worth a definition.
+* `treeCriticalPoint d J` is the unique positive zero of `deriv (treeField d J)`, and
+  `treeCriticalField d J = -treeField d J (treeCriticalPoint d J)` is
+  `max_{t ≥ 0} (d * logCoshRatio J t - t)` (`isGreatest_treeCriticalField`); the descriptive
+  alternative is a mouthful (`sSup_sub_nsmul_logCoshRatio_Ici`) that still does not say that this
+  is the threshold separating one solution from three.
+
+There is also a hard constraint: `GibbsMeasure/Model/IsingCayleyTree.lean` uses these names and
+the ~100 lemma names built on them. `@[deprecated] alias` is not a safe bridge for the `def`s —
+an alias `def` is not reducible, so the renamed lemmas would no longer rewrite terms written with
+the old spelling.
 -/
 
 @[expose] public section

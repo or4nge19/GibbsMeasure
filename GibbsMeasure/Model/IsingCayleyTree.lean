@@ -74,23 +74,27 @@ a non-fixed orbit of `h + d φ_J`, and a mixing property of a completely homogen
 `I(J, d) = ]-h(J,d), h(J,d)[` in the antiferromagnetic case is explicitly stated in the book as
 suggested by numerical calculations, not as a theorem.
 
-Three further gaps:
+One further gap: the antiferromagnetic transition itself.
+`exists_ne_isGibbsMeasure_of_isFixedPt_treeRecursion₂` *assumes* a fixed point of (12.35) that is
+not one of (12.22). Georgii's argument that such a fixed point exists for `J < -J(d)` and
+`h ∈ I(J, d)` (the non-degeneracy of `I(J, d)`), and his converse `|𝒢(J,h)| = 1` iff (12.35)
+has one solution, are not proved.
 
-* `isingTreeSpecification = γ^{Φ^{J,h}}`. The transfer weight `∏_{b ∩ Λ ≠ ∅} Q_b` equals
-  `exp (-H_Λ^{Φ^{J,h}})` times a factor depending only on `ω` off `Λ`, so the two λ-specifications
-  agree (`Specification.lambdaSpecification_eq_of_mul_boundary`); that lemma is not applied here,
-  so `𝒢` below is the Gibbs-measure set of the transfer specification, not (yet) of (12.19).
-* The existence of `𝒞𝒯(d)` for `d ≥ 2`. Every theorem here is stated for a graph carrying
-  `SimpleGraph.IsCayleyTree d`, but the only such graph built in this library is
-  `SimpleGraph.isCayleyTree_hasse_int : (hasse ℤ).IsCayleyTree 1`. Since `d = 1` forces
-  `d tanh J < 1` (`Real.mul_tanh_lt_one_of_le_one`), the hypotheses of `exists_ne_isingChain`,
-  `exists_three_isingChain`, `integral_spin_isingChain_treeCriticalPoint` and
-  `exists_ne_isGibbsMeasure_of_isFixedPt_treeRecursion₂` cannot be met by any graph in this
-  library; only (12.31)(a) can currently be instantiated.
-* The antiferromagnetic transition itself: `exists_ne_isGibbsMeasure_of_isFixedPt_treeRecursion₂`
-  *assumes* a fixed point of (12.35) that is not one of (12.22). Georgii's argument that such a
-  fixed point exists for `J < -J(d)` and `h ∈ I(J, d)` (the non-degeneracy of `I(J, d)`), and his
-  converse `|𝒢(J,h)| = 1` iff (12.35) has one solution, are not proved.
+## The identification with the Ising potential, and a witness
+
+* `isingTreeSpecification_eq_isingSpecification` — **Georgii (12.7), (12.9)**: on `𝒞𝒯(d)` the
+  transfer specification of (12.20) *is* the Gibbsian specification of the Ising potential
+  (12.19), so `𝒢(J, h)` above really is Georgii's `𝒢(Φ^{J,h})`. Its ingredients are
+  `hamiltonian_isingPotential` (`H_Λ = -J ∑_{b ∩ Λ ≠ ∅} σ_iσ_j - h ∑_{i ∈ Λ} σ_i`),
+  `sum_bondsOf_spinSum` (each site of `Λ` lies on `d + 1` bonds meeting `Λ`, so it collects
+  `h σ_i/(d+1)` from each) and `Specification.lambdaSpecification_eq_of_mul_boundary` (the ends of
+  those bonds in `∂Λ` give a factor depending only on the configuration off `Λ`, which cancels).
+* `exists_G_isingSpecification_eq_singleton`, `exists_ne_isGibbsMeasure_isingSpecification` —
+  (12.31)(a), (b) restated for `𝒢(Φ^{J,h})`.
+* `exists_ne_isGibbsMeasure_isingSpecification_reducedWordTree` — the non-uniqueness theorem
+  witnessed: `SimpleGraph.isCayleyTree_reducedWordTree` builds `𝒞𝒯(d)` for every `d` as the tree
+  of reduced words over `Fin (d+1)`, and at `d = 2`, `J = ar tanh (3/4)`, `h = 0` the Ising
+  potential has two distinct Gibbs measures.
 
 -/
 

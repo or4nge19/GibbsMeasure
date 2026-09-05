@@ -5,7 +5,6 @@ Authors: Matteo Cipollina
 -/
 module
 
-public import GibbsMeasure.Mathlib.Probability.LargeDeviations.Basic
 public import GibbsMeasure.Mathlib.Probability.LargeDeviations.Legendre
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.UniformAverage
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.SetwiseConvergence
@@ -20,9 +19,7 @@ Throughout, `S = ℤ^d` is spelled `ι → ℤ` for a finite type `ι`, `λ` is 
 measure `ν` on `E`, and potentials live in Georgii's Banach space `ℬ_Θ`
 (`Potential.BTheta (ι → ℤ) E`, `Specification/TangentFunctional.lean`). The inputs are §15.2
 (`Specification/SpecificEntropy.lean`), §15.3 (`Specification/Pressure.lean`) and §15.4
-(`Specification/VariationalPrinciple.lean`); the model-free large deviation vocabulary is
-`GibbsMeasure/Mathlib/Probability/LargeDeviations/Basic.lean` (Mathlib has none:
-`grep LargeDeviation`, `grep rateFunction` in `Mathlib/` return nothing).
+(`Specification/VariationalPrinciple.lean`).
 
 ## The periodic empirical field, Georgii Definition (15.41)
 
@@ -98,13 +95,14 @@ of the box `Δ` (Georgii Example (4.20)(2), `Potential.IsTorusReduction`, in
 * `Potential.BTheta.isCompact_setOf_ldRate_le`, `Potential.BTheta.isClosed_setOf_ldRate_le` and
   `Potential.BTheta.lowerSemicontinuous_ldRate`: **Corollary (15.48)**, the level sets
   `{J_Ψ(·|Φ) ≤ c}` are *compact*, being the `e_Ψ`-images of the compact level sets of `𝓀(·|Φ)`.
-* `Potential.BTheta.ldRate_nonneg` and `Potential.BTheta.ldRate_eq_zero_iff` (over a standard
-  Borel `E`): `J_Ψ(·|Φ) ≥ 0` and `{J_Ψ(·|Φ) = 0} = e_Ψ(𝒢_Θ(Φ))`, the last assertion of
-  **Corollary (15.48)**.
+* `Potential.BTheta.ldRate_nonneg`, `Potential.BTheta.exists_ldRate_eq_zero` and
+  `Potential.BTheta.ldRate_eq_zero_iff` (the last two over a standard Borel `E`):
+  `J_Ψ(·|Φ) ≥ 0`, `J_Ψ(·|Φ)` is not identically `+∞`, and `{J_Ψ(·|Φ) = 0} = e_Ψ(𝒢_Θ(Φ))`, the
+  last assertion of **Corollary (15.48)**.
 * `Potential.BTheta.iInf_specificRelativeEntropy_eq_iInf_ldRate`, Georgii's **contraction step**
-  in the proof of (15.48): `inf {𝓀(ν|Φ) : ⟨ν, Ψ⟩ ∈ B} = inf_{x ∈ B} J_Ψ(x|Φ)`. This is the
-  identity `MeasureTheory.iInf_preimage_eq_iInf_iInf` that drives the abstract contraction
-  principle `MeasureTheory.IsLargeDeviationPrinciple.map`.
+  in the proof of (15.48): `inf {𝓀(ν|Φ) : ⟨ν, Ψ⟩ ∈ B} = inf_{x ∈ B} J_Ψ(x|Φ)`. It is the
+  regrouping of an infimum over the `e_Ψ`-preimage of `B` by the fibres of `e_Ψ`, and is proved
+  directly from `iInf₂_le` and `le_iInf₂`; no limit theorem enters.
 
 ## Compactness of the level sets, Georgii's remark after (15.45)
 
@@ -142,10 +140,12 @@ of the box `Δ` (Georgii Example (4.20)(2), `Potential.IsTorusReduction`, in
 ## Not proved here
 
 **Theorem (15.45)** — the large deviation principle (15.46), (15.47) for `°R_Λ` — is *not*
-proved, and consequently neither are the two displayed inequalities of **Corollary (15.48)**, the
-asymptotics (15.51) of **Example (15.50)** (Cramér's theorem), nor the cluster point half of
-**Corollary (15.58)**. Everything else that §15.5 asserts is proved here; in particular
-(15.48) apart from its two inequalities — the convexity of `J_Ψ(·|Φ)`, the compactness of its
+proved; it is not even stated, since no abstract large deviation vocabulary (`limsup`/`liminf` of
+normalised log-probabilities, rate functions, contraction principle) has a consumer in this tree
+and Mathlib has none. Consequently neither are the two displayed inequalities of
+**Corollary (15.48)**, the asymptotics (15.51) of **Example (15.50)** (Cramér's theorem), nor the
+cluster point half of **Corollary (15.58)**. Everything else that §15.5 asserts is proved here;
+in particular (15.48) apart from its two inequalities — the convexity of `J_Ψ(·|Φ)`, the compactness of its
 level sets, `{J_Ψ(·|Φ) = 0} = e_Ψ(𝒢_Θ(Φ))` and the Legendre formula (15.49) — and the minimum
 free energy principle (15.59), (15.60) that carries the equivalence of ensembles.
 
@@ -718,12 +718,23 @@ theorem ldRate_eq_zero_of_mem_invariantG {μ : Measure ((ι → ℤ) → E)}
     ldRate_nonneg
 
 omit [Fintype K] in
+variable (ν Φ Ψ) in
+/-- **Georgii Corollary (15.48)**, the half of `{J_Ψ(·|Φ) = 0} = e_Ψ(𝒢_Θ(Φ))` that makes the
+rate function nonvacuous: over a standard Borel state space `J_Ψ(·|Φ)` is not identically `+∞`,
+because `𝒢_Θ(Φ) ≠ ∅` (Theorem (4.23)(a) and Corollary (5.16),
+`Potential.invariantG_gibbsSpecification_shiftGroup_nonempty`) and `J_Ψ` vanishes at the specific
+`Ψ`-energy of any shift-invariant Gibbs measure of `Φ`. -/
+theorem exists_ldRate_eq_zero [StandardBorelSpace E] : ∃ x : K → ℝ, ldRate ν Φ Ψ x = 0 := by
+  obtain ⟨μ, hμ⟩ := invariantG_gibbsSpecification_shiftGroup_nonempty
+    (Φ := (Φ : Potential (ι → ℤ) E)) ν 1 (isShiftInvariant Φ)
+  exact ⟨_, ldRate_eq_zero_of_mem_invariantG hμ rfl⟩
+
+omit [Fintype K] in
 variable (Φ Ψ) in
 /-- **Georgii's contraction step in the proof of Corollary (15.48).** For any `B ⊆ ℝ^k`,
 `inf {𝓀(ν|Φ) : ν ∈ 𝓟_Θ, ⟨ν, Ψ⟩ ∈ B} = inf {J_Ψ(x|Φ) : x ∈ B}`: the rate function of the image of
-`𝓀(·|Φ)` under `e_Ψ` is `J_Ψ(·|Φ)`. This is the abstract identity
-`MeasureTheory.iInf_preimage_eq_iInf_iInf` that drives the contraction principle
-`MeasureTheory.IsLargeDeviationPrinciple.map`, applied to `e_Ψ` restricted to `𝓟_Θ`. -/
+`𝓀(·|Φ)` under `e_Ψ` is `J_Ψ(·|Φ)`. Both inequalities are immediate from `iInf₂_le` and
+`le_iInf₂`: an infimum over `{μ ∈ 𝓟_Θ : e_Ψ μ ∈ B}` regroups by the fibres of `e_Ψ`. -/
 theorem iInf_specificRelativeEntropy_eq_iInf_ldRate (B : Set (K → ℝ)) :
     (⨅ μ ∈ {μ : Measure ((ι → ℤ) → E) | μ ∈ invariantFields (shiftGroup (ι → ℤ) E) ∧
         energyVec Ψ μ ∈ B}, (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν μ)
@@ -762,21 +773,6 @@ lemma coe_le_specificRelativeEntropy (μ : Measure ((ι → ℤ) → E)) :
     + (Φ : Potential (ι → ℤ) E).specificEnergy μ : ℝ) : EReal)]
   gcongr
   simpa using EReal.neg_le_neg_iff.2 (specificEntropy_nonpos ν (μ := μ))
-
-omit [Fintype ι] [Fintype K] [DecidableEq ι] in
-/-- **Georgii Remark (15.26)(2)** at `Ψ = 0`: `|⟨μ, Φ⟩| ≤ ‖Φ‖₀`. (Missing from
-`Specification/Pressure.lean`, whose `Potential.abs_specificEnergy_sub_le` is the two-potential
-form.) -/
-lemma abs_specificEnergy_le (μ : Measure ((ι → ℤ) → E)) [IsProbabilityMeasure μ] :
-    |(Φ : Potential (ι → ℤ) E).specificEnergy μ|
-      ≤ (((Φ : Potential (ι → ℤ) E)).normAt 0).toReal := by
-  rw [Potential.specificEnergy]
-  calc |∫ η, (Φ : Potential (ι → ℤ) E).energyDensity η ∂μ|
-      = ‖∫ η, (Φ : Potential (ι → ℤ) E).energyDensity η ∂μ‖ := (Real.norm_eq_abs _).symm
-    _ ≤ (((Φ : Potential (ι → ℤ) E)).normAt 0).toReal * μ.real Set.univ :=
-        norm_integral_le_of_norm_le_const (.of_forall fun η ↦ by
-          rw [Real.norm_eq_abs]; exact Potential.abs_siteEnergy_le 0 η)
-    _ = (((Φ : Potential (ι → ℤ) E)).normAt 0).toReal := by simp
 
 variable (ν Φ) in
 omit [Fintype K] in
@@ -818,7 +814,8 @@ theorem isCompact_setOf_specificRelativeEntropy_le [StandardBorelSpace E] (c : �
       (μ.toMeasure : Measure ((ι → ℤ) → E)) - c : ℝ) : EReal)
       ≤ specificEntropy ν (μ.toMeasure : Measure ((ι → ℤ) → E)) :=
     specificRelativeEntropy_le_coe_iff.1 hμ
-  have h2 := abs_le.1 (abs_specificEnergy_le (Φ := Φ) (μ.toMeasure : Measure ((ι → ℤ) → E)))
+  have h2 := abs_le.1 (Potential.abs_specificEnergy_le (Φ := (Φ : Potential (ι → ℤ) E))
+    (μ.toMeasure : Measure ((ι → ℤ) → E)))
   exact le_trans (EReal.coe_le_coe_iff.2 (by linarith [h2.1])) h1
 
 variable (ν Φ) in

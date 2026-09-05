@@ -2345,11 +2345,7 @@ lemma sigmaFiniteLambdaZ_congr_of_eqOn_compl
       simp [juxt_apply_of_not_mem (Λ := (Λ : Set S)) (η := η₁) (ζ := ζ) hx,
         juxt_apply_of_not_mem (Λ := (Λ : Set S)) (η := η₂) (ζ := ζ) hx, h x hx']
   simp only [sigmaFiniteLambdaZ]
-  rw [sigmaFiniteLambdaFun_apply_eq_map, sigmaFiniteLambdaFun_apply_eq_map]
-  rw [lintegral_map hρΛ (Measurable.juxt (Λ := (Λ : Set S)) (η := η₁) (𝓔 := mE))]
-  simpa [hjuxt] using
-    (lintegral_map hρΛ
-      (Measurable.juxt (Λ := (Λ : Set S)) (η := η₂) (𝓔 := mE))).symm
+  rw [sigmaFiniteLambdaFun_apply_eq_map, sigmaFiniteLambdaFun_apply_eq_map, hjuxt]
 
 /-- Pull the boundary normalization of a σ-finite normalized premodifier outside an integral. -/
 lemma lintegral_sigmaFinitePremodifierNorm_mul_eq

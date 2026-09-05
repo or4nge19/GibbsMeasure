@@ -48,7 +48,8 @@ generating-function route would need an identity theorem for power series.
 
 * `binomialWeight`, `poissonWeight` — **Georgii (11.20), (11.21)**, tied to Mathlib's
   `ProbabilityTheory.binomial` and `ProbabilityTheory.poissonMeasure` by
-  `binomialWeight_eq_binomial_real` and `poissonWeight_eq_poissonMeasure_real`.
+  `binomialWeight_eq_binomial_real`, `poissonWeight_eq_poissonMeasure_real` and
+  `poissonWeight_eq_poissonMeasure_real_toNNReal`.
 * `sum_binomialWeight_mul_binomialWeight` — **Georgii (11.22)**, `ℓ(m,p,·) ∗ ℓ(n,p,·)
   = ℓ(m+n,p,·)` (Vandermonde).
 * `hasSum_binomialWeight_mul_binomialWeight`, `sum_binomialWeight_mul_binomialWeight_left` —
@@ -91,9 +92,18 @@ mass that Mathlib's `ProbabilityTheory.binomial` puts on `{k}`
 (`binomialWeight_eq_binomial_real`). -/
 def binomialWeight (n : ℕ) (p : ℝ) (k : ℕ) : ℝ := n.choose k * p ^ k * (1 - p) ^ (n - k)
 
-/-- **Georgii (11.21).** The Poisson weight `𝔭(a, k) = e^{-a} a^k / k!`; it is the mass that
-Mathlib's `ProbabilityTheory.poissonMeasure` puts on `{k}`
-(`poissonWeight_eq_poissonMeasure_real`). -/
+/-- **Georgii (11.21).** The Poisson weight `𝔭(a, k) = e^{-a} a^k / k!`.
+
+For `0 ≤ a` this is the mass that Mathlib's `ProbabilityTheory.poissonMeasure` puts on `{k}`
+(`poissonWeight_eq_poissonMeasure_real`, `poissonWeight_eq_poissonMeasure_real_toNNReal`), and
+every fact about it below that needs a sign is taken from there. It is *not* an abbreviation for
+that mass, because Mathlib's rate is an `ℝ≥0` while several of Georgii's identities are
+identities of real polynomials in the rate that hold with no sign hypothesis at all:
+`sum_poissonWeight_mul_poissonWeight` (11.24) for arbitrary real rates, and
+`hasSum_poissonWeight_mul_binomialWeight` (11.25),
+`poissonWeight_one_mul_binomialWeight_mul_poissonWeight` and
+`poissonWeight_one_mul_matrixReal_comm` (11.28) for arbitrary real survival probability `p`, hence
+for the possibly negative rates `a * p` and `1 - p`. -/
 def poissonWeight (a : ℝ) (k : ℕ) : ℝ := Real.exp (-a) * a ^ k / k !
 
 lemma binomialWeight_eq_binomial_real (n k : ℕ) (p : I) :
@@ -104,11 +114,18 @@ lemma poissonWeight_eq_poissonMeasure_real (a : ℝ≥0) (k : ℕ) :
 
 section Weights
 
+/-- **Georgii (11.21) against Mathlib, at a nonnegative real rate.** `𝔭(a, ·)` is the one-point
+mass of `ProbabilityTheory.poissonMeasure` at rate `a.toNNReal`. -/
+lemma poissonWeight_eq_poissonMeasure_real_toNNReal {a : ℝ} (ha : 0 ≤ a) (k : ℕ) :
+    poissonWeight a k = Po(a.toNNReal).real {k} := by
+  rw [← poissonWeight_eq_poissonMeasure_real, Real.coe_toNNReal a ha]
+
 lemma poissonWeight_nonneg {a : ℝ} (ha : 0 ≤ a) (k : ℕ) : 0 ≤ poissonWeight a k := by
-  simp only [poissonWeight]; positivity
+  rw [poissonWeight_eq_poissonMeasure_real_toNNReal ha]; exact measureReal_nonneg
 
 lemma poissonWeight_pos {a : ℝ} (ha : 0 < a) (k : ℕ) : 0 < poissonWeight a k := by
-  simp only [poissonWeight]; positivity
+  rw [poissonWeight_eq_poissonMeasure_real_toNNReal ha.le]
+  exact poissonMeasure_real_singleton_pos k (Real.toNNReal_pos.2 ha)
 
 lemma poissonWeight_zero (a : ℝ) : poissonWeight a 0 = Real.exp (-a) := by
   simp [poissonWeight]

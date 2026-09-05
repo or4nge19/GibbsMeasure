@@ -20,6 +20,11 @@ variational characterisation of the quadratic form of `A⁻¹`,
 and its consequence `Matrix.PosDef.dotProduct_mulVec_inv_submatrix_le`: the quadratic form of the
 inverse of a principal submatrix is dominated by the quadratic form of the inverse, i.e.
 `(A_{II})⁻¹ ≤ (A⁻¹)_{II}` in the positive semidefinite order.
+
+It also proves `Matrix.posDef_of_sum_row_lt_diag`, the standard fact that a real symmetric matrix
+with a strictly dominant diagonal is positive definite. Mathlib has Gershgorin's circle theorem
+(`Mathlib/LinearAlgebra/Matrix/Gershgorin.lean`), from which strict diagonal dominance gives
+*nonsingularity* (`det_ne_zero_of_sum_row_lt_diag`), but not positive definiteness.
 -/
 
 @[expose] public section
@@ -55,6 +60,121 @@ theorem Matrix.posDef_iff_forall_finset_submatrix {ι : Type*} {A : Matrix ι ι
     refine Finset.sum_congr rfl fun j _ ↦ ?_
     ring
 
+
+/-! ## Strict diagonal dominance -/
+
+namespace Matrix
+
+variable {n : Type*} [Fintype n] [DecidableEq n] {A : Matrix n n ℝ}
+
+/-- The off-diagonal part of a sum over `Finset.univ`, written with an `if` so that
+`Finset.sum_comm` applies to it. -/
+private lemma sum_ite_ne_eq_sum_erase (f : n → n → ℝ) (i : n) :
+    ∑ j, (if i = j then (0 : ℝ) else f i j) = ∑ j ∈ Finset.univ.erase i, f i j := by
+  rw [← Finset.add_sum_erase _ (fun j ↦ if i = j then (0 : ℝ) else f i j) (Finset.mem_univ i)]
+  have hii : (if i = i then (0 : ℝ) else f i i) = 0 := by simp
+  rw [hii, zero_add]
+  refine Finset.sum_congr rfl fun j hj ↦ ?_
+  have hij : i ≠ j := Ne.symm (Finset.mem_erase.1 hj).1
+  simp [hij]
+
+/-- **A real symmetric matrix with a strictly dominant diagonal is positive definite.**
+
+If `∑_{j ≠ i} |A i j| < A i i` for every `i`, then `0 < xᵀ A x` for every `x ≠ 0`, because
+`|A i j| |x i| |x j| ≤ |A i j| (x i ^ 2 + x j ^ 2) / 2` bounds the off-diagonal part of the
+quadratic form by `∑ i, (∑_{j ≠ i} |A i j|) x i ^ 2`, leaving `∑ i, (A i i - ∑_{j ≠ i} |A i j|)
+x i ^ 2 > 0`. The symmetry of `A` is what turns the *column* sums produced by the second half of
+the bound back into the row sums of the hypothesis.
+
+Mathlib's `det_ne_zero_of_sum_row_lt_diag` (Gershgorin) gives only nonsingularity under the same
+hypothesis; the hypothesis is written in the same shape as there, over `Finset.univ.erase i`
+(with `|·|` rather than `‖·‖`, which for a real matrix is the same thing). -/
+theorem posDef_of_sum_row_lt_diag (hsymm : ∀ i j, A i j = A j i)
+    (hdom : ∀ i, ∑ j ∈ Finset.univ.erase i, |A i j| < A i i) : A.PosDef := by
+  classical
+  have hherm : A.IsHermitian := by
+    refine Matrix.IsHermitian.ext fun i j ↦ ?_
+    simpa using hsymm j i
+  refine Matrix.posDef_iff_dotProduct_mulVec.2 ⟨hherm, fun x hx ↦ ?_⟩
+  set t : n → n → ℝ := fun i j ↦ x i * A i j * x j with ht
+  set c : n → n → ℝ := fun i j ↦ if i = j then (0 : ℝ) else |A i j| with hc
+  set r : n → ℝ := fun i ↦ ∑ j, c i j with hrdef
+  have hr : ∀ i, r i = ∑ j ∈ Finset.univ.erase i, |A i j| := fun i ↦
+    sum_ite_ne_eq_sum_erase (fun i j ↦ |A i j|) i
+  have hexp : star x ⬝ᵥ (A *ᵥ x) = ∑ i, ∑ j, t i j := by
+    simp only [star_trivial, dotProduct, mulVec, ht]
+    refine Finset.sum_congr rfl fun i _ ↦ ?_
+    rw [Finset.mul_sum]
+    exact Finset.sum_congr rfl fun j _ ↦ by ring
+  have hsplit : ∀ i, ∑ j, t i j
+      = A i i * x i ^ 2 + ∑ j, (if i = j then (0 : ℝ) else t i j) := by
+    intro i
+    rw [sum_ite_ne_eq_sum_erase t i, ← Finset.add_sum_erase _ (fun j ↦ t i j) (Finset.mem_univ i)]
+    simp only [ht]
+    ring
+  have hb : ∀ i j, (if i = j then (0 : ℝ) else t i j) ≥ -(c i j * (x i ^ 2 + x j ^ 2) / 2) := by
+    intro i j
+    by_cases hij : i = j
+    · simp [hij, hc]
+    · simp only [ite_eq_right hij, hc, ht]
+      nlinarith [abs_nonneg (A i j), sq_nonneg (x i - x j), sq_nonneg (x i + x j),
+        neg_abs_le (A i j), le_abs_self (A i j), sq_nonneg (x i), sq_nonneg (x j)]
+  have hcsymm : ∀ i j, c i j = c j i := by
+    intro i j
+    simp only [hc]
+    by_cases hij : i = j
+    · simp [hij]
+    · rw [ite_eq_right hij, ite_eq_right (Ne.symm hij), hsymm i j]
+  have hsum_b : ∑ i, ∑ j, (c i j * (x i ^ 2 + x j ^ 2) / 2) = ∑ i, r i * x i ^ 2 := by
+    have h1 : ∀ i, ∑ j, (c i j * (x i ^ 2 + x j ^ 2) / 2)
+        = (∑ j, c i j * x i ^ 2) / 2 + (∑ j, c i j * x j ^ 2) / 2 := by
+      intro i
+      have hterm : ∀ j, c i j * (x i ^ 2 + x j ^ 2) / 2
+          = c i j * x i ^ 2 / 2 + c i j * x j ^ 2 / 2 := fun j ↦ by ring
+      simp only [hterm]
+      rw [Finset.sum_add_distrib, ← Finset.sum_div, ← Finset.sum_div]
+    have h2 : ∑ i, (∑ j, c i j * x i ^ 2) = ∑ i, r i * x i ^ 2 := by
+      refine Finset.sum_congr rfl fun i _ ↦ ?_
+      rw [← Finset.sum_mul, hrdef]
+    have h3 : ∑ i, (∑ j, c i j * x j ^ 2) = ∑ i, r i * x i ^ 2 := by
+      rw [Finset.sum_comm]
+      refine Finset.sum_congr rfl fun j _ ↦ ?_
+      rw [← Finset.sum_mul, hrdef]
+      congr 1
+      exact Finset.sum_congr rfl fun i _ ↦ hcsymm i j
+    simp only [h1]
+    rw [Finset.sum_add_distrib, ← Finset.sum_div, ← Finset.sum_div, h2, h3]
+    ring
+  have hlower : ∑ i, ∑ j, t i j ≥ ∑ i, (A i i - r i) * x i ^ 2 := by
+    have hstep : ∑ i, ∑ j, t i j
+        = ∑ i, A i i * x i ^ 2 + ∑ i, ∑ j, (if i = j then (0 : ℝ) else t i j) := by
+      rw [← Finset.sum_add_distrib]
+      exact Finset.sum_congr rfl fun i _ ↦ hsplit i
+    have hge : ∑ i, ∑ j, (if i = j then (0 : ℝ) else t i j)
+        ≥ -∑ i, ∑ j, (c i j * (x i ^ 2 + x j ^ 2) / 2) := by
+      rw [← Finset.sum_neg_distrib]
+      refine Finset.sum_le_sum fun i _ ↦ ?_
+      rw [← Finset.sum_neg_distrib]
+      exact Finset.sum_le_sum fun j _ ↦ hb i j
+    rw [hstep, hsum_b] at *
+    have hdist : ∑ i, (A i i - r i) * x i ^ 2
+        = ∑ i, A i i * x i ^ 2 - ∑ i, r i * x i ^ 2 := by
+      rw [← Finset.sum_sub_distrib]
+      exact Finset.sum_congr rfl fun i _ ↦ by ring
+    rw [hdist]
+    linarith [hge]
+  refine lt_of_lt_of_le ?_ (hexp ▸ hlower)
+  obtain ⟨i0, hi0⟩ : ∃ i, x i ≠ 0 := by
+    by_contra hcon
+    exact hx (funext fun i ↦ by simpa using not_not.1 fun h ↦ hcon ⟨i, h⟩)
+  refine Finset.sum_pos' (fun i _ ↦ ?_) ⟨i0, Finset.mem_univ i0, ?_⟩
+  · have hri : r i < A i i := by rw [hr i]; exact hdom i
+    nlinarith [sq_nonneg (x i)]
+  · have hri : r i0 < A i0 i0 := by rw [hr i0]; exact hdom i0
+    have hx0 : 0 < x i0 ^ 2 := by positivity
+    nlinarith
+
+end Matrix
 
 open Finset in
 /-- If `f : n → ℝ` vanishes off the range of an injective `e : m → n`, its total sum is the sum of

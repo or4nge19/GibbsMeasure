@@ -6,7 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import Mathlib.Analysis.Convex.Cone.Extension
-public import Mathlib.Analysis.Convex.Slope
+public import Mathlib.Analysis.Convex.Deriv
 public import Mathlib.Analysis.Convex.Topology
 public import Mathlib.Analysis.LocallyConvex.Separation
 public import Mathlib.Analysis.Normed.Module.Basic
@@ -27,6 +27,19 @@ directional derivatives
 
 exist and satisfy `leftDirDeriv ≤ rightDirDeriv`. This is Georgii, *Gibbs Measures and Phase
 Transitions*, (16.2).
+
+These are the one-sided derivatives of the line restriction `t ↦ f (x + t • y)`, so everything
+about them is Mathlib's one-variable convex-derivative theory
+(`Mathlib/Analysis/Convex/Deriv.lean`) transported along `ConvexOn.convexOn_line`:
+`ConvexOn.dirSlope_eq_slope`, `ConvexOn.rightDirDeriv_eq_derivWithin` and
+`ConvexOn.leftDirDeriv_eq_derivWithin` are the bridge, and the basic monotonicity, boundedness,
+comparison and limit lemmas below are corollaries of `ConvexOn.slope_mono`,
+`bddBelow_slope_lt_of_mem_interior`, `ConvexOn.rightDeriv_le_slope_of_mem_interior`,
+`ConvexOn.slope_le_leftDeriv_of_mem_interior`,
+`ConvexOn.leftDeriv_le_rightDeriv_of_mem_interior` and
+`ConvexOn.hasDerivWithinAt_rightDeriv_of_mem_interior`. What is genuinely new here is the
+several-variable, direction-wise part: sublinearity of `y ↦ rightDirDeriv f x y`, `subgradientAt`,
+`negFenchel` and the Hahn–Banach construction of tangent functionals.
 
 `y ↦ rightDirDeriv f x y` is *sublinear*: positively homogeneous and subadditive. That is the
 input to the Hahn–Banach theorem behind the theory of tangent functionals:
@@ -153,16 +166,42 @@ lemma convexOn_line (x y : E) : ConvexOn ℝ (univ : Set ℝ) fun t : ℝ ↦ f 
   simpa [Function.comp_def, AffineMap.lineMap_apply_module', add_comm] using this
 
 omit hf in
-private lemma dirSlope_eq_secant (f : E → ℝ) (x y : E) (t : ℝ) :
-    dirSlope f x y t
-      = ((fun s : ℝ ↦ f (x + s • y)) t - (fun s : ℝ ↦ f (x + s • y)) 0) / (t - 0) := by
+/-- The difference quotient of `f` at `x` in the direction `y` is the slope at `0` of the
+restriction of `f` to the line `t ↦ x + t • y`. This identifies `dirSlope` with Mathlib's
+`slope`, and hence `rightDirDeriv` / `leftDirDeriv` with Mathlib's one-sided `derivWithin`s. -/
+lemma dirSlope_eq_slope (f : E → ℝ) (x y : E) :
+    dirSlope f x y = slope (fun t : ℝ ↦ f (x + t • y)) 0 := by
+  ext t
+  rw [slope_def_field]
   simp [dirSlope]
 
-/-- The difference quotient is monotone off `0`: Georgii's convexity argument for (16.2). -/
+omit hf in
+private lemma sep_univ_gt (a : ℝ) : {t | t ∈ (univ : Set ℝ) ∧ a < t} = Ioi a := by
+  ext t; simp
+
+omit hf in
+private lemma sep_univ_lt (a : ℝ) : {t | t ∈ (univ : Set ℝ) ∧ t < a} = Iio a := by
+  ext t; simp
+
+/-- `∂⁺_y f(x)` is Mathlib's right derivative at `0` of the line restriction
+`t ↦ f (x + t • y)`. -/
+lemma rightDirDeriv_eq_derivWithin (x y : E) :
+    rightDirDeriv f x y = derivWithin (fun t : ℝ ↦ f (x + t • y)) (Ioi 0) 0 := by
+  rw [rightDirDeriv, dirSlope_eq_slope,
+    (hf.convexOn_line x y).rightDeriv_eq_sInf_slope_of_mem_interior (by simp), sep_univ_gt]
+
+/-- `∂⁻_y f(x)` is Mathlib's left derivative at `0` of the line restriction
+`t ↦ f (x + t • y)`. -/
+lemma leftDirDeriv_eq_derivWithin (x y : E) :
+    leftDirDeriv f x y = derivWithin (fun t : ℝ ↦ f (x + t • y)) (Iio 0) 0 := by
+  rw [leftDirDeriv, dirSlope_eq_slope,
+    (hf.convexOn_line x y).leftDeriv_eq_sSup_slope_of_mem_interior (by simp), sep_univ_lt]
+
+/-- The difference quotient is monotone off `0`: Georgii's convexity argument for (16.2). This is
+Mathlib's `ConvexOn.slope_mono` for the line restriction. -/
 lemma monotoneOn_dirSlope (x y : E) : MonotoneOn (dirSlope f x y) {t : ℝ | t ≠ 0} := by
-  intro s hs t ht hst
-  rw [dirSlope_eq_secant, dirSlope_eq_secant]
-  exact (hf.convexOn_line x y).secant_mono (mem_univ _) (mem_univ _) (mem_univ _) hs ht hst
+  rw [dirSlope_eq_slope]
+  exact ((hf.convexOn_line x y).slope_mono (mem_univ 0)).mono fun t ht ↦ ⟨mem_univ t, ht⟩
 
 lemma monotoneOn_dirSlope_Ioi (x y : E) : MonotoneOn (dirSlope f x y) (Ioi 0) :=
   (hf.monotoneOn_dirSlope x y).mono fun _ ht ↦ ne_of_gt ht
@@ -176,43 +215,44 @@ lemma dirSlope_le_dirSlope (x y : E) {s t : ℝ} (hs : s < 0) (ht : 0 < t) :
   hf.monotoneOn_dirSlope x y (ne_of_lt hs) (ne_of_gt ht) (hs.trans ht).le
 
 lemma bddBelow_dirSlope_Ioi (x y : E) : BddBelow (dirSlope f x y '' Ioi 0) := by
-  refine ⟨dirSlope f x y (-1), ?_⟩
-  rintro _ ⟨t, ht, rfl⟩
-  exact hf.dirSlope_le_dirSlope x y (by norm_num) ht
+  rw [dirSlope_eq_slope, ← sep_univ_gt (0 : ℝ)]
+  exact bddBelow_slope_lt_of_mem_interior (hf.convexOn_line x y) (by simp)
 
 lemma bddAbove_dirSlope_Iio (x y : E) : BddAbove (dirSlope f x y '' Iio 0) := by
-  refine ⟨dirSlope f x y 1, ?_⟩
-  rintro _ ⟨t, ht, rfl⟩
-  exact hf.dirSlope_le_dirSlope x y ht one_pos
+  rw [dirSlope_eq_slope, ← sep_univ_lt (0 : ℝ)]
+  exact bddAbove_slope_gt_of_mem_interior (hf.convexOn_line x y) (by simp)
 
 /-- `∂⁺_y f(x) ≤ (f (x + t • y) - f x) / t` for every `t > 0`. -/
 lemma rightDirDeriv_le_dirSlope (x y : E) {t : ℝ} (ht : 0 < t) :
-    rightDirDeriv f x y ≤ dirSlope f x y t :=
-  csInf_le (hf.bddBelow_dirSlope_Ioi x y) ⟨t, ht, rfl⟩
+    rightDirDeriv f x y ≤ dirSlope f x y t := by
+  rw [hf.rightDirDeriv_eq_derivWithin, dirSlope_eq_slope]
+  exact (hf.convexOn_line x y).rightDeriv_le_slope_of_mem_interior (by simp) (mem_univ t) ht
 
 /-- `(f (x + t • y) - f x) / t ≤ ∂⁻_y f(x)` for every `t < 0`. -/
 lemma dirSlope_le_leftDirDeriv (x y : E) {t : ℝ} (ht : t < 0) :
-    dirSlope f x y t ≤ leftDirDeriv f x y :=
-  le_csSup (hf.bddAbove_dirSlope_Iio x y) ⟨t, ht, rfl⟩
+    dirSlope f x y t ≤ leftDirDeriv f x y := by
+  rw [hf.leftDirDeriv_eq_derivWithin, dirSlope_eq_slope, slope_comm]
+  exact (hf.convexOn_line x y).slope_le_leftDeriv_of_mem_interior (mem_univ t) (by simp) ht
 
 /-- **Georgii (16.2):** `∂⁻_y f(x) ≤ ∂⁺_y f(x)`. -/
 lemma leftDirDeriv_le_rightDirDeriv (x y : E) :
     leftDirDeriv f x y ≤ rightDirDeriv f x y := by
-  refine csSup_le ⟨_, ⟨-1, mem_Iio.2 (by norm_num), rfl⟩⟩ ?_
-  rintro _ ⟨s, hs, rfl⟩
-  refine le_csInf ⟨_, ⟨1, mem_Ioi.2 one_pos, rfl⟩⟩ ?_
-  rintro _ ⟨t, ht, rfl⟩
-  exact hf.dirSlope_le_dirSlope x y hs ht
+  rw [hf.leftDirDeriv_eq_derivWithin, hf.rightDirDeriv_eq_derivWithin]
+  exact (hf.convexOn_line x y).leftDeriv_le_rightDeriv_of_mem_interior (by simp)
 
 /-- **Georgii (16.2):** `∂⁺_y f(x) = lim_{t ↓ 0} (f (x + t • y) - f x) / t`. -/
 lemma tendsto_dirSlope_rightDirDeriv (x y : E) :
-    Tendsto (dirSlope f x y) (𝓝[>] 0) (𝓝 (rightDirDeriv f x y)) :=
-  (hf.monotoneOn_dirSlope_Ioi x y).tendsto_nhdsGT (hf.bddBelow_dirSlope_Ioi x y)
+    Tendsto (dirSlope f x y) (𝓝[>] 0) (𝓝 (rightDirDeriv f x y)) := by
+  rw [hf.rightDirDeriv_eq_derivWithin, dirSlope_eq_slope]
+  exact (hasDerivWithinAt_iff_tendsto_slope' self_notMem_Ioi).1
+    ((hf.convexOn_line x y).hasDerivWithinAt_rightDeriv_of_mem_interior (by simp))
 
 /-- **Georgii (16.2):** `∂⁻_y f(x) = lim_{t ↑ 0} (f (x + t • y) - f x) / t`. -/
 lemma tendsto_dirSlope_leftDirDeriv (x y : E) :
-    Tendsto (dirSlope f x y) (𝓝[<] 0) (𝓝 (leftDirDeriv f x y)) :=
-  (hf.monotoneOn_dirSlope_Iio x y).tendsto_nhdsLT (hf.bddAbove_dirSlope_Iio x y)
+    Tendsto (dirSlope f x y) (𝓝[<] 0) (𝓝 (leftDirDeriv f x y)) := by
+  rw [hf.leftDirDeriv_eq_derivWithin, dirSlope_eq_slope]
+  exact (hasDerivWithinAt_iff_tendsto_slope' self_notMem_Iio).1
+    ((hf.convexOn_line x y).hasDerivWithinAt_leftDeriv_of_mem_interior (by simp))
 
 
 /-! ### Sublinearity of the right directional derivative -/

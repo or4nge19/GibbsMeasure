@@ -40,10 +40,9 @@ the horizontal component, using that the attaining points have `r ≥ 0`.
 
 The statement is one instance of the general biconjugation theorem `J = J**` for a proper convex
 lower semicontinuous `J`, whose eventual home is a convex-conjugate file in
-`Mathlib/Analysis/Convex/`; it is stated here in the form the rate functions of
-`GibbsMeasure/Mathlib/Probability/LargeDeviations/Basic.lean` consume, with the conjugate `g`
-given rather than constructed, since in the applications `g` is a pressure that is known
-independently.
+`Mathlib/Analysis/Convex/`; it is stated here in the form a large deviation rate function
+consumes, with the conjugate `g` given rather than constructed, since in the applications `g` is
+a pressure that is known independently.
 -/
 
 @[expose] public section
