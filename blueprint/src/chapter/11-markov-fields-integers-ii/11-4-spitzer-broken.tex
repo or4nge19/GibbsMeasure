@@ -3,7 +3,7 @@
 \begin{theorem}[Georgii (11.43)--(11.47)]
     \label{thm:sbi-11-43}
     \uses{def:bl-transfer-matrix, thm:bl-11-14, lem:sc-poisson-limit}
-    \lean{MeasureTheory.GibbsMeasure.Markov.Spitzer.step, MeasureTheory.GibbsMeasure.Markov.Spitzer.noImmigration, MeasureTheory.GibbsMeasure.Markov.Spitzer.noImmigration_pow_apply_singleton, MeasureTheory.GibbsMeasure.Markov.Spitzer.step_pow_apply_singleton, MeasureTheory.GibbsMeasure.Markov.Spitzer.sum_firstPassage_step, MeasureTheory.GibbsMeasure.Markov.Spitzer.nonempty_G, MeasureTheory.GibbsMeasure.Markov.Spitzer.isRecurrent_matrix, MeasureTheory.GibbsMeasure.Markov.Spitzer.not_isPositiveRecurrent_matrix, MeasureTheory.GibbsMeasure.Markov.Spitzer.not_exists_isPositiveRecurrent, MeasureTheory.GibbsMeasure.Markov.Spitzer.exists_null_recurrent, MeasureTheory.GibbsMeasure.Markov.Spitzer.map_shift_ne, MeasureTheory.GibbsMeasure.Markov.Spitzer.infinite_extremePoints_G, ProbabilityTheory.Kernel.tsum_tsum_taboo_pow_ne_top_of_invariant, ProbabilityTheory.Kernel.tsum_firstPassage_self_eq_one, ProbabilityTheory.Kernel.potential_pow_two_apply_singleton_self_eq_top, Real.one_sub_pow_le_exp_neg_mul}
+    \lean{MeasureTheory.GibbsMeasure.Markov.Spitzer.step, MeasureTheory.GibbsMeasure.Markov.Spitzer.noImmigration, MeasureTheory.GibbsMeasure.Markov.Spitzer.noImmigration_pow_apply_singleton, MeasureTheory.GibbsMeasure.Markov.Spitzer.step_pow_apply_singleton, MeasureTheory.GibbsMeasure.Markov.Spitzer.sum_firstPassage_step, MeasureTheory.GibbsMeasure.Markov.Spitzer.nonempty_G, MeasureTheory.GibbsMeasure.Markov.Spitzer.isRecurrent_matrix, MeasureTheory.GibbsMeasure.Markov.Spitzer.not_isPositiveRecurrent_matrix, MeasureTheory.GibbsMeasure.Markov.Spitzer.not_exists_isPositiveRecurrent, MeasureTheory.GibbsMeasure.Markov.Spitzer.exists_null_recurrent, MeasureTheory.GibbsMeasure.Markov.Spitzer.map_shift_ne, MeasureTheory.GibbsMeasure.Markov.Spitzer.infinite_extremePoints_G, ProbabilityTheory.Kernel.tsum_tsum_taboo_pow_ne_top_of_invariant, ProbabilityTheory.Kernel.tsum_firstPassage_self_eq_one, ProbabilityTheory.Kernel.potential_pow_two_apply_singleton_self_eq_top, Real.one_sub_pow_le_exp_neg_mul, MeasureTheory.GibbsMeasure.Markov.Spitzer.entranceChain, MeasureTheory.GibbsMeasure.Markov.Spitzer.isGibbsMeasure_entranceChain, MeasureTheory.GibbsMeasure.Markov.Spitzer.map_shift_entranceChain, MeasureTheory.GibbsMeasure.Markov.Spitzer.tsum_tv_entranceVector_le, MeasureTheory.GibbsMeasure.Markov.Spitzer.tsum_tsum_tv_entranceChain_ne_top, MeasureTheory.GibbsMeasure.Markov.Spitzer.tendsto_atBot_ae_entranceChain, MeasureTheory.GibbsMeasure.Markov.Spitzer.entranceChain_ne, MeasureTheory.GibbsMeasure.Markov.Spitzer.map_shift_entranceChain_ne, MeasureTheory.GibbsMeasure.Markov.Spitzer.not_countable_extremePoints_G}
     \leanok
 
     For Georgii's subcritical branching matrix with immigration at extinction, the powers of the
@@ -17,5 +17,11 @@
     positive recurrent (Kac's inequality for the mean return time), so every shift moves the Gibbs
     measures and $\operatorname{ex}\mathcal G(\gamma^Q)$ is infinite; and $\alpha$ can be chosen
     so that $\mu_P^0(\tau) = \infty$, as Georgii says. The hypothesis is not removable: for
-    positive recurrent $Q$ the conclusions fail, as he remarks.
+    positive recurrent $Q$ the conclusions fail, as he remarks. The closing remarks: the family
+    $\mu^c$, $c > 0$, of Gibbs measures built from the entrance laws satisfies
+    $\theta_j\mu^c = \mu^{cp^{-2j}}$, the $\mu^c$ are pairwise distinct (the limit
+    $\lim_{i\to-\infty}\sigma_i p^{-2i}$ equals $c$ almost surely, by the estimate
+    $\sum_{i<0}\sum_x|\mu^c(\sigma_i = x) - \mathfrak p(cp^{2i},x)| < \infty$ that Georgii
+    asserts without proof and which follows from the closed form of the entrance vector), so
+    $\operatorname{ex}\mathcal G(\gamma^Q)$ is uncountable.
 \end{theorem}

@@ -79,13 +79,20 @@ and `Q^{n+i}(x_n, ·) → ℓ^u_i` for every `i`. Georgii's estimate
   decomposition (7.26) is carried by the extreme points charging `{U = u, V = v}`, and by Steps 2
   and 3 the only candidate is `μ^{u,v}` itself.
 
-What is **not** here: the *parametrised* integral representation `μ = ∫_{[0,∞[²} μ^{u,v}
-m(du, dv)` with `m` the joint law of `(U, V)` under `μ`. What is available is the extreme
-decomposition in the form `μ = ∫ ν w_μ(dν)` (`MeasureTheory.GibbsMeasure.join_weightOf`) with
-`w_μ` carried by `ex 𝒢(Q) = {μ^{u,v}}`; turning `w_μ` into a measure on `[0, ∞[²` needs the
-measurable family `(u, v) ↦ μ^{u,v}` as a kernel `[0,∞[² → 𝒫(E^ℤ)` and the pushforward
-`m = φ(w_μ)` along `φ(ν) = (ν(U), ν(V))`, neither of which is formalised. **Corollary (11.33)**
-is stated in terms of that `m` and is therefore not formalised either.
+The **parametrised representation** `μ = ∫_{[0,∞[²} μ^{u,v} m(du, dv)` completes the theorem
+(`join_map_chainFamily_limitLaw`, `measure_eq_lintegral_chainFamily`). Georgii's index set
+`[0, ∞[²` is `ℝ≥0 × ℝ≥0`; `chainFamily` is the family `(u, v) ↦ μ^{u,v}` on it and is measurable
+(`measurable_chainFamily`), because by (11.10) its value on a centred interval cylinder is
+`ℓ^u_a(σ_a) Q(σ_a, σ_{a+1}) ⋯ e^{-uv} r^v_b(σ_b)`, jointly continuous in `(u, v)`. The measure `m`
+is `limitLaw p μ = μ.map (U, V)` — by definition the law of `(U, V)` — and Georgii's Step 4 says
+it is the image `φ(w_μ)` of the weight of the extreme decomposition (7.26)
+(`limitLaw_eq_map_paramOf`) under `φ(ν) = (ν(U), ν(V))` (`paramOf`, the measurable form of
+Georgii's `φ(ν) = (lim_i ν(σ_i) p^{-i}, lim_i ν(σ_i) p^i)`; the two agree on `ex 𝒢(Q)` by (11.30)).
+`m` is moreover the *unique* measure on `[0, ∞[²` representing `μ` in this way
+(`eq_limitLaw_of_join_map_chainFamily_eq`), which Georgii does not note.
+
+**Corollary (11.33)** — the characterisation of the Markov chains in `𝒢(Q)` — is
+`GibbsMeasure/Model/SpitzerCoxMarkovChains.lean`.
 
 ## Main declarations
 
@@ -140,6 +147,27 @@ is stated in terms of that `m` and is therefore not formalised either.
   `ex 𝒢(γ^Q) = {μ^{u,v} : u, v ≥ 0}`.
 * `existsLimits`, `measurableSet_existsLimits`, `measure_existsLimits_eq_one_of_mem_G` —
   **Georgii Theorem (11.31)**, the existence of `U` and `V` under every `μ ∈ 𝒢(γ^Q)`.
+* `chain_congr`, `chainFamily`, `chainFamily_toNNReal`, `isGibbsMeasure_chainFamily`,
+  `chainFamily_mem_extremePoints_G`, `continuous_rightReal`, `measurable_chainFamily` —
+  **Georgii (11.29) as a measurable family on `[0, ∞[² = ℝ≥0 × ℝ≥0`**.
+* `limAtBot`, `limAtTop`, `limPair`, `measurable_limAtBot`, `measurable_limAtTop`,
+  `measurable_limPair`, `limAtBot_eq_toNNReal`, `limAtTop_eq_toNNReal`, `coe_limAtBot`,
+  `coe_limAtTop`, `limPair_ae_chain`,
+  `map_limPair_chainFamily` — **Georgii Theorem (11.31)**, the random variables `U`, `V` and the
+  law `δ_{(u,v)}` they have under `μ^{u,v}`.
+* `lintegral_apply_chainFamily`, `tendsto_toReal_lintegral_apply_chainFamily_atBot`,
+  `tendsto_toReal_lintegral_apply_chainFamily_atTop` — the mean `μ^{u,v}(σ_i)` and Georgii's own
+  form of `φ`: `lim_{i → -∞} μ^{u,v}(σ_i) p^{-i} = u`, `lim_{i → ∞} μ^{u,v}(σ_i) p^i = v`.
+* `paramOf`, `measurable_paramOf`, `paramOf_chainFamily`,
+  `tendsto_toReal_lintegral_apply_of_mem_extremePoints`,
+  `chainFamily_comp_paramOf_ae_weightOf` — **Georgii's `φ`** from Step 4: on `ex 𝒢(γ^Q)` it is
+  Georgii's `(lim_{i → -∞} ν(σ_i) p^{-i}, lim_{i → ∞} ν(σ_i) p^i)`, and the two identities
+  `φ ∘ μ^{·,·} = id`, `μ^{φ(·)} = id` (`w_μ`-a.s.).
+* `limitLaw`, `limitLaw_chainFamily`, `limitLaw_eq_map_paramOf`, `map_chainFamily_limitLaw`,
+  `join_map_chainFamily_limitLaw`, `bind_chainFamily_limitLaw`,
+  `measure_eq_lintegral_chainFamily`,
+  `eq_limitLaw_of_join_map_chainFamily_eq` — **Georgii Theorem (11.31), the representation**
+  `μ = ∫_{[0,∞[²} μ^{u,v} m(du, dv)` with `m` the law of `(U, V)` under `μ`, and its uniqueness.
 * `not_mem_invariantG_chain`, `injective_map_shift_chain`, `infinite_extremePoints_G`,
   `not_countable_G` — **the phase transition**: `μ^{u,0}` is not shift invariant for `u > 0`, its
   translates are pairwise distinct, `ex 𝒢(γ^Q)` is infinite and `𝒢(γ^Q)` is uncountable.
@@ -2177,6 +2205,480 @@ theorem measure_existsLimits_eq_one_of_mem_G (hp0 : 0 < p) (hp1 : p < 1)
   exact this
 
 end StepFour
+
+/-! ## Georgii Theorem (11.31): the parametrised representation `μ = ∫ μ^{u,v} m(du, dv)`
+
+Georgii's index set `[0, ∞[²` is `ℝ≥0 × ℝ≥0`, and `chainFamily` is the two-parameter family
+`(u, v) ↦ μ^{u,v}` on it. It is a *measurable* family (`measurable_chainFamily`): by (11.10) the
+cylinder probabilities of `μ^{u,v}` are `ℓ^u_a(σ_a) Q(σ_a, σ_{a+1}) ⋯ Q(σ_{b-1}, σ_b) e^{-uv}
+r^v_b(σ_b)`, jointly continuous in `(u, v)` by the explicit formulas (11.29), and a family of
+probability measures is measurable as soon as its values on a generating π-system are
+(`Measurable.measure_of_isPiSystem_of_isProbabilityMeasure`, applied to the centred interval
+cylinders `centredCylinders 0`).
+
+The limits `U`, `V` of Theorem (11.31) are `limAtBot p`, `limAtTop p`, and `limPair p = (U, V)`:
+`limsup`s along `i = -n` resp. `i = n`, truncated to `[0, ∞[`. They are measurable, and Step 3
+identifies them under `μ^{u,v}` (`map_limPair_chainFamily`: the law of `(U, V)` under `μ^{u,v}` is
+`δ_{(u,v)}`).
+
+Georgii's map `φ(ν) = (lim_{i → -∞} ν(σ_i) p^{-i}, lim_{i → ∞} ν(σ_i) p^i)` is `paramOf`, in the
+equivalent form `φ(ν) = (ν(U), ν(V))`: on `ex 𝒢(Q)` the coordinates `U`, `V` are `ν`-almost surely
+constant, so the two expressions agree, and this one is manifestly measurable for the evaluation
+σ-algebra on measures — no interchange of limit and integral is needed.
+
+`m` is `limitLaw p μ = μ.map (U, V)`, *by definition* the distribution of `(U, V)` under `μ`.
+Writing `w_μ` for the representing weight of Theorem (7.26)
+(`MeasureTheory.GibbsMeasure.weightOf`), Step 2 (`exists_eq_chain_of_mem_extremePoints`) and Step
+3 give `chainFamily ∘ paramOf = id` `w_μ`-almost surely, whence Georgii's Step 4:
+
+* `limitLaw_eq_map_paramOf`: `m = φ(w_μ)`;
+* `map_chainFamily_limitLaw`: the image of `m` under `(u, v) ↦ μ^{u,v}` is `w_μ`;
+* `join_map_chainFamily_limitLaw`, `measure_eq_lintegral_chainFamily`:
+  `μ = ∫_{[0,∞[²} μ^{u,v} m(du, dv)`;
+* `eq_limitLaw_of_join_map_chainFamily_eq`: `m` is the *only* measure on `[0, ∞[²` representing
+  `μ` in this way (Georgii does not state this, but it is immediate from
+  `map_limPair_chainFamily`, and it is what makes `m` well defined).
+-/
+
+section Representation
+
+open Filter
+open scoped Topology
+
+variable {p : ℝ}
+
+/-! ### The family `(u, v) ↦ μ^{u,v}` as a measurable family on `[0, ∞[²` -/
+
+/-- Two parameter pairs with the same values give the same Markov chain: `IsBoundaryLaw` is a
+`Prop`, so `chain hp0 hp1 hu hv` depends only on `p`, `u` and `v`. -/
+lemma chain_congr (hp0 : 0 < p) (hp1 : p < 1) {u v u' v' : ℝ} (hu : 0 ≤ u) (hv : 0 ≤ v)
+    (hu' : 0 ≤ u') (hv' : 0 ≤ v') (h₁ : u = u') (h₂ : v = v') :
+    chain hp0 hp1 hu hv = chain hp0 hp1 hu' hv' := by
+  subst h₁; subst h₂; rfl
+
+/-- **Georgii's family `{μ^{u,v} : u, v ≥ 0}` of (11.29) as a function on `[0, ∞[² = ℝ≥0 × ℝ≥0`.**
+This is the domain over which Theorem (11.31) integrates. -/
+def chainFamily (hp0 : 0 < p) (hp1 : p < 1) (t : ℝ≥0 × ℝ≥0) : Measure (ℤ → ℕ) :=
+  chain hp0 hp1 t.1.coe_nonneg t.2.coe_nonneg
+
+instance isProbabilityMeasure_chainFamily (hp0 : 0 < p) (hp1 : p < 1) (t : ℝ≥0 × ℝ≥0) :
+    IsProbabilityMeasure (chainFamily hp0 hp1 t) :=
+  inferInstanceAs (IsProbabilityMeasure (chain hp0 hp1 t.1.coe_nonneg t.2.coe_nonneg))
+
+lemma chainFamily_toNNReal (hp0 : 0 < p) (hp1 : p < 1) {u v : ℝ} (hu : 0 ≤ u) (hv : 0 ≤ v) :
+    chainFamily hp0 hp1 (u.toNNReal, v.toNNReal) = chain hp0 hp1 hu hv :=
+  chain_congr hp0 hp1 (u.toNNReal).coe_nonneg (v.toNNReal).coe_nonneg hu hv
+    (Real.coe_toNNReal u hu) (Real.coe_toNNReal v hv)
+
+lemma isGibbsMeasure_chainFamily (hp0 : 0 < p) (hp1 : p < 1) (t : ℝ≥0 × ℝ≥0) :
+    (transferSpecification (matrix p) (isTransferMatrix hp0 hp1)).IsGibbsMeasure
+      (chainFamily hp0 hp1 t) :=
+  isGibbsMeasure_chain hp0 hp1 t.1.coe_nonneg t.2.coe_nonneg
+
+lemma chainFamily_mem_extremePoints_G (hp0 : 0 < p) (hp1 : p < 1) (t : ℝ≥0 × ℝ≥0) :
+    chainFamily hp0 hp1 t
+      ∈ (G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1))).extremePoints ℝ≥0∞ :=
+  chain_mem_extremePoints_G hp0 hp1 t.1.coe_nonneg t.2.coe_nonneg
+
+/-- The right vectors (11.29) depend continuously on the parameter `v`. -/
+lemma continuous_rightReal (i : ℤ) (x : ℕ) : Continuous fun v : ℝ ↦ rightReal p v i x := by
+  unfold rightReal
+  fun_prop
+
+/-- **Georgii Theorem (11.31): the family `(u, v) ↦ μ^{u,v}` is measurable.** By (11.10) its value
+on a centred interval cylinder is `ℓ^u_a(σ_a) · Q(σ_a, σ_{a+1}) ⋯ Q(σ_{b-1}, σ_b) · e^{-uv}
+r^v_b(σ_b)`, a continuous function of `(u, v)`; the centred interval cylinders form a π-system
+generating the product σ-algebra, so this suffices. -/
+theorem measurable_chainFamily (hp0 : 0 < p) (hp1 : p < 1) :
+    Measurable (chainFamily hp0 hp1) := by
+  refine Measurable.measure_of_isPiSystem_of_isProbabilityMeasure
+    (generateFrom_centredCylinders (E := ℕ) 0) (isPiSystem_centredCylinders 0) ?_
+  rintro S ⟨a, b, ζ, ha, hb, rfl⟩
+  have hab : a ≤ b := le_of_lt (ha.trans hb)
+  have hval : ∀ t : ℝ≥0 × ℝ≥0, chainFamily hp0 hp1 t (intervalCylinder a b ζ)
+      = ENNReal.ofReal (poissonWeight (1 + (t.1 : ℝ) * p ^ a) (ζ a))
+          * pathProd (matrix p) a b ζ
+          * ENNReal.ofReal
+              (Real.exp (-((t.1 : ℝ) * (t.2 : ℝ))) * rightReal p (t.2 : ℝ) b (ζ b)) :=
+    fun t ↦ (isBoundaryLaw hp0 hp1 t.1.coe_nonneg
+      t.2.coe_nonneg).boundaryLawMeasure_intervalCylinder hab ζ
+  simp only [hval]
+  have hfst : Continuous fun t : ℝ≥0 × ℝ≥0 ↦ (t.1 : ℝ) :=
+    NNReal.continuous_coe.comp continuous_fst
+  have hsnd : Continuous fun t : ℝ≥0 × ℝ≥0 ↦ (t.2 : ℝ) :=
+    NNReal.continuous_coe.comp continuous_snd
+  have h1 : Continuous fun t : ℝ≥0 × ℝ≥0 ↦
+      ENNReal.ofReal (poissonWeight (1 + (t.1 : ℝ) * p ^ a) (ζ a)) :=
+    ENNReal.continuous_ofReal.comp ((continuous_poissonWeight (ζ a)).comp
+      (continuous_const.add (hfst.mul continuous_const)))
+  have h2 : Continuous fun t : ℝ≥0 × ℝ≥0 ↦
+      ENNReal.ofReal (Real.exp (-((t.1 : ℝ) * (t.2 : ℝ))) * rightReal p (t.2 : ℝ) b (ζ b)) :=
+    ENNReal.continuous_ofReal.comp
+      ((Real.continuous_exp.comp (hfst.mul hsnd).neg).mul
+        ((continuous_rightReal b (ζ b)).comp hsnd))
+  exact (h1.measurable.mul measurable_const).mul h2.measurable
+
+/-! ### The random variables `U` and `V` -/
+
+/-- **Georgii Theorem (11.31)**, the limit `U = lim_{i → -∞} σ_i p^{-i}`, as a random variable with
+values in `[0, ∞[ = ℝ≥0`. It is the `limsup` along `i = -n` truncated to `[0, ∞[`; on the event
+`existsLimits p` — which by `measure_existsLimits_eq_one_of_mem_G` has full measure under every
+Gibbs measure — the `limsup` is the limit, and elsewhere the value is irrelevant. -/
+def limAtBot (p : ℝ) (ω : ℤ → ℕ) : ℝ≥0 :=
+  (limsup (fun n : ℕ ↦ (ω (-(n : ℤ)) : ℝ) * p ^ n) atTop).toNNReal
+
+/-- **Georgii Theorem (11.31)**, the limit `V = lim_{i → ∞} σ_i p^i`; see `limAtBot`. -/
+def limAtTop (p : ℝ) (ω : ℤ → ℕ) : ℝ≥0 :=
+  (limsup (fun n : ℕ ↦ (ω (n : ℤ) : ℝ) * p ^ n) atTop).toNNReal
+
+/-- Georgii's pair `(U, V)`, whose law under `μ` is the representing measure `m` of Theorem
+(11.31). -/
+def limPair (p : ℝ) (ω : ℤ → ℕ) : ℝ≥0 × ℝ≥0 := (limAtBot p ω, limAtTop p ω)
+
+lemma measurable_limAtBot (p : ℝ) : Measurable (limAtBot p) :=
+  continuous_real_toNNReal.measurable.comp
+    (Measurable.limsup fun n : ℕ ↦
+      (measurable_of_countable fun k : ℕ ↦ (k : ℝ) * p ^ n).comp
+        (measurable_pi_apply (-(n : ℤ))))
+
+lemma measurable_limAtTop (p : ℝ) : Measurable (limAtTop p) :=
+  continuous_real_toNNReal.measurable.comp
+    (Measurable.limsup fun n : ℕ ↦
+      (measurable_of_countable fun k : ℕ ↦ (k : ℝ) * p ^ n).comp
+        (measurable_pi_apply ((n : ℤ))))
+
+lemma measurable_limPair (p : ℝ) : Measurable (limPair p) :=
+  (measurable_limAtBot p).prodMk (measurable_limAtTop p)
+
+lemma limAtBot_eq_toNNReal {ω : ℤ → ℕ} {u : ℝ}
+    (h : Tendsto (fun i : ℤ ↦ (ω i : ℝ) * p ^ (-i)) atBot (𝓝 u)) :
+    limAtBot p ω = u.toNNReal := by
+  rw [← map_neg_natCast_atTop, Filter.tendsto_map'_iff] at h
+  have h' : Tendsto (fun n : ℕ ↦ (ω (-(n : ℤ)) : ℝ) * p ^ n) atTop (𝓝 u) :=
+    h.congr fun n ↦ by simp
+  rw [limAtBot, h'.limsup_eq]
+
+lemma limAtTop_eq_toNNReal {ω : ℤ → ℕ} {v : ℝ}
+    (h : Tendsto (fun i : ℤ ↦ (ω i : ℝ) * p ^ i) atTop (𝓝 v)) :
+    limAtTop p ω = v.toNNReal := by
+  rw [← Nat.map_cast_int_atTop, Filter.tendsto_map'_iff] at h
+  have h' : Tendsto (fun n : ℕ ↦ (ω (n : ℤ) : ℝ) * p ^ n) atTop (𝓝 v) :=
+    h.congr fun n ↦ by simp
+  rw [limAtTop, h'.limsup_eq]
+
+/-- Nothing is lost by letting `U` take values in `[0, ∞[` rather than in `ℝ`: whenever the limit
+`lim_{i → -∞} ω_i p^{-i}` exists it is a limit of nonnegative numbers, hence `limAtBot p ω` read
+back in `ℝ` is that limit. -/
+lemma coe_limAtBot (hp0 : 0 < p) {ω : ℤ → ℕ} {u : ℝ}
+    (h : Tendsto (fun i : ℤ ↦ (ω i : ℝ) * p ^ (-i)) atBot (𝓝 u)) :
+    ((limAtBot p ω : ℝ≥0) : ℝ) = u := by
+  have hu : 0 ≤ u :=
+    ge_of_tendsto h (Eventually.of_forall fun i ↦
+      mul_nonneg (Nat.cast_nonneg _) (zpow_pos hp0 _).le)
+  rw [limAtBot_eq_toNNReal h, Real.coe_toNNReal u hu]
+
+/-- Nothing is lost by letting `V` take values in `[0, ∞[`; see `coe_limAtBot`. -/
+lemma coe_limAtTop (hp0 : 0 < p) {ω : ℤ → ℕ} {v : ℝ}
+    (h : Tendsto (fun i : ℤ ↦ (ω i : ℝ) * p ^ i) atTop (𝓝 v)) :
+    ((limAtTop p ω : ℝ≥0) : ℝ) = v := by
+  have hv : 0 ≤ v :=
+    ge_of_tendsto h (Eventually.of_forall fun i ↦
+      mul_nonneg (Nat.cast_nonneg _) (zpow_pos hp0 _).le)
+  rw [limAtTop_eq_toNNReal h, Real.coe_toNNReal v hv]
+
+/-- **Georgii Theorem (11.31), Step 3, in the form used in Step 4**: `μ^{u,v}`-almost surely
+`(U, V) = (u, v)`. -/
+lemma limPair_ae_chain (hp0 : 0 < p) (hp1 : p < 1) {u v : ℝ} (hu : 0 ≤ u) (hv : 0 ≤ v) :
+    limPair p =ᵐ[chain hp0 hp1 hu hv] fun _ ↦ (u.toNNReal, v.toNNReal) := by
+  filter_upwards [tendsto_atBot_ae_chain hp0 hp1 hu hv,
+    tendsto_atTop_ae_chain hp0 hp1 hu hv] with ω h1 h2
+  rw [limPair, limAtBot_eq_toNNReal h1, limAtTop_eq_toNNReal h2]
+
+/-- **Georgii Theorem (11.31), Step 3**: the law of `(U, V)` under `μ^{u,v}` is `δ_{(u,v)}`. -/
+theorem map_limPair_chainFamily (hp0 : 0 < p) (hp1 : p < 1) (t : ℝ≥0 × ℝ≥0) :
+    (chainFamily hp0 hp1 t).map (limPair p) = Measure.dirac t := by
+  have h : ((t.1 : ℝ).toNNReal, (t.2 : ℝ).toNNReal) = t := by
+    rw [Real.toNNReal_coe, Real.toNNReal_coe]
+  rw [chainFamily, Measure.map_congr (limPair_ae_chain hp0 hp1 t.1.coe_nonneg t.2.coe_nonneg),
+    Measure.map_const, measure_univ, one_smul, h]
+
+/-! ### Georgii's own form of `φ`, through the means of the coordinates -/
+
+/-- **The mean of the coordinate `σ_i` under `μ^{u,v}`**, i.e. Georgii's `ν(σ_i)`: by (11.30) the
+coordinate is Poisson with parameter `(1 + u p^i)(1 + v p^{-i})`, so this is its mean. -/
+theorem lintegral_apply_chainFamily (hp0 : 0 < p) (hp1 : p < 1) (t : ℝ≥0 × ℝ≥0) (i : ℤ) :
+    ∫⁻ ω, (ω i : ℝ≥0∞) ∂(chainFamily hp0 hp1 t)
+      = ENNReal.ofReal ((1 + (t.1 : ℝ) * p ^ i) * (1 + (t.2 : ℝ) * p ^ (-i))) := by
+  set a : ℝ := (1 + (t.1 : ℝ) * p ^ i) * (1 + (t.2 : ℝ) * p ^ (-i)) with ha_def
+  have ha : 0 ≤ a := by
+    have h1 : (0 : ℝ) ≤ (t.1 : ℝ) * p ^ i := mul_nonneg t.1.coe_nonneg (zpow_pos hp0 i).le
+    have h2 : (0 : ℝ) ≤ (t.2 : ℝ) * p ^ (-i) := mul_nonneg t.2.coe_nonneg (zpow_pos hp0 _).le
+    exact mul_nonneg (by linarith) (by linarith)
+  have hev : Measurable fun ω : ℤ → ℕ ↦ ω i := measurable_pi_apply i
+  have hmap : ∀ k : ℕ, (chainFamily hp0 hp1 t).map (fun ω : ℤ → ℕ ↦ ω i) {k}
+      = ENNReal.ofReal (poissonWeight a k) := fun k ↦ by
+    rw [Measure.map_apply hev (measurableSet_singleton k)]
+    exact chain_preimage_singleton hp0 hp1 t.1.coe_nonneg t.2.coe_nonneg i k
+  rw [← lintegral_map (f := fun k : ℕ ↦ (k : ℝ≥0∞)) (measurable_of_countable _) hev,
+    lintegral_countable' (μ := (chainFamily hp0 hp1 t).map fun ω : ℤ → ℕ ↦ ω i)]
+  have hterm : ∀ k : ℕ, (k : ℝ≥0∞) * ((chainFamily hp0 hp1 t).map (fun ω : ℤ → ℕ ↦ ω i)) {k}
+      = ENNReal.ofReal ((k : ℝ) * poissonWeight a k) := fun k ↦ by
+    rw [hmap k, ENNReal.ofReal_mul (Nat.cast_nonneg k), ENNReal.ofReal_natCast]
+  rw [tsum_congr hterm, ← ENNReal.ofReal_tsum_of_nonneg
+      (fun k ↦ mul_nonneg (Nat.cast_nonneg k) (poissonWeight_nonneg ha k))
+      (hasSum_natCast_mul_poissonWeight ha).summable,
+    (hasSum_natCast_mul_poissonWeight ha).tsum_eq]
+
+/-- **Georgii's `φ`, first coordinate, in Georgii's own form.** For `ν = μ^{u,v}` the limit
+`lim_{i → -∞} ν(σ_i) p^{-i}` exists and equals `u`. Together with
+`tendsto_toReal_lintegral_apply_chainFamily_atTop` and `paramOf_chainFamily` this says that on
+`ex 𝒢(γ^Q)` the measurable map `paramOf` *is* Georgii's `φ`. -/
+theorem tendsto_toReal_lintegral_apply_chainFamily_atBot (hp0 : 0 < p) (hp1 : p < 1)
+    (t : ℝ≥0 × ℝ≥0) :
+    Tendsto (fun i : ℤ ↦ (∫⁻ ω, (ω i : ℝ≥0∞) ∂(chainFamily hp0 hp1 t)).toReal * p ^ (-i))
+      atBot (𝓝 (t.1 : ℝ)) := by
+  have hnn : ∀ i : ℤ, (0 : ℝ) ≤ (1 + (t.1 : ℝ) * p ^ i) * (1 + (t.2 : ℝ) * p ^ (-i)) := fun i ↦ by
+    have h1 : (0 : ℝ) ≤ (t.1 : ℝ) * p ^ i := mul_nonneg t.1.coe_nonneg (zpow_pos hp0 i).le
+    have h2 : (0 : ℝ) ≤ (t.2 : ℝ) * p ^ (-i) := mul_nonneg t.2.coe_nonneg (zpow_pos hp0 _).le
+    exact mul_nonneg (by linarith) (by linarith)
+  simp only [lintegral_apply_chainFamily hp0 hp1 t, ENNReal.toReal_ofReal (hnn _)]
+  rw [← map_neg_natCast_atTop, Filter.tendsto_map'_iff]
+  have hp2 : (0 : ℝ) ≤ p ^ 2 := by positivity
+  have hp2' : p ^ 2 < 1 := pow_lt_one₀ hp0.le hp1 (by norm_num)
+  have hkey : ∀ n : ℕ, (1 + (t.1 : ℝ) * p ^ (-(n : ℤ))) * (1 + (t.2 : ℝ) * p ^ (-(-(n : ℤ))))
+        * p ^ (-(-(n : ℤ)))
+      = p ^ n + (t.1 : ℝ) + (t.2 : ℝ) * (p ^ 2) ^ n + ((t.1 : ℝ) * (t.2 : ℝ)) * p ^ n := by
+    intro n
+    have ht : (p : ℝ) ^ n ≠ 0 := (pow_pos hp0 n).ne'
+    simp only [neg_neg, zpow_neg, zpow_natCast]
+    field_simp
+    ring
+  have h1 : Tendsto (fun n : ℕ ↦ p ^ n) atTop (𝓝 0) :=
+    tendsto_pow_atTop_nhds_zero_of_lt_one hp0.le hp1
+  have h2 : Tendsto (fun n : ℕ ↦ (p ^ 2) ^ n) atTop (𝓝 0) :=
+    tendsto_pow_atTop_nhds_zero_of_lt_one hp2 hp2'
+  have h3 := ((h1.add (tendsto_const_nhds (x := (t.1 : ℝ)))).add (h2.const_mul (t.2 : ℝ))).add
+    (h1.const_mul ((t.1 : ℝ) * (t.2 : ℝ)))
+  simp only [zero_add, mul_zero, add_zero] at h3
+  exact h3.congr fun n ↦ (hkey n).symm
+
+/-- **Georgii's `φ`, second coordinate, in Georgii's own form**: for `ν = μ^{u,v}` the limit
+`lim_{i → ∞} ν(σ_i) p^i` exists and equals `v`; see
+`tendsto_toReal_lintegral_apply_chainFamily_atBot`. -/
+theorem tendsto_toReal_lintegral_apply_chainFamily_atTop (hp0 : 0 < p) (hp1 : p < 1)
+    (t : ℝ≥0 × ℝ≥0) :
+    Tendsto (fun i : ℤ ↦ (∫⁻ ω, (ω i : ℝ≥0∞) ∂(chainFamily hp0 hp1 t)).toReal * p ^ i)
+      atTop (𝓝 (t.2 : ℝ)) := by
+  have hnn : ∀ i : ℤ, (0 : ℝ) ≤ (1 + (t.1 : ℝ) * p ^ i) * (1 + (t.2 : ℝ) * p ^ (-i)) := fun i ↦ by
+    have h1 : (0 : ℝ) ≤ (t.1 : ℝ) * p ^ i := mul_nonneg t.1.coe_nonneg (zpow_pos hp0 i).le
+    have h2 : (0 : ℝ) ≤ (t.2 : ℝ) * p ^ (-i) := mul_nonneg t.2.coe_nonneg (zpow_pos hp0 _).le
+    exact mul_nonneg (by linarith) (by linarith)
+  simp only [lintegral_apply_chainFamily hp0 hp1 t, ENNReal.toReal_ofReal (hnn _)]
+  rw [← Nat.map_cast_int_atTop, Filter.tendsto_map'_iff]
+  have hp2 : (0 : ℝ) ≤ p ^ 2 := by positivity
+  have hp2' : p ^ 2 < 1 := pow_lt_one₀ hp0.le hp1 (by norm_num)
+  have hkey : ∀ n : ℕ, (1 + (t.1 : ℝ) * p ^ ((n : ℤ))) * (1 + (t.2 : ℝ) * p ^ (-(n : ℤ)))
+        * p ^ ((n : ℤ))
+      = p ^ n + (t.1 : ℝ) * (p ^ 2) ^ n + (t.2 : ℝ) + ((t.1 : ℝ) * (t.2 : ℝ)) * p ^ n := by
+    intro n
+    have ht : (p : ℝ) ^ n ≠ 0 := (pow_pos hp0 n).ne'
+    simp only [zpow_neg, zpow_natCast]
+    field_simp
+    ring
+  have h1 : Tendsto (fun n : ℕ ↦ p ^ n) atTop (𝓝 0) :=
+    tendsto_pow_atTop_nhds_zero_of_lt_one hp0.le hp1
+  have h2 : Tendsto (fun n : ℕ ↦ (p ^ 2) ^ n) atTop (𝓝 0) :=
+    tendsto_pow_atTop_nhds_zero_of_lt_one hp2 hp2'
+  have h3 := ((h1.add (h2.const_mul (t.1 : ℝ))).add (tendsto_const_nhds (x := (t.2 : ℝ)))).add
+    (h1.const_mul ((t.1 : ℝ) * (t.2 : ℝ)))
+  simp only [zero_add, mul_zero, add_zero] at h3
+  exact h3.congr fun n ↦ (hkey n).symm
+
+/-! ### Georgii's map `φ` and the representing measure `m` -/
+
+/-- **Georgii's map `φ`** from Step 4 of the proof of Theorem (11.31), in the form
+`φ(ν) = (ν(U), ν(V))`. On `ex 𝒢(γ^Q)` this *is* Georgii's
+`φ(ν) = (lim_{i → -∞} ν(σ_i) p^{-i}, lim_{i → ∞} ν(σ_i) p^i)`: both take the value `(u, v)` at
+`ν = μ^{u,v}`, by `paramOf_chainFamily` here and by
+`tendsto_toReal_lintegral_apply_chainFamily_atBot` /
+`tendsto_toReal_lintegral_apply_chainFamily_atTop` for Georgii's expression. Unlike Georgii's
+expression this one is visibly measurable for the evaluation σ-algebra on `Measure (ℤ → ℕ)`
+(`measurable_paramOf`), with no interchange of a limit and an integral. -/
+def paramOf (p : ℝ) (ν : Measure (ℤ → ℕ)) : ℝ≥0 × ℝ≥0 :=
+  ((∫⁻ ω, (limAtBot p ω : ℝ≥0∞) ∂ν).toNNReal, (∫⁻ ω, (limAtTop p ω : ℝ≥0∞) ∂ν).toNNReal)
+
+lemma measurable_paramOf (p : ℝ) : Measurable (paramOf p) :=
+  (ENNReal.measurable_toNNReal.comp (Measure.measurable_lintegral
+      (measurable_coe_nnreal_ennreal.comp (measurable_limAtBot p)))).prodMk
+    (ENNReal.measurable_toNNReal.comp (Measure.measurable_lintegral
+      (measurable_coe_nnreal_ennreal.comp (measurable_limAtTop p))))
+
+/-- `φ(μ^{u,v}) = (u, v)`: Georgii's `φ` inverts the family `chainFamily`. -/
+@[simp] lemma paramOf_chainFamily (hp0 : 0 < p) (hp1 : p < 1) (t : ℝ≥0 × ℝ≥0) :
+    paramOf p (chainFamily hp0 hp1 t) = t := by
+  have hprob : IsProbabilityMeasure (chainFamily hp0 hp1 t) := inferInstance
+  have hae := limPair_ae_chain hp0 hp1 (u := (t.1 : ℝ)) (v := (t.2 : ℝ)) t.1.coe_nonneg
+    t.2.coe_nonneg
+  have h1 : ∫⁻ ω, (limAtBot p ω : ℝ≥0∞) ∂(chainFamily hp0 hp1 t) = (t.1 : ℝ≥0∞) := by
+    rw [show ∫⁻ ω, (limAtBot p ω : ℝ≥0∞) ∂(chainFamily hp0 hp1 t)
+        = ∫⁻ _, ((t.1 : ℝ≥0∞)) ∂(chainFamily hp0 hp1 t) from lintegral_congr_ae ?_,
+      lintegral_const, measure_univ, mul_one]
+    filter_upwards [hae] with ω hω
+    have : limAtBot p ω = ((t.1 : ℝ)).toNNReal := congrArg Prod.fst hω
+    rw [this, Real.toNNReal_coe]
+  have h2 : ∫⁻ ω, (limAtTop p ω : ℝ≥0∞) ∂(chainFamily hp0 hp1 t) = (t.2 : ℝ≥0∞) := by
+    rw [show ∫⁻ ω, (limAtTop p ω : ℝ≥0∞) ∂(chainFamily hp0 hp1 t)
+        = ∫⁻ _, ((t.2 : ℝ≥0∞)) ∂(chainFamily hp0 hp1 t) from lintegral_congr_ae ?_,
+      lintegral_const, measure_univ, mul_one]
+    filter_upwards [hae] with ω hω
+    have : limAtTop p ω = ((t.2 : ℝ)).toNNReal := congrArg Prod.snd hω
+    rw [this, Real.toNNReal_coe]
+  rw [paramOf, h1, h2, ENNReal.toNNReal_coe, ENNReal.toNNReal_coe]
+
+/-- **`paramOf` is Georgii's `φ` on `ex 𝒢(γ^Q)`.** For every extreme Gibbs measure `ν` the two
+limits `lim_{i → -∞} ν(σ_i) p^{-i}` and `lim_{i → ∞} ν(σ_i) p^i` defining Georgii's `φ(ν)` exist,
+and they are the two coordinates of `paramOf p ν`: by Step 2, `ν` is some `μ^{u,v}`, and there
+both descriptions give `(u, v)` (`paramOf_chainFamily`,
+`tendsto_toReal_lintegral_apply_chainFamily_atBot`,
+`tendsto_toReal_lintegral_apply_chainFamily_atTop`). -/
+theorem tendsto_toReal_lintegral_apply_of_mem_extremePoints (hp0 : 0 < p) (hp1 : p < 1)
+    {ν : Measure (ℤ → ℕ)} [IsProbabilityMeasure ν]
+    (hν : ν ∈ (G (transferSpecification (matrix p)
+      (isTransferMatrix hp0 hp1))).extremePoints ℝ≥0∞) :
+    Tendsto (fun i : ℤ ↦ (∫⁻ ω, (ω i : ℝ≥0∞) ∂ν).toReal * p ^ (-i)) atBot
+        (𝓝 ((paramOf p ν).1 : ℝ))
+      ∧ Tendsto (fun i : ℤ ↦ (∫⁻ ω, (ω i : ℝ≥0∞) ∂ν).toReal * p ^ i) atTop
+        (𝓝 ((paramOf p ν).2 : ℝ)) := by
+  obtain ⟨u, v, hu, hv, rfl⟩ := exists_eq_chain_of_mem_extremePoints hp0 hp1 hν
+  rw [← chainFamily_toNNReal hp0 hp1 hu hv, paramOf_chainFamily hp0 hp1]
+  exact ⟨tendsto_toReal_lintegral_apply_chainFamily_atBot hp0 hp1 _,
+    tendsto_toReal_lintegral_apply_chainFamily_atTop hp0 hp1 _⟩
+
+/-- Georgii's `φ` also inverts the family in the other direction, `w_μ`-almost surely: by Step 2
+almost every `ν` in the extreme decomposition of a Gibbs measure is some `μ^{u,v}`. -/
+lemma chainFamily_comp_paramOf_ae_weightOf (hp0 : 0 < p) (hp1 : p < 1)
+    (hG : (G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1))).Nonempty)
+    {μ : Measure (ℤ → ℕ)}
+    (hμ : μ ∈ G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1))) :
+    (chainFamily hp0 hp1 ∘ paramOf p) =ᵐ[weightOf hG μ] id := by
+  have hprob : IsProbabilityMeasure μ := hμ.1
+  filter_upwards [ae_iff.2 (weightOf_extremePoints_compl hG hμ)] with ν hν
+  have hνprob : IsProbabilityMeasure ν := hν.1.1
+  obtain ⟨u, v, hu, hv, rfl⟩ := exists_eq_chain_of_mem_extremePoints hp0 hp1 hν
+  have hcf : chain hp0 hp1 hu hv = chainFamily hp0 hp1 (u.toNNReal, v.toNNReal) :=
+    (chainFamily_toNNReal hp0 hp1 hu hv).symm
+  simp only [Function.comp_apply, id_eq, hcf, paramOf_chainFamily hp0 hp1]
+
+/-- **Georgii Theorem (11.31), the representing measure `m`**: the distribution of `(U, V)` under
+`μ`. -/
+def limitLaw (p : ℝ) (μ : Measure (ℤ → ℕ)) : Measure (ℝ≥0 × ℝ≥0) := μ.map (limPair p)
+
+instance isProbabilityMeasure_limitLaw (p : ℝ) (μ : Measure (ℤ → ℕ)) [IsProbabilityMeasure μ] :
+    IsProbabilityMeasure (limitLaw p μ) :=
+  Measure.isProbabilityMeasure_map (measurable_limPair p).aemeasurable
+
+@[simp] lemma limitLaw_chainFamily (hp0 : 0 < p) (hp1 : p < 1) (t : ℝ≥0 × ℝ≥0) :
+    limitLaw p (chainFamily hp0 hp1 t) = Measure.dirac t :=
+  map_limPair_chainFamily hp0 hp1 t
+
+/-- **Georgii Theorem (11.31), Step 4**: `m = φ(w_μ)`, the image under Georgii's `φ` of the weight
+of the extreme decomposition (7.26). Almost every `ν` in that decomposition is extreme, hence some
+`μ^{u,v}` (Step 2), and under it `(U, V)` is almost surely the constant `φ(ν) = (u, v)` (Step 3);
+so the law of `(U, V)` under the barycentre `μ = ∫ ν w_μ(dν)` is the law of `φ(ν)` under `w_μ`. -/
+theorem limitLaw_eq_map_paramOf (hp0 : 0 < p) (hp1 : p < 1)
+    (hG : (G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1))).Nonempty)
+    {μ : Measure (ℤ → ℕ)}
+    (hμ : μ ∈ G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1))) :
+    limitLaw p μ = (weightOf hG μ).map (paramOf p) := by
+  have hprob : IsProbabilityMeasure μ := hμ.1
+  ext B hB
+  have hpre : MeasurableSet (limPair p ⁻¹' B) := (measurable_limPair p) hB
+  have hlhs : limitLaw p μ B = ∫⁻ ν, ν (limPair p ⁻¹' B) ∂(weightOf hG μ) := by
+    change μ.map (limPair p) B = _
+    rw [Measure.map_apply (measurable_limPair p) hB]
+    conv_lhs => rw [← join_weightOf hG hμ]
+    rw [Measure.join_apply hpre]
+  rw [hlhs, Measure.map_apply (measurable_paramOf p) hB,
+    ← lintegral_indicator_one (measurable_paramOf p hB)]
+  refine lintegral_congr_ae ?_
+  filter_upwards [ae_iff.2 (weightOf_extremePoints_compl hG hμ)] with ν hν
+  have hνprob : IsProbabilityMeasure ν := hν.1.1
+  obtain ⟨u, v, hu, hv, rfl⟩ := exists_eq_chain_of_mem_extremePoints hp0 hp1 hν
+  set t : ℝ≥0 × ℝ≥0 := (u.toNNReal, v.toNNReal) with ht
+  rw [(chainFamily_toNNReal hp0 hp1 hu hv).symm, ← Measure.map_apply (measurable_limPair p) hB,
+    map_limPair_chainFamily hp0 hp1 t, Measure.dirac_apply' _ hB]
+  by_cases hmem : t ∈ B
+  · rw [Set.indicator_of_mem hmem, Set.indicator_of_mem
+      (show chainFamily hp0 hp1 t ∈ paramOf p ⁻¹' B by
+        simpa only [Set.mem_preimage, paramOf_chainFamily hp0 hp1 t] using hmem)]
+    rfl
+  · rw [Set.indicator_of_notMem hmem, Set.indicator_of_notMem
+      (show chainFamily hp0 hp1 t ∉ paramOf p ⁻¹' B by
+        simpa only [Set.mem_preimage, paramOf_chainFamily hp0 hp1 t] using hmem)]
+
+/-- **Georgii Theorem (11.31), Step 4**: the image of `m` under `(u, v) ↦ μ^{u,v}` is the weight
+`w_μ` of the extreme decomposition (7.26). -/
+theorem map_chainFamily_limitLaw (hp0 : 0 < p) (hp1 : p < 1)
+    (hG : (G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1))).Nonempty)
+    {μ : Measure (ℤ → ℕ)}
+    (hμ : μ ∈ G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1))) :
+    (limitLaw p μ).map (chainFamily hp0 hp1) = weightOf hG μ := by
+  rw [limitLaw_eq_map_paramOf hp0 hp1 hG hμ,
+    Measure.map_map (measurable_chainFamily hp0 hp1) (measurable_paramOf p),
+    Measure.map_congr (chainFamily_comp_paramOf_ae_weightOf hp0 hp1 hG hμ), Measure.map_id]
+
+/-- **Georgii Theorem (11.31), the integral representation.**
+`μ = ∫_{[0,∞[²} μ^{u,v} m(du, dv)` for every `μ ∈ 𝒢(γ^Q)`, where `m = limitLaw p μ` is the
+distribution of the pair of boundary limits `(U, V) = (lim_{i → -∞} σ_i p^{-i},
+lim_{i → ∞} σ_i p^i)` under `μ`. -/
+theorem join_map_chainFamily_limitLaw (hp0 : 0 < p) (hp1 : p < 1)
+    (hG : (G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1))).Nonempty)
+    {μ : Measure (ℤ → ℕ)}
+    (hμ : μ ∈ G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1))) :
+    Measure.join ((limitLaw p μ).map (chainFamily hp0 hp1)) = μ := by
+  rw [map_chainFamily_limitLaw hp0 hp1 hG hμ, join_weightOf hG hμ]
+
+/-- **Georgii Theorem (11.31), the integral representation, as a `bind`**: `μ` is the
+`m`-mixture of the family `(u, v) ↦ μ^{u,v}`. -/
+theorem bind_chainFamily_limitLaw (hp0 : 0 < p) (hp1 : p < 1)
+    (hG : (G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1))).Nonempty)
+    {μ : Measure (ℤ → ℕ)}
+    (hμ : μ ∈ G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1))) :
+    (limitLaw p μ).bind (chainFamily hp0 hp1) = μ :=
+  join_map_chainFamily_limitLaw hp0 hp1 hG hμ
+
+/-- **Georgii Theorem (11.31), the integral representation, setwise**:
+`μ(A) = ∫_{[0,∞[²} μ^{u,v}(A) m(du, dv)`. -/
+theorem measure_eq_lintegral_chainFamily (hp0 : 0 < p) (hp1 : p < 1)
+    (hG : (G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1))).Nonempty)
+    {μ : Measure (ℤ → ℕ)}
+    (hμ : μ ∈ G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1)))
+    {A : Set (ℤ → ℕ)} (hA : MeasurableSet A) :
+    μ A = ∫⁻ t, chainFamily hp0 hp1 t A ∂(limitLaw p μ) := by
+  conv_lhs => rw [← join_map_chainFamily_limitLaw hp0 hp1 hG hμ]
+  rw [Measure.join_apply hA,
+    lintegral_map (Measure.measurable_coe hA) (measurable_chainFamily hp0 hp1)]
+
+/-- The representing measure of Theorem (11.31) is **unique**: any measure `m` on `[0, ∞[²` with
+`μ = ∫ μ^{u,v} m(du, dv)` is the distribution of `(U, V)` under `μ`. Georgii does not state this,
+but it is what makes his `m` well defined, and it follows at once from Step 3 in the form
+`map_limPair_chainFamily`. No Gibbs hypothesis on `μ` is needed. -/
+theorem eq_limitLaw_of_join_map_chainFamily_eq (hp0 : 0 < p) (hp1 : p < 1)
+    {μ : Measure (ℤ → ℕ)} {m : Measure (ℝ≥0 × ℝ≥0)}
+    (hm : Measure.join (m.map (chainFamily hp0 hp1)) = μ) : limitLaw p μ = m := by
+  ext B hB
+  have hpre : MeasurableSet (limPair p ⁻¹' B) := (measurable_limPair p) hB
+  have hval : ∀ t : ℝ≥0 × ℝ≥0,
+      chainFamily hp0 hp1 t (limPair p ⁻¹' B) = B.indicator 1 t := fun t ↦ by
+    rw [← Measure.map_apply (measurable_limPair p) hB, map_limPair_chainFamily hp0 hp1 t,
+      Measure.dirac_apply' _ hB]
+  change μ.map (limPair p) B = _
+  rw [Measure.map_apply (measurable_limPair p) hB, ← hm, Measure.join_apply hpre,
+    lintegral_map (Measure.measurable_coe hpre) (measurable_chainFamily hp0 hp1)]
+  simp only [hval]
+  exact lintegral_indicator_one hB
+
+end Representation
 
 end MeasureTheory.GibbsMeasure.Markov.SpitzerCox
 

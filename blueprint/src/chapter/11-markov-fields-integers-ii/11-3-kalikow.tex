@@ -10,3 +10,22 @@
     extreme points while $\mathcal G_\Theta(\gamma^Q)$ is a singleton; its powers are
     $Q^n(x,y) = [p^n\delta_{x-n}(y) + q^{(x-n+1)\vee 0}\alpha(x \wedge (n-1))]\alpha(y)/\alpha(x)$.
 \end{theorem}
+
+\begin{theorem}[Georgii (11.39)]
+    \label{thm:kal-11-39}
+    \uses{thm:kal-11-34, thm:bl-11-14, thm:ext-726}
+    \lean{MeasureTheory.GibbsMeasure.Markov.Kalikow.invariantChain, MeasureTheory.GibbsMeasure.Markov.Kalikow.shiftedChain, MeasureTheory.GibbsMeasure.Markov.Kalikow.tendsto_alpha_div_pow, MeasureTheory.GibbsMeasure.Markov.Kalikow.right_eq_of_tendsto, MeasureTheory.GibbsMeasure.Markov.Kalikow.exists_eq_of_mem_extremePoints, MeasureTheory.GibbsMeasure.Markov.Kalikow.escapeEvent, MeasureTheory.GibbsMeasure.Markov.Kalikow.limitEvent, MeasureTheory.GibbsMeasure.Markov.Kalikow.tendsto_atBot_ae_invariantChain, MeasureTheory.GibbsMeasure.Markov.Kalikow.eventually_eq_ae_shiftedChain, MeasureTheory.GibbsMeasure.Markov.Kalikow.extremePoints_G_eq, MeasureTheory.GibbsMeasure.Markov.Kalikow.measure_existsLimit_eq_one_of_mem_G, MeasureTheory.GibbsMeasure.Markov.Kalikow.eq_add_sum_of_mem_G, MeasureTheory.GibbsMeasure.Markov.Kalikow.isMarkovChain_of_mem_G, MeasureTheory.tendsto_ae_of_forall_tsum_measure_ne_top}
+    \leanok
+
+    $\operatorname{ex}\mathcal G(\gamma^Q) = \{\mu_Q\} \cup \{\mu_j : j \in \mathbb Z\}$: Step 2
+    identifies every extreme Gibbs measure through the limits of (11.9)(c) and the asymptotics
+    $\alpha(k)/p^k \to a$ with the three cases of $x_n - n$; Step 3 shows $Z = \lim_{i\to-\infty}
+    (\sigma_i + i)$ is $-\infty$ $\mu_Q$-a.s.\ and $j$ $\mu_j$-a.s., by the summability estimates
+    and the Borel--Cantelli lemma (complete convergence). Hence $Z$ exists in
+    $\{-\infty\}\cup\mathbb Z$ under every $\mu \in \mathcal G(\gamma^Q)$,
+    $\mu = \mu(Z = -\infty)\mu_Q + \sum_j \mu(Z = j)\mu_j$, and every $\mu \in \mathcal G(\gamma^Q)$
+    is a Markov chain, with transition matrix $Q$.
+\end{theorem}
+\begin{proof}
+    \leanok
+\end{proof}

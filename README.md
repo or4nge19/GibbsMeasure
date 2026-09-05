@@ -540,9 +540,11 @@ measure `m` as stated, its analytic core in
 `GibbsMeasure/Mathlib/MeasureTheory/Integral/PiReflectionComplex.lean`; the Heisenberg-type
 potentials and Theorem (17.29) (`Specification/HeisenbergPeriodic.lean`) with the sufficiency
 halves of Examples (17.30)–(17.32), and the (17.8) erratum as a theorem: symmetry of the form is
-reflection invariance, and a reflection-positive non-invariant measure violates Cauchy–Schwarz.
-Not done: the Berg–Maserick converse (17.28)(1), which the book cites without proof, the necessity
-halves of (17.30)–(17.31), where Georgii's constant is off by a factor 2, and (17.32) in `d = 2`.
+reflection invariance, and a reflection-positive non-invariant measure violates Cauchy–Schwarz;
+the necessity halves of (17.30)–(17.31) by Georgii's test functions (three errata: his constant is
+off by a factor 2, a `sinh` should read `cosh` in a middle display, and his second test function in
+(17.31) must alternate transversally to `k`), and (17.32) in `d = 2` through the Cauchy kernel.
+Not done: the Berg–Maserick converse (17.28)(1), which the book cites without proof.
 
 **Chapter 18, §18.1** (`GibbsMeasure/Model/StarCrossing.lean`, graph theory in
 `GibbsMeasure/Mathlib/Combinatorics/SimpleGraph/InfiniteCluster.lean`): infinite clusters and
@@ -764,8 +766,15 @@ recurrent (Kac's inequality, in the Mathlib layer), every shift moves the Gibbs 
 are infinitely many extreme ones. **(11.31)** is proved in the form `ex 𝒢(γ^Q) = {μ^{u,v}}`, with
 the quantitative half of **(11.9)(c)** (the limit formulas for the boundary law of an extreme Gibbs
 measure, by the backward martingale theorem along the tails, in `GibbsMeasure/Model/BoundaryLawLimits.lean`)
-and the almost-sure limits `U`, `V` by Chebyshev and Borel–Cantelli; the parametrised integral
-representation over the law of `(U, V)` and (11.33) are not yet done.
+and the almost-sure limits `U`, `V` by Chebyshev and Borel–Cantelli, and in the form
+`μ = ∫ μ^{u,v} m(du,dv)` with `m` the law of `(U,V)`, unique. **(11.33)** in full
+(`GibbsMeasure/Model/SpitzerCoxMarkovChains.lean`): the Markov chains in `𝒢(γ^Q)` are the mixtures
+`∫∫ e^{uv} μ^{u,v} m₁(du) m₂(dv)`, equivalently `U`, `V` independent under the tilt `e^{−UV}μ`, via
+the two-sided Markov property of boundary-law measures; **(11.39)** in full
+(`GibbsMeasure/Model/KalikowClassification.lean`): `ex 𝒢 = {μ_Q} ∪ {μ_j}`, the boundary limit `Z`
+exists a.s., the decomposition `μ = μ(Z=−∞)μ_Q + ∑_j μ(Z=j)μ_j`, and every Gibbs measure is a
+Markov chain with matrix `Q`; and the closing remarks of §11.4 (`θ_j μ^c = μ^{cp^{−2j}}`, `ex 𝒢`
+uncountable), including the total-variation estimate Georgii asserts without proof.
 
 **§6.1** (`GibbsMeasure/Model/InhomogeneousIsingChain.lean`): **Theorem (6.4)** in both
 directions — under `∑ e^{-2J_n} < ∞` the inhomogeneous Ising chain has exactly the Gibbs measures

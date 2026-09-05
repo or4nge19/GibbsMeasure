@@ -38,10 +38,10 @@
     marginal (11.30) at three sites separates the parameters.
 \end{proof}
 
-\begin{theorem}[Georgii (11.32) and Theorem (11.31)]
+\begin{theorem}[Georgii (11.32) and Theorem (11.31) in full]
     \label{prop:sc-11-32}
     \uses{thm:sc-11-29, lem:sc-poisson-limit, thm:bl-11-14, thm:ext-726}
-    \lean{MeasureTheory.GibbsMeasure.Markov.SpitzerCox.matrix_pow_apply_singleton, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.matrix_pow_apply_zero, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.tendsto_matrix_pow_apply_singleton, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.tendsto_matrix_pow_apply_singleton_entrance, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.exists_tendsto_mul_pow_of_tendsto_ratio, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.exists_tendsto_matrix_pow_apply_singleton_of_tendsto_ratio, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.exists_eq_chain_of_mem_extremePoints, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.tendsto_ae_of_forall_measure_preimage_singleton_eq, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.tendsto_atBot_ae_chain, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.tendsto_atTop_ae_chain, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.chain_limitEvent, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.chain_mem_extremePoints_G, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.extremePoints_G_eq_range_chain, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.measure_existsLimits_eq_one_of_mem_G, ENNReal.mul_eq_mul_of_toReal_div_eq}
+    \lean{MeasureTheory.GibbsMeasure.Markov.SpitzerCox.matrix_pow_apply_singleton, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.matrix_pow_apply_zero, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.tendsto_matrix_pow_apply_singleton, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.tendsto_matrix_pow_apply_singleton_entrance, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.exists_tendsto_mul_pow_of_tendsto_ratio, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.exists_tendsto_matrix_pow_apply_singleton_of_tendsto_ratio, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.exists_eq_chain_of_mem_extremePoints, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.tendsto_ae_of_forall_measure_preimage_singleton_eq, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.tendsto_atBot_ae_chain, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.tendsto_atTop_ae_chain, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.chain_limitEvent, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.chain_mem_extremePoints_G, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.extremePoints_G_eq_range_chain, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.measure_existsLimits_eq_one_of_mem_G, ENNReal.mul_eq_mul_of_toReal_div_eq, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.chainFamily, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.measurable_chainFamily, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.limPair, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.paramOf, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.limitLaw, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.limitLaw_eq_map_paramOf, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.bind_chainFamily_limitLaw, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.measure_eq_lintegral_chainFamily, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.eq_limitLaw_of_join_map_chainFamily_eq}
     \leanok
 
     $Q^n(x,\cdot) = \ell(x,p^n,\cdot) * \mathfrak p(1-p^n,\cdot)$ (11.32). Theorem (11.31):
@@ -53,9 +53,10 @@
     surely, by Chebyshev and Borel--Cantelli, and $U, V$ exist almost surely under every Gibbs
     measure; Step 4: each $\mu^{u,v}$ is extreme, since its representing weight on the extreme
     points is carried by the measures with the same $(U,V)$. Not formalised: the parametrised
-    representation $\mu = \int \mu^{u,v}\,m(du,dv)$ with $m$ the law of $(U,V)$, which needs the
-    family $(u,v) \mapsto \mu^{u,v}$ as a measurable kernel and the map $\nu \mapsto (\nu(U),\nu(V))$
-    on the extreme points, and with it Corollary (11.33).
+    representation $\mu = \int \mu^{u,v}\,m(du,dv)$ with $m$ the law of $(U,V)$ under $\mu$, for
+    every $\mu \in \mathcal G(\gamma^Q)$, with $m$ the unique representing measure: the family
+    $(u,v) \mapsto \mu^{u,v}$ is a measurable kernel, and the parameter of an extreme measure is
+    the limit of its one-site expectations, Georgii's $\varphi$.
 \end{theorem}
 \begin{proof}
     \leanok
@@ -76,4 +77,24 @@
     Scheff\'e's lemma for series upgrades pointwise to total-variation convergence. Mathlib's
     version fixes the number of trials to the index and passes through an asymptotic equivalence
     that fails when the trial count stays bounded, so it does not transfer.
+\end{proof}
+
+\begin{corollary}[Georgii (11.33)]
+    \label{cor:sc-11-33}
+    \uses{prop:sc-11-32, thm:bl-11-9a, thm:bl-11-9b}
+    \lean{MeasureTheory.GibbsMeasure.Markov.IsBoundaryLaw.measure_inter_inter_preimage_mul, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.limitLawZero, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.exists_prod_of_isMarkovChain, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.exists_isMarkovChain_of_prod, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.indepFun_tilted_of_prod, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.exists_prod_of_indepFun_tilted, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.isMarkovChain_tfae, MeasureTheory.Measure.eq_fst_prod_snd_of_eq_prod, MeasureTheory.map_tilted_comp}
+    \leanok
+
+    For $\mu \in \mathcal G(\gamma^Q)$ the following are equivalent: (a) $\mu$ is a Markov chain;
+    (b) $U$ and $V$ are independent under the tilt $e^{-UV}\mu/\mu(e^{-UV})$; (c)
+    $\mu = \int m_1(du)\int m_2(dv)\,e^{uv}\mu^{u,v}$ for finite measures $m_1, m_2$ (Georgii's
+    ``suitable measures'' are necessarily finite, since $e^{uv} \geq 1$). (a) $\Rightarrow$ (c) by
+    the two-sided Markov property of a boundary-law measure --- past and future are conditionally
+    independent given the present --- applied to the law of $(U,V)$ on $\{\sigma_0 = 0\}$;
+    (c) $\Rightarrow$ (a) because the mixtures $\int \ell^u_i\,m_1(du)$, $\int r^v_i\,m_2(dv)$ form
+    a boundary law; (b) $\Leftrightarrow$ (c) by the uniqueness of the representing measure. So no
+    Markov chain in $\mathcal G(\gamma^Q)$ is extreme, and the converses of (10.9)(3) and (10.21) fail.
+\end{corollary}
+\begin{proof}
+    \leanok
 \end{proof}

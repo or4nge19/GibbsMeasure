@@ -9,6 +9,7 @@ public import GibbsMeasure.Model.SpitzerCox
 public import GibbsMeasure.Mathlib.Probability.Kernel.CountableMatrix.FirstPassage
 public import GibbsMeasure.Mathlib.Probability.Distributions.Poisson.Convergence
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.ENNReal
+public import GibbsMeasure.Mathlib.MeasureTheory.Function.CompleteConvergence
 
 /-!
 # Georgii §11.4: Spitzer's example of totally broken shift-invariance
@@ -71,26 +72,43 @@ The four steps of Georgii's proof:
   `isEntranceLaw_step` and `isEntranceLaw_matrix`, and Theorem (11.9)(a) turns the entrance law
   into a Gibbs measure: `nonempty_G`, which needs no hypothesis on `α` beyond positivity.
 
-What is **not** here: Georgii's closing remarks of §11.4 — that `θ_j(μ^c) = μ^{c p^{-2j}}`, that
-`μ^c(lim_{i → -∞} σ_i p^{-2i} = c) = 1`, and hence that `ex 𝒢(Q)` is *uncountable*.
-`infinite_extremePoints_G` is Georgii's stated `|ex 𝒢(Q)| = ∞`.
+**The closing remarks of §11.4** — the family `μ^c`, `c > 0`, its shift covariance
+`θ_j(μ^c) = μ^{c p^{-2j}}`, the boundary limit `μ^c(lim_{i → -∞} σ_i p^{-2i} = c) = 1`, and the
+uncountability of `ex 𝒢(Q)` — are proved in the section `ClosingRemarks`, all without any
+null-recurrence hypothesis on `α`, exactly as Georgii remarks. The Markov chain `μ^c` is
+`entranceChain`, the measure (11.10) of the entrance law `ℓ_i = α_{c p^{2i}}`, `r_i ≡ 1` of Step 3
+(`isEntranceLaw_matrix` at the parameter `c`); `nonempty_G` is its member `c = 1`.
 
-The obstruction is *not* the Borel–Cantelli step, which is now available in the reusable form
-`MeasureTheory.GibbsMeasure.Markov.SpitzerCox.tendsto_ae_of_forall_measure_preimage_singleton_eq`
-(`GibbsMeasure/Model/SpitzerCox.lean`, Step 3 of Theorem (11.31)). It is the quantitative input
-Georgii asserts without proof, namely
+* `map_shift_entranceChain`: `θ_j(μ^c) = μ^{c p^{-2j}}`, from
+  `IsBoundaryLaw.boundaryLawMeasure_map_shift`.
+* The estimate Georgii asserts without proof,
+  `∑_{i<0} ∑_x |μ^c(σ_i = x) - 𝔭(c p^{2i}, x)| < ∞`, is `tsum_tsum_tv_entranceChain_ne_top`, with
+  the explicit rate `∑_x |α_d(x) - 𝔭(d, x)| ≤ 2 e^{-d}` (`tsum_tv_entranceVector_le`): the entrance
+  vector `α_d` differs from the Poisson weights `𝔭(d, ·)` only by the renewal part
+  `∑_k g_k(d) P^k(0, ·)`, of total mass `e^{-d}` (`tsum_tsum_entranceWeight_mul`), and by the
+  missing mass `𝔭(d, 0) = e^{-d}` at the state `0`; at the site `i` of `μ^c` the parameter is
+  `d = c p^{2i}` (`entranceChain_preimage_singleton`), and `∑_{i<0} e^{-c p^{2i}} < ∞`.
+* `tendsto_atBot_ae_entranceChain`, `entranceChain_entranceLimitEvent`:
+  `μ^c(lim_{i → -∞} σ_i p^{-2i} = c) = 1`. Georgii's Borel–Cantelli argument is run with the
+  deviation bound `μ^c(|σ_{-n} p^{2n} - c| ≥ ε) ≤ c p^{2n}/ε² + e^{-c p^{-2n}}` — Chebyshev for
+  the Poisson weights (`SpitzerCox.tsum_indicator_ofReal_poissonWeight_le`) after the comparison
+  `α_d(S) ≤ 𝔭(d, S) + e^{-d}` (`tsum_indicator_entranceVector_le`) — and the complete-convergence
+  form of the first Borel–Cantelli lemma, `MeasureTheory.tendsto_ae_of_forall_tsum_measure_ne_top'`
+  (`GibbsMeasure/Mathlib/MeasureTheory/Function/CompleteConvergence.lean`).
+* `entranceChain_ne`, `map_shift_entranceChain_ne`: the `μ^c` are pairwise distinct, and
+  `θ_j(μ^c) ≠ μ^c` for `j ≠ 0` — a second proof of the broken invariance, for the `μ^c` only
+  (`map_shift_ne` covers every element of `𝒢(Q)`, but needs the null recurrence).
+* `exists_mem_extremePoints_G_measure_entranceLimitEvent`, `not_countable_extremePoints_G`:
+  the extreme decomposition (7.26) of `μ^c` is carried by the extreme points charging the event
+  `{lim_{i → -∞} σ_i p^{-2i} = c}`; these events are pairwise disjoint, so `ex 𝒢(Q)` is
+  uncountable. This strengthens `infinite_extremePoints_G`, Georgii's stated `|ex 𝒢(Q)| = ∞`.
 
-`∑_{i<0} ∑_{x ∈ E} |μ^c(σ_i = x) - 𝔭(c p^{2i}, x)| < ∞`,
-
-a *summable total-variation* estimate for the convergence `P^n(x_{n-i}, ·) → α_i` of Step 2. Here
-`α_i` is only characterised as a limit of rows of `P^n` — it has no closed form — so the one-site
-marginals of `μ^c` are not explicit and the Chebyshev bound used for the Spitzer–Cox chain is not
-available. Formalising the closing remarks therefore requires first proving that estimate (or a
-substitute giving `∑_{i<0} μ^c(|σ_i p^{-2i} - c| ≥ ε) < ∞`); the Borel–Cantelli argument and the
-extreme-decomposition step would then follow the pattern of `SpitzerCox.tendsto_atBot_ae_chain`
-and `SpitzerCox.chain_mem_extremePoints_G`. The shift identity `θ_j(μ^c) = μ^{c p^{-2j}}` is
-independent of that estimate but is also not formalised: the family `c ↦ μ^c` is not built here
-(only `nonempty_G`, the existence of *one* Gibbs measure, is).
+Whether the `μ^c` themselves are extreme, and whether `ex 𝒢(Q)` has further elements, is the
+question Georgii leaves to the reader; it is not settled here either. His final remark — a
+positive recurrent choice of `α` gives uncountably many phases *and* a shift-invariant one — is
+`not_countable_extremePoints_G` (which needs no hypothesis on `α`) together with Theorem (11.13)
+(`boundaryLawMeasure_const_mem_invariantG`); that a strictly positive `α` making `P` positive
+recurrent exists is not formalised.
 
 The `ℓ(x, p, ·)` weights, Georgii (11.20), and the identities (11.22)–(11.25) live in
 `GibbsMeasure/Model/SpitzerCox.lean`.
@@ -112,6 +130,19 @@ The `ℓ(x, p, ·)` weights, Georgii (11.20), and the identities (11.22)–(11.2
   `extinctionSeq`, `immigrationWeight`, `exists_null_recurrent` — **Georgii §11.4, Step 1**:
   `μ_P^x(τ) → ∞` and a strictly positive probability vector `α` making `P` null recurrent.
 * `map_shift_ne`, `infinite_extremePoints_G` — **Georgii Theorem (11.46)**.
+* `entranceChain`, `isGibbsMeasure_entranceChain`, `mem_G_entranceChain`,
+  `entranceChain_preimage_singleton` — **Georgii's `μ^c`** and its one-site marginals
+  `μ^c(σ_i = x) = α_{c p^{2i}}(x)`.
+* `map_shift_entranceChain` — **§11.4, closing remarks**: `θ_j(μ^c) = μ^{c p^{-2j}}`.
+* `tsum_indicator_entranceVector_le`, `tsum_tsub_entranceVector_poissonWeight_le`,
+  `tsum_tsub_poissonWeight_entranceVector_le`, `tsum_tv_entranceVector_le`,
+  `tsum_tsum_tv_entranceChain_ne_top` — **the summable total-variation estimate** of the
+  closing remarks, with the explicit rate `∑_x |α_d(x) - 𝔭(d, x)| ≤ 2 e^{-d}`.
+* `tendsto_atBot_ae_entranceChain`, `entranceLimitEvent`, `entranceChain_entranceLimitEvent`,
+  `entranceChain_ne`, `map_shift_entranceChain_ne` — **§11.4, closing remarks**:
+  `μ^c(lim_{i → -∞} σ_i p^{-2i} = c) = 1`, and the `μ^c` are pairwise distinct.
+* `exists_mem_extremePoints_G_measure_entranceLimitEvent`, `not_countable_extremePoints_G` —
+  **§11.4, closing remarks**: `ex 𝒢(Q)` is uncountable.
 -/
 
 @[expose] public section
@@ -660,24 +691,30 @@ lemma entranceVector_pos {c : ℝ} (hc : 0 < c) (y : ℕ) : 0 < entranceVector p
     exact ENNReal.ofReal_pos.2 (poissonWeight_pos hc y)
 
 include hαs hα1 in
+/-- **The total mass of the renewal part of the entrance vector.** Summing
+`∑_{k ≥ 0} g_k(c) P^k(0, y)` over `y` and exchanging the two sums leaves `∑_k g_k(c) = e^{-c}`,
+because every row `P^k(0, ·)` is a probability vector. -/
+lemma tsum_tsum_entranceWeight_mul {c : ℝ} (hc : 0 < c) :
+    (∑' y : ℕ, ∑' k : ℕ, entranceWeight p c k * (Kernel.ofMatrix (step p α) ^ k) 0 {y})
+      = ENNReal.ofReal (Real.exp (-c)) := by
+  have hMarkov : IsMarkovKernel (Kernel.ofMatrix (step p α)) :=
+    isMarkovKernel_ofMatrix_step hp0 hp1 hαs hα1 hα
+  have hP : ∀ k : ℕ, ∑' y : ℕ, (Kernel.ofMatrix (step p α) ^ k) 0 {y} = 1 := fun k ↦ by
+    rw [MeasureTheory.Measure.tsum_apply_singleton]
+    exact measure_univ
+  rw [ENNReal.tsum_comm]
+  simp_rw [ENNReal.tsum_mul_left, hP, mul_one]
+  exact tsum_entranceWeight hp0 hp1 hc
+
+include hαs hα1 in
 /-- The entrance vector is a probability vector: the Poisson part contributes `1 - e^{-c}` and
 the renewal series contributes `∑_k g_k(c) = e^{-c}`, since every `P^k(0, ·)` is a probability
 vector. -/
 lemma tsum_entranceVector {c : ℝ} (hc : 0 < c) : ∑' y : ℕ, entranceVector p α c y = 1 := by
-  have hMarkov : IsMarkovKernel (Kernel.ofMatrix (step p α)) :=
-    isMarkovKernel_ofMatrix_step hp0 hp1 hαs hα1 hα
   have hsplit : ∀ y : ℕ, entranceVector p α c y
       = (if y = 0 then 0 else ENNReal.ofReal (poissonWeight c y))
         + ∑' k : ℕ, entranceWeight p c k * (Kernel.ofMatrix (step p α) ^ k) 0 {y} := fun _ ↦ rfl
-  have hP : ∀ k : ℕ, ∑' y : ℕ, (Kernel.ofMatrix (step p α) ^ k) 0 {y} = 1 := fun k ↦ by
-    rw [MeasureTheory.Measure.tsum_apply_singleton]
-    exact measure_univ
-  have h2 : (∑' y : ℕ, ∑' k : ℕ,
-      entranceWeight p c k * (Kernel.ofMatrix (step p α) ^ k) 0 {y})
-      = ENNReal.ofReal (Real.exp (-c)) := by
-    rw [ENNReal.tsum_comm]
-    simp_rw [ENNReal.tsum_mul_left, hP, mul_one]
-    exact tsum_entranceWeight hp0 hp1 hc
+  have h2 := tsum_tsum_entranceWeight_mul hp0 hp1 hα hαs hα1 hc
   have h1 : ENNReal.ofReal (Real.exp (-c))
       + ∑' y : ℕ, (if y = 0 then 0 else ENNReal.ofReal (poissonWeight c y)) = 1 := by
     have hall : ∑' y : ℕ, ENNReal.ofReal (poissonWeight c y) = 1 := by
@@ -812,16 +849,52 @@ theorem isEntranceLaw_matrix {c : ℝ} (hc : 0 < c) :
           rw [show 2 * i + 1 + 1 = 2 * (i + 1) from by ring]
 
 include hαs hα1 in
+/-- **Georgii's Markov chain `μ^c`** (§11.4, closing remarks). The measure (11.10) of the
+boundary law `ℓ_i = α_{c p^{2i}}`, `r_i ≡ 1` supplied by `isEntranceLaw_matrix`: the Gibbs measure
+for `γ^Q` built from a sequence `(x_n)` in `E` with `x_n p^n → c`.
+
+Georgii's proof of Theorem (11.46) only needs `c = 1` (`nonempty_G`); it is the whole
+one-parameter family `{μ^c : c > 0}` that makes `ex 𝒢(Q)` uncountable
+(`not_countable_extremePoints_G`). -/
+abbrev entranceChain {c : ℝ} (hc : 0 < c) : Measure (ℤ → ℕ) :=
+  boundaryLawMeasure ((isEntranceLaw_matrix hp0 hp1 hα hαs hα1 hc).isBoundaryLaw
+    (tsum_matrix hp0 hp1 hα hαs hα1))
+
+include hαs hα1 in
+/-- `μ^c ∈ 𝒢(Q)`: **Georgii Theorem (11.9)(a)** applied to the entrance law of Step 3. -/
+theorem isGibbsMeasure_entranceChain {c : ℝ} (hc : 0 < c) :
+    (transferSpecification (matrix p α) (isTransferMatrix hp0 hp1 hα hαs hα1)).IsGibbsMeasure
+      (entranceChain hp0 hp1 hα hαs hα1 hc) :=
+  isGibbsMeasure_transferSpecification_boundaryLawMeasure _ _
+
+include hαs hα1 in
+lemma mem_G_entranceChain {c : ℝ} (hc : 0 < c) :
+    entranceChain hp0 hp1 hα hαs hα1 hc
+      ∈ G (transferSpecification (matrix p α) (isTransferMatrix hp0 hp1 hα hαs hα1)) :=
+  ⟨inferInstance, isGibbsMeasure_entranceChain hp0 hp1 hα hαs hα1 hc⟩
+
+include hαs hα1 in
+/-- **The one-site marginal of `μ^c`:** `μ^c(σ_i = x) = α_{c p^{2i}}(x)`, because `r ≡ 1`. This is
+the closed formula behind Georgii's estimate of `∑_x |μ^c(σ_i = x) - 𝔭(c p^{2i}, x)|`
+(`tsum_tsub_entranceVector_poissonWeight_le`). -/
+theorem entranceChain_preimage_singleton {c : ℝ} (hc : 0 < c) (i : ℤ) (x : ℕ) :
+    entranceChain hp0 hp1 hα hαs hα1 hc ((fun ω : ℤ → ℕ ↦ ω i) ⁻¹' {x})
+      = entranceVector p α (c * p ^ (2 * i)) x := by
+  have h := IsBoundaryLaw.boundaryLawMeasure_intervalCylinder_self
+    ((isEntranceLaw_matrix hp0 hp1 hα hαs hα1 hc).isBoundaryLaw
+      (tsum_matrix hp0 hp1 hα hαs hα1)) i (fun _ ↦ x)
+  rw [intervalCylinder_self] at h
+  simpa using h
+
+include hαs hα1 in
 /-- **Georgii §11.4, Steps 2–4: `𝒢(Q) ≠ ∅` for Spitzer's `Q = P²`.** The entrance law
 `{α_{p^{2i}}}` of `isEntranceLaw_matrix` is a boundary law with `r_i ≡ 1`, and Theorem
 (11.9)(a) turns it into a Gibbs measure for `γ^Q`. This is the half of Theorem (11.46) that
-Georgii calls "the main point of this example". -/
+Georgii calls "the main point of this example"; it is the member `μ^1` of the family
+`entranceChain`. -/
 theorem nonempty_G :
-    (G (transferSpecification (matrix p α) (isTransferMatrix hp0 hp1 hα hαs hα1))).Nonempty := by
-  have hbl := (isEntranceLaw_matrix hp0 hp1 hα hαs hα1 (c := 1) one_pos).isBoundaryLaw
-    (tsum_matrix hp0 hp1 hα hαs hα1)
-  exact ⟨boundaryLawMeasure hbl, inferInstance,
-    isGibbsMeasure_transferSpecification_boundaryLawMeasure _ hbl⟩
+    (G (transferSpecification (matrix p α) (isTransferMatrix hp0 hp1 hα hαs hα1))).Nonempty :=
+  ⟨_, mem_G_entranceChain hp0 hp1 hα hαs hα1 one_pos⟩
 
 end EntranceLaw
 
@@ -1294,5 +1367,437 @@ theorem infinite_extremePoints_G
       (isTransferMatrix hp0 hp1 hα hαs hα1))).extremePoints ℝ≥0∞).Infinite :=
   infinite_extremePoints_G_of_nonempty_of_not_exists_isPositiveRecurrent _
     (not_exists_isPositiveRecurrent hp0 hp1 hα hαs hα1 hnull) (nonempty_G hp0 hp1 hα hαs hα1)
+
+/-! ## Georgii §11.4, the closing remarks
+
+Georgii ends §11.4 with three assertions about the family `μ^c`, `c > 0`, of
+`entranceChain`, all stated without proof. They are proved below from the closed formula for the
+entrance vector `α_c`, and none of them uses the null-recurrence hypothesis of Theorem (11.46).
+-/
+
+section ClosingRemarks
+
+open Filter
+open scoped Topology
+
+include hαs hα1 in
+/-- **Georgii §11.4, closing remarks: `θ_j(μ^c) = μ^{c p^{-2j}}`.** Shifting the measure (11.10)
+shifts its boundary law (`IsBoundaryLaw.boundaryLawMeasure_map_shift`), and the shifted left
+family is
+
+`ℓ_{i-j} = α_{c p^{2(i-j)}} = α_{(c p^{-2j}) p^{2i}}`,
+
+which is the left family of `μ^{c p^{-2j}}`; the right families are both `≡ 1`. -/
+theorem map_shift_entranceChain {c : ℝ} (hc : 0 < c) (j : ℤ) :
+    (entranceChain hp0 hp1 hα hαs hα1 hc).map (shift ℕ j).toFun
+      = entranceChain hp0 hp1 hα hαs hα1 (mul_pos hc (zpow_pos hp0 (-2 * j))) := by
+  have key : ∀ {ℓ₁ ℓ₂ r₁ r₂ : ℤ → ℕ → ℝ≥0∞} (h₁ : IsBoundaryLaw (matrix p α) ℓ₁ r₁)
+      (h₂ : IsBoundaryLaw (matrix p α) ℓ₂ r₂), ℓ₁ = ℓ₂ → r₁ = r₂ →
+        boundaryLawMeasure h₁ = boundaryLawMeasure h₂ := by
+    rintro ℓ₁ ℓ₂ r₁ r₂ h₁ h₂ rfl rfl
+    rfl
+  refine (((isEntranceLaw_matrix hp0 hp1 hα hαs hα1 hc).isBoundaryLaw
+    (tsum_matrix hp0 hp1 hα hαs hα1)).boundaryLawMeasure_map_shift j).trans ?_
+  refine key _ _ ?_ rfl
+  funext i
+  change entranceVector p α (c * p ^ (2 * (i - j)))
+    = entranceVector p α (c * p ^ (-2 * j) * p ^ (2 * i))
+  have hpow : p ^ (2 * (i - j)) = p ^ (-2 * j) * p ^ (2 * i) := by
+    rw [← zpow_add₀ hp0.ne']
+    congr 1
+    ring
+  rw [hpow, mul_assoc]
+
+omit hp0 hp1 hα in
+/-- Off the state `0` the entrance vector is the Poisson weight plus the renewal part. -/
+lemma entranceVector_of_ne_zero {d : ℝ} {y : ℕ} (hy : y ≠ 0) :
+    entranceVector p α d y = ENNReal.ofReal (poissonWeight d y)
+      + ∑' k : ℕ, entranceWeight p d k * (Kernel.ofMatrix (step p α) ^ k) 0 {y} := by
+  simp [entranceVector, hy]
+
+omit hp0 hp1 hα in
+/-- At the state `0` the entrance vector is the renewal part alone: a surviving population is
+never empty. -/
+lemma entranceVector_zero {d : ℝ} :
+    entranceVector p α d 0
+      = ∑' k : ℕ, entranceWeight p d k * (Kernel.ofMatrix (step p α) ^ k) 0 {0} := by
+  simp [entranceVector]
+
+omit hp0 hp1 hα in
+/-- The entrance vector is dominated by the Poisson weights plus the renewal part:
+`α_d(y) ≤ 𝔭(d, y) + ∑_k g_k(d) P^k(0, y)`, with equality for `y ≠ 0`. -/
+lemma entranceVector_le {d : ℝ} (y : ℕ) :
+    entranceVector p α d y ≤ ENNReal.ofReal (poissonWeight d y)
+      + ∑' k : ℕ, entranceWeight p d k * (Kernel.ofMatrix (step p α) ^ k) 0 {y} := by
+  rcases eq_or_ne y 0 with rfl | hy
+  · rw [entranceVector_zero]
+    exact le_add_self
+  · exact (entranceVector_of_ne_zero hy).le
+
+omit hp0 hp1 hα in
+/-- Off the state `0` the entrance vector dominates the Poisson weights:
+`𝔭(d, y) ≤ α_d(y)` for `y ≠ 0`. -/
+lemma ofReal_poissonWeight_le_entranceVector {d : ℝ} {y : ℕ} (hy : y ≠ 0) :
+    ENNReal.ofReal (poissonWeight d y) ≤ entranceVector p α d y := by
+  rw [entranceVector_of_ne_zero hy]
+  exact le_self_add
+
+include hαs hα1 in
+/-- **The key estimate behind Georgii's closing remarks.** For every set `S` of states the
+entrance vector charges `S` by at most as much as the Poisson weights do, up to the total mass
+`e^{-d}` of the renewal part:
+
+`α_d(S) ≤ 𝔭(d, S) + e^{-d}`.
+
+This is what turns the Chebyshev bound `tsum_indicator_ofReal_poissonWeight_le` for the Poisson
+weights into a bound for the one-site marginals of `μ^c`. -/
+theorem tsum_indicator_entranceVector_le {d : ℝ} (hd : 0 < d) (S : Set ℕ) :
+    ∑' y : ℕ, S.indicator (entranceVector p α d) y
+      ≤ (∑' y : ℕ, S.indicator (fun y ↦ ENNReal.ofReal (poissonWeight d y)) y)
+        + ENNReal.ofReal (Real.exp (-d)) := by
+  classical
+  calc ∑' y : ℕ, S.indicator (entranceVector p α d) y
+      ≤ ∑' y : ℕ, (S.indicator (fun y ↦ ENNReal.ofReal (poissonWeight d y)) y
+          + S.indicator (fun y ↦ ∑' k : ℕ,
+              entranceWeight p d k * (Kernel.ofMatrix (step p α) ^ k) 0 {y}) y) := by
+        refine ENNReal.tsum_le_tsum fun y ↦ ?_
+        by_cases hy : y ∈ S
+        · simp only [Set.indicator_of_mem hy]
+          exact entranceVector_le y
+        · simp only [Set.indicator_of_notMem hy, add_zero, le_refl]
+    _ = (∑' y : ℕ, S.indicator (fun y ↦ ENNReal.ofReal (poissonWeight d y)) y)
+          + ∑' y : ℕ, S.indicator (fun y ↦ ∑' k : ℕ,
+              entranceWeight p d k * (Kernel.ofMatrix (step p α) ^ k) 0 {y}) y := ENNReal.tsum_add
+    _ ≤ (∑' y : ℕ, S.indicator (fun y ↦ ENNReal.ofReal (poissonWeight d y)) y)
+          + ENNReal.ofReal (Real.exp (-d)) := by
+        gcongr
+        rw [← tsum_tsum_entranceWeight_mul hp0 hp1 hα hαs hα1 hd]
+        refine ENNReal.tsum_le_tsum fun y ↦ ?_
+        by_cases hy : y ∈ S
+        · exact (Set.indicator_of_mem hy _).le
+        · simp [Set.indicator_of_notMem hy]
+
+include hαs hα1 in
+/-- Half of Georgii's total-variation estimate: `∑_y (α_d(y) - 𝔭(d, y))⁺ ≤ e^{-d}`, since
+`α_d(y) ≤ 𝔭(d, y) + R_d(y)` and the renewal part `R_d` has total mass `e^{-d}`. -/
+theorem tsum_tsub_entranceVector_poissonWeight_le {d : ℝ} (hd : 0 < d) :
+    (∑' y : ℕ, (entranceVector p α d y - ENNReal.ofReal (poissonWeight d y)))
+      ≤ ENNReal.ofReal (Real.exp (-d)) := by
+  rw [← tsum_tsum_entranceWeight_mul hp0 hp1 hα hαs hα1 hd]
+  refine ENNReal.tsum_le_tsum fun y ↦ ?_
+  rw [tsub_le_iff_right, add_comm]
+  exact entranceVector_le y
+
+omit hp0 hp1 hα in
+/-- The other half of Georgii's total-variation estimate: `∑_y (𝔭(d, y) - α_d(y))⁺ ≤ e^{-d}`.
+The summand vanishes off the state `0`, where it is at most `𝔭(d, 0) = e^{-d}`. -/
+theorem tsum_tsub_poissonWeight_entranceVector_le {d : ℝ} :
+    (∑' y : ℕ, (ENNReal.ofReal (poissonWeight d y) - entranceVector p α d y))
+      ≤ ENNReal.ofReal (Real.exp (-d)) := by
+  classical
+  have hle : ∀ y : ℕ, ENNReal.ofReal (poissonWeight d y) - entranceVector p α d y
+      ≤ if y = 0 then ENNReal.ofReal (Real.exp (-d)) else 0 := by
+    intro y
+    split_ifs with hy
+    · subst hy
+      rw [poissonWeight_zero]
+      exact tsub_le_self
+    · exact (tsub_eq_zero_of_le (ofReal_poissonWeight_le_entranceVector hy)).le
+  refine (ENNReal.tsum_le_tsum hle).trans ?_
+  rw [tsum_eq_single 0 fun b hb ↦ by simp [hb]]
+  simp
+
+include hαs hα1 in
+/-- **Georgii's estimate of §11.4, in quantitative form.** In the last paragraph of §11.4 Georgii
+uses, without proof, that `∑_{i<0} ∑_x |μ^c(σ_i = x) - 𝔭(c p^{2i}, x)| < ∞`. It follows from the
+closed formula for the entrance vector, with the explicit rate
+
+`∑_x |α_d(x) - 𝔭(d, x)| ≤ 2 e^{-d}`,
+
+the total mass of the renewal part of `α_d` counted twice. (In `ℝ≥0∞` the truncated difference
+`a - b` is the positive part, so `(a - b) + (b - a)` is `|a - b|`.) At the site `i` of `μ^c` the
+parameter is `d = c p^{2i}`, and `∑_{i<0} e^{-c p^{2i}} < ∞`:
+`tsum_tsum_tsub_entranceChain_ne_top`. -/
+theorem tsum_tv_entranceVector_le {d : ℝ} (hd : 0 < d) :
+    (∑' y : ℕ, ((entranceVector p α d y - ENNReal.ofReal (poissonWeight d y))
+        + (ENNReal.ofReal (poissonWeight d y) - entranceVector p α d y)))
+      ≤ 2 * ENNReal.ofReal (Real.exp (-d)) := by
+  rw [ENNReal.tsum_add, two_mul]
+  exact add_le_add (tsum_tsub_entranceVector_poissonWeight_le hp0 hp1 hα hαs hα1 hd)
+    tsum_tsub_poissonWeight_entranceVector_le
+
+include hαs hα1 in
+/-- **Georgii §11.4, closing remarks: the boundary limit of `μ^c`.**
+`μ^c(lim_{i → -∞} σ_i p^{-2i} = c) = 1`.
+
+At the site `i = -n` the one-site marginal of `μ^c` is the entrance vector `α_{d_n}` with
+`d_n = c p^{-2n} → ∞` (`entranceChain_preimage_singleton`), and
+`σ_{-n} p^{2n} - c = (σ_{-n} - d_n) p^{2n}`. The key estimate
+`tsum_indicator_entranceVector_le` replaces `α_{d_n}` by the Poisson weights `𝔭(d_n, ·)` at the
+cost of `e^{-d_n}`, and Chebyshev's inequality for those
+(`SpitzerCox.tsum_indicator_ofReal_poissonWeight_le`, with `t = ε p^{-2n}`) gives
+
+`μ^c(|σ_{-n} p^{2n} - c| ≥ ε) ≤ c p^{2n} / ε² + e^{-c p^{-2n}}`.
+
+Both terms are summable in `n`: the first is geometric with ratio `p²`, the second is
+`summable_exp_neg_div_pow` at `p²`. Borel–Cantelli, in the form
+`MeasureTheory.tendsto_ae_of_forall_tsum_measure_ne_top'`, finishes. -/
+theorem tendsto_atBot_ae_entranceChain {c : ℝ} (hc : 0 < c) :
+    ∀ᵐ ω ∂(entranceChain hp0 hp1 hα hαs hα1 hc),
+      Tendsto (fun i : ℤ ↦ (ω i : ℝ) * p ^ (-2 * i)) atBot (𝓝 c) := by
+  classical
+  have hp2' : p ^ 2 < 1 := pow_lt_one₀ hp0.le hp1 (by norm_num)
+  have hpn : ∀ n : ℕ, (0 : ℝ) < p ^ (2 * n) := fun n ↦ pow_pos hp0 _
+  set μ := entranceChain hp0 hp1 hα hαs hα1 hc with hμ_def
+  -- the parameter of the one-site marginal at the site `-n`
+  set d : ℕ → ℝ := fun n ↦ c * p ^ (2 * (-(n : ℤ))) with hd_def
+  have hd_eq : ∀ n : ℕ, d n = c / p ^ (2 * n) := by
+    intro n
+    rw [hd_def]
+    simp only
+    rw [show 2 * (-(n : ℤ)) = -((2 * n : ℕ) : ℤ) by push_cast; ring, zpow_neg, zpow_natCast,
+      div_eq_mul_inv]
+  have hd_pos : ∀ n : ℕ, 0 < d n := fun n ↦ by rw [hd_eq]; positivity
+  have hmarg : ∀ n y : ℕ,
+      μ ((fun ω : ℤ → ℕ ↦ ω (-(n : ℤ))) ⁻¹' {y}) = entranceVector p α (d n) y := fun n y ↦ by
+    rw [hμ_def, entranceChain_preimage_singleton hp0 hp1 hα hαs hα1 hc (-(n : ℤ)) y]
+  -- the deviation events, as coordinate events
+  set S : ℝ → ℕ → Set ℕ := fun ε n ↦ {x : ℕ | ε / p ^ (2 * n) ≤ |(x : ℝ) - d n|} with hS_def
+  set A : ℝ → ℕ → Set (ℤ → ℕ) := fun ε n ↦ (fun ω : ℤ → ℕ ↦ ω (-(n : ℤ))) ⁻¹' S ε n with hA_def
+  have hSmeas : ∀ (ε : ℝ) (n : ℕ), MeasurableSet (S ε n) := fun _ _ ↦
+    (Set.to_countable _).measurableSet
+  have hsub : ∀ ε : ℝ, 0 < ε → ∀ n : ℕ,
+      {ω : ℤ → ℕ | ε ≤ dist ((ω (-(n : ℤ)) : ℝ) * p ^ (2 * n)) c} ⊆ A ε n := by
+    intro ε hε n ω hω
+    simp only [Set.mem_ofPred_eq, Real.dist_eq] at hω
+    refine Set.mem_preimage.2 ?_
+    simp only [hS_def, Set.mem_ofPred_eq]
+    rw [div_le_iff₀ (hpn n)]
+    have h1 : ((ω (-(n : ℤ)) : ℝ) - d n) * p ^ (2 * n)
+        = (ω (-(n : ℤ)) : ℝ) * p ^ (2 * n) - c := by
+      rw [sub_mul, hd_eq n, div_mul_cancel₀ _ (hpn n).ne']
+    calc ε ≤ |(ω (-(n : ℤ)) : ℝ) * p ^ (2 * n) - c| := hω
+      _ = |(ω (-(n : ℤ)) : ℝ) - d n| * p ^ (2 * n) := by
+          rw [← h1, abs_mul, abs_of_pos (hpn n)]
+  have hmass : ∀ (ε : ℝ) (n : ℕ),
+      μ (A ε n) = ∑' y : ℕ, (S ε n).indicator (entranceVector p α (d n)) y := by
+    intro ε n
+    have hev : Measurable fun ω : ℤ → ℕ ↦ ω (-(n : ℤ)) := measurable_pi_apply _
+    rw [hA_def]
+    simp only
+    rw [← Measure.map_apply hev (hSmeas ε n),
+      ← Measure.tsum_indicator_apply_singleton _ (S ε n) (hSmeas ε n)]
+    refine tsum_congr fun y ↦ ?_
+    by_cases hy : y ∈ S ε n
+    · rw [Set.indicator_of_mem hy, Set.indicator_of_mem hy,
+        Measure.map_apply hev (measurableSet_singleton y), hmarg n y]
+    · rw [Set.indicator_of_notMem hy, Set.indicator_of_notMem hy]
+  have hbound : ∀ ε : ℝ, 0 < ε → ∀ n : ℕ, μ (A ε n)
+      ≤ ENNReal.ofReal (c * p ^ (2 * n) / ε ^ 2) + ENNReal.ofReal (Real.exp (-(d n))) := by
+    intro ε hε n
+    have ht : (0 : ℝ) < ε / p ^ (2 * n) := div_pos hε (hpn n)
+    have hdist : ∀ x ∈ S ε n, ε / p ^ (2 * n) ≤ |(x : ℝ) - d n| := fun x hx ↦ hx
+    rw [hmass ε n]
+    refine (tsum_indicator_entranceVector_le hp0 hp1 hα hαs hα1 (hd_pos n) (S ε n)).trans ?_
+    refine add_le_add ?_ le_rfl
+    refine (tsum_indicator_ofReal_poissonWeight_le (hd_pos n).le ht (S ε n) hdist).trans ?_
+    refine ENNReal.ofReal_le_ofReal (le_of_eq ?_)
+    rw [hd_eq n]
+    have hεne : ε ≠ 0 := hε.ne'
+    have hpne : p ^ (2 * n) ≠ 0 := (hpn n).ne'
+    field_simp
+  have hfin : ∀ ε : ℝ, 0 < ε → (∑' n : ℕ, μ (A ε n)) ≠ ⊤ := by
+    intro ε hε
+    have h1 : Summable fun n : ℕ ↦ c * p ^ (2 * n) / ε ^ 2 := by
+      have hg : Summable fun n : ℕ ↦ (p ^ 2) ^ n :=
+        summable_geometric_of_lt_one (by positivity) hp2'
+      refine ((hg.mul_left c).div_const (ε ^ 2)).congr fun n ↦ ?_
+      rw [pow_mul]
+    have h2 : Summable fun n : ℕ ↦ Real.exp (-(d n)) := by
+      refine (summable_exp_neg_div_pow (p := p ^ 2) (pow_pos hp0 2) hp2' hc).congr fun n ↦ ?_
+      rw [hd_eq n, pow_mul]
+    have hsum : (∑' n : ℕ, μ (A ε n))
+        ≤ (∑' n : ℕ, ENNReal.ofReal (c * p ^ (2 * n) / ε ^ 2))
+          + ∑' n : ℕ, ENNReal.ofReal (Real.exp (-(d n))) := by
+      rw [← ENNReal.tsum_add]
+      exact ENNReal.tsum_le_tsum (hbound ε hε)
+    refine ne_top_of_le_ne_top ?_ hsum
+    rw [← ENNReal.ofReal_tsum_of_nonneg (fun n ↦ by positivity) h1,
+      ← ENNReal.ofReal_tsum_of_nonneg (fun n ↦ (Real.exp_pos _).le) h2]
+    exact ENNReal.add_ne_top.2 ⟨ENNReal.ofReal_ne_top, ENNReal.ofReal_ne_top⟩
+  filter_upwards [MeasureTheory.tendsto_ae_of_forall_tsum_measure_ne_top' (μ := μ)
+    (f := fun (n : ℕ) (ω : ℤ → ℕ) ↦ (ω (-(n : ℤ)) : ℝ) * p ^ (2 * n)) (L := c) (s := A)
+    hsub hfin] with ω hω
+  rw [← map_neg_natCast_atTop, Filter.tendsto_map'_iff]
+  refine hω.congr fun n ↦ ?_
+  simp only [Function.comp_apply]
+  congr 1
+  rw [show -2 * (-(n : ℤ)) = ((2 * n : ℕ) : ℤ) by push_cast; ring, zpow_natCast]
+
+omit hp0 hp1 hα in
+/-- The event `{lim_{i → -∞} σ_i p^{-2i} = c}` of Georgii's closing remarks: the analogue, for
+Spitzer's example, of the event `{U = u}` of Theorem (11.31)
+(`SpitzerCox.limitEvent`). -/
+def entranceLimitEvent (p c : ℝ) : Set (ℤ → ℕ) :=
+  {ω : ℤ → ℕ | Tendsto (fun i : ℤ ↦ (ω i : ℝ) * p ^ (-2 * i)) atBot (𝓝 c)}
+
+omit hp0 hp1 hα in
+lemma measurableSet_entranceLimitEvent (p c : ℝ) : MeasurableSet (entranceLimitEvent p c) :=
+  measurableSet_tendsto (𝓝 c) fun i : ℤ ↦
+    (measurable_of_countable fun k : ℕ ↦ (k : ℝ) * p ^ (-2 * i)).comp (measurable_pi_apply i)
+
+omit hp0 hp1 hα in
+/-- Different parameters give disjoint limit events: a convergent sequence has one limit. -/
+lemma eq_of_mem_entranceLimitEvent {c c' : ℝ} {ω : ℤ → ℕ} (h : ω ∈ entranceLimitEvent p c)
+    (h' : ω ∈ entranceLimitEvent p c') : c = c' :=
+  tendsto_nhds_unique h h'
+
+include hαs hα1 in
+/-- **Georgii §11.4, closing remarks, packaged:** `μ^c(lim_{i → -∞} σ_i p^{-2i} = c) = 1`. -/
+theorem entranceChain_entranceLimitEvent {c : ℝ} (hc : 0 < c) :
+    entranceChain hp0 hp1 hα hαs hα1 hc (entranceLimitEvent p c) = 1 :=
+  (prob_compl_eq_zero_iff (measurableSet_entranceLimitEvent p c)).1
+    (ae_iff.1 (tendsto_atBot_ae_entranceChain hp0 hp1 hα hαs hα1 hc))
+
+include hαs hα1 in
+/-- **The `μ^c` are pairwise distinct.** `μ^c` is carried by `{lim_{i → -∞} σ_i p^{-2i} = c}`, and
+these events are disjoint for different `c`. -/
+theorem entranceChain_ne {c c' : ℝ} (hc : 0 < c) (hc' : 0 < c') (h : c ≠ c') :
+    entranceChain hp0 hp1 hα hαs hα1 hc ≠ entranceChain hp0 hp1 hα hαs hα1 hc' := by
+  intro heq
+  have h1 : entranceChain hp0 hp1 hα hαs hα1 hc (entranceLimitEvent p c) = 1 :=
+    entranceChain_entranceLimitEvent hp0 hp1 hα hαs hα1 hc
+  have h2 : entranceChain hp0 hp1 hα hαs hα1 hc (entranceLimitEvent p c') = 1 := by
+    rw [heq]
+    exact entranceChain_entranceLimitEvent hp0 hp1 hα hαs hα1 hc'
+  have hzero : entranceChain hp0 hp1 hα hαs hα1 hc (entranceLimitEvent p c)ᶜ = 0 :=
+    (prob_compl_eq_zero_iff (measurableSet_entranceLimitEvent p c)).2 h1
+  have hsub : entranceLimitEvent p c' ⊆ (entranceLimitEvent p c)ᶜ := fun ω hω' hω ↦
+    h (eq_of_mem_entranceLimitEvent hω hω')
+  rw [measure_mono_null hsub hzero] at h2
+  exact zero_ne_one h2
+
+include hαs hα1 in
+/-- **A second, direct proof of the broken-invariance clause of Theorem (11.46) for the `μ^c`.**
+`θ_j(μ^c) = μ^{c p^{-2j}}` and `p^{-2j} ≠ 1` for `j ≠ 0`, so `θ_j(μ^c) ≠ μ^c`. In contrast to
+`map_shift_ne` this argument needs no null-recurrence hypothesis on `α`; it applies only to the
+measures `μ^c`, whereas `map_shift_ne` covers every element of `𝒢(Q)`. -/
+theorem map_shift_entranceChain_ne {c : ℝ} (hc : 0 < c) {j : ℤ} (hj : j ≠ 0) :
+    (entranceChain hp0 hp1 hα hαs hα1 hc).map (shift ℕ j).toFun
+      ≠ entranceChain hp0 hp1 hα hαs hα1 hc := by
+  rw [map_shift_entranceChain hp0 hp1 hα hαs hα1 hc j]
+  refine entranceChain_ne hp0 hp1 hα hαs hα1 (mul_pos hc (zpow_pos hp0 (-2 * j))) hc ?_
+  intro hcc
+  have hp : p ^ (-2 * j) = 1 := mul_left_cancel₀ hc.ne' (by rw [hcc, mul_one])
+  have hj0 : (-2 : ℤ) * j = 0 := (zpow_eq_one_iff_right₀ hp0.le hp1.ne).1 hp
+  omega
+
+include hαs hα1 in
+/-- **The extreme decomposition of `μ^c` is carried by the limit event `{lim σ_i p^{-2i} = c}`.**
+By Theorem (7.26) the weight `w_{μ^c}` is carried by `ex 𝒢(Q)` and represents `μ^c`, so
+`∫ ν((E_c)ᶜ) w_{μ^c}(dν) = μ^c((E_c)ᶜ) = 0`; hence some extreme `ν` has `ν(E_c) = 1`. -/
+theorem exists_mem_extremePoints_G_measure_entranceLimitEvent {c : ℝ} (hc : 0 < c) :
+    ∃ ν ∈ (G (transferSpecification (matrix p α)
+        (isTransferMatrix hp0 hp1 hα hαs hα1))).extremePoints ℝ≥0∞,
+      ν (entranceLimitEvent p c) = 1 := by
+  classical
+  have hμG := mem_G_entranceChain hp0 hp1 hα hαs hα1 hc
+  have hG : (G (transferSpecification (matrix p α)
+    (isTransferMatrix hp0 hp1 hα hαs hα1))).Nonempty := ⟨_, hμG⟩
+  have hTmeas := measurableSet_entranceLimitEvent p c
+  have hmem : ∀ᵐ ω ∂(entranceChain hp0 hp1 hα hαs hα1 hc), ω ∈ entranceLimitEvent p c :=
+    tendsto_atBot_ae_entranceChain hp0 hp1 hα hαs hα1 hc
+  have hzero : ∫⁻ ν, ν (entranceLimitEvent p c)ᶜ
+      ∂(weightOf hG (entranceChain hp0 hp1 hα hαs hα1 hc)) = 0 := by
+    rw [← Measure.join_apply hTmeas.compl, join_weightOf hG hμG]
+    exact ae_iff.1 hmem
+  have hae : ∀ᵐ ν ∂(weightOf hG (entranceChain hp0 hp1 hα hαs hα1 hc)),
+      ν (entranceLimitEvent p c)ᶜ = 0 :=
+    (lintegral_eq_zero_iff (Measure.measurable_coe hTmeas.compl)).1 hzero
+  have haeex : ∀ᵐ ν ∂(weightOf hG (entranceChain hp0 hp1 hα hαs hα1 hc)),
+      ν ∈ (G (transferSpecification (matrix p α)
+        (isTransferMatrix hp0 hp1 hα hαs hα1))).extremePoints ℝ≥0∞ :=
+    ae_iff.2 (weightOf_extremePoints_compl hG hμG)
+  obtain ⟨ν, hνT, hνex⟩ := (hae.and haeex).exists
+  have hνprob : IsProbabilityMeasure ν := hνex.1.1
+  exact ⟨ν, hνex, (prob_compl_eq_zero_iff hTmeas).1 hνT⟩
+
+include hαs hα1 in
+/-- **Georgii §11.4, closing remarks: `ex 𝒢(Q)` is uncountable.** For every `c > 0` the extreme
+decomposition of `μ^c` produces an extreme Gibbs measure carried by the limit event
+`E_c = {lim_{i → -∞} σ_i p^{-2i} = c}`; the `E_c` are pairwise disjoint, so no probability
+measure can be carried by two of them, and `c ↦ ν_c` is injective on `(0, ∞)`.
+
+This strengthens the conclusion `|ex 𝒢(Q)| = ∞` of `infinite_extremePoints_G`, and — like the
+whole family `μ^c` — it needs no null-recurrence hypothesis on `α`, exactly as Georgii remarks in
+the last paragraph of §11.4. -/
+theorem not_countable_extremePoints_G :
+    ¬ ((G (transferSpecification (matrix p α)
+      (isTransferMatrix hp0 hp1 hα hαs hα1))).extremePoints ℝ≥0∞).Countable := by
+  intro hcnt
+  choose f hfex hf1 using fun t : ℝ ↦
+    exists_mem_extremePoints_G_measure_entranceLimitEvent hp0 hp1 hα hαs hα1 (Real.exp_pos t)
+  have hinj : Function.Injective f := by
+    intro s t hst
+    by_contra hne
+    have hexp : Real.exp s ≠ Real.exp t := fun h ↦ hne (Real.exp_eq_exp.1 h)
+    have hprob : IsProbabilityMeasure (f s) := (hfex s).1.1
+    have hzero : f s (entranceLimitEvent p (Real.exp s))ᶜ = 0 :=
+      (prob_compl_eq_zero_iff (measurableSet_entranceLimitEvent _ _)).2 (hf1 s)
+    have hsub : entranceLimitEvent p (Real.exp t) ⊆ (entranceLimitEvent p (Real.exp s))ᶜ :=
+      fun ω hω' hω ↦ hexp (eq_of_mem_entranceLimitEvent hω hω')
+    have hone := hf1 t
+    rw [← hst, measure_mono_null hsub hzero] at hone
+    exact zero_ne_one hone
+  have hpre : f ⁻¹' ((G (transferSpecification (matrix p α)
+      (isTransferMatrix hp0 hp1 hα hαs hα1))).extremePoints ℝ≥0∞) = Set.univ :=
+    Set.eq_univ_of_forall fun t ↦ hfex t
+  have hcount := hcnt.preimage hinj
+  rw [hpre] at hcount
+  exact Cardinal.not_countable_real hcount
+
+include hαs hα1 in
+/-- **Georgii's estimate of §11.4, as he states it.** In the last paragraph of §11.4 Georgii uses,
+without proof, that
+
+`∑_{i < 0} ∑_x |μ^c(σ_i = x) - 𝔭(c p^{2i}, x)| < ∞`
+
+(here the negative sites are enumerated as `i = -n-1`). It follows from the closed formula for
+the entrance vector: `tsum_tv_entranceVector_le` bounds the inner sum by `2 e^{-c p^{2i}}`, and
+`∑_n e^{-c p^{-2n-2}} < ∞` by `summable_exp_neg_div_pow` at `p²`. -/
+theorem tsum_tsum_tv_entranceChain_ne_top {c : ℝ} (hc : 0 < c) :
+    (∑' n : ℕ, ∑' y : ℕ,
+      ((entranceChain hp0 hp1 hα hαs hα1 hc ((fun ω : ℤ → ℕ ↦ ω (-(n : ℤ) - 1)) ⁻¹' {y})
+          - ENNReal.ofReal (poissonWeight (c * p ^ (2 * (-(n : ℤ) - 1))) y))
+        + (ENNReal.ofReal (poissonWeight (c * p ^ (2 * (-(n : ℤ) - 1))) y)
+          - entranceChain hp0 hp1 hα hαs hα1 hc
+              ((fun ω : ℤ → ℕ ↦ ω (-(n : ℤ) - 1)) ⁻¹' {y})))) ≠ ⊤ := by
+  have hpne : p ≠ 0 := hp0.ne'
+  have hp2' : p ^ 2 < 1 := pow_lt_one₀ hp0.le hp1 (by norm_num)
+  have hd : ∀ n : ℕ, 0 < c * p ^ (2 * (-(n : ℤ) - 1)) := fun n ↦ mul_pos hc (zpow_pos hp0 _)
+  have hkey : ∀ n : ℕ, (∑' y : ℕ,
+      ((entranceChain hp0 hp1 hα hαs hα1 hc ((fun ω : ℤ → ℕ ↦ ω (-(n : ℤ) - 1)) ⁻¹' {y})
+          - ENNReal.ofReal (poissonWeight (c * p ^ (2 * (-(n : ℤ) - 1))) y))
+        + (ENNReal.ofReal (poissonWeight (c * p ^ (2 * (-(n : ℤ) - 1))) y)
+          - entranceChain hp0 hp1 hα hαs hα1 hc
+              ((fun ω : ℤ → ℕ ↦ ω (-(n : ℤ) - 1)) ⁻¹' {y}))))
+      ≤ 2 * ENNReal.ofReal (Real.exp (-(c * p ^ (2 * (-(n : ℤ) - 1))))) := by
+    intro n
+    simp_rw [entranceChain_preimage_singleton hp0 hp1 hα hαs hα1 hc (-(n : ℤ) - 1)]
+    exact tsum_tv_entranceVector_le hp0 hp1 hα hαs hα1 (hd n)
+  refine ne_top_of_le_ne_top ?_ (ENNReal.tsum_le_tsum hkey)
+  have hsummable : Summable fun n : ℕ ↦ Real.exp (-(c * p ^ (2 * (-(n : ℤ) - 1)))) := by
+    refine (summable_exp_neg_div_pow (p := p ^ 2) (pow_pos hp0 2) hp2'
+      (c := c / p ^ 2) (by positivity)).congr fun n ↦ ?_
+    have hz : (2 : ℤ) * (-(n : ℤ) - 1) = -((2 * n + 2 : ℕ) : ℤ) := by push_cast; ring
+    have hval : c * p ^ (2 * (-(n : ℤ) - 1)) = c / p ^ 2 / (p ^ 2) ^ n := by
+      rw [hz, zpow_neg, zpow_natCast, pow_add, pow_mul]
+      field_simp
+    rw [hval]
+  rw [ENNReal.tsum_mul_left, ← ENNReal.ofReal_tsum_of_nonneg
+    (fun n ↦ (Real.exp_pos _).le) hsummable]
+  exact ENNReal.mul_ne_top (by simp) ENNReal.ofReal_ne_top
+
+end ClosingRemarks
 
 end MeasureTheory.GibbsMeasure.Markov.Spitzer

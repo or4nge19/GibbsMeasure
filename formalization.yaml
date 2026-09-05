@@ -428,6 +428,22 @@ status:
       file: "GibbsMeasure/Specification/BlockMcMillan.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Markov.SpitzerCox.isMarkovChain_tfae"
+      file: "GibbsMeasure/Model/SpitzerCoxMarkovChains.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Markov.Kalikow.extremePoints_G_eq"
+      file: "GibbsMeasure/Model/KalikowClassification.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Markov.Spitzer.not_countable_extremePoints_G"
+      file: "GibbsMeasure/Model/SpitzerBrokenInvariance.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.not_isReflectionPositive_heisenbergPeriodicGibbs_nextNearestNeighbour"
+      file: "GibbsMeasure/Specification/HeisenbergPeriodic.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.Shlosman.dgSpecification_abs_excess_le"
       file: "GibbsMeasure/Model/RandomStaircase.lean"
       sorry_count: 0
@@ -1404,10 +1420,14 @@ alignment:
         for d = 1. The erratum for (17.8) as a theorem: the symmetry of the form is equivalent to
         reflection invariance, and a reflection-positive non-invariant measure violating
         Cauchy-Schwarz is exhibited (the general fact for bilinear forms in
-        Mathlib/LinearAlgebra/BilinearMap/CauchySchwarz.lean). Not formalized: the Berg-Maserick
-        converse (17.28)(1), which the book cites without proof; the necessity halves of
-        (17.30)-(17.31), where the printed constant (2N)^{d-1} should be 2(2N)^{d-1}; (17.32)
-        for d = 2.
+        Mathlib/LinearAlgebra/BilinearMap/CauchySchwarz.lean). The necessity halves of
+        (17.30)-(17.31) for the two-point a priori measure, by Georgii's test functions, with
+        three errata (the constant is 2(2N)^{d-1}; his middle expression is 4 cosh, not 4 sinh;
+        his second test function in (17.31) must alternate transversally to k, the printed one
+        giving the same value as the first), and (17.32) for d = 2 through the Cauchy kernel
+        (Mathlib/Analysis/SpecialFunctions/ExpNegAbs.lean, ImproperIntegrals.lean,
+        PSeries/Euclidean.lean). Not formalized: the Berg-Maserick converse (17.28)(1), which the
+        book cites without proof.
     - source: "Section 16.2: (16.10)-(16.14)"
       lean: "Potential.BTheta.gateauxDifferentiable_pressure_iff_subsingleton"
       module: "GibbsMeasure/Specification/PhaseTransition.lean"
@@ -1540,14 +1560,21 @@ alignment:
         given one coordinate on a countable state space (Mathlib/MeasureTheory/Function/
         ConditionalExpectation/Countable.lean) and the two-point marginals (11.10)), Step 3 by
         Chebyshev and Borel-Cantelli (U and V exist a.s. under every Gibbs measure), Step 4 on the
-        representing weight. Not formalized: the parametrised representation
-        mu = int mu^{u,v} m(du,dv), which needs (u,v) |-> mu^{u,v} as a measurable kernel and the
-        map nu |-> (nu(U), nu(V)) on the extreme points, and with it (11.33); the closing remarks
-        of 11.4, which need a summable total-variation rate for P^n(x_{n-i}, .) -> alpha_i that
-        Georgii asserts without proof, and the family c |-> mu^c.
+        representing weight; the parametrised representation mu = int mu^{u,v} m(du,dv) with m
+        the law of (U,V), unique, the family (u,v) |-> mu^{u,v} a measurable kernel and Georgii's
+        phi the limit of one-site expectations; Corollary (11.33) as a three-way equivalence
+        (Model/SpitzerCoxMarkovChains.lean), with the two-sided Markov property of a boundary-law
+        measure (Model/BoundaryLawMarkovProperty.lean), the tilt mu~ = e^{-UV} mu as Mathlib's
+        Measure.tilted, and Georgii's "suitable measures" shown to be necessarily finite.
+        11.3 Kalikow: Theorem (11.39) in full (Model/KalikowClassification.lean): ex G = {mu_Q} u
+        {mu_j}, the boundary limit Z exists a.s. under every Gibbs measure, the decomposition
+        mu = mu(Z = -infinity) mu_Q + sum_j mu(Z = j) mu_j, and every Gibbs measure is a Markov
+        chain with transition matrix Q; Borel-Cantelli as complete convergence in
+        Mathlib/MeasureTheory/Function/CompleteConvergence.lean. 11.4 closing remarks: the family
+        mu^c with theta_j mu^c = mu^{c p^{-2j}}, pairwise distinct, so ex G uncountable, including
+        the summable total-variation estimate Georgii asserts without proof.
         11.3 Kalikow: (11.34)-(11.38) with infinitely many extreme points and a unique
-        shift-invariant Gibbs measure, plus Step 1 of (11.39), the closed form of Q^n; Steps 2-3
-        need the quantitative (11.9)(c) and Borel-Cantelli. 11.4 Spitzer: (11.43)-(11.45), the
+        shift-invariant Gibbs measure, and (11.39), see above. 11.4 Spitzer: (11.43)-(11.45), the
         first-passage decomposition (11.47) built in general matrix form
         (Mathlib/Probability/Kernel/CountableMatrix/FirstPassage.lean: taboo matrices, hitting
         times, and the renewal identity), and the extinction-time law. (11.46) in full: G(gamma^Q)
@@ -1557,9 +1584,7 @@ alignment:
         of Q is positive recurrent, by Kac's inequality for the mean return time
         (CountableMatrix/FirstPassage.lean, Recurrence.lean), so every shift moves the Gibbs
         measures and ex G(gamma^Q) is infinite; and alpha can be chosen with
-        mu_P^0(tau) = infinity, as Georgii says. Not formalized: the closing remarks of 11.4
-        (theta_j(mu^c) = mu^{c p^{-2j}}, uncountability of ex G(Q)); Borel-Cantelli is available,
-        the obstruction is the summable total-variation rate Georgii asserts without proof.
+        mu_P^0(tau) = infinity, as Georgii says. The closing remarks of 11.4 are proved, see above.
     - source: "Section 6.3: (6.16)-(6.21), (6.25)"
       lean: "MeasureTheory.GibbsMeasure.Shlosman.infinite_GP_dgSpecification_of_log_twelve"
       module: "GibbsMeasure/Model/RandomStaircase.lean"

@@ -6,6 +6,8 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Model.BoundaryLawPhaseTransition
+public import GibbsMeasure.Model.BoundaryLawLimits
+public import GibbsMeasure.Mathlib.Data.ENNReal.DivRatio
 
 /-!
 # Georgii §11.3: Kalikow's example of phase transition
@@ -51,33 +53,34 @@ which satisfies `α_i Q = α_{i+1}` and reaches equilibrium in finite time.
   (`cCoeff_mul_pow_succ_add_q_mul_alpha`, from `a q = b p`), `p + c (1-q)⁻¹ = 1`
   (`p_mul_one_sub_q_add_cCoeff`) and `pow_mul_alpha_min_succ`.
 
-The **full classification** `ex 𝒢(Q) = {μ_Q} ∪ {μ_j : j ∈ ℤ}` of Theorem (11.39), and with it the
-extreme decomposition directed by `Z = lim_{i → -∞}(σ_i + i)`, is **not** formalised. Step 1 is
-above; Georgii's Steps 2 and 3 are not.
+**Theorem (11.39)** — `ex 𝒢(Q) = {μ_Q} ∪ {μ_j : j ∈ ℤ}`, the almost-sure existence of
+`Z = lim_{i → -∞}(σ_i + i) ∈ {-∞} ∪ ℤ` under every `μ ∈ 𝒢(Q)`, the extreme decomposition
+`μ = μ(Z = -∞) μ_Q + ∑_j μ(Z = j) μ_j`, and "each `μ ∈ 𝒢(Q)` is a Markov chain" — is proved in
+full: Steps 1 and 2 are in this file, Step 3 and the conclusion in
+`GibbsMeasure/Model/KalikowClassification.lean`.
 
-Their prerequisites are now in the library: the quantitative half of Theorem (11.9)(c) — the
-limit formulas `ℓ_i/ℓ_0(0) = lim_n Q^{n+i}(x_n, ·)/Q^n(x_n, 0)` (`i < 0`) and
-`r_i/r_0(0) = lim_n Q^{n-i}(·, y_n)/Q^n(0, y_n)` (`i > 0`) — is
-`MeasureTheory.GibbsMeasure.Markov.exists_isBoundaryLaw_and_tendsto_of_mem_extremePoints`
-(`GibbsMeasure/Model/BoundaryLawLimits.lean`), and the Borel–Cantelli step of Georgii's Step 3 is
-available in the reusable form
-`MeasureTheory.GibbsMeasure.Markov.SpitzerCox.tendsto_ae_of_forall_measure_preimage_singleton_eq`
-(`GibbsMeasure/Model/SpitzerCox.lean`; that version is stated for Poisson coordinates, and would
-have to be restated for a general summable family of one-site marginals). What (11.9)(c) does
-*not* supply is the rest of Georgii's Step 2, which is a genuinely separate argument:
-
-* the normalisation "there is no loss in assuming `r_0(0) = 1`";
-* `r_i ≡ 1`, from (11.41) and Step 1: for fixed `x` and `i` and large `n` the `δ` term of
-  `Q^{n-i}(x, y_n)` vanishes and the exponent `(x - n + i + 1) ∨ 0` is `0`, so the ratio tends
-  to `1`;
-* the asymptotics `α(k) ∼ a p^k` (`k → ∞`), i.e. `α(k)/p^k → a`; and
-* the three-case analysis of `(x_n - n)_{n ≥ 1}`: `limsup = ∞` is contradictory,
-  `liminf = -∞` gives `ℓ_i = α` and `μ = μ_Q`, and a cluster point `j ∈ ℤ` gives
-  `ℓ_i = α_{i-j}` and `μ = μ_j`.
-
-Step 3 then needs, in addition, the family `μ_j` (as translates of `μ_0`) and the two summability
-estimates `∑_{i<k} μ_Q(σ_i + i ≥ k) < ∞` and `∑_{i<j} μ_j(σ_i + i ≠ j) ≤ ∑_{i<j} s^{1-i+j} < ∞`,
-both immediate from the one-site marginals `α` and `α_{i-j}`.
+* `invariantChain` (Georgii's `μ_Q`, the measure of the constant boundary law `α`, `1`),
+  `shiftedChain j` (his `μ_j = θ_j(μ_0)`), `shiftedChain_eq_boundaryLawMeasure` (the boundary
+  law of `μ_j` is `ℓ_i = α_{i-j}`, `r_i = 1`), and the one-site marginals
+  `invariantChain_preimage_singleton`, `shiftedChain_preimage_singleton`.
+* **Step 2** (`exists_eq_of_mem_extremePoints`): every `μ ∈ ex 𝒢(Q)` is `μ_Q` or some `μ_j`.
+  Theorem (11.9)(c) (`exists_isBoundaryLaw_and_tendsto_of_mem_extremePoints`,
+  `GibbsMeasure/Model/BoundaryLawLimits.lean`) represents `μ` by a boundary law `{ℓ_i, r_i}`
+  together with the limit formulas (11.40), (11.41) along sequences `(x_n)`, `(y_n)`. Georgii's
+  "there is no loss in assuming `r_0(0) = 1`" is replaced by proving `r ≡ r_0(0)` outright
+  (`right_eq_of_tendsto`: by Step 1 the ratios `Q^{n-i}(x, y_n)/Q^n(0, y_n)` of (11.41) equal
+  `1` for large `n`), so that `∑_y ℓ_i(y) = r_0(0)⁻¹`. The ratios of entries of powers of `Q`
+  fall into three regimes (`matrixRealPow_div_of_lt`, `matrixRealPow_div_of_le`,
+  `matrixRealPow_div_of_eq`, with the asymptotics `α(k) ∼ a p^k` in `tendsto_alpha_div_pow`),
+  and `forall_frequently_lt_or_gt_of_forall_eventually_ne` sorts the sequence `(x_n - n)` into
+  Georgii's three cases: `limsup = ∞` is contradictory (`not_forall_frequently_lt_of_tendsto`:
+  the limit `s^{-i} α/c` of (11.42) would make `∑_y ℓ_i(y)` depend on `i`); `liminf = -∞` gives
+  `ℓ_i ∝ α` for `i < 0` (`mul_stationary_eq_of_forall_frequently_lt`) and `μ = μ_Q`; a value `j`
+  taken infinitely often gives `ℓ_i ∝ α_{i-j}` for `i < j ∧ 0` (`mul_entrance_eq_of_frequently_eq`,
+  through the same-exponent ratios `matrixRealPow_div_same_of_eq`,
+  `limit_eq_entranceNat_div_same`) and `μ = μ_j`. In each case the proportionality constant is
+  fixed by the total masses (`mul_eq_of_forall_mul_eq_mul`), propagated to all `i` along
+  `ℓ_i Q = ℓ_{i+1}` (`mul_eq_of_step_of_forall_lt`), and (11.10) identifies the measure.
 * `invariantG_eq_singleton` — `𝒢_Θ(Q) = {μ_Q}` (Theorem (11.13) for this `Q`), and
   `chain_intervalCylinder_eq` — `μ_0 = μ_Q` on the cylinders in `]0, ∞[`, Georgii's one-sided
   shift invariance of `μ_0`.
@@ -722,6 +725,282 @@ lemma tsum_entranceReal_mul_matrixReal (i : ℤ) (y : ℕ) :
       · omega
       · rw [mul_zero]
 
+/-! ### Georgii, Step 2 in the proof of Theorem (11.39): the three regimes of the powers of `Q`
+
+By Step 1, `Q^{m+1}(x, y) = A_m(x, y) α(y)/α(x)` with
+`A_m(x, y) = p^{m+1} δ_{x-m-1}(y) + q^{(x-m) ∨ 0} α(x ∧ m)`, so a ratio of two entries of powers
+of `Q` with a *common left index* `x` is the ratio of the numerators `A` times `α(y)/α(y')`
+(`matrixRealPow_div_matrixRealPow`). Georgii's Step 2 evaluates such a ratio in the three
+regimes of `x` relative to the two exponents `m ≤ m + e`:
+
+* `m + e + 1 + y < x` (`matrixRealPow_div_of_lt`): both `δ` terms vanish and the ratio is
+  `q^e (α(m)/α(m+e)) α(y)/c`;
+* `x ≤ m` (`matrixRealPow_div_of_le`): both numerators are `α(x)` and the ratio is `α(y)/c`;
+* `x = m + 1 + (J₀ + e)` with `J₀ ≥ 1` (`matrixRealPow_div_of_eq`): the `δ` term survives in the
+  numerator only.
+
+The limits are then read off from the asymptotics `α(k) ∼ a p^k` (`tendsto_alpha_div_pow`). -/
+
+open Filter
+open scoped Topology
+
+lemma powNumer_pos (n x y : ℕ) : 0 < powNumer p q n x y := by
+  have h : 0 < q ^ (x - n) * alpha p q (min x n) :=
+    mul_pos (pow_pos hq _) (alpha_pos hq hqp hp _)
+  have h' : (0 : ℝ) ≤ if x = y + (n + 1) then p ^ (n + 1) else 0 := by
+    split_ifs
+    · exact (pow_pos (p_pos hq hqp) _).le
+    · exact le_rfl
+  simp only [powNumer]
+  linarith
+
+lemma matrixRealPow_pos (n x y : ℕ) : 0 < matrixRealPow p q n x y :=
+  div_pos (mul_pos (powNumer_pos hq hqp hp n x y) (alpha_pos hq hqp hp y))
+    (alpha_pos hq hqp hp x)
+
+omit hq hqp hp in
+/-- `A_m(x, y) = α(x)` for `x ≤ m`: Kalikow's chain has reached equilibrium, the `δ` term
+vanishes and the exponent `(x - m) ∨ 0` is `0`. -/
+lemma powNumer_of_le {m x : ℕ} (hx : x ≤ m) (y : ℕ) : powNumer p q m x y = alpha p q x := by
+  rw [powNumer, ite_eq_right (show ¬ (x = y + (m + 1)) by omega), show x - m = 0 by omega,
+    min_eq_left hx]
+  ring
+
+/-- `Q^{m+1}(x, y) = α(y)` for `x ≤ m`. -/
+lemma matrixRealPow_of_le {m x : ℕ} (hx : x ≤ m) (y : ℕ) :
+    matrixRealPow p q m x y = alpha p q y := by
+  have hax := alpha_ne_zero hq hqp hp x
+  rw [matrixRealPow, powNumer_of_le hx, mul_comm, mul_div_assoc, div_self hax, mul_one]
+
+omit hq hqp hp in
+/-- `A_m(x, y) = p^{m+1} δ_{x-m-1}(y) + q^{x-m} α(m)` for `m ≤ x`. -/
+lemma powNumer_of_ge {m x : ℕ} (hx : m ≤ x) (y : ℕ) :
+    powNumer p q m x y
+      = (if x = y + (m + 1) then p ^ (m + 1) else 0) + q ^ (x - m) * alpha p q m := by
+  rw [powNumer, min_eq_right hx]
+
+/-- A ratio of two entries of powers of `Q` with a common left index `x`: the factors `α(x)⁻¹`
+cancel, leaving a ratio of the numerators of Step 1. -/
+lemma matrixRealPow_div_matrixRealPow (m m' x y y' : ℕ) :
+    matrixRealPow p q m x y / matrixRealPow p q m' x y'
+      = powNumer p q m x y * alpha p q y / (powNumer p q m' x y' * alpha p q y') := by
+  have hax := alpha_ne_zero hq hqp hp x
+  have h1 := (powNumer_pos hq hqp hp m' x y').ne'
+  have h2 := (alpha_pos hq hqp hp y').ne'
+  simp only [matrixRealPow]
+  field_simp
+
+omit hq hqp hp in
+/-- `a = p c / (p - q)`, the form of Georgii (11.34) used in the limit computations. -/
+lemma aCoeff_eq_mul_div (p q : ℝ) : aCoeff p q = p * cCoeff p q / (p - q) := by
+  simp only [aCoeff, cCoeff]; ring
+
+/-! #### The asymptotics `α(k) ∼ a p^k` -/
+
+omit hp in
+/-- **Georgii's `α(k) ∼ a p^k`.** `α(k)/p^k = a - b s^k → a`, since `s = q/p < 1`. -/
+lemma tendsto_alpha_div_pow :
+    Tendsto (fun k : ℕ ↦ alpha p q k / p ^ k) atTop (𝓝 (aCoeff p q)) := by
+  have hp0 : (0 : ℝ) < p := p_pos hq hqp
+  have hfun : ∀ k : ℕ, alpha p q k / p ^ k = aCoeff p q - bCoeff p q * sRatio p q ^ k := by
+    intro k
+    have hpk : (p : ℝ) ^ k ≠ 0 := (pow_pos hp0 k).ne'
+    simp only [alpha, sRatio, div_pow]
+    field_simp
+  simp only [hfun]
+  have hs : Tendsto (fun k : ℕ ↦ sRatio p q ^ k) atTop (𝓝 0) :=
+    tendsto_pow_atTop_nhds_zero_of_lt_one (sRatio_pos hq hqp).le (sRatio_lt_one hq hqp)
+  simpa using (tendsto_const_nhds (x := aCoeff p q)).sub (hs.const_mul (bCoeff p q))
+
+/-- `p^k/α(k) → a⁻¹`. -/
+lemma tendsto_pow_div_alpha :
+    Tendsto (fun k : ℕ ↦ p ^ k / alpha p q k) atTop (𝓝 (aCoeff p q)⁻¹) := by
+  simpa only [inv_div] using (tendsto_alpha_div_pow hq hqp).inv₀ (aCoeff_pos hq hqp hp).ne'
+
+/-- `α(k)/α(k + d) → p^{-d}`. -/
+lemma tendsto_alpha_div_alpha_add (d : ℕ) :
+    Tendsto (fun k : ℕ ↦ alpha p q k / alpha p q (k + d)) atTop (𝓝 (p ^ d)⁻¹) := by
+  have hp0 : (0 : ℝ) < p := p_pos hq hqp
+  have ha := (aCoeff_pos hq hqp hp).ne'
+  have hpd : (p : ℝ) ^ d ≠ 0 := (pow_pos hp0 d).ne'
+  have h3 : Tendsto (fun k : ℕ ↦ p ^ (k + d) / alpha p q (k + d)) atTop (𝓝 (aCoeff p q)⁻¹) :=
+    (tendsto_pow_div_alpha hq hqp hp).comp (tendsto_add_atTop_nat d)
+  have hfun : ∀ k : ℕ, alpha p q k / alpha p q (k + d)
+      = alpha p q k / p ^ k * (p ^ (k + d) / alpha p q (k + d)) / p ^ d := by
+    intro k
+    have h1' : (p : ℝ) ^ k ≠ 0 := (pow_pos hp0 k).ne'
+    have h2' := alpha_ne_zero hq hqp hp (k + d)
+    field_simp
+    ring
+  simp only [hfun]
+  have := ((tendsto_alpha_div_pow hq hqp).mul h3).div_const (p ^ d)
+  rwa [mul_inv_cancel₀ ha, one_div] at this
+
+/-- `p^{k+1}/α(k + d) → p/(a p^d)`. -/
+lemma tendsto_pow_succ_div_alpha_add (d : ℕ) :
+    Tendsto (fun k : ℕ ↦ p ^ (k + 1) / alpha p q (k + d)) atTop
+      (𝓝 (p / (aCoeff p q * p ^ d))) := by
+  have hp0 : (0 : ℝ) < p := p_pos hq hqp
+  have ha := (aCoeff_pos hq hqp hp).ne'
+  have hpd : (p : ℝ) ^ d ≠ 0 := (pow_pos hp0 d).ne'
+  have h3 : Tendsto (fun k : ℕ ↦ p ^ (k + d) / alpha p q (k + d)) atTop (𝓝 (aCoeff p q)⁻¹) :=
+    (tendsto_pow_div_alpha hq hqp hp).comp (tendsto_add_atTop_nat d)
+  have hfun : ∀ k : ℕ, p ^ (k + 1) / alpha p q (k + d)
+      = p ^ (k + d) / alpha p q (k + d) * p / p ^ d := by
+    intro k
+    have h2' := alpha_ne_zero hq hqp hp (k + d)
+    field_simp
+    ring
+  simp only [hfun]
+  have := (h3.mul_const p).div_const (p ^ d)
+  convert this using 2
+  field_simp
+
+/-! #### The three regimes -/
+
+/-- **Regime A of Georgii's Step 2** (`limsup(x_n - n) = ∞`). If `x` lies strictly above both
+exponents and above `y`, both `δ` terms vanish and the ratio is `q^e (α(m)/α(m+e)) α(y)/c`. -/
+lemma matrixRealPow_div_of_lt {m e x y : ℕ} (hx : m + e + 1 + y < x) :
+    matrixRealPow p q m x y / matrixRealPow p q (m + e) x 0
+      = q ^ e * (alpha p q m / alpha p q (m + e)) * alpha p q y / cCoeff p q := by
+  have hm : m ≤ x := by omega
+  have hme : m + e ≤ x := by omega
+  have hq' : (q : ℝ) ^ (x - (m + e)) ≠ 0 := (pow_pos hq _).ne'
+  have hc := (cCoeff_pos hqp hp (p := p) (q := q)).ne'
+  have hme' := alpha_ne_zero hq hqp hp (m + e)
+  have hpow : (q : ℝ) ^ (x - m) = q ^ e * q ^ (x - (m + e)) := by
+    rw [← pow_add]; congr 1; omega
+  rw [matrixRealPow_div_matrixRealPow hq hqp hp, powNumer_of_ge hm, powNumer_of_ge hme,
+    ite_eq_right (show ¬ (x = y + (m + 1)) by omega),
+    ite_eq_right (show ¬ (x = 0 + (m + e + 1)) by omega), alpha_zero hqp, hpow]
+  field_simp
+  ring
+
+/-- **Regime B of Georgii's Step 2** (`liminf(x_n - n) = -∞`). If `x` lies below both exponents,
+both numerators are `α(x)` and the ratio is `α(y)/c`. -/
+lemma matrixRealPow_div_of_le {m e x y : ℕ} (hx : x ≤ m) :
+    matrixRealPow p q m x y / matrixRealPow p q (m + e) x 0 = alpha p q y / cCoeff p q := by
+  rw [matrixRealPow_of_le hq hqp hp hx, matrixRealPow_of_le hq hqp hp (show x ≤ m + e by omega),
+    alpha_zero hqp]
+
+/-- **Regime C of Georgii's Step 2** (the cluster point `j`). If `x = m + 1 + (J₀ + e)` with
+`J₀ ≥ 1`, the `δ` term survives in the numerator only. -/
+lemma matrixRealPow_div_of_eq {m e J₀ y : ℕ} (hJ₀ : 1 ≤ J₀) :
+    matrixRealPow p q m (m + 1 + (J₀ + e)) y / matrixRealPow p q (m + e) (m + 1 + (J₀ + e)) 0
+      = ((if J₀ + e = y then p ^ (m + 1) / alpha p q (m + e) else 0)
+          + q ^ (J₀ + e + 1) * (alpha p q m / alpha p q (m + e)))
+        * alpha p q y / (q ^ (J₀ + 1) * cCoeff p q) := by
+  have hc := (cCoeff_pos hqp hp (p := p) (q := q)).ne'
+  have hme' := alpha_ne_zero hq hqp hp (m + e)
+  have hqJ : (q : ℝ) ^ (J₀ + 1) ≠ 0 := (pow_pos hq _).ne'
+  have hif : (if m + 1 + (J₀ + e) = y + (m + 1) then p ^ (m + 1) else 0)
+      = (if J₀ + e = y then p ^ (m + 1) else 0) := by
+    by_cases h : J₀ + e = y
+    · rw [ite_eq_left h, ite_eq_left (show m + 1 + (J₀ + e) = y + (m + 1) by omega)]
+    · rw [ite_eq_right h, ite_eq_right (show ¬ (m + 1 + (J₀ + e) = y + (m + 1)) by omega)]
+  rw [matrixRealPow_div_matrixRealPow hq hqp hp,
+    powNumer_of_ge (show m ≤ m + 1 + (J₀ + e) by omega),
+    powNumer_of_ge (show m + e ≤ m + 1 + (J₀ + e) by omega),
+    ite_eq_right (show ¬ (m + 1 + (J₀ + e) = 0 + (m + e + 1)) by omega), alpha_zero hqp, hif,
+    show m + 1 + (J₀ + e) - m = J₀ + e + 1 by omega,
+    show m + 1 + (J₀ + e) - (m + e) = J₀ + 1 by omega]
+  split_ifs <;> (field_simp; ring)
+
+/-- The limit in Regime C is a ratio of Kalikow's entrance vectors (11.38): with `J = J₀ + e`,
+`[p (a p^e)⁻¹ δ_J(y) + q^{J+1} p^{-e}] α(y)/(q^{J₀+1} c) = α_{-J}(y)/α_{-J₀}(0)`. This is the
+identity behind Georgii's `ℓ_i = (1 - s^{1-i+j}) δ_{j-i} + s^{1-i+j} α = α_{i-j}`; the algebraic
+input is `a (p - q) = p c` (`aCoeff_eq_mul_div`), i.e. `p α(J)/a = p^{J+1} - q^{J+1}`. -/
+lemma limit_eq_entranceNat_div {e J₀ y : ℕ} (hJ₀ : 1 ≤ J₀) :
+    ((if J₀ + e = y then p / (aCoeff p q * p ^ e) else 0) + q ^ (J₀ + e + 1) * (p ^ e)⁻¹)
+        * alpha p q y / (q ^ (J₀ + 1) * cCoeff p q)
+      = entranceNat p q (J₀ + e) y / entranceNat p q J₀ 0 := by
+  have hp0 : (0 : ℝ) < p := p_pos hq hqp
+  have hpne : (p : ℝ) ≠ 0 := hp0.ne'
+  have hqne : (q : ℝ) ≠ 0 := hq.ne'
+  have hc := (cCoeff_pos hqp hp (p := p) (q := q)).ne'
+  have hpq := (sub_pos' hqp).ne'
+  have hpe : (p : ℝ) ^ e ≠ 0 := pow_ne_zero _ hpne
+  have hpJ : (p : ℝ) ^ (J₀ + 1) ≠ 0 := pow_ne_zero _ hpne
+  have hpJe : (p : ℝ) ^ (J₀ + e + 1) ≠ 0 := pow_ne_zero _ hpne
+  have hqJ : (q : ℝ) ^ (J₀ + 1) ≠ 0 := pow_ne_zero _ hqne
+  have hE0 : entranceNat p q J₀ 0 = q ^ (J₀ + 1) / p ^ (J₀ + 1) * cCoeff p q := by
+    rw [entranceNat, ite_eq_right (show ¬ ((0 : ℕ) = J₀) by omega), mul_zero, zero_add,
+      alpha_zero hqp, sRatio, div_pow]
+  have hEy : entranceNat p q (J₀ + e) y
+      = (1 - q ^ (J₀ + e + 1) / p ^ (J₀ + e + 1)) * (if y = J₀ + e then 1 else 0)
+        + q ^ (J₀ + e + 1) / p ^ (J₀ + e + 1) * alpha p q y := by
+    rw [entranceNat, sRatio, div_pow]
+  rw [hE0, hEy, aCoeff_eq_mul_div, inv_eq_one_div]
+  by_cases h : J₀ + e = y
+  · subst h
+    rw [ite_eq_left rfl, ite_eq_left rfl, alpha_eq hqp (J₀ + e)]
+    field_simp
+    ring
+  · rw [ite_eq_right h, ite_eq_right (fun hy : y = J₀ + e ↦ h hy.symm)]
+    field_simp
+    ring
+
+/-! #### The limits along the regimes, and two general facts about sequences -/
+
+omit hq hqp hp in
+/-- `n ↦ (n + c).toNat` tends to infinity with `n`, for every fixed `c ∈ ℤ`. -/
+lemma tendsto_toNat_natCast_add (c : ℤ) :
+    Tendsto (fun n : ℕ ↦ ((n : ℤ) + c).toNat) atTop atTop :=
+  tendsto_atTop_atTop.2 fun b ↦ ⟨(b - c).toNat, fun n hn ↦ by omega⟩
+
+omit hq hqp hp in
+/-- Two convergent ratios with a common, eventually non-zero denominator: if `A_n/B_n → a` and
+`A'_n/B_n → a' ≠ 0`, then `A_n/A'_n → a/a'`. This turns the limit formula (11.40) of Georgii
+Theorem (11.9)(c), which normalises by `Q^n(x_n, 0)`, into a limit of ratios of two entries of
+the *same* power of `Q`. -/
+lemma tendsto_div_of_tendsto_div_of_tendsto_div {A A' B : ℕ → ℝ} {a a' : ℝ}
+    (hB : ∀ᶠ n in atTop, B n ≠ 0) (h : Tendsto (fun n ↦ A n / B n) atTop (𝓝 a))
+    (h' : Tendsto (fun n ↦ A' n / B n) atTop (𝓝 a')) (ha' : a' ≠ 0) :
+    Tendsto (fun n ↦ A n / A' n) atTop (𝓝 (a / a')) :=
+  (h.div h' ha').congr' (hB.mono fun _ hn ↦ div_div_div_cancel_right₀ hn _ _)
+
+/-- **Regime C with a common exponent**: `Q^{m+1}(m+1+J, y)/Q^{m+1}(m+1+J, 0)` for `J ≥ 1`; this
+is `matrixRealPow_div_of_eq` at `e = 0`. -/
+lemma matrixRealPow_div_same_of_eq {m J y : ℕ} (hJ : 1 ≤ J) :
+    matrixRealPow p q m (m + 1 + J) y / matrixRealPow p q m (m + 1 + J) 0
+      = ((if J = y then p ^ (m + 1) / alpha p q m else 0) + q ^ (J + 1)) * alpha p q y
+        / (q ^ (J + 1) * cCoeff p q) := by
+  have := matrixRealPow_div_of_eq hq hqp hp (m := m) (e := 0) (J₀ := J) (y := y) hJ
+  simpa only [add_zero, div_self (alpha_ne_zero hq hqp hp m), mul_one] using this
+
+/-- The limit in Regime C with a common exponent is the ratio `α_{-J}(y)/α_{-J}(0)` of Kalikow's
+entrance vectors (11.38): `limit_eq_entranceNat_div` at `e = 0`. -/
+lemma limit_eq_entranceNat_div_same {J y : ℕ} (hJ : 1 ≤ J) :
+    ((if J = y then p / aCoeff p q else 0) + q ^ (J + 1)) * alpha p q y
+        / (q ^ (J + 1) * cCoeff p q)
+      = entranceNat p q J y / entranceNat p q J 0 := by
+  have := limit_eq_entranceNat_div hq hqp hp (e := 0) (J₀ := J) (y := y) hJ
+  simpa only [add_zero, pow_zero, mul_one, inv_one] using this
+
+/-- **The limit in Regime A.** Along any `f n → ∞`,
+`q^e (α(f n)/α(f n + e)) α(y)/c → q^e p^{-e} α(y)/c = s^e α(y)/c`. -/
+lemma tendsto_ratio_of_lt {f : ℕ → ℕ} (hf : Tendsto f atTop atTop) (e y : ℕ) :
+    Tendsto (fun n ↦ q ^ e * (alpha p q (f n) / alpha p q (f n + e)) * alpha p q y / cCoeff p q)
+      atTop (𝓝 (q ^ e * (p ^ e)⁻¹ * alpha p q y / cCoeff p q)) := by
+  have := (tendsto_alpha_div_alpha_add hq hqp hp e).comp hf
+  exact ((this.const_mul _).mul_const _).div_const _
+
+/-- **The limit in Regime C.** Along any `f n → ∞`, the common-exponent ratio of
+`matrixRealPow_div_same_of_eq` tends to `α_{-J}(y)/α_{-J}(0)`, because `p^{k+1}/α(k) → p/a`. -/
+lemma tendsto_ratio_of_eq {f : ℕ → ℕ} (hf : Tendsto f atTop atTop) {J : ℕ} (hJ : 1 ≤ J)
+    (y : ℕ) :
+    Tendsto (fun n ↦ ((if J = y then p ^ (f n + 1) / alpha p q (f n) else 0) + q ^ (J + 1))
+      * alpha p q y / (q ^ (J + 1) * cCoeff p q)) atTop
+      (𝓝 (entranceNat p q J y / entranceNat p q J 0)) := by
+  rw [← limit_eq_entranceNat_div_same hq hqp hp hJ]
+  refine (Tendsto.mul_const _ (Tendsto.add ?_ tendsto_const_nhds)).div_const _
+  by_cases h : J = y
+  · simp only [ite_eq_left h]
+    have := (tendsto_pow_succ_div_alpha_add hq hqp hp 0).comp hf
+    simpa only [Function.comp_def, add_zero, pow_zero, mul_one] using this
+  · simp only [ite_eq_right h]
+    exact tendsto_const_nhds
+
 end Real
 
 /-! ## Kalikow's matrix as a transfer matrix on `E = ℤ₊`, and the phase transition -/
@@ -811,6 +1090,58 @@ theorem isGibbsMeasure_chain :
       (chain hq hqp hp) :=
   isGibbsMeasure_transferSpecification_boundaryLawMeasure _ _
 
+/-- **Georgii's `μ_Q`** for Kalikow's matrix: the shift-invariant Markov chain of the constant
+boundary law `ℓ_i = α`, `r_i = 1` (the invariant probability vector `α` of the stochastic `Q`).
+By Theorem (11.13) it is the only element of `𝒢_Θ(Q)` (`invariantG_eq_singleton`), and it is one
+of the two kinds of extreme Gibbs measures in Theorem (11.39). -/
+abbrev invariantChain : Measure (ℤ → ℕ) :=
+  boundaryLawMeasure (isBoundaryLaw_const (tsum_matrix hq hqp hp) (stationary_pos hq hqp hp)
+    (stationary_ne_top (p := p) (q := q)) (tsum_stationary hq hqp hp)
+    (tsum_stationary_mul_matrix hq hqp hp))
+
+/-- **Georgii's `μ_j = θ_j(μ_0)`**, `j ∈ ℤ`: the translates of Kalikow's chain `μ_0`. Under `θ_j`
+the coordinate `σ_i` becomes `σ_{i-j}`, so `μ_j` is the measure (11.10) of the boundary law
+`ℓ_i = α_{i-j}`, `r_i = 1` (`shiftedChain_eq_boundaryLawMeasure`). -/
+abbrev shiftedChain (j : ℤ) : Measure (ℤ → ℕ) := (chain hq hqp hp).map (shift ℕ j).toFun
+
+/-- `μ_j` is the measure (11.10) of the shifted boundary law `{α_{i-j}, 1}`. -/
+theorem shiftedChain_eq_boundaryLawMeasure (j : ℤ) :
+    shiftedChain hq hqp hp j = boundaryLawMeasure ((isBoundaryLaw hq hqp hp).shift j) :=
+  (isBoundaryLaw hq hqp hp).boundaryLawMeasure_map_shift j
+
+@[simp] lemma shiftedChain_zero : shiftedChain hq hqp hp 0 = chain hq hqp hp :=
+  map_shift_zero _
+
+theorem isGibbsMeasure_shiftedChain (j : ℤ) :
+    (transferSpecification (matrix p q) (isTransferMatrix hq hqp hp)).IsGibbsMeasure
+      (shiftedChain hq hqp hp j) := by
+  rw [shiftedChain_eq_boundaryLawMeasure]
+  exact isGibbsMeasure_transferSpecification_boundaryLawMeasure _ _
+
+theorem isGibbsMeasure_invariantChain :
+    (transferSpecification (matrix p q) (isTransferMatrix hq hqp hp)).IsGibbsMeasure
+      (invariantChain hq hqp hp) :=
+  isGibbsMeasure_transferSpecification_boundaryLawMeasure _ _
+
+/-- The one-site marginal of `μ_j`: `μ_j(σ_i = x) = α_{i-j}(x)`. -/
+theorem shiftedChain_preimage_singleton (j i : ℤ) (x : ℕ) :
+    shiftedChain hq hqp hp j ((fun ω : ℤ → ℕ ↦ ω i) ⁻¹' {x}) = entrance p q (i - j) x := by
+  rw [shiftedChain_eq_boundaryLawMeasure]
+  have h := IsBoundaryLaw.boundaryLawMeasure_intervalCylinder_self
+    ((isBoundaryLaw hq hqp hp).shift j) i (fun _ ↦ x)
+  rw [intervalCylinder_self] at h
+  simpa using h
+
+/-- The one-site marginal of `μ_Q`: `μ_Q(σ_i = x) = α(x)`. -/
+theorem invariantChain_preimage_singleton (i : ℤ) (x : ℕ) :
+    invariantChain hq hqp hp ((fun ω : ℤ → ℕ ↦ ω i) ⁻¹' {x}) = stationary p q x := by
+  have h := IsBoundaryLaw.boundaryLawMeasure_intervalCylinder_self
+    (isBoundaryLaw_const (tsum_matrix hq hqp hp) (stationary_pos hq hqp hp)
+      (stationary_ne_top (p := p) (q := q)) (tsum_stationary hq hqp hp)
+      (tsum_stationary_mul_matrix hq hqp hp)) i (fun _ ↦ x)
+  rw [intervalCylinder_self] at h
+  simpa using h
+
 omit hp in
 /-- The one-site marginals of `μ_0` at the sites `0` and `1` differ: `α_0(0) = 1 - s + sc` while
 `α_1(0) = α(0) = c`, and `(1-s)(1-c) > 0`. -/
@@ -871,9 +1202,7 @@ boundary law `ℓ_i = α`, `r_i = 1`. -/
 theorem invariantG_eq_singleton :
     invariantG (transferSpecification (matrix p q) (isTransferMatrix hq hqp hp))
         (shiftGroup ℤ ℕ)
-      = {boundaryLawMeasure (isBoundaryLaw_const (tsum_matrix hq hqp hp)
-          (stationary_pos hq hqp hp) (stationary_ne_top (p := p) (q := q))
-          (tsum_stationary hq hqp hp) (tsum_stationary_mul_matrix hq hqp hp))} :=
+      = {invariantChain hq hqp hp} :=
   invariantG_eq_singleton_boundaryLawMeasure_const _ (isTransferMatrix hq hqp hp)
     (matrix_pos hq hqp hp) (tsum_matrix hq hqp hp) (stationary_pos hq hqp hp)
     (stationary_ne_top (p := p) (q := q)) (tsum_stationary hq hqp hp)
@@ -884,10 +1213,7 @@ at time `1`, so `μ_0` and `μ_Q` agree on every cylinder `{σ_a = x_a, …, σ_
 `1 ≤ a ≤ b`. -/
 theorem chain_intervalCylinder_eq {a b : ℤ} (ha : 1 ≤ a) (hab : a ≤ b) (σ : ℤ → ℕ) :
     chain hq hqp hp (intervalCylinder a b σ)
-      = boundaryLawMeasure (isBoundaryLaw_const (tsum_matrix hq hqp hp)
-          (stationary_pos hq hqp hp) (stationary_ne_top (p := p) (q := q))
-          (tsum_stationary hq hqp hp) (tsum_stationary_mul_matrix hq hqp hp))
-        (intervalCylinder a b σ) := by
+      = invariantChain hq hqp hp (intervalCylinder a b σ) := by
   rw [chain, IsBoundaryLaw.boundaryLawMeasure_intervalCylinder _ hab,
     IsBoundaryLaw.boundaryLawMeasure_intervalCylinder _ hab]
   congr 1
@@ -912,6 +1238,329 @@ theorem matrix_pow_apply_singleton (n x y : ℕ) :
             (matrixReal_pos hq hqp hp w y).le)
           (summable_matrixRealPow_mul_matrixReal hq hqp hp n x y),
         tsum_matrixRealPow_mul_matrixReal hq hqp hp n x y]
+
+/-! ## Georgii Theorem (11.39), Step 2: `ex 𝒢(Q) ⊆ {μ_Q} ∪ {μ_j : j ∈ ℤ}`
+
+Given `μ ∈ ex 𝒢(Q)`, Theorem (11.9)(c)
+(`MeasureTheory.GibbsMeasure.Markov.exists_isBoundaryLaw_and_tendsto_of_mem_extremePoints`, with
+the reference state `a = 0`) represents `μ` by a boundary law `{ℓ_i, r_i}` and supplies sequences
+`(x_n)`, `(z_n)` with (11.40) `ℓ_i/ℓ_0(0) = lim_n Q^{n+i}(x_n, ·)/Q^n(x_n, 0)` for `i < 0` and
+(11.41) `r_i/r_0(0) = lim_n Q^{n-i}(·, z_n)/Q^n(0, z_n)` for `i > 0`. Georgii normalises
+`r_0(0) = 1`; here instead `r ≡ κ := r_0(0)` is proved directly (`right_eq_of_tendsto`), and the
+identities `ℓ_i κ = v_i` are established for the candidate laws `v_i = α` and `v_i = α_{i-j}`.
+
+The sequence `x_n - n` either has a cluster point `j ∈ ℤ`, or is frequently above every bound, or
+frequently below every bound (`forall_frequently_lt_or_gt_of_forall_eventually_ne`). The three
+regimes of the powers of `Q` computed at the end of `section Real` identify the limits (11.40) in
+each case: Regime A is contradictory (`not_forall_frequently_lt_of_tendsto`), Regime B gives
+`ℓ_i ∝ α` (`mul_stationary_eq_of_forall_frequently_lt`) and hence `μ = μ_Q`, and Regime C gives
+`ℓ_i ∝ α_{i-j}` (`mul_entrance_eq_of_frequently_eq`) and hence `μ = μ_j`. -/
+
+open Filter
+open scoped Topology
+
+/-- The real value of an entry of `Q^{m+1}`: `matrix_pow_apply_singleton` read in `ℝ`. -/
+lemma toReal_matrix_pow_apply_singleton (m x y : ℕ) :
+    ((Kernel.ofMatrix (matrix p q) ^ (m + 1)) x {y}).toReal = matrixRealPow p q m x y := by
+  rw [matrix_pow_apply_singleton hq hqp hp,
+    ENNReal.toReal_ofReal (matrixRealPow_nonneg hq hqp hp m x y)]
+
+/-- The real value of an entry of `Q^n` for `n ≥ 1`. -/
+lemma toReal_matrix_pow_apply_singleton_of_pos {n : ℕ} (hn : 0 < n) (x y : ℕ) :
+    ((Kernel.ofMatrix (matrix p q) ^ n) x {y}).toReal = matrixRealPow p q (n - 1) x y := by
+  obtain ⟨m, rfl⟩ : ∃ m, n = m + 1 := ⟨n - 1, by omega⟩
+  rw [toReal_matrix_pow_apply_singleton hq hqp hp, Nat.add_sub_cancel]
+
+omit hq hqp hp in
+/-- An integer sequence that eventually avoids every value is frequently above every bound or
+frequently below every bound: Georgii's trichotomy `limsup = ∞`, `liminf = -∞`, or a cluster
+point, in the form used in Step 2 of the proof of Theorem (11.39). -/
+lemma forall_frequently_lt_or_gt_of_forall_eventually_ne {d : ℕ → ℤ}
+    (h : ∀ j : ℤ, ∀ᶠ n in atTop, d n ≠ j) :
+    (∀ K : ℤ, ∃ᶠ n in atTop, K < d n) ∨ (∀ K : ℤ, ∃ᶠ n in atTop, d n < K) := by
+  by_contra hcon
+  obtain ⟨K₁, hK₁⟩ := not_forall.1 fun h₁ ↦ hcon (Or.inl h₁)
+  obtain ⟨K₂, hK₂⟩ := not_forall.1 fun h₂ ↦ hcon (Or.inr h₂)
+  rw [Filter.not_frequently] at hK₁ hK₂
+  have hall : ∀ᶠ n in atTop, ∀ j ∈ Finset.Icc K₂ K₁, d n ≠ j :=
+    (Filter.eventually_all_finset _).2 fun j _ ↦ h j
+  obtain ⟨n, hn₁, hn₂, hn₃⟩ := (hK₁.and (hK₂.and hall)).exists
+  exact hn₃ (d n) (Finset.mem_Icc.2 ⟨not_lt.1 hn₂, not_lt.1 hn₁⟩) rfl
+
+omit hq hqp hp in
+/-- If `ℓ` is proportional to a probability vector `v` — `ℓ(y) v(0) = v(y) ℓ(0)` for all `y` —
+and `(∑_y ℓ(y)) κ = 1`, then `ℓ(y) κ = v(y)`. This is Georgii's "since `ℓ_i` and `α` are
+probability vectors" step, without normalising `ℓ_i`. -/
+lemma mul_eq_of_forall_mul_eq_mul {ℓ v : ℕ → ℝ≥0∞} {κ : ℝ≥0∞} (hv0 : v 0 ≠ 0) (hvt : v 0 ≠ ⊤)
+    (hv1 : ∑' y, v y = 1) (hℓκ : (∑' y, ℓ y) * κ = 1) (h : ∀ y, ℓ y * v 0 = v y * ℓ 0) (y : ℕ) :
+    ℓ y * κ = v y := by
+  have hsum : (∑' y, ℓ y) * v 0 = ℓ 0 := by
+    rw [← ENNReal.tsum_mul_right]
+    simp_rw [h]
+    rw [ENNReal.tsum_mul_right, hv1, one_mul]
+  refine (ENNReal.mul_left_inj hv0 hvt).1 ?_
+  calc ℓ y * κ * v 0 = (ℓ y * v 0) * κ := by ring
+    _ = v y * ℓ 0 * κ := by rw [h y]
+    _ = v y * ((∑' y, ℓ y) * v 0) * κ := by rw [hsum]
+    _ = v y * v 0 * ((∑' y, ℓ y) * κ) := by ring
+    _ = v y * v 0 := by rw [hℓκ, mul_one]
+
+omit hq hqp hp in
+/-- Upward propagation along the recursions `ℓ_i Q = ℓ_{i+1}` and `v_i Q = v_{i+1}`: an identity
+`ℓ_i κ = v_i` valid for all `i < i₀` is valid for all `i ∈ ℤ`. -/
+lemma mul_eq_of_step_of_forall_lt {Q : ℕ → ℕ → ℝ≥0∞} {ℓ v : ℤ → ℕ → ℝ≥0∞} {κ : ℝ≥0∞}
+    (hℓ : ∀ i y, ∑' x, ℓ i x * Q x y = ℓ (i + 1) y)
+    (hv : ∀ i y, ∑' x, v i x * Q x y = v (i + 1) y)
+    {i₀ : ℤ} (h : ∀ i < i₀, ∀ y, ℓ i y * κ = v i y) (i : ℤ) (y : ℕ) : ℓ i y * κ = v i y := by
+  have hstep : ∀ i, (∀ y, ℓ i y * κ = v i y) → ∀ y, ℓ (i + 1) y * κ = v (i + 1) y := by
+    intro i hi y
+    rw [← hℓ i y, ← hv i y, ← ENNReal.tsum_mul_right]
+    exact tsum_congr fun s ↦ by rw [mul_right_comm, hi s]
+  have hup : ∀ k : ℕ, ∀ y, ℓ (i₀ - 1 + k) y * κ = v (i₀ - 1 + k) y := by
+    intro k
+    induction k with
+    | zero => intro y; rw [Nat.cast_zero, add_zero]; exact h _ (by omega) y
+    | succ m ihm =>
+      rw [show i₀ - 1 + ((m + 1 : ℕ) : ℤ) = (i₀ - 1 + (m : ℤ)) + 1 by push_cast; ring]
+      exact hstep _ ihm
+  rcases lt_or_ge i i₀ with hi | hi
+  · exact h i hi y
+  · obtain ⟨k, rfl⟩ : ∃ k : ℕ, i = i₀ - 1 + (k : ℤ) := ⟨(i - i₀ + 1).toNat, by omega⟩
+    exact hup k y
+
+/-- **Georgii's `r_i ≡ 1` in Step 2 of Theorem (11.39)**, without the normalisation `r_0(0) = 1`:
+every `r_i(y)` equals `r_0(0)`. For `i > 0` the ratio `Q^{n-i}(y, z_n)/Q^n(0, z_n)` in (11.41) is
+`α(z_n)/α(z_n) = 1` as soon as `n ≥ y + i + 2`, by Step 1 and `matrixRealPow_of_le`; the
+identity then propagates downward along `Q r_i = r_{i-1}`, since `Q` is stochastic. -/
+theorem right_eq_of_tendsto {ℓ r : ℤ → ℕ → ℝ≥0∞} (hbl : IsBoundaryLaw (matrix p q) ℓ r)
+    {z : ℕ → ℕ}
+    (hz : ∀ i : ℤ, 0 < i → ∀ y : ℕ, Tendsto
+      (fun n : ℕ ↦ ((Kernel.ofMatrix (matrix p q) ^ ((n : ℤ) - i).toNat) y {z n}).toReal
+        / ((Kernel.ofMatrix (matrix p q) ^ n) (0 : ℕ) {z n}).toReal) atTop
+      (𝓝 ((r i y).toReal / (r 0 0).toReal)))
+    (i : ℤ) (y : ℕ) : r i y = r 0 0 := by
+  have hr0 : (0 : ℝ) < (r 0 0).toReal :=
+    ENNReal.toReal_pos (hbl.right_pos 0 0).ne' (hbl.right_ne_top 0 0)
+  have hpos : ∀ i : ℤ, 0 < i → ∀ y : ℕ, r i y = r 0 0 := by
+    intro i hi y
+    have hev : ∀ᶠ n : ℕ in atTop,
+        ((Kernel.ofMatrix (matrix p q) ^ ((n : ℤ) - i).toNat) y {z n}).toReal
+          / ((Kernel.ofMatrix (matrix p q) ^ n) (0 : ℕ) {z n}).toReal = 1 := by
+      filter_upwards [eventually_ge_atTop (y + i.toNat + 2)] with n hn
+      rw [toReal_matrix_pow_apply_singleton_of_pos hq hqp hp (by omega),
+        toReal_matrix_pow_apply_singleton_of_pos hq hqp hp (by omega),
+        matrixRealPow_of_le hq hqp hp (show y ≤ ((n : ℤ) - i).toNat - 1 by omega),
+        matrixRealPow_of_le hq hqp hp (Nat.zero_le _), div_self (alpha_ne_zero hq hqp hp _)]
+    have h1 : (r i y).toReal / (r 0 0).toReal = 1 :=
+      tendsto_nhds_unique (hz i hi y) (tendsto_const_nhds.congr' (hev.mono fun n hn ↦ hn.symm))
+    rw [div_eq_one_iff_eq hr0.ne'] at h1
+    exact (ENNReal.toReal_eq_toReal_iff' (hbl.right_ne_top i y) (hbl.right_ne_top 0 0)).1 h1
+  have hdown : ∀ k : ℕ, ∀ y, r (1 - (k : ℤ)) y = r 0 0 := by
+    intro k
+    induction k with
+    | zero => intro y; rw [Nat.cast_zero, sub_zero]; exact hpos 1 one_pos y
+    | succ m ihm =>
+      intro y
+      rw [show (1 : ℤ) - ((m + 1 : ℕ) : ℤ) = (1 - (m : ℤ)) - 1 by push_cast; ring,
+        ← hbl.tsum_mul_right]
+      simp_rw [ihm]
+      rw [ENNReal.tsum_mul_right, tsum_matrix hq hqp hp, one_mul]
+  rcases le_or_gt i 1 with hi | hi
+  · obtain ⟨k, rfl⟩ : ∃ k : ℕ, i = 1 - (k : ℤ) := ⟨(1 - i).toNat, by omega⟩
+    exact hdown k y
+  · exact hpos i (by omega) y
+
+/-- **The common-exponent form of (11.40).** Dividing the limits (11.40) at `y` and at `0` gives
+`ℓ_i(y)/ℓ_i(0) = lim_n Q^{n+i}(x_n, y)/Q^{n+i}(x_n, 0)` for `i < 0`, with the entries of the
+powers of `Q` written through Step 1 with the exponent `n + i = (n + (i - 1)).toNat + 1`. -/
+theorem tendsto_matrixRealPow_div_of_tendsto {ℓ : ℤ → ℕ → ℝ≥0∞} (hℓ0 : ∀ i y, ℓ i y ≠ 0)
+    (hℓt : ∀ i y, ℓ i y ≠ ⊤) {x : ℕ → ℕ}
+    (hx : ∀ i : ℤ, i < 0 → ∀ y : ℕ, Tendsto
+      (fun n : ℕ ↦ ((Kernel.ofMatrix (matrix p q) ^ ((n : ℤ) + i).toNat) (x n) {y}).toReal
+        / ((Kernel.ofMatrix (matrix p q) ^ n) (x n) {(0 : ℕ)}).toReal) atTop
+      (𝓝 ((ℓ i y).toReal / (ℓ 0 0).toReal)))
+    {i : ℤ} (hi : i < 0) (y : ℕ) :
+    Tendsto (fun n : ℕ ↦ matrixRealPow p q ((n : ℤ) + (i - 1)).toNat (x n) y
+      / matrixRealPow p q ((n : ℤ) + (i - 1)).toNat (x n) 0) atTop
+      (𝓝 ((ℓ i y).toReal / (ℓ i 0).toReal)) := by
+  have h00 : (ℓ 0 0).toReal ≠ 0 := (ENNReal.toReal_pos (hℓ0 0 0) (hℓt 0 0)).ne'
+  have hi0 : (ℓ i 0).toReal / (ℓ 0 0).toReal ≠ 0 :=
+    div_ne_zero (ENNReal.toReal_pos (hℓ0 i 0) (hℓt i 0)).ne' h00
+  have hB : ∀ᶠ n : ℕ in atTop,
+      ((Kernel.ofMatrix (matrix p q) ^ n) (x n) {(0 : ℕ)}).toReal ≠ 0 := by
+    filter_upwards [eventually_ge_atTop 1] with n hn
+    rw [toReal_matrix_pow_apply_singleton_of_pos hq hqp hp hn]
+    exact (matrixRealPow_pos hq hqp hp _ _ _).ne'
+  have h := tendsto_div_of_tendsto_div_of_tendsto_div hB (hx i hi y) (hx i hi 0) hi0
+  rw [div_div_div_cancel_right₀ h00] at h
+  refine h.congr' ?_
+  filter_upwards [eventually_ge_atTop (1 - i).toNat] with n hn
+  have hn' : 0 < ((n : ℤ) + i).toNat := by omega
+  simp only [toReal_matrix_pow_apply_singleton_of_pos hq hqp hp hn',
+    show ((n : ℤ) + i).toNat - 1 = ((n : ℤ) + (i - 1)).toNat by omega]
+
+/-- **Regime A of Georgii's Step 2 is contradictory.** If `x_n - n` is frequently above every
+bound then, for every `i < 0` and `y`, infinitely many `n` have `x_n > n + y`, where the ratio
+in (11.40) is `q^{-i} (α(n+i-1)/α(n-1)) α(y)/c`; its limit gives `ℓ_i(y)/ℓ_0(0) = s^{-i} α(y)/c`.
+Summing over `y` — all `ℓ_i` have the same total mass `S`, since `r ≡ κ` — gives
+`S/ℓ_0(0) = s^{-i}/c` for every `i < 0`, so `s = s²`, which is impossible for `0 < s < 1`. -/
+theorem not_forall_frequently_lt_of_tendsto {ℓ : ℤ → ℕ → ℝ≥0∞} (hℓ0 : ∀ i y, ℓ i y ≠ 0)
+    (hℓt : ∀ i y, ℓ i y ≠ ⊤) {S : ℝ≥0∞} (hS : ∀ i, ∑' y, ℓ i y = S) {x : ℕ → ℕ}
+    (hx : ∀ i : ℤ, i < 0 → ∀ y : ℕ, Tendsto
+      (fun n : ℕ ↦ ((Kernel.ofMatrix (matrix p q) ^ ((n : ℤ) + i).toNat) (x n) {y}).toReal
+        / ((Kernel.ofMatrix (matrix p q) ^ n) (x n) {(0 : ℕ)}).toReal) atTop
+      (𝓝 ((ℓ i y).toReal / (ℓ 0 0).toReal)))
+    (hA : ∀ K : ℤ, ∃ᶠ n in atTop, K < (x n : ℤ) - n) : False := by
+  have hL : (0 : ℝ) < (ℓ 0 0).toReal := ENNReal.toReal_pos (hℓ0 0 0) (hℓt 0 0)
+  have hc : cCoeff p q ≠ 0 := (cCoeff_pos hqp hp).ne'
+  have key : ∀ i : ℤ, i < 0 → ∀ y : ℕ, (ℓ i y).toReal / (ℓ 0 0).toReal
+      = q ^ (-i).toNat * (p ^ (-i).toNat)⁻¹ * alpha p q y / cCoeff p q := by
+    intro i hi y
+    refine tendsto_nhds_unique_of_frequently_eq (hx i hi y)
+      (tendsto_ratio_of_lt hq hqp hp (tendsto_toNat_natCast_add (i - 1)) (-i).toNat y) ?_
+    refine ((hA y).and_eventually (eventually_ge_atTop (1 - i).toNat)).mono
+      fun n ⟨hn₁, hn₂⟩ ↦ ?_
+    rw [toReal_matrix_pow_apply_singleton_of_pos hq hqp hp (show 0 < ((n : ℤ) + i).toNat by omega),
+      toReal_matrix_pow_apply_singleton_of_pos hq hqp hp (show 0 < n by omega),
+      show ((n : ℤ) + i).toNat - 1 = ((n : ℤ) + (i - 1)).toNat by omega,
+      show n - 1 = ((n : ℤ) + (i - 1)).toNat + (-i).toNat by omega]
+    exact matrixRealPow_div_of_lt hq hqp hp (by omega)
+  have hsum : ∀ i : ℤ, i < 0 → S.toReal
+      = (ℓ 0 0).toReal * (q ^ (-i).toNat * (p ^ (-i).toNat)⁻¹ / cCoeff p q) := by
+    intro i hi
+    have hpt : ∀ y, (ℓ i y).toReal
+        = (ℓ 0 0).toReal * (q ^ (-i).toNat * (p ^ (-i).toNat)⁻¹ / cCoeff p q) * alpha p q y := by
+      intro y
+      have h := key i hi y
+      rw [div_eq_iff hL.ne'] at h
+      rw [h]; ring
+    rw [← hS i, ENNReal.tsum_toReal_eq (hℓt i)]
+    simp_rw [hpt]
+    rw [tsum_mul_left, tsum_alpha hq hqp hp, mul_one]
+  have hsum' : ∀ e : ℕ, 1 ≤ e → S.toReal
+      = (ℓ 0 0).toReal * (q ^ e * (p ^ e)⁻¹ / cCoeff p q) := by
+    intro e he
+    have h := hsum (-(e : ℤ)) (by omega)
+    rwa [show (-(-(e : ℤ))).toNat = e by omega] at h
+  have h3 : q ^ 1 * (p ^ 1)⁻¹ / cCoeff p q = q ^ 2 * (p ^ 2)⁻¹ / cCoeff p q :=
+    mul_left_cancel₀ hL.ne' ((hsum' 1 le_rfl).symm.trans (hsum' 2 one_le_two))
+  have h4 : q ^ 1 * (p ^ 1)⁻¹ = q ^ 2 * (p ^ 2)⁻¹ := (div_left_inj' hc).1 h3
+  have hs : sRatio p q ^ 1 = sRatio p q ^ 2 := by
+    rw [sRatio, div_pow, div_pow, div_eq_mul_inv, div_eq_mul_inv]
+    exact h4
+  have hs0 := sRatio_pos hq hqp (p := p) (q := q)
+  have hs1 := sRatio_lt_one hq hqp (p := p) (q := q)
+  have := mul_lt_mul_of_pos_left hs1 hs0
+  rw [pow_one, pow_two] at hs
+  linarith
+
+/-- **Regime B of Georgii's Step 2.** If `x_n - n` is frequently below every bound then, for
+every `i < 0`, infinitely many `n` have `x_n ≤ n + i - 1`, where both entries in the
+common-exponent ratio are `α`; hence `ℓ_i(y)/ℓ_i(0) = α(y)/α(0)`, i.e.
+`ℓ_i(y) α(0) = α(y) ℓ_i(0)`. -/
+theorem mul_stationary_eq_of_forall_frequently_lt {ℓ : ℤ → ℕ → ℝ≥0∞} (hℓ0 : ∀ i y, ℓ i y ≠ 0)
+    (hℓt : ∀ i y, ℓ i y ≠ ⊤) {x : ℕ → ℕ}
+    (hx : ∀ i : ℤ, i < 0 → ∀ y : ℕ, Tendsto
+      (fun n : ℕ ↦ ((Kernel.ofMatrix (matrix p q) ^ ((n : ℤ) + i).toNat) (x n) {y}).toReal
+        / ((Kernel.ofMatrix (matrix p q) ^ n) (x n) {(0 : ℕ)}).toReal) atTop
+      (𝓝 ((ℓ i y).toReal / (ℓ 0 0).toReal)))
+    (hB : ∀ K : ℤ, ∃ᶠ n in atTop, (x n : ℤ) - n < K) {i : ℤ} (hi : i < 0) (y : ℕ) :
+    ℓ i y * stationary p q 0 = stationary p q y * ℓ i 0 := by
+  have hratio : (ℓ i y).toReal / (ℓ i 0).toReal = alpha p q y / cCoeff p q := by
+    refine tendsto_nhds_unique_of_frequently_eq
+      (tendsto_matrixRealPow_div_of_tendsto hq hqp hp hℓ0 hℓt hx hi y) tendsto_const_nhds ?_
+    refine (hB i).mono fun n hn ↦ ?_
+    rw [matrixRealPow_of_le hq hqp hp (show x n ≤ ((n : ℤ) + (i - 1)).toNat by omega),
+      matrixRealPow_of_le hq hqp hp (show x n ≤ ((n : ℤ) + (i - 1)).toNat by omega),
+      alpha_zero hqp]
+  refine ENNReal.mul_eq_mul_of_toReal_div_eq (hℓt i y) (hℓ0 i 0) (hℓt i 0) ENNReal.ofReal_ne_top
+    (stationary_pos hq hqp hp 0).ne' ENNReal.ofReal_ne_top ?_
+  rw [hratio, stationary, stationary, ENNReal.toReal_ofReal (alpha_pos hq hqp hp y).le,
+    ENNReal.toReal_ofReal (alpha_pos hq hqp hp 0).le, alpha_zero hqp]
+
+/-- **Regime C of Georgii's Step 2.** If `x_n - n = j` frequently then, for every `i < j ∧ 0`,
+`x_n = (n + i - 1) + 1 + (j - i)` along these `n`, where the common-exponent ratio is given by
+`matrixRealPow_div_same_of_eq` and tends to `α_{i-j}(y)/α_{i-j}(0)`; hence
+`ℓ_i(y) α_{i-j}(0) = α_{i-j}(y) ℓ_i(0)`. -/
+theorem mul_entrance_eq_of_frequently_eq {ℓ : ℤ → ℕ → ℝ≥0∞} (hℓ0 : ∀ i y, ℓ i y ≠ 0)
+    (hℓt : ∀ i y, ℓ i y ≠ ⊤) {x : ℕ → ℕ}
+    (hx : ∀ i : ℤ, i < 0 → ∀ y : ℕ, Tendsto
+      (fun n : ℕ ↦ ((Kernel.ofMatrix (matrix p q) ^ ((n : ℤ) + i).toNat) (x n) {y}).toReal
+        / ((Kernel.ofMatrix (matrix p q) ^ n) (x n) {(0 : ℕ)}).toReal) atTop
+      (𝓝 ((ℓ i y).toReal / (ℓ 0 0).toReal)))
+    {j : ℤ} (hj : ∃ᶠ n in atTop, (x n : ℤ) - n = j) {i : ℤ} (hi : i < min j 0) (y : ℕ) :
+    ℓ i y * entrance p q (i - j) 0 = entrance p q (i - j) y * ℓ i 0 := by
+  have hi0 : i < 0 := lt_of_lt_of_le hi (min_le_right _ _)
+  have hij : i < j := lt_of_lt_of_le hi (min_le_left _ _)
+  have hJ : 1 ≤ (j - i).toNat := by omega
+  have hratio : (ℓ i y).toReal / (ℓ i 0).toReal
+      = entranceNat p q (j - i).toNat y / entranceNat p q (j - i).toNat 0 := by
+    refine tendsto_nhds_unique_of_frequently_eq
+      (tendsto_matrixRealPow_div_of_tendsto hq hqp hp hℓ0 hℓt hx hi0 y)
+      (tendsto_ratio_of_eq hq hqp hp (tendsto_toNat_natCast_add (i - 1)) hJ y) ?_
+    refine (hj.and_eventually (eventually_ge_atTop (1 - i).toNat)).mono fun n ⟨hn₁, hn₂⟩ ↦ ?_
+    rw [show x n = ((n : ℤ) + (i - 1)).toNat + 1 + (j - i).toNat by omega,
+      matrixRealPow_div_same_of_eq hq hqp hp hJ]
+  have hE : ∀ w, (entrance p q (i - j) w).toReal = entranceNat p q (j - i).toNat w := by
+    intro w
+    rw [entrance, ENNReal.toReal_ofReal (entranceReal_pos hq hqp hp _ _).le, entranceReal,
+      ite_eq_right (by omega), show (-(i - j)).toNat = (j - i).toNat by omega]
+  refine ENNReal.mul_eq_mul_of_toReal_div_eq (hℓt i y) (hℓ0 i 0) (hℓt i 0) ENNReal.ofReal_ne_top
+    ((isEntranceLaw hq hqp hp).pos _ _).ne' ENNReal.ofReal_ne_top ?_
+  rw [hratio, hE, hE]
+
+/-- **Georgii Theorem (11.39), Step 2.** Every extreme Gibbs measure for Kalikow's matrix is
+`μ_Q` or one of the translates `μ_j = θ_j(μ_0)`. -/
+theorem exists_eq_of_mem_extremePoints {μ : Measure (ℤ → ℕ)} [IsProbabilityMeasure μ]
+    (hμ : μ ∈ (G (transferSpecification (matrix p q)
+      (isTransferMatrix hq hqp hp))).extremePoints ℝ≥0∞) :
+    μ = invariantChain hq hqp hp ∨ ∃ j : ℤ, μ = shiftedChain hq hqp hp j := by
+  classical
+  obtain ⟨ℓ, r, hbl, rfl, ⟨x, hx⟩, ⟨z, hz⟩⟩ :=
+    exists_isBoundaryLaw_and_tendsto_of_mem_extremePoints (isTransferMatrix hq hqp hp) hμ 0
+  have hℓ0 : ∀ i y, ℓ i y ≠ 0 := fun i y ↦ (hbl.left_pos i y).ne'
+  have hℓt : ∀ i y, ℓ i y ≠ ⊤ := hbl.left_ne_top
+  -- `r ≡ κ := r_0(0)`, hence every `ℓ_i` has total mass `κ⁻¹`
+  have hr : ∀ i y, r i y = r 0 0 := right_eq_of_tendsto hq hqp hp hbl hz
+  have hℓκ : ∀ i, (∑' y, ℓ i y) * r 0 0 = 1 := fun i ↦ by
+    rw [← hbl.tsum_left_mul_right i, ← ENNReal.tsum_mul_right]
+    exact tsum_congr fun y ↦ by rw [hr i y]
+  -- an identity `ℓ_i κ = v_i` for a boundary law `{v_i, 1}` identifies `μ` through (11.10)
+  have hconcl : ∀ (v : ℤ → ℕ → ℝ≥0∞) (hv : IsBoundaryLaw (matrix p q) v (fun _ _ ↦ 1)),
+      (∀ i y, ℓ i y * r 0 0 = v i y) → boundaryLawMeasure hbl = boundaryLawMeasure hv := by
+    intro v hv h
+    refine hv.eq_boundaryLawMeasure_of_forall_intervalCylinder fun a b hab σ ↦ ?_
+    rw [hbl.boundaryLawMeasure_intervalCylinder hab σ, hr b (σ b), mul_right_comm, h a (σ a),
+      mul_one]
+  by_cases hC : ∃ j : ℤ, ∃ᶠ n in atTop, (x n : ℤ) - n = j
+  · -- Regime C: a cluster point `j` of `x_n - n`, and `μ = μ_j`
+    obtain ⟨j, hj⟩ := hC
+    refine Or.inr ⟨j, ?_⟩
+    rw [shiftedChain_eq_boundaryLawMeasure]
+    refine hconcl (fun i ↦ entrance p q (i - j)) ((isBoundaryLaw hq hqp hp).shift j)
+      (mul_eq_of_step_of_forall_lt hbl.tsum_left_mul (fun i y ↦ ?_) (i₀ := min j 0)
+        fun i hi y ↦ ?_)
+    · show ∑' x, entrance p q (i - j) x * matrix p q x y = entrance p q (i + 1 - j) y
+      rw [(isEntranceLaw hq hqp hp).step, show i - j + 1 = i + 1 - j by ring]
+    · exact mul_eq_of_forall_mul_eq_mul ((isEntranceLaw hq hqp hp).pos _ 0).ne'
+        ENNReal.ofReal_ne_top ((isEntranceLaw hq hqp hp).tsum_eq_one _) (hℓκ i)
+        (mul_entrance_eq_of_frequently_eq hq hqp hp hℓ0 hℓt hx hj hi) y
+  · have hC' : ∀ j : ℤ, ∀ᶠ n in atTop, (x n : ℤ) - n ≠ j := fun j ↦
+      Filter.not_frequently.1 (not_exists.1 hC j)
+    rcases forall_frequently_lt_or_gt_of_forall_eventually_ne hC' with hA | hB
+    · -- Regime A: `limsup (x_n - n) = ∞` is impossible
+      exact (not_forall_frequently_lt_of_tendsto hq hqp hp hℓ0 hℓt
+        (fun i ↦ ENNReal.eq_inv_of_mul_eq_one_left (hℓκ i)) hx hA).elim
+    · -- Regime B: `liminf (x_n - n) = -∞`, and `μ = μ_Q`
+      refine Or.inl (hconcl (fun _ ↦ stationary p q)
+        (isBoundaryLaw_const (tsum_matrix hq hqp hp) (stationary_pos hq hqp hp)
+          (stationary_ne_top (p := p) (q := q)) (tsum_stationary hq hqp hp)
+          (tsum_stationary_mul_matrix hq hqp hp))
+        (mul_eq_of_step_of_forall_lt hbl.tsum_left_mul
+          (fun i y ↦ tsum_stationary_mul_matrix hq hqp hp y) (i₀ := 0) fun i hi y ↦ ?_))
+      exact mul_eq_of_forall_mul_eq_mul (stationary_pos hq hqp hp 0).ne'
+        (stationary_ne_top (p := p) (q := q) 0) (tsum_stationary hq hqp hp) (hℓκ i)
+        (mul_stationary_eq_of_forall_frequently_lt hq hqp hp hℓ0 hℓt hx hB hi) y
 
 end Transfer
 
