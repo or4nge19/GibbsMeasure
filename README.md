@@ -506,8 +506,11 @@ monotone cubes where he allows any sequence of cubes, so the two statements are 
 convex with compact level sets, vanishing exactly on the Gibbs measures, and equal to its Legendre
 transform, the conjugate being attained at a Gibbs measure. Mathlib has neither large-deviation
 theory nor a convex conjugate, so Fenchel–Moreau for a rate function is built model-free in the
-Mathlib layer. Still open there: (15.45)–(15.47), which need Shannon–McMillan–Breiman and Choquet
-theory, neither of which Mathlib has.
+Mathlib layer. The Shannon–McMillan theorem in the `L¹` form (15.47) invokes is now in
+`GibbsMeasure/Mathlib/Dynamics/Ergodic/ShannonMcMillanBreiman.lean`, for a countable ordered
+abelian group along any Følner net, with the `ℤ^d` cube case in `ShannonMcMillanCube.lean`. Still
+open: identifying its entropy rate with the specific entropy of §15.2, Choquet theory, and
+therefore (15.45)–(15.47).
 
 **Chapter 17** (`GibbsMeasure/Specification/ReflectionPositivity.lean`,
 `Specification/PeriodicGibbs.lean`): reflection positivity for Georgii's generalised reflection,

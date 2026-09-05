@@ -13,6 +13,31 @@
     $\mu(°R_{\Lambda_n} \in U) \to 1$ for every basic neighbourhood $U$ of $\mu$ (15.44).
 \end{definition}
 
+\begin{theorem}[Shannon--McMillan, the input of Georgii (15.45)--(15.47)]
+    \label{thm:ld-shannon-mcmillan}
+    \lean{MeasureTheory.blockProb, MeasureTheory.condProbGiven, MeasureTheory.condExp_indicator_comap_ae_eq_condProbGiven, MeasureTheory.condInformation, MeasureTheory.condInformation_ae_eq_neg_log_condProbGiven, MeasureTheory.entropyRate, MeasureTheory.pastWindow, MeasureTheory.neg_log_blockProb_eq_sum_condInformation, MeasureTheory.integral_exp_condInformation_sub_le_one, MeasureTheory.integral_abs_le_of_integral_exp_le_one, MeasureTheory.exists_forall_integral_abs_condInformation_sub_le, MeasureTheory.tendsto_integral_abs_neg_inv_card_mul_log_blockProb_sub_entropyRate, MeasureTheory.tendsto_inv_card_mul_integral_neg_log_blockProb, MeasureTheory.tendsto_integral_abs_neg_inv_card_mul_log_blockProb_sub_entropyRate_cube, MeasureTheory.condExp_ae_eq_integral_of_forall_measure_eq_zero_or_one}
+    \leanok
+
+    Let $G$ be a countable linearly ordered abelian group acting measurably on $\Omega$
+    preserving an ergodic probability measure $\mu$, $X : \Omega \to E$ measurable with $E$
+    finite, and $p_\Lambda(\omega) = \mu(X_i = X_i(\omega)\ \forall i \in \Lambda)$ the block
+    probabilities. The entropy rate $h$ is the infimum over finite past windows $W \subset
+    \{i < 0\}$ of $\int g_W\,d\mu$, $g_W = -\log \mu(X_0 = X_0(\omega) \mid X_W)$. Along every
+    F\o lner net $(\Lambda_k)$, $\int \bigl| -|\Lambda_k|^{-1}\log p_{\Lambda_k} - h \bigr|\,d\mu
+    \to 0$; on $\mathbb Z^d$ with the lexicographic order this holds along any sequence of cubes
+    with side lengths tending to infinity. This is the $L^1$ form Georgii uses in (15.47).
+\end{theorem}
+\begin{proof}
+    \leanok
+    The exact chain rule $-\log p_\Lambda(\omega) = \sum_{i \in \Lambda} g_{W_i(\Lambda)}(i +
+    \omega)$ over the past windows $W_i(\Lambda) = (\Lambda \cap \{j < i\}) - i$; for $W' \subseteq
+    W$, $\int e^{g_W - g_{W'}} \leq 1$, and $\int e^u \leq 1$ on a probability space gives
+    $\int|u| \leq 2\delta + (1 + 2/\delta)(-\int u)$, so the $g_W$ are uniformly $L^1$-close to
+    $g_{W_0}$ for all $W \supseteq W_0$ once $\int g_{W_0}$ is within $\varepsilon$ of $h$;
+    the F\o lner property makes the sites whose window misses $W_0$ negligible, and the ergodic
+    theorem in $L^1$ replaces $|\Lambda_k|^{-1}\sum_i g_{W_0}(i + \omega)$ by $\int g_{W_0}$.
+\end{proof}
+
 \begin{proposition}[Georgii (15.49), (15.59), and the rate-function half of (15.48)]
     \label{prop:ld-15-49}
     \uses{def:ld-15-41, thm:vp-15-39, prop:sent-15-14c, cor:gv-16-12}
