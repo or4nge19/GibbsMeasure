@@ -1,0 +1,20 @@
+\section{Further consequences of Dobrushin's condition}
+
+\begin{proposition}[Georgii (8.34)]
+    \label{prop:dob-8-34}
+    \uses{thm:dob-comparison, thm:dob-uniqueness}
+    \lean{MeasureTheory.GibbsMeasure.Dobrushin.unifDist_withDensity_le, MeasureTheory.GibbsMeasure.Dobrushin.ofReal_abs_covariance_le, MeasureTheory.GibbsMeasure.Dobrushin.ofReal_abs_covariance_le_of_iSup}
+    \leanok
+
+    Let $\gamma$ be quasilocal and satisfy Dobrushin's condition, with unique Gibbs measure $\mu$.
+    For bounded measurable $f, g$,
+    $\abs{\mu(fg) - \mu(f)\mu(g)} \leq \tfrac14\sum_{i,j}\delta_i(f)\,D_{ij}(\gamma)\,\delta_j(g)$,
+    where $D(\gamma) = \sum_n C(\gamma)^n$.
+\end{proposition}
+\begin{proof}
+    \leanok
+    Tilt the specification by $g$: $\tilde\gamma_\Lambda = h_\Lambda\gamma_\Lambda$ with
+    $h_\Lambda = g/\gamma_\Lambda g$, so $g\mu$ is Gibbs for $\tilde\gamma$; the elementary estimate
+    $\norm{u\alpha - \alpha} \leq \delta(u)/4$ for a probability density bounds the single-site
+    distances, and the comparison theorem (8.20) with $b_j = \delta_j(g)/4\gamma_j g$ finishes.
+\end{proof}

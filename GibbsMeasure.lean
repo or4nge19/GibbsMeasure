@@ -158,6 +158,7 @@ public import GibbsMeasure.Model.MarkovChainVariational
 public import GibbsMeasure.Model.InhomogeneousIsingChain
 public import GibbsMeasure.Model.Ising
 public import GibbsMeasure.Model.IsingDobrushin
+public import GibbsMeasure.Model.IsingLargeDeviations
 public import GibbsMeasure.Model.IsingFKG
 public import GibbsMeasure.Model.PlusPhase
 public import GibbsMeasure.Model.Contours
@@ -203,6 +204,7 @@ public import GibbsMeasure.Specification.DeFinetti
 public import GibbsMeasure.Specification.Dobrushin
 public import GibbsMeasure.Specification.DobrushinComparison
 public import GibbsMeasure.Specification.DobrushinUniqueness
+public import GibbsMeasure.Specification.DobrushinDerivatives
 public import GibbsMeasure.Specification.Average
 public import GibbsMeasure.Specification.ErgodicDense
 public import GibbsMeasure.Specification.ErgodicGibbsLimits

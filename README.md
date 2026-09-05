@@ -537,7 +537,11 @@ when the endpoints are equivalent, and strictly convex between distinct normalis
 which required the converse half of **Theorem (2.34)**, now proved (`GibbsMeasure/Potential/Equivalence.lean`).
 **(16.17)** in its first-derivative half: on the Dobrushin region the phase is unique and the pressure
 is differentiable with derivative `−⟨μ_Φ, Ψ⟩`. Its second-derivative half is Corollary (8.37), which
-rests on the covariance bound (8.34); neither is in the tree.
+rests on **Proposition (8.34)**, now proved (`GibbsMeasure/Specification/DobrushinDerivatives.lean`):
+the covariance of the unique Gibbs measure in Dobrushin's regime is bounded by the interdependence
+series, by tilting the specification and the comparison theorem. `GibbsMeasure/Model/IsingLargeDeviations.lean`
+exhibits the Ising potential as a nonzero element of `ℬ_Θ` and of the Dobrushin region, so these
+objects are not vacuous.
 
 **§6.3, Shlosman's random staircases** (`GibbsMeasure/Model/RandomStaircase.lean`): the discrete
 Gaussian model on `ℤ²`, its five symmetries, the staircases as ground states, and **(6.25)** — the

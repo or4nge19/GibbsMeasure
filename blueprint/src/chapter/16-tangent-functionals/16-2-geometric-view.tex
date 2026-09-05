@@ -94,3 +94,15 @@
     so $\mathcal D$ lies in Dobrushin's regime (8.8) and uniqueness is (8.7); differentiability is
     Theorem \ref{thm:gv-16-14} with a single tangent functional.
 \end{proof}
+
+\begin{example}[The Ising potential as a witness]
+    \label{ex:gv-ising-witness}
+    \uses{thm:gv-16-17, prop:ld-15-49}
+    \lean{MeasureTheory.GibbsMeasure.isingPotential_mem_BTheta, MeasureTheory.GibbsMeasure.isingBTheta, MeasureTheory.GibbsMeasure.isingBTheta_ne_zero, MeasureTheory.GibbsMeasure.cardNormAt_isingPotential_of_zero_coupling, MeasureTheory.GibbsMeasure.isingBTheta_mem_dobrushinRegion, MeasureTheory.GibbsMeasure.exists_ne_zero_mem_dobrushinRegion, MeasureTheory.GibbsMeasure.exists_ldRate_isingBTheta_eq_zero}
+    \leanok
+
+    The $\mathbb Z^d$ Ising potential lies in $\mathcal B_\Theta$ and is nonzero when $h \neq 0$;
+    the pure external field has $\sum_{A\ni i}\abs A\norm{\Phi_A} = \abs h$, so for $0 < \abs h < 1$
+    it is a nonzero element of the Dobrushin region, and its rate function vanishes somewhere. None
+    of the objects of Theorem \ref{thm:gv-16-17} or Proposition \ref{prop:ld-15-49} is vacuous.
+\end{example}
