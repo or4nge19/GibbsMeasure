@@ -39,9 +39,11 @@ public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.ExpNegSq
 public import GibbsMeasure.Mathlib.Dynamics.FixedPoints.MonotoneReal
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Tanh.InfiniteProd
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Log.Summable
+public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Complex.LogBounds
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
 public import GibbsMeasure.Mathlib.Analysis.Normed.Lp.lpSpace
 public import GibbsMeasure.Mathlib.Analysis.Normed.Lp.LpEquiv
+public import GibbsMeasure.Mathlib.Analysis.Normed.Group.Tannery
 public import GibbsMeasure.Mathlib.Analysis.Normed.Field.Lemmas
 public import GibbsMeasure.Mathlib.Data.ENNReal.Basic
 public import GibbsMeasure.Mathlib.Data.ENNReal.TsumPi
@@ -90,6 +92,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Tsum
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.UniformAverage
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.UniformAverage
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Trim
+public import GibbsMeasure.Mathlib.MeasureTheory.Measure.RealSingleton
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ExtIicRat
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.SetwiseConvergence
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ProdZeroOne
