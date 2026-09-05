@@ -508,9 +508,12 @@ transform, the conjugate being attained at a Gibbs measure. Mathlib has neither 
 theory nor a convex conjugate, so Fenchel–Moreau for a rate function is built model-free in the
 Mathlib layer. The Shannon–McMillan theorem in the `L¹` form (15.47) invokes is now in
 `GibbsMeasure/Mathlib/Dynamics/Ergodic/ShannonMcMillanBreiman.lean`, for a countable ordered
-abelian group along any Følner net, with the `ℤ^d` cube case in `ShannonMcMillanCube.lean`. Still
-open: identifying its entropy rate with the specific entropy of §15.2, Choquet theory, and
-therefore (15.45)–(15.47).
+abelian group along any Følner net, with the `ℤ^d` cube case in `ShannonMcMillanCube.lean`, and
+identified with the specific entropy of §15.2 (`𝓀(μ) = h − log|E|`, no ergodicity) in
+`Specification/ShannonMcMillan.lean`, which also has Georgii's displayed form of the theorem for a
+finite state space. Still open, and listed precisely in `formalization.yaml`: the three inputs of
+Proposition (15.52), the Choquet barycentre representation of Step 3 of (15.46), and a
+density form of Shannon–McMillan for standard Borel `E`; hence (15.45)–(15.48).
 
 **Chapter 17** (`GibbsMeasure/Specification/ReflectionPositivity.lean`,
 `Specification/PeriodicGibbs.lean`): reflection positivity for Georgii's generalised reflection,

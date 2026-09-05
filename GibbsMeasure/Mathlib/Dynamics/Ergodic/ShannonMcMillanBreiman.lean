@@ -80,13 +80,14 @@ finite windows of the past.
   `L¹` (McMillan) form: the proof of the large-deviation lower bound (15.47) needs
   `ν(| |Λ|⁻¹ log f_Λ + 𝓀(ν)|) → 0` for an ergodic `ν`, which is the statement proved here once
   `f_Λ` is identified with `p_Λ` (for the counting measure on a finite `E`).
-* The identification of `entropyRate` with (minus) the specific entropy `𝓀` of
-  `GibbsMeasure/Specification/SpecificEntropy.lean`. Georgii's (15.16) computes `𝓀(μ)` as a
-  *single* relative entropy over the whole lexicographic past `V(0)`, while `entropyRate` is the
-  infimum over its finite windows; the two agree by the martingale convergence of
-  `μ(X_0 = · | X_W)` to `μ(X_0 = · | 𝓕_{V(0)})` along the directed family of finite windows
-  (Lévy's upward theorem for a filtration indexed by a directed set) together with the continuity
-  of `t ↦ −t log t`. That step is not carried out here.
+* The identification of `entropyRate` with the specific entropy `𝓀` of
+  `GibbsMeasure/Specification/SpecificEntropy.lean`, which belongs downstream and is
+  `MeasureTheory.GibbsMeasure.specificEntropy_uniformOn_eq_entropyRate_sub_log_card` in
+  `GibbsMeasure/Specification/ShannonMcMillan.lean`: for a shift-invariant random field on
+  `E^{ℤ^d}` with `E` finite, `𝓀(μ) = entropyRate (Lex (ℤ^d)) μ (σ ↦ σ_0) − log |E|`. The proof
+  does not go through the martingale convergence of `μ(X_0 = · | X_W)` along the finite windows
+  of the past; it compares the two *limits* — Georgii's Theorem (15.12) and
+  `tendsto_inv_card_mul_integral_neg_log_blockProb` — along one and the same sequence of cubes.
 -/
 
 @[expose] public section
@@ -1161,36 +1162,106 @@ theorem tendsto_integral_abs_neg_inv_card_mul_log_blockProb_sub_entropyRate [Cou
   linarith
 
 
-/-- **The normalised block entropies converge to the entropy rate.** Integrating the `L¹` form of
-the Shannon–McMillan theorem, `|F k|⁻¹ H(X_{F k}) = -|F k|⁻¹ ∫ log p_{F k} dμ → h`; in
-particular the entropy rate does not depend on the translation-invariant order used to define it,
-nor on the Følner net. -/
-theorem tendsto_inv_card_mul_integral_neg_log_blockProb [Countable G] [MeasurableConstVAdd G Ω]
+omit [IsOrderedAddMonoid G] in
+/-- **The mean information of a block is the sum of the mean conditional informations of its
+sites.** Integrating the chain rule and using stationarity,
+`H(X_Λ) = -∫ log p_Λ dμ = ∑_{i ∈ Λ} ∫ g_{W_i(Λ)} dμ`. -/
+theorem neg_integral_log_blockProb_eq_sum [MeasurableConstVAdd G Ω] [VAddInvariantMeasure G Ω μ]
+    [Finite E] [MeasurableSingletonClass E] [IsProbabilityMeasure μ] (hX : Measurable X)
+    (Λ : Finset G) :
+    -∫ ω, Real.log (blockProb μ X Λ ω) ∂μ
+      = ∑ i ∈ Λ, ∫ ω, condInformation μ X (pastWindow G Λ i) ω ∂μ := by
+  have hig : ∀ (W : Finset G) (i : G),
+      Integrable (fun ω ↦ condInformation μ X W (i +ᵥ ω)) μ := fun W i ↦
+    (measurePreserving_vadd i μ).integrable_comp_of_integrable
+      (integrable_condInformation (μ := μ) X hX W)
+  calc -∫ ω, Real.log (blockProb μ X Λ ω) ∂μ
+      = ∫ ω, ∑ i ∈ Λ, condInformation μ X (pastWindow G Λ i) (i +ᵥ ω) ∂μ := by
+        rw [← integral_neg]
+        exact integral_congr_ae (.of_forall fun ω ↦
+          neg_log_blockProb_eq_sum_condInformation X hX Λ ω)
+    _ = ∑ i ∈ Λ, ∫ ω, condInformation μ X (pastWindow G Λ i) (i +ᵥ ω) ∂μ :=
+        integral_finsetSum Λ fun i _ ↦ hig _ i
+    _ = ∑ i ∈ Λ, ∫ ω, condInformation μ X (pastWindow G Λ i) ω ∂μ :=
+        Finset.sum_congr rfl fun i _ ↦ (measurePreserving_vadd i μ).integral_comp
+          (measurableEmbedding_const_vadd i) _
+
+/-- **The normalised block entropies converge to the entropy rate**, along any Følner net and with
+no ergodicity assumption: `|F k|⁻¹ H(X_{F k}) = -|F k|⁻¹ ∫ log p_{F k} dμ → h`. In particular the
+entropy rate does not depend on the translation-invariant order used to define it, nor on the
+Følner net.
+
+The chain rule expresses `|Λ|⁻¹ H(X_Λ)` as the average of the mean conditional informations
+`∫ g_{W_i(Λ)}`, each of which is at least `h`; and all but a vanishing fraction of the sites `i`
+have `W₀ ⊆ W_i(Λ)` for a window `W₀` whose mean information is within `ε` of `h`, so that
+`∫ g_{W_i(Λ)} ≤ ∫ g_{W₀}` for those, and `∫ g_{W_i(Λ)} ≤ ∫ g_∅` for the rest. -/
+theorem tendsto_inv_card_mul_integral_neg_log_blockProb [MeasurableConstVAdd G Ω]
     [VAddInvariantMeasure G Ω μ] [Finite E] [MeasurableSingletonClass E] [IsProbabilityMeasure μ]
     (hX : Measurable X)
-    (herg : ∀ A, MeasurableSet[MeasurableSpace.smulInvariants (Multiplicative G) Ω] A →
-      μ A = 0 ∨ μ A = 1)
     (hne : ∀ᶠ k in l, (F k).Nonempty)
     (hFol : ∀ g : G, Tendsto (fun k ↦ (((g +ᵥ F k) ∆ F k).card : ℝ) / (F k).card) l (𝓝 0)) :
     Tendsto (fun k ↦ -(((F k).card : ℝ)⁻¹ * ∫ ω, Real.log (blockProb μ X (F k) ω) ∂μ)) l
       (𝓝 (entropyRate G μ X)) := by
-  have h0 : Tendsto (fun k ↦ (-(((F k).card : ℝ)⁻¹ * ∫ ω, Real.log (blockProb μ X (F k) ω) ∂μ))
-      - entropyRate G μ X) l (𝓝 0) := by
-    refine squeeze_zero_norm (fun k ↦ ?_)
-      (tendsto_integral_abs_neg_inv_card_mul_log_blockProb_sub_entropyRate X hX herg hne hFol)
-    have hi : Integrable (fun ω ↦ Real.log (blockProb μ X (F k) ω)) μ :=
-      integrable_log_blockProb X hX (F k)
-    have hi' : Integrable (fun ω ↦ -(((F k).card : ℝ)⁻¹ * Real.log (blockProb μ X (F k) ω))) μ :=
-      (hi.const_mul _).neg
-    have heq : (-(((F k).card : ℝ)⁻¹ * ∫ ω, Real.log (blockProb μ X (F k) ω) ∂μ))
-        - entropyRate G μ X
-        = ∫ ω, ((-(((F k).card : ℝ)⁻¹ * Real.log (blockProb μ X (F k) ω)))
-          - entropyRate G μ X) ∂μ := by
-      rw [integral_sub hi' (integrable_const (μ := μ) _), integral_neg, integral_const_mul]
-      simp
-    rw [heq, Real.norm_eq_abs]
-    exact abs_integral_le_integral_abs
-  simpa using h0.add_const (entropyRate G μ X)
+  classical
+  set M : ℝ := ∫ ω, condInformation μ X (∅ : Finset G) ω ∂μ with hM
+  have hM0 : 0 ≤ M := integral_nonneg_of_ae (condInformation_nonneg_ae X _)
+  refine Metric.tendsto_nhds.2 fun ε hε ↦ ?_
+  obtain ⟨W₀, hW₀past, hW₀lt⟩ :=
+    exists_integral_condInformation_lt (G := G) (μ := μ) X (half_pos hε)
+  set c : ℝ := ∫ ω, condInformation μ X W₀ ω ∂μ with hc
+  have hc0 : 0 ≤ c := integral_nonneg_of_ae (condInformation_nonneg_ae X _)
+  have hbad : Tendsto (fun k ↦
+      (((F k).filter fun i ↦ ¬ i +ᵥ W₀ ⊆ F k).card : ℝ) / (F k).card * M) l (𝓝 0) := by
+    simpa using (tendsto_card_filter_vadd_not_subset_div_card hFol W₀).mul_const M
+  filter_upwards [hne, hbad.eventually_lt_const (half_pos hε)] with k hkne hkbad
+  have hcard : (0 : ℝ) < ((F k).card : ℝ) := by exact_mod_cast Finset.card_pos.2 hkne
+  have hsum := neg_integral_log_blockProb_eq_sum (μ := μ) X hX (F k)
+  -- the average of the mean conditional informations is at least the entropy rate
+  have hlow : ((F k).card : ℝ) * entropyRate G μ X
+      ≤ ∑ i ∈ F k, ∫ ω, condInformation μ X (pastWindow G (F k) i) ω ∂μ := by
+    calc ((F k).card : ℝ) * entropyRate G μ X
+        = ∑ _i ∈ F k, entropyRate G μ X := by
+          rw [Finset.sum_const, nsmul_eq_mul]
+      _ ≤ _ := Finset.sum_le_sum fun i _ ↦
+          entropyRate_le_integral_condInformation X fun j hj ↦ pastWindow_lt_zero hj
+  -- and at most `c` up to the boundary sites
+  have hhigh : ∑ i ∈ F k, ∫ ω, condInformation μ X (pastWindow G (F k) i) ω ∂μ
+      ≤ ((F k).card : ℝ) * c
+        + (((F k).filter fun i ↦ ¬ i +ᵥ W₀ ⊆ F k).card : ℝ) * M := by
+    rw [← Finset.sum_filter_add_sum_filter_not (F k) (fun i ↦ i +ᵥ W₀ ⊆ F k)]
+    gcongr ?_ + ?_
+    · refine (Finset.sum_le_card_nsmul _ _ c fun i hi ↦ ?_).trans ?_
+      · exact integral_condInformation_mono X hX
+          (subset_pastWindow hW₀past (Finset.mem_filter.1 hi).2)
+      · rw [nsmul_eq_mul]
+        exact mul_le_mul_of_nonneg_right
+          (by exact_mod_cast Finset.card_filter_le (F k) fun i ↦ i +ᵥ W₀ ⊆ F k) hc0
+    · refine (Finset.sum_le_card_nsmul _ _ M fun i _ ↦ ?_).trans ?_
+      · exact integral_condInformation_mono X hX (Finset.empty_subset _)
+      · rw [nsmul_eq_mul]
+  rw [Real.dist_eq, abs_lt]
+  have hdiv : -(((F k).card : ℝ)⁻¹ * ∫ ω, Real.log (blockProb μ X (F k) ω) ∂μ)
+      = ((F k).card : ℝ)⁻¹ * ∑ i ∈ F k,
+        ∫ ω, condInformation μ X (pastWindow G (F k) i) ω ∂μ := by
+    rw [← hsum]; ring
+  rw [hdiv]
+  constructor
+  · have h2 : entropyRate G μ X
+        ≤ ((F k).card : ℝ)⁻¹ * ∑ i ∈ F k,
+          ∫ ω, condInformation μ X (pastWindow G (F k) i) ω ∂μ := by
+      have h := mul_le_mul_of_nonneg_left hlow (inv_pos.2 hcard).le
+      rwa [← mul_assoc, inv_mul_cancel₀ hcard.ne', one_mul] at h
+    linarith
+  · have h3 : ((F k).card : ℝ)⁻¹ * ∑ i ∈ F k,
+        ∫ ω, condInformation μ X (pastWindow G (F k) i) ω ∂μ
+        ≤ c + (((F k).filter fun i ↦ ¬ i +ᵥ W₀ ⊆ F k).card : ℝ) / (F k).card * M := by
+      rw [inv_mul_eq_div, div_le_iff₀ hcard]
+      calc ∑ i ∈ F k, ∫ ω, condInformation μ X (pastWindow G (F k) i) ω ∂μ
+          ≤ ((F k).card : ℝ) * c
+            + (((F k).filter fun i ↦ ¬ i +ᵥ W₀ ⊆ F k).card : ℝ) * M := hhigh
+        _ = (c + (((F k).filter fun i ↦ ¬ i +ᵥ W₀ ⊆ F k).card : ℝ) / (F k).card * M)
+            * ((F k).card : ℝ) := by field_simp
+    linarith
 
 end ShannonMcMillan
 

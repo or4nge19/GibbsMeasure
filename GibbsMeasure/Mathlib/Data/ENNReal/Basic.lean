@@ -27,9 +27,10 @@ lemma eq_mul_inv_of_mul_eq {a b c : ℝ≥0∞} (hb : b ≠ 0) (ht : b ≠ ⊤) 
 lemma nnreal_smul_eq_coe_mul (r : ℝ≥0) (a : ℝ≥0∞) : r • a = (r : ℝ≥0∞) * a := by
   rw [ENNReal.smul_def, smul_eq_mul]
 
-/-- The pathological factor `(0 : ℝ≥0)⁻¹` acts trivially on `ℝ≥0∞` (used for infinite total mass). -/
+/-- The pathological factor `(0 : ℝ≥0)⁻¹` acts trivially on `ℝ≥0∞` (used for infinite total
+mass). -/
 lemma nnreal_inv_zero_smul_eq_zero (a : ℝ≥0∞) : (0 : ℝ≥0)⁻¹ • a = 0 := by
-  simp [nnreal_smul_eq_coe_mul]
+  simp
 
 @[simp] lemma ofReal_indicator_one (s : Set α) (a : α) :
     ENNReal.ofReal (s.indicator 1 a) = s.indicator 1 a := by by_cases ha : a ∈ s <;> simp [ha]

@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Trivial
 public import GibbsMeasure.Specification.GibbsKernel
 public import GibbsMeasure.Specification.Extremal
 public import GibbsMeasure.Specification.Existence
@@ -252,19 +253,13 @@ section PartAFun
 variable {γ : Specification S E} {μ : Measure (S → E)}
 
 omit [Countable S] in
-/-- Under a tail-trivial probability measure, `μ(f | 𝓣)` is a.e. the constant `μ(f)`. -/
+/-- Under a tail-trivial probability measure, `μ(f | 𝓣)` is a.e. the constant `μ(f)`. This is the
+tail case of `MeasureTheory.condExp_ae_eq_integral_of_forall_measure_eq_zero_or_one`. -/
 lemma condExp_tail_ae_eq_integral_of_tailTrivial [IsProbabilityMeasure μ]
     (htail : ∀ A, MeasurableSet[@tailSigmaAlgebra S E _] A → μ A = 0 ∨ μ A = 1)
     (f : (S → E) → ℝ) :
-    μ[f | @tailSigmaAlgebra S E _] =ᵐ[μ] fun _ ↦ ∫ x, f x ∂μ := by
-  have htail' : IsTailTrivial (⟨μ, ‹_›⟩ : ProbabilityMeasure (S → E)) := htail
-  obtain ⟨c, hc⟩ := htail'.ae_eq_const_of_measurable (X := ℝ)
-    (f := μ[f | @tailSigmaAlgebra S E _]) stronglyMeasurable_condExp.measurable
-  have hc' : μ[f | @tailSigmaAlgebra S E _] =ᵐ[μ] fun _ ↦ c := hc
-  have h : ∫ x, (μ[f | @tailSigmaAlgebra S E _]) x ∂μ = c := by
-    rw [integral_congr_ae hc', integral_const, probReal_univ, one_smul]
-  rw [integral_condExp tailSigmaAlgebra_le_pi] at h
-  exact hc'.trans (Eventually.of_forall fun _ ↦ h.symm)
+    μ[f | @tailSigmaAlgebra S E _] =ᵐ[μ] fun _ ↦ ∫ x, f x ∂μ :=
+  condExp_ae_eq_integral_of_forall_measure_eq_zero_or_one tailSigmaAlgebra_le_pi htail f
 
 omit [Countable S] in
 /-- **Georgii (7.12)(a)**, functional form: `γ_{Λ_n}f → μ(f)` `μ`-a.e. along any increasing

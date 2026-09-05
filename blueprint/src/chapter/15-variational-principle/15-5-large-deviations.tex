@@ -15,7 +15,7 @@
 
 \begin{theorem}[Shannon--McMillan, the input of Georgii (15.45)--(15.47)]
     \label{thm:ld-shannon-mcmillan}
-    \lean{MeasureTheory.blockProb, MeasureTheory.condProbGiven, MeasureTheory.condExp_indicator_comap_ae_eq_condProbGiven, MeasureTheory.condInformation, MeasureTheory.condInformation_ae_eq_neg_log_condProbGiven, MeasureTheory.entropyRate, MeasureTheory.pastWindow, MeasureTheory.neg_log_blockProb_eq_sum_condInformation, MeasureTheory.integral_exp_condInformation_sub_le_one, MeasureTheory.integral_abs_le_of_integral_exp_le_one, MeasureTheory.exists_forall_integral_abs_condInformation_sub_le, MeasureTheory.tendsto_integral_abs_neg_inv_card_mul_log_blockProb_sub_entropyRate, MeasureTheory.tendsto_inv_card_mul_integral_neg_log_blockProb, MeasureTheory.tendsto_integral_abs_neg_inv_card_mul_log_blockProb_sub_entropyRate_cube, MeasureTheory.condExp_ae_eq_integral_of_forall_measure_eq_zero_or_one}
+    \lean{MeasureTheory.GibbsMeasure.specificEntropy_uniformOn_eq_entropyRate_sub_log_card, MeasureTheory.GibbsMeasure.entropyIn_uniformOn_eq_neg_integral_log_measureReal, MeasureTheory.GibbsMeasure.tendsto_integral_abs_neg_inv_card_mul_log_measureReal_sub_entropyRate, MeasureTheory.GibbsMeasure.tendsto_integral_abs_inv_card_mul_log_density_add_specificEntropy, MeasureTheory.blockProb, MeasureTheory.condProbGiven, MeasureTheory.condExp_indicator_comap_ae_eq_condProbGiven, MeasureTheory.condInformation, MeasureTheory.condInformation_ae_eq_neg_log_condProbGiven, MeasureTheory.entropyRate, MeasureTheory.pastWindow, MeasureTheory.neg_log_blockProb_eq_sum_condInformation, MeasureTheory.integral_exp_condInformation_sub_le_one, MeasureTheory.integral_abs_le_of_integral_exp_le_one, MeasureTheory.exists_forall_integral_abs_condInformation_sub_le, MeasureTheory.tendsto_integral_abs_neg_inv_card_mul_log_blockProb_sub_entropyRate, MeasureTheory.tendsto_inv_card_mul_integral_neg_log_blockProb, MeasureTheory.tendsto_integral_abs_neg_inv_card_mul_log_blockProb_sub_entropyRate_cube, MeasureTheory.condExp_ae_eq_integral_of_forall_measure_eq_zero_or_one}
     \leanok
 
     Let $G$ be a countable linearly ordered abelian group acting measurably on $\Omega$
@@ -26,6 +26,12 @@
     F\o lner net $(\Lambda_k)$, $\int \bigl| -|\Lambda_k|^{-1}\log p_{\Lambda_k} - h \bigr|\,d\mu
     \to 0$; on $\mathbb Z^d$ with the lexicographic order this holds along any sequence of cubes
     with side lengths tending to infinity. This is the $L^1$ form Georgii uses in (15.47).
+    For $\mu \in \mathcal P_\Theta$ on $E^{\mathbb Z^d}$ with $E$ finite, the entropy rate of
+    the origin given the lexicographic past and the specific entropy of \S15.2 relative to the
+    uniform distribution are related by $\mathfrak k(\mu) = h - \log|E|$, without ergodicity;
+    hence, for ergodic $\mu$ and $f_\Lambda = |E|^{|\Lambda|}\mu(\sigma_\Lambda = \cdot)$,
+    Georgii's displayed statement $\mu\bigl(\bigl||\Lambda_n|^{-1}\log f_{\Lambda_n} +
+    \mathfrak k(\mu)\bigr|\bigr) \to 0$ along cubes.
 \end{theorem}
 \begin{proof}
     \leanok
@@ -36,6 +42,10 @@
     $g_{W_0}$ for all $W \supseteq W_0$ once $\int g_{W_0}$ is within $\varepsilon$ of $h$;
     the F\o lner property makes the sites whose window misses $W_0$ negligible, and the ergodic
     theorem in $L^1$ replaces $|\Lambda_k|^{-1}\sum_i g_{W_0}(i + \omega)$ by $\int g_{W_0}$.
+    The identification with $\mathfrak k(\mu)$ compares the two limits along the cubes
+    $[-n,0]^d$, using Shannon's formula $\mathcal H_\Lambda(\mu \mid \bar\lambda^\Lambda) =
+    -\int \log \mu(\sigma_\Lambda = \sigma_\Lambda(\omega))\,d\mu - |\Lambda|\log|E|$
+    for the uniform $\bar\lambda$; no upward martingale theorem is needed.
 \end{proof}
 
 \begin{proposition}[Georgii (15.49), (15.59), and the rate-function half of (15.48)]

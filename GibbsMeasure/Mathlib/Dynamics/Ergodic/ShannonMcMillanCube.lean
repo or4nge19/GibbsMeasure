@@ -5,9 +5,10 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Mathlib.Data.Countable.Basic
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.MaximalInequality
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.ShannonMcMillanBreiman
-public import Mathlib.Algebra.Order.Group.Action.Synonym
+public import GibbsMeasure.Mathlib.MeasureTheory.Group.Action.Synonym
 public import Mathlib.Algebra.Order.Group.PiLex
 
 /-!
@@ -18,11 +19,11 @@ an arbitrary countable abelian group carrying a translation-invariant linear ord
 order is the lexicographic one, which in Mathlib lives on the type synonym `Lex (ι → ℤ)`
 (`Pi.Lex.linearOrder`, `Pi.Lex.isOrderedCancelAddMonoid`); the underlying type, the group
 structure and the action are unchanged, so the block probabilities of the two spellings are the
-same function. This file records the three instances that `Lex` does not yet transport
-(`Countable`, `MeasurableConstVAdd`, `VAddInvariantMeasure` — all of them `inferInstanceAs`, and
-all of them belonging upstream next to `Mathlib.Algebra.Order.Group.Action.Synonym`) and derives
-the statement Georgii uses: along an increasing sequence of cubes `Λ_n = x_n + [0, r_n)^d` with
-`r_n → ∞`,
+same function. The three instances that `Lex` does not yet transport are in
+`GibbsMeasure/Mathlib/Data/Countable/Basic.lean` (`Countable`) and
+`GibbsMeasure/Mathlib/MeasureTheory/Group/Action/Synonym.lean` (`MeasurableConstVAdd`,
+`VAddInvariantMeasure`). What is derived here is the statement Georgii uses: along an increasing
+sequence of cubes `Λ_n = x_n + [0, r_n)^d` with `r_n → ∞`,
 `∫ | -|Λ_n|⁻¹ log μ(X_{Λ_n} = X_{Λ_n} ω) - h | dμ(ω) → 0`
 for an ergodic finite-state random field, where `h = entropyRate (Lex (ι → ℤ)) μ X` is the entropy
 rate relative to the lexicographic past.
@@ -32,20 +33,6 @@ rate relative to the lexicographic past.
 
 open Filter Finset Set
 open scoped ENNReal Pointwise symmDiff Topology
-
-/-! ### `Lex` transports the ambient structure of an acting group -/
-
-instance Lex.instCountable {α : Type*} [Countable α] : Countable (Lex α) :=
-  inferInstanceAs (Countable α)
-
-instance Lex.instMeasurableConstVAdd {M α : Type*} [MeasurableSpace α] [VAdd M α]
-    [MeasurableConstVAdd M α] : MeasurableConstVAdd (Lex M) α :=
-  inferInstanceAs (MeasurableConstVAdd M α)
-
-instance Lex.instVAddInvariantMeasure {M α : Type*} [MeasurableSpace α] [VAdd M α]
-    {μ : MeasureTheory.Measure α} [MeasureTheory.VAddInvariantMeasure M α μ] :
-    MeasureTheory.VAddInvariantMeasure (Lex M) α μ :=
-  inferInstanceAs (MeasureTheory.VAddInvariantMeasure M α μ)
 
 namespace MeasureTheory
 
@@ -80,7 +67,7 @@ theorem tendsto_integral_abs_neg_inv_card_mul_log_blockProb_sub_entropyRate_cube
       Finset.mem_vadd_finset.2 ⟨0, Fintype.mem_piFinset.2 fun i ↦ ?_, rfl⟩⟩
     simp only [Finset.mem_Ico]
     refine ⟨le_rfl, ?_⟩
-    show (0 : ℤ) < (r n : ℤ)
+    change (0 : ℤ) < (r n : ℤ)
     exact_mod_cast Nat.lt_of_lt_of_le Nat.zero_lt_one hn
   · exact tendsto_card_vadd_cube_symmDiff_div_card x hr (ofLex g)
 

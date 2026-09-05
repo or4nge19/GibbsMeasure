@@ -1308,9 +1308,12 @@ alignment:
         lexicographic order (ShannonMcMillanCube.lean) along any cubes with sides tending to
         infinity. Mathlib has none of it: the chain rule over past windows, the inequality
         int e^u <= 1 => int |u| <= 2 delta + (1 + 2/delta)(-int u), and the zero-one law form of
-        the conditional expectation (ConditionalExpectation/Trivial.lean). Not yet done: the
-        identification of the entropy rate with the specific entropy of Section 15.2 (Levy's
-        upward theorem along the finite past windows), and the consumer in (15.45)-(15.47).
+        the conditional expectation (ConditionalExpectation/Trivial.lean). The identification
+        k(mu) = h - log|E| with the specific entropy of Section 15.2 relative to the uniform
+        distribution, for every shift-invariant mu (Specification/ShannonMcMillan.lean, via
+        Shannon's formula at finite volume, no martingale theorem), and Georgii's displayed form
+        mu(| |Lambda_n|^{-1} log f_{Lambda_n} + k(mu) |) -> 0 for ergodic mu along cubes, for a
+        finite state space. Not yet done: the consumer (15.45)-(15.47), see that entry.
     - source: "Section 15.5: (15.41)-(15.44), (15.49), (15.59), (15.60); the properties of the rate function in (15.48)"
       lean: "Potential.BTheta.ldRate_eq_iSup"
       module: "GibbsMeasure/Specification/LargeDeviations.lean"
@@ -1326,9 +1329,14 @@ alignment:
         (15.59) and (15.60). Mathlib has no large deviation theory and no convex conjugate at all,
         so the model-free Fenchel-Moreau statement for a rate function is built in
         Mathlib/Probability/LargeDeviations/Legendre.lean (itstrue home is Mathlib/Analysis/Convex).
-        Not formalized: (15.45)-(15.47) (the Shannon-McMillan theorem is now in
-        Mathlib/Dynamics/Ergodic/ShannonMcMillanBreiman.lean; still needed are its identification
-        with the specific entropy and Choquet theory) and, consequently, the two displayed limsup/liminf inequalities that are the
+        Not formalized: (15.45)-(15.47). The Shannon-McMillan input is in place for a finite
+        state space (Specification/ShannonMcMillan.lean); still missing, in neither tree:
+        additivity of the relative entropy over independent blocks (klDiv of product measures),
+        the existence of the entropy density for a measure invariant under a sublattice only,
+        the |C|-ary affinity of (15.14) for the shifted block mixture, which together give
+        Proposition (15.52); the Choquet barycentre representation over a closed subset of
+        P_Theta (Phelps Prop. 1.2, Lemma 9.7) for Step 3 of (15.46); and, for standard Borel E,
+        a Shannon-McMillan theorem in terms of the densities d(mu|F_Lambda)/d lambda^Lambda and, consequently, the two displayed limsup/liminf inequalities that are the
         substance of Corollary (15.48) — only its trailing properties of the rate function are
         proved; also (15.50)-(15.52), (15.57)-(15.58). Throughout, the a priori measure is a
         probability measure where Georgii assumes only a finite one.

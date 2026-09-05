@@ -127,6 +127,7 @@ public import GibbsMeasure.Mathlib.Dynamics.Ergodic.ShannonMcMillanBreiman
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.ShannonMcMillanCube
 public import GibbsMeasure.Mathlib.GroupTheory.Foelner
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Trivial
+public import GibbsMeasure.Mathlib.MeasureTheory.Group.Action.Synonym
 public import GibbsMeasure.Mathlib.Probability.Kernel.CountableMatrix
 public import GibbsMeasure.Mathlib.Probability.Kernel.CountableMatrix.Recurrence
 public import GibbsMeasure.Mathlib.Probability.Kernel.CountableMatrix.Homogeneous
@@ -282,6 +283,7 @@ public import GibbsMeasure.Specification.PhaseTransition
 public import GibbsMeasure.Specification.LargeDeviations
 public import GibbsMeasure.Specification.ReflectionPositivity
 public import GibbsMeasure.Specification.PeriodicGibbs
+public import GibbsMeasure.Specification.ShannonMcMillan
 public import GibbsMeasure.Specification.Structure
 public import GibbsMeasure.Topology.ConfigurationSpace
 public import GibbsMeasure.Topology.ClusterPoints

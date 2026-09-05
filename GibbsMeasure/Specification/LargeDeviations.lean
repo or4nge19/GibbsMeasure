@@ -149,17 +149,27 @@ in particular (15.48) apart from its two inequalities — the convexity of `J_Ψ
 level sets, `{J_Ψ(·|Φ) = 0} = e_Ψ(𝒢_Θ(Φ))` and the Legendre formula (15.49) — and the minimum
 free energy principle (15.59), (15.60) that carries the equivalence of ensembles.
 
-Two of Georgii's inputs to (15.45) are absent from this library and from Mathlib, and neither is
-a matter of bookkeeping:
+Georgii's remaining input to (15.45) that is absent from this library and from Mathlib is not a
+matter of bookkeeping:
 
-* the **Shannon–McMillan(–Breiman) theorem** `ν(| |Λ|⁻¹ log f_Λ + 𝓀(ν)|) → 0` for an ergodic `ν`
-  (Georgii cites Krengel, *Ergodic Theorems*, Thm 9.2.4), which is what makes the event `A_Λ` in
-  the proof of (15.47) typical for `ν̃`. `grep McMillan` finds nothing in either tree;
 * **Phelps, Choquet theory, Prop. 1.2 and Lemma 9.7** — the barycentric representation of a point
   of the closed convex hull of `C` by a measure carried by `C̄` — which is Step 3 of the proof of
-  (15.46), the passage from `cx̄ C` to `C̄`. Mathlib has no Choquet theory.
+  (15.46), the passage from `cx̄ C` to `C̄`. Mathlib has no Choquet theory, and the barycentric
+  decomposition of `Specification/InvariantDecomposition.lean` is over the *ergodic* measures,
+  not over an arbitrary closed set `C̄`, so it does not supply this step.
 
-A third input, **Proposition (15.52)** (`𝓀` of the randomly shifted independent-block measure
+The **Shannon–McMillan(–Breiman) theorem** `ν(| |Λ|⁻¹ log f_Λ + 𝓀(ν)|) → 0` for an ergodic `ν`
+(Georgii cites Krengel, *Ergodic Theorems*, Thm 9.2.4), which is what makes the event `A_Λ` in the
+proof of (15.47) typical for `ν̃`, *is* available over a finite state space:
+`MeasureTheory.GibbsMeasure.tendsto_integral_abs_inv_card_mul_log_density_add_specificEntropy` of
+`GibbsMeasure/Specification/ShannonMcMillan.lean`, whose ergodic input is the `L¹` Shannon–McMillan
+theorem `MeasureTheory.tendsto_integral_abs_neg_inv_card_mul_log_blockProb_sub_entropyRate` of
+`GibbsMeasure/Mathlib/Dynamics/Ergodic/ShannonMcMillanBreiman.lean` and whose bridge to Georgii's
+`𝓀` is `MeasureTheory.GibbsMeasure.specificEntropy_uniformOn_eq_entropyRate_sub_log_card`. For a
+general standard Borel `E` it is not: `blockProb` is the probability of an atom, which is the wrong
+object as soon as the single-site marginals are diffuse.
+
+Another input, **Proposition (15.52)** (`𝓀` of the randomly shifted independent-block measure
 `γ̄ = |Λ|⁻¹ ∑_{j ∈ Λ} θ_{-j}(∏_i θ_{-pi}(γ))` equals `|Λ|⁻¹ 𝓗_Λ(γ)`), is not proved either. The
 measure is `MeasureTheory.GibbsMeasure.tileAverage` of
 `GibbsMeasure/Specification/ErgodicDense.lean` (Georgii's proof of (14.12)), and its ergodicity is
