@@ -538,8 +538,9 @@ proof is countable subadditivity over `*`-crossings; Poincaré recurrence (18.15
 conservativity. `Specification/LocalGroundStates.lean` and `PatternPercolation.lean`: the local
 ground states (18.1)–(18.2), the pattern sets (18.3), the weight `t(G,Φ)` of (18.8) with Remarks
 (18.9), and the key estimate (18.10) for the periodic Gibbs distribution on the torus, Georgii's
-proof from the chessboard estimate; (18.9)(2) as printed is false through an essential supremum
-that can be infinite and is proved in its unfolded form. What remains is the transport of the
+proof from the chessboard estimate; (18.9)(2) is proved with Georgii's essential supremum
+unfolded, since a transcription through Mathlib's real `essSup`, which returns a junk value where
+his is `+∞`, would be false. What remains is the transport of the
 torus measure to a random field on `ℤ^d`, hence `𝒢₀(Φ)` and (18.12), (18.16)–(18.19).
 
 **Chapter 16** normalises the a priori measure to a probability measure throughout, where Georgii
@@ -561,15 +562,17 @@ is Gateaux differentiable exactly where the shift-invariant Gibbs measure is uni
 continuous and an everywhere dense a priori measure, the pressure is affine along a segment exactly
 when the endpoints are equivalent, and strictly convex between distinct normalised ones —
 which required the converse half of **Theorem (2.34)**, now proved (`GibbsMeasure/Potential/Equivalence.lean`).
-**(16.17)** in full: on the Dobrushin region the phase is unique and the pressure is differentiable
-with derivative `−⟨μ_Φ, Ψ⟩`, and the second derivative along a direction of finite (8.36)-norm is
-the summed covariance of the site energies. That is **Corollary (8.37)**, proved in
+**(16.17)**, both derivative formulas: on the Dobrushin region the phase is unique and the pressure
+is differentiable with derivative `−⟨μ_Φ, Ψ⟩`, and the second derivative along a direction of finite
+(8.36)-norm is the summed covariance of the site energies; that the second derivative is
+*continuous*, which Georgii also asserts, is not proved. The second derivative is **Corollary (8.37)**, proved in
 `GibbsMeasure/Specification/DobrushinDerivatives.lean` for an arbitrary site set without shift
 invariance, from **Proposition (8.34)**, the covariance bound by the interdependence series, by
 tilting the specification and the comparison theorem; the finite-volume derivative is a tilted
 integral and the matrix-series tail algebra lives in the Mathlib layer. Georgii's opening claim of
 *continuous* differentiability in (8.37) is not established by his proof and is not proved. `GibbsMeasure/Model/IsingLargeDeviations.lean`
-exhibits the Ising potential as a nonzero element of `ℬ_Θ` and of the Dobrushin region, so these
+exhibits the Ising potential as a nonzero element of `ℬ_Θ`, and its zero-coupling member with `|h| < 1`
+as a point of the Dobrushin region (the interacting case `|h| + 4d|J| < 1` is not yet computed), so these
 objects are not vacuous.
 
 **§6.3, Shlosman's random staircases** (`GibbsMeasure/Model/RandomStaircase.lean`): the discrete

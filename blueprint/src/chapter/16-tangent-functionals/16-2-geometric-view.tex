@@ -78,7 +78,7 @@
     normalisation upgrades equivalence to equality.
 \end{proof}
 
-\begin{theorem}[Georgii (16.17)]
+\begin{theorem}[Georgii (16.17), the two derivatives]
     \label{thm:gv-16-17}
     \uses{thm:gv-16-14, thm:dob-uniqueness, cor:dob-8-37}
     \lean{MeasureTheory.GibbsMeasure.Dobrushin.cardNormAt, MeasureTheory.GibbsMeasure.Dobrushin.isDobrushin_gibbsSpecification_of_cardNormAt_le, Potential.BTheta.dobrushinRegion, Potential.BTheta.exists_invariantG_eq_singleton_of_mem_dobrushinRegion, Potential.BTheta.leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_of_mem_dobrushinRegion, Potential.BTheta.hasDerivAt_rightDirDeriv_pressure_of_mem_dobrushinRegion, ENNReal.exists_pos_add_ofReal_mul_lt_one}
@@ -92,7 +92,8 @@
     differentiable at $0$ with derivative
     $\sum_i [\mu_\Phi(f_{\tilde\Psi}\,f_\Psi\circ\theta_i) - \mu_\Phi(f_{\tilde\Psi})\mu_\Phi(f_\Psi)]$.
     Only the outer direction needs the $(8.36)$-norm, which keeps the segment inside
-    $\mathcal D$; Georgii asks it of both.
+    $\mathcal D$; Georgii asks it of both. The continuity of the second derivative in his
+    ``twice continuously differentiable'' is not proved.
 \end{theorem}
 \begin{proof}
     \leanok

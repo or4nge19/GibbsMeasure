@@ -1271,9 +1271,11 @@ alignment:
         the pattern set V(G, omega) on the torus (LocalGroundStates.lean); the weight t(G, Phi) of
         (18.8) with Remarks (18.9)(1)-(4), (3) in the quantitative form t(G,Psi) <= e^{4 eta}
         t(G,Phi) for ||Psi_C - Phi_C|| <= eta, and (4) with the explicit bound
-        e^{-beta eps/2}/lambda^C(G_{eps/2}). Erratum: (18.9)(2) as printed uses an essential
-        supremum that is +infinity on sets where Phi_C is essentially unbounded; it is proved as
-        an infimum over pairs (M, c) with Phi_C <= c a.e. on M. Lemma (18.10) for the periodic
+        e^{-beta eps/2}/lambda^C(G_{eps/2}). (18.9)(2) is proved with Georgii's essential
+        supremum unfolded, as an infimum over pairs (M, c) with Phi_C <= c a.e. on M: his
+        lambda-sup is +infinity where Phi_C is essentially unbounded, which is harmless in his
+        infimum, whereas Mathlib's real essSup returns a junk value there, so a literal
+        transcription would be false; Georgii's statement is correct. Lemma (18.10) for the periodic
         Gibbs distribution on the torus, by Georgii's proof from the chessboard estimate, with
         the block-independence lemmas for Measure.pi that Mathlib lacks
         (Mathlib/MeasureTheory/Constructions/PiBlocks.lean). Not formalized: the transport of
@@ -1297,16 +1299,17 @@ alignment:
     - source: "Section 17.1: (17.6)-(17.11)"
       lean: "MeasureTheory.GibbsMeasure.abs_integral_prod_pow_le_pi"
       module: "GibbsMeasure/Specification/ReflectionPositivity.lean"
-      status: "proved"
+      status: "partial"
       note: >-
         Reflection positivity (17.7) for the generalised reflection (17.6), built from the tree's
         Transformation API (a pure-spin involution composed with the site reflection z -> -1-z on
         the torus Z_{2N}); the Cauchy-Schwarz (17.8), stated with the reflection invariance of mu
         that Georgii uses implicitly (the symmetry of the form mu(f g*)) and without which it is
-        false, so Theorem (17.11) carries it too; Lemma (17.9) in root-free form,
-        D(alpha)^{2N} <= prod_z D(alt_z), with Georgii's two passes over the strips run as one
-        inductive core, and the exact identity for the normalising weights that replaces the
-        non-identity D(alpha^+) D(alpha^-) = D(alpha)^2 stated in the book's outline; Theorem
+        false, so Theorem (17.11) carries it too (whether (17.11) itself holds without it is
+        open: the counterexample to (17.8) is not periodic), which is why the status is partial;
+        Lemma (17.9) in root-free form, D(alpha)^{2N} <= prod_z D(alt_z), with Georgii's two
+        passes over the strips run as one inductive core and the exact identity
+        prod Q(alpha^+) prod Q(alpha^-) = (prod Q(alpha))^2 for the normalising weights; Theorem
         (17.11) in every dimension d >= 1 by induction on d, splitting the torus into its head
         coordinate and its tail, with the right-hand side nonnegative. General inputs in the
         Mathlib layer: the discriminant bound for a nonnegative quadratic and Cauchy-Schwarz for a
@@ -1354,8 +1357,10 @@ alignment:
         is proved in Specification/Dobrushin.lean. (16.17), second derivative: for Psi of finite
         (8.36)-norm and any Psi' in B_Theta, t |-> d/ds P(Phi + t Psi + s Psi')|_{s=0} is
         differentiable at 0 with derivative sum_i [mu(f_Psi' f_Psi o theta_i) - mu(f_Psi')
-        mu(f_Psi)], from Corollary (8.37); only the outer direction needs the (8.36)-norm. (16.14)
-        also as Set.BijOn and as the image equality j(G_Theta(Phi)) = dP(Phi).
+        mu(f_Psi)], from Corollary (8.37); only the outer direction needs the (8.36)-norm. Not
+        proved: the continuity of the second derivative that Georgii's "twice continuously
+        differentiable" asserts. (16.14) also as Set.BijOn and as the image equality
+        j(G_Theta(Phi)) = dP(Phi).
     - source: "Section 15.5: the Shannon-McMillan theorem used in (15.47)"
       lean: "MeasureTheory.tendsto_integral_abs_neg_inv_card_mul_log_blockProb_sub_entropyRate"
       module: "GibbsMeasure/Mathlib/Dynamics/Ergodic/ShannonMcMillanBreiman.lean"

@@ -1350,9 +1350,9 @@ one-point subgradient into equal one-sided directional derivatives.
 
 Georgii's Corollary (16.17) asserts more: that `P` is *twice* continuously differentiable on `𝒟`
 in the directions of `ℬ̃_Θ`, with second derivative `∑_i [μ_Φ(f_Ψ̃ f_Ψ ∘ θ_i) − μ_Φ(f_Ψ̃)μ_Φ(f_Ψ)]`.
-That half rests on Corollary (8.37) — differentiability of `Φ ↦ μ_Φ(g)` on `𝒟` — which in turn
-rests on the covariance estimate of Proposition (8.34); neither is in this library, and neither
-follows from what is. -/
+The second-derivative formula is `hasDerivAt_rightDirDeriv_pressure_of_mem_dobrushinRegion` below,
+from Corollary (8.37) (`Dobrushin.hasDerivAt_integral_gibbsMeasure_add_smul`) and Proposition
+(8.34); the continuity of that second derivative is not proved. -/
 theorem leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_of_mem_dobrushinRegion [Nonempty E]
     (hΦ : Φ ∈ dobrushinRegion ι E) :
     ∃ μ : Measure ((ι → ℤ) → E), invariantG (gibbsSpecificationOfAbsolutelySummable
