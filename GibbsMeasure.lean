@@ -20,6 +20,7 @@ public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Connectivity
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Acyclic
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.CayleyTree
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Hasse
+public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.InfiniteCluster
 public import GibbsMeasure.Mathlib.Data.Countable.Basic
 public import GibbsMeasure.Mathlib.Data.ZMod.Basic
 public import GibbsMeasure.Mathlib.Data.Set.CardTranslate
@@ -174,6 +175,7 @@ public import GibbsMeasure.Model.IsingLargeDeviations
 public import GibbsMeasure.Model.IsingFKG
 public import GibbsMeasure.Model.PlusPhase
 public import GibbsMeasure.Model.Contours
+public import GibbsMeasure.Model.StarCrossing
 public import GibbsMeasure.Model.CriticalTemperature
 public import GibbsMeasure.Model.GKSInequalities
 public import GibbsMeasure.Model.LebowitzMartinLof

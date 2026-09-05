@@ -336,6 +336,10 @@ status:
       file: "GibbsMeasure/Specification/DobrushinDerivatives.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Peierls.le_measure_forall_mem_infiniteClusters"
+      file: "GibbsMeasure/Model/StarCrossing.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.Shlosman.dgSpecification_abs_excess_le"
       file: "GibbsMeasure/Model/RandomStaircase.lean"
       sorry_count: 0
@@ -1204,6 +1208,22 @@ alignment:
         the library — so for 0 < |h| < 1 it is a nonzero element of the Dobrushin region, and its
         rate function vanishes somewhere. An adversarial review had found that no object of
         Sections 15.5 and 16.2 had a witness beyond the zero potential.
+    - source: "Section 18.1: (18.4)-(18.7), (18.13)-(18.15)"
+      lean: "MeasureTheory.GibbsMeasure.Peierls.le_measure_forall_mem_infiniteClusters"
+      module: "GibbsMeasure/Model/StarCrossing.lean"
+      status: "partial"
+      note: >-
+        Infinite clusters and oceans on a graph (Mathlib/Combinatorics/SimpleGraph/InfiniteCluster.lean),
+        with the Z^2 facts Georgii calls clear discharged unconditionally: every ocean is infinite,
+        a set containing an ocean has a unique infinite cluster, the ocean part is the unique maximal
+        ocean, and it is equivariant under shifts and reflections. The crossing bound z(t) of
+        (18.13) with z(t) <= 4t for t <= 1/20, and Lemma (18.14) in both forms, for an arbitrary
+        random set with no measurability hypothesis (countable subadditivity only), weaker
+        hypotheses than Georgii's. (18.15) is Mathlib's conservativity of a measure-preserving map.
+        Not formalized: (18.1)-(18.3) and (18.8)-(18.12), which need the periodic Gibbs distributions
+        and the C-potential layer of Section 17.2 (in flight), Steps 1-3 of (18.16) (the
+        quasi-Gibbsian estimate on the configuration space and two planar-topology arguments), and
+        (18.17)-(18.19).
     - source: "Section 17.1: (17.6)-(17.9), Theorem (17.11) in one dimension"
       lean: "MeasureTheory.GibbsMeasure.abs_integral_prod_pow_le"
       module: "GibbsMeasure/Specification/ReflectionPositivity.lean"
