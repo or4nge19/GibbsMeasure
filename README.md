@@ -532,8 +532,12 @@ coarse-graining to elementary cubes (17.12)–(17.17); `C`-potentials and the Gi
 with periodic boundary condition, its reflection positivity (17.21) and the chessboard estimate
 for it, the form Chapters 18–19 use; and Lemma (17.26) with complex functions and a finite
 measure `m` as stated, its analytic core in
-`GibbsMeasure/Mathlib/MeasureTheory/Integral/PiReflectionComplex.lean`. The Heisenberg
-potentials and (17.29) with its examples are not yet done.
+`GibbsMeasure/Mathlib/MeasureTheory/Integral/PiReflectionComplex.lean`; the Heisenberg-type
+potentials and Theorem (17.29) (`Specification/HeisenbergPeriodic.lean`) with the sufficiency
+halves of Examples (17.30)–(17.32), and the (17.8) erratum as a theorem: symmetry of the form is
+reflection invariance, and a reflection-positive non-invariant measure violates Cauchy–Schwarz.
+Not done: the Berg–Maserick converse (17.28)(1), which the book cites without proof, the necessity
+halves of (17.30)–(17.31), where Georgii's constant is off by a factor 2, and (17.32) in `d = 2`.
 
 **Chapter 18, §18.1** (`GibbsMeasure/Model/StarCrossing.lean`, graph theory in
 `GibbsMeasure/Mathlib/Combinatorics/SimpleGraph/InfiniteCluster.lean`): infinite clusters and

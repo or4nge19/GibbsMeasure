@@ -392,6 +392,14 @@ status:
       file: "GibbsMeasure/Mathlib/InformationTheory/KullbackLeibler/Pi.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.isReflectionPositive_heisenbergPeriodicGibbsDist_of_isNonnegDefiniteAt"
+      file: "GibbsMeasure/Specification/HeisenbergPeriodic.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.exists_isReflectionPositive_not_sq_integral_mul_comp_le"
+      file: "GibbsMeasure/Specification/ReflectionPositivity.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.Shlosman.dgSpecification_abs_excess_le"
       file: "GibbsMeasure/Model/RandomStaircase.lean"
       sorry_count: 0
@@ -1349,8 +1357,19 @@ alignment:
         analytic core in Mathlib/MeasureTheory/Integral/PiReflectionComplex.lean (expansion of
         the exponential, Fubini over W^l, dominated convergence), and the finite-sum real case
         that a nearest-neighbour model with nonnegative crossing couplings has (Example (17.30)).
-        Not formalized: the Heisenberg potentials (17.22)-(17.25), the nonnegative definiteness
-        (17.27), Theorem (17.29) and Examples (17.30)-(17.32) as stated.
+        The Heisenberg-type potentials (17.22)-(17.25) (Specification/HeisenbergPeriodic.lean),
+        nonnegative definiteness relative to r_k (17.27) with (17.28)(2)-(3), Theorem (17.29)
+        by a Gram factorisation of the crossing matrix (Mathlib/LinearAlgebra/Matrix/
+        PosSemidefFactor.lean) and the finite-sum form of (17.26), Georgii's L -> infinity limit
+        taken on the matrix (Mathlib/Topology/Algebra/InfiniteSum/BoxAverage.lean); the
+        sufficiency halves of Examples (17.30) (needing only J(e_k) >= 0), (17.31), and (17.32)
+        for d = 1. The erratum for (17.8) as a theorem: the symmetry of the form is equivalent to
+        reflection invariance, and a reflection-positive non-invariant measure violating
+        Cauchy-Schwarz is exhibited (the general fact for bilinear forms in
+        Mathlib/LinearAlgebra/BilinearMap/CauchySchwarz.lean). Not formalized: the Berg-Maserick
+        converse (17.28)(1), which the book cites without proof; the necessity halves of
+        (17.30)-(17.31), where the printed constant (2N)^{d-1} should be 2(2N)^{d-1}; (17.32)
+        for d = 2.
     - source: "Section 16.2: (16.10)-(16.14)"
       lean: "Potential.BTheta.gateauxDifferentiable_pressure_iff_subsingleton"
       module: "GibbsMeasure/Specification/PhaseTransition.lean"

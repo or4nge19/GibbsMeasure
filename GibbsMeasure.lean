@@ -135,11 +135,14 @@ public import GibbsMeasure.Mathlib.Dynamics.Ergodic.ShannonMcMillanBreiman
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.ShannonMcMillanCube
 public import GibbsMeasure.Mathlib.GroupTheory.Foelner
 public import GibbsMeasure.Mathlib.InformationTheory.KullbackLeibler.Pi
+public import GibbsMeasure.Mathlib.LinearAlgebra.BilinearMap.CauchySchwarz
+public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PosSemidefFactor
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.PiBlocks
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Trivial
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.EssSup
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.LocallyIntegrable
 public import GibbsMeasure.Mathlib.MeasureTheory.Group.Action.Synonym
+public import GibbsMeasure.Mathlib.MeasureTheory.Integral.CircleCharacter
 public import GibbsMeasure.Mathlib.Probability.Kernel.CountableMatrix
 public import GibbsMeasure.Mathlib.Probability.Kernel.CountableMatrix.Recurrence
 public import GibbsMeasure.Mathlib.Probability.Kernel.CountableMatrix.Homogeneous
@@ -155,6 +158,7 @@ public import GibbsMeasure.Mathlib.Probability.Martingale.DominatedBackward
 public import GibbsMeasure.Mathlib.Probability.Martingale.Convergence
 public import GibbsMeasure.Mathlib.Probability.TailTriviality
 public import GibbsMeasure.Mathlib.Probability.Kernel.WithDensity
+public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.BoxAverage
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.ENNRealMatrix
 public import GibbsMeasure.Prereqs.IntervalBoundary
 public import GibbsMeasure.Prereqs.Filtration.Consistent
@@ -286,6 +290,7 @@ public import GibbsMeasure.Specification.Reindex
 public import GibbsMeasure.Specification.QuasilocalSpecification
 public import GibbsMeasure.Specification.Singleton
 public import GibbsMeasure.Specification.CountingKernel
+public import GibbsMeasure.Specification.HeisenbergPeriodic
 public import GibbsMeasure.Specification.MarkovInt
 public import GibbsMeasure.Specification.MarkovIntChains
 public import GibbsMeasure.Specification.MarkovIntUniqueness

@@ -438,29 +438,38 @@ theorem integral_mul_comp_mul_exp_nonneg (r : ι ≃ ι) (hν : ∀ i, ν (r i) 
 
 
 /-- **Georgii, Lemma (17.26), for a finite sum of squares.**  The density
-`exp(h + h∘r + ∑_a g_a · g_a∘r)` relative to the product measure, with `h` and the `g_a` bounded
-measurable *real* functions of the coordinates in `P` and `a` ranging over a finite type, defines
-a reflection positive measure.  This is (17.26) with `m` the counting measure; it is the form in
-which reflection positivity is checked for a lattice model whose interaction across the plane of
-`r` is a nonnegative quadratic form in observables of the positive half. -/
+`exp(h + h∘r + ∑_a g_a · g_a∘r)` relative to the product measure, with `h` and the `g_a`
+measurable *real* functions of the coordinates in `P` dominated by one measurable function `φ` of
+those coordinates and `a` ranging over a finite type, defines a reflection positive measure.
+This is (17.26) with `m` the counting measure; it is the form in which reflection positivity is
+checked for a lattice model whose interaction across the plane of `r` is a nonnegative quadratic
+form in observables of the positive half.  The integrability hypothesis is the finiteness of the
+partition function; when `φ` is constant it is automatic. -/
 theorem integral_mul_comp_mul_exp_sum_nonneg {A : Type*} [Fintype A] [MeasurableSpace A]
     [MeasurableSingletonClass A] (r : ι ≃ ι) (hν : ∀ i, ν (r i) = ν i)
     (hP : ∀ i, i ∈ P ↔ r i ∉ P)
-    {h : (ι → E) → ℝ} (hhm : Measurable h) (hhdep : DependsOn h P) {Ch : ℝ}
-    (hhC : ∀ ω, |h ω| ≤ Ch)
+    {φ : (ι → E) → ℝ} (hφm : Measurable φ) (hφdep : DependsOn φ P)
+    {h : (ι → E) → ℝ} (hhm : Measurable h) (hhdep : DependsOn h P) (hhφ : ∀ ω, |h ω| ≤ φ ω)
     {g : A → (ι → E) → ℝ} (hgm : ∀ a, Measurable (g a)) (hgdep : ∀ a, DependsOn (g a) P)
-    (hgC : ∀ a ω, |g a ω| ≤ Ch)
+    (hgφ : ∀ a ω, |g a ω| ≤ φ ω)
+    (hρint : Integrable (fun ω ↦ Real.exp (h ω + h (ω ∘ r) + ∑ a, g a ω * g a (ω ∘ r)))
+      (Measure.pi ν))
     {f : (ι → E) → ℝ} (hf : Measurable f) (hfdep : DependsOn f P) {C : ℝ} (hC : ∀ ω, |f ω| ≤ C) :
     0 ≤ ∫ ω, f ω * f (ω ∘ r) *
       Real.exp (h ω + h (ω ∘ r) + ∑ a, g a ω * g a (ω ∘ r)) ∂(Measure.pi ν) := by
   classical
-  refine integral_mul_comp_mul_exp_nonneg_of_bounded (W := A) (m := Measure.count)
+  have hrm : Measurable fun ω : ι → E ↦ ω ∘ r := measurable_comp_equiv r
+  have hρm : Measurable fun ω : ι → E ↦
+      Real.exp (h ω + h (ω ∘ r) + ∑ a, g a ω * g a (ω ∘ r)) :=
+    Real.continuous_exp.measurable.comp ((hhm.add (hhm.comp hrm)).add
+      (Finset.measurable_sum _ fun a _ ↦ (hgm a).mul ((hgm a).comp hrm)))
+  refine integral_mul_comp_mul_exp_nonneg (W := A) (m := Measure.count)
     (h := fun ω ↦ ((h ω : ℝ) : ℂ)) (hw := fun a ω ↦ ((g a ω : ℝ) : ℂ))
-    r hν hP (Complex.measurable_ofReal.comp hhm)
-    (fun _ _ hxy ↦ congrArg _ (hhdep hxy))
+    r hν hP hφm hφdep (Complex.measurable_ofReal.comp hhm)
+    (fun _ _ hxy ↦ congrArg _ (hhdep hxy)) (fun ω ↦ by simpa using hhφ ω)
     (measurable_from_prod_countable_right fun a ↦ Complex.measurable_ofReal.comp (hgm a))
-    (fun a _ _ hxy ↦ congrArg _ (hgdep a hxy))
-    (fun ω ↦ by simpa using hhC ω) (fun a ω ↦ by simpa using hgC a ω) ?_ hf hfdep hC
+    (fun a _ _ hxy ↦ congrArg _ (hgdep a hxy)) (fun a ω ↦ by simpa using hgφ a ω)
+    hρm hρint ?_ hf hfdep hC
   intro ω
   rw [Complex.ofReal_exp, integral_count]
   simp only [Complex.conj_ofReal, ← Complex.ofReal_mul]

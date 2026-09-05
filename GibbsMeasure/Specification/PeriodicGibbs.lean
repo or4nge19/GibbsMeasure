@@ -66,12 +66,14 @@ transformation of `E^Λ` is `siteEquiv E (torusReflAt N k)` (that is, `genReflec
   `r_k`-positivity of a measure whose `λ^Λ`-density is `exp[h + h* + ∫ m(dw) h_w h_w*]`.  Its
   analytic content is `MeasureTheory.integral_mul_comp_mul_exp_nonneg`.
 * `isReflectionPositive_siteEquiv_withDensity_sum`: the case of a finite sum
-  `exp[h + h∘r_k + ∑_a g_a · g_a∘r_k]` with real `g_a`, which is the shape a lattice model with a
-  nonnegative crossing interaction has (Georgii's Example (17.30)).
+  `exp[h + h∘r_k + ∑_a g_a · g_a∘r_k]` with real `g_a` dominated by a measurable function of the
+  `Λ_{+,k}`-coordinates, which is the shape a lattice model with a nonnegative crossing
+  interaction has (Georgii's Examples (17.30)–(17.32); see
+  `GibbsMeasure.Specification.HeisenbergPeriodic`).
 
 Georgii's Heisenberg potentials (17.22)–(17.25), his notion (17.27) of a function on `ℤ^d`
 nonnegative definite relative to `r_k`, and Theorem (17.29) with its Examples (17.30)–(17.32)
-are not formalised: (17.26), which is what (17.29) is proved from, is.
+are in `GibbsMeasure.Specification.HeisenbergPeriodic`, which is built on the two lemmas above.
 -/
 
 @[expose] public section
@@ -749,24 +751,27 @@ theorem isReflectionPositive_siteEquiv_withDensity {W : Type*} [MeasurableSpace 
     hhφ hwm hwdep hwφ hρm hρint hρ hfm hf.dependsOn_of_cylinderEvents hC
 
 /-- **`r_k`-positivity from a nonnegative crossing interaction**, the mechanism of Georgii's
-Example (17.30).  Suppose the `λ^Λ`-density of `μ` is `exp[h + h∘r_k + ∑_a g_a · g_a∘r_k]`, with
-`h` and finitely many `g_a` bounded measurable real functions of the coordinates in `Λ_{+,k}`.
-Then `μ` is `r_k`-positive.
+Examples (17.30)–(17.32).  Suppose the `λ^Λ`-density of `μ` is `exp[h + h∘r_k + ∑_a g_a · g_a∘r_k]`,
+with `h` and finitely many `g_a` measurable real functions of the coordinates in `Λ_{+,k}`, all
+dominated by one measurable function `φ` of those coordinates, and with an integrable density
+(Georgii's `°Z_Λ^Φ < ∞`).  Then `μ` is `r_k`-positive.
 
-This is the reflection-positivity input for a ferromagnetic nearest-neighbour model, Georgii's
-Example (17.30).  The nearest-neighbour bonds crossing the plane of `r_k` are exactly the pairs
-`{i, r_k i}` with `i_k ∈ {0, N - 1}`: a bond `{i, i ± e_k}` joins the two halves only when
-`(i_k, j_k)` is `(N - 1, N)` or `(0, 2N - 1)`, and in both cases `j = r_k i`.  So for `J ≥ 0` the
-crossing part `∑_i J σ_i · σ_{r_k i}` of the Hamiltonian is `∑_{i, b} g_{i,b} · g_{i,b}∘r_k` with
-`g_{i,b} = √J σ_i^b`, while the bonds inside `Λ_{+,k}` and inside `Λ_{-,k}` contribute `h` and
-`h∘r_k` because the coupling is `r_k`-symmetric.  Carrying out that decomposition for a given
-Hamiltonian is a separate computation and is not done here. -/
+This is the form in which the Heisenberg models of (17.22) are handled: the part of the
+Hamiltonian that crosses the plane of `r_k` is `∑_{i, j ∈ Λ_{+,k}} M(i, j) σ_{r_k i} · σ_j`, and a
+positive semidefinite `M = Bᵀ B` turns it into `∑_a g_a · g_a∘r_k` with the *linear* — hence
+unbounded — observables `g_{a,c}(σ) = ∑_j B(a, j) (σ_j)_c`.  That is why the domination is by a
+function and not by a constant. -/
 theorem isReflectionPositive_siteEquiv_withDensity_sum {A : Type*} [Fintype A]
     [MeasurableSpace A] [MeasurableSingletonClass A] (ν : Measure E) [IsFiniteMeasure ν]
-    (k : Fin d) {h : ((Fin d → ZMod (2 * N)) → E) → ℝ} (hhm : Measurable h)
-    (hhdep : DependsOn h (torusPosAt N k)) {Ch : ℝ} (hhC : ∀ ω, |h ω| ≤ Ch)
+    (k : Fin d) {φ : ((Fin d → ZMod (2 * N)) → E) → ℝ} (hφm : Measurable φ)
+    (hφdep : DependsOn φ (torusPosAt N k))
+    {h : ((Fin d → ZMod (2 * N)) → E) → ℝ} (hhm : Measurable h)
+    (hhdep : DependsOn h (torusPosAt N k)) (hhφ : ∀ ω, |h ω| ≤ φ ω)
     {g : A → ((Fin d → ZMod (2 * N)) → E) → ℝ} (hgm : ∀ a, Measurable (g a))
-    (hgdep : ∀ a, DependsOn (g a) (torusPosAt N k)) (hgC : ∀ a ω, |g a ω| ≤ Ch) :
+    (hgdep : ∀ a, DependsOn (g a) (torusPosAt N k)) (hgφ : ∀ a ω, |g a ω| ≤ φ ω)
+    (hint : Integrable (fun ω ↦ Real.exp (h ω + h (ω ∘ torusReflAt N k)
+        + ∑ a, g a ω * g a (ω ∘ torusReflAt N k)))
+      (Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ ν)) :
     IsReflectionPositive (torusPosAt N k) (siteEquiv E (torusReflAt N k))
       ((Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ ν).withDensity fun ω ↦
         ENNReal.ofReal (Real.exp (h ω + h (ω ∘ torusReflAt N k)
@@ -791,8 +796,8 @@ theorem isReflectionPositive_siteEquiv_withDensity_sum {A : Type*} [Fintype A]
   simp only [hpt]
   simp only [hρdef]
   exact integral_mul_comp_mul_exp_sum_nonneg (ν := fun _ : Fin d → ZMod (2 * N) ↦ ν)
-    (torusReflAt N k) (fun _ ↦ rfl) (torusPosAt_iff_torusReflAt_notMem k) hhm hhdep hhC
-    hgm hgdep hgC (hf.mono cylinderEvents_le_pi le_rfl) hf.dependsOn_of_cylinderEvents hC
+    (torusReflAt N k) (fun _ ↦ rfl) (torusPosAt_iff_torusReflAt_notMem k) hφm hφdep hhm hhdep hhφ
+    hgm hgdep hgφ hint (hf.mono cylinderEvents_le_pi le_rfl) hf.dependsOn_of_cylinderEvents hC
 
 end SiteReflection
 

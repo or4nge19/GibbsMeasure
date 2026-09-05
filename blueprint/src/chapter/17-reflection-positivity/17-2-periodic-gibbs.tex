@@ -116,8 +116,50 @@
     $\{\varphi \leq c\}$ and dominated convergence handle the unbounded case.
 \end{proof}
 
-\begin{remark}[Georgii (17.22)--(17.25), (17.27)--(17.32)]
-    \label{rmk:rp-17-29}
-    The Heisenberg potentials and the criterion (17.29), with its examples, are not formalised;
-    Lemma \ref{lem:rp-17-26} is what (17.29) is proved from.
-\end{remark}
+\begin{definition}[Heisenberg-type potentials, Georgii (17.22)--(17.25)]
+    \label{def:rp-17-22}
+    \uses{def:rp-17-18}
+    \lean{MeasureTheory.GibbsMeasure.heisenbergPotential, MeasureTheory.GibbsMeasure.heisenbergPotential_pair, MeasureTheory.GibbsMeasure.isPotential_heisenbergPotential, MeasureTheory.GibbsMeasure.heisenbergExponent, MeasureTheory.GibbsMeasure.heisenbergExponent_eq_offDiag_add_diag, MeasureTheory.GibbsMeasure.heisenbergPeriodicGibbs, MeasureTheory.GibbsMeasure.heisenbergPeriodicGibbsDist, MeasureTheory.GibbsMeasure.periodizedCoupling}
+    \leanok
+
+    The pair potential $\Phi_{\{i,j\}}(\sigma) = -J(i-j)\,\sigma_i\cdot\sigma_j$ on
+    $(\mathbb R^n)^{\mathbb Z^d}$ with $J$ even and summable (17.23); it is a $C$-potential only in
+    the nearest-neighbour case, by (17.19)(2). The periodic Gibbs distribution (17.24) has density
+    $\exp[\tfrac12\sum_{i,j\in\Lambda} J_\Lambda(i-j)\,\sigma_i\cdot\sigma_j]$ with the periodised
+    coupling $J_\Lambda(i) = \sum_{j \equiv i} J(j)$ (17.25).
+\end{definition}
+
+\begin{theorem}[Georgii (17.27)--(17.29)]
+    \label{thm:rp-17-29}
+    \uses{def:rp-17-22, lem:rp-17-26}
+    \lean{MeasureTheory.GibbsMeasure.repCharacter, MeasureTheory.GibbsMeasure.IsNonnegDefiniteAt, MeasureTheory.GibbsMeasure.IsNonnegDefiniteAt.mul, MeasureTheory.GibbsMeasure.IsNonnegDefiniteAt.nonneg_of_odd, MeasureTheory.GibbsMeasure.IsNonnegDefiniteAt.neg_one_zpow, MeasureTheory.GibbsMeasure.IsNonnegDefiniteAt.posSemidef_crossingMatrix, MeasureTheory.GibbsMeasure.heisenbergExponent_eq_add, MeasureTheory.GibbsMeasure.isReflectionPositive_heisenbergPeriodicGibbs_of_posSemidef, MeasureTheory.GibbsMeasure.isReflectionPositive_heisenbergPeriodicGibbs_of_isNonnegDefiniteAt, MeasureTheory.GibbsMeasure.isReflectionPositive_heisenbergPeriodicGibbsDist_of_isNonnegDefiniteAt, Matrix.PosSemidef.exists_sum_mul, Summable.tendsto_boxAverage_sub}
+    \leanok
+
+    $J$ is nonnegative definite relative to $r_k$ if it has Georgii's representation (17.27),
+    $J(i) = \int \alpha(dx)\,x^{i}$ by a measure $\alpha$ on the characters transverse to direction $k$,
+    with the closure properties (17.28)(2)--(3) (products, odd coordinates, sign changes). Then
+    (17.29): the periodic Gibbs distribution of a Heisenberg-type potential with such a $J$ is
+    $r_k$-positive. The Berg--Maserick converse (17.28)(1), which Georgii cites without proof, is
+    not formalised.
+\end{theorem}
+\begin{proof}
+    \leanok
+    The crossing part of the exponent, the bonds through the plane of $r_k$, has a coupling
+    matrix which is a limit of nonnegative definite ones (Georgii's $L \to \infty$, taken here on
+    the matrix rather than on the measures $\mu_{\Lambda,L}$); a Gram factorisation writes it as
+    $\sum_a g_a\,g_a\circ r_k$, and Lemma \ref{lem:rp-17-26} in its finite-sum form applies.
+\end{proof}
+
+\begin{example}[Georgii (17.30)--(17.32)]
+    \label{ex:rp-17-30}
+    \uses{thm:rp-17-29}
+    \lean{MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_of_nearestNeighbour, MeasureTheory.GibbsMeasure.isReflectionPositive_heisenbergPeriodicGibbs_nearestNeighbour, MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_of_nextNearestNeighbour, MeasureTheory.GibbsMeasure.isReflectionPositive_heisenbergPeriodicGibbs_nextNearestNeighbour, MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_rpow, MeasureTheory.integral_exp_sum_int_mul_I}
+    \leanok
+
+    Nearest-neighbour couplings with $J(e_k) \geq 0$ (17.30), next-nearest-neighbour couplings
+    with $A \geq 2(d-1)|B|$ (17.31), and $J(i) = |i_k|^{-a}$ on $\mathbb Z$ (17.32, $d = 1$) are
+    nonnegative definite relative to $r_k$, so their periodic Gibbs distributions are
+    $r_k$-positive. Not formalised: the necessity halves of (17.30)--(17.31), where Georgii's
+    constant $(2N)^{d-1}$ in $4\sinh[\,\cdot\,J(u)]$ should be $2(2N)^{d-1}$ (two interfaces meet
+    the plane of $r_k$ on the torus; only the sign matters), and (17.32) for $d = 2$.
+\end{example}

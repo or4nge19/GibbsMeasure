@@ -6,6 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Mathlib.Algebra.QuadraticDiscriminant
+public import GibbsMeasure.Mathlib.LinearAlgebra.BilinearMap.CauchySchwarz
 public import GibbsMeasure.Mathlib.Data.ZMod.Basic
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.MeasurePreserving
 public import GibbsMeasure.Prereqs.Transformation
@@ -39,6 +40,25 @@ the plane `x = -1/2`, which exchanges the halves `{0, …, N - 1}` and `{N, …,
   which is what makes that real bilinear form symmetric; nonnegativity alone bounds only its
   symmetric part, so (17.8) is false as stated without it.  Georgii's measures of §17.2 are
   reflection invariant.
+
+  **Erratum to (17.8).**  Georgii's `𝒜_{+,k}` consists of *real* functions and `f^* = f ∘ r̃_k`
+  carries no conjugation, so `(f, g) ↦ μ(f g^*)` is a real bilinear form; "nonnegative definite"
+  for such a form is `μ(f f^*) ≥ 0`, and that implies Cauchy–Schwarz only through the symmetric
+  part (`LinearMap.BilinMap.sq_add_swap_apply_le_of_nonneg`; a nonnegative non-symmetric form
+  violating Cauchy–Schwarz is `LinearMap.BilinMap.notSymm`).  The three results below say exactly
+  what is missing and that it is not free:
+  - `integral_mul_comp_comm`: if `μ` is `r̃_k`-invariant the form is symmetric.  This is the step
+    Georgii's "of course" uses.
+  - `measurePreserving_of_integral_mul_comp_comm` and
+    `measurePreserving_iff_integral_mul_comp_comm`: conversely, when `Λ_{+,k} ∪ r_k Λ_{+,k}` is
+    the whole site set, symmetry of the form on the bounded `𝓕_{Λ_{+,k}}`-measurable functions
+    *forces* `r̃_k`-invariance (π–λ on `𝓕_{Λ_{+,k}} ∨ 𝓕_{r_k Λ_{+,k}}`).  So `hinv` is not a
+    strengthening of Georgii's hypothesis: it is his hypothesis, made explicit.
+  - `exists_isReflectionPositive_not_sq_integral_mul_comp_le` and the section
+    `ReflectionCounterexample`: two sites, two spin values, and the measure `!![1, 2; 0, 1]` —
+    reflection positive, not reflection invariant, and `μ(f g^*)^2 = 4 > 1 = μ(f f^*) μ(g g^*)`.
+    Since every §17.2 measure Georgii applies (17.8) to *is* reflection invariant, none of his
+    applications is affected.
 * `MeasureTheory.GibbsMeasure.abs_integral_prod_pow_le`: **Georgii, Theorem (17.11) for `d = 1`**,
   `|μ(∏_i f_i ∘ σ_i)|^{2N} ≤ ∏_j μ(∏_i f_j ∘ τ^i ∘ σ_i)`.  The dictionary between words over
   `A(N)` and products of single-spin functions is `wordProd`, and the two halves of a word are
@@ -484,6 +504,21 @@ lemma integrable_mul_comp {τ : Transformation S E} {μ : Measure (S → E)} [Is
   exact mul_le_mul ((hCf ω).trans (le_abs_self _)) ((hCg _).trans (le_abs_self _))
     (abs_nonneg _) (abs_nonneg _)
 
+/-- **The reflection form is symmetric when `μ` is reflection invariant.**  If `μ` is invariant
+under the involution `τ̃` then `μ(f · g∘τ̃) = μ(g · f∘τ̃)`, because substituting `ω ↦ τ̃ ω`
+exchanges the two factors.  This is the step Georgii's (17.8) uses silently. -/
+theorem integral_mul_comp_comm {τ : Transformation S E} {μ : Measure (S → E)}
+    (hinv : MeasurePreserving τ.toFun μ μ) (hτ : ∀ ω, τ.toFun (τ.toFun ω) = ω)
+    (f g : (S → E) → ℝ) :
+    ∫ ω, f ω * g (τ.toFun ω) ∂μ = ∫ ω, g ω * f (τ.toFun ω) ∂μ := by
+  have hmp : MeasurePreserving τ.toMeasurableEquiv μ μ := hinv
+  have h := hmp.integral_comp' (fun ω ↦ f ω * g (τ.toFun ω))
+  have hcoe : ⇑τ.toMeasurableEquiv = τ.toFun := rfl
+  rw [hcoe] at h
+  simp only [hτ] at h
+  rw [← h]
+  exact integral_congr_ae (Filter.Eventually.of_forall fun ω ↦ mul_comm _ _)
+
 /-- **Georgii (17.8): Cauchy–Schwarz for a reflection positive measure.**
 
 The bilinear form `(f, g) ↦ μ(f · g∘τ̃)` on the bounded `cylinderEvents Λpos`-measurable functions
@@ -504,14 +539,8 @@ theorem sq_integral_mul_comp_le {Λpos : Set S} {τ : Transformation S E} {μ : 
   have hfm : Measurable f := hf.mono cylinderEvents_le_pi le_rfl
   have hgm : Measurable g := hg.mono cylinderEvents_le_pi le_rfl
   -- symmetry of the form, from the invariance of `μ` under the involution `τ̃`
-  have hmp : MeasurePreserving τ.toMeasurableEquiv μ μ := hinv
-  have hsymm : ∫ ω, g ω * f (τ.toFun ω) ∂μ = ∫ ω, f ω * g (τ.toFun ω) ∂μ := by
-    have h := hmp.integral_comp' (fun ω ↦ f ω * g (τ.toFun ω))
-    have hcoe : ⇑τ.toMeasurableEquiv = τ.toFun := rfl
-    rw [hcoe] at h
-    simp only [hτ] at h
-    rw [← h]
-    exact integral_congr_ae (Filter.Eventually.of_forall fun ω ↦ mul_comm _ _)
+  have hsymm : ∫ ω, g ω * f (τ.toFun ω) ∂μ = ∫ ω, f ω * g (τ.toFun ω) ∂μ :=
+    integral_mul_comp_comm hinv hτ g f
   refine sq_le_mul_of_forall_quadratic_nonneg fun t ↦ ?_
   have hbound : ∀ ω, |f ω + t * g ω| ≤ Cf + |t| * Cg := by
     intro ω
@@ -545,6 +574,305 @@ theorem sq_integral_mul_comp_le {Λpos : Set S} {τ : Transformation S E} {μ : 
     integral_add (hI3.const_mul t) (hI4.const_mul (t ^ 2)),
     integral_const_mul, integral_const_mul, integral_const_mul, hsymm] at hcomb
   nlinarith [hcomb]
+
+/-! ### Georgii (17.8): the symmetry of the form is exactly reflection invariance
+
+Georgii calls the form `(f, g) ↦ μ(f g^*)` nonnegative definite and deduces Cauchy–Schwarz
+"of course".  For a *real* bilinear form nonnegativity alone bounds only the symmetric part
+(`LinearMap.BilinMap.sq_add_swap_apply_le_of_nonneg`), and the two lemmas below identify the
+missing hypothesis: the form is symmetric if and only if `μ` is `τ̃`-invariant, provided the two
+halves cover the site set.  `ReflectionCounterexample` below shows that (17.8) really is false
+without it. -/
+
+/-- **Symmetry of the reflection form forces reflection invariance.**  Let `τ̃` be an involution
+of `E^S` whose spatial part `τ_*` is an involution of the sites, and suppose the half `Λpos` and
+its reflection `τ_* Λpos = τ_*⁻¹ Λpos` cover the site set.  If the bilinear form
+`(f, g) ↦ μ(f · g∘τ̃)` is symmetric on the bounded `cylinderEvents Λpos`-measurable functions,
+then `μ` is `τ̃`-invariant.
+
+Indicators turn the symmetry into `μ(A ∩ B) = (τ̃ μ)(A ∩ B)` for `A ∈ 𝓕_{Λ₊}` and
+`B ∈ 𝓕_{τ_* Λ₊}`; those intersections are a π-system generating
+`𝓕_{Λ₊} ⊔ 𝓕_{τ_* Λ₊} = 𝓕_{Λ₊ ∪ τ_* Λ₊} = 𝓕_S`, so the two finite measures agree.  Together with
+`integral_mul_comp_comm`, this says the hypothesis `hinv` of `sq_integral_mul_comp_le` *is* the
+symmetry of Georgii's form, not an extra assumption. -/
+theorem measurePreserving_of_integral_mul_comp_comm {Λpos : Set S} {τ : Transformation S E}
+    {μ : Measure (S → E)} [IsFiniteMeasure μ]
+    (hsites : ∀ i, τ.sites (τ.sites i) = i) (hτ : ∀ ω, τ.toFun (τ.toFun ω) = ω)
+    (hcover : Λpos ∪ τ.sites ⁻¹' Λpos = univ)
+    (hsymm : ∀ f g : (S → E) → ℝ,
+      Measurable[cylinderEvents (X := fun _ : S ↦ E) Λpos] f → (∃ C, ∀ ω, |f ω| ≤ C) →
+      Measurable[cylinderEvents (X := fun _ : S ↦ E) Λpos] g → (∃ C, ∀ ω, |g ω| ≤ C) →
+      ∫ ω, f ω * g (τ.toFun ω) ∂μ = ∫ ω, g ω * f (τ.toFun ω) ∂μ) :
+    MeasurePreserving τ.toFun μ μ := by
+  classical
+  have hmeas : Measurable τ.toFun := τ.measurable_toFun
+  set ν : Measure (S → E) := Measure.map τ.toFun μ with hνdef
+  have hνuniv : ν univ = μ univ := by
+    rw [hνdef, Measure.map_apply hmeas MeasurableSet.univ, preimage_univ]
+  have hνapply : ∀ s, MeasurableSet s → ν s = μ (τ.toFun ⁻¹' s) := fun s hs ↦ by
+    rw [hνdef, Measure.map_apply hmeas hs]
+  haveI : IsFiniteMeasure ν := ⟨by rw [hνuniv]; exact measure_lt_top μ univ⟩
+  -- the reflected half, and the transport of cylinder measurability along `τ̃`
+  have hsq : τ.sites ⁻¹' (τ.sites ⁻¹' Λpos) = Λpos := by
+    ext i; simp only [mem_preimage, hsites i]
+  have hmB : Measurable[cylinderEvents (X := fun _ : S ↦ E) Λpos,
+      cylinderEvents (X := fun _ : S ↦ E) (τ.sites ⁻¹' Λpos)] τ.toFun := by
+    have h := τ.measurable_toFun_cylinderEvents (τ.sites ⁻¹' Λpos)
+    rwa [hsq] at h
+  -- the generating π-system of "rectangles" straddling the plane of the reflection
+  set C : Set (Set (S → E)) :=
+    {s | ∃ A B, MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) Λpos] A ∧
+      MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (τ.sites ⁻¹' Λpos)] B ∧ s = A ∩ B}
+    with hCdef
+  have hgen : (inferInstance : MeasurableSpace (S → E)) = MeasurableSpace.generateFrom C := by
+    refine le_antisymm ?_ ?_
+    · have hle : cylinderEvents (X := fun _ : S ↦ E) univ ≤ MeasurableSpace.generateFrom C := by
+        rw [← hcover, cylinderEvents_union]
+        refine sup_le (fun A hA ↦ ?_) (fun B hB ↦ ?_)
+        · exact MeasurableSpace.measurableSet_generateFrom
+            ⟨A, univ, hA, MeasurableSet.univ, (inter_univ A).symm⟩
+        · exact MeasurableSpace.measurableSet_generateFrom
+            ⟨univ, B, MeasurableSet.univ, hB, (univ_inter B).symm⟩
+      simpa using hle
+    · refine MeasurableSpace.generateFrom_le ?_
+      rintro s ⟨A, B, hA, hB, rfl⟩
+      exact (cylinderEvents_le_pi A hA).inter (cylinderEvents_le_pi B hB)
+  have hpi : IsPiSystem C := by
+    rintro _ ⟨A₁, B₁, hA₁, hB₁, rfl⟩ _ ⟨A₂, B₂, hA₂, hB₂, rfl⟩ -
+    exact ⟨A₁ ∩ A₂, B₁ ∩ B₂, hA₁.inter hA₂, hB₁.inter hB₂, by
+      ext ω; simp only [mem_inter_iff]; tauto⟩
+  -- the symmetry of the form on indicators is the agreement of `μ` and `ν` on `C`
+  have hCeq : ∀ s ∈ C, μ s = ν s := by
+    rintro _ ⟨A, B, hA, hB, rfl⟩
+    have hAm : MeasurableSet A := cylinderEvents_le_pi A hA
+    have hBm : MeasurableSet B := cylinderEvents_le_pi B hB
+    set f : (S → E) → ℝ := A.indicator 1 with hf
+    set g : (S → E) → ℝ := (τ.toFun ⁻¹' B).indicator 1 with hg
+    have hfm : Measurable[cylinderEvents (X := fun _ : S ↦ E) Λpos] f :=
+      Measurable.indicator measurable_const hA
+    have hgm : Measurable[cylinderEvents (X := fun _ : S ↦ E) Λpos] g :=
+      Measurable.indicator measurable_const (hmB hB)
+    have hbound : ∀ (s : Set (S → E)) ω, |s.indicator (1 : (S → E) → ℝ) ω| ≤ 1 := by
+      intro s ω
+      rw [Set.indicator_apply]
+      split <;> simp
+    have hprod : ∀ (s t : Set (S → E)) ω,
+        (s ∩ t).indicator (1 : (S → E) → ℝ) ω = s.indicator 1 ω * t.indicator 1 ω := by
+      intro s t ω
+      by_cases hs : ω ∈ s <;> by_cases ht : ω ∈ t <;>
+        simp [Set.indicator_apply, hs, ht]
+    -- `g ∘ τ̃ = 1_B` and `f ∘ τ̃ = 1_{τ̃⁻¹ A}`
+    have hgτ : ∀ ω, g (τ.toFun ω) = B.indicator (1 : (S → E) → ℝ) ω := by
+      intro ω
+      simp only [hg, Set.indicator_apply, mem_preimage, hτ ω, Pi.one_apply]
+    have hleft : ∫ ω, f ω * g (τ.toFun ω) ∂μ = (μ (A ∩ B)).toReal := by
+      have hpt : ∀ ω, f ω * g (τ.toFun ω) = (A ∩ B).indicator (1 : (S → E) → ℝ) ω := by
+        intro ω
+        rw [hgτ ω, hf, hprod]
+      rw [funext hpt, integral_indicator_one (hAm.inter hBm), measureReal_def]
+    have hright : ∫ ω, g ω * f (τ.toFun ω) ∂μ = (ν (A ∩ B)).toReal := by
+      have hfτ : ∀ ω, f (τ.toFun ω) = (τ.toFun ⁻¹' A).indicator (1 : (S → E) → ℝ) ω := by
+        intro ω; simp only [hf, Set.indicator_apply, mem_preimage, Pi.one_apply]
+      have hpt : ∀ ω, g ω * f (τ.toFun ω)
+          = (τ.toFun ⁻¹' (A ∩ B)).indicator (1 : (S → E) → ℝ) ω := by
+        intro ω
+        rw [hfτ ω, hg, preimage_inter, hprod, mul_comm]
+      rw [funext hpt, integral_indicator_one (hmeas (hAm.inter hBm)), measureReal_def,
+        hνapply _ (hAm.inter hBm)]
+    have hkey := hsymm f g hfm ⟨1, hbound A⟩ hgm ⟨1, hbound _⟩
+    rw [hleft, hright] at hkey
+    exact (ENNReal.toReal_eq_toReal_iff' (measure_ne_top μ _) (measure_ne_top ν _)).1 hkey
+  have hμν : μ = ν := ext_of_generate_finite C hgen hpi hCeq hνuniv.symm
+  exact ⟨hmeas, hμν.symm⟩
+
+/-- **Georgii (17.8): the missing hypothesis, as an equivalence.**  For a finite measure on
+`E^S` whose reflection `τ̃` is an involution with involutive spatial part, and two halves covering
+the site set, reflection invariance of `μ` is *equivalent* to the symmetry of Georgii's bilinear
+form `(f, g) ↦ μ(f · g∘τ̃)` on `𝒜_{+,k}`. -/
+theorem measurePreserving_iff_integral_mul_comp_comm {Λpos : Set S} {τ : Transformation S E}
+    {μ : Measure (S → E)} [IsFiniteMeasure μ]
+    (hsites : ∀ i, τ.sites (τ.sites i) = i) (hτ : ∀ ω, τ.toFun (τ.toFun ω) = ω)
+    (hcover : Λpos ∪ τ.sites ⁻¹' Λpos = univ) :
+    MeasurePreserving τ.toFun μ μ ↔ ∀ f g : (S → E) → ℝ,
+      Measurable[cylinderEvents (X := fun _ : S ↦ E) Λpos] f → (∃ C, ∀ ω, |f ω| ≤ C) →
+      Measurable[cylinderEvents (X := fun _ : S ↦ E) Λpos] g → (∃ C, ∀ ω, |g ω| ≤ C) →
+      ∫ ω, f ω * g (τ.toFun ω) ∂μ = ∫ ω, g ω * f (τ.toFun ω) ∂μ :=
+  ⟨fun hinv f g _ _ _ _ ↦ integral_mul_comp_comm hinv hτ f g,
+    measurePreserving_of_integral_mul_comp_comm hsites hτ hcover⟩
+
+/-! ### Georgii (17.8) is false without reflection invariance
+
+Two sites, `Λ = {false, true}` with `Λ_+ = {false}`, two spin values `E = Bool`, and the
+reflection `r` that exchanges the two sites (with `τ = id`).  A measure on `E^Λ` is a
+`2 × 2` matrix `M x y = μ{ω : ω_false = x, ω_true = y}`, the reflection form is
+`μ(f · g∘r) = ∑_{x, y} f(x) g(y) M x y`, and `μ` is reflection positive exactly when the
+quadratic form of `M` is nonnegative.  The matrix `!![1, 2; 0, 1]` has quadratic form
+`(a + b)^2 ≥ 0` but is not symmetric, and Cauchy–Schwarz fails at the two coordinate
+indicators, where `μ(f g^*) = 2` while `μ(f f^*) = μ(g g^*) = 1`.
+
+Every hypothesis of `measurePreserving_iff_integral_mul_comp_comm` holds here except reflection
+invariance, so (17.8) as Georgii states it — with no hypothesis beyond (17.7) — is false, and
+`sq_integral_mul_comp_le` cannot drop `hinv`. -/
+
+namespace ReflectionCounterexample
+
+/-- The configuration with spin `x` at the site `false` and spin `y` at the site `true`. -/
+def cfg (x y : Bool) : Bool → Bool := fun i ↦ cond i y x
+
+@[simp] lemma cfg_false (x y : Bool) : cfg x y false = x := rfl
+
+@[simp] lemma cfg_true (x y : Bool) : cfg x y true = y := rfl
+
+/-- Georgii's `Λ_{+,1}`: the single site `false`. -/
+def posHalf : Set Bool := {false}
+
+/-- Georgii's `r̃_1` here: the transposition of the two sites, with the identity spin
+involution. -/
+def siteSwap : Transformation Bool Bool := siteEquiv Bool (Equiv.swap false true)
+
+@[simp] lemma siteSwap_cfg (x y : Bool) : siteSwap.toFun (cfg x y) = cfg y x := by
+  funext i
+  cases i <;> simp [siteSwap, cfg]
+
+lemma siteSwap_involutive (ω : Bool → Bool) :
+    siteSwap.toFun (siteSwap.toFun ω) = ω := by
+  funext i
+  simp [siteSwap]
+
+lemma siteSwap_sites_involutive (i : Bool) : siteSwap.sites (siteSwap.sites i) = i := by
+  simp [siteSwap]
+
+lemma posHalf_union_preimage : posHalf ∪ siteSwap.sites ⁻¹' posHalf = Set.univ := by
+  ext i
+  cases i <;> simp [posHalf, siteSwap]
+
+/-- The measure `!![1, 2; 0, 1]` on `E^Λ`: mass `1` on `(false, false)`, mass `2` on
+`(false, true)`, mass `0` on `(true, false)` and mass `1` on `(true, true)`. -/
+noncomputable def refMeasure : Measure (Bool → Bool) :=
+  Measure.dirac (cfg false false) + Measure.dirac (cfg false true)
+    + Measure.dirac (cfg false true) + Measure.dirac (cfg true true)
+
+noncomputable instance : IsFiniteMeasure refMeasure := by
+  unfold refMeasure; infer_instance
+
+lemma integral_refMeasure (h : (Bool → Bool) → ℝ) :
+    ∫ ω, h ω ∂refMeasure
+      = h (cfg false false) + 2 * h (cfg false true) + h (cfg true true) := by
+  have hint : ∀ ω₀ : Bool → Bool, Integrable h (Measure.dirac ω₀) := fun _ ↦ Integrable.of_finite
+  rw [refMeasure,
+    integral_add_measure (((hint _).add_measure (hint _)).add_measure (hint _)) (hint _),
+    integral_add_measure ((hint _).add_measure (hint _)) (hint _),
+    integral_add_measure (hint _) (hint _)]
+  simp only [integral_dirac]
+  ring
+
+/-- **The counterexample measure is reflection positive**: the quadratic form of `!![1, 2; 0, 1]`
+is `(a + b) ^ 2`. -/
+theorem isReflectionPositive_refMeasure :
+    IsReflectionPositive posHalf siteSwap refMeasure := by
+  intro f hf _
+  have hdep : DependsOn f posHalf := hf.dependsOn_of_cylinderEvents
+  have hA : f (cfg false false) = f (cfg false true) := by
+    refine hdep fun i hi ↦ ?_
+    rw [show i = false from hi]
+    rfl
+  have hB : f (cfg true false) = f (cfg true true) := by
+    refine hdep fun i hi ↦ ?_
+    rw [show i = false from hi]
+    rfl
+  rw [integral_refMeasure fun ω ↦ f ω * f (siteSwap.toFun ω)]
+  simp only [siteSwap_cfg]
+  rw [← hA, ← hB]
+  nlinarith [sq_nonneg (f (cfg false false) + f (cfg true false))]
+
+/-- The indicator of `{ω : ω_false = false}`, a bounded function of the coordinates in `Λ_+`. -/
+def fPos (ω : Bool → Bool) : ℝ := if ω false then 0 else 1
+
+/-- The indicator of `{ω : ω_false = true}`, a bounded function of the coordinates in `Λ_+`. -/
+def fNeg (ω : Bool → Bool) : ℝ := if ω false then 1 else 0
+
+lemma measurable_fPos : Measurable[cylinderEvents (X := fun _ : Bool ↦ Bool) posHalf] fPos := by
+  have h : fPos = (fun b : Bool ↦ if b then (0 : ℝ) else 1) ∘ fun ω : Bool → Bool ↦ ω false := rfl
+  rw [h]
+  exact (measurable_of_countable _).comp
+    (measurable_cylinderEvent_apply (X := fun _ : Bool ↦ Bool) (Set.mem_singleton false))
+
+lemma measurable_fNeg : Measurable[cylinderEvents (X := fun _ : Bool ↦ Bool) posHalf] fNeg := by
+  have h : fNeg = (fun b : Bool ↦ if b then (1 : ℝ) else 0) ∘ fun ω : Bool → Bool ↦ ω false := rfl
+  rw [h]
+  exact (measurable_of_countable _).comp
+    (measurable_cylinderEvent_apply (X := fun _ : Bool ↦ Bool) (Set.mem_singleton false))
+
+lemma abs_fPos_le (ω : Bool → Bool) : |fPos ω| ≤ 1 := by
+  rw [fPos]; split <;> simp
+
+lemma abs_fNeg_le (ω : Bool → Bool) : |fNeg ω| ≤ 1 := by
+  rw [fNeg]; split <;> simp
+
+@[simp] lemma integral_fPos_mul_fNeg :
+    ∫ ω, fPos ω * fNeg (siteSwap.toFun ω) ∂refMeasure = 2 := by
+  rw [integral_refMeasure]
+  norm_num [fPos, fNeg]
+
+@[simp] lemma integral_fNeg_mul_fPos :
+    ∫ ω, fNeg ω * fPos (siteSwap.toFun ω) ∂refMeasure = 0 := by
+  rw [integral_refMeasure]
+  norm_num [fPos, fNeg]
+
+@[simp] lemma integral_fPos_mul_fPos :
+    ∫ ω, fPos ω * fPos (siteSwap.toFun ω) ∂refMeasure = 1 := by
+  rw [integral_refMeasure]
+  norm_num [fPos]
+
+@[simp] lemma integral_fNeg_mul_fNeg :
+    ∫ ω, fNeg ω * fNeg (siteSwap.toFun ω) ∂refMeasure = 1 := by
+  rw [integral_refMeasure]
+  norm_num [fNeg]
+
+/-- **The counterexample measure is not reflection invariant.**  Its reflection form is not
+symmetric: `μ(f g^*) = 2` while `μ(g f^*) = 0`. -/
+theorem not_measurePreserving_siteSwap :
+    ¬ MeasurePreserving siteSwap.toFun refMeasure refMeasure := by
+  intro hinv
+  have h := integral_mul_comp_comm hinv siteSwap_involutive fPos fNeg
+  rw [integral_fPos_mul_fNeg, integral_fNeg_mul_fPos] at h
+  norm_num at h
+
+/-- **Georgii (17.8) fails for a reflection positive measure that is not reflection invariant**:
+here `μ(f g^*) ^ 2 = 4` while `μ(f f^*) · μ(g g^*) = 1`. -/
+theorem not_sq_integral_mul_comp_le :
+    ¬ ((∫ ω, fPos ω * fNeg (siteSwap.toFun ω) ∂refMeasure) ^ 2
+        ≤ (∫ ω, fPos ω * fPos (siteSwap.toFun ω) ∂refMeasure)
+          * (∫ ω, fNeg ω * fNeg (siteSwap.toFun ω) ∂refMeasure)) := by
+  rw [integral_fPos_mul_fNeg, integral_fPos_mul_fPos, integral_fNeg_mul_fNeg]
+  norm_num
+
+end ReflectionCounterexample
+
+/-- **The reflection invariance in `sq_integral_mul_comp_le` cannot be dropped.**  There is a
+finite measure `μ` on `E^S` which is reflection positive for a half `Λ_+` whose reflection covers
+the complement, together with two bounded `cylinderEvents Λ_+`-measurable functions violating
+Georgii's Cauchy–Schwarz inequality (17.8).  Necessarily `μ` is not reflection invariant. -/
+theorem exists_isReflectionPositive_not_sq_integral_mul_comp_le :
+    ∃ (S E : Type) (_ : MeasurableSpace E) (Λpos : Set S) (τ : Transformation S E)
+      (μ : Measure (S → E)) (_ : IsFiniteMeasure μ) (f g : (S → E) → ℝ),
+      (∀ ω, τ.toFun (τ.toFun ω) = ω) ∧ (∀ i, τ.sites (τ.sites i) = i) ∧
+      Λpos ∪ τ.sites ⁻¹' Λpos = univ ∧
+      IsReflectionPositive Λpos τ μ ∧
+      Measurable[cylinderEvents (X := fun _ : S ↦ E) Λpos] f ∧ (∀ ω, |f ω| ≤ 1) ∧
+      Measurable[cylinderEvents (X := fun _ : S ↦ E) Λpos] g ∧ (∀ ω, |g ω| ≤ 1) ∧
+      ¬ ((∫ ω, f ω * g (τ.toFun ω) ∂μ) ^ 2
+          ≤ (∫ ω, f ω * f (τ.toFun ω) ∂μ) * (∫ ω, g ω * g (τ.toFun ω) ∂μ)) :=
+  ⟨Bool, Bool, inferInstance, ReflectionCounterexample.posHalf,
+    ReflectionCounterexample.siteSwap, ReflectionCounterexample.refMeasure, inferInstance,
+    ReflectionCounterexample.fPos, ReflectionCounterexample.fNeg,
+    ReflectionCounterexample.siteSwap_involutive,
+    ReflectionCounterexample.siteSwap_sites_involutive,
+    ReflectionCounterexample.posHalf_union_preimage,
+    ReflectionCounterexample.isReflectionPositive_refMeasure,
+    ReflectionCounterexample.measurable_fPos, ReflectionCounterexample.abs_fPos_le,
+    ReflectionCounterexample.measurable_fNeg, ReflectionCounterexample.abs_fNeg_le,
+    ReflectionCounterexample.not_sq_integral_mul_comp_le⟩
 
 end ReflectionPositive
 

@@ -15,13 +15,19 @@
 \begin{lemma}[Georgii (17.8)]
     \label{lem:rp-17-8}
     \uses{def:rp-17-7}
-    \lean{MeasureTheory.GibbsMeasure.sq_integral_mul_comp_le, sq_le_mul_of_forall_quadratic_nonneg}
+    \lean{MeasureTheory.GibbsMeasure.sq_integral_mul_comp_le, sq_le_mul_of_forall_quadratic_nonneg, MeasureTheory.GibbsMeasure.integral_mul_comp_comm, MeasureTheory.GibbsMeasure.measurePreserving_of_integral_mul_comp_comm, MeasureTheory.GibbsMeasure.measurePreserving_iff_integral_mul_comp_comm, MeasureTheory.GibbsMeasure.exists_isReflectionPositive_not_sq_integral_mul_comp_le, LinearMap.BilinMap.sq_add_swap_apply_le_of_nonneg, LinearMap.BilinMap.exists_nonneg_not_sq_apply_le}
     \leanok
 
     If $\mu$ is reflection positive and invariant under the involution $\tilde r$, then
     $\bigl(\int f\,(g\circ\tilde r)\,d\mu\bigr)^2 \leq \int f\,(f\circ\tilde r)\,d\mu
-    \int g\,(g\circ\tilde r)\,d\mu$. Without invariance the statement is false: a nonnegative
-    real form only bounds the symmetrised pairing.
+    \int g\,(g\circ\tilde r)\,d\mu$. Georgii's ``of course'' from nonnegative definiteness
+    silently uses the symmetry of the form $(f,g) \mapsto \mu(fg^*)$, and for real functions
+    that symmetry on the bounded $\mathcal F_{\Lambda_+}$-measurable functions is
+    \emph{equivalent} to the $\tilde r$-invariance of $\mu$ when $\Lambda_+ \cup \tilde r\Lambda_+$
+    is everything. Without it the statement is false: the measure with weights
+    $\bigl[\begin{smallmatrix}1&2\\0&1\end{smallmatrix}\bigr]$ on two sites exchanged by the
+    reflection is reflection positive, yet $\mu(fg^*)^2 = 4 > 1 = \mu(ff^*)\mu(gg^*)$; in
+    general a nonnegative real bilinear form bounds only the symmetrised pairing.
 \end{lemma}
 \begin{proof}
     \leanok
