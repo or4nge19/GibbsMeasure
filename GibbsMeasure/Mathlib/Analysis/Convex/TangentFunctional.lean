@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import Mathlib.Analysis.Calculus.Deriv.Shift
 public import Mathlib.Analysis.Convex.Cone.Extension
 public import Mathlib.Analysis.Convex.Deriv
 public import Mathlib.Analysis.Convex.Topology
@@ -52,6 +53,13 @@ input to the Hahn–Banach theorem behind the theory of tangent functionals:
 * `ConvexOn.leftDirDeriv_le_rightDirDeriv`: **(16.2)**.
 * `ConvexOn.tendsto_dirSlope_rightDirDeriv`, `ConvexOn.tendsto_dirSlope_leftDirDeriv`: the
   one-sided derivatives are limits, as (16.2) states them.
+* `ConvexOn.hasDerivAt_line_of_leftDirDeriv_eq_rightDirDeriv`,
+  `ConvexOn.hasDerivAt_line_add_smul_of_leftDirDeriv_eq_rightDirDeriv`,
+  `ConvexOn.differentiable_line_of_leftDirDeriv_eq_rightDirDeriv`: where the two one-sided
+  derivatives agree, the line restriction `t ↦ f (x + t • y)` has a genuine two-sided derivative
+  `∂⁺_y f(x + t y)` — at the base point, at an arbitrary point of the line, and along the whole
+  line. The two one-sided slope limits above are then limits along `𝓝[<] 0` and `𝓝[>] 0` with the
+  same value, and `𝓝[≠] 0 = 𝓝[<] 0 ⊔ 𝓝[>] 0`.
 * `ConvexOn.rightDirDeriv_smul`, `ConvexOn.rightDirDeriv_add_le`: sublinearity of the right
   directional derivative in the direction.
 * `ConvexOn.leftDirDeriv_le_of_mem_subgradientAt`,
@@ -484,6 +492,47 @@ lemma rightDirDeriv_le_leftDirDeriv_of_lt (x y : E) {t t' : ℝ} (h : t < t') :
   refine h₁.trans (le_trans (le_of_eq ?_) h₂)
   rw [div_eq_div_iff (by linarith) (by linarith)]
   ring
+
+/-! ### Differentiability along a line -/
+
+/-- **The differentiable case of Georgii (16.2).** If the two one-sided directional derivatives of
+a convex function agree at `x` in the direction `y`, then the line restriction `t ↦ f (x + t • y)`
+is differentiable at `0`, with derivative `∂⁺_y f(x)`.
+
+The two one-sided limits of the difference quotient (`tendsto_dirSlope_leftDirDeriv` and
+`tendsto_dirSlope_rightDirDeriv`) then have the same value, and `𝓝[≠] 0 = 𝓝[<] 0 ⊔ 𝓝[>] 0`. -/
+theorem hasDerivAt_line_of_leftDirDeriv_eq_rightDirDeriv (x y : E)
+    (h : leftDirDeriv f x y = rightDirDeriv f x y) :
+    HasDerivAt (fun t : ℝ ↦ f (x + t • y)) (rightDirDeriv f x y) 0 := by
+  rw [hasDerivAt_iff_tendsto_slope_left_right, ← dirSlope_eq_slope]
+  refine ⟨?_, hf.tendsto_dirSlope_rightDirDeriv x y⟩
+  rw [← h]
+  exact hf.tendsto_dirSlope_leftDirDeriv x y
+
+/-- `hasDerivAt_line_of_leftDirDeriv_eq_rightDirDeriv` at an arbitrary point `x + t • y` of the
+line: the line restriction is differentiable at `t` as soon as the two one-sided directional
+derivatives of `f` in the direction `y` agree there. -/
+theorem hasDerivAt_line_add_smul_of_leftDirDeriv_eq_rightDirDeriv (x y : E) {t : ℝ}
+    (h : leftDirDeriv f (x + t • y) y = rightDirDeriv f (x + t • y) y) :
+    HasDerivAt (fun s : ℝ ↦ f (x + s • y)) (rightDirDeriv f (x + t • y) y) t := by
+  have hbase : HasDerivAt (fun u : ℝ ↦ f (x + t • y + u • y)) (rightDirDeriv f (x + t • y) y)
+      (t - t) := by
+    rw [sub_self]
+    exact hf.hasDerivAt_line_of_leftDirDeriv_eq_rightDirDeriv (x + t • y) y h
+  simpa only [add_smul_add_sub_smul] using hbase.comp_sub_const t t
+
+/-- If a convex function is Gateaux differentiable in the direction `y` at every point of the line
+through `x` in the direction `y`, then its restriction to that line is differentiable, with
+derivative `∂⁺_y f(x + t y)` at `t` (`deriv_line_of_leftDirDeriv_eq_rightDirDeriv`). -/
+theorem differentiable_line_of_leftDirDeriv_eq_rightDirDeriv (x y : E)
+    (h : ∀ t : ℝ, leftDirDeriv f (x + t • y) y = rightDirDeriv f (x + t • y) y) :
+    Differentiable ℝ fun t : ℝ ↦ f (x + t • y) := fun t ↦
+  (hf.hasDerivAt_line_add_smul_of_leftDirDeriv_eq_rightDirDeriv x y (h t)).differentiableAt
+
+lemma deriv_line_of_leftDirDeriv_eq_rightDirDeriv (x y : E) {t : ℝ}
+    (h : leftDirDeriv f (x + t • y) y = rightDirDeriv f (x + t • y) y) :
+    deriv (fun s : ℝ ↦ f (x + s • y)) t = rightDirDeriv f (x + t • y) y :=
+  (hf.hasDerivAt_line_add_smul_of_leftDirDeriv_eq_rightDirDeriv x y h).deriv
 
 end ConvexOn
 

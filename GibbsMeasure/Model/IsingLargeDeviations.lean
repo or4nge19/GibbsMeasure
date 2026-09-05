@@ -47,6 +47,8 @@ susceptibility.
   Gateaux differentiable at `Φ^{J,h}` for `|h| + 4d|J| < 1`, with
   `∂/∂t P(Φ^{J,h} + tΨ)|_{t=0} = −⟨μ, Ψ⟩` for the unique shift-invariant Ising Gibbs measure `μ`;
   in the direction of the external field this is `∂P/∂h = μ(σ_0)`, the magnetisation.
+* `MeasureTheory.GibbsMeasure.hasDerivAt_pressure_isingBTheta_field`: the field derivative as a
+  genuine two-sided derivative, `HasDerivAt (fun t ↦ P(Φ^{J,h+t})) (μ(σ_0)) 0`.
 * `MeasureTheory.GibbsMeasure.hasDerivAt_rightDirDeriv_pressure_isingBTheta` and `..._field`:
   **Corollary (16.17), second derivative**: `∂²P/∂h² = ∑_k cov_μ(σ_0, σ_k)`, the susceptibility.
 * `MeasureTheory.GibbsMeasure.exists_hasDerivAt_integral_isingGibbsMeasure_field`:
@@ -425,6 +427,31 @@ theorem leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_isingBTheta_field
     rw [coe_isingBTheta, specificEnergy_isingPotential_of_zero_coupling]
     ring
   exact ⟨μ, hμ, hL.trans hE, hR.trans hE⟩
+
+/-- **`∂P/∂h` is the magnetisation, as a genuine derivative.** For `|h| + 4d|J| < 1` the pressure
+of the `ℤ^d` Ising model is differentiable in the external field at `h`:
+`∂/∂t P(Φ^{J,h+t})|_{t=0} = μ(σ_0)`, the magnetisation of the unique shift-invariant Ising Gibbs
+measure. This is `hasDerivAt_pressure_isingBTheta` along the pure-field direction `Φ^{0,1}`, whose
+segment `Φ^{J,h} + tΦ^{0,1}` is the field segment `Φ^{J,h+t}` (`isingBTheta_add_smul_field`);
+`leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_isingBTheta_field` is the same statement in terms
+of the two one-sided directional derivatives of (16.2). -/
+theorem hasDerivAt_pressure_isingBTheta_field (hJh : |h| + 4 * d * |J| < 1) :
+    ∃ μ : Measure ((Fin d → ℤ) → Bool),
+      invariantG (isingSpecification (latticeGraph d) J h 1)
+          (shiftGroup (Fin d → ℤ) Bool) = {μ} ∧
+        HasDerivAt (fun t : ℝ ↦ Potential.BTheta.pressure uniformSpinMeasure
+            (isingBTheta d J (h + t))) (∫ σ, spin (σ 0) ∂μ) 0 := by
+  rw [← gibbsSpecificationOfAbsolutelySummable_isingBTheta d J h 1]
+  obtain ⟨μ, hμ, hderiv⟩ := Potential.BTheta.hasDerivAt_pressure_of_mem_dobrushinRegion
+    uniformSpinMeasure (isingBTheta_mem_dobrushinRegion hJh)
+  refine ⟨μ, hμ, ?_⟩
+  have hE : -((isingBTheta d 0 1 : Potential (Fin d → ℤ) Bool).specificEnergy μ)
+      = ∫ σ, spin (σ 0) ∂μ := by
+    rw [coe_isingBTheta, specificEnergy_isingPotential_of_zero_coupling]
+    ring
+  have h1 := hderiv (isingBTheta d 0 1)
+  rw [hE] at h1
+  simpa only [isingBTheta_add_smul_field] using h1
 
 /-- **Georgii Corollary (16.17), the second-derivative formula, for the `ℤ^d` Ising model.**
 Differentiating the field derivative of the pressure once more: for `|h| + 4d|J| < 1` the map

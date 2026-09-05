@@ -81,12 +81,14 @@
 \begin{theorem}[Georgii (16.17), the two derivatives]
     \label{thm:gv-16-17}
     \uses{thm:gv-16-14, thm:dob-uniqueness, cor:dob-8-37}
-    \lean{MeasureTheory.GibbsMeasure.Dobrushin.cardNormAt, MeasureTheory.GibbsMeasure.Dobrushin.isDobrushin_gibbsSpecification_of_cardNormAt_le, Potential.BTheta.dobrushinRegion, Potential.BTheta.exists_invariantG_eq_singleton_of_mem_dobrushinRegion, Potential.BTheta.leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_of_mem_dobrushinRegion, Potential.BTheta.hasDerivAt_rightDirDeriv_pressure_of_mem_dobrushinRegion, ENNReal.exists_pos_add_ofReal_mul_lt_one}
+    \lean{MeasureTheory.GibbsMeasure.Dobrushin.cardNormAt, MeasureTheory.GibbsMeasure.Dobrushin.isDobrushin_gibbsSpecification_of_cardNormAt_le, Potential.BTheta.dobrushinRegion, Potential.BTheta.exists_invariantG_eq_singleton_of_mem_dobrushinRegion, Potential.BTheta.leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_of_mem_dobrushinRegion, Potential.BTheta.hasDerivAt_rightDirDeriv_pressure_of_mem_dobrushinRegion, ENNReal.exists_pos_add_ofReal_mul_lt_one, ConvexOn.hasDerivAt_line_of_leftDirDeriv_eq_rightDirDeriv, ConvexOn.differentiable_line_of_leftDirDeriv_eq_rightDirDeriv, Potential.BTheta.hasDerivAt_pressure_of_mem_dobrushinRegion}
     \leanok
 
     On the Dobrushin region $\mathcal D = \{\Phi : \sum_{A \ni 0}\abs{A}\norm{\Phi_A} < 1\}$ the
     shift-invariant Gibbs measure is unique and $P$ is Gateaux differentiable, with
-    $\frac{d}{dt}P(\Phi + t\Psi)\big|_{t=0} = -\langle\mu_\Phi,\Psi\rangle$; and for
+    $\frac{d}{dt}P(\Phi + t\Psi)\big|_{t=0} = -\langle\mu_\Phi,\Psi\rangle$ as a genuine
+    derivative along the line, since equal one-sided directional derivatives of a convex
+    function give differentiability; and for
     $\Psi$ of finite $(8.36)$-norm and any $\tilde\Psi \in \mathcal B_\Theta$,
     $t \mapsto \frac{\partial}{\partial s}P(\Phi + t\Psi + s\tilde\Psi)\big|_{s=0}$ is
     differentiable at $0$ with derivative
@@ -108,7 +110,7 @@
 \begin{example}[The Ising potential as a witness]
     \label{ex:gv-ising-witness}
     \uses{thm:gv-16-17, prop:ld-15-49, cor:dob-8-37}
-    \lean{MeasureTheory.GibbsMeasure.isingPotential_mem_BTheta, MeasureTheory.GibbsMeasure.isingBTheta, MeasureTheory.GibbsMeasure.isingBTheta_ne_zero, MeasureTheory.GibbsMeasure.card_neighborFinset_latticeGraph, MeasureTheory.GibbsMeasure.cardNormAt_isingPotential, MeasureTheory.GibbsMeasure.cardNormAt_isingPotential_latticeGraph, MeasureTheory.GibbsMeasure.cardNormAt_isingPotential_of_zero_coupling, MeasureTheory.GibbsMeasure.isingBTheta_mem_dobrushinRegion, MeasureTheory.GibbsMeasure.isDobrushin_isingSpecification_of_cardNormAt_lt_one, MeasureTheory.GibbsMeasure.exists_ne_zero_mem_dobrushinRegion, MeasureTheory.GibbsMeasure.exists_ldRate_isingBTheta_eq_zero, MeasureTheory.GibbsMeasure.isingPotential_add_smul_field, MeasureTheory.GibbsMeasure.leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_isingBTheta_field, MeasureTheory.GibbsMeasure.hasDerivAt_rightDirDeriv_pressure_isingBTheta_field, MeasureTheory.GibbsMeasure.exists_hasDerivAt_integral_isingGibbsMeasure_field}
+    \lean{MeasureTheory.GibbsMeasure.isingPotential_mem_BTheta, MeasureTheory.GibbsMeasure.isingBTheta, MeasureTheory.GibbsMeasure.isingBTheta_ne_zero, MeasureTheory.GibbsMeasure.card_neighborFinset_latticeGraph, MeasureTheory.GibbsMeasure.cardNormAt_isingPotential, MeasureTheory.GibbsMeasure.cardNormAt_isingPotential_latticeGraph, MeasureTheory.GibbsMeasure.cardNormAt_isingPotential_of_zero_coupling, MeasureTheory.GibbsMeasure.isingBTheta_mem_dobrushinRegion, MeasureTheory.GibbsMeasure.isDobrushin_isingSpecification_of_cardNormAt_lt_one, MeasureTheory.GibbsMeasure.exists_ne_zero_mem_dobrushinRegion, MeasureTheory.GibbsMeasure.exists_ldRate_isingBTheta_eq_zero, MeasureTheory.GibbsMeasure.isingPotential_add_smul_field, MeasureTheory.GibbsMeasure.leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_isingBTheta_field, MeasureTheory.GibbsMeasure.hasDerivAt_rightDirDeriv_pressure_isingBTheta_field, MeasureTheory.GibbsMeasure.hasDerivAt_pressure_isingBTheta_field, MeasureTheory.GibbsMeasure.exists_hasDerivAt_integral_isingGibbsMeasure_field}
     \leanok
 
     The $\mathbb Z^d$ Ising potential lies in $\mathcal B_\Theta$ and is nonzero when $h \neq 0$;

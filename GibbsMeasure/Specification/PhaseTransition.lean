@@ -85,6 +85,10 @@ linear functional `j(μ) = −⟨μ, ·⟩` on `ℬ_Θ`.
   (`MeasureTheory.GibbsMeasure.Dobrushin.isDobrushin_gibbsSpecification_of_cardNormAt_le`), so
   `𝒢_Θ(Φ) = {μ_Φ}`, so `∂P(Φ) = {j(μ_Φ)}` by (16.14) and
   `∂/∂t P(Φ + tΨ)|_{t=0} = −⟨μ_Φ, Ψ⟩` in every direction `Ψ ∈ ℬ_Θ`.
+* `Potential.BTheta.hasDerivAt_pressure_of_mem_dobrushinRegion`: the same first-derivative half of
+  **(16.17)** with the two equal one-sided directional derivatives replaced by a genuine two-sided
+  derivative, `HasDerivAt (fun t ↦ P(Φ + tΨ)) (−⟨μ_Φ, Ψ⟩) 0`, by
+  `ConvexOn.hasDerivAt_line_of_leftDirDeriv_eq_rightDirDeriv`.
 * `Potential.BTheta.hasDerivAt_rightDirDeriv_pressure_of_mem_dobrushinRegion`: **Georgii
   Corollary (16.17)**, second-derivative half. For `Φ ∈ 𝒟`, an outer direction `Ψ` with
   `∑_{A ∋ 0} |A| ‖Ψ_A‖ < ∞` (Georgii's `ℬ̃_Θ`) and an arbitrary inner direction `Ψ̃ ∈ ℬ_Θ`, the
@@ -1368,6 +1372,30 @@ theorem leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_of_mem_dobrushinRegion [No
   refine ⟨μ, hμ, fun Ψ ↦ ?_⟩
   exact leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_of_subgradientAt_eq_singleton ν
     (subgradientAt_pressure_eq_singleton_of_invariantG_eq_singleton ν hμ) Ψ
+
+variable (ν) in
+/-- **Georgii Corollary (16.17), the first-derivative formula as a genuine derivative.** For a
+potential `Φ` of `ℬ_Θ` in the region `𝒟 = {‖Φ‖ < 1}` of (8.36) and every direction `Ψ ∈ ℬ_Θ`, the
+one-variable function `t ↦ P(Φ + tΨ)` is differentiable at `t = 0`, with derivative `−⟨μ_Φ, Ψ⟩`,
+where `μ_Φ` is the unique shift-invariant Gibbs measure of `Φ`.
+
+This is `leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_of_mem_dobrushinRegion` — which only says
+that the two one-sided directional derivatives of (16.2) have the common value `−⟨μ_Φ, Ψ⟩` — fed
+to `ConvexOn.hasDerivAt_line_of_leftDirDeriv_eq_rightDirDeriv`, which upgrades two equal one-sided
+limits of the difference quotient to a two-sided one. -/
+theorem hasDerivAt_pressure_of_mem_dobrushinRegion [Nonempty E] (hΦ : Φ ∈ dobrushinRegion ι E) :
+    ∃ μ : Measure ((ι → ℤ) → E), invariantG (gibbsSpecificationOfAbsolutelySummable
+        (Φ := (Φ : Potential (ι → ℤ) E)) ν 1) (shiftGroup (ι → ℤ) E) = {μ} ∧
+      ∀ Ψ : BTheta (ι → ℤ) E,
+        HasDerivAt (fun t : ℝ ↦ pressure ν (Φ + t • Ψ))
+          (-(Ψ : Potential (ι → ℤ) E).specificEnergy μ) 0 := by
+  obtain ⟨μ, hμ, hdir⟩ :=
+    leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_of_mem_dobrushinRegion ν hΦ
+  refine ⟨μ, hμ, fun Ψ ↦ ?_⟩
+  obtain ⟨hL, hR⟩ := hdir Ψ
+  have h := (convexOn_pressure ν).hasDerivAt_line_of_leftDirDeriv_eq_rightDirDeriv Φ Ψ
+    (hL.trans hR.symm)
+  rwa [hR] at h
 
 open scoped ProbabilityTheory
 
