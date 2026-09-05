@@ -153,13 +153,23 @@
 \begin{example}[Georgii (17.30)--(17.32)]
     \label{ex:rp-17-30}
     \uses{thm:rp-17-29}
-    \lean{MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_of_nearestNeighbour, MeasureTheory.GibbsMeasure.isReflectionPositive_heisenbergPeriodicGibbs_nearestNeighbour, MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_of_nextNearestNeighbour, MeasureTheory.GibbsMeasure.isReflectionPositive_heisenbergPeriodicGibbs_nextNearestNeighbour, MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_rpow, MeasureTheory.integral_exp_sum_int_mul_I}
+    \lean{MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_of_nearestNeighbour, MeasureTheory.GibbsMeasure.isReflectionPositive_heisenbergPeriodicGibbs_nearestNeighbour, MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_of_nextNearestNeighbour, MeasureTheory.GibbsMeasure.isReflectionPositive_heisenbergPeriodicGibbs_nextNearestNeighbour, MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_rpow, MeasureTheory.integral_exp_sum_int_mul_I, MeasureTheory.GibbsMeasure.twoPointMeasure, MeasureTheory.GibbsMeasure.patternTest, MeasureTheory.GibbsMeasure.integral_patternTest_mul_comp_heisenbergPeriodicGibbs, MeasureTheory.GibbsMeasure.not_isReflectionPositive_heisenbergPeriodicGibbs_of_crossing_neg, MeasureTheory.GibbsMeasure.not_isReflectionPositive_heisenbergPeriodicGibbs_nearestNeighbour, MeasureTheory.GibbsMeasure.not_isReflectionPositive_heisenbergPeriodicGibbs_nextNearestNeighbour, MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_cauchyMixture, MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_sq_add_sq_rpow, MeasureTheory.GibbsMeasure.isNonnegDefiniteAt_longRange_two, MeasureTheory.GibbsMeasure.isReflectionPositive_heisenbergPeriodicGibbs_longRange_two, MeasureTheory.integral_exp_mul_I_mul_exp_neg_mul_abs, MeasureTheory.integral_rpow_div_add_Ioi, summable_sum_sq_rpow_fin_two, Finset.card_filter_eval_eq}
     \leanok
 
-    Nearest-neighbour couplings with $J(e_k) \geq 0$ (17.30), next-nearest-neighbour couplings
-    with $A \geq 2(d-1)|B|$ (17.31), and $J(i) = |i_k|^{-a}$ on $\mathbb Z$ (17.32, $d = 1$) are
-    nonnegative definite relative to $r_k$, so their periodic Gibbs distributions are
-    $r_k$-positive. Not formalised: the necessity halves of (17.30)--(17.31), where Georgii's
-    constant $(2N)^{d-1}$ in $4\sinh[\,\cdot\,J(u)]$ should be $2(2N)^{d-1}$ (two interfaces meet
-    the plane of $r_k$ on the torus; only the sign matters), and (17.32) for $d = 2$.
+    Nearest-neighbour couplings are nonnegative definite relative to $r_k$ iff $J(e_k) \geq 0$
+    (17.30), next-nearest-neighbour couplings iff $A \geq 2(d-1)|B|$ (17.31), and
+    $J(i) = |i|^{-a}$ is nonnegative definite on $\mathbb Z$ for $a > 0$ and on $\mathbb Z^2$ for
+    $a > 1$, giving $r_k$-positive periodic Gibbs distributions for the summable case $a > 2$
+    (17.32). The necessity halves are Georgii's evaluation of ${}^\circ Z\,{}^\circ\gamma(ff^*) =
+    4e^{S}\sinh\langle q, Mq\rangle$ at a $\pm 1$ pattern $q$ for the two-point a priori measure,
+    with $M$ the crossing matrix; the $d = 2$ case of (17.32) represents $(k^2 + \ell^2)^{-a/2}$
+    through the Cauchy kernel, whose transform is the two-sided exponential, and a Beta-type
+    mixing integral. Three errata: the constant in (17.30) is $2(2N)^{d-1}$, not $(2N)^{d-1}$
+    (two interfaces meet the plane of $r_k$ on the torus); the displayed middle expression there
+    is $4\cosh$, not $4\sinh$ (the factor $\sigma_u\sigma_{r_k u}$ is missing), the final value
+    being right; and in (17.31) Georgii's second test function $\tilde f$, alternating along $k$,
+    gives exactly the same value as $f$ for every next-nearest-neighbour coupling, because
+    crossing bonds join sites with equal $k$-coordinates --- it must alternate in the directions
+    transverse to $k$, and with that reading his argument is correct. Not formalised: the
+    Berg--Maserick converse (17.28)(1), which the book cites without proof.
 \end{example}

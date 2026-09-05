@@ -5,6 +5,10 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Mathlib.Analysis.PSeries.Euclidean
+public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.ExpNegAbs
+public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.ImproperIntegrals
+public import GibbsMeasure.Mathlib.Data.Fintype.Fiber
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PosSemidefFactor
 public import Mathlib.Analysis.SpecialFunctions.Gamma.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.CircleCharacter
@@ -106,23 +110,105 @@ the direction that is used, (17.27) ⟹ `r_k`-positivity, is proved.
   the hypothesis `A ≥ 2(d-1)|B|` is exactly what makes that density nonnegative, and
   `integral_cos_mul_exp_sum_int_mul_I` computes its Fourier coefficients.
   `isReflectionPositive_heisenbergPeriodicGibbs_nextNearestNeighbour` is the conclusion.
-* **(17.32)** Long range potentials, `d = 1`.  `isNonnegDefiniteAt_rpow`: `J(i) = β |i|^{-a}` with
-  `β ≥ 0`, `a > 0` is nonnegative definite relative to `r_0`, with Georgii's representing measure
-  `β` times the image of the gamma distribution under `s ↦ e^{-s}` (`gammaWeight`,
-  `integral_pow_map_exp_neg`).
+* **(17.32)** Long range potentials.  `isNonnegDefiniteAt_rpow` is the radial factor in any
+  dimension: `J(i) = β i_k^{-a}` for `i_k ≥ 1`, with `β ≥ 0` and `a > 0`, is nonnegative definite
+  relative to `r_k`, with Georgii's representing measure `β Γ(a)⁻¹` times the image of the gamma
+  distribution under `s ↦ e^{-s}` (`gammaWeight`, `integral_pow_map_exp_neg`); for `d = 1` this
+  is his case 1).  For `d = 2`, his case 2), `isNonnegDefiniteAt_longRange_two`: `J(i) = β |i|^{-a}`
+  on `ℤ²` is nonnegative definite relative to `r_0` and `r_1` for every `a > 1` (Georgii assumes
+  `a > 2`, which is the summability (17.23) and is not needed for the representation).  The proof
+  is his, in three steps:
+  * `isNonnegDefiniteAt_cauchyMixture`: a mixture `i ↦ ∫ ν(dx) x i_k/(i_c² + x² i_k²)` of Cauchy
+    kernels in a transverse direction `c`, with `ν` finite on `[1, ∞)`, is nonnegative definite;
+    its representing measure is the image of `½ e^{-x|u|} ν(dx) du` under
+    `(x, u) ↦ (e^{-x|u|}, u e_c)`.  This is his "measure kernel `s ↦ π^s`", integrated against `ν`
+    once and for all.  The Fourier transform he quotes is
+    `MeasureTheory.integral_exp_mul_I_mul_exp_neg_mul_abs`
+    (`GibbsMeasure.Mathlib.Analysis.SpecialFunctions.ExpNegAbs`), the transform of the two-sided
+    exponential `e^{-a|u|}`, which is the direction actually used; the transform of the Cauchy
+    density itself is not needed.
+  * `integral_cauchyMixing`: his substitution `(k² + ℓ²)^{-a/2} = k^{1-a} ∫ p(ds) sk/(ℓ² + s²k²)`
+    for `1 < a < 2`, with `p` the image of `w^{-a/2}(1 + w)^{-1/2} dw` under `w ↦ √(1 + w)`
+    (`cauchyMixing`, his `p(ds)` up to the constant `c(a)` = `cauchyMixingConst`).  In the variable
+    `w = s² - 1` his change of variables is the dilation `integral_rpow_div_add_Ioi`
+    (`GibbsMeasure.Mathlib.Analysis.SpecialFunctions.ImproperIntegrals`).
+  * `isNonnegDefiniteAt_sq_add_sq_rpow`: the product of the radial factor and the Cauchy mixture
+    by Comment (17.28)(2) (`IsNonnegDefiniteAt.mul`) for `1 < a < 2`; `a = 2` is a single Cauchy
+    kernel (`isNonnegDefiniteAt_sq_add_sq_inv`); `a > 2` reduces to `1 < a/n < 2` by
+    `IsNonnegDefiniteAt.pow`, exactly as in the book.
+
+  `isReflectionPositive_heisenbergPeriodicGibbs_longRange_two` is Georgii's conclusion for `d = 2`
+  and `a > 2`, the absolute summability (17.23) being `summable_sum_sq_rpow_fin_two`
+  (`GibbsMeasure.Mathlib.Analysis.PSeries.Euclidean`).
+
+## The necessity halves of (17.30) and (17.31)
+
+Georgii's converses are proved for the two-point a priori measure `λ = δ_1 + δ_{-1}`
+(`twoPointMeasure`, so `n = 1` and the spins are `±1`).
+
+* `patternSet`, `patternConfig`, `patternTest`: Georgii's test function
+  `f = e^{-h} σ_u 1_{σ_i = σ_u for all i ∈ Λ_{+,k}}` attached to a `±1` pattern `q` on
+  `Λ_{+,k}`, with the prefactor `e^{-h}` dropped — on the configurations that carry `λ^Λ` and
+  satisfy the indicator, `h` is a *constant*, and dropping it is what keeps `f` bounded, as
+  Georgii's `𝒜_{+,k}` requires.
+* `integral_patternTest_mul_comp_heisenbergPeriodicGibbs`: **the mechanism**,
+  `°Z_Λ^Φ °γ_Λ^Φ(f f^*) = 4 e^{S} sinh⟨q, M q⟩` with `S = ∑_{i,j ∈ Λ_{+,k}} J_Λ(i-j) q_i q_j` and
+  `M` the crossing matrix.  Only four configurations survive the product of the two indicators
+  (`mem_patternSet_and_comp_iff`), and `λ^Λ` gives each of them mass one
+  (`pi_twoPointMeasure_singleton`).
+* `not_isReflectionPositive_heisenbergPeriodicGibbs_of_crossing_neg`: any `±1` vector `q` with
+  `⟨q, M q⟩ < 0` refutes `r_k`-positivity.  This is the converse of
+  `isReflectionPositive_heisenbergPeriodicGibbs_of_posSemidef`.
+* **(17.30), necessity.**  `crossingMatrix_diag_nearestNeighbour` and
+  `dotProduct_one_crossingMatrix_nearestNeighbour` compute `⟨1, M 1⟩ = 2 (2N)^{d-1} J(e_k)`;
+  `integral_patternTest_mul_comp_nearestNeighbour` and
+  `integral_georgiiTest_mul_comp_nearestNeighbour` are the value of the reflection form, and
+  `not_isReflectionPositive_heisenbergPeriodicGibbs_nearestNeighbour` is Georgii's conclusion.
+
+  **Two errata to Example (17.30).**  (i) The constant is `2(2N)^{d-1}`, not `(2N)^{d-1}`: on the
+  torus the plane of `r_k` is met by *two* interfaces — between the layers `i_k = N-1` and
+  `i_k = N`, and between `i_k = 2N-1` and `i_k = 0` — and each carries `(2N)^{d-1}` bonds.
+  (ii) The displayed middle expression `∑_{x,y=±1} exp[C J(u) x y]` is `4 cosh[C J(u)]`, not
+  `4 sinh`; the factor `σ_u σ_{r_k u} = x y` coming from `f f^*` is missing from it.  The final
+  value `4 sinh` is correct.  Only the sign of the constant matters for Georgii's conclusion.
+* **The crossing form as a sum over bonds.**  `dotProduct_crossingMatrix_mulVec_eq_tsum`: for
+  an absolutely summable `J` and any `q`, `⟨q, M q⟩ = ∑_{m ∈ ℤ^d} J(m) w_q(m)`, where `w_q(m)`
+  (`crossingWeight`) is the `q`-weighted number of copies of the bond `m` that join `Λ_{-,k}` to
+  `Λ_{+,k}`.  This unfolds the periodisation (`periodizedCoupling_eq_tsum_ite`) and is how both
+  necessity computations are organised.  A bond with `m_k = 0` never crosses the plane
+  (`crossingWeight_of_apply_eq_zero`); for the `±1` patterns `q_χ(i) = ∏_{c ≠ k} χ_c^{i_c}`
+  (`transversePattern`), a bond with `m_k = ±1` crosses once from each of the `(2N)^{d-1}` sites
+  of one layer, with the sign `∏_{c ≠ k} χ_c^{|m_c|}` (`crossingWeight_transversePattern`).
+* **(17.31), necessity, and an erratum.**  Georgii refutes `r_k`-positivity for `A < 2(d-1)|B|`
+  "by looking at the same function `f` and also at `f̃ = e^{-h} σ_u 1_{σ_i = -(-1)^{i_k} σ_u}`".
+  The second test function *cannot* work as printed: `even_val_add_val_of_crossingMatrix_ne_zero`
+  shows that a bond crossing the plane of `r_k` joins `r_k i` to `j` with `i_k = j_k`, so an
+  alternation in the direction `k` cancels, and `dotProduct_neg_one_pow_crossingMatrix` /
+  `integral_patternTest_neg_one_pow_mul_comp` prove that `f̃` has exactly the same hyperbolic sine
+  as `f`, for *every* next-nearest neighbour coupling.  Georgii's `i_k` must be read as an
+  alternation in the directions *transverse* to `k`, and with that reading his argument is
+  correct: `dotProduct_transversePattern_crossingMatrix_nextNearestNeighbour` computes
+  `⟨q_χ, M q_χ⟩ = 2(2N)^{d-1}(A + 2B ∑_{c ≠ k} χ_c)`, so the constant pattern `χ = 1` (his `f`)
+  refutes positivity when `A < -2(d-1)B` and the fully alternating one `χ = -1` (the corrected
+  `f̃`) when `A < 2(d-1)B`; `integral_patternTest_transversePattern_mul_comp_nextNearestNeighbour`
+  is the value of the reflection form, `4 e^{S_χ} sinh[2(2N)^{d-1}(A + 2B ∑_{c≠k} χ_c)]`, and
+  `not_isReflectionPositive_heisenbergPeriodicGibbs_nextNearestNeighbour` is the conclusion.
+  (The same factor `2` as in (17.30) is missing from the constant Georgii's `f` would produce.)
 
 ## Not formalised
 
-* Georgii's Comment (17.28)(1), the Berg–Maserick converse (see above).
-* The case `d = 2` of Example (17.32), which needs the Fourier transform of the Cauchy kernel and
-  the substitution `s = (1 + t²(1 + ℓ²/k²))^{1/2}` on top of the case `d = 1` and Comment
-  (17.28)(2) (`IsNonnegDefiniteAt.mul`, which *is* proved).
-* The *necessity* halves of (17.30) and (17.31) — that `°γ_Λ^Φ` fails to be `r_k`-positive when
-  `J(e_k) < 0`, resp. when `A < 2(d-1)|B|`.  Georgii proves them by evaluating
-  `°Z_Λ^Φ °γ_Λ^Φ(f f^*)` at an explicit `f` for the two-point a priori measure `λ = δ_1 + δ_{-1}`.
-  A remark on the constant: the value is `4 sinh[C J(u)]` with `C = 2(2N)^{d-1}`, not `(2N)^{d-1}`
-  as printed in the book — on the torus the plane of `r_k` is met by *two* interfaces, and each
-  contributes `(2N)^{d-1}` bonds.  Only the sign of the constant matters for Georgii's conclusion.
+* Georgii's Comment (17.28)(1), the Berg–Maserick converse (see above).  It is a citation, proved
+  neither in the book nor here.  For the functions actually used in §17.2 there is no short route:
+  every application in (17.30)–(17.32) goes the *easy* way (exhibit `α`), and the only place the
+  converse would be needed is to show a given `J` is *not* nonnegative definite — which
+  `IsNonnegDefiniteAt.nonneg_of_odd` already does in the cases Georgii uses.
+* The Fourier transform of the Cauchy density, `∫_ℝ cos(tx)/(1 + x²) dx = π e^{-|t|}`, which
+  Georgii quotes in Example (17.32).  Only the converse direction — the transform of `e^{-a|x|}`
+  is the Cauchy kernel, `MeasureTheory.integral_exp_mul_I_mul_exp_neg_mul_abs` — is used, and
+  only that is proved.
+* The closed form of Georgii's constant `c(a)` in Example (17.32) (a Beta integral); only
+  `0 < c(a) < ∞` is needed (`integral_rpow_div_one_add_Ioi_pos`,
+  `integrableOn_rpow_div_one_add_Ioi`), and that is proved.
 -/
 
 @[expose] public section
@@ -201,6 +287,51 @@ lemma periodizedCoupling_neg (heven : ∀ m, J (-m) = J m) (z : Fin d → ZMod (
     simp only [smul_neg, neg_add, neg_neg]
   simp only [key]
   exact Equiv.tsum_eq (Equiv.neg _) fun ℓ ↦ J (torusLift N z + (2 * N : ℤ) • ℓ)
+
+/-- **The periodised coupling as a sum over the fibre of the projection `ℤ^d → (ℤ/2N)^d`.**
+`J_Λ(z) = ∑_{m ∈ ℤ^d, m ≡ z} J(m)`: the lift `ℓ ↦ lift z + 2Nℓ` is a bijection of `ℤ^d` onto the
+fibre of `z`. -/
+lemma periodizedCoupling_eq_tsum_ite (z : Fin d → ZMod (2 * N)) :
+    periodizedCoupling N J z
+      = ∑' m : Fin d → ℤ, if (fun c ↦ ((m c : ℤ) : ZMod (2 * N))) = z then J m else 0 := by
+  classical
+  set g : (Fin d → ℤ) → (Fin d → ℤ) := fun ℓ ↦ torusLift N z + (2 * N : ℤ) • ℓ with hg
+  have h2N : (2 * N : ℤ) ≠ 0 := by have := NeZero.ne N; omega
+  have hinj : Function.Injective g := by
+    intro ℓ ℓ' h
+    funext c
+    have := congrFun h c
+    simp only [hg, Pi.add_apply, Pi.smul_apply, smul_eq_mul] at this
+    exact mul_left_cancel₀ h2N (by linarith)
+  have hcast : ∀ ℓ : Fin d → ℤ, (fun c ↦ ((g ℓ c : ℤ) : ZMod (2 * N))) = z := by
+    intro ℓ
+    funext c
+    have h0 : ((2 * N : ℤ) : ZMod (2 * N)) = 0 := by
+      have h := ZMod.natCast_self (2 * N)
+      exact_mod_cast h
+    simp only [hg, Pi.add_apply, Pi.smul_apply, smul_eq_mul, Int.cast_add, Int.cast_mul,
+      intCast_torusLift, h0, zero_mul, add_zero]
+  have hsupp : Function.support
+      (fun m : Fin d → ℤ ↦ if (fun c ↦ ((m c : ℤ) : ZMod (2 * N))) = z then J m else 0)
+        ⊆ Set.range g := by
+    intro m hm
+    have hmz : (fun c ↦ ((m c : ℤ) : ZMod (2 * N))) = z := by
+      by_contra h
+      exact hm (by simp [h])
+    have hdvd : ∀ c, ((2 * N : ℕ) : ℤ) ∣ (m c - torusLift N z c) := by
+      intro c
+      rw [← ZMod.intCast_zmod_eq_zero_iff_dvd]
+      push_cast [torusLift, congrFun hmz c]
+      simp [ZMod.natCast_val]
+    choose t ht using fun c ↦ (hdvd c)
+    refine ⟨t, ?_⟩
+    funext c
+    have := ht c
+    simp only [hg, Pi.add_apply, Pi.smul_apply, smul_eq_mul]
+    push_cast at this
+    linarith
+  rw [periodizedCoupling, ← hinj.tsum_eq hsupp]
+  exact tsum_congr fun ℓ ↦ by rw [ite_eq_left (hcast ℓ)]
 
 end Periodize
 
@@ -588,6 +719,32 @@ theorem IsNonnegDefiniteAt.mul {J' : (Fin d → ℤ) → ℝ} (hJ : IsNonnegDefi
     push_cast
     ring
 
+/-- Nonnegative definiteness relative to `r_k` only sees the values of `J` on `{i_k ≥ 1}`. -/
+lemma IsNonnegDefiniteAt.congr {J' : (Fin d → ℤ) → ℝ} (h : IsNonnegDefiniteAt k J)
+    (hJJ' : ∀ i : Fin d → ℤ, 1 ≤ i k → J i = J' i) : IsNonnegDefiniteAt k J' := by
+  obtain ⟨α, hα, hsupp, hrep⟩ := h
+  exact ⟨α, hα, hsupp, fun i hi ↦ by rw [← hJJ' i hi]; exact hrep i hi⟩
+
+/-- A nonnegative multiple of a function that is nonnegative definite relative to `r_k` is
+nonnegative definite relative to `r_k`: scale the representing measure. -/
+lemma IsNonnegDefiniteAt.const_mul {β : ℝ} (hβ : 0 ≤ β) (h : IsNonnegDefiniteAt k J) :
+    IsNonnegDefiniteAt k fun i ↦ β * J i := by
+  obtain ⟨α, hα, hsupp, hrep⟩ := h
+  refine ⟨ENNReal.ofReal β • α, ⟨?_⟩, ?_, fun i hi ↦ ?_⟩
+  · rw [Measure.smul_apply, smul_eq_mul]
+    exact ENNReal.mul_lt_top ENNReal.ofReal_lt_top (measure_lt_top _ _)
+  · exact Measure.ae_smul_measure hsupp _
+  · rw [integral_smul_measure, ENNReal.toReal_ofReal hβ, ← hrep i hi, Complex.real_smul]
+    push_cast
+    rfl
+
+/-- **Georgii, Comment (17.28)(2), iterated.**  The positive powers of a function that is
+nonnegative definite relative to `r_k` are nonnegative definite relative to `r_k`. -/
+lemma IsNonnegDefiniteAt.pow (h : IsNonnegDefiniteAt k J) :
+    ∀ n : ℕ, IsNonnegDefiniteAt k fun i ↦ J i ^ (n + 1)
+  | 0 => by simpa using h
+  | n + 1 => ((h.pow n).mul h).congr fun i _ ↦ by simp [pow_succ]
+
 /-! #### Representing measures which are products of a radial and an angular part
 
 All of Georgii's Examples (17.30)–(17.32) exhibit a representing measure of the product form
@@ -699,16 +856,14 @@ theorem isNonnegDefiniteAt_of_nearestNeighbour
         simp
 
 
-/-! #### Georgii, Example (17.32): long range potentials in dimension one
+/-! #### Georgii, Example (17.32): long range potentials, the radial factor
 
-For `d = 1` the transverse directions are absent, so a representing measure is just a finite
-measure on `]-1, 1[` whose moments are the values of `J` on `ℕ`.  From
-`Γ(a) = ∫_0^∞ e^{-s} s^{a-1} ds` one gets `m^{-a} = Γ(a)^{-1} ∫_0^∞ e^{-ms} s^{a-1} ds` for
-`m ≥ 1`, so the representing measure of `J(i) = β |i|^{-a}` is `β` times the image of the gamma
-distribution under `s ↦ e^{-s}`, which is carried by `]0, 1[`.
-
-Georgii's case `d = 2` combines this with a Cauchy-kernel identity and Comment (17.28)(2); it is
-not formalised here. -/
+From `Γ(a) = ∫_0^∞ e^{-s} s^{a-1} ds` one gets `m^{-a} = Γ(a)^{-1} ∫_0^∞ e^{-ms} s^{a-1} ds` for
+`m ≥ 1`, so a function of `i_k` alone, `J(i) = β i_k^{-a}`, is represented by `β Γ(a)⁻¹` times the
+image of the gamma weight under `s ↦ e^{-s}` — carried by `]0, 1[` — in the radial variable, and
+by the Dirac mass at the trivial character in the transverse variables.  For `d = 1` this is
+Georgii's case 1) of Example (17.32), the whole of `J(i) = β |i|^{-a}`; for `d = 2` it is the factor
+`k^{1-a}` of his case 2), which is completed below (`isNonnegDefiniteAt_longRange_two`). -/
 
 section LongRange
 
@@ -779,13 +934,14 @@ lemma integral_pow_map_exp_neg (ha : 0 < a) (m : ℕ) :
   congr 1
   ring
 
-/-- **Georgii, Example (17.32) in dimension one.**  A coupling `J` on `ℤ` whose values at the
-positive integers are `β m^{-a}`, with `β ≥ 0` and `a > 0`, is nonnegative definite relative to
-the unique reflection `r_0`.  (Georgii's hypothesis is `a > d = 1`; that is what makes `J`
-absolutely summable, (17.23), and is not needed for the representation itself.) -/
-theorem isNonnegDefiniteAt_rpow (ha : 0 < a) {β : ℝ} (hβ : 0 ≤ β)
-    {J₁ : (Fin 1 → ℤ) → ℝ} (hJ : ∀ i : Fin 1 → ℤ, 1 ≤ i 0 → J₁ i = β * ((i 0 : ℝ)) ^ (-a)) :
-    IsNonnegDefiniteAt (0 : Fin 1) J₁ := by
+/-- **Georgii, Example (17.32), the radial factor in any dimension.**  A coupling whose value at
+`i` with `i_k ≥ 1` is `β i_k^{-a}`, with `β ≥ 0` and `a > 0` — and arbitrary dependence on nothing
+else — is nonnegative definite relative to `r_k`, with representing measure `β Γ(a)⁻¹` times the
+image of the gamma weight under `s ↦ e^{-s}`, in the radial variable, and the Dirac mass at the
+trivial character in the transverse variables. -/
+theorem isNonnegDefiniteAt_rpow {a : ℝ} (ha : 0 < a) {β : ℝ} (hβ : 0 ≤ β)
+    (hJ : ∀ i : Fin d → ℤ, 1 ≤ i k → J i = β * ((i k : ℝ)) ^ (-a)) :
+    IsNonnegDefiniteAt k J := by
   classical
   have hΓ : 0 < Real.Gamma a := Real.Gamma_pos_of_pos ha
   have hmeasexp : Measurable fun s : ℝ ↦ Real.exp (-s) := by fun_prop
@@ -800,33 +956,379 @@ theorem isNonnegDefiniteAt_rpow (ha : 0 < a) {β : ℝ} (hβ : 0 ≤ β)
     constructor
     rw [hρdef, Measure.smul_apply, smul_eq_mul]
     exact ENNReal.mul_lt_top ENNReal.ofReal_lt_top (measure_lt_top _ _)
-  refine isNonnegDefiniteAt_of_prod (ρ := ρ) ?_ (σ := Measure.dirac (0 : Fin 1 → ℝ)) ?_
+  refine isNonnegDefiniteAt_of_prod (ρ := ρ) ?_ (σ := Measure.dirac (0 : Fin d → ℝ)) ?_
   · exact (Measure.absolutelyContinuous_of_le_smul (μ := Measure.map
       (fun s : ℝ ↦ Real.exp (-s)) (gammaWeight a)) le_rfl) ae_abs_lt_one_map_exp_neg
   · intro i hi
-    have hipos : (0 : ℝ) < (i 0 : ℝ) := by exact_mod_cast (by omega : (0 : ℤ) < i 0)
-    have hz : (((i 0 - 1).toNat : ℕ) : ℤ) = i 0 - 1 := Int.toNat_of_nonneg (by omega)
-    have hm' : (((i 0 - 1).toNat : ℕ) : ℝ) + 1 = (i 0 : ℝ) := by
-      have h : (((i 0 - 1).toNat : ℕ) : ℝ) = (i 0 : ℝ) - 1 := by exact_mod_cast hz
+    have hipos : (0 : ℝ) < (i k : ℝ) := by exact_mod_cast (by omega : (0 : ℤ) < i k)
+    have hz : (((i k - 1).toNat : ℕ) : ℤ) = i k - 1 := Int.toNat_of_nonneg (by omega)
+    have hm' : (((i k - 1).toNat : ℕ) : ℝ) + 1 = (i k : ℝ) := by
+      have h : (((i k - 1).toNat : ℕ) : ℝ) = (i k : ℝ) - 1 := by exact_mod_cast hz
       rw [h]; ring
-    have hang : ∫ θ : Fin 1 → ℝ,
-        Complex.exp (Complex.I * ∑ c ∈ Finset.univ.erase (0 : Fin 1), (i c : ℂ) * (θ c : ℂ))
-          ∂(Measure.dirac (0 : Fin 1 → ℝ)) = 1 := by
+    have hang : ∫ θ : Fin d → ℝ,
+        Complex.exp (Complex.I * ∑ c ∈ Finset.univ.erase k, (i c : ℂ) * (θ c : ℂ))
+          ∂(Measure.dirac (0 : Fin d → ℝ)) = 1 := by
       rw [integral_dirac]
       simp
-    have hreal : ∫ x, x ^ (i 0 - 1).toNat ∂ρ = J₁ i := by
+    have hreal : ∫ x, x ^ (i k - 1).toNat ∂ρ = J i := by
       rw [hρdef, integral_smul_measure, integral_pow_map_exp_neg ha,
         ENNReal.toReal_ofReal (div_nonneg hβ hΓ.le), smul_eq_mul, hJ i hi, hm', one_div,
         Real.inv_rpow hipos.le, ← Real.rpow_neg hipos.le]
       field_simp
-    have hcast : ∫ x, (x : ℂ) ^ (i 0 - 1).toNat ∂ρ
-        = ((∫ x, x ^ (i 0 - 1).toNat ∂ρ : ℝ) : ℂ) := by
+    have hcast : ∫ x, (x : ℂ) ^ (i k - 1).toNat ∂ρ
+        = ((∫ x, x ^ (i k - 1).toNat ∂ρ : ℝ) : ℂ) := by
       rw [← integral_complex_ofReal]
       exact integral_congr_ae (Filter.Eventually.of_forall fun x ↦ by push_cast; ring)
     rw [hang, mul_one, hcast, hreal]
 
 end LongRange
 
+/-! ### Mixtures of Cauchy kernels -/
+
+/-- `∫_ℝ ½ e^{-a|u|} du = 1/a` in `ℝ≥0∞`. -/
+lemma lintegral_ofReal_exp_neg_mul_abs_div_two {a : ℝ} (ha : 0 < a) :
+    ∫⁻ u : ℝ, ENNReal.ofReal (Real.exp (-(a * |u|)) / 2) = ENNReal.ofReal (1 / a) := by
+  rw [← ofReal_integral_eq_lintegral_ofReal ((integrable_exp_neg_mul_abs ha).div_const 2)
+    (Filter.Eventually.of_forall fun u ↦ by positivity), integral_div,
+    integral_exp_neg_mul_abs ha]
+  congr 1
+  field_simp
+
+/-- The mass of `½ e^{-x s |u|} ν(dx) du` is at most `ν(ℝ)` when `ν` is carried by `[1, ∞)` and
+`s ≥ 1`. -/
+lemma lintegral_prod_ofReal_exp_neg_mul_abs_div_two_le (ν : Measure ℝ) [IsFiniteMeasure ν]
+    (hν : ∀ᵐ x ∂ν, 1 ≤ x) {s : ℝ} (hs : 1 ≤ s) :
+    ∫⁻ p : ℝ × ℝ, ENNReal.ofReal (Real.exp (-(p.1 * s * |p.2|)) / 2) ∂(ν.prod volume)
+      ≤ ν Set.univ := by
+  have hmeas : Measurable fun p : ℝ × ℝ ↦ ENNReal.ofReal (Real.exp (-(p.1 * s * |p.2|)) / 2) := by
+    fun_prop
+  rw [lintegral_prod _ hmeas.aemeasurable]
+  refine le_trans (lintegral_mono_ae (g := fun _ ↦ (1 : ℝ≥0∞)) ?_) (by rw [lintegral_const, one_mul])
+  filter_upwards [hν] with x hx
+  have hxs : 0 < x * s := by positivity
+  rw [lintegral_ofReal_exp_neg_mul_abs_div_two hxs]
+  exact ENNReal.ofReal_le_one.2 (by rw [div_le_one hxs]; nlinarith)
+
+/-- **A mixture of Cauchy kernels is nonnegative definite relative to `r_k`.**  Let `c ≠ k` be a
+transverse direction and `ν` a finite measure on `[1, ∞)`.  The function
+
+`J(i) = ∫ ν(dx) x i_k / (i_c² + x² i_k²)`
+
+is nonnegative definite relative to `r_k`.  Its representing measure is the image of
+`½ e^{-x|u|} ν(dx) du` under `(x, u) ↦ (e^{-x|u|}, u e_c)`: by the Fourier transform of the
+two-sided exponential (`integral_exp_mul_I_mul_exp_neg_mul_abs`),
+`x i_k/(i_c² + x² i_k²) = ½ ∫ e^{i u i_c} e^{-x i_k |u|} du`, and `e^{-x i_k |u|}` is the power
+`(e^{-x|u|})^{i_k - 1}` times the density `e^{-x|u|}`.
+
+This is Georgii's "measure kernel `s ↦ π^s`" in Example (17.32), with the kernel integrated
+against `ν` once and for all. -/
+theorem isNonnegDefiniteAt_cauchyMixture {c : Fin d} (hck : c ≠ k) (ν : Measure ℝ)
+    [IsFiniteMeasure ν] (hν : ∀ᵐ x ∂ν, 1 ≤ x)
+    (hJ : ∀ i : Fin d → ℤ, 1 ≤ i k →
+      J i = ∫ x, x * (i k : ℝ) / ((i c : ℝ) ^ 2 + x ^ 2 * (i k : ℝ) ^ 2) ∂ν) :
+    IsNonnegDefiniteAt k J := by
+  classical
+  set ρ : ℝ × ℝ → ℝ := fun p ↦ Real.exp (-(p.1 * |p.2|)) / 2 with hρ
+  have hρm : Measurable ρ := by fun_prop
+  have hρnn : ∀ p, 0 ≤ ρ p := fun p ↦ by positivity
+  set base : Measure (ℝ × ℝ) :=
+    (ν.prod volume).withDensity fun p ↦ ((ρ p).toNNReal : ℝ≥0∞) with hbase
+  set Φ : ℝ × ℝ → ℝ × (Fin d → ℝ) :=
+    fun p ↦ (Real.exp (-(p.1 * |p.2|)), Pi.single c p.2) with hΦ
+  have hsingle : Continuous fun u : ℝ ↦ (Pi.single c u : Fin d → ℝ) := by
+    refine continuous_pi fun c' ↦ ?_
+    simp only [Pi.single_apply]
+    split_ifs <;> fun_prop
+  have hΦc : Continuous Φ := by
+    refine Continuous.prodMk ?_ (hsingle.comp continuous_snd)
+    fun_prop
+  have hΦm : Measurable Φ := hΦc.measurable
+  have hae : ∀ᵐ p ∂(ν.prod (volume : Measure ℝ)), 1 ≤ p.1 ∧ p.2 ≠ 0 := by
+    have hmeasS : MeasurableSet {p : ℝ × ℝ | 1 ≤ p.1 ∧ p.2 ≠ 0} :=
+      (measurableSet_le measurable_const measurable_fst).inter
+        ((measurableSet_singleton (0 : ℝ)).compl.preimage measurable_snd)
+    rw [Measure.ae_prod_iff_ae_ae hmeasS]
+    filter_upwards [hν] with x hx
+    have h0 : ∀ᵐ u ∂(volume : Measure ℝ), u ≠ 0 := by
+      rw [ae_iff]
+      simp
+    filter_upwards [h0] with u hu
+    exact ⟨hx, hu⟩
+  have hbase_ae : ∀ᵐ p ∂base, 1 ≤ p.1 ∧ p.2 ≠ 0 := (withDensity_absolutelyContinuous _ _) hae
+  refine ⟨Measure.map Φ base, ⟨?_⟩, ?_, fun i hi ↦ ?_⟩
+  · -- finiteness
+    rw [Measure.map_apply hΦm MeasurableSet.univ, Set.preimage_univ, hbase,
+      withDensity_apply _ MeasurableSet.univ, Measure.restrict_univ]
+    refine lt_of_le_of_lt ?_ (measure_lt_top ν Set.univ)
+    have := lintegral_prod_ofReal_exp_neg_mul_abs_div_two_le ν hν (s := 1) le_rfl
+    simpa [hρ, ENNReal.ofReal] using this
+  · -- carried by `|x| < 1`
+    rw [ae_map_iff hΦm.aemeasurable measurableSet_abs_fst_lt_one]
+    filter_upwards [hbase_ae] with p hp
+    show |Real.exp (-(p.1 * |p.2|))| < 1
+    rw [abs_of_pos (Real.exp_pos _), Real.exp_lt_one_iff]
+    have : 0 < |p.2| := abs_pos.2 hp.2
+    nlinarith
+  · -- the representation
+    have hik : (0 : ℝ) < (i k : ℝ) := by exact_mod_cast (by omega : (0 : ℤ) < i k)
+    have hik1 : (1 : ℝ) ≤ (i k : ℝ) := by exact_mod_cast hi
+    set n := (i k - 1).toNat with hn
+    have hn1 : ((n : ℕ) : ℝ) + 1 = (i k : ℝ) := by
+      have hz : ((n : ℕ) : ℤ) = i k - 1 := Int.toNat_of_nonneg (by omega)
+      have h' : ((n : ℕ) : ℝ) = (i k : ℝ) - 1 := by exact_mod_cast hz
+      rw [h']; ring
+    set F : ℝ × ℝ → ℂ := fun p ↦ (ρ p : ℂ) * repCharacter k i (Φ p) with hF
+    have hFeq : ∀ p : ℝ × ℝ, F p = (1 / 2 : ℂ) * (Complex.exp ((i c : ℝ) * p.2 * Complex.I)
+        * (Real.exp (-(p.1 * (i k : ℝ) * |p.2|)) : ℂ)) := by
+      intro p
+      have hsum : ∑ c' ∈ Finset.univ.erase k, (i c' : ℂ) * (((Pi.single c p.2 : Fin d → ℝ) c' : ℝ) : ℂ)
+          = (i c : ℂ) * (p.2 : ℂ) := by
+        rw [Finset.sum_eq_single c (fun c' _ hc' ↦ by simp [Pi.single_eq_of_ne hc'])
+          (fun h ↦ absurd (Finset.mem_erase.2 ⟨hck, Finset.mem_univ c⟩) h)]
+        simp
+      have hexp : Real.exp (-(p.1 * |p.2|)) ^ n * Real.exp (-(p.1 * |p.2|))
+          = Real.exp (-(p.1 * (i k : ℝ) * |p.2|)) := by
+        rw [← pow_succ, ← Real.exp_nat_mul]
+        congr 1
+        push_cast
+        rw [hn1]
+        ring
+      have hexpc : Complex.exp (Complex.I * ((i c : ℂ) * (p.2 : ℂ)))
+          = Complex.exp (((i c : ℝ) : ℂ) * (p.2 : ℂ) * Complex.I) := by
+        congr 1
+        push_cast
+        ring
+      simp only [hF, hρ, repCharacter, hΦ, hsum, hexpc]
+      rw [← hexp]
+      push_cast
+      ring
+    have hFm : Measurable F :=
+      (Complex.measurable_ofReal.comp hρm).mul ((continuous_repCharacter i).measurable.comp hΦm)
+    have hFint : Integrable F (ν.prod volume) := by
+      refine ⟨hFm.aestronglyMeasurable, ?_⟩
+      rw [hasFiniteIntegral_iff_enorm]
+      refine lt_of_le_of_lt ?_ (measure_lt_top ν Set.univ)
+      have hnorm : ∀ p : ℝ × ℝ, ‖F p‖ₑ = ENNReal.ofReal (Real.exp (-(p.1 * (i k : ℝ) * |p.2|)) / 2) := by
+        intro p
+        rw [← ofReal_norm, hFeq]
+        congr 1
+        rw [norm_mul, norm_mul, ← Complex.ofReal_mul, Complex.norm_exp_ofReal_mul_I, one_mul,
+          Complex.norm_real, Real.norm_eq_abs, abs_of_pos (Real.exp_pos _)]
+        norm_num
+        ring
+      simp_rw [hnorm]
+      exact lintegral_prod_ofReal_exp_neg_mul_abs_div_two_le ν hν hik1
+    calc (J i : ℂ) = ((∫ x, x * (i k : ℝ) / ((i c : ℝ) ^ 2 + x ^ 2 * (i k : ℝ) ^ 2) ∂ν : ℝ) : ℂ) := by
+          rw [hJ i hi]
+      _ = ∫ x, ((x * (i k : ℝ) / ((i c : ℝ) ^ 2 + x ^ 2 * (i k : ℝ) ^ 2) : ℝ) : ℂ) ∂ν :=
+          integral_complex_ofReal.symm
+      _ = ∫ x, ∫ u, F (x, u) ∂volume ∂ν := by
+          refine integral_congr_ae ?_
+          filter_upwards [hν] with x hx
+          have hxk : 0 < x * (i k : ℝ) := by positivity
+          simp_rw [hFeq]
+          rw [integral_const_mul, integral_exp_mul_I_mul_exp_neg_mul_abs hxk (i c : ℝ)]
+          push_cast
+          have hne : ((i c : ℝ) ^ 2 + x ^ 2 * (i k : ℝ) ^ 2 : ℂ) ≠ 0 := by
+            have : (0 : ℝ) < (i c : ℝ) ^ 2 + x ^ 2 * (i k : ℝ) ^ 2 := by positivity
+            exact_mod_cast this.ne'
+          field_simp
+          ring
+      _ = ∫ p, F p ∂(ν.prod volume) := (integral_prod F hFint).symm
+      _ = ∫ p, repCharacter k i (Φ p) ∂base := by
+          rw [hbase, integral_withDensity_eq_integral_smul hρm.real_toNNReal]
+          refine integral_congr_ae (Filter.Eventually.of_forall fun p ↦ ?_)
+          simp only [hF, NNReal.smul_def, Real.coe_toNNReal _ (hρnn p), Complex.real_smul]
+      _ = ∫ p, repCharacter k i p ∂(Measure.map Φ base) :=
+          (integral_map hΦm.aemeasurable (continuous_repCharacter i).aestronglyMeasurable).symm
+
+/-! ### Georgii, Example (17.32) in dimension two -/
+
+section LongRangeTwo
+
+variable (a : ℝ)
+
+/-- **Georgii's constant `c(a)` in Example (17.32)**, `∫_0^∞ w^{-a/2}/(1 + w) dw`.  Georgii
+writes it as `∫_0^∞ t^{1-a}/(1 + t²) dt`, which is the same number after `w = t²`. -/
+def cauchyMixingConst : ℝ := ∫ w in Ioi (0 : ℝ), w ^ (-(a / 2)) / (1 + w)
+
+/-- The weight `w^{-a/2} (1 + w)^{-1/2} dw` on `(0, ∞)`; its image under `w ↦ √(1 + w)` is
+Georgii's `p(ds)` of Example (17.32) up to the normalisation `c(a)`. -/
+def cauchyMixingWeight : Measure ℝ :=
+  (volume.restrict (Ioi (0 : ℝ))).withDensity
+    fun w ↦ ENNReal.ofReal (w ^ (-(a / 2)) * (1 + w) ^ (-(1 / 2 : ℝ)))
+
+/-- **Georgii's mixing measure `p(ds)` of Example (17.32)**, up to the normalisation `c(a)`:
+the image of `cauchyMixingWeight a` under `w ↦ √(1 + w)`, a finite measure on `[1, ∞)`.
+
+Georgii parametrises it by `s ∈ [1, ∞)` with the density `c(a)^{-1}(s² - 1)^{-a/2} ds`; the
+variable `w = s² - 1` is used here because in it his substitution
+`s = (1 + t²(1 + ℓ²/k²))^{1/2}` becomes the *linear* change of variables `w ↦ (k² + ℓ²) w / k²`
+(`integral_rpow_div_add_Ioi`). -/
+def cauchyMixing : Measure ℝ :=
+  Measure.map (fun w : ℝ ↦ Real.sqrt (1 + w)) (cauchyMixingWeight a)
+
+variable {a}
+
+lemma measurable_cauchyMixingDensity :
+    Measurable fun w : ℝ ↦ w ^ (-(a / 2)) * (1 + w) ^ (-(1 / 2 : ℝ)) := by fun_prop
+
+lemma isFiniteMeasure_cauchyMixingWeight (ha₁ : 1 < a) (ha₂ : a < 2) :
+    IsFiniteMeasure (cauchyMixingWeight a) :=
+  isFiniteMeasure_withDensity_ofReal
+    (integrableOn_rpow_mul_one_add_rpow_Ioi (by linarith) (by linarith)).hasFiniteIntegral
+
+lemma isFiniteMeasure_cauchyMixing (ha₁ : 1 < a) (ha₂ : a < 2) :
+    IsFiniteMeasure (cauchyMixing a) :=
+  haveI := isFiniteMeasure_cauchyMixingWeight ha₁ ha₂
+  Measure.isFiniteMeasure_map _ _
+
+/-- Georgii's mixing measure is carried by `[1, ∞)`. -/
+lemma ae_one_le_cauchyMixing : ∀ᵐ x ∂(cauchyMixing a), 1 ≤ x := by
+  rw [cauchyMixing, ae_map_iff (by fun_prop : Measurable fun w : ℝ ↦ Real.sqrt (1 + w)).aemeasurable
+    (measurableSet_Ici (a := (1 : ℝ)))]
+  have h : ∀ᵐ w ∂(volume.restrict (Ioi (0 : ℝ))), 1 ≤ Real.sqrt (1 + w) := by
+    rw [ae_restrict_iff' measurableSet_Ioi]
+    exact Filter.Eventually.of_forall fun w hw ↦ Real.one_le_sqrt.2 (by linarith [mem_Ioi.1 hw])
+  exact (withDensity_absolutelyContinuous _ _) h
+
+/-- **Georgii's substitution in Example (17.32).**  For `1 < a < 2`, `K > 0` and any `L`,
+
+`∫ p(dx) x K/(L² + x² K²) = K^{a-1} c(a) (K² + L²)^{-a/2}`,
+
+which is his `(k² + ℓ²)^{-a/2} = k^{1-a} ∫ p(ds) sk/(ℓ² + s²k²)` (with `p` carrying the
+normalisation `c(a)⁻¹`).  In the variable `w = s² - 1` the substitution is the dilation
+`w ↦ (K² + L²) w / K²` of `integral_rpow_div_add_Ioi`. -/
+lemma integral_cauchyMixing (ha₁ : 1 < a) (ha₂ : a < 2) {K L : ℝ} (hK : 0 < K) :
+    ∫ x, x * K / (L ^ 2 + x ^ 2 * K ^ 2) ∂(cauchyMixing a)
+      = K ^ (a - 1) * cauchyMixingConst a * (K ^ 2 + L ^ 2) ^ (-(a / 2)) := by
+  have hmeas : Measurable fun w : ℝ ↦ Real.sqrt (1 + w) := by fun_prop
+  have hS : 0 < K ^ 2 + L ^ 2 := by positivity
+  have hK2 : (0 : ℝ) < K ^ 2 := by positivity
+  set κ := (K ^ 2 + L ^ 2) / K ^ 2 with hκ
+  have hκpos : 0 < κ := by positivity
+  have hw : cauchyMixingWeight a = (volume.restrict (Ioi (0 : ℝ))).withDensity
+      fun w ↦ (((w ^ (-(a / 2)) * (1 + w) ^ (-(1 / 2 : ℝ))).toNNReal : ℝ≥0) : ℝ≥0∞) := rfl
+  rw [cauchyMixing, integral_map hmeas.aemeasurable
+    (by fun_prop : Measurable fun x : ℝ ↦ x * K / (L ^ 2 + x ^ 2 * K ^ 2)).aestronglyMeasurable, hw,
+    integral_withDensity_eq_integral_smul measurable_cauchyMixingDensity.real_toNNReal]
+  have hpt : EqOn
+      (fun w : ℝ ↦ ((w ^ (-(a / 2)) * (1 + w) ^ (-(1 / 2 : ℝ))).toNNReal : ℝ≥0) •
+        (Real.sqrt (1 + w) * K / (L ^ 2 + Real.sqrt (1 + w) ^ 2 * K ^ 2)))
+      (fun w : ℝ ↦ (1 / K) * (w ^ (-(a / 2)) / (κ + w))) (Ioi 0) := by
+    intro w hw
+    have hw0 : 0 < w := hw
+    have h1w : 0 < 1 + w := by linarith
+    have hne : (1 + w) ^ (1 / 2 : ℝ) ≠ 0 := (Real.rpow_pos_of_pos h1w _).ne'
+    simp only [NNReal.smul_def, smul_eq_mul]
+    rw [Real.coe_toNNReal _ (by positivity), Real.sq_sqrt h1w.le, Real.sqrt_eq_rpow,
+      Real.rpow_neg h1w.le, hκ]
+    field_simp
+    ring
+  rw [setIntegral_congr_fun measurableSet_Ioi hpt, integral_const_mul,
+    integral_rpow_div_add_Ioi hκpos, hκ, Real.div_rpow hS.le hK2.le]
+  have hK2a : (K ^ 2 : ℝ) ^ (-(a / 2)) = (K ^ a)⁻¹ := by
+    rw [← Real.rpow_natCast, ← Real.rpow_mul hK.le, ← Real.rpow_neg hK.le]
+    congr 1
+    push_cast
+    ring
+  rw [hK2a, Real.rpow_sub_one hK.ne', cauchyMixingConst]
+  have hKa : K ^ a ≠ 0 := (Real.rpow_pos_of_pos hK a).ne'
+  field_simp
+
+/-- **Georgii, Example (17.32), the case `1 < a < 2`.**  The function
+`i ↦ (i_k² + i_c²)^{-a/2}` (`c ≠ k`) is nonnegative definite relative to `r_k`: it is the product
+of the radial factor `c(a)⁻¹ i_k^{-(a-1)}` (`isNonnegDefiniteAt_rpow`) and the Cauchy mixture
+`∫ p(dx) x i_k/(i_c² + x² i_k²)` (`isNonnegDefiniteAt_cauchyMixture`), by the substitution
+`integral_cauchyMixing`. -/
+theorem isNonnegDefiniteAt_sq_add_sq_rpow_of_lt {c : Fin d} (hck : c ≠ k) {a : ℝ}
+    (ha₁ : 1 < a) (ha₂ : a < 2)
+    (hJ : ∀ i : Fin d → ℤ, 1 ≤ i k → J i = ((i k : ℝ) ^ 2 + (i c : ℝ) ^ 2) ^ (-(a / 2))) :
+    IsNonnegDefiniteAt k J := by
+  have hC : 0 < cauchyMixingConst a :=
+    integral_rpow_div_one_add_Ioi_pos (by linarith) (by linarith)
+  have := isFiniteMeasure_cauchyMixing ha₁ ha₂
+  have h1 : IsNonnegDefiniteAt k fun i : Fin d → ℤ ↦
+      (1 / cauchyMixingConst a) * (i k : ℝ) ^ (-(a - 1)) :=
+    isNonnegDefiniteAt_rpow (by linarith) (by positivity) fun _ _ ↦ rfl
+  have h2 : IsNonnegDefiniteAt k fun i : Fin d → ℤ ↦
+      ∫ x, x * (i k : ℝ) / ((i c : ℝ) ^ 2 + x ^ 2 * (i k : ℝ) ^ 2) ∂(cauchyMixing a) :=
+    isNonnegDefiniteAt_cauchyMixture hck _ ae_one_le_cauchyMixing fun _ _ ↦ rfl
+  refine (h1.mul h2).congr fun i hi ↦ ?_
+  have hik : (0 : ℝ) < (i k : ℝ) := by exact_mod_cast (by omega : (0 : ℤ) < i k)
+  rw [hJ i hi, integral_cauchyMixing ha₁ ha₂ hik, Real.rpow_neg hik.le]
+  have hKa : (i k : ℝ) ^ (a - 1) ≠ 0 := (Real.rpow_pos_of_pos hik _).ne'
+  field_simp
+
+/-- **Georgii, Example (17.32), the case `a = 2`.**  `i ↦ (i_k² + i_c²)⁻¹` is the product of
+`i_k⁻¹` and the single Cauchy kernel `i_k/(i_c² + i_k²)`. -/
+theorem isNonnegDefiniteAt_sq_add_sq_inv {c : Fin d} (hck : c ≠ k)
+    (hJ : ∀ i : Fin d → ℤ, 1 ≤ i k → J i = ((i k : ℝ) ^ 2 + (i c : ℝ) ^ 2)⁻¹) :
+    IsNonnegDefiniteAt k J := by
+  have h1 : IsNonnegDefiniteAt k fun i : Fin d → ℤ ↦ (1 : ℝ) * (i k : ℝ) ^ (-(1 : ℝ)) :=
+    isNonnegDefiniteAt_rpow one_pos zero_le_one fun _ _ ↦ rfl
+  have h2 : IsNonnegDefiniteAt k fun i : Fin d → ℤ ↦
+      ∫ x, x * (i k : ℝ) / ((i c : ℝ) ^ 2 + x ^ 2 * (i k : ℝ) ^ 2) ∂(Measure.dirac (1 : ℝ)) :=
+    isNonnegDefiniteAt_cauchyMixture hck _ (by simp) fun _ _ ↦ rfl
+  refine (h1.mul h2).congr fun i hi ↦ ?_
+  have hik : (0 : ℝ) < (i k : ℝ) := by exact_mod_cast (by omega : (0 : ℤ) < i k)
+  rw [hJ i hi, integral_dirac, Real.rpow_neg_one]
+  field_simp
+  ring
+
+/-- **Georgii, Example (17.32), the analytic core in any dimension.**  For `a > 1`, `β ≥ 0` and a
+transverse direction `c ≠ k`, the function `i ↦ β (i_k² + i_c²)^{-a/2}` is nonnegative definite
+relative to `r_k`.  For `1 < a < 2` this is the Cauchy-mixture representation
+`isNonnegDefiniteAt_sq_add_sq_rpow_of_lt`; for `a = 2` it is `isNonnegDefiniteAt_sq_add_sq_inv`;
+and for `a > 2` it follows from the case `1 < a/n < 2`, `n = ⌊a/2⌋ + 1`, by Comment (17.28)(2)
+(`IsNonnegDefiniteAt.pow`), exactly as Georgii reduces to `1 < a < 2`.
+
+Georgii's hypothesis is `a > d = 2`, which is what makes `J` absolutely summable (17.23); the
+representation itself only needs `a > 1`. -/
+theorem isNonnegDefiniteAt_sq_add_sq_rpow {c : Fin d} (hck : c ≠ k) {a : ℝ} (ha : 1 < a)
+    {β : ℝ} (hβ : 0 ≤ β)
+    (hJ : ∀ i : Fin d → ℤ, 1 ≤ i k →
+      J i = β * ((i k : ℝ) ^ 2 + (i c : ℝ) ^ 2) ^ (-(a / 2))) :
+    IsNonnegDefiniteAt k J := by
+  suffices h : IsNonnegDefiniteAt k fun i : Fin d → ℤ ↦
+      ((i k : ℝ) ^ 2 + (i c : ℝ) ^ 2) ^ (-(a / 2)) from
+    (h.const_mul hβ).congr fun i hi ↦ (hJ i hi).symm
+  rcases lt_trichotomy a 2 with h2 | h2 | h2
+  · exact isNonnegDefiniteAt_sq_add_sq_rpow_of_lt hck ha h2 fun _ _ ↦ rfl
+  · subst h2
+    refine (isNonnegDefiniteAt_sq_add_sq_inv hck fun _ _ ↦ rfl).congr fun i _ ↦ ?_
+    rw [show -(2 / 2 : ℝ) = -1 by norm_num, Real.rpow_neg_one]
+  · set n := ⌊a / 2⌋₊ with hn
+    have hn1 : a / 2 < (n : ℝ) + 1 := Nat.lt_floor_add_one _
+    have hn2 : (n : ℝ) ≤ a / 2 := Nat.floor_le (by linarith)
+    have hnpos : (0 : ℝ) < (n : ℝ) + 1 := by positivity
+    set a' := a / ((n : ℝ) + 1) with ha'
+    have ha'1 : 1 < a' := by rw [ha', lt_div_iff₀ hnpos]; linarith
+    have ha'2 : a' < 2 := by rw [ha', div_lt_iff₀ hnpos]; linarith
+    have h := (isNonnegDefiniteAt_sq_add_sq_rpow_of_lt hck ha'1 ha'2
+      (J := fun i : Fin d → ℤ ↦ ((i k : ℝ) ^ 2 + (i c : ℝ) ^ 2) ^ (-(a' / 2))) fun _ _ ↦ rfl).pow n
+    refine h.congr fun i _ ↦ ?_
+    rw [← Real.rpow_natCast (((i k : ℝ) ^ 2 + (i c : ℝ) ^ 2) ^ (-(a' / 2))) (n + 1),
+      ← Real.rpow_mul (by positivity)]
+    congr 1
+    push_cast
+    rw [ha']
+    field_simp
+
+/-- **Georgii, Example (17.32) in dimension two.**  On `ℤ²`, the long range coupling
+`J(i) = β |i|^{-a}` with `β ≥ 0` and `a > 1` is nonnegative definite relative to both reflections
+`r_0` and `r_1`.  (Georgii assumes `a > d = 2`, the condition for absolute summability.) -/
+theorem isNonnegDefiniteAt_longRange_two {J : (Fin 2 → ℤ) → ℝ} (k : Fin 2) {a : ℝ} (ha : 1 < a)
+    {β : ℝ} (hβ : 0 ≤ β)
+    (hJ : ∀ i : Fin 2 → ℤ, 1 ≤ i k → J i = β * (∑ c, (i c : ℝ) ^ 2) ^ (-(a / 2))) :
+    IsNonnegDefiniteAt k J := by
+  have hne : k + 1 ≠ k := by fin_cases k <;> decide
+  have hall : ∀ x k : Fin 2, x = k ∨ x = k + 1 := by decide
+  refine isNonnegDefiniteAt_sq_add_sq_rpow (c := k + 1) hne ha hβ fun i hi ↦ ?_
+  rw [hJ i hi, Finset.sum_eq_add_of_mem k (k + 1) (Finset.mem_univ _) (Finset.mem_univ _)
+    hne.symm fun x _ hx ↦ (hall x k).elim (fun h ↦ absurd h hx.1) fun h ↦ absurd h hx.2]
+
+end LongRangeTwo
 
 /-! #### Georgii, Example (17.31): next-nearest neighbour potentials
 
@@ -2648,6 +3150,1531 @@ theorem isReflectionPositive_heisenbergPeriodicGibbs_nextNearestNeighbour {A B :
       (heisenbergPeriodicGibbs N n J ν) :=
   isReflectionPositive_heisenbergPeriodicGibbs_of_isNonnegDefiniteAt hsum heven
     (isNonnegDefiniteAt_of_nextNearestNeighbour hAB hJ1 hJ2 hJ0) ν hint
+
+/-- **Georgii, Example (17.32) for `d = 2`.**  For the long range Heisenberg potential on `ℤ²`
+with coupling `J(i) = β |i|^{-a}`, `β ≥ 0`, `a > 2`, the Gibbs distribution in the torus with
+periodic boundary condition is `r_k`-positive for both `k`.  The absolute summability (17.23) is
+`summable_sum_sq_rpow_fin_two`; the hypothesis `hint` is Georgii's standing assumption that
+`°Z_Λ^Φ` is finite. -/
+theorem isReflectionPositive_heisenbergPeriodicGibbs_longRange_two {J : (Fin 2 → ℤ) → ℝ} (k : Fin 2) {a : ℝ} (ha : 2 < a) {β : ℝ} (hβ : 0 ≤ β)
+    (hJ : ∀ i : Fin 2 → ℤ, i ≠ 0 → J i = β * (∑ c, (i c : ℝ) ^ 2) ^ (-(a / 2)))
+    (ν : Measure (Fin n → ℝ)) [IsFiniteMeasure ν]
+    (hint : Integrable (fun ω ↦ Real.exp (heisenbergExponent N n J ω))
+      (Measure.pi fun _ : Fin 2 → ZMod (2 * N) ↦ ν)) :
+    IsReflectionPositive (torusPosAt N k) (siteEquiv (Fin n → ℝ) (torusReflAt N k))
+      (heisenbergPeriodicGibbs N n J ν) := by
+  have hsum : Summable J := by
+    refine Summable.of_norm_bounded_eventually
+      (g := fun i : Fin 2 → ℤ ↦ β * (∑ c, (i c : ℝ) ^ 2) ^ (-(a / 2)))
+      ((summable_sum_sq_rpow_fin_two ha).mul_left β) ?_
+    rw [Filter.eventually_cofinite]
+    refine (Set.finite_singleton (0 : Fin 2 → ℤ)).subset fun i hi ↦ ?_
+    simp only [Set.mem_ofPred_eq, Set.mem_singleton_iff] at hi ⊢
+    by_contra hi0
+    apply hi
+    rw [hJ i hi0, Real.norm_eq_abs, abs_of_nonneg (by positivity)]
+  have heven : ∀ m, J (-m) = J m := by
+    intro m
+    by_cases hm : m = 0
+    · rw [hm, neg_zero]
+    · rw [hJ (-m) (neg_ne_zero.2 hm), hJ m hm]
+      simp
+  refine isReflectionPositive_heisenbergPeriodicGibbs_of_isNonnegDefiniteAt hsum heven
+    (isNonnegDefiniteAt_longRange_two k (by linarith) hβ fun i hi ↦ hJ i ?_) ν hint
+  rintro rfl
+  simp at hi
+
+/-! ### Georgii, Examples (17.30) and (17.31): the necessity halves
+
+Georgii shows that the conditions of Examples (17.30) and (17.31) are not merely sufficient for
+`r_k`-positivity but necessary, by evaluating `°Z_Λ^Φ °γ_Λ^Φ(f f^*)` at an explicit `f` for the
+two-point a priori measure `λ = δ_1 + δ_{-1}` (so `n = 1` and the spins are `±1`).
+
+The mechanism is `integral_patternTest_mul_comp_heisenbergPeriodicGibbs`: for a `±1` pattern `q`
+on `Λ_{+,k}`, the test function that selects the two configurations following `± q` on `Λ_{+,k}`
+has reflection form `4 e^{S} sinh⟨q, M q⟩`, where `M` is the crossing matrix.  So *any* `±1`
+vector on which the quadratic form of `M` is negative refutes `r_k`-positivity — a converse to
+`isReflectionPositive_heisenbergPeriodicGibbs_of_posSemidef`.
+-/
+
+
+/-- **Georgii's a priori measure in the necessity halves of Examples (17.30) and (17.31).**
+The two-point measure `λ = δ_1 + δ_{-1}` on the one-dimensional spin space `ℝ^1`. -/
+def twoPointMeasure : Measure (Fin 1 → ℝ) :=
+  Measure.dirac (fun _ ↦ 1) + Measure.dirac (fun _ ↦ -1)
+
+instance : IsFiniteMeasure (twoPointMeasure) := by
+  constructor
+  simp [twoPointMeasure]
+
+/-- A one-dimensional spin is determined by its single coordinate. -/
+lemma fin_one_ext_iff (u v : Fin 1 → ℝ) : u = v ↔ u 0 = v 0 :=
+  ⟨fun h ↦ by rw [h], fun h ↦ funext fun c ↦ by rw [Subsingleton.elim c 0, h]⟩
+
+lemma twoPointMeasure_singleton {v : Fin 1 → ℝ} (hv : v 0 = 1 ∨ v 0 = -1) :
+    twoPointMeasure {v} = 1 := by
+  have h1 : ((fun _ ↦ 1 : Fin 1 → ℝ) ∈ ({v} : Set (Fin 1 → ℝ))) ↔ v 0 = 1 := by
+    rw [Set.mem_singleton_iff, fin_one_ext_iff, eq_comm]
+  have h2 : ((fun _ ↦ -1 : Fin 1 → ℝ) ∈ ({v} : Set (Fin 1 → ℝ))) ↔ v 0 = -1 := by
+    rw [Set.mem_singleton_iff, fin_one_ext_iff, eq_comm]
+  rw [twoPointMeasure, Measure.add_apply, Measure.dirac_apply, Measure.dirac_apply]
+  rcases hv with hv | hv
+  · rw [Set.indicator_of_mem (h1.2 hv), Set.indicator_of_notMem (fun h ↦ by
+      have := h2.1 h; rw [hv] at this; norm_num at this)]
+    simp
+  · rw [Set.indicator_of_notMem (fun h ↦ by
+      have := h1.1 h; rw [hv] at this; norm_num at this), Set.indicator_of_mem (h2.2 hv)]
+    simp
+
+lemma pi_twoPointMeasure_singleton {ι : Type*} [Fintype ι] (ω : ι → (Fin 1 → ℝ))
+    (hω : ∀ i, ω i 0 = 1 ∨ ω i 0 = -1) :
+    (Measure.pi fun _ : ι ↦ twoPointMeasure) {ω} = 1 := by
+  have hsing : ({ω} : Set (ι → (Fin 1 → ℝ))) = Set.univ.pi fun i ↦ {ω i} := by
+    ext x
+    simp [Set.mem_pi, funext_iff, eq_comm, Set.mem_singleton_iff]
+  rw [hsing, Measure.pi_pi]
+  simp [twoPointMeasure_singleton (hω _)]
+
+variable (N k) in
+/-- The configurations of the torus whose spins follow the pattern `q` on the positive half
+`Λ_{+,k}`.  Georgii's event `{σ_i = σ_u for all i ∈ Λ_{+,k}}` of Example (17.30) is the case
+of a constant `q`. -/
+def patternSet (q : (Fin d → ZMod (2 * N)) → ℝ) :
+    Set ((Fin d → ZMod (2 * N)) → (Fin 1 → ℝ)) :=
+  {ω | ∀ i, (i k).val < N → ω i 0 = q i}
+
+variable (N k) in
+/-- The configuration of the torus which follows the pattern `q` with overall sign `x` on the
+positive half `Λ_{+,k}` and the *mirror* pattern with overall sign `y` on the negative half. -/
+def patternConfig (q : (Fin d → ZMod (2 * N)) → ℝ) (x y : ℝ) :
+    (Fin d → ZMod (2 * N)) → (Fin 1 → ℝ) :=
+  fun i _ ↦ if (i k).val < N then x * q i else y * q (torusReflAt N k i)
+
+variable (N k) in
+/-- **Georgii's test function `f` in the necessity halves of Examples (17.30) and (17.31)**, up to
+a positive constant: the difference of the indicators of the two configurations of `Λ_{+,k}` which
+follow the pattern `q` and `-q`.
+
+Georgii writes `f = e^{-h} σ_u 1_{σ_i = σ_u for all i ∈ Λ_{+,k}}`.  On the two-point
+configurations that carry `λ^Λ` for `λ = δ_1 + δ_{-1}`, the factor `σ_u ∈ {1, -1}` distinguishes
+the two constant configurations — which is what the difference of indicators does — and `e^{-h}`
+is a positive constant, since `h` is a quadratic form evaluated at spins of modulus one.  Dropping
+it keeps `f` *bounded*, as Georgii's `𝒜_{+,k}` requires; `e^{-h}` is unbounded on the ambient
+space `(ℝ^1)^Λ`. -/
+def patternTest (q : (Fin d → ZMod (2 * N)) → ℝ) :
+    ((Fin d → ZMod (2 * N)) → (Fin 1 → ℝ)) → ℝ :=
+  fun ω ↦ (patternSet N k q).indicator (fun _ ↦ (1 : ℝ)) ω
+    - (patternSet N k (-q)).indicator (fun _ ↦ (1 : ℝ)) ω
+
+lemma torusReflAt_val_lt_of_not_lt {i : Fin d → ZMod (2 * N)} (hi : ¬ ((i k).val < N)) :
+    ((torusReflAt N k i) k).val < N := by
+  have h := torusPosAt_iff_torusReflAt_notMem (N := N) k (torusReflAt N k i)
+  rw [torusReflAt_torusReflAt] at h
+  simpa only [mem_torusPosAt, not_lt, not_le] using h.2 (by simpa using hi)
+
+lemma not_torusReflAt_val_lt {i : Fin d → ZMod (2 * N)} (hi : (i k).val < N) :
+    ¬ (((torusReflAt N k i) k).val < N) := by
+  have h := torusPosAt_iff_torusReflAt_notMem (N := N) k i
+  simpa only [mem_torusPosAt] using h.1 hi
+
+omit [NeZero N] in
+lemma patternConfig_of_lt {q : (Fin d → ZMod (2 * N)) → ℝ} {x y : ℝ}
+    {i : Fin d → ZMod (2 * N)} (hi : (i k).val < N) :
+    patternConfig N k q x y i 0 = x * q i := by
+  simp only [patternConfig]
+  split_ifs
+  rfl
+
+omit [NeZero N] in
+lemma patternConfig_of_not_lt {q : (Fin d → ZMod (2 * N)) → ℝ} {x y : ℝ}
+    {i : Fin d → ZMod (2 * N)} (hi : ¬ ((i k).val < N)) :
+    patternConfig N k q x y i 0 = y * q (torusReflAt N k i) := by
+  simp only [patternConfig]
+  split_ifs
+  rfl
+
+lemma patternConfig_torusReflAt {q : (Fin d → ZMod (2 * N)) → ℝ} {x y : ℝ}
+    {i : Fin d → ZMod (2 * N)} (hi : (i k).val < N) :
+    patternConfig N k q x y (torusReflAt N k i) 0 = y * q i := by
+  rw [patternConfig_of_not_lt (not_torusReflAt_val_lt hi), torusReflAt_torusReflAt]
+
+/-- **The two halves of the pattern determine the configuration.**  A configuration which follows
+the pattern `x q` on `Λ_{+,k}` and whose reflection follows `y q` on `Λ_{+,k}` is exactly
+`patternConfig q x y`; this is the point of Georgii's choice of `f`, and it is what turns the
+reflection form into a sum of four terms. -/
+lemma mem_patternSet_and_comp_iff (q : (Fin d → ZMod (2 * N)) → ℝ) (x y : ℝ)
+    (ω : (Fin d → ZMod (2 * N)) → (Fin 1 → ℝ)) :
+    (ω ∈ patternSet N k (x • q) ∧ (ω ∘ torusReflAt N k) ∈ patternSet N k (y • q))
+      ↔ ω = patternConfig N k q x y := by
+  constructor
+  · rintro ⟨h1, h2⟩
+    funext i
+    rw [fin_one_ext_iff]
+    by_cases hi : (i k).val < N
+    · rw [h1 i hi, patternConfig_of_lt hi]
+      rfl
+    · have hri := torusReflAt_val_lt_of_not_lt (k := k) hi
+      have := h2 (torusReflAt N k i) hri
+      simp only [Function.comp_apply, torusReflAt_torusReflAt, Pi.smul_apply, smul_eq_mul] at this
+      rw [this, patternConfig_of_not_lt hi]
+  · rintro rfl
+    refine ⟨fun i hi ↦ ?_, fun i hi ↦ ?_⟩
+    · rw [patternConfig_of_lt hi]; rfl
+    · simp only [Function.comp_apply]
+      rw [patternConfig_torusReflAt hi]
+      rfl
+
+lemma indicator_mul_indicator_comp (q : (Fin d → ZMod (2 * N)) → ℝ) (x y : ℝ)
+    (ω : (Fin d → ZMod (2 * N)) → (Fin 1 → ℝ)) :
+    (patternSet N k (x • q)).indicator (fun _ ↦ (1 : ℝ)) ω
+        * (patternSet N k (y • q)).indicator (fun _ ↦ (1 : ℝ)) (ω ∘ torusReflAt N k)
+      = ({patternConfig N k q x y} :
+          Set ((Fin d → ZMod (2 * N)) → (Fin 1 → ℝ))).indicator (fun _ ↦ (1 : ℝ)) ω := by
+  classical
+  have hmem : ω ∈ ({patternConfig N k q x y} :
+        Set ((Fin d → ZMod (2 * N)) → (Fin 1 → ℝ))) ↔
+      (ω ∈ patternSet N k (x • q) ∧ (ω ∘ torusReflAt N k) ∈ patternSet N k (y • q)) := by
+    rw [Set.mem_singleton_iff]
+    exact (mem_patternSet_and_comp_iff (N := N) (k := k) q x y ω).symm
+  by_cases h1 : ω ∈ patternSet N k (x • q)
+  · by_cases h2 : (ω ∘ torusReflAt N k) ∈ patternSet N k (y • q)
+    · rw [Set.indicator_of_mem h1, Set.indicator_of_mem h2,
+        Set.indicator_of_mem (hmem.2 ⟨h1, h2⟩)]
+      norm_num
+    · rw [Set.indicator_of_notMem h2, mul_zero,
+        Set.indicator_of_notMem (fun h ↦ h2 (hmem.1 h).2)]
+  · rw [Set.indicator_of_notMem h1, zero_mul,
+      Set.indicator_of_notMem (fun h ↦ h1 (hmem.1 h).1)]
+
+lemma dotProduct_fin_one (u v : Fin 1 → ℝ) : u ⬝ᵥ v = u 0 * v 0 := by
+  simp [dotProduct]
+
+lemma heisenbergHalf_patternConfig (q : (Fin d → ZMod (2 * N)) → ℝ) {x y : ℝ}
+    (hx : x * x = 1) :
+    heisenbergHalf N 1 J k (patternConfig N k q x y)
+      = (∑ i ∈ torusPosAtFinset N k, ∑ j ∈ torusPosAtFinset N k,
+          periodizedCoupling N J (i - j) * q i * q j) / 2 := by
+  rw [heisenbergHalf]
+  refine congrArg (· / 2) (Finset.sum_congr rfl fun i hi ↦ Finset.sum_congr rfl fun j hj ↦ ?_)
+  rw [mem_torusPosAtFinset] at hi hj
+  rw [dotProduct_fin_one, patternConfig_of_lt hi, patternConfig_of_lt hj]
+  calc periodizedCoupling N J (i - j) * (x * q i * (x * q j))
+      = periodizedCoupling N J (i - j) * q i * q j * (x * x) := by ring
+    _ = periodizedCoupling N J (i - j) * q i * q j := by rw [hx, mul_one]
+
+lemma heisenbergHalf_patternConfig_comp (q : (Fin d → ZMod (2 * N)) → ℝ) {x y : ℝ}
+    (hy : y * y = 1) :
+    heisenbergHalf N 1 J k (patternConfig N k q x y ∘ torusReflAt N k)
+      = (∑ i ∈ torusPosAtFinset N k, ∑ j ∈ torusPosAtFinset N k,
+          periodizedCoupling N J (i - j) * q i * q j) / 2 := by
+  rw [heisenbergHalf]
+  refine congrArg (· / 2) (Finset.sum_congr rfl fun i hi ↦ Finset.sum_congr rfl fun j hj ↦ ?_)
+  rw [mem_torusPosAtFinset] at hi hj
+  simp only [Function.comp_apply]
+  rw [dotProduct_fin_one, patternConfig_torusReflAt hi, patternConfig_torusReflAt hj]
+  calc periodizedCoupling N J (i - j) * (y * q i * (y * q j))
+      = periodizedCoupling N J (i - j) * q i * q j * (y * y) := by ring
+    _ = periodizedCoupling N J (i - j) * q i * q j := by rw [hy, mul_one]
+
+lemma crossing_patternConfig (q : (Fin d → ZMod (2 * N)) → ℝ) (x y : ℝ) :
+    ∑ i, ∑ j, crossingMatrix N J k i j *
+        (patternConfig N k q x y (torusReflAt N k i) ⬝ᵥ patternConfig N k q x y j)
+      = x * y * (q ⬝ᵥ crossingMatrix N J k *ᵥ q) := by
+  rw [dotProduct, Finset.mul_sum]
+  refine Finset.sum_congr rfl fun i _ ↦ ?_
+  rw [Matrix.mulVec, dotProduct, Finset.mul_sum, Finset.mul_sum]
+  refine Finset.sum_congr rfl fun j _ ↦ ?_
+  by_cases hij : (i k).val < N ∧ (j k).val < N
+  · rw [dotProduct_fin_one, patternConfig_torusReflAt hij.1, patternConfig_of_lt hij.2]
+    ring
+  · rw [crossingMatrix_eq_zero hij]; ring
+
+/-- **The exponent (17.24) at a two-valued pattern configuration.**  On the configuration which
+follows the pattern `q` with sign `x` on `Λ_{+,k}` and its mirror image with sign `y` on
+`Λ_{-,k}`, the exponent `h + h∘r_k + H` of Georgii's decomposition is the *constant*
+`∑_{i,j ∈ Λ_{+,k}} J_Λ(i-j) q_i q_j` plus `x y` times the crossing form of `q`.  The two halves
+contribute the same amount because `x² = y² = 1`; only the crossing term remembers the relative
+sign of the two halves, and that is what makes the reflection form a hyperbolic sine. -/
+lemma heisenbergExponent_patternConfig (heven : ∀ m, J (-m) = J m)
+    (hflip : ∀ m, J (flipCoord k m) = J m) (q : (Fin d → ZMod (2 * N)) → ℝ) {x y : ℝ}
+    (hx : x * x = 1) (hy : y * y = 1) :
+    heisenbergExponent N 1 J (patternConfig N k q x y)
+      = (∑ i ∈ torusPosAtFinset N k, ∑ j ∈ torusPosAtFinset N k,
+            periodizedCoupling N J (i - j) * q i * q j)
+        + x * y * (q ⬝ᵥ crossingMatrix N J k *ᵥ q) := by
+  rw [heisenbergExponent_eq_add heven hflip, heisenbergHalf_patternConfig q hx,
+    heisenbergHalf_patternConfig_comp q hy, crossing_patternConfig]
+  ring
+
+omit [NeZero N] in
+lemma patternConfig_eq_one_or {q : (Fin d → ZMod (2 * N)) → ℝ}
+    (hq : ∀ i, q i = 1 ∨ q i = -1) {x y : ℝ} (hx : x = 1 ∨ x = -1) (hy : y = 1 ∨ y = -1)
+    (i : Fin d → ZMod (2 * N)) :
+    patternConfig N k q x y i 0 = 1 ∨ patternConfig N k q x y i 0 = -1 := by
+  by_cases hi : (i k).val < N
+  · rw [patternConfig_of_lt hi]
+    rcases hx with hx | hx <;> rcases hq i with h | h <;> rw [hx, h] <;> norm_num
+  · rw [patternConfig_of_not_lt hi]
+    rcases hy with hy | hy <;> rcases hq (torusReflAt N k i) with h | h <;> rw [hy, h] <;> norm_num
+
+/-- **The product `f f*` for Georgii's test function is a sum of four point masses.**  The event
+that `ω` follows the pattern `± q` on `Λ_{+,k}` *and* that its reflection does too pins `ω` down
+completely; so `f · f∘r_k` is supported on the four configurations `patternConfig q (±1) (±1)`,
+with the sign of the product of the two overall signs. -/
+lemma patternTest_mul_comp (q : (Fin d → ZMod (2 * N)) → ℝ)
+    (ω : (Fin d → ZMod (2 * N)) → (Fin 1 → ℝ)) :
+    patternTest N k q ω * patternTest N k q (ω ∘ torusReflAt N k)
+      = ({patternConfig N k q 1 1} :
+            Set ((Fin d → ZMod (2 * N)) → (Fin 1 → ℝ))).indicator (fun _ ↦ (1 : ℝ)) ω
+        - ({patternConfig N k q 1 (-1)} :
+            Set ((Fin d → ZMod (2 * N)) → (Fin 1 → ℝ))).indicator (fun _ ↦ (1 : ℝ)) ω
+        - ({patternConfig N k q (-1) 1} :
+            Set ((Fin d → ZMod (2 * N)) → (Fin 1 → ℝ))).indicator (fun _ ↦ (1 : ℝ)) ω
+        + ({patternConfig N k q (-1) (-1)} :
+            Set ((Fin d → ZMod (2 * N)) → (Fin 1 → ℝ))).indicator (fun _ ↦ (1 : ℝ)) ω := by
+  have e11 := indicator_mul_indicator_comp (N := N) (k := k) q 1 1 ω
+  have e1m := indicator_mul_indicator_comp (N := N) (k := k) q 1 (-1) ω
+  have em1 := indicator_mul_indicator_comp (N := N) (k := k) q (-1) 1 ω
+  have emm := indicator_mul_indicator_comp (N := N) (k := k) q (-1) (-1) ω
+  simp only [one_smul, neg_one_smul] at e11 e1m em1 emm
+  simp only [patternTest]
+  rw [sub_mul, mul_sub, mul_sub, e11, e1m, em1, emm]
+  ring
+
+/-- **The reflection form of Georgii's test function, pointwise.**  Multiplying the four point
+masses of `patternTest_mul_comp` by the density `exp[(17.24)]` evaluates the exponent at each of
+the four configurations, where it is the constant `S = ∑_{i,j ∈ Λ_{+,k}} J_Λ(i-j) q_i q_j` plus
+`± ⟨q, M q⟩`. -/
+lemma exp_mul_patternTest_mul_comp (heven : ∀ m, J (-m) = J m)
+    (hflip : ∀ m, J (flipCoord k m) = J m) (q : (Fin d → ZMod (2 * N)) → ℝ)
+    (ω : (Fin d → ZMod (2 * N)) → (Fin 1 → ℝ)) :
+    Real.exp (heisenbergExponent N 1 J ω)
+        * (patternTest N k q ω * patternTest N k q (ω ∘ torusReflAt N k))
+      = ({patternConfig N k q 1 1} :
+            Set ((Fin d → ZMod (2 * N)) → (Fin 1 → ℝ))).indicator
+            (fun _ ↦ Real.exp ((∑ i ∈ torusPosAtFinset N k, ∑ j ∈ torusPosAtFinset N k,
+              periodizedCoupling N J (i - j) * q i * q j)
+                + q ⬝ᵥ crossingMatrix N J k *ᵥ q)) ω
+        - ({patternConfig N k q 1 (-1)} :
+            Set ((Fin d → ZMod (2 * N)) → (Fin 1 → ℝ))).indicator
+            (fun _ ↦ Real.exp ((∑ i ∈ torusPosAtFinset N k, ∑ j ∈ torusPosAtFinset N k,
+              periodizedCoupling N J (i - j) * q i * q j)
+                - q ⬝ᵥ crossingMatrix N J k *ᵥ q)) ω
+        - ({patternConfig N k q (-1) 1} :
+            Set ((Fin d → ZMod (2 * N)) → (Fin 1 → ℝ))).indicator
+            (fun _ ↦ Real.exp ((∑ i ∈ torusPosAtFinset N k, ∑ j ∈ torusPosAtFinset N k,
+              periodizedCoupling N J (i - j) * q i * q j)
+                - q ⬝ᵥ crossingMatrix N J k *ᵥ q)) ω
+        + ({patternConfig N k q (-1) (-1)} :
+            Set ((Fin d → ZMod (2 * N)) → (Fin 1 → ℝ))).indicator
+            (fun _ ↦ Real.exp ((∑ i ∈ torusPosAtFinset N k, ∑ j ∈ torusPosAtFinset N k,
+              periodizedCoupling N J (i - j) * q i * q j)
+                + q ⬝ᵥ crossingMatrix N J k *ᵥ q)) ω := by
+  have key : ∀ a : (Fin d → ZMod (2 * N)) → (Fin 1 → ℝ),
+      Real.exp (heisenbergExponent N 1 J ω)
+          * ({a} : Set ((Fin d → ZMod (2 * N)) → (Fin 1 → ℝ))).indicator (fun _ ↦ (1 : ℝ)) ω
+        = ({a} : Set ((Fin d → ZMod (2 * N)) → (Fin 1 → ℝ))).indicator
+            (fun _ ↦ Real.exp (heisenbergExponent N 1 J a)) ω := by
+    intro a
+    by_cases h : ω = a
+    · subst h; simp
+    · rw [Set.indicator_of_notMem (by simpa using h),
+        Set.indicator_of_notMem (by simpa using h), mul_zero]
+  rw [patternTest_mul_comp, mul_add, mul_sub, mul_sub, key, key, key, key,
+    heisenbergExponent_patternConfig heven hflip q (by norm_num) (by norm_num),
+    heisenbergExponent_patternConfig heven hflip q (by norm_num) (by norm_num),
+    heisenbergExponent_patternConfig heven hflip q (by norm_num) (by norm_num),
+    heisenbergExponent_patternConfig heven hflip q (by norm_num) (by norm_num)]
+  norm_num [sub_eq_add_neg]
+
+/-- The integral of a point mass at a two-valued configuration against `λ^Λ` is its value:
+`λ^Λ` gives mass one to every configuration with values in `{1, -1}`. -/
+lemma integral_indicator_singleton_twoPoint {ι : Type*} [Fintype ι] (a : ι → (Fin 1 → ℝ))
+    (ha : ∀ i, a i 0 = 1 ∨ a i 0 = -1) (c : ℝ) :
+    ∫ ω, ({a} : Set (ι → (Fin 1 → ℝ))).indicator (fun _ ↦ c) ω
+        ∂(Measure.pi fun _ : ι ↦ twoPointMeasure) = c := by
+  rw [integral_indicator_const c (measurableSet_singleton a), measureReal_def,
+    pi_twoPointMeasure_singleton a ha]
+  simp
+
+lemma integrable_indicator_singleton_twoPoint {ι : Type*} [Fintype ι] (a : ι → (Fin 1 → ℝ))
+    (c : ℝ) :
+    Integrable (fun ω ↦ ({a} : Set (ι → (Fin 1 → ℝ))).indicator (fun _ ↦ c) ω)
+      (Measure.pi fun _ : ι ↦ twoPointMeasure) :=
+  (integrable_const c).indicator (measurableSet_singleton a)
+
+/-- The alternating sum of four point masses at two-valued configurations integrates to the
+alternating sum of their weights. -/
+lemma integral_indicator_singleton_twoPoint_four {ι : Type*} [Fintype ι]
+    (a₁ a₂ a₃ a₄ : ι → (Fin 1 → ℝ)) (c₁ c₂ c₃ c₄ : ℝ)
+    (h₁ : ∀ i, a₁ i 0 = 1 ∨ a₁ i 0 = -1) (h₂ : ∀ i, a₂ i 0 = 1 ∨ a₂ i 0 = -1)
+    (h₃ : ∀ i, a₃ i 0 = 1 ∨ a₃ i 0 = -1) (h₄ : ∀ i, a₄ i 0 = 1 ∨ a₄ i 0 = -1) :
+    ∫ ω, (({a₁} : Set (ι → (Fin 1 → ℝ))).indicator (fun _ ↦ c₁) ω
+          - ({a₂} : Set (ι → (Fin 1 → ℝ))).indicator (fun _ ↦ c₂) ω
+          - ({a₃} : Set (ι → (Fin 1 → ℝ))).indicator (fun _ ↦ c₃) ω
+          + ({a₄} : Set (ι → (Fin 1 → ℝ))).indicator (fun _ ↦ c₄) ω)
+        ∂(Measure.pi fun _ : ι ↦ twoPointMeasure)
+      = c₁ - c₂ - c₃ + c₄ := by
+  rw [integral_add
+      (f := fun ω ↦ ({a₁} : Set (ι → (Fin 1 → ℝ))).indicator (fun _ ↦ c₁) ω
+        - ({a₂} : Set (ι → (Fin 1 → ℝ))).indicator (fun _ ↦ c₂) ω
+        - ({a₃} : Set (ι → (Fin 1 → ℝ))).indicator (fun _ ↦ c₃) ω)
+      (g := fun ω ↦ ({a₄} : Set (ι → (Fin 1 → ℝ))).indicator (fun _ ↦ c₄) ω)
+      (((integrable_indicator_singleton_twoPoint a₁ c₁).sub
+        (integrable_indicator_singleton_twoPoint a₂ c₂)).sub
+        (integrable_indicator_singleton_twoPoint a₃ c₃))
+      (integrable_indicator_singleton_twoPoint a₄ c₄),
+    integral_sub
+      (f := fun ω ↦ ({a₁} : Set (ι → (Fin 1 → ℝ))).indicator (fun _ ↦ c₁) ω
+        - ({a₂} : Set (ι → (Fin 1 → ℝ))).indicator (fun _ ↦ c₂) ω)
+      (g := fun ω ↦ ({a₃} : Set (ι → (Fin 1 → ℝ))).indicator (fun _ ↦ c₃) ω)
+      ((integrable_indicator_singleton_twoPoint a₁ c₁).sub
+        (integrable_indicator_singleton_twoPoint a₂ c₂))
+      (integrable_indicator_singleton_twoPoint a₃ c₃),
+    integral_sub (integrable_indicator_singleton_twoPoint a₁ c₁)
+      (integrable_indicator_singleton_twoPoint a₂ c₂),
+    integral_indicator_singleton_twoPoint a₁ h₁, integral_indicator_singleton_twoPoint a₂ h₂,
+    integral_indicator_singleton_twoPoint a₃ h₃, integral_indicator_singleton_twoPoint a₄ h₄]
+
+/-- **Georgii's computation in the necessity halves of Examples (17.30) and (17.31).**  For the
+two-point a priori measure `λ = δ_1 + δ_{-1}` and Georgii's test function `f` attached to a `±1`
+pattern `q` on `Λ_{+,k}`,
+
+`°Z_Λ^Φ °γ_Λ^Φ(f f^*) = 4 e^{S} sinh⟨q, M q⟩`,
+
+where `S = ∑_{i,j ∈ Λ_{+,k}} J_Λ(i-j) q_i q_j` and `M` is the crossing matrix.  Georgii's `e^{-h}`
+factor is exactly `e^{-S/2}` on the four configurations that survive, so his statement is the
+present one with the factor `e^{S}` cancelled; since `e^{S} > 0` the sign is the same either way.
+
+Georgii states the value as `4 sinh[(2N)^{d-1} J(u)]` in Example (17.30).  Two corrections: the
+middle expression `∑_{x,y = ±1} exp[(2N)^{d-1}J(u) x y]` is `4 cosh`, not `4 sinh` — the factor
+`σ_u σ_{r_k u} = x y` coming from `f f^*` is missing from it — and the constant is `2(2N)^{d-1}`,
+not `(2N)^{d-1}`: see `sum_crossingMatrix_nearestNeighbour`. -/
+theorem integral_patternTest_mul_comp_heisenbergPeriodicGibbs
+    (heven : ∀ m, J (-m) = J m) (hflip : ∀ m, J (flipCoord k m) = J m)
+    (q : (Fin d → ZMod (2 * N)) → ℝ) (hq : ∀ i, q i = 1 ∨ q i = -1) :
+    ∫ ω, patternTest N k q ω * patternTest N k q (ω ∘ torusReflAt N k)
+        ∂(heisenbergPeriodicGibbs N 1 J twoPointMeasure)
+      = 4 * Real.exp (∑ i ∈ torusPosAtFinset N k, ∑ j ∈ torusPosAtFinset N k,
+            periodizedCoupling N J (i - j) * q i * q j)
+        * Real.sinh (q ⬝ᵥ crossingMatrix N J k *ᵥ q) := by
+  classical
+  have hdens : (fun ω : (Fin d → ZMod (2 * N)) → (Fin 1 → ℝ) ↦
+        ENNReal.ofReal (Real.exp (heisenbergExponent N 1 J ω)))
+      = fun ω ↦ ((Real.toNNReal (Real.exp (heisenbergExponent N 1 J ω)) : ℝ≥0) : ℝ≥0∞) := rfl
+  rw [heisenbergPeriodicGibbs, hdens,
+    integral_withDensity_eq_integral_smul measurable_heisenbergExponent.exp.real_toNNReal]
+  have hpt : ∀ ω : (Fin d → ZMod (2 * N)) → (Fin 1 → ℝ),
+      Real.toNNReal (Real.exp (heisenbergExponent N 1 J ω)) •
+          (patternTest N k q ω * patternTest N k q (ω ∘ torusReflAt N k))
+        = Real.exp (heisenbergExponent N 1 J ω) *
+          (patternTest N k q ω * patternTest N k q (ω ∘ torusReflAt N k)) := by
+    intro ω
+    rw [NNReal.smul_def, Real.coe_toNNReal _ (Real.exp_nonneg _), smul_eq_mul]
+  simp only [hpt, exp_mul_patternTest_mul_comp heven hflip q]
+  rw [integral_indicator_singleton_twoPoint_four _ _ _ _ _ _ _ _
+    (patternConfig_eq_one_or hq (Or.inl rfl) (Or.inl rfl))
+    (patternConfig_eq_one_or hq (Or.inl rfl) (Or.inr rfl))
+    (patternConfig_eq_one_or hq (Or.inr rfl) (Or.inl rfl))
+    (patternConfig_eq_one_or hq (Or.inr rfl) (Or.inr rfl))]
+  have hc : Real.exp (q ⬝ᵥ crossingMatrix N J k *ᵥ q) ≠ 0 := Real.exp_ne_zero _
+  rw [Real.sinh_eq, Real.exp_add, Real.exp_sub, Real.exp_neg]
+  field_simp
+  ring
+
+lemma measurableSet_patternSet (q : (Fin d → ZMod (2 * N)) → ℝ) :
+    MeasurableSet (patternSet N k q) := by
+  have hrw : patternSet N k q
+      = ⋂ i ∈ {i : Fin d → ZMod (2 * N) | (i k).val < N},
+          {ω : (Fin d → ZMod (2 * N)) → (Fin 1 → ℝ) | ω i 0 = q i} := by
+    ext ω; simp [patternSet]
+  rw [hrw]
+  exact MeasurableSet.biInter (Set.to_countable _) fun i _ ↦
+    (measurable_torusSpinApply (n := 1) i 0) (measurableSet_singleton (q i))
+
+lemma measurable_patternTest (q : (Fin d → ZMod (2 * N)) → ℝ) :
+    Measurable (patternTest N k q) :=
+  (measurable_const.indicator (measurableSet_patternSet q)).sub
+    (measurable_const.indicator (measurableSet_patternSet (-q)))
+
+omit [NeZero N] in
+lemma dependsOn_patternTest (q : (Fin d → ZMod (2 * N)) → ℝ) :
+    DependsOn (patternTest N k q) (torusPosAt N k) := by
+  intro ω ω' h
+  have hmem : ∀ p : (Fin d → ZMod (2 * N)) → ℝ, ω ∈ patternSet N k p ↔ ω' ∈ patternSet N k p := by
+    intro p
+    constructor
+    · exact fun hω i hi ↦ by rw [← h i (mem_torusPosAt.2 hi)]; exact hω i hi
+    · exact fun hω i hi ↦ by rw [h i (mem_torusPosAt.2 hi)]; exact hω i hi
+  have hind : ∀ p : (Fin d → ZMod (2 * N)) → ℝ,
+      (patternSet N k p).indicator (fun _ ↦ (1 : ℝ)) ω
+        = (patternSet N k p).indicator (fun _ ↦ (1 : ℝ)) ω' := by
+    intro p
+    by_cases hc : ω ∈ patternSet N k p
+    · rw [Set.indicator_of_mem hc, Set.indicator_of_mem ((hmem p).1 hc)]
+    · rw [Set.indicator_of_notMem hc, Set.indicator_of_notMem fun hh ↦ hc ((hmem p).2 hh)]
+  simp only [patternTest, hind]
+
+omit [NeZero N] in
+lemma abs_patternTest_le_one (q : (Fin d → ZMod (2 * N)) → ℝ)
+    (ω : (Fin d → ZMod (2 * N)) → (Fin 1 → ℝ)) : |patternTest N k q ω| ≤ 1 := by
+  classical
+  simp only [patternTest, Set.indicator_apply]
+  split_ifs <;> norm_num
+
+lemma measurable_cylinderEvents_patternTest (q : (Fin d → ZMod (2 * N)) → ℝ) :
+    Measurable[cylinderEvents (X := fun _ : Fin d → ZMod (2 * N) ↦ (Fin 1 → ℝ))
+      (torusPosAt N k)] (patternTest N k q) :=
+  measurable_cylinderEvents_iff_dependsOn.2 ⟨measurable_patternTest q, dependsOn_patternTest q⟩
+
+/-- **The necessity criterion of Georgii's Examples (17.30) and (17.31).**  If some `±1` pattern
+`q` on the torus makes the crossing form `⟨q, M q⟩` of the crossing matrix negative, then the
+periodic Gibbs distribution of the Heisenberg potential (17.22) for the two-point a priori
+measure `λ = δ_1 + δ_{-1}` fails to be `r_k`-positive.
+
+Compare `isReflectionPositive_heisenbergPeriodicGibbs_of_posSemidef`: positive semidefiniteness
+of `M` is sufficient, and this shows that the *quadratic form* of `M` being nonnegative on `±1`
+vectors is already necessary. -/
+theorem not_isReflectionPositive_heisenbergPeriodicGibbs_of_crossing_neg
+    (heven : ∀ m, J (-m) = J m) (hflip : ∀ m, J (flipCoord k m) = J m)
+    (q : (Fin d → ZMod (2 * N)) → ℝ) (hq : ∀ i, q i = 1 ∨ q i = -1)
+    (hneg : q ⬝ᵥ crossingMatrix N J k *ᵥ q < 0) :
+    ¬ IsReflectionPositive (torusPosAt N k) (siteEquiv (Fin 1 → ℝ) (torusReflAt N k))
+      (heisenbergPeriodicGibbs N 1 J twoPointMeasure) := by
+  intro hpos
+  have h := hpos (patternTest N k q) (measurable_cylinderEvents_patternTest q)
+    ⟨1, abs_patternTest_le_one q⟩
+  simp only [siteEquiv_torusReflAt_toFun] at h
+  rw [integral_patternTest_mul_comp_heisenbergPeriodicGibbs heven hflip q hq] at h
+  have hs : Real.sinh (q ⬝ᵥ crossingMatrix N J k *ᵥ q) < 0 := by
+    rw [Real.sinh_eq]
+    have hlt : Real.exp (q ⬝ᵥ crossingMatrix N J k *ᵥ q)
+        < Real.exp (-(q ⬝ᵥ crossingMatrix N J k *ᵥ q)) := Real.exp_lt_exp.2 (by linarith)
+    linarith
+  nlinarith [Real.exp_pos (∑ i ∈ torusPosAtFinset N k, ∑ j ∈ torusPosAtFinset N k,
+    periodizedCoupling N J (i - j) * q i * q j)]
+
+/-! ### Counting the sites of a hyperplane of the torus -/
+
+/-- A layer `{i : i_k = v}` of the torus carries `(2N)^{d-1}` sites. -/
+lemma sum_ite_torus_coord (v : ZMod (2 * N)) (c : ℝ) :
+    ∑ i : Fin d → ZMod (2 * N), (if i k = v then c else 0)
+      = (((2 * N) ^ (d - 1) : ℕ) : ℝ) * c := by
+  classical
+  have : NeZero (2 * N) := ⟨by have := NeZero.ne N; omega⟩
+  rw [Finset.sum_ite_eval_eq k v c, ZMod.card, Fintype.card_fin, nsmul_eq_mul]
+
+/-! ### Georgii, Example (17.30): the crossing sum of a nearest-neighbour coupling -/
+
+/-- **The diagonal of the crossing matrix of a nearest-neighbour coupling.**  On the torus, a
+nearest-neighbour bond crosses the plane of `r_k` exactly at the two interfaces produced by the
+periodic boundary condition: between the layers `i_k = N-1` and `i_k = N`, and between `i_k = 2N-1`
+and `i_k = 0`.  A site of the positive half therefore sees a crossing bond iff `i_k ∈ {0, N-1}`,
+and it then contributes `J(e_k)`.  (For `N = 1` the two conditions coincide and the site sees
+both interfaces.) -/
+theorem crossingMatrix_diag_nearestNeighbour (heven : ∀ m, J (-m) = J m)
+    (hsupp : ∀ m : Fin d → ℤ, (∑ c, (m c).natAbs) ≠ 1 → J m = 0)
+    (i : Fin d → ZMod (2 * N)) :
+    crossingMatrix N J k i i
+      = (if (i k).val = N - 1 then J (Pi.single k 1) else 0)
+        + (if (i k).val = 0 then J (Pi.single k 1) else 0) := by
+  classical
+  have hN : 0 < N := Nat.pos_of_ne_zero (NeZero.ne N)
+  by_cases hi : (i k).val < N
+  swap
+  · rw [crossingMatrix_eq_zero (fun h ↦ hi h.1)]
+    have h1 : (i k).val ≠ N - 1 := by omega
+    have h2 : (i k).val ≠ 0 := by omega
+    simp [h1, h2]
+  -- the crossing index along the diagonal
+  set a : ℕ := (i k).val with ha
+  have halt : a < N := hi
+  have hidx : ∀ ℓ : Fin d → ℤ, ∀ c, c ≠ k →
+      (crossingIndex N k i i + (2 * N : ℤ) • ℓ) c = (2 * N : ℤ) * ℓ c := by
+    intro ℓ c hc
+    simp [crossingIndex_of_ne hc]
+  have hidxk : ∀ ℓ : Fin d → ℤ,
+      (crossingIndex N k i i + (2 * N : ℤ) • ℓ) k
+        = (2 * N : ℤ) - 1 - 2 * (a : ℤ) + (2 * N : ℤ) * ℓ k := by
+    intro ℓ
+    simp only [Pi.add_apply, Pi.smul_apply, crossingIndex_self, smul_eq_mul, ha]
+    ring
+  -- the natural-absolute-value sum, when the transverse coordinates vanish
+  have hsum_of : ∀ (x : Fin d → ℤ), (∀ c, c ≠ k → x c = 0) →
+      ∑ c, (x c).natAbs = (x k).natAbs := by
+    intro x hx
+    rw [← Finset.sum_erase_add _ _ (Finset.mem_univ k), Finset.sum_eq_zero, zero_add]
+    intro c hc
+    rw [hx c (Finset.ne_of_mem_erase hc)]
+    rfl
+  -- outside `{0, -e_k}` the summand vanishes
+  have hzero : ∀ ℓ : Fin d → ℤ, ℓ ∉ ({0, -(Pi.single k 1)} : Finset (Fin d → ℤ)) →
+      J (crossingIndex N k i i + (2 * N : ℤ) • ℓ) = 0 := by
+    intro ℓ hℓ
+    set x := crossingIndex N k i i + (2 * N : ℤ) • ℓ with hx
+    refine hsupp _ fun hs ↦ hℓ ?_
+    -- every transverse `ℓ c` vanishes
+    have htr : ∀ c, c ≠ k → ℓ c = 0 := by
+      intro c hc
+      by_contra hne
+      have h1 : (x c).natAbs ≤ ∑ c', (x c').natAbs :=
+        Finset.single_le_sum (f := fun c' ↦ (x c').natAbs) (fun _ _ ↦ Nat.zero_le _)
+          (Finset.mem_univ c)
+      rw [hs] at h1
+      rw [hx, hidx ℓ c hc] at h1
+      have hmul : ((2 * N : ℤ) * ℓ c).natAbs = 2 * N * (ℓ c).natAbs := by
+        rw [Int.natAbs_mul]
+        congr 1
+      rw [hmul] at h1
+      have hne1 : 1 ≤ (ℓ c).natAbs :=
+        Nat.one_le_iff_ne_zero.2 fun h ↦ hne (Int.natAbs_eq_zero.1 h)
+      have hNpos : 0 < N := Nat.pos_of_ne_zero (NeZero.ne N)
+      have hle : 2 * N ≤ 2 * N * (ℓ c).natAbs := Nat.le_mul_of_pos_right _ (by omega)
+      omega
+    have hxc : ∀ c, c ≠ k → x c = 0 := by
+      intro c hc; rw [hx, hidx ℓ c hc, htr c hc, mul_zero]
+    have hxk : (x k).natAbs = 1 := by rw [← hsum_of x hxc, hs]
+    have hval : x k = 1 ∨ x k = -1 := by omega
+    have hxkv : x k = (2 * N : ℤ) - 1 - 2 * (a : ℤ) + (2 * N : ℤ) * ℓ k := hidxk ℓ
+    have haZ : (a : ℤ) < (N : ℤ) := by exact_mod_cast halt
+    have haZ0 : (0 : ℤ) ≤ (a : ℤ) := Int.natCast_nonneg _
+    have hNZ : (0 : ℤ) < (N : ℤ) := by exact_mod_cast hN
+    have hlk : ℓ k = 0 ∨ ℓ k = -1 := by
+      rcases hval with h | h
+      · left; rw [hxkv] at h; nlinarith [h]
+      · right; rw [hxkv] at h; nlinarith [h]
+    -- so `ℓ` is `0` or `-e_k`
+    have hfin : ℓ = 0 ∨ ℓ = -(Pi.single k 1) := by
+      rcases hlk with h | h
+      · left
+        funext c
+        by_cases hc : c = k
+        · subst hc; simpa using h
+        · simpa using htr c hc
+      · right
+        funext c
+        by_cases hc : c = k
+        · subst hc; simp [h]
+        · simp [hc, htr c hc]
+    rcases hfin with h | h <;> simp [h]
+  rw [crossingMatrix_eq_tsum hi hi, tsum_eq_sum hzero,
+    Finset.sum_pair (show (0 : Fin d → ℤ) ≠ -(Pi.single k 1) by
+      intro h
+      have := congrFun h k
+      simp at this)]
+  have haZ : (a : ℤ) < (N : ℤ) := by exact_mod_cast halt
+  have haZ0 : (0 : ℤ) ≤ (a : ℤ) := Int.natCast_nonneg _
+  have hNZ : (0 : ℤ) < (N : ℤ) := by exact_mod_cast hN
+  congr 1
+  · -- the term `ℓ = 0`: the interface between the layers `N-1` and `N`
+    set x := crossingIndex N k i i + (2 * N : ℤ) • (0 : Fin d → ℤ) with hx
+    have hxc : ∀ c, c ≠ k → x c = 0 := by intro c hc; rw [hx, hidx _ c hc]; simp
+    have hxk : x k = (2 * N : ℤ) - 1 - 2 * (a : ℤ) := by rw [hx, hidxk]; simp
+    split_ifs with hcase
+    · have haN : (a : ℤ) = (N : ℤ) - 1 := by omega
+      have hxe : x = Pi.single k 1 := by
+        funext c
+        by_cases hc : c = k
+        · subst hc
+          rw [hxk, haN, Pi.single_eq_same]
+          ring
+        · rw [hxc c hc, Pi.single_eq_of_ne hc]
+      rw [hxe]
+    · refine hsupp _ ?_
+      rw [hsum_of x hxc, hxk]
+      have h1 : (a : ℤ) < (N : ℤ) - 1 := by omega
+      omega
+  · -- the term `ℓ = -e_k`: the interface produced by the periodic boundary condition
+    set x := crossingIndex N k i i + (2 * N : ℤ) • (-(Pi.single k 1) : Fin d → ℤ) with hx
+    have hxc : ∀ c, c ≠ k → x c = 0 := by
+      intro c hc; rw [hx, hidx _ c hc]; simp [hc]
+    have hxk : x k = -1 - 2 * (a : ℤ) := by
+      rw [hx, hidxk]
+      simp only [Pi.neg_apply, Pi.single_eq_same]
+      ring
+    split_ifs with hcase
+    · have haN : (a : ℤ) = 0 := by omega
+      have hxe : x = -(Pi.single k 1) := by
+        funext c
+        by_cases hc : c = k
+        · subst hc
+          rw [hxk, haN, Pi.neg_apply, Pi.single_eq_same]
+          ring
+        · rw [hxc c hc, Pi.neg_apply, Pi.single_eq_of_ne hc]
+          ring
+      rw [hxe, heven]
+    · refine hsupp _ ?_
+      rw [hsum_of x hxc, hxk]
+      have h1 : (1 : ℤ) ≤ (a : ℤ) := by omega
+      omega
+
+/-- **Georgii, Example (17.30): the crossing form of the constant pattern.**  For a
+nearest-neighbour coupling the crossing matrix is diagonal, and its diagonal is `J(e_k)` at the
+sites of the two interfaces `i_k ∈ {0, N-1}`, each of which carries `(2N)^{d-1}` sites.  Hence
+
+`⟨1, M 1⟩ = 2 (2N)^{d-1} J(e_k)`.
+
+**Erratum to Georgii, Example (17.30).**  He prints the constant `(2N)^{d-1}`.  The factor `2` is
+missing: on the torus the plane of `r_k` is met by *two* interfaces — the one between the layers
+`i_k = N-1` and `i_k = N`, and the one between `i_k = 2N-1` and `i_k = 0` created by the periodic
+boundary condition — and each carries `(2N)^{d-1}` bonds.  Only the sign of the constant matters
+for his conclusion. -/
+theorem dotProduct_one_crossingMatrix_nearestNeighbour (heven : ∀ m, J (-m) = J m)
+    (hsupp : ∀ m : Fin d → ℤ, (∑ c, (m c).natAbs) ≠ 1 → J m = 0) :
+    (fun _ ↦ (1 : ℝ)) ⬝ᵥ crossingMatrix N J k *ᵥ (fun _ ↦ (1 : ℝ))
+      = 2 * (((2 * N) ^ (d - 1) : ℕ) : ℝ) * J (Pi.single k 1) := by
+  classical
+  have hN : 0 < N := Nat.pos_of_ne_zero (NeZero.ne N)
+  have hdiag : ∀ i : Fin d → ZMod (2 * N),
+      (fun _ ↦ (1 : ℝ)) i * (crossingMatrix N J k *ᵥ (fun _ ↦ (1 : ℝ))) i
+        = crossingMatrix N J k i i := by
+    intro i
+    rw [one_mul, Matrix.mulVec, dotProduct,
+      Finset.sum_congr rfl fun j (_ : j ∈ Finset.univ) ↦ mul_one (crossingMatrix N J k i j)]
+    refine Finset.sum_eq_single i (fun j _ hj ↦ ?_) (fun h ↦ absurd (Finset.mem_univ i) h)
+    by_cases hi : (i k).val < N
+    · by_cases hjj : (j k).val < N
+      · exact crossingMatrix_eq_zero_of_nearestNeighbour hsupp hi hjj (Ne.symm hj)
+      · exact crossingMatrix_eq_zero fun h ↦ hjj h.2
+    · exact crossingMatrix_eq_zero fun h ↦ hi h.1
+  rw [dotProduct, Finset.sum_congr rfl fun i _ ↦ hdiag i,
+    Finset.sum_congr rfl fun i _ ↦ crossingMatrix_diag_nearestNeighbour heven hsupp i,
+    Finset.sum_add_distrib]
+  have hval : ∀ (z : ZMod (2 * N)) (t : ℕ), t < 2 * N → (z.val = t ↔ z = (t : ZMod (2 * N))) := by
+    have : NeZero (2 * N) := ⟨by have := NeZero.ne N; omega⟩
+    intro z t ht
+    exact ⟨fun h ↦ by rw [← h]; simp, fun h ↦ by rw [h]; exact ZMod.val_natCast_of_lt ht⟩
+  have hc1 : ∀ i : Fin d → ZMod (2 * N),
+      ((i k).val = N - 1) ↔ i k = ((N - 1 : ℕ) : ZMod (2 * N)) :=
+    fun i ↦ hval (i k) _ (by omega)
+  have hc2 : ∀ i : Fin d → ZMod (2 * N), ((i k).val = 0) ↔ i k = ((0 : ℕ) : ZMod (2 * N)) :=
+    fun i ↦ hval (i k) _ (by omega)
+  simp only [hc1, hc2]
+  rw [sum_ite_torus_coord _ (J (Pi.single k 1)), sum_ite_torus_coord _ (J (Pi.single k 1))]
+  ring
+
+/-- **Georgii, Example (17.30): the value of the reflection form at his test function.**  For a
+nearest-neighbour coupling and the two-point a priori measure,
+
+`°Z_Λ^Φ °γ_Λ^Φ(f f^*) = 4 e^{S} sinh[2 (2N)^{d-1} J(e_k)]`,
+
+with `S = ∑_{i,j ∈ Λ_{+,k}} J_Λ(i-j)`.  Georgii's prefactor `e^{-h}` cancels the `e^S`
+(`integral_georgiiTest_mul_comp_nearestNeighbour`). -/
+theorem integral_patternTest_mul_comp_nearestNeighbour (heven : ∀ m, J (-m) = J m)
+    (hsupp : ∀ m : Fin d → ℤ, (∑ c, (m c).natAbs) ≠ 1 → J m = 0) :
+    ∫ ω, patternTest N k (fun _ ↦ (1 : ℝ)) ω
+          * patternTest N k (fun _ ↦ (1 : ℝ)) (ω ∘ torusReflAt N k)
+        ∂(heisenbergPeriodicGibbs N 1 J twoPointMeasure)
+      = 4 * Real.exp (∑ i ∈ torusPosAtFinset N k, ∑ j ∈ torusPosAtFinset N k,
+            periodizedCoupling N J (i - j))
+        * Real.sinh (2 * (((2 * N) ^ (d - 1) : ℕ) : ℝ) * J (Pi.single k 1)) := by
+  rw [integral_patternTest_mul_comp_heisenbergPeriodicGibbs heven
+      (flipCoord_eq_of_nearestNeighbour hsupp heven) (fun _ ↦ (1 : ℝ)) (fun _ ↦ Or.inl rfl),
+    dotProduct_one_crossingMatrix_nearestNeighbour heven hsupp]
+  norm_num
+
+/-- **Georgii's displayed value in Example (17.30).**  Georgii's own test function is
+`f = e^{-h} σ_u 1_{σ_i = σ_u for all i ∈ Λ_{+,k}}` with
+`h = ∑_{{i,j} ⊂ Λ_{+,k}} J_Λ(i-j) σ_i σ_j`.  On the configurations that carry `λ^Λ` and satisfy
+the indicator, `h` is the constant `S/2` with `S = ∑_{i,j ∈ Λ_{+,k}} J_Λ(i-j)` (the diagonal of
+the double sum contributes `J_Λ(0) = 0` for a nearest-neighbour `J`), so his `f` is the bounded
+function below, and
+
+`°Z_Λ^Φ °γ_Λ^Φ(f f^*) = 4 sinh[2 (2N)^{d-1} J(e_k)]`,
+
+which is Georgii's formula with the corrected constant. -/
+theorem integral_georgiiTest_mul_comp_nearestNeighbour (heven : ∀ m, J (-m) = J m)
+    (hsupp : ∀ m : Fin d → ℤ, (∑ c, (m c).natAbs) ≠ 1 → J m = 0) :
+    ∫ ω, (Real.exp (-(∑ i ∈ torusPosAtFinset N k, ∑ j ∈ torusPosAtFinset N k,
+              periodizedCoupling N J (i - j)) / 2) * patternTest N k (fun _ ↦ (1 : ℝ)) ω)
+          * (Real.exp (-(∑ i ∈ torusPosAtFinset N k, ∑ j ∈ torusPosAtFinset N k,
+              periodizedCoupling N J (i - j)) / 2)
+            * patternTest N k (fun _ ↦ (1 : ℝ)) (ω ∘ torusReflAt N k))
+        ∂(heisenbergPeriodicGibbs N 1 J twoPointMeasure)
+      = 4 * Real.sinh (2 * (((2 * N) ^ (d - 1) : ℕ) : ℝ) * J (Pi.single k 1)) := by
+  set S := ∑ i ∈ torusPosAtFinset N k, ∑ j ∈ torusPosAtFinset N k,
+    periodizedCoupling N J (i - j) with hS
+  have hrw : ∀ ω : (Fin d → ZMod (2 * N)) → (Fin 1 → ℝ),
+      (Real.exp (-S / 2) * patternTest N k (fun _ ↦ (1 : ℝ)) ω)
+          * (Real.exp (-S / 2) * patternTest N k (fun _ ↦ (1 : ℝ)) (ω ∘ torusReflAt N k))
+        = Real.exp (-S) * (patternTest N k (fun _ ↦ (1 : ℝ)) ω
+            * patternTest N k (fun _ ↦ (1 : ℝ)) (ω ∘ torusReflAt N k)) := by
+    intro ω
+    rw [show Real.exp (-S) = Real.exp (-S / 2) * Real.exp (-S / 2) by
+      rw [← Real.exp_add]; ring_nf]
+    ring
+  simp only [hrw]
+  rw [integral_const_mul, integral_patternTest_mul_comp_nearestNeighbour heven hsupp,
+    ← hS]
+  have hexp : Real.exp (-S) * Real.exp S = 1 := by rw [← Real.exp_add]; simp
+  rw [show Real.exp (-S) * (4 * Real.exp S
+      * Real.sinh (2 * (((2 * N) ^ (d - 1) : ℕ) : ℝ) * J (Pi.single k 1)))
+    = (Real.exp (-S) * Real.exp S)
+      * (4 * Real.sinh (2 * (((2 * N) ^ (d - 1) : ℕ) : ℝ) * J (Pi.single k 1))) by ring,
+    hexp, one_mul]
+
+/-- **Georgii, Example (17.30), the necessity half.**  If the nearest-neighbour coupling is
+*antiferromagnetic* in the direction `k` — `J(e_k) < 0` — then the Gibbs distribution in the torus
+with periodic boundary condition for the two-point a priori measure `λ = δ_1 + δ_{-1}` is *not*
+`r_k`-positive.  Together with `isReflectionPositive_heisenbergPeriodicGibbs_nearestNeighbour`
+this makes `0 ≤ J(e_k)` necessary as well as sufficient. -/
+theorem not_isReflectionPositive_heisenbergPeriodicGibbs_nearestNeighbour
+    (heven : ∀ m, J (-m) = J m)
+    (hsupp : ∀ m : Fin d → ℤ, (∑ c, (m c).natAbs) ≠ 1 → J m = 0)
+    (hneg : J (Pi.single k 1) < 0) :
+    ¬ IsReflectionPositive (torusPosAt N k) (siteEquiv (Fin 1 → ℝ) (torusReflAt N k))
+      (heisenbergPeriodicGibbs N 1 J twoPointMeasure) := by
+  have hN : 0 < N := Nat.pos_of_ne_zero (NeZero.ne N)
+  refine not_isReflectionPositive_heisenbergPeriodicGibbs_of_crossing_neg heven
+    (flipCoord_eq_of_nearestNeighbour hsupp heven) (fun _ ↦ (1 : ℝ)) (fun _ ↦ Or.inl rfl) ?_
+  rw [dotProduct_one_crossingMatrix_nearestNeighbour heven hsupp]
+  have hpos : (0 : ℝ) < (((2 * N) ^ (d - 1) : ℕ) : ℝ) := by
+    have : 0 < (2 * N) ^ (d - 1) := Nat.pow_pos (by omega)
+    exact_mod_cast this
+  nlinarith
+
+
+/-! ### Georgii, Example (17.31): why his second test function cannot work
+
+Georgii's Example (17.31) refutes `r_k`-positivity for `A < 2(d-1)|B|` "by looking at the same
+function `f` and also at `f̃ = e^{-h} σ_u 1_{σ_i = -(-1)^{i_k} σ_u}`".  The alternation in the
+direction `k` is however invisible to the reflection form, for every next-nearest neighbour
+coupling: see `integral_patternTest_neg_one_pow_mul_comp`.
+-/
+
+
+/-- **A bond that crosses the plane of `r_k` has a nonzero component in the direction `k`.**
+The `k`-th coordinate of the crossing index of two sites of `Λ_{+,k}` is `2N - 1 - i_k - j_k`,
+which lies in `{1, …, 2N-1}` and is therefore never `0` modulo `2N`. -/
+lemma crossingIndex_add_apply_ne_zero {i j : Fin d → ZMod (2 * N)}
+    (hi : (i k).val < N) (hj : (j k).val < N) (ℓ : Fin d → ℤ) :
+    (crossingIndex N k i j + (2 * N : ℤ) • ℓ) k ≠ 0 := by
+  have hNpos : (0 : ℤ) < (N : ℤ) := by exact_mod_cast Nat.pos_of_ne_zero (NeZero.ne N)
+  have ha : ((i k).val : ℤ) < (N : ℤ) := by exact_mod_cast hi
+  have hb : ((j k).val : ℤ) < (N : ℤ) := by exact_mod_cast hj
+  have ha0 : (0 : ℤ) ≤ ((i k).val : ℤ) := Int.natCast_nonneg _
+  have hb0 : (0 : ℤ) ≤ ((j k).val : ℤ) := Int.natCast_nonneg _
+  have hxk : (crossingIndex N k i j + (2 * N : ℤ) • ℓ) k
+      = (2 * N : ℤ) - 1 - ((i k).val : ℤ) - ((j k).val : ℤ) + (2 * N : ℤ) * ℓ k := by
+    simp [crossingIndex_self]
+  rw [hxk]
+  intro h0
+  have h1 : ((i k).val : ℤ) + ((j k).val : ℤ) = (2 * N : ℤ) * (1 + ℓ k) - 1 := by linarith
+  have h2 : (1 : ℤ) ≤ (2 * N : ℤ) * (1 + ℓ k) := by linarith
+  have h3 : (2 * N : ℤ) * (1 + ℓ k) ≤ (2 * N : ℤ) - 1 := by linarith
+  have h4 : (1 : ℤ) ≤ 1 + ℓ k := by nlinarith
+  nlinarith
+
+/-- **The `k`-parity of the two ends of a crossing bond is the same.**  If the crossing matrix
+entry `M(i, j)` is nonzero for a coupling supported on `{∑_c m_c² ≤ 2}` — that is, if some bond of
+the potential joins `r_k i` to `j` — then `i_k + j_k` is even.
+
+This is why an alternation in the direction `k` is invisible to the reflection form: the plane of
+`r_k` lies *between* two layers of equal index `i_k = j_k`. -/
+lemma even_val_add_val_of_crossingMatrix_ne_zero
+    (hJ0 : ∀ m : Fin d → ℤ, 2 < (∑ c, m c ^ 2) → J m = 0)
+    {i j : Fin d → ZMod (2 * N)} (hne : crossingMatrix N J k i j ≠ 0) :
+    Even ((i k).val + (j k).val) := by
+  classical
+  by_cases hij : (i k).val < N ∧ (j k).val < N
+  swap
+  · exact absurd (crossingMatrix_eq_zero hij) hne
+  obtain ⟨hi, hj⟩ := hij
+  rw [crossingMatrix_eq_tsum hi hj] at hne
+  -- some term of the periodisation is nonzero
+  obtain ⟨ℓ, hℓ⟩ : ∃ ℓ : Fin d → ℤ, J (crossingIndex N k i j + (2 * N : ℤ) • ℓ) ≠ 0 := by
+    by_contra h
+    simp only [not_exists, ne_eq, not_not] at h
+    exact hne (by rw [tsum_congr h, tsum_zero])
+  set x := crossingIndex N k i j + (2 * N : ℤ) • ℓ with hx
+  -- that term lies in the ball `∑ x_c² ≤ 2`, so `x_k = ±1`
+  have hball : (∑ c, x c ^ 2) ≤ 2 := by
+    by_contra h
+    exact hℓ (hJ0 x (not_le.1 h))
+  have hle : x k ^ 2 ≤ 2 :=
+    le_trans (Finset.single_le_sum (f := fun c ↦ x c ^ 2)
+      (fun c _ ↦ sq_nonneg (x c)) (Finset.mem_univ k)) hball
+  have hne0 : x k ≠ 0 := crossingIndex_add_apply_ne_zero hi hj ℓ
+  have hpm : x k = 1 ∨ x k = -1 := by
+    have h1 : x k ≤ 1 := by nlinarith [sq_nonneg (x k - 1)]
+    have h2 : -1 ≤ x k := by nlinarith [sq_nonneg (x k + 1)]
+    omega
+  -- and `x_k = ±1` forces `i_k + j_k` to be even
+  have hxk : x k = (2 * N : ℤ) - 1 - ((i k).val : ℤ) - ((j k).val : ℤ) + (2 * N : ℤ) * ℓ k := by
+    simp [hx, crossingIndex_self]
+  obtain ⟨r, hr⟩ : ∃ r : ℤ, ((i k).val : ℤ) + ((j k).val : ℤ) = 2 * r := by
+    rcases hpm with h | h <;> rw [hxk] at h
+    · exact ⟨(N : ℤ) - 1 + (N : ℤ) * ℓ k, by linarith⟩
+    · exact ⟨(N : ℤ) + (N : ℤ) * ℓ k, by linarith⟩
+  refine Nat.even_iff.2 ?_
+  omega
+
+/-- **The alternation in the direction `k` is invisible to the crossing form.**  For every
+coupling supported on the next-nearest neighbour bonds `∑_c m_c² ≤ 2`, the `±1` pattern
+`i ↦ (-1)^{i_k}` gives the crossing form the *same* value as the constant pattern `1`. -/
+theorem dotProduct_neg_one_pow_crossingMatrix
+    (hJ0 : ∀ m : Fin d → ℤ, 2 < (∑ c, m c ^ 2) → J m = 0) :
+    (fun i : Fin d → ZMod (2 * N) ↦ (-1 : ℝ) ^ (i k).val) ⬝ᵥ
+        crossingMatrix N J k *ᵥ (fun i : Fin d → ZMod (2 * N) ↦ (-1 : ℝ) ^ (i k).val)
+      = (fun _ ↦ (1 : ℝ)) ⬝ᵥ crossingMatrix N J k *ᵥ (fun _ ↦ (1 : ℝ)) := by
+  classical
+  simp only [dotProduct, Matrix.mulVec, dotProduct]
+  refine Finset.sum_congr rfl fun i _ ↦ ?_
+  rw [Finset.mul_sum, Finset.mul_sum]
+  refine Finset.sum_congr rfl fun j _ ↦ ?_
+  by_cases h : crossingMatrix N J k i j = 0
+  · rw [h]; ring
+  · have hev := even_val_add_val_of_crossingMatrix_ne_zero hJ0 h
+    have hone : ((-1 : ℝ) ^ (i k).val) * ((-1 : ℝ) ^ (j k).val) = 1 := by
+      rw [← pow_add]
+      exact hev.neg_one_pow
+    calc (-1 : ℝ) ^ (i k).val * (crossingMatrix N J k i j * (-1 : ℝ) ^ (j k).val)
+        = ((-1 : ℝ) ^ (i k).val * (-1 : ℝ) ^ (j k).val) * crossingMatrix N J k i j := by ring
+      _ = 1 * (crossingMatrix N J k i j * 1) := by rw [hone]; ring
+
+omit [NeZero N] in
+lemma neg_one_pow_val_eq_one_or (i : Fin d → ZMod (2 * N)) :
+    (-1 : ℝ) ^ (i k).val = 1 ∨ (-1 : ℝ) ^ (i k).val = -1 := by
+  rcases Nat.even_or_odd (i k).val with h | h
+  · exact Or.inl h.neg_one_pow
+  · exact Or.inr h.neg_one_pow
+
+/-- **Erratum to Georgii, Example (17.31).**  His second test function
+`f̃ = e^{-h} σ_u 1_{σ_i = -(-1)^{i_k} σ_u for all i ∈ Λ_{+,k}}`, which alternates in the direction
+`k`, has the *same* hyperbolic sine as his first test function `f`: the two reflection forms
+differ only by the positive factor `e^{S_p - S_1}`, so `f̃` detects exactly what `f` detects and
+nothing more.
+
+The reason is `even_val_add_val_of_crossingMatrix_ne_zero`: on the torus the plane of `r_k` lies
+*between* two layers, and a bond that crosses it joins `r_k i` to `j` with `i_k = j_k`; the two
+`k`-parities cancel.  Georgii's `i_k` must therefore be read as an alternation in the directions
+*transverse* to `k` — with which the crossing form of a next-nearest neighbour coupling becomes
+`2(2N)^{d-1}(A - 2(d-1)B)` instead of `2(2N)^{d-1}(A + 2(d-1)B)`. -/
+theorem integral_patternTest_neg_one_pow_mul_comp (heven : ∀ m, J (-m) = J m)
+    (hflip : ∀ m, J (flipCoord k m) = J m)
+    (hJ0 : ∀ m : Fin d → ℤ, 2 < (∑ c, m c ^ 2) → J m = 0) :
+    ∫ ω, patternTest N k (fun i ↦ (-1 : ℝ) ^ (i k).val) ω
+          * patternTest N k (fun i ↦ (-1 : ℝ) ^ (i k).val) (ω ∘ torusReflAt N k)
+        ∂(heisenbergPeriodicGibbs N 1 J twoPointMeasure)
+      = 4 * Real.exp (∑ i ∈ torusPosAtFinset N k, ∑ j ∈ torusPosAtFinset N k,
+            periodizedCoupling N J (i - j) * (-1 : ℝ) ^ (i k).val * (-1 : ℝ) ^ (j k).val)
+        * Real.sinh ((fun _ ↦ (1 : ℝ)) ⬝ᵥ crossingMatrix N J k *ᵥ (fun _ ↦ (1 : ℝ))) := by
+  rw [integral_patternTest_mul_comp_heisenbergPeriodicGibbs heven hflip
+      (fun i ↦ (-1 : ℝ) ^ (i k).val) (fun i ↦ neg_one_pow_val_eq_one_or i),
+    dotProduct_neg_one_pow_crossingMatrix hJ0]
+
+variable (N k) in
+/-- **The weight of a bond in the crossing form.**  For a bond `m ∈ ℤ^d` and a function `q` on the
+torus, `∑_{i ∈ Λ_{+,k}, r_k i - m ∈ Λ_{+,k}} q_i q_{r_k i - m}`: the number of copies of the bond
+`m`, read on the torus, that join a site of `Λ_{-,k}` to a site of `Λ_{+,k}`, each weighted by the
+values of `q` at its two ends.  The crossing form is `∑_m J(m) ×` this weight
+(`dotProduct_crossingMatrix_mulVec_eq_tsum`). -/
+def crossingWeight (q : (Fin d → ZMod (2 * N)) → ℝ) (m : Fin d → ℤ) : ℝ :=
+  ∑ i ∈ torusPosAtFinset N k,
+    if torusReflAt N k i - (fun c ↦ ((m c : ℤ) : ZMod (2 * N))) ∈ torusPosAtFinset N k
+      then q i * q (torusReflAt N k i - fun c ↦ ((m c : ℤ) : ZMod (2 * N))) else 0
+
+/-- **The crossing form is a sum over bonds.**  For an absolutely summable coupling,
+`⟨q, M q⟩ = ∑_{m ∈ ℤ^d} J(m) · w_q(m)`, where `w_q(m)` is the weight `crossingWeight` of the bond
+`m`: unfolding the periodisation `J_Λ = ∑_ℓ J(· + 2Nℓ)` turns the double sum over the torus into
+a sum over the bonds of `ℤ^d` that cross the plane of `r_k`. -/
+theorem dotProduct_crossingMatrix_mulVec_eq_tsum (hsum : Summable J)
+    (q : (Fin d → ZMod (2 * N)) → ℝ) :
+    q ⬝ᵥ crossingMatrix N J k *ᵥ q = ∑' m : Fin d → ℤ, J m * crossingWeight N k q m := by
+  classical
+  have hfib : ∀ z : Fin d → ZMod (2 * N), Summable fun m : Fin d → ℤ ↦
+      if (fun c ↦ ((m c : ℤ) : ZMod (2 * N))) = z then J m else 0 := by
+    intro z
+    have : (fun m : Fin d → ℤ ↦ if (fun c ↦ ((m c : ℤ) : ZMod (2 * N))) = z then J m else 0)
+        = Set.indicator {m | (fun c ↦ ((m c : ℤ) : ZMod (2 * N))) = z} J := by
+      funext m
+      simp [Set.indicator_apply]
+    rw [this]
+    exact hsum.indicator _
+  have h1 : q ⬝ᵥ crossingMatrix N J k *ᵥ q
+      = ∑ i ∈ torusPosAtFinset N k, ∑ j ∈ torusPosAtFinset N k,
+          periodizedCoupling N J (torusReflAt N k i - j) * (q i * q j) := by
+    simp only [dotProduct, Matrix.mulVec, torusPosAtFinset, Finset.sum_filter, Finset.mul_sum]
+    refine Finset.sum_congr rfl fun i _ ↦ ?_
+    by_cases hi : (i k).val < N
+    · rw [ite_eq_left hi]
+      refine Finset.sum_congr rfl fun j _ ↦ ?_
+      by_cases hj : (j k).val < N
+      · rw [ite_eq_left hj, crossingMatrix_of_mem hi hj]; ring
+      · rw [ite_eq_right hj, crossingMatrix_eq_zero (fun h ↦ hj h.2)]; ring
+    · rw [ite_eq_right hi]
+      exact Finset.sum_eq_zero fun j _ ↦ by
+        rw [crossingMatrix_eq_zero (fun h ↦ hi h.1)]; ring
+  have hS : ∀ i j : Fin d → ZMod (2 * N), Summable fun m : Fin d → ℤ ↦
+      (if (fun c ↦ ((m c : ℤ) : ZMod (2 * N))) = torusReflAt N k i - j then J m else 0)
+        * (q i * q j) :=
+    fun i j ↦ (hfib _).mul_right _
+  have h2 : ∀ i j : Fin d → ZMod (2 * N),
+      periodizedCoupling N J (torusReflAt N k i - j) * (q i * q j)
+        = ∑' m : Fin d → ℤ,
+          (if (fun c ↦ ((m c : ℤ) : ZMod (2 * N))) = torusReflAt N k i - j then J m else 0)
+            * (q i * q j) := by
+    intro i j
+    rw [periodizedCoupling_eq_tsum_ite, tsum_mul_right]
+  have h3 : ∀ i : Fin d → ZMod (2 * N),
+      ∑ j ∈ torusPosAtFinset N k, ∑' m : Fin d → ℤ,
+          (if (fun c ↦ ((m c : ℤ) : ZMod (2 * N))) = torusReflAt N k i - j then J m else 0)
+            * (q i * q j)
+        = ∑' m : Fin d → ℤ, ∑ j ∈ torusPosAtFinset N k,
+          (if (fun c ↦ ((m c : ℤ) : ZMod (2 * N))) = torusReflAt N k i - j then J m else 0)
+            * (q i * q j) :=
+    fun i ↦ (Summable.tsum_finsetSum fun j _ ↦ hS i j).symm
+  rw [h1]
+  simp_rw [h2, h3]
+  rw [← Summable.tsum_finsetSum fun i _ ↦ summable_sum fun j _ ↦ hS i j]
+  refine tsum_congr fun m ↦ ?_
+  rw [crossingWeight, Finset.mul_sum]
+  refine Finset.sum_congr rfl fun i _ ↦ ?_
+  have hiff : ∀ j : Fin d → ZMod (2 * N),
+      ((fun c ↦ ((m c : ℤ) : ZMod (2 * N))) = torusReflAt N k i - j)
+        ↔ (j = torusReflAt N k i - fun c ↦ ((m c : ℤ) : ZMod (2 * N))) := by
+    intro j
+    rw [eq_sub_iff_add_eq, eq_sub_iff_add_eq, add_comm]
+  simp only [hiff, ite_mul, zero_mul, Finset.sum_ite_eq', mul_ite, mul_zero]
+
+/-! ### The crossing weight of a short bond -/
+
+/-- The `k`-th coordinate of `r_k i - m` on the torus, as a residue modulo `2N`. -/
+lemma val_torusReflAt_sub_cast_apply_self (i : Fin d → ZMod (2 * N)) (m : Fin d → ℤ) :
+    (((torusReflAt N k i - fun c ↦ ((m c : ℤ) : ZMod (2 * N))) k).val : ℤ)
+      = (-1 - ((i k).val : ℤ) - m k) % (2 * N : ℤ) := by
+  have h : (torusReflAt N k i - fun c ↦ ((m c : ℤ) : ZMod (2 * N))) k
+      = ((-1 - ((i k).val : ℤ) - m k : ℤ) : ZMod (2 * N)) := by
+    simp only [Pi.sub_apply, torusReflAt_apply_self]
+    push_cast
+    rw [ZMod.natCast_zmod_val]
+  rw [h, ZMod.val_intCast]
+  push_cast
+  rfl
+
+/-- **A bond with `m_k = 0` never crosses the plane of `r_k`.** -/
+lemma torusReflAt_sub_cast_notMem_of_eq_zero {i : Fin d → ZMod (2 * N)} (hi : (i k).val < N)
+    {m : Fin d → ℤ} (hm : m k = 0) :
+    torusReflAt N k i - (fun c ↦ ((m c : ℤ) : ZMod (2 * N))) ∉ torusPosAtFinset N k := by
+  rw [mem_torusPosAtFinset, not_lt]
+  have h := val_torusReflAt_sub_cast_apply_self (k := k) i m
+  rw [hm, sub_zero] at h
+  have hN : (0 : ℤ) < N := by exact_mod_cast Nat.pos_of_ne_zero (NeZero.ne N)
+  have ha : ((i k).val : ℤ) < N := by exact_mod_cast hi
+  have ha0 : (0 : ℤ) ≤ ((i k).val : ℤ) := Int.natCast_nonneg _
+  have hmod : (-1 - ((i k).val : ℤ)) % (2 * N : ℤ) = -1 - ((i k).val : ℤ) + 2 * N := by
+    rw [← Int.add_mul_emod_self_left (a := -1 - ((i k).val : ℤ)) (b := (2 * N : ℤ)) (c := 1),
+      mul_one]
+    exact Int.emod_eq_of_lt (by linarith) (by linarith)
+  have : (N : ℤ) ≤ (((torusReflAt N k i - fun c ↦ ((m c : ℤ) : ZMod (2 * N))) k).val : ℤ) := by
+    rw [h, hmod]; linarith
+  exact_mod_cast this
+
+/-- **A bond with `m_k = 1` crosses the plane of `r_k` from `i ∈ Λ_{+,k}` iff `i_k = N - 1`.** -/
+lemma torusReflAt_sub_cast_mem_iff_of_eq_one {i : Fin d → ZMod (2 * N)} (hi : (i k).val < N)
+    {m : Fin d → ℤ} (hm : m k = 1) :
+    torusReflAt N k i - (fun c ↦ ((m c : ℤ) : ZMod (2 * N))) ∈ torusPosAtFinset N k
+      ↔ (i k).val = N - 1 := by
+  rw [mem_torusPosAtFinset]
+  have h := val_torusReflAt_sub_cast_apply_self (k := k) i m
+  rw [hm] at h
+  have hN : (0 : ℤ) < N := by exact_mod_cast Nat.pos_of_ne_zero (NeZero.ne N)
+  have ha : ((i k).val : ℤ) < N := by exact_mod_cast hi
+  have ha0 : (0 : ℤ) ≤ ((i k).val : ℤ) := Int.natCast_nonneg _
+  have hmod : (-1 - ((i k).val : ℤ) - 1) % (2 * N : ℤ) = -1 - ((i k).val : ℤ) - 1 + 2 * N := by
+    rw [← Int.add_mul_emod_self_left (a := -1 - ((i k).val : ℤ) - 1) (b := (2 * N : ℤ)) (c := 1),
+      mul_one]
+    exact Int.emod_eq_of_lt (by linarith) (by linarith)
+  constructor
+  · intro hlt
+    have : (((torusReflAt N k i - fun c ↦ ((m c : ℤ) : ZMod (2 * N))) k).val : ℤ) < N := by
+      exact_mod_cast hlt
+    rw [h, hmod] at this
+    omega
+  · intro heq
+    have : (((torusReflAt N k i - fun c ↦ ((m c : ℤ) : ZMod (2 * N))) k).val : ℤ) < N := by
+      rw [h, hmod]; omega
+    exact_mod_cast this
+
+/-- **A bond with `m_k = -1` crosses the plane of `r_k` from `i ∈ Λ_{+,k}` iff `i_k = 0`.** -/
+lemma torusReflAt_sub_cast_mem_iff_of_eq_neg_one {i : Fin d → ZMod (2 * N)}
+    (hi : (i k).val < N) {m : Fin d → ℤ} (hm : m k = -1) :
+    torusReflAt N k i - (fun c ↦ ((m c : ℤ) : ZMod (2 * N))) ∈ torusPosAtFinset N k
+      ↔ (i k).val = 0 := by
+  rw [mem_torusPosAtFinset]
+  have h := val_torusReflAt_sub_cast_apply_self (k := k) i m
+  rw [hm, show (-1 - ((i k).val : ℤ) - (-1)) = -((i k).val : ℤ) by ring] at h
+  have hN : (0 : ℤ) < N := by exact_mod_cast Nat.pos_of_ne_zero (NeZero.ne N)
+  have ha : ((i k).val : ℤ) < N := by exact_mod_cast hi
+  have ha0 : (0 : ℤ) ≤ ((i k).val : ℤ) := Int.natCast_nonneg _
+  by_cases hz : (i k).val = 0
+  · have h0 : (((torusReflAt N k i - fun c ↦ ((m c : ℤ) : ZMod (2 * N))) k).val : ℤ) = 0 := by
+      rw [h, hz]; simp
+    have : ((torusReflAt N k i - fun c ↦ ((m c : ℤ) : ZMod (2 * N))) k).val = 0 := by
+      exact_mod_cast h0
+    rw [this]
+    exact ⟨fun _ ↦ hz, fun _ ↦ Nat.pos_of_ne_zero (NeZero.ne N)⟩
+  · have hz' : (1 : ℤ) ≤ ((i k).val : ℤ) := by
+      have : 0 < (i k).val := Nat.pos_of_ne_zero hz
+      exact_mod_cast this
+    have hmod : (-((i k).val : ℤ)) % (2 * N : ℤ) = -((i k).val : ℤ) + 2 * N := by
+      rw [← Int.add_mul_emod_self_left (a := -((i k).val : ℤ)) (b := (2 * N : ℤ)) (c := 1),
+        mul_one]
+      exact Int.emod_eq_of_lt (by linarith) (by linarith)
+    constructor
+    · intro hlt
+      have : (((torusReflAt N k i - fun c ↦ ((m c : ℤ) : ZMod (2 * N))) k).val : ℤ) < N := by
+        exact_mod_cast hlt
+      rw [h, hmod] at this
+      omega
+    · intro heq
+      exact absurd heq hz
+
+/-- `z.val + (z - t).val ≡ t (mod 2)` in `ℤ/2N`: the parity of a residue and of its translate by
+`t` differ by the parity of `t`, because `2N` is even. -/
+lemma even_val_add_val_sub_intCast_iff (z : ZMod (2 * N)) (t : ℤ) :
+    Even (z.val + (z - (t : ZMod (2 * N))).val) ↔ Even t := by
+  have h : (((z - (t : ZMod (2 * N))).val : ℕ) : ℤ) = ((z.val : ℤ) - t) % (2 * N : ℤ) := by
+    have : z - (t : ZMod (2 * N)) = (((z.val : ℤ) - t : ℤ) : ZMod (2 * N)) := by
+      push_cast
+      rw [ZMod.natCast_zmod_val]
+    rw [this, ZMod.val_intCast]
+    push_cast
+    rfl
+  have h2 : (((z.val : ℤ) - t) % (2 * N : ℤ)) % 2 = ((z.val : ℤ) - t) % 2 :=
+    Int.emod_emod_of_dvd _ ⟨N, rfl⟩
+  rw [← Int.even_coe_nat, Int.even_iff, Int.even_iff]
+  push_cast
+  rw [h]
+  omega
+
+/-- For `x = ±1`, `x ^ a = x ^ b` as soon as `a` and `b` have the same parity. -/
+lemma pow_eq_pow_of_even_iff {x : ℝ} (hx : x = 1 ∨ x = -1) {a b : ℕ}
+    (h : Even a ↔ Even b) : x ^ a = x ^ b := by
+  rcases hx with rfl | rfl
+  · simp
+  · rcases Nat.even_or_odd a with ha | ha
+    · rw [ha.neg_one_pow, (h.1 ha).neg_one_pow]
+    · have hb : Odd b := by
+        rcases Nat.even_or_odd b with hb | hb
+        · exact absurd (h.2 hb) (Nat.not_even_iff_odd.2 ha)
+        · exact hb
+      rw [ha.neg_one_pow, hb.neg_one_pow]
+
+variable (N k) in
+/-- **The `±1` patterns of Examples (17.30)–(17.31).**  For signs `χ_c ∈ {1, -1}` in the
+directions `c ≠ k` transverse to the reflection, the configuration `i ↦ ∏_{c ≠ k} χ_c^{i_c}` of
+the torus: constant along `k`, and alternating along each direction `c` with `χ_c = -1`.  With
+`χ = 1` it is the constant pattern of Georgii's test function `f`; with `χ = -1` it is the pattern
+which his second test function `f̃` in Example (17.31) must be read to carry. -/
+def transversePattern (χ : Fin d → ℝ) (i : Fin d → ZMod (2 * N)) : ℝ :=
+  ∏ c ∈ Finset.univ.erase k, χ c ^ (i c).val
+
+omit [NeZero N] in
+lemma transversePattern_eq_one_or {χ : Fin d → ℝ} (hχ : ∀ c, χ c = 1 ∨ χ c = -1)
+    (i : Fin d → ZMod (2 * N)) :
+    transversePattern N k χ i = 1 ∨ transversePattern N k χ i = -1 := by
+  refine Finset.prod_induction _ (fun x ↦ x = 1 ∨ x = -1) ?_ (Or.inl rfl) fun c _ ↦ ?_
+  · rintro a b (rfl | rfl) (rfl | rfl) <;> norm_num
+  · rcases hχ c with h | h
+    · rw [h, one_pow]; exact Or.inl rfl
+    · rw [h]; exact neg_one_pow_eq_or ℝ _
+
+omit [NeZero N] in
+@[simp] lemma transversePattern_one (i : Fin d → ZMod (2 * N)) :
+    transversePattern N k (fun _ ↦ (1 : ℝ)) i = 1 := by
+  simp [transversePattern]
+
+/-- **The product of the pattern at the two ends of a bond depends only on the bond.**  For the
+pattern `q_χ`, `q_χ(i) q_χ(r_k i - m) = ∏_{c ≠ k} χ_c^{|m_c|}`: along each transverse direction
+the two ends differ by `m_c`, and only its parity matters. -/
+lemma transversePattern_mul_transversePattern_sub {χ : Fin d → ℝ}
+    (hχ : ∀ c, χ c = 1 ∨ χ c = -1) (i : Fin d → ZMod (2 * N)) (m : Fin d → ℤ) :
+    transversePattern N k χ i
+        * transversePattern N k χ (torusReflAt N k i - fun c ↦ ((m c : ℤ) : ZMod (2 * N)))
+      = ∏ c ∈ Finset.univ.erase k, χ c ^ (m c).natAbs := by
+  rw [transversePattern, transversePattern, ← Finset.prod_mul_distrib]
+  refine Finset.prod_congr rfl fun c hc ↦ ?_
+  have hck : c ≠ k := Finset.ne_of_mem_erase hc
+  rw [← pow_add, Pi.sub_apply, torusReflAt_apply_of_ne hck]
+  exact pow_eq_pow_of_even_iff (hχ c)
+    ((even_val_add_val_sub_intCast_iff (i c) (m c)).trans Int.natAbs_even.symm)
+
+lemma crossingWeight_of_apply_eq_zero (q : (Fin d → ZMod (2 * N)) → ℝ) {m : Fin d → ℤ}
+    (hm : m k = 0) : crossingWeight N k q m = 0 :=
+  Finset.sum_eq_zero fun _ hi ↦
+    ite_eq_right (torusReflAt_sub_cast_notMem_of_eq_zero (mem_torusPosAtFinset.1 hi) hm)
+
+/-- **The crossing weight of a bond with `m_k = ±1` under a `±1` pattern.**  Such a bond crosses
+the plane of `r_k` exactly once from each of the `(2N)^{d-1}` sites of one layer, and each crossing
+carries the sign `∏_{c ≠ k} χ_c^{|m_c|}`. -/
+theorem crossingWeight_transversePattern {χ : Fin d → ℝ} (hχ : ∀ c, χ c = 1 ∨ χ c = -1)
+    {m : Fin d → ℤ} (hm : m k = 1 ∨ m k = -1) :
+    crossingWeight N k (transversePattern N k χ) m
+      = (((2 * N) ^ (d - 1) : ℕ) : ℝ) * ∏ c ∈ Finset.univ.erase k, χ c ^ (m c).natAbs := by
+  classical
+  have hN : 0 < N := Nat.pos_of_ne_zero (NeZero.ne N)
+  set K := ∏ c ∈ Finset.univ.erase k, χ c ^ (m c).natAbs with hK
+  obtain ⟨v, hv, hcond⟩ : ∃ v : ℕ, v < N ∧ ∀ i : Fin d → ZMod (2 * N), (i k).val < N →
+      (torusReflAt N k i - (fun c ↦ ((m c : ℤ) : ZMod (2 * N))) ∈ torusPosAtFinset N k
+        ↔ (i k).val = v) := by
+    rcases hm with hm | hm
+    · exact ⟨N - 1, by omega, fun i hi ↦ torusReflAt_sub_cast_mem_iff_of_eq_one hi hm⟩
+    · exact ⟨0, hN, fun i hi ↦ torusReflAt_sub_cast_mem_iff_of_eq_neg_one hi hm⟩
+  calc crossingWeight N k (transversePattern N k χ) m
+      = ∑ i ∈ torusPosAtFinset N k, if (i k).val = v then K else 0 := by
+        rw [crossingWeight]
+        refine Finset.sum_congr rfl fun i hi ↦ ?_
+        rw [transversePattern_mul_transversePattern_sub hχ]
+        exact if_congr (hcond i (mem_torusPosAtFinset.1 hi)) rfl rfl
+    _ = ∑ i : Fin d → ZMod (2 * N), if i k = (v : ZMod (2 * N)) then K else 0 := by
+        rw [torusPosAtFinset, Finset.sum_filter]
+        refine Finset.sum_congr rfl fun i _ ↦ ?_
+        by_cases hiv : (i k).val = v
+        · rw [ite_eq_left (by omega), ite_eq_left hiv,
+            ite_eq_left (by rw [← hiv, ZMod.natCast_zmod_val])]
+        · have : i k ≠ (v : ZMod (2 * N)) := fun h ↦
+            hiv (by rw [h, ZMod.val_natCast_of_lt (by omega)])
+          rw [ite_eq_right this]
+          split_ifs <;> rfl
+    _ = _ := by rw [sum_ite_torus_coord]
+
+/-! ### Georgii, Example (17.31): the crossing form of a next-nearest neighbour coupling -/
+
+/-- A next-nearest neighbour coupling is even. -/
+lemma even_of_nextNearestNeighbour {A B : ℝ}
+    (hJ1 : ∀ m : Fin d → ℤ, (∑ c, m c ^ 2) = 1 → J m = A)
+    (hJ2 : ∀ m : Fin d → ℤ, (∑ c, m c ^ 2) = 2 → J m = B)
+    (hJ0 : ∀ m : Fin d → ℤ, 2 < (∑ c, m c ^ 2) → J m = 0) (m : Fin d → ℤ) : J (-m) = J m := by
+  have hs : ∑ c, (-m) c ^ 2 = ∑ c, m c ^ 2 := Finset.sum_congr rfl fun c _ ↦ by simp
+  rcases lt_trichotomy (∑ c, m c ^ 2) 2 with h | h | h
+  · rcases Nat.lt_or_ge 1 (∑ c, m c ^ 2).toNat with h1 | h1
+    · omega
+    · have h0 : ∑ c, m c ^ 2 = 0 ∨ ∑ c, m c ^ 2 = 1 := by
+        have hnn : 0 ≤ ∑ c, m c ^ 2 := Finset.sum_nonneg fun c _ ↦ sq_nonneg _
+        omega
+      rcases h0 with h0 | h0
+      · have hm : m = 0 := by
+          funext c
+          have := (Finset.sum_eq_zero_iff_of_nonneg fun c _ ↦ sq_nonneg (m c)).1 h0 c
+            (Finset.mem_univ c)
+          exact pow_eq_zero_iff (n := 2) (by norm_num) |>.1 this
+        rw [hm, neg_zero]
+      · rw [hJ1 _ (hs.trans h0), hJ1 _ h0]
+  · rw [hJ2 _ (hs.trans h), hJ2 _ h]
+  · rw [hJ0 _ (hs ▸ h), hJ0 _ h]
+
+/-- A next-nearest neighbour coupling is invariant under the flip of any coordinate. -/
+lemma flipCoord_eq_of_nextNearestNeighbour {A B : ℝ}
+    (hJ1 : ∀ m : Fin d → ℤ, (∑ c, m c ^ 2) = 1 → J m = A)
+    (hJ2 : ∀ m : Fin d → ℤ, (∑ c, m c ^ 2) = 2 → J m = B)
+    (hJ0 : ∀ m : Fin d → ℤ, 2 < (∑ c, m c ^ 2) → J m = 0) (m : Fin d → ℤ) :
+    J (flipCoord k m) = J m := by
+  have hs : ∑ c, (flipCoord k m) c ^ 2 = ∑ c, m c ^ 2 := by
+    refine Finset.sum_congr rfl fun c _ ↦ ?_
+    by_cases hc : c = k
+    · subst hc; simp [flipCoord]
+    · simp [flipCoord, hc]
+  rcases lt_trichotomy (∑ c, m c ^ 2) 2 with h | h | h
+  · have hnn : 0 ≤ ∑ c, m c ^ 2 := Finset.sum_nonneg fun c _ ↦ sq_nonneg _
+    have h0 : ∑ c, m c ^ 2 = 0 ∨ ∑ c, m c ^ 2 = 1 := by omega
+    rcases h0 with h0 | h0
+    · have hm : m = 0 := by
+        funext c
+        have := (Finset.sum_eq_zero_iff_of_nonneg fun c _ ↦ sq_nonneg (m c)).1 h0 c
+          (Finset.mem_univ c)
+        exact pow_eq_zero_iff (n := 2) (by norm_num) |>.1 this
+      have : flipCoord k m = m := by
+        rw [hm]; funext c; by_cases hc : c = k
+        · subst hc; simp [flipCoord]
+        · simp [flipCoord, hc]
+      rw [this]
+    · rw [hJ1 _ (hs.trans h0), hJ1 _ h0]
+  · rw [hJ2 _ (hs.trans h), hJ2 _ h]
+  · rw [hJ0 _ (hs ▸ h), hJ0 _ h]
+
+/-- A next-nearest neighbour coupling is (absolutely) summable: it vanishes off the box
+`{-1, 0, 1}^d`. -/
+lemma summable_of_nextNearestNeighbour
+    (hJ0 : ∀ m : Fin d → ℤ, 2 < (∑ c, m c ^ 2) → J m = 0) : Summable J := by
+  classical
+  refine summable_of_ne_finset_zero (s := Fintype.piFinset fun _ ↦ ({-1, 0, 1} : Finset ℤ))
+    fun m hm ↦ hJ0 m ?_
+  rw [Fintype.mem_piFinset] at hm
+  push Not at hm
+  obtain ⟨c, hc⟩ := hm
+  simp only [Finset.mem_insert, Finset.mem_singleton, not_or] at hc
+  have h4 : 4 ≤ m c ^ 2 := by
+    rcases le_or_gt (m c) (-2) with h | h
+    · nlinarith
+    · have : 2 ≤ m c := by omega
+      nlinarith
+  have hle : m c ^ 2 ≤ ∑ c', m c' ^ 2 :=
+    Finset.single_le_sum (f := fun c' ↦ m c' ^ 2) (fun c' _ ↦ sq_nonneg (m c')) (Finset.mem_univ c)
+  omega
+
+/-- **The sum of squares of an axis bond.** -/
+lemma sum_sq_smul_single (t : ℤ) : ∑ c, (t • (Pi.single k (1 : ℤ) : Fin d → ℤ)) c ^ 2 = t ^ 2 := by
+  classical
+  rw [Finset.sum_eq_single k (fun c _ hc ↦ by simp [Pi.single_eq_of_ne hc])
+    (fun h ↦ absurd (Finset.mem_univ k) h)]
+  simp
+
+/-- **The sum of squares of a diagonal bond.** -/
+lemma sum_sq_smul_single_add_smul_single {c : Fin d} (hck : c ≠ k) (s t : ℤ) :
+    ∑ c', (s • (Pi.single k (1 : ℤ) : Fin d → ℤ) + t • (Pi.single c (1 : ℤ) : Fin d → ℤ)) c' ^ 2
+      = s ^ 2 + t ^ 2 := by
+  classical
+  rw [Finset.sum_eq_add k c (Ne.symm hck)
+    (fun c' _ hc' ↦ by simp [Pi.single_eq_of_ne hc'.1, Pi.single_eq_of_ne hc'.2])
+    (fun h ↦ absurd (Finset.mem_univ k) h) (fun h ↦ absurd (Finset.mem_univ c) h)]
+  simp [Pi.single_eq_of_ne hck, Pi.single_eq_of_ne (Ne.symm hck)]
+
+/-- **Georgii, Example (17.31): the crossing form of a next-nearest neighbour coupling, as a sum
+over bonds.**  For the pattern `q_χ`,
+
+`∑_m J(m) w_{q_χ}(m) = 2 (2N)^{d-1} (A + 2B ∑_{c ≠ k} χ_c)`.
+
+Only the bonds with `m_k = ±1` cross the plane of `r_k` (`crossingWeight_of_apply_eq_zero`), and
+among those only `±e_k` (weight `A`, sign `+1`) and `±e_k ± e_c`, `c ≠ k` (weight `B`, sign
+`χ_c`) carry a nonzero coupling. -/
+theorem tsum_mul_crossingWeight_transversePattern_nextNearestNeighbour {A B : ℝ}
+    (hJ1 : ∀ m : Fin d → ℤ, (∑ c, m c ^ 2) = 1 → J m = A)
+    (hJ2 : ∀ m : Fin d → ℤ, (∑ c, m c ^ 2) = 2 → J m = B)
+    (hJ0 : ∀ m : Fin d → ℤ, 2 < (∑ c, m c ^ 2) → J m = 0)
+    {χ : Fin d → ℝ} (hχ : ∀ c, χ c = 1 ∨ χ c = -1) :
+    ∑' m : Fin d → ℤ, J m * crossingWeight N k (transversePattern N k χ) m
+      = 2 * (((2 * N) ^ (d - 1) : ℕ) : ℝ) * (A + 2 * B * ∑ c ∈ Finset.univ.erase k, χ c) := by
+  classical
+  set q := transversePattern N k χ with hq
+  set e : Fin d → (Fin d → ℤ) := fun c ↦ Pi.single c (1 : ℤ) with he
+  set F₁ : Finset (Fin d → ℤ) := ({1, -1} : Finset ℤ).image (fun t ↦ t • e k) with hF₁
+  set F₂ : Finset (Fin d → ℤ) :=
+    ((({1, -1} : Finset ℤ) ×ˢ ({1, -1} : Finset ℤ)) ×ˢ Finset.univ.erase k).image
+      (fun p ↦ p.1.1 • e k + p.1.2 • e p.2) with hF₂
+  have hsq : ∀ m : Fin d → ℤ, ∀ c, 0 ≤ m c ^ 2 := fun m c ↦ sq_nonneg _
+  -- the values of `J` and of the crossing weight on the two kinds of bonds
+  have hJA : ∀ t : ℤ, t = 1 ∨ t = -1 → J (t • e k) = A := by
+    intro t ht
+    refine hJ1 _ ?_
+    rw [he, sum_sq_smul_single]
+    rcases ht with rfl | rfl <;> norm_num
+  have hJB : ∀ (s t : ℤ) (c : Fin d), s = 1 ∨ s = -1 → t = 1 ∨ t = -1 → c ≠ k →
+      J (s • e k + t • e c) = B := by
+    intro s t c hs ht hck
+    refine hJ2 _ ?_
+    rw [he, sum_sq_smul_single_add_smul_single hck]
+    rcases hs with rfl | rfl <;> rcases ht with rfl | rfl <;> norm_num
+  have hwA : ∀ t : ℤ, t = 1 ∨ t = -1 →
+      crossingWeight N k q (t • e k) = (((2 * N) ^ (d - 1) : ℕ) : ℝ) := by
+    intro t ht
+    rw [hq, crossingWeight_transversePattern hχ (by simpa [he] using ht)]
+    rw [Finset.prod_eq_one fun c hc ↦ ?_, mul_one]
+    simp [he, Pi.single_eq_of_ne (Finset.ne_of_mem_erase hc)]
+  have hwB : ∀ (s t : ℤ) (c : Fin d), s = 1 ∨ s = -1 → t = 1 ∨ t = -1 → c ≠ k →
+      crossingWeight N k q (s • e k + t • e c) = (((2 * N) ^ (d - 1) : ℕ) : ℝ) * χ c := by
+    intro s t c hs ht hck
+    rw [hq, crossingWeight_transversePattern hχ
+      (by simpa [he, Pi.single_eq_of_ne (Ne.symm hck)] using hs)]
+    congr 1
+    rw [Finset.prod_eq_single c (fun c' hc' hne ↦ ?_) (fun h ↦ absurd
+      (Finset.mem_erase.2 ⟨hck, Finset.mem_univ c⟩) h)]
+    · have : (s • e k + t • e c) c = t := by
+        simp [he, Pi.single_eq_of_ne hck]
+      rw [this]
+      rcases ht with rfl | rfl <;> simp
+    · simp [he, Pi.single_eq_of_ne (Finset.ne_of_mem_erase hc'), Pi.single_eq_of_ne hne]
+  -- the support of the summand
+  have hsupp : ∀ m ∉ F₁ ∪ F₂, J m * crossingWeight N k q m = 0 := by
+    intro m hm
+    by_contra hne
+    have hJm : J m ≠ 0 := fun h ↦ hne (by rw [h, zero_mul])
+    have hcw : crossingWeight N k q m ≠ 0 := fun h ↦ hne (by rw [h, mul_zero])
+    have hle : ∑ c, m c ^ 2 ≤ 2 := by
+      by_contra h
+      exact hJm (hJ0 m (not_le.1 h))
+    have hmk : m k ≠ 0 := fun h ↦ hcw (crossingWeight_of_apply_eq_zero q h)
+    have hmk1 : m k = 1 ∨ m k = -1 := by
+      have h1 : m k ^ 2 ≤ 2 :=
+        le_trans (Finset.single_le_sum (f := fun c ↦ m c ^ 2) (fun c _ ↦ hsq m c)
+          (Finset.mem_univ k)) hle
+      have h2 : m k ≤ 1 := by nlinarith
+      have h3 : -1 ≤ m k := by nlinarith
+      omega
+    have hmk2 : m k ^ 2 = 1 := by rcases hmk1 with h | h <;> rw [h] <;> norm_num
+    have hsplit := Finset.add_sum_erase Finset.univ (fun c ↦ m c ^ 2) (Finset.mem_univ k)
+    have htr : ∑ c ∈ Finset.univ.erase k, m c ^ 2 ≤ 1 := by linarith
+    apply hm
+    by_cases hall : ∀ c, c ≠ k → m c = 0
+    · refine Finset.mem_union_left _ (Finset.mem_image.2 ⟨m k, by simpa using hmk1, ?_⟩)
+      funext c
+      by_cases hc : c = k
+      · subst hc; simp [he]
+      · simp [he, Pi.single_eq_of_ne hc, hall c hc]
+    · push Not at hall
+      obtain ⟨c, hck, hc0⟩ := hall
+      have hc1 : m c ^ 2 = 1 := by
+        have h1 : 0 < m c ^ 2 := by positivity
+        have h2 : m c ^ 2 ≤ ∑ c' ∈ Finset.univ.erase k, m c' ^ 2 :=
+          Finset.single_le_sum (f := fun c' ↦ m c' ^ 2) (fun c' _ ↦ hsq m c')
+            (Finset.mem_erase.2 ⟨hck, Finset.mem_univ c⟩)
+        linarith
+      have hmc1 : m c = 1 ∨ m c = -1 := by
+        have h2 : m c ≤ 1 := by nlinarith
+        have h3 : -1 ≤ m c := by nlinarith
+        omega
+      have hrest : ∀ c', c' ≠ k → c' ≠ c → m c' = 0 := by
+        intro c' hc'k hc'c
+        have hsplit' := Finset.add_sum_erase (Finset.univ.erase k) (fun c ↦ m c ^ 2)
+          (Finset.mem_erase.2 ⟨hck, Finset.mem_univ c⟩)
+        have h3 : m c' ^ 2 ≤ ∑ c'' ∈ (Finset.univ.erase k).erase c, m c'' ^ 2 :=
+          Finset.single_le_sum (f := fun c'' ↦ m c'' ^ 2) (fun c'' _ ↦ hsq m c'')
+            (Finset.mem_erase.2 ⟨hc'c, Finset.mem_erase.2 ⟨hc'k, Finset.mem_univ c'⟩⟩)
+        have h4 : m c' ^ 2 ≤ 0 := by linarith
+        nlinarith [sq_nonneg (m c')]
+      refine Finset.mem_union_right _ (Finset.mem_image.2 ⟨((m k, m c), c), ?_, ?_⟩)
+      · simp only [Finset.mem_product, Finset.mem_insert, Finset.mem_singleton, Finset.mem_erase,
+          Finset.mem_univ, and_true]
+        exact ⟨⟨hmk1, hmc1⟩, hck⟩
+      · funext c'
+        by_cases h1 : c' = k
+        · subst h1; simp [he, Pi.single_eq_of_ne (Ne.symm hck)]
+        · by_cases h2 : c' = c
+          · subst h2; simp [he, Pi.single_eq_of_ne h1]
+          · simp [he, Pi.single_eq_of_ne h1, Pi.single_eq_of_ne h2, hrest c' h1 h2]
+  -- the two families of bonds are disjoint and injectively parametrised
+  have hdisj : Disjoint F₁ F₂ := by
+    rw [Finset.disjoint_left]
+    intro m h1 h2
+    obtain ⟨t, -, rfl⟩ := Finset.mem_image.1 h1
+    obtain ⟨p, hp, hpm⟩ := Finset.mem_image.1 h2
+    simp only [Finset.mem_product, Finset.mem_insert, Finset.mem_singleton, Finset.mem_erase,
+      Finset.mem_univ, and_true] at hp
+    have := congrFun hpm p.2
+    simp [he, Pi.single_eq_of_ne hp.2] at this
+    rcases hp.1.2 with h | h <;> rw [h] at this <;> norm_num at this
+  have hinj₁ : Set.InjOn (fun t : ℤ ↦ t • e k) ↑({1, -1} : Finset ℤ) := by
+    intro t _ t' _ h
+    have := congrFun h k
+    simpa [he] using this
+  have hinj₂ : Set.InjOn (fun p : (ℤ × ℤ) × Fin d ↦ p.1.1 • e k + p.1.2 • e p.2)
+      ↑((({1, -1} : Finset ℤ) ×ˢ ({1, -1} : Finset ℤ)) ×ˢ Finset.univ.erase k) := by
+    intro p hp p' hp' h
+    simp only [Finset.coe_product, Set.mem_prod, Finset.mem_coe, Finset.mem_insert,
+      Finset.mem_singleton, Finset.mem_erase, Finset.mem_univ, and_true] at hp hp'
+    have hk := congrFun h k
+    have hc := congrFun h p.2
+    simp only [he, Pi.add_apply, Pi.smul_apply, smul_eq_mul, Pi.single_eq_same,
+      Pi.single_eq_of_ne (Ne.symm hp.2), Pi.single_eq_of_ne (Ne.symm hp'.2), mul_one, mul_zero,
+      add_zero] at hk
+    simp only [he, Pi.add_apply, Pi.smul_apply, smul_eq_mul, Pi.single_eq_same,
+      Pi.single_eq_of_ne hp.2, mul_one, mul_zero, zero_add, Pi.single_apply] at hc
+    have hne : p.1.2 ≠ 0 := by rcases hp.1.2 with h | h <;> rw [h] <;> norm_num
+    by_cases hpp : p.2 = p'.2
+    · rw [ite_eq_left hpp, mul_one] at hc
+      exact Prod.ext (Prod.ext hk hc) hpp
+    · rw [ite_eq_right hpp, mul_zero] at hc
+      exact absurd hc hne
+  -- assemble
+  rw [tsum_eq_sum hsupp, Finset.sum_union hdisj, hF₁, hF₂, Finset.sum_image hinj₁,
+    Finset.sum_image hinj₂, Finset.sum_product, Finset.sum_product]
+  have hpair : ∀ f : ℤ → ℝ, ∑ t ∈ ({1, -1} : Finset ℤ), f t = f 1 + f (-1) := fun f ↦
+    Finset.sum_pair (by norm_num)
+  rw [hpair, hJA 1 (Or.inl rfl), hJA (-1) (Or.inr rfl), hwA 1 (Or.inl rfl),
+    hwA (-1) (Or.inr rfl), hpair, hpair, hpair]
+  have hB : ∀ (s t : ℤ), s = 1 ∨ s = -1 → t = 1 ∨ t = -1 →
+      ∑ c ∈ Finset.univ.erase k, J (s • e k + t • e c) * crossingWeight N k q (s • e k + t • e c)
+        = B * (((2 * N) ^ (d - 1) : ℕ) : ℝ) * ∑ c ∈ Finset.univ.erase k, χ c := by
+    intro s t hs ht
+    rw [Finset.mul_sum]
+    refine Finset.sum_congr rfl fun c hc ↦ ?_
+    rw [hJB s t c hs ht (Finset.ne_of_mem_erase hc), hwB s t c hs ht (Finset.ne_of_mem_erase hc)]
+    ring
+  rw [hB 1 1 (Or.inl rfl) (Or.inl rfl), hB 1 (-1) (Or.inl rfl) (Or.inr rfl),
+    hB (-1) 1 (Or.inr rfl) (Or.inl rfl), hB (-1) (-1) (Or.inr rfl) (Or.inr rfl)]
+  ring
+
+/-- **Georgii, Example (17.31): the crossing form of the `±1` patterns.**  For the next-nearest
+neighbour coupling and the pattern `q_χ = ∏_{c ≠ k} χ_c^{i_c}`,
+
+`⟨q_χ, M q_χ⟩ = 2 (2N)^{d-1} (A + 2B ∑_{c ≠ k} χ_c)`.
+
+With `χ = 1` this is `2(2N)^{d-1}(A + 2(d-1)B)`, and with `χ = -1` it is
+`2(2N)^{d-1}(A - 2(d-1)B)`. -/
+theorem dotProduct_transversePattern_crossingMatrix_nextNearestNeighbour {A B : ℝ}
+    (hJ1 : ∀ m : Fin d → ℤ, (∑ c, m c ^ 2) = 1 → J m = A)
+    (hJ2 : ∀ m : Fin d → ℤ, (∑ c, m c ^ 2) = 2 → J m = B)
+    (hJ0 : ∀ m : Fin d → ℤ, 2 < (∑ c, m c ^ 2) → J m = 0)
+    {χ : Fin d → ℝ} (hχ : ∀ c, χ c = 1 ∨ χ c = -1) :
+    transversePattern N k χ ⬝ᵥ crossingMatrix N J k *ᵥ transversePattern N k χ
+      = 2 * (((2 * N) ^ (d - 1) : ℕ) : ℝ) * (A + 2 * B * ∑ c ∈ Finset.univ.erase k, χ c) := by
+  rw [dotProduct_crossingMatrix_mulVec_eq_tsum (summable_of_nextNearestNeighbour hJ0),
+    tsum_mul_crossingWeight_transversePattern_nextNearestNeighbour hJ1 hJ2 hJ0 hχ]
+
+
+/-- **Georgii, Example (17.31): the value of the reflection form at the `±1` patterns.**  For the
+next-nearest neighbour coupling, the two-point a priori measure and the pattern `q_χ`,
+
+`°Z_Λ^Φ °γ_Λ^Φ(f_χ f_χ^*) = 4 e^{S_χ} sinh[2 (2N)^{d-1} (A + 2B ∑_{c ≠ k} χ_c)]`,
+
+with `S_χ = ∑_{i,j ∈ Λ_{+,k}} J_Λ(i-j) q_χ(i) q_χ(j)`.  Georgii's `f` is `χ = 1`; his `f̃`, read
+with the alternation in the transverse directions, is `χ = -1`. -/
+theorem integral_patternTest_transversePattern_mul_comp_nextNearestNeighbour {A B : ℝ}
+    (hJ1 : ∀ m : Fin d → ℤ, (∑ c, m c ^ 2) = 1 → J m = A)
+    (hJ2 : ∀ m : Fin d → ℤ, (∑ c, m c ^ 2) = 2 → J m = B)
+    (hJ0 : ∀ m : Fin d → ℤ, 2 < (∑ c, m c ^ 2) → J m = 0)
+    {χ : Fin d → ℝ} (hχ : ∀ c, χ c = 1 ∨ χ c = -1) :
+    ∫ ω, patternTest N k (transversePattern N k χ) ω
+          * patternTest N k (transversePattern N k χ) (ω ∘ torusReflAt N k)
+        ∂(heisenbergPeriodicGibbs N 1 J twoPointMeasure)
+      = 4 * Real.exp (∑ i ∈ torusPosAtFinset N k, ∑ j ∈ torusPosAtFinset N k,
+            periodizedCoupling N J (i - j) * transversePattern N k χ i * transversePattern N k χ j)
+        * Real.sinh (2 * (((2 * N) ^ (d - 1) : ℕ) : ℝ)
+            * (A + 2 * B * ∑ c ∈ Finset.univ.erase k, χ c)) := by
+  rw [integral_patternTest_mul_comp_heisenbergPeriodicGibbs (even_of_nextNearestNeighbour hJ1 hJ2 hJ0)
+    (flipCoord_eq_of_nextNearestNeighbour hJ1 hJ2 hJ0) _ (transversePattern_eq_one_or hχ),
+    dotProduct_transversePattern_crossingMatrix_nextNearestNeighbour hJ1 hJ2 hJ0 hχ]
+
+/-- **Georgii, Example (17.31), the necessity half.**  If `A < 2(d-1)|B|` then the Gibbs
+distribution in the torus with periodic boundary condition of the next-nearest neighbour
+Heisenberg potential, for the two-point a priori measure `λ = δ_1 + δ_{-1}`, is *not*
+`r_k`-positive.  Together with `isReflectionPositive_heisenbergPeriodicGibbs_nextNearestNeighbour`
+this makes `A ≥ 2(d-1)|B|` necessary as well as sufficient.
+
+The refuting pattern is Georgii's constant one, `χ = 1`, when `B < 0` (crossing form
+`2(2N)^{d-1}(A + 2(d-1)B) < 0`), and the pattern alternating in every direction transverse to `k`,
+`χ = -1`, when `B ≥ 0` (crossing form `2(2N)^{d-1}(A - 2(d-1)B) < 0`).  The second is what
+Georgii's `f̃` must be read to be; see `integral_patternTest_neg_one_pow_mul_comp` for why the
+alternation along `k` that he prints cannot work. -/
+theorem not_isReflectionPositive_heisenbergPeriodicGibbs_nextNearestNeighbour {A B : ℝ}
+    (hAB : A < 2 * ((d : ℝ) - 1) * |B|)
+    (hJ1 : ∀ m : Fin d → ℤ, (∑ c, m c ^ 2) = 1 → J m = A)
+    (hJ2 : ∀ m : Fin d → ℤ, (∑ c, m c ^ 2) = 2 → J m = B)
+    (hJ0 : ∀ m : Fin d → ℤ, 2 < (∑ c, m c ^ 2) → J m = 0) :
+    ¬ IsReflectionPositive (torusPosAt N k) (siteEquiv (Fin 1 → ℝ) (torusReflAt N k))
+      (heisenbergPeriodicGibbs N 1 J twoPointMeasure) := by
+  have hd0 : 0 < d := k.pos
+  have hcardR : ((Finset.univ.erase k).card : ℝ) = (d : ℝ) - 1 := by
+    rw [Finset.card_erase_of_mem (Finset.mem_univ k), Finset.card_univ, Fintype.card_fin,
+      Nat.cast_sub hd0]
+    simp
+  have hpos : (0 : ℝ) < (((2 * N) ^ (d - 1) : ℕ) : ℝ) := by
+    have : 0 < (2 * N) ^ (d - 1) := Nat.pow_pos (by have := NeZero.ne N; omega)
+    exact_mod_cast this
+  obtain ⟨χ, hχ, hneg⟩ : ∃ χ : Fin d → ℝ, (∀ c, χ c = 1 ∨ χ c = -1) ∧
+      A + 2 * B * ∑ c ∈ Finset.univ.erase k, χ c < 0 := by
+    rcases le_or_gt 0 B with hB | hB
+    · refine ⟨fun _ ↦ -1, fun _ ↦ Or.inr rfl, ?_⟩
+      rw [Finset.sum_const, nsmul_eq_mul, hcardR, abs_of_nonneg hB] at *
+      linarith
+    · refine ⟨fun _ ↦ 1, fun _ ↦ Or.inl rfl, ?_⟩
+      rw [Finset.sum_const, nsmul_eq_mul, hcardR, abs_of_neg hB] at *
+      linarith
+  refine not_isReflectionPositive_heisenbergPeriodicGibbs_of_crossing_neg
+    (even_of_nextNearestNeighbour hJ1 hJ2 hJ0) (flipCoord_eq_of_nextNearestNeighbour hJ1 hJ2 hJ0)
+    (transversePattern N k χ) (transversePattern_eq_one_or hχ) ?_
+  rw [dotProduct_transversePattern_crossingMatrix_nextNearestNeighbour hJ1 hJ2 hJ0 hχ]
+  exact mul_neg_of_pos_of_neg (by positivity) hneg
 
 end Heisenberg
 

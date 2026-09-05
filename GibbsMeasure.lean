@@ -121,10 +121,14 @@ public import GibbsMeasure.Mathlib.Analysis.Convex.TangentFunctional
 public import GibbsMeasure.Mathlib.Analysis.Fourier.AddCircleMultiHerglotz
 public import GibbsMeasure.Mathlib.Analysis.Fourier.AddCircleMultiMeasure
 public import GibbsMeasure.Mathlib.Analysis.Fourier.AddCircleMultiSeries
+public import GibbsMeasure.Mathlib.Analysis.PSeries.Euclidean
+public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.ExpNegAbs
+public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.ImproperIntegrals
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.OneSubPow
 public import GibbsMeasure.Mathlib.Data.ENNReal.DivRatio
 public import GibbsMeasure.Mathlib.Data.ENNReal.OfReal
 public import GibbsMeasure.Mathlib.Data.ENNReal.Pow
+public import GibbsMeasure.Mathlib.Data.Fintype.Fiber
 public import GibbsMeasure.Mathlib.Topology.Compactness.SigmaCompact
 public import GibbsMeasure.Mathlib.Topology.Metrizable.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ProbabilityMeasure
