@@ -384,6 +384,14 @@ status:
       file: "GibbsMeasure/Model/SpitzerBrokenInvariance.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.specificEntropy_tileAverage"
+      file: "GibbsMeasure/Specification/BlockEntropy.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "InformationTheory.klDiv_pi"
+      file: "GibbsMeasure/Mathlib/InformationTheory/KullbackLeibler/Pi.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.Shlosman.dgSpecification_abs_excess_le"
       file: "GibbsMeasure/Model/RandomStaircase.lean"
       sorry_count: 0
@@ -1403,11 +1411,13 @@ alignment:
         so the model-free Fenchel-Moreau statement for a rate function is built in
         Mathlib/Probability/LargeDeviations/Legendre.lean (itstrue home is Mathlib/Analysis/Convex).
         Not formalized: (15.45)-(15.47). The Shannon-McMillan input is in place for a finite
-        state space (Specification/ShannonMcMillan.lean); still missing, in neither tree:
-        additivity of the relative entropy over independent blocks (klDiv of product measures),
-        the existence of the entropy density for a measure invariant under a sublattice only,
-        the |C|-ary affinity of (15.14) for the shifted block mixture, which together give
-        Proposition (15.52); for Step 3 of (15.46), the Choquet barycentre representation is
+        state space (Specification/ShannonMcMillan.lean, with Georgii's f_Lambda as the
+        Radon-Nikodym derivative of mu restricted to F_Lambda against the uniform product), and
+        Proposition (15.52) is proved (Specification/BlockEntropy.lean: the relative entropy of a
+        product of probability measures is the sum, Mathlib/InformationTheory/KullbackLeibler/
+        Pi.lean, the tile sandwich, and the |Lambda|-ary form of (15.14)), so every shift-invariant
+        mu is a local limit of ergodic mu_n with k(mu_n) -> k(mu), for centred cubes of odd side
+        where Georgii's have even side; for Step 3 of (15.46), the Choquet barycentre representation is
         now in Mathlib/Analysis/Convex/Barycenter.lean (Phelps Prop. 1.2: a point of the closed
         convex hull of a closed subset of a compact convex set is the barycentre of a probability
         measure carried by that subset, no metrizability), and still missing are Lemma 9.7 (an

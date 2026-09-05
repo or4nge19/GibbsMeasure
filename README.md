@@ -512,10 +512,15 @@ abelian group along any Følner net, with the `ℤ^d` cube case in `ShannonMcMil
 identified with the specific entropy of §15.2 (`𝓀(μ) = h − log|E|`, no ergodicity) in
 `Specification/ShannonMcMillan.lean`, which also has Georgii's displayed form of the theorem for a
 finite state space. The Choquet barycentre representation (Phelps Prop. 1.2) is in
-`GibbsMeasure/Mathlib/Analysis/Convex/Barycenter.lean`, without metrizability. Still open, and
-listed precisely in `formalization.yaml`: the three inputs of Proposition (15.52), Phelps' Lemma
-9.7 with the locally convex space of measures in which `𝓟_Θ` is compact convex, and a density form
-of Shannon–McMillan for standard Borel `E`; hence (15.45)–(15.48).
+`GibbsMeasure/Mathlib/Analysis/Convex/Barycenter.lean`, without metrizability. **Proposition
+(15.52)** is proved in `Specification/BlockEntropy.lean`: the entropy density of the randomly
+shifted independent-block measure is `|Λ|⁻¹𝓗_Λ(γ)`, from the additivity of the relative entropy
+over a product of probability measures (`GibbsMeasure/Mathlib/InformationTheory/KullbackLeibler/Pi.lean`,
+absent from Mathlib), a tile sandwich and the `|Λ|`-ary form of (15.14); so every shift-invariant
+field is a local limit of ergodic ones with converging entropy density. Still open, and listed
+precisely in `formalization.yaml`: Phelps' Lemma 9.7 with the locally convex space of measures in
+which `𝓟_Θ` is compact convex, and a density form of Shannon–McMillan for standard Borel `E`;
+hence (15.45)–(15.48).
 
 **Chapter 17** (`GibbsMeasure/Specification/ReflectionPositivity.lean`,
 `Specification/PeriodicGibbs.lean`): reflection positivity for Georgii's generalised reflection,

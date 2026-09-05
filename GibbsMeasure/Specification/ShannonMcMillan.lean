@@ -43,6 +43,13 @@ counting-measure convention hides.
   with respect to the a priori product measure,
   `μ(| |Λ_n|⁻¹ log f_{Λ_n} + 𝓀(μ)|) → 0`.
 
+* `tendsto_integral_abs_inv_card_mul_log_rnDeriv_add_specificEntropy`, the same statement written
+  with the Radon–Nikodym density itself: `|E|^{|Λ|} μ(σ_Λ = σ_Λ(·))` *is* a version of
+  `dμ|𝓕_Λ / dλ^S|𝓕_Λ`, by
+  `MeasureTheory.GibbsMeasure.rnDeriv_trim_cylinderEvents_uniformOn_ae_eq`
+  (`GibbsMeasure/Specification/SpecificEntropy.lean`), so Georgii's display
+  `μ(| |Λ_n|⁻¹ log f_{Λ_n} + 𝓀(μ)|) → 0` is present verbatim.
+
 Georgii cites Krengel, *Ergodic Theorems*, Theorem 9.2.4 for the last statement.
 -/
 
@@ -362,6 +369,33 @@ theorem tendsto_integral_abs_inv_card_mul_log_density_add_specificEntropy
   refine abs_eq_abs.2 (Or.inr ?_)
   field_simp
   ring
+
+/-- **The theorem of McMillan in Georgii's form, written with the density itself.** The quantity
+`|E|^{|Λ|} μ(σ_Λ = σ_Λ(ω))` appearing in
+`tendsto_integral_abs_inv_card_mul_log_density_add_specificEntropy` *is* Georgii's `f_Λ`, the
+Radon–Nikodym density of the restriction of `μ` to `𝓕_Λ` with respect to the restriction of the
+a priori product measure `λ^S = ⨂ (uniform on E)`
+(`MeasureTheory.GibbsMeasure.rnDeriv_trim_cylinderEvents_uniformOn_ae_eq`,
+`GibbsMeasure/Specification/SpecificEntropy.lean`). This is Georgii's display
+`μ(| |Λ_n|⁻¹ log f_{Λ_n} + 𝓀(μ) |) → 0` verbatim. -/
+theorem tendsto_integral_abs_inv_card_mul_log_rnDeriv_add_specificEntropy
+    [Fintype E] [Nonempty E] (hμ : μ ∈ invariantFields (shiftGroup (ι → ℤ) E))
+    (herg : ∀ A, MeasurableSet[invariantEvents (shiftGroup (ι → ℤ) E)] A → μ A = 0 ∨ μ A = 1)
+    (a : ℕ → ι → ℤ) {p : ℕ → ℕ} (hp : Tendsto p atTop atTop) :
+    Tendsto (fun n ↦ ∫ ω,
+      |(#(Finset.Icc (a n) fun k ↦ a n k + (p n : ℤ)) : ℝ)⁻¹
+          * log (((μ.trim (cylinderEvents_le_pi (X := fun _ : ι → ℤ ↦ E)
+                (Δ := ((Finset.Icc (a n) fun k ↦ a n k + (p n : ℤ)) : Set (ι → ℤ))))).rnDeriv
+              ((Measure.infinitePi fun _ : ι → ℤ ↦ uniformOn (Set.univ : Set E)).trim
+                cylinderEvents_le_pi) ω).toReal)
+        + (specificEntropy (uniformOn Set.univ) μ).toReal| ∂μ) atTop (𝓝 0) := by
+  have hprob : IsProbabilityMeasure μ := (mem_invariantFields_shiftGroup.1 hμ).1
+  refine (tendsto_integral_abs_inv_card_mul_log_density_add_specificEntropy hμ herg a hp).congr
+    fun n ↦ ?_
+  refine integral_congr_ae ?_
+  filter_upwards [rnDeriv_trim_cylinderEvents_uniformOn_ae_eq μ
+    (Finset.Icc (a n) fun k ↦ a n k + (p n : ℤ))] with ω hω
+  rw [hω, ENNReal.toReal_mul, ENNReal.toReal_pow, ENNReal.toReal_natCast, ← measureReal_def]
 
 end McMillan
 

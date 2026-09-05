@@ -45,18 +45,29 @@ vanishes. Both are stated abstractly and the box on `ℤ^d` is an instance:
   `Subgroup.IsComplement.equiv`).
 * `tilingEquiv hCH : (H → C → E) ≃ᵐ (S → E)` glues a family of tile configurations, indexed by
   `H`, into a configuration: `(tilingEquiv ζ) (c + h) = ζ h c`.
-* `tileProduct hCH μ`, Georgii's `μ_n`, is the image under `tilingEquiv` of the product
-  `Measure.infinitePi (fun _ : H ↦ μ.map C.restrict)` of copies of the `C`-marginal of `μ`. Its
-  tail-triviality (`tileProduct_mem_trivialOn_tail`) is Kolmogorov's 0–1 law for that product
-  (`forall_tail_measure_eq_zero_or_one_infinitePi`), transported along `tilingEquiv`, which is
-  measurable from the tail σ-algebra of `H → C → E` to that of `S → E`
+* `tileProduct hCH γ` is the image under `tilingEquiv` of the product
+  `Measure.infinitePi (fun _ : H ↦ γ)` of copies of a law `γ` on the tile `C`: the configurations
+  in the disjoint blocks `C + h` are independent with distribution `γ`. Georgii's `μ_n` is
+  `tileProduct hCH (μ.map C.restrict)`, and Georgii's `γ̂` of (15.52) is `tileProduct hCH γ` for
+  an arbitrary block law. Its tail-triviality (`tileProduct_mem_trivialOn_tail`) is Kolmogorov's
+  0–1 law for that product (`forall_tail_measure_eq_zero_or_one_infinitePi`), transported along
+  `tilingEquiv`, which is measurable from the tail σ-algebra of `H → C → E` to that of `S → E`
   (`measurable_tilingEquiv_tail`).
-* `tileAverage hCH μ`, Georgii's `v_n`, is `uniformAverage` of `j ↦ θ_j(μ_n)` over `C`.
+* `tileAverage hCH γ`, Georgii's `v_n` (and his `γ̃` of (15.52)), is `uniformAverage` of
+  `j ↦ θ_j(tileProduct hCH γ)` over `C`; `tileAveragePM hCH μ` is the bundled `v_n` of a random
+  field `μ`, i.e. `tileAverage hCH (μ.map C.restrict)`.
+* `IsTileUnion hCH Δ` says that the finite volume `Δ` is a union `⋃_{h ∈ K} (C + h)` of tiles;
+  `tileIdxImage hCH Δ` is `K`, `card_of_isTileUnion` gives `|Δ| = |K| |C|`, and `blockEquiv`
+  reads a configuration on `Δ` block by block, as a family indexed by `K` of configurations on
+  `C`. This is what Georgii's Proposition (15.52) consumes
+  (`GibbsMeasure/Specification/BlockEntropy.lean`).
 
 ## Main results
 
-* `tileAverage_mem_extremePoints_invariantFields` — for a tiling `(C, H)` and `μ ∈ 𝓟_Θ`, the
-  averaged tile product `v` is an extreme (= ergodic, (14.5)(a)) shift-invariant random field.
+* `tileAverage_mem_extremePoints_invariantFields` — for a tiling `(C, H)` and *any* law `γ` on the
+  tile, the averaged tile product is an extreme (= ergodic, (14.5)(a)) shift-invariant random
+  field. Georgii states this for `γ = σ_C(μ)` with `μ ∈ 𝓟_Θ`; shift invariance of `μ` is not used
+  (the averaging alone makes `v` invariant), so the hypothesis is dropped.
 * `tendsto_tileAverage` — along a sequence of tilings `(Cₙ, Hₙ)` satisfying the Følner-type
   condition `|{j ∈ Cₙ : δ - j ∉ Cₙ}| / |Cₙ| → 0` for every `δ`, `vₙ → μ` locally.
 * `exists_tendsto_extremePoints_invariantFields_shiftGroup`,
@@ -237,47 +248,174 @@ lemma measurable_tilingEquiv_tail :
   change Measurable fun ζ : H → C → E ↦ ζ (tileIdx hCH x) (tileRep hCH x)
   exact (measurable_pi_apply (tileRep hCH x)).comp (measurable_cylinderEvent_apply hj)
 
-/-! ### Georgii's `μ_n`: the product of the tile marginals -/
+/-! ### Unions of tiles
 
-variable (μ : Measure (S → E))
+A finite volume `Δ` is a *union of tiles* when membership in `Δ` depends only on the tile index;
+`Δ` is then in bijection with `K × C`, where `K = tileIdx '' Δ` indexes the tiles it consists of,
+and a configuration on `Δ` is read block by block by `blockEquiv`. -/
 
-/-- **Georgii, proof of (14.12): `μ_n = ∏_{i ∈ S} σ_{Λ(n) + (2n+1) i}(μ)`.** The product over the
-tiles `C + h`, `h ∈ H`, of the `C`-marginal `σ_C(μ) = μ.map C.restrict` of `μ`, glued by
-`tilingEquiv`. -/
-def tileProduct : Measure (S → E) :=
-  (Measure.infinitePi fun _ : H ↦ μ.map C.restrict).map (tilingEquiv (E := E) hCH)
+section TileUnion
 
-variable [IsProbabilityMeasure μ]
+/-- A finite set of sites is a **union of tiles** `Δ = ⋃_{h ∈ K} (C + h)` when membership depends
+only on the tile index. -/
+def IsTileUnion (Δ : Finset S) : Prop :=
+  ∀ x y : S, tileIdx hCH x = tileIdx hCH y → (x ∈ Δ ↔ y ∈ Δ)
 
-instance isProbabilityMeasure_map_finsetRestrict (Λ : Finset S) :
-    IsProbabilityMeasure (μ.map Λ.restrict) :=
+variable [DecidableEq S]
+
+/-- The set `K` of tile indices met by `Δ`. -/
+def tileIdxImage (Δ : Finset S) : Finset H := Δ.image (tileIdx hCH)
+
+lemma tileIdx_mem_tileIdxImage {Δ : Finset S} {x : S} (hx : x ∈ Δ) :
+    tileIdx hCH x ∈ tileIdxImage hCH Δ := Finset.mem_image_of_mem _ hx
+
+/-- For a union of tiles, membership is membership of the tile index in `K`. -/
+lemma mem_iff_tileIdx_mem_tileIdxImage {Δ : Finset S} (h : IsTileUnion hCH Δ) (x : S) :
+    x ∈ Δ ↔ tileIdx hCH x ∈ tileIdxImage hCH Δ := by
+  refine ⟨tileIdx_mem_tileIdxImage hCH, fun hx ↦ ?_⟩
+  obtain ⟨y, hy, hxy⟩ := Finset.mem_image.1 hx
+  exact (h x y hxy.symm).2 hy
+
+/-- The map `(k, c) ↦ c + k` from tile index and representative to the site. -/
+lemma coe_tileRep_add_mem {Δ : Finset S} (h : IsTileUnion hCH Δ) {k : H} {c : C}
+    (hk : k ∈ tileIdxImage hCH Δ) : (c : S) + (k : S) ∈ Δ := by
+  rw [mem_iff_tileIdx_mem_tileIdxImage hCH h, tileIdx_add hCH c.2 k.2]
+  exact hk
+
+/-- **A union of tiles has `|K| |C|` sites.** -/
+lemma card_of_isTileUnion {Δ : Finset S} (h : IsTileUnion hCH Δ) :
+    Δ.card = (tileIdxImage hCH Δ).card * C.card := by
+  classical
+  rw [← Finset.card_product]
+  refine Finset.card_nbij' (fun x ↦ (tileIdx hCH x, (tileRep hCH x : S)))
+    (fun p ↦ p.2 + (p.1 : S)) (fun x hx ↦ ?_) (fun p hp ↦ ?_) (fun x _ ↦ ?_) (fun p hp ↦ ?_)
+  · exact Finset.mem_product.2 ⟨tileIdx_mem_tileIdxImage hCH hx, (tileRep hCH x).2⟩
+  · obtain ⟨hp1, hp2⟩ := Finset.mem_product.1 hp
+    exact coe_tileRep_add_mem hCH h (c := ⟨p.2, hp2⟩) hp1
+  · exact coe_tileRep_add_coe_tileIdx hCH x
+  · obtain ⟨hp1, hp2⟩ := Finset.mem_product.1 hp
+    have h1 : tileIdx hCH (p.2 + (p.1 : S)) = p.1 := tileIdx_add hCH hp2 p.1.2
+    have h2 : (tileRep hCH (p.2 + (p.1 : S)) : S) = p.2 := by
+      rw [tileRep_add hCH hp2 p.1.2]
+    exact Prod.ext h1 h2
+
+/-- **Reading a configuration on a union of tiles block by block.** For `Δ = ⋃_{h ∈ K} (C + h)`,
+the configurations on `Δ` are the families, indexed by `K`, of configurations on `C`:
+`blockEquiv hCH h ω k c = ω (c + k)`. -/
+def blockEquiv {Δ : Finset S} (h : IsTileUnion hCH Δ) :
+    (Δ → E) ≃ᵐ (tileIdxImage hCH Δ → C → E) where
+  toFun ω k c := ω ⟨(c : S) + ((k : H) : S), coe_tileRep_add_mem hCH h k.2⟩
+  invFun ζ x := ζ ⟨tileIdx hCH (x : S), (mem_iff_tileIdx_mem_tileIdxImage hCH h _).1 x.2⟩
+    (tileRep hCH (x : S))
+  left_inv ω := by
+    funext x
+    exact congrArg ω (Subtype.ext (coe_tileRep_add_coe_tileIdx hCH (x : S)))
+  right_inv ζ := by
+    funext k c
+    have h1 : tileIdx hCH ((c : S) + ((k : H) : S)) = (k : H) := tileIdx_add hCH c.2 (k : H).2
+    have h2 : tileRep hCH ((c : S) + ((k : H) : S)) = c := tileRep_add hCH c.2 (k : H).2
+    simp only
+    rw [h2]
+    congr 1
+    exact Subtype.ext h1
+  measurable_toFun := measurable_pi_lambda _ fun k ↦ measurable_pi_lambda _ fun c ↦
+    measurable_pi_apply _
+  measurable_invFun := measurable_pi_lambda _ fun x ↦
+    (measurable_pi_apply (tileRep hCH (x : S))).comp (measurable_pi_apply _)
+
+@[simp] lemma blockEquiv_apply {Δ : Finset S} (h : IsTileUnion hCH Δ) (ω : Δ → E)
+    (k : tileIdxImage hCH Δ) (c : C) :
+    blockEquiv (E := E) hCH h ω k c = ω ⟨(c : S) + ((k : H) : S), coe_tileRep_add_mem hCH h k.2⟩ := rfl
+
+/-- The site of `Δ` in the tile `k` at the position `c`. -/
+def tileSite {Δ : Finset S} (h : IsTileUnion hCH Δ) (k : tileIdxImage hCH Δ) (c : C) : Δ :=
+  ⟨(c : S) + ((k : H) : S), coe_tileRep_add_mem hCH h k.2⟩
+
+lemma injective_tileSite {Δ : Finset S} (h : IsTileUnion hCH Δ) :
+    Function.Injective fun p : tileIdxImage hCH Δ × C ↦ tileSite hCH h p.1 p.2 := by
+  rintro ⟨k, c⟩ ⟨k', c'⟩ hkc
+  have hkc' : (c : S) + ((k : H) : S) = (c' : S) + ((k' : H) : S) := congrArg Subtype.val hkc
+  have h1 : tileIdx hCH ((c : S) + ((k : H) : S)) = (k : H) := tileIdx_add hCH c.2 (k : H).2
+  have h1' : tileIdx hCH ((c' : S) + ((k' : H) : S)) = (k' : H) := tileIdx_add hCH c'.2 (k' : H).2
+  have h2 : tileRep hCH ((c : S) + ((k : H) : S)) = c := tileRep_add hCH c.2 (k : H).2
+  have h2' : tileRep hCH ((c' : S) + ((k' : H) : S)) = c' := tileRep_add hCH c'.2 (k' : H).2
+  refine Prod.ext (Subtype.ext ?_) ?_
+  · rw [← h1, ← h1', hkc']
+  · rw [← h2, ← h2', hkc']
+
+/-- `blockEquiv` is precomposition with `tileSite`. -/
+lemma blockEquiv_eq_comp_tileSite {Δ : Finset S} (h : IsTileUnion hCH Δ) :
+    ⇑(blockEquiv (E := E) hCH h) = fun (ω : Δ → E) k c ↦ ω (tileSite hCH h k c) := rfl
+
+/-- **Reading the independent-block measure block by block returns the blocks.** The composition
+`blockEquiv ∘ σ_Δ ∘ tilingEquiv` is the restriction of a family of tile configurations to the
+tiles of `Δ`. -/
+lemma blockEquiv_comp_finsetRestrict_comp_tilingEquiv {Δ : Finset S} (h : IsTileUnion hCH Δ) :
+    ⇑(blockEquiv (E := E) hCH h) ∘ Δ.restrict ∘ ⇑(tilingEquiv (E := E) hCH)
+      = (tileIdxImage hCH Δ).restrict := by
+  funext ζ k c
+  change ζ (tileIdx hCH ((c : S) + ((k : H) : S))) (tileRep hCH ((c : S) + ((k : H) : S)))
+    = ζ (k : H) c
+  rw [tileRep_add hCH c.2 (k : H).2]
+  congr 1
+  exact Subtype.ext (congrArg Subtype.val (tileIdx_add hCH c.2 (k : H).2))
+
+end TileUnion
+
+/-! ### Georgii's `μ_n`: the independent-block measure of a tile law -/
+
+instance isProbabilityMeasure_map_finsetRestrict (μ : Measure (S → E)) [IsProbabilityMeasure μ]
+    (Λ : Finset S) : IsProbabilityMeasure (μ.map Λ.restrict) :=
   Measure.isProbabilityMeasure_map (Finset.measurable_restrict Λ).aemeasurable
 
-instance isProbabilityMeasure_tileProduct : IsProbabilityMeasure (tileProduct hCH μ) :=
+instance isProbabilityMeasure_map_shift (μ : Measure (S → E)) [IsProbabilityMeasure μ] (j : S) :
+    IsProbabilityMeasure (μ.map (shift E j).toFun) :=
+  Measure.isProbabilityMeasure_map (shift E j).measurable_toFun.aemeasurable
+
+variable (γ : Measure (C → E))
+
+/-- **Georgii, proof of (14.12): `μ_n = ∏_{i ∈ S} σ_{Λ(n) + (2n+1) i}(μ)`; Georgii (15.52):
+`γ̂ = ∏_{i ∈ S} θ_{-pi}(γ)`.** The product over the tiles `C + h`, `h ∈ H`, of copies of a law
+`γ` on the tile `C`, glued by `tilingEquiv`: the configurations in the disjoint blocks `C + h`
+are independent with identical distribution `γ`. Georgii's `μ_n` is the case
+`γ = σ_C(μ) = μ.map C.restrict`. -/
+def tileProduct : Measure (S → E) :=
+  (Measure.infinitePi fun _ : H ↦ γ).map (tilingEquiv (E := E) hCH)
+
+variable [IsProbabilityMeasure γ]
+
+instance isProbabilityMeasure_tileProduct : IsProbabilityMeasure (tileProduct hCH γ) :=
   Measure.isProbabilityMeasure_map (tilingEquiv hCH).measurable.aemeasurable
+
+/-- The restriction of `tilingEquiv` to the tile `C` reads off the block indexed by `0 ∈ H`. -/
+lemma finsetRestrict_comp_tilingEquiv :
+    C.restrict ∘ ⇑(tilingEquiv (E := E) hCH) = fun ζ : H → C → E ↦ ζ 0 := by
+  funext ζ c
+  change ζ (tileIdx hCH c) (tileRep hCH c) = ζ 0 c
+  rw [tileIdx_of_mem hCH c.2]
+  congr
+  exact Subtype.ext (coe_tileRep_of_mem hCH c.2)
+
+/-- **The `C`-marginal of the independent-block measure is the block law `γ`.** -/
+theorem map_finsetRestrict_tileProduct : (tileProduct hCH γ).map C.restrict = γ := by
+  rw [tileProduct, Measure.map_map (Finset.measurable_restrict C) (tilingEquiv hCH).measurable,
+    finsetRestrict_comp_tilingEquiv hCH, Measure.infinitePi_map_eval (fun _ : H ↦ γ) 0]
 
 /-- `μ_n` agrees with `μ` on the σ-algebra `𝓕_C` of the tile `C` itself: its `C`-marginal is
 `σ_C(μ)`. -/
-theorem tileProduct_apply_of_measurableSet_cylinderEvents {A : Set (S → E)}
+theorem tileProduct_apply_of_measurableSet_cylinderEvents (μ : Measure (S → E))
+    [IsProbabilityMeasure μ] {A : Set (S → E)}
     (hA : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (C : Set S)] A) :
-    tileProduct hCH μ A = μ A := by
+    tileProduct hCH (μ.map C.restrict) A = μ A := by
   rw [cylinderEvents_eq_comap_finsetRestrict] at hA
   obtain ⟨B, hB, rfl⟩ := hA
-  have hres : C.restrict ∘ ⇑(tilingEquiv (E := E) hCH) = fun ζ : H → C → E ↦ ζ 0 := by
-    funext ζ c
-    change ζ (tileIdx hCH c) (tileRep hCH c) = ζ 0 c
-    rw [tileIdx_of_mem hCH c.2]
-    congr
-    exact Subtype.ext (coe_tileRep_of_mem hCH c.2)
-  rw [tileProduct, MeasurableEquiv.map_apply, ← Set.preimage_comp, hres,
-    ← Measure.map_apply (measurable_pi_apply (0 : H)) hB,
-    Measure.infinitePi_map_eval (fun _ : H ↦ μ.map C.restrict) 0,
+  rw [← Measure.map_apply (Finset.measurable_restrict C) hB, map_finsetRestrict_tileProduct hCH,
     Measure.map_apply (Finset.measurable_restrict C) hB]
 
 /-- **Georgii, proof of (14.12): `θ_{(2n+1) i}(μ_n) = μ_n`.** `μ_n` is invariant under the shifts
-of the tiling subgroup `H`, since these permute the tiles and the tile marginals are all equal. -/
+of the tiling subgroup `H`, since these permute the tiles and the tile laws are all equal. -/
 theorem map_shift_tileProduct {k : S} (hk : k ∈ H) :
-    (tileProduct hCH μ).map (shift E k).toFun = tileProduct hCH μ := by
+    (tileProduct hCH γ).map (shift E k).toFun = tileProduct hCH γ := by
   set e : H ≃ H := Equiv.addRight (⟨k, hk⟩ : H) with he
   have hcomp : (shift E k).toFun ∘ ⇑(tilingEquiv (E := E) hCH) =
       ⇑(tilingEquiv (E := E) hCH) ∘ ⇑(MeasurableEquiv.piCongrLeft (fun _ : H ↦ C → E) e) := by
@@ -291,73 +429,71 @@ theorem map_shift_tileProduct {k : S} (hk : k ∈ H) :
     hcomp, ← Measure.map_map (tilingEquiv hCH).measurable
       (MeasurableEquiv.piCongrLeft (fun _ : H ↦ C → E) e).measurable]
   congr 1
-  exact Measure.infinitePi_map_piCongrLeft (fun _ : H ↦ μ.map C.restrict) e
+  exact Measure.infinitePi_map_piCongrLeft (fun _ : H ↦ γ) e
 
 /-- **Kolmogorov's 0–1 law for `μ_n`** (Georgii, proof of (14.12), via (7.14)): the product of
-the tile marginals is trivial on the tail σ-algebra. -/
-theorem tileProduct_mem_trivialOn_tail : tileProduct hCH μ ∈ trivialOn (tailSigmaAlgebra S E) := by
+the tile laws is trivial on the tail σ-algebra. -/
+theorem tileProduct_mem_trivialOn_tail : tileProduct hCH γ ∈ trivialOn (tailSigmaAlgebra S E) := by
   intro B hB
   rw [tileProduct, MeasurableEquiv.map_apply]
-  exact forall_tail_measure_eq_zero_or_one_infinitePi (fun _ : H ↦ μ.map C.restrict)
+  exact forall_tail_measure_eq_zero_or_one_infinitePi (fun _ : H ↦ γ)
     (measurable_tilingEquiv_tail hCH hB)
 
 /-! ### Georgii's `v_n`: the shift average of `μ_n` over a tile -/
 
-/-- **Georgii, proof of (14.12): `v_n = |Λ(n)|⁻¹ ∑_{j ∈ Λ(n)} θ_j(μ_n)`.** The uniform average over
-the tile `C` of the shifted tile products. -/
+/-- **Georgii, proof of (14.12): `v_n = |Λ(n)|⁻¹ ∑_{j ∈ Λ(n)} θ_j(μ_n)`; Georgii (15.52):
+`γ̃ = |Λ|⁻¹ ∑_{j ∈ Λ} θ_{-j}(γ̂)`.** The uniform average over the tile `C` of the shifted
+independent-block measures. -/
 def tileAverage : Measure (S → E) :=
-  uniformAverage (fun j ↦ (tileProduct hCH μ).map (shift E j).toFun) C
+  uniformAverage (fun j ↦ (tileProduct hCH γ).map (shift E j).toFun) C
 
-omit [IsProbabilityMeasure μ] in
+omit [IsProbabilityMeasure γ] in
 lemma tileAverage_apply (A : Set (S → E)) :
-    tileAverage hCH μ A = (C.card : ℝ≥0∞)⁻¹ * ∑ j ∈ C, (tileProduct hCH μ).map (shift E j).toFun
+    tileAverage hCH γ A = (C.card : ℝ≥0∞)⁻¹ * ∑ j ∈ C, (tileProduct hCH γ).map (shift E j).toFun
         A :=
   uniformAverage_apply _ C A
-
-instance isProbabilityMeasure_map_shift (j : S) :
-    IsProbabilityMeasure (μ.map (shift E j).toFun) :=
-  Measure.isProbabilityMeasure_map (shift E j).measurable_toFun.aemeasurable
 
 include hCH in
 /-- A fundamental domain is non-empty. -/
 lemma nonempty_of_isComplement : C.Nonempty := Finset.coe_nonempty.1 hCH.nonempty_left
 
-instance isProbabilityMeasure_tileAverage : IsProbabilityMeasure (tileAverage hCH μ) :=
+instance isProbabilityMeasure_tileAverage : IsProbabilityMeasure (tileAverage hCH γ) :=
   isProbabilityMeasure_uniformAverage _ (fun _ ↦ inferInstance) (nonempty_of_isComplement hCH)
 
-/-- `tileAverage` as a probability measure, for use inside statements about the topology of local
-convergence. -/
+/-- Georgii's `v_n` for a random field `μ`, as a probability measure, for use inside statements
+about the topology of local convergence: the tile average of the `C`-marginal of `μ`. -/
 noncomputable def tileAveragePM (μ : ProbabilityMeasure (S → E)) : ProbabilityMeasure (S → E) :=
-  ⟨tileAverage hCH (μ : Measure (S → E)), isProbabilityMeasure_tileAverage hCH (μ : Measure (S →
-      E))⟩
+  ⟨tileAverage hCH ((μ : Measure (S → E)).map C.restrict),
+    isProbabilityMeasure_tileAverage hCH _⟩
 
 @[simp] lemma coe_tileAveragePM (μ : ProbabilityMeasure (S → E)) :
-    (tileAveragePM hCH μ : Measure (S → E)) = tileAverage hCH (μ : Measure (S → E)) := rfl
+    (tileAveragePM hCH μ : Measure (S → E))
+      = tileAverage hCH ((μ : Measure (S → E)).map C.restrict) := rfl
 
 /-- Shifting `μ_n` by any site `x` is shifting it by the representative of `x` in the tile `C`,
 since the `H`-part of the shift is absorbed by `map_shift_tileProduct`. -/
 lemma map_shift_tileProduct_eq_map_shift_tileRep (x : S) :
-    (tileProduct hCH μ).map (shift E x).toFun =
-      (tileProduct hCH μ).map (shift E (tileRep hCH x : S)).toFun := by
+    (tileProduct hCH γ).map (shift E x).toFun =
+      (tileProduct hCH γ).map (shift E (tileRep hCH x : S)).toFun := by
   conv_lhs => rw [← coe_tileRep_add_coe_tileIdx hCH x]
   rw [← shift_toFun_comp_shift_toFun,
     ← Measure.map_map (shift E _).measurable_toFun (shift E _).measurable_toFun,
-    map_shift_tileProduct hCH μ (tileIdx hCH x).2]
+    map_shift_tileProduct hCH γ (tileIdx hCH x).2]
 
 /-- **Georgii, proof of (14.12): `v_n` is shift-invariant.** A shift by `j'` permutes the family
 `θ_j(μ_n)`, `j ∈ C`: `θ_{j'} θ_j μ_n = θ_{j' + j} μ_n = θ_{c} μ_n` where `c ∈ C` is the
 representative of `j' + j`, and `j ↦ c` is a bijection of `C`. -/
 theorem map_shift_tileAverage (j' : S) :
-    (tileAverage hCH μ).map (shift E j').toFun = tileAverage hCH μ := by
+    (tileAverage hCH γ).map (shift E j').toFun = tileAverage hCH γ := by
   unfold tileAverage uniformAverage
   rw [Measure.map_smul, Measure.map_finset_sum (shift E j').measurable_toFun.aemeasurable]
   congr 1
-  calc ∑ j ∈ C, ((tileProduct hCH μ).map (shift E j).toFun).map (shift E j').toFun
-      = ∑ j ∈ C, (tileProduct hCH μ).map (shift E (tileRep hCH (j' + j) : S)).toFun :=
+  calc ∑ j ∈ C, ((tileProduct hCH γ).map (shift E j).toFun).map (shift E j').toFun
+      = ∑ j ∈ C, (tileProduct hCH γ).map (shift E (tileRep hCH (j' + j) : S)).toFun :=
         Finset.sum_congr rfl fun j _ ↦ by
           rw [Measure.map_map (shift E j').measurable_toFun (shift E j).measurable_toFun,
             shift_toFun_comp_shift_toFun, map_shift_tileProduct_eq_map_shift_tileRep]
-    _ = ∑ j ∈ C, (tileProduct hCH μ).map (shift E j).toFun := by
+    _ = ∑ j ∈ C, (tileProduct hCH γ).map (shift E j).toFun := by
         refine Finset.sum_nbij' (fun j ↦ (tileRep hCH (j' + j) : S))
           (fun j ↦ (tileRep hCH (j - j') : S)) (fun j _ ↦ (tileRep hCH _).2)
           (fun j _ ↦ (tileRep hCH _).2) (fun j hj ↦ ?_) (fun j hj ↦ ?_) (fun j _ ↦ rfl)
@@ -371,21 +507,21 @@ theorem map_shift_tileAverage (j' : S) :
               abel,
             tileRep_sub_of_mem hCH _ (tileIdx hCH _).2, coe_tileRep_of_mem hCH hj]
 
-/-- `v_n ∈ 𝓟_Θ`: the averaged tile product is a shift-invariant random field. -/
+/-- `v_n ∈ 𝓟_Θ`: the averaged independent-block measure is a shift-invariant random field. -/
 theorem tileAverage_mem_invariantFields_shiftGroup :
-    tileAverage hCH μ ∈ invariantFields (shiftGroup S E) :=
+    tileAverage hCH γ ∈ invariantFields (shiftGroup S E) :=
   mem_invariantFields_shiftGroup.2 ⟨inferInstance, fun j ↦
-    ⟨(shift E j).measurable_toFun, map_shift_tileAverage hCH μ j⟩⟩
+    ⟨(shift E j).measurable_toFun, map_shift_tileAverage hCH γ j⟩⟩
 
-omit [IsProbabilityMeasure μ] in
+omit [IsProbabilityMeasure γ] in
 /-- On the invariant σ-algebra `𝓘`, `v_n` and `μ_n` agree: `θ_j(μ_n)(A) = μ_n(A)` for `A ∈ 𝓘`
 (Georgii, proof of (14.12)). -/
 theorem tileAverage_apply_of_measurableSet_invariantEvents {A : Set (S → E)}
     (hA : MeasurableSet[invariantEvents (shiftGroup S E)] A) :
-    tileAverage hCH μ A = tileProduct hCH μ A := by
+    tileAverage hCH γ A = tileProduct hCH γ A := by
   obtain ⟨hAm, hAinv⟩ := measurableSet_invariantEvents.1 hA
   rw [tileAverage_apply]
-  have hterm : ∀ j ∈ C, (tileProduct hCH μ).map (shift E j).toFun A = tileProduct hCH μ A :=
+  have hterm : ∀ j ∈ C, (tileProduct hCH γ).map (shift E j).toFun A = tileProduct hCH γ A :=
     fun j _ ↦ by rw [Measure.map_apply (shift E j).measurable_toFun hAm, hAinv _
         (shift_mem_shiftGroup j)]
   rw [Finset.sum_congr rfl hterm, Finset.sum_const, nsmul_eq_mul, ← mul_assoc,
@@ -394,47 +530,47 @@ theorem tileAverage_apply_of_measurableSet_invariantEvents {A : Set (S → E)}
 
 /-- **Georgii, proof of (14.12): `v_n` is ergodic.** For `A ∈ 𝓘`, Proposition (14.9) provides a
 tail event `B` with `v_n(A ∆ B) = 0`; then `μ_n(A ∆ θ_j⁻¹ B) = 0` for `j ∈ C`, so
-`v_n(A) = μ_n(A) = μ_n(θ_j⁻¹ B) ∈ {0, 1}` by Kolmogorov's 0–1 law for `μ_n`. -/
-theorem tileAverage_mem_trivialOn_invariantEvents [Countable S] [Infinite S]
-    (hμ : μ ∈ invariantFields (shiftGroup S E)) :
-    tileAverage hCH μ ∈ trivialOn (invariantEvents (shiftGroup S E)) := by
+`v_n(A) = μ_n(A) = μ_n(θ_j⁻¹ B) ∈ {0, 1}` by Kolmogorov's 0–1 law for `μ_n`. No hypothesis on the
+tile law `γ` is needed: `v_n` is shift-invariant whatever `γ` is. -/
+theorem tileAverage_mem_trivialOn_invariantEvents [Countable S] [Infinite S] :
+    tileAverage hCH γ ∈ trivialOn (invariantEvents (shiftGroup S E)) := by
   intro A hA
   obtain ⟨hAm, hAinv⟩ := measurableSet_invariantEvents.1 hA
   obtain ⟨B, hB, hAB⟩ := exists_measurableSet_tail_measure_symmDiff_eq_zero_shiftGroup
-    (tileAverage_mem_invariantFields_shiftGroup hCH μ) hA
+    (tileAverage_mem_invariantFields_shiftGroup hCH γ) hA
   obtain ⟨j, hj⟩ := nonempty_of_isComplement hCH
   have hBm : MeasurableSet B :=
     cylinderEvents_le_pi _ (measurableSet_cylinderEvents_compl_of_measurableSet_tail ∅ hB)
   -- `μ_n (θ_j⁻¹ (A ∆ B)) = 0`
-  have hterm : tileProduct hCH μ ((shift E j).toFun ⁻¹' (A ∆ B)) = 0 := by
+  have hterm : tileProduct hCH γ ((shift E j).toFun ⁻¹' (A ∆ B)) = 0 := by
     rw [tileAverage_apply, mul_eq_zero] at hAB
     rcases hAB with h0 | h0
     · exact absurd h0 (ENNReal.inv_ne_zero.2 (ENNReal.natCast_ne_top _))
     · have := (Finset.sum_eq_zero_iff.1 h0) j hj
       rwa [Measure.map_apply (shift E j).measurable_toFun (hAm.symmDiff hBm)] at this
   rw [Set.preimage_symmDiff, hAinv _ (shift_mem_shiftGroup j)] at hterm
-  rw [tileAverage_apply_of_measurableSet_invariantEvents hCH μ hA,
+  rw [tileAverage_apply_of_measurableSet_invariantEvents hCH γ hA,
     measure_congr (measure_symmDiff_eq_zero_iff.1 hterm)]
-  exact tileProduct_mem_trivialOn_tail hCH μ _ ((shift E j).measurableSet_tail_preimage hB)
+  exact tileProduct_mem_trivialOn_tail hCH γ _ ((shift E j).measurableSet_tail_preimage hB)
 
-/-- **Georgii, proof of (14.12): `v_n ∈ ex 𝓟_Θ`.** The averaged tile product of a shift-invariant
-random field is an extreme shift-invariant random field, by (14.5)(a). -/
-theorem tileAverage_mem_extremePoints_invariantFields [Countable S] [Infinite S]
-    (hμ : μ ∈ invariantFields (shiftGroup S E)) :
-    tileAverage hCH μ ∈ (invariantFields (shiftGroup S E)).extremePoints ℝ≥0∞ :=
+/-- **Georgii, proof of (14.12): `v_n ∈ ex 𝓟_Θ`.** The averaged independent-block measure is an
+extreme shift-invariant random field, by (14.5)(a). -/
+theorem tileAverage_mem_extremePoints_invariantFields [Countable S] [Infinite S] :
+    tileAverage hCH γ ∈ (invariantFields (shiftGroup S E)).extremePoints ℝ≥0∞ :=
   (mem_extremePoints_invariantFields_iff_mem_trivialOn
-    (tileAverage_mem_invariantFields_shiftGroup hCH μ)).2
-    (tileAverage_mem_trivialOn_invariantEvents hCH μ hμ)
+    (tileAverage_mem_invariantFields_shiftGroup hCH γ)).2
+    (tileAverage_mem_trivialOn_invariantEvents hCH γ)
 
 /-- **Georgii, proof of (14.12)**, in the language of Definition (14.6): `v_n` is ergodic. -/
-theorem ergodicSMul_tileAverage [Countable S] [Infinite S]
-    (hμ : μ ∈ invariantFields (shiftGroup S E)) :
-    ErgodicSMul (shiftGroup S E) (S → E) (tileAverage hCH μ) :=
+theorem ergodicSMul_tileAverage [Countable S] [Infinite S] :
+    ErgodicSMul (shiftGroup S E) (S → E) (tileAverage hCH γ) :=
   (ergodicSMul_iff_mem_extremePoints_invariantFields
-    (tileAverage_mem_invariantFields_shiftGroup hCH μ).2).2
-    (tileAverage_mem_extremePoints_invariantFields hCH μ hμ)
+    (tileAverage_mem_invariantFields_shiftGroup hCH γ).2).2
+    (tileAverage_mem_extremePoints_invariantFields hCH γ)
 
 /-! ### The local estimate `|v_n(A) - μ(A)|` -/
+
+variable (μ : Measure (S → E)) [IsProbabilityMeasure μ]
 
 /-- **Georgii, proof of (14.12): the estimate
 `|v_n(f) - μ(f)| ≤ 2 ‖f‖ |{j ∈ Λ(n) : (Δ - j) ⊄ Λ(n)}| / |Λ(n)|`**, for the indicator of a local
@@ -443,11 +579,12 @@ and `μ` agree, and `μ (θ_j⁻¹ A) = μ A` by shift-invariance. -/
 theorem abs_tileAverage_real_sub_le [DecidableEq S] (hμ : μ ∈ invariantFields (shiftGroup S E))
     {Δ : Finset S} {A : Set (S → E)}
     (hA : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)] A) :
-    |(tileAverage hCH μ).real A - μ.real A| ≤
+    |(tileAverage hCH (μ.map C.restrict)).real A - μ.real A| ≤
       (({j ∈ C | ¬ ∀ δ ∈ Δ, δ - j ∈ C} : Finset S).card : ℝ) / C.card := by
   have hAm : MeasurableSet A := cylinderEvents_le_pi _ hA
   have hC : (0 : ℝ) < C.card := by exact_mod_cast (nonempty_of_isComplement hCH).card_pos
-  set m : S → ℝ := fun j ↦ ((tileProduct hCH μ).map (shift E j).toFun).real A with hm
+  set m : S → ℝ := fun j ↦
+    ((tileProduct hCH (μ.map C.restrict)).map (shift E j).toFun).real A with hm
   have hgood : ∀ j, (∀ δ ∈ Δ, δ - j ∈ C) → m j = μ.real A := by
     intro j hj
     rw [hm]
@@ -563,7 +700,8 @@ theorem exists_tendsto_extremePoints_invariantFields_shiftGroup
   ⟨fun n ↦ tileAveragePM (hCH n) μ,
     fun n ↦ by
       simpa only [coe_tileAveragePM] using
-        tileAverage_mem_extremePoints_invariantFields (hCH n) (μ := (μ : Measure (S → E))) hμ,
+        tileAverage_mem_extremePoints_invariantFields (hCH n)
+          (γ := (μ : Measure (S → E)).map (C n).restrict),
     tendsto_tileAverage hCH hfol hμ⟩
 
 /-- **Georgii, Theorem (14.12)**, closure form: in the topology of local convergence, the closure

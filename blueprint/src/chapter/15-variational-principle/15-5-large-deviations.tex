@@ -15,7 +15,7 @@
 
 \begin{theorem}[Shannon--McMillan, the input of Georgii (15.45)--(15.47)]
     \label{thm:ld-shannon-mcmillan}
-    \lean{MeasureTheory.GibbsMeasure.specificEntropy_uniformOn_eq_entropyRate_sub_log_card, MeasureTheory.GibbsMeasure.entropyIn_uniformOn_eq_neg_integral_log_measureReal, MeasureTheory.GibbsMeasure.tendsto_integral_abs_neg_inv_card_mul_log_measureReal_sub_entropyRate, MeasureTheory.GibbsMeasure.tendsto_integral_abs_inv_card_mul_log_density_add_specificEntropy, MeasureTheory.blockProb, MeasureTheory.condProbGiven, MeasureTheory.condExp_indicator_comap_ae_eq_condProbGiven, MeasureTheory.condInformation, MeasureTheory.condInformation_ae_eq_neg_log_condProbGiven, MeasureTheory.entropyRate, MeasureTheory.pastWindow, MeasureTheory.neg_log_blockProb_eq_sum_condInformation, MeasureTheory.integral_exp_condInformation_sub_le_one, MeasureTheory.integral_abs_le_of_integral_exp_le_one, MeasureTheory.exists_forall_integral_abs_condInformation_sub_le, MeasureTheory.tendsto_integral_abs_neg_inv_card_mul_log_blockProb_sub_entropyRate, MeasureTheory.tendsto_inv_card_mul_integral_neg_log_blockProb, MeasureTheory.tendsto_integral_abs_neg_inv_card_mul_log_blockProb_sub_entropyRate_cube, MeasureTheory.condExp_ae_eq_integral_of_forall_measure_eq_zero_or_one}
+    \lean{MeasureTheory.GibbsMeasure.specificEntropy_uniformOn_eq_entropyRate_sub_log_card, MeasureTheory.GibbsMeasure.entropyIn_uniformOn_eq_neg_integral_log_measureReal, MeasureTheory.GibbsMeasure.tendsto_integral_abs_neg_inv_card_mul_log_measureReal_sub_entropyRate, MeasureTheory.GibbsMeasure.tendsto_integral_abs_inv_card_mul_log_density_add_specificEntropy, MeasureTheory.GibbsMeasure.trim_cylinderEvents_eq_withDensity_uniformOn, MeasureTheory.GibbsMeasure.rnDeriv_trim_cylinderEvents_uniformOn_ae_eq, MeasureTheory.GibbsMeasure.tendsto_integral_abs_inv_card_mul_log_rnDeriv_add_specificEntropy, MeasureTheory.blockProb, MeasureTheory.condProbGiven, MeasureTheory.condExp_indicator_comap_ae_eq_condProbGiven, MeasureTheory.condInformation, MeasureTheory.condInformation_ae_eq_neg_log_condProbGiven, MeasureTheory.entropyRate, MeasureTheory.pastWindow, MeasureTheory.neg_log_blockProb_eq_sum_condInformation, MeasureTheory.integral_exp_condInformation_sub_le_one, MeasureTheory.integral_abs_le_of_integral_exp_le_one, MeasureTheory.exists_forall_integral_abs_condInformation_sub_le, MeasureTheory.tendsto_integral_abs_neg_inv_card_mul_log_blockProb_sub_entropyRate, MeasureTheory.tendsto_inv_card_mul_integral_neg_log_blockProb, MeasureTheory.tendsto_integral_abs_neg_inv_card_mul_log_blockProb_sub_entropyRate_cube, MeasureTheory.condExp_ae_eq_integral_of_forall_measure_eq_zero_or_one}
     \leanok
 
     Let $G$ be a countable linearly ordered abelian group acting measurably on $\Omega$
@@ -42,6 +42,8 @@
     $g_{W_0}$ for all $W \supseteq W_0$ once $\int g_{W_0}$ is within $\varepsilon$ of $h$;
     the F\o lner property makes the sites whose window misses $W_0$ negligible, and the ergodic
     theorem in $L^1$ replaces $|\Lambda_k|^{-1}\sum_i g_{W_0}(i + \omega)$ by $\int g_{W_0}$.
+    Georgii's $f_\Lambda$ is identified with the Radon--Nikodym derivative of $\mu|_{\mathcal F_\Lambda}$
+    against the uniform product, so his display is stated with that derivative as well.
     The identification with $\mathfrak k(\mu)$ compares the two limits along the cubes
     $[-n,0]^d$, using Shannon's formula $\mathcal H_\Lambda(\mu \mid \bar\lambda^\Lambda) =
     -\int \log \mu(\sigma_\Lambda = \sigma_\Lambda(\omega))\,d\mu - |\Lambda|\log|E|$
@@ -69,6 +71,32 @@
     on $C$, the set of barycentres of such measures being closed, convex and containing $C$.
     Georgii's Lemma 9.7 further evaluates an affine lower semicontinuous $[0,\infty]$-valued
     functional at a barycentre as its integral; that identity is not yet proved.
+\end{proof}
+
+\begin{proposition}[Georgii (15.52)]
+    \label{prop:ld-15-52}
+    \uses{thm:ld-shannon-mcmillan, prop:sent-15-14c}
+    \lean{InformationTheory.klDiv_map_measurableEquiv, InformationTheory.klDiv_prod, InformationTheory.klDiv_pi, InformationTheory.klDiv_pi_const, InformationTheory.klDiv_trim_comap, InformationTheory.klDiv_finset_sum_smul_le, InformationTheory.finset_sum_smul_klDiv_le, MeasureTheory.GibbsMeasure.relativeEntropyIn_coe_finset, MeasureTheory.GibbsMeasure.relativeEntropyIn_map_shift, MeasureTheory.GibbsMeasure.IsTileUnion, MeasureTheory.GibbsMeasure.relativeEntropyIn_tileProduct, MeasureTheory.GibbsMeasure.card_mul_relativeEntropyIn_tileAverage_le, MeasureTheory.GibbsMeasure.le_card_mul_relativeEntropyIn_tileAverage_add, MeasureTheory.GibbsMeasure.isTileUnion_piFinset_Icc, MeasureTheory.GibbsMeasure.specificEntropy_tileAverage, MeasureTheory.GibbsMeasure.specificEntropy_tileAveragePM, MeasureTheory.GibbsMeasure.exists_tendsto_specificEntropy}
+    \leanok
+
+    For a block law $\gamma$ on $E^{\Lambda}$, $\Lambda = [-n,n]^d$, the randomly shifted
+    independent-block measure $\tilde\gamma = |\Lambda|^{-1}\sum_{j\in\Lambda}\theta_j\hat\gamma$
+    of (14.12) is ergodic and has $\mathfrak k(\tilde\gamma) = |\Lambda|^{-1}\mathcal H_\Lambda(\gamma)$,
+    in $[-\infty, 0]$ including the case $\mathcal H_\Lambda(\gamma) = \infty$. Hence every
+    $\mu \in \mathcal P_\Theta$ is a local limit of ergodic $\mu_n$ with
+    $\mathfrak k(\mu_n) \to \mathfrak k(\mu)$. Georgii's cubes of even side are replaced by the
+    tree's centred cubes of odd side.
+\end{proposition}
+\begin{proof}
+    \leanok
+    The relative entropy of a product of probability measures is the sum of the relative entropies
+    (Mathlib has this only for compositions of kernels), so $\mathcal H_\Delta(\hat\gamma) =
+    \#K\,\mathcal H_\Lambda(\gamma)$ on a union of $\#K$ tiles; a cube is sandwiched between
+    unions of tiles uniformly in the shift, and the $|\Lambda|$-ary form of (15.14),
+    $\sum a_i\mathcal H(\mu_i) \leq \mathcal H(\sum a_i\mu_i) + \sum a_i\log(1/a_i)$ (proved
+    from the pointwise inequality, since iterating the binary form accumulates defects), controls
+    the mixture, whose entropy density is the limit of Theorem (15.12) because it is shift
+    invariant.
 \end{proof}
 
 \begin{proposition}[Georgii (15.49), (15.59), and the rate-function half of (15.48)]

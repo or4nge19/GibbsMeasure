@@ -46,8 +46,18 @@ new definition: everything is stated for `klDiv` of trimmed measures.
 * `klDiv_trim_eq_iSup_finset_partition`, `klDiv_trim_eq_iSup_sum`: Georgii (15.7),
   `𝓗_𝒜(μ | ν) = ⨆ P, ∑ A ∈ P, μ A * log (μ A / ν A)` over finite `𝒜`-measurable partitions `P`.
 
+* `klDiv_trim_comap`: the relative entropy on a preimage sigma-algebra `f⁻¹ 𝓑` is the relative
+  entropy of the images, `𝓗_{f⁻¹𝓑}(μ | ν) = 𝓗(f_*μ | f_*ν)`. In particular the relative entropy
+  in a finite volume is the relative entropy of the two marginals.
+* Finite mixtures, the `n`-ary forms of Georgii (15.5)(d) and of the convexity defect:
+  `klDiv_finset_sum_le` (joint subadditivity over a finite sum of measures),
+  `klDiv_finset_sum_smul_le` (`𝓗(∑ᵢ aᵢ μᵢ | ν) ≤ ∑ᵢ aᵢ 𝓗(μᵢ | ν)`) and
+  `finset_sum_smul_klDiv_le` (`∑ᵢ aᵢ 𝓗(μᵢ | ν) ≤ 𝓗(∑ᵢ aᵢ μᵢ | ν) + ∑ᵢ aᵢ log (1/aᵢ)`), which is
+  Georgii's "obvious extension of Proposition (15.14)".
+
 Along the way: `klDiv_restrict_le`, `mul_log_le_klDiv_of_measurableSet` (the two-set lower bound),
-`klDiv_trim_eq_of_measurable_rnDeriv` (a sufficient sub-sigma-algebra loses no information).
+`klDiv_trim_eq_of_measurable_rnDeriv` (a sufficient sub-sigma-algebra loses no information),
+`MeasureTheory.Measure.rnDeriv_finset_sum` and `MeasureTheory.Measure.trim_finset_sum`.
 -/
 
 @[expose] public section
@@ -1120,6 +1130,43 @@ theorem klDiv_trim_map_eq_klDiv_trim_comap {𝓧 : Type*} {m m𝓧 : MeasurableS
         rw [hback, hback]
     _ ≤ _ := klDiv_map_le _ _ hg'
 
+/-- **The relative entropy on a preimage σ-algebra is the relative entropy of the images.** For a
+measurable `f : 𝓧 → 𝓨`, every `f⁻¹ 𝓑`-measurable set is of the form `f⁻¹ B`, so the trimmed
+measures `μ|f⁻¹𝓑`, `ν|f⁻¹𝓑` and the image measures `f_*μ`, `f_*ν` carry the same information:
+`𝓗_{f⁻¹𝓑}(μ | ν) = 𝓗(f_*μ | f_*ν)`. In particular, for a finite volume `Λ`, Georgii's
+`𝓗_Λ(μ | ν)` is the relative entropy of the two `Λ`-marginals. -/
+theorem klDiv_trim_comap {𝓧 𝓨 : Type*} {m𝓧 : MeasurableSpace 𝓧} {m𝓨 : MeasurableSpace 𝓨}
+    {μ ν : Measure 𝓧} [IsFiniteMeasure μ] [IsFiniteMeasure ν] {f : 𝓧 → 𝓨} (hf : Measurable f) :
+    klDiv (μ.trim hf.comap_le) (ν.trim hf.comap_le) = klDiv (μ.map f) (ν.map f) := by
+  have hf' : Measurable[m𝓨.comap f, m𝓨] f := Measurable.of_comap_le le_rfl
+  by_cases hac : μ.map f ≪ ν.map f
+  swap
+  · rw [klDiv_of_not_ac hac, klDiv_of_not_ac]
+    intro hac'
+    exact hac (by simpa only [map_trim_comap hf] using hac'.map hf')
+  -- the density of the image measures, pulled back along `f`
+  set h : 𝓨 → ℝ≥0∞ := (μ.map f).rnDeriv (ν.map f) with hh
+  have hhm : Measurable h := Measure.measurable_rnDeriv _ _
+  have hwd : (ν.map f).withDensity h = μ.map f := Measure.withDensity_rnDeriv_eq _ _ hac
+  -- `μ = (h ∘ f) ν` on the preimage σ-algebra
+  have hdens : μ.trim hf.comap_le = (ν.trim hf.comap_le).withDensity fun x ↦ h (f x) := by
+    refine @Measure.ext _ (m𝓨.comap f) _ _ fun s hs ↦ ?_
+    obtain ⟨B, hB, rfl⟩ := hs
+    have hind : (f ⁻¹' B).indicator (fun x ↦ h (f x)) = B.indicator h ∘ f := by
+      funext x
+      by_cases hx : f x ∈ B <;>
+        simp [Function.comp_apply, Set.indicator_of_mem, Set.indicator_of_notMem, hx]
+    rw [trim_comap_apply hf hB, withDensity_apply _ (hf' hB), ← lintegral_indicator (hf' hB), hind,
+      lintegral_trim hf.comap_le ((hhm.indicator hB).comp hf')]
+    simp only [Function.comp_apply]
+    rw [← lintegral_map (hhm.indicator hB) hf, lintegral_indicator hB,
+      ← withDensity_apply _ hB, hwd]
+  have hFm : Measurable fun y ↦ ENNReal.ofReal (klFun (h y).toReal) :=
+    ENNReal.measurable_ofReal.comp (measurable_klFun.comp (ENNReal.measurable_toReal.comp hhm))
+  rw [klDiv_trim_eq_lintegral_klFun_of_trim_eq_withDensity hf.comap_le (hhm.comp hf') hdens,
+    klDiv_eq_lintegral_klFun_of_ac hac, lintegral_map hFm hf]
+  rfl
+
 end Comap
 
 section ConvexityDefect
@@ -1236,6 +1283,213 @@ theorem smul_klDiv_add_smul_klDiv_le {α : Type*} {mα : MeasurableSpace α} {μ
           ENNReal.ofReal_add (klFun_nonneg hu₀) (mul_nonneg (mul_nonneg s.coe_nonneg hx₁) hlogs)]
 
 end ConvexityDefect
+
+section FiniteMixture
+
+/-! ### Finite mixtures
+
+The `n`-ary forms of the joint convexity `klDiv_add_add_le` / `klDiv_smul_add_smul_le` and of the
+convexity defect `smul_klDiv_add_smul_klDiv_le`. The latter is Georgii's "obvious extension of
+Proposition (15.14)" in the proof of (15.52). -/
+
+variable {α ι : Type*} {mα : MeasurableSpace α} {s : Finset ι}
+
+/-- Trimming commutes with finite sums of measures. -/
+lemma _root_.MeasureTheory.Measure.trim_finset_sum {m mα' : MeasurableSpace α} (hm : m ≤ mα')
+    (ρ : ι → Measure α) (s : Finset ι) :
+    (∑ i ∈ s, ρ i).trim hm = ∑ i ∈ s, (ρ i).trim hm :=
+  @Measure.ext _ m _ _ fun t ht ↦ by
+    rw [trim_measurableSet_eq hm ht, Measure.finsetSum_apply, Measure.finsetSum_apply]
+    exact Finset.sum_congr rfl fun i _ ↦ (trim_measurableSet_eq hm ht).symm
+
+/-- The Radon–Nikodym derivative of a finite sum of measures is the sum of the derivatives. -/
+lemma _root_.MeasureTheory.Measure.rnDeriv_finset_sum (ρ : ι → Measure α) (ν : Measure α)
+    [∀ i, IsFiniteMeasure (ρ i)] [SigmaFinite ν] (s : Finset ι) :
+    (∑ i ∈ s, ρ i).rnDeriv ν =ᵐ[ν] fun x ↦ ∑ i ∈ s, (ρ i).rnDeriv ν x := by
+  classical
+  induction s using Finset.induction_on with
+  | empty =>
+      simp only [Finset.sum_empty]
+      exact Measure.rnDeriv_zero ν
+  | insert j t hj ih =>
+      filter_upwards [Measure.rnDeriv_add' (ρ j) (∑ i ∈ t, ρ i) ν, ih] with x hx hx'
+      rw [Finset.sum_insert hj, hx, Pi.add_apply, hx', Finset.sum_insert hj]
+
+/-- **Joint subadditivity of the Kullback–Leibler divergence over a finite sum of measures**, the
+`n`-ary form of `klDiv_add_add_le`. -/
+lemma klDiv_finset_sum_le (μ ν : ι → Measure α) [∀ i, IsFiniteMeasure (μ i)]
+    [∀ i, IsFiniteMeasure (ν i)] (s : Finset ι) :
+    klDiv (∑ i ∈ s, μ i) (∑ i ∈ s, ν i) ≤ ∑ i ∈ s, klDiv (μ i) (ν i) := by
+  classical
+  induction s using Finset.induction_on with
+  | empty => simp
+  | insert j t hj ih =>
+      rw [Finset.sum_insert hj, Finset.sum_insert hj, Finset.sum_insert hj]
+      exact klDiv_add_add_le.trans (add_le_add le_rfl ih)
+
+/-- **Convexity of the Kullback–Leibler divergence in its first argument over a finite mixture**:
+for weights summing to `1`, `𝓗(∑ᵢ aᵢ μᵢ | ν) ≤ ∑ᵢ aᵢ 𝓗(μᵢ | ν)`. -/
+theorem klDiv_finset_sum_smul_le {a : ι → ℝ≥0} (ha : ∑ i ∈ s, a i = 1) (μ : ι → Measure α)
+    (ν : Measure α) [∀ i, IsFiniteMeasure (μ i)] [IsFiniteMeasure ν] :
+    klDiv (∑ i ∈ s, a i • μ i) ν ≤ ∑ i ∈ s, (a i : ℝ≥0∞) * klDiv (μ i) ν := by
+  have hν : ∑ i ∈ s, a i • ν = ν := by rw [← Finset.sum_smul, ha, one_smul]
+  calc klDiv (∑ i ∈ s, a i • μ i) ν
+      = klDiv (∑ i ∈ s, a i • μ i) (∑ i ∈ s, a i • ν) := by rw [hν]
+    _ ≤ ∑ i ∈ s, klDiv (a i • μ i) (a i • ν) := klDiv_finset_sum_le _ _ s
+    _ = _ := Finset.sum_congr rfl fun i _ ↦ klDiv_smul_same (a i)
+
+/-- The pointwise inequality behind `finset_sum_smul_klDiv_le`: for weights `aᵢ > 0` summing to
+`1` and `xᵢ ≥ 0`, `∑ᵢ aᵢ ψ(xᵢ) ≤ ψ(∑ᵢ aᵢ xᵢ) + ∑ᵢ aᵢ xᵢ log (1/aᵢ)`, where `ψ = klFun`. It
+follows from `log (aᵢ xᵢ) ≤ log (∑ⱼ aⱼ xⱼ)`. -/
+private lemma sum_smul_klFun_le {a x : ι → ℝ} (ha : ∀ i ∈ s, 0 < a i) (hsum : ∑ i ∈ s, a i = 1)
+    (hx : ∀ i ∈ s, 0 ≤ x i) :
+    ∑ i ∈ s, a i * klFun (x i)
+      ≤ klFun (∑ i ∈ s, a i * x i) + ∑ i ∈ s, a i * x i * (-log (a i)) := by
+  have hnn : ∀ i ∈ s, 0 ≤ a i * x i := fun i hi ↦ mul_nonneg (ha i hi).le (hx i hi)
+  set u := ∑ i ∈ s, a i * x i with hu
+  have key : ∀ i ∈ s, a i * x i * log (x i) ≤ a i * x i * log u - a i * x i * log (a i) := by
+    intro i hi
+    rcases (hx i hi).eq_or_lt with h | h
+    · simp [← h]
+    · have hpos : 0 < a i * x i := mul_pos (ha i hi) h
+      have h1 : log (a i) + log (x i) ≤ log u := by
+        rw [← Real.log_mul (ha i hi).ne' h.ne']
+        exact Real.log_le_log hpos (Finset.single_le_sum hnn hi)
+      nlinarith
+  have hkey := Finset.sum_le_sum key
+  have h1 : ∑ i ∈ s, a i * klFun (x i) = (∑ i ∈ s, a i * x i * log (x i)) + 1 - u := by
+    calc ∑ i ∈ s, a i * klFun (x i)
+        = ∑ i ∈ s, (a i * x i * log (x i) + a i - a i * x i) :=
+          Finset.sum_congr rfl fun i _ ↦ by rw [klFun_apply]; ring
+      _ = (∑ i ∈ s, a i * x i * log (x i)) + 1 - u := by
+          rw [Finset.sum_sub_distrib, Finset.sum_add_distrib, hsum]
+  have h2 : ∑ i ∈ s, (a i * x i * log u - a i * x i * log (a i))
+      = u * log u - ∑ i ∈ s, a i * x i * log (a i) := by
+    rw [Finset.sum_sub_distrib, ← Finset.sum_mul]
+  have h3 : ∑ i ∈ s, a i * x i * (-log (a i)) + ∑ i ∈ s, a i * x i * log (a i) = 0 := by
+    rw [← Finset.sum_add_distrib]
+    exact Finset.sum_eq_zero fun i _ ↦ by ring
+  rw [h2] at hkey
+  rw [h1, klFun_apply]
+  linarith
+
+/-- **The convexity defect of the Kullback–Leibler divergence over a finite mixture** (Georgii's
+"obvious extension of Proposition (15.14)"): for probability measures and weights `aᵢ > 0` with
+`∑ᵢ aᵢ = 1`, `∑ᵢ aᵢ 𝓗(μᵢ | ν) ≤ 𝓗(∑ᵢ aᵢ μᵢ | ν) + ∑ᵢ aᵢ log (1/aᵢ)`. Together with
+`klDiv_finset_sum_smul_le` this makes `μ ↦ 𝓗(μ | ν)` affine on finite mixtures up to the entropy
+of the weights. -/
+theorem finset_sum_smul_klDiv_le {a : ι → ℝ≥0} (ha : ∀ i ∈ s, 0 < a i) (hsum : ∑ i ∈ s, a i = 1)
+    {μ : ι → Measure α} {ν : Measure α} [∀ i, IsProbabilityMeasure (μ i)]
+    [IsProbabilityMeasure ν] :
+    ∑ i ∈ s, (a i : ℝ≥0∞) * klDiv (μ i) ν
+      ≤ klDiv (∑ i ∈ s, a i • μ i) ν + ∑ i ∈ s, ENNReal.ofReal (-((a i : ℝ) * log (a i))) := by
+  classical
+  by_cases hac : (∑ i ∈ s, a i • μ i) ≪ ν
+  swap
+  · rw [klDiv_of_not_ac hac, top_add]
+    exact le_top
+  have hsumR : ∑ i ∈ s, ((a i : ℝ)) = 1 := by rw [← NNReal.coe_sum, hsum, NNReal.coe_one]
+  have haR : ∀ i ∈ s, (0 : ℝ) < a i := fun i hi ↦ by exact_mod_cast ha i hi
+  have haR1 : ∀ i ∈ s, (a i : ℝ) ≤ 1 := fun i hi ↦ by
+    rw [← hsumR]
+    exact Finset.single_le_sum (fun j _ ↦ (a j).coe_nonneg) hi
+  have hlog : ∀ i ∈ s, 0 ≤ -log (a i) := fun i hi ↦
+    neg_nonneg.2 (Real.log_nonpos (a i).coe_nonneg (haR1 i hi))
+  -- each component is absolutely continuous
+  have hac_i : ∀ i ∈ s, μ i ≪ ν := by
+    intro i hi
+    refine Measure.AbsolutelyContinuous.mk fun A _ hνA ↦ ?_
+    have h := hac hνA
+    rw [Measure.finsetSum_apply] at h
+    have h' := (Finset.sum_eq_zero_iff.1 h) i hi
+    simp only [Measure.smul_apply] at h'
+    exact (mul_eq_zero.1 h').resolve_left (by exact_mod_cast (ha i hi).ne')
+  have hmeas : ∀ i, Measurable fun x ↦ ENNReal.ofReal (klFun ((μ i).rnDeriv ν x).toReal) :=
+    fun i ↦ ENNReal.measurable_ofReal.comp (measurable_klFun.comp
+      (ENNReal.measurable_toReal.comp (Measure.measurable_rnDeriv _ _)))
+  have hmeas' : Measurable fun x ↦
+      ENNReal.ofReal (klFun ((∑ i ∈ s, a i • μ i).rnDeriv ν x).toReal) :=
+    ENNReal.measurable_ofReal.comp (measurable_klFun.comp
+      (ENNReal.measurable_toReal.comp (Measure.measurable_rnDeriv _ _)))
+  -- the density of the mixture
+  have hsmul : ∀ᵐ x ∂ν, ∀ i ∈ s, (a i • μ i).rnDeriv ν x = (a i : ℝ≥0∞) * (μ i).rnDeriv ν x := by
+    rw [Filter.eventually_all_finset]
+    intro i _
+    filter_upwards [Measure.rnDeriv_smul_left (μ i) ν (a i)] with x hx
+    rw [hx]
+    rfl
+  have hmix : ∀ᵐ x ∂ν, (∑ i ∈ s, a i • μ i).rnDeriv ν x
+      = ∑ i ∈ s, (a i : ℝ≥0∞) * (μ i).rnDeriv ν x := by
+    filter_upwards [Measure.rnDeriv_finset_sum (fun i ↦ a i • μ i) ν s, hsmul] with x hx hx'
+    rw [hx]
+    exact Finset.sum_congr rfl fun i hi ↦ hx' i hi
+  -- the entropy of the weights, as an integral against `ν`
+  have hconst : ∀ i ∈ s, ENNReal.ofReal (-((a i : ℝ) * log (a i)))
+      = ∫⁻ x, ENNReal.ofReal ((a i : ℝ) * ((μ i).rnDeriv ν x).toReal * (-log (a i))) ∂ν := by
+    intro i hi
+    calc ENNReal.ofReal (-((a i : ℝ) * log (a i)))
+        = ENNReal.ofReal ((a i : ℝ) * (-log (a i))) * μ i Set.univ := by
+          rw [measure_univ, mul_one, mul_neg]
+      _ = ENNReal.ofReal ((a i : ℝ) * (-log (a i))) * ∫⁻ x, (μ i).rnDeriv ν x ∂ν := by
+          rw [Measure.lintegral_rnDeriv (hac_i i hi)]
+      _ = ∫⁻ x, ENNReal.ofReal ((a i : ℝ) * (-log (a i))) * (μ i).rnDeriv ν x ∂ν :=
+          (lintegral_const_mul _ (Measure.measurable_rnDeriv _ _)).symm
+      _ = _ := by
+          refine lintegral_congr_ae ?_
+          filter_upwards [Measure.rnDeriv_ne_top (μ i) ν] with x hx
+          conv_lhs => rw [← ENNReal.ofReal_toReal hx]
+          rw [← ENNReal.ofReal_mul (mul_nonneg (a i).coe_nonneg (hlog i hi))]
+          congr 1
+          ring
+  -- both sides as a single integral against `ν`
+  have hLHS : ∑ i ∈ s, (a i : ℝ≥0∞) * klDiv (μ i) ν
+      = ∫⁻ x, ∑ i ∈ s, (a i : ℝ≥0∞)
+          * ENNReal.ofReal (klFun ((μ i).rnDeriv ν x).toReal) ∂ν := by
+    rw [lintegral_finsetSum _ fun i _ ↦ ((hmeas i).const_mul _)]
+    exact Finset.sum_congr rfl fun i hi ↦ by
+      rw [klDiv_eq_lintegral_klFun_of_ac (hac_i i hi), lintegral_const_mul _ (hmeas i)]
+  have hRHS : klDiv (∑ i ∈ s, a i • μ i) ν + ∑ i ∈ s, ENNReal.ofReal (-((a i : ℝ) * log (a i)))
+      = ∫⁻ x, (ENNReal.ofReal (klFun ((∑ i ∈ s, a i • μ i).rnDeriv ν x).toReal)
+          + ∑ i ∈ s, ENNReal.ofReal
+              ((a i : ℝ) * ((μ i).rnDeriv ν x).toReal * (-log (a i)))) ∂ν := by
+    rw [lintegral_add_left hmeas', klDiv_eq_lintegral_klFun_of_ac hac,
+      lintegral_finsetSum _ fun i _ ↦ (by fun_prop :
+        Measurable fun x ↦ ENNReal.ofReal
+          ((a i : ℝ) * ((μ i).rnDeriv ν x).toReal * (-log (a i))))]
+    exact congrArg _ (Finset.sum_congr rfl hconst)
+  rw [hLHS, hRHS]
+  refine lintegral_mono_ae ?_
+  have hne : ∀ᵐ x ∂ν, ∀ i ∈ s, (μ i).rnDeriv ν x ≠ ∞ := by
+    rw [Filter.eventually_all_finset]
+    exact fun i _ ↦ Measure.rnDeriv_ne_top (μ i) ν
+  filter_upwards [hmix, hne] with x hx hx'
+  set t : ι → ℝ := fun i ↦ ((μ i).rnDeriv ν x).toReal with ht
+  have ht0 : ∀ i ∈ s, 0 ≤ t i := fun i _ ↦ ENNReal.toReal_nonneg
+  have hxt : ((∑ i ∈ s, a i • μ i).rnDeriv ν x).toReal = ∑ i ∈ s, (a i : ℝ) * t i := by
+    rw [hx, ENNReal.toReal_sum fun i hi ↦ by
+      exact ENNReal.mul_ne_top ENNReal.coe_ne_top (hx' i hi)]
+    exact Finset.sum_congr rfl fun i _ ↦ by rw [ENNReal.toReal_mul, ENNReal.coe_toReal]
+  rw [hxt]
+  have hL : ∑ i ∈ s, (a i : ℝ≥0∞) * ENNReal.ofReal (klFun (t i))
+      = ENNReal.ofReal (∑ i ∈ s, (a i : ℝ) * klFun (t i)) := by
+    rw [ENNReal.ofReal_sum_of_nonneg fun i hi ↦
+      mul_nonneg (a i).coe_nonneg (klFun_nonneg (ht0 i hi))]
+    exact Finset.sum_congr rfl fun i _ ↦ by
+      rw [ENNReal.ofReal_mul (a i).coe_nonneg, ENNReal.ofReal_coe_nnreal]
+  have hR : ENNReal.ofReal (klFun (∑ i ∈ s, (a i : ℝ) * t i))
+        + ∑ i ∈ s, ENNReal.ofReal ((a i : ℝ) * t i * (-log (a i)))
+      = ENNReal.ofReal (klFun (∑ i ∈ s, (a i : ℝ) * t i)
+          + ∑ i ∈ s, (a i : ℝ) * t i * (-log (a i))) := by
+    rw [ENNReal.ofReal_add (klFun_nonneg (Finset.sum_nonneg fun i hi ↦
+        mul_nonneg (a i).coe_nonneg (ht0 i hi)))
+      (Finset.sum_nonneg fun i hi ↦
+        mul_nonneg (mul_nonneg (a i).coe_nonneg (ht0 i hi)) (hlog i hi)),
+      ENNReal.ofReal_sum_of_nonneg fun i hi ↦
+        mul_nonneg (mul_nonneg (a i).coe_nonneg (ht0 i hi)) (hlog i hi)]
+  rw [hL, hR]
+  exact ENNReal.ofReal_le_ofReal (sum_smul_klFun_le haR hsumR ht0)
+
+end FiniteMixture
 
 section Kernel
 

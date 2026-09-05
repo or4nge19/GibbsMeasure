@@ -134,6 +134,7 @@ public import GibbsMeasure.Mathlib.Dynamics.Ergodic.MeasurePreserving
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.ShannonMcMillanBreiman
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.ShannonMcMillanCube
 public import GibbsMeasure.Mathlib.GroupTheory.Foelner
+public import GibbsMeasure.Mathlib.InformationTheory.KullbackLeibler.Pi
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.PiBlocks
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Trivial
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.EssSup
@@ -255,6 +256,7 @@ public import GibbsMeasure.Specification.Oscillation
 public import GibbsMeasure.Specification.PAKernel
 public import GibbsMeasure.Specification.Abstract
 public import GibbsMeasure.Specification.AbstractPAKernel
+public import GibbsMeasure.Specification.BlockEntropy
 public import GibbsMeasure.Specification.Existence
 public import GibbsMeasure.Specification.InvariantFields
 public import GibbsMeasure.Specification.NoGibbsMeasure

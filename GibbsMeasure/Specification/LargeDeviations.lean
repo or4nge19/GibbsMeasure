@@ -170,13 +170,12 @@ general standard Borel `E` it is not: `blockProb` is the probability of an atom,
 object as soon as the single-site marginals are diffuse.
 
 Another input, **Proposition (15.52)** (`𝓀` of the randomly shifted independent-block measure
-`γ̄ = |Λ|⁻¹ ∑_{j ∈ Λ} θ_{-j}(∏_i θ_{-pi}(γ))` equals `|Λ|⁻¹ 𝓗_Λ(γ)`), is not proved either. The
-measure is `MeasureTheory.GibbsMeasure.tileAverage` of
-`GibbsMeasure/Specification/ErgodicDense.lean` (Georgii's proof of (14.12)), and its ergodicity is
-already there; what is missing is the entropy computation, which needs the additivity of the
-relative entropy over the independent blocks and Georgii's "obvious extension" of Proposition
-(15.14) to measures that are invariant only under the block lattice — the convexity half of
-(15.14) as formalised (`specificEntropy_smul_add_smul_le`) assumes full shift invariance.
+`γ̄ = |Λ|⁻¹ ∑_{j ∈ Λ} θ_{-j}(∏_i θ_{-pi}(γ))` equals `|Λ|⁻¹ 𝓗_Λ(γ)`), is
+`MeasureTheory.GibbsMeasure.specificEntropy_tileAverage` in
+`GibbsMeasure/Specification/BlockEntropy.lean`, with the additivity of the relative entropy over
+the independent blocks (`InformationTheory.klDiv_pi`) and the `|Λ|`-ary form of Proposition
+(15.14) for measures invariant only under the block lattice; the measure is
+`MeasureTheory.GibbsMeasure.tileAverage` of `GibbsMeasure/Specification/ErgodicDense.lean`.
 -/
 
 @[expose] public section
