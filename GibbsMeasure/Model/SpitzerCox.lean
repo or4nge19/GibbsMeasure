@@ -5,7 +5,8 @@ Authors: Matteo Cipollina
 -/
 module
 
-public import GibbsMeasure.Model.BoundaryLawPhaseTransition
+public import GibbsMeasure.Model.BoundaryLawLimits
+public import GibbsMeasure.Mathlib.Data.ENNReal.DivRatio
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.OneSubPow
 public import GibbsMeasure.Mathlib.Probability.Distributions.Poisson.Convergence
 public import Mathlib.Probability.Distributions.Binomial
@@ -54,19 +55,37 @@ and `Q^{n+i}(x_n, ·) → ℓ^u_i` for every `i`. Georgii's estimate
 (`toReal_matrix_pow_apply_zero_div_le`, using `matrix_pow_apply_zero`) bounds `(x_n p^n)`, and
 `c = ℓ^u_{-1}(0)/ℓ^u_0(0) = exp(-u(1-p)/p)` pins down the unique cluster point.
 
-The full Theorem (11.31) — `ex 𝒢(Q) = {μ^{u,v} : u, v ≥ 0}` together with the integral
-representation over the limits `U = lim_{i → -∞} σ_i p^{-i}`, `V = lim_{i → ∞} σ_i p^i` — is
-**not** formalised, and neither is Corollary (11.33). What is still missing is:
+**Theorem (11.31) is proved through Step 4**: `ex 𝒢(γ^Q) = {μ^{u,v} : u, v ≥ 0}`
+(`extremePoints_G_eq_range_chain`), and the limits `U = lim_{i → -∞} σ_i p^{-i}`,
+`V = lim_{i → ∞} σ_i p^i` exist `μ`-almost surely for *every* `μ ∈ 𝒢(γ^Q)`
+(`measure_existsLimits_eq_one_of_mem_G`). The four steps:
 
-* **the quantitative half of Theorem (11.9)(c)**, i.e. the explicit limit formulas
-  `ℓ_i = ℓ_0(0) lim_n Q^{n+i}(x_n, ·)/Q^n(x_n, 0)` (`i < 0`) and
-  `r_i = r_0(0) lim_n Q^{n-i}(·, y_n)/Q^n(0, y_n)` (`i > 0`) for the boundary law of an extreme
-  Gibbs measure. `exists_isBoundaryLaw_boundaryLawMeasure_eq_of_mem_extremePoints`
-  (`GibbsMeasure/Model/BoundaryLawUniqueness.lean`) gives the *existence* of the boundary law but
-  not these formulas; they need the backward martingale theorem together with the triviality of
-  the left tail under an extreme Gibbs measure. This is the sole obstruction to Steps 2 and 4;
-* Step 3, the Borel–Cantelli argument giving `μ^{u,v}(U = u, V = v) = 1`, and the extreme
-  decomposition theorem (7.26) bookkeeping of Step 4.
+* **Step 1** as above.
+* **Step 2** (`exists_eq_chain_of_mem_extremePoints`): every `μ ∈ ex 𝒢(Q)` is some `μ^{u,v}`.
+  Theorem (11.9)(c) in the quantitative form
+  `MeasureTheory.GibbsMeasure.Markov.exists_isBoundaryLaw_and_tendsto_of_mem_extremePoints`
+  (`GibbsMeasure/Model/BoundaryLawLimits.lean`) supplies the representing boundary law together
+  with the two sequences; Step 1 converts the left sequence into `u`, and the reversibility
+  (11.28) of `α = 𝔭(1, ·)` extended to all powers (`ofReal_poissonWeight_one_mul_matrix_pow_comm`)
+  converts the right limits into left limits, giving `v`. The consistency equations propagate
+  `ℓ_i = c₁ ℓ^u_i` (`i < 0`) and `r_i = c₂ r^v_i` (`i > 0`) to all `i`, and `ℓ_0 r_0 = 1`
+  normalises `c₁c₂`.
+* **Step 3** (`tendsto_atBot_ae_chain`, `tendsto_atTop_ae_chain`, `chain_limitEvent`):
+  `μ^{u,v}(U = u, V = v) = 1`, by Chebyshev's inequality for the Poisson weights
+  (`tsum_indicator_ofReal_poissonWeight_le`, from the Poisson mean and variance
+  `hasSum_natCast_mul_poissonWeight`, `hasSum_sq_sub_mul_poissonWeight`) and Borel–Cantelli
+  (`MeasureTheory.ae_eventually_notMem`).
+* **Step 4** (`chain_mem_extremePoints_G`): each `μ^{u,v}` is extreme, because its extreme
+  decomposition (7.26) is carried by the extreme points charging `{U = u, V = v}`, and by Steps 2
+  and 3 the only candidate is `μ^{u,v}` itself.
+
+What is **not** here: the *parametrised* integral representation `μ = ∫_{[0,∞[²} μ^{u,v}
+m(du, dv)` with `m` the joint law of `(U, V)` under `μ`. What is available is the extreme
+decomposition in the form `μ = ∫ ν w_μ(dν)` (`MeasureTheory.GibbsMeasure.join_weightOf`) with
+`w_μ` carried by `ex 𝒢(Q) = {μ^{u,v}}`; turning `w_μ` into a measure on `[0, ∞[²` needs the
+measurable family `(u, v) ↦ μ^{u,v}` as a kernel `[0,∞[² → 𝒫(E^ℤ)` and the pushforward
+`m = φ(w_μ)` along `φ(ν) = (ν(U), ν(V))`, neither of which is formalised. **Corollary (11.33)**
+is stated in terms of that `m` and is therefore not formalised either.
 
 ## Main declarations
 
@@ -92,6 +111,9 @@ representation over the limits `U = lim_{i → -∞} σ_i p^{-i}`, `V = lim_{i �
   `exists_tendsto_matrix_pow_apply_singleton_of_tendsto_ratio` — **Georgii Theorem (11.31),
   Step 1**: `x_n p^n → u` implies `Q^{n+i}(x_n, ·) → ℓ^u_i`, and a positive limit of the ratios
   `Q^{n-1}(x_n, 0)/Q^n(x_n, 0)` forces `x_n p^n` to converge.
+* `hasSum_natCast_mul_poissonWeight`, `hasSum_natCast_mul_sub_one_mul_poissonWeight`,
+  `hasSum_sq_sub_mul_poissonWeight`, `tsum_indicator_ofReal_poissonWeight_le` — the mean, the
+  second factorial moment and the variance of `𝔭(a, ·)`, and Chebyshev's inequality for it.
 * `poissonWeight_one_mul_matrixReal_comm` — **Georgii (11.28)**, reversibility of `α = 𝔭(1, ·)`:
   `α(x) Q(x, y) = α(y) Q(y, x)`, both sides being the symmetric sum
   `∑_{k ≤ x ∧ y} c_k q^{x-k} q^{y-k}/((x-k)!(y-k)!)` (`reversibleSummand`).
@@ -102,6 +124,22 @@ representation over the limits `U = lim_{i → -∞} σ_i p^{-i}`, `V = lim_{i �
 * `chain_intervalCylinder_self` — **Georgii (11.30)**,
   `μ^{u,v}(σ_i = x) = 𝔭((1 + u p^i)(1 + v p^{-i}), x)`.
 * `eq_of_chain_eq` — **Georgii, before (11.31)**: the `μ^{u,v}` are pairwise distinct.
+* `ofReal_poissonWeight_one_mul_matrix_comm`, `ofReal_poissonWeight_one_mul_matrix_pow_comm` —
+  **Georgii (11.28)** in `ℝ≥0∞`, for `Q` and for every power `Q^n`.
+* `exists_eq_chain_of_mem_extremePoints` — **Georgii Theorem (11.31), Step 2**,
+  `ex 𝒢(γ^Q) ⊆ {μ^{u,v}}`.
+* `chain_preimage_singleton`, `tendsto_ae_of_forall_measure_preimage_singleton_eq`,
+  `map_neg_natCast_atTop`, `tendsto_atBot_ae_chain`,
+  `tendsto_atTop_ae_chain` — **Georgii Theorem (11.31), Step 3**: `μ^{u,v}`-almost surely
+  `σ_i p^{-i} → u` as `i → -∞` and `σ_i p^i → v` as `i → ∞`.
+* `limitEvent`, `measurableSet_limitEvent`, `chain_limitEvent`,
+  `eq_of_chain_limitEvent_ne_zero`, `chain_mem_extremePoints_G` — **Georgii Theorem (11.31),
+  Step 4**: `μ^{u,v}(U = u, V = v) = 1`, different parameters give disjoint limit events, and
+  each `μ^{u,v}` is extreme.
+* `extremePoints_G_eq_range_chain` — **Georgii Theorem (11.31)**,
+  `ex 𝒢(γ^Q) = {μ^{u,v} : u, v ≥ 0}`.
+* `existsLimits`, `measurableSet_existsLimits`, `measure_existsLimits_eq_one_of_mem_G` —
+  **Georgii Theorem (11.31)**, the existence of `U` and `V` under every `μ ∈ 𝒢(γ^Q)`.
 * `not_mem_invariantG_chain`, `injective_map_shift_chain`, `infinite_extremePoints_G`,
   `not_countable_G` — **the phase transition**: `μ^{u,0}` is not shift invariant for `u > 0`, its
   translates are pairwise distinct, `ex 𝒢(γ^Q)` is infinite and `𝒢(γ^Q)` is uncountable.
@@ -179,6 +217,88 @@ lemma hasSum_pow_div_factorial {a : ℝ} (ha : 0 ≤ a) :
   refine h.congr_fun fun j ↦ ?_
   simp only [poissonWeight]
   rw [← mul_div_assoc, ← mul_assoc, ← Real.exp_add, add_neg_cancel, Real.exp_zero, one_mul]
+
+/-! ### Moments of the Poisson weights
+
+Georgii's Step 3 in the proof of Theorem (11.31) uses `𝔭(a, ·)` has mean `a` and variance `a`.
+Both are the standard shift-of-index computation on `∑_k a^k/k! = e^a`. -/
+
+/-- The mean of the Poisson weights: `∑_k k 𝔭(a, k) = a`. -/
+lemma hasSum_natCast_mul_poissonWeight {a : ℝ} (ha : 0 ≤ a) :
+    HasSum (fun k : ℕ ↦ (k : ℝ) * poissonWeight a k) a := by
+  have h : HasSum (fun j : ℕ ↦ a * poissonWeight a j) a := by
+    simpa using (hasSum_poissonWeight ha).mul_left a
+  have hshift : ∀ j : ℕ, a * poissonWeight a j
+      = ((j + 1 : ℕ) : ℝ) * poissonWeight a (j + 1) := by
+    intro j
+    have hfac : ((j ! : ℕ) : ℝ) ≠ 0 := Nat.cast_ne_zero.2 (Nat.factorial_ne_zero j)
+    simp only [poissonWeight, Nat.factorial_succ]
+    push_cast
+    field_simp
+    ring
+  have h1 : HasSum (fun j : ℕ ↦ ((j + 1 : ℕ) : ℝ) * poissonWeight a (j + 1)) a :=
+    h.congr_fun fun j ↦ (hshift j).symm
+  refine (hasSum_nat_add_iff' (f := fun k : ℕ ↦ (k : ℝ) * poissonWeight a k) 1).1 ?_
+  simpa using h1
+
+/-- The second factorial moment of the Poisson weights: `∑_k k(k-1) 𝔭(a, k) = a²`. -/
+lemma hasSum_natCast_mul_sub_one_mul_poissonWeight {a : ℝ} (ha : 0 ≤ a) :
+    HasSum (fun k : ℕ ↦ (k : ℝ) * ((k : ℝ) - 1) * poissonWeight a k) (a ^ 2) := by
+  have h : HasSum (fun j : ℕ ↦ a ^ 2 * poissonWeight a j) (a ^ 2) := by
+    simpa using (hasSum_poissonWeight ha).mul_left (a ^ 2)
+  have hshift : ∀ j : ℕ, a ^ 2 * poissonWeight a j
+      = ((j + 2 : ℕ) : ℝ) * (((j + 2 : ℕ) : ℝ) - 1) * poissonWeight a (j + 2) := by
+    intro j
+    have hfac : ((j ! : ℕ) : ℝ) ≠ 0 := Nat.cast_ne_zero.2 (Nat.factorial_ne_zero j)
+    simp only [poissonWeight, Nat.factorial_succ]
+    push_cast
+    field_simp
+    ring
+  have h1 : HasSum
+      (fun j : ℕ ↦ ((j + 2 : ℕ) : ℝ) * (((j + 2 : ℕ) : ℝ) - 1) * poissonWeight a (j + 2))
+      (a ^ 2) := h.congr_fun fun j ↦ (hshift j).symm
+  refine (hasSum_nat_add_iff'
+    (f := fun k : ℕ ↦ (k : ℝ) * ((k : ℝ) - 1) * poissonWeight a k) 2).1 ?_
+  simpa [Finset.sum_range_succ] using h1
+
+/-- The variance of the Poisson weights: `∑_k (k - a)² 𝔭(a, k) = a`. -/
+lemma hasSum_sq_sub_mul_poissonWeight {a : ℝ} (ha : 0 ≤ a) :
+    HasSum (fun k : ℕ ↦ ((k : ℝ) - a) ^ 2 * poissonWeight a k) a := by
+  have h := ((hasSum_natCast_mul_sub_one_mul_poissonWeight ha).add
+    ((hasSum_natCast_mul_poissonWeight ha).mul_left (1 - 2 * a))).add
+    ((hasSum_poissonWeight ha).mul_left (a ^ 2))
+  have hval : a ^ 2 + (1 - 2 * a) * a + a ^ 2 * 1 = a := by ring
+  rw [hval] at h
+  refine h.congr_fun fun k ↦ ?_
+  ring
+
+/-- **Chebyshev's inequality for the Poisson weights.** If every `k ∈ S` is at distance at least
+`t > 0` from the mean `a`, then `𝔭(a, S) ≤ a/t²`. -/
+lemma tsum_indicator_ofReal_poissonWeight_le {a t : ℝ} (ha : 0 ≤ a) (ht : 0 < t) (S : Set ℕ)
+    (hS : ∀ k ∈ S, t ≤ |(k : ℝ) - a|) :
+    ∑' k : ℕ, S.indicator (fun k ↦ ENNReal.ofReal (poissonWeight a k)) k
+      ≤ ENNReal.ofReal (a / t ^ 2) := by
+  classical
+  have hmom := (hasSum_sq_sub_mul_poissonWeight ha).div_const (t ^ 2)
+  have hnn : ∀ k : ℕ, 0 ≤ ((k : ℝ) - a) ^ 2 * poissonWeight a k / t ^ 2 := fun k ↦
+    div_nonneg (mul_nonneg (sq_nonneg _) (poissonWeight_nonneg ha k)) (sq_nonneg t)
+  calc ∑' k : ℕ, S.indicator (fun k ↦ ENNReal.ofReal (poissonWeight a k)) k
+      ≤ ∑' k : ℕ, ENNReal.ofReal (((k : ℝ) - a) ^ 2 * poissonWeight a k / t ^ 2) := by
+        refine ENNReal.tsum_le_tsum fun k ↦ ?_
+        by_cases hk : k ∈ S
+        · rw [Set.indicator_of_mem hk]
+          refine ENNReal.ofReal_le_ofReal ?_
+          have h1 : t ^ 2 ≤ ((k : ℝ) - a) ^ 2 := by
+            have hk' := hS k hk
+            nlinarith [abs_nonneg ((k : ℝ) - a), sq_abs ((k : ℝ) - a)]
+          have h2 : 0 ≤ poissonWeight a k := poissonWeight_nonneg ha k
+          rw [le_div_iff₀ (by positivity)]
+          nlinarith
+        · rw [Set.indicator_of_notMem hk]
+          exact zero_le
+    _ = ENNReal.ofReal (∑' k : ℕ, ((k : ℝ) - a) ^ 2 * poissonWeight a k / t ^ 2) :=
+        (ENNReal.ofReal_tsum_of_nonneg hnn hmom.summable).symm
+    _ = ENNReal.ofReal (a / t ^ 2) := by rw [hmom.tsum_eq]
 
 lemma binomialWeight_nonneg {p : ℝ} (hp0 : 0 ≤ p) (hp1 : p ≤ 1) (n k : ℕ) :
     0 ≤ binomialWeight n p k := by
@@ -1397,8 +1517,9 @@ theorem eq_of_chain_eq (hp0 : 0 < p) (hp1 : p < 1) {u' v' : ℝ} (hu : 0 ≤ u) 
 
 /-- **The Spitzer–Cox example has uncountably many phases (Georgii §11.2).** Already the
 one-parameter subfamily `{μ^{u,0} : u ≥ 0}` of Gibbs measures for `γ^Q` is uncountable, so
-`𝒢(γ^Q)` is not countable. (Georgii's Theorem (11.31) says more: these measures, together with
-the `μ^{u,v}`, are exactly the *extreme* points of `𝒢(Q)`.) -/
+`𝒢(γ^Q)` is not countable. Georgii's Theorem (11.31) says more, and is proved below
+(`extremePoints_G_eq_range_chain`): the `μ^{u,v}` are exactly the *extreme* points of
+`𝒢(γ^Q)`. -/
 theorem not_countable_G (hp0 : 0 < p) (hp1 : p < 1) :
     ¬ (G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1))).Countable := by
   intro hc
@@ -1417,6 +1538,645 @@ theorem not_countable_G (hp0 : 0 < p) (hp1 : p < 1) :
   exact Cardinal.not_countable_real hcount
 
 end Transfer
+
+/-! ## Georgii Theorem (11.31), Step 2: `ex 𝒢(Q) ⊆ {μ^{u,v} : u, v ≥ 0}`
+
+Given `μ ∈ ex 𝒢(Q)`, Theorem (11.9)(c)
+(`MeasureTheory.GibbsMeasure.Markov.exists_isBoundaryLaw_and_tendsto_of_mem_extremePoints`)
+supplies a representing boundary law `{ℓ_i, r_i}` and two sequences realising it as a limit of
+ratios of entries of powers of `Q`. Step 1 (`exists_tendsto_matrix_pow_apply_singleton_of_
+tendsto_ratio`) turns the *left* sequence into a parameter `u ≥ 0` with `ℓ_i = c₁ ℓ^u_i` for
+`i < 0`; the reversibility (11.28) of `α = 𝔭(1, ·)`, extended to all powers of `Q`
+(`ofReal_poissonWeight_one_mul_matrix_pow_comm`), turns the *right* limits into left limits for
+the second sequence, and Step 1 again gives `v ≥ 0` with `r_i = c₂ r^v_i` for `i > 0`. The
+consistency equations `ℓ_i Q = ℓ_{i+1}` and `Q r_i = r_{i-1}` propagate both identities to every
+`i ∈ ℤ`, and `ℓ_0 r_0 = 1 = ℓ^u_0 (e^{-uv} r^v_0)` normalises the two constants, so the two
+boundary laws define the same measure (11.10). -/
+
+section StepTwo
+
+open Filter
+open scoped Topology
+
+variable {p : ℝ}
+
+/-- **Georgii (11.28) in `ℝ≥0∞`**: `α(x) Q(x, y) = α(y) Q(y, x)` for `α = 𝔭(1, ·)`. No sign
+hypothesis on `p` is needed — see `poissonWeight_one_mul_matrixReal_comm`. -/
+lemma ofReal_poissonWeight_one_mul_matrix_comm (x y : ℕ) :
+    ENNReal.ofReal (poissonWeight 1 x) * matrix p x y
+      = ENNReal.ofReal (poissonWeight 1 y) * matrix p y x := by
+  rw [matrix, matrix, ← ENNReal.ofReal_mul (poissonWeight_nonneg zero_le_one x),
+    ← ENNReal.ofReal_mul (poissonWeight_nonneg zero_le_one y),
+    poissonWeight_one_mul_matrixReal_comm]
+
+/-- **Georgii (11.28) for every power of `Q`**: `α` is reversible for `Q^n`,
+`α(x) Q^n(x, y) = α(y) Q^n(y, x)`. Georgii uses this in Step 2 of the proof of Theorem (11.31)
+to convert the limit formula for the right vectors `r_i` into one for left vectors. -/
+theorem ofReal_poissonWeight_one_mul_matrix_pow_comm (n : ℕ) (x y : ℕ) :
+    ENNReal.ofReal (poissonWeight 1 x) * (Kernel.ofMatrix (matrix p) ^ n) x {y}
+      = ENNReal.ofReal (poissonWeight 1 y) * (Kernel.ofMatrix (matrix p) ^ n) y {x} := by
+  induction n generalizing x y with
+  | zero =>
+    rcases eq_or_ne x y with rfl | hxy
+    · rfl
+    · rw [Kernel.pow_zero_apply_singleton, Kernel.pow_zero_apply_singleton,
+        Set.indicator_of_notMem (by simpa using hxy),
+        Set.indicator_of_notMem (by simpa using Ne.symm hxy), mul_zero, mul_zero]
+  | succ n ih =>
+    rw [Kernel.ofMatrix_pow_succ_apply_singleton, Kernel.ofMatrix_pow_succ'_apply_singleton,
+      ← ENNReal.tsum_mul_left, ← ENNReal.tsum_mul_left]
+    refine tsum_congr fun w ↦ ?_
+    calc ENNReal.ofReal (poissonWeight 1 x)
+            * (matrix p x w * (Kernel.ofMatrix (matrix p) ^ n) w {y})
+        = (ENNReal.ofReal (poissonWeight 1 x) * matrix p x w)
+            * (Kernel.ofMatrix (matrix p) ^ n) w {y} := by ring
+      _ = (ENNReal.ofReal (poissonWeight 1 w) * matrix p w x)
+            * (Kernel.ofMatrix (matrix p) ^ n) w {y} := by
+          rw [ofReal_poissonWeight_one_mul_matrix_comm]
+      _ = (ENNReal.ofReal (poissonWeight 1 w) * (Kernel.ofMatrix (matrix p) ^ n) w {y})
+            * matrix p w x := by ring
+      _ = (ENNReal.ofReal (poissonWeight 1 y) * (Kernel.ofMatrix (matrix p) ^ n) y {w})
+            * matrix p w x := by rw [ih]
+      _ = ENNReal.ofReal (poissonWeight 1 y)
+            * ((Kernel.ofMatrix (matrix p) ^ n) y {w} * matrix p w x) := by ring
+
+/-- **Georgii Theorem (11.31), Step 2.** Every extreme Gibbs measure for the Spitzer–Cox matrix
+is one of the measures `μ^{u,v}` of (11.29)–(11.10). -/
+theorem exists_eq_chain_of_mem_extremePoints (hp0 : 0 < p) (hp1 : p < 1)
+    {μ : Measure (ℤ → ℕ)} [IsProbabilityMeasure μ]
+    (hμ : μ ∈ (G (transferSpecification (matrix p)
+      (isTransferMatrix hp0 hp1))).extremePoints ℝ≥0∞) :
+    ∃ (u v : ℝ) (hu : 0 ≤ u) (hv : 0 ≤ v), μ = chain hp0 hp1 hu hv := by
+  classical
+  obtain ⟨ℓ, r, hbl, rfl, ⟨x, hx⟩, ⟨z, hz⟩⟩ :=
+    exists_isBoundaryLaw_and_tendsto_of_mem_extremePoints (isTransferMatrix hp0 hp1) hμ 0
+  have hℓ0 : (0 : ℝ) < (ℓ 0 0).toReal :=
+    ENNReal.toReal_pos (hbl.left_pos 0 0).ne' (hbl.left_ne_top 0 0)
+  have hr0 : (0 : ℝ) < (r 0 0).toReal :=
+    ENNReal.toReal_pos (hbl.right_pos 0 0).ne' (hbl.right_ne_top 0 0)
+  have hidx : ∀ n : ℕ, ((n : ℤ) + (-1)).toNat = n - 1 := fun n ↦ by omega
+  /- ### The left vectors -/
+  have hratio := hx (-1) (by norm_num) 0
+  simp_rw [hidx] at hratio
+  obtain ⟨u, hu0, -, hurow⟩ := exists_tendsto_matrix_pow_apply_singleton_of_tendsto_ratio
+    hp0 hp1 (div_pos (ENNReal.toReal_pos (hbl.left_pos (-1) 0).ne'
+      (hbl.left_ne_top (-1) 0)) hℓ0) hratio
+  have hE_top : ∀ (i : ℤ) (y : ℕ), entrance p u i y ≠ ⊤ := fun _ _ ↦ ENNReal.ofReal_ne_top
+  have hE_ne : ∀ (i : ℤ) (y : ℕ), entrance p u i y ≠ 0 := fun i y ↦
+    (ENNReal.ofReal_pos.2 (poissonWeight_pos (rate_pos hp0 hu0 i) y)).ne'
+  have hdenom : Tendsto (fun n : ℕ ↦
+      ((Kernel.ofMatrix (matrix p) ^ n) (x n) {0}).toReal) atTop
+      (𝓝 (entrance p u 0 0).toReal) := by
+    have := (ENNReal.tendsto_toReal (hE_top 0 0)).comp (hurow 0 0)
+    simpa [Function.comp_def] using this
+  have hleftneg : ∀ i : ℤ, i < 0 → ∀ y : ℕ,
+      ℓ i y * entrance p u 0 0 = ℓ 0 0 * entrance p u i y := by
+    intro i hi y
+    have hnum : Tendsto (fun n : ℕ ↦
+        ((Kernel.ofMatrix (matrix p) ^ ((n : ℤ) + i).toNat) (x n) {y}).toReal) atTop
+        (𝓝 (entrance p u i y).toReal) :=
+      ((ENNReal.tendsto_toReal (hE_top i y)).comp (hurow i y) :)
+    have heq := tendsto_nhds_unique (hx i hi y)
+      (hnum.div hdenom (ENNReal.toReal_pos (hE_ne 0 0) (hE_top 0 0)).ne')
+    exact (ENNReal.mul_eq_mul_of_toReal_div_eq (hbl.left_ne_top i y) (hbl.left_pos 0 0).ne'
+      (hbl.left_ne_top 0 0) (hE_top i y) (hE_ne 0 0) (hE_top 0 0) heq).trans (mul_comm _ _)
+  have hleftstep : ∀ i : ℤ, (∀ y : ℕ, ℓ i y * entrance p u 0 0 = ℓ 0 0 * entrance p u i y) →
+      ∀ y : ℕ, ℓ (i + 1) y * entrance p u 0 0 = ℓ 0 0 * entrance p u (i + 1) y := by
+    intro i hi y
+    rw [← hbl.tsum_left_mul i y, ← (isEntranceLaw hp0 hp1 hu0).step i y,
+      ← ENNReal.tsum_mul_right (a := entrance p u 0 0) (f := fun s ↦ ℓ i s * matrix p s y),
+      ← ENNReal.tsum_mul_left (a := ℓ 0 0) (f := fun s ↦ entrance p u i s * matrix p s y)]
+    refine tsum_congr fun s ↦ ?_
+    calc ℓ i s * matrix p s y * entrance p u 0 0
+        = (ℓ i s * entrance p u 0 0) * matrix p s y := by ring
+      _ = (ℓ 0 0 * entrance p u i s) * matrix p s y := by rw [hi s]
+      _ = ℓ 0 0 * (entrance p u i s * matrix p s y) := by ring
+  have hleft : ∀ (i : ℤ) (y : ℕ), ℓ i y * entrance p u 0 0 = ℓ 0 0 * entrance p u i y := by
+    have hup : ∀ k : ℕ, ∀ y : ℕ,
+        ℓ (-1 + (k : ℤ)) y * entrance p u 0 0 = ℓ 0 0 * entrance p u (-1 + (k : ℤ)) y := by
+      intro k
+      induction k with
+      | zero => simpa using hleftneg (-1) (by norm_num)
+      | succ m ihm =>
+        intro y
+        have hcast : (-1 : ℤ) + ((m + 1 : ℕ) : ℤ) = (-1 + (m : ℤ)) + 1 := by push_cast; ring
+        rw [hcast]
+        exact hleftstep (-1 + (m : ℤ)) ihm y
+    intro i
+    rcases lt_or_ge i (-1) with hi | hi
+    · exact hleftneg i (by omega)
+    · obtain ⟨k, rfl⟩ : ∃ k : ℕ, i = -1 + (k : ℤ) := ⟨(i + 1).toNat, by omega⟩
+      exact hup k
+  /- ### The right vectors, via the reversibility of `α` -/
+  have hα : ∀ s : ℕ, (0 : ℝ) < poissonWeight 1 s := fun s ↦ poissonWeight_pos one_pos s
+  have hαreal : ∀ s : ℕ, (ENNReal.ofReal (poissonWeight 1 s)).toReal = poissonWeight 1 s :=
+    fun s ↦ ENNReal.toReal_ofReal (hα s).le
+  have hzform : ∀ i : ℤ, 0 < i → ∀ y : ℕ, Tendsto
+      (fun n : ℕ ↦ ((Kernel.ofMatrix (matrix p) ^ ((n : ℤ) - i).toNat) (z n) {y}).toReal
+        / ((Kernel.ofMatrix (matrix p) ^ n) (z n) {0}).toReal) atTop
+      (𝓝 ((poissonWeight 1 y / poissonWeight 1 0)
+        * ((r i y).toReal / (r 0 0).toReal))) := by
+    intro i hi y
+    have hpt : ∀ n : ℕ,
+        ((Kernel.ofMatrix (matrix p) ^ ((n : ℤ) - i).toNat) (z n) {y}).toReal
+          / ((Kernel.ofMatrix (matrix p) ^ n) (z n) {0}).toReal
+        = (poissonWeight 1 y / poissonWeight 1 0)
+          * (((Kernel.ofMatrix (matrix p) ^ ((n : ℤ) - i).toNat) y {z n}).toReal
+            / ((Kernel.ofMatrix (matrix p) ^ n) (0 : ℕ) {z n}).toReal) := by
+      intro n
+      have hA := congrArg ENNReal.toReal
+        (ofReal_poissonWeight_one_mul_matrix_pow_comm (p := p) ((n : ℤ) - i).toNat y (z n))
+      have hB := congrArg ENNReal.toReal
+        (ofReal_poissonWeight_one_mul_matrix_pow_comm (p := p) n 0 (z n))
+      rw [ENNReal.toReal_mul, ENNReal.toReal_mul, hαreal, hαreal] at hA hB
+      rw [show ((Kernel.ofMatrix (matrix p) ^ ((n : ℤ) - i).toNat) (z n) {y}).toReal
+          / ((Kernel.ofMatrix (matrix p) ^ n) (z n) {0}).toReal
+          = (poissonWeight 1 (z n)
+              * ((Kernel.ofMatrix (matrix p) ^ ((n : ℤ) - i).toNat) (z n) {y}).toReal)
+            / (poissonWeight 1 (z n)
+              * ((Kernel.ofMatrix (matrix p) ^ n) (z n) {0}).toReal) from
+          (mul_div_mul_left _ _ (hα (z n)).ne').symm, ← hA, ← hB, div_mul_div_comm]
+    exact ((hz i hi y).const_mul (poissonWeight 1 y / poissonWeight 1 0)).congr
+      fun n ↦ (hpt n).symm
+  have hr1 : (0 : ℝ) < (r 1 0).toReal :=
+    ENNReal.toReal_pos (hbl.right_pos 1 0).ne' (hbl.right_ne_top 1 0)
+  have hratio2 := hzform 1 one_pos 0
+  rw [div_self (hα 0).ne', one_mul] at hratio2
+  have hidx2 : ∀ n : ℕ, ((n : ℤ) - 1).toNat = n - 1 := fun n ↦ by omega
+  simp_rw [hidx2] at hratio2
+  obtain ⟨v, hv0, -, hvrow⟩ := exists_tendsto_matrix_pow_apply_singleton_of_tendsto_ratio
+    hp0 hp1 (div_pos hr1 hr0) hratio2
+  have hF_top : ∀ (i : ℤ) (y : ℕ), entrance p v i y ≠ ⊤ := fun _ _ ↦ ENNReal.ofReal_ne_top
+  have hF_ne : ∀ (i : ℤ) (y : ℕ), entrance p v i y ≠ 0 := fun i y ↦
+    (ENNReal.ofReal_pos.2 (poissonWeight_pos (rate_pos hp0 hv0 i) y)).ne'
+  have hdenom2 : Tendsto (fun n : ℕ ↦
+      ((Kernel.ofMatrix (matrix p) ^ n) (z n) {0}).toReal) atTop
+      (𝓝 (entrance p v 0 0).toReal) := by
+    have := (ENNReal.tendsto_toReal (hF_top 0 0)).comp (hvrow 0 0)
+    simpa [Function.comp_def] using this
+  -- the ratio identity for Georgii's `r^v`
+  have hR_top : ∀ (i : ℤ) (y : ℕ), right p u v i y ≠ ⊤ := fun _ _ ↦ ENNReal.ofReal_ne_top
+  have hR_ne : ∀ (i : ℤ) (y : ℕ), right p u v i y ≠ 0 := fun i y ↦ (right_pos hp0 hv0 i y).ne'
+  have hrightratio : ∀ (i : ℤ) (y : ℕ),
+      (right p u v i y).toReal / (right p u v 0 0).toReal
+        = (poissonWeight 1 0 / poissonWeight 1 y)
+          * ((entrance p v (-i) y).toReal / (entrance p v 0 0).toReal) := by
+    intro i y
+    have hEval : ∀ (j : ℤ) (s : ℕ), (entrance p v j s).toReal = poissonWeight (1 + v * p ^ j) s :=
+      fun j s ↦ ENNReal.toReal_ofReal (poissonWeight_nonneg (rate_pos hp0 hv0 j).le s)
+    have hRval : ∀ (j : ℤ) (s : ℕ), (right p u v j s).toReal
+        = Real.exp (-(u * v)) * rightReal p v j s := fun j s ↦
+      ENNReal.toReal_ofReal (mul_nonneg (Real.exp_nonneg _) (rightReal_pos hp0 hv0 j s).le)
+    have hexp : Real.exp (-(u * v)) ≠ 0 := (Real.exp_pos _).ne'
+    have hP0 : (0 : ℝ) < poissonWeight (1 + v * p ^ (0 : ℤ)) 0 :=
+      poissonWeight_pos (rate_pos hp0 hv0 0) 0
+    rw [hRval, hRval, hEval, hEval, rightReal_eq_poissonWeight_div,
+      rightReal_eq_poissonWeight_div, neg_zero]
+    field_simp
+  have hrightpos : ∀ i : ℤ, 0 < i → ∀ y : ℕ,
+      r i y * right p u v 0 0 = r 0 0 * right p u v i y := by
+    intro i hi y
+    have hnum : Tendsto (fun n : ℕ ↦
+        ((Kernel.ofMatrix (matrix p) ^ ((n : ℤ) - i).toNat) (z n) {y}).toReal) atTop
+        (𝓝 (entrance p v (-i) y).toReal) := by
+      have := (ENNReal.tendsto_toReal (hF_top (-i) y)).comp (hvrow (-i) y)
+      simpa [Function.comp_def, sub_eq_add_neg] using this
+    have heq := tendsto_nhds_unique (hzform i hi y)
+      (hnum.div hdenom2 (ENNReal.toReal_pos (hF_ne 0 0) (hF_top 0 0)).ne')
+    -- rewrite both sides as ratios of `r` and of `right`
+    have heq' : (r i y).toReal / (r 0 0).toReal
+        = (right p u v i y).toReal / (right p u v 0 0).toReal := by
+      rw [hrightratio i y]
+      have h0 : poissonWeight 1 y ≠ 0 := (hα y).ne'
+      have h1 : poissonWeight 1 0 ≠ 0 := (hα 0).ne'
+      field_simp at heq ⊢
+      linarith [heq]
+    exact (ENNReal.mul_eq_mul_of_toReal_div_eq (hbl.right_ne_top i y) (hbl.right_pos 0 0).ne'
+      (hbl.right_ne_top 0 0) (hR_top i y) (hR_ne 0 0) (hR_top 0 0) heq').trans (mul_comm _ _)
+  have hrightstep : ∀ i : ℤ, (∀ y : ℕ, r i y * right p u v 0 0 = r 0 0 * right p u v i y) →
+      ∀ y : ℕ, r (i - 1) y * right p u v 0 0 = r 0 0 * right p u v (i - 1) y := by
+    intro i hi y
+    rw [← hbl.tsum_mul_right i y, ← (isBoundaryLaw hp0 hp1 hu0 hv0).tsum_mul_right i y,
+      ← ENNReal.tsum_mul_right (a := right p u v 0 0) (f := fun s ↦ matrix p y s * r i s),
+      ← ENNReal.tsum_mul_left (a := r 0 0) (f := fun s ↦ matrix p y s * right p u v i s)]
+    refine tsum_congr fun s ↦ ?_
+    calc matrix p y s * r i s * right p u v 0 0
+        = matrix p y s * (r i s * right p u v 0 0) := by ring
+      _ = matrix p y s * (r 0 0 * right p u v i s) := by rw [hi s]
+      _ = r 0 0 * (matrix p y s * right p u v i s) := by ring
+  have hright : ∀ (i : ℤ) (y : ℕ), r i y * right p u v 0 0 = r 0 0 * right p u v i y := by
+    have hdown : ∀ k : ℕ, ∀ y : ℕ,
+        r (1 - (k : ℤ)) y * right p u v 0 0 = r 0 0 * right p u v (1 - (k : ℤ)) y := by
+      intro k
+      induction k with
+      | zero => simpa using hrightpos 1 one_pos
+      | succ m ihm =>
+        intro y
+        have hcast : (1 : ℤ) - ((m + 1 : ℕ) : ℤ) = (1 - (m : ℤ)) - 1 := by push_cast; ring
+        rw [hcast]
+        exact hrightstep (1 - (m : ℤ)) ihm y
+    intro i
+    rcases le_or_gt i 1 with hi | hi
+    · obtain ⟨k, rfl⟩ : ∃ k : ℕ, i = 1 - (k : ℤ) := ⟨(1 - i).toNat, by omega⟩
+      exact hdown k
+    · exact hrightpos i (by omega)
+  /- ### Normalisation and conclusion -/
+  have hnorm : entrance p u 0 0 * right p u v 0 0 = ℓ 0 0 * r 0 0 := by
+    calc entrance p u 0 0 * right p u v 0 0
+        = (∑' y : ℕ, ℓ 0 y * r 0 y) * (entrance p u 0 0 * right p u v 0 0) := by
+          rw [hbl.tsum_left_mul_right 0, one_mul]
+      _ = ∑' y : ℕ, (ℓ 0 y * r 0 y) * (entrance p u 0 0 * right p u v 0 0) :=
+          ENNReal.tsum_mul_right.symm
+      _ = ∑' y : ℕ, (ℓ 0 0 * r 0 0) * (entrance p u 0 y * right p u v 0 y) := by
+          refine tsum_congr fun y ↦ ?_
+          calc (ℓ 0 y * r 0 y) * (entrance p u 0 0 * right p u v 0 0)
+              = (ℓ 0 y * entrance p u 0 0) * (r 0 y * right p u v 0 0) := by ring
+            _ = (ℓ 0 0 * entrance p u 0 y) * (r 0 0 * right p u v 0 y) := by
+                rw [hleft 0 y, hright 0 y]
+            _ = (ℓ 0 0 * r 0 0) * (entrance p u 0 y * right p u v 0 y) := by ring
+      _ = (ℓ 0 0 * r 0 0) * ∑' y : ℕ, entrance p u 0 y * right p u v 0 y := ENNReal.tsum_mul_left
+      _ = ℓ 0 0 * r 0 0 := by
+          rw [(isBoundaryLaw hp0 hp1 hu0 hv0).tsum_left_mul_right 0, mul_one]
+  have hLR : ∀ (a b : ℤ) (s t : ℕ),
+      ℓ a s * r b t = entrance p u a s * right p u v b t := by
+    intro a b s t
+    refine (ENNReal.mul_left_inj (a := ℓ a s * r b t)
+      (mul_ne_zero (hE_ne 0 0) (hR_ne 0 0)) (ENNReal.mul_ne_top (hE_top 0 0) (hR_top 0 0))).1 ?_
+    calc (ℓ a s * r b t) * (entrance p u 0 0 * right p u v 0 0)
+        = (ℓ a s * entrance p u 0 0) * (r b t * right p u v 0 0) := by ring
+      _ = (ℓ 0 0 * entrance p u a s) * (r 0 0 * right p u v b t) := by
+          rw [hleft a s, hright b t]
+      _ = (entrance p u a s * right p u v b t) * (ℓ 0 0 * r 0 0) := by ring
+      _ = (entrance p u a s * right p u v b t) * (entrance p u 0 0 * right p u v 0 0) := by
+          rw [hnorm]
+  refine ⟨u, v, hu0, hv0,
+    (isBoundaryLaw hp0 hp1 hu0 hv0).eq_boundaryLawMeasure_of_forall_intervalCylinder
+      fun a b hab ω ↦ ?_⟩
+  rw [hbl.boundaryLawMeasure_intervalCylinder hab ω]
+  calc ℓ a (ω a) * pathProd (matrix p) a b ω * r b (ω b)
+      = (ℓ a (ω a) * r b (ω b)) * pathProd (matrix p) a b ω := by ring
+    _ = (entrance p u a (ω a) * right p u v b (ω b)) * pathProd (matrix p) a b ω := by
+        rw [hLR a b (ω a) (ω b)]
+    _ = entrance p u a (ω a) * pathProd (matrix p) a b ω * right p u v b (ω b) := by ring
+
+end StepTwo
+
+/-! ## Georgii Theorem (11.31), Step 3: the limits `U` and `V` under `μ^{u,v}`
+
+By (11.30) the coordinate `σ_i` is Poisson with parameter `m_i = (1 + u p^i)(1 + v p^{-i})` under
+`μ^{u,v}`, so it has mean and variance `m_i`. Chebyshev's inequality
+(`tsum_indicator_ofReal_poissonWeight_le`) bounds `μ^{u,v}(|σ_i - m_i| p^{-i} ≥ ε)` by
+`ε^{-2} p^{-2i} m_i`, and `∑_{i<0} p^{-2i} m_i < ∞` because `p^{-2i} m_i` is a polynomial without
+constant term in `p^{|i|}`. Borel–Cantelli (`MeasureTheory.ae_eventually_notMem`) then gives
+`σ_i p^{-i} - m_i p^{-i} → 0` almost surely, and `m_i p^{-i} → u`. The statement for `V` is the
+mirror image. -/
+
+section StepThree
+
+open Filter
+open scoped Topology
+
+variable {p u v : ℝ}
+
+/-- The one-site marginal of `μ^{u,v}` as a measure of a coordinate fibre: Georgii (11.30). -/
+lemma chain_preimage_singleton (hp0 : 0 < p) (hp1 : p < 1) (hu : 0 ≤ u) (hv : 0 ≤ v)
+    (i : ℤ) (k : ℕ) :
+    chain hp0 hp1 hu hv ((fun ω : ℤ → ℕ ↦ ω i) ⁻¹' {k})
+      = ENNReal.ofReal (poissonWeight ((1 + u * p ^ i) * (1 + v * p ^ (-i))) k) := by
+  have h := chain_intervalCylinder_self hp0 hp1 hu hv i (fun _ ↦ k)
+  rwa [intervalCylinder_self] at h
+
+/-- **Chebyshev plus Borel–Cantelli for a sequence of Poisson coordinates.** If the coordinate
+`σ_{f n}` is Poisson with parameter `a n` under `μ`, the scaled deviations are square-summable
+(`∑ c_n² a_n < ∞`) and `a_n c_n → L`, then `σ_{f n} c_n → L` almost surely. -/
+theorem tendsto_ae_of_forall_measure_preimage_singleton_eq
+    {μ : Measure (ℤ → ℕ)} [IsProbabilityMeasure μ] {f : ℕ → ℤ} {a c : ℕ → ℝ} {L : ℝ}
+    (ha : ∀ n, 0 ≤ a n) (hc : ∀ n, 0 < c n)
+    (hmarg : ∀ n k : ℕ, μ ((fun ω : ℤ → ℕ ↦ ω (f n)) ⁻¹' {k})
+      = ENNReal.ofReal (poissonWeight (a n) k))
+    (hsum : Summable fun n ↦ (c n) ^ 2 * a n)
+    (hlim : Tendsto (fun n ↦ a n * c n) atTop (𝓝 L)) :
+    ∀ᵐ ω ∂μ, Tendsto (fun n : ℕ ↦ (ω (f n) : ℝ) * c n) atTop (𝓝 L) := by
+  classical
+  set A : ℝ → ℕ → Set (ℤ → ℕ) := fun ε n ↦
+    (fun ω : ℤ → ℕ ↦ ω (f n)) ⁻¹' {k : ℕ | ε ≤ |(k : ℝ) * c n - a n * c n|} with hA_def
+  have hbound : ∀ ε : ℝ, 0 < ε → ∀ n : ℕ,
+      μ (A ε n) ≤ ENNReal.ofReal ((c n) ^ 2 * a n / ε ^ 2) := by
+    intro ε hε n
+    set S : Set ℕ := {k : ℕ | ε ≤ |(k : ℝ) * c n - a n * c n|} with hS_def
+    have hSmeas : MeasurableSet S := (Set.to_countable S).measurableSet
+    have hev : Measurable fun ω : ℤ → ℕ ↦ ω (f n) := measurable_pi_apply (f n)
+    have hmap : μ (A ε n)
+        = ∑' k : ℕ, S.indicator (fun k ↦ ENNReal.ofReal (poissonWeight (a n) k)) k := by
+      rw [hA_def]
+      simp only
+      rw [← Measure.map_apply hev hSmeas,
+        ← Measure.tsum_indicator_apply_singleton _ S hSmeas]
+      refine tsum_congr fun k ↦ ?_
+      by_cases hk : k ∈ S
+      · rw [Set.indicator_of_mem hk, Set.indicator_of_mem hk,
+          Measure.map_apply hev (measurableSet_singleton k), hmarg n k]
+      · rw [Set.indicator_of_notMem hk, Set.indicator_of_notMem hk]
+    have hdist : ∀ k ∈ S, ε / c n ≤ |(k : ℝ) - a n| := by
+      intro k hk
+      rw [hS_def, Set.mem_ofPred_eq] at hk
+      rw [div_le_iff₀ (hc n)]
+      calc ε ≤ |(k : ℝ) * c n - a n * c n| := hk
+        _ = |(k : ℝ) - a n| * c n := by rw [← sub_mul, abs_mul, abs_of_pos (hc n)]
+    refine (hmap ▸ tsum_indicator_ofReal_poissonWeight_le (ha n) (div_pos hε (hc n)) S
+      hdist).trans (ENNReal.ofReal_le_ofReal (le_of_eq ?_))
+    have h1 : ε ≠ 0 := hε.ne'
+    have h2 : c n ≠ 0 := (hc n).ne'
+    field_simp
+  have hfin : ∀ ε : ℝ, 0 < ε → (∑' n : ℕ, μ (A ε n)) ≠ ⊤ := by
+    intro ε hε
+    have hnn : ∀ n : ℕ, 0 ≤ (c n) ^ 2 * a n / ε ^ 2 := fun n ↦
+      div_nonneg (mul_nonneg (sq_nonneg _) (ha n)) (sq_nonneg ε)
+    have h2 : ∑' n : ℕ, ENNReal.ofReal ((c n) ^ 2 * a n / ε ^ 2)
+        = ENNReal.ofReal (∑' n : ℕ, (c n) ^ 2 * a n / ε ^ 2) :=
+      (ENNReal.ofReal_tsum_of_nonneg hnn (hsum.div_const _)).symm
+    refine ne_top_of_le_ne_top ?_ (ENNReal.tsum_le_tsum (hbound ε hε))
+    rw [h2]
+    exact ENNReal.ofReal_ne_top
+  have hae : ∀ m : ℕ, ∀ᵐ ω ∂μ, ∀ᶠ n in atTop,
+      |(ω (f n) : ℝ) * c n - a n * c n| < 1 / (m + 1) := by
+    intro m
+    have hε : (0 : ℝ) < 1 / (m + 1) := by positivity
+    filter_upwards [ae_eventually_notMem (hfin _ hε)] with ω hω
+    filter_upwards [hω] with n hn
+    simpa [hA_def, not_le] using hn
+  filter_upwards [ae_all_iff.2 hae] with ω hω
+  have hzero : Tendsto (fun n : ℕ ↦ (ω (f n) : ℝ) * c n - a n * c n) atTop (𝓝 0) := by
+    rw [Metric.tendsto_atTop]
+    intro ε hε
+    obtain ⟨m, hm⟩ := exists_nat_one_div_lt hε
+    obtain ⟨N, hN⟩ := eventually_atTop.1 (hω m)
+    exact ⟨N, fun n hn ↦ by simpa [Real.dist_eq] using (hN n hn).trans hm⟩
+  simpa using hzero.add hlim
+
+/-- The image of `atTop` under `n ↦ -n` is `atBot`: a limit along `i → -∞` in `ℤ` may be computed
+along the sequence `i = -n`. (Mathlib's `Nat.map_cast_int_atTop` and `map_neg_atTop`.) -/
+lemma map_neg_natCast_atTop : Filter.map (fun n : ℕ ↦ -(n : ℤ)) atTop = (atBot : Filter ℤ) := by
+  have h : (fun n : ℕ ↦ -(n : ℤ)) = (fun x : ℤ ↦ -x) ∘ (fun n : ℕ ↦ (n : ℤ)) := rfl
+  rw [h, ← Filter.map_map, Nat.map_cast_int_atTop, map_neg_atTop]
+
+/-- **Georgii Theorem (11.31), Step 3, the limit `U`.** Under `μ^{u,v}` the limit
+`U = lim_{i → -∞} σ_i p^{-i}` exists and equals `u` almost surely. -/
+theorem tendsto_atBot_ae_chain (hp0 : 0 < p) (hp1 : p < 1) (hu : 0 ≤ u) (hv : 0 ≤ v) :
+    ∀ᵐ ω ∂(chain hp0 hp1 hu hv),
+      Tendsto (fun i : ℤ ↦ (ω i : ℝ) * p ^ (-i)) atBot (𝓝 u) := by
+  have hp2 : (0 : ℝ) ≤ p ^ 2 := by positivity
+  have hp2' : p ^ 2 < 1 := pow_lt_one₀ hp0.le hp1 (by norm_num)
+  have hp3 : (0 : ℝ) ≤ p ^ 3 := by positivity
+  have hp3' : p ^ 3 < 1 := pow_lt_one₀ hp0.le hp1 (by norm_num)
+  set a : ℕ → ℝ := fun n ↦ (1 + u * p ^ (-(n : ℤ))) * (1 + v * p ^ ((n : ℤ))) with ha_def
+  set c : ℕ → ℝ := fun n ↦ p ^ n with hc_def
+  have hcpos : ∀ n, 0 < c n := fun n ↦ pow_pos hp0 n
+  have hanonneg : ∀ n, 0 ≤ a n := fun n ↦ by
+    have h1 : 0 ≤ u * p ^ (-(n : ℤ)) := mul_nonneg hu (zpow_nonneg hp0.le _)
+    have h2 : 0 ≤ v * p ^ ((n : ℤ)) := mul_nonneg hv (zpow_nonneg hp0.le _)
+    exact mul_nonneg (by linarith) (by linarith)
+  have hkey1 : ∀ n : ℕ, (c n) ^ 2 * a n
+      = (p ^ 2) ^ n + u * p ^ n + v * (p ^ 3) ^ n + (u * v) * (p ^ 2) ^ n := by
+    intro n
+    have ht : (p : ℝ) ^ n ≠ 0 := (pow_pos hp0 n).ne'
+    simp only [ha_def, hc_def, zpow_neg, zpow_natCast]
+    field_simp
+    ring
+  have hkey2 : ∀ n : ℕ, a n * c n = p ^ n + u + v * (p ^ 2) ^ n + (u * v) * p ^ n := by
+    intro n
+    have ht : (p : ℝ) ^ n ≠ 0 := (pow_pos hp0 n).ne'
+    simp only [ha_def, hc_def, zpow_neg, zpow_natCast]
+    field_simp
+    ring
+  have hsum : Summable fun n ↦ (c n) ^ 2 * a n := by
+    refine Summable.congr ?_ fun n ↦ (hkey1 n).symm
+    exact (((summable_geometric_of_lt_one hp2 hp2').add
+      ((summable_geometric_of_lt_one hp0.le hp1).mul_left u)).add
+      ((summable_geometric_of_lt_one hp3 hp3').mul_left v)).add
+      ((summable_geometric_of_lt_one hp2 hp2').mul_left (u * v))
+  have hlim : Tendsto (fun n ↦ a n * c n) atTop (𝓝 u) := by
+    have h1 : Tendsto (fun n : ℕ ↦ p ^ n) atTop (𝓝 0) :=
+      tendsto_pow_atTop_nhds_zero_of_lt_one hp0.le hp1
+    have h2 : Tendsto (fun n : ℕ ↦ (p ^ 2) ^ n) atTop (𝓝 0) :=
+      tendsto_pow_atTop_nhds_zero_of_lt_one hp2 hp2'
+    have h3 := ((h1.add (tendsto_const_nhds (x := u))).add (h2.const_mul v)).add
+      (h1.const_mul (u * v))
+    simp only [zero_add, mul_zero, add_zero] at h3
+    exact h3.congr fun n ↦ (hkey2 n).symm
+  have hmarg : ∀ n k : ℕ, chain hp0 hp1 hu hv ((fun ω : ℤ → ℕ ↦ ω (-(n : ℤ))) ⁻¹' {k})
+      = ENNReal.ofReal (poissonWeight (a n) k) := by
+    intro n k
+    rw [chain_preimage_singleton hp0 hp1 hu hv (-(n : ℤ)) k, ha_def, neg_neg]
+  filter_upwards [tendsto_ae_of_forall_measure_preimage_singleton_eq
+    (μ := chain hp0 hp1 hu hv) (f := fun n : ℕ ↦ -(n : ℤ)) hanonneg hcpos hmarg hsum hlim]
+    with ω hω
+  rw [← map_neg_natCast_atTop, Filter.tendsto_map'_iff]
+  refine hω.congr fun n ↦ ?_
+  simp [hc_def]
+
+/-- **Georgii Theorem (11.31), Step 3, the limit `V`.** Under `μ^{u,v}` the limit
+`V = lim_{i → ∞} σ_i p^i` exists and equals `v` almost surely. -/
+theorem tendsto_atTop_ae_chain (hp0 : 0 < p) (hp1 : p < 1) (hu : 0 ≤ u) (hv : 0 ≤ v) :
+    ∀ᵐ ω ∂(chain hp0 hp1 hu hv),
+      Tendsto (fun i : ℤ ↦ (ω i : ℝ) * p ^ i) atTop (𝓝 v) := by
+  have hp2 : (0 : ℝ) ≤ p ^ 2 := by positivity
+  have hp2' : p ^ 2 < 1 := pow_lt_one₀ hp0.le hp1 (by norm_num)
+  have hp3 : (0 : ℝ) ≤ p ^ 3 := by positivity
+  have hp3' : p ^ 3 < 1 := pow_lt_one₀ hp0.le hp1 (by norm_num)
+  set a : ℕ → ℝ := fun n ↦ (1 + u * p ^ ((n : ℤ))) * (1 + v * p ^ (-(n : ℤ))) with ha_def
+  set c : ℕ → ℝ := fun n ↦ p ^ n with hc_def
+  have hcpos : ∀ n, 0 < c n := fun n ↦ pow_pos hp0 n
+  have hanonneg : ∀ n, 0 ≤ a n := fun n ↦ by
+    have h1 : 0 ≤ u * p ^ ((n : ℤ)) := mul_nonneg hu (zpow_nonneg hp0.le _)
+    have h2 : 0 ≤ v * p ^ (-(n : ℤ)) := mul_nonneg hv (zpow_nonneg hp0.le _)
+    exact mul_nonneg (by linarith) (by linarith)
+  have hkey1 : ∀ n : ℕ, (c n) ^ 2 * a n
+      = (p ^ 2) ^ n + u * (p ^ 3) ^ n + v * p ^ n + (u * v) * (p ^ 2) ^ n := by
+    intro n
+    have ht : (p : ℝ) ^ n ≠ 0 := (pow_pos hp0 n).ne'
+    simp only [ha_def, hc_def, zpow_neg, zpow_natCast]
+    field_simp
+    ring
+  have hkey2 : ∀ n : ℕ, a n * c n = p ^ n + u * (p ^ 2) ^ n + v + (u * v) * p ^ n := by
+    intro n
+    have ht : (p : ℝ) ^ n ≠ 0 := (pow_pos hp0 n).ne'
+    simp only [ha_def, hc_def, zpow_neg, zpow_natCast]
+    field_simp
+    ring
+  have hsum : Summable fun n ↦ (c n) ^ 2 * a n := by
+    refine Summable.congr ?_ fun n ↦ (hkey1 n).symm
+    exact (((summable_geometric_of_lt_one hp2 hp2').add
+      ((summable_geometric_of_lt_one hp3 hp3').mul_left u)).add
+      ((summable_geometric_of_lt_one hp0.le hp1).mul_left v)).add
+      ((summable_geometric_of_lt_one hp2 hp2').mul_left (u * v))
+  have hlim : Tendsto (fun n ↦ a n * c n) atTop (𝓝 v) := by
+    have h1 : Tendsto (fun n : ℕ ↦ p ^ n) atTop (𝓝 0) :=
+      tendsto_pow_atTop_nhds_zero_of_lt_one hp0.le hp1
+    have h2 : Tendsto (fun n : ℕ ↦ (p ^ 2) ^ n) atTop (𝓝 0) :=
+      tendsto_pow_atTop_nhds_zero_of_lt_one hp2 hp2'
+    have h3 := ((h1.add (h2.const_mul u)).add (tendsto_const_nhds (x := v))).add
+      (h1.const_mul (u * v))
+    simp only [zero_add, mul_zero, add_zero] at h3
+    exact h3.congr fun n ↦ (hkey2 n).symm
+  have hmarg : ∀ n k : ℕ, chain hp0 hp1 hu hv ((fun ω : ℤ → ℕ ↦ ω ((n : ℤ))) ⁻¹' {k})
+      = ENNReal.ofReal (poissonWeight (a n) k) := by
+    intro n k
+    rw [chain_preimage_singleton hp0 hp1 hu hv ((n : ℤ)) k, ha_def]
+  filter_upwards [tendsto_ae_of_forall_measure_preimage_singleton_eq
+    (μ := chain hp0 hp1 hu hv) (f := fun n : ℕ ↦ (n : ℤ)) hanonneg hcpos hmarg hsum hlim]
+    with ω hω
+  rw [← Nat.map_cast_int_atTop, Filter.tendsto_map'_iff]
+  refine hω.congr fun n ↦ ?_
+  simp [hc_def]
+
+end StepThree
+
+/-! ## Georgii Theorem (11.31), Step 4, and the classification of `ex 𝒢(Q)`
+
+Step 3 identifies `(U, V)` under `μ^{u,v}`, so the extreme decomposition (7.26) of `μ^{u,v}` is
+carried by the extreme points `ν` with `ν(U = u, V = v) = 1`; by Step 2 each such `ν` is some
+`μ^{u',v'}`, and Step 3 applied to `ν` forces `(u', v') = (u, v)`. Since the representing weight
+is a probability measure, at least one such `ν` exists, so `μ^{u,v}` is itself extreme. -/
+
+section StepFour
+
+open Filter
+open scoped Topology
+
+variable {p u v : ℝ}
+
+/-- The event `{U = u, V = v}` of Theorem (11.31): the configurations along which both boundary
+limits exist and take the prescribed values. -/
+def limitEvent (p u v : ℝ) : Set (ℤ → ℕ) :=
+  {ω : ℤ → ℕ | Tendsto (fun i : ℤ ↦ (ω i : ℝ) * p ^ (-i)) atBot (𝓝 u)}
+    ∩ {ω : ℤ → ℕ | Tendsto (fun i : ℤ ↦ (ω i : ℝ) * p ^ i) atTop (𝓝 v)}
+
+lemma measurableSet_limitEvent (p u v : ℝ) : MeasurableSet (limitEvent p u v) :=
+  (measurableSet_tendsto (𝓝 u)
+      (fun i : ℤ ↦ (measurable_of_countable fun k : ℕ ↦ (k : ℝ) * p ^ (-i)).comp
+        (measurable_pi_apply i))).inter
+    (measurableSet_tendsto (𝓝 v)
+      (fun i : ℤ ↦ (measurable_of_countable fun k : ℕ ↦ (k : ℝ) * p ^ i).comp
+        (measurable_pi_apply i)))
+
+/-- **Georgii Theorem (11.31), Step 3, packaged**: `μ^{u,v}(U = u, V = v) = 1`. -/
+theorem chain_limitEvent (hp0 : 0 < p) (hp1 : p < 1) (hu : 0 ≤ u) (hv : 0 ≤ v) :
+    chain hp0 hp1 hu hv (limitEvent p u v) = 1 := by
+  have hmem : ∀ᵐ ω ∂(chain hp0 hp1 hu hv), ω ∈ limitEvent p u v := by
+    filter_upwards [tendsto_atBot_ae_chain hp0 hp1 hu hv,
+      tendsto_atTop_ae_chain hp0 hp1 hu hv] with ω h1 h2 using ⟨h1, h2⟩
+  have hcompl : chain hp0 hp1 hu hv (limitEvent p u v)ᶜ = 0 := ae_iff.1 hmem
+  have := measure_add_measure_compl (μ := chain hp0 hp1 hu hv)
+    (measurableSet_limitEvent p u v)
+  rw [hcompl, add_zero, measure_univ] at this
+  exact this
+
+/-- Two different parameter pairs give disjoint limit events. -/
+lemma eq_of_chain_limitEvent_ne_zero (hp0 : 0 < p) (hp1 : p < 1) {u' v' : ℝ}
+    (hu' : 0 ≤ u') (hv' : 0 ≤ v') (h : chain hp0 hp1 hu' hv' (limitEvent p u v) ≠ 0) :
+    u = u' ∧ v = v' := by
+  have hmem : ∀ᵐ ω ∂(chain hp0 hp1 hu' hv'), ω ∈ limitEvent p u' v' := by
+    filter_upwards [tendsto_atBot_ae_chain hp0 hp1 hu' hv',
+      tendsto_atTop_ae_chain hp0 hp1 hu' hv'] with ω h1 h2 using ⟨h1, h2⟩
+  by_contra hcon
+  refine h (measure_mono_null (fun ω hω ↦ ?_) (ae_iff.1 hmem))
+  intro hω'
+  exact hcon ⟨tendsto_nhds_unique hω.1 hω'.1, tendsto_nhds_unique hω.2 hω'.2⟩
+
+/-- **Georgii Theorem (11.31), Step 4.** Every `μ^{u,v}` is extreme in `𝒢(Q)`. -/
+theorem chain_mem_extremePoints_G (hp0 : 0 < p) (hp1 : p < 1) (hu : 0 ≤ u) (hv : 0 ≤ v) :
+    chain hp0 hp1 hu hv ∈ (G (transferSpecification (matrix p)
+      (isTransferMatrix hp0 hp1))).extremePoints ℝ≥0∞ := by
+  classical
+  have hμG : chain hp0 hp1 hu hv ∈ G (transferSpecification (matrix p)
+      (isTransferMatrix hp0 hp1)) := ⟨inferInstance, isGibbsMeasure_chain hp0 hp1 hu hv⟩
+  have hG : (G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1))).Nonempty :=
+    ⟨_, hμG⟩
+  have hTmeas := measurableSet_limitEvent p u v
+  have hmem : ∀ᵐ ω ∂(chain hp0 hp1 hu hv), ω ∈ limitEvent p u v := by
+    filter_upwards [tendsto_atBot_ae_chain hp0 hp1 hu hv,
+      tendsto_atTop_ae_chain hp0 hp1 hu hv] with ω h1 h2 using ⟨h1, h2⟩
+  have hjoin := join_weightOf hG hμG
+  have hzero : ∫⁻ ν, ν (limitEvent p u v)ᶜ ∂(weightOf hG (chain hp0 hp1 hu hv)) = 0 := by
+    rw [← Measure.join_apply hTmeas.compl, hjoin]
+    exact ae_iff.1 hmem
+  have hae : ∀ᵐ ν ∂(weightOf hG (chain hp0 hp1 hu hv)), ν (limitEvent p u v)ᶜ = 0 :=
+    (lintegral_eq_zero_iff (Measure.measurable_coe hTmeas.compl)).1 hzero
+  have haeex : ∀ᵐ ν ∂(weightOf hG (chain hp0 hp1 hu hv)),
+      ν ∈ (G (transferSpecification (matrix p)
+        (isTransferMatrix hp0 hp1))).extremePoints ℝ≥0∞ :=
+    ae_iff.2 (weightOf_extremePoints_compl hG hμG)
+  obtain ⟨ν, hνT, hνex⟩ := (hae.and haeex).exists
+  have hνprob : IsProbabilityMeasure ν := hνex.1.1
+  obtain ⟨u', v', hu', hv', rfl⟩ := exists_eq_chain_of_mem_extremePoints hp0 hp1 hνex
+  have hne : chain hp0 hp1 hu' hv' (limitEvent p u v) ≠ 0 := by
+    intro h0
+    have := measure_add_measure_compl (μ := chain hp0 hp1 hu' hv') hTmeas
+    rw [h0, hνT, measure_univ] at this
+    simp at this
+  obtain ⟨rfl, rfl⟩ := eq_of_chain_limitEvent_ne_zero hp0 hp1 hu' hv' hne
+  exact hνex
+
+/-- **Georgii Theorem (11.31), the classification of `ex 𝒢(Q)`.**
+`ex 𝒢(γ^Q) = {μ^{u,v} : u, v ≥ 0}`. -/
+theorem extremePoints_G_eq_range_chain (hp0 : 0 < p) (hp1 : p < 1) :
+    (G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1))).extremePoints ℝ≥0∞
+      = {μ : Measure (ℤ → ℕ) |
+          ∃ (u v : ℝ) (hu : 0 ≤ u) (hv : 0 ≤ v), μ = chain hp0 hp1 hu hv} := by
+  ext μ
+  constructor
+  · intro hμ
+    have : IsProbabilityMeasure μ := hμ.1.1
+    exact exists_eq_chain_of_mem_extremePoints hp0 hp1 hμ
+  · rintro ⟨u, v, hu, hv, rfl⟩
+    exact chain_mem_extremePoints_G hp0 hp1 hu hv
+
+/-- The event that both boundary limits `U = lim_{i→-∞} σ_i p^{-i}` and `V = lim_{i→∞} σ_i p^i`
+exist. -/
+def existsLimits (p : ℝ) : Set (ℤ → ℕ) :=
+  {ω : ℤ → ℕ | ∃ a : ℝ, Tendsto (fun i : ℤ ↦ (ω i : ℝ) * p ^ (-i)) atBot (𝓝 a)}
+    ∩ {ω : ℤ → ℕ | ∃ b : ℝ, Tendsto (fun i : ℤ ↦ (ω i : ℝ) * p ^ i) atTop (𝓝 b)}
+
+lemma measurableSet_existsLimits (p : ℝ) : MeasurableSet (existsLimits p) :=
+  (measurableSet_exists_tendsto
+      (fun i : ℤ ↦ (measurable_of_countable fun k : ℕ ↦ (k : ℝ) * p ^ (-i)).comp
+        (measurable_pi_apply i))).inter
+    (measurableSet_exists_tendsto
+      (fun i : ℤ ↦ (measurable_of_countable fun k : ℕ ↦ (k : ℝ) * p ^ i).comp
+        (measurable_pi_apply i)))
+
+lemma limitEvent_subset_existsLimits (p u v : ℝ) : limitEvent p u v ⊆ existsLimits p :=
+  fun _ hω ↦ ⟨⟨u, hω.1⟩, ⟨v, hω.2⟩⟩
+
+/-- **Georgii Theorem (11.31), the existence of `U` and `V`.** For *every* `μ ∈ 𝒢(Q)` the limits
+`U = lim_{i → -∞} σ_i p^{-i}` and `V = lim_{i → ∞} σ_i p^i` exist `μ`-almost surely: by the
+extreme decomposition (7.26) it suffices to know this for the extreme points, and those are the
+`μ^{u,v}` (Steps 2 and 4), for which it is Step 3. -/
+theorem measure_existsLimits_eq_one_of_mem_G (hp0 : 0 < p) (hp1 : p < 1)
+    {μ : Measure (ℤ → ℕ)}
+    (hμ : μ ∈ G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1))) :
+    μ (existsLimits p) = 1 := by
+  classical
+  have hG : (G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1))).Nonempty := ⟨μ, hμ⟩
+  have hprob : IsProbabilityMeasure μ := hμ.1
+  have hLmeas := measurableSet_existsLimits p
+  have hcompl : μ (existsLimits p)ᶜ = 0 := by
+    rw [← join_weightOf hG hμ, Measure.join_apply hLmeas.compl]
+    refine (lintegral_eq_zero_iff (Measure.measurable_coe hLmeas.compl)).2 ?_
+    filter_upwards [ae_iff.2 (weightOf_extremePoints_compl hG hμ)] with ν hν
+    have hνprob : IsProbabilityMeasure ν := hν.1.1
+    obtain ⟨u, v, hu, hv, rfl⟩ := exists_eq_chain_of_mem_extremePoints hp0 hp1 hν
+    have hmem : ∀ᵐ ω ∂(chain hp0 hp1 hu hv), ω ∈ limitEvent p u v := by
+      filter_upwards [tendsto_atBot_ae_chain hp0 hp1 hu hv,
+        tendsto_atTop_ae_chain hp0 hp1 hu hv] with ω h1 h2 using ⟨h1, h2⟩
+    exact measure_mono_null
+      (Set.compl_subset_compl.2 (limitEvent_subset_existsLimits p u v)) (ae_iff.1 hmem)
+  have := measure_add_measure_compl (μ := μ) hLmeas
+  rw [hcompl, add_zero, measure_univ] at this
+  exact this
+
+end StepFour
 
 end MeasureTheory.GibbsMeasure.Markov.SpitzerCox
 

@@ -38,21 +38,25 @@
     marginal (11.30) at three sites separates the parameters.
 \end{proof}
 
-\begin{proposition}[Georgii (11.32), and Step 1 of Theorem (11.31)]
+\begin{theorem}[Georgii (11.32) and Theorem (11.31)]
     \label{prop:sc-11-32}
-    \uses{thm:sc-11-29, lem:sc-poisson-limit}
-    \lean{MeasureTheory.GibbsMeasure.Markov.SpitzerCox.matrix_pow_apply_singleton, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.matrix_pow_apply_zero, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.tendsto_matrix_pow_apply_singleton, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.tendsto_matrix_pow_apply_singleton_entrance, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.exists_tendsto_mul_pow_of_tendsto_ratio, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.exists_tendsto_matrix_pow_apply_singleton_of_tendsto_ratio}
+    \uses{thm:sc-11-29, lem:sc-poisson-limit, thm:bl-11-14, thm:ext-726}
+    \lean{MeasureTheory.GibbsMeasure.Markov.SpitzerCox.matrix_pow_apply_singleton, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.matrix_pow_apply_zero, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.tendsto_matrix_pow_apply_singleton, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.tendsto_matrix_pow_apply_singleton_entrance, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.exists_tendsto_mul_pow_of_tendsto_ratio, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.exists_tendsto_matrix_pow_apply_singleton_of_tendsto_ratio, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.exists_eq_chain_of_mem_extremePoints, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.tendsto_ae_of_forall_measure_preimage_singleton_eq, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.tendsto_atBot_ae_chain, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.tendsto_atTop_ae_chain, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.chain_limitEvent, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.chain_mem_extremePoints_G, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.extremePoints_G_eq_range_chain, MeasureTheory.GibbsMeasure.Markov.SpitzerCox.measure_existsLimits_eq_one_of_mem_G, ENNReal.mul_eq_mul_of_toReal_div_eq}
     \leanok
 
-    $Q^n(x,\cdot) = \ell(x,p^n,\cdot) * \mathfrak p(1-p^n,\cdot)$ by induction through the
-    convolution identities. Hence, if $m_n \to \infty$ and $x_n p^{m_n} \to a$ then
-    $Q^{m_n}(x_n,\cdot) \to \mathfrak p(1+a,\cdot)$; if $x_n p^n \to u$ then
-    $Q^{n+i}(x_n,\cdot) \to \ell^u_i$; and if $Q^{n-1}(x_n,0)/Q^n(x_n,0)$ converges to a positive
-    limit then $x_n p^n$ converges, which is Step 1 of (11.31). Steps 2--4, the identification of
-    every extreme Gibbs measure with some $\mu^{u,v}$ through the limits $U, V$ and (7.26), and
-    Corollary (11.33), are not formalised; they need the quantitative half of (11.9)(c), the
-    left-tail triviality lemma dual to the right one in the tree, and Borel--Cantelli.
-\end{proposition}
+    $Q^n(x,\cdot) = \ell(x,p^n,\cdot) * \mathfrak p(1-p^n,\cdot)$ (11.32). Theorem (11.31):
+    $\operatorname{ex}\mathcal G(\gamma^Q) = \{\mu^{u,v} : u, v \geq 0\}$. Step 1: if
+    $Q^{n-1}(x_n,0)/Q^n(x_n,0)$ converges to a positive limit then $x_n p^n$ converges, and
+    $x_n p^n \to u$ gives $Q^{n+i}(x_n,\cdot) \to \ell^u_i$ by the Poisson limit theorem; Step 2:
+    with (11.9)(c) every extreme Gibbs measure is some $\mu^{u,v}$; Step 3: under $\mu^{u,v}$,
+    $U = \lim_{i\to-\infty}\sigma_i p^{-i} = u$ and $V = \lim_{i\to\infty}\sigma_i p^i = v$ almost
+    surely, by Chebyshev and Borel--Cantelli, and $U, V$ exist almost surely under every Gibbs
+    measure; Step 4: each $\mu^{u,v}$ is extreme, since its representing weight on the extreme
+    points is carried by the measures with the same $(U,V)$. Not formalised: the parametrised
+    representation $\mu = \int \mu^{u,v}\,m(du,dv)$ with $m$ the law of $(U,V)$, which needs the
+    family $(u,v) \mapsto \mu^{u,v}$ as a measurable kernel and the map $\nu \mapsto (\nu(U),\nu(V))$
+    on the extreme points, and with it Corollary (11.33).
+\end{theorem}
 \begin{proof}
     \leanok
 \end{proof}

@@ -115,7 +115,14 @@ laws `{ℓ_i, r_i}` of Definition (11.8) with their measures (11.10) (`boundaryL
   a positive recurrent stochastic matrix. See below for exactly how this closes the gaps the
   previous version of this docstring recorded, and what remains.
 * `exists_isBoundaryLaw_boundaryLawMeasure_eq_of_mem_extremePoints` — **Georgii Theorem
-  (11.9)(c)**, representation clause: every `μ ∈ ex 𝒢(Q)` is the measure of a boundary law.
+  (11.9)(c)**, representation clause: every `μ ∈ ex 𝒢(Q)` is the measure of a boundary law. The
+  *limit-formula* clause of (11.9)(c) is `MeasureTheory.GibbsMeasure.Markov.
+  exists_isBoundaryLaw_and_tendsto_of_mem_extremePoints` in
+  `GibbsMeasure/Model/BoundaryLawLimits.lean`.
+* `lintegral_lambdaCount_transferWeight_Ioo_erase` — for `i < j < k`,
+  `∫ ρ^Q_{]i,k[} λ_{]i,k[∖{j}}(·|ω) = Q^{j-i}(ω_i, ω_j) Q^{k-j}(ω_j, ω_k)`, and
+  `transferSpecification_Ioo_apply_preimage_singleton` — **Georgii (11.2) for a one-site event**,
+  `γ^Q_{]i,k[}(σ_j = x | ω) = Q^{j-i}(ω_i, x) Q^{k-j}(x, ω_k)/Q^{k-i}(ω_i, ω_k)`.
 * `isInvariant_shift_transferSpecification`, `mem_G_map_shift_of_mem_G`,
   `mem_extremePoints_G_map_shift_of_mem_extremePoints` — shift-covariance of `γ^Q` as a
   specification, and Remarks (5.10)/(7.2) for it.
@@ -1831,63 +1838,118 @@ lemma countExhaustion_nonempty {N : ℕ} (hN : 1 ≤ N) :
     omega))⟩
 
 omit [Nonempty E] in
-/-- Integrating the transfer weight of `]-n, n[` over the interior sites other than `0` with
-respect to the counting kernel gives `P^n(ω_{-n}, ω_0) P^n(ω_0, ω_n)`. -/
-lemma lintegral_lambdaCount_transferWeight_Ioo_erase (P : E → E → ℝ≥0∞) {n : ℕ} (hn : 1 ≤ n)
-    (ω : ℤ → E) :
-    ∫⁻ ζ, transferWeight P (Finset.Ioo (-(n : ℤ)) n) ζ
+/-- **Integrating the transfer weight of an interval over all interior sites but one.** For
+`i < j < k`,
+`∫ ρ^Q_{]i,k[}(ζ) λ_{]i,k[ ∖ {j}}(dζ|ω) = Q^{j-i}(ω_i, ω_j) Q^{k-j}(ω_j, ω_k)`:
+the two half-intervals `]i, j[` and `]j, k[` are non-adjacent, so the sum factorises and each
+factor is `lintegral_lambdaCount_pathProd_Ioo`. The degenerate cases `j = i + 1` and `j = k - 1`
+(one of the two half-intervals empty) are covered, which is what makes this usable for a site `j`
+next to the boundary. -/
+lemma lintegral_lambdaCount_transferWeight_Ioo_erase (P : E → E → ℝ≥0∞) {i j k : ℤ}
+    (hij : i < j) (hjk : j < k) (ω : ℤ → E) :
+    ∫⁻ ζ, transferWeight P (Finset.Ioo i k) ζ
         ∂(Specification.sigmaFiniteLambdaFun (S := ℤ) (E := E) Measure.count
-          ((Finset.Ioo (-(n : ℤ)) n).erase 0) ω)
-      = (Kernel.ofMatrix P ^ n) (ω (-(n : ℤ))) {ω 0} * (Kernel.ofMatrix P ^ n) (ω 0) {ω n} := by
-  rcases Nat.lt_or_ge n 2 with h2 | h2
-  · obtain rfl : n = 1 := by omega
-    have hΛ : (Finset.Ioo (-((1 : ℕ) : ℤ)) ((1 : ℕ) : ℤ)).erase 0 = ∅ := by
-      ext k
-      simp only [Nat.cast_one, Finset.mem_erase, Finset.mem_Ioo, Finset.notMem_empty, iff_false]
+          ((Finset.Ioo i k).erase j) ω)
+      = (Kernel.ofMatrix P ^ (j - i).toNat) (ω i) {ω j}
+        * (Kernel.ofMatrix P ^ (k - j).toNat) (ω j) {ω k} := by
+  have hik : i + 1 < k := by omega
+  have hsplit : (Finset.Ioo i k).erase j = Finset.Ioo i j ∪ Finset.Ioo j k := by
+    ext m
+    simp only [Finset.mem_erase, Finset.mem_Ioo, Finset.mem_union]
+    omega
+  have hdisj : Disjoint (Finset.Ioo i j) (Finset.Ioo j k) := by
+    refine Finset.disjoint_left.2 fun m hm hm' ↦ ?_
+    simp only [Finset.mem_Ioo] at hm hm'
+    omega
+  have hW : ∀ ζ : ℤ → E,
+      transferWeight P (Finset.Ioo i k) ζ = pathProd P i j ζ * pathProd P j k ζ := fun ζ ↦ by
+    rw [transferWeight_Ioo P hik, pathProd_split P hij.le hjk.le]
+  have hmeas : Measurable fun ζ : ℤ → E ↦ pathProd P i j ζ * pathProd P j k ζ :=
+    (measurable_pathProd P i j).mul (measurable_pathProd P j k)
+  have hmeasG : Measurable fun ζ : ℤ → E ↦
+      pathProd P i j ζ * (Kernel.ofMatrix P ^ (k - j).toNat) (ω j) {ω k} :=
+    (measurable_pathProd P i j).mul measurable_const
+  have hinner : ∀ ζ : ℤ → E, (∀ m ∉ Finset.Ioo i j, ζ m = ω m) →
+      ∫⁻ ξ, pathProd P i j ξ * pathProd P j k ξ
+          ∂(Specification.sigmaFiniteLambdaFun (S := ℤ) (E := E) Measure.count
+            (Finset.Ioo j k) ζ)
+        = pathProd P i j ζ * (Kernel.ofMatrix P ^ (k - j).toNat) (ω j) {ω k} := by
+    intro ζ hζ
+    have hcongr : ∀ ξ : ℤ → E, (∀ m ∉ Finset.Ioo j k, ξ m = ζ m) →
+        pathProd P i j ξ * pathProd P j k ξ = pathProd P i j ζ * pathProd P j k ξ := by
+      intro ξ hξ
+      refine congrArg (· * pathProd P j k ξ) (pathProd_congr P fun m hm ↦ hξ m ?_)
+      simp only [Finset.mem_Icc] at hm
+      simp only [Finset.mem_Ioo]
       omega
-    have hΛ' : Finset.Ioo (-((1 : ℕ) : ℤ)) ((1 : ℕ) : ℤ) = ({0} : Finset ℤ) := by
-      ext k
-      simp only [Nat.cast_one, Finset.mem_Ioo, Finset.mem_singleton]
-      omega
-    rw [hΛ, lintegral_lambdaCount_empty ω (measurable_transferWeight P _), hΛ',
-      transferWeight_singleton]
-    simp
-  · set A := Finset.Icc (-(n : ℤ) + 1) (-1) with hA
-    set B := Finset.Icc 1 ((n : ℤ) - 1) with hB
-    have hAB : (Finset.Ioo (-(n : ℤ)) n).erase 0 = A ∪ B := by
-      ext k
-      simp only [hA, hB, Finset.mem_erase, Finset.mem_Ioo, Finset.mem_union, Finset.mem_Icc]
-      omega
-    have hbA : bondsOf A = Finset.Ico (-(n : ℤ)) 0 := by
-      rw [hA, bondsOf_Icc (by omega)]
-      congr 1; ring
-    have hbB : bondsOf B = Finset.Ico 0 (n : ℤ) := by
-      rw [hB, bondsOf_Icc (by omega)]
-      congr 1; ring
-    have hdisj : Disjoint (bondsOf A) (bondsOf B) := by
-      rw [hbA, hbB]
-      refine Finset.disjoint_left.2 fun k hk hk' ↦ ?_
-      simp only [Finset.mem_Ico] at hk hk'
-      omega
-    have hW : transferWeight P (Finset.Ioo (-(n : ℤ)) n) = transferWeight P (A ∪ B) := by
-      funext σ
-      rw [transferWeight_eq_prod_bondsOf, transferWeight_eq_prod_bondsOf, bondsOf_union,
-        bondsOf_Ioo (by omega), hbA, hbB]
-      congr 1
-      ext k
-      simp only [Finset.mem_Ico, Finset.mem_union]
-      omega
-    rw [hAB, hW, ← Specification.sigmaFiniteLambdaZ,
-      sigmaFiniteLambdaZ_transferWeight_union P hdisj, hA, hB,
-      sigmaFiniteLambdaZ_transferWeight_Icc P (by omega),
-      sigmaFiniteLambdaZ_transferWeight_Icc P (by omega)]
-    have e1 : (-1 - (-(n : ℤ) + 1) + 2).toNat = n := by omega
-    have e2 : ((n : ℤ) - 1 - 1 + 2).toNat = n := by omega
-    have e3 : -(n : ℤ) + 1 - 1 = -(n : ℤ) := by ring
-    have e4 : (-1 : ℤ) + 1 = 0 := by ring
-    have e5 : (1 : ℤ) - 1 = 0 := by ring
-    have e6 : (n : ℤ) - 1 + 1 = n := by ring
-    rw [e1, e2, e3, e4, e5, e6]
+    rw [lintegral_lambdaCount_congr (G := fun ξ ↦ pathProd P i j ζ * pathProd P j k ξ) _ _ hmeas
+        ((measurable_pathProd P j k).const_mul _) hcongr,
+      lintegral_const_mul _ (measurable_pathProd P j k),
+      lintegral_lambdaCount_pathProd_Ioo P hjk.le ζ,
+      hζ j (by simp only [Finset.mem_Ioo]; omega), hζ k (by simp only [Finset.mem_Ioo]; omega)]
+  rw [hsplit]
+  simp_rw [hW]
+  rw [lintegral_lambdaCount_union hdisj ω hmeas,
+    lintegral_lambdaCount_congr
+      (G := fun ζ ↦ pathProd P i j ζ * (Kernel.ofMatrix P ^ (k - j).toNat) (ω j) {ω k}) _ _
+      (measurable_lintegral_lambdaCount _ hmeas) hmeasG hinner,
+    lintegral_mul_const _ (measurable_pathProd P i j),
+    lintegral_lambdaCount_pathProd_Ioo P hij.le ω]
+
+/-- **Georgii (11.2), the one-site marginal of `γ^Q` on an interval.** For `i < j < k` and any
+boundary condition `ω`,
+
+`γ^Q_{]i,k[}(σ_j = x | ω) = Q^{j-i}(ω_i, x) Q^{k-j}(x, ω_k) / Q^{k-i}(ω_i, ω_k)`.
+
+This is the last line of Georgii's computation in the proof of Theorem (11.9)(c) (there with
+`i = -n`, `j` negative, `k = 0`), and the source of the limit formulas of (11.9)(c). It is the
+un-normalised form of `marginalDensity_rescaledTransferDensity_Ioo` (Georgii's Example
+(10.24)(2)), which is the same quantity divided by `countProbDensity`. -/
+theorem transferSpecification_Ioo_apply_preimage_singleton {Q : E → E → ℝ≥0∞}
+    (hQ : IsTransferMatrix Q) {i j k : ℤ} (hij : i < j) (hjk : j < k) (ω : ℤ → E) (x : E) :
+    transferSpecification Q hQ (Finset.Ioo i k) ω ((fun σ : ℤ → E ↦ σ j) ⁻¹' {x})
+      = (Kernel.ofMatrix Q ^ (j - i).toNat) (ω i) {x}
+          * (Kernel.ofMatrix Q ^ (k - j).toNat) x {ω k}
+          / (Kernel.ofMatrix Q ^ (k - i).toNat) (ω i) {ω k} := by
+  have hik : i + 1 < k := by omega
+  have hjmem : j ∈ Finset.Ioo i k := Finset.mem_Ioo.2 ⟨hij, hjk⟩
+  have hjnot : j ∉ (Finset.Ioo i k).erase j := Finset.notMem_erase j _
+  have hmeasA : MeasurableSet ((fun σ : ℤ → E ↦ σ j) ⁻¹' {x}) :=
+    (measurable_pi_apply j) (measurableSet_singleton x)
+  set ω' : ℤ → E := Function.update ω j x with hω'_def
+  have hω'i : ω' i = ω i := Function.update_of_ne (by omega) _ _
+  have hω'j : ω' j = x := Function.update_self ..
+  have hω'k : ω' k = ω k := Function.update_of_ne (by omega) _ _
+  have hset : (fun σ : ℤ → E ↦ σ j) ⁻¹' {x} = cyl {j} ω' := preimage_singleton_eq_cyl j x ω
+  have hind : Measurable ((cyl ({j} : Finset ℤ) ω').indicator (transferWeight Q
+      (Finset.Ioo i k))) := (measurable_transferWeight Q _).indicator (measurableSet_cyl _ _)
+  -- the numerator: freeze `σ_j = x` and integrate over the remaining interior sites
+  have hnum : ∫⁻ ζ in (fun σ : ℤ → E ↦ σ j) ⁻¹' {x}, transferWeight Q (Finset.Ioo i k) ζ
+        ∂(Specification.sigmaFiniteLambdaFun (S := ℤ) (E := E) Measure.count
+          (Finset.Ioo i k) ω)
+      = (Kernel.ofMatrix Q ^ (j - i).toNat) (ω i) {x}
+        * (Kernel.ofMatrix Q ^ (k - j).toNat) x {ω k} := by
+    have hkey := lintegral_lambdaCount_insert (Λ := (Finset.Ioo i k).erase j) (j := j)
+      hjnot ω hind
+    rw [Finset.insert_erase hjmem] at hkey
+    rw [hset, ← lintegral_indicator (measurableSet_cyl _ _), hkey]
+    have htsum : ∀ ζ : ℤ → E, ∑' y : E, (cyl ({j} : Finset ℤ) ω').indicator
+        (transferWeight Q (Finset.Ioo i k)) (Function.update ζ j y)
+          = transferWeight Q (Finset.Ioo i k) (Function.update ζ j x) := by
+      intro ζ
+      refine tsum_eq_single x (fun y hy ↦ Set.indicator_of_notMem (fun hmem ↦ hy ?_) _) |>.trans
+        (Set.indicator_of_mem (mem_cyl.2 fun m hm ↦ ?_) _)
+      · have := mem_cyl.1 hmem j (Finset.mem_singleton_self j)
+        rwa [Function.update_self, hω'j] at this
+      · rw [Finset.mem_singleton] at hm
+        subst hm
+        rw [Function.update_self, hω'j]
+    simp_rw [htsum]
+    rw [lintegral_lambdaCount_update_of_notMem hjnot ω x (measurable_transferWeight Q _),
+      ← hω'_def, lintegral_lambdaCount_transferWeight_Ioo_erase Q hij hjk ω',
+      hω'i, hω'j, hω'k]
+  rw [transferSpecification_apply Q hQ _ ω hmeasA, hnum,
+    sigmaFiniteLambdaZ_transferWeight_Ioo Q hik ω, ENNReal.div_eq_inv_mul]
 
 /-- **Georgii (10.12) for `γ^Q`**, the marginal density of the site `0` in `]-n, n[`:
 `ρ̃^0_{]-n,n[}(ω) = P^n(ω_{-n}, ω_0) P^n(ω_0, ω_n) / (r(ω_0) P^{2n}(ω_{-n}, ω_n))`, the second
@@ -1942,7 +2004,10 @@ lemma marginalDensity_rescaledTransferDensity_Ioo (P : E → E → ℝ≥0∞) {
       Measure.count measurable_countProbDensity countProbDensity_ne_zero countProbDensity_ne_top
       (Λ.erase 0) ω (measurable_transferWeight P Λ)
     refine hdiv.trans ?_
-    rw [hΛ, lintegral_lambdaCount_transferWeight_Ioo_erase P hn ω]
+    rw [hΛ, lintegral_lambdaCount_transferWeight_Ioo_erase P
+      (show -(n : ℤ) < 0 by omega) (show (0 : ℤ) < (n : ℤ) by omega) ω,
+      show ((0 : ℤ) - -(n : ℤ)).toNat = n by omega,
+      show ((n : ℤ) - 0).toNat = n by omega]
   · rw [rescaledTransferDensity_apply, hZ σ hσ, ← hLW, hLWΛ σ hσ]
     congr 1
     rw [div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv, ENNReal.mul_inv
@@ -2247,10 +2312,12 @@ and homogeneity are not needed for this half of (10.21), only the Markovian `λ`
 structure): every extreme `μ ∈ ex 𝒢(Q)` is a Markov chain. Theorem (11.9)(b)
 (`IsMarkovChain.exists_isBoundaryLaw_eq_boundaryLawMeasure`, already in this file) then represents
 it by a boundary law for `Q`. Georgii's "moreover" clause of (11.9)(c) — the explicit limit
-formula `ℓ_i(x)/ℓ_0(a) = lim_n Q^{n+i}(x_n,x)/Q^n(x_n,a)` along a sequence `x_n → -∞` (and
-similarly for `r_i`) — is not proved here: it is a quantitative refinement of the representation
-below (via the backward martingale theorem and the left-tail triviality already used inside
-Theorem (10.21)'s own proof), not needed for Theorem (11.15). -/
+formulas `ℓ_i(x)/ℓ_0(a) = lim_n Q^{n+i}(x_n,x)/Q^n(x_n,a)` (`i < 0`) and
+`r_i(y)/r_0(a) = lim_n Q^{n-i}(y,y_n)/Q^n(a,y_n)` (`i > 0`) — is not needed for Theorem (11.15)
+and is proved separately, in `GibbsMeasure/Model/BoundaryLawLimits.lean`
+(`exists_isBoundaryLaw_and_tendsto_of_mem_extremePoints`), from the representation below together
+with the backward martingale theorem, the triviality of the two one-sided tails of an extreme
+Gibbs measure, and `transferSpecification_Ioo_apply_preimage_singleton` (above). -/
 
 section ExtremePointsBoundaryLaw
 

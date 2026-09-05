@@ -72,10 +72,25 @@ The four steps of Georgii's proof:
   into a Gibbs measure: `nonempty_G`, which needs no hypothesis on `α` beyond positivity.
 
 What is **not** here: Georgii's closing remarks of §11.4 — that `θ_j(μ^c) = μ^{c p^{-2j}}`, that
-`μ^c(lim_{i → -∞} σ_i p^{-2i} = c) = 1`, and hence that `ex 𝒢(Q)` is *uncountable*. Those need
-the Borel–Cantelli argument of Step 3 of Theorem (11.31), which is not formalised (see
-`GibbsMeasure/Model/SpitzerCox.lean`). `infinite_extremePoints_G` is Georgii's stated
-`|ex 𝒢(Q)| = ∞`.
+`μ^c(lim_{i → -∞} σ_i p^{-2i} = c) = 1`, and hence that `ex 𝒢(Q)` is *uncountable*.
+`infinite_extremePoints_G` is Georgii's stated `|ex 𝒢(Q)| = ∞`.
+
+The obstruction is *not* the Borel–Cantelli step, which is now available in the reusable form
+`MeasureTheory.GibbsMeasure.Markov.SpitzerCox.tendsto_ae_of_forall_measure_preimage_singleton_eq`
+(`GibbsMeasure/Model/SpitzerCox.lean`, Step 3 of Theorem (11.31)). It is the quantitative input
+Georgii asserts without proof, namely
+
+`∑_{i<0} ∑_{x ∈ E} |μ^c(σ_i = x) - 𝔭(c p^{2i}, x)| < ∞`,
+
+a *summable total-variation* estimate for the convergence `P^n(x_{n-i}, ·) → α_i` of Step 2. Here
+`α_i` is only characterised as a limit of rows of `P^n` — it has no closed form — so the one-site
+marginals of `μ^c` are not explicit and the Chebyshev bound used for the Spitzer–Cox chain is not
+available. Formalising the closing remarks therefore requires first proving that estimate (or a
+substitute giving `∑_{i<0} μ^c(|σ_i p^{-2i} - c| ≥ ε) < ∞`); the Borel–Cantelli argument and the
+extreme-decomposition step would then follow the pattern of `SpitzerCox.tendsto_atBot_ae_chain`
+and `SpitzerCox.chain_mem_extremePoints_G`. The shift identity `θ_j(μ^c) = μ^{c p^{-2j}}` is
+independent of that estimate but is also not formalised: the family `c ↦ μ^c` is not built here
+(only `nonempty_G`, the existence of *one* Gibbs measure, is).
 
 The `ℓ(x, p, ·)` weights, Georgii (11.20), and the identities (11.22)–(11.25) live in
 `GibbsMeasure/Model/SpitzerCox.lean`.

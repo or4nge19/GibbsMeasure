@@ -43,7 +43,16 @@ monoid `Kernel E E`, and (11.1) is finiteness of their entries.
 * `MeasureTheory.GibbsMeasure.Markov.IsBoundaryLaw Q ℓ r`: **Georgii Definition (11.8)**.
 * `MeasureTheory.GibbsMeasure.Markov.boundaryLawMeasure`: the measure (11.10);
   `boundaryLawMeasure_intervalCylinder` is (11.10) and `isProbabilityMeasure_boundaryLawMeasure`,
-  `eq_boundaryLawMeasure_of_forall_intervalCylinder` its uniqueness.
+  `eq_boundaryLawMeasure_of_forall_intervalCylinder` its uniqueness;
+  `IsBoundaryLaw.boundaryLawMeasure_preimage_inter_preimage` is its **two-site marginal**
+  `μ(σ_i = x, σ_j = y) = ℓ_i(x) Q^{j-i}(x,y) r_j(y)` (`i ≤ j`; at `i = j` it contains the one-site
+  marginal `μ(σ_i = x) = ℓ_i(x) r_i(x)`).
+* `MeasureTheory.GibbsMeasure.Markov.lintegral_lambdaCount_pathProd_Ioo`: summing the bond
+  weights of `[i, j]` over the interior `]i, j[` gives `Q^{j-i}(ω_i, ω_j)`, for every `i ≤ j`
+  (including `j = i` and `j = i + 1`, which `sigmaFiniteLambdaZ_transferWeight_Icc` does not
+  cover).
+* `MeasureTheory.GibbsMeasure.lintegral_lambdaCount_update_of_notMem`: freezing a coordinate
+  outside the integration volume may be done in the integrand or in the boundary condition.
 * `MeasureTheory.GibbsMeasure.Markov.isGibbsMeasure_transferSpecification_boundaryLawMeasure`:
   **Georgii Theorem (11.9)(a)**, `μ ∈ 𝒢(Q)`.
 * `MeasureTheory.GibbsMeasure.Markov.markovSpecification_eq_transferSpecification`,
@@ -63,6 +72,41 @@ noncomputable section
 The counting-measure reference kernel `λ_Λ(·|η)` and its calculus (`lintegral_lambdaCount`,
 `setLIntegral_lambdaCount_cyl`, `cyl`, …) live in `GibbsMeasure/Specification/CountingKernel.lean`
 for an arbitrary site space; here they are used at `S = ℤ`. -/
+
+namespace MeasureTheory.GibbsMeasure
+
+section LambdaCountUpdate
+
+variable {S E : Type*} [DecidableEq S] [MeasurableSpace E] [Countable E]
+  [MeasurableSingletonClass E]
+
+/-- Freezing a coordinate `j` outside the integration volume `Λ` can be done either in the
+integrand or in the boundary condition:
+`∫ F(ζ_{j ↦ x}) λ_Λ(dζ|ω) = ∫ F(ζ) λ_Λ(dζ|ω_{j ↦ x})` for `j ∉ Λ`.
+
+Intended home: `GibbsMeasure/Specification/CountingKernel.lean`, next to
+`lintegral_lambdaCount_insert`. -/
+lemma lintegral_lambdaCount_update_of_notMem {Λ : Finset S} {j : S} (hj : j ∉ Λ) (ω : S → E)
+    (x : E) {F : (S → E) → ℝ≥0∞} (hF : Measurable F) :
+    ∫⁻ ζ, F (Function.update ζ j x)
+        ∂(Specification.sigmaFiniteLambdaFun (S := S) (E := E) Measure.count Λ ω)
+      = ∫⁻ ζ, F ζ ∂(Specification.sigmaFiniteLambdaFun (S := S) (E := E) Measure.count Λ
+          (Function.update ω j x)) := by
+  rw [lintegral_lambdaCount (F := fun ζ ↦ F (Function.update ζ j x)) Λ ω
+      (hF.comp (measurable_update_left' j x)), lintegral_lambdaCount Λ _ hF]
+  refine tsum_congr fun y ↦ congrArg F (funext fun k ↦ ?_)
+  by_cases hk : k ∈ (Λ : Set S)
+  · have hkj : k ≠ j := fun h ↦ hj (h ▸ Finset.mem_coe.1 hk)
+    rw [Function.update_of_ne hkj, juxt_apply_of_mem hk, juxt_apply_of_mem hk]
+  · rw [juxt_apply_of_not_mem hk]
+    by_cases hkj : k = j
+    · subst hkj
+      rw [Function.update_self, Function.update_self]
+    · rw [Function.update_of_ne hkj, juxt_apply_of_not_mem hk, Function.update_of_ne hkj]
+
+end LambdaCountUpdate
+
+end MeasureTheory.GibbsMeasure
 
 namespace MeasureTheory.GibbsMeasure.Markov
 
@@ -294,6 +338,43 @@ lemma sigmaFiniteLambdaZ_transferWeight_Icc {a b : ℤ} (hab : a ≤ b) (ω : �
     lintegral_lambdaCount_Icc_pathProd_mul_pow, show (a + n - a + 2).toNat = n + 0 + 2 by omega]
   rw [transferWeight_Icc Q hab, pathProd_succ_top Q (by omega), zero_add,
     Kernel.ofMatrix_pow_one_apply_singleton, hζ (a + n + 1) (by simp)]
+
+/-- **The transfer-matrix sum over an open interval.** Summing the bond weights of `[i, j]`
+over all configurations of the interior `]i, j[`, the exterior frozen at `ω`, produces
+`Q^{j-i}(ω_i, ω_j)`.
+
+Unlike `sigmaFiniteLambdaZ_transferWeight_Icc` this covers the degenerate intervals as well:
+`j = i` (the empty product against `Q^0 = δ`) and `j = i + 1` (a single bond, `]i, i+1[ = ∅`).
+Those two cases are what makes it usable for the one- and two-site marginals of `γ^Q` and of the
+measure (11.10), where the two boundary sites may be adjacent. -/
+lemma lintegral_lambdaCount_pathProd_Ioo {i j : ℤ} (hij : i ≤ j) (ω : ℤ → E) :
+    ∫⁻ ζ, pathProd Q i j ζ ∂(λ₀ (Finset.Ioo i j) ω)
+      = (Kernel.ofMatrix Q ^ (j - i).toNat) (ω i) {ω j} := by
+  rcases eq_or_lt_of_le hij with rfl | hlt
+  · rw [Finset.Ioo_self, lintegral_lambdaCount_empty ω (measurable_pathProd Q i i),
+      pathProd_self, show (i - i).toNat = 0 by omega, Kernel.pow_zero_apply_singleton]
+    simp
+  · rcases eq_or_lt_of_le (Int.add_one_le_iff.2 hlt) with heq | hlt2
+    · subst heq
+      have hI : Finset.Ioo i (i + 1) = ∅ := by
+        ext k; simp only [Finset.mem_Ioo, Finset.notMem_empty, iff_false]; omega
+      rw [hI, lintegral_lambdaCount_empty ω (measurable_pathProd Q i (i + 1)),
+        pathProd_succ, show (i + 1 - i).toNat = 1 by omega,
+        Kernel.ofMatrix_pow_one_apply_singleton]
+    · have hab : i + 1 ≤ j - 1 := by omega
+      have hIoo : Finset.Ioo i j = Finset.Icc (i + 1) (j - 1) := by
+        ext k; simp only [Finset.mem_Ioo, Finset.mem_Icc]; omega
+      have hfun : ∀ ζ : ℤ → E, transferWeight Q (Finset.Icc (i + 1) (j - 1)) ζ
+          = pathProd Q i j ζ := fun ζ ↦ by
+        rw [transferWeight_Icc Q hab, show i + 1 - 1 = i by ring, show j - 1 + 1 = j by ring]
+      calc ∫⁻ ζ, pathProd Q i j ζ ∂(λ₀ (Finset.Ioo i j) ω)
+          = ∫⁻ ζ, transferWeight Q (Finset.Icc (i + 1) (j - 1)) ζ
+              ∂(λ₀ (Finset.Icc (i + 1) (j - 1)) ω) := by
+            rw [hIoo]; exact lintegral_congr fun ζ ↦ (hfun ζ).symm
+        _ = (Kernel.ofMatrix Q ^ (j - i).toNat) (ω i) {ω j} := by
+            rw [← Specification.sigmaFiniteLambdaZ, sigmaFiniteLambdaZ_transferWeight_Icc Q hab,
+              show i + 1 - 1 = i by ring, show j - 1 + 1 = j by ring,
+              show (j - 1 - (i + 1) + 2).toNat = (j - i).toNat by omega]
 
 lemma sigmaFiniteLambdaZ_transferWeight_singleton (i : ℤ) (ω : ℤ → E) :
     Specification.sigmaFiniteLambdaZ (S := ℤ) (E := E) Measure.count (transferWeight Q) {i} ω
@@ -1008,6 +1089,73 @@ theorem boundaryLawMeasure_intervalCylinder {a b : ℤ} (hab : a ≤ b) (σ : �
     boundaryLawWeight_congr Q ℓ r (τ := σ)
       (fun k hk ↦ juxt_apply_of_mem (Finset.mem_coe.2 hk) _) hab]
   rfl
+
+/-- **The two-site marginal of the measure (11.10).** For `i ≤ j`,
+`μ(σ_i = x, σ_j = y) = ℓ_i(x) Q^{j-i}(x, y) r_j(y)`: sum (11.10) over the interior of `[i, j]`.
+
+At `i = j` the statement is still correct and not vacuous: the intersection is empty unless
+`x = y`, and `Q^0(x, y) = δ_{x,y}` on the right — so it also contains Georgii's one-site marginal
+`μ(σ_i = x) = ℓ_i(x) r_i(x)`. This is the identity behind the first display in the proof of
+Theorem (11.9)(c), `ℓ_i(x) Q^{-i}(x, a) / ℓ_0(a) = μ(σ_i = x | σ_0 = a)`. -/
+theorem boundaryLawMeasure_preimage_inter_preimage {i j : ℤ} (hij : i ≤ j) (x y : E) :
+    boundaryLawMeasure hbl ((fun σ : ℤ → E ↦ σ i) ⁻¹' {x} ∩ (fun σ : ℤ → E ↦ σ j) ⁻¹' {y})
+      = ℓ i x * (Kernel.ofMatrix Q ^ (j - i).toNat) x {y} * r j y := by
+  classical
+  rcases eq_or_lt_of_le hij with rfl | hlt
+  · -- `i = j`: both sides vanish unless `x = y`.
+    rw [show (i - i).toNat = 0 by omega, Kernel.pow_zero_apply_singleton]
+    by_cases hxy : x = y
+    · subst hxy
+      have hset : (fun σ : ℤ → E ↦ σ i) ⁻¹' {x} ∩ (fun σ : ℤ → E ↦ σ i) ⁻¹' {x}
+          = intervalCylinder i i (fun _ ↦ x) := by
+        ext τ
+        rw [Set.mem_inter_iff, mem_intervalCylinder]
+        simp only [Set.mem_preimage, Set.mem_singleton_iff, and_self, Finset.mem_Icc]
+        exact ⟨fun h k hk ↦ by obtain rfl : k = i := by omega
+                               exact h, fun h ↦ h i ⟨le_rfl, le_rfl⟩⟩
+      rw [hset, hbl.boundaryLawMeasure_intervalCylinder le_rfl (fun _ ↦ x), pathProd_self]
+      simp
+    · have hset : (fun σ : ℤ → E ↦ σ i) ⁻¹' {x} ∩ (fun σ : ℤ → E ↦ σ i) ⁻¹' {y} = ∅ := by
+        ext τ; simp only [Set.mem_inter_iff, Set.mem_preimage, Set.mem_singleton_iff,
+          Set.mem_empty_iff_false, iff_false, not_and]
+        exact fun h1 h2 ↦ hxy (h1 ▸ h2)
+      simp [hset, hxy]
+  · -- `i < j`: disintegrate the two-site cylinder over the interior `]i, j[`.
+    have hne : i ≠ j := hlt.ne
+    set η : ℤ → E := Function.update (Function.update (fun _ ↦ x) i x) j y with hη_def
+    have hηi : η i = x := by rw [hη_def, Function.update_of_ne hne, Function.update_self]
+    have hηj : η j = y := by rw [hη_def, Function.update_self]
+    have hdisj : Disjoint ({i, j} : Finset ℤ) (Finset.Ioo i j) := by
+      refine Finset.disjoint_left.2 fun k hk hk' ↦ ?_
+      simp only [Finset.mem_insert, Finset.mem_singleton] at hk
+      simp only [Finset.mem_Ioo] at hk'
+      rcases hk with rfl | rfl <;> omega
+    have hunion : ({i, j} : Finset ℤ) ∪ Finset.Ioo i j = Finset.Icc i j := by
+      ext k
+      simp only [Finset.mem_union, Finset.mem_insert, Finset.mem_singleton, Finset.mem_Ioo,
+        Finset.mem_Icc]
+      omega
+    have hmeas : Measurable fun ξ : ℤ → E ↦ ℓ i x * pathProd Q i j ξ * r j y :=
+      (measurable_const.mul (measurable_pathProd Q i j)).mul measurable_const
+    rw [preimage_inter_preimage_eq_cyl hne x y (fun _ ↦ x), ← hη_def,
+      measure_cyl_eq_lintegral_lambdaCount (boundaryLawMeasure hbl) hdisj η, hunion]
+    have hval : ∀ ξ : ℤ → E, (∀ k ∉ Finset.Ioo i j, ξ k = η k) →
+        boundaryLawMeasure hbl (cyl (Finset.Icc i j) ξ)
+          = ℓ i x * pathProd Q i j ξ * r j y := by
+      intro ξ hξ
+      have hξi : ξ i = x := by
+        rw [hξ i (by simp), hηi]
+      have hξj : ξ j = y := by
+        rw [hξ j (by simp), hηj]
+      rw [← intervalCylinder_eq_cyl, hbl.boundaryLawMeasure_intervalCylinder hij ξ, hξi, hξj]
+    rw [lintegral_lambdaCount_congr _ _ (measurable_measure_cyl _ _) hmeas hval]
+    have hreassoc : ∀ ξ : ℤ → E,
+        ℓ i x * pathProd Q i j ξ * r j y = pathProd Q i j ξ * (ℓ i x * r j y) :=
+      fun ξ ↦ by ring
+    simp_rw [hreassoc]
+    rw [lintegral_mul_const _ (measurable_pathProd Q i j),
+      lintegral_lambdaCount_pathProd_Ioo Q hij η, hηi, hηj]
+    ring
 
 /-- **Georgii (11.9)(a), uniqueness of the measure.** A probability measure with the cylinder
 probabilities (11.10) is `boundaryLawMeasure`. -/

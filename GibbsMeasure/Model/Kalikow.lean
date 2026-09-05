@@ -52,14 +52,32 @@ which satisfies `α_i Q = α_{i+1}` and reaches equilibrium in finite time.
   (`p_mul_one_sub_q_add_cCoeff`) and `pow_mul_alpha_min_succ`.
 
 The **full classification** `ex 𝒢(Q) = {μ_Q} ∪ {μ_j : j ∈ ℤ}` of Theorem (11.39), and with it the
-extreme decomposition directed by `Z = lim_{i → -∞}(σ_i + i)`, is **not** formalised. What is
-missing is not Step 1 (above) but Georgii's Steps 2 and 3: Step 2 needs the *quantitative* half of
-Theorem (11.9)(c), the limit formulas `ℓ_i/ℓ_0(0) = lim_n Q^{n+i}(x_n, ·)/Q^n(x_n, 0)` and
-`r_i/r_0(0) = lim_n Q^{n-i}(·, y_n)/Q^n(0, y_n)` for the boundary law of an extreme Gibbs measure
-— `exists_isBoundaryLaw_boundaryLawMeasure_eq_of_mem_extremePoints`
-(`GibbsMeasure/Model/BoundaryLawUniqueness.lean`) supplies the boundary law but not these formulas
-— and Step 3 needs a Borel–Cantelli argument for `Z` under each extreme element together with the
-extreme decomposition theorem (7.26).
+extreme decomposition directed by `Z = lim_{i → -∞}(σ_i + i)`, is **not** formalised. Step 1 is
+above; Georgii's Steps 2 and 3 are not.
+
+Their prerequisites are now in the library: the quantitative half of Theorem (11.9)(c) — the
+limit formulas `ℓ_i/ℓ_0(0) = lim_n Q^{n+i}(x_n, ·)/Q^n(x_n, 0)` (`i < 0`) and
+`r_i/r_0(0) = lim_n Q^{n-i}(·, y_n)/Q^n(0, y_n)` (`i > 0`) — is
+`MeasureTheory.GibbsMeasure.Markov.exists_isBoundaryLaw_and_tendsto_of_mem_extremePoints`
+(`GibbsMeasure/Model/BoundaryLawLimits.lean`), and the Borel–Cantelli step of Georgii's Step 3 is
+available in the reusable form
+`MeasureTheory.GibbsMeasure.Markov.SpitzerCox.tendsto_ae_of_forall_measure_preimage_singleton_eq`
+(`GibbsMeasure/Model/SpitzerCox.lean`; that version is stated for Poisson coordinates, and would
+have to be restated for a general summable family of one-site marginals). What (11.9)(c) does
+*not* supply is the rest of Georgii's Step 2, which is a genuinely separate argument:
+
+* the normalisation "there is no loss in assuming `r_0(0) = 1`";
+* `r_i ≡ 1`, from (11.41) and Step 1: for fixed `x` and `i` and large `n` the `δ` term of
+  `Q^{n-i}(x, y_n)` vanishes and the exponent `(x - n + i + 1) ∨ 0` is `0`, so the ratio tends
+  to `1`;
+* the asymptotics `α(k) ∼ a p^k` (`k → ∞`), i.e. `α(k)/p^k → a`; and
+* the three-case analysis of `(x_n - n)_{n ≥ 1}`: `limsup = ∞` is contradictory,
+  `liminf = -∞` gives `ℓ_i = α` and `μ = μ_Q`, and a cluster point `j ∈ ℤ` gives
+  `ℓ_i = α_{i-j}` and `μ = μ_j`.
+
+Step 3 then needs, in addition, the family `μ_j` (as translates of `μ_0`) and the two summability
+estimates `∑_{i<k} μ_Q(σ_i + i ≥ k) < ∞` and `∑_{i<j} μ_j(σ_i + i ≠ j) ≤ ∑_{i<j} s^{1-i+j} < ∞`,
+both immediate from the one-site marginals `α` and `α_{i-j}`.
 * `invariantG_eq_singleton` — `𝒢_Θ(Q) = {μ_Q}` (Theorem (11.13) for this `Q`), and
   `chain_intervalCylinder_eq` — `μ_0 = μ_Q` on the cylinders in `]0, ∞[`, Georgii's one-sided
   shift invariance of `μ_0`.

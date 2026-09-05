@@ -756,8 +756,11 @@ lemma for series and a Tannery lemma for growing sums, none of which Mathlib has
 **(11.46)** is proved in full: the Gibbs simplex is nonempty for every immigration law, and under
 Georgii's null recurrence, which is shown to be attainable, no change of measure of `Q` is positive
 recurrent (Kac's inequality, in the Mathlib layer), every shift moves the Gibbs measures and there
-are infinitely many extreme ones; the power formula (11.32) and Step 1 of (11.31) are proved, Steps
-2–4 and (11.33) are not.
+are infinitely many extreme ones. **(11.31)** is proved in the form `ex 𝒢(γ^Q) = {μ^{u,v}}`, with
+the quantitative half of **(11.9)(c)** (the limit formulas for the boundary law of an extreme Gibbs
+measure, by the backward martingale theorem along the tails, in `GibbsMeasure/Model/BoundaryLawLimits.lean`)
+and the almost-sure limits `U`, `V` by Chebyshev and Borel–Cantelli; the parametrised integral
+representation over the law of `(U, V)` and (11.33) are not yet done.
 
 **§6.1** (`GibbsMeasure/Model/InhomogeneousIsingChain.lean`): **Theorem (6.4)** in both
 directions — under `∑ e^{-2J_n} < ∞` the inhomogeneous Ising chain has exactly the Gibbs measures

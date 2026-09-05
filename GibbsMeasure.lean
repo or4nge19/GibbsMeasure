@@ -121,6 +121,7 @@ public import GibbsMeasure.Mathlib.Analysis.Fourier.AddCircleMultiHerglotz
 public import GibbsMeasure.Mathlib.Analysis.Fourier.AddCircleMultiMeasure
 public import GibbsMeasure.Mathlib.Analysis.Fourier.AddCircleMultiSeries
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.OneSubPow
+public import GibbsMeasure.Mathlib.Data.ENNReal.DivRatio
 public import GibbsMeasure.Mathlib.Data.ENNReal.OfReal
 public import GibbsMeasure.Mathlib.Data.ENNReal.Pow
 public import GibbsMeasure.Mathlib.Topology.Compactness.SigmaCompact
@@ -138,6 +139,7 @@ public import GibbsMeasure.Mathlib.InformationTheory.KullbackLeibler.Pi
 public import GibbsMeasure.Mathlib.LinearAlgebra.BilinearMap.CauchySchwarz
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PosSemidefFactor
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.PiBlocks
+public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Countable
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Trivial
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.EssSup
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.LocallyIntegrable
@@ -218,6 +220,7 @@ public import GibbsMeasure.Model.OneDimensionalSymmetryExamples
 public import GibbsMeasure.Model.MerminWagner
 public import GibbsMeasure.Model.MerminWagnerExamples
 public import GibbsMeasure.Model.Antiferromagnet
+public import GibbsMeasure.Model.BoundaryLawLimits
 public import GibbsMeasure.Model.GaussianField
 public import GibbsMeasure.Model.GaussianSpecification
 public import GibbsMeasure.Model.GaussianGibbs

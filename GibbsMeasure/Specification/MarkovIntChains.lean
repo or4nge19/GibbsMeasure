@@ -79,6 +79,17 @@ On `ℤ` (namespace `MeasureTheory.GibbsMeasure.Markov`):
   non-empty `𝒢(γ)` contains a Markov chain (via Theorem (7.26), which is where
   `StandardBorelSpace E` enters, and the only place in this file where it is used).
 
+Two further general facts, used by Georgii's Theorem (11.9)(c)
+(`GibbsMeasure/Model/BoundaryLawLimits.lean`) rather than by §10.2:
+
+* `Specification.IsGibbsMeasure.condExp_cylinderEvents_ae_eq_toReal_of_dependsOn`: for a Gibbs
+  measure, a finite volume `Λ` and any `Δ ⊆ Λᶜ` such that `γ_Λ(A | ·)` depends only on the
+  coordinates in `Δ`, one has `μ(A | 𝓕_Δ) = γ_Λ(A | ·)`. This is the general form of "conditioning
+  on the boundary suffices"; no Markov property is assumed, `DependsOn` *is* the hypothesis.
+* `iInf_cylinderEvents_Iic_le_tailSigmaAlgebra`: the mirror image of
+  `iInf_cylinderEvents_Ici_le_tailSigmaAlgebra`, making the *left* tail of a tail-trivial measure
+  on `ℤ` trivial.
+
 The remainder of §10.2 — the irreducibility condition (10.23), its examples (10.24), and the
 homogeneous theorem (10.25) with its Proposition (10.26) — is not in this file.
 -/
@@ -285,6 +296,48 @@ lemma absolutelyContinuous_bind_isssd_of_subset {Λ Δ : Finset S}
   have hac := h.bind (measurable_isssd_coe (S := S) (E := E) (ν := ν) Λ)
   rwa [hbb] at hac
 
+/-! ### Conditioning a Gibbs measure on a σ-algebra between `𝓕_{∂Λ}` and `𝓕_{Λᶜ}`
+
+Whenever Georgii writes `μ(A | 𝓕_Δ) = γ_Λ(A | ·)` for a `Δ` strictly smaller than `Λᶜ` — in the
+proof of Theorem (11.9)(c) for `Λ = ]-n, 0[` and `Δ = ]-∞, -n] ∪ {0}` — the only input is that
+`γ_Λ(A | ·)` already *depends only on the coordinates in `Δ`*. No Markov property of `γ` is
+needed as a hypothesis: `DependsOn` is exactly the hypothesis, and for a Markov specification it
+is supplied by the boundary condition. -/
+
+section CondExpDependsOn
+
+variable {S E : Type*} [MeasurableSpace E] {γ : Specification S E} {μ : Measure (S → E)}
+
+/-- **The general form of Georgii's "`μ(A | 𝓕_Δ) = γ_Λ(A | ·)`".** For a Gibbs measure `μ` for
+`γ`, a finite volume `Λ`, a coordinate set `Δ ⊆ Λᶜ`, and a measurable event `A` whose kernel
+value `γ_Λ(A | ·)` depends only on the coordinates in `Δ`, conditioning `μ` on `𝓕_Δ` gives the
+same answer as conditioning on all of `𝓕_{Λᶜ}`, namely `γ_Λ(A | ·)`.
+
+Proof: `γ_Λ(A|·)` is `𝓕_Δ`-measurable by `hdep`, so conditioning the DLR equation
+`μ(A | 𝓕_{Λᶜ}) = γ_Λ(A|·)` down from `𝓕_{Λᶜ}` to `𝓕_Δ` (tower property) does nothing. -/
+theorem IsGibbsMeasure.condExp_cylinderEvents_ae_eq_toReal_of_dependsOn
+    [IsProbabilityMeasure μ] (hμ : γ.IsGibbsMeasure μ) {Λ : Finset S} {Δ : Set S}
+    (hΔ : Δ ⊆ (Λ : Set S)ᶜ) {A : Set (S → E)} (hA : MeasurableSet A)
+    (hdep : DependsOn (fun ω ↦ γ Λ ω A) Δ) :
+    μ[A.indicator (1 : (S → E) → ℝ) | cylinderEvents Δ] =ᵐ[μ] fun ω ↦ (γ Λ ω A).toReal := by
+  have hΔle : cylinderEvents (X := fun _ : S ↦ E) Δ ≤ cylinderEvents ((Λ : Set S)ᶜ) :=
+    cylinderEvents_mono hΔ
+  have h1 : μ[A.indicator (1 : (S → E) → ℝ) | cylinderEvents ((Λ : Set S)ᶜ)]
+      =ᵐ[μ] fun ω ↦ (γ Λ ω A).toReal := (hμ Λ).condExp_ae_eq_kernel_apply hA
+  have hInt : Integrable (fun ω ↦ (γ Λ ω A).toReal) μ := integrable_condExp.congr h1
+  have hMeasBase : Measurable fun ω ↦ (γ Λ ω A).toReal :=
+    ((Kernel.measurable_coe (γ Λ) hA).mono cylinderEvents_le_pi le_rfl).ennreal_toReal
+  have hMeasΔ : Measurable[cylinderEvents Δ] fun ω ↦ (γ Λ ω A).toReal :=
+    hMeasBase.cylinderEvents_of_dependsOn fun ω ω' hωω' ↦ congrArg ENNReal.toReal (hdep hωω')
+  calc μ[A.indicator (1 : (S → E) → ℝ) | cylinderEvents Δ]
+      =ᵐ[μ] μ[μ[A.indicator (1 : (S → E) → ℝ) | cylinderEvents ((Λ : Set S)ᶜ)]
+              | cylinderEvents Δ] := (condExp_condExp_of_le hΔle cylinderEvents_le_pi).symm
+    _ =ᵐ[μ] μ[(fun ω ↦ (γ Λ ω A).toReal) | cylinderEvents Δ] := condExp_congr_ae h1
+    _ = fun ω ↦ (γ Λ ω A).toReal :=
+        condExp_of_stronglyMeasurable cylinderEvents_le_pi hMeasΔ.stronglyMeasurable hInt
+
+end CondExpDependsOn
+
 end Specification
 
 /-! ## Georgii (10.17)–(10.18): the backward martingale on `ℤ` -/
@@ -361,6 +414,27 @@ lemma iInf_cylinderEvents_Ici_le_tailSigmaAlgebra (j : ℤ) :
   intro hxΛ
   have h1 := hb x hxΛ
   have h2 : b - j ≤ ((b - j).toNat : ℤ) := Int.self_le_toNat _
+  omega
+
+/-- The left tail `⋂_n 𝓕_{]-∞, j-n]}` is contained in the tail σ-algebra `𝓣`, hence trivial
+under any tail-trivial measure. This is the mirror image of
+`iInf_cylinderEvents_Ici_le_tailSigmaAlgebra`, and it is what makes the *left* tail of an extreme
+Gibbs measure on `ℤ` trivial — the input to the backward martingale step in Georgii's proof of
+Theorem (11.9)(c). -/
+lemma iInf_cylinderEvents_Iic_le_tailSigmaAlgebra (j : ℤ) :
+    (⨅ n : ℕ, cylinderEvents (X := fun _ : ℤ ↦ E) (Set.Iic (j - n)))
+      ≤ tailSigmaAlgebra ℤ E := by
+  classical
+  refine le_iInf fun Λ ↦ ?_
+  obtain ⟨b, hb⟩ := (Λ.image fun x : ℤ ↦ -x).exists_le (α := ℤ)
+  have hb' : ∀ x ∈ Λ, -b ≤ x := fun x hx ↦ by
+    have := hb (-x) (Finset.mem_image_of_mem _ hx); omega
+  refine le_trans (iInf_le _ (j + b + 1).toNat) (cylinderEvents_mono fun x hx ↦ ?_)
+  simp only [Set.mem_Iic] at hx
+  simp only [Set.mem_compl_iff, Finset.mem_coe]
+  intro hxΛ
+  have h1 := hb' x hxΛ
+  have h2 : j + b + 1 ≤ ((j + b + 1).toNat : ℤ) := Int.self_le_toNat _
   omega
 
 /-- **Georgii, the key step in the proof of Theorem (10.21).** If the right tail

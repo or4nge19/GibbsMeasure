@@ -264,10 +264,14 @@ on $E$; its powers $Q^n$ are the powers of this kernel.
 \begin{theorem}[Georgii (11.9)(c), (11.14), (11.15), (11.17)]
     \label{thm:bl-11-14}
     \uses{thm:bl-11-13, thm:bl-11-15, thm:mfc-10-21, thm:ext-726}
-    \lean{MeasureTheory.GibbsMeasure.Markov.exists_isBoundaryLaw_boundaryLawMeasure_eq_of_mem_extremePoints, MeasureTheory.GibbsMeasure.Markov.isInvariant_shift_transferSpecification, MeasureTheory.GibbsMeasure.Markov.map_shift_eq_self_of_map_shift_eq_of_mem_G, MeasureTheory.GibbsMeasure.Markov.eq_singleton_boundaryLawMeasure_const_or_infinite_extremePoints_G, MeasureTheory.GibbsMeasure.Markov.eq_empty_G_or_infinite_extremePoints_G, MeasureTheory.GibbsMeasure.Markov.G_eq_invariantG_of_forall_le_sum, MeasureTheory.GibbsMeasure.Markov.eq_singleton_boundaryLawMeasure_const_G_of_forall_le_sum, MeasureTheory.GibbsMeasure.Markov.eq_empty_G_of_forall_le_sum}
+    \lean{MeasureTheory.GibbsMeasure.Markov.exists_isBoundaryLaw_boundaryLawMeasure_eq_of_mem_extremePoints, MeasureTheory.GibbsMeasure.Markov.iInf_cylinderEvents_Iic_le_tailSigmaAlgebra, MeasureTheory.GibbsMeasure.Markov.IsBoundaryLaw.boundaryLawMeasure_preimage_inter_preimage, MeasureTheory.condExp_indicator_comap_ae_eq_toReal_cond, Specification.IsGibbsMeasure.condExp_cylinderEvents_ae_eq_toReal_of_dependsOn, MeasureTheory.GibbsMeasure.Markov.condExp_indicator_ae_eq_transferSpecification_Ioo, MeasureTheory.GibbsMeasure.Markov.transferSpecification_Ioo_apply_preimage_singleton, MeasureTheory.GibbsMeasure.Markov.tendsto_condExp_indicator_cylinderEvents_union, MeasureTheory.GibbsMeasure.Markov.IsBoundaryLaw.exists_tendsto_left, MeasureTheory.GibbsMeasure.Markov.IsBoundaryLaw.exists_tendsto_right, MeasureTheory.GibbsMeasure.Markov.exists_isBoundaryLaw_and_tendsto_of_mem_extremePoints, MeasureTheory.GibbsMeasure.Markov.isInvariant_shift_transferSpecification, MeasureTheory.GibbsMeasure.Markov.map_shift_eq_self_of_map_shift_eq_of_mem_G, MeasureTheory.GibbsMeasure.Markov.eq_singleton_boundaryLawMeasure_const_or_infinite_extremePoints_G, MeasureTheory.GibbsMeasure.Markov.eq_empty_G_or_infinite_extremePoints_G, MeasureTheory.GibbsMeasure.Markov.G_eq_invariantG_of_forall_le_sum, MeasureTheory.GibbsMeasure.Markov.eq_singleton_boundaryLawMeasure_const_G_of_forall_le_sum, MeasureTheory.GibbsMeasure.Markov.eq_empty_G_of_forall_le_sum}
     \leanok
 
-    Every extreme $\mu \in \mathcal G(\gamma^Q)$ is the measure of a boundary law (11.9)(c).
+    Every extreme $\mu \in \mathcal G(\gamma^Q)$ is the measure of a boundary law, and that
+    boundary law is given by the limit formulas $\ell_i(x)/\ell_0(a) = \lim_n Q^{n+i}(x_n,x)/Q^n(x_n,a)$
+    for $i < 0$ and $r_i(y)/r_0(a) = \lim_n Q^{n-i}(y,y_n)/Q^n(a,y_n)$ for $i > 0$ (11.9)(c), by the
+    backward martingale theorem along the tail, the conditional probability given one coordinate
+    being elementary on a countable state space, and the two-point marginals (11.10).
     If $\mu \in \mathcal G(\gamma^Q)$ satisfies $\theta_i\mu = \theta_j\mu$ for some $i \neq j$,
     then $\mu$ is shift-invariant (11.14)(a); hence $\mathcal G(\gamma^Q)$ is either $\set{\mu_P}$
     or has infinitely many extreme points, and is either empty, $\set{\mu_P}$, or has infinitely
