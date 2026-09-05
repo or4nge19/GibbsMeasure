@@ -267,6 +267,7 @@ public import GibbsMeasure.Specification.PAKernel
 public import GibbsMeasure.Specification.Abstract
 public import GibbsMeasure.Specification.AbstractPAKernel
 public import GibbsMeasure.Specification.BlockEntropy
+public import GibbsMeasure.Specification.BlockMcMillan
 public import GibbsMeasure.Specification.Existence
 public import GibbsMeasure.Specification.InvariantFields
 public import GibbsMeasure.Specification.NoGibbsMeasure
@@ -307,6 +308,7 @@ public import GibbsMeasure.Specification.VariationalPrinciple
 public import GibbsMeasure.Specification.TangentFunctional
 public import GibbsMeasure.Specification.PhaseTransition
 public import GibbsMeasure.Specification.LargeDeviations
+public import GibbsMeasure.Specification.LargeDeviationsLower
 public import GibbsMeasure.Specification.LocalGroundStates
 public import GibbsMeasure.Specification.PatternPercolation
 public import GibbsMeasure.Specification.ReflectionPositivity

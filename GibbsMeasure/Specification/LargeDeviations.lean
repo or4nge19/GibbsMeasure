@@ -158,16 +158,30 @@ matter of bookkeeping:
   decomposition of `Specification/InvariantDecomposition.lean` is over the *ergodic* measures,
   not over an arbitrary closed set `C̄`, so it does not supply this step.
 
-The **Shannon–McMillan(–Breiman) theorem** `ν(| |Λ|⁻¹ log f_Λ + 𝓀(ν)|) → 0` for an ergodic `ν`
-(Georgii cites Krengel, *Ergodic Theorems*, Thm 9.2.4), which is what makes the event `A_Λ` in the
-proof of (15.47) typical for `ν̃`, *is* available over a finite state space:
-`MeasureTheory.GibbsMeasure.tendsto_integral_abs_inv_card_mul_log_density_add_specificEntropy` of
-`GibbsMeasure/Specification/ShannonMcMillan.lean`, whose ergodic input is the `L¹` Shannon–McMillan
-theorem `MeasureTheory.tendsto_integral_abs_neg_inv_card_mul_log_blockProb_sub_entropyRate` of
-`GibbsMeasure/Mathlib/Dynamics/Ergodic/ShannonMcMillanBreiman.lean` and whose bridge to Georgii's
-`𝓀` is `MeasureTheory.GibbsMeasure.specificEntropy_uniformOn_eq_entropyRate_sub_log_card`. For a
-general standard Borel `E` it is not: `blockProb` is the probability of an atom, which is the wrong
-object as soon as the single-site marginals are diffuse.
+The **theorem of McMillan** `ν(| |Λ|⁻¹ log f_Λ + 𝓀(ν)|) → 0`, which is what makes the event `A_Λ`
+in the proof of (15.47) typical for `ν̃`, is **no longer an obstruction**. Georgii invokes it only
+for the randomly shifted independent-block field `ν̃ = γ̃` of Proposition (15.52), whose density in
+a volume that is a union of tiles factorises over the independent blocks; the statement is then the
+`L¹` law of large numbers for the i.i.d. block variables, i.e. the mean ergodic theorem for a
+Bernoulli field. That is proved for an *arbitrary* measurable state space and an arbitrary a priori
+probability measure in `GibbsMeasure/Specification/BlockMcMillan.lean`
+(`MeasureTheory.GibbsMeasure.tendsto_integral_abs_inv_card_sum_llr_sub`, and in the form the proof
+of (15.47) consumes, `MeasureTheory.GibbsMeasure.tendsto_measure_setOf_prod_rnDeriv_le` and
+`MeasureTheory.GibbsMeasure.tendsto_tileProduct_setOf_blockDensity_le_specificEntropy`). No
+standard Borel hypothesis and no finiteness of `E` enters. The general Shannon–McMillan(–Breiman)
+theorem of `GibbsMeasure/Specification/ShannonMcMillan.lean`, which is available only over a finite
+state space (`blockProb` is the probability of an atom, the wrong object as soon as the single-site
+marginals are diffuse), is *not* needed for (15.47).
+
+The remaining inputs to (15.47) — the neighbourhood basis of the topology of local convergence,
+(15.44) for an arbitrary open set, the finite-volume Gibbs lower bound
+`γ^Φ_Λ(A | ω) ≥ e^{−b − log Z_Λ(ω)} λ^S(A)` and Georgii's estimate (15.25) in the form
+`|H_Λ(y) − |Λ| ⟨°R^y_Λ, Φ⟩| ≤ 3 ∑_{A ∩ Λ ≠ ∅, A ⊄ Λ} ‖Φ_A‖` — are in
+`GibbsMeasure/Specification/LargeDeviationsLower.lean`. The assembly of (15.47) itself is still
+missing, together with one combinatorial ingredient: for an *arbitrary* cube `Λ`, the union `Δ` of
+the tiles of `Λ(m)` meeting `Λ` satisfies `|Δ| / |Λ| → 1` and its tile-index set is a box of
+`p ℤ^d`; only the centred instance of this is proved
+(`MeasureTheory.GibbsMeasure.tileIdxImage_cubeUnion`).
 
 Another input, **Proposition (15.52)** (`𝓀` of the randomly shifted independent-block measure
 `γ̄ = |Λ|⁻¹ ∑_{j ∈ Λ} θ_{-j}(∏_i θ_{-pi}(γ))` equals `|Λ|⁻¹ 𝓗_Λ(γ)`), is

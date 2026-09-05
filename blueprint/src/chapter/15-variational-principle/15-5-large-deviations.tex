@@ -122,6 +122,32 @@
     invariant.
 \end{proof}
 
+\begin{theorem}[Block McMillan, the input of (15.47) for an arbitrary state space; Georgii (4.2); (15.44) for open sets]
+    \label{thm:ld-block-mcmillan}
+    \uses{prop:ld-15-52, def:ld-15-41}
+    \lean{MeasureTheory.GibbsMeasure.infinitePi_mem_trivialOn_invariantEvents, MeasureTheory.GibbsMeasure.ergodicSMul_infinitePi, MeasureTheory.GibbsMeasure.tendsto_integral_abs_inv_card_sum_shift_sub_integral, MeasureTheory.GibbsMeasure.infinitePi_apply_eq_setLIntegral_prod_rnDeriv, MeasureTheory.GibbsMeasure.infinitePi_inter_le_mul_infinitePi, MeasureTheory.GibbsMeasure.tendsto_integral_abs_inv_card_sum_llr_sub, MeasureTheory.GibbsMeasure.tendsto_measure_setOf_prod_rnDeriv_le, MeasureTheory.GibbsMeasure.tileProduct_pi_eq_infinitePi, MeasureTheory.GibbsMeasure.blockDensity, MeasureTheory.GibbsMeasure.tendsto_tileProduct_setOf_blockDensity_le, MeasureTheory.GibbsMeasure.tileIdxImage_cubeUnion, MeasureTheory.GibbsMeasure.tendsto_card_vadd_tileIdxImage_symmDiff_div_card, MeasureTheory.GibbsMeasure.tendsto_tileProduct_setOf_blockDensity_le_specificEntropy, MeasureTheory.GibbsMeasure.exists_finset_localEvents_icc_subset_of_isOpen, MeasureTheory.GibbsMeasure.periodicEmpiricalFieldL, MeasureTheory.GibbsMeasure.tendsto_measure_setOf_periodicEmpiricalField_mem_isOpen, MeasureTheory.GibbsMeasure.le_gibbsSpecificationOfAbsolutelySummable_apply, MeasureTheory.GibbsMeasure.abs_hamiltonian_sub_card_mul_specificEnergy_periodicEmpiricalField_le}
+    \leanok
+
+    Georgii invokes McMillan's theorem in (15.47) only for the independent-block measure
+    $\hat\gamma$ of a block law $\gamma$ with $\mathcal H(\gamma \mid \lambda^C) < \infty$, whose
+    density on a union of tiles is a product of the block densities; so the statement he needs,
+    $\hat\gamma\bigl(|\Delta|^{-1}\log f_\Delta \leq -\mathfrak k(\tilde\gamma) + \varepsilon\bigr) \to 1$
+    along the centred cubes, follows from the $L^1$ ergodic theorem for the i.i.d.\ block
+    variables and (15.52), for any state space and any a priori probability measure: the i.i.d.\
+    field is ergodic by the Kolmogorov zero--one law and (14.9), and the change of measure
+    $\hat\gamma(A \cap \{\prod r \leq M\}) \leq M\lambda^S(A)$ transfers the bound. Also: the
+    neighbourhood basis of the local topology (4.2), the convergence (15.44) of the periodic
+    empirical field on every open set, the lower bound
+    $\gamma^\Phi_\Lambda(A \mid \omega) \geq e^{-b - \log Z_\Lambda(\omega)}\lambda^S(A)$ on
+    $\mathcal F_\Lambda$-events where $H_\Lambda \leq b$, and the uniform energy identity
+    $|H_\Lambda(y) - |\Lambda|\langle {}^\circ R^y_\Lambda, \Phi\rangle| \leq 3\,\mathrm{tail}(\Lambda)$.
+    The assembly of (15.47) and (15.46) waits on the tiling of an arbitrary (non-centred, even-sided)
+    cube; the upper bound's Step 3 is available for finite $E$ only, through Theorem \ref{thm:ld-15-54}.
+\end{theorem}
+\begin{proof}
+    \leanok
+\end{proof}
+
 \begin{proposition}[Georgii (15.49), (15.59), and the rate-function half of (15.48)]
     \label{prop:ld-15-49}
     \uses{def:ld-15-41, thm:vp-15-39, prop:sent-15-14c, cor:gv-16-12}
