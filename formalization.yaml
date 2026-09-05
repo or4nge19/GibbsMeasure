@@ -360,6 +360,10 @@ status:
       file: "GibbsMeasure/Specification/PhaseTransition.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.periodicGibbsDist_forall_notMem_torusPattern_le_patternWeight"
+      file: "GibbsMeasure/Specification/PatternPercolation.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.Shlosman.dgSpecification_abs_excess_le"
       file: "GibbsMeasure/Model/RandomStaircase.lean"
       sorry_count: 0
@@ -1245,6 +1249,24 @@ alignment:
         the library — so for 0 < |h| < 1 it is a nonzero element of the Dobrushin region, and its
         rate function vanishes somewhere. An adversarial review had found that no object of
         Sections 15.5 and 16.2 had a witness beyond the zero potential.
+    - source: "Section 18.1: (18.1)-(18.3), (18.8)-(18.10)"
+      lean: "MeasureTheory.GibbsMeasure.periodicGibbsDist_forall_notMem_torusPattern_le_patternWeight"
+      module: "GibbsMeasure/Specification/PatternPercolation.lean"
+      status: "partial"
+      note: >-
+        The local ground energy m_Phi as an essential infimum, with Georgii's literal supremum
+        formula recovered; the local ground states G_eps(Phi) of positive measure; r-symmetry and
+        the pattern set V(G, omega) on the torus (LocalGroundStates.lean); the weight t(G, Phi) of
+        (18.8) with Remarks (18.9)(1)-(4), (3) in the quantitative form t(G,Psi) <= e^{4 eta}
+        t(G,Phi) for ||Psi_C - Phi_C|| <= eta, and (4) with the explicit bound
+        e^{-beta eps/2}/lambda^C(G_{eps/2}). Erratum: (18.9)(2) as printed uses an essential
+        supremum that is +infinity on sets where Phi_C is essentially unbounded; it is proved as
+        an infimum over pairs (M, c) with Phi_C <= c a.e. on M. Lemma (18.10) for the periodic
+        Gibbs distribution on the torus, by Georgii's proof from the chessboard estimate, with
+        the block-independence lemmas for Measure.pi that Mathlib lacks
+        (Mathlib/MeasureTheory/Constructions/PiBlocks.lean). Not formalized: the transport of
+        the torus measure to a random field on Z^d, hence G_0(Phi), (5.20)(3), (18.10) for
+        mu in G_0(Phi), (18.11), (18.12), (18.16) Steps 1-3, (18.17)-(18.19).
     - source: "Section 18.1: (18.4)-(18.7), (18.13)-(18.15)"
       lean: "MeasureTheory.GibbsMeasure.Peierls.le_measure_forall_mem_infiniteClusters"
       module: "GibbsMeasure/Model/StarCrossing.lean"
@@ -1257,10 +1279,9 @@ alignment:
         (18.13) with z(t) <= 4t for t <= 1/20, and Lemma (18.14) in both forms, for an arbitrary
         random set with no measurability hypothesis (countable subadditivity only), weaker
         hypotheses than Georgii's. (18.15) is Mathlib's conservativity of a measure-preserving map.
-        Not formalized: (18.1)-(18.3) and (18.8)-(18.12), which need the periodic Gibbs distributions
-        and the C-potential layer of Section 17.2 (in flight), Steps 1-3 of (18.16) (the
-        quasi-Gibbsian estimate on the configuration space and two planar-topology arguments), and
-        (18.17)-(18.19).
+        Not formalized: Steps 1-3 of (18.16) (the quasi-Gibbsian estimate on the configuration
+        space and two planar-topology arguments) and (18.17)-(18.19); see the previous entry for
+        (18.1)-(18.3), (18.8)-(18.10).
     - source: "Section 17.1: (17.6)-(17.11)"
       lean: "MeasureTheory.GibbsMeasure.abs_integral_prod_pow_le_pi"
       module: "GibbsMeasure/Specification/ReflectionPositivity.lean"

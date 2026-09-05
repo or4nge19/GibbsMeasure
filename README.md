@@ -533,7 +533,12 @@ potentials and (17.29) with its examples are not yet done.
 oceans, with the plane facts Georgii calls clear proved unconditionally on `ℤ²`; the crossing bound
 (18.13) and Lemma (18.14) for an arbitrary random set, with no measurability hypothesis, since the
 proof is countable subadditivity over `*`-crossings; Poincaré recurrence (18.15) is Mathlib's
-conservativity. The rest of the section waits on the periodic Gibbs distributions of §17.2.
+conservativity. `Specification/LocalGroundStates.lean` and `PatternPercolation.lean`: the local
+ground states (18.1)–(18.2), the pattern sets (18.3), the weight `t(G,Φ)` of (18.8) with Remarks
+(18.9), and the key estimate (18.10) for the periodic Gibbs distribution on the torus, Georgii's
+proof from the chessboard estimate; (18.9)(2) as printed is false through an essential supremum
+that can be infinite and is proved in its unfolded form. What remains is the transport of the
+torus measure to a random field on `ℤ^d`, hence `𝒢₀(Φ)` and (18.12), (18.16)–(18.19).
 
 **Chapter 16** normalises the a priori measure to a probability measure throughout, where Georgii
 assumes only that it is finite; the two differ by an additive `log λ(E)` in the pressure and the

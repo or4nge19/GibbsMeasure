@@ -12,6 +12,59 @@
     ocean, nonempty iff some ocean exists; it is equivariant under the lattice symmetries.
 \end{definition}
 
+\begin{definition}[Local ground states and the weight $t(G,\Phi)$, Georgii (18.1)--(18.3), (18.8)]
+    \label{def:lo-18-8}
+    \uses{def:rp-17-18}
+    \lean{MeasureTheory.GibbsMeasure.localGroundEnergy, MeasureTheory.GibbsMeasure.localGroundEnergy_eq_sSup, MeasureTheory.GibbsMeasure.localGroundStates, MeasureTheory.GibbsMeasure.measure_localGroundStates_pos, MeasureTheory.GibbsMeasure.IsRSymmetric, MeasureTheory.GibbsMeasure.isRSymmetric_localGroundStates, MeasureTheory.GibbsMeasure.torusPattern, MeasureTheory.GibbsMeasure.mem_torusPattern_of_isRSymmetric, MeasureTheory.GibbsMeasure.energyOutside, MeasureTheory.GibbsMeasure.groundStateCost, MeasureTheory.GibbsMeasure.patternWeight, MeasureTheory.GibbsMeasure.patternWeight_eq_iInf}
+    \leanok
+
+    For a $C$-potential, $m_\Phi$ is the $\lambda^C$-essential infimum of $\Phi_C$ (18.1) and
+    $G_\varepsilon(\Phi) = \{\Phi_C \leq m_\Phi + \varepsilon\}$ the set of local ground states
+    (18.2), of positive $\lambda^C$-measure. A set $G \subseteq E^C$ is $r$-symmetric if invariant
+    under the reflections of the cube, and $V(G,\omega) = \{i : r^i\omega_{C(i)} \in G\}$ is the
+    pattern set (18.3), the reflections being immaterial for $r$-symmetric $G$. The weight (18.8) is
+    $t(G,\Phi) = e^{-\operatorname{ess\,inf}_{G^c}(\Phi_C - m_\Phi)}\,
+    \tilde\lambda^C(G^c)^{1/|C|}\,\inf_{\delta > 0} e^\delta/\tilde\lambda^C(G_\delta(\Phi))$.
+\end{definition}
+
+\begin{lemma}[Georgii (18.9)]
+    \label{lem:lo-18-9}
+    \uses{def:lo-18-8}
+    \lean{MeasureTheory.GibbsMeasure.patternWeight_anti, MeasureTheory.GibbsMeasure.groundStateCost_eq_iInf, MeasureTheory.GibbsMeasure.patternWeight_le_of_abs_sub_le, MeasureTheory.GibbsMeasure.patternWeight_smul_le, MeasureTheory.GibbsMeasure.tendsto_patternWeight_smul_atTop}
+    \leanok
+
+    $t(\cdot,\Phi)$ is decreasing; the identity (18.9)(2) holds with the essential supremum
+    unfolded, as an infimum over pairs $(M, c)$ with $\lambda^C(M) > 0$ and $\Phi_C \leq c$ a.e.\ on
+    $M$ (Georgii's $\lambda$-$\sup_M\Phi_C$ is $+\infty$ when $\Phi_C$ is essentially unbounded on
+    $M$, where a literal transcription through Mathlib's real essential supremum would be false);
+    $t(G,\Psi) \leq e^{4\eta}\,t(G,\Phi)$ when $\|\Psi_C - \Phi_C\| \leq \eta$, which is the
+    upper semicontinuity (3); and $t(G_\varepsilon(\Phi),\beta\Phi) \leq
+    e^{-\beta\varepsilon/2}/\tilde\lambda^C(G_{\varepsilon/2}(\Phi)) \to 0$ as $\beta \to \infty$.
+\end{lemma}
+\begin{proof}
+    \leanok
+\end{proof}
+
+\begin{lemma}[Georgii (18.10), on the torus]
+    \label{lem:lo-18-10}
+    \uses{def:lo-18-8, cor:rp-17-17-gibbs}
+    \lean{MeasureTheory.GibbsMeasure.pi_forall_cubeView_evenSite, MeasureTheory.GibbsMeasure.pow_le_pi_forall_cubeView, MeasureTheory.GibbsMeasure.periodicGibbs_forall_notMem_le, MeasureTheory.GibbsMeasure.le_periodicGibbs_univ, MeasureTheory.GibbsMeasure.periodicGibbsDist_forall_mem_compl_le, MeasureTheory.GibbsMeasure.periodicGibbsDist_pow_le_pow, MeasureTheory.GibbsMeasure.periodicGibbsDist_forall_notMem_torusPattern_le_patternWeight, MeasureTheory.measurePreserving_blocks}
+    \leanok
+
+    For $r$-symmetric measurable $G$ and any finite set $D$ of sites of the torus $\Lambda(N)$,
+    ${}^\circ\gamma_{\Lambda(N)}^\Phi(D \cap V(G,\cdot) = \emptyset) \leq t(G,\Phi)^{|D|}$. This
+    is the estimate for the periodic Gibbs distributions; its passage to the limits
+    $\mu \in \mathcal G_0(\Phi)$ waits on the transport of ${}^\circ\gamma_{\Lambda(N)}^\Phi$ to a
+    random field on $\mathbb Z^d$.
+\end{lemma}
+\begin{proof}
+    \leanok
+    Georgii's proof: the chessboard estimate of Corollary \ref{cor:rp-17-17-gibbs} for the
+    indicators $1_{G^c}$, the numerator bounded through the essential infimum of $\Phi_C$ off $G$
+    and the product over the even sublattice (which is where the exponent $1/|C|$ comes from), and
+    the partition function bounded below by $e^{-|\Lambda|(m_\Phi+\delta)}\lambda^C(G_\delta)^{|\Lambda|}$.
+\end{proof}
+
 \begin{lemma}[Georgii (18.13), (18.14)]
     \label{lem:lo-18-14}
     \uses{def:lo-18-6, lem:ising-peierls}

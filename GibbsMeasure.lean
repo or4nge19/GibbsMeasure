@@ -117,6 +117,7 @@ public import GibbsMeasure.Mathlib.Analysis.Convex.Extreme
 public import GibbsMeasure.Mathlib.Analysis.Convex.ExtremeGDelta
 public import GibbsMeasure.Mathlib.Analysis.Convex.TangentFunctional
 public import GibbsMeasure.Mathlib.Data.ENNReal.OfReal
+public import GibbsMeasure.Mathlib.Data.ENNReal.Pow
 public import GibbsMeasure.Mathlib.Topology.Compactness.SigmaCompact
 public import GibbsMeasure.Mathlib.Topology.Metrizable.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ProbabilityMeasure
@@ -128,7 +129,9 @@ public import GibbsMeasure.Mathlib.Dynamics.Ergodic.MeasurePreserving
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.ShannonMcMillanBreiman
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.ShannonMcMillanCube
 public import GibbsMeasure.Mathlib.GroupTheory.Foelner
+public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.PiBlocks
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Trivial
+public import GibbsMeasure.Mathlib.MeasureTheory.Function.EssSup
 public import GibbsMeasure.Mathlib.MeasureTheory.Group.Action.Synonym
 public import GibbsMeasure.Mathlib.Probability.Kernel.CountableMatrix
 public import GibbsMeasure.Mathlib.Probability.Kernel.CountableMatrix.Recurrence
@@ -284,6 +287,8 @@ public import GibbsMeasure.Specification.VariationalPrinciple
 public import GibbsMeasure.Specification.TangentFunctional
 public import GibbsMeasure.Specification.PhaseTransition
 public import GibbsMeasure.Specification.LargeDeviations
+public import GibbsMeasure.Specification.LocalGroundStates
+public import GibbsMeasure.Specification.PatternPercolation
 public import GibbsMeasure.Specification.ReflectionPositivity
 public import GibbsMeasure.Specification.PeriodicGibbs
 public import GibbsMeasure.Specification.ShannonMcMillan
