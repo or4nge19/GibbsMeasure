@@ -25,7 +25,8 @@ of §12.1 in `GibbsMeasure/Model/TreeBoundaryLaw.lean` and
   (12.19) on `𝒞𝒯(d)`, and `isTransferFamily_isingTransfer` its `IsTransferFamily` property.
   `isingTreeSpecification` is *defined* as the transfer specification (12.8) of `Q_{J,h}`; its
   identification with the Gibbsian specification `γ^{Φ^{J,h}}` of the potential (12.19) — the
-  step Georgii takes "in view of (12.7) and (12.9)" — is **not** proved here (see below).
+  step Georgii takes "in view of (12.7) and (12.9)" — is
+  `isingTreeSpecification_eq_isingSpecification` below.
 * `isingBoundaryVec` — the constant boundary law of Proposition (12.24), `ℓ_t(-) = 1`,
   `ℓ_t(+) = exp (2t - 2h/(d+1))`; `isingBoundaryVec_solves_iff` is **(12.21) ⇔ (12.22)** and
   `isBoundaryLaw_isingBoundaryVec_iff` says `ℓ_t` is a boundary law iff `t = h + d φ_J(t)`,
@@ -1057,5 +1058,398 @@ theorem exists_ne_isGibbsMeasure_of_isFixedPt_treeRecursion₂ (hG : G.IsCayleyT
     isGibbsMeasure_isingAltChain hG hc (isingAltSol_comp_not hsol)⟩
 
 end AlternatingChains
+
+
+/-! ## Georgii (12.7), (12.9): `γ^{J,h}` is the Gibbs specification of the Ising potential
+
+Georgii's `𝒢(J, h)` is the set of Gibbs measures of the Gibbsian specification `γ^{Φ^{J,h}}` of
+the Ising potential (12.19); he passes to the transfer specification (12.8) of the matrix (12.20)
+"in view of (12.7) and (12.9)". That step is proved here. On `𝒞𝒯(d)` every site of `Λ` lies on
+exactly `d + 1` bonds meeting `Λ`, so it collects `h σ_i/(d+1)` from each of them, i.e. exactly
+`h σ_i` in total; the ends in `∂Λ` of the bonds meeting `Λ` contribute a factor depending only on
+the configuration off `Λ`, and such a factor cancels between the density and the partition
+function of a λ-specification (`Specification.lambdaSpecification_eq_of_mul_boundary`). -/
+
+section GibbsRepresentation
+
+/-- The product `σ_i σ_j` of the two spins on a bond `b = {i, j}`. -/
+def spinBond (σ : S → Bool) : Sym2 S → ℝ :=
+  Sym2.lift ⟨fun i j ↦ spin (σ i) * spin (σ j), fun _ _ ↦ mul_comm _ _⟩
+
+omit [DecidableEq S] in
+@[simp] lemma spinBond_mk (σ : S → Bool) (i j : S) :
+    spinBond σ s(i, j) = spin (σ i) * spin (σ j) := rfl
+
+/-- The sum `σ_i + σ_j` of the two spins on a bond `b = {i, j}`. -/
+def spinSum (σ : S → Bool) : Sym2 S → ℝ :=
+  Sym2.lift ⟨fun i j ↦ spin (σ i) + spin (σ j), fun _ _ ↦ add_comm _ _⟩
+
+omit [DecidableEq S] in
+@[simp] lemma spinSum_mk (σ : S → Bool) (i j : S) :
+    spinSum σ s(i, j) = spin (σ i) + spin (σ j) := rfl
+
+/-! ### The Hamiltonian of the Ising potential (12.19) -/
+
+/-- Two bonds with the same pair of endpoints are equal: a bond is not a loop. -/
+lemma toFinset_injOn_bondsOf (Λ : Finset S) :
+    ∀ e ∈ G.bondsOf Λ, ∀ f ∈ G.bondsOf Λ, e.toFinset = f.toFinset → e = f := by
+  intro e he f hf hef
+  revert he hf hef
+  refine Sym2.inductionOn e fun a b ↦ Sym2.inductionOn f fun c d he hf hef ↦ ?_
+  have hab : a ≠ b := (SimpleGraph.mk_mem_bondsOf.1 he).1.ne
+  have hcd : c ≠ d := (SimpleGraph.mk_mem_bondsOf.1 hf).1.ne
+  rw [Sym2.toFinset_mk_eq, Sym2.toFinset_mk_eq] at hef
+  have hc : c ∈ ({a, b} : Finset S) := hef ▸ Finset.mem_insert_self c {d}
+  have hd : d ∈ ({a, b} : Finset S) :=
+    hef ▸ Finset.mem_insert_of_mem (Finset.mem_singleton_self d)
+  simp only [Finset.mem_insert, Finset.mem_singleton] at hc hd
+  rcases hc with rfl | rfl <;> rcases hd with rfl | rfl
+  · exact absurd rfl hcd
+  · rfl
+  · exact Sym2.eq_swap
+  · exact absurd rfl hcd
+
+/-- The interactions of the Ising potential (12.19) that meet `Λ` are the sites of `Λ` and the
+bonds meeting `Λ`; every other interaction meeting `Λ` vanishes. -/
+lemma isingPotential_eq_zero_of_notMem {Λ A : Finset S} (σ : S → Bool)
+    (hd : ¬ Disjoint A Λ) (h1 : A ∉ Λ.image (fun i ↦ ({i} : Finset S)))
+    (h2 : A ∉ (G.bondsOf Λ).image Sym2.toFinset) : isingPotential G J h A σ = 0 := by
+  classical
+  by_cases hc1 : A.card = 1
+  · exfalso
+    obtain ⟨i, rfl⟩ := Finset.card_eq_one.1 hc1
+    obtain ⟨x, hxA, hxΛ⟩ := Finset.not_disjoint_iff.1 hd
+    rw [Finset.mem_singleton] at hxA
+    subst hxA
+    exact h1 (Finset.mem_image.2 ⟨x, hxΛ, rfl⟩)
+  by_cases hc2 : A.card = 2 ∧ ∃ i ∈ A, ∃ j ∈ A, G.Adj i j
+  · exfalso
+    obtain ⟨hcard, i, hi, j, hj, hij⟩ := hc2
+    have hA : A = {i, j} := by
+      refine (Finset.eq_of_subset_of_card_le ?_ ?_).symm
+      · intro x hx
+        rcases Finset.mem_insert.1 hx with rfl | hx
+        · exact hi
+        · rw [Finset.mem_singleton] at hx
+          subst hx
+          exact hj
+      · rw [hcard, Finset.card_pair hij.ne]
+    obtain ⟨x, hxA, hxΛ⟩ := Finset.not_disjoint_iff.1 hd
+    rw [hA, Finset.mem_insert, Finset.mem_singleton] at hxA
+    refine h2 (Finset.mem_image.2 ⟨s(i, j), SimpleGraph.mk_mem_bondsOf.2 ⟨hij, ?_⟩, ?_⟩)
+    · rcases hxA with rfl | rfl
+      · exact Or.inl hxΛ
+      · exact Or.inr hxΛ
+    · rw [Sym2.toFinset_mk_eq, hA]
+  · rw [isingPotential]
+    exact Potential.nearestNeighbourPair_apply_eq_zero hc1 hc2 σ
+
+/-- **Georgii (12.19), the Hamiltonian.**
+`H_Λ^{Φ^{J,h}}(σ) = -J ∑_{b ∩ Λ ≠ ∅} σ_i σ_j - h ∑_{i ∈ Λ} σ_i`: the bond energies of the bonds
+meeting `Λ` and the field energies of the sites of `Λ`. -/
+theorem hamiltonian_isingPotential (Λ : Finset S) (σ : S → Bool) :
+    (isingPotential G J h).hamiltonian Λ σ
+      = -J * ∑ b ∈ G.bondsOf Λ, spinBond σ b - h * ∑ i ∈ Λ, spin (σ i) := by
+  classical
+  have hsing : ∀ i ∈ Λ, (isingPotential G J h).hamiltonianTerms Λ σ {i} = -h * spin (σ i) := by
+    intro i hi
+    rw [Potential.hamiltonianTerms_of_not_disjoint
+        (Finset.not_disjoint_iff.2 ⟨i, Finset.mem_singleton_self i, hi⟩),
+      isingPotential, Potential.nearestNeighbourPair_apply_card_one (Finset.card_singleton i),
+      Finset.sum_singleton]
+  have hbond : ∀ b ∈ G.bondsOf Λ,
+      (isingPotential G J h).hamiltonianTerms Λ σ b.toFinset = -J * spinBond σ b := by
+    intro b hb
+    revert hb
+    refine Sym2.inductionOn b fun i j hb ↦ ?_
+    obtain ⟨hij, hmem⟩ := SimpleGraph.mk_mem_bondsOf.1 hb
+    have hnd : ¬ Disjoint (s(i, j).toFinset) Λ := by
+      rw [Sym2.toFinset_mk_eq, Finset.not_disjoint_iff]
+      rcases hmem with hi | hj
+      · exact ⟨i, by simp, hi⟩
+      · exact ⟨j, by simp, hj⟩
+    rw [Potential.hamiltonianTerms_of_not_disjoint hnd, Sym2.toFinset_mk_eq, isingPotential,
+      Potential.nearestNeighbourPair_apply_pair
+        ⟨Finset.card_pair hij.ne, i, by simp, j, by simp, hij⟩,
+      Finset.prod_pair hij.ne, spinBond_mk]
+  have hdisjT : Disjoint (Λ.image (fun i ↦ ({i} : Finset S)))
+      ((G.bondsOf Λ).image Sym2.toFinset) := by
+    rw [Finset.disjoint_left]
+    rintro A hA hB
+    obtain ⟨i, -, rfl⟩ := Finset.mem_image.1 hA
+    obtain ⟨b, hb, hbA⟩ := Finset.mem_image.1 hB
+    revert hb hbA
+    refine Sym2.inductionOn b fun x y hb hbA ↦ ?_
+    have hxy : x ≠ y := (SimpleGraph.mk_mem_bondsOf.1 hb).1.ne
+    rw [Sym2.toFinset_mk_eq] at hbA
+    have hcard := congrArg Finset.card hbA
+    rw [Finset.card_pair hxy, Finset.card_singleton] at hcard
+    omega
+  have hzero : ∀ A ∉ Λ.image (fun i ↦ ({i} : Finset S)) ∪ (G.bondsOf Λ).image Sym2.toFinset,
+      (isingPotential G J h).hamiltonianTerms Λ σ A = 0 := by
+    intro A hA
+    rw [Finset.mem_union, not_or] at hA
+    by_cases hdisj : Disjoint A Λ
+    · exact Potential.hamiltonianTerms_of_disjoint hdisj σ
+    · rw [Potential.hamiltonianTerms_of_not_disjoint hdisj]
+      exact isingPotential_eq_zero_of_notMem σ hdisj hA.1 hA.2
+  have hone : ∑ A ∈ Λ.image (fun i ↦ ({i} : Finset S)),
+      (isingPotential G J h).hamiltonianTerms Λ σ A = -h * ∑ i ∈ Λ, spin (σ i) := by
+    rw [Finset.sum_image (fun i _ j _ hij ↦ by simpa using hij), Finset.mul_sum]
+    exact Finset.sum_congr rfl hsing
+  have htwo : ∑ A ∈ (G.bondsOf Λ).image Sym2.toFinset,
+      (isingPotential G J h).hamiltonianTerms Λ σ A
+        = -J * ∑ b ∈ G.bondsOf Λ, spinBond σ b := by
+    rw [Finset.sum_image (toFinset_injOn_bondsOf Λ), Finset.mul_sum]
+    exact Finset.sum_congr rfl hbond
+  rw [Potential.hamiltonian_eq_tsum, tsum_eq_sum hzero, Finset.sum_union hdisjT, hone, htwo]
+  ring
+
+/-! ### Double counting the ends of the bonds meeting `Λ` -/
+
+variable (G) in
+/-- The number of bonds meeting `Λ` that are incident to the site `k`. For `k ∈ Λ` this is the
+degree of `k`, i.e. `d + 1` on `𝒞𝒯(d)`; for `k ∈ ∂Λ` it is the number of neighbours of `k`
+in `Λ`. -/
+def bondCount (Λ : Finset S) (k : S) : ℕ := (G.incidenceFinset k ∩ G.bondsOf Λ).card
+
+/-- **Double counting.** The two ends of each bond meeting `Λ` are collected site by site. -/
+lemma sum_bondsOf_spinSum (Λ : Finset S) (σ : S → Bool) :
+    ∑ b ∈ G.bondsOf Λ, spinSum σ b
+      = ∑ k ∈ Λ ∪ G.outerBoundary Λ, (bondCount G Λ k : ℝ) * spin (σ k) := by
+  classical
+  have hstep : ∀ b ∈ G.bondsOf Λ, spinSum σ b = ∑ k ∈ b.toFinset, spin (σ k) := by
+    intro b hb
+    revert hb
+    refine Sym2.inductionOn b fun i j hb ↦ ?_
+    have hij : i ≠ j := (SimpleGraph.mk_mem_bondsOf.1 hb).1.ne
+    rw [spinSum_mk, Sym2.toFinset_mk_eq, Finset.sum_pair hij]
+  have hcomm : ∀ (b : Sym2 S) (k : S),
+      b ∈ G.bondsOf Λ ∧ k ∈ b.toFinset
+        ↔ b ∈ G.incidenceFinset k ∩ G.bondsOf Λ ∧ k ∈ Λ ∪ G.outerBoundary Λ := by
+    intro b k
+    simp only [Sym2.mem_toFinset, Finset.mem_inter, SimpleGraph.mem_incidenceFinset,
+      SimpleGraph.incidenceSet, Set.mem_ofPred_eq]
+    constructor
+    · rintro ⟨hb, hk⟩
+      exact ⟨⟨⟨(SimpleGraph.mem_bondsOf.1 hb).1, hk⟩, hb⟩,
+        mem_union_outerBoundary_of_mem_bondsOf G hb hk⟩
+    · rintro ⟨⟨⟨-, hk⟩, hb⟩, -⟩
+      exact ⟨hb, hk⟩
+  calc ∑ b ∈ G.bondsOf Λ, spinSum σ b
+      = ∑ b ∈ G.bondsOf Λ, ∑ k ∈ b.toFinset, spin (σ k) := Finset.sum_congr rfl hstep
+    _ = ∑ k ∈ Λ ∪ G.outerBoundary Λ, ∑ _b ∈ G.incidenceFinset k ∩ G.bondsOf Λ, spin (σ k) :=
+        Finset.sum_comm' hcomm
+    _ = ∑ k ∈ Λ ∪ G.outerBoundary Λ, (bondCount G Λ k : ℝ) * spin (σ k) :=
+        Finset.sum_congr rfl fun k _ ↦ by rw [Finset.sum_const, nsmul_eq_mul, bondCount]
+
+/-- On `𝒞𝒯(d)` every site of `Λ` lies on exactly `d + 1` bonds meeting `Λ`. -/
+lemma bondCount_of_mem (hG : G.IsCayleyTree d) {Λ : Finset S} {k : S} (hk : k ∈ Λ) :
+    bondCount G Λ k = d + 1 := by
+  have hsub : G.incidenceFinset k ⊆ G.bondsOf Λ := by
+    rw [← SimpleGraph.bondsOf_singleton (G := G)]
+    exact SimpleGraph.bondsOf_mono (Finset.singleton_subset_iff.2 hk)
+  rw [bondCount, Finset.inter_eq_left.2 hsub, SimpleGraph.incidenceFinset_eq_image,
+    Finset.card_image_of_injective _ (SimpleGraph.injective_mk_left k), hG.card_neighborFinset]
+
+/-! ### The bond product is the Boltzmann factor times a boundary factor -/
+
+variable (G d h) in
+/-- Georgii's boundary term: the contribution of the ends in `∂Λ` of the bonds meeting `Λ`, each
+carrying `h/(d+1)` per bond. It depends on the configuration only off `Λ`. -/
+def isingBoundarySum (Λ : Finset S) (σ : S → Bool) : ℝ :=
+  h / (d + 1) * ∑ k ∈ G.outerBoundary Λ, (bondCount G Λ k : ℝ) * spin (σ k)
+
+variable (G d h) in
+/-- The boundary weight `exp (isingBoundarySum)`: the factor by which the bond product
+`∏_{b ∩ Λ ≠ ∅} Q_b` of (12.20) differs from the Boltzmann factor `e^{-H_Λ}` of (12.19). -/
+def isingBoundaryWeight (Λ : Finset S) (σ : S → Bool) : ℝ≥0∞ :=
+  ENNReal.ofReal (exp (isingBoundarySum G d h Λ σ))
+
+lemma isingBoundaryWeight_ne_zero (Λ : Finset S) (σ : S → Bool) :
+    isingBoundaryWeight G d h Λ σ ≠ 0 := (ENNReal.ofReal_pos.2 (exp_pos _)).ne'
+
+lemma isingBoundaryWeight_ne_top (Λ : Finset S) (σ : S → Bool) :
+    isingBoundaryWeight G d h Λ σ ≠ ⊤ := ENNReal.ofReal_ne_top
+
+lemma dependsOn_isingBoundaryWeight (Λ : Finset S) :
+    DependsOn (isingBoundaryWeight G d h Λ) ((Λ : Set S)ᶜ) := by
+  intro σ τ hst
+  have hsum : ∀ k ∈ G.outerBoundary Λ,
+      (bondCount G Λ k : ℝ) * spin (σ k) = (bondCount G Λ k : ℝ) * spin (τ k) := fun k hk ↦ by
+    rw [hst k (by simpa using G.notMem_of_mem_outerBoundary hk)]
+  rw [isingBoundaryWeight, isingBoundaryWeight, isingBoundarySum, isingBoundarySum,
+    Finset.sum_congr rfl hsum]
+
+/-- Each bond weight of (12.20) is `exp` of the bond energy plus the shared external field. -/
+lemma bondWeight_isingTransfer (σ : S → Bool) (b : Sym2 S) :
+    bondWeight (fun _ _ : S ↦ isingTransfer d J h)
+        (isTransferFamily_isingTransfer G d J h).symm σ b
+      = ENNReal.ofReal (exp (J * spinBond σ b + h / (d + 1) * spinSum σ b)) := by
+  refine Sym2.inductionOn b fun i j ↦ ?_
+  rw [bondWeight_mk, isingTransfer_apply, spinBond_mk, spinSum_mk]
+  congr 2
+  ring
+
+/-- **Georgii (12.7), (12.9).** The bond product `∏_{b ∩ Λ ≠ ∅} Q_b` of the transfer matrix
+(12.20) is the Boltzmann factor `e^{-H_Λ^{Φ^{J,h}}}` of the Ising potential (12.19) times a factor
+depending only on the configuration outside `Λ`: on `𝒞𝒯(d)` each site of `Λ` collects
+`h σ_i/(d+1)` from each of its `d + 1` bonds, i.e. `h σ_i` in total. -/
+theorem transferWeight_isingTransfer_eq (hG : G.IsCayleyTree d) (Λ : Finset S) (σ : S → Bool) :
+    transferWeight G (fun _ _ : S ↦ isingTransfer d J h)
+        (isTransferFamily_isingTransfer G d J h).symm Λ σ
+      = (isingPotential G J h).boltzmannFactor 1 Λ σ * isingBoundaryWeight G d h Λ σ := by
+  classical
+  have hd1 : ((d : ℝ) + 1) ≠ 0 := by positivity
+  have hsplit : ∑ k ∈ Λ ∪ G.outerBoundary Λ, (bondCount G Λ k : ℝ) * spin (σ k)
+      = ((d : ℝ) + 1) * ∑ k ∈ Λ, spin (σ k)
+        + ∑ k ∈ G.outerBoundary Λ, (bondCount G Λ k : ℝ) * spin (σ k) := by
+    rw [Finset.sum_union (G.disjoint_outerBoundary Λ), Finset.mul_sum]
+    congr 1
+    exact Finset.sum_congr rfl fun k hk ↦ by
+      rw [bondCount_of_mem hG hk]
+      push_cast
+      ring
+  have hexp : ∑ b ∈ G.bondsOf Λ, (J * spinBond σ b + h / (d + 1) * spinSum σ b)
+      = -1 * (isingPotential G J h).hamiltonian Λ σ + isingBoundarySum G d h Λ σ := by
+    rw [Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum, sum_bondsOf_spinSum, hsplit,
+      hamiltonian_isingPotential, isingBoundarySum, mul_add]
+    have hcancel : h / ((d : ℝ) + 1) * (((d : ℝ) + 1) * ∑ k ∈ Λ, spin (σ k))
+        = h * ∑ k ∈ Λ, spin (σ k) := by field_simp
+    rw [hcancel]
+    ring
+  rw [transferWeight, Finset.prod_congr rfl (fun b _ ↦ bondWeight_isingTransfer (G := G) σ b),
+    ← ENNReal.ofReal_prod_of_nonneg (fun _ _ ↦ exp_nonneg _), ← Real.exp_sum, hexp, Real.exp_add,
+    ENNReal.ofReal_mul (exp_nonneg _)]
+  rfl
+
+/-! ### Georgii's identification `γ^{J,h} = γ^{Φ^{J,h}}` -/
+
+lemma count_univ_bool : (Measure.count : Measure Bool) Set.univ = 2 := by
+  rw [Measure.count_univ, ENat.card_eq_coe_fintype_card, Fintype.card_bool]
+  norm_num
+
+/-- The counting measure on `E = {-1, 1}` normalises to the uniform a priori measure of the Ising
+model, so Georgii's counting a priori measure and `uniformSpinMeasure` give the same Gibbsian
+specification (Remark (1.28)(3)). -/
+lemma probNormalize_count_bool :
+    (Measure.count : Measure Bool).probNormalize = uniformSpinMeasure := by
+  rw [Measure.probNormalize_def, count_univ_bool, uniformSpinMeasure]
+
+/-- **Georgii (12.7), (12.9): the identification.** On the Cayley tree `𝒞𝒯(d)` the transfer
+specification (12.8) of the Ising transfer matrix (12.20) *is* the Gibbsian specification
+`γ^{Φ^{J,h}}` of the Ising potential (12.19) at inverse temperature `1`. Hence
+`𝒢(J, h) = 𝒢(Φ^{J,h})` really is the Gibbs-measure set of `isingTreeSpecification`, and every
+theorem of §12.2 above is a theorem about the Ising potential. -/
+theorem isingTreeSpecification_eq_isingSpecification [Countable S] (hG : G.IsCayleyTree d) :
+    isingTreeSpecification G d J h = isingSpecification G J h 1 := by
+  classical
+  have : IsFiniteMeasure (Measure.count : Measure Bool) :=
+    ⟨by rw [count_univ_bool]; norm_num⟩
+  have : NeZero (Measure.count : Measure Bool) := ⟨fun hcon ↦ by
+    have hu := count_univ_bool
+    rw [hcon] at hu
+    simp at hu⟩
+  have hQ := isTransferFamily_isingTransfer G d J h
+  have hρ₁ : Specification.IsPremodifier (S := S) (E := Bool)
+      ((isingPotential G J h).boltzmannFactor 1) := Potential.isPremodifier_boltzmannFactor 1
+  have hZ₁ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := Bool)
+      Measure.count ((isingPotential G J h).boltzmannFactor 1) :=
+    Potential.isSigmaFiniteLambdaAdmissible_boltzmannFactor Measure.count 1
+  have h3 : isingTreeSpecification G d J h
+      = Specification.lambdaSpecification (S := S) (E := Bool) Measure.count
+          ((isingPotential G J h).boltzmannFactor 1) hρ₁ hZ₁ :=
+    Specification.lambdaSpecification_eq_of_mul_boundary (S := S) (E := Bool) Measure.count
+      hρ₁ hZ₁ (isPremodifier_transferWeight hQ.symm) hQ.isSigmaFiniteLambdaAdmissible
+      (fun Λ ω ↦ isingBoundaryWeight_ne_zero Λ ω) (fun Λ ω ↦ isingBoundaryWeight_ne_top Λ ω)
+      (fun Λ ↦ dependsOn_isingBoundaryWeight Λ)
+      (fun Λ ω ↦ transferWeight_isingTransfer_eq hG Λ ω)
+  calc isingTreeSpecification G d J h
+      = Potential.gibbsSpecificationOfFiniteReference (isingPotential G J h)
+          (Measure.count : Measure Bool) 1 := h3
+    _ = Potential.gibbsSpecificationOfAbsolutelySummable
+          (Measure.count : Measure Bool).probNormalize 1 :=
+        Potential.gibbsSpecificationOfFiniteReference_eq_gibbsSpecificationOfAbsolutelySummable
+          (Φ := isingPotential G J h) Measure.count 1
+    _ = isingSpecification G J h 1 := by
+        rw [isingSpecification]
+        simp only [probNormalize_count_bool]
+
+end GibbsRepresentation
+
+/-! ## Georgii §12.2 for `𝒢(J, h) = 𝒢(Φ^{J,h})`
+
+The conclusions of §12.2, restated — as Georgii states them — for the Gibbs-measure set of the
+Ising potential (12.19) itself. -/
+
+section IsingPotentialConclusions
+
+variable [Countable S]
+
+/-- **Georgii Theorem (12.31)(a) for `𝒢(J, h)`.** On `𝒞𝒯(d)` with `J > 0`, if `J ≤ J(d)`
+(equivalently `d tanh J ≤ 1`) or `|h| > h(J, d)`, the Ising potential (12.19) has exactly one
+Gibbs measure. -/
+theorem exists_G_isingSpecification_eq_singleton (hJ : 0 < J) (hG : G.IsCayleyTree d)
+    (hcase : (d : ℝ) * tanh J ≤ 1 ∨ Real.treeCriticalField d J < |h|) :
+    ∃ μ : Measure (S → Bool),
+      _root_.MeasureTheory.GibbsMeasure.G (isingSpecification G J h 1) = {μ} := by
+  obtain ⟨t, hsol, ht⟩ := exists_G_isingTreeSpecification_eq_singleton hJ hG hcase
+  exact ⟨isingChain hG hsol, by rw [← isingTreeSpecification_eq_isingSpecification hG]; exact ht⟩
+
+/-- **Georgii Theorem (12.31)(b) for `𝒢(J, h)`.** On `𝒞𝒯(d)` with `J > J(d)` (i.e.
+`d tanh J > 1`) and `|h| ≤ h(J, d)`, the Ising potential (12.19) has at least two distinct Gibbs
+measures: the completely homogeneous Markov chains `μ₋ ≠ μ₊` of Proposition (12.24). -/
+theorem exists_ne_isGibbsMeasure_isingSpecification (hJ : 0 < J) (hG : G.IsCayleyTree d)
+    (hw : 1 < (d : ℝ) * tanh J) (hh : |h| ≤ Real.treeCriticalField d J) :
+    ∃ μ ν : Measure (S → Bool), μ ≠ ν ∧
+      (isingSpecification G J h 1).IsGibbsMeasure μ ∧
+      (isingSpecification G J h 1).IsGibbsMeasure ν := by
+  obtain ⟨t₁, t₂, hs₁, hs₂, hne⟩ := exists_ne_isingChain hJ hG hw hh
+  refine ⟨isingChain hG hs₁, isingChain hG hs₂, hne, ?_, ?_⟩ <;>
+    rw [← isingTreeSpecification_eq_isingSpecification hG]
+  · exact isGibbsMeasure_isingChain hG hs₁
+  · exact isGibbsMeasure_isingChain hG hs₂
+
+end IsingPotentialConclusions
+
+/-! ## A witness: the Ising ferromagnet on `𝒞𝒯(2)`
+
+`SimpleGraph.isCayleyTree_reducedWordTree` builds `𝒞𝒯(d)` for every `d`, so the hypotheses of
+Theorem (12.31)(b) can be met. Here is the smallest instance: `d = 2` and a coupling with
+`2 tanh J > 1`, i.e. `J > J(2) = ar coth 2`. -/
+
+section CayleyTreeTwo
+
+open SimpleGraph
+
+/-- The coupling `J = ar tanh (3/4)` of the witness below: `2 tanh J = 3/2 > 1`, i.e.
+`J > J(2) = ar coth 2`. -/
+noncomputable def witnessCoupling : ℝ := artanh (3 / 4)
+
+lemma witnessCoupling_pos : 0 < witnessCoupling := artanh_pos ⟨by norm_num, by norm_num⟩
+
+lemma tanh_witnessCoupling : tanh witnessCoupling = 3 / 4 :=
+  tanh_artanh ⟨by norm_num, by norm_num⟩
+
+lemma one_lt_two_mul_tanh_witnessCoupling : 1 < (2 : ℝ) * tanh witnessCoupling := by
+  rw [tanh_witnessCoupling]
+  norm_num
+
+/-- **Georgii Theorem (12.31)(b), witnessed.** On the Cayley tree `𝒞𝒯(2)` — the tree of reduced
+words over `Fin 3`, `SimpleGraph.isCayleyTree_reducedWordTree` — the ferromagnetic Ising potential
+(12.19) with coupling `J = ar tanh (3/4)` (so `2 tanh J = 3/2 > 1`, i.e. `J > J(2)`) and no
+external field has at least two distinct Gibbs measures: a phase transition for the Ising model
+itself, not merely for a transfer specification. -/
+theorem exists_ne_isGibbsMeasure_isingSpecification_reducedWordTree :
+    ∃ μ ν : Measure (ReducedWord 3 → Bool), μ ≠ ν ∧
+      (isingSpecification (reducedWordTree 3) witnessCoupling 0 1).IsGibbsMeasure μ ∧
+      (isingSpecification (reducedWordTree 3) witnessCoupling 0 1).IsGibbsMeasure ν :=
+  exists_ne_isGibbsMeasure_isingSpecification witnessCoupling_pos
+    (isCayleyTree_reducedWordTree 2) (by simpa using one_lt_two_mul_tanh_witnessCoupling)
+    (by
+      rw [abs_zero]
+      exact Real.treeCriticalField_nonneg witnessCoupling_pos (by norm_num))
+
+end CayleyTreeTwo
 
 end MeasureTheory.GibbsMeasure.Tree

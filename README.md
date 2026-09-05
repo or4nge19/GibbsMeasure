@@ -586,7 +586,10 @@ measures of a Markov specification on a tree are Markov chains — and **Corolla
 of that machinery — boundary laws are the solutions of `t = h + dφ_J(t)`, the critical field
 `h(J,d) = max_{t≥0}[dφ_J(t) − t]` has a closed form and vanishes exactly when `d tanh J ≤ 1`, the
 equation has one, two or three solutions accordingly, and the Gibbs measure is unique in the first
-case and not in the others; the alternating boundary laws on the tree's bipartition give two
+case and not in the others; the tree specification is proved equal to the Gibbsian specification of the Ising potential, so
+these are statements about `𝒢(Φ^{J,h})`; the Cayley tree itself is constructed for every degree as
+the graph of reduced words, and the phase transition is witnessed at degree three. The alternating
+boundary laws on the tree's bipartition give two
 distinct Gibbs measures whenever the second iterate of the recursion has a fixed point that the
 recursion itself does not — the existence of such a point, which is Georgii's antiferromagnetic
 transition proper, is assumed rather than proved. Chapter 11's `γ^Q` is the Hasse-graph instance of the tree

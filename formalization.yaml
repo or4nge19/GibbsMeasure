@@ -1226,6 +1226,11 @@ alignment:
         J < -J(d) and h in I(J,d) is a hypothesis, not a theorem. Not formalized: the three further clauses of
         (12.31)(b) (extremality of mu_-, mu_+, infinitude of ex G outside ex G_{I(B)}, and
         extremality of mu_#), which need the stochastic-domination argument and Corollary (7.4).
+        Georgii (12.7)/(12.9): the tree specification of the Ising transfer family IS the Gibbsian
+        specification of the Ising potential (isingTreeSpecification_eq_isingSpecification), so
+        (12.31) is restated for G(Phi^{J,h}). The Cayley tree CT(d) is constructed for every d as
+        the reduced words over d+1 letters (Mathlib/Combinatorics/SimpleGraph/CayleyTree.lean), and
+        the non-uniqueness is witnessed at d = 2, J = artanh(3/4), h = 0.
         Book erratum: (12.27) writes h(J,d) as a min over t <= 0; by oddness of phi_J that infimum
         is -infinity, and the formalisation uses the unambiguous max form.
     - source: "Sections 11.2-11.4: Spitzer-Cox, Kalikow, Spitzer"

@@ -53,3 +53,32 @@
     $J$ and has a unique fixed point when $d\abs w \leq 1$. A fixed point of $\psi$ that does not
     solve (12.22) gives two distinct Gibbs measures, the antiferromagnetic phase transition.
 \end{proposition}
+
+\begin{theorem}[Georgii (12.7), (12.9): the tree specification is Gibbsian]
+    \label{thm:ict-identification}
+    \uses{def:ict-transfer, def:pot-gibbs-spec}
+    \lean{MeasureTheory.GibbsMeasure.Tree.hamiltonian_isingPotential, MeasureTheory.GibbsMeasure.Tree.transferWeight_isingTransfer_eq, MeasureTheory.GibbsMeasure.Tree.isingTreeSpecification_eq_isingSpecification, MeasureTheory.GibbsMeasure.Tree.exists_G_isingSpecification_eq_singleton, MeasureTheory.GibbsMeasure.Tree.exists_ne_isGibbsMeasure_isingSpecification}
+    \leanok
+
+    On a Cayley tree the specification built from the Ising transfer family is the Gibbsian
+    specification of the Ising potential, so the results of this section are statements about
+    $\mathcal G(\Phi^{J,h})$ as Georgii intends.
+\end{theorem}
+\begin{proof}
+    \leanok
+    The Hamiltonian is $-J\sum_{b}\sigma_i\sigma_j - h\sum_{i\in\Lambda}\sigma_i$, and each site of
+    $\Lambda$ meets exactly $d+1$ bonds, so the bond product over the bonds meeting $\Lambda$ is the
+    Boltzmann factor times a weight depending only on the configuration off $\Lambda$; such a factor
+    does not change the $\lambda$-specification.
+\end{proof}
+
+\begin{corollary}[The phase transition on $\mathcal{CT}(2)$]
+    \label{cor:ict-witness}
+    \uses{thm:ict-identification, thm:ict-12-31}
+    \lean{SimpleGraph.reducedWordTree, SimpleGraph.isCayleyTree_reducedWordTree, SimpleGraph.isRegularOfDegree_reducedWordTree, MeasureTheory.GibbsMeasure.Tree.exists_ne_isGibbsMeasure_isingSpecification_reducedWordTree}
+    \leanok
+
+    The reduced words over $d+1$ letters form a tree in which every vertex has degree $d+1$, so
+    $\mathcal{CT}(d)$ exists for every $d$. At $d = 2$, $J = \operatorname{artanh}(3/4)$ and $h = 0$
+    the Ising model on it has two distinct Gibbs measures.
+\end{corollary}
