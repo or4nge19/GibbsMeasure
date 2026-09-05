@@ -13,6 +13,11 @@ public import Mathlib.Combinatorics.SimpleGraph.Connectivity.Subgraph
 
 * `SimpleGraph.connected_induce_iff_forall_exists_walk`: the induced subgraph on `s` is connected
   iff `s` is nonempty and any two of its points are joined by a walk of `G` inside `s`.
+* `SimpleGraph.ReachableIn G s u v`: `u` and `v` lie in `s` and are reachable in `G.induce s`,
+  stated for vertices of `V` rather than of the subtype `s`. The connectedness criterion in this
+  phrasing is `connected_induce_iff_forall_reachableIn`, and
+  `image_val_supp_connectedComponentMk_eq` identifies the support of a cluster with a set of
+  reachable vertices.
 * `SimpleGraph.hull`: a connected finite superset of a finite set in a connected graph.
 * `SimpleGraph.connected_induction`: induction from a connected set to a connected superset,
   adding one outer-boundary vertex at a time.
@@ -54,6 +59,97 @@ lemma Connected.induce_nonempty {s : Set V} (h : (G.induce s).Connected) : s.Non
 lemma Connected.exists_walk_of_induce {s : Set V} (h : (G.induce s).Connected) {u v : V}
     (hu : u ∈ s) (hv : v ∈ s) : ∃ p : G.Walk u v, ∀ x ∈ p.support, x ∈ s :=
   (connected_induce_iff_forall_exists_walk.1 h).2 u hu v hv
+
+end Connected
+
+/-! ### Reachability inside a set of vertices -/
+
+section ReachableIn
+
+variable {G} {s t : Set V} {u v w : V}
+
+variable (G) in
+/-- `G.ReachableIn s u v`: the vertices `u`, `v` lie in `s` and are reachable in the induced
+subgraph `G.induce s`, i.e. are joined by a walk of `G` all of whose vertices lie in `s`.  This
+is `(G.induce s).Reachable` stated for vertices of `V` rather than of the subtype `s`. -/
+def ReachableIn (s : Set V) (u v : V) : Prop :=
+  ∃ (hu : u ∈ s) (hv : v ∈ s), (G.induce s).Reachable ⟨u, hu⟩ ⟨v, hv⟩
+
+lemma ReachableIn.mem_left (h : G.ReachableIn s u v) : u ∈ s := h.1
+
+lemma ReachableIn.mem_right (h : G.ReachableIn s u v) : v ∈ s := h.2.1
+
+@[refl] lemma ReachableIn.refl (hu : u ∈ s) : G.ReachableIn s u u :=
+  ⟨hu, hu, Reachable.refl _⟩
+
+@[symm] lemma ReachableIn.symm (h : G.ReachableIn s u v) : G.ReachableIn s v u := by
+  obtain ⟨hu, hv, h⟩ := h
+  exact ⟨hv, hu, h.symm⟩
+
+@[trans] lemma ReachableIn.trans (h₁ : G.ReachableIn s u v) (h₂ : G.ReachableIn s v w) :
+    G.ReachableIn s u w := by
+  obtain ⟨hu, hv, h₁'⟩ := h₁
+  obtain ⟨hv', hw, h₂'⟩ := h₂
+  exact ⟨hu, hw, h₁'.trans h₂'⟩
+
+lemma ReachableIn.of_adj (hu : u ∈ s) (hv : v ∈ s) (h : G.Adj u v) : G.ReachableIn s u v :=
+  ⟨hu, hv, Adj.reachable (induce_adj.2 h)⟩
+
+/-- Induction along a walk inside `s`. -/
+lemma ReachableIn.induction {P : V → Prop} (hu : P u)
+    (hstep : ∀ a b, a ∈ s → b ∈ s → G.Adj a b → P a → P b) (h : G.ReachableIn s u v) : P v := by
+  obtain ⟨hu', hv, ⟨p⟩⟩ := h
+  suffices H : ∀ (x y : s) (_ : (G.induce s).Walk x y), P x.1 → P y.1 from H _ _ p hu
+  intro x y p
+  induction p with
+  | nil => exact id
+  | cons hadj _ ih => exact fun hx ↦ ih (hstep _ _ (by simp) (by simp) hadj hx)
+
+lemma ReachableIn.mono (hst : s ⊆ t) (h : G.ReachableIn s u v) : G.ReachableIn t u v :=
+  h.induction (ReachableIn.refl (hst h.mem_left))
+    fun _ _ ha hb hab hab' ↦ hab'.trans (ReachableIn.of_adj (hst ha) (hst hb) hab)
+
+/-- A function constant along the edges of `G` inside `s` is constant along walks inside `s`. -/
+lemma ReachableIn.invariant {α : Type*} (f : V → α)
+    (hf : ∀ a b : V, a ∈ s → b ∈ s → G.Adj a b → f a = f b) (h : G.ReachableIn s u v) :
+    f u = f v :=
+  ReachableIn.induction (P := fun x ↦ f u = f x) rfl
+    (fun a b ha hb hab hfa ↦ hfa.trans (hf a b ha hb hab)) h
+
+/-- A chain of adjacent vertices inside `s` yields reachability inside `s`. -/
+lemma reachableIn_chain (p : ℕ → V) (hadj : ∀ k, G.Adj (p k) (p (k + 1))) :
+    ∀ n : ℕ, (∀ k ≤ n, p k ∈ s) → G.ReachableIn s (p 0) (p n)
+  | 0, hp => ReachableIn.refl (hp 0 le_rfl)
+  | n + 1, hp =>
+    (reachableIn_chain p hadj n fun k hk ↦ hp k (by omega)).trans
+      (ReachableIn.of_adj (hp n (by omega)) (hp (n + 1) le_rfl) (hadj n))
+
+/-- The induced subgraph on `s` is connected iff `s` is nonempty and any two of its vertices are
+joined by a walk of `G` inside `s`. -/
+lemma connected_induce_iff_forall_reachableIn :
+    (G.induce s).Connected ↔ s.Nonempty ∧ ∀ u ∈ s, ∀ v ∈ s, G.ReachableIn s u v := by
+  refine ⟨fun h ↦ ⟨h.induce_nonempty, fun u hu v hv ↦ ⟨hu, hv, h.preconnected _ _⟩⟩, ?_⟩
+  rintro ⟨⟨x, hx⟩, h⟩
+  have : Nonempty s := ⟨⟨x, hx⟩⟩
+  exact ⟨fun a b ↦ (h a.1 a.2 b.1 b.2).2.2⟩
+
+/-- The image in `V` of the support of the cluster of `j` in `G.induce s` is the set of vertices
+reachable from `j` inside `s`. -/
+lemma image_val_supp_connectedComponentMk_eq (hj : u ∈ s) :
+    Subtype.val '' ((G.induce s).connectedComponentMk ⟨u, hj⟩).supp
+      = {k | G.ReachableIn s u k} := by
+  ext k
+  constructor
+  · rintro ⟨⟨k', hk'⟩, hsupp, rfl⟩
+    exact ⟨hj, hk', (ConnectedComponent.eq.1 hsupp).symm⟩
+  · rintro ⟨hj', hk, hr⟩
+    exact ⟨⟨k, hk⟩, ConnectedComponent.eq.2 hr.symm, rfl⟩
+
+end ReachableIn
+
+section Connected
+
+variable {G}
 
 /-- The support of a walk is connected. -/
 lemma connected_induce_support_finset [DecidableEq V] {u v : V} (p : G.Walk u v) :

@@ -38,7 +38,7 @@ Georgii, *Gibbs Measures and Phase Transitions*, Section 6.2, towards Theorem (6
   the lattice path inside `D` joining the two corners of `D`, closed up through one of the outer
   corners (`crossChain`), is a mod-two cycle, and its dual potential separates the two outer
   corners, contradicting `reachIn_of_mem_outside` (`GibbsMeasure/Model/Contours.lean`).
-* `plaquetteDeg_outerBoundary_eq_two`: **Georgii Lemma (6.14), the circuit property.**  For a
+* `plaquetteDeg_outerEdgeBoundary_eq_two`: **Georgii Lemma (6.14), the circuit property.**  For a
   finite, nonempty, connected `D ⊆ ℤ²`, every plaquette met by the outer boundary of `D`
   contains exactly two of its bonds — Georgii's `n_c(u) = 2`.  `n_c(u) = 1` is excluded because
   all four corners of the plaquette would lie outside `D`, `n_c(u) = 3` by the parity of the
@@ -48,9 +48,9 @@ Georgii, *Gibbs Measures and Phase Transitions*, Section 6.2, towards Theorem (6
 The counting bound `ncard_connectedBondSets_le_pow` is `4096 ^ ℓ`, weaker than Georgii's
 `ℓ · 3 ^ (ℓ - 1)`: only a constant to the `ℓ` is needed for (6.9), at the cost of a larger
 threshold `β₀`. The estimate is indexed by `edgeBoundary D` while the counting is indexed by
-`outerBoundary D`; `GibbsMeasure/Model/PhaseTransition.lean` bridges them through `interiorOf`.
+`outerEdgeBoundary D`; `GibbsMeasure/Model/PhaseTransition.lean` bridges them through `interiorOf`.
 
-Together with `outerBoundary_connected`, `plaquetteDeg_outerBoundary_eq_two` says that
+Together with `outerEdgeBoundary_connected`, `plaquetteDeg_outerEdgeBoundary_eq_two` says that
 the outer boundary of a finite connected `D` is a *circuit* in Georgii's sense: it is connected
 in the plaquette-adjacency graph and every dual site it meets lies on exactly two of its bonds.
 `GibbsMeasure/Model/SharpContours.lean` completes the step to Georgii's `ℓ · 3 ^ (ℓ - 1)`
@@ -81,22 +81,9 @@ lemma mem_discordant_mk {ζ : Site → Bool} {i j : Site} :
   · rintro ⟨hadj, hne⟩
     exact ⟨by simpa using hadj, i, j, rfl, hne⟩
 
-lemma mem_edgeBoundary_mk {D : Set Site} {i j : Site} :
-    s(i, j) ∈ edgeBoundary D ↔
-      (latticeGraph 2).Adj i j ∧ ((i ∈ D ∧ j ∉ D) ∨ (j ∈ D ∧ i ∉ D)) := by
-  constructor
-  · rintro ⟨i', hi', j', hj', hadj, hij⟩
-    rcases Sym2.eq_iff.1 hij with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
-    · exact ⟨hadj, Or.inl ⟨hi', hj'⟩⟩
-    · exact ⟨hadj.symm, Or.inr ⟨hi', hj'⟩⟩
-  · rintro ⟨hadj, ⟨hi, hj⟩ | ⟨hj, hi⟩⟩
-    · exact ⟨i, hi, j, hj, hadj, rfl⟩
-    · exact ⟨j, hj, i, hi, hadj.symm, Sym2.eq_swap⟩
+alias mem_edgeBoundary_mk := SimpleGraph.mk_mem_edgeBoundary
 
-lemma edgeBoundary_subset_edgeSet (D : Set Site) :
-    edgeBoundary D ⊆ (latticeGraph 2).edgeSet := by
-  rintro e ⟨i, -, j, -, hadj, rfl⟩
-  exact hadj
+alias edgeBoundary_subset_edgeSet := SimpleGraph.edgeBoundary_subset_edgeSet
 
 lemma discordant_subset_edgeSet (ζ : Site → Bool) :
     discordant ζ ⊆ (latticeGraph 2).edgeSet := fun _ he ↦ he.1
@@ -180,7 +167,7 @@ lemma edgeBoundary_subset_bondsMeeting {D Λ : Finset Site} (hD : D ⊆ Λ) :
   exact Finset.mem_coe.2 (mem_bondsMeeting_mk.2 ⟨hadj, Or.inl (hD hi)⟩)
 
 lemma edgeBoundary_finset_finite (D : Finset Site) : (edgeBoundary ↑D).Finite :=
-  edgeBoundary_finite D.finite_toSet
+  SimpleGraph.edgeBoundary_finite D.finite_toSet
 
 /-- Two bonds meeting `Λ` with the same pair of endpoints are equal (`toFinset_injOn_bondsOf`
 for the lattice graph). -/
@@ -1157,10 +1144,10 @@ def plaquetteDeg (c : Set (Sym2 Site)) (x : Site) : ℕ :=
 
 /-- A bond of the lattice lies in the outer boundary of `D` exactly when its two endpoints
 disagree about membership in the infinite component of `Dᶜ`. -/
-lemma mem_outerBoundary_iff_not_iff {D : Set Site} {a b : Site}
+lemma mem_outerEdgeBoundary_iff_not_iff {D : Set Site} {a b : Site}
     (hab : (latticeGraph 2).Adj a b) :
-    s(a, b) ∈ outerBoundary D ↔ ¬(a ∈ outside D ↔ b ∈ outside D) := by
-  rw [mem_outerBoundary_iff hab]
+    s(a, b) ∈ outerEdgeBoundary D ↔ ¬(a ∈ outside D ↔ b ∈ outside D) := by
+  rw [mem_outerEdgeBoundary_iff hab]
   constructor
   · rintro (⟨ha, hb⟩ | ⟨hb, ha⟩) hiff
     · exact notMem_of_mem_outside (hiff.2 hb) ha
@@ -1209,7 +1196,7 @@ lemma plaquetteDeg_eq (c : Set (Sym2 Site)) (t u : ℤ) :
 
 /-- **Georgii Lemma (6.14), the circuit property.**  For a finite, nonempty, connected set of
 sites `D ⊆ ℤ²`, every dual site met by the outer boundary of `D` is met by exactly two of its
-bonds: `n_c(u) = 2`.  Together with `outerBoundary_connected` this says that the outer boundary
+bonds: `n_c(u) = 2`.  Together with `outerEdgeBoundary_connected` this says that the outer boundary
 is a circuit in Georgii's sense.
 
 Georgii excludes `n_c(u) = 1` because all four corners of the plaquette would then lie outside
@@ -1217,18 +1204,18 @@ Georgii excludes `n_c(u) = 1` because all four corners of the plaquette would th
 `n_c(u) = 4` by the Jordan curve theorem.  Here the first two are the content of
 `plaquette_count`, and the third is `no_crossing_diag` / `no_crossing_antidiag`, proved by
 planar duality mod two instead of the Jordan curve theorem. -/
-theorem plaquetteDeg_outerBoundary_eq_two {D : Set Site} (hD : D.Finite) (_hne : D.Nonempty)
+theorem plaquetteDeg_outerEdgeBoundary_eq_two {D : Set Site} (hD : D.Finite) (_hne : D.Nonempty)
     (hconn : ((latticeGraph 2).induce D).Connected) (x : Site)
-    (hx : (↑(plaquette x) ∩ outerBoundary D).Nonempty) :
-    plaquetteDeg (outerBoundary D) x = 2 := by
+    (hx : (↑(plaquette x) ∩ outerEdgeBoundary D).Nonempty) :
+    plaquetteDeg (outerEdgeBoundary D) x = 2 := by
   classical
   obtain ⟨t, u, rfl⟩ : ∃ t u : ℤ, x = mk t u := ⟨x 0, x 1, (mk_eta x).symm⟩
   have hconn' : ∀ p q : Site, p ∈ D → q ∈ D → ReachIn (latticeGraph 2) D p q :=
     (induce_connected_iff.1 hconn).2
-  have hb₁ := mem_outerBoundary_iff_not_iff (D := D) (adj_mk_horiz t u)
-  have hb₂ := mem_outerBoundary_iff_not_iff (D := D) (adj_mk_vert t u)
-  have hb₃ := mem_outerBoundary_iff_not_iff (D := D) (adj_mk_vert (t + 1) u)
-  have hb₄ := mem_outerBoundary_iff_not_iff (D := D) (adj_mk_horiz t (u + 1))
+  have hb₁ := mem_outerEdgeBoundary_iff_not_iff (D := D) (adj_mk_horiz t u)
+  have hb₂ := mem_outerEdgeBoundary_iff_not_iff (D := D) (adj_mk_vert t u)
+  have hb₃ := mem_outerEdgeBoundary_iff_not_iff (D := D) (adj_mk_vert (t + 1) u)
+  have hb₄ := mem_outerEdgeBoundary_iff_not_iff (D := D) (adj_mk_horiz t (u + 1))
   rw [plaquetteDeg_eq]
   simp only [hb₁, hb₂, hb₃, hb₄]
   refine plaquette_count _ _ _ _ ?_ ?_
@@ -1264,7 +1251,7 @@ theorem plaquetteDeg_outerBoundary_eq_two {D : Set Site} (hD : D.Finite) (_hne :
 Georgii's counting Lemma (6.13) walks along a circuit: at each step the next dual bond is one
 of the three bonds of the next plaquette other than the current one.  The input for that is
 that the outer boundary is `2`-regular in `bondGraph`, which follows from
-`plaquetteDeg_outerBoundary_eq_two` once one knows that each lattice bond lies in exactly two
+`plaquetteDeg_outerEdgeBoundary_eq_two` once one knows that each lattice bond lies in exactly two
 plaquettes. -/
 
 lemma plaquette_eq (x : Site) :
@@ -1355,7 +1342,7 @@ lemma bondGraph_adj_iff {e f : Sym2 Site} :
     bondGraph.Adj e f ↔ e ≠ f ∧ ∃ x, e ∈ plaquette x ∧ f ∈ plaquette x := Iff.rfl
 
 /-- Every bond of the outer boundary is a horizontal or a vertical lattice bond. -/
-lemma exists_hbond_or_vbond {D : Set Site} {e : Sym2 Site} (he : e ∈ outerBoundary D) :
+lemma exists_hbond_or_vbond {D : Set Site} {e : Sym2 Site} (he : e ∈ outerEdgeBoundary D) :
     (∃ w, e = hbond w) ∨ (∃ w, e = vbond w) := by
   obtain ⟨i, -, j, -, hij, rfl⟩ := he
   rcases (latticeGraph_two_adj_iff' i j).1 hij with rfl | rfl | rfl | rfl
@@ -1392,10 +1379,10 @@ lemma exists_partner {c : Set (Sym2 Site)} {x : Site} {e : Sym2 Site}
 /-- **The outer boundary is `2`-regular in the plaquette-adjacency graph** (Georgii's circuit
 property, in the form needed for the counting Lemma (6.13)): every boundary bond is
 plaquette-adjacent to exactly two other boundary bonds. -/
-theorem outerBoundary_two_regular {D : Set Site} (hD : D.Finite) (hne : D.Nonempty)
-    (hconn : ((latticeGraph 2).induce D).Connected) {e : Sym2 Site} (he : e ∈ outerBoundary D) :
+theorem outerEdgeBoundary_two_regular {D : Set Site} (hD : D.Finite) (hne : D.Nonempty)
+    (hconn : ((latticeGraph 2).induce D).Connected) {e : Sym2 Site} (he : e ∈ outerEdgeBoundary D) :
     ∃ f g : Sym2 Site, f ≠ g ∧
-      ∀ h : Sym2 Site, (h ∈ outerBoundary D ∧ bondGraph.Adj e h) ↔ (h = f ∨ h = g) := by
+      ∀ h : Sym2 Site, (h ∈ outerEdgeBoundary D ∧ bondGraph.Adj e h) ↔ (h = f ∨ h = g) := by
   classical
   -- the two plaquettes `x₁ ≠ x₂` of `e`
   obtain ⟨x₁, x₂, hx₁, hx₂, hx₁₂, hplaq⟩ :
@@ -1416,10 +1403,10 @@ theorem outerBoundary_two_regular {D : Set Site} (hD : D.Finite) (hne : D.Nonemp
       have := congrArg (fun z ↦ z 0) hc
       simp only [Pi.sub_apply, e0_zero] at this
       omega
-  have hd₁ : plaquetteDeg (outerBoundary D) x₁ = 2 :=
-    plaquetteDeg_outerBoundary_eq_two hD hne hconn x₁ ⟨e, Finset.mem_coe.2 hx₁, he⟩
-  have hd₂ : plaquetteDeg (outerBoundary D) x₂ = 2 :=
-    plaquetteDeg_outerBoundary_eq_two hD hne hconn x₂ ⟨e, Finset.mem_coe.2 hx₂, he⟩
+  have hd₁ : plaquetteDeg (outerEdgeBoundary D) x₁ = 2 :=
+    plaquetteDeg_outerEdgeBoundary_eq_two hD hne hconn x₁ ⟨e, Finset.mem_coe.2 hx₁, he⟩
+  have hd₂ : plaquetteDeg (outerEdgeBoundary D) x₂ = 2 :=
+    plaquetteDeg_outerEdgeBoundary_eq_two hD hne hconn x₂ ⟨e, Finset.mem_coe.2 hx₂, he⟩
   obtain ⟨f, hfe, hfx, hfc, hfu⟩ := exists_partner hd₁ hx₁ he
   obtain ⟨g, hge, hgx, hgc, hgu⟩ := exists_partner hd₂ hx₂ he
   refine ⟨f, g, ?_, ?_⟩

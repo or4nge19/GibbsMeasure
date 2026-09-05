@@ -91,7 +91,7 @@ lemma edgeBoundary_minusCluster_subset_discordant (a : Site) (ζ : Site → Bool
   simp
 
 lemma outerBoundary_minusCluster_subset_discordant (a : Site) (ζ : Site → Bool) :
-    outerBoundary (minusCluster a ζ) ⊆ discordant ζ :=
+    outerEdgeBoundary (minusCluster a ζ) ⊆ discordant ζ :=
   (outerBoundary_subset_edgeBoundary _).trans (edgeBoundary_minusCluster_subset_discordant a ζ)
 
 /-! ### M2: walks avoiding a set of bonds, and the interior of a bond set -/
@@ -174,8 +174,8 @@ lemma edgeBoundary_interiorOf_subset (c : Set (Sym2 Site)) :
   exact hi (escapes_of_adj hadj hc (not_not.1 hj))
 
 /-- (M2)(c): a finite set of sites lies in the interior of its outer boundary. -/
-lemma subset_interiorOf_outerBoundary {D : Set Site} (hD : D.Finite) :
-    D ⊆ interiorOf (outerBoundary D) := by
+lemma subset_interiorOf_outerEdgeBoundary {D : Set Site} (hD : D.Finite) :
+    D ⊆ interiorOf (outerEdgeBoundary D) := by
   obtain ⟨N, hDN⟩ := exists_subset_box hD
   intro i hi hesc
   obtain ⟨j, hj, hr⟩ := hesc N
@@ -186,7 +186,7 @@ lemma subset_interiorOf_outerBoundary {D : Set Site} (hD : D.Finite) :
 
 /-- Every site of the infinite outside escapes across the outer boundary. -/
 lemma escapes_outerBoundary_of_mem_outside {D : Set Site} (hD : D.Finite) {j : Site}
-    (hj : j ∈ outside D) : Escapes (outerBoundary D) j := by
+    (hj : j ∈ outside D) : Escapes (outerEdgeBoundary D) j := by
   obtain ⟨N, hDN⟩ := exists_subset_box hD
   intro M
   have h1 : (N : ℤ) ≤ ((max N M : ℕ) : ℤ) := by exact_mod_cast Nat.le_max_left N M
@@ -201,20 +201,29 @@ lemma escapes_outerBoundary_of_mem_outside {D : Set Site} (hD : D.Finite) {j : S
   exact ⟨i, Sym2.mem_mk_left i j', by simpa using hi⟩
 
 /-- (M2): the boundary identity `∂(int c) = c` for `c` the outer boundary of a finite set. -/
-lemma edgeBoundary_interiorOf_outerBoundary {D : Set Site} (hD : D.Finite) :
-    edgeBoundary (interiorOf (outerBoundary D)) = outerBoundary D := by
+lemma edgeBoundary_interiorOf_outerEdgeBoundary {D : Set Site} (hD : D.Finite) :
+    edgeBoundary (interiorOf (outerEdgeBoundary D)) = outerEdgeBoundary D := by
   refine Set.Subset.antisymm (edgeBoundary_interiorOf_subset _) ?_
   rintro e ⟨i, hi, j, hj, hadj, rfl⟩
   rw [mem_edgeBoundary_mk]
-  exact ⟨hadj, Or.inl ⟨subset_interiorOf_outerBoundary hD hi,
+  exact ⟨hadj, Or.inl ⟨subset_interiorOf_outerEdgeBoundary hD hi,
     fun h ↦ h (escapes_outerBoundary_of_mem_outside hD hj)⟩⟩
 
 /-- (M2)(d): the interior of the outer boundary stays in any box containing `D`. -/
-lemma interiorOf_outerBoundary_subset_box {D : Set Site} {N : ℕ} (hDN : D ⊆ box N) :
-    interiorOf (outerBoundary D) ⊆ box N := by
+lemma interiorOf_outerEdgeBoundary_subset_box {D : Set Site} {N : ℕ} (hDN : D ⊆ box N) :
+    interiorOf (outerEdgeBoundary D) ⊆ box N := by
   refine interiorOf_subset_box (fun e he ↦ ?_)
   obtain ⟨i, hi, j, hj, hadj, rfl⟩ := he
   exact ⟨i, Sym2.mem_mk_left i j, hDN hi⟩
+
+@[deprecated subset_interiorOf_outerEdgeBoundary (since := "2026-09-05")]
+alias subset_interiorOf_outerBoundary := subset_interiorOf_outerEdgeBoundary
+
+@[deprecated edgeBoundary_interiorOf_outerEdgeBoundary (since := "2026-09-05")]
+alias edgeBoundary_interiorOf_outerBoundary := edgeBoundary_interiorOf_outerEdgeBoundary
+
+@[deprecated interiorOf_outerEdgeBoundary_subset_box (since := "2026-09-05")]
+alias interiorOf_outerBoundary_subset_box := interiorOf_outerEdgeBoundary_subset_box
 
 /-! ### The cube as a box -/
 
@@ -303,10 +312,10 @@ theorem minus_event_subset_iUnion (N : ℕ) (a : Site) :
     minusCluster_subset_of_forall_eq_true (fun i hi ↦ hout i (by simpa using hi))
   have hDbox : D ⊆ box N := by rw [← coe_cube_eq_box N]; exact hDsub
   have hDfin : D.Finite := (box_finite N).subset hDbox
-  have hOBfin : (outerBoundary D).Finite := outerBoundary_finite hDfin
+  have hOBfin : (outerEdgeBoundary D).Finite := outerBoundary_finite hDfin
   set c : Finset (Sym2 Site) := hOBfin.toFinset with hcdef
-  have hccoe : (↑c : Set (Sym2 Site)) = outerBoundary D := Set.Finite.coe_toFinset _
-  have hcard : c.card = (outerBoundary D).ncard := by rw [← hccoe, Set.ncard_coe_finset]
+  have hccoe : (↑c : Set (Sym2 Site)) = outerEdgeBoundary D := Set.Finite.coe_toFinset _
+  have hcard : c.card = (outerEdgeBoundary D).ncard := by rw [← hccoe, Set.ncard_coe_finset]
   have hpos : 0 < c.card := by
     rw [hcard]
     exact (Set.ncard_pos hOBfin).2 (outerBoundary_nonempty hDfin ⟨a, haD⟩)
@@ -322,8 +331,8 @@ theorem minus_event_subset_iUnion (N : ℕ) (a : Site) :
     · rw [hccoe]
       exact outerBoundary_connected hDfin ⟨a, haD⟩ (minusCluster_connected ha)
     · rw [← Finset.mem_coe, hccoe]; exact hbond
-    · rw [hccoe]; exact edgeBoundary_interiorOf_outerBoundary hDfin
-    · rw [hccoe, coe_cube_eq_box N]; exact interiorOf_outerBoundary_subset_box hDbox
+    · rw [hccoe]; exact edgeBoundary_interiorOf_outerEdgeBoundary hDfin
+    · rw [hccoe, coe_cube_eq_box N]; exact interiorOf_outerEdgeBoundary_subset_box hDbox
   · change (↑c : Set (Sym2 Site)) ⊆ discordant ζ
     rw [hccoe]
     exact outerBoundary_minusCluster_subset_discordant a ζ

@@ -932,29 +932,29 @@ theorem exists_circuit_contour_dg (z : ℤ) {k : ℤ} (hk : 1 ≤ k) (N : ℕ) (
   have hDbox : D ⊆ box N :=
     excessCluster_subset.trans (excess_subset_box hk hout)
   have hDfin : D.Finite := (box_finite N).subset hDbox
-  have hOBfin : (outerBoundary D).Finite := outerBoundary_finite hDfin
-  have hcoe : (↑(hOBfin.toFinset) : Set (Sym2 Site)) = outerBoundary D := Set.Finite.coe_toFinset _
-  have hcard : hOBfin.toFinset.card = (outerBoundary D).ncard := by
+  have hOBfin : (outerEdgeBoundary D).Finite := outerEdgeBoundary_finite hDfin
+  have hcoe : (↑(hOBfin.toFinset) : Set (Sym2 Site)) = outerEdgeBoundary D := Set.Finite.coe_toFinset _
+  have hcard : hOBfin.toFinset.card = (outerEdgeBoundary D).ncard := by
     rw [← Set.ncard_coe_finset, Set.Finite.coe_toFinset]
-  refine ⟨hOBfin.toFinset, isCircuit_outerBoundary hDfin ⟨a, haD⟩ (excessCluster_connected haE),
+  refine ⟨hOBfin.toFinset, isCircuit_outerEdgeBoundary hDfin ⟨a, haD⟩ (excessCluster_connected haE),
     ?_, ?_, ?_, ?_, ?_, ?_⟩
   · rw [Finset.card_pos, Set.Finite.toFinset_nonempty]
-    exact outerBoundary_nonempty hDfin ⟨a, haD⟩
+    exact outerEdgeBoundary_nonempty hDfin ⟨a, haD⟩
   · obtain ⟨m, hm, hbond⟩ := exists_anchor_bond hDfin haD
     exact ⟨m, by rw [hcard]; exact hm, (Set.Finite.mem_toFinset _).2 hbond⟩
-  · rw [hcoe]; exact subset_interiorOf_outerBoundary hDfin haD
-  · rw [hcoe]; exact interiorOf_outerBoundary_subset_box hDbox
-  · rw [hcoe]; exact edgeBoundary_interiorOf_outerBoundary hDfin
+  · rw [hcoe]; exact subset_interiorOf_outerEdgeBoundary hDfin haD
+  · rw [hcoe]; exact interiorOf_outerEdgeBoundary_subset_box hDbox
+  · rw [hcoe]; exact edgeBoundary_interiorOf_outerEdgeBoundary hDfin
   · rw [hcoe]
     intro i hi j hj hadj
-    have hedge : s(i, j) ∈ edgeBoundary (interiorOf (outerBoundary D)) := ⟨i, hi, j, hj, hadj, rfl⟩
-    rw [edgeBoundary_interiorOf_outerBoundary hDfin] at hedge
-    rcases (mem_outerBoundary_iff hadj).1 hedge with ⟨hiD, hjout⟩ | ⟨hjD, -⟩
+    have hedge : s(i, j) ∈ edgeBoundary (interiorOf (outerEdgeBoundary D)) := ⟨i, hi, j, hj, hadj, rfl⟩
+    rw [edgeBoundary_interiorOf_outerEdgeBoundary hDfin] at hedge
+    rcases (mem_outerEdgeBoundary_iff hadj).1 hedge with ⟨hiD, hjout⟩ | ⟨hjD, -⟩
     · refine ⟨excessCluster_subset hiD, ?_⟩
       by_contra hcon
       exact notMem_of_mem_outside hjout
         (mem_excessCluster_of_adj hiD hadj (by simpa [excess] using not_lt.1 hcon))
-    · exact absurd (subset_interiorOf_outerBoundary hDfin hjD) hj
+    · exact absurd (subset_interiorOf_outerEdgeBoundary hDfin hjD) hj
 
 end MeasureTheory.GibbsMeasure.Shlosman
 

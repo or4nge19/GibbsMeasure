@@ -82,15 +82,15 @@ theorem sharp_minus_event_subset_iUnion (N : ℕ) (a : Site) :
     minusCluster_subset_of_forall_eq_true (fun i hi ↦ hout i (by simpa using hi))
   have hDbox : D ⊆ box N := by rw [← coe_cube_eq_box N]; exact hDsub
   have hDfin : D.Finite := (box_finite N).subset hDbox
-  have hOBfin : (outerBoundary D).Finite := outerBoundary_finite hDfin
+  have hOBfin : (outerEdgeBoundary D).Finite := outerEdgeBoundary_finite hDfin
   set C : Finset (Sym2 Site) := hOBfin.toFinset with hCdef
-  have hCcoe : (↑C : Set (Sym2 Site)) = outerBoundary D := Set.Finite.coe_toFinset _
-  have hcard : C.card = (outerBoundary D).ncard := by rw [← hCcoe, Set.ncard_coe_finset]
+  have hCcoe : (↑C : Set (Sym2 Site)) = outerEdgeBoundary D := Set.Finite.coe_toFinset _
+  have hcard : C.card = (outerEdgeBoundary D).ncard := by rw [← hCcoe, Set.ncard_coe_finset]
   have hpos : 0 < C.card := by
     rw [hcard]
-    exact (Set.ncard_pos hOBfin).2 (outerBoundary_nonempty hDfin ⟨a, haD⟩)
+    exact (Set.ncard_pos hOBfin).2 (outerEdgeBoundary_nonempty hDfin ⟨a, haD⟩)
   have hcirc : IsCircuit C :=
-    isCircuit_outerBoundary hDfin ⟨a, haD⟩ (minusCluster_connected ha)
+    isCircuit_outerEdgeBoundary hDfin ⟨a, haD⟩ (minusCluster_connected ha)
   obtain ⟨k, hk, hbond⟩ := exists_anchor_bond hDfin haD
   have hkc : k < C.card := by rw [hcard]; exact hk
   have hbondC : s(a + k • e0, a + (k + 1) • e0) ∈ C := by
@@ -101,8 +101,8 @@ theorem sharp_minus_event_subset_iUnion (N : ℕ) (a : Site) :
   refine Set.mem_iUnion₂.2 ⟨C, ?_, ?_⟩
   · rw [mem_sharpContourFinset, hsucc]
     refine ⟨mem_anchoredCircuitFinset hcirc rfl hkc hbondC, ?_, ?_⟩
-    · rw [hCcoe]; exact edgeBoundary_interiorOf_outerBoundary hDfin
-    · rw [hCcoe, coe_cube_eq_box N]; exact interiorOf_outerBoundary_subset_box hDbox
+    · rw [hCcoe]; exact edgeBoundary_interiorOf_outerEdgeBoundary hDfin
+    · rw [hCcoe, coe_cube_eq_box N]; exact interiorOf_outerEdgeBoundary_subset_box hDbox
   · change (↑C : Set (Sym2 Site)) ⊆ discordant ζ
     rw [hCcoe]
     exact outerBoundary_minusCluster_subset_discordant a ζ

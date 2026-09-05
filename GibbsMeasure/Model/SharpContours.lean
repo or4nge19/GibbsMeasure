@@ -336,7 +336,7 @@ theorem no_alternating_plaquette {A B : Set Site}
     exact (by decide : ∀ p q : ZMod 2, p + q = 0 → p = q) _ _ h0
   -- but the potential is constant along `B`
   have hconst : psi x W (x + e0) = psi x W (x + e1) :=
-    ReachIn.invariant (psi x W)
+    SimpleGraph.ReachableIn.invariant (psi x W)
       (fun a b haB hbB hab ↦ psi_eq_of_adj hAB hx W hW haB hbB hab) (hB _ hy _ hy')
   rw [hconst, ← hH] at hV
   exact (by decide : ∀ p : ZMod 2, p + p ≠ (1 : ZMod 2)) _ hV
@@ -346,9 +346,9 @@ theorem no_alternating_plaquette {A B : Set Site}
 
 /-- A bond lies in the outer boundary iff its two endpoints are separated by the infinite
 outside. -/
-lemma mem_outerBoundary_iff_xor {D : Set Site} {u v : Site} (huv : (latticeGraph 2).Adj u v) :
-    s(u, v) ∈ outerBoundary D ↔ ¬ (u ∈ outside D ↔ v ∈ outside D) := by
-  rw [mem_outerBoundary_iff huv]
+lemma mem_outerEdgeBoundary_iff_xor {D : Set Site} {u v : Site} (huv : (latticeGraph 2).Adj u v) :
+    s(u, v) ∈ outerEdgeBoundary D ↔ ¬ (u ∈ outside D ↔ v ∈ outside D) := by
+  rw [mem_outerEdgeBoundary_iff huv]
   constructor
   · rintro (⟨hu, hv⟩ | ⟨hv, hu⟩) hiff
     · exact notMem_of_mem_outside (hiff.2 hv) hu
@@ -406,10 +406,10 @@ lemma forall_mem_of_dualDeg_eq_four {c : Set (Sym2 Site)} {x : Site} (h : dualDe
 /-- **Georgii Lemma (6.14), the degree-two property.**  For a finite, nonempty, connected set of
 sites `D ⊆ ℤ²`, every dual vertex met by the outer boundary of `D` meets exactly two of its
 bonds: the outer boundary is a *circuit*, `n_c(u) = 2`. -/
-theorem outerBoundary_dualDeg_eq_two {D : Set Site} (hD : D.Finite) (_hne : D.Nonempty)
+theorem outerEdgeBoundary_dualDeg_eq_two {D : Set Site} (hD : D.Finite) (_hne : D.Nonempty)
     (hconn : ((latticeGraph 2).induce D).Connected) {x : Site}
-    (hx : ∃ e ∈ plaquette x, e ∈ outerBoundary D) :
-    dualDeg (outerBoundary D) x = 2 := by
+    (hx : ∃ e ∈ plaquette x, e ∈ outerEdgeBoundary D) :
+    dualDeg (outerEdgeBoundary D) x = 2 := by
   classical
   obtain ⟨e, hep, hec⟩ := hx
   -- the four corners of the plaquette
@@ -421,25 +421,25 @@ theorem outerBoundary_dualDeg_eq_two {D : Set Site} (hD : D.Finite) (_hne : D.No
   have hadj13 : (latticeGraph 2).Adj p1 p3 := adj_mk_vert _ _
   have hadj24 : (latticeGraph 2).Adj p2 p4 := adj_mk_vert _ _
   have hadj34 : (latticeGraph 2).Adj p3 p4 := adj_mk_horiz _ _
-  have hb1 : hBond (x 0) (x 1) ∈ outerBoundary D ↔ ¬ (p1 ∈ outside D ↔ p2 ∈ outside D) :=
-    mem_outerBoundary_iff_xor hadj12
-  have hb2 : vBond (x 0) (x 1) ∈ outerBoundary D ↔ ¬ (p1 ∈ outside D ↔ p3 ∈ outside D) :=
-    mem_outerBoundary_iff_xor hadj13
-  have hb3 : vBond (x 0 + 1) (x 1) ∈ outerBoundary D ↔ ¬ (p2 ∈ outside D ↔ p4 ∈ outside D) :=
-    mem_outerBoundary_iff_xor hadj24
-  have hb4 : hBond (x 0) (x 1 + 1) ∈ outerBoundary D ↔ ¬ (p3 ∈ outside D ↔ p4 ∈ outside D) :=
-    mem_outerBoundary_iff_xor hadj34
+  have hb1 : hBond (x 0) (x 1) ∈ outerEdgeBoundary D ↔ ¬ (p1 ∈ outside D ↔ p2 ∈ outside D) :=
+    mem_outerEdgeBoundary_iff_xor hadj12
+  have hb2 : vBond (x 0) (x 1) ∈ outerEdgeBoundary D ↔ ¬ (p1 ∈ outside D ↔ p3 ∈ outside D) :=
+    mem_outerEdgeBoundary_iff_xor hadj13
+  have hb3 : vBond (x 0 + 1) (x 1) ∈ outerEdgeBoundary D ↔ ¬ (p2 ∈ outside D ↔ p4 ∈ outside D) :=
+    mem_outerEdgeBoundary_iff_xor hadj24
+  have hb4 : hBond (x 0) (x 1 + 1) ∈ outerEdgeBoundary D ↔ ¬ (p3 ∈ outside D ↔ p4 ∈ outside D) :=
+    mem_outerEdgeBoundary_iff_xor hadj34
   -- parity: `n_c(u)` is even (Georgii excludes `n_c(u) ∈ {1, 3}`)
-  have hpar : dualDeg (outerBoundary D) x % 2 = 0 := by
+  have hpar : dualDeg (outerEdgeBoundary D) x % 2 = 0 := by
     rw [dualDeg_eq]
     by_cases h1 : p1 ∈ outside D <;> by_cases h2 : p2 ∈ outside D <;>
       by_cases h3 : p3 ∈ outside D <;> by_cases h4 : p4 ∈ outside D <;>
       simp only [hb1, hb2, hb3, hb4, h1, h2, h3, h4, iff_true, iff_false, not_true, not_false_iff,
         ite_true, ite_false]
   -- `n_c(u) ≠ 0`
-  have hpos : 0 < dualDeg (outerBoundary D) x := dualDeg_pos hep hec
+  have hpos : 0 < dualDeg (outerEdgeBoundary D) x := dualDeg_pos hep hec
   -- `n_c(u) ≠ 4`
-  have hne4 : dualDeg (outerBoundary D) x ≠ 4 := by
+  have hne4 : dualDeg (outerEdgeBoundary D) x ≠ 4 := by
     intro h4
     have hall := fun {f : Sym2 Site} (hf : f ∈ plaquette x) ↦ forall_mem_of_dualDeg_eq_four h4 hf
     have hp : plaquette x = {hBond (x 0) (x 1), vBond (x 0) (x 1), vBond (x 0 + 1) (x 1),
@@ -483,7 +483,7 @@ theorem outerBoundary_dualDeg_eq_two {D : Set Site} (hD : D.Finite) (_hne : D.No
       · rw [hsq3]; exact mem_of_adj_outside h4' hadj34.symm h3
       · rw [hsq1]; exact h2
       · rw [hsq2]; exact h3
-  have hle := dualDeg_le_four (outerBoundary D) x
+  have hle := dualDeg_le_four (outerEdgeBoundary D) x
   omega
 
 
@@ -1116,15 +1116,15 @@ nonempty, connected set of sites `D ⊆ ℤ²`, the outer boundary of `D` is a c
 connected in the plaquette-adjacency graph and every dual vertex it meets meets exactly two of
 its bonds.  Georgii's own statement of (6.14) — the existence of a contour *surrounding* `a` —
 is `exists_circuit_contour`. -/
-theorem isCircuit_outerBoundary {D : Set Site} (hD : D.Finite) (hne : D.Nonempty)
+theorem isCircuit_outerEdgeBoundary {D : Set Site} (hD : D.Finite) (hne : D.Nonempty)
     (hconn : ((latticeGraph 2).induce D).Connected) :
-    IsCircuit (outerBoundary_finite hD).toFinset := by
-  have hcoe : (↑((outerBoundary_finite hD).toFinset) : Set (Sym2 Site)) = outerBoundary D :=
+    IsCircuit (outerEdgeBoundary_finite hD).toFinset := by
+  have hcoe : (↑((outerEdgeBoundary_finite hD).toFinset) : Set (Sym2 Site)) = outerEdgeBoundary D :=
     Set.Finite.coe_toFinset _
-  refine ⟨by rw [hcoe]; exact outerBoundary_connected hD hne hconn, ?_⟩
+  refine ⟨by rw [hcoe]; exact outerEdgeBoundary_connected hD hne hconn, ?_⟩
   intro x e hep hec
   rw [hcoe]
-  exact outerBoundary_dualDeg_eq_two hD hne hconn
+  exact outerEdgeBoundary_dualDeg_eq_two hD hne hconn
     ⟨e, hep, (Set.Finite.mem_toFinset _).1 hec⟩
 
 /-! ### Georgii Lemma (6.13): `ℓ · 3^(ℓ-1)` circuits of length `ℓ` around a site -/
@@ -1404,13 +1404,13 @@ theorem exists_circuit_contour (N : ℕ) (a : Site) {ζ : Site → Bool}
     minusCluster_subset_of_forall_eq_true (fun i hi ↦ hout i (by simpa using hi))
   have hDbox : D ⊆ box N := by rw [← coe_cube_eq_box N]; exact hDsub
   have hDfin : D.Finite := (box_finite N).subset hDbox
-  have hOBfin : (outerBoundary D).Finite := outerBoundary_finite hDfin
-  have hcard : hOBfin.toFinset.card = (outerBoundary D).ncard := by
+  have hOBfin : (outerEdgeBoundary D).Finite := outerEdgeBoundary_finite hDfin
+  have hcard : hOBfin.toFinset.card = (outerEdgeBoundary D).ncard := by
     rw [← Set.ncard_coe_finset, Set.Finite.coe_toFinset]
-  refine ⟨hOBfin.toFinset, isCircuit_outerBoundary hDfin ⟨a, haD⟩ (minusCluster_connected ha),
+  refine ⟨hOBfin.toFinset, isCircuit_outerEdgeBoundary hDfin ⟨a, haD⟩ (minusCluster_connected ha),
     ?_, ?_, ?_⟩
   · rw [Finset.card_pos, Set.Finite.toFinset_nonempty]
-    exact outerBoundary_nonempty hDfin ⟨a, haD⟩
+    exact outerEdgeBoundary_nonempty hDfin ⟨a, haD⟩
   · rw [Set.Finite.coe_toFinset]
     exact outerBoundary_minusCluster_subset_discordant a ζ
   · obtain ⟨k, hk, hbond⟩ := exists_anchor_bond hDfin haD

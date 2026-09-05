@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.InfiniteCluster
 public import GibbsMeasure.Model.Ising
 public import Mathlib.Combinatorics.SimpleGraph.Connectivity.Connected
 public import Mathlib.Data.ZMod.Basic
@@ -59,71 +60,31 @@ different spins, so that `B*(ζ) = bondsMeeting Λ ∩ discordant ζ`. -/
 def discordant (ζ : Site → Bool) : Set (Sym2 Site) :=
   {e ∈ (latticeGraph 2).edgeSet | ∃ i j, e = s(i, j) ∧ ζ i ≠ ζ j}
 
-/-- The edge boundary of a set of sites: the lattice bonds with exactly one endpoint in `D`. -/
-def edgeBoundary (D : Set Site) : Set (Sym2 Site) :=
-  {e | ∃ i ∈ D, ∃ j ∉ D, (latticeGraph 2).Adj i j ∧ e = s(i, j)}
+/-- The edge boundary of a set of sites: the lattice bonds with exactly one endpoint in `D`.
+This is `SimpleGraph.edgeBoundary` at the nearest-neighbour graph of `ℤ²`. -/
+abbrev edgeBoundary (D : Set Site) : Set (Sym2 Site) := (latticeGraph 2).edgeBoundary D
 
 open Classical in
 /-- Georgii's `τ_c`: flip the spins on `D`. -/
 def flip (D : Set Site) (ζ : Site → Bool) : Site → Bool := fun i ↦ if i ∈ D then !ζ i else ζ i
 
-/-! ### Reachability inside a set of vertices -/
+/-! ### Reachability inside a set of vertices
 
-/-- `ReachIn G s u v`: `u, v ∈ s` are joined by a walk of the induced graph `G.induce s`. -/
-def ReachIn {V : Type*} (G : SimpleGraph V) (s : Set V) (u v : V) : Prop :=
-  ∃ (hu : u ∈ s) (hv : v ∈ s), (G.induce s).Reachable ⟨u, hu⟩ ⟨v, hv⟩
+`ReachIn` is `SimpleGraph.ReachableIn`, whose API
+(`GibbsMeasure/Mathlib/Combinatorics/SimpleGraph/Connectivity.lean`) is reached through the
+aliases below. -/
 
-section ReachIn
-variable {V : Type*} {G : SimpleGraph V} {s t : Set V} {u v w : V}
+/-- `ReachIn G s u v`: `u, v ∈ s` are joined by a walk of the induced graph `G.induce s`.
+The `Peierls` spelling of `SimpleGraph.ReachableIn`. -/
+abbrev ReachIn {V : Type*} (G : SimpleGraph V) (s : Set V) (u v : V) : Prop :=
+  G.ReachableIn s u v
 
-lemma ReachIn.mem_left (h : ReachIn G s u v) : u ∈ s := h.1
+/-! Dot notation on a `ReachIn` hypothesis resolves through the abbreviation to
+`SimpleGraph.ReachableIn.mem_left`, `.mem_right`, `.symm`, `.trans`, `.mono`, `.induction`,
+`.invariant`; the two API entries used by name keep their `Peierls` spelling. -/
 
-lemma ReachIn.mem_right (h : ReachIn G s u v) : v ∈ s := h.2.1
-
-lemma ReachIn.refl (hu : u ∈ s) : ReachIn G s u u := ⟨hu, hu, SimpleGraph.Reachable.refl _⟩
-
-lemma ReachIn.symm (h : ReachIn G s u v) : ReachIn G s v u := by
-  obtain ⟨hu, hv, h⟩ := h
-  exact ⟨hv, hu, h.symm⟩
-
-lemma ReachIn.trans (h₁ : ReachIn G s u v) (h₂ : ReachIn G s v w) : ReachIn G s u w := by
-  obtain ⟨hu, hv, h₁'⟩ := h₁
-  obtain ⟨hv', hw, h₂'⟩ := h₂
-  exact ⟨hu, hw, h₁'.trans h₂'⟩
-
-lemma ReachIn.of_adj (hu : u ∈ s) (hv : v ∈ s) (h : G.Adj u v) : ReachIn G s u v :=
-  ⟨hu, hv, SimpleGraph.Adj.reachable (SimpleGraph.induce_adj.2 h)⟩
-
-/-- Induction along a walk inside `s`. -/
-lemma ReachIn.induction {P : V → Prop} (hu : P u)
-    (hstep : ∀ a b, a ∈ s → b ∈ s → G.Adj a b → P a → P b) (h : ReachIn G s u v) : P v := by
-  obtain ⟨hu', hv, ⟨p⟩⟩ := h
-  suffices H : ∀ (x y : s) (_ : (G.induce s).Walk x y), P x.1 → P y.1 from H _ _ p hu
-  intro x y p
-  induction p with
-  | nil => exact id
-  | cons hadj _ ih => exact fun hx ↦ ih (hstep _ _ (by simp) (by simp) hadj hx)
-
-lemma ReachIn.mono (hst : s ⊆ t) (h : ReachIn G s u v) : ReachIn G t u v :=
-  h.induction (ReachIn.refl (hst h.mem_left))
-    fun _ _ ha hb hab hab' ↦ hab'.trans (ReachIn.of_adj (hst ha) (hst hb) hab)
-
-/-- A function constant along edges inside `s` is constant along walks inside `s`. -/
-lemma ReachIn.invariant {α : Type*} (f : V → α)
-    (hf : ∀ a b : V, a ∈ s → b ∈ s → G.Adj a b → f a = f b) (h : ReachIn G s u v) :
-    f u = f v :=
-  ReachIn.induction (P := fun x ↦ f u = f x) rfl
-    (fun a b ha hb hab hfa ↦ hfa.trans (hf a b ha hb hab)) h
-
-/-- A chain of adjacent vertices inside `s` yields reachability inside `s`. -/
-lemma reachIn_chain (p : ℕ → V) (hadj : ∀ k, G.Adj (p k) (p (k + 1))) :
-    ∀ n : ℕ, (∀ k ≤ n, p k ∈ s) → ReachIn G s (p 0) (p n)
-  | 0, hp => ReachIn.refl (hp 0 le_rfl)
-  | n + 1, hp =>
-    (reachIn_chain p hadj n fun k hk ↦ hp k (by omega)).trans
-      (ReachIn.of_adj (hp n (by omega)) (hp (n + 1) le_rfl) (hadj n))
-
-end ReachIn
+alias ReachIn.refl := SimpleGraph.ReachableIn.refl
+alias ReachIn.of_adj := SimpleGraph.ReachableIn.of_adj
 
 /-! ### Coordinates on `ℤ²` and nearest-neighbour adjacency -/
 
@@ -198,7 +159,7 @@ lemma reachIn_horizontal (s : Set Site) (a b y : ℤ)
   have key : ∀ (a : ℤ) (n : ℕ), (∀ k : ℕ, k ≤ n → mk (a + k) y ∈ s) →
       ReachIn (latticeGraph 2) s (mk a y) (mk (a + n) y) := by
     intro a n hn
-    have := reachIn_chain (G := latticeGraph 2) (s := s) (fun k : ℕ ↦ mk (a + k) y)
+    have := SimpleGraph.reachableIn_chain (G := latticeGraph 2) (s := s) (fun k : ℕ ↦ mk (a + k) y)
       (fun k ↦ by
         have : mk (a + ((k + 1 : ℕ) : ℤ)) y = mk (a + k) y + e0 := by
           rw [mk_add_e0]; congr 1; push_cast; ring
@@ -217,7 +178,7 @@ lemma reachIn_vertical (s : Set Site) (x a b : ℤ)
   have key : ∀ (a : ℤ) (n : ℕ), (∀ k : ℕ, k ≤ n → mk x (a + k) ∈ s) →
       ReachIn (latticeGraph 2) s (mk x a) (mk x (a + n)) := by
     intro a n hn
-    have := reachIn_chain (G := latticeGraph 2) (s := s) (fun k : ℕ ↦ mk x (a + k))
+    have := SimpleGraph.reachableIn_chain (G := latticeGraph 2) (s := s) (fun k : ℕ ↦ mk x (a + k))
       (fun k ↦ by
         have : mk x (a + ((k + 1 : ℕ) : ℤ)) = mk x (a + k) + e1 := by
           rw [mk_add_e1]; congr 1; push_cast; ring
@@ -333,44 +294,34 @@ lemma reachIn_compl_box {N : ℕ} {x y : Site} (hx : x ∉ box N) (hy : y ∉ bo
 /-! ### The infinite component of the complement -/
 
 /-- The infinite "outside" of `D`: the sites off `D` whose connected component in the graph
-induced on `Dᶜ` is infinite. -/
-def outside (D : Set Site) : Set Site :=
-  {j | ∃ hj : j ∈ Dᶜ, (((latticeGraph 2).induce Dᶜ).connectedComponentMk ⟨j, hj⟩).supp.Infinite}
+induced on `Dᶜ` is infinite. This is `SimpleGraph.infiniteClusters` of `Dᶜ` at the
+nearest-neighbour graph of `ℤ²`. -/
+abbrev outside (D : Set Site) : Set Site := (latticeGraph 2).infiniteClusters Dᶜ
 
-lemma outside_subset_compl (D : Set Site) : outside D ⊆ Dᶜ := fun _ h ↦ h.1
+lemma outside_subset_compl (D : Set Site) : outside D ⊆ Dᶜ :=
+  SimpleGraph.infiniteClusters_subset
 
-lemma notMem_of_mem_outside {D : Set Site} {j : Site} (h : j ∈ outside D) : j ∉ D := h.1
-
-/-- The support of the component of `j` in `Dᶜ`, seen in `ℤ²`, is the set of sites reachable
-from `j` within `Dᶜ`. -/
-lemma image_val_supp_connectedComponentMk (D : Set Site) (j : Site) (hj : j ∈ Dᶜ) :
-    Subtype.val '' (((latticeGraph 2).induce Dᶜ).connectedComponentMk ⟨j, hj⟩).supp
-      = {k | ReachIn (latticeGraph 2) Dᶜ j k} := by
-  ext k
-  constructor
-  · rintro ⟨⟨k', hk'⟩, hsupp, rfl⟩
-    exact ⟨hj, hk', (SimpleGraph.ConnectedComponent.eq.1 hsupp).symm⟩
-  · rintro ⟨hj', hk, hr⟩
-    exact ⟨⟨k, hk⟩, SimpleGraph.ConnectedComponent.eq.2 hr.symm, rfl⟩
+lemma notMem_of_mem_outside {D : Set Site} {j : Site} (h : j ∈ outside D) : j ∉ D :=
+  outside_subset_compl D h
 
 /-- Membership in the infinite outside, via reachability within `Dᶜ`. -/
 lemma mem_outside_iff {D : Set Site} {j : Site} :
     j ∈ outside D ↔ j ∉ D ∧ {k | ReachIn (latticeGraph 2) Dᶜ j k}.Infinite := by
   constructor
   · rintro ⟨hj, hinf⟩
-    exact ⟨hj, image_val_supp_connectedComponentMk D j hj ▸
+    exact ⟨hj, SimpleGraph.image_val_supp_connectedComponentMk_eq hj ▸
       hinf.image Subtype.val_injective.injOn⟩
   · rintro ⟨hj, hinf⟩
     refine ⟨hj, ?_⟩
     rw [← Set.infinite_image_iff Subtype.val_injective.injOn,
-      image_val_supp_connectedComponentMk D j hj]
+      SimpleGraph.image_val_supp_connectedComponentMk_eq hj]
     exact hinf
 
 /-- Reaching within `Dᶜ` preserves membership in the infinite outside. -/
 lemma ReachIn.mem_outside {D : Set Site} {j k : Site} (hj : j ∈ outside D)
-    (h : ReachIn (latticeGraph 2) Dᶜ j k) : k ∈ outside D := by
-  rw [mem_outside_iff] at hj ⊢
-  exact ⟨h.mem_right, hj.2.mono fun r hr ↦ h.symm.trans hr⟩
+    (h : ReachIn (latticeGraph 2) Dᶜ j k) : k ∈ outside D :=
+  SimpleGraph.mem_infiniteClusters_of_reachable (x := ⟨j, h.mem_left⟩) (y := ⟨k, h.mem_right⟩)
+    hj h.2.2
 
 /-- The infinite outside of `D` is closed under adjacency off `D`. -/
 lemma mem_outside_of_adj {D : Set Site} {i j : Site} (hi : i ∉ D)
@@ -430,57 +381,35 @@ theorem existsUnique_infinite_connectedComponent {D : Set Site} (hD : D.Finite) 
 /-! ### The outer boundary -/
 
 /-- The outer boundary of `D`: the bonds joining `D` to the infinite component of `Dᶜ`
-(Georgii's circuit `c` in Lemma (6.14)). -/
-def outerBoundary (D : Set Site) : Set (Sym2 Site) :=
-  {e | ∃ i ∈ D, ∃ j ∈ outside D, (latticeGraph 2).Adj i j ∧ e = s(i, j)}
+(Georgii's circuit `c` in Lemma (6.14)). This is `SimpleGraph.edgesBetween` from `D` to
+`outside D`; note that it is a set of *edges*, unlike Mathlib's vertex boundary
+`SimpleGraph.outerBoundary`. -/
+abbrev outerEdgeBoundary (D : Set Site) : Set (Sym2 Site) :=
+  (latticeGraph 2).edgesBetween D (outside D)
 
-lemma outerBoundary_subset_edgeBoundary (D : Set Site) :
-    outerBoundary D ⊆ edgeBoundary D := by
-  rintro e ⟨i, hi, j, hj, hij, rfl⟩
-  exact ⟨i, hi, j, notMem_of_mem_outside hj, hij, rfl⟩
-
-/-- The edge boundary of a finite set of sites is finite. -/
-lemma edgeBoundary_finite {D : Set Site} (hD : D.Finite) : (edgeBoundary D).Finite := by
-  have hsub : edgeBoundary D ⊆ ⋃ i ∈ D,
-      ({s(i, i + e0), s(i, i + e1), s(i, i - e0), s(i, i - e1)} : Set (Sym2 Site)) := by
-    rintro e ⟨i, hi, j, hj, hij, rfl⟩
-    refine Set.mem_biUnion hi ?_
-    simp only [Set.mem_insert_iff, Set.mem_singleton_iff]
-    rcases (latticeGraph_two_adj_iff' i j).1 hij with h | h | h | h
-    · exact Or.inl (by rw [h])
-    · exact Or.inr (Or.inr (Or.inl (by rw [h, add_sub_cancel_right])))
-    · exact Or.inr (Or.inl (by rw [h]))
-    · exact Or.inr (Or.inr (Or.inr (by rw [h, add_sub_cancel_right])))
-  exact (hD.biUnion fun i _ ↦ (Set.finite_singleton _).insert _ |>.insert _ |>.insert _).subset
-    hsub
+lemma outerEdgeBoundary_subset_edgeBoundary (D : Set Site) : outerEdgeBoundary D ⊆ edgeBoundary D :=
+  SimpleGraph.edgesBetween_mono subset_rfl (outside_subset_compl D)
 
 /-- The outer boundary of a finite set of sites is finite. -/
-lemma outerBoundary_finite {D : Set Site} (hD : D.Finite) : (outerBoundary D).Finite :=
-  (edgeBoundary_finite hD).subset (outerBoundary_subset_edgeBoundary D)
+lemma outerEdgeBoundary_finite {D : Set Site} (hD : D.Finite) : (outerEdgeBoundary D).Finite :=
+  SimpleGraph.edgesBetween_finite hD _
 
 /-- A bond lies in the outer boundary iff one endpoint is in `D` and the other in the
 infinite outside. -/
-lemma mem_outerBoundary_iff {D : Set Site} {u v : Site} (huv : (latticeGraph 2).Adj u v) :
-    s(u, v) ∈ outerBoundary D ↔
+lemma mem_outerEdgeBoundary_iff {D : Set Site} {u v : Site} (huv : (latticeGraph 2).Adj u v) :
+    s(u, v) ∈ outerEdgeBoundary D ↔
       (u ∈ D ∧ v ∈ outside D) ∨ (v ∈ D ∧ u ∈ outside D) := by
-  constructor
-  · rintro ⟨i, hi, j, hj, hij, hs⟩
-    rw [Sym2.eq_iff] at hs
-    rcases hs with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
-    · exact Or.inl ⟨hi, hj⟩
-    · exact Or.inr ⟨hi, hj⟩
-  · rintro (⟨hu, hv⟩ | ⟨hv, hu⟩)
-    · exact ⟨u, hu, v, hv, huv, rfl⟩
-    · exact ⟨v, hv, u, hu, huv.symm, Sym2.eq_swap⟩
+  rw [SimpleGraph.mk_mem_edgesBetween]
+  exact and_iff_right huv
 
 /-! ### Crossing the outer boundary: last exit and the anchor bond -/
 
 /-- A chain starting off the infinite outside and ending in it crosses the outer boundary
 at its first entrance. -/
-lemma chain_exists_outerBoundary_bond {D : Set Site} (p : ℕ → Site)
+lemma chain_exists_outerEdgeBoundary_bond {D : Set Site} (p : ℕ → Site)
     (hadj : ∀ k, (latticeGraph 2).Adj (p k) (p (k + 1))) (h0 : p 0 ∉ outside D) :
     ∀ n, p n ∈ outside D →
-      ∃ k < n, p k ∈ D ∧ p (k + 1) ∈ outside D ∧ s(p k, p (k + 1)) ∈ outerBoundary D := by
+      ∃ k < n, p k ∈ D ∧ p (k + 1) ∈ outside D ∧ s(p k, p (k + 1)) ∈ outerEdgeBoundary D := by
   intro n
   induction n with
   | zero => exact fun hn ↦ absurd hn h0
@@ -494,8 +423,8 @@ lemma chain_exists_outerBoundary_bond {D : Set Site} (p : ℕ → Site)
 
 /-- Walking right from `a ∈ D` along the horizontal half-line, some bond lies in the outer
 boundary. -/
-lemma exists_horizontal_outerBoundary_bond {D : Set Site} (hD : D.Finite) {a : Site}
-    (ha : a ∈ D) : ∃ k : ℕ, s(a + k • e0, a + (k + 1) • e0) ∈ outerBoundary D := by
+lemma exists_horizontal_outerEdgeBoundary_bond {D : Set Site} (hD : D.Finite) {a : Site}
+    (ha : a ∈ D) : ∃ k : ℕ, s(a + k • e0, a + (k + 1) • e0) ∈ outerEdgeBoundary D := by
   obtain ⟨N, hDN⟩ := exists_subset_box hD
   have haN : |a 0| ≤ (N : ℤ) := (hDN ha) 0
   have h0 : a + (0 : ℕ) • e0 ∉ outside D := by
@@ -510,46 +439,46 @@ lemma exists_horizontal_outerBoundary_bond {D : Set Site} (hD : D.Finite) {a : S
     have h1 : (a + n • e0) 0 = a 0 + n := by simp
     rw [h1, abs_of_nonneg (by omega)]
     omega
-  obtain ⟨k, -, -, -, hbond⟩ := chain_exists_outerBoundary_bond (fun k ↦ a + k • e0)
+  obtain ⟨k, -, -, -, hbond⟩ := chain_exists_outerEdgeBoundary_bond (fun k ↦ a + k • e0)
     (fun k ↦ adj_nsmul_e0 a k) h0 n (mem_outside_of_notMem_box hDN hpnbox)
   exact ⟨k, hbond⟩
 
 /-- The outer boundary of a finite nonempty set of sites is nonempty. -/
-lemma outerBoundary_nonempty {D : Set Site} (hD : D.Finite) (hne : D.Nonempty) :
-    (outerBoundary D).Nonempty := by
+lemma outerEdgeBoundary_nonempty {D : Set Site} (hD : D.Finite) (hne : D.Nonempty) :
+    (outerEdgeBoundary D).Nonempty := by
   obtain ⟨a, ha⟩ := hne
-  obtain ⟨k, hk⟩ := exists_horizontal_outerBoundary_bond hD ha
+  obtain ⟨k, hk⟩ := exists_horizontal_outerEdgeBoundary_bond hD ha
   exact ⟨_, hk⟩
 
 /-- **Georgii (6.14), "surrounding"**: every lattice walk from a site not in the infinite
 outside — in particular from a site of `D` — to the infinite outside uses a bond of the outer
 boundary (the bond of the last exit from `D`). -/
-theorem exists_outerBoundary_bond_of_walk {D : Set Site} :
+theorem exists_outerEdgeBoundary_bond_of_walk {D : Set Site} :
     ∀ {a b : Site} (w : (latticeGraph 2).Walk a b), a ∉ outside D → b ∈ outside D →
-      ∃ e ∈ w.edges, e ∈ outerBoundary D
+      ∃ e ∈ w.edges, e ∈ outerEdgeBoundary D
   | _, _, .nil, ha, hb => absurd hb ha
   | a, b, .cons (v := v) huv p, ha, hb => by
     classical
     by_cases hv : v ∈ outside D
     · exact ⟨s(a, v), by simp, a, mem_of_adj_outside ha huv hv, v, hv, huv, rfl⟩
-    · obtain ⟨e, he, heOB⟩ := exists_outerBoundary_bond_of_walk p hv hb
+    · obtain ⟨e, he, heOB⟩ := exists_outerEdgeBoundary_bond_of_walk p hv hb
       exact ⟨e, by simp [he], heOB⟩
 
 /-- Every lattice walk from a site of `D` to the infinite outside crosses the outer boundary. -/
-theorem exists_outerBoundary_bond_of_walk_of_mem {D : Set Site} {a b : Site}
+theorem exists_outerEdgeBoundary_bond_of_walk_of_mem {D : Set Site} {a b : Site}
     (w : (latticeGraph 2).Walk a b) (ha : a ∈ D) (hb : b ∈ outside D) :
-    ∃ e ∈ w.edges, e ∈ outerBoundary D :=
-  exists_outerBoundary_bond_of_walk w (fun h ↦ notMem_of_mem_outside h ha) hb
+    ∃ e ∈ w.edges, e ∈ outerEdgeBoundary D :=
+  exists_outerEdgeBoundary_bond_of_walk w (fun h ↦ notMem_of_mem_outside h ha) hb
 
 /-- **The anchor bond** (for the counting Lemma (6.13)): for `a ∈ D` some bond
 `s(a + k•e0, a + (k+1)•e0)` of the horizontal half-line from `a` lies in the outer boundary
-with `k < |outerBoundary D|`. -/
+with `k < |outerEdgeBoundary D|`. -/
 theorem exists_anchor_bond {D : Set Site} (hD : D.Finite) {a : Site} (ha : a ∈ D) :
-    ∃ k : ℕ, k < (outerBoundary D).ncard ∧
-      s(a + k • e0, a + (k + 1) • e0) ∈ outerBoundary D := by
+    ∃ k : ℕ, k < (outerEdgeBoundary D).ncard ∧
+      s(a + k • e0, a + (k + 1) • e0) ∈ outerEdgeBoundary D := by
   classical
   obtain ⟨N, hDN⟩ := exists_subset_box hD
-  have hex := exists_horizontal_outerBoundary_bond hD ha
+  have hex := exists_horizontal_outerEdgeBoundary_bond hD ha
   set k := Nat.find hex with hk
   refine ⟨k, ?_, Nat.find_spec hex⟩
   -- no site of the half-line up to `k` lies in the infinite outside
@@ -570,7 +499,7 @@ theorem exists_anchor_bond {D : Set Site} (hD : D.Finite) {a : Site} (ha : a ∈
   -- for each `m ≤ k`, walking upwards from `a + m • e0` yields a vertical outer-boundary
   -- bond in the column `a 0 + m`
   have hvert : ∀ m : ℕ, m ≤ k → ∃ y : ℤ,
-      s(mk (a 0 + (m : ℤ)) y, mk (a 0 + (m : ℤ)) (y + 1)) ∈ outerBoundary D := by
+      s(mk (a 0 + (m : ℤ)) y, mk (a 0 + (m : ℤ)) (y + 1)) ∈ outerEdgeBoundary D := by
     intro m hm
     set q : ℕ → Site := fun t ↦ a + m • e0 + t • e1 with hq
     have hqc : ∀ t : ℕ, q t = mk (a 0 + (m : ℤ)) (a 1 + (t : ℤ)) := by
@@ -588,7 +517,7 @@ theorem exists_anchor_bond {D : Set Site} (hD : D.Finite) {a : Site} (ha : a ∈
       refine Or.inr ?_
       rw [hqc T, mk_one, abs_of_nonneg (by omega)]
       omega
-    obtain ⟨t, -, -, -, hbond⟩ := chain_exists_outerBoundary_bond q
+    obtain ⟨t, -, -, -, hbond⟩ := chain_exists_outerEdgeBoundary_bond q
       (fun t ↦ adj_nsmul_e1 _ t) h0 T (mem_outside_of_notMem_box hDN hqbox)
     refine ⟨a 1 + t, ?_⟩
     have h2 : q (t + 1) = mk (a 0 + (m : ℤ)) (a 1 + (t : ℤ) + 1) := by
@@ -609,14 +538,14 @@ theorem exists_anchor_bond {D : Set Site} (hD : D.Finite) {a : Site} (ha : a ∈
     have h0 : (a 0 : ℤ) + (m₁ : ℕ) = a 0 + (m₂ : ℕ) := by
       rcases h with ⟨h1, -⟩ | ⟨h1, -⟩ <;> simpa using congrArg (fun z ↦ z 0) h1
     exact Fin.val_injective (by omega)
-  have hsub : Set.range F ⊆ outerBoundary D := by
+  have hsub : Set.range F ⊆ outerEdgeBoundary D := by
     rintro e ⟨m, rfl⟩
     exact hy (m : ℕ) (Nat.lt_succ_iff.mp m.isLt)
   have h1 : (Set.range F).ncard = k + 1 := by
     rw [← Set.image_univ, Set.ncard_image_of_injective _ hinj, Set.ncard_univ]
     simp
-  have h2 : (Set.range F).ncard ≤ (outerBoundary D).ncard :=
-    Set.ncard_le_ncard hsub (outerBoundary_finite hD)
+  have h2 : (Set.range F).ncard ≤ (outerEdgeBoundary D).ncard :=
+    Set.ncard_le_ncard hsub (outerEdgeBoundary_finite hD)
   omega
 
 /-! ### A `ZMod 2` antiderivative on `ℤ`, and the potential of an even bond labelling -/
@@ -767,71 +696,64 @@ lemma adj_mk_vert (t u : ℤ) : (latticeGraph 2).Adj (mk t u) (mk t (u + 1)) := 
 open Classical in
 /-- The `ZMod 2` indicator of the outer boundary is the coboundary of the indicator of the
 infinite outside. -/
-lemma outerBoundary_chi {D : Set Site} {u v : Site} (huv : (latticeGraph 2).Adj u v) :
-    (if s(u, v) ∈ outerBoundary D then (1 : ZMod 2) else 0)
+lemma outerEdgeBoundary_chi {D : Set Site} {u v : Site} (huv : (latticeGraph 2).Adj u v) :
+    (if s(u, v) ∈ outerEdgeBoundary D then (1 : ZMod 2) else 0)
       = (if u ∈ outside D then (1 : ZMod 2) else 0)
         + (if v ∈ outside D then (1 : ZMod 2) else 0) := by
   by_cases hu : u ∈ outside D <;> by_cases hv : v ∈ outside D
-  · have hOB : s(u, v) ∉ outerBoundary D := by
-      rw [mem_outerBoundary_iff huv]
+  · have hOB : s(u, v) ∉ outerEdgeBoundary D := by
+      rw [mem_outerEdgeBoundary_iff huv]
       rintro (⟨h1, -⟩ | ⟨h1, -⟩)
       · exact notMem_of_mem_outside hu h1
       · exact notMem_of_mem_outside hv h1
     rw [ite_eq_right hOB, ite_eq_left hu, ite_eq_left hv]
     decide
   · have hvD : v ∈ D := mem_of_adj_outside hv huv.symm hu
-    have hOB : s(u, v) ∈ outerBoundary D := (mem_outerBoundary_iff huv).2 (Or.inr ⟨hvD, hu⟩)
+    have hOB : s(u, v) ∈ outerEdgeBoundary D := (mem_outerEdgeBoundary_iff huv).2 (Or.inr ⟨hvD, hu⟩)
     rw [ite_eq_left hOB, ite_eq_left hu, ite_eq_right hv]
     decide
   · have huD : u ∈ D := mem_of_adj_outside hu huv hv
-    have hOB : s(u, v) ∈ outerBoundary D := (mem_outerBoundary_iff huv).2 (Or.inl ⟨huD, hv⟩)
+    have hOB : s(u, v) ∈ outerEdgeBoundary D := (mem_outerEdgeBoundary_iff huv).2 (Or.inl ⟨huD, hv⟩)
     rw [ite_eq_left hOB, ite_eq_right hu, ite_eq_left hv]
     decide
-  · have hOB : s(u, v) ∉ outerBoundary D := by
-      rw [mem_outerBoundary_iff huv]
+  · have hOB : s(u, v) ∉ outerEdgeBoundary D := by
+      rw [mem_outerEdgeBoundary_iff huv]
       rintro (⟨-, h2⟩ | ⟨-, h2⟩)
       · exact hv h2
       · exact hu h2
     rw [ite_eq_right hOB, ite_eq_right hu, ite_eq_right hv]
     decide
 
-/-- A graph induced on a set of vertices is connected iff the set is nonempty and any two of
-its elements are joined by a walk inside it. -/
+/-- `SimpleGraph.connected_induce_iff_forall_reachableIn` with the two membership hypotheses
+moved past the vertices. -/
 lemma induce_connected_iff {V : Type*} {G : SimpleGraph V} {s : Set V} :
     (G.induce s).Connected ↔ s.Nonempty ∧ ∀ u v, u ∈ s → v ∈ s → ReachIn G s u v := by
-  constructor
-  · intro h
-    obtain ⟨⟨x, hx⟩⟩ := h.nonempty
-    exact ⟨⟨x, hx⟩, fun u v hu hv ↦ ⟨hu, hv, h.preconnected _ _⟩⟩
-  · rintro ⟨⟨x, hx⟩, h⟩
-    have : Nonempty s := ⟨⟨x, hx⟩⟩
-    refine ⟨fun u v ↦ ?_⟩
-    obtain ⟨hu, hv, hr⟩ := h u.1 v.1 u.2 v.2
-    exact hr
+  rw [SimpleGraph.connected_induce_iff_forall_reachableIn]
+  exact and_congr_right fun _ ↦ ⟨fun h u v hu hv ↦ h u hu v hv, fun h u hu v hv ↦ h u v hu hv⟩
 
 /-- **Georgii Lemma (6.14), combinatorial core (after Timár)**: for a finite, nonempty,
 connected set of sites `D ⊆ ℤ²`, the outer boundary of `D` — the bonds joining `D` to the
 infinite component of `Dᶜ` — is connected in the plaquette-adjacency graph on bonds. -/
-theorem outerBoundary_connected {D : Set Site} (hD : D.Finite) (hne : D.Nonempty)
+theorem outerEdgeBoundary_connected {D : Set Site} (hD : D.Finite) (hne : D.Nonempty)
     (hconn : ((latticeGraph 2).induce D).Connected) :
-    (bondGraph.induce (outerBoundary D)).Connected := by
+    (bondGraph.induce (outerEdgeBoundary D)).Connected := by
   classical
   rw [induce_connected_iff] at hconn ⊢
   obtain ⟨-, hDreach⟩ := hconn
-  refine ⟨outerBoundary_nonempty hD hne, ?_⟩
+  refine ⟨outerEdgeBoundary_nonempty hD hne, ?_⟩
   intro e₀ f he₀ hf
   by_contra hcon
   -- `A` is the set of boundary bonds reachable from `e₀`; `κ` its `ZMod 2` indicator.
-  set A : Set (Sym2 Site) := {e | ReachIn bondGraph (outerBoundary D) e₀ e} with hA
+  set A : Set (Sym2 Site) := {e | ReachIn bondGraph (outerEdgeBoundary D) e₀ e} with hA
   have he₀A : e₀ ∈ A := ReachIn.refl he₀
   have hfA : f ∉ A := hcon
-  have hAsub : A ⊆ outerBoundary D := fun e he ↦ he.mem_right
-  have hclosed : ∀ {e g : Sym2 Site} {x : Site}, e ∈ A → g ∈ outerBoundary D →
+  have hAsub : A ⊆ outerEdgeBoundary D := fun e he ↦ he.mem_right
+  have hclosed : ∀ {e g : Sym2 Site} {x : Site}, e ∈ A → g ∈ outerEdgeBoundary D →
       e ∈ plaquette x → g ∈ plaquette x → g ∈ A := by
     intro e g x he hg hex hgx
     by_cases heg : e = g
     · exact heg ▸ he
-    · exact ReachIn.trans he (ReachIn.of_adj (hAsub he) hg ⟨heg, x, hex, hgx⟩)
+    · exact SimpleGraph.ReachableIn.trans he (ReachIn.of_adj (hAsub he) hg ⟨heg, x, hex, hgx⟩)
   set κ : Sym2 Site → ZMod 2 := fun e ↦ if e ∈ A then 1 else 0 with hκ
   -- the plaquette sums of `κ` vanish: either no bond of the plaquette is in `A`, or all its
   -- boundary bonds are, and then `κ` agrees on it with the coboundary of the outside indicator
@@ -841,9 +763,9 @@ theorem outerBoundary_connected {D : Set Site} (hD : D.Finite) (hne : D.Nonempty
     by_cases hA1 : s(mk t u, mk (t + 1) u) ∈ A ∨ s(mk t u, mk t (u + 1)) ∈ A
         ∨ s(mk (t + 1) u, mk (t + 1) (u + 1)) ∈ A ∨ s(mk t (u + 1), mk (t + 1) (u + 1)) ∈ A
     · have hkOB : ∀ g, g ∈ plaquette (mk t u) →
-          κ g = if g ∈ outerBoundary D then (1 : ZMod 2) else 0 := by
+          κ g = if g ∈ outerEdgeBoundary D then (1 : ZMod 2) else 0 := by
         intro g hg
-        by_cases hgOB : g ∈ outerBoundary D
+        by_cases hgOB : g ∈ outerEdgeBoundary D
         · rw [ite_eq_left hgOB]
           have hgA : g ∈ A := by
             rcases hA1 with h | h | h | h
@@ -857,8 +779,9 @@ theorem outerBoundary_connected {D : Set Site} (hD : D.Finite) (hne : D.Nonempty
           simp [hκ, hgA]
       rw [hkOB _ (mem_plaquette₁ t u), hkOB _ (mem_plaquette₂ t u),
         hkOB _ (mem_plaquette₃ t u), hkOB _ (mem_plaquette₄ t u),
-        outerBoundary_chi (adj_mk_horiz t u), outerBoundary_chi (adj_mk_vert t u),
-        outerBoundary_chi (adj_mk_vert (t + 1) u), outerBoundary_chi (adj_mk_horiz t (u + 1))]
+        outerEdgeBoundary_chi (adj_mk_horiz t u), outerEdgeBoundary_chi (adj_mk_vert t u),
+        outerEdgeBoundary_chi (adj_mk_vert (t + 1) u),
+        outerEdgeBoundary_chi (adj_mk_horiz t (u + 1))]
       exact (by decide : ∀ a b c d : ZMod 2,
         (a + b) + (a + c) + (b + d) + (c + d) = 0) _ _ _ _
     · push Not at hA1
@@ -871,8 +794,8 @@ theorem outerBoundary_connected {D : Set Site} (hD : D.Finite) (hne : D.Nonempty
     intro p q h
     refine h.invariant φ ?_
     intro a b ha hb hab
-    have hOB : s(a, b) ∉ outerBoundary D := by
-      rw [mem_outerBoundary_iff hab]
+    have hOB : s(a, b) ∉ outerEdgeBoundary D := by
+      rw [mem_outerEdgeBoundary_iff hab]
       rintro (⟨-, h2⟩ | ⟨-, h2⟩)
       · exact notMem_of_mem_outside h2 hb
       · exact notMem_of_mem_outside h2 ha
@@ -884,8 +807,8 @@ theorem outerBoundary_connected {D : Set Site} (hD : D.Finite) (hne : D.Nonempty
     intro p q h
     refine h.invariant φ ?_
     intro a b ha hb hab
-    have hOB : s(a, b) ∉ outerBoundary D := by
-      rw [mem_outerBoundary_iff hab]
+    have hOB : s(a, b) ∉ outerEdgeBoundary D := by
+      rw [mem_outerEdgeBoundary_iff hab]
       rintro (⟨h1, -⟩ | ⟨h1, -⟩)
       · exact ha h1
       · exact hb h1
@@ -912,6 +835,32 @@ theorem outerBoundary_connected {D : Set Site} (hD : D.Finite) (hne : D.Nonempty
     exact hsum
   rw [h1, h2, h4] at h3
   exact absurd h3 (by decide)
+
+/-! ### Deprecated spellings
+
+`outerBoundary` used to name the *edge* set above, colliding with Mathlib's vertex boundary
+`SimpleGraph.outerBoundary`. -/
+
+@[deprecated outerEdgeBoundary (since := "2026-09-05")]
+alias outerBoundary := outerEdgeBoundary
+
+@[deprecated outerEdgeBoundary_subset_edgeBoundary (since := "2026-09-05")]
+alias outerBoundary_subset_edgeBoundary := outerEdgeBoundary_subset_edgeBoundary
+
+@[deprecated outerEdgeBoundary_finite (since := "2026-09-05")]
+alias outerBoundary_finite := outerEdgeBoundary_finite
+
+@[deprecated outerEdgeBoundary_nonempty (since := "2026-09-05")]
+alias outerBoundary_nonempty := outerEdgeBoundary_nonempty
+
+@[deprecated exists_outerEdgeBoundary_bond_of_walk (since := "2026-09-05")]
+alias exists_outerBoundary_bond_of_walk := exists_outerEdgeBoundary_bond_of_walk
+
+@[deprecated exists_outerEdgeBoundary_bond_of_walk_of_mem (since := "2026-09-05")]
+alias exists_outerBoundary_bond_of_walk_of_mem := exists_outerEdgeBoundary_bond_of_walk_of_mem
+
+@[deprecated outerEdgeBoundary_connected (since := "2026-09-05")]
+alias outerBoundary_connected := outerEdgeBoundary_connected
 
 end MeasureTheory.GibbsMeasure.Peierls
 

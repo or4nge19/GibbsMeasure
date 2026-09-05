@@ -6,14 +6,23 @@ Authors: Matteo Cipollina
 module
 
 public import Mathlib.Combinatorics.SimpleGraph.Finite
+public import Mathlib.Data.Set.Finite.Lattice
 
 /-!
-# Bonds and the outer boundary of a finite set of vertices
+# Bonds and the boundaries of a set of vertices
+
+For a graph `G` and a set of vertices `s`:
+
+* `SimpleGraph.edgesBetween G s t`: the edges of `G` with one endpoint in `s` and the other in
+  `t`.
+* `SimpleGraph.edgeBoundary G s`: the *edge* boundary `G.edgesBetween s sᶜ`, i.e. the edges of
+  `G` with exactly one endpoint in `s`.
 
 For a locally finite graph `G` and a finite set of vertices `Λ`:
 
 * `SimpleGraph.bondsOf G Λ`: the edges of `G` meeting `Λ`.
-* `SimpleGraph.outerBoundary G Λ`: the vertices outside `Λ` adjacent to `Λ`.
+* `SimpleGraph.outerBoundary G Λ`: the *vertex* boundary, the vertices outside `Λ` adjacent
+  to `Λ`.
 * `SimpleGraph.anchor G Λ k`: a neighbour of `k` inside `Λ`, chosen arbitrarily. It is unique when
   `Λ` is connected and `G` is acyclic (`SimpleGraph.IsAcyclic.anchor_eq`).
 -/
@@ -23,6 +32,66 @@ For a locally finite graph `G` and a finite set of vertices `Λ`:
 namespace SimpleGraph
 
 variable {V : Type*} (G : SimpleGraph V)
+
+section EdgeBoundary
+
+/-- The edges of `G` with one endpoint in `s` and the other in `t`. -/
+def edgesBetween (s t : Set V) : Set (Sym2 V) :=
+  {e | ∃ i ∈ s, ∃ j ∈ t, G.Adj i j ∧ e = s(i, j)}
+
+/-- The edge boundary of a set of vertices: the edges of `G` with exactly one endpoint in `s`. -/
+def edgeBoundary (s : Set V) : Set (Sym2 V) := G.edgesBetween s sᶜ
+
+variable {G}
+
+lemma edgeBoundary_eq_edgesBetween (s : Set V) : G.edgeBoundary s = G.edgesBetween s sᶜ := rfl
+
+lemma edgesBetween_mono {s₁ s₂ t₁ t₂ : Set V} (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) :
+    G.edgesBetween s₁ t₁ ⊆ G.edgesBetween s₂ t₂ := by
+  rintro _ ⟨i, hi, j, hj, hadj, rfl⟩
+  exact ⟨i, hs hi, j, ht hj, hadj, rfl⟩
+
+lemma mk_mem_edgesBetween {s t : Set V} {i j : V} :
+    s(i, j) ∈ G.edgesBetween s t ↔ G.Adj i j ∧ ((i ∈ s ∧ j ∈ t) ∨ (j ∈ s ∧ i ∈ t)) := by
+  constructor
+  · rintro ⟨i', hi', j', hj', hadj, hij⟩
+    rcases Sym2.eq_iff.1 hij with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+    · exact ⟨hadj, Or.inl ⟨hi', hj'⟩⟩
+    · exact ⟨hadj.symm, Or.inr ⟨hi', hj'⟩⟩
+  · rintro ⟨hadj, ⟨hi, hj⟩ | ⟨hj, hi⟩⟩
+    · exact ⟨i, hi, j, hj, hadj, rfl⟩
+    · exact ⟨j, hj, i, hi, hadj.symm, Sym2.eq_swap⟩
+
+/-- An edge lies in the edge boundary of `s` iff exactly one of its endpoints does. -/
+lemma mk_mem_edgeBoundary {s : Set V} {i j : V} :
+    s(i, j) ∈ G.edgeBoundary s ↔ G.Adj i j ∧ ((i ∈ s ∧ j ∉ s) ∨ (j ∈ s ∧ i ∉ s)) :=
+  mk_mem_edgesBetween
+
+lemma edgesBetween_subset_edgeSet (s t : Set V) : G.edgesBetween s t ⊆ G.edgeSet := by
+  rintro _ ⟨i, -, j, -, hadj, rfl⟩
+  exact hadj
+
+lemma edgeBoundary_subset_edgeSet (s : Set V) : G.edgeBoundary s ⊆ G.edgeSet :=
+  edgesBetween_subset_edgeSet s sᶜ
+
+variable (G) in
+lemma edgesBetween_subset_biUnion (s t : Set V) :
+    G.edgesBetween s t ⊆ ⋃ i ∈ s, (fun k ↦ s(i, k)) '' G.neighborSet i := by
+  rintro _ ⟨i, hi, j, -, hadj, rfl⟩
+  exact Set.mem_biUnion hi ⟨j, hadj, rfl⟩
+
+/-- The edges joining a finite set of vertices to any set form a finite set, in a locally finite
+graph. -/
+lemma edgesBetween_finite [G.LocallyFinite] {s : Set V} (hs : s.Finite) (t : Set V) :
+    (G.edgesBetween s t).Finite :=
+  (hs.biUnion fun i _ ↦ (G.neighborSet i).toFinite.image _).subset
+    (G.edgesBetween_subset_biUnion s t)
+
+/-- The edge boundary of a finite set of vertices is finite, in a locally finite graph. -/
+lemma edgeBoundary_finite [G.LocallyFinite] {s : Set V} (hs : s.Finite) :
+    (G.edgeBoundary s).Finite := edgesBetween_finite hs sᶜ
+
+end EdgeBoundary
 
 section Bonds
 
