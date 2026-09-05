@@ -137,6 +137,7 @@ public import GibbsMeasure.Mathlib.Dynamics.Ergodic.Pointwise
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.MeanErgodic
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.MaximalInequality
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.MeasurePreserving
+public import GibbsMeasure.Mathlib.Dynamics.Ergodic.Recurrence
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.ShannonMcMillanBreiman
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.ShannonMcMillanCube
 public import GibbsMeasure.Mathlib.GroupTheory.Foelner
@@ -144,6 +145,7 @@ public import GibbsMeasure.Mathlib.InformationTheory.KullbackLeibler.Pi
 public import GibbsMeasure.Mathlib.LinearAlgebra.BilinearMap.CauchySchwarz
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PosSemidefFactor
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.PiBlocks
+public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.SymmetricChain
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.CompleteConvergence
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Countable
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Trivial
@@ -237,6 +239,7 @@ public import GibbsMeasure.Model.GaussianGibbs
 public import GibbsMeasure.Model.GaussianHomogeneous
 public import GibbsMeasure.Model.KalikowClassification
 public import GibbsMeasure.Model.LowEnergyOceans
+public import GibbsMeasure.Model.PlanarCrossing
 public import GibbsMeasure.Model.ShiftAverage
 public import GibbsMeasure.Model.SpitzerCoxMarkovChains
 public import GibbsMeasure.Potential.Existence

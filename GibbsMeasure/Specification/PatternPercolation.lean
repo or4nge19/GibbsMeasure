@@ -648,4 +648,491 @@ theorem periodicGibbsDist_forall_notMem_torusPattern_le_patternWeight (hφ : Mea
 
 end Ten
 
+/-! ### Georgii Comment (18.11): the corner permutation `r^i` -/
+
+section Rect
+
+/-- **Georgii's `r^i` as a permutation of the corners of the unit cube.**  The iterated
+reflection `r^i` of (17.14) acts on `E^C` by permuting the corners: `r^i ζ = ζ ∘ cubeFlip i`,
+where `cubeFlip i` reverses the `k`-th coordinate of a corner exactly when `i_k` is odd
+(`tauPow_cubeRefl_apply`). -/
+def cubeFlip (i : Fin d → ZMod (2 * N)) (c : Fin d → Fin 2) : Fin d → Fin 2 :=
+  fun k ↦ if Even (i k).val then c k else (c k).rev
+
+omit [NeZero N] in
+@[simp] lemma cubeFlip_apply (i : Fin d → ZMod (2 * N)) (c : Fin d → Fin 2) (k : Fin d) :
+    cubeFlip i c k = if Even (i k).val then c k else (c k).rev := rfl
+
+omit [NeZero N] in
+lemma cubeFlip_cubeFlip (i : Fin d → ZMod (2 * N)) (c : Fin d → Fin 2) :
+    cubeFlip i (cubeFlip i c) = c := by
+  funext k
+  simp only [cubeFlip_apply]
+  split_ifs with h <;> simp
+
+omit [NeZero N] in
+lemma cubeFlip_injective (i : Fin d → ZMod (2 * N)) : Function.Injective (cubeFlip i) :=
+  Function.LeftInverse.injective (cubeFlip_cubeFlip i)
+
+open Classical in
+omit [NeZero N] in
+private lemma tauPow_cubeRefl_aux {D : ℕ} :
+    ∀ {n : ℕ} (u : Fin n → Fin D), Function.Injective u →
+      ∀ (i : Fin n → ZMod (2 * N)) (ζ : (Fin D → Fin 2) → E) (c : Fin D → Fin 2),
+        tauPow (fun k ↦ cubeRefl E (u k)) i ζ c
+          = ζ (fun m ↦ if ∃ k, u k = m ∧ ¬ Even (i k).val then (c m).rev else c m)
+  | 0, u, _, i, ζ, c => by
+      have hc : (fun m ↦ if ∃ k : Fin 0, u k = m ∧ ¬ Even (i k).val then (c m).rev else c m)
+          = c := by
+        funext m
+        exact if_neg (by rintro ⟨k, -, -⟩; exact k.elim0)
+      rw [tauPow_zero, hc]
+  | n + 1, u, hu, i, ζ, c => by
+      have hsucc : Function.Injective fun k : Fin n ↦ u k.succ := hu.comp (Fin.succ_injective n)
+      have hne : ∀ k : Fin n, u k.succ ≠ u 0 := fun k h ↦ Fin.succ_ne_zero k (hu h)
+      rw [tauPow_succ, tauPow_cubeRefl_aux (fun k : Fin n ↦ u k.succ) hsucc (Fin.tail i)]
+      by_cases h0 : Even (i 0).val
+      · have hz : spinIterate (cubeRefl E (u 0)) (i 0) ζ = ζ := by
+          unfold spinIterate; rw [if_pos h0]
+        rw [hz]
+        congr 1
+        funext m
+        refine if_congr ⟨fun ⟨k, hk, hk'⟩ ↦ ⟨k.succ, hk, hk'⟩, ?_⟩ rfl rfl
+        rintro ⟨k, hk, hk'⟩
+        induction k using Fin.cases with
+        | zero => exact absurd h0 hk'
+        | succ k => exact ⟨k, hk, hk'⟩
+      · have hz : spinIterate (cubeRefl E (u 0)) (i 0) ζ = cubeRefl E (u 0) ζ := by
+          unfold spinIterate; rw [if_neg h0]
+        rw [hz, cubeRefl_apply, cubeSiteRefl_apply]
+        congr 1
+        have hP₁ : ¬ ∃ k : Fin n, u k.succ = u 0 ∧ ¬ Even ((Fin.tail i) k).val := by
+          rintro ⟨k, hk, -⟩
+          exact hne k hk
+        funext m
+        by_cases hm : m = u 0
+        · subst hm
+          rw [Function.update_self, if_neg hP₁, if_pos ⟨0, rfl, h0⟩]
+        · rw [Function.update_of_ne (fun h ↦ hm h) _ _]
+          refine if_congr ⟨fun ⟨k, hk, hk'⟩ ↦ ⟨k.succ, hk, hk'⟩, ?_⟩ rfl rfl
+          rintro ⟨k, hk, hk'⟩
+          induction k using Fin.cases with
+          | zero => exact absurd hk.symm hm
+          | succ k => exact ⟨k, hk, hk'⟩
+
+omit [NeZero N] in
+/-- **Georgii (17.14) as a corner permutation.**  The iterated reflection `r^i` of `E^C`
+precomposes a cube configuration with the corner permutation `cubeFlip i`. -/
+theorem tauPow_cubeRefl_apply (i : Fin d → ZMod (2 * N)) (ζ : (Fin d → Fin 2) → E)
+    (c : Fin d → Fin 2) : tauPow (cubeRefl E) i ζ c = ζ (cubeFlip i c) := by
+  classical
+  have h := tauPow_cubeRefl_aux (D := d) (fun k : Fin d ↦ k) Function.injective_id i ζ c
+  rw [h]
+  congr 1
+  funext m
+  simp only [cubeFlip_apply, exists_eq_left]
+  split_ifs with h₁ h₂ h₂ <;> tauto
+
+omit [NeZero N] in
+lemma tauPow_cubeRefl_eq_comp (i : Fin d → ZMod (2 * N)) (ζ : (Fin d → Fin 2) → E) :
+    tauPow (cubeRefl E) i ζ = ζ ∘ cubeFlip i :=
+  funext fun c ↦ tauPow_cubeRefl_apply i ζ c
+
+/-- The iterated reflection `r^i` preserves the a priori measure `λ^C` of the unit cube: it is a
+permutation of the coordinates of the product. -/
+theorem measurePreserving_tauPow_cubeRefl (ν : Measure E) [IsProbabilityMeasure ν]
+    (i : Fin d → ZMod (2 * N)) :
+    MeasurePreserving (tauPow (cubeRefl E) i) (cubeMeasure d ν) (cubeMeasure d ν) := by
+  have heq : tauPow (cubeRefl E) i = fun ζ : (Fin d → Fin 2) → E ↦ ζ ∘ cubeFlip i :=
+    funext fun ζ ↦ tauPow_cubeRefl_eq_comp i ζ
+  rw [heq]
+  exact measurePreserving_comp_pi_of_injective (E := E) (ι := Fin d → Fin 2)
+    (κ := Fin d → Fin 2) ν (g := cubeFlip i) (cubeFlip_injective i)
+
+
+/-! ### The parity of a site, and the measure of a reflected rectangle -/
+
+/-- The parity of a site of the torus, read as a corner of the unit cube: `0` in the directions
+where the coordinate is even and `1` where it is odd. -/
+def torusParity (x : Fin d → ZMod (2 * N)) : Fin d → Fin 2 :=
+  fun k ↦ if Even (x k).val then 0 else 1
+
+lemma val_add_mod_two (t s : ZMod (2 * N)) : (t + s).val % 2 = (t.val + s.val) % 2 := by
+  haveI : NeZero (2 * N) := ⟨by have := NeZero.ne N; omega⟩
+  rw [ZMod.val_add, Nat.mod_mod_of_dvd _ ⟨N, rfl⟩]
+
+private lemma fin_two_eq_zero_or_one : ∀ x : Fin 2, x = 0 ∨ x = 1 := by decide
+
+/-- **The reflection `r^i` is the parity of the site.**  Georgii's observation in (18.11) that
+`r^{j-c}(c)` depends only on the parities of `j`: the corner permutation `cubeFlip i` sends `c`
+to the parity of the site `i + c`. -/
+theorem torusParity_add_cubeCast (i : Fin d → ZMod (2 * N)) (c : Fin d → Fin 2) :
+    torusParity (i + cubeCast N c) = cubeFlip i c := by
+  funext k
+  have hlt : ((c k : ℕ)) < 2 * N := by have := (c k).isLt; have := NeZero.ne N; omega
+  have hv : ((cubeCast N c) k).val = (c k : ℕ) := natCast_lt_two_mul hlt
+  have hmod : ((i + cubeCast N c) k).val % 2 = ((i k).val + (c k : ℕ)) % 2 := by
+    rw [Pi.add_apply, val_add_mod_two, hv]
+  simp only [torusParity, cubeFlip_apply, Nat.even_iff, hmod]
+  rcases fin_two_eq_zero_or_one (c k) with h | h
+  · rw [h, Fin.val_zero, Nat.add_zero]
+    by_cases hp : (i k).val % 2 = 0
+    · rw [if_pos hp, if_pos hp]
+    · rw [if_neg hp, if_neg hp]
+      decide
+  · rw [h, Fin.val_one]
+    by_cases hp : (i k).val % 2 = 0
+    · rw [if_neg (by omega), if_pos hp]
+    · rw [if_pos (by omega), if_neg hp]
+      decide
+
+lemma cubeCast_zero : cubeCast N (0 : Fin d → Fin 2) = 0 := by
+  funext k
+  simp [cubeCast]
+
+/-- The parity of a site is the corner that `r^i` sends to the base corner. -/
+lemma torusParity_eq_cubeFlip_zero (i : Fin d → ZMod (2 * N)) :
+    torusParity i = cubeFlip i 0 := by
+  have := torusParity_add_cubeCast i (0 : Fin d → Fin 2)
+  rwa [cubeCast_zero, add_zero] at this
+
+lemma cubeFlip_torusParity (i : Fin d → ZMod (2 * N)) : cubeFlip i (torusParity i) = 0 := by
+  rw [torusParity_eq_cubeFlip_zero, cubeFlip_cubeFlip]
+
+lemma torusParity_evenSite_add_cubeCast (j : Fin d → ZMod N) (c : Fin d → Fin 2) :
+    torusParity (evenSite N j + cubeCast N c) = c := by
+  rw [torusParity_add_cubeCast]
+  funext k
+  have hlt : 2 * (j k).val < 2 * N := by have := ZMod.val_lt (j k); omega
+  have hv : (evenSite N j k).val = 2 * (j k).val := natCast_lt_two_mul hlt
+  rw [cubeFlip_apply, if_pos]
+  rw [hv]
+  exact even_two_mul _
+
+/-- **Georgii's identity in Comment (18.11).**  For a rectangle `R = ∏_{c ∈ C} R_c` the event
+that *every* elementary cube of the torus shows the appropriately reflected rectangle `r^i R` is
+the product event `{ω_x ∈ R_{parity x} for all x}`, whose probability is `λ^C(R)^{|Λ|/|C|}`:
+`λ^Λ(∏_{i ∈ Λ} 1_{r^i R} ∘ σ_{C(i)}) = λ^C(R)^{|Λ|/|C|}`. -/
+theorem pi_forall_tauPow_cubeView_mem_pi (ν : Measure E) [IsProbabilityMeasure ν]
+    (R : (Fin d → Fin 2) → Set E) :
+    (Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ ν)
+        {ω | ∀ i, tauPow (cubeRefl E) i (cubeView ω i) ∈ Set.univ.pi R}
+      = cubeMeasure d ν (Set.univ.pi R) ^ (N ^ d) := by
+  classical
+  have hset : {ω : (Fin d → ZMod (2 * N)) → E |
+        ∀ i, tauPow (cubeRefl E) i (cubeView ω i) ∈ Set.univ.pi R}
+      = Set.univ.pi fun x ↦ R (torusParity x) := by
+    ext ω
+    simp only [Set.mem_ofPred_eq, Set.mem_univ_pi, tauPow_cubeRefl_apply, cubeView_apply]
+    refine ⟨fun h x ↦ ?_, fun h i c ↦ ?_⟩
+    · have := h x (torusParity x)
+      rwa [cubeFlip_torusParity, cubeCast_zero, add_zero] at this
+    · have := h (i + cubeCast N (cubeFlip i c))
+      rwa [torusParity_add_cubeCast, cubeFlip_cubeFlip] at this
+  have hbij : Function.Bijective fun p : (Fin d → ZMod N) × (Fin d → Fin 2) ↦
+      evenSite N p.1 + cubeCast N p.2 := by
+    rw [Fintype.bijective_iff_injective_and_card]
+    refine ⟨injective_evenSite_add_cubeCast, ?_⟩
+    simp only [Fintype.card_prod, Fintype.card_pi, ZMod.card, Fintype.card_fin,
+      Finset.prod_const, Finset.card_univ]
+    rw [mul_pow]
+    ring
+  have hprod : ∏ x : Fin d → ZMod (2 * N), ν (R (torusParity x))
+      = (∏ c : Fin d → Fin 2, ν (R c)) ^ (N ^ d) := by
+    rw [← Fintype.prod_bijective _ hbij (fun p : (Fin d → ZMod N) × (Fin d → Fin 2) ↦ ν (R p.2))
+      (fun x ↦ ν (R (torusParity x)))
+      (fun p ↦ by rw [torusParity_evenSite_add_cubeCast]), Fintype.prod_prod_type]
+    simp [Finset.prod_const, Fintype.card_pi, ZMod.card]
+  rw [hset, Measure.pi_pi, hprod, cubeMeasure, Measure.pi_pi]
+
+
+/-! ### Georgii Comment (18.11): the weight `t̃(G, Φ)` -/
+
+section Eleven
+
+variable {φ : ((Fin d → Fin 2) → E) → ℝ} {ν : Measure E} [IsProbabilityMeasure ν]
+  {G : Set ((Fin d → Fin 2) → E)}
+
+variable (φ ν) in
+/-- The index set of the infimum in Georgii's `t̃(G, Φ)` of (18.11): a rectangle
+`R = ∏_{c ∈ C} R_c` of `E^C` together with a real number `b` which bounds the cube interaction
+`λ^C`-almost everywhere on `R`.
+
+Georgii writes the infimum with the essential supremum `λ-sup_R Φ_C`; as in
+`groundStateCost_eq_iInf` that is unfolded into the pair `(R, b)`, because over `ℝ` Mathlib's
+`essSup` returns the junk value `0` when `Φ_C` is essentially unbounded on `R`, whereas
+Georgii's `λ-sup` is `+∞` there.  Georgii also requires `λ(R_c) > 0` and `R_c ∈ ℰ`; neither is
+needed, since a rectangle of measure zero contributes the term `∞`. -/
+def RectBound : Type _ :=
+  {p : ((Fin d → Fin 2) → Set E) × ℝ //
+    ∀ᵐ ζ ∂((cubeMeasure d ν).restrict (Set.univ.pi p.1)), φ ζ ≤ p.2}
+
+instance : Nonempty (RectBound φ ν) :=
+  ⟨⟨(fun _ ↦ ∅, 0), by
+      rw [Set.univ_pi_eq_empty (i := (0 : Fin d → Fin 2)) rfl, Measure.restrict_empty, ae_iff]
+      simp⟩⟩
+
+variable (φ ν) in
+/-- **The third factor of Georgii's `t̃(G, Φ)`** of (18.11):
+`inf_R exp[λ-sup_R Φ_C] / λ^C(R)^{1/|C|}`, the infimum over the rectangles
+`R = ∏_{c ∈ C} R_c` of `E^C`. -/
+def rectCost : ℝ≥0∞ :=
+  ⨅ p : RectBound φ ν,
+    ENNReal.ofReal (Real.exp p.1.2) / cubeMeasure d ν (Set.univ.pi p.1.1) ^ ((2 ^ d : ℝ)⁻¹)
+
+variable (φ ν) in
+/-- The `(R, b)`-term of Georgii's `t̃(G, Φ)` of (18.11):
+`exp[-λ-inf_{E^C∖G} Φ_C] · λ^C(E^C∖G)^{1/|C|} · e^b / λ^C(R)^{1/|C|}`. -/
+def rectWeightAt (G : Set ((Fin d → Fin 2) → E)) (R : (Fin d → Fin 2) → Set E) (b : ℝ) : ℝ≥0∞ :=
+  ENNReal.ofReal (Real.exp (-energyOutside φ ν G)) * cubeMeasure d ν Gᶜ ^ ((2 ^ d : ℝ)⁻¹)
+    * (ENNReal.ofReal (Real.exp b) / cubeMeasure d ν (Set.univ.pi R) ^ ((2 ^ d : ℝ)⁻¹))
+
+variable (φ ν) in
+/-- **Georgii, Comment (18.11).**  The weight
+
+`t̃(G, Φ) = exp[-λ-inf_{E^C∖G} Φ_C] · λ^C(E^C∖G)^{1/|C|} · inf_R exp[λ-sup_R Φ_C]/λ^C(R)^{1/|C|}`,
+
+the infimum being over the rectangles `R = ∏_{c ∈ C} R_c` of `E^C`.  It differs from the weight
+`t(G, Φ)` of (18.8) in the power `1/|C|` of the last factor: the *reflected* rectangles
+`r^i R`, `i ∈ Λ`, tile the torus, so `λ^Λ(∏_{i ∈ Λ} 1_{r^i R} ∘ σ_{C(i)}) = λ^C(R)^{|Λ|/|C|}`
+exactly, rather than only `≥ λ^C(R)^{|Λ|}` as the chessboard estimate gives for a general
+set. -/
+def rectPatternWeight (G : Set ((Fin d → Fin 2) → E)) : ℝ≥0∞ :=
+  ENNReal.ofReal (Real.exp (-energyOutside φ ν G)) * cubeMeasure d ν Gᶜ ^ ((2 ^ d : ℝ)⁻¹)
+    * rectCost φ ν
+
+lemma rectPatternWeight_eq_iInf (G : Set ((Fin d → Fin 2) → E)) :
+    rectPatternWeight φ ν G = ⨅ p : RectBound φ ν, rectWeightAt φ ν G p.1.1 p.1.2 := by
+  have hfin : ENNReal.ofReal (Real.exp (-energyOutside φ ν G))
+      * cubeMeasure d ν Gᶜ ^ ((2 ^ d : ℝ)⁻¹) ≠ ∞ := by
+    refine ENNReal.mul_ne_top ENNReal.ofReal_ne_top ?_
+    exact ne_top_of_le_ne_top ENNReal.one_ne_top
+      (ENNReal.rpow_le_one prob_le_one (by positivity))
+  rw [rectPatternWeight, rectCost, ENNReal.mul_iInf (fun h ↦ absurd h hfin)]
+  rfl
+
+end Eleven
+
+section Twelve
+
+variable {φ : ((Fin (d + 1) → Fin 2) → E) → ℝ} {ν : Measure E} [IsProbabilityMeasure ν]
+  {G : Set ((Fin (d + 1) → Fin 2) → E)}
+
+/-- **The denominator estimate of Georgii's Comment (18.11).**  For a rectangle `R` on which the
+cube interaction is at most `b`, the normalisation constant `°Z_Λ^Φ` is at least
+`exp[-|Λ| b] λ^C(R)^{|Λ|/|C|}`.  The exponent `|Λ|/|C|` — better than the `|Λ|` of
+`le_periodicGibbs_univ` — comes from the exact identity
+`pi_forall_tauPow_cubeView_mem_pi` rather than from the chessboard estimate. -/
+theorem le_periodicGibbs_univ_rect (hφ : Measurable φ)
+    (hφk : ∀ (k : Fin (d + 1)) ζ, φ (cubeRefl E k ζ) = φ ζ)
+    {R : (Fin (d + 1) → Fin 2) → Set E} {b : ℝ}
+    (hb : ∀ᵐ ζ ∂((cubeMeasure (d + 1) ν).restrict (Set.univ.pi R)), φ ζ ≤ b) :
+    ENNReal.ofReal (Real.exp (-(((2 * N) ^ (d + 1) : ℕ) * b)))
+        * cubeMeasure (d + 1) ν (Set.univ.pi R) ^ (N ^ (d + 1))
+      ≤ periodicGibbs E φ ν (N := N) Set.univ := by
+  classical
+  set A : Set ((Fin (d + 1) → ZMod (2 * N)) → E) :=
+    {ω | ∀ i, tauPow (cubeRefl E) i (cubeView ω i) ∈ Set.univ.pi R} with hA
+  -- the `λ^C`-null set of cube configurations in `R` with too large an energy
+  have hbadmeas : MeasurableSet {ζ : (Fin (d + 1) → Fin 2) → E | ¬ φ ζ ≤ b} :=
+    (measurableSet_le hφ measurable_const).compl
+  have hbad : cubeMeasure (d + 1) ν
+      ({ζ | ¬ φ ζ ≤ b} ∩ Set.univ.pi R) = 0 := by
+    rw [ae_iff, Measure.restrict_apply hbadmeas] at hb
+    exact hb
+  -- transported to the torus, cube by cube
+  have hnull : ∀ i : Fin (d + 1) → ZMod (2 * N),
+      (Measure.pi fun _ : Fin (d + 1) → ZMod (2 * N) ↦ ν)
+        ((fun ω ↦ tauPow (cubeRefl E) i (cubeView ω i)) ⁻¹'
+          ({ζ | ¬ φ ζ ≤ b} ∩ Set.univ.pi R)) = 0 := by
+    intro i
+    have hcv : MeasurePreserving (fun ω : (Fin (d + 1) → ZMod (2 * N)) → E ↦ cubeView ω i)
+        (Measure.pi fun _ : Fin (d + 1) → ZMod (2 * N) ↦ ν) (cubeMeasure (d + 1) ν) :=
+      ⟨(measurable_pi_apply i).comp measurable_cubeView, map_cubeView_pi ν i⟩
+    exact ((measurePreserving_tauPow_cubeRefl (d := d + 1) ν i).comp
+      hcv).quasiMeasurePreserving.preimage_null hbad
+  have hsym : IsRSymmetric E {ζ : (Fin (d + 1) → Fin 2) → E | φ ζ ≤ b} := by
+    intro k
+    ext ζ
+    simp only [Set.mem_preimage, Set.mem_ofPred_eq, hφk k ζ]
+  have hae : ∀ᵐ ω ∂(Measure.pi fun _ : Fin (d + 1) → ZMod (2 * N) ↦ ν),
+      ∀ i, tauPow (cubeRefl E) i (cubeView ω i) ∈ Set.univ.pi R → φ (cubeView ω i) ≤ b := by
+    rw [ae_iff]
+    refine measure_mono_null (fun ω hω ↦ ?_)
+      (measure_iUnion_null (ι := Fin (d + 1) → ZMod (2 * N)) fun i ↦ hnull i)
+    simp only [Set.mem_ofPred_eq, not_forall] at hω
+    obtain ⟨i, hiR, hib⟩ := hω
+    refine Set.mem_iUnion.2 ⟨i, ?_, hiR⟩
+    intro hle
+    exact hib ((Set.ext_iff.1 (hsym.preimage_tauPow i) (cubeView ω i)).1 hle)
+  rw [periodicGibbs, withDensity_apply _ MeasurableSet.univ, Measure.restrict_univ]
+  refine le_trans ?_ (setLIntegral_le_lintegral (μ := Measure.pi
+    fun _ : Fin (d + 1) → ZMod (2 * N) ↦ ν) A _)
+  rw [← pi_forall_tauPow_cubeView_mem_pi (N := N) ν R, ← hA,
+    ← setLIntegral_const A
+      (ENNReal.ofReal (Real.exp (-(((2 * N) ^ (d + 1) : ℕ) * b))))]
+  refine setLIntegral_mono_ae (measurable_periodicGibbsDensity hφ).aemeasurable ?_
+  filter_upwards [hae] with ω hω hωA
+  refine ENNReal.ofReal_le_ofReal (Real.exp_le_exp.2 (neg_le_neg ?_))
+  have hsum : ∑ i, φ (cubeView ω i) ≤ ((2 * N) ^ (d + 1) : ℕ) • b := by
+    rw [← card_torus (N := N) (d := d), ← Finset.card_univ]
+    exact Finset.sum_le_card_nsmul _ _ _ fun i _ ↦ hω i (hωA i)
+  rwa [nsmul_eq_mul] at hsum
+
+omit [NeZero N] [IsProbabilityMeasure ν] in
+/-- The `|Λ|`-th power of the `(R, b)`-term of `t̃(G, Φ)`, expanded. -/
+theorem rectWeightAt_pow (R : (Fin (d + 1) → Fin 2) → Set E) (b : ℝ) :
+    rectWeightAt φ ν G R b ^ ((2 * N) ^ (d + 1))
+      = ENNReal.ofReal (Real.exp (((2 * N) ^ (d + 1) : ℕ) * (b - energyOutside φ ν G)))
+        * cubeMeasure (d + 1) ν Gᶜ ^ (N ^ (d + 1))
+        * (cubeMeasure (d + 1) ν (Set.univ.pi R) ^ (N ^ (d + 1)))⁻¹ := by
+  set n : ℕ := (2 * N) ^ (d + 1) with hn
+  have hxp : ∀ x : ℝ≥0∞, (x ^ ((2 ^ (d + 1) : ℝ))⁻¹) ^ n = x ^ (N ^ (d + 1)) := by
+    intro x
+    rw [← ENNReal.rpow_natCast (x ^ ((2 ^ (d + 1) : ℝ))⁻¹) n, ← ENNReal.rpow_mul,
+      ← ENNReal.rpow_natCast x (N ^ (d + 1))]
+    congr 1
+    rw [hn]
+    push_cast
+    rw [mul_pow]
+    field_simp
+  have hexp : ENNReal.ofReal (Real.exp (-energyOutside φ ν G)) ^ n
+        * ENNReal.ofReal (Real.exp b) ^ n
+      = ENNReal.ofReal (Real.exp ((n : ℕ) * (b - energyOutside φ ν G))) := by
+    rw [← ENNReal.ofReal_pow (Real.exp_nonneg _), ← ENNReal.ofReal_pow (Real.exp_nonneg _),
+      ← ENNReal.ofReal_mul (pow_nonneg (Real.exp_nonneg _) _), ← Real.exp_nat_mul,
+      ← Real.exp_nat_mul, ← Real.exp_add]
+    congr 2
+    ring
+  rw [rectWeightAt, div_eq_mul_inv, mul_pow, mul_pow, mul_pow, hxp, ← ENNReal.inv_pow, hxp]
+  rw [← hexp]
+  ring
+
+/-- **Georgii, Comment (18.11), the `(R, b)`-form of `t_Λ ≤ t̃(G, Φ)`.**  The Gibbs distribution
+with periodic boundary condition of the event that *no* elementary cube of the torus shows the
+pattern `G` is at most `t̃_{R,b}(G, Φ)^{|Λ|}`. -/
+theorem periodicGibbsDist_forall_mem_compl_le_rect (hφ : Measurable φ) {M : ℝ}
+    (hM : ∀ ζ, M ≤ φ ζ) (hφk : ∀ (k : Fin (d + 1)) ζ, φ (cubeRefl E k ζ) = φ ζ)
+    (hG : MeasurableSet G) {R : (Fin (d + 1) → Fin 2) → Set E} {b : ℝ}
+    (hb : ∀ᵐ ζ ∂((cubeMeasure (d + 1) ν).restrict (Set.univ.pi R)), φ ζ ≤ b)
+    (hR0 : cubeMeasure (d + 1) ν (Set.univ.pi R) ≠ 0) :
+    periodicGibbsDist E φ ν (N := N)
+        {ω | ∀ i ∈ (Finset.univ : Finset (Fin (d + 1) → ZMod (2 * N))), cubeView ω i ∈ Gᶜ}
+      ≤ rectWeightAt φ ν G R b ^ ((2 * N) ^ (d + 1)) := by
+  have hfin := isFiniteMeasure_periodicGibbs (N := N) (d := d + 1) (ν := ν) hM
+  have hXtop : cubeMeasure (d + 1) ν (Set.univ.pi R) ≠ ∞ := measure_ne_top _ _
+  have hQ := le_periodicGibbs_univ_rect (N := N) (ν := ν) hφ hφk hb
+  have hQpos : (0 : ℝ≥0∞) < ENNReal.ofReal (Real.exp (-(((2 * N) ^ (d + 1) : ℕ) * b)))
+      * cubeMeasure (d + 1) ν (Set.univ.pi R) ^ (N ^ (d + 1)) :=
+    pos_iff_ne_zero.2 (mul_ne_zero (ENNReal.ofReal_pos.2 (Real.exp_pos _)).ne'
+      (pow_ne_zero _ hR0))
+  have hZ0 : periodicGibbs E φ ν (N := N) Set.univ ≠ 0 := (hQpos.trans_le hQ).ne'
+  have hZtop : periodicGibbs E φ ν (N := N) Set.univ ≠ ∞ := measure_ne_top _ _
+  have hXX : cubeMeasure (d + 1) ν (Set.univ.pi R) ^ (N ^ (d + 1))
+      * (cubeMeasure (d + 1) ν (Set.univ.pi R) ^ (N ^ (d + 1)))⁻¹ = 1 :=
+    ENNReal.mul_inv_cancel (pow_ne_zero _ hR0) (ENNReal.pow_ne_top hXtop)
+  have key : ∀ A B X Y Yi : ℝ≥0∞, Y * Yi = 1 → (A * Y) * (B * X * Yi) = (A * B) * X := by
+    intro A B X Y Yi h
+    calc (A * Y) * (B * X * Yi) = (A * B) * X * (Y * Yi) := by ring
+      _ = (A * B) * X := by rw [h, mul_one]
+  have hid : ENNReal.ofReal
+        (Real.exp (-(((2 * N) ^ (d + 1) : ℕ) * energyOutside φ ν G)))
+      * cubeMeasure (d + 1) ν Gᶜ ^ (N ^ (d + 1))
+      = (ENNReal.ofReal (Real.exp (-(((2 * N) ^ (d + 1) : ℕ) * b)))
+          * cubeMeasure (d + 1) ν (Set.univ.pi R) ^ (N ^ (d + 1)))
+        * rectWeightAt φ ν G R b ^ ((2 * N) ^ (d + 1)) := by
+    rw [rectWeightAt_pow, key _ _ _ _ _ hXX]
+    congr 1
+    rw [← ENNReal.ofReal_mul (Real.exp_nonneg _), ← Real.exp_add]
+    congr 1
+    ring
+  rw [periodicGibbsDist, Measure.smul_apply, smul_eq_mul]
+  calc (periodicGibbs E φ ν (N := N) Set.univ)⁻¹ * periodicGibbs E φ ν (N := N)
+        {ω | ∀ i ∈ (Finset.univ : Finset (Fin (d + 1) → ZMod (2 * N))), cubeView ω i ∈ Gᶜ}
+      ≤ (periodicGibbs E φ ν (N := N) Set.univ)⁻¹
+        * (ENNReal.ofReal
+              (Real.exp (-(((2 * N) ^ (d + 1) : ℕ) * energyOutside φ ν G)))
+            * cubeMeasure (d + 1) ν Gᶜ ^ (N ^ (d + 1))) :=
+        mul_le_mul' le_rfl (periodicGibbs_forall_notMem_le hφ hM hG)
+    _ = ((periodicGibbs E φ ν (N := N) Set.univ)⁻¹
+          * (ENNReal.ofReal (Real.exp (-(((2 * N) ^ (d + 1) : ℕ) * b)))
+            * cubeMeasure (d + 1) ν (Set.univ.pi R) ^ (N ^ (d + 1))))
+        * rectWeightAt φ ν G R b ^ ((2 * N) ^ (d + 1)) := by rw [hid]; ring
+    _ ≤ ((periodicGibbs E φ ν (N := N) Set.univ)⁻¹ * periodicGibbs E φ ν (N := N) Set.univ)
+        * rectWeightAt φ ν G R b ^ ((2 * N) ^ (d + 1)) :=
+        mul_le_mul' (mul_le_mul' le_rfl hQ) le_rfl
+    _ = rectWeightAt φ ν G R b ^ ((2 * N) ^ (d + 1)) := by
+        rw [ENNReal.inv_mul_cancel hZ0 hZtop, one_mul]
+
+/-- **Georgii, Comment (18.11)**, at a fixed rectangle: for an `r`-symmetric pattern `G` and a
+finite set `D` of sites, `°γ_Λ^Φ(D ∩ V(G, ·) = ∅) ≤ t̃_{R,b}(G, Φ)^{|D|}`. -/
+theorem periodicGibbsDist_forall_notMem_torusPattern_le_rect (hφ : Measurable φ) {M : ℝ}
+    (hM : ∀ ζ, M ≤ φ ζ) (hφk : ∀ (k : Fin (d + 1)) ζ, φ (cubeRefl E k ζ) = φ ζ)
+    (hG : MeasurableSet G) (hGsym : IsRSymmetric E G)
+    {R : (Fin (d + 1) → Fin 2) → Set E} {b : ℝ}
+    (hb : ∀ᵐ ζ ∂((cubeMeasure (d + 1) ν).restrict (Set.univ.pi R)), φ ζ ≤ b)
+    (hR0 : cubeMeasure (d + 1) ν (Set.univ.pi R) ≠ 0)
+    (D : Finset (Fin (d + 1) → ZMod (2 * N))) :
+    periodicGibbsDist E φ ν (N := N) {ω | ∀ i ∈ D, i ∉ torusPattern E G ω}
+      ≤ rectWeightAt φ ν G R b ^ D.card := by
+  have hn : (2 * N) ^ (d + 1) ≠ 0 := pow_ne_zero _ (by have := NeZero.ne N; omega)
+  have hset : {ω : (Fin (d + 1) → ZMod (2 * N)) → E | ∀ i ∈ D, i ∉ torusPattern E G ω}
+      = {ω | ∀ i ∈ D, cubeView ω i ∈ Gᶜ} := by
+    ext ω
+    exact forall_congr' fun i ↦ imp_congr_right fun _ ↦
+      not_congr (mem_torusPattern_of_isRSymmetric hGsym ω i)
+  rw [hset]
+  refine ENNReal.le_of_pow_le_pow_left' hn ?_
+  calc periodicGibbsDist E φ ν (N := N) {ω | ∀ i ∈ D, cubeView ω i ∈ Gᶜ} ^ ((2 * N) ^ (d + 1))
+      ≤ periodicGibbsDist E φ ν (N := N)
+          {ω | ∀ i ∈ (Finset.univ : Finset (Fin (d + 1) → ZMod (2 * N))), cubeView ω i ∈ Gᶜ}
+            ^ D.card := periodicGibbsDist_pow_le_pow hφ hM hφk hG hGsym D
+    _ ≤ (rectWeightAt φ ν G R b ^ ((2 * N) ^ (d + 1))) ^ D.card :=
+        pow_le_pow_left' (periodicGibbsDist_forall_mem_compl_le_rect hφ hM hφk hG hb hR0) _
+    _ = (rectWeightAt φ ν G R b ^ D.card) ^ ((2 * N) ^ (d + 1)) := by
+        rw [← pow_mul, ← pow_mul, mul_comm]
+
+/-- **Georgii, Comment (18.11).**  Lemma (18.10) holds with `t(G, Φ)` replaced by the rectangle
+weight `t̃(G, Φ)`: `°γ_Λ^Φ(D ∩ V(G, ·) = ∅) ≤ t̃(G, Φ)^{|D|}` for every `r`-symmetric
+`G ∈ ℰ^C` and every finite set `D` of sites of the torus. -/
+theorem periodicGibbsDist_forall_notMem_torusPattern_le_rectPatternWeight (hφ : Measurable φ)
+    {M : ℝ} (hM : ∀ ζ, M ≤ φ ζ) (hφk : ∀ (k : Fin (d + 1)) ζ, φ (cubeRefl E k ζ) = φ ζ)
+    (hG : MeasurableSet G) (hGsym : IsRSymmetric E G)
+    (D : Finset (Fin (d + 1) → ZMod (2 * N))) :
+    periodicGibbsDist E φ ν (N := N) {ω | ∀ i ∈ D, i ∉ torusPattern E G ω}
+      ≤ rectPatternWeight φ ν G ^ D.card := by
+  have hprob := isProbabilityMeasure_periodicGibbsDist (N := N) (d := d + 1) (ν := ν)
+    (IsProbabilityMeasure.ne_zero ν) hφ hM
+  rcases Nat.eq_zero_or_pos D.card with h0 | h0
+  · rw [Finset.card_eq_zero.1 h0]
+    simp
+  have hp : (0 : ℝ) < ((2 : ℝ) ^ (d + 1))⁻¹ := inv_pos.2 (pow_pos two_pos _)
+  by_cases hGc : cubeMeasure (d + 1) ν Gᶜ = 0
+  · -- the pattern is `λ^C`-almost sure: both weights vanish and (18.10) already gives the bound
+    have h1 : rectPatternWeight φ ν G = 0 := by
+      rw [rectPatternWeight, hGc, ENNReal.zero_rpow_of_pos hp, mul_zero, zero_mul]
+    have h2 : patternWeight φ ν G = 0 := by
+      rw [patternWeight, hGc, ENNReal.zero_rpow_of_pos hp, mul_zero, zero_mul]
+    rw [h1, zero_pow h0.ne']
+    have := periodicGibbsDist_forall_notMem_torusPattern_le_patternWeight (N := N) (ν := ν)
+      hφ hM hφk hG hGsym D
+    rwa [h2, zero_pow h0.ne'] at this
+  · rw [rectPatternWeight_eq_iInf, ENNReal.iInf_pow _ h0.ne']
+    refine le_iInf fun p ↦ ?_
+    by_cases hR0 : cubeMeasure (d + 1) ν (Set.univ.pi p.1.1) = 0
+    · have hA0 : ENNReal.ofReal (Real.exp (-energyOutside φ ν G))
+          * cubeMeasure (d + 1) ν Gᶜ ^ ((2 ^ (d + 1) : ℝ))⁻¹ ≠ 0 :=
+        mul_ne_zero (ENNReal.ofReal_pos.2 (Real.exp_pos _)).ne'
+          (ENNReal.rpow_pos (pos_iff_ne_zero.2 hGc) (measure_ne_top _ _)).ne'
+      have htop : rectWeightAt φ ν G p.1.1 p.1.2 = ∞ := by
+        rw [rectWeightAt, hR0, ENNReal.zero_rpow_of_pos hp,
+          ENNReal.div_zero (ENNReal.ofReal_pos.2 (Real.exp_pos _)).ne', ENNReal.mul_top hA0]
+      rw [htop, ENNReal.top_pow h0.ne']
+      exact le_top
+    · exact periodicGibbsDist_forall_notMem_torusPattern_le_rect hφ hM hφk hG hGsym p.2 hR0 D
+
+end Twelve
+
+end Rect
+
 end MeasureTheory.GibbsMeasure

@@ -561,8 +561,10 @@ pulled back to `ℤ^d`, with the Gibbs distribution of the periodic modification
 (Example (4.20)(2)), defines `𝒢₀(Φ)` as its cluster points, proves `𝒢₀ ⊆ 𝒢_Θ` and (18.12) for
 standard Borel `E`; `Specification/QuasiGibbsian.lean` proves every Gibbs measure quasi-Gibbsian;
 `Model/LowEnergyOceans.lean` has the (18.14) consequences for `μ ∈ 𝒢₀(Φ)` and (18.18) in quadrant
-form. Open: (18.11), Steps 1–3 of (18.16) (two planar-topology arguments Georgii gives by
-pictures), hence (18.17), (18.18) with the ocean part, and (18.19).
+form; (18.11) on the torus; Step 1 of (18.16), Poincaré recurrence for quasi-Gibbsian fields
+(`Specification/QuasiGibbsian.lean`); and the planar input of its Steps 2–3, the two-dimensional
+crossing lemma by mod-two duality (`GibbsMeasure/Model/PlanarCrossing.lean`). Open: the assembly of
+Steps 2–4 of (18.16), hence (18.17), (18.18) with the ocean part, and (18.19).
 
 **Chapter 16** normalises the a priori measure to a probability measure throughout, where Georgii
 assumes only that it is finite; the two differ by an additive `log λ(E)` in the pressure and the
