@@ -7,6 +7,7 @@ public import GibbsMeasure.Mathlib.Analysis.PSeries
 public import GibbsMeasure.Mathlib.Algebra.Order.BigOperators.Ring.Finset
 public import GibbsMeasure.Mathlib.Algebra.QuadraticDiscriminant
 public import GibbsMeasure.Mathlib.Algebra.BigOperators.Group.Finset.Sigma
+public import GibbsMeasure.Mathlib.Analysis.Calculus.TiltedIntegral
 public import GibbsMeasure.Mathlib.Topology.Instances.EReal
 public import GibbsMeasure.Mathlib.Topology.UniformSpace.Pi
 public import GibbsMeasure.Mathlib.Topology.MetricSpace.DependsOn
@@ -115,6 +116,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Measure.WithDensity
 public import GibbsMeasure.Mathlib.Analysis.Convex.Extreme
 public import GibbsMeasure.Mathlib.Analysis.Convex.ExtremeGDelta
 public import GibbsMeasure.Mathlib.Analysis.Convex.TangentFunctional
+public import GibbsMeasure.Mathlib.Data.ENNReal.OfReal
 public import GibbsMeasure.Mathlib.Topology.Compactness.SigmaCompact
 public import GibbsMeasure.Mathlib.Topology.Metrizable.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ProbabilityMeasure
@@ -143,6 +145,7 @@ public import GibbsMeasure.Mathlib.Probability.Martingale.DominatedBackward
 public import GibbsMeasure.Mathlib.Probability.Martingale.Convergence
 public import GibbsMeasure.Mathlib.Probability.TailTriviality
 public import GibbsMeasure.Mathlib.Probability.Kernel.WithDensity
+public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.ENNRealMatrix
 public import GibbsMeasure.Prereqs.IntervalBoundary
 public import GibbsMeasure.Prereqs.Filtration.Consistent
 public import GibbsMeasure.Prereqs.Juxt

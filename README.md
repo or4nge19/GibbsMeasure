@@ -554,11 +554,14 @@ is Gateaux differentiable exactly where the shift-invariant Gibbs measure is uni
 continuous and an everywhere dense a priori measure, the pressure is affine along a segment exactly
 when the endpoints are equivalent, and strictly convex between distinct normalised ones —
 which required the converse half of **Theorem (2.34)**, now proved (`GibbsMeasure/Potential/Equivalence.lean`).
-**(16.17)** in its first-derivative half: on the Dobrushin region the phase is unique and the pressure
-is differentiable with derivative `−⟨μ_Φ, Ψ⟩`. Its second-derivative half is Corollary (8.37), which
-rests on **Proposition (8.34)**, now proved (`GibbsMeasure/Specification/DobrushinDerivatives.lean`):
-the covariance of the unique Gibbs measure in Dobrushin's regime is bounded by the interdependence
-series, by tilting the specification and the comparison theorem. `GibbsMeasure/Model/IsingLargeDeviations.lean`
+**(16.17)** in full: on the Dobrushin region the phase is unique and the pressure is differentiable
+with derivative `−⟨μ_Φ, Ψ⟩`, and the second derivative along a direction of finite (8.36)-norm is
+the summed covariance of the site energies. That is **Corollary (8.37)**, proved in
+`GibbsMeasure/Specification/DobrushinDerivatives.lean` for an arbitrary site set without shift
+invariance, from **Proposition (8.34)**, the covariance bound by the interdependence series, by
+tilting the specification and the comparison theorem; the finite-volume derivative is a tilted
+integral and the matrix-series tail algebra lives in the Mathlib layer. Georgii's opening claim of
+*continuous* differentiability in (8.37) is not established by his proof and is not proved. `GibbsMeasure/Model/IsingLargeDeviations.lean`
 exhibits the Ising potential as a nonzero element of `ℬ_Θ` and of the Dobrushin region, so these
 objects are not vacuous.
 

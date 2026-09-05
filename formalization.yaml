@@ -352,6 +352,14 @@ status:
       file: "GibbsMeasure/Mathlib/Dynamics/Ergodic/ShannonMcMillanBreiman.lean"
       sorry_count: 0
       axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "MeasureTheory.GibbsMeasure.Dobrushin.hasDerivAt_integral_gibbsMeasure_add_smul"
+      file: "GibbsMeasure/Specification/DobrushinDerivatives.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+    - declaration: "Potential.BTheta.hasDerivAt_rightDirDeriv_pressure_of_mem_dobrushinRegion"
+      file: "GibbsMeasure/Specification/PhaseTransition.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
     - declaration: "MeasureTheory.GibbsMeasure.Shlosman.dgSpecification_abs_excess_le"
       file: "GibbsMeasure/Model/RandomStaircase.lean"
       sorry_count: 0
@@ -1209,7 +1217,24 @@ alignment:
         for the unique Gibbs measure of a quasilocal specification in Dobrushin's regime, by
         Georgii's tilting of the specification by g and the comparison theorem (8.20), with the
         elementary density estimate ||u alpha - alpha|| <= delta(u)/4 proved as a two-block
-        estimate. Corollary (8.37) and the second-derivative half of (16.17) are in progress.
+        estimate.
+    - source: "Corollary (8.37)"
+      lean: "MeasureTheory.GibbsMeasure.Dobrushin.hasDerivAt_integral_gibbsMeasure_add_smul"
+      module: "GibbsMeasure/Specification/DobrushinDerivatives.lean"
+      status: "proved"
+      note: >-
+        For absolutely summable Phi, Psi with site-uniform bounds ||Phi||'_i <= a, ||Psi||'_i <= b,
+        a + t_0 b < 1 (Georgii's ||Phi|| + t_0 ||Psi|| < 1 on Z^d for shift-invariant potentials),
+        a family of Gibbs measures mu_s for Phi + s Psi and a quasilocal g with summable
+        oscillations, s |-> mu_s(g) is differentiable on |s| < t_0 with derivative
+        -sum_k cov(g, f_Psi o theta_{-k}), Georgii's displayed formula; arbitrary site set, no
+        shift invariance, the Gibbs family a hypothesis rather than produced by choice (so no
+        standard Borel assumption). The finite-volume derivative is a tilted integral
+        (Mathlib/Analysis/Calculus/TiltedIntegral.lean); the T_1 + T_2 + 2 T_3 estimate uses
+        (8.34) at finite volume and the tail of the interdependence series, whose ENNReal matrix
+        algebra is in Mathlib/Topology/Algebra/InfiniteSum/ENNRealMatrix.lean. Not proved:
+        Georgii's opening claim that Phi |-> mu_Phi(g) is continuously differentiable on D, which
+        his proof does not establish and (16.17) does not use.
     - source: "Worked instance for Sections 15.5 and 16.2: the Ising potential"
       lean: "MeasureTheory.GibbsMeasure.cardNormAt_isingPotential_of_zero_coupling"
       module: "GibbsMeasure/Model/IsingLargeDeviations.lean"
@@ -1293,9 +1318,11 @@ alignment:
         derivative: on the Dobrushin region D = {sum_{A ni 0} |A| ||Phi_A|| < 1} the shift-invariant
         Gibbs measure is unique and the pressure is Gateaux differentiable with derivative
         -<mu_Phi, Psi>; Georgii (8.36), the comparison of that norm with the interaction strength,
-        is proved in Specification/Dobrushin.lean. Not formalized: the second-derivative half of
-        (16.17), which is Corollary (8.37) and rests on Proposition (8.34), the covariance bound
-        by the Dobrushin interdependence matrix; neither is in the tree.
+        is proved in Specification/Dobrushin.lean. (16.17), second derivative: for Psi of finite
+        (8.36)-norm and any Psi' in B_Theta, t |-> d/ds P(Phi + t Psi + s Psi')|_{s=0} is
+        differentiable at 0 with derivative sum_i [mu(f_Psi' f_Psi o theta_i) - mu(f_Psi')
+        mu(f_Psi)], from Corollary (8.37); only the outer direction needs the (8.36)-norm. (16.14)
+        also as Set.BijOn and as the image equality j(G_Theta(Phi)) = dP(Phi).
     - source: "Section 15.5: the Shannon-McMillan theorem used in (15.47)"
       lean: "MeasureTheory.tendsto_integral_abs_neg_inv_card_mul_log_blockProb_sub_entropyRate"
       module: "GibbsMeasure/Mathlib/Dynamics/Ergodic/ShannonMcMillanBreiman.lean"

@@ -45,7 +45,7 @@
 \begin{theorem}[Georgii (16.14)]
     \label{thm:gv-16-14}
     \uses{thm:gv-16-11, thm:tf-16-6, thm:vp-15-39}
-    \lean{Potential.BTheta.mem_subgradientAt_pressure_of_mem_invariantG, Potential.BTheta.mem_subgradientAt_pressure_iff_mem_invariantG', Potential.BTheta.exists_mem_fieldsOf_mem_invariantG, Potential.BTheta.subsingleton_invariantG_of_gateauxDifferentiable, Potential.BTheta.gateauxDifferentiable_pressure_iff_subsingleton}
+    \lean{Potential.BTheta.mem_subgradientAt_pressure_of_mem_invariantG, Potential.BTheta.mem_subgradientAt_pressure_iff_mem_invariantG', Potential.BTheta.bijOn_specificEnergyFunctional_invariantG, Potential.BTheta.image_specificEnergyFunctional_invariantG, Potential.BTheta.subsingleton_invariantG_of_gateauxDifferentiable, Potential.BTheta.gateauxDifferentiable_pressure_iff_subsingleton}
     \leanok
 
     For $E$ standard Borel, $j$ maps $\mathcal G_\Theta(\Phi)$ bijectively onto the tangent
@@ -78,21 +78,30 @@
     normalisation upgrades equivalence to equality.
 \end{proof}
 
-\begin{theorem}[Georgii (16.17), first derivative]
+\begin{theorem}[Georgii (16.17)]
     \label{thm:gv-16-17}
-    \uses{thm:gv-16-14, thm:dob-uniqueness}
-    \lean{MeasureTheory.GibbsMeasure.Dobrushin.cardNormAt, MeasureTheory.GibbsMeasure.Dobrushin.isDobrushin_gibbsSpecification_of_cardNormAt_le, Potential.BTheta.dobrushinRegion, Potential.BTheta.exists_invariantG_eq_singleton_of_mem_dobrushinRegion, Potential.BTheta.leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_of_mem_dobrushinRegion}
+    \uses{thm:gv-16-14, thm:dob-uniqueness, cor:dob-8-37}
+    \lean{MeasureTheory.GibbsMeasure.Dobrushin.cardNormAt, MeasureTheory.GibbsMeasure.Dobrushin.isDobrushin_gibbsSpecification_of_cardNormAt_le, Potential.BTheta.dobrushinRegion, Potential.BTheta.exists_invariantG_eq_singleton_of_mem_dobrushinRegion, Potential.BTheta.leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_of_mem_dobrushinRegion, Potential.BTheta.hasDerivAt_rightDirDeriv_pressure_of_mem_dobrushinRegion, ENNReal.exists_pos_add_ofReal_mul_lt_one}
     \leanok
 
     On the Dobrushin region $\mathcal D = \{\Phi : \sum_{A \ni 0}\abs{A}\norm{\Phi_A} < 1\}$ the
     shift-invariant Gibbs measure is unique and $P$ is Gateaux differentiable, with
-    $\frac{d}{dt}P(\Phi + t\Psi)\big|_{t=0} = -\langle\mu_\Phi,\Psi\rangle$.
+    $\frac{d}{dt}P(\Phi + t\Psi)\big|_{t=0} = -\langle\mu_\Phi,\Psi\rangle$; and for
+    $\Psi$ of finite $(8.36)$-norm and any $\tilde\Psi \in \mathcal B_\Theta$,
+    $t \mapsto \frac{\partial}{\partial s}P(\Phi + t\Psi + s\tilde\Psi)\big|_{s=0}$ is
+    differentiable at $0$ with derivative
+    $\sum_i [\mu_\Phi(f_{\tilde\Psi}\,f_\Psi\circ\theta_i) - \mu_\Phi(f_{\tilde\Psi})\mu_\Phi(f_\Psi)]$.
+    Only the outer direction needs the $(8.36)$-norm, which keeps the segment inside
+    $\mathcal D$; Georgii asks it of both.
 \end{theorem}
 \begin{proof}
     \leanok
     Georgii (8.36): the norm of $\widetilde{\mathcal B}_\Theta$ dominates the interaction strength,
     so $\mathcal D$ lies in Dobrushin's regime (8.8) and uniqueness is (8.7); differentiability is
-    Theorem \ref{thm:gv-16-14} with a single tangent functional.
+    Theorem \ref{thm:gv-16-14} with a single tangent functional. For the second derivative, a
+    $t_0 > 0$ with $\Phi + t\Psi \in \mathcal D$ for $|t| \leq t_0$ gives the family of unique
+    phases, the inner derivative is $-\mu_{\Phi+t\Psi}(f_{\tilde\Psi})$, and Corollary
+    \ref{cor:dob-8-37} with $g = f_{\tilde\Psi}$ differentiates it.
 \end{proof}
 
 \begin{example}[The Ising potential as a witness]

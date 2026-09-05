@@ -18,3 +18,31 @@
     $\norm{u\alpha - \alpha} \leq \delta(u)/4$ for a probability density bounds the single-site
     distances, and the comparison theorem (8.20) with $b_j = \delta_j(g)/4\gamma_j g$ finishes.
 \end{proof}
+
+\begin{corollary}[Georgii (8.37)]
+    \label{cor:dob-8-37}
+    \uses{prop:dob-8-34, thm:dob-uniqueness}
+    \lean{MeasureTheory.GibbsMeasure.Dobrushin.gibbsSpecificationOfAbsolutelySummable_eq_tilted, MeasureTheory.GibbsMeasure.Dobrushin.hasDerivAt_integral_gibbsSpecification, MeasureTheory.GibbsMeasure.Dobrushin.hamiltonianRemLp, MeasureTheory.GibbsMeasure.Dobrushin.oscAt_hamiltonian_sub_sum_siteEnergy_le, MeasureTheory.GibbsMeasure.Dobrushin.tsum_oscAt_siteEnergy_le, MeasureTheory.GibbsMeasure.Dobrushin.covariance_hamiltonian_eq_add_sum_siteEnergy, MeasureTheory.GibbsMeasure.Dobrushin.ofReal_abs_covariance_hamiltonian_sub_tsum_le, MeasureTheory.GibbsMeasure.Dobrushin.tendsto_bound_hamiltonianRemLp, MeasureTheory.GibbsMeasure.Dobrushin.tendsto_bound_tsum_compl_siteEnergy, MeasureTheory.GibbsMeasure.Dobrushin.isEstimate_finiteVolume, MeasureTheory.GibbsMeasure.Dobrushin.exists_forall_interdep_gibbsSpecification_add_smul_le, MeasureTheory.GibbsMeasure.Dobrushin.hasDerivAt_integral_gibbsMeasure_add_smul, ENNReal.matSeries, ENNReal.matTail, ENNReal.tendsto_matTail, ENNReal.tendsto_tsum_matSeries_mul, ENNReal.tendsto_tsum_mul_of_tendsto}
+    \leanok
+
+    Let $\Phi, \Psi$ be absolutely summable with site-uniform bounds $\|\Phi\|'_i \leq a$,
+    $\|\Psi\|'_i \leq b$ and $a + t_0 b < 1$ (on $\mathbb Z^d$ with shift-invariant potentials this
+    is Georgii's $\|\Phi\| + t_0\|\Psi\| < 1$), let $\mu_s$ be Gibbs for $\Phi + s\Psi$ for
+    $|s| \leq t_0$, and let $g$ be quasilocal with $\sum_i \delta_i(g) < \infty$. Then
+    $s \mapsto \mu_s(g)$ is differentiable on $|s| < t_0$ with derivative
+    $-\sum_k \operatorname{cov}_{\mu_s}(g, f_\Psi\circ\theta_{-k})$, Georgii's
+    $\sum_i [\mu(g\,f_\Psi\circ\theta_i) - \mu(g)\mu(f_\Psi)]$ once $\mu$ is shift invariant. The
+    site set is arbitrary and no shift invariance is assumed. Georgii's opening claim that
+    $\Phi \mapsto \mu_\Phi(g)$ is \emph{continuously} differentiable on $\mathcal D$ is not
+    proved: his argument establishes the directional formula only.
+\end{corollary}
+\begin{proof}
+    \leanok
+    The finite-volume expectation $\gamma_\Lambda^{\Phi+s\Psi}(g)$ is a tilted integral,
+    differentiable in $s$ with derivative $-\operatorname{cov}(H^\Psi_\Lambda, g)$; splitting
+    $H^\Psi_\Lambda$ into the site energies inside $\Lambda$ and a remainder of vanishing
+    oscillation, Proposition \ref{prop:dob-8-34} in its finite-volume form bounds the error terms
+    $T_1 + T_2 + 2T_3$ uniformly in $|s| \leq t_0$ by the tail of the interdependence series, and
+    uniform convergence of the derivatives exchanges the limit $\Lambda \uparrow S$ with
+    $d/ds$.
+\end{proof}

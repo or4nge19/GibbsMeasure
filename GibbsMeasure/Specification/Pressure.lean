@@ -25,7 +25,13 @@ Throughout, `Φ` is an absolutely summable potential (`Potential.IsAbsolutelySum
 * `Potential.siteEnergy Φ i = ∑_{A ∋ i} |A|⁻¹ Φ_A` and `Potential.energyDensity Φ = siteEnergy Φ 0`,
   Georgii's `f_Φ` (15.22); for a shift-invariant potential `siteEnergy Φ i = f_Φ ∘ θ_{-i}`
   (`Potential.IsShiftInvariant.siteEnergy_eq`).
-* `Potential.specificEnergy Φ μ = μ(f_Φ)`, Georgii's specific energy `⟨μ, Φ⟩` (15.24), (15.27).
+* `Potential.specificEnergy Φ μ = μ(f_Φ)`, Georgii's specific energy `⟨μ, Φ⟩` (15.24), (15.27);
+  it is linear in the potential (`Potential.specificEnergy_add`, `specificEnergy_sub`,
+  `specificEnergy_smul`) and affine in the measure
+  (`Potential.specificEnergy_smul_add_smul`).
+* `Potential.siteEnergyLp Φ i`: the energy density `f_Φ ∘ θ_{-i}` as an element of
+  `lp (fun _ ↦ ℝ) ∞`, i.e. as a bounded observable, obtained as the norm-convergent sum of the
+  local observables `Potential.siteEnergyTermLp Φ i A = |A|⁻¹ Φ_A`.
 * `Potential.couplingWeight Φ Λ Δ = ∑_{A ∩ Λ ≠ ∅, A ∩ Δ ≠ ∅} ‖Φ_A‖`, the interactions coupling
   two volumes.
 * `Potential.logZ ν Φ Λ ω = log Z^Φ_Λ(ω)` and `Potential.logSupZ ν Φ Λ = log sup_ω Z^Φ_Λ(ω)`,
@@ -38,6 +44,10 @@ Throughout, `Φ` is an absolutely summable potential (`Potential.IsAbsolutelySum
 ## Main results
 
 * `Potential.abs_siteEnergy_le`: `‖f_Φ‖ ≤ ‖Φ‖₀`, and `Potential.measurable_siteEnergy`.
+* `Potential.siteEnergyLp_mem_quasilocalFunctions`: **Georgii, after (15.22)** — the energy
+  density is a quasilocal observable; hence `Potential.continuous_specificEnergy`, **Georgii
+  (4.3)(2)**: `μ ↦ ⟨μ, Φ⟩` is continuous for the topology of local convergence. This is the
+  continuity of the map `j` in the proof of Georgii Proposition (16.11).
 * `Potential.abs_sum_siteEnergy_sub_hamiltonian_le`
   (`Potential.abs_sum_energyDensity_shift_sub_hamiltonian_le` in Georgii's spelling): the
   finite-volume boundary estimate behind Georgii (15.25),
@@ -1010,6 +1020,142 @@ theorem abs_integral_hamiltonian_juxt_sub_le [DecidableEq S] {μ : Measure (S �
     _ = 3 * Φ.tail Λ Λ := by ring
 
 end SpecificEnergy
+
+/-! ### Linearity of the specific energy in the potential and in the random field -/
+
+section SpecificEnergyLinear
+
+variable [Countable S] [Zero S] [IsPotential Φ] [IsAbsolutelySummable Φ] [IsPotential Ψ]
+  [IsAbsolutelySummable Ψ] {μ : Measure (S → E)} [IsFiniteMeasure μ]
+
+/-- The specific energy is additive in the potential. -/
+lemma specificEnergy_add : (Φ + Ψ).specificEnergy μ = Φ.specificEnergy μ + Ψ.specificEnergy μ := by
+  have : IsAbsolutelySummable (Φ + Ψ) := inferInstance
+  rw [specificEnergy, specificEnergy, specificEnergy,
+    ← integral_add (integrable_siteEnergy 0 μ) (integrable_siteEnergy 0 μ)]
+  exact integral_congr_ae (.of_forall fun η ↦ siteEnergy_add 0 η)
+
+/-- The specific energy is additive in the potential. -/
+lemma specificEnergy_sub : (Φ - Ψ).specificEnergy μ = Φ.specificEnergy μ - Ψ.specificEnergy μ := by
+  have : IsAbsolutelySummable (Φ - Ψ) := inferInstance
+  rw [specificEnergy, specificEnergy, specificEnergy,
+    ← integral_sub (integrable_siteEnergy 0 μ) (integrable_siteEnergy 0 μ)]
+  exact integral_congr_ae (.of_forall fun η ↦ siteEnergy_sub 0 η)
+
+omit [Countable S] [IsPotential Φ] [IsAbsolutelySummable Φ] [IsPotential Ψ]
+  [IsAbsolutelySummable Ψ] [IsFiniteMeasure μ] in
+/-- The specific energy is homogeneous in the potential. -/
+lemma specificEnergy_smul (c : ℝ) : (c • Φ).specificEnergy μ = c * Φ.specificEnergy μ := by
+  rw [specificEnergy, specificEnergy, ← integral_const_mul]
+  exact integral_congr_ae (.of_forall fun η ↦ siteEnergy_smul c 0 η)
+
+
+omit [IsPotential Ψ] [IsAbsolutelySummable Ψ] [IsFiniteMeasure μ] in
+/-- The specific energy is affine in the random field. -/
+lemma specificEnergy_smul_add_smul (μ₁ μ₂ : Measure (S → E)) [IsFiniteMeasure μ₁]
+    [IsFiniteMeasure μ₂] (s t : NNReal) :
+    Φ.specificEnergy (s • μ₁ + t • μ₂)
+      = s * Φ.specificEnergy μ₁ + t * Φ.specificEnergy μ₂ := by
+  have h₁ : IsFiniteMeasure ((s : ℝ≥0∞) • μ₁) := by
+    refine ⟨?_⟩
+    rw [Measure.smul_apply, smul_eq_mul]
+    exact ENNReal.mul_lt_top ENNReal.coe_lt_top (measure_lt_top μ₁ _)
+  have h₂ : IsFiniteMeasure ((t : ℝ≥0∞) • μ₂) := by
+    refine ⟨?_⟩
+    rw [Measure.smul_apply, smul_eq_mul]
+    exact ENNReal.mul_lt_top ENNReal.coe_lt_top (measure_lt_top μ₂ _)
+  rw [specificEnergy, specificEnergy, specificEnergy, ENNReal.smul_def, ENNReal.smul_def,
+    integral_add_measure (integrable_siteEnergy 0 _) (integrable_siteEnergy 0 _),
+    integral_smul_measure, integral_smul_measure]
+  simp [smul_eq_mul]
+
+end SpecificEnergyLinear
+
+/-! ### The specific energy is continuous for the topology of local convergence
+
+Georgii's `f_Φ = ∑_{A ∋ 0} |A|⁻¹ Φ_A` (15.22) is a uniformly convergent sum of local observables,
+hence quasilocal, so `μ ↦ ⟨μ, Φ⟩` is continuous for the topology of local convergence (4.3)(2).
+This is the continuity of the map `j` used in the proof of Georgii Proposition (16.11). -/
+
+section Quasilocal
+
+variable [IsAbsolutelySummable Φ]
+
+variable (Φ) in
+/-- The term `|A|⁻¹ Φ_A` of the energy density at the site `i`, as a bounded observable. -/
+def siteEnergyTermLp (i : S) (A : Finset S) : lp (fun _ : S → E ↦ ℝ) ∞ :=
+  ⟨fun η ↦ Φ.siteEnergyTerms i η A,
+    memℓp_infty ⟨({A : Finset S | i ∈ A}.indicator (fun A ↦ ⨆ η, ‖Φ A η‖ₑ) A).toReal, by
+      rintro _ ⟨η, rfl⟩
+      have h := enorm_siteEnergyTerms_le (Φ := Φ) i η A
+      rw [← ENNReal.toReal_le_toReal (by simp)
+        (ne_top_of_le_ne_top (IsAbsolutelySummable.normAt_ne_top (Φ := Φ) i)
+          (ENNReal.le_tsum A))] at h
+      simpa [Real.enorm_eq_ofReal_abs, ENNReal.toReal_ofReal (abs_nonneg _)] using h⟩⟩
+
+lemma norm_siteEnergyTermLp_le (i : S) (A : Finset S) :
+    ‖Φ.siteEnergyTermLp i A‖
+      ≤ ({A : Finset S | i ∈ A}.indicator (fun A ↦ ⨆ η, ‖Φ A η‖ₑ) A).toReal := by
+  refine lp.norm_le_of_forall_le ENNReal.toReal_nonneg fun η ↦ ?_
+  have h := enorm_siteEnergyTerms_le (Φ := Φ) i η A
+  rw [← ENNReal.toReal_le_toReal (by simp)
+    (ne_top_of_le_ne_top (IsAbsolutelySummable.normAt_ne_top (Φ := Φ) i)
+      (ENNReal.le_tsum A))] at h
+  simpa [siteEnergyTermLp, Real.enorm_eq_ofReal_abs, ENNReal.toReal_ofReal (abs_nonneg _)] using h
+
+lemma summable_siteEnergyTermLp (i : S) : Summable (Φ.siteEnergyTermLp i) := by
+  refine Summable.of_norm (Summable.of_nonneg_of_le (fun A ↦ norm_nonneg _)
+    (fun A ↦ norm_siteEnergyTermLp_le (Φ := Φ) i A) ?_)
+  exact ENNReal.summable_toReal (IsAbsolutelySummable.normAt_ne_top (Φ := Φ) i)
+
+lemma siteEnergyTermLp_mem_localFunctionsOn [IsPotential Φ] (i : S) (A : Finset S) :
+    Φ.siteEnergyTermLp i A ∈ localFunctionsOn S E A := by
+  change Measurable[cylinderEvents (X := fun _ : S ↦ E) (A : Set S)]
+    (fun η ↦ Φ.siteEnergyTerms i η A)
+  by_cases h : i ∈ A
+  · simp only [siteEnergyTerms_of_mem h]
+    exact (IsPotential.measurable (Φ := Φ) A).const_mul _
+  · simp only [siteEnergyTerms_of_not_mem h]
+    exact measurable_const
+
+variable (Φ) in
+/-- Georgii's energy density `f_Φ` (15.22), as a bounded observable. -/
+def siteEnergyLp (i : S) : lp (fun _ : S → E ↦ ℝ) ∞ :=
+  ⟨Φ.siteEnergy i, memℓp_infty ⟨(Φ.normAt i).toReal, by
+    rintro _ ⟨η, rfl⟩
+    simpa [Real.norm_eq_abs] using abs_siteEnergy_le (Φ := Φ) i η⟩⟩
+
+@[simp] lemma coeFn_siteEnergyLp (i : S) : ⇑(Φ.siteEnergyLp i) = Φ.siteEnergy i := rfl
+
+lemma hasSum_siteEnergyTermLp (i : S) :
+    HasSum (Φ.siteEnergyTermLp i) (Φ.siteEnergyLp i) := by
+  obtain ⟨T, hT⟩ := summable_siteEnergyTermLp (Φ := Φ) i
+  have hpt : ∀ η : S → E, (T : (S → E) → ℝ) η = Φ.siteEnergy i η := by
+    intro η
+    have h1 : HasSum (fun A ↦ (Φ.siteEnergyTermLp i A : (S → E) → ℝ) η) ((T : (S → E) → ℝ) η) := by
+      refine (lp.tendsto_apply_of_tendsto hT η).congr fun s ↦ ?_
+      simp only [siteEnergyTermLp, lp.coeFn_sum]
+      exact Finset.sum_apply _ _ _
+    exact h1.unique (summable_siteEnergyTerms (Φ := Φ) i η).hasSum
+  have hTeq : T = Φ.siteEnergyLp i := lp.ext (funext hpt)
+  exact hTeq ▸ hT
+
+/-- **Georgii, after (15.22):** the energy density `f_Φ` is a quasilocal observable. -/
+theorem siteEnergyLp_mem_quasilocalFunctions [IsPotential Φ] (i : S) :
+    Φ.siteEnergyLp i ∈ quasilocalFunctions S E := by
+  refine (Subalgebra.isClosed_topologicalClosure (localFunctions S E)).mem_of_tendsto
+    (hasSum_siteEnergyTermLp (Φ := Φ) i) (.of_forall fun s ↦ ?_)
+  exact Subalgebra.sum_mem _ fun A _ ↦ localFunctions_le_quasilocalFunctions
+    (mem_localFunctions.2 ⟨A, siteEnergyTermLp_mem_localFunctionsOn (Φ := Φ) i A⟩)
+
+/-- **Georgii (4.3)(2) and (15.22):** the specific energy `μ ↦ ⟨μ, Φ⟩` is continuous for the
+topology of local convergence. This is the continuity of `j` in the proof of (16.11). -/
+theorem continuous_specificEnergy [Zero S] [IsPotential Φ] :
+    Continuous fun μ : WithLocalConvergence S E ↦
+      Φ.specificEnergy (μ.toMeasure : Measure (S → E)) :=
+  lContinuous_of_mem_quasilocalFunctions (siteEnergyLp_mem_quasilocalFunctions (Φ := Φ) 0)
+
+end Quasilocal
 
 /-! ### Georgii Theorem (15.23) on the lattice `ℤ^d` -/
 

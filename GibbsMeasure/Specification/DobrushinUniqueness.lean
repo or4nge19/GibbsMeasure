@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.ENNRealMatrix
 public import GibbsMeasure.Specification.Dobrushin
 
 /-!
@@ -18,8 +19,20 @@ Georgii, *Gibbs Measures and Phase Transitions*, Sections 8.1–8.2.
   `γ_i^0(·|ω)`; `act`: the single-site action `γ_i f` on bounded observables.
 * `MeasureTheory.GibbsMeasure.Dobrushin.oscAt_act_le`: the single-site estimate
   `δ_j(γ_i f) ≤ δ_j(f) + C_{ij}(γ) δ_i(f)` from the proof of (8.18).
-* `MeasureTheory.GibbsMeasure.Dobrushin.IsEstimate`: Georgii (8.16).
+* `MeasureTheory.GibbsMeasure.Dobrushin.IsEstimate`: Georgii (8.16); `IsEstimateOn.isEstimate`
+  is Remark (8.17)(2), the reduction to local observables.
+* `MeasureTheory.GibbsMeasure.Dobrushin.IsEstimate.ofReal_abs_covariance_sub_le`: an estimate
+  for a pair of measures also compares their covariances,
+  `|⟨f, g⟩_μ − ⟨f, g⟩_ν| ≤ 2‖f‖ ∑_j a_j δ_j(g) + 2‖g‖ ∑_j a_j δ_j(f)`; this is Georgii's `T₂`
+  in the proof of Corollary (8.37).
 * `MeasureTheory.GibbsMeasure.Dobrushin.IsEstimate.step`: Georgii's key Lemma (8.18).
+* `MeasureTheory.GibbsMeasure.Dobrushin.interdepIter`, `interdepSeries`, `interdepTail`:
+  Georgii's `C(γ)^n`, `D(γ) b̃ = ∑_{n ≥ 0} C(γ)^n b̃` (8.19) and `∑_{j ∉ Δ} D_{ij}(γ)`. They are
+  the general `ℝ≥0∞`-matrix constructions `ENNReal.matIter`, `ENNReal.matSeries`,
+  `ENNReal.matTail` of `GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.ENNRealMatrix` at
+  `C = C(γ)`; the algebra and the tail estimates of `D` are proved there, in the generality of
+  an arbitrary nonnegative matrix, because Corollary (8.37) needs them for a majorant of a whole
+  family of interdependence matrices.
 * `MeasureTheory.GibbsMeasure.Dobrushin.comparison`: Georgii's comparison Theorem (8.20).
 * `MeasureTheory.GibbsMeasure.Dobrushin.eq_of_isDobrushin`,
   `subsingleton_GP_of_isDobrushin`, `existsUnique_mem_GP_of_isDobrushin`: Georgii's uniqueness
@@ -28,6 +41,10 @@ Georgii, *Gibbs Measures and Phase Transitions*, Sections 8.1–8.2.
   `γ^{(V,ω)}` obtained by conditioning on `ω` outside `V`.
 * `MeasureTheory.GibbsMeasure.Dobrushin.measure_le_add_interdepTail`,
   `tendsto_interdepTail`: the Cauchy estimate of Georgii (8.23), step 1.
+* `MeasureTheory.GibbsMeasure.Dobrushin.isEstimate_finiteVolume`: **Georgii (8.23)(ii),
+  quantitative form** — `|γ_Λ(f|ω) − μ(f)| ≤ ∑_i δ_i(f) ∑_{j ∉ Λ} D_{ij}(γ)`, uniformly in the
+  boundary condition; this is what makes the finite-volume Gibbs distributions converge to the
+  Gibbs measure.
 * `MeasureTheory.GibbsMeasure.Dobrushin.GP_nonempty_of_isDobrushin`,
   `existsUnique_mem_GP_of_isDobrushin_of_standardBorel`: the existence half of Theorem (8.7),
   proved as Georgii (8.23).
@@ -43,6 +60,13 @@ set_option backward.isDefEq.respectTransparency false
 
 open Filter Function MeasureTheory MeasureTheory.GibbsMeasure ProbabilityTheory Set
 open scoped ENNReal NNReal Topology
+open ENNReal (matIter matIter_zero matIter_succ matIter_le matIter_mono_matrix
+  matIter_mono_vec matIter_add matIter_const_mul matIter_tsum matSeries le_matSeries matSeries_le
+  matSeries_mono_matrix matSeries_mono_vec matSeries_add matSeries_const_mul matSeries_tsum
+  matEntry matSeries_eq_tsum_matEntry tsum_matEntry_le tsum_le_card_mul_add tsum_ite_compl_eq
+  exists_tsum_ite_compl_le tendsto_tsum_mul_of_tendsto matTail matTail_antitone
+  matTail_mono_matrix exists_matIter_compl_le tendsto_matTail tendsto_tsum_matSeries_mul
+  tendsto_tsum_matTail_mul)
 
 noncomputable section
 
@@ -68,118 +92,6 @@ lemma measure_le_add_unifDist {A : Set E} (hA : MeasurableSet A) :
 end UnifDist
 
 
-/-! ### Oscillations (Georgii (8.2), (8.14), (8.15)) -/
-
-section Osc
-
-omit [MeasurableSpace E]
-
-variable {f g : (S → E) → ℝ} {j : S} {c : ℝ≥0∞}
-
-
-lemma osc_le_ofReal_two_mul {C : ℝ} (hC : ∀ ζ, |f ζ| ≤ C) : osc f ≤ ENNReal.ofReal (2 * C) :=
-  osc_le fun ζ η ↦ ENNReal.ofReal_le_ofReal <| by
-    calc |f ζ - f η| ≤ |f ζ| + |f η| := abs_sub _ _
-      _ ≤ C + C := add_le_add (hC ζ) (hC η)
-      _ = 2 * C := by ring
-
-lemma osc_ne_top_of_bounded {C : ℝ} (hC : ∀ ζ, |f ζ| ≤ C) : osc f ≠ ⊤ :=
-  ne_top_of_le_ne_top ENNReal.ofReal_ne_top (osc_le_ofReal_two_mul hC)
-
-lemma oscAt_ne_top_of_bounded {C : ℝ} (hC : ∀ ζ, |f ζ| ≤ C) : oscAt f j ≠ ⊤ :=
-  ne_top_of_le_ne_top (osc_ne_top_of_bounded hC) oscAt_le_osc
-
-lemma osc_add_le : osc (f + g) ≤ osc f + osc g := by
-  refine osc_le fun ζ η ↦ ?_
-  calc ENNReal.ofReal |(f + g) ζ - (f + g) η|
-      ≤ ENNReal.ofReal (|f ζ - f η| + |g ζ - g η|) := by
-        refine ENNReal.ofReal_le_ofReal ?_
-        simpa [Pi.add_apply, add_sub_add_comm] using abs_add_le (f ζ - f η) (g ζ - g η)
-    _ = ENNReal.ofReal |f ζ - f η| + ENNReal.ofReal |g ζ - g η| :=
-        ENNReal.ofReal_add (abs_nonneg _) (abs_nonneg _)
-    _ ≤ osc f + osc g := add_le_add (le_osc _ _ _) (le_osc _ _ _)
-
-lemma oscAt_add_le : oscAt (f + g) j ≤ oscAt f j + oscAt g j := by
-  refine oscAt_le fun ζ η h ↦ ?_
-  calc ENNReal.ofReal |(f + g) ζ - (f + g) η|
-      ≤ ENNReal.ofReal (|f ζ - f η| + |g ζ - g η|) := by
-        refine ENNReal.ofReal_le_ofReal ?_
-        simpa [Pi.add_apply, add_sub_add_comm] using abs_add_le (f ζ - f η) (g ζ - g η)
-    _ = ENNReal.ofReal |f ζ - f η| + ENNReal.ofReal |g ζ - g η| :=
-        ENNReal.ofReal_add (abs_nonneg _) (abs_nonneg _)
-    _ ≤ oscAt f j + oscAt g j := add_le_add (le_oscAt h) (le_oscAt h)
-
-/-- The oscillation of an affine image: `δ_j(a f + b) ≤ |a| δ_j(f)`. -/
-lemma oscAt_affine_le (f : (S → E) → ℝ) (a b : ℝ) (j : S) :
-    oscAt (fun σ ↦ a * f σ + b) j ≤ ENNReal.ofReal |a| * oscAt f j := by
-  refine oscAt_le fun ζ η h ↦ ?_
-  have habs : |a * f ζ + b - (a * f η + b)| = |a| * |f ζ - f η| := by
-    rw [show a * f ζ + b - (a * f η + b) = a * (f ζ - f η) by ring, abs_mul]
-  rw [habs, ENNReal.ofReal_mul (abs_nonneg a)]
-  gcongr
-  exact le_oscAt h
-
-/-- Georgii's oscillation (8.14) is affine-equivariant: `δ_j(a f + b) = |a| δ_j(f)` for `a ≠ 0`.
-This is what makes the covariance estimate (8.34) invariant under rescaling of its arguments. -/
-lemma oscAt_affine (f : (S → E) → ℝ) {a : ℝ} (ha : a ≠ 0) (b : ℝ) (j : S) :
-    oscAt (fun σ ↦ a * f σ + b) j = ENNReal.ofReal |a| * oscAt f j := by
-  refine le_antisymm (oscAt_affine_le f a b j) ?_
-  have h2 := oscAt_affine_le (fun σ ↦ a * f σ + b) a⁻¹ (-(a⁻¹ * b)) j
-  have hid : (fun σ ↦ a⁻¹ * (a * f σ + b) + -(a⁻¹ * b)) = f := by
-    funext σ; field_simp; ring
-  rw [hid] at h2
-  have hmul : ENNReal.ofReal |a| * ENNReal.ofReal |a⁻¹| = 1 := by
-    rw [← ENNReal.ofReal_mul (abs_nonneg a), ← abs_mul, mul_inv_cancel₀ ha]
-    simp
-  calc ENNReal.ofReal |a| * oscAt f j
-      ≤ ENNReal.ofReal |a| * (ENNReal.ofReal |a⁻¹| * oscAt (fun σ ↦ a * f σ + b) j) := by
-        gcongr
-    _ = oscAt (fun σ ↦ a * f σ + b) j := by rw [← mul_assoc, hmul, one_mul]
-
-/-- The combinatorial heart: two configurations differing only on a finite set `D` are compared by
-telescoping over `D`. Georgii (8.15). -/
-lemma ofReal_abs_sub_le_sum_oscAt (f : (S → E) → ℝ) (D : Finset S) :
-    ∀ ζ η : S → E, (∀ k, k ∉ D → ζ k = η k) →
-      ENNReal.ofReal |f ζ - f η| ≤ ∑ j ∈ D, oscAt f j := by
-  classical
-  induction D using Finset.induction_on with
-  | empty => intro ζ η h; rw [funext fun k ↦ h k (by simp)]; simp
-  | insert a D ha ih =>
-      intro ζ η h
-      set ξ : S → E := Function.update ζ a (η a) with hξ
-      have h1 : ENNReal.ofReal |f ζ - f ξ| ≤ oscAt f a := by
-        refine le_oscAt fun k hk ↦ ?_
-        simp [hξ, Function.update_of_ne hk]
-      have h2 : ENNReal.ofReal |f ξ - f η| ≤ ∑ j ∈ D, oscAt f j := by
-        refine ih ξ η fun k hk ↦ ?_
-        by_cases hka : k = a
-        · subst hka; simp [hξ]
-        · rw [hξ, Function.update_of_ne hka]
-          exact h k (by simp [hka, hk])
-      have htri : ENNReal.ofReal |f ζ - f η|
-          ≤ ENNReal.ofReal |f ζ - f ξ| + ENNReal.ofReal |f ξ - f η| := by
-        rw [← ENNReal.ofReal_add (abs_nonneg _) (abs_nonneg _)]
-        exact ENNReal.ofReal_le_ofReal (abs_sub_le _ _ _)
-      calc ENNReal.ofReal |f ζ - f η| ≤ oscAt f a + ∑ j ∈ D, oscAt f j :=
-            htri.trans (add_le_add h1 h2)
-        _ = ∑ j ∈ insert a D, oscAt f j := (Finset.sum_insert ha).symm
-
-/-- Georgii (8.15) for local functions: the global oscillation is dominated by the sum of the
-single-site oscillations. -/
-lemma osc_le_sum_oscAt_of_dependsOn {Λ : Finset S} (hf : DependsOn f (Λ : Set S)) :
-    osc f ≤ ∑ j ∈ Λ, oscAt f j := by
-  classical
-  refine osc_le fun ζ η ↦ ?_
-  set ξ : S → E := fun k ↦ if k ∈ Λ then ζ k else η k with hξ
-  have hfζ : f ζ = f ξ := hf fun k hk ↦ by simp [hξ, Finset.mem_coe.1 hk]
-  rw [hfζ]
-  exact ofReal_abs_sub_le_sum_oscAt f Λ ξ η fun k hk ↦ by simp [hξ, hk]
-
-lemma osc_le_tsum_oscAt_of_dependsOn {Λ : Finset S} (hf : DependsOn f (Λ : Set S)) :
-    osc f ≤ ∑' j, oscAt f j :=
-  (osc_le_sum_oscAt_of_dependsOn hf).trans (ENNReal.sum_le_tsum Λ)
-
-end Osc
 
 
 /-! ### Georgii (8.1): the uniform distance controls differences of integrals -/
@@ -642,6 +554,110 @@ lemma IsEstimate.isEstimateOn (h : IsEstimate μ ν a) : IsEstimateOn μ ν a :=
 lemma IsEstimate.mono (h : IsEstimate μ ν a) (hab : ∀ j, a j ≤ b j) : IsEstimate μ ν b :=
   fun f hf ↦ (h f hf).trans (ENNReal.tsum_le_tsum fun j ↦ by gcongr; exact hab j)
 
+/-- **Georgii, in the proof of Corollary (8.37).** An estimate `a` for the pair `μ`, `ν` also
+compares their *covariances*: for bounded quasilocal `f`, `g`,
+
+`|⟨f, g⟩_μ − ⟨f, g⟩_ν| ≤ 2 ‖f‖ ∑_j a_j δ_j(g) + 2 ‖g‖ ∑_j a_j δ_j(f)`,
+
+where `⟨f, g⟩_ρ = ρ(fg) − ρ(f)ρ(g)`. The product `fg` is quasilocal, and its single-site
+oscillations obey `δ_j(fg) ≤ ‖f‖ δ_j(g) + ‖g‖ δ_j(f)` (`Dobrushin.oscAt_mul_le`); the second
+half of the bound comes from writing `μ(f)μ(g) − ν(f)ν(g)` as
+`μ(f)(μ(g) − ν(g)) + (μ(f) − ν(f))ν(g)`. -/
+theorem IsEstimate.ofReal_abs_covariance_sub_le [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (h : IsEstimate μ ν a) {f g : lp (fun _ : S → E ↦ ℝ) ∞}
+    (hf : f ∈ quasilocalFunctions S E) (hg : g ∈ quasilocalFunctions S E) :
+    ENNReal.ofReal |((∫ σ, (f : (S → E) → ℝ) σ * (g : (S → E) → ℝ) σ ∂μ)
+          - (∫ σ, (f : (S → E) → ℝ) σ ∂μ) * ∫ σ, (g : (S → E) → ℝ) σ ∂μ)
+        - ((∫ σ, (f : (S → E) → ℝ) σ * (g : (S → E) → ℝ) σ ∂ν)
+          - (∫ σ, (f : (S → E) → ℝ) σ ∂ν) * ∫ σ, (g : (S → E) → ℝ) σ ∂ν)|
+      ≤ 2 * ENNReal.ofReal ‖f‖ * (∑' j, a j * oscAt (⇑g) j)
+        + 2 * ENNReal.ofReal ‖g‖ * ∑' j, a j * oscAt (⇑f) j := by
+  have hfb : ∀ σ, |(f : (S → E) → ℝ) σ| ≤ ‖f‖ := fun σ ↦ by
+    simpa [Real.norm_eq_abs] using lp.norm_apply_le_norm ENNReal.top_ne_zero f σ
+  have hgb : ∀ σ, |(g : (S → E) → ℝ) σ| ≤ ‖g‖ := fun σ ↦ by
+    simpa [Real.norm_eq_abs] using lp.norm_apply_le_norm ENNReal.top_ne_zero g σ
+  have hunivμ : μ.real Set.univ = 1 := by rw [measureReal_def, measure_univ, ENNReal.toReal_one]
+  have hunivν : ν.real Set.univ = 1 := by rw [measureReal_def, measure_univ, ENNReal.toReal_one]
+  have hIμf : |∫ σ, (f : (S → E) → ℝ) σ ∂μ| ≤ ‖f‖ := by
+    rw [← Real.norm_eq_abs]
+    have hb := norm_integral_le_of_norm_le_const (μ := μ) (C := ‖f‖)
+      (Filter.Eventually.of_forall fun σ ↦ by rw [Real.norm_eq_abs]; exact hfb σ)
+    rwa [hunivμ, mul_one] at hb
+  have hIνg : |∫ σ, (g : (S → E) → ℝ) σ ∂ν| ≤ ‖g‖ := by
+    rw [← Real.norm_eq_abs]
+    have hb := norm_integral_le_of_norm_le_const (μ := ν) (C := ‖g‖)
+      (Filter.Eventually.of_forall fun σ ↦ by rw [Real.norm_eq_abs]; exact hgb σ)
+    rwa [hunivν, mul_one] at hb
+  set A : ℝ≥0∞ := ∑' j, a j * oscAt (⇑g) j with hA
+  set B : ℝ≥0∞ := ∑' j, a j * oscAt (⇑f) j with hB
+  -- the product term
+  have hprod : ENNReal.ofReal |(∫ σ, (f : (S → E) → ℝ) σ ∂μ) * ∫ σ, (g : (S → E) → ℝ) σ ∂μ
+        - (∫ σ, (f : (S → E) → ℝ) σ ∂ν) * ∫ σ, (g : (S → E) → ℝ) σ ∂ν|
+      ≤ ENNReal.ofReal ‖f‖ * A + ENNReal.ofReal ‖g‖ * B := by
+    have hreal : |(∫ σ, (f : (S → E) → ℝ) σ ∂μ) * ∫ σ, (g : (S → E) → ℝ) σ ∂μ
+          - (∫ σ, (f : (S → E) → ℝ) σ ∂ν) * ∫ σ, (g : (S → E) → ℝ) σ ∂ν|
+        ≤ ‖f‖ * |(∫ σ, (g : (S → E) → ℝ) σ ∂μ) - ∫ σ, (g : (S → E) → ℝ) σ ∂ν|
+          + ‖g‖ * |(∫ σ, (f : (S → E) → ℝ) σ ∂μ) - ∫ σ, (f : (S → E) → ℝ) σ ∂ν| := by
+      calc |(∫ σ, (f : (S → E) → ℝ) σ ∂μ) * ∫ σ, (g : (S → E) → ℝ) σ ∂μ
+              - (∫ σ, (f : (S → E) → ℝ) σ ∂ν) * ∫ σ, (g : (S → E) → ℝ) σ ∂ν|
+          = |(∫ σ, (f : (S → E) → ℝ) σ ∂μ)
+                * ((∫ σ, (g : (S → E) → ℝ) σ ∂μ) - ∫ σ, (g : (S → E) → ℝ) σ ∂ν)
+              + ((∫ σ, (f : (S → E) → ℝ) σ ∂μ) - ∫ σ, (f : (S → E) → ℝ) σ ∂ν)
+                * ∫ σ, (g : (S → E) → ℝ) σ ∂ν| := by ring_nf
+        _ ≤ |(∫ σ, (f : (S → E) → ℝ) σ ∂μ)|
+                * |(∫ σ, (g : (S → E) → ℝ) σ ∂μ) - ∫ σ, (g : (S → E) → ℝ) σ ∂ν|
+              + |(∫ σ, (f : (S → E) → ℝ) σ ∂μ) - ∫ σ, (f : (S → E) → ℝ) σ ∂ν|
+                * |∫ σ, (g : (S → E) → ℝ) σ ∂ν| := by
+            rw [← abs_mul, ← abs_mul]; exact abs_add_le _ _
+        _ ≤ ‖f‖ * |(∫ σ, (g : (S → E) → ℝ) σ ∂μ) - ∫ σ, (g : (S → E) → ℝ) σ ∂ν|
+              + ‖g‖ * |(∫ σ, (f : (S → E) → ℝ) σ ∂μ) - ∫ σ, (f : (S → E) → ℝ) σ ∂ν| := by
+            refine add_le_add (mul_le_mul_of_nonneg_right hIμf (abs_nonneg _)) ?_
+            rw [mul_comm]
+            exact mul_le_mul_of_nonneg_right hIνg (abs_nonneg _)
+    refine (ENNReal.ofReal_le_ofReal hreal).trans ?_
+    rw [ENNReal.ofReal_add (by positivity) (by positivity),
+      ENNReal.ofReal_mul (norm_nonneg f), ENNReal.ofReal_mul (norm_nonneg g)]
+    exact add_le_add (mul_le_mul' le_rfl (h g hg)) (mul_le_mul' le_rfl (h f hf))
+  -- the product-of-functions term
+  have hmul : ENNReal.ofReal |(∫ σ, (f : (S → E) → ℝ) σ * (g : (S → E) → ℝ) σ ∂μ)
+        - ∫ σ, (f : (S → E) → ℝ) σ * (g : (S → E) → ℝ) σ ∂ν|
+      ≤ ENNReal.ofReal ‖f‖ * A + ENNReal.ofReal ‖g‖ * B := by
+    have hfg := h (f * g) (Subalgebra.mul_mem _ hf hg)
+    rw [lp.infty_coeFn_mul] at hfg
+    refine hfg.trans ?_
+    calc ∑' j, a j * oscAt ((⇑f) * (⇑g)) j
+        ≤ ∑' j, a j * (ENNReal.ofReal ‖f‖ * oscAt (⇑g) j
+            + ENNReal.ofReal ‖g‖ * oscAt (⇑f) j) := by
+          exact ENNReal.tsum_le_tsum fun j ↦ mul_le_mul' le_rfl (oscAt_mul_le hfb hgb)
+      _ = ENNReal.ofReal ‖f‖ * A + ENNReal.ofReal ‖g‖ * B := by
+          rw [hA, hB, ← ENNReal.tsum_mul_left, ← ENNReal.tsum_mul_left, ← ENNReal.tsum_add]
+          exact tsum_congr fun j ↦ by ring
+  -- combine
+  have hsplit : ENNReal.ofReal |((∫ σ, (f : (S → E) → ℝ) σ * (g : (S → E) → ℝ) σ ∂μ)
+          - (∫ σ, (f : (S → E) → ℝ) σ ∂μ) * ∫ σ, (g : (S → E) → ℝ) σ ∂μ)
+        - ((∫ σ, (f : (S → E) → ℝ) σ * (g : (S → E) → ℝ) σ ∂ν)
+          - (∫ σ, (f : (S → E) → ℝ) σ ∂ν) * ∫ σ, (g : (S → E) → ℝ) σ ∂ν)|
+      ≤ ENNReal.ofReal |(∫ σ, (f : (S → E) → ℝ) σ * (g : (S → E) → ℝ) σ ∂μ)
+            - ∫ σ, (f : (S → E) → ℝ) σ * (g : (S → E) → ℝ) σ ∂ν|
+        + ENNReal.ofReal |(∫ σ, (f : (S → E) → ℝ) σ ∂μ) * ∫ σ, (g : (S → E) → ℝ) σ ∂μ
+            - (∫ σ, (f : (S → E) → ℝ) σ ∂ν) * ∫ σ, (g : (S → E) → ℝ) σ ∂ν| := by
+    rw [← ENNReal.ofReal_add (abs_nonneg _) (abs_nonneg _)]
+    refine ENNReal.ofReal_le_ofReal ?_
+    calc |((∫ σ, (f : (S → E) → ℝ) σ * (g : (S → E) → ℝ) σ ∂μ)
+            - (∫ σ, (f : (S → E) → ℝ) σ ∂μ) * ∫ σ, (g : (S → E) → ℝ) σ ∂μ)
+          - ((∫ σ, (f : (S → E) → ℝ) σ * (g : (S → E) → ℝ) σ ∂ν)
+            - (∫ σ, (f : (S → E) → ℝ) σ ∂ν) * ∫ σ, (g : (S → E) → ℝ) σ ∂ν)|
+        = |((∫ σ, (f : (S → E) → ℝ) σ * (g : (S → E) → ℝ) σ ∂μ)
+              - ∫ σ, (f : (S → E) → ℝ) σ * (g : (S → E) → ℝ) σ ∂ν)
+            + -((∫ σ, (f : (S → E) → ℝ) σ ∂μ) * (∫ σ, (g : (S → E) → ℝ) σ ∂μ)
+              - (∫ σ, (f : (S → E) → ℝ) σ ∂ν) * ∫ σ, (g : (S → E) → ℝ) σ ∂ν)| := by
+          ring_nf
+      _ ≤ _ := by
+          refine (abs_add_le _ _).trans (le_of_eq ?_)
+          rw [abs_neg]
+  refine hsplit.trans ((add_le_add hmul hprod).trans (le_of_eq ?_))
+  ring
+
 lemma oscOutside_le_osc {Λ : Finset S} {f : (S → E) → ℝ} : oscOutside Λ f ≤ osc f :=
   oscOutside_le fun ζ η _ ↦ le_osc _ ζ η
 
@@ -948,16 +964,17 @@ theorem IsEstimate.step [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
 end Lemma818
 
 
+
 /-! ### Iterating the interdependence matrix -/
 
 section Iterate
 
 variable {γ γ' : Specification S E} {μ ν : Measure (S → E)}
 
-/-- `C(γ)^n a`, the `n`-fold action of Dobrushin's interdependence matrix on a vector. -/
-noncomputable def interdepIter (γ : Specification S E) : ℕ → (S → ℝ≥0∞) → S → ℝ≥0∞
-  | 0, a => a
-  | (n + 1), a => fun i ↦ ∑' j, interdep γ i j * interdepIter γ n a j
+/-- `C(γ)^n a`, the `n`-fold action of Dobrushin's interdependence matrix on a vector: the
+matrix iteration `matIter` at `C = C(γ)`. -/
+noncomputable abbrev interdepIter (γ : Specification S E) : ℕ → (S → ℝ≥0∞) → S → ℝ≥0∞ :=
+  matIter (interdep γ)
 
 @[simp] lemma interdepIter_zero (γ : Specification S E) (a : S → ℝ≥0∞) :
     interdepIter γ 0 a = a := rfl
@@ -968,16 +985,8 @@ lemma interdepIter_succ (γ : Specification S E) (n : ℕ) (a : S → ℝ≥0∞
 /-- Georgii, proof of (8.20): `∑_j C^n_{ij} ≤ c(γ)^n`. -/
 lemma interdepIter_le (γ : Specification S E) {c : ℝ≥0∞} (hc : ∀ i, ∑' j, interdep γ i j ≤ c)
     {a : S → ℝ≥0∞} {M : ℝ≥0∞} (ha : ∀ j, a j ≤ M) (n : ℕ) (i : S) :
-    interdepIter γ n a i ≤ M * c ^ n := by
-  induction n generalizing i with
-  | zero => simpa using ha i
-  | succ n ih =>
-      calc interdepIter γ (n + 1) a i = ∑' j, interdep γ i j * interdepIter γ n a j := rfl
-        _ ≤ ∑' j, interdep γ i j * (M * c ^ n) :=
-            ENNReal.tsum_le_tsum fun j ↦ by gcongr; exact ih j
-        _ = (∑' j, interdep γ i j) * (M * c ^ n) := ENNReal.tsum_mul_right
-        _ ≤ c * (M * c ^ n) := by gcongr; exact hc i
-        _ = M * c ^ (n + 1) := by ring
+    interdepIter γ n a i ≤ M * c ^ n :=
+  matIter_le hc ha n i
 
 /-- Iterating Georgii's Lemma (8.18) with `γ̃ = γ` and `b = 0`. -/
 theorem isEstimate_interdepIter [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
@@ -1146,9 +1155,9 @@ section Comparison820
 variable {γ γ' : Specification S E} {μ ν : Measure (S → E)}
 
 /-- Georgii (8.19): the vector `D(γ) b̃ = ∑_{n ≥ 0} C(γ)^n b̃`, whose `i`-th coordinate is
-`∑_j D_{ij}(γ) b̃_j`. -/
-noncomputable def interdepSeries (γ : Specification S E) (bt : S → ℝ≥0∞) (i : S) : ℝ≥0∞ :=
-  ∑' n : ℕ, interdepIter γ n bt i
+`∑_j D_{ij}(γ) b̃_j`: the matrix series `matSeries` at `C = C(γ)`. -/
+noncomputable abbrev interdepSeries (γ : Specification S E) (bt : S → ℝ≥0∞) (i : S) : ℝ≥0∞ :=
+  matSeries (interdep γ) bt i
 
 /-- **Georgii (8.19), the row-sum bound.** Under Dobrushin's condition `c(γ) < 1` the matrix
 `D(γ) = ∑_{n ≥ 0} C(γ)^n` has uniformly bounded row sums: `∑_j D_ij b_j ≤ (sup_j b_j)/(1 − c)`.
@@ -1156,30 +1165,17 @@ In particular `sup_i ∑_j D_ij ≤ (1 − c)⁻¹`, the finiteness Georgii uses
 lemma interdepSeries_le (γ : Specification S E) {c : ℝ≥0∞}
     (hc : ∀ i, ∑' j, interdep γ i j ≤ c) {b : S → ℝ≥0∞} {B : ℝ≥0∞} (hb : ∀ j, b j ≤ B) (i : S) :
     interdepSeries γ b i ≤ B / (1 - c) :=
-  calc interdepSeries γ b i = ∑' n : ℕ, interdepIter γ n b i := rfl
-    _ ≤ ∑' n : ℕ, B * c ^ n := ENNReal.tsum_le_tsum fun n ↦ interdepIter_le γ hc hb n i
-    _ = B * ∑' n : ℕ, c ^ n := ENNReal.tsum_mul_left
-    _ = B * (1 - c)⁻¹ := by rw [ENNReal.tsum_geometric]
-    _ = B / (1 - c) := (div_eq_mul_inv _ _).symm
+  matSeries_le hc hb i
 
 /-- `C(γ)^n` is homogeneous: `C^n (c a) = c (C^n a)`. -/
 lemma interdepIter_const_mul (γ : Specification S E) (c : ℝ≥0∞) (a : S → ℝ≥0∞) (n : ℕ) (i : S) :
-    interdepIter γ n (fun j ↦ c * a j) i = c * interdepIter γ n a i := by
-  induction n generalizing i with
-  | zero => rfl
-  | succ n ih =>
-      calc interdepIter γ (n + 1) (fun j ↦ c * a j) i
-          = ∑' j, interdep γ i j * interdepIter γ n (fun j ↦ c * a j) j := rfl
-        _ = ∑' j, c * (interdep γ i j * interdepIter γ n a j) := by
-            exact tsum_congr fun j ↦ by rw [ih j]; ring
-        _ = c * interdepIter γ (n + 1) a i := by
-            rw [ENNReal.tsum_mul_left]; rfl
+    interdepIter γ n (fun j ↦ c * a j) i = c * interdepIter γ n a i :=
+  matIter_const_mul (interdep γ) c a n i
 
 /-- Georgii (8.19) is homogeneous: `D(γ) (c b̃) = c D(γ) b̃`. -/
 lemma interdepSeries_const_mul (γ : Specification S E) (c : ℝ≥0∞) (a : S → ℝ≥0∞) (i : S) :
-    interdepSeries γ (fun j ↦ c * a j) i = c * interdepSeries γ a i := by
-  rw [interdepSeries, interdepSeries, ← ENNReal.tsum_mul_left]
-  exact tsum_congr fun n ↦ interdepIter_const_mul γ c a n i
+    interdepSeries γ (fun j ↦ c * a j) i = c * interdepSeries γ a i :=
+  matSeries_const_mul (interdep γ) c a i
 
 /-- Georgii, proof of (8.20): the vectors `a^{(n)} = C^n 1 + ∑_{k<n} C^k b̃`. -/
 noncomputable def comparisonVec (γ : Specification S E) (bt : S → ℝ≥0∞) (n : ℕ) (i : S) : ℝ≥0∞ :=
@@ -1617,184 +1613,61 @@ omit [DecidableEq S] in
 /-- `C(γ)^n` is monotone in the interdependence matrix. -/
 lemma interdepIter_mono_matrix {γ' : Specification S E}
     (h : ∀ i j, interdep γ' i j ≤ interdep γ i j) (n : ℕ) (a : S → ℝ≥0∞) (i : S) :
-    interdepIter γ' n a i ≤ interdepIter γ n a i := by
-  induction n generalizing i with
-  | zero => exact le_rfl
-  | succ n ih => exact ENNReal.tsum_le_tsum fun j ↦ mul_le_mul' (h i j) (ih j)
+    interdepIter γ' n a i ≤ interdepIter γ n a i :=
+  matIter_mono_matrix h n a i
 
 omit [DecidableEq S] in
 lemma interdepSeries_mono_matrix {γ' : Specification S E}
     (h : ∀ i j, interdep γ' i j ≤ interdep γ i j) (a : S → ℝ≥0∞) (i : S) :
     interdepSeries γ' a i ≤ interdepSeries γ a i :=
-  ENNReal.tsum_le_tsum fun n ↦ interdepIter_mono_matrix h n a i
+  matSeries_mono_matrix h a i
 
 omit [DecidableEq S] in
 lemma interdepIter_mono_vec (γ : Specification S E) {a b : S → ℝ≥0∞} (hab : ∀ j, a j ≤ b j)
-    (n : ℕ) (i : S) : interdepIter γ n a i ≤ interdepIter γ n b i := by
-  induction n generalizing i with
-  | zero => exact hab i
-  | succ n ih => exact ENNReal.tsum_le_tsum fun j ↦ mul_le_mul' le_rfl (ih j)
+    (n : ℕ) (i : S) : interdepIter γ n a i ≤ interdepIter γ n b i :=
+  matIter_mono_vec (interdep γ) hab n i
 
 omit [DecidableEq S] in
 lemma interdepSeries_mono_vec (γ : Specification S E) {a b : S → ℝ≥0∞} (hab : ∀ j, a j ≤ b j)
     (i : S) : interdepSeries γ a i ≤ interdepSeries γ b i :=
-  ENNReal.tsum_le_tsum fun n ↦ interdepIter_mono_vec γ hab n i
+  matSeries_mono_vec (interdep γ) hab i
 
 omit [DecidableEq S] in
 lemma interdepIter_add (γ : Specification S E) (a b : S → ℝ≥0∞) (n : ℕ) (i : S) :
-    interdepIter γ n (a + b) i = interdepIter γ n a i + interdepIter γ n b i := by
-  induction n generalizing i with
-  | zero => rfl
-  | succ n ih =>
-      simp only [interdepIter_succ]
-      rw [← ENNReal.tsum_add]
-      exact tsum_congr fun j ↦ by rw [ih j, mul_add]
+    interdepIter γ n (a + b) i = interdepIter γ n a i + interdepIter γ n b i :=
+  matIter_add (interdep γ) a b n i
 
 variable (γ) in
 /-- Georgii's `∑_{j ∈ V∖Δ} D_{ij}(γ)`, for `V = S`: the total weight `D(γ)` puts on the sites
-outside the finite volume `Δ`. -/
-noncomputable def interdepTail (Δ : Finset S) (i : S) : ℝ≥0∞ :=
-  interdepSeries γ (fun j ↦ if j ∈ Δ then 0 else 1) i
+outside the finite volume `Δ`; the matrix tail `matTail` at `C = C(γ)`. -/
+noncomputable abbrev interdepTail (Δ : Finset S) (i : S) : ℝ≥0∞ :=
+  matTail (interdep γ) Δ i
 
 lemma interdepTail_antitone (γ : Specification S E) {Δ Δ' : Finset S} (h : Δ ⊆ Δ') (i : S) :
     interdepTail γ Δ' i ≤ interdepTail γ Δ i :=
-  interdepSeries_mono_vec γ (fun j ↦ by
-    by_cases hj : j ∈ Δ
-    · simp [hj, h hj]
-    · by_cases hj' : j ∈ Δ' <;> simp [hj, hj']) i
+  matTail_antitone (interdep γ) h i
+
+/-- The tail of `D(γ)` is dominated by the tail of any entrywise majorant of `C(γ)`. -/
+lemma interdepTail_le_matTail {C : S → S → ℝ≥0∞} (h : ∀ i j, interdep γ i j ≤ C i j)
+    (Δ : Finset S) (i : S) : interdepTail γ Δ i ≤ matTail C Δ i :=
+  matTail_mono_matrix h Δ i
 
 /-! #### Tail estimates for `D(γ) = ∑_n C(γ)^n` -/
-
-omit [DecidableEq S] in
-/-- Splitting a `tsum` at a finite set: the terms indexed by `J` are bounded by `δ`, the others
-by `h`. -/
-lemma tsum_le_card_mul_add {ι : Type*} [DecidableEq ι] (g h : ι → ℝ≥0∞) (J : Finset ι)
-    (δ : ℝ≥0∞)
-    (h1 : ∀ j ∈ J, g j ≤ δ) (h2 : ∀ j, j ∉ J → g j ≤ h j) :
-    ∑' j, g j ≤ J.card * δ + ∑' j, (if j ∈ J then 0 else h j) := by
-  classical
-  have hstep : ∀ j, g j ≤ (if j ∈ J then δ else 0) + (if j ∈ J then 0 else h j) := by
-    intro j
-    by_cases hj : j ∈ J
-    · simpa [hj] using h1 j hj
-    · simpa [hj] using h2 j hj
-  have hsum : ∑ j ∈ J, (if j ∈ J then δ else 0) = ∑ _j ∈ J, δ :=
-    Finset.sum_congr rfl fun j hj ↦ by simp [hj]
-  calc ∑' j, g j ≤ ∑' j, ((if j ∈ J then δ else 0) + (if j ∈ J then 0 else h j)) :=
-        ENNReal.tsum_le_tsum hstep
-    _ = (∑' j, if j ∈ J then δ else 0) + ∑' j, (if j ∈ J then 0 else h j) := ENNReal.tsum_add
-    _ = J.card * δ + ∑' j, (if j ∈ J then 0 else h j) := by
-        congr 1
-        rw [tsum_eq_sum (s := J) fun b hb ↦ by simp [hb], hsum, Finset.sum_const, nsmul_eq_mul]
-
-omit [DecidableEq S] in
-lemma tsum_ite_compl_eq {ι : Type*} [DecidableEq ι] (f : ι → ℝ≥0∞) (J : Finset ι) :
-    ∑' j, (if j ∈ J then 0 else f j) = ∑' j : {x : ι // x ∉ J}, f j := by
-  have hsub : ∑' j : {x : ι // x ∉ J}, f j = ∑' j, Set.indicator {x : ι | x ∉ J} f j :=
-    tsum_subtype {x : ι | x ∉ J} f
-  rw [hsub]
-  exact tsum_congr fun j ↦ by by_cases hj : j ∈ J <;> simp [hj]
-
-omit [DecidableEq S] in
-/-- The tail of a finite `ℝ≥0∞`-valued sum can be made arbitrarily small. -/
-lemma exists_tsum_ite_compl_le {ι : Type*} [DecidableEq ι] {f : ι → ℝ≥0∞}
-    (hf : ∑' j, f j ≠ ⊤) {ε : ℝ≥0∞} (hε : 0 < ε) :
-    ∃ J : Finset ι, ∑' j, (if j ∈ J then 0 else f j) ≤ ε := by
-  have h := ENNReal.tendsto_tsum_compl_atTop_zero hf
-  rw [ENNReal.tendsto_nhds_zero] at h
-  obtain ⟨J, hJ⟩ := (h ε hε).exists
-  exact ⟨J, by rw [tsum_ite_compl_eq]; exact hJ⟩
 
 /-- For each fixed number of steps, `C(γ)^n 1_{S∖Δ}` can be made arbitrarily small by taking `Δ`
 large. -/
 theorem exists_interdepIter_compl_le (hd : IsDobrushin γ) (n : ℕ) (i : S) {ε : ℝ≥0∞}
     (hε : 0 < ε) :
     ∃ Δ : Finset S, interdepIter γ n (fun j ↦ if j ∈ Δ then 0 else 1) i ≤ ε := by
-  classical
   obtain ⟨-, c, hc1, hc⟩ := hd
-  have hcne : c ≠ ⊤ := ne_top_of_lt hc1
-  have hbdd : ∀ (Δ : Finset S) (m : ℕ) (j : S),
-      interdepIter γ m (fun k ↦ if k ∈ Δ then 0 else 1) j ≤ 1 := by
-    intro Δ m j
-    refine (interdepIter_le γ hc (M := 1) (fun k ↦ by split <;> simp) m j).trans ?_
-    simpa using pow_le_one₀ (by simp : (0 : ℝ≥0∞) ≤ c) hc1.le
-  have hfin : ∀ i : S, ∑' j, interdep γ i j ≠ ⊤ := fun i ↦ ne_top_of_le_ne_top hcne (hc i)
-  suffices H : ∀ (n : ℕ) (i : S) (ε : ℝ≥0∞), 0 < ε →
-      ∃ Δ : Finset S, interdepIter γ n (fun j ↦ if j ∈ Δ then 0 else 1) i ≤ ε from H n i ε hε
-  intro n
-  induction n with
-  | zero => exact fun i ε _ ↦ ⟨{i}, by simp⟩
-  | succ n ih =>
-    intro i ε hε
-    obtain ⟨J, hJ⟩ := exists_tsum_ite_compl_le (hfin i) (ENNReal.half_pos hε.ne')
-    set δ : ℝ≥0∞ := (ε / 2) / (J.card + 1) with hδ
-    have hδpos : 0 < δ := ENNReal.div_pos (ENNReal.half_pos hε.ne').ne' (by simp)
-    choose Δf hΔf using fun j : S ↦ ih j δ hδpos
-    refine ⟨J.sup Δf, ?_⟩
-    have hsub : ∀ j ∈ J, Δf j ⊆ J.sup Δf := fun j hj ↦ Finset.le_sup hj
-    have hmono : ∀ j ∈ J,
-        interdepIter γ n (fun k ↦ if k ∈ J.sup Δf then 0 else 1) j ≤ δ := by
-      intro j hj
-      refine le_trans (interdepIter_mono_vec γ (fun k ↦ ?_) n j) (hΔf j)
-      by_cases hk : k ∈ Δf j
-      · simp [hk, hsub j hj hk]
-      · by_cases hk' : k ∈ J.sup Δf <;> simp [hk, hk']
-    have hstep := tsum_le_card_mul_add
-      (g := fun j ↦ interdep γ i j * interdepIter γ n (fun k ↦ if k ∈ J.sup Δf then 0 else 1) j)
-      (h := fun j ↦ interdep γ i j) J δ
-      (fun j hj ↦ le_trans (mul_le_mul' (interdep_le_one γ i j) (hmono j hj)) (by simp))
-      (fun j _ ↦ by
-        refine le_trans (mul_le_mul' le_rfl (hbdd _ n j)) (by simp))
-    have hcard : (J.card : ℝ≥0∞) * δ ≤ ε / 2 := by
-      calc (J.card : ℝ≥0∞) * δ ≤ ((J.card : ℝ≥0∞) + 1) * δ := by gcongr; exact le_self_add
-        _ = ε / 2 := ENNReal.mul_div_cancel' (by simp) (by simp)
-    calc interdepIter γ (n + 1) (fun k ↦ if k ∈ J.sup Δf then 0 else 1) i
-        = ∑' j, interdep γ i j
-            * interdepIter γ n (fun k ↦ if k ∈ J.sup Δf then 0 else 1) j := rfl
-      _ ≤ (J.card : ℝ≥0∞) * δ + ∑' j, (if j ∈ J then 0 else interdep γ i j) := hstep
-      _ ≤ ε / 2 + ε / 2 := add_le_add hcard hJ
-      _ = ε := ENNReal.add_halves ε
+  exact exists_matIter_compl_le hc1 hc n i hε
 
 /-- **Georgii (8.23), step 1.** `∑_{j ∉ Δ} D_{ij}(γ) → 0` as `Δ ↑ S`; this is the finiteness
 `∑_{j ∈ S} D_{ij}(γ) < ∞` used by Georgii to make the net `(γ_Δ)` Cauchy. -/
 theorem tendsto_interdepTail (hd : IsDobrushin γ) (i : S) :
     Tendsto (fun Δ : Finset S ↦ interdepTail γ Δ i) atTop (𝓝 0) := by
-  classical
-  rw [ENNReal.tendsto_nhds_zero]
-  intro ε hε
-  obtain ⟨hq, c, hc1, hc⟩ := hd
-  have hgeom : ∑' n : ℕ, c ^ n ≠ ⊤ := by
-    rw [ENNReal.tsum_geometric]
-    exact ENNReal.inv_ne_top.2 (tsub_pos_of_lt hc1).ne'
-  obtain ⟨J, hJ⟩ := exists_tsum_ite_compl_le (f := fun n : ℕ ↦ c ^ n) hgeom
-    (ENNReal.half_pos hε.ne')
-  set δ : ℝ≥0∞ := (ε / 2) / (J.card + 1) with hδ
-  have hδpos : 0 < δ := ENNReal.div_pos (ENNReal.half_pos hε.ne').ne' (by simp)
-  choose Δf hΔf using fun n : ℕ ↦ exists_interdepIter_compl_le ⟨hq, c, hc1, hc⟩ n i hδpos
-  set Δ₀ : Finset S := J.sup Δf with hΔ₀
-  have hsub : ∀ n ∈ J, Δf n ⊆ Δ₀ := fun n hn ↦ Finset.le_sup hn
-  have hmono : ∀ n ∈ J, interdepIter γ n (fun k ↦ if k ∈ Δ₀ then 0 else 1) i ≤ δ := by
-    intro n hn
-    refine le_trans (interdepIter_mono_vec γ (fun k ↦ ?_) n i) (hΔf n)
-    by_cases hk : k ∈ Δf n
-    · simp [hk, hsub n hn hk]
-    · by_cases hk' : k ∈ Δ₀ <;> simp [hk, hk']
-  have hbound : interdepTail γ Δ₀ i ≤ ε := by
-    have hstep := tsum_le_card_mul_add
-      (g := fun n : ℕ ↦ interdepIter γ n (fun k ↦ if k ∈ Δ₀ then 0 else 1) i)
-      (h := fun n : ℕ ↦ c ^ n) J δ hmono
-      (fun n _ ↦ by
-        simpa using interdepIter_le γ hc (M := 1) (fun k ↦ by split <;> simp) n i)
-    have hcard : (J.card : ℝ≥0∞) * δ ≤ ε / 2 := by
-      calc (J.card : ℝ≥0∞) * δ ≤ ((J.card : ℝ≥0∞) + 1) * δ := by gcongr; exact le_self_add
-        _ = ε / 2 := ENNReal.mul_div_cancel' (by simp) (by simp)
-    calc interdepTail γ Δ₀ i
-        = ∑' n : ℕ, interdepIter γ n (fun k ↦ if k ∈ Δ₀ then 0 else 1) i := rfl
-      _ ≤ (J.card : ℝ≥0∞) * δ + ∑' n : ℕ, (if n ∈ J then 0 else c ^ n) := hstep
-      _ ≤ ε / 2 + ε / 2 := add_le_add hcard hJ
-      _ = ε := ENNReal.add_halves ε
-  filter_upwards [Filter.eventually_ge_atTop Δ₀] with Δ hΔ
-  exact (interdepTail_antitone γ hΔ i).trans hbound
+  obtain ⟨-, c, hc1, hc⟩ := hd
+  exact tendsto_matTail hc1 hc i
 
 /-- From `|x.toReal - y.toReal| ≤ c` for finite `x`, `y`, the one-sided `ℝ≥0∞` bound
 `y ≤ x + c`. -/
@@ -1878,6 +1751,35 @@ theorem measure_le_add_interdepTail (hγq : γ.IsQuasilocal) (hd : IsDobrushin �
       _ = interdepTail γ Δ i := rfl
   exact le_add_of_ofReal_abs_toReal_sub_le (measure_ne_top _ _) (measure_ne_top _ _)
     (hest.trans hRHS)
+
+/-- **Georgii (8.23)(ii), quantitative form.** If `μ` is Gibbs for `γ` (in every single site) and
+`γ` satisfies Dobrushin's condition, then for every quasilocal `f`
+`|γ_Λ(f|ω) − μ(f)| ≤ ∑_i δ_i(f) ∑_{j ∉ Λ} D_{ij}(γ)`, uniformly in the boundary condition `ω`:
+the comparison theorem (8.20) applied to the conditioned specification `γ^{(Λ,ω)}` of Lemma
+(8.22), for which `γ_Λ(·|ω)` is Gibbs, and to `γ` itself, with `b_j = 1_{S∖Λ}(j)`. -/
+theorem isEstimate_finiteVolume (hγq : γ.IsQuasilocal) (hd : IsDobrushin γ)
+    {μ : Measure (S → E)} [IsProbabilityMeasure μ] (hμ : ∀ i : S, μ.bind (γ {i}) = μ)
+    (Λ : Finset S) (ω : S → E) :
+    IsEstimate (γ Λ ω) μ (interdepTail γ Λ) := by
+  classical
+  set bt : S → ℝ≥0∞ := fun j ↦ if j ∈ Λ then 0 else 1 with hbt
+  set b : S → (S → E) → ℝ≥0∞ := fun j _ ↦ bt j with hbdef
+  have hbm : ∀ i, Measurable (b i) := fun _ ↦ measurable_const
+  have hbb : ∀ i ζ, unifDist (proj (condSpec γ Λ ω) i ζ) (proj γ i ζ) ≤ b i ζ := by
+    intro i ζ
+    by_cases hi : i ∈ Λ
+    · have h1 : condSpec γ Λ ω {i} ζ = γ {i} ζ :=
+        condSpec_apply_of_subset γ (Finset.singleton_subset_iff.2 hi) ω ζ
+      simp [hbdef, hbt, proj, h1, hi]
+    · simpa [hbdef, hbt, hi] using
+        unifDist_le_one (α₁ := proj (condSpec γ Λ ω) i ζ) (α₂ := proj γ i ζ)
+  have hvec : (fun j ↦ ∫⁻ ζ, b j ζ ∂μ) = bt := by
+    funext j; simp [hbdef]
+  have hcomp := comparison (γ := condSpec γ Λ ω) (γ' := γ) (μ := γ Λ ω) (ν := μ)
+    (isQuasilocal_condSpec hγq Λ ω) (isDobrushin_condSpec hd Λ ω)
+    (fun i ↦ bind_condSpec_eq γ Λ ω {i}) hμ hbm hbb
+  rw [hvec] at hcomp
+  exact hcomp.isEstimate.mono fun i ↦ interdepSeries_mono_matrix (interdep_condSpec_le γ Λ ω) bt i
 
 end Cauchy
 

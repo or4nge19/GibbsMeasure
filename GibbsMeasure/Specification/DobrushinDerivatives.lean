@@ -5,10 +5,14 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import Mathlib.Analysis.Calculus.UniformLimitsDeriv
+public import GibbsMeasure.Mathlib.Analysis.Calculus.TiltedIntegral
 public import GibbsMeasure.Specification.DobrushinUniqueness
+public import GibbsMeasure.Specification.Pressure
+public import Mathlib.Probability.Moments.Covariance
 
 /-!
-# Georgii §8.2: the covariance estimate under Dobrushin's condition
+# Georgii §8.2: the covariance estimate and the derivative of the Gibbs measure
 
 Georgii's Proposition (8.34) bounds the covariances of the unique Gibbs measure of a
 specification satisfying Dobrushin's condition (8.6):
@@ -20,12 +24,70 @@ Georgii's proof tilts the specification by `g`: `γ̃_Λ = h_Λ γ_Λ` with `h_�
 that `μ̃ = g μ` is Gibbs for `γ̃`, and applies the comparison theorem (8.20) with
 `b_j = δ_j(g) / 4 γ_j g`.
 
+Corollary (8.37) is the second application: for `Φ` in the region `𝒟 = {‖Φ‖' < 1}` of (8.36),
+a direction `Ψ` and a bounded quasilocal `g` with `∑_i δ_i(g) < ∞`, the map `t ↦ μ_{Φ+tΨ}(g)`
+is differentiable near `0`, with derivative `−∑_k ⟨f_Ψ ∘ θ_{−k}, g⟩_{μ_{Φ+tΨ}}`. The proof
+exchanges `Λ ↑ S` with `∂/∂t`: at finite volume the derivative is the covariance
+`−⟨H^Ψ_Λ, g⟩_{γ_Λ(·|ω)}` (the exponential tilt of `GibbsMeasure/Mathlib/Analysis/Calculus/`
+`TiltedIntegral.lean`), the finite-volume Gibbs distributions converge by (8.23), and the
+convergence of the derivatives is uniform in `t` because (8.34) is applied against a single
+majorant of the interdependence matrices of the whole segment `Φ + tΨ`, `|t| ≤ t₀`.
+
+## Main definitions
+
+* `MeasureTheory.GibbsMeasure.Dobrushin.tilt`: the specification `γ̃ = h γ` obtained by
+  normalising a single positive bounded density volume by volume, Georgii's tilt in the proof of
+  (8.34).
+* `MeasureTheory.GibbsMeasure.Dobrushin.hamiltonianLp`, `hamiltonianRemLp`: the Hamiltonian
+  `H^Φ_Λ` and its boundary part `H^Ψ_Λ − ∑_{k ∈ Λ} f_Ψ ∘ θ_{−k}` as bounded quasilocal
+  observables (`hamiltonianLp_mem_quasilocalFunctions`,
+  `hamiltonianRemLp_mem_quasilocalFunctions`).
+
 ## Main results
 
 * `MeasureTheory.GibbsMeasure.Dobrushin.unifDist_withDensity_le`: Georgii's elementary estimate
   `‖uα − α‖ ≤ δ(u)/4` for a probability density `u` on a probability space.
 * `MeasureTheory.GibbsMeasure.Dobrushin.ofReal_abs_covariance_le`: **Georgii, Proposition
-  (8.34)**.
+  (8.34)**; `ofReal_abs_covariance_le_of_iSup` is Georgii's own `sup`-form, and
+  `ofReal_abs_covariance_le_matSeries`, `ofReal_abs_covariance_apply_le_matSeries` state it
+  against a majorant `C ≥ C(γ)` of the interdependence matrix, at infinite and at finite volume.
+  `ofReal_abs_covariance_le_matSeries'` and `ofReal_abs_covariance_apply_le_matSeries'` are the
+  same bounds written with `ProbabilityTheory.covariance` (`covariance_eq_integral_mul_sub`).
+* `MeasureTheory.GibbsMeasure.Dobrushin.gibbsSpecificationOfAbsolutelySummable_eq_tilted`: a
+  finite-volume Gibbs distribution is the exponential tilt of the free measure by `−β H^Φ_Λ`;
+  `hasDerivAt_integral_gibbsSpecification` is the resulting finite-volume derivative
+  `∂/∂t γ^{Φ+tΨ}_Λ(g|ω) = −⟨H^Ψ_Λ, g⟩^t_Λ` of Georgii's proof of (8.37).
+* `MeasureTheory.GibbsMeasure.Dobrushin.oscAt_hamiltonian_sub_sum_siteEnergy_le`,
+  `tsum_oscAt_siteEnergy_le`, `tsum_oscAt_siteEnergy_le'`: Georgii's two oscillation estimates
+  `δ_j(H^Ψ_Λ − ∑_{k ∈ Λ} f_Ψ ∘ θ_{−k}) ≤ 2 ∑_{A ∋ j, A ⊄ Λ} ‖Ψ_A‖` and
+  `∑_k δ_j(f_Ψ ∘ θ_{−k}) ≤ 2‖Ψ‖_j`.
+* `MeasureTheory.GibbsMeasure.Dobrushin.tendsto_bound_hamiltonianRemLp`,
+  `tendsto_bound_tsum_compl_siteEnergy`: Georgii's `T₁ → 0` and `T₃ → 0`, uniformly in the
+  potential along the segment.
+* `MeasureTheory.GibbsMeasure.Dobrushin.covariance_hamiltonian_eq_add_sum_siteEnergy`,
+  `tsum_ite_ofReal_abs_covariance_siteEnergy_le`, `summable_norm_covariance_siteEnergy` and
+  `ofReal_abs_covariance_hamiltonian_sub_tsum_le`: the decomposition of `⟨H^Ψ_Λ, g⟩` and the
+  resulting `T₁ + T₂ + 2T₃` estimate for `⟨H^Ψ_Λ, g⟩_{γ_Λ(·|ω)} − ∑_k ⟨f_Ψ ∘ θ_{−k}, g⟩_μ`.
+* `MeasureTheory.GibbsMeasure.Dobrushin.hasDerivAt_integral_gibbsMeasure_add_smul`:
+  **Georgii, Corollary (8.37)**, in the form Georgii proves: the directional derivative formula
+  `∂/∂t μ_{Φ+tΨ}(g) = −∑_k ⟨f_Ψ ∘ θ_{−k}, g⟩_{μ_{Φ+tΨ}}`, valid at every `|t| < t₀`.
+
+## Scope
+
+Georgii's Corollary (8.37) opens with the assertion that `Φ ↦ μ_Φ(g)` is *continuously*
+differentiable on `𝒟` as a function on the Banach space `ℬ̃_Θ` of (8.36); his proof establishes
+the displayed directional-derivative formula and nothing more. Only that formula is proved here
+(for every base point of the segment, hence on a neighbourhood of `0`). The norm-continuity of
+`Φ ↦ (Ψ ↦ ∂_Ψ μ_Φ(g))` — equivalently, a modulus of continuity for `Φ ↦ μ_Φ` on `𝒟` — is not
+established by Georgii's argument and is not claimed here; Georgii's Corollary (16.17), the only
+consumer of (8.37) in the book, uses the directional formula alone.
+
+The statement below is also free of Georgii's homogeneity assumptions: `S` is an arbitrary
+countable site set, and the region `𝒟` is entered through the site-uniform bounds
+`‖Φ‖'ᵢ ≤ a`, `‖Ψ‖'ᵢ ≤ b` with `a + t₀ b < 1`. On `S = ℤ^d` with shift-invariant potentials
+these are Georgii's `‖Φ‖ + t₀‖Ψ‖ < 1` (`Dobrushin.cardNormAt_eq_of_isShiftInvariant`). The a
+priori measure is a probability measure rather than Georgii's finite `λ`; the two give the same
+specification, since the normalisation cancels between numerator and partition function.
 -/
 
 @[expose] public section
@@ -35,6 +97,13 @@ set_option relaxedAutoImplicit false
 
 open Filter Function MeasureTheory MeasureTheory.GibbsMeasure ProbabilityTheory Set
 open scoped ENNReal NNReal Topology
+open ENNReal (matIter matIter_zero matIter_succ matIter_le matIter_mono_matrix
+  matIter_mono_vec matIter_add matIter_const_mul matIter_tsum matSeries le_matSeries matSeries_le
+  matSeries_mono_matrix matSeries_mono_vec matSeries_add matSeries_const_mul matSeries_tsum
+  matEntry matSeries_eq_tsum_matEntry tsum_matEntry_le tsum_le_card_mul_add tsum_ite_compl_eq
+  exists_tsum_ite_compl_le tendsto_tsum_mul_of_tendsto matTail matTail_antitone
+  matTail_mono_matrix exists_matIter_compl_le tendsto_matTail tendsto_tsum_matSeries_mul
+  tendsto_tsum_matTail_mul)
 
 noncomputable section
 
@@ -632,8 +701,1090 @@ theorem ofReal_abs_covariance_le_of_iSup [IsProbabilityMeasure μ] (hγq : γ.Is
           ENNReal.mul_inv (Or.inl (by norm_num)) (Or.inl (by norm_num))]
         ring
 
+/-! #### (8.34) against a `t`-uniform majorant of the interdependence matrix
+
+Georgii's proof of Corollary (8.37) applies (8.34) with the matrix `D_ij = sup_{|t| ≤ t₀}
+D_ij(γ^{Φ+tΨ})`, dominated by `matSeries C` for any entrywise majorant `C` of the interdependence
+matrices; and it applies it both to the unique Gibbs measure and, through Lemma (8.22)(ii), to
+the finite-volume distributions `γ_Λ(·|ω)`. -/
+
+/-- **Georgii, Proposition (8.34)** against an entrywise majorant `C ≥ C(γ)` of the
+interdependence matrix. -/
+theorem ofReal_abs_covariance_le_matSeries [IsProbabilityMeasure μ] (hγq : γ.IsQuasilocal)
+    (hd : IsDobrushin γ) (hμ : ∀ i : S, μ.bind (γ {i}) = μ) {C : S → S → ℝ≥0∞}
+    (hC : ∀ i j, interdep γ i j ≤ C i j)
+    {f g : lp (fun _ : S → E ↦ ℝ) ∞} (hf : f ∈ quasilocalFunctions S E)
+    (hg : g ∈ quasilocalFunctions S E) :
+    ENNReal.ofReal |(∫ σ, (f : (S → E) → ℝ) σ * (g : (S → E) → ℝ) σ ∂μ)
+        - (∫ σ, (f : (S → E) → ℝ) σ ∂μ) * ∫ σ, (g : (S → E) → ℝ) σ ∂μ|
+      ≤ (∑' i, matSeries C (fun j ↦ oscAt (⇑g) j) i * oscAt (⇑f) i) / 4 := by
+  refine (ofReal_abs_covariance_le hγq hd hμ hf hg).trans ?_
+  gcongr with i
+  exact matSeries_mono_matrix hC _ i
+
+/-- **Georgii, Proposition (8.34) at finite volume**, through Lemma (8.22)(ii): `γ_Λ(·|ω)` is the
+unique Gibbs measure of the conditioned specification `γ^{(Λ,ω)}`, whose interdependence matrix
+is dominated by that of `γ`, so the same covariance estimate holds for it — with the *same*
+matrix, uniformly in `Λ` and `ω`. -/
+theorem ofReal_abs_covariance_apply_le_matSeries (hγq : γ.IsQuasilocal) (hd : IsDobrushin γ)
+    {C : S → S → ℝ≥0∞} (hC : ∀ i j, interdep γ i j ≤ C i j) (Λ : Finset S) (ω : S → E)
+    {f g : lp (fun _ : S → E ↦ ℝ) ∞} (hf : f ∈ quasilocalFunctions S E)
+    (hg : g ∈ quasilocalFunctions S E) :
+    ENNReal.ofReal |(∫ σ, (f : (S → E) → ℝ) σ * (g : (S → E) → ℝ) σ ∂(γ Λ ω))
+        - (∫ σ, (f : (S → E) → ℝ) σ ∂(γ Λ ω)) * ∫ σ, (g : (S → E) → ℝ) σ ∂(γ Λ ω)|
+      ≤ (∑' i, matSeries C (fun j ↦ oscAt (⇑g) j) i * oscAt (⇑f) i) / 4 :=
+  ofReal_abs_covariance_le_matSeries (γ := condSpec γ Λ ω) (isQuasilocal_condSpec hγq Λ ω)
+    (isDobrushin_condSpec hd Λ ω) (fun i ↦ bind_condSpec_eq γ Λ ω {i})
+    (fun i j ↦ (interdep_condSpec_le γ Λ ω i j).trans (hC i j)) hf hg
+
 end Prop834
 
+/-! ### Georgii Corollary (8.37): the finite-volume derivative in the potential
+
+The local step of Georgii's Corollary (8.37) is the identity
+`γ^{βΦ}_Λ(·|ω) = (λ_Λ ⊗ δ_ω).tilted (−β H^Φ_Λ)`: a finite-volume Gibbs distribution is the
+exponential tilt of the free measure by the Hamiltonian. Differentiating under the integral sign
+(`MeasureTheory.hasDerivAt_integral_tilted_add_mul`) then gives Georgii's displayed formula
+`∂/∂t γ^{Φ+tΨ}_Λ(g|ω) = −⟨H^Ψ_Λ, g⟩^t_Λ`, where `⟨·,·⟩^t_Λ` is the covariance under
+`γ^{Φ+tΨ}_Λ(·|ω)`.
+
+The tilt identity is a statement about `Potential.gibbsSpecificationOfAbsolutelySummable`, and
+belongs next to that definition in `GibbsMeasure/Potential/Summable.lean`; it is placed here
+because it is the entry point of §8.2's differentiation.
+-/
+
+section FiniteVolumeDerivative
+
+open Potential Specification
+
+variable {S E : Type*} [Countable S] [MeasurableSpace E] {Φ Ψ : Potential S E}
+  [IsPotential Φ] [IsAbsolutelySummable Φ] (ν : Measure E) [IsProbabilityMeasure ν]
+
+variable (Φ) in
+omit [Countable S] [IsPotential Φ] in
+/-- The Hamiltonian over a finite volume is bounded by `Potential.hamiltonianBound`. -/
+lemma abs_neg_mul_hamiltonian_le (β : ℝ) (Λ : Finset S) (σ : S → E) :
+    |-β * Φ.hamiltonian Λ σ| ≤ |β| * Φ.hamiltonianBound Λ := by
+  rw [abs_mul, abs_neg]
+  exact mul_le_mul_of_nonneg_left (abs_hamiltonian_le Λ σ) (abs_nonneg β)
+
+variable (Φ) in
+/-- `exp(−β H^Φ_Λ)` is integrable against any probability measure: it is measurable and
+bounded. -/
+lemma integrable_exp_neg_mul_hamiltonian (β : ℝ) (Λ : Finset S) {μ : Measure (S → E)}
+    [IsProbabilityMeasure μ] :
+    Integrable (fun σ ↦ Real.exp (-β * Φ.hamiltonian Λ σ)) μ :=
+  integrable_of_forall_abs_le
+    ((measurable_const.mul (measurable_hamiltonian (Φ := Φ) Λ)).exp)
+    (C := Real.exp (|β| * Φ.hamiltonianBound Λ)) fun σ ↦ by
+      rw [Real.abs_exp]
+      exact Real.exp_le_exp.2 ((le_abs_self _).trans (abs_neg_mul_hamiltonian_le Φ β Λ σ))
+
+/-- **The finite-volume Gibbs distribution is an exponential tilt.** For an absolutely summable
+potential and a probability spin distribution,
+`γ^{βΦ}_Λ(·|ω) = (λ_Λ ⊗ δ_ω).tilted (−β H^Φ_Λ)`, where `λ_Λ ⊗ δ_ω = Specification.isssd ν Λ ω`
+is Georgii's free measure with boundary condition `ω`. -/
+theorem gibbsSpecificationOfAbsolutelySummable_eq_tilted (β : ℝ) (Λ : Finset S) (ω : S → E) :
+    gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β Λ ω
+      = (isssd (S := S) (E := E) ν Λ ω).tilted fun σ ↦ -β * Φ.hamiltonian Λ σ := by
+  have hint : Integrable (fun σ ↦ Real.exp (-β * Φ.hamiltonian Λ σ))
+      (isssd (S := S) (E := E) ν Λ ω) := integrable_exp_neg_mul_hamiltonian Φ β Λ
+  have hZpos : 0 < ∫ σ, Real.exp (-β * Φ.hamiltonian Λ σ) ∂(isssd (S := S) (E := E) ν Λ ω) :=
+    integral_exp_pos hint
+  have hZ : premodifierZ (S := S) (E := E) ν (Φ.boltzmannFactor β) Λ ω
+      = ENNReal.ofReal (∫ σ, Real.exp (-β * Φ.hamiltonian Λ σ)
+          ∂(isssd (S := S) (E := E) ν Λ ω)) := by
+    rw [ofReal_integral_eq_lintegral_ofReal hint (.of_forall fun σ ↦ (Real.exp_pos _).le)]
+    rfl
+  refine Measure.ext fun A hA ↦ ?_
+  rw [gibbsSpecificationOfAbsolutelySummable, Specification.modification_apply,
+    withDensity_premodifierNorm_apply ν (isPremodifier_boltzmannFactor (Φ := Φ) β) hA ω, hZ,
+    tilted_apply' _ _ hA]
+  have hpt : ∀ a : S → E,
+      ENNReal.ofReal (Real.exp (-β * Φ.hamiltonian Λ a)
+          / ∫ x, Real.exp (-β * Φ.hamiltonian Λ x) ∂(isssd (S := S) (E := E) ν Λ ω))
+        = (ENNReal.ofReal (∫ x, Real.exp (-β * Φ.hamiltonian Λ x)
+            ∂(isssd (S := S) (E := E) ν Λ ω)))⁻¹ * Φ.boltzmannFactor β Λ a := by
+    intro a
+    rw [ENNReal.ofReal_div_of_pos hZpos, ENNReal.div_eq_inv_mul]
+    rfl
+  rw [lintegral_congr hpt, lintegral_const_mul _ (measurable_boltzmannFactor (Φ := Φ) β Λ)]
+
+variable (Φ) in
+/-- The Gibbs specification of `Φ + tΨ` is the free measure tilted along the line
+`t ↦ −H^Φ_Λ − t H^Ψ_Λ`. -/
+lemma gibbsSpecification_add_smul_eq_tilted (Ψ : Potential S E) [IsPotential Ψ]
+    [IsAbsolutelySummable Ψ] (Λ : Finset S) (ω : S → E) (t : ℝ) :
+    gibbsSpecificationOfAbsolutelySummable (Φ := Φ + t • Ψ) ν 1 Λ ω
+      = (isssd (S := S) (E := E) ν Λ ω).tilted
+          fun σ ↦ -Φ.hamiltonian Λ σ + t * -Ψ.hamiltonian Λ σ := by
+  rw [gibbsSpecificationOfAbsolutelySummable_eq_tilted ν 1 Λ ω]
+  congr 1 with σ
+  rw [hamiltonian_add, hamiltonian_smul]
+  ring
+
+variable (Φ) in
+/-- **Georgii, in the proof of Corollary (8.37).** The finite-volume Gibbs expectation of a
+bounded measurable observable is differentiable in the potential direction, with
+
+`∂/∂t γ^{Φ+tΨ}_Λ(g|ω) = −⟨H^Ψ_Λ, g⟩^t_Λ`,
+
+the covariance of the Hamiltonian `H^Ψ_Λ` and `g` under `γ^{Φ+tΨ}_Λ(·|ω)`. Both sides are
+finite because `H^Ψ_Λ` and `g` are bounded; the proof differentiates numerator and denominator
+of the tilt under the integral sign. -/
+theorem hasDerivAt_integral_gibbsSpecification (Ψ : Potential S E) [IsPotential Ψ]
+    [IsAbsolutelySummable Ψ] {g : (S → E) → ℝ} (hg : Measurable g) {Cg : ℝ}
+    (hgb : ∀ σ, |g σ| ≤ Cg) (Λ : Finset S) (ω : S → E) (t : ℝ) :
+    HasDerivAt (fun s : ℝ ↦ ∫ σ, g σ ∂(gibbsSpecificationOfAbsolutelySummable
+        (Φ := Φ + s • Ψ) ν 1 Λ ω))
+      (-((∫ σ, g σ * Ψ.hamiltonian Λ σ
+            ∂(gibbsSpecificationOfAbsolutelySummable (Φ := Φ + t • Ψ) ν 1 Λ ω))
+          - (∫ σ, g σ ∂(gibbsSpecificationOfAbsolutelySummable (Φ := Φ + t • Ψ) ν 1 Λ ω))
+            * ∫ σ, Ψ.hamiltonian Λ σ
+                ∂(gibbsSpecificationOfAbsolutelySummable (Φ := Φ + t • Ψ) ν 1 Λ ω))) t := by
+  have hu : Measurable fun σ : S → E ↦ -Φ.hamiltonian Λ σ :=
+    (measurable_hamiltonian (Φ := Φ) Λ).neg
+  have hv : Measurable fun σ : S → E ↦ -Ψ.hamiltonian Λ σ :=
+    (measurable_hamiltonian (Φ := Ψ) Λ).neg
+  have hub : ∀ σ, |-Φ.hamiltonian Λ σ| ≤ Φ.hamiltonianBound Λ := fun σ ↦ by
+    rw [abs_neg]; exact abs_hamiltonian_le Λ σ
+  have hvb : ∀ σ, |-Ψ.hamiltonian Λ σ| ≤ Ψ.hamiltonianBound Λ := fun σ ↦ by
+    rw [abs_neg]; exact abs_hamiltonian_le Λ σ
+  have hmain := hasDerivAt_integral_tilted_add_mul (μ := isssd (S := S) (E := E) ν Λ ω)
+    hu hv hg hub hvb hgb t
+  simp only [← gibbsSpecification_add_smul_eq_tilted (Φ := Φ) (ν := ν) (Ψ := Ψ) Λ ω]
+    at hmain
+  refine hmain.congr_deriv ?_
+  rw [show (fun σ : S → E ↦ g σ * -Ψ.hamiltonian Λ σ)
+      = fun σ : S → E ↦ -(g σ * Ψ.hamiltonian Λ σ) from funext fun σ ↦ by ring,
+    integral_neg, integral_neg]
+  ring
+
+
+end FiniteVolumeDerivative
+
+/-! ### The Hamiltonian as a bounded quasilocal observable
+
+`H^Φ_Λ = ∑_{A ∩ Λ ≠ ∅} Φ_A` is a uniformly convergent sum of local observables, hence bounded and
+quasilocal; this is what lets Proposition (8.34) be applied to it in Georgii's estimate of `T₁`
+in the proof of Corollary (8.37). The construction copies `Potential.siteEnergyLp`.
+-/
+
+section HamiltonianLp
+
+open Potential
+
+variable {S E : Type*} [Countable S] [MeasurableSpace E] {Φ : Potential S E}
+  [IsPotential Φ] [IsAbsolutelySummable Φ]
+
+variable (Φ) in
+/-- The term `Φ_A` of the Hamiltonian `H^Φ_Λ`, as a bounded observable. -/
+def hamiltonianTermLp (Λ A : Finset S) : lp (fun _ : S → E ↦ ℝ) ∞ :=
+  ⟨fun η ↦ Φ.hamiltonianTerms Λ η A, memℓp_infty ⟨(Φ.termNorm Λ A).toReal, by
+    rintro _ ⟨η, rfl⟩
+    have h := enorm_hamiltonianTerms_le_termNorm (Φ := Φ) Λ η A
+    rw [← ENNReal.toReal_le_toReal (by simp) (termNorm_ne_top (Φ := Φ) Λ A)] at h
+    simpa [Real.enorm_eq_ofReal_abs, ENNReal.toReal_ofReal (abs_nonneg _), Real.norm_eq_abs]
+      using h⟩⟩
+
+omit [Countable S] [IsPotential Φ] in
+lemma norm_hamiltonianTermLp_le (Λ A : Finset S) :
+    ‖hamiltonianTermLp Φ Λ A‖ ≤ (Φ.termNorm Λ A).toReal := by
+  refine lp.norm_le_of_forall_le ENNReal.toReal_nonneg fun η ↦ ?_
+  have h := enorm_hamiltonianTerms_le_termNorm (Φ := Φ) Λ η A
+  rw [← ENNReal.toReal_le_toReal (by simp) (termNorm_ne_top (Φ := Φ) Λ A)] at h
+  simpa [hamiltonianTermLp, Real.enorm_eq_ofReal_abs, ENNReal.toReal_ofReal (abs_nonneg _),
+    Real.norm_eq_abs] using h
+
+omit [Countable S] [IsPotential Φ] in
+lemma summable_hamiltonianTermLp (Λ : Finset S) : Summable (hamiltonianTermLp Φ Λ) := by
+  refine Summable.of_norm (Summable.of_nonneg_of_le (fun A ↦ norm_nonneg _)
+    (fun A ↦ norm_hamiltonianTermLp_le (Φ := Φ) Λ A) ?_)
+  exact ENNReal.summable_toReal (tsum_termNorm_ne_top (Φ := Φ) Λ)
+
+omit [Countable S] in
+lemma hamiltonianTermLp_mem_localFunctionsOn (Λ A : Finset S) :
+    hamiltonianTermLp Φ Λ A ∈ localFunctionsOn S E A := by
+  change Measurable[cylinderEvents (X := fun _ : S ↦ E) (A : Set S)]
+    (fun η ↦ Φ.hamiltonianTerms Λ η A)
+  by_cases h : Disjoint A Λ
+  · simp only [hamiltonianTerms_of_disjoint h]
+    exact measurable_const
+  · simp only [hamiltonianTerms_of_not_disjoint h]
+    exact IsPotential.measurable (Φ := Φ) A
+
+variable (Φ) in
+/-- Georgii's Hamiltonian `H^Φ_Λ` as a bounded observable. -/
+def hamiltonianLp (Λ : Finset S) : lp (fun _ : S → E ↦ ℝ) ∞ :=
+  ⟨Φ.hamiltonian Λ, memℓp_infty ⟨Φ.hamiltonianBound Λ, by
+    rintro _ ⟨η, rfl⟩
+    show ‖Φ.hamiltonian Λ η‖ ≤ Φ.hamiltonianBound Λ
+    rw [Real.norm_eq_abs]
+    exact abs_hamiltonian_le (Φ := Φ) Λ η⟩⟩
+
+omit [Countable S] [IsPotential Φ] in
+@[simp] lemma coeFn_hamiltonianLp (Λ : Finset S) :
+    ⇑(hamiltonianLp Φ Λ) = Φ.hamiltonian Λ := rfl
+
+omit [Countable S] [IsPotential Φ] in
+lemma hasSum_hamiltonianTermLp (Λ : Finset S) :
+    HasSum (hamiltonianTermLp Φ Λ) (hamiltonianLp Φ Λ) := by
+  obtain ⟨T, hT⟩ := summable_hamiltonianTermLp (Φ := Φ) Λ
+  have hpt : ∀ η : S → E, (T : (S → E) → ℝ) η = Φ.hamiltonian Λ η := by
+    intro η
+    have h1 : HasSum (fun A ↦ (hamiltonianTermLp Φ Λ A : (S → E) → ℝ) η)
+        ((T : (S → E) → ℝ) η) := by
+      refine (lp.tendsto_apply_of_tendsto hT η).congr fun s ↦ ?_
+      simp only [hamiltonianTermLp, lp.coeFn_sum]
+      exact Finset.sum_apply _ _ _
+    rw [hamiltonian_eq_tsum (Φ := Φ) Λ η]
+    exact h1.unique (summable_hamiltonianTerms (Φ := Φ) Λ η).hasSum
+  have hTeq : T = hamiltonianLp Φ Λ := lp.ext (funext hpt)
+  exact hTeq ▸ hT
+
+omit [Countable S] in
+/-- **Georgii (2.14)/(2.20).** The Hamiltonian of an absolutely summable potential over a finite
+volume is a bounded quasilocal observable. -/
+theorem hamiltonianLp_mem_quasilocalFunctions (Λ : Finset S) :
+    hamiltonianLp Φ Λ ∈ quasilocalFunctions S E := by
+  refine (Subalgebra.isClosed_topologicalClosure (localFunctions S E)).mem_of_tendsto
+    (hasSum_hamiltonianTermLp (Φ := Φ) Λ) (.of_forall fun s ↦ ?_)
+  exact Subalgebra.sum_mem _ fun A _ ↦ localFunctions_le_quasilocalFunctions
+    (mem_localFunctions.2 ⟨A, hamiltonianTermLp_mem_localFunctionsOn (Φ := Φ) Λ A⟩)
+
+end HamiltonianLp
+
+/-! ### Georgii's `T₁` estimate: the boundary part of the Hamiltonian
+
+Georgii's proof of Corollary (8.37) compares the Hamiltonian `H^Ψ_Λ` with the sum
+`∑_{k ∈ Λ} f_Ψ ∘ θ_{−k}` of the energy densities `Potential.siteEnergy` (15.22) over `Λ`. Their
+difference is `∑_{A ∩ Λ ≠ ∅} (|A ∖ Λ| / |A|) Ψ_A`, which oscillates at the site `j` by at most
+`2 ∑_{A ∋ j, A ⊄ Λ} ‖Ψ_A‖ = 2 ‖Ψ‖(Λ, {j})`, a quantity that vanishes as `Λ ↑ S`
+(`Potential.tendsto_tailWeight_atTop`).
+-/
+
+section BoundaryOscillation
+
+open Potential
+
+variable {S E : Type*} [Countable S] [DecidableEq S] [MeasurableSpace E] {Φ : Potential S E}
+  [IsPotential Φ] [IsAbsolutelySummable Φ]
+
+omit [Countable S] [IsAbsolutelySummable Φ] in
+/-- The terms of `H^Φ_Λ − ∑_{k ∈ Λ} f_Φ ∘ θ_{−k}` oscillate at the site `j` by at most `2‖Φ_A‖`,
+and only when `j ∈ A` and `A ⊄ Λ`. -/
+lemma oscAt_hamiltonianTerms_sub_le (Λ : Finset S) (j : S) (A : Finset S) :
+    oscAt (fun η ↦ Φ.hamiltonianTerms Λ η A
+        - ((A ∩ Λ).card : ℝ) / (A.card : ℝ) * Φ A η) j
+      ≤ 2 * {B : Finset S | ¬ Disjoint B ({j} : Finset S) ∧ ¬ B ⊆ Λ}.indicator
+          (fun B ↦ ⨆ η, ‖Φ B η‖ₑ) A := by
+  classical
+  have hzero : ∀ (hd : Disjoint A Λ) (η : S → E),
+      Φ.hamiltonianTerms Λ η A - ((A ∩ Λ).card : ℝ) / (A.card : ℝ) * Φ A η = 0 := by
+    intro hd η
+    rw [hamiltonianTerms_of_disjoint hd, Finset.disjoint_iff_inter_eq_empty.1 hd]
+    simp
+  by_cases hj : j ∈ A
+  · by_cases hsub : A ⊆ Λ
+    · have hd : ¬ Disjoint A Λ := by
+        rw [Finset.not_disjoint_iff]; exact ⟨j, hj, hsub hj⟩
+      have hcard : (0 : ℝ) < (A.card : ℝ) := by exact_mod_cast Finset.card_pos.2 ⟨j, hj⟩
+      have hfun : (fun η ↦ Φ.hamiltonianTerms Λ η A
+          - ((A ∩ Λ).card : ℝ) / (A.card : ℝ) * Φ A η) = fun _ ↦ (0 : ℝ) := by
+        funext η
+        rw [hamiltonianTerms_of_not_disjoint hd, Finset.inter_eq_left.2 hsub,
+          div_self hcard.ne', one_mul, sub_self]
+      rw [hfun, oscAt_const]
+      exact bot_le
+    · rw [Set.indicator_of_mem
+        (show A ∈ {B : Finset S | ¬ Disjoint B ({j} : Finset S) ∧ ¬ B ⊆ Λ} from
+          ⟨by simpa using hj, hsub⟩)]
+      by_cases hd : Disjoint A Λ
+      · rw [funext (hzero hd), oscAt_const]
+        exact bot_le
+      · have hcard : (0 : ℝ) < (A.card : ℝ) := by exact_mod_cast Finset.card_pos.2 ⟨j, hj⟩
+        have hfun : (fun η ↦ Φ.hamiltonianTerms Λ η A
+            - ((A ∩ Λ).card : ℝ) / (A.card : ℝ) * Φ A η)
+            = fun η ↦ (1 - ((A ∩ Λ).card : ℝ) / (A.card : ℝ)) * Φ A η := by
+          funext η
+          rw [hamiltonianTerms_of_not_disjoint hd]
+          ring
+        have hc : |1 - ((A ∩ Λ).card : ℝ) / (A.card : ℝ)| ≤ 1 := by
+          have h0 : (0 : ℝ) ≤ ((A ∩ Λ).card : ℝ) / (A.card : ℝ) := by positivity
+          have h1 : ((A ∩ Λ).card : ℝ) / (A.card : ℝ) ≤ 1 :=
+            div_le_one_of_le₀
+              (by exact_mod_cast Finset.card_le_card Finset.inter_subset_left) hcard.le
+          rw [abs_le]; constructor <;> linarith
+        rw [hfun]
+        refine (oscAt_const_mul_le _ (Φ A) j).trans ?_
+        calc ENNReal.ofReal |1 - ((A ∩ Λ).card : ℝ) / (A.card : ℝ)| * oscAt (Φ A) j
+            ≤ 1 * osc (Φ A) := mul_le_mul' (ENNReal.ofReal_le_one.2 hc) oscAt_le_osc
+          _ ≤ 2 * ⨆ η, ‖Φ A η‖ₑ := by rw [one_mul]; exact osc_le_two_mul_iSup _
+  · have hdep : DependsOn (fun η ↦ Φ.hamiltonianTerms Λ η A
+        - ((A ∩ Λ).card : ℝ) / (A.card : ℝ) * Φ A η) (A : Set S) := by
+      intro η ζ hηζ
+      dsimp only
+      by_cases hd : Disjoint A Λ
+      · rw [hzero hd, hzero hd]
+      · rw [hamiltonianTerms_of_not_disjoint hd, hamiltonianTerms_of_not_disjoint hd,
+          IsPotential.dependsOn (Φ := Φ) A hηζ]
+    rw [oscAt_eq_zero_of_dependsOn hdep (by simpa using hj)]
+    exact bot_le
+
+omit [Countable S] in
+/-- **Georgii, in the proof of Corollary (8.37).** The difference between the Hamiltonian in `Λ`
+and the sum over `Λ` of the energy densities `f_Φ ∘ θ_{−k}` (15.22) oscillates at each site `j`
+by at most `2 ∑_{A ∋ j, A ⊄ Λ} ‖Φ_A‖`. -/
+theorem oscAt_hamiltonian_sub_sum_siteEnergy_le (Λ : Finset S) (j : S) :
+    oscAt (fun η ↦ Φ.hamiltonian Λ η - ∑ k ∈ Λ, Φ.siteEnergy k η) j
+      ≤ 2 * Φ.tailWeight Λ {j} := by
+  have hsummable : ∀ η : S → E, Summable fun A : Finset S ↦
+      Φ.hamiltonianTerms Λ η A - ((A ∩ Λ).card : ℝ) / (A.card : ℝ) * Φ A η := fun η ↦
+    (summable_hamiltonianTerms (Φ := Φ) Λ η).sub (summable_card_inter_div_mul (Φ := Φ) Λ η)
+  have hfun : (fun η ↦ Φ.hamiltonian Λ η - ∑ k ∈ Λ, Φ.siteEnergy k η)
+      = fun η ↦ ∑' A : Finset S,
+          (Φ.hamiltonianTerms Λ η A - ((A ∩ Λ).card : ℝ) / (A.card : ℝ) * Φ A η) := by
+    funext η
+    rw [hamiltonian_eq_tsum (Φ := Φ) Λ η, sum_siteEnergy (Φ := Φ) Λ η,
+      (summable_hamiltonianTerms (Φ := Φ) Λ η).tsum_sub
+        (summable_card_inter_div_mul (Φ := Φ) Λ η)]
+  rw [hfun]
+  refine (oscAt_tsum_le _ hsummable j).trans ?_
+  rw [tailWeight, ← ENNReal.tsum_mul_left]
+  exact ENNReal.tsum_le_tsum fun A ↦ oscAt_hamiltonianTerms_sub_le (Φ := Φ) Λ j A
+
+/-! ### The oscillations of the energy densities
+
+Georgii's `∑_k δ_k(f_Ψ) ≤ 2 ∑_k ∑_{A ⊇ {0,k}} |A|⁻¹ ‖Ψ_A‖ = 2 ‖Ψ‖₀`, in the two forms needed for
+`T₂` and `T₃`: the single-site oscillations of one energy density `f_Φ ∘ θ_{−k}` are summable
+over the sites, and so are the oscillations at one site of all the energy densities.
+-/
+
+omit [Countable S] [IsAbsolutelySummable Φ] in
+/-- The term `|A|⁻¹ Φ_A` of the energy density at `k` oscillates at `j` only when `A` contains
+both sites, and then by at most `|A|⁻¹ δ(Φ_A)`. -/
+lemma oscAt_siteEnergyTerms_le (k j : S) (A : Finset S) :
+    oscAt (fun η ↦ Φ.siteEnergyTerms k η A) j
+      ≤ {B : Finset S | k ∈ B ∧ j ∈ B}.indicator
+          (fun B ↦ ((B.card : ℝ≥0∞))⁻¹ * osc (Φ B)) A := by
+  have hdep : DependsOn (fun η ↦ Φ.siteEnergyTerms k η A) (A : Set S) := by
+    intro η ζ hηζ
+    dsimp only
+    by_cases hk : k ∈ A
+    · rw [siteEnergyTerms_of_mem hk, siteEnergyTerms_of_mem hk,
+        IsPotential.dependsOn (Φ := Φ) A hηζ]
+    · rw [siteEnergyTerms_of_not_mem hk, siteEnergyTerms_of_not_mem hk]
+  by_cases hk : k ∈ A
+  · by_cases hj : j ∈ A
+    · rw [Set.indicator_of_mem
+        (show A ∈ {B : Finset S | k ∈ B ∧ j ∈ B} from ⟨hk, hj⟩)]
+      simp only [siteEnergyTerms_of_mem hk]
+      refine (oscAt_const_mul_le _ (Φ A) j).trans ?_
+      have hcard : (0 : ℝ) < (A.card : ℝ) := by exact_mod_cast Finset.card_pos.2 ⟨k, hk⟩
+      have hinv : ENNReal.ofReal |((A.card : ℝ))⁻¹| = ((A.card : ℝ≥0∞))⁻¹ := by
+        rw [abs_of_nonneg (by positivity), ENNReal.ofReal_inv_of_pos hcard,
+          ENNReal.ofReal_natCast]
+      rw [hinv]
+      exact mul_le_mul' le_rfl oscAt_le_osc
+    · rw [oscAt_eq_zero_of_dependsOn hdep (by simpa using hj)]
+      exact bot_le
+  · simp only [siteEnergyTerms_of_not_mem hk, oscAt_const]
+    exact bot_le
+
+omit [Countable S] in
+/-- `δ_j(f_Φ ∘ θ_{−k}) ≤ ∑_{A ⊇ {k,j}} |A|⁻¹ δ(Φ_A)`. -/
+lemma oscAt_siteEnergy_le (k j : S) :
+    oscAt (Φ.siteEnergy k) j
+      ≤ ∑' A : Finset S, {B : Finset S | k ∈ B ∧ j ∈ B}.indicator
+          (fun B ↦ ((B.card : ℝ≥0∞))⁻¹ * osc (Φ B)) A :=
+  (oscAt_tsum_le (fun A η ↦ Φ.siteEnergyTerms k η A)
+      (fun η ↦ summable_siteEnergyTerms (Φ := Φ) k η) j).trans
+    (ENNReal.tsum_le_tsum fun A ↦ oscAt_siteEnergyTerms_le (Φ := Φ) k j A)
+
+/-- Summing `∑_{A ⊇ {k,j}} |A|⁻¹ δ(Φ_A)` over the second site telescopes the factor `|A|⁻¹`. -/
+lemma tsum_indicator_pair_le {S E : Type*} [DecidableEq S] (Φ : Finset S → (S → E) → ℝ)
+    (k : S) (A : Finset S) :
+    ∑' j : S, {B : Finset S | k ∈ B ∧ j ∈ B}.indicator
+        (fun B ↦ ((B.card : ℝ≥0∞))⁻¹ * osc (Φ B)) A
+      ≤ {B : Finset S | k ∈ B}.indicator (fun B ↦ 2 * ⨆ η, ‖Φ B η‖ₑ) A := by
+  classical
+  by_cases hk : k ∈ A
+  · rw [Set.indicator_of_mem (show A ∈ {B : Finset S | k ∈ B} from hk)]
+    have hpt : ∀ j : S, {B : Finset S | k ∈ B ∧ j ∈ B}.indicator
+        (fun B ↦ ((B.card : ℝ≥0∞))⁻¹ * osc (Φ B)) A
+        = if j ∈ A then ((A.card : ℝ≥0∞))⁻¹ * osc (Φ A) else 0 := by
+      intro j
+      by_cases hj : j ∈ A
+      · rw [Set.indicator_of_mem (show A ∈ {B : Finset S | k ∈ B ∧ j ∈ B} from ⟨hk, hj⟩)]
+        simp [hj]
+      · rw [Set.indicator_of_notMem (show A ∉ {B : Finset S | k ∈ B ∧ j ∈ B} from
+          fun h ↦ hj h.2)]
+        simp [hj]
+    have hcard : (A.card : ℝ≥0∞) ≠ 0 := by
+      simpa using (Finset.card_pos.2 ⟨k, hk⟩).ne'
+    calc ∑' j : S, {B : Finset S | k ∈ B ∧ j ∈ B}.indicator
+            (fun B ↦ ((B.card : ℝ≥0∞))⁻¹ * osc (Φ B)) A
+        = ∑' j : S, (if j ∈ A then ((A.card : ℝ≥0∞))⁻¹ * osc (Φ A) else 0) := tsum_congr hpt
+      _ = (A.card : ℝ≥0∞) * (((A.card : ℝ≥0∞))⁻¹ * osc (Φ A)) := by
+          rw [tsum_eq_sum (s := A) fun b hb ↦ by simp [hb], Finset.sum_ite_mem,
+            Finset.inter_self, Finset.sum_const, nsmul_eq_mul]
+      _ = osc (Φ A) := by
+          rw [← mul_assoc, ENNReal.mul_inv_cancel hcard (by simp), one_mul]
+      _ ≤ 2 * ⨆ η, ‖Φ A η‖ₑ := osc_le_two_mul_iSup _
+  · have hpt : ∀ j : S, {B : Finset S | k ∈ B ∧ j ∈ B}.indicator
+        (fun B ↦ ((B.card : ℝ≥0∞))⁻¹ * osc (Φ B)) A = 0 := fun j ↦
+      Set.indicator_of_notMem (fun h ↦ hk h.1) _
+    rw [tsum_congr hpt, tsum_zero]
+    exact bot_le
+
+omit [Countable S] [IsAbsolutelySummable Φ] [IsPotential Φ] in
+lemma tsum_indicator_mem_eq_two_mul_normAt (k : S) :
+    ∑' A : Finset S, {B : Finset S | k ∈ B}.indicator (fun B ↦ 2 * ⨆ η, ‖Φ B η‖ₑ) A
+      = 2 * Φ.normAt k := by
+  rw [Potential.normAt, ← ENNReal.tsum_mul_left]
+  refine tsum_congr fun A ↦ ?_
+  by_cases h : k ∈ A
+  · rw [Set.indicator_of_mem (show A ∈ {B : Finset S | k ∈ B} from h),
+      Set.indicator_of_mem (show A ∈ {B : Finset S | k ∈ B} from h)]
+  · rw [Set.indicator_of_notMem (show A ∉ {B : Finset S | k ∈ B} from h),
+      Set.indicator_of_notMem (show A ∉ {B : Finset S | k ∈ B} from h), mul_zero]
+
+omit [Countable S] in
+/-- **Georgii, in the proof of Corollary (8.37):** `∑_j δ_j(f_Φ ∘ θ_{−k}) ≤ 2 ‖Φ‖_k`. -/
+theorem tsum_oscAt_siteEnergy_le (k : S) :
+    ∑' j : S, oscAt (Φ.siteEnergy k) j ≤ 2 * Φ.normAt k := by
+  calc ∑' j : S, oscAt (Φ.siteEnergy k) j
+      ≤ ∑' j : S, ∑' A : Finset S, {B : Finset S | k ∈ B ∧ j ∈ B}.indicator
+          (fun B ↦ ((B.card : ℝ≥0∞))⁻¹ * osc (Φ B)) A :=
+        ENNReal.tsum_le_tsum fun j ↦ oscAt_siteEnergy_le (Φ := Φ) k j
+    _ = ∑' A : Finset S, ∑' j : S, {B : Finset S | k ∈ B ∧ j ∈ B}.indicator
+          (fun B ↦ ((B.card : ℝ≥0∞))⁻¹ * osc (Φ B)) A := ENNReal.tsum_comm
+    _ ≤ ∑' A : Finset S, {B : Finset S | k ∈ B}.indicator
+          (fun B ↦ 2 * ⨆ η, ‖Φ B η‖ₑ) A :=
+        ENNReal.tsum_le_tsum fun A ↦ tsum_indicator_pair_le Φ k A
+    _ = 2 * Φ.normAt k := tsum_indicator_mem_eq_two_mul_normAt (Φ := Φ) k
+
+omit [Countable S] in
+/-- **Georgii, in the proof of Corollary (8.37):** `∑_k δ_j(f_Φ ∘ θ_{−k}) ≤ 2 ‖Φ‖_j`; this is
+what makes the tail `∑_{k ∉ Δ} |⟨f_Φ ∘ θ_{−k}, g⟩|` of Georgii's `T₃` small. -/
+theorem tsum_oscAt_siteEnergy_le' (j : S) :
+    ∑' k : S, oscAt (Φ.siteEnergy k) j ≤ 2 * Φ.normAt j := by
+  have hset : ∀ k : S, {B : Finset S | k ∈ B ∧ j ∈ B} = {B : Finset S | j ∈ B ∧ k ∈ B} :=
+    fun k ↦ Set.ext fun B ↦ and_comm
+  calc ∑' k : S, oscAt (Φ.siteEnergy k) j
+      ≤ ∑' k : S, ∑' A : Finset S, {B : Finset S | j ∈ B ∧ k ∈ B}.indicator
+          (fun B ↦ ((B.card : ℝ≥0∞))⁻¹ * osc (Φ B)) A :=
+        ENNReal.tsum_le_tsum fun k ↦ (hset k ▸ oscAt_siteEnergy_le (Φ := Φ) k j)
+    _ = ∑' A : Finset S, ∑' k : S, {B : Finset S | j ∈ B ∧ k ∈ B}.indicator
+          (fun B ↦ ((B.card : ℝ≥0∞))⁻¹ * osc (Φ B)) A := ENNReal.tsum_comm
+    _ ≤ ∑' A : Finset S, {B : Finset S | j ∈ B}.indicator
+          (fun B ↦ 2 * ⨆ η, ‖Φ B η‖ₑ) A :=
+        ENNReal.tsum_le_tsum fun A ↦ tsum_indicator_pair_le Φ j A
+    _ = 2 * Φ.normAt j := tsum_indicator_mem_eq_two_mul_normAt (Φ := Φ) j
+
+end BoundaryOscillation
+
+/-! ### Georgii's `T₁`: the boundary part of the Hamiltonian is negligible
+
+`H^Ψ_Λ − ∑_{k ∈ Λ} f_Ψ ∘ θ_{−k}` is a bounded quasilocal observable whose covariance with `g`,
+estimated by Proposition (8.34) against a fixed majorant `C` of the interdependence matrices,
+tends to `0` as `Λ ↑ S` — uniformly in the potential along the segment, because the majorant does
+not depend on it.
+-/
+
+section BoundaryTerm
+
+open Potential
+
+variable {S E : Type*} [Countable S] [DecidableEq S] [MeasurableSpace E] {Ψ : Potential S E}
+  [IsPotential Ψ] [IsAbsolutelySummable Ψ]
+
+variable (Ψ) in
+/-- Georgii's `H^Ψ_Λ − ∑_{k ∈ Λ} f_Ψ ∘ θ_{−k}`, the boundary part of the Hamiltonian, as a
+bounded observable. -/
+def hamiltonianRemLp (Λ : Finset S) : lp (fun _ : S → E ↦ ℝ) ∞ :=
+  hamiltonianLp Ψ Λ - ∑ k ∈ Λ, Ψ.siteEnergyLp k
+
+omit [Countable S] [DecidableEq S] [IsPotential Ψ] in
+lemma coeFn_hamiltonianRemLp (Λ : Finset S) :
+    ⇑(hamiltonianRemLp Ψ Λ) = fun η ↦ Ψ.hamiltonian Λ η - ∑ k ∈ Λ, Ψ.siteEnergy k η := by
+  funext η
+  rw [hamiltonianRemLp, lp.coeFn_sub, Pi.sub_apply, lp.coeFn_sum, Finset.sum_apply]
+  simp only [coeFn_hamiltonianLp, coeFn_siteEnergyLp]
+
+omit [Countable S] [DecidableEq S] in
+lemma hamiltonianRemLp_mem_quasilocalFunctions (Λ : Finset S) :
+    hamiltonianRemLp Ψ Λ ∈ quasilocalFunctions S E :=
+  Subalgebra.sub_mem _ (hamiltonianLp_mem_quasilocalFunctions Λ)
+    (Subalgebra.sum_mem _ fun k _ ↦ siteEnergyLp_mem_quasilocalFunctions (Φ := Ψ) k)
+
+omit [Countable S] in
+/-- Georgii's oscillation bound for the boundary part: `δ_j(H^Ψ_Λ − ∑_{k ∈ Λ} f_Ψ ∘ θ_{−k})
+≤ 2 ∑_{A ∋ j, A ⊄ Λ} ‖Ψ_A‖`. -/
+lemma oscAt_hamiltonianRemLp_le (Λ : Finset S) (j : S) :
+    oscAt (⇑(hamiltonianRemLp Ψ Λ)) j ≤ 2 * Ψ.tailWeight Λ {j} := by
+  rw [coeFn_hamiltonianRemLp]
+  exact oscAt_hamiltonian_sub_sum_siteEnergy_le (Φ := Ψ) Λ j
+
+omit [Countable S] in
+lemma oscAt_hamiltonianRemLp_le_normAt (Λ : Finset S) (j : S) :
+    oscAt (⇑(hamiltonianRemLp Ψ Λ)) j ≤ 2 * Ψ.normAt j :=
+  (oscAt_hamiltonianRemLp_le Λ j).trans
+    (mul_le_mul' le_rfl (tailWeight_singleton_le_normAt (Φ := Ψ) Λ j))
+
+omit [Countable S] in
+/-- The oscillation of the boundary part at a fixed site vanishes as `Λ ↑ S`. -/
+lemma tendsto_oscAt_hamiltonianRemLp (j : S) :
+    Tendsto (fun Λ : Finset S ↦ oscAt (⇑(hamiltonianRemLp Ψ Λ)) j) atTop (𝓝 0) := by
+  rw [ENNReal.tendsto_nhds_zero]
+  intro ε hε
+  filter_upwards [ENNReal.tendsto_nhds_zero.1 (tendsto_tailWeight_atTop (Φ := Ψ) {j})
+    (ε / 2) (ENNReal.half_pos hε.ne')] with Λ hΛ
+  calc oscAt (⇑(hamiltonianRemLp Ψ Λ)) j ≤ 2 * Ψ.tailWeight Λ {j} :=
+        oscAt_hamiltonianRemLp_le Λ j
+    _ ≤ 2 * (ε / 2) := by gcongr
+    _ = ε := ENNReal.mul_div_cancel' (by norm_num) (by norm_num)
+
+end BoundaryTerm
+
+/-! ### Georgii's `⟨·,·⟩` as Mathlib's covariance
+
+Georgii writes `⟨f, g⟩_ρ = ρ(fg) − ρ(f)ρ(g)`; this is `ProbabilityTheory.covariance`, whose
+bilinearity is what organises the decomposition of `⟨H^Ψ_Λ, g⟩` in the proof of Corollary (8.37).
+-/
+
+section Covariance
+
+variable {S E : Type*} [MeasurableSpace E] {ρ : Measure (S → E)}
+  {f g : lp (fun _ : S → E ↦ ℝ) ∞}
+
+/-- A bounded quasilocal observable is square integrable against a finite measure. -/
+lemma memLp_two_of_mem_quasilocalFunctions [IsFiniteMeasure ρ]
+    (hf : f ∈ quasilocalFunctions S E) : MemLp (⇑f) 2 ρ :=
+  MemLp.of_bound (measurable_of_mem_quasilocalFunctions hf).aestronglyMeasurable ‖f‖
+    (Filter.Eventually.of_forall fun σ ↦ lp.norm_apply_le_norm ENNReal.top_ne_zero f σ)
+
+/-- Georgii's `⟨f, g⟩_ρ = ρ(fg) − ρ(f)ρ(g)` is the covariance of `f` and `g` under `ρ`. -/
+lemma covariance_eq_integral_mul_sub [IsProbabilityMeasure ρ]
+    (hf : f ∈ quasilocalFunctions S E) (hg : g ∈ quasilocalFunctions S E) :
+    cov[(f : (S → E) → ℝ), (g : (S → E) → ℝ); ρ]
+      = (∫ σ, (f : (S → E) → ℝ) σ * (g : (S → E) → ℝ) σ ∂ρ)
+        - (∫ σ, (f : (S → E) → ℝ) σ ∂ρ) * ∫ σ, (g : (S → E) → ℝ) σ ∂ρ :=
+  covariance_eq_sub (memLp_two_of_mem_quasilocalFunctions hf)
+    (memLp_two_of_mem_quasilocalFunctions hg)
+
+end Covariance
+
+/-! ### Proposition (8.34) in covariance form -/
+
+section Prop834Cov
+
+variable {S E : Type*} [MeasurableSpace E] [DecidableEq S] {γ : Specification S E}
+  {μ : Measure (S → E)} {C : S → S → ℝ≥0∞}
+
+/-- **Georgii, Proposition (8.34)**, in covariance form and against a majorant `C ≥ C(γ)`. -/
+theorem ofReal_abs_covariance_le_matSeries' [IsProbabilityMeasure μ] (hγq : γ.IsQuasilocal)
+    (hd : IsDobrushin γ) (hμ : ∀ i : S, μ.bind (γ {i}) = μ)
+    (hC : ∀ i j, interdep γ i j ≤ C i j)
+    {f g : lp (fun _ : S → E ↦ ℝ) ∞} (hf : f ∈ quasilocalFunctions S E)
+    (hg : g ∈ quasilocalFunctions S E) :
+    ENNReal.ofReal |cov[(f : (S → E) → ℝ), (g : (S → E) → ℝ); μ]|
+      ≤ (∑' i, matSeries C (fun j ↦ oscAt (⇑g) j) i * oscAt (⇑f) i) / 4 := by
+  rw [covariance_eq_integral_mul_sub hf hg]
+  exact ofReal_abs_covariance_le_matSeries hγq hd hμ hC hf hg
+
+/-- **Georgii, Proposition (8.34) at finite volume**, in covariance form. -/
+theorem ofReal_abs_covariance_apply_le_matSeries' (hγq : γ.IsQuasilocal) (hd : IsDobrushin γ)
+    (hC : ∀ i j, interdep γ i j ≤ C i j) (Λ : Finset S) (ω : S → E)
+    {f g : lp (fun _ : S → E ↦ ℝ) ∞} (hf : f ∈ quasilocalFunctions S E)
+    (hg : g ∈ quasilocalFunctions S E) :
+    ENNReal.ofReal |cov[(f : (S → E) → ℝ), (g : (S → E) → ℝ); γ Λ ω]|
+      ≤ (∑' i, matSeries C (fun j ↦ oscAt (⇑g) j) i * oscAt (⇑f) i) / 4 := by
+  rw [covariance_eq_integral_mul_sub hf hg]
+  exact ofReal_abs_covariance_apply_le_matSeries hγq hd hC Λ ω hf hg
+
+end Prop834Cov
+
+/-! ### The three vanishing bounds of Georgii's proof of Corollary (8.37)
+
+`T₁`, `T₂`, `T₃` are all controlled by `t`-independent quantities, because the covariance
+estimate (8.34) is applied against a single majorant `C` of the interdependence matrices along
+the segment `Φ + tΨ`, `|t| ≤ t₀`.
+-/
+
+section Vanishing
+
+open Potential
+
+variable {S E : Type*} [Countable S] [DecidableEq S] [MeasurableSpace E] {Ψ : Potential S E}
+  [IsPotential Ψ] [IsAbsolutelySummable Ψ] {C : S → S → ℝ≥0∞} {b c : ℝ≥0∞}
+  {g : lp (fun _ : S → E ↦ ℝ) ∞}
+
+omit [Countable S] in
+/-- **Georgii's `T₁ → 0`.** The covariance bound (8.34) for the boundary part
+`H^Ψ_Λ − ∑_{k ∈ Λ} f_Ψ ∘ θ_{−k}` against `g` vanishes as `Λ ↑ S`. -/
+theorem tendsto_bound_hamiltonianRemLp (hc1 : c < 1) (hc : ∀ i, ∑' j, C i j ≤ c)
+    (hb : ∀ j, Ψ.normAt j ≤ b) (hbtop : b ≠ ⊤) (hgsum : ∑' i, oscAt (⇑g) i ≠ ⊤) :
+    Tendsto (fun Λ : Finset S ↦
+        ∑' i, matSeries C (fun j ↦ oscAt (⇑(hamiltonianRemLp Ψ Λ)) j) i * oscAt (⇑g) i)
+      atTop (𝓝 0) :=
+  tendsto_tsum_matSeries_mul hc1 hc (M := 2 * b) (ENNReal.mul_ne_top (by norm_num) hbtop)
+    (fun Λ j ↦ (oscAt_hamiltonianRemLp_le_normAt Λ j).trans (mul_le_mul' le_rfl (hb j)))
+    (fun j ↦ tendsto_oscAt_hamiltonianRemLp j) hgsum
+
+omit [Countable S] in
+lemma tsum_oscAt_siteEnergy_ne_top (hb : ∀ j, Ψ.normAt j ≤ b) (hbtop : b ≠ ⊤) (j : S) :
+    ∑' k : S, oscAt (Ψ.siteEnergy k) j ≠ ⊤ :=
+  ne_top_of_le_ne_top (ENNReal.mul_ne_top (by norm_num) hbtop)
+    ((tsum_oscAt_siteEnergy_le' (Φ := Ψ) j).trans (mul_le_mul' le_rfl (hb j)))
+
+omit [Countable S] in
+/-- The tail `∑_{k ∉ Δ} δ_j(f_Ψ ∘ θ_{−k})` vanishes as `Δ ↑ S`. -/
+lemma tendsto_tsum_ite_oscAt_siteEnergy (hb : ∀ j, Ψ.normAt j ≤ b) (hbtop : b ≠ ⊤) (j : S) :
+    Tendsto (fun Δ : Finset S ↦
+        ∑' k : S, (if k ∈ Δ then 0 else oscAt (Ψ.siteEnergy k) j)) atTop (𝓝 0) := by
+  have h := ENNReal.tendsto_tsum_compl_atTop_zero
+    (f := fun k : S ↦ oscAt (Ψ.siteEnergy k) j) (tsum_oscAt_siteEnergy_ne_top hb hbtop j)
+  exact h.congr fun Δ ↦ (tsum_ite_compl_eq _ Δ).symm
+
+/-- **Georgii's `T₃ → 0`.** The covariance bound (8.34) summed over the sites outside a finite
+volume `Δ` vanishes as `Δ ↑ S`; this is Georgii's `∑_k δ_k(f_Ψ) ≤ 2‖Ψ‖₀ < ∞`. -/
+theorem tendsto_bound_tsum_compl_siteEnergy (hc1 : c < 1) (hc : ∀ i, ∑' j, C i j ≤ c)
+    (hb : ∀ j, Ψ.normAt j ≤ b) (hbtop : b ≠ ⊤) (hgsum : ∑' i, oscAt (⇑g) i ≠ ⊤) :
+    Tendsto (fun Δ : Finset S ↦
+        ∑' i, matSeries C
+            (fun j ↦ ∑' k : S, (if k ∈ Δ then 0 else oscAt (Ψ.siteEnergy k) j)) i
+          * oscAt (⇑g) i) atTop (𝓝 0) :=
+  tendsto_tsum_matSeries_mul hc1 hc (M := 2 * b) (ENNReal.mul_ne_top (by norm_num) hbtop)
+    (fun Δ j ↦ le_trans (ENNReal.tsum_le_tsum fun k ↦ by split <;> simp)
+      ((tsum_oscAt_siteEnergy_le' (Φ := Ψ) j).trans (mul_le_mul' le_rfl (hb j))))
+    (fun j ↦ tendsto_tsum_ite_oscAt_siteEnergy hb hbtop j) hgsum
+
+end Vanishing
+
+
+/-! ### Georgii Corollary (8.37): differentiating the Gibbs measure in the potential
+
+Georgii fixes a potential `Φ` in the region `𝒟 = {‖Φ‖' < 1}` of (8.36), a direction `Ψ`, and an
+observable `g` with `∑_i δ_i(g) < ∞`, and shows that `t ↦ μ_{Φ+tΨ}(g)` is differentiable near `0`
+with
+
+`∂/∂t μ_{Φ+tΨ}(g) = −∑_{k ∈ S} ⟨f_Ψ ∘ θ_{−k}, g⟩_{μ_{Φ+tΨ}}`,
+
+the sum of the covariances of `g` with the energy densities (15.22) of `Ψ`.
+
+The proof exchanges the two limits `Λ ↑ S` and `∂/∂t`. At finite volume the derivative *is* a
+covariance, `∂/∂t γ^{Φ+tΨ}_Λ(g|ω) = −⟨H^Ψ_Λ, g⟩^t_Λ`
+(`hasDerivAt_integral_gibbsSpecification`), and `γ^{Φ+tΨ}_Λ(g|ω) → μ_{Φ+tΨ}(g)` by (8.23)
+(`isEstimate_finiteVolume`). The exchange is legitimate because the derivatives converge
+*uniformly* in `t`: for a finite `Δ ⊆ Λ`,
+
+`⟨H^Ψ_Λ, g⟩_{γ_Λ} − ∑_k ⟨f^k, g⟩_μ = ⟨H^Ψ_Λ − ∑_{k ∈ Λ} f^k, g⟩_{γ_Λ}`
+`  + ∑_{k ∈ Δ} (⟨f^k, g⟩_{γ_Λ} − ⟨f^k, g⟩_μ) + ∑_{k ∈ Λ∖Δ} ⟨f^k, g⟩_{γ_Λ} − ∑_{k ∉ Δ} ⟨f^k, g⟩_μ`
+
+(Georgii's `T₁`, `T₂` and twice `T₃`), and every term is estimated by Proposition (8.34) against
+the *single* majorant `C` of the interdependence matrices of the whole segment
+(`exists_forall_interdep_gibbsSpecification_add_smul_le`), hence uniformly in `t`.
+-/
+
+section Corollary837
+
+open Potential Specification
+
+variable {S E : Type*} [Countable S] [DecidableEq S] [MeasurableSpace E] {Ψ : Potential S E}
+  [IsPotential Ψ] [IsAbsolutelySummable Ψ] {C : S → S → ℝ≥0∞} {b c : ℝ≥0∞}
+  {g : lp (fun _ : S → E ↦ ℝ) ∞} {ρ : Measure (S → E)}
+
+omit [Countable S] [DecidableEq S] in
+/-- **Georgii, in the proof of Corollary (8.37).** The covariance of an observable with the
+Hamiltonian of a finite volume splits into the boundary part `H^Ψ_Λ − ∑_{k ∈ Λ} f_Ψ ∘ θ_{−k}` and
+the energy densities inside the volume. -/
+lemma covariance_hamiltonian_eq_add_sum_siteEnergy [IsProbabilityMeasure ρ]
+    (hg : g ∈ quasilocalFunctions S E) (Λ : Finset S) :
+    cov[(g : (S → E) → ℝ), Ψ.hamiltonian Λ; ρ]
+      = cov[(g : (S → E) → ℝ), ⇑(hamiltonianRemLp Ψ Λ); ρ]
+        + ∑ k ∈ Λ, cov[(g : (S → E) → ℝ), Ψ.siteEnergy k; ρ] := by
+  have hgL : MemLp (⇑g) 2 ρ := memLp_two_of_mem_quasilocalFunctions hg
+  have hrem : MemLp (⇑(hamiltonianRemLp Ψ Λ)) 2 ρ :=
+    memLp_two_of_mem_quasilocalFunctions (hamiltonianRemLp_mem_quasilocalFunctions Λ)
+  have hk : ∀ k ∈ Λ, MemLp (Ψ.siteEnergy k) 2 ρ := fun k _ ↦
+    memLp_two_of_mem_quasilocalFunctions (siteEnergyLp_mem_quasilocalFunctions (Φ := Ψ) k)
+  have hsplit : Ψ.hamiltonian Λ = ⇑(hamiltonianRemLp Ψ Λ) + ∑ k ∈ Λ, Ψ.siteEnergy k := by
+    rw [coeFn_hamiltonianRemLp]
+    funext η
+    simp
+  rw [hsplit, covariance_add_right hgL hrem (memLp_finsetSum' Λ hk),
+    covariance_sum_right' hk hgL]
+
+omit [Countable S] in
+/-- **Georgii's `T₃` estimate.** The covariances of `g` with the energy densities of the sites
+outside a finite set `Δ`, summed, are bounded by Proposition (8.34) applied to the vector
+`j ↦ ∑_{k ∉ Δ} δ_j(f_Ψ ∘ θ_{−k})`. -/
+lemma tsum_ite_ofReal_abs_covariance_siteEnergy_le
+    (hρ : ∀ f : lp (fun _ : S → E ↦ ℝ) ∞, f ∈ quasilocalFunctions S E →
+      ENNReal.ofReal |cov[(g : (S → E) → ℝ), (f : (S → E) → ℝ); ρ]|
+        ≤ (∑' i, matSeries C (fun j ↦ oscAt (⇑f) j) i * oscAt (⇑g) i) / 4)
+    (Δ : Finset S) :
+    ∑' k : S, (if k ∈ Δ then 0
+        else ENNReal.ofReal |cov[(g : (S → E) → ℝ), Ψ.siteEnergy k; ρ]|)
+      ≤ (∑' i, matSeries C
+          (fun j ↦ ∑' k : S, if k ∈ Δ then 0 else oscAt (Ψ.siteEnergy k) j) i
+          * oscAt (⇑g) i) / 4 := by
+  have hstep : ∀ k : S,
+      (if k ∈ Δ then 0 else ENNReal.ofReal |cov[(g : (S → E) → ℝ), Ψ.siteEnergy k; ρ]|)
+        ≤ (∑' i, matSeries C
+            (fun j ↦ if k ∈ Δ then 0 else oscAt (Ψ.siteEnergy k) j) i * oscAt (⇑g) i) / 4 := by
+    intro k
+    by_cases hk : k ∈ Δ
+    · simp [hk]
+    · simpa only [ite_eq_right hk, coeFn_siteEnergyLp] using
+        hρ (Ψ.siteEnergyLp k) (siteEnergyLp_mem_quasilocalFunctions (Φ := Ψ) k)
+  calc ∑' k : S, (if k ∈ Δ then 0
+        else ENNReal.ofReal |cov[(g : (S → E) → ℝ), Ψ.siteEnergy k; ρ]|)
+      ≤ ∑' k : S, (∑' i, matSeries C
+          (fun j ↦ if k ∈ Δ then 0 else oscAt (Ψ.siteEnergy k) j) i * oscAt (⇑g) i) / 4 :=
+        ENNReal.tsum_le_tsum hstep
+    _ = (∑' k : S, ∑' i, matSeries C
+          (fun j ↦ if k ∈ Δ then 0 else oscAt (Ψ.siteEnergy k) j) i * oscAt (⇑g) i) / 4 := by
+        simp_rw [div_eq_mul_inv]
+        rw [ENNReal.tsum_mul_right]
+    _ = _ := by rw [ENNReal.tsum_tsum_matSeries_mul]
+
+omit [Countable S] [DecidableEq S] in
+/-- **Georgii, in the proof of Corollary (8.37).** The covariance series
+`∑_k ⟨f_Ψ ∘ θ_{−k}, g⟩` converges absolutely: Proposition (8.34) bounds its terms by a
+convergent series, because `∑_k δ_j(f_Ψ ∘ θ_{−k}) ≤ 2‖Ψ‖_j` and `∑_i δ_i(g) < ∞`. -/
+lemma summable_norm_covariance_siteEnergy (hc1 : c < 1) (hc : ∀ i, ∑' j, C i j ≤ c)
+    (hb : ∀ j, Ψ.normAt j ≤ b) (hbtop : b ≠ ⊤) (hgsum : ∑' i, oscAt (⇑g) i ≠ ⊤)
+    (hρ : ∀ f : lp (fun _ : S → E ↦ ℝ) ∞, f ∈ quasilocalFunctions S E →
+      ENNReal.ofReal |cov[(g : (S → E) → ℝ), (f : (S → E) → ℝ); ρ]|
+        ≤ (∑' i, matSeries C (fun j ↦ oscAt (⇑f) j) i * oscAt (⇑g) i) / 4) :
+    Summable fun k : S ↦ ‖cov[(g : (S → E) → ℝ), Ψ.siteEnergy k; ρ]‖ := by
+  classical
+  have hle : ∑' k : S, ENNReal.ofReal |cov[(g : (S → E) → ℝ), Ψ.siteEnergy k; ρ]|
+      ≤ (∑' i, matSeries C (fun j ↦ ∑' k : S, oscAt (Ψ.siteEnergy k) j) i * oscAt (⇑g) i) / 4 := by
+    simpa using tsum_ite_ofReal_abs_covariance_siteEnergy_le (Ψ := Ψ) (C := C) hρ ∅
+  have hfin : (∑' i, matSeries C (fun j ↦ ∑' k : S, oscAt (Ψ.siteEnergy k) j) i
+      * oscAt (⇑g) i) / 4 ≠ ⊤ := by
+    refine (ENNReal.div_ne_top ?_ (by norm_num))
+    refine ENNReal.tsum_matSeries_mul_ne_top hc1 hc (M := 2 * b)
+      (ENNReal.mul_ne_top (by norm_num) hbtop) (fun j ↦ ?_) hgsum
+    exact (tsum_oscAt_siteEnergy_le' (Φ := Ψ) j).trans (mul_le_mul' le_rfl (hb j))
+  have hsum := ENNReal.summable_toReal (ne_top_of_le_ne_top hfin hle)
+  refine hsum.congr fun k ↦ ?_
+  rw [ENNReal.toReal_ofReal (abs_nonneg _), Real.norm_eq_abs]
+
+omit [Countable S] in
+/-- **Georgii's `T₁ + T₂ + 2T₃` estimate** in the proof of Corollary (8.37). For a finite
+`Δ ⊆ Λ`, the difference between the finite-volume covariance `⟨H^Ψ_Λ, g⟩_{γ_Λ(·|ω)}` and the
+infinite-volume series `∑_k ⟨f_Ψ ∘ θ_{−k}, g⟩_μ` is bounded by the sum of
+
+* Georgii's `T₁`: Proposition (8.34) applied to the boundary part of the Hamiltonian;
+* Georgii's `T₂`: the estimate (8.23) for the pair `γ_Λ(·|ω)`, `μ` on the sites of `Δ`;
+* twice Georgii's `T₃`: Proposition (8.34) applied to the energy densities outside `Δ`, once
+  under `γ_Λ(·|ω)` and once under `μ`.
+
+All three bounds are expressed through the majorant `C ≥ C(γ)`, so they do not see `γ` itself. -/
+lemma ofReal_abs_covariance_hamiltonian_sub_tsum_le {γ : Specification S E}
+    {μ : Measure (S → E)} [IsProbabilityMeasure μ]
+    (hγq : γ.IsQuasilocal) (hd : IsDobrushin γ) (hμ : ∀ i : S, μ.bind (γ {i}) = μ)
+    (hC : ∀ i j, interdep γ i j ≤ C i j) (hg : g ∈ quasilocalFunctions S E)
+    (hsum : Summable fun k : S ↦ ‖cov[(g : (S → E) → ℝ), Ψ.siteEnergy k; μ]‖)
+    {Δ Λ : Finset S} (hΔΛ : Δ ⊆ Λ) (ω : S → E) :
+    ENNReal.ofReal |cov[(g : (S → E) → ℝ), Ψ.hamiltonian Λ; γ Λ ω]
+        - ∑' k : S, cov[(g : (S → E) → ℝ), Ψ.siteEnergy k; μ]|
+      ≤ (∑' i, matSeries C (fun j ↦ oscAt (⇑(hamiltonianRemLp Ψ Λ)) j) i * oscAt (⇑g) i) / 4
+        + ∑ k ∈ Δ, (2 * ENNReal.ofReal ‖g‖ * ∑' j, matTail C Λ j * oscAt (Ψ.siteEnergy k) j
+            + 2 * ENNReal.ofReal ‖Ψ.siteEnergyLp k‖ * ∑' j, matTail C Λ j * oscAt (⇑g) j)
+        + 2 * ((∑' i, matSeries C
+            (fun j ↦ ∑' k : S, if k ∈ Δ then 0 else oscAt (Ψ.siteEnergy k) j) i
+            * oscAt (⇑g) i) / 4) := by
+  classical
+  set F : S → ℝ := fun k ↦ cov[(g : (S → E) → ℝ), Ψ.siteEnergy k; μ] with hFdef
+  set G : S → ℝ := fun k ↦ cov[(g : (S → E) → ℝ), Ψ.siteEnergy k; γ Λ ω] with hGdef
+  have hFs : Summable F := hsum.of_norm
+  have h1 : Summable fun k ↦ if k ∈ Δ then F k else 0 :=
+    summable_of_ne_finset_zero (s := Δ) fun k hk ↦ by simp [hk]
+  have h2 : Summable fun k ↦ if k ∈ Δ then 0 else F k := by
+    refine (hFs.sub h1).congr fun k ↦ ?_
+    by_cases hk : k ∈ Δ <;> simp [hk]
+  have hYsplit : ∑' k, F k = (∑ k ∈ Δ, F k) + ∑' k, (if k ∈ Δ then 0 else F k) := by
+    have hpt : ∀ k, (if k ∈ Δ then F k else 0) + (if k ∈ Δ then 0 else F k) = F k := fun k ↦ by
+      by_cases hk : k ∈ Δ <;> simp [hk]
+    rw [← tsum_congr hpt, h1.tsum_add h2, tsum_eq_sum (s := Δ) (fun k hk ↦ by simp [hk])]
+    congr 1
+    exact Finset.sum_congr rfl fun k hk ↦ by simp [hk]
+  have hid : cov[(g : (S → E) → ℝ), Ψ.hamiltonian Λ; γ Λ ω] - ∑' k, F k
+      = cov[(g : (S → E) → ℝ), ⇑(hamiltonianRemLp Ψ Λ); γ Λ ω]
+        + (∑ k ∈ Δ, (G k - F k)) + (∑ k ∈ Λ \ Δ, G k)
+        + -∑' k, (if k ∈ Δ then 0 else F k) := by
+    rw [covariance_hamiltonian_eq_add_sum_siteEnergy hg Λ, hYsplit,
+      ← Finset.sum_sdiff hΔΛ (f := G), Finset.sum_sub_distrib]
+    ring
+  -- `T₁`
+  have hT₁ : ENNReal.ofReal |cov[(g : (S → E) → ℝ), ⇑(hamiltonianRemLp Ψ Λ); γ Λ ω]|
+      ≤ (∑' i, matSeries C (fun j ↦ oscAt (⇑(hamiltonianRemLp Ψ Λ)) j) i * oscAt (⇑g) i) / 4 :=
+    ofReal_abs_covariance_apply_le_matSeries' hγq hd hC Λ ω hg
+      (hamiltonianRemLp_mem_quasilocalFunctions Λ)
+  -- `T₂`
+  have hT₂ : ENNReal.ofReal |∑ k ∈ Δ, (G k - F k)|
+      ≤ ∑ k ∈ Δ, (2 * ENNReal.ofReal ‖g‖ * ∑' j, matTail C Λ j * oscAt (Ψ.siteEnergy k) j
+          + 2 * ENNReal.ofReal ‖Ψ.siteEnergyLp k‖ * ∑' j, matTail C Λ j * oscAt (⇑g) j) := by
+    have hest := isEstimate_finiteVolume hγq hd hμ Λ ω
+    refine le_trans (le_trans (ENNReal.ofReal_le_ofReal (Finset.abs_sum_le_sum_abs _ _))
+      (le_of_eq (ENNReal.ofReal_sum_of_nonneg fun k _ ↦ abs_nonneg _)))
+      (Finset.sum_le_sum fun k _ ↦ ?_)
+    have hk := hest.ofReal_abs_covariance_sub_le hg
+      (siteEnergyLp_mem_quasilocalFunctions (Φ := Ψ) k)
+    rw [← covariance_eq_integral_mul_sub hg (siteEnergyLp_mem_quasilocalFunctions (Φ := Ψ) k),
+      ← covariance_eq_integral_mul_sub hg (siteEnergyLp_mem_quasilocalFunctions (Φ := Ψ) k)]
+      at hk
+    refine hk.trans (add_le_add (mul_le_mul' le_rfl (ENNReal.tsum_le_tsum fun j ↦ ?_))
+      (mul_le_mul' le_rfl (ENNReal.tsum_le_tsum fun j ↦ ?_))) <;>
+      exact mul_le_mul' (interdepTail_le_matTail hC Λ j) le_rfl
+  -- `T₃`, under the finite-volume Gibbs distribution
+  have hT₃γ : ∑' k : S, (if k ∈ Δ then 0 else ENNReal.ofReal |G k|)
+      ≤ (∑' i, matSeries C
+          (fun j ↦ ∑' k : S, if k ∈ Δ then 0 else oscAt (Ψ.siteEnergy k) j) i
+          * oscAt (⇑g) i) / 4 :=
+    tsum_ite_ofReal_abs_covariance_siteEnergy_le
+      (fun f hf ↦ ofReal_abs_covariance_apply_le_matSeries' hγq hd hC Λ ω hg hf) Δ
+  -- `T₃`, under the Gibbs measure
+  have hT₃μ : ∑' k : S, (if k ∈ Δ then 0 else ENNReal.ofReal |F k|)
+      ≤ (∑' i, matSeries C
+          (fun j ↦ ∑' k : S, if k ∈ Δ then 0 else oscAt (Ψ.siteEnergy k) j) i
+          * oscAt (⇑g) i) / 4 :=
+    tsum_ite_ofReal_abs_covariance_siteEnergy_le
+      (fun f hf ↦ ofReal_abs_covariance_le_matSeries' hγq hd hμ hC hg hf) Δ
+  have hT₃γ' : ENNReal.ofReal |∑ k ∈ Λ \ Δ, G k|
+      ≤ (∑' i, matSeries C
+          (fun j ↦ ∑' k : S, if k ∈ Δ then 0 else oscAt (Ψ.siteEnergy k) j) i
+          * oscAt (⇑g) i) / 4 := by
+    refine le_trans (le_trans (ENNReal.ofReal_le_ofReal (Finset.abs_sum_le_sum_abs _ _))
+      (le_of_eq (ENNReal.ofReal_sum_of_nonneg fun k _ ↦ abs_nonneg _))) (le_trans ?_ hT₃γ)
+    refine le_trans (le_of_eq (Finset.sum_congr rfl fun k hk ↦ ?_))
+      (ENNReal.sum_le_tsum (Λ \ Δ))
+    rw [ite_eq_right (Finset.mem_sdiff.1 hk).2]
+  have habs2 : Summable fun k : S ↦ |if k ∈ Δ then 0 else F k| := by
+    refine Summable.of_nonneg_of_le (fun k ↦ abs_nonneg _) (fun k ↦ ?_) hsum
+    by_cases hk : k ∈ Δ
+    · simp [hk]
+    · simp only [hFdef, ite_eq_right hk, Real.norm_eq_abs, le_refl]
+  have hT₃μ' : ENNReal.ofReal |-∑' k, (if k ∈ Δ then 0 else F k)|
+      ≤ (∑' i, matSeries C
+          (fun j ↦ ∑' k : S, if k ∈ Δ then 0 else oscAt (Ψ.siteEnergy k) j) i
+          * oscAt (⇑g) i) / 4 := by
+    refine le_trans (le_trans (ENNReal.ofReal_le_ofReal ?_)
+      (le_of_eq (ENNReal.ofReal_tsum_of_nonneg (fun k ↦ abs_nonneg _) habs2)))
+      (le_trans (ENNReal.tsum_le_tsum fun k ↦ ?_) hT₃μ)
+    · rw [abs_neg]
+      simpa only [Real.norm_eq_abs] using
+        norm_tsum_le_tsum_norm (f := fun k ↦ if k ∈ Δ then 0 else F k)
+          (by simpa only [Real.norm_eq_abs] using habs2)
+    · by_cases hk : k ∈ Δ <;> simp [hk]
+  rw [hid]
+  set A := cov[(g : (S → E) → ℝ), ⇑(hamiltonianRemLp Ψ Λ); γ Λ ω] with hAdef
+  set B := ∑ k ∈ Δ, (G k - F k) with hBdef
+  set D := ∑ k ∈ Λ \ Δ, G k with hDdef
+  set K := -∑' k : S, (if k ∈ Δ then 0 else F k) with hKdef
+  set T₁ := (∑' i, matSeries C (fun j ↦ oscAt (⇑(hamiltonianRemLp Ψ Λ)) j) i * oscAt (⇑g) i) / 4
+    with hT₁def
+  set T₂ := ∑ k ∈ Δ, (2 * ENNReal.ofReal ‖g‖ * ∑' j, matTail C Λ j * oscAt (Ψ.siteEnergy k) j
+      + 2 * ENNReal.ofReal ‖Ψ.siteEnergyLp k‖ * ∑' j, matTail C Λ j * oscAt (⇑g) j) with hT₂def
+  set T₃ := (∑' i, matSeries C
+      (fun j ↦ ∑' k : S, if k ∈ Δ then 0 else oscAt (Ψ.siteEnergy k) j) i * oscAt (⇑g) i) / 4
+    with hT₃def
+  have habs : |A + B + D + K| ≤ |A| + |B| + |D| + |K| :=
+    calc |A + B + D + K| ≤ |A + B + D| + |K| := abs_add_le _ _
+      _ ≤ |A + B| + |D| + |K| := by gcongr; exact abs_add_le _ _
+      _ ≤ |A| + |B| + |D| + |K| := by gcongr; exact abs_add_le _ _
+  calc ENNReal.ofReal |A + B + D + K|
+      ≤ ENNReal.ofReal (|A| + |B| + |D| + |K|) := ENNReal.ofReal_le_ofReal habs
+    _ = ENNReal.ofReal |A| + ENNReal.ofReal |B| + ENNReal.ofReal |D|
+          + ENNReal.ofReal |K| := by
+        rw [ENNReal.ofReal_add (by positivity) (abs_nonneg _),
+          ENNReal.ofReal_add (by positivity) (abs_nonneg _),
+          ENNReal.ofReal_add (abs_nonneg _) (abs_nonneg _)]
+    _ ≤ T₁ + T₂ + T₃ + T₃ := add_le_add (add_le_add (add_le_add hT₁ hT₂) hT₃γ') hT₃μ'
+    _ = T₁ + T₂ + 2 * T₃ := by rw [add_assoc, ← two_mul]
+
+variable {Φ : Potential S E}
+
+omit [DecidableEq S] in
+/-- **Georgii, Corollary (8.37).** Let `Φ`, `Ψ` be absolutely summable potentials whose norms
+(8.36) satisfy `‖Φ‖' ≤ a`, `‖Ψ‖' ≤ b` at every site with `a + t₀ b < 1` for some `t₀ > 0`, let
+`λ = ν` be a probability measure on the state space, and let `g` be a bounded quasilocal
+observable with `∑_i δ_i(g) < ∞`. If `μ s` is a Gibbs measure for `Φ + sΨ` for every `|s| ≤ t₀`,
+then `s ↦ μ_s(g)` is differentiable at every `|t| < t₀` and
+
+`∂/∂t μ_{Φ+tΨ}(g) = −∑_{k ∈ S} ⟨f_Ψ ∘ θ_{−k}, g⟩_{μ_{Φ+tΨ}}`.
+
+Under Dobrushin's condition — which `a + t₀ b < 1` guarantees along the whole segment — the
+family `μ` is unique, so this really is the derivative of Georgii's `Φ ↦ μ_Φ(g)`; over a
+standard Borel state space such a family also exists
+(`existsUnique_mem_GP_of_isDobrushin_of_standardBorel`).
+
+The proof follows Georgii: the derivative at finite volume is a covariance, the finite-volume
+Gibbs distributions converge to `μ_s` by (8.23), and the convergence of the derivatives is
+uniform in `s` by the `T₁ + T₂ + 2T₃` estimate
+`ofReal_abs_covariance_hamiltonian_sub_tsum_le`, whose three parts vanish by
+`tendsto_bound_hamiltonianRemLp`, `ENNReal.tendsto_tsum_matTail_mul` and
+`tendsto_bound_tsum_compl_siteEnergy`. -/
+theorem hasDerivAt_integral_gibbsMeasure_add_smul [IsPotential Φ] [IsAbsolutelySummable Φ]
+    (ν : Measure E) [IsProbabilityMeasure ν] {a : ℝ≥0∞} {t₀ : ℝ} (ht₀ : 0 < t₀)
+    (hΦ : ∀ i, cardNormAt Φ i ≤ a) (hΨ : ∀ i, cardNormAt Ψ i ≤ b)
+    (hab : a + ENNReal.ofReal t₀ * b < 1)
+    (hg : g ∈ quasilocalFunctions S E) (hgsum : ∑' i, oscAt (⇑g) i ≠ ⊤)
+    {μ : ℝ → Measure (S → E)} (hprob : ∀ s, IsProbabilityMeasure (μ s))
+    (hμ : ∀ s, |s| ≤ t₀ → ∀ i : S,
+      (μ s).bind (gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 {i}) = μ s)
+    {t : ℝ} (ht : |t| < t₀) :
+    HasDerivAt (fun s : ℝ ↦ ∫ σ, (g : (S → E) → ℝ) σ ∂(μ s))
+      (-∑' k : S, cov[(g : (S → E) → ℝ), Ψ.siteEnergy k; μ t]) t := by
+  classical
+  have := hprob t
+  obtain ⟨ω⟩ : Nonempty (S → E) := by
+    by_contra hne
+    rw [not_nonempty_iff] at hne
+    have huniv : (Set.univ : Set (S → E)) = ∅ := Set.eq_empty_of_isEmpty _
+    simpa [huniv] using measure_univ (μ := μ t)
+  obtain ⟨C, hCrow, hCle⟩ :=
+    exists_forall_interdep_gibbsSpecification_add_smul_le (Φ := Φ) (Ψ := Ψ) ν (t₀ := t₀) hΦ hΨ
+  have hbtop : b ≠ ⊤ := by
+    rintro rfl
+    rw [ENNReal.mul_top (by simpa using ht₀)] at hab
+    simp at hab
+  have hb : ∀ j, Ψ.normAt j ≤ b := fun j ↦ (normAt_le_cardNormAt Ψ j).trans (hΨ j)
+  have hcard : ∀ s : ℝ, |s| ≤ t₀ →
+      ∀ i, cardNormAt (Φ + s • Ψ) i ≤ a + ENNReal.ofReal t₀ * b := by
+    intro s hs i
+    refine (cardNormAt_add_le Φ (s • Ψ) i).trans (add_le_add (hΦ i) ?_)
+    rw [cardNormAt_smul]
+    exact mul_le_mul' (by rw [Real.enorm_eq_ofReal_abs]; exact ENNReal.ofReal_le_ofReal hs) (hΨ i)
+  have hdob : ∀ s : ℝ, |s| ≤ t₀ →
+      IsDobrushin (gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1) := fun s hs ↦
+    isDobrushin_gibbsSpecification_of_cardNormAt_le (Φ := Φ + s • Ψ) ν hab (hcard s hs)
+  have hsum : ∀ s : ℝ, |s| ≤ t₀ →
+      Summable fun k : S ↦ ‖cov[(g : (S → E) → ℝ), Ψ.siteEnergy k; μ s]‖ := by
+    intro s hs
+    have := hprob s
+    exact summable_norm_covariance_siteEnergy hab hCrow hb hbtop hgsum
+      (fun f hf ↦ ofReal_abs_covariance_le_matSeries' (hdob s hs).isQuasilocal (hdob s hs)
+        (hμ s hs) (hCle s hs) hg hf)
+  -- the finite-volume derivative
+  have hgm : Measurable (g : (S → E) → ℝ) := measurable_of_mem_quasilocalFunctions hg
+  have hgb : ∀ σ, |(g : (S → E) → ℝ) σ| ≤ ‖g‖ := fun σ ↦ by
+    simpa [Real.norm_eq_abs] using lp.norm_apply_le_norm ENNReal.top_ne_zero g σ
+  have hderiv : ∀ (Λ : Finset S) (s : ℝ), HasDerivAt
+      (fun r : ℝ ↦ ∫ σ, (g : (S → E) → ℝ) σ
+        ∂(gibbsSpecificationOfAbsolutelySummable (Φ := Φ + r • Ψ) ν 1 Λ ω))
+      (-cov[(g : (S → E) → ℝ), Ψ.hamiltonian Λ;
+        gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω]) s := by
+    intro Λ s
+    have hcov := covariance_eq_integral_mul_sub
+      (ρ := gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω) hg
+      (hamiltonianLp_mem_quasilocalFunctions (Φ := Ψ) Λ)
+    rw [coeFn_hamiltonianLp] at hcov
+    rw [hcov]
+    exact hasDerivAt_integral_gibbsSpecification (Φ := Φ) (ν := ν) (Ψ := Ψ) hgm hgb Λ ω s
+  -- convergence of the finite-volume Gibbs distributions
+  have hconv : ∀ s : ℝ, |s| ≤ t₀ →
+      Tendsto (fun Λ : Finset S ↦ ∫ σ, (g : (S → E) → ℝ) σ
+        ∂(gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω))
+        atTop (𝓝 (∫ σ, (g : (S → E) → ℝ) σ ∂(μ s))) := by
+    intro s hs
+    have := hprob s
+    have hR : Tendsto (fun Λ : Finset S ↦ (∑' j, matTail C Λ j * oscAt (⇑g) j).toReal)
+        atTop (𝓝 0) := by
+      have h := ENNReal.tendsto_tsum_matTail_mul (C := C) hab hCrow hgsum
+      simpa [Function.comp_def] using (ENNReal.tendsto_toReal (by simp)).comp h
+    have hbnd : ∀ Λ : Finset S,
+        |(∫ σ, (g : (S → E) → ℝ) σ
+            ∂(gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω))
+          - ∫ σ, (g : (S → E) → ℝ) σ ∂(μ s)|
+          ≤ (∑' j, matTail C Λ j * oscAt (⇑g) j).toReal := by
+      intro Λ
+      have hest := isEstimate_finiteVolume (hdob s hs).isQuasilocal (hdob s hs) (hμ s hs) Λ ω g hg
+      rw [← ENNReal.ofReal_le_iff_le_toReal
+        (ENNReal.tsum_matTail_mul_ne_top hab hCrow Λ hgsum)]
+      exact hest.trans (ENNReal.tsum_le_tsum fun j ↦
+        mul_le_mul' (interdepTail_le_matTail (hCle s hs) Λ j) le_rfl)
+    rw [tendsto_iff_dist_tendsto_zero]
+    exact squeeze_zero (fun _ ↦ dist_nonneg) (fun Λ ↦ by rw [Real.dist_eq]; exact hbnd Λ) hR
+  -- the three vanishing bounds
+  have hquarter : ∀ u : Finset S → ℝ≥0∞, Tendsto u atTop (𝓝 0) →
+      Tendsto (fun x ↦ u x / 4) atTop (𝓝 0) := by
+    intro u hu
+    have h := ENNReal.Tendsto.mul_const (b := (4 : ℝ≥0∞)⁻¹) hu (Or.inr (by simp))
+    simpa [div_eq_mul_inv] using h
+  have hT₁t : Tendsto (fun Λ : Finset S ↦ (∑' i, matSeries C
+      (fun j ↦ oscAt (⇑(hamiltonianRemLp Ψ Λ)) j) i * oscAt (⇑g) i) / 4) atTop (𝓝 0) :=
+    hquarter _ (tendsto_bound_hamiltonianRemLp hab hCrow hb hbtop hgsum)
+  have hT₃t : Tendsto (fun Δ : Finset S ↦ 2 * ((∑' i, matSeries C
+      (fun j ↦ ∑' k : S, if k ∈ Δ then 0 else oscAt (Ψ.siteEnergy k) j) i * oscAt (⇑g) i) / 4))
+      atTop (𝓝 0) := by
+    have h := hquarter _ (tendsto_bound_tsum_compl_siteEnergy hab hCrow hb hbtop hgsum)
+    simpa using ENNReal.Tendsto.const_mul (a := 2) h (Or.inr (by norm_num))
+  have hT₂t : ∀ Δ : Finset S, Tendsto (fun Λ : Finset S ↦
+      ∑ k ∈ Δ, (2 * ENNReal.ofReal ‖g‖ * ∑' j, matTail C Λ j * oscAt (Ψ.siteEnergy k) j
+        + 2 * ENNReal.ofReal ‖Ψ.siteEnergyLp k‖ * ∑' j, matTail C Λ j * oscAt (⇑g) j))
+      atTop (𝓝 0) := by
+    intro Δ
+    have hone : ∀ k ∈ Δ, Tendsto (fun Λ : Finset S ↦
+        2 * ENNReal.ofReal ‖g‖ * ∑' j, matTail C Λ j * oscAt (Ψ.siteEnergy k) j
+          + 2 * ENNReal.ofReal ‖Ψ.siteEnergyLp k‖ * ∑' j, matTail C Λ j * oscAt (⇑g) j)
+        atTop (𝓝 0) := by
+      intro k _
+      have hk1 : ∑' j : S, oscAt (Ψ.siteEnergy k) j ≠ ⊤ :=
+        ne_top_of_le_ne_top (ENNReal.mul_ne_top (by norm_num) hbtop)
+          ((tsum_oscAt_siteEnergy_le (Φ := Ψ) k).trans (mul_le_mul' le_rfl (hb k)))
+      have h1 := ENNReal.Tendsto.const_mul (a := 2 * ENNReal.ofReal ‖g‖)
+        (ENNReal.tendsto_tsum_matTail_mul hab hCrow hk1)
+        (Or.inr (ENNReal.mul_ne_top (by norm_num) ENNReal.ofReal_ne_top))
+      have h2 := ENNReal.Tendsto.const_mul (a := 2 * ENNReal.ofReal ‖Ψ.siteEnergyLp k‖)
+        (ENNReal.tendsto_tsum_matTail_mul hab hCrow hgsum)
+        (Or.inr (ENNReal.mul_ne_top (by norm_num) ENNReal.ofReal_ne_top))
+      simpa using h1.add h2
+    simpa using tendsto_finsetSum (a := fun _ : S ↦ (0 : ℝ≥0∞)) Δ hone
+  -- uniform convergence of the derivatives on `(-t₀, t₀)`
+  have huc : TendstoUniformlyOn
+      (fun (Λ : Finset S) (s : ℝ) ↦ -cov[(g : (S → E) → ℝ), Ψ.hamiltonian Λ;
+          gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω])
+      (fun s : ℝ ↦ -∑' k : S, cov[(g : (S → E) → ℝ), Ψ.siteEnergy k; μ s])
+      atTop (Set.Ioo (-t₀) t₀) := by
+    rw [Metric.tendstoUniformlyOn_iff]
+    intro ε hε
+    have hεpos : (0 : ℝ≥0∞) < ENNReal.ofReal (ε / 4) := ENNReal.ofReal_pos.2 (by linarith)
+    obtain ⟨Δ, hΔ⟩ := ((ENNReal.tendsto_nhds_zero.1 hT₃t) _ hεpos).exists
+    filter_upwards [(ENNReal.tendsto_nhds_zero.1 hT₁t) _ hεpos,
+      (ENNReal.tendsto_nhds_zero.1 (hT₂t Δ)) _ hεpos,
+      eventually_ge_atTop Δ] with Λ h1 h2 h3 s hs
+    have hsabs : |s| ≤ t₀ := (abs_lt.2 ⟨hs.1, hs.2⟩).le
+    have := hprob s
+    have hbig := ofReal_abs_covariance_hamiltonian_sub_tsum_le
+      (hdob s hsabs).isQuasilocal (hdob s hsabs) (hμ s hsabs) (hCle s hsabs) hg
+      (hsum s hsabs) h3 ω
+    have hle : ENNReal.ofReal
+        |cov[(g : (S → E) → ℝ), Ψ.hamiltonian Λ;
+            gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω]
+          - ∑' k : S, cov[(g : (S → E) → ℝ), Ψ.siteEnergy k; μ s]|
+        ≤ ENNReal.ofReal (ε / 4) + ENNReal.ofReal (ε / 4) + ENNReal.ofReal (ε / 4) :=
+      hbig.trans (add_le_add (add_le_add h1 h2) hΔ)
+    rw [Real.dist_eq, show (-∑' k : S, cov[(g : (S → E) → ℝ), Ψ.siteEnergy k; μ s])
+        - -cov[(g : (S → E) → ℝ), Ψ.hamiltonian Λ;
+            gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω]
+        = cov[(g : (S → E) → ℝ), Ψ.hamiltonian Λ;
+            gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω]
+          - ∑' k : S, cov[(g : (S → E) → ℝ), Ψ.siteEnergy k; μ s] from by ring]
+    rw [← ENNReal.ofReal_add (by positivity) (by positivity),
+      ← ENNReal.ofReal_add (by positivity) (by positivity)] at hle
+    have := (ENNReal.ofReal_le_ofReal_iff (by positivity)).1 hle
+    linarith
+  exact hasDerivAt_of_tendstoUniformlyOn isOpen_Ioo huc
+    (Eventually.of_forall fun Λ s _ ↦ hderiv Λ s)
+    (fun s hs ↦ hconv s (abs_lt.2 ⟨hs.1, hs.2⟩).le) (abs_lt.1 ht)
+
+end Corollary837
 end MeasureTheory.GibbsMeasure.Dobrushin
 
 end

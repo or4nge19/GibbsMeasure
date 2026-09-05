@@ -32,6 +32,41 @@ the criterion (8.8) holds with `c = 2‖Φ‖ < 2`.
 
 The Ising instances live in `GibbsMeasure/Model/IsingDobrushin.lean`: a `Specification/` file
 states criteria, a `Model/` file applies them.
+
+## Main definitions
+
+* `Dobrushin.unifDist`, Georgii (8.1); `Dobrushin.interdep`, Georgii's interdependence matrix
+  (8.5); `Dobrushin.IsDobrushin`, Georgii's condition (8.6).
+  The oscillation `Dobrushin.osc` (2.22) and the single-site oscillation `Dobrushin.oscAt`
+  `δ_j` (8.14) — both abbreviations of `_root_.oscOutside` — are defined in
+  `GibbsMeasure/Specification/Oscillation.lean`; their algebra is proved here.
+* `Dobrushin.pairStrength Φ i j = ∑_{A ⊇ {i,j}} δ(Φ_A)` and
+  `Dobrushin.interactionStrength Φ i = ∑_{A ∋ i} (|A| − 1) δ(Φ_A)`, the quantities of (8.8);
+  `Dobrushin.cardNormAt Φ i = ∑_{A ∋ i} |A| ‖Φ_A‖`, Georgii's norm (8.36).
+
+## Main results
+
+* `Dobrushin.osc_add_le`, `oscAt_add_le`, `oscAt_sub_le`, `osc_const_mul_le`,
+  `oscAt_const_mul_le`, `oscAt_affine`, `oscAt_mul_le`, `oscAt_finset_sum_le`,
+  `oscAt_tsum_le`: the algebra of the oscillations — additivity, homogeneity, the product rule
+  `δ_j(fg) ≤ ‖f‖ δ_j(g) + ‖g‖ δ_j(f)`, and passage to countable sums.
+* `Dobrushin.ofReal_abs_sub_le_sum_oscAt`, `osc_le_sum_oscAt_of_dependsOn`: **Georgii (8.15)**,
+  `δ(f) ≤ ∑_{j ∈ Λ} δ_j(f)` for `f ∈ 𝓛_Λ`, by telescoping over `Λ`.
+* `Dobrushin.isDobrushin_gibbsSpecificationOfSigmaFiniteAdmissible`,
+  `isDobrushin_gibbsSpecification`: **Georgii, Proposition (8.8)**;
+  `tsum_interdep_gibbsSpecificationOfSigmaFiniteAdmissible_le` and
+  `tsum_interdep_gibbsSpecification_le` are its `sup`-free row-sum form.
+* `Dobrushin.isDobrushin_gibbsSpecification_of_tanh_le`: **Georgii (8.10)**.
+* `Dobrushin.pairStrength_add_le`, `pairStrength_smul_le`, `cardNormAt_add_le`,
+  `cardNormAt_smul`, `cardNormAt_eq_of_isShiftInvariant`: (8.8) and (8.36) are subadditive and
+  homogeneous in the potential, and (8.36) is constant along the sites of a shift-invariant
+  potential.
+* `Dobrushin.isDobrushin_gibbsSpecification_of_cardNormAt_le`: Dobrushin's condition on
+  Georgii's region `𝒟` of (8.36).
+* `Dobrushin.exists_forall_interdep_gibbsSpecification_add_smul_le`: **Georgii, in the proof of
+  Corollary (8.37)** — if `‖Φ‖' + t₀‖Ψ‖' < 1` then one matrix `C` with row sums
+  `≤ ‖Φ‖' + t₀‖Ψ‖' < 1` dominates the interdependence matrices of the whole segment `Φ + tΨ`,
+  `|t| ≤ t₀`. This is what makes the estimates of Corollary (8.37) uniform in `t`.
 -/
 
 @[expose] public section
@@ -906,6 +941,191 @@ lemma osc_le_two_mul_iSup (f : (S → E) → ℝ) : osc f ≤ 2 * ⨆ ζ, ‖f �
         add_le_add (le_iSup (fun ξ ↦ ‖f ξ‖ₑ) ζ) (le_iSup (fun ξ ↦ ‖f ξ‖ₑ) η)
     _ = 2 * ⨆ ξ, ‖f ξ‖ₑ := (two_mul _).symm
 
+/-! #### Georgii (8.2), (8.14), (8.15): the basic estimates -/
+
+section OscBasic
+
+omit [MeasurableSpace E]
+
+variable {f g : (S → E) → ℝ} {j : S} {c : ℝ≥0∞}
+
+
+lemma osc_le_ofReal_two_mul {C : ℝ} (hC : ∀ ζ, |f ζ| ≤ C) : osc f ≤ ENNReal.ofReal (2 * C) :=
+  osc_le fun ζ η ↦ ENNReal.ofReal_le_ofReal <| by
+    calc |f ζ - f η| ≤ |f ζ| + |f η| := abs_sub _ _
+      _ ≤ C + C := add_le_add (hC ζ) (hC η)
+      _ = 2 * C := by ring
+
+lemma osc_ne_top_of_bounded {C : ℝ} (hC : ∀ ζ, |f ζ| ≤ C) : osc f ≠ ⊤ :=
+  ne_top_of_le_ne_top ENNReal.ofReal_ne_top (osc_le_ofReal_two_mul hC)
+
+lemma oscAt_ne_top_of_bounded {C : ℝ} (hC : ∀ ζ, |f ζ| ≤ C) : oscAt f j ≠ ⊤ :=
+  ne_top_of_le_ne_top (osc_ne_top_of_bounded hC) oscAt_le_osc
+
+lemma osc_add_le : osc (f + g) ≤ osc f + osc g := by
+  refine osc_le fun ζ η ↦ ?_
+  calc ENNReal.ofReal |(f + g) ζ - (f + g) η|
+      ≤ ENNReal.ofReal (|f ζ - f η| + |g ζ - g η|) := by
+        refine ENNReal.ofReal_le_ofReal ?_
+        simpa [Pi.add_apply, add_sub_add_comm] using abs_add_le (f ζ - f η) (g ζ - g η)
+    _ = ENNReal.ofReal |f ζ - f η| + ENNReal.ofReal |g ζ - g η| :=
+        ENNReal.ofReal_add (abs_nonneg _) (abs_nonneg _)
+    _ ≤ osc f + osc g := add_le_add (le_osc _ _ _) (le_osc _ _ _)
+
+lemma oscAt_add_le : oscAt (f + g) j ≤ oscAt f j + oscAt g j := by
+  refine oscAt_le fun ζ η h ↦ ?_
+  calc ENNReal.ofReal |(f + g) ζ - (f + g) η|
+      ≤ ENNReal.ofReal (|f ζ - f η| + |g ζ - g η|) := by
+        refine ENNReal.ofReal_le_ofReal ?_
+        simpa [Pi.add_apply, add_sub_add_comm] using abs_add_le (f ζ - f η) (g ζ - g η)
+    _ = ENNReal.ofReal |f ζ - f η| + ENNReal.ofReal |g ζ - g η| :=
+        ENNReal.ofReal_add (abs_nonneg _) (abs_nonneg _)
+    _ ≤ oscAt f j + oscAt g j := add_le_add (le_oscAt h) (le_oscAt h)
+
+/-- The oscillation of an affine image: `δ_j(a f + b) ≤ |a| δ_j(f)`. -/
+lemma oscAt_affine_le (f : (S → E) → ℝ) (a b : ℝ) (j : S) :
+    oscAt (fun σ ↦ a * f σ + b) j ≤ ENNReal.ofReal |a| * oscAt f j := by
+  refine oscAt_le fun ζ η h ↦ ?_
+  have habs : |a * f ζ + b - (a * f η + b)| = |a| * |f ζ - f η| := by
+    rw [show a * f ζ + b - (a * f η + b) = a * (f ζ - f η) by ring, abs_mul]
+  rw [habs, ENNReal.ofReal_mul (abs_nonneg a)]
+  gcongr
+  exact le_oscAt h
+
+/-- Georgii's oscillation (8.14) is affine-equivariant: `δ_j(a f + b) = |a| δ_j(f)` for `a ≠ 0`.
+This is what makes the covariance estimate (8.34) invariant under rescaling of its arguments. -/
+lemma oscAt_affine (f : (S → E) → ℝ) {a : ℝ} (ha : a ≠ 0) (b : ℝ) (j : S) :
+    oscAt (fun σ ↦ a * f σ + b) j = ENNReal.ofReal |a| * oscAt f j := by
+  refine le_antisymm (oscAt_affine_le f a b j) ?_
+  have h2 := oscAt_affine_le (fun σ ↦ a * f σ + b) a⁻¹ (-(a⁻¹ * b)) j
+  have hid : (fun σ ↦ a⁻¹ * (a * f σ + b) + -(a⁻¹ * b)) = f := by
+    funext σ; field_simp; ring
+  rw [hid] at h2
+  have hmul : ENNReal.ofReal |a| * ENNReal.ofReal |a⁻¹| = 1 := by
+    rw [← ENNReal.ofReal_mul (abs_nonneg a), ← abs_mul, mul_inv_cancel₀ ha]
+    simp
+  calc ENNReal.ofReal |a| * oscAt f j
+      ≤ ENNReal.ofReal |a| * (ENNReal.ofReal |a⁻¹| * oscAt (fun σ ↦ a * f σ + b) j) := by
+        gcongr
+    _ = oscAt (fun σ ↦ a * f σ + b) j := by rw [← mul_assoc, hmul, one_mul]
+
+/-- The combinatorial heart: two configurations differing only on a finite set `D` are compared by
+telescoping over `D`. Georgii (8.15). -/
+lemma ofReal_abs_sub_le_sum_oscAt (f : (S → E) → ℝ) (D : Finset S) :
+    ∀ ζ η : S → E, (∀ k, k ∉ D → ζ k = η k) →
+      ENNReal.ofReal |f ζ - f η| ≤ ∑ j ∈ D, oscAt f j := by
+  classical
+  induction D using Finset.induction_on with
+  | empty => intro ζ η h; rw [funext fun k ↦ h k (by simp)]; simp
+  | insert a D ha ih =>
+      intro ζ η h
+      set ξ : S → E := Function.update ζ a (η a) with hξ
+      have h1 : ENNReal.ofReal |f ζ - f ξ| ≤ oscAt f a := by
+        refine le_oscAt fun k hk ↦ ?_
+        simp [hξ, Function.update_of_ne hk]
+      have h2 : ENNReal.ofReal |f ξ - f η| ≤ ∑ j ∈ D, oscAt f j := by
+        refine ih ξ η fun k hk ↦ ?_
+        by_cases hka : k = a
+        · subst hka; simp [hξ]
+        · rw [hξ, Function.update_of_ne hka]
+          exact h k (by simp [hka, hk])
+      have htri : ENNReal.ofReal |f ζ - f η|
+          ≤ ENNReal.ofReal |f ζ - f ξ| + ENNReal.ofReal |f ξ - f η| := by
+        rw [← ENNReal.ofReal_add (abs_nonneg _) (abs_nonneg _)]
+        exact ENNReal.ofReal_le_ofReal (abs_sub_le _ _ _)
+      calc ENNReal.ofReal |f ζ - f η| ≤ oscAt f a + ∑ j ∈ D, oscAt f j :=
+            htri.trans (add_le_add h1 h2)
+        _ = ∑ j ∈ insert a D, oscAt f j := (Finset.sum_insert ha).symm
+
+/-- Georgii (8.15) for local functions: the global oscillation is dominated by the sum of the
+single-site oscillations. -/
+lemma osc_le_sum_oscAt_of_dependsOn {Λ : Finset S} (hf : DependsOn f (Λ : Set S)) :
+    osc f ≤ ∑ j ∈ Λ, oscAt f j := by
+  classical
+  refine osc_le fun ζ η ↦ ?_
+  set ξ : S → E := fun k ↦ if k ∈ Λ then ζ k else η k with hξ
+  have hfζ : f ζ = f ξ := hf fun k hk ↦ by simp [hξ, Finset.mem_coe.1 hk]
+  rw [hfζ]
+  exact ofReal_abs_sub_le_sum_oscAt f Λ ξ η fun k hk ↦ by simp [hξ, hk]
+
+lemma osc_le_tsum_oscAt_of_dependsOn {Λ : Finset S} (hf : DependsOn f (Λ : Set S)) :
+    osc f ≤ ∑' j, oscAt f j :=
+  (osc_le_sum_oscAt_of_dependsOn hf).trans (ENNReal.sum_le_tsum Λ)
+
+
+lemma oscAt_sub_le : oscAt (f - g) j ≤ oscAt f j + oscAt g j := by
+  refine oscAt_le fun ζ η h ↦ ?_
+  calc ENNReal.ofReal |(f - g) ζ - (f - g) η|
+      ≤ ENNReal.ofReal (|f ζ - f η| + |g ζ - g η|) := by
+        refine ENNReal.ofReal_le_ofReal ?_
+        simpa [Pi.sub_apply, sub_sub_sub_comm] using abs_sub (f ζ - f η) (g ζ - g η)
+    _ = ENNReal.ofReal |f ζ - f η| + ENNReal.ofReal |g ζ - g η| :=
+        ENNReal.ofReal_add (abs_nonneg _) (abs_nonneg _)
+    _ ≤ oscAt f j + oscAt g j := add_le_add (le_oscAt h) (le_oscAt h)
+
+/-- The oscillation of a scalar multiple: `δ(c f) ≤ |c| δ(f)`. -/
+lemma osc_const_mul_le (c : ℝ) (f : (S → E) → ℝ) :
+    osc (fun σ ↦ c * f σ) ≤ ENNReal.ofReal |c| * osc f := by
+  refine osc_le fun ζ η ↦ ?_
+  rw [← mul_sub, abs_mul, ENNReal.ofReal_mul (abs_nonneg c)]
+  exact mul_le_mul_right (le_osc f ζ η) _
+
+/-- The single-site oscillation of a scalar multiple: `δ_j(c f) ≤ |c| δ_j(f)`. -/
+lemma oscAt_const_mul_le (c : ℝ) (f : (S → E) → ℝ) (j : S) :
+    oscAt (fun σ ↦ c * f σ) j ≤ ENNReal.ofReal |c| * oscAt f j := by
+  refine oscAt_le fun ζ η h ↦ ?_
+  rw [← mul_sub, abs_mul, ENNReal.ofReal_mul (abs_nonneg c)]
+  exact mul_le_mul_right (le_oscAt h) _
+
+/-- The single-site oscillation of a product of bounded functions:
+`δ_j(f g) ≤ ‖f‖ δ_j(g) + ‖g‖ δ_j(f)`. -/
+lemma oscAt_mul_le {C D : ℝ} (hf : ∀ σ, |f σ| ≤ C) (hg : ∀ σ, |g σ| ≤ D) :
+    oscAt (f * g) j ≤ ENNReal.ofReal C * oscAt g j + ENNReal.ofReal D * oscAt f j := by
+  refine oscAt_le fun ζ η h ↦ ?_
+  have hC : 0 ≤ C := (abs_nonneg _).trans (hf ζ)
+  have hD : 0 ≤ D := (abs_nonneg _).trans (hg η)
+  have hid : (f * g) ζ - (f * g) η = f ζ * (g ζ - g η) + (f ζ - f η) * g η := by
+    simp only [Pi.mul_apply]; ring
+  have habs : |(f * g) ζ - (f * g) η| ≤ C * |g ζ - g η| + D * |f ζ - f η| := by
+    rw [hid]
+    calc |f ζ * (g ζ - g η) + (f ζ - f η) * g η|
+        ≤ |f ζ * (g ζ - g η)| + |(f ζ - f η) * g η| := abs_add_le _ _
+      _ = |f ζ| * |g ζ - g η| + |f ζ - f η| * |g η| := by rw [abs_mul, abs_mul]
+      _ ≤ C * |g ζ - g η| + |f ζ - f η| * D :=
+          add_le_add (mul_le_mul_of_nonneg_right (hf ζ) (abs_nonneg _))
+            (mul_le_mul_of_nonneg_left (hg η) (abs_nonneg _))
+      _ = C * |g ζ - g η| + D * |f ζ - f η| := by ring
+  calc ENNReal.ofReal |(f * g) ζ - (f * g) η|
+      ≤ ENNReal.ofReal (C * |g ζ - g η| + D * |f ζ - f η|) := ENNReal.ofReal_le_ofReal habs
+    _ = ENNReal.ofReal C * ENNReal.ofReal |g ζ - g η|
+          + ENNReal.ofReal D * ENNReal.ofReal |f ζ - f η| := by
+        rw [ENNReal.ofReal_add (by positivity) (by positivity), ENNReal.ofReal_mul hC,
+          ENNReal.ofReal_mul hD]
+    _ ≤ ENNReal.ofReal C * oscAt g j + ENNReal.ofReal D * oscAt f j :=
+        add_le_add (mul_le_mul_right (le_oscAt h) _) (mul_le_mul_right (le_oscAt h) _)
+
+/-- The single-site oscillation of a finite sum is dominated by the sum of the oscillations. -/
+lemma oscAt_finset_sum_le {ι : Type*} (a : ι → (S → E) → ℝ) (s : Finset ι) (j : S) :
+    oscAt (fun σ ↦ ∑ k ∈ s, a k σ) j ≤ ∑ k ∈ s, oscAt (a k) j := by
+  refine oscAt_le fun ζ η h ↦ ?_
+  rw [← Finset.sum_sub_distrib, ← Real.enorm_eq_ofReal_abs]
+  refine (enorm_sum_le _ _).trans (Finset.sum_le_sum fun k _ ↦ ?_)
+  rw [Real.enorm_eq_ofReal_abs]
+  exact le_oscAt h
+
+/-- The single-site oscillation of a pointwise convergent series is dominated by the series of
+the oscillations. -/
+lemma oscAt_tsum_le {ι : Type*} (a : ι → (S → E) → ℝ) (hs : ∀ σ, Summable fun k ↦ a k σ)
+    (j : S) :
+    oscAt (fun σ ↦ ∑' k, a k σ) j ≤ ∑' k, oscAt (a k) j := by
+  refine oscAt_le fun ζ η h ↦ ?_
+  rw [← (hs ζ).tsum_sub (hs η), ← Real.enorm_eq_ofReal_abs]
+  refine enorm_tsum_le_tsum_enorm.trans (ENNReal.tsum_le_tsum fun k ↦ ?_)
+  rw [Real.enorm_eq_ofReal_abs]
+  exact le_oscAt h
+
+end OscBasic
+
 /-- Georgii (8.8): `∑_{A ⊇ {i,j}} δ(Φ_A)`. -/
 def pairStrength (Φ : Potential S E) (i j : S) : ℝ≥0∞ :=
   ∑' A : Finset S, {A : Finset S | i ∈ A ∧ j ∈ A}.indicator (fun A ↦ osc (Φ A)) A
@@ -929,6 +1149,27 @@ lemma pairStrength_ne_top (Φ : Potential S E) [Potential.IsAbsolutelySummable �
     pairStrength Φ i j ≠ ⊤ := by
   refine ne_top_of_le_ne_top ?_ (pairStrength_le Φ i j)
   exact ENNReal.mul_ne_top (by norm_num) (Potential.IsAbsolutelySummable.normAt_ne_top i)
+
+/-- Georgii's pair strength (8.8) is subadditive in the potential. -/
+lemma pairStrength_add_le (Φ Ψ : Potential S E) (i j : S) :
+    pairStrength (Φ + Ψ) i j ≤ pairStrength Φ i j + pairStrength Ψ i j := by
+  rw [pairStrength, pairStrength, pairStrength, ← ENNReal.tsum_add]
+  refine ENNReal.tsum_le_tsum fun A ↦ ?_
+  by_cases h : A ∈ {A : Finset S | i ∈ A ∧ j ∈ A}
+  · rw [Set.indicator_of_mem h, Set.indicator_of_mem h, Set.indicator_of_mem h]
+    exact osc_add_le (f := Φ A) (g := Ψ A)
+  · simp [Set.indicator_of_notMem h]
+
+/-- Georgii's pair strength (8.8) is homogeneous in the potential: `∑_{A ⊇ {i,j}} δ((cΦ)_A) ≤
+|c| ∑_{A ⊇ {i,j}} δ(Φ_A)`. -/
+lemma pairStrength_smul_le (c : ℝ) (Φ : Potential S E) (i j : S) :
+    pairStrength (c • Φ) i j ≤ ENNReal.ofReal |c| * pairStrength Φ i j := by
+  rw [pairStrength, pairStrength, ← ENNReal.tsum_mul_left]
+  refine ENNReal.tsum_le_tsum fun A ↦ ?_
+  by_cases h : A ∈ {A : Finset S | i ∈ A ∧ j ∈ A}
+  · rw [Set.indicator_of_mem h, Set.indicator_of_mem h]
+    exact osc_const_mul_le c (Φ A)
+  · simp [Set.indicator_of_notMem h]
 
 end Osc
 
@@ -1322,6 +1563,50 @@ section Prop88b
 variable [Countable S] {Φ : Potential S E} [Potential.IsPotential Φ] [Potential.IsSummable Φ]
   {ν : Measure E} [SigmaFinite ν] [NeZero ν] {β : ℝ}
 
+/-- **Georgii (8.8), the row sums:** `∑_j C_ij(γ^{βΦ}) ≤ |β| ∑_{A ∋ i} (|A| − 1) δ(Φ_A) / 2`, over
+a σ-finite a priori measure. This is the estimate that makes Dobrushin's condition hold on the
+region (8.36), and its `sup`-free form is what the `t`-uniform bounds of Corollary (8.37)
+need. -/
+theorem tsum_interdep_gibbsSpecificationOfSigmaFiniteAdmissible_le
+    (hadm : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν
+      (Φ.boltzmannFactor β)) (i : S) :
+    ∑' j : S, interdep (Potential.gibbsSpecificationOfSigmaFiniteAdmissible Φ ν β hadm) i j
+      ≤ ENNReal.ofReal |β| * interactionStrength Φ i / 2 := by
+  set γ := Potential.gibbsSpecificationOfSigmaFiniteAdmissible Φ ν β hadm with hγ
+  have hzero : ∀ j : S, interdep γ i j
+      = {j : S | j ≠ i}.indicator (fun j ↦ interdep γ i j) j := by
+    intro j
+    by_cases hj : j = i
+    · subst hj
+      rw [Set.indicator_of_notMem (show j ∉ {k : S | k ≠ j} by simp), interdep_self]
+    · rw [Set.indicator_of_mem (show j ∈ {j : S | j ≠ i} from hj)]
+  have hstep : ∀ j : S, {j : S | j ≠ i}.indicator (fun j ↦ interdep γ i j) j
+      ≤ (ENNReal.ofReal |β| / 2)
+        * {j : S | j ≠ i}.indicator (fun j ↦ pairStrength Φ i j) j := by
+    intro j
+    by_cases hj : j = i
+    · subst hj
+      rw [Set.indicator_of_notMem (show j ∉ {k : S | k ≠ j} by simp),
+        Set.indicator_of_notMem (show j ∉ {k : S | k ≠ j} by simp)]
+      simp
+    · rw [Set.indicator_of_mem (show j ∈ {j : S | j ≠ i} from hj),
+        Set.indicator_of_mem (show j ∈ {j : S | j ≠ i} from hj)]
+      have h := interdep_gibbsSpecificationOfSigmaFiniteAdmissible_le (Φ := Φ) hadm i j
+      rwa [show ENNReal.ofReal |β| * pairStrength Φ i j / 2
+          = ENNReal.ofReal |β| / 2 * pairStrength Φ i j by
+        rw [div_eq_mul_inv, div_eq_mul_inv]; ring] at h
+  calc ∑' j : S, interdep γ i j
+      = ∑' j : S, {j : S | j ≠ i}.indicator (fun j ↦ interdep γ i j) j := tsum_congr hzero
+    _ ≤ ∑' j : S, (ENNReal.ofReal |β| / 2)
+          * {j : S | j ≠ i}.indicator (fun j ↦ pairStrength Φ i j) j :=
+        ENNReal.tsum_le_tsum hstep
+    _ = (ENNReal.ofReal |β| / 2)
+          * ∑' j : S, {j : S | j ≠ i}.indicator (fun j ↦ pairStrength Φ i j) j :=
+        ENNReal.tsum_mul_left
+    _ = (ENNReal.ofReal |β| / 2) * interactionStrength Φ i := by rw [tsum_pairStrength]
+    _ = ENNReal.ofReal |β| * interactionStrength Φ i / 2 := by
+        rw [div_eq_mul_inv, div_eq_mul_inv]; ring
+
 /-- **Georgii, Proposition (8.8), at Georgii's hypotheses.** For a σ-finite non-zero a priori
 measure `λ` and a `λ`-admissible potential with
 `sup_i |β| ∑_{A ∋ i} (|A| − 1) δ(Φ_A) < 2`, the Gibbsian specification of `βΦ` satisfies
@@ -1347,41 +1632,9 @@ theorem isDobrushin_gibbsSpecificationOfSigmaFiniteAdmissible
     c / 2, ?_, fun i ↦ ?_⟩
   · rw [ENNReal.div_lt_iff (by norm_num) (by norm_num), one_mul]
     exact hc
-  · set γ := Potential.gibbsSpecificationOfSigmaFiniteAdmissible Φ ν β hadm with hγ
-    have hzero : ∀ j : S, interdep γ i j
-        = {j : S | j ≠ i}.indicator (fun j ↦ interdep γ i j) j := by
-      intro j
-      by_cases hj : j = i
-      · subst hj
-        rw [Set.indicator_of_notMem (show j ∉ {k : S | k ≠ j} by simp), interdep_self]
-      · rw [Set.indicator_of_mem (show j ∈ {j : S | j ≠ i} from hj)]
-    have hstep : ∀ j : S, {j : S | j ≠ i}.indicator (fun j ↦ interdep γ i j) j
-        ≤ (ENNReal.ofReal |β| / 2)
-          * {j : S | j ≠ i}.indicator (fun j ↦ pairStrength Φ i j) j := by
-      intro j
-      by_cases hj : j = i
-      · subst hj
-        rw [Set.indicator_of_notMem (show j ∉ {k : S | k ≠ j} by simp),
-          Set.indicator_of_notMem (show j ∉ {k : S | k ≠ j} by simp)]
-        simp
-      · rw [Set.indicator_of_mem (show j ∈ {j : S | j ≠ i} from hj),
-          Set.indicator_of_mem (show j ∈ {j : S | j ≠ i} from hj)]
-        have h := interdep_gibbsSpecificationOfSigmaFiniteAdmissible_le (Φ := Φ) hadm i j
-        rwa [show ENNReal.ofReal |β| * pairStrength Φ i j / 2
-            = ENNReal.ofReal |β| / 2 * pairStrength Φ i j by
-          rw [div_eq_mul_inv, div_eq_mul_inv]; ring] at h
-    calc ∑' j : S, interdep γ i j
-        = ∑' j : S, {j : S | j ≠ i}.indicator (fun j ↦ interdep γ i j) j := tsum_congr hzero
-      _ ≤ ∑' j : S, (ENNReal.ofReal |β| / 2)
-            * {j : S | j ≠ i}.indicator (fun j ↦ pairStrength Φ i j) j :=
-          ENNReal.tsum_le_tsum hstep
-      _ = (ENNReal.ofReal |β| / 2)
-            * ∑' j : S, {j : S | j ≠ i}.indicator (fun j ↦ pairStrength Φ i j) j :=
-          ENNReal.tsum_mul_left
-      _ = (ENNReal.ofReal |β| / 2) * interactionStrength Φ i := by rw [tsum_pairStrength]
-      _ = ENNReal.ofReal |β| * interactionStrength Φ i / 2 := by
-          rw [div_eq_mul_inv, div_eq_mul_inv]; ring
-      _ ≤ c / 2 := by gcongr; exact hΦ i
+  · refine (tsum_interdep_gibbsSpecificationOfSigmaFiniteAdmissible_le hadm i).trans ?_
+    gcongr
+    exact hΦ i
 
 /-- **Georgii, Proposition (8.8)** in Georgii's own `sup`-form, over a σ-finite a priori
 measure. -/
@@ -1445,6 +1698,14 @@ theorem isDobrushin_gibbsSpecification_of_iSup_lt
   isDobrushin_gibbsSpecification ν β h
     (fun i ↦ le_iSup (fun i ↦ ENNReal.ofReal |β| * interactionStrength Φ i) i)
 
+/-- **Georgii (8.8), the row sums**, for a probability a priori measure:
+`∑_j C_ij(γ^{βΦ}) ≤ |β| ∑_{A ∋ i} (|A| − 1) δ(Φ_A) / 2`. -/
+theorem tsum_interdep_gibbsSpecification_le (i : S) :
+    ∑' j : S, interdep (Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν β) i j
+      ≤ ENNReal.ofReal |β| * interactionStrength Φ i / 2 := by
+  rw [← Potential.gibbsSpecificationOfFiniteReference_eq_of_isProbabilityMeasure (Φ := Φ) ν β]
+  exact tsum_interdep_gibbsSpecificationOfSigmaFiniteAdmissible_le (Φ := Φ) _ i
+
 end Prop88bProb
 
 
@@ -1473,6 +1734,32 @@ lemma normAt_le_cardNormAt (Φ : Potential S E) (i : S) : Φ.normAt i ≤ cardNo
       (by exact_mod_cast Nat.one_le_iff_ne_zero.2 (Finset.card_ne_zero_of_mem h))
   · rw [Set.indicator_of_notMem (show A ∉ {A : Finset S | i ∈ A} from h)]
     exact bot_le
+
+/-- Georgii (8.36) is subadditive in the potential. -/
+lemma cardNormAt_add_le (Φ Ψ : Potential S E) (i : S) :
+    cardNormAt (Φ + Ψ) i ≤ cardNormAt Φ i + cardNormAt Ψ i := by
+  rw [cardNormAt, cardNormAt, cardNormAt, ← ENNReal.tsum_add]
+  refine ENNReal.tsum_le_tsum fun A ↦ ?_
+  by_cases h : A ∈ {A : Finset S | i ∈ A}
+  · rw [Set.indicator_of_mem h, Set.indicator_of_mem h, Set.indicator_of_mem h, ← mul_add]
+    refine mul_le_mul_right (iSup_le fun η ↦ ?_) _
+    calc ‖(Φ + Ψ) A η‖ₑ = ‖Φ A η + Ψ A η‖ₑ := rfl
+      _ ≤ ‖Φ A η‖ₑ + ‖Ψ A η‖ₑ := enorm_add_le _ _
+      _ ≤ _ := add_le_add (le_iSup (fun η ↦ ‖Φ A η‖ₑ) η) (le_iSup (fun η ↦ ‖Ψ A η‖ₑ) η)
+  · simp [Set.indicator_of_notMem h]
+
+/-- Georgii (8.36) is homogeneous in the potential. -/
+lemma cardNormAt_smul (c : ℝ) (Φ : Potential S E) (i : S) :
+    cardNormAt (c • Φ) i = ‖c‖ₑ * cardNormAt Φ i := by
+  rw [cardNormAt, cardNormAt, ← ENNReal.tsum_mul_left]
+  refine tsum_congr fun A ↦ ?_
+  by_cases h : A ∈ {A : Finset S | i ∈ A}
+  · rw [Set.indicator_of_mem h, Set.indicator_of_mem h]
+    have hsup : (⨆ η, ‖(c • Φ) A η‖ₑ) = ‖c‖ₑ * ⨆ η, ‖Φ A η‖ₑ := by
+      rw [ENNReal.mul_iSup]
+      exact iSup_congr fun η ↦ by rw [show (c • Φ) A η = c * Φ A η from rfl, enorm_mul]
+    rw [hsup]; ring
+  · simp [Set.indicator_of_notMem h]
 
 /-- The interaction strength of Georgii (8.8) is dominated by twice the norm (8.36):
 `∑_{A ∋ i} (|A| − 1) δ(Φ_A) ≤ 2 ∑_{A ∋ i} |A| ‖Φ_A‖`. -/
@@ -1535,6 +1822,74 @@ theorem isDobrushin_gibbsSpecification_of_cardNormAt_le {c : ℝ≥0∞} (hc : c
   · rw [abs_one, ENNReal.ofReal_one, one_mul]
     exact (interactionStrength_le_two_mul_cardNormAt Φ i).trans
       (mul_le_mul' le_rfl (hΦ i))
+
+/-- **Georgii, in the proof of Corollary (8.37): the `t`-uniform form of Proposition (8.8).**
+If `‖Φ‖' + t₀ ‖Ψ‖' < 1` in the norm (8.36), then the interdependence matrices of the whole
+segment `Φ + tΨ`, `|t| ≤ t₀`, are dominated entrywise by one matrix `C` whose row sums are
+`≤ ‖Φ‖' + t₀ ‖Ψ‖' < 1` — Georgii's `sup_i ∑_j sup_{|t| ≤ t₀} C_ij(γ^{Φ+tΨ}) < 1`.
+
+Consequently all the tail estimates of §8.1 (`Dobrushin.matSeries_le`, `Dobrushin.matTail`,
+`Dobrushin.tendsto_matTail`) hold for `C` uniformly in `t`, which is what Georgii's `D_ij =
+sup_{|t| ≤ t₀} D_ij(γ^{Φ+tΨ})` is used for. -/
+theorem exists_forall_interdep_gibbsSpecification_add_smul_le {Ψ : Potential S E}
+    [Potential.IsPotential Ψ] [Potential.IsAbsolutelySummable Ψ] {a b : ℝ≥0∞} {t₀ : ℝ}
+    (hΦ : ∀ i, cardNormAt Φ i ≤ a) (hΨ : ∀ i, cardNormAt Ψ i ≤ b) :
+    ∃ C : S → S → ℝ≥0∞, (∀ i, ∑' j, C i j ≤ a + ENNReal.ofReal t₀ * b) ∧
+      ∀ t : ℝ, |t| ≤ t₀ → ∀ i j,
+        interdep (Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ + t • Ψ) ν 1) i j
+          ≤ C i j := by
+  classical
+  set T : ℝ≥0∞ := ENNReal.ofReal t₀ with hT
+  refine ⟨fun i j ↦ {j : S | j ≠ i}.indicator
+    (fun j ↦ 2⁻¹ * (pairStrength Φ i j + T * pairStrength Ψ i j)) j, fun i ↦ ?_, ?_⟩
+  · have hpt : ∀ j : S, {j : S | j ≠ i}.indicator
+        (fun j ↦ 2⁻¹ * (pairStrength Φ i j + T * pairStrength Ψ i j)) j
+        = 2⁻¹ * ({j : S | j ≠ i}.indicator (fun j ↦ pairStrength Φ i j) j
+            + T * {j : S | j ≠ i}.indicator (fun j ↦ pairStrength Ψ i j) j) := by
+      intro j
+      by_cases hj : j = i
+      · subst hj
+        rw [Set.indicator_of_notMem (show j ∉ {k : S | k ≠ j} by simp),
+          Set.indicator_of_notMem (show j ∉ {k : S | k ≠ j} by simp),
+          Set.indicator_of_notMem (show j ∉ {k : S | k ≠ j} by simp)]
+        simp
+      · rw [Set.indicator_of_mem (show j ∈ {j : S | j ≠ i} from hj),
+          Set.indicator_of_mem (show j ∈ {j : S | j ≠ i} from hj),
+          Set.indicator_of_mem (show j ∈ {j : S | j ≠ i} from hj)]
+    have hinv : (2 : ℝ≥0∞)⁻¹ * 2 = 1 := ENNReal.inv_mul_cancel (by norm_num) (by norm_num)
+    calc ∑' j : S, {j : S | j ≠ i}.indicator
+            (fun j ↦ 2⁻¹ * (pairStrength Φ i j + T * pairStrength Ψ i j)) j
+        = ∑' j : S, 2⁻¹ * ({j : S | j ≠ i}.indicator (fun j ↦ pairStrength Φ i j) j
+            + T * {j : S | j ≠ i}.indicator (fun j ↦ pairStrength Ψ i j) j) := tsum_congr hpt
+      _ = 2⁻¹ * (∑' j : S, ({j : S | j ≠ i}.indicator (fun j ↦ pairStrength Φ i j) j
+            + T * {j : S | j ≠ i}.indicator (fun j ↦ pairStrength Ψ i j) j)) :=
+          ENNReal.tsum_mul_left
+      _ = 2⁻¹ * (interactionStrength Φ i + T * interactionStrength Ψ i) := by
+          rw [ENNReal.tsum_add, ENNReal.tsum_mul_left, tsum_pairStrength, tsum_pairStrength]
+      _ ≤ 2⁻¹ * (2 * a + T * (2 * b)) := by
+          gcongr
+          · exact (interactionStrength_le_two_mul_cardNormAt Φ i).trans
+              (mul_le_mul' le_rfl (hΦ i))
+          · exact (interactionStrength_le_two_mul_cardNormAt Ψ i).trans
+              (mul_le_mul' le_rfl (hΨ i))
+      _ = 2⁻¹ * 2 * (a + T * b) := by ring
+      _ = a + T * b := by rw [hinv, one_mul]
+  · intro t ht i j
+    show interdep (Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ + t • Ψ) ν 1) i j
+      ≤ {j : S | j ≠ i}.indicator
+          (fun j ↦ 2⁻¹ * (pairStrength Φ i j + T * pairStrength Ψ i j)) j
+    by_cases hj : j = i
+    · subst hj
+      rw [interdep_self]
+      exact bot_le
+    · rw [Set.indicator_of_mem (show j ∈ {j : S | j ≠ i} from hj)]
+      have h1 := interdep_gibbsSpecification_le (Φ := Φ + t • Ψ) ν 1 i j
+      have h2 : pairStrength (Φ + t • Ψ) i j ≤ pairStrength Φ i j + T * pairStrength Ψ i j := by
+        refine (pairStrength_add_le Φ (t • Ψ) i j).trans (add_le_add le_rfl ?_)
+        refine (pairStrength_smul_le t Ψ i j).trans (mul_le_mul' ?_ le_rfl)
+        exact ENNReal.ofReal_le_ofReal ht
+      rw [abs_one, ENNReal.ofReal_one, one_mul, ENNReal.div_eq_inv_mul] at h1
+      exact h1.trans (mul_le_mul' le_rfl h2)
 
 end CardNorm
 

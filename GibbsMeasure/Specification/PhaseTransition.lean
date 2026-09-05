@@ -5,7 +5,9 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Mathlib.Data.ENNReal.OfReal
 public import GibbsMeasure.Potential.Equivalence
+public import GibbsMeasure.Specification.DobrushinDerivatives
 public import GibbsMeasure.Specification.DobrushinUniqueness
 public import GibbsMeasure.Specification.TangentFunctional
 public import GibbsMeasure.Specification.VariationalPrinciple
@@ -53,11 +55,13 @@ linear functional `j(μ) = −⟨μ, ·⟩` on `ℬ_Θ`.
   specific entropy onto the `P`-bounded linear functionals on `ℬ_Θ`.
 * `Potential.BTheta.specificEntropy_eq_iInf`: **Georgii (16.12)**,
   `𝓀(μ) = inf_Φ [⟨μ, Φ⟩ + P(Φ)]`, i.e. `inf_Φ 𝓀(μ|Φ) = 0` on `𝓟_Θ`.
-* `Potential.BTheta.mem_subgradientAt_pressure_of_mem_invariantG`,
-  `Potential.BTheta.mem_invariantG_of_mem_subgradientAt_pressure'`,
-  `Potential.BTheta.mem_subgradientAt_pressure_iff_mem_invariantG'` and
-  `Potential.BTheta.exists_mem_fieldsOf_mem_invariantG`: **Georgii Theorem (16.14)**, `j` is a
-  one-to-one correspondence between `𝒢_Θ(Φ)` and the tangent functionals `∂P(Φ)`.
+* `Potential.BTheta.bijOn_specificEnergyFunctional_invariantG` and
+  `Potential.BTheta.image_specificEnergyFunctional_invariantG`: **Georgii Theorem (16.14)**, `j`
+  maps `𝒢_Θ(Φ)` bijectively onto the tangent functionals `∂P(Φ)`, and `j(𝒢_Θ(Φ)) = ∂P(Φ)`; its
+  three components are `Potential.BTheta.mem_subgradientAt_pressure_of_mem_invariantG`,
+  `Potential.BTheta.mem_invariantG_of_mem_subgradientAt_pressure'`
+  (with `Potential.BTheta.mem_subgradientAt_pressure_iff_mem_invariantG'`) and
+  `Potential.BTheta.exists_mem_fieldsOf_mem_invariantG`.
 * `Potential.BTheta.gateauxDifferentiable_pressure_iff_subsingleton` and
   `Potential.BTheta.gateauxDifferentiable_pressure_iff_eq_singleton`: the pressure is Gateaux
   differentiable at `Φ` if and only if `Φ` has exactly one shift-invariant Gibbs measure.
@@ -81,13 +85,18 @@ linear functional `j(μ) = −⟨μ, ·⟩` on `ℬ_Θ`.
   (`MeasureTheory.GibbsMeasure.Dobrushin.isDobrushin_gibbsSpecification_of_cardNormAt_le`), so
   `𝒢_Θ(Φ) = {μ_Φ}`, so `∂P(Φ) = {j(μ_Φ)}` by (16.14) and
   `∂/∂t P(Φ + tΨ)|_{t=0} = −⟨μ_Φ, Ψ⟩` in every direction `Ψ ∈ ℬ_Θ`.
-
-The second half of Corollary (16.17) — that `P` is *twice* continuously differentiable on `𝒟` in
-the directions of `ℬ̃_Θ`, with
-`∂²/∂s∂t P(Φ + sΨ + tΨ̃)|_0 = ∑_i [μ_Φ(f_Ψ̃ f_Ψ ∘ θ_i) − μ_Φ(f_Ψ̃) μ_Φ(f_Ψ)]` — is not proved here.
-It is Georgii's Corollary (8.37), the differentiability of `Φ ↦ μ_Φ(g)` on `𝒟`, which rests on the
-covariance estimate of Proposition (8.34); neither (8.34) nor (8.37) is in this library, and the
-second derivative does not follow from (16.14) alone.
+* `Potential.BTheta.hasDerivAt_rightDirDeriv_pressure_of_mem_dobrushinRegion`: **Georgii
+  Corollary (16.17)**, second-derivative half. For `Φ ∈ 𝒟`, an outer direction `Ψ` with
+  `∑_{A ∋ 0} |A| ‖Ψ_A‖ < ∞` (Georgii's `ℬ̃_Θ`) and an arbitrary inner direction `Ψ̃ ∈ ℬ_Θ`, the
+  first derivative `t ↦ ∂/∂s P(Φ + tΨ + sΨ̃)|_{s=0} = −⟨μ_{Φ+tΨ}, Ψ̃⟩` is itself differentiable at
+  `t = 0`, with
+  `∂²/∂s∂t P(Φ + sΨ̃ + tΨ)|_0 = ∑_k [μ_Φ(f_Ψ̃ · f_Ψ ∘ θ_{−k}) − μ_Φ(f_Ψ̃) μ_Φ(f_Ψ ∘ θ_{−k})]`,
+  which is Georgii's `∑_i [μ_Φ(f_Ψ̃ f_Ψ ∘ θ_i) − μ_Φ(f_Ψ̃) μ_Φ(f_Ψ)]` after `i = −k`, using the
+  shift invariance of `μ_Φ`. The input is Georgii's Corollary (8.37),
+  `MeasureTheory.GibbsMeasure.Dobrushin.hasDerivAt_integral_gibbsMeasure_add_smul`, applied to
+  the observable `g = f_Ψ̃`. Only the outer direction needs the norm (8.36) to be finite: it is
+  what keeps the segment inside `𝒟`; the inner direction only needs `∑_i δ_i(f_Ψ̃) < ∞`, which
+  every `Ψ̃ ∈ ℬ_Θ` satisfies.
 -/
 
 @[expose] public section
@@ -319,122 +328,7 @@ end Lattice
 
 end LocalPotential
 
-/-! ### The specific energy is continuous for the topology of local convergence
 
-Georgii's `f_Φ = ∑_{A ∋ 0} |A|⁻¹ Φ_A` (15.22) is a uniformly convergent sum of local observables,
-hence quasilocal, so `μ ↦ ⟨μ, Φ⟩` is continuous for the topology of local convergence (4.3)(2).
-This is the continuity of the map `j` used in the proof of Georgii Proposition (16.11). -/
-
-section Quasilocal
-
-variable {S E : Type*} [MeasurableSpace E] {Φ : Potential S E} [IsAbsolutelySummable Φ]
-
-variable (Φ) in
-/-- The term `|A|⁻¹ Φ_A` of the energy density at the site `i`, as a bounded observable. -/
-def siteEnergyTermLp (i : S) (A : Finset S) : lp (fun _ : S → E ↦ ℝ) ∞ :=
-  ⟨fun η ↦ Φ.siteEnergyTerms i η A,
-    memℓp_infty ⟨({A : Finset S | i ∈ A}.indicator (fun A ↦ ⨆ η, ‖Φ A η‖ₑ) A).toReal, by
-      rintro _ ⟨η, rfl⟩
-      have h := enorm_siteEnergyTerms_le (Φ := Φ) i η A
-      rw [← ENNReal.toReal_le_toReal (by simp)
-        (ne_top_of_le_ne_top (IsAbsolutelySummable.normAt_ne_top (Φ := Φ) i)
-          (ENNReal.le_tsum A))] at h
-      simpa [Real.enorm_eq_ofReal_abs, ENNReal.toReal_ofReal (abs_nonneg _)] using h⟩⟩
-
-lemma norm_siteEnergyTermLp_le (i : S) (A : Finset S) :
-    ‖Φ.siteEnergyTermLp i A‖
-      ≤ ({A : Finset S | i ∈ A}.indicator (fun A ↦ ⨆ η, ‖Φ A η‖ₑ) A).toReal := by
-  refine lp.norm_le_of_forall_le ENNReal.toReal_nonneg fun η ↦ ?_
-  have h := enorm_siteEnergyTerms_le (Φ := Φ) i η A
-  rw [← ENNReal.toReal_le_toReal (by simp)
-    (ne_top_of_le_ne_top (IsAbsolutelySummable.normAt_ne_top (Φ := Φ) i)
-      (ENNReal.le_tsum A))] at h
-  simpa [siteEnergyTermLp, Real.enorm_eq_ofReal_abs, ENNReal.toReal_ofReal (abs_nonneg _)] using h
-
-lemma summable_siteEnergyTermLp (i : S) : Summable (Φ.siteEnergyTermLp i) := by
-  refine Summable.of_norm (Summable.of_nonneg_of_le (fun A ↦ norm_nonneg _)
-    (fun A ↦ norm_siteEnergyTermLp_le (Φ := Φ) i A) ?_)
-  exact ENNReal.summable_toReal (IsAbsolutelySummable.normAt_ne_top (Φ := Φ) i)
-
-lemma siteEnergyTermLp_mem_localFunctionsOn [IsPotential Φ] (i : S) (A : Finset S) :
-    Φ.siteEnergyTermLp i A ∈ localFunctionsOn S E A := by
-  change Measurable[cylinderEvents (X := fun _ : S ↦ E) (A : Set S)]
-    (fun η ↦ Φ.siteEnergyTerms i η A)
-  by_cases h : i ∈ A
-  · simp only [siteEnergyTerms_of_mem h]
-    exact (IsPotential.measurable (Φ := Φ) A).const_mul _
-  · simp only [siteEnergyTerms_of_not_mem h]
-    exact measurable_const
-
-variable (Φ) in
-/-- Georgii's energy density `f_Φ` (15.22), as a bounded observable. -/
-def siteEnergyLp (i : S) : lp (fun _ : S → E ↦ ℝ) ∞ :=
-  ⟨Φ.siteEnergy i, memℓp_infty ⟨(Φ.normAt i).toReal, by
-    rintro _ ⟨η, rfl⟩
-    simpa [Real.norm_eq_abs] using abs_siteEnergy_le (Φ := Φ) i η⟩⟩
-
-@[simp] lemma coeFn_siteEnergyLp (i : S) : ⇑(Φ.siteEnergyLp i) = Φ.siteEnergy i := rfl
-
-lemma hasSum_siteEnergyTermLp (i : S) :
-    HasSum (Φ.siteEnergyTermLp i) (Φ.siteEnergyLp i) := by
-  obtain ⟨T, hT⟩ := summable_siteEnergyTermLp (Φ := Φ) i
-  have hpt : ∀ η : S → E, (T : (S → E) → ℝ) η = Φ.siteEnergy i η := by
-    intro η
-    have h1 : HasSum (fun A ↦ (Φ.siteEnergyTermLp i A : (S → E) → ℝ) η) ((T : (S → E) → ℝ) η) := by
-      refine (lp.tendsto_apply_of_tendsto hT η).congr fun s ↦ ?_
-      simp only [siteEnergyTermLp, lp.coeFn_sum]
-      exact Finset.sum_apply _ _ _
-    exact h1.unique (summable_siteEnergyTerms (Φ := Φ) i η).hasSum
-  have hTeq : T = Φ.siteEnergyLp i := lp.ext (funext hpt)
-  exact hTeq ▸ hT
-
-/-- **Georgii, after (15.22):** the energy density `f_Φ` is a quasilocal observable. -/
-theorem siteEnergyLp_mem_quasilocalFunctions [IsPotential Φ] (i : S) :
-    Φ.siteEnergyLp i ∈ quasilocalFunctions S E := by
-  refine (Subalgebra.isClosed_topologicalClosure (localFunctions S E)).mem_of_tendsto
-    (hasSum_siteEnergyTermLp (Φ := Φ) i) (.of_forall fun s ↦ ?_)
-  exact Subalgebra.sum_mem _ fun A _ ↦ localFunctions_le_quasilocalFunctions
-    (mem_localFunctions.2 ⟨A, siteEnergyTermLp_mem_localFunctionsOn (Φ := Φ) i A⟩)
-
-/-- **Georgii (4.3)(2) and (15.22):** the specific energy `μ ↦ ⟨μ, Φ⟩` is continuous for the
-topology of local convergence. This is the continuity of `j` in the proof of (16.11). -/
-theorem continuous_specificEnergy [Zero S] [IsPotential Φ] :
-    Continuous fun μ : WithLocalConvergence S E ↦
-      Φ.specificEnergy (μ.toMeasure : Measure (S → E)) :=
-  lContinuous_of_mem_quasilocalFunctions (siteEnergyLp_mem_quasilocalFunctions (Φ := Φ) 0)
-
-end Quasilocal
-
-/-! ### The affine map `j : μ ↦ −⟨μ, ·⟩` of Georgii §16.2 -/
-
-section Duality
-
-variable {S E : Type*} [Countable S] [Zero S] [MeasurableSpace E] {Φ Ψ : Potential S E}
-  [IsPotential Φ] [IsAbsolutelySummable Φ] [IsPotential Ψ] [IsAbsolutelySummable Ψ]
-  {μ : Measure (S → E)} [IsFiniteMeasure μ]
-
-/-- The specific energy is additive in the potential. -/
-lemma specificEnergy_add : (Φ + Ψ).specificEnergy μ = Φ.specificEnergy μ + Ψ.specificEnergy μ := by
-  have : IsAbsolutelySummable (Φ + Ψ) := inferInstance
-  rw [specificEnergy, specificEnergy, specificEnergy,
-    ← integral_add (integrable_siteEnergy 0 μ) (integrable_siteEnergy 0 μ)]
-  exact integral_congr_ae (.of_forall fun η ↦ siteEnergy_add 0 η)
-
-/-- The specific energy is additive in the potential. -/
-lemma specificEnergy_sub : (Φ - Ψ).specificEnergy μ = Φ.specificEnergy μ - Ψ.specificEnergy μ := by
-  have : IsAbsolutelySummable (Φ - Ψ) := inferInstance
-  rw [specificEnergy, specificEnergy, specificEnergy,
-    ← integral_sub (integrable_siteEnergy 0 μ) (integrable_siteEnergy 0 μ)]
-  exact integral_congr_ae (.of_forall fun η ↦ siteEnergy_sub 0 η)
-
-omit [Countable S] [IsPotential Φ] [IsAbsolutelySummable Φ] [IsPotential Ψ]
-  [IsAbsolutelySummable Ψ] [IsFiniteMeasure μ] in
-/-- The specific energy is homogeneous in the potential. -/
-lemma specificEnergy_smul (c : ℝ) : (c • Φ).specificEnergy μ = c * Φ.specificEnergy μ := by
-  rw [specificEnergy, specificEnergy, ← integral_const_mul]
-  exact integral_congr_ae (.of_forall fun η ↦ siteEnergy_smul c 0 η)
-
-end Duality
 
 namespace BTheta
 
@@ -529,45 +423,6 @@ theorem mem_subgradientAt_pressure_of_mem_invariantG
     (isShiftInvariant Ψ) hμ.2
   rw [heq, EReal.coe_le_coe_iff] at hle
   exact hle
-
-/-- **Georgii Theorem (16.14), second half.** A shift-invariant random field whose functional
-`j(μ)` is tangent to `P` at `Φ`, and which is a Gibbs measure for *some* potential of `ℬ_Θ`, is a
-Gibbs measure for `Φ`: tangency says that the specific free energy `⟨μ, ·⟩ + P(·)` is minimal at
-`Φ`, and by Corollary (15.35) its value at `Ψ` is the specific entropy `𝓀(μ)`, so the variational
-principle (15.39) applies at `Φ`.
-
-Georgii obtains the hypothesis `hΨ` — equivalently `inf_Ψ 𝓀(μ|Ψ) = 0`, his (16.12) — from the
-Fenchel duality of Proposition (16.11), which identifies the `P`-bounded functionals on `ℬ_Θ`
-with `𝓟^λ_Θ(Ω, 𝓕)`. -/
-theorem mem_invariantG_of_mem_subgradientAt_pressure [StandardBorelSpace E]
-    (hμ : μ ∈ invariantFields (shiftGroup (ι → ℤ) E)) {Ψ : BTheta (ι → ℤ) E}
-    (hΨ : μ ∈ invariantG (gibbsSpecificationOfAbsolutelySummable
-      (Φ := (Ψ : Potential (ι → ℤ) E)) ν 1) (shiftGroup (ι → ℤ) E))
-    (h : specificEnergyFunctional μ ∈ subgradientAt (pressure ν) Φ) :
-    μ ∈ invariantG (gibbsSpecificationOfAbsolutelySummable
-      (Φ := (Φ : Potential (ι → ℤ) E)) ν 1) (shiftGroup (ι → ℤ) E) := by
-  refine (specificEntropy_eq_specificEnergy_add_pressure_iff_mem_invariantG ν
-    (isShiftInvariant Φ) hμ).1 ?_
-  have hΨeq := specificEntropy_eq_specificEnergy_add_pressure
-    (Φ := (Ψ : Potential (ι → ℤ) E)) ν (isShiftInvariant Ψ) hμ hΨ.1.2
-  have hle := specificEntropy_le_specificEnergy_add_pressure
-    (Φ := (Φ : Potential (ι → ℤ) E)) ν (isShiftInvariant Φ) hμ
-  have hmin := (mem_subgradientAt_pressure_iff ν μ).1 h Ψ
-  rw [hΨeq, EReal.coe_le_coe_iff] at hle
-  rw [hΨeq, EReal.coe_eq_coe_iff]
-  exact le_antisymm hle hmin
-
-/-- **Georgii Theorem (16.14)**, as a one-to-one correspondence in the case where `μ` is known to
-be a Gibbs measure for some potential: `j(μ) ∈ ∂P(Φ)` if and only if `μ ∈ 𝒢_Θ(Φ)`. -/
-theorem mem_subgradientAt_pressure_iff_mem_invariantG [StandardBorelSpace E]
-    (hμ : μ ∈ invariantFields (shiftGroup (ι → ℤ) E)) {Ψ : BTheta (ι → ℤ) E}
-    (hΨ : μ ∈ invariantG (gibbsSpecificationOfAbsolutelySummable
-      (Φ := (Ψ : Potential (ι → ℤ) E)) ν 1) (shiftGroup (ι → ℤ) E)) :
-    specificEnergyFunctional μ ∈ subgradientAt (pressure ν) Φ ↔
-      μ ∈ invariantG (gibbsSpecificationOfAbsolutelySummable
-        (Φ := (Φ : Potential (ι → ℤ) E)) ν 1) (shiftGroup (ι → ℤ) E) :=
-  ⟨fun h ↦ mem_invariantG_of_mem_subgradientAt_pressure ν hμ hΨ h,
-    fun h ↦ mem_subgradientAt_pressure_of_mem_invariantG ν h⟩
 
 /-- **Georgii (16.14) with Remark (16.6)(1).** If the pressure is Gateaux differentiable at `Φ`
 then `Φ` has at most one shift-invariant Gibbs measure: the tangent functionals at a point of
@@ -733,24 +588,6 @@ theorem isCompact_setOf_le_specificEntropyDual [StandardBorelSpace E] (c : ℝ) 
   rw [himage]
   exact hKcompact.image continuous_specificEnergyFunctional
 
-/-- The specific energy is affine in the random field. -/
-lemma specificEnergy_smul_add_smul {S : Type*} [Countable S] [Zero S] {F : Type*}
-    [MeasurableSpace F] {Φ : Potential S F} [IsPotential Φ] [IsAbsolutelySummable Φ]
-    (μ₁ μ₂ : Measure (S → F)) [IsFiniteMeasure μ₁] [IsFiniteMeasure μ₂] (s t : ℝ≥0) :
-    Φ.specificEnergy (s • μ₁ + t • μ₂)
-      = s * Φ.specificEnergy μ₁ + t * Φ.specificEnergy μ₂ := by
-  have h₁ : IsFiniteMeasure ((s : ℝ≥0∞) • μ₁) := by
-    refine ⟨?_⟩
-    rw [Measure.smul_apply, smul_eq_mul]
-    exact ENNReal.mul_lt_top ENNReal.coe_lt_top (measure_lt_top μ₁ _)
-  have h₂ : IsFiniteMeasure ((t : ℝ≥0∞) • μ₂) := by
-    refine ⟨?_⟩
-    rw [Measure.smul_apply, smul_eq_mul]
-    exact ENNReal.mul_lt_top ENNReal.coe_lt_top (measure_lt_top μ₂ _)
-  rw [specificEnergy, specificEnergy, specificEnergy, ENNReal.smul_def, ENNReal.smul_def,
-    integral_add_measure (integrable_siteEnergy 0 _) (integrable_siteEnergy 0 _),
-    integral_smul_measure, integral_smul_measure]
-  simp [smul_eq_mul]
 
 /-- Georgii's set `C = {(L, t) : t ≤ 𝓀(L)}` of Step 3 in the proof of (16.11): the hypograph of
 the extended specific entropy on `ℬ_Θ* × ℝ`. -/
@@ -1091,6 +928,44 @@ theorem exists_mem_fieldsOf_mem_invariantG [StandardBorelSpace E]
   have hjμ : specificEnergyFunctional μ = L :=
     LinearMap.ext fun Ψ ↦ by rw [specificEnergyFunctional_apply, hμ.2 Ψ, neg_neg]
   exact ⟨μ, hμ, mem_invariantG_of_mem_subgradientAt_pressure' ν hμ.1 (hjμ ▸ hL)⟩
+
+/-- **Georgii Theorem (16.14).** Over a standard Borel state space the map `j : μ ↦ −⟨μ, ·⟩` is a
+one-to-one correspondence between the shift-invariant Gibbs measures `𝒢_Θ(Φ)` of a potential
+`Φ ∈ ℬ_Θ` and the tangent functionals `∂P(Φ)` of the pressure at `Φ`.
+
+The three components are `Potential.BTheta.mem_subgradientAt_pressure_of_mem_invariantG`
+(`j(𝒢_Θ(Φ)) ⊆ ∂P(Φ)`, by Corollary (15.35)),
+`Potential.BTheta.specificEnergyFunctional_injective` (injectivity of `j`, by Lemma (16.10)) and
+`Potential.BTheta.exists_mem_fieldsOf_mem_invariantG` (`∂P(Φ) ⊆ j(𝒢_Θ(Φ))`, by Theorem (16.13)
+and the variational principle (15.39)). -/
+theorem bijOn_specificEnergyFunctional_invariantG [StandardBorelSpace E] :
+    Set.BijOn
+      (fun p : ProbabilityMeasure ((ι → ℤ) → E) ↦
+        specificEnergyFunctional (p : Measure ((ι → ℤ) → E)))
+      {p : ProbabilityMeasure ((ι → ℤ) → E) | (p : Measure ((ι → ℤ) → E)) ∈
+        invariantG (gibbsSpecificationOfAbsolutelySummable
+          (Φ := (Φ : Potential (ι → ℤ) E)) ν 1) (shiftGroup (ι → ℤ) E)}
+      (subgradientAt (pressure ν) Φ) := by
+  refine ⟨fun p hp ↦ mem_subgradientAt_pressure_of_mem_invariantG ν hp, fun p hp q hq h ↦ ?_,
+    fun L hL ↦ ?_⟩
+  · obtain ⟨-, hsp⟩ := mem_invariantFields_shiftGroup.1 hp.2
+    obtain ⟨-, hsq⟩ := mem_invariantFields_shiftGroup.1 hq.2
+    exact ProbabilityMeasure.toMeasure_injective (specificEnergyFunctional_injective hsp hsq h)
+  · obtain ⟨μ, hμf, hμG⟩ := exists_mem_fieldsOf_mem_invariantG ν hL
+    have hprob : IsProbabilityMeasure μ := hμG.1.1
+    refine ⟨⟨μ, hprob⟩, hμG, LinearMap.ext fun Ψ ↦ ?_⟩
+    show -(Ψ : Potential (ι → ℤ) E).specificEnergy μ = L Ψ
+    rw [hμf.2 Ψ, neg_neg]
+
+/-- **Georgii Theorem (16.14)**, as an equality of sets: `j(𝒢_Θ(Φ)) = ∂P(Φ)`. -/
+theorem image_specificEnergyFunctional_invariantG [StandardBorelSpace E] :
+    (fun p : ProbabilityMeasure ((ι → ℤ) → E) ↦
+        specificEnergyFunctional (p : Measure ((ι → ℤ) → E))) ''
+      {p : ProbabilityMeasure ((ι → ℤ) → E) | (p : Measure ((ι → ℤ) → E)) ∈
+        invariantG (gibbsSpecificationOfAbsolutelySummable
+          (Φ := (Φ : Potential (ι → ℤ) E)) ν 1) (shiftGroup (ι → ℤ) E)}
+      = subgradientAt (pressure ν) Φ :=
+  (bijOn_specificEnergyFunctional_invariantG ν).image_eq
 
 /-- **Georgii (16.14) with Remark (16.6).** Over a standard Borel state space the pressure is
 Gateaux differentiable at `Φ` if and only if `Φ` has at most one — equivalently, by Theorem
@@ -1493,6 +1368,122 @@ theorem leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_of_mem_dobrushinRegion [No
   refine ⟨μ, hμ, fun Ψ ↦ ?_⟩
   exact leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_of_subgradientAt_eq_singleton ν
     (subgradientAt_pressure_eq_singleton_of_invariantG_eq_singleton ν hμ) Ψ
+
+open scoped ProbabilityTheory
+
+variable (ν) in
+/-- **Georgii Corollary (16.17), the second-derivative formula.** For `Φ` in the region
+`𝒟 = {‖Φ‖ < 1}` of (8.36), an outer direction `Ψ` of `ℬ̃_Θ` (i.e. with `‖Ψ‖ < ∞` in the norm
+(8.36)) and an arbitrary inner direction `Ψ̃ ∈ ℬ_Θ`, the map
+
+`t ↦ ∂/∂s P(Φ + tΨ + sΨ̃)|_{s=0} = −⟨μ_{Φ+tΨ}, Ψ̃⟩`
+
+is differentiable at `t = 0` with
+
+`∂²/∂s∂t P(Φ + sΨ̃ + tΨ)|_{s,t=0} = ∑_k [μ_Φ(f_Ψ̃ · f_Ψ ∘ θ_{−k}) − μ_Φ(f_Ψ̃) μ_Φ(f_Ψ ∘ θ_{−k})]`,
+
+which is Georgii's `∑_i [μ_Φ(f_Ψ̃ f_Ψ ∘ θ_i) − μ_Φ(f_Ψ̃) μ_Φ(f_Ψ)]` after the substitution
+`i = −k`, using that `μ_Φ` is shift invariant and `f_Ψ ∘ θ_{−k} = Potential.siteEnergy Ψ k`.
+
+Georgii's proof is followed exactly: Theorem (16.14) and (8.7)/(8.8) give
+`∂P(Φ + tΨ) = {−⟨μ_{Φ+tΨ}, ·⟩}` along the whole segment (the first-derivative half
+`leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_of_mem_dobrushinRegion`), which turns the inner
+derivative into `μ_{Φ+tΨ}(g)` for `g = −f_Ψ̃`, and Corollary (8.37)
+(`MeasureTheory.GibbsMeasure.Dobrushin.hasDerivAt_integral_gibbsMeasure_add_smul`) differentiates
+that in `t`. Only the *outer* direction needs the norm (8.36) to be finite: it is what keeps the
+segment inside `𝒟`; the inner direction only has to satisfy `∑_i δ_i(f_Ψ̃) ≤ 2‖Ψ̃‖₀ < ∞`, which
+holds for every `Ψ̃ ∈ ℬ_Θ`. -/
+theorem hasDerivAt_rightDirDeriv_pressure_of_mem_dobrushinRegion [Nonempty E]
+    (hΦ : Φ ∈ dobrushinRegion ι E) {Ψ : BTheta (ι → ℤ) E}
+    (hΨ : Dobrushin.cardNormAt (Ψ : Potential (ι → ℤ) E) 0 ≠ ⊤) (Ψ' : BTheta (ι → ℤ) E) :
+    ∃ μ : Measure ((ι → ℤ) → E), invariantG (gibbsSpecificationOfAbsolutelySummable
+        (Φ := (Φ : Potential (ι → ℤ) E)) ν 1) (shiftGroup (ι → ℤ) E) = {μ} ∧
+      HasDerivAt (fun t : ℝ ↦ rightDirDeriv (pressure ν) (Φ + t • Ψ) Ψ')
+        (∑' k : ι → ℤ, cov[(Ψ' : Potential (ι → ℤ) E).siteEnergy 0,
+          (Ψ : Potential (ι → ℤ) E).siteEnergy k; μ]) 0 := by
+  classical
+  obtain ⟨t₀, ht₀, hab⟩ := ENNReal.exists_pos_add_ofReal_mul_lt_one hΦ hΨ
+  have hcoe : ∀ s : ℝ, ((Φ + s • Ψ : BTheta (ι → ℤ) E) : Potential (ι → ℤ) E)
+      = (Φ : Potential (ι → ℤ) E) + s • (Ψ : Potential (ι → ℤ) E) := fun _ ↦ rfl
+  have hΦ' : ∀ i, Dobrushin.cardNormAt (Φ : Potential (ι → ℤ) E) i
+      ≤ Dobrushin.cardNormAt (Φ : Potential (ι → ℤ) E) 0 := fun i ↦
+    le_of_eq (Dobrushin.cardNormAt_eq_of_isShiftInvariant (isShiftInvariant Φ) i)
+  have hΨ' : ∀ i, Dobrushin.cardNormAt (Ψ : Potential (ι → ℤ) E) i
+      ≤ Dobrushin.cardNormAt (Ψ : Potential (ι → ℤ) E) 0 := fun i ↦
+    le_of_eq (Dobrushin.cardNormAt_eq_of_isShiftInvariant (isShiftInvariant Ψ) i)
+  -- the whole segment stays inside Georgii's region `𝒟`
+  have hmemD : ∀ s : ℝ, |s| ≤ t₀ → (Φ + s • Ψ) ∈ dobrushinRegion ι E := by
+    intro s hs
+    rw [mem_dobrushinRegion_iff, hcoe s]
+    refine lt_of_le_of_lt ?_ hab
+    refine (Dobrushin.cardNormAt_add_le _ _ 0).trans (add_le_add le_rfl ?_)
+    rw [Dobrushin.cardNormAt_smul]
+    exact mul_le_mul' (by rw [Real.enorm_eq_ofReal_abs]; exact ENNReal.ofReal_le_ofReal hs) le_rfl
+  -- the unique shift-invariant Gibbs measure along the segment
+  have hex : ∀ s : ℝ, ∃ m : Measure ((ι → ℤ) → E), IsProbabilityMeasure m ∧
+      (|s| ≤ t₀ → invariantG (gibbsSpecificationOfAbsolutelySummable
+        (Φ := (Φ : Potential (ι → ℤ) E) + s • (Ψ : Potential (ι → ℤ) E)) ν 1)
+        (shiftGroup (ι → ℤ) E) = {m}) := by
+    intro s
+    by_cases hs : |s| ≤ t₀
+    · obtain ⟨m, hm⟩ := exists_invariantG_eq_singleton_of_mem_dobrushinRegion ν (hmemD s hs)
+      have hm' : invariantG (gibbsSpecificationOfAbsolutelySummable
+          (Φ := (Φ : Potential (ι → ℤ) E) + s • (Ψ : Potential (ι → ℤ) E)) ν 1)
+          (shiftGroup (ι → ℤ) E) = {m} := hm
+      have hmem : m ∈ invariantG (gibbsSpecificationOfAbsolutelySummable
+          (Φ := (Φ : Potential (ι → ℤ) E) + s • (Ψ : Potential (ι → ℤ) E)) ν 1)
+          (shiftGroup (ι → ℤ) E) := by rw [hm']; exact rfl
+      exact ⟨m, hmem.1.1, fun _ ↦ hm'⟩
+    · exact ⟨Measure.dirac fun _ ↦ Classical.arbitrary E, inferInstance, fun h ↦ absurd h hs⟩
+  choose μ hμprob hμeq using hex
+  -- `μ s` is Gibbs for the specification of `Φ + sΨ`
+  have hμbind : ∀ s : ℝ, |s| ≤ t₀ → ∀ i : ι → ℤ, (μ s).bind
+      (gibbsSpecificationOfAbsolutelySummable
+        (Φ := (Φ : Potential (ι → ℤ) E) + s • (Ψ : Potential (ι → ℤ) E)) ν 1 {i}) = μ s := by
+    intro s hs i
+    have hmem : μ s ∈ invariantG (gibbsSpecificationOfAbsolutelySummable
+        (Φ := (Φ : Potential (ι → ℤ) E) + s • (Ψ : Potential (ι → ℤ) E)) ν 1)
+        (shiftGroup (ι → ℤ) E) := by rw [hμeq s hs]; exact rfl
+    have := hμprob s
+    exact (Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob.1 hmem.1.2) {i}
+  -- Corollary (8.37) for the energy density of the inner direction
+  have hgq : (Ψ' : Potential (ι → ℤ) E).siteEnergyLp 0 ∈ quasilocalFunctions (ι → ℤ) E :=
+    Potential.siteEnergyLp_mem_quasilocalFunctions 0
+  have hgsum : ∑' i : ι → ℤ,
+      Dobrushin.oscAt (⇑((Ψ' : Potential (ι → ℤ) E).siteEnergyLp 0)) i ≠ ⊤ := by
+    have hle : ∑' j : ι → ℤ,
+        Dobrushin.oscAt ((Ψ' : Potential (ι → ℤ) E).siteEnergy 0) j
+        ≤ 2 * (Ψ' : Potential (ι → ℤ) E).normAt 0 :=
+      Dobrushin.tsum_oscAt_siteEnergy_le (Φ := (Ψ' : Potential (ι → ℤ) E)) 0
+    exact ne_top_of_le_ne_top (ENNReal.mul_ne_top (a := 2) (by norm_num)
+      (Potential.IsAbsolutelySummable.normAt_ne_top (Φ := (Ψ' : Potential (ι → ℤ) E)) 0)) hle
+  have h837 := Dobrushin.hasDerivAt_integral_gibbsMeasure_add_smul
+    (Φ := (Φ : Potential (ι → ℤ) E)) (Ψ := (Ψ : Potential (ι → ℤ) E)) ν ht₀ hΦ' hΨ' hab
+    hgq hgsum hμprob hμbind (t := 0) (by simpa using ht₀)
+  -- the inner derivative is `−⟨μ_s, Ψ̃⟩`
+  have heq : ∀ s : ℝ, |s| ≤ t₀ → rightDirDeriv (pressure ν) (Φ + s • Ψ) Ψ'
+      = -∫ σ, ((Ψ' : Potential (ι → ℤ) E).siteEnergyLp 0 : ((ι → ℤ) → E) → ℝ) σ ∂(μ s) := by
+    intro s hs
+    have hsing : subgradientAt (pressure ν) (Φ + s • Ψ) = {specificEnergyFunctional (μ s)} := by
+      have := hμprob s
+      exact subgradientAt_pressure_eq_singleton_of_invariantG_eq_singleton ν (hμeq s hs)
+    have := hμprob s
+    rw [(leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_of_subgradientAt_eq_singleton ν
+      hsing Ψ').2, specificEnergyFunctional_apply]
+    rfl
+  have hnbhd : ∀ᶠ s : ℝ in 𝓝 (0 : ℝ), rightDirDeriv (pressure ν) (Φ + s • Ψ) Ψ'
+      = -∫ σ, ((Ψ' : Potential (ι → ℤ) E).siteEnergyLp 0 : ((ι → ℤ) → E) → ℝ) σ ∂(μ s) := by
+    filter_upwards [Metric.ball_mem_nhds (0 : ℝ) ht₀] with s hs
+    exact heq s (by simpa [Real.dist_eq] using (Metric.mem_ball.1 hs).le)
+  refine ⟨μ 0, ?_, ?_⟩
+  · have h0 : (Φ : Potential (ι → ℤ) E) + (0 : ℝ) • (Ψ : Potential (ι → ℤ) E)
+        = (Φ : Potential (ι → ℤ) E) := by simp
+    have h := hμeq 0 (by simpa using ht₀.le)
+    simpa only [h0] using h
+  · refine HasDerivAt.congr_of_eventuallyEq ?_ hnbhd
+    have h := h837.neg
+    rw [neg_neg] at h
+    exact h
 
 end DobrushinRegime
 
