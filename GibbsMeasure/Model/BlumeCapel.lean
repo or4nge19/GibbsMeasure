@@ -40,8 +40,10 @@ Theorem (18.25) does not apply.  Georgii's remedy is Comment (19.5)(1): the coar
 
 * Georgii's conclusion `|ex 𝒢_Θ(βΦ + βh(β)Φ^1)| ≥ 3` is Theorem (19.6) followed by Corollary
   (19.7).  (19.7) is `MeasureTheory.GibbsMeasure.exists_gibbsMeasure_refinement`, but (19.6)
-  rests on the Knaster–Kuratowski–Mazurkiewicz lemma (19.12), which Mathlib does not have — see
-  the module docstring of `GibbsMeasure/Specification/ResolvingPerturbations.lean`.
+  rests on the Knaster–Kuratowski–Mazurkiewicz lemma (19.12), now
+  `nonempty_iInter_of_isClosed_of_stdSimplex_subset_iUnion` of `GibbsMeasure/Mathlib/Topology/KKM.lean`,
+  and on the assembly of Propositions (19.13)–(19.15), not yet formalised — see the module docstring
+  of `GibbsMeasure/Specification/ResolvingPerturbations.lean`.
 * Georgii's remark that "there exist no `Φ`-symmetries which map these two configurations to the
   third one" — the reason the fine partition is not `Φ`-symmetric, so that Theorem (18.25) does
   not apply and the perturbation is needed.  He asserts it without proof, and it is not used by

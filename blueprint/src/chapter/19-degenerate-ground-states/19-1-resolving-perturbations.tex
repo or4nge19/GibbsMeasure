@@ -54,8 +54,34 @@
     constant configurations, $\{G_1, G_2\}$ with $G_2 = \{(\pm\pm)\}$ and its refinement are stable
     and balanced, and the self-potential $\sum_{i\in C}\sigma_i^2$ resolves $\{G_1, G_2\}$ by (19.5)(1)
     with $c_1 = 4$, $\delta_1 = -4$. Not formalised: Theorem (19.6) and hence the phase-transition
-    conclusions of (19.8)--(19.10), which need Lemma (19.12) (Knaster--Kuratowski--Mazurkiewicz from
-    Sperner's lemma, Appendix 19.A), absent from Mathlib; Examples (19.9)--(19.10).
+    conclusions of (19.8)--(19.10), whose combinatorial input (19.12) is Theorem
+    \ref{thm:dg-19-12} and whose remaining content is the assembly of (19.13)--(19.15);
+    Examples (19.9)--(19.10).
+\end{theorem}
+\begin{proof}
+    \leanok
+\end{proof}
+
+\begin{theorem}[Sperner's lemma and the Knaster--Kuratowski--Mazurkiewicz lemma, Georgii (19.12) and Appendix 19.A]
+    \label{thm:dg-19-12}
+    \lean{Sperner.IsCell, Sperner.IsAdmissible, Sperner.IsPanchromatic, Sperner.panchromaticCells, Sperner.odd_card_panchromaticCells, Sperner.exists_isPanchromatic, Sperner.card_doors_mod_two, Sperner.pivot, Sperner.card_panchromaticCells_face, Sperner.even_card_of_involutive_of_fixedPointFree, Sperner.card_mod_two_eq_card_filter_fixed, Sperner.bary, Sperner.bary_mem_stdSimplex, Sperner.abs_bary_vertex_sub_le, nonempty_iInter_of_isClosed_of_stdSimplex_subset_iUnion, exists_mem_stdSimplex_forall_exists}
+    \leanok
+
+    Sperner's lemma on Kuhn's triangulation of $\ell\Delta^d$ in staircase coordinates
+    ($0 \leq y_0 \leq \dots \leq y_{d-1} \leq \ell$, cells indexed by a lattice point and a
+    permutation): an admissible colouring (each vertex coloured by an index of its support) has an
+    odd number of panchromatic cells, by the door-to-door parity argument through a pivot
+    involution on doors, the fixed doors being the panchromatic cells of the face $\alpha_d = 0$;
+    $\ell \geq 1$ is needed. Lemma (19.12): closed $K_1,\dots,K_N \subseteq \mathcal P_N$ covering
+    the simplex with $K_n \cap \{\alpha_n = 0\} = \emptyset$ have $\bigcap_n K_n \neq \emptyset$,
+    by Georgii's (19.A4) (colour the grid points by covering members, take a limit of panchromatic
+    cells of mesh $2/\ell$); and the selection principle in the form (19.13) uses. Erratum:
+    Georgii's (19.A1) is stated for the cliques of the graph on the grid in which two points are
+    adjacent when they differ by $\pm\ell^{-1}$ in exactly two coordinates, claiming an $n$-clique
+    is a simplex of the decomposition; for $N \geq 4$ the $N$-cliques are only the sets
+    $\{y + e_m\}$ and $\{z - e_m\}$, and an admissible colouring of $\mathcal P_{4,2}$ with no
+    panchromatic $4$-clique exists (checked by hand and by enumeration), while the classical
+    statement on the standard triangulation, which is what (19.A4) uses, holds.
 \end{theorem}
 \begin{proof}
     \leanok

@@ -70,8 +70,11 @@ combinatorial heart of that proof is Lemma (19.12): *a closed cover `K_1, …, K
 simplex `𝒫_N` of probability vectors with `K_n ∩ {α : α(n) = 0} = ∅` has
 `⋂_n K_n ≠ ∅`* — the Knaster–Kuratowski–Mazurkiewicz lemma, which Georgii derives from
 Sperner's lemma in his Appendix 19.A.  Mathlib has neither Sperner's lemma nor Brouwer's fixed
-point theorem nor any singular homology of spheres from which they could be deduced, and
-neither does this library, so (19.6) is not available.  Nothing else in §19.1 depends on it.
+point theorem; both Sperner's lemma (on Kuhn's triangulation of the simplex,
+`Sperner.odd_card_panchromaticCells` in `GibbsMeasure/Mathlib/Combinatorics/Sperner.lean`) and
+Lemma (19.12) (`nonempty_iInter_of_isClosed_of_stdSimplex_subset_iUnion` in
+`GibbsMeasure/Mathlib/Topology/KKM.lean`) are now in this library, so what remains of (19.6) is
+the assembly of Propositions (19.13)--(19.15).  Nothing else in §19.1 depends on it.
 Corollary (19.7) is `MeasureTheory.GibbsMeasure.exists_gibbsMeasure_refinement` of
 `GibbsMeasure/Model/GroundStateRefinement.lean`, proved from the properties of the measures
 `μ_n` that Georgii's proof of it actually uses — so from the *conclusion* of (19.6) rather than

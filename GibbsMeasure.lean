@@ -34,6 +34,8 @@ public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.SelfAvoidingPath
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.OceanPart
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.OceanInter
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Measurable
+public import GibbsMeasure.Mathlib.Combinatorics.Sperner
+public import GibbsMeasure.Mathlib.Topology.KKM
 public import GibbsMeasure.Mathlib.Data.Countable.Basic
 public import GibbsMeasure.Mathlib.Data.ZMod.Basic
 public import GibbsMeasure.Mathlib.Data.Set.CardTranslate

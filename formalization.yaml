@@ -55,7 +55,8 @@ status:
     Berg-Maserick converse (17.28)(1), which Georgii cites without proof. Chapter 18: Section 18.1
     through Lemma (18.16), with the first assertions of (18.17)-(18.18); open their second
     assertions, Example (18.19), Sections 18.2-18.3. Chapter 19: Section 19.1 through (19.5),
-    (19.7) and (19.8), open Theorem (19.6) (needs Sperner/KKM), (19.9)-(19.10), Sections 19.2-19.3.
+    (19.7) and (19.8), with Sperner's lemma and the KKM lemma (19.12) of Section 19.2; open
+    (19.13)-(19.15) and Theorem (19.6), (19.9)-(19.10), the rest of Sections 19.2-19.3.
     Chapter 20: Section 20.1 ((20.5), (20.6) as stated, (20.8)), Georgii's computation (17.24),
     (20.9)-(20.10); open (20.7)(b)-(c) and the infrared bound (20.11) onwards.
   sorry_count: 0
@@ -1518,10 +1519,15 @@ alignment:
         (19.7) (Model/GroundStateRefinement.lean) stated for what its proof uses, with
         mu(A_{n,l}) = 1/k_n and Georgii's inequality as an equality. Example (19.8), the Blume-Capel
         model (Model/BlumeCapel.lean): ground states, stability of the partition and its refinement,
-        (19.1), and the resolving self-potential. Not formalized: Theorem (19.6), which needs
-        Lemma (19.12) (Knaster-Kuratowski-Mazurkiewicz via Sperner's lemma, Appendix 19.A; Mathlib
-        has neither Sperner's lemma nor Brouwer's theorem), hence the phase-transition conclusions of
-        (19.8)-(19.10); Examples (19.9)-(19.10); Sections 19.2-19.3.
+        (19.1), and the resolving self-potential. Appendix 19.A and Lemma (19.12)
+        (Mathlib/Combinatorics/Sperner.lean, Mathlib/Topology/KKM.lean): Sperner's lemma on Kuhn's
+        triangulation of the simplex by the door-to-door parity argument, and the
+        Knaster-Kuratowski-Mazurkiewicz lemma with the selection principle (19.13) uses. Erratum:
+        Georgii's (19.A1) on the cliques of the two-coordinate-difference graph is false for N >= 4
+        (an admissible colouring of P_{4,2} with no panchromatic 4-clique exists); the classical
+        statement on the standard triangulation, which (19.A4) uses, is what is proved. Not
+        formalized: Propositions (19.13)-(19.15) and Theorem (19.6), hence the phase-transition
+        conclusions of (19.8)-(19.10); Examples (19.9)-(19.10); the rest of Sections 19.2-19.3.
     - source: "Section 18.3: 18.3.1-18.3.3, 18.3.5-18.3.6"
       lean: "MeasureTheory.GibbsMeasure.eventually_two_le_encard_extremePoints_isingFerro"
       module: "GibbsMeasure/Model/IsingOceans.lean"

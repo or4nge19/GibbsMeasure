@@ -632,9 +632,12 @@ the count for a proper subgroup `Θ̃`, 18.3.4 (hard-core interactions take the 
 interaction on a set, balanced partitions (19.1), the perturbations (19.2), the gap vector (19.3)
 with values in the frontier of the nonnegative orthant, resolving potentials (19.4), Comment (19.5)(1)
 as a theorem with its explicit homeomorphism, Corollary (19.7) with Georgii's inequality as an
-equality, and the Blume–Capel model (19.8) with its resolving self-potential. Open: Theorem (19.6),
-which rests on the Knaster–Kuratowski–Mazurkiewicz lemma of Appendix 19.A (Sperner's lemma, absent
-from Mathlib), hence the phase-transition conclusions of (19.8)–(19.10); §19.2–19.3.
+equality, and the Blume–Capel model (19.8) with its resolving self-potential. **Sperner's lemma**
+on Kuhn's triangulation and the **Knaster–Kuratowski–Mazurkiewicz lemma (19.12)** are in the Mathlib
+layer (`Mathlib/Combinatorics/Sperner.lean`, `Mathlib/Topology/KKM.lean`); Georgii's (19.A1), stated
+for the cliques of a graph on the grid, is false for `N ≥ 4`, and the classical statement on the
+standard triangulation is what (19.A4) uses. Open: Propositions (19.13)–(19.15) and Theorem (19.6),
+hence the phase-transition conclusions of (19.8)–(19.10); the rest of §19.2–19.3.
 
 **Chapter 20, §20.1** (`GibbsMeasure/Specification/InfraredBound.lean`): the preliminaries of the
 infrared bound on the torus — the tail estimate (20.6) for the periodic Gibbs distribution of a
