@@ -589,9 +589,33 @@ is the Gibbsian specification of $\Phi\in\Bspace$.
     distinct from the $\mathcal L$-compactness of Theorem \ref{thm:exg-4-22}.
 \end{remark}
 
-\begin{remark}[Georgii's Appendix 4.A]
-    \label{rmk:exg-appendix-4a}
+\begin{theorem}[Countable cores and the $\mathcal C$-topology, Georgii (4.A9)--(4.A13)]
+    \label{thm:exg-countable-core}
+    \uses{def:lc-local-events}
+    \lean{MeasurableSpace.IsCountableCore, MeasurableSpace.IsCountableCore.ext, MeasurableSpace.IsCountableCore.comap, MeasurableSpace.IsCountableCore.comap_measurableEquiv, MeasurableSpace.isCountableCore_preimage_image_of_isClopen, MeasurableSpace.isCountableCore_of_isClopen, MeasureTheory.boolCylinder, MeasurableSpace.isCountableCore_range_boolCylinder, MeasureTheory.exists_measurableEmbedding_natBool_isClosed_range, MeasurableSpace.exists_isCountableCore, MeasurableSpace.cylinderCore, MeasurableSpace.cantorEmbedding, MeasurableSpace.isCountableCore_cylinderCore, MeasurableSpace.cylinderCore_subset_measurableCylinders, MeasurableSpace.exists_isCountableCore_subset_measurableCylinders, MeasurableSpace.IsCountableCore.separatesOn, MeasureTheory.WithSetwiseTopology.compactSpace_of_isCountableCore, MeasureTheory.WithSetwiseTopology.metrizableSpace_of_isCountableCore, MeasureTheory.WithSetwiseTopology.seqCompactSpace_of_isCountableCore, MeasureTheory.WithSetwiseTopology.continuous_ofMeasure_of_subset, MeasureTheory.WithSetwiseTopology.isClosed_image_of_isCompact, MeasureTheory.WithSetwiseTopology.isClosed_setOf_forall_measurePreserving, MeasureTheory.GibbsMeasure.exists_isCountableCore_subset_localEvents, MeasureTheory.GibbsMeasure.exists_isCountableCore_subset_localEvents_forall_preimage, MeasureTheory.GibbsMeasure.continuous_ofMeasure_withLocalConvergence, MeasureTheory.GibbsMeasure.compactSpace_withCoreTopology, MeasureTheory.GibbsMeasure.metrizableSpace_withCoreTopology, MeasureTheory.GibbsMeasure.isCompact_setOf_forall_measurePreserving_withCoreTopology, MeasureTheory.GibbsMeasure.isClosed_setOf_mem_invariantFields_withCoreTopology, MeasureTheory.GibbsMeasure.isCompact_setOf_mem_invariantFields_withCoreTopology, MeasureTheory.GibbsMeasure.exists_isCountableCore_isCompact_setOf_mem_invariantFields}
+    \leanok
 
-    The results of Appendix 4.A --- the isomorphism theorem (4.A6), countable cores (4.A9),
-    Theorem (4.A11), Corollary (4.A13) --- enter in Chapters 7, 14 and 15.
-\end{remark}
+    A countable core of $\mathcal F$ (4.A9) is a countable generating $\pi$-system $\mathcal C$
+    such that every sequence of probability measures converging setwise on $\mathcal C$ has a
+    (unique) probability limit on $\mathcal C$; cores transport along surjections with
+    $\mathcal F = \varphi^{-1}\mathcal F'$ (4.A10)(2). Theorem (4.A11): a standard Borel space has
+    a countable core --- every such space embeds measurably onto a \emph{closed} subset of the
+    Cantor cube $\{0,1\}^{\mathbb N}$ (uncountable: Mathlib's Borel isomorphism; countably
+    infinite: the sequences with at most one $1$; finite: any injection), and the clopen
+    cylinders pull back, condition (ii) coming from Prokhorov's compactness of the probability
+    measures on a compact metric space and the portmanteau theorem on clopen sets rather than
+    from Carath\'eodory. Closedness of the range is essential: the dyadic intervals traced on
+    $(0,1]$ generate but are not a core. Corollary (4.A13): a countable product of standard Borel
+    spaces has a core of cylinder events, and on $E^S$ one that is stable under every site
+    relabelling. Comment (4.A10)(1): in the topology of setwise convergence on $\mathcal C$ the
+    probability measures form a compact metrizable space (the metric $d$ is not a separate
+    object: $d$-convergence is setwise convergence on $\mathcal C$); the identity from the local
+    topology is continuous, so $\mathcal L$-compact sets are $\mathcal C$-closed. Georgii's
+    closedness of $\mathcal P_\Theta$ in the $\mathcal C$-topology needs the core to be stable
+    under the group, which his shift group satisfies but an arbitrary Borel automorphism does not
+    (a counterexample on the Cantor cube is recorded); with that hypothesis $\mathcal P_\Theta$ is
+    $\mathcal C$-compact, the input of (15.46) for a standard Borel state space.
+\end{theorem}
+\begin{proof}
+    \leanok
+\end{proof}

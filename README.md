@@ -387,6 +387,14 @@ sequence is a subsequential limit, `GibbsMeasure/Topology/Subsequence.lean`) and
 points of the periodic finite-volume Gibbs distributions are Gibbs measures for `Φ`
 (`GibbsMeasure/Potential/Periodic.lean`; the concrete instantiation is carried out for `S = ℤ`,
 the general theory applies verbatim to `ℤ^d` once a torus reduction and anchor are supplied).
+**Appendix 4.A** (`GibbsMeasure/Mathlib/MeasureTheory/Measure/CountableCore.lean`,
+`SetwiseCompact.lean`, `Topology/CountableCore.lean`, `Specification/InvariantFieldsCoreTopology.lean`):
+countable cores (4.A9), their transport (4.A10)(2), Theorem (4.A11) for standard Borel spaces
+through a measurable embedding onto a closed subset of the Cantor cube with Prokhorov and the
+portmanteau theorem in place of Carathéodory, Corollary (4.A13) with a core of cylinder events
+stable under site relabellings, and the compact metrizable `𝒞`-topology (4.A10)(1), coarser than
+the local topology, in which `𝓟_Θ` is compact; Georgii's closedness of `𝓟_Θ` needs the core to be
+stable under the group, which the shifts satisfy and an arbitrary Borel automorphism does not.
 
 **Theorem (3.5)**: over a finite state space the positive homogeneous Markov specifications on
 `ℤ` are exactly the Gibbsian specifications of the homogeneous nearest-neighbour potentials
@@ -538,8 +546,9 @@ needs only the mean ergodic theorem (14.A5), as Georgii says. **The upper bound 
 with the excess free energy shifted into `[0,∞]` and its concavity derived from the convexity of
 the specific entropy, Step 4 the cluster-point argument. So **Theorem (15.45)**, the large-deviation
 principle for the periodic empirical field, holds over a finite state space; Georgii's standard
-Borel generality needs the compact metrizable `𝒞`-topology and a countable core of `𝓕`, not yet
-formalised. Open: the two inequalities of (15.48), (15.50)–(15.51), (15.57)–(15.58).
+Borel generality needs the compact metrizable `𝒞`-topology and a countable core of `𝓕`, now
+available (Appendix 4.A above) but not yet consumed by (15.46). Open: the two inequalities of
+(15.48), (15.50)–(15.51), (15.57)–(15.58).
 
 **Chapter 17** (`GibbsMeasure/Specification/ReflectionPositivity.lean`,
 `Specification/PeriodicGibbs.lean`): reflection positivity for Georgii's generalised reflection,

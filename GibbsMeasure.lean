@@ -113,6 +113,8 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Trim
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.RealSingleton
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ExtIicRat
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.SetwiseConvergence
+public import GibbsMeasure.Mathlib.MeasureTheory.Measure.CountableCore
+public import GibbsMeasure.Mathlib.MeasureTheory.Measure.SetwiseCompact
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ProdZeroOne
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.CountablyGeneratedModNull
 public import GibbsMeasure.Mathlib.MeasureTheory.Order.StochasticDomination
@@ -333,6 +335,7 @@ public import GibbsMeasure.Specification.HeisenbergPeriodic
 public import GibbsMeasure.Specification.HeisenbergPeriodicModification
 public import GibbsMeasure.Specification.InfraredBound
 public import GibbsMeasure.Specification.InvariantFieldsBarycenter
+public import GibbsMeasure.Specification.InvariantFieldsCoreTopology
 public import GibbsMeasure.Specification.MarkovInt
 public import GibbsMeasure.Specification.MarkovIntChains
 public import GibbsMeasure.Specification.MarkovIntUniqueness
@@ -357,6 +360,7 @@ public import GibbsMeasure.Specification.Structure
 public import GibbsMeasure.Topology.ConfigurationSpace
 public import GibbsMeasure.Topology.ClusterPoints
 public import GibbsMeasure.Topology.LocalConvergence
+public import GibbsMeasure.Topology.CountableCore
 public import GibbsMeasure.Topology.LocalMetric
 public import GibbsMeasure.Topology.Subsequence
 public import GibbsMeasure.Topology.Metrizable

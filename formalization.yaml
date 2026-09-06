@@ -656,6 +656,28 @@ alignment:
       lean: "MeasureTheory.GibbsMeasure.Markov.gibbsMeasure_eq_singleton"
       module: "GibbsMeasure/Model/MarkovChain.lean"
       status: "proved"
+    - source: "Appendix 4.A: (4.A9)-(4.A13), countable cores and the C-topology"
+      lean: "MeasurableSpace.exists_isCountableCore_subset_measurableCylinders"
+      module: "GibbsMeasure/Mathlib/MeasureTheory/Measure/CountableCore.lean"
+      status: "proved"
+      note: >-
+        Countable cores (4.A9) as a structure (countable generating pi-system with the setwise-limit
+        property), uniqueness of the limit, transport along surjections and measurable equivalences
+        (4.A10)(2); Theorem (4.A11) first half for a standard Borel space via a measurable embedding
+        onto a closed subset of the Cantor cube (Mathlib's Borel isomorphism for the uncountable
+        case, the sequences with at most one 1 for the countably infinite case), the clopen
+        cylinders pulled back, with condition (ii) from Prokhorov's compactness and the portmanteau
+        theorem on clopen sets in place of Georgii's Caratheodory argument; closedness of the range
+        is essential (the dyadic intervals traced on (0,1] generate but are not a core). Corollary
+        (4.A13) for countable products of standard Borel spaces with a core of cylinder events, and
+        on E^S one stable under every site relabelling (Topology/CountableCore.lean). Comment
+        (4.A10)(1): the topology of setwise convergence on the core is compact metrizable
+        (Mathlib/MeasureTheory/Measure/SetwiseCompact.lean; Georgii's metric d is not a separate
+        object, d-convergence being setwise convergence on the core), the identity from the local
+        topology is continuous, and P_Theta is closed hence compact in it under the stability of
+        the core (Specification/InvariantFieldsCoreTopology.lean); Georgii's closedness of P_Theta
+        needs that stability, which the shift group has and an arbitrary Borel automorphism does not
+        (counterexample recorded). Not yet consumed by (15.46) for a standard Borel state space.
     - source: "Theorem (4.23)(a)"
       lean: "Potential.GP_gibbsSpecification_nonempty"
       module: "GibbsMeasure/Potential/Existence.lean"
