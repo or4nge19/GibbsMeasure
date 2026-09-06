@@ -840,8 +840,17 @@ Gauss fields is a Gauss field; every extreme Gibbs measure of `γ^{J,h}` is a Ga
 bijection with the mean set `M_{J,h}` and is uncountable (Remark (13.23)(d)), and Theorem (13.26)
 holds in both directions. Hence **(13.36) in both directions** and (13.43) with uncountably many
 *extreme* Gibbs measures for the harmonic crystal in `d ≥ 3` (`Model/GaussianHomogeneousExtreme.lean`).
-Open: the representation `𝒢(γ^{J,h}) = {μ_C * ν}` (a bimeasurability of the bijection), (13.39)
-parts 1–2, (13.40), (13.41)'s divergent integral for `d ≤ 2`, (13.44)–(13.45).
+**Remark (13.39)** in both parts (`Model/GaussianHomogeneousMeanSet.lean`): a finitely supported
+`J ≠ 0` has a non-vanishing moment, which puts `−h μ_n⁻¹ iⁿ` in the mean set, and for `J(i) ≠ 0` at some
+`i ≠ 0` the Laurent transform has a root in `(ℂ∖0)^d` (`Mathlib/Analysis/Complex/MultivariateLaurentRoot.lean`),
+whose character's real part is a non-zero, generally unbounded, element of `M_{J,0}`, so `M_{J,h}` is
+uncountable; the **`𝒢_Θ` clause of (13.42)** (`Model/GaussianShiftInvariance.lean`: a centred Gauss field
+is shift-invariant iff its covariance is homogeneous); the **representation
+`𝒢(γ^{J,h}) = {μ_C * ν : ν(M_{J,h}) = 1}`** (`Model/GaussianConvolution.lean`, mixtures of translates are
+Gibbs and (7.26) transported along the measurable mean map); and **(13.43) complete**, `𝒢 = ∅` for
+`d ≤ 2` (`Model/GaussianHarmonicCrystalLowDim.lean`). Open: (13.40), (13.41) for a general `J` under
+the logarithmic condition, and (13.44)–(13.45), whose infinite-range specification (13.18) is not defined
+in the tree.
 
 **§9.2, Mermin–Wagner** (`GibbsMeasure/Model/MerminWagner.lean`): **Theorem (9.20)** — for a
 pair potential on a site set with a planar norm (ℤ² with the maximum norm the instance), any real
@@ -936,8 +945,8 @@ neighbouring spins has a unique infinite component almost surely under every Gib
 
 Not yet done: the Fréchet form of the continuous differentiability asserted in (8.37), proved
 along every line of `𝒟`, and the continuity of the second derivative in (16.17); in (12.31)(b) the infinitude of
-`ex 𝒢 ∖ ex 𝒢_{I(B)}` and the third extreme invariant element; (13.39)–(13.41), (13.44)–(13.45), the
-`𝒢_Θ` clause of (13.42) and the representation `𝒢(γ^{J,h}) = {μ_C * ν}`; Georgii's closure bound in
+`ex 𝒢 ∖ ex 𝒢_{I(B)}` and the third extreme invariant element; (13.40), (13.41) for a general `J` under the logarithmic
+condition, and (13.44)–(13.45), whose infinite-range specification (13.18) is not defined in the tree; Georgii's closure bound in
 (15.46) for a non-convex `C` over an infinite state space, Cramér's formula at `Φ = 0`, and
 (15.57)–(15.58) beyond the subgradient uniqueness; the criterion of (16.24)(3), (16.24)(4), (16.25)(2),
 (16.26)–(16.27); the Berg–Maserick converse (17.28)(1), cited without proof; 18.3.4, the conclusion of 18.3.10

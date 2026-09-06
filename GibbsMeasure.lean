@@ -111,6 +111,10 @@ public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Translate
 public import GibbsMeasure.Mathlib.Probability.Distributions.Poisson.Convergence
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.CondExp
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Limit
+public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Reindex
+public import GibbsMeasure.Mathlib.Algebra.MvPolynomial.Moments
+public import GibbsMeasure.Mathlib.Analysis.Complex.MultivariateLaurentRoot
+public import GibbsMeasure.Mathlib.MeasureTheory.Integral.BallInvNormPow
 public import GibbsMeasure.Mathlib.Probability.Moments.Covariance
 public import GibbsMeasure.Mathlib.Probability.Independence.Integration
 public import GibbsMeasure.Mathlib.Probability.LargeDeviations.Legendre
@@ -276,6 +280,10 @@ public import GibbsMeasure.Model.GaussianGibbs
 public import GibbsMeasure.Model.GaussianHomogeneous
 public import GibbsMeasure.Model.GaussianExtreme
 public import GibbsMeasure.Model.GaussianHomogeneousExtreme
+public import GibbsMeasure.Model.GaussianHomogeneousMeanSet
+public import GibbsMeasure.Model.GaussianShiftInvariance
+public import GibbsMeasure.Model.GaussianConvolution
+public import GibbsMeasure.Model.GaussianHarmonicCrystalLowDim
 public import GibbsMeasure.Model.KalikowClassification
 public import GibbsMeasure.Model.AlternatingChain
 public import GibbsMeasure.Model.LowEnergyOceans

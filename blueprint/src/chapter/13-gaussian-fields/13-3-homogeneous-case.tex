@@ -73,10 +73,40 @@
     (13.24).
     Erratum: Georgii's display gives $\hat J(z_p) = 2\beta\sum_\ell(1 - \cos \pi p_\ell)$, which
     is $2d$ times the transform of the $J$ he has just written; his bound $4\beta|p|^2$ inherits
-    the factor. Not proved: the existence of a root of $\hat J$ in $(\mathbb C\setminus 0)^d$
-    (13.39), $\mathcal G = \emptyset$ for $d \leq 2$ ((13.41): with the necessity of (13.36) in
-    hand, only the divergence of $\int_{\|p\|<r}\|p\|^{-d}(\log\|p\|^{-1})^{-1}$ for $d \leq 2$ is
-    missing), (13.40), (13.44), (13.45).
+    the factor. Remark (13.39) in full, the $\mathcal G_\Theta$ clause of (13.42) and $\mathcal G = \emptyset$
+    for the harmonic crystal in $d \leq 2$ are Theorem \ref{thm:gh-13-39}. Not proved: (13.40),
+    (13.41) for a general $J$ under the logarithmic condition, (13.44)--(13.45).
+\end{theorem}
+\begin{proof}
+    \leanok
+\end{proof}
+
+\begin{theorem}[Georgii Remark (13.39), the $\mathcal G_\Theta$ clause of (13.42), and (13.43) for $d \leq 2$]
+    \label{thm:gh-13-39}
+    \uses{thm:gh-13-43, thm:gh-13-36, thm:gs-13-24}
+    \lean{Potential.couplingMoment, Potential.couplingMoment_eq_sum, Potential.exists_couplingMoment_ne_zero, Potential.prod_add_pow_eq_sum_piFinset, Potential.tsum_homogeneousCoupling_mul_monomial, Potential.nonempty_gaussianMeanSet_homogeneousCoupling, Potential.laurentCharacter, Potential.laurentCharacter_zero, Potential.laurentCharacter_add, Potential.laurentCharacter_mem_gaussianMeanSubmodule, Potential.re_laurentCharacter_ne_zero, Potential.exists_ne_zero_mem_gaussianMeanSubmodule, Potential.not_countable_gaussianMeanSet_of_ne_zero, MvPolynomial.eq_zero_of_forall_sum_mul_prod_pow_eq_zero, MvPolynomial.sumSqDist, MvPolynomial.eval_sumSqDist_pos, Int.exists_injOn_sum_mul, Complex.exists_forall_ne_zero_sum_mul_prod_zpow_eq_zero, Complex.prod_zpow_eq_zpow_sum₀, ProbabilityTheory.posSemidef_covMatrix_comp, ProbabilityTheory.map_comp_gaussianField, ProbabilityTheory.map_comp_gaussianField_self, ProbabilityTheory.map_shift_gaussianField_homogeneous, MeasureTheory.GibbsMeasure.covariance_eval_sub_of_smulInvariantMeasure, MeasureTheory.GibbsMeasure.mem_invariantFields_of_isGaussianProcess_homogeneous, Potential.mem_invariantG_iff_exists_spectralMeasure_decomposition, MeasureTheory.setLIntegral_inv_mul_norm_pow_ball_eq_top, Potential.re_fourierHomogeneousCoupling_harmonicCrystalCoupling_le, Potential.lintegral_inv_re_fourierHomogeneousCoupling_harmonicCrystalCoupling_eq_top, Potential.not_nonempty_G_harmonicCrystalCoupling, Potential.nonempty_G_harmonicCrystalCoupling_iff}
+    \leanok
+
+    Remark (13.39) holds in both parts. A finitely supported $J \neq 0$ has a non-vanishing moment
+    $\mu_n = \sum_\nu J(\nu)\nu^n$ --- Georgii's $c(n) = \partial^n\tilde J(0)$ up to
+    $\pi^{|n|}(-1)^{|n|/2}$ --- because point evaluations at distinct lattice points are
+    independent on polynomials; for $n$ of minimal total degree the multinomial expansion of
+    $\sum_\nu J(\nu)(i+\nu)^n$ collapses to the constant $\mu_n$, so $m_i = -h\mu_n^{-1}i^n$ lies in
+    $M_{J,h}$ (neither evenness nor positive definiteness is used). If $J(i) \neq 0$ for some
+    $i \neq 0$ then, $J$ being even, its Laurent transform has at least two terms and hence a root
+    $z \in (\mathbb C\setminus 0)^d$ (the one-variable fundamental theorem of algebra after a
+    separating monomial substitution $z_\ell = w^{a_\ell}$), and $m = (\operatorname{Re} z^i)_i$ is a
+    non-zero, in general unbounded, element of $M_{J,0}$, so $M_{J,h}$ is uncountable. A centred
+    Gauss field is shift-invariant iff its covariance is homogeneous, the ``if'' half by reindexing
+    the Gauss field along $i \mapsto i-k$; this upgrades Corollary (13.42) to Georgii's
+    $\mathcal G_\Theta(\gamma^{J,0})$. Finally the harmonic crystal has $\hat J(z_p) \leq
+    2\pi^2\beta\|p\|^2$, and $\|p\|^{-2}$ is not integrable at the origin of $\mathbb R^d$ for
+    $d \leq 2$ (dyadic annuli), so Example (13.43) is complete: $\mathcal G(\gamma^{J,h}) \neq
+    \emptyset$ iff $d \geq 3$. Not proved: Corollary (13.41) for a general $J$ with
+    $\sum_{0<|i|\leq n}|i|^d|J(i)| \leq L\log n$ (Georgii's estimate $\hat J(p) \leq M\|p-q\|^d
+    \log\|p-q\|^{-1}$ near a root and the logarithmic refinement of the divergence), Corollary
+    (13.40), and Examples (13.44)--(13.45), whose infinite-range specifications are not defined in
+    the tree ($\gamma^{J,h}$ requires finite range; see (13.18)).
 \end{theorem}
 \begin{proof}
     \leanok

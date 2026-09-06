@@ -46,8 +46,8 @@ status:
     Georgii Chapters 1-14 complete for the results listed under main_results and in the per-chapter
     entries (the few exceptions are named there: the Frechet form of the continuous
     differentiability asserted in (8.37), the infinitude of
-    ex G minus ex G_{I(B)} and the third extreme invariant element in (12.31)(b), (13.39)-(13.41), (13.44)-(13.45), and the
-    G_Theta clause of (13.42)). Chapter 15 complete through Theorem (15.45), the upper bound (15.46) over a
+    ex G minus ex G_{I(B)} and the third extreme invariant element in (12.31)(b), (13.40), (13.41) for a general J under the logarithmic
+    condition, and (13.44)-(13.45)). Chapter 15 complete through Theorem (15.45), the upper bound (15.46) over a
     finite state space and the lower bound (15.47) over any; open: (15.46) for standard Borel E,
     the periodic-boundary-condition inequalities of (15.48), (15.50)-(15.51), (15.57)-(15.58).
     Chapter 16: Sections 16.1-16.2 complete; Section 16.3 through (16.25)(1) and (16.28)-(16.31),
@@ -2270,10 +2270,24 @@ alignment:
         quadratic lower bound and a nonempty Gibbs simplex for d >= 3. Standing deviations: J of
         finite range and positive definite sections, because gaussianSpecification and (13.22)
         are built for finite range; Georgii assumes only absolute summability. Erratum: the
-        displayed transform in (13.43) is 2d times that of the coupling written there. Not
-        formalized: the root of J^ in (C minus 0)^d in (13.39), (13.40), (13.41) (needs the
-        divergence of the integral of 1/J^ near 0 for d <= 2; the necessity of (13.36) is now
-        available), the Theta clause of (13.42), (13.44), (13.45).
+        displayed transform in (13.43) is 2d times that of the coupling written there. Remark (13.39) in both parts
+        (Model/GaussianHomogeneousMeanSet.lean): a finitely supported J != 0 has a non-vanishing
+        moment mu_n = sum_nu J(nu) nu^n (Georgii's c(n) up to a constant) and m_i = -h mu_n^{-1} i^n
+        lies in M_{J,h}; for J(i) != 0 at some i != 0 the Laurent transform has a root z in
+        (C minus 0)^d (Mathlib/Analysis/Complex/MultivariateLaurentRoot.lean,
+        Mathlib/Algebra/MvPolynomial/Moments.lean) and Re z^i is a non-zero, generally unbounded,
+        element of M_{J,0}, so M_{J,h} is uncountable. The Theta clause of (13.42)
+        (Model/GaussianShiftInvariance.lean): a centred Gauss field is shift-invariant iff its
+        covariance is homogeneous (Mathlib/Probability/Distributions/Gaussian/Reindex.lean). The
+        final clause of (13.24), G(gamma^{J,h}) = {mu_C * nu : nu(M_{J,h}) = 1}
+        (Model/GaussianConvolution.lean): mixtures of translates of a Gibbs measure are Gibbs, and
+        (7.26) transported along the measurable mean map. (13.43) complete
+        (Model/GaussianHarmonicCrystalLowDim.lean): J^(z_p) <= 2 pi^2 beta |p|^2 and |p|^{-2} is not
+        integrable at 0 for d <= 2 (Mathlib/MeasureTheory/Integral/BallInvNormPow.lean), so G is
+        nonempty iff d >= 3. Not formalized: (13.40), (13.41) for a general J under the
+        logarithmic condition (Georgii's estimate near a root and the logarithmic refinement of
+        the divergence), (13.44)-(13.45), whose infinite-range specifications are not defined in
+        the tree (see the (13.18) entry).
     - source: "Section 13.2: (13.20), (13.22) sufficiency, (13.23), the closing step of (13.26)/(13.31)"
       lean: "MeasureTheory.GibbsMeasure.georgii_13_20"
       module: "GibbsMeasure/Model/GaussianGibbs.lean"
