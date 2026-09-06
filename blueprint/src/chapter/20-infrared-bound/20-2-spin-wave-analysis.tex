@@ -1,0 +1,38 @@
+\section{Spin wave analysis, and spontaneous magnetization}
+
+\begin{theorem}[Georgii Lemma (20.13), (20.14) and the infrared bound (20.12)]
+    \label{thm:ir-20-13}
+    \uses{def:ir-20-9, thm:ir-20-11, lem:ir-20-6, lem:ir-20-8}
+    \lean{MeasureTheory.GibbsMeasure.heisenbergDiffExponent, MeasureTheory.GibbsMeasure.heisenbergShiftPairing, MeasureTheory.GibbsMeasure.heisenbergShiftEnergy, MeasureTheory.GibbsMeasure.heisenbergShiftFactor, MeasureTheory.GibbsMeasure.heisenbergExponent_eq_diffExponent_add, MeasureTheory.GibbsMeasure.heisenbergDiffExponent_sub, MeasureTheory.GibbsMeasure.expSqTilted, MeasureTheory.GibbsMeasure.heisenbergTilt, MeasureTheory.GibbsMeasure.heisenbergPeriodicGibbs_eq_withDensity, MeasureTheory.GibbsMeasure.lintegral_heisenbergShiftFactor_heisenbergPeriodicGibbs, MeasureTheory.GibbsMeasure.IsGaussianDominating, MeasureTheory.GibbsMeasure.isGaussianDominating_iff, MeasureTheory.GibbsMeasure.lintegral_heisenbergShiftFactor_le_one, MeasureTheory.GibbsMeasure.integral_heisenbergShiftFactor_le_one, MeasureTheory.GibbsMeasure.isGaussianDominating_of_withDensity, MeasureTheory.GibbsMeasure.isGaussianDominating_of_eq_withDensity, MeasureTheory.GibbsMeasure.integrable_sq_of_lintegral_exp_le, MeasureTheory.GibbsMeasure.integral_sq_le_two_mul_of_lintegral_exp_le, MeasureTheory.GibbsMeasure.lintegral_exp_heisenbergShiftPairing_le, MeasureTheory.GibbsMeasure.integral_sq_heisenbergShiftPairing_le, MeasureTheory.GibbsMeasure.sum_periodizedCoupling_mul_sub_mul_sub_mFourier, MeasureTheory.GibbsMeasure.fourierPairing, MeasureTheory.GibbsMeasure.sq_add_sq_heisenbergShiftPairing, MeasureTheory.GibbsMeasure.sum_periodizedCoupling_mul_norm_sq_sub, MeasureTheory.GibbsMeasure.heisenbergShiftEnergy_fourierShift_add, MeasureTheory.GibbsMeasure.sq_mul_correlationFourier_le, MeasureTheory.GibbsMeasure.correlationFourier_le, MeasureTheory.GibbsMeasure.couplingFourier_le_couplingFourier_zero}
+    \leanok
+
+    Lemma (20.13) is stated for the tilted a priori measure $\tilde\lambda = e^{\hat J(1)|x|^2/2}\lambda$
+    as the predicate $\tilde\lambda^\Lambda(e^{W(\cdot-\zeta)}) \leq \tilde\lambda^\Lambda(e^W)$ for all
+    $\zeta \in (\mathbb R^N)^\Lambda$, where $W(\omega) = -\frac14\sum_{i,j}J_\Lambda(i-j)|\omega_i-\omega_j|^2$,
+    which by Georgii's short calculation ($W(\omega-\zeta) = W(\omega) + \log f^\Phi_\Lambda(\zeta,\omega)$,
+    ${}^\circ\gamma^\Phi_\Lambda = e^W\tilde\lambda^\Lambda/Z$) is equivalent to his
+    ${}^\circ\gamma^\Phi_\Lambda(f^\Phi_\Lambda(\zeta,\cdot)) \leq 1$. It is proved in Georgii's first
+    case, $\tilde\lambda$ equivalent to Lebesgue measure with a measurable density $0 < R < \infty$
+    (which covers his $\lambda(dx) = e^{-c|x|^{2+\varepsilon}}dx$ but not the surface measure of the
+    sphere): the translate of $\tilde\lambda^\Lambda$ has density $\prod_i R(\sigma_i+\zeta_i)/R(\sigma_i)$,
+    the chessboard estimate (17.11) in its function form for the reflections $r_k$ (applied to
+    $\min(\cdot, M)$ and passed to the limit, since the tree's (17.11) carries a boundedness
+    hypothesis) bounds it by the constant translates, and at a constant $\zeta$ the integral is $1$.
+    Georgii's three approximation steps for a general finite $\lambda$ are not formalised.
+    (20.14): instead of differentiating $t \mapsto {}^\circ\gamma(f(t\zeta,\cdot))$ twice under the
+    integral with (20.6)(i), (20.13) along the ray $t\zeta$ is the sub-Gaussian bound
+    ${}^\circ\gamma(e^{tA}) \leq e^{t^2B}$, and $2 + u^2 \leq e^u + e^{-u}$ with a comparison at
+    $t \to 0$ gives ${}^\circ\gamma(A(\zeta,\cdot)^2) \leq 2B(\zeta)$. The upper half of (20.12): for
+    $z \in G_\Lambda$ the identity $\frac12\sum J_\Lambda(i-j)(a_i-a_j)(z^i-z^j) = (\hat J(1)-\hat J(z))
+    \sum a_i z^i$ for any $a$ gives $A(\zeta,\omega)^2 + A(\eta,\omega)^2 = (\hat J(1)-\hat J(z))^2
+    |\sum_i\sigma_{i,\ell}z^i|^2$ for the real and imaginary parts $\zeta, \eta$ of $z^i$, and
+    $\sum J_\Lambda(i-j)|z^i-z^j|^2 = 2|\Lambda|(\hat J(1)-\hat J(z))$ gives $2B(\zeta)+2B(\eta) =
+    |\Lambda|(\hat J(1)-\hat J(z))$, whence $(\hat J(1)-\hat J(z))^2 C^\Phi_\Lambda(z) \leq
+    N(\hat J(1)-\hat J(z))$ and $C^\Phi_\Lambda(z) \leq N(\hat J(1)-\hat J(z))^{-1}$ when $\hat J(z)
+    \neq \hat J(1)$; the inequality $\hat J(z) \leq \hat J(1)$ on $G_\Lambda$ is a by-product (for
+    $N \geq 1$), not taken from Comment (20.17)(1). Georgii's $N \geq 1$ is explicit in the division
+    form. Theorem (20.15) is not yet formalised.
+\end{theorem}
+\begin{proof}
+    \leanok
+\end{proof}

@@ -58,8 +58,9 @@ status:
     (19.7) and (19.8); Section 19.2 through Theorem (19.6) with Sperner's lemma and the KKM
     lemma; open (19.9)-(19.10) and Section 19.3.
     Chapter 20: Section 20.1 ((20.5), (20.6) as stated, (20.8)), Georgii's computation (17.24),
-    (20.9)-(20.11), Proposition (20.7) in full, the first half of (20.12); open Lemma (20.13),
-    (20.14), the upper half of (20.12) and Theorem (20.15).
+    (20.9)-(20.11), Proposition (20.7) in full, (20.12) in full, Lemma (20.13) for an a priori measure equivalent to
+    Lebesgue measure, (20.14); open (20.13) for a general finite a priori measure (Georgii's
+    approximation steps) and Theorem (20.15).
   sorry_count: 0
   sorry_in_definitions: 0
   axioms: ["propext", "Classical.choice", "Quot.sound"]
@@ -1457,9 +1458,17 @@ alignment:
         delta_n with (1+t) in place of t. (20.11) (Specification/InfraredBoundCorrelation.lean):
         the correlations exist by (20.6)(ii), the correlation transform equals
         |Lambda|^{-1} sum_l °gamma(|sum_i sigma_{i,l} z^i|^2) by translation invariance, hence is
-        nonnegative, the first half of (20.12). Not formalized: Lemma (20.13) (Gaussian domination,
-        a three-stage approximation of the a priori measure combined with the chessboard estimate),
-        (20.14), the upper half of (20.12), Theorem (20.15).
+        nonnegative, the first half of (20.12). Section 20.2 (Specification/GaussianDomination.lean,
+        Specification/InfraredBoundTheorem.lean): Lemma (20.13) as the predicate
+        IsGaussianDominating on the tilted a priori measure, equivalent to Georgii's
+        °gamma(f(zeta, .)) <= 1, proved in his first case (tilted measure equivalent to Lebesgue
+        measure) through the density of the translate, the chessboard estimate (17.11) in function
+        form and the value 1 at constant zeta; (20.14) from the sub-Gaussian bound along the ray
+        t zeta instead of differentiating under the integral (so (20.6)(i) is not needed); the upper
+        half of (20.12) from the two Fourier identities on G_Lambda, with J^(z) <= J^(1) as a
+        by-product and Georgii's N >= 1 explicit in the division form. Not formalized: (20.13) for a
+        general finite a priori measure (Georgii's three approximation steps; the sphere), and
+        Theorem (20.15).
     - source: "Section 18.1: (18.1)-(18.3), (18.8)-(18.10)"
       lean: "MeasureTheory.GibbsMeasure.periodicGibbsDist_forall_notMem_torusPattern_le_patternWeight"
       module: "GibbsMeasure/Specification/PatternPercolation.lean"

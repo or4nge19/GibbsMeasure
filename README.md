@@ -671,8 +671,12 @@ the coupling (`Specification/InfraredBoundFourier.lean`). **Proposition (20.7)**
 resampling the block, uniformly in the cube, with (4.12) in a measure-domination form; and
 `𝒢₀(Φ) ⊆ 𝒢(Φ)` (`Specification/HeisenbergGibbsInclusion.lean`) by (4.19) in an elementary two-kernel
 form on `Ω_t` and Georgii's ε-assembly; (20.11) and the first half of (20.12), the correlation
-transform being a sum of squares (`Specification/InfraredBoundCorrelation.lean`). Open: Lemma (20.13)
-(Gaussian domination), (20.14), the upper half of (20.12) and Theorem (20.15).
+transform being a sum of squares (`Specification/InfraredBoundCorrelation.lean`). **§20.2**: Lemma (20.13)
+(`Specification/GaussianDomination.lean`) as the predicate `IsGaussianDominating` on the tilted a priori
+measure, equivalent to Georgii's `°γ(f(ζ,·)) ≤ 1`, proved in his first case (tilted measure equivalent
+to Lebesgue measure) by the chessboard estimate; (20.14) from the sub-Gaussian bound along the ray,
+and the **upper half of (20.12)** (`Specification/InfraredBoundTheorem.lean`) from the two Fourier
+identities on `G_Λ`. Open: (20.13) for a general finite a priori measure (the sphere) and Theorem (20.15).
 
 **Chapter 16** normalises the a priori measure to a probability measure throughout, where Georgii
 assumes only that it is finite; the two differ by an additive `log λ(E)` in the pressure and the
@@ -933,8 +937,7 @@ along every line of `𝒟`, and the continuity of the second derivative in (16.1
 (15.46) for a non-convex `C` over an infinite state space, Cramér's formula at `Φ = 0`, and
 (15.57)–(15.58) beyond the subgradient uniqueness; the criterion of (16.24)(3), (16.24)(4), (16.25)(2),
 (16.26)–(16.27); the Berg–Maserick converse (17.28)(1), cited without proof; 18.3.4, (18.35), the conclusion of 18.3.10
-and the count for a proper subgroup in (18.25); (19.9)–(19.10) and §19.3; and the infrared
-bound (20.13)–(20.15).
+and the count for a proper subgroup in (18.25); (19.9)–(19.10) and §19.3; (20.13) for a general a priori measure and Theorem (20.15).
 
 ### Code organisation
 

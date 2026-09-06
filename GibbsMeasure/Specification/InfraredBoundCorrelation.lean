@@ -36,34 +36,19 @@ which is `integrable_dotProduct_heisenbergPeriodicGibbsDist` in
   every `z ∈ G_Λ`.  Unlike the upper bound it needs neither reflection positivity nor Gaussian
   domination: it is the positivity of a squared modulus.
 
-## What is *not* proved: the rest of (20.12)–(20.15)
+## Where the rest of (20.12)–(20.15) lives
 
-* **Lemma (20.13)** (Gaussian domination), `°γ_Λ^Φ(f_Λ^Φ(ζ, ·)) ≤ °γ_Λ^Φ(f_Λ^Φ(0, ·)) = 1`.  This
-  is the only place in Chapter 20 where reflection positivity is used in an essential way.
-  Georgii's proof: when `λ̃(dx) = r(x) dx` with `r > 0`, the translate `τ_ζ(λ̃^Λ)` has density
-  `∏_{i ∈ Λ} r(σ_i + ζ_i)/r(σ_i)` relative to `λ̃^Λ`, so `°γ_Λ^Φ(f_Λ^Φ(ζ, ·))` is the
-  `°γ_Λ^Φ`-average of that product; Theorem (17.29) and the chessboard estimate (17.11)
-  (`isReflectionPositive_heisenbergPeriodicGibbs_of_isNonnegDefiniteAt` and
-  `measure_apply_pow_card_le_siteEquiv` in `GibbsMeasure.Specification.HeisenbergPeriodic` and
-  `ReflectionPositivity`) bound it by `∏_{j ∈ Λ} °γ_Λ^Φ(f_Λ^Φ(ζ^j, ·))^{1/|Λ|}`, and
-  `f_Λ^Φ(ζ^j, ·) = 1` because `f_Λ^Φ` vanishes on constant configurations.  A general finite `λ`
-  follows by three successive approximations (positive density on a compact ball; absolutely
-  continuous on a ball; weak limits on a ball; then the ball increasing to `ℝ^N`), each an
-  interchange of a limit and an integral.  None of these steps is formalised.
-* **(20.14)** is the second derivative at `t = 0` of `t ↦ °γ_Λ^Φ(f_Λ^Φ(tζ, ·))`, at
-  `ζ = (Re(z^i) e_ℓ)_i` and `η = (Im(z^i) e_ℓ)_i`; differentiating under the integral sign uses
-  Lemma (20.6)(i) (`lintegral_exp_dotProduct_self_le_of_tail`).
-* **Proposition (20.12)**, upper half `C_Λ^Φ(z) ≤ N (Ĵ(1) - Ĵ(z))^{-1}`: from (20.14) and the two
-  identities `½ ∑_{i,j ∈ Λ} J_Λ(i-j)|z^i - z^j|² = |Λ|(Ĵ(1) - Ĵ(z))` and
-  `½ ∑_{i,j ∈ Λ} J_Λ(i-j)(σ_{i,ℓ} - σ_{j,ℓ})(z^i - z^j) = (Ĵ(1) - Ĵ(z)) ∑_{i ∈ Λ} σ_{i,ℓ} z^i`,
-  both consequences of (20.10) (`couplingFourier_eq_sum_latticeBox`), together with
-  `card_mul_correlationFourier_eq_sum_integral` below.
-* **Theorem (20.15)** needs, besides (20.12): Lemma (20.8)
-  (`exists_le_lintegral_dotProduct_self_heisenbergPeriodicGibbsDist`), Proposition (20.7)
-  (`heisenbergGZero_nonempty_and_subset` in
-  `GibbsMeasure.Specification.HeisenbergGibbsInclusion`), the `L²` ergodic theorem (14.A3) — or
-  the random ergodic theorem (20.23) for the route through the transience condition (20.16) — and
-  the ergodic decomposition (14.10)/(14.17).
+* **Lemma (20.13)** (Gaussian domination), `°γ_Λ^Φ(f_Λ^Φ(ζ, ·)) ≤ °γ_Λ^Φ(f_Λ^Φ(0, ·)) = 1`, is
+  `MeasureTheory.GibbsMeasure.integral_heisenbergShiftFactor_le_one` in
+  `GibbsMeasure.Specification.GaussianDomination`, under the hypothesis `IsGaussianDominating`
+  (the same inequality read off the a priori measure).  That hypothesis is discharged there for
+  an `λ` equivalent to Lebesgue measure (`isGaussianDominating_of_eq_withDensity`), which is
+  Georgii's first case; his three further approximation steps, which extend it to a general
+  finite `λ` — in particular to the surface measure on a sphere — are not formalised.
+* **(20.14)** is `integral_sq_heisenbergShiftPairing_le` and **Proposition (20.12)**, upper half,
+  is `correlationFourier_le`, both in `GibbsMeasure.Specification.InfraredBoundTheorem`.
+* **Theorem (20.15)** is not formalised; see the module documentation of
+  `GibbsMeasure.Specification.InfraredBoundTheorem` for the exact remaining inputs.
 
 ## Conventions
 

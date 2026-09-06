@@ -380,6 +380,8 @@ public import GibbsMeasure.Specification.HeisenbergClusterPoints
 public import GibbsMeasure.Specification.HeisenbergExistence
 public import GibbsMeasure.Specification.HeisenbergGibbsInclusion
 public import GibbsMeasure.Specification.InfraredBoundCorrelation
+public import GibbsMeasure.Specification.GaussianDomination
+public import GibbsMeasure.Specification.InfraredBoundTheorem
 public import GibbsMeasure.Specification.InfraredBoundFourier
 public import GibbsMeasure.Specification.InfraredBound
 public import GibbsMeasure.Specification.InvariantFieldsBarycenter
