@@ -271,6 +271,7 @@ public import GibbsMeasure.Potential.Equivalence
 public import GibbsMeasure.Potential.NearestNeighbour
 public import GibbsMeasure.Potential.PerSiteExistence
 public import GibbsMeasure.Potential.Periodic
+public import GibbsMeasure.Potential.KernelDomination
 public import GibbsMeasure.Potential.Space
 public import GibbsMeasure.Potential.Transformation
 public import GibbsMeasure.Potential.Reindex
@@ -355,6 +356,8 @@ public import GibbsMeasure.Specification.PatternPercolation
 public import GibbsMeasure.Specification.ReflectionPositivity
 public import GibbsMeasure.Specification.PeriodicGibbs
 public import GibbsMeasure.Specification.PeriodicGibbsLimits
+public import GibbsMeasure.Specification.ChainEstimate
+public import GibbsMeasure.Specification.CubePotentialSingleSite
 public import GibbsMeasure.Specification.QuasiGibbsian
 public import GibbsMeasure.Specification.ShannonMcMillan
 public import GibbsMeasure.Specification.Structure
