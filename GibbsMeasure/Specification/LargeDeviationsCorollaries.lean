@@ -33,7 +33,16 @@ then regrouped by the fibres of `e_Ψ`
 
 * `MeasureTheory.GibbsMeasure.limsup_log_periodicBoundaryGibbs_setOf_mem_div_card_le`,
   **the first inequality of (15.48)**:
-  `limsup |Λ|⁻¹ log °γ^Φ_Λ(|Λ|⁻¹ °H^Ψ_Λ ∈ B) ≤ − inf_{x ∈ B̄} J_Ψ(x|Φ)`.
+  `limsup |Λ|⁻¹ log °γ^Φ_Λ(|Λ|⁻¹ °H^Ψ_Λ ∈ B) ≤ − inf_{x ∈ B̄} J_Ψ(x|Φ)`, over a finite state
+  space and for an arbitrary `B`; and
+  `MeasureTheory.GibbsMeasure.limsup_log_periodicBoundaryGibbs_setOf_mem_div_card_le_of_convex`,
+  the same inequality **over a standard Borel state space for a convex Borel `B`**. There the
+  Borel hypothesis on `B` is Georgii's `C ∈ 𝓔(𝓟_Θ)`
+  (`MeasureTheory.GibbsMeasure.measurableSet_cylinderEvents_setOf_mem_energyVecPreimage`), and
+  convexity of `B` makes `C = e_Ψ⁻¹(B) ∩ 𝓟_Θ` convex
+  (`MeasureTheory.GibbsMeasure.convex_image_evalLocalEvents_energyVecPreimage`), so that
+  Georgii's `cx̄ C` is `C̄` and Step 3 of the proof of (15.46) — the only step of it that is
+  finite-only — is not needed.
 * `MeasureTheory.GibbsMeasure.neg_iInf_ldRate_le_liminf_log_periodicBoundaryGibbs_setOf_mem`,
   **the second inequality of (15.48)**:
   `liminf |Λ|⁻¹ log °γ^Φ_Λ(|Λ|⁻¹ °H^Ψ_Λ ∈ B) ≥ − inf_{x ∈ B°} J_Ψ(x|Φ)`.
@@ -79,14 +88,16 @@ hypothesis `J_Ψ(b|Φ) < ∞` for some `b > a`), and the Cramér formula
 ## Two deviations from Georgii's statement
 
 * Georgii asks for a **Borel** `B ⊆ ℝ^k`, because his `C` must belong to `𝓔(𝓟_Θ)` for `{°R_Λ ∈ C}`
-  to be an event. Over the finite state space of the upper bound, and for the `𝓕_Λ`-events used in
-  the lower bound, `{°R_Λ ∈ C}` is measurable for *every* `C`
+  to be an event. Over the finite state space of the first upper bound, and for the `𝓕_Λ`-events
+  used in the lower bound, `{°R_Λ ∈ C}` is measurable for *every* `C`
   (`MeasureTheory.GibbsMeasure.measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem`),
-  so no hypothesis on `B` is needed here; `B` is an arbitrary set.
+  so no hypothesis on `B` is needed there; `B` is an arbitrary set. Over a standard Borel state
+  space Georgii's Borel hypothesis is carried, and used.
 * The two inequalities are stated separately, at the generality each one has in the tree: the
-  upper bound over a finite state space and over `ι → ℤ` for a nonempty finite `ι`, the lower
-  bound over an arbitrary measurable state space and over `ℤ^d`. This is the split already made
-  for (15.46) and (15.47) themselves.
+  upper bound over `ι → ℤ` for a nonempty finite `ι` — over a finite state space for an arbitrary
+  `B`, over a standard Borel state space for a convex Borel `B` — and the lower bound over an
+  arbitrary measurable state space and over `ℤ^d`. This is the split already made for (15.46) and
+  (15.47) themselves.
 -/
 
 @[expose] public section
@@ -199,6 +210,140 @@ theorem limsup_log_periodicBoundaryGibbs_setOf_mem_div_card_le
   exact (iInf₂_le _ hB).trans (Potential.BTheta.ldRate_le hinv rfl)
 
 end Upper
+
+/-! ### Georgii Corollary (15.48), the upper bound over a standard Borel state space -/
+
+section UpperStandardBorel
+
+variable {ι E : Type*} [Fintype ι] [DecidableEq ι] [Nonempty ι] [MeasurableSpace E]
+  {K : Type*} [Fintype K] (ν : Measure E) [IsProbabilityMeasure ν]
+
+omit [DecidableEq ι] [Nonempty ι] [Fintype K] ν in
+/-- **Georgii's `C = e_Ψ⁻¹(B) ∩ 𝓟_Θ` lies in `𝓔(𝓟_Θ)`, in the form in which the upper bound
+(15.46) consumes it.** For a Borel `B ⊆ ℝ^k` the event `{°R_Λ ∈ C}` is a cylinder event of the
+box `Λ`, because it *is* the event `{|Λ|⁻¹ °H^Ψ_Λ ∈ B}` (Remark (15.43)(3),
+`setOf_periodicEmpiricalFieldL_mem_energyVecPreimage`) and the periodic Hamiltonians are
+`𝓕_Λ`-measurable (`Potential.measurable_cylinderEvents_periodicBoundaryHamiltonian`). This is what
+makes Georgii's Borel hypothesis on `B` the right one over an infinite state space. -/
+theorem measurableSet_cylinderEvents_setOf_mem_energyVecPreimage
+    (Ψ : K → Potential.BTheta (ι → ℤ) E) {B : Set (K → ℝ)} (hB : MeasurableSet B)
+    {G : AddSubgroup (ι → ℤ)} {Λ : Finset (ι → ℤ)} {π : (ι → ℤ) → (ι → ℤ)}
+    (hπ : Potential.IsTorusReduction G Λ π) (hΛ : Λ.Nonempty) :
+    MeasurableSet[cylinderEvents (X := fun _ : ι → ℤ ↦ E) (Λ : Set (ι → ℤ))]
+      {ω : (ι → ℤ) → E | periodicEmpiricalFieldL π hΛ ω ∈
+        {ρ ∈ invariantRandomFields (ι → ℤ) E |
+          Potential.BTheta.energyVec Ψ (ρ.toMeasure : Measure ((ι → ℤ) → E)) ∈ B}} := by
+  rw [setOf_periodicEmpiricalFieldL_mem_energyVecPreimage ι E Ψ B hπ hΛ]
+  letI : MeasurableSpace ((ι → ℤ) → E) :=
+    cylinderEvents (X := fun _ : ι → ℤ ↦ E) (Λ : Set (ι → ℤ))
+  have hmeas : Measurable
+      fun ω : (ι → ℤ) → E ↦ fun j ↦ (#Λ : ℝ)⁻¹
+        * (Ψ j : Potential (ι → ℤ) E).periodicBoundaryHamiltonian π Λ ω :=
+    measurable_pi_iff.2 fun j ↦
+      (Potential.measurable_cylinderEvents_periodicBoundaryHamiltonian
+        (Φ := (Ψ j : Potential (ι → ℤ) E)) hπ).const_mul _
+  exact hmeas hB
+
+omit [DecidableEq ι] [Nonempty ι] [Fintype K] ν in
+/-- **`e_Ψ⁻¹(B) ∩ 𝓟_Θ` is convex when `B` is.** `𝓟_Θ` is stable under mixtures
+(`smul_add_smul_mem_invariantFields`) and `e_Ψ` is affine
+(`Potential.specificEnergy_smul_add_smul`), so the constraint set is convex; convexity is read,
+as Georgii's `cx̄` is, in the ambient space `𝓕⁰ → ℝ` through the evaluation embedding. -/
+theorem convex_image_evalLocalEvents_energyVecPreimage
+    (Ψ : K → Potential.BTheta (ι → ℤ) E) {B : Set (K → ℝ)} (hB : Convex ℝ B) :
+    Convex ℝ (evalLocalEvents (ι → ℤ) E ''
+      {ρ ∈ invariantRandomFields (ι → ℤ) E |
+        Potential.BTheta.energyVec Ψ (ρ.toMeasure : Measure ((ι → ℤ) → E)) ∈ B}) := by
+  refine WithSetwiseTopology.convex_image_evalReal ?_
+  rintro μ ⟨hμinv, hμB⟩ ρ ⟨hρinv, hρB⟩ a b ha hb hab
+  have hst : a.toNNReal + b.toNNReal = 1 := by
+    rw [← Real.toNNReal_add ha hb, hab, Real.toNNReal_one]
+  have hmix := smul_add_smul_mem_invariantFields hμinv hρinv hst
+  have hsmul : (a.toNNReal : ℝ≥0) • (μ.toMeasure : Measure ((ι → ℤ) → E))
+        + (b.toNNReal : ℝ≥0) • (ρ.toMeasure : Measure ((ι → ℤ) → E))
+      = ENNReal.ofReal a • (μ.toMeasure : Measure ((ι → ℤ) → E))
+        + ENNReal.ofReal b • (ρ.toMeasure : Measure ((ι → ℤ) → E)) := by
+    rw [ENNReal.smul_def, ENNReal.smul_def]; rfl
+  refine ⟨⟨⟨_, hmix.1⟩⟩, ⟨hmix, ?_⟩, hsmul⟩
+  have henergy : Potential.BTheta.energyVec Ψ
+      ((a.toNNReal : ℝ≥0) • (μ.toMeasure : Measure ((ι → ℤ) → E))
+        + (b.toNNReal : ℝ≥0) • (ρ.toMeasure : Measure ((ι → ℤ) → E)))
+      = a • Potential.BTheta.energyVec Ψ (μ.toMeasure : Measure ((ι → ℤ) → E))
+        + b • Potential.BTheta.energyVec Ψ (ρ.toMeasure : Measure ((ι → ℤ) → E)) := by
+    funext j
+    rw [Potential.BTheta.energyVec_apply, Potential.specificEnergy_smul_add_smul]
+    simp only [Pi.add_apply, Pi.smul_apply, smul_eq_mul, Potential.BTheta.energyVec_apply,
+      Real.coe_toNNReal _ ha, Real.coe_toNNReal _ hb]
+  have hmem : Potential.BTheta.energyVec Ψ
+      ((a.toNNReal : ℝ≥0) • (μ.toMeasure : Measure ((ι → ℤ) → E))
+        + (b.toNNReal : ℝ≥0) • (ρ.toMeasure : Measure ((ι → ℤ) → E))) ∈ B := by
+    rw [henergy]
+    exact hB hμB hρB ha hb hab
+  exact hmem
+
+variable [StandardBorelSpace E]
+
+/-- **Georgii Corollary (15.48), the first inequality, over a standard Borel state space and for a
+convex Borel `B`.** For `Φ ∈ ℬ_Θ`, a vector-valued potential `Ψ ∈ ℬ_Θ^k` and a *convex Borel*
+`B ⊆ ℝ^k`,
+
+`limsup_{|Λ| → ∞} |Λ|⁻¹ log °γ^Φ_Λ(|Λ|⁻¹ °H^Ψ_Λ ∈ B) ≤ − inf_{x ∈ B̄} J_Ψ(x|Φ)`,
+
+along any sequence of cubes `Λ_n = [m_n, m_n + s_n]^d` of `ℤ^d` whose side lengths tend to
+infinity, with arbitrary torus reductions.
+
+Georgii's Borel hypothesis on `B` is what makes `{°R_Λ ∈ C}` an event
+(`measurableSet_cylinderEvents_setOf_mem_energyVecPreimage`); *convexity* of `B` is what makes
+`C = e_Ψ⁻¹(B) ∩ 𝓟_Θ` convex, so that Georgii's `cx̄ C` is `C̄` and his Step 3 — the only step of
+the proof of (15.46) that is not available over an infinite state space — is not needed. The rest
+is exactly Georgii's argument: `C̄ ⊆ e_Ψ⁻¹(B̄)` by the continuity of `e_Ψ` and the closedness of
+`𝓟_Θ`, and then `𝓀(·|Φ) ≥ J_Ψ(⟨·, Ψ⟩|Φ)`. -/
+theorem limsup_log_periodicBoundaryGibbs_setOf_mem_div_card_le_of_convex
+    (Φ : Potential.BTheta (ι → ℤ) E) (Ψ : K → Potential.BTheta (ι → ℤ) E)
+    {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
+    {G : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
+    (hπ : ∀ n, Potential.IsTorusReduction (G n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
+    (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).Nonempty)
+    {B : Set (K → ℝ)} (hBm : MeasurableSet B) (hBc : Convex ℝ B) :
+    Filter.limsup (fun n ↦ ENNReal.log ((Φ : Potential (ι → ℤ) E).periodicBoundaryGibbs ν (π n)
+            (Finset.Icc (m n) fun k ↦ m n k + s n)
+            {ω | (fun j ↦ (#(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) : ℝ)⁻¹
+                * (Ψ j : Potential (ι → ℤ) E).periodicBoundaryHamiltonian (π n)
+                    (Finset.Icc (m n) fun k ↦ m n k + s n) ω) ∈ B})
+        / (#(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) : EReal)) atTop
+      ≤ -⨅ x ∈ closure B, Potential.BTheta.ldRate ν Φ Ψ x := by
+  classical
+  set C : Set (WithLocalConvergence (ι → ℤ) E) :=
+    {ρ ∈ invariantRandomFields (ι → ℤ) E |
+      Potential.BTheta.energyVec Ψ (ρ.toMeasure : Measure ((ι → ℤ) → E)) ∈ B} with hCdef
+  have hCsub : C ⊆ invariantRandomFields (ι → ℤ) E := fun _ hρ ↦ hρ.1
+  have hAmeas : ∀ n, MeasurableSet[cylinderEvents (X := fun _ : ι → ℤ ↦ E)
+      ((Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) : Set (ι → ℤ))]
+      {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C} := fun n ↦
+    measurableSet_cylinderEvents_setOf_mem_energyVecPreimage Ψ hBm (hπ n) (hne n)
+  have hmain := limsup_log_periodicBoundaryGibbs_div_card_le_of_convex ν Φ hs hπ hne hAmeas
+    (convex_image_evalLocalEvents_energyVecPreimage Ψ hBc)
+  -- the events agree, by Remark (15.43)(3)
+  have hev : ∀ n, {ω : (ι → ℤ) → E | periodicEmpiricalFieldL (π n) (hne n) ω ∈ C}
+      = {ω : (ι → ℤ) → E | (fun j ↦
+          (#(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) : ℝ)⁻¹
+            * (Ψ j : Potential (ι → ℤ) E).periodicBoundaryHamiltonian (π n)
+                (Finset.Icc (m n) fun k ↦ m n k + s n) ω) ∈ B} := fun n ↦
+    setOf_periodicEmpiricalFieldL_mem_energyVecPreimage ι E Ψ B (hπ n) (hne n)
+  simp only [hev] at hmain
+  refine hmain.trans (EReal.neg_le_neg_iff.2 (le_iInf₂ fun ρ hρ ↦ ?_))
+  -- `C̄ ⊆ e_Ψ⁻¹(B̄)`: `𝓟_Θ` is closed and `e_Ψ` is continuous
+  have hinv : (ρ.toMeasure : Measure ((ι → ℤ) → E)) ∈ invariantFields (shiftGroup (ι → ℤ) E) :=
+    (isClosed_setOf_mem_invariantFields (shiftGroup (ι → ℤ) E)).closure_subset_iff.2 hCsub hρ
+  have hB : Potential.BTheta.energyVec Ψ (ρ.toMeasure : Measure ((ι → ℤ) → E)) ∈ closure B := by
+    have himg := image_closure_subset_closure_image
+      (Potential.BTheta.continuous_energyVec Ψ) (Set.mem_image_of_mem _ hρ)
+    refine closure_mono ?_ himg
+    rintro x ⟨σ, hσ, rfl⟩
+    exact hσ.2
+  exact (iInf₂_le _ hB).trans (Potential.BTheta.ldRate_le hinv rfl)
+
+end UpperStandardBorel
 
 /-! ### Georgii Corollary (15.48), the lower bound -/
 

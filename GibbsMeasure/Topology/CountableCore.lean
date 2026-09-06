@@ -23,6 +23,25 @@ Over a *finite* state space no change of topology is needed: `𝓕⁰` is itself
 (`MeasureTheory.countable_localEvents`) and `𝓛` is already compact metrizable. The point of this
 file is the infinite standard Borel state space.
 
+## What the change of topology does and does not give in Step 3
+
+Georgii's Step 3 concludes `inf_{cx̄ C} 𝓀(·|Φ) = inf_{C̄} 𝓀(·|Φ)` with `C̄` the closure in the
+topology `𝓛` of local convergence. The Choquet argument run in the `𝒞`-topology produces a
+representing measure carried by the **`𝒞`-closure** `C̃` of `C`, and therefore only
+`inf_{cx̄ C} 𝓀(·|Φ) ≥ inf_{C̃} 𝓀(·|Φ)`. Since `𝒞`-convergence tests only the countably many events
+of `𝒞`, `C̃` is in general strictly larger than `C̄`: a sequence of probability measures may
+converge on `𝒞` and on no other local event, and its `𝒞`-limit then lies in `C̃ ∖ C̄`. The core
+cannot be repaired by adjoining the missing local events, because condition (ii) of a countable
+core (`MeasurableSpace.IsCountableCore.exists_isProbabilityMeasure_tendsto`) fails for
+`𝒞 ∪ {A}` with a general `A ∈ 𝓕⁰`. The coincidence of the `𝓛`- and `𝒞`-topologies on each
+sublevel set of `𝓀(·|Φ)`, which is what Georgii's argument establishes, says nothing about nets
+in `C` that leave every sublevel set.
+
+Consequently `Specification/LargeDeviationsUpper.lean` proves the large-deviation upper bound over
+a standard Borel state space with Georgii's `cx̄ C` on the right and does **not** use the
+`𝒞`-topology: the bound with `cx̄ C` is stronger than the bound with `C̃` that the `𝒞`-topology
+would give, since `cx̄ C ⊆ cx̄_𝒞 C`. The files here record Appendix 4.A for its own sake.
+
 ## Main statements
 
 * `MeasureTheory.GibbsMeasure.exists_isCountableCore_subset_localEvents`: **Georgii (4.A13)**.

@@ -545,9 +545,14 @@ needs only the mean ergodic theorem (14.A5), as Georgii says. **The upper bound 
 (`Specification/LargeDeviationsUpper.lean`): Steps 1–2 for any state space, Step 3 through (15.54)
 with the excess free energy shifted into `[0,∞]` and its concavity derived from the convexity of
 the specific entropy, Step 4 the cluster-point argument. So **Theorem (15.45)**, the large-deviation
-principle for the periodic empirical field, holds over a finite state space; Georgii's standard
-Borel generality needs the compact metrizable `𝒞`-topology and a countable core of `𝓕`, now
-available (Appendix 4.A above) but not yet consumed by (15.46). Georgii's remark after (15.47),
+principle for the periodic empirical field, holds over a finite state space, and over a **standard
+Borel** state space with the closed convex hull of `C` on the right, hence with Georgii's closure for
+convex `C` (Steps 1, 2 and 4 through the compactness of the sublevel sets of the excess free energy;
+`Mathlib/Analysis/Convex/ClosedConvexHullPi.lean`). Georgii's Step 3 for a non-convex `C` over an
+infinite state space is not established by his argument: the `𝒞`-topology of Appendix 4.A bounds
+the infimum over the `𝒞`-closure of `C`, and his remark that it may be replaced by the closure in the
+local topology does not follow from the coincidence of the topologies on the sublevel sets.
+Georgii's remark after (15.47),
 that both inequalities hold for the **Gibbs distributions with periodic boundary conditions**, is
 proved (`Specification/PeriodicBoundaryGibbs.lean`), hence **Corollary (15.48)** in both inequalities
 and **Example (15.50)–(15.51)**, the large-deviation asymptotics of the spatial mean of a bounded
@@ -897,13 +902,13 @@ neighbouring spins has a unique infinite component almost surely under every Gib
 
 Not yet done: the modulo-commutativity refinement (5.15)(ii) behind Examples (5.17)(3)–(4); the
 continuity of the second derivative asserted in (8.37)/(16.17); in (12.31)(b) the infinitude of
-`ex 𝒢 ∖ ex 𝒢_{I(B)}` and the third extreme invariant element; (13.39)–(13.41), (13.44)–(13.45) and the `𝒢_Θ` clause
-of (13.42); the upper bound (15.46) for a standard Borel state space, and the
-periodic-boundary-condition statements (15.48) (its two inequalities), (15.50)–(15.51),
-(15.57)–(15.58); the criterion of (16.24)(3), (16.24)(4), (16.25)(2), (16.26)–(16.27); the Berg–Maserick converse (17.28)(1), cited without
-proof; §18.3 and the count for a proper subgroup in (18.25); Theorem (19.6) with (19.9)–(19.10) and
-§19.2–19.3; and
-(20.5), (20.7), the transfer of (20.6) to `𝒢₀(Φ)` and the infrared bound (20.9) onwards.
+`ex 𝒢 ∖ ex 𝒢_{I(B)}` and the third extreme invariant element; (13.39)–(13.41), (13.44)–(13.45), the
+`𝒢_Θ` clause of (13.42) and the representation `𝒢(γ^{J,h}) = {μ_C * ν}`; Georgii's closure bound in
+(15.46) for a non-convex `C` over an infinite state space, Cramér's formula at `Φ = 0`, and
+(15.57)–(15.58) beyond the subgradient uniqueness; the criterion of (16.24)(3), (16.24)(4), (16.25)(2),
+(16.26)–(16.27); the Berg–Maserick converse (17.28)(1), cited without proof; §18.3 and the count for
+a proper subgroup in (18.25); Theorem (19.6) with (19.9)–(19.10) and §19.2–19.3; and (20.7)(b)–(c)
+and the infrared bound (20.11) onwards.
 
 ### Code organisation
 

@@ -182,23 +182,27 @@ Both halves of **Theorem (15.45)** are proved, but not at Georgii's generality:
   `MeasureTheory.GibbsMeasure`) of `GibbsMeasure/Specification/LargeDeviationsLower.lean`, over an
   *arbitrary* measurable state space;
 * the **upper bound (15.46)**, with its "in particular" clause, is
-  `MeasureTheory.GibbsMeasure.limsup_log_iSup_gibbsSpecification_div_card_le` of
-  `GibbsMeasure/Specification/LargeDeviationsUpper.lean`, but only over a **finite** state space.
-  Georgii's Step 3, the passage from `cx̄ C` to `C̄` for which he cites Phelps' Choquet theory, is
-  `iInf_closedConvexHull_eq_iInf_closure_ereal` of
-  `GibbsMeasure/Specification/InvariantFieldsBarycenter.lean`, obtained from the concavity of
-  `𝓀(·|Φ)`; the three places where finiteness of `E` is used are listed in the docstring of
-  (15.46).
+  `MeasureTheory.GibbsMeasure.limsup_log_iSup_gibbsSpecification_div_card_le_closedConvexHull` of
+  `GibbsMeasure/Specification/LargeDeviationsUpper.lean`, over a **standard Borel** state space and
+  under Georgii's hypothesis `C ∈ 𝓔(𝓟_Θ)`, but with his `cx̄ C` (the closed convex hull) on the
+  right; with `C̄` on the right it is `…_of_convex` for a convex `C`, and
+  `…limsup_log_iSup_gibbsSpecification_div_card_le` for an arbitrary `C` over a **finite** state
+  space. Georgii's Step 3, the passage from `cx̄ C` to `C̄` for which he cites Phelps' Choquet
+  theory, is `iInf_closedConvexHull_eq_iInf_closure_ereal` of
+  `GibbsMeasure/Specification/InvariantFieldsBarycenter.lean`; it is the only step of his proof
+  that is finite-only.
 
 What §15.5 still lacks:
 
-* **Georgii's standard Borel generality for (15.46).** Steps 1 and 2 of his proof are formalised
-  over an arbitrary measurable state space; what is missing is his change of topology — a
-  countable core `𝒞 ⊆ 𝓕⁰` of `𝓕` (Corollary (4.A13)) and the compact metrizability of
-  `𝓟(Ω, 𝓕)` in the `𝒞`-topology (Comment (4.A10)(1)) — without which neither the cluster point
-  extraction of Step 2 nor Step 3 is available. Over a finite state space `𝓕⁰` is already
-  countable, the space of random fields is already compact, and `{°R_Λ ∈ C}` is an event for
-  every `C` whatsoever, which is the other half of Georgii's hypothesis `C ∈ 𝓔(𝓟_Θ)`.
+* **Georgii's `C̄` in (15.46) for a non-convex `C` over an infinite state space.** Steps 1, 2
+  and 4 are formalised over a standard Borel state space, with the compactness of the sublevel
+  sets `{𝓀(·|Φ) ≤ c}` (Proposition (15.14)) in place of the compactness of the whole space of
+  random fields. Step 3 is not, and Georgii's change of topology — a countable core `𝒞 ⊆ 𝓕⁰`
+  (Corollary (4.A13)) and the compact metrizability of `𝓟(Ω, 𝓕)` in the `𝒞`-topology (Comment
+  (4.A10)(1)), both formalised in `GibbsMeasure/Topology/CountableCore.lean` — bounds the infimum
+  over the `𝒞`-closure of `C`, not over its closure in the topology of local convergence, and the
+  resulting bound is weaker than the `cx̄ C` bound already proved. See the module documentation of
+  `GibbsMeasure/Specification/LargeDeviationsUpper.lean`.
 * the **finiteness of `J_Ψ(·|Φ)` on `]a⁻_f, a⁺_f[`** asserted in **Example (15.50)** — `a^±_f`
   the infimum and supremum of the support of `f(λ)`. Georgii states it without proof; it is what
   supplies the point `b > a` at which the rate function is still finite in the hypotheses of

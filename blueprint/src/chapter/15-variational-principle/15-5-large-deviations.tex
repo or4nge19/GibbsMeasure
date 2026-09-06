@@ -182,10 +182,10 @@
     McMillan theorem, the tiles meeting an arbitrary cube having cardinality asymptotic to it.
 \end{proof}
 
-\begin{theorem}[Georgii (15.45), the upper bound (15.46), for a finite state space]
+\begin{theorem}[Georgii (15.45), the upper bound (15.46)]
     \label{thm:ld-15-46}
     \uses{thm:ld-15-54, prop:ld-15-52, thm:ld-15-47, def:ld-15-41}
-    \lean{EReal.shiftToENNReal, EReal.biInf_eq_biInf_of_shiftToENNReal, EReal.shiftToENNReal_smul_add_smul_le, InformationTheory.klDiv_cond_self, MeasureTheory.GibbsMeasure.iInf_closedConvexHull_eq_iInf_closure_ereal, MeasureTheory.GibbsMeasure.smul_specificRelativeEntropy_add_smul_specificRelativeEntropy_le, MeasureTheory.GibbsMeasure.empiricalFieldAverage, MeasureTheory.GibbsMeasure.neg_log_gibbsSpecification_eq, MeasureTheory.GibbsMeasure.abs_integral_hamiltonian_juxt_sub_card_mul_specificEnergy_le, MeasureTheory.GibbsMeasure.abs_integral_tileAverage_sub_integral_empiricalFieldAverage_le, MeasureTheory.GibbsMeasure.evalLocalEvents_empiricalFieldAverage_mem_convexHull, MeasureTheory.GibbsMeasure.measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem, MeasureTheory.GibbsMeasure.specificRelativeEntropy_tileAverage_cond_le, MeasureTheory.GibbsMeasure.exists_mem_closedConvexHull_specificRelativeEntropy_le, MeasureTheory.GibbsMeasure.eventually_gibbsSpecification_setOf_periodicEmpiricalFieldL_mem_le, MeasureTheory.GibbsMeasure.limsup_log_iSup_gibbsSpecification_div_card_le, MeasureTheory.GibbsMeasure.limsup_log_isGibbsMeasure_div_card_le}
+    \lean{EReal.shiftToENNReal, EReal.biInf_eq_biInf_of_shiftToENNReal, EReal.shiftToENNReal_smul_add_smul_le, InformationTheory.klDiv_cond_self, MeasureTheory.GibbsMeasure.iInf_closedConvexHull_eq_iInf_closure_ereal, MeasureTheory.GibbsMeasure.smul_specificRelativeEntropy_add_smul_specificRelativeEntropy_le, MeasureTheory.GibbsMeasure.empiricalFieldAverage, MeasureTheory.GibbsMeasure.neg_log_gibbsSpecification_eq, MeasureTheory.GibbsMeasure.abs_integral_hamiltonian_juxt_sub_card_mul_specificEnergy_le, MeasureTheory.GibbsMeasure.abs_integral_tileAverage_sub_integral_empiricalFieldAverage_le, MeasureTheory.GibbsMeasure.evalLocalEvents_empiricalFieldAverage_mem_convexHull, MeasureTheory.GibbsMeasure.measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem, MeasureTheory.GibbsMeasure.specificRelativeEntropy_tileAverage_cond_le, MeasureTheory.GibbsMeasure.exists_mem_closedConvexHull_specificRelativeEntropy_le, MeasureTheory.GibbsMeasure.eventually_gibbsSpecification_setOf_periodicEmpiricalFieldL_mem_le, MeasureTheory.GibbsMeasure.limsup_log_iSup_gibbsSpecification_div_card_le, MeasureTheory.GibbsMeasure.limsup_log_isGibbsMeasure_div_card_le, MeasureTheory.GibbsMeasure.evalEvents, MeasureTheory.GibbsMeasure.measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem_of_evalEvents, MeasureTheory.GibbsMeasure.evalLocalEvents_empiricalFieldAverage_mem_closedConvexHull, MeasureTheory.GibbsMeasure.exists_mem_closedConvexHull_specificRelativeEntropy_le_of_measurableSet, MeasureTheory.GibbsMeasure.limsup_log_iSup_gibbsSpecification_div_card_le_closedConvexHull, MeasureTheory.GibbsMeasure.limsup_log_iSup_gibbsSpecification_div_card_le_of_convex, MeasureTheory.GibbsMeasure.limsup_log_isGibbsMeasure_div_card_le_closedConvexHull_of_measurableSet, integral_mem_closedConvexHull_pi, mem_closedConvexHull_pi_of_forall_finset, MapClusterPt.exists_le_tendsto}
     \leanok
 
     For finite $E$, $\Phi \in \mathcal B_\Theta$ and $C \subseteq \mathcal P_\Theta$,
@@ -199,9 +199,17 @@
     $\mathcal L$-distance between the block average and $\gamma\,{}^\circ R_\Lambda$; Step 3 is
     Theorem \ref{thm:ld-15-54} for the $\mathrm{EReal}$-valued $\mathcal A(\cdot\mid\Phi)$, shifted
     into $[0,\infty]$ by an order isomorphism, its concavity derived from the convexity of the
-    specific entropy; Step 4 the cluster-point argument. Georgii's standard Borel generality needs
-    a countable core of $\mathcal F$ and the compact metrizable $\mathcal C$-topology (Comment
-    (4.A10), Corollary (4.A13)), which are not formalised.
+    specific entropy; Step 4 the cluster-point argument. Over a standard Borel state space, under
+    Georgii's hypothesis $C \in \mathcal E(\mathcal P_\Theta)$ (measurability for the evaluations
+    $\mu \mapsto \mu(A)$), Steps 1, 2 and 4 go through with the compactness of the sublevel sets of
+    $\mathcal A(\cdot\mid\Phi)$ (Proposition (15.14)) in place of that of the whole space, and give
+    the bound $-\inf_{\overline{\mathrm{cx}}\,C}\mathcal A(\cdot\mid\Phi)$ over the closed convex hull of
+    $C$, hence Georgii's $-\inf_{\bar C}$ for convex $C$ (the case (15.48) needs). His Step 3 for a
+    non-convex $C$ over an infinite state space is not established by his argument: the
+    $\mathcal C$-topology of Appendix 4.A bounds the infimum over the $\mathcal C$-closure of $C$,
+    and his closing remark that it can be replaced by $\bar C$ does not follow from the coincidence
+    of the two topologies on the sublevel sets; that bound is in any case weaker than the closed
+    convex hull bound.
 \end{theorem}
 \begin{proof}
     \leanok
@@ -232,15 +240,15 @@
 \begin{theorem}[Corollary (15.48) and Example (15.50)--(15.51)]
     \label{thm:ld-15-48}
     \uses{thm:ld-periodic-bc, prop:ld-15-49, thm:gv-16-14, thm:tf-16-6}
-    \lean{Potential.BTheta.continuous_energyVec, MeasureTheory.GibbsMeasure.setOf_periodicEmpiricalFieldL_mem_energyVecPreimage, MeasureTheory.GibbsMeasure.limsup_log_periodicBoundaryGibbs_setOf_mem_div_card_le, MeasureTheory.GibbsMeasure.neg_iInf_ldRate_le_liminf_log_periodicBoundaryGibbs_setOf_mem, Potential.normAt_site, Potential.isAbsolutelySummable_site, Potential.isShiftInvariant_site, Potential.siteEnergy_site, Potential.periodicBoundaryHamiltonian_site, Potential.selfPotential, MeasureTheory.GibbsMeasure.inv_card_mul_periodicBoundaryHamiltonian_selfPotential, Potential.BTheta.ldRate_eq_zero_iff_mem_Icc, Potential.BTheta.ldRate_le_ldRate_of_le, Potential.BTheta.ldRate_pos, Potential.BTheta.iInf_ldRate_Ioi_eq, MeasureTheory.GibbsMeasure.tendsto_log_periodicBoundaryGibbs_setOf_le_div_card, MeasureTheory.GibbsMeasure.tendsto_log_periodicBoundaryGibbs_setOf_le_spatialMean_div_card}
+    \lean{Potential.BTheta.continuous_energyVec, MeasureTheory.GibbsMeasure.setOf_periodicEmpiricalFieldL_mem_energyVecPreimage, MeasureTheory.GibbsMeasure.limsup_log_periodicBoundaryGibbs_setOf_mem_div_card_le, MeasureTheory.GibbsMeasure.neg_iInf_ldRate_le_liminf_log_periodicBoundaryGibbs_setOf_mem, MeasureTheory.GibbsMeasure.measurableSet_cylinderEvents_setOf_mem_energyVecPreimage, MeasureTheory.GibbsMeasure.convex_image_evalLocalEvents_energyVecPreimage, MeasureTheory.GibbsMeasure.limsup_log_periodicBoundaryGibbs_setOf_mem_div_card_le_of_convex, MeasureTheory.GibbsMeasure.limsup_log_periodicBoundaryGibbs_div_card_le_closedConvexHull, MeasureTheory.GibbsMeasure.limsup_log_periodicBoundaryGibbs_div_card_le_of_convex, Potential.normAt_site, Potential.isAbsolutelySummable_site, Potential.isShiftInvariant_site, Potential.siteEnergy_site, Potential.periodicBoundaryHamiltonian_site, Potential.selfPotential, MeasureTheory.GibbsMeasure.inv_card_mul_periodicBoundaryHamiltonian_selfPotential, Potential.BTheta.ldRate_eq_zero_iff_mem_Icc, Potential.BTheta.ldRate_le_ldRate_of_le, Potential.BTheta.ldRate_pos, Potential.BTheta.iInf_ldRate_Ioi_eq, MeasureTheory.GibbsMeasure.tendsto_log_periodicBoundaryGibbs_setOf_le_div_card, MeasureTheory.GibbsMeasure.tendsto_log_periodicBoundaryGibbs_setOf_le_spatialMean_div_card}
     \leanok
 
-    Corollary (15.48), both displayed inequalities, for any $B \subseteq \mathbb R^k$ (no
-    Borel hypothesis is needed: over a finite $E$, and for the events of the lower bound,
-    $\{{}^\circ R_\Lambda \in C\}$ is always an event): $\limsup |\Lambda|^{-1}\log{}^\circ\gamma^\Phi_\Lambda
-    (|\Lambda|^{-1}{}^\circ H^\Psi_\Lambda \in B) \leq -\inf_{\bar B} J_\Psi(\cdot\mid\Phi)$ for finite
-    $E$ and $\liminf \geq -\inf_{B^\circ} J_\Psi(\cdot\mid\Phi)$ for any $E$, from the periodic
-    (15.45) with $C = e_\Psi^{-1}(B)$, $e_\Psi$ being continuous, and the contraction step. Example
+    Corollary (15.48), both displayed inequalities: $\limsup |\Lambda|^{-1}\log{}^\circ\gamma^\Phi_\Lambda
+    (|\Lambda|^{-1}{}^\circ H^\Psi_\Lambda \in B) \leq -\inf_{\bar B} J_\Psi(\cdot\mid\Phi)$ for any
+    $B$ over a finite $E$, and for Borel convex $B$ over a standard Borel $E$ (the event is
+    $\{|\Lambda|^{-1}{}^\circ H^\Psi_\Lambda \in B\}$, measurable, and $e_\Psi^{-1}(B)$ is convex),
+    and $\liminf \geq -\inf_{B^\circ} J_\Psi(\cdot\mid\Phi)$ for any $B$ and any $E$, from the
+    periodic (15.45) with $C = e_\Psi^{-1}(B)$, $e_\Psi$ being continuous, and the contraction step. Example
     (15.50): for the self-potential $\Psi_{\{0\}} = f(\sigma_0)$ of a bounded measurable $f$, an
     element of $\mathcal B_\Theta$, $|\Lambda|^{-1}{}^\circ H^\Psi_\Lambda = M_\Lambda f$;
     $J_\Psi(\cdot\mid\Phi)$ vanishes exactly on $[a^-_{f,\Phi}, a^+_{f,\Phi}]$, the one-sided

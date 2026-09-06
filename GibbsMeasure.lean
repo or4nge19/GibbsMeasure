@@ -11,6 +11,7 @@ public import GibbsMeasure.Mathlib.Analysis.Calculus.TiltedIntegral
 public import GibbsMeasure.Mathlib.Analysis.Convex.Barycenter
 public import GibbsMeasure.Mathlib.Analysis.Convex.BarycenterJensen
 public import GibbsMeasure.Mathlib.Analysis.Convex.StrictConvexSubgradient
+public import GibbsMeasure.Mathlib.Analysis.Convex.ClosedConvexHullPi
 public import GibbsMeasure.Mathlib.Topology.Instances.EReal
 public import GibbsMeasure.Mathlib.Topology.UniformSpace.Pi
 public import GibbsMeasure.Mathlib.Topology.MetricSpace.DependsOn
@@ -153,6 +154,7 @@ public import GibbsMeasure.Mathlib.Data.ENNReal.Pow
 public import GibbsMeasure.Mathlib.Data.Fintype.Fiber
 public import GibbsMeasure.Mathlib.Topology.Compactness.SigmaCompact
 public import GibbsMeasure.Mathlib.Topology.Metrizable.Basic
+public import GibbsMeasure.Mathlib.Topology.ClusterPt
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ProbabilityMeasure
 public import GibbsMeasure.Mathlib.Probability.ConditionalProbability
 public import GibbsMeasure.Mathlib.Probability.CondInvariant

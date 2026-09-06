@@ -77,13 +77,20 @@ remark — Corollary (15.48), Example (15.50) and Corollary (15.58) — is state
   `eventually_exists_measurableSet_subset_setOf_periodicEmpiricalField_mem` of
   `GibbsMeasure/Specification/LargeDeviationsLower.lean`, the common core of the two proofs of
   (15.47).
+* `MeasureTheory.GibbsMeasure.limsup_log_periodicBoundaryGibbs_div_card_le_closedConvexHull`,
+  **the upper bound (15.46) for `°γ^Φ_Λ` with Georgii's `cx̄ C` on the right, over a standard
+  Borel state space**, under his hypothesis `C ∈ 𝓔(𝓟_Θ)`, with the exponential form
+  `eventually_periodicBoundaryGibbs_setOf_mem_le_of_measurableSet`; and
+  `limsup_log_periodicBoundaryGibbs_div_card_le_of_convex`, **the upper bound as Georgii states
+  it, with `C̄` on the right**, for a convex `C`, for which `cx̄ C = C̄`.
 * `MeasureTheory.GibbsMeasure.limsup_log_periodicBoundaryGibbs_div_card_le`, **the upper bound
-  (15.46) for `°γ^Φ_Λ`**, over a finite state space, with the exponential form
-  `eventually_periodicBoundaryGibbs_setOf_periodicEmpiricalFieldL_mem_le`; the finite-volume
-  input `specificRelativeEntropy_tileAverage_periodicBoundaryGibbs_cond_le` is Steps 1 and 2 of
+  (15.46) for `°γ^Φ_Λ` with `C̄` on the right for a general `C`**, over a finite state space,
+  where Georgii's Step 3 is available; the finite-volume input
+  `specificRelativeEntropy_tileAverage_periodicBoundaryGibbs_cond_le` is Steps 1 and 2 of
   Georgii's proof *without* the energy error, and the cluster-point argument is the common core
   `mem_closedConvexHull_and_specificRelativeEntropy_le_of_tendsto` of
   `GibbsMeasure/Specification/LargeDeviationsUpper.lean` (all in `MeasureTheory.GibbsMeasure`).
+  The module documentation of that file explains why Step 3, and only Step 3, is finite-only.
 -/
 
 @[expose] public section
@@ -1015,16 +1022,27 @@ theorem specificRelativeEntropy_tileAverage_periodicBoundaryGibbs_cond_le
 
 variable [Finite E] [MeasurableSingletonClass E]
 
+omit [Finite E] [MeasurableSingletonClass E] in
 /-- **Steps 2 and 3 of Georgii's proof of the upper bound (15.46) for the periodic boundary
-condition: the cluster point.** If `°γ^Φ_{Λ_n}(°R_{Λ_n} ∈ C) > e^{−c|Λ_n|}` for all `n`, there is a
-shift-invariant random field `μ` in Georgii's `cx̄ C` with `𝓀(μ|Φ) ≤ c`. -/
-theorem exists_mem_closedConvexHull_specificRelativeEntropy_le_periodicBoundaryGibbs
-    (Φ : Potential.BTheta (ι → ℤ) E)
+condition: the cluster point, over a standard Borel state space.** If
+`°γ^Φ_{Λ_n}(°R_{Λ_n} ∈ C) > e^{−c|Λ_n|}` for all `n`, there is a shift-invariant random field `μ`
+in Georgii's `cx̄ C` with `𝓀(μ|Φ) ≤ c`.
+
+As in the configurational case
+(`exists_mem_closedConvexHull_specificRelativeEntropy_le_of_measurableSet`),
+the finite-volume bound confines the block fields to one compact sublevel set of the excess free
+energy (Georgii's Proposition (15.14)), and the cluster point is a limit along a finer filter. The
+hypothesis `hAmeas` is Georgii's `C ∈ 𝓔(𝓟_Θ)`. -/
+theorem exists_mem_closedConvexHull_specificRelativeEntropy_le_periodicBoundary_of_measurableSet
+    [StandardBorelSpace E] (Φ : Potential.BTheta (ι → ℤ) E)
     {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
     {G : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
     (hπ : ∀ n, Potential.IsTorusReduction (G n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
     (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).Nonempty)
     {C : Set (WithLocalConvergence (ι → ℤ) E)} {c : ℝ}
+    (hAmeas : ∀ n, MeasurableSet[cylinderEvents (X := fun _ : ι → ℤ ↦ E)
+        ((Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) : Set (ι → ℤ))]
+      {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C})
     (hlt : ∀ n, ENNReal.ofReal (Real.exp (-(c *
           #(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)))))
         < (Φ : Potential (ι → ℤ) E).periodicBoundaryGibbs ν (π n)
@@ -1044,10 +1062,6 @@ theorem exists_mem_closedConvexHull_specificRelativeEntropy_le_periodicBoundaryG
       (Finset.Icc (m n) fun k ↦ m n k + s n)
       {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C} ≠ 0 := fun n ↦
     (lt_of_lt_of_le (ENNReal.ofReal_pos.2 (Real.exp_pos _)) (hlt n).le).ne'
-  have hAmeas : ∀ n, MeasurableSet[cylinderEvents (X := fun _ : ι → ℤ ↦ E)
-      ((Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) : Set (ι → ℤ))]
-      {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C} := fun n ↦
-    measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem (hπ n) (hne n) C
   set κ : ℕ → Measure ((ι → ℤ) → E) := fun n ↦
     ((Φ : Potential (ι → ℤ) E).periodicBoundaryGibbs ν (π n)
       (Finset.Icc (m n) fun k ↦ m n k + s n))[|
@@ -1101,29 +1115,103 @@ theorem exists_mem_closedConvexHull_specificRelativeEntropy_le_periodicBoundaryG
       ν hΦ hside hπ
     have h := (tendsto_const_nhds (x := (Φ : Potential (ι → ℤ) E).pressure ν)).sub hZ
     simpa [hedef] using h
-  -- a cluster point of the block fields, by compactness
-  obtain ⟨μ, -, ψ, hψ, hlim⟩ := isCompact_univ.tendsto_subseq
-    (x := fun n ↦ blockFieldL (m n) (fun _ ↦ s n) (κ n)) fun n ↦ Set.mem_univ _
-  have hs' : Tendsto (fun k ↦ s (ψ k)) atTop atTop := hs.comp hψ.tendsto_atTop
-  have hemp : Tendsto (fun k ↦ empiricalFieldAverageL (π (ψ k)) (hne (ψ k)) (κ (ψ k))) atTop
-      (𝓝 μ) :=
-    (tendsto_blockFieldL_iff_tendsto_empiricalFieldAverageL (m := fun k ↦ m (ψ k))
-      (s := fun k ↦ s (ψ k)) hs' (fun k ↦ hπ (ψ k)) (fun k ↦ hne (ψ k)) (fun k ↦ κ (ψ k)) μ).1 hlim
-  exact ⟨μ, mem_closedConvexHull_and_specificRelativeEntropy_le_of_tendsto ν Φ
-    (m := fun k ↦ m (ψ k)) (s := fun k ↦ s (ψ k)) hs' (fun k ↦ hπ (ψ k)) (fun k ↦ hne (ψ k))
-    (fun k ↦ κ (ψ k)) (.of_forall fun k ↦ hcond (ψ k)) (he.comp hψ.tendsto_atTop)
-    (.of_forall fun k ↦ hM (ψ k)) hemp⟩
+  -- the block fields eventually lie in one compact sublevel set of the excess free energy
+  set M : ℝ := c + 1 + 2 * ((Φ : Potential (ι → ℤ) E).normAt 0).toReal with hMdef
+  set K : Set (WithLocalConvergence (ι → ℤ) E) :=
+    {μ' : WithLocalConvergence (ι → ℤ) E | (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+      (μ'.toMeasure : Measure ((ι → ℤ) → E)) ≤ (M : EReal)} with hKdef
+  have hKcompact : IsCompact K :=
+    Potential.BTheta.isCompact_setOf_specificRelativeEntropy_le ν Φ M
+  have hmemK : ∀ᶠ n in atTop, blockFieldL (m n) (fun _ ↦ s n) (κ n) ∈ K := by
+    filter_upwards [he.eventually (eventually_lt_nhds (show (0 : ℝ) < 1 by norm_num))] with n hn
+    change (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+      (tileAverage (isComplement_Icc (m n) fun _ ↦ s n)
+        ((κ n).map (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).restrict))
+      ≤ (M : EReal)
+    refine (hM n).trans (EReal.coe_le_coe_iff.2 ?_)
+    have : NeZero (#(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ))) :=
+      ⟨(hne n).card_pos.ne'⟩
+    have h1 := abs_le.1 (Potential.abs_specificEnergy_le (Φ := (Φ : Potential (ι → ℤ) E))
+      (tileAverage (isComplement_Icc (m n) fun _ ↦ s n)
+        ((κ n).map (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).restrict)))
+    have h2 := abs_le.1 (Potential.abs_specificEnergy_le (Φ := (Φ : Potential (ι → ℤ) E))
+      (empiricalFieldAverage E (π n) (Finset.Icc (m n) fun k ↦ m n k + s n) (κ n)))
+    rw [hMdef]
+    linarith [h1.2, h2.1, hn.le]
+  -- a cluster point of the block fields, by compactness of that sublevel set
+  obtain ⟨μ, -, hclus⟩ := hKcompact (f := Filter.map
+    (fun n ↦ blockFieldL (m n) (fun _ ↦ s n) (κ n)) atTop) (Filter.le_principal_iff.2 hmemK)
+  obtain ⟨l, hl, hlne, hlim⟩ := MapClusterPt.exists_le_tendsto hclus
+  have hemp : Tendsto (fun n ↦ empiricalFieldAverageL (π n) (hne n) (κ n)) l (𝓝 μ) :=
+    (tendsto_blockFieldL_iff_tendsto_empiricalFieldAverageL hs hl hπ hne κ μ).1 hlim
+  exact ⟨μ, mem_closedConvexHull_and_specificRelativeEntropy_le_of_tendsto ν Φ hs hπ hne hl hlne
+    κ (.of_forall hcond) (he.mono_left hl) (.of_forall hM) hemp⟩
 
-/-- **The upper bound (15.46) for the periodic boundary condition, in exponential form, with
-Georgii's `cx̄ C` on the right.** If `c` is strictly below the excess free energy of every
-shift-invariant random field in `cx̄ C`, then eventually `°γ^Φ_Λ(°R_Λ ∈ C) ≤ e^{−c |Λ|}`. -/
-theorem eventually_periodicBoundaryGibbs_setOf_periodicEmpiricalFieldL_mem_le
+omit [Finite E] [MeasurableSingletonClass E] in
+/-- **The cluster point for the periodic boundary condition under Georgii's `C ∈ 𝓔(𝓟_Θ)`.** -/
+theorem exists_mem_closedConvexHull_specificRelativeEntropy_le_periodicBoundary_of_evalEvents
+    [StandardBorelSpace E] (Φ : Potential.BTheta (ι → ℤ) E)
+    {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
+    {G : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
+    (hπ : ∀ n, Potential.IsTorusReduction (G n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
+    (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).Nonempty)
+    {C : Set (WithLocalConvergence (ι → ℤ) E)} {c : ℝ}
+    (hC : MeasurableSet[evalEvents (ι → ℤ) E] C)
+    (hlt : ∀ n, ENNReal.ofReal (Real.exp (-(c *
+          #(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)))))
+        < (Φ : Potential (ι → ℤ) E).periodicBoundaryGibbs ν (π n)
+            (Finset.Icc (m n) fun k ↦ m n k + s n)
+            {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C}) :
+    ∃ μ : WithLocalConvergence (ι → ℤ) E,
+      (μ.toMeasure : Measure ((ι → ℤ) → E)) ∈ invariantFields (shiftGroup (ι → ℤ) E) ∧
+      evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C) ∧
+      (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+        (μ.toMeasure : Measure ((ι → ℤ) → E)) ≤ (c : EReal) :=
+  exists_mem_closedConvexHull_specificRelativeEntropy_le_periodicBoundary_of_measurableSet
+    ν Φ hs hπ hne
+    (fun n ↦ measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem_of_evalEvents
+      (hπ n) (hne n) hC) hlt
+
+/-- **The cluster point for the periodic boundary condition over a finite state space**, where
+`{°R_Λ ∈ C}` is a cylinder event for every `C` whatsoever. -/
+theorem exists_mem_closedConvexHull_specificRelativeEntropy_le_periodicBoundaryGibbs
     (Φ : Potential.BTheta (ι → ℤ) E)
     {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
     {G : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
     (hπ : ∀ n, Potential.IsTorusReduction (G n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
     (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).Nonempty)
     {C : Set (WithLocalConvergence (ι → ℤ) E)} {c : ℝ}
+    (hlt : ∀ n, ENNReal.ofReal (Real.exp (-(c *
+          #(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)))))
+        < (Φ : Potential (ι → ℤ) E).periodicBoundaryGibbs ν (π n)
+            (Finset.Icc (m n) fun k ↦ m n k + s n)
+            {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C}) :
+    ∃ μ : WithLocalConvergence (ι → ℤ) E,
+      (μ.toMeasure : Measure ((ι → ℤ) → E)) ∈ invariantFields (shiftGroup (ι → ℤ) E) ∧
+      evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C) ∧
+      (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+        (μ.toMeasure : Measure ((ι → ℤ) → E)) ≤ (c : EReal) := by
+  have : Nonempty E := Measure.nonempty_of_neZero ν
+  exact
+    exists_mem_closedConvexHull_specificRelativeEntropy_le_periodicBoundary_of_measurableSet
+      ν Φ hs hπ hne
+    (fun n ↦ measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem (hπ n) (hne n) C) hlt
+
+omit [Finite E] [MeasurableSingletonClass E] in
+/-- **The upper bound (15.46) for the periodic boundary condition, in exponential form, with
+Georgii's `cx̄ C` on the right, over a standard Borel state space.** If `c` is strictly below the
+excess free energy of every shift-invariant random field in `cx̄ C`, then eventually
+`°γ^Φ_Λ(°R_Λ ∈ C) ≤ e^{−c |Λ|}`. -/
+theorem eventually_periodicBoundaryGibbs_setOf_mem_le_of_measurableSet
+    [StandardBorelSpace E] (Φ : Potential.BTheta (ι → ℤ) E)
+    {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
+    {G : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
+    (hπ : ∀ n, Potential.IsTorusReduction (G n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
+    (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).Nonempty)
+    {C : Set (WithLocalConvergence (ι → ℤ) E)} {c : ℝ}
+    (hAmeas : ∀ n, MeasurableSet[cylinderEvents (X := fun _ : ι → ℤ ↦ E)
+        ((Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) : Set (ι → ℤ))]
+      {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C})
     (hc : ∀ μ : WithLocalConvergence (ι → ℤ) E,
       (μ.toMeasure : Measure ((ι → ℤ) → E)) ∈ invariantFields (shiftGroup (ι → ℤ) E) →
       evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C) →
@@ -1145,10 +1233,137 @@ theorem eventually_periodicBoundaryGibbs_setOf_periodicEmpiricalFieldL_mem_le
           {σ | periodicEmpiricalFieldL (π (φ j)) (hne (φ j)) σ ∈ C} :=
     fun j ↦ not_le.1 (hφP j)
   obtain ⟨μ, hμinv, hμhull, hμle⟩ :=
-    exists_mem_closedConvexHull_specificRelativeEntropy_le_periodicBoundaryGibbs ν Φ
+    exists_mem_closedConvexHull_specificRelativeEntropy_le_periodicBoundary_of_measurableSet ν Φ
       (m := fun j ↦ m (φ j)) (s := fun j ↦ s (φ j)) (hs.comp hφ.tendsto_atTop)
-      (G := fun j ↦ G (φ j)) (π := fun j ↦ π (φ j)) (fun j ↦ hπ (φ j)) (fun j ↦ hne (φ j)) hlt
+      (G := fun j ↦ G (φ j)) (π := fun j ↦ π (φ j)) (fun j ↦ hπ (φ j)) (fun j ↦ hne (φ j))
+      (fun j ↦ hAmeas (φ j)) hlt
   exact absurd hμle (not_le.2 (hc μ hμinv hμhull))
+
+/-- **The upper bound (15.46) for the periodic boundary condition, in exponential form, over a
+finite state space.** -/
+theorem eventually_periodicBoundaryGibbs_setOf_periodicEmpiricalFieldL_mem_le
+    (Φ : Potential.BTheta (ι → ℤ) E)
+    {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
+    {G : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
+    (hπ : ∀ n, Potential.IsTorusReduction (G n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
+    (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).Nonempty)
+    {C : Set (WithLocalConvergence (ι → ℤ) E)} {c : ℝ}
+    (hc : ∀ μ : WithLocalConvergence (ι → ℤ) E,
+      (μ.toMeasure : Measure ((ι → ℤ) → E)) ∈ invariantFields (shiftGroup (ι → ℤ) E) →
+      evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C) →
+      (c : EReal) < (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+        (μ.toMeasure : Measure ((ι → ℤ) → E))) :
+    ∀ᶠ n in atTop,
+      (Φ : Potential (ι → ℤ) E).periodicBoundaryGibbs ν (π n)
+          (Finset.Icc (m n) fun k ↦ m n k + s n)
+          {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C}
+        ≤ ENNReal.ofReal (Real.exp
+            (-(c * #(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ))))) := by
+  have : Nonempty E := Measure.nonempty_of_neZero ν
+  exact eventually_periodicBoundaryGibbs_setOf_mem_le_of_measurableSet ν Φ hs hπ hne
+    (fun n ↦ measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem (hπ n) (hne n) C) hc
+
+omit [Finite E] [MeasurableSingletonClass E] in
+/-- **Georgii Theorem (15.45) for the periodic boundary condition, the upper bound (15.46) with
+`cx̄ C` on the right, over a standard Borel state space.**
+
+`limsup_{|Λ| → ∞} |Λ|⁻¹ log °γ^Φ_Λ(°R_Λ ∈ C) ≤ − inf {𝓀(ν|Φ) : ν ∈ 𝓟_Θ ∩ cx̄ C}`,
+
+with `cx̄ C` the closed convex hull in the topology of local convergence and `hAmeas` Georgii's
+`C ∈ 𝓔(𝓟_Θ)`. Steps 1 and 2 of Georgii's proof in full generality; Step 3 (his (15.54)) is what
+would replace `cx̄ C` by `C̄`. -/
+theorem limsup_log_periodicBoundaryGibbs_div_card_le_closedConvexHull_of_measurableSet
+    [StandardBorelSpace E] (Φ : Potential.BTheta (ι → ℤ) E)
+    {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
+    {G : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
+    (hπ : ∀ n, Potential.IsTorusReduction (G n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
+    (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).Nonempty)
+    {C : Set (WithLocalConvergence (ι → ℤ) E)}
+    (hAmeas : ∀ n, MeasurableSet[cylinderEvents (X := fun _ : ι → ℤ ↦ E)
+        ((Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) : Set (ι → ℤ))]
+      {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C}) :
+    Filter.limsup (fun n ↦ ENNReal.log ((Φ : Potential (ι → ℤ) E).periodicBoundaryGibbs ν (π n)
+            (Finset.Icc (m n) fun k ↦ m n k + s n)
+            {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C})
+        / (#(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) : EReal)) atTop
+      ≤ -⨅ μ ∈ {μ : WithLocalConvergence (ι → ℤ) E |
+          μ ∈ invariantRandomFields (ι → ℤ) E ∧
+          evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C)},
+        (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+          (μ.toMeasure : Measure ((ι → ℤ) → E)) := by
+  refine le_neg_of_forall_lt fun c hcm ↦ ?_
+  have hc : ∀ μ : WithLocalConvergence (ι → ℤ) E,
+      (μ.toMeasure : Measure ((ι → ℤ) → E)) ∈ invariantFields (shiftGroup (ι → ℤ) E) →
+      evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C) →
+      (c : EReal) < (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+        (μ.toMeasure : Measure ((ι → ℤ) → E)) := fun μ hμ hμ' ↦
+    lt_of_lt_of_le hcm (iInf₂_le μ ⟨hμ, hμ'⟩)
+  have hev := eventually_periodicBoundaryGibbs_setOf_mem_le_of_measurableSet ν Φ hs hπ hne
+    hAmeas hc
+  refine Filter.limsup_le_of_le (by isBoundedDefault) ?_
+  filter_upwards [hev] with n hn
+  exact log_div_natCast_le_neg_of_le_ofReal_exp (hne n).card_pos.ne' hn
+
+omit [Finite E] [MeasurableSingletonClass E] in
+/-- **Georgii Theorem (15.45) for the periodic boundary condition with `cx̄ C` on the right,
+under Georgii's hypothesis `C ∈ 𝓔(𝓟_Θ)`.** -/
+theorem limsup_log_periodicBoundaryGibbs_div_card_le_closedConvexHull
+    [StandardBorelSpace E] (Φ : Potential.BTheta (ι → ℤ) E)
+    {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
+    {G : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
+    (hπ : ∀ n, Potential.IsTorusReduction (G n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
+    (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).Nonempty)
+    {C : Set (WithLocalConvergence (ι → ℤ) E)}
+    (hC : MeasurableSet[evalEvents (ι → ℤ) E] C) :
+    Filter.limsup (fun n ↦ ENNReal.log ((Φ : Potential (ι → ℤ) E).periodicBoundaryGibbs ν (π n)
+            (Finset.Icc (m n) fun k ↦ m n k + s n)
+            {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C})
+        / (#(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) : EReal)) atTop
+      ≤ -⨅ μ ∈ {μ : WithLocalConvergence (ι → ℤ) E |
+          μ ∈ invariantRandomFields (ι → ℤ) E ∧
+          evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C)},
+        (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+          (μ.toMeasure : Measure ((ι → ℤ) → E)) :=
+  limsup_log_periodicBoundaryGibbs_div_card_le_closedConvexHull_of_measurableSet ν Φ hs hπ hne
+    fun n ↦ measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem_of_evalEvents
+      (hπ n) (hne n) hC
+
+omit [Finite E] [MeasurableSingletonClass E] in
+/-- **Georgii Theorem (15.45) for the periodic boundary condition and a convex `C`, over a
+standard Borel state space.** For a convex `C` Georgii's `cx̄ C` is the closure of `C`, so the
+bound takes his own form
+
+`limsup_{|Λ| → ∞} |Λ|⁻¹ log °γ^Φ_Λ(°R_Λ ∈ C) ≤ − inf_{ν ∈ C̄} 𝓀(ν|Φ)`
+
+with no finiteness of the state space and no appeal to Choquet theory. -/
+theorem limsup_log_periodicBoundaryGibbs_div_card_le_of_convex
+    [StandardBorelSpace E] (Φ : Potential.BTheta (ι → ℤ) E)
+    {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
+    {G : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
+    (hπ : ∀ n, Potential.IsTorusReduction (G n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
+    (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).Nonempty)
+    {C : Set (WithLocalConvergence (ι → ℤ) E)}
+    (hAmeas : ∀ n, MeasurableSet[cylinderEvents (X := fun _ : ι → ℤ ↦ E)
+        ((Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) : Set (ι → ℤ))]
+      {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C})
+    (hCconv : Convex ℝ (evalLocalEvents (ι → ℤ) E '' C)) :
+    Filter.limsup (fun n ↦ ENNReal.log ((Φ : Potential (ι → ℤ) E).periodicBoundaryGibbs ν (π n)
+            (Finset.Icc (m n) fun k ↦ m n k + s n)
+            {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C})
+        / (#(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) : EReal)) atTop
+      ≤ -⨅ μ ∈ closure C, (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+          (μ.toMeasure : Measure ((ι → ℤ) → E)) := by
+  refine (limsup_log_periodicBoundaryGibbs_div_card_le_closedConvexHull_of_measurableSet ν Φ hs
+    hπ hne hAmeas).trans (EReal.neg_le_neg_iff.2 (le_iInf₂ fun μ hμ ↦ ?_))
+  have hcl : evalLocalEvents (ι → ℤ) E μ ∈ closure (evalLocalEvents (ι → ℤ) E '' C) := by
+    have hhull : closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C)
+        = closure (evalLocalEvents (ι → ℤ) E '' C) := by
+      rw [closedConvexHull_eq_closure_convexHull, hCconv.convexHull_eq]
+    exact hhull ▸ hμ.2
+  have hμC : μ ∈ closure C := by
+    rw [isEmbedding_evalLocalEvents.closure_eq_preimage_closure_image]
+    exact hcl
+  exact iInf₂_le μ hμC
 
 /-- **Georgii Theorem (15.45), the upper bound (15.46), for the Gibbs distributions with periodic
 boundary conditions.** For `Φ ∈ ℬ_Θ` and a set `C ⊆ 𝓟_Θ` of shift-invariant random fields,

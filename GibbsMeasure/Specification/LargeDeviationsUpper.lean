@@ -5,7 +5,9 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Mathlib.Analysis.Convex.ClosedConvexHullPi
 public import GibbsMeasure.Mathlib.InformationTheory.KullbackLeibler.Cond
+public import GibbsMeasure.Mathlib.Topology.ClusterPt
 public import GibbsMeasure.Specification.BlockEntropy
 public import GibbsMeasure.Specification.InvariantFieldsBarycenter
 public import GibbsMeasure.Specification.LargeDeviationsLower
@@ -26,10 +28,18 @@ that it also holds for every `μ ∈ 𝒢(Φ)`.
 
 ## Main statements
 
+* `MeasureTheory.GibbsMeasure.limsup_log_iSup_gibbsSpecification_div_card_le_closedConvexHull`:
+  **(15.46) with Georgii's `cx̄ C` on the right, over a standard Borel state space**, under his
+  hypothesis `C ∈ 𝓔(𝓟_Θ)` (`MeasureTheory.GibbsMeasure.evalEvents`). This is Georgii's Steps 1, 2
+  and 4 in his own generality.
+* `MeasureTheory.GibbsMeasure.limsup_log_iSup_gibbsSpecification_div_card_le_of_convex`:
+  **(15.46) as Georgii states it, with `C̄` on the right**, over a standard Borel state space and
+  for a **convex** `C`, for which `cx̄ C = C̄` and Step 3 is vacuous.
 * `MeasureTheory.GibbsMeasure.limsup_log_iSup_gibbsSpecification_div_card_le`: **(15.46)**, along
   any sequence of cubes `Λ_n = [m_n, m_n + s_n]^d` of `ℤ^d` whose side lengths tend to infinity,
-  with arbitrary torus reductions `π_n`. The logarithm is `ENNReal.log`, so the statement is
-  meaningful also when the probability vanishes.
+  with arbitrary torus reductions `π_n`, over a **finite** state space, where Step 3 is available.
+  The logarithm is `ENNReal.log`, so the statement is meaningful also when the probability
+  vanishes.
 * `MeasureTheory.GibbsMeasure.limsup_log_isGibbsMeasure_div_card_le`: the **"in particular"**
   clause, the same bound for `μ(°R_Λ ∈ C)` with `μ ∈ 𝒢(Φ)` (no shift invariance of `μ`).
 * `MeasureTheory.GibbsMeasure.eventually_gibbsSpecification_setOf_periodicEmpiricalFieldL_mem_le`:
@@ -66,7 +76,8 @@ contradiction: were the bound to fail, the block fields would have a cluster poi
   `|Λ|⁻¹ log Z^Φ_Λ(ω) → P(Φ)` uniformly in `ω` (Theorem (15.30)(a)) and the boundary term of
   (15.25) is `o(|Λ|)`.
 
-**Step 3** is Georgii (15.54), `inf_{cx̄ C} 𝓀(·|Φ) = inf_{C̄} 𝓀(·|Φ)`, supplied by
+**Step 3** — the only step that is not available over an infinite state space, see below — is
+Georgii (15.54), `inf_{cx̄ C} 𝓀(·|Φ) = inf_{C̄} 𝓀(·|Φ)`, supplied by
 `MeasureTheory.GibbsMeasure.iInf_closedConvexHull_eq_iInf_closure_ereal` of
 `Specification/InvariantFieldsBarycenter.lean`. It needs `𝓀(·|Φ)` **concave** on `𝓟_Θ`, which is
 `smul_specificRelativeEntropy_add_smul_specificRelativeEntropy_le` below: the *convexity* half of
@@ -75,32 +86,67 @@ Proposition (15.14) for the specific entropy (`specificEntropy_smul_add_smul_le`
 
 **Step 4** is the assembly, `limsup_log_iSup_gibbsSpecification_div_card_le`.
 
-## The hypotheses, and where they differ from Georgii's
+## The state space: Steps 1, 2 and 4 are standard Borel, Step 3 is not
 
-Georgii states (15.45) over a standard Borel state space. The proof here needs `E` **finite**
-(with the discrete σ-algebra), in exactly three places, all in Steps 2 and 3; they are listed in
-the docstring of `limsup_log_iSup_gibbsSpecification_div_card_le`. Finiteness buys, in exchange,
-two simplifications of Georgii's argument: his approximation of `γ^C_{Λ|ω} °R_Λ` by convex
-combinations through a partition of `[0, 1]^k` becomes an exact finite convex combination, and
-his appeal to the compactness of the level sets `{𝓀 ≥ a}` becomes the compactness of the whole
-space of random fields.
+**Steps 1, 2 and 4 hold over a standard Borel state space**, which is Georgii's generality, and
+the corresponding statements carry his hypothesis `C ∈ 𝓔(𝓟_Θ)`:
 
-In one respect the statement here is *more* general than Georgii's: he assumes
-`C ∈ 𝓔(𝓟_Θ)`, i.e. that `C` belongs to the evaluation σ-algebra of §7.3, which is what makes
-`{°R_Λ ∈ C}` an event. Over a finite state space that is automatic for every `C ⊆ 𝓟_Θ`
-(`measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem`), so the hypothesis on `C`
-here is only `C ⊆ 𝓟_Θ`, which is the other half of Georgii's `C ∈ 𝓔(𝓟_Θ)`.
+* `evalEvents S E` is Georgii's evaluation σ-algebra of §7.3 on the random fields, and
+  `measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem_of_evalEvents` is the statement
+  that `C ∈ 𝓔` makes `{°R_Λ ∈ C}` a cylinder event of the volume `Λ`. Over a *finite* state space
+  this holds for every `C` whatsoever
+  (`measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem`), and Georgii's hypothesis
+  carries no information.
+* Georgii's "basic observation" of Step 2 is
+  `evalLocalEvents_empiricalFieldAverage_mem_closedConvexHull`, over an arbitrary measurable state
+  space and for an arbitrary `C`. Georgii builds the approximating convex combination by dividing
+  `[0, 1]^k` into cells of diameter `< ε`; that is exactly the statement that a barycentre in
+  `ℝ^k` lies in the closed convex hull of the almost sure range
+  (`MeasureTheory.Convex.integral_mem`), transported to the product `𝓕⁰ → ℝ` by
+  `mem_closedConvexHull_pi_of_forall_finset`.
+* The cluster point of Step 2 is
+  `exists_mem_closedConvexHull_specificRelativeEntropy_le_of_measurableSet`. The finite-volume
+  bound confines all the block fields to one sublevel set `{𝓀(·|Φ) ≤ M}`, which over a standard
+  Borel state space is **compact** for the topology of local convergence
+  (`Potential.BTheta.isCompact_setOf_specificRelativeEntropy_le`, Georgii's Proposition (15.14));
+  this is Georgii's own argument, and it replaces the compactness of the whole space of random
+  fields, which is available only over a finite state space. Since the topology of local
+  convergence is not first countable over an infinite state space, the cluster point is a limit
+  along a finer filter, not along a subsequence (`MapClusterPt.exists_le_tendsto`); every lemma
+  feeding Step 2 is therefore stated for a filter `l ≤ atTop`.
+* The outcome is `limsup_log_iSup_gibbsSpecification_div_card_le_closedConvexHull`: Georgii's
+  (15.46) over a standard Borel state space, **with `cx̄ C` on the right**.
 
-Steps 1 and 2 are proved for an arbitrary measurable state space: the single-volume inequality
-`specificRelativeEntropy_tileAverage_cond_le`, the estimate (15.25) in integrated form
-`abs_integral_hamiltonian_juxt_sub_card_mul_specificEnergy_le`, the asymptotic equality of the
-two auxiliary fields `abs_integral_tileAverage_sub_integral_empiricalFieldAverage_le`, and the
-concavity `smul_specificRelativeEntropy_add_smul_specificRelativeEntropy_le` of `𝓀(·|Φ)` all hold
-with no finiteness assumption on `E`. What is missing for Georgii's standard Borel generality is
-his change of topology: a countable core `𝒞 ⊆ 𝓕⁰` of `𝓕` (Corollary (4.A13)) and the fact that
-the `𝒞`-topology turns `𝓟(Ω, 𝓕)` into a compact metrizable space (Comment (4.A10)(1)) are not
-formalised in this library, and without them neither the cluster-point extraction nor Step 3 is
-available over an infinite state space.
+**Step 3, Georgii's (15.54), is what is finite-only.** It replaces `cx̄ C` by `C̄`, and it rests
+on a Choquet representation, hence on the compactness of an ambient convex set *in the topology
+in which the closure is taken*. Over a finite state space `𝓕⁰` is countable, the space of random
+fields is compact metrizable for the topology `𝓛` of local convergence, and
+`iInf_closedConvexHull_eq_iInf_closure_ereal` applies; that is
+`limsup_log_iSup_gibbsSpecification_div_card_le` below.
+
+Over an infinite standard Borel state space `𝓟_Θ` is **not** `𝓛`-compact, and Georgii's remedy —
+passing to the `𝒞`-topology of a countable core `𝒞 ⊆ 𝓕⁰` (Corollary (4.A13), Comment
+(4.A10)(1); `GibbsMeasure/Topology/CountableCore.lean` and
+`Specification/InvariantFieldsCoreTopology.lean`) — proves *less* than what he states. In the
+`𝒞`-topology the Choquet argument produces a measure carried by the **`𝒞`-closure** `C̃` of `C`,
+so it yields `inf_{cx̄ C} 𝓀(·|Φ) ≥ inf_{C̃} 𝓀(·|Φ)`, and `C̃` is in general strictly larger than
+the `𝓛`-closure `C̄` (a countable core cannot be enlarged by an arbitrary local event: a sequence
+of probability measures may converge on the core and not on `𝓕⁰`, and then the `𝒞`-limit lies in
+`C̃ ∖ C̄`). The last sentence of Georgii's Step 3, "`C̃` can be replaced by `C̄` here", does not
+follow from the coincidence of the two topologies on the sublevel sets of `𝓀(·|Φ)`, which is all
+his argument provides. Moreover the resulting `C̃`-bound would be *weaker* than what is proved
+here: `cx̄ C ⊆ cx̄_𝒞 C`, so `inf_{cx̄ C} 𝓀 ≥ inf_{C̃} 𝓀` and the bound with `cx̄ C` implies the
+bound with `C̃`. Formalising Georgii's change of topology would therefore add nothing to the
+statements below, and it is not done.
+
+Two consequences of the `cx̄` form recover Georgii's own right-hand side over a standard Borel
+state space in the cases that matter:
+
+* `limsup_log_iSup_gibbsSpecification_div_card_le_of_convex`: for a **convex** `C`, `cx̄ C = C̄`
+  and Step 3 is vacuous. This is what Corollary (15.48) needs, since `e_Ψ⁻¹(B) ∩ 𝓟_Θ` is convex
+  as soon as `B` is (`Specification/LargeDeviationsCorollaries.lean`).
+* For a general `C`, `cx̄ C` is Georgii's own Step-2 conclusion, and `−inf_{cx̄ C} 𝓀(·|Φ)` is a
+  smaller — i.e. better — right-hand side than `−inf_{C̃} 𝓀(·|Φ)`.
 
 The lower bound (15.47) is in `Specification/LargeDeviationsLower.lean`.
 -/
@@ -537,6 +583,124 @@ theorem abs_integral_hamiltonian_juxt_sub_card_mul_specificEnergy_le
     _ = 3 * Φ.tail Λ Λ := by simp
 
 end Energy
+
+/-! ### Georgii's `C ∈ 𝓔(𝓟_Θ)`, and the basic observation over an arbitrary state space -/
+
+section EvalEvents
+
+variable {S E : Type*} [AddCommGroup S] [MeasurableSpace E]
+  {G : AddSubgroup S} {Λ : Finset S} {π : S → S}
+
+variable (S E) in
+/-- **Georgii's evaluation σ-algebra `𝓔` of §7.3**, read on the space of random fields with the
+topology of local convergence: the σ-algebra generated by the evaluations `μ ↦ μ(A)` over the
+measurable sets `A`, pulled back along `μ ↦ μ.toMeasure`.
+
+Georgii's hypothesis on the set `C` of Theorem (15.45) is `C ∈ 𝓔(𝓟_Θ)`, i.e. `C ⊆ 𝓟_Θ` together
+with `MeasurableSet[evalEvents S E] C`. It is exactly what makes `{°R_Λ ∈ C}` an event
+(`measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem_of_evalEvents`). -/
+abbrev evalEvents : MeasurableSpace (WithLocalConvergence S E) :=
+  MeasurableSpace.comap (fun μ : WithLocalConvergence S E ↦ (μ.toMeasure : Measure (S → E)))
+    inferInstance
+
+/-- **`°R_Λ` is a measurable random field.** The periodic empirical field is a measurable function
+of the configuration for the evaluation σ-algebra on `Measure (S → E)`: it is measurable evaluated
+at every measurable set, being a finite average of Dirac masses at measurable functions of the
+configuration. -/
+theorem measurable_periodicEmpiricalField (π : S → S) (Λ : Finset S) :
+    Measurable fun σ : S → E ↦ periodicEmpiricalField E π Λ σ := by
+  refine Measure.measurable_of_measurable_coe _ fun A hA ↦ ?_
+  simp_rw [periodicEmpiricalField_apply π Λ _ hA]
+  exact measurable_const.mul (Finset.measurable_sum _ fun i _ ↦
+    (measurable_one.indicator hA).comp
+      ((shift E (-i)).measurable_toFun.comp (Potential.measurable_periodicExtend π)))
+
+/-- **`°R_Λ` is a `𝓕_Λ`-measurable random field**: the periodic continuation reads the
+configuration only inside `Λ` (`measurable_cylinderEvents_periodicExtend`). -/
+theorem measurable_cylinderEvents_periodicEmpiricalField
+    (hπ : Potential.IsTorusReduction G Λ π) :
+    Measurable[cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)]
+      fun σ : S → E ↦ periodicEmpiricalField E π Λ σ := by
+  refine Measure.measurable_of_measurable_coe _ fun A hA ↦ ?_
+  simp_rw [periodicEmpiricalField_apply π Λ _ hA]
+  exact measurable_const.mul (Finset.measurable_sum _ fun i _ ↦
+    (measurable_one.indicator hA).comp
+      ((shift E (-i)).measurable_toFun.comp (measurable_cylinderEvents_periodicExtend hπ)))
+
+/-- **Georgii's hypothesis `C ∈ 𝓔(𝓟_Θ)` makes `{°R_Λ ∈ C}` a cylinder event of the volume `Λ`.**
+This is what gives the left-hand side of (15.46) a meaning over an arbitrary — in particular an
+infinite standard Borel — state space; over a *finite* state space the hypothesis on `C` can be
+dropped altogether
+(`measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem`). -/
+theorem measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem_of_evalEvents
+    (hπ : Potential.IsTorusReduction G Λ π) (hΛ : Λ.Nonempty)
+    {C : Set (WithLocalConvergence S E)} (hC : MeasurableSet[evalEvents S E] C) :
+    MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (Λ : Set S)]
+      {σ | periodicEmpiricalFieldL π hΛ σ ∈ C} := by
+  obtain ⟨D, hD, hCD⟩ := hC
+  have hset : {σ : S → E | periodicEmpiricalFieldL π hΛ σ ∈ C}
+      = (fun σ : S → E ↦ periodicEmpiricalField E π Λ σ) ⁻¹' D := by
+    ext σ
+    rw [Set.mem_ofPred_eq, ← hCD]
+    rfl
+  rw [hset]
+  exact measurable_cylinderEvents_periodicEmpiricalField hπ hD
+
+/-- **Georgii's "basic observation" in Step 2 of the proof of (15.46), over an arbitrary state
+space.** If the random field `κ` is carried by the event `{°R_Λ ∈ C}` then the mean empirical
+field `κ °R_Λ` belongs to Georgii's `cx̄ C`.
+
+Georgii produces the approximating convex combination by hand: for cylinder events `A_1, …, A_k`
+and `ε > 0` he divides `[0, 1]^k` into finitely many Borel cells of diameter `< ε`, picks a
+configuration in each non-empty fibre, and weights it by the `κ`-mass of the fibre. That is
+precisely the statement that a barycentre in the *finite-dimensional* space `ℝ^k` lies in the
+closed convex hull of the (almost sure) range — `MeasureTheory.Convex.integral_mem` — and the
+passage from the finitely many coordinates to the whole product `𝓕⁰ → ℝ` is
+`mem_closedConvexHull_pi_of_forall_finset`; the two are packaged as
+`integral_mem_closedConvexHull_pi`. Neither finiteness of the state space nor measurability of
+`C` is needed: `κ {°R_Λ ∈ C}ᶜ = 0` is an outer-measure statement. -/
+theorem evalLocalEvents_empiricalFieldAverage_mem_closedConvexHull (hΛ : Λ.Nonempty)
+    (κ : Measure (S → E)) [IsProbabilityMeasure κ]
+    {C : Set (WithLocalConvergence S E)}
+    (hκ : κ {σ | periodicEmpiricalFieldL π hΛ σ ∈ C}ᶜ = 0) :
+    haveI : NeZero (#Λ) := ⟨hΛ.card_pos.ne'⟩
+    evalLocalEvents S E (WithSetwiseTopology.ofMeasure
+        ⟨empiricalFieldAverage E π Λ κ, isProbabilityMeasure_empiricalFieldAverage π κ⟩)
+      ∈ closedConvexHull ℝ (evalLocalEvents S E '' C) := by
+  have hNe : NeZero (#Λ) := ⟨hΛ.card_pos.ne'⟩
+  set f : (S → E) → (localEvents S E → ℝ) :=
+    fun σ ↦ evalLocalEvents S E (periodicEmpiricalFieldL π hΛ σ) with hfdef
+  have hmeasA : ∀ A : localEvents S E, MeasurableSet (A : Set (S → E)) :=
+    fun A ↦ MeasurableSet.of_mem_measurableCylinders A.2
+  have hmeas : ∀ A : localEvents S E, Measurable fun σ ↦ f σ A := fun A ↦
+    ((Measure.measurable_coe (hmeasA A)).comp
+      (measurable_periodicEmpiricalField π Λ)).ennreal_toReal
+  have hbdd : ∀ (A : localEvents S E) (σ : S → E), ‖f σ A‖ ≤ 1 := by
+    intro A σ
+    have h1 : f σ A = (periodicEmpiricalField E π Λ σ (A : Set (S → E))).toReal := rfl
+    rw [h1, Real.norm_eq_abs, abs_of_nonneg ENNReal.toReal_nonneg]
+    simpa using ENNReal.toReal_mono (by simp) (prob_le_one (μ := periodicEmpiricalField E π Λ σ))
+  have hint : ∀ A : localEvents S E, Integrable (fun σ ↦ f σ A) κ := fun A ↦
+    (integrable_const (1 : ℝ)).mono' (hmeas A).aestronglyMeasurable
+      (.of_forall fun σ ↦ hbdd A σ)
+  have hval : evalLocalEvents S E (WithSetwiseTopology.ofMeasure
+        ⟨empiricalFieldAverage E π Λ κ, isProbabilityMeasure_empiricalFieldAverage π κ⟩)
+      = fun A : localEvents S E ↦ ∫ σ, f σ A ∂κ := by
+    funext A
+    change (empiricalFieldAverage E π Λ κ).real (A : Set (S → E)) = _
+    rw [measureReal_def, empiricalFieldAverage_apply_eq_lintegral π Λ κ (hmeasA A)]
+    exact (integral_toReal
+      ((Measure.measurable_coe (hmeasA A)).comp
+        (measurable_periodicEmpiricalField π Λ)).aemeasurable
+      (.of_forall fun σ ↦ measure_lt_top _ _)).symm
+  have hae : ∀ᵐ σ ∂κ, f σ ∈ evalLocalEvents S E '' C := by
+    refine ae_iff.2 (measure_mono_null (fun σ hσ ↦ ?_) hκ)
+    intro hmem
+    exact hσ ⟨periodicEmpiricalFieldL π hΛ σ, hmem, rfl⟩
+  rw [hval]
+  exact integral_mem_closedConvexHull_pi hae hint
+
+end EvalEvents
 
 /-! ### Georgii's "basic observation": the mean empirical field lies in `cx̄ C` -/
 
@@ -1177,11 +1341,11 @@ theorem tendsto_measureReal_tileAverage_sub_measureReal_empiricalFieldAverage
 /-- Two sequences of random fields whose evaluations on every local event are asymptotically
 equal have the same limits in the topology of local convergence. -/
 theorem tendsto_withLocalConvergence_iff_of_tendsto_measureReal_sub {S E : Type*}
-    [MeasurableSpace E] {μs νs : ℕ → WithLocalConvergence S E}
+    [MeasurableSpace E] {ι' : Type*} {l : Filter ι'} {μs νs : ι' → WithLocalConvergence S E}
     (h : ∀ A ∈ localEvents S E, Tendsto (fun n ↦ ((μs n).toMeasure : Measure (S → E)).real A
-      - ((νs n).toMeasure : Measure (S → E)).real A) atTop (𝓝 0))
+      - ((νs n).toMeasure : Measure (S → E)).real A) l (𝓝 0))
     (μ : WithLocalConvergence S E) :
-    Tendsto μs atTop (𝓝 μ) ↔ Tendsto νs atTop (𝓝 μ) := by
+    Tendsto μs l (𝓝 μ) ↔ Tendsto νs l (𝓝 μ) := by
   rw [tendsto_withLocalConvergence_iff, tendsto_withLocalConvergence_iff]
   refine forall₂_congr fun A hA ↦ ?_
   rw [tendsto_measure_iff_tendsto_measureReal (μs := fun n ↦ (μs n).toMeasure)
@@ -1199,11 +1363,11 @@ theorem tendsto_withLocalConvergence_iff_of_tendsto_measureReal_sub {S E : Type*
 /-- Two sequences of random fields that eventually agree on every local event have the same
 limits in the topology of local convergence. -/
 theorem tendsto_withLocalConvergence_iff_of_eventually_eq {S E : Type*}
-    [MeasurableSpace E] {μs νs : ℕ → WithLocalConvergence S E}
-    (h : ∀ A ∈ localEvents S E, ∀ᶠ n in atTop, ((μs n).toMeasure : Measure (S → E)) A
+    [MeasurableSpace E] {ι' : Type*} {l : Filter ι'} {μs νs : ι' → WithLocalConvergence S E}
+    (h : ∀ A ∈ localEvents S E, ∀ᶠ n in l, ((μs n).toMeasure : Measure (S → E)) A
       = ((νs n).toMeasure : Measure (S → E)) A)
     (μ : WithLocalConvergence S E) :
-    Tendsto μs atTop (𝓝 μ) ↔ Tendsto νs atTop (𝓝 μ) := by
+    Tendsto μs l (𝓝 μ) ↔ Tendsto νs l (𝓝 μ) := by
   rw [tendsto_withLocalConvergence_iff, tendsto_withLocalConvergence_iff]
   exact forall₂_congr fun A hA ↦ Filter.tendsto_congr' (h A hA)
 
@@ -1246,45 +1410,51 @@ fields `κ_n °R_{Λ_n}` of any random fields `κ_n` converge to the same random
 agree asymptotically on every local event
 (`tendsto_measureReal_tileAverage_sub_measureReal_empiricalFieldAverage`). -/
 theorem tendsto_blockFieldL_iff_tendsto_empiricalFieldAverageL
-    {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
+    {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop) {l : Filter ℕ} (hl : l ≤ atTop)
     {G : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
     (hπ : ∀ n, Potential.IsTorusReduction (G n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
     (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).Nonempty)
     (κ : ℕ → Measure ((ι → ℤ) → E)) [∀ n, IsProbabilityMeasure (κ n)]
     (μ : WithLocalConvergence (ι → ℤ) E) :
-    Tendsto (fun n ↦ blockFieldL (m n) (fun _ ↦ s n) (κ n)) atTop (𝓝 μ) ↔
-      Tendsto (fun n ↦ empiricalFieldAverageL (π n) (hne n) (κ n)) atTop (𝓝 μ) := by
+    Tendsto (fun n ↦ blockFieldL (m n) (fun _ ↦ s n) (κ n)) l (𝓝 μ) ↔
+      Tendsto (fun n ↦ empiricalFieldAverageL (π n) (hne n) (κ n)) l (𝓝 μ) := by
   refine tendsto_withLocalConvergence_iff_of_tendsto_measureReal_sub (fun A hA ↦ ?_) μ
   have h := tendsto_measureReal_tileAverage_sub_measureReal_empiricalFieldAverage hs hπ κ
     (fun n ↦ inferInstance) hA
-  simpa only [toMeasure_blockFieldL, toMeasure_empiricalFieldAverageL] using h
+  simpa only [toMeasure_blockFieldL, toMeasure_empiricalFieldAverageL] using h.mono_left hl
 
-omit [Nonempty ι] in
+omit [Nonempty ι] [Finite E] [MeasurableSingletonClass E] in
 /-- **Steps 2 and 3 of Georgii's proof of the upper bound (15.46): the limit of the block
 fields.** Let `κ_n` be random fields concentrated on `{°R_{Λ_n} ∈ C}` whose randomly shifted
 independent-block fields `γ̄_n` obey the finite-volume bound
 `𝓀(γ̄_n|Φ) ≤ c + e_n + (⟨γ̄_n, Φ⟩ − ⟨κ_n °R_{Λ_n}, Φ⟩)` with `e_n → 0`, and let `μ` be the limit of
-the mean empirical fields `κ_n °R_{Λ_n}`. Then `μ` is shift invariant, lies in Georgii's `cx̄ C`,
-and `𝓀(μ|Φ) ≤ c`.
+the mean empirical fields `κ_n °R_{Λ_n}` **along a filter `l ≤ atTop`**. Then `μ` is shift
+invariant, lies in Georgii's `cx̄ C`, and `𝓀(μ|Φ) ≤ c`.
 
 The block fields converge to the same `μ`
 (`tendsto_blockFieldL_iff_tendsto_empiricalFieldAverageL`), so the energy correction vanishes by
-the continuity of `⟨·, Φ⟩`; `μ ∈ cx̄ C` because each `κ_n °R_{Λ_n}` lies in the convex hull of `C`
-(`evalLocalEvents_empiricalFieldAverage_mem_convexHull`, Georgii's "basic observation"); and
-`𝓀(μ|Φ) ≤ c` because `𝓀(·|Φ)` is lower semicontinuous. This is the common core of the upper
+the continuity of `⟨·, Φ⟩`; `μ ∈ cx̄ C` because each `κ_n °R_{Λ_n}` lies in Georgii's `cx̄ C`
+(`evalLocalEvents_empiricalFieldAverage_mem_closedConvexHull`, Georgii's "basic observation");
+and `𝓀(μ|Φ) ≤ c` because `𝓀(·|Φ)` is lower semicontinuous. This is the common core of the upper
 bounds (15.46) for the configurational and for the periodic boundary conditions, and of the
-cluster-point half of Corollary (15.58). -/
+cluster-point half of Corollary (15.58).
+
+The filter `l` is `atTop` when the limit is taken along a subsequence; over an infinite state
+space the topology of local convergence is not first countable, and the cluster point of Georgii's
+Step 2 is only a limit along a finer filter (`MapClusterPt.exists_le_tendsto`). Nothing else
+changes: every hypothesis and every step of the proof is filter-wise. -/
 theorem mem_closedConvexHull_and_specificRelativeEntropy_le_of_tendsto
     (Φ : Potential.BTheta (ι → ℤ) E)
     {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
     {G : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
     (hπ : ∀ n, Potential.IsTorusReduction (G n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
     (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).Nonempty)
+    {l : Filter ℕ} (hl : l ≤ atTop) (hlne : l.NeBot)
     {C : Set (WithLocalConvergence (ι → ℤ) E)} {c : ℝ}
     (κ : ℕ → Measure ((ι → ℤ) → E)) [∀ n, IsProbabilityMeasure (κ n)]
-    (hcond : ∀ᶠ n in atTop, κ n {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C}ᶜ = 0)
-    {e : ℕ → ℝ} (he : Tendsto e atTop (𝓝 0))
-    (hM : ∀ᶠ n in atTop, (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+    (hcond : ∀ᶠ n in l, κ n {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C}ᶜ = 0)
+    {e : ℕ → ℝ} (he : Tendsto e l (𝓝 0))
+    (hM : ∀ᶠ n in l, (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
         (tileAverage (isComplement_Icc (m n) fun _ ↦ s n)
           ((κ n).map (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).restrict))
       ≤ ((c + e n + ((Φ : Potential (ι → ℤ) E).specificEnergy
@@ -1294,13 +1464,14 @@ theorem mem_closedConvexHull_and_specificRelativeEntropy_le_of_tendsto
             (empiricalFieldAverage E (π n) (Finset.Icc (m n) fun k ↦ m n k + s n) (κ n))) : ℝ)
         : EReal))
     {μ : WithLocalConvergence (ι → ℤ) E}
-    (hlim : Tendsto (fun n ↦ empiricalFieldAverageL (π n) (hne n) (κ n)) atTop (𝓝 μ)) :
+    (hlim : Tendsto (fun n ↦ empiricalFieldAverageL (π n) (hne n) (κ n)) l (𝓝 μ)) :
     (μ.toMeasure : Measure ((ι → ℤ) → E)) ∈ invariantFields (shiftGroup (ι → ℤ) E) ∧
       evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C) ∧
       (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
         (μ.toMeasure : Measure ((ι → ℤ) → E)) ≤ (c : EReal) := by
-  have hblk : Tendsto (fun n ↦ blockFieldL (m n) (fun _ ↦ s n) (κ n)) atTop (𝓝 μ) :=
-    (tendsto_blockFieldL_iff_tendsto_empiricalFieldAverageL hs hπ hne κ μ).2 hlim
+  have := hlne
+  have hblk : Tendsto (fun n ↦ blockFieldL (m n) (fun _ ↦ s n) (κ n)) l (𝓝 μ) :=
+    (tendsto_blockFieldL_iff_tendsto_empiricalFieldAverageL hs hl hπ hne κ μ).2 hlim
   refine ⟨?_, ?_, ?_⟩
   · -- `μ` is shift invariant
     refine (isClosed_setOf_mem_invariantFields (shiftGroup (ι → ℤ) E)).mem_of_tendsto hblk
@@ -1310,8 +1481,7 @@ theorem mem_closedConvexHull_and_specificRelativeEntropy_le_of_tendsto
     refine isClosed_closedConvexHull.mem_of_tendsto
       (WithSetwiseTopology.continuous_evalReal.continuousAt.tendsto.comp hlim) ?_
     filter_upwards [hcond] with k hk
-    exact convexHull_subset_closedConvexHull
-      (evalLocalEvents_empiricalFieldAverage_mem_convexHull (hπ k) (hne k) (κ k) hk)
+    exact evalLocalEvents_empiricalFieldAverage_mem_closedConvexHull (hne k) (κ k) hk
   · -- the excess free energy of the limit is at most `c`
     by_contra hgt
     push Not at hgt
@@ -1321,7 +1491,7 @@ theorem mem_closedConvexHull_and_specificRelativeEntropy_le_of_tendsto
           ((κ k).map (Finset.Icc (m k) fun j ↦ m k j + s k : Finset (ι → ℤ)).restrict))
         - (Φ : Potential (ι → ℤ) E).specificEnergy
           (empiricalFieldAverage E (π k) (Finset.Icc (m k) fun j ↦ m k j + s k) (κ k)))
-        atTop (𝓝 0) := by
+        l (𝓝 0) := by
       have h1 := (Potential.continuous_specificEnergy
         (Φ := (Φ : Potential (ι → ℤ) E))).continuousAt.tendsto.comp hblk
       have h2 := (Potential.continuous_specificEnergy
@@ -1332,15 +1502,15 @@ theorem mem_closedConvexHull_and_specificRelativeEntropy_le_of_tendsto
         (tileAverage (isComplement_Icc (m k) fun _ ↦ s k)
           ((κ k).map (Finset.Icc (m k) fun j ↦ m k j + s k : Finset (ι → ℤ)).restrict))
         - (Φ : Potential (ι → ℤ) E).specificEnergy
-          (empiricalFieldAverage E (π k) (Finset.Icc (m k) fun j ↦ m k j + s k) (κ k)))) atTop
+          (empiricalFieldAverage E (π k) (Finset.Icc (m k) fun j ↦ m k j + s k) (κ k)))) l
         (𝓝 c) := by
       simpa using (tendsto_const_nhds.add he).add hEnergy
     have hlsc := Potential.BTheta.lowerSemicontinuous_specificRelativeEntropy ν Φ μ c' hc'
-    have hev1 : ∀ᶠ k in atTop, (c' : EReal) < (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+    have hev1 : ∀ᶠ k in l, (c' : EReal) < (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
         (tileAverage (isComplement_Icc (m k) fun _ ↦ s k)
           ((κ k).map (Finset.Icc (m k) fun j ↦ m k j + s k : Finset (ι → ℤ)).restrict)) :=
       hblk.eventually hlsc
-    have hev2 : ∀ᶠ k in atTop, (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+    have hev2 : ∀ᶠ k in l, (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
         (tileAverage (isComplement_Icc (m k) fun _ ↦ s k)
           ((κ k).map (Finset.Icc (m k) fun j ↦ m k j + s k : Finset (ι → ℤ)).restrict))
         < (c' : EReal) := by
@@ -1350,24 +1520,42 @@ theorem mem_closedConvexHull_and_specificRelativeEntropy_le_of_tendsto
     obtain ⟨k, hk1, hk2⟩ := (hev1.and hev2).exists
     exact absurd hk1 (not_lt.2 hk2.le)
 
-/-- **Steps 2 and 3 of Georgii's proof of the upper bound (15.46): the cluster point.** Suppose
-that along a sequence of cubes `Λ_n` with sides tending to infinity there are boundary conditions
-`ω_n` for which `γ^Φ_{Λ_n}(°R_{Λ_n} ∈ C | ω_n) > e^{−c|Λ_n|}`. Then there is a shift-invariant
-random field `μ` in Georgii's `cx̄ C` with `𝓀(μ|Φ) ≤ c`.
+omit [Finite E] [MeasurableSingletonClass E] in
+/-- **Steps 2 and 3 of Georgii's proof of the upper bound (15.46): the cluster point, over a
+standard Borel state space.** Suppose that along a sequence of cubes `Λ_n` with sides tending to
+infinity there are boundary conditions `ω_n` for which
+`γ^Φ_{Λ_n}(°R_{Λ_n} ∈ C | ω_n) > e^{−c|Λ_n|}`. Then there is a shift-invariant random field `μ` in
+Georgii's `cx̄ C` with `𝓀(μ|Φ) ≤ c`.
 
-This is Georgii's argument by contradiction in Step 2, with the compactness of the level sets of
-the specific entropy replaced by the compactness of the whole space of random fields, which over
-a finite state space is automatic (Georgii Example (4.11)(2)). The finite-volume input is
-`specificRelativeEntropy_tileAverage_cond_le`, whose two correction terms vanish, the first by
-Theorem (15.30)(a) uniformly in the boundary condition and the second by the estimate (15.25);
-the limit argument is `mem_closedConvexHull_and_specificRelativeEntropy_le_of_tendsto`. -/
-theorem exists_mem_closedConvexHull_specificRelativeEntropy_le
-    (Φ : Potential.BTheta (ι → ℤ) E)
+This is Georgii's argument by contradiction in Step 2, verbatim: the finite-volume bound forces
+all the block fields `γ̄_n` into one sublevel set `{𝓀(·|Φ) ≤ M}` of the excess free energy, which
+is **compact** for the topology of local convergence over a standard Borel state space
+(`Potential.BTheta.isCompact_setOf_specificRelativeEntropy_le`, Georgii's Proposition (15.14)
+applied as in the remark after (15.45)), so the block fields have a cluster point. The topology of
+local convergence is not first countable over an infinite state space, so the cluster point is a
+limit along a finer filter rather than along a subsequence (`MapClusterPt.exists_le_tendsto`);
+`mem_closedConvexHull_and_specificRelativeEntropy_le_of_tendsto` is stated for a filter for that
+reason.
+
+The finite-volume input is `specificRelativeEntropy_tileAverage_cond_le`, whose two correction
+terms vanish, the first by Theorem (15.30)(a) uniformly in the boundary condition and the second
+by the estimate (15.25).
+
+The hypothesis `hAmeas` is Georgii's `C ∈ 𝓔(𝓟_Θ)`, in the form in which it is used: it is
+`measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem_of_evalEvents` for a `C` in the
+evaluation σ-algebra, and `measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem` — with
+no hypothesis on `C` — over a finite state space. -/
+theorem exists_mem_closedConvexHull_specificRelativeEntropy_le_of_measurableSet
+    [StandardBorelSpace E] (Φ : Potential.BTheta (ι → ℤ) E)
     {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
     {G : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
     (hπ : ∀ n, Potential.IsTorusReduction (G n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
     (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).Nonempty)
-    {C : Set (WithLocalConvergence (ι → ℤ) E)} {c : ℝ} (ω : ℕ → (ι → ℤ) → E)
+    {C : Set (WithLocalConvergence (ι → ℤ) E)} {c : ℝ}
+    (hAmeas : ∀ n, MeasurableSet[cylinderEvents (X := fun _ : ι → ℤ ↦ E)
+        ((Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) : Set (ι → ℤ))]
+      {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C})
+    (ω : ℕ → (ι → ℤ) → E)
     (hω : ∀ n, ENNReal.ofReal (Real.exp (-(c *
           #(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)))))
         < Potential.gibbsSpecificationOfAbsolutelySummable (Φ := (Φ : Potential (ι → ℤ) E)) ν 1
@@ -1387,10 +1575,6 @@ theorem exists_mem_closedConvexHull_specificRelativeEntropy_le
       (Φ := (Φ : Potential (ι → ℤ) E)) ν 1 (Finset.Icc (m n) fun k ↦ m n k + s n) (ω n)
       {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C} ≠ 0 := fun n ↦
     (lt_of_lt_of_le (ENNReal.ofReal_pos.2 (Real.exp_pos _)) (hω n).le).ne'
-  have hAmeas : ∀ n, MeasurableSet[cylinderEvents (X := fun _ : ι → ℤ ↦ E)
-      ((Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) : Set (ι → ℤ))]
-      {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C} := fun n ↦
-    measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem (hπ n) (hne n) C
   set κ : ℕ → Measure ((ι → ℤ) → E) := fun n ↦
     (Potential.gibbsSpecificationOfAbsolutelySummable (Φ := (Φ : Potential (ι → ℤ) E)) ν 1
       (Finset.Icc (m n) fun k ↦ m n k + s n) (ω n))[|
@@ -1451,34 +1635,108 @@ theorem exists_mem_closedConvexHull_specificRelativeEntropy_le
     refine h.congr fun n ↦ ?_
     rw [hedef]
     ring
-  -- a cluster point of the block fields, by compactness
-  obtain ⟨μ, -, ψ, hψ, hlim⟩ := isCompact_univ.tendsto_subseq
-    (x := fun n ↦ blockFieldL (m n) (fun _ ↦ s n) (κ n)) fun n ↦ Set.mem_univ _
-  have hs' : Tendsto (fun k ↦ s (ψ k)) atTop atTop := hs.comp hψ.tendsto_atTop
-  have hemp : Tendsto (fun k ↦ empiricalFieldAverageL (π (ψ k)) (hne (ψ k)) (κ (ψ k))) atTop
-      (𝓝 μ) :=
-    (tendsto_blockFieldL_iff_tendsto_empiricalFieldAverageL (m := fun k ↦ m (ψ k))
-      (s := fun k ↦ s (ψ k)) hs' (fun k ↦ hπ (ψ k)) (fun k ↦ hne (ψ k)) (fun k ↦ κ (ψ k)) μ).1 hlim
-  exact ⟨μ, mem_closedConvexHull_and_specificRelativeEntropy_le_of_tendsto ν Φ
-    (m := fun k ↦ m (ψ k)) (s := fun k ↦ s (ψ k)) hs' (fun k ↦ hπ (ψ k)) (fun k ↦ hne (ψ k))
-    (fun k ↦ κ (ψ k)) (.of_forall fun k ↦ hcond (ψ k)) (he.comp hψ.tendsto_atTop)
-    (.of_forall fun k ↦ hM (ψ k)) hemp⟩
+  -- the block fields eventually lie in one compact sublevel set of the excess free energy
+  set M : ℝ := c + 1 + 2 * ((Φ : Potential (ι → ℤ) E).normAt 0).toReal with hMdef
+  set K : Set (WithLocalConvergence (ι → ℤ) E) :=
+    {μ' : WithLocalConvergence (ι → ℤ) E | (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+      (μ'.toMeasure : Measure ((ι → ℤ) → E)) ≤ (M : EReal)} with hKdef
+  have hKcompact : IsCompact K :=
+    Potential.BTheta.isCompact_setOf_specificRelativeEntropy_le ν Φ M
+  have hmemK : ∀ᶠ n in atTop, blockFieldL (m n) (fun _ ↦ s n) (κ n) ∈ K := by
+    filter_upwards [he.eventually (eventually_lt_nhds (show (0 : ℝ) < 1 by norm_num))] with n hn
+    change (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+      (tileAverage (isComplement_Icc (m n) fun _ ↦ s n)
+        ((κ n).map (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).restrict))
+      ≤ (M : EReal)
+    refine (hM n).trans (EReal.coe_le_coe_iff.2 ?_)
+    have : NeZero (#(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ))) :=
+      ⟨(hne n).card_pos.ne'⟩
+    have h1 := abs_le.1 (Potential.abs_specificEnergy_le (Φ := (Φ : Potential (ι → ℤ) E))
+      (tileAverage (isComplement_Icc (m n) fun _ ↦ s n)
+        ((κ n).map (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).restrict)))
+    have h2 := abs_le.1 (Potential.abs_specificEnergy_le (Φ := (Φ : Potential (ι → ℤ) E))
+      (empiricalFieldAverage E (π n) (Finset.Icc (m n) fun k ↦ m n k + s n) (κ n)))
+    rw [hMdef]
+    linarith [h1.2, h2.1, hn.le]
+  -- a cluster point of the block fields, by compactness of that sublevel set
+  obtain ⟨μ, -, hclus⟩ := hKcompact (f := Filter.map
+    (fun n ↦ blockFieldL (m n) (fun _ ↦ s n) (κ n)) atTop) (Filter.le_principal_iff.2 hmemK)
+  obtain ⟨l, hl, hlne, hlim⟩ := MapClusterPt.exists_le_tendsto hclus
+  have hemp : Tendsto (fun n ↦ empiricalFieldAverageL (π n) (hne n) (κ n)) l (𝓝 μ) :=
+    (tendsto_blockFieldL_iff_tendsto_empiricalFieldAverageL hs hl hπ hne κ μ).1 hlim
+  exact ⟨μ, mem_closedConvexHull_and_specificRelativeEntropy_le_of_tendsto ν Φ hs hπ hne hl hlne
+    κ (.of_forall hcond) (he.mono_left hl) (.of_forall hM) hemp⟩
 
-/-- **The upper bound (15.46) in exponential form, with Georgii's `cx̄ C` on the right.** If `c`
-is strictly below the excess free energy of every shift-invariant random field in `cx̄ C`, then
-eventually `γ^Φ_Λ(°R_Λ ∈ C | ω) ≤ e^{−c |Λ|}`, *uniformly in the boundary condition* `ω`. This is
-the contrapositive of the cluster-point lemma
-`exists_mem_closedConvexHull_specificRelativeEntropy_le`; Georgii takes an `ω` at which a fixed
-fraction of the supremum in (15.46) is attained, which over a general state space is the way to
-get the uniformity, and here amounts to the choice of a boundary condition for each volume in
-which the bound fails. -/
-theorem eventually_gibbsSpecification_setOf_periodicEmpiricalFieldL_mem_le
-    (Φ : Potential.BTheta (ι → ℤ) E)
+omit [Finite E] [MeasurableSingletonClass E] in
+/-- **Georgii's `C ∈ 𝓔(𝓟_Θ)` in the cluster-point lemma.** Over a standard Borel state space the
+event `{°R_Λ ∈ C}` is a cylinder event as soon as `C` lies in the evaluation σ-algebra, which is
+Georgii's hypothesis on `C` in Theorem (15.45). -/
+theorem exists_mem_closedConvexHull_specificRelativeEntropy_le_of_evalEvents
+    [StandardBorelSpace E] (Φ : Potential.BTheta (ι → ℤ) E)
     {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
     {G : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
     (hπ : ∀ n, Potential.IsTorusReduction (G n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
     (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).Nonempty)
     {C : Set (WithLocalConvergence (ι → ℤ) E)} {c : ℝ}
+    (hC : MeasurableSet[evalEvents (ι → ℤ) E] C) (ω : ℕ → (ι → ℤ) → E)
+    (hω : ∀ n, ENNReal.ofReal (Real.exp (-(c *
+          #(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)))))
+        < Potential.gibbsSpecificationOfAbsolutelySummable (Φ := (Φ : Potential (ι → ℤ) E)) ν 1
+            (Finset.Icc (m n) fun k ↦ m n k + s n) (ω n)
+            {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C}) :
+    ∃ μ : WithLocalConvergence (ι → ℤ) E,
+      (μ.toMeasure : Measure ((ι → ℤ) → E)) ∈ invariantFields (shiftGroup (ι → ℤ) E) ∧
+      evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C) ∧
+      (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+        (μ.toMeasure : Measure ((ι → ℤ) → E)) ≤ (c : EReal) :=
+  exists_mem_closedConvexHull_specificRelativeEntropy_le_of_measurableSet ν Φ hs hπ hne
+    (fun n ↦ measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem_of_evalEvents
+      (hπ n) (hne n) hC) ω hω
+
+/-- **The cluster point over a finite state space**, where `{°R_Λ ∈ C}` is a cylinder event for
+*every* `C` whatsoever
+(`measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem`), so that Georgii's hypothesis
+`C ∈ 𝓔(𝓟_Θ)` carries no information. -/
+theorem exists_mem_closedConvexHull_specificRelativeEntropy_le
+    (Φ : Potential.BTheta (ι → ℤ) E)
+    {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
+    {G : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
+    (hπ : ∀ n, Potential.IsTorusReduction (G n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
+    (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).Nonempty)
+    {C : Set (WithLocalConvergence (ι → ℤ) E)} {c : ℝ} (ω : ℕ → (ι → ℤ) → E)
+    (hω : ∀ n, ENNReal.ofReal (Real.exp (-(c *
+          #(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)))))
+        < Potential.gibbsSpecificationOfAbsolutelySummable (Φ := (Φ : Potential (ι → ℤ) E)) ν 1
+            (Finset.Icc (m n) fun k ↦ m n k + s n) (ω n)
+            {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C}) :
+    ∃ μ : WithLocalConvergence (ι → ℤ) E,
+      (μ.toMeasure : Measure ((ι → ℤ) → E)) ∈ invariantFields (shiftGroup (ι → ℤ) E) ∧
+      evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C) ∧
+      (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+        (μ.toMeasure : Measure ((ι → ℤ) → E)) ≤ (c : EReal) := by
+  have : Nonempty E := Measure.nonempty_of_neZero ν
+  exact exists_mem_closedConvexHull_specificRelativeEntropy_le_of_measurableSet ν Φ hs hπ hne
+    (fun n ↦ measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem (hπ n) (hne n) C) ω hω
+
+omit [Finite E] [MeasurableSingletonClass E] in
+/-- **The upper bound (15.46) in exponential form, with Georgii's `cx̄ C` on the right, over a
+standard Borel state space.** If `c` is strictly below the excess free energy of every
+shift-invariant random field in `cx̄ C`, then eventually `γ^Φ_Λ(°R_Λ ∈ C | ω) ≤ e^{−c |Λ|}`,
+*uniformly in the boundary condition* `ω`. This is the contrapositive of the cluster-point lemma
+`exists_mem_closedConvexHull_specificRelativeEntropy_le_of_measurableSet`; Georgii takes an `ω` at
+which a fixed fraction of the supremum in (15.46) is attained, which over a general state space is
+the way to get the uniformity, and here amounts to the choice of a boundary condition for each
+volume in which the bound fails. -/
+theorem eventually_gibbsSpecification_setOf_periodicEmpiricalFieldL_mem_le_of_measurableSet
+    [StandardBorelSpace E] (Φ : Potential.BTheta (ι → ℤ) E)
+    {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
+    {G : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
+    (hπ : ∀ n, Potential.IsTorusReduction (G n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
+    (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).Nonempty)
+    {C : Set (WithLocalConvergence (ι → ℤ) E)} {c : ℝ}
+    (hAmeas : ∀ n, MeasurableSet[cylinderEvents (X := fun _ : ι → ℤ ↦ E)
+        ((Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) : Set (ι → ℤ))]
+      {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C})
     (hc : ∀ μ : WithLocalConvergence (ι → ℤ) E,
       (μ.toMeasure : Measure ((ι → ℤ) → E)) ∈ invariantFields (shiftGroup (ι → ℤ) E) →
       evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C) →
@@ -1505,10 +1763,62 @@ theorem eventually_gibbsSpecification_setOf_periodicEmpiricalFieldL_mem_le
     push Not at h
     exact hφP j h
   choose ω hω using hex
-  obtain ⟨μ, hμinv, hμhull, hμle⟩ := exists_mem_closedConvexHull_specificRelativeEntropy_le ν Φ
-    (m := fun j ↦ m (φ j)) (s := fun j ↦ s (φ j)) (hs.comp hφ.tendsto_atTop)
-    (G := fun j ↦ G (φ j)) (π := fun j ↦ π (φ j)) (fun j ↦ hπ (φ j)) (fun j ↦ hne (φ j)) ω hω
+  obtain ⟨μ, hμinv, hμhull, hμle⟩ :=
+    exists_mem_closedConvexHull_specificRelativeEntropy_le_of_measurableSet ν Φ
+      (m := fun j ↦ m (φ j)) (s := fun j ↦ s (φ j)) (hs.comp hφ.tendsto_atTop)
+      (G := fun j ↦ G (φ j)) (π := fun j ↦ π (φ j)) (fun j ↦ hπ (φ j)) (fun j ↦ hne (φ j))
+      (fun j ↦ hAmeas (φ j)) ω hω
   exact absurd hμle (not_le.2 (hc μ hμinv hμhull))
+
+omit [Finite E] [MeasurableSingletonClass E] in
+/-- **The upper bound (15.46) in exponential form under Georgii's hypothesis `C ∈ 𝓔(𝓟_Θ)`.** -/
+theorem eventually_gibbsSpecification_setOf_periodicEmpiricalFieldL_mem_le_of_evalEvents
+    [StandardBorelSpace E] (Φ : Potential.BTheta (ι → ℤ) E)
+    {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
+    {G : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
+    (hπ : ∀ n, Potential.IsTorusReduction (G n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
+    (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).Nonempty)
+    {C : Set (WithLocalConvergence (ι → ℤ) E)} {c : ℝ}
+    (hC : MeasurableSet[evalEvents (ι → ℤ) E] C)
+    (hc : ∀ μ : WithLocalConvergence (ι → ℤ) E,
+      (μ.toMeasure : Measure ((ι → ℤ) → E)) ∈ invariantFields (shiftGroup (ι → ℤ) E) →
+      evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C) →
+      (c : EReal) < (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+        (μ.toMeasure : Measure ((ι → ℤ) → E))) :
+    ∀ᶠ n in atTop, ∀ ω : (ι → ℤ) → E,
+      Potential.gibbsSpecificationOfAbsolutelySummable (Φ := (Φ : Potential (ι → ℤ) E)) ν 1
+          (Finset.Icc (m n) fun k ↦ m n k + s n) ω
+          {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C}
+        ≤ ENNReal.ofReal (Real.exp
+            (-(c * #(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ))))) :=
+  eventually_gibbsSpecification_setOf_periodicEmpiricalFieldL_mem_le_of_measurableSet ν Φ hs hπ hne
+    (fun n ↦ measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem_of_evalEvents
+      (hπ n) (hne n) hC) hc
+
+/-- **The upper bound (15.46) in exponential form over a finite state space**, where `{°R_Λ ∈ C}`
+is a cylinder event for every `C` whatsoever. -/
+theorem eventually_gibbsSpecification_setOf_periodicEmpiricalFieldL_mem_le
+    (Φ : Potential.BTheta (ι → ℤ) E)
+    {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
+    {G : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
+    (hπ : ∀ n, Potential.IsTorusReduction (G n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
+    (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).Nonempty)
+    {C : Set (WithLocalConvergence (ι → ℤ) E)} {c : ℝ}
+    (hc : ∀ μ : WithLocalConvergence (ι → ℤ) E,
+      (μ.toMeasure : Measure ((ι → ℤ) → E)) ∈ invariantFields (shiftGroup (ι → ℤ) E) →
+      evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C) →
+      (c : EReal) < (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+        (μ.toMeasure : Measure ((ι → ℤ) → E))) :
+    ∀ᶠ n in atTop, ∀ ω : (ι → ℤ) → E,
+      Potential.gibbsSpecificationOfAbsolutelySummable (Φ := (Φ : Potential (ι → ℤ) E)) ν 1
+          (Finset.Icc (m n) fun k ↦ m n k + s n) ω
+          {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C}
+        ≤ ENNReal.ofReal (Real.exp
+            (-(c * #(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ))))) := by
+  have : Nonempty E := Measure.nonempty_of_neZero ν
+  exact eventually_gibbsSpecification_setOf_periodicEmpiricalFieldL_mem_le_of_measurableSet ν Φ
+    hs hπ hne
+    (fun n ↦ measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem (hπ n) (hne n) C) hc
 
 omit [Nonempty ι] [Finite E] [MeasurableSingletonClass E] in
 /-- The `EReal` bookkeeping of (15.46): if `x ≤ e^{−c |Λ|}` then `log x / |Λ| ≤ −c`. -/
@@ -1581,6 +1891,137 @@ theorem le_neg_iInf_closure_specificRelativeEntropy_of_forall_lt
   rw [neg_neg] at this
   exact absurd hy2 (not_lt.2 this)
 
+omit [Nonempty ι] [Finite E] [MeasurableSingletonClass E] in
+/-- The `EReal` bookkeeping of Step 4: an extended real `L` bounded by `−c` for every real `c`
+strictly below `T` is bounded by `−T`. -/
+lemma le_neg_of_forall_lt {L T : EReal} (h : ∀ c : ℝ, (c : EReal) < T → L ≤ ((-c : ℝ) : EReal)) :
+    L ≤ -T := by
+  by_contra hcon
+  push Not at hcon
+  obtain ⟨y, hy1, hy2⟩ := EReal.exists_between_coe_real hcon
+  have hy : ((-y : ℝ) : EReal) < T := by
+    rw [EReal.coe_neg]
+    exact EReal.neg_lt_comm.1 hy1
+  have := h (-y) hy
+  rw [neg_neg] at this
+  exact absurd hy2 (not_lt.2 this)
+
+omit [Finite E] [MeasurableSingletonClass E] in
+/-- **Georgii Theorem (15.45), the upper bound (15.46) with `cx̄ C` on the right, over a standard
+Borel state space.** For `Φ ∈ ℬ_Θ` and a set `C` of random fields whose event `{°R_Λ ∈ C}` is a
+cylinder event of the volume (`hAmeas`, Georgii's `C ∈ 𝓔(𝓟_Θ)`),
+
+`limsup_{|Λ| → ∞} |Λ|⁻¹ log sup_ω γ^Φ_Λ(°R_Λ ∈ C | ω) ≤ − inf {𝓀(ν|Φ) : ν ∈ 𝓟_Θ ∩ cx̄ C}`,
+
+along any sequence of cubes `Λ_n = [m_n, m_n + s_n]^d` of `ℤ^d` whose side lengths tend to
+infinity, with arbitrary torus reductions `π_n`.
+
+This is Georgii's Steps 1 and 2 in full: `cx̄ C` is the closed convex hull *in the topology of
+local convergence*, and no assumption beyond `StandardBorelSpace E` is made on `E`. Step 3 —
+Georgii's (15.54), replacing `cx̄ C` by `C̄` — is a separate, Choquet-theoretic statement; see
+`limsup_log_iSup_gibbsSpecification_div_card_le` for the case in which it is available, and the
+module documentation for what it costs. When `C` is *convex* the two right-hand sides agree, since
+then `cx̄ C = C̄`. -/
+theorem limsup_log_iSup_gibbsSpecification_div_card_le_closedConvexHull_of_measurableSet
+    [StandardBorelSpace E] (Φ : Potential.BTheta (ι → ℤ) E)
+    {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
+    {G : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
+    (hπ : ∀ n, Potential.IsTorusReduction (G n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
+    (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).Nonempty)
+    {C : Set (WithLocalConvergence (ι → ℤ) E)}
+    (hAmeas : ∀ n, MeasurableSet[cylinderEvents (X := fun _ : ι → ℤ ↦ E)
+        ((Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) : Set (ι → ℤ))]
+      {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C}) :
+    Filter.limsup (fun n ↦ ENNReal.log (⨆ ω : (ι → ℤ) → E,
+          Potential.gibbsSpecificationOfAbsolutelySummable (Φ := (Φ : Potential (ι → ℤ) E)) ν 1
+            (Finset.Icc (m n) fun k ↦ m n k + s n) ω
+            {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C})
+        / (#(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) : EReal)) atTop
+      ≤ -⨅ μ ∈ {μ : WithLocalConvergence (ι → ℤ) E |
+          μ ∈ invariantRandomFields (ι → ℤ) E ∧
+          evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C)},
+        (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+          (μ.toMeasure : Measure ((ι → ℤ) → E)) := by
+  refine le_neg_of_forall_lt fun c hcm ↦ ?_
+  have hc : ∀ μ : WithLocalConvergence (ι → ℤ) E,
+      (μ.toMeasure : Measure ((ι → ℤ) → E)) ∈ invariantFields (shiftGroup (ι → ℤ) E) →
+      evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C) →
+      (c : EReal) < (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+        (μ.toMeasure : Measure ((ι → ℤ) → E)) := fun μ hμ hμ' ↦
+    lt_of_lt_of_le hcm (iInf₂_le μ ⟨hμ, hμ'⟩)
+  have hev := eventually_gibbsSpecification_setOf_periodicEmpiricalFieldL_mem_le_of_measurableSet
+    ν Φ hs hπ hne hAmeas hc
+  refine Filter.limsup_le_of_le (by isBoundedDefault) ?_
+  filter_upwards [hev] with n hn
+  exact log_div_natCast_le_neg_of_le_ofReal_exp (hne n).card_pos.ne' (iSup_le hn)
+
+omit [Finite E] [MeasurableSingletonClass E] in
+/-- **Georgii Theorem (15.45), the upper bound (15.46) with `cx̄ C` on the right, under Georgii's
+hypothesis `C ∈ 𝓔(𝓟_Θ)`.** -/
+theorem limsup_log_iSup_gibbsSpecification_div_card_le_closedConvexHull
+    [StandardBorelSpace E] (Φ : Potential.BTheta (ι → ℤ) E)
+    {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
+    {G : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
+    (hπ : ∀ n, Potential.IsTorusReduction (G n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
+    (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).Nonempty)
+    {C : Set (WithLocalConvergence (ι → ℤ) E)}
+    (hC : MeasurableSet[evalEvents (ι → ℤ) E] C) :
+    Filter.limsup (fun n ↦ ENNReal.log (⨆ ω : (ι → ℤ) → E,
+          Potential.gibbsSpecificationOfAbsolutelySummable (Φ := (Φ : Potential (ι → ℤ) E)) ν 1
+            (Finset.Icc (m n) fun k ↦ m n k + s n) ω
+            {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C})
+        / (#(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) : EReal)) atTop
+      ≤ -⨅ μ ∈ {μ : WithLocalConvergence (ι → ℤ) E |
+          μ ∈ invariantRandomFields (ι → ℤ) E ∧
+          evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C)},
+        (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+          (μ.toMeasure : Measure ((ι → ℤ) → E)) :=
+  limsup_log_iSup_gibbsSpecification_div_card_le_closedConvexHull_of_measurableSet ν Φ hs hπ hne
+    fun n ↦ measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem_of_evalEvents
+      (hπ n) (hne n) hC
+
+omit [Finite E] [MeasurableSingletonClass E] in
+/-- **Georgii Theorem (15.45), the upper bound (15.46) for a convex `C`, over a standard Borel
+state space.** For a *convex* `C` — Georgii's `cx̄ C` is then its closure — the bound holds in
+Georgii's own form,
+
+`limsup_{|Λ| → ∞} |Λ|⁻¹ log sup_ω γ^Φ_Λ(°R_Λ ∈ C | ω) ≤ − inf_{ν ∈ C̄} 𝓀(ν|Φ)`,
+
+with `C̄` the closure in the topology of local convergence, with no finiteness of the state space
+and with no appeal to Choquet theory: Step 3 is vacuous. Convexity is expressed through the
+evaluation embedding, as Georgii's `cx̄` is. -/
+theorem limsup_log_iSup_gibbsSpecification_div_card_le_of_convex
+    [StandardBorelSpace E] (Φ : Potential.BTheta (ι → ℤ) E)
+    {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
+    {G : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
+    (hπ : ∀ n, Potential.IsTorusReduction (G n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
+    (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).Nonempty)
+    {C : Set (WithLocalConvergence (ι → ℤ) E)}
+    (hAmeas : ∀ n, MeasurableSet[cylinderEvents (X := fun _ : ι → ℤ ↦ E)
+        ((Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) : Set (ι → ℤ))]
+      {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C})
+    (hCconv : Convex ℝ (evalLocalEvents (ι → ℤ) E '' C)) :
+    Filter.limsup (fun n ↦ ENNReal.log (⨆ ω : (ι → ℤ) → E,
+          Potential.gibbsSpecificationOfAbsolutelySummable (Φ := (Φ : Potential (ι → ℤ) E)) ν 1
+            (Finset.Icc (m n) fun k ↦ m n k + s n) ω
+            {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C})
+        / (#(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) : EReal)) atTop
+      ≤ -⨅ μ ∈ closure C, (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+          (μ.toMeasure : Measure ((ι → ℤ) → E)) := by
+  refine (limsup_log_iSup_gibbsSpecification_div_card_le_closedConvexHull_of_measurableSet ν Φ hs
+    hπ hne hAmeas).trans (EReal.neg_le_neg_iff.2 (le_iInf₂ fun μ hμ ↦ ?_))
+  -- for a convex `C` the closed convex hull of its image is the closure of its image, and the
+  -- evaluation is a topological embedding, so `μ ∈ C̄`
+  have hcl : evalLocalEvents (ι → ℤ) E μ ∈ closure (evalLocalEvents (ι → ℤ) E '' C) := by
+    have hhull : closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C)
+        = closure (evalLocalEvents (ι → ℤ) E '' C) := by
+      rw [closedConvexHull_eq_closure_convexHull, hCconv.convexHull_eq]
+    exact hhull ▸ hμ.2
+  have hμC : μ ∈ closure C := by
+    rw [isEmbedding_evalLocalEvents.closure_eq_preimage_closure_image]
+    exact hcl
+  exact iInf₂_le μ hμC
+
 /-- **Georgii Theorem (15.45), the upper bound (15.46).** For `Φ ∈ ℬ_Θ` and a set `C ⊆ 𝓟_Θ` of
 shift-invariant random fields,
 
@@ -1592,22 +2033,21 @@ field `°R_{Λ_n}`.
 
 ## Hypotheses
 
-Georgii states (15.45) for a *standard Borel* state space. This proof needs `E` **finite**, in
-three places, all of them in Steps 2 and 3:
+Georgii states (15.45) for a *standard Borel* state space. Everything but Step 3 is proved there;
+`limsup_log_iSup_gibbsSpecification_div_card_le_closedConvexHull` is the bound with `cx̄ C` on the
+right over a standard Borel state space, and
+`limsup_log_iSup_gibbsSpecification_div_card_le_of_convex` is this very statement for a convex
+`C`. What the present statement adds is **Step 3** for a general `C`, the passage from `cx̄ C` to
+`C̄`. It rests on the Choquet-theoretic `iInf_closedConvexHull_eq_iInf_closure_ereal`, which needs
+`𝓟_Θ` to be a compact convex subset of a locally convex space *in the topology in which the
+closure `C̄` is taken*; over a finite state space the algebra `𝓕⁰` of all local events is
+countable and the topology of local convergence is itself compact metrizable, so no change of
+topology is needed. Over an infinite state space Georgii's change of topology does not deliver the
+`𝓛`-closure; see the module documentation.
 
-* the event `{°R_Λ ∈ C}` is a cylinder event for *every* `C` whatsoever
-  (`measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem`), so the left-hand side is
-  meaningful with no measurability assumption on `C`;
-* the mean empirical field `γ^C_{Λ|ω} °R_Λ` is an *exact* finite convex combination of periodic
-  empirical fields lying in `C` (`evalLocalEvents_empiricalFieldAverage_mem_convexHull`), which
-  is Georgii's "basic observation" of Step 2 without his approximation argument, and the space of
-  random fields is compact (Georgii Example (4.11)(2)), which replaces his appeal to the
-  compactness of the level sets of the specific entropy;
-* Step 3, the passage from `cx̄ C` to `C̄`, rests on the Choquet-theoretic
-  `iInf_closedConvexHull_eq_iInf_closure_ereal`, which needs `𝓟_Θ` to be a compact convex subset
-  of a locally convex Polish space; over a finite state space the algebra `𝓕⁰` of *all* local
-  events is countable, so the topology of local convergence is already the `𝒞`-topology Georgii
-  passes to.
+Finiteness of `E` also makes `{°R_Λ ∈ C}` a cylinder event for *every* `C` whatsoever
+(`measurableSet_cylinderEvents_setOf_periodicEmpiricalFieldL_mem`), so Georgii's hypothesis
+`C ∈ 𝓔(𝓟_Θ)` carries no information here and only `C ⊆ 𝓟_Θ` is assumed.
 
 `d ≥ 1` (`Nonempty ι`) is Georgii's standing assumption; it is what makes the specific entropy
 convex, hence `𝓀(·|Φ)` concave, which Step 3 consumes. -/
@@ -1638,6 +2078,64 @@ theorem limsup_log_iSup_gibbsSpecification_div_card_le
   refine Filter.limsup_le_of_le (by isBoundedDefault) ?_
   filter_upwards [hev] with n hn
   exact log_div_natCast_le_neg_of_le_ofReal_exp (hne n).card_pos.ne' (iSup_le hn)
+
+omit [Finite E] [MeasurableSingletonClass E] in
+/-- **Georgii Theorem (15.45), the "in particular" clause, over a standard Borel state space.**
+The bound with `cx̄ C` on the right holds with the finite-volume Gibbs distributions
+`γ^Φ_Λ(·|ω)` replaced by *any* Gibbs measure `μ ∈ 𝒢(Φ)` — no shift invariance of `μ` is required:
+
+`limsup_{|Λ| → ∞} |Λ|⁻¹ log μ(°R_Λ ∈ C) ≤ − inf {𝓀(ν|Φ) : ν ∈ 𝓟_Θ ∩ cx̄ C}`.
+
+Georgii obtains it "by integrating over `ω`": the DLR equation writes `μ(°R_Λ ∈ C)` as the
+`μ`-average of `γ^Φ_Λ(°R_Λ ∈ C|ω)`, which is at most the supremum over `ω`. -/
+theorem limsup_log_isGibbsMeasure_div_card_le_closedConvexHull_of_measurableSet
+    [StandardBorelSpace E] (Φ : Potential.BTheta (ι → ℤ) E)
+    {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
+    {G : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
+    (hπ : ∀ n, Potential.IsTorusReduction (G n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
+    (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).Nonempty)
+    {C : Set (WithLocalConvergence (ι → ℤ) E)}
+    (hAmeas : ∀ n, MeasurableSet[cylinderEvents (X := fun _ : ι → ℤ ↦ E)
+        ((Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) : Set (ι → ℤ))]
+      {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C})
+    {μ : Measure ((ι → ℤ) → E)} [IsProbabilityMeasure μ]
+    (hμ : (Potential.gibbsSpecificationOfAbsolutelySummable
+      (Φ := (Φ : Potential (ι → ℤ) E)) ν 1).IsGibbsMeasure μ) :
+    Filter.limsup (fun n ↦
+        ENNReal.log (μ {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C})
+          / (#(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) : EReal)) atTop
+      ≤ -⨅ μ' ∈ {μ' : WithLocalConvergence (ι → ℤ) E |
+          μ' ∈ invariantRandomFields (ι → ℤ) E ∧
+          evalLocalEvents (ι → ℤ) E μ' ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C)},
+        (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+          (μ'.toMeasure : Measure ((ι → ℤ) → E)) := by
+  have : Nonempty E := Measure.nonempty_of_neZero ν
+  refine le_trans (Filter.limsup_le_limsup (.of_forall fun n ↦ ?_))
+    (limsup_log_iSup_gibbsSpecification_div_card_le_closedConvexHull_of_measurableSet ν Φ hs hπ
+      hne hAmeas)
+  refine EReal.div_le_div_right_of_nonneg (Nat.cast_nonneg' _) (ENNReal.log_monotone ?_)
+  -- the DLR equation bounds `μ(A)` by the supremum of `γ^Φ_Λ(A|ω)`
+  set Λ : Finset (ι → ℤ) := Finset.Icc (m n) fun k ↦ m n k + s n with hΛdef
+  set A : Set ((ι → ℤ) → E) := {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C} with hAdef
+  have hAm : MeasurableSet A := cylinderEvents_le_pi _ (hAmeas n)
+  have hker : AEMeasurable (fun η : (ι → ℤ) → E ↦
+      Potential.gibbsSpecificationOfAbsolutelySummable (Φ := (Φ : Potential (ι → ℤ) E)) ν 1 Λ η)
+      μ :=
+    (((Potential.gibbsSpecificationOfAbsolutelySummable
+      (Φ := (Φ : Potential (ι → ℤ) E)) ν 1) Λ).measurable.mono cylinderEvents_le_pi
+        le_rfl).aemeasurable
+  have hbind := (Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob.1 hμ) Λ
+  calc μ A = (μ.bind (Potential.gibbsSpecificationOfAbsolutelySummable
+        (Φ := (Φ : Potential (ι → ℤ) E)) ν 1 Λ)) A := by rw [hbind]
+    _ = ∫⁻ η, Potential.gibbsSpecificationOfAbsolutelySummable
+          (Φ := (Φ : Potential (ι → ℤ) E)) ν 1 Λ η A ∂μ := Measure.bind_apply hAm hker
+    _ ≤ ∫⁻ _η, (⨆ ω : (ι → ℤ) → E, Potential.gibbsSpecificationOfAbsolutelySummable
+          (Φ := (Φ : Potential (ι → ℤ) E)) ν 1 Λ ω A) ∂μ :=
+        lintegral_mono fun η ↦ le_iSup (fun ω ↦ Potential.gibbsSpecificationOfAbsolutelySummable
+          (Φ := (Φ : Potential (ι → ℤ) E)) ν 1 Λ ω A) η
+    _ = ⨆ ω : (ι → ℤ) → E, Potential.gibbsSpecificationOfAbsolutelySummable
+          (Φ := (Φ : Potential (ι → ℤ) E)) ν 1 Λ ω A := by
+        rw [lintegral_const, measure_univ, mul_one]
 
 /-- **Georgii Theorem (15.45), the "in particular" clause of the upper bound (15.46).** The bound
 holds with the finite-volume Gibbs distributions `γ^Φ_Λ(·|ω)` replaced by *any* Gibbs measure

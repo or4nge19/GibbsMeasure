@@ -20,7 +20,12 @@ topology — for a core stable under the relabellings in `Θ`, which is what
 and what the shift group satisfies.
 
 The stability hypothesis is genuinely needed; see the module documentation of
-`GibbsMeasure/Topology/CountableCore.lean` for the counterexample without it.
+`GibbsMeasure/Topology/CountableCore.lean` for the counterexample without it, and for the reason
+why the change of topology does **not** deliver Georgii's Step 3 as he states it: the Choquet
+argument in the `𝒞`-topology bounds the infimum over the `𝒞`-closure of `C`, not over its closure
+in the topology of local convergence. `Specification/LargeDeviationsUpper.lean` therefore proves
+(15.46) over a standard Borel state space with Georgii's `cx̄ C` on the right, which is a stronger
+statement than the one this file would supply.
 
 ## Main statements
 
