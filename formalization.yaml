@@ -54,9 +54,10 @@ status:
     open the criterion of (16.24)(3), (16.24)(4), (16.25)(2), (16.26)-(16.27). Chapter 17 complete except the
     Berg-Maserick converse (17.28)(1), which Georgii cites without proof. Chapter 18: Section 18.1
     through Lemma (18.16), with the first assertions of (18.17)-(18.18); open their second
-    assertions, Example (18.19), Sections 18.2-18.3. Chapter 19: not started. Chapter 20: Section
-    20.1 on the torus ((20.6), (20.8)) and Georgii's computation (17.24); open (20.5), (20.7), the
-    transfer of (20.6) to G_0(Phi), and the infrared bound (20.9) onwards.
+    assertions, Example (18.19), Sections 18.2-18.3. Chapter 19: Section 19.1 through (19.5),
+    (19.7) and (19.8), open Theorem (19.6) (needs Sperner/KKM), (19.9)-(19.10), Sections 19.2-19.3.
+    Chapter 20: Section 20.1 ((20.5), (20.6) as stated, (20.8)), Georgii's computation (17.24),
+    (20.9)-(20.10); open (20.7)(b)-(c) and the infrared bound (20.11) onwards.
   sorry_count: 0
   sorry_in_definitions: 0
   axioms: ["propext", "Classical.choice", "Quot.sound"]
@@ -1499,6 +1500,28 @@ alignment:
         Deviations: the cap bound is uniform rather than rotation-invariant, rho -> 0 as eps -> 0 is
         not proved, and Comment (17.19)(2) (equivalence with the Heisenberg pair potential) is not
         formalised.
+    - source: "Section 19.1: (19.1)-(19.5), (19.7), (19.8)"
+      lean: "MeasureTheory.GibbsMeasure.resolves_of_const_on"
+      module: "GibbsMeasure/Specification/ResolvingPerturbations.lean"
+      status: "partial"
+      note: >-
+        The essential infimum of the cube interaction on a set, generalising the ground energy and
+        the energy outside a pattern; (19.1) in Georgii's own restatement lambda^C(G_n cap G_eps) > 0
+        (over a null set Mathlib's real essInf is a junk value, not +infinity); the perturbations
+        (19.2), the gap vector (19.3) continuous with values in the frontier of the nonnegative
+        orthant and vanishing at 0 under (19.1); Definition (19.4) with the homeomorphism onto a
+        neighbourhood of 0 in the boundary encoded as image-a-neighbourhood plus a continuous left
+        inverse; Comment (19.5)(1) as a theorem, the explicit homeomorphism
+        g(h) = (h_n delta_n - min_k h_k delta_k) on the neighbourhood sum |h_k| b_k < eps/2, with the
+        disjointness of the partition explicit; (19.5)(2) first sentence for finite E (the metric
+        criterion of its second sentence is unproved in the book and not formalised). Corollary
+        (19.7) (Model/GroundStateRefinement.lean) stated for what its proof uses, with
+        mu(A_{n,l}) = 1/k_n and Georgii's inequality as an equality. Example (19.8), the Blume-Capel
+        model (Model/BlumeCapel.lean): ground states, stability of the partition and its refinement,
+        (19.1), and the resolving self-potential. Not formalized: Theorem (19.6), which needs
+        Lemma (19.12) (Knaster-Kuratowski-Mazurkiewicz via Sperner's lemma, Appendix 19.A; Mathlib
+        has neither Sperner's lemma nor Brouwer's theorem), hence the phase-transition conclusions of
+        (19.8)-(19.10); Examples (19.9)-(19.10); Sections 19.2-19.3.
     - source: "Section 18.2: (18.20)-(18.26)"
       lean: "MeasureTheory.GibbsMeasure.eventually_exists_gibbsMeasure_family"
       module: "GibbsMeasure/Model/DiscreteSymmetryBreaking.lean"

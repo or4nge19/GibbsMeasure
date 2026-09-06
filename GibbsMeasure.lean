@@ -276,6 +276,8 @@ public import GibbsMeasure.Model.UniqueInfiniteCluster
 public import GibbsMeasure.Model.LowEnergyOceanPhase
 public import GibbsMeasure.Model.HeisenbergOceans
 public import GibbsMeasure.Model.DiscreteSymmetryBreaking
+public import GibbsMeasure.Model.GroundStateRefinement
+public import GibbsMeasure.Model.BlumeCapel
 public import GibbsMeasure.Model.OceanNetwork
 public import GibbsMeasure.Model.PlanarCrossing
 public import GibbsMeasure.Model.ShiftAverage
@@ -385,6 +387,7 @@ public import GibbsMeasure.Specification.ReflectionPositivity
 public import GibbsMeasure.Specification.PeriodicGibbs
 public import GibbsMeasure.Specification.PeriodicGibbsLimits
 public import GibbsMeasure.Specification.PeriodicGibbsSymmetry
+public import GibbsMeasure.Specification.ResolvingPerturbations
 public import GibbsMeasure.Specification.ChainEstimate
 public import GibbsMeasure.Specification.CubePotentialSingleSite
 public import GibbsMeasure.Specification.QuasiGibbsian

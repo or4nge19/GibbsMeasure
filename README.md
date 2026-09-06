@@ -617,6 +617,15 @@ ocean of its own pattern almost surely, with Georgii's invariance and transport 
 `N ≤ |ex 𝒢_Θ̃(βΦ)|` is proved when all `G_n` are `r`-symmetric. Open: that count for a proper
 subgroup `Θ̃`, and §18.3.
 
+**Chapter 19, §19.1** (`GibbsMeasure/Specification/ResolvingPerturbations.lean`,
+`Model/GroundStateRefinement.lean`, `Model/BlumeCapel.lean`): the essential infimum of the cube
+interaction on a set, balanced partitions (19.1), the perturbations (19.2), the gap vector (19.3)
+with values in the frontier of the nonnegative orthant, resolving potentials (19.4), Comment (19.5)(1)
+as a theorem with its explicit homeomorphism, Corollary (19.7) with Georgii's inequality as an
+equality, and the Blume–Capel model (19.8) with its resolving self-potential. Open: Theorem (19.6),
+which rests on the Knaster–Kuratowski–Mazurkiewicz lemma of Appendix 19.A (Sperner's lemma, absent
+from Mathlib), hence the phase-transition conclusions of (19.8)–(19.10); §19.2–19.3.
+
 **Chapter 20, §20.1** (`GibbsMeasure/Specification/InfraredBound.lean`): the preliminaries of the
 infrared bound on the torus — the tail estimate (20.6) for the periodic Gibbs distribution of a
 nonnegative-definite Heisenberg coupling from the chessboard estimate, its three consequences for
@@ -892,7 +901,8 @@ continuity of the second derivative asserted in (8.37)/(16.17); in (12.31)(b) th
 of (13.42); the upper bound (15.46) for a standard Borel state space, and the
 periodic-boundary-condition statements (15.48) (its two inequalities), (15.50)–(15.51),
 (15.57)–(15.58); the criterion of (16.24)(3), (16.24)(4), (16.25)(2), (16.26)–(16.27); the Berg–Maserick converse (17.28)(1), cited without
-proof; the second assertions of (18.17)–(18.18), Example (18.19), §18.2–18.3; Chapter 19; and
+proof; §18.3 and the count for a proper subgroup in (18.25); Theorem (19.6) with (19.9)–(19.10) and
+§19.2–19.3; and
 (20.5), (20.7), the transfer of (20.6) to `𝒢₀(Φ)` and the infrared bound (20.9) onwards.
 
 ### Code organisation

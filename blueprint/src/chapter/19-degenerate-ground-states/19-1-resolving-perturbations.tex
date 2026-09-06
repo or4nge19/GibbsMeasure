@@ -1,0 +1,62 @@
+\section{Potentials with degenerated ground states, and perturbations thereof}
+
+\begin{definition}[Georgii (19.1)--(19.4): balanced partitions, perturbations, resolving potentials]
+    \label{def:dg-19-4}
+    \uses{prop:dsb-18-24, def:lo-18-8}
+    \lean{MeasureTheory.GibbsMeasure.localGroundEnergyOn, MeasureTheory.GibbsMeasure.energyOutside_eq_localGroundEnergyOn, MeasureTheory.GibbsMeasure.localGroundEnergyOn_iUnion, MeasureTheory.GibbsMeasure.abs_localGroundEnergyOn_sub_le, MeasureTheory.GibbsMeasure.AttainsGroundEnergy, MeasureTheory.GibbsMeasure.attainsGroundEnergy_iff, MeasureTheory.GibbsMeasure.perturb, MeasureTheory.GibbsMeasure.continuous_localGroundEnergyOn_perturb, MeasureTheory.GibbsMeasure.nonnegBoundary, MeasureTheory.GibbsMeasure.nonnegBoundary_eq_frontier, MeasureTheory.GibbsMeasure.groundEnergyGap, MeasureTheory.GibbsMeasure.perturbGap, MeasureTheory.GibbsMeasure.continuous_perturbGap, MeasureTheory.GibbsMeasure.perturbGap_mem_nonnegBoundary, MeasureTheory.GibbsMeasure.perturbGap_zero, MeasureTheory.GibbsMeasure.ResolvesOn, MeasureTheory.GibbsMeasure.Resolves}
+    \leanok
+
+    $\lambda$-$\inf_M\Phi_C$ is the essential infimum of the cube interaction on $M$; (19.1) says
+    that each member $G_n$ of a stable partition attains the ground energy, taken in Georgii's own
+    restatement $\lambda^C(G_n \cap G_\varepsilon(\Phi)) > 0$ for all $\varepsilon > 0$, since over a
+    null set the essential infimum is not $+\infty$ in Mathlib. The perturbations (19.2)
+    $\Phi^h = \Phi + \sum_{n<N} h_n\Phi^n$, the gap vector (19.3) $g(h) = (\lambda\text{-}\inf_{G_n}
+    \Phi^h_C - \lambda\text{-}\inf_G \Phi^h_C)_n$, continuous with values in $\partial\mathbb R^N_+$
+    (which is the frontier of the nonnegative orthant) and $g(0) = 0$ under (19.1); Definition
+    (19.4): $\Phi^1,\dots,\Phi^{N-1}$ resolve the partition on a neighbourhood $U$ of $0$ if $g$
+    maps $U$ onto a neighbourhood of $0$ in $\partial\mathbb R^N_+$ with a continuous left inverse
+    (Georgii's homeomorphism), and $\lambda^C(G_\delta(\Phi^h))$ is bounded below on $U$ for each
+    $\delta > 0$.
+\end{definition}
+
+\begin{proposition}[Georgii Comment (19.5)]
+    \label{prop:dg-19-5}
+    \uses{def:dg-19-4}
+    \lean{MeasureTheory.GibbsMeasure.gapModel, MeasureTheory.GibbsMeasure.gapHomeomorph, MeasureTheory.GibbsMeasure.perturb_eq_of_mem, MeasureTheory.GibbsMeasure.perturbGap_eq_gapModel, MeasureTheory.GibbsMeasure.localGroundEnergyOn_perturb_iUnion_eq_localGroundEnergy, MeasureTheory.GibbsMeasure.localGroundStates_perturb_inter_eq, MeasureTheory.GibbsMeasure.resolvesOn_of_const_on, MeasureTheory.GibbsMeasure.resolves_of_const_on, MeasureTheory.GibbsMeasure.exists_measure_localGroundStates_pos_of_finite}
+    \leanok
+
+    (1) Bounded $\Phi^n$ with $\Phi^n_C = c_n + \delta_n$ on $G_n$ and $c_n$ on $G \setminus G_n$,
+    $\delta_n \neq 0$, resolve the partition: $g(h) = (h_n\delta_n - \min_k h_k\delta_k)_n$ on the
+    neighbourhood $\sum_k |h_k| b_k < \varepsilon/2$, an explicit homeomorphism onto
+    $\partial\mathbb R^N_+$, and $G_\delta(\Phi^h) \cap G_n = G_\delta(\Phi) \cap G_n$ where
+    $g_n(h) = 0$; disjointness of the partition is used explicitly. (2), first sentence: for a
+    finite state space with $\lambda$ charging every point, condition (19.4)(ii) holds for every
+    family with the bound $(\min_x\lambda\{x\})^{2^d}$; the metric criterion of its second
+    sentence, which Georgii does not prove, is not formalised.
+\end{proposition}
+\begin{proof}
+    \leanok
+\end{proof}
+
+\begin{theorem}[Georgii Corollary (19.7) and Example (19.8)]
+    \label{thm:dg-19-7}
+    \uses{def:dg-19-4, thm:dsb-18-25, lem:lo-ocean-tail}
+    \lean{MeasureTheory.GibbsMeasure.measurableSet_setOf_mem_latticeOceanPart, MeasureTheory.GibbsMeasure.measure_setOf_latticeOceanPart_nonempty_eq_of_map, MeasureTheory.GibbsMeasure.measure_setOf_latticeOceanPart_nonempty_eq_inv, MeasureTheory.GibbsMeasure.exists_gibbsMeasure_refinement, MeasureTheory.GibbsMeasure.blumeCapelCube, MeasureTheory.GibbsMeasure.blumeCapelField, MeasureTheory.GibbsMeasure.blumeCapelEnergy_eq_zero_iff, MeasureTheory.GibbsMeasure.localGroundEnergy_blumeCapel, MeasureTheory.GibbsMeasure.localGroundStates_blumeCapel, MeasureTheory.GibbsMeasure.isPStablePartition_blumeCapel, MeasureTheory.GibbsMeasure.isPStablePartition_blumeCapelFine, MeasureTheory.GibbsMeasure.attainsGroundEnergy_blumeCapel, MeasureTheory.GibbsMeasure.resolves_blumeCapel}
+    \leanok
+
+    Corollary (19.7), stated for exactly what its proof uses: a Gibbs measure $\mu$ carrying an
+    ocean of $\bigcup_\ell G_{n,\ell}$ almost surely, with the sub-partition stable and its members
+    transported into each other by symmetries preserving $\mu$, splits by conditioning into $k_n$
+    mutually singular Gibbs measures with $\mu(A_{n,\ell}) = 1/k_n$, each carrying an ocean of its
+    own pattern and with $\mu_{n,\ell}(0 \in \xi^0(G_{n,\ell})) = \mu(0 \in \xi^0(\bigcup G))$, an
+    equality where Georgii has an inequality; it applies to the output of (18.25) and of (19.6).
+    Example (19.8), the Blume--Capel model on $\{-1,0,1\}$: the local ground states are the three
+    constant configurations, $\{G_1, G_2\}$ with $G_2 = \{(\pm\pm)\}$ and its refinement are stable
+    and balanced, and the self-potential $\sum_{i\in C}\sigma_i^2$ resolves $\{G_1, G_2\}$ by (19.5)(1)
+    with $c_1 = 4$, $\delta_1 = -4$. Not formalised: Theorem (19.6) and hence the phase-transition
+    conclusions of (19.8)--(19.10), which need Lemma (19.12) (Knaster--Kuratowski--Mazurkiewicz from
+    Sperner's lemma, Appendix 19.A), absent from Mathlib; Examples (19.9)--(19.10).
+\end{theorem}
+\begin{proof}
+    \leanok
+\end{proof}
