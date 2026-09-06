@@ -714,8 +714,10 @@ when the endpoints are equivalent, and strictly convex between distinct normalis
 which required the converse half of **Theorem (2.34)**, now proved (`GibbsMeasure/Potential/Equivalence.lean`).
 **(16.17)**, both derivative formulas: on the Dobrushin region the phase is unique and the pressure
 is differentiable with derivative `−⟨μ_Φ, Ψ⟩`, and the second derivative along a direction of finite
-(8.36)-norm is the summed covariance of the site energies; that the second derivative is
-*continuous*, which Georgii also asserts, is not proved. The second derivative is **Corollary (8.37)**, proved in
+(8.36)-norm is the summed covariance of the site energies; along a single line the second
+derivative is moreover continuous, `s ↦ P(Φ + sΨ)` being `C²` on `|s| < t₀`
+(`contDiffOn_two_pressure_of_mem_dobrushinRegion`, from the `C¹` half of (8.37) with `g = f_Ψ`); the
+Fréchet form of Georgii's "twice continuously differentiable" on `ℬ̃_Θ` is not proved. The second derivative is **Corollary (8.37)**, proved in
 `GibbsMeasure/Specification/DobrushinDerivatives.lean` for an arbitrary site set without shift
 invariance, from **Proposition (8.34)**, the covariance bound by the interdependence series, by
 tilting the specification and the comparison theorem; the finite-volume derivative is a tilted
@@ -967,8 +969,8 @@ Gibbs measure is unique ((6.7)(2)); **(6.7)(1)**: `𝒢(βΦ) = [μ₋^β, μ₊
 `μ_±` are the extreme points, carried by the disjoint tail events `A_±`, and the bond graph of equal
 neighbouring spins has a unique infinite component almost surely under every Gibbs measure.
 
-Not yet done: the Fréchet form of the continuous differentiability asserted in (8.37), proved
-along every line of `𝒟`, and the continuity of the second derivative in (16.17); in (12.31)(b) the
+Not yet done: the Fréchet forms of the continuous differentiability in (8.37) and of the twice-continuous
+differentiability in (16.17), both proved along every line of `𝒟`; in (12.31)(b) the
 extremality of `μ_#` in `𝒢_{I(B)}` (step 5); (13.40), (13.41) for a general `J` under the logarithmic
 condition, and (13.44)–(13.45), whose infinite-range specification (13.18) is not defined in the tree; Georgii's closure bound in
 (15.46) for a non-convex `C` over an infinite state space; the cone description of `ℬ⁻_Θ(σ₀)` in (16.25)(2)

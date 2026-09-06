@@ -1822,9 +1822,13 @@ alignment:
         is proved in Specification/Dobrushin.lean. (16.17), second derivative: for Psi of finite
         (8.36)-norm and any Psi' in B_Theta, t |-> d/ds P(Phi + t Psi + s Psi')|_{s=0} is
         differentiable at 0 with derivative sum_i [mu(f_Psi' f_Psi o theta_i) - mu(f_Psi')
-        mu(f_Psi)], from Corollary (8.37); only the outer direction needs the (8.36)-norm. Not
-        proved: the continuity of the second derivative that Georgii's "twice continuously
-        differentiable" asserts. (16.14) also as Set.BijOn and as the image equality
+        mu(f_Psi)], from Corollary (8.37); only the outer direction needs the (8.36)-norm. Along
+        a single line the second derivative is continuous as well: for Psi of finite (8.36)-norm,
+        s |-> P(Phi + s Psi) is C^2 on |s| < t_0
+        (contDiffOn_two_pressure_of_mem_dobrushinRegion), from the C^1 half of (8.37) with
+        g = f_Psi. Not proved: the Frechet form of "twice continuously differentiable" on
+        B~_Theta, for the reason recorded under (8.37). (16.14) also as Set.BijOn and as the
+        image equality
         j(G_Theta(Phi)) = dP(Phi).
     - source: "Section 15.5: the Shannon-McMillan theorem used in (15.47)"
       lean: "MeasureTheory.tendsto_integral_abs_neg_inv_card_mul_log_blockProb_sub_entropyRate"

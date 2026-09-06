@@ -116,6 +116,17 @@ linear functional `j(μ) = −⟨μ, ·⟩` on `ℬ_Θ`.
   the observable `g = f_Ψ̃`. Only the outer direction needs the norm (8.36) to be finite: it is
   what keeps the segment inside `𝒟`; the inner direction only needs `∑_i δ_i(f_Ψ̃) < ∞`, which
   every `Ψ̃ ∈ ℬ_Θ` satisfies.
+* `Potential.BTheta.exists_forall_invariantG_eq_singleton_of_mem_dobrushinRegion`: the segment
+  `{Φ + sΨ : |s| ≤ t₀}` inside `𝒟` together with its family of unique shift-invariant Gibbs
+  measures — the input Corollary (8.37) asks for, shared by the two second-derivative statements.
+* `Potential.BTheta.contDiffOn_two_pressure_of_mem_dobrushinRegion`: **Georgii Corollary
+  (16.17)**, the clause "twice *continuously* differentiable", along every line. On `|s| < t₀`
+  the map `s ↦ P(Φ + sΨ)` is of class `C²`, with `d/ds P = −⟨μ_{Φ+sΨ}, Ψ⟩` and
+  `d²/ds² P = ∑_k [μ_{Φ+sΨ}(f_Ψ · f_Ψ ∘ θ_{−k}) − μ_{Φ+sΨ}(f_Ψ) μ_{Φ+sΨ}(f_Ψ ∘ θ_{−k})]`. The
+  continuity of the second derivative is the `C¹` half of Corollary (8.37),
+  `MeasureTheory.GibbsMeasure.Dobrushin.contDiffOn_one_integral_gibbsMeasure_add_smul`. As
+  there, only continuity along each line is obtained; the Fréchet form on `ℬ̃_Θ` would need the
+  second derivative to depend on `Φ` continuously in the operator norm.
 -/
 
 @[expose] public section
@@ -1495,7 +1506,9 @@ Georgii's Corollary (16.17) asserts more: that `P` is *twice* continuously diffe
 in the directions of `ℬ̃_Θ`, with second derivative `∑_i [μ_Φ(f_Ψ̃ f_Ψ ∘ θ_i) − μ_Φ(f_Ψ̃)μ_Φ(f_Ψ)]`.
 The second-derivative formula is `hasDerivAt_rightDirDeriv_pressure_of_mem_dobrushinRegion` below,
 from Corollary (8.37) (`Dobrushin.hasDerivAt_integral_gibbsMeasure_add_smul`) and Proposition
-(8.34); the continuity of that second derivative is not proved. -/
+(8.34), and its continuity along the line `s ↦ Φ + sΨ` is
+`contDiffOn_two_pressure_of_mem_dobrushinRegion`, which puts `s ↦ P(Φ + sΨ)` in `C²` on a
+neighbourhood of `0`. -/
 theorem leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_of_mem_dobrushinRegion [Nonempty E]
     (hΦ : Φ ∈ dobrushinRegion ι E) :
     ∃ μ : Measure ((ι → ℤ) → E), invariantG (gibbsSpecificationOfAbsolutelySummable
@@ -1539,45 +1552,33 @@ theorem hasDerivAt_pressure_of_mem_dobrushinRegion [Nonempty E] (hΦ : Φ ∈ do
 open scoped ProbabilityTheory
 
 variable (ν) in
-/-- **Georgii Corollary (16.17), the second-derivative formula.** For `Φ` in the region
-`𝒟 = {‖Φ‖ < 1}` of (8.36), an outer direction `Ψ` of `ℬ̃_Θ` (i.e. with `‖Ψ‖ < ∞` in the norm
-(8.36)) and an arbitrary inner direction `Ψ̃ ∈ ℬ_Θ`, the map
+omit [DecidableEq ι] in
+/-- **Georgii's segment inside the region `𝒟`.** For `Φ ∈ 𝒟 = {‖Φ‖ < 1}` and a direction `Ψ` of
+finite (8.36)-norm there is a `t₀ > 0` with `‖Φ‖ + t₀‖Ψ‖ < 1`; the whole segment
+`{Φ + sΨ : |s| ≤ t₀}` then lies in `𝒟`, so along it every potential has exactly one
+shift-invariant Gibbs measure `μ_s` (Theorem (8.7) with Proposition (8.8) and Corollary (5.16)),
+and `μ_s` is fixed by the single-site kernels of `Φ + sΨ`.
 
-`t ↦ ∂/∂s P(Φ + tΨ + sΨ̃)|_{s=0} = −⟨μ_{Φ+tΨ}, Ψ̃⟩`
-
-is differentiable at `t = 0` with
-
-`∂²/∂s∂t P(Φ + sΨ̃ + tΨ)|_{s,t=0} = ∑_k [μ_Φ(f_Ψ̃ · f_Ψ ∘ θ_{−k}) − μ_Φ(f_Ψ̃) μ_Φ(f_Ψ ∘ θ_{−k})]`,
-
-which is Georgii's `∑_i [μ_Φ(f_Ψ̃ f_Ψ ∘ θ_i) − μ_Φ(f_Ψ̃) μ_Φ(f_Ψ)]` after the substitution
-`i = −k`, using that `μ_Φ` is shift invariant and `f_Ψ ∘ θ_{−k} = Potential.siteEnergy Ψ k`.
-
-Georgii's proof is followed exactly: Theorem (16.14) and (8.7)/(8.8) give
-`∂P(Φ + tΨ) = {−⟨μ_{Φ+tΨ}, ·⟩}` along the whole segment (the first-derivative half
-`leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_of_mem_dobrushinRegion`), which turns the inner
-derivative into `μ_{Φ+tΨ}(g)` for `g = −f_Ψ̃`, and Corollary (8.37)
-(`MeasureTheory.GibbsMeasure.Dobrushin.hasDerivAt_integral_gibbsMeasure_add_smul`) differentiates
-that in `t`. Only the *outer* direction needs the norm (8.36) to be finite: it is what keeps the
-segment inside `𝒟`; the inner direction only has to satisfy `∑_i δ_i(f_Ψ̃) ≤ 2‖Ψ̃‖₀ < ∞`, which
-holds for every `Ψ̃ ∈ ℬ_Θ`. -/
-theorem hasDerivAt_rightDirDeriv_pressure_of_mem_dobrushinRegion [Nonempty E]
+This is the scaffolding shared by the second-derivative statements of Corollary (16.17): it is
+exactly the input Corollary (8.37) asks for. -/
+theorem exists_forall_invariantG_eq_singleton_of_mem_dobrushinRegion [Nonempty E]
     (hΦ : Φ ∈ dobrushinRegion ι E) {Ψ : BTheta (ι → ℤ) E}
-    (hΨ : Dobrushin.cardNormAt (Ψ : Potential (ι → ℤ) E) 0 ≠ ⊤) (Ψ' : BTheta (ι → ℤ) E) :
-    ∃ μ : Measure ((ι → ℤ) → E), invariantG (gibbsSpecificationOfAbsolutelySummable
-        (Φ := (Φ : Potential (ι → ℤ) E)) ν 1) (shiftGroup (ι → ℤ) E) = {μ} ∧
-      HasDerivAt (fun t : ℝ ↦ rightDirDeriv (pressure ν) (Φ + t • Ψ) Ψ')
-        (∑' k : ι → ℤ, cov[(Ψ' : Potential (ι → ℤ) E).siteEnergy 0,
-          (Ψ : Potential (ι → ℤ) E).siteEnergy k; μ]) 0 := by
+    (hΨ : Dobrushin.cardNormAt (Ψ : Potential (ι → ℤ) E) 0 ≠ ⊤) :
+    ∃ (t₀ : ℝ) (μ : ℝ → Measure ((ι → ℤ) → E)), 0 < t₀ ∧
+      Dobrushin.cardNormAt (Φ : Potential (ι → ℤ) E) 0
+          + ENNReal.ofReal t₀ * Dobrushin.cardNormAt (Ψ : Potential (ι → ℤ) E) 0 < 1 ∧
+      (∀ s : ℝ, |s| ≤ t₀ → (Φ + s • Ψ) ∈ dobrushinRegion ι E) ∧
+      (∀ s : ℝ, IsProbabilityMeasure (μ s)) ∧
+      (∀ s : ℝ, |s| ≤ t₀ → invariantG (gibbsSpecificationOfAbsolutelySummable
+          (Φ := (Φ : Potential (ι → ℤ) E) + s • (Ψ : Potential (ι → ℤ) E)) ν 1)
+          (shiftGroup (ι → ℤ) E) = {μ s}) ∧
+      ∀ s : ℝ, |s| ≤ t₀ → ∀ i : ι → ℤ, (μ s).bind
+        (gibbsSpecificationOfAbsolutelySummable
+          (Φ := (Φ : Potential (ι → ℤ) E) + s • (Ψ : Potential (ι → ℤ) E)) ν 1 {i}) = μ s := by
   classical
   obtain ⟨t₀, ht₀, hab⟩ := ENNReal.exists_pos_add_ofReal_mul_lt_one hΦ hΨ
   have hcoe : ∀ s : ℝ, ((Φ + s • Ψ : BTheta (ι → ℤ) E) : Potential (ι → ℤ) E)
       = (Φ : Potential (ι → ℤ) E) + s • (Ψ : Potential (ι → ℤ) E) := fun _ ↦ rfl
-  have hΦ' : ∀ i, Dobrushin.cardNormAt (Φ : Potential (ι → ℤ) E) i
-      ≤ Dobrushin.cardNormAt (Φ : Potential (ι → ℤ) E) 0 := fun i ↦
-    le_of_eq (Dobrushin.cardNormAt_eq_of_isShiftInvariant (isShiftInvariant Φ) i)
-  have hΨ' : ∀ i, Dobrushin.cardNormAt (Ψ : Potential (ι → ℤ) E) i
-      ≤ Dobrushin.cardNormAt (Ψ : Potential (ι → ℤ) E) 0 := fun i ↦
-    le_of_eq (Dobrushin.cardNormAt_eq_of_isShiftInvariant (isShiftInvariant Ψ) i)
   -- the whole segment stays inside Georgii's region `𝒟`
   have hmemD : ∀ s : ℝ, |s| ≤ t₀ → (Φ + s • Ψ) ∈ dobrushinRegion ι E := by
     intro s hs
@@ -1613,6 +1614,47 @@ theorem hasDerivAt_rightDirDeriv_pressure_of_mem_dobrushinRegion [Nonempty E]
         (shiftGroup (ι → ℤ) E) := by rw [hμeq s hs]; exact rfl
     have := hμprob s
     exact (Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob.1 hmem.1.2) {i}
+  exact ⟨t₀, μ, ht₀, hab, hmemD, hμprob, hμeq, hμbind⟩
+
+variable (ν) in
+/-- **Georgii Corollary (16.17), the second-derivative formula.** For `Φ` in the region
+`𝒟 = {‖Φ‖ < 1}` of (8.36), an outer direction `Ψ` of `ℬ̃_Θ` (i.e. with `‖Ψ‖ < ∞` in the norm
+(8.36)) and an arbitrary inner direction `Ψ̃ ∈ ℬ_Θ`, the map
+
+`t ↦ ∂/∂s P(Φ + tΨ + sΨ̃)|_{s=0} = −⟨μ_{Φ+tΨ}, Ψ̃⟩`
+
+is differentiable at `t = 0` with
+
+`∂²/∂s∂t P(Φ + sΨ̃ + tΨ)|_{s,t=0} = ∑_k [μ_Φ(f_Ψ̃ · f_Ψ ∘ θ_{−k}) − μ_Φ(f_Ψ̃) μ_Φ(f_Ψ ∘ θ_{−k})]`,
+
+which is Georgii's `∑_i [μ_Φ(f_Ψ̃ f_Ψ ∘ θ_i) − μ_Φ(f_Ψ̃) μ_Φ(f_Ψ)]` after the substitution
+`i = −k`, using that `μ_Φ` is shift invariant and `f_Ψ ∘ θ_{−k} = Potential.siteEnergy Ψ k`.
+
+Georgii's proof is followed exactly: Theorem (16.14) and (8.7)/(8.8) give
+`∂P(Φ + tΨ) = {−⟨μ_{Φ+tΨ}, ·⟩}` along the whole segment (the first-derivative half
+`leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_of_mem_dobrushinRegion`), which turns the inner
+derivative into `μ_{Φ+tΨ}(g)` for `g = −f_Ψ̃`, and Corollary (8.37)
+(`MeasureTheory.GibbsMeasure.Dobrushin.hasDerivAt_integral_gibbsMeasure_add_smul`) differentiates
+that in `t`. Only the *outer* direction needs the norm (8.36) to be finite: it is what keeps the
+segment inside `𝒟`; the inner direction only has to satisfy `∑_i δ_i(f_Ψ̃) ≤ 2‖Ψ̃‖₀ < ∞`, which
+holds for every `Ψ̃ ∈ ℬ_Θ`. -/
+theorem hasDerivAt_rightDirDeriv_pressure_of_mem_dobrushinRegion [Nonempty E]
+    (hΦ : Φ ∈ dobrushinRegion ι E) {Ψ : BTheta (ι → ℤ) E}
+    (hΨ : Dobrushin.cardNormAt (Ψ : Potential (ι → ℤ) E) 0 ≠ ⊤) (Ψ' : BTheta (ι → ℤ) E) :
+    ∃ μ : Measure ((ι → ℤ) → E), invariantG (gibbsSpecificationOfAbsolutelySummable
+        (Φ := (Φ : Potential (ι → ℤ) E)) ν 1) (shiftGroup (ι → ℤ) E) = {μ} ∧
+      HasDerivAt (fun t : ℝ ↦ rightDirDeriv (pressure ν) (Φ + t • Ψ) Ψ')
+        (∑' k : ι → ℤ, cov[(Ψ' : Potential (ι → ℤ) E).siteEnergy 0,
+          (Ψ : Potential (ι → ℤ) E).siteEnergy k; μ]) 0 := by
+  classical
+  obtain ⟨t₀, μ, ht₀, hab, -, hμprob, hμeq, hμbind⟩ :=
+    exists_forall_invariantG_eq_singleton_of_mem_dobrushinRegion ν hΦ hΨ
+  have hΦ' : ∀ i, Dobrushin.cardNormAt (Φ : Potential (ι → ℤ) E) i
+      ≤ Dobrushin.cardNormAt (Φ : Potential (ι → ℤ) E) 0 := fun i ↦
+    le_of_eq (Dobrushin.cardNormAt_eq_of_isShiftInvariant (isShiftInvariant Φ) i)
+  have hΨ' : ∀ i, Dobrushin.cardNormAt (Ψ : Potential (ι → ℤ) E) i
+      ≤ Dobrushin.cardNormAt (Ψ : Potential (ι → ℤ) E) 0 := fun i ↦
+    le_of_eq (Dobrushin.cardNormAt_eq_of_isShiftInvariant (isShiftInvariant Ψ) i)
   -- Corollary (8.37) for the energy density of the inner direction
   have hgq : (Ψ' : Potential (ι → ℤ) E).siteEnergyLp 0 ∈ quasilocalFunctions (ι → ℤ) E :=
     Potential.siteEnergyLp_mem_quasilocalFunctions 0
@@ -1651,6 +1693,113 @@ theorem hasDerivAt_rightDirDeriv_pressure_of_mem_dobrushinRegion [Nonempty E]
     have h := h837.neg
     rw [neg_neg] at h
     exact h
+
+variable (ν) in
+/-- **Georgii Corollary (16.17): the pressure is twice *continuously* differentiable on `𝒟`**,
+along every line. For `Φ` in the region `𝒟 = {‖Φ‖ < 1}` of (8.36) and a direction `Ψ` of `ℬ̃_Θ`
+(finite (8.36)-norm) there is a `t₀ > 0` keeping the segment `{Φ + sΨ : |s| ≤ t₀}` inside `𝒟`,
+and on the open interval `|s| < t₀` the map
+
+`s ↦ P(Φ + sΨ)`
+
+is of class `C¹`… in fact `C²`, with
+
+`d/ds P(Φ + sΨ) = −⟨μ_{Φ+sΨ}, Ψ⟩` and
+`d²/ds² P(Φ + sΨ) = ∑_k [μ_{Φ+sΨ}(f_Ψ · f_Ψ ∘ θ_{−k}) − μ_{Φ+sΨ}(f_Ψ) μ_{Φ+sΨ}(f_Ψ ∘ θ_{−k})]`,
+
+Georgii's `∑_i [μ_Φ(f_Ψ f_Ψ ∘ θ_i) − μ_Φ(f_Ψ)²]` after `i = −k` and shift invariance of `μ`.
+
+The first derivative is `hasDerivAt_pressure_of_mem_dobrushinRegion` transported along the
+segment; the second is Corollary (8.37) with `g = f_Ψ`, and its *continuity* — the clause
+Georgii's "twice continuously differentiable" asserts — is
+`MeasureTheory.GibbsMeasure.Dobrushin.contDiffOn_one_integral_gibbsMeasure_add_smul`, the `C¹`
+half of (8.37): the finite-volume covariances are continuous in the potential parameter and
+converge uniformly on the segment.
+
+As in (8.37), only continuity *along each line* of `𝒟` is obtained, which is what Georgii's
+proof supports. The Fréchet form — `Φ ↦ P(Φ)` twice continuously differentiable as a map on the
+Banach space `ℬ̃_Θ` — would need the second derivative to depend on `Φ` continuously in the
+operator norm; see the scope discussion in
+`GibbsMeasure/Specification/DobrushinDerivatives.lean`. -/
+theorem contDiffOn_two_pressure_of_mem_dobrushinRegion [Nonempty E]
+    (hΦ : Φ ∈ dobrushinRegion ι E) {Ψ : BTheta (ι → ℤ) E}
+    (hΨ : Dobrushin.cardNormAt (Ψ : Potential (ι → ℤ) E) 0 ≠ ⊤) :
+    ∃ (t₀ : ℝ) (μ : ℝ → Measure ((ι → ℤ) → E)), 0 < t₀ ∧
+      (∀ s : ℝ, |s| ≤ t₀ → invariantG (gibbsSpecificationOfAbsolutelySummable
+          (Φ := (Φ : Potential (ι → ℤ) E) + s • (Ψ : Potential (ι → ℤ) E)) ν 1)
+          (shiftGroup (ι → ℤ) E) = {μ s}) ∧
+      ContDiffOn ℝ 2 (fun s : ℝ ↦ pressure ν (Φ + s • Ψ)) (Set.Ioo (-t₀) t₀) ∧
+      ∀ t ∈ Set.Ioo (-t₀) t₀,
+        deriv (fun s : ℝ ↦ pressure ν (Φ + s • Ψ)) t
+            = -(Ψ : Potential (ι → ℤ) E).specificEnergy (μ t) ∧
+          deriv (deriv fun s : ℝ ↦ pressure ν (Φ + s • Ψ)) t
+            = ∑' k : ι → ℤ, cov[(Ψ : Potential (ι → ℤ) E).siteEnergy 0,
+                (Ψ : Potential (ι → ℤ) E).siteEnergy k; μ t] := by
+  classical
+  obtain ⟨t₀, μ, ht₀, hab, hmemD, hμprob, hμeq, hμbind⟩ :=
+    exists_forall_invariantG_eq_singleton_of_mem_dobrushinRegion ν hΦ hΨ
+  have hΦ' : ∀ i, Dobrushin.cardNormAt (Φ : Potential (ι → ℤ) E) i
+      ≤ Dobrushin.cardNormAt (Φ : Potential (ι → ℤ) E) 0 := fun i ↦
+    le_of_eq (Dobrushin.cardNormAt_eq_of_isShiftInvariant (isShiftInvariant Φ) i)
+  have hΨ' : ∀ i, Dobrushin.cardNormAt (Ψ : Potential (ι → ℤ) E) i
+      ≤ Dobrushin.cardNormAt (Ψ : Potential (ι → ℤ) E) 0 := fun i ↦
+    le_of_eq (Dobrushin.cardNormAt_eq_of_isShiftInvariant (isShiftInvariant Ψ) i)
+  -- Corollary (8.37) is applied to the energy density `f_Ψ` of the direction itself
+  have hgq : (Ψ : Potential (ι → ℤ) E).siteEnergyLp 0 ∈ quasilocalFunctions (ι → ℤ) E :=
+    Potential.siteEnergyLp_mem_quasilocalFunctions 0
+  have hgsum : ∑' i : ι → ℤ,
+      Dobrushin.oscAt (⇑((Ψ : Potential (ι → ℤ) E).siteEnergyLp 0)) i ≠ ⊤ := by
+    have hle : ∑' j : ι → ℤ,
+        Dobrushin.oscAt ((Ψ : Potential (ι → ℤ) E).siteEnergy 0) j
+        ≤ 2 * (Ψ : Potential (ι → ℤ) E).normAt 0 :=
+      Dobrushin.tsum_oscAt_siteEnergy_le (Φ := (Ψ : Potential (ι → ℤ) E)) 0
+    exact ne_top_of_le_ne_top (ENNReal.mul_ne_top (a := 2) (by norm_num)
+      (Potential.IsAbsolutelySummable.normAt_ne_top (Φ := (Ψ : Potential (ι → ℤ) E)) 0)) hle
+  -- the first derivative at every point of the open segment, by translating (16.17) to the base
+  -- point `Φ + tΨ`, which is again in `𝒟`
+  have hderiv : ∀ t ∈ Set.Ioo (-t₀) t₀,
+      HasDerivAt (fun s : ℝ ↦ pressure ν (Φ + s • Ψ))
+        (-(Ψ : Potential (ι → ℤ) E).specificEnergy (μ t)) t := by
+    intro t ht
+    have htabs : |t| ≤ t₀ := (abs_lt.2 ⟨ht.1, ht.2⟩).le
+    obtain ⟨m, hm, hmder⟩ :=
+      hasDerivAt_pressure_of_mem_dobrushinRegion (Φ := Φ + t • Ψ) ν (hmemD t htabs)
+    have hmeq : m = μ t := by
+      have h2 : invariantG (gibbsSpecificationOfAbsolutelySummable
+          (Φ := ((Φ + t • Ψ : BTheta (ι → ℤ) E) : Potential (ι → ℤ) E)) ν 1)
+          (shiftGroup (ι → ℤ) E) = {μ t} := hμeq t htabs
+      exact Set.singleton_injective (hm.symm.trans h2)
+    have hadd : ∀ s : ℝ, (Φ + t • Ψ) + (s - t) • Ψ = Φ + s • Ψ := fun s ↦ by
+      rw [add_assoc, ← add_smul, show t + (s - t) = s from by ring]
+    have hH := hmder Ψ
+    rw [hmeq] at hH
+    have hH' : HasDerivAt (fun r : ℝ ↦ pressure ν ((Φ + t • Ψ) + r • Ψ))
+        (-(Ψ : Potential (ι → ℤ) E).specificEnergy (μ t)) (t - t) := by simpa using hH
+    simpa only [hadd] using HasDerivAt.comp_sub_const t t hH'
+  have hdF : ∀ t ∈ Set.Ioo (-t₀) t₀,
+      deriv (fun s : ℝ ↦ pressure ν (Φ + s • Ψ)) t
+        = -(Ψ : Potential (ι → ℤ) E).specificEnergy (μ t) := fun t ht ↦ (hderiv t ht).deriv
+  -- the derivative is `C¹` on the segment: this is the `C¹` half of Corollary (8.37)
+  have hGC : ContDiffOn ℝ 1 (fun s : ℝ ↦ -(Ψ : Potential (ι → ℤ) E).specificEnergy (μ s))
+      (Set.Ioo (-t₀) t₀) :=
+    (Dobrushin.contDiffOn_one_integral_gibbsMeasure_add_smul
+      (Φ := (Φ : Potential (ι → ℤ) E)) (Ψ := (Ψ : Potential (ι → ℤ) E)) ν ht₀ hΦ' hΨ' hab
+      hgq hgsum hμprob hμbind).neg
+  have hC2 : ContDiffOn ℝ 2 (fun s : ℝ ↦ pressure ν (Φ + s • Ψ)) (Set.Ioo (-t₀) t₀) := by
+    rw [show (2 : WithTop ℕ∞) = 1 + 1 from rfl, contDiffOn_succ_iff_deriv_of_isOpen isOpen_Ioo]
+    exact ⟨fun t ht ↦ (hderiv t ht).differentiableAt.differentiableWithinAt, by simp,
+      hGC.congr hdF⟩
+  refine ⟨t₀, μ, ht₀, hμeq, hC2, fun t ht ↦ ⟨hdF t ht, ?_⟩⟩
+  have hEq : deriv (fun s : ℝ ↦ pressure ν (Φ + s • Ψ))
+      =ᶠ[𝓝 t] fun s : ℝ ↦ -(Ψ : Potential (ι → ℤ) E).specificEnergy (μ s) := by
+    filter_upwards [isOpen_Ioo.mem_nhds ht] with s hs using hdF s hs
+  rw [hEq.deriv_eq]
+  have h837 := Dobrushin.hasDerivAt_integral_gibbsMeasure_add_smul
+    (Φ := (Φ : Potential (ι → ℤ) E)) (Ψ := (Ψ : Potential (ι → ℤ) E)) ν ht₀ hΦ' hΨ' hab
+    hgq hgsum hμprob hμbind (t := t) (abs_lt.2 ⟨ht.1, ht.2⟩)
+  have hneg := h837.neg
+  rw [neg_neg] at hneg
+  exact hneg.deriv
 
 end DobrushinRegime
 

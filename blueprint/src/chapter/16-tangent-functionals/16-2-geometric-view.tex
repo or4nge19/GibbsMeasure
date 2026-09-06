@@ -81,7 +81,7 @@
 \begin{theorem}[Georgii (16.17), the two derivatives]
     \label{thm:gv-16-17}
     \uses{thm:gv-16-14, thm:dob-uniqueness, cor:dob-8-37}
-    \lean{MeasureTheory.GibbsMeasure.Dobrushin.cardNormAt, MeasureTheory.GibbsMeasure.Dobrushin.isDobrushin_gibbsSpecification_of_cardNormAt_le, Potential.BTheta.dobrushinRegion, Potential.BTheta.exists_invariantG_eq_singleton_of_mem_dobrushinRegion, Potential.BTheta.leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_of_mem_dobrushinRegion, Potential.BTheta.hasDerivAt_rightDirDeriv_pressure_of_mem_dobrushinRegion, ENNReal.exists_pos_add_ofReal_mul_lt_one, ConvexOn.hasDerivAt_line_of_leftDirDeriv_eq_rightDirDeriv, ConvexOn.differentiable_line_of_leftDirDeriv_eq_rightDirDeriv, Potential.BTheta.hasDerivAt_pressure_of_mem_dobrushinRegion}
+    \lean{MeasureTheory.GibbsMeasure.Dobrushin.cardNormAt, MeasureTheory.GibbsMeasure.Dobrushin.isDobrushin_gibbsSpecification_of_cardNormAt_le, Potential.BTheta.dobrushinRegion, Potential.BTheta.exists_invariantG_eq_singleton_of_mem_dobrushinRegion, Potential.BTheta.leftDirDeriv_eq_and_rightDirDeriv_eq_pressure_of_mem_dobrushinRegion, Potential.BTheta.hasDerivAt_rightDirDeriv_pressure_of_mem_dobrushinRegion, ENNReal.exists_pos_add_ofReal_mul_lt_one, ConvexOn.hasDerivAt_line_of_leftDirDeriv_eq_rightDirDeriv, ConvexOn.differentiable_line_of_leftDirDeriv_eq_rightDirDeriv, Potential.BTheta.hasDerivAt_pressure_of_mem_dobrushinRegion, Potential.BTheta.exists_forall_invariantG_eq_singleton_of_mem_dobrushinRegion, Potential.BTheta.contDiffOn_two_pressure_of_mem_dobrushinRegion}
     \leanok
 
     On the Dobrushin region $\mathcal D = \{\Phi : \sum_{A \ni 0}\abs{A}\norm{\Phi_A} < 1\}$ the
@@ -94,8 +94,13 @@
     differentiable at $0$ with derivative
     $\sum_i [\mu_\Phi(f_{\tilde\Psi}\,f_\Psi\circ\theta_i) - \mu_\Phi(f_{\tilde\Psi})\mu_\Phi(f_\Psi)]$.
     Only the outer direction needs the $(8.36)$-norm, which keeps the segment inside
-    $\mathcal D$; Georgii asks it of both. The continuity of the second derivative in his
-    ``twice continuously differentiable'' is not proved.
+    $\mathcal D$; Georgii asks it of both. Along a single line the second derivative is
+    moreover continuous: for $\Psi$ of finite $(8.36)$-norm, $s \mapsto P(\Phi + s\Psi)$ is of
+    class $C^2$ on $\abs s < t_0$, with $\frac{d}{ds}P = -\langle\mu_{\Phi+s\Psi},\Psi\rangle$
+    and $\frac{d^2}{ds^2}P = \sum_k \operatorname{cov}_{\mu_{\Phi+s\Psi}}(f_\Psi, f_\Psi\circ
+    \theta_{-k})$. This is Georgii's ``twice continuously differentiable'' along every line of
+    $\mathcal D$; its Fr\'echet form on $\widetilde{\mathcal B}_\Theta$ is not proved, for the
+    reason recorded at Corollary \ref{cor:dob-8-37}.
 \end{theorem}
 \begin{proof}
     \leanok
@@ -104,7 +109,11 @@
     Theorem \ref{thm:gv-16-14} with a single tangent functional. For the second derivative, a
     $t_0 > 0$ with $\Phi + t\Psi \in \mathcal D$ for $|t| \leq t_0$ gives the family of unique
     phases, the inner derivative is $-\mu_{\Phi+t\Psi}(f_{\tilde\Psi})$, and Corollary
-    \ref{cor:dob-8-37} with $g = f_{\tilde\Psi}$ differentiates it.
+    \ref{cor:dob-8-37} with $g = f_{\tilde\Psi}$ differentiates it. Continuity along the line is
+    the $C^1$ half of Corollary \ref{cor:dob-8-37} with $g = f_\Psi$: the first derivative of
+    $s \mapsto P(\Phi + s\Psi)$ is $-\mu_{\Phi+s\Psi}(f_\Psi)$ at every point of the segment,
+    by transporting the first-derivative half to the base point $\Phi + s\Psi$, and that
+    function is $C^1$.
 \end{proof}
 
 \begin{example}[The Ising potential as a witness]
