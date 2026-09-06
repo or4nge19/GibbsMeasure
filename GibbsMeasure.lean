@@ -27,6 +27,7 @@ public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Finite
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Connectivity
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Acyclic
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.CayleyTree
+public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.TreeBall
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Hasse
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.InfiniteCluster
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.RootedTree

@@ -340,3 +340,226 @@ theorem isCayleyTree_reducedWordTree (d : ℕ) : (reducedWordTree (d + 1)).IsCay
   isRegularOfDegree := isRegularOfDegree_reducedWordTree
 
 end SimpleGraph
+
+/-! ### Arc-transitivity
+
+Georgii's `𝒞𝒯(d)` is "*the* unique connected tree with `|∂i| = d + 1`", and he uses its
+homogeneity: the automorphism group `I(B)` acts transitively on the oriented bonds. That richness
+is a property of a graph, `SimpleGraph.IsArcTransitive`, which `reducedWordTree` has
+(`SimpleGraph.isArcTransitive_reducedWordTree`): its automorphisms include the left
+multiplications `ReducedWord.lstep` by the generators of the free product `(ℤ/2)^{*(d+1)}` — which
+move `nil` to any word — together with the permutations of the alphabet, which fix `nil` and
+permute its neighbours. -/
+
+namespace SimpleGraph
+
+variable {V : Type*}
+
+/-- A graph is **arc-transitive** if its automorphism group acts transitively on the ordered pairs
+of adjacent vertices (its *arcs*, Georgii's oriented bonds `ij ∈ B̄`). -/
+def IsArcTransitive (G : SimpleGraph V) : Prop :=
+  ∀ ⦃i j i' j' : V⦄, G.Adj i j → G.Adj i' j' → ∃ φ : G ≃g G, φ i = i' ∧ φ j = j'
+
+end SimpleGraph
+
+namespace ReducedWord
+
+variable {n : ℕ}
+
+lemma isChain_cons_of_head?_ne {w : ReducedWord n} {a : Fin n} (ha : w.1.head? ≠ some a) :
+    (a :: w.1).IsChain (· ≠ ·) := by
+  refine w.2.cons fun y hy hcon ↦ ha ?_
+  rw [Option.mem_def] at hy
+  rw [hy, hcon]
+
+/-- **Left multiplication by the `a`-th generator** of the free product of `n` copies of `ℤ/2`:
+delete a leading `a`, or prepend one. It is the mirror image of `ReducedWord.step` (which is right
+multiplication, i.e. the adjacency of `reducedWordTree`), and therefore an automorphism of
+`reducedWordTree n` (`SimpleGraph.lstepIso`). -/
+def lstep (a : Fin n) (w : ReducedWord n) : ReducedWord n :=
+  if ha : w.1.head? = some a then ⟨w.1.tail, w.2.tail⟩
+  else ⟨a :: w.1, isChain_cons_of_head?_ne ha⟩
+
+lemma lstep_of_head? {w : ReducedWord n} {a : Fin n} (ha : w.1.head? = some a) :
+    (lstep a w).1 = w.1.tail := by simp [lstep, ha]
+
+lemma lstep_of_head?_ne {w : ReducedWord n} {a : Fin n} (ha : w.1.head? ≠ some a) :
+    (lstep a w).1 = a :: w.1 := by simp [lstep, ha]
+
+lemma eq_cons_tail_of_head? {w : ReducedWord n} {a : Fin n} (ha : w.1.head? = some a) :
+    w.1 = a :: w.1.tail := by
+  rcases hl : w.1 with _ | ⟨c, l⟩
+  · rw [hl] at ha; simp at ha
+  · rw [hl] at ha
+    simp only [List.head?_cons, Option.some_inj] at ha
+    simp [ha]
+
+/-- In a reduced word starting with `a`, the second letter is not `a`. -/
+lemma head?_tail_ne {w : ReducedWord n} {a : Fin n} (ha : w.1.head? = some a) :
+    (w.1.tail).head? ≠ some a := by
+  intro hcon
+  have hchain := w.2
+  rw [eq_cons_tail_of_head? ha] at hchain
+  exact (List.isChain_cons.1 hchain).1 a (Option.mem_def.2 hcon) rfl
+
+/-- `lstep a` is an involution: the generators of the free product are involutions. -/
+lemma lstep_lstep (a : Fin n) (w : ReducedWord n) : lstep a (lstep a w) = w := by
+  by_cases ha : w.1.head? = some a
+  · refine Subtype.ext ?_
+    rw [lstep_of_head?_ne (by rw [lstep_of_head? ha]; exact head?_tail_ne ha),
+      lstep_of_head? ha]
+    exact (eq_cons_tail_of_head? ha).symm
+  · refine Subtype.ext ?_
+    rw [lstep_of_head? (by rw [lstep_of_head?_ne ha]; simp), lstep_of_head?_ne ha]
+    simp
+
+end ReducedWord
+
+namespace SimpleGraph
+
+open ReducedWord
+
+variable {n : ℕ}
+
+/-- Left multiplication commutes with appending a letter on the right: the case of the adjacency
+of `reducedWordTree` in which `v` is one letter longer than `u`. -/
+lemma adj_lstep_of_eq_append {u v : ReducedWord n} {b : Fin n} (h : v.1 = u.1 ++ [b])
+    (a : Fin n) : (reducedWordTree n).Adj (lstep a u) (lstep a v) := by
+  rw [reducedWordTree_adj]
+  rcases hu : u.1 with _ | ⟨c, l⟩
+  · have hv : v.1 = [b] := by rw [h, hu]; simp
+    have hune : u.1.head? ≠ some a := by rw [hu]; simp
+    by_cases hab : b = a
+    · refine Or.inr ⟨a, ?_⟩
+      rw [lstep_of_head?_ne hune, lstep_of_head? (by rw [hv, hab]; simp), hu, hv, hab]
+      simp
+    · refine Or.inl ⟨b, ?_⟩
+      rw [lstep_of_head?_ne hune, lstep_of_head?_ne (by rw [hv]; simpa using fun hcon ↦ hab hcon),
+        hu, hv]
+      simp
+  · have hv : v.1 = c :: (l ++ [b]) := by rw [h, hu]; simp
+    refine Or.inl ⟨b, ?_⟩
+    by_cases hac : c = a
+    · rw [lstep_of_head? (by rw [hv, hac]; simp), lstep_of_head? (by rw [hu, hac]; simp), hu, hv]
+      simp
+    · rw [lstep_of_head?_ne (by rw [hv]; simpa using fun hcon ↦ hac hcon),
+        lstep_of_head?_ne (by rw [hu]; simpa using fun hcon ↦ hac hcon), hu, hv]
+      simp
+
+lemma adj_lstep {u v : ReducedWord n} (h : (reducedWordTree n).Adj u v) (a : Fin n) :
+    (reducedWordTree n).Adj (lstep a u) (lstep a v) := by
+  rcases h with ⟨b, hb⟩ | ⟨b, hb⟩
+  · exact adj_lstep_of_eq_append hb a
+  · exact (adj_lstep_of_eq_append hb a).symm
+
+/-- Left multiplication by a generator, as an equivalence of reduced words. -/
+def lstepEquiv (a : Fin n) : ReducedWord n ≃ ReducedWord n where
+  toFun := lstep a
+  invFun := lstep a
+  left_inv := lstep_lstep a
+  right_inv := lstep_lstep a
+
+@[simp] lemma lstepEquiv_apply (a : Fin n) (w : ReducedWord n) : lstepEquiv a w = lstep a w := rfl
+
+/-- **Left multiplication by a generator is an automorphism of `𝒞𝒯(n-1)`.** -/
+def lstepIso (a : Fin n) : reducedWordTree n ≃g reducedWordTree n where
+  toEquiv := lstepEquiv a
+  map_rel_iff' := by
+    intro u v
+    simp only [lstepEquiv_apply]
+    refine ⟨fun h ↦ ?_, fun h ↦ adj_lstep h a⟩
+    have h2 := adj_lstep h a
+    rwa [lstep_lstep, lstep_lstep] at h2
+
+@[simp] lemma lstepIso_apply (a : Fin n) (w : ReducedWord n) : lstepIso a w = lstep a w := rfl
+
+/-- The automorphism of `𝒞𝒯(n-1)` given by left multiplication by the word `l`. -/
+def leftIso : List (Fin n) → (reducedWordTree n ≃g reducedWordTree n)
+  | [] => RelIso.refl (reducedWordTree n).Adj
+  | a :: l => (leftIso l).trans (lstepIso a)
+
+lemma leftIso_cons (a : Fin n) (l : List (Fin n)) :
+    leftIso (a :: l) = (leftIso l).trans (lstepIso a) := by
+  simp [leftIso]
+
+lemma leftIso_apply_nil_list :
+    ∀ (l : List (Fin n)), l.IsChain (· ≠ ·) → (leftIso l nil).1 = l := by
+  intro l
+  induction l with
+  | nil => intro _; simp [leftIso, nil]
+  | cons a l ih =>
+    intro hl
+    have hih := ih hl.tail
+    have hhead : (leftIso l nil).1.head? ≠ some a := by
+      rw [hih]
+      exact fun hcon ↦ (List.isChain_cons.1 hl).1 a (Option.mem_def.2 hcon) rfl
+    rw [leftIso_cons]
+    change (lstep a (leftIso l nil)).1 = a :: l
+    rw [lstep_of_head?_ne hhead, hih]
+
+/-- **`𝒞𝒯(n-1)` is vertex-transitive**: left multiplication by `w` carries the empty word to `w`. -/
+lemma leftIso_apply_nil (w : ReducedWord n) : leftIso w.1 nil = w :=
+  Subtype.ext (leftIso_apply_nil_list w.1 w.2)
+
+/-- A permutation of the alphabet is an automorphism of `𝒞𝒯(n-1)` fixing the empty word. -/
+def permIso (π : Equiv.Perm (Fin n)) : reducedWordTree n ≃g reducedWordTree n where
+  toFun w := ⟨w.1.map π, List.isChain_map_of_isChain _ (fun _ _ h hcon ↦ h (π.injective hcon)) w.2⟩
+  invFun w := ⟨w.1.map π.symm,
+    List.isChain_map_of_isChain _ (fun _ _ h hcon ↦ h (π.symm.injective hcon)) w.2⟩
+  left_inv w := Subtype.ext (by simp)
+  right_inv w := Subtype.ext (by simp)
+  map_rel_iff' := by
+    intro u v
+    simp only [Equiv.coe_fn_mk, reducedWordTree_adj]
+    constructor
+    · rintro (⟨b, hb⟩ | ⟨b, hb⟩)
+      · exact Or.inl ⟨π.symm b, by simpa using congrArg (List.map π.symm) hb⟩
+      · exact Or.inr ⟨π.symm b, by simpa using congrArg (List.map π.symm) hb⟩
+    · rintro (⟨b, hb⟩ | ⟨b, hb⟩)
+      · exact Or.inl ⟨π b, by simp [hb]⟩
+      · exact Or.inr ⟨π b, by simp [hb]⟩
+
+@[simp] lemma permIso_apply (π : Equiv.Perm (Fin n)) (w : ReducedWord n) :
+    (permIso π w).1 = w.1.map π := rfl
+
+/-- The neighbours of the empty word are the one-letter words. -/
+lemma exists_eq_singleton_of_adj_nil {w : ReducedWord n} (h : (reducedWordTree n).Adj nil w) :
+    ∃ a : Fin n, w.1 = [a] := by
+  rcases h with ⟨a, ha⟩ | ⟨a, ha⟩
+  · exact ⟨a, by simpa using ha⟩
+  · exact absurd (congrArg List.length ha) (by simp)
+
+/-- Every arc can be moved to an arc at the empty word. -/
+lemma exists_iso_eq_nil_of_adj {u v : ReducedWord n} (huv : (reducedWordTree n).Adj u v) :
+    ∃ (φ : reducedWordTree n ≃g reducedWordTree n) (a : Fin n), φ u = nil ∧ (φ v).1 = [a] := by
+  refine ⟨(leftIso u.1).symm, ?_⟩
+  have hu : (leftIso u.1).symm u = nil := by
+    have h0 : (leftIso u.1).symm ((leftIso u.1) nil) = nil := RelIso.symm_apply_apply _ _
+    rwa [leftIso_apply_nil u] at h0
+  have hadj : (reducedWordTree n).Adj ((leftIso u.1).symm u) ((leftIso u.1).symm v) :=
+    (leftIso u.1).symm.map_adj_iff.2 huv
+  rw [hu] at hadj
+  obtain ⟨a, ha⟩ := exists_eq_singleton_of_adj_nil hadj
+  exact ⟨a, hu, ha⟩
+
+/-- **Georgii's `𝒞𝒯(d)` is arc-transitive.** Any oriented bond can be carried to any other by an
+automorphism: first move the source to the empty word by a left multiplication, then permute the
+alphabet to match the two one-letter targets. -/
+theorem isArcTransitive_reducedWordTree : (reducedWordTree n).IsArcTransitive := by
+  intro i j i' j' hij hij'
+  obtain ⟨φ, a, hφi, hφj⟩ := exists_iso_eq_nil_of_adj hij
+  obtain ⟨ψ, b, hψi, hψj⟩ := exists_iso_eq_nil_of_adj hij'
+  refine ⟨(φ.trans (permIso (Equiv.swap a b))).trans ψ.symm, ?_, ?_⟩
+  · change ψ.symm (permIso (Equiv.swap a b) (φ i)) = i'
+    have hnil : permIso (Equiv.swap a b) (nil : ReducedWord n) = nil := Subtype.ext (by simp [nil])
+    rw [hφi, hnil, ← hψi]
+    exact RelIso.symm_apply_apply _ _
+  · change ψ.symm (permIso (Equiv.swap a b) (φ j)) = j'
+    have hval : permIso (Equiv.swap a b) (φ j) = ψ j' := by
+      refine Subtype.ext ?_
+      rw [permIso_apply, hφj, hψj]
+      simp
+    rw [hval]
+    exact RelIso.symm_apply_apply _ _
+
+end SimpleGraph

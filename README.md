@@ -800,8 +800,16 @@ these are statements about `𝒢(Φ^{J,h})`; the Cayley tree itself is construct
 the graph of reduced words, and the phase transition is witnessed at degree three. The alternating
 boundary laws on the tree's bipartition give two
 distinct Gibbs measures whenever the second iterate of the recursion has a fixed point that the
-recursion itself does not — the existence of such a point, which is Georgii's antiferromagnetic
-transition proper, is assumed rather than proved. Chapter 11's `γ^Q` is the Hasse-graph instance of the tree
+recursion itself does not — the existence of such a point for `J < −J(d)` and `|h| < ĥ(J,d)` is a theorem (the unique
+solution of (12.22) has `(dφ_J'(t))² > 1` by (12.29), so the second iterate minus the identity changes
+sign), witnessed on `CT(2)`. On an arc-transitive Cayley tree **`|ex 𝒢(J,h) ∖ ex 𝒢_{I(B)}(J,h)| = ∞`**
+((12.31)(b), `infinite_extremePoints_G_sdiff_extremePoints_invariantG`): the inhomogeneous chains are
+separated on a sphere of the tree by a Vandermonde system and (7.29) over `ℝ`, while an
+`I(B)`-invariant extreme Gibbs measure is a completely homogeneous chain, of which there are at most
+three; arc-transitivity, Georgii's unproved uniqueness of `CT(d)`, is a hypothesis discharged on the
+reduced-word model (`Mathlib/Combinatorics/SimpleGraph/CayleyTree.lean`, balls and spheres in
+`Mathlib/Combinatorics/SimpleGraph/TreeBall.lean`). Open: step 5, the extremality of `μ_#` in
+`𝒢_{I(B)}`. Chapter 11's `γ^Q` is the Hasse-graph instance of the tree
 specification; the counting-kernel and cylinder calculus lives once, for any site set, in
 `GibbsMeasure/Specification/CountingKernel.lean`, with the graph combinatorics under
 `GibbsMeasure/Mathlib/Combinatorics/SimpleGraph/`.
@@ -949,8 +957,8 @@ Gibbs measure is unique ((6.7)(2)); **(6.7)(1)**: `𝒢(βΦ) = [μ₋^β, μ₊
 neighbouring spins has a unique infinite component almost surely under every Gibbs measure.
 
 Not yet done: the Fréchet form of the continuous differentiability asserted in (8.37), proved
-along every line of `𝒟`, and the continuity of the second derivative in (16.17); in (12.31)(b) the infinitude of
-`ex 𝒢 ∖ ex 𝒢_{I(B)}` and the third extreme invariant element; (13.40), (13.41) for a general `J` under the logarithmic
+along every line of `𝒟`, and the continuity of the second derivative in (16.17); in (12.31)(b) the
+extremality of `μ_#` in `𝒢_{I(B)}` (step 5); (13.40), (13.41) for a general `J` under the logarithmic
 condition, and (13.44)–(13.45), whose infinite-range specification (13.18) is not defined in the tree; Georgii's closure bound in
 (15.46) for a non-convex `C` over an infinite state space, Cramér's formula at `Φ = 0`, and
 (15.57)–(15.58) beyond the subgradient uniqueness; the criterion of (16.24)(3), (16.24)(4), (16.25)(2),

@@ -150,6 +150,23 @@ theorem treeBackOrbit_one : treeBackOrbit d J h t 1 = t := by
 
 end Orbit
 
+/-- **Georgii, step 4): the backward orbit determines `t`.** For `n ≥ 1` the map `t ↦ u_n` is
+injective on `]a, b[`: applying `ψ` `n` times to `u_{n+1}` returns `u_1 = t`. -/
+theorem treeBackOrbit_inj (hJ : 0 < J) (hd : 1 ≤ d) {a b : ℝ}
+    (ha : treeRecursion d J h a = a) (hb : treeRecursion d J h b = b) (hab : a < b) :
+    ∀ (n : ℕ) {t s : ℝ}, t ∈ Set.Ioo a b → s ∈ Set.Ioo a b →
+      treeBackOrbit d J h t (n + 1) = treeBackOrbit d J h s (n + 1) → t = s := by
+  intro n
+  induction n with
+  | zero =>
+    intro t s _ _ hts
+    rwa [treeBackOrbit_one hJ hd, treeBackOrbit_one hJ hd] at hts
+  | succ n ih =>
+    intro t s ht hs hts
+    refine ih ht hs ?_
+    rw [← treeRecursion_treeBackOrbit_succ hJ hd ha hb hab ht (n + 1),
+      ← treeRecursion_treeBackOrbit_succ hJ hd ha hb hab hs (n + 1), hts]
+
 /-- **Georgii, step 4) of the proof of Theorem (12.31).** The second sequence attached to a
 backward orbit: the parameters of the bonds *pointing away* from the root. `v_0 = u_0` and
 `v_{n+1} = h + φ_J(v_n) + (d - 1) φ_J(u_{n+2})`. -/

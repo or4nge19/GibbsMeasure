@@ -40,11 +40,11 @@
     extreme measure; and the family $(u_{d(r,i)}, v_{d(r,i)})$ built from a non-fixed orbit of
     $h + d\varphi_J$ between two fixed points is a boundary law (the converse of (12.32)), giving
     infinitely many inhomogeneous Markov chains in $\mathcal G(J,h)$ that are not completely
-    homogeneous. Not proved: that $\operatorname{ex}\mathcal G(J,h) \setminus
-    \operatorname{ex}\mathcal G_{I(B)}(J,h)$ is infinite (the linear independence of the $\nu_t$
-    and the transitivity of the automorphism group of the Cayley tree on oriented bonds, not in
-    the tree; with $I(B)$ trivial the clause would be false) and step 5, the third extreme element
-    $\mu_\#$ of $\mathcal G_{I(B)}$ (the mixing estimate under $I(B,n)$).
+    homogeneous. The last clause $\abs{\operatorname{ex}\mathcal G(J,h) \setminus
+    \operatorname{ex}\mathcal G_{I(B)}(J,h)} = \infty$ is Theorem \ref{thm:ict-12-31-b-last}.
+    Not proved: step 5, that $\mu_\#$ is a third \emph{extreme} element of $\mathcal G_{I(B)}$
+    (the mixing estimate under $I(B,n)$); of that clause what is proved is that
+    $\mu_-, \mu_\#, \mu_+$ are three distinct \emph{elements} of $\mathcal G_{I(B)}(J,h)$.
 \end{theorem}
 \begin{proof}
     \leanok
@@ -52,6 +52,53 @@
     equation, so uniqueness of the solution forces the boundary law; the extreme decomposition then
     gives $\mathcal G = \{\mu_*\}$.
 \end{proof}
+
+\begin{theorem}[Georgii (12.31)(b), last clause]
+    \label{thm:ict-12-31-b-last}
+    \uses{thm:ict-12-31, cor:ext-728-730, thm:tr-12-6}
+    \lean{SimpleGraph.ballFinset, SimpleGraph.mem_ballFinset_iff,
+      SimpleGraph.mem_outerBoundary_ballFinset_iff, SimpleGraph.connected_induce_ballFinset,
+      SimpleGraph.lt_card_outerBoundary_ballFinset, SimpleGraph.IsArcTransitive,
+      SimpleGraph.isArcTransitive_reducedWordTree, ReducedWord.lstep, SimpleGraph.lstepIso,
+      SimpleGraph.leftIso, SimpleGraph.leftIso_apply_nil, SimpleGraph.permIso,
+      Real.treeBackOrbit_inj, MeasureTheory.GibbsMeasure.exists_ne_zero_sum_toReal_eq_zero,
+      MeasureTheory.GibbsMeasure.Tree.boundaryLawWeight_ite_mul_pow,
+      MeasureTheory.GibbsMeasure.Tree.IsBoundaryLaw.boundaryLawMeasure_cyl_ite_mul_pow,
+      MeasureTheory.GibbsMeasure.Tree.isingTreeParam_anchor_ballFinset,
+      MeasureTheory.GibbsMeasure.Tree.isingTreeChain_cyl_mul_pow,
+      MeasureTheory.GibbsMeasure.Tree.isingSphereRatio,
+      MeasureTheory.GibbsMeasure.Tree.toReal_isingTreeChain_cyl,
+      MeasureTheory.GibbsMeasure.Tree.isingSphereRatio_inj,
+      MeasureTheory.GibbsMeasure.Tree.infinite_extremePoints_G_isingTreeSpecification,
+      MeasureTheory.GibbsMeasure.Tree.isCompletelyHomogeneousMarkovChain_of_forall_measurePreserving,
+      MeasureTheory.GibbsMeasure.Tree.finite_extremePoints_G_inter_invariantG,
+      MeasureTheory.GibbsMeasure.Tree.infinite_extremePoints_G_sdiff_extremePoints_invariantG,
+      MeasureTheory.GibbsMeasure.Tree.infinite_extremePoints_G_sdiff_extremePoints_invariantG_isingSpecification,
+      MeasureTheory.GibbsMeasure.Tree.infinite_extremePoints_G_sdiff_extremePoints_invariantG_reducedWordTree,
+      MeasureTheory.GibbsMeasure.Tree.exists_three_mem_invariantG_isingChain}
+    \leanok
+
+    For $J > J(d)$ and $\abs h \leq h(J,d)$ on an arc-transitive Cayley tree,
+    $\abs{\operatorname{ex}\mathcal G(J,h) \setminus \operatorname{ex}\mathcal G_{I(B)}(J,h)}
+    = \infty$. Two halves. (i) $\operatorname{ex}\mathcal G(J,h)$ is infinite: Georgii's linear
+    independence of $\{\nu_t\}$ is read off a sphere, since all bonds from $\partial B(r,n)$ into
+    the ball carry the same parameter $u_{n+1}(t)$, so the cylinder "$-1$ on $B(r,n)$, $+1$ exactly
+    on $U \subseteq \partial B(r,n)$" has $\nu_t$-probability
+    $\nu_t(\sigma \equiv -1) \, s_n(t)^{\abs U}$ with $s_n(t) = e^{2u_{n+1}(t) - 2J}$ injective in
+    $t$; the spheres of a $(d+1)$-regular tree are arbitrarily large for $d \geq 2$, so $N$ of the
+    $\nu_t$ solve a Vandermonde system and admit no nontrivial real relation, and (7.29) over
+    $\mathbb R$ gives $\abs{\operatorname{ex}\mathcal G(J,h)} \geq N$. (ii)
+    $\operatorname{ex}\mathcal G(J,h) \cap \mathcal G_{I(B)}(J,h)$ is finite: an extreme Gibbs
+    measure is a Markov chain (12.6), an $I(B)$-invariant Markov chain on an arc-transitive tree
+    has one transition matrix on all oriented bonds, hence is completely homogeneous (Comment
+    (12.3)(5) read backwards), and (12.22) has at most three solutions. Arc-transitivity
+    holds for every Cayley tree --- Georgii's unproved "$S$ is \emph{the} unique connected tree
+    with $\abs{\partial i} = d+1$" --- but that uniqueness is not formalised, so it is a hypothesis
+    here, discharged on the model: on the tree of reduced words over $d+1$ letters the left
+    multiplications by the generators of $(\mathbb Z/2)^{*(d+1)}$ move the empty word anywhere and
+    the alphabet permutations rotate the bonds at it. So the clause is unconditional on
+    $\mathcal{CT}(2)$ at $J = \operatorname{artanh}(3/4)$, $h = 0$.
+\end{theorem}
 
 \begin{proposition}[Georgii (12.34), (12.35)]
     \label{prop:ict-12-34}

@@ -10,6 +10,8 @@ public import GibbsMeasure.Model.Ising
 public import GibbsMeasure.Specification.ErgodicGibbs
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.CayleyTree
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.RootedTree
+public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.TreeBall
+public import Mathlib.LinearAlgebra.Vandermonde
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.LogCoshRatioFixedPoint
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.LogCoshRatioAntiferro
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.LogCoshRatioExtremalSolutions
@@ -101,37 +103,74 @@ The real analysis behind (12.23), (12.26)–(12.30), (12.33) and (12.35) — `Re
 `GibbsMeasure/Mathlib/Analysis/SpecialFunctions/LogCoshRatio.lean` and
 `GibbsMeasure/Mathlib/Analysis/SpecialFunctions/LogCoshRatioFixedPoint.lean`.
 
+## Georgii Theorem (12.31)(b), last clause: `|ex 𝒢(J,h) ∖ ex 𝒢_{I(B)}(J,h)| = ∞`
+
+* `infinite_extremePoints_G_isingTreeSpecification` — `ex 𝒢(J, h)` is infinite. Georgii finishes
+  step 4) with the *linear independence* of the family `{ν_t : t₋ < t < t₊}` and Corollary (7.29);
+  the linear independence is read off a sphere. All the bonds from the sphere `∂B(r, n)` into the
+  ball `B(r, n)` carry one and the same parameter `u_{n+1}(t)` of the backward orbit
+  (`isingTreeParam_anchor_ballFinset`), so the probability of the cylinder "`-1` on `B(r,n)`, `+1`
+  exactly on `U ⊆ ∂B(r,n)`" is `ν_t(σ ≡ -1) s_n(t)^{|U|}` with `s_n(t) = exp(2u_{n+1}(t) - 2J)`
+  (`isingTreeChain_cyl_mul_pow`, `toReal_isingTreeChain_cyl`): a *geometric* function of `|U|`.
+  Distinct `t` give distinct `s_n(t)` (`Real.treeBackOrbit_inj`, `isingSphereRatio_inj`) and the
+  spheres are arbitrarily large (`SimpleGraph.lt_card_outerBoundary_ballFinset`, for `d ≥ 2` —
+  which `d tanh J > 1` forces), so `N` of the `ν_t` are separated by a Vandermonde system
+  (`Matrix.eq_zero_of_forall_pow_sum_mul_pow_eq_zero`) and admit no nontrivial linear relation;
+  Corollary (7.29) over `ℝ` (`exists_ne_zero_sum_toReal_eq_zero`, the real form of (7.29) whose
+  `ℝ≥0∞`-form is unusable here — over `ℝ≥0∞`, `∞ • μ = ∞ • ν` for measures with the same null
+  sets) then gives `|ex 𝒢(J,h)| ≥ N` for every `N`.
+* `finite_extremePoints_G_inter_invariantG` — `ex 𝒢(J,h) ∩ 𝒢_{I(B)}(J,h)` is finite (at most the
+  three solutions of (12.22)). This is Comment (12.3)(5) read backwards and uses the homogeneity of
+  Georgii's `𝒞𝒯(d)`, in the form `SimpleGraph.IsArcTransitive`: an `I(B)`-invariant Markov chain
+  has the same transition matrix on every oriented bond, hence is completely homogeneous
+  (`isCompletelyHomogeneousMarkovChain_of_forall_measurePreserving`), and an extreme Gibbs measure
+  is a Markov chain by Theorem (12.6). Arc-transitivity *does* hold for every `IsCayleyTree` —
+  Georgii's "`S` is *the* unique connected tree with `|∂i| = d + 1`", which he states without proof
+  and which would need a back-and-forth construction of an isomorphism between two `(d+1)`-regular
+  trees — but that uniqueness is not formalised here, so arc-transitivity appears as a hypothesis
+  and is discharged for the model `SimpleGraph.reducedWordTree`
+  (`SimpleGraph.isArcTransitive_reducedWordTree`: left multiplications in the free product
+  `(ℤ/2)^{*(d+1)}` move `nil` anywhere, alphabet permutations rotate the bonds at `nil`), on which
+  the clause is therefore unconditional
+  (`infinite_extremePoints_G_sdiff_extremePoints_invariantG_reducedWordTree`).
+* `infinite_extremePoints_G_sdiff_extremePoints_invariantG` is the two together, and
+  `..._isingSpecification` / `..._reducedWordTree` are the clause for the Ising *potential* and its
+  unconditional witness on `𝒞𝒯(2)`.
+
 ## Not formalised here
 
-Of Georgii's Theorem (12.31)(b) the clause `|ex 𝒢(J,h) ∖ ex 𝒢_{I(B)}(J,h)| = ∞` and the clause
-"`μ_#` is a third extreme element of `𝒢_{I(B)}(J,h)`" are **not** proved. What is missing, exactly:
+Of Georgii's Theorem (12.31)(b) the last clause — "if `|h| < h(J, d)` then `μ_#` is a third
+*extreme* element of `𝒢_{I(B)}(J, h)`" — is **not** proved. What is proved of it:
+`exists_three_mem_invariantG_isingChain`, that `μ₋`, `μ_#`, `μ₊` are three distinct *elements* of
+`𝒢_{I(B)}(J, h)`, of which the outer two are extreme (in `𝒢(J,h)` and hence in `𝒢_{I(B)}(J,h)`).
 
-* Step 4) is carried out here up to its last line. Georgii concludes from the *linear
-  independence* of the family `{ν_t : t₋ < t < t₊}` ("a straightforward modification of the proof
-  of Corollary (12.18)") and Corollary (7.29) (`le_encard_extremePoints_iff`) that `ex 𝒢(J, h)`
-  is infinite. That linear independence is not proved here: Corollary (12.18)
-  (`not_isMarkovChain_sum_smul_of_forall_adj_exists_boundaryLaw_eq`) carries Georgii's own
-  hypothesis that at every oriented bond `ij` some other neighbour `k` of `i` has
-  `ℓ^{(n)}_{ki} = ℓ^{(n)}_{ji}` for all `n`, which holds for *completely homogeneous* chains but
-  not for arbitrary members of `ex 𝒢(J, h)`, so it does not apply to the extreme decomposition of
-  a `ν_t`. What is proved instead is that the `ν_t` are infinitely many pairwise distinct Markov
-  chains in `𝒢(J, h)`, none of them completely homogeneous.
-* Step 5) (`μ_#` extreme in `𝒢_{I(B)}`) rests on a mixing property of a completely homogeneous
-  chain along the subgroups `I(B, n) = {τ ∈ I(B) : d(τ i, i) ≥ n for all i}`. Neither the mixing
-  estimate — which needs (12.4) on a volume meeting both `Λ` and `τ^{-1}Δ` and the convergence
-  `P^k → α` of Theorem (3.A3) — nor the non-emptiness of `I(B, n)` is proved here. Georgii's
-  Corollary (7.4) itself *is* available, in the form he uses it (invariance only `μ`-almost
-  everywhere): `mem_extremePoints_iff_trivialOn_aeInvariant`, in the namespace
-  `MeasureTheory.GibbsMeasure.AbstractSpecification` of `GibbsMeasure/Specification/Abstract.lean`. Note that the countable-group form
-  (Theorem (14.5)(a), `mem_extremePoints_invariantFields_iff_mem_trivialOn`) does *not* apply:
-  `I(B)` is uncountable for `d ≥ 1`.
-* Both missing clauses need a fact about `𝒞𝒯(d)` that this development does not have: that the
-  automorphism group of a `(d+1)`-regular tree is rich — transitive on oriented bonds, and
-  containing elements moving every vertex arbitrarily far. It *is* rich (all `(d+1)`-regular trees
-  are isomorphic), but the proof is a back-and-forth construction which is in neither Mathlib nor
-  this tree, and `SimpleGraph.IsCayleyTree` is an abstract property from which the automorphisms
-  would have to be *built*. Until they are, `𝒢_{I(B)}(J, h)` cannot be separated from `𝒢(J, h)`
-  (they coincide if `I(B)` is trivial), so no proof of the third clause is available here.
+What is missing is Georgii's step 5) in its entirety: a completely homogeneous Markov chain `μ` is
+extreme in `𝓟_{I(B)}(Ω, 𝓕)` — hence in the smaller `𝒢_{I(B)}(J,h)` — because of a *mixing*
+property along the subgroups `I(B, n) = {τ ∈ I(B) : d(τ i, i) ≥ n for all i}`,
+
+  `lim_n sup_{τ ∈ I(B,n)} |μ(A ∩ τ⁻¹C) - μ(A) μ(C)| = 0`.
+
+Three inputs are absent from this development, and none of them is a detail:
+
+* Georgii's (12.4), `μ(σ_Λ = ζ) = α_k(ζ_k) ∏_{ij ⊆ Λ} P_{ij}(ζ_i, ζ_j)` for connected `Λ`, and the
+  two-block estimate it yields for volumes `Λ` and `τ⁻¹Δ` at distance `≥ k`, namely
+  `|μ(A ∩ τ⁻¹C) - μ(A)μ(C)| ≤ max_x ∑_y |P^k(x, y) - α(y)|`;
+* the convergence `P^k → α` of Theorem (3.A3) (elementary for the positive `2 × 2` matrix `P_t`,
+  but not available here);
+* `I(B, n) ≠ ∅`, i.e. automorphisms of `𝒞𝒯(d)` displacing *every* vertex by at least `n`. For
+  `reducedWordTree` these are the left multiplications by cyclically reduced words of length `n`
+  (Georgii's "horizontal shift by `n`"), whose displacement bound `d(gw, w) ≥ |g|` needs the normal
+  form and the length function of the free product; only the *generators* `ReducedWord.lstep` and
+  the alphabet permutations are constructed here, which is exactly what arc-transitivity — and
+  hence the clause proved above — requires.
+
+Georgii's Corollary (7.4) itself *is* available, in the form he uses it (invariance only
+`μ`-almost everywhere): `mem_extremePoints_iff_trivialOn_aeInvariant`, in the namespace
+`MeasureTheory.GibbsMeasure.AbstractSpecification` of `GibbsMeasure/Specification/Abstract.lean`.
+Note that the countable-group form (Theorem (14.5)(a),
+`mem_extremePoints_invariantFields_iff_mem_trivialOn`) does *not* apply: `I(B)` is uncountable for
+`d ≥ 2`, the only case in which (12.31)(b) has any content. (For `d = 1`, `𝒞𝒯(1) = ℤ` and `I(B)`
+*is* countable — but there `h(J, 1) = 0` and `𝒢(J, h)` is a singleton.)
 
 Georgii's remark that `I(J, d) = ]-h(J,d), h(J,d)[` in the antiferromagnetic case is explicitly
 stated in the book as suggested by numerical calculations, not as a theorem; the inclusion
@@ -1171,6 +1210,29 @@ theorem exists_ne_mem_extremePoints_G_inter_invariantG_isingChain (hJ : 0 < J)
     ⟨mem_extremePoints_G_isingChain_of_isGreatest hJ hG hsmax hmaxle,
       mem_extremePoints_invariantG_isingChain_of_isGreatest hJ hG hsmax hmaxle⟩⟩
 
+omit [Countable S] in
+/-- **Georgii Theorem (12.31)(b), third clause, without step 5).** For `|h| < h(J, d)` the three
+completely homogeneous Markov chains `μ₋`, `μ_#`, `μ₊` attached to the three solutions of (12.22)
+are three *distinct elements* of `𝒢_{I(B)}(J, h)` (Comment (12.3)(5)). That the intermediate one is
+moreover *extreme* in `𝒢_{I(B)}(J, h)` is Georgii's step 5), which rests on a mixing property of
+completely homogeneous chains along `I(B, n)` and is not proved here; the outer two are extreme
+already in `𝒢(J, h)` (`mem_extremePoints_G_isingChain_of_isLeast` / `..._of_isGreatest`). -/
+theorem exists_three_mem_invariantG_isingChain (hJ : 0 < J) (hd : 1 ≤ d) (hG : G.IsCayleyTree d)
+    (hh : |h| < Real.treeCriticalField d J) :
+    ∃ (t₁ t₂ t₃ : ℝ) (hs₁ : t₁ = h + d * logCoshRatio J t₁)
+      (hs₂ : t₂ = h + d * logCoshRatio J t₂) (hs₃ : t₃ = h + d * logCoshRatio J t₃),
+      isingChain hG hs₁ ≠ isingChain hG hs₂ ∧ isingChain hG hs₂ ≠ isingChain hG hs₃ ∧
+        isingChain hG hs₁ ≠ isingChain hG hs₃ ∧
+        isingChain hG hs₁ ∈ invariantG (isingTreeSpecification G d J h)
+          (graphAutomorphisms Bool G) ∧
+        isingChain hG hs₂ ∈ invariantG (isingTreeSpecification G d J h)
+          (graphAutomorphisms Bool G) ∧
+        isingChain hG hs₃ ∈ invariantG (isingTreeSpecification G d J h)
+          (graphAutomorphisms Bool G) := by
+  obtain ⟨t₁, t₂, t₃, hs₁, hs₂, hs₃, h₁₂, h₂₃, h₁₃⟩ := exists_three_isingChain hJ hd hG hh
+  exact ⟨t₁, t₂, t₃, hs₁, hs₂, hs₃, h₁₂, h₂₃, h₁₃, mem_invariantG_isingChain hG hs₁,
+    mem_invariantG_isingChain hG hs₂, mem_invariantG_isingChain hG hs₃⟩
+
 end Extremality
 
 
@@ -1445,6 +1507,264 @@ theorem infinite_setOf_mem_G_not_isCompletelyHomogeneous [Countable S] (hJ : 0 <
 
 end Inhomogeneous
 
+
+
+/-! ## Georgii Theorem (12.31)(b), last clause: `|ex 𝒢(J,h) ∖ ex 𝒢_{I(B)}(J,h)| = ∞`
+
+Georgii finishes step 4) with: "the family `{ν_t : t₋ < t < t₊}` is linearly independent. This can
+be seen by a straightforward modification of the proof of Corollary (12.18). The result thus
+follows from Theorem (7.26)."
+
+The linear independence is read off a *sphere*. Take the ball `Λ = B(r, n)` around the root `r` of
+`ν_t`; its outer boundary is the sphere of radius `n + 1`, all of whose bonds into the ball carry
+one and the same parameter `u_{n+1}(t)` of the backward orbit. By
+`IsBoundaryLaw.boundaryLawMeasure_cyl_ite_mul_pow` the probability of the cylinder "`-1` on the
+ball, `+1` exactly on `U ⊆ ∂Λ`" is therefore `ν_t(σ ≡ -1 on B(r,n+1)) · s_n(t)^{|U|}` with
+`s_n(t) = exp(2u_{n+1}(t) - 2J) > 0`, a *geometric* function of `|U|`. Distinct `t` give distinct
+`s_n(t)` (`Real.treeBackOrbit_inj`), and the sphere is arbitrarily large
+(`SimpleGraph.lt_card_outerBoundary_ballFinset`), so any `N` of the `ν_t` are separated by a
+Vandermonde system and cannot satisfy a nontrivial linear relation
+(`Matrix.eq_zero_of_forall_pow_sum_mul_pow_eq_zero`). By Corollary (7.29) over `ℝ`
+(`exists_ne_zero_sum_toReal_eq_zero`) that forces `|ex 𝒢(J,h)| ≥ N` for every `N`.
+
+The invariant half of the clause is Comment (12.3)(5) read backwards: on an *arc-transitive*
+Cayley tree (`SimpleGraph.IsArcTransitive`, which Georgii's `𝒞𝒯(d)` is —
+`SimpleGraph.isArcTransitive_reducedWordTree`) an `I(B)`-invariant Markov chain has one and the
+same transition matrix on every oriented bond, so it is completely homogeneous; by Theorem (12.6)
+and Proposition (12.24) the extreme `I(B)`-invariant Gibbs measures are therefore among the `μ_t`,
+`t` a solution of (12.22), of which there are at most three. -/
+
+section InfinitelyManyPhases
+
+open SimpleGraph
+
+/-- **The parameter of `ν_t` on the sphere `∂B(r, n)`.** Every vertex of the outer boundary of the
+ball `B(r, n)` is at distance `n + 1` from the root and its anchor is its parent, so the bond
+`k k_Λ` points towards `r` and carries the parameter `u_{n+1}` of the backward orbit. -/
+theorem isingTreeParam_anchor_ballFinset (hG : G.IsCayleyTree d) (r : S) (n : ℕ) {k : S}
+    (hk : k ∈ G.outerBoundary (G.ballFinset r n)) :
+    isingTreeParam G d J h t r k (G.anchor (G.ballFinset r n) k)
+      = Real.treeBackOrbit d J h t (n + 1) := by
+  have hkd : G.dist r k = n + 1 :=
+    (SimpleGraph.mem_outerBoundary_ballFinset_iff hG.connected).1 hk
+  have hanc : G.dist r (G.anchor (G.ballFinset r n) k) ≤ n :=
+    SimpleGraph.dist_le_of_mem_ballFinset hG.connected (G.anchor_mem hk)
+  have hnot : r ∉ G.past k (G.anchor (G.ballFinset r n) k) := by
+    simp only [SimpleGraph.mem_past]
+    omega
+  rw [isingTreeParam_of_notMem_past hnot, hkd]
+
+/-- **Georgii, step 4): the sphere probabilities of `ν_t` are geometric.** The probability of the
+cylinder "`-1` on the ball `B(r, n)` and on the sphere `∂B(r, n)` except on `U`, `+1` on `U`" is
+the probability of the constant cylinder `-1` times `(ℓ_{u_{n+1}}(+) Q(-,+)/Q(-,-))^{|U|}`. -/
+theorem isingTreeChain_cyl_mul_pow (hJ : 0 < J) (hd : 1 ≤ d) (hG : G.IsCayleyTree d) (r : S)
+    {a b : ℝ} (ha : Real.treeRecursion d J h a = a) (hb : Real.treeRecursion d J h b = b)
+    (hab : a < b) (ht : t ∈ Set.Ioo a b) (n : ℕ) {U : Finset S}
+    (hU : U ⊆ G.outerBoundary (G.ballFinset r n)) :
+    isingTreeChain hJ hd hG r ha hb hab ht
+          (cyl (G.ballFinset r n ∪ G.outerBoundary (G.ballFinset r n))
+            (fun i ↦ if i ∈ U then true else false))
+        * isingTransfer d J h false false ^ U.card
+      = isingTreeChain hJ hd hG r ha hb hab ht
+            (cyl (G.ballFinset r n ∪ G.outerBoundary (G.ballFinset r n)) (fun _ ↦ false))
+        * (isingBoundaryVec d h (Real.treeBackOrbit d J h t (n + 1)) true
+            * isingTransfer d J h false true) ^ U.card :=
+  IsBoundaryLaw.boundaryLawMeasure_cyl_ite_mul_pow (isTransferFamily_isingTransfer G d J h)
+    hG.isTree (isBoundaryLaw_isingTreeParam hJ hd hG r ha hb hab ht)
+    (SimpleGraph.connected_induce_ballFinset r n)
+    (fun _ _ ↦ isingBoundaryVec_false)
+    (fun _ hk ↦ by rw [isingTreeParam_anchor_ballFinset hG r n hk])
+    (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) hU
+
+/-- Georgii, step 4): the geometric ratio `s_n(t) = exp(2 u_{n+1}(t) - 2J)` of the sphere
+probabilities of `ν_t` at radius `n + 1`. -/
+noncomputable def isingSphereRatio (d : ℕ) (J h t : ℝ) (n : ℕ) : ℝ :=
+  exp (2 * Real.treeBackOrbit d J h t (n + 1) - 2 * J)
+
+lemma isingSphereRatio_pos (d : ℕ) (J h t : ℝ) (n : ℕ) : 0 < isingSphereRatio d J h t n :=
+  exp_pos _
+
+/-- **Georgii, step 4): the sphere probabilities of `ν_t`, over `ℝ`.** -/
+theorem toReal_isingTreeChain_cyl (hJ : 0 < J) (hd : 1 ≤ d) (hG : G.IsCayleyTree d) (r : S)
+    {a b : ℝ} (ha : Real.treeRecursion d J h a = a) (hb : Real.treeRecursion d J h b = b)
+    (hab : a < b) (ht : t ∈ Set.Ioo a b) (n : ℕ) {U : Finset S}
+    (hU : U ⊆ G.outerBoundary (G.ballFinset r n)) :
+    (isingTreeChain hJ hd hG r ha hb hab ht
+          (cyl (G.ballFinset r n ∪ G.outerBoundary (G.ballFinset r n))
+            (fun i ↦ if i ∈ U then true else false))).toReal
+      = (isingTreeChain hJ hd hG r ha hb hab ht
+            (cyl (G.ballFinset r n ∪ G.outerBoundary (G.ballFinset r n)) (fun _ ↦ false))).toReal
+        * isingSphereRatio d J h t n ^ U.card := by
+  have hmain := isingTreeChain_cyl_mul_pow hJ hd hG r ha hb hab ht n hU
+  have hq : (isingTransfer d J h false false).toReal = exp (J - 2 * (h / (d + 1))) := by
+    rw [isingTransfer_false_false, ENNReal.toReal_ofReal (exp_nonneg _)]
+  have hLp : (isingBoundaryVec d h (Real.treeBackOrbit d J h t (n + 1)) true
+        * isingTransfer d J h false true).toReal
+      = exp (2 * Real.treeBackOrbit d J h t (n + 1) - 2 * (h / (d + 1))) * exp (-J) := by
+    rw [isingBoundaryVec_true, isingTransfer_false_true, ← ENNReal.ofReal_mul (exp_nonneg _),
+      ENNReal.toReal_ofReal (by positivity)]
+  have hreal := congrArg ENNReal.toReal hmain
+  rw [ENNReal.toReal_mul, ENNReal.toReal_mul, ENNReal.toReal_pow, ENNReal.toReal_pow, hq,
+    hLp] at hreal
+  have hexp : isingSphereRatio d J h t n * exp (J - 2 * (h / (d + 1)))
+      = exp (2 * Real.treeBackOrbit d J h t (n + 1) - 2 * (h / (d + 1))) * exp (-J) := by
+    rw [isingSphereRatio, ← Real.exp_add, ← Real.exp_add]
+    congr 1
+    ring
+  have hpos : (0 : ℝ) < exp (J - 2 * (h / (d + 1))) ^ U.card := pow_pos (exp_pos _) _
+  refine mul_right_cancel₀ hpos.ne' ?_
+  rw [hreal, mul_assoc, ← mul_pow, hexp]
+
+/-- Distinct parameters give distinct sphere ratios. -/
+theorem isingSphereRatio_inj (hJ : 0 < J) (hd : 1 ≤ d) {a b : ℝ}
+    (ha : Real.treeRecursion d J h a = a) (hb : Real.treeRecursion d J h b = b) (hab : a < b)
+    {t s : ℝ} (ht : t ∈ Set.Ioo a b) (hs : s ∈ Set.Ioo a b) (n : ℕ)
+    (heq : isingSphereRatio d J h t n = isingSphereRatio d J h s n) : t = s := by
+  rw [isingSphereRatio, isingSphereRatio, exp_eq_exp] at heq
+  exact Real.treeBackOrbit_inj hJ hd ha hb hab n ht hs (by linarith)
+
+
+/-- **Georgii Theorem (12.31)(b), step 4) completed: `|ex 𝒢(J, h)| = ∞`.** For `J > J(d)` (i.e.
+`d tanh J > 1`) and `|h| ≤ h(J, d)` the set of extreme Gibbs measures is infinite. Georgii's
+linear independence of the family `{ν_t : t₋ < t < t₊}` is realised on a sphere: `N` of the `ν_t`
+are separated by the `N` cylinder events "`-1` on `B(r,n)`, `+1` on `U ⊆ ∂B(r,n)`",
+`|U| = 0, …, N - 1`, whose probabilities are `ν_t(σ ≡ -1) s_n(t)^{|U|}` with `s_n(t)` injective in
+`t`, a Vandermonde system; Corollary (7.29) over `ℝ` then forces `|ex 𝒢(J,h)| ≥ N`. -/
+theorem infinite_extremePoints_G_isingTreeSpecification [Countable S] (hJ : 0 < J) (hd : 1 ≤ d)
+    (hG : G.IsCayleyTree d) (hw : 1 < (d : ℝ) * tanh J)
+    (hh : |h| ≤ Real.treeCriticalField d J) :
+    ((_root_.MeasureTheory.GibbsMeasure.G
+      (isingTreeSpecification G d J h)).extremePoints ℝ≥0∞).Infinite := by
+  classical
+  have hd2 : 2 ≤ d := by
+    by_contra hcon
+    exact absurd hw (not_lt.2 (Real.mul_tanh_lt_one_of_le_one (by omega) J).le)
+  obtain ⟨tmin, hmin, hminle⟩ := Real.exists_isLeast_treeField_eq hJ d h
+  obtain ⟨tmax, hmax, hmaxle⟩ := Real.exists_isGreatest_treeField_eq hJ d h
+  obtain ⟨c₀, e₀, hce, hcf, hef⟩ := Real.exists_lt_and_treeField_eq hJ hw hh
+  have hlt : tmin < tmax := lt_of_le_of_lt (hminle c₀ hcf) (lt_of_lt_of_le hce (hmaxle e₀ hef))
+  have ha : Real.treeRecursion d J h tmin = tmin := Real.treeRecursion_eq_self_iff.2 hmin
+  have hb : Real.treeRecursion d J h tmax = tmax := Real.treeRecursion_eq_self_iff.2 hmax
+  obtain ⟨r⟩ := hG.nonempty
+  by_contra hcon
+  rw [Set.not_infinite] at hcon
+  obtain ⟨N, hN0, hcard⟩ : ∃ N : ℕ, 0 < N ∧ ((_root_.MeasureTheory.GibbsMeasure.G
+      (isingTreeSpecification G d J h)).extremePoints ℝ≥0∞).encard < N := by
+    refine ⟨hcon.toFinset.card + 1, Nat.succ_pos _, ?_⟩
+    rw [hcon.encard_eq_coe_toFinset_card]
+    exact_mod_cast Nat.lt_succ_self _
+  -- `N` distinct parameters in `]t₋, t₊[`
+  obtain ⟨T, hTsub, hTcard⟩ :=
+    (Set.infinite_coe_iff.1 (Set.Ioo.infinite hlt)).exists_subset_card_eq N
+  have hTeq : T ≃ Fin N := Finset.equivFinOfCardEq hTcard
+  have hτmem : ∀ i : Fin N, ((hTeq.symm i : T) : ℝ) ∈ Set.Ioo tmin tmax := fun i ↦
+    hTsub (Finset.mem_coe.2 (hTeq.symm i).2)
+  have hτinj : Function.Injective fun i : Fin N ↦ ((hTeq.symm i : T) : ℝ) := fun i j hij ↦
+    hTeq.symm.injective (Subtype.ext hij)
+  -- a sphere with at least `N` sites, and nested subsets of it of every size below `N`
+  obtain ⟨n, hn⟩ := SimpleGraph.exists_le_card_outerBoundary_ballFinset hG hd2 r N
+  have hUex : ∀ m : Fin N, ∃ U ⊆ G.outerBoundary (G.ballFinset r n), U.card = (m : ℕ) :=
+    fun m ↦ Finset.exists_subset_card_eq (le_trans m.isLt.le hn)
+  choose U hUsub hUcard using hUex
+  have hνG : ∀ i : Fin N, isingTreeChain hJ hd hG r ha hb hlt (hτmem i)
+      ∈ _root_.MeasureTheory.GibbsMeasure.G (isingTreeSpecification G d J h) := fun i ↦
+    ⟨inferInstance, isGibbsMeasure_isingTreeChain hJ hd hG r ha hb hlt (hτmem i)⟩
+  have hGne : (_root_.MeasureTheory.GibbsMeasure.G (isingTreeSpecification G d J h)).Nonempty :=
+    ⟨_, hνG ⟨0, hN0⟩⟩
+  obtain ⟨g, hg0, hgsum⟩ := _root_.MeasureTheory.GibbsMeasure.exists_ne_zero_sum_toReal_eq_zero
+    hGne hcard hνG
+  -- the constant-`-1` cylinder has positive probability
+  have hxpos : ∀ i : Fin N, 0 < (isingTreeChain hJ hd hG r ha hb hlt (hτmem i)
+      (cyl (G.ballFinset r n ∪ G.outerBoundary (G.ballFinset r n)) (fun _ ↦ false))).toReal := by
+    intro i
+    refine ENNReal.toReal_pos ?_ (measure_ne_top _ _)
+    exact (measure_cyl_pos_of_isGibbsMeasure (isTransferFamily_isingTransfer G d J h)
+      (isGibbsMeasure_isingTreeChain hJ hd hG r ha hb hlt (hτmem i)) _ _).ne'
+  -- the sphere ratios are pairwise distinct
+  have hsinj : Function.Injective
+      fun i : Fin N ↦ isingSphereRatio d J h ((hTeq.symm i : T) : ℝ) n := fun i j hij ↦
+    hτinj (isingSphereRatio_inj hJ hd ha hb hlt (hτmem i) (hτmem j) n hij)
+  -- the Vandermonde system
+  have hzero : ∀ m : Fin N, ∑ i : Fin N,
+      (g i * (isingTreeChain hJ hd hG r ha hb hlt (hτmem i)
+          (cyl (G.ballFinset r n ∪ G.outerBoundary (G.ballFinset r n)) (fun _ ↦ false))).toReal)
+        * isingSphereRatio d J h ((hTeq.symm i : T) : ℝ) n ^ (m : ℕ) = 0 := by
+    intro m
+    rw [← hgsum (cyl (G.ballFinset r n ∪ G.outerBoundary (G.ballFinset r n))
+      (fun v ↦ if v ∈ U m then true else false)) (measurableSet_cyl _ _)]
+    refine Finset.sum_congr rfl fun i _ ↦ ?_
+    rw [toReal_isingTreeChain_cyl hJ hd hG r ha hb hlt (hτmem i) n (hUsub m), hUcard m]
+    ring
+  have hzero' := Matrix.eq_zero_of_forall_pow_sum_mul_pow_eq_zero hsinj hzero
+  refine hg0 (funext fun i ↦ ?_)
+  have hi := congrFun hzero' i
+  simp only [Pi.zero_apply] at hi
+  exact (mul_eq_zero.1 hi).resolve_right (hxpos i).ne'
+
+
+/-- **Georgii Comment (12.3)(5), converse.** On an *arc-transitive* Cayley tree an `I(B)`-invariant
+Markov chain is completely homogeneous: an automorphism carrying a fixed oriented bond `i₀j₀` to
+`ij` carries the transition matrix at `i₀j₀` to the one at `ij`, and invariance of `μ` says the two
+agree. (Without arc-transitivity there is nothing to prove and nothing to conclude: `𝒢_{I(B)}`
+would be `𝒢`.) -/
+theorem isCompletelyHomogeneousMarkovChain_of_forall_measurePreserving (hG : G.IsCayleyTree d)
+    (harc : G.IsArcTransitive) {μ : Measure (S → Bool)} (hmc : IsMarkovChain G μ)
+    (hinv : ∀ τ ∈ graphAutomorphisms Bool G, MeasurePreserving τ.toFun μ μ) :
+    IsCompletelyHomogeneousMarkovChain G μ := by
+  obtain ⟨i₀, j₀, hij₀⟩ := hG.exists_adj
+  refine ⟨fun x y ↦ transitionProb μ i₀ j₀ x y, hmc, fun i j hij x y _ ↦ ?_⟩
+  obtain ⟨φ, hφi, hφj⟩ := harc hij₀ hij
+  have hmap : μ.map (siteEquiv Bool φ.toEquiv).toFun = μ :=
+    (hinv _ (mem_graphAutomorphisms.2 ⟨φ, rfl⟩)).map_eq
+  have hstep := transitionProb_map_siteEquiv (E := Bool) φ.toEquiv μ i j x y
+  rw [hmap] at hstep
+  have h1 : φ.toEquiv.symm i = i₀ := (Equiv.symm_apply_eq φ.toEquiv).2 hφi.symm
+  have h2 : φ.toEquiv.symm j = j₀ := (Equiv.symm_apply_eq φ.toEquiv).2 hφj.symm
+  rw [hstep, h1, h2]
+
+/-- **Georgii Theorem (12.31)(b): the invariant extreme phases are among the `μ_t`.** On an
+arc-transitive Cayley tree an extreme `I(B)`-invariant Gibbs measure is a Markov chain (Theorem
+(12.6)), hence completely homogeneous, hence `μ_t` for a solution `t` of (12.22) (Proposition
+(12.24)); and (12.22) has at most three solutions in the critical window. So
+`ex 𝒢(J, h) ∩ 𝒢_{I(B)}(J, h)` is finite. -/
+theorem finite_extremePoints_G_inter_invariantG [Countable S] (hJ : 0 < J) (hd : 1 ≤ d)
+    (hG : G.IsCayleyTree d) (harc : G.IsArcTransitive)
+    (hh : |h| ≤ Real.treeCriticalField d J) :
+    ((_root_.MeasureTheory.GibbsMeasure.G (isingTreeSpecification G d J h)).extremePoints ℝ≥0∞ ∩
+      invariantG (isingTreeSpecification G d J h) (graphAutomorphisms Bool G)).Finite := by
+  classical
+  refine Set.Finite.subset ((finite_setOf_isFixedPt_treeRecursion hJ hd hh).image
+    (fun s ↦ if hsol : s = h + d * logCoshRatio J s then isingChain hG hsol else 0)) ?_
+  rintro μ ⟨hext, hinvG⟩
+  have hμP : IsProbabilityMeasure μ := hext.1.1
+  have hmc : IsMarkovChain G μ :=
+    exists_isMarkovChain_of_mem_extremePoints hG.isTree
+      (isMarkovSpecification_transferSpecification (isTransferFamily_isingTransfer G d J h)) hext
+  have hinv : ∀ τ ∈ graphAutomorphisms Bool G, MeasurePreserving τ.toFun μ μ :=
+    (mem_invariantFields_iff.1 hinvG.2).2
+  obtain ⟨t, hsol, rfl⟩ := exists_eq_isingChain hG hext.1.2
+    (isCompletelyHomogeneousMarkovChain_of_forall_measurePreserving hG harc hmc hinv)
+  refine ⟨t, ?_, ?_⟩
+  · change Real.treeRecursion d J h t = t
+    rw [Real.treeRecursion]
+    linarith
+  · exact dite_eq_left hsol
+
+/-- **Georgii Theorem (12.31)(b), last clause: `|ex 𝒢(J,h) ∖ ex 𝒢_{I(B)}(J,h)| = ∞`.** For
+`J > J(d)` and `|h| ≤ h(J,d)` on an arc-transitive Cayley tree there are infinitely many extreme
+Gibbs measures that are not `I(B)`-invariant — Georgii's step 4) in full: `ex 𝒢(J,h)` is infinite
+while `ex 𝒢(J,h) ∩ 𝒢_{I(B)}(J,h)` has at most three elements. -/
+theorem infinite_extremePoints_G_sdiff_extremePoints_invariantG [Countable S] (hJ : 0 < J)
+    (hd : 1 ≤ d) (hG : G.IsCayleyTree d) (harc : G.IsArcTransitive)
+    (hw : 1 < (d : ℝ) * tanh J) (hh : |h| ≤ Real.treeCriticalField d J) :
+    ((_root_.MeasureTheory.GibbsMeasure.G (isingTreeSpecification G d J h)).extremePoints ℝ≥0∞ \
+      (invariantG (isingTreeSpecification G d J h)
+        (graphAutomorphisms Bool G)).extremePoints ℝ≥0∞).Infinite := by
+  refine Set.Infinite.mono (fun μ hμ ↦ ⟨hμ.1, fun hcon ↦ hμ.2 ⟨hμ.1, extremePoints_subset hcon⟩⟩)
+    ((infinite_extremePoints_G_isingTreeSpecification hJ hd hG hw hh).sdiff
+      (finite_extremePoints_G_inter_invariantG hJ hd hG harc hh))
+
+end InfinitelyManyPhases
 
 /-! ## Georgii (12.33): the magnetisation at the critical external field
 
@@ -1898,6 +2218,17 @@ theorem exists_ne_mem_extremePoints_G_isingSpecification (hJ : 0 < J) (hG : G.Is
   rw [← isingTreeSpecification_eq_isingSpecification hG]
   exact ⟨isingChain hG hs₁, isingChain hG hs₂, hne, h₁, h₂⟩
 
+/-- **Georgii Theorem (12.31)(b), last clause, for the Ising potential.** On an arc-transitive
+Cayley tree, `|ex 𝒢(Φ^{J,h}) ∖ ex 𝒢_{I(B)}(Φ^{J,h})| = ∞` for `J > J(d)` and `|h| ≤ h(J, d)`. -/
+theorem infinite_extremePoints_G_sdiff_extremePoints_invariantG_isingSpecification (hJ : 0 < J)
+    (hd : 1 ≤ d) (hG : G.IsCayleyTree d) (harc : G.IsArcTransitive)
+    (hw : 1 < (d : ℝ) * tanh J) (hh : |h| ≤ Real.treeCriticalField d J) :
+    ((_root_.MeasureTheory.GibbsMeasure.G (isingSpecification G J h 1)).extremePoints ℝ≥0∞ \
+      (invariantG (isingSpecification G J h 1)
+        (graphAutomorphisms Bool G)).extremePoints ℝ≥0∞).Infinite := by
+  rw [← isingTreeSpecification_eq_isingSpecification hG]
+  exact infinite_extremePoints_G_sdiff_extremePoints_invariantG hJ hd hG harc hw hh
+
 /-- **Georgii Theorem (12.31)(b), step 4), for `𝒢(J, h)`.** On `𝒞𝒯(d)` with `J > J(d)` and
 `|h| ≤ h(J, d)` the Ising potential (12.19) has infinitely many Gibbs measures which are Markov
 chains but *not* completely homogeneous. -/
@@ -1967,6 +2298,22 @@ theorem exists_ne_isGibbsMeasure_isingSpecification_reducedWordTree_antiferro :
     hJ (by simpa using hw) ?_
   rw [abs_zero]
   exact Real.antiferroCriticalField_pos hJ (by simpa using hw)
+
+/-- **Georgii Theorem (12.31)(b), last clause, witnessed.** On `𝒞𝒯(2)` at `J = ar tanh (3/4)`,
+`h = 0` the ferromagnetic Ising potential has infinitely many extreme Gibbs measures that are not
+invariant under the automorphism group `I(B)` of the tree: the tree of reduced words over `Fin 3`
+is arc-transitive (`SimpleGraph.isArcTransitive_reducedWordTree`). -/
+theorem infinite_extremePoints_G_sdiff_extremePoints_invariantG_reducedWordTree :
+    ((_root_.MeasureTheory.GibbsMeasure.G (isingSpecification (reducedWordTree 3) witnessCoupling
+          0 1)).extremePoints ℝ≥0∞ \
+      (invariantG (isingSpecification (reducedWordTree 3) witnessCoupling 0 1)
+        (graphAutomorphisms Bool (reducedWordTree 3))).extremePoints ℝ≥0∞).Infinite :=
+  infinite_extremePoints_G_sdiff_extremePoints_invariantG_isingSpecification witnessCoupling_pos
+    (by norm_num) (isCayleyTree_reducedWordTree 2) isArcTransitive_reducedWordTree
+    (by simpa using one_lt_two_mul_tanh_witnessCoupling)
+    (by
+      rw [abs_zero]
+      exact Real.treeCriticalField_nonneg witnessCoupling_pos (by norm_num))
 
 end CayleyTreeTwo
 

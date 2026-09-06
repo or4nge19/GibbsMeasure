@@ -252,6 +252,98 @@ theorem IsBoundaryLaw.exists_const_mul_eq_of_boundaryLawMeasure_eq (hℓ : IsBou
 
 end BoundaryLawRatio
 
+/-! ## Georgii, step 4) of the proof of Theorem (12.31): flipping the spins on a sphere
+
+Georgii's inhomogeneous chains `ν_t` are told apart from each other, and from finite mixtures of
+extreme Gibbs measures, by the probabilities of the cylinder events "`a` on `Λ`, and `b` exactly
+on `U ⊆ ∂Λ`". For a boundary law which is normalised at `a` and takes one and the same value `L`
+at `b` along the whole boundary — as `ν_t` does when `Λ` is a ball, since the parameter of a bond
+depends only on the distance to the root — those probabilities are a *geometric* function of
+`|U|`: flipping one boundary spin from `a` to `b` multiplies the weight (12.13) by `L Q(a,b)`
+and removes a factor `Q(a,a)`. -/
+
+section SphereFlip
+
+variable [Nonempty E] {G : SimpleGraph S} [G.LocallyFinite] {Q : S → S → E → E → ℝ≥0∞}
+  (hQ : IsTransferFamily G Q) (hG : G.IsTree) {ℓ : S → S → E → ℝ≥0∞}
+
+/-- **Georgii, step 4): flipping the boundary spins on `U ⊆ ∂Λ`.** If the boundary law `ℓ` is
+normalised at `a` and takes the same value `L` at `b` on every bond `k k_Λ`, `k ∈ ∂Λ`, and the
+transfer matrix takes the values `qa` at `(a, a)` and `qb` at `(a, b)` on those bonds, then the
+weight (12.13) of the configuration which is `b` on `U` and `a` elsewhere is that of the constant
+configuration `a` times `(L qb / qa)^{|U|}`; written without division. -/
+theorem boundaryLawWeight_ite_mul_pow (hGa : G.IsAcyclic) {Λ : Finset S}
+    (hΛ : (G.induce (Λ : Set S)).Connected) {a b : E} {L qa qb : ℝ≥0∞}
+    (hℓa : ∀ ⦃k⦄, k ∈ G.outerBoundary Λ → ℓ k (G.anchor Λ k) a = 1)
+    (hℓb : ∀ ⦃k⦄, k ∈ G.outerBoundary Λ → ℓ k (G.anchor Λ k) b = L)
+    (hqa : ∀ ⦃k⦄, k ∈ G.outerBoundary Λ → Q (G.anchor Λ k) k a a = qa)
+    (hqb : ∀ ⦃k⦄, k ∈ G.outerBoundary Λ → Q (G.anchor Λ k) k a b = qb) :
+    ∀ {U : Finset S}, U ⊆ G.outerBoundary Λ →
+      boundaryLawWeight G Q hQ.symm ℓ Λ (fun i ↦ if i ∈ U then b else a) * qa ^ U.card
+        = boundaryLawWeight G Q hQ.symm ℓ Λ (fun _ ↦ a) * (L * qb) ^ U.card := by
+  classical
+  intro U
+  induction U using Finset.induction_on with
+  | empty => intro _; simp
+  | @insert k U hk ih =>
+    intro hU
+    have hkb : k ∈ G.outerBoundary Λ := hU (Finset.mem_insert_self k U)
+    have hUsub : U ⊆ G.outerBoundary Λ := fun y hy ↦ hU (Finset.mem_insert_of_mem hy)
+    have hih := ih hUsub
+    set ζ : S → E := fun i ↦ if i ∈ U then b else a with hζ
+    have hanchor : ζ (G.anchor Λ k) = a := by
+      have hmem : G.anchor Λ k ∈ Λ := G.anchor_mem hkb
+      have hnot : G.anchor Λ k ∉ U := fun hcon ↦
+        G.notMem_of_mem_outerBoundary (hUsub hcon) hmem
+      simp [hζ, hnot]
+    have h1 : (fun i ↦ if i ∈ insert k U then b else a) = Function.update ζ k b := by
+      funext i
+      by_cases hik : i = k
+      · subst hik; simp [hζ]
+      · rw [Function.update_of_ne hik]
+        simp [hζ, hik]
+    have h2 : ζ = Function.update ζ k a := by
+      funext i
+      by_cases hik : i = k
+      · subst hik; simp [hζ, hk]
+      · rw [Function.update_of_ne hik]
+    have hWb := boundaryLawWeight_update_of_mem_outerBoundary G Q hQ.symm ℓ hGa hΛ hkb ζ b
+    have hWa := boundaryLawWeight_update_of_mem_outerBoundary G Q hQ.symm ℓ hGa hΛ hkb ζ a
+    rw [hanchor, hℓb hkb, hqb hkb] at hWb
+    rw [hanchor, hℓa hkb, hqa hkb] at hWa
+    have hstep : boundaryLawWeight G Q hQ.symm ℓ Λ (Function.update ζ k b) * qa
+        = boundaryLawWeight G Q hQ.symm ℓ Λ (Function.update ζ k a) * (L * qb) := by
+      rw [hWb, hWa]; ring
+    rw [h1, Finset.card_insert_of_notMem hk]
+    calc boundaryLawWeight G Q hQ.symm ℓ Λ (Function.update ζ k b) * qa ^ (U.card + 1)
+        = boundaryLawWeight G Q hQ.symm ℓ Λ (Function.update ζ k b) * qa * qa ^ U.card := by ring
+      _ = boundaryLawWeight G Q hQ.symm ℓ Λ (Function.update ζ k a) * (L * qb) * qa ^ U.card := by
+          rw [hstep]
+      _ = boundaryLawWeight G Q hQ.symm ℓ Λ ζ * qa ^ U.card * (L * qb) := by rw [← h2]; ring
+      _ = boundaryLawWeight G Q hQ.symm ℓ Λ (fun _ ↦ a) * (L * qb) ^ U.card * (L * qb) := by
+          rw [hih]
+      _ = boundaryLawWeight G Q hQ.symm ℓ Λ (fun _ ↦ a) * (L * qb) ^ (U.card + 1) := by ring
+
+/-- **Georgii, step 4): the sphere probabilities of a boundary-law measure are geometric.**
+The measure (12.13) of the cylinder "`a` on `Λ`, `b` exactly on `U ⊆ ∂Λ`" is the measure of the
+constant cylinder `a` times `(L Q(a,b)/Q(a,a))^{|U|}`; written without division. -/
+theorem IsBoundaryLaw.boundaryLawMeasure_cyl_ite_mul_pow (hℓ : IsBoundaryLaw G Q ℓ) {Λ : Finset S}
+    (hΛ : (G.induce (Λ : Set S)).Connected) {a b : E} {L qa qb : ℝ≥0∞}
+    (hℓa : ∀ ⦃k⦄, k ∈ G.outerBoundary Λ → ℓ k (G.anchor Λ k) a = 1)
+    (hℓb : ∀ ⦃k⦄, k ∈ G.outerBoundary Λ → ℓ k (G.anchor Λ k) b = L)
+    (hqa : ∀ ⦃k⦄, k ∈ G.outerBoundary Λ → Q (G.anchor Λ k) k a a = qa)
+    (hqb : ∀ ⦃k⦄, k ∈ G.outerBoundary Λ → Q (G.anchor Λ k) k a b = qb)
+    {U : Finset S} (hU : U ⊆ G.outerBoundary Λ) :
+    boundaryLawMeasure hQ hℓ hG
+          (cyl (Λ ∪ G.outerBoundary Λ) (fun i ↦ if i ∈ U then b else a)) * qa ^ U.card
+      = boundaryLawMeasure hQ hℓ hG (cyl (Λ ∪ G.outerBoundary Λ) (fun _ ↦ a))
+          * (L * qb) ^ U.card := by
+  classical
+  rw [hℓ.boundaryLawMeasure_cyl hQ hG hΛ, hℓ.boundaryLawMeasure_cyl hQ hG hΛ, mul_assoc, mul_assoc,
+    boundaryLawWeight_ite_mul_pow hQ hG.isAcyclic hΛ hℓa hℓb hqa hqb hU]
+
+end SphereFlip
+
 /-! ## `transitionProb` of `boundaryLawMeasure` equals `boundaryLawTransition`
 
 This intermediate fact is proved (but not exposed) inside `IsBoundaryLaw.isMarkovChain_boundaryLawMeasure`

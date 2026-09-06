@@ -45,8 +45,8 @@ status:
   scope: >-
     Georgii Chapters 1-14 complete for the results listed under main_results and in the per-chapter
     entries (the few exceptions are named there: the Frechet form of the continuous
-    differentiability asserted in (8.37), the infinitude of
-    ex G minus ex G_{I(B)} and the third extreme invariant element in (12.31)(b), (13.40), (13.41) for a general J under the logarithmic
+    differentiability asserted in (8.37), the extremality of mu_# in
+    G_{I(B)} in (12.31)(b) (step 5), (13.40), (13.41) for a general J under the logarithmic
     condition, and (13.44)-(13.45)). Chapter 15 complete through Theorem (15.45), the upper bound (15.46) over a
     finite state space and the lower bound (15.47) over any; open: (15.46) for standard Borel E,
     the periodic-boundary-condition inequalities of (15.48), (15.50)-(15.51), (15.57)-(15.58).
@@ -1931,10 +1931,24 @@ alignment:
         monotone in the boundary law and Theorem (7.26) read as a comparison principle; the
         inhomogeneous boundary laws from a non-fixed orbit between two fixed points (the converse of
         (12.32)) give infinitely many Markov chains in G(J,h) that are not completely homogeneous.
-        Not formalized: that ex G minus ex G_{I(B)} is infinite (linear independence of the
-        inhomogeneous chains, and the transitivity of Aut(CT(d)) on oriented bonds, absent from the
-        tree; with I(B) trivial the clause would be false) and step 5, the third extreme element of
-        G_{I(B)} (the mixing estimate under I(B,n)).
+        |ex G(J,h) minus ex G_{I(B)}(J,h)| = infinity on an arc-transitive Cayley tree
+        (infinite_extremePoints_G_sdiff_extremePoints_invariantG): Georgii's linear independence of
+        the inhomogeneous chains nu_t is read off a sphere of the tree, whose cylinders "-1 on the
+        ball, +1 exactly on U in the sphere" have nu_t-probability nu_t(sigma = -1) s_n(t)^|U| with
+        s_n(t) injective in t, so N of the nu_t solve a Vandermonde system and (7.29) over R
+        (Specification/PAKernel.lean, exists_ne_zero_sum_toReal_eq_zero) gives |ex G| >= N, while
+        ex G cap G_{I(B)} is finite because an I(B)-invariant Markov chain on an arc-transitive
+        tree is completely homogeneous and (12.22) has at most three solutions. Arc-transitivity,
+        Georgii's unproved uniqueness of CT(d), is a hypothesis (IsArcTransitive) discharged on the
+        reduced-word model; balls and spheres of a graph are in
+        Mathlib/Combinatorics/SimpleGraph/TreeBall.lean; unconditional on CT(2) at
+        J = artanh(3/4), h = 0. Georgii's route through a modification of (12.18) is not available
+        (its hypothesis fails for the extreme components of nu_t). Not formalized: step 5, the
+        extremality of mu_# in G_{I(B)} (needs (12.4) with the two-block mixing estimate, P^k ->
+        alpha from (3.A3), and automorphisms displacing every vertex by at least n, i.e. the
+        free-product length function); mu_-, mu_#, mu_+ are three distinct elements of G_{I(B)}
+        with the outer two extreme (exists_three_mem_invariantG_isingChain). An earlier docstring's
+        "I(B) is uncountable for d >= 1" is false at d = 1 and is corrected.
         Georgii (12.7)/(12.9): the tree specification of the Ising transfer family IS the Gibbsian
         specification of the Ising potential (isingTreeSpecification_eq_isingSpecification), so
         (12.31) is restated for G(Phi^{J,h}). The Cayley tree CT(d) is constructed for every d as

@@ -885,6 +885,80 @@ theorem linearIndependent_of_mem_extremePoints (hex : P.extremePoints ℝ≥0∞
   have h2 : (∑ l, c l • μ l) A = (∑ l, d l • μ l) A := congrArg (fun ρ : Measure Ω ↦ ρ A) hcd
   rwa [key c, key d] at h2
 
+/-- **Georgii (7.26) with finitely many extreme points.** If `ex P` is finite, every `μ ∈ P` is
+the finite convex combination `∑_{ν ∈ ex P} w_μ{ν} ν` of the extreme points of `P`. -/
+lemma eq_sum_smul_of_finite_extremePoints (hPm : MeasurableSet P)
+    (hex : P.extremePoints ℝ≥0∞ = P ∩ trivialOn 𝒜) (hfin : (P.extremePoints ℝ≥0∞).Finite)
+    {μ : Measure Ω} (hμ : μ ∈ P) :
+    μ = ∑ ν ∈ hfin.toFinset, weight π μ {ν} • ν := by
+  have hμP : IsProbabilityMeasure μ := hP μ hμ
+  have hTprob : ∀ ν ∈ hfin.toFinset, IsProbabilityMeasure ν := fun ν hν ↦
+    hP ν (extremePoints_subset (hfin.mem_toFinset.1 hν))
+  have hwnull : weight π μ ((↑hfin.toFinset : Set (Measure Ω))ᶜ) = 0 := by
+    have h := hπ.weight_extremePoints_compl h𝒜 hP hPm hex hμ
+    rwa [← hfin.coe_toFinset] at h
+  conv_lhs => rw [← hπ.join_weight h𝒜 hμ]
+  exact join_eq_sum_smul _ hfin.toFinset hTprob hwnull
+
+/-- **Georgii, Corollary (7.29), part 2, over `ℝ`**: if `ex P` has fewer than `N` elements, then
+any `N` elements of `P` are linearly dependent over `ℝ` — some `g ≠ 0` satisfies
+`∑ᵢ gᵢ μᵢ(A) = 0` for every measurable `A`. The `ℝ≥0∞`-form below splits `g` into its positive
+and its negative part; over `ℝ` no such splitting is needed, and the conclusion is usable at
+coefficient families that are not `ℝ≥0∞`-linearly independent for lack of mutual singularity. -/
+theorem exists_ne_zero_sum_toReal_eq_zero (hPm : MeasurableSet P)
+    (hex : P.extremePoints ℝ≥0∞ = P ∩ trivialOn 𝒜) {N : ℕ}
+    (hcard : (P.extremePoints ℝ≥0∞).encard < N) {μ : Fin N → Measure Ω} (hμ : ∀ i, μ i ∈ P) :
+    ∃ g : Fin N → ℝ, g ≠ 0 ∧ ∀ A : Set Ω, MeasurableSet A → ∑ i, g i * (μ i A).toReal = 0 := by
+  classical
+  have hfin : (P.extremePoints ℝ≥0∞).Finite := encard_lt_top_iff.1 (hcard.trans_le le_top)
+  have hTcard : hfin.toFinset.card < N := by
+    have h1 : (hfin.toFinset.card : ℕ∞) < N := by
+      rw [← hfin.encard_eq_coe_toFinset_card]
+      exact hcard
+    exact_mod_cast h1
+  have hprob : ∀ i, IsProbabilityMeasure (μ i) := fun i ↦ hP _ (hμ i)
+  have hTprob : ∀ ν ∈ hfin.toFinset, IsProbabilityMeasure ν := fun ν hν ↦
+    hP ν (extremePoints_subset (hfin.mem_toFinset.1 hν))
+  have hrep : ∀ i, μ i = ∑ ν ∈ hfin.toFinset, weight π (μ i) {ν} • ν := fun i ↦
+    hπ.eq_sum_smul_of_finite_extremePoints h𝒜 hP hPm hex hfin (hμ i)
+  set v : Fin N → (↥hfin.toFinset → ℝ) :=
+    fun i t ↦ ((weight π (μ i)) {t.1}).toReal with hvdef
+  have hdep : ¬ LinearIndependent ℝ v := by
+    intro hLI
+    have hle := hLI.fintype_card_le_finrank
+    rw [Module.finrank_fintype_fun_eq_card, Fintype.card_coe, Fintype.card_fin] at hle
+    omega
+  obtain ⟨g, hg0, i₀, hgi₀⟩ := Fintype.not_linearIndependent_iff.1 hdep
+  refine ⟨g, fun hcon ↦ hgi₀ (by rw [hcon]; rfl), fun A hA ↦ ?_⟩
+  have key : ∀ ν ∈ hfin.toFinset, ∑ i, g i * ((weight π (μ i)) {ν}).toReal = 0 := by
+    intro ν hν
+    have h := congrFun hg0 ⟨ν, hν⟩
+    simpa [hvdef] using h
+  have hexp : ∀ i, (μ i A).toReal
+      = ∑ ν ∈ hfin.toFinset, ((weight π (μ i)) {ν}).toReal * (ν A).toReal := by
+    intro i
+    have := hprob i
+    have hw : IsProbabilityMeasure (weight π (μ i)) := isProbabilityMeasure_weight h𝒜 (μ i)
+    conv_lhs => rw [hrep i]
+    rw [Measure.finsetSum_apply, ENNReal.toReal_sum]
+    · exact Finset.sum_congr rfl fun ν hν ↦ by
+        have := hTprob ν hν
+        rw [Measure.smul_apply, smul_eq_mul, ENNReal.toReal_mul]
+    · intro ν hν
+      have := hTprob ν hν
+      rw [Measure.smul_apply, smul_eq_mul]
+      exact ENNReal.mul_ne_top (measure_ne_top _ _) (measure_ne_top _ _)
+  calc ∑ i, g i * (μ i A).toReal
+      = ∑ i, ∑ ν ∈ hfin.toFinset, g i * (((weight π (μ i)) {ν}).toReal * (ν A).toReal) := by
+        exact Finset.sum_congr rfl fun i _ ↦ by rw [hexp i, Finset.mul_sum]
+    _ = ∑ ν ∈ hfin.toFinset, ∑ i, g i * (((weight π (μ i)) {ν}).toReal * (ν A).toReal) :=
+        Finset.sum_comm
+    _ = ∑ ν ∈ hfin.toFinset, (∑ i, g i * ((weight π (μ i)) {ν}).toReal) * (ν A).toReal := by
+        refine Finset.sum_congr rfl fun ν _ ↦ ?_
+        rw [Finset.sum_mul]
+        exact Finset.sum_congr rfl fun i _ ↦ by ring
+    _ = 0 := Finset.sum_eq_zero fun ν hν ↦ by rw [key ν hν, zero_mul]
+
 /-- **Georgii, Corollary (7.29)**, part 2, abstract form: if `ex P` has fewer than `N` elements,
 any `N` elements of `P` satisfy a nontrivial `ℝ≥0∞`-linear relation. -/
 theorem exists_ne_sum_smul_eq_sum_smul (hPm : MeasurableSet P)
@@ -906,10 +980,8 @@ theorem exists_ne_sum_smul_eq_sum_smul (hPm : MeasurableSet P)
     have := hprob i
     have h := hπ.weight_extremePoints_compl h𝒜 hP hPm hex (hμ i)
     rwa [← hfin.coe_toFinset] at h
-  have hrep : ∀ i, μ i = ∑ ν ∈ hfin.toFinset, (weight π (μ i)) {ν} • ν := fun i ↦ by
-    have := hprob i
-    conv_lhs => rw [← hπ.join_weight h𝒜 (hμ i)]
-    exact join_eq_sum_smul _ hfin.toFinset hTprob (hwnull i)
+  have hrep : ∀ i, μ i = ∑ ν ∈ hfin.toFinset, (weight π (μ i)) {ν} • ν := fun i ↦
+    hπ.eq_sum_smul_of_finite_extremePoints h𝒜 hP hPm hex hfin (hμ i)
   -- the real weight vectors are linearly dependent
   set v : Fin N → (↥hfin.toFinset → ℝ) :=
     fun i t ↦ ((weight π (μ i)) {t.1}).toReal with hvdef

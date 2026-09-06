@@ -71,6 +71,7 @@ $(E, \mathcal{E})$, and $\Tail$ is the tail $\sigma$-algebra of $\Cfg = E^S$.
       MeasureTheory.GibbsMeasure.measurePreserving_iff_measurePreserving_weightOf,
       MeasureTheory.GibbsMeasure.linearIndependent_of_mem_extremePoints,
       MeasureTheory.GibbsMeasure.le_encard_extremePoints_iff,
+      MeasureTheory.GibbsMeasure.exists_ne_zero_sum_toReal_eq_zero,
       MeasureTheory.GibbsMeasure.setOf_mem_GP_eq_closure_convexCombosLimitGibbs,
       MeasureTheory.GibbsMeasure.setOf_mem_GP_eq_closure_convexCombosLimitGibbs_modification_isssd,
       MeasureTheory.GibbsMeasure.setOf_mem_GP_eq_closure_convexCombosLimitGibbs_lambdaSpecification}
@@ -84,7 +85,11 @@ $(E, \mathcal{E})$, and $\Tail$ is the tail $\sigma$-algebra of $\Cfg = E^S$.
           $\tau\mu = \mu$ iff $\tau_* w_\mu = w_\mu$.
         \item[(7.29)] If $\mathcal{G}(\gamma) \neq \emptyset$ and $N \in \mathbb{N}$, then
           $|\operatorname{ex}\mathcal{G}(\gamma)| \geq N$ iff $\mathcal{G}(\gamma)$ contains $N$
-          measures linearly independent over $[0, \infty]$.
+          measures linearly independent over $[0, \infty]$. Over $\mathbb{R}$: if
+          $|\operatorname{ex}\mathcal{G}(\gamma)| < N$ then any $N$ Gibbs measures satisfy a
+          nontrivial real relation $\sum_i g_i \mu_i(A) = 0$. (The real form is the usable one for
+          families that are not mutually singular: over $[0,\infty]$, $\infty \cdot \mu =
+          \infty \cdot \nu$ as soon as $\mu$ and $\nu$ have the same null sets.)
         \item[(7.30)] If $\gamma$ is a quasilocal $\lambda$-specification for a $\sigma$-finite
           non-zero a priori measure $\lambda$, then $\mathcal{G}(\gamma)$ is the closure, in the
           topology of local convergence, of the convex hull of the limiting Gibbs distributions;

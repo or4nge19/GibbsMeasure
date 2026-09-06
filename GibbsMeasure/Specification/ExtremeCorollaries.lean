@@ -300,6 +300,19 @@ theorem exists_ne_sum_smul_eq_sum_smul (hG : (G γ).Nonempty) {N : ℕ}
     tailSigmaAlgebra_le_pi (fun _ hμ ↦ hμ.1) (measurableSet_G γ)
     (extremePoints_G_eq_inter_trivialOn γ) hcard hμ
 
+/-- **Georgii, Corollary (7.29), part 2, over `ℝ`**: if `ex G(γ)` has fewer than `N` elements,
+any `N` Gibbs measures are linearly dependent over `ℝ`: some `g ≠ 0` has `∑ᵢ gᵢ μᵢ(A) = 0` for
+every measurable `A`. Unlike the `ℝ≥0∞`-form, this applies to families that are not
+`ℝ≥0∞`-linearly independent — over `ℝ≥0∞`, `∞ • μ = ∞ • ν` whenever `μ` and `ν` have the same
+null sets. -/
+theorem exists_ne_zero_sum_toReal_eq_zero (hG : (G γ).Nonempty) {N : ℕ}
+    (hcard : ((G γ).extremePoints ℝ≥0∞).encard < N) {μ : Fin N → Measure Ω}
+    (hμ : ∀ i, μ i ∈ G γ) :
+    ∃ g : Fin N → ℝ, g ≠ 0 ∧ ∀ A : Set Ω, MeasurableSet A → ∑ i, g i * (μ i A).toReal = 0 :=
+  (isPAKernel_gibbsKernel_some hG).exists_ne_zero_sum_toReal_eq_zero
+    tailSigmaAlgebra_le_pi (fun _ hμ ↦ hμ.1) (measurableSet_G γ)
+    (extremePoints_G_eq_inter_trivialOn γ) hcard hμ
+
 /-- **Georgii, Corollary (7.29)**: `|ex G(γ)| ≥ N` iff `G(γ)` contains `N` linearly independent
 measures. -/
 theorem le_encard_extremePoints_iff (hG : (G γ).Nonempty) (N : ℕ) :
