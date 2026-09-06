@@ -157,6 +157,7 @@ public import GibbsMeasure.Mathlib.Data.Fintype.Fiber
 public import GibbsMeasure.Mathlib.Topology.Compactness.SigmaCompact
 public import GibbsMeasure.Mathlib.Topology.Metrizable.Basic
 public import GibbsMeasure.Mathlib.Topology.ClusterPt
+public import GibbsMeasure.Mathlib.Topology.ClusterPtProd
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ProbabilityMeasure
 public import GibbsMeasure.Mathlib.Probability.ConditionalProbability
 public import GibbsMeasure.Mathlib.Probability.CondInvariant
@@ -293,6 +294,7 @@ public import GibbsMeasure.Model.DoubleWellOceans
 public import GibbsMeasure.Model.SlawnyModel
 public import GibbsMeasure.Model.GroundStateRefinement
 public import GibbsMeasure.Model.BlumeCapel
+public import GibbsMeasure.Model.SpernerPhaseTransition
 public import GibbsMeasure.Model.OceanNetwork
 public import GibbsMeasure.Model.PlanarCrossing
 public import GibbsMeasure.Model.ShiftAverage
@@ -406,6 +408,7 @@ public import GibbsMeasure.Specification.PeriodicGibbs
 public import GibbsMeasure.Specification.PeriodicGibbsLimits
 public import GibbsMeasure.Specification.PeriodicGibbsSymmetry
 public import GibbsMeasure.Specification.ResolvingPerturbations
+public import GibbsMeasure.Specification.CubePotentialConvergence
 public import GibbsMeasure.Specification.ChainEstimate
 public import GibbsMeasure.Specification.CubePotentialSingleSite
 public import GibbsMeasure.Specification.QuasiGibbsian

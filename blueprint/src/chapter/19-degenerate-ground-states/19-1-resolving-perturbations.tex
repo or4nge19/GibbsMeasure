@@ -53,10 +53,12 @@
     Example (19.8), the Blume--Capel model on $\{-1,0,1\}$: the local ground states are the three
     constant configurations, $\{G_1, G_2\}$ with $G_2 = \{(\pm\pm)\}$ and its refinement are stable
     and balanced, and the self-potential $\sum_{i\in C}\sigma_i^2$ resolves $\{G_1, G_2\}$ by (19.5)(1)
-    with $c_1 = 4$, $\delta_1 = -4$. Not formalised: Theorem (19.6) and hence the phase-transition
-    conclusions of (19.8)--(19.10), whose combinatorial input (19.12) is Theorem
-    \ref{thm:dg-19-12} and whose remaining content is the assembly of (19.13)--(19.15);
-    Examples (19.9)--(19.10).
+    with $c_1 = 4$, $\delta_1 = -4$. Not formalised: the conclusion of (19.8),
+    $|\operatorname{ex}\mathcal G_\Theta(\beta\Phi + \beta h(\beta)\Phi^1)| \geq 3$, which is Theorem
+    \ref{thm:dg-19-6} applied to the resolving self-potential followed by (19.7) with the fine
+    partition and needs only the model-specific inputs ($r$-symmetry of the partitions, reflection
+    invariance of the interactions, the spin flip $0 \leftrightarrow 2$ as a symmetry); Examples
+    (19.9)--(19.10).
 \end{theorem}
 \begin{proof}
     \leanok
@@ -82,6 +84,50 @@
     $\{y + e_m\}$ and $\{z - e_m\}$, and an admissible colouring of $\mathcal P_{4,2}$ with no
     panchromatic $4$-clique exists (checked by hand and by enumeration), while the classical
     statement on the standard triangulation, which is what (19.A4) uses, holds.
+\end{theorem}
+\begin{proof}
+    \leanok
+\end{proof}
+
+\begin{theorem}[Georgii \S19.2: Propositions (19.13)--(19.15) and Theorem (19.6)]
+    \label{thm:dg-19-6}
+    \uses{thm:dg-19-12, def:dg-19-4, prop:dg-19-5, thm:dsb-18-25, thm:lo-18-17, lem:lo-ocean-tail, prop:lo-18-12, thm:exg-4-22}
+    \lean{MapClusterPt.fst, MapClusterPt.snd, Filter.Tendsto.mapClusterPt_prod, Potential.gibbsSpecificationOfSigmaFiniteAdmissible_le_of_abs_hamiltonian_sub_le, MeasureTheory.abs_integral_sub_integral_le_of_le_smul, MeasureTheory.GibbsMeasure.cubeInteractingSet, MeasureTheory.GibbsMeasure.abs_hamiltonian_cubePotential_sub_le, MeasureTheory.GibbsMeasure.tendsto_dist_action_cubeGibbsSpec, MeasureTheory.GibbsMeasure.tendsto_dist_action_cubeGibbsSpec_of_eventually, MeasureTheory.GibbsMeasure.exists_mem_stdSimplex_forall_exists_measure_le, MeasureTheory.GibbsMeasure.le_cond_measure_zero_mem_latticeOceanPart, MeasureTheory.GibbsMeasure.exists_gibbsMeasure_family_of_isCountablyCompact, MeasureTheory.GibbsMeasure.le_encard_extremePoints_invariantG_shiftGroup_of_separated, MeasureTheory.GibbsMeasure.le_encard_extremePoints_of_latticeOceanPart, MeasureTheory.GibbsMeasure.isQuasiGibbsianWith_of_isGibbsMeasure_cubeGibbsSpec, MeasureTheory.GibbsMeasure.le_measure_mem_latticeOceanPart_of_forall_le_pow, MeasureTheory.GibbsMeasure.patternWeight_le_of_measure_diff_eq_zero, MeasureTheory.GibbsMeasure.le_crossingBound, MeasureTheory.GibbsMeasure.IsCubeConfining.add_of_abs_le, MeasureTheory.GibbsMeasure.exists_correspondence_of_patternWeight_le, MeasureTheory.GibbsMeasure.exists_gibbsMeasure_family_of_patternWeight_le, MeasureTheory.GibbsMeasure.simplexDisadvantage, MeasureTheory.GibbsMeasure.simplexDisadvantage_mem_nonnegBoundary, MeasureTheory.GibbsMeasure.exists_delta_box_subset_image, MeasureTheory.GibbsMeasure.exists_perturbation_map, MeasureTheory.GibbsMeasure.eventually_forall_patternWeight_perturb_le, MeasureTheory.GibbsMeasure.eventually_exists_gibbsMeasure_family_of_resolvesOn}
+    \leanok
+
+    Proposition (19.13), for a family $(\Gamma_\alpha)_{\alpha \in \mathcal P_N}$ of sets of random
+    fields with (i) $\{(\alpha,\mu) : \mu \in \Gamma_\alpha\}$ countably compact in the product of the
+    Euclidean and the local topology (Mathlib's countable compactness, literally Georgii's ``every
+    sequence has a cluster point''), (ii) $\mu(0 \in \xi^0(G,\cdot)) \geq 1 - c$ on $\Gamma_\alpha$
+    with $(N+1)c < 1$, and (iii) the boundary condition $N\mu(0 \in V(G_n,\cdot)) < \mu(0 \in V(G,\cdot))$
+    when $\alpha_n = 0$: Step 1 is the Knaster--Kuratowski--Mazurkiewicz selection with the ratios
+    $\mu(0 \in V(G_n,\cdot))/\mu(0 \in V(G,\cdot))$, the sets $K_n$ being sequentially closed by the
+    product cluster-point lemmas; Step 2 conditions on the tail events $A_n$ through (7.7)(b),
+    giving $N+1$ mutually singular shift-invariant Gibbs measures with
+    $\mu_n(0 \in \xi^0(G_n,\cdot)) \geq 1 - (N+1)c$, and $|\operatorname{ex}\mathcal G_\Theta| \geq
+    N+1$ from measures separated by disjoint events. Proposition (19.14): for a family of
+    $C$-potentials $\Psi^\alpha$ continuous in $\alpha$ along the simplex, with $t(G,\Psi^\alpha)
+    \leq t$ and $(N+1)t(E^C\setminus G_n,\Psi^\alpha) < 1 - t$ on the faces, and a common confining
+    sequence, the sets $\Gamma(\alpha)$ of Gibbs measures of $\Psi^\alpha$ meeting the bound satisfy
+    (i)--(iii) with $c = 4z(t)$: nonemptiness from $\mathcal G_0(\Psi^\alpha)$ by (18.10), (18.12) and
+    (18.22); (i) from (4.19) for a $C$-potential --- proved here through the two-sided kernel
+    domination $\gamma^\Psi_\Lambda \leq e^{2|\beta|D}\gamma^\Phi_\Lambda$ when the Hamiltonians differ by
+    at most $D$, since the tree's (4.19) covers absolutely summable potentials only and (17.18)(iv)
+    allows unbounded interactions --- with (4.12), (4.9), (4.17) and the semicontinuity (18.9)(3);
+    (ii) is (18.17) from the chessboard estimate alone, for any Gibbs measure of the cube
+    specification. (19.15): the map $\alpha \mapsto h(\alpha)$ with $g(h(\alpha)) = 2\delta(1 -
+    (\max_k\alpha_k)^{-1}\alpha_n)_n$ from the left inverse of the resolving map on a box of the
+    boundary, with $\delta$ made smaller instead of Georgii's neighbourhood, and $t_\beta \to 0$
+    uniformly on the neighbourhood by (18.9)(4). Theorem (19.6): for standard Borel $E$, a stable
+    partition into $r$-symmetric $G_n$ satisfying (19.1) and resolving potentials, for $\beta$ large
+    some $h(\beta)$ in any prescribed neighbourhood of $0$ makes $\beta\Phi^{h(\beta)}$ carry $N+1$
+    mutually singular shift-invariant Gibbs measures with $\mu_n(\xi^0(G_n,\cdot) \neq \emptyset)
+    = 1$ and $\mu_n(0 \in \xi^0(G_n,\cdot)) \geq 1 - 4(N+1)z(t)$, so
+    $|\operatorname{ex}\mathcal G_\Theta(\beta\Phi^{h(\beta)})| \geq N+1$; Georgii's
+    $(N+1)t < 4Nz(t) < 1$ is derived from $4(N+1)z(t) < 1$, and his $h(\beta) \to 0$ is the statement
+    quantified over the neighbourhood. Georgii's (19.13)(iii) is stated with the denominator
+    cleared, and (19.14)(I) relative to the simplex, which is forced since $\alpha \mapsto h(\alpha)$
+    is continuous only along it.
 \end{theorem}
 \begin{proof}
     \leanok

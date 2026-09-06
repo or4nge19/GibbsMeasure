@@ -55,8 +55,8 @@ status:
     Berg-Maserick converse (17.28)(1), which Georgii cites without proof. Chapter 18: Section 18.1
     through Lemma (18.16), with the first assertions of (18.17)-(18.18); open their second
     assertions, Example (18.19), Sections 18.2-18.3. Chapter 19: Section 19.1 through (19.5),
-    (19.7) and (19.8), with Sperner's lemma and the KKM lemma (19.12) of Section 19.2; open
-    (19.13)-(19.15) and Theorem (19.6), (19.9)-(19.10), the rest of Sections 19.2-19.3.
+    (19.7) and (19.8); Section 19.2 through Theorem (19.6) with Sperner's lemma and the KKM
+    lemma; open the conclusion of (19.8), (19.9)-(19.10), Section 19.3.
     Chapter 20: Section 20.1 ((20.5), (20.6) as stated, (20.8)), Georgii's computation (17.24),
     (20.9)-(20.11), Proposition (20.7) in full, the first half of (20.12); open Lemma (20.13),
     (20.14), the upper half of (20.12) and Theorem (20.15).
@@ -1542,9 +1542,20 @@ alignment:
         Knaster-Kuratowski-Mazurkiewicz lemma with the selection principle (19.13) uses. Erratum:
         Georgii's (19.A1) on the cliques of the two-coordinate-difference graph is false for N >= 4
         (an admissible colouring of P_{4,2} with no panchromatic 4-clique exists); the classical
-        statement on the standard triangulation, which (19.A4) uses, is what is proved. Not
-        formalized: Propositions (19.13)-(19.15) and Theorem (19.6), hence the phase-transition
-        conclusions of (19.8)-(19.10); Examples (19.9)-(19.10); the rest of Sections 19.2-19.3.
+        statement on the standard triangulation, which (19.A4) uses, is what is proved. Section 19.2
+        (Model/SpernerPhaseTransition.lean, Specification/CubePotentialConvergence.lean,
+        Mathlib/Topology/ClusterPtProd.lean): Proposition (19.13) with Mathlib's countable
+        compactness for (i), the KKM selection with the ratio mu(0 in V(G_n))/mu(0 in V(G)) and the
+        conditioning on the tail events; (19.14) with (4.19) for a C-potential proved through the
+        two-sided kernel domination (the tree's (4.19) covered absolutely summable potentials only),
+        (4.12), (4.9), (4.17), (18.9)(3), and (18.17) from the chessboard estimate for any Gibbs
+        measure; (19.15) with delta made smaller instead of Georgii's neighbourhood; Theorem (19.6)
+        as Georgii states it, with h(beta) in any prescribed neighbourhood of 0 and
+        |ex G_Theta(beta Phi^{h(beta)})| >= N+1, his (N+1)t < 4Nz(t) < 1 derived from
+        4(N+1)z(t) < 1, (19.13)(iii) with the denominator cleared and (19.14)(I) relative to the
+        simplex. Not formalized: the conclusion of Example (19.8) (model-specific inputs: r-symmetry
+        of the Blume-Capel partitions, reflection invariance of its interactions, the spin flip
+        0 <-> 2 as a cube transformation), Examples (19.9)-(19.10), Section 19.3.
     - source: "Section 18.3: 18.3.1-18.3.3, 18.3.5-18.3.6"
       lean: "MeasureTheory.GibbsMeasure.eventually_two_le_encard_extremePoints_isingFerro"
       module: "GibbsMeasure/Model/IsingOceans.lean"

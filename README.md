@@ -641,8 +641,10 @@ equality, and the Blume–Capel model (19.8) with its resolving self-potential. 
 on Kuhn's triangulation and the **Knaster–Kuratowski–Mazurkiewicz lemma (19.12)** are in the Mathlib
 layer (`Mathlib/Combinatorics/Sperner.lean`, `Mathlib/Topology/KKM.lean`); Georgii's (19.A1), stated
 for the cliques of a graph on the grid, is false for `N ≥ 4`, and the classical statement on the
-standard triangulation is what (19.A4) uses. Open: Propositions (19.13)–(19.15) and Theorem (19.6),
-hence the phase-transition conclusions of (19.8)–(19.10); the rest of §19.2–19.3.
+standard triangulation is what (19.A4) uses. **§19.2** (`Model/SpernerPhaseTransition.lean`):
+Propositions (19.13)–(19.15) and **Theorem (19.6)** as Georgii states it, with (4.19) for a
+`C`-potential proved through a two-sided kernel domination (`Specification/CubePotentialConvergence.lean`).
+Open: the conclusion of Example (19.8) (three model-specific inputs), (19.9)–(19.10), §19.3.
 
 **Chapter 20, §20.1** (`GibbsMeasure/Specification/InfraredBound.lean`): the preliminaries of the
 infrared bound on the torus — the tail estimate (20.6) for the periodic Gibbs distribution of a
@@ -925,7 +927,7 @@ continuity of the second derivative asserted in (8.37)/(16.17); in (12.31)(b) th
 (15.46) for a non-convex `C` over an infinite state space, Cramér's formula at `Φ = 0`, and
 (15.57)–(15.58) beyond the subgradient uniqueness; the criterion of (16.24)(3), (16.24)(4), (16.25)(2),
 (16.26)–(16.27); the Berg–Maserick converse (17.28)(1), cited without proof; 18.3.4, (18.35), the conclusion of 18.3.10
-and the count for a proper subgroup in (18.25); Theorem (19.6) with (19.9)–(19.10) and §19.2–19.3; and the infrared
+and the count for a proper subgroup in (18.25); the conclusion of (19.8), (19.9)–(19.10) and §19.3; and the infrared
 bound (20.13)–(20.15).
 
 ### Code organisation
