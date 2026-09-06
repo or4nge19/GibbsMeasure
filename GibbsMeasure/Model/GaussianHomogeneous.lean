@@ -187,15 +187,17 @@ absolutely summable trigonometric series and Toeplitz forms that Georgii's argum
 
 ## What is *not* proved here, and why
 
-* **Theorem (13.36), the necessity half for a general Gibbs measure** (`𝒢(γ^{J,h}) ≠ ∅` implies
-  `M_{J,h} ≠ ∅` and `∫_G Ĵ⁻¹ dz < ∞`), and with it the descriptions of `𝒢(γ^{J,h})` and
-  `𝒢_Θ(γ^{J,h})` as `{μ_C * ν}`. Georgii's Step 2 uses Theorem (13.24) — the identification of
-  `ex 𝒢(γ^{J,h})`, which is open in `GibbsMeasure/Model/GaussianGibbs.lean` because it needs
-  Theorem (7.12) and Proposition (13.A5). What (13.A9) *does* give without (13.24) is the
-  necessity of `∫_G Ĵ⁻¹ dz < ∞` for a **Gaussian** Gibbs measure with homogeneous covariance,
-  proved above as
-  `Potential.lintegral_inv_re_fourierHomogeneousCoupling_ne_top_of_isGibbsMeasure`. The
-  convolution representation `𝒢(γ^{J,h}) = {μ_C * ν}` genuinely needs (13.24) and is open.
+* **Theorem (13.36), the necessity half** is proved in
+  `GibbsMeasure/Model/GaussianHomogeneousExtreme.lean`
+  (`Potential.lintegral_inv_re_fourierHomogeneousCoupling_ne_top_of_nonempty_G`, and
+  `Potential.nonempty_G_homogeneousCoupling_iff` for the resulting equivalence), by Georgii's
+  Step 2: Theorem (13.24) — now available in `GibbsMeasure/Model/GaussianExtreme.lean` — produces
+  the limits (13.25), which are homogeneous, and the centred Gauss field with that covariance is
+  a Gibbs measure for `γ^{J,0}`, so
+  `Potential.lintegral_inv_re_fourierHomogeneousCoupling_ne_top_of_isGibbsMeasure` below applies
+  to it. What is still open of Theorem (13.36) is only the descriptions of `𝒢(γ^{J,h})` and
+  `𝒢_Θ(γ^{J,h})` as `{μ_C * ν}`; see the "What is not proved here" section of
+  `GibbsMeasure/Model/GaussianExtreme.lean`.
 * **Remark (13.39)**: part 1 (finite range implies `M_{J,h} ≠ ∅`, via a non-vanishing partial
   derivative of the real-analytic `p ↦ Ĵ(z_p)` at the origin) and part 2 (a root of the Laurent
   polynomial `Ĵ` in `(ℂ ∖ {0})^d`, by the fundamental theorem of algebra) both need analytic
@@ -204,7 +206,11 @@ absolutely summable trigonometric series and Toeplitz forms that Georgii's argum
   `Potential.re_mFourier_mem_gaussianMeanSubmodule` and
   `Potential.not_countable_gaussianMeanSet_homogeneousCoupling`.
 * **Corollary (13.40)**: the extremality half needs Corollary (7.4) and Corollary (7.28) for the
-  transported measures `φ(α)` on `M_{J,0}`, and the uniqueness half is the necessity of (13.36).
+  transported measures `φ(α)` on `M_{J,0}`; the uniqueness half — `μ_C` is the only element of
+  `𝒢_Θ(γ^{J,0})` with finite second moment when `Ĵ` has no root — needs, besides the (now proved)
+  necessity half of (13.36), Georgii's version of Theorem (13.22)(a) ⟹ (b) for a **non-Gaussian**
+  `μ` with `μ(σ_0²) < ∞` (the tree proves (13.22) for Gauss fields only) and the fact that a
+  shift-invariant `μ` has a constant mean.
   The two remarks Georgii appends to it — `{μ ∈ 𝒢(γ^{J,0}) : sup_i μ(|σ_i|) < ∞} = {μ_C}` when
   `Ĵ` has no root, and `𝒢(γ^{J,0}) = {μ_C}` for `J(i) ∼ c|i|^{-a}` — rest on Wiener's `1/f`
   theorem and on Dobrushin (1980), which Georgii quotes rather than proves; neither the Banach
@@ -219,10 +225,9 @@ absolutely summable trigonometric series and Toeplitz forms that Georgii's argum
   on a cube of `ℝ^d` for `d ≤ 2` — Mathlib has the convergent half
   (`integrableOn_ball_of_norm_le_rpow`, used above for `d ≥ 3`) but not the divergent one, and
   the general `J` of (13.41) needs in addition Georgii's `grad Ĵ(q) = 0` argument. (ii) The step
-  from `∫_G Ĵ⁻¹ dz = ∞` to `𝒢 = ∅` is exactly the necessity half of (13.36), which is open; what
-  (i) *would* give at once, through
-  `Potential.lintegral_inv_re_fourierHomogeneousCoupling_ne_top_of_isGibbsMeasure`, is that no
-  centred Gauss field with homogeneous covariance is a Gibbs measure for `γ^{J,0}`.
+  from `∫_G Ĵ⁻¹ dz = ∞` to `𝒢 = ∅` is the necessity half of (13.36), which *is* now available
+  (`Potential.nonempty_G_homogeneousCoupling_iff` in
+  `GibbsMeasure/Model/GaussianHomogeneousExtreme.lean`); so only (i) is missing.
   Georgii's alternative route — Corollary (9.24)
   applied to the dissipative symmetry `(τ^{t m})`, which *is* in the tree as
   `MeasureTheory.GibbsMeasure.G_eq_empty_of_logDecay_of_dissipative` — is stated for the Gibbs

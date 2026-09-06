@@ -47,6 +47,36 @@
     $\mathcal G(\gamma^{J,h})$.
 \end{theorem}
 
+\begin{theorem}[Georgii (13.A5), (13.24)--(13.26) and Remark (13.23)(d): the extreme Gibbs measures of a Gaussian specification]
+    \label{thm:gs-13-24}
+    \uses{thm:gs-13-23, thm:gs-13-22, thm:ext-77-concrete, def:lc-topology}
+    \lean{ProbabilityTheory.exists_tendsto_of_tendsto_cexp_mul_I, ProbabilityTheory.exists_eq_gaussianReal_of_tendsto_charFun, ProbabilityTheory.isGaussian_of_tendsto_charFun, ProbabilityTheory.TendstoFddCharFun, ProbabilityTheory.TendstoFddCharFun.isGaussianProcess, ProbabilityTheory.TendstoFddCharFun.tendsto_integral_eval, ProbabilityTheory.TendstoFddCharFun.tendsto_covariance, MeasureTheory.tendsto_integral_of_tendsto_setwise, MeasureTheory.tendsto_integral_of_tendsto_withLocalConvergence, MeasureTheory.GibbsMeasure.isGaussianProcess_of_tendsto_withLocalConvergence, MeasureTheory.GibbsMeasure.tendsto_covariance_of_tendsto_withLocalConvergence, ProbabilityTheory.isGaussianProcess_map_add_const, ProbabilityTheory.eq_map_add_gaussianField, MeasureTheory.GibbsMeasure.measurableSet_tail_preimage_add_const, MeasureTheory.GibbsMeasure.tailTrivial_map_add_const, MeasureTheory.GibbsMeasure.map_add_mem_extremePoints_G, MeasureTheory.GibbsMeasure.isGaussianProcess_and_tendsto_gaussianCovEntry_of_mem_extremePoints_G, MeasureTheory.GibbsMeasure.isGaussianProcess_of_mem_extremePoints_G, MeasureTheory.GibbsMeasure.bddAbove_gaussianCovEntry_of_nonempty_G, MeasureTheory.GibbsMeasure.tendsto_gaussianCovEntry_of_mem_extremePoints_G, MeasureTheory.GibbsMeasure.covariance_eq_of_mem_extremePoints_G, MeasureTheory.GibbsMeasure.mem_gaussianMeanSet_of_mem_extremePoints_G, MeasureTheory.GibbsMeasure.eq_map_add_gaussianField_of_mem_extremePoints_G, MeasureTheory.GibbsMeasure.nonempty_gaussianMeanSet_of_nonempty_G, MeasureTheory.GibbsMeasure.nonempty_G_gaussianSpecification_iff, MeasureTheory.GibbsMeasure.isGibbsMeasure_of_isGaussianProcess_covariance_eq, MeasureTheory.GibbsMeasure.mem_extremePoints_G_gaussianField, MeasureTheory.GibbsMeasure.extremePoints_G_eq_image_gaussianField, MeasureTheory.GibbsMeasure.bijOn_map_add_gaussianField_extremePoints_G, MeasureTheory.GibbsMeasure.not_countable_extremePoints_G}
+    \leanok
+
+    Proposition (13.A5), in greater generality than Georgii's: if the finite-dimensional
+    characteristic functions of Gaussian processes converge to those of a probability measure,
+    the limit is a Gaussian process with the limiting means and covariances --- the new step is
+    that $e^{itm_n} \to \psi(t)$ with $\psi$ continuous forces $m_n$ to converge --- and a local
+    limit of Gauss fields is a Gauss field (bounded convergence for setwise convergence on
+    $\mathcal F^0$; no topology on the state space). Remark (7.2) for spin translations: $\tau^m$
+    maps $\operatorname{ex}\mathcal G(\gamma^{J,h'})$ into $\operatorname{ex}\mathcal G(\gamma^{J,h+h'})$,
+    extremality being tail triviality. Hence, for finite-range $J$ with positive definite sections:
+    every $\mu \in \operatorname{ex}\mathcal G(\gamma^{J,h})$ is a Gauss field, a local limit of the
+    finite-volume Gaussian distributions by (7.12), whose covariance is the limit
+    $\mathcal J_\Lambda^{-1}(i,j) \to C(i,j)$ along the whole net of volumes (13.25), so Georgii's
+    (13.27) is necessary; (13.24): $\mu = \mu_C * \delta_m$ with $m \in M_{J,h}$, and
+    $\operatorname{ex}\mathcal G(\gamma^{J,h}) = \{\mu_C * \delta_m : m \in M_{J,h}\}$ bijectively;
+    Theorem (13.26) in both directions, $\mathcal G(\gamma^{J,h}) \neq \emptyset$ iff
+    $M_{J,h} \neq \emptyset$ and $\sup_\Lambda \mathcal J_\Lambda^{-1}(i,i) < \infty$; Remark
+    (13.23)(d), $\operatorname{ex}\mathcal G$ uncountable, from the bijection rather than from the
+    continuous symmetry. Not proved: the final clause $\mathcal G(\gamma^{J,h}) = \{\mu_C * \nu :
+    \nu(M_{J,h}) = 1\}$ (the bijection must be shown bimeasurable to transport the weight of
+    (7.26)) and its $\mathcal G_\Theta$ form; (13.31) and Comment (13.28) for infinite range.
+\end{theorem}
+\begin{proof}
+    \leanok
+\end{proof}
+
 \begin{proposition}[Georgii (13.26), (13.31), the closing step]
     \label{prop:gs-13-26}
     \uses{thm:gs-13-22, thm:gs-13-23}

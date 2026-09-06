@@ -776,6 +776,16 @@ centred Gaussian process with prescribed nonnegative-definite covariance — is 
 `GibbsMeasure/Mathlib/Probability/Distributions/Gaussian/Existence.lean` by Kolmogorov extension
 (Mathlib had the projectivity of multivariate Gaussians only inside its Brownian motion files,
 specialised to one covariance), and with it the existence half of **(13.26)**.
+**(13.A5) and (13.24)–(13.26)** (`Model/GaussianExtreme.lean`, `Mathlib/Probability/Distributions/Gaussian/WeakLimit.lean`,
+`Topology/GaussianLocalLimit.lean`): a limit of Gaussian processes in the sense of finite-dimensional
+characteristic functions is Gaussian with the limiting means and covariances, so a local limit of
+Gauss fields is a Gauss field; every extreme Gibbs measure of `γ^{J,h}` is a Gauss field
+`μ_C * δ_m`, its covariance the limit of the inverse coupling matrices, `ex 𝒢(γ^{J,h})` is in
+bijection with the mean set `M_{J,h}` and is uncountable (Remark (13.23)(d)), and Theorem (13.26)
+holds in both directions. Hence **(13.36) in both directions** and (13.43) with uncountably many
+*extreme* Gibbs measures for the harmonic crystal in `d ≥ 3` (`Model/GaussianHomogeneousExtreme.lean`).
+Open: the representation `𝒢(γ^{J,h}) = {μ_C * ν}` (a bimeasurability of the bijection), (13.39)
+parts 1–2, (13.40), (13.41)'s divergent integral for `d ≤ 2`, (13.44)–(13.45).
 
 **§9.2, Mermin–Wagner** (`GibbsMeasure/Model/MerminWagner.lean`): **Theorem (9.20)** — for a
 pair potential on a site set with a planar norm (ℤ² with the maximum norm the instance), any real
@@ -870,8 +880,8 @@ neighbouring spins has a unique infinite component almost surely under every Gib
 
 Not yet done: the modulo-commutativity refinement (5.15)(ii) behind Examples (5.17)(3)–(4); the
 continuity of the second derivative asserted in (8.37)/(16.17); Example (9.15) for `K > 0`; the
-three extremality clauses of (12.31)(b); the necessity half of (13.36), (13.39)–(13.41) and
-(13.44)–(13.45); the upper bound (15.46) for a standard Borel state space, and the
+three extremality clauses of (12.31)(b); (13.39)–(13.41), (13.44)–(13.45) and the `𝒢_Θ` clause
+of (13.42); the upper bound (15.46) for a standard Borel state space, and the
 periodic-boundary-condition statements (15.48) (its two inequalities), (15.50)–(15.51),
 (15.57)–(15.58); (16.24)(3)–(4), (16.25)(2), (16.26)–(16.27), (16.31) and the equivalence of
 Georgii's two descriptions of `ℬ_Θ(f₁,…,f_N)`; the Berg–Maserick converse (17.28)(1), cited without

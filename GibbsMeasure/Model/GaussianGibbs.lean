@@ -111,19 +111,18 @@ and the spin at `i` is translated by `m_i` — defined in general in
 
 ## What is *not* proved here, and why
 
-* **Georgii Remark (13.23)(d)** (`M_{J,0} ≠ {0}` implies `𝒢(γ^{J,h}) = ∅` or `ex 𝒢(γ^{J,h})`
-  uncountable) needs, besides (c): `ex 𝒢 ≠ ∅` when `𝒢 ≠ ∅` (Theorem (7.26)), which *is* in the
-  tree as `MeasureTheory.GibbsMeasure.exists_mem_extremePoints_G_of_isGibbsMeasure`; that `τ^m`
-  maps `ex 𝒢` into itself (Remark (7.2)), which is not, though
-  `mem_extremePoints_G_iff_isTailTrivial` reduces it to the invariance of the tail σ-algebra under
-  `τ^m`; and the injectivity of `t ↦ τ^{t m}(μ)`, which amounts to the fact that no probability
-  measure on `ℝ` is invariant under a non-zero translation, also not in the tree.
-* **Georgii Theorems (13.24) and (13.31).** (13.24) — the description of `ex 𝒢(γ^{J,h})` as the
-  Gaussian fields with covariance `C` of (13.25) and mean in `M_{J,h}`, and hence the necessity
-  half of (13.26) — needs Theorem (7.12) (every extreme Gibbs measure is a local limit
-  `lim_n γ_{Λ_n}(·|ω)`) together with Proposition (13.A5) (a local limit of Gaussian fields is
-  Gaussian, of which `GibbsMeasure/Mathlib/Probability/Distributions/Gaussian/Limit.lean` has the
-  `L¹` version); neither step is attempted here. (13.31) needs the matrices
+* **Georgii Theorems (13.24), (13.26) necessity, and Remark (13.23)(d)** are proved in
+  `GibbsMeasure/Model/GaussianExtreme.lean`, from Theorem (7.12)(c) for a λ-specification
+  (`MeasureTheory.GibbsMeasure.ae_tendsto_finiteVolumeDistributions_exhaustion_lambdaSpecification`)
+  and Proposition (13.A5) (`GibbsMeasure/Topology/GaussianLocalLimit.lean`). In particular
+  `MeasureTheory.GibbsMeasure.nonempty_G_gaussianSpecification_iff` upgrades
+  `nonempty_G_gaussianSpecification_of_bddAbove` below to Georgii's Theorem (13.26) with both
+  implications, and `MeasureTheory.GibbsMeasure.extremePoints_G_eq_image_gaussianField` is
+  `ex 𝒢(γ^{J,h}) = {μ_C * δ_m : m ∈ M_{J,h}}`. What remains open of (13.24) is only the final
+  convolution description `𝒢(γ^{J,h}) = {μ_C * ν : ν(M_{J,h}) = 1}`, which needs the bijection
+  `M_{J,h} ≃ ex 𝒢(γ^{J,h})` to be bimeasurable so that Theorem (7.26) can be transported along
+  it.
+* **Georgii Theorem (13.31)** needs the matrices
   `P_V(i,j) = -J(i,j)/J(i,i)` and the Neumann series `C_V = ∑_n P_V^n / J(j,j)`, i.e. a genuinely
   infinite-range development. The potential-theoretic identity of Comment (13.28) is not attempted
   either.

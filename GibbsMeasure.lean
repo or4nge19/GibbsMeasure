@@ -100,6 +100,8 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Integral.Pi
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.PiReflectionComplex
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Density
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Existence
+public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.WeakLimit
+public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Translate
 public import GibbsMeasure.Mathlib.Probability.Distributions.Poisson.Convergence
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.CondExp
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Limit
@@ -262,6 +264,8 @@ public import GibbsMeasure.Model.GaussianField
 public import GibbsMeasure.Model.GaussianSpecification
 public import GibbsMeasure.Model.GaussianGibbs
 public import GibbsMeasure.Model.GaussianHomogeneous
+public import GibbsMeasure.Model.GaussianExtreme
+public import GibbsMeasure.Model.GaussianHomogeneousExtreme
 public import GibbsMeasure.Model.KalikowClassification
 public import GibbsMeasure.Model.LowEnergyOceans
 public import GibbsMeasure.Model.UniqueInfiniteCluster
@@ -380,6 +384,8 @@ public import GibbsMeasure.Topology.ConfigurationSpace
 public import GibbsMeasure.Topology.ClusterPoints
 public import GibbsMeasure.Topology.LocalConvergence
 public import GibbsMeasure.Topology.CountableCore
+public import GibbsMeasure.Topology.LocalConvergenceIntegral
+public import GibbsMeasure.Topology.GaussianLocalLimit
 public import GibbsMeasure.Topology.LocalMetric
 public import GibbsMeasure.Topology.Subsequence
 public import GibbsMeasure.Topology.Metrizable

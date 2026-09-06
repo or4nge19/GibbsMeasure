@@ -46,8 +46,8 @@ status:
     Georgii Chapters 1-14 complete for the results listed under main_results and in the per-chapter
     entries (the few exceptions are named there: (5.15)(ii) modulo-commutativity refinement,
     the continuity of the second derivative asserted in (8.37), Example (9.15) for K > 0,
-    (12.31)(b)'s three extremality clauses, the (13.36) necessity and (13.39)-(13.41),
-    (13.44)-(13.45)). Chapter 15 complete through Theorem (15.45), the upper bound (15.46) over a
+    (12.31)(b)'s three extremality clauses, (13.39)-(13.41), (13.44)-(13.45), and the
+    G_Theta clause of (13.42)). Chapter 15 complete through Theorem (15.45), the upper bound (15.46) over a
     finite state space and the lower bound (15.47) over any; open: (15.46) for standard Borel E,
     the periodic-boundary-condition inequalities of (15.48), (15.50)-(15.51), (15.57)-(15.58).
     Chapter 16: Sections 16.1-16.2 complete; Section 16.3 through (16.25)(1) and (16.28)-(16.30),
@@ -2100,8 +2100,13 @@ alignment:
         definiteness of all finite sections iff J^ >= 0 and J^ not identically 0, through the
         theorem that a nonzero trigonometric polynomial vanishes only on a null set
         (Mathlib/Analysis/Fourier/AddCircleMultiSeries.lean, real analyticity on R^d); the
-        spectral covariances (13.37)-(13.38), nonnegative definite and inverting J; (13.36)
-        sufficiency, and necessity for a Gauss field with homogeneous covariance; Herglotz
+        spectral covariances (13.37)-(13.38), nonnegative definite and inverting J; (13.36) in
+        both directions (Model/GaussianHomogeneousExtreme.lean: the necessity for an arbitrary
+        Gibbs measure through (13.24), the limiting covariance being homogeneous since the inverse
+        coupling matrix of a translated volume is the relabelled one and translates are cofinal),
+        and (13.43) as Georgii states it, uncountably many extreme Gibbs measures for the harmonic
+        crystal in d >= 3 (a root of J^ on the torus makes ex G uncountable whenever G is
+        nonempty); Herglotz
         (13.A9) with uniqueness (AddCircleMultiHerglotz.lean, Fejer densities and Prokhorov);
         (13.42) as the equivalence "Gibbs iff the covariance is C_alpha and the mean is in the
         mean set", without the shift-invariance clause; the conclusion of (13.39) from a root of
@@ -2112,8 +2117,8 @@ alignment:
         are built for finite range; Georgii assumes only absolute summability. Erratum: the
         displayed transform in (13.43) is 2d times that of the coupling written there. Not
         formalized: the root of J^ in (C minus 0)^d in (13.39), (13.40), (13.41) (needs the
-        divergence of the integral of 1/J^ near 0 and (13.36) necessity for arbitrary mu, which
-        needs (13.24)), the Theta clause of (13.42), (13.44), (13.45).
+        divergence of the integral of 1/J^ near 0 for d <= 2; the necessity of (13.36) is now
+        available), the Theta clause of (13.42), (13.44), (13.45).
     - source: "Section 13.2: (13.20), (13.22) sufficiency, (13.23), the closing step of (13.26)/(13.31)"
       lean: "MeasureTheory.GibbsMeasure.georgii_13_20"
       module: "GibbsMeasure/Model/GaussianGibbs.lean"
@@ -2131,8 +2136,19 @@ alignment:
         gamma^{J,h+h'}, G(gamma^{J,h}) is a translate of G(gamma^{J,0}), and translations by the
         mean submodule are symmetries. The closing step of (13.26)/(13.31): a centred Gauss field
         whose covariance inverts J gives a Gibbs measure, so G is nonempty. Not formalized:
-        (13.23)(d) (needs
-        Remark (7.2) and that no probability measure on R is translation invariant), (13.24)-(13.25) (need (7.12) and (13.A5)).
+        (13.31) and Comment (13.28) for infinite range. Model/GaussianExtreme.lean, with
+        Mathlib/Probability/Distributions/Gaussian/{WeakLimit,Translate}.lean and
+        Topology/{LocalConvergenceIntegral,GaussianLocalLimit}.lean: Proposition (13.A5) in greater
+        generality (finite-dimensional characteristic functions of Gaussian processes converging
+        to those of a probability measure make it Gaussian with the limiting means and
+        covariances; a local limit of Gauss fields is a Gauss field, with no topology on the state
+        space); Remark (7.2) for spin translations; (13.24)-(13.25): every extreme Gibbs measure
+        of gamma^{J,h} is a Gauss field mu_C * delta_m with m in M_{J,h}, its covariance the limit
+        of the inverse coupling matrices along the whole net of volumes, so (13.27) is necessary,
+        ex G(gamma^{J,h}) = {mu_C * delta_m : m in M_{J,h}} bijectively; Theorem (13.26) in both
+        directions; Remark (13.23)(d) (ex G uncountable) from the bijection. Not formalized: the
+        final clause G(gamma^{J,h}) = {mu_C * nu : nu(M_{J,h}) = 1} (the bijection must be shown
+        bimeasurable to transport the weight of (7.26)) and its G_Theta form.
         The first half of (13.26) is proved: under (13.27) the entries of the inverse coupling
         matrices converge to a nonnegative-definite inverse of J, so G is nonempty. Georgii derives
         the underlying monotonicity from (13.13) and Jensen; here it is the linear-algebra fact
