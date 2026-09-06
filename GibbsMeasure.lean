@@ -27,7 +27,6 @@ public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Finite
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Connectivity
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Acyclic
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.CayleyTree
-public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.TreeBall
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Hasse
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.InfiniteCluster
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.RootedTree
@@ -112,10 +111,6 @@ public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Translate
 public import GibbsMeasure.Mathlib.Probability.Distributions.Poisson.Convergence
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.CondExp
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Limit
-public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Reindex
-public import GibbsMeasure.Mathlib.Algebra.MvPolynomial.Moments
-public import GibbsMeasure.Mathlib.Analysis.Complex.MultivariateLaurentRoot
-public import GibbsMeasure.Mathlib.MeasureTheory.Integral.BallInvNormPow
 public import GibbsMeasure.Mathlib.Probability.Moments.Covariance
 public import GibbsMeasure.Mathlib.Probability.Independence.Integration
 public import GibbsMeasure.Mathlib.Probability.LargeDeviations.Legendre
@@ -281,10 +276,6 @@ public import GibbsMeasure.Model.GaussianGibbs
 public import GibbsMeasure.Model.GaussianHomogeneous
 public import GibbsMeasure.Model.GaussianExtreme
 public import GibbsMeasure.Model.GaussianHomogeneousExtreme
-public import GibbsMeasure.Model.GaussianHomogeneousMeanSet
-public import GibbsMeasure.Model.GaussianShiftInvariance
-public import GibbsMeasure.Model.GaussianConvolution
-public import GibbsMeasure.Model.GaussianHarmonicCrystalLowDim
 public import GibbsMeasure.Model.KalikowClassification
 public import GibbsMeasure.Model.AlternatingChain
 public import GibbsMeasure.Model.LowEnergyOceans
@@ -299,13 +290,11 @@ public import GibbsMeasure.Model.PottsOceans
 public import GibbsMeasure.Model.AnisotropicHeisenbergOceans
 public import GibbsMeasure.Model.AnisotropicAntiferroOceans
 public import GibbsMeasure.Model.ShlosmanRotorOceans
-public import GibbsMeasure.Model.TransverseFieldRotorOceans
 public import GibbsMeasure.Model.DoubleWellOceans
 public import GibbsMeasure.Model.SlawnyModel
 public import GibbsMeasure.Model.GroundStateRefinement
-public import GibbsMeasure.Model.BlumeCapel
 public import GibbsMeasure.Model.SpernerPhaseTransition
-public import GibbsMeasure.Model.EntropyEnergyConflict
+public import GibbsMeasure.Model.BlumeCapel
 public import GibbsMeasure.Model.OceanNetwork
 public import GibbsMeasure.Model.PlanarCrossing
 public import GibbsMeasure.Model.ShiftAverage
@@ -391,10 +380,10 @@ public import GibbsMeasure.Specification.HeisenbergClusterPoints
 public import GibbsMeasure.Specification.HeisenbergExistence
 public import GibbsMeasure.Specification.HeisenbergGibbsInclusion
 public import GibbsMeasure.Specification.InfraredBoundCorrelation
-public import GibbsMeasure.Specification.GaussianDomination
-public import GibbsMeasure.Specification.InfraredBoundTheorem
 public import GibbsMeasure.Specification.InfraredBoundFourier
+public import GibbsMeasure.Specification.InfraredBoundTheorem
 public import GibbsMeasure.Specification.InfraredBound
+public import GibbsMeasure.Specification.GaussianDomination
 public import GibbsMeasure.Specification.InvariantFieldsBarycenter
 public import GibbsMeasure.Specification.InvariantFieldsCoreTopology
 public import GibbsMeasure.Specification.MarkovInt
@@ -414,7 +403,6 @@ public import GibbsMeasure.Specification.LargeDeviationsLower
 public import GibbsMeasure.Specification.LargeDeviationsUpper
 public import GibbsMeasure.Specification.PeriodicBoundaryGibbs
 public import GibbsMeasure.Specification.LargeDeviationsCorollaries
-public import GibbsMeasure.Specification.EquivalenceOfEnsembles
 public import GibbsMeasure.Specification.LocalGroundStates
 public import GibbsMeasure.Specification.PatternPercolation
 public import GibbsMeasure.Specification.ReflectionPositivity
@@ -422,8 +410,8 @@ public import GibbsMeasure.Specification.PeriodicGibbs
 public import GibbsMeasure.Specification.PeriodicGibbsLimits
 public import GibbsMeasure.Specification.PeriodicGibbsSymmetry
 public import GibbsMeasure.Specification.ResolvingPerturbations
-public import GibbsMeasure.Specification.CubePotentialConvergence
 public import GibbsMeasure.Specification.ChainEstimate
+public import GibbsMeasure.Specification.CubePotentialConvergence
 public import GibbsMeasure.Specification.CubePotentialSingleSite
 public import GibbsMeasure.Specification.QuasiGibbsian
 public import GibbsMeasure.Specification.ShannonMcMillan

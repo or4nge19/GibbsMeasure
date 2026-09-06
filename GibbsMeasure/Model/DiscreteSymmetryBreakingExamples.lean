@@ -1036,8 +1036,10 @@ end ShiftTransport
 /-! ### Theorem (18.25), last statement, without shift invariance
 
 Georgii's `|ex 𝒢_Θ̃(βΦ)| ≥ N` needs the ergodic decomposition for the subgroup `Θ̃`; when the
-partition is not `r`-symmetric that subgroup is proper and the tree does not have (14.18) for it
-(see the module doc of `GibbsMeasure/Model/DiscreteSymmetryBreaking.lean`).  The *unrestricted*
+partition is not `r`-symmetric that subgroup is proper, and the count is
+`eventually_le_encard_extremePoints_invariantG_of_shift_range` of
+`GibbsMeasure/Model/DiscreteSymmetryBreaking.lean`, resting on (14.10)/(14.18) for a subgroup
+(`GibbsMeasure/Specification/InvariantDecompositionSubgroup.lean`).  The *unrestricted*
 count `|ex 𝒢(βΦ)| ≥ N` is unconditional, by Corollary (7.29)
 (`le_encard_extremePoints_iff` of `GibbsMeasure/Specification/ExtremeCorollaries.lean`): the `N`
 Gibbs measures of (18.25) are separated by the pairwise disjoint tail events `A_n`, hence linearly
@@ -1105,6 +1107,90 @@ theorem eventually_le_encard_extremePoints_G [StandardBorelSpace E]
     hβ hδ hφβ hMβ
 
 end ExtremePointsG
+
+/-! ### Georgii's shift group `Θ̃ = {θ_i : i₁ + i₂ ≡ 0 mod 2}`
+
+The staggered examples of §18.3 — 18.3.2 (the Ising antiferromagnet), 18.3.4 (the hard-core
+lattice gas), 18.3.7 (anisotropic Heisenberg antiferromagnets) and 18.3.8 (Shlosman's plane
+rotor) — all break the shift group down to the *even* sublattice: the iterated reflection `r^i`
+fixes a staggered pattern exactly when `i₁ + i₂` is even.  That subgroup of `ℤ²` is free abelian
+of rank `2`, and here it is realised as the range of the additive endomorphism
+`f(a) = (a₀ + a₁, a₀ − a₁)`, which is the form in which the count
+`le_encard_extremePoints_invariantG_of_shift_range` of
+`GibbsMeasure/Model/DiscreteSymmetryBreaking.lean` — the last statement of Theorem (18.25) — is
+stated.  (Intended home: `GibbsMeasure/Model/DiscreteSymmetryBreaking.lean`.) -/
+
+section EvenSublattice
+
+/-- **The even sublattice of `ℤ²` as the range of an endomorphism**: `f(a) = (a₀+a₁, a₀−a₁)`.
+Its image is `{b : b₀ + b₁ even}`, because `f(a)₀ + f(a)₁ = 2a₀`, and conversely
+`b = f((b₀+b₁)/2, b₀ − (b₀+b₁)/2)` whenever `b₀ + b₁` is even. -/
+def evenLatticeHom : (Fin 2 → ℤ) →+ (Fin 2 → ℤ) where
+  toFun a := ![a 0 + a 1, a 0 - a 1]
+  map_zero' := by funext k; fin_cases k <;> simp
+  map_add' a b := by funext k; fin_cases k <;> simp <;> ring
+
+@[simp] lemma evenLatticeHom_apply_zero (a : Fin 2 → ℤ) : evenLatticeHom a 0 = a 0 + a 1 := rfl
+
+@[simp] lemma evenLatticeHom_apply_one (a : Fin 2 → ℤ) : evenLatticeHom a 1 = a 0 - a 1 := rfl
+
+/-- Every shift in the range of `evenLatticeHom` is one of Georgii's even shifts. -/
+lemma even_evenLatticeHom (a : Fin 2 → ℤ) : Even (evenLatticeHom a 0 + evenLatticeHom a 1) :=
+  ⟨a 0, by simp⟩
+
+/-- Conversely, every even shift is in the range of `evenLatticeHom`. -/
+lemma exists_evenLatticeHom_eq {b : Fin 2 → ℤ} (hb : Even (b 0 + b 1)) :
+    ∃ a : Fin 2 → ℤ, evenLatticeHom a = b := by
+  obtain ⟨k, hk⟩ := hb
+  refine ⟨![k, b 0 - k], funext fun j ↦ ?_⟩
+  fin_cases j
+  · simp
+  · simp
+    omega
+
+/-- `f(1,0) = (1,1) ≠ 0` has infinite additive order: Georgii's "contains a non-trivial
+shift". -/
+lemma not_isOfFinAddOrder_evenLatticeHom :
+    ¬ IsOfFinAddOrder (evenLatticeHom ![1, 0]) := by
+  refine not_isOfFinAddOrder_of_isAddTorsionFree fun h ↦ ?_
+  have h0 := congrFun h 0
+  simp at h0
+
+variable (E : Type*) [MeasurableSpace E]
+
+/-- **Georgii's shift group `Θ̃ = {θ_i : i ∈ P, r^i G_n = G_n}`** for a staggered partition of the
+plane: the group of shifts by the even sublattice of `ℤ²`, presented as the range of
+`evenLatticeHom` so that Theorem (14.10) for a subgroup (`InvariantDecompositionSubgroup.lean`)
+applies to it along the cubes of `ℤ²`. -/
+def evenShiftGroup : Subgroup (Transformation (Fin 2 → ℤ) E) :=
+  ((shiftHom E).comp (AddMonoidHom.toMultiplicative evenLatticeHom)).range
+
+variable {E}
+
+lemma mem_evenShiftGroup {τ : Transformation (Fin 2 → ℤ) E} :
+    τ ∈ evenShiftGroup E ↔ ∃ a : Fin 2 → ℤ, shift E (evenLatticeHom a) = τ := by
+  constructor
+  · rintro ⟨x, rfl⟩
+    exact ⟨Multiplicative.toAdd x, rfl⟩
+  · rintro ⟨a, rfl⟩
+    exact ⟨Multiplicative.ofAdd a, rfl⟩
+
+/-- **`Θ̃` is Georgii's group of even shifts**: `θ_b ∈ Θ̃` exactly when `b₁ + b₂` is even. -/
+lemma mem_evenShiftGroup_iff_even {τ : Transformation (Fin 2 → ℤ) E} :
+    τ ∈ evenShiftGroup E ↔ ∃ b : Fin 2 → ℤ, Even (b 0 + b 1) ∧ shift E b = τ := by
+  rw [mem_evenShiftGroup]
+  constructor
+  · rintro ⟨a, rfl⟩
+    exact ⟨evenLatticeHom a, even_evenLatticeHom a, rfl⟩
+  · rintro ⟨b, hb, rfl⟩
+    obtain ⟨a, rfl⟩ := exists_evenLatticeHom_eq hb
+    exact ⟨a, rfl⟩
+
+lemma shift_mem_evenShiftGroup {b : Fin 2 → ℤ} (hb : Even (b 0 + b 1)) :
+    shift E b ∈ evenShiftGroup E :=
+  mem_evenShiftGroup_iff_even.2 ⟨b, hb, rfl⟩
+
+end EvenSublattice
 
 end MeasurableState
 

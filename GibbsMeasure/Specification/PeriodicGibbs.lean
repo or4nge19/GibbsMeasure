@@ -838,6 +838,27 @@ theorem measure_apply_pow_card_le_siteEquiv {d : ℕ}
     (by simpa only [genReflectionAt_refl] using hpos) hA i₀
   simpa only [tauPow_refl] using h
 
+/-- **Georgii, Theorem (17.11) for the reflections `r_k` of (17.5)**, for bounded functions:
+
+`|μ(∏_i f_i ∘ σ_i)|^{|Λ|} ≤ ∏_j μ(∏_i f_j ∘ σ_i)`.
+
+This is the function form of `measure_apply_pow_card_le_siteEquiv`; as there, the iterated
+involutions `τ^i` of (17.10) are trivial (`tauPow_refl`).  Georgii states (17.11) without a
+boundedness hypothesis; ours is inherited from `abs_integral_prod_pow_le_pi` and is removed in
+applications by monotone convergence on the truncations `min(·, M)`. -/
+theorem abs_integral_prod_pow_le_pi_siteEquiv {d : ℕ}
+    {μ : Measure ((Fin (d + 1) → ZMod (2 * N)) → E)} [IsFiniteMeasure μ]
+    (hper : ∀ j, MeasurePreserving (shift E j).toFun μ μ)
+    (hrefl : ∀ k, MeasurePreserving (siteEquiv E (torusReflAt N k)).toFun μ μ)
+    (hpos : ∀ k, IsReflectionPositive (torusPosAt N k) (siteEquiv E (torusReflAt N k)) μ)
+    {f : (Fin (d + 1) → ZMod (2 * N)) → E → ℝ} (hf : ∀ i, Measurable (f i)) {C : ℝ}
+    (hC : ∀ i x, |f i x| ≤ C) :
+    |∫ ω, ∏ i, f i (ω i) ∂μ| ^ ((2 * N) ^ (d + 1)) ≤ ∏ j, ∫ ω, ∏ i, f j (ω i) ∂μ := by
+  have h := abs_integral_prod_pow_le_pi (μ := μ) (τ := fun _ ↦ MeasurableEquiv.refl E)
+    (fun _ _ ↦ rfl) hper (by simpa only [genReflectionAt_refl] using hrefl)
+    (by simpa only [genReflectionAt_refl] using hpos) hf hC
+  simpa only [tauPow_refl] using h
+
 end SiteReflection
 
 end MeasureTheory.GibbsMeasure

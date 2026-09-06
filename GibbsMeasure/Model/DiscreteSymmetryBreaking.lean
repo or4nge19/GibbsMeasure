@@ -12,6 +12,7 @@ public import GibbsMeasure.Mathlib.Probability.CondInvariant
 public import GibbsMeasure.Model.LowEnergyOceans
 public import GibbsMeasure.Specification.Extremal
 public import GibbsMeasure.Specification.InvariantDecomposition
+public import GibbsMeasure.Specification.InvariantDecompositionSubgroup
 public import GibbsMeasure.Specification.PeriodicGibbsSymmetry
 
 /-!
@@ -76,6 +77,15 @@ plane `P` of (18.5) is the whole lattice and every face of `C` is a `P`-face.
   critical inverse temperature is at most any `β₀` with `δ(β) < 1` for all `β ≥ β₀`; and
   `eventually_exists_gibbsMeasure_family` — **Theorem (18.25) as stated**, "if `β` is
   sufficiently large".
+* `le_encard_extremePoints_invariantG_shiftGroup_of_isRSymmetric` — **the last statement of
+  (18.25)**, `|ex 𝒢_Θ̃(Φ)| ≥ N`, when every `G_n` is `r`-symmetric and therefore `Θ̃ = Θ`; and
+  `le_encard_extremePoints_invariantG_of_shift_range`,
+  `le_encard_extremePoints_invariantG_of_shift_range_of_crossingBound_lt_one`,
+  `eventually_le_encard_extremePoints_invariantG_of_shift_range` — **the same statement for the
+  proper subgroup `Θ̃`** of shifts preserving every member of the partition, which is the case
+  Georgii writes it for.  The subgroup half of Corollary (14.18) — his "remark in the paragraph
+  below Corollary (14.18)" — is
+  `GibbsMeasure/Specification/InvariantDecompositionSubgroup.lean`.
 
 ## Deviations from Georgii's statement
 
@@ -85,21 +95,13 @@ plane `P` of (18.5) is the whole lattice and every face of `C` is a `P`-face.
   potential `φ₀` which is unrelated to the potential `φ` of `𝒢₀(φ)`; the low-temperature
   corollaries instantiate `φ₀ = Φ` and `φ = βΦ`.  `IsPhiSymmetric.const_mul` is the transfer of
   (18.23)(b) from `Φ` to `βΦ`, i.e. `I_{C,λ}(Φ) ⊆ I_{C,λ}(βΦ)`.
-* The last statement of (18.25), `|ex 𝒢_Θ̃(βΦ)| ≥ N`, is proved here only for `Θ̃ = Θ`, i.e. when
-  every `G_n` is `r`-symmetric: that is
-  `le_encard_extremePoints_invariantG_shiftGroup_of_isRSymmetric`, from Corollary (14.18) for the
-  shift group (`le_encard_extremePoints_invariantG_shiftGroup_iff`) and the linear independence
-  of measures separated by disjoint events
-  (`linearIndependent_of_measure_eq_one_of_measure_eq_zero`).  For a partition which is not
-  `r`-symmetric Georgii's `Θ̃ = ⋂_n Θ̃_n` is a proper subgroup of `Θ` containing `2ℤ²`, and he
-  appeals to the remark below Corollary (14.18) — that (14.10), (14.17) and (14.18) hold for any
-  finitely generated abelian subgroup of `T` containing a non-trivial shift.  The tree has (14.18)
-  for a subgroup `Θ` only given a `(𝓟_Θ, 𝓘)`-kernel (`le_encard_extremePoints_invariantG_iff`),
-  and such a kernel is constructed only for the *full* shift group; the missing input is the
-  `(𝓟_Θ̃, 𝓘)`-kernel of a finite-index subgroup of the shifts, which belongs in
-  `GibbsMeasure/Specification/InvariantDecomposition.lean`.  The measure-theoretic half of the
-  count — the mutual singularity of `μ_1, …, μ_N` — is unconditional
-  (`mutuallySingular_cond_setOf_latticeOceanPart_nonempty`).
+* Georgii's `Θ̃ = ⋂_n Θ̃_n` is presented as the group of shifts `θ_{f a}` along the range of an
+  additive endomorphism `f` of `ℤ²` rather than as an abstract subgroup.  This is not a loss:
+  `Θ̃` contains `2ℤ²` (the iterated reflection `r^i` is the identity for even `i`), hence is a
+  finite-index subgroup of `ℤ²`, hence free abelian of rank `2`, hence such a range — but the
+  tree does not contain the structure theorem that produces `f` from `Θ̃`, so `f` is a hypothesis.
+  For the staggered partitions of §18.3 it is explicit (`evenLatticeHom` of
+  `GibbsMeasure/Model/DiscreteSymmetryBreakingExamples.lean`).
 -/
 
 @[expose] public section
@@ -727,10 +729,9 @@ independent over `ℝ≥0∞` (`linearIndependent_of_measure_eq_one_of_measure_e
 
 For a partition which is *not* `r`-symmetric — the interesting case, and the reason Georgii
 writes `Θ̃` — his `Θ̃ = ⋂_n Θ̃_n` is a proper subgroup of `Θ` containing `2ℤ²`, and the
-corresponding statement needs (14.10)/(14.18) for that subgroup, i.e. a `(𝓟_Θ̃, 𝓘)`-kernel for a
-finite-index subgroup of the shifts.  That is the remark below Corollary (14.18), and it is not
-in the tree; the measure-theoretic half — the mutual singularity of `μ_1, …, μ_N` — is
-`mutuallySingular_cond_setOf_latticeOceanPart_nonempty`. -/
+corresponding statement is `le_encard_extremePoints_invariantG_of_shift_range` below, which
+rests on (14.10)/(14.18) for that subgroup — Georgii's remark below Corollary (14.18),
+`GibbsMeasure/Specification/InvariantDecompositionSubgroup.lean`. -/
 theorem le_encard_extremePoints_invariantG_shiftGroup_of_isRSymmetric [StandardBorelSpace E]
     {N : ℕ} {G : Fin N → Set ((Fin 2 → Fin 2) → E)} (hφ : Measurable φ)
     (hM : ∃ M : ℝ, ∀ ζ, M ≤ φ ζ) (hpart : IsPStablePartition φ₀ ν Set.univ G)
@@ -760,6 +761,144 @@ theorem le_encard_extremePoints_invariantG_shiftGroup_of_isRSymmetric [StandardB
       Set.disjoint_iff_inter_eq_empty.1
         (hpart.disjoint_setOf_latticeOceanPart_nonempty (Ne.symm hmn)),
       measure_empty, mul_zero]
+
+/-- **The last statement of Georgii's Theorem (18.25)** for a *proper* subgroup `Θ̃`:
+`|ex 𝒢_Θ̃(Φ)| ≥ N`.
+
+Georgii's `Θ̃ = ⋂_n Θ̃_n`, `Θ̃_n = {θ_i : r^i G_n = G_n}`, is the group of shifts preserving *every*
+member of the partition; here it is presented as the group of shifts `θ_{f a}` along the range of
+an additive endomorphism `f` of `ℤ²`, which is no loss: `Θ̃` contains `2ℤ²` (the iterated
+reflection `r^i` is the identity for even `i`), so it is a finite-index subgroup of `ℤ²`, hence
+free abelian of rank `2`, hence such a range.  For the staggered partitions of §18.3 the
+homomorphism is explicit — `evenLatticeHom` of
+`GibbsMeasure/Model/DiscreteSymmetryBreakingExamples.lean` for `Θ̃ = {θ_i : i₁ + i₂ even}`.
+
+The proof is Georgii's: the `N` measures `μ_n = μ(· | A_n)` are `Θ̃`-invariant by (18.25)(ii)
+(`measurePreserving_shift_cond_setOf_latticeOceanPart_nonempty`, whose hypothesis is exactly
+`hGf`), they are separated by the pairwise disjoint events `A_n`, hence linearly independent over
+`ℝ≥0∞`, and Corollary (14.18) for the subgroup
+(`le_encard_extremePoints_invariantG_of_shift_range_of_separated_int`) — Georgii's "remark in the
+paragraph below Corollary (14.18)" — converts that into the count.  The Følner sequence is the
+cube sequence of `ℤ²`, *not* one inside `Θ̃`. -/
+theorem le_encard_extremePoints_invariantG_of_shift_range [StandardBorelSpace E]
+    {N : ℕ} {G : Fin N → Set ((Fin 2 → Fin 2) → E)} (hφ : Measurable φ)
+    (hM : ∃ M : ℝ, ∀ ζ, M ≤ φ ζ) (hpart : IsPStablePartition φ₀ ν Set.univ G)
+    (hsym : IsPhiSymmetric φ ν G) (hGmeas : ∀ n, MeasurableSet (G n)) (hμ : μ ∈ GZero E φ ν)
+    (hpos : 0 < (μ : Measure ((Fin 2 → ℤ) → E))
+      {ω | (latticeOceanPart E (⋃ n, G n) ω).Nonempty})
+    {f : (Fin 2 → ℤ) →+ (Fin 2 → ℤ)} {Θ : Subgroup (Transformation (Fin 2 → ℤ) E)}
+    (hΘ : ∀ τ : Transformation (Fin 2 → ℤ) E, τ ∈ Θ ↔ ∃ a : Fin 2 → ℤ, shift E (f a) = τ)
+    {a₀ : Fin 2 → ℤ} (ha₀ : ¬ IsOfFinAddOrder (f a₀))
+    (hGf : ∀ (a : Fin 2 → ℤ) (n : Fin N),
+      tauPow (cubeRefl E) (latticeToTorus 0 (f a)) ⁻¹' G n = G n) :
+    (N : ℕ∞) ≤ ((invariantG (cubeGibbsSpec E φ ν hφ hM) Θ).extremePoints ℝ≥0∞).encard := by
+  classical
+  obtain ⟨F, C, hF, hne, hFol, hC, hC', -⟩ := exists_monotone_regular_foelner_cube (ι := Fin 2)
+  have hAmeas := measurableSet_setOf_latticeOceanPart_nonempty_family (G := G) hGmeas
+  refine le_encard_extremePoints_invariantG_of_shift_range_of_separated_int (ι := f)
+    hFol hF hne hC hC' hΘ ha₀
+    (ρ := fun n ↦ (μ : Measure ((Fin 2 → ℤ) → E))[|{ω | (latticeOceanPart E (G n) ω).Nonempty}])
+    (A := fun n ↦ {ω : (Fin 2 → ℤ) → E | (latticeOceanPart E (G n) ω).Nonempty})
+    (fun n ↦ isProbabilityMeasure_cond_setOf_latticeOceanPart_nonempty hφ hM hpart hsym hμ hpos n)
+    (fun n ↦ isGibbsMeasure_cond_setOf_latticeOceanPart_nonempty hφ hM hpart hsym hGmeas hμ hpos n)
+    (fun n a ↦ measurePreserving_shift_cond_setOf_latticeOceanPart_nonempty hφ hGmeas hμ n
+      (hGf a n))
+    (fun n ↦ cond_apply_self_setOf_latticeOceanPart_nonempty hφ hM hpart hsym hμ hpos n)
+    fun m n hmn ↦ ?_
+  rw [cond_apply (hAmeas n),
+    Set.disjoint_iff_inter_eq_empty.1
+      (hpart.disjoint_setOf_latticeOceanPart_nonempty (Ne.symm hmn)),
+    measure_empty, mul_zero]
+
+/-- `r^a` is the identity on cube configurations when every coordinate of `a` is even, so the
+even sublattice `2ℤ²` lies in every one of Georgii's groups `Θ̃_n = {θ_i : r^i G_n = G_n}`.
+(Intended home: `GibbsMeasure/Specification/PeriodicGibbsSymmetry.lean`.) -/
+lemma tauPow_cubeRefl_latticeToTorus_zero_of_latticeParity_eq_zero {d : ℕ} {a : Fin d → ℤ}
+    (ha : latticeParity a = 0) (ζ : (Fin d → Fin 2) → E) :
+    tauPow (cubeRefl E) (latticeToTorus 0 a) ζ = ζ := by
+  rw [tauPow_cubeRefl_latticeToTorus_zero, ha]
+  funext c
+  rw [add_zero]
+
+/-- **Georgii's `Θ̃ = ⋂_n Θ̃_n` as a subgroup of `ℤ²`**: the sites `a` whose iterated reflection
+`r^a` preserves every member of the family.  It is a group because `r^{i+j} = r^i ∘ r^j` and
+`r^{-i} = r^i`, and it contains `2ℤ²` because `r^i = id` for even `i`. -/
+def tauPowStabilizer (G : ι → Set ((Fin 2 → Fin 2) → E)) : AddSubgroup (Fin 2 → ℤ) where
+  carrier := {a | ∀ n, tauPow (cubeRefl E) (latticeToTorus 0 a) ⁻¹' G n = G n}
+  zero_mem' n := by
+    have h : tauPow (cubeRefl E) (latticeToTorus 0 (0 : Fin 2 → ℤ)) = id :=
+      funext fun ζ ↦ tauPow_cubeRefl_latticeToTorus_zero_of_latticeParity_eq_zero
+        latticeParity_zero ζ
+    rw [h, Set.preimage_id]
+  add_mem' {a b} ha hb n := by
+    have hcomp : tauPow (cubeRefl E) (latticeToTorus 0 (a + b))
+        = tauPow (cubeRefl E) (latticeToTorus 0 a) ∘ tauPow (cubeRefl E) (latticeToTorus 0 b) :=
+      funext fun ζ ↦ tauPow_cubeRefl_latticeToTorus_zero_add a b ζ
+    rw [hcomp, Set.preimage_comp, ha n, hb n]
+  neg_mem' {a} ha n := by
+    have h : tauPow (cubeRefl E) (latticeToTorus 0 (-a))
+        = tauPow (cubeRefl E) (latticeToTorus 0 a) := by
+      funext ζ
+      rw [tauPow_cubeRefl_latticeToTorus_zero, tauPow_cubeRefl_latticeToTorus_zero,
+        latticeParity_neg]
+    rw [h]
+    exact ha n
+
+lemma mem_tauPowStabilizer {G : ι → Set ((Fin 2 → Fin 2) → E)} {a : Fin 2 → ℤ} :
+    a ∈ tauPowStabilizer G ↔ ∀ n, tauPow (cubeRefl E) (latticeToTorus 0 a) ⁻¹' G n = G n :=
+  Iff.rfl
+
+/-- `2ℤ² ⊆ Θ̃`: Georgii's `Θ̃` is a subgroup of `ℤ²` of index dividing `4`. -/
+lemma two_smul_mem_tauPowStabilizer {G : ι → Set ((Fin 2 → Fin 2) → E)} (a : Fin 2 → ℤ) :
+    (2 : ℤ) • a ∈ tauPowStabilizer G := by
+  have hpar : latticeParity ((2 : ℤ) • a) = 0 := by
+    funext k
+    simp [latticeParity_apply]
+  have h : tauPow (cubeRefl E) (latticeToTorus 0 ((2 : ℤ) • a)) = id :=
+    funext fun ζ ↦ tauPow_cubeRefl_latticeToTorus_zero_of_latticeParity_eq_zero hpar ζ
+  intro n
+  rw [h, Set.preimage_id]
+
+/-- **The last statement of Georgii's Theorem (18.25) for his `Θ̃` itself**, `|ex 𝒢_Θ̃(Φ)| ≥ N`,
+where `Θ̃ = ⋂_n Θ̃_n = {θ_i : r^i G_n = G_n for all n}` is the group of shifts preserving *every*
+member of the partition (`tauPowStabilizer`).
+
+No presentation of `Θ̃` is required: being a subgroup of the lattice `ℤ²` it is free of finite
+rank, hence the range of a homomorphism from `ℤ^m`
+(`AddSubgroup.exists_addMonoidHom_fin_range_eq`), which is what
+`le_encard_extremePoints_invariantG_of_shift_subgroup_of_separated_int` — Corollary (14.18) for a
+subgroup, Georgii's "remark in the paragraph below Corollary (14.18)" — consumes.  It is
+non-trivial because it contains `2ℤ²` (`two_smul_mem_tauPowStabilizer`). -/
+theorem le_encard_extremePoints_invariantG_tauPowStabilizer [StandardBorelSpace E]
+    {N : ℕ} {G : Fin N → Set ((Fin 2 → Fin 2) → E)} (hφ : Measurable φ)
+    (hM : ∃ M : ℝ, ∀ ζ, M ≤ φ ζ) (hpart : IsPStablePartition φ₀ ν Set.univ G)
+    (hsym : IsPhiSymmetric φ ν G) (hGmeas : ∀ n, MeasurableSet (G n)) (hμ : μ ∈ GZero E φ ν)
+    (hpos : 0 < (μ : Measure ((Fin 2 → ℤ) → E))
+      {ω | (latticeOceanPart E (⋃ n, G n) ω).Nonempty})
+    {Θ : Subgroup (Transformation (Fin 2 → ℤ) E)}
+    (hΘ : ∀ τ : Transformation (Fin 2 → ℤ) E,
+      τ ∈ Θ ↔ ∃ a ∈ tauPowStabilizer G, shift E a = τ) :
+    (N : ℕ∞) ≤ ((invariantG (cubeGibbsSpec E φ ν hφ hM) Θ).extremePoints ℝ≥0∞).encard := by
+  classical
+  have hAmeas := measurableSet_setOf_latticeOceanPart_nonempty_family (G := G) hGmeas
+  have ha₀' : ((2 : ℤ) • (1 : Fin 2 → ℤ)) ≠ 0 := by
+    intro h
+    have := congrFun h 0
+    simp at this
+  refine le_encard_extremePoints_invariantG_of_shift_subgroup_of_separated_int hΘ
+    (two_smul_mem_tauPowStabilizer (G := G) 1) ha₀'
+    (ρ := fun n ↦ (μ : Measure ((Fin 2 → ℤ) → E))[|{ω | (latticeOceanPart E (G n) ω).Nonempty}])
+    (A := fun n ↦ {ω : (Fin 2 → ℤ) → E | (latticeOceanPart E (G n) ω).Nonempty})
+    (fun n ↦ isProbabilityMeasure_cond_setOf_latticeOceanPart_nonempty hφ hM hpart hsym hμ hpos n)
+    (fun n ↦ isGibbsMeasure_cond_setOf_latticeOceanPart_nonempty hφ hM hpart hsym hGmeas hμ hpos n)
+    (fun n a ha ↦ measurePreserving_shift_cond_setOf_latticeOceanPart_nonempty hφ hGmeas hμ n
+      (mem_tauPowStabilizer.1 ha n))
+    (fun n ↦ cond_apply_self_setOf_latticeOceanPart_nonempty hφ hM hpart hsym hμ hpos n)
+    fun m n hmn ↦ ?_
+  rw [cond_apply (hAmeas n),
+    Set.disjoint_iff_inter_eq_empty.1
+      (hpart.disjoint_setOf_latticeOceanPart_nonempty (Ne.symm hmn)),
+    measure_empty, mul_zero]
 
 end ExtremePoints
 
@@ -858,6 +997,141 @@ theorem eventually_exists_gibbsMeasure_family [StandardBorelSpace E] [Finite ι]
   filter_upwards [eventually_gt_atTop 0, hz] with β hβ hδ hφβ hMβ
   exact exists_gibbsMeasure_family_of_crossingBound_lt_one hφ hM hφk hK hpart hsym hGmeas hGε
     hβ hδ hφβ hMβ
+
+/-- **Georgii's choice of `μ` in the proof of (18.25)**: for `δ(β) = 4 z(t(G_ε(Φ), βΦ)) < 1` there
+is a `μ ∈ 𝒢₀(βΦ)` (Theorem (18.12)) for which `G_1 ∪ ⋯ ∪ G_N` carries an ocean with positive
+probability, because `μ(0 ∈ ξ⁰_P(G_ε(Φ), ·)) ≥ 1 - δ(β) > 0` (Theorem (18.17)) and
+`G_ε(Φ) ⊆ G_1 ∪ ⋯ ∪ G_N`. -/
+theorem exists_mem_GZero_measure_setOf_latticeOceanPart_nonempty_pos [StandardBorelSpace E]
+    (hφ : Measurable φ) {M : ℝ} (hM : ∀ ζ, M ≤ φ ζ)
+    (hφk : ∀ (k : Fin 2) ζ, φ (cubeRefl E k ζ) = φ ζ) {K : ℕ → Set E} (hK : IsCubeConfining φ ν K)
+    {ε : ℝ} (hGε : localGroundStates φ ν ε ⊆ ⋃ n, G n) {β : ℝ} (hβ : 0 < β)
+    (hδ : 4 * Peierls.crossingBound
+      (patternWeight (fun ζ ↦ β * φ ζ) ν (localGroundStates φ ν ε)) < 1)
+    (hφβ : Measurable fun ζ ↦ β * φ ζ) :
+    ∃ μ : ProbabilityMeasure ((Fin 2 → ℤ) → E), μ ∈ GZero E (fun ζ ↦ β * φ ζ) ν ∧
+      0 < (μ : Measure ((Fin 2 → ℤ) → E))
+        {ω | (latticeOceanPart E (⋃ n, G n) ω).Nonempty} := by
+  classical
+  have : Nonempty E := ν.nonempty_of_neZero
+  obtain ⟨μ, hμ⟩ := GZero_nonempty (d := 1) (ν := ν) hφβ (M := β * M)
+    (fun ζ ↦ mul_le_mul_of_nonneg_left (hM ζ) hβ.le) (fun k ζ ↦ by rw [hφk k ζ])
+    (hK.const_mul hβ) fun _ ↦ Classical.arbitrary E
+  have hbound := le_measure_mem_latticeOceanPart_localGroundStates hφ hM hφk ε hβ.le hμ
+  have hmono : (μ : Measure ((Fin 2 → ℤ) → E))
+      {ω | (0 : Site) ∈ latticeOceanPart E (localGroundStates φ ν ε) ω}
+        ≤ (μ : Measure ((Fin 2 → ℤ) → E))
+          {ω | (0 : Site) ∈ latticeOceanPart E (⋃ n, G n) ω} :=
+    measure_mono fun ω hω ↦ latticeOceanPart_mono (E := E) hGε ω hω
+  have hzero : (μ : Measure ((Fin 2 → ℤ) → E))
+      {ω | (0 : Site) ∈ latticeOceanPart E (⋃ n, G n) ω}
+        ≤ (μ : Measure ((Fin 2 → ℤ) → E))
+          {ω | (latticeOceanPart E (⋃ n, G n) ω).Nonempty} :=
+    measure_mono fun ω hω ↦ ⟨0, hω⟩
+  exact ⟨μ, hμ, lt_of_lt_of_le (tsub_pos_of_lt hδ) ((hbound.trans hmono).trans hzero)⟩
+
+/-- **The last statement of Georgii's Theorem (18.25)**, `|ex 𝒢_Θ̃(βΦ)| ≥ N`, at his explicit
+threshold `δ(β) = 4 z(t(G_ε(Φ), βΦ)) < 1` (Comment (18.26)(1)), for the group `Θ̃` of shifts along
+the range of an additive endomorphism `f` of `ℤ²` preserving every member of the partition. -/
+theorem le_encard_extremePoints_invariantG_of_shift_range_of_crossingBound_lt_one
+    [StandardBorelSpace E] {N : ℕ} {G : Fin N → Set ((Fin 2 → Fin 2) → E)}
+    (hφ : Measurable φ) {M : ℝ} (hM : ∀ ζ, M ≤ φ ζ)
+    (hφk : ∀ (k : Fin 2) ζ, φ (cubeRefl E k ζ) = φ ζ) {K : ℕ → Set E} (hK : IsCubeConfining φ ν K)
+    (hpart : IsPStablePartition φ ν Set.univ G) (hsym : IsPhiSymmetric φ ν G)
+    (hGmeas : ∀ n, MeasurableSet (G n)) {ε : ℝ}
+    (hGε : localGroundStates φ ν ε ⊆ ⋃ n, G n) {β : ℝ} (hβ : 0 < β)
+    (hδ : 4 * Peierls.crossingBound
+      (patternWeight (fun ζ ↦ β * φ ζ) ν (localGroundStates φ ν ε)) < 1)
+    (hφβ : Measurable fun ζ ↦ β * φ ζ) (hMβ : ∃ M : ℝ, ∀ ζ, M ≤ β * φ ζ)
+    {f : (Fin 2 → ℤ) →+ (Fin 2 → ℤ)} {Θ : Subgroup (Transformation (Fin 2 → ℤ) E)}
+    (hΘ : ∀ τ : Transformation (Fin 2 → ℤ) E, τ ∈ Θ ↔ ∃ a : Fin 2 → ℤ, shift E (f a) = τ)
+    {a₀ : Fin 2 → ℤ} (ha₀ : ¬ IsOfFinAddOrder (f a₀))
+    (hGf : ∀ (a : Fin 2 → ℤ) (n : Fin N),
+      tauPow (cubeRefl E) (latticeToTorus 0 (f a)) ⁻¹' G n = G n) :
+    (N : ℕ∞) ≤ ((invariantG (cubeGibbsSpec E (fun ζ ↦ β * φ ζ) ν hφβ hMβ) Θ).extremePoints
+      ℝ≥0∞).encard := by
+  obtain ⟨μ, hμ, hpos⟩ := exists_mem_GZero_measure_setOf_latticeOceanPart_nonempty_pos
+    hφ hM hφk hK hGε hβ hδ hφβ
+  exact le_encard_extremePoints_invariantG_of_shift_range (φ₀ := φ) hφβ hMβ hpart
+    (hsym.const_mul hφk β) hGmeas hμ hpos hΘ ha₀ hGf
+
+/-- **The last statement of Georgii's Theorem (18.25)** as he states it — `|ex 𝒢_Θ̃(βΦ)| ≥ N` for
+all sufficiently large `β`. -/
+theorem eventually_le_encard_extremePoints_invariantG_of_shift_range [StandardBorelSpace E]
+    {N : ℕ} {G : Fin N → Set ((Fin 2 → Fin 2) → E)}
+    (hφ : Measurable φ) {M : ℝ} (hM : ∀ ζ, M ≤ φ ζ)
+    (hφk : ∀ (k : Fin 2) ζ, φ (cubeRefl E k ζ) = φ ζ) {K : ℕ → Set E} (hK : IsCubeConfining φ ν K)
+    (hpart : IsPStablePartition φ ν Set.univ G) (hsym : IsPhiSymmetric φ ν G)
+    (hGmeas : ∀ n, MeasurableSet (G n)) {ε : ℝ} (hε : 0 < ε)
+    (hGε : localGroundStates φ ν ε ⊆ ⋃ n, G n)
+    {f : (Fin 2 → ℤ) →+ (Fin 2 → ℤ)} {Θ : Subgroup (Transformation (Fin 2 → ℤ) E)}
+    (hΘ : ∀ τ : Transformation (Fin 2 → ℤ) E, τ ∈ Θ ↔ ∃ a : Fin 2 → ℤ, shift E (f a) = τ)
+    {a₀ : Fin 2 → ℤ} (ha₀ : ¬ IsOfFinAddOrder (f a₀))
+    (hGf : ∀ (a : Fin 2 → ℤ) (n : Fin N),
+      tauPow (cubeRefl E) (latticeToTorus 0 (f a)) ⁻¹' G n = G n) :
+    ∀ᶠ β : ℝ in atTop, ∀ (hφβ : Measurable fun ζ ↦ β * φ ζ) (hMβ : ∃ M : ℝ, ∀ ζ, M ≤ β * φ ζ),
+      (N : ℕ∞) ≤ ((invariantG (cubeGibbsSpec E (fun ζ ↦ β * φ ζ) ν hφβ hMβ) Θ).extremePoints
+        ℝ≥0∞).encard := by
+  have hz : ∀ᶠ β : ℝ in atTop, 4 * Peierls.crossingBound
+      (patternWeight (fun ζ ↦ β * φ ζ) ν (localGroundStates φ ν ε)) < 1 := by
+    have h := tendsto_crossingBound_patternWeight_localGroundStates (ν := ν) hφ hM hε
+    have h4 : Tendsto (fun β : ℝ ↦ 4 * Peierls.crossingBound
+        (patternWeight (fun ζ ↦ β * φ ζ) ν (localGroundStates φ ν ε))) atTop (𝓝 0) := by
+      simpa using ENNReal.Tendsto.const_mul (a := (4 : ℝ≥0∞)) h (Or.inr (by norm_num))
+    exact h4.eventually_lt_const (by norm_num)
+  filter_upwards [eventually_gt_atTop 0, hz] with β hβ hδ hφβ hMβ
+  exact le_encard_extremePoints_invariantG_of_shift_range_of_crossingBound_lt_one hφ hM hφk hK
+    hpart hsym hGmeas hGε hβ hδ hφβ hMβ hΘ ha₀ hGf
+
+/-- **The last statement of Georgii's Theorem (18.25) for his `Θ̃`** at his explicit threshold
+`δ(β) = 4 z(t(G_ε(Φ), βΦ)) < 1` (Comment (18.26)(1)): `|ex 𝒢_Θ̃(βΦ)| ≥ N` for
+`Θ̃ = {θ_i : r^i G_n = G_n for all n}`. -/
+theorem le_encard_extremePoints_invariantG_tauPowStabilizer_of_crossingBound_lt_one
+    [StandardBorelSpace E] {N : ℕ} {G : Fin N → Set ((Fin 2 → Fin 2) → E)}
+    (hφ : Measurable φ) {M : ℝ} (hM : ∀ ζ, M ≤ φ ζ)
+    (hφk : ∀ (k : Fin 2) ζ, φ (cubeRefl E k ζ) = φ ζ) {K : ℕ → Set E} (hK : IsCubeConfining φ ν K)
+    (hpart : IsPStablePartition φ ν Set.univ G) (hsym : IsPhiSymmetric φ ν G)
+    (hGmeas : ∀ n, MeasurableSet (G n)) {ε : ℝ}
+    (hGε : localGroundStates φ ν ε ⊆ ⋃ n, G n) {β : ℝ} (hβ : 0 < β)
+    (hδ : 4 * Peierls.crossingBound
+      (patternWeight (fun ζ ↦ β * φ ζ) ν (localGroundStates φ ν ε)) < 1)
+    (hφβ : Measurable fun ζ ↦ β * φ ζ) (hMβ : ∃ M : ℝ, ∀ ζ, M ≤ β * φ ζ)
+    {Θ : Subgroup (Transformation (Fin 2 → ℤ) E)}
+    (hΘ : ∀ τ : Transformation (Fin 2 → ℤ) E,
+      τ ∈ Θ ↔ ∃ a ∈ tauPowStabilizer G, shift E a = τ) :
+    (N : ℕ∞) ≤ ((invariantG (cubeGibbsSpec E (fun ζ ↦ β * φ ζ) ν hφβ hMβ) Θ).extremePoints
+      ℝ≥0∞).encard := by
+  obtain ⟨μ, hμ, hpos⟩ := exists_mem_GZero_measure_setOf_latticeOceanPart_nonempty_pos
+    hφ hM hφk hK hGε hβ hδ hφβ
+  exact le_encard_extremePoints_invariantG_tauPowStabilizer (φ₀ := φ) hφβ hMβ hpart
+    (hsym.const_mul hφk β) hGmeas hμ hpos hΘ
+
+/-- **The last statement of Georgii's Theorem (18.25) exactly as he states it**: *if `β` is
+sufficiently large*, `|ex 𝒢_Θ̃(βΦ)| ≥ N` for `Θ̃ = ⋂_n Θ̃_n`, the group of shifts preserving every
+member of the `Φ`-symmetric `P`-stable partition. -/
+theorem eventually_le_encard_extremePoints_invariantG_tauPowStabilizer [StandardBorelSpace E]
+    {N : ℕ} {G : Fin N → Set ((Fin 2 → Fin 2) → E)}
+    (hφ : Measurable φ) {M : ℝ} (hM : ∀ ζ, M ≤ φ ζ)
+    (hφk : ∀ (k : Fin 2) ζ, φ (cubeRefl E k ζ) = φ ζ) {K : ℕ → Set E} (hK : IsCubeConfining φ ν K)
+    (hpart : IsPStablePartition φ ν Set.univ G) (hsym : IsPhiSymmetric φ ν G)
+    (hGmeas : ∀ n, MeasurableSet (G n)) {ε : ℝ} (hε : 0 < ε)
+    (hGε : localGroundStates φ ν ε ⊆ ⋃ n, G n)
+    {Θ : Subgroup (Transformation (Fin 2 → ℤ) E)}
+    (hΘ : ∀ τ : Transformation (Fin 2 → ℤ) E,
+      τ ∈ Θ ↔ ∃ a ∈ tauPowStabilizer G, shift E a = τ) :
+    ∀ᶠ β : ℝ in atTop, ∀ (hφβ : Measurable fun ζ ↦ β * φ ζ) (hMβ : ∃ M : ℝ, ∀ ζ, M ≤ β * φ ζ),
+      (N : ℕ∞) ≤ ((invariantG (cubeGibbsSpec E (fun ζ ↦ β * φ ζ) ν hφβ hMβ) Θ).extremePoints
+        ℝ≥0∞).encard := by
+  have hz : ∀ᶠ β : ℝ in atTop, 4 * Peierls.crossingBound
+      (patternWeight (fun ζ ↦ β * φ ζ) ν (localGroundStates φ ν ε)) < 1 := by
+    have h := tendsto_crossingBound_patternWeight_localGroundStates (ν := ν) hφ hM hε
+    have h4 : Tendsto (fun β : ℝ ↦ 4 * Peierls.crossingBound
+        (patternWeight (fun ζ ↦ β * φ ζ) ν (localGroundStates φ ν ε))) atTop (𝓝 0) := by
+      simpa using ENNReal.Tendsto.const_mul (a := (4 : ℝ≥0∞)) h (Or.inr (by norm_num))
+    exact h4.eventually_lt_const (by norm_num)
+  filter_upwards [eventually_gt_atTop 0, hz] with β hβ hδ hφβ hMβ
+  exact le_encard_extremePoints_invariantG_tauPowStabilizer_of_crossingBound_lt_one hφ hM hφk hK
+    hpart hsym hGmeas hGε hβ hδ hφβ hMβ hΘ
 
 end LowTemperature
 

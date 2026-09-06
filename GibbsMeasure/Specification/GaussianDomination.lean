@@ -5,6 +5,9 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Mathlib.MeasureTheory.Group.Convolution
+public import Mathlib.Analysis.SpecialFunctions.Gaussian.GaussianIntegral
+public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
 public import GibbsMeasure.Specification.InfraredBound
 
 /-!
@@ -49,21 +52,31 @@ measure, where `Ĵ(1) = ∑_{m ∈ Λ} J_Λ(m)`.  Then:
   the chessboard estimate is applied to the truncations `min(·, M)` and `M ↑ ∞` afterwards by
   monotone convergence — Georgii's statement of (17.11) carries no boundedness hypothesis, ours
   does.
+* **the approximation.**  `isGaussianDominating` removes the absolute continuity: for *every*
+  finite `λ ≠ 0` satisfying (20.3) the mollifications `λ ∗ ψ_ε` — `ψ = e^{-|y|⁴} dy`,
+  `ψ_ε` its image under `y ↦ ε y` — are equivalent to Lebesgue measure
+  (`exists_withDensity_conv_map_smul_quarticMollifier`) and satisfy (20.3)
+  (`hasExpSqMoments_conv_map_smul_quarticMollifier`), so the first case applies to them, and the
+  inequality survives `ε ↓ 0` by dominated convergence
+  (`tendsto_lintegral_pi_heisenbergShiftedDensity_conv`).  In particular the surface measure of a
+  sphere — the Heisenberg model proper of Theorem (20.15) — is covered, as is Georgii's other
+  running example `λ(dx) = exp[-c|x|^{2+ε}] dx`.
 * **(20.13)** `lintegral_heisenbergShiftFactor_le_one` and
-  `integral_heisenbergShiftFactor_le_one` are the conclusion, for any `λ` for which
-  `IsGaussianDominating` holds.
+  `integral_heisenbergShiftFactor_le_one` are the conclusion for any `λ` for which
+  `IsGaussianDominating` holds;
+  `lintegral_heisenbergShiftFactor_le_one_of_isNonnegDefiniteAt` and
+  `integral_heisenbergShiftFactor_le_one_of_isNonnegDefiniteAt` are Georgii's Lemma (20.13) as
+  stated, with that hypothesis discharged.
 
-## What is *not* proved here
+## A deviation from Georgii
 
-Georgii's remaining three approximation steps, which remove the hypothesis that `λ` be
-absolutely continuous: `λ` absolutely continuous on a compact ball, then an arbitrary finite
-measure on a ball (a weak limit of absolutely continuous ones), then the ball increasing to
-`ℝ^N`.  What is missing is exactly `IsGaussianDominating` for a general finite `λ` satisfying
-(20.3); everything downstream of (20.13) in this file and in
-`GibbsMeasure.Specification.InfraredBoundTheorem` takes `IsGaussianDominating` as its hypothesis
-and therefore generalises for free.  In particular the surface measure on a sphere — the
-Heisenberg model proper — is *not* covered, while Georgii's other running example
-`λ(dx) = exp[-c|x|^{2+ε}] dx` is.
+Georgii's approximation is a three-step limit: `λ` absolutely continuous and carried by a compact
+ball; an arbitrary finite measure on a ball, as a *weak* limit of absolutely continuous ones; the
+ball increasing to `ℝ^N`.  One mollification does all three at once, and does so with dominated
+convergence against (20.3) instead of weak convergence on a ball, which is why no compactness and
+no boundedness of `f_Λ^Φ(ζ, ·)` are needed here.  The mollifier is *not* a Gaussian: (20.3) for
+`λ ∗ ψ_ε` requires `∫ e^{a|y|²} dψ < ∞` for every `a`, which a Gaussian fails; `e^{-|y|⁴} dy` has
+that and an everywhere positive density, which is what the first case needs.
 -/
 
 @[expose] public section
@@ -166,14 +179,6 @@ def heisenbergShiftFactor (ζ ω : (Fin d → ZMod (2 * N)) → (Fin n → ℝ))
 @[simp] lemma heisenbergShiftFactor_pos (ζ ω : (Fin d → ZMod (2 * N)) → (Fin n → ℝ)) :
     0 < heisenbergShiftFactor N n J ζ ω := Real.exp_pos _
 
-/-- `|u - v|² = |u|² - 2 u·v + |v|²` for the dot product on `ℝ^n`.  Intended home:
-`GibbsMeasure/Mathlib/LinearAlgebra/Matrix/DotProductReal.lean` (as `Matrix.sub_dotProduct_sub`).
--/
-private lemma dotProduct_sub_sub (u v : Fin n → ℝ) :
-    (u - v) ⬝ᵥ (u - v) = u ⬝ᵥ u - 2 * (u ⬝ᵥ v) + v ⬝ᵥ v := by
-  rw [sub_dotProduct, dotProduct_sub, dotProduct_sub, dotProduct_comm v u]
-  ring
-
 /-- **The exponent (17.24) split off from `W`.**  `½ ∑_{i,j} J_Λ(i-j) σ_i·σ_j
 = W(σ) + ½ (∑_{m ∈ Λ} J_Λ(m)) ∑_i |σ_i|²`; the coefficient is Georgii's `Ĵ(1)`, cf.
 `sum_periodizedCoupling`. -/
@@ -196,7 +201,7 @@ theorem heisenbergExponent_eq_diffExponent_add (ω : (Fin d → ZMod (2 * N)) �
           + periodizedCoupling N J (i - j) * (ω j ⬝ᵥ ω j)
           - 2 * (periodizedCoupling N J (i - j) * (ω i ⬝ᵥ ω j)) := by
     intro i j
-    rw [dotProduct_sub_sub]
+    rw [sub_dotProduct_sub]
     ring
   -- the three pieces of the expanded double sum
   have hA : (∑ i : Fin d → ZMod (2 * N), ∑ j : Fin d → ZMod (2 * N),
@@ -248,7 +253,7 @@ theorem heisenbergDiffExponent_sub (ζ ω : (Fin d → ZMod (2 * N)) → (Fin n 
     intro i j
     have hij : (ω - ζ) i - (ω - ζ) j = (ω i - ω j) - (ζ i - ζ j) := by
       simp only [Pi.sub_apply]; abel
-    rw [hij, dotProduct_sub_sub]
+    rw [hij, sub_dotProduct_sub]
     ring
   rw [heisenbergDiffExponent, heisenbergDiffExponent, heisenbergShiftExponent,
     heisenbergShiftPairing, heisenbergShiftEnergy]
@@ -283,6 +288,44 @@ lemma measurable_heisenbergDiffExponent :
   exact Finset.measurable_sum _ fun i _ ↦ Finset.measurable_sum _ fun j _ ↦
     Measurable.const_mul (((measurable_pi_apply i).sub (measurable_pi_apply j)).dotProduct
       ((measurable_pi_apply i).sub (measurable_pi_apply j))) _
+
+/-- **`W` is continuous**: it is a quadratic polynomial in the configuration.  This is what makes
+the mollification limit `ε ↓ 0` a pointwise limit. -/
+lemma continuous_heisenbergDiffExponent :
+    Continuous (heisenbergDiffExponent N n J (d := d)) := by
+  refine Continuous.div_const (Continuous.neg ?_) _
+  exact continuous_finsetSum _ fun i _ ↦ continuous_finsetSum _ fun j _ ↦
+    Continuous.const_mul (((continuous_apply i).sub (continuous_apply j)).dotProduct
+      ((continuous_apply i).sub (continuous_apply j))) _
+
+/-- **`|W(ω)| ≤ ‖J‖₀ ∑_i |ω_i|²`.**  Georgii's estimate `abs_heisenbergExponent_le` at the start
+of the proof of (20.6), transported through `heisenbergExponent_eq_diffExponent_add`: the tilt
+`Ĵ(1)/2` is itself bounded by `‖J‖₀/2` (`sum_abs_periodizedCoupling_le`).  It is the domination
+that makes every integral of `e^W` in this file converge against (20.3). -/
+theorem abs_heisenbergDiffExponent_le (hsum : Summable J)
+    (ω : (Fin d → ZMod (2 * N)) → (Fin n → ℝ)) :
+    |heisenbergDiffExponent N n J ω| ≤ (∑' m, |J m|) * ∑ i, (ω i ⬝ᵥ ω i) := by
+  have hS : 0 ≤ ∑ i, (ω i ⬝ᵥ ω i) :=
+    Finset.sum_nonneg fun i _ ↦ Matrix.dotProduct_self_nonneg _
+  have hsplit := heisenbergExponent_eq_diffExponent_add (N := N) (n := n) (J := J) ω
+  have h1 : |heisenbergExponent N n J ω| ≤ (∑' m, |J m|) / 2 * ∑ i, (ω i ⬝ᵥ ω i) :=
+    abs_heisenbergExponent_le hsum ω
+  have h2 : |∑ m : Fin d → ZMod (2 * N), periodizedCoupling N J m| ≤ ∑' m, |J m| :=
+    le_trans (Finset.abs_sum_le_sum_abs _ _) (sum_abs_periodizedCoupling_le hsum)
+  have hW : heisenbergDiffExponent N n J ω
+      = heisenbergExponent N n J ω
+        - (∑ m : Fin d → ZMod (2 * N), periodizedCoupling N J m) / 2 * ∑ i, (ω i ⬝ᵥ ω i) := by
+    linarith [hsplit]
+  have hb : |(∑ m : Fin d → ZMod (2 * N), periodizedCoupling N J m) / 2 * ∑ i, (ω i ⬝ᵥ ω i)|
+      ≤ (∑' m, |J m|) / 2 * ∑ i, (ω i ⬝ᵥ ω i) := by
+    rw [abs_mul, abs_of_nonneg hS]
+    refine mul_le_mul_of_nonneg_right ?_ hS
+    rw [abs_div, abs_two]
+    linarith
+  rw [hW]
+  have := abs_sub (heisenbergExponent N n J ω)
+    ((∑ m : Fin d → ZMod (2 * N), periodizedCoupling N J m) / 2 * ∑ i, (ω i ⬝ᵥ ω i))
+  linarith
 
 lemma measurable_heisenbergShiftPairing (ζ : (Fin d → ZMod (2 * N)) → (Fin n → ℝ)) :
     Measurable (heisenbergShiftPairing N n J ζ) := by
@@ -502,23 +545,6 @@ end Reduction
 /-! ### Georgii's first case: an absolutely continuous a priori measure -/
 
 section Chessboard
-
-/-- **Georgii, Theorem (17.11) for the reflections `r_k` of (17.5)**, for bounded functions:
-`|μ(∏_i f_i ∘ σ_i)|^{|Λ|} ≤ ∏_j μ(∏_i f_j ∘ σ_i)`.  Intended home:
-`GibbsMeasure/Specification/PeriodicGibbs.lean`, next to `measure_apply_pow_card_le_siteEquiv`,
-of which this is the function form (the involutions `τ^i` of (17.10) are trivial here). -/
-theorem abs_integral_prod_pow_le_pi_siteEquiv {E : Type*} [MeasurableSpace E] {d N : ℕ}
-    [NeZero N] {μ : Measure ((Fin (d + 1) → ZMod (2 * N)) → E)} [IsFiniteMeasure μ]
-    (hper : ∀ j, MeasurePreserving (shift E j).toFun μ μ)
-    (hrefl : ∀ k, MeasurePreserving (siteEquiv E (torusReflAt N k)).toFun μ μ)
-    (hpos : ∀ k, IsReflectionPositive (torusPosAt N k) (siteEquiv E (torusReflAt N k)) μ)
-    {f : (Fin (d + 1) → ZMod (2 * N)) → E → ℝ} (hf : ∀ i, Measurable (f i)) {C : ℝ}
-    (hC : ∀ i x, |f i x| ≤ C) :
-    |∫ ω, ∏ i, f i (ω i) ∂μ| ^ ((2 * N) ^ (d + 1)) ≤ ∏ j, ∫ ω, ∏ i, f j (ω i) ∂μ := by
-  have h := abs_integral_prod_pow_le_pi (μ := μ) (τ := fun _ ↦ MeasurableEquiv.refl E)
-    (fun _ _ ↦ rfl) hper (by simpa only [genReflectionAt_refl] using hrefl)
-    (by simpa only [genReflectionAt_refl] using hpos) hf hC
-  simpa only [tauPow_refl] using h
 
 /-- **The `°γ_Λ^Φ`-average of the density of the translated `λ̃^Λ` is `λ̃^Λ(g ∘ τ_ζ)`.**
 
@@ -801,6 +827,620 @@ theorem isGaussianDominating_of_eq_withDensity {d N n : ℕ} [NeZero N]
   rfl
 
 end Chessboard
+
+/-! ### Georgii's approximation steps: an arbitrary finite a priori measure
+
+Georgii removes the absolute continuity of `λ` from the first case in three steps: `λ` absolutely
+continuous and carried by a compact ball, then an arbitrary finite measure on a ball (a weak limit
+of absolutely continuous ones), then the ball increasing to `ℝ^N`.  All three are subsumed here by
+a single mollification.  For a fixed auxiliary finite measure `ψ` on `ℝ^N` and `ε > 0` put
+`ψ_ε = ` the image of `ψ` under `y ↦ ε y`; then `λ ∗ ψ_ε` is absolutely continuous with an
+everywhere positive finite Lebesgue density for *every* finite `λ ≠ 0`, so the first case applies
+to it, and `ε ↓ 0` returns `λ` by dominated convergence, the domination being exactly (20.3).
+
+The auxiliary `ψ` has to satisfy two requirements at once: its density must be everywhere positive
+(a compactly supported bump would leave the density of `λ ∗ ψ_ε` vanishing somewhere, and Georgii's
+first case needs `0 < r < ∞`), and it must have *all* Gaussian exponential moments (20.3), which a
+Gaussian does not.  The measure `e^{-|y|⁴} dy` has both. -/
+
+section Approximation
+
+open Filter Topology
+
+/-! #### The mollifying measure `e^{-|y|⁴} dy` -/
+
+/-- **The mollifying density `e^{-|y|⁴}`.**  Everywhere positive, bounded by `1`, and with all
+Gaussian exponential moments (`lintegral_exp_quarticMollifier_ne_top`). -/
+def quarticDensity (y : Fin n → ℝ) : ℝ≥0∞ := ENNReal.ofReal (Real.exp (-(y ⬝ᵥ y) ^ 2))
+
+/-- **The mollifying measure `e^{-|y|⁴} dy` on `ℝ^n`.**  It is not normalised: the total mass
+enters both sides of the Gaussian domination inequality and cancels. -/
+def quarticMollifier (n : ℕ) : Measure (Fin n → ℝ) := volume.withDensity quarticDensity
+
+lemma measurable_quarticDensity : Measurable (quarticDensity (n := n)) :=
+  ENNReal.measurable_ofReal.comp (Real.continuous_exp.measurable.comp
+    (((measurable_id.dotProduct measurable_id).pow_const 2).neg))
+
+@[simp] lemma quarticDensity_pos (y : Fin n → ℝ) : 0 < quarticDensity y :=
+  ENNReal.ofReal_pos.2 (Real.exp_pos _)
+
+@[simp] lemma quarticDensity_ne_top (y : Fin n → ℝ) : quarticDensity y ≠ ∞ := ENNReal.ofReal_ne_top
+
+lemma quarticDensity_le_one (y : Fin n → ℝ) : quarticDensity y ≤ 1 := by
+  rw [quarticDensity, ← ENNReal.ofReal_one]
+  exact ENNReal.ofReal_le_ofReal (Real.exp_le_one_iff.2 (neg_nonpos.2 (sq_nonneg _)))
+
+/-- The one-dimensional Gaussian integral, in `ℝ≥0∞` form. -/
+private lemma lintegral_exp_neg_sq_ne_top :
+    (∫⁻ t : ℝ, ENNReal.ofReal (Real.exp (-(t * t)))) ≠ ∞ := by
+  have hint : Integrable fun t : ℝ ↦ Real.exp (-(t * t)) := by
+    have h := integrable_exp_neg_mul_sq (b := 1) one_pos
+    refine h.congr (Filter.Eventually.of_forall fun t ↦ ?_)
+    norm_num [sq]
+  have := hint.2
+  rw [hasFiniteIntegral_iff_ofReal (.of_forall fun t ↦ (Real.exp_nonneg _))] at this
+  exact this.ne
+
+/-- The `n`-dimensional Gaussian integral `∫ e^{-|y|²} dy < ∞`, in `ℝ≥0∞` form. -/
+private lemma lintegral_exp_neg_dotProduct_ne_top :
+    (∫⁻ y : Fin n → ℝ, ENNReal.ofReal (Real.exp (-(y ⬝ᵥ y)))) ≠ ∞ := by
+  have hsplit : ∀ y : Fin n → ℝ, ENNReal.ofReal (Real.exp (-(y ⬝ᵥ y)))
+      = ∏ i, ENNReal.ofReal (Real.exp (-(y i * y i))) := by
+    intro y
+    rw [← ENNReal.ofReal_prod_of_nonneg fun i _ ↦ (Real.exp_nonneg _), ← Real.exp_sum]
+    exact congrArg _ (congrArg _ (by rw [dotProduct, ← Finset.sum_neg_distrib]))
+  have hmeas : Measurable fun t : ℝ ↦ ENNReal.ofReal (Real.exp (-(t * t))) :=
+    ENNReal.measurable_ofReal.comp
+      (Real.continuous_exp.measurable.comp (measurable_id.mul measurable_id).neg)
+  rw [volume_pi, lintegral_congr hsplit,
+    lintegral_pi_prod (fun _ : Fin n ↦ (volume : Measure ℝ))
+      (g := fun _ t ↦ ENNReal.ofReal (Real.exp (-(t * t)))) fun _ ↦ hmeas]
+  exact ENNReal.prod_ne_top fun i _ ↦ lintegral_exp_neg_sq_ne_top
+
+/-- **Georgii's (20.3) for the mollifier**: `∫ e^{a|y|²} e^{-|y|⁴} dy < ∞` for *every* `a`, since
+the quartic in the exponent beats the quadratic.  This is what a Gaussian mollifier fails. -/
+lemma lintegral_exp_quarticMollifier_ne_top (a : ℝ) :
+    (∫⁻ y, ENNReal.ofReal (Real.exp (a * (y ⬝ᵥ y))) ∂(quarticMollifier n)) ≠ ∞ := by
+  have hmeas : Measurable fun y : Fin n → ℝ ↦ ENNReal.ofReal (Real.exp (a * (y ⬝ᵥ y))) :=
+    measurable_expSqDensity a
+  have hpt : ∀ y : Fin n → ℝ,
+      quarticDensity y * ENNReal.ofReal (Real.exp (a * (y ⬝ᵥ y)))
+        ≤ ENNReal.ofReal (Real.exp ((a + 1) ^ 2 / 4)) * ENNReal.ofReal (Real.exp (-(y ⬝ᵥ y))) := by
+    intro y
+    rw [quarticDensity, ← ENNReal.ofReal_mul (Real.exp_nonneg _),
+      ← ENNReal.ofReal_mul (Real.exp_nonneg _), ← Real.exp_add, ← Real.exp_add]
+    refine ENNReal.ofReal_le_ofReal (Real.exp_le_exp.2 ?_)
+    nlinarith [sq_nonneg (y ⬝ᵥ y - (a + 1) / 2)]
+  rw [quarticMollifier, lintegral_withDensity_eq_lintegral_mul _ measurable_quarticDensity hmeas]
+  simp only [Pi.mul_apply]
+  have hm2 : Measurable fun y : Fin n → ℝ ↦ ENNReal.ofReal (Real.exp (-(y ⬝ᵥ y))) :=
+    ENNReal.measurable_ofReal.comp (Real.continuous_exp.measurable.comp
+      (measurable_id.dotProduct measurable_id).neg)
+  refine ne_top_of_le_ne_top ?_ (lintegral_mono hpt)
+  rw [lintegral_const_mul _ hm2]
+  exact ENNReal.mul_ne_top ENNReal.ofReal_ne_top lintegral_exp_neg_dotProduct_ne_top
+
+instance isFiniteMeasure_quarticMollifier : IsFiniteMeasure (quarticMollifier n) := by
+  refine ⟨lt_of_le_of_ne le_top ?_⟩
+  have h := lintegral_exp_quarticMollifier_ne_top (n := n) 0
+  simpa using h
+
+lemma quarticMollifier_univ_pos : 0 < (quarticMollifier n) univ := by
+  have hsupp : Function.support (quarticDensity (n := n)) = univ :=
+    Set.eq_univ_of_forall fun y ↦ (quarticDensity_pos y).ne'
+  rw [quarticMollifier, withDensity_apply _ MeasurableSet.univ, Measure.restrict_univ,
+    lintegral_pos_iff_support measurable_quarticDensity, hsupp]
+  exact Measure.measure_univ_pos.2 (NeZero.ne _)
+
+lemma quarticMollifier_univ_ne_zero : (quarticMollifier n) univ ≠ 0 := quarticMollifier_univ_pos.ne'
+
+/-! #### The mollified a priori measure `λ ∗ ψ_ε` -/
+
+/-- **Georgii's (20.3) in `ℝ≥0∞` form.**  Intended home: next to `HasExpSqMoments` in
+`GibbsMeasure.Specification.InfraredBound`. -/
+lemma hasExpSqMoments_iff_lintegral_ne_top {μ : Measure (Fin n → ℝ)} :
+    HasExpSqMoments μ ↔ ∀ a : ℝ, (∫⁻ x, ENNReal.ofReal (Real.exp (a * (x ⬝ᵥ x))) ∂μ) ≠ ∞ := by
+  have hmeas : ∀ a : ℝ, Measurable fun x : Fin n → ℝ ↦ Real.exp (a * (x ⬝ᵥ x)) := fun a ↦
+    Real.continuous_exp.measurable.comp ((measurable_id.dotProduct measurable_id).const_mul a)
+  refine ⟨fun h a ↦ ?_, fun h a ↦ ⟨(hmeas a).aestronglyMeasurable, ?_⟩⟩
+  · have h2 := (h a).2
+    rw [hasFiniteIntegral_iff_ofReal (.of_forall fun x ↦ (Real.exp_nonneg _))] at h2
+    exact h2.ne
+  · rw [hasFiniteIntegral_iff_ofReal (.of_forall fun x ↦ (Real.exp_nonneg _))]
+    exact lt_of_le_of_ne le_top (h a)
+
+lemma hasExpSqMoments_quarticMollifier : HasExpSqMoments (quarticMollifier n) :=
+  hasExpSqMoments_iff_lintegral_ne_top.2 fun a ↦ lintegral_exp_quarticMollifier_ne_top a
+
+/-- **The mollified measure is equivalent to Lebesgue measure.**  For every finite `λ ≠ 0` and
+every `ε ≠ 0`, `λ ∗ ψ_ε = r · dx` with `0 < r(x) < ∞` everywhere: the density is
+`r(x) = |ε^n|⁻¹ ∫ λ(dw) e^{-|(x - w)/ε|⁴}`, positive because the mollifying density is, and finite
+because it is bounded.  This is what makes Georgii's first case
+(`isGaussianDominating_of_eq_withDensity`) applicable to `λ ∗ ψ_ε` for an *arbitrary* finite
+`λ`. -/
+lemma exists_withDensity_conv_map_smul_quarticMollifier {μ : Measure (Fin n → ℝ)}
+    [IsFiniteMeasure μ] (hμ : μ ≠ 0) {ε : ℝ} (hε : ε ≠ 0) :
+    ∃ r : (Fin n → ℝ) → ℝ≥0∞, Measurable r ∧ (∀ x, r x ≠ 0) ∧ (∀ x, r x ≠ ∞) ∧
+      μ ∗ ((quarticMollifier n).map (ε • ·)) = volume.withDensity r := by
+  set c : ℝ≥0∞ := ENNReal.ofReal |(ε ^ Module.finrank ℝ (Fin n → ℝ))⁻¹| with hc
+  have hc0 : c ≠ 0 := by
+    rw [hc, Ne, ENNReal.ofReal_eq_zero, not_le]
+    exact abs_pos.2 (inv_ne_zero (pow_ne_zero _ hε))
+  set q : (Fin n → ℝ) → ℝ≥0∞ := fun y ↦ quarticDensity (ε⁻¹ • y) with hq
+  have hqm : Measurable q := measurable_quarticDensity.comp (measurable_const_smul _)
+  have hconv : Measurable (Function.uncurry fun w x : Fin n → ℝ ↦ q (-w + x)) :=
+    hqm.comp (measurable_fst.neg.add measurable_snd)
+  have hint : Measurable fun x ↦ ∫⁻ w, q (-w + x) ∂μ := hconv.lintegral_prod_left
+  have hψ : (quarticMollifier n).map (ε • ·) = c • volume.withDensity q := by
+    rw [quarticMollifier, Measure.map_addHaar_smul_withDensity _ hε measurable_quarticDensity]
+  refine ⟨c • fun x ↦ ∫⁻ w, q (-w + x) ∂μ, hint.const_mul c, fun x ↦ ?_, fun x ↦ ?_, ?_⟩
+  · rw [Pi.smul_apply, smul_eq_mul, Ne, mul_eq_zero]
+    push Not
+    refine ⟨hc0, ?_⟩
+    have hsupp : Function.support (fun w : Fin n → ℝ ↦ q (-w + x)) = univ :=
+      Set.eq_univ_of_forall fun w ↦ (quarticDensity_pos _).ne'
+    have hqx : Measurable fun w : Fin n → ℝ ↦ q (-w + x) :=
+      hqm.comp (measurable_neg.add_const x)
+    have : 0 < ∫⁻ w, q (-w + x) ∂μ := by
+      rw [lintegral_pos_iff_support hqx, hsupp]
+      exact Measure.measure_univ_pos.2 hμ
+    exact this.ne'
+  · rw [Pi.smul_apply, smul_eq_mul]
+    refine ENNReal.mul_ne_top ENNReal.ofReal_ne_top (ne_top_of_le_ne_top ?_
+      (lintegral_mono fun w ↦ quarticDensity_le_one (ε⁻¹ • (-w + x))))
+    rw [lintegral_one]
+    exact measure_ne_top μ univ
+  · rw [hψ, Measure.conv_smul_right, Measure.conv_withDensity _ _ hqm,
+      withDensity_smul c hint]
+
+/-- The scaled mollifier `ψ_ε` is finite. -/
+instance isFiniteMeasure_map_smul_quarticMollifier (ε : ℝ) :
+    IsFiniteMeasure ((quarticMollifier n).map (ε • ·)) :=
+  Measure.isFiniteMeasure_map _ _
+
+/-- **The `a`-th Gaussian exponential moment of the scaled mollifier** is the `aε²`-th moment of
+the mollifier. -/
+lemma lintegral_exp_map_smul_quarticMollifier (a ε : ℝ) :
+    (∫⁻ y, ENNReal.ofReal (Real.exp (a * (y ⬝ᵥ y))) ∂((quarticMollifier n).map (ε • ·)))
+      = ∫⁻ u, ENNReal.ofReal (Real.exp ((a * ε ^ 2) * (u ⬝ᵥ u))) ∂(quarticMollifier n) := by
+  rw [lintegral_map (measurable_expSqDensity a) (measurable_const_smul ε)]
+  refine lintegral_congr fun u ↦ ?_
+  refine congrArg _ (congrArg _ ?_)
+  rw [smul_dotProduct, dotProduct_smul, smul_eq_mul, smul_eq_mul]
+  ring
+
+/-- **Georgii's (20.3) is stable under mollification.**  `∫ e^{a|x|²} d(λ ∗ ψ_ε) < ∞` for every
+`a`, by `|x + y|² ≤ 2|x|² + 2|y|²` and the exponential square moments of `λ` and of `ψ`.  The
+second is the reason the mollifier cannot be a Gaussian: a Gaussian has `∫ e^{a|y|²} dψ = ∞` for
+all large `a`, and (20.3) for `λ ∗ ψ_ε` would fail. -/
+lemma hasExpSqMoments_conv_map_smul_quarticMollifier {μ : Measure (Fin n → ℝ)}
+    [IsFiniteMeasure μ] (hexp : HasExpSqMoments μ) (ε : ℝ) :
+    HasExpSqMoments (μ ∗ ((quarticMollifier n).map (ε • ·))) := by
+  rw [hasExpSqMoments_iff_lintegral_ne_top]
+  intro a
+  have hb : Measurable fun x : Fin n → ℝ ↦ ENNReal.ofReal (Real.exp (2 * |a| * (x ⬝ᵥ x))) :=
+    measurable_expSqDensity _
+  have hpt : ∀ x y : Fin n → ℝ, ENNReal.ofReal (Real.exp (a * ((x + y) ⬝ᵥ (x + y))))
+      ≤ ENNReal.ofReal (Real.exp (2 * |a| * (x ⬝ᵥ x)))
+        * ENNReal.ofReal (Real.exp (2 * |a| * (y ⬝ᵥ y))) := by
+    intro x y
+    rw [← ENNReal.ofReal_mul (Real.exp_nonneg _), ← Real.exp_add]
+    refine ENNReal.ofReal_le_ofReal (Real.exp_le_exp.2 ?_)
+    have h1 : (x + y) ⬝ᵥ (x + y) ≤ 2 * (x ⬝ᵥ x) + 2 * (y ⬝ᵥ y) := add_dotProduct_add_le x y
+    have h2 : a * ((x + y) ⬝ᵥ (x + y)) ≤ |a| * ((x + y) ⬝ᵥ (x + y)) :=
+      mul_le_mul_of_nonneg_right (le_abs_self a) (Matrix.dotProduct_self_nonneg _)
+    nlinarith [abs_nonneg a]
+  have hstep : ∀ x : Fin n → ℝ,
+      (∫⁻ y, ENNReal.ofReal (Real.exp (a * ((x + y) ⬝ᵥ (x + y))))
+          ∂((quarticMollifier n).map (ε • ·)))
+        ≤ ENNReal.ofReal (Real.exp (2 * |a| * (x ⬝ᵥ x)))
+          * ∫⁻ y, ENNReal.ofReal (Real.exp (2 * |a| * (y ⬝ᵥ y)))
+              ∂((quarticMollifier n).map (ε • ·)) := by
+    intro x
+    rw [← lintegral_const_mul _ hb]
+    exact lintegral_mono fun y ↦ hpt x y
+  rw [Measure.lintegral_conv (measurable_expSqDensity a)]
+  refine ne_top_of_le_ne_top ?_ ((lintegral_mono hstep).trans (le_of_eq (lintegral_mul_const _ hb)))
+  refine ENNReal.mul_ne_top (hasExpSqMoments_iff_lintegral_ne_top.1 hexp _) ?_
+  rw [lintegral_exp_map_smul_quarticMollifier]
+  exact lintegral_exp_quarticMollifier_ne_top _
+
+/-! #### The integrand of Georgii's `λ̃^Λ(g ∘ τ_ζ)` over the untilted product measure -/
+
+variable (N n J) in
+/-- **The `λ^Λ`-density of the shifted `°γ_Λ^Φ`**,
+
+`exp[Ĵ(1)/2 ∑_i |σ_i|² + W(σ - ζ)] = exp[½ ∑_{i,j} J_Λ(i-j) σ_i·σ_j] f_Λ^Φ(ζ, σ)`,
+
+that is, the integrand of Georgii's `λ̃^Λ(g ∘ τ_ζ)` written over the *untilted* product measure
+`λ^Λ` (`lintegral_expSqTilted_eq_lintegral_shiftedDensity`).  Mollification is carried out
+against it, because — unlike the tilted measure `λ̃` — the a priori measure `λ` itself is what is
+being convolved. -/
+def heisenbergShiftedDensity (ζ x : (Fin d → ZMod (2 * N)) → (Fin n → ℝ)) : ℝ≥0∞ :=
+  ENNReal.ofReal (Real.exp (heisenbergTilt N J * ∑ i, (x i ⬝ᵥ x i)
+    + heisenbergDiffExponent N n J (x - ζ)))
+
+lemma continuous_heisenbergShiftedDensity (ζ : (Fin d → ZMod (2 * N)) → (Fin n → ℝ)) :
+    Continuous (heisenbergShiftedDensity N n J ζ) := by
+  have h1 : Continuous fun x : (Fin d → ZMod (2 * N)) → (Fin n → ℝ) ↦
+      heisenbergTilt N J * ∑ i, (x i ⬝ᵥ x i) :=
+    continuous_const.mul (continuous_finsetSum _ fun i _ ↦
+      (continuous_apply i).dotProduct (continuous_apply i))
+  have h2 : Continuous fun x : (Fin d → ZMod (2 * N)) → (Fin n → ℝ) ↦
+      heisenbergDiffExponent N n J (x - ζ) :=
+    continuous_heisenbergDiffExponent.comp (continuous_id.sub continuous_const)
+  exact ENNReal.continuous_ofReal.comp (Real.continuous_exp.comp (h1.add h2))
+
+lemma measurable_heisenbergShiftedDensity (ζ : (Fin d → ZMod (2 * N)) → (Fin n → ℝ)) :
+    Measurable (heisenbergShiftedDensity N n J ζ) :=
+  (continuous_heisenbergShiftedDensity ζ).measurable
+
+/-- **Georgii's `λ̃^Λ(g ∘ τ_ζ)` over the untilted product measure.**  The tilt
+`λ̃ = e^{|x|² Ĵ(1)/2} λ` is a one-site density, so `λ̃^Λ` is `λ^Λ` with the product density and the
+integral of `e^{W(· - ζ)}` against `λ̃^Λ` is the integral of `heisenbergShiftedDensity` against
+`λ^Λ`. -/
+theorem lintegral_expSqTilted_eq_lintegral_shiftedDensity {ρ : Measure (Fin n → ℝ)}
+    [IsFiniteMeasure ρ] (hexp : HasExpSqMoments ρ)
+    (ζ : (Fin d → ZMod (2 * N)) → (Fin n → ℝ)) :
+    (∫⁻ ω, ENNReal.ofReal (Real.exp (heisenbergDiffExponent N n J (ω - ζ)))
+        ∂(Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ expSqTilted (heisenbergTilt N J) ρ))
+      = ∫⁻ ω, heisenbergShiftedDensity N n J ζ ω
+          ∂(Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ ρ) := by
+  have _hfin : IsFiniteMeasure (ρ.withDensity fun x ↦
+      ENNReal.ofReal (Real.exp (heisenbergTilt N J * (x ⬝ᵥ x)))) :=
+    isFiniteMeasure_expSqTilted (a := heisenbergTilt N J) hexp
+  have hprod : Measurable fun ω : (Fin d → ZMod (2 * N)) → (Fin n → ℝ) ↦
+      ∏ i, ENNReal.ofReal (Real.exp (heisenbergTilt N J * (ω i ⬝ᵥ ω i))) :=
+    Finset.measurable_prod _ fun i _ ↦ (measurable_expSqDensity _).comp (measurable_pi_apply i)
+  have hWζ : Measurable fun ω : (Fin d → ZMod (2 * N)) → (Fin n → ℝ) ↦
+      ENNReal.ofReal (Real.exp (heisenbergDiffExponent N n J (ω - ζ))) :=
+    (measurable_heisenbergDiffExponent.comp (measurable_id.sub_const ζ)).exp.ennreal_ofReal
+  have hpi : (Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ expSqTilted (heisenbergTilt N J) ρ)
+      = (Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ ρ).withDensity
+          (fun ω ↦ ∏ i, ENNReal.ofReal (Real.exp (heisenbergTilt N J * (ω i ⬝ᵥ ω i)))) :=
+    Measure.pi_withDensity (fun _ : Fin d → ZMod (2 * N) ↦ ρ)
+      (r := fun _ ↦ fun x ↦ ENNReal.ofReal (Real.exp (heisenbergTilt N J * (x ⬝ᵥ x))))
+      (fun _ ↦ measurable_expSqDensity _)
+  rw [hpi, lintegral_withDensity_eq_lintegral_mul _ hprod hWζ]
+  refine lintegral_congr fun ω ↦ ?_
+  rw [Pi.mul_apply, ← ENNReal.ofReal_prod_of_nonneg (fun i _ ↦ (Real.exp_nonneg _)),
+    ← Real.exp_sum, ← ENNReal.ofReal_mul (Real.exp_nonneg _), ← Real.exp_add, ← Finset.mul_sum]
+  rfl
+
+/-! #### `(λ ∗ ψ_ε)^Λ` as the image of `λ^Λ ⊗ ψ^Λ` -/
+
+/-- **A product of convolutions is the convolution of the products**, in integrated form:
+`(λ ∗ ψ_ε)^Λ` is the image of `λ^Λ ⊗ ψ^Λ` under `(ω, y) ↦ ω + ε y`.  This is
+`MeasureTheory.Measure.pi_conv` together with `MeasureTheory.Measure.pi_map_pi`; it is what turns
+the mollification limit into an application of dominated convergence over the *fixed* measure
+`λ^Λ ⊗ ψ^Λ`. -/
+theorem lintegral_pi_conv_map_smul {μ : Measure (Fin n → ℝ)} [IsFiniteMeasure μ] (ε : ℝ)
+    {F : ((Fin d → ZMod (2 * N)) → (Fin n → ℝ)) → ℝ≥0∞} (hF : Measurable F) :
+    (∫⁻ x, F x ∂(Measure.pi fun _ : Fin d → ZMod (2 * N) ↦
+        μ ∗ ((quarticMollifier n).map (ε • ·))))
+      = ∫⁻ z, F (z.1 + ε • z.2)
+          ∂((Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ μ).prod
+              (Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ quarticMollifier n)) := by
+  have hsmul : Measurable fun y : (Fin d → ZMod (2 * N)) → (Fin n → ℝ) ↦ ε • y :=
+    measurable_const_smul ε
+  have hmap : (Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ (quarticMollifier n).map (ε • ·))
+      = (Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ quarticMollifier n).map (ε • ·) :=
+    (Measure.pi_map_pi (μ := fun _ : Fin d → ZMod (2 * N) ↦ quarticMollifier n)
+      (f := fun _ (x : Fin n → ℝ) ↦ ε • x) fun _ ↦ (measurable_const_smul ε).aemeasurable).symm
+  have hinner : ∀ x : (Fin d → ZMod (2 * N)) → (Fin n → ℝ),
+      (∫⁻ y, F (x + y) ∂(Measure.pi fun _ : Fin d → ZMod (2 * N) ↦
+          (quarticMollifier n).map (ε • ·)))
+        = ∫⁻ y, F (x + ε • y)
+            ∂(Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ quarticMollifier n) := by
+    intro x
+    have hFx : Measurable fun y : (Fin d → ZMod (2 * N)) → (Fin n → ℝ) ↦ F (x + y) :=
+      hF.comp (measurable_const_add x)
+    rw [hmap, lintegral_map hFx hsmul]
+  have hjoint : AEMeasurable (fun z : (((Fin d → ZMod (2 * N)) → (Fin n → ℝ))
+      × ((Fin d → ZMod (2 * N)) → (Fin n → ℝ))) ↦ F (z.1 + ε • z.2))
+      ((Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ μ).prod
+        (Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ quarticMollifier n)) :=
+    (hF.comp (measurable_fst.add (hsmul.comp measurable_snd))).aemeasurable
+  rw [Measure.pi_conv, Measure.lintegral_conv hF]
+  simp only [hinner]
+  exact (lintegral_prod _ hjoint).symm
+
+/-! #### The domination, and the limit `ε ↓ 0` -/
+
+/-- **A Gaussian exponential moment of the product measure.**  `∫ e^{b ∑_i |x_i|²} dλ^Λ < ∞` for
+every `b`, by (20.3) at each site. -/
+lemma lintegral_pi_exp_dotProduct_ne_top {ρ : Measure (Fin n → ℝ)} [SigmaFinite ρ]
+    (hexp : HasExpSqMoments ρ) (b : ℝ) :
+    (∫⁻ x, ENNReal.ofReal (Real.exp (b * ∑ i, (x i ⬝ᵥ x i)))
+        ∂(Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ ρ)) ≠ ∞ := by
+  have hsplit : ∀ x : (Fin d → ZMod (2 * N)) → (Fin n → ℝ),
+      ENNReal.ofReal (Real.exp (b * ∑ i, (x i ⬝ᵥ x i)))
+        = ∏ i, ENNReal.ofReal (Real.exp (b * (x i ⬝ᵥ x i))) := by
+    intro x
+    rw [← ENNReal.ofReal_prod_of_nonneg (fun i _ ↦ (Real.exp_nonneg _)), ← Real.exp_sum,
+      Finset.mul_sum]
+  rw [lintegral_congr hsplit,
+    lintegral_pi_prod (fun _ : Fin d → ZMod (2 * N) ↦ ρ)
+      (g := fun _ x ↦ ENNReal.ofReal (Real.exp (b * (x ⬝ᵥ x)))) fun _ ↦ measurable_expSqDensity b]
+  exact ENNReal.prod_ne_top fun i _ ↦ hasExpSqMoments_iff_lintegral_ne_top.1 hexp b
+
+/-- **The domination for the mollification limit.**  For `|ε| ≤ 1`,
+
+`exp[Ĵ(1)/2 ∑_i |ω_i + ε y_i|² + W(ω + ε y - ζ)]
+  ≤ exp[2‖J‖₀ ∑_i |ζ_i|²] exp[b ∑_i |ω_i|²] exp[b ∑_i |y_i|²]`,   `b = 4‖J‖₀ + 2|Ĵ(1)/2|`,
+
+by `|W| ≤ ‖J‖₀ ∑_i |·_i|²` (`abs_heisenbergDiffExponent_le`) and the parallelogram bound.  The
+right-hand side is `λ^Λ ⊗ ψ^Λ`-integrable by (20.3) for `λ` and for `ψ`, which is exactly what
+dominated convergence needs. -/
+lemma heisenbergShiftedDensity_add_smul_le (hsum : Summable J)
+    (ζ : (Fin d → ZMod (2 * N)) → (Fin n → ℝ)) {ε : ℝ} (hε : |ε| ≤ 1)
+    (ω y : (Fin d → ZMod (2 * N)) → (Fin n → ℝ)) :
+    heisenbergShiftedDensity N n J ζ (ω + ε • y)
+      ≤ ENNReal.ofReal (Real.exp (2 * (∑' m, |J m|) * ∑ i, (ζ i ⬝ᵥ ζ i)
+          + (4 * (∑' m, |J m|) + 2 * |heisenbergTilt N J|) * ∑ i, (ω i ⬝ᵥ ω i)
+          + (4 * (∑' m, |J m|) + 2 * |heisenbergTilt N J|) * ∑ i, (y i ⬝ᵥ y i))) := by
+  have hK0 : (0 : ℝ) ≤ ∑' m, |J m| := tsum_nonneg fun m ↦ abs_nonneg _
+  have hε2 : ε ^ 2 ≤ 1 := by nlinarith [abs_nonneg ε, sq_abs ε]
+  have hnn : ∀ x : Fin n → ℝ, 0 ≤ x ⬝ᵥ x := fun x ↦ Matrix.dotProduct_self_nonneg x
+  have hSnn : ∀ x : (Fin d → ZMod (2 * N)) → (Fin n → ℝ), 0 ≤ ∑ i, (x i ⬝ᵥ x i) :=
+    fun x ↦ Finset.sum_nonneg fun i _ ↦ hnn _
+  -- the two pointwise square bounds
+  have hx : ∀ i, ((ω + ε • y) i ⬝ᵥ (ω + ε • y) i)
+      ≤ 2 * (ω i ⬝ᵥ ω i) + 2 * (y i ⬝ᵥ y i) := by
+    intro i
+    have h2 := add_dotProduct_add_le (ω i) (ε • y i)
+    have h3 : (ε • y i) ⬝ᵥ (ε • y i) = ε ^ 2 * (y i ⬝ᵥ y i) := by
+      rw [smul_dotProduct, dotProduct_smul, smul_eq_mul, smul_eq_mul]; ring
+    rw [h3] at h2
+    have h4 : ε ^ 2 * (y i ⬝ᵥ y i) ≤ y i ⬝ᵥ y i := by nlinarith [hnn (y i)]
+    have h1 : (ω + ε • y) i = ω i + ε • y i := rfl
+    rw [h1]
+    linarith
+  have hz : ∀ i, ((ω + ε • y - ζ) i ⬝ᵥ (ω + ε • y - ζ) i)
+      ≤ 4 * (ω i ⬝ᵥ ω i) + 4 * (y i ⬝ᵥ y i) + 2 * (ζ i ⬝ᵥ ζ i) := by
+    intro i
+    have h1 : (ω + ε • y - ζ) i = (ω + ε • y) i + (-ζ i) := by
+      simp only [Pi.sub_apply, sub_eq_add_neg]
+    have h2 := add_dotProduct_add_le ((ω + ε • y) i) (-ζ i)
+    have h3 : (-ζ i) ⬝ᵥ (-ζ i) = ζ i ⬝ᵥ ζ i := by
+      rw [neg_dotProduct, dotProduct_neg, neg_neg]
+    rw [h3] at h2
+    rw [h1]
+    linarith [hx i]
+  -- the two summed bounds
+  have hSx : ∑ i, ((ω + ε • y) i ⬝ᵥ (ω + ε • y) i)
+      ≤ 2 * (∑ i, (ω i ⬝ᵥ ω i)) + 2 * ∑ i, (y i ⬝ᵥ y i) := by
+    calc ∑ i, ((ω + ε • y) i ⬝ᵥ (ω + ε • y) i)
+        ≤ ∑ i, (2 * (ω i ⬝ᵥ ω i) + 2 * (y i ⬝ᵥ y i)) := Finset.sum_le_sum fun i _ ↦ hx i
+      _ = 2 * (∑ i, (ω i ⬝ᵥ ω i)) + 2 * ∑ i, (y i ⬝ᵥ y i) := by
+          rw [Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum]
+  have hSz : ∑ i, ((ω + ε • y - ζ) i ⬝ᵥ (ω + ε • y - ζ) i)
+      ≤ 4 * (∑ i, (ω i ⬝ᵥ ω i)) + 4 * (∑ i, (y i ⬝ᵥ y i)) + 2 * ∑ i, (ζ i ⬝ᵥ ζ i) := by
+    calc ∑ i, ((ω + ε • y - ζ) i ⬝ᵥ (ω + ε • y - ζ) i)
+        ≤ ∑ i, (4 * (ω i ⬝ᵥ ω i) + 4 * (y i ⬝ᵥ y i) + 2 * (ζ i ⬝ᵥ ζ i)) :=
+          Finset.sum_le_sum fun i _ ↦ hz i
+      _ = 4 * (∑ i, (ω i ⬝ᵥ ω i)) + 4 * (∑ i, (y i ⬝ᵥ y i)) + 2 * ∑ i, (ζ i ⬝ᵥ ζ i) := by
+          rw [Finset.sum_add_distrib, Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum,
+            ← Finset.mul_sum]
+  -- the tilt and the exponent `W`
+  refine ENNReal.ofReal_le_ofReal (Real.exp_le_exp.2 ?_)
+  have e1 : heisenbergTilt N J * ∑ i, ((ω + ε • y) i ⬝ᵥ (ω + ε • y) i)
+      ≤ |heisenbergTilt N J| * (2 * (∑ i, (ω i ⬝ᵥ ω i)) + 2 * ∑ i, (y i ⬝ᵥ y i)) := by
+    refine le_trans (mul_le_mul_of_nonneg_right (le_abs_self _) (hSnn _)) ?_
+    exact mul_le_mul_of_nonneg_left hSx (abs_nonneg _)
+  have e2 : heisenbergDiffExponent N n J (ω + ε • y - ζ)
+      ≤ (∑' m, |J m|) * (4 * (∑ i, (ω i ⬝ᵥ ω i)) + 4 * (∑ i, (y i ⬝ᵥ y i))
+          + 2 * ∑ i, (ζ i ⬝ᵥ ζ i)) := by
+    refine le_trans (le_trans (le_abs_self _) (abs_heisenbergDiffExponent_le hsum _)) ?_
+    exact mul_le_mul_of_nonneg_left hSz hK0
+  nlinarith [e1, e2]
+
+/-- **The mollification limit**, and with it Georgii's three approximation steps at one stroke:
+
+`∫ S d(λ ∗ ψ_ε)^Λ ⟶ ψ^Λ(1) ∫ S dλ^Λ`   as `ε → 0`,
+
+for the integrand `S = heisenbergShiftedDensity` of Georgii's `λ̃^Λ(g ∘ τ_ζ)`.  The identity
+`lintegral_pi_conv_map_smul` moves the `ε`-dependence into the integrand over the *fixed* measure
+`λ^Λ ⊗ ψ^Λ`, `heisenbergShiftedDensity_add_smul_le` dominates it, and `S` is continuous. -/
+theorem tendsto_lintegral_pi_heisenbergShiftedDensity_conv (hsum : Summable J)
+    {μ : Measure (Fin n → ℝ)} [IsFiniteMeasure μ] (hexp : HasExpSqMoments μ)
+    (ζ : (Fin d → ZMod (2 * N)) → (Fin n → ℝ)) {ε : ℕ → ℝ} (hε1 : ∀ k, |ε k| ≤ 1)
+    (hε : Tendsto ε atTop (𝓝 0)) :
+    Tendsto (fun k ↦ ∫⁻ x, heisenbergShiftedDensity N n J ζ x
+        ∂(Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ μ ∗ ((quarticMollifier n).map (ε k • ·))))
+      atTop (𝓝 ((Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ quarticMollifier n) univ
+        * ∫⁻ x, heisenbergShiftedDensity N n J ζ x
+            ∂(Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ μ))) := by
+  set S := heisenbergShiftedDensity N n J ζ with hS
+  have hSm : Measurable S := measurable_heisenbergShiftedDensity ζ
+  set b : ℝ := 4 * (∑' m, |J m|) + 2 * |heisenbergTilt N J| with hb
+  set c : ℝ := 2 * (∑' m, |J m|) * ∑ i, (ζ i ⬝ᵥ ζ i) with hcdef
+  set B : (((Fin d → ZMod (2 * N)) → (Fin n → ℝ))
+      × ((Fin d → ZMod (2 * N)) → (Fin n → ℝ))) → ℝ≥0∞ :=
+    fun z ↦ ENNReal.ofReal (Real.exp (c + b * ∑ i, (z.1 i ⬝ᵥ z.1 i)
+      + b * ∑ i, (z.2 i ⬝ᵥ z.2 i))) with hB
+  have hexpb : Measurable fun x : (Fin d → ZMod (2 * N)) → (Fin n → ℝ) ↦
+      ENNReal.ofReal (Real.exp (b * ∑ i, (x i ⬝ᵥ x i))) :=
+    ENNReal.measurable_ofReal.comp (Real.continuous_exp.measurable.comp
+      ((Finset.measurable_sum _ fun i _ ↦
+        (measurable_pi_apply i).dotProduct (measurable_pi_apply i)).const_mul b))
+  have hrw : ∀ k, (∫⁻ x, S x ∂(Measure.pi fun _ : Fin d → ZMod (2 * N) ↦
+        μ ∗ ((quarticMollifier n).map (ε k • ·))))
+      = ∫⁻ z, S (z.1 + ε k • z.2)
+          ∂((Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ μ).prod
+              (Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ quarticMollifier n)) :=
+    fun k ↦ lintegral_pi_conv_map_smul (ε k) hSm
+  have hconst : (Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ quarticMollifier n) univ
+      * ∫⁻ x, S x ∂(Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ μ)
+      = ∫⁻ z, S z.1
+          ∂((Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ μ).prod
+              (Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ quarticMollifier n)) := by
+    have hfst : AEMeasurable (fun z : (((Fin d → ZMod (2 * N)) → (Fin n → ℝ))
+        × ((Fin d → ZMod (2 * N)) → (Fin n → ℝ))) ↦ S z.1)
+        ((Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ μ).prod
+          (Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ quarticMollifier n)) :=
+      (hSm.comp measurable_fst).aemeasurable
+    rw [lintegral_prod _ hfst]
+    simp only [lintegral_const]
+    rw [lintegral_mul_const _ hSm, mul_comm]
+  simp only [hrw]
+  rw [hconst]
+  refine tendsto_lintegral_of_dominated_convergence B
+    (fun k ↦ hSm.comp (measurable_fst.add ((measurable_const_smul (ε k)).comp measurable_snd)))
+    (fun k ↦ Filter.Eventually.of_forall fun z ↦
+      heisenbergShiftedDensity_add_smul_le hsum ζ (hε1 k) z.1 z.2) ?_ ?_
+  · have hBsplit : ∀ z : (((Fin d → ZMod (2 * N)) → (Fin n → ℝ))
+        × ((Fin d → ZMod (2 * N)) → (Fin n → ℝ))),
+        B z = (ENNReal.ofReal (Real.exp c) * ENNReal.ofReal (Real.exp (b * ∑ i, (z.1 i ⬝ᵥ z.1 i))))
+          * ENNReal.ofReal (Real.exp (b * ∑ i, (z.2 i ⬝ᵥ z.2 i))) := by
+      intro z
+      change ENNReal.ofReal (Real.exp (c + b * ∑ i, (z.1 i ⬝ᵥ z.1 i)
+        + b * ∑ i, (z.2 i ⬝ᵥ z.2 i))) = _
+      rw [Real.exp_add, Real.exp_add, ENNReal.ofReal_mul (by positivity),
+        ENNReal.ofReal_mul (by positivity)]
+    have hf1 : AEMeasurable (fun x : (Fin d → ZMod (2 * N)) → (Fin n → ℝ) ↦
+        ENNReal.ofReal (Real.exp c) * ENNReal.ofReal (Real.exp (b * ∑ i, (x i ⬝ᵥ x i))))
+        (Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ μ) := (hexpb.const_mul _).aemeasurable
+    rw [lintegral_congr hBsplit, lintegral_prod_mul hf1 hexpb.aemeasurable]
+    refine ENNReal.mul_ne_top ?_ (lintegral_pi_exp_dotProduct_ne_top
+      hasExpSqMoments_quarticMollifier b)
+    rw [lintegral_const_mul _ hexpb]
+    exact ENNReal.mul_ne_top ENNReal.ofReal_ne_top (lintegral_pi_exp_dotProduct_ne_top hexp b)
+  · refine Filter.Eventually.of_forall fun z ↦ ?_
+    have h1 : Tendsto (fun k ↦ z.1 + ε k • z.2) atTop (𝓝 z.1) := by
+      have h2 : Tendsto (fun k ↦ ε k • z.2) atTop (𝓝 ((0 : ℝ) • z.2)) := hε.smul_const z.2
+      rw [zero_smul] at h2
+      simpa using (tendsto_const_nhds (x := z.1) (f := atTop)).add h2
+    exact ((continuous_heisenbergShiftedDensity ζ).tendsto z.1).comp h1
+
+/-! #### Georgii's Lemma (20.13) for an arbitrary finite a priori measure -/
+
+/-- The right-hand side of `IsGaussianDominating`, in terms of `heisenbergShiftedDensity`. -/
+theorem lintegral_expSqTilted_eq_lintegral_shiftedDensity_zero {ρ : Measure (Fin n → ℝ)}
+    [IsFiniteMeasure ρ] (hexp : HasExpSqMoments ρ) :
+    (∫⁻ ω, ENNReal.ofReal (Real.exp (heisenbergDiffExponent N n J ω))
+        ∂(Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ expSqTilted (heisenbergTilt N J) ρ))
+      = ∫⁻ ω, heisenbergShiftedDensity N n J 0 ω
+          ∂(Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ ρ) := by
+  rw [← lintegral_expSqTilted_eq_lintegral_shiftedDensity hexp 0]
+  exact lintegral_congr fun ω ↦ by rw [sub_zero]
+
+/-- **Gaussian domination over the untilted product measure.**  `IsGaussianDominating` says
+exactly that the `λ^Λ`-integral of the shifted density is maximal at `ζ = 0`. -/
+theorem isGaussianDominating_iff_lintegral_shiftedDensity {ρ : Measure (Fin n → ℝ)}
+    [IsFiniteMeasure ρ] (hexp : HasExpSqMoments ρ) :
+    IsGaussianDominating N n J ρ
+      ↔ ∀ ζ : (Fin d → ZMod (2 * N)) → (Fin n → ℝ),
+          (∫⁻ x, heisenbergShiftedDensity N n J ζ x
+              ∂(Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ ρ))
+            ≤ ∫⁻ x, heisenbergShiftedDensity N n J 0 x
+                ∂(Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ ρ) := by
+  refine forall_congr' fun ζ ↦ ?_
+  rw [lintegral_expSqTilted_eq_lintegral_shiftedDensity hexp ζ,
+    lintegral_expSqTilted_eq_lintegral_shiftedDensity_zero hexp]
+
+/-- The mollified measure is nonzero. -/
+lemma conv_map_smul_quarticMollifier_ne_zero {μ : Measure (Fin n → ℝ)} (hμ : μ ≠ 0) (ε : ℝ) :
+    μ ∗ ((quarticMollifier n).map (ε • ·)) ≠ 0 := by
+  rw [← Measure.measure_univ_ne_zero, Measure.conv_apply_univ,
+    Measure.map_apply (measurable_const_smul ε) MeasurableSet.univ, Set.preimage_univ]
+  exact mul_ne_zero (Measure.measure_univ_ne_zero.2 hμ) quarticMollifier_univ_ne_zero
+
+/-- **Georgii, Lemma (20.13), for an arbitrary finite a priori measure.**
+
+`λ̃^Λ(g ∘ τ_ζ) ≤ λ̃^Λ(g)` for every finite `λ ≠ 0` satisfying (20.3) — no absolute continuity is
+assumed, so the surface measure of a sphere (the Heisenberg model proper, which is what (20.15)
+needs) is covered.
+
+Georgii's first case (`isGaussianDominating_of_eq_withDensity`, the chessboard estimate) is
+applied to the mollifications `λ ∗ ψ_ε`, which are equivalent to Lebesgue measure
+(`exists_withDensity_conv_map_smul_quarticMollifier`) and inherit (20.3)
+(`hasExpSqMoments_conv_map_smul_quarticMollifier`), and the resulting inequalities pass to the
+limit `ε ↓ 0` (`tendsto_lintegral_pi_heisenbergShiftedDensity_conv`), where the common factor
+`ψ^Λ(1)` cancels.  This replaces Georgii's three approximation steps (absolutely continuous on a
+ball, arbitrary on a ball, ball `↑ ℝ^N`) by a single mollification. -/
+theorem isGaussianDominating {d N n : ℕ} [NeZero N] {J : (Fin (d + 1) → ℤ) → ℝ}
+    {ν : Measure (Fin n → ℝ)} [IsFiniteMeasure ν] (hν : ν ≠ 0) (hexp : HasExpSqMoments ν)
+    (hsum : Summable J) (heven : ∀ m, J (-m) = J m) (hnd : ∀ k, IsNonnegDefiniteAt k J) :
+    IsGaussianDominating N n J ν := by
+  set ε : ℕ → ℝ := fun k ↦ ((k : ℝ) + 1)⁻¹ with hεdef
+  have hεpos : ∀ k, 0 < ε k := by
+    intro k
+    simp only [hεdef]
+    positivity
+  have hε1 : ∀ k, |ε k| ≤ 1 := by
+    intro k
+    rw [abs_of_pos (hεpos k)]
+    simp only [hεdef]
+    exact inv_le_one_of_one_le₀ (by linarith [(Nat.cast_nonneg k : (0 : ℝ) ≤ k)])
+  have hε0 : Tendsto ε atTop (𝓝 0) :=
+    tendsto_one_div_add_atTop_nhds_zero_nat.congr fun k ↦ one_div _
+  -- the mollified a priori measures satisfy Georgii's first case
+  have hfin : ∀ k, IsFiniteMeasure (ν ∗ ((quarticMollifier n).map (ε k • ·))) := fun k ↦
+    inferInstance
+  have hexpk : ∀ k, HasExpSqMoments (ν ∗ ((quarticMollifier n).map (ε k • ·))) := fun k ↦
+    hasExpSqMoments_conv_map_smul_quarticMollifier hexp (ε k)
+  have hdom : ∀ k, IsGaussianDominating N n J (ν ∗ ((quarticMollifier n).map (ε k • ·))) := by
+    intro k
+    obtain ⟨r, hrm, hr0, hrtop, hrν⟩ :=
+      exists_withDensity_conv_map_smul_quarticMollifier hν (hεpos k).ne'
+    exact isGaussianDominating_of_eq_withDensity
+      (conv_map_smul_quarticMollifier_ne_zero hν (ε k)) (hexpk k) hsum heven hnd hrm hr0 hrtop hrν
+  -- pass to the limit
+  rw [isGaussianDominating_iff_lintegral_shiftedDensity hexp]
+  intro ζ
+  have hk : ∀ k, (∫⁻ x, heisenbergShiftedDensity N n J ζ x
+        ∂(Measure.pi fun _ : Fin (d + 1) → ZMod (2 * N) ↦
+          ν ∗ ((quarticMollifier n).map (ε k • ·))))
+      ≤ ∫⁻ x, heisenbergShiftedDensity N n J 0 x
+        ∂(Measure.pi fun _ : Fin (d + 1) → ZMod (2 * N) ↦
+          ν ∗ ((quarticMollifier n).map (ε k • ·))) := fun k ↦
+    (isGaussianDominating_iff_lintegral_shiftedDensity (hexpk k)).1 (hdom k) ζ
+  have hA := tendsto_lintegral_pi_heisenbergShiftedDensity_conv (μ := ν) hsum hexp ζ hε1 hε0
+  have hB := tendsto_lintegral_pi_heisenbergShiftedDensity_conv (μ := ν) hsum hexp
+    (0 : (Fin (d + 1) → ZMod (2 * N)) → (Fin n → ℝ)) hε1 hε0
+  have hC0 : (Measure.pi fun _ : Fin (d + 1) → ZMod (2 * N) ↦ quarticMollifier n) univ ≠ 0 := by
+    rw [Measure.pi_univ]
+    exact Finset.prod_ne_zero_iff.2 fun i _ ↦ quarticMollifier_univ_ne_zero
+  have hCtop : (Measure.pi fun _ : Fin (d + 1) → ZMod (2 * N) ↦ quarticMollifier n) univ ≠ ∞ :=
+    measure_ne_top _ _
+  exact (ENNReal.mul_le_mul_iff_right hC0 hCtop).1 (le_of_tendsto_of_tendsto' hA hB hk)
+
+/-- **Georgii, Lemma (20.13)**, with no hypothesis on `λ` beyond (20.3):
+
+`°γ_Λ^Φ(f_Λ^Φ(ζ, ·)) ≤ °γ_Λ^Φ(f_Λ^Φ(0, ·)) = 1`,   `ζ ∈ (ℝ^N)^Λ`.
+
+This is `lintegral_heisenbergShiftFactor_le_one` with the Gaussian domination hypothesis
+discharged by `isGaussianDominating`. -/
+theorem lintegral_heisenbergShiftFactor_le_one_of_isNonnegDefiniteAt {d N n : ℕ} [NeZero N]
+    {J : (Fin (d + 1) → ℤ) → ℝ} {ν : Measure (Fin n → ℝ)} [IsFiniteMeasure ν] (hν : ν ≠ 0)
+    (hexp : HasExpSqMoments ν) (hsum : Summable J) (heven : ∀ m, J (-m) = J m)
+    (hnd : ∀ k, IsNonnegDefiniteAt k J)
+    (ζ : (Fin (d + 1) → ZMod (2 * N)) → (Fin n → ℝ)) :
+    (∫⁻ ω, ENNReal.ofReal (heisenbergShiftFactor N n J ζ ω)
+        ∂(heisenbergPeriodicGibbsDist N n J ν)) ≤ 1 :=
+  lintegral_heisenbergShiftFactor_le_one hν hexp hsum
+    (isGaussianDominating hν hexp hsum heven hnd) ζ
+
+/-- **Georgii, Lemma (20.13)** in Bochner form, with no hypothesis on `λ` beyond (20.3). -/
+theorem integral_heisenbergShiftFactor_le_one_of_isNonnegDefiniteAt {d N n : ℕ} [NeZero N]
+    {J : (Fin (d + 1) → ℤ) → ℝ} {ν : Measure (Fin n → ℝ)} [IsFiniteMeasure ν] (hν : ν ≠ 0)
+    (hexp : HasExpSqMoments ν) (hsum : Summable J) (heven : ∀ m, J (-m) = J m)
+    (hnd : ∀ k, IsNonnegDefiniteAt k J)
+    (ζ : (Fin (d + 1) → ZMod (2 * N)) → (Fin n → ℝ)) :
+    (∫ ω, heisenbergShiftFactor N n J ζ ω ∂(heisenbergPeriodicGibbsDist N n J ν)) ≤ 1 :=
+  integral_heisenbergShiftFactor_le_one hν hexp hsum
+    (isGaussianDominating hν hexp hsum heven hnd) ζ
+
+end Approximation
+
+
+
+
+
+
+
+
 
 end MeasureTheory.GibbsMeasure
 

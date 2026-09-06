@@ -781,6 +781,75 @@ theorem eventually_exists_isingAnti_gibbsMeasure_pair (hh : |h| < 2) :
     fun k ↦ h9 0 1 k (preimage_cubeRefl_isingAntiG_zero k),
     fun k ↦ h9 1 0 k (preimage_cubeRefl_isingAntiG_one k)⟩
 
+/-- The converse of `sum_latticeParity_two`: `r^a` fixes the corners of `C` only for even
+`a₁ + a₂`. -/
+lemma even_add_of_sum_latticeParity_two {a : Fin 2 → ℤ} (h : ∑ k, latticeParity a k = 0) :
+    Even (a 0 + a 1) := by
+  rw [Fin.sum_univ_two, latticeParity_apply, latticeParity_apply] at h
+  rw [Int.even_add]
+  split_ifs at h with h0 h1 h2
+  · exact ⟨fun _ ↦ h1, fun _ ↦ h0⟩
+  · exact absurd h (by decide)
+  · exact absurd h (by decide)
+  · exact ⟨fun hh ↦ absurd hh h0, fun hh ↦ absurd hh h2⟩
+
+/-- **Georgii's `Θ̃ = ⋂_n Θ̃_n` for the antiferromagnet (18.28) is exactly the even sublattice.**
+The iterated reflection `r^a` preserves the staggered patterns `G_1`, `G_2` if and only if
+`a₁ + a₂` is even, so the group of even shifts is not merely contained in `Θ̃` — it is `Θ̃`. -/
+lemma mem_tauPowStabilizer_isingAntiG_iff {a : Fin 2 → ℤ} :
+    a ∈ tauPowStabilizer isingAntiG ↔ Even (a 0 + a 1) := by
+  refine ⟨fun ha ↦ ?_, fun ha n ↦ preimage_tauPow_staggerCube ha _⟩
+  have hmem : staggerCube (d := 2) true ∈
+      tauPow (cubeRefl Bool) (latticeToTorus 0 a) ⁻¹' isingAntiG 0 := by
+    rw [mem_tauPowStabilizer.1 ha 0]
+    exact Set.mem_singleton _
+  have hEq : tauPow (cubeRefl Bool) (latticeToTorus 0 a) (staggerCube (d := 2) true)
+      = staggerCube true := hmem
+  have hcong := congrFun hEq 0
+  rw [tauPow_cubeRefl_latticeToTorus_zero] at hcong
+  simp only [zero_add, staggerCube_apply] at hcong
+  refine even_add_of_sum_latticeParity_two ?_
+  rw [Fin.sum_univ_two]
+  simpa using hcong
+
+/-- Georgii's `Θ̃` of (18.25) for the antiferromagnet, in the form
+`eventually_le_encard_extremePoints_invariantG_tauPowStabilizer` consumes it: the group of even
+shifts is the group of shifts along `tauPowStabilizer isingAntiG`. -/
+lemma mem_evenShiftGroup_iff_mem_tauPowStabilizer_isingAntiG
+    {τ : Transformation (Fin 2 → ℤ) Bool} :
+    τ ∈ evenShiftGroup Bool ↔ ∃ a ∈ tauPowStabilizer isingAntiG, shift Bool a = τ := by
+  rw [mem_evenShiftGroup_iff_even]
+  exact ⟨fun ⟨b, hb, hbτ⟩ ↦ ⟨b, mem_tauPowStabilizer_isingAntiG_iff.2 hb, hbτ⟩,
+    fun ⟨b, hb, hbτ⟩ ↦ ⟨b, mem_tauPowStabilizer_isingAntiG_iff.1 hb, hbτ⟩⟩
+
+/-- **Georgii 18.3.2, the count for the proper subgroup `Θ̃`**, the last statement of Theorem
+(18.25): *if `β` is sufficiently large then* `|ex 𝒢_Θ̃(βΦ)| ≥ 2`, where
+`Θ̃ = {θ_i : i₁ + i₂ ≡ 0 mod 2}` is the group of even shifts (`evenShiftGroup`,
+`mem_evenShiftGroup_iff_even`).
+
+The two measures `μ_1, μ_2` of `eventually_exists_isingAnti_gibbsMeasure_pair` are
+`Θ̃`-invariant — the iterated reflection `r^a` fixes a staggered configuration exactly when
+`a₁ + a₂` is even (`preimage_tauPow_staggerCube`) — and are carried by the disjoint events
+`{ξ⁰(G_n, ·) ≠ ∅}`, hence are linearly independent over `ℝ≥0∞`; Corollary (14.18) for the
+subgroup `Θ̃` then gives the count.  Note that the *full* shift group is broken here:
+`θ_{(1,0)}(μ_1) = μ_2`, so `𝒢_Θ(βΦ)` need not contain either measure. -/
+theorem eventually_two_le_encard_extremePoints_invariantG_isingAnti (hh : |h| < 2) :
+    ∀ᶠ β : ℝ in atTop, ∀ (hφβ : Measurable fun ζ ↦ β * isingAntiCube 2 h ζ)
+      (hMβ : ∃ M : ℝ, ∀ ζ, M ≤ β * isingAntiCube 2 h ζ),
+      (2 : ℕ∞) ≤ ((invariantG (cubeGibbsSpec Bool (fun ζ ↦ β * isingAntiCube 2 h ζ)
+        uniformSpinMeasure hφβ hMβ) (evenShiftGroup Bool)).extremePoints ℝ≥0∞).encard := by
+  filter_upwards [eventually_le_encard_extremePoints_invariantG_of_shift_range (E := Bool)
+    (φ := isingAntiCube 2 h) (ν := uniformSpinMeasure) (G := isingAntiG)
+    measurable_isingAntiCube (neg_four_le_isingAntiCube hh) isingAntiCube_cubeRefl
+    (isCubeConfining_univ ⟨4 + 4 * |h|, abs_isingAntiCube_le⟩)
+    (isPStablePartition_isingAntiG hh) isPhiSymmetric_isingAntiG measurableSet_isingAntiG
+    (isingAntiEps_pos hh)
+    (localGroundStates_subset_isingAntiG hh (isingAntiEps_pos hh).le (isingAntiEps_lt hh))
+    (f := evenLatticeHom) (Θ := evenShiftGroup Bool) (fun _ ↦ mem_evenShiftGroup)
+    not_isOfFinAddOrder_evenLatticeHom
+    fun a n ↦ preimage_tauPow_staggerCube (even_evenLatticeHom a) _] with β hβ hφβ hMβ
+  exact_mod_cast hβ hφβ hMβ
+
 end Antiferromagnet
 
 end MeasureTheory.GibbsMeasure
