@@ -93,11 +93,10 @@ The three clauses are collected in `isMarkovChain_tfae`.
   conclusions Georgii draws from (11.33)** — the converses of Theorem (10.21) and of Remark
   (10.9)(3) both fail.
 
-Membership in `𝒢(γ^Q)` is what "Markov field for `Q`" means in Georgii §11. The general
-implication `𝒢(γ^Q) ⊆ {μ | IsMarkovField μ}` is not formalised here: it needs
-`DependsOn (γ^Q_{]i,k[}(·, A)) {i, k}` for every `A ∈ 𝓕_{]i,k[}`, and only the one-site case
-`dependsOn_transferSpecification_Ioo_preimage_singleton`
-(`GibbsMeasure/Model/BoundaryLawLimits.lean`) is available.
+Membership in `𝒢(γ^Q)` is what "Markov field for `Q`" means in Georgii §11; the implication
+`𝒢(γ^Q) ⊆ {μ | IsMarkovField μ}` is `isMarkovField_of_mem_G_transferSpecification`
+(`GibbsMeasure/Model/BoundaryLaw.lean`), so `exists_mem_G_not_isMarkovChain` exhibits a genuine
+Markov field which is not a Markov chain.
 -/
 
 @[expose] public section
@@ -229,9 +228,10 @@ lemma limitLawZero_univ (hp0 : 0 < p) (hp1 : p < 1)
 /-- `m̄(univ) = μ(σ_0 = 0) > 0`: a Gibbs measure for the positive matrix `Q` charges every
 cylinder. -/
 lemma limitLawZero_univ_ne_zero (hp0 : 0 < p) (hp1 : p < 1)
-    {μ : Measure (ℤ → ℕ)} [IsProbabilityMeasure μ]
+    {μ : Measure (ℤ → ℕ)}
     (hμ : μ ∈ G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1))) :
     limitLawZero p μ univ ≠ 0 := by
+  have hprob : IsProbabilityMeasure μ := hμ.1
   rw [limitLawZero_univ hp0 hp1 hμ]
   have := measure_intervalCylinder_pos_of_isGibbsMeasure (isTransferMatrix hp0 hp1) hμ.2 0 0
     (fun _ ↦ 0)
@@ -254,7 +254,7 @@ lemma limitLaw_eq_withDensity_limitLawZero (p : ℝ) (μ : Measure (ℤ → ℕ)
 (11.9)(b)) the two are conditionally independent given `σ_0`
 (`IsBoundaryLaw.measure_inter_inter_preimage_mul`). -/
 theorem limitLawZero_prod_mul (hp0 : 0 < p) (hp1 : p < 1)
-    {μ : Measure (ℤ → ℕ)} [IsProbabilityMeasure μ]
+    {μ : Measure (ℤ → ℕ)}
     (hμ : μ ∈ G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1)))
     {P : ℤ → Kernel ℕ ℕ} [∀ i, IsMarkovKernel (P i)] (hP : IsMarkovChain P μ)
     {A B : Set ℝ≥0} (hA : MeasurableSet A) (hB : MeasurableSet B) :
@@ -281,11 +281,12 @@ theorem limitLawZero_prod_mul (hp0 : 0 < p) (hp1 : p < 1)
 /-- **For a Markov chain `μ ∈ 𝒢(Q)`, Georgii's `m̄` is the product of its two marginals**, up to
 the total mass: `m̄(univ) m̄ = m̄₁ ⊗ m̄₂`. -/
 theorem smul_limitLawZero_eq_prod (hp0 : 0 < p) (hp1 : p < 1)
-    {μ : Measure (ℤ → ℕ)} [IsProbabilityMeasure μ]
+    {μ : Measure (ℤ → ℕ)}
     (hμ : μ ∈ G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1)))
     {P : ℤ → Kernel ℕ ℕ} [∀ i, IsMarkovKernel (P i)] (hP : IsMarkovChain P μ) :
     limitLawZero p μ univ • limitLawZero p μ
       = (limitLawZero p μ).fst.prod (limitLawZero p μ).snd := by
+  have hprob : IsProbabilityMeasure μ := hμ.1
   symm
   refine Measure.prod_eq fun A B hA hB ↦ ?_
   rw [Measure.smul_apply, smul_eq_mul, Measure.fst_apply hA, Measure.snd_apply hB,
@@ -326,11 +327,12 @@ lemma ofReal_exp_mul_ofReal_exp_mul_expWeight (t : ℝ≥0 × ℝ≥0) :
 `m̄(du, dv) = e^{-(1+u)(1+v)} m(du, dv)` a product `m̄₁ ⊗ m̄₂ / m̄(univ)`
 (`smul_limitLawZero_eq_prod`), take `m₁ = e^{1+u} m̄₁` and `m₂ = e^{v} m̄₂ / m̄(univ)`. -/
 theorem exists_prod_of_isMarkovChain (hp0 : 0 < p) (hp1 : p < 1)
-    {μ : Measure (ℤ → ℕ)} [IsProbabilityMeasure μ]
+    {μ : Measure (ℤ → ℕ)}
     (hμ : μ ∈ G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1)))
     {P : ℤ → Kernel ℕ ℕ} [∀ i, IsMarkovKernel (P i)] (hP : IsMarkovChain P μ) :
     ∃ (m₁ m₂ : Measure ℝ≥0), IsFiniteMeasure m₁ ∧ IsFiniteMeasure m₂ ∧
       μ = ((m₁.prod m₂).withDensity expWeight).bind (chainFamily hp0 hp1) := by
+  have hprob : IsProbabilityMeasure μ := hμ.1
   have hZ0 : limitLawZero p μ univ ≠ 0 := limitLawZero_univ_ne_zero hp0 hp1 hμ
   have hZt : limitLawZero p μ univ ≠ ⊤ := measure_ne_top _ _
   have hf₁m : Measurable fun u : ℝ≥0 ↦ ENNReal.ofReal (Real.exp (1 + (u : ℝ))) :=
@@ -712,11 +714,12 @@ of `(U, V)` under `μ̃` — the tilt `e^{-uv} m / Z` of the representing measur
 of its marginals `ρ₁ ⊗ ρ₂`; hence `m = Z e^{uv} ρ₁ ⊗ ρ₂` and
 `μ = ∫ m(du, dv) μ^{u,v} = ∫ (Z ρ₁)(du) ∫ ρ₂(dv) e^{uv} μ^{u,v}`. -/
 theorem exists_prod_of_indepFun_tilted (hp0 : 0 < p) (hp1 : p < 1)
-    {μ : Measure (ℤ → ℕ)} [IsProbabilityMeasure μ]
+    {μ : Measure (ℤ → ℕ)}
     (hμ : μ ∈ G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1)))
     (h : IndepFun (limAtBot p) (limAtTop p) (μ.tilted (negProd ∘ limPair p))) :
     ∃ (m₁ m₂ : Measure ℝ≥0), IsFiniteMeasure m₁ ∧ IsFiniteMeasure m₂ ∧
       μ = ((m₁.prod m₂).withDensity expWeight).bind (chainFamily hp0 hp1) := by
+  have hμprob : IsProbabilityMeasure μ := hμ.1
   have hprob : IsProbabilityMeasure (μ.tilted (negProd ∘ limPair p)) :=
     isProbabilityMeasure_tilted (integrable_exp_negProd_comp μ)
   set ρ : Measure (ℝ≥0 × ℝ≥0) := (limitLaw p μ).tilted negProd with hρ_def
@@ -772,7 +775,7 @@ finiteness in (c) is not a hypothesis one has to arrange but a consequence of th
 so (c') is the form of (c) with the weakest hypotheses and (c) the form with the strongest
 conclusions. -/
 theorem isMarkovChain_tfae (hp0 : 0 < p) (hp1 : p < 1)
-    {μ : Measure (ℤ → ℕ)} [IsProbabilityMeasure μ]
+    {μ : Measure (ℤ → ℕ)}
     (hμ : μ ∈ G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1))) :
     [(∃ P : ℤ → Kernel ℕ ℕ, (∀ i, IsMarkovKernel (P i)) ∧ IsMarkovChain P μ),
       IndepFun (limAtBot p) (limAtTop p)
@@ -781,6 +784,7 @@ theorem isMarkovChain_tfae (hp0 : 0 < p) (hp1 : p < 1)
         μ = ((m₁.prod m₂).withDensity expWeight).bind (chainFamily hp0 hp1)),
       (∃ (m₁ m₂ : Measure ℝ≥0), SFinite m₁ ∧ SFinite m₂ ∧
         μ = ((m₁.prod m₂).withDensity expWeight).bind (chainFamily hp0 hp1))].TFAE := by
+  have hprob : IsProbabilityMeasure μ := hμ.1
   tfae_have 1 → 3 := by
     rintro ⟨P, hP, hμP⟩
     have : ∀ i, IsMarkovKernel (P i) := hP
@@ -807,13 +811,10 @@ Georgii reads two counterexamples off Corollary (11.33): *not every Markov chain
 extreme* (the converse of Theorem (10.21)) and *not every Markov field for `Q` is a Markov chain*
 (the converse of Remark (10.9)(3)). Both witnesses are two-atom mixtures of extreme points.
 
-Membership in `𝒢(γ^Q)` is what "Markov field for `Q`" means in Georgii §11; the general
-implication `𝒢(γ^Q) ⊆ {Markov fields}` in the sense of
-`MeasureTheory.GibbsMeasure.Markov.IsMarkovField` is *not* available in this tree — it needs
-`DependsOn (γ^Q_{]i,k[}(·, A)) {i, k}` for every `A ∈ 𝓕_{]i,k[}`, of which only the one-site case
-`dependsOn_transferSpecification_Ioo_preimage_singleton`
-(`GibbsMeasure/Model/BoundaryLawLimits.lean`) is proved. The statement below therefore says
-"an element of `𝒢(γ^Q)` which is not a Markov chain". -/
+Membership in `𝒢(γ^Q)` is what "Markov field for `Q`" means in Georgii §11, and every such `μ`
+is a Markov field in the sense of `MeasureTheory.GibbsMeasure.Markov.IsMarkovField`
+(`isMarkovField_of_mem_G_transferSpecification`), so the second statement below is Georgii's:
+a Markov field which is not a Markov chain. -/
 
 /-- `e^{u·0} = 1`: on the line `v = 0` the weight of (11.33)(c) is trivial. -/
 @[simp] lemma expWeight_snd_zero (u : ℝ≥0) : expWeight (u, 0) = 1 := by
@@ -901,7 +902,7 @@ uniqueness of `m` (`eq_limitLaw_of_join_map_chainFamily_eq`) clause (11.33)(c) w
 `m₁{1} · m₂{0} = 0`; but `m{(0,0)} ≠ 0` and `m{(1,1)} ≠ 0` force `m₂{0} ≠ 0` and `m₁{1} ≠ 0`,
 because `(m₁ ⊗ m₂) e^{uv} ≪ m₁ ⊗ m₂`. -/
 theorem exists_mem_G_not_isMarkovChain (hp0 : 0 < p) (hp1 : p < 1) :
-    ∃ μ ∈ G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1)),
+    ∃ μ ∈ G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1)), IsMarkovField μ ∧
       ¬ ∃ P : ℤ → Kernel ℕ ℕ, (∀ i, IsMarkovKernel (P i)) ∧ IsMarkovChain P μ := by
   have hμG : (2 : ℝ≥0∞)⁻¹ • chainFamily hp0 hp1 (0, 0) + (2 : ℝ≥0∞)⁻¹ • chainFamily hp0 hp1 (1, 1)
       ∈ G (transferSpecification (matrix p) (isTransferMatrix hp0 hp1)) :=
@@ -909,7 +910,7 @@ theorem exists_mem_G_not_isMarkovChain (hp0 : 0 < p) (hp1 : p < 1) :
       ENNReal.inv_two_add_inv_two
   have hprob : IsProbabilityMeasure ((2 : ℝ≥0∞)⁻¹ • chainFamily hp0 hp1 (0, 0)
       + (2 : ℝ≥0∞)⁻¹ • chainFamily hp0 hp1 (1, 1)) := hμG.1
-  refine ⟨_, hμG, fun hchain ↦ ?_⟩
+  refine ⟨_, hμG, isMarkovField_of_mem_G_transferSpecification _ _ hμG, fun hchain ↦ ?_⟩
   obtain ⟨m₁, m₂, hs₁, hs₂, h⟩ := ((isMarkovChain_tfae hp0 hp1 hμG).out 1 4).1 hchain
   have hlaw := eq_limitLaw_of_join_map_chainFamily_eq hp0 hp1 h.symm
   rw [limitLaw_add_smul, limitLaw_chainFamily, limitLaw_chainFamily] at hlaw

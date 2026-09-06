@@ -835,11 +835,15 @@ Gibbs measure is unique ((6.7)(2)); **(6.7)(1)**: `𝒢(βΦ) = [μ₋^β, μ₊
 `μ_±` are the extreme points, carried by the disjoint tail events `A_±`, and the bond graph of equal
 neighbouring spins has a unique infinite component almost surely under every Gibbs measure.
 
-Not yet done: Examples (5.17)(3)–(4) (instances of (5.15) recorded as such), Theorem (6.4) behind (9.15), the
-§12.2, the rest of §13.2 and §13.3 ((13.39)–(13.41), (13.44)–(13.45)), and Chapters
-19–20, the rest of 17 and 18 (
-Gaussian fields, the variational principle, the Poulsen simplex, reflection positivity, and the
-infrared bound).
+Not yet done: the modulo-commutativity refinement (5.15)(ii) behind Examples (5.17)(3)–(4); the
+continuity of the second derivative asserted in (8.37)/(16.17); Example (9.15) for `K > 0`; the
+three extremality clauses of (12.31)(b); the necessity half of (13.36), (13.39)–(13.41) and
+(13.44)–(13.45); the upper bound (15.46) for a standard Borel state space, and the
+periodic-boundary-condition statements (15.48) (its two inequalities), (15.50)–(15.51),
+(15.57)–(15.58); (16.24)(3)–(4), (16.25)(2), (16.26)–(16.27), (16.31) and the equivalence of
+Georgii's two descriptions of `ℬ_Θ(f₁,…,f_N)`; the Berg–Maserick converse (17.28)(1), cited without
+proof; the second assertions of (18.17)–(18.18), Example (18.19), §18.2–18.3; Chapter 19; and
+(20.5), (20.7), the transfer of (20.6) to `𝒢₀(Φ)` and the infrared bound (20.9) onwards.
 
 ### Code organisation
 

@@ -1654,11 +1654,12 @@ theorem ofReal_poissonWeight_one_mul_matrix_pow_comm (n : ℕ) (x y : ℕ) :
 /-- **Georgii Theorem (11.31), Step 2.** Every extreme Gibbs measure for the Spitzer–Cox matrix
 is one of the measures `μ^{u,v}` of (11.29)–(11.10). -/
 theorem exists_eq_chain_of_mem_extremePoints (hp0 : 0 < p) (hp1 : p < 1)
-    {μ : Measure (ℤ → ℕ)} [IsProbabilityMeasure μ]
+    {μ : Measure (ℤ → ℕ)}
     (hμ : μ ∈ (G (transferSpecification (matrix p)
       (isTransferMatrix hp0 hp1))).extremePoints ℝ≥0∞) :
     ∃ (u v : ℝ) (hu : 0 ≤ u) (hv : 0 ≤ v), μ = chain hp0 hp1 hu hv := by
   classical
+  have hprob : IsProbabilityMeasure μ := hμ.1.1
   obtain ⟨ℓ, r, hbl, rfl, ⟨x, hx⟩, ⟨z, hz⟩⟩ :=
     exists_isBoundaryLaw_and_tendsto_of_mem_extremePoints (isTransferMatrix hp0 hp1) hμ 0
   have hℓ0 : (0 : ℝ) < (ℓ 0 0).toReal :=
@@ -2177,7 +2178,6 @@ theorem extremePoints_G_eq_range_chain (hp0 : 0 < p) (hp1 : p < 1) :
   ext μ
   constructor
   · intro hμ
-    have : IsProbabilityMeasure μ := hμ.1.1
     exact exists_eq_chain_of_mem_extremePoints hp0 hp1 hμ
   · rintro ⟨u, v, hu, hv, rfl⟩
     exact chain_mem_extremePoints_G hp0 hp1 hu hv
@@ -2568,7 +2568,7 @@ both descriptions give `(u, v)` (`paramOf_chainFamily`,
 `tendsto_toReal_lintegral_apply_chainFamily_atBot`,
 `tendsto_toReal_lintegral_apply_chainFamily_atTop`). -/
 theorem tendsto_toReal_lintegral_apply_of_mem_extremePoints (hp0 : 0 < p) (hp1 : p < 1)
-    {ν : Measure (ℤ → ℕ)} [IsProbabilityMeasure ν]
+    {ν : Measure (ℤ → ℕ)}
     (hν : ν ∈ (G (transferSpecification (matrix p)
       (isTransferMatrix hp0 hp1))).extremePoints ℝ≥0∞) :
     Tendsto (fun i : ℤ ↦ (∫⁻ ω, (ω i : ℝ≥0∞) ∂ν).toReal * p ^ (-i)) atBot

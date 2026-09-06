@@ -442,7 +442,6 @@ theorem extremePoints_G_eq :
   ext μ
   constructor
   · intro hμ
-    have : IsProbabilityMeasure μ := hμ.1.1
     rcases exists_eq_of_mem_extremePoints hq hqp hp hμ with h | ⟨j, h⟩
     · exact Or.inl h
     · exact Or.inr ⟨j, h.symm⟩

@@ -64,6 +64,22 @@ For $V \subseteq \mathbb Z$, $\partial V = \set{i \notin V : i + 1 \in V \text{ 
     \textbf{globally Markov} if Markov on every $V \subseteq \mathbb Z$.
 \end{definition}
 
+\begin{proposition}[Gibbs measures of a Markov specification are Markov fields, Georgii §10.1 between (10.4) and (10.6)]
+    \label{prop:mfi-gibbs-markov-field}
+    \uses{def:mfi-markov-spec, def:mfi-markov-properties}
+    \lean{MeasureTheory.condExp_ae_eq_of_condExp_ae_eq_of_stronglyMeasurable, MeasureTheory.GibbsMeasure.Markov.isMarkovOn_of_forall_exists_boundary_version, Specification.IsMarkovInt.isMarkovField, MeasureTheory.GibbsMeasure.Markov.isMarkovInt_transferSpecification, MeasureTheory.GibbsMeasure.Markov.isMarkovField_of_mem_G_transferSpecification}
+    \leanok
+
+    If $\gamma$ is a Markov specification and $\mu \in \mathcal G(\gamma)$ is finite, then
+    $\mu(A \mid \mathcal F_{\mathbb Z\setminus]i,k[}) = \gamma_{]i,k[}(A\mid\cdot)$ is
+    $\mathcal F_{\{i,k\}}$-measurable, so conditioning on $\mathcal F_{\{i,k\}}$ gives (10.6):
+    $\mu$ is a Markov field. Georgii's $\gamma^Q$ of \S11.1 is a Markov specification (Example
+    (10.3) with $p_j = Q$), so every $\mu \in \mathcal G(\gamma^Q)$ is a Markov field.
+\end{proposition}
+\begin{proof}
+    \leanok
+\end{proof}
+
 \begin{theorem}[Georgii (10.9)]
     \label{thm:mfi-10-9}
     \uses{def:mfi-markov-properties, def:mfi-markov-chain}

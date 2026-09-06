@@ -1511,11 +1511,12 @@ theorem mul_entrance_eq_of_frequently_eq {ℓ : ℤ → ℕ → ℝ≥0∞} (h�
 
 /-- **Georgii Theorem (11.39), Step 2.** Every extreme Gibbs measure for Kalikow's matrix is
 `μ_Q` or one of the translates `μ_j = θ_j(μ_0)`. -/
-theorem exists_eq_of_mem_extremePoints {μ : Measure (ℤ → ℕ)} [IsProbabilityMeasure μ]
+theorem exists_eq_of_mem_extremePoints {μ : Measure (ℤ → ℕ)}
     (hμ : μ ∈ (G (transferSpecification (matrix p q)
       (isTransferMatrix hq hqp hp))).extremePoints ℝ≥0∞) :
     μ = invariantChain hq hqp hp ∨ ∃ j : ℤ, μ = shiftedChain hq hqp hp j := by
   classical
+  have hprob : IsProbabilityMeasure μ := hμ.1.1
   obtain ⟨ℓ, r, hbl, rfl, ⟨x, hx⟩, ⟨z, hz⟩⟩ :=
     exists_isBoundaryLaw_and_tendsto_of_mem_extremePoints (isTransferMatrix hq hqp hp) hμ 0
   have hℓ0 : ∀ i y, ℓ i y ≠ 0 := fun i y ↦ (hbl.left_pos i y).ne'

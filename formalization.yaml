@@ -43,17 +43,20 @@ classification:
 
 status:
   scope: >-
-    Georgii Chapters 1-8, complete for the results listed under main_results (Section 6.1, Theorem (6.4),
-    included). Of Chapters 9-20:
-    Chapter 14 (ergodicity); Section
-    15.1 (relative entropy), Lemma (15.11), Section 15.2 (strong subadditivity (15.10), the specific
-    entropy (15.12)-(15.13), (15.14), (15.16)-(15.20)), Section 15.3 (specific energy, the pressure (15.30)(a)
-    and its Lipschitz continuity and convexity (16.1)(a)), Section 15.4 (Theorem (15.37) and the
-    variational principle (15.39), for standard Borel E); Section 11.1 ((11.1)-(11.17), (11.18)(1),(3), (11.6)-(11.7), (11.18)(2) representation, (11.19)); Section 12.1 ((12.1)-(12.18) except (12.3)(3),(5),(6)); Section 10.1 (the Markov
-    properties (10.2)-(10.11)), Section 10.2 ((10.12)-(10.26) except Examples (10.24)), Section 10.3 ((10.30)-(10.37)); Section 9.1 (symmetry
-    inheritance (9.1), localized symmetries (9.3), one-dimensional pair interactions (9.5),
-    (9.11), (9.16)); Section 9.2 (Mermin-Wagner (9.20) with Lemmas (9.28), (9.33), Examples (9.22)-(9.24)); Section 13.1 (13.1)-(13.3),
-    (13.9), (13.11)-(13.13) for finite-range J, (13.18) glued, (13.21). The rest is not formalized.
+    Georgii Chapters 1-14 complete for the results listed under main_results and in the per-chapter
+    entries (the few exceptions are named there: (5.15)(ii) modulo-commutativity refinement,
+    the continuity of the second derivative asserted in (8.37), Example (9.15) for K > 0,
+    (12.31)(b)'s three extremality clauses, the (13.36) necessity and (13.39)-(13.41),
+    (13.44)-(13.45)). Chapter 15 complete through Theorem (15.45), the upper bound (15.46) over a
+    finite state space and the lower bound (15.47) over any; open: (15.46) for standard Borel E,
+    the periodic-boundary-condition inequalities of (15.48), (15.50)-(15.51), (15.57)-(15.58).
+    Chapter 16: Sections 16.1-16.2 complete; Section 16.3 through (16.25)(1) and (16.28)-(16.30),
+    open (16.24)(3)-(4), (16.25)(2), (16.26)-(16.27), (16.31). Chapter 17 complete except the
+    Berg-Maserick converse (17.28)(1), which Georgii cites without proof. Chapter 18: Section 18.1
+    through Lemma (18.16), with the first assertions of (18.17)-(18.18); open their second
+    assertions, Example (18.19), Sections 18.2-18.3. Chapter 19: not started. Chapter 20: Section
+    20.1 on the torus ((20.6), (20.8)) and Georgii's computation (17.24); open (20.5), (20.7), the
+    transfer of (20.6) to G_0(Phi), and the infrared bound (20.9) onwards.
   sorry_count: 0
   sorry_in_definitions: 0
   axioms: ["propext", "Classical.choice", "Quot.sound"]
@@ -1706,7 +1709,11 @@ alignment:
         of the proof; its two conclusions as theorems: a Markov chain in G(gamma^Q) that is not
         extreme and a Gibbs measure that is not a Markov chain (the converses of (10.21) and
         (10.9)(3) fail), while every mu^{u,v} is a Markov chain; temperedness singles out mu^{0,0}
-        as Georgii says before (11.31).
+        as Georgii says before (11.31). Every Gibbs measure of a Markov specification on Z is a
+        Markov field (Georgii Section 10.1, between (10.4) and (10.6); Specification/MarkovInt.lean),
+        so every mu in G(gamma^Q) is a Markov field (Model/BoundaryLaw.lean), gamma^Q being the
+        Markov specification of Example (10.3) with p_j = Q. The redundant probability-measure
+        instance was removed from nine statements whose hypothesis mu in G already carries it.
         11.3 Kalikow: Theorem (11.39) in full (Model/KalikowClassification.lean): ex G = {mu_Q} u
         {mu_j}, the boundary limit Z exists a.s. under every Gibbs measure, the decomposition
         mu = mu(Z = -infinity) mu_Q + sum_j mu(Z = j) mu_j with unique coefficients, and every Gibbs measure is a Markov

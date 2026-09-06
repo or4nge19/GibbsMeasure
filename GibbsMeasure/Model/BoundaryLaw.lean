@@ -38,6 +38,9 @@ monoid `Kernel E E`, and (11.1) is finiteness of their entries.
   λ-specification of `transferWeight Q` for counting measure;
   `transferSpecification_Icc_apply_intervalCylinder` is **(11.2)** and
   `transferSpecification_apply_cyl_union` is **(11.3)**.
+* `MeasureTheory.GibbsMeasure.Markov.isMarkovInt_transferSpecification`: `γ^Q` is a Markov
+  specification, Georgii Definition (10.2); `isMarkovField_of_mem_G_transferSpecification`:
+  every `μ ∈ 𝒢(γ^Q)` is a Markov field (10.6).
 * `MeasureTheory.GibbsMeasure.Markov.transferSpecification_eq_iff`: **Georgii Remark (11.4)**,
   `γ^P = γ^Q` iff `P(x,y) = Q(x,y) r(y)/(q r(x))` (11.5).
 * `MeasureTheory.GibbsMeasure.Markov.IsBoundaryLaw Q ℓ r`: **Georgii Definition (11.8)**.
@@ -506,6 +509,33 @@ theorem transferSpecification_singleton_apply_intervalCylinder {a b i : ℤ} (ha
     simp [this]
 
 end TransferSpecification
+
+/-! ## `γ^Q` is a Markov specification, and its Gibbs measures are Markov fields -/
+
+section MarkovSpecification
+
+variable [Nonempty E] (Q : E → E → ℝ≥0∞) (hQ : IsTransferMatrix Q)
+
+/-- **Georgii §11.1.** `γ^Q` is a Markov specification in the sense of Definition (10.2): the
+transfer weights are the chain densities of Example (10.3) for the constant family of transition
+densities `p_j = Q`, and those are Markovian — `ρ^Q_{]i,k[}` depends on `σ` only through
+`σ_{[i,k]}`. -/
+theorem isMarkovInt_transferSpecification :
+    Specification.IsMarkovInt (transferSpecification Q hQ) :=
+  Specification.isMarkovInt_lambdaSpecification Measure.count (isPremodifier_transferWeight Q)
+    hQ.isSigmaFiniteLambdaAdmissible
+    (Specification.isMarkovianInt_chainDensity fun _ ↦ measurable_of_countable _)
+
+/-- **Georgii §11.1 via §10.1.** Every `μ ∈ 𝒢(γ^Q)` is a Markov field, i.e. satisfies the
+two-sided Markov property (10.6): `γ^Q` is a Markov specification
+(`isMarkovInt_transferSpecification`), and the Gibbs measures of a Markov specification are
+Markov fields (`Specification.IsMarkovInt.isMarkovField`). -/
+theorem isMarkovField_of_mem_G_transferSpecification {μ : Measure (ℤ → E)}
+    (hμ : μ ∈ G (transferSpecification Q hQ)) : IsMarkovField μ :=
+  have : IsProbabilityMeasure μ := hμ.1
+  (isMarkovInt_transferSpecification Q hQ).isMarkovField hμ.2
+
+end MarkovSpecification
 
 /-! ## Georgii (11.3): non-adjacent volumes factorise -/
 

@@ -30,6 +30,8 @@ probabilities. The σ-algebra-level lemmas, stated for an arbitrary finite measu
 * `MeasureTheory.integral_mul_indicator_eq_of_condExp_ae_eq`: its functional form
   `∫ f 1_A = ∫ f μ(A | m')` for bounded `m₀`-measurable `f`;
 * `MeasureTheory.condExp_indicator_ae_eq_of_le`: the tower property for these identities;
+* `MeasureTheory.condExp_ae_eq_of_condExp_ae_eq_of_stronglyMeasurable`: a version of `μ(f | m₀)`
+  that is `m'`-measurable (`m' ≤ m₀`) is a version of `μ(f | m')`;
 * `MeasureTheory.condExp_indicator_ae_eq_sup`: absorbing `m'` into the events (`A ∈ m ⊔ m'`);
 * `MeasureTheory.condExp_indicator_ae_eq_symm`: symmetry (conditional independence is
   symmetric);
@@ -46,6 +48,8 @@ probabilities. The σ-algebra-level lemmas, stated for an arbitrary finite measu
 * `IsMarkovOn.union`: Georgii's step 1) — (10.10) is stable under disjoint non-adjacent unions.
 * `IsMarkovOn.of_forall_component`: (10.10) at `V` follows from (10.10) at the maximal intervals
   of `V` (`component`, `hull`), by the extension argument over finitely many sites.
+* `isMarkovOn_of_forall_exists_boundary_version`: (10.10) at `V` holds as soon as every
+  `μ(A | 𝓕_{ℤ∖V})`, `A ∈ 𝓕_V`, has a `𝓕_{∂V}`-measurable version.
 * `isLeftMarkov_iff_isRightMarkov`: the equivalence of (10.7) and (10.8) stated after (10.8).
 * `IsOneSidedMarkov.isMarkovField`: **Remark (10.9)(3)**.
 * `isMarkovField_iff_isLocalMarkov`: **Remark (10.9)(1)**.
@@ -70,6 +74,8 @@ probabilities. The σ-algebra-level lemmas, stated for an arbitrary finite measu
 * `Specification.IsMarkovInt γ`: **Definition (10.2)**, `γ_{]i,k[}(A | ·)` is
   `𝓕_{{i,k}}`-measurable for `A ∈ 𝓕_{]i,k[}`; `Specification.IsMarkovianInt ρ`: `ρ_{]i,k[}` is
   `𝓕_{[i,k]}`-measurable.
+* `Specification.IsMarkovInt.isMarkovField`: **Georgii §10.1**, every Gibbs measure of a Markov
+  specification is a Markov field (10.6).
 * `Specification.isMarkovInt_lambdaSpecification`,
   `Specification.isMarkovInt_of_forall_apply_eq`: Georgii's remark that `ρλ` is Markov when
   `ρ` is Markovian, for σ-finite and for probability a priori measures.
@@ -296,6 +302,15 @@ lemma integral_mul_indicator_eq_integral_mul_condExp (hm : m ≤ mΩ) (hA : Meas
     {f : Ω → ℝ} (hf : StronglyMeasurable[m] f) {c : ℝ} (hfc : ∀ᵐ x ∂μ, ‖f x‖ ≤ c) :
     ∫ x, f x * A.indicator (1 : Ω → ℝ) x ∂μ = ∫ x, f x * (μ[A.indicator (1 : Ω → ℝ) | m]) x ∂μ :=
   integral_mul_indicator_eq_of_condExp_ae_eq hm hA (ae_eq_refl _) hf hfc
+
+/-- If a version `g` of `μ(f | m₀)` is already `m'`-measurable for a sub-σ-algebra `m' ≤ m₀`,
+then `g` is a version of `μ(f | m')` as well: conditioning further down does nothing. -/
+lemma condExp_ae_eq_of_condExp_ae_eq_of_stronglyMeasurable (hm' : m' ≤ m₀) (hm₀ : m₀ ≤ mΩ)
+    {f g : Ω → ℝ} (hg : StronglyMeasurable[m'] g) (hgi : Integrable g μ)
+    (h : μ[f | m₀] =ᵐ[μ] g) : μ[f | m'] =ᵐ[μ] g :=
+  calc μ[f | m'] =ᵐ[μ] μ[μ[f | m₀] | m'] := (condExp_condExp_of_le (μ := μ) hm' hm₀).symm
+    _ =ᵐ[μ] μ[g | m'] := condExp_congr_ae h
+    _ = g := condExp_of_stronglyMeasurable (μ := μ) (hm'.trans hm₀) hg hgi
 
 /-- Monotonicity in the conditioning σ-algebra: if `μ(A|m₀) = μ(A|m')` and `m' ≤ m₁ ≤ m₀`, then
 `μ(A|m₁) = μ(A|m')`. -/
@@ -597,6 +612,18 @@ lemma IsMarkovOn.condExp_ae_eq_of_subset (h : IsMarkovOn μ V) {V' : Set ℤ}
     (cylinderEvents_mono hbd)
     (cylinderEvents_mono ((boundarySet_subset_compl V').trans hcc)) cylinderEvents_le_pi (h A hA)
   exact h1.trans h2.symm
+
+/-- **(10.10) from a boundary version of the conditional probabilities.** If for every
+`A ∈ 𝓕_V` the conditional probability `μ(A | 𝓕_{ℤ∖V})` admits a version which is measurable with
+respect to the boundary σ-algebra `𝓕_{∂V}`, then `μ` has the Markov property at `V`. -/
+lemma isMarkovOn_of_forall_exists_boundary_version
+    (h : ∀ A, MeasurableSet[cylinderEvents V] A → ∃ f : (ℤ → E) → ℝ,
+      StronglyMeasurable[cylinderEvents (boundarySet V)] f ∧ Integrable f μ ∧
+        μ[A.indicator (1 : (ℤ → E) → ℝ) | cylinderEvents Vᶜ] =ᵐ[μ] f) :
+    IsMarkovOn μ V := fun A hA ↦ by
+  obtain ⟨f, hfm, hfi, hf⟩ := h A hA
+  exact hf.trans (condExp_ae_eq_of_condExp_ae_eq_of_stronglyMeasurable
+    (cylinderEvents_boundarySet_le V) cylinderEvents_le_pi hfm hfi hf).symm
 
 omit [IsFiniteMeasure μ] in
 lemma isMarkovOn_univ : IsMarkovOn μ (Set.univ : Set ℤ) := by
@@ -1740,6 +1767,25 @@ lemma IsMarkovianInt.dependsOn (hρ : IsMarkovianInt ρ) {i k : ℤ} (hik : i + 
     simp only [Finset.coe_Ioo, Set.mem_union, Set.mem_Ioo, Set.mem_insert_iff,
       Set.mem_singleton_iff, Set.mem_Icc] at hj ⊢
     omega
+
+/-- **Georgii §10.1, the derivation of (10.6) from Definition (10.2).** Every Gibbs measure for
+a Markov specification on `ℤ` is a Markov field. Georgii's argument: for `A ∈ 𝓕_{]i,k[}` the DLR
+equation makes `γ_{]i,k[}(A | ·)` a version of `μ(A | 𝓕_{ℤ∖]i,k[})`; by (10.2) that function is
+`𝓕_{{i,k}}`-measurable, so taking conditional expectations with respect to `𝓕_{{i,k}}` leaves it
+unchanged and it is a version of `μ(A | 𝓕_{{i,k}})` as well. -/
+theorem IsMarkovInt.isMarkovField {γ : Specification ℤ E} (hγ : IsMarkovInt γ)
+    {μ : Measure (ℤ → E)} [IsFiniteMeasure μ] (hμ : γ.IsGibbsMeasure μ) : IsMarkovField μ := by
+  refine isMarkovField_iff.2 fun i k hik ↦ ?_
+  have hcoe : ((Finset.Ioo i k : Finset ℤ) : Set ℤ) = Set.Ioo i k := Finset.coe_Ioo i k
+  have hbd : boundarySet ((Finset.Ioo i k : Finset ℤ) : Set ℤ) = ({i, k} : Set ℤ) := by
+    rw [hcoe, boundarySet_Ioo hik]
+  rw [← hcoe]
+  refine isMarkovOn_of_forall_exists_boundary_version fun A hA ↦ ?_
+  have hdlr := (hμ (Finset.Ioo i k)).condExp_ae_eq_kernel_apply (cylinderEvents_le_pi _ hA)
+  refine ⟨fun ω ↦ (γ (Finset.Ioo i k) ω A).toReal, ?_, integrable_condExp.congr hdlr, hdlr⟩
+  rw [hcoe] at hA
+  rw [hbd]
+  exact (hγ i k hik A hA).ennreal_toReal.stronglyMeasurable
 
 /-! ### Normalised resampling densities depend only on the boundary -/
 
