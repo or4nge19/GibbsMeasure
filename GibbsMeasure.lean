@@ -114,6 +114,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Measure.RealSingleton
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ExtIicRat
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.SetwiseConvergence
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.CountableCore
+public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.PiMap
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.SetwiseCompact
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ProdZeroOne
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.CountablyGeneratedModNull
