@@ -9,6 +9,7 @@ public import GibbsMeasure.Mathlib.Analysis.PSeries.Lattice
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.ExponentialMoment
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.PositiveDotProduct
 public import GibbsMeasure.Specification.HeisenbergPeriodic
+public import GibbsMeasure.Specification.Structure
 
 /-!
 # Georgii §20.1: the a priori estimates for `N`-vector models, (20.1)–(20.8)
@@ -60,36 +61,57 @@ interaction is the isotropic pair potential of (20.1).
   configuration space satisfying it; `Ω_t` is `slowGrowthSet`.  (ii) replaces his Cauchy–Schwarz
   step by `uv ≤ u² + v²`, which needs no integrability and costs a factor `2` in his `b₂(a)`;
   (iii) needs the lattice `p`-series `summable_max_exp_norm_rpow`.
+* `slowGrowthTailSet` is Georgii's `Ω_* = {sup_i |σ_i|/α(i) < ∞} = ⋃_{t>0} Ω_t`, with
+  `measurableSet_tail_slowGrowthTailSet` his unproved-but-used remark that `Ω_*` is
+  tail measurable, `zero_mem_slowGrowthTailSet`, and
+  `exists_nonneg_sqrt_dotProduct_le_of_mem_slowGrowthTailSet` the form of membership used in the
+  Hamiltonian estimates.
+* `slowGrowth_add_le`, `IsSlowlySummable.summable_add`, `IsSlowlySummable.summable_sub` and
+  `IsSlowlySummable.summable_sub'`: **Georgii's "the above hypothesis clearly implies that
+  `∑_i |J(i-j)| α(i) < ∞`"** after (20.4).  What makes it true is that `α` grows at most by the
+  bounded factor `√(1 + log(1+|j|))` under a translation by `j`.
 
 **Not transferred to `ℤ^d`.**  Georgii states (20.6) for the fields `μ_n^Φ = °γ_{Λ(n)}^Φ × δ_0` on
 `Ω = (ℝ^N)^{ℤ^d}` and for the cluster points `𝒢₀(Φ)`, and gets it from the torus estimate "by
 continuity", the tail bound being a bound on a local event.  The three consequences above are
 stated in exactly that generality (any probability measure on a configuration space with the tail
 bound), but the *tail bound itself* is proved here only for the torus measure `°γ_Λ^Φ`: pushing it
-forward to `ℤ^d` needs the embedding `°γ_Λ^Φ ↦ °γ_Λ^Φ × δ_ω` for the Heisenberg family, which the
-tree has only for `C`-potentials (`MeasureTheory.GibbsMeasure.periodicGibbsField` in
-`GibbsMeasure.Specification.PeriodicGibbsLimits`).  That embedding is the same missing layer as
-the one (20.5) and (20.7) need; see below.
+forward to `ℤ^d` needs the embedding `°γ_Λ^Φ ↦ °γ_Λ^Φ × δ_ω` for the Heisenberg family, which is
+`MeasureTheory.GibbsMeasure.heisenbergPeriodicGibbsSpec_latticeBox` in
+`GibbsMeasure.Specification.HeisenbergPeriodicModification`; carrying the tail bound along it is
+the first step of (20.7) and is not done here.
+
+## Where (20.5) is
+
+**(20.5)**, the Gibbsian specification `γ^Φ` for an *unbounded* state space, is
+`MeasureTheory.GibbsMeasure.heisenbergSpecification` in
+`GibbsMeasure.Specification.HeisenbergSpecification`, built on the general layer
+`Potential.tailGibbsSpecification` (`GibbsMeasure.Potential.TailSummable`) and
+`Specification.gibbsOnTailSet` (`GibbsMeasure.Specification.TailGluedSpecification`).  The two
+inputs it needs from §20.1 are proved there: the absolute convergence of `H_Λ^Φ` on `Ω_*`
+(`isSummableOn_heisenbergPotential`, from the translated (20.4) above) and `Z_Λ^Φ(ω) < ∞`
+(`sigmaFiniteLambdaZ_tailBoltzmannFactor_ne_top`, from Georgii's Hamiltonian estimate
+`exists_abs_hamiltonian_heisenbergPotential_le` and (20.3)).
 
 ## What is *not* proved, and why
 
-* **(20.5)**, the Gibbsian specification `γ^Φ` for an *unbounded* state space, and **(20.7)**,
-  `∅ ≠ 𝒢₀(Φ) ⊆ 𝒢_Θ(Φ)`.  For an unbounded `E` and an infinite-range `J` the potential (20.1)
-  violates Georgii's (2.2)(ii): the Hamiltonians `H_Λ^Φ` are defined only on the tail-measurable
-  set `Ω_* = {sup_i |σ_i|/α(i) < ∞}`, and (20.5) is the resulting *modified* specification
-  (Dirac at `0_Λ ω_{S∖Λ}` off `Ω_*`), in the style of (13.18).  The tree has no specification
-  whose Hamiltonians are defined only on a tail set — `Potential.gibbsSpecification` requires a
-  `λ`-admissible potential — so (20.5) cannot be stated here without first building that layer,
-  and (20.7), whose proof compares `γ^{Φ^n}` with `γ^Φ` through Theorems (4.12), (4.17) and
-  Proposition (4.19), cannot be stated without (20.5).  Note that Georgii himself flags
-  (20.3)–(20.7) as needed *only* for an unbounded state space; over a bounded one, (20.7) is
-  Comment (4.14)(1) with Example (4.20)(2) and Example (5.20)(3), which for `C`-potentials is
-  `MeasureTheory.GibbsMeasure.GZero_nonempty` and `mem_GP_of_mem_GZero` in
+* **(20.7)**, `∅ ≠ 𝒢₀(Φ) ⊆ 𝒢_Θ(Φ)`.  Georgii's proof needs three things this file does not
+  supply: the transfer of the tail estimate from the torus to the fields
+  `μ_n^Φ = °γ_{Λ(n)}^Φ × δ_0` on `ℤ^d` (see "Not transferred to `ℤ^d`" above), the uniform
+  density bound `limsup_n sup_{ω ∈ Ω_t} ρ_Λ^n(ω) < ∞` feeding Theorem (4.12), and the comparison
+  `‖(γ_Λ^n f - γ_Λ^Φ f) 1_{Ω_t}‖ → 0` of Proposition (4.19) *restricted to `Ω_t`* — the tree's
+  (4.17) (`mem_GP_of_mapClusterPt`) assumes a quasilocal limit specification, which `γ^Φ` is not,
+  so Georgii's "a glance at the proof of Theorem (4.17)" has to be carried out as a separate
+  argument.
+* Note that Georgii flags (20.3)–(20.7) as needed *only* for an unbounded state space; over a
+  bounded one, (20.7) is Comment (4.14)(1) with Example (4.20)(2) and Example (5.20)(3), which for
+  `C`-potentials is `MeasureTheory.GibbsMeasure.GZero_nonempty` and `mem_GP_of_mem_GZero` in
   `GibbsMeasure.Specification.PeriodicGibbsLimits`.  A Heisenberg potential over a *bounded*
   state space is not expressible in the present setting either, because the spin space of
   `heisenbergPotential` is the whole of `ℝ^n`: `‖Φ_{{i,j}}‖` of (2.12) is a supremum over all of
   `(ℝ^n)^{ℤ^d}` and is infinite as soon as `J(i-j) ≠ 0`, whatever `λ` is.  Re-basing the
-  Heisenberg objects on a general rotationally invariant spin space is the prerequisite for both.
+  Heisenberg objects on a general rotationally invariant spin space is the prerequisite for the
+  bounded case.
 -/
 
 @[expose] public section
@@ -166,6 +188,77 @@ lemma IsSlowlySummable.summable {J : (Fin D → ℤ) → ℝ} (h : IsSlowlySumma
   refine Summable.of_norm_bounded h fun i ↦ ?_
   rw [Real.norm_eq_abs]
   nlinarith [abs_nonneg (J i), one_le_slowGrowth i]
+
+/-- `α` grows at most by a bounded factor under a translation: `α(m + j) ≤ √(1 + log(1+|j|)) α(m)`.
+This is the whole content of Georgii's "the above hypothesis clearly implies that
+`∑_i |J(i-j)| α(i) < ∞`" following (20.4). -/
+lemma slowGrowth_add_le (m j : Fin D → ℤ) :
+    slowGrowth (m + j) ≤ Real.sqrt (1 + Real.log (1 + ‖j‖)) * slowGrowth m := by
+  have hjnn : (0 : ℝ) ≤ ‖j‖ := norm_nonneg j
+  have hMm : (1 : ℝ) ≤ max (Real.exp 1) ‖m‖ :=
+    le_trans (Real.one_le_exp zero_le_one) (le_max_left _ _)
+  have hMmpos : (0 : ℝ) < max (Real.exp 1) ‖m‖ := lt_of_lt_of_le zero_lt_one hMm
+  have hstep : max (Real.exp 1) ‖m + j‖ ≤ (max (Real.exp 1) ‖m‖) * (1 + ‖j‖) := by
+    refine max_le ?_ ?_
+    · nlinarith [le_max_left (Real.exp 1) ‖m‖]
+    · calc ‖m + j‖ ≤ ‖m‖ + ‖j‖ := norm_add_le _ _
+        _ ≤ max (Real.exp 1) ‖m‖ + max (Real.exp 1) ‖m‖ * ‖j‖ := by
+            nlinarith [le_max_right (Real.exp 1) ‖m‖]
+        _ = max (Real.exp 1) ‖m‖ * (1 + ‖j‖) := by ring
+  have hlogj : (0 : ℝ) ≤ Real.log (1 + ‖j‖) := Real.log_nonneg (by linarith)
+  have hlogm : (1 : ℝ) ≤ Real.log (max (Real.exp 1) ‖m‖) := by
+    have h1 : Real.log (Real.exp 1) ≤ Real.log (max (Real.exp 1) ‖m‖) :=
+      Real.log_le_log (Real.exp_pos 1) (le_max_left _ _)
+    rwa [Real.log_exp] at h1
+  have hlog : Real.log (max (Real.exp 1) ‖m + j‖)
+      ≤ Real.log (max (Real.exp 1) ‖m‖) + Real.log (1 + ‖j‖) := by
+    rw [← Real.log_mul hMmpos.ne' (by linarith : (1 : ℝ) + ‖j‖ ≠ 0)]
+    exact Real.log_le_log (lt_of_lt_of_le (Real.exp_pos 1) (le_max_left _ _)) hstep
+  have hsq : slowGrowth (m + j) ^ 2
+      ≤ (1 + Real.log (1 + ‖j‖)) * slowGrowth m ^ 2 := by
+    rw [slowGrowth_sq, slowGrowth_sq]
+    nlinarith
+  have hC : (0 : ℝ) ≤ 1 + Real.log (1 + ‖j‖) := by linarith
+  calc slowGrowth (m + j) = Real.sqrt (slowGrowth (m + j) ^ 2) :=
+        (Real.sqrt_sq (slowGrowth_pos _).le).symm
+    _ ≤ Real.sqrt ((1 + Real.log (1 + ‖j‖)) * slowGrowth m ^ 2) := Real.sqrt_le_sqrt hsq
+    _ = Real.sqrt (1 + Real.log (1 + ‖j‖)) * slowGrowth m := by
+        rw [Real.sqrt_mul hC, Real.sqrt_sq (slowGrowth_pos _).le]
+
+/-- **Georgii's `∑_m |J(m)| α(m + j) < ∞`**, the translated form of (20.4). -/
+theorem IsSlowlySummable.summable_add {J : (Fin D → ℤ) → ℝ} (h : IsSlowlySummable J)
+    (j : Fin D → ℤ) : Summable fun m ↦ |J m| * slowGrowth (m + j) := by
+  refine Summable.of_nonneg_of_le
+    (fun m ↦ mul_nonneg (abs_nonneg _) (slowGrowth_pos _).le) (fun m ↦ ?_)
+    (h.mul_left (Real.sqrt (1 + Real.log (1 + ‖j‖))))
+  have := slowGrowth_add_le m j
+  nlinarith [abs_nonneg (J m), slowGrowth_pos m,
+    Real.sqrt_nonneg (1 + Real.log (1 + ‖j‖))]
+
+@[simp] lemma slowGrowth_neg (i : Fin D → ℤ) : slowGrowth (-i) = slowGrowth i := by
+  rw [slowGrowth, slowGrowth, norm_neg]
+
+/-- **Georgii's `∑_i |J(i - j)| α(i) < ∞`** following (20.4): the Hamiltonians `H_Λ^Φ` of a
+Heisenberg potential converge on the configurations of slow growth precisely because of this. -/
+theorem IsSlowlySummable.summable_sub {J : (Fin D → ℤ) → ℝ} (h : IsSlowlySummable J)
+    (j : Fin D → ℤ) : Summable fun i ↦ |J (i - j)| * slowGrowth i := by
+  have := h.summable_add j
+  refine ((Equiv.addRight j).summable_iff (f := fun i ↦ |J (i - j)| * slowGrowth i)).1 ?_
+  simpa [Function.comp_def] using this
+
+/-- The companion of `IsSlowlySummable.summable_sub` with the roles of the two sites exchanged:
+`∑_j |J(i - j)| α(j) < ∞`.  This is the form in which (20.4) enters the convergence of the
+Hamiltonian series. -/
+theorem IsSlowlySummable.summable_sub' {J : (Fin D → ℤ) → ℝ} (h : IsSlowlySummable J)
+    (i : Fin D → ℤ) : Summable fun j ↦ |J (i - j)| * slowGrowth j := by
+  refine ((Equiv.subLeft i).summable_iff (f := fun j ↦ |J (i - j)| * slowGrowth j)).1 ?_
+  refine (h.summable_add (-i)).congr fun k ↦ ?_
+  have h1 : i - (i - k) = k := by abel
+  have h2 : slowGrowth (i - k) = slowGrowth (k + -i) := by
+    rw [← slowGrowth_neg (i - k)]
+    congr 1
+    abel
+  simp only [Function.comp_apply, Equiv.subLeft_apply, h1, h2]
 
 end Hypotheses
 
@@ -763,6 +856,111 @@ theorem measure_compl_slowGrowthSet_le {μ : Measure ((Fin D → ℤ) → (Fin n
   congr 1
   rw [tsum_mul_left]
   ring
+
+/-! #### Georgii's `Ω_*` -/
+
+lemma measurableSet_slowGrowthSet (t : ℝ) : MeasurableSet (slowGrowthSet D n t) := by
+  have h : slowGrowthSet D n t
+      = ⋂ i : Fin D → ℤ, {ω : (Fin D → ℤ) → (Fin n → ℝ) | ω i ⬝ᵥ ω i ≤ t ^ 2 * slowGrowth i ^ 2} :=
+    by ext ω; simp [slowGrowthSet]
+  rw [h]
+  exact MeasurableSet.iInter fun i ↦
+    measurableSet_le ((measurable_pi_apply i).dotProduct (measurable_pi_apply i)) measurable_const
+
+lemma slowGrowthSet_mono {t t' : ℝ} (h : t ^ 2 ≤ t' ^ 2) :
+    slowGrowthSet D n t ⊆ slowGrowthSet D n t' := fun ω hω i ↦
+  le_trans (hω i) (by nlinarith [sq_nonneg (slowGrowth i)])
+
+variable (D n) in
+/-- **Georgii's `Ω_* = {sup_i |σ_i| / α(i) < ∞}`** of §20.1, the tail event of slowly increasing
+configurations.  He writes it as the union `⋃_{t > 0} Ω_t`; over the natural numbers the union is
+the same (`mem_slowGrowthTailSet_iff`) and countable, which is what measurability needs. -/
+def slowGrowthTailSet : Set ((Fin D → ℤ) → (Fin n → ℝ)) := ⋃ t : ℕ, slowGrowthSet D n t
+
+lemma mem_slowGrowthTailSet_iff {ω : (Fin D → ℤ) → (Fin n → ℝ)} :
+    ω ∈ slowGrowthTailSet D n ↔ ∃ t : ℝ, ω ∈ slowGrowthSet D n t := by
+  refine ⟨fun h ↦ ?_, fun ⟨t, ht⟩ ↦ ?_⟩
+  · obtain ⟨t, ht⟩ := Set.mem_iUnion.1 h
+    exact ⟨(t : ℝ), ht⟩
+  · refine Set.mem_iUnion.2 ⟨⌈|t|⌉₊, slowGrowthSet_mono ?_ ht⟩
+    have h1 : |t| ≤ (⌈|t|⌉₊ : ℝ) := Nat.le_ceil _
+    nlinarith [abs_nonneg t, sq_abs t]
+
+lemma measurableSet_slowGrowthTailSet : MeasurableSet (slowGrowthTailSet D n) :=
+  MeasurableSet.iUnion fun _ ↦ measurableSet_slowGrowthSet _
+
+@[simp] lemma zero_mem_slowGrowthTailSet :
+    (0 : (Fin D → ℤ) → (Fin n → ℝ)) ∈ slowGrowthTailSet D n :=
+  Set.mem_iUnion.2 ⟨0, fun i ↦ by simp [dotProduct]⟩
+
+/-- **The defining property of `Ω_*`, in the form used for the Hamiltonian estimates**: the
+spin lengths of a slowly increasing configuration are bounded by `t α(i)` for some `t ≥ 0`. -/
+lemma exists_nonneg_sqrt_dotProduct_le_of_mem_slowGrowthTailSet
+    {ω : (Fin D → ℤ) → (Fin n → ℝ)} (hω : ω ∈ slowGrowthTailSet D n) :
+    ∃ t : ℝ, 0 ≤ t ∧ ∀ i, Real.sqrt (ω i ⬝ᵥ ω i) ≤ t * slowGrowth i := by
+  obtain ⟨t, ht⟩ := mem_slowGrowthTailSet_iff.1 hω
+  refine ⟨|t|, abs_nonneg t, fun i ↦ ?_⟩
+  have hb : ω i ⬝ᵥ ω i ≤ (|t| * slowGrowth i) ^ 2 := by
+    have := ht i
+    nlinarith [sq_abs t, sq_nonneg (slowGrowth i)]
+  calc Real.sqrt (ω i ⬝ᵥ ω i) ≤ Real.sqrt ((|t| * slowGrowth i) ^ 2) := Real.sqrt_le_sqrt hb
+    _ = |t| * slowGrowth i :=
+        Real.sqrt_sq (mul_nonneg (abs_nonneg t) (slowGrowth_pos i).le)
+
+/-- `Ω_*` is invariant under changing the configuration on a finite set: the finitely many new
+spins are absorbed into the constant `t`.  This is Georgii's assertion that `Ω_*` is
+tail measurable. -/
+lemma mem_slowGrowthTailSet_of_eqOn_compl {Λ : Finset (Fin D → ℤ)}
+    {ω ω' : (Fin D → ℤ) → (Fin n → ℝ)} (h : ∀ i ∉ Λ, ω i = ω' i)
+    (hω : ω ∈ slowGrowthTailSet D n) : ω' ∈ slowGrowthTailSet D n := by
+  classical
+  rw [mem_slowGrowthTailSet_iff] at hω ⊢
+  obtain ⟨t, ht⟩ := hω
+  set B : ℝ := ∑ i ∈ Λ, ω' i ⬝ᵥ ω' i with hBdef
+  have hB : ∀ i ∈ Λ, ω' i ⬝ᵥ ω' i ≤ B := fun i hi ↦
+    Finset.single_le_sum (f := fun i ↦ ω' i ⬝ᵥ ω' i)
+      (fun j _ ↦ Matrix.dotProduct_self_nonneg _) hi
+  set M : ℝ := max (t ^ 2) B with hMdef
+  have hM0 : 0 ≤ M := le_trans (sq_nonneg t) (le_max_left _ _)
+  refine ⟨Real.sqrt M, fun i ↦ ?_⟩
+  rw [Real.sq_sqrt hM0]
+  have hα : 1 ≤ slowGrowth i ^ 2 := by nlinarith [one_le_slowGrowth i]
+  by_cases hi : i ∈ Λ
+  · have h1 : ω' i ⬝ᵥ ω' i ≤ M := le_trans (hB i hi) (le_max_right _ _)
+    nlinarith
+  · have h2 := ht i
+    rw [h i hi] at h2
+    nlinarith [le_max_left (t ^ 2) B, sq_nonneg (slowGrowth i)]
+
+lemma slowGrowthTailSet_congr {Λ : Finset (Fin D → ℤ)} {ω ω' : (Fin D → ℤ) → (Fin n → ℝ)}
+    (h : ∀ i ∈ ((Λ : Finset (Fin D → ℤ)) : Set (Fin D → ℤ))ᶜ, ω i = ω' i) :
+    ω ∈ slowGrowthTailSet D n ↔ ω' ∈ slowGrowthTailSet D n :=
+  ⟨mem_slowGrowthTailSet_of_eqOn_compl fun i hi ↦ h i (by simpa using hi),
+    mem_slowGrowthTailSet_of_eqOn_compl fun i hi ↦ (h i (by simpa using hi)).symm⟩
+
+/-- **Georgii: `Ω_* ∈ 𝒯`.**  The set of slowly increasing configurations is tail measurable. -/
+theorem measurableSet_tail_slowGrowthTailSet :
+    MeasurableSet[tailSigmaAlgebra (Fin D → ℤ) (Fin n → ℝ)] (slowGrowthTailSet D n) := by
+  classical
+  rw [tailSigmaAlgebra, MeasurableSpace.measurableSet_iInf]
+  intro Λ
+  have hdep : DependsOn ((slowGrowthTailSet D n).indicator
+      (1 : ((Fin D → ℤ) → (Fin n → ℝ)) → ℝ)) ((Λ : Set (Fin D → ℤ))ᶜ) := by
+    intro ω ω' hωω'
+    by_cases hmem : ω ∈ slowGrowthTailSet D n
+    · rw [Set.indicator_of_mem hmem,
+        Set.indicator_of_mem ((slowGrowthTailSet_congr hωω').1 hmem)]
+      rfl
+    · rw [Set.indicator_of_notMem hmem,
+        Set.indicator_of_notMem fun hc ↦ hmem ((slowGrowthTailSet_congr hωω').2 hc)]
+  have hcyl : Measurable[cylinderEvents ((Λ : Set (Fin D → ℤ))ᶜ)]
+      ((slowGrowthTailSet D n).indicator (1 : ((Fin D → ℤ) → (Fin n → ℝ)) → ℝ)) :=
+    (measurable_one.indicator measurableSet_slowGrowthTailSet).cylinderEvents_of_dependsOn hdep
+  have hpre : ((slowGrowthTailSet D n).indicator
+      (1 : ((Fin D → ℤ) → (Fin n → ℝ)) → ℝ)) ⁻¹' {(1 : ℝ)} = slowGrowthTailSet D n := by
+    ext ω
+    by_cases hmem : ω ∈ slowGrowthTailSet D n <;> simp [hmem]
+  exact hpre ▸ hcyl (measurableSet_singleton (1 : ℝ))
 
 end SlowGrowth
 

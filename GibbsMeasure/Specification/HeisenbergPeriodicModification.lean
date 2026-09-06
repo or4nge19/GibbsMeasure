@@ -83,11 +83,13 @@ in `heisenbergPotential n J`.
 
 ## Not formalised
 
-Georgii's §20.1 consequences of (17.24) — (20.5)–(20.7) and the transfer of the infrared bound
-(20.6) to `𝒢₀(Φ)` — are not here; what they need from (17.24) is
-`heisenbergPeriodicGibbsSpec_latticeBox` together with `Potential.mem_GP_of_mapClusterPt_*` of
-`GibbsMeasure.Potential.Periodic`, and the latter is still stated for an absolutely summable
-potential.
+Georgii's (20.5) — the Gibbsian specification of a Heisenberg potential over an unbounded spin
+space — is `MeasureTheory.GibbsMeasure.heisenbergSpecification` in
+`GibbsMeasure.Specification.HeisenbergSpecification`; it does not use this file.  What is still
+missing is (20.7) and the transfer of the infrared bound (20.6) to `𝒢₀(Φ)`: what they need from
+(17.24) is `heisenbergPeriodicGibbsSpec_latticeBox` together with
+`Potential.mem_GP_of_mapClusterPt_*` of `GibbsMeasure.Potential.Periodic`, and the latter is still
+stated for an absolutely summable potential.
 -/
 
 @[expose] public section

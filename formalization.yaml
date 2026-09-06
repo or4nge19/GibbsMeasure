@@ -1407,9 +1407,20 @@ alignment:
         (20.8) with only lambda({0}^c) > 0 where Georgii assumes rotation invariance and
         non-degeneracy; two slips in his proof recorded (epsilon^2 <= u, and the lower bound on Z
         for the second estimate). Not formalized: (20.5), the specification on the tail set
-        Omega_*, and (20.7), which need the Heisenberg torus measure as a random field on Z^d;
-        Georgii's computation (17.24) is now a theorem (Specification/HeisenbergPeriodicModification.lean),
-        so the transfer of (20.6) to G_0(Phi) is the next step.
+        Omega_* (now proved, below) and (20.7); Georgii's computation (17.24) is a theorem
+        (Specification/HeisenbergPeriodicModification.lean). (20.5) (Specification/TailGluedSpecification.lean,
+        Potential/TailSummable.lean, Specification/HeisenbergSpecification.lean): the gluing device
+        of (13.18) once for all, a specification glued along a tail event with the Dirac
+        specification off it, with the (13.19)-analogue that every Gibbs measure charges the tail
+        set fully; a potential whose Hamiltonians converge only on a tail set gives a lambda-
+        specification there (the relativised premodifier condition, completed by 1 off the set);
+        for the N-vector potential over the slowly increasing configurations Omega_* (a tail event),
+        (20.4) gives the absolute convergence of the Hamiltonian on Omega_* and Georgii's quadratic
+        estimate, (20.3) the finiteness of the partition function, so gamma^Phi exists and
+        mu(Omega_*) = 1 on G(Phi); the a priori measure need only be finite and non-zero. Not
+        formalized: (20.7) (the tail estimate transferred to the embedded periodic fields, the
+        uniform density bound on Omega_t, and the convergence of the kernels on Omega_t, since
+        gamma^Phi is not quasilocal and (4.17) as stated does not apply) and Section 20.2.
     - source: "Section 18.1: (18.1)-(18.3), (18.8)-(18.10)"
       lean: "MeasureTheory.GibbsMeasure.periodicGibbsDist_forall_notMem_torusPattern_le_patternWeight"
       module: "GibbsMeasure/Specification/PatternPercolation.lean"

@@ -628,7 +628,11 @@ modification of the potential, is a theorem (`Specification/HeisenbergPeriodicMo
 the Heisenberg potential is provably not absolutely summable, and (17.23) is exactly the pointwise
 convergence of the representative series of Example (4.20)(2), which replaces (2.11) in
 `Potential/Periodic.lean`; the diagonal term `½ J_Λ(0)|σ_i|²` is the two-to-one enumeration of the
-translates of a site. (20.5) and (20.7) are the next step.
+translates of a site. **(20.5)** (`Specification/TailGluedSpecification.lean`,
+`Potential/TailSummable.lean`, `Specification/HeisenbergSpecification.lean`): the gluing device of
+(13.18) stated once for all specifications, a potential whose Hamiltonians converge only on a tail
+set, and the Gibbsian specification of the unbounded `N`-vector model over the slowly increasing
+configurations, with `μ(Ω_*) = 1` on `𝒢(Φ)`. Open: (20.7) and §20.2.
 
 **Chapter 16** normalises the a priori measure to a probability measure throughout, where Georgii
 assumes only that it is finite; the two differ by an additive `log λ(E)` in the pressure and the

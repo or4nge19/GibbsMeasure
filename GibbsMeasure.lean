@@ -163,6 +163,7 @@ public import GibbsMeasure.Mathlib.GroupTheory.Foelner
 public import GibbsMeasure.Mathlib.InformationTheory.KullbackLeibler.Pi
 public import GibbsMeasure.Mathlib.LinearAlgebra.BilinearMap.CauchySchwarz
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.DotProductReal
+public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.DotProductCauchySchwarz
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PosSemidefFactor
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.PiBlocks
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.PiReindex
@@ -279,6 +280,7 @@ public import GibbsMeasure.Potential.NearestNeighbour
 public import GibbsMeasure.Potential.PerSiteExistence
 public import GibbsMeasure.Potential.Periodic
 public import GibbsMeasure.Potential.SelfPotential
+public import GibbsMeasure.Potential.TailSummable
 public import GibbsMeasure.Potential.KernelDomination
 public import GibbsMeasure.Potential.Space
 public import GibbsMeasure.Potential.Transformation
@@ -343,6 +345,8 @@ public import GibbsMeasure.Specification.Singleton
 public import GibbsMeasure.Specification.CountingKernel
 public import GibbsMeasure.Specification.HeisenbergPeriodic
 public import GibbsMeasure.Specification.HeisenbergPeriodicModification
+public import GibbsMeasure.Specification.TailGluedSpecification
+public import GibbsMeasure.Specification.HeisenbergSpecification
 public import GibbsMeasure.Specification.InfraredBound
 public import GibbsMeasure.Specification.InvariantFieldsBarycenter
 public import GibbsMeasure.Specification.InvariantFieldsCoreTopology

@@ -29,9 +29,9 @@
     $\mu(|\sigma_i\cdot\sigma_j|\,1_{|\sigma_i\cdot\sigma_j| \geq t}) \leq b_2(a)e^{-at}$ (with a
     factor $2$ where Georgii uses Cauchy--Schwarz), and (iii) $\mu(\Omega_t^c) \leq b_3(a)e^{-at^2}$
     for the slow-growth set $\Omega_t = \{|\sigma_i|^2 \leq t^2\alpha(i)^2\ \forall i\}$, using
-    $\sum_{\mathbb Z^d}(e \vee |i|)^{-(d+1)} < \infty$. Not yet transferred to the random fields
-    on $\mathbb Z^d$: that needs the Heisenberg torus measure as a field on $\mathbb Z^d$, i.e.\
-    (17.24) as a theorem, so (20.5) and (20.7) are not formalised.
+    $\sum_{\mathbb Z^d}(e \vee |i|)^{-(d+1)} < \infty$. The transfer to the embedded periodic
+    fields on $\mathbb Z^d$, through (17.24) (Theorem \ref{thm:rp-17-24}), and to
+    $\mathcal G_0(\Phi)$ is the open part of (20.7).
 \end{lemma}
 \begin{proof}
     \leanok
@@ -50,6 +50,36 @@
     needs $\varepsilon^2 \leq u$, not $\varepsilon \leq u$; and the second estimate needs the lower
     bound $Z \geq \lambda(\{0\}\cup U)^{|\Lambda|}$ rather than the one he uses for the first.
 \end{lemma}
+\begin{proof}
+    \leanok
+\end{proof}
+
+\begin{theorem}[Georgii (20.5): the Gibbsian specification of an unbounded N-vector model, and the gluing device of (13.18)]
+    \label{thm:ir-20-5}
+    \uses{def:ir-20-1, lem:ir-20-6}
+    \lean{Specification.tailGlued, Specification.tailGlued_apply_of_mem, Specification.tailGlued_apply_of_notMem, Specification.measure_eq_one_of_isGibbsMeasure_tailGlued, Specification.IsPremodifierOn, Specification.piecewiseDensity, Specification.isPremodifier_piecewiseDensity, Specification.isSigmaFiniteLambdaAdmissible_piecewiseDensity, Specification.gibbsOnTailSet, Specification.gibbsOnTailSet_apply_of_mem, Specification.gibbsOnTailSet_apply_of_notMem, Specification.measure_eq_one_of_isGibbsMeasure_gibbsOnTailSet, Potential.IsSummableOn, Potential.hamiltonian_sub_eq_of_mem, Potential.tailBoltzmannFactor, Potential.isPremodifierOn_tailBoltzmannFactor, Potential.tailGibbsSpecification, Potential.tailGibbsSpecification_apply_of_mem, Potential.tailGibbsSpecification_apply_of_notMem, Potential.measure_eq_one_of_isGibbsMeasure_tailGibbsSpecification, MeasureTheory.GibbsMeasure.IsSlowlySummable.summable_sub, MeasureTheory.GibbsMeasure.slowGrowthTailSet, MeasureTheory.GibbsMeasure.mem_slowGrowthTailSet_iff, MeasureTheory.GibbsMeasure.measurableSet_tail_slowGrowthTailSet, MeasureTheory.GibbsMeasure.summable_abs_hamiltonianTerms_heisenbergPotential, MeasureTheory.GibbsMeasure.isSummableOn_heisenbergPotential, MeasureTheory.GibbsMeasure.exists_abs_hamiltonian_heisenbergPotential_le, MeasureTheory.GibbsMeasure.sigmaFiniteLambdaZ_tailBoltzmannFactor_ne_top, MeasureTheory.GibbsMeasure.heisenbergSpecification, MeasureTheory.GibbsMeasure.heisenbergSpecification_apply_of_mem, MeasureTheory.GibbsMeasure.heisenbergSpecification_apply_of_notMem, MeasureTheory.GibbsMeasure.heisenbergGibbsMeasures, MeasureTheory.GibbsMeasure.measure_slowGrowthTailSet_eq_one_of_mem_heisenbergGibbsMeasures, Matrix.abs_dotProduct_le_sqrt_mul_sqrt}
+    \leanok
+
+    The device of (13.18) and (20.5), once for all: a specification $\gamma$ glued along a tail
+    event $\Omega_*$ with the Dirac specification $\delta_{0_\Lambda\omega_{S\setminus\Lambda}}$ off it is
+    a specification (Georgii's (2.26) at a two-point parameter), and, as in (13.19), every Gibbs
+    measure of the glued specification charges $\Omega_*$ fully whatever the branch on $\Omega_*$,
+    provided $0 \in \Omega_*$. For a potential whose Hamiltonians converge only on $\Omega_*$, the
+    Boltzmann factor is a premodifier on $\Omega_*$ (the relativised (1.31)), completed off
+    $\Omega_*$ by $1$, and the Gibbsian branch is the resulting $\lambda$-specification, needing
+    only $Z_\Lambda(\omega) < \infty$ on $\Omega_*$. (20.5) is the instance for the $N$-vector
+    potential (20.1) over $\Omega_* = \bigcup_t \Omega_t$ of slowly increasing configurations, a
+    tail event: (20.4) gives $\sum_j |J(i-j)|\alpha(j) < \infty$, Cauchy--Schwarz on the spin
+    products gives the absolute convergence of $H^\Phi_\Lambda$ on $\Omega_*$ and Georgii's estimate
+    $|H^\Phi_\Lambda(x)| \leq c(\omega_{S\setminus\Lambda})\sum_{i\in\Lambda}(1+|x_i|^2)$, and (20.3)
+    gives $Z^\Phi_\Lambda(\omega) < \infty$; $\mu(\Omega_*) = 1$ for every $\mu \in \mathcal G(\Phi)$.
+    The a priori measure need only be finite and non-zero; the completion by $1$ has no
+    mathematical content, the gluing overwriting the kernel off $\Omega_*$. Not proved: (20.7)
+    (the transfer of the tail estimate to the embedded periodic fields, the bound
+    $\limsup_n\sup_{\Omega_t}\rho^n_\Lambda < \infty$, and the convergence $\gamma^n_\Lambda f \to
+    \gamma^\Phi_\Lambda f$ on $\Omega_t$, since $\gamma^\Phi$ is not quasilocal and (4.17) as stated does
+    not apply), and \S20.2.
+\end{theorem}
 \begin{proof}
     \leanok
 \end{proof}
