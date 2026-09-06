@@ -1464,9 +1464,44 @@ alignment:
         star-islands adjacent to them, and in the plane a set all of whose star-islands are finite
         has at most one infinite nearest-neighbour cluster (false on Z), so containing an ocean is
         unchanged by finitely many spins; the event is measurable by a countable description.
-        Not formalized: the second assertions of (18.17)-(18.18) (conditioning nu in G_0 on that
-        tail event, with the reflection invariance of G_0) and (18.19), which needs the Heisenberg
-        C-potential on the sphere; both are in flight.
+        The second assertions of (18.17)-(18.18) (Model/LowEnergyOceanPhase.lean): conditioning
+        nu in G_0 on that tail event gives a Gibbs measure invariant under the shifts and the
+        reflections r_1, r_2 (Remark (18.22)) carrying an ocean almost surely. Example (18.19)
+        (Model/HeisenbergOceans.lean): the Heisenberg C-potential on the unit sphere with the
+        normalised surface measure, m_Phi = -4 (in general -2^{d-1} d, the essential infimum
+        attained since a product of caps has positive measure), local ground states = constant
+        configurations, G_eps(Phi) inside the aligned patterns, hence for beta large a shift- and
+        reflection-invariant Gibbs measure with an ocean of nearly aligned adjacent spins; and at
+        high temperature no ocean of aligned spins for any Gibbs measure when 3 e^{16 beta} rho < 1,
+        rho a uniform bound on the measure of a cap (Georgii's 3 r(beta,eps) < 1), by the kernel
+        domination, the chain estimate along self-avoiding paths and the 4.3^{l-1} path count.
+        Deviations: the cap bound is uniform rather than rotation-invariant, rho -> 0 as eps -> 0 is
+        not proved, and Comment (17.19)(2) (equivalence with the Heisenberg pair potential) is not
+        formalised.
+    - source: "Section 18.2: (18.20)-(18.26)"
+      lean: "MeasureTheory.GibbsMeasure.eventually_exists_gibbsMeasure_family"
+      module: "GibbsMeasure/Model/DiscreteSymmetryBreaking.lean"
+      status: "proved"
+      note: >-
+        Specification/PeriodicGibbsSymmetry.lean: the cube transformations (a signed coordinate
+        permutation about the cube centre with a 2-periodic family of measurable bijections of E),
+        which contain the reflections r_k, the plane rotation r_0 of (18.20) and the pure spin
+        transformations (18.21); the symmetries I_{C,lambda}(Phi); Remark (18.22): every mu in
+        G_0(Phi) is invariant under every symmetry, in particular under the reflections, through
+        the invariance of the torus measures and cluster points on local events. Stable partitions
+        (18.23) and Phi-symmetry; the inclusion (18.24) with pairwise disjoint events, two oceans
+        in the plane meeting (Mathlib/Combinatorics/SimpleGraph/OceanInter.lean). Theorem (18.25) in
+        the plane for a standard Borel state space and a confining cube interaction: for beta large,
+        precisely whenever 4 z(t(G_eps(Phi), beta Phi)) < 1 (Comment (18.26)(1)), N pairwise mutually
+        singular Gibbs measures mu_n with mu_n(xi^0_P(G_n) nonempty) = 1,
+        mu_n(0 in xi^0_P(G_n)) >= 1 - 4z, invariance under the shifts fixing G_n and the symmetries
+        fixing G_n, and tau(mu_m) = mu_n when tau G_m = G_n, with theta_{e_k}(mu_m) = mu_n for
+        tau = r_k; via the tail property of the ocean events for arbitrary measurable patterns
+        (the members of a stable partition are not r-symmetric), (7.7)(b) and the transfer of
+        invariance to conditional measures. The count N <= |ex G_{Theta~}(beta Phi)| is proved for
+        Theta~ = Theta (all G_n r-symmetric) from (14.18) and the linear independence of measures
+        separated by disjoint events; for a proper finite-index subgroup it needs the kernel of the
+        remark below (14.18), not in the tree. N > 1 is not required. Not formalized: Section 18.3.
     - source: "Section 18.1: (18.4)-(18.7), (18.13)-(18.15)"
       lean: "MeasureTheory.GibbsMeasure.Peierls.le_measure_forall_mem_infiniteClusters"
       module: "GibbsMeasure/Model/StarCrossing.lean"

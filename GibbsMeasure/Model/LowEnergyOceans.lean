@@ -767,15 +767,19 @@ open Peierls
 variable {G' : Set ((Fin 2 → Fin 2) → E)}
 
 omit [IsProbabilityMeasure ν] in
-/-- The event that a given site shows the pattern is a local event, hence measurable. -/
-lemma measurableSet_setOf_mem_latticePattern (hG : MeasurableSet G') (hGsym : IsRSymmetric E G')
-    (i : Fin 2 → ℤ) : MeasurableSet {ω : (Fin 2 → ℤ) → E | i ∈ latticePattern E G' ω} := by
-  have hrw : {ω : (Fin 2 → ℤ) → E | i ∈ latticePattern E G' ω}
-      = (fun ω ↦ latticeCubeView ω i) ⁻¹' G' := by
-    ext ω
-    exact mem_latticePattern_of_isRSymmetric hGsym ω i
+/-- **The event that a given site shows the pattern (18.3) is measurable**, for an arbitrary
+measurable `G ⊆ E^C`: (18.3) reads the spins of the elementary cube at `i` through the fixed
+measurable bijection `r^i`, so `r`-symmetry of `G` is not needed.  The members of a stable
+partition (18.23) are in general not `r`-symmetric, which is why §18.2 needs this form. -/
+lemma measurableSet_setOf_mem_latticePattern {d : ℕ} {G' : Set ((Fin d → Fin 2) → E)}
+    (hG : MeasurableSet G') (i : Fin d → ℤ) :
+    MeasurableSet {ω : (Fin d → ℤ) → E | i ∈ latticePattern E G' ω} := by
+  have hrw : {ω : (Fin d → ℤ) → E | i ∈ latticePattern E G' ω}
+      = (fun ω : (Fin d → ℤ) → E ↦
+          tauPow (cubeRefl E) (latticeToTorus 0 i) (latticeCubeView ω i)) ⁻¹' G' := rfl
   rw [hrw]
-  exact ((measurable_pi_apply i).comp measurable_latticeCubeView) hG
+  exact ((measurable_tauPow (cubeRefl E) (latticeToTorus 0 i)).comp
+    ((measurable_pi_apply i).comp measurable_latticeCubeView)) hG
 
 omit [IsProbabilityMeasure ν] in
 /-- Reachability inside `V(G, ·) ∩ Q` is a countable union of local events. -/
@@ -800,7 +804,7 @@ lemma measurableSet_setOf_reachIn (hG : MeasurableSet G') (hGsym : IsRSymmetric 
         ⟨n, f, h0, hn, hadj, fun k ↦ ⟨hW k, hQ k⟩⟩
   rw [hrw]
   refine MeasurableSet.iUnion fun n ↦ MeasurableSet.biUnion (Set.to_countable _) fun f _ ↦ ?_
-  exact MeasurableSet.iInter fun k ↦ measurableSet_setOf_mem_latticePattern hG hGsym (f k)
+  exact MeasurableSet.iInter fun k ↦ measurableSet_setOf_mem_latticePattern hG (f k)
 
 omit [IsProbabilityMeasure ν] in
 /-- Lying in an infinite cluster of `V(G, ·) ∩ Q` is a measurable event. -/
@@ -1189,7 +1193,7 @@ theorem ae_mem_latticeOceanPart_of_cubeMeasure_compl_eq_zero (hG : MeasurableSet
   have : Nonempty E := nonempty_of_isProbabilityMeasure (ν := ν)
   have hmeas : ∀ i : Fin 2 → ℤ,
       MeasurableSet {ω : (Fin 2 → ℤ) → E | i ∉ latticePattern E G' ω} :=
-    fun i ↦ (measurableSet_setOf_mem_latticePattern hG hGsym i).compl
+    fun i ↦ (measurableSet_setOf_mem_latticePattern hG i).compl
   have h0 : μ {ω : (Fin 2 → ℤ) → E | (0 : Fin 2 → ℤ) ∉ latticePattern E G' ω} = 0 := by
     have hcyl := measurableSet_cylinderEvents_forall_notMem_latticePattern (E := E) hG
       (Δ := (cubeSupport (barrierSeg 0 0 1) : Set (Fin 2 → ℤ))) (barrierSeg 0 0 1)
@@ -1319,15 +1323,14 @@ omit [IsProbabilityMeasure ν] in
 condition over the countable lattice `ℤ²`: `SimpleGraph.measurableSet_setOf_oceanPart_nonempty`
 turns it into countably many reachability events, each of which is a countable union of the local
 events `{i ∈ V(G, ·)}`. -/
-lemma measurableSet_setOf_latticeOceanPart_nonempty (hG : MeasurableSet G')
-    (hGsym : IsRSymmetric E G') :
+lemma measurableSet_setOf_latticeOceanPart_nonempty (hG : MeasurableSet G') :
     MeasurableSet {ω : (Fin 2 → ℤ) → E | (latticeOceanPart E G' ω).Nonempty} :=
   SimpleGraph.measurableSet_setOf_oceanPart_nonempty _ _
-    (measurableSet_setOf_mem_latticePattern hG hGsym)
+    (measurableSet_setOf_mem_latticePattern hG)
 
 omit [IsProbabilityMeasure ν] in
-/-- **Georgii, the tail property used in the proof of Theorem (18.17)**:
-`{ξ⁰_P(G, ·) ≠ ∅} ∈ 𝒯`.
+/-- **Georgii, the tail property used in the proofs of Theorem (18.17) and Theorem (18.25)**:
+`{ξ⁰_P(G, ·) ≠ ∅} ∈ 𝒯`, for an arbitrary measurable pattern `G`.
 
 For a finite volume `Λ` the event is `𝓕_{Λᶜ}`-measurable, because it is measurable
 (`measurableSet_setOf_latticeOceanPart_nonempty`) and depends only on the spins outside `Λ`:
@@ -1336,13 +1339,12 @@ meets `Λ` (`latticePattern_diff_subset_cubePreSupport`), and whether a subset o
 contains an ocean is unchanged by a finite modification
 (`Peierls.oceanPart_nonempty_congr_of_finite_diff`, whose planar input is the uniqueness of the
 infinite cluster of a set with finite islands). -/
-theorem tail_measurableSet_setOf_latticeOceanPart_nonempty (hG : MeasurableSet G)
-    (hGsym : IsRSymmetric E G) :
+theorem tail_measurableSet_setOf_latticeOceanPart_nonempty (hG : MeasurableSet G) :
     MeasurableSet[@tailSigmaAlgebra (Fin 2 → ℤ) E _]
       {ω | (latticeOceanPart E G ω).Nonempty} := by
   have hamb : Measurable fun ω : (Fin 2 → ℤ) → E ↦ (latticeOceanPart E G ω).Nonempty := by
     rw [← measurableSet_setOfPred]
-    exact measurableSet_setOf_latticeOceanPart_nonempty hG hGsym
+    exact measurableSet_setOf_latticeOceanPart_nonempty hG
   refine MeasurableSpace.measurableSet_iInf.2 fun Λ ↦ ?_
   have hdep : DependsOn (fun ω : (Fin 2 → ℤ) → E ↦ (latticeOceanPart E G ω).Nonempty)
       ((Λ : Set (Fin 2 → ℤ))ᶜ) := by

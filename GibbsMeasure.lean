@@ -29,6 +29,7 @@ public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Hasse
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.InfiniteCluster
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.SelfAvoidingPath
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.OceanPart
+public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.OceanInter
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Measurable
 public import GibbsMeasure.Mathlib.Data.Countable.Basic
 public import GibbsMeasure.Mathlib.Data.ZMod.Basic
@@ -114,6 +115,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Measure.RealSingleton
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ExtIicRat
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.SetwiseConvergence
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.CountableCore
+public import GibbsMeasure.Mathlib.MeasureTheory.Measure.LinearIndependentSeparated
 public import GibbsMeasure.Mathlib.MeasureTheory.MeasurableSpace.PiMap
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.SetwiseCompact
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ProdZeroOne
@@ -147,6 +149,7 @@ public import GibbsMeasure.Mathlib.Topology.Compactness.SigmaCompact
 public import GibbsMeasure.Mathlib.Topology.Metrizable.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ProbabilityMeasure
 public import GibbsMeasure.Mathlib.Probability.ConditionalProbability
+public import GibbsMeasure.Mathlib.Probability.CondInvariant
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.Correlation
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.Pointwise
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.MeanErgodic
@@ -260,6 +263,9 @@ public import GibbsMeasure.Model.GaussianHomogeneous
 public import GibbsMeasure.Model.KalikowClassification
 public import GibbsMeasure.Model.LowEnergyOceans
 public import GibbsMeasure.Model.UniqueInfiniteCluster
+public import GibbsMeasure.Model.LowEnergyOceanPhase
+public import GibbsMeasure.Model.HeisenbergOceans
+public import GibbsMeasure.Model.DiscreteSymmetryBreaking
 public import GibbsMeasure.Model.OceanNetwork
 public import GibbsMeasure.Model.PlanarCrossing
 public import GibbsMeasure.Model.ShiftAverage
@@ -356,6 +362,7 @@ public import GibbsMeasure.Specification.PatternPercolation
 public import GibbsMeasure.Specification.ReflectionPositivity
 public import GibbsMeasure.Specification.PeriodicGibbs
 public import GibbsMeasure.Specification.PeriodicGibbsLimits
+public import GibbsMeasure.Specification.PeriodicGibbsSymmetry
 public import GibbsMeasure.Specification.ChainEstimate
 public import GibbsMeasure.Specification.CubePotentialSingleSite
 public import GibbsMeasure.Specification.QuasiGibbsian

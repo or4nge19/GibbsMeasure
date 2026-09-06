@@ -229,10 +229,10 @@
     \leanok
 \end{proof}
 
-\begin{theorem}[Georgii (18.17) and Corollary (18.18), the first assertions]
+\begin{theorem}[Georgii (18.17) and Corollary (18.18)]
     \label{thm:lo-18-17}
-    \uses{thm:lo-18-16, thm:lo-18-18-quadrant, prop:lo-18-12}
-    \lean{MeasureTheory.GibbsMeasure.le_measure_mem_latticeOceanPart, MeasureTheory.GibbsMeasure.le_measure_mem_latticeOceanPart_localGroundStates, MeasureTheory.GibbsMeasure.tendsto_bound_latticeOceanPart_localGroundStates, MeasureTheory.GibbsMeasure.tendsto_iInf_measure_mem_latticeOceanPart_localGroundStates, MeasureTheory.GibbsMeasure.IsCubeConfining.const_mul}
+    \uses{thm:lo-18-16, thm:lo-18-18-quadrant, prop:lo-18-12, lem:lo-ocean-tail, prop:dsb-18-22}
+    \lean{MeasureTheory.GibbsMeasure.le_measure_mem_latticeOceanPart, MeasureTheory.GibbsMeasure.le_measure_mem_latticeOceanPart_localGroundStates, MeasureTheory.GibbsMeasure.tendsto_bound_latticeOceanPart_localGroundStates, MeasureTheory.GibbsMeasure.tendsto_iInf_measure_mem_latticeOceanPart_localGroundStates, MeasureTheory.GibbsMeasure.IsCubeConfining.const_mul, MeasureTheory.GibbsMeasure.preimage_shift_setOf_latticeOceanPart_nonempty, MeasureTheory.GibbsMeasure.latticePattern_latticeRefl, MeasureTheory.GibbsMeasure.preimage_latticeRefl_setOf_latticeOceanPart_nonempty, MeasureTheory.GibbsMeasure.exists_mem_GP_measure_setOf_latticeOceanPart_nonempty_eq_one, MeasureTheory.GibbsMeasure.eventually_exists_mem_GP_measure_setOf_latticeOceanPart_localGroundStates_eq_one, MeasureTheory.MeasurePreserving.cond_of_preimage_eq}
     \leanok
 
     In the plane, for $r$-symmetric $G$, a $C$-potential $\Phi$ and $\mu \in \mathcal G_0(\Phi)$,
@@ -240,17 +240,43 @@
     $1 - 4z(t(G_\varepsilon(\Phi), \beta\Phi))$ holds for every $\mu \in \mathcal G_0(\beta\Phi)$
     and tends to $1$, and over a standard Borel state space with a confining cube interaction
     $\lim_{\beta\to\infty}\inf_{\mu \in \mathcal G_0(\beta\Phi)}\mu(0 \in \xi^0_P(G_\varepsilon(\Phi),\cdot)) = 1$.
-    The second assertions --- a shift- and reflection-invariant $\mu \in \mathcal G(\Phi)$ with
-    $\mu(\xi^0_P(G,\cdot) \neq \emptyset) = 1$ when $z(t(G,\Phi)) < 1/4$, resp.\ for large
-    $\beta$ --- are not proved: Georgii conditions $\nu \in \mathcal G_0(\Phi)$ on
-    $\{\xi^0_P \neq \emptyset\}$, which needs that event to be a tail event (removing finitely
-    many sites from an ocean leaves exactly one infinite component, again an ocean) and the
-    reflection invariance of $\nu$, neither of which is in the tree. Example (18.19) needs the
-    Heisenberg $C$-potential on the sphere, not yet defined.
+    The second assertions: when $z(t(G,\Phi)) < 1/4$, resp.\ for large $\beta$, there is a
+    $\mu \in \mathcal G(\Phi)$ invariant under the shifts and the reflections $r_1, r_2$ with
+    $\mu(\xi^0_P(G,\cdot) \neq \emptyset) = 1$: Georgii conditions $\nu \in \mathcal G_0(\Phi)$ on
+    $\{\xi^0_P \neq \emptyset\}$, a tail event of positive probability (Lemma
+    \ref{lem:lo-ocean-tail}), so $\mu$ is Gibbs by (7.7)(b), and the invariances of $\nu$ (the
+    shifts, and the reflections by Remark (18.22)) pass to the conditional measure since the event
+    is invariant.
 \end{theorem}
 \begin{proof}
     \leanok
 \end{proof}
+
+\begin{example}[Georgii Example (18.19), the classical Heisenberg model]
+    \label{ex:lo-18-19}
+    \uses{thm:lo-18-17, def:lo-18-8}
+    \lean{MeasureTheory.GibbsMeasure.cubeGraph, MeasureTheory.GibbsMeasure.cubeBondSum, MeasureTheory.GibbsMeasure.heisenbergCube, MeasureTheory.GibbsMeasure.heisenbergCube_sub_le, MeasureTheory.GibbsMeasure.heisenbergCube_eq_neg_four_iff, MeasureTheory.GibbsMeasure.heisenbergAligned, MeasureTheory.GibbsMeasure.isRSymmetric_heisenbergAligned, MeasureTheory.GibbsMeasure.sphereProb, MeasureTheory.GibbsMeasure.localGroundEnergy_heisenbergCube, MeasureTheory.GibbsMeasure.localGroundEnergy_heisenbergCube_two, MeasureTheory.GibbsMeasure.mem_localGroundStates_zero_iff_const, MeasureTheory.GibbsMeasure.localGroundStates_subset_heisenbergAligned, MeasureTheory.GibbsMeasure.real_inner_ge_of_mem_latticeOceanPart_localGroundStates, MeasureTheory.GibbsMeasure.eventually_exists_mem_GP_measure_setOf_latticeOceanPart_heisenberg, MeasureTheory.GibbsMeasure.alignedPair, MeasureTheory.GibbsMeasure.cubeGibbsSpec_singleton_alignedPair_le, MeasureTheory.GibbsMeasure.measure_setOf_mem_infiniteClusters_heisenbergAligned_eq_zero, MeasureTheory.GibbsMeasure.measure_setOf_latticeOceanPart_heisenbergAligned_nonempty_eq_zero, Potential.gibbsSpecificationOfSigmaFiniteAdmissible_le_of_hamiltonian_sub_le, Specification.chainEvent, Specification.measure_chainEvent_le, MeasureTheory.GibbsMeasure.hamiltonian_cubePotential_singleton, MeasureTheory.GibbsMeasure.hamiltonian_cubePotential_singleton_sub_le, MeasureTheory.GibbsMeasure.cubeGibbsSpec_singleton_apply_preimage_eval_le}
+    \leanok
+
+    On the unit sphere of a nontrivial finite-dimensional inner product space with the
+    normalised surface measure, the $C$-potential $\Phi_C = -\sum_{\{i,j\} \subseteq C, |i-j|=1}
+    \sigma_i\cdot\sigma_j$ has $m_\Phi = -4$ (in general $-2^{d-1}d$; the essential infimum is
+    attained because a product of spherical caps has positive measure), its local ground states
+    are the constant configurations, and $G_\varepsilon(\Phi) \subseteq \tilde G_\varepsilon =
+    \{\sigma_i\cdot\sigma_j \geq 1 - \varepsilon \text{ for adjacent } i, j \in C\}$. Hence, by
+    (18.18), for $\beta$ large some shift- and reflection-invariant $\mu \in \mathcal G(\beta\Phi)$
+    has, almost surely, an ocean on which adjacent spins satisfy $\sigma_i\cdot\sigma_j \geq
+    1 - \varepsilon$. At high temperature no such ocean exists: the single-site kernel gives the
+    aligned-pair event probability at most $e^{16\beta}\rho$, $\rho$ a uniform bound on the
+    measure of a cap of angle $\varepsilon$, so by the chain estimate along self-avoiding paths
+    (at most $4\cdot 3^{\ell-1}$ of length $\ell$) every $\mu \in \mathcal G(\beta\Phi)$ has
+    $\mu(\xi^0_P(\tilde G_\varepsilon,\cdot) \neq \emptyset) = 0$ when $3e^{16\beta}\rho < 1$, which
+    is Georgii's $3r(\beta,\varepsilon) < 1$. Deviations: the cap measure is a uniform bound
+    $\rho$ (rotation invariance of the surface measure is not in the tree), and that
+    $\rho \to 0$ as $\varepsilon \to 0$ is not proved; Comment (17.19)(2)'s equivalence with the
+    Heisenberg pair potential is not formalised (the tree's pair potentials need a linear order on
+    the sites).
+\end{example}
 
 \begin{theorem}[The display after (18.14), and (18.18) in quadrant form]
     \label{thm:lo-18-18-quadrant}

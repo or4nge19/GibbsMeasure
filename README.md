@@ -596,9 +596,20 @@ the cluster of the origin, the cross centres forming a grid by Poincaré recurre
 for `μ ∈ 𝒢₀(Φ)`, and `lim_β inf_{𝒢₀(βΦ)} μ(0 ∈ ξ⁰_P(G_ε(Φ),·)) = 1` over a standard Borel state
 space. That `{ξ⁰_P ≠ ∅}` is a tail event, which Georgii asserts without proof, is a theorem
 (`Model/UniqueInfiniteCluster.lean`): in the plane a set all of whose `*`-islands are finite has at
-most one infinite nearest-neighbour cluster, which is false on `ℤ`. Open: their second assertions
-(the reflection invariance of `𝒢₀(Φ)` and the conditioning), and (18.19), which needs the Heisenberg
-`C`-potential on the sphere.
+most one infinite nearest-neighbour cluster, which is false on `ℤ`. Their second assertions
+(`Model/LowEnergyOceanPhase.lean`): conditioning a member of `𝒢₀` on that tail event gives a shift-
+and reflection-invariant Gibbs measure carrying an ocean almost surely. **Example (18.19)**
+(`Model/HeisenbergOceans.lean`): the Heisenberg `C`-potential on the sphere has `m_Φ = −4`, constant
+local ground states and `G_ε(Φ)` inside the aligned patterns, so for `β` large a Gibbs measure with
+an ocean of nearly aligned adjacent spins exists, while for `3e^{16β}ρ < 1` (`ρ` a uniform cap bound;
+Georgii's `3r(β,ε) < 1`) no Gibbs measure has such an ocean, by a chain estimate along self-avoiding
+paths. **§18.2** (`Specification/PeriodicGibbsSymmetry.lean`, `Model/DiscreteSymmetryBreaking.lean`):
+the group `T_{C,λ}` (18.20)–(18.21), Remark (18.22) (every member of `𝒢₀(Φ)` is invariant under every
+symmetry of `Φ`), stable partitions (18.23), the inclusion (18.24), and **Theorem (18.25)** in the
+plane: for `4z(t(G_ε(Φ),βΦ)) < 1` there are `N` mutually singular Gibbs measures, each carrying an
+ocean of its own pattern almost surely, with Georgii's invariance and transport properties; the count
+`N ≤ |ex 𝒢_Θ̃(βΦ)|` is proved when all `G_n` are `r`-symmetric. Open: that count for a proper
+subgroup `Θ̃`, and §18.3.
 
 **Chapter 20, §20.1** (`GibbsMeasure/Specification/InfraredBound.lean`): the preliminaries of the
 infrared bound on the torus — the tail estimate (20.6) for the periodic Gibbs distribution of a
