@@ -1505,6 +1505,20 @@ structure IsCubeConfining (K : ℕ → Set E) : Prop where
   /-- `inf_{ω ∉ K_ℓ^C} Φ_C → ∞`. -/
   tendsto_atTop : ∀ c : ℝ, ∃ ℓ₀ : ℕ, ∀ ℓ, ℓ₀ ≤ ℓ → ∀ ζ ∈ (cubePi d E (K ℓ))ᶜ, c ≤ φ ζ
 
+/-- Confinement is preserved by a positive inverse temperature. -/
+lemma IsCubeConfining.const_mul {K : ℕ → Set E} (hK : IsCubeConfining φ ν K) {β : ℝ}
+    (hβ : 0 < β) : IsCubeConfining (fun ζ ↦ β * φ ζ) ν K where
+  measurableSet := hK.measurableSet
+  measure_pos := hK.measure_pos
+  bddOn ℓ := by
+    obtain ⟨c, hc⟩ := hK.bddOn ℓ
+    exact ⟨β * c, fun ζ hζ ↦ by rw [abs_mul, abs_of_pos hβ]; exact mul_le_mul_of_nonneg_left (hc ζ hζ) hβ.le⟩
+  tendsto_atTop c := by
+    obtain ⟨ℓ₀, hℓ₀⟩ := hK.tendsto_atTop (c / β)
+    exact ⟨ℓ₀, fun ℓ hℓ ζ hζ ↦ by
+      have := hℓ₀ ℓ hℓ ζ hζ
+      rwa [div_le_iff₀' hβ] at this⟩
+
 /-- **Condition (iv) of (17.18), first alternative**: a bounded cube interaction is confining
 with `K_ℓ = E`. -/
 lemma isCubeConfining_univ (hb : ∃ c : ℝ, ∀ ζ, |φ ζ| ≤ c) :

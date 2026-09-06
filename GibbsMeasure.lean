@@ -246,6 +246,7 @@ public import GibbsMeasure.Model.GaussianGibbs
 public import GibbsMeasure.Model.GaussianHomogeneous
 public import GibbsMeasure.Model.KalikowClassification
 public import GibbsMeasure.Model.LowEnergyOceans
+public import GibbsMeasure.Model.OceanNetwork
 public import GibbsMeasure.Model.PlanarCrossing
 public import GibbsMeasure.Model.ShiftAverage
 public import GibbsMeasure.Model.SpitzerCoxMarkovChains

@@ -51,7 +51,7 @@ in `GibbsMeasure/Mathlib/Combinatorics/SimpleGraph/InfiniteCluster.lean`.
 * `le_measure_mem_infiniteClusters`: **Lemma (18.14)**, and
   `le_measure_forall_mem_infiniteClusters` the four-quadrant union bound `μ(X) ≥ 1 - 4 z(t)`
   which opens the proof of (18.16).
-* `nonempty_infiniteClusters_compl`, `infinite_of_isOceanIn`,
+* `nonempty_infiniteClusters_compl`, `infinite_of_isOceanIn`, `mem_oceanPart_of_isOceanIn`,
   `oceanPart_nonempty_iff_exists_isOceanIn`, `oceanPart_image_add_right`,
   `oceanPart_image_refl`: (18.6)/(18.7) in the plane.
 -/
@@ -1045,6 +1045,17 @@ theorem existsUnique_infinite_supp_of_isOceanIn {ξ W : Set Site}
     ∃! c : ((latticeGraph 2).induce W).ConnectedComponent, c.supp.Infinite :=
   h.existsUnique_infinite_supp (latticeGraph_le_starLatticeGraph 2) (infinite_of_isOceanIn h)
     hξW (Set.subset_univ W)
+
+/-- **Georgii (18.7)** in the plane: as soon as `W` contains an ocean, its ocean part is the
+union of its infinite clusters, so every site in an infinite cluster of `W` lies in `ξ⁰_P`. -/
+theorem mem_oceanPart_of_isOceanIn {ξ W : Set Site}
+    (h : SimpleGraph.IsOceanIn (latticeGraph 2) (starLatticeGraph 2) Set.univ ξ) (hξW : ξ ⊆ W)
+    {x : Site} (hx : x ∈ (latticeGraph 2).infiniteClusters W) :
+    x ∈ SimpleGraph.oceanPart (latticeGraph 2) (starLatticeGraph 2) Set.univ W := by
+  rw [SimpleGraph.oceanPart_eq_of_isOceanIn
+    (h.isOceanIn_infiniteClusters (latticeGraph_le_starLatticeGraph 2) (infinite_of_isOceanIn h)
+      hξW (Set.subset_univ W))]
+  exact hx
 
 /-- **Georgii, after (18.7)**, in the plane: `ξ⁰_P(G, ω) ≠ ∅` iff `V_P(G, ω)` contains an
 ocean. -/

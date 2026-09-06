@@ -29,8 +29,9 @@ probability measure is (1.28)(3).
 
 ## Main declarations
 
-* `MeasureTheory.GibbsMeasure.IsQuasiGibbsian`
-* `MeasureTheory.GibbsMeasure.isQuasiGibbsian_of_isGibbsMeasure_lambdaSpecification`
+* `MeasureTheory.GibbsMeasure.IsQuasiGibbsianWith`, `MeasureTheory.GibbsMeasure.IsQuasiGibbsian`
+* `MeasureTheory.GibbsMeasure.isQuasiGibbsianWith_of_isGibbsMeasure_lambdaSpecification` and
+  `MeasureTheory.GibbsMeasure.isQuasiGibbsian_of_isGibbsMeasure_lambdaSpecification`
 * `MeasureTheory.GibbsMeasure.measure_setOf_frequently_shift_mem_eq_one` — **Georgii, Step 1 of
   the proof of Lemma (18.16)**: a shift-invariant quasi-Gibbsian random field sees every local
   event of positive `λ_Δ`-probability infinitely often along the orbit of the shift, almost
@@ -48,29 +49,38 @@ namespace MeasureTheory.GibbsMeasure
 
 variable {S E : Type*} [MeasurableSpace E]
 
+/-- **Georgii, §18.1**, at a named reference measure.  `IsQuasiGibbsianWith ν μ` says that
+conditioning `μ` on any non-null tail event leaves a field with the same null sets as `λ^S = ν^S`
+in every finite volume.  Georgii's quasi-Gibbsianness is this property for *some* `ν`
+(`IsQuasiGibbsian`); the named form is what the recurrence argument of Step 1 of (18.16)
+consumes, since the barrier event has to be non-null for the *same* `ν`. -/
+def IsQuasiGibbsianWith (ν : Measure E) [IsProbabilityMeasure ν] (μ : Measure (S → E)) :
+    Prop :=
+  ∀ A : Set (S → E), MeasurableSet[tailSigmaAlgebra S E] A → μ A ≠ 0 →
+    ∀ (Δ : Finset S) (η : S → E) {C : Set (S → E)},
+      MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)] C →
+      ((μ[|A]) C = 0 ↔ Specification.isssd ν Δ η C = 0)
+
 /-- **Georgii, §18.1.** A random field is *quasi-Gibbsian* if there is a single-spin probability
 measure `λ` such that conditioning on any non-null tail event leaves a field equivalent to `λ^S`
 in every finite volume. -/
 def IsQuasiGibbsian (μ : Measure (S → E)) : Prop :=
-  ∃ (ν : Measure E) (_ : IsProbabilityMeasure ν),
-    ∀ A : Set (S → E), MeasurableSet[tailSigmaAlgebra S E] A → μ A ≠ 0 →
-      ∀ (Δ : Finset S) (η : S → E) {C : Set (S → E)},
-        MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)] C →
-        ((μ[|A]) C = 0 ↔ Specification.isssd ν Δ η C = 0)
+  ∃ (ν : Measure E) (_ : IsProbabilityMeasure ν), IsQuasiGibbsianWith ν μ
 
-/-- **Georgii, §18.1: every Gibbs measure is quasi-Gibbsian.**  A Gibbs measure of a
-λ-specification with positive densities is quasi-Gibbsian, by Theorem (7.7)(b) and
-Remark (1.28)(2). -/
-theorem isQuasiGibbsian_of_isGibbsMeasure_lambdaSpecification
+/-- **Georgii, §18.1: every Gibbs measure is quasi-Gibbsian**, with the reference measure of
+its λ-specification.  This is Theorem (7.7)(b) and Remark (1.28)(2): (7.7)(b) makes `μ(·|A)` a
+Gibbs measure again, and (1.28)(2) says that a Gibbs measure of a positive λ-specification has
+exactly the null sets of `λ_Λ` in `𝓕_Λ`. -/
+theorem isQuasiGibbsianWith_of_isGibbsMeasure_lambdaSpecification
     (ν : Measure E) [IsProbabilityMeasure ν] {ρ : Finset S → (S → E) → ℝ≥0∞}
     (hρ : Specification.IsPremodifier (S := S) (E := E) ρ)
     (hZ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
     (hpos : ∀ Λ η, ρ Λ η ≠ 0) {μ : Measure (S → E)} [IsProbabilityMeasure μ]
     (hμ : (Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ).IsGibbsMeasure μ) :
-    IsQuasiGibbsian μ := by
-  refine ⟨ν, inferInstance, fun A hA hA0 Δ η C hC ↦ ?_⟩
-  haveI : IsProbabilityMeasure (μ[|A]) := cond_isProbabilityMeasure hA0
-  haveI : NeZero (μ[|A]) := ⟨IsProbabilityMeasure.ne_zero _⟩
+    IsQuasiGibbsianWith ν μ := by
+  refine fun A hA hA0 Δ η C hC ↦ ?_
+  have : IsProbabilityMeasure (μ[|A]) := cond_isProbabilityMeasure hA0
+  have : NeZero (μ[|A]) := ⟨IsProbabilityMeasure.ne_zero _⟩
   have hcond := isGibbsMeasure_cond_of_tail μ hμ hA hA0
   rw [Specification.IsGibbsMeasure.lambdaSpecification_null_iff ν hcond hpos Δ hC]
   have hlam : ∀ η' : S → E, Specification.sigmaFiniteLambdaFun (S := S) (E := E) ν Δ η' C
@@ -81,13 +91,22 @@ theorem isQuasiGibbsian_of_isGibbsMeasure_lambdaSpecification
     rfl
   exact ⟨fun h ↦ (hlam η) ▸ h η, fun h η' ↦ (hlam η').symm ▸ h⟩
 
+/-- **Georgii, §18.1: every Gibbs measure is quasi-Gibbsian.** -/
+theorem isQuasiGibbsian_of_isGibbsMeasure_lambdaSpecification
+    (ν : Measure E) [IsProbabilityMeasure ν] {ρ : Finset S → (S → E) → ℝ≥0∞}
+    (hρ : Specification.IsPremodifier (S := S) (E := E) ρ)
+    (hZ : Specification.IsSigmaFiniteLambdaAdmissible (S := S) (E := E) ν ρ)
+    (hpos : ∀ Λ η, ρ Λ η ≠ 0) {μ : Measure (S → E)} [IsProbabilityMeasure μ]
+    (hμ : (Specification.lambdaSpecification (S := S) (E := E) ν ρ hρ hZ).IsGibbsMeasure μ) :
+    IsQuasiGibbsian μ :=
+  ⟨ν, inferInstance, isQuasiGibbsianWith_of_isGibbsMeasure_lambdaSpecification ν hρ hZ hpos hμ⟩
+
 /-! ### Georgii, Step 1 of the proof of Lemma (18.16): recurrence of local events -/
 
 variable [AddGroup S]
 
 /-- **Georgii, Step 1 of the proof of Lemma (18.16).**  Let `μ` be a random field which is
-quasi-Gibbsian with reference measure `λ` (the hypothesis `hq` is the defining property of
-`IsQuasiGibbsian` at the witness `λ = ν`) and invariant under the shift `θ_a`.  Then every local
+quasi-Gibbsian with reference measure `λ` and invariant under the shift `θ_a`.  Then every local
 event `A` which is not `λ_Δ`-null is `μ`-almost surely visited infinitely often by the orbit of
 `θ_a`.
 
@@ -96,11 +115,7 @@ Georgii's argument: were the recurrence set `R` not of full measure, the conditi
 for it; but `Rᶜ` is a tail event of positive measure, so quasi-Gibbsianness would then force
 `λ_Δ(A) = 0`. -/
 theorem measure_setOf_frequently_shift_mem_eq_one {ν : Measure E} [IsProbabilityMeasure ν]
-    {μ : Measure (S → E)} [IsProbabilityMeasure μ]
-    (hq : ∀ A : Set (S → E), MeasurableSet[tailSigmaAlgebra S E] A → μ A ≠ 0 →
-      ∀ (Δ : Finset S) (η : S → E) {C : Set (S → E)},
-        MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)] C →
-        ((μ[|A]) C = 0 ↔ Specification.isssd ν Δ η C = 0))
+    {μ : Measure (S → E)} [IsProbabilityMeasure μ] (hq : IsQuasiGibbsianWith ν μ)
     {a : S} (hshift : MeasurePreserving (shift E a).toFun μ μ)
     {A : Set (S → E)} (hA : MeasurableSet A)
     (hRtail : MeasurableSet[tailSigmaAlgebra S E]

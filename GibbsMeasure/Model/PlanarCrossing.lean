@@ -40,7 +40,8 @@ just below and just above it: contradiction.
 
 ## Main declarations
 
-* `rect`: the rectangle `[a, b] × [c, e]` of sites.
+* `rect`: the rectangle `[a, b] × [c, e]` of sites; `box_eq_rect` identifies it with the square
+  box `Peierls.box` of `GibbsMeasure/Model/Contours.lean`.
 * `exists_encircling_walk`: the circuit around a left-to-right crossing.
 * `exists_side_fun`: the mod-two side function of a lattice circuit.
 * `inter_nonempty_of_crossing_of_starCrossing`: **the crossing lemma**.
@@ -75,6 +76,19 @@ lemma mem_rect {a b c e : ℤ} {x : Site} :
 @[simp] lemma mk_mem_rect {a b c e s t : ℤ} :
     mk s t ∈ rect a b c e ↔ a ≤ s ∧ s ≤ b ∧ c ≤ t ∧ t ≤ e := by
   simp [mem_rect]
+
+/-- The box `[-N, N]²` of `GibbsMeasure/Model/Contours.lean` is the square rectangle: `rect` and
+`box` are the same object, `rect` being the version with independent bounds. -/
+lemma box_eq_rect (N : ℕ) : box N = rect (-(N : ℤ)) (N : ℤ) (-(N : ℤ)) (N : ℤ) := by
+  ext x
+  simp only [box, rect, Set.mem_ofPred_eq, Fin.forall_fin_two, abs_le]
+  tauto
+
+lemma rect_subset_box {a b c e : ℤ} {N : ℕ} (h1 : -(N : ℤ) ≤ a) (h2 : b ≤ (N : ℤ))
+    (h3 : -(N : ℤ) ≤ c) (h4 : e ≤ (N : ℤ)) : rect a b c e ⊆ box N := by
+  rw [box_eq_rect]
+  rintro x ⟨g1, g2, g3, g4⟩
+  exact ⟨by omega, by omega, by omega, by omega⟩
 
 /-- `*`-adjacency of two sites given in coordinates. -/
 lemma starAdj_mk {s r s' r' : ℤ} (hne : ¬(s = s' ∧ r = r')) (h0 : -1 ≤ s - s') (h0' : s - s' ≤ 1)

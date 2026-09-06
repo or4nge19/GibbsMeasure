@@ -124,6 +124,57 @@ lemma reachableIn_chain (p : ℕ → V) (hadj : ∀ k, G.Adj (p k) (p (k + 1))) 
     (reachableIn_chain p hadj n fun k hk ↦ hp k (by omega)).trans
       (ReachableIn.of_adj (hp n (by omega)) (hp (n + 1) le_rfl) (hadj n))
 
+/-- The support of a walk extended by one edge. -/
+lemma Walk.mem_support_concat {u v w : V} (p : G.Walk u v) (h : G.Adj v w) {z : V} :
+    z ∈ (p.concat h).support ↔ z ∈ p.support ∨ z = w := by
+  rw [Walk.support_concat, List.mem_append, List.mem_singleton]
+
+/-- A finite chain of adjacent vertices inside `s` yields reachability inside `s`. -/
+lemma reachableIn_of_chain_le {s : Set V} (f : ℕ → V) :
+    ∀ n : ℕ, (∀ k < n, G.Adj (f k) (f (k + 1))) → (∀ k ≤ n, f k ∈ s) →
+      G.ReachableIn s (f 0) (f n)
+  | 0, _, hs => ReachableIn.refl (hs 0 le_rfl)
+  | n + 1, hadj, hs =>
+      (reachableIn_of_chain_le f n (fun k hk ↦ hadj k (by omega))
+        (fun k hk ↦ hs k (by omega))).trans
+        (ReachableIn.of_adj (hs n (by omega)) (hs (n + 1) le_rfl) (hadj n (by omega)))
+
+/-- **Reachability inside a set is witnessed by a finite chain**, indexed by `Fin (n + 1)`; this
+is the form in which the event `{ω | G.ReachableIn (s ω) u v}` is a countable union. -/
+lemma reachableIn_iff_exists_chain {s : Set V} {u v : V} :
+    G.ReachableIn s u v ↔ ∃ (n : ℕ) (f : Fin (n + 1) → V), f 0 = u ∧ f (Fin.last n) = v ∧
+      (∀ k : Fin n, G.Adj (f k.castSucc) (f k.succ)) ∧ ∀ k, f k ∈ s := by
+  constructor
+  · rintro ⟨hu, hv, ⟨q⟩⟩
+    obtain ⟨p, hpsub⟩ : ∃ p : G.Walk u v, ∀ x ∈ p.support, x ∈ s := by
+      refine ⟨q.map (Embedding.induce s).toHom, fun x hx ↦ ?_⟩
+      have hx' : x ∈ (q.map (Embedding.induce s).toHom).support := hx
+      rw [Walk.support_map, List.mem_map] at hx'
+      obtain ⟨y, -, rfl⟩ := hx'
+      exact y.2
+    refine ⟨p.length, fun k ↦ p.getVert (k : ℕ), p.getVert_zero, ?_, ?_,
+      fun k ↦ hpsub _ (p.getVert_mem_support _)⟩
+    · simp
+    · intro k
+      exact p.adj_getVert_succ (i := (k : ℕ)) k.2
+  · rintro ⟨n, f, hf0, hfn, hadj, hs⟩
+    have key := reachableIn_of_chain_le (s := s)
+      (fun k ↦ f ⟨min k n, Nat.lt_succ_of_le (min_le_right k n)⟩) n
+      (fun k hk ↦ by
+        rw [show (⟨min k n, Nat.lt_succ_of_le (min_le_right k n)⟩ : Fin (n + 1))
+              = (⟨k, hk⟩ : Fin n).castSucc from by rw [Fin.ext_iff]; simp [min_eq_left hk.le],
+            show (⟨min (k + 1) n, Nat.lt_succ_of_le (min_le_right (k + 1) n)⟩ : Fin (n + 1))
+              = (⟨k, hk⟩ : Fin n).succ from by
+                rw [Fin.ext_iff]; simp [min_eq_left (show k + 1 ≤ n by omega)]]
+        exact hadj ⟨k, hk⟩)
+      (fun k _ ↦ hs _)
+    have e0 : (⟨min 0 n, Nat.lt_succ_of_le (min_le_right 0 n)⟩ : Fin (n + 1)) = 0 :=
+      Fin.ext (by simp)
+    have en : (⟨min n n, Nat.lt_succ_of_le (min_le_right n n)⟩ : Fin (n + 1)) = Fin.last n :=
+      Fin.ext (by simp)
+    simp only [e0, en, hf0, hfn] at key
+    exact key
+
 /-- The induced subgraph on `s` is connected iff `s` is nonempty and any two of its vertices are
 joined by a walk of `G` inside `s`. -/
 lemma connected_induce_iff_forall_reachableIn :
@@ -132,6 +183,32 @@ lemma connected_induce_iff_forall_reachableIn :
   rintro ⟨⟨x, hx⟩, h⟩
   have : Nonempty s := ⟨⟨x, hx⟩⟩
   exact ⟨fun a b ↦ (h a.1 a.2 b.1 b.2).2.2⟩
+
+/-- Any two vertices on a walk are joined by a walk through the support. -/
+lemma reachableIn_support {u v : V} (p : G.Walk u v) {a b : V} (ha : a ∈ p.support)
+    (hb : b ∈ p.support) : G.ReachableIn {z | z ∈ p.support} a b :=
+  (connected_induce_iff_forall_reachableIn.1 p.connected_induce_support).2 a ha b hb
+
+/-- **First exit from a set of vertices.**  A walk starting in `s` and ending outside `s` splits
+at its first exit: an initial walk inside `s` (and inside the original support), followed by one
+edge to a vertex outside `s` (again on the original walk). -/
+lemma exists_walk_until_exit {s : Set V} :
+    ∀ {u v : V} (p : G.Walk u v), u ∈ s → v ∉ s →
+      ∃ (w x : V) (q : G.Walk u w), (∀ z ∈ q.support, z ∈ s ∧ z ∈ p.support) ∧
+        G.Adj w x ∧ x ∉ s ∧ x ∈ p.support
+  | _, _, .nil, hu, hv => absurd hu hv
+  | u, _, .cons (v := b) hub r, hu, hv => by
+      classical
+      by_cases hb : b ∈ s
+      · obtain ⟨w, x, q, hq, hwx, hx, hxp⟩ := exists_walk_until_exit r hb hv
+        refine ⟨w, x, Walk.cons hub q, fun z hz ↦ ?_, hwx, hx, by simp [hxp]⟩
+        rw [Walk.support_cons, List.mem_cons] at hz
+        rcases hz with rfl | hz
+        · exact ⟨hu, by simp⟩
+        · exact ⟨(hq z hz).1, by simp [(hq z hz).2]⟩
+      · refine ⟨u, b, Walk.nil, fun z hz ↦ ?_, hub, hb, by simp⟩
+        rw [Walk.support_nil, List.mem_singleton] at hz
+        exact ⟨hz ▸ hu, by simp [hz]⟩
 
 /-- The image in `V` of the support of the cluster of `j` in `G.induce s` is the set of vertices
 reachable from `j` inside `s`. -/

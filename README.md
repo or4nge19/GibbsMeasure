@@ -576,11 +576,17 @@ pulled back to `ℤ^d`, with the Gibbs distribution of the periodic modification
 (Example (4.20)(2)), defines `𝒢₀(Φ)` as its cluster points, proves `𝒢₀ ⊆ 𝒢_Θ` and (18.12) for
 standard Borel `E`; `Specification/QuasiGibbsian.lean` proves every Gibbs measure of a λ-specification
 with positive densities quasi-Gibbsian;
-`Model/LowEnergyOceans.lean` has the (18.14) consequences for `μ ∈ 𝒢₀(Φ)` and (18.18) in quadrant
-form; (18.11) on the torus; Step 1 of (18.16), Poincaré recurrence for quasi-Gibbsian fields
-(`Specification/QuasiGibbsian.lean`); and the planar input of its Steps 2–3, the two-dimensional
-crossing lemma by mod-two duality (`GibbsMeasure/Model/PlanarCrossing.lean`). Open: the assembly of
-Steps 2–4 of (18.16), hence (18.17), (18.18) with the ocean part, and (18.19).
+`Model/LowEnergyOceans.lean` has the (18.14) consequences for `μ ∈ 𝒢₀(Φ)`; (18.11) on the torus;
+**Lemma (18.16)** in full: Step 1, Poincaré recurrence for quasi-Gibbsian fields
+(`Specification/QuasiGibbsian.lean`) giving barriers in all four directions almost surely; the
+planar input of Steps 2–3, the two-dimensional crossing lemma by mod-two duality
+(`GibbsMeasure/Model/PlanarCrossing.lean`); and Steps 2–4 (`Model/OceanNetwork.lean`), where
+Georgii's "clearly this network is an ocean" is replaced by a circuit argument around any site off
+the cluster of the origin, the cross centres forming a grid by Poincaré recurrence. Hence
+**Theorem (18.17)** and **Corollary (18.18)**, first assertions: `μ(0 ∈ ξ⁰_P(G,·)) ≥ 1 − 4z(t(G,Φ))`
+for `μ ∈ 𝒢₀(Φ)`, and `lim_β inf_{𝒢₀(βΦ)} μ(0 ∈ ξ⁰_P(G_ε(Φ),·)) = 1` over a standard Borel state
+space. Open: their second assertions (that `{ξ⁰_P ≠ ∅}` is a tail event and the reflection
+invariance of `𝒢₀(Φ)`), and (18.19), which needs the Heisenberg `C`-potential on the sphere.
 
 **Chapter 20, §20.1** (`GibbsMeasure/Specification/InfraredBound.lean`): the preliminaries of the
 infrared bound on the torus — the tail estimate (20.6) for the periodic Gibbs distribution of a

@@ -85,11 +85,12 @@
 \begin{lemma}[Quasi-Gibbsian random fields, Georgii before (18.16)]
     \label{lem:lo-quasi-gibbsian}
     \uses{def:lo-G0}
-    \lean{MeasureTheory.GibbsMeasure.IsQuasiGibbsian, MeasureTheory.GibbsMeasure.isQuasiGibbsian_of_isGibbsMeasure_lambdaSpecification, MeasureTheory.GibbsMeasure.isQuasiGibbsian_of_mem_GZero, Specification.lambdaSpecification_apply_eq_zero_iff}
+    \lean{MeasureTheory.GibbsMeasure.IsQuasiGibbsianWith, MeasureTheory.GibbsMeasure.IsQuasiGibbsian, MeasureTheory.GibbsMeasure.isQuasiGibbsianWith_of_isGibbsMeasure_lambdaSpecification, MeasureTheory.GibbsMeasure.isQuasiGibbsian_of_isGibbsMeasure_lambdaSpecification, MeasureTheory.GibbsMeasure.isQuasiGibbsianWith_of_mem_GZero, MeasureTheory.GibbsMeasure.isQuasiGibbsian_of_mem_GZero, Specification.lambdaSpecification_apply_eq_zero_iff}
     \leanok
 
-    $\mu$ is quasi-Gibbsian if for some $\lambda \in \mathcal P(E)$ and every tail event $A$ of
-    positive measure, $\mu(\cdot \mid A)$ is equivalent to $\lambda^S$ on each $\mathcal F_\Lambda$.
+    $\mu$ is quasi-Gibbsian with $\lambda \in \mathcal P(E)$ if for every tail event $A$ of
+    positive measure, $\mu(\cdot \mid A)$ is equivalent to $\lambda^S$ on each $\mathcal F_\Lambda$,
+    and quasi-Gibbsian if it is so with some $\lambda$.
     Every Gibbs measure of a $\lambda$-specification with positive densities is quasi-Gibbsian,
     by (7.7)(b) and (1.28), in particular every $\mu \in \mathcal G_0(\Phi)$.
 \end{lemma}
@@ -154,21 +155,75 @@
 \begin{lemma}[Step 1 of Lemma (18.16), and the planar crossing lemma for Steps 2--3]
     \label{lem:lo-18-16-steps}
     \uses{lem:lo-quasi-gibbsian, def:lo-G0}
-    \lean{MeasureTheory.preimage_setOf_frequently_iterate_mem, MeasureTheory.measurableSet_setOf_frequently_iterate_mem, MeasureTheory.cond_compl_setOf_frequently_iterate_apply_eq_zero, MeasureTheory.GibbsMeasure.measure_setOf_frequently_shift_mem_eq_one, MeasureTheory.GibbsMeasure.tail_measurableSet_setOf_frequently_shift_forall_notMem_latticePattern, MeasureTheory.GibbsMeasure.patternChain, MeasureTheory.GibbsMeasure.pi_patternChain_one, MeasureTheory.GibbsMeasure.barrierRow, MeasureTheory.GibbsMeasure.isssd_forall_notMem_latticePattern_eq_pi_patternChain, MeasureTheory.chainSet, MeasureTheory.prod_eq_zero_of_pi_chainSet_eq_zero, MeasureTheory.GibbsMeasure.Peierls.rect, MeasureTheory.GibbsMeasure.Peierls.exists_encircling_walk, MeasureTheory.GibbsMeasure.Peierls.exists_side_fun, MeasureTheory.GibbsMeasure.Peierls.inter_nonempty_of_crossing_of_starCrossing, MeasureTheory.GibbsMeasure.Peierls.inter_nonempty_of_crossings}
+    \lean{MeasureTheory.preimage_setOf_frequently_iterate_mem, MeasureTheory.measurableSet_setOf_frequently_iterate_mem, MeasureTheory.cond_compl_setOf_frequently_iterate_apply_eq_zero, MeasureTheory.GibbsMeasure.measure_setOf_frequently_shift_mem_eq_one, MeasureTheory.GibbsMeasure.tail_measurableSet_setOf_frequently_shift_forall_notMem_latticePattern, MeasureTheory.GibbsMeasure.patternChain, MeasureTheory.GibbsMeasure.pi_patternChain_one, MeasureTheory.GibbsMeasure.barrierSeg, MeasureTheory.GibbsMeasure.pairCube, MeasureTheory.GibbsMeasure.isssd_barrier_ne_zero, MeasureTheory.GibbsMeasure.measure_setOf_frequently_barrier_eq_one, MeasureTheory.GibbsMeasure.ae_forall_frequently_barrier, MeasureTheory.GibbsMeasure.ae_barriers_up, MeasureTheory.GibbsMeasure.ae_barriers_down, MeasureTheory.GibbsMeasure.ae_barriers_right, MeasureTheory.GibbsMeasure.ae_barriers_left, MeasureTheory.GibbsMeasure.isssd_forall_notMem_latticePattern_eq_pi_patternChain, MeasureTheory.chainSet, MeasureTheory.prod_eq_zero_of_pi_chainSet_eq_zero, MeasureTheory.GibbsMeasure.Peierls.rect, MeasureTheory.GibbsMeasure.Peierls.exists_encircling_walk, MeasureTheory.GibbsMeasure.Peierls.exists_side_fun, MeasureTheory.GibbsMeasure.Peierls.inter_nonempty_of_crossing_of_starCrossing, MeasureTheory.GibbsMeasure.Peierls.inter_nonempty_of_crossings}
     \leanok
 
     Step 1: a shift-invariant quasi-Gibbsian field sees every local event of positive
     $\lambda_\Delta$-probability infinitely often along the shift orbit, almost surely --- Poincar\'e
     recurrence (Mathlib's conservativity) applied to the conditional field on the tail event where
     the local event is not seen infinitely often makes the event null there, and quasi-Gibbsianness
-    makes it $\lambda_\Delta$-null; the barrier rows and their pattern chains, with the independent
-    $\lambda$-probability of a chain of cubes outside $G$, supply the positive-probability local events.
-    For Steps 2--3 the planar input: in an axis-parallel rectangle of $\mathbb Z^2$ a
-    nearest-neighbour left-to-right crossing meets every $*$-connected top-to-bottom crossing
-    (Kesten; Grimmett, Prop.\ 11.2), proved by mod-two duality, not the Jordan curve theorem, the
-    asymmetry being essential. The assembly of Steps 2--4 into Lemma (18.16), hence (18.17),
-    (18.18) with $\xi^0_P$ and (18.19), is not done.
+    makes it $\lambda_\Delta$-null; the barrier segments in either lattice direction and their
+    pattern chains, with the independent $\lambda$-probability of a chain of cubes outside $G$,
+    supply the positive-probability local events, so that $\mu(B_{k,\ell}) = 1$: almost surely
+    every segment of either axis is a barrier of $V(G,\cdot)$ at infinitely many translates in
+    each of the four directions. (Georgii obtains the vertical barriers by rotation; $V(G,\cdot)$
+    is only $r$-symmetric, so both directions are treated.) For Steps 2--3 the planar input: in an
+    axis-parallel rectangle of $\mathbb Z^2$ a nearest-neighbour left-to-right crossing meets
+    every $*$-connected top-to-bottom crossing (Kesten; Grimmett, Prop.\ 11.2), proved by mod-two
+    duality, not the Jordan curve theorem, the asymmetry being essential.
 \end{lemma}
+\begin{proof}
+    \leanok
+\end{proof}
+
+\begin{theorem}[Georgii Lemma (18.16), Steps 2--4]
+    \label{thm:lo-18-16}
+    \uses{lem:lo-18-16-steps, lem:lo-quasi-gibbsian, def:lo-18-6}
+    \lean{MeasureTheory.GibbsMeasure.Peierls.reachIn_upper_of_infiniteClusters_of_barrier, MeasureTheory.GibbsMeasure.Peierls.exists_connected_right, MeasureTheory.GibbsMeasure.Peierls.exists_connected_left, MeasureTheory.GibbsMeasure.Peierls.exists_exit_rect, MeasureTheory.GibbsMeasure.Peierls.motion, MeasureTheory.GibbsMeasure.Peierls.reachIn_of_motion, MeasureTheory.GibbsMeasure.Peierls.reachIn_up, MeasureTheory.GibbsMeasure.Peierls.reachIn_down, MeasureTheory.GibbsMeasure.Peierls.reachIn_right, MeasureTheory.GibbsMeasure.Peierls.reachIn_left, MeasureTheory.GibbsMeasure.Peierls.IsCrossCentre, MeasureTheory.GibbsMeasure.Peierls.IsCrossCentre.mem_infiniteClusters, MeasureTheory.GibbsMeasure.Peierls.reachIn_up_of_crossCentres, MeasureTheory.GibbsMeasure.Peierls.sum_bondChain_hbond, MeasureTheory.GibbsMeasure.Peierls.finite_reachIn_star_of_circuit, MeasureTheory.GibbsMeasure.Peierls.exists_isOceanIn_of_crossCentres, MeasureTheory.GibbsMeasure.Peierls.isOceanIn_univ, MeasureTheory.GibbsMeasure.Peierls.mem_infiniteClusters_iff_forall_exists, MeasureTheory.GibbsMeasure.Peierls.mem_oceanPart_of_isOceanIn, SimpleGraph.reachableIn_iff_exists_chain, SimpleGraph.Walk.mem_support_concat, MeasureTheory.GibbsMeasure.crossEvent, MeasureTheory.GibbsMeasure.measurableSet_crossEvent, MeasureTheory.GibbsMeasure.measurableSet_setOf_mem_infiniteClusters, MeasureTheory.GibbsMeasure.ae_mem_latticeOceanPart_of_cubeMeasure_compl_eq_zero, MeasureTheory.GibbsMeasure.ae_mem_crossEvent_imp_mem_latticeOceanPart, MeasureTheory.GibbsMeasure.measure_crossEvent_le, MeasureTheory.GibbsMeasure.le_measure_mem_latticeOceanPart_of_forall_quadrant}
+    \leanok
+
+    Let $G$ be $r$-symmetric and $\mu \in \mathcal P_\Theta$ quasi-Gibbsian with
+    $\mu(0 \in \xi_Q(G,\cdot)) \geq 1 - z$ for each quadrant $Q$ with vertex $0$. Then
+    $\mu(0 \in \xi^0_P(G,\cdot)) \geq 1 - 4z$; in fact $\mu(X) \leq \mu(0 \in \xi^0_P(G,\cdot))$ for
+    Georgii's event $X$ that the origin is the centre of an infinite cross, which is measurable
+    (a countable condition on chains). Georgii's $z < 1/4$ is not used. Step 2: a barrier row
+    $[-N,N]\times\{h\}$ forces the two half-plane clusters at $(k,0)$, $(k',0)$ to leave the box
+    sideways, and the two crossings meet by the planar crossing lemma, so the two sites are joined
+    in $V(G,\cdot)$ within the closed half-plane; the lattice isometries transport this to the
+    four directions. Step 3: Georgii's ``clearly this network is an ocean'' (Figure 18.2) is
+    replaced by a circuit argument. From the cross centres, which by Poincar\'e recurrence applied
+    to $X$ and to the pair events $A_{s,t}$ form a grid cofinal in all four directions, any site
+    off the cluster of the origin is surrounded by a circuit of four Step-2 connections, and the
+    mod-two side function of the circuit together with the parity of the crossings of the ray
+    above the site (only the top piece can cross it, an odd number of times) traps its
+    $*$-cluster: the cluster of the origin is an ocean. The degenerate case $\lambda^C(G) = 1$ is
+    the whole plane. Georgii concludes $X \subseteq \{\xi^0_P \neq \emptyset\}$; that
+    $0 \in \xi^0_P$ on $X$ uses that on $X$ the origin lies in an infinite cluster, hence in the
+    unique one.
+\end{theorem}
+\begin{proof}
+    \leanok
+\end{proof}
+
+\begin{theorem}[Georgii (18.17) and Corollary (18.18), the first assertions]
+    \label{thm:lo-18-17}
+    \uses{thm:lo-18-16, thm:lo-18-18-quadrant, prop:lo-18-12}
+    \lean{MeasureTheory.GibbsMeasure.le_measure_mem_latticeOceanPart, MeasureTheory.GibbsMeasure.le_measure_mem_latticeOceanPart_localGroundStates, MeasureTheory.GibbsMeasure.tendsto_bound_latticeOceanPart_localGroundStates, MeasureTheory.GibbsMeasure.tendsto_iInf_measure_mem_latticeOceanPart_localGroundStates, MeasureTheory.GibbsMeasure.IsCubeConfining.const_mul}
+    \leanok
+
+    In the plane, for $r$-symmetric $G$, a $C$-potential $\Phi$ and $\mu \in \mathcal G_0(\Phi)$,
+    $\mu(0 \in \xi^0_P(G,\cdot)) \geq 1 - 4z(t(G,\Phi))$; hence for $\varepsilon > 0$ the bound
+    $1 - 4z(t(G_\varepsilon(\Phi), \beta\Phi))$ holds for every $\mu \in \mathcal G_0(\beta\Phi)$
+    and tends to $1$, and over a standard Borel state space with a confining cube interaction
+    $\lim_{\beta\to\infty}\inf_{\mu \in \mathcal G_0(\beta\Phi)}\mu(0 \in \xi^0_P(G_\varepsilon(\Phi),\cdot)) = 1$.
+    The second assertions --- a shift- and reflection-invariant $\mu \in \mathcal G(\Phi)$ with
+    $\mu(\xi^0_P(G,\cdot) \neq \emptyset) = 1$ when $z(t(G,\Phi)) < 1/4$, resp.\ for large
+    $\beta$ --- are not proved: Georgii conditions $\nu \in \mathcal G_0(\Phi)$ on
+    $\{\xi^0_P \neq \emptyset\}$, which needs that event to be a tail event (removing finitely
+    many sites from an ocean leaves exactly one infinite component, again an ocean) and the
+    reflection invariance of $\nu$, neither of which is in the tree. Example (18.19) needs the
+    Heisenberg $C$-potential on the sphere, not yet defined.
+\end{theorem}
 \begin{proof}
     \leanok
 \end{proof}
@@ -183,10 +238,7 @@
     $\mu(0 \in \xi_Q(G,\cdot)) \geq 1 - z(t(G,\Phi))$ for each quadrant $Q$ with vertex $0$, and
     the origin lies in all four with probability at least $1 - 4z(t(G,\Phi))$; for
     $G = G_\varepsilon(\Phi)$ and $\beta\Phi$ the bound tends to $1$ as $\beta \to \infty$. The
-    ocean part $\xi^0_P(G,\omega)$ is shift equivariant. Lemma (18.16) --- that the origin's
-    cluster in all four quadrants is almost surely the ocean part --- has its Step 1 and its
-    planar input in Lemma \ref{lem:lo-18-16-steps}; the assembly of Steps 2--4 is not done, so
-    (18.17), (18.18) with $\xi^0_P$ and (18.19) are not yet available.
+    ocean part $\xi^0_P(G,\omega)$ is shift equivariant.
 \end{theorem}
 \begin{proof}
     \leanok

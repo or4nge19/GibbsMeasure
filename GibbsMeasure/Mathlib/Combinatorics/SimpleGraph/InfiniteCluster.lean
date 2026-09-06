@@ -49,6 +49,11 @@ lemma reachable_induce_of_walk {u v : V} (p : G.Walk u v) (hp : ∀ x ∈ p.supp
     exact (Adj.reachable (G := G.induce s) (u := ⟨a, hp a (by simp)⟩) (v := ⟨b, hb⟩) hadj).trans
       (ih hq)
 
+/-- A walk of `G` whose support lies in `s` witnesses `G.ReachableIn s`. -/
+lemma ReachableIn.of_walk {u v : V} (p : G.Walk u v) (hp : ∀ x ∈ p.support, x ∈ s) :
+    G.ReachableIn s u v :=
+  ⟨hp u p.start_mem_support, hp v p.end_mem_support, reachable_induce_of_walk p hp⟩
+
 /-- Reachability inside `s` for `G` implies reachability inside `t ⊇ s` for `H ≥ G`. -/
 lemma Reachable.induce_mono (hGH : G ≤ H) (hst : s ⊆ t) {u v : s}
     (h : (G.induce s).Reachable u v) :
