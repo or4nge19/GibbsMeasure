@@ -1,0 +1,40 @@
+\section{Models with an entropy-energy conflict}
+
+\begin{theorem}[Georgii (19.16): competing potential wells]
+    \label{thm:dg-19-16}
+    \uses{lem:lo-18-11, thm:dg-19-6}
+    \lean{MeasureTheory.GibbsMeasure.rectCost_le_of_abs_sub_le, MeasureTheory.GibbsMeasure.rectPatternWeight_le_of_abs_sub_le, MeasureTheory.GibbsMeasure.rectPatternWeight_le_of_ae_le, MeasureTheory.GibbsMeasure.exists_correspondence_of_weight_le, MeasureTheory.GibbsMeasure.exists_gibbsMeasure_family_of_weight_le, MeasureTheory.GibbsMeasure.exists_gibbsMeasure_family_of_rectPatternWeight_le, MeasureTheory.GibbsMeasure.IsCompetingWells, MeasureTheory.GibbsMeasure.isPStablePartition_of_isCompetingWells, MeasureTheory.GibbsMeasure.IsCompetingWells.rectPatternWeight_iUnion_le, MeasureTheory.GibbsMeasure.IsCompetingWells.rectPatternWeight_compl_zero_le, MeasureTheory.GibbsMeasure.IsCompetingWells.rectPatternWeight_compl_succ_le, MeasureTheory.GibbsMeasure.wellTemperature, MeasureTheory.GibbsMeasure.wellField, MeasureTheory.GibbsMeasure.wellField_mem_nonnegBoundary, MeasureTheory.GibbsMeasure.wellTemperature_eq_or_wellField_eq, MeasureTheory.GibbsMeasure.exists_gibbsMeasure_family_isCompetingWells}
+    \leanok
+
+    A family $(\Phi^h)_{h\in\partial\mathbb R^N_+}$ of bounded $C$-potentials over a standard Borel
+    $E$, continuous in $h$ in sup-norm, whose cube interaction forms $N+1$ wells $W_0,\dots,W_N$
+    with rectangles $V_n \subset W_n$ of positive $\lambda^C$-measure and constants
+    $0<a<b$, $0<c$, $0<\delta<a$ satisfying assumption (A): (A1) $\lambda\text{-}\inf_{W_0}\Phi^h_C
+    \ge 0$, $\lambda\text{-}\inf_{W_n}\Phi^h_C \ge a+h_n$, $\lambda\text{-}\sup_{V_0}\Phi^h_C \le
+    \delta$, $\lambda\text{-}\sup_{V_n}\Phi^h_C \le a+h_n+c$; (A2) $\lambda\text{-}\inf_{E^C\setminus
+    W}\Phi^h_C \ge b$; (A3) the face projections $\sigma_F(W_n)$ are pairwise disjoint. Fix $t$ with
+    $4(N+1)z(t)<1$ and $\beta_0>0$ and assume (19.17) $e^{-\beta_0 b} \le t\,e^{-\beta_0(a+c)}
+    \min_n \lambda^C(V_n)^{1/|C|}$ and (19.18) $\lambda^C(W_0)^{1/|C|} < (N+1)^{-1}e^{-\beta_0(a+c)}
+    (1-t)\min_n\lambda^C(V_n)^{1/|C|}$. Steps 1--2 bound Georgii's $r(\beta,h)$ by the rectangles
+    $V_n$ and give $\tilde t(W,\beta\Phi^h)\le t$ for $\beta\ge\beta_0$, $\tilde t(E^C\setminus
+    W_0,\beta_0\Phi^h)<(1-t)/(N+1)$, and $\tilde t(E^C\setminus W_n,\beta\Phi^h)<(1-t)/(N+1)$ for a
+    constructed $\beta_1>\beta_0$ whenever $\beta=\beta_1$ or $h_n=\beta_1$ --- the last from
+    $\delta<a$ and the fact that (19.17) forces $a+c<b$, which Georgii leaves implicit. Step 3 is
+    the continuous map $\alpha \mapsto (\beta(\alpha),h(\alpha))$ on $\mathcal P_{N+1}$ with
+    $\beta(\alpha)=\beta_0$ where $\alpha_0=0$ and $\beta(\alpha)\vee h_n(\alpha)=\beta_1$ where
+    $\alpha_n=0$, feeding $\Psi^\alpha=\beta(\alpha)\Phi^{h(\alpha)}$ into (19.14) and (19.13); the
+    conclusion is $h^*\in\partial\mathbb R^N_+$, $\beta^*\in[\beta_0,\beta_1]$ and $N+1$ mutually
+    singular measures $\mu_n\in\mathcal G_\Theta(\beta^*\Phi^{h^*})$ with $\mu_n(\xi^0(W_n,\cdot)\ne
+    \emptyset)=1$, invariant under $\bigcap_h I_{C,\lambda}(\Phi^h)$ fixing $W_n$, so
+    $|\operatorname{ex}\mathcal G_\Theta(\beta^*\Phi^{h^*})|\ge N+1$. Since $t(G,\Phi)$ and
+    $\tilde t(G,\Phi)$ of Comment (18.11) are incomparable (counterexamples both ways in the module
+    docstring), (19.14) is reproved for an arbitrary Peierls weight --- one satisfying (18.10),
+    (18.9)(3) and the confinement bound of (18.12) --- and applied to $t \wedge \tilde t$; the stable
+    partition (18.23)(a)(i) is certified by the indicator of $E^C\setminus\bigcup_n W_n$, since
+    Georgii's $G_\varepsilon(\Phi^h)\subset W_0$ holds only up to a null set. Georgii's exponent
+    $1/4$ is $1/|C|$; his $\lambda(E)$ is $1$ for the normalised a priori measure. Not formalised:
+    Examples (19.19)--(19.20) and Subsection 19.3.2.
+\end{theorem}
+\begin{proof}
+    \leanok
+\end{proof}

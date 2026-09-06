@@ -58,7 +58,8 @@ status:
     interactions), the conclusion of 18.3.10 (needs Section 18.1 in dimension 3) and the count for
     a proper subgroup in (18.25). Chapter 19: Section 19.1 through (19.5),
     (19.7) and (19.8); Section 19.2 through Theorem (19.6) with Sperner's lemma and the KKM
-    lemma; open (19.9)-(19.10) and Section 19.3.
+    lemma; Section 19.3.1 Theorem (19.16); open (19.9)-(19.10), Examples (19.19)-(19.20) and
+    Subsection 19.3.2.
     Chapter 20: Section 20.1 ((20.5), (20.6) as stated, (20.8)), Georgii's computation (17.24),
     (20.9)-(20.11), Proposition (20.7) in full, (20.12) in full, Lemma (20.13) for an a priori measure equivalent to
     Lebesgue measure, (20.14); open (20.13) for a general finite a priori measure (Georgii's
@@ -1584,8 +1585,26 @@ alignment:
         lambda-preserving cube transformation exchanging G_{2,1} and G_{2,2}. Since (19.7) uses only
         (18.23)(a)(ii) while IsPStablePartition bundles (a)(i), the refinement is recorded as a
         stable partition of the local ground states of Phi - Phi^1 (the member h = -1 of (19.2)).
-        Not formalized: Examples (19.9)-(19.10), Section 19.3, and Bricmont-Slawny's uniqueness
+        Not formalized: Examples (19.9)-(19.10), Section 19.3 beyond Theorem (19.16), and
+        Bricmont-Slawny's uniqueness
         for the unperturbed potential, quoted without proof.
+    - source: "Section 19.3.1: Theorem (19.16)"
+      lean: "MeasureTheory.GibbsMeasure.exists_gibbsMeasure_family_isCompetingWells"
+      module: "GibbsMeasure/Model/EntropyEnergyConflict.lean"
+      status: "proved"
+      note: >-
+        Theorem (19.16) as Georgii states it: under assumption (A) (IsCompetingWells: the wells
+        W_n, rectangles V_n of positive measure, (A1)-(A3) with lambda-inf/lambda-sup as essential
+        bounds) and (19.17)-(19.18), there are h* on the boundary of the octant and beta* in
+        [beta_0, beta_1] with N+1 mutually singular shift-invariant Gibbs measures, each carrying
+        an ocean of its well, invariant under the common symmetries fixing the well, and
+        |ex G_Theta| >= N+1. Steps 1-2 bound r(beta, h) by the rectangles; Step 3 is the
+        continuous map alpha -> (beta(alpha), h(alpha)) into (19.14)-(19.13). Since t(G, Phi) and
+        t~(G, Phi) of Comment (18.11) are incomparable (counterexamples both ways), (19.14) is
+        proved for an arbitrary Peierls weight (satisfying (18.10), (18.9)(3) and the confinement
+        bound of (18.12)) and applied to min(t, t~); Remark (18.9)(3) for t~ has the constant
+        e^{2 eta}. Georgii's 1/4 is 1/|C|, his lambda(E) is 1, and (19.17) forces a + c < b, which
+        he leaves implicit. Not formalized: Examples (19.19)-(19.20), Subsection 19.3.2.
     - source: "Section 18.3: 18.3.1-18.3.3, 18.3.5-18.3.6"
       lean: "MeasureTheory.GibbsMeasure.eventually_two_le_encard_extremePoints_isingFerro"
       module: "GibbsMeasure/Model/IsingOceans.lean"

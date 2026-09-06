@@ -304,6 +304,7 @@ public import GibbsMeasure.Model.SlawnyModel
 public import GibbsMeasure.Model.GroundStateRefinement
 public import GibbsMeasure.Model.BlumeCapel
 public import GibbsMeasure.Model.SpernerPhaseTransition
+public import GibbsMeasure.Model.EntropyEnergyConflict
 public import GibbsMeasure.Model.OceanNetwork
 public import GibbsMeasure.Model.PlanarCrossing
 public import GibbsMeasure.Model.ShiftAverage

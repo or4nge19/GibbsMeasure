@@ -650,7 +650,12 @@ Propositions (19.13)–(19.15) and **Theorem (19.6)** as Georgii states it, with
 `C`-potential proved through a two-sided kernel domination (`Specification/CubePotentialConvergence.lean`).
 **The conclusion of (19.8)**, `|ex 𝒢_Θ(βΦ + βh(β)Φ¹)| ≥ 3`
 (`eventually_three_le_encard_extremePoints_blumeCapel`): Theorem (19.6) on `{G_1, G_2}` followed by
-(19.7) splitting the second phase along the spin flip. Open: (19.9)–(19.10), §19.3.
+(19.7) splitting the second phase along the spin flip. **§19.3.1, Theorem (19.16)**
+(`Model/EntropyEnergyConflict.lean`): competing potential wells under Georgii's assumption (A) and
+(19.17)–(19.18) give `N+1` mutually singular shift-invariant Gibbs measures at some `β* ∈ [β₀, β₁]` and
+field `h*`, with `|ex 𝒢_Θ| ≥ N+1`; since `t` and `t̃` of Comment (18.11) are incomparable, (19.14) is
+proved for an arbitrary Peierls weight and applied to `t ∧ t̃`. Open: (19.9)–(19.10), Examples
+(19.19)–(19.20), §19.3.2.
 
 **Chapter 20, §20.1** (`GibbsMeasure/Specification/InfraredBound.lean`): the preliminaries of the
 infrared bound on the torus — the tail estimate (20.6) for the periodic Gibbs distribution of a
@@ -950,7 +955,7 @@ condition, and (13.44)–(13.45), whose infinite-range specification (13.18) is 
 (15.46) for a non-convex `C` over an infinite state space, Cramér's formula at `Φ = 0`, and
 (15.57)–(15.58) beyond the subgradient uniqueness; the criterion of (16.24)(3), (16.24)(4), (16.25)(2),
 (16.26)–(16.27); the Berg–Maserick converse (17.28)(1), cited without proof; 18.3.4, the conclusion of 18.3.10
-and the count for a proper subgroup in (18.25); (19.9)–(19.10) and §19.3; (20.13) for a general a priori measure and Theorem (20.15).
+and the count for a proper subgroup in (18.25); (19.9)–(19.10), Examples (19.19)–(19.20) and §19.3.2; (20.13) for a general a priori measure and Theorem (20.15).
 
 ### Code organisation
 
