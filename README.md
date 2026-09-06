@@ -629,8 +629,12 @@ the anisotropic antiferromagnet in a field (`Model/AnisotropicAntiferroOceans.le
 counterexample), Shlosman's rotor (`Model/ShlosmanRotorOceans.lean`), double wells with the
 confining condition of (17.18)(iv) (`Model/DoubleWellOceans.lean`), and the ground states and stable
 partition of Slawny's `□`-model in three dimensions (`Model/SlawnyModel.lean`). Open: the count for a
-proper subgroup `Θ̃`, 18.3.4 (hard-core interactions take the value `+∞`), the transverse-field rotor
-(18.35), and the conclusion of 18.3.10, which needs §18.1 in dimension 3.
+proper subgroup `Θ̃`, 18.3.4 (hard-core interactions take the value `+∞`), and the conclusion of
+18.3.10, which needs §18.1 in dimension 3. The transverse-field rotor (18.35)
+(`Model/TransverseFieldRotorOceans.lean`) has its two staggered tilted ground states computed by an
+exact sum-of-squares identity in place of Georgii's Lagrange multipliers, on the unit sphere of any
+finite-dimensional inner product space with an orthonormal pair, for `−1 < α ≤ 1`; his hypotheses are
+sharp and need no erratum, and (18.25) gives `|ex 𝒢(βΦ)| ≥ 2` with his invariances.
 
 **Chapter 19, §19.1** (`GibbsMeasure/Specification/ResolvingPerturbations.lean`,
 `Model/GroundStateRefinement.lean`, `Model/BlumeCapel.lean`): the essential infimum of the cube
@@ -936,7 +940,7 @@ along every line of `𝒟`, and the continuity of the second derivative in (16.1
 `𝒢_Θ` clause of (13.42) and the representation `𝒢(γ^{J,h}) = {μ_C * ν}`; Georgii's closure bound in
 (15.46) for a non-convex `C` over an infinite state space, Cramér's formula at `Φ = 0`, and
 (15.57)–(15.58) beyond the subgradient uniqueness; the criterion of (16.24)(3), (16.24)(4), (16.25)(2),
-(16.26)–(16.27); the Berg–Maserick converse (17.28)(1), cited without proof; 18.3.4, (18.35), the conclusion of 18.3.10
+(16.26)–(16.27); the Berg–Maserick converse (17.28)(1), cited without proof; 18.3.4, the conclusion of 18.3.10
 and the count for a proper subgroup in (18.25); (19.9)–(19.10) and §19.3; (20.13) for a general a priori measure and Theorem (20.15).
 
 ### Code organisation

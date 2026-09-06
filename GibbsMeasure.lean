@@ -290,6 +290,7 @@ public import GibbsMeasure.Model.PottsOceans
 public import GibbsMeasure.Model.AnisotropicHeisenbergOceans
 public import GibbsMeasure.Model.AnisotropicAntiferroOceans
 public import GibbsMeasure.Model.ShlosmanRotorOceans
+public import GibbsMeasure.Model.TransverseFieldRotorOceans
 public import GibbsMeasure.Model.DoubleWellOceans
 public import GibbsMeasure.Model.SlawnyModel
 public import GibbsMeasure.Model.GroundStateRefinement
