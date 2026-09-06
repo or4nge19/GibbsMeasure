@@ -676,9 +676,11 @@ Mathlib-layer instance of the mean ergodic theorem. **Lemma (16.28)** and **Theo
 existence of potentials with an oscillating shift-invariant Gibbs measure, hence extreme invariant
 Gibbs measures that are not extreme and extreme Gibbs measures that are not invariant, for an
 arbitrary specification; Georgii's `2ε|Λ₀|‖f‖²` in the proof of (16.30) must read `4ε|Λ₀|‖f‖²`.
-Georgii's `ℬ_Θ(f₁,…,f_N)` is taken in his closed-span description; the equivalence with his three
-conditions on the interaction terms, and hence the pair-potential identifications of (16.24)(3)–(4)
-and (16.25), is not proved. Open: (16.26)–(16.27) (Heisenberg order parameter), (16.31).
+Georgii's two descriptions of `ℬ_Θ(f₁,…,f_N)`, the closed span and his three conditions on the
+interaction terms, are proved equivalent (`Specification/OrderParameterSpace.lean`), which gives the
+pair-potential statements of (16.24)(3) and (16.25)(1); Example (16.31) is in
+`Model/AlternatingChain.lean`. Open: the criterion of (16.24)(3), (16.24)(4), (16.25)(2),
+(16.26)–(16.27) (Heisenberg order parameter).
 
 **§6.3, Shlosman's random staircases** (`GibbsMeasure/Model/RandomStaircase.lean`): the discrete
 Gaussian model on `ℤ²`, its five symmetries, the staircases as ground states, and **(6.25)** — the
@@ -885,8 +887,7 @@ continuity of the second derivative asserted in (8.37)/(16.17); in (12.31)(b) th
 `ex 𝒢 ∖ ex 𝒢_{I(B)}` and the third extreme invariant element; (13.39)–(13.41), (13.44)–(13.45) and the `𝒢_Θ` clause
 of (13.42); the upper bound (15.46) for a standard Borel state space, and the
 periodic-boundary-condition statements (15.48) (its two inequalities), (15.50)–(15.51),
-(15.57)–(15.58); (16.24)(3)–(4), (16.25)(2), (16.26)–(16.27), (16.31) and the equivalence of
-Georgii's two descriptions of `ℬ_Θ(f₁,…,f_N)`; the Berg–Maserick converse (17.28)(1), cited without
+(15.57)–(15.58); the criterion of (16.24)(3), (16.24)(4), (16.25)(2), (16.26)–(16.27); the Berg–Maserick converse (17.28)(1), cited without
 proof; the second assertions of (18.17)–(18.18), Example (18.19), §18.2–18.3; Chapter 19; and
 (20.5), (20.7), the transfer of (20.6) to `𝒢₀(Φ)` and the infrared bound (20.9) onwards.
 

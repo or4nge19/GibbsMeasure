@@ -50,8 +50,8 @@ status:
     G_Theta clause of (13.42)). Chapter 15 complete through Theorem (15.45), the upper bound (15.46) over a
     finite state space and the lower bound (15.47) over any; open: (15.46) for standard Borel E,
     the periodic-boundary-condition inequalities of (15.48), (15.50)-(15.51), (15.57)-(15.58).
-    Chapter 16: Sections 16.1-16.2 complete; Section 16.3 through (16.25)(1) and (16.28)-(16.30),
-    open (16.24)(3)-(4), (16.25)(2), (16.26)-(16.27), (16.31). Chapter 17 complete except the
+    Chapter 16: Sections 16.1-16.2 complete; Section 16.3 through (16.25)(1) and (16.28)-(16.31),
+    open the criterion of (16.24)(3), (16.24)(4), (16.25)(2), (16.26)-(16.27). Chapter 17 complete except the
     Berg-Maserick converse (17.28)(1), which Georgii cites without proof. Chapter 18: Section 18.1
     through Lemma (18.16), with the first assertions of (18.17)-(18.18); open their second
     assertions, Example (18.19), Sections 18.2-18.3. Chapter 19: not started. Chapter 20: Section
@@ -1610,17 +1610,25 @@ alignment:
         closed convex cone containing the test potentials, which gives Comment (16.24)(1)
         (interaction terms on any finite family of volumes vanish, arbitrarily long range) and
         (16.24)(2) (the ferromagnetic cone, N = 1); Example (16.25)(1) for the lattice gas on
-        {0..N} with the operative conclusion only. Lemma (16.28)
+        {0..N}, including that the modified potential is a gas pair potential with vacuum 0. The
+        two descriptions of B_Theta(f_1..f_N) are equivalent (Specification/OrderParameterSpace.lean:
+        the conditions-(i)-(iii) subspace is closed, contains the generators, and every element is
+        the norm limit of its truncations to finitely many translate classes; the non-translate
+        step needs only Lambda_0 nonempty, and 0 not in I is Georgii's i != 0), hence the first
+        sentence of (16.24)(3) (Specification/OrderParametersExamples.lean, with the specific entropy
+        of a Bernoulli field). Example (16.31) (Model/AlternatingChain.lean) with the field
+        (delta_{omega+} + delta_{omega-})/2, omega^pm_j = pm (-1)^{j_1}, which agrees on the axis
+        with Georgii's product of alternating chains. Lemma (16.28)
         (Specification/BrokenShiftInvariance.lean) for an arbitrary specification: (i) => (ii)
         with nu not in ex G(Phi) as a conclusion, (ii) => (iii) for bounded measurable f, via
         (14.17), (7.7), Levy downward, the mean ergodic theorem and the (G,T)-kernel (7.25);
         Theorem (16.30) with its "in particular" clauses, I infinite (symmetry unused). Erratum:
         in the proof of (16.30) the gap in (16.29) must exceed 4 eps |Lambda_0| ||f||^2, not
         2 eps |Lambda_0| ||f||^2; the statement is unaffected. Also Georgii's P^lambda_Theta and
-        Lemma (16.10) as a linear map (PhaseTransition.lean). Not formalized: (16.24)(3)-(4),
-        (16.25)(2), (16.26)-(16.27) (the Heisenberg order parameter needs the sphere with its
-        surface measure, ergodicity of the tilted product fields and the asymptotics of nu_h),
-        (16.31) (the alternating two-state chain and its product over Z^{d-1}).
+        Lemma (16.10) as a linear map (PhaseTransition.lean). Not formalized: the converse
+        inclusion in (16.25)(1), the criterion of (16.24)(3), (16.24)(4), (16.25)(2), (16.26)-(16.27)
+        (the Heisenberg order parameter needs ergodicity of the tilted product fields on the sphere
+        and the asymptotics of nu_h).
     - source: "Section 16.2: (16.10)-(16.14)"
       lean: "Potential.BTheta.gateauxDifferentiable_pressure_iff_subsingleton"
       module: "GibbsMeasure/Specification/PhaseTransition.lean"

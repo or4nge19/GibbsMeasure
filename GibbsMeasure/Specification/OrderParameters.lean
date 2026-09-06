@@ -112,7 +112,11 @@ an a priori probability measure `ν` on `E`, `𝓘 = invariantEvents Θ` is the 
   conditional measures `μ(· | A)`, `A ∈ 𝓘`, already exhaust the linear span in question.
 * **`ℬ_Θ(f₁, …, f_N)`** is *defined* as the closed linear span of the potentials `Φ^{(Λ₀, f_n)}`
   and `Φ^{(Λ_i, f_m (f_n ∘ θ_i))}`, which is Georgii's own "more precise" description of the space
-  he introduces by three conditions on the interaction terms.
+  he introduces by three conditions on the interaction terms. That the two descriptions agree —
+  Georgii's "it is easily seen" — is
+  `MeasureTheory.GibbsMeasure.BThetaOrderCond_eq_BThetaOrder` in
+  `GibbsMeasure/Specification/OrderParameterSpace.lean`, with the membership criterion
+  `MeasureTheory.GibbsMeasure.mem_BThetaOrder_iff`.
 * In the proof of **Theorem (16.30)** Georgii asks that the two sides of (16.29) differ by more
   than `2ε|Λ₀| ‖f‖²`; the correct constant is `4ε|Λ₀| ‖f‖²`, because each of the `limsup` and the
   `liminf` can move by `2ε|Λ₀| ‖f‖²`. The statement of (16.30) is unaffected: `ε` is chosen after
@@ -120,16 +124,21 @@ an a priori probability measure `ν` on `E`, `𝓘 = invariantEvents Θ` is the 
 
 ## Not formalised here
 
-Comments **(16.24)(3)** and **(16.24)(4)**, Example **(16.25)(2)**, the Heisenberg Theorem
-**(16.27)** and its setting **(16.26)**, and Example **(16.31)** are not in this file. Lemma
-**(16.28)** is in `GibbsMeasure/Specification/BrokenShiftInvariance.lean`.
+Comment **(16.24)(4)**, Example **(16.25)(2)** and the Heisenberg Theorem **(16.27)** with its
+setting **(16.26)** are not in this file, nor anywhere else in the tree. Lemma **(16.28)** is in
+`GibbsMeasure/Specification/BrokenShiftInvariance.lean`; the identification of the two
+descriptions of `ℬ_Θ(f₁, …, f_N)` is in
+`GibbsMeasure/Specification/OrderParameterSpace.lean`; the pair-potential half of Comment
+**(16.24)(3)** and the gas-potential identification of Example **(16.25)(1)** are in
+`GibbsMeasure/Specification/OrderParametersExamples.lean`; Example **(16.31)** is in
+`GibbsMeasure/Model/AlternatingChain.lean`.
 
-Georgii's identification in Example (16.25)(1) of `ℬ_Θ(1_{σ₀=1}, …, 1_{σ₀=N})` with the
-shift-invariant absolutely summable *pair* potentials that are gas potentials with vacuum state
-`0` is not proved: it is the "conditions (i)–(iii)" description of `ℬ_Θ(f₁, …, f_N)`, whereas the
-definition used here is Georgii's equivalent closed-span description. Only the operative
-conclusion — the existence of the phase-transition potential in `Φ⁰ + ℬ_Θ(f₁, …, f_N)` — is
-formalised.
+The criterion of Comment **(16.24)(3)** — that the hypothesis of Theorem (16.21)(a) holds exactly
+when `1, f₁^*, …, f_N^*` are linearly independent modulo `λ`-null sets — is not proved. Its first
+ingredient, the specific entropy `𝓀(α^S) = −𝓗(α | λ)` of a Bernoulli field, is
+`MeasureTheory.GibbsMeasure.specificEntropy_infinitePi` in
+`GibbsMeasure/Specification/OrderParametersExamples.lean`; what is missing is
+`𝓗(λ(· | A) | λ) = −log λ(A)` and the linear-algebra step producing the sets `A_0, …, A_N`.
 -/
 
 @[expose] public section

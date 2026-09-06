@@ -270,6 +270,7 @@ public import GibbsMeasure.Model.GaussianHomogeneous
 public import GibbsMeasure.Model.GaussianExtreme
 public import GibbsMeasure.Model.GaussianHomogeneousExtreme
 public import GibbsMeasure.Model.KalikowClassification
+public import GibbsMeasure.Model.AlternatingChain
 public import GibbsMeasure.Model.LowEnergyOceans
 public import GibbsMeasure.Model.UniqueInfiniteCluster
 public import GibbsMeasure.Model.LowEnergyOceanPhase
@@ -367,6 +368,8 @@ public import GibbsMeasure.Specification.SpecificEntropy
 public import GibbsMeasure.Specification.VariationalPrinciple
 public import GibbsMeasure.Specification.TangentFunctional
 public import GibbsMeasure.Specification.OrderParameters
+public import GibbsMeasure.Specification.OrderParameterSpace
+public import GibbsMeasure.Specification.OrderParametersExamples
 public import GibbsMeasure.Specification.BrokenShiftInvariance
 public import GibbsMeasure.Specification.PhaseTransition
 public import GibbsMeasure.Specification.LargeDeviations

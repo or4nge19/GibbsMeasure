@@ -22,13 +22,22 @@
 \begin{theorem}[Georgii (16.21)--(16.25)]
     \label{thm:op-16-21}
     \uses{def:op-16-18, thm:gv-16-14, cor:gv-16-12, thm:tf-16-7, def:gv-16-10}
-    \lean{MeasureTheory.GibbsMeasure.localPotentialB, MeasureTheory.GibbsMeasure.pairVolume, MeasureTheory.GibbsMeasure.pairObservable, MeasureTheory.GibbsMeasure.orderGenerators, MeasureTheory.GibbsMeasure.BThetaOrder, MeasureTheory.GibbsMeasure.isClosed_BThetaOrder, MeasureTheory.GibbsMeasure.correlation, MeasureTheory.GibbsMeasure.correlation_sub_sq_le, MeasureTheory.GibbsMeasure.tendsto_inv_card_sum_correlation, MeasureTheory.GibbsMeasure.hasNondegenerateInvariantMeans_of_specificEnergy_le, MeasureTheory.GibbsMeasure.exists_pos_lt_one_forall_lt_invariantVariance, MeasureTheory.GibbsMeasure.invariantVariance_eq_sum, MeasureTheory.GibbsMeasure.exists_mem_invariantG_specificEnergy_le, MeasureTheory.GibbsMeasure.specificEntropy_finsetSum_smul_ne_bot, MeasureTheory.GibbsMeasure.exists_pos_forall_exists_isDiscriminating, MeasureTheory.GibbsMeasure.exists_pos_forall_exists_isDiscriminating_BThetaOrder, MeasureTheory.GibbsMeasure.exists_isDiscriminating_of_isDiscriminating_invariantFieldsOfFiniteEntropy, MeasureTheory.GibbsMeasure.exists_isDiscriminating_and_le_encard_extremePoints, MeasureTheory.GibbsMeasure.exists_pos_forall_exists_isDiscriminating_norm_sub_lt, MeasureTheory.GibbsMeasure.exists_isDiscriminating_of_finite_excluded, MeasureTheory.GibbsMeasure.BThetaOrderNeg, MeasureTheory.GibbsMeasure.exists_pos_forall_exists_isDiscriminating_neg, MeasureTheory.GibbsMeasure.gasObservable, MeasureTheory.GibbsMeasure.isDiscriminating_gasObservable, MeasureTheory.GibbsMeasure.exists_isDiscriminating_gasObservable, Potential.BTheta.invariantFieldsOfFiniteEntropy, Potential.BTheta.isBoundedBy_pressure_specificEnergyFunctional, Potential.BTheta.specificEntropy_toReal_le_negFenchel, Potential.BTheta.mem_invariantFieldsOfFiniteEntropy_of_mem_invariantG, Potential.localPotentialₗ, MeasureTheory.tendsto_inv_card_sum_integral_mul_vadd, lp.precomp, Filter.le_of_tendsto_inv_card_sum_of_forall_notMem}
+    \lean{MeasureTheory.GibbsMeasure.localPotentialB, MeasureTheory.GibbsMeasure.pairVolume, MeasureTheory.GibbsMeasure.pairObservable, MeasureTheory.GibbsMeasure.orderGenerators, MeasureTheory.GibbsMeasure.BThetaOrder, MeasureTheory.GibbsMeasure.isClosed_BThetaOrder, MeasureTheory.GibbsMeasure.correlation, MeasureTheory.GibbsMeasure.correlation_sub_sq_le, MeasureTheory.GibbsMeasure.tendsto_inv_card_sum_correlation, MeasureTheory.GibbsMeasure.hasNondegenerateInvariantMeans_of_specificEnergy_le, MeasureTheory.GibbsMeasure.exists_pos_lt_one_forall_lt_invariantVariance, MeasureTheory.GibbsMeasure.invariantVariance_eq_sum, MeasureTheory.GibbsMeasure.exists_mem_invariantG_specificEnergy_le, MeasureTheory.GibbsMeasure.specificEntropy_finsetSum_smul_ne_bot, MeasureTheory.GibbsMeasure.exists_pos_forall_exists_isDiscriminating, MeasureTheory.GibbsMeasure.exists_pos_forall_exists_isDiscriminating_BThetaOrder, MeasureTheory.GibbsMeasure.exists_isDiscriminating_of_isDiscriminating_invariantFieldsOfFiniteEntropy, MeasureTheory.GibbsMeasure.exists_isDiscriminating_and_le_encard_extremePoints, MeasureTheory.GibbsMeasure.exists_pos_forall_exists_isDiscriminating_norm_sub_lt, MeasureTheory.GibbsMeasure.exists_isDiscriminating_of_finite_excluded, MeasureTheory.GibbsMeasure.BThetaOrderNeg, MeasureTheory.GibbsMeasure.exists_pos_forall_exists_isDiscriminating_neg, MeasureTheory.GibbsMeasure.gasObservable, MeasureTheory.GibbsMeasure.isDiscriminating_gasObservable, MeasureTheory.GibbsMeasure.exists_isDiscriminating_gasObservable, MeasureTheory.GibbsMeasure.orderVolumes, MeasureTheory.GibbsMeasure.BThetaOrderCond, MeasureTheory.GibbsMeasure.isClosed_BThetaOrderCond, MeasureTheory.GibbsMeasure.eq_or_eq_neg_of_translate_pairVolume, MeasureTheory.GibbsMeasure.eq_or_eq_neg_of_forall_abs_inner_eq, Potential.restrictVolumes, MeasureTheory.GibbsMeasure.normAt_sub_restrictVolumes_le, MeasureTheory.GibbsMeasure.exists_mem_BThetaOrder_coe_eq_restrictVolumes, MeasureTheory.GibbsMeasure.BThetaOrderCond_eq_BThetaOrder, MeasureTheory.GibbsMeasure.mem_BThetaOrder_iff, Potential.IsPairPotential, MeasureTheory.GibbsMeasure.isPairPotential_of_mem_BThetaOrder, MeasureTheory.GibbsMeasure.isGasPotential_of_mem_BThetaOrder_gasObservable, MeasureTheory.GibbsMeasure.exists_isPairPotential_isGasPotential_isDiscriminating, MeasureTheory.GibbsMeasure.relativeEntropyIn_infinitePi, MeasureTheory.GibbsMeasure.specificEntropy_infinitePi, Potential.BTheta.invariantFieldsOfFiniteEntropy, Potential.BTheta.isBoundedBy_pressure_specificEnergyFunctional, Potential.BTheta.specificEntropy_toReal_le_negFenchel, Potential.BTheta.mem_invariantFieldsOfFiniteEntropy_of_mem_invariantG, Potential.localPotentialₗ, MeasureTheory.tendsto_inv_card_sum_integral_mul_vadd, lp.precomp, Filter.le_of_tendsto_inv_card_sum_of_forall_notMem}
     \leanok
 
     $\mathcal B_\Theta(f_1,\dots,f_N)$ is the closed linear span of $\Phi^{(\Lambda_0,f_n)}$ and
     $\Phi^{(\Lambda_i, f_m\,(f_n\circ\theta_i))}$, $\Lambda_i = \Lambda_0 \cup (\Lambda_0 - i)$,
-    $i \in I$ (Georgii's own ``more precise'' description of his three conditions; the equivalence of
-    the two descriptions is not proved). (16.22)--(16.23): the nondegeneracy of the invariant means
+    $i \in I$, Georgii's own ``more precise'' description, and this equals the subspace cut out
+    by his three conditions on the interaction terms (his ``it is easily seen''): the latter is
+    closed since norm convergence in $\mathcal B_\Theta$ forces uniform convergence of each term
+    and the spans are finite-dimensional, the generators satisfy the conditions, and a potential
+    satisfying them is the $\|\cdot\|_0$-limit of its truncations to finitely many translate
+    classes, each a finite combination of generators; the step ``$\Lambda_i$, $\Lambda_j$ are not
+    translates for $i \neq \pm j$'' needs only $\Lambda_0 \neq \emptyset$, not Georgii's cube, and
+    $0 \notin I$ is his $i \neq 0$. Hence Comment (16.24)(3)'s first sentence (elements of
+    $\mathcal B_\Theta(f)$ for single-site $f$ are pair potentials) and the gas-potential half of
+    Example (16.25)(1); the Bernoulli field $\alpha^S$ has specific entropy
+    $-\mathcal H(\alpha\mid\lambda)$. (16.22)--(16.23): the nondegeneracy of the invariant means
     passes from $\mu$ to any $\nu$ with $\langle\nu,\Psi\rangle \leq \langle\mu,\Psi\rangle +
     \varepsilon\|\Psi\|_0$ on $\mathcal B_\Theta(f)$ when $4\varepsilon|\Lambda_0|\|f_a\|^2$ stays
     below the variance of $\mu(f_a\mid\mathcal I)$, the mean ergodic correlation limit (14.A3)
@@ -42,9 +51,9 @@
     (16.24)(1) (interaction terms on any finite family of volumes vanish, so the range is
     arbitrarily long) and (16.24)(2) (the ferromagnetic cone $\mathcal B^-_\Theta(f)$, $N = 1$).
     Example (16.25)(1): the lattice gas on $\{0,\dots,N\}$ with $f_n = 1_{\{\sigma_0 = n\}}$, the
-    Dirac measures at the constant configurations giving full rank; Georgii's identification of
-    $\mathcal B_\Theta(f_1,\dots,f_N)$ with the gas pair potentials is not proved. Not formalised:
-    (16.24)(3)--(4), (16.25)(2), (16.26)--(16.27).
+    Dirac measures at the constant configurations giving full rank, and the modified potential a
+    gas pair potential with vacuum $0$ as Georgii states. Not formalised: the converse inclusion in
+    (16.25)(1), the criterion of (16.24)(3), (16.24)(4), (16.25)(2), (16.26)--(16.27).
 \end{theorem}
 \begin{proof}
     \leanok
@@ -53,7 +62,7 @@
 \begin{theorem}[Georgii (16.28)--(16.30), broken shift invariance]
     \label{thm:op-16-30}
     \uses{thm:op-16-21, thm:erg-14A3, thm:ext-77-concrete}
-    \lean{MeasureTheory.GibbsMeasure.atInfinityWithin, MeasureTheory.GibbsMeasure.IsOscillating, MeasureTheory.GibbsMeasure.hasCountableBasis_atInfinityWithin, MeasureTheory.GibbsMeasure.isCountablyGenerated_atInfinityWithin, MeasureTheory.GibbsMeasure.exists_mem_extremePoints_invariantG_isOscillating, MeasureTheory.GibbsMeasure.correlation_sub_integral_sq_eq, MeasureTheory.GibbsMeasure.abs_correlation_sub_integral_sq_le, MeasureTheory.GibbsMeasure.integral_abs_condExp_tail_sub_integral_pos_of_isOscillating, MeasureTheory.GibbsMeasure.measure_condExp_tail_ne_integral_pos_of_isOscillating, MeasureTheory.GibbsMeasure.notMem_extremePoints_G_of_measure_condExp_tail_ne_integral_pos, MeasureTheory.GibbsMeasure.exists_mem_extremePoints_invariantG_notMem_extremePoints_G, MeasureTheory.GibbsMeasure.condExp_tail_ae_eq_integral_of_forall_condExp_comp_shift, MeasureTheory.GibbsMeasure.exists_mem_extremePoints_G_integral_comp_shift_ne, MeasureTheory.GibbsMeasure.exists_mem_extremePoints_G_notMem_invariantG_of_isOscillating, MeasureTheory.GibbsMeasure.nonempty_extremePoints_invariantG_diff_extremePoints_G, MeasureTheory.GibbsMeasure.nonempty_extremePoints_G_diff_invariantG, MeasureTheory.GibbsMeasure.exists_mem_invariantG_isOscillating, Filter.limsup_sub_liminf_le_of_eventually_abs_sub_le, Filter.liminf_lt_limsup_of_eventually_abs_sub_le}
+    \lean{MeasureTheory.GibbsMeasure.atInfinityWithin, MeasureTheory.GibbsMeasure.IsOscillating, MeasureTheory.GibbsMeasure.hasCountableBasis_atInfinityWithin, MeasureTheory.GibbsMeasure.isCountablyGenerated_atInfinityWithin, MeasureTheory.GibbsMeasure.exists_mem_extremePoints_invariantG_isOscillating, MeasureTheory.GibbsMeasure.correlation_sub_integral_sq_eq, MeasureTheory.GibbsMeasure.abs_correlation_sub_integral_sq_le, MeasureTheory.GibbsMeasure.integral_abs_condExp_tail_sub_integral_pos_of_isOscillating, MeasureTheory.GibbsMeasure.measure_condExp_tail_ne_integral_pos_of_isOscillating, MeasureTheory.GibbsMeasure.notMem_extremePoints_G_of_measure_condExp_tail_ne_integral_pos, MeasureTheory.GibbsMeasure.exists_mem_extremePoints_invariantG_notMem_extremePoints_G, MeasureTheory.GibbsMeasure.condExp_tail_ae_eq_integral_of_forall_condExp_comp_shift, MeasureTheory.GibbsMeasure.exists_mem_extremePoints_G_integral_comp_shift_ne, MeasureTheory.GibbsMeasure.exists_mem_extremePoints_G_notMem_invariantG_of_isOscillating, MeasureTheory.GibbsMeasure.nonempty_extremePoints_invariantG_diff_extremePoints_G, MeasureTheory.GibbsMeasure.nonempty_extremePoints_G_diff_invariantG, MeasureTheory.GibbsMeasure.exists_mem_invariantG_isOscillating, MeasureTheory.GibbsMeasure.altCfg, MeasureTheory.GibbsMeasure.altField, MeasureTheory.GibbsMeasure.spinObservable, MeasureTheory.GibbsMeasure.altAxis, MeasureTheory.GibbsMeasure.altField_mem_invariantFieldsOfFiniteEntropy, MeasureTheory.GibbsMeasure.correlation_spinObservable_altField, MeasureTheory.GibbsMeasure.isOscillating_altField, MeasureTheory.GibbsMeasure.exists_isOscillating_altAxis, MeasureTheory.GibbsMeasure.exists_nonempty_extremePoints_diff_altAxis, Filter.limsup_sub_liminf_le_of_eventually_abs_sub_le, Filter.liminf_lt_limsup_of_eventually_abs_sub_le}
     \leanok
 
     $\mu$ is $f$-$I$-oscillating if $\limsup_{|i|\to\infty, i\in I}\mu(f\,f\circ\theta_i) >
@@ -72,7 +81,14 @@
     $\operatorname{ex}\mathcal G(\Phi) \setminus \mathcal G_\Theta(\Phi)$ are nonempty. Erratum:
     the gap in (16.29) must exceed $4\varepsilon|\Lambda_0|\|f\|^2$, not $2\varepsilon|\Lambda_0|\|f\|^2$,
     since the limsup and the liminf each move by $2\varepsilon|\Lambda_0|\|f\|^2$; the statement
-    is unaffected. Example (16.31) is not formalised.
+    is unaffected. Example (16.31): the field $(\delta_{\omega^+} + \delta_{\omega^-})/2$ with
+    $\omega^\pm_j = \pm(-1)^{j_1}$ is shift invariant of finite specific entropy with
+    $\mu(\sigma_0\sigma_i) = (-1)^{i_1}$, hence $\sigma_0$-$I$-oscillating along the first axis, so
+    every $\Phi^0$ can be modified on the axis pairs into a potential with
+    $\operatorname{ex}\mathcal G_\Theta \setminus \operatorname{ex}\mathcal G$ and
+    $\operatorname{ex}\mathcal G \setminus \mathcal G_\Theta$ nonempty; Georgii's field is the
+    product over lines of the alternating two-state chain, which agrees with this one on the axis,
+    all that (16.30) uses.
 \end{theorem}
 \begin{proof}
     \leanok
