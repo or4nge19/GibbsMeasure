@@ -357,6 +357,8 @@ public import GibbsMeasure.Specification.HeisenbergPeriodic
 public import GibbsMeasure.Specification.HeisenbergPeriodicModification
 public import GibbsMeasure.Specification.TailGluedSpecification
 public import GibbsMeasure.Specification.HeisenbergSpecification
+public import GibbsMeasure.Specification.HeisenbergClusterPoints
+public import GibbsMeasure.Specification.InfraredBoundFourier
 public import GibbsMeasure.Specification.InfraredBound
 public import GibbsMeasure.Specification.InvariantFieldsBarycenter
 public import GibbsMeasure.Specification.InvariantFieldsCoreTopology

@@ -6,6 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Mathlib.Analysis.PSeries.Lattice
+public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.PiWithDensity
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.ExponentialMoment
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.PositiveDotProduct
 public import GibbsMeasure.Specification.HeisenbergPeriodic
@@ -51,6 +52,10 @@ interaction is the isotropic pair potential of (20.1).
   `δ > 0` depending only on the a priori measure such that `°γ_Λ^Φ(|σ_i|²) ≥ δ` for every cube,
   every dimension, every site, and every nonnegative `J` which is nonnegative definite relative to
   all the reflections.  See the docstring for two errata to Georgii's proof.
+* `integrable_exp_heisenbergExponent`: **Georgii's parenthetical "(Condition (20.3) readily
+  implies that `°γ_{Λ(n)}^Φ` is well-defined.)"**.  Over an unbounded spin space the standing
+  hypothesis `°Z_Λ^Φ < ∞` of §17.2 — the argument `hint` of every theorem about `°γ_Λ^Φ` — is a
+  consequence of (20.2) and (20.3), not an extra assumption.
 * `heisenbergPeriodicGibbsDist_tail_le`: **the tail estimate of the proof of (20.6)**,
   `°γ_Λ^Φ(|σ_i|² ≥ t) ≤ b(a) e^{-a t}` for every `a > 0` and every `t`, uniformly in the cube,
   with `b(a) = (∫ λ(dx) e^{(a + ½‖J‖₀)|x|²}) / (∫ λ(dx) e^{-½‖J‖₀|x|²})` — Georgii's `b(a)`, with
@@ -66,6 +71,13 @@ interaction is the isotropic pair potential of (20.1).
   tail measurable, `zero_mem_slowGrowthTailSet`, and
   `exists_nonneg_sqrt_dotProduct_le_of_mem_slowGrowthTailSet` the form of membership used in the
   Hamiltonian estimates.
+* `exists_lemma_20_6_of_tail`: **Lemma (20.6) itself**, assembled from the three estimates above
+  with Georgii's constants `b₁(a) = 1 + b(2a)`, `b₂(a) = 2 b₁(2a+1)` and
+  `b₃(a) = b(D+1+a) ∑_i (e ∨ |i|)^{-(D+1)}`, for any probability measure whose one-site tails
+  decay exponentially at every rate.  `GibbsMeasure.Specification.HeisenbergClusterPoints`
+  applies it to `{μ_n^Φ : n ≥ 1} ∪ 𝒢₀(Φ)`, which is Georgii's own statement of (20.6).
+* `slowGrowth_le_slowGrowth`: `α` is nondecreasing in the sup norm — what makes the periodised
+  coupling of (17.25) dominated by `J` in the `α`-weighted norm uniformly in the cube.
 * `slowGrowth_add_le`, `IsSlowlySummable.summable_add`, `IsSlowlySummable.summable_sub` and
   `IsSlowlySummable.summable_sub'`: **Georgii's "the above hypothesis clearly implies that
   `∑_i |J(i-j)| α(i) < ∞`"** after (20.4).  What makes it true is that `α` grows at most by the
@@ -76,10 +88,9 @@ interaction is the isotropic pair potential of (20.1).
 continuity", the tail bound being a bound on a local event.  The three consequences above are
 stated in exactly that generality (any probability measure on a configuration space with the tail
 bound), but the *tail bound itself* is proved here only for the torus measure `°γ_Λ^Φ`: pushing it
-forward to `ℤ^d` needs the embedding `°γ_Λ^Φ ↦ °γ_Λ^Φ × δ_ω` for the Heisenberg family, which is
-`MeasureTheory.GibbsMeasure.heisenbergPeriodicGibbsSpec_latticeBox` in
-`GibbsMeasure.Specification.HeisenbergPeriodicModification`; carrying the tail bound along it is
-the first step of (20.7) and is not done here.
+forward to `ℤ^d` is the first step of (20.7) and is done in
+`GibbsMeasure.Specification.HeisenbergClusterPoints`
+(`heisenbergPeriodicField_zero_tail_le`), not here.
 
 ## Where (20.5) is
 
@@ -95,14 +106,15 @@ inputs it needs from §20.1 are proved there: the absolute convergence of `H_Λ^
 
 ## What is *not* proved, and why
 
-* **(20.7)**, `∅ ≠ 𝒢₀(Φ) ⊆ 𝒢_Θ(Φ)`.  Georgii's proof needs three things this file does not
-  supply: the transfer of the tail estimate from the torus to the fields
-  `μ_n^Φ = °γ_{Λ(n)}^Φ × δ_0` on `ℤ^d` (see "Not transferred to `ℤ^d`" above), the uniform
-  density bound `limsup_n sup_{ω ∈ Ω_t} ρ_Λ^n(ω) < ∞` feeding Theorem (4.12), and the comparison
-  `‖(γ_Λ^n f - γ_Λ^Φ f) 1_{Ω_t}‖ → 0` of Proposition (4.19) *restricted to `Ω_t`* — the tree's
-  (4.17) (`mem_GP_of_mapClusterPt`) assumes a quasilocal limit specification, which `γ^Φ` is not,
-  so Georgii's "a glance at the proof of Theorem (4.17)" has to be carried out as a separate
-  argument.
+* **(20.7)**, `∅ ≠ 𝒢₀(Φ) ⊆ 𝒢_Θ(Φ)`.  The transfer of the tail estimate from the torus to the
+  fields `μ_n^Φ = °γ_{Λ(n)}^Φ × δ_0` on `ℤ^d` and to their cluster points — so that (20.6) holds
+  as Georgii states it — and the shift invariance of those cluster points are proved in
+  `GibbsMeasure.Specification.HeisenbergClusterPoints`, whose module doc lists exactly what is
+  still missing: the uniform density bound `limsup_n sup_{ω ∈ Ω_t} ρ_Λ^n(ω) < ∞` feeding
+  Theorem (4.12), and the comparison `‖(γ_Λ^n f - γ_Λ^Φ f) 1_{Ω_t}‖ → 0` of Proposition (4.19)
+  *restricted to `Ω_t`* — the tree's (4.17) (`mem_GP_of_mapClusterPt`) assumes a quasilocal limit
+  specification, which `γ^Φ` is not, so Georgii's "a glance at the proof of Theorem (4.17)" has to
+  be carried out as a separate argument.
 * Note that Georgii flags (20.3)–(20.7) as needed *only* for an unbounded state space; over a
   bounded one, (20.7) is Comment (4.14)(1) with Example (4.20)(2) and Example (5.20)(3), which for
   `C`-potentials is `MeasureTheory.GibbsMeasure.GZero_nonempty` and `mem_GP_of_mem_GZero` in
@@ -178,6 +190,17 @@ lemma slowGrowth_sq (i : Fin D → ℤ) :
         (Real.le_log_iff_exp_le (lt_trans (Real.exp_pos 1) h)).2 h.le
       rw [max_eq_right hlog1, max_eq_right h.le]
   rw [slowGrowth, Real.sq_sqrt (le_trans zero_le_one (le_max_left _ _)), hlog]
+
+/-- **`α` is nondecreasing in the sup norm of the site.**  This is what makes the periodised
+coupling `J_{Λ(N)}` of (17.25) dominated by `J` in the `α`-weighted norm, uniformly in the cube:
+a period translate of a site of the fundamental domain is never closer to the origin. -/
+lemma slowGrowth_le_slowGrowth {i j : Fin D → ℤ} (h : ‖i‖ ≤ ‖j‖) :
+    slowGrowth i ≤ slowGrowth j := by
+  refine Real.sqrt_le_sqrt (max_le (le_max_left _ _) ?_)
+  rcases eq_or_lt_of_le (norm_nonneg i) with h0 | h0
+  · rw [← h0, Real.log_zero]
+    exact le_trans zero_le_one (le_max_left _ _)
+  · exact le_trans (Real.log_le_log h0 h) (le_max_right _ _)
 
 /-- **Georgii (20.4).**  `∑_i |J(i)| α(i) < ∞`. -/
 def IsSlowlySummable (J : (Fin D → ℤ) → ℝ) : Prop :=
@@ -573,6 +596,55 @@ theorem exists_le_lintegral_dotProduct_self_heisenbergPeriodicGibbsDist
 
 end LowerBound
 
+/-! ### Georgii: (20.3) makes `°γ_Λ^Φ` well-defined -/
+
+section WellDefined
+
+variable {d n N : ℕ} [NeZero N] {J : (Fin d → ℤ) → ℝ} {ν : Measure (Fin n → ℝ)}
+
+/-- **Georgii's "(Condition (20.3) readily implies that `°γ_{Λ(n)}^Φ` is well-defined.)"** of
+§20.1.  The exponent of (17.24) is bounded by `½‖J‖₀ ∑_{i ∈ Λ} |σ_i|²`
+(`abs_heisenbergExponent_le`), so the Boltzmann factor of the periodic Gibbs distribution is
+dominated by a product of one-site Gaussian weights, each of which (20.3) makes integrable.
+This is the hypothesis `hint` — Georgii's standing assumption `°Z_Λ^Φ < ∞` of §17.2 — carried by
+every theorem about `°γ_Λ^Φ`; over an unbounded spin space it is a *consequence* of (20.2) and
+(20.3), and not an extra assumption. -/
+theorem integrable_exp_heisenbergExponent [SigmaFinite ν] (hexp : HasExpSqMoments ν)
+    (hsum : Summable J) :
+    Integrable (fun ω ↦ Real.exp (heisenbergExponent N n J ω))
+      (Measure.pi fun _ : Fin d → ZMod (2 * N) ↦ ν) := by
+  classical
+  set c : ℝ := (∑' m, |J m|) / 2 with hc
+  refine ⟨measurable_heisenbergExponent.exp.aestronglyMeasurable, ?_⟩
+  rw [hasFiniteIntegral_iff_ofReal (Filter.Eventually.of_forall fun _ ↦ Real.exp_nonneg _),
+    lt_top_iff_ne_top]
+  have hbound : ∀ ω : (Fin d → ZMod (2 * N)) → (Fin n → ℝ),
+      ENNReal.ofReal (Real.exp (heisenbergExponent N n J ω))
+        ≤ ∏ i, ENNReal.ofReal (Real.exp (c * (ω i ⬝ᵥ ω i))) := by
+    intro ω
+    have hle : heisenbergExponent N n J ω ≤ c * ∑ i, (ω i ⬝ᵥ ω i) :=
+      (le_abs_self _).trans (abs_heisenbergExponent_le hsum ω)
+    calc ENNReal.ofReal (Real.exp (heisenbergExponent N n J ω))
+        ≤ ENNReal.ofReal (Real.exp (c * ∑ i, (ω i ⬝ᵥ ω i))) :=
+          ENNReal.ofReal_le_ofReal (Real.exp_le_exp.2 hle)
+      _ = ∏ i, ENNReal.ofReal (Real.exp (c * (ω i ⬝ᵥ ω i))) := by
+          rw [Finset.mul_sum, Real.exp_sum,
+            ENNReal.ofReal_prod_of_nonneg fun i _ ↦ Real.exp_nonneg _]
+  have hg : Measurable fun y : Fin n → ℝ ↦ ENNReal.ofReal (Real.exp (c * (y ⬝ᵥ y))) :=
+    ENNReal.measurable_ofReal.comp (Real.continuous_exp.measurable.comp
+      ((Finset.measurable_sum _ fun cc _ ↦
+        (measurable_pi_apply cc).mul (measurable_pi_apply cc)).const_mul _))
+  refine ne_top_of_le_ne_top ?_ (lintegral_mono hbound)
+  refine ne_top_of_le_ne_top ?_ (le_of_eq (lintegral_pi_prod
+    (μ := fun _ : Fin d → ZMod (2 * N) ↦ ν)
+    (g := fun _ (y : Fin n → ℝ) ↦ ENNReal.ofReal (Real.exp (c * (y ⬝ᵥ y)))) fun _ ↦ hg))
+  refine ENNReal.prod_ne_top fun i _ ↦ ?_
+  rw [← ofReal_integral_eq_lintegral_ofReal (hexp c)
+    (Filter.Eventually.of_forall fun y ↦ Real.exp_nonneg _)]
+  exact ENNReal.ofReal_ne_top
+
+end WellDefined
+
 /-! ### Georgii, Lemma (20.6): the tail estimate and its three consequences -/
 
 section Tail
@@ -961,6 +1033,84 @@ theorem measurableSet_tail_slowGrowthTailSet :
     ext ω
     by_cases hmem : ω ∈ slowGrowthTailSet D n <;> simp [hmem]
   exact hpre ▸ hcyl (measurableSet_singleton (1 : ℝ))
+
+/-! #### Lemma (20.6), assembled -/
+
+section Lemma206
+
+variable {D n : ℕ} {μ : Measure ((Fin D → ℤ) → (Fin n → ℝ))}
+
+/-- **Georgii, Lemma (20.6).**  A probability measure on `(ℝ^n)^{ℤ^D}` whose one-site tails decay
+exponentially at *every* rate — for each `a > 0` some `b(a) > 0` with
+`μ(|σ_i|² ≥ t) ≤ b(a) e^{-a t}` for every site `i` and every `t` — satisfies Georgii's three
+estimates, with constants depending only on `a`, on `b` and on the dimension:
+
+* (i) `μ(e^{a|σ_i|²}) ≤ b₁(a)` for all `i`;
+* (ii) `μ(|σ_i·σ_j| 1_{|σ_i·σ_j| ≥ t}) ≤ b₂(a) e^{-a t}` for all `t` and all `i, j`;
+* (iii) `μ(Ω_t) ≥ 1 - b₃(a) e^{-a t²}` for all `t ≥ 1`, in the equivalent form `μ(Ω_t^c) ≤ …`.
+
+The constants are Georgii's: `b₁(a) = 1 + b(2a)`, `b₂(a) = 2 b₁(2a+1)` — his `b₂(a) = b₁(2a+1)`,
+the factor `2` being the price of replacing his Cauchy–Schwarz step by `2|x·y| ≤ |x|² + |y|²` —
+and `b₃(a) = b(D+1+a) ∑_{i ∈ ℤ^D} (e ∨ |i|)^{-(D+1)}`.
+
+The hypothesis is exactly what Georgii's proof of (20.6) establishes: on the torus it is
+`heisenbergPeriodicGibbsDist_tail_le`, and for his fields `μ_n^Φ` on `ℤ^d` and their cluster
+points `𝒢₀(Φ)` it is proved in
+`GibbsMeasure.Specification.HeisenbergClusterPoints`.  Georgii's `t ≥ 0` in (ii) is not needed. -/
+theorem exists_lemma_20_6_of_tail [IsProbabilityMeasure μ]
+    (htail : ∀ a : ℝ, 0 < a → ∃ b : ℝ, 0 < b ∧ ∀ (i : Fin D → ℤ) (t : ℝ),
+      μ {ω | t ≤ ω i ⬝ᵥ ω i} ≤ ENNReal.ofReal (b * Real.exp (-(a * t))))
+    {a : ℝ} (ha : 0 < a) :
+    ∃ b₁ b₂ b₃ : ℝ, 0 < b₁ ∧ 0 < b₂ ∧ 0 < b₃ ∧
+      (∀ i : Fin D → ℤ,
+        ∫⁻ ω, ENNReal.ofReal (Real.exp (a * (ω i ⬝ᵥ ω i))) ∂μ ≤ ENNReal.ofReal b₁) ∧
+      (∀ (i j : Fin D → ℤ) (t : ℝ),
+        ∫⁻ ω, Set.indicator {ω : (Fin D → ℤ) → (Fin n → ℝ) | t ≤ |ω i ⬝ᵥ ω j|}
+            (fun ω ↦ ENNReal.ofReal |ω i ⬝ᵥ ω j|) ω ∂μ
+          ≤ ENNReal.ofReal (b₂ * Real.exp (-(a * t)))) ∧
+      (∀ t : ℝ, 1 ≤ t →
+        μ (slowGrowthSet D n t)ᶜ ≤ ENNReal.ofReal (b₃ * Real.exp (-(a * t ^ 2)))) := by
+  classical
+  obtain ⟨β₁, hβ₁0, hβ₁⟩ := htail (2 * a) (by linarith)
+  obtain ⟨β₂, hβ₂0, hβ₂⟩ := htail (2 * (2 * a + 1)) (by linarith)
+  obtain ⟨β₃, hβ₃0, hβ₃⟩ := htail ((D : ℝ) + 1 + a) (by positivity)
+  -- the lattice `p`-series of (iii)
+  set C : ℝ := ∑' i : Fin D → ℤ, (max (Real.exp 1) ‖i‖) ^ (-((D : ℝ) + 1)) with hC
+  have hCsum := summable_max_exp_norm_rpow (D := D) (p := (D : ℝ) + 1) (by linarith)
+  have hCpos : 0 < C := by
+    refine lt_of_lt_of_le ?_ (hCsum.le_tsum (0 : Fin D → ℤ) fun i _ ↦
+      Real.rpow_nonneg (le_trans (Real.exp_pos 1).le (le_max_left _ _)) _)
+    exact Real.rpow_pos_of_pos (lt_of_lt_of_le (Real.exp_pos 1) (le_max_left _ _)) _
+  -- (i), at the exponential order `a` and at the order `2a + 1` needed by (ii)
+  have hmom : ∀ (c b : ℝ), 0 < c → 0 < b →
+      (∀ (i : Fin D → ℤ) (t : ℝ),
+        μ {ω | t ≤ ω i ⬝ᵥ ω i} ≤ ENNReal.ofReal (b * Real.exp (-(2 * c * t)))) →
+      ∀ i : Fin D → ℤ, ∫⁻ ω, ENNReal.ofReal (Real.exp (c * (ω i ⬝ᵥ ω i))) ∂μ
+        ≤ ENNReal.ofReal (1 + b) := by
+    intro c b hc _hb h i
+    refine le_trans (lintegral_exp_dotProduct_self_le_of_tail hc i fun t _ ↦ h i t) ?_
+    rw [ENNReal.ofReal_add zero_le_one _hb.le, ENNReal.ofReal_one]
+  refine ⟨1 + β₁, 2 * (1 + β₂), β₃ * C, by linarith, by linarith, by positivity,
+    hmom a β₁ ha hβ₁0 hβ₁, fun i j t ↦ ?_, fun t ht ↦ ?_⟩
+  · -- (ii)
+    have hi := hmom (2 * a + 1) β₂ (by linarith) hβ₂0 hβ₂ i
+    have hj := hmom (2 * a + 1) β₂ (by linarith) hβ₂0 hβ₂ j
+    refine le_trans (lintegral_indicator_abs_dotProduct_le ha i j t) ?_
+    calc ENNReal.ofReal (Real.exp (-(a * t)))
+            * ((∫⁻ ω, ENNReal.ofReal (Real.exp ((2 * a + 1) * (ω i ⬝ᵥ ω i))) ∂μ)
+              + ∫⁻ ω, ENNReal.ofReal (Real.exp ((2 * a + 1) * (ω j ⬝ᵥ ω j))) ∂μ)
+        ≤ ENNReal.ofReal (Real.exp (-(a * t)))
+            * (ENNReal.ofReal (1 + β₂) + ENNReal.ofReal (1 + β₂)) :=
+          mul_le_mul' le_rfl (add_le_add hi hj)
+      _ = ENNReal.ofReal (2 * (1 + β₂) * Real.exp (-(a * t))) := by
+          rw [← ENNReal.ofReal_add (by linarith) (by linarith), ← ENNReal.ofReal_mul
+            (Real.exp_nonneg _)]
+          congr 1
+          ring
+  · -- (iii)
+    exact measure_compl_slowGrowthSet_le ha hβ₃0.le le_rfl hβ₃ ht
+
+end Lemma206
 
 end SlowGrowth
 

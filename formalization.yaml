@@ -1417,10 +1417,20 @@ alignment:
         for the N-vector potential over the slowly increasing configurations Omega_* (a tail event),
         (20.4) gives the absolute convergence of the Hamiltonian on Omega_* and Georgii's quadratic
         estimate, (20.3) the finiteness of the partition function, so gamma^Phi exists and
-        mu(Omega_*) = 1 on G(Phi); the a priori measure need only be finite and non-zero. Not
-        formalized: (20.7) (the tail estimate transferred to the embedded periodic fields, the
-        uniform density bound on Omega_t, and the convergence of the kernels on Omega_t, since
-        gamma^Phi is not quasilocal and (4.17) as stated does not apply) and Section 20.2.
+        mu(Omega_*) = 1 on G(Phi); the a priori measure need only be finite and non-zero. Lemma (20.6) as stated
+        (Specification/HeisenbergClusterPoints.lean): for the embedded periodic fields with zero
+        boundary condition (through (17.24)) and their cluster points G_0(Phi), the tail estimate
+        holding at every site (inside the cube through the coupling map, outside it since the spin
+        is 0, rather than Georgii's "by continuity"), with the three constants; (20.3) makes the
+        periodic Gibbs distribution well defined; every member of G_0(Phi) is shift invariant;
+        Georgii's domination of J_Lambda(n) by (20.4) uniformly in the cube. Section 20.2:
+        the Fourier transform (20.9) on the torus and its restriction (20.10) to the discrete dual
+        (Specification/InfraredBoundFourier.lean). Not formalized: (20.7)(b) G_0(Phi) nonempty (the
+        finite-volume density bound on Omega_t fed into (4.12), stated in the tree for a net of
+        modifications) and (c) G_0(Phi) inside G(Phi) (the convergence of the kernels on Omega_t
+        and Georgii's "glance at the proof of (4.17)", gamma^Phi not being quasilocal); (20.11)
+        onwards, in particular Lemma (20.13), a three-stage approximation of the a priori measure
+        combined with the chessboard estimate.
     - source: "Section 18.1: (18.1)-(18.3), (18.8)-(18.10)"
       lean: "MeasureTheory.GibbsMeasure.periodicGibbsDist_forall_notMem_torusPattern_le_patternWeight"
       module: "GibbsMeasure/Specification/PatternPercolation.lean"

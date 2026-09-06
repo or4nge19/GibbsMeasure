@@ -18,7 +18,7 @@
 \begin{lemma}[Georgii (20.6), on the torus]
     \label{lem:ir-20-6}
     \uses{def:ir-20-1, thm:rp-17-29, thm:rp-17-11}
-    \lean{MeasureTheory.GibbsMeasure.measure_apply_pow_card_le, MeasureTheory.GibbsMeasure.measure_apply_pow_card_le_siteEquiv, MeasureTheory.GibbsMeasure.heisenbergPeriodicGibbsDist_apply_le_div, MeasureTheory.GibbsMeasure.heisenbergPeriodicGibbsDist_tail_le, MeasureTheory.GibbsMeasure.lintegral_exp_dotProduct_self_le_of_tail, MeasureTheory.GibbsMeasure.lintegral_indicator_abs_dotProduct_le, MeasureTheory.GibbsMeasure.slowGrowthSet, MeasureTheory.GibbsMeasure.measure_compl_slowGrowthSet_le, MeasureTheory.lintegral_exp_le_of_measure_le, summable_max_exp_norm_rpow}
+    \lean{MeasureTheory.GibbsMeasure.measure_apply_pow_card_le, MeasureTheory.GibbsMeasure.measure_apply_pow_card_le_siteEquiv, MeasureTheory.GibbsMeasure.heisenbergPeriodicGibbsDist_apply_le_div, MeasureTheory.GibbsMeasure.heisenbergPeriodicGibbsDist_tail_le, MeasureTheory.GibbsMeasure.lintegral_exp_dotProduct_self_le_of_tail, MeasureTheory.GibbsMeasure.lintegral_indicator_abs_dotProduct_le, MeasureTheory.GibbsMeasure.slowGrowthSet, MeasureTheory.GibbsMeasure.measure_compl_slowGrowthSet_le, MeasureTheory.lintegral_exp_le_of_measure_le, summable_max_exp_norm_rpow, MeasureTheory.GibbsMeasure.integrable_exp_heisenbergExponent, MeasureTheory.GibbsMeasure.exists_lemma_20_6_of_tail, MeasureTheory.GibbsMeasure.heisenbergPeriodicField, MeasureTheory.GibbsMeasure.heisenbergPeriodicField_zero_tail_le, MeasureTheory.GibbsMeasure.exists_lemma_20_6_heisenbergPeriodicField, MeasureTheory.GibbsMeasure.heisenbergGZero, MeasureTheory.GibbsMeasure.exists_forall_tail_le_of_mem_heisenbergGZero, MeasureTheory.GibbsMeasure.exists_lemma_20_6_heisenbergGZero, MeasureTheory.GibbsMeasure.measurePreserving_shift_of_mem_heisenbergGZero, MeasureTheory.GibbsMeasure.sum_abs_periodizedCoupling_mul_slowGrowth_le, MeasureTheory.GibbsMeasure.map_periodicJuxt_apply_of_cylinderEvents, MeasureTheory.GibbsMeasure.measurePreserving_shift_map_periodicPullback}
     \leanok
 
     For a nonnegative-definite $J$ and an a priori measure with exponential square moments, the
@@ -29,9 +29,17 @@
     $\mu(|\sigma_i\cdot\sigma_j|\,1_{|\sigma_i\cdot\sigma_j| \geq t}) \leq b_2(a)e^{-at}$ (with a
     factor $2$ where Georgii uses Cauchy--Schwarz), and (iii) $\mu(\Omega_t^c) \leq b_3(a)e^{-at^2}$
     for the slow-growth set $\Omega_t = \{|\sigma_i|^2 \leq t^2\alpha(i)^2\ \forall i\}$, using
-    $\sum_{\mathbb Z^d}(e \vee |i|)^{-(d+1)} < \infty$. The transfer to the embedded periodic
-    fields on $\mathbb Z^d$, through (17.24) (Theorem \ref{thm:rp-17-24}), and to
-    $\mathcal G_0(\Phi)$ is the open part of (20.7).
+    $\sum_{\mathbb Z^d}(e \vee |i|)^{-(d+1)} < \infty$. Condition (20.3) makes
+    ${}^\circ\gamma^\Phi_\Lambda$ well defined, as Georgii says in passing. The lemma as stated:
+    for $\mu^\Phi_n = {}^\circ\gamma^\Phi_{\Lambda(n)} \times \delta_0$, the embedded periodic field
+    with zero boundary condition (through (17.24), Theorem \ref{thm:rp-17-24}), the tail
+    estimate holds at every site --- inside the cube through the coupling map, outside it because
+    the spin is $0$ and $b(a) \geq 1$, rather than Georgii's ``by continuity'' --- and passes to
+    the cluster points $\mathcal G_0(\Phi)$ of $(\mu^\Phi_n)$, so (i)--(iii) hold with three
+    constants for every $\mu \in \{\mu^\Phi_n\} \cup \mathcal G_0(\Phi)$; every member of
+    $\mathcal G_0(\Phi)$ is shift invariant, the part (d) of the proof of (20.7). Georgii's
+    ``$J_{\Lambda(n)}$ is dominated using (20.4)'' is $\sum_{j\in\Lambda}|J_\Lambda(i-j)|\alpha(j)
+    \leq \sum_k |J(i-k)|\alpha(k)$, uniformly in the cube.
 \end{lemma}
 \begin{proof}
     \leanok
@@ -83,3 +91,17 @@
 \begin{proof}
     \leanok
 \end{proof}
+
+\begin{definition}[Georgii (20.9)--(20.10): the Fourier transform of the coupling and its restriction to the discrete dual]
+    \label{def:ir-20-9}
+    \uses{def:ir-20-1, def:gh-13-35}
+    \lean{MeasureTheory.GibbsMeasure.couplingFourier, MeasureTheory.GibbsMeasure.ofReal_couplingFourier, MeasureTheory.GibbsMeasure.continuous_couplingFourier, MeasureTheory.GibbsMeasure.abs_couplingFourier_le, MeasureTheory.GibbsMeasure.couplingFourier_zero, MeasureTheory.GibbsMeasure.mFourier_zsmul_eq_one, MeasureTheory.GibbsMeasure.tsum_mul_mFourier_eq_sum_periodizedCoupling, MeasureTheory.GibbsMeasure.couplingFourier_eq_sum_latticeBox}
+    \leanok
+
+    $\hat J(z) = \sum_i z^i J(i)$ on the torus $G = K^d$ (Mathlib's characters of the unit torus,
+    as in \S13.3), real for even $J$ and continuous for summable $J$, with $\hat J(1) = \sum_i J(i)$;
+    on the $2n$-th roots of unity $G_\Lambda$ it is the finite sum $\sum_{i\in\Lambda} z^i
+    J_\Lambda(i)$ of the periodised coupling (17.25). The correlation transform (20.11), the
+    infrared bound (20.12)--(20.13) and Theorem (20.15) are not yet formalised: (20.13) is a
+    three-stage approximation of the a priori measure combined with the chessboard estimate.
+\end{definition}
