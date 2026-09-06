@@ -935,6 +935,84 @@ theorem IsBoundaryLaw.eq_boundaryLawMeasure_of_forall_cyl {μ : Measure (S → E
           hℓ.boundaryLawMeasure_cyl hQ hG (SimpleGraph.connected_induce_hull hG.connected (root
               hG) Λ)]⟩
 
+/-! ### Georgii, step 3) of the proof of Theorem (12.31): the ratios `r_{Λ,ζ}`
+
+Georgii attaches to `μ ∈ 𝒢(γ^Q)` and a connected volume `Λ` the ratios
+
+`r_{Λ,ζ}(μ) = μ(σ_{Λ ∪ ∂Λ} = ζ) / μ(σ_{Λ ∪ ∂Λ} ≡ a)`,
+
+`a` a reference state, and observes that for the measure (12.13) of a boundary law normalised at
+`a` they are `∏_{k ∈ ∂Λ} ℓ_{k k_Λ}(ζ_k) ∏_{b ∩ Λ ≠ ∅} Q_b(ζ)/Q_b(a)`: the normalising constant
+`z_Λ` cancels, so a *pointwise* domination of boundary laws gives a domination of the ratios. Both
+statements are written multiplicatively, to avoid division in `ℝ≥0∞`. -/
+
+omit [Nonempty E] hℓ in
+/-- For a boundary law normalised at `a`, the weight (12.13) of the constant configuration `a` is
+just its transfer weight: every boundary factor is `1`. -/
+lemma boundaryLawWeight_const_of_normalized {a : E}
+    (hnorm : ∀ ⦃i j⦄, G.Adj i j → ℓ i j a = 1) (Λ : Finset S) :
+    boundaryLawWeight G Q hQ.symm ℓ Λ (fun _ ↦ a) = transferWeight G Q hQ.symm Λ (fun _ ↦ a) := by
+  rw [boundaryLawWeight,
+    Finset.prod_congr rfl fun _ hk ↦ hnorm (G.adj_anchor hk), Finset.prod_const_one, one_mul]
+
+include hℓ hG in
+/-- **Georgii, step 3) of the proof of Theorem (12.31).** For the measure (12.13) of a boundary
+law normalised at `a` the ratio `r_{Λ,ζ}` is the weight (12.13) over the transfer weight of the
+constant configuration `a`; equivalently, without division: -/
+theorem IsBoundaryLaw.measure_cyl_mul_transferWeight_const {a : E}
+    (hnorm : ∀ ⦃i j⦄, G.Adj i j → ℓ i j a = 1) {Λ : Finset S}
+    (hΛ : (G.induce (Λ : Set S)).Connected) (ζ : S → E) :
+    boundaryLawMeasure hQ hℓ hG (cyl (Λ ∪ G.outerBoundary Λ) ζ)
+        * transferWeight G Q hQ.symm Λ (fun _ ↦ a)
+      = boundaryLawWeight G Q hQ.symm ℓ Λ ζ
+        * boundaryLawMeasure hQ hℓ hG (cyl (Λ ∪ G.outerBoundary Λ) (fun _ ↦ a)) := by
+  rw [hℓ.boundaryLawMeasure_cyl hQ hG hΛ ζ, hℓ.boundaryLawMeasure_cyl hQ hG hΛ (fun _ ↦ a),
+    boundaryLawWeight_const_of_normalized hQ hnorm]
+  ring
+
+omit [Nonempty E] hℓ in
+/-- The weight (12.13) is monotone in the boundary law. -/
+lemma boundaryLawWeight_mono {ℓ' : S → S → E → ℝ≥0∞}
+    (hle : ∀ ⦃i j⦄, G.Adj i j → ∀ x, ℓ i j x ≤ ℓ' i j x) (Λ : Finset S) (ζ : S → E) :
+    boundaryLawWeight G Q hQ.symm ℓ Λ ζ ≤ boundaryLawWeight G Q hQ.symm ℓ' Λ ζ :=
+  mul_le_mul' (Finset.prod_le_prod' fun k hk ↦ hle (G.adj_anchor hk) _) le_rfl
+
+include hℓ hG in
+/-- **Georgii, step 3) of the proof of Theorem (12.31): domination of the ratios.** Two boundary
+laws normalised at the same reference state `a` with `ℓ ≤ ℓ'` pointwise have
+`r_{Λ,ζ}(μ_ℓ) ≤ r_{Λ,ζ}(μ_{ℓ'})` for every connected `Λ` and every `ζ`; written without
+division. -/
+theorem IsBoundaryLaw.measure_cyl_mul_le_of_le {ℓ' : S → S → E → ℝ≥0∞}
+    (hℓ' : IsBoundaryLaw G Q ℓ') {a : E} (hnorm : ∀ ⦃i j⦄, G.Adj i j → ℓ i j a = 1)
+    (hnorm' : ∀ ⦃i j⦄, G.Adj i j → ℓ' i j a = 1)
+    (hle : ∀ ⦃i j⦄, G.Adj i j → ∀ x, ℓ i j x ≤ ℓ' i j x)
+    {Λ : Finset S} (hΛ : (G.induce (Λ : Set S)).Connected) (ζ : S → E) :
+    boundaryLawMeasure hQ hℓ hG (cyl (Λ ∪ G.outerBoundary Λ) ζ)
+        * boundaryLawMeasure hQ hℓ' hG (cyl (Λ ∪ G.outerBoundary Λ) (fun _ ↦ a))
+      ≤ boundaryLawMeasure hQ hℓ' hG (cyl (Λ ∪ G.outerBoundary Λ) ζ)
+        * boundaryLawMeasure hQ hℓ hG (cyl (Λ ∪ G.outerBoundary Λ) (fun _ ↦ a)) := by
+  set T := transferWeight G Q hQ.symm Λ (fun _ ↦ a) with hT
+  have hT0 : T ≠ 0 := (hQ.transferWeight_pos Λ _).ne'
+  have hTt : T ≠ ⊤ := hQ.transferWeight_ne_top Λ _
+  rw [← ENNReal.mul_le_mul_iff_left hT0 hTt]
+  calc boundaryLawMeasure hQ hℓ hG (cyl (Λ ∪ G.outerBoundary Λ) ζ)
+        * boundaryLawMeasure hQ hℓ' hG (cyl (Λ ∪ G.outerBoundary Λ) (fun _ ↦ a)) * T
+      = (boundaryLawMeasure hQ hℓ hG (cyl (Λ ∪ G.outerBoundary Λ) ζ) * T)
+        * boundaryLawMeasure hQ hℓ' hG (cyl (Λ ∪ G.outerBoundary Λ) (fun _ ↦ a)) := by ring
+    _ = boundaryLawWeight G Q hQ.symm ℓ Λ ζ
+          * (boundaryLawMeasure hQ hℓ hG (cyl (Λ ∪ G.outerBoundary Λ) (fun _ ↦ a))
+            * boundaryLawMeasure hQ hℓ' hG (cyl (Λ ∪ G.outerBoundary Λ) (fun _ ↦ a))) := by
+        rw [hℓ.measure_cyl_mul_transferWeight_const hQ hG hnorm hΛ]; ring
+    _ ≤ boundaryLawWeight G Q hQ.symm ℓ' Λ ζ
+          * (boundaryLawMeasure hQ hℓ hG (cyl (Λ ∪ G.outerBoundary Λ) (fun _ ↦ a))
+            * boundaryLawMeasure hQ hℓ' hG (cyl (Λ ∪ G.outerBoundary Λ) (fun _ ↦ a))) :=
+        mul_le_mul' (boundaryLawWeight_mono hQ hle Λ ζ) le_rfl
+    _ = (boundaryLawMeasure hQ hℓ' hG (cyl (Λ ∪ G.outerBoundary Λ) ζ) * T)
+          * boundaryLawMeasure hQ hℓ hG (cyl (Λ ∪ G.outerBoundary Λ) (fun _ ↦ a)) := by
+        rw [hℓ'.measure_cyl_mul_transferWeight_const hQ hG hnorm' hΛ]; ring
+    _ = boundaryLawMeasure hQ hℓ' hG (cyl (Λ ∪ G.outerBoundary Λ) ζ)
+          * boundaryLawMeasure hQ hℓ hG (cyl (Λ ∪ G.outerBoundary Λ) (fun _ ↦ a)) * T := by ring
+
 end BoundaryLawMeasure
 
 
@@ -1527,6 +1605,57 @@ lemma measure_eq_of_forall_cyl [Nonempty E] {μ ν : Measure (S → E)} [IsFinit
   calc μ t = μ.trim hm t := (trim_measurableSet_eq hm ht).symm
     _ = ν.trim hm t := by rw [htrim]
     _ = ν t := trim_measurableSet_eq hm ht
+
+omit [DecidableEq S] in
+/-- The cylinders over a finite volume `H` partition configuration space, so for a probability
+measure their masses sum to `1`. -/
+lemma tsum_measure_cylinder_eq_one {μ : Measure (S → E)} [IsProbabilityMeasure μ] (H : Finset S) :
+    ∑' x : (H → E), μ (cylinder (α := fun _ : S ↦ E) H {x}) = 1 := by
+  have hmeas : ∀ x : (H → E), MeasurableSet (cylinder (α := fun _ : S ↦ E) H {x}) :=
+    fun x ↦ MeasurableSet.cylinder H (measurableSet_singleton x)
+  have hdisj : Pairwise
+      (Function.onFun Disjoint fun x : (H → E) ↦ cylinder (α := fun _ : S ↦ E) H {x}) := by
+    intro x y hxy
+    rw [Function.onFun, Set.disjoint_left]
+    intro σ hσ hσ'
+    rw [mem_cylinder, Set.mem_singleton_iff] at hσ hσ'
+    exact hxy (hσ.symm.trans hσ')
+  have hcover : ⋃ x : (H → E), cylinder (α := fun _ : S ↦ E) H {x} = Set.univ := by
+    ext σ
+    simp only [Set.mem_iUnion, Set.mem_univ, iff_true]
+    exact ⟨H.restrict σ, by rw [mem_cylinder]; exact Set.mem_singleton _⟩
+  rw [← measure_univ (μ := μ), ← hcover, measure_iUnion hdisj hmeas]
+
+omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
+/-- Every cylinder over a finite volume `H` is `cyl H ζ` for some configuration `ζ`. -/
+lemma exists_cylinder_eq_cyl [Nonempty E] (H : Finset S) (x : H → E) :
+    ∃ ζ : S → E, cylinder (α := fun _ : S ↦ E) H {x} = cyl H ζ := by
+  refine ⟨juxt (H : Set S) (Classical.arbitrary (S → E)) x, ?_⟩
+  have hx : x = H.restrict (juxt (H : Set S) (Classical.arbitrary (S → E)) x) := by
+    funext k
+    exact (juxt_apply_of_mem k.2 x).symm
+  rw [cyl, ← hx]
+
+/-- **Two probability measures with proportional cylinder masses over a finite volume agree
+there.** This is the last step of Georgii's step 3) in the proof of Theorem (12.31): once the
+ratios `r_{Λ,ζ}` of two Gibbs measures coincide for all `ζ`, the measures themselves coincide on
+the cylinders over `Λ ∪ ∂Λ`, because the cylinder masses sum to `1` for both. -/
+lemma measure_cyl_eq_of_forall_mul_eq [Nonempty E] {μ ν : Measure (S → E)}
+    [IsProbabilityMeasure μ] [IsProbabilityMeasure ν] {H : Finset S} {η : S → E}
+    (hη : μ (cyl H η) ≠ 0)
+    (h : ∀ ζ, μ (cyl H ζ) * ν (cyl H η) = ν (cyl H ζ) * μ (cyl H η)) (ζ : S → E) :
+    μ (cyl H ζ) = ν (cyl H ζ) := by
+  have hsum : ν (cyl H η) = μ (cyl H η) := by
+    have h1 : ∑' x : (H → E), μ (cylinder (α := fun _ : S ↦ E) H {x}) * ν (cyl H η)
+        = ∑' x : (H → E), ν (cylinder (α := fun _ : S ↦ E) H {x}) * μ (cyl H η) :=
+      tsum_congr fun x ↦ by
+        obtain ⟨ξ, hξ⟩ := exists_cylinder_eq_cyl H x
+        rw [hξ]; exact h ξ
+    rwa [ENNReal.tsum_mul_right, ENNReal.tsum_mul_right, tsum_measure_cylinder_eq_one,
+      tsum_measure_cylinder_eq_one, one_mul, one_mul] at h1
+  have hζ := h ζ
+  rw [hsum] at hζ
+  exact (ENNReal.mul_left_inj hη (measure_ne_top _ _)).1 hζ
 
 end CylinderExt
 

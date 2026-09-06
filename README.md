@@ -709,7 +709,9 @@ potential on `ℤ` from (9.6), by Georgii's cyclic rotation of an interval, with
 interaction (9.8)(1) as the instance. On the way (5.5)/(5.6)/(5.9)(b) are proved over a σ-finite a
 priori measure. Comments (9.7) and (9.13), Examples (9.8)(2), (9.15) and (9.17)
 (`GibbsMeasure/Model/OneDimensionalSymmetryExamples.lean`) complete the section, with (20.21) as an explicit
-hypothesis; the (6.4) input of (9.15) is discharged at `K = 0` through the pullback theory of
+hypothesis; the (6.4) input of (9.15) is discharged for every `K ≥ 0` (Griffiths' second inequality
+bounds the first-layer magnetisation below by its `K = 0` value, and a cluster point keeps the
+bound), the `K = 0` case going through the pullback theory of
 `GibbsMeasure/Specification/Pullback.lean` (a potential pulled back along `Prod.fst` has Gibbs
 measures projecting onto those of the original). Transport along a bijection of site sets `e : S ≃ S'` — potentials, specifications,
 transformations, `𝒢`, `ex 𝒢`, `𝓟_Θ`, `𝒢_Θ`, with `siteEquiv` and `Specification.map` as the `S' = S`
@@ -879,8 +881,8 @@ Gibbs measure is unique ((6.7)(2)); **(6.7)(1)**: `𝒢(βΦ) = [μ₋^β, μ₊
 neighbouring spins has a unique infinite component almost surely under every Gibbs measure.
 
 Not yet done: the modulo-commutativity refinement (5.15)(ii) behind Examples (5.17)(3)–(4); the
-continuity of the second derivative asserted in (8.37)/(16.17); Example (9.15) for `K > 0`; the
-three extremality clauses of (12.31)(b); (13.39)–(13.41), (13.44)–(13.45) and the `𝒢_Θ` clause
+continuity of the second derivative asserted in (8.37)/(16.17); in (12.31)(b) the infinitude of
+`ex 𝒢 ∖ ex 𝒢_{I(B)}` and the third extreme invariant element; (13.39)–(13.41), (13.44)–(13.45) and the `𝒢_Θ` clause
 of (13.42); the upper bound (15.46) for a standard Borel state space, and the
 periodic-boundary-condition statements (15.48) (its two inequalities), (15.50)–(15.51),
 (15.57)–(15.58); (16.24)(3)–(4), (16.25)(2), (16.26)–(16.27), (16.31) and the equivalence of

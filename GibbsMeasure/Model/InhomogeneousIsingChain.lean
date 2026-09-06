@@ -10,6 +10,7 @@ public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Hasse
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.NatInt
 public import GibbsMeasure.Model.Ising
 public import GibbsMeasure.Potential.Pair
+public import GibbsMeasure.Potential.PairChain
 public import GibbsMeasure.Specification.ExtremeCorollaries
 public import GibbsMeasure.Topology.LocalMetric
 public import Mathlib.Analysis.Normed.Group.Tannery
@@ -155,50 +156,19 @@ Georgii's volumes are `Λ_N = {1, …, N}`; with `ℕ` indexed from `0` they are
 and the boundary site adjacent to `Λ_N` is `N`.  The bonds meeting `Λ_N` are exactly
 `{i, i+1}` for `i < N`. -/
 
-lemma not_disjoint_pair_range {i N : ℕ} (hi : i < N) :
-    ¬ Disjoint ({i, i + 1} : Finset ℕ) (Finset.range N) :=
-  Finset.not_disjoint_iff.2 ⟨i, Finset.mem_insert_self _ _, Finset.mem_range.2 hi⟩
-
 /-- **The Hamiltonian of the inhomogeneous Ising chain in an initial interval.**
 `H_{Λ_N}(σ) = -∑_{i < N} J_i σ_i σ_{i+1}`; the bond `{N, N+1}` and all later ones do not meet
-`Λ_N = {0, …, N-1}`, whereas the boundary bond `{N-1, N}` does. -/
+`Λ_N = {0, …, N-1}`, whereas the boundary bond `{N-1, N}` does.  This is
+`Potential.hamiltonian_pair_range` for the nearest-neighbour pair interaction (6.2). -/
 theorem hamiltonian_isingChainPotential_range (N : ℕ) (σ : ℕ → Bool) :
     (isingChainPotential J).hamiltonian (Finset.range N) σ
       = -∑ i ∈ Finset.range N, J i * (spin (σ i) * spin (σ (i + 1))) := by
-  classical
-  set g : ℕ → ℕ → ℝ := fun i j ↦
-    if ¬ Disjoint ({i, j} : Finset ℕ) (Finset.range N) then isingChainPair J i j (σ i) (σ j)
-      else 0 with hg
-  have hterms : ∀ A : Finset ℕ,
-      (isingChainPotential J).hamiltonianTerms (Finset.range N) σ A = pairTerms g A :=
-    fun A ↦ hamiltonianTerms_pair (isingChainPair J) (Finset.range N) σ A
-  rw [hamiltonian_eq_tsum, tsum_congr hterms, tsum_pairTerms]
-  have hzero : ∀ q : ℕ × ℕ, q ∉ (Finset.range N).image (fun i ↦ (i, i + 1)) →
-      (if q.1 < q.2 then g q.1 q.2 else 0) = 0 := by
-    rintro ⟨a, b⟩ hq
-    simp only
-    split_ifs with hab
-    · rw [hg]
-      simp only
-      by_cases hd : Disjoint ({a, b} : Finset ℕ) (Finset.range N)
-      · rw [ite_eq_right (not_not.2 hd)]
-      · rw [ite_eq_left hd]
-        by_cases hb : b = a + 1
-        · subst hb
-          refine absurd (Finset.mem_image.2 ⟨a, Finset.mem_range.2 ?_, rfl⟩) hq
-          obtain ⟨x, hx, hxN⟩ := Finset.not_disjoint_iff.1 hd
-          simp only [Finset.mem_insert, Finset.mem_singleton] at hx
-          rw [Finset.mem_range] at hxN
-          rcases hx with rfl | rfl <;> omega
-        · exact isingChainPair_of_ne hb _ _
-    · rfl
-  rw [tsum_eq_sum hzero, Finset.sum_image (by intro i _ j _ h; simpa using h),
-    ← Finset.sum_neg_distrib]
-  refine Finset.sum_congr rfl fun i hi ↦ ?_
-  simp only [hg]
-  rw [ite_eq_left (Nat.lt_succ_self i),
-    ite_eq_left (not_disjoint_pair_range (Finset.mem_range.1 hi)), isingChainPair_succ]
-  ring
+  have : IsAbsolutelySummable (Potential.pair (isingChainPair J)) :=
+    isAbsolutelySummable_isingChainPotential J
+  rw [show isingChainPotential J = Potential.pair (isingChainPair J) from rfl,
+    hamiltonian_pair_range (φ := isingChainPair J)
+      (fun i j hj x y ↦ isingChainPair_of_ne hj x y) N σ, ← Finset.sum_neg_distrib]
+  exact Finset.sum_congr rfl fun i _ ↦ by rw [isingChainPair_succ]; ring
 
 /-! ### The finite-volume weights and their transfer recursion
 
@@ -855,28 +825,33 @@ theorem exists_mem_GP_apply_setOf_true (hJ : ∀ n, 0 < J n)
 `μ(σ_n) = 2 μ(σ_n = +1) - 1`, so the plus phase has strictly positive magnetisation at every
 site — Georgii's `μ₊(σ_i) > 0`. -/
 
-lemma integral_spin_apply (μ : Measure (ℕ → Bool)) [IsProbabilityMeasure μ] (n : ℕ) :
-    ∫ ω, spin (ω n) ∂μ = 2 * (μ {σ : ℕ → Bool | σ n = true}).toReal - 1 := by
-  have hA := measurableSet_setOf_apply_eq n true
-  have heq : ∀ ω : ℕ → Bool,
-      spin (ω n) = 2 * ({σ : ℕ → Bool | σ n = true}).indicator (1 : (ℕ → Bool) → ℝ) ω - 1 := by
+/-- **The expectation of a `{±1}`-valued observable**: `μ(spin ∘ f) = 2 μ(f = +1) − 1`. -/
+lemma integral_spin_comp {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω) [IsProbabilityMeasure μ]
+    {f : Ω → Bool} (hf : Measurable f) :
+    ∫ ω, spin (f ω) ∂μ = 2 * (μ {ω | f ω = true}).toReal - 1 := by
+  have hA : MeasurableSet {ω | f ω = true} := hf (measurableSet_singleton true)
+  have heq : ∀ ω : Ω,
+      spin (f ω) = 2 * ({ω | f ω = true}).indicator (1 : Ω → ℝ) ω - 1 := by
     intro ω
-    by_cases h : ω n = true
-    · rw [Set.indicator_of_mem (show ω ∈ {σ : ℕ → Bool | σ n = true} from h), Pi.one_apply, h]
+    by_cases h : f ω = true
+    · rw [Set.indicator_of_mem (show ω ∈ {ω | f ω = true} from h), Pi.one_apply, h]
       norm_num [spin]
-    · have hf : ω n = false := by
-        cases hb : ω n
+    · have hff : f ω = false := by
+        cases hb : f ω
         · rfl
         · exact absurd hb h
-      rw [Set.indicator_of_notMem (show ω ∉ {σ : ℕ → Bool | σ n = true} from h), hf]
+      rw [Set.indicator_of_notMem (show ω ∉ {ω | f ω = true} from h), hff]
       norm_num [spin]
-  have hint : Integrable
-      (fun ω ↦ ({σ : ℕ → Bool | σ n = true}).indicator (1 : (ℕ → Bool) → ℝ) ω) μ :=
+  have hint : Integrable (fun ω ↦ ({ω | f ω = true}).indicator (1 : Ω → ℝ) ω) μ :=
     (integrable_const (1 : ℝ)).indicator hA
   rw [integral_congr_ae (Filter.Eventually.of_forall heq),
     integral_sub (hint.const_mul 2) (integrable_const 1), integral_const_mul,
     integral_indicator_one hA, integral_const]
   simp [measureReal_def]
+
+lemma integral_spin_apply (μ : Measure (ℕ → Bool)) [IsProbabilityMeasure μ] (n : ℕ) :
+    ∫ ω, spin (ω n) ∂μ = 2 * (μ {σ : ℕ → Bool | σ n = true}).toReal - 1 :=
+  integral_spin_comp μ (measurable_pi_apply n)
 
 /-- **Georgii (6.4): the plus phase has positive magnetisation.** Under (6.1) there is a Gibbs
 measure for the inhomogeneous Ising chain with `μ(σ_n) > 0` at every site `n`. -/

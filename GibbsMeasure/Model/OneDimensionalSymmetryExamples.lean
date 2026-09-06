@@ -8,8 +8,11 @@ module
 public import GibbsMeasure.Model.OneDimensionalSymmetry
 public import GibbsMeasure.Specification.OneDimensionalUniqueness
 public import GibbsMeasure.Mathlib.Algebra.Order.SecondDifference
+public import GibbsMeasure.Model.GKSInequalities
 public import GibbsMeasure.Model.Ising
 public import GibbsMeasure.Model.InhomogeneousIsingChain
+public import GibbsMeasure.Potential.FiniteState
+public import GibbsMeasure.Potential.PairChain
 public import GibbsMeasure.Specification.Pullback
 public import Mathlib.MeasureTheory.Integral.Marginal
 public import Mathlib.Analysis.SpecialFunctions.Gaussian.GaussianIntegral
@@ -77,21 +80,34 @@ Phase Transitions*, §9.1, on top of `GibbsMeasure/Model/OneDimensionalSymmetry.
 * `pairOscBound_squareFlip₂`: the expression (9.14) for `τ⁽²⁾` equals `2K`, and
   `measurePreserving_squareFlip₂`: every `μ ∈ 𝒢(Φ)` is `τ⁽²⁾`-invariant (Theorem (9.11)).
 * `not_measurePreserving_squareFlip₁_of_integral_pos`: a measure with `μ(σ_{i1}) > 0` is not
-  `τ⁽¹⁾`-invariant. Georgii obtains such a `μ₊ ∈ 𝒢(Φ)` from Theorem (6.4) (`K = 0`) and from
-  Griffiths' inequalities (`K > 0`, the existence of the limit `lim γ_{[1,N]}(·|ω⁺)` and its
-  monotonicity in `K`). For an arbitrary specification the existence of `μ₊` is the hypothesis of
-  `exists_not_measurePreserving_squareFlip₁`; at `K = 0` it is a **theorem**,
-  `exists_not_measurePreserving_squareFlip₁_of_summable`, at every inverse temperature `β > 0`
-  under Georgii's condition (6.1) for `βJ`: the
-  potential is then the pullback of the inhomogeneous chain potential (6.2) along the projection
-  onto the first layer (`comap_fst_isingChainPotential`), so Theorem (6.4)
-  (`exists_mem_G_integral_spin_pos`) and the transport of `GibbsMeasure/Specification/Pullback.lean`
-  produce `μ₊ = μ₊^{(6.4)} ⊗ λ^ℕ`. For `K > 0` the existence of `μ₊` is still open here: the
-  finite-volume GKS inequalities of `Model/GKSInequalities.lean` are stated for `V → Bool` spins
-  and a general ferromagnetic multi-body interaction — which does cover the two-layer chain on
-  `V = Λ × Fin 2` — but the bridge from `γ_{Λ_N}(·|ω⁺)` for `E = Bool × Bool` to `GKS.corr`
-  (the analogue of `Model/LebowitzMartinLof.lean`'s `fvMag_eq_corr` for the single-layer Ising
-  model) is not written, and neither is the `N → ∞` limit for the two-layer chain.
+  `τ⁽¹⁾`-invariant; for an arbitrary specification the existence of such a `μ₊ ∈ 𝒢(Φ)` is the
+  hypothesis of `exists_not_measurePreserving_squareFlip₁`.
+* `exists_not_measurePreserving_squareFlip₁_of_summable`: **the symmetry `τ⁽¹⁾` is broken**, at
+  every inverse temperature `β > 0` and for **every `K ≥ 0`**, under Georgii's condition (6.1)
+  for the couplings `βJ` (`J_n > 0`, `∑_n e^{-2βJ_n} < ∞`). Georgii proves this for `K = 0` from
+  Theorem (6.4) and, for `K > 0`, cites Griffiths (1967a) for two facts: that
+  `γ^Φ_{{1,…,N}}(σ_{i1}|ω⁺)` increases with `K`, and that `lim_N γ^Φ_{{1,…,N}}(·|ω⁺)` exists.
+  The first is a theorem here; the second is not needed and is not proved.
+  - `squareLayers` is Georgii's identification of `E^Λ` with `{−1,1}^{Λ × {1,2}}`, and
+    `squareSets`, `squareCouplings` the resulting ferromagnetic interaction in `Λ_N` with the `+`
+    boundary condition: `β J_i` on the layer-1 bonds and `β K` on the four-spin bonds, both
+    truncated to `Λ_N` (`energy_squareSets`: `-β H_{Λ_N}(ζ ω⁺)` is that GKS energy).
+  - `gibbsSpecification_squarePotential_range_apply_setOf_fst_eq_true`:
+    `γ^Φ_{Λ_N}(σ_{i1} = +1|ω⁺) = (1 + ⟨σ_{(i,1)}⟩)/2` for the correlation of that ferromagnet
+    (`Potential.gibbsSpecificationOfAbsolutelySummable_apply_of_measure_singleton_eq` is the
+    finite-state closed form, `Potential.hamiltonian_pair_range` the nearest-neighbour
+    Hamiltonian in an initial interval).
+  - `corr_squareSets_zero`: at `K = 0` that correlation is the chain magnetisation
+    `∏_{i ≤ k < N} tanh(β J_k)` of §6.1, because the potential is then the pullback of the
+    inhomogeneous chain potential (6.2) along the projection onto the first layer
+    (`comap_fst_isingChainPotential` and
+    `Specification.map_fst_gibbsSpecificationOfAbsolutelySummable_comap_fst`).
+  - `prod_tanh_le_corr_squareSets` is **Griffiths' inequality** as Georgii uses it — the GKS
+    monotonicity `GibbsMeasure.GKS.corr_mono` in the coupling `K`.
+  - `exists_mem_GP_squarePotential_le_apply_setOf_fst_eq_true`: a cluster point `μ₊` of
+    `γ^Φ_{Λ_N}(·|ω⁺)` in local convergence is a Gibbs measure (Theorem (4.17)/(4.22)) with
+    `μ₊(σ_{i1} = +1) ≥ (1 + ∏_{k ≥ i} tanh(β J_k))/2`, and
+    `exists_mem_G_integral_spin_fst_pos_squarePotential` turns this into `μ₊(σ_{i1}) > 0`.
 
 ## Example (9.17)
 
@@ -1428,37 +1444,266 @@ theorem comap_fst_isingChainPotential (J : ℕ → ℝ) :
   simp only [squarePotential, isingChainPair]
   split_ifs <;> ring
 
-/-- **Georgii, Example (9.15) at `K = 0`: the symmetry `τ⁽¹⁾` is broken.** For `K = 0` the two
-layers decouple and Georgii invokes Theorem (6.4) for the first one. At an inverse temperature
-`β > 0`, under the hypotheses of (6.4) for the couplings `βJ` — `J_n > 0` and
-`∑_n e^{-2βJ_n} < ∞`, Georgii (6.1) — the chain has a Gibbs measure `μ₊` with `μ₊(σ_n) > 0` at
-every site (`exists_mem_G_integral_spin_pos`, transported to `β` by
-`isingChainSpecification_smul`); the product `μ₊ ⊗ λ^ℕ` with a free second layer is a Gibbs
-measure for `Φ = pair (squarePotential J 0)` (`mem_G_map_symm_prod_infinitePi_comap_fst`) whose
-first-layer magnetisation is again `μ₊(σ_n)`, so it is not `τ⁽¹⁾`-invariant. The a priori measure
-is Georgii's equidistribution on the four vertices of the square, `λ = λ₁ ⊗ λ₁`. -/
-theorem exists_not_measurePreserving_squareFlip₁_of_summable {J : ℕ → ℝ} {β : ℝ} (hβ : 0 < β)
-    (hJ : ∀ n, 0 < J n) (h61 : Summable fun n ↦ Real.exp (-2 * (β * J n))) (i : ℕ) :
+/-! #### Griffiths' inequalities for the two-layer chain
+
+For `K > 0` Georgii appeals to Griffiths (1967a): "each `γ^Φ_{{1,…,N}}(σ_{i1}|ω⁺)` is an
+increasing function of `K`".  Under Georgii's own identification of `E^{Λ}` with
+`{−1,1}^{Λ × {1,2}}` (`squareLayers`) the finite-volume Gibbs distribution in
+`Λ_N = {0, …, N−1}` with the `+` boundary condition is the ferromagnet of
+`Model/GKSInequalities.lean` for the nonnegative couplings `β J_i` on the layer-1 bonds
+`{(i,1),(i+1,1)}` and `β K` on the four-spin bonds `{(i,1),(i,2),(i+1,1),(i+1,2)}` — both
+truncated to `Λ_N`, so that the boundary bond `{N−1, N}` contributes the external field
+`{(N−1,1)}` and the pair `{(N−1,1),(N−1,2)}`, again with nonnegative couplings because
+`ω⁺ ≡ (+1,+1)`.  Griffiths' inequality is then `GKS.corr_mono`. -/
+
+/-- Georgii's identification of `E^Λ = ({−1,1}²)^Λ` with `{−1,1}^{Λ × {1,2}}` ("let `S₁` and `S₂`
+be two disjoint copies of `ℕ`"), in a finite volume: `squareLayers N ζ (i, false)` is the first
+layer of `ζ i` and `squareLayers N ζ (i, true)` the second. -/
+def squareLayers (N : ℕ) :
+    ((Finset.range N) → Bool × Bool) ≃ ((Finset.range N) × Bool → Bool) where
+  toFun ζ p := if p.2 then (ζ p.1).2 else (ζ p.1).1
+  invFun σ i := (σ (i, false), σ (i, true))
+  left_inv ζ := by funext i; simp
+  right_inv σ := by funext p; obtain ⟨i, l⟩ := p; cases l <;> simp
+
+@[simp] lemma squareLayers_apply_false (N : ℕ) (ζ : (Finset.range N) → Bool × Bool)
+    (i : (Finset.range N)) : squareLayers N ζ (i, false) = (ζ i).1 := rfl
+
+@[simp] lemma squareLayers_apply_true (N : ℕ) (ζ : (Finset.range N) → Bool × Bool)
+    (i : (Finset.range N)) : squareLayers N ζ (i, true) = (ζ i).2 := rfl
+
+/-- The sites of `Λ_N = {0, …, N−1}` lying in the nearest-neighbour bond `{i, i+1}`: both
+endpoints when `i + 1 < N`, and only `i` for the boundary bond `{N−1, N}`. -/
+def squareBond (N : ℕ) (i : (Finset.range N)) : Finset (Finset.range N) :=
+  insert i (Finset.univ.filter fun j : (Finset.range N) ↦ (j : ℕ) = (i : ℕ) + 1)
+
+/-- A product over the bond `{i, i+1}` truncated to `Λ_N` is the product of the two endpoint
+values of the `+`-boundary configuration, provided the factor at the boundary spin `(+1,+1)`
+is `1`: the boundary endpoint either lies in `Λ_N`, or contributes the trivial factor. -/
+lemma prod_squareBond {M : Type*} [CommMonoid M] (N : ℕ) (i : (Finset.range N))
+    (f : Bool × Bool → M) (hf : f (true, true) = 1)
+    (ζ : (Finset.range N) → Bool × Bool) :
+    ∏ j ∈ squareBond N i, f (ζ j)
+      = f (juxt ((Finset.range N : Finset ℕ) : Set ℕ) (fun _ ↦ (true, true)) ζ (i : ℕ)) *
+        f (juxt ((Finset.range N : Finset ℕ) : Set ℕ) (fun _ ↦ (true, true)) ζ ((i : ℕ) + 1)) := by
+  classical
+  have hi : (i : ℕ) ∈ ((Finset.range N : Finset ℕ) : Set ℕ) := Finset.mem_coe.2 i.2
+  have hiζ : juxt ((Finset.range N : Finset ℕ) : Set ℕ) (fun _ ↦ ((true, true) : Bool × Bool)) ζ
+      (i : ℕ) = ζ i := by
+    rw [juxt_apply_of_mem hi]
+    rfl
+  by_cases hlt : (i : ℕ) + 1 < N
+  · set i' : (Finset.range N) := ⟨(i : ℕ) + 1, Finset.mem_range.2 hlt⟩ with hi'
+    have hfilter : (Finset.univ.filter fun j : (Finset.range N) ↦ (j : ℕ) = (i : ℕ) + 1)
+        = {i'} := by
+      ext j
+      simp only [Finset.mem_filter, Finset.mem_univ, true_and, Finset.mem_singleton, hi']
+      exact ⟨fun h ↦ Subtype.ext h, fun h ↦ by rw [h]⟩
+    have hnotmem : i ∉ ({i'} : Finset (Finset.range N)) := by
+      simp only [Finset.mem_singleton]
+      intro h
+      have h2 : (i : ℕ) = (i : ℕ) + 1 := by simpa [hi'] using congrArg Subtype.val h
+      omega
+    have hmem' : (i : ℕ) + 1 ∈ ((Finset.range N : Finset ℕ) : Set ℕ) := by
+      simpa using Finset.mem_range.2 hlt
+    rw [squareBond, hfilter, Finset.prod_insert hnotmem, Finset.prod_singleton, hiζ,
+      juxt_apply_of_mem hmem']
+  · have hfilter : (Finset.univ.filter fun j : (Finset.range N) ↦ (j : ℕ) = (i : ℕ) + 1)
+        = ∅ := by
+      ext j
+      simp only [Finset.mem_filter, Finset.mem_univ, true_and, Finset.notMem_empty, iff_false]
+      intro h
+      have := Finset.mem_range.1 j.2
+      omega
+    have hnotmem : (i : ℕ) + 1 ∉ ((Finset.range N : Finset ℕ) : Set ℕ) := by
+      simpa using fun h ↦ hlt (Finset.mem_range.1 h)
+    rw [squareBond, hfilter, Finset.prod_insert (Finset.notMem_empty i), Finset.prod_empty,
+      mul_one, hiζ, juxt_apply_of_not_mem hnotmem, hf, mul_one]
+
+/-- The interaction sets of the two-layer chain in `Λ_N` with the `+` boundary condition: for
+each `i ∈ Λ_N`, the layer-1 bond `{(i,1),(i+1,1)}` (index `(i, false)`) and the four-spin bond
+`{(i,1),(i,2),(i+1,1),(i+1,2)}` (index `(i, true)`), truncated to `Λ_N`. -/
+def squareSets (N : ℕ) (c : (Finset.range N) × Bool) : Finset ((Finset.range N) × Bool) :=
+  squareBond N c.1 ×ˢ (if c.2 then (Finset.univ : Finset Bool) else {false})
+
+/-- The couplings of the two-layer chain in `Λ_N`: `β J_i` on the layer-1 bonds and `β K` on the
+four-spin bonds.  They are nonnegative exactly when `β, J, K ≥ 0`, which is Georgii's
+ferromagnetic hypothesis. -/
+def squareCouplings (N : ℕ) (β : ℝ) (J : ℕ → ℝ) (K : ℝ) (c : (Finset.range N) × Bool) : ℝ :=
+  if c.2 then β * K else β * J (c.1 : ℕ)
+
+lemma squareCouplings_nonneg {N : ℕ} {β : ℝ} {J : ℕ → ℝ} {K : ℝ} (hβ : 0 ≤ β)
+    (hJ : ∀ n, 0 ≤ J n) (hK : 0 ≤ K) (c : (Finset.range N) × Bool) :
+    0 ≤ squareCouplings N β J K c := by
+  rw [squareCouplings]
+  split_ifs
+  · exact mul_nonneg hβ hK
+  · exact mul_nonneg hβ (hJ _)
+
+lemma squareCouplings_mono {N : ℕ} {β : ℝ} {J : ℕ → ℝ} {K : ℝ} (hβ : 0 ≤ β) (hK : 0 ≤ K)
+    (c : (Finset.range N) × Bool) :
+    squareCouplings N β J 0 c ≤ squareCouplings N β J K c := by
+  rw [squareCouplings, squareCouplings]
+  split_ifs
+  · rw [mul_zero]
+    exact mul_nonneg hβ hK
+  · exact le_rfl
+
+lemma spinMonomial_squareSets_false (N : ℕ) (i : (Finset.range N))
+    (ζ : (Finset.range N) → Bool × Bool) :
+    GKS.spinMonomial (squareSets N (i, false)) (squareLayers N ζ)
+      = ∏ j ∈ squareBond N i, spin (ζ j).1 := by
+  rw [GKS.spinMonomial, squareSets, ite_eq_right (by simp), Finset.prod_product]
+  exact Finset.prod_congr rfl fun j _ ↦ by rw [Finset.prod_singleton, squareLayers_apply_false]
+
+lemma spinMonomial_squareSets_true (N : ℕ) (i : (Finset.range N))
+    (ζ : (Finset.range N) → Bool × Bool) :
+    GKS.spinMonomial (squareSets N (i, true)) (squareLayers N ζ)
+      = ∏ j ∈ squareBond N i, (spin (ζ j).1 * spin (ζ j).2) := by
+  rw [GKS.spinMonomial, squareSets, ite_eq_left rfl, Finset.prod_product]
+  refine Finset.prod_congr rfl fun j _ ↦ ?_
+  rw [Fintype.prod_bool, squareLayers_apply_false, squareLayers_apply_true, mul_comm]
+
+/-- **The `+`-boundary Hamiltonian of the two-layer chain is a ferromagnetic multi-spin energy.**
+`-β H_{Λ_N}(ζ ω⁺) = ∑_c J_c σ_{C c}` for the interaction `(squareSets, squareCouplings)`. -/
+theorem energy_squareSets (N : ℕ) (β : ℝ) (J : ℕ → ℝ) (K : ℝ)
+    (ζ : (Finset.range N) → Bool × Bool) :
+    GKS.energy (squareSets N) (squareCouplings N β J K) (squareLayers N ζ)
+      = -β * (pair (squarePotential J K)).hamiltonian (Finset.range N)
+          (juxt ((Finset.range N : Finset ℕ) : Set ℕ) (fun _ ↦ (true, true)) ζ) := by
+  classical
+  have := isAbsolutelySummable_pair_squarePotential J K
+  set σ := juxt ((Finset.range N : Finset ℕ) : Set ℕ) (fun _ ↦ ((true, true) : Bool × Bool)) ζ
+    with hσ
+  rw [hamiltonian_pair_range (fun a b hb x y ↦ by simp [squarePotential, hb]) N σ,
+    Finset.mul_sum, ← Finset.sum_coe_sort (Finset.range N)
+      (fun a ↦ -β * squarePotential J K a (a + 1) (σ a) (σ (a + 1))),
+    GKS.energy_def, Fintype.sum_prod_type]
+  refine Finset.sum_congr rfl fun i _ ↦ ?_
+  rw [Fintype.sum_bool, spinMonomial_squareSets_true, spinMonomial_squareSets_false,
+    prod_squareBond N i (fun x ↦ spin x.1 * spin x.2) (by norm_num [spin]) ζ,
+    prod_squareBond N i (fun x ↦ spin x.1) (by norm_num [spin]) ζ, ← hσ,
+    show squareCouplings N β J K (i, true) = β * K from rfl,
+    show squareCouplings N β J K (i, false) = β * J (i : ℕ) from rfl, squarePotential,
+    ite_eq_left rfl]
+  ring
+
+/-- The a priori measure of Georgii (9.15) is the equidistribution on the four vertices of the
+square: every singleton has mass `1/4`. -/
+lemma uniformSpinMeasure_prod_singleton (x : Bool × Bool) :
+    (uniformSpinMeasure.prod uniformSpinMeasure) {x} = (2 : ℝ≥0∞)⁻¹ * 2⁻¹ := by
+  have hsingle : ∀ b : Bool, uniformSpinMeasure {b} = (2 : ℝ≥0∞)⁻¹ := fun b ↦ by
+    change ((2 : ℝ≥0∞)⁻¹ • Measure.count) {b} = _
+    rw [Measure.smul_apply, smul_eq_mul, Measure.count_singleton, mul_one]
+  obtain ⟨a, b⟩ := x
+  rw [← Set.singleton_prod_singleton, Measure.prod_prod, hsingle a, hsingle b]
+
+/-- **The `+`-boundary finite-volume magnetisation of the first layer as a GKS correlation.**
+For `i ∈ Λ_N = {0, …, N−1}`,
+`γ^Φ_{Λ_N}(σ_{i1} = +1 | ω⁺) = (1 + ⟨σ_{(i,1)}⟩)/2`,
+where `⟨·⟩` is the correlation of the ferromagnet `(squareSets, squareCouplings)` — the
+finite-volume Gibbs distribution read through Georgii's identification `squareLayers`. -/
+theorem gibbsSpecification_squarePotential_range_apply_setOf_fst_eq_true
+    (J : ℕ → ℝ) (K β : ℝ) {N i : ℕ} (hi : i < N) :
+    haveI := isPotential_pair_squarePotential J K
+    haveI := isAbsolutelySummable_pair_squarePotential J K
+    gibbsSpecificationOfFiniteReference (pair (squarePotential J K))
+        (uniformSpinMeasure.prod uniformSpinMeasure) β (Finset.range N)
+        (fun _ ↦ (true, true)) {σ : ℕ → Bool × Bool | (σ i).1 = true}
+      = ENNReal.ofReal ((1 + GKS.corr (squareSets N) (squareCouplings N β J K)
+          (GKS.indicatorIdx {(⟨i, Finset.mem_range.2 hi⟩, false)})) / 2) := by
+  classical
+  have hΦ := isPotential_pair_squarePotential J K
+  have hΦ' := isAbsolutelySummable_pair_squarePotential J K
+  set Λ : Set ℕ := ((Finset.range N : Finset ℕ) : Set ℕ) with hΛ
+  set ω : ℕ → Bool × Bool := fun _ ↦ (true, true) with hω
+  set i₀ : (Finset.range N) := ⟨i, Finset.mem_range.2 hi⟩ with hi₀
+  set m : (Finset.range N) × Bool → ℕ := GKS.indicatorIdx {(i₀, false)} with hm
+  set A : Set (ℕ → Bool × Bool) := {σ : ℕ → Bool × Bool | (σ i).1 = true} with hA
+  have hAm : MeasurableSet A := ((measurable_pi_apply i).fst) (measurableSet_singleton true)
+  -- the Boltzmann weight is the GKS weight of the ferromagnet
+  have hw : ∀ ζ : ((Finset.range N) → Bool × Bool),
+      Real.exp (-β * (pair (squarePotential J K)).hamiltonian (Finset.range N) (juxt Λ ω ζ))
+        = GKS.weight (squareSets N) (squareCouplings N β J K) (squareLayers N ζ) := by
+    intro ζ
+    rw [GKS.weight_def, energy_squareSets N β J K ζ]
+  -- the spin monomial at the site `(i, 1)`
+  have hspin : ∀ ζ : ((Finset.range N) → Bool × Bool),
+      GKS.spinPow m (squareLayers N ζ) = spin (ζ i₀).1 := by
+    intro ζ
+    rw [hm, ← GKS.spinMonomial_eq_spinPow, GKS.spinMonomial, Finset.prod_singleton,
+      squareLayers_apply_false]
+  -- the indicator of `{σ_{i1} = +1}` in terms of that monomial
+  have hind : ∀ ζ : ((Finset.range N) → Bool × Bool),
+      A.indicator (1 : (ℕ → Bool × Bool) → ℝ) (juxt Λ ω ζ)
+        = (1 + GKS.spinPow m (squareLayers N ζ)) / 2 := by
+    intro ζ
+    have hju : juxt Λ ω ζ i = ζ i₀ := by
+      rw [juxt_apply_of_mem (show i ∈ Λ from Finset.mem_coe.2 (Finset.mem_range.2 hi))]
+    rw [hspin ζ]
+    by_cases hb : (ζ i₀).1 = true
+    · have hmem : juxt Λ ω ζ ∈ A := by rw [hA]; simp only [Set.mem_ofPred_eq, hju]; exact hb
+      rw [Set.indicator_of_mem hmem, Pi.one_apply, hb]
+      norm_num [spin]
+    · have hmem : juxt Λ ω ζ ∉ A := by
+        rw [hA]; simp only [Set.mem_ofPred_eq, hju]; exact hb
+      have hbf : (ζ i₀).1 = false := by
+        cases hcase : (ζ i₀).1
+        · rfl
+        · exact absurd hcase hb
+      rw [Set.indicator_of_notMem hmem, hbf]
+      norm_num [spin]
+  have hPpos : 0 < GKS.partition (squareSets N) (squareCouplings N β J K) :=
+    GKS.partition_pos _ _
+  -- the denominator is the partition function
+  have hden : ∑ ζ : ((Finset.range N) → Bool × Bool),
+        Real.exp (-β * (pair (squarePotential J K)).hamiltonian (Finset.range N) (juxt Λ ω ζ))
+      = GKS.partition (squareSets N) (squareCouplings N β J K) := by
+    rw [GKS.partition_def, ← Equiv.sum_comp (squareLayers N)
+      (GKS.weight (squareSets N) (squareCouplings N β J K))]
+    exact Finset.sum_congr rfl fun ζ _ ↦ hw ζ
+  -- the numerator is `(Z + ⟨σ_{(i,1)}⟩ Z)/2`
+  have hnum : ∑ ζ : ((Finset.range N) → Bool × Bool),
+        Real.exp (-β * (pair (squarePotential J K)).hamiltonian (Finset.range N) (juxt Λ ω ζ)) *
+          A.indicator (1 : (ℕ → Bool × Bool) → ℝ) (juxt Λ ω ζ)
+      = (GKS.partition (squareSets N) (squareCouplings N β J K)
+          + GKS.unnorm (squareSets N) (squareCouplings N β J K) m) / 2 := by
+    have hstep : ∀ ζ : ((Finset.range N) → Bool × Bool),
+        Real.exp (-β * (pair (squarePotential J K)).hamiltonian (Finset.range N) (juxt Λ ω ζ)) *
+            A.indicator (1 : (ℕ → Bool × Bool) → ℝ) (juxt Λ ω ζ)
+          = (GKS.weight (squareSets N) (squareCouplings N β J K) (squareLayers N ζ)
+              + GKS.spinPow m (squareLayers N ζ) *
+                GKS.weight (squareSets N) (squareCouplings N β J K) (squareLayers N ζ)) / 2 := by
+      intro ζ
+      rw [hind ζ, hw ζ]
+      ring
+    rw [Finset.sum_congr rfl fun ζ _ ↦ hstep ζ, ← Finset.sum_div, GKS.partition_def,
+      GKS.unnorm_def, ← Finset.sum_add_distrib,
+      ← Equiv.sum_comp (squareLayers N) (fun σ ↦
+        GKS.weight (squareSets N) (squareCouplings N β J K) σ
+          + GKS.spinPow m σ * GKS.weight (squareSets N) (squareCouplings N β J K) σ)]
+  rw [gibbsSpecificationOfFiniteReference_eq_of_isProbabilityMeasure,
+    Potential.gibbsSpecificationOfAbsolutelySummable_apply_of_measure_singleton_eq
+      (uniformSpinMeasure.prod uniformSpinMeasure) uniformSpinMeasure_prod_singleton β
+      (Finset.range N) ω hAm, hnum, hden]
+  congr 1
+  rw [GKS.corr_def]
+  field_simp
+
+/-- **At `K = 0` the two layers decouple.**  The `+`-boundary finite-volume probability that the
+first layer is `+1` at `i ∈ Λ_N` is the corresponding probability for the inhomogeneous Ising
+chain (6.2) with couplings `βJ`, which Lemma (6.5) evaluates as
+`(1 + ∏_{i ≤ k < N} tanh(β J_k))/2`. -/
+theorem gibbsSpecification_squarePotential_zero_range_apply_setOf_fst_eq_true
+    (J : ℕ → ℝ) (β : ℝ) {N i : ℕ} (hi : i < N) :
     haveI := isPotential_pair_squarePotential J 0
     haveI := isAbsolutelySummable_pair_squarePotential J 0
-    ∃ μ ∈ G (gibbsSpecificationOfFiniteReference (pair (squarePotential J 0))
-        (uniformSpinMeasure.prod uniformSpinMeasure) β),
-      ¬ MeasurePreserving squareFlip₁.toFun μ μ := by
-  have := isPotential_pair_squarePotential J 0
-  have := isAbsolutelySummable_pair_squarePotential J 0
-  obtain ⟨μ₁, hμ₁', hpos⟩ := exists_mem_G_integral_spin_pos (J := β • J)
-    (fun n ↦ mul_pos hβ (hJ n)) (by simpa using h61)
-  rw [isingChainSpecification_smul] at hμ₁'
-  have hμ₁ : μ₁ ∈ G (gibbsSpecificationOfAbsolutelySummable (Φ := isingChainPotential J)
-    uniformSpinMeasure β) := hμ₁'
-  have : IsProbabilityMeasure μ₁ := hμ₁.1
-  set e := MeasurableEquiv.arrowProdEquivProdArrow Bool Bool ℕ with he
-  set μ := (μ₁.prod (Measure.infinitePi fun _ : ℕ ↦ uniformSpinMeasure)).map e.symm with hμdef
-  have hlift : μ ∈ G (gibbsSpecificationOfAbsolutelySummable
-      (Φ := (isingChainPotential J).comap (Prod.fst : Bool × Bool → Bool))
-      (uniformSpinMeasure.prod uniformSpinMeasure) β) :=
-    mem_G_map_symm_prod_infinitePi_comap_fst (isingChainPotential J) uniformSpinMeasure
-      uniformSpinMeasure β hμ₁
+    gibbsSpecificationOfFiniteReference (pair (squarePotential J 0))
+        (uniformSpinMeasure.prod uniformSpinMeasure) β (Finset.range N)
+        (fun _ ↦ (true, true)) {σ : ℕ → Bool × Bool | (σ i).1 = true}
+      = ENNReal.ofReal ((1 + ∏ k ∈ Finset.Ico i N, Real.tanh (β * J k)) / 2) := by
+  have hΦ := isPotential_pair_squarePotential J 0
+  have hΦ' := isAbsolutelySummable_pair_squarePotential J 0
   have hspec : gibbsSpecificationOfFiniteReference (pair (squarePotential J 0))
       (uniformSpinMeasure.prod uniformSpinMeasure) β
       = gibbsSpecificationOfAbsolutelySummable
@@ -1468,16 +1713,192 @@ theorem exists_not_measurePreserving_squareFlip₁_of_summable {J : ℕ → ℝ}
     exact gibbsSpecification_congr _ β (comap_fst_isingChainPotential J) |>.symm
   have hq : Measurable fun ω : ℕ → Bool × Bool ↦ fun j ↦ (ω j).1 :=
     measurable_pi_lambda _ fun j ↦ (measurable_pi_apply j).fst
-  have hmar : μ.map (fun ω j ↦ (ω j).1) = μ₁ :=
-    map_fst_map_arrowProdEquivProdArrow_symm_prod μ₁ _
-  have hint : ∫ ω, spin (ω i).1 ∂μ = ∫ x, spin (x i) ∂μ₁ := by
-    have h := integral_map (μ := μ) (φ := fun ω : ℕ → Bool × Bool ↦ fun j ↦ (ω j).1)
-      (f := fun x : ℕ → Bool ↦ spin (x i)) hq.aemeasurable
-      (((Measurable.of_discrete (f := spin)).comp (measurable_pi_apply i)).aestronglyMeasurable)
-    rw [hmar] at h
-    exact h.symm
-  exact ⟨μ, hspec ▸ hlift,
-    not_measurePreserving_squareFlip₁_of_integral_pos i (hint ▸ hpos i)⟩
+  rw [hspec, show {σ : ℕ → Bool × Bool | (σ i).1 = true}
+      = (fun ω : ℕ → Bool × Bool ↦ fun j ↦ (ω j).1) ⁻¹' {x : ℕ → Bool | x i = true} from rfl,
+    ← Measure.map_apply hq (measurableSet_setOf_apply_eq i true),
+    Specification.map_fst_gibbsSpecificationOfAbsolutelySummable_comap_fst
+      (isingChainPotential J) uniformSpinMeasure uniformSpinMeasure β (Finset.range N)
+      (fun _ ↦ (true, true)),
+    ← isingChainSpecification_smul J β, isingChainSpecification_range_apply_setOf_eq hi true]
+  congr 1
+  have hsmul : ∀ k : ℕ, (β • J) k = β * J k := fun k ↦ rfl
+  simp only [hsmul, spin]
+  norm_num
+
+/-- **Griffiths at `K = 0`.**  The correlation `⟨σ_{(i,1)}⟩` of the two-layer ferromagnet at
+`K = 0` is the finite-volume magnetisation `∏_{i ≤ k < N} tanh(β J_k)` of the inhomogeneous
+chain (6.2). -/
+theorem corr_squareSets_zero (J : ℕ → ℝ) {β : ℝ} (hβ : 0 ≤ β) (hJ : ∀ n, 0 ≤ J n) {N i : ℕ}
+    (hi : i < N) :
+    GKS.corr (squareSets N) (squareCouplings N β J 0)
+        (GKS.indicatorIdx {(⟨i, Finset.mem_range.2 hi⟩, false)})
+      = ∏ k ∈ Finset.Ico i N, Real.tanh (β * J k) := by
+  have h1 := gibbsSpecification_squarePotential_range_apply_setOf_fst_eq_true J 0 β hi
+  have h2 := gibbsSpecification_squarePotential_zero_range_apply_setOf_fst_eq_true J β hi
+  have hcorr : 0 ≤ GKS.corr (squareSets N) (squareCouplings N β J 0)
+      (GKS.indicatorIdx {(⟨i, Finset.mem_range.2 hi⟩, false)}) :=
+    GKS.corr_nonneg _ (squareCouplings_nonneg hβ hJ le_rfl) _
+  have hprod : 0 ≤ ∏ k ∈ Finset.Ico i N, Real.tanh (β * J k) :=
+    Finset.prod_nonneg fun k _ ↦ Real.tanh_nonneg (mul_nonneg hβ (hJ k))
+  have := (ENNReal.ofReal_eq_ofReal_iff (by linarith) (by linarith)).1 (h1.symm.trans h2)
+  linarith
+
+/-- **Griffiths' inequality for the two-layer chain** — Georgii's "each
+`γ^Φ_{{1,…,N}}(σ_{i1}|ω⁺)` is an increasing function of `K`", in the form he uses it: the
+finite-volume magnetisation of the first layer at `K ≥ 0` dominates its value at `K = 0`, which
+is the chain magnetisation `∏_{i ≤ k < N} tanh(β J_k)` of §6.1.  This is `GKS.corr_mono`, i.e.
+Griffiths' second inequality. -/
+theorem prod_tanh_le_corr_squareSets (J : ℕ → ℝ) {β K : ℝ} (hβ : 0 ≤ β) (hJ : ∀ n, 0 ≤ J n)
+    (hK : 0 ≤ K) {N i : ℕ} (hi : i < N) :
+    ∏ k ∈ Finset.Ico i N, Real.tanh (β * J k)
+      ≤ GKS.corr (squareSets N) (squareCouplings N β J K)
+          (GKS.indicatorIdx {(⟨i, Finset.mem_range.2 hi⟩, false)}) := by
+  rw [← corr_squareSets_zero J hβ hJ hi]
+  exact GKS.corr_mono _ (squareCouplings_nonneg hβ hJ le_rfl) (squareCouplings_mono hβ hK) _
+
+/-- Under Georgii (6.1), the partial products `∏_{i ≤ k < N} tanh J_k` are bounded below
+**uniformly in `N`** by the tail product `∏_{k ≥ i} tanh J_k`: they are antitone in `N`, because
+`0 ≤ tanh < 1`.  (This is the elementary fact that a convergent infinite product of factors in
+`[0, 1]` is dominated by each of its partial products; it belongs next to
+`Multipliable.tendsto_prod_Ico_nat`.) -/
+lemma tprod_tanh_le_prod_Ico {J : ℕ → ℝ} (hJ : ∀ n, 0 ≤ J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * J n)) (i N : ℕ) :
+    ∏' k, Real.tanh (J (k + i)) ≤ ∏ k ∈ Finset.Ico i N, Real.tanh (J k) := by
+  have h61i : Summable fun k ↦ Real.exp (-2 * J (k + i)) :=
+    h61.comp_injective (add_left_injective i)
+  have hTend : Tendsto (fun M ↦ ∏ k ∈ Finset.Ico i M, Real.tanh (J k)) atTop
+      (𝓝 (∏' k, Real.tanh (J (k + i)))) :=
+    Multipliable.tendsto_prod_Ico_nat (f := fun k ↦ Real.tanh (J k))
+      (Real.multipliable_tanh h61i)
+  refine le_of_tendsto hTend ?_
+  filter_upwards [eventually_ge_atTop N] with M hM
+  exact Finset.prod_le_prod_of_subset_of_le_one (Finset.Ico_subset_Ico le_rfl hM)
+    (fun k _ ↦ Real.tanh_nonneg (hJ k)) (fun k _ _ ↦ (Real.tanh_lt_one _).le)
+
+/-- `{σ : σ_{i1} = +1}` is a local event. -/
+lemma setOf_fst_apply_eq_true_mem_localEvents (i : ℕ) :
+    {σ : ℕ → Bool × Bool | (σ i).1 = true} ∈ localEvents ℕ (Bool × Bool) :=
+  mem_localEvents_iff_exists_finsetRestrict_preimage.2
+    ⟨{i}, {y : (({i} : Finset ℕ)) → Bool × Bool | (y ⟨i, Finset.mem_singleton_self i⟩).1 = true},
+      MeasurableSet.of_discrete, rfl⟩
+
+/-- **Georgii, Example (9.15): the plus phase exists for every `K ≥ 0`.**  A cluster point `μ₊`
+of the finite-volume Gibbs distributions `γ^Φ_{Λ_N}(·|ω⁺)` in the topology of local convergence
+is a Gibbs measure (Theorem (4.17)/(4.22): `Φ` is absolutely summable, hence `γ^Φ` is quasilocal
+and the net is locally equicontinuous), and Griffiths' inequality passes the lower bound
+`γ^Φ_{Λ_N}(σ_{i1} = +1|ω⁺) ≥ (1 + ∏_{i ≤ k < N} tanh(β J_k))/2 ≥ (1 + ∏_{k ≥ i} tanh(β J_k))/2`
+to the limit.  Georgii asserts the existence of the *limit* `μ₊ = lim_N γ^Φ_{Λ_N}(·|ω⁺)`, again
+from Griffiths; only a cluster point is needed, and only a cluster point is proved here. -/
+theorem exists_mem_GP_squarePotential_le_apply_setOf_fst_eq_true {J : ℕ → ℝ} {β K : ℝ}
+    (hβ : 0 ≤ β) (hJ : ∀ n, 0 ≤ J n) (hK : 0 ≤ K)
+    (h61 : Summable fun n ↦ Real.exp (-2 * (β * J n))) :
+    haveI := isPotential_pair_squarePotential J K
+    haveI := isAbsolutelySummable_pair_squarePotential J K
+    ∃ μ ∈ GP (gibbsSpecificationOfFiniteReference (pair (squarePotential J K))
+        (uniformSpinMeasure.prod uniformSpinMeasure) β), ∀ i : ℕ,
+      ENNReal.ofReal ((1 + ∏' k, Real.tanh (β * J (k + i))) / 2)
+        ≤ (μ : Measure (ℕ → Bool × Bool)) {σ : ℕ → Bool × Bool | (σ i).1 = true} := by
+  classical
+  have hΦ := isPotential_pair_squarePotential J K
+  have hΦ' := isAbsolutelySummable_pair_squarePotential J K
+  have hspec : gibbsSpecificationOfFiniteReference (pair (squarePotential J K))
+      (uniformSpinMeasure.prod uniformSpinMeasure) β
+      = gibbsSpecificationOfAbsolutelySummable (Φ := pair (squarePotential J K))
+        (uniformSpinMeasure.prod uniformSpinMeasure) β :=
+    gibbsSpecificationOfFiniteReference_eq_of_isProbabilityMeasure _ _
+  set γ := gibbsSpecificationOfAbsolutelySummable (Φ := pair (squarePotential J K))
+    (uniformSpinMeasure.prod uniformSpinMeasure) β with hγ
+  set ω : ℕ → Bool × Bool := fun _ ↦ (true, true) with hω
+  set ν : ProbabilityMeasure (ℕ → Bool × Bool) := ⟨Measure.dirac ω, inferInstance⟩ with hν
+  have hdirac : ∀ Λ : Finset ℕ, γ.bindPM Λ ν = finiteVolumeDistributions γ ω Λ :=
+    fun Λ ↦ Subtype.ext (Measure.dirac_bind (γ.measurable_kernel_toMeasure Λ) ω)
+  have hle : LocallyEquicontinuous atTop
+      (fun N : ℕ ↦ γ.bindPM (Finset.range N) ν) := by
+    have hcomp : (fun N : ℕ ↦ γ.bindPM (Finset.range N) ν)
+        = (finiteVolumeDistributions γ ω) ∘ Finset.range :=
+      funext fun N ↦ hdirac (Finset.range N)
+    rw [hcomp]
+    exact (Potential.locallyEquicontinuous_finiteVolumeDistributions
+      (Φ := pair (squarePotential J K)) (uniformSpinMeasure.prod uniformSpinMeasure) β
+      ω).comp Filter.tendsto_finset_range
+  obtain ⟨μ, hμGP, hcp⟩ := exists_mem_GP_mapClusterPt (γ := γ)
+    (Potential.isQuasilocal_gibbsSpecificationOfAbsolutelySummable
+      (Φ := pair (squarePotential J K)) (uniformSpinMeasure.prod uniformSpinMeasure) β)
+    (γs := fun _ : ℕ ↦ γ) (Λs := Finset.range) (νs := fun _ ↦ ν) Filter.tendsto_finset_range
+    (fun Λ f _ ↦ by simp) hle
+  refine ⟨μ, hspec ▸ hμGP, fun i ↦ ?_⟩
+  refine le_eval_of_mapClusterPt (setOf_fst_apply_eq_true_mem_localEvents i) hcp ?_
+  filter_upwards [eventually_gt_atTop i] with N hN
+  have hval : ((γ.bindPM (Finset.range N) ν : ProbabilityMeasure (ℕ → Bool × Bool)) :
+      Measure (ℕ → Bool × Bool)) {σ : ℕ → Bool × Bool | (σ i).1 = true}
+      = γ (Finset.range N) ω {σ : ℕ → Bool × Bool | (σ i).1 = true} := by
+    rw [hdirac (Finset.range N)]
+    rfl
+  rw [hval, ← hspec, gibbsSpecification_squarePotential_range_apply_setOf_fst_eq_true J K β hN]
+  refine ENNReal.ofReal_le_ofReal ?_
+  have h1 : ∏' k, Real.tanh (β * J (k + i)) ≤ ∏ k ∈ Finset.Ico i N, Real.tanh (β * J k) :=
+    tprod_tanh_le_prod_Ico (J := fun n ↦ β * J n) (fun n ↦ mul_nonneg hβ (hJ n)) h61 i N
+  have h2 := prod_tanh_le_corr_squareSets J hβ hJ hK hN
+  linarith
+
+/-- `μ(σ_{i1}) = 2 μ(σ_{i1} = +1) − 1`, the case `f = σ ↦ (σ_i)_1` of `integral_spin_comp`. -/
+lemma integral_spin_fst_apply (μ : Measure (ℕ → Bool × Bool)) [IsProbabilityMeasure μ] (i : ℕ) :
+    ∫ ω, spin (ω i).1 ∂μ = 2 * (μ {σ : ℕ → Bool × Bool | (σ i).1 = true}).toReal - 1 :=
+  integral_spin_comp μ (measurable_pi_apply i).fst
+
+/-- **Georgii, Example (9.15): `μ₊(σ_{i1}) > 0` for every `K ≥ 0`.**  Georgii's `μ₊` and his
+inequality `μ₊(σ_{i1}) ≥ ∏_{k ≥ i} tanh(β J_k) > 0`, the latter being the tail product of §6.1,
+strictly positive under Georgii (6.1) for the couplings `βJ`. -/
+theorem exists_mem_G_integral_spin_fst_pos_squarePotential {J : ℕ → ℝ} {β K : ℝ} (hβ : 0 < β)
+    (hJ : ∀ n, 0 < J n) (hK : 0 ≤ K)
+    (h61 : Summable fun n ↦ Real.exp (-2 * (β * J n))) :
+    haveI := isPotential_pair_squarePotential J K
+    haveI := isAbsolutelySummable_pair_squarePotential J K
+    ∃ μ ∈ G (gibbsSpecificationOfFiniteReference (pair (squarePotential J K))
+        (uniformSpinMeasure.prod uniformSpinMeasure) β), ∀ i : ℕ, 0 < ∫ ω, spin (ω i).1 ∂μ := by
+  have hΦ := isPotential_pair_squarePotential J K
+  have hΦ' := isAbsolutelySummable_pair_squarePotential J K
+  obtain ⟨μ, hμGP, hμ⟩ :=
+    exists_mem_GP_squarePotential_le_apply_setOf_fst_eq_true hβ.le (fun n ↦ (hJ n).le) hK h61
+  refine ⟨(μ : Measure (ℕ → Bool × Bool)), ⟨μ.2, hμGP⟩, fun i ↦ ?_⟩
+  have := μ.2
+  have h61i : Summable fun k ↦ Real.exp (-2 * (β * J (k + i))) :=
+    h61.comp_injective (add_left_injective i)
+  have hT : 0 < ∏' k, Real.tanh (β * J (k + i)) :=
+    Real.tprod_tanh_pos (fun k ↦ mul_pos hβ (hJ (k + i))) h61i
+  have hle := (ENNReal.ofReal_le_iff_le_toReal (measure_ne_top _ _)).1 (hμ i)
+  rw [integral_spin_fst_apply _ i]
+  linarith
+
+/-- **Georgii, Example (9.15): the symmetry `τ⁽¹⁾` is broken, for every `K ≥ 0`.**  At an inverse
+temperature `β > 0`, under Georgii's condition (6.1) for the couplings `βJ` — `J_n > 0` and
+`∑_n e^{-2βJ_n} < ∞` — the set `𝒢(Φ)` of Gibbs measures of the two-layer chain contains a
+measure `μ₊` with `μ₊(σ_{i1}) > 0` at every site, so `τ⁽¹⁾(μ₊) ≠ μ₊`.
+
+Georgii's argument, made honest.  For `K = 0` the two layers decouple and Theorem (6.4) gives
+`μ₊`.  For `K > 0` he cites Griffiths (1967a) for two facts: that
+`γ^Φ_{{1,…,N}}(σ_{i1}|ω⁺)` increases with `K`, and that `lim_N γ^Φ_{{1,…,N}}(·|ω⁺)` exists.  The
+first is proved here — it is `GKS.corr_mono` for the ferromagnet
+`(squareSets, squareCouplings)`, which is the finite-volume `+`-boundary Gibbs distribution read
+through Georgii's identification `squareLayers` of `E^Λ` with `{−1,1}^{Λ × {1,2}}`
+(`gibbsSpecification_squarePotential_range_apply_setOf_fst_eq_true`,
+`prod_tanh_le_corr_squareSets`).  The second is *not* needed: a cluster point of
+`γ^Φ_{Λ_N}(·|ω⁺)` in the topology of local convergence is a Gibbs measure by Theorem
+(4.17)/(4.22), and the lower bound `∏_{k ≥ i} tanh(β J_k) > 0` — the chain magnetisation of
+§6.1 — passes to it.  The a priori measure is Georgii's equidistribution on the four vertices of
+the square, `λ = λ₁ ⊗ λ₁`. -/
+theorem exists_not_measurePreserving_squareFlip₁_of_summable {J : ℕ → ℝ} {β K : ℝ} (hβ : 0 < β)
+    (hK : 0 ≤ K) (hJ : ∀ n, 0 < J n)
+    (h61 : Summable fun n ↦ Real.exp (-2 * (β * J n))) (i : ℕ) :
+    haveI := isPotential_pair_squarePotential J K
+    haveI := isAbsolutelySummable_pair_squarePotential J K
+    ∃ μ ∈ G (gibbsSpecificationOfFiniteReference (pair (squarePotential J K))
+        (uniformSpinMeasure.prod uniformSpinMeasure) β),
+      ¬ MeasurePreserving squareFlip₁.toFun μ μ := by
+  have hΦ := isPotential_pair_squarePotential J K
+  have hΦ' := isAbsolutelySummable_pair_squarePotential J K
+  obtain ⟨μ, hμ, hpos⟩ := exists_mem_G_integral_spin_fst_pos_squarePotential hβ hJ hK h61
+  exact exists_not_measurePreserving_squareFlip₁ i ⟨μ, hμ, hpos i⟩
 
 end MeasureTheory.GibbsMeasure
 

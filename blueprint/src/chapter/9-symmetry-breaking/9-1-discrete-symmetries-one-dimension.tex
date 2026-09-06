@@ -235,13 +235,19 @@ Throughout, $\gamma$ is a specification on $\Cfg = E^S$ and $\tau$ a transformat
 \begin{example}[Georgii (9.15)]
     \label{ex:sb-9-15}
     \uses{thm:sb-9-11}
-    \lean{MeasureTheory.GibbsMeasure.squarePotential, MeasureTheory.GibbsMeasure.measurePreserving_squareFlip₂, MeasureTheory.GibbsMeasure.not_measurePreserving_squareFlip₁_of_integral_pos}
+    \lean{MeasureTheory.GibbsMeasure.squarePotential, MeasureTheory.GibbsMeasure.measurePreserving_squareFlip₂, MeasureTheory.GibbsMeasure.not_measurePreserving_squareFlip₁_of_integral_pos, MeasureTheory.GibbsMeasure.exists_not_measurePreserving_squareFlip₁_of_summable}
     \leanok
 
     For the two-layer Ising interaction with couplings $J_n \geq 0$ between layers and $K \geq 0$
     within a site, $S = \mathbb N$, $E = \set{\pm1}^2$: every Gibbs measure is invariant under the
     flip of the second layer (the bound (9.14) equals $2K$), while a Gibbs measure with positive
-    first-layer magnetisation is not invariant under the flip of the first layer.
+    first-layer magnetisation is not invariant under the flip of the first layer. Such a measure
+    exists for every $K \geq 0$ under Georgii's condition (6.1) on $\beta J$: the $+$-boundary
+    finite-volume energy is a ferromagnetic multi-spin energy, so Griffiths' second inequality
+    bounds $\gamma_{\Lambda_N}(\sigma_{i1}\mid\omega^+)$ below by its value at $K = 0$, the chain
+    of \S6.1, and a cluster point in local convergence is Gibbs and keeps the bound (Georgii's
+    limit is replaced by a cluster point; his ``$\mu_+ \in \mathcal G_\Theta(\Phi)$'' is read as
+    $\mu_+ \in \mathcal G(\Phi)$, the couplings $J_n$ being site-dependent).
 \end{example}
 
 \begin{example}[Georgii (9.17)]

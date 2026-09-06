@@ -28,6 +28,7 @@ public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Acyclic
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.CayleyTree
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Hasse
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.InfiniteCluster
+public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.RootedTree
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.SelfAvoidingPath
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.OceanPart
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.OceanInter
@@ -48,6 +49,8 @@ public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Gaussian.Multivaria
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Tanh
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.LogCoshRatio
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.LogCoshRatioFixedPoint
+public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.LogCoshRatioExtremalSolutions
+public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.LogCoshRatioAntiferro
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.ExpNegSq
 public import GibbsMeasure.Mathlib.Dynamics.FixedPoints.MonotoneReal
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Tanh.InfiniteProd
@@ -284,6 +287,8 @@ public import GibbsMeasure.Potential.NearestNeighbour
 public import GibbsMeasure.Potential.PerSiteExistence
 public import GibbsMeasure.Potential.Periodic
 public import GibbsMeasure.Potential.SelfPotential
+public import GibbsMeasure.Potential.FiniteState
+public import GibbsMeasure.Potential.PairChain
 public import GibbsMeasure.Potential.TailSummable
 public import GibbsMeasure.Potential.KernelDomination
 public import GibbsMeasure.Potential.Space

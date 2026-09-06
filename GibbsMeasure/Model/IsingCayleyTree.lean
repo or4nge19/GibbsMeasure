@@ -7,8 +7,12 @@ module
 
 public import GibbsMeasure.Model.TreeBoundaryLawChains
 public import GibbsMeasure.Model.Ising
+public import GibbsMeasure.Specification.ErgodicGibbs
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.CayleyTree
+public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.RootedTree
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.LogCoshRatioFixedPoint
+public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.LogCoshRatioAntiferro
+public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.LogCoshRatioExtremalSolutions
 
 /-!
 # Georgii §12.2: the Ising model on Cayley trees
@@ -50,6 +54,31 @@ of §12.1 in `GibbsMeasure/Model/TreeBoundaryLaw.lean` and
 * **Theorem (12.31)(b), non-uniqueness**: `exists_ne_isingChain` (two distinct completely
   homogeneous Markov chains in `𝒢(J, h)` when `J > J(d)` and `|h| ≤ h(J,d)`) and
   `exists_three_isingChain` (three of them when `|h| < h(J,d)`).
+* **Theorem (12.31)(b), step 3)**: `mem_extremePoints_G_isingChain_of_isGreatest` and
+  `mem_extremePoints_G_isingChain_of_isLeast` — the chains attached to the largest and the
+  smallest solution of (12.22) are *extreme* in `𝒢(J, h)`. Georgii's comparison of the ratios
+  `r_{Λ,ζ}(μ) = μ(σ_{Λ∪∂Λ} = ζ)/μ(σ_{Λ∪∂Λ} ≡ -1)` is
+  `IsBoundaryLaw.measure_cyl_mul_le_of_le` (`TreeBoundaryLaw.lean`) plus the two extremality
+  criteria `mem_extremePoints_G_boundaryLawMeasure_of_forall_le` / `..._of_forall_ge`
+  (`TreeBoundaryLawChains.lean`); the passage from extreme to arbitrary Gibbs measures is
+  `mul_measure_le_mul_measure_of_forall_extremePoints`, Theorem (7.26) as a comparison principle.
+  `mem_extremePoints_invariantG_isingChain_of_isGreatest` / `..._of_isLeast` add extremality in
+  `𝒢_{I(B)}(J, h) = invariantG` (Georgii (14.14) at `I(B) = graphAutomorphisms`), since a
+  completely homogeneous chain is `I(B)`-invariant by Comment (12.3)(5)
+  (`mem_invariantG_isingChain`) and an extreme point of a set is extreme in any subset containing
+  it. `exists_ne_mem_extremePoints_G_inter_invariantG_isingChain` is the first clause of
+  (12.31)(b) in one statement.
+* **Theorem (12.31)(b), step 4)**: `isingTreeParam` is Georgii's inhomogeneous family of
+  parameters `t_{ij}` attached to a root `r` (`Real.treeBackOrbit`, the backward orbit of `t`
+  under `ψ = h + d φ_J` inside `]t₋, t₊[`, on the bonds pointing towards `r`;
+  `Real.treeAwayOrbit` on the bonds pointing away), `isBoundaryLaw_isingTreeParam` verifies
+  (12.32) for it — through `isBoundaryLaw_isingBoundaryVec_family_iff`, the **converse of
+  (12.32)** — and `isingTreeChain` is the Markov chain `ν_t` it defines. `isingTreeChain_inj`,
+  `not_isCompletelyHomogeneousMarkovChain_isingTreeChain`,
+  `infinite_setOf_mem_G_not_isCompletelyHomogeneous`: the `ν_t` are pairwise distinct, none of
+  them is completely homogeneous when `t` is not itself a solution of (12.22), and there are
+  infinitely many of them. The rooted-tree input (unique parent, all other neighbours farther) is
+  `GibbsMeasure/Mathlib/Combinatorics/SimpleGraph/RootedTree.lean`.
 * **(12.33)**: `integral_spin_isingChain_treeCriticalPoint`, the magnetisation
   `(d - w)^{1/2}(d - w̄)^{1/2}(d - 1)^{-1}` of `μ₊` at the critical field `h = -h(J, d)`
   (`treeCriticalPoint_solves`, `le_treeCriticalPoint_of_solves` identify `t₊ = t_{J,d}`).
@@ -58,6 +87,13 @@ of §12.1 in `GibbsMeasure/Model/TreeBoundaryLaw.lean` and
   associated alternating Markov chain, and `isingAltChain_ne_comp_not` /
   `exists_ne_isGibbsMeasure_of_isFixedPt_treeRecursion₂` give the two distinct phases
   `μ_{-+} ≠ μ_{+-}` attached to a solution of **(12.35)** that does not solve (12.22).
+* **The antiferromagnetic transition itself**, unconditionally:
+  `exists_ne_isGibbsMeasure_of_abs_lt_antiferroCriticalField` and
+  `exists_ne_isGibbsMeasure_isingSpecification_antiferro` — for `J < -J(d)` (i.e.
+  `1 < d |tanh J|`) and `|h| < ĥ(J, d) = Real.antiferroCriticalField d J`, equation (12.35) has a
+  solution off (12.22) (`Real.exists_isFixedPt_treeRecursion₂_ne`), so `|𝒢(J, h)| > 1` although
+  (12.22) has a unique solution. `ĥ(J,d) = h(-J,d) + 2 t_{-J,d} > 0` is exactly the quantity with
+  which Georgii shows his interval `I(J, d)` is non-degenerate.
 
 The real analysis behind (12.23), (12.26)–(12.30), (12.33) and (12.35) — `Real.logCoshRatio`,
 `Real.criticalCoupling` `J(d)`, `Real.treeCriticalPoint` `t_{J,d}`, `Real.treeCriticalField`
@@ -67,19 +103,42 @@ The real analysis behind (12.23), (12.26)–(12.30), (12.33) and (12.35) — `Re
 
 ## Not formalised here
 
-Georgii's Theorem (12.31)(b) also asserts that `μ₋, μ₊` are *extreme* in `𝒢(J, h)` and in
-`𝒢_{I(B)}(J, h)`, and that `ex 𝒢(J, h) ∖ ex 𝒢_{I(B)}(J, h)` is infinite (steps 3)–5) of his
-proof: a stochastic-domination argument for `r_{Λ,ζ}`, the inhomogeneous boundary laws built from
-a non-fixed orbit of `h + d φ_J`, and a mixing property of a completely homogeneous chain under
-`I(B, n)`). Those three steps are not proved in this file. His remark that
-`I(J, d) = ]-h(J,d), h(J,d)[` in the antiferromagnetic case is explicitly stated in the book as
-suggested by numerical calculations, not as a theorem.
+Of Georgii's Theorem (12.31)(b) the clause `|ex 𝒢(J,h) ∖ ex 𝒢_{I(B)}(J,h)| = ∞` and the clause
+"`μ_#` is a third extreme element of `𝒢_{I(B)}(J,h)`" are **not** proved. What is missing, exactly:
 
-One further gap: the antiferromagnetic transition itself.
-`exists_ne_isGibbsMeasure_of_isFixedPt_treeRecursion₂` *assumes* a fixed point of (12.35) that is
-not one of (12.22). Georgii's argument that such a fixed point exists for `J < -J(d)` and
-`h ∈ I(J, d)` (the non-degeneracy of `I(J, d)`), and his converse `|𝒢(J,h)| = 1` iff (12.35)
-has one solution, are not proved.
+* Step 4) is carried out here up to its last line. Georgii concludes from the *linear
+  independence* of the family `{ν_t : t₋ < t < t₊}` ("a straightforward modification of the proof
+  of Corollary (12.18)") and Corollary (7.29) (`le_encard_extremePoints_iff`) that `ex 𝒢(J, h)`
+  is infinite. That linear independence is not proved here: Corollary (12.18)
+  (`not_isMarkovChain_sum_smul_of_forall_adj_exists_boundaryLaw_eq`) carries Georgii's own
+  hypothesis that at every oriented bond `ij` some other neighbour `k` of `i` has
+  `ℓ^{(n)}_{ki} = ℓ^{(n)}_{ji}` for all `n`, which holds for *completely homogeneous* chains but
+  not for arbitrary members of `ex 𝒢(J, h)`, so it does not apply to the extreme decomposition of
+  a `ν_t`. What is proved instead is that the `ν_t` are infinitely many pairwise distinct Markov
+  chains in `𝒢(J, h)`, none of them completely homogeneous.
+* Step 5) (`μ_#` extreme in `𝒢_{I(B)}`) rests on a mixing property of a completely homogeneous
+  chain along the subgroups `I(B, n) = {τ ∈ I(B) : d(τ i, i) ≥ n for all i}`. Neither the mixing
+  estimate — which needs (12.4) on a volume meeting both `Λ` and `τ^{-1}Δ` and the convergence
+  `P^k → α` of Theorem (3.A3) — nor the non-emptiness of `I(B, n)` is proved here. Georgii's
+  Corollary (7.4) itself *is* available, in the form he uses it (invariance only `μ`-almost
+  everywhere): `mem_extremePoints_iff_trivialOn_aeInvariant`, in the namespace
+  `MeasureTheory.GibbsMeasure.AbstractSpecification` of `GibbsMeasure/Specification/Abstract.lean`. Note that the countable-group form
+  (Theorem (14.5)(a), `mem_extremePoints_invariantFields_iff_mem_trivialOn`) does *not* apply:
+  `I(B)` is uncountable for `d ≥ 1`.
+* Both missing clauses need a fact about `𝒞𝒯(d)` that this development does not have: that the
+  automorphism group of a `(d+1)`-regular tree is rich — transitive on oriented bonds, and
+  containing elements moving every vertex arbitrarily far. It *is* rich (all `(d+1)`-regular trees
+  are isomorphic), but the proof is a back-and-forth construction which is in neither Mathlib nor
+  this tree, and `SimpleGraph.IsCayleyTree` is an abstract property from which the automorphisms
+  would have to be *built*. Until they are, `𝒢_{I(B)}(J, h)` cannot be separated from `𝒢(J, h)`
+  (they coincide if `I(B)` is trivial), so no proof of the third clause is available here.
+
+Georgii's remark that `I(J, d) = ]-h(J,d), h(J,d)[` in the antiferromagnetic case is explicitly
+stated in the book as suggested by numerical calculations, not as a theorem; the inclusion
+`]-ĥ, ĥ[ ⊆ I(J,d)` that he *does* establish is `Real.exists_isFixedPt_treeRecursion₂_ne` and
+`exists_ne_isGibbsMeasure_of_abs_lt_antiferroCriticalField` below. His converse `|𝒢(J,h)| = 1` iff
+(12.35) has one solution is proved only in the direction `d|tanh J| ≤ 1 ⟹` uniqueness of the
+solution (`Real.existsUnique_isFixedPt_treeRecursion₂`).
 
 ## The identification with the Ising potential, and a witness
 
@@ -682,6 +741,62 @@ theorem isingParam_eq_add_sum (hG : G.IsCayleyTree d)
   have hc := field_split d h
   linarith
 
+/-- The row `ℓ_t Q` at `+` is the row at `-` times `exp (2h/(d+1) + 2 φ_J(t))`. -/
+lemma tsum_isingBoundaryVec_mul_isingTransfer_true_eq (d : ℕ) (J h t : ℝ) :
+    (∑' y, isingBoundaryVec d h t y * isingTransfer d J h y true)
+      = (∑' y, isingBoundaryVec d h t y * isingTransfer d J h y false)
+        * ENNReal.ofReal (exp (2 * (h / (d + 1)) + 2 * logCoshRatio J t)) := by
+  rw [← tsum_isingBoundaryVec_div]
+  exact (ENNReal.mul_div_cancel'
+    (fun hcon ↦ absurd hcon (tsum_isingBoundaryVec_mul_isingTransfer_pos false).ne')
+    (fun hcon ↦ absurd hcon (tsum_isingBoundaryVec_mul_isingTransfer_ne_top false))).symm
+
+/-- **Georgii (12.32), converse.** A family `ℓ_{ij} = ℓ_{T_{ij}}` of Ising boundary vectors on
+`𝒞𝒯(d)` is a boundary law of Definition (12.10) for the transfer matrix (12.20) **iff** its
+parameters satisfy Georgii's equation (12.32),
+`T_{ij} = h + ∑_{k ∈ ∂i ∖ {j}} φ_J(T_{ki})`.
+
+The forward direction is `isingParam_eq_add_sum` (every boundary law normalised at `-1` has
+parameters obeying (12.32)); the converse is what step 4) of the proof of Theorem (12.31) needs, to
+turn Georgii's recursively defined family `t_{ij}` into an actual boundary law. -/
+theorem isBoundaryLaw_isingBoundaryVec_family_iff (hG : G.IsCayleyTree d) (T : S → S → ℝ) :
+    IsBoundaryLaw G (fun _ _ ↦ isingTransfer d J h) (fun i j ↦ isingBoundaryVec d h (T i j))
+      ↔ ∀ ⦃i j⦄, G.Adj i j →
+          T i j = h + ∑ k ∈ (G.neighborFinset i).erase j, logCoshRatio J (T k i) := by
+  classical
+  have hnorm : ∀ ⦃i j : S⦄, G.Adj i j → (fun i j ↦ isingBoundaryVec d h (T i j)) i j false = 1 :=
+    fun _ _ _ ↦ isingBoundaryVec_false
+  constructor
+  · intro hℓ i j hij
+    simpa only [isingParam_isingBoundaryVec] using isingParam_eq_add_sum hG hℓ hnorm hij
+  · intro hT
+    refine IsBoundaryLaw.of_finite G _ _ (fun _ _ _ x y ↦ isingTransfer_ne_top x y)
+      (fun _ _ _ x ↦ isingBoundaryVec_pos x) (fun _ _ _ x ↦ isingBoundaryVec_ne_top x)
+      fun i j hij ↦ ?_
+    set V := (G.neighborFinset i).erase j with hV
+    set A : S → ℝ≥0∞ := fun k ↦
+      ∑' y, isingBoundaryVec d h (T k i) y * isingTransfer d J h y false with hA
+    have hP0 : (∏ k ∈ V, A k) ≠ 0 :=
+      Finset.prod_ne_zero_iff.2 fun _ _ ↦ (tsum_isingBoundaryVec_mul_isingTransfer_pos false).ne'
+    have hPt : (∏ k ∈ V, A k) ≠ ⊤ :=
+      ENNReal.prod_ne_top fun _ _ ↦ tsum_isingBoundaryVec_mul_isingTransfer_ne_top false
+    refine ⟨(∏ k ∈ V, A k)⁻¹, ENNReal.inv_ne_zero.2 hPt, ENNReal.inv_ne_top.2 hP0, fun x ↦ ?_⟩
+    cases x
+    · simpa only [isingBoundaryVec_false] using (ENNReal.inv_mul_cancel hP0 hPt).symm
+    · have hstep : ∀ k ∈ V, (∑' y, isingBoundaryVec d h (T k i) y * isingTransfer d J h y true)
+          = A k * ENNReal.ofReal (exp (2 * (h / (d + 1)) + 2 * logCoshRatio J (T k i))) :=
+        fun k _ ↦ tsum_isingBoundaryVec_mul_isingTransfer_true_eq d J h (T k i)
+      rw [Finset.prod_congr rfl hstep, Finset.prod_mul_distrib,
+        ← ENNReal.ofReal_prod_of_nonneg (fun _ _ ↦ exp_nonneg _), ← exp_sum, ← mul_assoc,
+        ENNReal.inv_mul_cancel hP0 hPt, one_mul, isingBoundaryVec_true]
+      congr 1
+      rw [exp_eq_exp, Finset.sum_add_distrib, Finset.sum_const,
+        hG.card_neighborFinset_erase hij, ← Finset.mul_sum, nsmul_eq_mul]
+      have hc := field_split d h
+      have hTij := hT hij
+      rw [← hV] at hTij
+      linarith
+
 /-! ### Step 1 of the proof of Theorem (12.31): the parameters lie between `t₋` and `t₊` -/
 
 /-- The oriented bonds `B̄` of `G`, the index set of Georgii's family `{t_{ij}}`. -/
@@ -876,6 +991,461 @@ theorem exists_three_isingChain (hJ : 0 < J) (hd : 1 ≤ d) (hG : G.IsCayleyTree
 end PhaseTransition
 
 
+/-! ## Georgii Theorem (12.31)(b), step 3): `μ₋` and `μ₊` are extreme in `𝒢(J, h)`
+
+Georgii compares an arbitrary `μ ∈ 𝒢(J, h)` with the completely homogeneous chains through the
+ratios `r_{Λ,ζ}(μ) = μ(σ_{Λ ∪ ∂Λ} = ζ)/μ(σ_{Λ ∪ ∂Λ} ≡ -1)`. By step 1 the parameters (12.32) of the
+normalised boundary law of an extreme Gibbs measure lie between the extremal solutions `t₋ ≤ t₊`
+of (12.22) (`Real.exists_isLeast_treeField_eq`, `Real.exists_isGreatest_treeField_eq`), so its
+boundary law is squeezed between `ℓ_{t₋}` and `ℓ_{t₊}` pointwise — `ℓ(-1) = 1` for all of them and
+`ℓ(+1) = exp(2t - 2h/(d+1))` is increasing in `t`. The general extremality criteria of
+`TreeBoundaryLawChains.lean` (`mem_extremePoints_G_boundaryLawMeasure_of_forall_le` and its
+mirror image) then make `μ_{t₊}` and `μ_{t₋}` extreme. -/
+
+section Extremality
+
+variable [Countable S]
+
+/-- Georgii, steps 2)–3): an extreme Gibbs measure of `γ^{J,h}` on `𝒞𝒯(d)` is the measure (12.13)
+of a boundary law normalised at `-1` — Theorem (12.6) makes it a Markov chain, Theorem (12.12)(b)
+produces the boundary law, and `normalizeBoundaryLaw` normalises it without changing the
+measure. -/
+theorem exists_isBoundaryLaw_normalized_eq_of_mem_extremePoints (hG : G.IsCayleyTree d)
+    {μ : Measure (S → Bool)}
+    (hμext : μ ∈ (_root_.MeasureTheory.GibbsMeasure.G
+      (isingTreeSpecification G d J h)).extremePoints ℝ≥0∞) :
+    ∃ (ℓ : S → S → Bool → ℝ≥0∞) (hℓ : IsBoundaryLaw G (fun _ _ ↦ isingTransfer d J h) ℓ),
+      (∀ ⦃i j⦄, G.Adj i j → ℓ i j false = 1) ∧
+        μ = boundaryLawMeasure (isTransferFamily_isingTransfer G d J h) hℓ hG.isTree := by
+  have hQ := isTransferFamily_isingTransfer G d J h
+  have hμP : IsProbabilityMeasure μ := hμext.1.1
+  have hμG : (transferSpecification G hQ).IsGibbsMeasure μ := hμext.1.2
+  have hchain : IsMarkovChain G μ :=
+    exists_isMarkovChain_of_mem_extremePoints hG.isTree
+      (isMarkovSpecification_transferSpecification hQ) hμext
+  have hbl := hchain.isBoundaryLaw_chainBoundaryLaw hQ hμG hG.isTree false
+  have hnorm := hbl.isBoundaryLaw_normalizeAt false
+  refine ⟨_, hnorm, fun i j hij ↦ normalizeBoundaryLaw_apply_self hbl hij false, ?_⟩
+  rw [hbl.boundaryLawMeasure_normalizeAt_eq hQ hG.isTree false hnorm]
+  exact hchain.eq_boundaryLawMeasure hQ hμG hG.isTree false
+
+/-- **Georgii Theorem (12.31)(b): `μ₊ ∈ ex 𝒢(J, h)`.** The completely homogeneous Markov chain
+attached to the *largest* solution of (12.22) is an extreme Gibbs measure. -/
+theorem mem_extremePoints_G_isingChain_of_isGreatest (hJ : 0 < J) (hG : G.IsCayleyTree d)
+    {t : ℝ} (hsol : t = h + d * logCoshRatio J t)
+    (hmax : ∀ s : ℝ, Real.treeField d J s = h → s ≤ t) :
+    isingChain hG hsol ∈ (_root_.MeasureTheory.GibbsMeasure.G
+      (isingTreeSpecification G d J h)).extremePoints ℝ≥0∞ := by
+  refine mem_extremePoints_G_boundaryLawMeasure_of_forall_le
+    (isTransferFamily_isingTransfer G d J h) hG.isTree
+    ((isBoundaryLaw_isingBoundaryVec_iff hG).2 hsol) (fun _ _ _ ↦ isingBoundaryVec_false)
+    fun μ hμext ↦ ?_
+  obtain ⟨ℓ, hℓ, ha, rfl⟩ := exists_isBoundaryLaw_normalized_eq_of_mem_extremePoints hG hμext
+  obtain ⟨p, hp, hple⟩ := exists_treeField_eq_and_forall_isingParam_le hJ hG hℓ ha
+  refine ⟨ℓ, hℓ, ha, fun i j hij x ↦ ?_, rfl⟩
+  cases x
+  · rw [ha hij, isingBoundaryVec_false]
+  · rw [apply_true_eq_of_normalized d h (ha hij) (hℓ.pos hij true) (hℓ.ne_top hij true),
+      isingBoundaryVec_true]
+    exact ENNReal.ofReal_le_ofReal (exp_le_exp.2 (by linarith [hmax p hp, hple hij]))
+
+/-- **Georgii Theorem (12.31)(b): `μ₋ ∈ ex 𝒢(J, h)`.** The completely homogeneous Markov chain
+attached to the *smallest* solution of (12.22) is an extreme Gibbs measure. -/
+theorem mem_extremePoints_G_isingChain_of_isLeast (hJ : 0 < J) (hG : G.IsCayleyTree d)
+    {t : ℝ} (hsol : t = h + d * logCoshRatio J t)
+    (hmin : ∀ s : ℝ, Real.treeField d J s = h → t ≤ s) :
+    isingChain hG hsol ∈ (_root_.MeasureTheory.GibbsMeasure.G
+      (isingTreeSpecification G d J h)).extremePoints ℝ≥0∞ := by
+  refine mem_extremePoints_G_boundaryLawMeasure_of_forall_ge
+    (isTransferFamily_isingTransfer G d J h) hG.isTree
+    ((isBoundaryLaw_isingBoundaryVec_iff hG).2 hsol) (fun _ _ _ ↦ isingBoundaryVec_false)
+    fun μ hμext ↦ ?_
+  obtain ⟨ℓ, hℓ, ha, rfl⟩ := exists_isBoundaryLaw_normalized_eq_of_mem_extremePoints hG hμext
+  obtain ⟨q, hq, hqle⟩ := exists_treeField_eq_and_forall_le_isingParam hJ hG hℓ ha
+  refine ⟨ℓ, hℓ, ha, fun i j hij x ↦ ?_, rfl⟩
+  cases x
+  · rw [ha hij, isingBoundaryVec_false]
+  · rw [apply_true_eq_of_normalized d h (ha hij) (hℓ.pos hij true) (hℓ.ne_top hij true),
+      isingBoundaryVec_true]
+    exact ENNReal.ofReal_le_ofReal (exp_le_exp.2 (by linarith [hmin q hq, hqle hij]))
+
+/-- **Georgii Theorem (12.31)(b), first clause.** For `J > J(d)` (i.e. `d tanh J > 1`) and
+`|h| ≤ h(J, d)` the two completely homogeneous Markov chains `μ₋ ≠ μ₊` attached to the smallest and
+the largest solution of (12.22) are *distinct extreme* elements of `𝒢(J, h)`. -/
+theorem exists_ne_mem_extremePoints_G_isingChain (hJ : 0 < J) (hG : G.IsCayleyTree d)
+    (hw : 1 < (d : ℝ) * tanh J) (hh : |h| ≤ Real.treeCriticalField d J) :
+    ∃ (t₁ t₂ : ℝ) (hs₁ : t₁ = h + d * logCoshRatio J t₁)
+      (hs₂ : t₂ = h + d * logCoshRatio J t₂),
+      isingChain hG hs₁ ≠ isingChain hG hs₂ ∧
+        isingChain hG hs₁ ∈ (_root_.MeasureTheory.GibbsMeasure.G
+          (isingTreeSpecification G d J h)).extremePoints ℝ≥0∞ ∧
+        isingChain hG hs₂ ∈ (_root_.MeasureTheory.GibbsMeasure.G
+          (isingTreeSpecification G d J h)).extremePoints ℝ≥0∞ := by
+  obtain ⟨tmin, hmin, hminle⟩ := Real.exists_isLeast_treeField_eq hJ d h
+  obtain ⟨tmax, hmax, hmaxle⟩ := Real.exists_isGreatest_treeField_eq hJ d h
+  obtain ⟨a, b, hab, hae, hbe⟩ := Real.exists_lt_and_treeField_eq hJ hw hh
+  have hsmin : tmin = h + d * logCoshRatio J tmin := by rw [Real.treeField] at hmin; linarith
+  have hsmax : tmax = h + d * logCoshRatio J tmax := by rw [Real.treeField] at hmax; linarith
+  have hlt : tmin < tmax := lt_of_le_of_lt (hminle a hae) (lt_of_lt_of_le hab (hmaxle b hbe))
+  exact ⟨tmin, tmax, hsmin, hsmax, fun heq ↦ hlt.ne (isingChain_inj hG hsmin hsmax heq),
+    mem_extremePoints_G_isingChain_of_isLeast hJ hG hsmin hminle,
+    mem_extremePoints_G_isingChain_of_isGreatest hJ hG hsmax hmaxle⟩
+
+/-! ### Georgii Theorem (12.31)(b): extremality in `𝒢_{I(B)}(J, h)`
+
+Georgii's `𝒢_{I(B)}(J, h) = 𝒢(J, h) ∩ 𝓟_{I(B)}` is `invariantG` (Georgii (14.14)) at the group
+`I(B) = graphAutomorphisms` of graph automorphisms. A completely homogeneous Markov chain belongs
+to it by Comment (12.3)(5) (`measurePreserving_of_mem_graphAutomorphisms`), and an extreme point of
+a set is extreme in every subset containing it, so `μ₋, μ₊ ∈ ex 𝒢(J,h) ∩ ex 𝒢_{I(B)}(J,h)` — the
+first clause of Georgii's (12.31)(b). -/
+
+omit [Countable S] in
+/-- **Georgii Comment (12.3)(5) for `μ_t`.** The completely homogeneous Markov chain `μ_t` is
+invariant under every element of Georgii's group `I(B)` of graph automorphisms. -/
+theorem measurePreserving_isingChain_of_mem_graphAutomorphisms (hG : G.IsCayleyTree d)
+    (hsol : t = h + d * logCoshRatio J t) {τ : Transformation S Bool}
+    (hτ : τ ∈ graphAutomorphisms Bool G) :
+    MeasurePreserving τ.toFun (isingChain hG hsol) (isingChain hG hsol) := by
+  obtain ⟨i₀, j₀, hij₀⟩ := hG.exists_adj
+  have : Nontrivial S := ⟨i₀, j₀, hij₀.ne⟩
+  exact measurePreserving_of_mem_graphAutomorphisms hG.isTree
+    (isCompletelyHomogeneousMarkovChain_isingChain hG hsol).isMarkovChain
+    (isingTransition_pos J t) (tsum_isingTransition J t)
+    (fun _ _ hij x y _ ↦ transitionProb_isingChain hG hsol hij x y) hτ
+
+omit [Countable S] in
+/-- **Georgii §12.2.** `μ_t ∈ 𝒢_{I(B)}(J, h)`. -/
+theorem mem_invariantG_isingChain (hG : G.IsCayleyTree d)
+    (hsol : t = h + d * logCoshRatio J t) :
+    isingChain hG hsol
+      ∈ invariantG (isingTreeSpecification G d J h) (graphAutomorphisms Bool G) :=
+  ⟨⟨inferInstance, isGibbsMeasure_isingChain hG hsol⟩,
+    mem_invariantFields_iff.2 ⟨inferInstance,
+      fun _ hτ ↦ measurePreserving_isingChain_of_mem_graphAutomorphisms hG hsol hτ⟩⟩
+
+/-- **Georgii Theorem (12.31)(b): `μ₊ ∈ ex 𝒢_{I(B)}(J, h)`.** An extreme point of `𝒢(J, h)` which
+is `I(B)`-invariant is extreme in the smaller set `𝒢_{I(B)}(J, h)`. -/
+theorem mem_extremePoints_invariantG_isingChain_of_isGreatest (hJ : 0 < J)
+    (hG : G.IsCayleyTree d) {t : ℝ} (hsol : t = h + d * logCoshRatio J t)
+    (hmax : ∀ s : ℝ, Real.treeField d J s = h → s ≤ t) :
+    isingChain hG hsol ∈ (invariantG (isingTreeSpecification G d J h)
+      (graphAutomorphisms Bool G)).extremePoints ℝ≥0∞ :=
+  inter_extremePoints_subset_extremePoints_of_subset Set.inter_subset_left
+    ⟨mem_invariantG_isingChain hG hsol,
+      mem_extremePoints_G_isingChain_of_isGreatest hJ hG hsol hmax⟩
+
+/-- **Georgii Theorem (12.31)(b): `μ₋ ∈ ex 𝒢_{I(B)}(J, h)`.** -/
+theorem mem_extremePoints_invariantG_isingChain_of_isLeast (hJ : 0 < J)
+    (hG : G.IsCayleyTree d) {t : ℝ} (hsol : t = h + d * logCoshRatio J t)
+    (hmin : ∀ s : ℝ, Real.treeField d J s = h → t ≤ s) :
+    isingChain hG hsol ∈ (invariantG (isingTreeSpecification G d J h)
+      (graphAutomorphisms Bool G)).extremePoints ℝ≥0∞ :=
+  inter_extremePoints_subset_extremePoints_of_subset Set.inter_subset_left
+    ⟨mem_invariantG_isingChain hG hsol, mem_extremePoints_G_isingChain_of_isLeast hJ hG hsol hmin⟩
+
+/-- **Georgii Theorem (12.31)(b), first clause in full.** For `J > J(d)` and `|h| ≤ h(J, d)`,
+`μ₋ ≠ μ₊` and both lie in `ex 𝒢(J, h) ∩ ex 𝒢_{I(B)}(J, h)`. -/
+theorem exists_ne_mem_extremePoints_G_inter_invariantG_isingChain (hJ : 0 < J)
+    (hG : G.IsCayleyTree d) (hw : 1 < (d : ℝ) * tanh J)
+    (hh : |h| ≤ Real.treeCriticalField d J) :
+    ∃ (t₁ t₂ : ℝ) (hs₁ : t₁ = h + d * logCoshRatio J t₁)
+      (hs₂ : t₂ = h + d * logCoshRatio J t₂),
+      isingChain hG hs₁ ≠ isingChain hG hs₂ ∧
+        isingChain hG hs₁ ∈ (_root_.MeasureTheory.GibbsMeasure.G
+            (isingTreeSpecification G d J h)).extremePoints ℝ≥0∞ ∩
+          (invariantG (isingTreeSpecification G d J h)
+            (graphAutomorphisms Bool G)).extremePoints ℝ≥0∞ ∧
+        isingChain hG hs₂ ∈ (_root_.MeasureTheory.GibbsMeasure.G
+            (isingTreeSpecification G d J h)).extremePoints ℝ≥0∞ ∩
+          (invariantG (isingTreeSpecification G d J h)
+            (graphAutomorphisms Bool G)).extremePoints ℝ≥0∞ := by
+  obtain ⟨tmin, hmin, hminle⟩ := Real.exists_isLeast_treeField_eq hJ d h
+  obtain ⟨tmax, hmax, hmaxle⟩ := Real.exists_isGreatest_treeField_eq hJ d h
+  obtain ⟨a, b, hab, hae, hbe⟩ := Real.exists_lt_and_treeField_eq hJ hw hh
+  have hsmin : tmin = h + d * logCoshRatio J tmin := by rw [Real.treeField] at hmin; linarith
+  have hsmax : tmax = h + d * logCoshRatio J tmax := by rw [Real.treeField] at hmax; linarith
+  have hlt : tmin < tmax := lt_of_le_of_lt (hminle a hae) (lt_of_lt_of_le hab (hmaxle b hbe))
+  exact ⟨tmin, tmax, hsmin, hsmax, fun heq ↦ hlt.ne (isingChain_inj hG hsmin hsmax heq),
+    ⟨mem_extremePoints_G_isingChain_of_isLeast hJ hG hsmin hminle,
+      mem_extremePoints_invariantG_isingChain_of_isLeast hJ hG hsmin hminle⟩,
+    ⟨mem_extremePoints_G_isingChain_of_isGreatest hJ hG hsmax hmaxle,
+      mem_extremePoints_invariantG_isingChain_of_isGreatest hJ hG hsmax hmaxle⟩⟩
+
+end Extremality
+
+
+/-! ## Georgii, step 4) of the proof of Theorem (12.31): inhomogeneous phases
+
+Georgii builds, for each `t` strictly between the extremal solutions `t₋ < t₊` of (12.22), a
+boundary law that is *not* constant, and hence a Markov chain in `𝒢(J, h)` that is not completely
+homogeneous. Fix a root `r`. On the bonds `ij` pointing *towards* `r` (i.e. `j` is closer to `r`)
+put `t_{ij} = u_{d(r,i)}`, where `(u_n)` is the backward orbit of `t` under `ψ = h + d φ_J`
+(`Real.treeBackOrbit`, which exists because `ψ` maps `]t₋, t₊[` bijectively onto itself); on the
+bonds pointing *away* from `r` put `t_{ij} = v_{d(r,i)}`, where `v` is determined by (12.32)
+(`Real.treeAwayOrbit`). The consistency equation (12.32) at a bond `ij` then splits into three
+cases according to whether `j` is the parent of `i`, `i` is the root, or `i` has a parent — see
+`isBoundaryLaw_isingTreeParam`. -/
+
+section Inhomogeneous
+
+open scoped Classical in
+/-- **Georgii, step 4) of the proof of Theorem (12.31).** The inhomogeneous parameter family
+attached to a root `r` and the orbits of `t`: `u_{d(r,i)}` on the bonds pointing towards `r`,
+`v_{d(r,i)}` on the bonds pointing away from it. -/
+noncomputable def isingTreeParam (G : SimpleGraph S) (d : ℕ) (J h t : ℝ) (r : S) : S → S → ℝ :=
+  fun i j ↦ if r ∈ G.past i j then Real.treeAwayOrbit d J h t (G.dist r i)
+    else Real.treeBackOrbit d J h t (G.dist r i)
+
+omit [DecidableEq S] [G.LocallyFinite] in
+lemma isingTreeParam_of_mem_past {r i j : S} (h' : r ∈ G.past i j) :
+    isingTreeParam G d J h t r i j = Real.treeAwayOrbit d J h t (G.dist r i) := by
+  simp [isingTreeParam, h']
+
+omit [DecidableEq S] [G.LocallyFinite] in
+lemma isingTreeParam_of_notMem_past {r i j : S} (h' : r ∉ G.past i j) :
+    isingTreeParam G d J h t r i j = Real.treeBackOrbit d J h t (G.dist r i) := by
+  simp [isingTreeParam, h']
+
+/-- **Georgii, step 4) of the proof of Theorem (12.31).** The family `isingTreeParam` satisfies
+Georgii's consistency equation (12.32), so `ℓ_{ij} = ℓ_{t_{ij}}` is a boundary law. -/
+theorem isBoundaryLaw_isingTreeParam (hJ : 0 < J) (hd : 1 ≤ d) (hG : G.IsCayleyTree d) (r : S)
+    {a b : ℝ} (ha : Real.treeRecursion d J h a = a) (hb : Real.treeRecursion d J h b = b)
+    (hab : a < b) (ht : t ∈ Set.Ioo a b) :
+    IsBoundaryLaw G (fun _ _ ↦ isingTransfer d J h)
+      (fun i j ↦ isingBoundaryVec d h (isingTreeParam G d J h t r i j)) := by
+  classical
+  have hdR : (1 : ℝ) ≤ d := by exact_mod_cast hd
+  rw [isBoundaryLaw_isingBoundaryVec_family_iff hG]
+  intro i j hij
+  by_cases hrj : r ∈ G.past i j
+  · -- `j` is farther from the root than `i`: the bond points away from `r`
+    rw [isingTreeParam_of_mem_past hrj]
+    by_cases hri : r = i
+    · -- `i` is the root
+      subst hri
+      have hsum : ∀ k ∈ (G.neighborFinset r).erase j,
+          logCoshRatio J (isingTreeParam G d J h t r k r) = logCoshRatio J t := by
+        intro k hk
+        have hrk : G.Adj r k := (G.mem_neighborFinset r k).1 (Finset.mem_of_mem_erase hk)
+        rw [isingTreeParam_of_notMem_past SimpleGraph.notMem_past_self_root,
+          G.dist_eq_one_iff_adj.2 hrk, Real.treeBackOrbit_one hJ hd]
+      rw [Finset.sum_congr rfl hsum, Finset.sum_const, hG.card_neighborFinset_erase hij,
+        nsmul_eq_mul, SimpleGraph.dist_self, Real.treeAwayOrbit_zero, Real.treeRecursion]
+    · -- `i` has a parent `p`, which is not `j`
+      obtain ⟨p, hip, hrp⟩ := hG.isTree.exists_adj_mem_past (fun hcon ↦ hri hcon)
+      have hpj : p ≠ j := fun hcon ↦
+        SimpleGraph.notMem_past_of_mem_past_swap (hcon ▸ hrp) hrj
+      have hpV : p ∈ (G.neighborFinset i).erase j :=
+        Finset.mem_erase.2 ⟨hpj, (G.mem_neighborFinset i p).2 hip⟩
+      have hdist : G.dist r i = G.dist r p + 1 := SimpleGraph.mem_past.1 hrp
+      have hsum : ∀ k ∈ ((G.neighborFinset i).erase j).erase p,
+          logCoshRatio J (isingTreeParam G d J h t r k i)
+            = logCoshRatio J (Real.treeBackOrbit d J h t (G.dist r p + 2)) := by
+        intro k hk
+        have hkp : p ≠ k := (Finset.mem_erase.1 hk).1.symm
+        have hik : G.Adj i k :=
+          (G.mem_neighborFinset i k).1 (Finset.mem_of_mem_erase (Finset.mem_of_mem_erase hk))
+        have hrk : r ∈ G.past i k := hG.isTree.mem_past_of_ne hip hik hrp hkp
+        rw [isingTreeParam_of_notMem_past (SimpleGraph.notMem_past_of_mem_past_swap hrk),
+          SimpleGraph.mem_past.1 hrk, hdist]
+      rw [← Finset.add_sum_erase _ _ hpV, Finset.sum_congr rfl hsum, Finset.sum_const,
+        Finset.card_erase_of_mem hpV, hG.card_neighborFinset_erase hij, nsmul_eq_mul,
+        isingTreeParam_of_mem_past hrp, hdist, Real.treeAwayOrbit_succ]
+      rw [Nat.cast_sub hd, Nat.cast_one]
+      ring
+  · -- `j` is the parent of `i`: the bond points towards `r`
+    have hrj' : r ∈ G.past j i := (hG.isTree.mem_past_or_mem_past_swap hij r).resolve_left hrj
+    rw [isingTreeParam_of_notMem_past hrj]
+    have hsum : ∀ k ∈ (G.neighborFinset i).erase j,
+        logCoshRatio J (isingTreeParam G d J h t r k i)
+          = logCoshRatio J (Real.treeBackOrbit d J h t (G.dist r i + 1)) := by
+      intro k hk
+      have hjk : j ≠ k := (Finset.mem_erase.1 hk).1.symm
+      have hik : G.Adj i k := (G.mem_neighborFinset i k).1 (Finset.mem_of_mem_erase hk)
+      have hrk : r ∈ G.past i k := hG.isTree.mem_past_of_ne hij hik hrj' hjk
+      rw [isingTreeParam_of_notMem_past (SimpleGraph.notMem_past_of_mem_past_swap hrk),
+        SimpleGraph.mem_past.1 hrk]
+    rw [Finset.sum_congr rfl hsum, Finset.sum_const, hG.card_neighborFinset_erase hij,
+      nsmul_eq_mul, ← Real.treeRecursion,
+      Real.treeRecursion_treeBackOrbit_succ hJ hd ha hb hab ht]
+
+/-- **Georgii, step 4) of the proof of Theorem (12.31).** The inhomogeneous Markov chain `ν_t`:
+the measure (12.13) of the boundary law `isingTreeParam`. -/
+noncomputable def isingTreeChain (hJ : 0 < J) (hd : 1 ≤ d) (hG : G.IsCayleyTree d) (r : S)
+    {a b : ℝ} (ha : Real.treeRecursion d J h a = a) (hb : Real.treeRecursion d J h b = b)
+    (hab : a < b) (ht : t ∈ Set.Ioo a b) : Measure (S → Bool) :=
+  boundaryLawMeasure (isTransferFamily_isingTransfer G d J h)
+    (isBoundaryLaw_isingTreeParam hJ hd hG r ha hb hab ht) hG.isTree
+
+instance isProbabilityMeasure_isingTreeChain (hJ : 0 < J) (hd : 1 ≤ d) (hG : G.IsCayleyTree d)
+    (r : S) {a b : ℝ} (ha : Real.treeRecursion d J h a = a) (hb : Real.treeRecursion d J h b = b)
+    (hab : a < b) (ht : t ∈ Set.Ioo a b) :
+    IsProbabilityMeasure (isingTreeChain hJ hd hG r ha hb hab ht) :=
+  isProbabilityMeasure_boundaryLawMeasure _ _ _
+
+/-- **Georgii, step 4).** `ν_t ∈ 𝒢(J, h)`. -/
+theorem isGibbsMeasure_isingTreeChain (hJ : 0 < J) (hd : 1 ≤ d) (hG : G.IsCayleyTree d) (r : S)
+    {a b : ℝ} (ha : Real.treeRecursion d J h a = a) (hb : Real.treeRecursion d J h b = b)
+    (hab : a < b) (ht : t ∈ Set.Ioo a b) :
+    (isingTreeSpecification G d J h).IsGibbsMeasure (isingTreeChain hJ hd hG r ha hb hab ht) :=
+  IsBoundaryLaw.isGibbsMeasure_transferSpecification_boundaryLawMeasure _ _ _
+
+/-- **Georgii, step 4): the family `{ν_t}` is injectively parametrised.** Distinct parameters give
+distinct Markov chains: by the uniqueness up to a constant of the boundary law (Theorem
+(12.12)(b)), equality of the measures forces equality of the normalised boundary laws, hence of
+`t_{jr} = u_1 = t` at any bond `jr` at the root. -/
+theorem isingTreeChain_inj (hJ : 0 < J) (hd : 1 ≤ d) (hG : G.IsCayleyTree d) (r : S)
+    {a b : ℝ} (ha : Real.treeRecursion d J h a = a) (hb : Real.treeRecursion d J h b = b)
+    (hab : a < b) {t s : ℝ} (ht : t ∈ Set.Ioo a b) (hs : s ∈ Set.Ioo a b)
+    (heq : isingTreeChain hJ hd hG r ha hb hab ht = isingTreeChain hJ hd hG r ha hb hab hs) :
+    t = s := by
+  obtain ⟨j, hrj⟩ := hG.exists_adj_right r
+  obtain ⟨c, -, -, hc⟩ := IsBoundaryLaw.exists_const_mul_eq_of_boundaryLawMeasure_eq
+    (isTransferFamily_isingTransfer G d J h) hG.isTree
+    (isBoundaryLaw_isingTreeParam hJ hd hG r ha hb hab ht)
+    (isBoundaryLaw_isingTreeParam hJ hd hG r ha hb hab hs) heq hrj
+  have hparam : ∀ {p : ℝ} (hp : p ∈ Set.Ioo a b),
+      isingTreeParam G d J h p r j r = p := by
+    intro p hp
+    rw [isingTreeParam_of_notMem_past SimpleGraph.notMem_past_self_root,
+      G.dist_eq_one_iff_adj.2 hrj, Real.treeBackOrbit_one hJ hd]
+  have hc1 : c = 1 := by
+    have h1 := hc false
+    simp only [isingBoundaryVec_false, mul_one] at h1
+    exact h1.symm
+  have h2 := hc true
+  rw [hc1, one_mul, hparam ht, hparam hs, isingBoundaryVec_true, isingBoundaryVec_true,
+    ENNReal.ofReal_eq_ofReal_iff (exp_nonneg _) (exp_nonneg _), exp_eq_exp] at h2
+  linarith
+
+/-- **Georgii, step 4).** `ν_t` is a Markov chain on `𝒞𝒯(d)`. -/
+theorem isMarkovChain_isingTreeChain (hJ : 0 < J) (hd : 1 ≤ d) (hG : G.IsCayleyTree d) (r : S)
+    {a b : ℝ} (ha : Real.treeRecursion d J h a = a) (hb : Real.treeRecursion d J h b = b)
+    (hab : a < b) (ht : t ∈ Set.Ioo a b) :
+    IsMarkovChain G (isingTreeChain hJ hd hG r ha hb hab ht) :=
+  IsBoundaryLaw.isMarkovChain_boundaryLawMeasure _ _ _
+
+/-- **Georgii, step 4): `ν_t` "fails to be completely homogeneous".** If `t` is not itself a
+solution of (12.22) — Georgii's choice of a `t ∈ ]t₋, t₊[` different from `t_#` — then `ν_t` is
+*not* a completely homogeneous Markov chain: its parameters at the two orientations of a bond at
+the root are `t` and `ψ(t) = h + d φ_J(t)`, which differ. -/
+theorem not_isCompletelyHomogeneousMarkovChain_isingTreeChain (hJ : 0 < J) (hd : 1 ≤ d)
+    (hG : G.IsCayleyTree d) (r : S) {a b : ℝ} (ha : Real.treeRecursion d J h a = a)
+    (hb : Real.treeRecursion d J h b = b) (hab : a < b) (ht : t ∈ Set.Ioo a b)
+    (hfix : Real.treeRecursion d J h t ≠ t) :
+    ¬ IsCompletelyHomogeneousMarkovChain G (isingTreeChain hJ hd hG r ha hb hab ht) := by
+  intro hcc
+  obtain ⟨j, hrj⟩ := hG.exists_adj_right r
+  have hQ := isTransferFamily_isingTransfer G d J h
+  have hℓ := isBoundaryLaw_isingTreeParam hJ hd hG r ha hb hab ht
+  obtain ⟨ℓ0, hℓ0, ha0, hμeq⟩ := hcc.exists_isBoundaryLaw_const_boundaryLawMeasure_eq
+    (Q₀ := isingTransfer d J h) hQ hG.isTree
+    (isGibbsMeasure_isingTreeChain hJ hd hG r ha hb hab ht) false ⟨r, j, hrj⟩
+  obtain ⟨c, -, -, hc⟩ := IsBoundaryLaw.exists_const_mul_eq_of_boundaryLawMeasure_eq hQ hG.isTree
+    hℓ hℓ0 hμeq hrj
+  obtain ⟨c', -, -, hc'⟩ := IsBoundaryLaw.exists_const_mul_eq_of_boundaryLawMeasure_eq hQ hG.isTree
+    hℓ hℓ0 hμeq hrj.symm
+  have hc1 : c = 1 := by
+    have h1 := hc false
+    rw [isingBoundaryVec_false, ha0, mul_one] at h1
+    exact h1.symm
+  have hc'1 : c' = 1 := by
+    have h1 := hc' false
+    rw [isingBoundaryVec_false, ha0, mul_one] at h1
+    exact h1.symm
+  have hjr : isingTreeParam G d J h t r j r = t := by
+    rw [isingTreeParam_of_notMem_past SimpleGraph.notMem_past_self_root,
+      G.dist_eq_one_iff_adj.2 hrj, Real.treeBackOrbit_one hJ hd]
+  have hrjp : isingTreeParam G d J h t r r j = Real.treeRecursion d J h t := by
+    rw [isingTreeParam_of_mem_past (SimpleGraph.mem_past_self_of_adj hrj),
+      SimpleGraph.dist_self, Real.treeAwayOrbit_zero]
+  have h2 := hc true
+  have h3 := hc' true
+  rw [hc1, one_mul, hjr] at h2
+  rw [hc'1, one_mul, hrjp] at h3
+  have h4 : isingBoundaryVec d h t true
+      = isingBoundaryVec d h (Real.treeRecursion d J h t) true := h2.trans h3.symm
+  rw [isingBoundaryVec_true, isingBoundaryVec_true,
+    ENNReal.ofReal_eq_ofReal_iff (exp_nonneg _) (exp_nonneg _), exp_eq_exp] at h4
+  exact hfix (by linarith)
+
+/-- **Georgii Theorem (12.31)(b), step 4).** For `J > J(d)` (i.e. `d tanh J > 1`) and
+`|h| ≤ h(J, d)`, `𝒢(J, h)` contains an injectively parametrised family of Markov chains indexed by
+the open interval `]t₋, t₊[` between the extremal solutions of (12.22); in particular `𝒢(J, h)` is
+infinite. -/
+theorem infinite_G_isingTreeSpecification [Countable S] (hJ : 0 < J) (hd : 1 ≤ d)
+    (hG : G.IsCayleyTree d) (hw : 1 < (d : ℝ) * tanh J)
+    (hh : |h| ≤ Real.treeCriticalField d J) :
+    (_root_.MeasureTheory.GibbsMeasure.G (isingTreeSpecification G d J h)).Infinite := by
+  obtain ⟨tmin, hmin, hminle⟩ := Real.exists_isLeast_treeField_eq hJ d h
+  obtain ⟨tmax, hmax, hmaxle⟩ := Real.exists_isGreatest_treeField_eq hJ d h
+  obtain ⟨c, e, hce, hcf, hef⟩ := Real.exists_lt_and_treeField_eq hJ hw hh
+  have hlt : tmin < tmax := lt_of_le_of_lt (hminle c hcf) (lt_of_lt_of_le hce (hmaxle e hef))
+  have ha : Real.treeRecursion d J h tmin = tmin := Real.treeRecursion_eq_self_iff.2 hmin
+  have hb : Real.treeRecursion d J h tmax = tmax := Real.treeRecursion_eq_self_iff.2 hmax
+  obtain ⟨r⟩ := hG.nonempty
+  have : Infinite (Set.Ioo tmin tmax) := Set.Ioo.infinite hlt
+  refine Set.infinite_of_injective_forall_mem
+    (f := fun p : Set.Ioo tmin tmax ↦ isingTreeChain hJ hd hG r ha hb hlt p.2) ?_ ?_
+  · intro p q hpq
+    exact Subtype.ext (isingTreeChain_inj hJ hd hG r ha hb hlt p.2 q.2 hpq)
+  · exact fun p ↦ ⟨inferInstance, isGibbsMeasure_isingTreeChain hJ hd hG r ha hb hlt p.2⟩
+
+/-- The solutions of (12.22) are finitely many in the critical window: three when
+`|h| < h(J, d)`, two when `|h| = h(J, d) > 0`, and one when `h(J, d) = 0`. -/
+theorem finite_setOf_isFixedPt_treeRecursion (hJ : 0 < J) (hd : 1 ≤ d)
+    (hh : |h| ≤ Real.treeCriticalField d J) :
+    {t : ℝ | Real.treeRecursion d J h t = t}.Finite := by
+  have hcongr : {t : ℝ | Real.treeRecursion d J h t = t} = {t : ℝ | Real.treeField d J t = h} := by
+    ext t; exact Real.treeRecursion_eq_self_iff
+  rw [hcongr]
+  rcases lt_or_eq_of_le hh with hlt | heq
+  · obtain ⟨a, b, c, -, -, hset⟩ := Real.exists_eq_insert_treeField_eq_of_abs_lt hJ hd hlt
+    rw [hset]
+    exact ((Set.finite_singleton c).insert b).insert a
+  · rcases eq_or_lt_of_le (Real.treeCriticalField_nonneg hJ hd) with hzero | hpos
+    · obtain ⟨t₀, ht₀, huniq⟩ := Real.existsUnique_treeField_eq hJ (by
+        rw [← Real.treeCriticalField_eq_zero_iff hJ hd]; exact hzero.symm) h
+      refine Set.Finite.subset (Set.finite_singleton t₀) fun s hs ↦ ?_
+      exact Set.mem_singleton_iff.2 (huniq s hs)
+    · obtain ⟨a, b, -, hset⟩ := Real.exists_eq_pair_treeField_eq_of_abs_eq hJ hd hpos heq
+      rw [hset]
+      exact (Set.finite_singleton b).insert a
+
+/-- **Georgii Theorem (12.31)(b), step 4), in Georgii's own words.** For `J > J(d)` and
+`|h| ≤ h(J, d)`, "besides `μ₋`, `μ_#` and `μ₊` there is an infinite number of inhomogeneous
+phases": the Gibbs measures of `Φ^{J,h}` that are Markov chains but are *not* completely
+homogeneous form an infinite set. -/
+theorem infinite_setOf_mem_G_not_isCompletelyHomogeneous [Countable S] (hJ : 0 < J) (hd : 1 ≤ d)
+    (hG : G.IsCayleyTree d) (hw : 1 < (d : ℝ) * tanh J)
+    (hh : |h| ≤ Real.treeCriticalField d J) :
+    {μ : Measure (S → Bool) |
+      μ ∈ _root_.MeasureTheory.GibbsMeasure.G (isingTreeSpecification G d J h) ∧
+        IsMarkovChain G μ ∧ ¬ IsCompletelyHomogeneousMarkovChain G μ}.Infinite := by
+  obtain ⟨tmin, hmin, hminle⟩ := Real.exists_isLeast_treeField_eq hJ d h
+  obtain ⟨tmax, hmax, hmaxle⟩ := Real.exists_isGreatest_treeField_eq hJ d h
+  obtain ⟨c, e, hce, hcf, hef⟩ := Real.exists_lt_and_treeField_eq hJ hw hh
+  have hlt : tmin < tmax := lt_of_le_of_lt (hminle c hcf) (lt_of_lt_of_le hce (hmaxle e hef))
+  have ha : Real.treeRecursion d J h tmin = tmin := Real.treeRecursion_eq_self_iff.2 hmin
+  have hb : Real.treeRecursion d J h tmax = tmax := Real.treeRecursion_eq_self_iff.2 hmax
+  obtain ⟨r⟩ := hG.nonempty
+  have hIoo : (Set.Ioo tmin tmax).Infinite := Set.infinite_coe_iff.1 (Set.Ioo.infinite hlt)
+  have hdiff : (Set.Ioo tmin tmax \ {t : ℝ | Real.treeRecursion d J h t = t}).Infinite :=
+    hIoo.sdiff (finite_setOf_isFixedPt_treeRecursion hJ hd hh)
+  have : Infinite (Set.Ioo tmin tmax \ {t : ℝ | Real.treeRecursion d J h t = t} : Set ℝ) :=
+    hdiff.to_subtype
+  refine Set.infinite_of_injective_forall_mem
+    (f := fun p : (Set.Ioo tmin tmax \ {t : ℝ | Real.treeRecursion d J h t = t} : Set ℝ) ↦
+      isingTreeChain hJ hd hG r ha hb hlt p.2.1) ?_ ?_
+  · intro p q hpq
+    exact Subtype.ext (isingTreeChain_inj hJ hd hG r ha hb hlt p.2.1 q.2.1 hpq)
+  · exact fun p ↦ ⟨⟨inferInstance, isGibbsMeasure_isingTreeChain hJ hd hG r ha hb hlt p.2.1⟩,
+      isMarkovChain_isingTreeChain hJ hd hG r ha hb hlt p.2.1,
+      not_isCompletelyHomogeneousMarkovChain_isingTreeChain hJ hd hG r ha hb hlt p.2.1 p.2.2⟩
+
+end Inhomogeneous
+
+
 /-! ## Georgii (12.33): the magnetisation at the critical external field
 
 At `h = -h(J, d)` the critical point `t_{J,d}` of (12.29) solves (12.22), and it is the largest
@@ -1056,6 +1626,24 @@ theorem exists_ne_isGibbsMeasure_of_isFixedPt_treeRecursion₂ (hG : G.IsCayleyT
     isingAltChain_ne_comp_not hG hc hsol (by rw [hτf, hτt]; exact fun hcon ↦ hne hcon.symm),
     isGibbsMeasure_isingAltChain hG hc hsol,
     isGibbsMeasure_isingAltChain hG hc (isingAltSol_comp_not hsol)⟩
+
+/-- **Georgii, the antiferromagnetic phase transition.** For `J < -J(d)` (i.e. `1 < d |tanh J|`)
+and `|h| < ĥ(J, d)`, equation (12.35) *does* have a solution off (12.22)
+(`Real.exists_isFixedPt_treeRecursion₂_ne`), so `𝒢(J, h)` contains the two distinct alternating
+Markov chains `μ_{-+} ≠ μ_{+-}`; in particular `|𝒢(J, h)| > 1`. Here
+`ĥ(J, d) = t_{-J,d} - d φ_J(t_{-J,d}) = h(-J, d) + 2 t_{-J,d} > 0` is the quantity with which
+Georgii establishes that his transition interval `I(J, d)` is non-degenerate; his further
+assertion `I(J, d) = ]-ĥ, ĥ[` is stated in the book as suggested by numerical calculations, and
+is not proved here. -/
+theorem exists_ne_isGibbsMeasure_of_abs_lt_antiferroCriticalField (hG : G.IsCayleyTree d)
+    (hJ : J < 0) (hw : 1 < (d : ℝ) * |tanh J|)
+    (hh : |h| < Real.antiferroCriticalField d J) :
+    ∃ μ ν : Measure (S → Bool), μ ≠ ν ∧
+      (isingTreeSpecification G d J h).IsGibbsMeasure μ ∧
+      (isingTreeSpecification G d J h).IsGibbsMeasure ν := by
+  obtain ⟨c, hc⟩ := hG.exists_bool_coloring
+  obtain ⟨t, hfix, hne⟩ := Real.exists_isFixedPt_treeRecursion₂_ne hJ hw hh
+  exact exists_ne_isGibbsMeasure_of_isFixedPt_treeRecursion₂ hG hc hfix hne
 
 end AlternatingChains
 
@@ -1277,6 +1865,51 @@ theorem exists_ne_isGibbsMeasure_isingSpecification (hJ : 0 < J) (hG : G.IsCayle
   · exact isGibbsMeasure_isingChain hG hs₁
   · exact isGibbsMeasure_isingChain hG hs₂
 
+/-- **Georgii, the antiferromagnetic phase transition for `𝒢(J, h)`.** On `𝒞𝒯(d)` with
+`J < -J(d)` (i.e. `1 < d |tanh J|`) and `|h| < ĥ(J, d)`, the *antiferromagnetic* Ising potential
+(12.19) has at least two distinct Gibbs measures: the alternating Markov chains `μ_{-+} ≠ μ_{+-}`
+of (12.34). -/
+theorem exists_ne_isGibbsMeasure_isingSpecification_antiferro (hG : G.IsCayleyTree d)
+    (hJ : J < 0) (hw : 1 < (d : ℝ) * |tanh J|)
+    (hh : |h| < Real.antiferroCriticalField d J) :
+    ∃ μ ν : Measure (S → Bool), μ ≠ ν ∧
+      (isingSpecification G J h 1).IsGibbsMeasure μ ∧
+      (isingSpecification G J h 1).IsGibbsMeasure ν := by
+  obtain ⟨μ, ν, hne, hμ, hν⟩ :=
+    exists_ne_isGibbsMeasure_of_abs_lt_antiferroCriticalField hG hJ hw hh
+  refine ⟨μ, ν, hne, ?_, ?_⟩ <;> rwa [← isingTreeSpecification_eq_isingSpecification hG]
+
+/-- **Georgii Theorem (12.31)(b), first clause, for `𝒢(J, h)`.** On `𝒞𝒯(d)` with `J > J(d)` and
+`|h| ≤ h(J, d)`, the Ising potential (12.19) has two distinct Gibbs measures `μ₋ ≠ μ₊` which are
+both extreme in `𝒢(J, h)` and extreme in `𝒢_{I(B)}(J, h)`. -/
+theorem exists_ne_mem_extremePoints_G_isingSpecification (hJ : 0 < J) (hG : G.IsCayleyTree d)
+    (hw : 1 < (d : ℝ) * tanh J) (hh : |h| ≤ Real.treeCriticalField d J) :
+    ∃ μ ν : Measure (S → Bool), μ ≠ ν ∧
+      μ ∈ (_root_.MeasureTheory.GibbsMeasure.G
+            (isingSpecification G J h 1)).extremePoints ℝ≥0∞ ∩
+          (invariantG (isingSpecification G J h 1)
+            (graphAutomorphisms Bool G)).extremePoints ℝ≥0∞ ∧
+      ν ∈ (_root_.MeasureTheory.GibbsMeasure.G
+            (isingSpecification G J h 1)).extremePoints ℝ≥0∞ ∩
+          (invariantG (isingSpecification G J h 1)
+            (graphAutomorphisms Bool G)).extremePoints ℝ≥0∞ := by
+  obtain ⟨t₁, t₂, hs₁, hs₂, hne, h₁, h₂⟩ :=
+    exists_ne_mem_extremePoints_G_inter_invariantG_isingChain hJ hG hw hh
+  rw [← isingTreeSpecification_eq_isingSpecification hG]
+  exact ⟨isingChain hG hs₁, isingChain hG hs₂, hne, h₁, h₂⟩
+
+/-- **Georgii Theorem (12.31)(b), step 4), for `𝒢(J, h)`.** On `𝒞𝒯(d)` with `J > J(d)` and
+`|h| ≤ h(J, d)` the Ising potential (12.19) has infinitely many Gibbs measures which are Markov
+chains but *not* completely homogeneous. -/
+theorem infinite_setOf_mem_G_not_isCompletelyHomogeneous_isingSpecification (hJ : 0 < J)
+    (hd : 1 ≤ d) (hG : G.IsCayleyTree d) (hw : 1 < (d : ℝ) * tanh J)
+    (hh : |h| ≤ Real.treeCriticalField d J) :
+    {μ : Measure (S → Bool) |
+      μ ∈ _root_.MeasureTheory.GibbsMeasure.G (isingSpecification G J h 1) ∧
+        IsMarkovChain G μ ∧ ¬ IsCompletelyHomogeneousMarkovChain G μ}.Infinite := by
+  rw [← isingTreeSpecification_eq_isingSpecification hG]
+  exact infinite_setOf_mem_G_not_isCompletelyHomogeneous hJ hd hG hw hh
+
 end IsingPotentialConclusions
 
 /-! ## A witness: the Ising ferromagnet on `𝒞𝒯(2)`
@@ -1316,6 +1949,24 @@ theorem exists_ne_isGibbsMeasure_isingSpecification_reducedWordTree :
     (by
       rw [abs_zero]
       exact Real.treeCriticalField_nonneg witnessCoupling_pos (by norm_num))
+
+/-- **Georgii, the antiferromagnetic phase transition, witnessed.** On `𝒞𝒯(2)` the
+*antiferromagnetic* Ising potential with coupling `J = -ar tanh (3/4)` (so `2 |tanh J| = 3/2 > 1`,
+i.e. `J < -J(2)`) and no external field has at least two distinct Gibbs measures. Note that,
+unlike the ferromagnet, this happens although (12.22) has a *unique* solution, i.e. although
+`𝒢(J, h)` contains only one completely homogeneous Markov chain. -/
+theorem exists_ne_isGibbsMeasure_isingSpecification_reducedWordTree_antiferro :
+    ∃ μ ν : Measure (ReducedWord 3 → Bool), μ ≠ ν ∧
+      (isingSpecification (reducedWordTree 3) (-witnessCoupling) 0 1).IsGibbsMeasure μ ∧
+      (isingSpecification (reducedWordTree 3) (-witnessCoupling) 0 1).IsGibbsMeasure ν := by
+  have hJ : -witnessCoupling < 0 := neg_neg_iff_pos.2 witnessCoupling_pos
+  have hw : 1 < (2 : ℝ) * |tanh (-witnessCoupling)| := by
+    rw [tanh_neg, abs_neg, abs_of_pos (by rw [tanh_witnessCoupling]; norm_num)]
+    simpa using one_lt_two_mul_tanh_witnessCoupling
+  refine exists_ne_isGibbsMeasure_isingSpecification_antiferro (isCayleyTree_reducedWordTree 2)
+    hJ (by simpa using hw) ?_
+  rw [abs_zero]
+  exact Real.antiferroCriticalField_pos hJ (by simpa using hw)
 
 end CayleyTreeTwo
 

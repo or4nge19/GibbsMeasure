@@ -27,13 +27,24 @@
 \begin{theorem}[Georgii (12.31), (12.33)]
     \label{thm:ict-12-31}
     \uses{thm:ict-12-27, thm:tr-12-17, thm:ext-726}
-    \lean{MeasureTheory.GibbsMeasure.Tree.isingParam_eq_add_sum, MeasureTheory.GibbsMeasure.Tree.eq_isingBoundaryVec_of_unique, MeasureTheory.GibbsMeasure.Tree.G_isingTreeSpecification_eq_singleton, MeasureTheory.GibbsMeasure.Tree.exists_G_isingTreeSpecification_eq_singleton, MeasureTheory.GibbsMeasure.Tree.exists_ne_isingChain, MeasureTheory.GibbsMeasure.Tree.exists_three_isingChain, MeasureTheory.GibbsMeasure.Tree.integral_spin_isingChain_treeCriticalPoint}
+    \lean{MeasureTheory.GibbsMeasure.Tree.isingParam_eq_add_sum, MeasureTheory.GibbsMeasure.Tree.eq_isingBoundaryVec_of_unique, MeasureTheory.GibbsMeasure.Tree.G_isingTreeSpecification_eq_singleton, MeasureTheory.GibbsMeasure.Tree.exists_G_isingTreeSpecification_eq_singleton, MeasureTheory.GibbsMeasure.Tree.exists_ne_isingChain, MeasureTheory.GibbsMeasure.Tree.exists_three_isingChain, MeasureTheory.GibbsMeasure.Tree.integral_spin_isingChain_treeCriticalPoint, MeasureTheory.GibbsMeasure.Tree.mem_extremePoints_G_boundaryLawMeasure_of_forall_le, MeasureTheory.GibbsMeasure.Tree.mem_extremePoints_G_boundaryLawMeasure_of_forall_ge, MeasureTheory.GibbsMeasure.Tree.mul_measure_le_mul_measure_of_forall_extremePoints, MeasureTheory.GibbsMeasure.Tree.IsBoundaryLaw.measure_cyl_mul_le_of_le, MeasureTheory.GibbsMeasure.Tree.measure_cyl_eq_of_forall_mul_eq, MeasureTheory.GibbsMeasure.Tree.exists_isBoundaryLaw_normalized_eq_of_mem_extremePoints, MeasureTheory.GibbsMeasure.Tree.mem_extremePoints_G_isingChain_of_isGreatest, MeasureTheory.GibbsMeasure.Tree.mem_extremePoints_G_isingChain_of_isLeast, MeasureTheory.GibbsMeasure.Tree.measurePreserving_isingChain_of_mem_graphAutomorphisms, MeasureTheory.GibbsMeasure.Tree.mem_invariantG_isingChain, MeasureTheory.GibbsMeasure.Tree.exists_ne_mem_extremePoints_G_inter_invariantG_isingChain, MeasureTheory.GibbsMeasure.Tree.exists_ne_mem_extremePoints_G_isingSpecification, MeasureTheory.GibbsMeasure.Tree.isBoundaryLaw_isingBoundaryVec_family_iff, MeasureTheory.GibbsMeasure.Tree.isingTreeParam, MeasureTheory.GibbsMeasure.Tree.isBoundaryLaw_isingTreeParam, MeasureTheory.GibbsMeasure.Tree.isingTreeChain, MeasureTheory.GibbsMeasure.Tree.isGibbsMeasure_isingTreeChain, MeasureTheory.GibbsMeasure.Tree.isMarkovChain_isingTreeChain, MeasureTheory.GibbsMeasure.Tree.isingTreeChain_inj, MeasureTheory.GibbsMeasure.Tree.not_isCompletelyHomogeneousMarkovChain_isingTreeChain, MeasureTheory.GibbsMeasure.Tree.infinite_setOf_mem_G_not_isCompletelyHomogeneous, MeasureTheory.GibbsMeasure.Tree.infinite_setOf_mem_G_not_isCompletelyHomogeneous_isingSpecification, SimpleGraph.IsTree.eq_of_mem_past_of_mem_past, SimpleGraph.IsTree.exists_adj_mem_past, Real.exists_isGreatest_treeField_eq, Real.exists_isLeast_treeField_eq, Real.strictMono_treeRecursion, Real.exists_mem_Ioo_treeRecursion_eq, Real.treeBackOrbit, Real.treeAwayOrbit}
     \leanok
 
     If $dw \leq 1$ or $\abs h > h(J,d)$ then $\mathcal G$ is a singleton. If $dw > 1$ and
     $\abs h \leq h(J,d)$ there are two distinct completely homogeneous chains in $\mathcal G$, and
     three when $\abs h < h(J,d)$; at $h = -h(J,d)$ the upper phase has magnetization
-    $\sqrt{(d-w)(d-\bar w)}/(d-1)$.
+    $\sqrt{(d-w)(d-\bar w)}/(d-1)$. (b), steps 3--4: $\mu_-$ and $\mu_+$ are extreme in
+    $\mathcal G(J,h)$ and in $\mathcal G_{I(B)}(J,h)$ --- the ratios $r_{\Lambda,\zeta}(\mu)$ of
+    Georgii's proof are monotone in the boundary law, so a boundary law dominating (dominated by)
+    that of every extreme Gibbs measure, through Theorem (7.26) as a comparison principle, has an
+    extreme measure; and the family $(u_{d(r,i)}, v_{d(r,i)})$ built from a non-fixed orbit of
+    $h + d\varphi_J$ between two fixed points is a boundary law (the converse of (12.32)), giving
+    infinitely many inhomogeneous Markov chains in $\mathcal G(J,h)$ that are not completely
+    homogeneous. Not proved: that $\operatorname{ex}\mathcal G(J,h) \setminus
+    \operatorname{ex}\mathcal G_{I(B)}(J,h)$ is infinite (the linear independence of the $\nu_t$
+    and the transitivity of the automorphism group of the Cayley tree on oriented bonds, not in
+    the tree; with $I(B)$ trivial the clause would be false) and step 5, the third extreme element
+    $\mu_\#$ of $\mathcal G_{I(B)}$ (the mixing estimate under $I(B,n)$).
 \end{theorem}
 \begin{proof}
     \leanok
@@ -45,13 +56,18 @@
 \begin{proposition}[Georgii (12.34), (12.35)]
     \label{prop:ict-12-34}
     \uses{def:ict-transfer, cor:tr-12-18}
-    \lean{MeasureTheory.GibbsMeasure.Tree.isingAltLaw, MeasureTheory.GibbsMeasure.Tree.isBoundaryLaw_isingAltLaw_iff, MeasureTheory.GibbsMeasure.Tree.isingAltChain, MeasureTheory.GibbsMeasure.Tree.isGibbsMeasure_isingAltChain, Real.treeRecursion₂, Real.isFixedPt_treeRecursion₂_iff, Real.existsUnique_isFixedPt_treeRecursion₂, MeasureTheory.GibbsMeasure.Tree.exists_ne_isGibbsMeasure_of_isFixedPt_treeRecursion₂, SimpleGraph.IsCayleyTree.exists_bool_coloring}
+    \lean{MeasureTheory.GibbsMeasure.Tree.isingAltLaw, MeasureTheory.GibbsMeasure.Tree.isBoundaryLaw_isingAltLaw_iff, MeasureTheory.GibbsMeasure.Tree.isingAltChain, MeasureTheory.GibbsMeasure.Tree.isGibbsMeasure_isingAltChain, Real.treeRecursion₂, Real.isFixedPt_treeRecursion₂_iff, Real.existsUnique_isFixedPt_treeRecursion₂, MeasureTheory.GibbsMeasure.Tree.exists_ne_isGibbsMeasure_of_isFixedPt_treeRecursion₂, SimpleGraph.IsCayleyTree.exists_bool_coloring, Real.antiferroCriticalField, Real.antiferroCriticalField_eq, Real.antiferroCriticalField_pos, Real.exists_isFixedPt_treeRecursion₂_ne, MeasureTheory.GibbsMeasure.Tree.exists_ne_isGibbsMeasure_of_abs_lt_antiferroCriticalField, MeasureTheory.GibbsMeasure.Tree.exists_ne_isGibbsMeasure_isingSpecification_antiferro, MeasureTheory.GibbsMeasure.Tree.exists_ne_isGibbsMeasure_isingSpecification_reducedWordTree_antiferro}
     \leanok
 
     Alternating boundary laws along the bipartition of the tree are boundary laws exactly at the
     fixed points of $\psi = (h + d\varphi_J)^{\circ 2}$, which is increasing for either sign of
     $J$ and has a unique fixed point when $d\abs w \leq 1$. A fixed point of $\psi$ that does not
-    solve (12.22) gives two distinct Gibbs measures, the antiferromagnetic phase transition.
+    solve (12.22) gives two distinct Gibbs measures, the antiferromagnetic phase transition; such a
+    fixed point exists for $J < -J(d)$ and $\abs h < \hat h(J,d) = t_{-J,d} - d\varphi_J(t_{-J,d})$,
+    since then the unique solution $t_*$ of (12.22) has $(d\varphi_J'(t_*))^2 > 1$ by (12.29), so
+    $\psi - \mathrm{id}$ changes sign to the right of $t_*$. Georgii's $I(J,d) = ]-\hat h, \hat h[$
+    is stated in the book as suggested by numerical calculation; the inclusion $\supseteq$ is what
+    is proved, witnessed on $\mathcal{CT}(2)$ at $J = -\operatorname{artanh}(3/4)$, $h = 0$.
 \end{proposition}
 
 \begin{theorem}[Georgii (12.7), (12.9): the tree specification is Gibbsian]

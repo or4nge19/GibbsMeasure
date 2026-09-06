@@ -45,8 +45,8 @@ status:
   scope: >-
     Georgii Chapters 1-14 complete for the results listed under main_results and in the per-chapter
     entries (the few exceptions are named there: (5.15)(ii) modulo-commutativity refinement,
-    the continuity of the second derivative asserted in (8.37), Example (9.15) for K > 0,
-    (12.31)(b)'s three extremality clauses, (13.39)-(13.41), (13.44)-(13.45), and the
+    the continuity of the second derivative asserted in (8.37), the infinitude of
+    ex G minus ex G_{I(B)} and the third extreme invariant element in (12.31)(b), (13.39)-(13.41), (13.44)-(13.45), and the
     G_Theta clause of (13.42)). Chapter 15 complete through Theorem (15.45), the upper bound (15.46) over a
     finite state space and the lower bound (15.47) over any; open: (15.46) for standard Borel E,
     the periodic-boundary-condition inequalities of (15.48), (15.50)-(15.51), (15.57)-(15.58).
@@ -1758,9 +1758,18 @@ alignment:
         alternating boundary laws on the bipartition of the tree, their fixed-point criterion, and
         the antiferromagnetic transition conditionally: a fixed point of the second iterate that is
         not one of (12.22) yields two distinct Gibbs measures, but the existence of such a point for
-        J < -J(d) and h in I(J,d) is a hypothesis, not a theorem. Not formalized: the three further clauses of
-        (12.31)(b) (extremality of mu_-, mu_+, infinitude of ex G outside ex G_{I(B)}, and
-        extremality of mu_#), which need the stochastic-domination argument and Corollary (7.4).
+        J < -J(d) and |h| < h^(J,d) = t_{-J,d} - d phi_J(t_{-J,d}) is a theorem (the unique
+        solution of (12.22) has (d phi_J'(t))^2 > 1 by (12.29), so the second iterate minus the
+        identity changes sign), witnessed on CT(2); Georgii's I(J,d) = ]-h^, h^[ is stated in the book
+        as suggested by numerical calculation and only the inclusion is proved. (12.31)(b) steps 3-4:
+        mu_-, mu_+ are extreme in G(J,h) and in G_{I(B)}(J,h), the ratios of Georgii's proof being
+        monotone in the boundary law and Theorem (7.26) read as a comparison principle; the
+        inhomogeneous boundary laws from a non-fixed orbit between two fixed points (the converse of
+        (12.32)) give infinitely many Markov chains in G(J,h) that are not completely homogeneous.
+        Not formalized: that ex G minus ex G_{I(B)} is infinite (linear independence of the
+        inhomogeneous chains, and the transitivity of Aut(CT(d)) on oriented bonds, absent from the
+        tree; with I(B) trivial the clause would be false) and step 5, the third extreme element of
+        G_{I(B)} (the mixing estimate under I(B,n)).
         Georgii (12.7)/(12.9): the tree specification of the Ising transfer family IS the Gibbsian
         specification of the Ising potential (isingTreeSpecification_eq_isingSpecification), so
         (12.31) is restated for G(Phi^{J,h}). The Cayley tree CT(d) is constructed for every d as

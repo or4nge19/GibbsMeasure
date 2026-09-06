@@ -2336,4 +2336,229 @@ theorem G_eq_singleton_of_extremePoints_subset_singleton {μ₀ : Measure (S' �
 
 end ExtremeSingleton
 
+
+/-! ## Georgii, step 3) of the proof of Theorem (12.31): a dominating boundary law is extreme
+
+Georgii's argument, at the level of a transfer family `Q` on a locally finite tree. He attaches to
+`μ ∈ 𝒢(γ^Q)` and a connected volume `Λ` the ratios
+
+`r_{Λ,ζ}(μ) = μ(σ_{Λ ∪ ∂Λ} = ζ) / μ(σ_{Λ ∪ ∂Λ} ≡ a)`
+
+(`a` a reference state), which for the measure (12.13) of a boundary law normalised at `a` are
+`∏_{k ∈ ∂Λ} ℓ_{k k_Λ}(ζ_k) ∏_{b ∩ Λ ≠ ∅} Q_b(ζ)/Q_b(a)` — the normalising constant `z_Λ` cancels
+(`IsBoundaryLaw.measure_cyl_mul_transferWeight_const` in `TreeBoundaryLaw.lean`). Then:
+
+* a *pointwise* comparison of boundary laws gives a comparison of the ratios
+  (`IsBoundaryLaw.measure_cyl_mul_le_of_le`);
+* a comparison valid for every *extreme* Gibbs measure is valid for every Gibbs measure, because
+  Theorem (7.26) writes the latter as a mixture of the former
+  (`mul_measure_le_mul_measure_of_forall_extremePoints`, a statement about an arbitrary
+  specification which belongs next to `MeasureTheory.GibbsMeasure.weightOf` in
+  `GibbsMeasure/Specification/ExtremeDecomposition.lean`);
+* a measure whose ratios are extremal among those of `𝒢(γ^Q)` cannot be a non-trivial mixture: in
+  `μ₀ = s μ + t μ'` the comparison is forced to be an equality for both `μ` and `μ'`, and two
+  Gibbs measures with the same ratios agree (`measure_cyl_eq_of_forall_mul_eq`, also in
+  `TreeBoundaryLaw.lean`).
+
+Both directions of the comparison are proved, because Georgii's `μ₊` is maximal and his `μ₋` is
+minimal. The `StandardBorelSpace E` hypothesis enters only through the extreme decomposition
+(7.26).
+-/
+
+section ExtremeDomination
+
+/-- **Georgii, Theorem (7.26) as a comparison principle.** A linear inequality `c μ(A) ≤ c' μ(B)`
+between the masses of two events which holds for every *extreme* Gibbs measure holds for every
+Gibbs measure: the representing weight of `μ` is carried by `ex 𝒢(γ)`, and the inequality is
+preserved by mixing. -/
+theorem mul_measure_le_mul_measure_of_forall_extremePoints [Countable S] [StandardBorelSpace E]
+    {γ : Specification S E} {A B : Set (S → E)} (hA : MeasurableSet A) (hB : MeasurableSet B)
+    {c c' : ℝ≥0∞}
+    (hext : ∀ ν ∈ (GibbsMeasure.G γ).extremePoints ℝ≥0∞, c * ν A ≤ c' * ν B)
+    {μ : Measure (S → E)} (hμ : μ ∈ GibbsMeasure.G γ) :
+    c * μ A ≤ c' * μ B := by
+  have hμP : IsProbabilityMeasure μ := hμ.1
+  have hGne : (GibbsMeasure.G γ).Nonempty := ⟨μ, hμ⟩
+  set w := GibbsMeasure.weightOf hGne μ with hw
+  have hwprob : IsProbabilityMeasure w := GibbsMeasure.isProbabilityMeasure_weightOf hGne μ
+  have hjoin := GibbsMeasure.join_weightOf hGne hμ
+  have hmA : Measurable fun ν : Measure (S → E) ↦ ν A := Measure.measurable_coe hA
+  have hmB : Measurable fun ν : Measure (S → E) ↦ ν B := Measure.measurable_coe hB
+  have hμA : μ A = ∫⁻ ν, ν A ∂w := by
+    conv_lhs => rw [← hjoin]
+    exact Measure.join_apply hA
+  have hμB : μ B = ∫⁻ ν, ν B ∂w := by
+    conv_lhs => rw [← hjoin]
+    exact Measure.join_apply hB
+  have hae : ∀ᵐ ν ∂w, c * ν A ≤ c' * ν B := by
+    have hw0 := GibbsMeasure.weightOf_extremePoints_compl hGne hμ
+    rw [measure_eq_zero_iff_ae_notMem] at hw0
+    filter_upwards [hw0] with ν hν using hext ν (not_not.1 hν)
+  calc c * μ A = ∫⁻ ν, c * ν A ∂w := by rw [hμA, lintegral_const_mul _ hmA]
+    _ ≤ ∫⁻ ν, c' * ν B ∂w := lintegral_mono_ae hae
+    _ = c' * μ B := by rw [lintegral_const_mul _ hmB, hμB]
+
+/-- Two termwise-comparable convex combinations that agree are termwise equal. -/
+private lemma eq_of_add_eq_add_of_le {s t x y x' y' : ℝ≥0∞} (hs0 : s ≠ 0) (hs : s ≠ ⊤)
+    (hty' : t * y' ≠ ⊤) (hxy : x ≤ y) (hxy' : x' ≤ y')
+    (hsum : s * x + t * x' = s * y + t * y') : x = y := by
+  refine le_antisymm hxy ?_
+  have h1 : s * y + t * y' ≤ s * x + t * y' := by
+    rw [← hsum]
+    exact add_le_add le_rfl (by gcongr)
+  exact (ENNReal.mul_le_mul_iff_right hs0 hs).1 ((ENNReal.add_le_add_iff_right hty').1 h1)
+
+variable [Nonempty E] [Countable S] [StandardBorelSpace E] {G : SimpleGraph S} [G.LocallyFinite]
+  {Q : S → S → E → E → ℝ≥0∞} (hQ : IsTransferFamily G Q) (hG : G.IsTree)
+
+include hG in
+/-- Two Gibbs measures of `γ^Q` on a tree with the same ratios `r_{Λ,ζ}` over every connected
+volume are equal. -/
+private theorem eq_of_forall_measure_cyl_mul_eq {μ₀ μ : Measure (S → E)} (a : E)
+    (hμ₀ : μ₀ ∈ GibbsMeasure.G (transferSpecification G hQ))
+    (hμ : μ ∈ GibbsMeasure.G (transferSpecification G hQ))
+    (hkey : ∀ Λ : Finset S, (G.induce (Λ : Set S)).Connected → ∀ ζ : S → E,
+      μ (cyl (Λ ∪ G.outerBoundary Λ) ζ) * μ₀ (cyl (Λ ∪ G.outerBoundary Λ) fun _ ↦ a)
+        = μ₀ (cyl (Λ ∪ G.outerBoundary Λ) ζ) * μ (cyl (Λ ∪ G.outerBoundary Λ) fun _ ↦ a)) :
+    μ = μ₀ := by
+  have hμP : IsProbabilityMeasure μ := hμ.1
+  have hμ₀P : IsProbabilityMeasure μ₀ := hμ₀.1
+  refine ext_of_forall_exists_cyl_eq fun Δ ↦ ?_
+  set Λ := SimpleGraph.hull hG.connected (root hG) Δ with hΛdef
+  have hΛ : (G.induce (Λ : Set S)).Connected :=
+    SimpleGraph.connected_induce_hull hG.connected (root hG) Δ
+  refine ⟨Λ ∪ G.outerBoundary Λ,
+    (SimpleGraph.subset_hull _ _ Δ).trans Finset.subset_union_left, fun ζ ↦ ?_⟩
+  exact measure_cyl_eq_of_forall_mul_eq
+    (measure_cyl_pos_of_isGibbsMeasure hQ hμ.2 _ (fun _ ↦ a)).ne' (hkey Λ hΛ) ζ
+
+include hG in
+/-- **Georgii, step 3) of the proof of Theorem (12.31), for `μ₊`.** If the ratios `r_{Λ,ζ}` of
+every Gibbs measure of `γ^Q` are dominated by those of `μ₀ ∈ 𝒢(γ^Q)`, then `μ₀` is extreme. -/
+theorem mem_extremePoints_G_of_forall_measure_cyl_mul_le {μ₀ : Measure (S → E)} (a : E)
+    (hμ₀ : μ₀ ∈ GibbsMeasure.G (transferSpecification G hQ))
+    (hcmp : ∀ μ ∈ GibbsMeasure.G (transferSpecification G hQ), ∀ Λ : Finset S,
+      (G.induce (Λ : Set S)).Connected → ∀ ζ : S → E,
+      μ (cyl (Λ ∪ G.outerBoundary Λ) ζ) * μ₀ (cyl (Λ ∪ G.outerBoundary Λ) fun _ ↦ a)
+        ≤ μ₀ (cyl (Λ ∪ G.outerBoundary Λ) ζ) * μ (cyl (Λ ∪ G.outerBoundary Λ) fun _ ↦ a)) :
+    μ₀ ∈ (GibbsMeasure.G (transferSpecification G hQ)).extremePoints ℝ≥0∞ := by
+  refine _root_.mem_extremePoints_iff_left.2 ⟨hμ₀, ?_⟩
+  rintro μ hμ μ' hμ' ⟨s, t, hs, ht, hst, heq⟩
+  have hμP : IsProbabilityMeasure μ := hμ.1
+  have hμ'P : IsProbabilityMeasure μ' := hμ'.1
+  have hμ₀P : IsProbabilityMeasure μ₀ := hμ₀.1
+  have hs' : s ≠ ⊤ := fun hcon ↦ by rw [hcon] at hst; simp at hst
+  have ht' : t ≠ ⊤ := fun hcon ↦ by rw [hcon] at hst; simp at hst
+  refine eq_of_forall_measure_cyl_mul_eq hQ hG a hμ₀ hμ fun Λ hΛ ζ ↦ ?_
+  set H := Λ ∪ G.outerBoundary Λ with hH
+  have hAζ : μ₀ (cyl H ζ) = s * μ (cyl H ζ) + t * μ' (cyl H ζ) := by
+    rw [← heq]; simp [Measure.add_apply, Measure.smul_apply]
+  have hAa : μ₀ (cyl H fun _ ↦ a)
+      = s * μ (cyl H fun _ ↦ a) + t * μ' (cyl H fun _ ↦ a) := by
+    rw [← heq]; simp [Measure.add_apply, Measure.smul_apply]
+  have hsum : s * (μ (cyl H ζ) * μ₀ (cyl H fun _ ↦ a))
+        + t * (μ' (cyl H ζ) * μ₀ (cyl H fun _ ↦ a))
+      = s * (μ₀ (cyl H ζ) * μ (cyl H fun _ ↦ a))
+        + t * (μ₀ (cyl H ζ) * μ' (cyl H fun _ ↦ a)) := by
+    conv_lhs => rw [hAa]
+    conv_rhs => rw [hAζ]
+    ring
+  exact eq_of_add_eq_add_of_le hs.ne' hs'
+    (ENNReal.mul_ne_top ht' (ENNReal.mul_ne_top (measure_ne_top _ _) (measure_ne_top _ _)))
+    (hcmp μ hμ Λ hΛ ζ) (hcmp μ' hμ' Λ hΛ ζ) hsum
+
+include hG in
+/-- **Georgii, step 3) of the proof of Theorem (12.31), for `μ₋`.** If the ratios `r_{Λ,ζ}` of
+`μ₀ ∈ 𝒢(γ^Q)` are dominated by those of every Gibbs measure, then `μ₀` is extreme. -/
+theorem mem_extremePoints_G_of_forall_le_measure_cyl_mul {μ₀ : Measure (S → E)} (a : E)
+    (hμ₀ : μ₀ ∈ GibbsMeasure.G (transferSpecification G hQ))
+    (hcmp : ∀ μ ∈ GibbsMeasure.G (transferSpecification G hQ), ∀ Λ : Finset S,
+      (G.induce (Λ : Set S)).Connected → ∀ ζ : S → E,
+      μ₀ (cyl (Λ ∪ G.outerBoundary Λ) ζ) * μ (cyl (Λ ∪ G.outerBoundary Λ) fun _ ↦ a)
+        ≤ μ (cyl (Λ ∪ G.outerBoundary Λ) ζ) * μ₀ (cyl (Λ ∪ G.outerBoundary Λ) fun _ ↦ a)) :
+    μ₀ ∈ (GibbsMeasure.G (transferSpecification G hQ)).extremePoints ℝ≥0∞ := by
+  refine _root_.mem_extremePoints_iff_left.2 ⟨hμ₀, ?_⟩
+  rintro μ hμ μ' hμ' ⟨s, t, hs, ht, hst, heq⟩
+  have hμP : IsProbabilityMeasure μ := hμ.1
+  have hμ'P : IsProbabilityMeasure μ' := hμ'.1
+  have hμ₀P : IsProbabilityMeasure μ₀ := hμ₀.1
+  have hs' : s ≠ ⊤ := fun hcon ↦ by rw [hcon] at hst; simp at hst
+  have ht' : t ≠ ⊤ := fun hcon ↦ by rw [hcon] at hst; simp at hst
+  refine eq_of_forall_measure_cyl_mul_eq hQ hG a hμ₀ hμ fun Λ hΛ ζ ↦ ?_
+  set H := Λ ∪ G.outerBoundary Λ with hH
+  have hAζ : μ₀ (cyl H ζ) = s * μ (cyl H ζ) + t * μ' (cyl H ζ) := by
+    rw [← heq]; simp [Measure.add_apply, Measure.smul_apply]
+  have hAa : μ₀ (cyl H fun _ ↦ a)
+      = s * μ (cyl H fun _ ↦ a) + t * μ' (cyl H fun _ ↦ a) := by
+    rw [← heq]; simp [Measure.add_apply, Measure.smul_apply]
+  have hsum : s * (μ₀ (cyl H ζ) * μ (cyl H fun _ ↦ a))
+        + t * (μ₀ (cyl H ζ) * μ' (cyl H fun _ ↦ a))
+      = s * (μ (cyl H ζ) * μ₀ (cyl H fun _ ↦ a))
+        + t * (μ' (cyl H ζ) * μ₀ (cyl H fun _ ↦ a)) := by
+    conv_lhs => rw [hAζ]
+    conv_rhs => rw [hAa]
+    ring
+  exact (eq_of_add_eq_add_of_le hs.ne' hs'
+    (ENNReal.mul_ne_top ht' (ENNReal.mul_ne_top (measure_ne_top _ _) (measure_ne_top _ _)))
+    (hcmp μ hμ Λ hΛ ζ) (hcmp μ' hμ' Λ hΛ ζ) hsum).symm
+
+/-- **Georgii, step 3) of the proof of Theorem (12.31): `μ₊ ∈ ex 𝒢(γ^Q)`.** A boundary law
+normalised at `a` which dominates the normalised boundary law of every extreme Gibbs measure of
+`γ^Q` has an *extreme* measure (12.13). -/
+theorem mem_extremePoints_G_boundaryLawMeasure_of_forall_le {a : E} {ℓ₀ : S → S → E → ℝ≥0∞}
+    (hℓ₀ : IsBoundaryLaw G Q ℓ₀) (hnorm₀ : ∀ ⦃i j⦄, G.Adj i j → ℓ₀ i j a = 1)
+    (hdom : ∀ μ ∈ (GibbsMeasure.G (transferSpecification G hQ)).extremePoints ℝ≥0∞,
+      ∃ (ℓ : S → S → E → ℝ≥0∞) (hℓ : IsBoundaryLaw G Q ℓ),
+        (∀ ⦃i j⦄, G.Adj i j → ℓ i j a = 1) ∧
+          (∀ ⦃i j⦄, G.Adj i j → ∀ x, ℓ i j x ≤ ℓ₀ i j x) ∧ μ = boundaryLawMeasure hQ hℓ hG) :
+    boundaryLawMeasure hQ hℓ₀ hG
+      ∈ (GibbsMeasure.G (transferSpecification G hQ)).extremePoints ℝ≥0∞ := by
+  set μ₀ := boundaryLawMeasure hQ hℓ₀ hG with hμ₀def
+  have hμ₀ : μ₀ ∈ GibbsMeasure.G (transferSpecification G hQ) :=
+    ⟨isProbabilityMeasure_boundaryLawMeasure hQ hℓ₀ hG,
+      hℓ₀.isGibbsMeasure_transferSpecification_boundaryLawMeasure hQ hG⟩
+  refine mem_extremePoints_G_of_forall_measure_cyl_mul_le hQ hG a hμ₀ fun μ hμ Λ hΛ ζ ↦ ?_
+  have hext : ∀ ν ∈ (GibbsMeasure.G (transferSpecification G hQ)).extremePoints ℝ≥0∞,
+      μ₀ (cyl (Λ ∪ G.outerBoundary Λ) fun _ ↦ a) * ν (cyl (Λ ∪ G.outerBoundary Λ) ζ)
+        ≤ μ₀ (cyl (Λ ∪ G.outerBoundary Λ) ζ)
+          * ν (cyl (Λ ∪ G.outerBoundary Λ) fun _ ↦ a) := by
+    intro ν hν
+    obtain ⟨ℓ, hℓ, hnorm, hle, rfl⟩ := hdom ν hν
+    rw [mul_comm]
+    exact hℓ.measure_cyl_mul_le_of_le hQ hG hℓ₀ hnorm hnorm₀ hle hΛ ζ
+  have := mul_measure_le_mul_measure_of_forall_extremePoints (measurableSet_cyl _ ζ)
+    (measurableSet_cyl _ (fun _ ↦ a)) hext hμ
+  rwa [mul_comm (μ₀ (cyl (Λ ∪ G.outerBoundary Λ) fun _ ↦ a))] at this
+
+/-- **Georgii, step 3) of the proof of Theorem (12.31): `μ₋ ∈ ex 𝒢(γ^Q)`.** A boundary law
+normalised at `a` which is dominated by the normalised boundary law of every extreme Gibbs measure
+of `γ^Q` has an *extreme* measure (12.13). -/
+theorem mem_extremePoints_G_boundaryLawMeasure_of_forall_ge {a : E} {ℓ₀ : S → S → E → ℝ≥0∞}
+    (hℓ₀ : IsBoundaryLaw G Q ℓ₀) (hnorm₀ : ∀ ⦃i j⦄, G.Adj i j → ℓ₀ i j a = 1)
+    (hdom : ∀ μ ∈ (GibbsMeasure.G (transferSpecification G hQ)).extremePoints ℝ≥0∞,
+      ∃ (ℓ : S → S → E → ℝ≥0∞) (hℓ : IsBoundaryLaw G Q ℓ),
+        (∀ ⦃i j⦄, G.Adj i j → ℓ i j a = 1) ∧
+          (∀ ⦃i j⦄, G.Adj i j → ∀ x, ℓ₀ i j x ≤ ℓ i j x) ∧ μ = boundaryLawMeasure hQ hℓ hG) :
+    boundaryLawMeasure hQ hℓ₀ hG
+      ∈ (GibbsMeasure.G (transferSpecification G hQ)).extremePoints ℝ≥0∞ := by
+  set μ₀ := boundaryLawMeasure hQ hℓ₀ hG with hμ₀def
+  have hμ₀ : μ₀ ∈ GibbsMeasure.G (transferSpecification G hQ) :=
+    ⟨isProbabilityMeasure_boundaryLawMeasure hQ hℓ₀ hG,
+      hℓ₀.isGibbsMeasure_transferSpecification_boundaryLawMeasure hQ hG⟩
+  refine mem_extremePoints_G_of_forall_le_measure_cyl_mul hQ hG a hμ₀ fun μ hμ Λ hΛ ζ ↦ ?_
+  have hext : ∀ ν ∈ (GibbsMeasure.G (transferSpecification G hQ)).extremePoints ℝ≥0∞,
+      μ₀ (cyl (Λ ∪ G.outerBoundary Λ) ζ) * ν (cyl (Λ ∪ G.outerBoundary Λ) fun _ ↦ a)
+        ≤ μ₀ (cyl (Λ ∪ G.outerBoundary Λ) fun _ ↦ a)
+          * ν (cyl (Λ ∪ G.outerBoundary Λ) ζ) := by
+    intro ν hν
+    obtain ⟨ℓ, hℓ, hnorm, hle, rfl⟩ := hdom ν hν
+    exact (hℓ₀.measure_cyl_mul_le_of_le hQ hG hℓ hnorm₀ hnorm hle hΛ ζ).trans_eq (mul_comm _ _)
+  have := mul_measure_le_mul_measure_of_forall_extremePoints
+    (measurableSet_cyl (Λ ∪ G.outerBoundary Λ) (fun _ ↦ a)) (measurableSet_cyl _ ζ) hext hμ
+  rwa [mul_comm (μ₀ (cyl (Λ ∪ G.outerBoundary Λ) fun _ ↦ a))] at this
+
+end ExtremeDomination
+
+
+
 end MeasureTheory.GibbsMeasure.Tree
