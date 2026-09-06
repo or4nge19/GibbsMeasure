@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import Mathlib.Analysis.Calculus.ContDiff.Deriv
 public import Mathlib.Analysis.Calculus.Deriv.Inv
 public import Mathlib.Analysis.Calculus.ParametricIntegral
 public import Mathlib.Analysis.SpecialFunctions.ExpDeriv
@@ -23,6 +24,11 @@ This is the elementary fact behind the differentiation of finite-volume Gibbs ex
 potential (Georgii, proof of Corollary (8.37)): differentiate numerator and denominator of
 `∫ g e^{u + tv} dμ / ∫ e^{u + tv} dμ` under the integral sign
 (`hasDerivAt_integral_of_dominated_loc_of_deriv_le`) and apply the quotient rule.
+
+Applying the formula to `g`, to `v` and to `g v` in turn shows that the derivative is again an
+expectation along the same tilt, hence continuous: `t ↦ ∫ g dν_t` is `C¹`
+(`contDiff_one_integral_tilted_add_mul`). This is what upgrades the finite-volume derivative of
+Georgii's Corollary (8.37) from `HasDerivAt` to continuous differentiability.
 
 Intended home: `Mathlib/Probability/Moments/Tilted.lean`.
 -/
@@ -153,6 +159,42 @@ theorem hasDerivAt_integral_tilted_add_mul (hu : Measurable u) (hv : Measurable 
     field_simp
   rw [integral_tilted_eq_div, integral_tilted_eq_div, integral_tilted_eq_div]
   exact key _ _ _ _ hZpos.ne'
+
+/-- The derivative of `t ↦ ∫ g d(μ.tilted (u + t v))` is again a combination of expectations
+along the same tilt. -/
+theorem deriv_integral_tilted_add_mul (hu : Measurable u) (hv : Measurable v)
+    (hg : Measurable g) (hub : ∀ x, |u x| ≤ Cu) (hvb : ∀ x, |v x| ≤ Cv) (hgb : ∀ x, |g x| ≤ Cg) :
+    deriv (fun t ↦ ∫ x, g x ∂(μ.tilted fun x ↦ u x + t * v x))
+      = fun t ↦ (∫ x, g x * v x ∂(μ.tilted fun x ↦ u x + t * v x))
+        - (∫ x, g x ∂(μ.tilted fun x ↦ u x + t * v x))
+          * ∫ x, v x ∂(μ.tilted fun x ↦ u x + t * v x) :=
+  funext fun t ↦ (hasDerivAt_integral_tilted_add_mul hu hv hg hub hvb hgb t).deriv
+
+/-- **The expectation along an exponential tilt is continuous in the tilt parameter.** For a
+probability measure `μ` and bounded measurable `u v g`, `t ↦ ∫ g d(μ.tilted (u + t v))` is
+continuous; it is even differentiable, by `hasDerivAt_integral_tilted_add_mul`. -/
+theorem continuous_integral_tilted_add_mul (hu : Measurable u) (hv : Measurable v)
+    (hg : Measurable g) (hub : ∀ x, |u x| ≤ Cu) (hvb : ∀ x, |v x| ≤ Cv) (hgb : ∀ x, |g x| ≤ Cg) :
+    Continuous fun t ↦ ∫ x, g x ∂(μ.tilted fun x ↦ u x + t * v x) :=
+  continuous_iff_continuousAt.2 fun t ↦
+    (hasDerivAt_integral_tilted_add_mul hu hv hg hub hvb hgb t).continuousAt
+
+/-- **The expectation along an exponential tilt is continuously differentiable.** The derivative
+`t ↦ ν_t(g v) − ν_t(g) ν_t(v)` of `t ↦ ∫ g d(μ.tilted (u + t v))` is built from expectations of
+the bounded measurable functions `g v`, `g` and `v` along the same tilt, each of which is
+continuous by `continuous_integral_tilted_add_mul`. -/
+theorem contDiff_one_integral_tilted_add_mul (hu : Measurable u) (hv : Measurable v)
+    (hg : Measurable g) (hub : ∀ x, |u x| ≤ Cu) (hvb : ∀ x, |v x| ≤ Cv) (hgb : ∀ x, |g x| ≤ Cg) :
+    ContDiff ℝ 1 fun t ↦ ∫ x, g x ∂(μ.tilted fun x ↦ u x + t * v x) := by
+  have hgvb : ∀ x, |g x * v x| ≤ Cg * Cv := fun x ↦ by
+    rw [abs_mul]
+    exact mul_le_mul (hgb x) (hvb x) (abs_nonneg _) ((abs_nonneg _).trans (hgb x))
+  refine contDiff_one_iff_deriv.2 ⟨fun t ↦
+    (hasDerivAt_integral_tilted_add_mul hu hv hg hub hvb hgb t).differentiableAt, ?_⟩
+  rw [deriv_integral_tilted_add_mul hu hv hg hub hvb hgb]
+  exact (continuous_integral_tilted_add_mul hu hv (hg.mul hv) hub hvb hgvb).sub
+    ((continuous_integral_tilted_add_mul hu hv hg hub hvb hgb).mul
+      (continuous_integral_tilted_add_mul hu hv hv hub hvb hvb))
 
 end Line
 

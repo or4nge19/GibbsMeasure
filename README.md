@@ -700,8 +700,12 @@ is differentiable with derivative `−⟨μ_Φ, Ψ⟩`, and the second derivativ
 `GibbsMeasure/Specification/DobrushinDerivatives.lean` for an arbitrary site set without shift
 invariance, from **Proposition (8.34)**, the covariance bound by the interdependence series, by
 tilting the specification and the comparison theorem; the finite-volume derivative is a tilted
-integral and the matrix-series tail algebra lives in the Mathlib layer. Georgii's opening claim of
-*continuous* differentiability in (8.37) is not established by his proof and is not proved. `GibbsMeasure/Model/IsingLargeDeviations.lean`
+integral and the matrix-series tail algebra lives in the Mathlib layer. Georgii's *continuous*
+differentiability in (8.37) is proved along every line of `𝒟`
+(`contDiffOn_one_integral_gibbsMeasure_add_smul`: the finite-volume derivative is a combination of
+tilted integrals, hence continuous, and the `T₁+T₂+2T₃` estimate makes the convergence uniform on
+the segment); the Fréchet form on the Banach space `ℬ̃_Θ` is not established by his proof, whose `T₃`
+tail is not uniform over the unit ball, and is not proved. `GibbsMeasure/Model/IsingLargeDeviations.lean`
 exhibits the Ising potential as a nonzero element of `ℬ_Θ` lying in the Dobrushin region exactly when
 Georgii's norm `|h| + 4d|J|` is below one, where (16.17) reads magnetisation and susceptibility, so these
 objects are not vacuous.
@@ -922,8 +926,8 @@ Gibbs measure is unique ((6.7)(2)); **(6.7)(1)**: `𝒢(βΦ) = [μ₋^β, μ₊
 `μ_±` are the extreme points, carried by the disjoint tail events `A_±`, and the bond graph of equal
 neighbouring spins has a unique infinite component almost surely under every Gibbs measure.
 
-Not yet done: the modulo-commutativity refinement (5.15)(ii) behind Examples (5.17)(3)–(4); the
-continuity of the second derivative asserted in (8.37)/(16.17); in (12.31)(b) the infinitude of
+Not yet done: the Fréchet form of the continuous differentiability asserted in (8.37), proved
+along every line of `𝒟`, and the continuity of the second derivative in (16.17); in (12.31)(b) the infinitude of
 `ex 𝒢 ∖ ex 𝒢_{I(B)}` and the third extreme invariant element; (13.39)–(13.41), (13.44)–(13.45), the
 `𝒢_Θ` clause of (13.42) and the representation `𝒢(γ^{J,h}) = {μ_C * ν}`; Georgii's closure bound in
 (15.46) for a non-convex `C` over an infinite state space, Cramér's formula at `Φ = 0`, and

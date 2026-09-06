@@ -68,19 +68,39 @@ majorant of the interdependence matrices of the whole segment `Φ + tΨ`, `|t| �
   `tsum_ite_ofReal_abs_covariance_siteEnergy_le`, `summable_norm_covariance_siteEnergy` and
   `ofReal_abs_covariance_hamiltonian_sub_tsum_le`: the decomposition of `⟨H^Ψ_Λ, g⟩` and the
   resulting `T₁ + T₂ + 2T₃` estimate for `⟨H^Ψ_Λ, g⟩_{γ_Λ(·|ω)} − ∑_k ⟨f_Ψ ∘ θ_{−k}, g⟩_μ`.
+* `MeasureTheory.GibbsMeasure.Dobrushin.tendstoUniformlyOn_covariance_hamiltonian`: the
+  finite-volume derivatives converge to the infinite-volume one *uniformly* in the potential
+  parameter — the exchange of limits that carries Georgii's proof, and the source of the
+  continuity of the derivative.
 * `MeasureTheory.GibbsMeasure.Dobrushin.hasDerivAt_integral_gibbsMeasure_add_smul`:
   **Georgii, Corollary (8.37)**, in the form Georgii proves: the directional derivative formula
   `∂/∂t μ_{Φ+tΨ}(g) = −∑_k ⟨f_Ψ ∘ θ_{−k}, g⟩_{μ_{Φ+tΨ}}`, valid at every `|t| < t₀`.
+* `MeasureTheory.GibbsMeasure.Dobrushin.continuous_integral_gibbsSpecification`,
+  `contDiff_one_integral_gibbsSpecification`,
+  `continuous_covariance_hamiltonian_gibbsSpecification`: the finite-volume expectation
+  `s ↦ γ^{Φ+sΨ}_Λ(g|ω)` is `C¹`, and its derivative `−⟨H^Ψ_Λ, g⟩^s_Λ` is continuous in `s`.
+* `MeasureTheory.GibbsMeasure.Dobrushin.continuousOn_tsum_covariance_siteEnergy` and
+  `contDiffOn_one_integral_gibbsMeasure_add_smul`: **the continuity clause of Corollary (8.37)**
+  — the derivative `s ↦ ∑_k ⟨f_Ψ ∘ θ_{−k}, g⟩_{μ_s}` is continuous on `|s| < t₀`, so
+  `s ↦ μ_{Φ+sΨ}(g)` is *continuously* differentiable there.
 
 ## Scope
 
 Georgii's Corollary (8.37) opens with the assertion that `Φ ↦ μ_Φ(g)` is *continuously*
-differentiable on `𝒟` as a function on the Banach space `ℬ̃_Θ` of (8.36); his proof establishes
-the displayed directional-derivative formula and nothing more. Only that formula is proved here
-(for every base point of the segment, hence on a neighbourhood of `0`). The norm-continuity of
-`Φ ↦ (Ψ ↦ ∂_Ψ μ_Φ(g))` — equivalently, a modulus of continuity for `Φ ↦ μ_Φ` on `𝒟` — is not
-established by Georgii's argument and is not claimed here; Georgii's Corollary (16.17), the only
-consumer of (8.37) in the book, uses the directional formula alone.
+differentiable on `𝒟` as a function on the Banach space `ℬ̃_Θ` of (8.36). What his proof
+establishes is the displayed directional-derivative formula together with the uniformity of the
+underlying limit; both are proved here, and the uniformity does yield the continuity of the
+derivative *along each line* `s ↦ Φ + sΨ`, so `s ↦ μ_{Φ+sΨ}(g)` is `C¹` on `|s| < t₀`
+(`contDiffOn_one_integral_gibbsMeasure_add_smul`).
+
+Not proved is the Fréchet reading of Georgii's assertion: that `Φ ↦ μ_Φ(g)` is continuously
+differentiable as a map on `ℬ̃_Θ`. Upgrading a Gâteaux derivative to a Fréchet one needs
+`Φ ↦ (Ψ ↦ ∂_Ψ μ_Φ(g))` to be continuous in the *operator* norm, i.e. a modulus of continuity for
+`Φ ↦ μ_Φ` uniform over the unit ball of `ℬ̃_Θ`, and Georgii's proof does not produce one: his
+`T₃` term `∑_{k ∉ Δ} ⟨f_Ψ ∘ θ_{−k}, g⟩` is controlled only through `∑_k δ_j(f_Ψ ∘ θ_{−k}) ≤
+2‖Ψ‖_j` (`tsum_oscAt_siteEnergy_le'`), which bounds the whole series but makes no tail small
+uniformly in `Ψ` — a `Ψ` carried by sets of diameter larger than `Δ` keeps all of it. Corollary
+(16.17), the only consumer of (8.37) in the book, uses the directional formula alone.
 
 The statement below is also free of Georgii's homogeneity assumptions: `S` is an arbitrary
 countable site set, and the region `𝒟` is entered through the site-uniform bounds
@@ -860,6 +880,52 @@ theorem hasDerivAt_integral_gibbsSpecification (Ψ : Potential S E) [IsPotential
     integral_neg, integral_neg]
   ring
 
+variable (Φ) in
+/-- **The finite-volume Gibbs expectation is continuous in the potential parameter.** For a
+bounded measurable `g`, the map `s ↦ γ^{Φ+sΨ}_Λ(g|ω)` is continuous: the finite-volume Gibbs
+distribution is the exponential tilt of the free measure along the line
+`s ↦ −H^Φ_Λ − s H^Ψ_Λ` (`gibbsSpecification_add_smul_eq_tilted`), and an expectation along an
+exponential tilt is continuous in the tilt parameter. -/
+theorem continuous_integral_gibbsSpecification (Ψ : Potential S E) [IsPotential Ψ]
+    [IsAbsolutelySummable Ψ] {g : (S → E) → ℝ} (hg : Measurable g) {Cg : ℝ}
+    (hgb : ∀ σ, |g σ| ≤ Cg) (Λ : Finset S) (ω : S → E) :
+    Continuous fun s : ℝ ↦ ∫ σ, g σ ∂(gibbsSpecificationOfAbsolutelySummable
+      (Φ := Φ + s • Ψ) ν 1 Λ ω) := by
+  have hu : Measurable fun σ : S → E ↦ -Φ.hamiltonian Λ σ :=
+    (measurable_hamiltonian (Φ := Φ) Λ).neg
+  have hv : Measurable fun σ : S → E ↦ -Ψ.hamiltonian Λ σ :=
+    (measurable_hamiltonian (Φ := Ψ) Λ).neg
+  have hub : ∀ σ, |-Φ.hamiltonian Λ σ| ≤ Φ.hamiltonianBound Λ := fun σ ↦ by
+    rw [abs_neg]; exact abs_hamiltonian_le Λ σ
+  have hvb : ∀ σ, |-Ψ.hamiltonian Λ σ| ≤ Ψ.hamiltonianBound Λ := fun σ ↦ by
+    rw [abs_neg]; exact abs_hamiltonian_le Λ σ
+  have hmain := continuous_integral_tilted_add_mul (μ := isssd (S := S) (E := E) ν Λ ω)
+    hu hv hg hub hvb hgb
+  simpa only [← gibbsSpecification_add_smul_eq_tilted (Φ := Φ) (ν := ν) (Ψ := Ψ) Λ ω] using hmain
+
+variable (Φ) in
+/-- **Georgii, Corollary (8.37) at finite volume**, in its `C¹` form: `s ↦ γ^{Φ+sΨ}_Λ(g|ω)` is
+continuously differentiable. Its derivative is the covariance `−⟨H^Ψ_Λ, g⟩^s_Λ`
+(`hasDerivAt_integral_gibbsSpecification`), and that covariance is assembled from three
+expectations along the same tilt, each continuous by
+`continuous_integral_gibbsSpecification`. -/
+theorem contDiff_one_integral_gibbsSpecification (Ψ : Potential S E) [IsPotential Ψ]
+    [IsAbsolutelySummable Ψ] {g : (S → E) → ℝ} (hg : Measurable g) {Cg : ℝ}
+    (hgb : ∀ σ, |g σ| ≤ Cg) (Λ : Finset S) (ω : S → E) :
+    ContDiff ℝ 1 fun s : ℝ ↦ ∫ σ, g σ ∂(gibbsSpecificationOfAbsolutelySummable
+      (Φ := Φ + s • Ψ) ν 1 Λ ω) := by
+  have hu : Measurable fun σ : S → E ↦ -Φ.hamiltonian Λ σ :=
+    (measurable_hamiltonian (Φ := Φ) Λ).neg
+  have hv : Measurable fun σ : S → E ↦ -Ψ.hamiltonian Λ σ :=
+    (measurable_hamiltonian (Φ := Ψ) Λ).neg
+  have hub : ∀ σ, |-Φ.hamiltonian Λ σ| ≤ Φ.hamiltonianBound Λ := fun σ ↦ by
+    rw [abs_neg]; exact abs_hamiltonian_le Λ σ
+  have hvb : ∀ σ, |-Ψ.hamiltonian Λ σ| ≤ Ψ.hamiltonianBound Λ := fun σ ↦ by
+    rw [abs_neg]; exact abs_hamiltonian_le Λ σ
+  have hmain := contDiff_one_integral_tilted_add_mul (μ := isssd (S := S) (E := E) ν Λ ω)
+    hu hv hg hub hvb hgb
+  simpa only [← gibbsSpecification_add_smul_eq_tilted (Φ := Φ) (ν := ν) (Ψ := Ψ) Λ ω] using hmain
+
 
 end FiniteVolumeDerivative
 
@@ -1521,26 +1587,18 @@ lemma ofReal_abs_covariance_hamiltonian_sub_tsum_le {γ : Specification S E}
 variable {Φ : Potential S E}
 
 omit [DecidableEq S] in
-/-- **Georgii, Corollary (8.37).** Let `Φ`, `Ψ` be absolutely summable potentials whose norms
-(8.36) satisfy `‖Φ‖' ≤ a`, `‖Ψ‖' ≤ b` at every site with `a + t₀ b < 1` for some `t₀ > 0`, let
-`λ = ν` be a probability measure on the state space, and let `g` be a bounded quasilocal
-observable with `∑_i δ_i(g) < ∞`. If `μ s` is a Gibbs measure for `Φ + sΨ` for every `|s| ≤ t₀`,
-then `s ↦ μ_s(g)` is differentiable at every `|t| < t₀` and
+/-- **Georgii, in the proof of Corollary (8.37): the finite-volume derivatives converge
+uniformly in the potential parameter.** For `|s| ≤ t₀` the covariance `⟨H^Ψ_Λ, g⟩^s_Λ` under the
+finite-volume Gibbs distribution converges, as `Λ ↑ S`, to the series
+`∑_k ⟨f_Ψ ∘ θ_{−k}, g⟩_{μ_s}`, uniformly on the open segment `|s| < t₀`. This is Georgii's
+`T₁ + T₂ + 2T₃` estimate (`ofReal_abs_covariance_hamiltonian_sub_tsum_le`) applied against the
+single majorant `C` of the interdependence matrices of the whole segment, so none of the three
+bounds depends on `s`.
 
-`∂/∂t μ_{Φ+tΨ}(g) = −∑_{k ∈ S} ⟨f_Ψ ∘ θ_{−k}, g⟩_{μ_{Φ+tΨ}}`.
-
-Under Dobrushin's condition — which `a + t₀ b < 1` guarantees along the whole segment — the
-family `μ` is unique, so this really is the derivative of Georgii's `Φ ↦ μ_Φ(g)`; over a
-standard Borel state space such a family also exists
-(`existsUnique_mem_GP_of_isDobrushin_of_standardBorel`).
-
-The proof follows Georgii: the derivative at finite volume is a covariance, the finite-volume
-Gibbs distributions converge to `μ_s` by (8.23), and the convergence of the derivatives is
-uniform in `s` by the `T₁ + T₂ + 2T₃` estimate
-`ofReal_abs_covariance_hamiltonian_sub_tsum_le`, whose three parts vanish by
-`tendsto_bound_hamiltonianRemLp`, `ENNReal.tendsto_tsum_matTail_mul` and
-`tendsto_bound_tsum_compl_siteEnergy`. -/
-theorem hasDerivAt_integral_gibbsMeasure_add_smul [IsPotential Φ] [IsAbsolutelySummable Φ]
+Uniformity is what lets `Λ ↑ S` and `∂/∂s` be exchanged in
+`hasDerivAt_integral_gibbsMeasure_add_smul`, and it is also what makes the limit derivative
+continuous (`continuousOn_tsum_covariance_siteEnergy`). -/
+theorem tendstoUniformlyOn_covariance_hamiltonian [IsPotential Φ] [IsAbsolutelySummable Φ]
     (ν : Measure E) [IsProbabilityMeasure ν] {a : ℝ≥0∞} {t₀ : ℝ} (ht₀ : 0 < t₀)
     (hΦ : ∀ i, cardNormAt Φ i ≤ a) (hΨ : ∀ i, cardNormAt Ψ i ≤ b)
     (hab : a + ENNReal.ofReal t₀ * b < 1)
@@ -1548,16 +1606,13 @@ theorem hasDerivAt_integral_gibbsMeasure_add_smul [IsPotential Φ] [IsAbsolutely
     {μ : ℝ → Measure (S → E)} (hprob : ∀ s, IsProbabilityMeasure (μ s))
     (hμ : ∀ s, |s| ≤ t₀ → ∀ i : S,
       (μ s).bind (gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 {i}) = μ s)
-    {t : ℝ} (ht : |t| < t₀) :
-    HasDerivAt (fun s : ℝ ↦ ∫ σ, (g : (S → E) → ℝ) σ ∂(μ s))
-      (-∑' k : S, cov[(g : (S → E) → ℝ), Ψ.siteEnergy k; μ t]) t := by
+    (ω : S → E) :
+    TendstoUniformlyOn
+      (fun (Λ : Finset S) (s : ℝ) ↦ -cov[(g : (S → E) → ℝ), Ψ.hamiltonian Λ;
+          gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω])
+      (fun s : ℝ ↦ -∑' k : S, cov[(g : (S → E) → ℝ), Ψ.siteEnergy k; μ s])
+      atTop (Set.Ioo (-t₀) t₀) := by
   classical
-  have := hprob t
-  obtain ⟨ω⟩ : Nonempty (S → E) := by
-    by_contra hne
-    rw [not_nonempty_iff] at hne
-    have huniv : (Set.univ : Set (S → E)) = ∅ := Set.eq_empty_of_isEmpty _
-    simpa [huniv] using measure_univ (μ := μ t)
   obtain ⟨C, hCrow, hCle⟩ :=
     exists_forall_interdep_gibbsSpecification_add_smul_le (Φ := Φ) (Ψ := Ψ) ν (t₀ := t₀) hΦ hΨ
   have hbtop : b ≠ ⊤ := by
@@ -1581,46 +1636,6 @@ theorem hasDerivAt_integral_gibbsMeasure_add_smul [IsPotential Φ] [IsAbsolutely
     exact summable_norm_covariance_siteEnergy hab hCrow hb hbtop hgsum
       (fun f hf ↦ ofReal_abs_covariance_le_matSeries' (hdob s hs).isQuasilocal (hdob s hs)
         (hμ s hs) (hCle s hs) hg hf)
-  -- the finite-volume derivative
-  have hgm : Measurable (g : (S → E) → ℝ) := measurable_of_mem_quasilocalFunctions hg
-  have hgb : ∀ σ, |(g : (S → E) → ℝ) σ| ≤ ‖g‖ := fun σ ↦ by
-    simpa [Real.norm_eq_abs] using lp.norm_apply_le_norm ENNReal.top_ne_zero g σ
-  have hderiv : ∀ (Λ : Finset S) (s : ℝ), HasDerivAt
-      (fun r : ℝ ↦ ∫ σ, (g : (S → E) → ℝ) σ
-        ∂(gibbsSpecificationOfAbsolutelySummable (Φ := Φ + r • Ψ) ν 1 Λ ω))
-      (-cov[(g : (S → E) → ℝ), Ψ.hamiltonian Λ;
-        gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω]) s := by
-    intro Λ s
-    have hcov := covariance_eq_integral_mul_sub
-      (ρ := gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω) hg
-      (hamiltonianLp_mem_quasilocalFunctions (Φ := Ψ) Λ)
-    rw [show ⇑(Ψ.hamiltonianLp Λ) = Ψ.hamiltonian Λ from rfl] at hcov
-    rw [hcov]
-    exact hasDerivAt_integral_gibbsSpecification (Φ := Φ) (ν := ν) (Ψ := Ψ) hgm hgb Λ ω s
-  -- convergence of the finite-volume Gibbs distributions
-  have hconv : ∀ s : ℝ, |s| ≤ t₀ →
-      Tendsto (fun Λ : Finset S ↦ ∫ σ, (g : (S → E) → ℝ) σ
-        ∂(gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω))
-        atTop (𝓝 (∫ σ, (g : (S → E) → ℝ) σ ∂(μ s))) := by
-    intro s hs
-    have := hprob s
-    have hR : Tendsto (fun Λ : Finset S ↦ (∑' j, matTail C Λ j * oscAt (⇑g) j).toReal)
-        atTop (𝓝 0) := by
-      have h := ENNReal.tendsto_tsum_matTail_mul (C := C) hab hCrow hgsum
-      simpa [Function.comp_def] using (ENNReal.tendsto_toReal (by simp)).comp h
-    have hbnd : ∀ Λ : Finset S,
-        |(∫ σ, (g : (S → E) → ℝ) σ
-            ∂(gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω))
-          - ∫ σ, (g : (S → E) → ℝ) σ ∂(μ s)|
-          ≤ (∑' j, matTail C Λ j * oscAt (⇑g) j).toReal := by
-      intro Λ
-      have hest := isEstimate_finiteVolume (hdob s hs).isQuasilocal (hdob s hs) (hμ s hs) Λ ω g hg
-      rw [← ENNReal.ofReal_le_iff_le_toReal
-        (ENNReal.tsum_matTail_mul_ne_top hab hCrow Λ hgsum)]
-      exact hest.trans (ENNReal.tsum_le_tsum fun j ↦
-        mul_le_mul' (interdepTail_le_matTail (hCle s hs) Λ j) le_rfl)
-    rw [tendsto_iff_dist_tendsto_zero]
-    exact squeeze_zero (fun _ ↦ dist_nonneg) (fun Λ ↦ by rw [Real.dist_eq]; exact hbnd Λ) hR
   -- the three vanishing bounds
   have hquarter : ∀ u : Finset S → ℝ≥0∞, Tendsto u atTop (𝓝 0) →
       Tendsto (fun x ↦ u x / 4) atTop (𝓝 0) := by
@@ -1690,9 +1705,221 @@ theorem hasDerivAt_integral_gibbsMeasure_add_smul [IsPotential Φ] [IsAbsolutely
       ← ENNReal.ofReal_add (by positivity) (by positivity)] at hle
     have := (ENNReal.ofReal_le_ofReal_iff (by positivity)).1 hle
     linarith
+  exact huc
+
+omit [DecidableEq S] in
+/-- **Georgii, Corollary (8.37).** Let `Φ`, `Ψ` be absolutely summable potentials whose norms
+(8.36) satisfy `‖Φ‖' ≤ a`, `‖Ψ‖' ≤ b` at every site with `a + t₀ b < 1` for some `t₀ > 0`, let
+`λ = ν` be a probability measure on the state space, and let `g` be a bounded quasilocal
+observable with `∑_i δ_i(g) < ∞`. If `μ s` is a Gibbs measure for `Φ + sΨ` for every `|s| ≤ t₀`,
+then `s ↦ μ_s(g)` is differentiable at every `|t| < t₀` and
+
+`∂/∂t μ_{Φ+tΨ}(g) = −∑_{k ∈ S} ⟨f_Ψ ∘ θ_{−k}, g⟩_{μ_{Φ+tΨ}}`.
+
+Under Dobrushin's condition — which `a + t₀ b < 1` guarantees along the whole segment — the
+family `μ` is unique, so this really is the derivative of Georgii's `Φ ↦ μ_Φ(g)`; over a
+standard Borel state space such a family also exists
+(`existsUnique_mem_GP_of_isDobrushin_of_standardBorel`).
+
+The proof follows Georgii: the derivative at finite volume is a covariance, the finite-volume
+Gibbs distributions converge to `μ_s` by (8.23), and the convergence of the derivatives is
+uniform in `s` by the `T₁ + T₂ + 2T₃` estimate
+`ofReal_abs_covariance_hamiltonian_sub_tsum_le`, whose three parts vanish by
+`tendsto_bound_hamiltonianRemLp`, `ENNReal.tendsto_tsum_matTail_mul` and
+`tendsto_bound_tsum_compl_siteEnergy`. -/
+theorem hasDerivAt_integral_gibbsMeasure_add_smul [IsPotential Φ] [IsAbsolutelySummable Φ]
+    (ν : Measure E) [IsProbabilityMeasure ν] {a : ℝ≥0∞} {t₀ : ℝ} (ht₀ : 0 < t₀)
+    (hΦ : ∀ i, cardNormAt Φ i ≤ a) (hΨ : ∀ i, cardNormAt Ψ i ≤ b)
+    (hab : a + ENNReal.ofReal t₀ * b < 1)
+    (hg : g ∈ quasilocalFunctions S E) (hgsum : ∑' i, oscAt (⇑g) i ≠ ⊤)
+    {μ : ℝ → Measure (S → E)} (hprob : ∀ s, IsProbabilityMeasure (μ s))
+    (hμ : ∀ s, |s| ≤ t₀ → ∀ i : S,
+      (μ s).bind (gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 {i}) = μ s)
+    {t : ℝ} (ht : |t| < t₀) :
+    HasDerivAt (fun s : ℝ ↦ ∫ σ, (g : (S → E) → ℝ) σ ∂(μ s))
+      (-∑' k : S, cov[(g : (S → E) → ℝ), Ψ.siteEnergy k; μ t]) t := by
+  classical
+  have := hprob t
+  obtain ⟨ω⟩ : Nonempty (S → E) := by
+    by_contra hne
+    rw [not_nonempty_iff] at hne
+    have huniv : (Set.univ : Set (S → E)) = ∅ := Set.eq_empty_of_isEmpty _
+    simpa [huniv] using measure_univ (μ := μ t)
+  obtain ⟨C, hCrow, hCle⟩ :=
+    exists_forall_interdep_gibbsSpecification_add_smul_le (Φ := Φ) (Ψ := Ψ) ν (t₀ := t₀) hΦ hΨ
+  have hcard : ∀ s : ℝ, |s| ≤ t₀ →
+      ∀ i, cardNormAt (Φ + s • Ψ) i ≤ a + ENNReal.ofReal t₀ * b := by
+    intro s hs i
+    refine (cardNormAt_add_le Φ (s • Ψ) i).trans (add_le_add (hΦ i) ?_)
+    rw [cardNormAt_smul]
+    exact mul_le_mul' (by rw [Real.enorm_eq_ofReal_abs]; exact ENNReal.ofReal_le_ofReal hs) (hΨ i)
+  have hdob : ∀ s : ℝ, |s| ≤ t₀ →
+      IsDobrushin (gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1) := fun s hs ↦
+    isDobrushin_gibbsSpecification_of_cardNormAt_le (Φ := Φ + s • Ψ) ν hab (hcard s hs)
+  -- the finite-volume derivative
+  have hgm : Measurable (g : (S → E) → ℝ) := measurable_of_mem_quasilocalFunctions hg
+  have hgb : ∀ σ, |(g : (S → E) → ℝ) σ| ≤ ‖g‖ := fun σ ↦ by
+    simpa [Real.norm_eq_abs] using lp.norm_apply_le_norm ENNReal.top_ne_zero g σ
+  have hderiv : ∀ (Λ : Finset S) (s : ℝ), HasDerivAt
+      (fun r : ℝ ↦ ∫ σ, (g : (S → E) → ℝ) σ
+        ∂(gibbsSpecificationOfAbsolutelySummable (Φ := Φ + r • Ψ) ν 1 Λ ω))
+      (-cov[(g : (S → E) → ℝ), Ψ.hamiltonian Λ;
+        gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω]) s := by
+    intro Λ s
+    have hcov := covariance_eq_integral_mul_sub
+      (ρ := gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω) hg
+      (hamiltonianLp_mem_quasilocalFunctions (Φ := Ψ) Λ)
+    rw [show ⇑(Ψ.hamiltonianLp Λ) = Ψ.hamiltonian Λ from rfl] at hcov
+    rw [hcov]
+    exact hasDerivAt_integral_gibbsSpecification (Φ := Φ) (ν := ν) (Ψ := Ψ) hgm hgb Λ ω s
+  -- convergence of the finite-volume Gibbs distributions
+  have hconv : ∀ s : ℝ, |s| ≤ t₀ →
+      Tendsto (fun Λ : Finset S ↦ ∫ σ, (g : (S → E) → ℝ) σ
+        ∂(gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω))
+        atTop (𝓝 (∫ σ, (g : (S → E) → ℝ) σ ∂(μ s))) := by
+    intro s hs
+    have := hprob s
+    have hR : Tendsto (fun Λ : Finset S ↦ (∑' j, matTail C Λ j * oscAt (⇑g) j).toReal)
+        atTop (𝓝 0) := by
+      have h := ENNReal.tendsto_tsum_matTail_mul (C := C) hab hCrow hgsum
+      simpa [Function.comp_def] using (ENNReal.tendsto_toReal (by simp)).comp h
+    have hbnd : ∀ Λ : Finset S,
+        |(∫ σ, (g : (S → E) → ℝ) σ
+            ∂(gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω))
+          - ∫ σ, (g : (S → E) → ℝ) σ ∂(μ s)|
+          ≤ (∑' j, matTail C Λ j * oscAt (⇑g) j).toReal := by
+      intro Λ
+      have hest := isEstimate_finiteVolume (hdob s hs).isQuasilocal (hdob s hs) (hμ s hs) Λ ω g hg
+      rw [← ENNReal.ofReal_le_iff_le_toReal
+        (ENNReal.tsum_matTail_mul_ne_top hab hCrow Λ hgsum)]
+      exact hest.trans (ENNReal.tsum_le_tsum fun j ↦
+        mul_le_mul' (interdepTail_le_matTail (hCle s hs) Λ j) le_rfl)
+    rw [tendsto_iff_dist_tendsto_zero]
+    exact squeeze_zero (fun _ ↦ dist_nonneg) (fun Λ ↦ by rw [Real.dist_eq]; exact hbnd Λ) hR
+  -- uniform convergence of the derivatives on `(-t₀, t₀)`
+  have huc := tendstoUniformlyOn_covariance_hamiltonian (Φ := Φ) ν ht₀ hΦ hΨ hab hg hgsum
+    hprob hμ ω
   exact hasDerivAt_of_tendstoUniformlyOn isOpen_Ioo huc
     (Eventually.of_forall fun Λ s _ ↦ hderiv Λ s)
     (fun s hs ↦ hconv s (abs_lt.2 ⟨hs.1, hs.2⟩).le) (abs_lt.1 ht)
+
+/-! ### Georgii Corollary (8.37): the continuity clause
+
+Georgii's Corollary (8.37) opens with the assertion that the map is *continuously*
+differentiable. Along the segment `s ↦ Φ + sΨ` this follows from the same uniform convergence
+that produced the derivative: the finite-volume covariance `⟨H^Ψ_Λ, g⟩^s_Λ` is a combination of
+expectations along an exponential tilt and is therefore continuous in `s`
+(`continuous_covariance_hamiltonian_gibbsSpecification`), and Georgii's `T₁ + T₂ + 2T₃` estimate
+makes the convergence `⟨H^Ψ_Λ, g⟩^s_Λ → ∑_k ⟨f_Ψ ∘ θ_{−k}, g⟩_{μ_s}` uniform on `|s| < t₀`, so
+the limit is continuous as well.
+-/
+
+omit [DecidableEq S] in
+/-- **Georgii, in the proof of Corollary (8.37).** The finite-volume covariance
+`⟨H^Ψ_Λ, g⟩^s_Λ = γ^{Φ+sΨ}_Λ(g H^Ψ_Λ|ω) − γ^{Φ+sΨ}_Λ(g|ω) γ^{Φ+sΨ}_Λ(H^Ψ_Λ|ω)` is continuous in
+the potential parameter `s`: each of its three factors is the expectation of a bounded measurable
+observable along the exponential tilt `s ↦ −H^Φ_Λ − s H^Ψ_Λ`
+(`continuous_integral_gibbsSpecification`). -/
+theorem continuous_covariance_hamiltonian_gibbsSpecification [IsPotential Φ]
+    [IsAbsolutelySummable Φ] (ν : Measure E) [IsProbabilityMeasure ν]
+    (hg : g ∈ quasilocalFunctions S E) (Λ : Finset S) (ω : S → E) :
+    Continuous fun s : ℝ ↦ cov[(g : (S → E) → ℝ), Ψ.hamiltonian Λ;
+      gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω] := by
+  have hgm : Measurable (g : (S → E) → ℝ) := measurable_of_mem_quasilocalFunctions hg
+  have hgb : ∀ σ, |(g : (S → E) → ℝ) σ| ≤ ‖g‖ := fun σ ↦ by
+    simpa [Real.norm_eq_abs] using lp.norm_apply_le_norm ENNReal.top_ne_zero g σ
+  have hHm : Measurable (Ψ.hamiltonian Λ) := measurable_hamiltonian (Φ := Ψ) Λ
+  have hHb : ∀ σ, |Ψ.hamiltonian Λ σ| ≤ Ψ.hamiltonianBound Λ := abs_hamiltonian_le Λ
+  have hgHb : ∀ σ, |(g : (S → E) → ℝ) σ * Ψ.hamiltonian Λ σ| ≤ ‖g‖ * Ψ.hamiltonianBound Λ :=
+    fun σ ↦ by
+      rw [abs_mul]
+      exact mul_le_mul (hgb σ) (hHb σ) (abs_nonneg _) ((abs_nonneg _).trans (hgb σ))
+  have hcov : ∀ s : ℝ, cov[(g : (S → E) → ℝ), Ψ.hamiltonian Λ;
+      gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω]
+        = (∫ σ, (g : (S → E) → ℝ) σ * Ψ.hamiltonian Λ σ
+              ∂(gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω))
+          - (∫ σ, (g : (S → E) → ℝ) σ
+              ∂(gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω))
+            * ∫ σ, Ψ.hamiltonian Λ σ
+                ∂(gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω) := by
+    intro s
+    have h := covariance_eq_integral_mul_sub
+      (ρ := gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω) hg
+      (hamiltonianLp_mem_quasilocalFunctions (Φ := Ψ) Λ)
+    rwa [show ⇑(Ψ.hamiltonianLp Λ) = Ψ.hamiltonian Λ from rfl] at h
+  simp only [hcov]
+  exact (continuous_integral_gibbsSpecification Φ ν Ψ (hgm.mul hHm) hgHb Λ ω).sub
+    ((continuous_integral_gibbsSpecification Φ ν Ψ hgm hgb Λ ω).mul
+      (continuous_integral_gibbsSpecification Φ ν Ψ hHm hHb Λ ω))
+
+omit [DecidableEq S] in
+/-- **Georgii, Corollary (8.37): the derivative is continuous.** At the hypotheses of
+`hasDerivAt_integral_gibbsMeasure_add_smul`, the derivative
+`s ↦ ∑_{k ∈ S} ⟨f_Ψ ∘ θ_{−k}, g⟩_{μ_s}` is continuous on the open segment `|s| < t₀`: it is the
+uniform limit of the continuous finite-volume covariances `s ↦ ⟨H^Ψ_Λ, g⟩^s_Λ`. -/
+theorem continuousOn_tsum_covariance_siteEnergy [IsPotential Φ] [IsAbsolutelySummable Φ]
+    (ν : Measure E) [IsProbabilityMeasure ν] {a : ℝ≥0∞} {t₀ : ℝ} (ht₀ : 0 < t₀)
+    (hΦ : ∀ i, cardNormAt Φ i ≤ a) (hΨ : ∀ i, cardNormAt Ψ i ≤ b)
+    (hab : a + ENNReal.ofReal t₀ * b < 1)
+    (hg : g ∈ quasilocalFunctions S E) (hgsum : ∑' i, oscAt (⇑g) i ≠ ⊤)
+    {μ : ℝ → Measure (S → E)} (hprob : ∀ s, IsProbabilityMeasure (μ s))
+    (hμ : ∀ s, |s| ≤ t₀ → ∀ i : S,
+      (μ s).bind (gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 {i}) = μ s) :
+    ContinuousOn (fun s : ℝ ↦ ∑' k : S, cov[(g : (S → E) → ℝ), Ψ.siteEnergy k; μ s])
+      (Set.Ioo (-t₀) t₀) := by
+  obtain ⟨ω⟩ : Nonempty (S → E) := by
+    have := hprob 0
+    by_contra hne
+    rw [not_nonempty_iff] at hne
+    have huniv : (Set.univ : Set (S → E)) = ∅ := Set.eq_empty_of_isEmpty _
+    simpa [huniv] using measure_univ (μ := μ 0)
+  have huc := tendstoUniformlyOn_covariance_hamiltonian (Φ := Φ) ν ht₀ hΦ hΨ hab hg hgsum
+    hprob hμ ω
+  have hcont : ∀ Λ : Finset S, ContinuousOn
+      (fun s : ℝ ↦ -cov[(g : (S → E) → ℝ), Ψ.hamiltonian Λ;
+        gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 Λ ω]) (Set.Ioo (-t₀) t₀) :=
+    fun Λ ↦ (continuous_covariance_hamiltonian_gibbsSpecification ν hg Λ ω).neg.continuousOn
+  have hc := (huc.continuousOn ((Eventually.of_forall hcont).frequently)).neg
+  exact hc.congr fun s _ ↦ by simp
+
+omit [DecidableEq S] in
+/-- **Georgii, Corollary (8.37)**, the clause his statement opens with: `μ_Φ(g)` is
+*continuously* differentiable in the potential. Along the segment `s ↦ Φ + sΨ`, at the
+hypotheses of `hasDerivAt_integral_gibbsMeasure_add_smul`, the map `s ↦ μ_{Φ+sΨ}(g)` is of class
+`C¹` on `|s| < t₀`.
+
+Georgii's own argument gives exactly this: the derivative
+`−∑_k ⟨f_Ψ ∘ θ_{−k}, g⟩_{μ_s}` is the uniform limit on `|s| < t₀` of the finite-volume
+covariances `−⟨H^Ψ_Λ, g⟩^s_Λ`, which are continuous in `s`, so it is continuous
+(`continuousOn_tsum_covariance_siteEnergy`).
+
+What is *not* proved here — and what Georgii's proof does not establish either — is the Fréchet
+form of his assertion, that `Φ ↦ μ_Φ(g)` is continuously differentiable as a map on the Banach
+space `ℬ̃_Θ` of (8.36). That needs the derivative `Ψ ↦ ∂_Ψ μ_Φ(g)` to depend on `Φ` continuously
+in the *operator* norm, i.e. a modulus of continuity for `Φ ↦ μ_Φ` uniform over the unit ball of
+`ℬ̃_Θ`, and Georgii's `T₃` estimate is not uniform in that sense: see the module docstring.
+Corollary (16.17), the only consumer of (8.37) in the book, uses the directional formula
+alone. -/
+theorem contDiffOn_one_integral_gibbsMeasure_add_smul [IsPotential Φ] [IsAbsolutelySummable Φ]
+    (ν : Measure E) [IsProbabilityMeasure ν] {a : ℝ≥0∞} {t₀ : ℝ} (ht₀ : 0 < t₀)
+    (hΦ : ∀ i, cardNormAt Φ i ≤ a) (hΨ : ∀ i, cardNormAt Ψ i ≤ b)
+    (hab : a + ENNReal.ofReal t₀ * b < 1)
+    (hg : g ∈ quasilocalFunctions S E) (hgsum : ∑' i, oscAt (⇑g) i ≠ ⊤)
+    {μ : ℝ → Measure (S → E)} (hprob : ∀ s, IsProbabilityMeasure (μ s))
+    (hμ : ∀ s, |s| ≤ t₀ → ∀ i : S,
+      (μ s).bind (gibbsSpecificationOfAbsolutelySummable (Φ := Φ + s • Ψ) ν 1 {i}) = μ s) :
+    ContDiffOn ℝ 1 (fun s : ℝ ↦ ∫ σ, (g : (S → E) → ℝ) σ ∂(μ s)) (Set.Ioo (-t₀) t₀) := by
+  have hderiv : ∀ t ∈ Set.Ioo (-t₀) t₀,
+      HasDerivAt (fun s : ℝ ↦ ∫ σ, (g : (S → E) → ℝ) σ ∂(μ s))
+        (-∑' k : S, cov[(g : (S → E) → ℝ), Ψ.siteEnergy k; μ t]) t := fun t ht ↦
+    hasDerivAt_integral_gibbsMeasure_add_smul ν ht₀ hΦ hΨ hab hg hgsum hprob hμ
+      (abs_lt.2 ⟨ht.1, ht.2⟩)
+  rw [contDiffOn_one_iff_derivWithin isOpen_Ioo.uniqueDiffOn]
+  refine ⟨fun t ht ↦ (hderiv t ht).differentiableAt.differentiableWithinAt, ?_⟩
+  refine ContinuousOn.congr
+    ((continuousOn_tsum_covariance_siteEnergy ν ht₀ hΦ hΨ hab hg hgsum hprob hμ).neg)
+    fun t ht ↦ ?_
+  rw [derivWithin_of_isOpen isOpen_Ioo ht, (hderiv t ht).deriv, Pi.neg_apply]
 
 end Corollary837
 end MeasureTheory.GibbsMeasure.Dobrushin

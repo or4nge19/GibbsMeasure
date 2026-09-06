@@ -44,8 +44,8 @@ classification:
 status:
   scope: >-
     Georgii Chapters 1-14 complete for the results listed under main_results and in the per-chapter
-    entries (the few exceptions are named there: (5.15)(ii) modulo-commutativity refinement,
-    the continuity of the second derivative asserted in (8.37), the infinitude of
+    entries (the few exceptions are named there: the Frechet form of the continuous
+    differentiability asserted in (8.37), the infinitude of
     ex G minus ex G_{I(B)} and the third extreme invariant element in (12.31)(b), (13.39)-(13.41), (13.44)-(13.45), and the
     G_Theta clause of (13.42)). Chapter 15 complete through Theorem (15.45), the upper bound (15.46) over a
     finite state space and the lower bound (15.47) over any; open: (15.46) for standard Borel E,
@@ -1076,7 +1076,9 @@ alignment:
       note: >-
         Georgii's (ii) weakens commutativity of I1 to commutativity modulo I0 at the price of
         G_{I0}(gamma) compact plus a finite-intersection argument; the abelian form is the one all
-        Examples (5.17) use. That refinement is the remaining open piece of (5.15).
+        Examples (5.17) use. That refinement is proved as
+        exists_mem_GP_and_forall_measurePreserving_of_commute_mod_of_measurePreserving; nothing of
+        (5.15) is open.
     - source: "Theorem (5.15)(i), I1 o I0 form"
       lean: "MeasureTheory.GibbsMeasure.exists_isGibbsMeasure_and_forall_map_eq_of_invariantWeight_of_map_eq"
       module: "GibbsMeasure/Specification/InvariantExistenceGroup.lean"
@@ -1375,9 +1377,17 @@ alignment:
         standard Borel assumption). The finite-volume derivative is a tilted integral
         (Mathlib/Analysis/Calculus/TiltedIntegral.lean); the T_1 + T_2 + 2 T_3 estimate uses
         (8.34) at finite volume and the tail of the interdependence series, whose ENNReal matrix
-        algebra is in Mathlib/Topology/Algebra/InfiniteSum/ENNRealMatrix.lean. Not proved:
-        Georgii's opening claim that Phi |-> mu_Phi(g) is continuously differentiable on D, which
-        his proof does not establish and (16.17) does not use.
+        algebra is in Mathlib/Topology/Algebra/InfiniteSum/ENNRealMatrix.lean. The derivative is
+        continuous in s (continuousOn_tsum_covariance_siteEnergy), so s |-> mu_s(g) is C^1 on
+        |s| < t_0 (contDiffOn_one_integral_gibbsMeasure_add_smul): Georgii's "continuously
+        differentiable" along every line of D. The uniform convergence is factored out as
+        tendstoUniformlyOn_covariance_hamiltonian, and the continuity of the finite-volume
+        derivative comes from Mathlib/Analysis/Calculus/TiltedIntegral.lean
+        (contDiff_one_integral_tilted_add_mul). Not proved: the Frechet reading of Georgii's
+        opening claim, that Phi |-> mu_Phi(g) is C^1 on the Banach space B~_Theta. His proof does
+        not give it -- the T_3 term is controlled only through sum_k delta_j(f_Psi o theta_{-k})
+        <= 2 ||Psi||_j, whose tails are not small uniformly over the unit ball -- and (16.17)
+        does not use it.
     - source: "Worked instance for Sections 15.5 and 16.2: the Ising potential"
       lean: "MeasureTheory.GibbsMeasure.hasDerivAt_rightDirDeriv_pressure_isingBTheta_field"
       module: "GibbsMeasure/Model/IsingLargeDeviations.lean"
