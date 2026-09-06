@@ -630,6 +630,20 @@ exhibits the Ising potential as a nonzero element of `ℬ_Θ` lying in the Dobru
 Georgii's norm `|h| + 4d|J|` is below one, where (16.17) reads magnetisation and susceptibility, so these
 objects are not vacuous.
 
+**§16.3** (`GibbsMeasure/Specification/OrderParameters.lean`, `Specification/BrokenShiftInvariance.lean`):
+discriminating systems (16.18)–(16.20), with Lemma (16.20) for an arbitrary specification and any
+countable transformation group moving every finite volume off itself; **Theorem (16.21)** in both
+forms for a standard Borel state space, its core stated for any closed convex cone containing the
+test potentials, which yields Comments (16.24)(1)–(2) (arbitrarily long range; the ferromagnetic
+cone) and Example (16.25)(1) for the lattice gas; the ergodic correlation limit (16.22)–(16.23) as a
+Mathlib-layer instance of the mean ergodic theorem. **Lemma (16.28)** and **Theorem (16.30)**, the
+existence of potentials with an oscillating shift-invariant Gibbs measure, hence extreme invariant
+Gibbs measures that are not extreme and extreme Gibbs measures that are not invariant, for an
+arbitrary specification; Georgii's `2ε|Λ₀|‖f‖²` in the proof of (16.30) must read `4ε|Λ₀|‖f‖²`.
+Georgii's `ℬ_Θ(f₁,…,f_N)` is taken in his closed-span description; the equivalence with his three
+conditions on the interaction terms, and hence the pair-potential identifications of (16.24)(3)–(4)
+and (16.25), is not proved. Open: (16.26)–(16.27) (Heisenberg order parameter), (16.31).
+
 **§6.3, Shlosman's random staircases** (`GibbsMeasure/Model/RandomStaircase.lean`): the discrete
 Gaussian model on `ℤ²`, its five symmetries, the staircases as ground states, and **(6.25)** — the
 contour bound `γ_Λ(|σ_a − ω^z_a| ≥ k | ω^z) ≤ 2r'(β/2)^k`, reusing the anchored-circuit count of the

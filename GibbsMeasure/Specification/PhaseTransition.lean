@@ -34,6 +34,10 @@ linear functional `j(μ) = −⟨μ, ·⟩` on `ℬ_Θ`.
 * `Potential.BTheta.dualPairing ι E`: the evaluation pairing, so that
   `WeakBilin (dualPairing ι E)` is `ℬ_Θ*` with the weak* topology, and
   `Potential.BTheta.entropyHypograph ν` is Georgii's set `C = {(L, t) : t ≤ 𝓀(L)}`.
+* `Potential.BTheta.invariantFieldsOfFiniteEntropy ι E ν`: **Georgii's `𝓟^λ_Θ(Ω, 𝓕)`**, introduced
+  at the beginning of §16.2 — the shift-invariant random fields of finite specific entropy.
+* `Potential.localPotentialₗ Λ`: Lemma (16.10) read as a *linear* map `f ↦ Φ^{(Λ,f)}` from the
+  bounded observables to the potentials.
 
 ## Main results
 
@@ -53,6 +57,12 @@ linear functional `j(μ) = −⟨μ, ·⟩` on `ℬ_Θ`.
 * `Potential.BTheta.isBoundedBy_pressure_iff`, `Potential.BTheta.fieldsOf_subsingleton`:
   **Georgii Theorem (16.13)**, `j` is a bijection from the shift-invariant random fields of finite
   specific entropy onto the `P`-bounded linear functionals on `ℬ_Θ`.
+* `Potential.BTheta.isBoundedBy_pressure_specificEnergyFunctional` and
+  `Potential.BTheta.specificEntropy_toReal_le_negFenchel`: **Theorem (16.13)** and **Corollary
+  (15.35)** in the two forms in which §16.3 uses them — `j(μ)` is `P`-bounded for `μ ∈ 𝓟^λ_Θ`, and
+  `𝓀(μ)` is a lower bound for the Fenchel transform of `P` at `j(μ)`;
+  `Potential.BTheta.mem_invariantFieldsOfFiniteEntropy_of_mem_invariantG` puts `𝒢_Θ(Φ)` inside
+  `𝓟^λ_Θ`.
 * `Potential.BTheta.specificEntropy_eq_iInf`: **Georgii (16.12)**,
   `𝓀(μ) = inf_Φ [⟨μ, Φ⟩ + P(Φ)]`, i.e. `inf_Φ 𝓀(μ|Φ) = 0` on `𝓟_Θ`.
 * `Potential.BTheta.bijOn_specificEnergyFunctional_invariantG` and
@@ -151,6 +161,41 @@ lemma localPotential_of_not_translate {A : Finset S} (h : ¬ ∃ i : S, A = tran
     localPotential Λ f A = 0 := by
   classical
   exact dite_eq_right h
+
+variable (Λ) in
+open scoped Classical in
+/-- **Georgii (16.10)**, linearity: `f ↦ Φ^{(Λ,f)}` is a linear map from the bounded observables
+to the potentials. -/
+def localPotentialₗ : lp (fun _ : S → E ↦ ℝ) ∞ →ₗ[ℝ] Potential S E where
+  toFun := localPotential Λ
+  map_add' f g := by
+    classical
+    funext A η
+    change localPotential Λ (f + g) A η = localPotential Λ f A η + localPotential Λ g A η
+    by_cases h : ∃ i : S, A = translate Λ i
+    · have e : ∀ u : lp (fun _ : S → E ↦ ℝ) ∞,
+          localPotential Λ u A = ⇑u ∘ (shift E (-h.choose)).toFun := fun u ↦ by
+        rw [localPotential, dite_eq_left h]
+      rw [e, e, e]
+      rfl
+    · rw [localPotential_of_not_translate h, localPotential_of_not_translate h,
+        localPotential_of_not_translate h]
+      simp
+  map_smul' c f := by
+    classical
+    funext A η
+    change localPotential Λ (c • f) A η = c * localPotential Λ f A η
+    by_cases h : ∃ i : S, A = translate Λ i
+    · have e : ∀ u : lp (fun _ : S → E ↦ ℝ) ∞,
+          localPotential Λ u A = ⇑u ∘ (shift E (-h.choose)).toFun := fun u ↦ by
+        rw [localPotential, dite_eq_left h]
+      rw [e, e]
+      rfl
+    · rw [localPotential_of_not_translate h, localPotential_of_not_translate h]
+      simp
+
+variable (Λ f) in
+@[simp] lemma localPotentialₗ_apply : localPotentialₗ Λ f = localPotential Λ f := rfl
 
 /-- The interaction term of `Φ^{(Λ,f)}` on the translate `Λ + i` is `f ∘ θ_i`. -/
 lemma localPotential_translate {ι : Type*} {Λ : Finset (ι → ℤ)} (hΛ : Λ.Nonempty)
@@ -888,6 +933,67 @@ theorem specificEntropy_eq_iInf [StandardBorelSpace E] {μ : Measure ((ι → �
   refine iInf_congr fun Φ ↦ ?_
   rw [specificEnergyFunctional_apply]
   ring_nf
+
+/-! ### Georgii's set `𝓟^λ_Θ(Ω, 𝓕)` (beginning of §16.2) -/
+
+variable (ι E) in
+/-- **Georgii, beginning of §16.2:** `𝓟^λ_Θ(Ω, 𝓕) = {μ ∈ 𝓟_Θ(Ω, 𝓕) : 𝓀(μ) > −∞}`, the
+shift-invariant random fields of finite specific entropy relative to the a priori measure `λ`.
+For a finite state space and counting measure this is all of `𝓟_Θ(Ω, 𝓕)`. -/
+def invariantFieldsOfFiniteEntropy : Set (Measure ((ι → ℤ) → E)) :=
+  {μ | μ ∈ invariantFields (shiftGroup (ι → ℤ) E) ∧ specificEntropy ν μ ≠ ⊥}
+
+omit [IsProbabilityMeasure ν] in
+lemma mem_invariantFieldsOfFiniteEntropy {μ : Measure ((ι → ℤ) → E)} :
+    μ ∈ invariantFieldsOfFiniteEntropy ι E ν ↔
+      μ ∈ invariantFields (shiftGroup (ι → ℤ) E) ∧ specificEntropy ν μ ≠ ⊥ := Iff.rfl
+
+omit [IsProbabilityMeasure ν] in
+lemma invariantFieldsOfFiniteEntropy_subset :
+    invariantFieldsOfFiniteEntropy ι E ν ⊆ invariantFields (shiftGroup (ι → ℤ) E) :=
+  fun _ h ↦ h.1
+
+/-- Georgii's `𝓀(μ)` is a real number for `μ ∈ 𝓟^λ_Θ`: it is `≤ 0` and `> −∞`. -/
+lemma specificEntropy_eq_coe_toReal {μ : Measure ((ι → ℤ) → E)}
+    (hμ : μ ∈ invariantFieldsOfFiniteEntropy ι E ν) :
+    specificEntropy ν μ = ((specificEntropy ν μ).toReal : EReal) :=
+  (EReal.coe_toReal (specificEntropy_ne_top ν) hμ.2).symm
+
+/-- **Georgii Theorem (16.13)**, the direction used in §16.3: the functional `j(μ) = −⟨μ, ·⟩` of a
+shift-invariant random field of finite specific entropy is `P`-bounded. -/
+theorem isBoundedBy_pressure_specificEnergyFunctional [StandardBorelSpace E]
+    {μ : Measure ((ι → ℤ) → E)} [IsProbabilityMeasure μ]
+    (hμ : μ ∈ invariantFieldsOfFiniteEntropy ι E ν) :
+    IsBoundedBy (pressure ν) (specificEnergyFunctional μ) := by
+  exact (isBoundedBy_pressure_iff ν _).2
+    ⟨μ, mem_fieldsOf_specificEnergyFunctional hμ.1, hμ.2⟩
+
+/-- **Georgii Corollary (15.35)**, read on `ℬ_Θ*`: the specific entropy of `μ ∈ 𝓟^λ_Θ` is a lower
+bound for the Fenchel transform of the pressure at `j(μ)`. This is the inequality behind
+`‖Φ − Φ⁰‖₀ ≤ ε⁻¹ 𝓀(μ|Φ⁰)` in the proof of Theorem (16.21). -/
+theorem specificEntropy_toReal_le_negFenchel {μ : Measure ((ι → ℤ) → E)}
+    [IsProbabilityMeasure μ] (hμ : μ ∈ invariantFieldsOfFiniteEntropy ι E ν) :
+    (specificEntropy ν μ).toReal ≤ negFenchel (pressure ν) (specificEnergyFunctional μ) := by
+  refine le_csInf ⟨pressure ν 0 - specificEnergyFunctional μ 0, ⟨0, rfl⟩⟩ ?_
+  rintro _ ⟨Ψ, rfl⟩
+  have h := specificEntropy_le_specificEnergy_add_pressure (Φ := (Ψ : Potential (ι → ℤ) E)) ν
+    (isShiftInvariant Ψ) hμ.1
+  rw [specificEntropy_eq_coe_toReal ν hμ, EReal.coe_le_coe_iff] at h
+  show (specificEntropy ν μ).toReal ≤ pressure ν Ψ - specificEnergyFunctional μ Ψ
+  rw [specificEnergyFunctional_apply, pressure_apply]
+  linarith
+
+/-- Every shift-invariant Gibbs measure of a potential in `ℬ_Θ` has finite specific entropy: by
+Corollary (15.35), `𝓀(μ) = −⟨μ, Φ⟩ − P(Φ)` is real. -/
+theorem mem_invariantFieldsOfFiniteEntropy_of_mem_invariantG {Φ : BTheta (ι → ℤ) E}
+    {μ : Measure ((ι → ℤ) → E)}
+    (hμ : μ ∈ invariantG (gibbsSpecificationOfAbsolutelySummable
+      (Φ := (Φ : Potential (ι → ℤ) E)) ν 1) (shiftGroup (ι → ℤ) E)) :
+    μ ∈ invariantFieldsOfFiniteEntropy ι E ν := by
+  have : IsProbabilityMeasure μ := hμ.1.1
+  refine ⟨hμ.2, ?_⟩
+  rw [specificEntropy_eq_specificEnergy_add_pressure ν (isShiftInvariant Φ) hμ.2 hμ.1.2]
+  exact EReal.coe_ne_bot _
 
 /-! ### Georgii Theorem (16.14), unconditionally -/
 

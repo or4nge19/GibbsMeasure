@@ -1,0 +1,79 @@
+\section{Phase transitions with prescribed order parameters}
+
+\begin{definition}[Discriminating systems, Georgii (16.18)--(16.20)]
+    \label{def:op-16-18}
+    \uses{def:erg-invariant, thm:erg-145}
+    \lean{MeasureTheory.GibbsMeasure.withOne, MeasureTheory.GibbsMeasure.observableVector, MeasureTheory.GibbsMeasure.observableMatrix, MeasureTheory.GibbsMeasure.IsDiscriminating, MeasureTheory.GibbsMeasure.isDiscriminating_iff_span_eq_top, MeasureTheory.GibbsMeasure.isDiscriminating_extremePoints_invariantG, MeasureTheory.GibbsMeasure.le_encard_extremePoints_invariantG_of_isDiscriminating, MeasureTheory.GibbsMeasure.combo, MeasureTheory.GibbsMeasure.HasNondegenerateInvariantMeans, MeasureTheory.GibbsMeasure.invariantVariance, MeasureTheory.GibbsMeasure.sq_integral_lt_integral_sq_condExp_iff, MeasureTheory.GibbsMeasure.cond_mem_invariantG, MeasureTheory.GibbsMeasure.hasNondegenerateInvariantMeans_of_det_ne_zero, MeasureTheory.GibbsMeasure.integral_eq_of_condExp_invariantEvents_ae_eq_const, MeasureTheory.GibbsMeasure.isDiscriminating_invariantG_iff, MeasureTheory.GibbsMeasure.sum_smul_mem_invariantG, MeasureTheory.GibbsMeasure.sum_smul_mem_invariantFields, exists_linearIndependent_comp_of_span_eq_top, Matrix.det_ne_zero_iff_span_range_row_eq_top}
+    \leanok
+
+    With $f_0 = 1$, $\{f_1,\dots,f_N\} \subset \mathcal L$ is a discriminating system for a family
+    $P$ of random fields if some $\mu_0,\dots,\mu_N \in P$ give a matrix $(\mu_m(f_n))$ of full rank,
+    equivalently the vectors $(\mu(f_0),\dots,\mu(f_N))$, $\mu \in P$, span $\mathbb R^{N+1}$;
+    $\Phi \ll \{f_1,\dots,f_N\}$ means $P = \mathcal G_\Theta(\Phi)$. (16.19): a discriminating
+    system for $\mathcal G_\Theta(\Phi)$ discriminates $\operatorname{ex}\mathcal G_\Theta(\Phi)$
+    (ergodic decomposition), so $|\operatorname{ex}\mathcal G_\Theta(\Phi)| \geq N+1$. Lemma
+    (16.20): $\Phi \ll \{f_1,\dots,f_N\}$ iff some $\mu \in \mathcal G_\Theta(\Phi)$ satisfies
+    $\mu(f_a)^2 < \mu(\mu(f_a\mid\mathcal I)^2)$ for all $a \neq 0$ (the positivity of a variance);
+    proved for an arbitrary specification and any countable transformation group moving every
+    finite volume off itself, (ii) $\Rightarrow$ (i) through the conditional measures
+    $\mu(\cdot\mid A)$, $A \in \mathcal I$, rather than Georgii's finite subalgebras.
+\end{definition}
+
+\begin{theorem}[Georgii (16.21)--(16.25)]
+    \label{thm:op-16-21}
+    \uses{def:op-16-18, thm:gv-16-14, cor:gv-16-12, thm:tf-16-7, def:gv-16-10}
+    \lean{MeasureTheory.GibbsMeasure.localPotentialB, MeasureTheory.GibbsMeasure.pairVolume, MeasureTheory.GibbsMeasure.pairObservable, MeasureTheory.GibbsMeasure.orderGenerators, MeasureTheory.GibbsMeasure.BThetaOrder, MeasureTheory.GibbsMeasure.isClosed_BThetaOrder, MeasureTheory.GibbsMeasure.correlation, MeasureTheory.GibbsMeasure.correlation_sub_sq_le, MeasureTheory.GibbsMeasure.tendsto_inv_card_sum_correlation, MeasureTheory.GibbsMeasure.hasNondegenerateInvariantMeans_of_specificEnergy_le, MeasureTheory.GibbsMeasure.exists_pos_lt_one_forall_lt_invariantVariance, MeasureTheory.GibbsMeasure.invariantVariance_eq_sum, MeasureTheory.GibbsMeasure.exists_mem_invariantG_specificEnergy_le, MeasureTheory.GibbsMeasure.specificEntropy_finsetSum_smul_ne_bot, MeasureTheory.GibbsMeasure.exists_pos_forall_exists_isDiscriminating, MeasureTheory.GibbsMeasure.exists_pos_forall_exists_isDiscriminating_BThetaOrder, MeasureTheory.GibbsMeasure.exists_isDiscriminating_of_isDiscriminating_invariantFieldsOfFiniteEntropy, MeasureTheory.GibbsMeasure.exists_isDiscriminating_and_le_encard_extremePoints, MeasureTheory.GibbsMeasure.exists_pos_forall_exists_isDiscriminating_norm_sub_lt, MeasureTheory.GibbsMeasure.exists_isDiscriminating_of_finite_excluded, MeasureTheory.GibbsMeasure.BThetaOrderNeg, MeasureTheory.GibbsMeasure.exists_pos_forall_exists_isDiscriminating_neg, MeasureTheory.GibbsMeasure.gasObservable, MeasureTheory.GibbsMeasure.isDiscriminating_gasObservable, MeasureTheory.GibbsMeasure.exists_isDiscriminating_gasObservable, Potential.BTheta.invariantFieldsOfFiniteEntropy, Potential.BTheta.isBoundedBy_pressure_specificEnergyFunctional, Potential.BTheta.specificEntropy_toReal_le_negFenchel, Potential.BTheta.mem_invariantFieldsOfFiniteEntropy_of_mem_invariantG, Potential.localPotentialₗ, MeasureTheory.tendsto_inv_card_sum_integral_mul_vadd, lp.precomp, Filter.le_of_tendsto_inv_card_sum_of_forall_notMem}
+    \leanok
+
+    $\mathcal B_\Theta(f_1,\dots,f_N)$ is the closed linear span of $\Phi^{(\Lambda_0,f_n)}$ and
+    $\Phi^{(\Lambda_i, f_m\,(f_n\circ\theta_i))}$, $\Lambda_i = \Lambda_0 \cup (\Lambda_0 - i)$,
+    $i \in I$ (Georgii's own ``more precise'' description of his three conditions; the equivalence of
+    the two descriptions is not proved). (16.22)--(16.23): the nondegeneracy of the invariant means
+    passes from $\mu$ to any $\nu$ with $\langle\nu,\Psi\rangle \leq \langle\mu,\Psi\rangle +
+    \varepsilon\|\Psi\|_0$ on $\mathcal B_\Theta(f)$ when $4\varepsilon|\Lambda_0|\|f_a\|^2$ stays
+    below the variance of $\mu(f_a\mid\mathcal I)$, the mean ergodic correlation limit (14.A3)
+    supplying $\lim |\Lambda|^{-1}\sum_i \mu(f_a\, f_a\circ\theta_i)$, and $\varepsilon$ is
+    uniform in $a$ because the variance is a quadratic form. Theorem (16.21): for standard Borel
+    $E$, $f_n \in \mathcal L_{\Lambda_0}$ and $\mu_0,\dots,\mu_N \in \mathcal P^\lambda_\Theta$
+    of full rank, every $\Phi^0$ has a $\Phi \in \Phi^0 + \mathcal B_\Theta(f_1,\dots,f_N)$ with
+    $\Phi \ll \{f_1,\dots,f_N\}$, hence $|\operatorname{ex}\mathcal G_\Theta(\Phi)| \geq N+1$
+    (a); with $\|\Phi - \Phi^0\| < \delta$ once the $\mu_m$ are Gibbs for $\Phi^0$ (b). The core
+    is stated for any closed convex cone containing the test potentials, which gives Comment
+    (16.24)(1) (interaction terms on any finite family of volumes vanish, so the range is
+    arbitrarily long) and (16.24)(2) (the ferromagnetic cone $\mathcal B^-_\Theta(f)$, $N = 1$).
+    Example (16.25)(1): the lattice gas on $\{0,\dots,N\}$ with $f_n = 1_{\{\sigma_0 = n\}}$, the
+    Dirac measures at the constant configurations giving full rank; Georgii's identification of
+    $\mathcal B_\Theta(f_1,\dots,f_N)$ with the gas pair potentials is not proved. Not formalised:
+    (16.24)(3)--(4), (16.25)(2), (16.26)--(16.27).
+\end{theorem}
+\begin{proof}
+    \leanok
+\end{proof}
+
+\begin{theorem}[Georgii (16.28)--(16.30), broken shift invariance]
+    \label{thm:op-16-30}
+    \uses{thm:op-16-21, thm:erg-14A3, thm:ext-77-concrete}
+    \lean{MeasureTheory.GibbsMeasure.atInfinityWithin, MeasureTheory.GibbsMeasure.IsOscillating, MeasureTheory.GibbsMeasure.hasCountableBasis_atInfinityWithin, MeasureTheory.GibbsMeasure.isCountablyGenerated_atInfinityWithin, MeasureTheory.GibbsMeasure.exists_mem_extremePoints_invariantG_isOscillating, MeasureTheory.GibbsMeasure.correlation_sub_integral_sq_eq, MeasureTheory.GibbsMeasure.abs_correlation_sub_integral_sq_le, MeasureTheory.GibbsMeasure.integral_abs_condExp_tail_sub_integral_pos_of_isOscillating, MeasureTheory.GibbsMeasure.measure_condExp_tail_ne_integral_pos_of_isOscillating, MeasureTheory.GibbsMeasure.notMem_extremePoints_G_of_measure_condExp_tail_ne_integral_pos, MeasureTheory.GibbsMeasure.exists_mem_extremePoints_invariantG_notMem_extremePoints_G, MeasureTheory.GibbsMeasure.condExp_tail_ae_eq_integral_of_forall_condExp_comp_shift, MeasureTheory.GibbsMeasure.exists_mem_extremePoints_G_integral_comp_shift_ne, MeasureTheory.GibbsMeasure.exists_mem_extremePoints_G_notMem_invariantG_of_isOscillating, MeasureTheory.GibbsMeasure.nonempty_extremePoints_invariantG_diff_extremePoints_G, MeasureTheory.GibbsMeasure.nonempty_extremePoints_G_diff_invariantG, MeasureTheory.GibbsMeasure.exists_mem_invariantG_isOscillating, Filter.limsup_sub_liminf_le_of_eventually_abs_sub_le, Filter.liminf_lt_limsup_of_eventually_abs_sub_le}
+    \leanok
+
+    $\mu$ is $f$-$I$-oscillating if $\limsup_{|i|\to\infty, i\in I}\mu(f\,f\circ\theta_i) >
+    \liminf$ (16.29), along the filter cofinite $\sqcap I$, which is countably generated. Lemma
+    (16.28), for an arbitrary specification: (i) an $f$-$I$-oscillating
+    $\mu \in \mathcal G_\Theta$ yields (ii) a $\nu \in \operatorname{ex}\mathcal G_\Theta$ with
+    $\nu(\nu(f\mid\mathcal T) \neq \nu(f)) > 0$, hence $\nu \notin \operatorname{ex}\mathcal G$
+    (a conclusion, not a hypothesis), by (14.17), (7.7) and L\'evy's downward theorem; (ii) yields
+    (iii) a $\nu' \in \operatorname{ex}\mathcal G \setminus \mathcal G_\Theta$ with
+    $\nu'(f\circ\theta_j) \neq \nu'(f)$, for bounded measurable $f$, by the mean ergodic theorem
+    and the $(\mathcal G,\mathcal T)$-kernel (7.25). Theorem (16.30): for standard Borel $E$,
+    $f \in \mathcal L_{\Lambda_0}$, $I$ infinite (symmetry unused) and an $f$-$I$-oscillating
+    $\mu \in \mathcal P^\lambda_\Theta$, every $\Phi^0$ has a $\Phi \in \Phi^0 +
+    \mathcal B^I_\Theta(f)$ with an $f$-$I$-oscillating shift-invariant Gibbs measure, so
+    $\operatorname{ex}\mathcal G_\Theta(\Phi) \setminus \operatorname{ex}\mathcal G(\Phi)$ and
+    $\operatorname{ex}\mathcal G(\Phi) \setminus \mathcal G_\Theta(\Phi)$ are nonempty. Erratum:
+    the gap in (16.29) must exceed $4\varepsilon|\Lambda_0|\|f\|^2$, not $2\varepsilon|\Lambda_0|\|f\|^2$,
+    since the limsup and the liminf each move by $2\varepsilon|\Lambda_0|\|f\|^2$; the statement
+    is unaffected. Example (16.31) is not formalised.
+\end{theorem}
+\begin{proof}
+    \leanok
+\end{proof}

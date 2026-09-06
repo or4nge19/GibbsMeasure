@@ -16,6 +16,8 @@ public import GibbsMeasure.Mathlib.Topology.MetricSpace.DependsOn
 public import GibbsMeasure.Mathlib.Topology.Semicontinuity.EReal
 public import GibbsMeasure.Mathlib.Data.EReal.Inv
 public import GibbsMeasure.Mathlib.Data.EReal.ShiftToENNReal
+public import GibbsMeasure.Mathlib.Topology.Algebra.Order.Oscillation
+public import GibbsMeasure.Mathlib.Order.Filter.CesaroAverage
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.ENNReal
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.Order
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.NatInt
@@ -47,6 +49,7 @@ public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Tanh.InfiniteProd
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Log.Summable
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Complex.LogBounds
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
+public import GibbsMeasure.Mathlib.Analysis.Normed.Lp.Precomp
 public import GibbsMeasure.Mathlib.Analysis.Normed.Lp.lpSpace
 public import GibbsMeasure.Mathlib.Analysis.Normed.Lp.LpEquiv
 public import GibbsMeasure.Mathlib.Analysis.Normed.Group.Tannery
@@ -55,6 +58,7 @@ public import GibbsMeasure.Mathlib.Data.ENNReal.Basic
 public import GibbsMeasure.Mathlib.Data.ENNReal.TsumPi
 public import GibbsMeasure.Mathlib.Data.Finset.Map
 public import GibbsMeasure.Mathlib.Data.Finset.Update
+public import GibbsMeasure.Mathlib.LinearAlgebra.SpanExtract
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PosDef
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PerronStochastic
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.SymmetricRange
@@ -136,6 +140,7 @@ public import GibbsMeasure.Mathlib.Topology.Compactness.SigmaCompact
 public import GibbsMeasure.Mathlib.Topology.Metrizable.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.ProbabilityMeasure
 public import GibbsMeasure.Mathlib.Probability.ConditionalProbability
+public import GibbsMeasure.Mathlib.Dynamics.Ergodic.Correlation
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.Pointwise
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.MeanErgodic
 public import GibbsMeasure.Mathlib.Dynamics.Ergodic.MaximalInequality
@@ -328,6 +333,8 @@ public import GibbsMeasure.Specification.Pressure
 public import GibbsMeasure.Specification.SpecificEntropy
 public import GibbsMeasure.Specification.VariationalPrinciple
 public import GibbsMeasure.Specification.TangentFunctional
+public import GibbsMeasure.Specification.OrderParameters
+public import GibbsMeasure.Specification.BrokenShiftInvariance
 public import GibbsMeasure.Specification.PhaseTransition
 public import GibbsMeasure.Specification.LargeDeviations
 public import GibbsMeasure.Specification.LargeDeviationsLower

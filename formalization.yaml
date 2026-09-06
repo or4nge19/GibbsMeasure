@@ -1508,6 +1508,36 @@ alignment:
         (Mathlib/Analysis/SpecialFunctions/ExpNegAbs.lean, ImproperIntegrals.lean,
         PSeries/Euclidean.lean). Not formalized: the Berg-Maserick converse (17.28)(1), which the
         book cites without proof.
+    - source: "Section 16.3: (16.18)-(16.25), (16.28)-(16.30)"
+      lean: "MeasureTheory.GibbsMeasure.exists_isDiscriminating_and_le_encard_extremePoints"
+      module: "GibbsMeasure/Specification/OrderParameters.lean"
+      status: "partial"
+      note: >-
+        Discriminating systems (16.18) with the spanning form of the full-rank condition; (16.19)
+        a discriminating system for G_Theta(Phi) discriminates ex G_Theta(Phi), so
+        |ex G_Theta(Phi)| >= N+1, through the ergodic decomposition (14.17); Lemma (16.20) for an
+        arbitrary specification and any countable transformation group moving every finite volume
+        off itself, (ii) => (i) via the conditional measures mu(.|A), A invariant, instead of
+        finite subalgebras, and (ii) stated for a != 0 rather than |a| = 1. B_Theta(f_1..f_N) is
+        defined as Georgii's closed linear span of Phi^{(Lambda_0,f_n)} and
+        Phi^{(Lambda_i, f_m (f_n o theta_i))}; the equivalence with his three conditions on the
+        interaction terms is not proved. (16.22)-(16.23) with the mean-ergodic correlation limit
+        (Mathlib/Dynamics/Ergodic/Correlation.lean) and a uniform epsilon from the variance being
+        a quadratic form; Theorem (16.21)(a),(b) for standard Borel E, the core stated for any
+        closed convex cone containing the test potentials, which gives Comment (16.24)(1)
+        (interaction terms on any finite family of volumes vanish, arbitrarily long range) and
+        (16.24)(2) (the ferromagnetic cone, N = 1); Example (16.25)(1) for the lattice gas on
+        {0..N} with the operative conclusion only. Lemma (16.28)
+        (Specification/BrokenShiftInvariance.lean) for an arbitrary specification: (i) => (ii)
+        with nu not in ex G(Phi) as a conclusion, (ii) => (iii) for bounded measurable f, via
+        (14.17), (7.7), Levy downward, the mean ergodic theorem and the (G,T)-kernel (7.25);
+        Theorem (16.30) with its "in particular" clauses, I infinite (symmetry unused). Erratum:
+        in the proof of (16.30) the gap in (16.29) must exceed 4 eps |Lambda_0| ||f||^2, not
+        2 eps |Lambda_0| ||f||^2; the statement is unaffected. Also Georgii's P^lambda_Theta and
+        Lemma (16.10) as a linear map (PhaseTransition.lean). Not formalized: (16.24)(3)-(4),
+        (16.25)(2), (16.26)-(16.27) (the Heisenberg order parameter needs the sphere with its
+        surface measure, ergodicity of the tilted product fields and the asymptotics of nu_h),
+        (16.31) (the alternating two-state chain and its product over Z^{d-1}).
     - source: "Section 16.2: (16.10)-(16.14)"
       lean: "Potential.BTheta.gateauxDifferentiable_pressure_iff_subsingleton"
       module: "GibbsMeasure/Specification/PhaseTransition.lean"
