@@ -86,6 +86,11 @@ linear functional `j(μ) = −⟨μ, ·⟩` on `ℬ_Θ`.
 * `Potential.BTheta.pressure_smul_add_smul_lt_of_isNormalized`: **Georgii Corollary (16.15)(b)**,
   the pressure is strictly convex on the continuous `α`-normalized potentials of `ℬ_Θ`, by (a) and
   Theorem (2.35)(a) (`Potential.eq_zero_of_isNormalized`).
+* `Potential.BTheta.eq_of_isNormalized_of_isEquivalent` and
+  `Potential.BTheta.not_isEquivalent_of_ne_of_isNormalized`: **Georgii Theorem (2.35)(a)** in the
+  form used by Comment (16.24)(4) — two `α`-normalized potentials of `ℬ_Θ` are equal as soon as
+  they are equivalent, so distinct `α`-normalized potentials never define the same specification.
+  This is the step that (16.15)(b) uses, extracted.
 * `Potential.BTheta.isEquivalent_of_specificEnergy_sub_eq`: **Georgii Corollary (16.16)**, if
   `μ ∈ 𝒢_Θ(Φ)` and `v ∈ 𝒢_Θ(Ψ)` give `Φ − Ψ` the same specific energy then `Φ ∼ Ψ`.
 * `Potential.BTheta.dobrushinRegion`,
@@ -1263,6 +1268,51 @@ lemma exists_forall_abs_coe_apply_le {S : Type*} [AddGroup S] (Φ : BTheta S E) 
   · exact ⟨0, fun η ↦ by simp [coe_apply_empty Φ]⟩
   · exact ⟨‖Φ‖, fun η ↦ abs_apply_le_norm Φ hi η⟩
 
+omit [StandardBorelSpace E] [TopologicalSpace E] [OpensMeasurableSpace E] in
+/-- **Georgii Theorem (2.35)(a), in the form used in Comment (16.24)(4):** two `α`-normalized
+potentials of `ℬ_Θ` which are equivalent are equal. Equivalently, *distinct `α`-normalized
+potentials are never equivalent* — the point of Georgii's Comment (16.24)(4), which uses it to
+produce an infinite-dimensional family of pairwise non-equivalent phase-transition potentials.
+
+The difference of the two potentials is `α`-normalized and uniformly convergent (automatic on
+`ℬ_Θ`, `Potential.isUniformlyConvergent_of_isAbsolutelySummable`), and its Hamiltonians are
+`𝓣_Λ`-measurable because the potentials are equivalent; so it vanishes on every nonempty support
+by `Potential.eq_zero_of_isNormalized`. -/
+theorem eq_of_isNormalized_of_isEquivalent (α : Measure E) [IsProbabilityMeasure α]
+    {Φ Ψ : BTheta (ι → ℤ) E}
+    (hΦn : Potential.IsNormalized α (Φ : Potential (ι → ℤ) E))
+    (hΨn : Potential.IsNormalized α (Ψ : Potential (ι → ℤ) E))
+    (hequiv : Potential.IsEquivalent (Φ : Potential (ι → ℤ) E) (Ψ : Potential (ι → ℤ) E)) :
+    Φ = Ψ := by
+  have hpot : Potential.IsPotential
+      ((Φ : Potential (ι → ℤ) E) - (Ψ : Potential (ι → ℤ) E)) := Potential.isPotential_sub
+  refine Subtype.ext (funext fun A ↦ ?_)
+  rcases A.eq_empty_or_nonempty with rfl | hA
+  · rw [coe_apply_empty Φ, coe_apply_empty Ψ]
+  refine funext fun η ↦ ?_
+  have h0 : ((Φ : Potential (ι → ℤ) E) - (Ψ : Potential (ι → ℤ) E)) A η = 0 :=
+    Potential.eq_zero_of_isNormalized α
+      (fun B ↦ by
+        obtain ⟨M₁, hM₁⟩ := exists_forall_abs_coe_apply_le Φ B
+        obtain ⟨M₂, hM₂⟩ := exists_forall_abs_coe_apply_le Ψ B
+        exact ⟨M₁ + M₂, fun ζ ↦ (abs_sub _ _).trans (add_le_add (hM₁ ζ) (hM₂ ζ))⟩)
+      (Potential.IsNormalized.sub α (exists_forall_abs_coe_apply_le Φ)
+        (exists_forall_abs_coe_apply_le Ψ) hΦn hΨn)
+      Potential.isUniformlyConvergent_of_isAbsolutelySummable
+      (fun Λ ↦ (measurable_cylinderEvents_iff_dependsOn.1 (hequiv Λ)).2) hA η
+  have h1 : (Φ : Potential (ι → ℤ) E) A η - (Ψ : Potential (ι → ℤ) E) A η = 0 := h0
+  linarith
+
+omit [StandardBorelSpace E] [TopologicalSpace E] [OpensMeasurableSpace E] in
+/-- **Georgii Comment (16.24)(4), the point:** distinct `α`-normalized potentials of `ℬ_Θ` are
+never equivalent, so they never define the same specification. -/
+theorem not_isEquivalent_of_ne_of_isNormalized (α : Measure E) [IsProbabilityMeasure α]
+    {Φ Ψ : BTheta (ι → ℤ) E}
+    (hΦn : Potential.IsNormalized α (Φ : Potential (ι → ℤ) E))
+    (hΨn : Potential.IsNormalized α (Ψ : Potential (ι → ℤ) E)) (hne : Φ ≠ Ψ) :
+    ¬ Potential.IsEquivalent (Φ : Potential (ι → ℤ) E) (Ψ : Potential (ι → ℤ) E) :=
+  fun h ↦ hne (eq_of_isNormalized_of_isEquivalent α hΦn hΨn h)
+
 /-- **Georgii Corollary (16.15)(b).** For each `α ∈ 𝓟(E, 𝓔)` the pressure is *strictly* convex on
 the continuous `α`-normalized potentials of `ℬ_Θ`: distinct such potentials cannot both be tangent
 to a common affine function.
@@ -1293,24 +1343,7 @@ theorem pressure_smul_add_smul_lt_of_isNormalized (α : Measure E) [IsProbabilit
   have hequiv : Potential.IsEquivalent (Φ : Potential (ι → ℤ) E) (Ψ : Potential (ι → ℤ) E) :=
     (isEquivalent_iff_forall_pressure_smul_add_smul_eq ν hcont).2
       ((exists_mem_subgradientAt_pressure_inter_iff ν).1 ⟨L, hLΦ, hLΨ⟩)
-  have hpot : Potential.IsPotential
-      ((Φ : Potential (ι → ℤ) E) - (Ψ : Potential (ι → ℤ) E)) := Potential.isPotential_sub
-  refine hne (Subtype.ext (funext fun A ↦ ?_))
-  rcases A.eq_empty_or_nonempty with rfl | hA
-  · rw [coe_apply_empty Φ, coe_apply_empty Ψ]
-  refine funext fun η ↦ ?_
-  have h0 : ((Φ : Potential (ι → ℤ) E) - (Ψ : Potential (ι → ℤ) E)) A η = 0 :=
-    Potential.eq_zero_of_isNormalized α
-      (fun B ↦ by
-        obtain ⟨M₁, hM₁⟩ := exists_forall_abs_coe_apply_le Φ B
-        obtain ⟨M₂, hM₂⟩ := exists_forall_abs_coe_apply_le Ψ B
-        exact ⟨M₁ + M₂, fun ζ ↦ (abs_sub _ _).trans (add_le_add (hM₁ ζ) (hM₂ ζ))⟩)
-      (Potential.IsNormalized.sub α (exists_forall_abs_coe_apply_le Φ)
-        (exists_forall_abs_coe_apply_le Ψ) hΦn hΨn)
-      Potential.isUniformlyConvergent_of_isAbsolutelySummable
-      (fun Λ ↦ (measurable_cylinderEvents_iff_dependsOn.1 (hequiv Λ)).2) hA η
-  have h1 : (Φ : Potential (ι → ℤ) E) A η - (Ψ : Potential (ι → ℤ) E) A η = 0 := h0
-  linarith
+  exact hne (eq_of_isNormalized_of_isEquivalent α hΦn hΨn hequiv)
 
 /-- **Georgii Corollary (16.16).** If `μ ∈ 𝒢_Θ(Φ)` and `v ∈ 𝒢_Θ(Ψ)` give the same specific energy
 to `Φ - Ψ`, then `Φ ∼ Ψ`.

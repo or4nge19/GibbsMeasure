@@ -52,8 +52,9 @@
     arbitrarily long) and (16.24)(2) (the ferromagnetic cone $\mathcal B^-_\Theta(f)$, $N = 1$).
     Example (16.25)(1): the lattice gas on $\{0,\dots,N\}$ with $f_n = 1_{\{\sigma_0 = n\}}$, the
     Dirac measures at the constant configurations giving full rank, and the modified potential a
-    gas pair potential with vacuum $0$ as Georgii states. Not formalised: the converse inclusion in
-    (16.25)(1), the criterion of (16.24)(3), (16.24)(4), (16.25)(2), (16.26)--(16.27).
+    gas pair potential with vacuum $0$ as Georgii states. The criterion of (16.24)(3), (16.24)(4) and (16.25)(2) are
+    Theorem \ref{thm:op-16-24}. Not formalised: the converse inclusion in (16.25)(1),
+    (16.26)--(16.27).
 \end{theorem}
 \begin{proof}
     \leanok
@@ -89,6 +90,41 @@
     $\operatorname{ex}\mathcal G \setminus \mathcal G_\Theta$ nonempty; Georgii's field is the
     product over lines of the alternating two-state chain, which agrees with this one on the axis,
     all that (16.30) uses.
+\end{theorem}
+\begin{proof}
+    \leanok
+\end{proof}
+
+\begin{theorem}[Georgii Comment (16.24)(3)--(4) and Example (16.25)(2)]
+    \label{thm:op-16-24}
+    \uses{thm:op-16-21, def:op-16-18}
+    \lean{InformationTheory.klDiv_cond_self, Submodule.span_eq_top_iff_forall_sum_mul_eq_zero, Submodule.span_ne_top_of_forall_sum_mul_eq_zero, Potential.BTheta.eq_of_isNormalized_of_isEquivalent, Potential.BTheta.not_isEquivalent_of_ne_of_isNormalized, MeasureTheory.GibbsMeasure.exists_integral_lt_integral_of_isDiscriminating, MeasureTheory.GibbsMeasure.exists_mem_invariantFieldsOfFiniteEntropy_hasNondegenerateInvariantMeans, MeasureTheory.GibbsMeasure.exists_isDiscriminating_neg_of_isDiscriminating_invariantFieldsOfFiniteEntropy, MeasureTheory.GibbsMeasure.precomp_eval_mem_localFunctionsOn, MeasureTheory.GibbsMeasure.specificEntropy_infinitePi_cond, MeasureTheory.GibbsMeasure.infinitePi_cond_mem_invariantFieldsOfFiniteEntropy, MeasureTheory.GibbsMeasure.absolutelyContinuous_map_eval_of_specificEntropy_ne_bot, MeasureTheory.GibbsMeasure.isDiscriminating_invariantFieldsOfFiniteEntropy_iff, MeasureTheory.GibbsMeasure.isDiscriminating_precomp_eval_iff, MeasureTheory.GibbsMeasure.exists_isDiscriminating_neg_integral_lt_integral, MeasureTheory.GibbsMeasure.avgOn_singleton_eq_integral_update, MeasureTheory.GibbsMeasure.isNormalized_of_mem_BThetaOrder, MeasureTheory.GibbsMeasure.coe_apply_eq_of_sub_mem_BThetaOrder, MeasureTheory.GibbsMeasure.isNormalized_of_sub_mem_BThetaOrder, MeasureTheory.GibbsMeasure.exists_isNormalized_isDiscriminating_norm_sub_lt, MeasureTheory.GibbsMeasure.not_isEquivalent_of_coe_apply_ne}
+    \leanok
+
+    Comment (16.24)(3), criterion: for single-site observables $f_n = f_n^*\circ\sigma_0$ the
+    hypothesis of (16.21)(a) --- that $f_1,\dots,f_N$ discriminate $\mathcal P^\lambda_\Theta$ ---
+    holds iff $1, f_1^*, \dots, f_N^*$ are linearly independent modulo $\lambda$-null sets, i.e.
+    $\lambda(f_a^* \neq c) > 0$ for all $a \neq 0$ and all $c$. ``If'': the conditioned Bernoulli
+    fields $\lambda(\cdot\mid A)^S$ lie in $\mathcal P^\lambda_\Theta$ with specific entropy
+    $\log\lambda(A)$ (from $\mathcal H(\lambda(\cdot\mid A)\mid\lambda) = -\log\lambda(A)$) and realise
+    the expectations $\lambda(1_A f_n^*)/\lambda(A)$, so a covector annihilating them makes
+    $b_0 + f^*_{b'}$ integrate to $0$ over every measurable set; Georgii's disjointness of the $A_m$
+    is not needed, only the rank. ``Only if'': $\mathcal k(\mu) > -\infty$ forces
+    $\mathcal H_{\{0\}}(\mu) < \infty$, hence $\sigma_0\mu \ll \lambda$, hence $\mu(f_a) = c$ for
+    every $\mu \in \mathcal P^\lambda_\Theta$, so the covector $(-c, a) \neq 0$ annihilates every
+    row. Neither $E$ standard Borel nor $\iota$ nonempty is needed. Example (16.25)(2): a bounded
+    measurable spin $s$ which is not $\lambda$-a.s. constant (Georgii's non-degenerate $\lambda$ on
+    an even bounded $E \subset \mathbb R$, $s$ the inclusion) satisfies the criterion, so every
+    $\Phi^0$ can be modified inside the ferromagnetic cone $\mathcal B^-_\Theta(\sigma_0)$, at
+    arbitrarily long range, into a potential with two shift-invariant Gibbs measures of different
+    magnetisation; the explicit description of $\mathcal B^-_\Theta(\sigma_0)$ as
+    $\Phi_{\{i,j\}} = -J(i-j)\sigma_i\sigma_j$, $\Phi_{\{i\}} = -h\sigma_i$ is not proved, only the
+    inclusion the conclusion uses. Comment (16.24)(4): if $\alpha(f_n^*) = 0$ then every potential
+    of $\mathcal B_\Theta(f_1,\dots,f_N)$ is $\alpha$-normalized, since $\alpha_{\{j\}}$ is the
+    average over the spin at $j$ and each generator carries an $\alpha$-mean-zero factor there;
+    hence the potentials (16.21)(b) produces from $\alpha$-normalized $\Phi^0$ are
+    $\alpha$-normalized, agree with $\Phi^0$ off the modified volumes, and distinct ones are
+    non-equivalent by Theorem (2.35)(a) --- Georgii's infinite-dimensional family.
 \end{theorem}
 \begin{proof}
     \leanok

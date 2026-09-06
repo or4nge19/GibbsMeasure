@@ -736,8 +736,13 @@ arbitrary specification; Georgii's `2ε|Λ₀|‖f‖²` in the proof of (16.30)
 Georgii's two descriptions of `ℬ_Θ(f₁,…,f_N)`, the closed span and his three conditions on the
 interaction terms, are proved equivalent (`Specification/OrderParameterSpace.lean`), which gives the
 pair-potential statements of (16.24)(3) and (16.25)(1); Example (16.31) is in
-`Model/AlternatingChain.lean`. Open: the criterion of (16.24)(3), (16.24)(4), (16.25)(2),
-(16.26)–(16.27) (Heisenberg order parameter).
+`Model/AlternatingChain.lean`. The **criterion of (16.24)(3)**
+(`isDiscriminating_invariantFieldsOfFiniteEntropy_iff`): single-site observables discriminate `𝓟^λ_Θ`
+iff `1, f₁*, …, f_N*` are linearly independent modulo `λ`-null sets, through the conditioned Bernoulli
+fields and `σ₀μ ≪ λ` for finite specific entropy; **(16.24)(4)**: the modified potentials are
+`α`-normalized and distinct ones non-equivalent by (2.35)(a); the **conclusion of (16.25)(2)** for any
+bounded measurable spin not `λ`-a.s. constant. Open: the explicit cone description of `ℬ⁻_Θ(σ₀)` in
+(16.25)(2), and (16.26)–(16.27) (Heisenberg order parameter).
 
 **§6.3, Shlosman's random staircases** (`GibbsMeasure/Model/RandomStaircase.lean`): the discrete
 Gaussian model on `ℤ²`, its five symmetries, the staircases as ground states, and **(6.25)** — the
@@ -961,8 +966,8 @@ along every line of `𝒟`, and the continuity of the second derivative in (16.1
 extremality of `μ_#` in `𝒢_{I(B)}` (step 5); (13.40), (13.41) for a general `J` under the logarithmic
 condition, and (13.44)–(13.45), whose infinite-range specification (13.18) is not defined in the tree; Georgii's closure bound in
 (15.46) for a non-convex `C` over an infinite state space, Cramér's formula at `Φ = 0`, and
-(15.57)–(15.58) beyond the subgradient uniqueness; the criterion of (16.24)(3), (16.24)(4), (16.25)(2),
-(16.26)–(16.27); the Berg–Maserick converse (17.28)(1), cited without proof; 18.3.4, the conclusion of 18.3.10
+(15.57)–(15.58) beyond the subgradient uniqueness; the cone description of `ℬ⁻_Θ(σ₀)` in (16.25)(2)
+and (16.26)–(16.27); the Berg–Maserick converse (17.28)(1), cited without proof; 18.3.4, the conclusion of 18.3.10
 and the count for a proper subgroup in (18.25); (19.9)–(19.10), Examples (19.19)–(19.20) and §19.3.2; (20.13) for a general a priori measure and Theorem (20.15).
 
 ### Code organisation

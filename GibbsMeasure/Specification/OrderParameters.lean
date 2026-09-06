@@ -77,6 +77,16 @@ an a priori probability measure `ν` on `E`, `𝓘 = invariantEvents Θ` is the 
   terms attached to any prescribed finite set of volumes `Λ_i` may be required to vanish, so the
   phase-transition potential can be forced to have arbitrarily long range
   (`exists_isDiscriminating_of_finite_excluded`).
+* `MeasureTheory.GibbsMeasure.exists_integral_lt_integral_of_isDiscriminating`: for a single
+  observable a discriminating system is exactly a pair of measures of the family with different
+  expectations — Georgii's `μ₋(σ₀) < μ₊(σ₀)` of Example (16.25)(2).
+* `MeasureTheory.GibbsMeasure.exists_mem_invariantFieldsOfFiniteEntropy_hasNondegenerateInvariantMeans`:
+  Georgii's mixture step in the proof of (16.21)(a) — a discriminating system for `𝓟^λ_Θ` produces
+  a single `μ ∈ 𝓟^λ_Θ` with nondegenerate invariant means.
+* `MeasureTheory.GibbsMeasure.exists_isDiscriminating_neg_of_isDiscriminating_invariantFieldsOfFiniteEntropy`:
+  **Comment (16.24)(2)** in the shape of (16.21)(a): under the hypothesis of (16.21)(a) for a
+  single observable, the phase-transition potential can be taken in the ferromagnetic cone
+  `ℬ⁻_Θ(f)`.
 * `MeasureTheory.GibbsMeasure.exists_pos_forall_exists_isDiscriminating_neg`: **Comment
   (16.24)(2)**, Theorem (16.21) for a single observable with `ℬ_Θ(f)` replaced by the
   ferromagnetic cone `ℬ⁻_Θ(f)`. The core theorem
@@ -122,23 +132,19 @@ an a priori probability measure `ν` on `E`, `𝓘 = invariantEvents Θ` is the 
   `liminf` can move by `2ε|Λ₀| ‖f‖²`. The statement of (16.30) is unaffected: `ε` is chosen after
   the gap.
 
+## Elsewhere in the tree
+
+Lemma **(16.28)** is in `GibbsMeasure/Specification/BrokenShiftInvariance.lean`; the
+identification of the two descriptions of `ℬ_Θ(f₁, …, f_N)` is in
+`GibbsMeasure/Specification/OrderParameterSpace.lean`; the pair-potential half of Comment
+**(16.24)(3)**, its criterion, Comment **(16.24)(4)**, Example **(16.25)(1)** and Example
+**(16.25)(2)** are in `GibbsMeasure/Specification/OrderParametersExamples.lean`; Example
+**(16.31)** is in `GibbsMeasure/Model/AlternatingChain.lean`.
+
 ## Not formalised here
 
-Comment **(16.24)(4)**, Example **(16.25)(2)** and the Heisenberg Theorem **(16.27)** with its
-setting **(16.26)** are not in this file, nor anywhere else in the tree. Lemma **(16.28)** is in
-`GibbsMeasure/Specification/BrokenShiftInvariance.lean`; the identification of the two
-descriptions of `ℬ_Θ(f₁, …, f_N)` is in
-`GibbsMeasure/Specification/OrderParameterSpace.lean`; the pair-potential half of Comment
-**(16.24)(3)** and the gas-potential identification of Example **(16.25)(1)** are in
-`GibbsMeasure/Specification/OrderParametersExamples.lean`; Example **(16.31)** is in
-`GibbsMeasure/Model/AlternatingChain.lean`.
-
-The criterion of Comment **(16.24)(3)** — that the hypothesis of Theorem (16.21)(a) holds exactly
-when `1, f₁^*, …, f_N^*` are linearly independent modulo `λ`-null sets — is not proved. Its first
-ingredient, the specific entropy `𝓀(α^S) = −𝓗(α | λ)` of a Bernoulli field, is
-`MeasureTheory.GibbsMeasure.specificEntropy_infinitePi` in
-`GibbsMeasure/Specification/OrderParametersExamples.lean`; what is missing is
-`𝓗(λ(· | A) | λ) = −log λ(A)` and the linear-algebra step producing the sets `A_0, …, A_N`.
+The Heisenberg Theorem **(16.27)** with its setting **(16.26)** is not in this file, nor anywhere
+else in the tree.
 -/
 
 @[expose] public section
@@ -238,6 +244,31 @@ theorem isDiscriminating_iff_span_eq_top (P : Set (Measure (S → E)))
     refine ⟨fun m ↦ ((w m : P) : Measure (S → E)), fun m ↦ (w m).2, ?_⟩
     refine Matrix.det_ne_zero_iff_span_range_row_eq_top.2 ?_
     exact span_range_eq_top_of_linearIndependent_of_finrank_eq hrank hw
+
+/-- **For a single observable** (`N = 1`) a discriminating system is exactly a pair of members of
+`P` with different expectations. This is how Georgii reads the conclusion of Theorem (16.21) in
+Example (16.25)(2): two shift-invariant Gibbs measures `μ₁`, `μ₂` of different magnetisation. -/
+theorem exists_integral_lt_integral_of_isDiscriminating {P : Set (Measure (S → E))}
+    (hP : ∀ μ ∈ P, IsProbabilityMeasure μ) {g : lp (fun _ : S → E ↦ ℝ) ∞}
+    (h : IsDiscriminating P fun _ : Fin 1 ↦ g) :
+    ∃ μ₁ ∈ P, ∃ μ₂ ∈ P, ∫ ω, ⇑g ω ∂μ₁ < ∫ ω, ⇑g ω ∂μ₂ := by
+  by_contra hcon
+  push_neg at hcon
+  obtain ⟨ρ, hρ, -⟩ := id h
+  set c : ℝ := ∫ ω, ⇑g ω ∂(ρ 0) with hc
+  have hconst : ∀ σ ∈ P, ∫ ω, ⇑g ω ∂σ = c :=
+    fun σ hσ ↦ le_antisymm (hcon (ρ 0) (hρ 0) σ hσ) (hcon σ hσ (ρ 0) (hρ 0))
+  refine Submodule.span_ne_top_of_forall_sum_mul_eq_zero (b := Fin.cases (-c) fun _ ↦ (1 : ℝ))
+    (Function.ne_iff.2 ⟨Fin.succ 0, by
+      simp only [Fin.cases_succ, Pi.zero_apply]; exact one_ne_zero⟩) ?_
+    ((isDiscriminating_iff_span_eq_top P _).1 h)
+  rintro _ ⟨σ, hσ, rfl⟩
+  have : IsProbabilityMeasure σ := hP σ hσ
+  rw [Fin.sum_univ_succ]
+  simp only [Fin.cases_zero, Fin.cases_succ, observableVector_zero, observableVector_succ,
+    mul_one, one_mul]
+  rw [hconst σ hσ]
+  simp
 
 end Discriminating
 
@@ -1723,6 +1754,48 @@ theorem exists_pos_forall_exists_isDiscriminating_BThetaOrder {I : Set (ι → �
     (fun a _i hi ↦ localPotentialB_pairVolume_smul_mem hΛ₀ hf hi (-1) a)
     hΛ₀ hf hfm hμ hnd hε₀
 
+/-- **Georgii's mixture step in the proof of Theorem (16.21)(a).** If `{f₁, …, f_N}` is a
+discriminating system for `𝓟^λ_Θ(Ω, 𝓕)`, then the uniform mixture `μ = (N+1)⁻¹ ∑_m μ_m` of `N + 1`
+measures realising the full rank is again shift invariant of finite specific entropy
+(`MeasureTheory.GibbsMeasure.specificEntropy_finsetSum_smul_ne_bot`), and it has nondegenerate
+invariant means by the proof of Lemma (16.20)(i) ⇒ (ii)
+(`MeasureTheory.GibbsMeasure.hasNondegenerateInvariantMeans_of_det_ne_zero`). -/
+theorem exists_mem_invariantFieldsOfFiniteEntropy_hasNondegenerateInvariantMeans
+    (hfm : ∀ n, Measurable ⇑(f n))
+    (hdisc : IsDiscriminating (invariantFieldsOfFiniteEntropy ι E ν) f) :
+    ∃ μ : Measure ((ι → ℤ) → E), IsProbabilityMeasure μ ∧
+      μ ∈ invariantFieldsOfFiniteEntropy ι E ν ∧
+      HasNondegenerateInvariantMeans (shiftGroup (ι → ℤ) E) μ f := by
+  obtain ⟨ρ, hρ, hdet⟩ := hdisc
+  have hprob : ∀ m, IsProbabilityMeasure (ρ m) := fun m ↦ (hρ m).1.1
+  have hne : ((N : ℝ≥0∞) + 1) ≠ 0 := by positivity
+  have hnt : ((N : ℝ≥0∞) + 1) ≠ ⊤ := by finiteness
+  have hcast : ((((N : ℝ≥0) + 1)⁻¹ : ℝ≥0) : ℝ≥0∞) = ((N : ℝ≥0∞) + 1)⁻¹ := by
+    rw [ENNReal.coe_inv (by positivity)]
+    congr 1
+  set μ : Measure ((ι → ℤ) → E) := ∑ m : Fin (N + 1), ((N : ℝ≥0∞) + 1)⁻¹ • ρ m with hμdef
+  have hsum : ∑ _m : Fin (N + 1), ((N : ℝ≥0∞) + 1)⁻¹ = 1 := by
+    rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
+    push_cast
+    exact ENNReal.mul_inv_cancel hne hnt
+  have hμinv : μ ∈ invariantFields (shiftGroup (ι → ℤ) E) :=
+    sum_smul_mem_invariantFields (fun m ↦ (hρ m).1) hsum
+  have hμprob : IsProbabilityMeasure μ := hμinv.1
+  have hcsum : ∑ _m : Fin (N + 1), (((N : ℝ≥0) + 1)⁻¹ : ℝ≥0) = 1 := by
+    rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
+    push_cast
+    field_simp
+  have hmixeq : ∑ m : Fin (N + 1), (((N : ℝ≥0) + 1)⁻¹ : ℝ≥0) • ρ m = μ := by
+    rw [hμdef]
+    refine Finset.sum_congr rfl fun m _ ↦ ?_
+    rw [ENNReal.smul_def, hcast]
+  have hμent : specificEntropy ν μ ≠ ⊥ := by
+    rw [← hmixeq]
+    exact specificEntropy_finsetSum_smul_ne_bot ν hcsum fun m ↦ (hρ m).2
+  exact ⟨μ, hμprob, ⟨hμinv, hμent⟩,
+    hasNondegenerateInvariantMeans_of_det_ne_zero hμinv hfm (fun m ↦ (hρ m).1)
+      (absolutelyContinuous_uniform_mixture ρ) hdet⟩
+
 /-- **Georgii Theorem (16.21)(a).** If there are `N + 1` shift-invariant random fields of finite
 specific entropy whose matrix of expectations `(μ_m(f_n))_{0 ≤ m,n ≤ N}` has full rank, then every
 affine space `Φ⁰ + ℬ_Θ(f₁, …, f_N)` contains a potential which exhibits a phase transition with
@@ -1741,36 +1814,8 @@ theorem exists_isDiscriminating_of_isDiscriminating_invariantFieldsOfFiniteEntro
     ∃ Φ : BTheta (ι → ℤ) E, Φ - Φ₀ ∈ BThetaOrder Λ₀ f I ∧
       IsDiscriminating (invariantG (gibbsSpecificationOfAbsolutelySummable
         (Φ := (Φ : Potential (ι → ℤ) E)) ν 1) (shiftGroup (ι → ℤ) E)) f := by
-  obtain ⟨ρ, hρ, hdet⟩ := hdisc
-  have hprob : ∀ m, IsProbabilityMeasure (ρ m) := fun m ↦ (hρ m).1.1
-  have hne : ((N : ℝ≥0∞) + 1) ≠ 0 := by positivity
-  have hnt : ((N : ℝ≥0∞) + 1) ≠ ⊤ := by finiteness
-  have hcast : ((((N : ℝ≥0) + 1)⁻¹ : ℝ≥0) : ℝ≥0∞) = ((N : ℝ≥0∞) + 1)⁻¹ := by
-    rw [ENNReal.coe_inv (by positivity)]
-    congr 1
-  set μ : Measure ((ι → ℤ) → E) := ∑ m : Fin (N + 1), ((N : ℝ≥0∞) + 1)⁻¹ • ρ m with hμdef
-  have hsum : ∑ _m : Fin (N + 1), ((N : ℝ≥0∞) + 1)⁻¹ = 1 := by
-    rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
-    push_cast
-    exact ENNReal.mul_inv_cancel hne hnt
-  have hμinv : μ ∈ invariantFields (shiftGroup (ι → ℤ) E) :=
-    sum_smul_mem_invariantFields (fun m ↦ (hρ m).1) hsum
-  have : IsProbabilityMeasure μ := hμinv.1
-  have hcsum : ∑ _m : Fin (N + 1), (((N : ℝ≥0) + 1)⁻¹ : ℝ≥0) = 1 := by
-    rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
-    push_cast
-    field_simp
-  have hmixeq : ∑ m : Fin (N + 1), (((N : ℝ≥0) + 1)⁻¹ : ℝ≥0) • ρ m = μ := by
-    rw [hμdef]
-    refine Finset.sum_congr rfl fun m _ ↦ ?_
-    rw [ENNReal.smul_def, hcast]
-  have hμent : specificEntropy ν μ ≠ ⊥ := by
-    rw [← hmixeq]
-    exact specificEntropy_finsetSum_smul_ne_bot ν hcsum fun m ↦ (hρ m).2
-  have hmuFin : μ ∈ invariantFieldsOfFiniteEntropy ι E ν := ⟨hμinv, hμent⟩
-  have hnd : HasNondegenerateInvariantMeans (shiftGroup (ι → ℤ) E) μ f :=
-    hasNondegenerateInvariantMeans_of_det_ne_zero hμinv hfm (fun m ↦ (hρ m).1)
-      (absolutelyContinuous_uniform_mixture ρ) hdet
+  obtain ⟨μ, hprob, hmuFin, hnd⟩ :=
+    exists_mem_invariantFieldsOfFiniteEntropy_hasNondegenerateInvariantMeans ν hfm hdisc
   obtain ⟨ε, -, -, -, hmain⟩ :=
     exists_pos_forall_exists_isDiscriminating_BThetaOrder ν hI hΛ₀ hf hfm hmuFin hnd one_pos
   obtain ⟨Φ, hΦC, -, hdisc'⟩ := hmain Φ₀
@@ -1891,6 +1936,28 @@ theorem exists_pos_forall_exists_isDiscriminating_neg {I : Set (ι → ℤ)} (hI
     (fun a c ↦ localPotentialB_smul_combo_mem_neg hΛ₀ hg I a c)
     (fun a _i hi ↦ localPotentialB_pairVolume_smul_mem_neg hΛ₀ hg a hi)
     hΛ₀ (fun _ ↦ hg) (fun _ ↦ hgm) hμ hnd hε₀
+
+/-- **Georgii Comment (16.24)(2), in the form of Theorem (16.21)(a).** For a single observable `g`,
+if `{g}` is a discriminating system for `𝓟^λ_Θ(Ω, 𝓕)` then every affine space `Φ⁰ + ℬ⁻_Θ(g)`
+contains a potential which exhibits a phase transition with discriminating system `{g}`: the
+modification of `Φ⁰` can be taken *ferromagnetic*, and (through the index set `I`) of arbitrarily
+long range. -/
+theorem exists_isDiscriminating_neg_of_isDiscriminating_invariantFieldsOfFiniteEntropy
+    {I : Set (ι → ℤ)} (hI : Iᶜ.Finite) {Λ₀ : Finset (ι → ℤ)} (hΛ₀ : Λ₀.Nonempty)
+    {g : lp (fun _ : (ι → ℤ) → E ↦ ℝ) ∞} (hg : g ∈ localFunctionsOn (ι → ℤ) E Λ₀)
+    (hgm : Measurable ⇑g)
+    (hdisc : IsDiscriminating (invariantFieldsOfFiniteEntropy ι E ν) (fun _ : Fin 1 ↦ g))
+    (Φ₀ : BTheta (ι → ℤ) E) :
+    ∃ Φ : BTheta (ι → ℤ) E, Φ - Φ₀ ∈ BThetaOrderNeg Λ₀ g I ∧
+      IsDiscriminating (invariantG (gibbsSpecificationOfAbsolutelySummable
+        (Φ := (Φ : Potential (ι → ℤ) E)) ν 1) (shiftGroup (ι → ℤ) E)) (fun _ : Fin 1 ↦ g) := by
+  obtain ⟨μ, hprob, hmuFin, hnd⟩ :=
+    exists_mem_invariantFieldsOfFiniteEntropy_hasNondegenerateInvariantMeans ν
+      (fun _ ↦ hgm) hdisc
+  obtain ⟨ε, -, -, -, hmain⟩ :=
+    exists_pos_forall_exists_isDiscriminating_neg ν hI hΛ₀ hg hgm hmuFin hnd one_pos
+  obtain ⟨Φ, hΦC, -, hdisc'⟩ := hmain Φ₀
+  exact ⟨Φ, hΦC, hdisc'⟩
 
 end Theorem1621
 

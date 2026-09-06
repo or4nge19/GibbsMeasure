@@ -50,8 +50,8 @@ status:
     condition, and (13.44)-(13.45)). Chapter 15 complete through Theorem (15.45), the upper bound (15.46) over a
     finite state space and the lower bound (15.47) over any; open: (15.46) for standard Borel E,
     the periodic-boundary-condition inequalities of (15.48), (15.50)-(15.51), (15.57)-(15.58).
-    Chapter 16: Sections 16.1-16.2 complete; Section 16.3 through (16.25)(1) and (16.28)-(16.31),
-    open the criterion of (16.24)(3), (16.24)(4), (16.25)(2), (16.26)-(16.27). Chapter 17 complete except the
+    Chapter 16: Sections 16.1-16.2 complete; Section 16.3 through (16.25) and (16.28)-(16.31), open the
+    cone description in (16.25)(2) and (16.26)-(16.27). Chapter 17 complete except the
     Berg-Maserick converse (17.28)(1), which Georgii cites without proof. Chapter 18: Section 18.1 in full
     ((18.16)-(18.19)), Section 18.2 in full (Theorem (18.25)), Section 18.3 examples 18.3.1-18.3.3,
     18.3.5-18.3.9 and the ground states and stable partition of 18.3.10; open 18.3.4 (hard-core
@@ -1783,7 +1783,17 @@ alignment:
         in the proof of (16.30) the gap in (16.29) must exceed 4 eps |Lambda_0| ||f||^2, not
         2 eps |Lambda_0| ||f||^2; the statement is unaffected. Also Georgii's P^lambda_Theta and
         Lemma (16.10) as a linear map (PhaseTransition.lean). Not formalized: the converse
-        inclusion in (16.25)(1), the criterion of (16.24)(3), (16.24)(4), (16.25)(2), (16.26)-(16.27)
+        inclusion in (16.25)(1), the explicit cone description of B^-_Theta(sigma_0) in (16.25)(2),
+        (16.26)-(16.27). Landed since: the criterion of (16.24)(3)
+        (isDiscriminating_invariantFieldsOfFiniteEntropy_iff: single-site observables
+        discriminate P^lambda_Theta iff 1, f_1^*, ..., f_N^* are linearly independent modulo
+        lambda-null sets; "if" through the conditioned Bernoulli fields lambda(.|A)^S with specific
+        entropy log lambda(A), Georgii's disjointness of the A_m not needed; "only if" through
+        sigma_0 mu << lambda for finite specific entropy), (16.24)(4) (potentials of
+        B_Theta(f_1..f_N) are alpha-normalized when alpha(f_n^*) = 0, the modified potentials of
+        (16.21)(b) stay normalized and distinct ones are non-equivalent by (2.35)(a)), and the
+        conclusion of (16.25)(2) for any bounded measurable spin s not lambda-a.s. constant
+        (exists_isDiscriminating_neg_integral_lt_integral)
         (the Heisenberg order parameter needs ergodicity of the tilted product fields on the sphere
         and the asymptotics of nu_h).
     - source: "Section 16.2: (16.10)-(16.14)"
