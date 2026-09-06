@@ -657,8 +657,12 @@ set, and the Gibbsian specification of the unbounded `N`-vector model over the s
 configurations, with `μ(Ω_*) = 1` on `𝒢(Φ)`. **Lemma (20.6)** as stated, for the embedded periodic
 fields with zero boundary condition and their cluster points `𝒢₀(Φ)`, whose members are shift
 invariant (`Specification/HeisenbergClusterPoints.lean`), and the Fourier transform (20.9)–(20.10) of
-the coupling (`Specification/InfraredBoundFourier.lean`). Open: (20.7)(b)–(c) (`𝒢₀(Φ)` nonempty and
-inside `𝒢(Φ)`) and (20.11)–(20.15), in particular Lemma (20.13).
+the coupling (`Specification/InfraredBoundFourier.lean`). **(20.7)**, first half: `𝒢₀(Φ) ≠ ∅`
+(`Specification/HeisenbergExistence.lean`), Georgii's density bound on `Ω_t` read off (17.24) by
+resampling the block, uniformly in the cube, with (4.12) in a measure-domination form; the
+model-specific inputs of the second half (the periodic modifications are specifications, and
+Georgii's null sequence `δ_n`) are proved. Open: the inclusion `𝒢₀(Φ) ⊆ 𝒢(Φ)` ((4.19) on `Ω_t` and
+the ε-assembly) and (20.11)–(20.15), in particular Lemma (20.13).
 
 **Chapter 16** normalises the a priori measure to a probability measure throughout, where Georgii
 assumes only that it is finite; the two differ by an additive `log λ(E)` in the pressure and the
@@ -915,8 +919,8 @@ continuity of the second derivative asserted in (8.37)/(16.17); in (12.31)(b) th
 (15.46) for a non-convex `C` over an infinite state space, Cramér's formula at `Φ = 0`, and
 (15.57)–(15.58) beyond the subgradient uniqueness; the criterion of (16.24)(3), (16.24)(4), (16.25)(2),
 (16.26)–(16.27); the Berg–Maserick converse (17.28)(1), cited without proof; 18.3.4 and 18.3.7–18.3.10 and the
-count for a proper subgroup in (18.25); Theorem (19.6) with (19.9)–(19.10) and §19.2–19.3; and (20.7)(b)–(c)
-and the infrared bound (20.11) onwards.
+count for a proper subgroup in (18.25); Theorem (19.6) with (19.9)–(19.10) and §19.2–19.3; and the second half
+of (20.7) with the infrared bound (20.11) onwards.
 
 ### Code organisation
 

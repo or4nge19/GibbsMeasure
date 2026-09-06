@@ -109,12 +109,13 @@ inputs it needs from §20.1 are proved there: the absolute convergence of `H_Λ^
 * **(20.7)**, `∅ ≠ 𝒢₀(Φ) ⊆ 𝒢_Θ(Φ)`.  The transfer of the tail estimate from the torus to the
   fields `μ_n^Φ = °γ_{Λ(n)}^Φ × δ_0` on `ℤ^d` and to their cluster points — so that (20.6) holds
   as Georgii states it — and the shift invariance of those cluster points are proved in
-  `GibbsMeasure.Specification.HeisenbergClusterPoints`, whose module doc lists exactly what is
-  still missing: the uniform density bound `limsup_n sup_{ω ∈ Ω_t} ρ_Λ^n(ω) < ∞` feeding
-  Theorem (4.12), and the comparison `‖(γ_Λ^n f - γ_Λ^Φ f) 1_{Ω_t}‖ → 0` of Proposition (4.19)
-  *restricted to `Ω_t`* — the tree's (4.17) (`mem_GP_of_mapClusterPt`) assumes a quasilocal limit
-  specification, which `γ^Φ` is not, so Georgii's "a glance at the proof of Theorem (4.17)" has to
-  be carried out as a separate argument.
+  `GibbsMeasure.Specification.HeisenbergClusterPoints`; `𝒢₀(Φ) ≠ ∅` is proved in
+  `GibbsMeasure.Specification.HeisenbergExistence` (`heisenbergGZero_nonempty`).  What is still
+  missing is `𝒢₀(Φ) ⊆ 𝒢(Φ)`: the comparison `‖(γ_Λ^n f - γ_Λ^Φ f) 1_{Ω_t}‖ → 0` of
+  Proposition (4.19) *restricted to `Ω_t`* — the tree's (4.17) (`mem_GP_of_mapClusterPt`) assumes
+  a quasilocal limit specification, which `γ^Φ` is not, so Georgii's "a glance at the proof of
+  Theorem (4.17)" has to be carried out as a separate argument.  The module doc of
+  `HeisenbergExistence` lists the four remaining steps and which of their inputs are proved.
 * Note that Georgii flags (20.3)–(20.7) as needed *only* for an unbounded state space; over a
   bounded one, (20.7) is Comment (4.14)(1) with Example (4.20)(2) and Example (5.20)(3), which for
   `C`-potentials is `MeasureTheory.GibbsMeasure.GZero_nonempty` and `mem_GP_of_mem_GZero` in

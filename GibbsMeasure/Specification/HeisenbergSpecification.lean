@@ -250,6 +250,144 @@ private lemma summable_pairMajorant (heven : ∀ m, J (-m) = J m) (hJ : IsSlowly
   exact (h₁.add h₂).congr fun p ↦ (pairMajorant_eq_add heven Λ ω p).symm
 
 end Majorant
+/-! ### A pair-majorant estimate for an arbitrary family supported on the pairs -/
+
+section GeneralPairBound
+
+variable (Λ : Finset (Fin d → ℤ)) (c : (Fin d → ℤ) → (Fin d → ℤ) → ℝ) (s : (Fin d → ℤ) → ℝ)
+
+/-- The first summand of a general pair majorant, `1_Λ(i) c(i,j) s_i s_j`. -/
+private def genFst (p : (Fin d → ℤ) × (Fin d → ℤ)) : ℝ :=
+  (if p.1 ∈ Λ then (1 : ℝ) else 0) * (c p.1 p.2 * (s p.1 * s p.2))
+
+variable {Λ c s}
+
+private lemma genFst_nonneg (hc0 : ∀ i j, 0 ≤ c i j) (hs0 : ∀ i, 0 ≤ s i)
+    (p : (Fin d → ℤ) × (Fin d → ℤ)) : 0 ≤ genFst Λ c s p := by
+  refine mul_nonneg (by positivity) (mul_nonneg (hc0 _ _) ?_)
+  exact mul_nonneg (hs0 _) (hs0 _)
+
+private lemma summable_genFst (hc0 : ∀ i j, 0 ≤ c i j) (hs0 : ∀ i, 0 ≤ s i)
+    (hsummable : ∀ i, Summable fun j ↦ c i j * s j) : Summable (genFst Λ c s) := by
+  classical
+  refine (summable_prod_of_nonneg fun p ↦ genFst_nonneg hc0 hs0 p).2 ⟨fun i ↦ ?_, ?_⟩
+  · by_cases hi : i ∈ Λ
+    · have : (fun j ↦ genFst Λ c s (i, j)) = fun j ↦ s i * (c i j * s j) := by
+        funext j; simp only [genFst, hi, ite_true, one_mul]; ring
+      rw [this]
+      exact (hsummable i).mul_left _
+    · simp [genFst, hi]
+  · refine summable_of_ne_finset_zero (s := Λ) fun i hi ↦ ?_
+    simp [genFst, hi]
+
+private lemma tsum_genFst (hc0 : ∀ i j, 0 ≤ c i j) (hs0 : ∀ i, 0 ≤ s i)
+    (hsummable : ∀ i, Summable fun j ↦ c i j * s j) :
+    ∑' q, genFst Λ c s q = ∑ i ∈ Λ, s i * ∑' j, c i j * s j := by
+  classical
+  rw [(summable_genFst hc0 hs0 hsummable).tsum_prod]
+  have hinner : ∀ i, (∑' j, genFst Λ c s (i, j))
+      = (if i ∈ Λ then (1 : ℝ) else 0) * (s i * ∑' j, c i j * s j) := by
+    intro i
+    have hrw : ∀ j, genFst Λ c s (i, j)
+        = ((if i ∈ Λ then (1 : ℝ) else 0) * s i) * (c i j * s j) := fun j ↦ by
+      simp only [genFst]; ring
+    rw [tsum_congr hrw, tsum_mul_left]
+    ring
+  rw [tsum_congr hinner, tsum_eq_sum (s := Λ) fun i hi ↦ by simp [hi]]
+  exact Finset.sum_congr rfl fun i hi ↦ by simp [hi]
+
+/-- **The pair-majorant estimate, for an arbitrary family supported on the pairs of sites.**  If a
+family `T` indexed by the finite subsets of `ℤ^d` vanishes off the pairs and off the volumes
+disjoint from `Λ`, and its value at a pair `{i, j}` meeting `Λ` is at most `c(i,j) s_i s_j` for a
+nonnegative *symmetric* coefficient `c` with summable `α`-weighted rows, then
+
+`|∑_A T(A)| ≤ 2 ∑_{i ∈ Λ} s_i ∑_j c(i,j) s_j`.
+
+This is the estimate behind `exists_abs_hamiltonian_heisenbergPotential_le`, where
+`c(i,j) = |J(i-j)|` and `s_i = |σ_i|`; it is stated for a general `c` because the *difference*
+`Φ^n - Φ` of a Heisenberg potential and its periodic modification (Georgii's `H_Λ^{Φ^n - Φ}` in
+the proof of (20.7)) is a pair potential with an inhomogeneous coefficient. -/
+theorem abs_tsum_le_of_pairBound {T : Finset (Fin d → ℤ) → ℝ}
+    (hTabs : Summable fun A ↦ |T A|)
+    (hTpair : ∀ A : Finset (Fin d → ℤ),
+      (∀ x y : Fin d → ℤ, A ≠ ({x, y} : Finset (Fin d → ℤ))) → T A = 0)
+    (hTdisj : ∀ i j : Fin d → ℤ, Disjoint ({i, j} : Finset (Fin d → ℤ)) Λ →
+      T ({i, j} : Finset (Fin d → ℤ)) = 0)
+    (hc0 : ∀ i j, 0 ≤ c i j) (hcsymm : ∀ i j, c i j = c j i) (hs0 : ∀ i, 0 ≤ s i)
+    (hsummable : ∀ i, Summable fun j ↦ c i j * s j)
+    (hbound : ∀ i j : Fin d → ℤ,
+      |T ({i, j} : Finset (Fin d → ℤ))| ≤ c i j * (s i * s j)) :
+    |∑' A, T A| ≤ 2 * ∑ i ∈ Λ, s i * ∑' j, c i j * s j := by
+  classical
+  have hTsum : Summable T := Summable.of_abs hTabs
+  -- the absolute values, transported to the pairs
+  have hsupp : Function.support (fun A ↦ |T A|) ⊆ Set.range (sitePairFinset (d := d)) := by
+    intro A hA
+    by_contra hmem
+    refine hA ?_
+    have : T A = 0 := hTpair A fun x y hxy ↦ hmem (hxy ▸ mem_range_sitePairFinset x y)
+    simp [this]
+  have hstep₁ : |∑' A, T A| ≤ ∑' A, |T A| := by
+    have hn : Summable fun A : Finset (Fin d → ℤ) ↦ ‖T A‖ := by
+      simpa only [Real.norm_eq_abs] using hTabs
+    simpa only [Real.norm_eq_abs] using norm_tsum_le_tsum_norm hn
+  have hstep₂ : ∑' A, |T A| = ∑' p : SitePair d, |T (sitePairFinset p)| :=
+    (injective_sitePairFinset.tsum_eq hsupp).symm
+  -- the pair estimate against the majorant
+  have hmaj : ∀ p : SitePair d, |T (sitePairFinset p)|
+      ≤ genFst Λ c s p.1 + genFst Λ c s p.1.swap := by
+    rintro ⟨⟨i, j⟩, hp⟩
+    have hnn : (0 : ℝ) ≤ c i j * (s i * s j) :=
+      mul_nonneg (hc0 _ _) (mul_nonneg (hs0 _) (hs0 _))
+    by_cases hdisj : Disjoint ({i, j} : Finset (Fin d → ℤ)) Λ
+    · rw [show sitePairFinset ⟨(i, j), hp⟩ = ({i, j} : Finset (Fin d → ℤ)) from rfl,
+        hTdisj i j hdisj, abs_zero]
+      exact add_nonneg (genFst_nonneg hc0 hs0 _) (genFst_nonneg hc0 hs0 _)
+    · have hmem : i ∈ Λ ∨ j ∈ Λ :=
+        (not_disjoint_sitePairFinset_iff (Λ := Λ) ⟨(i, j), hp⟩).1 hdisj
+      have hone : (1 : ℝ) ≤ (if i ∈ Λ then (1 : ℝ) else 0) + (if j ∈ Λ then (1 : ℝ) else 0) := by
+        rcases hmem with h | h
+        · have h1 : (if i ∈ Λ then (1 : ℝ) else 0) = 1 := by simp [h]
+          have h2 : (0 : ℝ) ≤ if j ∈ Λ then (1 : ℝ) else 0 := by split_ifs <;> norm_num
+          linarith
+        · have h1 : (if j ∈ Λ then (1 : ℝ) else 0) = 1 := by simp [h]
+          have h2 : (0 : ℝ) ≤ if i ∈ Λ then (1 : ℝ) else 0 := by split_ifs <;> norm_num
+          linarith
+      have hgen : genFst Λ c s (i, j) + genFst Λ c s (i, j).swap
+          = ((if i ∈ Λ then (1 : ℝ) else 0) + (if j ∈ Λ then (1 : ℝ) else 0))
+            * (c i j * (s i * s j)) := by
+        simp only [genFst, Prod.fst_swap, Prod.snd_swap, hcsymm j i]
+        ring
+      rw [show sitePairFinset ⟨(i, j), hp⟩ = ({i, j} : Finset (Fin d → ℤ)) from rfl, hgen]
+      exact (hbound i j).trans (le_mul_of_one_le_left hnn hone)
+  -- summability of the majorant and the resulting bound
+  have hfst := summable_genFst (Λ := Λ) (c := c) (s := s) hc0 hs0 hsummable
+  have hswap : Summable fun q : (Fin d → ℤ) × (Fin d → ℤ) ↦ genFst Λ c s q.swap :=
+    ((Equiv.prodComm (Fin d → ℤ) (Fin d → ℤ)).summable_iff (f := genFst Λ c s)).2 hfst
+  have hmajsum : Summable fun q : (Fin d → ℤ) × (Fin d → ℤ) ↦
+      genFst Λ c s q + genFst Λ c s q.swap := hfst.add hswap
+  have hstep₃ : ∑' p : SitePair d, |T (sitePairFinset p)|
+      ≤ ∑' q : (Fin d → ℤ) × (Fin d → ℤ), (genFst Λ c s q + genFst Λ c s q.swap) := by
+    refine le_trans (Summable.tsum_le_tsum hmaj
+      (hTabs.comp_injective injective_sitePairFinset)
+      (hmajsum.subtype fun p ↦ Encodable.encode p.1 ≤ Encodable.encode p.2)) ?_
+    exact hmajsum.tsum_subtype_le _
+      {p : (Fin d → ℤ) × (Fin d → ℤ) | Encodable.encode p.1 ≤ Encodable.encode p.2}
+      fun q ↦ add_nonneg (genFst_nonneg hc0 hs0 q) (genFst_nonneg hc0 hs0 q.swap)
+  have hstep₄ : ∑' q : (Fin d → ℤ) × (Fin d → ℤ), (genFst Λ c s q + genFst Λ c s q.swap)
+      = 2 * ∑ i ∈ Λ, s i * ∑' j, c i j * s j := by
+    have hswapeq : ∑' q : (Fin d → ℤ) × (Fin d → ℤ), genFst Λ c s q.swap
+        = ∑' q, genFst Λ c s q :=
+      (Equiv.prodComm (Fin d → ℤ) (Fin d → ℤ)).tsum_eq (genFst Λ c s)
+    rw [hfst.tsum_add hswap, hswapeq, tsum_genFst hc0 hs0 hsummable]
+    ring
+  calc |∑' A, T A| ≤ ∑' A, |T A| := hstep₁
+    _ = ∑' p : SitePair d, |T (sitePairFinset p)| := hstep₂
+    _ ≤ ∑' q : (Fin d → ℤ) × (Fin d → ℤ), (genFst Λ c s q + genFst Λ c s q.swap) := hstep₃
+    _ = 2 * ∑ i ∈ Λ, s i * ∑' j, c i j * s j := hstep₄
+
+end GeneralPairBound
+
 
 /-! ### Georgii §20.1: the Hamiltonians are defined on `Ω_*` -/
 

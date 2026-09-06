@@ -50,32 +50,35 @@ and to the set `𝒢₀(Φ)` of their cluster points in the topology of local co
   uniformly in the cube, because the representative of a torus site in `Λ(N)` is the shortest
   point of its fibre (`norm_le_norm_of_latticeToTorus_eq`).
 
-## What is *not* proved here: the rest of (20.7)
+## The rest of (20.7)
 
 Georgii's Proposition (20.7) is `∅ ≠ 𝒢₀(Φ) ⊆ 𝒢_Θ(Φ)`.  Of its four steps, (a) the tail estimate
 for `μ_n^Φ` and (d) the shift invariance of the cluster points are proved above, and the analytic
 input of (b) — the uniform-in-`n` domination of `J_{Λ(n)}` by (20.4) — is
-`sum_abs_periodizedCoupling_mul_slowGrowth_le`.  What is missing is:
+`sum_abs_periodizedCoupling_mul_slowGrowth_le`.
 
-* **(b) `𝒢₀(Φ) ≠ ∅`.**  Georgii feeds Theorem (4.12) with `B = Ω_t` and
-  `limsup_n sup_{ω ∈ Ω_t} ρ_Λ^n(ω) < ∞`.  What the proof of (4.12) uses is only the resulting
-  bound `μ_n(A ∩ Ω_t) ≤ c λ^Λ(A_Λ ∩ K^Λ)` for `A ∈ 𝓕_Λ`, and that can be read off the explicit
-  density (17.24) of `°γ_{Λ(N)}^Φ` on the torus without constructing `γ^n` at all: split
-  `λ^{Λ(N)}` into the coordinates of `Λ` and the rest
-  (`MeasureTheory.measurePreserving_piEquivPiSubtypeProd`), and compare the exponent (17.24) at
-  two configurations differing only in `Λ`, which on `Ω_t` costs at most
-  `2 M t |Λ| max_{i ∈ Λ} ∑_k |J(i-k)| α(k)` by the domination lemma above.  The missing pieces
-  are that Fubini estimate, and a form of Theorem (4.12) taking the displayed bound as its
-  hypothesis: `locallyEquicontinuous_of_eventually_boundedOn` of
-  `GibbsMeasure.Specification.NetEquicontinuity` is stated for a net presented as
-  `(γ₀.modification ρ).bindPM Λ ν`, which `μ_n^Φ` is not, on the nose.
-* **(c) `𝒢₀(Φ) ⊆ 𝒢(Φ)`.**  Georgii's `μ_n(γ_Λ^n f) → μ(γ_Λ^Φ f)`, via
-  `‖(γ_Λ^n f - γ_Λ^Φ f) 1_{Ω_t}‖ → 0` (Proposition (4.19) restricted to `Ω_t`).  The tree's
-  (4.17), `mem_GP_of_mapClusterPt` in `GibbsMeasure.Specification.Existence`, assumes the limit
-  specification quasilocal, which `γ^Φ` of (20.5) is not; Georgii's "a glance at the proof of
-  (4.17)" therefore has to be carried out separately.  It also needs the Hamiltonian comparison
-  `sup_{ω ∈ Ω_t} |H_Λ^{Φ^n - Φ}(ζ ω)| ≤ δ_n ∑_{i ∈ Λ}[1 + |ζ_i|²]` with `δ_n → 0`, of which the
-  domination lemma above is the uniform half only.
+**(b) `𝒢₀(Φ) ≠ ∅` is proved** in `GibbsMeasure.Specification.HeisenbergExistence`
+(`heisenbergGZero_nonempty`), together with the density bound
+`μ_n^Φ(A ∩ Ω_t) ≤ c(Λ, t) λ^Λ(A_Λ)` uniform in the cube
+(`heisenbergPeriodicField_inter_slowGrowthSet_le`) that feeds Theorem (4.12).  Georgii's `ρ_Λ^n`
+is not constructed: the bound is read off the explicit density (17.24) by resampling the block
+`Λ mod 2N` of the torus, and Theorem (4.12) is used in the form
+`locallyEquicontinuous_of_eventually_measure_inter_le`, which takes that bound as its hypothesis.
+
+**(c) `𝒢₀(Φ) ⊆ 𝒢(Φ)` is not proved.**  Georgii's `μ_n(γ_Λ^n f) → μ(γ_Λ^Φ f)`, via
+`‖(γ_Λ^n f - γ_Λ^Φ f) 1_{Ω_t}‖ → 0` (Proposition (4.19) restricted to `Ω_t`).  The tree's (4.17),
+`mem_GP_of_mapClusterPt` in `GibbsMeasure.Specification.Existence`, assumes the limit
+specification quasilocal, which `γ^Φ` of (20.5) is not; Georgii's "a glance at the proof of
+(4.17)" therefore has to be carried out separately.  Its model-specific inputs are all proved in
+`GibbsMeasure.Specification.HeisenbergExistence`: `H_Λ^{Φ^n}` is the block energy of the torus
+(`hamiltonian_heisenbergPeriodicPotential_eq_sub`), `Φ^n` is `λ`-admissible so that `γ^n` is a
+genuine specification and `μ_n^Φ γ_Λ^n = μ_n^Φ`
+(`isSigmaFiniteLambdaAdmissible_heisenbergPeriodicPotential`), and Georgii's estimate
+`sup_{ω ∈ Ω_t} |H_Λ^{Φ^n - Φ}| ≤ δ_n ∑_{i∈Λ}[1 + |ζ_i|²]` holds with the explicit null sequence
+`δ_n` of `tendsto_sum_couplingTail`
+(`abs_hamiltonian_heisenbergPeriodicPotential_sub_le_of_mem_slowGrowthSet`).  What remains is the
+kernel comparison (4.19) itself and the `ε`-assembly; the module doc of that file states both
+precisely.
 
 ## Two general lemmas about the periodic continuation
 

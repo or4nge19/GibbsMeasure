@@ -58,7 +58,7 @@ status:
     (19.7) and (19.8), with Sperner's lemma and the KKM lemma (19.12) of Section 19.2; open
     (19.13)-(19.15) and Theorem (19.6), (19.9)-(19.10), the rest of Sections 19.2-19.3.
     Chapter 20: Section 20.1 ((20.5), (20.6) as stated, (20.8)), Georgii's computation (17.24),
-    (20.9)-(20.10); open (20.7)(b)-(c) and the infrared bound (20.11) onwards.
+    (20.9)-(20.10), (20.7) first half; open (20.7) second half and the infrared bound (20.11) onwards.
   sorry_count: 0
   sorry_in_definitions: 0
   axioms: ["propext", "Classical.choice", "Quot.sound"]
@@ -1427,12 +1427,18 @@ alignment:
         periodic Gibbs distribution well defined; every member of G_0(Phi) is shift invariant;
         Georgii's domination of J_Lambda(n) by (20.4) uniformly in the cube. Section 20.2:
         the Fourier transform (20.9) on the torus and its restriction (20.10) to the discrete dual
-        (Specification/InfraredBoundFourier.lean). Not formalized: (20.7)(b) G_0(Phi) nonempty (the
-        finite-volume density bound on Omega_t fed into (4.12), stated in the tree for a net of
-        modifications) and (c) G_0(Phi) inside G(Phi) (the convergence of the kernels on Omega_t
-        and Georgii's "glance at the proof of (4.17)", gamma^Phi not being quasilocal); (20.11)
-        onwards, in particular Lemma (20.13), a three-stage approximation of the a priori measure
-        combined with the chessboard estimate.
+        (Specification/InfraredBoundFourier.lean). (20.7) first half
+        (Specification/HeisenbergExistence.lean): G_0(Phi) is nonempty; Georgii's density bound on
+        Omega_t is read off (17.24) by resampling the block through Mathlib's marginals
+        (Mathlib/MeasureTheory/Integral/MarginalComparison.lean), uniformly in the cube, fed into
+        (4.12) in a measure-domination form (Specification/NetEquicontinuity.lean, from which the
+        density form is derived) and (4.9). For the second half the model-specific inputs are
+        proved: the Hamiltonian of the periodic modification in a sub-box of the cube is the torus
+        block energy, its quadratic bound and admissibility, and Georgii's null sequence delta_n
+        controlling H^{Phi^n - Phi} on Omega_t from the tail of the periodised coupling. Not
+        formalized: (4.19) restricted to Omega_t in the two-kernel form and the epsilon-assembly,
+        hence G_0(Phi) inside G(Phi); (20.11) onwards, in particular Lemma (20.13), a three-stage
+        approximation of the a priori measure combined with the chessboard estimate.
     - source: "Section 18.1: (18.1)-(18.3), (18.8)-(18.10)"
       lean: "MeasureTheory.GibbsMeasure.periodicGibbsDist_forall_notMem_torusPattern_le_patternWeight"
       module: "GibbsMeasure/Specification/PatternPercolation.lean"
