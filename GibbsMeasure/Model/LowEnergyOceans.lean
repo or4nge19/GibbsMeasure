@@ -5,8 +5,10 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Measurable
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.SymmetricChain
 public import GibbsMeasure.Model.OceanNetwork
+public import GibbsMeasure.Model.UniqueInfiniteCluster
 public import GibbsMeasure.Model.StarCrossing
 public import GibbsMeasure.Specification.PeriodicGibbsLimits
 
@@ -48,6 +50,16 @@ For `d = 2` the plane `P` of (18.5) is the whole lattice.
   proof is `ae_mem_latticeOceanPart_of_cubeMeasure_compl_eq_zero`.
 * `le_measure_mem_latticeOceanPart` — **Georgii, Theorem (18.17)**, first assertion:
   `μ(0 ∈ ξ⁰_P(G, ·)) ≥ 1 - 4 z(t(G, Φ))` for every `μ ∈ 𝒢₀(Φ)`.
+* `measurableSet_setOf_latticeOceanPart_nonempty` and
+  `tail_measurableSet_setOf_latticeOceanPart_nonempty` — the event `{ξ⁰_P(G, ·) ≠ ∅}` is
+  measurable, and it is a **tail** event, the fact Georgii's proof of the second assertion of
+  (18.17) invokes without proof.  Measurability is Definition (18.6) read as a countable
+  condition (`SimpleGraph.measurableSet_setOf_oceanPart_nonempty`).  Tail measurability is that
+  plus `Function.DependsOn`: altering the spins in a finite volume `Λ` alters `V(G, ·)` only at
+  the finitely many sites whose elementary cube meets `Λ` (`cubePreSupport`,
+  `latticePattern_diff_subset_cubePreSupport`), and whether a subset of the plane contains an
+  ocean is unchanged by a finite modification (`Peierls.oceanPart_nonempty_congr_of_finite_diff`,
+  whose planar input is `Peierls.eq_of_infinite_supp_of_forall_finite_island`).
 * `le_measure_mem_latticeOceanPart_localGroundStates`,
   `tendsto_bound_latticeOceanPart_localGroundStates` and
   `tendsto_iInf_measure_mem_latticeOceanPart_localGroundStates` — **Georgii, Corollary (18.18)**,
@@ -73,31 +85,22 @@ missing step is that on `X` the origin lies in an infinite cluster of `V(G, ·)`
 `ξ⁰_P(G, ·) ≠ ∅` forces `0 ∈ ξ⁰_P(G, ·)`.  That step is
 `Peierls.mem_oceanPart_of_isOceanIn` together with `Peierls.IsCrossCentre.mem_infiniteClusters`.
 
-## What is *not* here
+## What is *not* in this file
 
 * The second assertions of **(18.17)** and **(18.18)** — that for `z(t(G, Φ)) < 1/4` (resp. `β`
   large) there is a `μ ∈ 𝒢(Φ)` invariant under the shifts and the reflections `r_1, …, r_d`
-  with `μ(ξ⁰_P(G, ·) ≠ ∅) = 1`.  Georgii obtains it by conditioning a `ν ∈ 𝒢₀(Φ)` on the event
-  `{ξ⁰_P(G, ·) ≠ ∅}`.  Three inputs are missing for that: (i) `{ξ⁰_P(G, ·) ≠ ∅} ∈ 𝒯`, i.e. that
-  containing an ocean is unchanged by altering finitely many spins — the graph-theoretic content
-  is that removing a finite set from an ocean leaves exactly one infinite component and that it
-  is again an ocean; (ii) the invariance of `μ ∈ 𝒢₀(Φ)` under the reflections `r_k` (only the
-  shift invariance, `measurePreserving_shift_of_mem_GZero`, is in the tree); (iii) `𝒢₀(Φ) ≠ ∅`
-  over a standard Borel state space is `GZero_nonempty`, which *is* in the tree.  Theorem (7.7)(b)
-  for the conditioning is `isGibbsMeasure_cond_of_tail`.
-* **Example (18.19)**, the classical Heisenberg model.  The state space it needs — the unit
-  sphere `Metric.sphere (0 : V) 1` of a finite-dimensional real inner product space with the
-  surface measure `MeasureTheory.Measure.toSphere` — is in the tree, in
-  `GibbsMeasure/Model/MerminWagnerExamples.lean`, but only carrying the *pair* potential
-  `heisenbergPair K i j x y = -K i j ⟪x, y⟫`, not a `C`-potential in the sense of (17.18).  A
-  faithful (18.19) needs, in addition: the `C`-potential `Φ_C = -∑_{{i,j} ⊆ C, |i-j| = 1} σ_i·σ_j`
-  on the sphere with its `r`-symmetry and lower bound `-4`; the identification `m_Φ = -4`, which
-  is the statement that the normalised surface measure of a spherical cap is positive; the
-  inclusion `G_ε(Φ) ⊆ {ω : ω_i · ω_j ≥ 1 - ε for adjacent i, j ∈ C}`, which then follows from
-  `localGroundStates` by an elementary estimate; and, for the second half of (18.19), the
-  high-temperature bound `μ(ξ(G_ε, ·) ≠ ∅) = 0` for `3 r(β, ε) < 1`, which is a self-avoiding
-  path count over the single-site conditional probabilities `γ^{βΦ}_{\{i\}}(σ_i · ω_j ≥ 1 - ε | ω)`
-  and is independent of everything above.
+  with `μ(ξ⁰_P(G, ·) ≠ ∅) = 1` — are in `GibbsMeasure/Model/LowEnergyOceanPhase.lean`.  They are
+  Georgii's conditioning `μ = ν(· | ξ⁰_P(G, ·) ≠ ∅)` of a `ν ∈ 𝒢₀(Φ)` on the tail event above,
+  and live in a separate file only because the reflection invariance of `𝒢₀(Φ)` is Remark
+  (18.22), in `GibbsMeasure/Specification/PeriodicGibbsSymmetry.lean`, which is a §18.2 file.
+* **Example (18.19)**, the classical Heisenberg model, is in
+  `GibbsMeasure/Model/HeisenbergOceans.lean`: the `C`-potential
+  `Φ_C = -∑_{{i,j} ⊆ C, |i-j| = 1} σ_i·σ_j` on the unit sphere with its `r`-symmetry and bound
+  `|Φ_C| ≤ 4`, the identification `m_Φ = -4`, the description of the local ground states as the
+  constant configurations, and Georgii's inclusion `G_ε(Φ) ⊆ G̃_ε`.  What is still missing there
+  is the second half of (18.19): the high-temperature bound `μ(ξ(G̃_ε, ·) ≠ ∅) = 0` for
+  `3 r(β, ε) < 1`, a self-avoiding path count over the single-site conditional probabilities
+  `γ^{βΦ}_{\{i\}}(σ_i · ω_j ≥ 1 - ε | ω)`, which is independent of everything above.
 -/
 
 @[expose] public section
@@ -1260,6 +1263,102 @@ theorem measure_crossEvent_le (hG : MeasurableSet G') (hGsym : IsRSymmetric E G'
     _ = μ {ω | (0 : Site) ∈ latticeOceanPart E G' ω} := by rw [h, add_zero]
 
 end Step4
+
+/-! ### Georgii, in the proof of Theorem (18.17): `{ξ⁰_P(G, ·) ≠ ∅}` is a tail event -/
+
+section Tail
+
+open Peierls
+
+section AnyDim
+
+variable {d : ℕ} {G' : Set ((Fin d → Fin 2) → E)}
+
+/-- The sites whose elementary cube meets `Λ`, i.e. the sites at which Georgii (18.3) can change
+when the spins in `Λ` are changed.  It is dual to `cubeSupport`, which collects the spins that
+(18.3) reads over a given set of sites. -/
+def cubePreSupport (Λ : Finset (Fin d → ℤ)) : Finset (Fin d → ℤ) :=
+  Λ.biUnion fun x ↦ Finset.univ.image fun c : Fin d → Fin 2 ↦ x - intCubeCast c
+
+lemma mem_cubePreSupport_iff {Λ : Finset (Fin d → ℤ)} {i : Fin d → ℤ} :
+    i ∈ cubePreSupport Λ ↔ ∃ c, i + intCubeCast c ∈ Λ := by
+  classical
+  simp only [cubePreSupport, Finset.mem_biUnion, Finset.mem_image, Finset.mem_univ, true_and]
+  constructor
+  · rintro ⟨x, hx, c, rfl⟩
+    exact ⟨c, by simpa using hx⟩
+  · rintro ⟨c, hc⟩
+    exact ⟨i + intCubeCast c, hc, c, by abel⟩
+
+omit [IsProbabilityMeasure ν] in
+/-- **Georgii (18.3) reads only the spins outside `Λ` at the sites whose cube misses `Λ`.**  If
+`ω` and `ω'` agree off a finite volume `Λ` then they show the same pattern at every site whose
+elementary cube does not meet `Λ`. -/
+lemma mem_latticePattern_congr_of_notMem_cubePreSupport {Λ : Finset (Fin d → ℤ)}
+    {ω ω' : (Fin d → ℤ) → E} (h : ∀ i ∉ Λ, ω i = ω' i) {i : Fin d → ℤ}
+    (hi : i ∉ cubePreSupport Λ) :
+    i ∈ latticePattern E G' ω ↔ i ∈ latticePattern E G' ω' :=
+  mem_latticePattern_congr fun c ↦ h _ fun hmem ↦ hi (mem_cubePreSupport_iff.2 ⟨c, hmem⟩)
+
+omit [IsProbabilityMeasure ν] in
+/-- **Altering the spins in a finite volume alters (18.3) only in a finite set of sites**: the
+sites whose elementary cube meets that volume. -/
+lemma latticePattern_diff_subset_cubePreSupport {Λ : Finset (Fin d → ℤ)}
+    {ω ω' : (Fin d → ℤ) → E} (h : ∀ i ∉ Λ, ω i = ω' i) :
+    latticePattern E G' ω \ latticePattern E G' ω' ⊆ (cubePreSupport Λ : Set (Fin d → ℤ)) := by
+  intro i hi
+  by_contra hmem
+  exact hi.2 ((mem_latticePattern_congr_of_notMem_cubePreSupport h hmem).1 hi.1)
+
+end AnyDim
+
+variable {G' : Set ((Fin 2 → Fin 2) → E)}
+
+omit [IsProbabilityMeasure ν] in
+/-- **The event `{ξ⁰_P(G, ·) ≠ ∅}` is measurable.**  Georgii's Definition (18.6) is a countable
+condition over the countable lattice `ℤ²`: `SimpleGraph.measurableSet_setOf_oceanPart_nonempty`
+turns it into countably many reachability events, each of which is a countable union of the local
+events `{i ∈ V(G, ·)}`. -/
+lemma measurableSet_setOf_latticeOceanPart_nonempty (hG : MeasurableSet G')
+    (hGsym : IsRSymmetric E G') :
+    MeasurableSet {ω : (Fin 2 → ℤ) → E | (latticeOceanPart E G' ω).Nonempty} :=
+  SimpleGraph.measurableSet_setOf_oceanPart_nonempty _ _
+    (measurableSet_setOf_mem_latticePattern hG hGsym)
+
+omit [IsProbabilityMeasure ν] in
+/-- **Georgii, the tail property used in the proof of Theorem (18.17)**:
+`{ξ⁰_P(G, ·) ≠ ∅} ∈ 𝒯`.
+
+For a finite volume `Λ` the event is `𝓕_{Λᶜ}`-measurable, because it is measurable
+(`measurableSet_setOf_latticeOceanPart_nonempty`) and depends only on the spins outside `Λ`:
+changing those spins changes `V(G, ·)` only in the finitely many sites whose elementary cube
+meets `Λ` (`latticePattern_diff_subset_cubePreSupport`), and whether a subset of the plane
+contains an ocean is unchanged by a finite modification
+(`Peierls.oceanPart_nonempty_congr_of_finite_diff`, whose planar input is the uniqueness of the
+infinite cluster of a set with finite islands). -/
+theorem tail_measurableSet_setOf_latticeOceanPart_nonempty (hG : MeasurableSet G)
+    (hGsym : IsRSymmetric E G) :
+    MeasurableSet[@tailSigmaAlgebra (Fin 2 → ℤ) E _]
+      {ω | (latticeOceanPart E G ω).Nonempty} := by
+  have hamb : Measurable fun ω : (Fin 2 → ℤ) → E ↦ (latticeOceanPart E G ω).Nonempty := by
+    rw [← measurableSet_setOfPred]
+    exact measurableSet_setOf_latticeOceanPart_nonempty hG hGsym
+  refine MeasurableSpace.measurableSet_iInf.2 fun Λ ↦ ?_
+  have hdep : DependsOn (fun ω : (Fin 2 → ℤ) → E ↦ (latticeOceanPart E G ω).Nonempty)
+      ((Λ : Set (Fin 2 → ℤ))ᶜ) := by
+    intro ω ω' h
+    have hΛ : ∀ i ∉ Λ, ω i = ω' i := fun i hi ↦ h i hi
+    refine propext ?_
+    change (latticeOceanPart E G ω).Nonempty ↔ (latticeOceanPart E G ω').Nonempty
+    rw [latticeOceanPart, latticeOceanPart]
+    exact oceanPart_nonempty_congr_of_finite_diff
+      ((cubePreSupport Λ).finite_toSet.subset (latticePattern_diff_subset_cubePreSupport hΛ))
+      ((cubePreSupport Λ).finite_toSet.subset
+        (latticePattern_diff_subset_cubePreSupport fun i hi ↦ (hΛ i hi).symm))
+  have hcyl := (hamb.cylinderEvents_of_dependsOn hdep) (measurableSet_singleton True)
+  rwa [Set.preimage_singleton_true] at hcyl
+
+end Tail
 
 /-! ### Georgii, Theorem (18.17) and Corollary (18.18) -/
 

@@ -205,6 +205,30 @@
     \leanok
 \end{proof}
 
+\begin{lemma}[The tail property of oceans, Georgii's ``$\{\xi^0_P(G,\cdot) \neq \emptyset\} \in \mathcal T$'' in the proof of (18.17)]
+    \label{lem:lo-ocean-tail}
+    \uses{def:lo-18-6, thm:lo-18-16}
+    \lean{SimpleGraph.IsOceanIn.finite_island_infiniteClusters_diff, SimpleGraph.IsOceanIn.isOceanIn_infiniteClusters_diff, SimpleGraph.oceanPart_nonempty_iff_isOceanIn_infiniteClusters, SimpleGraph.oceanPart_nonempty_congr_of_finite_diff, SimpleGraph.finite_connectedComponent_induce_diff, SimpleGraph.oceanPart_mono, SimpleGraph.exists_isPath_length_eq_of_mem_infiniteClusters, SimpleGraph.finite_setOf_exists_walk_length_le, SimpleGraph.exists_isPath_length_eq_of_infinite_supp, SimpleGraph.pathLists, SimpleGraph.mem_pathLists_iff, SimpleGraph.card_pathLists_succ_le, SimpleGraph.measurableSet_setOf_reachableIn, SimpleGraph.measurableSet_setOf_mem_infiniteClusters, SimpleGraph.forall_finite_supp_iff_forall_exists_finset, SimpleGraph.measurableSet_setOf_isOceanIn, SimpleGraph.measurableSet_setOf_oceanPart_nonempty, MeasureTheory.GibbsMeasure.Peierls.edgesBetween_connected, MeasureTheory.GibbsMeasure.Peierls.boundary_starConnected, MeasureTheory.GibbsMeasure.Peierls.eq_of_infinite_supp_of_forall_finite_island, MeasureTheory.GibbsMeasure.Peierls.forall_finite_island_imp_eq_of_infinite_supp, MeasureTheory.GibbsMeasure.Peierls.starLatticeGraph_neighborSet_finite, MeasureTheory.GibbsMeasure.Peierls.oceanPart_nonempty_congr_of_finite_diff, MeasureTheory.GibbsMeasure.cubePreSupport, MeasureTheory.GibbsMeasure.latticePattern_diff_subset_cubePreSupport, MeasureTheory.GibbsMeasure.measurableSet_setOf_latticeOceanPart_nonempty, MeasureTheory.GibbsMeasure.tail_measurableSet_setOf_latticeOceanPart_nonempty}
+    \leanok
+
+    Whether a subset of the plane contains an ocean is unchanged by adding or removing finitely
+    many sites, so $\{\xi^0_P(G,\cdot) \neq \emptyset\}$, which is a measurable event (a countable
+    condition on chains), is a tail event: for a finite $\Lambda$ it depends only on the spins off
+    $\Lambda$, since altering them changes $V(G,\cdot)$ on the finitely many sites whose cube meets
+    $\Lambda$. Georgii asserts the tail property without proof. On a general graph, removing a
+    finite set $F$ from an ocean $\xi$ leaves finitely many $*$-islands adjacent to $F$ (local
+    finiteness of the $*$-graph), so every island of $\xi \setminus F$ is finite; that the infinite
+    clusters of $\xi \setminus F$ form a single ocean uses a genuinely planar fact: a subset of
+    $\mathbb Z^2$ all of whose $*$-islands are finite has at most one infinite nearest-neighbour
+    cluster (the edge boundary of a nearest-neighbour cluster is $*$-connected, a mod-two
+    argument), which is false on $\mathbb Z$. Also: the ocean part is monotone in the set,
+    infinite clusters contain self-avoiding paths of every length, and the number of self-avoiding
+    paths of length $n+1$ from a vertex of maximal degree $\Delta$ is at most $\Delta(\Delta-1)^n$.
+\end{lemma}
+\begin{proof}
+    \leanok
+\end{proof}
+
 \begin{theorem}[Georgii (18.17) and Corollary (18.18), the first assertions]
     \label{thm:lo-18-17}
     \uses{thm:lo-18-16, thm:lo-18-18-quadrant, prop:lo-18-12}

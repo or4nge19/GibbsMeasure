@@ -27,6 +27,9 @@ public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Acyclic
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.CayleyTree
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Hasse
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.InfiniteCluster
+public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.SelfAvoidingPath
+public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.OceanPart
+public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Measurable
 public import GibbsMeasure.Mathlib.Data.Countable.Basic
 public import GibbsMeasure.Mathlib.Data.ZMod.Basic
 public import GibbsMeasure.Mathlib.Data.Set.CardTranslate
@@ -253,6 +256,7 @@ public import GibbsMeasure.Model.GaussianGibbs
 public import GibbsMeasure.Model.GaussianHomogeneous
 public import GibbsMeasure.Model.KalikowClassification
 public import GibbsMeasure.Model.LowEnergyOceans
+public import GibbsMeasure.Model.UniqueInfiniteCluster
 public import GibbsMeasure.Model.OceanNetwork
 public import GibbsMeasure.Model.PlanarCrossing
 public import GibbsMeasure.Model.ShiftAverage

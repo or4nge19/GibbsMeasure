@@ -25,6 +25,13 @@ components of the induced subgraph `G.induce s`.
   an ocean in `R`, and `∅` otherwise; it is nonempty iff `W` contains an ocean
   (`SimpleGraph.oceanPart_nonempty_iff`) and then it is the largest such ocean
   (`SimpleGraph.IsOceanIn.subset_oceanPart`).
+* `SimpleGraph.IsOceanIn.finite_island_infiniteClusters_diff`,
+  `SimpleGraph.IsOceanIn.isOceanIn_infiniteClusters_diff`,
+  `SimpleGraph.oceanPart_nonempty_congr_of_finite_diff`: removing a finite set from an ocean.
+  The islands of the union of the infinite clusters of `ξ \ F` are finite whenever `H` is locally
+  finite; that union is again an ocean under the additional planarity hypothesis that a subset
+  of `R` with only finite islands has at most one infinite cluster; and then whether a set
+  contains an ocean is unchanged by a finite modification — Georgii's `{ξ⁰_P(G, ·) ≠ ∅} ∈ 𝒯`.
 * `SimpleGraph.infiniteClusters_image`, `SimpleGraph.IsOceanIn.image`,
   `SimpleGraph.oceanPart_image`: all three are equivariant under an equivalence of the vertex
   type preserving the adjacency of both graphs and the set `R`.
@@ -53,6 +60,16 @@ lemma reachable_induce_of_walk {u v : V} (p : G.Walk u v) (hp : ∀ x ∈ p.supp
 lemma ReachableIn.of_walk {u v : V} (p : G.Walk u v) (hp : ∀ x ∈ p.support, x ∈ s) :
     G.ReachableIn s u v :=
   ⟨hp u p.start_mem_support, hp v p.end_mem_support, reachable_induce_of_walk p hp⟩
+
+/-- Reachability inside `s` is witnessed by a walk of `G` whose support lies in `s`. -/
+lemma ReachableIn.exists_walk {u v : V} (h : G.ReachableIn s u v) :
+    ∃ p : G.Walk u v, ∀ x ∈ p.support, x ∈ s := by
+  obtain ⟨hu, hv, ⟨q⟩⟩ := h
+  refine ⟨q.map (Embedding.induce s).toHom, fun x hx ↦ ?_⟩
+  have hx' : x ∈ (q.map (Embedding.induce s).toHom).support := hx
+  rw [Walk.support_map, List.mem_map] at hx'
+  obtain ⟨y, -, rfl⟩ := hx'
+  exact y.2
 
 /-- Reachability inside `s` for `G` implies reachability inside `t ⊇ s` for `H ≥ G`. -/
 lemma Reachable.induce_mono (hGH : G ≤ H) (hst : s ⊆ t) {u v : s}
@@ -232,6 +249,18 @@ lemma mem_infiniteClusters_of_reachable {x y : s} (hx : x.1 ∈ G.infiniteCluste
   refine mem_infiniteClusters_iff.2 ⟨c, hc, y.2, ?_⟩
   rw [ConnectedComponent.mem_supp_iff] at hxc ⊢
   exact (ConnectedComponent.eq.2 h).symm.trans hxc
+
+/-- From a point of an infinite cluster of `s`, reachability inside the union of the infinite
+clusters of `s` is the same as reachability inside `s`. -/
+lemma reachableIn_infiniteClusters_iff (hu : u ∈ G.infiniteClusters s) :
+    G.ReachableIn (G.infiniteClusters s) u v ↔ G.ReachableIn s u v := by
+  refine ⟨fun h ↦ h.mono infiniteClusters_subset, fun h ↦ ?_⟩
+  refine h.induction (P := fun x ↦ G.ReachableIn (G.infiniteClusters s) u x)
+    (ReachableIn.refl hu) fun a b ha hb hab hPa ↦ ?_
+  have hb' : b ∈ G.infiniteClusters s :=
+    mem_infiniteClusters_of_reachable (x := ⟨a, ha⟩) (y := ⟨b, hb⟩) hPa.mem_right
+      (Adj.reachable (induce_adj.2 hab))
+  exact hPa.trans (ReachableIn.of_adj hPa.mem_right hb' hab)
 
 /-- Enlarging the graph and the set of vertices enlarges the union of the infinite clusters. -/
 lemma infiniteClusters_mono (hGH : G ≤ H) (hst : s ⊆ t) :
@@ -420,6 +449,250 @@ theorem oceanPart_nonempty_iff (hGH : G ≤ H)
     obtain ⟨c, hc, -⟩ := hξ.existsUnique_infinite_supp hGH (hξ.infinite hR) hξW hWR
     exact hξ.nonempty.mono
       ((hξ.subset_image_val_supp hGH hξW hWR hc).trans (image_val_supp_subset_infiniteClusters hc))
+
+/-! ### Removing a finite set from an ocean
+
+Georgii asserts, in the proof of Theorem (18.17), that `{ξ⁰_P(G, ·) ≠ ∅}` is a tail event: that
+whether a set of sites contains an ocean is unchanged by altering finitely many sites.  The
+content is the following.  Let `ξ` be an ocean in `R` and `F` a finite set.  Then
+
+* every island of the union of the infinite clusters of `ξ \ F` is finite
+  (`IsOceanIn.finite_island_infiniteClusters_diff`) — this holds for any `G ≤ H` with `H`
+  locally finite;
+* `ξ \ F` has exactly one infinite cluster, so that this union is again an ocean
+  (`IsOceanIn.isOceanIn_infiniteClusters_diff`).  This is **not** true in general: on the line
+  `ℤ` with `G = H` the ocean `ℤ` minus the origin has two infinite clusters, and `ℤ \ {0}`
+  contains no ocean.  What the plane `ℤ²` has, and the line does not, is the property `hR₁`
+  below: a subset of `R` all of whose islands are finite has at most one infinite cluster.  For
+  `ℤ²` it is proved in `GibbsMeasure/Model/UniqueInfiniteCluster.lean`.
+
+`oceanPart_nonempty_congr_of_finite_diff` is the resulting tail property: two subsets of `R`
+with finite symmetric difference either both contain an ocean or neither does. -/
+
+section Removal
+
+variable {S T K : Set V}
+
+/-- When a connected set `S` meets `T`, every cluster of `S \ T` has a vertex adjacent to a
+vertex of `S ∩ T`. -/
+lemma exists_adj_of_connected_diff (hS : (G.induce S).Connected) (hST : (S ∩ T).Nonempty)
+    (c : (G.induce (S \ T)).ConnectedComponent) :
+    ∃ x ∈ c.supp, ∃ y ∈ S ∩ T, G.Adj x.1 y := by
+  obtain ⟨⟨x, hxS, hxT⟩, hx⟩ := c.nonempty_supp
+  obtain ⟨y, hyS, hyT⟩ := hST
+  obtain ⟨p, hp⟩ := hS.exists_walk_of_induce hxS hyS
+  obtain ⟨w, z, q, hq, hwz, hz, hzp⟩ :=
+    exists_walk_until_exit (s := S \ T) p ⟨hxS, hxT⟩ fun h ↦ h.2 hyT
+  have hqS : ∀ a ∈ q.support, a ∈ S \ T := fun a ha ↦ (hq a ha).1
+  refine ⟨⟨w, hqS w q.end_mem_support⟩, ?_, z, ⟨hp z hzp, ?_⟩, hwz⟩
+  · rw [ConnectedComponent.mem_supp_iff] at hx ⊢
+    rw [← hx]
+    exact (ConnectedComponent.eq.2 (reachable_induce_of_walk q hqS)).symm
+  · by_contra hzT
+    exact hz ⟨hp z hzp, hzT⟩
+
+/-- If every cluster of `S` has a vertex adjacent to a finite set `K` at whose vertices `G` is
+locally finite, then `S` has finitely many clusters. -/
+lemma finite_connectedComponent_induce_of_forall_exists_adj (hK : K.Finite)
+    (hG : ∀ k ∈ K, (G.neighborSet k).Finite)
+    (h : ∀ c : (G.induce S).ConnectedComponent, ∃ x ∈ c.supp, ∃ k ∈ K, G.Adj x.1 k) :
+    Finite (G.induce S).ConnectedComponent := by
+  choose x hx k hk hadj using h
+  have hN : (⋃ k ∈ K, G.neighborSet k).Finite := hK.biUnion hG
+  have := hN.to_subtype
+  refine Finite.of_injective (fun c ↦ (⟨(x c).1, Set.mem_biUnion (hk c)
+    ((mem_neighborSet _ _ _).2 (hadj c).symm)⟩ : ↥(⋃ k ∈ K, G.neighborSet k))) fun c c' hcc' ↦ ?_
+  have hval : x c = x c' := Subtype.ext (congrArg Subtype.val hcc' :)
+  exact ConnectedComponent.eq_of_common_vertex (hx c) (hval ▸ hx c')
+
+/-- Removing a finite set from a connected set leaves finitely many clusters, in a locally finite
+graph. -/
+lemma finite_connectedComponent_induce_diff (hS : (G.induce S).Connected) (hT : T.Finite)
+    (hG : ∀ v, (G.neighborSet v).Finite) : Finite (G.induce (S \ T)).ConnectedComponent := by
+  rcases (S ∩ T).eq_empty_or_nonempty with h | h
+  · have hST : S \ T = S := sdiff_eq_left.2 (Set.disjoint_iff_inter_eq_empty.2 h)
+    rw [hST]
+    have := hS.preconnected.subsingleton_connectedComponent
+    infer_instance
+  · exact finite_connectedComponent_induce_of_forall_exists_adj (hT.inter_of_right S)
+      (fun k _ ↦ hG k) (exists_adj_of_connected_diff hS h)
+
+/-- An infinite set with finitely many clusters has an infinite cluster. -/
+lemma exists_infinite_supp_of_infinite [Finite (G.induce S).ConnectedComponent]
+    (hS : S.Infinite) : ∃ c : (G.induce S).ConnectedComponent, c.supp.Infinite := by
+  by_contra h
+  simp only [not_exists, Set.not_infinite] at h
+  refine hS (Set.finite_coe_iff.1 (Set.finite_univ_iff.1 ?_))
+  rw [← (G.induce S).iUnion_connectedComponentSupp]
+  exact Set.finite_iUnion h
+
+/-- With finitely many clusters, the vertices of `S` outside its infinite clusters form a finite
+set. -/
+lemma finite_diff_infiniteClusters [Finite (G.induce S).ConnectedComponent] :
+    (S \ G.infiniteClusters S).Finite := by
+  refine ((Set.toFinite {c : (G.induce S).ConnectedComponent | c.supp.Finite}).biUnion
+    fun c hc ↦ hc.image Subtype.val).subset ?_
+  intro x ⟨hxS, hx⟩
+  refine Set.mem_biUnion (x := (G.induce S).connectedComponentMk ⟨x, hxS⟩) ?_
+    ⟨⟨x, hxS⟩, ConnectedComponent.connectedComponentMk_mem, rfl⟩
+  exact Set.not_infinite.1 fun hinf ↦ hx ⟨hxS, hinf⟩
+
+/-- A subset of `R \ ξ` which is `H`-reachable from one of its points lies in a single island of
+the ocean `ξ`, hence is finite. -/
+lemma IsOceanIn.finite_of_subset_diff (h : IsOceanIn G H R ξ) (hS : S ⊆ R \ ξ) {x : V}
+    (hx : x ∈ S) (hreach : ∀ y ∈ S, H.ReachableIn S x y) : S.Finite := by
+  refine ((h.finite_island ((H.induce (R \ ξ)).connectedComponentMk ⟨x, hS hx⟩)).image
+    Subtype.val).subset fun y hy ↦ ?_
+  obtain ⟨hx', hy', hr⟩ := hreach y hy
+  refine ⟨⟨y, hS hy⟩, ?_, rfl⟩
+  rw [ConnectedComponent.mem_supp_iff]
+  exact (ConnectedComponent.eq.2 (hr.induce_mono le_rfl hS)).symm
+
+/-- **Removing a finite set from an ocean: the islands.**  Let `ξ` be an ocean in `R` for
+`G ≤ H` with `H` locally finite, and let `F` be finite.  Every island in `R` of the union of the
+infinite clusters of `ξ \ F` is finite.
+
+Such an island `D` consists of points of `R \ ξ`, of `ξ ∩ F`, and of the finitely many finite
+clusters of `ξ \ F`.  The `H`-clusters of `D` outside the finite set `K` of the latter two kinds
+of points are `H`-connected subsets of `R \ ξ`, hence lie in islands of `ξ` and are finite, and
+each is adjacent to `K`; local finiteness leaves room for only finitely many of them. -/
+theorem IsOceanIn.finite_island_infiniteClusters_diff (hGH : G ≤ H)
+    (hH : ∀ v, (H.neighborSet v).Finite) (h : IsOceanIn G H R ξ) {F : Set V} (hF : F.Finite)
+    (c : (H.induce (R \ G.infiniteClusters (ξ \ F))).ConnectedComponent) : c.supp.Finite := by
+  have hG : ∀ v, (G.neighborSet v).Finite := fun v ↦ (hH v).subset fun _ hw ↦ hGH hw
+  have : Finite (G.induce (ξ \ F)).ConnectedComponent :=
+    finite_connectedComponent_induce_diff h.connected hF hG
+  have hKfin : ((ξ ∩ F) ∪ ((ξ \ F) \ G.infiniteClusters (ξ \ F))).Finite :=
+    (hF.inter_of_right ξ).union finite_diff_infiniteClusters
+  generalize hξ' : G.infiniteClusters (ξ \ F) = ξ' at c hKfin ⊢
+  set K : Set V := (ξ ∩ F) ∪ ((ξ \ F) \ ξ') with hK
+  suffices hDfin : (Subtype.val '' c.supp).Finite from
+    Set.Finite.of_finite_image hDfin Subtype.val_injective.injOn
+  have hcover : R \ ξ' ⊆ (R \ ξ) ∪ K := by
+    intro y ⟨hyR, hyξ'⟩
+    by_cases hyξ : y ∈ ξ
+    · by_cases hyF : y ∈ F
+      · exact Or.inr (Or.inl ⟨hyξ, hyF⟩)
+      · exact Or.inr (Or.inr ⟨⟨hyξ, hyF⟩, hyξ'⟩)
+    · exact Or.inl ⟨hyR, hyξ⟩
+  set D : Set V := Subtype.val '' c.supp with hD
+  have hDsub : D ⊆ R \ ξ' := by
+    rintro _ ⟨y, -, rfl⟩
+    exact y.2
+  have hDconn : (H.induce D).Connected := connected_induce_image_val_supp c
+  have hDreach : ∀ u ∈ D, ∀ v ∈ D, H.ReachableIn D u v :=
+    (connected_induce_iff_forall_reachableIn.1 hDconn).2
+  rcases (D ∩ K).eq_empty_or_nonempty with hDK | hDK
+  · obtain ⟨x, hx⟩ := hDconn.induce_nonempty
+    refine h.finite_of_subset_diff (fun y hy ↦ ?_) hx (hDreach x hx)
+    rcases hcover (hDsub hy) with hyξ | hyK
+    · exact hyξ
+    · exact absurd ⟨hy, hyK⟩ (Set.eq_empty_iff_forall_notMem.1 hDK y)
+  · have : Finite (H.induce (D \ K)).ConnectedComponent :=
+      finite_connectedComponent_induce_of_forall_exists_adj (hKfin.inter_of_right D)
+        (fun k _ ↦ hH k) (exists_adj_of_connected_diff hDconn hDK)
+    have hDK' : (D \ K).Finite := by
+      have hunion : D \ K
+          = ⋃ c' : (H.induce (D \ K)).ConnectedComponent, Subtype.val '' c'.supp := by
+        ext y
+        constructor
+        · intro hy
+          exact Set.mem_iUnion.2 ⟨(H.induce (D \ K)).connectedComponentMk ⟨y, hy⟩,
+            ⟨y, hy⟩, ConnectedComponent.connectedComponentMk_mem, rfl⟩
+        · intro hy
+          obtain ⟨c', hc'⟩ := Set.mem_iUnion.1 hy
+          obtain ⟨z, -, rfl⟩ := hc'
+          exact z.2
+      rw [hunion]
+      refine Set.finite_iUnion fun c' ↦ ?_
+      obtain ⟨x, hx⟩ := c'.nonempty_supp
+      refine h.finite_of_subset_diff (S := Subtype.val '' c'.supp) ?_ ⟨x, hx, rfl⟩ ?_
+      · rintro _ ⟨y, -, rfl⟩
+        rcases hcover (hDsub y.2.1) with h1 | h1
+        · exact h1
+        · exact absurd h1 y.2.2
+      · exact fun y hy ↦ (connected_induce_iff_forall_reachableIn.1
+          (connected_induce_image_val_supp c')).2 _ ⟨x, hx, rfl⟩ y hy
+    rw [← Set.sdiff_union_inter D K]
+    exact hDK'.union (hKfin.inter_of_right D)
+
+/-- **Removing a finite set from an ocean.**  Let `ξ` be an infinite ocean in `R` for `G ≤ H`
+with `H` locally finite, and let `F` be finite.  Suppose that every subset of `R` all of whose
+islands are finite has at most one infinite cluster (`hR₁`; true in the plane `ℤ²`, false on the
+line `ℤ`).  Then the union of the infinite clusters of `ξ \ F` is again an ocean in `R`: it is
+nonempty and connected because it has exactly one infinite cluster, and its islands are finite by
+`IsOceanIn.finite_island_infiniteClusters_diff`. -/
+theorem IsOceanIn.isOceanIn_infiniteClusters_diff (hGH : G ≤ H)
+    (hH : ∀ v, (H.neighborSet v).Finite)
+    (hR₁ : ∀ X ⊆ R, (∀ c : (H.induce (R \ X)).ConnectedComponent, c.supp.Finite) →
+      ∀ c₁ c₂ : (G.induce X).ConnectedComponent, c₁.supp.Infinite → c₂.supp.Infinite → c₁ = c₂)
+    (h : IsOceanIn G H R ξ) (hξ : ξ.Infinite) {F : Set V} (hF : F.Finite) :
+    IsOceanIn G H R (G.infiniteClusters (ξ \ F)) := by
+  have hG : ∀ v, (G.neighborSet v).Finite := fun v ↦ (hH v).subset fun _ hw ↦ hGH hw
+  have : Finite (G.induce (ξ \ F)).ConnectedComponent :=
+    finite_connectedComponent_induce_diff h.connected hF hG
+  set ξ' := G.infiniteClusters (ξ \ F) with hξ'
+  have hsub : ξ' ⊆ R := infiniteClusters_subset.trans (Set.sdiff_subset.trans h.subset)
+  have hisl := h.finite_island_infiniteClusters_diff hGH hH hF
+  have huniq := hR₁ ξ' hsub hisl
+  -- every point of `ξ'` lies in an infinite cluster of `ξ'`: its cluster in `ξ \ F`
+  have hinf : ∀ (u : V) (hu : u ∈ ξ'),
+      ((G.induce ξ').connectedComponentMk ⟨u, hu⟩).supp.Infinite := by
+    intro u hu
+    obtain ⟨huF, hucomp⟩ := hu
+    set c := (G.induce (ξ \ F)).connectedComponentMk ⟨u, huF⟩ with hc
+    have himg : Subtype.val '' c.supp ⊆ ξ' := image_val_supp_subset_infiniteClusters hucomp
+    have hconn := connected_induce_image_val_supp c
+    refine Set.Infinite.mono (s := Subtype.val ⁻¹' (Subtype.val '' c.supp)) ?_
+      ((hucomp.image Subtype.val_injective.injOn).preimage (by simpa using himg))
+    rintro ⟨w, hw⟩ hw'
+    have hr := hconn.preconnected ⟨u, ⟨u, huF⟩, ConnectedComponent.connectedComponentMk_mem, rfl⟩
+      ⟨w, hw'⟩
+    rw [ConnectedComponent.mem_supp_iff]
+    exact (ConnectedComponent.eq.2 (hr.induce_mono le_rfl himg)).symm
+  refine ⟨hsub, ?_, hisl⟩
+  rw [connected_induce_iff_forall_reachableIn]
+  refine ⟨?_, fun u hu v hv ↦ ⟨hu, hv, ConnectedComponent.eq.1 (huniq _ _ (hinf u hu) (hinf v hv))⟩⟩
+  obtain ⟨c, hc⟩ := exists_infinite_supp_of_infinite (G := G) (hξ.sdiff hF)
+  obtain ⟨x, hx⟩ := c.nonempty_supp
+  exact ⟨x, image_val_supp_subset_infiniteClusters hc ⟨x, hx, rfl⟩⟩
+
+/-- `ξ⁰_R` of a set is nonempty exactly when the union of its infinite clusters is an ocean. -/
+lemma oceanPart_nonempty_iff_isOceanIn_infiniteClusters :
+    (oceanPart G H R W).Nonempty ↔ IsOceanIn G H R (G.infiniteClusters W) := by
+  constructor
+  · intro h
+    by_contra hnot
+    rw [oceanPart_eq_empty_of_not_isOceanIn hnot] at h
+    exact Set.not_nonempty_empty h
+  · intro h
+    rw [oceanPart_eq_of_isOceanIn h]
+    exact h.nonempty
+
+/-- **Containing an ocean is a tail property.**  Two subsets `W`, `W'` of `R` with finite
+symmetric difference either both contain an ocean in `R` or neither does, under the hypotheses of
+`IsOceanIn.isOceanIn_infiniteClusters_diff` and `oceanPart_nonempty_iff`: an ocean `ξ ⊆ W`
+yields the ocean `infiniteClusters (ξ \ (W \ W')) ⊆ W'`.  With Georgii (18.3) this is
+`{ξ⁰_P(G, ·) ≠ ∅} ∈ 𝒯`, used in the proof of his Theorem (18.17). -/
+theorem oceanPart_nonempty_congr_of_finite_diff (hGH : G ≤ H)
+    (hR : ∀ F : Set V, F.Finite → (H.infiniteClusters (R \ F)).Nonempty)
+    (hH : ∀ v, (H.neighborSet v).Finite)
+    (hR₁ : ∀ X ⊆ R, (∀ c : (H.induce (R \ X)).ConnectedComponent, c.supp.Finite) →
+      ∀ c₁ c₂ : (G.induce X).ConnectedComponent, c₁.supp.Infinite → c₂.supp.Infinite → c₁ = c₂)
+    {W W' : Set V} (hW : W ⊆ R) (hW' : W' ⊆ R) (h₁ : (W \ W').Finite) (h₂ : (W' \ W).Finite) :
+    (oceanPart G H R W).Nonempty ↔ (oceanPart G H R W').Nonempty := by
+  have key : ∀ {W W' : Set V}, W ⊆ R → W' ⊆ R → (W \ W').Finite →
+      (oceanPart G H R W).Nonempty → (oceanPart G H R W').Nonempty := by
+    intro W W' hW hW' h₁ hne
+    obtain ⟨ξ, hξW, hξ⟩ := (oceanPart_nonempty_iff hGH hR hW).1 hne
+    refine (oceanPart_nonempty_iff hGH hR hW').2 ⟨_, fun x hx ↦ ?_,
+      hξ.isOceanIn_infiniteClusters_diff hGH hH hR₁ (hξ.infinite hR) h₁⟩
+    have hx' := infiniteClusters_subset hx
+    by_contra hxW'
+    exact hx'.2 ⟨hξW hx'.1, hxW'⟩
+  exact ⟨key hW hW' h₁, key hW' hW h₂⟩
+
+end Removal
 
 /-! ### Transport along a symmetry of the graph -/
 

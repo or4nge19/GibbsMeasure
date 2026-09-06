@@ -585,8 +585,11 @@ Georgii's "clearly this network is an ocean" is replaced by a circuit argument a
 the cluster of the origin, the cross centres forming a grid by Poincaré recurrence. Hence
 **Theorem (18.17)** and **Corollary (18.18)**, first assertions: `μ(0 ∈ ξ⁰_P(G,·)) ≥ 1 − 4z(t(G,Φ))`
 for `μ ∈ 𝒢₀(Φ)`, and `lim_β inf_{𝒢₀(βΦ)} μ(0 ∈ ξ⁰_P(G_ε(Φ),·)) = 1` over a standard Borel state
-space. Open: their second assertions (that `{ξ⁰_P ≠ ∅}` is a tail event and the reflection
-invariance of `𝒢₀(Φ)`), and (18.19), which needs the Heisenberg `C`-potential on the sphere.
+space. That `{ξ⁰_P ≠ ∅}` is a tail event, which Georgii asserts without proof, is a theorem
+(`Model/UniqueInfiniteCluster.lean`): in the plane a set all of whose `*`-islands are finite has at
+most one infinite nearest-neighbour cluster, which is false on `ℤ`. Open: their second assertions
+(the reflection invariance of `𝒢₀(Φ)` and the conditioning), and (18.19), which needs the Heisenberg
+`C`-potential on the sphere.
 
 **Chapter 20, §20.1** (`GibbsMeasure/Specification/InfraredBound.lean`): the preliminaries of the
 infrared bound on the torus — the tail estimate (20.6) for the periodic Gibbs distribution of a
