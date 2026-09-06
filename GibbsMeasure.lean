@@ -278,6 +278,11 @@ public import GibbsMeasure.Model.UniqueInfiniteCluster
 public import GibbsMeasure.Model.LowEnergyOceanPhase
 public import GibbsMeasure.Model.HeisenbergOceans
 public import GibbsMeasure.Model.DiscreteSymmetryBreaking
+public import GibbsMeasure.Model.DiscreteSymmetryBreakingExamples
+public import GibbsMeasure.Model.IsingOceans
+public import GibbsMeasure.Model.GertsikDobrushin
+public import GibbsMeasure.Model.PottsOceans
+public import GibbsMeasure.Model.AnisotropicHeisenbergOceans
 public import GibbsMeasure.Model.GroundStateRefinement
 public import GibbsMeasure.Model.BlumeCapel
 public import GibbsMeasure.Model.OceanNetwork

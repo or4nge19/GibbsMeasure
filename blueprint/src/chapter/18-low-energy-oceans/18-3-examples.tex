@@ -1,0 +1,80 @@
+\section{Examples}
+
+\begin{proposition}[The toolkit of \S18.3: ground states over a finite state space, the last sentence of (18.25)(iii), the counts]
+    \label{prop:dse-toolkit}
+    \uses{thm:dsb-18-25, def:lo-18-8}
+    \lean{MeasureTheory.GibbsMeasure.localGroundEnergy_eq_ciInf, MeasureTheory.GibbsMeasure.localGroundStates_eq_setOf_le, MeasureTheory.GibbsMeasure.exists_pos_localGroundStates_subset, MeasureTheory.GibbsMeasure.localGroundEnergy_eq_of_isOpenPosMeasure, MeasureTheory.GibbsMeasure.cubeSiteSum, MeasureTheory.GibbsMeasure.sqDiagSum, MeasureTheory.GibbsMeasure.cubeBondSum_eq_iff_forall_adj, MeasureTheory.GibbsMeasure.cubeBondSum_onCube_of_spin_refl, MeasureTheory.GibbsMeasure.pairwise_disjoint_faceRestrict_singleton, MeasureTheory.GibbsMeasure.isPhiSymmetric_of_ne, MeasureTheory.GibbsMeasure.CubeTransformation.isSymmetry_of_spin_refl, MeasureTheory.GibbsMeasure.CubeTransformation.IsSymmetry.const_mul, MeasureTheory.GibbsMeasure.exists_gibbsMeasure_family_shift_of_crossingBound_lt_one, MeasureTheory.GibbsMeasure.eventually_exists_gibbsMeasure_family_shift, MeasureTheory.GibbsMeasure.eventually_le_encard_extremePoints, MeasureTheory.GibbsMeasure.eventually_le_encard_extremePoints_G, MeasureTheory.GibbsMeasure.isCubeConfining_univ_of_finite}
+    \leanok
+
+    Over a finite state space $G_\varepsilon(\Phi) = \{\Phi_C = m_\Phi\}$ for small $\varepsilon$,
+    which turns every ``for $\varepsilon$ small enough'' of \S18.3 into a finite computation; the
+    bond and site sums of a cube interaction and their behaviour under the cube isometries; the
+    packaged (18.25) exposing the last sentence of (iii), $\theta_{e_k}(\mu_m) = \mu_n$ when
+    $r_kG_m = G_n$; the counts $|\operatorname{ex}\mathcal G_\Theta(\beta\Phi)| \geq N$ for an
+    $r$-symmetric partition and $|\operatorname{ex}\mathcal G(\beta\Phi)| \geq N$ in general, by
+    Corollary (7.29).
+\end{proposition}
+\begin{proof}
+    \leanok
+\end{proof}
+
+\begin{example}[Georgii 18.3.1--18.3.2: the Ising ferromagnet and the antiferromagnet in a field]
+    \label{ex:dse-ising}
+    \uses{prop:dse-toolkit}
+    \lean{MeasureTheory.GibbsMeasure.isingFerroCube, MeasureTheory.GibbsMeasure.isingFerroCube_two_values, MeasureTheory.GibbsMeasure.localGroundEnergy_isingFerroCube, MeasureTheory.GibbsMeasure.localGroundStates_isingFerroCube, MeasureTheory.GibbsMeasure.isingFerroG, MeasureTheory.GibbsMeasure.isPStablePartition_isingFerroG, MeasureTheory.GibbsMeasure.isPhiSymmetric_isingFerroG, MeasureTheory.GibbsMeasure.eventually_exists_isingFerro_gibbsMeasure_pair, MeasureTheory.GibbsMeasure.eventually_isingFerro_one_sub_le_measure_zero_mem_latticeOceanPart, MeasureTheory.GibbsMeasure.eventually_two_le_encard_extremePoints_isingFerro, MeasureTheory.GibbsMeasure.isingAntiCube, MeasureTheory.GibbsMeasure.staggerCube, MeasureTheory.GibbsMeasure.neg_four_le_isingAntiCube, MeasureTheory.GibbsMeasure.neg_two_mul_abs_le_isingAntiCube, MeasureTheory.GibbsMeasure.localGroundStates_isingAntiCube, MeasureTheory.GibbsMeasure.eventually_exists_isingAnti_gibbsMeasure_pair}
+    \leanok
+
+    18.3.1: $\Phi_C = -\sum_{|i-j|=1}\sigma_i\sigma_j$ takes the values $-4, 0, 4$, so
+    $G_\varepsilon(\Phi) = \{(++), (--)\}$ for $0 < \varepsilon < 4$; the partition is stable and
+    $\Phi$-symmetric under the spin flip, so for $\beta$ large there are two mutually singular Gibbs
+    measures $\mu_\pm \in \mathcal G_\Theta(\beta\Phi)$, invariant under $r_0, r_1, r_2$, exchanged by
+    the flip, with $\mu_\pm(\xi^0(G_\pm,\cdot) \neq \emptyset) = 1$ and
+    $\mu_\pm(0 \in \xi^0(G_\pm,\cdot)) \geq 1 - 4z(t(G_\varepsilon,\beta\Phi)) \to 1$; hence
+    $|\operatorname{ex}\mathcal G_\Theta(\beta\Phi)| \geq 2$, a refinement of (6.9). 18.3.2:
+    $\Phi_C = \sum\sigma_i\sigma_j - h\sum_{i\in C}\sigma_i$ with $|h| < 2$ attains $-4$ exactly at the
+    two staggered configurations and $-2|h|$ next, so $G_\varepsilon(\Phi)$ is the staggered pair for
+    $0 \leq \varepsilon < 4 - 2|h|$; two Gibbs measures invariant under the shifts with $i_1 + i_2$
+    even, exchanged by $r_0$, $r_1$, $r_2$, $\theta_{(1,0)}$ and $\theta_{(0,1)}$.
+\end{example}
+
+\begin{example}[Georgii 18.3.3: the Gertsik--Dobrushin model]
+    \label{ex:dse-gertsik-dobrushin}
+    \uses{prop:dse-toolkit}
+    \lean{MeasureTheory.GibbsMeasure.gdCube, MeasureTheory.GibbsMeasure.gdCube_apply, MeasureTheory.GibbsMeasure.isSymmetry_of_spin_refl_gdCube, MeasureTheory.GibbsMeasure.isSymmetry_isingSpinFlip_gdCube, MeasureTheory.GibbsMeasure.isSymmetry_sublatticeFlip_gdCube, MeasureTheory.GibbsMeasure.gdCube_onCube_sublatticeFlip, MeasureTheory.GibbsMeasure.gdCube_eq_iff_caseA, MeasureTheory.GibbsMeasure.eventually_two_le_encard_extremePoints_gdCube_caseA, MeasureTheory.GibbsMeasure.gdCube_eq_iff_caseB, MeasureTheory.GibbsMeasure.eventually_exists_gdCube_caseB_gibbsMeasure_pair, MeasureTheory.GibbsMeasure.gdCube_eq_iff_caseC, MeasureTheory.GibbsMeasure.gdGroundC, MeasureTheory.GibbsMeasure.gdFlip, MeasureTheory.GibbsMeasure.isPhiSymmetric_gdGC, MeasureTheory.GibbsMeasure.eventually_four_le_encard_extremePoints_gdCube_caseC, MeasureTheory.GibbsMeasure.gdCube_eq_iff_caseD, MeasureTheory.GibbsMeasure.gdStripe, MeasureTheory.GibbsMeasure.eventually_exists_gdCube_caseD_gibbsMeasure_family, MeasureTheory.GibbsMeasure.eventually_four_le_encard_extremePoints_gdCube_caseD}
+    \leanok
+
+    The interaction (18.29) with its value table and symmetries: every spatial cube transformation,
+    the spin flip when $h = 0$, and the sublattice flip when $h = J_1 = 0$ --- the sublattice flip
+    is not a symmetry in a field, and sends $\Phi^{J_1,J_2,0}$ to $\Phi^{-J_1,J_2,0}$ only, which is
+    all Georgii claims. (a) $J_1 > 0$, $J_1 + J_2 > 0$, $h = 0$: two constant ground states,
+    $|\operatorname{ex}\mathcal G_\Theta| \geq 2$; (b) $J_1 < 0$, $J_1 < J_2$,
+    $|h| < -2J_1 + (J_2 \wedge 0)$: the staggered pair, with the full conclusion of 18.3.2;
+    (c) $J_1 = 0$, $J_2 > 0$, $h = 0$: four ground states permuted simply transitively by the
+    Klein group of sublattice flips, $|\operatorname{ex}\mathcal G(\beta\Phi)| \geq 4$; (d)
+    $|J_1| + J_2 < 0$, $|h| < -J_2 - (J_1 \vee 0)$: the four striped states, four mutually
+    singular Gibbs measures, shift invariant in one direction and of period two in the other,
+    cycled by $r_0$, $|\operatorname{ex}\mathcal G(\beta\Phi)| \geq 4$. In (c) and (d) the partition
+    is not $r$-symmetric, so the count is in $\mathcal G$ rather than $\mathcal G_\Theta$, as in
+    Georgii.
+\end{example}
+
+\begin{example}[Georgii 18.3.5--18.3.6: the Potts model and the anisotropic Heisenberg ferromagnet]
+    \label{ex:dse-potts-heisenberg}
+    \uses{prop:dse-toolkit, ex:lo-18-19}
+    \lean{MeasureTheory.GibbsMeasure.pottsCube, MeasureTheory.GibbsMeasure.pottsCube_eq_iff, MeasureTheory.GibbsMeasure.pottsShift, MeasureTheory.GibbsMeasure.isPhiSymmetric_pottsG, MeasureTheory.GibbsMeasure.eventually_le_encard_extremePoints_potts, MeasureTheory.GibbsMeasure.eventually_exists_potts_gibbsMeasure_family, MeasureTheory.GibbsMeasure.anisoBond, MeasureTheory.GibbsMeasure.anisoHeisenbergCube, MeasureTheory.GibbsMeasure.anisoBond_eq_one_iff, MeasureTheory.GibbsMeasure.localGroundEnergy_anisoHeisenbergCube, MeasureTheory.GibbsMeasure.anisoG, MeasureTheory.GibbsMeasure.localGroundStates_subset_anisoG, MeasureTheory.GibbsMeasure.anisoRefl, MeasureTheory.GibbsMeasure.eventually_two_le_encard_extremePoints_anisoHeisenberg, MeasureTheory.GibbsMeasure.eventually_exists_anisoHeisenberg_gibbsMeasure_pair}
+    \leanok
+
+    18.3.5: on $\mathbb Z/q$ with $\varphi(0) < \varphi(n)$ for $n \neq 0$ (Georgii's
+    $\varphi(n) = \varphi(q-n)$ is not needed once the bond term is written $\varphi(x - y)$), the
+    local ground states are the $q$ constants, the cyclic shifts of the state space are symmetries
+    permuting them, so $|\operatorname{ex}\mathcal G_\Theta(\beta\Phi)| \geq q$ for $\beta$ large.
+    18.3.6: the anisotropic bond $(1-\alpha)\langle x,u\rangle\langle y,u\rangle + \alpha\langle x,y\rangle$,
+    $0 \leq \alpha < 1$, on the unit sphere with the normalised surface measure has $m_\Phi = -4$ and
+    $G_\varepsilon(\Phi)$ inside the two polar caps $\{\pm\langle x,u\rangle \geq 1-\delta\}$ for
+    $\varepsilon < (1-\alpha)\delta$, exchanged by the reflection in $u^\perp$, which preserves the
+    surface measure: two mutually singular Gibbs measures and
+    $|\operatorname{ex}\mathcal G_\Theta(\beta\Phi)| \geq 2$. Not formalised: 18.3.4 (hard-core
+    lattice gases, whose interaction takes the value $+\infty$, so the real-valued cube interactions
+    of the tree and the positivity used in Step 1 of (18.16) do not apply; Georgii himself notes the
+    ad hoc replacement), and 18.3.7--18.3.10.
+\end{example}

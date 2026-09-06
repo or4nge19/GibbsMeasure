@@ -1522,6 +1522,33 @@ alignment:
         Lemma (19.12) (Knaster-Kuratowski-Mazurkiewicz via Sperner's lemma, Appendix 19.A; Mathlib
         has neither Sperner's lemma nor Brouwer's theorem), hence the phase-transition conclusions of
         (19.8)-(19.10); Examples (19.9)-(19.10); Sections 19.2-19.3.
+    - source: "Section 18.3: 18.3.1-18.3.3, 18.3.5-18.3.6"
+      lean: "MeasureTheory.GibbsMeasure.eventually_two_le_encard_extremePoints_isingFerro"
+      module: "GibbsMeasure/Model/IsingOceans.lean"
+      status: "partial"
+      note: >-
+        Model/DiscreteSymmetryBreakingExamples.lean, the toolkit: over a finite state space
+        G_eps(Phi) = {Phi_C = m_Phi} for small eps (every "eps small enough" of the section becomes
+        a finite computation), bond and site sums of a cube interaction under the cube isometries,
+        (18.25) exposing the last sentence of (iii), the counts |ex G_Theta| >= N for r-symmetric
+        partitions and |ex G| >= N in general by (7.29). 18.3.1 (Model/IsingOceans.lean): the Ising
+        ferromagnet, Phi_C in {-4,0,4}, G_eps = the two constants for 0 < eps < 4, two mutually
+        singular Gibbs measures invariant under all shifts and r_0, r_1, r_2, exchanged by the flip,
+        each carrying an ocean of its pattern, |ex G_Theta(beta Phi)| >= 2. 18.3.2: the
+        antiferromagnet in a field |h| < 2, G_eps = the staggered pair for eps < 4 - 2|h|, two
+        Gibbs measures invariant under the even shifts and exchanged by r_0, r_k and the unit
+        shifts. 18.3.3 (Model/GertsikDobrushin.lean): the value table and symmetries of (18.29)
+        (the sublattice flip is not a symmetry in a field and sends Phi^{J1,J2,0} to
+        Phi^{-J1,J2,0}, all Georgii claims), cases (a)-(d) with the counts 2, 2, 4, 4 in G_Theta or
+        G as the partition is or is not r-symmetric. 18.3.5 (Model/PottsOceans.lean): the Potts
+        model on Z/q with phi(0) < phi(n), q constant ground states permuted by the cyclic shifts,
+        |ex G_Theta| >= q; Georgii's evenness of phi is not needed. 18.3.6
+        (Model/AnisotropicHeisenbergOceans.lean): the anisotropic bond on the sphere, m_Phi = -4,
+        G_eps inside the two polar caps for eps < (1 - alpha) delta, exchanged by the reflection in
+        u^perp which preserves the surface measure, |ex G_Theta| >= 2. Not formalized: 18.3.4 (the
+        hard-core interaction takes the value +infinity; the tree's cube interactions are
+        real-valued and Step 1 of (18.16) uses positivity, which Georgii replaces ad hoc), and
+        18.3.7-18.3.10.
     - source: "Section 18.2: (18.20)-(18.26)"
       lean: "MeasureTheory.GibbsMeasure.eventually_exists_gibbsMeasure_family"
       module: "GibbsMeasure/Model/DiscreteSymmetryBreaking.lean"
