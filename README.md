@@ -557,9 +557,15 @@ that both inequalities hold for the **Gibbs distributions with periodic boundary
 proved (`Specification/PeriodicBoundaryGibbs.lean`), hence **Corollary (15.48)** in both inequalities
 and **Example (15.50)–(15.51)**, the large-deviation asymptotics of the spatial mean of a bounded
 observable (`Specification/LargeDeviationsCorollaries.lean`); the finiteness of the rate function
-that Georgii asserts without proof is a hypothesis there. Open: Cramér's formula at `Φ = 0`, the
-existence of a subgradient of the rate function on its domain, and the cluster-point half of
-(15.58) (its uniqueness half, from a strictly convex pressure, is in).
+that Georgii asserts without proof is a hypothesis there. **Cramér's formula at `Φ = 0`**: the pressure of a self-potential is `log λ(e^{tf})`, so
+(15.51) is the classical Cramér theorem for the i.i.d. field, now over a standard Borel state space.
+**(15.57)–(15.58), equivalence of ensembles** (`Specification/EquivalenceOfEnsembles.lean`): the
+microcanonical distributions are eventually well defined, their cluster points in the local topology
+exist and lie in `𝒢_Θ(Φ − t·Ψ)` for the unique `t` given by the subgradient of the rate function on
+the minimisers, whose existence on the interior of the domain is proved (Georgii's citation of
+Rockafellar) and whose uniqueness comes from the strictly convex pressure. Open in §15.5: only
+Georgii's own unproved finiteness of the rate function on `]a⁻_f, a⁺_f[`, and his Step 3 of (15.46)
+for non-convex `C` over an infinite state space.
 
 **Chapter 17** (`GibbsMeasure/Specification/ReflectionPositivity.lean`,
 `Specification/PeriodicGibbs.lean`): reflection positivity for Georgii's generalised reflection,
@@ -965,8 +971,7 @@ Not yet done: the Fréchet form of the continuous differentiability asserted in 
 along every line of `𝒟`, and the continuity of the second derivative in (16.17); in (12.31)(b) the
 extremality of `μ_#` in `𝒢_{I(B)}` (step 5); (13.40), (13.41) for a general `J` under the logarithmic
 condition, and (13.44)–(13.45), whose infinite-range specification (13.18) is not defined in the tree; Georgii's closure bound in
-(15.46) for a non-convex `C` over an infinite state space, Cramér's formula at `Φ = 0`, and
-(15.57)–(15.58) beyond the subgradient uniqueness; the cone description of `ℬ⁻_Θ(σ₀)` in (16.25)(2)
+(15.46) for a non-convex `C` over an infinite state space; the cone description of `ℬ⁻_Θ(σ₀)` in (16.25)(2)
 and (16.26)–(16.27); the Berg–Maserick converse (17.28)(1), cited without proof; 18.3.4, the conclusion of 18.3.10
 and the count for a proper subgroup in (18.25); (19.9)–(19.10), Examples (19.19)–(19.20) and §19.3.2; (20.13) for a general a priori measure and Theorem (20.15).
 

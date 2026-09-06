@@ -211,26 +211,25 @@ What §15.5 still lacks:
   `ρ_t = e^{tf} λ / λ(e^{tf})`: the i.i.d. field `ρ_t^{⊗ℤ^d}` is shift invariant with specific
   `Ψ`-energy `∫ f dρ_t` and finite excess free energy, and `t ↦ ∫ f dρ_t` sweeps out
   `]a⁻_f, a⁺_f[`. That construction is not carried out here.
-* the last sentence of **Example (15.50)**, **Cramér's theorem**: for `Φ = 0`,
-  `°γ^0_Λ = λ^Λ` and `J_Ψ(a|0) = sup_t [ta − log λ(e^{tf})]`. What is missing is the pressure of a
-  self-potential, `P(−tΨ) = log λ(e^{tf})`; the Legendre formula (15.49)
-  (`Potential.BTheta.ldRate_eq_iSup`) would then give the displayed identity at once.
-* the cluster-point half of **Corollary (15.58)**, i.e. `clust °γ^{Φ|Ψ,B}_Λ ≠ ∅` and the
-  identification of `t` as the gradient of `J_Ψ(·|Φ)` on `B̄_min ∩ D°`. The other half — that
-  every minimiser of the free energy under the constraint is Gibbsian for the tilted potential —
-  is (15.60) below, `Potential.BTheta.subset_invariantG_sub_dotPotential`, and (15.59) is
-  `Potential.BTheta.iInf_ldRate_interior_eq_iInf_closure`. Two ingredients are wanting: the
-  compactness argument that produces a cluster point of the conditioned measures
-  `°γ^{Φ|Ψ,B}_Λ` (available over a finite state space from the machinery of (15.46), Step 4 of
-  `GibbsMeasure/Specification/LargeDeviationsUpper.lean`, together with
-  `Potential.empiricalFieldAverage_periodicBoundaryGibbs_cond_apply`, Georgii's identity
-  `σ_Λ(°γ^B_Λ °R_Λ) = °γ^B_Λ`), and the differentiability of `J_Ψ(·|Φ)` on the interior of its
-  essential domain, which Georgii takes from Rockafellar (1970), p. 253. Of the latter the
-  *uniqueness* half is proved — `Potential.BTheta.subgradient_ldRate_unique` — and what is still
-  missing is the *existence* of a subgradient of `J_Ψ(·|Φ)` at a point of the interior of its
-  essential domain, i.e. that the supremum in (15.49) is attained there; Mathlib has the
-  subdifferential of a real-valued convex function on a normed space
-  (`ConvexOn.subgradientAt_nonempty`) but nothing for an `EReal`-valued one.
+
+The **differentiability of `J_Ψ(·|Φ)` on the interior of its essential domain**, which Georgii
+takes from Rockafellar (1970), p. 253 in the proof of Corollary (15.58), is proved here in the
+form his argument consumes: `Potential.BTheta.exists_subgradient_ldRate` is the *existence* of a
+subgradient at a point of `D°_{Ψ|Φ}` — equivalently, the supremum in (15.49) is attained there —
+and `Potential.BTheta.subgradient_ldRate_unique` its *uniqueness* under the strict convexity of
+the pressure. `Potential.BTheta.subgradient_ldRate_of_isMinOn` is Georgii's midpoint computation,
+that the subgradient at one minimiser is a subgradient at every other. Mathlib has no
+subdifferential calculus at all, so the two convex-analytic inputs — a quasiconvex `EReal`-valued
+function is bounded above near an interior point of its essential domain, and the conjugate of a
+continuous function is attained where the rate function is finite and locally bounded — are in
+`GibbsMeasure/Mathlib/Probability/LargeDeviations/Legendre.lean`
+(`exists_setOf_le_mem_nhds_of_convex`, `exists_forall_add_le_of_eq_iSup_sub`). With them,
+**Corollary (15.58)** is complete in
+`GibbsMeasure/Specification/EquivalenceOfEnsembles.lean`, and the last sentence of **Example
+(15.50)**, **Cramér's theorem**, is complete in
+`GibbsMeasure/Specification/LargeDeviationsCorollaries.lean`
+(`Potential.BTheta.ldRate_zero_selfPotential_eq_iSup_real`,
+`MeasureTheory.GibbsMeasure.tendsto_log_infinitePi_setOf_le_spatialMean_div_card`).
 
 Everything else that §15.5 asserts is proved here: **Corollary (15.48)** in full — the two
 displayed inequalities for `°γ^Φ_Λ`
@@ -1714,6 +1713,184 @@ theorem subgradient_ldRate_unique
     rw [hLz]
     linarith
   exact hP.eq_of_mem_subgradientAt (key t₁ h₁) (key t₂ h₂)
+
+omit [Fintype K] in
+variable (Φ Ψ) in
+/-- **Georgii Corollary (15.48).** The sublevel sets of the rate function are convex, by
+`Potential.BTheta.ldRate_smul_add_smul_le`. -/
+theorem convex_setOf_ldRate_le (c : ℝ) :
+    Convex ℝ {x : K → ℝ | ldRate ν Φ Ψ x ≤ (c : EReal)} := by
+  intro x hx y hy p q hp hq hpq
+  obtain ⟨s, hs⟩ : ∃ s : ℝ≥0, (s : ℝ) = p := ⟨⟨p, hp⟩, rfl⟩
+  obtain ⟨t, ht⟩ : ∃ t : ℝ≥0, (t : ℝ) = q := ⟨⟨q, hq⟩, rfl⟩
+  have hst : s + t = 1 := by
+    refine NNReal.coe_injective ?_
+    rw [NNReal.coe_add, NNReal.coe_one, hs, ht, hpq]
+  have hcomb := ldRate_smul_add_smul_le (ν := ν) (Φ := Φ) (Ψ := Ψ) hx hy hst
+  have hfun : (fun j ↦ (s : ℝ) * x j + (t : ℝ) * y j) = p • x + q • y := by
+    funext j; simp [hs, ht]
+  rw [hfun] at hcomb
+  refine hcomb.trans (EReal.coe_le_coe_iff.2 ?_)
+  rw [hs, ht, ← add_mul, hpq, one_mul]
+
+omit [StandardBorelSpace E] in
+variable (Φ Ψ) in
+/-- `t ↦ P(Φ − t·Ψ)` is continuous on `ℝ^k`: the map `t ↦ Φ − t·Ψ` is continuous into `ℬ_Θ` and
+the pressure is `1`-Lipschitz there (`Potential.BTheta.lipschitzWith_pressure`, Georgii
+Proposition (16.1)(a)). -/
+theorem continuous_pressure_sub_dotPotential :
+    Continuous fun t : K → ℝ ↦
+      ((Φ - dotPotential t Ψ : BTheta (ι → ℤ) E) : Potential (ι → ℤ) E).pressure ν := by
+  have hcont : Continuous fun t : K → ℝ ↦ (Φ - dotPotential t Ψ : BTheta (ι → ℤ) E) := by
+    refine continuous_const.sub ?_
+    refine continuous_finsetSum _ fun j _ ↦ ?_
+    exact (continuous_apply j).smul continuous_const
+  exact (lipschitzWith_pressure ν).continuous.comp hcont
+
+variable (Φ Ψ) in
+/-- **The existence half of the differentiability Georgii takes from Rockafellar (1970), p. 253,
+in the proof of Corollary (15.58).** At every point of the *interior of the essential domain*
+`D_{Ψ|Φ} = {J_Ψ(·|Φ) < ∞}` the rate function has a subgradient:
+
+`J_Ψ(x₀|Φ) + t·(y − x₀) ≤ J_Ψ(y|Φ)` for all `y ∈ ℝ^k`.
+
+Equivalently, the supremum of the Legendre formula (15.49) is attained at `x₀`. The two
+convex-analytic inputs are `exists_setOf_le_mem_nhds_of_convex` — a quasiconvex `EReal`-valued
+function is bounded above near an interior point of its essential domain — and
+`exists_forall_add_le_of_eq_iSup_sub` — the conjugate of a continuous function is attained where
+the conjugate is finite and locally bounded above; both are in
+`GibbsMeasure/Mathlib/Probability/LargeDeviations/Legendre.lean`. Here the sublevel sets of
+`J_Ψ(·|Φ)` are convex (`Potential.BTheta.convex_setOf_ldRate_le`), `J_Ψ(·|Φ)` is the conjugate of
+the continuous `t ↦ P(Φ − t·Ψ) − P(Φ)` by (15.49) (`Potential.BTheta.ldRate_eq_iSup`,
+`Potential.BTheta.continuous_pressure_sub_dotPotential`), and it never takes the value `−∞`. -/
+theorem exists_subgradient_ldRate {x₀ : K → ℝ}
+    (hx₀ : x₀ ∈ interior {x : K → ℝ | ldRate ν Φ Ψ x ≠ ⊤}) :
+    ∃ t : K → ℝ, ∀ y : K → ℝ,
+      ldRate ν Φ Ψ x₀ + ((∑ j, t j * (y j - x₀ j) : ℝ) : EReal) ≤ ldRate ν Φ Ψ y := by
+  rw [mem_interior_iff_mem_nhds] at hx₀
+  have hfin : ldRate ν Φ Ψ x₀ ≠ ⊤ := mem_of_mem_nhds hx₀
+  obtain ⟨c, hc⟩ := exists_setOf_le_mem_nhds_of_convex (J := ldRate ν Φ Ψ)
+    (fun x hx ↦ absurd (hx ▸ ldRate_nonneg (ν := ν) (Φ := Φ) (Ψ := Ψ) (x := x)) (by simp))
+    (convex_setOf_ldRate_le Φ Ψ) hx₀
+  refine exists_forall_add_le_of_eq_iSup_sub
+    (g := fun t : K → ℝ ↦ ((Φ - dotPotential t Ψ : BTheta (ι → ℤ) E) :
+        Potential (ι → ℤ) E).pressure ν - (Φ : Potential (ι → ℤ) E).pressure ν)
+    (((continuous_pressure_sub_dotPotential Φ Ψ).sub continuous_const)) (fun x ↦ ?_) hc hfin
+  rw [ldRate_eq_iSup]
+  exact iSup_congr fun t ↦ by rw [EReal.coe_eq_coe_iff]; ring
+
+omit [Fintype K] in
+variable (Φ Ψ) in
+/-- **The essential domain `D_{Ψ|Φ} = {J_Ψ(·|Φ) < ∞}` is convex**, `J_Ψ(·|Φ)` being convex. -/
+theorem convex_setOf_ldRate_ne_top :
+    Convex ℝ {x : K → ℝ | ldRate ν Φ Ψ x ≠ ⊤} := by
+  intro x hx y hy p q hp hq hpq
+  obtain ⟨r₁, hr₁⟩ := exists_ldRate_eq_coe (ν := ν) (Φ := Φ) (Ψ := Ψ) (x := x) hx
+  obtain ⟨r₂, hr₂⟩ := exists_ldRate_eq_coe (ν := ν) (Φ := Φ) (Ψ := Ψ) (x := y) hy
+  obtain ⟨s, hs⟩ : ∃ s : ℝ≥0, (s : ℝ) = p := ⟨⟨p, hp⟩, rfl⟩
+  obtain ⟨t, ht⟩ : ∃ t : ℝ≥0, (t : ℝ) = q := ⟨⟨q, hq⟩, rfl⟩
+  have hst : s + t = 1 := by
+    refine NNReal.coe_injective ?_
+    rw [NNReal.coe_add, NNReal.coe_one, hs, ht, hpq]
+  have hcomb := ldRate_smul_add_smul_le (ν := ν) (Φ := Φ) (Ψ := Ψ)
+    (le_of_eq hr₁) (le_of_eq hr₂) hst
+  have hfun : (fun j ↦ (s : ℝ) * x j + (t : ℝ) * y j) = p • x + q • y := by
+    funext j; simp [hs, ht]
+  rw [hfun] at hcomb
+  intro hcon
+  rw [hcon] at hcomb
+  exact absurd (top_le_iff.1 hcomb) (EReal.coe_ne_top _)
+
+omit [Fintype K] in
+/-- Half-sums, in the shape `Potential.BTheta.ldRate_smul_add_smul_le` consumes. -/
+private lemma ldRate_midpoint_le {x y : K → ℝ} {r₁ r₂ : ℝ}
+    (h₁ : ldRate ν Φ Ψ x ≤ (r₁ : EReal)) (h₂ : ldRate ν Φ Ψ y ≤ (r₂ : EReal)) :
+    ldRate ν Φ Ψ (fun j ↦ (1/2 : ℝ) * x j + (1/2 : ℝ) * y j)
+      ≤ (((1/2 : ℝ) * r₁ + (1/2 : ℝ) * r₂ : ℝ) : EReal) := by
+  have hhalf : (((1/2 : ℝ≥0)) : ℝ) = (1/2 : ℝ) := by norm_num
+  have hst : (1/2 : ℝ≥0) + (1/2 : ℝ≥0) = 1 := by norm_num
+  simpa only [hhalf] using ldRate_smul_add_smul_le (ν := ν) (Φ := Φ) (Ψ := Ψ) h₁ h₂ hst
+
+variable (Φ Ψ) in
+/-- **Georgii's computation in the proof of Corollary (15.58): the gradient of `J_Ψ(·|Φ)` is the
+same at every minimiser.** Let `t ↦ P(Φ − t·Ψ)` be strictly convex, let `V` be a convex set on
+which `J_Ψ(·|Φ) ≥ m_B`, and let `a ∈ V ∩ D°_{Ψ|Φ}` attain the value `m_B`, with subgradient `t`
+there. Then `t` is a subgradient of `J_Ψ(·|Φ)` at *every* `b ∈ V` attaining `m_B`.
+
+This is what makes Georgii's Lagrange multiplier a single `t` for the whole set `B̄_min` of
+minimisers, and hence what lets (15.60)
+(`Potential.BTheta.subset_invariantG_sub_dotPotential`) be applied to all of `e_Ψ⁻¹(B̄_min)` at
+once.
+
+Georgii's argument: the midpoint `x' = (a + b)/2` lies in `V ∩ D°`, and `J(x') = m_B` because
+`J` is convex and bounded below by `m_B` on `V`. Let `t'` be a subgradient of `J` at `x'`
+(`Potential.BTheta.exists_subgradient_ldRate`). Halving the increment shows that `t'` is a
+subgradient at `a` *and* at `b`; the strict convexity of the pressure then forces `t' = t`
+(`Potential.BTheta.subgradient_ldRate_unique`). -/
+theorem subgradient_ldRate_of_isMinOn
+    (hP : StrictConvexOn ℝ Set.univ fun t : K → ℝ ↦
+      ((Φ - dotPotential t Ψ : BTheta (ι → ℤ) E) : Potential (ι → ℤ) E).pressure ν)
+    {V : Set (K → ℝ)} (hV : Convex ℝ V) {mB : ℝ}
+    (hmin : ∀ z ∈ V, (mB : EReal) ≤ ldRate ν Φ Ψ z)
+    {a : K → ℝ} (haV : a ∈ V)
+    (haD : a ∈ interior {z : K → ℝ | ldRate ν Φ Ψ z ≠ ⊤})
+    (ham : ldRate ν Φ Ψ a = (mB : EReal))
+    {t : K → ℝ}
+    (ht : ∀ y : K → ℝ,
+      ldRate ν Φ Ψ a + ((∑ j, t j * (y j - a j) : ℝ) : EReal) ≤ ldRate ν Φ Ψ y)
+    {b : K → ℝ} (hbV : b ∈ V) (hbm : ldRate ν Φ Ψ b = (mB : EReal)) :
+    ∀ y : K → ℝ,
+      ldRate ν Φ Ψ b + ((∑ j, t j * (y j - b j) : ℝ) : EReal) ≤ ldRate ν Φ Ψ y := by
+  classical
+  have hbD : b ∈ {z : K → ℝ | ldRate ν Φ Ψ z ≠ ⊤} := by
+    show ldRate ν Φ Ψ b ≠ ⊤
+    rw [hbm]
+    exact EReal.coe_ne_top _
+  set x' : K → ℝ := fun j ↦ (1/2 : ℝ) * a j + (1/2 : ℝ) * b j with hx'
+  have hx'eq : x' = (1/2 : ℝ) • a + (1/2 : ℝ) • b := by funext j; simp [hx']
+  have hx'V : x' ∈ V := by
+    rw [hx'eq]; exact hV haV hbV (by norm_num) (by norm_num) (by norm_num)
+  have hx'D : x' ∈ interior {z : K → ℝ | ldRate ν Φ Ψ z ≠ ⊤} := by
+    rw [hx'eq]
+    exact (convex_setOf_ldRate_ne_top Φ Ψ).combo_interior_closure_mem_interior haD
+      (subset_closure hbD) (by norm_num) (by norm_num) (by norm_num)
+  have hx'm : ldRate ν Φ Ψ x' = (mB : EReal) := by
+    refine le_antisymm ?_ (hmin _ hx'V)
+    refine (ldRate_midpoint_le (ν := ν) (Φ := Φ) (Ψ := Ψ) (le_of_eq ham)
+      (le_of_eq hbm)).trans (le_of_eq ?_)
+    rw [EReal.coe_eq_coe_iff]; ring
+  obtain ⟨t', ht'⟩ := exists_subgradient_ldRate Φ Ψ hx'D
+  -- Georgii's computation: a subgradient at the midpoint is a subgradient at either endpoint
+  have key : ∀ z z' : K → ℝ, ldRate ν Φ Ψ z = (mB : EReal) → ldRate ν Φ Ψ z' = (mB : EReal) →
+      (∀ j, x' j = (1/2 : ℝ) * z j + (1/2 : ℝ) * z' j) →
+      ∀ u : K → ℝ,
+        ldRate ν Φ Ψ z' + ((∑ j, t' j * (u j - z' j) : ℝ) : EReal) ≤ ldRate ν Φ Ψ u := by
+    intro z z' hz hz' hmid u
+    by_cases hu : ldRate ν Φ Ψ u = ⊤
+    · rw [hu]; exact le_top
+    obtain ⟨r, hr⟩ := exists_ldRate_eq_coe (ν := ν) (Φ := Φ) (Ψ := Ψ) (x := u) hu
+    have hwle : ldRate ν Φ Ψ (fun j ↦ (1/2 : ℝ) * z j + (1/2 : ℝ) * u j)
+        ≤ (((1/2 : ℝ) * mB + (1/2 : ℝ) * r : ℝ) : EReal) :=
+      ldRate_midpoint_le (ν := ν) (Φ := Φ) (Ψ := Ψ) (le_of_eq hz) (le_of_eq hr)
+    have hstep := ht' fun j ↦ (1/2 : ℝ) * z j + (1/2 : ℝ) * u j
+    rw [hx'm] at hstep
+    have hsum : (∑ j, t' j * (((1/2 : ℝ) * z j + (1/2 : ℝ) * u j) - x' j))
+        = (1/2 : ℝ) * ∑ j, t' j * (u j - z' j) := by
+      rw [Finset.mul_sum]
+      exact Finset.sum_congr rfl fun j _ ↦ by rw [hmid j]; ring
+    rw [hsum] at hstep
+    have hfin := hstep.trans hwle
+    rw [← EReal.coe_add, EReal.coe_le_coe_iff] at hfin
+    rw [hz', hr, ← EReal.coe_add, EReal.coe_le_coe_iff]
+    linarith
+  have hAta : ∀ u : K → ℝ,
+      ldRate ν Φ Ψ a + ((∑ j, t' j * (u j - a j) : ℝ) : EReal) ≤ ldRate ν Φ Ψ u :=
+    key b a hbm ham fun j ↦ by rw [hx']; ring
+  have htt' : t = t' :=
+    subgradient_ldRate_unique (ν := ν) (Φ := Φ) (Ψ := Ψ) hP
+      (by rw [ham]; exact EReal.coe_ne_top _) ht hAta
+  rw [htt']
+  exact key a b ham hbm fun j ↦ by rw [hx']
 
 /-! ### Georgii (15.59): the infimum of the rate function over a convex set -/
 

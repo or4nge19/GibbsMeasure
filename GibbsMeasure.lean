@@ -414,6 +414,7 @@ public import GibbsMeasure.Specification.LargeDeviationsLower
 public import GibbsMeasure.Specification.LargeDeviationsUpper
 public import GibbsMeasure.Specification.PeriodicBoundaryGibbs
 public import GibbsMeasure.Specification.LargeDeviationsCorollaries
+public import GibbsMeasure.Specification.EquivalenceOfEnsembles
 public import GibbsMeasure.Specification.LocalGroundStates
 public import GibbsMeasure.Specification.PatternPercolation
 public import GibbsMeasure.Specification.ReflectionPositivity

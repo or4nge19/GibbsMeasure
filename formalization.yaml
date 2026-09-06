@@ -1912,10 +1912,22 @@ alignment:
         derivatives of t -> P(Phi - t Psi), is monotone beyond and positive, and
         |Lambda|^{-1} log °gamma(M_Lambda f >= a) -> -J_Psi(a|Phi) under the finiteness of J at some
         b > a, which Georgii asserts without proof (Specification/LargeDeviationsCorollaries.lean,
-        Potential/SelfPotential.lean). Towards (15.58): a strictly convex pressure makes the
-        subgradient of J unique (Mathlib/Analysis/Convex/StrictConvexSubgradient.lean). Not yet
-        proved: Cramer's formula for Phi = 0, the existence of a subgradient of J on D°, and the
-        cluster-point half of (15.58).
+        Potential/SelfPotential.lean). Cramer's formula for Phi = 0: °gamma^0_Lambda = lambda^Lambda, the pressure of
+        a self-potential is log lambda(e^{tf}), so J_Psi(a|0) = sup_t [ta - log lambda(e^{tf})] and
+        (15.51) is the classical Cramer theorem for the i.i.d. field
+        (tendsto_log_infinitePi_setOf_le_spatialMean_div_card), now over a standard Borel state
+        space since the half-line is convex and closed. (15.57)-(15.58)
+        (Specification/EquivalenceOfEnsembles.lean): the microcanonical distribution as the
+        conditioning of °gamma^Phi_Lambda on {|Lambda|^{-1} °H^Psi_Lambda in B}, eventually a
+        probability measure; for a strictly convex pressure and convex B meeting the domain of J
+        as Georgii requires, a unique t with a nonempty set of cluster points (in the local
+        topology, along Lambda_n increasing to Z^d) contained in G_Theta(Phi - t Psi), t the
+        constant subgradient of J on the minimisers (existsUnique_subgradient_and_mapClusterPt_subset_invariantG);
+        the existence of a subgradient on D° from the convexity of the sublevel sets and the
+        supremum-of-affine form (Mathlib/Probability/LargeDeviations/Legendre.lean), its constancy
+        on the minimisers by Georgii's midpoint computation, uniqueness from
+        Mathlib/Analysis/Convex/StrictConvexSubgradient.lean. Not yet proved: nothing of
+        (15.48)-(15.58) beyond Georgii's own unproved finiteness of J on ]a^-, a^+[.
         Throughout, the a priori measure is a
         probability measure where Georgii assumes only a finite one.
     - source: "Section 12.2: (12.19)-(12.35)"

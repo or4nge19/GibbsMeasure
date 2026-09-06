@@ -75,6 +75,32 @@ theorem isAbsolutelySummable_site {f : S → E → ℝ} {c : ℝ} (hb : ∀ i x,
     rw [normAt_site]
     exact ne_top_of_le_ne_top ENNReal.ofReal_ne_top hle
 
+/-! ### The Hamiltonian of a single-site potential -/
+
+/-- A single-site potential is its own one-body part: it vanishes on every volume that is not a
+singleton. -/
+@[simp] lemma oneBody_site (f : S → E → ℝ) : (site f).oneBody = site f := by
+  funext A η
+  rcases le_or_gt A.card 1 with h | h
+  · rw [oneBody_of_card_le h]
+  · rw [oneBody_of_one_lt_card h, site_eq_zero (fun i hi ↦ by
+      rw [hi] at h; simp at h)]
+
+/-- **The Hamiltonian of a single-site potential** is the spatial sum of its interactions,
+`H^{site f}_Λ(η) = ∑_{i ∈ Λ} f i (η i)`: only the singletons `{i}` with `i ∈ Λ` carry a nonzero
+term meeting `Λ`. -/
+@[simp] theorem hamiltonian_site (f : S → E → ℝ) (Λ : Finset S) (η : S → E) :
+    (site f).hamiltonian Λ η = ∑ i ∈ Λ, f i (η i) := by
+  have h := hamiltonian_oneBody (Φ := site f) Λ η
+  rw [oneBody_site] at h
+  rw [h]
+  exact Finset.sum_congr rfl fun i _ ↦ site_singleton i η
+
+instance isSummable_site (f : S → E → ℝ) : IsSummable (site f) :=
+  ⟨fun Λ η ↦ by
+    rw [← oneBody_site f]
+    exact (hasSum_hamiltonianTerms_oneBody (Φ := site f) Λ η).summable⟩
+
 section Shift
 
 variable {S : Type*} [AddGroup S] [DecidableEq S]

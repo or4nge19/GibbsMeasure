@@ -240,7 +240,7 @@
 \begin{theorem}[Corollary (15.48) and Example (15.50)--(15.51)]
     \label{thm:ld-15-48}
     \uses{thm:ld-periodic-bc, prop:ld-15-49, thm:gv-16-14, thm:tf-16-6}
-    \lean{Potential.BTheta.continuous_energyVec, MeasureTheory.GibbsMeasure.setOf_periodicEmpiricalFieldL_mem_energyVecPreimage, MeasureTheory.GibbsMeasure.limsup_log_periodicBoundaryGibbs_setOf_mem_div_card_le, MeasureTheory.GibbsMeasure.neg_iInf_ldRate_le_liminf_log_periodicBoundaryGibbs_setOf_mem, MeasureTheory.GibbsMeasure.measurableSet_cylinderEvents_setOf_mem_energyVecPreimage, MeasureTheory.GibbsMeasure.convex_image_evalLocalEvents_energyVecPreimage, MeasureTheory.GibbsMeasure.limsup_log_periodicBoundaryGibbs_setOf_mem_div_card_le_of_convex, MeasureTheory.GibbsMeasure.limsup_log_periodicBoundaryGibbs_div_card_le_closedConvexHull, MeasureTheory.GibbsMeasure.limsup_log_periodicBoundaryGibbs_div_card_le_of_convex, Potential.normAt_site, Potential.isAbsolutelySummable_site, Potential.isShiftInvariant_site, Potential.siteEnergy_site, Potential.periodicBoundaryHamiltonian_site, Potential.selfPotential, MeasureTheory.GibbsMeasure.inv_card_mul_periodicBoundaryHamiltonian_selfPotential, Potential.BTheta.ldRate_eq_zero_iff_mem_Icc, Potential.BTheta.ldRate_le_ldRate_of_le, Potential.BTheta.ldRate_pos, Potential.BTheta.iInf_ldRate_Ioi_eq, MeasureTheory.GibbsMeasure.tendsto_log_periodicBoundaryGibbs_setOf_le_div_card, MeasureTheory.GibbsMeasure.tendsto_log_periodicBoundaryGibbs_setOf_le_spatialMean_div_card}
+    \lean{Potential.BTheta.continuous_energyVec, MeasureTheory.GibbsMeasure.setOf_periodicEmpiricalFieldL_mem_energyVecPreimage, MeasureTheory.GibbsMeasure.limsup_log_periodicBoundaryGibbs_setOf_mem_div_card_le, MeasureTheory.GibbsMeasure.neg_iInf_ldRate_le_liminf_log_periodicBoundaryGibbs_setOf_mem, MeasureTheory.GibbsMeasure.measurableSet_cylinderEvents_setOf_mem_energyVecPreimage, MeasureTheory.GibbsMeasure.convex_image_evalLocalEvents_energyVecPreimage, MeasureTheory.GibbsMeasure.limsup_log_periodicBoundaryGibbs_setOf_mem_div_card_le_of_convex, MeasureTheory.GibbsMeasure.limsup_log_periodicBoundaryGibbs_div_card_le_closedConvexHull, MeasureTheory.GibbsMeasure.limsup_log_periodicBoundaryGibbs_div_card_le_of_convex, Potential.normAt_site, Potential.isAbsolutelySummable_site, Potential.isShiftInvariant_site, Potential.siteEnergy_site, Potential.periodicBoundaryHamiltonian_site, Potential.selfPotential, MeasureTheory.GibbsMeasure.inv_card_mul_periodicBoundaryHamiltonian_selfPotential, Potential.BTheta.ldRate_eq_zero_iff_mem_Icc, Potential.BTheta.ldRate_le_ldRate_of_le, Potential.BTheta.ldRate_pos, Potential.BTheta.iInf_ldRate_Ioi_eq, MeasureTheory.GibbsMeasure.tendsto_log_periodicBoundaryGibbs_setOf_le_div_card, MeasureTheory.GibbsMeasure.tendsto_log_periodicBoundaryGibbs_setOf_le_spatialMean_div_card, Potential.pressure_site, Potential.pressure_zero, Potential.periodicBoundaryGibbs_zero, Potential.BTheta.pressure_smul_neg_selfPotential, Potential.BTheta.rightDirDeriv_pressure_neg_selfPotential, Potential.BTheta.ldRate_zero_selfPotential_eq_iSup, Potential.BTheta.ldRate_zero_selfPotential_eq_iSup_real, MeasureTheory.GibbsMeasure.tendsto_log_infinitePi_setOf_le_spatialMean_div_card}
     \leanok
 
     Corollary (15.48), both displayed inequalities: $\limsup |\Lambda|^{-1}\log{}^\circ\gamma^\Phi_\Lambda
@@ -256,7 +256,11 @@
     either side and positive beyond; (15.51): for $a^+_{f,\Phi} < a$ with $J_\Psi(b\mid\Phi) < \infty$
     for some $b > a$, $|\Lambda|^{-1}\log{}^\circ\gamma^\Phi_\Lambda(M_\Lambda f \geq a) \to
     -J_\Psi(a\mid\Phi)$. Georgii's unproved finiteness of $J_\Psi(\cdot\mid\Phi)$ on $]a^-_f, a^+_f[$
-    appears as that hypothesis; Cram\'er's formula for $\Phi = 0$ is not proved.
+    appears as that hypothesis. Cram\'er's formula for $\Phi = 0$: ${}^\circ\gamma^0_\Lambda = \lambda^\Lambda$, the
+    pressure of a self-potential is $P(-t\Psi) = \log\lambda(e^{tf})$, so $J_\Psi(a\mid 0) = \sup_t[ta -
+    \log\lambda(e^{tf})]$ and (15.51) is the classical Cram\'er theorem for the i.i.d. field, now over a
+    standard Borel state space (the half-line is convex and closed, so the finite-$E$ hypothesis of
+    (15.51) is dropped); $\partial^+_{-\Psi}P(0) = \lambda(f)$.
 \end{theorem}
 \begin{proof}
     \leanok
@@ -284,16 +288,54 @@
 \begin{proposition}[Towards Corollary (15.58): uniqueness of the subgradient of the rate function]
     \label{prop:ld-15-58-subgradient}
     \uses{prop:ld-15-49}
-    \lean{StrictConvexOn.eq_of_mem_subgradientAt, StrictConvexOn.subgradientAt_disjoint, Potential.BTheta.subgradient_ldRate_unique}
+    \lean{StrictConvexOn.eq_of_mem_subgradientAt, StrictConvexOn.subgradientAt_disjoint, Potential.BTheta.subgradient_ldRate_unique, exists_setOf_le_mem_nhds_of_convex, exists_forall_add_le_of_eq_iSup_sub, Potential.BTheta.convex_setOf_ldRate_le, Potential.BTheta.convex_setOf_ldRate_ne_top, Potential.BTheta.continuous_pressure_sub_dotPotential, Potential.BTheta.exists_subgradient_ldRate, Potential.BTheta.subgradient_ldRate_of_isMinOn}
     \leanok
 
     If $t \mapsto P(\Phi - t\cdot\Psi)$ is strictly convex then $J_\Psi(\cdot\mid\Phi)$ has at most
     one subgradient at each point of its essential domain: a subgradient $t$ at $x$ makes the
     supremum in (15.49) attained at $x$, so $s \mapsto s\cdot x$ supports the strictly convex
     pressure at $t$ alone. This is what Georgii's reference to Rockafellar (differentiability of
-    $J$ on $D^\circ$) supplies to the proof of (15.58). Not proved: the existence of a subgradient
-    on $D^\circ$ for the $[0,\infty]$-valued $J$, and the cluster-point half of (15.58) itself.
+    $J$ on $D^\circ$) supplies to the proof of (15.58). The existence of a subgradient on $D^\circ$:
+    the sublevel sets of the $[0,\infty]$-valued convex $J$ are convex, so a point of the interior
+    of the essential domain has a neighbourhood on which $J$ is bounded, and a convex function
+    given as a supremum of affine functions minus a continuous one has a subgradient at every such
+    point (the two Mathlib-level facts in \texttt{Legendre.lean}); the constancy of the multiplier
+    on $\bar B_{\min}$ is Georgii's midpoint computation. The cluster-point half is Theorem
+    \ref{thm:ld-15-58}.
 \end{proposition}
+\begin{proof}
+    \leanok
+\end{proof}
+
+\begin{theorem}[Georgii (15.57) and Corollary (15.58): equivalence of ensembles]
+    \label{thm:ld-15-58}
+    \uses{prop:ld-15-58-subgradient, thm:ld-15-48, prop:ld-15-49, thm:ld-periodic-bc}
+    \lean{MeasureTheory.GibbsMeasure.energyVecPreimage, MeasureTheory.GibbsMeasure.eventually_ofReal_exp_le_periodicBoundaryGibbs_setOf_energyVecPreimage, MeasureTheory.GibbsMeasure.periodicBoundaryGibbsCond, MeasureTheory.GibbsMeasure.periodicBoundaryGibbsCond_eq, MeasureTheory.GibbsMeasure.tendsto_ofMeasure_periodicBoundaryGibbsCond_iff, MeasureTheory.GibbsMeasure.eventually_specificRelativeEntropy_tileAverage_periodicBoundaryGibbsCond_le, MeasureTheory.GibbsMeasure.mem_closure_and_specificRelativeEntropy_le_of_tendsto, MeasureTheory.GibbsMeasure.exists_mapClusterPt_periodicBoundaryGibbsCond, MeasureTheory.GibbsMeasure.eventually_isProbabilityMeasure_periodicBoundaryGibbsCond, MeasureTheory.GibbsMeasure.exists_subgradient_and_mapClusterPt_subset_invariantG, MeasureTheory.GibbsMeasure.existsUnique_subgradient_and_mapClusterPt_subset_invariantG}
+    \leanok
+
+    The microcanonical distribution ${}^\circ\gamma^{\Phi\mid\Psi,B}_\Lambda$ (15.57) is the
+    conditioning of ${}^\circ\gamma^\Phi_\Lambda$ on $\{|\Lambda|^{-1}{}^\circ H^\Psi_\Lambda \in B\}$,
+    eventually a probability measure when $B^\circ$ meets the essential domain of $J_\Psi(\cdot\mid\Phi)$
+    (Georgii's ``eventually well-defined'', from the lower bound of (15.48)). For $\Phi \in
+    \mathcal B_\Theta$, $\Psi \in \mathcal B_\Theta^k$ with $t \mapsto P(\Phi - t\cdot\Psi)$ strictly
+    convex, and convex $B$ with $B^\circ \cap D_{\Psi\mid\Phi} \neq \emptyset$ and $\bar B_{\min} \cap
+    D^\circ_{\Psi\mid\Phi} \neq \emptyset$, there is a unique $t$ with $\emptyset \neq
+    \operatorname{clust}_{\Lambda \uparrow S}{}^\circ\gamma^{\Phi\mid\Psi,B}_\Lambda \subseteq
+    \mathcal G_\Theta(\Phi - t\cdot\Psi)$, $t$ the constant value of the subgradient of $J_\Psi(\cdot\mid
+    \Phi)$ on $\bar B_{\min} \cap D^\circ$: the tile averages of the conditioned periodic
+    distributions have specific relative entropy bounded by $\inf_{\bar B} J$ (the minimum free
+    energy principle), every cluster point lies in the closure of the block fields with the same
+    bound, and (15.60) places it in $\mathcal G_\Theta(\Phi - t\cdot\Psi)$; cluster points exist by
+    compactness of the shift-invariant fields of bounded specific entropy, and Georgii's
+    $\sigma_\Lambda({}^\circ\gamma^B_\Lambda{}^\circ R_\Lambda) = {}^\circ\gamma^B_\Lambda$ becomes the
+    identification of the cluster points along $\Lambda_n \uparrow \mathbb Z^d$. Cluster points are
+    taken in the topology of local convergence, which over a standard Borel $E$ is not first
+    countable, so a cluster point is a limit along a finer filter rather than a subsequence.
+    Georgii's strict convexity of $t \mapsto P(\Phi + t\cdot\Psi)$ is the tree's of $t \mapsto
+    P(\Phi - t\cdot\Psi)$. Only Georgii's own unproved finiteness of $J_\Psi(\cdot\mid\Phi)$ on
+    $]a^-_f, a^+_f[$ and his Step 3 of (15.46) for non-convex $C$ over an infinite $E$ remain open
+    in \S15.5.
+\end{theorem}
 \begin{proof}
     \leanok
 \end{proof}
