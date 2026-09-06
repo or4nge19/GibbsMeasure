@@ -10,8 +10,11 @@ producing a non-quasilocal specification with `c(γ) = 0` whose Gibbs measures i
 `x ∈ [0,1]`. Neither statement below contradicts Theorem (8.7); together they show that its
 quasilocality hypothesis cannot be dropped.
 
-Not claimed: Georgii's exact identification of `𝓖(γ)` with the exchangeable random fields, which
-rests on de Finetti's theorem (Example (7.31)) and is not formalised in the library.
+Not claimed here: Georgii's exact identification of `𝓖(γ)` with the mixtures `∫ w(dx) μ^x`, hence
+(by de Finetti's theorem, Example (7.31)) with the exchangeable random fields. Both are in the
+library (`GibbsMeasure/Model/Exchangeable.lean`, `GibbsMeasure/Specification/DeFinetti.lean`) and
+the latter is the `DeFinetti` comparator entry; this entry keeps to the two statements that
+Theorem (8.7) is measured against.
 
 ## Main statements
 
