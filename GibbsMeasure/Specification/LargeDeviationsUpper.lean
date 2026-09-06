@@ -9,6 +9,7 @@ public import GibbsMeasure.Mathlib.InformationTheory.KullbackLeibler.Cond
 public import GibbsMeasure.Specification.BlockEntropy
 public import GibbsMeasure.Specification.InvariantFieldsBarycenter
 public import GibbsMeasure.Specification.LargeDeviationsLower
+public import GibbsMeasure.Topology.LocalMetric
 
 /-!
 # The large-deviation upper bound, Georgii Theorem (15.45) / (15.46)
@@ -862,6 +863,56 @@ section Assembled
 variable {ι E : Type*} [Fintype ι] [DecidableEq ι] [Nonempty ι] [MeasurableSpace E]
   (ν : Measure E) [IsProbabilityMeasure ν]
 
+/-- **Steps 1 and 2 of Georgii's proof of the upper bound (15.46), abstracted from the boundary
+condition.** For a box `Λ = ∏_k [a_k, a_k + s_k]` of `ℤ^d` with a torus reduction `π` and a random
+field `κ` with `𝓗_Λ(κ | λ^S) < ∞`, any real bound
+`𝓗_Λ(κ | λ^S) + |Λ| ⟨κ °R_Λ, Φ⟩ + L ≤ q` turns, through Proposition (15.52)
+(`specificRelativeEntropy_tileAverage_map_finsetRestrict`), into the bound
+
+`𝓀(γ̄|Φ) ≤ |Λ|⁻¹ q + (P(Φ) − |Λ|⁻¹ L) + (⟨γ̄, Φ⟩ − ⟨κ °R_Λ, Φ⟩)`
+
+for the randomly shifted independent-block field `γ̄` of the `Λ`-marginal of `κ`. With `κ` the
+conditioned Gibbs distribution `γ^C_{Λ|ω}`, `q = −log γ^Φ_Λ(A|ω) + 3 r(Λ, Φ)` and
+`L = log Z^Φ_Λ(ω)` this is `specificRelativeEntropy_tileAverage_cond_le`; with the periodic Gibbs
+distribution, `q = −log °γ^Φ_Λ(A)` and `L = log °Z^Φ_Λ`, it is the corresponding statement of
+`GibbsMeasure/Specification/PeriodicBoundaryGibbs.lean`, with no error term at all. -/
+theorem specificRelativeEntropy_tileAverage_le_of_relativeEntropyIn_add_le
+    {Φ : Potential (ι → ℤ) E} [Potential.IsPotential Φ] [Potential.IsAbsolutelySummable Φ]
+    (a : ι → ℤ) (s : ι → ℕ) (π : (ι → ℤ) → (ι → ℤ)) (κ : Measure ((ι → ℤ) → E))
+    [IsProbabilityMeasure κ]
+    (hfin : relativeEntropyIn ((Finset.Icc a fun k ↦ a k + s k : Finset (ι → ℤ)) : Set (ι → ℤ)) κ
+        (Measure.infinitePi fun _ ↦ ν) ≠ ⊤)
+    {q L : ℝ}
+    (hle : (relativeEntropyIn ((Finset.Icc a fun k ↦ a k + s k : Finset (ι → ℤ)) : Set (ι → ℤ)) κ
+          (Measure.infinitePi fun _ ↦ ν)).toReal
+        + (#(Finset.Icc a fun k ↦ a k + s k : Finset (ι → ℤ)) : ℝ)
+          * Φ.specificEnergy (empiricalFieldAverage E π (Finset.Icc a fun k ↦ a k + s k) κ)
+        + L ≤ q) :
+    Φ.specificRelativeEntropy ν (tileAverage (isComplement_Icc a s)
+        (κ.map (Finset.Icc a fun k ↦ a k + s k : Finset (ι → ℤ)).restrict))
+      ≤ ((q / (#(Finset.Icc a fun k ↦ a k + s k : Finset (ι → ℤ)) : ℝ)
+          + (Φ.pressure ν - L / (#(Finset.Icc a fun k ↦ a k + s k : Finset (ι → ℤ)) : ℝ))
+          + (Φ.specificEnergy (tileAverage (isComplement_Icc a s)
+                (κ.map (Finset.Icc a fun k ↦ a k + s k : Finset (ι → ℤ)).restrict))
+              - Φ.specificEnergy (empiricalFieldAverage E π (Finset.Icc a fun k ↦ a k + s k) κ))
+          : ℝ) : EReal) := by
+  have hΛne : (Finset.Icc a fun k ↦ a k + s k : Finset (ι → ℤ)).Nonempty :=
+    Finset.nonempty_Icc.2 fun k ↦ by simp
+  have hcard : (0 : ℝ) < #(Finset.Icc a fun k ↦ a k + s k : Finset (ι → ℤ)) := by
+    exact_mod_cast hΛne.card_pos
+  rw [specificRelativeEntropy_tileAverage_map_finsetRestrict ν a s _ hfin, EReal.coe_le_coe_iff]
+  set N : ℝ := (#(Finset.Icc a fun k ↦ a k + s k : Finset (ι → ℤ)) : ℝ) with hNdef
+  set Rr : ℝ := (relativeEntropyIn
+    ((Finset.Icc a fun k ↦ a k + s k : Finset (ι → ℤ)) : Set (ι → ℤ)) κ
+    (Measure.infinitePi fun _ ↦ ν)).toReal with hRrdef
+  set eR : ℝ := Φ.specificEnergy (empiricalFieldAverage E π (Finset.Icc a fun k ↦ a k + s k) κ)
+    with heRdef
+  have key : Rr / N + eR + L / N ≤ q / N := by
+    have h2 : (Rr + N * eR + L) / N ≤ q / N := div_le_div_of_nonneg_right hle hcard.le
+    have e1 : (Rr + N * eR + L) / N = Rr / N + eR + L / N := by field_simp
+    rwa [e1] at h2
+  linarith
+
 /-- **Steps 1 and 2 of Georgii's proof of the upper bound (15.46), assembled in one volume.**
 For a box `Λ = ∏_k [a_k, a_k + s_k]` of `ℤ^d` with a torus reduction `π`, a boundary condition `ω`
 and a `𝓕_Λ`-event `A` of positive probability, the excess free energy of the randomly shifted
@@ -905,34 +956,15 @@ theorem specificRelativeEntropy_tileAverage_cond_le
               / (#(Finset.Icc a fun k ↦ a k + s k : Finset (ι → ℤ)) : ℝ) : ℝ) : EReal) := by
   have hΛne : (Finset.Icc a fun k ↦ a k + s k : Finset (ι → ℤ)).Nonempty :=
     Finset.nonempty_Icc.2 fun k ↦ by simp
-  have hcard : (0 : ℝ) < #(Finset.Icc a fun k ↦ a k + s k : Finset (ι → ℤ)) := by
-    exact_mod_cast hΛne.card_pos
   have hκprob : IsProbabilityMeasure
       ((Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν 1
         (Finset.Icc a fun k ↦ a k + s k) ω)[|A]) := cond_isProbabilityMeasure hpos
   obtain ⟨hfin, hM1⟩ := relativeEntropyIn_cond_gibbsSpecification_ne_top_and_le ν hΦ hπ hΛne ω
     hA hpos
-  rw [specificRelativeEntropy_tileAverage_map_finsetRestrict ν a s _ hfin, EReal.coe_le_coe_iff]
-  set N : ℝ := (#(Finset.Icc a fun k ↦ a k + s k : Finset (ι → ℤ)) : ℝ) with hNdef
-  set Rr : ℝ := (relativeEntropyIn
-    ((Finset.Icc a fun k ↦ a k + s k : Finset (ι → ℤ)) : Set (ι → ℤ))
-    ((Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν 1
-      (Finset.Icc a fun k ↦ a k + s k) ω)[|A]) (Measure.infinitePi fun _ ↦ ν)).toReal with hRrdef
-  set eR : ℝ := Φ.specificEnergy (empiricalFieldAverage E π (Finset.Icc a fun k ↦ a k + s k)
-    ((Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν 1
-      (Finset.Icc a fun k ↦ a k + s k) ω)[|A])) with heRdef
-  set LZ : ℝ := Φ.logZ ν (Finset.Icc a fun k ↦ a k + s k) ω with hLZdef
-  set q : ℝ := -Real.log ((Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν 1
-    (Finset.Icc a fun k ↦ a k + s k) ω).real A) with hqdef
-  set tl : ℝ := Φ.tail (Finset.Icc a fun k ↦ a k + s k) (Finset.Icc a fun k ↦ a k + s k)
-    with htldef
-  have key : Rr / N + eR + LZ / N ≤ q / N + 3 * tl / N := by
-    have h2 : (Rr + N * eR + LZ) / N ≤ (q + 3 * tl) / N :=
-      div_le_div_of_nonneg_right hM1 hcard.le
-    have e1 : (Rr + N * eR + LZ) / N = Rr / N + eR + LZ / N := by field_simp
-    have e2 : (q + 3 * tl) / N = q / N + 3 * tl / N := by ring
-    rwa [e1, e2] at h2
-  linarith
+  refine (specificRelativeEntropy_tileAverage_le_of_relativeEntropyIn_add_le ν a s π _ hfin
+    (L := Φ.logZ ν (Finset.Icc a fun k ↦ a k + s k) ω) hM1).trans (le_of_eq ?_)
+  rw [EReal.coe_eq_coe_iff]
+  ring
 
 end Assembled
 
@@ -1142,6 +1174,182 @@ theorem tendsto_measureReal_tileAverage_sub_measureReal_empiricalFieldAverage
   refine hbound.trans (le_of_eq ?_)
   ring
 
+/-- Two sequences of random fields whose evaluations on every local event are asymptotically
+equal have the same limits in the topology of local convergence. -/
+theorem tendsto_withLocalConvergence_iff_of_tendsto_measureReal_sub {S E : Type*}
+    [MeasurableSpace E] {μs νs : ℕ → WithLocalConvergence S E}
+    (h : ∀ A ∈ localEvents S E, Tendsto (fun n ↦ ((μs n).toMeasure : Measure (S → E)).real A
+      - ((νs n).toMeasure : Measure (S → E)).real A) atTop (𝓝 0))
+    (μ : WithLocalConvergence S E) :
+    Tendsto μs atTop (𝓝 μ) ↔ Tendsto νs atTop (𝓝 μ) := by
+  rw [tendsto_withLocalConvergence_iff, tendsto_withLocalConvergence_iff]
+  refine forall₂_congr fun A hA ↦ ?_
+  rw [tendsto_measure_iff_tendsto_measureReal (μs := fun n ↦ (μs n).toMeasure)
+      (μ := μ.toMeasure) A,
+    tendsto_measure_iff_tendsto_measureReal (μs := fun n ↦ (νs n).toMeasure)
+      (μ := μ.toMeasure) A]
+  constructor
+  · intro h1
+    have := h1.sub (h A hA)
+    simpa using this
+  · intro h1
+    have := h1.add (h A hA)
+    simpa using this
+
+/-- Two sequences of random fields that eventually agree on every local event have the same
+limits in the topology of local convergence. -/
+theorem tendsto_withLocalConvergence_iff_of_eventually_eq {S E : Type*}
+    [MeasurableSpace E] {μs νs : ℕ → WithLocalConvergence S E}
+    (h : ∀ A ∈ localEvents S E, ∀ᶠ n in atTop, ((μs n).toMeasure : Measure (S → E)) A
+      = ((νs n).toMeasure : Measure (S → E)) A)
+    (μ : WithLocalConvergence S E) :
+    Tendsto μs atTop (𝓝 μ) ↔ Tendsto νs atTop (𝓝 μ) := by
+  rw [tendsto_withLocalConvergence_iff, tendsto_withLocalConvergence_iff]
+  exact forall₂_congr fun A hA ↦ Filter.tendsto_congr' (h A hA)
+
+omit [Nonempty ι] [Finite E] [MeasurableSingletonClass E] in
+/-- **The randomly shifted independent-block field `γ̄` of the `Λ`-marginal of a random field
+`κ`**, for the box `Λ = ∏_k [a_k, a_k + s_k]`, read in the space of random fields with the
+topology of local convergence. -/
+def blockFieldL (a : ι → ℤ) (s : ι → ℕ) (κ : Measure ((ι → ℤ) → E)) [IsProbabilityMeasure κ] :
+    WithLocalConvergence (ι → ℤ) E :=
+  WithSetwiseTopology.ofMeasure ⟨tileAverage (isComplement_Icc a s)
+    (κ.map (Finset.Icc a fun k ↦ a k + s k : Finset (ι → ℤ)).restrict),
+    isProbabilityMeasure_tileAverage _ _⟩
+
+omit [Nonempty ι] [Finite E] [MeasurableSingletonClass E] in
+@[simp] lemma toMeasure_blockFieldL (a : ι → ℤ) (s : ι → ℕ) (κ : Measure ((ι → ℤ) → E))
+    [IsProbabilityMeasure κ] :
+    (((blockFieldL a s κ).toMeasure : ProbabilityMeasure ((ι → ℤ) → E)) :
+        Measure ((ι → ℤ) → E))
+      = tileAverage (isComplement_Icc a s)
+          (κ.map (Finset.Icc a fun k ↦ a k + s k : Finset (ι → ℤ)).restrict) := rfl
+
+/-- **Georgii's `κ °R_Λ`** read in the space of random fields with the topology of local
+convergence. -/
+def _root_.MeasureTheory.GibbsMeasure.empiricalFieldAverageL {S E : Type*} [AddCommGroup S]
+    [MeasurableSpace E] (π : S → S) {Λ : Finset S} (hΛ : Λ.Nonempty) (κ : Measure (S → E))
+    [IsProbabilityMeasure κ] : WithLocalConvergence S E :=
+  haveI : NeZero (#Λ) := ⟨hΛ.card_pos.ne'⟩
+  WithSetwiseTopology.ofMeasure ⟨empiricalFieldAverage E π Λ κ, inferInstance⟩
+
+@[simp] lemma _root_.MeasureTheory.GibbsMeasure.toMeasure_empiricalFieldAverageL {S E : Type*}
+    [AddCommGroup S] [MeasurableSpace E] (π : S → S) {Λ : Finset S} (hΛ : Λ.Nonempty)
+    (κ : Measure (S → E)) [IsProbabilityMeasure κ] :
+    (((empiricalFieldAverageL π hΛ κ).toMeasure : ProbabilityMeasure (S → E)) :
+        Measure (S → E)) = empiricalFieldAverage E π Λ κ := rfl
+
+omit [Nonempty ι] [Finite E] [MeasurableSingletonClass E] in
+/-- **The two auxiliary fields of Step 2 have the same limits.** Along cubes `Λ_n` with sides
+tending to infinity, the randomly shifted independent-block fields `γ̄_n` and the mean empirical
+fields `κ_n °R_{Λ_n}` of any random fields `κ_n` converge to the same random fields, since they
+agree asymptotically on every local event
+(`tendsto_measureReal_tileAverage_sub_measureReal_empiricalFieldAverage`). -/
+theorem tendsto_blockFieldL_iff_tendsto_empiricalFieldAverageL
+    {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
+    {G : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
+    (hπ : ∀ n, Potential.IsTorusReduction (G n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
+    (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).Nonempty)
+    (κ : ℕ → Measure ((ι → ℤ) → E)) [∀ n, IsProbabilityMeasure (κ n)]
+    (μ : WithLocalConvergence (ι → ℤ) E) :
+    Tendsto (fun n ↦ blockFieldL (m n) (fun _ ↦ s n) (κ n)) atTop (𝓝 μ) ↔
+      Tendsto (fun n ↦ empiricalFieldAverageL (π n) (hne n) (κ n)) atTop (𝓝 μ) := by
+  refine tendsto_withLocalConvergence_iff_of_tendsto_measureReal_sub (fun A hA ↦ ?_) μ
+  have h := tendsto_measureReal_tileAverage_sub_measureReal_empiricalFieldAverage hs hπ κ
+    (fun n ↦ inferInstance) hA
+  simpa only [toMeasure_blockFieldL, toMeasure_empiricalFieldAverageL] using h
+
+omit [Nonempty ι] in
+/-- **Steps 2 and 3 of Georgii's proof of the upper bound (15.46): the limit of the block
+fields.** Let `κ_n` be random fields concentrated on `{°R_{Λ_n} ∈ C}` whose randomly shifted
+independent-block fields `γ̄_n` obey the finite-volume bound
+`𝓀(γ̄_n|Φ) ≤ c + e_n + (⟨γ̄_n, Φ⟩ − ⟨κ_n °R_{Λ_n}, Φ⟩)` with `e_n → 0`, and let `μ` be the limit of
+the mean empirical fields `κ_n °R_{Λ_n}`. Then `μ` is shift invariant, lies in Georgii's `cx̄ C`,
+and `𝓀(μ|Φ) ≤ c`.
+
+The block fields converge to the same `μ`
+(`tendsto_blockFieldL_iff_tendsto_empiricalFieldAverageL`), so the energy correction vanishes by
+the continuity of `⟨·, Φ⟩`; `μ ∈ cx̄ C` because each `κ_n °R_{Λ_n}` lies in the convex hull of `C`
+(`evalLocalEvents_empiricalFieldAverage_mem_convexHull`, Georgii's "basic observation"); and
+`𝓀(μ|Φ) ≤ c` because `𝓀(·|Φ)` is lower semicontinuous. This is the common core of the upper
+bounds (15.46) for the configurational and for the periodic boundary conditions, and of the
+cluster-point half of Corollary (15.58). -/
+theorem mem_closedConvexHull_and_specificRelativeEntropy_le_of_tendsto
+    (Φ : Potential.BTheta (ι → ℤ) E)
+    {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
+    {G : ℕ → AddSubgroup (ι → ℤ)} {π : ℕ → (ι → ℤ) → (ι → ℤ)}
+    (hπ : ∀ n, Potential.IsTorusReduction (G n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
+    (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).Nonempty)
+    {C : Set (WithLocalConvergence (ι → ℤ) E)} {c : ℝ}
+    (κ : ℕ → Measure ((ι → ℤ) → E)) [∀ n, IsProbabilityMeasure (κ n)]
+    (hcond : ∀ᶠ n in atTop, κ n {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C}ᶜ = 0)
+    {e : ℕ → ℝ} (he : Tendsto e atTop (𝓝 0))
+    (hM : ∀ᶠ n in atTop, (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+        (tileAverage (isComplement_Icc (m n) fun _ ↦ s n)
+          ((κ n).map (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).restrict))
+      ≤ ((c + e n + ((Φ : Potential (ι → ℤ) E).specificEnergy
+            (tileAverage (isComplement_Icc (m n) fun _ ↦ s n)
+              ((κ n).map (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).restrict))
+          - (Φ : Potential (ι → ℤ) E).specificEnergy
+            (empiricalFieldAverage E (π n) (Finset.Icc (m n) fun k ↦ m n k + s n) (κ n))) : ℝ)
+        : EReal))
+    {μ : WithLocalConvergence (ι → ℤ) E}
+    (hlim : Tendsto (fun n ↦ empiricalFieldAverageL (π n) (hne n) (κ n)) atTop (𝓝 μ)) :
+    (μ.toMeasure : Measure ((ι → ℤ) → E)) ∈ invariantFields (shiftGroup (ι → ℤ) E) ∧
+      evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C) ∧
+      (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+        (μ.toMeasure : Measure ((ι → ℤ) → E)) ≤ (c : EReal) := by
+  have hblk : Tendsto (fun n ↦ blockFieldL (m n) (fun _ ↦ s n) (κ n)) atTop (𝓝 μ) :=
+    (tendsto_blockFieldL_iff_tendsto_empiricalFieldAverageL hs hπ hne κ μ).2 hlim
+  refine ⟨?_, ?_, ?_⟩
+  · -- `μ` is shift invariant
+    refine (isClosed_setOf_mem_invariantFields (shiftGroup (ι → ℤ) E)).mem_of_tendsto hblk
+      (.of_forall fun k ↦ ?_)
+    exact tileAverage_mem_invariantFields_shiftGroup _ _
+  · -- `μ` lies in the closed convex hull
+    refine isClosed_closedConvexHull.mem_of_tendsto
+      (WithSetwiseTopology.continuous_evalReal.continuousAt.tendsto.comp hlim) ?_
+    filter_upwards [hcond] with k hk
+    exact convexHull_subset_closedConvexHull
+      (evalLocalEvents_empiricalFieldAverage_mem_convexHull (hπ k) (hne k) (κ k) hk)
+  · -- the excess free energy of the limit is at most `c`
+    by_contra hgt
+    push Not at hgt
+    obtain ⟨c', hcc', hc'⟩ := EReal.exists_between_coe_real hgt
+    have hEnergy : Tendsto (fun k ↦ (Φ : Potential (ι → ℤ) E).specificEnergy
+        (tileAverage (isComplement_Icc (m k) fun _ ↦ s k)
+          ((κ k).map (Finset.Icc (m k) fun j ↦ m k j + s k : Finset (ι → ℤ)).restrict))
+        - (Φ : Potential (ι → ℤ) E).specificEnergy
+          (empiricalFieldAverage E (π k) (Finset.Icc (m k) fun j ↦ m k j + s k) (κ k)))
+        atTop (𝓝 0) := by
+      have h1 := (Potential.continuous_specificEnergy
+        (Φ := (Φ : Potential (ι → ℤ) E))).continuousAt.tendsto.comp hblk
+      have h2 := (Potential.continuous_specificEnergy
+        (Φ := (Φ : Potential (ι → ℤ) E))).continuousAt.tendsto.comp hlim
+      have h3 := h1.sub h2
+      simpa using h3
+    have hε : Tendsto (fun k ↦ c + e k + ((Φ : Potential (ι → ℤ) E).specificEnergy
+        (tileAverage (isComplement_Icc (m k) fun _ ↦ s k)
+          ((κ k).map (Finset.Icc (m k) fun j ↦ m k j + s k : Finset (ι → ℤ)).restrict))
+        - (Φ : Potential (ι → ℤ) E).specificEnergy
+          (empiricalFieldAverage E (π k) (Finset.Icc (m k) fun j ↦ m k j + s k) (κ k)))) atTop
+        (𝓝 c) := by
+      simpa using (tendsto_const_nhds.add he).add hEnergy
+    have hlsc := Potential.BTheta.lowerSemicontinuous_specificRelativeEntropy ν Φ μ c' hc'
+    have hev1 : ∀ᶠ k in atTop, (c' : EReal) < (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+        (tileAverage (isComplement_Icc (m k) fun _ ↦ s k)
+          ((κ k).map (Finset.Icc (m k) fun j ↦ m k j + s k : Finset (ι → ℤ)).restrict)) :=
+      hblk.eventually hlsc
+    have hev2 : ∀ᶠ k in atTop, (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+        (tileAverage (isComplement_Icc (m k) fun _ ↦ s k)
+          ((κ k).map (Finset.Icc (m k) fun j ↦ m k j + s k : Finset (ι → ℤ)).restrict))
+        < (c' : EReal) := by
+      have hcc'R : c < c' := by exact_mod_cast hcc'
+      filter_upwards [hε.eventually (eventually_lt_nhds hcc'R), hM] with k hk hMk
+      exact lt_of_le_of_lt hMk (EReal.coe_lt_coe_iff.2 hk)
+    obtain ⟨k, hk1, hk2⟩ := (hev1.and hev2).exists
+    exact absurd hk1 (not_lt.2 hk2.le)
+
 /-- **Steps 2 and 3 of Georgii's proof of the upper bound (15.46): the cluster point.** Suppose
 that along a sequence of cubes `Λ_n` with sides tending to infinity there are boundary conditions
 `ω_n` for which `γ^Φ_{Λ_n}(°R_{Λ_n} ∈ C | ω_n) > e^{−c|Λ_n|}`. Then there is a shift-invariant
@@ -1150,13 +1358,9 @@ random field `μ` in Georgii's `cx̄ C` with `𝓀(μ|Φ) ≤ c`.
 This is Georgii's argument by contradiction in Step 2, with the compactness of the level sets of
 the specific entropy replaced by the compactness of the whole space of random fields, which over
 a finite state space is automatic (Georgii Example (4.11)(2)). The finite-volume input is
-`specificRelativeEntropy_tileAverage_cond_le`; the three correction terms in it vanish along the
-convergent subsequence, the first by Theorem (15.30)(a) uniformly in the boundary condition, the
-second because the two auxiliary fields have the same limit
-(`tendsto_measureReal_tileAverage_sub_measureReal_empiricalFieldAverage`) and `⟨·, Φ⟩` is
-continuous, the third by the estimate (15.25). The limit lies in `cx̄ C` because each
-`γ^C_{Λ_n|ω_n} °R_{Λ_n}` does
-(`evalLocalEvents_empiricalFieldAverage_mem_convexHull`), and `𝓀(·|Φ)` is lower semicontinuous. -/
+`specificRelativeEntropy_tileAverage_cond_le`, whose two correction terms vanish, the first by
+Theorem (15.30)(a) uniformly in the boundary condition and the second by the estimate (15.25);
+the limit argument is `mem_closedConvexHull_and_specificRelativeEntropy_le_of_tendsto`. -/
 theorem exists_mem_closedConvexHull_specificRelativeEntropy_le
     (Φ : Potential.BTheta (ι → ℤ) E)
     {m : ℕ → ι → ℤ} {s : ℕ → ℕ} (hs : Tendsto s atTop atTop)
@@ -1192,165 +1396,73 @@ theorem exists_mem_closedConvexHull_specificRelativeEntropy_le
       (Finset.Icc (m n) fun k ↦ m n k + s n) (ω n))[|
         {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C}] with hκdef
   have hκprob : ∀ n, IsProbabilityMeasure (κ n) := fun n ↦ cond_isProbabilityMeasure (hpos n)
-  set blk : ℕ → Measure ((ι → ℤ) → E) := fun n ↦
-    tileAverage (isComplement_Icc (m n) fun _ ↦ s n)
-      ((κ n).map (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).restrict) with hblkdef
-  have hblkprob : ∀ n, IsProbabilityMeasure (blk n) := fun n ↦ by
-    have := hκprob n; exact isProbabilityMeasure_tileAverage _ _
-  set emp : ℕ → Measure ((ι → ℤ) → E) := fun n ↦
-    empiricalFieldAverage E (π n) (Finset.Icc (m n) fun k ↦ m n k + s n) (κ n) with hempdef
-  have hempprob : ∀ n, IsProbabilityMeasure (emp n) := fun n ↦ by
-    have := hκprob n
-    have : NeZero (#(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ))) :=
-      ⟨(hne n).card_pos.ne'⟩
-    exact isProbabilityMeasure_empiricalFieldAverage _ _
-  set blkL : ℕ → WithLocalConvergence (ι → ℤ) E := fun n ↦
-    WithSetwiseTopology.ofMeasure ⟨blk n, hblkprob n⟩ with hblkLdef
-  set empL : ℕ → WithLocalConvergence (ι → ℤ) E := fun n ↦
-    WithSetwiseTopology.ofMeasure ⟨emp n, hempprob n⟩ with hempLdef
-  obtain ⟨μ, -, ψ, hψ, hlim⟩ := isCompact_univ.tendsto_subseq (x := blkL) fun n ↦ Set.mem_univ _
-  have hs' : Tendsto (fun k ↦ s (ψ k)) atTop atTop := hs.comp hψ.tendsto_atTop
-  -- the mean empirical fields have the same limit
-  have hempLim : Tendsto (fun k ↦ empL (ψ k)) atTop (𝓝 μ) := by
-    rw [tendsto_withLocalConvergence_iff]
-    intro A hA
-    have h1 : Tendsto (fun k ↦ blk (ψ k) A) atTop (𝓝 ((μ.toMeasure : Measure _) A)) :=
-      tendsto_withLocalConvergence_iff.1 hlim A hA
-    have h1r : Tendsto (fun k ↦ (blk (ψ k)).real A) atTop
-        (𝓝 ((μ.toMeasure : Measure ((ι → ℤ) → E)).real A)) := by
-      simpa only [measureReal_def, Function.comp_def] using
-        (ENNReal.tendsto_toReal (measure_ne_top (μ.toMeasure : Measure ((ι → ℤ) → E)) A)).comp h1
-    have h2 : Tendsto (fun k ↦ (blk (ψ k)).real A - (emp (ψ k)).real A) atTop (𝓝 0) :=
-      tendsto_measureReal_tileAverage_sub_measureReal_empiricalFieldAverage
-        (m := fun k ↦ m (ψ k)) (s := fun k ↦ s (ψ k)) hs' (fun k ↦ hπ (ψ k))
-        (fun k ↦ κ (ψ k)) (fun k ↦ hκprob (ψ k)) hA
-    have h3 : Tendsto (fun k ↦ (emp (ψ k)).real A) atTop
-        (𝓝 ((μ.toMeasure : Measure ((ι → ℤ) → E)).real A)) := by
-      have h := h1r.sub h2
-      simpa using h
-    have h4 : Tendsto (fun k ↦ ENNReal.ofReal ((emp (ψ k)).real A)) atTop
-        (𝓝 (ENNReal.ofReal ((μ.toMeasure : Measure ((ι → ℤ) → E)).real A))) :=
-      (ENNReal.continuous_ofReal.tendsto _).comp h3
-    have hrwμ : ENNReal.ofReal ((μ.toMeasure : Measure ((ι → ℤ) → E)).real A)
-        = (μ.toMeasure : Measure ((ι → ℤ) → E)) A := by
-      rw [measureReal_def, ENNReal.ofReal_toReal (measure_ne_top _ _)]
-    rw [hrwμ] at h4
-    refine h4.congr fun k ↦ ?_
-    rw [measureReal_def, ENNReal.ofReal_toReal (measure_ne_top _ _)]
-    rfl
-  refine ⟨μ, ?_, ?_, ?_⟩
-  · -- `μ` is shift invariant
-    refine (isClosed_setOf_mem_invariantFields (shiftGroup (ι → ℤ) E)).mem_of_tendsto hlim
-      (.of_forall fun k ↦ ?_)
-    exact tileAverage_mem_invariantFields_shiftGroup _ _
-  · -- `μ` lies in the closed convex hull
-    refine isClosed_closedConvexHull.mem_of_tendsto
-      (WithSetwiseTopology.continuous_evalReal.continuousAt.tendsto.comp hempLim)
-      (.of_forall fun k ↦ ?_)
-    refine convexHull_subset_closedConvexHull ?_
-    have hcond : κ (ψ k) {σ | periodicEmpiricalFieldL (π (ψ k)) (hne (ψ k)) σ ∈ C}ᶜ = 0 := by
-      rw [hκdef]
-      have hm := cylinderEvents_le_pi (X := fun _ : ι → ℤ ↦ E)
-        (Δ := ((Finset.Icc (m (ψ k)) fun j ↦ m (ψ k) j + s (ψ k) : Finset (ι → ℤ)) : Set (ι → ℤ)))
-        _ (hAmeas (ψ k))
-      rw [cond_apply hm, Set.inter_compl_self, measure_empty, mul_zero]
-    have := hκprob (ψ k)
-    exact evalLocalEvents_empiricalFieldAverage_mem_convexHull (hπ (ψ k)) (hne (ψ k))
-      (κ (ψ k)) hcond
-  · -- the excess free energy of the limit is at most `c`
-    by_contra hgt
-    push Not at hgt
-    obtain ⟨c', hcc', hc'⟩ := EReal.exists_between_coe_real hgt
-    -- the finite-volume estimate
-    have hM : ∀ n, (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν (blk n)
-        ≤ ((c + (((Φ : Potential (ι → ℤ) E).pressure ν
-              - (Φ : Potential (ι → ℤ) E).logZ ν (Finset.Icc (m n) fun k ↦ m n k + s n) (ω n)
-                / #(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)))
-            + ((Φ : Potential (ι → ℤ) E).specificEnergy (blk n)
-              - (Φ : Potential (ι → ℤ) E).specificEnergy (emp n))
-            + 3 * (Φ : Potential (ι → ℤ) E).tail (Finset.Icc (m n) fun k ↦ m n k + s n)
-                (Finset.Icc (m n) fun k ↦ m n k + s n)
-              / #(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ))) : ℝ) : EReal) := by
-      intro n
-      have hmain := specificRelativeEntropy_tileAverage_cond_le ν hΦ (m n) (fun _ ↦ s n) (hπ n)
-        (ω n) (hAmeas n) (hpos n)
-      refine hmain.trans (EReal.coe_le_coe_iff.2 ?_)
-      have hq : -Real.log ((Potential.gibbsSpecificationOfAbsolutelySummable
-            (Φ := (Φ : Potential (ι → ℤ) E)) ν 1 (Finset.Icc (m n) fun k ↦ m n k + s n)
-            (ω n)).real {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C})
-          / #(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) ≤ c := by
-        rw [div_le_iff₀ (hcardpos n)]
-        have hlt := (ENNReal.ofReal_lt_iff_lt_toReal (Real.exp_pos _).le
-          (measure_ne_top _ _)).1 (hω n)
-        have hlog := Real.log_lt_log (Real.exp_pos _) hlt
-        rw [Real.log_exp] at hlog
-        rw [measureReal_def]
-        linarith
+  have hcond : ∀ n, κ n {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C}ᶜ = 0 := by
+    intro n
+    rw [hκdef]
+    have hm := cylinderEvents_le_pi (X := fun _ : ι → ℤ ↦ E)
+      (Δ := ((Finset.Icc (m n) fun j ↦ m n j + s n : Finset (ι → ℤ)) : Set (ι → ℤ)))
+      _ (hAmeas n)
+    rw [cond_apply hm, Set.inter_compl_self, measure_empty, mul_zero]
+  -- the finite-volume estimate, with the two correction terms
+  set e : ℕ → ℝ := fun n ↦ ((Φ : Potential (ι → ℤ) E).pressure ν
+      - (Φ : Potential (ι → ℤ) E).logZ ν (Finset.Icc (m n) fun k ↦ m n k + s n) (ω n)
+        / #(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)))
+    + 3 * (Φ : Potential (ι → ℤ) E).tail (Finset.Icc (m n) fun k ↦ m n k + s n)
+        (Finset.Icc (m n) fun k ↦ m n k + s n)
+      / #(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) with hedef
+  have hM : ∀ n, (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+      (tileAverage (isComplement_Icc (m n) fun _ ↦ s n)
+        ((κ n).map (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).restrict))
+      ≤ ((c + e n + ((Φ : Potential (ι → ℤ) E).specificEnergy
+            (tileAverage (isComplement_Icc (m n) fun _ ↦ s n)
+              ((κ n).map (Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)).restrict))
+          - (Φ : Potential (ι → ℤ) E).specificEnergy
+            (empiricalFieldAverage E (π n) (Finset.Icc (m n) fun k ↦ m n k + s n) (κ n))) : ℝ)
+        : EReal) := by
+    intro n
+    have hmain := specificRelativeEntropy_tileAverage_cond_le ν hΦ (m n) (fun _ ↦ s n) (hπ n)
+      (ω n) (hAmeas n) (hpos n)
+    refine hmain.trans (EReal.coe_le_coe_iff.2 ?_)
+    have hq : -Real.log ((Potential.gibbsSpecificationOfAbsolutelySummable
+          (Φ := (Φ : Potential (ι → ℤ) E)) ν 1 (Finset.Icc (m n) fun k ↦ m n k + s n)
+          (ω n)).real {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C})
+        / #(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) ≤ c := by
+      rw [div_le_iff₀ (hcardpos n)]
+      have hlt := (ENNReal.ofReal_lt_iff_lt_toReal (Real.exp_pos _).le
+        (measure_ne_top _ _)).1 (hω n)
+      have hlog := Real.log_lt_log (Real.exp_pos _) hlt
+      rw [Real.log_exp] at hlog
+      rw [measureReal_def]
       linarith
-    -- the correction terms vanish along the subsequence
-    have hZ : Tendsto (fun k ↦ (Φ : Potential (ι → ℤ) E).pressure ν
-        - (Φ : Potential (ι → ℤ) E).logZ ν
-            (Finset.Icc (m (ψ k)) fun j ↦ m (ψ k) j + s (ψ k)) (ω (ψ k))
-          / #(Finset.Icc (m (ψ k)) fun j ↦ m (ψ k) j + s (ψ k) : Finset (ι → ℤ)))
-        atTop (𝓝 0) := by
-      have h := Potential.tendsto_logZ_div_card_pressure (Φ := (Φ : Potential (ι → ℤ) E)) ν hΦ
-        (m := fun k ↦ m (ψ k)) (n := fun k ↦ fun j ↦ m (ψ k) j + s (ψ k))
-        (fun j ↦ by simpa [Function.comp_def] using
-          (tendsto_natCast_atTop_atTop (R := ℤ)).comp hs')
-        (fun k ↦ ω (ψ k))
-      have h2 : Tendsto (fun k ↦ (Φ : Potential (ι → ℤ) E).pressure ν
-          - (Φ : Potential (ι → ℤ) E).logZ ν
-              (Finset.Icc (m (ψ k)) fun j ↦ m (ψ k) j + s (ψ k)) (ω (ψ k))
-            / #(Finset.Icc (m (ψ k)) fun j ↦ m (ψ k) j + s (ψ k) : Finset (ι → ℤ)))
-          atTop (𝓝 ((Φ : Potential (ι → ℤ) E).pressure ν
-            - (Φ : Potential (ι → ℤ) E).pressure ν)) := tendsto_const_nhds.sub h
-      simpa using h2
-    have hT : Tendsto (fun k ↦ 3 * (Φ : Potential (ι → ℤ) E).tail
-          (Finset.Icc (m (ψ k)) fun j ↦ m (ψ k) j + s (ψ k))
-          (Finset.Icc (m (ψ k)) fun j ↦ m (ψ k) j + s (ψ k))
-        / #(Finset.Icc (m (ψ k)) fun j ↦ m (ψ k) j + s (ψ k) : Finset (ι → ℤ)))
-        atTop (𝓝 0) := by
-      have h := Potential.tendsto_tail_div_card (Φ := (Φ : Potential (ι → ℤ) E)) hΦ
-        (m := fun k ↦ m (ψ k)) (n := fun k ↦ fun j ↦ m (ψ k) j + s (ψ k))
-        (fun j ↦ by simpa [Function.comp_def] using
-          (tendsto_natCast_atTop_atTop (R := ℤ)).comp hs')
-      simpa [mul_div_assoc] using h.const_mul (3 : ℝ)
-    have hEnergy : Tendsto (fun k ↦ (Φ : Potential (ι → ℤ) E).specificEnergy (blk (ψ k))
-        - (Φ : Potential (ι → ℤ) E).specificEnergy (emp (ψ k))) atTop (𝓝 0) := by
-      have h1 := (Potential.continuous_specificEnergy
-        (Φ := (Φ : Potential (ι → ℤ) E))).continuousAt.tendsto.comp hlim
-      have h2 := (Potential.continuous_specificEnergy
-        (Φ := (Φ : Potential (ι → ℤ) E))).continuousAt.tendsto.comp hempLim
-      have h3 : Tendsto (fun k ↦ (Φ : Potential (ι → ℤ) E).specificEnergy (blk (ψ k))
-          - (Φ : Potential (ι → ℤ) E).specificEnergy (emp (ψ k))) atTop
-          (𝓝 ((Φ : Potential (ι → ℤ) E).specificEnergy (μ.toMeasure : Measure ((ι → ℤ) → E))
-            - (Φ : Potential (ι → ℤ) E).specificEnergy
-              (μ.toMeasure : Measure ((ι → ℤ) → E)))) := h1.sub h2
-      simpa using h3
-    have hε : Tendsto (fun k ↦ c + ((((Φ : Potential (ι → ℤ) E).pressure ν
-              - (Φ : Potential (ι → ℤ) E).logZ ν
-                  (Finset.Icc (m (ψ k)) fun j ↦ m (ψ k) j + s (ψ k)) (ω (ψ k))
-                / #(Finset.Icc (m (ψ k)) fun j ↦ m (ψ k) j + s (ψ k) : Finset (ι → ℤ)))
-            + ((Φ : Potential (ι → ℤ) E).specificEnergy (blk (ψ k))
-              - (Φ : Potential (ι → ℤ) E).specificEnergy (emp (ψ k)))
-            + 3 * (Φ : Potential (ι → ℤ) E).tail
-                (Finset.Icc (m (ψ k)) fun j ↦ m (ψ k) j + s (ψ k))
-                (Finset.Icc (m (ψ k)) fun j ↦ m (ψ k) j + s (ψ k))
-              / #(Finset.Icc (m (ψ k)) fun j ↦ m (ψ k) j + s (ψ k) : Finset (ι → ℤ))))) atTop
-        (𝓝 c) := by
-      simpa using tendsto_const_nhds.add ((hZ.add hEnergy).add hT)
-    -- lower semicontinuity gives a contradiction
-    have hlsc := Potential.BTheta.lowerSemicontinuous_specificRelativeEntropy ν Φ μ c' hc'
-    have hev1 : ∀ᶠ k in atTop,
-        (c' : EReal) < (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν (blk (ψ k)) :=
-      hlim.eventually hlsc
-    have hev2 : ∀ᶠ k in atTop, (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν (blk (ψ k))
-        < (c' : EReal) := by
-      have hcc'R : c < c' := by exact_mod_cast hcc'
-      filter_upwards [hε.eventually (eventually_lt_nhds (by linarith : c < c'))] with k hk
-      exact lt_of_le_of_lt (hM (ψ k)) (EReal.coe_lt_coe_iff.2 hk)
-    obtain ⟨k, hk1, hk2⟩ := (hev1.and hev2).exists
-    exact absurd hk1 (not_lt.2 hk2.le)
+    rw [hedef]
+    linarith
+  -- the correction terms vanish
+  have hside : ∀ k, Tendsto (fun n ↦ (fun j ↦ m n j + (s n : ℤ)) k - m n k) atTop atTop := by
+    intro k
+    have h : Tendsto (fun n ↦ ((s n : ℤ))) atTop atTop := tendsto_natCast_atTop_atTop.comp hs
+    simpa using h
+  have he : Tendsto e atTop (𝓝 0) := by
+    have hZ := Potential.tendsto_logZ_div_card_pressure (Φ := (Φ : Potential (ι → ℤ) E)) ν hΦ
+      hside ω
+    have hT := Potential.tendsto_tail_div_card (Φ := (Φ : Potential (ι → ℤ) E)) hΦ hside
+    have h := ((tendsto_const_nhds (x := (Φ : Potential (ι → ℤ) E).pressure ν)).sub hZ).add
+      (hT.const_mul 3)
+    simp only [sub_self, mul_zero, add_zero] at h
+    refine h.congr fun n ↦ ?_
+    rw [hedef]
+    ring
+  -- a cluster point of the block fields, by compactness
+  obtain ⟨μ, -, ψ, hψ, hlim⟩ := isCompact_univ.tendsto_subseq
+    (x := fun n ↦ blockFieldL (m n) (fun _ ↦ s n) (κ n)) fun n ↦ Set.mem_univ _
+  have hs' : Tendsto (fun k ↦ s (ψ k)) atTop atTop := hs.comp hψ.tendsto_atTop
+  have hemp : Tendsto (fun k ↦ empiricalFieldAverageL (π (ψ k)) (hne (ψ k)) (κ (ψ k))) atTop
+      (𝓝 μ) :=
+    (tendsto_blockFieldL_iff_tendsto_empiricalFieldAverageL (m := fun k ↦ m (ψ k))
+      (s := fun k ↦ s (ψ k)) hs' (fun k ↦ hπ (ψ k)) (fun k ↦ hne (ψ k)) (fun k ↦ κ (ψ k)) μ).1 hlim
+  exact ⟨μ, mem_closedConvexHull_and_specificRelativeEntropy_le_of_tendsto ν Φ
+    (m := fun k ↦ m (ψ k)) (s := fun k ↦ s (ψ k)) hs' (fun k ↦ hπ (ψ k)) (fun k ↦ hne (ψ k))
+    (fun k ↦ κ (ψ k)) (.of_forall fun k ↦ hcond (ψ k)) (he.comp hψ.tendsto_atTop)
+    (.of_forall fun k ↦ hM (ψ k)) hemp⟩
 
 /-- **The upper bound (15.46) in exponential form, with Georgii's `cx̄ C` on the right.** If `c`
 is strictly below the excess free energy of every shift-invariant random field in `cx̄ C`, then
@@ -1398,6 +1510,77 @@ theorem eventually_gibbsSpecification_setOf_periodicEmpiricalFieldL_mem_le
     (G := fun j ↦ G (φ j)) (π := fun j ↦ π (φ j)) (fun j ↦ hπ (φ j)) (fun j ↦ hne (φ j)) ω hω
   exact absurd hμle (not_le.2 (hc μ hμinv hμhull))
 
+omit [Nonempty ι] [Finite E] [MeasurableSingletonClass E] in
+/-- The `EReal` bookkeeping of (15.46): if `x ≤ e^{−c |Λ|}` then `log x / |Λ| ≤ −c`. -/
+lemma log_div_natCast_le_neg_of_le_ofReal_exp {x : ℝ≥0∞} {N : ℕ} (hN : N ≠ 0) {c : ℝ}
+    (h : x ≤ ENNReal.ofReal (Real.exp (-(c * N)))) :
+    ENNReal.log x / ((N : ℕ) : EReal) ≤ ((-c : ℝ) : EReal) := by
+  have hlog : ENNReal.log x ≤ ((-(c * N) : ℝ) : EReal) := by
+    refine (ENNReal.log_monotone h).trans (le_of_eq ?_)
+    rw [ENNReal.log_ofReal_of_pos (Real.exp_pos _), Real.log_exp]
+  have hcard : (0 : ℝ) < N := by exact_mod_cast Nat.pos_of_ne_zero hN
+  refine (EReal.div_le_div_right_of_nonneg (c := ((N : ℕ) : EReal)) (Nat.cast_nonneg' _)
+    hlog).trans (le_of_eq ?_)
+  rw [← EReal.coe_natCast, ← EReal.coe_div, EReal.coe_eq_coe_iff]
+  field_simp
+
+/-- **Georgii's Step 3 assembled**: an extended real `L` bounded by `−c` for every real `c` below
+`inf {𝓀(μ|Φ) : μ ∈ 𝓟_Θ ∩ cx̄ C}` is bounded by `−inf_{C̄} 𝓀(·|Φ)`. The passage from `cx̄ C` to
+`C̄` is Georgii (15.54), `iInf_closedConvexHull_eq_iInf_closure_ereal`, which needs `𝓀(·|Φ)`
+concave on `𝓟_Θ` (`smul_specificRelativeEntropy_add_smul_specificRelativeEntropy_le`, hence
+`d ≥ 1`), lower semicontinuous, and bounded below (Corollary (15.35)). -/
+theorem le_neg_iInf_closure_specificRelativeEntropy_of_forall_lt
+    (Φ : Potential.BTheta (ι → ℤ) E) {C : Set (WithLocalConvergence (ι → ℤ) E)}
+    (hC : C ⊆ invariantRandomFields (ι → ℤ) E) {L : EReal}
+    (hstep : ∀ c : ℝ, (c : EReal) < (⨅ μ ∈ {μ | μ ∈ invariantRandomFields (ι → ℤ) E ∧
+        evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C)},
+        (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+          (μ.toMeasure : Measure ((ι → ℤ) → E))) → L ≤ ((-c : ℝ) : EReal)) :
+    L ≤ -⨅ μ ∈ closure C, (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+        (μ.toMeasure : Measure ((ι → ℤ) → E)) := by
+  have hΦ := Potential.BTheta.isShiftInvariant Φ
+  set P : Set (WithLocalConvergence (ι → ℤ) E) := invariantRandomFields (ι → ℤ) E with hPdef
+  set 𝒜 : WithLocalConvergence (ι → ℤ) E → EReal := fun μ ↦
+    (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+      (μ.toMeasure : Measure ((ι → ℤ) → E)) with h𝒜def
+  have hPmix : ∀ μ ∈ P, ∀ ν' ∈ P, ∀ a b : ℝ, 0 ≤ a → 0 ≤ b → a + b = 1 →
+      ∃ ρ ∈ P, (ρ.toMeasure : Measure ((ι → ℤ) → E))
+        = ENNReal.ofReal a • (μ.toMeasure : Measure ((ι → ℤ) → E))
+          + ENNReal.ofReal b • (ν'.toMeasure : Measure ((ι → ℤ) → E)) := by
+    intro μ hμ ν' hν' a b ha hb hab
+    have hst : a.toNNReal + b.toNNReal = 1 := by
+      rw [← Real.toNNReal_add ha hb, hab, Real.toNNReal_one]
+    have hmix := smul_add_smul_mem_invariantFields hμ hν' hst
+    refine ⟨⟨⟨_, hmix.1⟩⟩, hmix, ?_⟩
+    change (a.toNNReal : ℝ≥0) • (μ.toMeasure : Measure ((ι → ℤ) → E))
+        + (b.toNNReal : ℝ≥0) • (ν'.toMeasure : Measure ((ι → ℤ) → E)) = _
+    rw [ENNReal.smul_def, ENNReal.smul_def]
+    rfl
+  have hbdd : ∀ μ ∈ P, ((0 : ℝ) : EReal) ≤ 𝒜 μ := by
+    intro μ hμ
+    have : IsProbabilityMeasure (μ.toMeasure : Measure ((ι → ℤ) → E)) := hμ.1
+    simpa using Potential.specificRelativeEntropy_nonneg (Φ := (Φ : Potential (ι → ℤ) E)) ν hΦ hμ
+  have h1554 : (⨅ μ ∈ {μ | μ ∈ P ∧
+        evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C)}, 𝒜 μ)
+      = ⨅ μ ∈ closure C, 𝒜 μ :=
+    iInf_closedConvexHull_eq_iInf_closure_ereal
+      (isClosed_setOf_mem_invariantFields (shiftGroup (ι → ℤ) E)) hPmix hC hbdd
+      ((Potential.BTheta.lowerSemicontinuous_specificRelativeEntropy ν Φ).lowerSemicontinuousOn _)
+      (fun μ hμ ν' hν' ρ _ a b ha hb hab hmix ↦
+        smul_specificRelativeEntropy_add_smul_specificRelativeEntropy_le ν hμ hν' ha hb hab hmix)
+  change L ≤ -⨅ μ ∈ closure C, 𝒜 μ
+  rw [← h1554]
+  by_contra hcon
+  push Not at hcon
+  obtain ⟨y, hy1, hy2⟩ := EReal.exists_between_coe_real hcon
+  have hcm : ((-y : ℝ) : EReal) < ⨅ μ ∈ {μ | μ ∈ P ∧
+      evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C)}, 𝒜 μ := by
+    rw [EReal.coe_neg]
+    exact EReal.neg_lt_comm.1 hy1
+  have := hstep (-y) hcm
+  rw [neg_neg] at this
+  exact absurd hy2 (not_lt.2 this)
+
 /-- **Georgii Theorem (15.45), the upper bound (15.46).** For `Φ ∈ ℬ_Θ` and a set `C ⊆ 𝓟_Θ` of
 shift-invariant random fields,
 
@@ -1444,88 +1627,17 @@ theorem limsup_log_iSup_gibbsSpecification_div_card_le
       ≤ -⨅ μ ∈ closure C, (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
           (μ.toMeasure : Measure ((ι → ℤ) → E)) := by
   have : Nonempty E := Measure.nonempty_of_neZero ν
-  have hΦ := Potential.BTheta.isShiftInvariant Φ
-  set P : Set (WithLocalConvergence (ι → ℤ) E) := invariantRandomFields (ι → ℤ) E with hPdef
-  set 𝒜 : WithLocalConvergence (ι → ℤ) E → EReal := fun μ ↦
-    (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
-      (μ.toMeasure : Measure ((ι → ℤ) → E)) with h𝒜def
-  have hPmix : ∀ μ ∈ P, ∀ ν' ∈ P, ∀ a b : ℝ, 0 ≤ a → 0 ≤ b → a + b = 1 →
-      ∃ ρ ∈ P, (ρ.toMeasure : Measure ((ι → ℤ) → E))
-        = ENNReal.ofReal a • (μ.toMeasure : Measure ((ι → ℤ) → E))
-          + ENNReal.ofReal b • (ν'.toMeasure : Measure ((ι → ℤ) → E)) := by
-    intro μ hμ ν' hν' a b ha hb hab
-    have hst : a.toNNReal + b.toNNReal = 1 := by
-      rw [← Real.toNNReal_add ha hb, hab, Real.toNNReal_one]
-    have hmix := smul_add_smul_mem_invariantFields hμ hν' hst
-    refine ⟨⟨⟨_, hmix.1⟩⟩, hmix, ?_⟩
-    change (a.toNNReal : ℝ≥0) • (μ.toMeasure : Measure ((ι → ℤ) → E))
-        + (b.toNNReal : ℝ≥0) • (ν'.toMeasure : Measure ((ι → ℤ) → E)) = _
-    rw [ENNReal.smul_def, ENNReal.smul_def]
-    rfl
-  have hbdd : ∀ μ ∈ P, ((0 : ℝ) : EReal) ≤ 𝒜 μ := by
-    intro μ hμ
-    have : IsProbabilityMeasure (μ.toMeasure : Measure ((ι → ℤ) → E)) := hμ.1
-    simpa using Potential.specificRelativeEntropy_nonneg (Φ := (Φ : Potential (ι → ℤ) E)) ν hΦ hμ
-  have h1554 : (⨅ μ ∈ {μ | μ ∈ P ∧
-        evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C)}, 𝒜 μ)
-      = ⨅ μ ∈ closure C, 𝒜 μ :=
-    iInf_closedConvexHull_eq_iInf_closure_ereal
-      (isClosed_setOf_mem_invariantFields (shiftGroup (ι → ℤ) E)) hPmix hC hbdd
-      ((Potential.BTheta.lowerSemicontinuous_specificRelativeEntropy ν Φ).lowerSemicontinuousOn _)
-      (fun μ hμ ν' hν' ρ _ a b ha hb hab hmix ↦
-        smul_specificRelativeEntropy_add_smul_specificRelativeEntropy_le ν hμ hν' ha hb hab hmix)
-  rw [← h1554]
-  set L : EReal := Filter.limsup (fun n ↦ ENNReal.log (⨆ ω : (ι → ℤ) → E,
-      Potential.gibbsSpecificationOfAbsolutelySummable (Φ := (Φ : Potential (ι → ℤ) E)) ν 1
-        (Finset.Icc (m n) fun k ↦ m n k + s n) ω
-        {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C})
-      / (#(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) : EReal)) atTop with hLdef
-  -- the bound for every real strictly below the infimum
-  have hstep : ∀ c : ℝ, (c : EReal) < (⨅ μ ∈ {μ | μ ∈ P ∧
-        evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C)}, 𝒜 μ) →
-      L ≤ ((-c : ℝ) : EReal) := by
-    intro c hcm
-    have hc : ∀ μ : WithLocalConvergence (ι → ℤ) E,
-        (μ.toMeasure : Measure ((ι → ℤ) → E)) ∈ invariantFields (shiftGroup (ι → ℤ) E) →
-        evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C) →
-        (c : EReal) < 𝒜 μ := fun μ hμ hμ' ↦
-      lt_of_lt_of_le hcm (iInf₂_le μ ⟨hμ, hμ'⟩)
-    have hev := eventually_gibbsSpecification_setOf_periodicEmpiricalFieldL_mem_le ν Φ hs hπ hne hc
-    refine Filter.limsup_le_of_le (by isBoundedDefault) ?_
-    filter_upwards [hev] with n hn
-    have hsup : (⨆ ω : (ι → ℤ) → E,
-        Potential.gibbsSpecificationOfAbsolutelySummable (Φ := (Φ : Potential (ι → ℤ) E)) ν 1
-          (Finset.Icc (m n) fun k ↦ m n k + s n) ω
-          {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C})
-        ≤ ENNReal.ofReal (Real.exp
-            (-(c * #(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ))))) :=
-      iSup_le hn
-    have hlog : ENNReal.log (⨆ ω : (ι → ℤ) → E,
-        Potential.gibbsSpecificationOfAbsolutelySummable (Φ := (Φ : Potential (ι → ℤ) E)) ν 1
-          (Finset.Icc (m n) fun k ↦ m n k + s n) ω
-          {σ | periodicEmpiricalFieldL (π n) (hne n) σ ∈ C})
-        ≤ ((-(c * #(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ))) : ℝ) : EReal) := by
-      refine (ENNReal.log_monotone hsup).trans (le_of_eq ?_)
-      rw [ENNReal.log_ofReal_of_pos (Real.exp_pos _), Real.log_exp]
-    have hcard : (0 : ℝ) < #(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) := by
-      exact_mod_cast (hne n).card_pos
-    have hdiv := EReal.div_le_div_right_of_nonneg
-      (c := ((#(Finset.Icc (m n) fun k ↦ m n k + s n : Finset (ι → ℤ)) : ℕ) : EReal))
-      (Nat.cast_nonneg' _) hlog
-    refine hdiv.trans (le_of_eq ?_)
-    rw [← EReal.coe_natCast, ← EReal.coe_div, EReal.coe_eq_coe_iff]
-    field_simp
-  -- conclude
-  by_contra hcon
-  push Not at hcon
-  obtain ⟨y, hy1, hy2⟩ := EReal.exists_between_coe_real hcon
-  have hcm : ((-y : ℝ) : EReal) < ⨅ μ ∈ {μ | μ ∈ P ∧
-      evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C)}, 𝒜 μ := by
-    rw [EReal.coe_neg]
-    exact EReal.neg_lt_comm.1 hy1
-  have := hstep (-y) hcm
-  rw [neg_neg] at this
-  exact absurd hy2 (not_lt.2 this)
+  refine le_neg_iInf_closure_specificRelativeEntropy_of_forall_lt ν Φ hC fun c hcm ↦ ?_
+  have hc : ∀ μ : WithLocalConvergence (ι → ℤ) E,
+      (μ.toMeasure : Measure ((ι → ℤ) → E)) ∈ invariantFields (shiftGroup (ι → ℤ) E) →
+      evalLocalEvents (ι → ℤ) E μ ∈ closedConvexHull ℝ (evalLocalEvents (ι → ℤ) E '' C) →
+      (c : EReal) < (Φ : Potential (ι → ℤ) E).specificRelativeEntropy ν
+        (μ.toMeasure : Measure ((ι → ℤ) → E)) := fun μ hμ hμ' ↦
+    lt_of_lt_of_le hcm (iInf₂_le μ ⟨hμ, hμ'⟩)
+  have hev := eventually_gibbsSpecification_setOf_periodicEmpiricalFieldL_mem_le ν Φ hs hπ hne hc
+  refine Filter.limsup_le_of_le (by isBoundedDefault) ?_
+  filter_upwards [hev] with n hn
+  exact log_div_natCast_le_neg_of_le_ofReal_exp (hne n).card_pos.ne' (iSup_le hn)
 
 /-- **Georgii Theorem (15.45), the "in particular" clause of the upper bound (15.46).** The bound
 holds with the finite-volume Gibbs distributions `γ^Φ_Λ(·|ω)` replaced by *any* Gibbs measure

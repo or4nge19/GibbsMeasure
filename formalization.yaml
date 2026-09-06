@@ -1716,9 +1716,20 @@ alignment:
         monotonicity of the cubes is needed, while the a.s. statement (15.43)(2) keeps it as the
         hypothesis of (14.A8); the tiles meeting an arbitrary cube have cardinality
         asymptotic to it and Folner tile indices (BlockMcMillan.lean). So Theorem (15.45) holds
-        for a finite state space. Not yet proved: the two displayed inequalities of Corollary
-        (15.48) (the contraction step exists), (15.50), (15.51), (15.57)-(15.58), and Georgii's
-        remark that (15.46)-(15.47) hold for the periodic Gibbs distributions.
+        for a finite state space. Georgii's remark after (15.47) (Specification/PeriodicBoundaryGibbs.lean):
+        the Gibbs distributions with periodic boundary conditions, defined by his formula
+        °H = sum_i f_Phi(theta_{-i} omega°) = |Lambda| <°R_Lambda, Phi> (his definition through the
+        periodic modification is not proved equal to it), satisfy both inequalities of (15.45), the
+        energy errors not entering since °H is a function of °R. Corollary (15.48), both inequalities,
+        for any B (no Borel hypothesis needed), and Example (15.50)-(15.51): the self-potential of a
+        bounded measurable f lies in B_Theta, J_Psi vanishes exactly on the interval of one-sided
+        derivatives of t -> P(Phi - t Psi), is monotone beyond and positive, and
+        |Lambda|^{-1} log °gamma(M_Lambda f >= a) -> -J_Psi(a|Phi) under the finiteness of J at some
+        b > a, which Georgii asserts without proof (Specification/LargeDeviationsCorollaries.lean,
+        Potential/SelfPotential.lean). Towards (15.58): a strictly convex pressure makes the
+        subgradient of J unique (Mathlib/Analysis/Convex/StrictConvexSubgradient.lean). Not yet
+        proved: Cramer's formula for Phi = 0, the existence of a subgradient of J on D°, and the
+        cluster-point half of (15.58).
         Throughout, the a priori measure is a
         probability measure where Georgii assumes only a finite one.
     - source: "Section 12.2: (12.19)-(12.35)"

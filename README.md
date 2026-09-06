@@ -547,8 +547,14 @@ with the excess free energy shifted into `[0,∞]` and its concavity derived fro
 the specific entropy, Step 4 the cluster-point argument. So **Theorem (15.45)**, the large-deviation
 principle for the periodic empirical field, holds over a finite state space; Georgii's standard
 Borel generality needs the compact metrizable `𝒞`-topology and a countable core of `𝓕`, now
-available (Appendix 4.A above) but not yet consumed by (15.46). Open: the two inequalities of
-(15.48), (15.50)–(15.51), (15.57)–(15.58).
+available (Appendix 4.A above) but not yet consumed by (15.46). Georgii's remark after (15.47),
+that both inequalities hold for the **Gibbs distributions with periodic boundary conditions**, is
+proved (`Specification/PeriodicBoundaryGibbs.lean`), hence **Corollary (15.48)** in both inequalities
+and **Example (15.50)–(15.51)**, the large-deviation asymptotics of the spatial mean of a bounded
+observable (`Specification/LargeDeviationsCorollaries.lean`); the finiteness of the rate function
+that Georgii asserts without proof is a hypothesis there. Open: Cramér's formula at `Φ = 0`, the
+existence of a subgradient of the rate function on its domain, and the cluster-point half of
+(15.58) (its uniqueness half, from a strictly convex pressure, is in).
 
 **Chapter 17** (`GibbsMeasure/Specification/ReflectionPositivity.lean`,
 `Specification/PeriodicGibbs.lean`): reflection positivity for Georgii's generalised reflection,

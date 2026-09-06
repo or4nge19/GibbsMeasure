@@ -10,6 +10,7 @@ public import GibbsMeasure.Mathlib.Algebra.BigOperators.Group.Finset.Sigma
 public import GibbsMeasure.Mathlib.Analysis.Calculus.TiltedIntegral
 public import GibbsMeasure.Mathlib.Analysis.Convex.Barycenter
 public import GibbsMeasure.Mathlib.Analysis.Convex.BarycenterJensen
+public import GibbsMeasure.Mathlib.Analysis.Convex.StrictConvexSubgradient
 public import GibbsMeasure.Mathlib.Topology.Instances.EReal
 public import GibbsMeasure.Mathlib.Topology.UniformSpace.Pi
 public import GibbsMeasure.Mathlib.Topology.MetricSpace.DependsOn
@@ -277,6 +278,7 @@ public import GibbsMeasure.Potential.Equivalence
 public import GibbsMeasure.Potential.NearestNeighbour
 public import GibbsMeasure.Potential.PerSiteExistence
 public import GibbsMeasure.Potential.Periodic
+public import GibbsMeasure.Potential.SelfPotential
 public import GibbsMeasure.Potential.KernelDomination
 public import GibbsMeasure.Potential.Space
 public import GibbsMeasure.Potential.Transformation
@@ -357,6 +359,8 @@ public import GibbsMeasure.Specification.PhaseTransition
 public import GibbsMeasure.Specification.LargeDeviations
 public import GibbsMeasure.Specification.LargeDeviationsLower
 public import GibbsMeasure.Specification.LargeDeviationsUpper
+public import GibbsMeasure.Specification.PeriodicBoundaryGibbs
+public import GibbsMeasure.Specification.LargeDeviationsCorollaries
 public import GibbsMeasure.Specification.LocalGroundStates
 public import GibbsMeasure.Specification.PatternPercolation
 public import GibbsMeasure.Specification.ReflectionPositivity

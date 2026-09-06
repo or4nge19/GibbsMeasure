@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Mathlib.Analysis.Convex.StrictConvexSubgradient
 public import GibbsMeasure.Mathlib.Probability.LargeDeviations.Legendre
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.UniformAverage
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.SetwiseConvergence
@@ -111,6 +112,25 @@ of the box `Δ` (Georgii Example (4.20)(2), `Potential.IsTorusReduction`, in
   in the proof of (15.48): `inf {𝓀(ν|Φ) : ⟨ν, Ψ⟩ ∈ B} = inf_{x ∈ B} J_Ψ(x|Φ)`. It is the
   regrouping of an infimum over the `e_Ψ`-preimage of `B` by the fibres of `e_Ψ`, and is proved
   directly from `iInf₂_le` and `le_iInf₂`; no limit theorem enters.
+* `Potential.BTheta.continuous_energyVec`: `e_Ψ` is continuous for the topology of local
+  convergence — the input the contraction principle of Corollary (15.48) consumes on top of the
+  regrouping above.
+
+## The shape of `J_Ψ(·|Φ)` for `k = 1`, Georgii Example (15.50)
+
+* `Potential.BTheta.ldRate_eq_zero_iff_mem_Icc`, **Example (15.50), first assertion**: over a
+  standard Borel state space `J_Ψ(·|Φ)` attains its minimum `0` exactly on the interval
+  `[∂⁻_{−Ψ}P(Φ), ∂⁺_{−Ψ}P(Φ)]` of the one-sided derivatives at `t = 0` of `t ↦ P(Φ − tΨ)`. This
+  is Remark (16.6) and Theorem (16.14) of `GibbsMeasure/Specification/TangentFunctional.lean` and
+  `GibbsMeasure/Specification/PhaseTransition.lean` applied to `{J_Ψ(·|Φ) = 0} = e_Ψ(𝒢_Θ(Φ))`.
+* `Potential.BTheta.ldRate_le_ldRate_of_le`, **Example (15.50), second assertion**: `J_Ψ(·|Φ)` is
+  monotone to the right of that interval, by convexity.
+* `Potential.BTheta.ldRate_pos`: strictly above `a⁺` the rate function is strictly positive,
+  Georgii's `0 < J_Ψ(a|Φ)`.
+* `Potential.BTheta.iInf_ldRate_Ioi_eq`: `inf {J_Ψ(y|Φ) : y > a} = J_Ψ(a|Φ)` whenever
+  `a ≥ ∂⁺_{−Ψ}P(Φ)` and `J_Ψ(·|Φ)` is finite somewhere above `a`. This is what makes the two
+  inequalities of Corollary (15.48) meet on a half-line, i.e. what turns them into the
+  asymptotics (15.51) of `GibbsMeasure/Specification/LargeDeviationsCorollaries.lean`.
 
 ## Compactness of the level sets, Georgii's remark after (15.45)
 
@@ -144,15 +164,23 @@ of the box `Δ` (Georgii Example (4.20)(2), `Potential.IsTorusReduction`, in
   domain (Rockafellar), which he gets from the strict convexity of `t ↦ P(Φ + t·Ψ)`; here the
   differentiability is replaced by the subgradient inequality it produces, which is what the
   proof actually consumes.
+* `Potential.BTheta.subgradient_ldRate_unique`, the **uniqueness half of that
+  differentiability**, i.e. the convex-analytic input of **Corollary (15.58)**: if
+  `t ↦ P(Φ − t·Ψ)` is strictly convex then `J_Ψ(·|Φ)` has at most one subgradient at each point of
+  its essential domain. A subgradient `t` of `J_Ψ(·|Φ)` at `x` makes the supremum of
+  `Potential.BTheta.iSup_sub_ldRate_eq` attained at `x`, so the functional `s ↦ s·x` supports
+  `t ↦ P(Φ − t·Ψ)` at `t`, and a strictly convex function is supported by a given functional at
+  one point at most (`StrictConvexOn.eq_of_mem_subgradientAt` of
+  `GibbsMeasure/Mathlib/Analysis/Convex/StrictConvexSubgradient.lean`).
 
 ## Not proved here
 
 Both halves of **Theorem (15.45)** are proved, but not at Georgii's generality:
 
 * the **lower bound (15.47)**, with the "in particular" clause for the Gibbs measures, is
-  `MeasureTheory.GibbsMeasure.neg_iInf_specificRelativeEntropy_le_liminf_log_iInf_gibbsSpecification`
-  of `GibbsMeasure/Specification/LargeDeviationsLower.lean`, over an *arbitrary* measurable state
-  space;
+  `neg_iInf_specificRelativeEntropy_le_liminf_log_iInf_gibbsSpecification` (in
+  `MeasureTheory.GibbsMeasure`) of `GibbsMeasure/Specification/LargeDeviationsLower.lean`, over an
+  *arbitrary* measurable state space;
 * the **upper bound (15.46)**, with its "in particular" clause, is
   `MeasureTheory.GibbsMeasure.limsup_log_iSup_gibbsSpecification_div_card_le` of
   `GibbsMeasure/Specification/LargeDeviationsUpper.lean`, but only over a **finite** state space.
@@ -171,21 +199,48 @@ What §15.5 still lacks:
   extraction of Step 2 nor Step 3 is available. Over a finite state space `𝓕⁰` is already
   countable, the space of random fields is already compact, and `{°R_Λ ∈ C}` is an event for
   every `C` whatsoever, which is the other half of Georgii's hypothesis `C ∈ 𝓔(𝓟_Θ)`.
-* **The Gibbs distributions with periodic boundary conditions**
-  `°γ^Φ_Λ = e^{−°H^Φ_Λ} λ^Λ / °Z^Φ_Λ`, and Georgii's remark after (15.47) that both inequalities
-  hold for them too (his proof is then *simpler*, the energy errors (15.25) being unnecessary
-  since `°H^Φ_Λ = |Λ| ⟨°R_Λ, Φ⟩` by Remark (15.43)(3),
-  `MeasureTheory.GibbsMeasure.specificEnergy_periodicEmpiricalField`). Everything downstream of
-  that remark is stated for `°γ^Φ_Λ` and is missing with it: the two displayed inequalities of
-  **Corollary (15.48)** (the contraction of (15.45) along `e_Ψ`), the asymptotics (15.51) of
-  **Example (15.50)** (Cramér's theorem), and the cluster point half of **Corollary (15.58)**,
-  whose other half — that every cluster point is Gibbsian for the tilted potential — is (15.60)
-  below.
+* the **finiteness of `J_Ψ(·|Φ)` on `]a⁻_f, a⁺_f[`** asserted in **Example (15.50)** — `a^±_f`
+  the infimum and supremum of the support of `f(λ)`. Georgii states it without proof; it is what
+  supplies the point `b > a` at which the rate function is still finite in the hypotheses of
+  `MeasureTheory.GibbsMeasure.tendsto_log_periodicBoundaryGibbs_setOf_le_spatialMean_div_card`,
+  the asymptotics (15.51), which is otherwise complete. Its proof is the exponential tilt
+  `ρ_t = e^{tf} λ / λ(e^{tf})`: the i.i.d. field `ρ_t^{⊗ℤ^d}` is shift invariant with specific
+  `Ψ`-energy `∫ f dρ_t` and finite excess free energy, and `t ↦ ∫ f dρ_t` sweeps out
+  `]a⁻_f, a⁺_f[`. That construction is not carried out here.
+* the last sentence of **Example (15.50)**, **Cramér's theorem**: for `Φ = 0`,
+  `°γ^0_Λ = λ^Λ` and `J_Ψ(a|0) = sup_t [ta − log λ(e^{tf})]`. What is missing is the pressure of a
+  self-potential, `P(−tΨ) = log λ(e^{tf})`; the Legendre formula (15.49)
+  (`Potential.BTheta.ldRate_eq_iSup`) would then give the displayed identity at once.
+* the cluster-point half of **Corollary (15.58)**, i.e. `clust °γ^{Φ|Ψ,B}_Λ ≠ ∅` and the
+  identification of `t` as the gradient of `J_Ψ(·|Φ)` on `B̄_min ∩ D°`. The other half — that
+  every minimiser of the free energy under the constraint is Gibbsian for the tilted potential —
+  is (15.60) below, `Potential.BTheta.subset_invariantG_sub_dotPotential`, and (15.59) is
+  `Potential.BTheta.iInf_ldRate_interior_eq_iInf_closure`. Two ingredients are wanting: the
+  compactness argument that produces a cluster point of the conditioned measures
+  `°γ^{Φ|Ψ,B}_Λ` (available over a finite state space from the machinery of (15.46), Step 4 of
+  `GibbsMeasure/Specification/LargeDeviationsUpper.lean`, together with
+  `Potential.empiricalFieldAverage_periodicBoundaryGibbs_cond_apply`, Georgii's identity
+  `σ_Λ(°γ^B_Λ °R_Λ) = °γ^B_Λ`), and the differentiability of `J_Ψ(·|Φ)` on the interior of its
+  essential domain, which Georgii takes from Rockafellar (1970), p. 253. Of the latter the
+  *uniqueness* half is proved — `Potential.BTheta.subgradient_ldRate_unique` — and what is still
+  missing is the *existence* of a subgradient of `J_Ψ(·|Φ)` at a point of the interior of its
+  essential domain, i.e. that the supremum in (15.49) is attained there; Mathlib has the
+  subdifferential of a real-valued convex function on a normed space
+  (`ConvexOn.subgradientAt_nonempty`) but nothing for an `EReal`-valued one.
 
-Everything else that §15.5 asserts is proved here: (15.48) apart from its two inequalities — the
-convexity of `J_Ψ(·|Φ)`, the compactness of its level sets,
-`{J_Ψ(·|Φ) = 0} = e_Ψ(𝒢_Θ(Φ))` and the Legendre formula (15.49) — and the minimum free energy
-principle (15.59), (15.60) that carries the equivalence of ensembles.
+Everything else that §15.5 asserts is proved here: **Corollary (15.48)** in full — the two
+displayed inequalities for `°γ^Φ_Λ`
+(`MeasureTheory.GibbsMeasure.limsup_log_periodicBoundaryGibbs_setOf_mem_div_card_le` and
+`MeasureTheory.GibbsMeasure.neg_iInf_ldRate_le_liminf_log_periodicBoundaryGibbs_setOf_mem` of
+`GibbsMeasure/Specification/LargeDeviationsCorollaries.lean`), the convexity of `J_Ψ(·|Φ)`, the
+compactness of its level sets, `{J_Ψ(·|Φ) = 0} = e_Ψ(𝒢_Θ(Φ))` and the Legendre formula (15.49) —
+the Gibbs distributions with periodic boundary conditions themselves and Georgii's remark after
+(15.47) that both inequalities of Theorem (15.45) hold for them
+(`GibbsMeasure/Specification/PeriodicBoundaryGibbs.lean`), **Example (15.50)** apart from the two
+items listed above (`Potential.BTheta.ldRate_eq_zero_iff_mem_Icc`,
+`Potential.BTheta.ldRate_le_ldRate_of_le`, `Potential.BTheta.iInf_ldRate_Ioi_eq` and the
+asymptotics (15.51)), and the minimum free energy principle (15.59), (15.60) that carries the
+equivalence of ensembles.
 
 The **theorem of McMillan** `ν(| |Λ|⁻¹ log f_Λ + 𝓀(ν)|) → 0`, which is what makes the event `A_Λ`
 in the proof of (15.47) typical for `ν̃`, is **no longer an obstruction**. Georgii invokes it only
@@ -793,6 +848,16 @@ omit [Fintype ι] [DecidableEq ι] [Fintype K] in
 lemma energyVec_apply (Ψ : K → BTheta (ι → ℤ) E) (μ : Measure ((ι → ℤ) → E)) (j : K) :
     energyVec Ψ μ j = (Ψ j : Potential (ι → ℤ) E).specificEnergy μ := rfl
 
+omit [Fintype ι] [DecidableEq ι] [Fintype K] in
+/-- **Georgii, before (15.48): `e_Ψ` is continuous.** The vector-valued specific energy
+`μ ↦ ⟨μ, Ψ⟩` is continuous for the topology of local convergence, each coordinate being
+`Potential.continuous_specificEnergy` (Georgii (4.3)(2)). This is the continuity of `e_Ψ` that
+the contraction principle of Corollary (15.48) consumes. -/
+theorem continuous_energyVec (Ψ : K → BTheta (ι → ℤ) E) :
+    Continuous fun μ : WithLocalConvergence (ι → ℤ) E ↦
+      energyVec Ψ (μ.toMeasure : Measure ((ι → ℤ) → E)) :=
+  continuous_pi fun j ↦ Potential.continuous_specificEnergy (Φ := (Ψ j : Potential (ι → ℤ) E))
+
 omit [DecidableEq ι] [Fintype K] in
 /-- The specific energy of a finite linear combination of potentials. -/
 lemma specificEnergy_sum (s : Finset K) (t : K → ℝ) (Ψ : K → BTheta (ι → ℤ) E)
@@ -1126,6 +1191,43 @@ theorem ldRate_eq_zero_iff :
   rw [h] at hμ0
   exact ⟨μ, mem_invariantG_of_specificRelativeEntropy_eq_zero' ν (isShiftInvariant Φ) hμinv hμ0,
     hμx⟩
+
+omit [Fintype K] in
+variable (Φ Ψ x) in
+/-- **Georgii Example (15.50), first assertion**, for an arbitrary single potential `Ψ ∈ ℬ_Θ`
+(Georgii's `k = 1`). Over a standard Borel state space, the rate function `J_Ψ(·|Φ)` attains its
+minimum `0` exactly on the closed interval `[a⁻, a⁺]` whose endpoints are the left- and
+right-sided derivatives at `t = 0` of the convex function `t ↦ P(Φ − tΨ)`, i.e. the one-sided
+directional derivatives of the pressure at `Φ` in the direction `−Ψ`.
+
+This is `Potential.BTheta.ldRate_eq_zero_iff` (`{J_Ψ(·|Φ) = 0} = e_Ψ(𝒢_Θ(Φ))`, the last assertion
+of Corollary (15.48)) together with Theorem (16.14)
+(`Potential.BTheta.mem_subgradientAt_pressure_of_mem_invariantG` and
+`Potential.BTheta.exists_mem_fieldsOf_mem_invariantG`: `j(𝒢_Θ(Φ)) = ∂P(Φ)`) and Remark (16.6)
+(`Potential.BTheta.leftDirDeriv_le_and_le_rightDirDeriv_pressure` and
+`Potential.BTheta.exists_mem_subgradientAt_pressure_apply_eq`: the values `L(−Ψ)`, `L ∈ ∂P(Φ)`,
+fill out `[∂⁻_{−Ψ}P(Φ), ∂⁺_{−Ψ}P(Φ)]`), since `⟨μ, Ψ⟩ = j(μ)(−Ψ)`. -/
+theorem ldRate_eq_zero_iff_mem_Icc [Unique K] :
+    ldRate ν Φ Ψ x = 0 ↔
+      x default ∈ Set.Icc (leftDirDeriv (pressure ν) Φ (-Ψ default))
+        (rightDirDeriv (pressure ν) Φ (-Ψ default)) := by
+  rw [ldRate_eq_zero_iff]
+  constructor
+  · rintro ⟨μ, hμ, rfl⟩
+    have hprob : IsProbabilityMeasure μ := hμ.1.1
+    have hval : specificEnergyFunctional μ (-Ψ default) = energyVec Ψ μ default := by
+      rw [map_neg, specificEnergyFunctional_apply, neg_neg, energyVec_apply]
+    have h := leftDirDeriv_le_and_le_rightDirDeriv_pressure ν
+      (mem_subgradientAt_pressure_of_mem_invariantG ν hμ) (-Ψ default)
+    rw [hval] at h
+    exact Set.mem_Icc.2 h
+  · intro hx
+    obtain ⟨L, hL, hLx⟩ := exists_mem_subgradientAt_pressure_apply_eq ν Φ (-Ψ default) hx
+    obtain ⟨μ, hμf, hμG⟩ := exists_mem_fieldsOf_mem_invariantG ν hL
+    have hprob : IsProbabilityMeasure μ := hμG.1.1
+    refine ⟨μ, hμG, funext fun j ↦ ?_⟩
+    obtain rfl : j = default := Subsingleton.elim _ _
+    rw [energyVec_apply, hμf.2 (Ψ default), ← map_neg, hLx]
 
 /-! ### Georgii (15.60): the minimum free energy principle and the equivalence of ensembles -/
 
@@ -1517,14 +1619,224 @@ theorem iSup_sub_ldRate_eq (t : K → ℝ) :
     rw [← EReal.coe_sub, EReal.coe_eq_coe_iff]
     ring
 
-/-! ### Georgii (15.59): the infimum of the rate function over a convex set -/
-
 omit [Fintype K] [StandardBorelSpace E] in
 /-- A finite value of the rate function is a real number: `J_Ψ(·|Φ)` never takes the value
 `−∞`. -/
 lemma exists_ldRate_eq_coe (h : ldRate ν Φ Ψ x ≠ ⊤) : ∃ r : ℝ, ldRate ν Φ Ψ x = (r : EReal) := by
   refine ⟨(ldRate ν Φ Ψ x).toReal, (EReal.coe_toReal h ?_).symm⟩
   exact fun hb ↦ absurd (hb ▸ ldRate_nonneg (ν := ν) (Φ := Φ) (Ψ := Ψ) (x := x)) (by simp)
+
+/-! ### Georgii Corollary (15.58): the Lagrange multiplier is unique -/
+
+variable (Φ Ψ) in
+/-- **The convex-analytic input of Georgii's Corollary (15.58)**, Georgii's reference to
+Rockafellar (1970), p. 253, reduced to what his proof consumes. If the convex function
+`t ↦ P(Φ − t·Ψ)` — whose Legendre transform is `J_Ψ(·|Φ) − P(Φ)` by (15.49) — is *strictly*
+convex, then `J_Ψ(·|Φ)` has **at most one** subgradient at each point of its essential domain.
+(Georgii writes the hypothesis as strict convexity of `t ↦ P(Φ + t·Ψ)`; the two functions differ
+by the substitution `t ↦ −t`, since `dotPotential (−t) Ψ = −dotPotential t Ψ`.)
+
+The proof is the elementary half of the Legendre correspondence: a subgradient `t` of `J_Ψ(·|Φ)`
+at `x` makes the supremum `sup_y [t·y − J_Ψ(y|Φ)] = P(Φ − t·Ψ) − P(Φ)` of
+`Potential.BTheta.iSup_sub_ldRate_eq` attained at `y = x`, which says exactly that the linear
+functional `s ↦ s·x` is a subgradient of `t ↦ P(Φ − t·Ψ)` at `t`; and a strictly convex function
+is supported by a given linear functional at one point at most
+(`StrictConvexOn.eq_of_mem_subgradientAt`).
+
+Georgii uses the resulting uniqueness twice in the proof of (15.58): to identify `t' = J'(x')`
+with `t* = J'(x*)`, and to conclude that `J'` is constant on `B̄_min ∩ D°`. -/
+theorem subgradient_ldRate_unique
+    (hP : StrictConvexOn ℝ Set.univ fun t : K → ℝ ↦
+      ((Φ - dotPotential t Ψ : BTheta (ι → ℤ) E) : Potential (ι → ℤ) E).pressure ν)
+    {x : K → ℝ} (hx : ldRate ν Φ Ψ x ≠ ⊤) {t₁ t₂ : K → ℝ}
+    (h₁ : ∀ y : K → ℝ,
+      ldRate ν Φ Ψ x + ((∑ j, t₁ j * (y j - x j) : ℝ) : EReal) ≤ ldRate ν Φ Ψ y)
+    (h₂ : ∀ y : K → ℝ,
+      ldRate ν Φ Ψ x + ((∑ j, t₂ j * (y j - x j) : ℝ) : EReal) ≤ ldRate ν Φ Ψ y) :
+    t₁ = t₂ := by
+  classical
+  obtain ⟨r, hr⟩ := exists_ldRate_eq_coe hx
+  set L : (K → ℝ) →ₗ[ℝ] ℝ :=
+    { toFun := fun s ↦ ∑ j, x j * s j
+      map_add' := fun s₁ s₂ ↦ by
+        rw [← Finset.sum_add_distrib]
+        exact Finset.sum_congr rfl fun j _ ↦ by simp [mul_add]
+      map_smul' := fun c s ↦ by
+        rw [RingHom.id_apply, smul_eq_mul, Finset.mul_sum]
+        exact Finset.sum_congr rfl fun j _ ↦ by simp [mul_left_comm] } with hLdef
+  have key : ∀ t : K → ℝ,
+      (∀ y : K → ℝ, ldRate ν Φ Ψ x + ((∑ j, t j * (y j - x j) : ℝ) : EReal) ≤ ldRate ν Φ Ψ y) →
+      L ∈ subgradientAt (fun t : K → ℝ ↦
+        ((Φ - dotPotential t Ψ : BTheta (ι → ℤ) E) : Potential (ι → ℤ) E).pressure ν) t := by
+    intro t ht z
+    -- the supremum of (15.49) is attained at `y = x`
+    have hupper : ((Φ - dotPotential t Ψ : BTheta (ι → ℤ) E) : Potential (ι → ℤ) E).pressure ν
+        - (Φ : Potential (ι → ℤ) E).pressure ν ≤ (∑ j, t j * x j) - r := by
+      have hsup : (⨆ y : K → ℝ, (((∑ j, t j * y j : ℝ) : EReal) - ldRate ν Φ Ψ y))
+          ≤ ((((∑ j, t j * x j) - r : ℝ)) : EReal) := by
+        refine iSup_le fun y ↦ ?_
+        by_cases hy : ldRate ν Φ Ψ y = ⊤
+        · rw [hy]
+          simp
+        · obtain ⟨r', hr'⟩ := exists_ldRate_eq_coe hy
+          rw [hr', ← EReal.coe_sub, EReal.coe_le_coe_iff]
+          have hty := ht y
+          rw [hr, hr', ← EReal.coe_add, EReal.coe_le_coe_iff] at hty
+          have hsum : (∑ j, t j * (y j - x j)) = (∑ j, t j * y j) - ∑ j, t j * x j := by
+            rw [← Finset.sum_sub_distrib]
+            exact Finset.sum_congr rfl fun j _ ↦ by ring
+          rw [hsum] at hty
+          linarith
+      rw [iSup_sub_ldRate_eq] at hsup
+      exact EReal.coe_le_coe_iff.1 hsup
+    have hlower : ∀ s : K → ℝ, (∑ j, s j * x j) - r
+        ≤ ((Φ - dotPotential s Ψ : BTheta (ι → ℤ) E) : Potential (ι → ℤ) E).pressure ν
+          - (Φ : Potential (ι → ℤ) E).pressure ν := by
+      intro s
+      have h := le_iSup (fun y : K → ℝ ↦ (((∑ j, s j * y j : ℝ) : EReal) - ldRate ν Φ Ψ y)) x
+      rw [iSup_sub_ldRate_eq, hr, ← EReal.coe_sub, EReal.coe_le_coe_iff] at h
+      exact h
+    have hz := hlower (t + z)
+    have hsum : (∑ j, (t + z) j * x j) = (∑ j, t j * x j) + ∑ j, z j * x j := by
+      rw [← Finset.sum_add_distrib]
+      exact Finset.sum_congr rfl fun j _ ↦ by simp [add_mul]
+    have hcomm : (∑ j, z j * x j) = ∑ j, x j * z j :=
+      Finset.sum_congr rfl fun j _ ↦ mul_comm _ _
+    rw [hsum, hcomm] at hz
+    have hLz : L z = ∑ j, x j * z j := rfl
+    change L z ≤ ((Φ - dotPotential (t + z) Ψ : BTheta (ι → ℤ) E) :
+        Potential (ι → ℤ) E).pressure ν
+      - ((Φ - dotPotential t Ψ : BTheta (ι → ℤ) E) : Potential (ι → ℤ) E).pressure ν
+    rw [hLz]
+    linarith
+  exact hP.eq_of_mem_subgradientAt (key t₁ h₁) (key t₂ h₂)
+
+/-! ### Georgii (15.59): the infimum of the rate function over a convex set -/
+
+omit [Fintype K] in
+variable (Φ Ψ) in
+/-- **Georgii Example (15.50), second assertion.** `J_Ψ(·|Φ)` is nondecreasing on
+`[a⁺, ∞)`, where `a⁺ = ∂⁺_{−Ψ}P(Φ)` is the right endpoint of the interval on which it vanishes:
+if `a⁺ ≤ u ≤ v` then `u` is a convex combination of `a⁺` and `v`, `J_Ψ(a⁺|Φ) = 0`, and `J_Ψ` is
+convex and nonnegative. (Georgii's "by convexity, `J_Ψ(·|Φ)` is monotone on either side of this
+interval".) -/
+theorem ldRate_le_ldRate_of_le [Unique K] {x y : K → ℝ}
+    (hx : rightDirDeriv (pressure ν) Φ (-Ψ default) ≤ x default)
+    (hxy : x default ≤ y default) :
+    ldRate ν Φ Ψ x ≤ ldRate ν Φ Ψ y := by
+  by_cases htop : ldRate ν Φ Ψ y = ⊤
+  · rw [htop]; exact le_top
+  obtain ⟨r, hr⟩ := exists_ldRate_eq_coe htop
+  have hr0 : 0 ≤ r := by
+    have h := ldRate_nonneg (ν := ν) (Φ := Φ) (Ψ := Ψ) (x := y)
+    rw [hr] at h
+    exact_mod_cast h
+  set p : ℝ := rightDirDeriv (pressure ν) Φ (-Ψ default) with hp
+  have hc0 : ldRate ν Φ Ψ (fun _ ↦ p) = 0 := by
+    rw [ldRate_eq_zero_iff_mem_Icc]
+    exact Set.mem_Icc.2 ⟨leftDirDeriv_le_rightDirDeriv_pressure ν Φ (-Ψ default), le_rfl⟩
+  rcases eq_or_lt_of_le hxy with heq | hlt
+  · have hxy' : x = y := funext fun j ↦ by
+      obtain rfl : j = default := Subsingleton.elim _ _
+      exact heq
+    rw [hxy']
+  -- `x = (1 − σ) a⁺ + σ y` with `σ = (x − a⁺)/(y − a⁺) ∈ [0, 1]`
+  have hpy : p < y default := lt_of_le_of_lt hx hlt
+  set σ : ℝ := (x default - p) / (y default - p) with hσ
+  have hσ0 : 0 ≤ σ := div_nonneg (by linarith) (by linarith)
+  have hσ1 : σ ≤ 1 := by
+    rw [hσ, div_le_one (by linarith)]
+    linarith
+  obtain ⟨t, ht⟩ : ∃ t : ℝ≥0, (t : ℝ) = σ := ⟨⟨σ, hσ0⟩, rfl⟩
+  obtain ⟨u, hu⟩ : ∃ u : ℝ≥0, (u : ℝ) = 1 - σ := ⟨⟨1 - σ, by linarith⟩, rfl⟩
+  have hut : u + t = 1 := by
+    refine NNReal.coe_injective ?_
+    rw [NNReal.coe_add, NNReal.coe_one, hu, ht]
+    ring
+  have hne : y default - p ≠ 0 := by linarith
+  have hcombo : (fun j ↦ (u : ℝ) * (fun _ : K ↦ p) j + (t : ℝ) * y j) = x := by
+    funext j
+    obtain rfl : j = default := Subsingleton.elim _ _
+    change (u : ℝ) * p + (t : ℝ) * y default = x default
+    rw [hu, ht, hσ]
+    field_simp
+    ring
+  have hmain := ldRate_smul_add_smul_le (ν := ν) (Φ := Φ) (Ψ := Ψ)
+    (x₁ := fun _ : K ↦ p) (x₂ := y) (r₁ := 0) (r₂ := r) (le_of_eq hc0) (le_of_eq hr) hut
+  rw [hcombo] at hmain
+  rw [hr]
+  refine hmain.trans (EReal.coe_le_coe_iff.2 ?_)
+  rw [mul_zero, zero_add, ht]
+  nlinarith
+
+omit [Fintype K] in
+variable (Φ Ψ) in
+/-- **Georgii Example (15.50):** strictly to the right of `a⁺ = ∂⁺_{−Ψ}P(Φ)` the rate function is
+strictly positive, since it vanishes exactly on `[a⁻, a⁺]` and is nonnegative. Together with the
+finiteness hypothesis of `Potential.BTheta.iInf_ldRate_Ioi_eq` this is Georgii's
+`0 < J_Ψ(a|Φ) < ∞` for `a⁺_{f,Φ} < a < a⁺_f`. -/
+theorem ldRate_pos [Unique K] {x : K → ℝ}
+    (hx : rightDirDeriv (pressure ν) Φ (-Ψ default) < x default) : 0 < ldRate ν Φ Ψ x :=
+  lt_of_le_of_ne ldRate_nonneg fun h ↦
+    absurd ((ldRate_eq_zero_iff_mem_Icc Φ Ψ x).1 h.symm).2 (not_le.2 hx)
+
+omit [Fintype K] in
+variable (Φ Ψ) in
+/-- **The right-hand limit of `J_Ψ(·|Φ)` at a point of `[a⁺, ∞)`.** If `J_Ψ(·|Φ)` is finite
+somewhere strictly to the right of `a ≥ a⁺`, then `inf {J_Ψ(y|Φ) : y > a} = J_Ψ(a|Φ)`: the
+infimum is `≥` by monotonicity and `≤` by convexity along the segment from `a` to that point.
+This is what makes the two bounds of Corollary (15.48) meet for the half-line `[a, ∞)`, i.e.
+what turns them into Georgii's asymptotics (15.51). -/
+theorem iInf_ldRate_Ioi_eq [Unique K] {a b : ℝ}
+    (ha : rightDirDeriv (pressure ν) Φ (-Ψ default) ≤ a) (hab : a < b)
+    (hb : ldRate ν Φ Ψ (fun _ ↦ b) ≠ ⊤) :
+    ⨅ y ∈ {y : K → ℝ | a < y default}, ldRate ν Φ Ψ y = ldRate ν Φ Ψ fun _ ↦ a := by
+  have hmono : ∀ u v : ℝ, a ≤ u → u ≤ v →
+      ldRate ν Φ Ψ (fun _ : K ↦ u) ≤ ldRate ν Φ Ψ fun _ : K ↦ v := fun u v hu huv ↦
+    ldRate_le_ldRate_of_le Φ Ψ (ha.trans hu) huv
+  refine le_antisymm ?_ (le_iInf₂ fun y hy ↦ ?_)
+  · have hafin : ldRate ν Φ Ψ (fun _ : K ↦ a) ≠ ⊤ :=
+      ne_top_of_le_ne_top hb (hmono a b le_rfl hab.le)
+    obtain ⟨ra, hra⟩ := exists_ldRate_eq_coe hafin
+    obtain ⟨rb, hrb⟩ := exists_ldRate_eq_coe hb
+    rw [hra]
+    have hstep : ∀ n : ℕ, (⨅ y ∈ {y : K → ℝ | a < y default}, ldRate ν Φ Ψ y)
+        ≤ ((((1 - 1 / ((n : ℝ) + 1)) * ra + (1 / ((n : ℝ) + 1)) * rb : ℝ)) : EReal) := by
+      intro n
+      set c : ℝ := 1 / ((n : ℝ) + 1) with hc
+      have hcpos : 0 < c := by positivity
+      have hcle : c ≤ 1 := by
+        rw [hc, div_le_one (by positivity)]
+        linarith [Nat.cast_nonneg (α := ℝ) n]
+      obtain ⟨t, ht⟩ : ∃ t : ℝ≥0, (t : ℝ) = c := ⟨⟨c, hcpos.le⟩, rfl⟩
+      obtain ⟨u, hu⟩ : ∃ u : ℝ≥0, (u : ℝ) = 1 - c := ⟨⟨1 - c, by linarith⟩, rfl⟩
+      have hut : u + t = 1 := by
+        refine NNReal.coe_injective ?_
+        rw [NNReal.coe_add, NNReal.coe_one, hu, ht]
+        ring
+      have hmem : (fun j ↦ (u : ℝ) * (fun _ : K ↦ a) j + (t : ℝ) * (fun _ : K ↦ b) j)
+          ∈ {y : K → ℝ | a < y default} := by
+        change a < (u : ℝ) * a + (t : ℝ) * b
+        rw [hu, ht]
+        nlinarith
+      refine (iInf₂_le _ hmem).trans (le_of_le_of_eq
+        (ldRate_smul_add_smul_le (le_of_eq hra) (le_of_eq hrb) hut) ?_)
+      rw [EReal.coe_eq_coe_iff, hu, ht]
+    have hten : Tendsto (fun n : ℕ ↦
+        ((((1 - 1 / ((n : ℝ) + 1)) * ra + (1 / ((n : ℝ) + 1)) * rb : ℝ)) : EReal)) atTop
+        (𝓝 ((ra : ℝ) : EReal)) := by
+      refine EReal.tendsto_coe.2 ?_
+      have h0 : Tendsto (fun n : ℕ ↦ 1 / ((n : ℝ) + 1)) atTop (𝓝 0) :=
+        tendsto_one_div_add_atTop_nhds_zero_nat
+      have h1 : Tendsto (fun n : ℕ ↦ (1 - 1 / ((n : ℝ) + 1)) * ra + (1 / ((n : ℝ) + 1)) * rb)
+          atTop (𝓝 ((1 - 0) * ra + 0 * rb)) :=
+        ((tendsto_const_nhds.sub h0).mul tendsto_const_nhds).add (h0.mul tendsto_const_nhds)
+      simpa using h1
+    exact ge_of_tendsto hten (.of_forall hstep)
+  · have hy' : (fun _ : K ↦ y default) = y := funext fun j ↦ by
+      obtain rfl : j = default := Subsingleton.elim _ _
+      rfl
+    exact hy' ▸ hmono a (y default) le_rfl hy.le
 
 omit [Fintype K] in
 variable (Φ Ψ) in

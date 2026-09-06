@@ -207,14 +207,60 @@
     \leanok
 \end{proof}
 
+\begin{theorem}[Georgii's remark after (15.47): the Gibbs distributions with periodic boundary conditions]
+    \label{thm:ld-periodic-bc}
+    \uses{thm:ld-15-47, thm:ld-15-46, def:ld-15-41}
+    \lean{Potential.periodicBoundaryHamiltonian, Potential.periodicBoundaryHamiltonian_eq_card_mul_specificEnergy, Potential.inv_card_mul_periodicBoundaryHamiltonian_eq, Potential.abs_periodicBoundaryHamiltonian_sub_hamiltonian_juxt_le, Potential.periodicBoundaryZ, Potential.periodicBoundaryDensity, Potential.periodicBoundaryGibbs, Potential.periodicBoundaryGibbs_apply, Potential.trim_periodicBoundaryGibbs_eq_withDensity, Potential.relativeEntropyIn_periodicBoundaryGibbs_eq, Potential.neg_log_periodicBoundaryGibbs_eq, Potential.abs_logPeriodicBoundaryZ_sub_logZ_le, Potential.tendsto_logPeriodicBoundaryZ_div_card, Potential.periodicBoundaryGibbs_preimage_periodicTranslate, MeasureTheory.GibbsMeasure.eventually_ofReal_exp_le_periodicBoundaryGibbs_setOf_periodicEmpiricalField_mem, MeasureTheory.GibbsMeasure.neg_iInf_specificRelativeEntropy_le_liminf_log_periodicBoundaryGibbs, MeasureTheory.GibbsMeasure.specificRelativeEntropy_tileAverage_periodicBoundaryGibbs_cond_le, MeasureTheory.GibbsMeasure.exists_mem_closedConvexHull_specificRelativeEntropy_le_periodicBoundaryGibbs, MeasureTheory.GibbsMeasure.limsup_log_periodicBoundaryGibbs_div_card_le}
+    \leanok
+
+    ${}^\circ\gamma^\Phi_\Lambda = \exp[-{}^\circ H^\Phi_\Lambda]\lambda^\Lambda/{}^\circ Z^\Phi_\Lambda$ with
+    ${}^\circ H^\Phi_\Lambda = \sum_{i \in \Lambda} f_\Phi(\theta_{-i}\,\omega^\circ_\Lambda) = |\Lambda|
+    \langle{}^\circ R_\Lambda, \Phi\rangle$ of Remark (15.43)(3), as a measure on $E^S$ whose
+    $\mathcal F_\Lambda$-marginal is Georgii's. Both inequalities of (15.45) hold for it, along any
+    cubes with side lengths tending to infinity: (15.47) for any state space and (15.46) for a
+    finite one, by the proofs of Theorem \ref{thm:ld-15-47} and Theorem \ref{thm:ld-15-46} with
+    their common cores factored out; since ${}^\circ H^\Phi_\Lambda$ is a function of
+    ${}^\circ R_\Lambda$ the energy errors (15.25) do not enter, the identity (15.53) being exact.
+    Georgii's definition ${}^\circ H^\Phi_\Lambda = H^{\tilde\Phi^\Lambda}_\Lambda$ through the
+    periodic modification of (4.20)(2), which he calls easily checked equal to the formula, is not
+    proved: the formula is taken as the definition.
+\end{theorem}
+\begin{proof}
+    \leanok
+\end{proof}
+
+\begin{theorem}[Corollary (15.48) and Example (15.50)--(15.51)]
+    \label{thm:ld-15-48}
+    \uses{thm:ld-periodic-bc, prop:ld-15-49, thm:gv-16-14, thm:tf-16-6}
+    \lean{Potential.BTheta.continuous_energyVec, MeasureTheory.GibbsMeasure.setOf_periodicEmpiricalFieldL_mem_energyVecPreimage, MeasureTheory.GibbsMeasure.limsup_log_periodicBoundaryGibbs_setOf_mem_div_card_le, MeasureTheory.GibbsMeasure.neg_iInf_ldRate_le_liminf_log_periodicBoundaryGibbs_setOf_mem, Potential.normAt_site, Potential.isAbsolutelySummable_site, Potential.isShiftInvariant_site, Potential.siteEnergy_site, Potential.periodicBoundaryHamiltonian_site, Potential.selfPotential, MeasureTheory.GibbsMeasure.inv_card_mul_periodicBoundaryHamiltonian_selfPotential, Potential.BTheta.ldRate_eq_zero_iff_mem_Icc, Potential.BTheta.ldRate_le_ldRate_of_le, Potential.BTheta.ldRate_pos, Potential.BTheta.iInf_ldRate_Ioi_eq, MeasureTheory.GibbsMeasure.tendsto_log_periodicBoundaryGibbs_setOf_le_div_card, MeasureTheory.GibbsMeasure.tendsto_log_periodicBoundaryGibbs_setOf_le_spatialMean_div_card}
+    \leanok
+
+    Corollary (15.48), both displayed inequalities, for any $B \subseteq \mathbb R^k$ (no
+    Borel hypothesis is needed: over a finite $E$, and for the events of the lower bound,
+    $\{{}^\circ R_\Lambda \in C\}$ is always an event): $\limsup |\Lambda|^{-1}\log{}^\circ\gamma^\Phi_\Lambda
+    (|\Lambda|^{-1}{}^\circ H^\Psi_\Lambda \in B) \leq -\inf_{\bar B} J_\Psi(\cdot\mid\Phi)$ for finite
+    $E$ and $\liminf \geq -\inf_{B^\circ} J_\Psi(\cdot\mid\Phi)$ for any $E$, from the periodic
+    (15.45) with $C = e_\Psi^{-1}(B)$, $e_\Psi$ being continuous, and the contraction step. Example
+    (15.50): for the self-potential $\Psi_{\{0\}} = f(\sigma_0)$ of a bounded measurable $f$, an
+    element of $\mathcal B_\Theta$, $|\Lambda|^{-1}{}^\circ H^\Psi_\Lambda = M_\Lambda f$;
+    $J_\Psi(\cdot\mid\Phi)$ vanishes exactly on $[a^-_{f,\Phi}, a^+_{f,\Phi}]$, the one-sided
+    derivatives of $t \mapsto P(\Phi - t\Psi)$ at $0$ (by (16.14) and (16.6)), is monotone on
+    either side and positive beyond; (15.51): for $a^+_{f,\Phi} < a$ with $J_\Psi(b\mid\Phi) < \infty$
+    for some $b > a$, $|\Lambda|^{-1}\log{}^\circ\gamma^\Phi_\Lambda(M_\Lambda f \geq a) \to
+    -J_\Psi(a\mid\Phi)$. Georgii's unproved finiteness of $J_\Psi(\cdot\mid\Phi)$ on $]a^-_f, a^+_f[$
+    appears as that hypothesis; Cram\'er's formula for $\Phi = 0$ is not proved.
+\end{theorem}
+\begin{proof}
+    \leanok
+\end{proof}
+
 \begin{proposition}[Georgii (15.49), (15.59), and the rate-function half of (15.48)]
     \label{prop:ld-15-49}
     \uses{def:ld-15-41, thm:vp-15-39, prop:sent-15-14c, cor:gv-16-12}
     \lean{Potential.BTheta.ldRate, Potential.BTheta.ldRate_nonneg, Potential.BTheta.ldRate_eq_zero_iff, Potential.BTheta.ldRate_smul_add_smul_le, Potential.BTheta.isCompact_setOf_ldRate_le, Potential.BTheta.lowerSemicontinuous_ldRate, Potential.BTheta.ldRate_eq_iSup, Potential.BTheta.iSup_sub_ldRate_eq, Potential.BTheta.exists_specificRelativeEntropy_eq_pressure_sub, Potential.BTheta.iInf_ldRate_interior_eq_iInf_closure, eq_iSup_sub_of_isClosed_convex_epigraph}
     \leanok
 
-    The two displayed inequalities of (15.48) are not proved, since they rest on (15.45). Its
-    remaining content: the rate function $J_\Psi(\cdot\mid\Phi)$ is nonnegative, vanishes exactly on the Gibbs
+    The rate function $J_\Psi(\cdot\mid\Phi)$ is nonnegative, vanishes exactly on the Gibbs
     measures, is convex with compact level sets and lower semicontinuous, and is the Legendre
     transform $J_\Psi(x\mid\Phi) = \sup_t [t\cdot x - P(\Phi - t\cdot\Psi) + P(\Phi)]$, the
     conjugate being attained at a shift-invariant Gibbs measure of $\Phi - t\cdot\Psi$. For convex
@@ -225,4 +271,21 @@
     Fenchel--Moreau for a rate function: the epigraph is closed and convex, so a separating
     hyperplane in $\mathbb R^k \times \mathbb R$ gives the supremum representation, with the
     variational principle supplying attainment.
+\end{proof}
+
+\begin{proposition}[Towards Corollary (15.58): uniqueness of the subgradient of the rate function]
+    \label{prop:ld-15-58-subgradient}
+    \uses{prop:ld-15-49}
+    \lean{StrictConvexOn.eq_of_mem_subgradientAt, StrictConvexOn.subgradientAt_disjoint, Potential.BTheta.subgradient_ldRate_unique}
+    \leanok
+
+    If $t \mapsto P(\Phi - t\cdot\Psi)$ is strictly convex then $J_\Psi(\cdot\mid\Phi)$ has at most
+    one subgradient at each point of its essential domain: a subgradient $t$ at $x$ makes the
+    supremum in (15.49) attained at $x$, so $s \mapsto s\cdot x$ supports the strictly convex
+    pressure at $t$ alone. This is what Georgii's reference to Rockafellar (differentiability of
+    $J$ on $D^\circ$) supplies to the proof of (15.58). Not proved: the existence of a subgradient
+    on $D^\circ$ for the $[0,\infty]$-valued $J$, and the cluster-point half of (15.58) itself.
+\end{proposition}
+\begin{proof}
+    \leanok
 \end{proof}

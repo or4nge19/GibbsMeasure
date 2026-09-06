@@ -543,36 +543,36 @@ private lemma mul_div_mul_add_div (a c Q k e : ℝ) (hQ : Q ≠ 0) (hc : c ≠ 0
     a * Q / c * (k / Q + e) = a * (k + Q * e) / c := by
   field_simp
 
-private lemma neg_add_div_expand (c x t S u l : ℝ) (hc : c ≠ 0) :
-    -x - 3 * (t / c) - S / c - u / c - l * c⁻¹ = (-(c * x + 3 * t) - S - u - l) / c := by
+private lemma neg_add_div_expand (c x t S k : ℝ) (hc : c ≠ 0) :
+    -x - 3 * (t / c) - S / c + k = (-(c * x + 3 * t) - S + c * k) / c := by
   field_simp
   ring
 
 variable {d : ℕ} [NeZero d] {E : Type*} [MeasurableSpace E]
 
 open scoped Classical in
-/-- **Georgii (15.55)**, the estimate that carries the large deviation lower bound (15.47), in
-the form both of its corollaries consume.
+/-- **The window of Georgii's proof of (15.55), the common core of the two lower bounds.**
 
-Let `Φ ∈ ℬ_Θ`, let `C` be a set of random fields, let `ν ∈ 𝓟_Θ` lie in Georgii's `C°` — the
-interior of `C` *in* `𝓟_Θ`, spelled `C ∈ 𝓝[invariantRandomFields (Fin d → ℤ) E] ν` — and let
-`r < −𝒜(ν|Φ)`. Then, along any sequence of cubes `Λ_n` of `ℤ^d` whose side tends to
-infinity, with arbitrary torus reductions `π_n`, there is eventually an event `B` of the volume
-`Λ_n` itself, contained in `{°R_{Λ_n} ∈ C}`, with `γ^Φ_{Λ_n}(B | ω) ≥ e^{|Λ_n| r}` for *every*
-boundary condition `ω`. (The event `{°R_{Λ_n} ∈ C}` need not be measurable for an arbitrary `C`,
-which is why the witness `B` is exposed: integrating over `ω` against a Gibbs measure needs a
-measurable event.)
+Let `ν ∈ 𝓟_Θ` have finite specific entropy and lie in Georgii's `C°` — the interior of `C` *in*
+`𝓟_Θ`, spelled `C ∈ 𝓝[invariantRandomFields (Fin d → ℤ) E] ν` — and let `ε > 0`. Then, along any
+sequence of cubes `Λ_n` of `ℤ^d` whose side tends to infinity, with arbitrary torus reductions
+`π_n`, there is eventually an event `B` of the volume `Λ_n` itself, contained in `{°R_{Λ_n} ∈ C}`,
+on which the specific energy of the periodic empirical field is below `⟨ν, Φ⟩ + ε`, and whose
+a priori probability is at least `e^{|Λ_n| (𝓀(ν) − ε)}`.
+
+This is Georgii's event `A_Λ` together with the estimate `λ^Λ(A_Λ) ≥ e^{−|Λ| (−𝓀(ν) + ε)}`
+extracted from his proof; it does not depend on the boundary condition, and the two lower bounds
+— for `γ^Φ_Λ(·|ω)` (`eventually_exists_ofReal_exp_le_gibbsSpecification`) and for the periodic
+Gibbs distribution `°γ^Φ_Λ` — are obtained from it by bounding the Hamiltonian on `B`.
 
 The proof is Georgii's and is sketched in the module documentation. `B` is his `A_Λ`: the
-intersection of a basic window of the open set `U ∩ {⟨·, Φ⟩ < ⟨ν̃, Φ⟩ + ε}` around an ergodic
+intersection of a basic window of the open set `U ∩ {⟨·, Φ⟩ < ⟨ν̃, Φ⟩ + ε/2}` around an ergodic
 independent-block field `ν̃` close to `ν` (Proposition (15.52) and (15.44)) with the block-density
-event of the McMillan theorem for the independent-block field `γ̂`. The energy constraint bounds
-the Hamiltonian on `B`, so the Gibbs kernel is bounded below by `e^{−b − log Z_{Λ_n}(ω)} λ^S(B)`;
-the density constraint bounds `λ^S(B)` below by `e^{−c_n} γ̂(B)`; and `γ̂(B) ≥ 1/2` eventually. -/
-theorem eventually_exists_ofReal_exp_le_gibbsSpecification
+event of the McMillan theorem for the independent-block field `γ̂`; the density constraint bounds
+`λ^S(B)` below by `e^{−c_n} γ̂(B)`, and `γ̂(B) ≥ 1/2` eventually. -/
+theorem eventually_exists_measurableSet_subset_setOf_periodicEmpiricalField_mem
     (lam : Measure E) [IsProbabilityMeasure lam]
     {Φ : Potential (Fin d → ℤ) E} [Potential.IsPotential Φ] [Potential.IsAbsolutelySummable Φ]
-    (hΦ : Φ.IsShiftInvariant)
     {C : Set (WithLocalConvergence (Fin d → ℤ) E)}
     {ν : Measure ((Fin d → ℤ) → E)} (hν : ν ∈ invariantFields (shiftGroup (Fin d → ℤ) E))
     (hνC : C ∈ 𝓝[invariantRandomFields (Fin d → ℤ) E]
@@ -582,43 +582,31 @@ theorem eventually_exists_ofReal_exp_le_gibbsSpecification
     {G' : ℕ → AddSubgroup (Fin d → ℤ)} {π : ℕ → (Fin d → ℤ) → (Fin d → ℤ)}
     (hπ : ∀ n, Potential.IsTorusReduction (G' n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
     (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n).Nonempty)
-    {r : ℝ} (hr : (r : EReal) < -Φ.specificRelativeEntropy lam ν) :
+    (hκ : specificEntropy lam ν ≠ ⊥) {ε : ℝ} (hε : 0 < ε) :
     ∀ᶠ n in atTop, ∃ B : Set ((Fin d → ℤ) → E),
       MeasurableSet[cylinderEvents (X := fun _ : Fin d → ℤ ↦ E)
         ((Finset.Icc (m n) fun k ↦ m n k + s n : Finset (Fin d → ℤ)) : Set (Fin d → ℤ))] B ∧
       B ⊆ {η | periodicEmpiricalFieldL (π n) (hne n) η ∈ C} ∧
-      ∀ ω : (Fin d → ℤ) → E,
-        ENNReal.ofReal (Real.exp ((#(Finset.Icc (m n) fun k ↦ m n k + s n) : ℝ) * r))
-          ≤ Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) lam 1
-              (Finset.Icc (m n) fun k ↦ m n k + s n) ω B := by
+      (∀ y ∈ B, Φ.specificEnergy (periodicEmpiricalField E (π n)
+          (Finset.Icc (m n) fun k ↦ m n k + s n) y) < Φ.specificEnergy ν + ε) ∧
+      ENNReal.ofReal (Real.exp ((#(Finset.Icc (m n) fun k ↦ m n k + s n) : ℝ)
+          * ((specificEntropy lam ν).toReal - ε)))
+        ≤ (Measure.infinitePi fun _ : Fin d → ℤ ↦ lam) B := by
   classical
   have hprobν : IsProbabilityMeasure ν := hν.1
-  -- ### Step 0. The excess free energy of `ν` is a finite number `A`, and `r < -A`.
-  have hAtop : Φ.specificRelativeEntropy lam ν ≠ ⊤ := by
-    intro h; rw [h] at hr; simp at hr
+  -- ### Step 0. The specific entropy of `ν` is a finite number `-k₀`.
   have hκtop : specificEntropy lam ν ≠ ⊤ :=
     ne_top_of_le_ne_top (by simp) (specificEntropy_nonpos lam (μ := ν))
-  have hκbot : specificEntropy lam ν ≠ ⊥ := by
-    intro h
-    exact hAtop (by rw [Potential.specificRelativeEntropy, h]; simp)
   set k₀ : ℝ := -(specificEntropy lam ν).toReal with hk₀def
   have hκeq : specificEntropy lam ν = ((-k₀ : ℝ) : EReal) := by
-    rw [hk₀def, neg_neg, EReal.coe_toReal hκtop hκbot]
+    rw [hk₀def, neg_neg, EReal.coe_toReal hκtop hκ]
   have hk₀nn : 0 ≤ k₀ := by
     have h := specificEntropy_nonpos lam (μ := ν)
     rw [hκeq] at h
     have h' : (-k₀ : ℝ) ≤ 0 := by exact_mod_cast h
     linarith
-  set A : ℝ := Φ.pressure lam + Φ.specificEnergy ν + k₀ with hAdef
-  have hAeq : Φ.specificRelativeEntropy lam ν = ((A : ℝ) : EReal) := by
-    rw [Potential.specificRelativeEntropy, hκeq, ← EReal.coe_sub, hAdef]
-    congr 1
-    ring
-  have hrA : r < -A := by
-    rw [hAeq, ← EReal.coe_neg] at hr
-    exact_mod_cast hr
-  set ε : ℝ := (-A - r) / 4 with hεdef
-  have hεpos : 0 < ε := by rw [hεdef]; linarith
+  set ε' : ℝ := ε / 2 with hε'def
+  have hε'pos : 0 < ε' := by rw [hε'def]; linarith
   -- ### Step 1. Georgii's `ν̃`: an ergodic independent-block field near `ν`.
   obtain ⟨U, hUopen, hUν, hUC⟩ := mem_nhdsWithin.1 hνC
   set ν' : ProbabilityMeasure ((Fin d → ℤ) → E) := ⟨ν, hprobν⟩ with hν'def
@@ -635,7 +623,7 @@ theorem eventually_exists_ofReal_exp_le_gibbsSpecification
     ((Potential.continuous_specificEnergy (Φ := Φ)).tendsto _).comp hconv
   obtain ⟨i, hiU, hie⟩ :=
     ((hconv.eventually (hUopen.mem_nhds hUν)).and
-      (henergy.eventually (gt_mem_nhds (show Φ.specificEnergy ν < Φ.specificEnergy ν + ε by
+      (henergy.eventually (gt_mem_nhds (show Φ.specificEnergy ν < Φ.specificEnergy ν + ε' by
         linarith)))).exists
   -- ### Step 2. The block law on the tile `Λ(i)` and its relative entropy.
   set hCH := isComplement_piFinset_Icc (d := d) i with hCHdef
@@ -679,7 +667,7 @@ theorem eventually_exists_ofReal_exp_le_gibbsSpecification
     rw [← EReal.coe_ennreal_toReal hKtop] at hKle
     exact_mod_cast hKle
   obtain ⟨hac, hint⟩ := klDiv_ne_top_iff.1 hKtop
-  -- ### Step 3. The window `W_n` of the open set `U ∩ {⟨·, Φ⟩ < ⟨ν̃, Φ⟩ + ε}`.
+  -- ### Step 3. The window `W_n` of the open set `U ∩ {⟨·, Φ⟩ < ⟨ν̃, Φ⟩ + ε'}`.
   set νt : Measure ((Fin d → ℤ) → E) := tileAverage hCH γb with hνtdef
   have hνtinv : νt ∈ invariantFields (shiftGroup (Fin d → ℤ) E) :=
     tileAverage_mem_invariantFields_shiftGroup hCH γb
@@ -688,13 +676,13 @@ theorem eventually_exists_ofReal_exp_le_gibbsSpecification
       νt B = 0 ∨ νt B = 1 := tileAverage_mem_trivialOn_invariantEvents hCH γb
   set U' : Set (WithLocalConvergence (Fin d → ℤ) E) :=
     U ∩ {ρ | Φ.specificEnergy (ρ.toMeasure : Measure ((Fin d → ℤ) → E))
-      < Φ.specificEnergy νt + ε} with hU'def
+      < Φ.specificEnergy νt + ε'} with hU'def
   have hU'open : IsOpen U' :=
     hUopen.inter (isOpen_lt (Potential.continuous_specificEnergy (Φ := Φ)) continuous_const)
-  have hνte : Φ.specificEnergy νt < Φ.specificEnergy ν + ε := hie
+  have hνte : Φ.specificEnergy νt < Φ.specificEnergy ν + ε' := hie
   have hU'mem : (WithSetwiseTopology.ofMeasure ⟨νt, hνtinv.1⟩ :
       WithLocalConvergence (Fin d → ℤ) E) ∈ U' :=
-    ⟨hiU, show Φ.specificEnergy νt < Φ.specificEnergy νt + ε by linarith⟩
+    ⟨hiU, show Φ.specificEnergy νt < Φ.specificEnergy νt + ε' by linarith⟩
   obtain ⟨W, hWmeas, hWsub, hWlim⟩ :=
     exists_measurableSet_subset_setOf_periodicEmpiricalField_mem hνtinv hνttriv hs hπ hne
       hU'open hU'mem
@@ -706,11 +694,20 @@ theorem eventually_exists_ofReal_exp_le_gibbsSpecification
     rw [toMeasure_periodicEmpiricalFieldL]
     have : NeZero (#(Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ))) := ⟨(hne n).card_pos.ne'⟩
     exact periodicEmpiricalField_mem_invariantFields (hπ n) η
+  have hWenergy : ∀ n, ∀ y ∈ W n, Φ.specificEnergy (periodicEmpiricalField E (π n)
+      (Finset.Icc (m n) fun k ↦ m n k + s n) y) < Φ.specificEnergy ν + ε := by
+    intro n y hy
+    have h1 : Φ.specificEnergy (periodicEmpiricalField E (π n)
+        (Finset.Icc (m n) fun k ↦ m n k + s n) y) < Φ.specificEnergy νt + ε' := by
+      have := (hWsub n hy).2
+      rwa [Set.mem_ofPred_eq, toMeasure_periodicEmpiricalFieldL] at this
+    rw [hε'def] at *
+    linarith
   -- ### Step 4. The volumes `Δ_n ⊇ Λ_n` made of tiles, and the block-density event.
   obtain ⟨Δ, hΔ⟩ : ∃ Δ : ℕ → Finset (Fin d → ℤ),
       ∀ n, Δ n = tileHull hCH (Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)) := ⟨_, fun _ ↦ rfl⟩
   obtain ⟨cc, hcc⟩ : ∃ cc : ℕ → ℝ,
-      ∀ n, cc n = (#(tileIdxImage hCH (Δ n)) : ℝ) * (K.toReal + (q : ℝ) * ε) := ⟨_, fun _ ↦ rfl⟩
+      ∀ n, cc n = (#(tileIdxImage hCH (Δ n)) : ℝ) * (K.toReal + (q : ℝ) * ε') := ⟨_, fun _ ↦ rfl⟩
   have hΔtile : ∀ n, IsTileUnion hCH (Δ n) := fun n ↦ by
     rw [hΔ]; exact isTileUnion_tileHull hCH _
   have hΔsub : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)) ⊆ Δ n := fun n ↦ by
@@ -728,7 +725,7 @@ theorem eventually_exists_ofReal_exp_le_gibbsSpecification
       (fun h ↦ by
         refine (tendsto_card_vadd_tileIdxImage_Icc_symmDiff_div_card i m hs h).congr fun n ↦ ?_
         rw [hΔidx])
-      (ε := (q : ℝ) * ε) (by positivity)
+      (ε := (q : ℝ) * ε') (by positivity)
     refine h.congr fun n ↦ ?_
     rw [hcc, hKdef]
   -- ### Step 5. The good event has probability at least `1/2` eventually.
@@ -803,36 +800,14 @@ theorem eventually_exists_ofReal_exp_le_gibbsSpecification
             exact (measure_union_le _ _).trans (add_le_add h1 hDn)
         _ = _ := by rw [h4]
     exact (ENNReal.add_le_add_iff_right ENNReal.ofReal_ne_top).1 h3
-  -- ### Step 6. The finite-volume chain of inequalities.
+  -- ### Step 6. The change of measure from `γ̂` to `λ^S` on the window.
   have hkey : ∀ n, ENNReal.ofReal (1 / 2) ≤ tileProduct hCH γb
         (W n ∩ {ω | blockDensity hCH lam γb (Δ n) ω ≤ ENNReal.ofReal (Real.exp (cc n))}) →
-      ∀ ω : (Fin d → ℤ) → E,
-        ENNReal.ofReal (Real.exp
-            (-((#(Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)) : ℝ) * (Φ.specificEnergy νt + ε)
-                + 3 * Φ.tail (Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ))
-                    (Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)))
-              - Φ.logZ lam (Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)) ω - cc n - Real.log 2))
-          ≤ Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) lam 1
-              (Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)) ω (W n) := by
-    intro n hhalfn ω
-    set Λn : Finset (Fin d → ℤ) := Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ) with hΛn
-    set bn : ℝ := (#Λn : ℝ) * (Φ.specificEnergy νt + ε) + 3 * Φ.tail Λn Λn with hbn
+      ENNReal.ofReal (Real.exp (-cc n - Real.log 2))
+        ≤ (Measure.infinitePi fun _ : Fin d → ℤ ↦ lam) (W n) := by
+    intro n hhalfn
     set Dn : Set ((Fin d → ℤ) → E) :=
       {ω | blockDensity hCH lam γb (Δ n) ω ≤ ENNReal.ofReal (Real.exp (cc n))} with hDn
-    -- on the window the Hamiltonian is at most `bn`
-    have hEnergy : ∀ y ∈ W n, Φ.hamiltonian Λn y ≤ bn := by
-      intro y hy
-      have h1 : Φ.specificEnergy (periodicEmpiricalField E (π n) Λn y)
-          < Φ.specificEnergy νt + ε := by
-        have := (hWsub n hy).2
-        rwa [Set.mem_ofPred_eq, toMeasure_periodicEmpiricalFieldL] at this
-      have h2 := (abs_le.1 (abs_hamiltonian_sub_card_mul_specificEnergy_periodicEmpiricalField_le
-        hΦ (hπ n) (hne n) y)).2
-      have hcard : (0 : ℝ) ≤ (#Λn : ℝ) := Nat.cast_nonneg _
-      nlinarith
-    -- the two changes of measure
-    have hA1 := le_gibbsSpecificationOfAbsolutelySummable_apply (Φ := Φ) lam Λn ω
-      (hWmeas n) hEnergy
     have hM0 : ENNReal.ofReal (Real.exp (cc n)) ≠ 0 := by
       simp only [Ne, ENNReal.ofReal_eq_zero, not_le]; exact Real.exp_pos _
     have hinv : (ENNReal.ofReal (Real.exp (cc n)))⁻¹ = ENNReal.ofReal (Real.exp (-cc n)) := by
@@ -847,25 +822,173 @@ theorem eventually_exists_ofReal_exp_le_gibbsSpecification
               (Measure.infinitePi fun _ : Fin d → ℤ ↦ lam) (W n)) := by gcongr
         _ = _ := by
             rw [← mul_assoc, ENNReal.inv_mul_cancel hM0 ENNReal.ofReal_ne_top, one_mul]
-    have hexp : Real.exp (-bn - Φ.logZ lam Λn ω - cc n - Real.log 2)
-        = Real.exp (-bn - Φ.logZ lam Λn ω) * (Real.exp (-cc n) * (1 / 2)) := by
-      rw [show (-bn - Φ.logZ lam Λn ω - cc n - Real.log 2)
-          = (-bn - Φ.logZ lam Λn ω) + (-cc n) + (-Real.log 2) by ring,
-        Real.exp_add, Real.exp_add, Real.exp_neg (Real.log 2),
+    have hexp : Real.exp (-cc n - Real.log 2) = Real.exp (-cc n) * (1 / 2) := by
+      rw [sub_eq_add_neg, Real.exp_add, Real.exp_neg (Real.log 2),
         Real.exp_log (by norm_num : (0 : ℝ) < 2)]
       ring
-    calc ENNReal.ofReal (Real.exp (-bn - Φ.logZ lam Λn ω - cc n - Real.log 2))
+    calc ENNReal.ofReal (Real.exp (-cc n - Real.log 2))
+        = (ENNReal.ofReal (Real.exp (cc n)))⁻¹ * ENNReal.ofReal (1 / 2) := by
+          rw [hexp, ENNReal.ofReal_mul (Real.exp_pos _).le, hinv]
+      _ ≤ (ENNReal.ofReal (Real.exp (cc n)))⁻¹ * tileProduct hCH γb (W n ∩ Dn) := by gcongr
+      _ ≤ _ := hA2
+  -- ### Step 7. The exponent is eventually at least `|Λ_n| (𝓀(ν) − ε)`.
+  have hcardpos : ∀ n, (0 : ℝ) < (#(Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)) : ℝ) := fun n ↦ by
+    exact_mod_cast (hne n).card_pos
+  have hhull : Tendsto (fun n ↦ (#(Δ n) : ℝ)
+      / (#(Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)) : ℝ)) atTop (𝓝 1) := by
+    refine (tendsto_card_tileHull_div_card i m hs).congr fun n ↦ ?_
+    rw [hΔ]
+  have hcclim : Tendsto (fun n ↦ cc n
+      / (#(Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)) : ℝ)) atTop
+      (𝓝 (K.toReal / q + ε')) := by
+    have hqe : (K.toReal + (q : ℝ) * ε') / q = K.toReal / q + ε' :=
+      add_mul_div_self _ _ _ hqR.ne'
+    have h := hhull.mul_const ((K.toReal + (q : ℝ) * ε') / q)
+    rw [one_mul, hqe] at h
+    refine h.congr fun n ↦ ?_
+    have hq : (#(Δ n) : ℝ) = (#(tileIdxImage hCH (Δ n)) : ℝ) * q := by exact_mod_cast hΔcard n
+    rw [hcc, hq]
+    exact mul_div_mul_add_div _ _ _ _ _ hqR.ne' (hcardpos n).ne'
+  have hinvcard : Tendsto (fun n ↦ ((#(Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)) : ℝ))⁻¹)
+      atTop (𝓝 0) := by
+    refine Filter.Tendsto.inv_tendsto_atTop ?_
+    have hpow : Tendsto (fun n ↦ (((s n + 1) ^ d : ℕ) : ℝ)) atTop atTop := by
+      refine tendsto_natCast_atTop_atTop.comp ?_
+      exact (tendsto_pow_atTop (NeZero.ne d)).comp
+        (tendsto_atTop_mono (fun n ↦ Nat.le_succ (s n)) hs)
+    refine hpow.congr fun n ↦ ?_
+    rw [← card_Icc_cube (m n) (s n)]
+  set L : ℝ := -(K.toReal / q + ε') with hLdef
+  have hFlim : Tendsto (fun n ↦ (-cc n - Real.log 2)
+      / (#(Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)) : ℝ)) atTop (𝓝 L) := by
+    have h := (hcclim.neg).sub (hinvcard.const_mul (Real.log 2))
+    simp only [mul_zero, sub_zero] at h
+    refine h.congr fun n ↦ ?_
+    ring
+  have hrL : -k₀ - ε < L := by
+    have h2 : K.toReal / q ≤ k₀ := by rw [div_le_iff₀ hqR]; exact hKreal
+    rw [hLdef, hε'def] at *
+    linarith
+  filter_upwards [hhalf, hFlim.eventually (lt_mem_nhds hrL)] with n hhalfn hFn
+  refine ⟨W n, hWmeas n, hWC n, hWenergy n, ?_⟩
+  refine le_trans (ENNReal.ofReal_le_ofReal (Real.exp_le_exp.2 ?_)) (hkey n hhalfn)
+  have hcardn := hcardpos n
+  rw [lt_div_iff₀ hcardn] at hFn
+  rw [hk₀def, neg_neg] at hFn
+  nlinarith [hFn]
+
+open scoped Classical in
+/-- **Georgii (15.55)**, the estimate that carries the large deviation lower bound (15.47), in
+the form both of its corollaries consume.
+
+Let `Φ ∈ ℬ_Θ`, let `C` be a set of random fields, let `ν ∈ 𝓟_Θ` lie in Georgii's `C°` — the
+interior of `C` *in* `𝓟_Θ`, spelled `C ∈ 𝓝[invariantRandomFields (Fin d → ℤ) E] ν` — and let
+`r < −𝒜(ν|Φ)`. Then, along any sequence of cubes `Λ_n` of `ℤ^d` whose side tends to
+infinity, with arbitrary torus reductions `π_n`, there is eventually an event `B` of the volume
+`Λ_n` itself, contained in `{°R_{Λ_n} ∈ C}`, with `γ^Φ_{Λ_n}(B | ω) ≥ e^{|Λ_n| r}` for *every*
+boundary condition `ω`. (The event `{°R_{Λ_n} ∈ C}` need not be measurable for an arbitrary `C`,
+which is why the witness `B` is exposed: integrating over `ω` against a Gibbs measure needs a
+measurable event.)
+
+The event `B` is the window of
+`eventually_exists_measurableSet_subset_setOf_periodicEmpiricalField_mem`, Georgii's `A_Λ`; the
+energy constraint on `B` bounds the Hamiltonian through the estimate (15.25), so the Gibbs kernel
+is bounded below by `e^{−b − log Z_{Λ_n}(ω)} λ^S(B)`
+(`le_gibbsSpecificationOfAbsolutelySummable_apply`), and `|Λ_n|⁻¹ log Z_{Λ_n}(ω) → P(Φ)`
+uniformly in `ω` (Georgii (15.31), via `logSupZ`). -/
+theorem eventually_exists_ofReal_exp_le_gibbsSpecification
+    (lam : Measure E) [IsProbabilityMeasure lam]
+    {Φ : Potential (Fin d → ℤ) E} [Potential.IsPotential Φ] [Potential.IsAbsolutelySummable Φ]
+    (hΦ : Φ.IsShiftInvariant)
+    {C : Set (WithLocalConvergence (Fin d → ℤ) E)}
+    {ν : Measure ((Fin d → ℤ) → E)} (hν : ν ∈ invariantFields (shiftGroup (Fin d → ℤ) E))
+    (hνC : C ∈ 𝓝[invariantRandomFields (Fin d → ℤ) E]
+      (WithSetwiseTopology.ofMeasure ⟨ν, hν.1⟩ : WithLocalConvergence (Fin d → ℤ) E))
+    {m : ℕ → Fin d → ℤ} {s : ℕ → ℕ}
+    (hs : Tendsto s atTop atTop)
+    {G' : ℕ → AddSubgroup (Fin d → ℤ)} {π : ℕ → (Fin d → ℤ) → (Fin d → ℤ)}
+    (hπ : ∀ n, Potential.IsTorusReduction (G' n) (Finset.Icc (m n) fun k ↦ m n k + s n) (π n))
+    (hne : ∀ n, (Finset.Icc (m n) fun k ↦ m n k + s n).Nonempty)
+    {r : ℝ} (hr : (r : EReal) < -Φ.specificRelativeEntropy lam ν) :
+    ∀ᶠ n in atTop, ∃ B : Set ((Fin d → ℤ) → E),
+      MeasurableSet[cylinderEvents (X := fun _ : Fin d → ℤ ↦ E)
+        ((Finset.Icc (m n) fun k ↦ m n k + s n : Finset (Fin d → ℤ)) : Set (Fin d → ℤ))] B ∧
+      B ⊆ {η | periodicEmpiricalFieldL (π n) (hne n) η ∈ C} ∧
+      ∀ ω : (Fin d → ℤ) → E,
+        ENNReal.ofReal (Real.exp ((#(Finset.Icc (m n) fun k ↦ m n k + s n) : ℝ) * r))
+          ≤ Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) lam 1
+              (Finset.Icc (m n) fun k ↦ m n k + s n) ω B := by
+  classical
+  have hprobν : IsProbabilityMeasure ν := hν.1
+  -- ### Step 0. The excess free energy of `ν` is a finite number `A`, and `r < -A`.
+  have hAtop : Φ.specificRelativeEntropy lam ν ≠ ⊤ := by
+    intro h; rw [h] at hr; simp at hr
+  have hκtop : specificEntropy lam ν ≠ ⊤ :=
+    ne_top_of_le_ne_top (by simp) (specificEntropy_nonpos lam (μ := ν))
+  have hκbot : specificEntropy lam ν ≠ ⊥ := by
+    intro h
+    exact hAtop (by rw [Potential.specificRelativeEntropy, h]; simp)
+  set k₀ : ℝ := -(specificEntropy lam ν).toReal with hk₀def
+  have hκeq : specificEntropy lam ν = ((-k₀ : ℝ) : EReal) := by
+    rw [hk₀def, neg_neg, EReal.coe_toReal hκtop hκbot]
+  set A : ℝ := Φ.pressure lam + Φ.specificEnergy ν + k₀ with hAdef
+  have hAeq : Φ.specificRelativeEntropy lam ν = ((A : ℝ) : EReal) := by
+    rw [Potential.specificRelativeEntropy, hκeq, ← EReal.coe_sub, hAdef]
+    congr 1
+    ring
+  have hrA : r < -A := by
+    rw [hAeq, ← EReal.coe_neg] at hr
+    exact_mod_cast hr
+  set ε : ℝ := (-A - r) / 3 with hεdef
+  have hεpos : 0 < ε := by rw [hεdef]; linarith
+  -- ### Step 1. The window.
+  have hwin := eventually_exists_measurableSet_subset_setOf_periodicEmpiricalField_mem lam
+    (Φ := Φ) hν hνC hs hπ hne hκbot hεpos
+  -- ### Step 2. The finite-volume chain of inequalities.
+  have hkey : ∀ n (B : Set ((Fin d → ℤ) → E)),
+      MeasurableSet[cylinderEvents (X := fun _ : Fin d → ℤ ↦ E)
+        ((Finset.Icc (m n) fun k ↦ m n k + s n : Finset (Fin d → ℤ)) : Set (Fin d → ℤ))] B →
+      (∀ y ∈ B, Φ.specificEnergy (periodicEmpiricalField E (π n)
+          (Finset.Icc (m n) fun k ↦ m n k + s n) y) < Φ.specificEnergy ν + ε) →
+      ENNReal.ofReal (Real.exp ((#(Finset.Icc (m n) fun k ↦ m n k + s n) : ℝ)
+          * ((specificEntropy lam ν).toReal - ε)))
+        ≤ (Measure.infinitePi fun _ : Fin d → ℤ ↦ lam) B →
+      ∀ ω : (Fin d → ℤ) → E,
+        ENNReal.ofReal (Real.exp
+            (-((#(Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)) : ℝ) * (Φ.specificEnergy ν + ε)
+                + 3 * Φ.tail (Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ))
+                    (Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)))
+              - Φ.logZ lam (Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)) ω
+              + (#(Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)) : ℝ) * (-k₀ - ε)))
+          ≤ Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) lam 1
+              (Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)) ω B := by
+    intro n B hBmeas hBenergy hBlam ω
+    set Λn : Finset (Fin d → ℤ) := Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ) with hΛn
+    set bn : ℝ := (#Λn : ℝ) * (Φ.specificEnergy ν + ε) + 3 * Φ.tail Λn Λn with hbn
+    -- on the window the Hamiltonian is at most `bn`
+    have hEnergy : ∀ y ∈ B, Φ.hamiltonian Λn y ≤ bn := by
+      intro y hy
+      have h1 := hBenergy y hy
+      have h2 := (abs_le.1 (abs_hamiltonian_sub_card_mul_specificEnergy_periodicEmpiricalField_le
+        hΦ (hπ n) (hne n) y)).2
+      have hcard : (0 : ℝ) ≤ (#Λn : ℝ) := Nat.cast_nonneg _
+      nlinarith
+    have hA1 := le_gibbsSpecificationOfAbsolutelySummable_apply (Φ := Φ) lam Λn ω hBmeas hEnergy
+    have hexp : Real.exp (-bn - Φ.logZ lam Λn ω + (#Λn : ℝ) * (-k₀ - ε))
+        = Real.exp (-bn - Φ.logZ lam Λn ω) * Real.exp ((#Λn : ℝ) * (-k₀ - ε)) := by
+      rw [Real.exp_add]
+    have hk₀ : (specificEntropy lam ν).toReal - ε = -k₀ - ε := by rw [hk₀def, neg_neg]
+    calc ENNReal.ofReal (Real.exp (-bn - Φ.logZ lam Λn ω + (#Λn : ℝ) * (-k₀ - ε)))
         = ENNReal.ofReal (Real.exp (-bn - Φ.logZ lam Λn ω))
-            * ((ENNReal.ofReal (Real.exp (cc n)))⁻¹ * ENNReal.ofReal (1 / 2)) := by
-          rw [hexp, ENNReal.ofReal_mul (Real.exp_pos _).le,
-            ENNReal.ofReal_mul (Real.exp_pos _).le, hinv]
+            * ENNReal.ofReal (Real.exp ((#Λn : ℝ) * (-k₀ - ε))) := by
+          rw [hexp, ENNReal.ofReal_mul (Real.exp_pos _).le]
       _ ≤ ENNReal.ofReal (Real.exp (-bn - Φ.logZ lam Λn ω))
-            * ((ENNReal.ofReal (Real.exp (cc n)))⁻¹ * tileProduct hCH γb (W n ∩ Dn)) := by
+            * (Measure.infinitePi fun _ : Fin d → ℤ ↦ lam) B := by
           gcongr
-      _ ≤ ENNReal.ofReal (Real.exp (-bn - Φ.logZ lam Λn ω))
-            * (Measure.infinitePi fun _ : Fin d → ℤ ↦ lam) (W n) := by gcongr
-      _ ≤ Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) lam 1 Λn ω (W n) := hA1
-  -- ### Step 7. The exponent is eventually at least `|Λ_n| r`.
+          rw [← hk₀]
+          exact hBlam
+      _ ≤ Potential.gibbsSpecificationOfAbsolutelySummable (Φ := Φ) lam 1 Λn ω B := hA1
+  -- ### Step 3. The exponent is eventually at least `|Λ_n| r`.
   have hside : ∀ k, Tendsto (fun n ↦ (fun k' ↦ m n k' + (s n : ℤ)) k - m n k) atTop atTop := by
     intro k
     have h : Tendsto (fun n ↦ ((s n : ℤ))) atTop atTop := tendsto_natCast_atTop_atTop.comp hs
@@ -883,49 +1006,27 @@ theorem eventually_exists_ofReal_exp_le_gibbsSpecification
     refine h.congr fun n ↦ ?_
     rw [Potential.pressureTerm]
     ring
-  have hhull : Tendsto (fun n ↦ (#(Δ n) : ℝ)
-      / (#(Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)) : ℝ)) atTop (𝓝 1) := by
-    refine (tendsto_card_tileHull_div_card i m hs).congr fun n ↦ ?_
-    rw [hΔ]
-  have hcclim : Tendsto (fun n ↦ cc n
-      / (#(Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)) : ℝ)) atTop
-      (𝓝 (K.toReal / q + ε)) := by
-    have hqe : (K.toReal + (q : ℝ) * ε) / q = K.toReal / q + ε :=
-      add_mul_div_self _ _ _ hqR.ne'
-    have h := hhull.mul_const ((K.toReal + (q : ℝ) * ε) / q)
-    rw [one_mul, hqe] at h
-    refine h.congr fun n ↦ ?_
-    have hq : (#(Δ n) : ℝ) = (#(tileIdxImage hCH (Δ n)) : ℝ) * q := by exact_mod_cast hΔcard n
-    rw [hcc, hq]
-    exact mul_div_mul_add_div _ _ _ _ _ hqR.ne' (hcardpos n).ne'
-  have hinvcard : Tendsto (fun n ↦ ((#(Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)) : ℝ))⁻¹)
-      atTop (𝓝 0) := by
-    refine Filter.Tendsto.inv_tendsto_atTop ?_
-    have hpow : Tendsto (fun n ↦ (((s n + 1) ^ d : ℕ) : ℝ)) atTop atTop := by
-      refine tendsto_natCast_atTop_atTop.comp ?_
-      exact (tendsto_pow_atTop (NeZero.ne d)).comp
-        (tendsto_atTop_mono (fun n ↦ Nat.le_succ (s n)) hs)
-    refine hpow.congr fun n ↦ ?_
-    rw [← card_Icc_cube (m n) (s n)]
-  set L : ℝ := -(Φ.specificEnergy νt + ε) - Φ.pressure lam - (K.toReal / q + ε) with hLdef
+  set L : ℝ := -(Φ.specificEnergy ν + ε) - Φ.pressure lam + (-k₀ - ε) with hLdef
   have hFlim : Tendsto (fun n ↦
-      (-((#(Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)) : ℝ) * (Φ.specificEnergy νt + ε)
+      (-((#(Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)) : ℝ) * (Φ.specificEnergy ν + ε)
           + 3 * Φ.tail (Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ))
               (Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)))
-        - Φ.logSupZ lam (Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)) - cc n - Real.log 2)
+        - Φ.logSupZ lam (Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ))
+        + (#(Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)) : ℝ) * (-k₀ - ε))
       / (#(Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)) : ℝ)) atTop (𝓝 L) := by
-    have h := ((((tendsto_const_nhds (x := -(Φ.specificEnergy νt + ε)) (f := atTop (α := ℕ))).sub
-      (htail.const_mul 3)).sub hsup).sub hcclim).sub (hinvcard.const_mul (Real.log 2))
+    have h := (((tendsto_const_nhds (x := -(Φ.specificEnergy ν + ε)) (f := atTop (α := ℕ))).sub
+      (htail.const_mul 3)).sub hsup).add (tendsto_const_nhds (x := -k₀ - ε))
     simp only [mul_zero, sub_zero] at h
     refine h.congr fun n ↦ ?_
-    exact neg_add_div_expand _ _ _ _ _ _ (hcardpos n).ne'
+    exact neg_add_div_expand _ _ _ _ _ (hcardpos n).ne'
   have hrL : r < L := by
-    have h2 : K.toReal / q ≤ k₀ := by rw [div_le_iff₀ hqR]; exact hKreal
     rw [hLdef, hAdef] at *
-    linarith [hνte, hεdef]
-  filter_upwards [hhalf, hFlim.eventually (lt_mem_nhds hrL)] with n hhalfn hFn
-  refine ⟨W n, hWmeas n, hWC n, fun ω ↦ ?_⟩
-  refine le_trans (ENNReal.ofReal_le_ofReal (Real.exp_le_exp.2 ?_)) (hkey n hhalfn ω)
+    linarith [hεdef]
+  filter_upwards [hwin, hFlim.eventually (lt_mem_nhds hrL)] with n hn hFn
+  obtain ⟨B, hBmeas, hBC, hBenergy, hBlam⟩ := hn
+  refine ⟨B, hBmeas, hBC, fun ω ↦ ?_⟩
+  refine le_trans (ENNReal.ofReal_le_ofReal (Real.exp_le_exp.2 ?_))
+    (hkey n B hBmeas hBenergy hBlam ω)
   have hlogZ := Potential.logZ_le_logSupZ lam (Φ := Φ)
     (Finset.Icc (m n) fun k ↦ m n k + (s n : ℤ)) ω
   have hcardn := hcardpos n
