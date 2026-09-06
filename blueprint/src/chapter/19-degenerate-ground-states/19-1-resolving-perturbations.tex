@@ -40,8 +40,8 @@
 
 \begin{theorem}[Georgii Corollary (19.7) and Example (19.8)]
     \label{thm:dg-19-7}
-    \uses{def:dg-19-4, thm:dsb-18-25, lem:lo-ocean-tail}
-    \lean{MeasureTheory.GibbsMeasure.measurableSet_setOf_mem_latticeOceanPart, MeasureTheory.GibbsMeasure.measure_setOf_latticeOceanPart_nonempty_eq_of_map, MeasureTheory.GibbsMeasure.measure_setOf_latticeOceanPart_nonempty_eq_inv, MeasureTheory.GibbsMeasure.exists_gibbsMeasure_refinement, MeasureTheory.GibbsMeasure.blumeCapelCube, MeasureTheory.GibbsMeasure.blumeCapelField, MeasureTheory.GibbsMeasure.blumeCapelEnergy_eq_zero_iff, MeasureTheory.GibbsMeasure.localGroundEnergy_blumeCapel, MeasureTheory.GibbsMeasure.localGroundStates_blumeCapel, MeasureTheory.GibbsMeasure.isPStablePartition_blumeCapel, MeasureTheory.GibbsMeasure.isPStablePartition_blumeCapelFine, MeasureTheory.GibbsMeasure.attainsGroundEnergy_blumeCapel, MeasureTheory.GibbsMeasure.resolves_blumeCapel}
+    \uses{def:dg-19-4, thm:dg-19-6, thm:dsb-18-25, lem:lo-ocean-tail}
+    \lean{MeasureTheory.GibbsMeasure.measurableSet_setOf_mem_latticeOceanPart, MeasureTheory.GibbsMeasure.measure_setOf_latticeOceanPart_nonempty_eq_of_map, MeasureTheory.GibbsMeasure.measure_setOf_latticeOceanPart_nonempty_eq_inv, MeasureTheory.GibbsMeasure.exists_gibbsMeasure_refinement, MeasureTheory.GibbsMeasure.blumeCapelCube, MeasureTheory.GibbsMeasure.blumeCapelField, MeasureTheory.GibbsMeasure.blumeCapelEnergy_eq_zero_iff, MeasureTheory.GibbsMeasure.localGroundEnergy_blumeCapel, MeasureTheory.GibbsMeasure.localGroundStates_blumeCapel, MeasureTheory.GibbsMeasure.isPStablePartition_blumeCapel, MeasureTheory.GibbsMeasure.isPStablePartition_blumeCapelFine, MeasureTheory.GibbsMeasure.attainsGroundEnergy_blumeCapel, MeasureTheory.GibbsMeasure.resolves_blumeCapel, MeasureTheory.GibbsMeasure.isRSymmetric_of_const, MeasureTheory.GibbsMeasure.IsRSymmetric.image_cubeRefl, MeasureTheory.GibbsMeasure.blumeCapelCube_cubeRefl, MeasureTheory.GibbsMeasure.blumeCapelField_cubeRefl, MeasureTheory.GibbsMeasure.isCubeConfining_blumeCapelCube, MeasureTheory.GibbsMeasure.isRSymmetric_blumeCapelPartition, MeasureTheory.GibbsMeasure.blumeCapelSpinFlip, MeasureTheory.GibbsMeasure.blumeCapelCube_onCube_blumeCapelSpinFlip, MeasureTheory.GibbsMeasure.blumeCapelField_onCube_blumeCapelSpinFlip, MeasureTheory.GibbsMeasure.isPStablePartition_blumeCapelSplit, MeasureTheory.GibbsMeasure.eventually_exists_gibbsMeasure_family_blumeCapel, MeasureTheory.GibbsMeasure.eventually_three_le_encard_extremePoints_blumeCapel}
     \leanok
 
     Corollary (19.7), stated for exactly what its proof uses: a Gibbs measure $\mu$ carrying an
@@ -53,12 +53,21 @@
     Example (19.8), the Blume--Capel model on $\{-1,0,1\}$: the local ground states are the three
     constant configurations, $\{G_1, G_2\}$ with $G_2 = \{(\pm\pm)\}$ and its refinement are stable
     and balanced, and the self-potential $\sum_{i\in C}\sigma_i^2$ resolves $\{G_1, G_2\}$ by (19.5)(1)
-    with $c_1 = 4$, $\delta_1 = -4$. Not formalised: the conclusion of (19.8),
-    $|\operatorname{ex}\mathcal G_\Theta(\beta\Phi + \beta h(\beta)\Phi^1)| \geq 3$, which is Theorem
-    \ref{thm:dg-19-6} applied to the resolving self-potential followed by (19.7) with the fine
-    partition and needs only the model-specific inputs ($r$-symmetry of the partitions, reflection
-    invariance of the interactions, the spin flip $0 \leftrightarrow 2$ as a symmetry); Examples
-    (19.9)--(19.10).
+    with $c_1 = 4$, $\delta_1 = -4$. Its conclusion
+    $|\operatorname{ex}\mathcal G_\Theta(\beta\Phi + \beta h(\beta)\Phi^1)| \geq 3$ is now Theorem
+    \ref{thm:dg-19-6} applied to $\{G_1,G_2\}$ and the resolving self-potential, followed by (19.7)
+    splitting the second phase along the spin flip $\sigma \mapsto -\sigma$: the model-specific
+    inputs are the reflection invariance of $\Phi_C$ and $\Phi^1_C$ (both are a bond sum and a site
+    sum over the unit square), the $r$-symmetry of the partitions (their members are constant
+    configurations), the boundedness of $\Phi_C$ over the finite state space, and the spin flip
+    $0 \leftrightarrow 2$ as a $\lambda$-preserving cube transformation preserving $\Phi_C$ and
+    $\Phi^1_C$ and exchanging $G_{2,1}$ with $G_{2,2}$. Corollary (19.7) uses only condition
+    (18.23)(a)(ii) of the refinement, whereas \texttt{IsPStablePartition} bundles that with
+    (18.23)(a)(i); the refinement $\{G_{2,1}, G_{2,2}\}$ is therefore recorded as a stable partition
+    of the local ground states of $\Phi - \Phi^1$, the member $h = -1$ of the family (19.2), whose
+    local ground states are exactly $G_2$. Not formalised: Examples (19.9)--(19.10), and Bricmont
+    and Slawny's theorem that the unperturbed $\beta\Phi$ has a unique shift-invariant Gibbs
+    measure, which Georgii quotes without proof.
 \end{theorem}
 \begin{proof}
     \leanok

@@ -79,7 +79,9 @@ Corollary (19.7) is `MeasureTheory.GibbsMeasure.exists_gibbsMeasure_refinement` 
 `GibbsMeasure/Model/GroundStateRefinement.lean`, proved from the properties of the measures
 `μ_n` that Georgii's proof of it actually uses — so from the *conclusion* of (19.6) rather than
 from the theorem.  Example (19.8), the Blume–Capel model, is
-`GibbsMeasure/Model/BlumeCapel.lean`, complete except for that same conclusion.
+`GibbsMeasure/Model/BlumeCapel.lean`, up to and including Georgii's conclusion
+`|ex 𝒢_Θ(βΦ + βh(β)Φ¹)| ≥ 3`
+(`MeasureTheory.GibbsMeasure.eventually_exists_gibbsMeasure_family_blumeCapel`).
 -/
 
 @[expose] public section

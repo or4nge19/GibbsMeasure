@@ -205,6 +205,34 @@ theorem IsRSymmetric.preimage_tauPow {G : Set ((Fin d → Fin 2) → E)} (hG : I
     {N : ℕ} (i : Fin d → ZMod (2 * N)) : tauPow (cubeRefl E) i ⁻¹' G = G :=
   preimage_tauPow_eq_self _ hG i
 
+/-- **`r_k G = G` as an image.**  Georgii writes the `r`-symmetry as `r_k G = G`; since `r_k` is
+a bijection of `E^C` the image and the preimage formulations agree.  The image form is what the
+hypothesis `τ G_n = G_n` of Theorems (18.25) and (19.6) asks for. -/
+theorem IsRSymmetric.image_cubeRefl {G : Set ((Fin d → Fin 2) → E)} (hG : IsRSymmetric E G)
+    (k : Fin d) : cubeRefl E k '' G = G :=
+  calc cubeRefl E k '' G = cubeRefl E k '' (cubeRefl E k ⁻¹' G) := by rw [hG k]
+    _ = G := Set.image_preimage_eq _ (cubeRefl E k).surjective
+
+/-- **A set of constant cube configurations is `r`-symmetric.**  The reflections `r_k` permute
+the corners of `C` and so fix every constant configuration; a set all of whose members are
+constant is therefore mapped onto itself.  This is why Georgii's ferromagnetic ground state
+classes — the constant patterns of the Ising, Potts and Blume–Capel models — satisfy the
+`r`-symmetry hypothesis of Theorems (18.25) and (19.6) without any computation. -/
+lemma isRSymmetric_of_const {G : Set ((Fin d → Fin 2) → E)}
+    (hG : ∀ ζ ∈ G, ∃ v : E, ζ = fun _ ↦ v) : IsRSymmetric E G := by
+  have hfix : ∀ (k : Fin d) {ζ : (Fin d → Fin 2) → E}, ζ ∈ G → cubeRefl E k ζ = ζ := by
+    intro k ζ hζ
+    obtain ⟨v, rfl⟩ := hG ζ hζ
+    exact cubeRefl_const k v
+  intro k
+  ext ζ
+  refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
+  · have hrefl : cubeRefl E k (cubeRefl E k ζ) = cubeRefl E k ζ := hfix k h
+    rw [cubeRefl_cubeRefl] at hrefl
+    exact hrefl ▸ h
+  · rw [Set.mem_preimage, hfix k h]
+    exact h
+
 /-- **Condition (iii) of Georgii (17.18)** makes the local `ε`-ground states `r`-symmetric. -/
 theorem isRSymmetric_localGroundStates (hφk : ∀ (k : Fin d) ζ, φ (cubeRefl E k ζ) = φ ζ)
     (ε : ℝ) : IsRSymmetric E (localGroundStates φ ν ε) := by

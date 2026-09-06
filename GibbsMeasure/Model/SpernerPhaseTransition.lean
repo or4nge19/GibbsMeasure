@@ -78,18 +78,14 @@ edited concurrently.
   holds eventually in `β` for each of them; the two limits are that statement quantified over
   `U₀` and over `t → 0`.
 
-## What is *not* here
+## Where this is applied
 
-**Example (19.8)**, Georgii's `|ex 𝒢_Θ(βΦ + βh(β)Φ¹)| ≥ 3` for the Blume–Capel model, is not
-formalised.  Everything §19.1 provides for it is in `GibbsMeasure/Model/BlumeCapel.lean`
-(`resolves_blumeCapel`, `isPStablePartition_blumeCapel`, `attainsGroundEnergy_blumeCapel`), and
-the two theorems it has to be fed into are `eventually_exists_gibbsMeasure_family_of_resolvesOn`
-above and `exists_gibbsMeasure_refinement` (Corollary (19.7)) of
-`GibbsMeasure/Model/GroundStateRefinement.lean`.  What is missing is the *model-specific* input:
-the `r`-symmetry of `{G_1, G_2}` and of the refinement `{G_{2,1}, G_{2,2}}`, the invariance of
-`Φ_C` and `Φ^1_C` under the reflections of the unit square, the boundedness of `Φ_C` (whence
-`IsCubeConfining` with `K_ℓ = E`), and the spin flip as a `CubeTransformation` of `E = {-1,0,1}`
-that preserves the counting measure, `Φ_C` and `Φ^1_C`, and exchanges `G_{2,1}` with `G_{2,2}`.
+**Example (19.8)**, Georgii's `|ex 𝒢_Θ(βΦ + βh(β)Φ¹)| ≥ 3` for the Blume–Capel model, is
+`eventually_three_le_encard_extremePoints_blumeCapel` of `GibbsMeasure/Model/BlumeCapel.lean`:
+Theorem (19.6) below applied to the coarse partition `{G_1, G_2}` and the resolving
+self-potential `Φ¹_C = ∑_{i ∈ C} σ_i²`, followed by `exists_gibbsMeasure_refinement`
+(Corollary (19.7)) of `GibbsMeasure/Model/GroundStateRefinement.lean` splitting the second phase
+along the spin flip.  That file is a leaf; nothing here imports it.
 -/
 
 @[expose] public section

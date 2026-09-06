@@ -142,6 +142,11 @@ lemma cubeRefl_cubeRefl (k : Fin d) (ζ : (Fin d → Fin 2) → E) :
   funext c
   rw [cubeRefl_apply, cubeRefl_apply, cubeSiteRefl_cubeSiteRefl]
 
+/-- **A constant cube configuration is fixed by every reflection of the cube.**  The reflections
+act by permuting the corners, so they move only non-constant configurations. -/
+lemma cubeRefl_const (k : Fin d) (v : E) :
+    cubeRefl E k (fun _ ↦ v) = fun _ ↦ v := rfl
+
 /-- **Georgii (17.15).** The reflection `r̂_k` of the torus in a plane *through* the sites:
 `z ↦ -z` in the `k`-th coordinate, which fixes the sites with `z_k ∈ {0, N}`. -/
 def hatReflAt (N : ℕ) (k : Fin d) : (Fin d → ZMod (2 * N)) ≃ (Fin d → ZMod (2 * N)) where
@@ -245,7 +250,7 @@ lemma measurable_cubeView_apply_cylinderEvents {k : Fin d} {i : Fin d → ZMod (
     cylinderEvents (X := fun _ : Fin d → ZMod (2 * N) ↦ E) (hatPosAt N k)
   refine measurable_pi_lambda _ fun c ↦ ?_
   refine measurable_cylinderEvent_apply (X := fun _ : Fin d → ZMod (2 * N) ↦ E) ?_
-  show ((i + cubeCast N c) k).val ≤ N
+  change ((i + cubeCast N c) k).val ≤ N
   have hN : 0 < N := Nat.pos_of_ne_zero (NeZero.ne N)
   have hc : ((c k : ℕ) : ZMod (2 * N)).val = (c k : ℕ) :=
     ZMod.val_natCast_of_lt (by have := (c k).isLt; omega)
