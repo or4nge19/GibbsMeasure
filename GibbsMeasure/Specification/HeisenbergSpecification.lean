@@ -386,6 +386,127 @@ theorem abs_tsum_le_of_pairBound {T : Finset (Fin d → ℤ) → ℝ}
     _ ≤ ∑' q : (Fin d → ℤ) × (Fin d → ℤ), (genFst Λ c s q + genFst Λ c s q.swap) := hstep₃
     _ = 2 * ∑ i ∈ Λ, s i * ∑' j, c i j * s j := hstep₄
 
+
+/-- **The pair sum with only the exterior controlled.**  Let `c ≥ 0` be a symmetric coefficient
+whose `a`-weighted rows are bounded by `R` at every site of `Λ`, where `a ≥ 1`, and let `s ≥ 0`
+satisfy `s_j ≤ t a_j` **outside** `Λ` — nothing at all being assumed inside `Λ`.  Then
+
+`∑_{i ∈ Λ} s_i ∑_j c(i,j) s_j ≤ R (1 + t) ∑_{i ∈ Λ} [1 + s_i²]`.
+
+This is the combinatorial form of Georgii's `|H_Λ^Φ(ζ ω_{S∖Λ})| ≤ c(ω_{S∖Λ}) ∑_{i∈Λ}[1 + |ζ_i|²]`
+of §20.1.  The point is the uniformity in the *inner* configuration `ζ`, which is what makes the
+estimate usable inside a partition function and, in the proof of (20.7), uniformly over the
+boundary conditions in `Ω_t`.  The bonds inside `Λ` are symmetrised by `s_i s_j ≤ (s_i²+s_j²)/2`,
+the bonds leaving it by `s_i ≤ 1 + s_i²`. -/
+theorem sum_mul_tsum_le_of_exterior_le {a : (Fin d → ℤ) → ℝ} {t R : ℝ}
+    (hc0 : ∀ i j, 0 ≤ c i j) (hcsymm : ∀ i j, c i j = c j i) (hs0 : ∀ i, 0 ≤ s i)
+    (ha : ∀ i, 1 ≤ a i) (ht0 : 0 ≤ t) (hR0 : 0 ≤ R)
+    (hsummable : ∀ i, Summable fun j ↦ c i j * a j)
+    (hrow : ∀ i ∈ Λ, ∑' j, c i j * a j ≤ R)
+    (hext : ∀ j ∉ Λ, s j ≤ t * a j) :
+    ∑ i ∈ Λ, s i * ∑' j, c i j * s j ≤ R * (1 + t) * ∑ i ∈ Λ, (1 + s i ^ 2) := by
+  classical
+  have ha0 : ∀ i, (0 : ℝ) ≤ a i := fun i ↦ le_trans zero_le_one (ha i)
+  have hfin : ∀ i : Fin d → ℤ, Summable fun j ↦ (if j ∈ Λ then c i j * s j else 0) := fun i ↦
+    summable_of_ne_finset_zero (s := Λ) fun j hj ↦ by simp [hj]
+  have hle : ∀ i j : Fin d → ℤ,
+      c i j * s j ≤ (if j ∈ Λ then c i j * s j else 0) + t * (c i j * a j) := by
+    intro i j
+    by_cases hj : j ∈ Λ
+    · have h0 : (0 : ℝ) ≤ t * (c i j * a j) := mul_nonneg ht0 (mul_nonneg (hc0 i j) (ha0 j))
+      simp only [hj, ite_true]
+      linarith
+    · have h1 : c i j * s j ≤ c i j * (t * a j) :=
+        mul_le_mul_of_nonneg_left (hext j hj) (hc0 i j)
+      simp only [hj, ite_false, zero_add]
+      linarith
+  have hsum_s : ∀ i, Summable fun j ↦ c i j * s j := fun i ↦
+    Summable.of_nonneg_of_le (fun j ↦ mul_nonneg (hc0 i j) (hs0 j)) (hle i)
+      ((hfin i).add ((hsummable i).mul_left t))
+  -- the row of `c` against `s`, split at `Λ`
+  have hrowsplit : ∀ i ∈ Λ, (∑' j, c i j * s j) ≤ (∑ j ∈ Λ, c i j * s j) + t * R := by
+    intro i hi
+    calc ∑' j, c i j * s j
+        ≤ ∑' j, ((if j ∈ Λ then c i j * s j else 0) + t * (c i j * a j)) :=
+          Summable.tsum_le_tsum (hle i) (hsum_s i) ((hfin i).add ((hsummable i).mul_left t))
+      _ = (∑ j ∈ Λ, c i j * s j) + t * ∑' j, c i j * a j := by
+          rw [(hfin i).tsum_add ((hsummable i).mul_left t), tsum_mul_left,
+            tsum_eq_sum (s := Λ) fun j hj ↦ by simp [hj]]
+          congr 1
+          exact Finset.sum_congr rfl fun j hj ↦ by simp [hj]
+      _ ≤ (∑ j ∈ Λ, c i j * s j) + t * R := by
+          have := mul_le_mul_of_nonneg_left (hrow i hi) ht0
+          linarith
+  -- the rows and columns of `c` over `Λ`
+  have hrowL : ∀ i ∈ Λ, ∑ j ∈ Λ, c i j ≤ R := by
+    intro i hi
+    calc ∑ j ∈ Λ, c i j ≤ ∑ j ∈ Λ, c i j * a j :=
+          Finset.sum_le_sum fun j _ ↦ le_mul_of_one_le_right (hc0 i j) (ha j)
+      _ ≤ ∑' j, c i j * a j :=
+          (hsummable i).sum_le_tsum Λ fun j _ ↦ mul_nonneg (hc0 i j) (ha0 j)
+      _ ≤ R := hrow i hi
+  have hcolL : ∀ j ∈ Λ, ∑ i ∈ Λ, c i j ≤ R := by
+    intro j hj
+    calc ∑ i ∈ Λ, c i j = ∑ i ∈ Λ, c j i := Finset.sum_congr rfl fun i _ ↦ hcsymm i j
+      _ ≤ R := hrowL j hj
+  -- the interior double sum
+  have hint : ∑ i ∈ Λ, s i * ∑ j ∈ Λ, c i j * s j ≤ R * ∑ i ∈ Λ, s i ^ 2 := by
+    have h1 : ∑ i ∈ Λ, s i * ∑ j ∈ Λ, c i j * s j
+        ≤ ∑ i ∈ Λ, ∑ j ∈ Λ, (c i j * s i ^ 2 / 2 + c i j * s j ^ 2 / 2) := by
+      refine Finset.sum_le_sum fun i _ ↦ ?_
+      rw [Finset.mul_sum]
+      exact Finset.sum_le_sum fun j _ ↦ by nlinarith [hc0 i j, sq_nonneg (s i - s j)]
+    have hA : ∑ i ∈ Λ, ∑ j ∈ Λ, c i j * s i ^ 2 / 2 ≤ (R * ∑ i ∈ Λ, s i ^ 2) / 2 := by
+      have hstep : ∀ i ∈ Λ, ∑ j ∈ Λ, c i j * s i ^ 2 / 2 ≤ R * s i ^ 2 / 2 := by
+        intro i hi
+        calc ∑ j ∈ Λ, c i j * s i ^ 2 / 2 = (∑ j ∈ Λ, c i j) * (s i ^ 2 / 2) := by
+              rw [Finset.sum_mul]
+              exact Finset.sum_congr rfl fun j _ ↦ by ring
+          _ ≤ R * (s i ^ 2 / 2) :=
+              mul_le_mul_of_nonneg_right (hrowL i hi) (by positivity)
+          _ = R * s i ^ 2 / 2 := by ring
+      calc ∑ i ∈ Λ, ∑ j ∈ Λ, c i j * s i ^ 2 / 2 ≤ ∑ i ∈ Λ, R * s i ^ 2 / 2 :=
+            Finset.sum_le_sum hstep
+        _ = (R * ∑ i ∈ Λ, s i ^ 2) / 2 := by rw [Finset.mul_sum, Finset.sum_div]
+    have hB : ∑ i ∈ Λ, ∑ j ∈ Λ, c i j * s j ^ 2 / 2 ≤ (R * ∑ i ∈ Λ, s i ^ 2) / 2 := by
+      rw [Finset.sum_comm]
+      have hstep : ∀ j ∈ Λ, ∑ i ∈ Λ, c i j * s j ^ 2 / 2 ≤ R * s j ^ 2 / 2 := by
+        intro j hj
+        calc ∑ i ∈ Λ, c i j * s j ^ 2 / 2 = (∑ i ∈ Λ, c i j) * (s j ^ 2 / 2) := by
+              rw [Finset.sum_mul]
+              exact Finset.sum_congr rfl fun i _ ↦ by ring
+          _ ≤ R * (s j ^ 2 / 2) :=
+              mul_le_mul_of_nonneg_right (hcolL j hj) (by positivity)
+          _ = R * s j ^ 2 / 2 := by ring
+      calc ∑ j ∈ Λ, ∑ i ∈ Λ, c i j * s j ^ 2 / 2 ≤ ∑ j ∈ Λ, R * s j ^ 2 / 2 :=
+            Finset.sum_le_sum hstep
+        _ = (R * ∑ i ∈ Λ, s i ^ 2) / 2 := by rw [Finset.mul_sum, Finset.sum_div]
+    have hsplit : ∑ i ∈ Λ, ∑ j ∈ Λ, (c i j * s i ^ 2 / 2 + c i j * s j ^ 2 / 2)
+        = (∑ i ∈ Λ, ∑ j ∈ Λ, c i j * s i ^ 2 / 2)
+          + ∑ i ∈ Λ, ∑ j ∈ Λ, c i j * s j ^ 2 / 2 := by
+      rw [← Finset.sum_add_distrib]
+      exact Finset.sum_congr rfl fun i _ ↦ Finset.sum_add_distrib
+    rw [hsplit] at h1
+    linarith
+  -- assemble
+  have hsq_le : ∑ i ∈ Λ, s i ^ 2 ≤ ∑ i ∈ Λ, (1 + s i ^ 2) :=
+    Finset.sum_le_sum fun i _ ↦ by nlinarith [sq_nonneg (s i)]
+  have hs_sum : ∑ i ∈ Λ, s i ≤ ∑ i ∈ Λ, (1 + s i ^ 2) :=
+    Finset.sum_le_sum fun i _ ↦ by nlinarith [sq_nonneg (s i - 1), hs0 i]
+  calc ∑ i ∈ Λ, s i * ∑' j, c i j * s j
+      ≤ ∑ i ∈ Λ, s i * ((∑ j ∈ Λ, c i j * s j) + t * R) :=
+        Finset.sum_le_sum fun i hi ↦ mul_le_mul_of_nonneg_left (hrowsplit i hi) (hs0 i)
+    _ = (∑ i ∈ Λ, s i * ∑ j ∈ Λ, c i j * s j) + (t * R) * ∑ i ∈ Λ, s i := by
+        rw [Finset.mul_sum, ← Finset.sum_add_distrib]
+        exact Finset.sum_congr rfl fun i _ ↦ by ring
+    _ ≤ R * ∑ i ∈ Λ, s i ^ 2 + (t * R) * ∑ i ∈ Λ, (1 + s i ^ 2) := by
+        have := mul_le_mul_of_nonneg_left hs_sum (mul_nonneg ht0 hR0)
+        linarith
+    _ ≤ R * ∑ i ∈ Λ, (1 + s i ^ 2) + (t * R) * ∑ i ∈ Λ, (1 + s i ^ 2) := by
+        have := mul_le_mul_of_nonneg_left hsq_le hR0
+        linarith
+    _ = R * (1 + t) * ∑ i ∈ Λ, (1 + s i ^ 2) := by ring
+
 end GeneralPairBound
 
 
@@ -462,33 +583,21 @@ private lemma sum_abs_sub_le_tsum' (hJs : Summable fun m ↦ |J m|) (Λ : Finset
     exact h.symm
   exact le_trans (hre.sum_le_tsum Λ fun i _ ↦ abs_nonneg _) (le_of_eq heq)
 
-/-- **Georgii's estimate preceding (20.5).**  For every finite volume `Λ` and every boundary
-condition `ω ∈ Ω_*` there is a constant `c(ω_{S∖Λ}) < ∞` such that
+/-- **The Hamiltonian of a Heisenberg potential, bounded by its pair majorant.**  On the tail
+event `Ω_*` the Hamiltonian series converges absolutely and
 
-`|H_Λ^Φ(x)| ≤ c(ω_{S∖Λ}) ∑_{i ∈ Λ} [1 + |x_i|²]`
+`|H_Λ^Φ(x)| ≤ 2 ∑_{i ∈ Λ} |x_i| ∑_j |J(i-j)| |x_j|`.
 
-for every configuration `x` agreeing with `ω` outside `Λ`.  Together with (20.3) this is what makes
-the partition function `Z_Λ^Φ(ω)` finite.
-
-The constant is `2(‖J‖₀ + ∑_{i ∈ Λ} t ∑_j |J(i-j)| α(j))`, with `t` any bound in `Ω_*` for `ω`; it
-depends on `ω` only through the exterior, as Georgii's notation `c(ω_{S∖Λ})` records. -/
-theorem exists_abs_hamiltonian_heisenbergPotential_le (heven : ∀ m, J (-m) = J m) (hJ0 : J 0 = 0)
+This is the majorant estimate of Georgii's §20.1 before any hypothesis on the *size* of the
+configuration enters; `abs_hamiltonian_heisenbergPotential_le_of_exterior_le` turns it into his
+`|H_Λ^Φ(ω)| ≤ c(ω_{S∖Λ}) ∑_{i ∈ Λ}[1 + |ω_i|²]`. -/
+theorem abs_hamiltonian_heisenbergPotential_le_tsum (heven : ∀ m, J (-m) = J m) (hJ0 : J 0 = 0)
     (hJ : IsSlowlySummable J) (Λ : Finset (Fin d → ℤ))
-    {ω : (Fin d → ℤ) → (Fin n → ℝ)} (hω : ω ∈ slowGrowthTailSet d n) :
-    ∃ K : ℝ, 0 ≤ K ∧ ∀ x : (Fin d → ℤ) → (Fin n → ℝ), (∀ i ∉ Λ, x i = ω i) →
-      |(heisenbergPotential n J).hamiltonian Λ x| ≤ K * ∑ i ∈ Λ, (1 + x i ⬝ᵥ x i) := by
+    {x : (Fin d → ℤ) → (Fin n → ℝ)} (hxΩ : x ∈ slowGrowthTailSet d n) :
+    |(heisenbergPotential n J).hamiltonian Λ x|
+      ≤ 2 * ∑ i ∈ Λ, Real.sqrt (x i ⬝ᵥ x i)
+          * ∑' j, |J (i - j)| * Real.sqrt (x j ⬝ᵥ x j) := by
   classical
-  obtain ⟨t, ht0, ht⟩ := exists_nonneg_sqrt_dotProduct_le_of_mem_slowGrowthTailSet hω
-  have hJabs : Summable fun m ↦ |J m| := by
-    simpa using hJ.summable.abs
-  have hJn0 : (0 : ℝ) ≤ ∑' m, |J m| := tsum_nonneg fun m ↦ abs_nonneg _
-  have hD0 : ∀ i : Fin d → ℤ, (0 : ℝ) ≤ ∑' j, |J (i - j)| * slowGrowth j := fun i ↦
-    tsum_nonneg fun j ↦ mul_nonneg (abs_nonneg _) (slowGrowth_pos j).le
-  set C : ℝ := ∑ i ∈ Λ, t * ∑' j, |J (i - j)| * slowGrowth j with hCdef
-  have hC0 : (0 : ℝ) ≤ C := Finset.sum_nonneg fun i _ ↦ mul_nonneg ht0 (hD0 i)
-  refine ⟨2 * ((∑' m, |J m|) + C), by positivity, fun x hx ↦ ?_⟩
-  have hxΩ : x ∈ slowGrowthTailSet d n :=
-    mem_slowGrowthTailSet_of_eqOn_compl (fun i hi ↦ (hx i hi).symm) hω
   obtain ⟨tx, htx0, htx⟩ := exists_nonneg_sqrt_dotProduct_le_of_mem_slowGrowthTailSet hxΩ
   set s : (Fin d → ℤ) → ℝ := fun i ↦ Real.sqrt (x i ⬝ᵥ x i) with hs
   have hs0 : ∀ i, 0 ≤ s i := fun i ↦ Real.sqrt_nonneg _
@@ -554,106 +663,79 @@ theorem exists_abs_hamiltonian_heisenbergPotential_le (heven : ∀ m, J (-m) = J
     rw [tsum_congr hinner]
     rw [tsum_eq_sum (s := Λ) fun i hi ↦ by simp [hi]]
     exact Finset.sum_congr rfl fun i hi ↦ by simp only [hi, ite_true, one_mul]
-  -- (5) split the inner series at `Λ`
-  have hTle : ∀ i : Fin d → ℤ, (∑' j, |J (i - j)| * s j)
-      ≤ (∑ j ∈ Λ, |J (i - j)| * s j) + t * ∑' j, |J (i - j)| * slowGrowth j := by
-    intro i
-    have hmaj2 : Summable fun j ↦ |J (i - j)| * (t * slowGrowth j) :=
-      ((hJ.summable_sub' i).mul_left t).congr fun j ↦ by ring
-    have hfin : Summable fun j ↦ (if j ∈ Λ then |J (i - j)| * s j else 0) :=
-      summable_of_ne_finset_zero (s := Λ) fun j hj ↦ by simp [hj]
-    have hsplitSum : Summable fun j ↦ (if j ∈ Λ then |J (i - j)| * s j else 0)
-        + |J (i - j)| * (t * slowGrowth j) := hfin.add hmaj2
-    have hle : ∀ j, |J (i - j)| * s j
-        ≤ (if j ∈ Λ then |J (i - j)| * s j else 0) + |J (i - j)| * (t * slowGrowth j) := by
-      intro j
-      by_cases hj : j ∈ Λ
-      · simp only [hj, ite_true]
-        have : (0 : ℝ) ≤ |J (i - j)| * (t * slowGrowth j) :=
-          mul_nonneg (abs_nonneg _) (mul_nonneg ht0 (slowGrowth_pos j).le)
-        linarith
-      · simp only [hj, ite_false, zero_add]
-        have hsj : s j ≤ t * slowGrowth j := by
-          have : s j = Real.sqrt (ω j ⬝ᵥ ω j) := by rw [hs]; simp only; rw [hx j hj]
-          rw [this]; exact ht j
-        exact mul_le_mul_of_nonneg_left hsj (abs_nonneg _)
-    refine le_trans (Summable.tsum_le_tsum hle (hTsum i) hsplitSum) (le_of_eq ?_)
-    rw [hfin.tsum_add hmaj2, tsum_eq_sum (s := Λ) (fun j hj ↦ by simp [hj]), ← tsum_mul_left]
-    congr 1
-    · exact Finset.sum_congr rfl fun j hj ↦ by simp only [hj, ite_true]
-    · exact tsum_congr fun j ↦ by ring
-  -- (6) the double sum over `Λ`
-  have hdouble : ∑ i ∈ Λ, s i * ∑ j ∈ Λ, |J (i - j)| * s j
-      ≤ (∑' m, |J m|) * ∑ i ∈ Λ, s i ^ 2 := by
-    have hstep1 : ∑ i ∈ Λ, s i * ∑ j ∈ Λ, |J (i - j)| * s j
-        ≤ ∑ i ∈ Λ, ∑ j ∈ Λ, (|J (i - j)| * s i ^ 2 / 2 + |J (i - j)| * s j ^ 2 / 2) := by
-      refine Finset.sum_le_sum fun i _ ↦ ?_
-      rw [Finset.mul_sum]
-      refine Finset.sum_le_sum fun j _ ↦ ?_
-      nlinarith [abs_nonneg (J (i - j)), sq_nonneg (s i - s j)]
-    have hstep2 : ∑ i ∈ Λ, ∑ j ∈ Λ, (|J (i - j)| * s i ^ 2 / 2 + |J (i - j)| * s j ^ 2 / 2)
-        = (∑ i ∈ Λ, ∑ j ∈ Λ, |J (i - j)| * s i ^ 2) / 2
-          + (∑ i ∈ Λ, ∑ j ∈ Λ, |J (i - j)| * s j ^ 2) / 2 := by
-      have e1 : ∀ i : Fin d → ℤ,
-          ∑ j ∈ Λ, (|J (i - j)| * s i ^ 2 / 2 + |J (i - j)| * s j ^ 2 / 2)
-            = (∑ j ∈ Λ, |J (i - j)| * s i ^ 2) / 2
-              + (∑ j ∈ Λ, |J (i - j)| * s j ^ 2) / 2 := fun i ↦ by
-        rw [Finset.sum_add_distrib, ← Finset.sum_div, ← Finset.sum_div]
-      rw [Finset.sum_congr rfl fun i _ ↦ e1 i, Finset.sum_add_distrib, ← Finset.sum_div,
-        ← Finset.sum_div]
-    have hA : (∑ i ∈ Λ, ∑ j ∈ Λ, |J (i - j)| * s i ^ 2)
-        ≤ (∑' m, |J m|) * ∑ i ∈ Λ, s i ^ 2 := by
-      have hrw : ∀ i : Fin d → ℤ, (∑ j ∈ Λ, |J (i - j)| * s i ^ 2)
-          = (∑ j ∈ Λ, |J (i - j)|) * s i ^ 2 := fun i ↦ (Finset.sum_mul _ _ _).symm
-      rw [Finset.sum_congr rfl fun i _ ↦ hrw i]
-      calc ∑ i ∈ Λ, (∑ j ∈ Λ, |J (i - j)|) * s i ^ 2
-          ≤ ∑ i ∈ Λ, (∑' m, |J m|) * s i ^ 2 := Finset.sum_le_sum fun i _ ↦
-            mul_le_mul_of_nonneg_right (sum_abs_sub_le_tsum hJabs Λ i) (sq_nonneg _)
-        _ = (∑' m, |J m|) * ∑ i ∈ Λ, s i ^ 2 := (Finset.mul_sum _ _ _).symm
-    have hB : (∑ i ∈ Λ, ∑ j ∈ Λ, |J (i - j)| * s j ^ 2)
-        ≤ (∑' m, |J m|) * ∑ i ∈ Λ, s i ^ 2 := by
-      rw [Finset.sum_comm]
-      have hrw : ∀ j : Fin d → ℤ, (∑ i ∈ Λ, |J (i - j)| * s j ^ 2)
-          = (∑ i ∈ Λ, |J (i - j)|) * s j ^ 2 := fun j ↦ (Finset.sum_mul _ _ _).symm
-      rw [Finset.sum_congr rfl fun j _ ↦ hrw j]
-      calc ∑ j ∈ Λ, (∑ i ∈ Λ, |J (i - j)|) * s j ^ 2
-          ≤ ∑ j ∈ Λ, (∑' m, |J m|) * s j ^ 2 := Finset.sum_le_sum fun j _ ↦
-            mul_le_mul_of_nonneg_right (sum_abs_sub_le_tsum' hJabs Λ j) (sq_nonneg _)
-        _ = (∑' m, |J m|) * ∑ i ∈ Λ, s i ^ 2 := (Finset.mul_sum _ _ _).symm
-    linarith
-  -- (7) assemble
-  have hS2 : ∑ i ∈ Λ, s i ^ 2 ≤ ∑ i ∈ Λ, (1 + x i ⬝ᵥ x i) := by
-    refine Finset.sum_le_sum fun i _ ↦ ?_
-    rw [hssq i]; linarith
-  have hS1 : ∑ i ∈ Λ, s i ≤ ∑ i ∈ Λ, (1 + x i ⬝ᵥ x i) := by
-    refine Finset.sum_le_sum fun i _ ↦ ?_
-    nlinarith [hs0 i, hssq i, sq_nonneg (s i - 1)]
-  have hV0 : (0 : ℝ) ≤ ∑ i ∈ Λ, (1 + x i ⬝ᵥ x i) :=
-    Finset.sum_nonneg fun i _ ↦ by linarith [Matrix.dotProduct_self_nonneg (x i)]
-  have hCi : ∀ i ∈ Λ, t * (∑' j, |J (i - j)| * slowGrowth j) ≤ C := fun i hi ↦
-    Finset.single_le_sum (f := fun i ↦ t * ∑' j, |J (i - j)| * slowGrowth j)
-      (fun k _ ↦ mul_nonneg ht0 (hD0 k)) hi
-  have hfinal : ∑ i ∈ Λ, s i * ∑' j, |J (i - j)| * s j
-      ≤ ((∑' m, |J m|) + C) * ∑ i ∈ Λ, (1 + x i ⬝ᵥ x i) := by
-    have h1 : ∑ i ∈ Λ, s i * ∑' j, |J (i - j)| * s j
-        ≤ ∑ i ∈ Λ, (s i * (∑ j ∈ Λ, |J (i - j)| * s j) + s i * C) := by
-      refine Finset.sum_le_sum fun i hi ↦ ?_
-      have hle := mul_le_mul_of_nonneg_left (hTle i) (hs0 i)
-      nlinarith [hCi i hi, hs0 i]
-    rw [Finset.sum_add_distrib, ← Finset.sum_mul] at h1
-    have h3 : (∑ i ∈ Λ, s i) * C ≤ (∑ i ∈ Λ, (1 + x i ⬝ᵥ x i)) * C :=
-      mul_le_mul_of_nonneg_right hS1 hC0
-    have h4 : ∑ i ∈ Λ, s i * ∑ j ∈ Λ, |J (i - j)| * s j
-        ≤ (∑' m, |J m|) * ∑ i ∈ Λ, (1 + x i ⬝ᵥ x i) :=
-      le_trans hdouble (mul_le_mul_of_nonneg_left hS2 hJn0)
-    nlinarith
   calc |(heisenbergPotential n J).hamiltonian Λ x|
       ≤ ∑' A, |(heisenbergPotential n J).hamiltonianTerms Λ x A| := step₁
     _ ≤ ∑' q, pairMajorant J Λ x q := step₂
     _ = 2 * ∑' q, pairFst J Λ x q := step₃
     _ = 2 * ∑ i ∈ Λ, s i * ∑' j, |J (i - j)| * s j := by rw [step₄]
-    _ ≤ 2 * (((∑' m, |J m|) + C) * ∑ i ∈ Λ, (1 + x i ⬝ᵥ x i)) := by linarith
-    _ = 2 * ((∑' m, |J m|) + C) * ∑ i ∈ Λ, (1 + x i ⬝ᵥ x i) := by ring
+    _ = 2 * ∑ i ∈ Λ, Real.sqrt (x i ⬝ᵥ x i)
+          * ∑' j, |J (i - j)| * Real.sqrt (x j ⬝ᵥ x j) := by rw [hs]
+
+/-- **Georgii's estimate preceding (20.5), uniformly over `Ω_t`.**  For a volume `Λ`, a level
+`t ≥ 0` and *any* configuration `x` whose spins outside `Λ` satisfy `|x_j| ≤ t α(j)` — the spins
+inside `Λ` being arbitrary —
+
+`|H_Λ^Φ(x)| ≤ 2 R (1 + t) ∑_{i ∈ Λ}[1 + |x_i|²]`,  `R = ∑_{i ∈ Λ} ∑_j |J(i-j)| α(j)`.
+
+The constant depends on the boundary condition only through the level `t`, which is Georgii's
+`c(ω_{S∖Λ})` made uniform over `Ω_t`; this uniformity is what the comparison of the finite-volume
+Gibbs kernels in the proof of (20.7) needs. -/
+theorem abs_hamiltonian_heisenbergPotential_le_of_exterior_le (heven : ∀ m, J (-m) = J m)
+    (hJ0 : J 0 = 0) (hJ : IsSlowlySummable J) (Λ : Finset (Fin d → ℤ)) {t : ℝ} (ht0 : 0 ≤ t)
+    {x : (Fin d → ℤ) → (Fin n → ℝ)} (hxΩ : x ∈ slowGrowthTailSet d n)
+    (hext : ∀ j ∉ Λ, Real.sqrt (x j ⬝ᵥ x j) ≤ t * slowGrowth j) :
+    |(heisenbergPotential n J).hamiltonian Λ x|
+      ≤ 2 * ((∑ i ∈ Λ, ∑' j, |J (i - j)| * slowGrowth j) * (1 + t))
+        * ∑ i ∈ Λ, (1 + x i ⬝ᵥ x i) := by
+  classical
+  set R : ℝ := ∑ i ∈ Λ, ∑' j, |J (i - j)| * slowGrowth j with hR
+  have hD0 : ∀ i : Fin d → ℤ, (0 : ℝ) ≤ ∑' j, |J (i - j)| * slowGrowth j := fun i ↦
+    tsum_nonneg fun j ↦ mul_nonneg (abs_nonneg _) (slowGrowth_pos j).le
+  have hR0 : (0 : ℝ) ≤ R := Finset.sum_nonneg fun i _ ↦ hD0 i
+  have hrow : ∀ i ∈ Λ, ∑' j, |J (i - j)| * slowGrowth j ≤ R := fun i hi ↦
+    Finset.single_le_sum (f := fun i ↦ ∑' j, |J (i - j)| * slowGrowth j)
+      (fun k _ ↦ hD0 k) hi
+  have hkey := sum_mul_tsum_le_of_exterior_le (Λ := Λ) (c := fun i j ↦ |J (i - j)|)
+    (s := fun i ↦ Real.sqrt (x i ⬝ᵥ x i)) (a := slowGrowth) (t := t) (R := R)
+    (fun i j ↦ abs_nonneg _)
+    (fun i j ↦ by rw [show j - i = -(i - j) by abel, heven])
+    (fun i ↦ Real.sqrt_nonneg _) one_le_slowGrowth ht0 hR0
+    (fun i ↦ hJ.summable_sub' i) hrow hext
+  have hsq : ∀ i : Fin d → ℤ, Real.sqrt (x i ⬝ᵥ x i) ^ 2 = x i ⬝ᵥ x i := fun i ↦
+    Real.sq_sqrt (Matrix.dotProduct_self_nonneg _)
+  simp only [hsq] at hkey
+  calc |(heisenbergPotential n J).hamiltonian Λ x|
+      ≤ 2 * ∑ i ∈ Λ, Real.sqrt (x i ⬝ᵥ x i)
+          * ∑' j, |J (i - j)| * Real.sqrt (x j ⬝ᵥ x j) :=
+        abs_hamiltonian_heisenbergPotential_le_tsum heven hJ0 hJ Λ hxΩ
+    _ ≤ 2 * (R * (1 + t) * ∑ i ∈ Λ, (1 + x i ⬝ᵥ x i)) := by linarith
+    _ = 2 * (R * (1 + t)) * ∑ i ∈ Λ, (1 + x i ⬝ᵥ x i) := by ring
+
+/-- **Georgii's estimate preceding (20.5).**  For every finite volume `Λ` and every boundary
+condition `ω ∈ Ω_*` there is a constant `c(ω_{S∖Λ}) < ∞` such that
+
+`|H_Λ^Φ(x)| ≤ c(ω_{S∖Λ}) ∑_{i ∈ Λ} [1 + |x_i|²]`
+
+for every configuration `x` agreeing with `ω` outside `Λ`.  Together with (20.3) this is what makes
+the partition function `Z_Λ^Φ(ω)` finite.
+
+The constant is `2 (∑_{i ∈ Λ} ∑_j |J(i-j)| α(j)) (1 + t)`, with `t` any bound in `Ω_*` for `ω`; it
+depends on `ω` only through the exterior, as Georgii's notation `c(ω_{S∖Λ})` records. -/
+theorem exists_abs_hamiltonian_heisenbergPotential_le (heven : ∀ m, J (-m) = J m) (hJ0 : J 0 = 0)
+    (hJ : IsSlowlySummable J) (Λ : Finset (Fin d → ℤ))
+    {ω : (Fin d → ℤ) → (Fin n → ℝ)} (hω : ω ∈ slowGrowthTailSet d n) :
+    ∃ K : ℝ, 0 ≤ K ∧ ∀ x : (Fin d → ℤ) → (Fin n → ℝ), (∀ i ∉ Λ, x i = ω i) →
+      |(heisenbergPotential n J).hamiltonian Λ x| ≤ K * ∑ i ∈ Λ, (1 + x i ⬝ᵥ x i) := by
+  obtain ⟨t, ht0, ht⟩ := exists_nonneg_sqrt_dotProduct_le_of_mem_slowGrowthTailSet hω
+  have hD0 : ∀ i : Fin d → ℤ, (0 : ℝ) ≤ ∑' j, |J (i - j)| * slowGrowth j := fun i ↦
+    tsum_nonneg fun j ↦ mul_nonneg (abs_nonneg _) (slowGrowth_pos j).le
+  refine ⟨2 * ((∑ i ∈ Λ, ∑' j, |J (i - j)| * slowGrowth j) * (1 + t)), ?_, fun x hx ↦ ?_⟩
+  · have h1 : (0 : ℝ) ≤ ∑ i ∈ Λ, ∑' j, |J (i - j)| * slowGrowth j :=
+      Finset.sum_nonneg fun i _ ↦ hD0 i
+    nlinarith
+  · exact abs_hamiltonian_heisenbergPotential_le_of_exterior_le heven hJ0 hJ Λ ht0
+      (mem_slowGrowthTailSet_of_eqOn_compl (fun i hi ↦ (hx i hi).symm) hω)
+      fun j hj ↦ by rw [hx j hj]; exact ht j
 
 end Estimate
 

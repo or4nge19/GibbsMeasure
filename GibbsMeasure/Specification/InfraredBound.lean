@@ -104,18 +104,23 @@ inputs it needs from §20.1 are proved there: the absolute convergence of `H_Λ^
 (`sigmaFiniteLambdaZ_tailBoltzmannFactor_ne_top`, from Georgii's Hamiltonian estimate
 `exists_abs_hamiltonian_heisenbergPotential_le` and (20.3)).
 
-## What is *not* proved, and why
+## Where (20.7) is
 
-* **(20.7)**, `∅ ≠ 𝒢₀(Φ) ⊆ 𝒢_Θ(Φ)`.  The transfer of the tail estimate from the torus to the
-  fields `μ_n^Φ = °γ_{Λ(n)}^Φ × δ_0` on `ℤ^d` and to their cluster points — so that (20.6) holds
-  as Georgii states it — and the shift invariance of those cluster points are proved in
-  `GibbsMeasure.Specification.HeisenbergClusterPoints`; `𝒢₀(Φ) ≠ ∅` is proved in
-  `GibbsMeasure.Specification.HeisenbergExistence` (`heisenbergGZero_nonempty`).  What is still
-  missing is `𝒢₀(Φ) ⊆ 𝒢(Φ)`: the comparison `‖(γ_Λ^n f - γ_Λ^Φ f) 1_{Ω_t}‖ → 0` of
-  Proposition (4.19) *restricted to `Ω_t`* — the tree's (4.17) (`mem_GP_of_mapClusterPt`) assumes
-  a quasilocal limit specification, which `γ^Φ` is not, so Georgii's "a glance at the proof of
-  Theorem (4.17)" has to be carried out as a separate argument.  The module doc of
-  `HeisenbergExistence` lists the four remaining steps and which of their inputs are proved.
+**(20.7)**, `∅ ≠ 𝒢₀(Φ) ⊆ 𝒢_Θ(Φ)`, is `heisenbergGZero_nonempty_and_subset` in
+`GibbsMeasure.Specification.HeisenbergGibbsInclusion`.  The transfer of the tail estimate from the
+torus to the fields `μ_n^Φ = °γ_{Λ(n)}^Φ × δ_0` on `ℤ^d` and to their cluster points — so that
+(20.6) holds as Georgii states it — and the shift invariance of those cluster points are proved in
+`GibbsMeasure.Specification.HeisenbergClusterPoints`; `𝒢₀(Φ) ≠ ∅` in
+`GibbsMeasure.Specification.HeisenbergExistence` (`heisenbergGZero_nonempty`); and
+`𝒢₀(Φ) ⊆ 𝒢(Φ)` in `HeisenbergGibbsInclusion`
+(`heisenbergGZero_subset_heisenbergGibbsMeasures`).  The tree's (4.17)
+(`mem_GP_of_mapClusterPt`) assumes a quasilocal limit specification, which `γ^Φ` is not, so
+Georgii's "a glance at the proof of Theorem (4.17)" is carried out there as a separate argument,
+with Proposition (4.19) *restricted to `Ω_t`* in the elementary two-kernel form
+`MeasureTheory.abs_expTilt_sub_le`.
+
+## A remark on the bounded case
+
 * Note that Georgii flags (20.3)–(20.7) as needed *only* for an unbounded state space; over a
   bounded one, (20.7) is Comment (4.14)(1) with Example (4.20)(2) and Example (5.20)(3), which for
   `C`-potentials is `MeasureTheory.GibbsMeasure.GZero_nonempty` and `mem_GP_of_mem_GZero` in
@@ -851,6 +856,82 @@ theorem lintegral_indicator_abs_dotProduct_le {a : ℝ} (ha : 0 < a) (i j : S) (
         lintegral_const_mul _ (hEi.add hEj)
     _ = _ := by rw [lintegral_add_left hEi]
 
+/-- **The second moment of a spin, from the tail estimate.**  With `x ≤ e^x`, Georgii's (20.6)(i)
+at the rate `1` gives `μ(|σ_i|²) ≤ 1 + b`. -/
+theorem lintegral_dotProduct_self_le_of_tail [IsProbabilityMeasure μ] {b : ℝ} (i : S)
+    (htail : ∀ t : ℝ, 0 ≤ t →
+      μ {ω | t ≤ ω i ⬝ᵥ ω i} ≤ ENNReal.ofReal (b * Real.exp (-(2 * t)))) :
+    ∫⁻ ω, ENNReal.ofReal (ω i ⬝ᵥ ω i) ∂μ ≤ 1 + ENNReal.ofReal b := by
+  refine le_trans (lintegral_mono fun ω ↦ ?_)
+    (lintegral_exp_dotProduct_self_le_of_tail (a := 1) one_pos i
+      (by simpa using htail))
+  refine ENNReal.ofReal_le_ofReal ?_
+  have h := Real.add_one_le_exp (ω i ⬝ᵥ ω i)
+  simpa using (by linarith : ω i ⬝ᵥ ω i ≤ Real.exp (ω i ⬝ᵥ ω i))
+
+/-- **The spins are square integrable.**  A measure whose spins have exponential tails of every
+order has `μ(|σ_i|²) < ∞` — the input Georgii's parenthesis in (20.11) needs. -/
+theorem integrable_dotProduct_self_of_tail [IsProbabilityMeasure μ]
+    (htail : ∀ a : ℝ, 0 < a → ∃ b : ℝ, 0 < b ∧ ∀ (i : S) (t : ℝ),
+      μ {ω | t ≤ ω i ⬝ᵥ ω i} ≤ ENNReal.ofReal (b * Real.exp (-(a * t))))
+    (i : S) : Integrable (fun ω ↦ ω i ⬝ᵥ ω i) μ := by
+  obtain ⟨b, _hb0, hb⟩ := htail 2 two_pos
+  have hmeas : Measurable fun ω : S → (Fin n → ℝ) ↦ (ω i ⬝ᵥ ω i) :=
+    (measurable_pi_apply i).dotProduct (measurable_pi_apply i)
+  refine ⟨hmeas.aestronglyMeasurable, ?_⟩
+  rw [hasFiniteIntegral_iff_ofReal (μ := μ)
+    (f := fun ω : S → (Fin n → ℝ) ↦ ω i ⬝ᵥ ω i)
+    (.of_forall fun ω ↦ Matrix.dotProduct_self_nonneg (ω i))]
+  refine lt_of_le_of_lt (lintegral_dotProduct_self_le_of_tail i fun t _ ↦ hb i t) ?_
+  exact ENNReal.add_lt_top.2 ⟨ENNReal.one_lt_top, ENNReal.ofReal_lt_top⟩
+
+/-- **Georgii's parenthesis in (20.11)**: "If the state space `E` is unbounded, the existence of
+`°γ_Λ^Φ(σ_0 · σ_i)` follows from Lemma (20.6)(ii)".  A measure whose spins have exponential tails
+of every order integrates every pair energy `σ_u · σ_v`, because `2|x·y| ≤ |x|² + |y|²`
+(`Matrix.two_mul_abs_dotProduct_le`) and each `|σ_i|²` is integrable. -/
+theorem integrable_dotProduct_of_tail [IsProbabilityMeasure μ]
+    (htail : ∀ a : ℝ, 0 < a → ∃ b : ℝ, 0 < b ∧ ∀ (i : S) (t : ℝ),
+      μ {ω | t ≤ ω i ⬝ᵥ ω i} ≤ ENNReal.ofReal (b * Real.exp (-(a * t))))
+    (u v : S) : Integrable (fun ω ↦ ω u ⬝ᵥ ω v) μ := by
+  have hu := integrable_dotProduct_self_of_tail htail u
+  have hv := integrable_dotProduct_self_of_tail htail v
+  have hmeas : Measurable fun ω : S → (Fin n → ℝ) ↦ (ω u ⬝ᵥ ω v) :=
+    (measurable_pi_apply u).dotProduct (measurable_pi_apply v)
+  refine Integrable.mono' ((hu.add hv).div_const 2) hmeas.aestronglyMeasurable
+    (.of_forall fun ω ↦ ?_)
+  have h := Matrix.two_mul_abs_dotProduct_le (ω u) (ω v)
+  change ‖ω u ⬝ᵥ ω v‖ ≤ (ω u ⬝ᵥ ω u + ω v ⬝ᵥ ω v) / 2
+  rw [Real.norm_eq_abs]
+  linarith
+
+/-- **The coordinates of the spins are square integrable.**  Each product `σ_{i,ℓ} σ_{j,ℓ}` of
+single coordinates is dominated by `(|σ_i|² + |σ_j|²)/2`, hence integrable. -/
+theorem integrable_mul_apply_of_tail [IsProbabilityMeasure μ]
+    (htail : ∀ a : ℝ, 0 < a → ∃ b : ℝ, 0 < b ∧ ∀ (i : S) (t : ℝ),
+      μ {ω | t ≤ ω i ⬝ᵥ ω i} ≤ ENNReal.ofReal (b * Real.exp (-(a * t))))
+    (u v : S) (l : Fin n) : Integrable (fun ω ↦ ω u l * ω v l) μ := by
+  have hu := integrable_dotProduct_self_of_tail htail u
+  have hv := integrable_dotProduct_self_of_tail htail v
+  have hmeas : Measurable fun ω : S → (Fin n → ℝ) ↦ ω u l * ω v l := by
+    exact Measurable.mul (f := fun ω : S → (Fin n → ℝ) ↦ ω u l)
+      (g := fun ω : S → (Fin n → ℝ) ↦ ω v l)
+      ((measurable_pi_apply l).comp (measurable_pi_apply u))
+      ((measurable_pi_apply l).comp (measurable_pi_apply v))
+  refine Integrable.mono' ((hu.add hv).div_const 2) hmeas.aestronglyMeasurable
+    (.of_forall fun ω ↦ ?_)
+  have hul : ω u l ^ 2 ≤ ω u ⬝ᵥ ω u := by
+    have := Finset.single_le_sum (f := fun c ↦ ω u c * ω u c)
+      (fun c _ ↦ mul_self_nonneg (ω u c)) (Finset.mem_univ l)
+    simpa [dotProduct, sq] using this
+  have hvl : ω v l ^ 2 ≤ ω v ⬝ᵥ ω v := by
+    have := Finset.single_le_sum (f := fun c ↦ ω v c * ω v c)
+      (fun c _ ↦ mul_self_nonneg (ω v c)) (Finset.mem_univ l)
+    simpa [dotProduct, sq] using this
+  change ‖ω u l * ω v l‖ ≤ (ω u ⬝ᵥ ω u + ω v ⬝ᵥ ω v) / 2
+  rw [Real.norm_eq_abs, abs_mul]
+  nlinarith [abs_nonneg (ω u l), abs_nonneg (ω v l), sq_abs (ω u l), sq_abs (ω v l),
+    sq_nonneg (|ω u l| - |ω v l|)]
+
 end TailConsequences
 
 /-! #### Georgii's `Ω_t` and (20.6)(iii) -/
@@ -1114,5 +1195,57 @@ theorem exists_lemma_20_6_of_tail [IsProbabilityMeasure μ]
 end Lemma206
 
 end SlowGrowth
+
+/-! ### Georgii's parenthesis in (20.11): the correlations `°γ_Λ^Φ(σ_u · σ_v)` exist -/
+
+section Correlations
+
+variable {d n N : ℕ} [NeZero N] {J : (Fin (d + 1) → ℤ) → ℝ} {ν : Measure (Fin n → ℝ)}
+
+/-- **The tail estimate for `°γ_Λ^Φ`, in the form Lemma (20.6) takes as input**: for every rate
+`a > 0` one constant, uniform in the site and in `t`.  It is
+`heisenbergPeriodicGibbsDist_tail_le` with the constant named and its positivity recorded. -/
+theorem exists_forall_heisenbergPeriodicGibbsDist_tail_le [IsFiniteMeasure ν] (hν : ν ≠ 0)
+    (hexp : HasExpSqMoments ν) (hsum : Summable J) (heven : ∀ m, J (-m) = J m)
+    (hnd : ∀ k, IsNonnegDefiniteAt k J) {a : ℝ} (ha : 0 < a) :
+    ∃ b : ℝ, 0 < b ∧ ∀ (i : Fin (d + 1) → ZMod (2 * N)) (t : ℝ),
+      heisenbergPeriodicGibbsDist N n J ν {ω | t ≤ ω i ⬝ᵥ ω i}
+        ≤ ENNReal.ofReal (b * Real.exp (-(a * t))) := by
+  have hint := integrable_exp_heisenbergExponent (N := N) (d := d + 1) (J := J) hexp hsum
+  have hprob := isProbabilityMeasure_heisenbergPeriodicGibbsDist hν hint
+  set c : ℝ := (∑' m, |J m|) / 2 with hc
+  have hc0 : (0 : ℝ) ≤ c := by
+    have h : (0 : ℝ) ≤ ∑' m, |J m| := tsum_nonneg fun m ↦ abs_nonneg _
+    rw [hc]; linarith
+  have hpos : ∀ r : ℝ, Integrable (fun x : Fin n → ℝ ↦ Real.exp (r * (x ⬝ᵥ x))) ν →
+      0 < ∫ x, Real.exp (r * (x ⬝ᵥ x)) ∂ν := by
+    intro r hr
+    rw [integral_pos_iff_support_of_nonneg (fun x ↦ (Real.exp_pos _).le) hr]
+    have hsupp : Function.support (fun x : Fin n → ℝ ↦ Real.exp (r * (x ⬝ᵥ x))) = Set.univ :=
+      Set.eq_univ_of_forall fun x ↦ (Real.exp_pos _).ne'
+    rw [hsupp]
+    exact Measure.measure_univ_pos.2 hν
+  have hden : 0 < ∫ x, Real.exp (-(c * (x ⬝ᵥ x))) ∂ν := by
+    have h := hpos (-c) (by simpa only [neg_mul] using hexp (-c))
+    simpa only [neg_mul] using h
+  have hnum : 0 < ∫ x, Real.exp ((a + c) * (x ⬝ᵥ x)) ∂ν := hpos (a + c) (hexp (a + c))
+  refine ⟨(∫ x, Real.exp ((a + c) * (x ⬝ᵥ x)) ∂ν) / ∫ x, Real.exp (-(c * (x ⬝ᵥ x))) ∂ν,
+    div_pos hnum hden, fun i t ↦ ?_⟩
+  refine (ENNReal.le_ofReal_iff_toReal_le (measure_ne_top _ _)
+    (mul_nonneg (div_pos hnum hden).le (Real.exp_nonneg _))).2 ?_
+  exact heisenbergPeriodicGibbsDist_tail_le hν hexp hsum heven hnd hint ha t i
+
+/-- **Georgii's parenthesis in (20.11)**: "If the state space `E` is unbounded, the existence of
+`°γ_Λ^Φ(σ_0 · σ_i)` follows from Lemma (20.6)(ii)".  Every pair energy is `°γ_Λ^Φ`-integrable. -/
+theorem integrable_dotProduct_heisenbergPeriodicGibbsDist [IsFiniteMeasure ν] (hν : ν ≠ 0)
+    (hexp : HasExpSqMoments ν) (hsum : Summable J) (heven : ∀ m, J (-m) = J m)
+    (hnd : ∀ k, IsNonnegDefiniteAt k J) (u v : Fin (d + 1) → ZMod (2 * N)) :
+    Integrable (fun ω ↦ ω u ⬝ᵥ ω v) (heisenbergPeriodicGibbsDist N n J ν) := by
+  have hint := integrable_exp_heisenbergExponent (N := N) (d := d + 1) (J := J) hexp hsum
+  have hprob := isProbabilityMeasure_heisenbergPeriodicGibbsDist hν hint
+  exact integrable_dotProduct_of_tail
+    (fun a ha ↦ exists_forall_heisenbergPeriodicGibbsDist_tail_le hν hexp hsum heven hnd ha) u v
+
+end Correlations
 
 end MeasureTheory.GibbsMeasure

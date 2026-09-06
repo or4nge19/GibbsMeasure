@@ -106,28 +106,51 @@
     three-stage approximation of the a priori measure combined with the chessboard estimate.
 \end{definition}
 
-\begin{theorem}[Georgii (20.7), first half: $\mathcal G_0(\Phi) \neq \emptyset$, and the inputs of the second half]
+\begin{theorem}[Georgii Proposition (20.7): $\emptyset \neq \mathcal G_0(\Phi) \subseteq \mathcal G_\Theta(\Phi)$]
     \label{thm:ir-20-7}
     \uses{thm:ir-20-5, lem:ir-20-6, thm:rp-17-24}
-    \lean{MeasureTheory.GibbsMeasure.blockEnergyBound, MeasureTheory.GibbsMeasure.abs_heisenbergExponent_sub_updateFinset_zero_le, MeasureTheory.GibbsMeasure.torusSlowGrowthSet, MeasureTheory.GibbsMeasure.heisenbergPeriodicGibbsDist_inter_torusSlowGrowthSet_le, MeasureTheory.GibbsMeasure.heisenbergPeriodicField_inter_slowGrowthSet_le, MeasureTheory.GibbsMeasure.locallyEquicontinuous_of_eventually_measure_inter_le, MeasureTheory.lmarginal_const_mul, MeasureTheory.const_mul_lintegral_le_of_lmarginal, MeasureTheory.GibbsMeasure.heisenbergGZero_nonempty, MeasureTheory.GibbsMeasure.hamiltonian_heisenbergPeriodicPotential_eq_sub, MeasureTheory.GibbsMeasure.exists_abs_hamiltonian_heisenbergPeriodicPotential_le, MeasureTheory.GibbsMeasure.isSigmaFiniteLambdaAdmissible_heisenbergPeriodicPotential, MeasureTheory.GibbsMeasure.couplingTail, MeasureTheory.GibbsMeasure.tendsto_couplingTail, MeasureTheory.GibbsMeasure.tendsto_sum_couplingTail, MeasureTheory.GibbsMeasure.abs_hamiltonian_heisenbergPeriodicPotential_sub_le_of_mem_slowGrowthSet, MeasureTheory.GibbsMeasure.abs_tsum_le_of_pairBound}
+    \lean{MeasureTheory.GibbsMeasure.blockEnergyBound, MeasureTheory.GibbsMeasure.abs_heisenbergExponent_sub_updateFinset_zero_le, MeasureTheory.GibbsMeasure.torusSlowGrowthSet, MeasureTheory.GibbsMeasure.heisenbergPeriodicGibbsDist_inter_torusSlowGrowthSet_le, MeasureTheory.GibbsMeasure.heisenbergPeriodicField_inter_slowGrowthSet_le, MeasureTheory.GibbsMeasure.locallyEquicontinuous_of_eventually_measure_inter_le, MeasureTheory.lmarginal_const_mul, MeasureTheory.const_mul_lintegral_le_of_lmarginal, MeasureTheory.GibbsMeasure.locallyEquicontinuous_heisenbergPeriodicField, MeasureTheory.GibbsMeasure.heisenbergGZero_nonempty, MeasureTheory.GibbsMeasure.hamiltonian_heisenbergPeriodicPotential_eq_sub, MeasureTheory.GibbsMeasure.exists_abs_hamiltonian_heisenbergPeriodicPotential_le, MeasureTheory.GibbsMeasure.isSigmaFiniteLambdaAdmissible_heisenbergPeriodicPotential, MeasureTheory.GibbsMeasure.couplingTail, MeasureTheory.GibbsMeasure.tendsto_couplingTail, MeasureTheory.GibbsMeasure.tendsto_sum_couplingTail, MeasureTheory.GibbsMeasure.abs_hamiltonian_heisenbergPeriodicPotential_sub_le_of_exterior_le, MeasureTheory.GibbsMeasure.sum_mul_tsum_le_of_exterior_le, MeasureTheory.GibbsMeasure.abs_hamiltonian_heisenbergPotential_le_of_exterior_le, MeasureTheory.GibbsMeasure.abs_tsum_le_of_pairBound, MeasureTheory.abs_expTilt_sub_le, MeasureTheory.abs_exp_neg_sub_exp_neg_le, Specification.toReal_gibbsRatio_eq_div, MeasureTheory.GibbsMeasure.toReal_heisenbergSpecification_apply, MeasureTheory.GibbsMeasure.measurable_hamiltonian_heisenbergPotential_juxt, MeasureTheory.GibbsMeasure.eventually_abs_heisenbergPeriodicGibbsSpec_sub_heisenbergSpecification_le, MeasureTheory.GibbsMeasure.measurable_cylinderEvents_toReal_heisenbergPeriodicGibbsSpec_apply, MeasureTheory.GibbsMeasure.heisenbergGZero_subset_heisenbergGibbsMeasures, MeasureTheory.GibbsMeasure.heisenbergGZero_nonempty_and_subset}
     \leanok
 
-    Under (20.3), (20.4) and nonnegative definiteness of $ relative to the reflections,
+    Under (20.3), (20.4) and nonnegative definiteness of $J$ relative to the reflections,
     $\mathcal G_0(\Phi) \neq \emptyset$: Georgii's bound $\limsup_n\sup_{\Omega_t}\rho^n_\Lambda < \infty$
     is read off the density (17.24) by resampling the block $\Lambda$ (Mathlib's marginals), giving
     $\mu_n(A \cap \Omega_t) \leq e^{\kappa(\Lambda,t)}\lambda^\Lambda(A_\Lambda)/\delta(c(\Lambda,t))^{|\Lambda|}$
-    for  \in \mathcal F_\Lambda$ with no dependence on the cube, the exterior integral cancelling
-    between the upper bound on $\Omega_t$ and the Gaussian lower bound; with $\mu_n(\Omega_t^c) \leq
+    for $A \in \mathcal F_\Lambda$ with no dependence on the cube; with $\mu_n(\Omega_t^c) \leq
     \varepsilon$ from (20.6)(iii) this is (4.12) in the measure-domination form, from which
-    Georgii's density form is derived, and (4.9) gives a cluster point. For the second half,
-    $\mathcal G_0(\Phi) \subseteq \mathcal G_\Theta(\Phi)$, the model-specific inputs are proved:
-    ^{\Phi^n}_\Lambda$ is the torus block energy for $\Lambda \subseteq \Lambda(n)$, the quadratic
-    bound and the finiteness of ^\circ Z^{\Phi^n}_\Lambda$, so $\gamma^n$ is a genuine
-    specification, and Georgii's null sequence $\delta_n$ with
-    $\sup_{\omega\in\Omega_t}|H^{\Phi^n-\Phi}_\Lambda(\zeta\omega_{S\setminus\Lambda})| \leq
-    \delta_n\sum_{i\in\Lambda}(1+|\zeta_i|^2)$ from the tail of the periodised coupling under (20.4).
-    Not proved: Proposition (4.19) restricted to $\Omega_t$ in the elementary two-kernel form and
-    the $\varepsilon569Xlassembly through (4.15), hence the inclusion itself; \S20.2 from (20.11).
+    Georgii's density form is derived, and (4.9) gives a cluster point. The inclusion
+    $\mathcal G_0(\Phi) \subseteq \mathcal G(\Phi)$: $H^{\Phi^n}_\Lambda$ is the torus block energy for
+    $\Lambda \subseteq \Lambda(n)$, its quadratic bound and the finiteness of ${}^\circ Z^{\Phi^n}_\Lambda$
+    make $\gamma^n$ a genuine specification; Georgii's null sequence $\delta_n$ bounds
+    $H^{\Phi^n-\Phi}_\Lambda(\zeta\omega_{S\setminus\Lambda})$ by $\delta_n\sum_{i\in\Lambda}(1+|\zeta_i|^2)$ for
+    $\omega \in \Omega_t$ and $\zeta \in E^\Lambda$ arbitrary, as his supremum requires, from the tail
+    of the periodised coupling under (20.4); Proposition (4.19) in an elementary two-kernel form
+    (two Gibbs kernels with $|H_2| \leq cQ$ and $|H_1 - H_2| \leq \delta Q$ differ by at most
+    $4\Gamma\delta/\beta$) on $\Omega_t$; and Georgii's $\varepsilon$-assembly --- the DLR equation of
+    $\gamma^n$ for $\mu^\Phi_n$, (20.6)(iii) off $\Omega_t$, (4.15) for a subsequence and bounded
+    convergence for the local function $\gamma^m_\Lambda 1_A$ --- gives $\mu\gamma^\Phi_\Lambda = \mu$ on
+    local events. With the shift invariance this is $\emptyset \neq \mathcal G_0(\Phi) \subseteq
+    \mathcal G_\Theta(\Phi)$. Deviations: the uniform Hamiltonian constant
+    $2(1+t)\sum_{i\in\Lambda}\sum_j|J(i-j)|\alpha(j)$ rather than Georgii's pointwise
+    $c(\omega_{S\setminus\Lambda})$, and $\delta_n$ with $(1+t)$ in place of his $t$.
+\end{theorem}
+\begin{proof}
+    \leanok
+\end{proof}
+
+\begin{theorem}[Georgii (20.11) and the first half of (20.12): the correlation transform is nonnegative]
+    \label{thm:ir-20-11}
+    \uses{def:ir-20-9, lem:ir-20-6}
+    \lean{MeasureTheory.GibbsMeasure.lintegral_dotProduct_self_le_of_tail, MeasureTheory.GibbsMeasure.integrable_dotProduct_of_tail, MeasureTheory.GibbsMeasure.integrable_dotProduct_heisenbergPeriodicGibbsDist, MeasureTheory.GibbsMeasure.correlationFourier, MeasureTheory.GibbsMeasure.correlationFourier_eq_sum_latticeBox, MeasureTheory.GibbsMeasure.integral_dotProduct_heisenbergPeriodicGibbsDist_sub, MeasureTheory.GibbsMeasure.card_mul_correlationFourier_eq_sum_integral, MeasureTheory.GibbsMeasure.correlationFourier_nonneg}
+    \leanok
+
+    The correlations ${}^\circ\gamma^\Phi_\Lambda(\sigma_u\cdot\sigma_v)$ exist by the tail estimate of
+    (20.6)(ii), as Georgii notes in passing; $C^\Phi_\Lambda(z) = \sum_{i\in\Lambda} z^i\,{}^\circ\gamma^\Phi_\Lambda
+    (\sigma_0\cdot\sigma_i)$ (20.11) equals $|\Lambda|^{-1}\sum_\ell{}^\circ\gamma^\Phi_\Lambda(|\sum_{i\in\Lambda}
+    \sigma_{i,\ell}z^i|^2)$ by translation invariance of the periodic Gibbs distribution, hence is
+    nonnegative, the first half of (20.12). Not formalised: Lemma (20.13) (Gaussian domination by
+    the chessboard estimate and Georgii's three-stage approximation of the a priori measure), (20.14),
+    the upper half of (20.12), and Theorem (20.15).
 \end{theorem}
 \begin{proof}
     \leanok

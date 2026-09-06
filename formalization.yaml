@@ -58,7 +58,8 @@ status:
     (19.7) and (19.8), with Sperner's lemma and the KKM lemma (19.12) of Section 19.2; open
     (19.13)-(19.15) and Theorem (19.6), (19.9)-(19.10), the rest of Sections 19.2-19.3.
     Chapter 20: Section 20.1 ((20.5), (20.6) as stated, (20.8)), Georgii's computation (17.24),
-    (20.9)-(20.10), (20.7) first half; open (20.7) second half and the infrared bound (20.11) onwards.
+    (20.9)-(20.11), Proposition (20.7) in full, the first half of (20.12); open Lemma (20.13),
+    (20.14), the upper half of (20.12) and Theorem (20.15).
   sorry_count: 0
   sorry_in_definitions: 0
   axioms: ["propext", "Classical.choice", "Quot.sound"]
@@ -1435,10 +1436,20 @@ alignment:
         density form is derived) and (4.9). For the second half the model-specific inputs are
         proved: the Hamiltonian of the periodic modification in a sub-box of the cube is the torus
         block energy, its quadratic bound and admissibility, and Georgii's null sequence delta_n
-        controlling H^{Phi^n - Phi} on Omega_t from the tail of the periodised coupling. Not
-        formalized: (4.19) restricted to Omega_t in the two-kernel form and the epsilon-assembly,
-        hence G_0(Phi) inside G(Phi); (20.11) onwards, in particular Lemma (20.13), a three-stage
-        approximation of the a priori measure combined with the chessboard estimate.
+        controlling H^{Phi^n - Phi} on Omega_t from the tail of the periodised coupling, with the
+        exterior in Omega_t and the block arbitrary as Georgii's supremum requires. The inclusion
+        G_0(Phi) inside G(Phi) (Specification/HeisenbergGibbsInclusion.lean): (4.19) in the elementary
+        two-kernel form (Mathlib/MeasureTheory/Integral/ExpTiltComparison.lean), applied on Omega_t,
+        then Georgii's epsilon-assembly through the DLR equation of gamma^n, (20.6)(iii) off Omega_t,
+        (4.15) and bounded convergence for the local function gamma^m 1_A; with the shift
+        invariance this is Proposition (20.7) verbatim. Deviations: the uniform Hamiltonian
+        constant 2(1+t) sum_i sum_j |J(i-j)| alpha(j) instead of Georgii's pointwise c(omega), and
+        delta_n with (1+t) in place of t. (20.11) (Specification/InfraredBoundCorrelation.lean):
+        the correlations exist by (20.6)(ii), the correlation transform equals
+        |Lambda|^{-1} sum_l °gamma(|sum_i sigma_{i,l} z^i|^2) by translation invariance, hence is
+        nonnegative, the first half of (20.12). Not formalized: Lemma (20.13) (Gaussian domination,
+        a three-stage approximation of the a priori measure combined with the chessboard estimate),
+        (20.14), the upper half of (20.12), Theorem (20.15).
     - source: "Section 18.1: (18.1)-(18.3), (18.8)-(18.10)"
       lean: "MeasureTheory.GibbsMeasure.periodicGibbsDist_forall_notMem_torusPattern_le_patternWeight"
       module: "GibbsMeasure/Specification/PatternPercolation.lean"

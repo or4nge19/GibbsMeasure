@@ -65,20 +65,21 @@ is not constructed: the bound is read off the explicit density (17.24) by resamp
 `Λ mod 2N` of the torus, and Theorem (4.12) is used in the form
 `locallyEquicontinuous_of_eventually_measure_inter_le`, which takes that bound as its hypothesis.
 
-**(c) `𝒢₀(Φ) ⊆ 𝒢(Φ)` is not proved.**  Georgii's `μ_n(γ_Λ^n f) → μ(γ_Λ^Φ f)`, via
-`‖(γ_Λ^n f - γ_Λ^Φ f) 1_{Ω_t}‖ → 0` (Proposition (4.19) restricted to `Ω_t`).  The tree's (4.17),
-`mem_GP_of_mapClusterPt` in `GibbsMeasure.Specification.Existence`, assumes the limit
-specification quasilocal, which `γ^Φ` of (20.5) is not; Georgii's "a glance at the proof of
-(4.17)" therefore has to be carried out separately.  Its model-specific inputs are all proved in
-`GibbsMeasure.Specification.HeisenbergExistence`: `H_Λ^{Φ^n}` is the block energy of the torus
+**(c) `𝒢₀(Φ) ⊆ 𝒢(Φ) is proved** in `GibbsMeasure.Specification.HeisenbergGibbsInclusion`
+(`heisenbergGZero_subset_heisenbergGibbsMeasures`), together with Georgii's statement
+`∅ ≠ 𝒢₀(Φ) ⊆ 𝒢_Θ(Φ)` (`heisenbergGZero_nonempty_and_subset`).  Georgii's
+`μ_n(γ_Λ^n f) → μ(γ_Λ^Φ f)` goes through `‖(γ_Λ^n f - γ_Λ^Φ f) 1_{Ω_t}‖ → 0` (Proposition (4.19)
+restricted to `Ω_t`).  The tree's (4.17), `mem_GP_of_mapClusterPt` in
+`GibbsMeasure.Specification.Existence`, assumes the limit specification quasilocal, which `γ^Φ` of
+(20.5) is not; Georgii's "a glance at the proof of (4.17)" is therefore carried out separately.
+Its model-specific inputs are proved in `GibbsMeasure.Specification.HeisenbergExistence`:
+`H_Λ^{Φ^n}` is the block energy of the torus
 (`hamiltonian_heisenbergPeriodicPotential_eq_sub`), `Φ^n` is `λ`-admissible so that `γ^n` is a
 genuine specification and `μ_n^Φ γ_Λ^n = μ_n^Φ`
 (`isSigmaFiniteLambdaAdmissible_heisenbergPeriodicPotential`), and Georgii's estimate
 `sup_{ω ∈ Ω_t} |H_Λ^{Φ^n - Φ}| ≤ δ_n ∑_{i∈Λ}[1 + |ζ_i|²]` holds with the explicit null sequence
 `δ_n` of `tendsto_sum_couplingTail`
-(`abs_hamiltonian_heisenbergPeriodicPotential_sub_le_of_mem_slowGrowthSet`).  What remains is the
-kernel comparison (4.19) itself and the `ε`-assembly; the module doc of that file states both
-precisely.
+(`abs_hamiltonian_heisenbergPeriodicPotential_sub_le_of_exterior_le`).
 
 ## Two general lemmas about the periodic continuation
 

@@ -186,6 +186,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Group.Action.Synonym
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.CircleCharacter
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.ExponentialMoment
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.MarginalComparison
+public import GibbsMeasure.Mathlib.MeasureTheory.Integral.ExpTiltComparison
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.PositiveDotProduct
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.Prod
 public import GibbsMeasure.Mathlib.MeasureTheory.Measure.SetwiseEmbedding
@@ -375,6 +376,8 @@ public import GibbsMeasure.Specification.TailGluedSpecification
 public import GibbsMeasure.Specification.HeisenbergSpecification
 public import GibbsMeasure.Specification.HeisenbergClusterPoints
 public import GibbsMeasure.Specification.HeisenbergExistence
+public import GibbsMeasure.Specification.HeisenbergGibbsInclusion
+public import GibbsMeasure.Specification.InfraredBoundCorrelation
 public import GibbsMeasure.Specification.InfraredBoundFourier
 public import GibbsMeasure.Specification.InfraredBound
 public import GibbsMeasure.Specification.InvariantFieldsBarycenter

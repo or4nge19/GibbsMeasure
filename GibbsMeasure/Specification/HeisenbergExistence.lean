@@ -69,40 +69,39 @@ implies that the sequence `(μ_n^Φ)` satisfies the hypotheses of Theorem (4.12)
   is the fibre decomposition, with `norm_le_norm_of_latticeToTorus_eq` supplying `α(j) ≤ α(m)`
   for `m ≡ j`, `j ∈ Λ(N)`.
 * `couplingDiff`, `abs_hamiltonian_heisenbergPeriodicPotential_sub_le` and
-  `abs_hamiltonian_heisenbergPeriodicPotential_sub_le_of_mem_slowGrowthSet` — **Georgii's
+  `abs_hamiltonian_heisenbergPeriodicPotential_sub_le_of_exterior_le` — **Georgii's
   `sup_{ω ∈ Ω_t} |H_Λ^{Φ^n - Φ}(ζ ω_{S∖Λ})| ≤ δ_n ∑_{i∈Λ}[1 + |ζ_i|²]`**, with the explicit null
-  sequence `δ_n = 4t ∑_{i ∈ Λ} ∑_{m ∉ Λ(n)} |J(i-m)| α(m)` (`tendsto_sum_couplingTail`).  The
+  sequence `δ_n = 4(1+t) ∑_{i ∈ Λ} ∑_{m ∉ Λ(n)} |J(i-m)| α(m)` (`tendsto_sum_couplingTail`).  Only
+  the exterior spins are constrained, as in Georgii's statement, where `ζ ∈ E^Λ` is arbitrary.  The
   interaction terms of `Φ^n - Φ` are a pair family with the inhomogeneous coefficient
-  `couplingDiff`, and `abs_tsum_le_of_pairBound` of
+  `couplingDiff`, and `abs_tsum_le_of_pairBound` together with `sum_mul_tsum_le_of_exterior_le` of
   `GibbsMeasure.Specification.HeisenbergSpecification` — the general form of the majorant
-  argument behind `exists_abs_hamiltonian_heisenbergPotential_le` — bounds their sum.
+  argument behind `abs_hamiltonian_heisenbergPotential_le_of_exterior_le` — bound their sum.
 
-## What is *not* proved here: `𝒢₀(Φ) ⊆ 𝒢_Θ(Φ)`
+## `𝒢₀(Φ) ⊆ 𝒢_Θ(Φ)`
 
 The shift invariance of `𝒢₀(Φ)` is `measurePreserving_shift_of_mem_heisenbergGZero`
-(`HeisenbergClusterPoints`); what is missing is `𝒢₀(Φ) ⊆ 𝒢(Φ)`, and exactly these two steps:
+(`HeisenbergClusterPoints`), and `𝒢₀(Φ) ⊆ 𝒢(Φ)` is
+`heisenbergGZero_subset_heisenbergGibbsMeasures` in
+`GibbsMeasure.Specification.HeisenbergGibbsInclusion`, which takes its two model-specific inputs
+from this file:
 
 1. **Proposition (4.19) restricted to `Ω_t`**, `‖(γ_Λ^n f - γ_Λ^Φ f) 1_{Ω_t}‖ → 0`.  In the form
-   needed it is a statement about two finite-volume Gibbs kernels in the same volume with the same
-   boundary condition and the same a priori measure: writing
+   used it is a statement about two finite-volume Gibbs kernels in the same volume with the same
+   boundary condition and the same a priori measure (`MeasureTheory.abs_expTilt_sub_le`): writing
    `Q(v) = ∑_{i ∈ Λ}[1 + |v_i|²]`, `K_i(A) = ∫_A e^{-H_i} dλ^Λ / ∫ e^{-H_i} dλ^Λ`, if
    `|H₂| ≤ c Q` and `|H₁ - H₂| ≤ δ Q` with `0 ≤ δ ≤ 1`, then
    `|K₁(A) - K₂(A)| ≤ 4 Γ δ / β` as soon as `δ Γ ≤ β/2`, where
-   `β = (∫λ e^{-c(1+|x|²)})^{|Λ|} > 0` and `Γ = (∫λ e^{(c+2)(1+|x|²)})^{|Λ|} < ∞` by (20.3).
-   (The elementary inputs are `e^u - 1 ≤ u e^u` and `u ≤ e^u`; no dominated convergence is
-   needed.)  Its two hypotheses are available: `|H_Λ^{Φ^n}| ≤ c Q` and `|H_Λ^Φ| ≤ c Q` on `Ω_t`
-   from `exists_abs_hamiltonian_heisenbergPeriodicPotential_le` and
-   `exists_abs_hamiltonian_heisenbergPotential_le`, and `|H_Λ^{Φ^n} - H_Λ^Φ| ≤ δ_n Q` from
-   `abs_hamiltonian_heisenbergPeriodicPotential_sub_le_of_mem_slowGrowthSet`.
-2. **The `ε`-assembly.**  For a local event `A` and a volume `Λ`: extract a subsequence with
-   `μ_{n_k}^Φ → μ` (Georgii (4.15),
-   `MeasureTheory.GibbsMeasure.exists_strictMono_tendsto_of_mapClusterPt`, applicable because the
-   local equicontinuity is proved above); use `μ_n^Φ(γ_Λ^n 1_A) = μ_n^Φ(A)` (DLR, above); use
-   step 1 twice to replace `γ_Λ^{n_k}` by `γ_Λ^m` and then `γ_Λ^m` by `γ_Λ^Φ`, up to
-   `μ(Ω_t^c) + μ_n(Ω_t^c) ≤ 2ε` by (20.6)(iii); and pass to the limit in
-   `μ_{n_k}^Φ(γ_Λ^m 1_A) → μ(γ_Λ^m 1_A)` by
-   `MeasureTheory.tendsto_integral_of_tendsto_withLocalConvergence`, `γ_Λ^m 1_A` being a bounded
-   `𝓕_{Λ(m) ∪ Δ}`-measurable function because `Φ^m` has finite range.
+   `β = ∫ e^{-cQ} dλ^Λ > 0` and `Γ = ∫ e^{(c+2)Q} dλ^Λ < ∞` by (20.3).  Its two hypotheses are
+   `|H_Λ^Φ| ≤ c Q` uniformly over `Ω_t`
+   (`abs_hamiltonian_heisenbergPotential_le_of_exterior_le`) and
+   `|H_Λ^{Φ^n} - H_Λ^Φ| ≤ δ_n Q`
+   (`abs_hamiltonian_heisenbergPeriodicPotential_sub_le_of_exterior_le`).
+2. **The `ε`-assembly**, which uses `locallyEquicontinuous_heisenbergPeriodicField` below through
+   Georgii (4.15) (`MeasureTheory.GibbsMeasure.exists_strictMono_tendsto_of_mapClusterPt`), the
+   DLR equation `μ_n^Φ γ_Λ^n = μ_n^Φ` (consistency of `heisenbergPeriodicGibbsSpec` and
+   `heisenbergPeriodicGibbsSpec_latticeBox`), and the finite range of `Φ^m`, which makes
+   `γ_Λ^m 1_A` a bounded local function.
 -/
 
 @[expose] public section
@@ -1675,77 +1674,47 @@ theorem abs_hamiltonian_heisenbergPeriodicPotential_sub_le (heven : ∀ m, J (-m
 
 /-- **Georgii's `sup_{ω ∈ Ω_t} |H_Λ^{Φ^n - Φ}(ζ ω_{S∖Λ})| ≤ δ_n ∑_{i ∈ Λ}[1 + |ζ_i|²]`** in the
 proof of (20.7), with the explicit null sequence
-`δ_n = 4t ∑_{i ∈ Λ} ∑_{m ∉ Λ(n)} |J(i-m)| α(m)` supplied by `tendsto_couplingTail`. -/
-theorem abs_hamiltonian_heisenbergPeriodicPotential_sub_le_of_mem_slowGrowthSet
+`δ_n = 4(1+t) ∑_{i ∈ Λ} ∑_{m ∉ Λ(n)} |J(i-m)| α(m)` supplied by `tendsto_sum_couplingTail`.
+
+Only the *exterior* spins are constrained — `|x_j| ≤ t α(j)` for `j ∉ Λ` — as in Georgii's
+statement, where `ζ ∈ E^Λ` is arbitrary and only `ω ∈ Ω_t` is assumed; this is what makes the
+estimate usable inside the partition functions of the two kernels.  The interior bonds are
+symmetrised and the exterior bonds absorbed by `sum_mul_tsum_le_of_exterior_le`, whose row bound is
+`tsum_couplingDiff_mul_slowGrowth_le`. -/
+theorem abs_hamiltonian_heisenbergPeriodicPotential_sub_le_of_exterior_le
     (heven : ∀ m, J (-m) = J m) (hJ0 : J 0 = 0) (hJ : IsSlowlySummable J)
     {Λ : Finset (Fin d → ℤ)} (hΛ : Λ ⊆ Potential.latticeBox d L) {t : ℝ} (ht : 0 ≤ t)
-    {x : (Fin d → ℤ) → (Fin n → ℝ)} (hx : x ∈ slowGrowthSet d n t) :
+    {x : (Fin d → ℤ) → (Fin n → ℝ)} (hxΩ : x ∈ slowGrowthTailSet d n)
+    (hext : ∀ j ∉ Λ, Real.sqrt (x j ⬝ᵥ x j) ≤ t * slowGrowth j) :
     |(heisenbergPeriodicPotential n J L).hamiltonian Λ x
         - (heisenbergPotential n J).hamiltonian Λ x|
-      ≤ (4 * t * ∑ i ∈ Λ, couplingTail J L i) * ∑ i ∈ Λ, (1 + x i ⬝ᵥ x i) := by
+      ≤ (4 * (1 + t) * ∑ i ∈ Λ, couplingTail J L i) * ∑ i ∈ Λ, (1 + x i ⬝ᵥ x i) := by
   classical
-  have hxΩ : x ∈ slowGrowthTailSet d n := mem_slowGrowthTailSet_iff.2 ⟨t, hx⟩
-  set s : (Fin d → ℤ) → ℝ := fun i ↦ Real.sqrt (x i ⬝ᵥ x i) with hs
-  have hs0 : ∀ i, 0 ≤ s i := fun i ↦ Real.sqrt_nonneg _
-  have hssq : ∀ i, s i * s i = x i ⬝ᵥ x i := fun i ↦
-    Real.mul_self_sqrt (dotProduct_self_nonneg _)
-  have hsle : ∀ j, s j ≤ t * slowGrowth j := by
-    intro j
-    have hsq : x j ⬝ᵥ x j ≤ (t * slowGrowth j) ^ 2 := by
-      have := hx j; nlinarith
-    calc s j ≤ Real.sqrt ((t * slowGrowth j) ^ 2) := Real.sqrt_le_sqrt hsq
-      _ = t * slowGrowth j := Real.sqrt_sq (mul_nonneg ht (slowGrowth_pos j).le)
+  set R : ℝ := 2 * ∑ i ∈ Λ, couplingTail J L i with hR
   have hct0 : ∀ i, 0 ≤ couplingTail J L i := couplingTail_nonneg J L
-  set C : ℝ := ∑ i ∈ Λ, couplingTail J L i with hC
-  have hC0 : 0 ≤ C := Finset.sum_nonneg fun i _ ↦ hct0 i
-  have hCi : ∀ i ∈ Λ, couplingTail J L i ≤ C := fun i hi ↦
-    Finset.single_le_sum (fun j _ ↦ hct0 j) hi
-  -- the row bound at a site of `Λ`
-  have hrow : ∀ i ∈ Λ, ∑' j, couplingDiff J L i j * s j ≤ 2 * t * couplingTail J L i := by
+  have hR0 : (0 : ℝ) ≤ R := by
+    have : (0 : ℝ) ≤ ∑ i ∈ Λ, couplingTail J L i := Finset.sum_nonneg fun i _ ↦ hct0 i
+    rw [hR]; linarith
+  have hrow : ∀ i ∈ Λ, ∑' j, couplingDiff J L i j * slowGrowth j ≤ R := by
     intro i hi
-    have hsummable : Summable fun j ↦ couplingDiff J L i j * s j := by
-      refine Summable.of_nonneg_of_le (fun j ↦ mul_nonneg (couplingDiff_nonneg i j) (hs0 j))
-        (fun j ↦ ?_) ((summable_couplingDiff_mul_slowGrowth (L := L) hJ i).mul_left t)
-      calc couplingDiff J L i j * s j ≤ couplingDiff J L i j * (t * slowGrowth j) :=
-            mul_le_mul_of_nonneg_left (hsle j) (couplingDiff_nonneg i j)
-        _ = t * (couplingDiff J L i j * slowGrowth j) := by ring
-    calc ∑' j, couplingDiff J L i j * s j
-        ≤ ∑' j, t * (couplingDiff J L i j * slowGrowth j) := by
-          refine Summable.tsum_le_tsum (fun j ↦ ?_) hsummable
-            ((summable_couplingDiff_mul_slowGrowth (L := L) hJ i).mul_left t)
-          calc couplingDiff J L i j * s j ≤ couplingDiff J L i j * (t * slowGrowth j) :=
-                mul_le_mul_of_nonneg_left (hsle j) (couplingDiff_nonneg i j)
-            _ = t * (couplingDiff J L i j * slowGrowth j) := by ring
-      _ = t * ∑' j, couplingDiff J L i j * slowGrowth j := tsum_mul_left
-      _ ≤ t * (2 * couplingTail J L i) :=
-          mul_le_mul_of_nonneg_left (tsum_couplingDiff_mul_slowGrowth_le hJ (hΛ hi)) ht
-      _ = 2 * t * couplingTail J L i := by ring
-  refine (abs_hamiltonian_heisenbergPeriodicPotential_sub_le heven hJ0 hJ Λ hxΩ).trans ?_
-  have hterm : ∀ i ∈ Λ, s i * ∑' j, couplingDiff J L i j * s j
-      ≤ 2 * t * C * (1 + x i ⬝ᵥ x i) := by
-    intro i hi
-    have h1 : s i * ∑' j, couplingDiff J L i j * s j ≤ s i * (2 * t * couplingTail J L i) :=
-      mul_le_mul_of_nonneg_left (hrow i hi) (hs0 i)
-    have h2 : s i ≤ 1 + x i ⬝ᵥ x i := by
-      have := hssq i
-      nlinarith [sq_nonneg (s i - 1), hs0 i]
-    have h3 : (0 : ℝ) ≤ 2 * t * couplingTail J L i := by
-      have := hct0 i; nlinarith
-    have h4 : 2 * t * couplingTail J L i ≤ 2 * t * C := by
-      have := hCi i hi; nlinarith
-    have h5 : (0 : ℝ) ≤ 1 + x i ⬝ᵥ x i := by
-      have := dotProduct_self_nonneg (x i); linarith
-    calc s i * ∑' j, couplingDiff J L i j * s j ≤ s i * (2 * t * couplingTail J L i) := h1
-      _ ≤ (1 + x i ⬝ᵥ x i) * (2 * t * couplingTail J L i) :=
-          mul_le_mul_of_nonneg_right h2 h3
-      _ ≤ (1 + x i ⬝ᵥ x i) * (2 * t * C) := mul_le_mul_of_nonneg_left h4 h5
-      _ = 2 * t * C * (1 + x i ⬝ᵥ x i) := by ring
-  calc 2 * ∑ i ∈ Λ, s i * ∑' j, couplingDiff J L i j * s j
-      ≤ 2 * ∑ i ∈ Λ, 2 * t * C * (1 + x i ⬝ᵥ x i) := by
-        have := Finset.sum_le_sum hterm
-        linarith
-    _ = (4 * t * C) * ∑ i ∈ Λ, (1 + x i ⬝ᵥ x i) := by
-        rw [← Finset.mul_sum]; ring
+    refine (tsum_couplingDiff_mul_slowGrowth_le hJ (hΛ hi)).trans ?_
+    have := Finset.single_le_sum (f := fun k ↦ couplingTail J L k) (fun k _ ↦ hct0 k) hi
+    rw [hR]; linarith
+  have hkey := sum_mul_tsum_le_of_exterior_le (Λ := Λ) (c := couplingDiff J L)
+    (s := fun i ↦ Real.sqrt (x i ⬝ᵥ x i)) (a := slowGrowth) (t := t) (R := R)
+    couplingDiff_nonneg (couplingDiff_symm heven) (fun i ↦ Real.sqrt_nonneg _)
+    one_le_slowGrowth ht hR0 (fun i ↦ summable_couplingDiff_mul_slowGrowth hJ i) hrow hext
+  have hsq : ∀ i : Fin d → ℤ, Real.sqrt (x i ⬝ᵥ x i) ^ 2 = x i ⬝ᵥ x i := fun i ↦
+    Real.sq_sqrt (dotProduct_self_nonneg _)
+  simp only [hsq] at hkey
+  calc |(heisenbergPeriodicPotential n J L).hamiltonian Λ x
+          - (heisenbergPotential n J).hamiltonian Λ x|
+      ≤ 2 * ∑ i ∈ Λ, Real.sqrt (x i ⬝ᵥ x i)
+          * ∑' j, couplingDiff J L i j * Real.sqrt (x j ⬝ᵥ x j) :=
+        abs_hamiltonian_heisenbergPeriodicPotential_sub_le heven hJ0 hJ Λ hxΩ
+    _ ≤ 2 * (R * (1 + t) * ∑ i ∈ Λ, (1 + x i ⬝ᵥ x i)) := by linarith
+    _ = (4 * (1 + t) * ∑ i ∈ Λ, couplingTail J L i) * ∑ i ∈ Λ, (1 + x i ⬝ᵥ x i) := by
+        rw [hR]; ring
 
 /-- **Georgii's `(δ_n)` is a null sequence.** -/
 theorem tendsto_sum_couplingTail (hJ : IsSlowlySummable J) (Λ : Finset (Fin d → ℤ)) (t : ℝ) :
@@ -1766,26 +1735,24 @@ section Nonempty
 
 variable {d n : ℕ} {J : (Fin (d + 1) → ℤ) → ℝ} {ν : Measure (Fin n → ℝ)}
 
-/-- **Georgii, Proposition (20.7), first half: `𝒢₀(Φ) ≠ ∅`.**  The sequence of fields
-`μ_n^Φ = °γ_{Λ(n)}^Φ × δ_0` has a cluster point in the topology of local convergence.
+/-- **Georgii's "the sequence `(μ_n^Φ)` satisfies the hypotheses of Theorem (4.12)"** in the proof
+of (20.7).  The fields `μ_n^Φ = °γ_{Λ(n)}^Φ × δ_0` are locally equicontinuous: their masses on the
+events of a fixed volume are uniformly small when the reference mass is, because the density bound
+`heisenbergPeriodicField_inter_slowGrowthSet_le` holds uniformly in the cube on `Ω_t` and
+Lemma (20.6)(iii) makes `Ω_t^c` uniformly negligible.
 
-Georgii's proof, verbatim: Lemma (20.6)(iii) makes the mass outside `Ω_t` uniformly small, the
-"straightforward calculation" `limsup_n sup_{ω ∈ Ω_t} ρ_Λ^n(ω) < ∞` is
-`heisenbergPeriodicField_inter_slowGrowthSet_le`, Theorem (4.12)
-(`locallyEquicontinuous_of_eventually_measure_inter_le`) gives local equicontinuity and
-Proposition (4.9) (`exists_mapClusterPt_of_locallyEquicontinuous`) the cluster point. -/
-theorem heisenbergGZero_nonempty [IsFiniteMeasure ν] (hν : ν ≠ 0) (hexp : HasExpSqMoments ν)
-    (heven : ∀ m, J (-m) = J m) (hJ : IsSlowlySummable J) (hnd : ∀ k, IsNonnegDefiniteAt k J) :
-    (heisenbergGZero J ν).Nonempty := by
+This is the hypothesis both of Proposition (4.9) — which gives `𝒢₀(Φ) ≠ ∅`
+(`heisenbergGZero_nonempty`) — and of Proposition (4.15), which extracts from a cluster point a
+convergent *subsequence* and is what the proof of `𝒢₀(Φ) ⊆ 𝒢(Φ)` uses. -/
+theorem locallyEquicontinuous_heisenbergPeriodicField [IsFiniteMeasure ν] (hν : ν ≠ 0)
+    (hexp : HasExpSqMoments ν) (heven : ∀ m, J (-m) = J m) (hJ : IsSlowlySummable J)
+    (hnd : ∀ k, IsNonnegDefiniteAt k J)
+    {μs : ℕ → ProbabilityMeasure ((Fin (d + 1) → ℤ) → (Fin n → ℝ))}
+    (hμsval : ∀ L, (μs L : Measure ((Fin (d + 1) → ℤ) → (Fin n → ℝ)))
+      = heisenbergPeriodicField J ν L 0) :
+    LocallyEquicontinuous atTop μs := by
   classical
   have hsum : Summable J := hJ.summable
-  -- the fields, as probability measures
-  have hprob : ∀ L : ℕ, IsProbabilityMeasure (heisenbergPeriodicField J ν L 0) := fun L ↦
-    isProbabilityMeasure_heisenbergPeriodicField hν hexp hsum L 0
-  set μs : ℕ → ProbabilityMeasure ((Fin (d + 1) → ℤ) → (Fin n → ℝ)) :=
-    fun L ↦ ⟨heisenbergPeriodicField J ν L 0, hprob L⟩ with hμs
-  have hμsval : ∀ L, (μs L : Measure ((Fin (d + 1) → ℤ) → (Fin n → ℝ)))
-      = heisenbergPeriodicField J ν L 0 := fun L ↦ rfl
   -- Lemma (20.6)(iii), uniformly in the cube
   obtain ⟨b, hb0, hb⟩ := exists_forall_heisenbergPeriodicField_zero_tail_le (d := d) (n := n)
     hν hexp hsum heven hnd (a := ((d : ℝ) + 1) + 1 + 1) (by positivity)
@@ -1801,73 +1768,93 @@ theorem heisenbergGZero_nonempty [IsFiniteMeasure ν] (hν : ν ≠ 0) (hexp : H
       (c := ((d : ℝ) + 1) + 1 + 1) one_pos hb0.le ?_ (fun i r ↦ hb L i r) ht
     push_cast
     linarith
-  have hle : LocallyEquicontinuous atTop μs := by
-    -- Theorem (4.12)
-    refine locallyEquicontinuous_of_eventually_measure_inter_le (μs := μs) (l := atTop)
-      fun Λ ε hε ↦ ?_
-    -- choose `t` so that `μ_n(Ω_t^c) ≤ ε` for every cube
-    have hlim : Filter.Tendsto
-        (fun t : ℕ ↦ ENNReal.ofReal (b * C * Real.exp (-((t : ℝ))))) atTop (𝓝 0) := by
-      have h : Filter.Tendsto (fun t : ℕ ↦ b * C * Real.exp (-((t : ℝ)))) atTop (𝓝 0) := by
-        have := (Real.tendsto_exp_neg_atTop_nhds_zero.comp
-          (tendsto_natCast_atTop_atTop (R := ℝ))).const_mul (b * C)
-        simpa using this
-      have h2 := (ENNReal.continuous_ofReal.tendsto 0).comp h
-      simpa [Function.comp_def] using h2
-    obtain ⟨t, ht1, htε⟩ : ∃ t : ℕ, 1 ≤ t ∧
-        ENNReal.ofReal (b * C * Real.exp (-((t : ℝ)))) ≤ ε := by
-      obtain ⟨t₀, ht₀⟩ := (Filter.eventually_atTop.1
-        ((ENNReal.tendsto_nhds_zero.1 hlim) ε hε)).imp fun _ h ↦ h
-      exact ⟨max 1 t₀, le_max_left _ _, ht₀ _ (le_max_right _ _)⟩
-    have ht1' : (1 : ℝ) ≤ (t : ℝ) := by exact_mod_cast ht1
-    have ht0' : (0 : ℝ) ≤ (t : ℝ) := by positivity
-    -- the dominating measure supplied by the density bound
-    set κnum : ℝ≥0∞ := ENNReal.ofReal (Real.exp ((t : ℝ) ^ 2
-      * ∑ i ∈ Λ, slowGrowth i * ∑' k, |J (i - k)| * slowGrowth k)) with hκnum
-    set cc : ℝ := (∑' m, |J m|) + (t : ℝ) * ∑ i ∈ Λ, ∑' k, |J (i - k)| * slowGrowth k with hccdef
-    have hcc0 : 0 ≤ cc := by
-      have h1 : (0 : ℝ) ≤ ∑' m, |J m| := tsum_nonneg fun m ↦ abs_nonneg _
-      have h2 : (0 : ℝ) ≤ ∑ i ∈ Λ, ∑' k, |J (i - k)| * slowGrowth k :=
-        Finset.sum_nonneg fun i _ ↦ tsum_nonneg fun k ↦
-          mul_nonneg (abs_nonneg _) (slowGrowth_pos k).le
-      rw [hccdef]; positivity
-    set δden : ℝ≥0∞ := (∫⁻ y, ENNReal.ofReal (Real.exp (-(cc * (1 + y ⬝ᵥ y)))) ∂ν) ^ Λ.card
-      with hδden
-    have hδden0 : δden ≠ 0 := pow_ne_zero _ (lintegral_exp_neg_pos hν cc).ne'
-    set κm : Measure ((Fin (d + 1) → ℤ) → (Fin n → ℝ)) :=
-      (κnum / δden) • ((Measure.pi fun _ : ↥Λ ↦ ν).map
-        (Function.updateFinset (0 : (Fin (d + 1) → ℤ) → (Fin n → ℝ)) Λ)) with hκm
-    have hmapmeas : Measurable
-        (Function.updateFinset (0 : (Fin (d + 1) → ℤ) → (Fin n → ℝ)) Λ) :=
-      measurable_updateFinset
-    have hκmtop : κm Set.univ ≠ ∞ := by
-      rw [hκm, Measure.smul_apply, smul_eq_mul,
-        Measure.map_apply hmapmeas MeasurableSet.univ, Set.preimage_univ]
-      exact ENNReal.mul_ne_top (ENNReal.div_ne_top ENNReal.ofReal_ne_top hδden0)
-        (measure_ne_top _ _)
-    refine ⟨slowGrowthSet (d + 1) n (t : ℝ), κm, measurableSet_slowGrowthSet _, hκmtop, ?_, ?_⟩
-    · filter_upwards [Potential.tendsto_latticeBox_atTop.eventually
-        (eventually_ge_atTop Λ)] with L hL A hAcyl
-      have hΛL : Λ ⊆ Potential.latticeBox (d + 1) L := hL
-      have hAmeas : MeasurableSet A := cylinderEvents_le_pi _ hAcyl
-      have hbound := heisenbergPeriodicField_inter_slowGrowthSet_le (ν := ν) hν hexp heven hJ
-        hΛL ht0' hAcyl
-      rw [hμsval L]
-      refine hbound.trans (le_of_eq ?_)
-      rw [hκm, Measure.smul_apply, smul_eq_mul, Measure.map_apply hmapmeas hAmeas,
-        div_eq_mul_inv, div_eq_mul_inv, ← hκnum, ← hδden]
-      exact mul_right_comm _ _ _
-    · refine limsup_le_of_le (h := Filter.Eventually.of_forall fun L ↦ ?_)
-      rw [hμsval L]
-      refine (hmass (t : ℝ) ht1' L).trans (le_trans (ENNReal.ofReal_le_ofReal ?_) htε)
-      have hexpmono : Real.exp (-(1 * (t : ℝ) ^ 2)) ≤ Real.exp (-((t : ℝ))) :=
-        Real.exp_le_exp.2 (by nlinarith)
-      have hbC : (0 : ℝ) ≤ b * C := mul_nonneg hb0.le hC0
-      exact mul_le_mul_of_nonneg_left hexpmono hbC
+  -- Theorem (4.12)
+  refine locallyEquicontinuous_of_eventually_measure_inter_le (μs := μs) (l := atTop)
+    fun Λ ε hε ↦ ?_
+  -- choose `t` so that `μ_n(Ω_t^c) ≤ ε` for every cube
+  have hlim : Filter.Tendsto
+      (fun t : ℕ ↦ ENNReal.ofReal (b * C * Real.exp (-((t : ℝ))))) atTop (𝓝 0) := by
+    have h : Filter.Tendsto (fun t : ℕ ↦ b * C * Real.exp (-((t : ℝ)))) atTop (𝓝 0) := by
+      have := (Real.tendsto_exp_neg_atTop_nhds_zero.comp
+        (tendsto_natCast_atTop_atTop (R := ℝ))).const_mul (b * C)
+      simpa using this
+    have h2 := (ENNReal.continuous_ofReal.tendsto 0).comp h
+    simpa [Function.comp_def] using h2
+  obtain ⟨t, ht1, htε⟩ : ∃ t : ℕ, 1 ≤ t ∧
+      ENNReal.ofReal (b * C * Real.exp (-((t : ℝ)))) ≤ ε := by
+    obtain ⟨t₀, ht₀⟩ := (Filter.eventually_atTop.1
+      ((ENNReal.tendsto_nhds_zero.1 hlim) ε hε)).imp fun _ h ↦ h
+    exact ⟨max 1 t₀, le_max_left _ _, ht₀ _ (le_max_right _ _)⟩
+  have ht1' : (1 : ℝ) ≤ (t : ℝ) := by exact_mod_cast ht1
+  have ht0' : (0 : ℝ) ≤ (t : ℝ) := by positivity
+  -- the dominating measure supplied by the density bound
+  set κnum : ℝ≥0∞ := ENNReal.ofReal (Real.exp ((t : ℝ) ^ 2
+    * ∑ i ∈ Λ, slowGrowth i * ∑' k, |J (i - k)| * slowGrowth k)) with hκnum
+  set cc : ℝ := (∑' m, |J m|) + (t : ℝ) * ∑ i ∈ Λ, ∑' k, |J (i - k)| * slowGrowth k with hccdef
+  have hcc0 : 0 ≤ cc := by
+    have h1 : (0 : ℝ) ≤ ∑' m, |J m| := tsum_nonneg fun m ↦ abs_nonneg _
+    have h2 : (0 : ℝ) ≤ ∑ i ∈ Λ, ∑' k, |J (i - k)| * slowGrowth k :=
+      Finset.sum_nonneg fun i _ ↦ tsum_nonneg fun k ↦
+        mul_nonneg (abs_nonneg _) (slowGrowth_pos k).le
+    rw [hccdef]; positivity
+  set δden : ℝ≥0∞ := (∫⁻ y, ENNReal.ofReal (Real.exp (-(cc * (1 + y ⬝ᵥ y)))) ∂ν) ^ Λ.card
+    with hδden
+  have hδden0 : δden ≠ 0 := pow_ne_zero _ (lintegral_exp_neg_pos hν cc).ne'
+  set κm : Measure ((Fin (d + 1) → ℤ) → (Fin n → ℝ)) :=
+    (κnum / δden) • ((Measure.pi fun _ : ↥Λ ↦ ν).map
+      (Function.updateFinset (0 : (Fin (d + 1) → ℤ) → (Fin n → ℝ)) Λ)) with hκm
+  have hmapmeas : Measurable
+      (Function.updateFinset (0 : (Fin (d + 1) → ℤ) → (Fin n → ℝ)) Λ) :=
+    measurable_updateFinset
+  have hκmtop : κm Set.univ ≠ ∞ := by
+    rw [hκm, Measure.smul_apply, smul_eq_mul,
+      Measure.map_apply hmapmeas MeasurableSet.univ, Set.preimage_univ]
+    exact ENNReal.mul_ne_top (ENNReal.div_ne_top ENNReal.ofReal_ne_top hδden0)
+      (measure_ne_top _ _)
+  refine ⟨slowGrowthSet (d + 1) n (t : ℝ), κm, measurableSet_slowGrowthSet _, hκmtop, ?_, ?_⟩
+  · filter_upwards [Potential.tendsto_latticeBox_atTop.eventually
+      (eventually_ge_atTop Λ)] with L hL A hAcyl
+    have hΛL : Λ ⊆ Potential.latticeBox (d + 1) L := hL
+    have hAmeas : MeasurableSet A := cylinderEvents_le_pi _ hAcyl
+    have hbound := heisenbergPeriodicField_inter_slowGrowthSet_le (ν := ν) hν hexp heven hJ
+      hΛL ht0' hAcyl
+    rw [hμsval L]
+    refine hbound.trans (le_of_eq ?_)
+    rw [hκm, Measure.smul_apply, smul_eq_mul, Measure.map_apply hmapmeas hAmeas,
+      div_eq_mul_inv, div_eq_mul_inv, ← hκnum, ← hδden]
+    exact mul_right_comm _ _ _
+  · refine limsup_le_of_le (h := Filter.Eventually.of_forall fun L ↦ ?_)
+    rw [hμsval L]
+    refine (hmass (t : ℝ) ht1' L).trans (le_trans (ENNReal.ofReal_le_ofReal ?_) htε)
+    have hexpmono : Real.exp (-(1 * (t : ℝ) ^ 2)) ≤ Real.exp (-((t : ℝ))) :=
+      Real.exp_le_exp.2 (by nlinarith)
+    have hbC : (0 : ℝ) ≤ b * C := mul_nonneg hb0.le hC0
+    exact mul_le_mul_of_nonneg_left hexpmono hbC
+
+/-- **Georgii, Proposition (20.7), first half: `𝒢₀(Φ) ≠ ∅`.**  The sequence of fields
+`μ_n^Φ = °γ_{Λ(n)}^Φ × δ_0` has a cluster point in the topology of local convergence.
+
+Georgii's proof, verbatim: Lemma (20.6)(iii) makes the mass outside `Ω_t` uniformly small, the
+"straightforward calculation" `limsup_n sup_{ω ∈ Ω_t} ρ_Λ^n(ω) < ∞` is
+`heisenbergPeriodicField_inter_slowGrowthSet_le`, Theorem (4.12)
+(`locallyEquicontinuous_of_eventually_measure_inter_le`) gives local equicontinuity
+(`locallyEquicontinuous_heisenbergPeriodicField`) and Proposition (4.9)
+(`exists_mapClusterPt_of_locallyEquicontinuous`) the cluster point. -/
+theorem heisenbergGZero_nonempty [IsFiniteMeasure ν] (hν : ν ≠ 0) (hexp : HasExpSqMoments ν)
+    (heven : ∀ m, J (-m) = J m) (hJ : IsSlowlySummable J) (hnd : ∀ k, IsNonnegDefiniteAt k J) :
+    (heisenbergGZero J ν).Nonempty := by
+  classical
+  have hprob : ∀ L : ℕ, IsProbabilityMeasure (heisenbergPeriodicField J ν L 0) := fun L ↦
+    isProbabilityMeasure_heisenbergPeriodicField hν hexp hJ.summable L 0
+  set μs : ℕ → ProbabilityMeasure ((Fin (d + 1) → ℤ) → (Fin n → ℝ)) :=
+    fun L ↦ ⟨heisenbergPeriodicField J ν L 0, hprob L⟩ with hμs
+  have hμsval : ∀ L, (μs L : Measure ((Fin (d + 1) → ℤ) → (Fin n → ℝ)))
+      = heisenbergPeriodicField J ν L 0 := fun L ↦ rfl
   -- Proposition (4.9)
   obtain ⟨m, hm⟩ := exists_mapClusterPt_of_locallyEquicontinuous
     (μs := fun L ↦ (WithSetwiseTopology.ofMeasure (μs L)
-      : WithLocalConvergence (Fin (d + 1) → ℤ) (Fin n → ℝ))) hle
+      : WithLocalConvergence (Fin (d + 1) → ℤ) (Fin n → ℝ)))
+    (locallyEquicontinuous_heisenbergPeriodicField hν hexp heven hJ hnd hμsval)
   exact ⟨m.toMeasure, μs, hμsval, hm⟩
 
 end Nonempty
