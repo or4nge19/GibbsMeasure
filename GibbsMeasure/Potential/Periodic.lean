@@ -29,6 +29,19 @@ The final section proves Georgii (4.20)'s statement that for a potential support
 free-boundary truncation `Φ^Δ` of Example (4.20)(1) as well as the periodic modification `Φ̃^Δ` —
 the restriction of `γ^Ψ_Δ(·|ω)` to `𝓕_Δ` does not depend on `ω`.
 
+Two hypotheses on `Φ` must be kept apart.  Absolute summability (2.11) is what bounds the
+representative series `∑_{B ∈ ℛ(A)} Φ_B` by the sup-norms (2.12); it gives
+`isAbsolutelySummable_periodicModification` and the Hamiltonian estimate
+`abs_hamiltonian_periodicModification_sub_le`, hence the convergence
+`Φ̃^Δ → Φ` of Georgii's argument.  All that `Φ̃^Δ` needs in order to *be* a potential is the
+pointwise convergence of that series, `HasSummableRepSeries`, which is strictly weaker: over an
+unbounded state space a shift-invariant pair potential `Φ_{{i,j}} = -J(i-j) σ_i·σ_j` has infinite
+sup-norms while its representative series is dominated by `∑_m |J(m)|`.  So
+`HasSummableRepSeries.isPotential` is stated with the latter, and
+`isPotential_periodicModification` is its `ℬ` corollary; the Heisenberg potential of Georgii
+(17.22) is the case in point (`GibbsMeasure.Specification.HeisenbergPeriodicModification`).
+`isFiniteRange_periodicModification` needs neither hypothesis: `Φ̃^Δ` is supported in `Δ`.
+
 Georgii Example (5.20)(3) builds on the same torus machinery: `periodizeSitesEquiv` and
 `periodize` are the periodic modification `τ_N` of a transformation `τ` (for `τ` periodizable
 along the torus, `IsPeriodizable`), `periodicExtend_periodize` is the key identity
@@ -117,6 +130,65 @@ lemma starImage_eq_self (hπ : IsTorusReduction G Δ π) (hA : A ⊆ Δ) : starI
 omit [AddCommGroup S] in
 @[simp] lemma starImage_nonempty : (starImage π A).Nonempty ↔ A.Nonempty := by
   simp [starImage, Finset.image_nonempty]
+
+omit [AddCommGroup S] in
+@[simp] lemma starImage_pair {x y : S} :
+    starImage π ({x, y} : Finset S) = ({π x, π y} : Finset S) := by
+  simp [starImage]
+
+omit [MeasurableSpace E] in
+lemma translate_pair (x y g : S) :
+    translate ({x, y} : Finset S) g = ({x + g, y + g} : Finset S) := by
+  simp [translate]
+
+omit [MeasurableSpace E] [AddCommGroup S] in
+/-- **A bond is determined by the fibres of `π` it meets.**  If `{x, y} = {x', y'}` and `π`
+separates `x` from `y`, then matching values of `π` match the sites.  This is what makes the lift
+of a *bond* of the torus unique, and hence the representatives `ℛ(A)` of Georgii (4.20)(2) over a
+two-element `A` enumerable. -/
+lemma eq_of_pair_eq_pair_of_apply_ne {x y x' y' : S} (hxy : π x ≠ π y) (hx : π x' = π x)
+    (hy : π y' = π y) (h : ({x, y} : Finset S) = ({x', y'} : Finset S)) : x = x' ∧ y = y' := by
+  have hx1 : x ∈ ({x', y'} : Finset S) := h ▸ Finset.mem_insert_self x {y}
+  have hy1 : y ∈ ({x', y'} : Finset S) :=
+    h ▸ Finset.mem_insert_of_mem (Finset.mem_singleton_self y)
+  simp only [Finset.mem_insert, Finset.mem_singleton] at hx1 hy1
+  refine ⟨?_, ?_⟩
+  · rcases hx1 with h1 | h1
+    · exact h1
+    · exact absurd (by rw [h1, hy]) hxy
+  · rcases hy1 with h1 | h1
+    · exact absurd (by rw [← hx, ← h1]) hxy
+    · exact h1
+
+omit [MeasurableSpace E] [AddCommGroup S] in
+/-- **The two lifts of a bond of the torus.**  An interaction support which is a pair and whose
+projection is `{i, j}` consists of a lift of `i` and a lift of `j`.  No distinctness is assumed:
+for `i = j` this says that a pair projecting onto a single site is a pair of lifts of that site,
+which is the source of the factor `1/2` on the diagonal of Georgii (17.24). -/
+lemma exists_pair_of_starImage_eq_pair {i j x y : S}
+    (h : starImage π ({x, y} : Finset S) = ({i, j} : Finset S)) :
+    ∃ u v, π u = i ∧ π v = j ∧ ({x, y} : Finset S) = ({u, v} : Finset S) := by
+  rw [starImage_pair] at h
+  have hxm : π x ∈ ({i, j} : Finset S) := h ▸ Finset.mem_insert_self (π x) {π y}
+  have hym : π y ∈ ({i, j} : Finset S) :=
+    h ▸ Finset.mem_insert_of_mem (Finset.mem_singleton_self (π y))
+  have him : i ∈ ({π x, π y} : Finset S) := h ▸ Finset.mem_insert_self i {j}
+  have hjm : j ∈ ({π x, π y} : Finset S) :=
+    h ▸ Finset.mem_insert_of_mem (Finset.mem_singleton_self j)
+  simp only [Finset.mem_insert, Finset.mem_singleton] at hxm hym him hjm
+  rcases hxm with hx | hx
+  · refine ⟨x, y, hx, ?_, rfl⟩
+    rcases hjm with hj | hj
+    · rcases hym with hy | hy
+      · exact hy.trans (hj.trans hx).symm
+      · exact hy
+    · exact hj.symm
+  · refine ⟨y, x, ?_, hx, Finset.pair_comm x y⟩
+    rcases him with hi | hi
+    · rcases hym with hy | hy
+      · exact hy
+      · exact hy.trans (hi.trans hx).symm
+    · exact hi.symm
 
 lemma starImage_translate (hπ : IsTorusReduction G Δ π) (hg : g ∈ G) (A : Finset S) :
     starImage π (translate A g) = starImage π A := by
@@ -251,6 +323,15 @@ lemma red_translate (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor) (hg 
 lemma starImage_red [DecidableEq S] (hπ : IsTorusReduction G Δ π) (B : Finset S) :
     starImage π (red π anchor B) = starImage π B :=
   starImage_translate hπ (red_vector_mem hπ B) B
+
+/-- **Georgii (4.20)(2): `red` is a complete invariant of a class of translates.**  A
+representative which is a period translate of `B` is the reduction `red π anchor B`; together
+with `isRep_red` this says that every nonempty finite volume has exactly one representative in
+its class modulo the periods. -/
+lemma eq_red_of_isRep_of_eq_translate (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor)
+    (hB : B.Nonempty) (hB' : IsRep Δ anchor B') (hg : g ∈ G) (hBB' : B' = translate B g) :
+    B' = red π anchor B := by
+  rw [← red_eq_self hπ hB', hBB', red_translate hπ ha hg hB]
 
 /-- Two representatives in the same class of translates coincide. -/
 lemma eq_of_isRep_of_translate (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor)
@@ -393,6 +474,15 @@ lemma periodicModification_of_not_subset (hπ : IsTorusReduction G Δ π) (hA : 
     exact starImage_subset hπ B
   simp [h0]
 
+/-- **The periodic modification is supported in the box, hence has finite range** (Georgii
+(2.15)): all its interaction terms live on subsets of `Δ`.  No summability whatsoever is needed,
+so the Hamiltonians of `Φ̃^Δ` are finite sums even when `Φ ∉ ℬ`. -/
+lemma isFiniteRange_periodicModification (hπ : IsTorusReduction G Δ π) :
+    IsFiniteRange (periodicModification Φ Δ π anchor) where
+  exists_finset _ := ⟨Δ, fun A _ hA ↦ by
+    by_contra hsub
+    exact hA (periodicModification_of_not_subset hπ hsub)⟩
+
 omit [AddCommGroup S] in
 /-- The sup-norm of `Φ̃^Δ_A` is bounded by the weight of `ℛ(A)`. -/
 lemma iSup_enorm_periodicModification_le (Φ : Potential S E) (Δ : Finset S) (π : S → S)
@@ -499,6 +589,23 @@ lemma measurable_periodicExtend (π : S → S) :
     Measurable (periodicExtend π : (S → E) → S → E) :=
   measurable_pi_lambda _ fun i ↦ measurable_pi_apply (π i)
 
+variable (Φ Δ π anchor) in
+/-- **The representative series of Georgii (4.20)(2) converges.**  `Φ̃^Δ_A` is *defined* by the
+series `∑_{B ∈ ℛ(A)} Φ_B ∘ σ̃_Δ` over the representatives of the classes of translates projecting
+onto `A`; that set is infinite as soon as the period group is, so the definition only says what
+it should when the series converges.  This is that hypothesis, at every interaction support and
+every configuration.
+
+It is implied by absolute summability of `Φ`
+(`hasSummableRepSeries_of_isAbsolutelySummable`) but is strictly weaker: over an unbounded state
+space a shift-invariant pair potential `Φ_{{i,j}}(σ) = -J(i-j) σ_i·σ_j` has *infinite* sup-norms
+(2.12), yet at a fixed configuration its representative series is dominated by `∑_m |J(m)|`. -/
+def HasSummableRepSeries (Φ : Potential S E) (Δ : Finset S) (π : S → S)
+    (anchor : Finset S → S) : Prop :=
+  ∀ (A : Finset S) (η : S → E), Summable fun B : Finset S ↦
+    {C : Finset S | IsRep Δ anchor C ∧ starImage π C = A}.indicator
+      (fun B ↦ Φ B (periodicExtend π η)) B
+
 /-- The representative series defining `Φ̃^Δ_A` converges absolutely. -/
 lemma summable_periodicModification_terms [IsAbsolutelySummable Φ]
     (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor) (hΦ : Φ.IsShiftInvariant)
@@ -515,10 +622,19 @@ lemma summable_periodicModification_terms [IsAbsolutelySummable Φ]
   · rw [Set.indicator_of_notMem hB _, Set.indicator_of_notMem hB _]
     simp
 
-/-- **Georgii (4.20)(2).** The periodic modification is a potential: `Φ̃^Δ_A` is
-`𝓕_A`-measurable. -/
-lemma isPotential_periodicModification [Countable S] [IsPotential Φ] [IsAbsolutelySummable Φ]
+/-- **Georgii (4.20)(2).** An absolutely summable shift-invariant potential has a convergent
+representative series. -/
+lemma hasSummableRepSeries_of_isAbsolutelySummable [IsAbsolutelySummable Φ]
     (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor) (hΦ : Φ.IsShiftInvariant) :
+    HasSummableRepSeries Φ Δ π anchor :=
+  fun A η ↦ summable_periodicModification_terms hπ ha hΦ A η
+
+omit [AddCommGroup S] in
+/-- **Georgii (4.20)(2).** The periodic modification is a potential: `Φ̃^Δ_A` is
+`𝓕_A`-measurable.  Convergence of the representative series is the only hypothesis; in
+particular `Φ` need not lie in `ℬ`. -/
+lemma HasSummableRepSeries.isPotential [Countable S] [IsPotential Φ]
+    (hsum : HasSummableRepSeries Φ Δ π anchor) :
     IsPotential (periodicModification Φ Δ π anchor) where
   measurable A := by
     have hdep : DependsOn (periodicModification Φ Δ π anchor A) (A : Set S) := by
@@ -544,21 +660,29 @@ lemma isPotential_periodicModification [Countable S] [IsPotential Φ] [IsAbsolut
       by_cases hB : B ∈ {C : Finset S | IsRep Δ anchor C ∧ starImage π C = A}
       · simpa only [Set.indicator_of_mem hB] using hmeasB B
       · simpa only [Set.indicator_of_notMem hB] using measurable_const (a := (0 : ℝ))
-    · exact tendsto_pi_nhds.2 fun η ↦
-        (summable_periodicModification_terms hπ ha hΦ A η).hasSum
+    · exact tendsto_pi_nhds.2 fun η ↦ (hsum A η).hasSum
+
+/-- **Georgii (4.20)(2).** The periodic modification of an absolutely summable shift-invariant
+potential is a potential. -/
+lemma isPotential_periodicModification [Countable S] [IsPotential Φ] [IsAbsolutelySummable Φ]
+    (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor) (hΦ : Φ.IsShiftInvariant) :
+    IsPotential (periodicModification Φ Δ π anchor) :=
+  (hasSummableRepSeries_of_isAbsolutelySummable hπ ha hΦ).isPotential
 
 /-! ### Georgii (4.20)(2): the Hamiltonian estimate -/
 
 /-- For `∅ ≠ A ⊆ Δ`, the term `B = A` of the representative series is `Φ_A` itself; the rest is
 Georgii's error term. -/
-lemma periodicModification_sub_eq [IsPotential Φ] [IsAbsolutelySummable Φ]
-    (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor) (hΦ : Φ.IsShiftInvariant)
-    (hA : A.Nonempty) (hAΔ : A ⊆ Δ) (η : S → E) :
+lemma periodicModification_sub_eq [IsPotential Φ]
+    (hπ : IsTorusReduction G Δ π) (ha : IsAnchor anchor)
+    (hA : A.Nonempty) (hAΔ : A ⊆ Δ) (η : S → E)
+    (hsum : Summable fun B : Finset S ↦
+      {C : Finset S | IsRep Δ anchor C ∧ starImage π C = A}.indicator
+        (fun B ↦ Φ B (periodicExtend π η)) B) :
     periodicModification Φ Δ π anchor A η - Φ A η
       = ∑' B : Finset S, {C : Finset S | IsRep Δ anchor C ∧ starImage π C = A ∧ C ≠ A}.indicator
           (fun B ↦ Φ B (periodicExtend π η)) B := by
   classical
-  have hsum := summable_periodicModification_terms hπ ha hΦ A η
   rw [periodicModification_apply, hsum.tsum_eq_add_tsum_ite A]
   have h1 : {C : Finset S | IsRep Δ anchor C ∧ starImage π C = A}.indicator
       (fun B ↦ Φ B (periodicExtend π η)) A = Φ A η := by
@@ -614,7 +738,9 @@ lemma enorm_hamiltonianTerms_periodicModification_sub_le [IsPotential Φ] [IsAbs
     · have h1 : {C : Finset S | ¬ Disjoint C Λ ∧ ¬ C ⊆ Δ}.indicator
           (fun C ↦ ⨆ η, ‖Φ C η‖ₑ) A = 0 :=
         Set.indicator_of_notMem (fun h ↦ h.2 hAΔ) _
-      rw [periodicModification_sub_eq hπ ha hΦ hAne hAΔ η, periodicTermBound, h1, zero_add]
+      rw [periodicModification_sub_eq hπ ha hAne hAΔ η
+          (summable_periodicModification_terms hπ ha hΦ A η),
+        periodicTermBound, h1, zero_add]
       refine le_trans enorm_tsum_le_tsum_enorm (ENNReal.tsum_le_tsum fun B ↦ ?_)
       by_cases hB : B ∈ {C : Finset S | IsRep Δ anchor C ∧ starImage π C = A ∧ C ≠ A}
       · rw [Set.indicator_of_mem hB,
@@ -1377,6 +1503,21 @@ def piPeriods (p : Fin d → ℤ) : AddSubgroup (Fin d → ℤ) :=
 @[simp] lemma mem_piPeriods {p g : Fin d → ℤ} :
     g ∈ piPeriods p ↔ ∀ k, g k ∈ AddSubgroup.zmultiples (p k) := by
   simp [piPeriods, AddSubgroup.mem_pi]
+
+/-- **The periods of a cube.**  A vector is a period of the cube of side `p` exactly when it is
+`p` times an integer vector; `r` is Georgii's relative period of Example (4.20)(2). -/
+lemma mem_piPeriods_const_iff {p : ℤ} {g : Fin d → ℤ} :
+    g ∈ piPeriods (fun _ ↦ p) ↔ ∃ r : Fin d → ℤ, g = p • r := by
+  rw [mem_piPeriods]
+  constructor
+  · intro h
+    choose r hr using fun k ↦ AddSubgroup.mem_zmultiples_iff.1 (h k)
+    refine ⟨r, funext fun k ↦ ?_⟩
+    have := hr k
+    simp only [smul_eq_mul] at this
+    simp only [Pi.smul_apply, smul_eq_mul, ← this, mul_comm]
+  · rintro ⟨r, rfl⟩ k
+    exact AddSubgroup.mem_zmultiples_iff.2 ⟨r k, by simp [mul_comm]⟩
 
 /-- **Georgii (4.20)(2) on `ℤ^d`.** The rectangular box `Δ = ∏_k [m_k, m_k + p_k)`, a member of
 Georgii's directed set `𝒮_□`. -/

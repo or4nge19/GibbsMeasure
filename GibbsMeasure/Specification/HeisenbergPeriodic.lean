@@ -41,11 +41,15 @@ values in `ℝ^n`, the interaction is the Heisenberg pair potential (17.22)
   whenever `J(i-j) ≠ 0` (`iSup_enorm_heisenbergPotential_pair_eq_top`), so
   `not_isAbsolutelySummable_heisenbergPotential`.  Georgii does not claim (2.11) either; his
   standing hypotheses in §17.2 are (17.23) and the finiteness of `°Z_Λ^Φ`.  The consequence is
-  that *none* of the general Example (4.20)(2) machinery of `GibbsMeasure.Potential.Periodic`
-  applies to `heisenbergPotential`: `Potential.isPotential_periodicModification`,
+  that the `ℬ`-conditioned part of the Example (4.20)(2) machinery of
+  `GibbsMeasure.Potential.Periodic` does not apply to `heisenbergPotential`:
   `Potential.isAbsolutelySummable_periodicModification` and
-  `Potential.abs_hamiltonian_periodicModification_sub_le` are all conditioned on
-  `IsAbsolutelySummable`.  See "Not formalised" below for what this costs.
+  `Potential.abs_hamiltonian_periodicModification_sub_le` need `IsAbsolutelySummable`, so the
+  Hamiltonian estimate of (4.20)(2) is unavailable here.  What *does* apply is the part
+  conditioned only on pointwise convergence of the representative series,
+  `Potential.HasSummableRepSeries.isPotential`, and that convergence is exactly (17.23):
+  see `GibbsMeasure.Specification.HeisenbergPeriodicModification`, where (17.24) is proved to be
+  Example (4.20)(2) for this potential.
 * `periodizedCoupling`: **Georgii (17.25)**, `J_Λ(m) = ∑_{ℓ ∈ ℤ^d} J(m + 2Nℓ)` as a function on
   the torus `Λ = (ℤ/2N)^d`; it does not depend on the lift (`periodizedCoupling_eq_tsum`), it is
   even when `J` is (`periodizedCoupling_neg`), and it inherits the invariance of `J` under the
@@ -248,25 +252,14 @@ need from `°γ_Λ^Φ`, and is the reason `GibbsMeasure.Specification.InfraredBo
 * The closed form of Georgii's constant `c(a)` in Example (17.32) (a Beta integral); only
   `0 < c(a) < ∞` is needed (`integral_rpow_div_one_add_Ioi_pos`,
   `integrableOn_rpow_div_one_add_Ioi`), and that is proved.
-* **The identification of (17.24) with the periodic modification of `heisenbergPotential`.**
-  `heisenbergPeriodicGibbs` is *defined* by the density (17.24) and by
-  `interactingHamiltonian_heisenbergPeriodicGibbs`-style computation it is not yet identified
-  with `γ^{Φ̃^Λ}_Λ(·|ω)` for `Φ̃^Λ = Potential.periodicModification (heisenbergPotential n J)`,
-  Georgii's Example (4.20)(2).  The obstruction is *not* the statement — Georgii's own `Φ^n` in
-  the proof of (20.7) is exactly `Φ̃^Λ` and the computation is
-
-  `Φ̃^Λ_{{i,j}} = -J_Λ(i-j) σ_i·σ_j` (`i ≠ j`),   `Φ̃^Λ_{{i}} = -½ J_Λ(0) |σ_i|²`,
-
-  which sums over `Λ` to minus `heisenbergExponent` — but the *route*: the representatives
-  `ℛ(A)` of (4.20)(2) form an infinite set here (all period translates of a bond), so the
-  defining `tsum` converges only because of (17.23), and every general lemma about
-  `periodicModification` in `GibbsMeasure.Potential.Periodic` is conditioned on
-  `IsAbsolutelySummable`, which `not_isAbsolutelySummable_heisenbergPotential` shows is false.
-  What is needed is a direct enumeration of `ℛ({i,j})` and `ℛ({i})`: for a relative period
-  `r ∈ 2Nℤ^d` exactly one translate of the bond `{i, j + r}` has its `lexAnchor` in the box, and
-  for a singleton the representatives are the bonds `{i, i + r}` with `r` lex-positive — which is
-  where the factor `½` on the diagonal of (17.24) comes from.  The extra hypothesis this needs is
-  exactly `Summable J`, i.e. Georgii's (17.23).
+* Georgii's §20.1 consequences of (17.24): (20.5)–(20.7), and the transfer of the infrared
+  bound (20.6) to `𝒢₀(Φ)`.  What they need from §17.2 — that `°γ_{Λ(N)}^Φ` *is* the finite-volume
+  Gibbs distribution in `Λ(N)` of the periodic modification `Φ̃^{Λ(N)}` of (17.22), Georgii's
+  `Φ^n` in the proof of (20.7) — is proved in
+  `GibbsMeasure.Specification.HeisenbergPeriodicModification`
+  (`heisenbergPeriodicGibbsSpec_latticeBox`, with the interaction terms
+  `heisenbergPeriodicPotential_pair` and `heisenbergPeriodicPotential_singleton` and the
+  Hamiltonian identity `interactingHamiltonian_heisenbergPeriodicPotential`).
 -/
 
 @[expose] public section

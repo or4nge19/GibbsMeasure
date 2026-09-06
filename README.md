@@ -593,10 +593,13 @@ infrared bound on the torus — the tail estimate (20.6) for the periodic Gibbs 
 nonnegative-definite Heisenberg coupling from the chessboard estimate, its three consequences for
 any measure with that tail, and the lower bound (20.8) with only `λ({0}ᶜ) > 0`, where Georgii
 assumes rotation invariance, plus two slips in his proof; the lattice `p`-series and a layer-cake
-exponential-moment lemma in the Mathlib layer. (20.5) and (20.7) wait on Georgii's computation
-(17.24), the identification of the Heisenberg torus measure with the Gibbs distribution of the
-potential with periodic boundary condition; the Heisenberg potential is provably not absolutely
-summable, so that identification is a summation by hand.
+exponential-moment lemma in the Mathlib layer. Georgii's computation **(17.24)**, the
+identification of the Heisenberg torus measure with the Gibbs distribution of the periodic
+modification of the potential, is a theorem (`Specification/HeisenbergPeriodicModification.lean`):
+the Heisenberg potential is provably not absolutely summable, and (17.23) is exactly the pointwise
+convergence of the representative series of Example (4.20)(2), which replaces (2.11) in
+`Potential/Periodic.lean`; the diagonal term `½ J_Λ(0)|σ_i|²` is the two-to-one enumeration of the
+translates of a site. (20.5) and (20.7) are the next step.
 
 **Chapter 16** normalises the a priori measure to a probability measure throughout, where Georgii
 assumes only that it is finite; the two differ by an additive `log λ(E)` in the pressure and the

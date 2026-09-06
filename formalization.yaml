@@ -1382,10 +1382,9 @@ alignment:
         (20.8) with only lambda({0}^c) > 0 where Georgii assumes rotation invariance and
         non-degeneracy; two slips in his proof recorded (epsilon^2 <= u, and the lower bound on Z
         for the second estimate). Not formalized: (20.5), the specification on the tail set
-        Omega_*, and (20.7), which need the Heisenberg torus measure as a random field on Z^d,
-        i.e. Georgii's computation (17.24) as a theorem (the Heisenberg potential is provably not
-        absolutely summable, so the C-potential route does not apply; the pointwise summation via
-        (17.23) is the missing development); (20.6) is therefore not yet transferred to G_0(Phi).
+        Omega_*, and (20.7), which need the Heisenberg torus measure as a random field on Z^d;
+        Georgii's computation (17.24) is now a theorem (Specification/HeisenbergPeriodicModification.lean),
+        so the transfer of (20.6) to G_0(Phi) is the next step.
     - source: "Section 18.1: (18.1)-(18.3), (18.8)-(18.10)"
       lean: "MeasureTheory.GibbsMeasure.periodicGibbsDist_forall_notMem_torusPattern_le_patternWeight"
       module: "GibbsMeasure/Specification/PatternPercolation.lean"
@@ -1501,12 +1500,20 @@ alignment:
         the text prints, alternating along k, giving the same value as the first), and (17.32) for
         d = 1 and d = 2 (the Cauchy kernel for d = 2); the (17.31) condition A >= 2(d-1)|B| is
         proved necessary as well (isNonnegDefiniteAt_nextNearestNeighbour_iff), and the (17.30)
-        sufficiency needs only J(e_k) >= 0. The Heisenberg potential is provably not absolutely
-        summable, so heisenbergPeriodicGibbs is defined by its density; Georgii's computation
-        (17.24) identifying it with the Gibbs distribution of the potential with periodic boundary
-        condition is not yet a theorem
+        sufficiency needs only J(e_k) >= 0
         (Mathlib/Analysis/SpecialFunctions/ExpNegAbs.lean, ImproperIntegrals.lean,
-        PSeries/Euclidean.lean). Not formalized: the Berg-Maserick converse (17.28)(1), which the
+        PSeries/Euclidean.lean). The Heisenberg potential is provably not absolutely summable, so
+        heisenbergPeriodicGibbs is defined by its density; Georgii's computation (17.24) is a
+        theorem (Specification/HeisenbergPeriodicModification.lean): the periodic modification
+        of Example (4.20)(2) at the cube [-N,N)^d has the pair terms -J_Lambda(i-j) sigma_i.sigma_j,
+        the diagonal terms -(1/2) J_Lambda(0) |sigma_i|^2 (the half being the two-to-one
+        enumeration of the translates of a site), no other terms, the Hamiltonian
+        -(1/2) sum J_Lambda(i-j) sigma_i.sigma_j, and its Gibbs kernel in the cube is the image
+        of the periodic Gibbs distribution under the coupling with the boundary condition
+        (Georgii's periodic Gibbs distribution times delta_omega of (5.20)(3)), for a sigma-finite
+        a priori measure. The summability (17.23) is exactly the pointwise convergence of the
+        representative series, introduced as Potential.HasSummableRepSeries in Potential/Periodic.lean
+        in place of the absolute summability (2.11); off the diagonal only evenness of J is used. Not formalized: the Berg-Maserick converse (17.28)(1), which the
         book cites without proof.
     - source: "Section 16.3: (16.18)-(16.25), (16.28)-(16.30)"
       lean: "MeasureTheory.GibbsMeasure.exists_isDiscriminating_and_le_encard_extremePoints"

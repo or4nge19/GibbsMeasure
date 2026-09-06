@@ -129,6 +129,35 @@
     coupling $J_\Lambda(i) = \sum_{j \equiv i} J(j)$ (17.25).
 \end{definition}
 
+\begin{theorem}[Georgii (17.24) as a theorem: the periodic modification of the Heisenberg potential]
+    \label{thm:rp-17-24}
+    \uses{def:rp-17-22, def:lo-G0}
+    \lean{MeasureTheory.GibbsMeasure.heisBond, MeasureTheory.GibbsMeasure.heisBond_injective, MeasureTheory.GibbsMeasure.exists_eq_heisBond, MeasureTheory.GibbsMeasure.heisenbergPotential_heisBond, MeasureTheory.GibbsMeasure.heisBond_neg_self, MeasureTheory.GibbsMeasure.heisBond_self_zero, MeasureTheory.GibbsMeasure.lexPos, MeasureTheory.GibbsMeasure.tsum_lexPos_eq_half, MeasureTheory.GibbsMeasure.tsum_lexPos_intBoxLen_smul, MeasureTheory.GibbsMeasure.heisenbergPeriodicPotential, MeasureTheory.GibbsMeasure.heisenbergPeriodicPotential_pair, MeasureTheory.GibbsMeasure.heisenbergPeriodicPotential_singleton, MeasureTheory.GibbsMeasure.heisenbergPeriodicPotential_of_forall_ne, MeasureTheory.GibbsMeasure.hasSummableRepSeries_heisenbergPotential, MeasureTheory.GibbsMeasure.isPotential_heisenbergPeriodicPotential, MeasureTheory.GibbsMeasure.interactingHamiltonian_heisenbergPeriodicPotential, MeasureTheory.GibbsMeasure.map_periodicJuxt_heisenbergPeriodicGibbs, MeasureTheory.GibbsMeasure.heisenbergPeriodicGibbsSpec, MeasureTheory.GibbsMeasure.heisenbergPeriodicGibbsSpec_latticeBox, Potential.HasSummableRepSeries, Potential.HasSummableRepSeries.isPotential, Potential.periodicModification_sub_eq, Potential.isFiniteRange_periodicModification, Potential.eq_red_of_isRep_of_eq_translate, MeasureTheory.GibbsMeasure.map_periodicJuxt_sigmaFiniteLambdaFun, Finset.pair_eq_pair_iff, MeasureTheory.map_comp_equiv_pi}
+    \leanok
+
+    The periodic modification $\tilde\Phi^{\Lambda(N)}$ of the Heisenberg potential (Example
+    (4.20)(2) at the cube $\Lambda(N) = [-N,N)^d$ and the torus $(\mathbb Z/2N)^d$) has
+    $\tilde\Phi_{\{i,j\}}(\sigma) = -J_\Lambda(i-j)\,\sigma_i\cdot\sigma_j$ for distinct sites of
+    the cube, $\tilde\Phi_{\{i\}}(\sigma) = -\tfrac12 J_\Lambda(0)|\sigma_i|^2$ (the half is the
+    two-to-one enumeration $r \leftrightarrow -r$ of the translates of a site), and vanishes on every
+    other set; hence $H^{\tilde\Phi}_{\Lambda(N)} = -\tfrac12\sum_{i,j\in\Lambda}J_\Lambda(i-j)\,
+    \sigma_i\cdot\sigma_j$, and the Gibbs kernel $\gamma^{\tilde\Phi}_{\Lambda(N)}(\cdot\mid\omega)$ is
+    the image of the periodic Gibbs distribution ${}^\circ\gamma^\Phi_{\Lambda(N)}$ under the coupling
+    with $\omega$, Georgii's ${}^\circ\gamma^\Phi_{\Lambda(N)} \times \delta_\omega$ of (5.20)(3), for
+    a $\sigma$-finite a priori measure with finite partition function. The summability (17.23) is
+    exactly the pointwise convergence of the representative series of (4.20)(2), which replaces the
+    absolute summability (2.11) that the Heisenberg potential lacks; it is not needed off the
+    diagonal, where the identity is an unconditional reindexing, and $J(0) = 0$ is used on the
+    diagonal only. No erratum: the diagonal $\tfrac12 J_\Lambda(0)|\sigma_i|^2$ of (17.24) is confirmed.
+\end{theorem}
+\begin{proof}
+    \leanok
+    Georgii's class $\mathcal R(\{i,j\})$ is enumerated faithfully by the relative period $r$
+    (the translate of $\{i, j + 2Nr\}$ whose lexicographic anchor lies in the cube), and the
+    interaction on the representative is $-J(i-j-2Nr)\,\sigma_i\cdot\sigma_j$; summing over $r$
+    gives $J_\Lambda(i-j)$. At a single site the enumeration is two-to-one, whence the half.
+\end{proof}
+
 \begin{theorem}[Georgii (17.27)--(17.29)]
     \label{thm:rp-17-29}
     \uses{def:rp-17-22, lem:rp-17-26}
@@ -164,8 +193,8 @@
     $a > 1$, giving $r_k$-positive periodic Gibbs distributions for the summable cases $a > 1$ on
     $\mathbb Z$ and $a > 2$ on $\mathbb Z^2$ (17.32). The Heisenberg potential is provably not
     absolutely summable in the sense of (2.11), so the periodic Gibbs distribution (17.24) is
-    defined here by its density; its identification with the Gibbs distribution of the potential
-    with periodic boundary condition, Georgii's computation (17.24), is not yet a theorem. The necessity halves are Georgii's evaluation of ${}^\circ Z\,{}^\circ\gamma(ff^*) =
+    defined here by its density and identified with the Gibbs distribution of the periodic
+    modification in Theorem \ref{thm:rp-17-24}. The necessity halves are Georgii's evaluation of ${}^\circ Z\,{}^\circ\gamma(ff^*) =
     4e^{S}\sinh\langle q, Mq\rangle$ at a $\pm 1$ pattern $q$ for the two-point a priori measure,
     with $M$ the crossing matrix; the $d = 2$ case of (17.32) represents $(k^2 + \ell^2)^{-a/2}$
     through the Cauchy kernel, whose transform is the two-sided exponential, and a Beta-type

@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.PiReindex
 public import GibbsMeasure.Potential.FiniteReference
 public import GibbsMeasure.Specification.QuasiGibbsian
 public import GibbsMeasure.Potential.Periodic
@@ -220,6 +221,9 @@ lemma tauPow_latticeToTorus {X : Type*} [MeasurableSpace X] :
 
 lemma latticeToTorus_sub (i j : Fin d → ℤ) :
     latticeToTorus n (i - j) = latticeToTorus n i - latticeToTorus n j := by
+  funext k; simp
+
+@[simp] lemma latticeToTorus_zero : latticeToTorus (d := d) n 0 = 0 := by
   funext k; simp
 
 variable (n) in
@@ -972,10 +976,8 @@ lemma isPotential_wrappedCubePotential (hφ : Measurable φ) :
       (measurable_pi_lambda _ fun _ ↦ measurable_pi_apply _)
 
 instance isFiniteRange_wrappedCubePotential :
-    Potential.IsFiniteRange (wrappedCubePotential E φ n) where
-  exists_finset _ := ⟨periodicCube d n, fun A _ hA ↦ by
-    obtain ⟨i, -, rfl⟩ := wrappedCubePotential_ne_zero hA
-    exact wrappedCube_subset n i⟩
+    Potential.IsFiniteRange (wrappedCubePotential E φ n) :=
+  Potential.isFiniteRange_periodicModification (Potential.isTorusReduction_latticeTorus d n)
 
 end Wrapped
 
@@ -1266,20 +1268,32 @@ theorem interactingHamiltonian_periodicJuxt (n : ℕ) (ω : (Fin d → ℤ) → 
   rw [Finset.sum_congr rfl hterm, periodicHamiltonian]
   exact sum_latticeBox_comp_latticeToTorus fun j ↦ φ (cubeView ζ j)
 
-/-- The coupling map pushes the product measure on the torus to Georgii's `λ_{Λ(N)}(·|ω)`. -/
-theorem map_periodicJuxt_pi (n : ℕ) (ω : (Fin d → ℤ) → E) :
+omit [IsProbabilityMeasure ν] in
+/-- **The coupling map pushes the product measure on the torus to Georgii's `λ_{Λ(N)}(·|ω)`.**
+The cube `Λ(N)` is a fundamental domain, hence in bijection with the torus, so no coordinate is
+integrated out and no finiteness of the a priori measure is needed. -/
+theorem map_periodicJuxt_sigmaFiniteLambdaFun [SigmaFinite ν] (n : ℕ) (ω : (Fin d → ℤ) → E) :
     (Measure.pi fun _ : (Fin d → ZMod (2 * (n + 1))) ↦ ν).map (periodicJuxt E n ω)
-      = Specification.isssd (S := Fin d → ℤ) (E := E) ν (periodicCube d n) ω := by
+      = Specification.sigmaFiniteLambdaFun (S := Fin d → ℤ) (E := E) ν (periodicCube d n) ω := by
   classical
-  have hg : Function.Injective fun i : ↥(periodicCube d n) ↦ latticeToTorus n i.1 :=
-    fun i j hij ↦ Subtype.ext (latticeToTorus_injOn_latticeBox (Finset.mem_coe.2 i.2)
-      (Finset.mem_coe.2 j.2) hij)
+  have hbij : Function.Bijective fun i : ↥(periodicCube d n) ↦ latticeToTorus n i.1 :=
+    ⟨fun i j hij ↦ Subtype.ext (latticeToTorus_injOn_latticeBox (Finset.mem_coe.2 i.2)
+        (Finset.mem_coe.2 j.2) hij),
+      fun j ↦ ⟨⟨torusToLattice n j, torusToLattice_mem j⟩, latticeToTorus_torusToLattice j⟩⟩
   have hcomp : periodicJuxt E n ω
       = (juxt ((periodicCube d n : Finset (Fin d → ℤ)) : Set (Fin d → ℤ)) ω) ∘
         fun ζ : (Fin d → ZMod (2 * (n + 1))) → E ↦
           ζ ∘ fun i : ↥(periodicCube d n) ↦ latticeToTorus n i.1 := rfl
   rw [hcomp, ← Measure.map_map Measurable.juxt (measurable_comp_right _),
-    map_comp_pi_of_injective ν hg]
+    Specification.sigmaFiniteLambdaFun_apply_eq_map]
+  congr 1
+  exact map_comp_equiv_pi ν (Equiv.ofBijective _ hbij)
+
+/-- The coupling map pushes the product measure on the torus to Georgii's `λ_{Λ(N)}(·|ω)`. -/
+theorem map_periodicJuxt_pi (n : ℕ) (ω : (Fin d → ℤ) → E) :
+    (Measure.pi fun _ : (Fin d → ZMod (2 * (n + 1))) ↦ ν).map (periodicJuxt E n ω)
+      = Specification.isssd (S := Fin d → ℤ) (E := E) ν (periodicCube d n) ω := by
+  rw [map_periodicJuxt_sigmaFiniteLambdaFun n ω, Specification.sigmaFiniteLambdaFun_eq_isssdFun]
   rfl
 
 variable (E) in

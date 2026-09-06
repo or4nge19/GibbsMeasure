@@ -58,6 +58,7 @@ public import GibbsMeasure.Mathlib.Data.ENNReal.Basic
 public import GibbsMeasure.Mathlib.Data.ENNReal.TsumPi
 public import GibbsMeasure.Mathlib.Data.Finset.Map
 public import GibbsMeasure.Mathlib.Data.Finset.Update
+public import GibbsMeasure.Mathlib.Data.Finset.Pair
 public import GibbsMeasure.Mathlib.LinearAlgebra.SpanExtract
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PosDef
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PerronStochastic
@@ -154,6 +155,7 @@ public import GibbsMeasure.Mathlib.LinearAlgebra.BilinearMap.CauchySchwarz
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.DotProductReal
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.PosSemidefFactor
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.PiBlocks
+public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.PiReindex
 public import GibbsMeasure.Mathlib.MeasureTheory.Constructions.SymmetricChain
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.CompleteConvergence
 public import GibbsMeasure.Mathlib.MeasureTheory.Function.ConditionalExpectation.Countable
@@ -324,6 +326,7 @@ public import GibbsMeasure.Specification.QuasilocalSpecification
 public import GibbsMeasure.Specification.Singleton
 public import GibbsMeasure.Specification.CountingKernel
 public import GibbsMeasure.Specification.HeisenbergPeriodic
+public import GibbsMeasure.Specification.HeisenbergPeriodicModification
 public import GibbsMeasure.Specification.InfraredBound
 public import GibbsMeasure.Specification.InvariantFieldsBarycenter
 public import GibbsMeasure.Specification.MarkovInt
