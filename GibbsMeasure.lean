@@ -286,6 +286,10 @@ public import GibbsMeasure.Model.IsingOceans
 public import GibbsMeasure.Model.GertsikDobrushin
 public import GibbsMeasure.Model.PottsOceans
 public import GibbsMeasure.Model.AnisotropicHeisenbergOceans
+public import GibbsMeasure.Model.AnisotropicAntiferroOceans
+public import GibbsMeasure.Model.ShlosmanRotorOceans
+public import GibbsMeasure.Model.DoubleWellOceans
+public import GibbsMeasure.Model.SlawnyModel
 public import GibbsMeasure.Model.GroundStateRefinement
 public import GibbsMeasure.Model.BlumeCapel
 public import GibbsMeasure.Model.OceanNetwork

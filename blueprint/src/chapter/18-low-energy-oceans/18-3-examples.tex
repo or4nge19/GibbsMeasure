@@ -76,5 +76,54 @@
     $|\operatorname{ex}\mathcal G_\Theta(\beta\Phi)| \geq 2$. Not formalised: 18.3.4 (hard-core
     lattice gases, whose interaction takes the value $+\infty$, so the real-valued cube interactions
     of the tree and the positivity used in Step 1 of (18.16) do not apply; Georgii himself notes the
-    ad hoc replacement), and 18.3.7--18.3.10.
+    ad hoc replacement).
+\end{example}
+
+\begin{example}[Georgii 18.3.7--18.3.9: the anisotropic antiferromagnet in a field, Shlosman's rotor, double wells]
+    \label{ex:dse-rotor-wells}
+    \uses{prop:dse-toolkit, ex:dse-potts-heisenberg, ex:dse-ising}
+    \lean{MeasureTheory.GibbsMeasure.anisoAntiCube, MeasureTheory.GibbsMeasure.anisoAntiBond, MeasureTheory.GibbsMeasure.anisoAntiCube_eq_cubeBondSum, MeasureTheory.GibbsMeasure.neg_one_le_anisoAntiBond, MeasureTheory.GibbsMeasure.anisoAntiBond_eq_neg_one_iff, MeasureTheory.GibbsMeasure.anisoAntiCube_eq_neg_four_iff, MeasureTheory.GibbsMeasure.localGroundEnergy_anisoAntiCube, MeasureTheory.GibbsMeasure.exists_lt_neg_four_anisoAntiCube, MeasureTheory.GibbsMeasure.anisoAntiG, MeasureTheory.GibbsMeasure.isPStablePartition_anisoAntiG, MeasureTheory.GibbsMeasure.isPhiSymmetric_anisoAntiG, MeasureTheory.GibbsMeasure.eventually_two_le_encard_extremePoints_anisoAnti, MeasureTheory.GibbsMeasure.eventually_exists_anisoAnti_gibbsMeasure_pair, MeasureTheory.GibbsMeasure.exists_pos_localGroundStates_subset_of_isCompact, MeasureTheory.GibbsMeasure.shlosmanCube, MeasureTheory.GibbsMeasure.shlosmanCube_eq_neg_two_iff, MeasureTheory.GibbsMeasure.localGroundEnergy_shlosmanCube, MeasureTheory.GibbsMeasure.shlosmanG, MeasureTheory.GibbsMeasure.isPStablePartition_shlosmanG, MeasureTheory.GibbsMeasure.shlosmanFlip, MeasureTheory.GibbsMeasure.isPhiSymmetric_shlosmanG, MeasureTheory.GibbsMeasure.shlosmanRotation, MeasureTheory.GibbsMeasure.isSymmetry_shlosmanRotation, MeasureTheory.GibbsMeasure.eventually_exists_shlosman_gibbsMeasure_pair, MeasureTheory.GibbsMeasure.eventually_two_le_encard_extremePoints_shlosman, MeasureTheory.GibbsMeasure.doubleWellCube, MeasureTheory.GibbsMeasure.doubleWellCube_eq_min_iff, MeasureTheory.GibbsMeasure.isCompact_sublevel_doubleWellCube, MeasureTheory.GibbsMeasure.doubleWellG, MeasureTheory.GibbsMeasure.isPStablePartition_doubleWellG, MeasureTheory.GibbsMeasure.isPhiSymmetric_doubleWellG, MeasureTheory.GibbsMeasure.isCubeConfining_doubleWellCube, MeasureTheory.GibbsMeasure.eventually_two_le_encard_extremePoints_doubleWell, MeasureTheory.GibbsMeasure.eventually_exists_doubleWell_gibbsMeasure_pair}
+    \leanok
+
+    18.3.7, the model (18.34) on the unit sphere with the field in direction $u$: the field
+    distributes over the two edges of the square through each site, so the cube interaction is the
+    bond sum of $\langle x,u\rangle\langle y,u\rangle + \alpha\langle x_\perp,y_\perp\rangle -
+    h(\langle x,u\rangle + \langle y,u\rangle)/2$, whose minimum $-1$ is attained exactly at
+    $(u,-u)$ and $(-u,u)$ when $h^2 < 4(1-\alpha^2)$; the two staggered polar-cap patterns are stable,
+    exchanged by the reflections, and give $|\operatorname{ex}\mathcal G(\beta\Phi)| \geq 2$ with
+    Georgii's invariances. Erratum: Georgii's hypothesis $|h| < 2$ is insufficient for $\alpha > 0$
+    --- a tilted (anti)parallel pair has energy $-4\alpha - h^2/(1+\alpha) < -4$ as soon as
+    $h^2 > 4(1-\alpha^2)$ (for instance $\alpha = 9/10$, $h = 19/10$), so the staggered pair is then
+    not a local ground state; $h^2 < 4(1-\alpha^2)$ is his condition at $\alpha = 0$ and is exactly
+    the positive definiteness of the second variation. The transverse-field rotor (18.35), whose
+    ground states Georgii computes correctly, is not formalised. 18.3.8, Shlosman's rotor (18.36) on
+    the unit circle of an oriented plane, $\cos(\sigma_i - \sigma_j) = \langle\sigma_i,\sigma_j\rangle$: a
+    local ground state has orthogonal adjacent spins and equal next-nearest spins, the two
+    orientation patterns are stable and exchanged by the spin reversal on the even sublattice, the
+    rotations are symmetries preserving each pattern, so two mutually singular Gibbs measures
+    invariant under all rotations and the even shifts exist and $|\operatorname{ex}\mathcal
+    G(\beta\Phi)| \geq 2$; the variation (18.37) is not formalised. 18.3.9, double wells (18.38) on
+    $E = \mathbb R$: the local ground states are the constant configurations at the minimisers of
+    $v$, the two wells are stable and exchanged by $\omega \mapsto -\omega$, the confining condition
+    (17.18)(iv) in its second alternative holds with $K_\ell = [-\ell-1, \ell+1]$, and
+    $|\operatorname{ex}\mathcal G_\Theta(\beta\Phi)| \geq 2$ for any finite symmetric full-support a
+    priori measure; Georgii's Lebesgue $\lambda$ enters through his own normalisation
+    $\bar\lambda = e^{-4v}\lambda$, and the identification $\gamma^{\beta\bar\Phi,\bar\lambda} =
+    \gamma^{\beta\Phi,\lambda}$ is not formalised.
+\end{example}
+
+\begin{example}[Georgii 18.3.10: Slawny's $\square$-model, the ground states and the stable partition]
+    \label{ex:dse-slawny}
+    \uses{prop:dse-toolkit}
+    \lean{MeasureTheory.GibbsMeasure.cubeFace, MeasureTheory.GibbsMeasure.faceProd, MeasureTheory.GibbsMeasure.slawnyCube, MeasureTheory.GibbsMeasure.le_slawnyCube, MeasureTheory.GibbsMeasure.slawnyCube_eq_neg_iff, MeasureTheory.GibbsMeasure.slawnyCube_cubeRefl, MeasureTheory.GibbsMeasure.slawnyG, MeasureTheory.GibbsMeasure.slawnyCube_eq_neg_six_subset, MeasureTheory.GibbsMeasure.localGroundEnergy_slawnyCube, MeasureTheory.GibbsMeasure.pairwise_disjoint_faceRestrict_slawnyG, MeasureTheory.GibbsMeasure.slawnyLayerFlip, MeasureTheory.GibbsMeasure.isPhiSymmetric_slawnyG, MeasureTheory.GibbsMeasure.isPStablePartition_slawnyG, MeasureTheory.GibbsMeasure.isCubeConfining_slawnyCube}
+    \leanok
+
+    In three dimensions with the plane $P = \{0,1\}$: the interaction (18.39) is minimal iff each
+    face of the cube carries an even number of $+1$ spins; if two vertically adjacent spins agree
+    at one site of a ground state they agree everywhere, so the ground states split into the two
+    patterns $G_1, G_2$, which are $P$-stable although their projections on the top and bottom
+    faces coincide, and are exchanged by the layer flip $\omega \mapsto ((-1)^{i_3}\omega_i)$; the
+    interaction is bounded, hence confining. The conclusion of Georgii and (18.40)--(18.41) are not
+    formalised: they need Theorem (18.25) and \S18.1 in dimension $d \geq 3$ with the plane $P$,
+    whereas the tree's ocean part and (18.25) are two-dimensional; the model-level input is complete.
 \end{example}

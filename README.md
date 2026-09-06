@@ -623,9 +623,14 @@ ocean of its own pattern almost surely, with Georgii's invariance and transport 
 and the antiferromagnet in a field (`Model/IsingOceans.lean`), the Gertsik–Dobrushin model in its
 four cases (`Model/GertsikDobrushin.lean`), the Potts model (`Model/PottsOceans.lean`) and the
 anisotropic Heisenberg ferromagnet (`Model/AnisotropicHeisenbergOceans.lean`) as instances of
-(18.25), each with its ground states computed and Georgii's counts of extreme Gibbs measures. Open:
-the count for a proper subgroup `Θ̃`, 18.3.4 (hard-core interactions take the value `+∞`), and
-18.3.7–18.3.10.
+(18.25), each with its ground states computed and Georgii's counts of extreme Gibbs measures; also
+the anisotropic antiferromagnet in a field (`Model/AnisotropicAntiferroOceans.lean`, where Georgii's
+`|h| < 2` is insufficient for `α > 0` and the right hypothesis `h² < 4(1−α²)` is proved with the
+counterexample), Shlosman's rotor (`Model/ShlosmanRotorOceans.lean`), double wells with the
+confining condition of (17.18)(iv) (`Model/DoubleWellOceans.lean`), and the ground states and stable
+partition of Slawny's `□`-model in three dimensions (`Model/SlawnyModel.lean`). Open: the count for a
+proper subgroup `Θ̃`, 18.3.4 (hard-core interactions take the value `+∞`), the transverse-field rotor
+(18.35), and the conclusion of 18.3.10, which needs §18.1 in dimension 3.
 
 **Chapter 19, §19.1** (`GibbsMeasure/Specification/ResolvingPerturbations.lean`,
 `Model/GroundStateRefinement.lean`, `Model/BlumeCapel.lean`): the essential infimum of the cube
@@ -918,8 +923,8 @@ continuity of the second derivative asserted in (8.37)/(16.17); in (12.31)(b) th
 `𝒢_Θ` clause of (13.42) and the representation `𝒢(γ^{J,h}) = {μ_C * ν}`; Georgii's closure bound in
 (15.46) for a non-convex `C` over an infinite state space, Cramér's formula at `Φ = 0`, and
 (15.57)–(15.58) beyond the subgradient uniqueness; the criterion of (16.24)(3), (16.24)(4), (16.25)(2),
-(16.26)–(16.27); the Berg–Maserick converse (17.28)(1), cited without proof; 18.3.4 and 18.3.7–18.3.10 and the
-count for a proper subgroup in (18.25); Theorem (19.6) with (19.9)–(19.10) and §19.2–19.3; and the second half
+(16.26)–(16.27); the Berg–Maserick converse (17.28)(1), cited without proof; 18.3.4, (18.35), the conclusion of 18.3.10
+and the count for a proper subgroup in (18.25); Theorem (19.6) with (19.9)–(19.10) and §19.2–19.3; and the second half
 of (20.7) with the infrared bound (20.11) onwards.
 
 ### Code organisation
