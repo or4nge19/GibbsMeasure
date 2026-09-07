@@ -219,7 +219,10 @@ theorem georgii_3_5_markovChain (P : E → E → ℝ) (hpos : ∀ x y, 0 < P x y
       fun a n x => ?_, fun ν => ?_⟩
     · have hab : a ≤ a + (n : ℤ) := by omega
       have hcyl : cylinder a (a + (n : ℤ)) x
-          = {τ : ℤ → E | ∀ k ∈ Finset.Icc a (a + (n : ℤ)), τ k = x k} := rfl
+          = MeasureTheory.GibbsMeasure.cyl (Finset.Icc a (a + (n : ℤ))) x := by
+        ext τ
+        rw [MeasureTheory.GibbsMeasure.mem_cyl]
+        simp only [cylinder, Set.mem_setOf_eq]
       rw [hcyl, MeasureTheory.GibbsMeasure.Markov.markovChain_cylinder
         (Bridge.toMatrix P) hQ hQpos hab x]
       congr 1
