@@ -39,7 +39,8 @@ The workflow runs on every push to `mc3` and `main` and judges every `Comparator
 adding an entry needs no workflow change. Latest recorded pass:
 [run 33340000915](https://github.com/or4nge19/GibbsMeasure/actions/runs/33340000915) (2026-08-30),
 `comparator accepted all 11 entries` — the eleven entries then present, at the statements then
-present; `DeFinetti` and the strengthened `OneDim` statements postdate it.
+present; `DeFinetti` and the strengthened `OneDim` statements postdate it. The library now extends
+through Georgii Chapter 20; Comparator still tests twelve Ch. 1–8 milestones only.
 
 ## What is and is not claimed
 

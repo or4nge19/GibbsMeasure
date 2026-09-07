@@ -559,13 +559,13 @@ and **Example (15.50)–(15.51)**, the large-deviation asymptotics of the spatia
 observable (`Specification/LargeDeviationsCorollaries.lean`); the finiteness of the rate function
 that Georgii asserts without proof is a hypothesis there. **Cramér's formula at `Φ = 0`**: the pressure of a self-potential is `log λ(e^{tf})`, so
 (15.51) is the classical Cramér theorem for the i.i.d. field, now over a standard Borel state space.
-**(15.57)–(15.58), equivalence of ensembles** (`Specification/EquivalenceOfEnsembles.lean`): the
-microcanonical distributions are eventually well defined, their cluster points in the local topology
-exist and lie in `𝒢_Θ(Φ − t·Ψ)` for the unique `t` given by the subgradient of the rate function on
-the minimisers, whose existence on the interior of the domain is proved (Georgii's citation of
-Rockafellar) and whose uniqueness comes from the strictly convex pressure. Open in §15.5: only
-Georgii's own unproved finiteness of the rate function on `]a⁻_f, a⁺_f[`, and his Step 3 of (15.46)
-for non-convex `C` over an infinite state space.
+**(15.57)–(15.58), equivalence of ensembles** (`Specification/EquivalenceOfEnsembles.lean`; not yet
+imported from `GibbsMeasure.lean`): the microcanonical distributions are eventually well defined,
+their cluster points in the local topology exist and lie in `𝒢_Θ(Φ − t·Ψ)` for the unique `t` given
+by the subgradient of the rate function on the minimisers, whose existence on the interior of the
+domain is proved (Georgii's citation of Rockafellar) and whose uniqueness comes from the strictly
+convex pressure. Open in §15.5: only Georgii's own unproved finiteness of the rate function on
+`]a⁻_f, a⁺_f[`, and his Step 3 of (15.46) for non-convex `C` over an infinite state space.
 
 **Chapter 17** (`GibbsMeasure/Specification/ReflectionPositivity.lean`,
 `Specification/PeriodicGibbs.lean`): reflection positivity for Georgii's generalised reflection,
@@ -625,7 +625,8 @@ the group `T_{C,λ}` (18.20)–(18.21), Remark (18.22) (every member of `𝒢₀
 symmetry of `Φ`), stable partitions (18.23), the inclusion (18.24), and **Theorem (18.25)** in the
 plane: for `4z(t(G_ε(Φ),βΦ)) < 1` there are `N` mutually singular Gibbs measures, each carrying an
 ocean of its own pattern almost surely, with Georgii's invariance and transport properties; the count
-`N ≤ |ex 𝒢_Θ̃(βΦ)|` is proved when all `G_n` are `r`-symmetric. **§18.3**: the Ising ferromagnet
+`N ≤ |ex 𝒢_Θ̃(βΦ)|` is proved for a proper subgroup `Θ̃` of the shifts
+(`InvariantDecompositionSubgroup.lean`) and when all `G_n` are `r`-symmetric. **§18.3**: the Ising ferromagnet
 and the antiferromagnet in a field (`Model/IsingOceans.lean`), the Gertsik–Dobrushin model in its
 four cases (`Model/GertsikDobrushin.lean`), the Potts model (`Model/PottsOceans.lean`) and the
 anisotropic Heisenberg ferromagnet (`Model/AnisotropicHeisenbergOceans.lean`) as instances of
@@ -634,13 +635,13 @@ the anisotropic antiferromagnet in a field (`Model/AnisotropicAntiferroOceans.le
 `|h| < 2` is insufficient for `α > 0` and the right hypothesis `h² < 4(1−α²)` is proved with the
 counterexample), Shlosman's rotor (`Model/ShlosmanRotorOceans.lean`), double wells with the
 confining condition of (17.18)(iv) (`Model/DoubleWellOceans.lean`), and the ground states and stable
-partition of Slawny's `□`-model in three dimensions (`Model/SlawnyModel.lean`). Open: the count for a
-proper subgroup `Θ̃`, 18.3.4 (hard-core interactions take the value `+∞`), and the conclusion of
-18.3.10, which needs §18.1 in dimension 3. The transverse-field rotor (18.35)
-(`Model/TransverseFieldRotorOceans.lean`) has its two staggered tilted ground states computed by an
-exact sum-of-squares identity in place of Georgii's Lagrange multipliers, on the unit sphere of any
-finite-dimensional inner product space with an orthonormal pair, for `−1 < α ≤ 1`; his hypotheses are
-sharp and need no erratum, and (18.25) gives `|ex 𝒢(βΦ)| ≥ 2` with his invariances.
+partition of Slawny's `□`-model in three dimensions (`Model/SlawnyModel.lean`). Open: 18.3.4 (hard-core
+interactions take the value `+∞`), and the conclusion of 18.3.10, which needs §18.1 in dimension 3.
+The transverse-field rotor (18.35) (`Model/TransverseFieldRotorOceans.lean`; not yet imported) has its
+two staggered tilted ground states computed by an exact sum-of-squares identity in place of Georgii's
+Lagrange multipliers, on the unit sphere of any finite-dimensional inner product space with an
+orthonormal pair, for `−1 < α ≤ 1`; his hypotheses are sharp and need no erratum, and (18.25) gives
+`|ex 𝒢(βΦ)| ≥ 2` with his invariances.
 
 **Chapter 19, §19.1** (`GibbsMeasure/Specification/ResolvingPerturbations.lean`,
 `Model/GroundStateRefinement.lean`, `Model/BlumeCapel.lean`): the essential infimum of the cube
@@ -657,11 +658,12 @@ Propositions (19.13)–(19.15) and **Theorem (19.6)** as Georgii states it, with
 **The conclusion of (19.8)**, `|ex 𝒢_Θ(βΦ + βh(β)Φ¹)| ≥ 3`
 (`eventually_three_le_encard_extremePoints_blumeCapel`): Theorem (19.6) on `{G_1, G_2}` followed by
 (19.7) splitting the second phase along the spin flip. **§19.3.1, Theorem (19.16)**
-(`Model/EntropyEnergyConflict.lean`): competing potential wells under Georgii's assumption (A) and
-(19.17)–(19.18) give `N+1` mutually singular shift-invariant Gibbs measures at some `β* ∈ [β₀, β₁]` and
-field `h*`, with `|ex 𝒢_Θ| ≥ N+1`; since `t` and `t̃` of Comment (18.11) are incomparable, (19.14) is
-proved for an arbitrary Peierls weight and applied to `t ∧ t̃`. Open: (19.9)–(19.10), Examples
-(19.19)–(19.20), §19.3.2.
+(`Model/EntropyEnergyConflict.lean`; not yet imported): competing potential wells under Georgii's
+assumption (A) and (19.17)–(19.18) give `N+1` mutually singular shift-invariant Gibbs measures at
+some `β* ∈ [β₀, β₁]` and field `h*`, with `|ex 𝒢_Θ| ≥ N+1`; since `t` and `t̃` of Comment (18.11) are
+incomparable, (19.14) is proved for an arbitrary Peierls weight and applied to `t ∧ t̃`. **§19.3.2**
+(`Model/PottsLargeStateSpace.lean`; not yet imported): Lemma (19.24), Lemma (19.25) and Theorem
+(19.23). Open: (19.9)–(19.10), Examples (19.19)–(19.20).
 
 **Chapter 20, §20.1** (`GibbsMeasure/Specification/InfraredBound.lean`): the preliminaries of the
 infrared bound on the torus — the tail estimate (20.6) for the periodic Gibbs distribution of a
@@ -685,13 +687,14 @@ the coupling (`Specification/InfraredBoundFourier.lean`). **Proposition (20.7)**
 (`Specification/HeisenbergExistence.lean`), Georgii's density bound on `Ω_t` read off (17.24) by
 resampling the block, uniformly in the cube, with (4.12) in a measure-domination form; and
 `𝒢₀(Φ) ⊆ 𝒢(Φ)` (`Specification/HeisenbergGibbsInclusion.lean`) by (4.19) in an elementary two-kernel
-form on `Ω_t` and Georgii's ε-assembly; (20.11) and the first half of (20.12), the correlation
-transform being a sum of squares (`Specification/InfraredBoundCorrelation.lean`). **§20.2**: Lemma (20.13)
-(`Specification/GaussianDomination.lean`) as the predicate `IsGaussianDominating` on the tilted a priori
-measure, equivalent to Georgii's `°γ(f(ζ,·)) ≤ 1`, proved in his first case (tilted measure equivalent
-to Lebesgue measure) by the chessboard estimate; (20.14) from the sub-Gaussian bound along the ray,
-and the **upper half of (20.12)** (`Specification/InfraredBoundTheorem.lean`) from the two Fourier
-identities on `G_Λ`. Open: (20.13) for a general finite a priori measure (the sphere) and Theorem (20.15).
+form on `Ω_t` and Georgii's ε-assembly; (20.11) and **(20.12)** (`Specification/InfraredBoundCorrelation.lean`,
+`Specification/InfraredBoundTheorem.lean`), the correlation transform being a sum of squares and
+Georgii's infrared bound. **§20.2**: Lemma (20.13) (`Specification/GaussianDomination.lean`) as the
+predicate `IsGaussianDominating` on the tilted a priori measure, equivalent to Georgii's
+`°γ(f(ζ,·)) ≤ 1`, proved for tilted measure equivalent to Lebesgue measure by the chessboard estimate
+and then for every finite `λ` with (20.3) by mollification (surface measure on the sphere included);
+(20.14) from the sub-Gaussian bound along the ray. **Theorem (20.15)**
+(`Specification/SpontaneousMagnetization.lean`; not yet imported; (20.19) still an input).
 
 **Chapter 16** normalises the a priori measure to a probability measure throughout, where Georgii
 assumes only that it is finite; the two differ by an additive `log λ(E)` in the pressure and the
@@ -866,17 +869,19 @@ Gauss fields is a Gauss field; every extreme Gibbs measure of `γ^{J,h}` is a Ga
 bijection with the mean set `M_{J,h}` and is uncountable (Remark (13.23)(d)), and Theorem (13.26)
 holds in both directions. Hence **(13.36) in both directions** and (13.43) with uncountably many
 *extreme* Gibbs measures for the harmonic crystal in `d ≥ 3` (`Model/GaussianHomogeneousExtreme.lean`).
-**Remark (13.39)** in both parts (`Model/GaussianHomogeneousMeanSet.lean`): a finitely supported
-`J ≠ 0` has a non-vanishing moment, which puts `−h μ_n⁻¹ iⁿ` in the mean set, and for `J(i) ≠ 0` at some
-`i ≠ 0` the Laurent transform has a root in `(ℂ∖0)^d` (`Mathlib/Analysis/Complex/MultivariateLaurentRoot.lean`),
-whose character's real part is a non-zero, generally unbounded, element of `M_{J,0}`, so `M_{J,h}` is
-uncountable; the **`𝒢_Θ` clause of (13.42)** (`Model/GaussianShiftInvariance.lean`: a centred Gauss field
-is shift-invariant iff its covariance is homogeneous); the **representation
-`𝒢(γ^{J,h}) = {μ_C * ν : ν(M_{J,h}) = 1}`** (`Model/GaussianConvolution.lean`, mixtures of translates are
-Gibbs and (7.26) transported along the measurable mean map); and **(13.43) complete**, `𝒢 = ∅` for
-`d ≤ 2` (`Model/GaussianHarmonicCrystalLowDim.lean`). Open: (13.40), (13.41) for a general `J` under
-the logarithmic condition, and (13.44)–(13.45), whose infinite-range specification (13.18) is not defined
-in the tree.
+**Remark (13.39)** in both parts (`Model/GaussianHomogeneousMeanSet.lean`; not yet imported): a
+finitely supported `J ≠ 0` has a non-vanishing moment, which puts `−h μ_n⁻¹ iⁿ` in the mean set, and
+for `J(i) ≠ 0` at some `i ≠ 0` the Laurent transform has a root in `(ℂ∖0)^d`
+(`Mathlib/Analysis/Complex/MultivariateLaurentRoot.lean`), whose character's real part is a non-zero,
+generally unbounded, element of `M_{J,0}`, so `M_{J,h}` is uncountable; the **`𝒢_Θ` clause of
+(13.42)** (`Model/GaussianShiftInvariance.lean`: a centred Gauss field is shift-invariant iff its
+covariance is homogeneous); the **representation `𝒢(γ^{J,h}) = {μ_C * ν : ν(M_{J,h}) = 1}`**
+(`Model/GaussianConvolution.lean`, mixtures of translates are Gibbs and (7.26) transported along the
+measurable mean map); and **(13.43) complete**, `𝒢 = ∅` for `d ≤ 2`
+(`Model/GaussianHarmonicCrystalLowDim.lean`). **(13.18)** (infinite-range coupling) is
+`Model/GaussianInfiniteRange.lean` and **(13.41)** is `Model/GaussianLowDimNonexistence.lean` — both
+not yet imported; **(13.40)** is partial in `Model/GaussianHomogeneousUniqueness.lean`. Open: (13.40)
+in full, (13.44)–(13.45).
 
 **§9.2, Mermin–Wagner** (`GibbsMeasure/Model/MerminWagner.lean`): **Theorem (9.20)** — for a
 pair potential on a site set with a planar norm (ℤ² with the maximum norm the instance), any real
@@ -970,12 +975,14 @@ Gibbs measure is unique ((6.7)(2)); **(6.7)(1)**: `𝒢(βΦ) = [μ₋^β, μ₊
 neighbouring spins has a unique infinite component almost surely under every Gibbs measure.
 
 Not yet done: the Fréchet forms of the continuous differentiability in (8.37) and of the twice-continuous
-differentiability in (16.17), both proved along every line of `𝒟`; in (12.31)(b) the
-extremality of `μ_#` in `𝒢_{I(B)}` (step 5); (13.40), (13.41) for a general `J` under the logarithmic
-condition, and (13.44)–(13.45), whose infinite-range specification (13.18) is not defined in the tree; Georgii's closure bound in
-(15.46) for a non-convex `C` over an infinite state space; the cone description of `ℬ⁻_Θ(σ₀)` in (16.25)(2)
-and (16.26)–(16.27); the Berg–Maserick converse (17.28)(1), cited without proof; 18.3.4, the conclusion of 18.3.10
-and the count for a proper subgroup in (18.25); (19.9)–(19.10), Examples (19.19)–(19.20) and §19.3.2; (20.13) for a general a priori measure and Theorem (20.15).
+differentiability in (16.17), both proved along every line of `𝒟`; in (12.31)(b) the extremality of
+`μ_#` in `𝒢_{I(B)}` (step 5; `Model/TreeMarkovChainMixing.lean`, not yet imported); (13.40) in full
+and (13.44)–(13.45); Georgii's closure bound in (15.46) for a non-convex `C` over an infinite state
+space; the cone description of `ℬ⁻_Θ(σ₀)` in (16.25)(2) and (16.26)–(16.27); the Berg–Maserick
+converse (17.28)(1), cited without proof; 18.3.4 and the conclusion of 18.3.10; (19.9)–(19.10),
+Examples (19.19)–(19.20); discharge of (20.19) for nearest-neighbour `J` in (20.15). Several later
+results are formalised but not yet imported from `GibbsMeasure.lean` — see the file paths marked
+above.
 
 ### Code organisation
 

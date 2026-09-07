@@ -7,12 +7,13 @@ project:
     A formalization of the theory of Gibbs measures on infinite-volume lattice systems following
     Georgii, Gibbs Measures and Phase Transitions (2nd ed.). Specifications and the DLR equations;
     the Gibbs representation theorem (2.30); existence, compactness and semicontinuity of the set
-    of Gibbs measures over the Frechet space of absolutely summable potentials (4.22)-(4.23); the
+    of Gibbs measures over the Fréchet space of absolutely summable potentials (4.22)–(4.23); the
     extreme decomposition, tail triviality and the simplex structure (7.7), (7.12), (7.26),
-    (7.28)-(7.30); transformations and invariant Gibbs measures (Chapter 5); Dobrushin's
-    uniqueness theory including the comparison theorem (8.20) and (8.7)-(8.8); the one-dimensional
-    Markov chain classification (3.5); and the two-dimensional Ising phase transition (6.9) in
-    both of its assertions, giving two-sided bounds on the critical temperature.
+    (7.28)–(7.30); transformations and invariant Gibbs measures (Chapter 5); Dobrushin's
+    uniqueness theory including the comparison theorem (8.20) and (8.7)–(8.8); the one-dimensional
+    Markov chain classification (3.5); the two-dimensional Ising phase transition (6.9); and, through
+    Chapter 20, reflection positivity, low-energy oceans, resolving perturbations, and the infrared
+    bound.
   authors:
     - "Matteo Cipollina"        # project lead: mathematical direction, architecture, review, integration
     - "Yael Dillies"            # original specification/DLR core (Chapters 1-2)
@@ -25,7 +26,7 @@ sources:
     authors: ["Hans-Otto Georgii"]
     id: "ISBN 978-3-11-025029-9; de Gruyter Studies in Mathematics 9"
     type: "book"
-    location: "Chapters 1-8 (principally 2.30, 2.33-2.34, 3.5, 4.15-4.23, 5.1-5.21, 6.9, 7.7-7.31, 8.5-8.23, 8.38-8.42); 9.1-9.16; 10.2-10.11; 11.1-11.10; 14.1-14.25; 15.1-15.11"
+    location: "Chapters 1-20 (see status.scope and per-chapter entries)"
     relationship: "formalizes"
     author_endorsement: "not-contacted"
 
@@ -43,27 +44,24 @@ classification:
 
 status:
   scope: >-
-    Georgii Chapters 1-14 complete for the results listed under main_results and in the per-chapter
-    entries (the few exceptions are named there: the Frechet form of the continuous
-    differentiability asserted in (8.37), the extremality of mu_# in
-    G_{I(B)} in (12.31)(b) (step 5), (13.40), (13.41) for a general J under the logarithmic
-    condition, and (13.44)-(13.45)). Chapter 15 complete through Theorem (15.45), the upper bound (15.46) over a
-    finite state space and the lower bound (15.47) over any; open: (15.46) for standard Borel E,
-    the periodic-boundary-condition inequalities of (15.48), (15.50)-(15.51), (15.57)-(15.58).
-    Chapter 16: Sections 16.1-16.2 complete; Section 16.3 through (16.25) and (16.28)-(16.31), open the
-    cone description in (16.25)(2) and (16.26)-(16.27). Chapter 17 complete except the
-    Berg-Maserick converse (17.28)(1), which Georgii cites without proof. Chapter 18: Section 18.1 in full
-    ((18.16)-(18.19)), Section 18.2 in full (Theorem (18.25)), Section 18.3 examples 18.3.1-18.3.3,
-    18.3.5-18.3.9 and the ground states and stable partition of 18.3.10; open 18.3.4 (hard-core
-    interactions), the conclusion of 18.3.10 (needs Section 18.1 in dimension 3) and the count for
-    a proper subgroup in (18.25). Chapter 19: Section 19.1 through (19.5),
-    (19.7) and (19.8); Section 19.2 through Theorem (19.6) with Sperner's lemma and the KKM
-    lemma; Section 19.3.1 Theorem (19.16); open (19.9)-(19.10), Examples (19.19)-(19.20) and
-    Subsection 19.3.2.
+    Georgii Chapters 1-20 in the import graph from GibbsMeasure.lean (zero sorry in GibbsMeasure/).
+    The few exceptions are named in the per-chapter entries and below: the Fréchet form of the
+    continuous differentiability asserted in (8.37); the extremality of mu_# in G_{I(B)} in (12.31)(b)
+    (step 5); (13.40) in full and (13.44)-(13.45). Chapter 15: through (15.48), (15.50)-(15.51) and
+    Cramér at Phi=0; (15.57)-(15.58) in EquivalenceOfEnsembles.lean, not yet imported; open (15.46)
+    for non-convex C over an infinite state space. Chapter 16: Sections 16.1-16.2 complete; Section
+    16.3 through (16.25) and (16.28)-(16.31), with (16.24)(3)-(4) and the conclusion of (16.25)(2);
+    open the cone description in (16.25)(2) and (16.26)-(16.27). Chapter 17 complete except the
+    Berg-Maserick converse (17.28)(1), which Georgii cites without proof. Chapter 18: Section 18.1 in
+    full ((18.16)-(18.19)), Section 18.2 in full including the count for a proper subgroup in (18.25),
+    Section 18.3 examples 18.3.1-18.3.3, 18.3.5-18.3.9 and the ground states and stable partition of
+    18.3.10; (18.35) in TransverseFieldRotorOceans.lean, not yet imported; open 18.3.4 (hard-core
+    interactions) and the conclusion of 18.3.10 (needs Section 18.1 in dimension 3). Chapter 19:
+    Section 19.1 through (19.5), (19.7) and (19.8); Section 19.2 through Theorem (19.6); (19.16) and
+    (19.23)-(19.25) in Model files, not yet imported; open (19.9)-(19.10) and Examples (19.19)-(19.20).
     Chapter 20: Section 20.1 ((20.5), (20.6) as stated, (20.8)), Georgii's computation (17.24),
-    (20.9)-(20.11), Proposition (20.7) in full, (20.12) in full, Lemma (20.13) for an a priori measure equivalent to
-    Lebesgue measure, (20.14); open (20.13) for a general finite a priori measure (Georgii's
-    approximation steps) and Theorem (20.15).
+    (20.9)-(20.11), Proposition (20.7) in full, (20.12) in full, Lemma (20.13) for every finite a
+    priori measure with (20.3), (20.14); (20.15) in SpontaneousMagnetization.lean, not yet imported.
   sorry_count: 0
   sorry_in_definitions: 0
   axioms: ["propext", "Classical.choice", "Quot.sound"]
@@ -1469,9 +1467,9 @@ alignment:
         form and the value 1 at constant zeta; (20.14) from the sub-Gaussian bound along the ray
         t zeta instead of differentiating under the integral (so (20.6)(i) is not needed); the upper
         half of (20.12) from the two Fourier identities on G_Lambda, with J^(z) <= J^(1) as a
-        by-product and Georgii's N >= 1 explicit in the division form. Not formalized: (20.13) for a
-        general finite a priori measure (Georgii's three approximation steps; the sphere), and
-        Theorem (20.15).
+        by-product and Georgii's N >= 1 explicit in the division form. (20.13) for every finite lambda
+        with (20.3) (isGaussianDominating; mollification). Theorem (20.15) in
+        Specification/SpontaneousMagnetization.lean, not imported; (20.19) still an input.
     - source: "Section 18.1: (18.1)-(18.3), (18.8)-(18.10)"
       lean: "MeasureTheory.GibbsMeasure.periodicGibbsDist_forall_notMem_torusPattern_le_patternWeight"
       module: "GibbsMeasure/Specification/PatternPercolation.lean"
@@ -1585,9 +1583,8 @@ alignment:
         lambda-preserving cube transformation exchanging G_{2,1} and G_{2,2}. Since (19.7) uses only
         (18.23)(a)(ii) while IsPStablePartition bundles (a)(i), the refinement is recorded as a
         stable partition of the local ground states of Phi - Phi^1 (the member h = -1 of (19.2)).
-        Not formalized: Examples (19.9)-(19.10), Section 19.3 beyond Theorem (19.16), and
-        Bricmont-Slawny's uniqueness
-        for the unperturbed potential, quoted without proof.
+        Not formalized: Examples (19.9)-(19.10). (19.16), (19.23)-(19.25), (19.19) in
+        EntropyEnergyConflict.lean, PottsLargeStateSpace.lean, SelfPotentialWells.lean — not imported.
     - source: "Section 19.3.1: Theorem (19.16)"
       lean: "MeasureTheory.GibbsMeasure.exists_gibbsMeasure_family_isCompetingWells"
       module: "GibbsMeasure/Model/EntropyEnergyConflict.lean"
@@ -1604,7 +1601,7 @@ alignment:
         proved for an arbitrary Peierls weight (satisfying (18.10), (18.9)(3) and the confinement
         bound of (18.12)) and applied to min(t, t~); Remark (18.9)(3) for t~ has the constant
         e^{2 eta}. Georgii's 1/4 is 1/|C|, his lambda(E) is 1, and (19.17) forces a + c < b, which
-        he leaves implicit. Not formalized: Examples (19.19)-(19.20), Subsection 19.3.2.
+        he leaves implicit. Not imported. Examples (19.19)-(19.20), Subsection 19.3.2 in separate files.
     - source: "Section 18.3: 18.3.1-18.3.3, 18.3.5-18.3.6"
       lean: "MeasureTheory.GibbsMeasure.eventually_two_le_encard_extremePoints_isingFerro"
       module: "GibbsMeasure/Model/IsingOceans.lean"
@@ -1668,8 +1665,8 @@ alignment:
         (the members of a stable partition are not r-symmetric), (7.7)(b) and the transfer of
         invariance to conditional measures. The count N <= |ex G_{Theta~}(beta Phi)| is proved for
         Theta~ = Theta (all G_n r-symmetric) from (14.18) and the linear independence of measures
-        separated by disjoint events; for a proper finite-index subgroup it needs the kernel of the
-        remark below (14.18), not in the tree. N > 1 is not required. Not formalized: Section 18.3.
+        separated by disjoint events; for a proper finite-index subgroup via
+        InvariantDecompositionSubgroup.lean (remark below (14.18)). N > 1 is not required.
     - source: "Section 18.1: (18.4)-(18.7), (18.13)-(18.15)"
       lean: "MeasureTheory.GibbsMeasure.Peierls.le_measure_forall_mem_infiniteClusters"
       module: "GibbsMeasure/Model/StarCrossing.lean"
@@ -1930,8 +1927,8 @@ alignment:
         the existence of a subgradient on D° from the convexity of the sublevel sets and the
         supremum-of-affine form (Mathlib/Probability/LargeDeviations/Legendre.lean), its constancy
         on the minimisers by Georgii's midpoint computation, uniqueness from
-        Mathlib/Analysis/Convex/StrictConvexSubgradient.lean. Not yet proved: nothing of
-        (15.48)-(15.58) beyond Georgii's own unproved finiteness of J on ]a^-, a^+[.
+        Mathlib/Analysis/Convex/StrictConvexSubgradient.lean. Not imported from GibbsMeasure.lean.
+        Open: Georgii's unproved finiteness of J on ]a^-, a^+[; (15.46) for non-convex C over infinite E.
         Throughout, the a priori measure is a
         probability measure where Georgii assumes only a finite one.
     - source: "Section 12.2: (12.19)-(12.35)"
@@ -2343,10 +2340,11 @@ alignment:
         (7.26) transported along the measurable mean map. (13.43) complete
         (Model/GaussianHarmonicCrystalLowDim.lean): J^(z_p) <= 2 pi^2 beta |p|^2 and |p|^{-2} is not
         integrable at 0 for d <= 2 (Mathlib/MeasureTheory/Integral/BallInvNormPow.lean), so G is
-        nonempty iff d >= 3. Not formalized: (13.40), (13.41) for a general J under the
-        logarithmic condition (Georgii's estimate near a root and the logarithmic refinement of
-        the divergence), (13.44)-(13.45), whose infinite-range specifications are not defined in
-        the tree (see the (13.18) entry).
+        nonempty iff d >= 3. (13.39)-(13.43), (13.42) Theta clause, and (13.24) convolution form are
+        in Model/GaussianHomogeneousMeanSet.lean, GaussianShiftInvariance.lean,
+        GaussianConvolution.lean, GaussianHarmonicCrystalLowDim.lean — not imported. (13.41) in
+        GaussianLowDimNonexistence.lean, (13.18) in GaussianInfiniteRange.lean — not imported.
+        Open in the library: (13.40) in full, (13.44)-(13.45).
     - source: "Section 13.2: (13.20), (13.22) sufficiency, (13.23), the closing step of (13.26)/(13.31)"
       lean: "MeasureTheory.GibbsMeasure.georgii_13_20"
       module: "GibbsMeasure/Model/GaussianGibbs.lean"
