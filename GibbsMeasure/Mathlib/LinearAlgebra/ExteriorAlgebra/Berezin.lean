@@ -16,18 +16,18 @@ import Mathlib.Tactic.LinearCombination
 /-!
 # The Berezin integral
 
-Let `M` be a free `R`-module with a basis `b : Basis ι R M` indexed by a finite linearly ordered
-type, so that `ExteriorAlgebra R M` is the Grassmann algebra on the generators `ι R (b i)`. Its
+Let `M` be a free `R`-module with a basis `b : Basis I R M` indexed by a finite linearly ordered
+type `I`, so that `ExteriorAlgebra R M` is the Grassmann algebra on the generators `ι R (b i)`. Its
 **Berezin integral** `berezin b : ExteriorAlgebra R M →ₗ[R] R` is the coefficient of the top
 monomial `b i₁ ∧ ⋯ ∧ b iₙ` (`i₁ < ⋯ < iₙ`) in Mathlib's basis `Module.Basis.ExteriorAlgebra`
 (the graded collection of the `Module.Basis.exteriorPower` bases). Integration is coefficient
-extraction; the order on `ι` fixes the sign of the top monomial.
+extraction; the order on `I` fixes the sign of the top monomial.
 
 ## Main results
 
-* `berezin_eq_zero_of_mem_exteriorPower`: `∫` vanishes on every degree other than `card ι`
-  (in particular on odd elements when the rank is even); `eq_zero_of_mem_exteriorPower`:
-  `⋀ⁿ M = 0` above the rank.
+* `berezin_eq_zero_of_mem_exteriorPower`: `∫` vanishes on every degree other than `card I` (so
+  elements of odd degree integrate to zero when the rank is even);
+  `eq_zero_of_mem_exteriorPower`: `⋀ⁿ M = 0` above the rank.
 * `berezin_ιMulti_comp`: the ordered product `v (e 0) ∧ ⋯ ∧ v (e (n-1))` integrates to the
   determinant `b.det v`.
 * `ι_mul_basis`, `contractLeft_basis`: the sign rules `ψⱼ b_s = ± b_{s ∪ {j}}` and
@@ -38,8 +38,9 @@ extraction; the order on `ι` fixes the sign of the top monomial.
 * `berezin_map`: a linear substitution `f` of the generators multiplies `∫` by `det_{b'} (f ∘ b)`;
   `berezin_eq_det_mul` is the change of basis.
 * `berezin_map_mul_map`: Berezin–Fubini, `∫ (x y) = ∫ x · ∫ y` for `x`, `y` in the subalgebras of
-  two consecutive blocks of generators; `berezin_map_mul_map_eq_star_mul` and
-  `berezin_map_mul_map_self_nonneg` are the reflected form `∫ Θ(ξ') ξ = (∫ ξ')⋆ ∫ ξ ≥ 0`.
+  two consecutive blocks of generators. For any map `Θ` from the upper to the lower block with
+  `∫ Θ ξ = (∫ ξ)⋆`, `berezin_map_mul_map_eq_star_mul` gives `∫ Θ(ξ') ξ = (∫ ξ')⋆ ∫ ξ` and
+  `berezin_map_mul_map_self_nonneg` gives `∫ Θ(ξ) ξ ≥ 0`.
 * `berezin_exp_gaussian`: the Gaussian Berezin integral `∫ exp (-∑ᵢⱼ Dᵢⱼ ψ̄ᵢ ψⱼ) = det D · b.det v`
   for generator pairs `ψᵢ = v (i, 0)`, `ψ̄ᵢ = v (i, 1)`; with `v = b`, `berezin_exp_gaussian_self`
   gives `det D`. The division-free form is `berezin_gaussian_pow_card`
