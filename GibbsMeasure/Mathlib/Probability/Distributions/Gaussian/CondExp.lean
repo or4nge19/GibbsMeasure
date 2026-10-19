@@ -110,7 +110,7 @@ theorem IsGaussianProcess.exists_condExp_eq_affine
   classical
   have hP : IsProbabilityMeasure P := hXY.isProbabilityMeasure
   have hm : MeasurableSpace.comap (fun ω i ↦ Y i ω) MeasurableSpace.pi ≤ mΩ :=
-    (measurable_pi_lambda _ hY).comap_le
+    (Measurable.of_eval hY).comap_le
   have hYm : ∀ i, Measurable[MeasurableSpace.comap (fun ω i ↦ Y i ω) MeasurableSpace.pi] (Y i) :=
     fun i ↦ (measurable_pi_apply (a := i)).comp
       (comap_measurable (m := MeasurableSpace.pi) (fun ω i ↦ Y i ω))

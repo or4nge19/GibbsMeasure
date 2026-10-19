@@ -468,7 +468,7 @@ theorem exists_measurable_cylinderEvents_sdiff_of_isQuasilocal [Nonempty E]
   set o : S → E := fun _ ↦ Classical.arbitrary E with ho
   set φ : (S → E) → (S → E) := fun ω i ↦ if i ∈ Λ then o i else ω i with hφ
   have hφmeas : Measurable φ := by
-    refine measurable_pi_lambda _ fun i ↦ ?_
+    refine Measurable.of_eval fun i ↦ ?_
     by_cases hi : i ∈ Λ
     · simpa only [hφ, hi, ↓reduceIte] using measurable_const
     · simpa only [hφ, hi, ↓reduceIte] using measurable_pi_apply i

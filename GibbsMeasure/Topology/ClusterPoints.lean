@@ -443,7 +443,7 @@ instance [Finite E] [MeasurableSingletonClass E] :
     set sec : ∀ Λ : Finset S, (Π _ : Λ, E) → (S → E) := fun Λ x j ↦
       if hj : j ∈ Λ then x ⟨j, hj⟩ else η₀ j with hsec
     have hsecmeas : ∀ Λ, Measurable (sec Λ) := fun Λ ↦
-      measurable_pi_lambda _ fun j ↦ by
+      Measurable.of_eval fun j ↦ by
         by_cases hj : j ∈ Λ
         · simpa [hsec, hj] using measurable_pi_apply (⟨j, hj⟩ : Λ)
         · simpa [hsec, hj] using measurable_const

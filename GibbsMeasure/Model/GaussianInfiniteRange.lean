@@ -540,7 +540,7 @@ theorem measurable_gaussianInfiniteRangeMeasure (J : S → S → ℝ) (h : S →
   refine Measure.measurable_of_measurable_coe _ fun A hA ↦ ?_
   have hjuxtm : Measurable fun p : (S → ℝ) × (Λ → ℝ) ↦
       juxt (Λ : Set S) p.1 (p.2 + gaussianMeanAux J h Λ p.1) := by
-    refine measurable_pi_lambda _ fun i ↦ ?_
+    refine Measurable.of_eval fun i ↦ ?_
     by_cases hi : i ∈ (Λ : Set S)
     · simp only [juxt_apply_of_mem hi, Pi.add_apply]
       exact ((measurable_pi_apply (⟨i, hi⟩ : Λ)).comp measurable_snd).add

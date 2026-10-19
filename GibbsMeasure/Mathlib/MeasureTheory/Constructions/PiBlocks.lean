@@ -38,7 +38,7 @@ variable {E ι κ J : Type*} [MeasurableSpace E] [Fintype ι] [Fintype κ] [Fint
 
 omit [Fintype ι] [Fintype κ] in
 lemma measurable_comp_right (g : ι → κ) : Measurable fun ω : κ → E ↦ ω ∘ g :=
-  measurable_pi_lambda _ fun i ↦ measurable_pi_apply (g i)
+  Measurable.of_eval fun i ↦ measurable_pi_apply (g i)
 
 section Injective
 
@@ -103,7 +103,7 @@ theorem map_curry_pi (J ι : Type*) [Fintype J] [Fintype ι] (ν : Measure E)
       = Measure.pi fun _ : J ↦ Measure.pi fun _ : ι ↦ ν := by
   classical
   have hmeas : Measurable fun x : J × ι → E ↦ fun j i ↦ x (j, i) :=
-    measurable_pi_lambda _ fun j ↦ measurable_pi_lambda _ fun i ↦ measurable_pi_apply (j, i)
+    Measurable.of_eval fun j ↦ Measurable.of_eval fun i ↦ measurable_pi_apply (j, i)
   -- the boxes of `(ι → E)` form a π-system generating its σ-algebra, and `ν^ι` is spanned by
   -- the constant sequence `univ`
   set C : Set (Set (ι → E)) :=
@@ -152,7 +152,7 @@ theorem measurePreserving_blocks (hg : Function.Injective fun p : J × ι ↦ g 
   have h₁ := measurePreserving_comp_pi_of_injective (κ := κ) (ι := J × ι) ν hg
   have h₂ : MeasurePreserving (fun x : J × ι → E ↦ fun j i ↦ x (j, i))
       (Measure.pi fun _ : J × ι ↦ ν) (Measure.pi fun _ : J ↦ Measure.pi fun _ : ι ↦ ν) :=
-    ⟨measurable_pi_lambda _ fun j ↦ measurable_pi_lambda _ fun i ↦ measurable_pi_apply (j, i),
+    ⟨Measurable.of_eval fun j ↦ Measurable.of_eval fun i ↦ measurable_pi_apply (j, i),
       map_curry_pi J ι ν⟩
   exact h₂.comp h₁
 

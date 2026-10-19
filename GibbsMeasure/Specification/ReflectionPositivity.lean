@@ -1541,10 +1541,10 @@ omit [MeasurableSpace E] in
     (i₀ : ZMod (2 * N)) : splitTail ω i₁ i₀ = ω (Fin.cons i₀ i₁) := rfl
 
 lemma measurable_splitHead : Measurable (splitHead (E := E) (N := N) (d := d)) :=
-  measurable_pi_lambda _ fun _ ↦ measurable_pi_lambda _ fun _ ↦ measurable_pi_apply _
+  Measurable.of_eval fun _ ↦ Measurable.of_eval fun _ ↦ measurable_pi_apply _
 
 lemma measurable_splitTail : Measurable (splitTail (E := E) (N := N) (d := d)) :=
-  measurable_pi_lambda _ fun _ ↦ measurable_pi_lambda _ fun _ ↦ measurable_pi_apply _
+  Measurable.of_eval fun _ ↦ Measurable.of_eval fun _ ↦ measurable_pi_apply _
 
 lemma abs_prod_le_pow_card {ι : Type*} [Fintype ι] {g : ι → ℝ} {C : ℝ} (hg : ∀ i, |g i| ≤ C) :
     |∏ i, g i| ≤ C ^ Fintype.card ι := by
@@ -1601,7 +1601,7 @@ lemma measurable_splitTail_cylinderEvents (k : Fin d) :
       (splitTail (E := E) (N := N) (d := d)) := by
   let : MeasurableSpace ((Fin (d + 1) → ZMod (2 * N)) → E) :=
     cylinderEvents (X := fun _ : Fin (d + 1) → ZMod (2 * N) ↦ E) (torusPosAt N k.succ)
-  refine measurable_cylinderEvents_iff.2 fun i₁ hi₁ ↦ measurable_pi_lambda _ fun i₀ ↦ ?_
+  refine measurable_cylinderEvents_iff.2 fun i₁ hi₁ ↦ Measurable.of_eval fun i₀ ↦ ?_
   exact measurable_cylinderEvent_apply (X := fun _ : Fin (d + 1) → ZMod (2 * N) ↦ E)
     (show Fin.cons i₀ i₁ ∈ torusPosAt N k.succ by simpa using hi₁)
 
@@ -1611,7 +1611,7 @@ lemma measurable_splitHead_cylinderEvents :
       (splitHead (E := E) (N := N) (d := d)) := by
   let : MeasurableSpace ((Fin (d + 1) → ZMod (2 * N)) → E) :=
     cylinderEvents (X := fun _ : Fin (d + 1) → ZMod (2 * N) ↦ E) (torusPosAt N 0)
-  refine measurable_cylinderEvents_iff.2 fun i₀ hi₀ ↦ measurable_pi_lambda _ fun i₁ ↦ ?_
+  refine measurable_cylinderEvents_iff.2 fun i₀ hi₀ ↦ Measurable.of_eval fun i₁ ↦ ?_
   exact measurable_cylinderEvent_apply (X := fun _ : Fin (d + 1) → ZMod (2 * N) ↦ E)
     (show Fin.cons i₀ i₁ ∈ torusPosAt N 0 by simpa [torusPos] using hi₀)
 

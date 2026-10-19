@@ -2259,7 +2259,7 @@ def boundaryCfg (i : ℤ) (n : ℕ) (x y : E) : ℤ → E := Function.update (fu
 omit [IsProbabilityMeasure ν] in
 lemma measurable_boundaryCfg (i : ℤ) (n : ℕ) :
     Measurable fun z : E × E ↦ boundaryCfg i n z.1 z.2 := by
-  refine measurable_pi_lambda _ fun j ↦ ?_
+  refine Measurable.of_eval fun j ↦ ?_
   by_cases hj : j = i + n
   · subst hj; simp only [boundaryCfg, Function.update_self]; exact measurable_snd
   · simp only [boundaryCfg, Function.update_of_ne hj]; exact measurable_fst

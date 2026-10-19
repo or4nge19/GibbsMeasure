@@ -1899,7 +1899,7 @@ lemma measurable_comp_cylinderEvents {S' : Type*} (g : S' → S) (V : Set S') :
 omit [DecidableEq S] [Countable E] [MeasurableSingletonClass E] in
 lemma measurable_comp_sites {S' : Type*} (g : S' → S) :
     Measurable fun ω : S → E ↦ ω ∘ g :=
-  measurable_pi_lambda _ fun i ↦ measurable_pi_apply (g i)
+  Measurable.of_eval fun i ↦ measurable_pi_apply (g i)
 
 omit [DecidableEq S] [Countable E] in
 /-- The transition matrices of the marginal `μ ∘ (ω ↦ ω ∘ g)⁻¹` are those of `μ` along `g`. -/

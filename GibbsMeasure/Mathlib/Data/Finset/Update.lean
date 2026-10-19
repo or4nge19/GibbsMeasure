@@ -174,7 +174,7 @@ variable {δ : Type*} {X : δ → Type*} [∀ i, MeasurableSpace (X i)] {u : Set
 @[fun_prop]
 theorem measurable_updateSet' :
     Measurable fun p : (∀ i, X i) × (∀ i : u, X i) ↦ updateSet p.1 u p.2 := by
-  refine measurable_pi_lambda _ fun i ↦ ?_
+  refine Measurable.of_eval fun i ↦ ?_
   by_cases hi : i ∈ u
   · simpa only [updateSet_apply_of_mem hi] using measurable_snd.eval
   · simpa only [updateSet_apply_of_notMem hi] using measurable_fst.eval

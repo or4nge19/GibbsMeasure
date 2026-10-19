@@ -920,7 +920,7 @@ lemma integrable_hamiltonian_juxt (Λ : Finset S) (ω : S → E) (μ : Measure (
   have hmeas : Measurable fun σ : S → E ↦ Φ.hamiltonian Λ (juxt (Λ : Set S) ω fun i ↦ σ i) :=
     (measurable_hamiltonian Λ).comp
       ((Measurable.juxt (Λ := (Λ : Set S)) (η := ω)).comp
-        (measurable_pi_lambda (fun (σ : S → E) (i : (Λ : Set S)) ↦ σ i)
+        (Measurable.of_eval (f := fun (σ : S → E) (i : (Λ : Set S)) ↦ σ i)
           fun i ↦ measurable_pi_apply (i : S)))
   exact Integrable.of_bound hmeas.aestronglyMeasurable _
     (.of_forall fun η ↦ by rw [Real.norm_eq_abs]; exact abs_hamiltonian_le Λ _)

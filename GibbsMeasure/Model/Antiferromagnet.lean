@@ -241,7 +241,7 @@ lemma altFill_map_addRight (Λ : Finset ℤ) (j : ℤ) (ω : ℤ → Bool) :
 lemma measurable_altFill (Λ : Finset ℤ) :
     Measurable[cylinderEvents (X := fun _ : ℤ ↦ Bool) ((Λ : Set ℤ)ᶜ)] (altFill Λ) := by
   let _ : MeasurableSpace (ℤ → Bool) := cylinderEvents (X := fun _ : ℤ ↦ Bool) ((Λ : Set ℤ)ᶜ)
-  refine measurable_pi_lambda _ fun j ↦ ?_
+  refine Measurable.of_eval fun j ↦ ?_
   have hj : runStart Λ j ∈ ((Λ : Set ℤ)ᶜ) := runStart_notMem Λ j
   have hproj : Measurable[cylinderEvents (X := fun _ : ℤ ↦ Bool) ((Λ : Set ℤ)ᶜ)]
       (fun ω : ℤ → Bool ↦ ω (runStart Λ j)) := measurable_cylinderEvent_apply hj

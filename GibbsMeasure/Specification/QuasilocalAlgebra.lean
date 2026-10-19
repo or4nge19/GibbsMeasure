@@ -231,7 +231,7 @@ theorem mem_quasilocalFunctions_of_tendsto_oscOutside
     · simp [hT, hi]
   have hTmeas : ∀ Λ : Finset S, Measurable (T Λ) := by
     intro Λ
-    refine measurable_pi_lambda _ fun i ↦ ?_
+    refine Measurable.of_eval fun i ↦ ?_
     by_cases hi : i ∈ Λ
     · simpa [hT, hi] using measurable_pi_apply (X := fun _ : S ↦ E) i
     · simp only [hT, hi, ite_false]

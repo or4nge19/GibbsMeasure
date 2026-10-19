@@ -812,7 +812,7 @@ lemma measurable_periodicJuxt_cylinderEvents {Λ : Finset (Fin d → ℤ)}
   rw [measurable_iff_comap_le,
     cylinderEvents_eq_comap_domRestrict (X := fun _ : Fin d → ℤ ↦ (Fin n → ℝ))
       (Λ : Set (Fin d → ℤ)), MeasurableSpace.comap_comp]
-  refine Measurable.comap_le (measurable_pi_lambda _ fun j ↦ ?_)
+  refine Measurable.comap_le (Measurable.of_eval fun j ↦ ?_)
   have hjΛ : (j : Fin d → ℤ) ∈ Λ := j.2
   have hjcube : (j : Fin d → ℤ) ∈ Potential.latticeBox d L := hΛ hjΛ
   have hjP : latticeToTorus L (j : Fin d → ℤ)

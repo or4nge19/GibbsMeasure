@@ -237,7 +237,7 @@ omit [MeasurableSpace E] in
     periodicPullback n ζ i = ζ (latticeToTorus n i) := rfl
 
 lemma measurable_periodicPullback : Measurable (periodicPullback (E := E) (d := d) n) :=
-  measurable_pi_lambda _ fun _ ↦ measurable_pi_apply _
+  Measurable.of_eval fun _ ↦ measurable_pi_apply _
 
 /-- **The periodic pullback intertwines the shifts** of the torus and of the lattice. -/
 lemma periodicPullback_shift (a : Fin d → ℤ) (ζ : (Fin d → ZMod (2 * (n + 1))) → E) :
@@ -266,7 +266,7 @@ omit [MeasurableSpace E] in
 
 lemma measurable_latticeCubeView :
     Measurable (latticeCubeView (E := E) (d := d)) :=
-  measurable_pi_lambda _ fun _ ↦ measurable_pi_lambda _ fun _ ↦ measurable_pi_apply _
+  Measurable.of_eval fun _ ↦ Measurable.of_eval fun _ ↦ measurable_pi_apply _
 
 variable (E) in
 /-- **Georgii (18.3).** `V(G, ω) = {i ∈ ℤ^d : (θ_{-i}ω)_C ∈ r^i G}`, the set of elementary
@@ -356,7 +356,7 @@ lemma periodicJuxt_apply_of_notMem {n : ℕ} {ω : (Fin d → ℤ) → E}
 
 lemma measurable_periodicJuxt (n : ℕ) (ω : (Fin d → ℤ) → E) :
     Measurable (periodicJuxt E n ω) :=
-  Measurable.juxt.comp (measurable_pi_lambda _ fun _ ↦ measurable_pi_apply _)
+  Measurable.juxt.comp (Measurable.of_eval fun _ ↦ measurable_pi_apply _)
 
 variable (E) in
 /-- **Georgii's `°γ_{Λ(N)}^Φ × δ_{ω}`** (Example (5.20)(3), §18.1): the Gibbs distribution in
@@ -441,8 +441,8 @@ lemma measurableSet_cylinderEvents_forall_notMem_latticePattern
   have hmap : Measurable[cylinderEvents (X := fun _ : Fin d → ℤ ↦ E) Δ]
       fun ω : (Fin d → ℤ) → E ↦ (fun i : ↥(D : Finset (Fin d → ℤ)) ↦ latticeCubeView ω i.1) := by
     refine Measurable.cylinderEvents_of_dependsOn ?_ ?_
-    · exact measurable_pi_lambda _ fun _ ↦
-        measurable_pi_lambda _ fun _ ↦ measurable_pi_apply _
+    · exact Measurable.of_eval fun _ ↦
+        Measurable.of_eval fun _ ↦ measurable_pi_apply _
     · intro x y hxy
       funext i c
       exact hxy _ (h i.1 i.2 c)
@@ -810,7 +810,7 @@ lemma isPotential_cubePotential (hφ : Measurable φ) :
   measurable A := by
     refine Measurable.cylinderEvents_of_dependsOn ?_ (dependsOn_cubePotential A)
     exact Finset.measurable_sum _ fun i _ ↦ hφ.comp
-      (measurable_pi_lambda _ fun _ ↦ measurable_pi_apply _)
+      (Measurable.of_eval fun _ ↦ measurable_pi_apply _)
 
 instance isFiniteRange_cubePotential :
     Potential.IsFiniteRange (cubePotential E φ) where
@@ -973,7 +973,7 @@ lemma isPotential_wrappedCubePotential (hφ : Measurable φ) :
       funext (wrappedCubePotential_apply A)
     rw [hfun]
     exact Finset.measurable_sum _ fun i _ ↦ hφ.comp
-      (measurable_pi_lambda _ fun _ ↦ measurable_pi_apply _)
+      (Measurable.of_eval fun _ ↦ measurable_pi_apply _)
 
 instance isFiniteRange_wrappedCubePotential :
     Potential.IsFiniteRange (wrappedCubePotential E φ n) :=

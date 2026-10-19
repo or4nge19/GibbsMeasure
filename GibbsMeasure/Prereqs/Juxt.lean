@@ -128,7 +128,7 @@ lemma measurable_cylinderEvents_juxt_restrict (Λ : Set S) (ω : S → E) :
     Measurable[cylinderEvents (X := fun _ : S ↦ E) Λ]
       fun σ : S → E ↦ juxt Λ ω fun i ↦ σ i := by
   have hmeas : Measurable fun σ : S → E ↦ juxt Λ ω fun i ↦ σ i :=
-    Function.measurable_updateSet.comp (measurable_pi_lambda _ fun i ↦ measurable_pi_apply i.1)
+    Function.measurable_updateSet.comp (Measurable.of_eval fun i ↦ measurable_pi_apply i.1)
   refine hmeas.cylinderEvents_of_dependsOn fun σ σ' h ↦ ?_
   funext i
   by_cases hi : i ∈ Λ

@@ -288,7 +288,7 @@ theorem infinitePi_preimage_periodicTranslate (hπ : Potential.IsTorusReduction 
   rw [cylinderEvents_eq_comap_finsetRestrict] at hA
   obtain ⟨B, hB, rfl⟩ := MeasurableSpace.measurableSet_comap.1 hA
   set T' : (Λ → E) → Λ → E := fun x n ↦ x (torusSiteEquiv hπ j n) with hT'
-  have hT'm : Measurable T' := measurable_pi_lambda _ fun n ↦ measurable_pi_apply _
+  have hT'm : Measurable T' := Measurable.of_eval fun n ↦ measurable_pi_apply _
   have hpre : periodicTranslate E π j ⁻¹' (Λ.restrict (π := fun _ : S ↦ E) ⁻¹' B)
       = Λ.restrict (π := fun _ : S ↦ E) ⁻¹' (T' ⁻¹' B) :=
     preimage_periodicTranslate_eq_restrict_preimage hπ j
@@ -319,7 +319,7 @@ lemma measurableSet_cylinderEvents_preimage_periodicTranslate
       (periodicTranslate E π j ⁻¹' A) := by
   rw [cylinderEvents_eq_comap_finsetRestrict] at hA ⊢
   obtain ⟨B, hB, rfl⟩ := MeasurableSpace.measurableSet_comap.1 hA
-  refine MeasurableSpace.measurableSet_comap.2 ⟨_, (measurable_pi_lambda _ fun n ↦
+  refine MeasurableSpace.measurableSet_comap.2 ⟨_, (Measurable.of_eval fun n ↦
     measurable_pi_apply _) hB, (preimage_periodicTranslate_eq_restrict_preimage hπ j).symm⟩
 
 end Torus

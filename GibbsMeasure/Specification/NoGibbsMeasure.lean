@@ -52,7 +52,7 @@ omit [Countable S] in
 lemma measurable_zeroOn (Λ : Finset S) :
     Measurable[cylinderEvents (X := fun _ : S ↦ Bool) ((Λ : Set S)ᶜ)] (zeroOn Λ) := by
   let : MeasurableSpace (S → Bool) := cylinderEvents (X := fun _ : S ↦ Bool) ((Λ : Set S)ᶜ)
-  refine measurable_pi_lambda _ fun i ↦ ?_
+  refine Measurable.of_eval fun i ↦ ?_
   by_cases hi : i ∈ Λ
   · simpa [zeroOn, hi] using (measurable_const : Measurable fun _ : S → Bool ↦ false)
   · simpa [zeroOn, hi] using measurable_cylinderEvent_apply (X := fun _ : S ↦ Bool)

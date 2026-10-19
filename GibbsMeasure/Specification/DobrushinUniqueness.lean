@@ -217,14 +217,14 @@ variable [DecidableEq S]
 
 lemma measurable_updateAt (i : S) (ω : S → E) :
     Measurable (fun σ : S → E ↦ Function.update ω i (σ i)) := by
-  refine measurable_pi_lambda _ fun k ↦ ?_
+  refine Measurable.of_eval fun k ↦ ?_
   by_cases hk : k = i
   · subst hk; simpa using measurable_pi_apply k
   · simp [Function.update_of_ne hk]
 
 lemma measurable_updateOf (i : S) (ω : S → E) :
     Measurable (fun x : E ↦ Function.update ω i x) := by
-  refine measurable_pi_lambda _ fun k ↦ ?_
+  refine Measurable.of_eval fun k ↦ ?_
   by_cases hk : k = i
   · subst hk; simpa using measurable_id'
   · simp [Function.update_of_ne hk]
@@ -457,7 +457,7 @@ omit [MeasurableSpace E] in
     loc Λ ω σ k = ω k := Λ.piecewise_eq_of_notMem _ _ hk
 
 lemma measurable_loc (Λ : Finset S) (ω : S → E) : Measurable (loc Λ ω) := by
-  refine measurable_pi_lambda _ fun k ↦ ?_
+  refine Measurable.of_eval fun k ↦ ?_
   by_cases hk : k ∈ Λ
   · simpa [hk] using measurable_pi_apply (X := fun _ : S ↦ E) k
   · simp [hk]
@@ -1298,7 +1298,7 @@ lemma condCfg_congr_left {ω ω' : S → E} (h : ∀ k ∈ V, ω k = ω' k) :
   · simp [hk]
 
 lemma measurable_condCfg (V : Finset S) (ω : S → E) : Measurable (condCfg V ω) := by
-  refine measurable_pi_lambda _ fun k ↦ ?_
+  refine Measurable.of_eval fun k ↦ ?_
   by_cases hk : k ∈ V
   · simp [hk]
   · simpa [hk] using measurable_pi_apply (X := fun _ : S ↦ E) k

@@ -61,7 +61,7 @@ lemma toFun_inv_toFun (ω : S → E) : τ.toFun (τ.inv.toFun ω) = ω := by
   simp [toFun, inv]
 
 lemma measurable_toFun : Measurable τ.toFun :=
-  measurable_pi_lambda _ fun i ↦ (τ.spin i).measurable.comp (measurable_pi_apply _)
+  Measurable.of_eval fun i ↦ (τ.spin i).measurable.comp (measurable_pi_apply _)
 
 /-- `τ` as a measurable equivalence of the configuration space. -/
 def toMeasurableEquiv : (S → E) ≃ᵐ (S → E) where
@@ -109,7 +109,7 @@ lemma measurable_toFun_cylinderEvents (Λ : Set S) :
   rw [measurable_iff_comap_le, cylinderEvents_eq_comap_domRestrict (X := fun _ : S ↦ E) Λ,
     MeasurableSpace.comap_comp]
   refine Measurable.comap_le ?_
-  refine measurable_pi_lambda _ fun j ↦ ?_
+  refine Measurable.of_eval fun j ↦ ?_
   have hj : τ.sites.symm j ∈ τ.sites ⁻¹' Λ := by simp [j.2]
   exact (τ.spin j).measurable.comp (measurable_cylinderEvent_apply (X := fun _ : S ↦ E) hj)
 
@@ -360,7 +360,7 @@ lemma Transformation.measurePreserving_infinitePi (τ : Transformation S E) {ν 
       = ((Measure.infinitePi fun _ : S ↦ ν).map
           (MeasurableEquiv.piCongrLeft (fun _ : S ↦ E) τ.sites)).map
             fun x (i : S) ↦ τ.spin i (x i) := by
-        rw [Measure.map_map (measurable_pi_lambda (fun x (i : S) ↦ τ.spin i (x i))
+        rw [Measure.map_map (Measurable.of_eval (f := fun x (i : S) ↦ τ.spin i (x i))
             fun i ↦ (τ.spin i).measurable.comp (measurable_pi_apply i))
           (MeasurableEquiv.piCongrLeft (fun _ : S ↦ E) τ.sites).measurable, ← hfun]
     _ = (Measure.infinitePi fun _ : S ↦ ν).map fun x (i : S) ↦ τ.spin i (x i) := by

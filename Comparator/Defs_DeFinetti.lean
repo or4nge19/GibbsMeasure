@@ -40,7 +40,7 @@ def finitaryPerm : Set (Equiv.Perm ℕ) := {σ | ∃ n, ∀ i, n ≤ i → σ i 
 def permute (σ : Equiv.Perm ℕ) (ω : Config ℕ E) : Config ℕ E := fun i ↦ ω (σ i)
 
 lemma measurable_permute (σ : Equiv.Perm ℕ) : Measurable (permute (E := E) σ) :=
-  measurable_pi_lambda _ fun _ ↦ measurable_pi_apply _
+  Measurable.of_eval fun _ ↦ measurable_pi_apply _
 
 /-- **Georgii, Example (7.16)**: a measure on `E^ℕ` is *exchangeable* if it is invariant under
 every finitary permutation of the coordinates. -/

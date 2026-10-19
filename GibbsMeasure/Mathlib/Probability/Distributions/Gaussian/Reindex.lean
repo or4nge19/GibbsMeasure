@@ -56,7 +56,7 @@ theorem posSemidef_covMatrix_comp (e : κ → ι) (hC : ∀ I : Finset ι, (covM
 
 omit [DecidableEq ι] [DecidableEq κ] in
 lemma measurable_comp_reindex (e : κ → ι) : Measurable fun ω : ι → ℝ ↦ ω ∘ e :=
-  measurable_pi_lambda _ fun a ↦ measurable_pi_apply (e a)
+  Measurable.of_eval fun a ↦ measurable_pi_apply (e a)
 
 /-- **Reindexing a centred Gaussian field.** The image of `gaussianField C` under the coordinate
 reindexing `ω ↦ ω ∘ e` is the centred Gaussian field with the pulled-back covariance kernel. -/

@@ -150,7 +150,7 @@ def meanOf (ρ : Measure (S → ℝ)) (i : S) : ℝ :=
 
 /-- `meanOf` is a measurable function of the measure. -/
 theorem measurable_meanOf : Measurable (meanOf (S := S)) := by
-  refine measurable_pi_lambda _ fun i ↦ ?_
+  refine Measurable.of_eval fun i ↦ ?_
   refine Measurable.sub ?_ ?_
   · exact (Measure.measurable_lintegral
       ((measurable_pi_apply i).ennreal_ofReal)).ennreal_toReal

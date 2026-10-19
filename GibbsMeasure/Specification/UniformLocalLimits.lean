@@ -169,7 +169,7 @@ variable {ρ}
 omit [DecidableEq S] in
 lemma measurable_juxt_restrict (Δ : Finset S) :
     Measurable fun p : (S → E) × (S → E) ↦ juxt (Δ : Set S) p.1 (Δ.restrict p.2) := by
-  refine measurable_pi_lambda _ fun i ↦ ?_
+  refine Measurable.of_eval fun i ↦ ?_
   by_cases hi : i ∈ (Δ : Set S)
   · have h : (fun p : (S → E) × (S → E) ↦ juxt (Δ : Set S) p.1 (Δ.restrict p.2) i)
         = fun p ↦ p.2 i := funext fun p ↦ by simpa using juxt_apply_of_mem hi (Δ.restrict p.2)
@@ -195,7 +195,7 @@ lemma measurable_avgDensity (μ : Measure (S → E)) [SFinite μ] {Δ : Finset S
 omit [DecidableEq S] in
 lemma measurable_juxt_snd (Δ : Finset S) :
     Measurable fun p : (Δ → E) × (S → E) ↦ juxt (Δ : Set S) p.2 p.1 := by
-  refine measurable_pi_lambda _ fun i ↦ ?_
+  refine Measurable.of_eval fun i ↦ ?_
   by_cases hi : i ∈ (Δ : Set S)
   · have h : (fun p : (Δ → E) × (S → E) ↦ juxt (Δ : Set S) p.2 p.1 i)
         = fun p ↦ p.1 ⟨i, hi⟩ := funext fun p ↦ juxt_apply_of_mem hi p.1

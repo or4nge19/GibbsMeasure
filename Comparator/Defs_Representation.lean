@@ -113,7 +113,7 @@ theorem paste_of_notMem {Λ : Finset S} {i : S} (hi : i ∉ Λ) (η : Config S E
     paste Λ η ζ i = η i := by simp [paste, hi]
 
 theorem measurable_paste (Λ : Finset S) (η : Config S E) : Measurable (paste Λ η) := by
-  refine measurable_pi_lambda _ fun i => ?_
+  refine Measurable.of_eval fun i => ?_
   by_cases hi : i ∈ Λ
   · have : (fun ζ : Λ → E => paste Λ η ζ i) = fun ζ : Λ → E => ζ ⟨i, hi⟩ :=
       funext fun ζ => paste_of_mem hi η ζ

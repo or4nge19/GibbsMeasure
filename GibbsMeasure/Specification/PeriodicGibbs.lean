@@ -107,7 +107,7 @@ omit [MeasurableSpace E] in
     (c : Fin d → Fin 2) : cubeView ω i c = ω (i + cubeCast N c) := rfl
 
 lemma measurable_cubeView : Measurable (cubeView (E := E) (N := N) (d := d)) :=
-  measurable_pi_lambda _ fun _ ↦ measurable_pi_lambda _ fun _ ↦ measurable_pi_apply _
+  Measurable.of_eval fun _ ↦ Measurable.of_eval fun _ ↦ measurable_pi_apply _
 
 /-- The reflection of the unit cube `C = {0, 1}^d` in direction `k`, `c_k ↦ 1 - c_k`. -/
 def cubeSiteRefl (k : Fin d) : (Fin d → Fin 2) ≃ (Fin d → Fin 2) where
@@ -248,7 +248,7 @@ lemma measurable_cubeView_apply_cylinderEvents {k : Fin d} {i : Fin d → ZMod (
       fun ω ↦ cubeView ω i := by
   let : MeasurableSpace ((Fin d → ZMod (2 * N)) → E) :=
     cylinderEvents (X := fun _ : Fin d → ZMod (2 * N) ↦ E) (hatPosAt N k)
-  refine measurable_pi_lambda _ fun c ↦ ?_
+  refine Measurable.of_eval fun c ↦ ?_
   refine measurable_cylinderEvent_apply (X := fun _ : Fin d → ZMod (2 * N) ↦ E) ?_
   change ((i + cubeCast N c) k).val ≤ N
   have hN : 0 < N := Nat.pos_of_ne_zero (NeZero.ne N)

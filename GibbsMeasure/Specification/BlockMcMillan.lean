@@ -536,7 +536,7 @@ theorem tileProduct_pi_eq_infinitePi :
   have hcomp : (Measure.infinitePi fun _ : S ↦ lam).map (tilingEquiv (E := E) hCH).symm
       = Measure.infinitePi fun _ : H ↦ Measure.pi fun _ : C ↦ lam := by
     rw [← h2, ← h1, Measure.map_map (MeasurableEquiv.curry H C E).measurable
-      (measurable_pi_lambda _ fun p ↦ measurable_pi_apply ((p.2 : S) + (p.1 : S)))]
+      (Measurable.of_eval fun p ↦ measurable_pi_apply ((p.2 : S) + (p.1 : S)))]
     rfl
   rw [tileProduct, ← hcomp, Measure.map_map (tilingEquiv (E := E) hCH).measurable
     (tilingEquiv (E := E) hCH).symm.measurable]

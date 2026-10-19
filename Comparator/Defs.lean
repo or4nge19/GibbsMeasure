@@ -72,7 +72,7 @@ theorem glue_of_notMem {Λ : Finset S} {i : S} (hi : i ∉ Λ) (σ ω : Config S
 theorem measurable_glue_comp {α : Type*} [MeasurableSpace α] (Λ : Finset S)
     {u v : α → Config S E} (hu : Measurable u) (hv : Measurable v) :
     Measurable fun a => glue Λ (u a) (v a) := by
-  refine measurable_pi_lambda _ fun i => ?_
+  refine Measurable.of_eval fun i => ?_
   by_cases h : i ∈ Λ
   · simp only [glue_of_mem h]
     exact (measurable_pi_apply i).comp hu

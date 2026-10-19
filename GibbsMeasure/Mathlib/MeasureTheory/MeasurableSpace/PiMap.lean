@@ -29,7 +29,7 @@ variable {ι : Type*} {α β : ι → Type*} [∀ i, MeasurableSpace (α i)] [�
 
 /-- A coordinatewise measurable map of product spaces is measurable. -/
 theorem Measurable.piMap (hf : ∀ i, Measurable (f i)) : Measurable (Pi.map f) :=
-  measurable_pi_lambda _ fun i ↦ (hf i).comp (measurable_pi_apply i)
+  Measurable.of_eval fun i ↦ (hf i).comp (measurable_pi_apply i)
 
 /-- The pullback of the product σ-algebra along a coordinatewise map is the product of the
 pullbacks. -/

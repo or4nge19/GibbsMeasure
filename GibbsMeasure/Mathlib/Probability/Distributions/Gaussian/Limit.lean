@@ -171,8 +171,8 @@ theorem IsGaussianProcess.of_tendsto_eLpNorm_one {T : Type*} {X : ℕ → T → 
   have hP : IsProbabilityMeasure P := (hX 0).isProbabilityMeasure
   refine ⟨fun I ↦ ?_⟩
   have hYI : AEMeasurable (fun ω ↦ I.restrict (Y · ω)) P :=
-    aemeasurable_pi_lambda _ fun i ↦ hY i
-  refine ⟨isGaussian_of_isGaussian_map fun L ↦ ?_⟩
+    AEMeasurable.of_eval fun i ↦ hY i
+  refine ⟨hYI, isGaussian_of_isGaussian_map fun L ↦ ?_⟩
   rw [AEMeasurable.map_map_of_aemeasurable L.continuous.measurable.aemeasurable hYI]
   have hXn : ∀ n, HasGaussianLaw (fun ω ↦ L (I.restrict (X n · ω))) P :=
     fun n ↦ ((hX n).hasGaussianLaw I).map_fun L

@@ -62,7 +62,7 @@ omit [Fintype ι] [∀ i, IsFiniteMeasure (ν i)] in
 /-- Composition with a permutation of the coordinates is measurable. -/
 theorem measurable_comp_equiv (r : ι ≃ ι) :
     Measurable fun ω : ι → E ↦ ω ∘ r :=
-  measurable_pi_lambda _ fun i ↦ measurable_pi_apply (r i)
+  Measurable.of_eval fun i ↦ measurable_pi_apply (r i)
 
 /-- **Reflection positivity of a product measure, for complex functions.** If the permutation
 `r` of the sites exchanges `P` and its complement and preserves the marginals, then

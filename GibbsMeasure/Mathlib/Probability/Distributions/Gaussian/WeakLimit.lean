@@ -385,7 +385,7 @@ theorem tendsto_charFun (h : TendstoFddCharFun X P Q) (A : Finset T)
       (𝓝 (charFun (Q.map fun ω ↦ L (A.restrict (X · ω))) r)) := by
   intro r
   have hf : Measurable fun ω ↦ L (A.restrict (X · ω)) :=
-    L.continuous.measurable.comp (measurable_pi_lambda _ fun i ↦ hX i)
+    L.continuous.measurable.comp (Measurable.of_eval fun i ↦ hX i)
   have hrw : ∀ μ : Measure Ω, charFun (μ.map fun ω ↦ L (A.restrict (X · ω))) r
       = ∫ ω, cexp ((r * L (A.restrict (X · ω)) : ℝ) * I) ∂μ := by
     intro μ
@@ -403,8 +403,8 @@ process. -/
 theorem isGaussianProcess [IsProbabilityMeasure Q] (h : TendstoFddCharFun X P Q) :
     IsGaussianProcess X Q := by
   refine ⟨fun A ↦ ?_⟩
-  have hmeas : Measurable fun ω ↦ A.restrict (X · ω) := measurable_pi_lambda _ fun i ↦ hX i
-  refine ⟨isGaussian_of_isGaussian_map fun L ↦ ?_⟩
+  have hmeas : Measurable fun ω ↦ A.restrict (X · ω) := Measurable.of_eval fun i ↦ hX i
+  refine ⟨hmeas.aemeasurable, isGaussian_of_isGaussian_map fun L ↦ ?_⟩
   rw [Measure.map_map (by fun_prop) hmeas]
   have hf : Measurable fun ω ↦ L (A.restrict (X · ω)) := L.continuous.measurable.comp hmeas
   have hQprob : IsProbabilityMeasure (Q.map fun ω ↦ L (A.restrict (X · ω))) :=
@@ -421,10 +421,10 @@ theorem tendsto_integral [IsProbabilityMeasure Q] (h : TendstoFddCharFun X P Q) 
     (L : (∀ _ : A, ℝ) →L[ℝ] ℝ) :
     Tendsto (fun n ↦ (P n)[fun ω ↦ L (A.restrict (X · ω))]) atTop
       (𝓝 (Q[fun ω ↦ L (A.restrict (X · ω))])) := by
-  have hmeas : Measurable fun ω ↦ A.restrict (X · ω) := measurable_pi_lambda _ fun i ↦ hX i
+  have hmeas : Measurable fun ω ↦ A.restrict (X · ω) := Measurable.of_eval fun i ↦ hX i
   have hf : Measurable fun ω ↦ L (A.restrict (X · ω)) := L.continuous.measurable.comp hmeas
   have hQprob : IsProbabilityMeasure (Q.map fun ω ↦ L (A.restrict (X · ω))) :=
-    Measure.isProbabilityMeasure_map hf.aemeasurable
+    inferInstance
   have hgauss : ∀ n, IsGaussian ((P n).map fun ω ↦ L (A.restrict (X · ω))) := fun n ↦
     (((hP n).hasGaussianLaw A).map_fun L).isGaussian_map
   have hlim := tendsto_integral_id_of_tendsto_charFun hgauss (h.tendsto_charFun hX A L)
@@ -439,10 +439,10 @@ theorem tendsto_variance [IsProbabilityMeasure Q] (h : TendstoFddCharFun X P Q) 
     (L : (∀ _ : A, ℝ) →L[ℝ] ℝ) :
     Tendsto (fun n ↦ Var[fun ω ↦ L (A.restrict (X · ω)); P n]) atTop
       (𝓝 (Var[fun ω ↦ L (A.restrict (X · ω)); Q])) := by
-  have hmeas : Measurable fun ω ↦ A.restrict (X · ω) := measurable_pi_lambda _ fun i ↦ hX i
+  have hmeas : Measurable fun ω ↦ A.restrict (X · ω) := Measurable.of_eval fun i ↦ hX i
   have hf : Measurable fun ω ↦ L (A.restrict (X · ω)) := L.continuous.measurable.comp hmeas
   have hQprob : IsProbabilityMeasure (Q.map fun ω ↦ L (A.restrict (X · ω))) :=
-    Measure.isProbabilityMeasure_map hf.aemeasurable
+    inferInstance
   have hgauss : ∀ n, IsGaussian ((P n).map fun ω ↦ L (A.restrict (X · ω))) := fun n ↦
     (((hP n).hasGaussianLaw A).map_fun L).isGaussian_map
   have hlim := tendsto_variance_id_of_tendsto_charFun hgauss (h.tendsto_charFun hX A L)

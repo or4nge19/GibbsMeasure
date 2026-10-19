@@ -55,7 +55,7 @@ theorem pi_mconv (μ ν : ι → Measure M) [∀ i, SigmaFinite (μ i)] [∀ i, 
     [∀ i, SigmaFinite (μ i ∗ₘ ν i)] :
     Measure.pi (fun i ↦ μ i ∗ₘ ν i) = (Measure.pi μ) ∗ₘ (Measure.pi ν) := by
   have hmulPi : Measurable fun x : ι → M × M ↦ fun i ↦ (x i).1 * (x i).2 :=
-    measurable_pi_lambda _ fun i ↦
+    Measurable.of_eval fun i ↦
       (measurable_fst.comp (measurable_pi_apply i)).mul
         (measurable_snd.comp (measurable_pi_apply i))
   set e := MeasurableEquiv.arrowProdEquivProdArrow M M ι with he

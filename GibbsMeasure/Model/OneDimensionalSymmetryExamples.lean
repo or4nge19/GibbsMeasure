@@ -1712,7 +1712,7 @@ theorem gibbsSpecification_squarePotential_zero_range_apply_setOf_fst_eq_true
     rw [gibbsSpecificationOfFiniteReference_eq_of_isProbabilityMeasure]
     exact gibbsSpecification_congr _ β (comap_fst_isingChainPotential J) |>.symm
   have hq : Measurable fun ω : ℕ → Bool × Bool ↦ fun j ↦ (ω j).1 :=
-    measurable_pi_lambda _ fun j ↦ (measurable_pi_apply j).fst
+    Measurable.of_eval fun j ↦ (measurable_pi_apply j).fst
   rw [hspec, show {σ : ℕ → Bool × Bool | (σ i).1 = true}
       = (fun ω : ℕ → Bool × Bool ↦ fun j ↦ (ω j).1) ⁻¹' {x : ℕ → Bool | x i = true} from rfl,
     ← Measure.map_apply hq (measurableSet_setOf_apply_eq i true),

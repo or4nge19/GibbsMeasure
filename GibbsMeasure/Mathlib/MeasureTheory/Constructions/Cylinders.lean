@@ -200,7 +200,7 @@ public theorem _root_.Measurable.cylinderEvents_of_dependsOn
   set e : (∀ i : Δ, X i) → ∀ i, X i :=
     fun y i ↦ if h : i ∈ Δ then y ⟨i, h⟩ else x₀ i with he
   have hemeas : Measurable e := by
-    refine measurable_pi_lambda _ fun i ↦ ?_
+    refine Measurable.of_eval fun i ↦ ?_
     by_cases h : i ∈ Δ
     · simpa only [he, h, dite_true] using measurable_pi_apply (⟨i, h⟩ : Δ)
     · simpa only [he, h, dite_false] using measurable_const (a := x₀ i)

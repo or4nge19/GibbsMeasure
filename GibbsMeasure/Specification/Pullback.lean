@@ -81,7 +81,7 @@ lemma isPotential_comap (hf : Measurable f) [IsPotential Φ] : IsPotential (Φ.c
   measurable A := by
     refine Measurable.cylinderEvents_of_dependsOn ?_ fun η ζ h ↦ ?_
     · exact ((IsPotential.measurable (Φ := Φ) A).mono cylinderEvents_le_pi le_rfl).comp
-        (measurable_pi_lambda _ fun i ↦ hf.comp (measurable_pi_apply i))
+        (Measurable.of_eval fun i ↦ hf.comp (measurable_pi_apply i))
     · exact IsPotential.dependsOn (Φ := Φ) A fun i hi ↦ congrArg f (h i hi)
 
 @[simp] lemma hamiltonianTerms_comap (f : E' → E) (Φ : Potential S E) (Λ : Finset S) (η : S → E') :
@@ -199,7 +199,7 @@ theorem relZ_isssd_prod_boltzmannFactor_comap_fst [Countable S] (ν₁ : Measure
       = relZ (isssd ν₁) (Φ.boltzmannFactor β) Λ fun i ↦ (η i).1 := by
   rw [relZ, relZ, ← map_fst_isssd_prod ν₁ ν₂ Λ η,
     lintegral_map (measurable_boltzmannFactor (Φ := Φ) β Λ)
-      (measurable_pi_lambda _ fun i ↦ (measurable_pi_apply i).fst)]
+      (Measurable.of_eval fun i ↦ (measurable_pi_apply i).fst)]
   rfl
 
 /-- **The Gibbs kernels of a potential that reads only the first spin layer.** Under the
@@ -325,9 +325,9 @@ theorem isGibbsMeasure_map_fst_comap_fst [Countable S] (ν₁ : Measure E₁) (�
     (ν₁.prod ν₂) β with hγ
   have hb := (isGibbsMeasure_iff_forall_bind_eq (γ := γ) (μ := μ)).1 hμ
   have hq : Measurable (fun ω : S → E₁ × E₂ ↦ fun i ↦ (ω i).1) :=
-    measurable_pi_lambda _ fun i ↦ (measurable_pi_apply i).fst
+    Measurable.of_eval fun i ↦ (measurable_pi_apply i).fst
   have : IsProbabilityMeasure (μ.map fun ω i ↦ (ω i).1) :=
-    Measure.isProbabilityMeasure_map hq.aemeasurable
+    inferInstance
   rw [isGibbsMeasure_iff_forall_bind_eq]
   intro Λ
   have hmeasγ : Measurable ⇑(γ Λ) := (γ Λ).measurable.mono cylinderEvents_le_pi le_rfl
@@ -355,7 +355,7 @@ lemma map_fst_map_arrowProdEquivProdArrow_symm_prod (μ₁ : Measure (S → E₁
     (μ₂ : Measure (S → E₂)) [SFinite μ₁] [IsProbabilityMeasure μ₂] :
     ((μ₁.prod μ₂).map (MeasurableEquiv.arrowProdEquivProdArrow E₁ E₂ S).symm).map
         (fun ω i ↦ (ω i).1) = μ₁ := by
-  rw [Measure.map_map (measurable_pi_lambda _ fun i ↦ (measurable_pi_apply i).fst)
+  rw [Measure.map_map (Measurable.of_eval fun i ↦ (measurable_pi_apply i).fst)
     (MeasurableEquiv.measurable _)]
   exact Measure.fst_prod (μ := μ₁) (ν := μ₂)
 
@@ -394,8 +394,7 @@ theorem mem_G_map_fst_comap_fst [Countable S] (ν₁ : Measure E₁) (ν₂ : Me
       (Φ := Φ.comap (Prod.fst : E₁ × E₂ → E₁)) (ν₁.prod ν₂) β)) :
     (μ.map fun ω i ↦ (ω i).1) ∈ G (gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν₁ β) := by
   have h := hμ.1
-  exact ⟨Measure.isProbabilityMeasure_map
-      (measurable_pi_lambda _ fun i ↦ (measurable_pi_apply i).fst).aemeasurable,
+  exact ⟨inferInstance,
     isGibbsMeasure_map_fst_comap_fst Φ ν₁ ν₂ β hμ.2⟩
 
 end MeasureTheory.GibbsMeasure

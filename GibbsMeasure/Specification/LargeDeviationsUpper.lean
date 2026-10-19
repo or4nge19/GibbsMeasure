@@ -185,7 +185,7 @@ lemma periodicTranslate_apply (π : S → S) (i : S) (σ : S → E) (n : S) :
 
 lemma measurable_periodicTranslate (π : S → S) (i : S) :
     Measurable (periodicTranslate E π i) :=
-  measurable_pi_lambda _ fun n ↦ by
+  Measurable.of_eval fun n ↦ by
     simpa only [periodicTranslate_apply] using measurable_pi_apply (π (n + i))
 
 /-- **Georgii (15.42)** read through `periodicTranslate`: the periodic empirical field is the

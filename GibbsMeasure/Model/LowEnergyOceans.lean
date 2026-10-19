@@ -418,7 +418,7 @@ def pairCube (dir : Fin 2) (p : (Fin 2 → E) × (Fin 2 → E)) : (Fin 2 → Fin
 
 omit [IsProbabilityMeasure ν] in
 lemma measurable_pairCube (dir : Fin 2) : Measurable (pairCube E dir) := by
-  refine measurable_pi_lambda _ fun c ↦ ?_
+  refine Measurable.of_eval fun c ↦ ?_
   by_cases h : c dir = 0
   · have hf : (fun p : (Fin 2 → E) × (Fin 2 → E) ↦ pairCube E dir p c)
         = fun p ↦ p.1 (c (Fin.rev dir)) := by

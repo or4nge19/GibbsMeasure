@@ -478,7 +478,7 @@ lemma injective_cantorEmbedding {f : ∀ i, α i → ℕ → Bool} (hf : ∀ i, 
 lemma measurable_cantorEmbedding [∀ i, MeasurableSpace (α i)] {f : ∀ i, α i → ℕ → Bool}
     (hf : ∀ i, Measurable (f i)) :
     Measurable (cantorEmbedding f) :=
-  measurable_pi_lambda _ fun p ↦
+  Measurable.of_eval fun p ↦
     (measurable_pi_apply p.2).comp ((hf p.1).comp (measurable_pi_apply p.1))
 
 lemma range_cantorEmbedding (f : ∀ i, α i → ℕ → Bool) :

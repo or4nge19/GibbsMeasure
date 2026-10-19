@@ -237,7 +237,7 @@ theorem specificEnergy_cubePotential (hb : ∃ c : ℝ, ∀ ζ, |φ ζ| ≤ c) (
   have hsum := isAbsolutelySummable_cubePotential (E := E) (φ := φ) hb
   have hmeas : ∀ j : Fin d → ℤ, Measurable fun η : (Fin d → ℤ) → E ↦
       φ (latticeCubeView η j) := fun j ↦
-    hφ.comp (measurable_pi_lambda _ fun _ ↦ measurable_pi_apply _)
+    hφ.comp (Measurable.of_eval fun _ ↦ measurable_pi_apply _)
   have hbdd : ∀ j : Fin d → ℤ,
       Integrable (fun η : (Fin d → ℤ) → E ↦ φ (latticeCubeView η j)) μ := by
     obtain ⟨c, hc⟩ := hb
@@ -1693,8 +1693,8 @@ lemma measurableSet_cylinderEvents_forall_mem_latticeCubeView (hW : ∀ k, Measu
       fun ω : (Fin (d + 1) → ℤ) → E ↦
         (fun i : ↥(D : Finset (Fin (d + 1) → ℤ)) ↦ latticeCubeView ω i.1) := by
     refine Measurable.cylinderEvents_of_dependsOn ?_ ?_
-    · exact measurable_pi_lambda _ fun _ ↦
-        measurable_pi_lambda _ fun _ ↦ measurable_pi_apply _
+    · exact Measurable.of_eval fun _ ↦
+        Measurable.of_eval fun _ ↦ measurable_pi_apply _
     · intro x y hxy
       funext i c
       exact hxy _ (h i.1 i.2 c)

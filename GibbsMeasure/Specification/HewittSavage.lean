@@ -104,7 +104,7 @@ lemma permute_permute (σ τ : Equiv.Perm ℕ) (ω : ℕ → E) :
     permute σ (permute τ ω) = permute (τ * σ) ω := rfl
 
 lemma measurable_permute (σ : Equiv.Perm ℕ) : Measurable (permute (E := E) σ) :=
-  measurable_pi_lambda _ fun i ↦ measurable_pi_apply _
+  Measurable.of_eval fun i ↦ measurable_pi_apply _
 
 /-! ### Georgii's `𝓘ₙ` and `𝓘` -/
 

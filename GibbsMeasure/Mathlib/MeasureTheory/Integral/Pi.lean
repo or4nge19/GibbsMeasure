@@ -77,7 +77,7 @@ theorem integral_mul_comp_nonneg_of_disjoint (r : ι ≃ ι) (hν : ∀ i, ν (r
     rfl
   have hgm : Measurable g :=
     hf.comp (Ψ.symm.measurable.comp (measurable_id.prodMk
-      (measurable_pi_lambda _ fun j ↦ measurable_pi_apply (e.symm j))))
+      (Measurable.of_eval fun j ↦ measurable_pi_apply (e.symm j))))
   have hgC : ∀ x, |g x| ≤ C := fun x ↦ hC _
   -- transport along `Ψ` and factorize
   have hint : ∫ ω, f ω * f (ω ∘ r) ∂(Measure.pi ν)
@@ -177,7 +177,7 @@ theorem integral_mul_comp_nonneg (r : ι ≃ ι) (hν : ∀ i, ν (r i) = ν i) 
       f (Ψ.symm p) * f (Ψ.symm p ∘ r))
       ((Measure.pi fun i : {i // i ∈ L} ↦ ν i).prod (Measure.pi fun i : {i // i ∉ L} ↦ ν i)) := by
     refine Integrable.of_abs_le ((hf.comp Ψ.symm.measurable).mul (hf.comp
-      ((measurable_pi_lambda _ fun i ↦ measurable_pi_apply (r i)).comp Ψ.symm.measurable)))
+      ((Measurable.of_eval fun i ↦ measurable_pi_apply (r i)).comp Ψ.symm.measurable)))
       (C := |C| * |C|) fun p ↦ ?_
     rw [abs_mul]
     exact mul_le_mul ((hC _).trans (le_abs_self _)) ((hC _).trans (le_abs_self _))

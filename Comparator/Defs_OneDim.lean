@@ -120,7 +120,7 @@ def extend (Λ : Finset S) (ζ : Λ → E) (ω : Config S E) : Config S E :=
 
 theorem measurable_extend (Λ : Finset S) (ω : Config S E) :
     Measurable fun ζ : Λ → E ↦ extend Λ ζ ω := by
-  refine measurable_pi_lambda _ fun i ↦ ?_
+  refine Measurable.of_eval fun i ↦ ?_
   by_cases hi : i ∈ Λ
   · have h : (fun ζ : Λ → E ↦ extend Λ ζ ω i) = fun ζ ↦ ζ ⟨i, hi⟩ := by
       funext ζ; simp [extend, hi]

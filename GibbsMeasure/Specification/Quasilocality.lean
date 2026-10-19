@@ -175,7 +175,7 @@ theorem IsQuasilocalFun.exists_measurable_dependsOn {f : (S → E) → ℝ} (hme
   · obtain ⟨η₀⟩ := hne
     set T : (S → E) → S → E := fun ω i ↦ if i ∈ Δ then ω i else η₀ i with hT
     have hTmeas : Measurable T := by
-      refine measurable_pi_lambda _ fun i ↦ ?_
+      refine Measurable.of_eval fun i ↦ ?_
       by_cases hi : i ∈ Δ
       · simpa [hT, hi] using measurable_pi_apply (X := fun _ : S ↦ E) i
       · simp only [hT, hi, ite_false]

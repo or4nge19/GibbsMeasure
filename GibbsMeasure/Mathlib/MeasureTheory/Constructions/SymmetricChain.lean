@@ -67,7 +67,7 @@ theorem measurePreserving_finCons {n : ℕ} :
     MeasurePreserving (fun p : X × (Fin n → X) ↦ Fin.cons p.1 p.2)
       (μ.prod (Measure.pi fun _ : Fin n ↦ μ)) (Measure.pi fun _ : Fin (n + 1) ↦ μ) := by
   have hmeas : Measurable fun p : X × (Fin n → X) ↦ (Fin.cons p.1 p.2 : Fin (n + 1) → X) :=
-    measurable_pi_lambda _ fun i ↦ by
+    Measurable.of_eval fun i ↦ by
       induction i using Fin.cases with
       | zero => simpa using measurable_fst
       | succ j => simpa [Function.comp_def] using (measurable_pi_apply j).comp measurable_snd

@@ -1176,7 +1176,7 @@ lemma setLIntegral_prod_condDensity_juxt_shift (hmod : (isssd ν).IsModifier ρ)
   have hrestrict : Measurable[cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)]
       (Δ.restrict : (S → E) → Δ → E) := by
     let : MeasurableSpace (S → E) := cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)
-    exact measurable_pi_lambda _ fun k ↦ measurable_cylinderEvent_apply k.2
+    exact Measurable.of_eval fun k ↦ measurable_cylinderEvent_apply k.2
   have hÃ : MeasurableSet[cylinderEvents (X := fun _ : S ↦ E) (Δ : Set S)] Ã := hrestrict hA
   have hÃ' : MeasurableSet Ã := cylinderEvents_le_pi _ hÃ
   have hpre : ∀ η, juxt (Δ : Set S) η ⁻¹' Ã = A := fun η ↦ by

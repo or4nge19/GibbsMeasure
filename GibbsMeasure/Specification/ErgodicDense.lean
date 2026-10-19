@@ -215,11 +215,12 @@ def tilingEquiv : (H → C → E) ≃ᵐ (S → E) where
     simp only
     rw [coe_tileRep_add_coe_tileIdx]
   measurable_toFun :=
-    measurable_pi_lambda (fun (ζ : H → C → E) (i : S) ↦ ζ (tileIdx hCH i) (tileRep hCH i))
-      fun i ↦ (measurable_pi_apply (tileRep hCH i)).comp (measurable_pi_apply (tileIdx hCH i))
+    Measurable.of_eval
+      (f := fun (ζ : H → C → E) (i : S) ↦ ζ (tileIdx hCH i) (tileRep hCH i)) fun i ↦
+        (measurable_pi_apply (tileRep hCH i)).comp (measurable_pi_apply (tileIdx hCH i))
   measurable_invFun :=
-    measurable_pi_lambda (fun (ω : S → E) (h : H) (c : C) ↦ ω (c + h)) fun h ↦
-      measurable_pi_lambda (fun (ω : S → E) (c : C) ↦ ω (c + h)) fun c ↦
+    Measurable.of_eval (f := fun (ω : S → E) (h : H) (c : C) ↦ ω (c + h)) fun h ↦
+      Measurable.of_eval (f := fun (ω : S → E) (c : C) ↦ ω (c + h)) fun c ↦
         measurable_pi_apply ((c : S) + h)
 
 @[simp] lemma tilingEquiv_apply (ζ : H → C → E) (i : S) :
@@ -240,7 +241,7 @@ lemma measurable_tilingEquiv_tail :
   let : MeasurableSpace (H → C → E) := cylinderEvents (X := fun _ : H ↦ C → E) ((Λ' : Set H)ᶜ)
   rw [measurable_iff_comap_le, cylinderEvents_eq_comap_domRestrict (X := fun _ : S ↦ E),
     MeasurableSpace.comap_comp]
-  refine Measurable.comap_le (measurable_pi_lambda _ fun j ↦ ?_)
+  refine Measurable.comap_le (Measurable.of_eval fun j ↦ ?_)
   obtain ⟨x, hx⟩ := j
   have hj : tileIdx hCH x ∈ ((Λ' : Set H)ᶜ) := by
     intro hmem
@@ -321,9 +322,9 @@ def blockEquiv {Δ : Finset S} (h : IsTileUnion hCH Δ) :
     rw [h2]
     congr 1
     exact Subtype.ext h1
-  measurable_toFun := measurable_pi_lambda _ fun k ↦ measurable_pi_lambda _ fun c ↦
+  measurable_toFun := Measurable.of_eval fun k ↦ Measurable.of_eval fun c ↦
     measurable_pi_apply _
-  measurable_invFun := measurable_pi_lambda _ fun x ↦
+  measurable_invFun := Measurable.of_eval fun x ↦
     (measurable_pi_apply (tileRep hCH (x : S))).comp (measurable_pi_apply _)
 
 @[simp] lemma blockEquiv_apply {Δ : Finset S} (h : IsTileUnion hCH Δ) (ω : Δ → E)

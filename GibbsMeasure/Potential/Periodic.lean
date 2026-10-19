@@ -587,7 +587,7 @@ lemma isAbsolutelySummable_periodicModification [IsAbsolutelySummable Φ]
 omit [AddCommGroup S] [DecidableEq S] in
 lemma measurable_periodicExtend (π : S → S) :
     Measurable (periodicExtend π : (S → E) → S → E) :=
-  measurable_pi_lambda _ fun i ↦ measurable_pi_apply (π i)
+  Measurable.of_eval fun i ↦ measurable_pi_apply (π i)
 
 variable (Φ Δ π anchor) in
 /-- **The representative series of Georgii (4.20)(2) converges.**  `Φ̃^Δ_A` is *defined* by the
