@@ -643,4 +643,205 @@ theorem mul_wallReflection_smul_sub_smul (g : AffineSignedPerm (Fin (n + 1))) (i
   rw [mul_smul, smul_sub_smul_eq, wallReflection_smul, sub_sub_cancel_left, smul_neg, smul_comm,
     neg_smul]
 
+/-- **The open face of a wall lies on no other mirror**: a point on `wall i` strictly on the
+positive side of the other walls lies on exactly one mirror, `wall i`. -/
+theorem eq_wall_of_mem {p : Fin (n + 1) → ℝ} {i : Fin (n + 2)}
+    (hpos : ∀ j, j ≠ i → 0 < wallFunctional j p) (hzero : wallFunctional i p = 0)
+    {H : Set (Fin (n + 1) → ℝ)} (hH : H ∈ mirrors (Fin (n + 1))) (hp : p ∈ H) : H = wall i := by
+  have hnonneg : ∀ j, 0 ≤ wallFunctional j p := fun j ↦ by
+    by_cases hj : j = i
+    · rw [hj, hzero]
+    · exact (hpos j hj).le
+  have huniq : ∀ j, wallFunctional j p = 0 → j = i := fun j hj ↦ by
+    by_contra hne
+    exact (hpos j hne).ne' hj
+  have hanti : Antitone p := Fin.antitone_iff_succ_le.2 fun q ↦ by
+    have := hnonneg q.rev.castSucc.succ
+    rw [wallFunctional_rev] at this
+    linarith
+  have hlast : 0 ≤ p (Fin.last n) := by
+    have := hnonneg 0
+    rw [wallFunctional_zero] at this
+    linarith
+  have hfirst : p 0 ≤ 1 / 2 := by
+    have := hnonneg (Fin.last (n + 1))
+    rw [wallFunctional_last] at this
+    linarith
+  have hrange : ∀ k, 0 ≤ p k ∧ p k ≤ 1 / 2 := fun k ↦
+    ⟨hlast.trans (hanti (Fin.le_last k)), (hanti (Fin.zero_le k)).trans hfirst⟩
+  have hstep : ∀ q : Fin n, p q.castSucc = p q.succ → i = q.rev.castSucc.succ := fun q h ↦
+    (huniq _ (by rw [wallFunctional_rev, h, sub_self])).symm
+  -- two equal coordinates are adjacent, across the wall `i`
+  have hD4 : ∀ k l : Fin (n + 1), k < l → p k = p l →
+      ∃ q : Fin n, k = q.castSucc ∧ l = q.succ ∧ i = q.rev.castSucc.succ := by
+    intro k l hkl hpkl
+    have hflat : ∀ q : Fin n, k ≤ q.castSucc → q.succ ≤ l → p q.castSucc = p q.succ :=
+      fun q h1 h2 ↦ le_antisymm (by linarith [hanti h1, hanti h2])
+        (hanti (Fin.castSucc_le_succ q))
+    have hkl' : (k : ℕ) < l := hkl
+    have hl := l.isLt
+    obtain ⟨q, hq⟩ : ∃ q : Fin n, (q : ℕ) = k := ⟨⟨k, by omega⟩, rfl⟩
+    have hqk : q.castSucc = k := Fin.ext hq
+    have hql : q.succ ≤ l := by rw [Fin.le_iff_val_le_val, Fin.val_succ]; omega
+    have hi := hstep q (hflat q hqk.ge hql)
+    refine ⟨q, hqk.symm, ?_, hi⟩
+    by_contra hne
+    have hlt : (k : ℕ) + 1 < l := by
+      have : (q.succ : ℕ) ≠ l := fun h ↦ hne (Fin.ext h).symm
+      rw [Fin.le_iff_val_le_val, Fin.val_succ] at hql
+      rw [Fin.val_succ] at this
+      omega
+    obtain ⟨q', hq'⟩ : ∃ q' : Fin n, (q' : ℕ) = k + 1 := ⟨⟨k + 1, by omega⟩, rfl⟩
+    have h1 : k ≤ q'.castSucc := by rw [Fin.le_iff_val_le_val, Fin.val_castSucc]; omega
+    have h2 : q'.succ ≤ l := by rw [Fin.le_iff_val_le_val, Fin.val_succ]; omega
+    have hi' := hstep q' (hflat q' h1 h2)
+    rw [hi, Fin.ext_iff] at hi'
+    simp only [Fin.val_succ, Fin.val_castSucc, Fin.val_rev] at hi'
+    have := q.isLt
+    have := q'.isLt
+    omega
+  have hD2 : ∀ k, p k = 0 → k = Fin.last n ∧ i = 0 := by
+    intro k hk
+    have hL : p (Fin.last n) = 0 := le_antisymm (hk ▸ hanti (Fin.le_last k)) hlast
+    have hi0 : i = 0 := (huniq 0 (by rw [wallFunctional_zero, hL, mul_zero])).symm
+    refine ⟨?_, hi0⟩
+    by_contra hne
+    obtain ⟨q, -, -, hq⟩ :=
+      hD4 k (Fin.last n) (lt_of_le_of_ne (Fin.le_last k) hne) (hk.trans hL.symm)
+    rw [hi0] at hq
+    exact Fin.succ_ne_zero _ hq.symm
+  have hD3 : ∀ k, p k = 1 / 2 → k = 0 ∧ i = Fin.last (n + 1) := by
+    intro k hk
+    have h0 : p 0 = 1 / 2 := le_antisymm hfirst (hk ▸ hanti (Fin.zero_le k))
+    have hiL : i = Fin.last (n + 1) :=
+      (huniq _ (by rw [wallFunctional_last, h0]; norm_num)).symm
+    refine ⟨?_, hiL⟩
+    by_contra hne
+    obtain ⟨q, -, -, hq⟩ :=
+      hD4 0 k (lt_of_le_of_ne (Fin.zero_le k) (Ne.symm hne)) (h0.trans hk.symm)
+    rw [hiL, Fin.ext_iff] at hq
+    simp only [Fin.val_last, Fin.val_succ, Fin.val_castSucc, Fin.val_rev] at hq
+    have := q.isLt
+    omega
+  have hint01 : ∀ m : ℤ, (0 : ℝ) ≤ m → (m : ℝ) ≤ 1 → m = 0 ∨ m = 1 := fun m h0 h1 ↦ by
+    have : 0 ≤ m := by exact_mod_cast h0
+    have : m ≤ 1 := by exact_mod_cast h1
+    omega
+  have hint0 : ∀ m : ℤ, (-1 : ℝ) < m → (m : ℝ) < 1 → m = 0 := fun m h0 h1 ↦ by
+    have : -1 < m := by exact_mod_cast h0
+    have : m < 1 := by exact_mod_cast h1
+    omega
+  obtain ⟨n', hn', m', rfl⟩ := hH
+  rcases dotProduct_self_eq_one_or_two hn' with h1 | h2
+  · -- a coordinate mirror `{2 u x_k = m'}`
+    obtain ⟨k, u, rfl⟩ := exists_eq_single_of_dotProduct_self_eq_one h1
+    have hp' := mem_mirror.1 hp
+    rw [h1, intCast_single_dotProduct] at hp'
+    norm_num at hp'
+    have hu2 : ((u : ℤ) : ℝ) * ((u : ℤ) : ℝ) = 1 := by
+      rw [← Int.cast_mul, ← Units.val_mul, Int.units_mul_self]
+      simp
+    have hp'' : 2 * p k = (((u : ℤ) * m' : ℤ) : ℝ) := by
+      push_cast
+      rw [← hp']
+      linear_combination (-(2 * p k)) * hu2
+    rcases hint01 _ (by rw [← hp'']; linarith [(hrange k).1])
+      (by rw [← hp'']; linarith [(hrange k).2]) with hM | hM
+    · obtain ⟨rfl, rfl⟩ := hD2 k (by rw [hM] at hp''; push_cast at hp''; linarith)
+      have hm' : m' = 0 := by rcases Int.units_eq_one_or u with rfl | rfl <;> simpa using hM
+      subst hm'
+      ext x
+      rw [mem_mirror, h1, intCast_single_dotProduct, mem_wall_iff, wallFunctional_zero]
+      rcases Int.units_eq_one_or u with rfl | rfl <;> norm_num
+    · obtain ⟨rfl, rfl⟩ := hD3 k (by rw [hM] at hp''; push_cast at hp''; linarith)
+      have hm' : m' = u := by
+        rcases Int.units_eq_one_or u with rfl | rfl <;> simp at hM ⊢ <;> omega
+      subst hm'
+      ext x
+      rw [mem_mirror, h1, intCast_single_dotProduct, mem_wall_iff, wallFunctional_last]
+      rcases Int.units_eq_one_or u with rfl | rfl <;> norm_num <;> constructor <;> intro h <;>
+        linarith
+  · -- a diagonal mirror `{u x_k + w x_l = m'}`
+    obtain ⟨k, l, hkl, u, w, rfl⟩ := exists_eq_single_add_single_of_dotProduct_self_eq_two h2
+    have hp' := mem_mirror.1 hp
+    rw [h2, intCast_single_add_single_dotProduct] at hp'
+    norm_num at hp'
+    have hk := hrange k
+    have hl := hrange l
+    -- the sum `p k + p l ∈ [0, 1]` is not an integer
+    have hsum : ∀ m : ℤ, p k + p l = m → False := fun m hm ↦ by
+      rcases hint01 m (by linarith) (by linarith) with rfl | rfl
+      · exact hkl ((hD2 k (by push_cast at hm; linarith)).1.trans
+          (hD2 l (by push_cast at hm; linarith)).1.symm)
+      · exact hkl ((hD3 k (by push_cast at hm; linarith)).1.trans
+          (hD3 l (by push_cast at hm; linarith)).1.symm)
+    -- a difference `p k - p l ∈ ℤ` vanishes, and the mirror is the wall between `k` and `l`
+    have hdiff : ∀ (m : ℤ) (ε : ℤˣ), p k - p l = m → mirror (Pi.single k (ε : ℤ) +
+        Pi.single l ((-ε : ℤˣ) : ℤ)) (ε * m) = wall i := fun m ε hm ↦ by
+      have hm0 : m = 0 := hint0 m (by linarith) (by linarith)
+      subst hm0
+      have hε : ((ε : ℤ) : ℝ) ≠ 0 := by rcases Int.units_eq_one_or ε with rfl | rfl <;> norm_num
+      have hmem : ∀ x : Fin (n + 1) → ℝ, x ∈ mirror (Pi.single k (ε : ℤ) +
+          Pi.single l ((-ε : ℤˣ) : ℤ)) (ε * 0) ↔ x k = x l := fun x ↦ by
+        rw [mem_mirror, dotProduct_single_add_single_self hkl, intCast_single_add_single_dotProduct]
+        norm_num
+        constructor
+        · intro h
+          have : ((ε : ℤ) : ℝ) * (x k - x l) = 0 := by linarith
+          linarith [(mul_eq_zero.1 this).resolve_left hε]
+        · intro h; rw [h]; ring
+      have hpkl : p k = p l := by push_cast at hm; linarith
+      rcases lt_or_gt_of_ne hkl with hlt | hgt
+      · obtain ⟨q, rfl, rfl, rfl⟩ := hD4 k l hlt hpkl
+        ext x
+        rw [hmem, mem_wall_iff, wallFunctional_rev, sub_eq_zero]
+      · obtain ⟨q, rfl, rfl, rfl⟩ := hD4 l k hgt hpkl.symm
+        ext x
+        rw [hmem, mem_wall_iff, wallFunctional_rev, sub_eq_zero, eq_comm]
+    rcases Int.units_eq_one_or u with rfl | rfl <;> rcases Int.units_eq_one_or w with rfl | rfl
+    · exact absurd (by push_cast at hp' ⊢; linarith) (hsum m')
+    · have := hdiff m' 1 (by push_cast at hp' ⊢; linarith)
+      simpa using this
+    · have := hdiff (-m') (-1) (by push_cast at hp' ⊢; linarith)
+      simpa using this
+    · exact absurd (by push_cast at hp' ⊢; linarith) (hsum (-m'))
+
+/-- **The midpoint of a bond lies on exactly one mirror**, the wall `g • wall i` it crosses. -/
+theorem eq_smul_wall_of_midpoint_mem {v : Fin (n + 1) → ℝ}
+    (hv : v ∈ fundamentalChamber (Fin (n + 1))) (g : AffineSignedPerm (Fin (n + 1)))
+    (i : Fin (n + 2)) {H : Set (Fin (n + 1) → ℝ)} (hH : H ∈ mirrors (Fin (n + 1)))
+    (h : midpoint ℝ (g • v) ((g * wallReflection i) • v) ∈ H) : H = g • wall i := by
+  rw [mul_smul, ← smul_midpoint, ← Set.mem_inv_smul_set_iff] at h
+  have ha := mem_fundamentalChamber_iff.1 hv
+  have hwall : g⁻¹ • H = wall i := by
+    refine eq_wall_of_mem (fun j hji ↦ ?_) (mem_wall_iff.1 (midpoint_mem_wall i v))
+      (smul_mem_mirrors g⁻¹ hH) h
+    rw [midpoint_wallReflection_smul, wallFunctional_sub_smul]
+    have := wallFunctional_coeff_nonpos (Ne.symm hji)
+    have := ha j
+    have := (ha i).le
+    nlinarith
+  rw [← hwall, smul_inv_smul]
+
+/-- **A bond crossing a mirror is `{x, θ x}`**: if the bond of type `i` at `g` meets
+`mirror n' m'`, its far end is the reflection of its near end in that mirror. -/
+theorem mul_wallReflection_smul_eq_mirrorReflection_smul {v : Fin (n + 1) → ℝ}
+    (hv : v ∈ fundamentalChamber (Fin (n + 1))) (g : AffineSignedPerm (Fin (n + 1)))
+    (i : Fin (n + 2)) {n' : Fin (n + 1) → ℤ} (hn' : n' ⬝ᵥ n' ∣ 2) {m' : ℤ}
+    (h : (segment ℝ (g • v) ((g * wallReflection i) • v) ∩ mirror n' m').Nonempty) :
+    (g * wallReflection i) • v = mirrorReflection n' hn' m' • (g • v) := by
+  obtain ⟨x, hxs, hxm⟩ := h
+  have hx : x ∈ segment ℝ (g • v) ((g * wallReflection i) • v) ∩ ⋃₀ mirrors (Fin (n + 1)) :=
+    ⟨hxs, mirror n' m', mirror_mem_mirrors hn' m', hxm⟩
+  rw [segment_inter_sUnion_mirrors hv, Set.mem_singleton_iff] at hx
+  subst hx
+  have hH := eq_smul_wall_of_midpoint_mem hv g i (mirror_mem_mirrors hn' m') hxm
+  rw [wall, smul_mirror] at hH
+  have hdvd : (g.right • wallNormal i) ⬝ᵥ (g.right • wallNormal i) ∣ 2 := by
+    rw [SignedPerm.dotProduct_smul_smul]
+    exact wallNormal_dotProduct_self_dvd i
+  rw [mirrorReflection_eq_of_mirror_eq hn' hdvd hH, ← mul_mirrorReflection_mul_inv g
+    (wallNormal_dotProduct_self_dvd i), ← wallReflection_eq_mirrorReflection, mul_smul,
+    mul_smul, inv_smul_smul, mul_smul]
+
 end AffineSignedPerm
