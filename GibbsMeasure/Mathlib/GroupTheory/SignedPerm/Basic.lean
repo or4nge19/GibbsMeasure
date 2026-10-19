@@ -369,6 +369,35 @@ theorem sign_reflection (hn : n ⬝ᵥ n ∣ 2) : sign (reflection n hn) = -1 :=
     dotProduct_smul, smul_eq_mul, neg_mul, hc] at h
   exact Units.ext (by rw [← h]; norm_num)
 
+/-- The reflection in `e i ^⊥` changes the sign of the `i`-th coordinate. -/
+theorem reflection_single (i : ι) (h : Pi.single i (1 : ℤ) ⬝ᵥ Pi.single i 1 ∣ 2) :
+    reflection (Pi.single i 1) h = inl (Pi.mulSingle i (-1)) := by
+  refine smul_injective fun x ↦ funext fun k ↦ ?_
+  rw [reflection_smul (R := ℤ), inl_smul]
+  rcases eq_or_ne k i with rfl | hk
+  · simp [Pi.single_apply, dotProduct]
+    ring
+  · simp [Pi.single_apply, hk]
+
+/-- The reflection in `(e i - e j)^⊥` is the transposition of `i` and `j`. -/
+theorem reflection_single_add_single_neg_one {i j : ι} (hij : i ≠ j)
+    (h : (Pi.single i 1 + Pi.single j (-1) : ι → ℤ) ⬝ᵥ (Pi.single i 1 + Pi.single j (-1)) ∣ 2) :
+    reflection (Pi.single i 1 + Pi.single j (-1) : ι → ℤ) h = inr (Equiv.swap i j) := by
+  have hnn : (Pi.single i 1 + Pi.single j (-1) : ι → ℤ) ⬝ᵥ (Pi.single i 1 + Pi.single j (-1)) =
+      2 := by
+    simp [dotProduct_add, hij, hij.symm]
+  refine smul_injective fun x ↦ funext fun k ↦ ?_
+  have hdot : (Pi.single i 1 + Pi.single j (-1) : ι → ℤ) ⬝ᵥ x = x i - x j := by
+    rw [add_dotProduct, single_dotProduct, single_dotProduct]
+    ring
+  rw [reflection_smul (R := ℤ), inr_smul, hnn]
+  simp only [Int.cast_id, show (2 : ℤ) / 2 = 1 from rfl, one_mul, hdot]
+  rcases eq_or_ne k i with rfl | hki
+  · simp [Pi.single_apply, hij, swap_apply_left]
+  rcases eq_or_ne k j with rfl | hkj
+  · simp [Pi.single_apply, hki, swap_apply_right]
+  · simp [Pi.single_apply, hki, hkj, swap_apply_of_ne_of_ne hki hkj]
+
 end Reflection
 
 /-! ### Generators -/
