@@ -47,9 +47,10 @@ states criteria, a `Model/` file applies them.
 ## Main results
 
 * `Dobrushin.osc_add_le`, `oscAt_add_le`, `oscAt_sub_le`, `osc_const_mul_le`,
-  `oscAt_const_mul_le`, `oscAt_affine`, `oscAt_mul_le`, `oscAt_finset_sum_le`,
-  `oscAt_tsum_le`: the algebra of the oscillations — additivity, homogeneity, the product rule
-  `δ_j(fg) ≤ ‖f‖ δ_j(g) + ‖g‖ δ_j(f)`, and passage to countable sums.
+  `oscAt_const_mul_le`, `oscAt_affine`, `oscAt_mul_le`, `osc_finset_sum_le`,
+  `oscAt_finset_sum_le`, `oscAt_tsum_le`: the algebra of the oscillations — additivity,
+  homogeneity, the product rule `δ_j(fg) ≤ ‖f‖ δ_j(g) + ‖g‖ δ_j(f)`, and passage to countable
+  sums.
 * `Dobrushin.ofReal_abs_sub_le_sum_oscAt`, `osc_le_sum_oscAt_of_dependsOn`: **Georgii (8.15)**,
   `δ(f) ≤ ∑_{j ∈ Λ} δ_j(f)` for `f ∈ 𝓛_Λ`, by telescoping over `Λ`.
 * `Dobrushin.isDobrushin_gibbsSpecificationOfSigmaFiniteAdmissible`,
@@ -1112,6 +1113,15 @@ lemma oscAt_finset_sum_le {ι : Type*} (a : ι → (S → E) → ℝ) (s : Finse
   refine (enorm_sum_le _ _).trans (Finset.sum_le_sum fun k _ ↦ ?_)
   rw [Real.enorm_eq_ofReal_abs]
   exact le_oscAt h
+
+/-- The oscillation of a finite sum is dominated by the sum of the oscillations. -/
+lemma osc_finset_sum_le {ι : Type*} (a : ι → (S → E) → ℝ) (s : Finset ι) :
+    osc (fun σ ↦ ∑ k ∈ s, a k σ) ≤ ∑ k ∈ s, osc (a k) := by
+  refine osc_le fun ζ η ↦ ?_
+  rw [← Finset.sum_sub_distrib, ← Real.enorm_eq_ofReal_abs]
+  refine (enorm_sum_le _ _).trans (Finset.sum_le_sum fun k _ ↦ ?_)
+  rw [Real.enorm_eq_ofReal_abs]
+  exact le_osc _ ζ η
 
 /-- The single-site oscillation of a pointwise convergent series is dominated by the series of
 the oscillations. -/

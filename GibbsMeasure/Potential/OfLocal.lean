@@ -6,6 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Potential.Summable
+public import GibbsMeasure.Specification.Dobrushin
 
 /-!
 # The potential of a family of local terms
@@ -29,6 +30,11 @@ a pair model with repeated bonds. Georgii's potential (2.2) collects the terms b
   stated.
 * `Potential.hamiltonian_ofLocal`, `Potential.hamiltonian_ofLocal_of_fintype`: Georgii (2.3) is
   the sum of the terms whose support meets `Λ`, `H_Λ = ∑_{b : supp b ∩ Λ ≠ ∅} φ_b`.
+* `Dobrushin.pairStrength_ofLocal_le`, `Dobrushin.interactionStrength_ofLocal_le`: the two
+  quantities of **Georgii's criterion (8.8)** are sums over the terms, not over the volumes,
+  `∑_{A ⊇ {i,j}} δ(Φ_A) ≤ ∑_{b : i, j ∈ supp b} δ(φ_b)` and
+  `∑_{A ∋ i} (|A| − 1) δ(Φ_A) ≤ ∑_{b : i ∈ supp b} (|supp b| − 1) δ(φ_b)`; in particular two sites
+  that share no support do not interact (`Dobrushin.pairStrength_ofLocal_eq_zero`).
 -/
 
 @[expose] public section
@@ -197,5 +203,77 @@ theorem hamiltonian_ofLocal_of_fintype [Fintype ι] [DecidableEq S] (Λ : Finset
     finsum_mem_coe_finset]
 
 end Potential
+
+namespace MeasureTheory.GibbsMeasure.Dobrushin
+
+open Potential
+
+variable {S E ι : Type*} [MeasurableSpace E] {supp : ι → Finset S} {φ : ι → (S → E) → ℝ}
+
+/-- Georgii (8.2) for `ofLocal`: `δ(Φ_A) ≤ ∑_{b : supp b = A} δ(φ_b)`. -/
+lemma osc_ofLocal_le {A : Finset S} (hA : (supp ⁻¹' {A}).Finite) :
+    osc (ofLocal supp φ A) ≤ ∑' b, (supp ⁻¹' {A}).indicator (fun b ↦ osc (φ b)) b := by
+  rw [show ofLocal supp φ A = fun η ↦ ∑ b ∈ hA.toFinset, φ b η from
+    funext (ofLocal_apply_of_finite hA)]
+  refine (osc_finset_sum_le φ hA.toFinset).trans ?_
+  refine (Finset.sum_le_sum fun b hb ↦ ?_).trans (ENNReal.sum_le_tsum hA.toFinset)
+  rw [Set.indicator_of_mem (hA.mem_toFinset.1 hb)]
+
+/-- A weighted sum of the oscillations of the volumes of `ofLocal` is dominated by the same sum
+over its terms, each term entering at its support. -/
+lemma tsum_indicator_mul_osc_ofLocal_le (P : Finset S → Prop) (w : Finset S → ℝ≥0∞)
+    (hfin : ∀ A, P A → (supp ⁻¹' {A}).Finite) :
+    ∑' A, {A | P A}.indicator (fun A ↦ w A * osc (ofLocal supp φ A)) A
+      ≤ ∑' b, {b | P (supp b)}.indicator (fun b ↦ w (supp b) * osc (φ b)) b := by
+  classical
+  set g : Finset S → ι → ℝ≥0∞ := fun A b ↦ if supp b = A ∧ P A then w A * osc (φ b) else 0
+  have hA : ∀ A, {A | P A}.indicator (fun A ↦ w A * osc (ofLocal supp φ A)) A ≤ ∑' b, g A b := by
+    intro A
+    by_cases hPA : P A
+    · rw [Set.indicator_of_mem (show A ∈ {A | P A} from hPA)]
+      refine (mul_le_mul_right (osc_ofLocal_le (hfin A hPA)) _).trans_eq ?_
+      rw [← ENNReal.tsum_mul_left]
+      refine tsum_congr fun b ↦ ?_
+      by_cases hb : supp b = A
+      · simp [g, hb, hPA]
+      · simp [g, hb]
+    · simp [hPA]
+  have hb : ∀ b, ∑' A, g A b = {b | P (supp b)}.indicator (fun b ↦ w (supp b) * osc (φ b)) b := by
+    intro b
+    rw [tsum_eq_single (supp b) fun A hA ↦ by simp [g, Ne.symm hA]]
+    by_cases hPb : P (supp b)
+    · simp [g, hPb]
+    · simp [g, hPb]
+  calc ∑' A, {A | P A}.indicator (fun A ↦ w A * osc (ofLocal supp φ A)) A
+      ≤ ∑' A, ∑' b, g A b := ENNReal.tsum_le_tsum hA
+    _ = ∑' b, ∑' A, g A b := ENNReal.tsum_comm
+    _ = _ := tsum_congr hb
+
+/-- **Georgii (8.8) for `ofLocal`, the pair strength**: `∑_{A ⊇ {i,j}} δ(Φ_A)` is at most the sum
+of the oscillations of the terms whose support contains both `i` and `j`. -/
+theorem pairStrength_ofLocal_le (hloc : ∀ i, {b | i ∈ supp b}.Finite) (i j : S) :
+    pairStrength (ofLocal supp φ) i j
+      ≤ ∑' b, {b | i ∈ supp b ∧ j ∈ supp b}.indicator (fun b ↦ osc (φ b)) b := by
+  simpa [pairStrength] using tsum_indicator_mul_osc_ofLocal_le (supp := supp) (φ := φ)
+    (fun A ↦ i ∈ A ∧ j ∈ A) (fun _ ↦ 1)
+    fun A hA ↦ (hloc i).subset (preimage_singleton_subset_setOf_mem hA.1)
+
+/-- Two sites that lie in no common support do not interact: `∑_{A ⊇ {i,j}} δ(Φ_A) = 0`. -/
+theorem pairStrength_ofLocal_eq_zero (hloc : ∀ i, {b | i ∈ supp b}.Finite) {i j : S}
+    (hij : ∀ b, i ∈ supp b → j ∉ supp b) : pairStrength (ofLocal supp φ) i j = 0 := by
+  refine le_antisymm ((pairStrength_ofLocal_le hloc i j).trans_eq ?_) bot_le
+  exact ENNReal.tsum_eq_zero.2 fun b ↦ Set.indicator_of_notMem (fun h ↦ hij b h.1 h.2) _
+
+/-- **Georgii (8.8) for `ofLocal`, the interaction strength**:
+`∑_{A ∋ i} (|A| − 1) δ(Φ_A) ≤ ∑_{b : i ∈ supp b} (|supp b| − 1) δ(φ_b)`. Each term enters at its
+support; terms sharing a support are not merged, which can only lose. -/
+theorem interactionStrength_ofLocal_le (hloc : ∀ i, {b | i ∈ supp b}.Finite) (i : S) :
+    interactionStrength (ofLocal supp φ) i
+      ≤ ∑' b, {b | i ∈ supp b}.indicator
+          (fun b ↦ (((supp b).card - 1 : ℕ) : ℝ≥0∞) * osc (φ b)) b :=
+  tsum_indicator_mul_osc_ofLocal_le (fun A ↦ i ∈ A) (fun A ↦ ((A.card - 1 : ℕ) : ℝ≥0∞))
+    fun _ hA ↦ (hloc i).subset (preimage_singleton_subset_setOf_mem hA)
+
+end MeasureTheory.GibbsMeasure.Dobrushin
 
 end
