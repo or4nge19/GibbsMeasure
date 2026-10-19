@@ -438,3 +438,6 @@ public import GibbsMeasure.Mathlib.GroupTheory.SignedPerm.Affine
 public import GibbsMeasure.Mathlib.GroupTheory.SignedPerm.Alcove
 public import GibbsMeasure.Mathlib.Combinatorics.SimpleGraph.Cayley
 public import GibbsMeasure.Model.ChamberGraph
+public import GibbsMeasure.Mathlib.AlgebraicTopology.CubicalCochain.Cohomology
+public import GibbsMeasure.Mathlib.AlgebraicTopology.CubicalCochain.Poincare
+public import GibbsMeasure.Mathlib.AlgebraicTopology.CubicalCochain.Torus
