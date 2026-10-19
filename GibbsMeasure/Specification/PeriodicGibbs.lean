@@ -6,6 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import GibbsMeasure.Specification.ReflectionPositivity
+public import GibbsMeasure.Mathlib.Data.ZMod.Neg
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.Pi
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.PiReflectionComplex
 
@@ -169,6 +170,62 @@ omit [MeasurableSpace E] in
 omit [MeasurableSpace E] in
 lemma hatReflAt_hatReflAt (k : Fin d) (i : Fin d → ZMod (2 * N)) :
     hatReflAt N k (hatReflAt N k i) = i := (hatReflAt N k).left_inv i
+
+/-! The site reflection `r̂_k` is the link reflection `r_k` followed by the step `e_k`, as
+`-z = (-1 - z) + 1` (`hatReflAt_eq_torusReflAt_add_single`); so it maps the link
+`(x, k) : x → x + e_k` onto the reversed link based at `r_k x` (`hatReflAt_sub_single`). It fixes
+exactly the sites of the planes `x_k = 0` and `x_k = N` (`hatReflAt_eq_self_iff`), and off them it
+exchanges `0 < x_k < N` and `N < x_k < 2N` (`val_hatReflAt_le_iff`). -/
+
+omit [MeasurableSpace E] in
+lemma hatReflAt_apply_of_ne {k i : Fin d} (h : i ≠ k) (x : Fin d → ZMod (2 * N)) :
+    hatReflAt N k x i = x i := by
+  simp [hatReflAt_apply, h]
+
+omit [MeasurableSpace E] in
+/-- The site reflection is the link reflection followed by the step `e_k`: `-z = (-1 - z) + 1`. -/
+lemma hatReflAt_eq_torusReflAt_add_single (k : Fin d) (x : Fin d → ZMod (2 * N)) :
+    hatReflAt N k x = torusReflAt N k x + Pi.single k 1 := by
+  ext i
+  by_cases hi : i = k
+  · subst hi
+    simp only [Pi.add_apply, hatReflAt_apply_self, torusReflAt_apply_self, Pi.single_eq_same]
+    ring
+  · simp [hatReflAt_apply_of_ne hi, torusReflAt_apply_of_ne hi, hi]
+
+omit [MeasurableSpace E] in
+/-- The link `(x, k)` from `x_k` to `x_k + 1` is reflected onto the link from `-1 - x_k` to
+`-x_k`, based at the link reflection of `x`. -/
+lemma hatReflAt_sub_single (k : Fin d) (x : Fin d → ZMod (2 * N)) :
+    hatReflAt N k x - Pi.single k 1 = torusReflAt N k x := by
+  rw [hatReflAt_eq_torusReflAt_add_single, add_sub_cancel_right]
+
+omit [MeasurableSpace E] in
+lemma hatReflAt_sub_single_self (k : Fin d) (x : Fin d → ZMod (2 * N)) :
+    hatReflAt N k (x - Pi.single k 1) = hatReflAt N k x + Pi.single k 1 := by
+  rw [hatReflAt_eq_torusReflAt_add_single, hatReflAt_eq_torusReflAt_add_single,
+    torusReflAt_sub_single_self]
+
+omit [MeasurableSpace E] in
+/-- `hatReflAt` fixes exactly the sites of the planes `x_k = 0` and `x_k = N`. -/
+lemma hatReflAt_eq_self_iff [NeZero N] {k : Fin d} {x : Fin d → ZMod (2 * N)} :
+    hatReflAt N k x = x ↔ x k = 0 ∨ x k = N := by
+  rw [← ZMod.neg_eq_self_iff_of_two_mul, ← hatReflAt_apply_self]
+  refine ⟨fun h ↦ congrFun h k, fun h ↦ funext fun i ↦ ?_⟩
+  by_cases hi : i = k
+  · subst hi
+    exact h
+  · exact hatReflAt_apply_of_ne hi x
+
+omit [MeasurableSpace E] in
+/-- Off the two planes, `hatReflAt` exchanges `0 < x_k < N` and `N < x_k < 2N`. -/
+lemma val_hatReflAt_le_iff [NeZero N] {k : Fin d} {x : Fin d → ZMod (2 * N)}
+    (hx : hatReflAt N k x ≠ x) : (hatReflAt N k x k).val ≤ N ↔ ¬(x k).val ≤ N := by
+  rw [Ne, hatReflAt_eq_self_iff] at hx
+  rw [hatReflAt_apply_self]
+  have h₁ := ZMod.val_le_or_val_neg_le (x k)
+  have h₂ := ZMod.val_le_and_val_neg_le_iff (x k)
+  tauto
 
 variable (E) in
 /-- Georgii's `r̂_k` acting on configurations, `(r̂_k ω)_i = ω_{r̂_k i}`. -/

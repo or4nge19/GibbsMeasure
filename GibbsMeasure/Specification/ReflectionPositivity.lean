@@ -1421,6 +1421,49 @@ lemma torusReflAt_apply_of_ne {k l : Fin d} (h : l ≠ k) (i : Fin d → ZMod (2
 lemma torusReflAt_torusReflAt (k : Fin d) (i : Fin d → ZMod (2 * N)) :
     torusReflAt N k (torusReflAt N k i) = i := (torusReflAt N k).left_inv i
 
+/-! The reflection `r_k` commutes with the unit steps `e_μ`, `μ ≠ k`, reverses the steps `e_k`
+and fixes no site. These are the identities by which `r_k` acts on the links
+`(x, μ) : x → x + e_μ` of the torus, i.e. on a lattice gauge field. -/
+
+lemma torusReflAt_add_single_of_ne {k μ : Fin d} (h : μ ≠ k) (x : Fin d → ZMod (2 * N))
+    (a : ZMod (2 * N)) :
+    torusReflAt N k (x + Pi.single μ a) = torusReflAt N k x + Pi.single μ a := by
+  ext i
+  by_cases hi : i = k
+  · subst hi
+    simp [torusReflAt_apply_self, h.symm]
+  · simp [torusReflAt_apply_of_ne hi]
+
+lemma torusReflAt_sub_single_of_ne {k μ : Fin d} (h : μ ≠ k) (x : Fin d → ZMod (2 * N))
+    (a : ZMod (2 * N)) :
+    torusReflAt N k (x - Pi.single μ a) = torusReflAt N k x - Pi.single μ a := by
+  rw [sub_eq_add_neg, ← Pi.single_neg, torusReflAt_add_single_of_ne h, Pi.single_neg,
+    ← sub_eq_add_neg]
+
+/-- `r_k` reverses the steps in direction `k`. -/
+lemma torusReflAt_add_single_self (k : Fin d) (x : Fin d → ZMod (2 * N)) :
+    torusReflAt N k (x + Pi.single k 1) = torusReflAt N k x - Pi.single k 1 := by
+  ext i
+  by_cases hi : i = k
+  · subst hi
+    simp only [torusReflAt_apply_self, Pi.add_apply, Pi.sub_apply, Pi.single_eq_same]
+    ring
+  · simp [torusReflAt_apply_of_ne hi, hi]
+
+lemma torusReflAt_sub_single_self (k : Fin d) (x : Fin d → ZMod (2 * N)) :
+    torusReflAt N k (x - Pi.single k 1) = torusReflAt N k x + Pi.single k 1 := by
+  have h := torusReflAt_add_single_self k (x - Pi.single k 1)
+  rw [sub_add_cancel] at h
+  rw [h, sub_add_cancel]
+
+/-- `r_k` fixes no site: `-1 - z = z` has no solution in `ZMod (2 * N)`, by parity. -/
+lemma torusReflAt_ne_self [NeZero N] (k : Fin d) (x : Fin d → ZMod (2 * N)) :
+    torusReflAt N k x ≠ x := fun h ↦ by
+  have h₁ := congrArg ZMod.val (congrFun h k)
+  rw [torusReflAt_apply_self, val_neg_one_sub] at h₁
+  have := (x k).val_lt
+  omega
+
 /-- **Georgii (17.4).** The positive half `Λ_{+,k} = {i : 0 ≤ i_k ≤ N - 1}` of the torus in
 direction `k`. -/
 def torusPosAt (N : ℕ) (k : Fin d) : Set (Fin d → ZMod (2 * N)) := {i | (i k).val < N}

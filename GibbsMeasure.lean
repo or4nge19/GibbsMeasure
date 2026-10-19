@@ -38,6 +38,7 @@ public import GibbsMeasure.Mathlib.Combinatorics.Sperner
 public import GibbsMeasure.Mathlib.Topology.KKM
 public import GibbsMeasure.Mathlib.Data.Countable.Basic
 public import GibbsMeasure.Mathlib.Data.ZMod.Basic
+public import GibbsMeasure.Mathlib.Data.ZMod.Neg
 public import GibbsMeasure.Mathlib.Data.Set.CardTranslate
 public import GibbsMeasure.Mathlib.Analysis.Subadditive.Cubes
 public import GibbsMeasure.Mathlib.InformationTheory.RelativeEntropy
