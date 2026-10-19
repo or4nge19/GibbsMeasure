@@ -428,3 +428,6 @@ public import GibbsMeasure.Topology.LocalMetric
 public import GibbsMeasure.Topology.Subsequence
 public import GibbsMeasure.Topology.Metrizable
 public import GibbsMeasure.Specification.FiniteSites
+public import GibbsMeasure.Mathlib.AlgebraicTopology.CubicalCochain.Basic
+public import GibbsMeasure.Mathlib.AlgebraicTopology.CubicalCochain.Hodge
+public import GibbsMeasure.Mathlib.AlgebraicTopology.CubicalCochain.Pullback
