@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Mathlib.GroupTheory.SemidirectProduct
 public import Mathlib.Algebra.Group.Action.End
 public import Mathlib.Data.Finite.Perm
 public import Mathlib.Data.Int.Order.Units
@@ -37,7 +38,8 @@ element `⟨t, σ⟩ = inl t * inr σ` first permutes the coordinates and then c
   integral orthogonal matrices (`Matrix.orthogonalGroup ι ℤ`).
 * `dotProduct_smul_smul`: signed permutations preserve the standard bilinear form.
 * `sign`, `det_toMatrix`: the determinant `(∏ i, t i) * sign σ` as a character.
-* `card`: `Nat.card (SignedPerm ι) = 2 ^ n * n !`, `n = Nat.card ι`.
+* `card`: `Nat.card (SignedPerm ι) = 2 ^ n * n !`, `n = Nat.card ι`; `Fintype` and `DecidableEq`
+  shortcut instances (the unfolded instance terms are too large for products of index types).
 * `reflection`, `reflection_smul`: for integral `n` with `n ⬝ᵥ n ∣ 2` (the roots `± e i`,
   `± e i ± e j`) the orthogonal reflection `x ↦ x - (2 / (n ⬝ᵥ n)) (n ⬝ᵥ x) n` is a signed
   permutation, of sign `-1` (`sign_reflection`); `reflection_single` and
@@ -60,6 +62,16 @@ abbrev SignedPerm (ι : Type*) := (ι → ℤˣ) ⋊[mulAutArrow] Perm ι
 namespace SignedPerm
 
 variable {ι M : Type*}
+
+/-- Shortcut instance: the derived one unfolds the semidirect product and the sign functions, and
+its term exceeds the instance size limit inside index types such as `(X × SignedPerm ι) × s ⊕ ⋯`.
+-/
+instance [Fintype ι] [DecidableEq ι] : DecidableEq (SignedPerm ι) :=
+  inferInstanceAs (DecidableEq ((ι → ℤˣ) ⋊[mulAutArrow] Perm ι))
+
+/-- Shortcut instance, as for `DecidableEq`. -/
+instance [Fintype ι] [DecidableEq ι] : Fintype (SignedPerm ι) :=
+  inferInstanceAs (Fintype ((ι → ℤˣ) ⋊[mulAutArrow] Perm ι))
 
 theorem mul_left_apply (r r' : SignedPerm ι) (i : ι) :
     (r * r').left i = r.left i * r'.left (r.right⁻¹ i) :=
