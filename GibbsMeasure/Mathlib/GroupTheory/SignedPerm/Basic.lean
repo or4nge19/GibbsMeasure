@@ -40,7 +40,9 @@ element `⟨t, σ⟩ = inl t * inr σ` first permutes the coordinates and then c
 * `card`: `Nat.card (SignedPerm ι) = 2 ^ n * n !`, `n = Nat.card ι`.
 * `reflection`, `reflection_smul`: for integral `n` with `n ⬝ᵥ n ∣ 2` (the roots `± e i`,
   `± e i ± e j`) the orthogonal reflection `x ↦ x - (2 / (n ⬝ᵥ n)) (n ⬝ᵥ x) n` is a signed
-  permutation, of sign `-1` (`sign_reflection`).
+  permutation, of sign `-1` (`sign_reflection`); `reflection_single` and
+  `reflection_single_add_single_neg_one` identify the sign changes and the transpositions.
+* `smul_injective`: the action on `ℤ^ι` is faithful.
 * `closure_insert_inl_mulSingle_image_inr`: one sign change together with generators of the
   symmetric group generate; for `Fin (n + 1)` the adjacent transpositions and one sign change
   (`closure_inl_mulSingle_inr_swap_castSucc_succ`).

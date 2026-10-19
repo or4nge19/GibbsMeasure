@@ -13,34 +13,51 @@ public import Mathlib.GroupTheory.Perm.Fin
 # The chamber graph of the cubic lattice
 
 In `d = n + 1` dimensions (coordinates `Fin (n + 1)`), the fundamental chamber
-`C₀ = {1/2 > x₀ > x₁ > ⋯ > x_n > 0}` has `d + 1` walls, numbered as in the lattice QED₃
-construction (for `d = 3`, `C₀ = {0 < x₃ < x₂ < x₁ < 1/2}` in 1-based coordinates):
+`C₀ = {1/2 > x₀ > x₁ > ⋯ > x_n > 0}` has `d + 1` walls, numbered as in the chamber lattice of
+*The Field-Strength Osterwalder–Schrader Axioms for QED in Three Dimensions* ([Q], §2.2; for
+`d = 3`, `C₀ = {0 < x₃ < x₂ < x₁ < 1/2}` in 1-based coordinates and the walls `0, 1, 2, 3` are
+`x₃ = 0`, `x₂ = x₃`, `x₁ = x₂`, `x₁ = 1/2`):
 
-* wall `0`: `x_n = 0`, reflection `s₀ : x_n ↦ -x_n`;
+* wall `0`: `x_n = 0`, reflection `x_n ↦ -x_n`;
 * wall `c + 1` (`c : Fin n`): `x_{n-1-c} = x_{n-c}`, reflection the transposition of these
   coordinates;
-* wall `n + 1`: `x₀ = 1/2`, reflection `s_{n+1} : x₀ ↦ 1 - x₀`.
+* wall `n + 1`: `x₀ = 1/2`, reflection `x₀ ↦ 1 - x₀`.
 
-`wallReflection i` is the reflection in wall `i` (`wallReflection_eq_mirrorReflection`), with
-inward normal `wallNormal i` and height `wallHeight i` (`wall i = mirror (wallNormal i)
-(wallHeight i)`). The **chamber graph** is the Cayley graph of `AffineSignedPerm (Fin (n + 1))`
-for the wall reflections: `g` and `g * wallReflection i` are joined by a bond of type `i`. Since
-the group acts simply transitively on the chambers, its vertices are the chambers `g • C₀`; for a
-base point `v₀ ∈ C₀` they are the fermion sites `g • v₀`, and `translationPart g` is the nearest
-lattice point of `g • v₀` (`round_smul_apply`), the photon site of the site.
+`wallReflection i` is the reflection in `wall i = mirror (wallNormal i) (wallHeight i)`
+(`wallReflection_eq_mirrorReflection`), `wallNormal i` the inward normal (`e_n`,
+`e_{n-1-c} - e_{n-c}`, `-e₀`), and `wallFunctional i` the affine function of the wall
+(`2 x_n`, `x_{n-1-c} - x_{n-c}`, `1 - 2 x₀`); the fundamental chamber is where all of them are
+positive (`mem_fundamentalChamber_iff`).
 
-## Main results ([Q] Proposition 2.1)
+The **chamber graph** is Mathlib's Cayley graph of `AffineSignedPerm (Fin (n + 1))` for the wall
+reflections: the bond of type `i` joins `g` and `g * wallReflection i`. Since the group acts simply
+transitively on the chambers (`existsUnique_smul_fundamentalChamber_eq`), the vertices are the
+chambers `g • C₀`, and for a base point `v ∈ C₀` the fermion sites `g • v`
+(`smul_left_injective_of_mem`), none of which lies on a mirror
+(`smul_fundamentalChamber_subset_compl`). The photon site of `g • v` is `translationPart g`, its
+nearest lattice point (`round_smul_apply`), and it is equivariant (`translationPart_mul_eq_smul`).
 
-* `chamberGraph_connected`: the wall reflections generate the group, so the graph is connected.
-* `chamberGraph_isBipartite`: each wall reflection has sign `-1`; the parts are the signs of the
+## Main results ([Q] Proposition 2.1, in every dimension)
+
+* `chamberGraph_connected`: the wall reflections generate the group
+  (`closure_range_wallReflection`), so the graph is connected.
+* `chamberGraph_isBipartite`: each wall reflection is odd; the parts are the signs of the
   linear parts.
-* `neighborSet_chamberGraph`, `mul_wallReflection_injective`: each site has exactly one neighbour
-  of each type, `n + 2` in all.
+* `neighborSet_chamberGraph`, `card_neighborSet_chamberGraph`: each site has exactly one neighbour
+  of each type, `d + 1` in all.
 * `translationPart_mul_wallReflection`: bonds of type `≠ n + 1` keep the photon site; a bond of
-  type `n + 1` moves it by `g.right • e₀`, a unit vector (`translationPart_mul_eq_smul`: the
-  photon site is equivariant).
-* `card_lowerEnd`: exactly `2 ^ n * n !` bonds of type `n + 1` have lower end at `k` over the
-  link `k → k + e μ` (`8` for `d = 3`).
+  type `n + 1` moves it by the unit vector `g.right • e₀` (reversed at the other end,
+  `right_mul_wallReflection_last_smul`).
+* `card_lowerEnd`, `card_lowerEnd_three`: exactly `2 ^ n * n !` bonds lie over each photon link,
+  `8` in three dimensions.
+* `segment_inter_sUnion_mirrors`, `eq_smul_wall_of_midpoint_mem`,
+  `mul_wallReflection_smul_sub_smul`: every bond crosses exactly one mirror, its wall
+  `g • wall i`, orthogonally at its midpoint; each half lies in a chamber
+  (`sub_smul_wallNormal_mem`).
+* `mul_wallReflection_smul_eq_mirrorReflection_smul`: a bond crossing a mirror is `{x, θ x}`, `θ`
+  the reflection in that mirror.
+* `mirrorFunctional_pos_of_mem_segment`: if the open photon link lies on one side of a mirror,
+  so do all the bonds over it.
 -/
 
 @[expose] public section
@@ -409,6 +426,12 @@ theorem card_lowerEnd (k : Fin (n + 1) → ℤ) (μ : Fin (n + 1)) :
       rfl
     right_inv x := rfl }
   rw [Nat.card_congr e, Nat.card_prod, card_units_fun_eq_one, card_perm_apply_zero_eq]
+
+/-- **In three dimensions exactly eight bonds lie over each photon link.** -/
+theorem card_lowerEnd_three (k : Fin 3 → ℤ) (μ : Fin 3) :
+    Nat.card {g : AffineSignedPerm (Fin 3) //
+      translationPart g = k ∧ g.right • (Pi.single 0 1 : Fin 3 → ℤ) = Pi.single μ 1} = 8 :=
+  card_lowerEnd (n := 2) k μ
 
 /-! ### The wall functionals -/
 

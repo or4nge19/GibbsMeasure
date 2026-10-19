@@ -19,18 +19,27 @@ For a finite linear order `ι`, the *fundamental chamber* (alcove)
   `fundamentalChamber ι = {x | 1/2 > x_{i₁} > x_{i₂} > ⋯ > x_{i_d} > 0}`, `i₁ < ⋯ < i_d`,
 
 i.e. `x` strictly antitone with values in `(0, 1/2)`, is a fundamental domain of the affine signed
-permutations `AffineSignedPerm ι = ℤ^ι ⋊ SignedPerm ι` on the complement of the mirrors: it meets
-no mirror (`notMem_sUnion_mirrors_of_mem_fundamentalChamber`), and every point on no mirror is
-`g • z` for a unique `g` and `z ∈ fundamentalChamber ι` (`exists_smul_eq_of_notMem_sUnion_mirrors`,
-`eq_of_smul_eq_smul`). The proof is the standard one: subtract the nearest lattice point
-(`round`), then the coordinates are nonzero, of distinct absolute values in `(0, 1/2)`, and
-exactly one signed permutation makes them positive and decreasing.
+permutations `AffineSignedPerm ι = ℤ^ι ⋊ SignedPerm ι` on the complement of the mirrors. The
+proof is the standard one: subtract the nearest lattice point (`round`); the coordinates are then
+nonzero, of distinct absolute values in `(0, 1/2)`, and exactly one signed permutation makes them
+positive and decreasing.
 
-The *chambers* are the connected components of the complement of the mirrors. Since the
-translates `g • fundamentalChamber ι` are open, convex, pairwise disjoint and cover that
-complement, they are exactly the chambers (`chambers_eq_range`), and the group acts on the
-chambers simply transitively (`smul_fundamentalChamber_injective`,
-`existsUnique_smul_fundamentalChamber_eq`).
+The *chambers* are the connected components of the complement of the mirrors. The translates
+`g • fundamentalChamber ι` are open, convex, pairwise disjoint and cover that complement, so they
+are exactly the chambers.
+
+## Main results
+
+* `notMem_sUnion_mirrors_of_mem_fundamentalChamber`: the fundamental chamber meets no mirror.
+* `exists_smul_eq_of_notMem_sUnion_mirrors`, `eq_of_smul_eq_smul`,
+  `existsUnique_mem_smul_fundamentalChamber`: every point on no mirror is `g • z` for a unique
+  `g` and `z` in the fundamental chamber.
+* `round_smul_apply`: `translationPart g` is the nearest lattice point of `g • z`.
+* `chambers_eq_range`, `connectedComponentIn_smul_eq`: the chambers are the translates of the
+  fundamental chamber.
+* `smul_fundamentalChamber_injective`, `existsUnique_smul_fundamentalChamber_eq`,
+  `smul_left_injective_of_mem`: the group acts simply transitively on the chambers, and freely
+  on the orbit of a point of the fundamental chamber.
 -/
 
 @[expose] public section
