@@ -301,6 +301,7 @@ public import GibbsMeasure.Model.ShiftAverage
 public import GibbsMeasure.Model.SpitzerCoxMarkovChains
 public import GibbsMeasure.Potential.Existence
 public import GibbsMeasure.Potential.FiniteReference
+public import GibbsMeasure.Potential.OfLocal
 public import GibbsMeasure.Potential.GibbsRepresentation
 public import GibbsMeasure.Potential.Equivalence
 public import GibbsMeasure.Potential.NearestNeighbour
@@ -425,3 +426,4 @@ public import GibbsMeasure.Topology.GaussianLocalLimit
 public import GibbsMeasure.Topology.LocalMetric
 public import GibbsMeasure.Topology.Subsequence
 public import GibbsMeasure.Topology.Metrizable
+public import GibbsMeasure.Specification.FiniteSites
