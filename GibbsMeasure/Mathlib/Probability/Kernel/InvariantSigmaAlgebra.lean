@@ -48,7 +48,7 @@ is trivial while its invariant measures form a segment. Almost sure invariance i
 primitive here, and the strictly invariant sets are not an alternative definition but a
 special-case convenience.
 
-The `Filter.EventuallyConst` API is used in exactly one place,
+The `Filter.EventuallyEmptyOrUniv` API is used in exactly one place,
 `preErgodic_iff_forall_nullMeasurableSet`, which is the only bridge to Mathlib's `PreErgodic`;
 every other statement is phrased as `μ s = 0 ∨ μ s = 1`. That lemma also consumes
 `MeasurePreserving.quasiMeasurePreserving`, so if `MeasurePreserving` is ever weakened to require
@@ -719,14 +719,14 @@ theorem preErgodic_iff_forall_nullMeasurableSet [IsProbabilityMeasure μ]
   · intro herg s hs hae
     obtain ⟨t, htm, hteq, hinv⟩ :=
       hmp.quasiMeasurePreserving.exists_preimage_eq_of_preimage_ae hs hae
-    rcases eventuallyConst_set'.1 (herg.aeconst_set htm hinv) with h | h
+    rcases eventuallyEmptyOrUniv_iff'.1 (herg.aeconst_set htm hinv) with h | h
     · exact Or.inl (by rw [← measure_congr hteq]; exact ae_eq_empty.1 h)
     · exact Or.inr (by
         rw [← measure_congr hteq]; exact (prob_compl_eq_zero_iff htm).1 (ae_eq_univ.1 h))
   · intro htriv
     refine ⟨fun s hsm hinv ↦ ?_⟩
-    rw [eventuallyConst_set']
-    rcases htriv s hsm.nullMeasurableSet (by rw [hinv]; exact EventuallyEq.rfl) with h | h
+    rw [eventuallyEmptyOrUniv_iff']
+    rcases htriv s hsm.nullMeasurableSet (by rw [hinv]) with h | h
     · exact Or.inl (ae_eq_empty.2 h)
     · exact Or.inr (ae_eq_univ.2 ((prob_compl_eq_zero_iff hsm).2 h))
 
@@ -860,7 +860,7 @@ theorem ergodicSMul_iff_mem_extremePoints [IsProbabilityMeasure μ]
   constructor
   · intro herg A hA
     obtain ⟨hAm, hae⟩ := (measurableSet_aeInvariantSigmaAlgebraFamily_smul hinv).1 hA
-    rcases eventuallyConst_set'.1
+    rcases eventuallyEmptyOrUniv_iff'.1
       (ErgodicSMul.aeconst_of_forall_preimage_smul_ae_eq hAm hae) with h | h
     · exact Or.inl (ae_eq_empty.1 h)
     · exact Or.inr ((prob_compl_eq_zero_iff hAm).1 (ae_eq_univ.1 h))
@@ -868,7 +868,7 @@ theorem ergodicSMul_iff_mem_extremePoints [IsProbabilityMeasure μ]
     refine ⟨fun {s} hsm hae ↦ ?_⟩
     have hA : MeasurableSet[aeInvariantSigmaAlgebraFamily (smulKernel G) hinv] s :=
       (measurableSet_aeInvariantSigmaAlgebraFamily_smul hinv).2 ⟨hsm, hae⟩
-    rw [eventuallyConst_set']
+    rw [eventuallyEmptyOrUniv_iff']
     rcases htriv s hA with h | h
     · exact Or.inl (ae_eq_empty.2 h)
     · exact Or.inr (ae_eq_univ.2 ((prob_compl_eq_zero_iff hsm).2 h))
@@ -878,7 +878,7 @@ lemma invariants_le_aeInvariantSigmaAlgebraFamily [IsFiniteMeasure μ]
     (hμ : ∀ g : G, Invariant (smulKernel G g) μ) :
     MeasurableSpace.smulInvariants G Ω ≤ aeInvariantSigmaAlgebraFamily (smulKernel G) hμ :=
   fun A hA ↦ (measurableSet_aeInvariantSigmaAlgebraFamily_smul hμ).2
-    ⟨hA.1, fun g ↦ by rw [hA.2 g]; exact Filter.EventuallyEq.rfl⟩
+    ⟨hA.1, fun g ↦ by rw [hA.2 g]⟩
 
 /-- A function measurable for the a.s. invariant σ-algebra `I_Π(μ)` of a group action is a.e.
 invariant under every group element. -/
@@ -960,14 +960,14 @@ theorem ergodicSMul_iff_forall_measurableSet_invariants [Countable G] [IsProbabi
   constructor
   · intro herg A hA
     have hae : ∀ g : G, (g • ·) ⁻¹' A =ᵐ[μ] A := fun g ↦ by
-      rw [hA.2 g]; exact Filter.EventuallyEq.rfl
-    rcases eventuallyConst_set'.1
+      rw [hA.2 g]
+    rcases eventuallyEmptyOrUniv_iff'.1
       (ErgodicSMul.aeconst_of_forall_preimage_smul_ae_eq hA.1 hae) with h | h
     · exact Or.inl (ae_eq_empty.1 h)
     · exact Or.inr ((prob_compl_eq_zero_iff hA.1).1 (ae_eq_univ.1 h))
   · intro htriv
     refine ⟨fun {s} hsm hae ↦ ?_⟩
-    rw [eventuallyConst_set']
+    rw [eventuallyEmptyOrUniv_iff']
     rcases measure_eq_zero_or_one_of_forall_preimage_smul_ae_eq htriv hsm hae with h | h
     · exact Or.inl (ae_eq_empty.2 h)
     · exact Or.inr (ae_eq_univ.2 ((prob_compl_eq_zero_iff hsm).2 h))

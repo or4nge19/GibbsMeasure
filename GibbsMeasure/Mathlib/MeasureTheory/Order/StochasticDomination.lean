@@ -128,9 +128,9 @@ lemma eq_of_forall_eq [IsFiniteMeasure μ] (h : μ.StochasticallyLE ν) {𝒢 : 
   have key : ∀ A ∈ generatePiSystem 𝒢,
       MeasurableSet A ∧ IsUpperSet A ∧ μ A = ν A := by
     intro A hA
-    induction hA with
-    | base hs => exact ⟨hmeas _ hs, hup _ hs, heq _ hs⟩
-    | @inter s t _ _ _ ih₁ ih₂ =>
+    induction hA using generatePiSystem_induction with
+    | base _ hs => exact ⟨hmeas _ hs, hup _ hs, heq _ hs⟩
+    | inter s t _ _ _ ih₁ ih₂ =>
       obtain ⟨hm₁, hu₁, he₁⟩ := ih₁
       obtain ⟨hm₂, hu₂, he₂⟩ := ih₂
       refine ⟨hm₁.inter hm₂, hu₁.inter hu₂, ?_⟩

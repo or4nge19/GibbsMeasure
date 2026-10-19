@@ -28,10 +28,10 @@ variable {α β : Type*}
     (B.map σ.symm.toEmbedding).map σ.toEmbedding = B := by
   ext; simp [Finset.mem_map_equiv]
 
-/-- A bijection of `α` acts on `Finset α` as an order isomorphism: `Equiv.Finset.congr` together
+/-- A bijection of `α` acts on `Finset α` as an order isomorphism: `Equiv.finsetCongr` together
 with `Finset.map_subset_map`. -/
 def finsetOrderIso (σ : α ≃ β) : Finset α ≃o Finset β where
-  toEquiv := Equiv.Finset.congr σ
+  toEquiv := σ.finsetCongr
   map_rel_iff' := Finset.map_subset_map
 
 @[simp] lemma finsetOrderIso_apply (σ : α ≃ β) (A : Finset α) :

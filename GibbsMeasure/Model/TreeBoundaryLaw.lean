@@ -220,7 +220,7 @@ lemma prod_bondsOf_sdiff_incidenceFinset_update {Λ : Finset S} (i : S) (σ : S 
     Function.update_of_ne (fun hki ↦ ?_) _ _
   subst hki
   have hb' := Finset.mem_sdiff.1 hb
-  exact hb'.2 ((G.mem_incidenceFinset _ _).2 ⟨(SimpleGraph.mem_bondsOf.1 hb'.1).1, hk⟩)
+  exact hb'.2 (G.mem_incidenceFinset.2 ⟨(SimpleGraph.mem_bondsOf.1 hb'.1).1, hk⟩)
 
 end TransferFamily
 
