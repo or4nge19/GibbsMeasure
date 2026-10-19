@@ -1156,7 +1156,7 @@ lemma abs_wordProdPos_le {C : ℝ} (hC : ∀ n x, |f n x| ≤ C) (τ : E ≃ᵐ 
   rw [wordProdPos, Finset.abs_prod]
   calc ∏ z ∈ torusPosFinset N, |letterFun f τ (α z) (ω z)|
       ≤ ∏ _z ∈ torusPosFinset N, C :=
-        Finset.prod_le_prod (fun _ _ ↦ abs_nonneg _) fun _ _ ↦ hC _ _
+        Finset.prod_le_prod₀ (fun _ _ ↦ abs_nonneg _) fun _ _ ↦ hC _ _
     _ = C ^ (torusPosFinset N).card := Finset.prod_const C
 
 lemma abs_wordProd_le {C : ℝ} (hC : ∀ n x, |f n x| ≤ C) (τ : E ≃ᵐ E)
@@ -1165,7 +1165,7 @@ lemma abs_wordProd_le {C : ℝ} (hC : ∀ n x, |f n x| ≤ C) (τ : E ≃ᵐ E)
   rw [wordProd, Finset.abs_prod]
   calc ∏ z : ZMod (2 * N), |letterFun f τ (α z) (ω z)|
       ≤ ∏ _z : ZMod (2 * N), C :=
-        Finset.prod_le_prod (fun _ _ ↦ abs_nonneg _) fun _ _ ↦ hC _ _
+        Finset.prod_le_prod₀ (fun _ _ ↦ abs_nonneg _) fun _ _ ↦ hC _ _
     _ = C ^ (2 * N) := by rw [Finset.prod_const, Finset.card_univ, ZMod.card]
 
 /-! #### The alternating words -/
@@ -1549,7 +1549,7 @@ lemma measurable_splitTail : Measurable (splitTail (E := E) (N := N) (d := d)) :
 lemma abs_prod_le_pow_card {ι : Type*} [Fintype ι] {g : ι → ℝ} {C : ℝ} (hg : ∀ i, |g i| ≤ C) :
     |∏ i, g i| ≤ C ^ Fintype.card ι := by
   rw [Finset.abs_prod]
-  calc ∏ i, |g i| ≤ ∏ _i : ι, C := Finset.prod_le_prod (fun _ _ ↦ abs_nonneg _) fun i _ ↦ hg i
+  calc ∏ i, |g i| ≤ ∏ _i : ι, C := Finset.prod_le_prod₀ (fun _ _ ↦ abs_nonneg _) fun i _ ↦ hg i
     _ = C ^ Fintype.card ι := by rw [Finset.prod_const, Finset.card_univ]
 
 lemma cons_sub (i₀ j₀ : ZMod (2 * N)) (i₁ j₁ : Fin d → ZMod (2 * N)) :
@@ -1797,9 +1797,9 @@ theorem abs_integral_prod_pow_le_pi_abs (d : ℕ) :
         _ ≤ (∏ j₁, |A j₁|) ^ (2 * N) := pow_le_pow_left₀ (pow_nonneg (abs_nonneg _) _) hA _
         _ = ∏ j₁, |A j₁| ^ (2 * N) := (Finset.prod_pow _ _ _).symm
         _ ≤ ∏ j₁, ∏ j₀, R (Fin.cons j₀ j₁) :=
-            Finset.prod_le_prod (fun _ _ ↦ pow_nonneg (abs_nonneg _) _) fun j₁ _ ↦ hB j₁
+            Finset.prod_le_prod₀ (fun _ _ ↦ pow_nonneg (abs_nonneg _) _) fun j₁ _ ↦ hB j₁
         _ ≤ ∏ j₁, ∏ j₀, |R (Fin.cons j₀ j₁)| :=
-            Finset.prod_le_prod (fun j₁ _ ↦ (pow_nonneg (abs_nonneg _) _).trans (hB j₁))
+            Finset.prod_le_prod₀ (fun j₁ _ ↦ (pow_nonneg (abs_nonneg _) _).trans (hB j₁))
               fun j₁ _ ↦ (le_abs_self _).trans (le_of_eq (Finset.abs_prod _ _))
         _ = ∏ j, |R j| := by rw [prod_cons (fun j ↦ |R j|), Finset.prod_comm]
 

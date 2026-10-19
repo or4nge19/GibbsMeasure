@@ -45,7 +45,7 @@ lemma abs_isingPotential_pair_le (G : SimpleGraph S) (J h : ℝ) {A : Finset S}
   have hprod : |∏ k ∈ A, spin (η k)| ≤ 1 := by
     rw [Finset.abs_prod]
     calc ∏ k ∈ A, |spin (η k)| ≤ ∏ _k ∈ A, (1:ℝ) :=
-          Finset.prod_le_prod (fun _ _ ↦ abs_nonneg _) (fun k _ ↦ abs_spin_le (η k))
+          Finset.prod_le_prod₀ (fun _ _ ↦ abs_nonneg _) (fun k _ ↦ abs_spin_le (η k))
       _ = 1 := by simp
   exact mul_le_of_le_one_right (abs_nonneg J) hprod
 

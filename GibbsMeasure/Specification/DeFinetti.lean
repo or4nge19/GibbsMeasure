@@ -73,7 +73,7 @@ lemma symmAvg_le_one (ha : ∀ i j, a i j ≤ 1) (k : ℕ) : symmAvg n a k ≤ 1
       ≤ (Fintype.card (finPerm n) : ℝ≥0∞)⁻¹ * ∑ _σ : finPerm n, 1 := by
         rw [symmAvg]
         gcongr with σ
-        exact Finset.prod_le_one (fun _ _ ↦ zero_le) fun i _ ↦ ha i _
+        exact Finset.prod_le_one₀ (fun _ _ ↦ zero_le) fun i _ ↦ ha i _
     _ = 1 := by
         simp [ENNReal.inv_mul_cancel (card_finPerm_ne_zero n) (card_finPerm_ne_top n)]
 
@@ -486,7 +486,7 @@ theorem measure_rangePi_eq_prod_of_mem_extremePoints
           simp only [Finset.prod_range_succ]
           exact ENNReal.Tendsto.mul ih (Or.inr (measure_ne_top _ _)) (hω m)
             (Or.inr (ne_top_of_le_ne_top ENNReal.one_ne_top
-              (Finset.prod_le_one (fun _ _ ↦ zero_le) fun i _ ↦ prob_le_one)))
+              (Finset.prod_le_one₀ (fun _ _ ↦ zero_le) fun i _ ↦ prob_le_one)))
     exact hgen k
   -- dominated convergence
   have hmeasX : ∀ n, Measurable fun ω ↦ ∏ i ∈ Finset.range k, X i n ω := fun n ↦
@@ -496,7 +496,7 @@ theorem measure_rangePi_eq_prod_of_mem_extremePoints
     have h := tendsto_lintegral_of_dominated_convergence (bound := fun _ ↦ 1)
       (F := fun n ω ↦ ∏ i ∈ Finset.range k, X i n ω) hmeasX
       (fun n ↦ ae_of_all _ fun ω ↦
-        Finset.prod_le_one (fun _ _ ↦ zero_le) fun i _ ↦ prob_le_one)
+        Finset.prod_le_one₀ (fun _ _ ↦ zero_le) fun i _ ↦ prob_le_one)
       (by simp) haetendsto
     simpa using h
   -- the two-sided symmetrisation estimate, integrated

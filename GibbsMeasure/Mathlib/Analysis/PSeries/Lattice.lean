@@ -71,7 +71,7 @@ theorem summable_max_exp_norm_rpow {D : ℕ} {p : ℝ} (hp : (D : ℝ) < p) :
       rw [hqdef]
       field_simp
     rw [hsplit]
-    refine Finset.prod_le_prod (fun c _ ↦ Real.rpow_nonneg hbase.le _) fun c _ ↦ ?_
+    refine Finset.prod_le_prod₀ (fun c _ ↦ Real.rpow_nonneg hbase.le _) fun c _ ↦ ?_
     have hc : max (Real.exp 1) |(i c : ℝ)| ≤ max (Real.exp 1) ‖i‖ := by
       refine max_le_max le_rfl ?_
       have := norm_le_pi_norm i c

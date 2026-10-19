@@ -975,7 +975,7 @@ omit [Nonempty E] hℓ in
 lemma boundaryLawWeight_mono {ℓ' : S → S → E → ℝ≥0∞}
     (hle : ∀ ⦃i j⦄, G.Adj i j → ∀ x, ℓ i j x ≤ ℓ' i j x) (Λ : Finset S) (ζ : S → E) :
     boundaryLawWeight G Q hQ.symm ℓ Λ ζ ≤ boundaryLawWeight G Q hQ.symm ℓ' Λ ζ :=
-  mul_le_mul' (Finset.prod_le_prod' fun k hk ↦ hle (G.adj_anchor hk) _) le_rfl
+  mul_le_mul' (Finset.prod_le_prod fun k hk ↦ hle (G.adj_anchor hk) _) le_rfl
 
 include hℓ hG in
 /-- **Georgii, step 3) of the proof of Theorem (12.31): domination of the ratios.** Two boundary

@@ -183,7 +183,7 @@ lemma abs_nearestNeighbourPair_apply_le (G : SimpleGraph S) (J h : ℝ) {σ : E 
     · rw [nearestNeighbourPair_apply_pair h2, abs_mul, abs_neg]
       have hprod : |∏ i ∈ A, σ (η i)| ≤ c * c := by
         calc |∏ i ∈ A, σ (η i)| = ∏ i ∈ A, |σ (η i)| := Finset.abs_prod _ _
-          _ ≤ ∏ _i ∈ A, |c| := Finset.prod_le_prod (fun i _ ↦ abs_nonneg _)
+          _ ≤ ∏ _i ∈ A, |c| := Finset.prod_le_prod₀ (fun i _ ↦ abs_nonneg _)
               (fun i _ ↦ (hb (η i)).trans (le_abs_self c))
           _ = |c| ^ A.card := Finset.prod_const _
           _ = |c| * |c| := by rw [h2.1, pow_two]

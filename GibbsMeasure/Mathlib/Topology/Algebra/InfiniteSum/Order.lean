@@ -32,7 +32,7 @@ variable {R : Type*} [CommMonoidWithZero R] [TopologicalSpace R] [Preorder R] [Z
 non-multipliable product is `1` by convention. See `tprod_le_one` for ordered monoids. -/
 theorem tprod_le_one₀ {f : ι → R} (h0 : ∀ i, 0 ≤ f i) (h1 : ∀ i, f i ≤ 1) : ∏' i, f i ≤ 1 := by
   by_cases hf : Multipliable f
-  · exact hasProd_le_of_prod_le hf.hasProd fun s ↦ prod_le_one (fun i _ ↦ h0 i) fun i _ ↦ h1 i
+  · exact hasProd_le_of_prod_le hf.hasProd fun s ↦ prod_le_one₀ (fun i _ ↦ h0 i) fun i _ ↦ h1 i
   · rw [tprod_eq_one_of_not_multipliable hf]
 
 end WithZero

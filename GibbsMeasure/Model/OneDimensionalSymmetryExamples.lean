@@ -1772,7 +1772,7 @@ lemma tprod_tanh_le_prod_Ico {J : ℕ → ℝ} (hJ : ∀ n, 0 ≤ J n)
       (Real.multipliable_tanh h61i)
   refine le_of_tendsto hTend ?_
   filter_upwards [eventually_ge_atTop N] with M hM
-  exact Finset.prod_le_prod_of_subset_of_le_one (Finset.Ico_subset_Ico le_rfl hM)
+  exact Finset.prod_le_prod_of_subset_of_le_one₀ (Finset.Ico_subset_Ico le_rfl hM)
     (fun k _ ↦ Real.tanh_nonneg (hJ k)) (fun k _ _ ↦ (Real.tanh_lt_one _).le)
 
 /-- `{σ : σ_{i1} = +1}` is a local event. -/

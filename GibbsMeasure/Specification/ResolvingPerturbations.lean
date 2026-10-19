@@ -908,6 +908,6 @@ theorem exists_measure_localGroundStates_pos_of_finite {E : Type*} [MeasurableSp
         rw [Finset.prod_const, Finset.card_univ]
         congr 1
         simp
-    _ ≤ ∏ c : Fin d → Fin 2, ν {a c} := Finset.prod_le_prod' fun c _ ↦ hx₀ (a c)
+    _ ≤ ∏ c : Fin d → Fin 2, ν {a c} := Finset.prod_le_prod fun c _ ↦ hx₀ (a c)
 
 end MeasureTheory.GibbsMeasure

@@ -117,7 +117,7 @@ lemma infinitePi_setOf_forall_eq_zero [Infinite S] [MeasurableSingletonClass E]
         ≤ Measure.infinitePi μs (Set.pi (↑F) (fun i ↦ {ω i})) := measure_mono hsubset
       _ = ∏ i ∈ F, μs i {ω i} :=
           Measure.infinitePi_pi (μ := μs) fun i _ ↦ measurableSet_singleton (ω i)
-      _ ≤ ∏ _i ∈ F, c := Finset.prod_le_prod' fun i _ ↦ hc i (ω i)
+      _ ≤ ∏ _i ∈ F, c := Finset.prod_le_prod fun i _ ↦ hc i (ω i)
       _ = c ^ n := by rw [Finset.prod_const, hFcard]
   refine le_antisymm ?_ bot_le
   exact ge_of_tendsto (ENNReal.tendsto_pow_atTop_nhds_zero_of_lt_one hc1)

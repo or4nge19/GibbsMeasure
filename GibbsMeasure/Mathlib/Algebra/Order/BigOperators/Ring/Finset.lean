@@ -11,7 +11,7 @@ public import Mathlib.Algebra.Order.BigOperators.Ring.Finset
 # Weierstrass' product inequality
 
 `1 - ∑ i ∈ s, f i ≤ ∏ i ∈ s, (1 - f i)` whenever `0 ≤ f i ≤ 1` on `s`. This is the lower bound
-complementing `Finset.prod_le_one`; it is the finite form of the classical criterion for an
+complementing `Finset.prod_le_one₀`; it is the finite form of the classical criterion for an
 infinite product `∏ (1 - a_i)` with `a_i ∈ [0, 1]` to be positive when `∑ a_i < 1`.
 -/
 

@@ -696,7 +696,7 @@ theorem isGaussianDominating_of_withDensity {d N n : ℕ} [NeZero N]
     Finset.measurable_prod _ fun i _ ↦ ((hFm i).comp (measurable_pi_apply i)).min measurable_const
   have hGmono : Monotone G := by
     intro M M' hMM' ω
-    exact Finset.prod_le_prod' fun i _ ↦
+    exact Finset.prod_le_prod fun i _ ↦
       min_le_min le_rfl (by exact_mod_cast hMM')
   -- the Bochner and Lebesgue integrals of a product of nonnegative functions agree
   have hBL : ∀ h : (Fin (d + 1) → ZMod (2 * N)) → (Fin n → ℝ) → ℝ, (∀ i, Measurable (h i)) →
@@ -742,14 +742,14 @@ theorem isGaussianDominating_of_withDensity {d N n : ℕ} [NeZero N]
       intro j
       rw [hBL (fun _ ↦ g j) (fun _ ↦ hgm j) (fun _ ↦ hgnn j)]
       have hmono : (∫⁻ ω, ∏ i, ENNReal.ofReal (g j (ω i)) ∂μ) ≤ ∫⁻ ω, ∏ i, F j (ω i) ∂μ :=
-        lintegral_mono fun ω ↦ Finset.prod_le_prod' fun i _ ↦ by
+        lintegral_mono fun ω ↦ Finset.prod_le_prod fun i _ ↦ by
           rw [hofReal]; exact min_le_left _ _
       rw [hone j] at hmono
       simpa using ENNReal.toReal_mono ENNReal.one_ne_top hmono
     -- the left-hand side is at most `1`
     have hK : 0 < (2 * N) ^ (d + 1) := Nat.pow_pos (by have := NeZero.ne N; omega)
     have hpow : |∫ ω, ∏ i, g i (ω i) ∂μ| ^ ((2 * N) ^ (d + 1)) ≤ (1 : ℝ) ^ ((2 * N) ^ (d + 1)) := by
-      refine le_trans (hchess.trans (Finset.prod_le_one (fun j _ ↦ hRHSnn j)
+      refine le_trans (hchess.trans (Finset.prod_le_one₀ (fun j _ ↦ hRHSnn j)
         fun j _ ↦ hRHS j)) ?_
       rw [one_pow]
     have hLHS : (∫ ω, ∏ i, g i (ω i) ∂μ) ≤ 1 :=
@@ -763,7 +763,7 @@ theorem isGaussianDominating_of_withDensity {d N n : ℕ} [NeZero N]
         refine lintegral_mono fun ω ↦ ?_
         calc ∏ i, ENNReal.ofReal (g i (ω i))
             ≤ ∏ _i : Fin (d + 1) → ZMod (2 * N), (M : ℝ≥0∞) :=
-              Finset.prod_le_prod' fun i _ ↦ by rw [hofReal]; exact min_le_right _ _
+              Finset.prod_le_prod fun i _ ↦ by rw [hofReal]; exact min_le_right _ _
           _ = (M : ℝ≥0∞) ^ Fintype.card (Fin (d + 1) → ZMod (2 * N)) := by
               rw [Finset.prod_const, Finset.card_univ]
       refine ne_of_lt (lt_of_le_of_lt hb ?_)
@@ -778,7 +778,7 @@ theorem isGaussianDominating_of_withDensity {d N n : ℕ} [NeZero N]
   have hsup : ∀ ω : (Fin (d + 1) → ZMod (2 * N)) → (Fin n → ℝ),
       ⨆ M : ℕ, G M ω = ∏ i, F i (ω i) := by
     intro ω
-    refine le_antisymm (iSup_le fun M ↦ Finset.prod_le_prod' fun i _ ↦ min_le_left _ _) ?_
+    refine le_antisymm (iSup_le fun M ↦ Finset.prod_le_prod fun i _ ↦ min_le_left _ _) ?_
     obtain ⟨M, hM⟩ := exists_nat_ge (∑ i, (F i (ω i)).toReal)
     refine le_iSup_of_le M (le_of_eq (Finset.prod_congr rfl fun i _ ↦ ?_).symm)
     refine min_eq_left ?_

@@ -38,7 +38,7 @@ theorem tendsto_prod_Ico_nhds_zero_of_not_summable_one_sub {f : ℕ → ℝ} (h0
       ≤ exp (∑ i ∈ range n, (1 - f i) - ∑ i ∈ range N, (1 - f i)) := by
     intro N hN
     calc ∏ i ∈ Ico n N, f i ≤ ∏ i ∈ Ico n N, exp (f i - 1) :=
-          prod_le_prod (fun i _ ↦ h0 i) fun i _ ↦ by linarith [add_one_le_exp (f i - 1)]
+          prod_le_prod₀ (fun i _ ↦ h0 i) fun i _ ↦ by linarith [add_one_le_exp (f i - 1)]
       _ = exp (∑ i ∈ range n, (1 - f i) - ∑ i ∈ range N, (1 - f i)) := by
           rw [← exp_sum, ← sum_range_add_sum_Ico _ hN, sub_add_cancel_left, ← sum_neg_distrib]
           simp only [neg_sub]

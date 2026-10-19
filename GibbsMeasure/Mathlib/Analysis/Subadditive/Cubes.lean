@@ -670,7 +670,7 @@ theorem tendsto_coe_div_card {a : Finset (ι → ℤ) → ℝ} (ha : BoxSubaddit
     have key := ha.Icc_le_nsmul_add_nsmul hp0 hj
     have hQP : Q j * P ≤ #(Icc (m j) (n j)) := by
       rw [hcard, hQ, hP, ← prod_mul_distrib]
-      exact prod_le_prod' fun k _ ↦ Nat.div_mul_le_self _ _
+      exact prod_le_prod fun k _ ↦ Nat.div_mul_le_self _ _
     have hC : (0 : ℝ) < #(Icc (m j) (n j)) := by exact_mod_cast (isBox_Icc hjbox).card_pos
     rw [haΔ, hcardΔ, div_le_iff₀ hC]
     have hC' : (#(Icc (m j) (n j)) : ℝ) ≠ 0 := hC.ne'

@@ -447,7 +447,7 @@ lemma premodifierZ_boltzmannFactor_markovPotential_singleton_le_one (P : Matrix 
     _ ≤ ∫⁻ _, 1 ∂(Specification.isssd (uniformOn (Set.univ : Set E)) {i} ω) := by
         refine lintegral_mono fun σ ↦ ?_
         rw [boltzmannFactor_eq_prod_bondsOf hpos]
-        exact ENNReal.ofReal_le_one.2 (Finset.prod_le_one
+        exact ENNReal.ofReal_le_one.2 (Finset.prod_le_one₀
           (fun _ _ ↦ Matrix.nonneg_of_mem_rowStochastic hP)
           (fun _ _ ↦ Matrix.le_one_of_mem_rowStochastic hP))
     _ = 1 := by rw [lintegral_one, measure_univ]

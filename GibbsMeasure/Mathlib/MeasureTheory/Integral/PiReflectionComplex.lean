@@ -151,7 +151,7 @@ theorem re_integral_mul_conj_comp_pow_nonneg (r : ι ≃ ι) (hν : ∀ i, ν (r
     rw [hG, norm_mul]
     refine mul_le_mul (hC ω) ?_ (norm_nonneg _) hC0
     calc ‖∏ j, h (v j) ω‖ = ∏ j, ‖h (v j) ω‖ := norm_prod _ _
-      _ ≤ ∏ _j : Fin ℓ, Ch := Finset.prod_le_prod (fun _ _ ↦ norm_nonneg _)
+      _ ≤ ∏ _j : Fin ℓ, Ch := Finset.prod_le_prod₀ (fun _ _ ↦ norm_nonneg _)
           fun j _ ↦ hhC (v j) ω
       _ = Ch ^ ℓ := by simp
   -- Step 1: `H ^ ℓ` as an integral over `W ^ ℓ`

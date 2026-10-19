@@ -1649,7 +1649,7 @@ theorem periodicGibbsDist_forall_mem_le_pow (hφ : Measurable φ) {M : ℝ} (hM 
       ≤ ∏ j ∈ D, periodicGibbsDist E φ ν (N := N)
           {ω | ∀ i, tauPow (cubeRefl E) i (cubeView ω i) ∈ W (ψ j)} :=
         periodicGibbsDist_pow_le_prod hφ hM hφk hW D ψ
-    _ ≤ ∏ _j ∈ D, c ^ ((2 * N) ^ (d + 1)) := Finset.prod_le_prod' fun j _ ↦ hc (ψ j)
+    _ ≤ ∏ _j ∈ D, c ^ ((2 * N) ^ (d + 1)) := Finset.prod_le_prod fun j _ ↦ hc (ψ j)
     _ = (c ^ D.card) ^ ((2 * N) ^ (d + 1)) := by
         rw [Finset.prod_const, ← pow_mul, ← pow_mul, mul_comm]
 

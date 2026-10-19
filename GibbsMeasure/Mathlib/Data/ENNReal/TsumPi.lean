@@ -41,7 +41,7 @@ theorem tsum_pi_prod_le {ι : Type*} [Fintype ι] {α : Type*} (w : α → ℝ�
         Finset.sum_le_sum_of_subset hsub
     _ = ∏ _i : ι, ∑ x ∈ t, w x :=
         (Finset.prod_univ_sum (fun _ : ι ↦ t) (fun _ (x : α) ↦ w x)).symm
-    _ ≤ ∏ _i : ι, ∑' x, w x := Finset.prod_le_prod' fun i _ ↦ ENNReal.sum_le_tsum t
+    _ ≤ ∏ _i : ι, ∑' x, w x := Finset.prod_le_prod fun i _ ↦ ENNReal.sum_le_tsum t
     _ = (∑' x, w x) ^ Fintype.card ι := by rw [Finset.prod_const, Finset.card_univ]
 
 end ENNReal
