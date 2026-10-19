@@ -9,6 +9,7 @@ public import GibbsMeasure.Mathlib.AlgebraicTopology.CubicalCochain.Cohomology
 public import Mathlib.Algebra.Order.Interval.Finset.SuccPred
 public import Mathlib.Data.Int.Interval
 public import Mathlib.Data.Int.SuccPred
+public import Mathlib.GroupTheory.QuotientGroup.Defs
 
 /-!
 # The Poincaré lemma on `ℤᵈ`
@@ -42,8 +43,8 @@ general not periodic.
   implies `u = d v`;
 * `cocycles_le_coboundaries_succ`, `subsingleton_cohomology_succ`,
   `exactAt_cochainComplex_succ`: the same as `H^{k+1}(ℤᵈ; R) = 0` and exactness;
-* `closure_range_single_int`: the unit steps generate `ℤᵈ`, so `H⁰(ℤᵈ; R) ≃ R` is
-  `cohomologyZeroEquiv closure_range_single_int`.
+* `closure_range_single_int`, `closure_range_mk_single_int`: the unit steps generate `ℤᵈ` and
+  every torus `ℤᵈ ⧸ Γ`, so `H⁰ ≃ R` there is `cohomologyZeroEquiv` of these.
 -/
 
 @[expose] public section
@@ -288,5 +289,14 @@ omit [LinearOrder ι] [Fintype ι] in
 theorem closure_range_single_int [Finite ι] [DecidableEq ι] :
     AddSubgroup.closure (Set.range fun i : ι ↦ (Pi.single i 1 : ι → ℤ)) = ⊤ :=
   closure_range_single_one fun _ n ↦ ⟨n, Int.cast_id⟩
+
+omit [LinearOrder ι] [Fintype ι] in
+/-- The images of the unit steps generate every torus `ℤᵈ ⧸ Γ`; hence `H⁰(ℤᵈ ⧸ Γ; R) ≃ R`
+(`cohomologyZeroEquiv`). -/
+theorem closure_range_mk_single_int [Finite ι] [DecidableEq ι] (Γ : AddSubgroup (ι → ℤ)) :
+    AddSubgroup.closure
+      (Set.range fun i : ι ↦ (QuotientAddGroup.mk (Pi.single i 1) : (ι → ℤ) ⧸ Γ)) = ⊤ :=
+  closure_range_comp (QuotientAddGroup.mk' Γ) (QuotientAddGroup.mk'_surjective Γ)
+    closure_range_single_int
 
 end CubicalCochain
