@@ -16,8 +16,9 @@ public import Mathlib.LinearAlgebra.Isomorphisms
 Let `X = ∀ i, ZMod (n i)`, `n i ≥ 1`, with the unit steps `Pi.single i 1`: the cubical torus
 `∏ ℤ/nᵢ`, e.g. the cubic torus `(ℤ/N)ᵈ` and the coordinate tori `C(n₁, n₂, n₃)` of [Q], [M].
 Its cohomology with coefficients in any commutative ring `R` is free, with one generator for
-each coordinate subtorus: `H^k ≃ (Set.powersetCard ι k → R)` (`cohomologyEquiv`), i.e.
-`⋀^k Rᵈ`.
+each coordinate subtorus: `H^k ≃ (Set.powersetCard ι k → R)` (`cohomologyEquiv`), the coordinate
+space of `⋀^k Rᵈ` in the basis `e_I` (`Module.Basis.exteriorPower` is indexed by the same
+`Set.powersetCard ι k`).
 
 The class of a closed `k`-cochain `u` is read off from its *periods* `periods x u I`, the sums of
 `u` over the coordinate `I`-torus `{y | y i = x i for i ∉ I}` (`#I = k`); for a closed cochain
@@ -479,7 +480,7 @@ theorem mem_coboundaries_iff_periods_eq_zero {u : CubicalCell (∀ i, ZMod (n i)
 
 variable (R n k) in
 /-- **`H^k(∏ ℤ/nᵢ; R) ≃ R^(d choose k)`**: the periods identify the cohomology of the torus with
-the functions on the `k`-sets of directions, i.e. with `⋀^k Rᵈ`. -/
+the functions on the `k`-sets of directions. -/
 noncomputable def cohomologyEquiv :
     cohomology R (fun i : ι ↦ (Pi.single i 1 : ∀ i, ZMod (n i))) k ≃ₗ[R]
       (Set.powersetCard ι k → R) :=
