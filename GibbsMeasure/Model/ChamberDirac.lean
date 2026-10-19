@@ -8,9 +8,11 @@ module
 public import GibbsMeasure.Mathlib.AlgebraicTopology.CubicalCochain.Basic
 public import GibbsMeasure.Mathlib.GroupTheory.SemidirectProduct
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.Hopping
+public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.Pauli
 public import GibbsMeasure.Model.ChamberGraph
 public import Mathlib.Analysis.Complex.Circle
 public import Mathlib.LinearAlgebra.Matrix.Hermitian
+public import Mathlib.LinearAlgebra.Matrix.PosDef
 
 /-!
 # The chamber Dirac matrix
@@ -429,6 +431,15 @@ theorem det_chamberDirac_fromBlocks_neg_nonneg (hσ : ∀ μ, (σ μ).IsHermitia
 
 end Dirac
 
+/-- **[Q] Proposition 2.2 in three dimensions**: with the Pauli matrices and
+`γ_μ = diag(σ_μ, -σ_μ)` on `ℂ⁴ = ℂ² ⊕ ℂ²` ((2.12)), the chamber determinant
+`det 𝒟 = |det 𝒟̄|²` is nonnegative for every `U(1)` link field on every quotient of `ℤ³`, all
+real weights, Wilson parameter and mass. -/
+theorem det_chamberDirac_pauli_nonneg {X : Type*} [AddCommGroup X] [DecidableEq X] [Fintype X]
+    (p : (Fin 3 → ℤ) →+ X) (w : Fin 4 → ℝ) (ρ M : ℝ) (u : CubicalCell X (Fin 3) 1 → Circle) :
+    0 ≤ det (chamberDirac p (fun μ ↦ fromBlocks (pauli μ) 0 0 (-pauli μ)) w ρ M u) :=
+  det_chamberDirac_fromBlocks_neg_nonneg p w ρ M u isHermitian_pauli
+
 /-! ### Gauge and translation covariance -/
 
 section Covariance
@@ -532,5 +543,118 @@ theorem det_chamberDirac_translate [Fintype X] [Fintype s]
   rw [chamberDirac_translate, det_submatrix_equiv_self]
 
 end Covariance
+
+/-! ### The real part and the lattice mass -/
+
+section RealPart
+
+variable {n : ℕ} {X : Type*} [AddCommGroup X] [DecidableEq X] {s : Type*} [DecidableEq s]
+  (p : (Fin (n + 1) → ℤ) →+ X) (u : CubicalCell X (Fin (n + 1)) 1 → Circle)
+
+/-- The **parallel transport along the bonds of type `i`**,
+`(Tᵢ ψ)(x) = U(x, x^{(i)}) ψ(x^{(i)})`: a self-adjoint unitary (`conjTranspose_bondTransport`,
+`bondTransport_mul_self`; [M] Lemma 2.10). -/
+noncomputable def bondTransport (i : Fin (n + 2)) :
+    Matrix ((X × SignedPerm (Fin (n + 1))) × s) ((X × SignedPerm (Fin (n + 1))) × s) ℂ :=
+  hoppingMatrix (chamberNeighbor p · i) fun x ↦ (bondPhase p u x i : ℂ) • 1
+
+theorem conjTranspose_bondTransport (i : Fin (n + 2)) :
+    (bondTransport (s := s) p u i)ᴴ = bondTransport p u i := by
+  simp only [bondTransport, conjTranspose_hoppingMatrix (chamberNeighbor_involutive p i),
+    conjTranspose_smul, conjTranspose_one, bondPhase_chamberNeighbor, Circle.coe_inv_eq_conj,
+    Complex.star_def, Complex.conj_conj]
+
+theorem bondTransport_mul_self [Fintype X] [Fintype s] (i : Fin (n + 2)) :
+    bondTransport (s := s) p u i * bondTransport p u i = 1 := by
+  have hN : (chamberNeighbor p · i) ∘ (chamberNeighbor p · i) = id :=
+    funext fun x ↦ chamberNeighbor_chamberNeighbor p x i
+  have hB : (fun x ↦ ((bondPhase p u x i : ℂ) • (1 : Matrix s s ℂ)) *
+      ((bondPhase p u (chamberNeighbor p x i) i : ℂ) • 1)) = fun _ ↦ 1 := by
+    funext x
+    rw [smul_mul_smul_comm, one_mul, bondPhase_chamberNeighbor, ← Circle.coe_mul,
+      mul_inv_cancel, Circle.coe_one, one_smul]
+  rw [bondTransport, hoppingMatrix_mul_hoppingMatrix, hN, hB, hoppingMatrix_id_one]
+
+/-- The two spin signs of a hopping block sum to its scalar part: `w(γ) + w(-γ) = ρ wᵢ`. -/
+theorem bondHopping_add_bondHopping_neg (γ : Fin (n + 1) → Matrix s s ℂ) (w : Fin (n + 2) → ℝ)
+    (ρ : ℝ) (r : SignedPerm (Fin (n + 1))) (i : Fin (n + 2)) :
+    bondHopping γ w ρ r i + bondHopping (-γ) w ρ r i = ((ρ * w i : ℝ) : ℂ) • 1 := by
+  simp only [bondHopping, Pi.neg_apply, smul_neg, Finset.sum_neg_distrib, sub_neg_eq_add]
+  push_cast
+  module
+
+variable {γ : Fin (n + 1) → Matrix s s ℂ} (w : Fin (n + 2) → ℝ) (ρ M : ℝ)
+
+/-- **The Hermitian part of the chamber Dirac matrix** ([Q] Proposition 2.2): for Hermitian `γ`,
+`𝒟 + 𝒟ᴴ = 2M - ρ ∑ᵢ wᵢ Tᵢ`; the spin hopping is skew-adjoint and drops out. -/
+theorem chamberDirac_add_conjTranspose (hγ : ∀ μ, (γ μ).IsHermitian) :
+    chamberDirac p γ w ρ M u + (chamberDirac p γ w ρ M u)ᴴ =
+      ((2 * M : ℝ) : ℂ) • 1 - ∑ i, ((ρ * w i : ℝ) : ℂ) • bondTransport p u i := by
+  rw [conjTranspose_chamberDirac p w ρ M u hγ, chamberDirac, chamberDirac, sub_add_sub_comm,
+    ← add_smul, ← Finset.sum_add_distrib, Complex.ofReal_mul, Complex.ofReal_ofNat, two_mul]
+  congr 1
+  refine Finset.sum_congr rfl fun i _ ↦ ?_
+  rw [hoppingMatrix_add, bondTransport, smul_hoppingMatrix]
+  congr 1
+  funext x
+  rw [← smul_add, bondHopping_add_bondHopping_neg, smul_comm]
+
+/-- **[Q] Proposition 2.2, the real part**: `Re 𝒟 = m + (ρ/2) ∇ᴴ ∇` with the lattice mass
+`m = M - (ρ/2) ∑ᵢ wᵢ` (2.15) and `∇ᴴ ∇ = ∑ᵢ (wᵢ/2) (1 - Tᵢ)ᴴ (1 - Tᵢ)`, the gradient
+`(∇ ψ)(x, i) = √(wᵢ/2) (ψ(x) - U(x, x^{(i)}) ψ(x^{(i)}))`, written here as
+`𝒟 + 𝒟ᴴ = 2m + ρ ∇ᴴ ∇`. -/
+theorem chamberDirac_add_conjTranspose_eq [Fintype X] [Fintype s]
+    (hγ : ∀ μ, (γ μ).IsHermitian) :
+    chamberDirac p γ w ρ M u + (chamberDirac p γ w ρ M u)ᴴ =
+      ((2 * (M - ρ / 2 * ∑ i, w i) : ℝ) : ℂ) • 1 +
+        ∑ i, ((ρ * w i / 2 : ℝ) : ℂ) •
+          ((1 - bondTransport p u i)ᴴ * (1 - bondTransport p u i)) := by
+  have h2 : ∀ i, (1 - bondTransport (s := s) p u i)ᴴ * (1 - bondTransport p u i) =
+      (2 : ℂ) • (1 - bondTransport p u i) := fun i ↦ by
+    rw [conjTranspose_sub, conjTranspose_one, conjTranspose_bondTransport, sub_mul, mul_sub,
+      mul_sub, one_mul, mul_one, one_mul, bondTransport_mul_self, two_smul]
+    abel
+  simp only [h2, smul_smul, smul_sub, Finset.sum_sub_distrib, ← Finset.sum_smul,
+    chamberDirac_add_conjTranspose p u w ρ M hγ]
+  have hc : ∀ i, ((ρ * w i / 2 : ℝ) : ℂ) * 2 = ((ρ * w i : ℝ) : ℂ) := fun i ↦ by
+    push_cast
+    ring
+  simp only [hc, ← add_sub_assoc, ← add_smul]
+  congr 2
+  push_cast
+  rw [← Finset.mul_sum]
+  ring
+
+/-- **[M] Lemma 2.10**: for `ρ ≥ 0` and `wᵢ ≥ 0` the Hermitian part of the chamber Dirac matrix is
+bounded below by the lattice mass: `𝒟 + 𝒟ᴴ - 2m` is positive semidefinite. -/
+theorem posSemidef_chamberDirac_add_conjTranspose_sub [Finite X] [Finite s]
+    (hγ : ∀ μ, (γ μ).IsHermitian) (hρ : 0 ≤ ρ) (hw : ∀ i, 0 ≤ w i) :
+    (chamberDirac p γ w ρ M u + (chamberDirac p γ w ρ M u)ᴴ -
+      ((2 * (M - ρ / 2 * ∑ i, w i) : ℝ) : ℂ) • 1).PosSemidef := by
+  have := Fintype.ofFinite X
+  have := Fintype.ofFinite s
+  rw [chamberDirac_add_conjTranspose_eq p u w ρ M hγ, add_sub_cancel_left]
+  refine posSemidef_sum _ fun i _ ↦ (posSemidef_conjTranspose_mul_self _).smul ?_
+  exact Complex.zero_le_real.2 (by have := hw i; positivity)
+
+/-- **[M] Lemma 2.10**: `Re ⟨v, 𝒟 v⟩ ≥ m ‖v‖²`, `m = M - (ρ/2) ∑ᵢ wᵢ`, for `ρ ≥ 0`, `wᵢ ≥ 0`. -/
+theorem mul_re_dotProduct_le_re_dotProduct_chamberDirac_mulVec [Fintype X] [Fintype s]
+    (hγ : ∀ μ, (γ μ).IsHermitian) (hρ : 0 ≤ ρ) (hw : ∀ i, 0 ≤ w i)
+    (v : (X × SignedPerm (Fin (n + 1))) × s → ℂ) :
+    (M - ρ / 2 * ∑ i, w i) * (star v ⬝ᵥ v).re ≤
+      (star v ⬝ᵥ (chamberDirac p γ w ρ M u *ᵥ v)).re := by
+  have h := PosSemidef.dotProduct_mulVec_nonneg
+    (posSemidef_chamberDirac_add_conjTranspose_sub p u w ρ M hγ hρ hw) v
+  have hstar : star v ⬝ᵥ ((chamberDirac p γ w ρ M u)ᴴ *ᵥ v) =
+      star (star v ⬝ᵥ (chamberDirac p γ w ρ M u *ᵥ v)) := by
+    rw [dotProduct_mulVec, ← star_mulVec, star_dotProduct]
+  rw [sub_mulVec, add_mulVec, dotProduct_sub, dotProduct_add, hstar, smul_mulVec, one_mulVec,
+    dotProduct_smul, smul_eq_mul] at h
+  have h' := (Complex.nonneg_iff.1 h).1
+  simp only [Complex.sub_re, Complex.add_re, Complex.star_def, Complex.conj_re, Complex.mul_re,
+    Complex.ofReal_re, Complex.ofReal_im, zero_mul, sub_zero] at h'
+  linarith
+
+end RealPart
 
 end AffineSignedPerm

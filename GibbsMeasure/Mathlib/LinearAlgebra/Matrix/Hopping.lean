@@ -25,6 +25,9 @@ one for each type (the chamber Dirac matrix, `Model/ChamberDirac`).
   in the splitting `S × (s ⊕ t) ≃ S × s ⊕ S × t`.
 * `diagonal_mul_hoppingMatrix_mul_diagonal`: conjugation by site-diagonal matrices (gauge
   transformations) rescales the blocks by the values at the two ends.
+* `hoppingMatrix_mul_hoppingMatrix`, `hoppingMatrix_id_one`, `hoppingMatrix_add`,
+  `smul_hoppingMatrix`: the algebra of hopping matrices (hopping twice is hopping along the
+  composite).
 
 Searched (pin `d13f23b7`): `Mathlib/Data/Matrix/Composition.lean` (`Matrix.comp`, block matrices
 `Matrix I J (Matrix K L R)`; no `conjTranspose` lemma), `SimpleGraph.adjMatrix` (scalar
@@ -61,7 +64,42 @@ theorem reindex_hoppingMatrix_fromBlocks (N : S → S) (P : S → Matrix s s R)
       fromBlocks (hoppingMatrix N P) 0 0 (hoppingMatrix N Q) := by
   ext (⟨x, α⟩ | ⟨x, α⟩) (⟨y, β⟩ | ⟨y, β⟩) <;> simp [hoppingMatrix_apply]
 
+theorem hoppingMatrix_id_one [DecidableEq s] [One R] :
+    hoppingMatrix id (fun _ : S ↦ (1 : Matrix s s R)) = 1 := by
+  ext ⟨x, α⟩ ⟨y, β⟩
+  by_cases h : x = y
+  · subst h
+    simp [hoppingMatrix_apply, one_apply]
+  · simp [hoppingMatrix_apply, h]
+
 end Basic
+
+theorem hoppingMatrix_add [DecidableEq S] [AddZeroClass R] (N : S → S)
+    (B B' : S → Matrix s s R) :
+    hoppingMatrix N B + hoppingMatrix N B' = hoppingMatrix N fun x ↦ B x + B' x := by
+  ext a b
+  simp only [add_apply, hoppingMatrix_apply]
+  split_ifs <;> simp
+
+theorem smul_hoppingMatrix [DecidableEq S] {α : Type*} [Zero R] [SMulZeroClass α R] (c : α)
+    (N : S → S) (B : S → Matrix s s R) :
+    c • hoppingMatrix N B = hoppingMatrix N fun x ↦ c • B x := by
+  ext a b
+  simp only [smul_apply, hoppingMatrix_apply]
+  split_ifs <;> simp
+
+/-- **Hopping twice**: the product of two hopping matrices hops along the composite map, with
+the product of the blocks along the way. -/
+theorem hoppingMatrix_mul_hoppingMatrix [Fintype S] [DecidableEq S] [Fintype s]
+    [NonUnitalNonAssocSemiring R] (N N' : S → S) (B B' : S → Matrix s s R) :
+    hoppingMatrix N B * hoppingMatrix N' B' = hoppingMatrix (N' ∘ N) fun x ↦ B x * B' (N x) := by
+  ext a b
+  rw [mul_apply, Fintype.sum_prod_type, Finset.sum_eq_single (N a.1)]
+  · simp only [hoppingMatrix_apply, ite_true, Function.comp_apply, mul_apply]
+    split_ifs <;> simp
+  · intro y _ hy
+    simp [hoppingMatrix_apply, Ne.symm hy]
+  · simp
 
 /-- **The adjoint of a hopping matrix along an involution** hops back along the same bonds with
 the adjoint blocks of the far ends. -/
