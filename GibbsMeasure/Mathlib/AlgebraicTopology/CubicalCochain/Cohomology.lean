@@ -10,6 +10,7 @@ public import Mathlib.Algebra.Group.Subgroup.Map
 public import Mathlib.Algebra.Homology.ShortComplex.HomologicalComplex
 public import Mathlib.Algebra.Homology.ShortComplex.ModuleCat
 public import Mathlib.LinearAlgebra.Quotient.Basic
+import Mathlib.Tactic.LinearCombination
 
 /-!
 # Cohomology of cubical cochains
@@ -27,7 +28,14 @@ hence constant (`mem_cocycles_zero_iff`), and evaluation at the vertex `0` is an
 `∏ ℤ/nᵢ` (`closure_range_single_one`) and passes to quotients, e.g. every torus `ℤᵈ ⧸ Γ`
 (`closure_range_comp`).
 
-The Poincaré lemma on `ℤᵈ` (`H^{k+1} = 0`) is in `CubicalCochain.Poincare`.
+**Contracting homotopies.** If an additive operator `S` on total cochains inverts the
+difference `Δ_[e j]` up to `Q` from the right and up to `P` from the left, and commutes with the
+other differences and with the linear maps of the fibre, then `h = e_j* ⌟ S` satisfies
+`d h + h d = 1 - (e_j* ⌟ e_j ∧ P + e_j ∧ e_j* ⌟ Q)`
+(`totalCoboundary_contract_add_contract_totalCoboundary`): the Koszul homotopy of one of the
+commuting differences. Its instances compute the cohomology of `ℤᵈ` (`S` the oriented line
+sum, `Q = 0`: the Poincaré lemma, `CubicalCochain.Poincare`) and of the product tori (`S` the
+cyclic line sum, `Q` the line total at the seam: `CubicalCochain.Torus`).
 
 ## Searches
 
@@ -72,6 +80,31 @@ theorem closure_range_comp {e : ι → X} {Y : Type*} [AddCommGroup Y] (φ : X �
 
 end Generation
 
+section Update
+
+variable {ι : Type*} [DecidableEq ι] {A : ι → Type*} [∀ i, AddCommGroup (A i)]
+
+/-! ### Moving along a coordinate line -/
+
+theorem update_add_single_self (x : ∀ i, A i) (j : ι) (t a : A j) :
+    Function.update x j t + Pi.single j a = Function.update x j (t + a) := by
+  ext i
+  rcases eq_or_ne i j with rfl | h <;> simp [*]
+
+theorem update_add_single_left_self (x : ∀ i, A i) (j : ι) (t a : A j) :
+    Function.update (x + Pi.single j a) j t = Function.update x j t := by
+  ext i
+  rcases eq_or_ne i j with rfl | h <;> simp [*]
+
+theorem update_add_single_of_ne (x : ∀ i, A i) {i j : ι} (h : i ≠ j) (a : A i) (t : A j) :
+    Function.update (x + Pi.single i a) j t = Function.update x j t + Pi.single i a := by
+  ext l
+  rcases eq_or_ne l j with rfl | hl
+  · simp [h.symm]
+  · simp [hl]
+
+end Update
+
 variable {X ι R : Type*} [AddCommGroup X] [LinearOrder ι] [Fintype ι] [CommRing R]
   {e : ι → X} {k : ℕ}
 
@@ -85,6 +118,13 @@ theorem restrict_totalCoboundary (V : X → Finset ι → R) :
     rw [card_erase_of_mem hj, Set.powersetCard.card_eq, Nat.add_sub_cancel]
   rw [extend_apply_of_card_eq _ _ h, extend_apply_of_card_eq _ _ h]
   rfl
+
+/-- A total coboundary has no degree-`0` part. -/
+theorem restrict_zero_totalCoboundary (V : X → Finset ι → R) :
+    restrict 0 (totalCoboundary e V) = 0 := by
+  ext c
+  rw [restrict_apply, totalCoboundary_apply,
+    Finset.card_eq_zero.1 (Set.powersetCard.card_eq c.dirs), sum_empty, Pi.zero_apply]
 
 /-! ### Cocycles, coboundaries and cohomology -/
 
@@ -200,5 +240,66 @@ def cocyclesZeroEquiv (he : AddSubgroup.closure (Set.range e) = ⊤) :
 def cohomologyZeroEquiv (he : AddSubgroup.closure (Set.range e) = ⊤) :
     cohomology R e 0 ≃ₗ[R] R :=
   (Submodule.quotEquivOfEqBot _ (by simp)).trans (cocyclesZeroEquiv he)
+
+/-! ### The contracting homotopy of one direction -/
+
+omit [Fintype ι] in
+/-- `e_j* ⌟ (e_j ∧ f)` is the part of `f` without `e_j`. -/
+theorem contract_wedge_self_apply (j : ι) (f : Finset ι → R) (I : Finset ι) :
+    contract j (wedge j f) I = if j ∈ I then 0 else f I := by
+  by_cases h : j ∈ I
+  · simp [contract_apply, h]
+  · rw [contract_apply, ite_eq_right h, ite_eq_right h, wedge_apply,
+      ite_eq_left (mem_insert_self j I), erase_insert h, ← mul_assoc,
+      neg_one_pow_card_filter_insert h, ite_eq_right (lt_irrefl j), ← pow_add, ← two_mul,
+      pow_mul]
+    simp
+
+omit [Fintype ι] in
+/-- `e_j ∧ (e_j* ⌟ f)` is the part of `f` with `e_j`. -/
+theorem wedge_contract_self_apply (j : ι) (f : Finset ι → R) (I : Finset ι) :
+    wedge j (contract j f) I = if j ∈ I then f I else 0 := by
+  have h := congrFun (contract_wedge_add_wedge_contract j j f) I
+  rw [ite_eq_left rfl, Pi.add_apply, contract_wedge_self_apply] at h
+  by_cases hj : j ∈ I
+  · simpa [hj] using h
+  · simp only [hj, ite_false] at h ⊢
+    linear_combination h
+
+/-- **Homotopy formula of one direction.** Let `S` invert the difference `Δ_[e j]` up to `Q`
+from the right and up to `P` from the left, and commute with the differences in the other
+directions and with the linear maps of the fibre `Finset ι → R`. Then `h U x = e_j* ⌟ S U x`
+satisfies `d h + h d = 1 - (e_j* ⌟ e_j ∧ P + e_j ∧ e_j* ⌟ Q)`: the anticommutation relations
+of `contract j` and `wedge i` cancel the directions `i ≠ j`. -/
+theorem totalCoboundary_contract_add_contract_totalCoboundary (j : ι)
+    (S : (X → Finset ι → R) →+ X → Finset ι → R) (P Q : (X → Finset ι → R) → X → Finset ι → R)
+    (hS : ∀ (L : (Finset ι → R) →ₗ[R] Finset ι → R) U, S (fun y ↦ L (U y)) = fun x ↦ L (S U x))
+    (hright : ∀ U, fwdDiff (e j) (S U) = U - Q U) (hleft : ∀ U, S (fwdDiff (e j) U) = U - P U)
+    (hcomm : ∀ i, i ≠ j → ∀ U, S (fwdDiff (e i) U) = fwdDiff (e i) (S U))
+    (U : X → Finset ι → R) :
+    totalCoboundary e (fun x ↦ contract j (S U x)) +
+        (fun x ↦ contract j (S (totalCoboundary e U) x)) =
+      U - fun x ↦ contract j (wedge j (P U x)) + wedge j (contract j (Q U x)) := by
+  ext x : 1
+  have h₁ : ∀ i, fwdDiff (e i) (fun x ↦ contract j (S U x)) x =
+      contract j (fwdDiff (e i) (S U) x) := fun i ↦ (map_sub (contract j) _ _).symm
+  have h₂ : S (totalCoboundary e U) x = ∑ i, wedge i (S (fwdDiff (e i) U) x) := by
+    have hD : totalCoboundary e U = ∑ i, fun y ↦ wedge i (fwdDiff (e i) U y) := by
+      ext y : 1
+      rw [totalCoboundary_apply', Finset.sum_apply]
+    rw [hD, map_sum, Finset.sum_apply]
+    simp only [hS]
+  simp only [Pi.add_apply, Pi.sub_apply, totalCoboundary_apply', h₁, h₂, map_sum,
+    ← sum_add_distrib]
+  rw [sum_eq_single j]
+  · rw [hright, hleft]
+    ext I
+    have hI := congrFun (contract_wedge_add_wedge_contract j j (U x)) I
+    rw [ite_eq_left rfl] at hI
+    simp only [Pi.add_apply, Pi.sub_apply, map_sub] at hI ⊢
+    linear_combination hI
+  · intro i _ hij
+    rw [hcomm i hij, add_comm, contract_wedge_add_wedge_contract, ite_eq_right hij.symm]
+  · simp
 
 end CubicalCochain
