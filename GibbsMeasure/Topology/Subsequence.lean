@@ -405,7 +405,7 @@ lemma clusterSeq_absolutelyContinuous_domMeasure {μs : ℕ → Measure (S → E
     {μ : Measure (S → E)} (n : ℕ) : clusterSeq μs μ n ≪ domMeasure μs μ := by
   intro s hs
   have h1 : ((2 : ℝ≥0∞)⁻¹ ^ n) • clusterSeq μs μ n ≤ domMeasure μs μ :=
-    Measure.le_sum _ n
+    Measure.le_sum (fun k ↦ ((2 : ℝ≥0∞)⁻¹ ^ k) • clusterSeq μs μ k) n
   have h2 : ((2 : ℝ≥0∞)⁻¹ ^ n) * (clusterSeq μs μ n) s = 0 := by
     have h := Measure.le_iff'.1 h1 s
     rw [hs, nonpos_iff_eq_zero] at h

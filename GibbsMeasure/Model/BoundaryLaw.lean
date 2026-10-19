@@ -155,7 +155,8 @@ lemma pow_pos (n : ℕ) (x y : E) : 0 < (Kernel.ofMatrix Q ^ (n + 1)) x {y} := b
   | zero => rw [zero_add, Kernel.ofMatrix_pow_one_apply_singleton]; exact hQ.pos x y
   | succ n ih =>
     rw [Kernel.ofMatrix_pow_succ_apply_singleton]
-    exact (ENNReal.mul_pos (hQ.pos x x).ne' ih.ne').trans_le (ENNReal.le_tsum x)
+    exact (ENNReal.mul_pos (hQ.pos x x).ne' ih.ne').trans_le
+      (ENNReal.le_tsum (f := fun b ↦ Q x b * (Kernel.ofMatrix Q ^ (n + 1)) b {y}) x)
 
 lemma pow_two_pos (x y : E) : 0 < (Kernel.ofMatrix Q ^ 2) x {y} := hQ.pow_pos 1 x y
 
@@ -390,7 +391,8 @@ lemma sigmaFiniteLambdaZ_count_mul_le_of_subset (hρ : Specification.IsPremodifi
         refine tsum_congr fun x ↦ ?_
         rw [hjuxt, hρ.comm_of_subset hΛΔ (juxt_agree_on_compl Λ ω x)]
     _ ≤ ∑' y : Δ → E, ρ Δ (juxt (Δ : Set ℤ) ω y) * ρ Λ ω :=
-        ENNReal.tsum_comp_le_tsum_of_injective hinj _
+        ENNReal.tsum_comp_le_tsum_of_injective hinj
+          (fun y ↦ ρ Δ (juxt (Δ : Set ℤ) ω y) * ρ Λ ω)
 
 lemma sigmaFiniteLambdaZ_count_ne_top_of_subset (hρ : Specification.IsPremodifier ρ)
     {Λ Δ : Finset ℤ} (hΛΔ : Λ ⊆ Δ) {ω : ℤ → E} (hΔ0 : ρ Δ ω ≠ 0) (hΛtop : ρ Λ ω ≠ ⊤)

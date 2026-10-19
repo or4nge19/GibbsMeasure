@@ -187,12 +187,12 @@ theorem mul_mul_le_pow_apply_singleton (κ : Kernel α α) (k n m : ℕ) (x' x y
     (κ ^ k) x' {x} * (κ ^ n) x {y} * (κ ^ m) y {y'} ≤ (κ ^ (k + n + m)) x' {y'} := by
   have h1 : (κ ^ k) x' {x} * (κ ^ n) x {y} ≤ (κ ^ (n + k)) x' {y} := by
     rw [Kernel.pow_add, comp_apply_eq_tsum _ _ _ (measurableSet_singleton y)]
-    exact ENNReal.le_tsum x
+    exact ENNReal.le_tsum (f := fun b ↦ (κ ^ k) x' {b} * (κ ^ n) b {y}) x
   calc (κ ^ k) x' {x} * (κ ^ n) x {y} * (κ ^ m) y {y'}
       ≤ (κ ^ (n + k)) x' {y} * (κ ^ m) y {y'} := mul_le_mul' h1 le_rfl
     _ ≤ (κ ^ (m + (n + k))) x' {y'} := by
         rw [Kernel.pow_add κ m (n + k), comp_apply_eq_tsum _ _ _ (measurableSet_singleton y')]
-        exact ENNReal.le_tsum y
+        exact ENNReal.le_tsum (f := fun b ↦ (κ ^ (n + k)) x' {b} * (κ ^ m) b {y'}) y
     _ = (κ ^ (k + n + m)) x' {y'} := by rw [show m + (n + k) = k + n + m by ring]
 
 theorem convergenceNorm_eq_top_of_pow_eq_top {n : ℕ} (hn : n ≠ 0) (h : (κ ^ n) x {x} = ∞) :
@@ -365,7 +365,8 @@ theorem pow_succ_apply_singleton_pos (hpos : ∀ a b, 0 < κ a {b}) (n : ℕ) (a
   | zero => rw [zero_add, pow_one]; exact hpos a b
   | succ n ih =>
     rw [pow_succ_apply_eq_tsum _ _ _ (measurableSet_singleton b)]
-    exact lt_of_lt_of_le (ENNReal.mul_pos (hpos a a).ne' (ih a).ne') (ENNReal.le_tsum a)
+    exact lt_of_lt_of_le (ENNReal.mul_pos (hpos a a).ne' (ih a).ne')
+      (ENNReal.le_tsum (f := fun c ↦ κ a {c} * (κ ^ (n + 1)) c {b}) a)
 
 omit [Countable α] [MeasurableSingletonClass α] in
 /-- A strictly positive kernel is irreducible with respect to the counting measure. -/
@@ -406,7 +407,7 @@ theorem mul_potential_mul_le_potential (κ : Kernel α α) (k m : ℕ) (x' x y y
         ENNReal.tsum_le_tsum fun n ↦ mul_mul_le_pow_apply_singleton κ k n m x' x y y'
     _ ≤ ∑' n, (κ ^ n) x' {y'} :=
         ENNReal.tsum_comp_le_tsum_of_injective (f := fun n ↦ k + n + m)
-          (fun a b h ↦ by simpa using h) _
+          (fun a b h ↦ by simpa using h) (fun n ↦ (κ ^ n) x' {y'})
 
 theorem potential_eq_top_of_pow_pos {k m : ℕ} {x' x y y' : α} (hx'x : 0 < (κ ^ k) x' {x})
     (hyy' : 0 < (κ ^ m) y {y'}) (h : potential κ x {y} = ∞) : potential κ x' {y'} = ∞ := by
@@ -478,7 +479,7 @@ theorem eq_lintegral_pow_add_sum_of_lintegral_le {g : α → ℝ≥0∞}
 theorem mul_apply_singleton_le_lintegral (μ : Measure α) (g : α → ℝ≥0∞) (z : α) :
     g z * μ {z} ≤ ∫⁻ y, g y ∂μ := by
   rw [lintegral_countable']
-  exact ENNReal.le_tsum z
+  exact ENNReal.le_tsum (f := fun a ↦ g a * μ {a}) z
 
 theorem _root_.MeasureTheory.Measure.tsum_apply_singleton (μ : Measure α) :
     ∑' x, μ {x} = μ Set.univ := by

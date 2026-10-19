@@ -542,8 +542,6 @@ theorem tailKernelLaw_goodSet_eq_one
     have : tailKernelLaw (S := S) (E := E) (μ := μ) {ν | ¬ ν ∈ goodSet (S := S) (E := E) γ} = 0 :=
       (MeasureTheory.ae_iff).1 (by simpa [tailKernelLaw] using hae_law)
     convert this
-    ext ν
-    simp [Set.mem_compl]
   exact (prob_compl_eq_zero_iff (μ := tailKernelLaw (S := S) (E := E) (μ := μ)) hgood_meas).1
       hcompl0
 
@@ -753,8 +751,6 @@ theorem ae_tailKernel_eq_of_isTailTrivial
           have : ∀ᵐ ω ∂μt, ω ∈ B := by
             refine (MeasureTheory.ae_iff (μ := μt) (p := fun ω => ω ∈ B)).2 ?_
             convert hcompl0
-            ext a
-            simp [B, Set.mem_preimage]
           simpa [B] using this
       have : ∃ c : ℝ≥0∞, g =ᶠ[ae μt] fun _ => c :=
         Filter.exists_eventuallyEq_const_of_forall_separating (l := ae μt)

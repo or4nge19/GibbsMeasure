@@ -1300,7 +1300,8 @@ theorem exists_null_recurrent :
       rw [← ENNReal.tsum_mul_left]
       refine ENNReal.tsum_le_tsum fun y ↦ ?_
       rw [Kernel.ofMatrix_pow_succ_apply_singleton]
-      exact ENNReal.le_tsum (extinctionSeq p k)
+      exact ENNReal.le_tsum (f := fun b ↦ Kernel.tabooMatrix (step p a) 0 0 b *
+        (Kernel.ofMatrix (Kernel.tabooMatrix (step p a) 0) ^ n) b {y}) (extinctionSeq p k)
     have hreal : (2 : ℝ) ^ k / 4 = (1 / 2 : ℝ) ^ (k + 2) * (4 : ℝ) ^ k := by
       have h2 : (0 : ℝ) < 2 ^ k := by positivity
       rw [div_pow, one_pow, pow_add,
@@ -1326,7 +1327,8 @@ theorem exists_null_recurrent :
             (Kernel.ofMatrix (Kernel.tabooMatrix (step p a) 0) ^ (n + 1)) 0 {y} :=
           ENNReal.tsum_le_tsum hstep
       _ ≤ Tot := ENNReal.tsum_comp_le_tsum_of_injective (f := fun n : ℕ ↦ n + 1)
-          (fun u v huv ↦ by simpa using huv) _
+          (fun u v huv ↦ by simpa using huv) fun n ↦
+            ∑' y : ℕ, (Kernel.ofMatrix (Kernel.tabooMatrix (step p a) 0) ^ n) 0 {y}
   by_contra hfin
   have hpow : Tendsto (fun n : ℕ ↦ (2 : ℝ) ^ n) atTop atTop :=
     tendsto_pow_atTop_atTop_of_one_lt (by norm_num)

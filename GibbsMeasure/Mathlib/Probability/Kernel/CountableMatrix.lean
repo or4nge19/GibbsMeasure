@@ -344,7 +344,7 @@ lemma pow_apply_singleton_mul_le {E : Type*} [MeasurableSpace E] [Countable E]
   rw [pow_add]
   change (κ ^ m) x {x} * (κ ^ n) x {x} ≤ ((κ ^ m) ∘ₖ (κ ^ n)) x {x}
   rw [comp_apply_eq_tsum _ _ _ (measurableSet_singleton x), mul_comm]
-  exact ENNReal.le_tsum x
+  exact ENNReal.le_tsum (f := fun b ↦ (κ ^ n) x {b} * (κ ^ m) b {x}) x
 
 lemma pow_le_pow_mul_apply_singleton {E : Type*} [MeasurableSpace E] [Countable E]
     [MeasurableSingletonClass E] (κ : Kernel E E) (k n : ℕ)

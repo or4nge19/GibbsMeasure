@@ -538,8 +538,6 @@ lemma ae_tailKernel_inter_eq_indicator_mul
       refine (MeasureTheory.ae_iff (μ := tailKernel (S := S) (E := E) μ ω) (p := fun x => x ∈
           B)).2 ?_
       convert h_zero
-      ext a
-      simp [Set.mem_compl]
     have h_inter : (tailKernel (S := S) (E := E) μ ω) (B ∩ A) = (tailKernel (S := S) (E := E) μ
         ω) A :=
       Measure.measure_inter_eq_of_ae (μ := tailKernel (S := S) (E := E) μ ω) (s := A) (t := B) h_ae
@@ -674,8 +672,6 @@ private lemma ae_lintegral_indicator_eq_indicator_lintegral
       refine (MeasureTheory.ae_iff (μ := tailKernel (S := S) (E := E) μ ω) (p := fun x => x ∈
           B)).2 ?_
       convert h_zero
-      ext a
-      simp [Set.mem_compl]
     have hind :
         (fun x => B.indicator g x) =ᵐ[(tailKernel (S := S) (E := E) μ ω)] g := by
       filter_upwards [h_aeB] with x hx

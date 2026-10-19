@@ -488,7 +488,8 @@ omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
 /-- The row-vector products `ℓ_{ki} Q_{ki}` along a bond are positive. -/
 lemma tsum_mul_pos (hQ : ∀ ⦃i j⦄, G.Adj i j → ∀ x y, 0 < Q i j x y) {k i : S} (hki : G.Adj k i)
     (x : E) : 0 < ∑' y, ℓ k i y * Q k i y x :=
-  (ENNReal.mul_pos (hℓ.pos hki x).ne' (hQ hki x x).ne').trans_le (ENNReal.le_tsum x)
+  (ENNReal.mul_pos (hℓ.pos hki x).ne' (hQ hki x x).ne').trans_le
+    (ENNReal.le_tsum (f := fun y ↦ ℓ k i y * Q k i y x) x)
 
 omit [MeasurableSpace E] [Countable E] [MeasurableSingletonClass E] in
 /-- The row-vector products `ℓ_{ki} Q_{ki}` along a bond are finite: they are factors of the
@@ -525,7 +526,7 @@ lemma tsum_mul_ne_top (hQ : ∀ ⦃i j⦄, G.Adj i j → ∀ x y, 0 < Q i j x y)
     have := hℓ.mass_ne_top i
     rw [hnb] at this
     simp only [Finset.prod_singleton] at this
-    exact ne_top_of_le_ne_top this (ENNReal.le_tsum x)
+    exact ne_top_of_le_ne_top this (ENNReal.le_tsum (f := fun x ↦ ∑' y, ℓ k i y * Q k i y x) x)
 
 end IsBoundaryLaw
 
@@ -695,7 +696,9 @@ lemma volumeLaw_univ_ne_zero (hpos : ∀ ⦃i j⦄, G.Adj i j → ∀ x y, 0 < Q
       ℓ Λ)]
   refine ne_of_gt ((boundaryLawWeight_pos G Q hs ℓ hpos hℓ Λ
     (juxt ((Λ ∪ G.outerBoundary Λ : Finset S) : Set S) (baseConfig (S := S) (E := E))
-      (fun _ ↦ Classical.arbitrary E))).trans_le (ENNReal.le_tsum _))
+      (fun _ ↦ Classical.arbitrary E))).trans_le (ENNReal.le_tsum (f := fun x ↦
+        boundaryLawWeight G Q hs ℓ Λ
+          (juxt ((Λ ∪ G.outerBoundary Λ : Finset S) : Set S) (baseConfig (S := S) (E := E)) x)) _))
 
 /-- The cylinder probabilities of `volumeLaw Λ`: the weight (12.13) before normalisation. -/
 lemma volumeLaw_cyl (Λ : Finset S) (ζ : S → E) :
@@ -2154,7 +2157,8 @@ theorem isBoundaryLaw_target_iff {d : ℕ} (hreg : G.IsRegularOfDegree (d + 1))
   · rintro ⟨h16, hm⟩
     refine ⟨fun _ j _ x ↦ hmpos j x, fun _ j _ x ↦ hmt j x, fun i j hij ↦ ?_, fun i ↦ ?_⟩
     · have hQa0 : ∑' y, m i y * Q₀ y a ≠ 0 :=
-        (ENNReal.mul_pos (hmpos i a).ne' (hpos a a).ne').trans_le (ENNReal.le_tsum a) |>.ne'
+        (ENNReal.mul_pos (hmpos i a).ne' (hpos a a).ne').trans_le
+          (ENNReal.le_tsum (f := fun y ↦ m i y * Q₀ y a) a) |>.ne'
       have hQat : ∑' y, m i y * Q₀ y a ≠ ⊤ := by
         intro htop
         refine hm i (ENNReal.tsum_eq_top_of_eq_top ⟨a, ?_⟩)
@@ -2557,7 +2561,8 @@ include hQ hℓ in
 omit [Nonempty E] in
 lemma tsum_boundaryLawTransition_ne_zero {i j : S} (hij : G.Adj i j) (x : E) :
     ∑' y', ℓ j i y' * Q i j x y' ≠ 0 :=
-  ((ENNReal.mul_pos (hℓ.pos hij.symm x).ne' (hQ.pos hij x x).ne').trans_le (ENNReal.le_tsum x)).ne'
+  ((ENNReal.mul_pos (hℓ.pos hij.symm x).ne' (hQ.pos hij x x).ne').trans_le
+    (ENNReal.le_tsum (f := fun y' ↦ ℓ j i y' * Q i j x y') x)).ne'
 
 include hQ hℓ in
 omit [Nonempty E] in

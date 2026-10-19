@@ -751,7 +751,8 @@ lemma tileProduct_apply_le_card_mul_tileAverage_apply (B : Set (S → E)) :
   rw [tileAverage_apply, ← mul_assoc,
     ENNReal.mul_inv_cancel (by exact_mod_cast (nonempty_of_isComplement hCH).card_pos.ne')
       (ENNReal.natCast_ne_top _), one_mul, ← hterm]
-  exact Finset.single_le_sum (fun _ _ ↦ (zero_le : (0 : ℝ≥0∞) ≤ _)) (tileRep hCH 0).2
+  exact Finset.single_le_sum (f := fun j ↦ (tileProduct hCH γ).map (shift E j).toFun B)
+    (fun _ _ ↦ (zero_le : (0 : ℝ≥0∞) ≤ _)) (tileRep hCH 0).2
 
 end TileHull
 

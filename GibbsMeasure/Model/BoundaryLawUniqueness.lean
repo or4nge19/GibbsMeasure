@@ -726,7 +726,8 @@ theorem IsMarkovChain.exists_isBoundaryLaw_eq_boundaryLawMeasure :
   have hS0 : ∀ i x z, S i x z ≠ 0 := fun i x z ↦ by
     simp only [hS]
     rw [Kernel.comp_apply_eq_tsum _ _ _ (measurableSet_singleton z)]
-    exact (lt_of_lt_of_le (ENNReal.mul_pos (hp0 i x x) (hp0 (i + 1) x z)) (ENNReal.le_tsum x)).ne'
+    exact (lt_of_lt_of_le (ENNReal.mul_pos (hp0 i x x) (hp0 (i + 1) x z))
+      (ENNReal.le_tsum (f := fun b ↦ P i x {b} * P (i + 1) b {z}) x)).ne'
   have hSt : ∀ i x z, S i x z ≠ ⊤ := fun i x z ↦ measure_ne_top _ _
   have hm0 : ∀ i x, m i x ≠ 0 := fun i x ↦ (hμ.measure_preimage_singleton_pos hQ hG i x).ne'
   have hmt : ∀ i x, m i x ≠ ⊤ := fun i x ↦ measure_ne_top _ _
@@ -1164,7 +1165,8 @@ lemma IsBoundaryLaw.mul_left_sub_lt {p : ℕ} {δ : ℝ≥0∞}
   calc δ * ℓ (i - p) x = ℓ (i - p) x * δ := mul_comm _ _
     _ < ℓ (i - p) x * (Kernel.ofMatrix Q ^ p) x {x} :=
         ENNReal.mul_lt_mul_right (hbl.left_pos _ _).ne' (hbl.left_ne_top _ _) (hδ x)
-    _ ≤ ∑' z, ℓ (i - p) z * (Kernel.ofMatrix Q ^ p) z {x} := ENNReal.le_tsum x
+    _ ≤ ∑' z, ℓ (i - p) z * (Kernel.ofMatrix Q ^ p) z {x} :=
+        ENNReal.le_tsum (f := fun z ↦ ℓ (i - p) z * (Kernel.ofMatrix Q ^ p) z {x}) x
     _ = ℓ i x := h
 
 /-- **Georgii (11.16), right.** If `δ < Q^p(x, x)` for all `x`, then `δ r_{i+p} < r_i`. -/
@@ -1174,7 +1176,8 @@ lemma IsBoundaryLaw.mul_right_add_lt {p : ℕ} {δ : ℝ≥0∞}
   have h := hbl.tsum_pow_mul_right p i x
   calc δ * r (i + p) x < (Kernel.ofMatrix Q ^ p) x {x} * r (i + p) x :=
         ENNReal.mul_lt_mul_left (hbl.right_pos _ _).ne' (hbl.right_ne_top _ _) (hδ x)
-    _ ≤ ∑' y, (Kernel.ofMatrix Q ^ p) x {y} * r (i + p) y := ENNReal.le_tsum x
+    _ ≤ ∑' y, (Kernel.ofMatrix Q ^ p) x {y} * r (i + p) y :=
+        ENNReal.le_tsum (f := fun y ↦ (Kernel.ofMatrix Q ^ p) x {y} * r (i + p) y) x
     _ = r i x := h
 
 /-- `ℓ_i r_{i+p} = ℓ_{i-1} r_{i-1+p}`: the constant `c` of Georgii's proof of (11.15). -/
@@ -1221,7 +1224,7 @@ theorem IsBoundaryLaw.boundaryLawMeasure_map_shift_eq_self_of_mem_extremePoints
   have hc0 : c ≠ 0 := by
     rw [← hci 0]
     exact (lt_of_lt_of_le (ENNReal.mul_pos (hbl.left_pos _ _).ne' (hbl.right_pos _ _).ne')
-      (ENNReal.le_tsum x₀)).ne'
+      (ENNReal.le_tsum (f := fun x ↦ ℓ 0 x * r (0 + p) x) x₀)).ne'
   -- `0 < cδ < 1`
   have hlt : ∀ x, ℓ 0 x * (δ * r (0 + p) x) < ℓ 0 x * r 0 x := fun x ↦
     ENNReal.mul_lt_mul_right (hbl.left_pos _ _).ne' (hbl.left_ne_top _ _)

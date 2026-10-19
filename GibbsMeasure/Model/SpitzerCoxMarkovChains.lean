@@ -545,7 +545,7 @@ theorem isBoundaryLaw_mixture (hp0 : 0 < p) (hp1 : p < 1) {m₁ m₂ : Measure �
     rw [hsupp]
     exact Measure.measure_univ_pos.2 hm₂
   have hle : ∀ i x, leftMixture p m₁ i x * rightMixture p m₂ i x ≤ 1 := fun i x ↦
-    (hℓr i) ▸ ENNReal.le_tsum x
+    (hℓr i) ▸ ENNReal.le_tsum (f := fun x ↦ leftMixture p m₁ i x * rightMixture p m₂ i x) x
   refine IsBoundaryLaw.of_tsum hℓpos (fun i x ↦ ?_) hrpos (fun i x ↦ ?_)
     (tsum_leftMixture_mul hp0 hp1 m₁) (tsum_matrix_mul_rightMixture hp0 hp1 m₂) hℓr
   · intro htop

@@ -161,7 +161,8 @@ private lemma tsum_succ_mul_pairDist_add_le (r q : ℕ) :
         refine mul_le_mul' ?_ le_rfl
         push_cast
         exact add_le_add le_self_add le_rfl
-    _ ≤ shiftDefect φ q := ENNReal.tsum_comp_le_tsum_of_injective (add_left_injective r) _
+    _ ≤ shiftDefect φ q := ENNReal.tsum_comp_le_tsum_of_injective (add_left_injective r)
+        fun m : ℕ ↦ ((m : ℝ≥0∞) + 1) * pairDist φ (m + 1 + q) (m + 1)
 
 omit [MeasurableSpace E] in
 /-- **Georgii, Comment (9.7)(1)**, closure under addition: (9.6) for `p` and `q` gives (9.6) for
@@ -505,7 +506,8 @@ lemma tsum_succ_mul_osc_le_oscSpanDiam :
         refine tsum_congr fun n ↦ ?_
         push_cast
         rfl
-    _ ≤ _ := ENNReal.tsum_comp_le_tsum_of_injective (add_left_injective 1) _
+    _ ≤ _ := ENNReal.tsum_comp_le_tsum_of_injective (add_left_injective 1)
+        fun m : ℕ ↦ (m : ℝ≥0∞) * Dobrushin.osc (pairShift φ {0, (m : ℤ)})
 
 /-- **Georgii, Comment (9.7)(3).** For `Φ` of the form (9.4), the recentred potential
 `φ̃_k = φ_k − inf φ_k` satisfies `∑_{k ≥ 1} k ‖φ̃_{k+p} − φ̃_k‖ ≤ 2 ∑_{k ≥ 1} k δ(φ_k)`, the right
@@ -536,7 +538,8 @@ theorem shiftDefect_recentre_le (p : ℕ) :
               refine mul_le_mul' ?_ le_rfl
               push_cast
               exact add_le_add le_self_add le_rfl
-          _ ≤ _ := ENNReal.tsum_comp_le_tsum_of_injective (add_left_injective p) _
+          _ ≤ _ := ENNReal.tsum_comp_le_tsum_of_injective (add_left_injective p)
+              fun m : ℕ ↦ ((m : ℝ≥0∞) + 1) * δ m
     _ = 2 * ∑' k : ℕ, ((k : ℝ≥0∞) + 1) * δ k := (two_mul _).symm
     _ ≤ 2 * oscSpanDiam (pairShift φ) :=
         mul_le_mul' le_rfl (tsum_succ_mul_osc_le_oscSpanDiam φ)
