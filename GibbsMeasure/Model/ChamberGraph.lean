@@ -410,4 +410,237 @@ theorem card_lowerEnd (k : Fin (n + 1) → ℤ) (μ : Fin (n + 1)) :
     right_inv x := rfl }
   rw [Nat.card_congr e, Nat.card_prod, card_units_fun_eq_one, card_perm_apply_zero_eq]
 
+/-! ### The wall functionals -/
+
+/-- The affine function of wall `i`, `(2 / ‖n_i‖²) ⟪n_i, z⟫ - m_i`: `2 z_n`, `z_{n-1-c} - z_{n-c}`,
+`1 - 2 z₀` (`wallFunctional_zero`, `wallFunctional_succ_castSucc`, `wallFunctional_last`). It
+vanishes exactly on the wall (`mem_wall_iff`), and the fundamental chamber is the set where all of
+them are positive (`mem_fundamentalChamber_iff`). -/
+def wallFunctional (i : Fin (n + 2)) (z : Fin (n + 1) → ℝ) : ℝ :=
+  ((2 / (wallNormal i ⬝ᵥ wallNormal i) : ℤ) : ℝ) * ((fun k ↦ (wallNormal i k : ℝ)) ⬝ᵥ z) -
+    wallHeight i
+
+theorem mem_wall_iff {i : Fin (n + 2)} {z : Fin (n + 1) → ℝ} :
+    z ∈ wall i ↔ wallFunctional i z = 0 := by
+  rw [wall, mem_mirror, wallFunctional, sub_eq_zero]
+
+@[simp] theorem wallFunctional_zero (z : Fin (n + 1) → ℝ) :
+    wallFunctional 0 z = 2 * z (Fin.last n) := by
+  have h : (Pi.single (Fin.last n) 1 : Fin (n + 1) → ℤ) ⬝ᵥ Pi.single (Fin.last n) 1 = 1 := by simp
+  rw [wallFunctional, wallNormal_zero, wallHeight_zero, h, intCast_single_dotProduct]
+  norm_num
+
+@[simp] theorem wallFunctional_succ_castSucc (c : Fin n) (z : Fin (n + 1) → ℝ) :
+    wallFunctional c.castSucc.succ z = z c.rev.castSucc - z c.rev.succ := by
+  have h := dotProduct_single_one_add_single_self (castSucc_rev_ne_succ_rev c) (-1)
+  simp only [Units.val_neg, Units.val_one] at h
+  rw [wallFunctional, wallNormal_succ_castSucc, wallHeight_succ_castSucc, h,
+    intCast_single_add_single_dotProduct]
+  norm_num
+  ring
+
+@[simp] theorem wallFunctional_last (z : Fin (n + 1) → ℝ) :
+    wallFunctional (Fin.last (n + 1)) z = 1 - 2 * z 0 := by
+  have h : (Pi.single 0 (-1) : Fin (n + 1) → ℤ) ⬝ᵥ Pi.single 0 (-1) = 1 := by simp
+  rw [wallFunctional, wallNormal_last, wallHeight_last, h, intCast_single_dotProduct]
+  norm_num
+  ring
+
+/-- `wallFunctional (c + 1)` in terms of a coordinate `q = rev c`: `z_q - z_{q+1}`. -/
+theorem wallFunctional_rev (q : Fin n) (z : Fin (n + 1) → ℝ) :
+    wallFunctional q.rev.castSucc.succ z = z q.castSucc - z q.succ := by
+  rw [wallFunctional_succ_castSucc, Fin.rev_rev]
+
+/-- **The fundamental chamber is the intersection of the positive sides of its walls.** -/
+theorem mem_fundamentalChamber_iff {z : Fin (n + 1) → ℝ} :
+    z ∈ fundamentalChamber (Fin (n + 1)) ↔ ∀ i, 0 < wallFunctional i z := by
+  constructor
+  · rintro ⟨hz, hb⟩ i
+    induction i using wall_induction with
+    | zero => simpa using (hb _).1
+    | mid c => simpa using hz (Fin.castSucc_lt_succ (i := c.rev))
+    | last => rw [wallFunctional_last]; linarith [(hb 0).2]
+  · intro h
+    have hanti : StrictAnti z := Fin.strictAnti_iff_succ_lt.2 fun q ↦ by
+      simpa [wallFunctional_rev] using h q.rev.castSucc.succ
+    refine ⟨hanti, fun k ↦ ⟨?_, ?_⟩⟩
+    · have := h 0
+      rw [wallFunctional_zero] at this
+      exact (by linarith : 0 < z (Fin.last n)).trans_le (hanti.antitone (Fin.le_last k))
+    · have := h (Fin.last (n + 1))
+      rw [wallFunctional_last] at this
+      exact (hanti.antitone (Fin.zero_le k)).trans_lt (by linarith)
+
+theorem wallFunctional_sub_smul (j i : Fin (n + 2)) (z : Fin (n + 1) → ℝ) (t : ℝ) :
+    wallFunctional j (z - t • fun k ↦ (wallNormal i k : ℝ)) = wallFunctional j z -
+      t * (((2 / (wallNormal j ⬝ᵥ wallNormal j)) * (wallNormal j ⬝ᵥ wallNormal i) : ℤ) : ℝ) := by
+  rw [wallFunctional, wallFunctional, dotProduct_sub, dotProduct_smul, smul_eq_mul,
+    intCast_dotProduct_intCast]
+  push_cast
+  ring
+
+theorem wallFunctional_self_coeff (i : Fin (n + 2)) :
+    ((2 / (wallNormal i ⬝ᵥ wallNormal i)) * (wallNormal i ⬝ᵥ wallNormal i) : ℤ) = 2 :=
+  Int.ediv_mul_cancel (wallNormal_dotProduct_self_dvd i)
+
+/-- **Distinct walls meet at a non-obtuse angle**: their inward normals have non-positive inner
+product (the simple roots of type `C̃`). -/
+theorem wallNormal_dotProduct_nonpos {i j : Fin (n + 2)} (hij : i ≠ j) :
+    wallNormal j ⬝ᵥ wallNormal i ≤ 0 := by
+  have hL : ∀ c : Fin n, c.rev.castSucc ≠ Fin.last n := fun c ↦ (Fin.castSucc_lt_last _).ne
+  have h0 : ∀ c : Fin n, c.rev.succ ≠ 0 := fun c ↦ Fin.succ_ne_zero _
+  have hL' : ∀ c : Fin n, Fin.last n ≠ c.rev.castSucc := fun c ↦ (hL c).symm
+  have h0' : ∀ c : Fin n, (0 : Fin (n + 1)) ≠ c.rev.succ := fun c ↦ (h0 c).symm
+  have hcc : ∀ c c' : Fin n, c'.castSucc.succ ≠ c.castSucc.succ →
+      c'.rev.castSucc ≠ c.rev.castSucc ∧ c'.rev.succ ≠ c.rev.succ := fun c c' h ↦ by
+    simp only [ne_eq, Fin.ext_iff, Fin.val_succ, Fin.val_castSucc, Fin.val_rev] at h ⊢
+    omega
+  induction i using wall_induction with
+  | zero =>
+    induction j using wall_induction with
+    | zero => exact absurd rfl hij
+    | mid c =>
+      simp only [wallNormal_zero, wallNormal_succ_castSucc, add_dotProduct, single_dotProduct,
+        Pi.single_apply, hL, ↓reduceIte]
+      split_ifs <;> norm_num
+    | last =>
+      simp only [wallNormal_zero, wallNormal_last, single_dotProduct, Pi.single_apply]
+      split_ifs <;> norm_num
+  | mid c =>
+    induction j using wall_induction with
+    | zero =>
+      simp only [wallNormal_zero, wallNormal_succ_castSucc, single_dotProduct, Pi.add_apply,
+        Pi.single_apply, hL', ↓reduceIte]
+      split_ifs <;> norm_num
+    | mid c' =>
+      obtain ⟨ha, hb⟩ := hcc c c' (Ne.symm hij)
+      simp only [wallNormal_succ_castSucc, add_dotProduct, single_dotProduct, Pi.add_apply,
+        Pi.single_apply, ha, hb, ↓reduceIte]
+      split_ifs <;> norm_num
+    | last =>
+      simp only [wallNormal_last, wallNormal_succ_castSucc, single_dotProduct, Pi.add_apply,
+        Pi.single_apply, h0', ↓reduceIte]
+      split_ifs <;> norm_num
+  | last =>
+    induction j using wall_induction with
+    | zero =>
+      simp only [wallNormal_zero, wallNormal_last, single_dotProduct, Pi.single_apply]
+      split_ifs <;> norm_num
+    | mid c =>
+      simp only [wallNormal_last, wallNormal_succ_castSucc, add_dotProduct, single_dotProduct,
+        Pi.single_apply, h0, ↓reduceIte]
+      split_ifs <;> norm_num
+    | last => exact absurd rfl hij
+
+/-! ### Bonds cross exactly one mirror, their wall, orthogonally at the midpoint -/
+
+theorem wallReflection_smul (i : Fin (n + 2)) (z : Fin (n + 1) → ℝ) :
+    wallReflection i • z = z - wallFunctional i z • fun k ↦ (wallNormal i k : ℝ) := by
+  rw [wallReflection_eq_mirrorReflection, mirrorReflection_smul]
+  rfl
+
+theorem wall_mem_mirrors (i : Fin (n + 2)) : wall i ∈ mirrors (Fin (n + 1)) :=
+  mirror_mem_mirrors (wallNormal_dotProduct_self_dvd i) _
+
+theorem midpoint_wallReflection_smul (i : Fin (n + 2)) (z : Fin (n + 1) → ℝ) :
+    midpoint ℝ z (wallReflection i • z) =
+      z - ((1 / 2 : ℝ) * wallFunctional i z) • fun k ↦ (wallNormal i k : ℝ) := by
+  rw [wallReflection_smul, midpoint_eq_smul_add, invOf_eq_inv]
+  module
+
+theorem midpoint_mem_wall (i : Fin (n + 2)) (z : Fin (n + 1) → ℝ) :
+    midpoint ℝ z (wallReflection i • z) ∈ wall i := by
+  rw [wallReflection_eq_mirrorReflection]
+  exact midpoint_mem_mirror _ _ z
+
+/-- The coefficient `(2 / ‖n_j‖²) ⟪n_j, n_i⟫` is `2` for `j = i` and `≤ 0` otherwise. -/
+theorem wallFunctional_coeff_nonpos {i j : Fin (n + 2)} (hij : i ≠ j) :
+    ((2 / (wallNormal j ⬝ᵥ wallNormal j) * (wallNormal j ⬝ᵥ wallNormal i) : ℤ) : ℝ) ≤ 0 := by
+  have h2 : 0 ≤ 2 / (wallNormal j ⬝ᵥ wallNormal j) :=
+    Int.ediv_nonneg (by norm_num) (sum_nonneg fun k _ ↦ mul_self_nonneg _)
+  exact_mod_cast mul_nonpos_of_nonneg_of_nonpos h2 (wallNormal_dotProduct_nonpos hij)
+
+/-- **Each half of a bond lies in a chamber**: the points `z - (t a) n_i`, `0 ≤ t < 1/2`, of the
+bond from `z ∈ C₀` to `s_i z = z - a n_i` lie in the fundamental chamber. -/
+theorem sub_smul_wallNormal_mem {z : Fin (n + 1) → ℝ} (hz : z ∈ fundamentalChamber (Fin (n + 1)))
+    (i : Fin (n + 2)) {t : ℝ} (ht0 : 0 ≤ t) (ht : t < 1 / 2) :
+    z - (t * wallFunctional i z) • (fun k ↦ (wallNormal i k : ℝ)) ∈
+      fundamentalChamber (Fin (n + 1)) := by
+  have ha := mem_fundamentalChamber_iff.1 hz
+  refine mem_fundamentalChamber_iff.2 fun j ↦ ?_
+  rw [wallFunctional_sub_smul]
+  by_cases hji : j = i
+  · subst hji
+    rw [wallFunctional_self_coeff]
+    have := ha j
+    push_cast
+    nlinarith
+  · have := wallFunctional_coeff_nonpos (Ne.symm hji)
+    have := ha j
+    have := mul_nonneg ht0 (ha i).le
+    nlinarith
+
+theorem wallReflection_smul_sub_smul {z : Fin (n + 1) → ℝ} (i : Fin (n + 2)) (t : ℝ) :
+    wallReflection i • (z - (t * wallFunctional i z) • fun k ↦ (wallNormal i k : ℝ)) =
+      z - ((1 - t) * wallFunctional i z) • fun k ↦ (wallNormal i k : ℝ) := by
+  rw [wallReflection_smul, wallFunctional_sub_smul, wallFunctional_self_coeff]
+  push_cast
+  module
+
+/-- **A bond meets the mirrors only at its midpoint.** -/
+theorem segment_inter_sUnion_mirrors {v : Fin (n + 1) → ℝ}
+    (hv : v ∈ fundamentalChamber (Fin (n + 1))) (g : AffineSignedPerm (Fin (n + 1)))
+    (i : Fin (n + 2)) :
+    segment ℝ (g • v) ((g * wallReflection i) • v) ∩ ⋃₀ mirrors (Fin (n + 1)) =
+      {midpoint ℝ (g • v) ((g * wallReflection i) • v)} := by
+  have key : segment ℝ v (wallReflection i • v) ∩ ⋃₀ mirrors (Fin (n + 1)) =
+      {midpoint ℝ v (wallReflection i • v)} := by
+    ext x
+    constructor
+    · rintro ⟨hx, hxM⟩
+      rw [segment_eq_image'] at hx
+      obtain ⟨θ, ⟨h0, h1⟩, rfl⟩ := hx
+      have hd : v + θ • (wallReflection i • v - v) =
+          v - (θ * wallFunctional i v) • fun k ↦ (wallNormal i k : ℝ) := by
+        rw [wallReflection_smul]
+        module
+      simp only at hxM ⊢
+      rw [hd] at hxM ⊢
+      rcases lt_trichotomy θ (1 / 2) with hlt | rfl | hgt
+      · exact absurd hxM (notMem_sUnion_mirrors_of_mem_fundamentalChamber
+          (sub_smul_wallNormal_mem hv i h0 hlt))
+      · rw [Set.mem_singleton_iff, midpoint_wallReflection_smul]
+      · rw [← sub_sub_cancel 1 θ, ← wallReflection_smul_sub_smul,
+          smul_mem_sUnion_mirrors_iff] at hxM
+        exact absurd hxM (notMem_sUnion_mirrors_of_mem_fundamentalChamber
+          (sub_smul_wallNormal_mem hv i (by linarith) (by linarith)))
+    · rintro rfl
+      exact ⟨midpoint_mem_segment _ _, wall i, wall_mem_mirrors i, midpoint_mem_wall i v⟩
+  rw [mul_smul, ← smul_segment, ← smul_midpoint]
+  ext x
+  constructor
+  · rintro ⟨⟨y, hy, rfl⟩, hxM⟩
+    have : y ∈ segment ℝ v (wallReflection i • v) ∩ ⋃₀ mirrors (Fin (n + 1)) :=
+      ⟨hy, (smul_mem_sUnion_mirrors_iff g y).1 hxM⟩
+    rw [key, Set.mem_singleton_iff] at this
+    rw [this, Set.mem_singleton_iff]
+  · rintro rfl
+    have hm : midpoint ℝ v (wallReflection i • v) ∈
+        segment ℝ v (wallReflection i • v) ∩ ⋃₀ mirrors (Fin (n + 1)) := key ▸ rfl
+    exact ⟨Set.smul_mem_smul_set hm.1, (smul_mem_sUnion_mirrors_iff g _).2 hm.2⟩
+
+/-- The midpoint of the bond of type `i` at `g` lies on the wall `g • wall i`. -/
+theorem midpoint_mem_smul_wall (g : AffineSignedPerm (Fin (n + 1))) (i : Fin (n + 2))
+    (v : Fin (n + 1) → ℝ) : midpoint ℝ (g • v) ((g * wallReflection i) • v) ∈ g • wall i := by
+  rw [mul_smul, ← smul_midpoint]
+  exact Set.smul_mem_smul_set (midpoint_mem_wall i v)
+
+/-- **The bond crosses its wall orthogonally**: its displacement is a multiple of the normal
+`g.right • n_i` of `g • wall i` (`smul_mirror`). -/
+theorem mul_wallReflection_smul_sub_smul (g : AffineSignedPerm (Fin (n + 1))) (i : Fin (n + 2))
+    (v : Fin (n + 1) → ℝ) : (g * wallReflection i) • v - g • v =
+      -wallFunctional i v • (g.right • fun k ↦ (wallNormal i k : ℝ)) := by
+  rw [mul_smul, smul_sub_smul_eq, wallReflection_smul, sub_sub_cancel_left, smul_neg, smul_comm,
+    neg_smul]
+
 end AffineSignedPerm

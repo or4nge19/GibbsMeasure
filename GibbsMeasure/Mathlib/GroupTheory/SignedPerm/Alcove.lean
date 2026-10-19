@@ -183,6 +183,24 @@ theorem eq_one_of_smul_fundamentalChamber [Finite ι] {g : AffineSignedPerm ι}
     (h : g • fundamentalChamber ι = fundamentalChamber ι) : g = 1 :=
   smul_fundamentalChamber_injective (h.trans (one_smul _ _).symm)
 
+/-- The action on a point of the fundamental chamber is free: distinct elements move it to
+distinct points (the fermion sites `g • z` are indexed by the group). -/
+theorem smul_left_injective_of_mem [Finite ι] {z : ι → ℝ} (hz : z ∈ fundamentalChamber ι) :
+    Injective fun g : AffineSignedPerm ι ↦ g • z :=
+  fun _ _ h ↦ eq_of_smul_eq_smul hz hz h
+
+omit [LinearOrder ι] in
+theorem smul_midpoint (g : AffineSignedPerm ι) (x y : ι → ℝ) :
+    g • midpoint ℝ x y = midpoint ℝ (g • x) (g • y) := by
+  have := (toAffineEquiv ℝ g).map_midpoint x y
+  rwa [toAffineEquiv_apply, toAffineEquiv_apply, toAffineEquiv_apply] at this
+
+omit [LinearOrder ι] in
+theorem smul_segment (g : AffineSignedPerm ι) (x y : ι → ℝ) :
+    g • segment ℝ x y = segment ℝ (g • x) (g • y) := by
+  rw [← Set.image_smul]
+  simpa using image_segment ℝ (toAffineEquiv ℝ g).toAffineMap x y
+
 variable [Fintype ι]
 
 /-- **The fundamental chamber meets no mirror.** -/

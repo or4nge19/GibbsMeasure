@@ -7,6 +7,8 @@ module
 
 public import GibbsMeasure.Mathlib.GroupTheory.SignedPerm.Basic
 public import Mathlib.LinearAlgebra.AffineSpace.AffineEquiv
+public import Mathlib.LinearAlgebra.AffineSpace.Midpoint
+public import Mathlib.LinearAlgebra.Matrix.DotProduct
 public import Mathlib.Topology.Algebra.ConstMulAction
 public import Mathlib.Topology.Algebra.Ring.Real
 
@@ -462,6 +464,13 @@ theorem intCast_smul_dotProduct_smul (g : AffineSignedPerm ι) (n : ι → ℤ) 
     SignedPerm.dotProduct_smul_smul]
 
 omit [Fintype ι] [DecidableEq ι] in
+/-- Differences transform by the linear part. -/
+theorem smul_sub_smul_eq (g : AffineSignedPerm ι) (x y : ι → ℝ) :
+    g • x - g • y = g.right • (x - y) := by
+  rw [smul_def, smul_def, smul_sub]
+  abel
+
+omit [Fintype ι] [DecidableEq ι] in
 theorem smul_sub_smul (g : AffineSignedPerm ι) (y v : ι → ℝ) (a : ℝ) :
     g • (y - a • v) = g • y - a • (g.right • v) := by
   rw [smul_def, smul_def, smul_sub, smul_comm g.right a v]
@@ -532,6 +541,114 @@ theorem closure_mirrorReflection :
     exact hle (Subgroup.mem_top r)
   · rw [← mirrorReflection_single_one_mul_zero i₀ h1]
     exact H.mul_mem (hmem _ _ _) (hmem _ _ _)
+
+/-! ### Bonds across a mirror; a mirror determines its normal and its reflection -/
+
+/-- **A point and its mirror image differ by a multiple of the normal** (the reflection crosses the
+mirror orthogonally). -/
+theorem mirrorReflection_smul_sub (hn : n ⬝ᵥ n ∣ 2) (m : ℤ) (x : ι → ℝ) :
+    mirrorReflection n hn m • x - x =
+      -(((2 / (n ⬝ᵥ n) : ℤ) : ℝ) * ((fun i ↦ (n i : ℝ)) ⬝ᵥ x) - m) • fun i ↦ (n i : ℝ) := by
+  rw [mirrorReflection_smul, sub_sub_cancel_left, neg_smul]
+
+/-- **The midpoint of a point and its mirror image lies on the mirror.** -/
+theorem midpoint_mem_mirror (hn : n ⬝ᵥ n ∣ 2) (m : ℤ) (x : ι → ℝ) :
+    midpoint ℝ x (mirrorReflection n hn m • x) ∈ mirror n m := by
+  have hc := intCast_two_div_mul_dotProduct_self hn
+  rw [mirrorReflection_smul, midpoint_eq_smul_add, mem_mirror]
+  set c : ℝ := ((2 / (n ⬝ᵥ n) : ℤ) : ℝ)
+  set v : ι → ℝ := fun i ↦ (n i : ℝ)
+  simp only [dotProduct_smul, dotProduct_add, dotProduct_sub, smul_eq_mul, invOf_eq_inv]
+  linear_combination (-(1 / 2) * (c * (v ⬝ᵥ x) - m)) * hc
+
+omit [DecidableEq ι] in
+/-- **A mirror determines its normal and height up to a common sign.** -/
+theorem eq_or_eq_neg_of_mirror_eq {n' : ι → ℤ} (hn : n ⬝ᵥ n ∣ 2) (hn' : n' ⬝ᵥ n' ∣ 2)
+    {m m' : ℤ} (h : mirror n m = mirror n' m') : (n' = n ∧ m' = m) ∨ (n' = -n ∧ m' = -m) := by
+  have hc := intCast_two_div_mul_dotProduct_self hn
+  have hc' := intCast_two_div_mul_dotProduct_self hn'
+  set c : ℝ := ((2 / (n ⬝ᵥ n) : ℤ) : ℝ)
+  set c' : ℝ := ((2 / (n' ⬝ᵥ n') : ℤ) : ℝ)
+  set v : ι → ℝ := fun i ↦ (n i : ℝ)
+  have hc'0 : c' ≠ 0 := fun h0 ↦ by rw [h0, zero_mul] at hc'; norm_num at hc'
+  set p : ι → ℝ := ((m : ℝ) / 2) • v
+  have hp : p ∈ mirror n m := by
+    rw [mem_mirror, dotProduct_smul, smul_eq_mul]
+    linear_combination ((m : ℝ) / 2) * hc
+  have hp' : p ∈ mirror n' m' := h ▸ hp
+  have key : ∀ w : ι → ℤ, n ⬝ᵥ w = 0 → n' ⬝ᵥ w = 0 := fun w hw ↦ by
+    have hpw : p + (fun i ↦ (w i : ℝ)) ∈ mirror n m := by
+      rw [mem_mirror, dotProduct_add, intCast_dotProduct_intCast, hw, Int.cast_zero, add_zero]
+      exact hp
+    rw [h, mem_mirror, dotProduct_add, mul_add, mem_mirror.1 hp', intCast_dotProduct_intCast,
+      add_eq_left] at hpw
+    exact_mod_cast (mul_eq_zero.1 hpw).resolve_left hc'0
+  have hcomm : n' ⬝ᵥ n = n ⬝ᵥ n' := dotProduct_comm _ _
+  have h1 := key ((n ⬝ᵥ n) • n' - (n ⬝ᵥ n') • n) (by
+    rw [dotProduct_sub, dotProduct_smul, dotProduct_smul, smul_eq_mul, smul_eq_mul]
+    ring)
+  rw [dotProduct_sub, dotProduct_smul, dotProduct_smul, smul_eq_mul, smul_eq_mul, hcomm] at h1
+  have hww : ((n ⬝ᵥ n) • n' - (n ⬝ᵥ n') • n) ⬝ᵥ ((n ⬝ᵥ n) • n' - (n ⬝ᵥ n') • n) = 0 := by
+    simp only [dotProduct_sub, sub_dotProduct, dotProduct_smul, smul_dotProduct, smul_eq_mul,
+      hcomm]
+    linear_combination (n ⬝ᵥ n) * h1
+  have hw0 := dotProduct_self_eq_zero.1 hww
+  rw [sub_eq_zero] at hw0
+  have hn0 : n ⬝ᵥ n ≠ 0 := fun h0 ↦ by rw [h0] at hn; norm_num at hn
+  have hdd : (n ⬝ᵥ n') * (n ⬝ᵥ n') = (n ⬝ᵥ n) * (n' ⬝ᵥ n') := by linarith
+  have hsign : n ⬝ᵥ n' = n ⬝ᵥ n ∨ n ⬝ᵥ n' = -(n ⬝ᵥ n) := by
+    rcases dotProduct_self_eq_one_or_two hn with ha | ha <;>
+      rcases dotProduct_self_eq_one_or_two hn' with hb | hb <;> rw [ha, hb] at hdd <;> rw [ha]
+    · have : n ⬝ᵥ n' ≤ 1 := by nlinarith
+      have : -1 ≤ n ⬝ᵥ n' := by nlinarith
+      interval_cases (n ⬝ᵥ n') <;> simp_all
+    · have : n ⬝ᵥ n' ≤ 1 := by nlinarith
+      have : -1 ≤ n ⬝ᵥ n' := by nlinarith
+      interval_cases (n ⬝ᵥ n') <;> simp_all
+    · have : n ⬝ᵥ n' ≤ 1 := by nlinarith
+      have : -1 ≤ n ⬝ᵥ n' := by nlinarith
+      interval_cases (n ⬝ᵥ n') <;> simp_all
+    · have : n ⬝ᵥ n' ≤ 2 := by nlinarith
+      have : -2 ≤ n ⬝ᵥ n' := by nlinarith
+      interval_cases (n ⬝ᵥ n') <;> simp_all
+  have hpm : ∀ {n'' : ι → ℤ} {m'' : ℤ}, n'' ⬝ᵥ n'' = n ⬝ᵥ n → p ∈ mirror n'' m'' →
+      ((m'' : ℤ) : ℝ) = c * ((fun i ↦ (n'' i : ℝ)) ⬝ᵥ p) := fun hnn hp'' ↦ by
+    rw [mem_mirror, hnn] at hp''
+    exact hp''.symm
+  rcases hsign with hd | hd
+  · have hnn : n' = n := smul_right_injective _ hn0
+      (show (n ⬝ᵥ n) • n' = (n ⬝ᵥ n) • n by rw [hw0, hd])
+    subst hnn
+    refine .inl ⟨rfl, ?_⟩
+    exact_mod_cast (hpm rfl hp').trans (mem_mirror.1 hp)
+  · have hnn : n' = -n := smul_right_injective _ hn0
+      (show (n ⬝ᵥ n) • n' = (n ⬝ᵥ n) • -n by rw [hw0, hd, neg_smul, smul_neg])
+    subst hnn
+    refine .inr ⟨rfl, ?_⟩
+    have h2 := hpm (by rw [neg_dotProduct, dotProduct_neg, neg_neg]) hp'
+    have h3 := mem_mirror.1 hp
+    have h4 : (fun i ↦ ((-n) i : ℝ)) ⬝ᵥ p = -(v ⬝ᵥ p) := by
+      simp [v, dotProduct]
+    rw [h4] at h2
+    have : (m' : ℝ) = -m := by rw [h2, ← h3]; ring
+    exact_mod_cast this
+
+theorem mirrorReflection_neg (hn : n ⬝ᵥ n ∣ 2) (hn' : (-n) ⬝ᵥ (-n) ∣ 2) (m : ℤ) :
+    mirrorReflection (-n) hn' (-m) = mirrorReflection n hn m := by
+  refine ext_smul (R := ℝ) fun x ↦ ?_
+  rw [mirrorReflection_smul, mirrorReflection_smul, neg_dotProduct, dotProduct_neg, neg_neg]
+  have h : (fun i ↦ ((-n) i : ℝ)) = -fun i ↦ (n i : ℝ) := by ext; simp
+  rw [h, neg_dotProduct, smul_neg]
+  push_cast
+  module
+
+/-- **The reflection in a mirror depends only on the mirror.** -/
+theorem mirrorReflection_eq_of_mirror_eq {n' : ι → ℤ} (hn : n ⬝ᵥ n ∣ 2) (hn' : n' ⬝ᵥ n' ∣ 2)
+    {m m' : ℤ} (h : mirror n m = mirror n' m') :
+    mirrorReflection n hn m = mirrorReflection n' hn' m' := by
+  rcases eq_or_eq_neg_of_mirror_eq hn hn' h with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+  · rfl
+  · exact (mirrorReflection_neg hn hn' m).symm
 
 end Mirror
 
