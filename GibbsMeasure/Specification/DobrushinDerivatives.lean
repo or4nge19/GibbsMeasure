@@ -53,6 +53,9 @@ majorant of the interdependence matrices of the whole segment `Φ + tΨ`, `|t| �
   against a majorant `C ≥ C(γ)` of the interdependence matrix, at infinite and at finite volume.
   `ofReal_abs_covariance_le_matSeries'` and `ofReal_abs_covariance_apply_le_matSeries'` are the
   same bounds written with `ProbabilityTheory.covariance` (`covariance_eq_integral_mul_sub`).
+* `MeasureTheory.GibbsMeasure.Dobrushin.ofReal_abs_covariance_le_tsum_pow_dist`: exponential
+  clustering — when the interdependence is dominated by a matrix with row sums `≤ c` supported on
+  the edges of a graph `G`, `|μ(fg) − μ(f)μ(g)| ≤ ∑_{i,j} δ_i(f) c^{d_G(i,j)} δ_j(g) / 4(1 − c)`.
 * `MeasureTheory.GibbsMeasure.Dobrushin.gibbsSpecificationOfAbsolutelySummable_eq_tilted`: a
   finite-volume Gibbs distribution is the exponential tilt of the free measure by `−β H^Φ_Λ`;
   `hasDerivAt_integral_gibbsSpecification` is the resulting finite-volume derivative
@@ -756,6 +759,45 @@ theorem ofReal_abs_covariance_apply_le_matSeries (hγq : γ.IsQuasilocal) (hd : 
   ofReal_abs_covariance_le_matSeries (γ := condSpec γ Λ ω) (isQuasilocal_condSpec hγq Λ ω)
     (isDobrushin_condSpec hd Λ ω) (fun i ↦ bind_condSpec_eq γ Λ ω {i})
     (fun i j ↦ (interdep_condSpec_le γ Λ ω i j).trans (hC i j)) hf hg
+
+omit [DecidableEq S] in
+/-- **Exponential clustering in a graph distance.** If the interdependence matrix of a quasilocal
+specification satisfying Dobrushin's condition is dominated by a matrix `C` with row sums at most
+`c` which vanishes off the edges of a simple graph `G` on the sites, then the covariances of its
+Gibbs measures decay like `c^{d_G}`:
+
+`|μ(fg) − μ(f)μ(g)| ≤ ∑_{i,j} δ_i(f) c^{d_G(i,j)} δ_j(g) / 4(1 − c)`.
+
+This is (8.34) with the graph-distance decay `D_ij ≤ c^{d_G(i,j)}/(1 − c)` of the Neumann series
+(`ENNReal.matEntry_le_pow_dist`); for observables localised in `Λ_f`, `Λ_g` it is
+`O(c^{d_G(Λ_f, Λ_g)})`. -/
+theorem ofReal_abs_covariance_le_tsum_pow_dist [IsProbabilityMeasure μ] (hγq : γ.IsQuasilocal)
+    (hd : IsDobrushin γ) (hμ : ∀ i : S, μ.bind (γ {i}) = μ) {C : S → S → ℝ≥0∞}
+    (hC : ∀ i j, interdep γ i j ≤ C i j) {c : ℝ≥0∞} (hc : ∀ i, ∑' j, C i j ≤ c)
+    (G : SimpleGraph S) (hCG : ∀ i j, i ≠ j → ¬ G.Adj i j → C i j = 0)
+    {f g : lp (fun _ : S → E ↦ ℝ) ∞} (hf : f ∈ quasilocalFunctions S E)
+    (hg : g ∈ quasilocalFunctions S E) :
+    ENNReal.ofReal |(∫ σ, (f : (S → E) → ℝ) σ * (g : (S → E) → ℝ) σ ∂μ)
+        - (∫ σ, (f : (S → E) → ℝ) σ ∂μ) * ∫ σ, (g : (S → E) → ℝ) σ ∂μ|
+      ≤ (∑' i, ∑' j, oscAt (⇑f) i * c ^ G.dist i j * oscAt (⇑g) j) / (4 * (1 - c)) := by
+  classical
+  refine (ofReal_abs_covariance_le_matSeries hγq hd hμ hC hf hg).trans ?_
+  calc (∑' i, matSeries C (fun j ↦ oscAt (⇑g) j) i * oscAt (⇑f) i) / 4
+      ≤ (∑' i, ∑' j, oscAt (⇑f) i * c ^ G.dist i j * oscAt (⇑g) j * (1 - c)⁻¹) / 4 := by
+        gcongr with i
+        rw [matSeries_eq_tsum_matEntry, ← ENNReal.tsum_mul_right]
+        refine ENNReal.tsum_le_tsum fun j ↦ ?_
+        calc matEntry C i j * oscAt (⇑g) j * oscAt (⇑f) i
+            ≤ c ^ G.dist i j / (1 - c) * oscAt (⇑g) j * oscAt (⇑f) i := by
+              gcongr
+              exact ENNReal.matEntry_le_pow_dist G hCG hc i j
+          _ = oscAt (⇑f) i * c ^ G.dist i j * oscAt (⇑g) j * (1 - c)⁻¹ := by
+              rw [div_eq_mul_inv]; ring
+    _ = (∑' i, ∑' j, oscAt (⇑f) i * c ^ G.dist i j * oscAt (⇑g) j) / (4 * (1 - c)) := by
+        simp_rw [ENNReal.tsum_mul_right]
+        rw [div_eq_mul_inv, div_eq_mul_inv,
+          ENNReal.mul_inv (Or.inl (by norm_num)) (Or.inl (by norm_num))]
+        ring
 
 end Prop834
 

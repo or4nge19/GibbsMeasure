@@ -6,6 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import Mathlib.Analysis.SpecificLimits.Basic
+public import Mathlib.Combinatorics.SimpleGraph.Metric
 public import Mathlib.Order.Filter.AtTopBot.Finset
 public import GibbsMeasure.Mathlib.Topology.Algebra.InfiniteSum.ENNReal
 
@@ -37,6 +38,12 @@ These estimates are the engine behind the convergence of Dobrushin-type iteratio
   `matSeries` counterparts: the action is additive, homogeneous and commutes with countable sums.
 * `ENNReal.tsum_tsum_matSeries_mul`: the Neumann series of a countable sum of vectors,
   tested against a weight, may be summed term by term.
+* `ENNReal.matIter_eq_zero_of_lt`, `ENNReal.matSeries_le_pow_of_le`: locality — if one step of
+  `C` lowers a "distance to the support of `b`" `ρ : α → ℕ∞` by at most one, then `C^n b`
+  vanishes where `ρ > n`, and `(D b)_i ≤ (sup b) c^k/(1 − c)` for `k ≤ ρ i`.
+* `ENNReal.matEntry_le_pow_of_le_edist`, `ENNReal.matEntry_le_pow_dist`: **graph-distance decay of
+  the Neumann series** — if `C` vanishes off the edges and the diagonal of a simple graph `G`,
+  then `D_ij ≤ c^{d_G(i,j)}/(1 − c)`.
 * `ENNReal.tendsto_matTail`: for `c < 1` the tail weight `∑_{j ∉ Δ} D_ij` vanishes as `Δ ↑ α`.
 * `ENNReal.tsum_matSeries_mul_ne_top`: finiteness of `∑_i (D v)_i w_i` for a bounded `v` and a
   summable `w`.
@@ -218,6 +225,76 @@ lemma tsum_matEntry_le (hc : ∀ i, ∑' j, C i j ≤ c) (i : α) :
   have h := matSeries_le (C := C) hc (b := fun _ ↦ (1 : ℝ≥0∞)) (B := 1) (fun _ ↦ le_rfl) i
   rw [matSeries_eq_tsum_matEntry] at h
   simpa using h
+
+/-! ### Locality: the Neumann series decays with the distance -/
+
+/-- **Locality of `C^n`.** If one step of `C` moves at most one unit of `ρ` — `C i k ≠ 0` implies
+`ρ i ≤ ρ k + 1` — and `b` is supported where `ρ = 0`, then `(C^n b)_i = 0` whenever `n < ρ i`. -/
+lemma matIter_eq_zero_of_lt {ρ : α → ℕ∞} (hC : ∀ i k, C i k ≠ 0 → ρ i ≤ ρ k + 1)
+    {b : α → ℝ≥0∞} (hb : ∀ j, b j ≠ 0 → ρ j = 0) (n : ℕ) {i : α} (hi : (n : ℕ∞) < ρ i) :
+    matIter C n b i = 0 := by
+  induction n generalizing i with
+  | zero =>
+      by_contra h
+      rw [hb i h] at hi
+      exact lt_irrefl _ hi
+  | succ n ih =>
+      refine ENNReal.tsum_eq_zero.2 fun k ↦ ?_
+      by_cases hik : C i k = 0
+      · rw [hik, zero_mul]
+      · refine mul_eq_zero_of_right _ (ih ?_)
+        by_contra hk
+        have h1 : ρ i ≤ (n : ℕ∞) + 1 := (hC i k hik).trans (add_le_add_left (not_lt.1 hk) 1)
+        exact absurd hi (not_lt.2 (by exact_mod_cast h1))
+
+/-- **The Neumann series decays with the distance.** Under the hypotheses of
+`matIter_eq_zero_of_lt`, if the row sums of `C` are at most `c` and `b ≤ B`, then
+`(D b)_i ≤ B c^k/(1 − c)` for every `k ≤ ρ i`: the first `k` terms of `∑_n C^n b` vanish at `i`. -/
+lemma matSeries_le_pow_of_le {ρ : α → ℕ∞} (hC : ∀ i k, C i k ≠ 0 → ρ i ≤ ρ k + 1)
+    {b : α → ℝ≥0∞} (hb : ∀ j, b j ≠ 0 → ρ j = 0) (hc : ∀ i, ∑' j, C i j ≤ c) {B : ℝ≥0∞}
+    (hB : ∀ j, b j ≤ B) {k : ℕ} {i : α} (hk : (k : ℕ∞) ≤ ρ i) :
+    matSeries C b i ≤ B * c ^ k / (1 - c) := by
+  have hzero : ∑ n ∈ Finset.range k, matIter C n b i = 0 :=
+    Finset.sum_eq_zero fun n hn ↦ matIter_eq_zero_of_lt hC hb n
+      ((Nat.cast_lt.2 (Finset.mem_range.1 hn)).trans_le hk)
+  have hsplit : matSeries C b i = ∑' n, matIter C (n + k) b i := by
+    rw [matSeries, (ENNReal.summable.hasSum.sum_range_add (f := fun n ↦ matIter C n b i)).tsum_eq,
+      hzero, zero_add]
+  calc matSeries C b i = ∑' n, matIter C (n + k) b i := hsplit
+    _ ≤ ∑' n : ℕ, B * c ^ k * c ^ n :=
+        ENNReal.tsum_le_tsum fun n ↦ (matIter_le hc hB (n + k) i).trans_eq (by ring)
+    _ = B * c ^ k / (1 - c) := by
+        rw [ENNReal.tsum_mul_left, ENNReal.tsum_geometric, div_eq_mul_inv]
+
+/-- **Graph-distance decay of the Neumann series.** If `C` vanishes off the edges and the
+diagonal of a simple graph `G` and its row sums are at most `c`, then `D_ij ≤ c^k/(1 − c)` for
+every `k` at most the graph distance `d_G(i,j)` (`D_ij = 0` when `j` is not reachable from `i` and
+`c < 1`). -/
+theorem matEntry_le_pow_of_le_edist (G : SimpleGraph α)
+    (hCG : ∀ i k, i ≠ k → ¬ G.Adj i k → C i k = 0) (hc : ∀ i, ∑' j, C i j ≤ c) {i j : α}
+    {k : ℕ} (hk : (k : ℕ∞) ≤ G.edist i j) : matEntry C i j ≤ c ^ k / (1 - c) := by
+  have hstep : ∀ i' k', C i' k' ≠ 0 → G.edist i' j ≤ G.edist k' j + 1 := by
+    intro i' k' h
+    rcases eq_or_ne i' k' with rfl | hne
+    · exact le_self_add
+    · have hadj : G.Adj i' k' := by
+        by_contra hadj
+        exact h (hCG i' k' hne hadj)
+      rw [add_comm, ← SimpleGraph.edist_eq_one_iff_adj.2 hadj]
+      exact SimpleGraph.edist_triangle
+  have hb : ∀ j', ({j} : Set α).indicator (fun _ ↦ (1 : ℝ≥0∞)) j' ≠ 0 → G.edist j' j = 0 := by
+    intro j' h
+    by_cases hj : j' = j
+    · rw [hj, SimpleGraph.edist_self]
+    · exact absurd (Set.indicator_of_notMem (by simpa using hj) _) h
+  simpa [matEntry] using matSeries_le_pow_of_le (ρ := fun i' ↦ G.edist i' j) hstep hb hc
+    (B := 1) (fun j' ↦ by by_cases hj : j' = j <;> simp [hj]) hk
+
+/-- `matEntry_le_pow_of_le_edist` at the graph distance `G.dist i j` (whose junk value `0` between
+unreachable vertices gives the row-sum bound `D_ij ≤ (1 − c)⁻¹`). -/
+theorem matEntry_le_pow_dist (G : SimpleGraph α) (hCG : ∀ i k, i ≠ k → ¬ G.Adj i k → C i k = 0)
+    (hc : ∀ i, ∑' j, C i j ≤ c) (i j : α) : matEntry C i j ≤ c ^ G.dist i j / (1 - c) :=
+  matEntry_le_pow_of_le_edist G hCG hc (ENat.natCast_toNat_le_self _)
 
 variable [DecidableEq α]
 
