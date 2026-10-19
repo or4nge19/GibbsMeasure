@@ -431,3 +431,5 @@ public import GibbsMeasure.Specification.FiniteSites
 public import GibbsMeasure.Mathlib.AlgebraicTopology.CubicalCochain.Basic
 public import GibbsMeasure.Mathlib.AlgebraicTopology.CubicalCochain.Hodge
 public import GibbsMeasure.Mathlib.AlgebraicTopology.CubicalCochain.Pullback
+public import GibbsMeasure.Mathlib.LinearAlgebra.ExteriorAlgebra.Berezin
+public import GibbsMeasure.Mathlib.AlgebraicTopology.CubicalCochain.ExteriorAlgebra
