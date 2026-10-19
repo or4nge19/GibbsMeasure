@@ -416,25 +416,25 @@ theorem card_lowerEnd (k : Fin (n + 1) → ℤ) (μ : Fin (n + 1)) :
 `1 - 2 z₀` (`wallFunctional_zero`, `wallFunctional_succ_castSucc`, `wallFunctional_last`). It
 vanishes exactly on the wall (`mem_wall_iff`), and the fundamental chamber is the set where all of
 them are positive (`mem_fundamentalChamber_iff`). -/
-def wallFunctional (i : Fin (n + 2)) (z : Fin (n + 1) → ℝ) : ℝ :=
-  ((2 / (wallNormal i ⬝ᵥ wallNormal i) : ℤ) : ℝ) * ((fun k ↦ (wallNormal i k : ℝ)) ⬝ᵥ z) -
-    wallHeight i
+def wallFunctional (i : Fin (n + 2)) : (Fin (n + 1) → ℝ) → ℝ :=
+  mirrorFunctional (wallNormal i) (wallHeight i)
 
 theorem mem_wall_iff {i : Fin (n + 2)} {z : Fin (n + 1) → ℝ} :
     z ∈ wall i ↔ wallFunctional i z = 0 := by
-  rw [wall, mem_mirror, wallFunctional, sub_eq_zero]
+  rw [wall, mem_mirror_iff_mirrorFunctional, wallFunctional]
 
 @[simp] theorem wallFunctional_zero (z : Fin (n + 1) → ℝ) :
     wallFunctional 0 z = 2 * z (Fin.last n) := by
   have h : (Pi.single (Fin.last n) 1 : Fin (n + 1) → ℤ) ⬝ᵥ Pi.single (Fin.last n) 1 = 1 := by simp
-  rw [wallFunctional, wallNormal_zero, wallHeight_zero, h, intCast_single_dotProduct]
+  rw [wallFunctional, mirrorFunctional, wallNormal_zero, wallHeight_zero, h,
+    intCast_single_dotProduct]
   norm_num
 
 @[simp] theorem wallFunctional_succ_castSucc (c : Fin n) (z : Fin (n + 1) → ℝ) :
     wallFunctional c.castSucc.succ z = z c.rev.castSucc - z c.rev.succ := by
   have h := dotProduct_single_one_add_single_self (castSucc_rev_ne_succ_rev c) (-1)
   simp only [Units.val_neg, Units.val_one] at h
-  rw [wallFunctional, wallNormal_succ_castSucc, wallHeight_succ_castSucc, h,
+  rw [wallFunctional, mirrorFunctional, wallNormal_succ_castSucc, wallHeight_succ_castSucc, h,
     intCast_single_add_single_dotProduct]
   norm_num
   ring
@@ -442,7 +442,8 @@ theorem mem_wall_iff {i : Fin (n + 2)} {z : Fin (n + 1) → ℝ} :
 @[simp] theorem wallFunctional_last (z : Fin (n + 1) → ℝ) :
     wallFunctional (Fin.last (n + 1)) z = 1 - 2 * z 0 := by
   have h : (Pi.single 0 (-1) : Fin (n + 1) → ℤ) ⬝ᵥ Pi.single 0 (-1) = 1 := by simp
-  rw [wallFunctional, wallNormal_last, wallHeight_last, h, intCast_single_dotProduct]
+  rw [wallFunctional, mirrorFunctional, wallNormal_last, wallHeight_last, h,
+    intCast_single_dotProduct]
   norm_num
   ring
 
@@ -474,8 +475,8 @@ theorem mem_fundamentalChamber_iff {z : Fin (n + 1) → ℝ} :
 theorem wallFunctional_sub_smul (j i : Fin (n + 2)) (z : Fin (n + 1) → ℝ) (t : ℝ) :
     wallFunctional j (z - t • fun k ↦ (wallNormal i k : ℝ)) = wallFunctional j z -
       t * (((2 / (wallNormal j ⬝ᵥ wallNormal j)) * (wallNormal j ⬝ᵥ wallNormal i) : ℤ) : ℝ) := by
-  rw [wallFunctional, wallFunctional, dotProduct_sub, dotProduct_smul, smul_eq_mul,
-    intCast_dotProduct_intCast]
+  simp only [wallFunctional, mirrorFunctional]
+  rw [dotProduct_sub, dotProduct_smul, smul_eq_mul, intCast_dotProduct_intCast]
   push_cast
   ring
 
@@ -843,5 +844,135 @@ theorem mul_wallReflection_smul_eq_mirrorReflection_smul {v : Fin (n + 1) → �
   rw [mirrorReflection_eq_of_mirror_eq hn' hdvd hH, ← mul_mirrorReflection_mul_inv g
     (wallNormal_dotProduct_self_dvd i), ← wallReflection_eq_mirrorReflection, mul_smul,
     mul_smul, inv_smul_smul, mul_smul]
+
+/-! ### The bonds over a photon link lie on its side of the mirrors -/
+
+/-- A point `K + q` near the lattice link `K → K + e μ` — `q μ ∈ [a, 1 - a]` and `|q ν| < a` for
+`ν ≠ μ`, `0 < a < 1/2` — lies on the positive side of every mirror on whose positive side the open
+link lies. -/
+theorem mirrorFunctional_pos_of_near_link {ι : Type*} [Fintype ι] [DecidableEq ι]
+    {n' : ι → ℤ} (hn' : n' ⬝ᵥ n' ∣ 2) {m' : ℤ} (K : ι → ℤ) (μ : ι) {a : ℝ} (ha0 : 0 < a)
+    (ha : a < 1 / 2) {q : ι → ℝ} (hqμ : a ≤ q μ ∧ q μ ≤ 1 - a) (hq : ∀ ν, ν ≠ μ → |q ν| < a)
+    (hlink : ∀ t ∈ Set.Ioo (0 : ℝ) 1,
+      0 < mirrorFunctional n' m' ((fun i ↦ (K i : ℝ)) + t • Pi.single μ 1)) :
+    0 < mirrorFunctional n' m' ((fun i ↦ (K i : ℝ)) + q) := by
+  have hint1 : ∀ N : ℤ, (0 : ℝ) < N → (1 : ℝ) ≤ N := fun N h ↦ by
+    have : 0 < N := by exact_mod_cast h
+    exact_mod_cast this
+  have hint0 : ∀ N : ℤ, (-1 / 2 : ℝ) < N → (0 : ℝ) ≤ N := fun N h ↦ by
+    have : -1 < N := by
+      have : (-1 : ℝ) < N := by linarith
+      exact_mod_cast this
+    exact_mod_cast (show 0 ≤ N by omega)
+  have hint1' : ∀ N : ℤ, (1 / 2 : ℝ) < N → (1 : ℝ) ≤ N := fun N h ↦ hint1 N (by linarith)
+  have hl : ∀ t : ℝ, ∀ b, ((fun i ↦ (K i : ℝ)) + t • (Pi.single μ 1 : ι → ℝ)) b =
+      K b + if b = μ then t else 0 := fun t b ↦ by
+    simp [Pi.single_apply]
+  have h12 := hlink (1 / 2) ⟨by norm_num, by norm_num⟩
+  rcases dotProduct_self_eq_one_or_two hn' with h1 | h2
+  · obtain ⟨b, u, rfl⟩ := exists_eq_single_of_dotProduct_self_eq_one h1
+    have hφ : ∀ z : ι → ℝ, mirrorFunctional (Pi.single b (u : ℤ)) m' z =
+        2 * (u * z b) - m' := fun z ↦ by
+      rw [mirrorFunctional, h1, intCast_single_dotProduct]
+      norm_num
+    rw [hφ, Pi.add_apply]
+    by_cases hb : b = μ
+    · subst hb
+      have := hlink (q b) ⟨by linarith, by linarith⟩
+      rwa [hφ, hl, ite_eq_left_of_eq_true _ _ (eq_self _)] at this
+    · simp only [hφ, hl, hb, ↓reduceIte, add_zero] at h12
+      have hN := hint1 (2 * (u * K b) - m') (by push_cast; linarith)
+      push_cast at hN
+      have := abs_lt.1 (hq b hb)
+      rcases Int.units_eq_one_or u with rfl | rfl <;> norm_num at hN ⊢ <;> linarith
+  · obtain ⟨b, c, hbc, u, w, rfl⟩ := exists_eq_single_add_single_of_dotProduct_self_eq_two h2
+    have hφ : ∀ z : ι → ℝ, mirrorFunctional (Pi.single b (u : ℤ) + Pi.single c (w : ℤ)) m' z =
+        u * z b + w * z c - m' := fun z ↦ by
+      rw [mirrorFunctional, h2, intCast_single_add_single_dotProduct]
+      norm_num
+    rw [hφ, Pi.add_apply, Pi.add_apply]
+    rw [hφ, hl, hl] at h12
+    by_cases hb : b = μ
+    · subst hb
+      simp only [↓reduceIte, hbc.symm, add_zero] at h12
+      have := abs_lt.1 (hq c hbc.symm)
+      rcases Int.units_eq_one_or u with rfl | rfl
+      · have hN := hint0 (K b + w * K c - m') (by push_cast; norm_num at h12 ⊢; linarith)
+        push_cast at hN
+        rcases Int.units_eq_one_or w with rfl | rfl <;> norm_num at hN ⊢ <;> linarith
+      · have hN := hint1' (-K b + w * K c - m') (by push_cast; norm_num at h12 ⊢; linarith)
+        push_cast at hN
+        rcases Int.units_eq_one_or w with rfl | rfl <;> norm_num at hN ⊢ <;> linarith
+    by_cases hc : c = μ
+    · subst hc
+      simp only [hb, ↓reduceIte, add_zero] at h12
+      have := abs_lt.1 (hq b hb)
+      rcases Int.units_eq_one_or w with rfl | rfl
+      · have hN := hint0 (u * K b + K c - m') (by push_cast; norm_num at h12 ⊢; linarith)
+        push_cast at hN
+        rcases Int.units_eq_one_or u with rfl | rfl <;> norm_num at hN ⊢ <;> linarith
+      · have hN := hint1' (u * K b - K c - m') (by push_cast; norm_num at h12 ⊢; linarith)
+        push_cast at hN
+        rcases Int.units_eq_one_or u with rfl | rfl <;> norm_num at hN ⊢ <;> linarith
+    · simp only [hb, hc, ↓reduceIte, add_zero] at h12
+      have hN := hint1 (u * K b + w * K c - m') (by push_cast; linarith)
+      push_cast at hN
+      have := abs_lt.1 (hq b hb)
+      have := abs_lt.1 (hq c hc)
+      rcases Int.units_eq_one_or u with rfl | rfl <;>
+        rcases Int.units_eq_one_or w with rfl | rfl <;> norm_num at hN ⊢ <;> linarith
+
+/-- **The bonds over a photon link lie on its side of every mirror not cutting it** ([Q]
+Proposition 2.1). Let `g` be a lower end over the link `k → k + e μ` (`translationPart g = k`,
+`g.right • e₀ = e μ`; there are `2 ^ n * n !` of them, `card_lowerEnd`). If the open link
+`{k + t e μ | 0 < t < 1}` lies on the positive side of a mirror, so does the whole bond of type
+`n + 1` at `g`. (For the negative side apply this to `-n'`, `-m'`, `mirrorFunctional_neg`.) -/
+theorem mirrorFunctional_pos_of_mem_segment {v : Fin (n + 1) → ℝ}
+    (hv : v ∈ fundamentalChamber (Fin (n + 1))) {g : AffineSignedPerm (Fin (n + 1))}
+    {μ : Fin (n + 1)} (hg : g.right • (Pi.single 0 1 : Fin (n + 1) → ℤ) = Pi.single μ 1)
+    {n' : Fin (n + 1) → ℤ} (hn' : n' ⬝ᵥ n' ∣ 2) {m' : ℤ}
+    (hlink : ∀ t ∈ Set.Ioo (0 : ℝ) 1, 0 < mirrorFunctional n' m'
+      ((fun i ↦ (translationPart g i : ℝ)) + t • Pi.single μ 1))
+    {x : Fin (n + 1) → ℝ}
+    (hx : x ∈ segment ℝ (g • v) ((g * wallReflection (Fin.last (n + 1))) • v)) :
+    0 < mirrorFunctional n' m' x := by
+  obtain ⟨hσ, ht⟩ := (SignedPerm.smul_single_one_eq_single_one_iff g.right 0 μ).1 hg
+  have hgR : g.right • (Pi.single 0 1 : Fin (n + 1) → ℝ) = Pi.single μ 1 := by
+    rw [SignedPerm.smul_single, hσ, ht, one_smul]
+  have hinv : g.right.right⁻¹ μ = 0 := by
+    rw [← hσ]
+    exact g.right.right.symm_apply_apply 0
+  have hv0 := hv.2 0
+  have hend : (g * wallReflection (Fin.last (n + 1))) • v =
+      g • v + (1 - 2 * v 0) • (Pi.single μ 1 : Fin (n + 1) → ℝ) := by
+    rw [← sub_eq_iff_eq_add', mul_smul, smul_sub_smul_eq, wallReflection_smul,
+      wallFunctional_last, wallNormal_last, sub_sub_cancel_left]
+    have hn : (fun k ↦ ((Pi.single 0 (-1) : Fin (n + 1) → ℤ) k : ℝ)) =
+        -(Pi.single 0 1 : Fin (n + 1) → ℝ) := by
+      ext j
+      rcases eq_or_ne j 0 with rfl | hj <;> simp [*]
+    simp only [hn, smul_neg, neg_neg]
+    rw [smul_comm g.right (1 - 2 * v 0), hgR]
+  rw [hend, segment_eq_image'] at hx
+  obtain ⟨s, ⟨hs0, hs1⟩, rfl⟩ := hx
+  simp only [add_sub_cancel_left]
+  rw [smul_def, add_assoc]
+  have hqμ : (g.right • v) μ = v 0 := by rw [SignedPerm.smul_apply, hinv, ht, one_smul]
+  refine mirrorFunctional_pos_of_near_link hn' (translationPart g) μ hv0.1 hv0.2 ⟨?_, ?_⟩
+    (fun ν hν ↦ ?_) hlink
+  · simp only [Pi.add_apply, Pi.smul_apply, Pi.single_eq_same, hqμ, smul_eq_mul, mul_one]
+    nlinarith
+  · simp only [Pi.add_apply, Pi.smul_apply, Pi.single_eq_same, hqμ, smul_eq_mul, mul_one]
+    nlinarith
+  · have hne : g.right.right⁻¹ ν ≠ 0 := fun h ↦ hν (by
+      rw [← hσ, ← h]
+      exact (g.right.right.apply_symm_apply ν).symm)
+    have hlt : v (g.right.right⁻¹ ν) < v 0 := hv.1 (Fin.pos_iff_ne_zero.2 hne)
+    have hpos := (hv.2 (g.right.right⁻¹ ν)).1
+    have hq : (g.right • v) ν = ((g.right.left ν : ℤ) : ℝ) * v (g.right.right⁻¹ ν) := by
+      rw [SignedPerm.smul_apply, Units.smul_def, zsmul_eq_mul]
+    simp only [Pi.add_apply, Pi.smul_apply, Pi.single_eq_of_ne hν, smul_zero, add_zero, hq]
+    rw [abs_units_mul hpos.le]
+    exact hlt
 
 end AffineSignedPerm

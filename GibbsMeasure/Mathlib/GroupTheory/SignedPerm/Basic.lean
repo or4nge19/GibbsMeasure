@@ -114,6 +114,23 @@ theorem smul_single [DecidableEq ι] (r : SignedPerm ι) (i : ι) (m : M) :
   · rw [smul_apply, Pi.single_eq_of_ne (by rwa [Ne, Perm.inv_eq_iff_eq]), smul_zero,
       Pi.single_eq_of_ne h]
 
+/-- `r` maps `e i` to `e j` iff `σ i = j` and the sign at `j` is `+1`. -/
+theorem smul_single_one_eq_single_one_iff [DecidableEq ι] (r : SignedPerm ι) (i j : ι) :
+    r • (Pi.single i 1 : ι → ℤ) = Pi.single j 1 ↔ r.right i = j ∧ r.left j = 1 := by
+  rw [smul_single]
+  constructor
+  · intro h
+    have hσ : r.right i = j := by
+      by_contra hne
+      have := congrFun h j
+      rw [Pi.single_eq_same, Pi.single_eq_of_ne (Ne.symm hne)] at this
+      exact one_ne_zero this.symm
+    refine ⟨hσ, Units.ext ?_⟩
+    have := congrFun h j
+    rwa [hσ, Pi.single_eq_same, Pi.single_eq_same, Units.smul_def, smul_eq_mul, mul_one] at this
+  · rintro ⟨rfl, h⟩
+    rw [h, one_smul]
+
 /-- Signed permutations commute with additive maps of the coordinates, e.g. with the cast
 `ℤ → ℝ`. -/
 theorem comp_smul {N : Type*} [AddCommGroup N] (f : M →+ N) (r : SignedPerm ι) (x : ι → M) :

@@ -229,7 +229,26 @@ variable (ι) in
 def mirrors : Set (Set (ι → ℝ)) :=
   {H | ∃ n : ι → ℤ, n ⬝ᵥ n ∣ 2 ∧ ∃ m : ℤ, H = mirror n m}
 
+/-- The affine function `(2 / (n ⬝ᵥ n)) (n ⬝ᵥ x) - m` with zero set `mirror n m`
+(`mem_mirror_iff_mirrorFunctional`); its sign is the side of the mirror. -/
+def mirrorFunctional (n : ι → ℤ) (m : ℤ) (x : ι → ℝ) : ℝ :=
+  ((2 / (n ⬝ᵥ n) : ℤ) : ℝ) * ((fun i ↦ (n i : ℝ)) ⬝ᵥ x) - m
+
 variable {n : ι → ℤ}
+
+theorem mem_mirror_iff_mirrorFunctional {m : ℤ} {x : ι → ℝ} :
+    x ∈ mirror n m ↔ mirrorFunctional n m x = 0 := by
+  rw [mirrorFunctional, sub_eq_zero]
+  rfl
+
+/-- The two sides of a mirror are exchanged by changing the sign of its normal and height. -/
+theorem mirrorFunctional_neg (m : ℤ) (x : ι → ℝ) :
+    mirrorFunctional (-n) (-m) x = -mirrorFunctional n m x := by
+  have h : (fun i ↦ ((-n) i : ℝ)) = -fun i ↦ (n i : ℝ) := by ext; simp
+  rw [mirrorFunctional, mirrorFunctional, neg_dotProduct, dotProduct_neg, neg_neg, h,
+    neg_dotProduct]
+  push_cast
+  ring
 
 theorem mem_mirror {m : ℤ} {x : ι → ℝ} :
     x ∈ mirror n m ↔ ((2 / (n ⬝ᵥ n) : ℤ) : ℝ) * ((fun i ↦ (n i : ℝ)) ⬝ᵥ x) = m :=
@@ -297,6 +316,11 @@ theorem mirrorReflection_smul {R : Type*} [CommRing R] (hn : n ⬝ᵥ n ∣ 2) (
   ext i
   simp [mirrorReflection, translationPart]
   ring
+
+/-- The reflection formula with the mirror functional: `θ x = x - φ(x) n`. -/
+theorem mirrorReflection_smul_eq (hn : n ⬝ᵥ n ∣ 2) (m : ℤ) (x : ι → ℝ) :
+    mirrorReflection n hn m • x = x - mirrorFunctional n m x • fun i ↦ (n i : ℝ) :=
+  mirrorReflection_smul hn m x
 
 /-- The reflection fixes its mirror pointwise. -/
 theorem mirrorReflection_smul_of_mem (hn : n ⬝ᵥ n ∣ 2) {m : ℤ} {x : ι → ℝ}
