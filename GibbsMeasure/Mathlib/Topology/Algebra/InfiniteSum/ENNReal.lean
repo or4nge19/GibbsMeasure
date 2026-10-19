@@ -6,7 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import Mathlib.Topology.Algebra.InfiniteSum.ENNReal
-public import Mathlib.Data.Real.ENatENNReal
+public import Mathlib.Basic.Real.ENatENNReal
 public import GibbsMeasure.Mathlib.Analysis.Normed.Group.Tannery
 
 /-!

@@ -160,7 +160,7 @@ lemma isProbabilityMeasure_transAverage (Φ : A → Transformation S E) (ν : Me
     [IsProbabilityMeasure ν] {F : Finset A} (hF : F.Nonempty) :
     IsProbabilityMeasure (transAverage Φ ν F) :=
   isProbabilityMeasure_uniformAverage _
-    (fun a ↦ inferInstance) hF
+    (fun _ ↦ inferInstance) hF
 
 /-- In Georgii's proof of Theorem (5.15)(ii), translating the index set by `b` is the same as
 pushing the average forward by `Φ b`.

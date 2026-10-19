@@ -556,7 +556,8 @@ theorem integral_dotProduct_sq_mul_exp_neg_half_dotProduct_mulVec {A : Matrix ι
   have hfg0 : HasDerivAt
       (fun t : ℝ ↦ Real.exp ((1 / 2 : ℝ) * (t ^ 2 * κ)) * (t * κ)) κ (0 : ℝ) := by
     have hmul := hf0.mul hg0
-    convert hmul using 1 <;> first | rfl | norm_num
+    convert hmul using 1
+    first | rfl | norm_num
   have hclosed0 : HasDerivAt
       (fun t : ℝ ↦ C * (Real.exp ((1 / 2 : ℝ) * (t ^ 2 * κ)) * (t * κ))) (C * κ) (0 : ℝ) :=
     hfg0.const_mul C

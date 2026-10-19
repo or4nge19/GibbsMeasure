@@ -17,7 +17,7 @@ public import Mathlib.Analysis.PSeries
 public import Mathlib.Analysis.SpecificLimits.Basic
 public import Mathlib.NumberTheory.Harmonic.Bounds
 public import Mathlib.Analysis.Complex.ExponentialBounds
-public import Mathlib.Data.Real.ENatENNReal
+public import Mathlib.Basic.Real.ENatENNReal
 public import Mathlib.Data.Prod.Lex
 
 /-!

@@ -5,7 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
-public import Mathlib.Data.ENNReal.Real
+public import Mathlib.Basic.ENNReal.Real
 
 /-!
 # Small real scalars in `ℝ≥0∞`

@@ -6,7 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import Mathlib.Order.CompleteLattice.Basic
-public import Mathlib.Data.Countable.Basic
+public import Mathlib.Basic.Countable.Basic
 public import Mathlib.Order.Directed
 
 /-!

@@ -5,7 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
-public import Mathlib.Data.Countable.Basic
+public import Mathlib.Basic.Countable.Basic
 public import Mathlib.Order.Lex
 
 /-!

@@ -569,9 +569,7 @@ lemma premodifierZ_boltzmannWeight_ne_zero (Φ : Potential S E) [IsFiniteRange �
     Specification.premodifierZ (S := S) (E := E) ν (boltzmannWeight (Φ := Φ) β) Λ η ≠ 0 := by
   let μ : Measure (S → E) := Specification.isssd (S := S) (E := E) ν Λ η
   have hμ_univ : μ Set.univ = 1 := by
-    simpa [μ] using
-      (IsProbabilityMeasure.measure_univ
-        (μ := Specification.isssd (S := S) (E := E) ν Λ η))
+    simp [μ]
   have hf_meas : Measurable (boltzmannWeight (Φ := Φ) β Λ) :=
     measurable_boltzmannWeight (Φ := Φ) β Λ
   have hsupport : Function.support (boltzmannWeight (Φ := Φ) β Λ) = Set.univ := by

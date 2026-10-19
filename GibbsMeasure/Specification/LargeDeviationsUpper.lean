@@ -216,7 +216,7 @@ instance isProbabilityMeasure_empiricalFieldAverage (π : S → S) {Δ : Finset 
     (κ : Measure (S → E)) [IsProbabilityMeasure κ] :
     IsProbabilityMeasure (empiricalFieldAverage E π Δ κ) :=
   isProbabilityMeasure_uniformAverage _
-    (fun i ↦ inferInstance)
+    (fun _ ↦ inferInstance)
     (Finset.card_pos.1 (Nat.pos_of_ne_zero (NeZero.ne _)))
 
 /-- `κ °R_Δ` is the `κ`-average of the periodic empirical fields, `(κ °R_Δ)(A) = ∫ °R^σ_Δ(A) κ(dσ)`

@@ -2823,11 +2823,11 @@ lemma sum_tsum_J_crossing_nonneg [IsFiniteMeasure α] (hα : ∀ᵐ p ∂α, |p.
     · filter_upwards [hα] with p hp
       have h1 : ‖heisVecPos N k w.1 w.2 p * (starRingEnd ℂ) (heisVecPos N k w'.1 w'.2 p)‖ ≤ 1 := by
         rw [norm_mul, RCLike.norm_conj]
-        exact mul_le_one₀ (norm_heisVecPos_le hp.le _ _) (norm_nonneg _)
+        exact (mul_le_of_le_one_left (norm_nonneg _) (norm_heisVecPos_le hp.le _ _)).trans
           (norm_heisVecPos_le hp.le _ _)
       have h2 : ‖heisVecNeg N k w.1 w.2 p * (starRingEnd ℂ) (heisVecNeg N k w'.1 w'.2 p)‖ ≤ 1 := by
         rw [norm_mul, RCLike.norm_conj]
-        exact mul_le_one₀ (norm_heisVecNeg_le hp.le _ _) (norm_nonneg _)
+        exact (mul_le_of_le_one_left (norm_nonneg _) (norm_heisVecNeg_le hp.le _ _)).trans
           (norm_heisVecNeg_le hp.le _ _)
       calc ‖heisVecPos N k w.1 w.2 p * (starRingEnd ℂ) (heisVecPos N k w'.1 w'.2 p)
               + heisVecNeg N k w.1 w.2 p * (starRingEnd ℂ) (heisVecNeg N k w'.1 w'.2 p)‖

@@ -8,7 +8,7 @@ module
 public import Mathlib.Analysis.Matrix.PosDef
 public import Mathlib.Analysis.Matrix.Spectrum
 public import Mathlib.Analysis.SpecialFunctions.Gaussian.GaussianIntegral
-public import Mathlib.Data.Real.Star
+public import Mathlib.Basic.Real.Star
 public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
 public import Mathlib.LinearAlgebra.Matrix.ToLin
 public import Mathlib.LinearAlgebra.UnitaryGroup

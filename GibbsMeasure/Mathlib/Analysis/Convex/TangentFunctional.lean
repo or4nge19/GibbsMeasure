@@ -13,7 +13,7 @@ public import Mathlib.Analysis.LocallyConvex.Separation
 public import Mathlib.Analysis.Normed.Module.Basic
 public import Mathlib.Topology.Baire.CompleteMetrizable
 public import Mathlib.Topology.GDelta.Basic
-public import Mathlib.Data.Real.Pointwise
+public import Mathlib.Basic.Real.Pointwise
 public import Mathlib.Topology.Order.Monotone
 
 /-!

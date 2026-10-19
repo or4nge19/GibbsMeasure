@@ -6,8 +6,8 @@ Authors: Matteo Cipollina
 module
 
 public import Mathlib.Analysis.Convex.Extreme
-public import Mathlib.Data.ENNReal.Action
-public import Mathlib.Data.ENNReal.Basic
+public import Mathlib.Basic.ENNReal.Action
+public import Mathlib.Basic.ENNReal.Basic
 
 /-!
 # Extreme points: transport along injective linear maps, and `ℝ≥0∞` versus `ℝ≥0` scalars

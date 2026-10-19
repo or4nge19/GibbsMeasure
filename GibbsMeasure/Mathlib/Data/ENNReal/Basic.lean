@@ -1,9 +1,9 @@
 module
 
 public import Mathlib.Algebra.Group.Indicator
-public import Mathlib.Data.ENNReal.Action
-public import Mathlib.Data.ENNReal.Basic
-public import Mathlib.Data.ENNReal.Inv
+public import Mathlib.Basic.ENNReal.Action
+public import Mathlib.Basic.ENNReal.Basic
+public import Mathlib.Basic.ENNReal.Inv
 public import Mathlib.Analysis.SpecificLimits.Normed
 
 public section

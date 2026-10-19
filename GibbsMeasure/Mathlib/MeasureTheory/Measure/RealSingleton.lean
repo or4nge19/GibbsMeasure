@@ -5,7 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
-public import Mathlib.MeasureTheory.Measure.Dirac
+public import Mathlib.MeasureTheory.Measure.Dirac.Basic
 public import Mathlib.MeasureTheory.Measure.Real
 public import GibbsMeasure.Mathlib.Analysis.Normed.Group.Tannery
 

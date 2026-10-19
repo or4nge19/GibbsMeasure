@@ -5,7 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
-public import Mathlib.Data.ENNReal.Inv
+public import Mathlib.Basic.ENNReal.Inv
 
 /-!
 # Cross-multiplying an equality of real ratios of `ℝ≥0∞` quantities

@@ -981,7 +981,7 @@ lemma isssdFun_apply_univ (Λ : Finset S) (η : S → E) :
     isssdFun (S := S) (E := E) ν Λ η Set.univ = 1 := by
   have : IsProbabilityMeasure (isssdFun (S := S) (E := E) ν Λ η) :=
     isProbabilityMeasure_isssdFun_apply (S := S) (E := E) ν Λ η
-  simpa using (IsProbabilityMeasure.measure_univ (μ := isssdFun ν Λ η))
+  simp
 
 /-- The composition of two ISSSD kernels has total mass one. -/
 lemma isssdFun_comp_isssdFun_apply_univ (Λ₁ Λ₂ : Finset S) (η : S → E) :
@@ -989,21 +989,7 @@ lemma isssdFun_comp_isssdFun_apply_univ (Λ₁ Λ₂ : Finset S) (η : S → E) 
   have huniv_meas : MeasurableSet (Set.univ : Set (S → E)) := MeasurableSet.univ
   have : IsProbabilityMeasure (isssdFun ν Λ₂ η) :=
     isProbabilityMeasure_isssdFun_apply (S := S) (E := E) ν Λ₂ η
-  have :
-      IsProbabilityMeasure
-        (Measure.map (juxt (Λ := (Λ₂ : Set S)) (η := η)) (Measure.pi fun _ : Λ₂ ↦ ν)) := by
-    simpa [isssdFun_apply] using
-      (isProbabilityMeasure_isssdFun_apply (S := S) (E := E) ν Λ₂ η)
-  have h_integrand :
-      (fun b : S → E =>
-          (Measure.map (juxt (Λ := (Λ₁ : Set S)) (η := b)) (Measure.pi fun _ : Λ₁ ↦ ν))
-            Set.univ) =
-        fun _ => (1 : ℝ≥0∞) := by
-    funext b
-    simpa [isssdFun_apply] using
-      (isssdFun_apply_univ (S := S) (E := E) ν Λ₁ b)
-  simp [Kernel.comp_apply' _ _ _ huniv_meas, Kernel.comap_apply, h_integrand,
-    MeasureTheory.lintegral_const]
+  simp [Kernel.comp_apply' _ _ _ huniv_meas, Kernel.comap_apply, MeasureTheory.lintegral_const]
 
 /-- The ISSSD of a measure is strongly consistent. -/
 lemma isssdFun_comp_isssdFun [DecidableEq S] (Λ₁ Λ₂ : Finset S) :
@@ -1319,18 +1305,8 @@ lemma infinitePi_bind_isssd_apply_univ
     ((Measure.infinitePi (fun _ : S ↦ ν)).bind (isssd (S := S) (E := E) ν Λ)) Set.univ = 1 := by
   have huniv_meas : MeasurableSet (Set.univ : Set (S → E)) := MeasurableSet.univ
   have hκ := aemeasurable_isssd (S := S) (E := E) ν Λ (Measure.infinitePi (fun _ : S ↦ ν))
-  have h1 : ∀ η : S → E, isssd (S := S) (E := E) ν Λ η Set.univ = 1 := by
-    intro η
-    simpa [isssd_apply] using isssdFun_apply_univ (S := S) (E := E) ν Λ η
-  have h_integrand :
-      (fun η : S → E =>
-          (Measure.map (juxt (Λ := (Λ : Set S)) (η := η)) (Measure.pi fun _ : Λ ↦ ν))
-            Set.univ) =
-        fun _ => (1 : ℝ≥0∞) := by
-    funext η
-    simpa [isssd_apply, isssdFun_apply] using h1 η
   rw [Measure.bind_apply (s := Set.univ) huniv_meas hκ]
-  simp [h_integrand, MeasureTheory.lintegral_const]
+  simp [MeasureTheory.lintegral_const]
 
 /-- The ISSSD resampling kernel preserves finite square-cylinder probabilities of the infinite
 product measure. -/

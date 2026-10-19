@@ -6,7 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import Mathlib.LinearAlgebra.Matrix.DotProduct
-public import Mathlib.Data.Real.Basic
+public import Mathlib.Basic.Real.Basic
 public import Mathlib.Tactic.Linarith
 public import Mathlib.Tactic.Ring
 

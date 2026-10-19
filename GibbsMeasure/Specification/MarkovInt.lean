@@ -166,7 +166,7 @@ lemma ae_norm_mul_le_one {f g : Ω → ℝ} (hf : ∀ᵐ x ∂μ, ‖f x‖ ≤ 
     ∀ᵐ x ∂μ, ‖f x * g x‖ ≤ 1 := by
   filter_upwards [hf, hg] with x hfx hgx
   rw [norm_mul]
-  exact mul_le_one₀ hfx (norm_nonneg _) hgx
+  exact (mul_le_of_le_one_left (norm_nonneg _) hfx).trans hgx
 
 lemma setIntegral_inter_eq_integral_mul (hB : MeasurableSet[mΩ] B) (hC : MeasurableSet[mΩ] C)
     (g : Ω → ℝ) :

@@ -781,7 +781,7 @@ lemma ae_comp_eq_of_measurable_aeInvariantSigmaAlgebra [IsFiniteMeasure μ] (hT 
     intro q
     have h := ((mem_aeInvariantSets_deterministic_iff hT).1
       (hf (measurableSet_Ici (a := (Real.toNNReal q : ℝ≥0∞))))).2
-    exact Filter.eventuallyEq_set.1 h
+    exact Filter.eventuallyEqSet_iff.1 h
   have hall : ∀ᵐ ω ∂μ, ∀ q : ℚ,
       ((Real.toNNReal q : ℝ≥0∞) ≤ f (T ω) ↔ (Real.toNNReal q : ℝ≥0∞) ≤ f ω) :=
     ae_all_iff.2 hlev
