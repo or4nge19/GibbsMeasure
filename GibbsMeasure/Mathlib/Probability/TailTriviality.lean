@@ -98,7 +98,7 @@ theorem forall_measure_eq_zero_or_one_iInf_iff (hℱ : Antitone ℱ) (hle : ∀ 
       _ ≤ ε := by
           have hfi : Integrable (μ[g | ℱ n] - μ[g | ⨅ n, ℱ n]) μ := hcn.sub hcT
           have := ofReal_integral_norm_eq_lintegral_enorm hfi
-          rw [← eLpNorm_one_eq_lintegral_enorm] at this
+          rw [← eLpNorm_one_eq_lintegral_enorm hfi.aestronglyMeasurable] at this
           have hle' : ENNReal.ofReal (∫ x, ‖(μ[g | ℱ n] - μ[g | ⨅ n, ℱ n]) x‖ ∂μ)
               ≤ ENNReal.ofReal ε := this ▸ hn
           simpa using (ENNReal.ofReal_le_ofReal_iff hε.le).1 hle'

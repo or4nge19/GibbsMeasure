@@ -22,7 +22,10 @@ namespace MeasureTheory
 theorem lintegral_ofReal_abs_condExp_le {Ω : Type*} {m m0 : MeasurableSpace Ω} {w : Measure Ω}
     (f : Ω → ℝ) :
     ∫⁻ x, ENNReal.ofReal |(w[f | m]) x| ∂w ≤ ∫⁻ x, ENNReal.ofReal |f x| ∂w := by
-  simpa only [eLpNorm_one_eq_lintegral_enorm, Real.enorm_eq_ofReal_abs] using
-    eLpNorm_condExp_le_eLpNorm (m := m) (μ := w) f le_rfl
+  by_cases hf : AEStronglyMeasurable f w
+  · simpa only [Real.enorm_eq_ofReal_abs] using lintegral_enorm_le_eLpNorm_one.trans
+      ((eLpNorm_condExp_le_eLpNorm (m := m) (μ := w) f le_rfl).trans_eq
+        (eLpNorm_one_eq_lintegral_enorm hf))
+  · simp [condExp_of_not_integrable fun h ↦ hf h.aestronglyMeasurable]
 
 end MeasureTheory

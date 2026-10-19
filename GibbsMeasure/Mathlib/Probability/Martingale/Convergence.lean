@@ -230,15 +230,14 @@ theorem ae_exists_tendsto_condExp_of_antitone (hℱ : Antitone ℱ) (hle : ∀ n
     (hg : Integrable g μ) :
     ∀ᵐ ω ∂μ, ∃ c, Tendsto (fun n => (μ[g | ℱ n]) ω) atTop (𝓝 c) := by
   have hbdd : ∀ n, eLpNorm (μ[g | ℱ n]) 1 μ ≤ (eLpNorm g 1 μ).toNNReal := fun n => by
-    rw [ENNReal.coe_toNNReal (memLp_one_iff_integrable.2 hg).2.ne]
+    rw [ENNReal.coe_toNNReal (memLp_one_iff_integrable.2 hg).ne]
     exact eLpNorm_condExp_le_eLpNorm g le_rfl
   have hfreq : ∀ᵐ ω ∂μ, ∀ a b : ℚ, a < b →
       ¬((∃ᶠ n in atTop, (μ[g | ℱ n]) ω < a) ∧ ∃ᶠ n in atTop, b < (μ[g | ℱ n]) ω) := by
     simp only [ae_all_iff, eventually_imp_distrib_left]
     intro a b hab
     exact ae_not_frequently_condExp_of_antitone hℱ hle g (Rat.cast_lt.2 hab)
-  filter_upwards [hfreq, ae_bdd_liminf_atTop_of_eLpNorm_bdd one_ne_zero
-    (fun n => (stronglyMeasurable_condExp.mono (hle n)).measurable) hbdd] with ω h₁ h₂
+  filter_upwards [hfreq, ae_bdd_liminf_atTop_of_eLpNorm_bdd one_ne_zero hbdd] with ω h₁ h₂
   exact tendsto_of_not_frequently_lt_and_frequently_lt h₂ h₁
 
 /-- Almost everywhere, the reversed martingale `n ↦ μ[g | ℱ n]` converges to the (everywhere
@@ -263,13 +262,13 @@ theorem integrable_limUnder_condExp_of_antitone (hℱ : Antitone ℱ) (hle : ∀
   have hmeas : AEStronglyMeasurable (fun ω => limUnder atTop fun n => (μ[g | ℱ n]) ω) μ :=
     ((stronglyMeasurable_iInf_limUnder_of_antitone hℱ fun _ => stronglyMeasurable_condExp).mono
       ((iInf_le _ 0).trans (hle 0))).aestronglyMeasurable
-  refine memLp_one_iff_integrable.1 ⟨hmeas, ?_⟩
+  refine memLp_one_iff_integrable.1 ?_
   refine (Lp.eLpNorm_lim_le_liminf_eLpNorm
-    (fun n => (stronglyMeasurable_condExp.mono (hle n)).aestronglyMeasurable) _
+    (fun n => (stronglyMeasurable_condExp.mono (hle n)).aestronglyMeasurable) _ hmeas
     (ae_tendsto_limUnder_condExp_of_antitone hℱ hle hg)).trans_lt ?_
   refine (liminf_le_of_frequently_le (Frequently.of_forall fun n =>
     eLpNorm_condExp_le_eLpNorm g le_rfl)).trans_lt ?_
-  exact (memLp_one_iff_integrable.2 hg).2
+  exact memLp_one_iff_integrable.2 hg
 
 /-- The reversed martingale `n ↦ μ[g | ℱ n]` converges in L¹ to its a.e. limit, by uniform
 integrability of conditional expectations and Vitali's convergence theorem. -/
@@ -281,7 +280,7 @@ theorem tendsto_eLpNorm_limUnder_condExp_of_antitone (hℱ : Antitone ℱ) (hle 
     (stronglyMeasurable_condExp.mono (hle n)).aestronglyMeasurable
   tendsto_Lp_finite_of_tendstoInMeasure le_rfl ENNReal.one_ne_top hmeas
     (memLp_one_iff_integrable.2 (integrable_limUnder_condExp_of_antitone hℱ hle hg))
-    (hg.uniformIntegrable_condExp hle).2.1
+    (hg.uniformIntegrable_condExp hle).1
     (tendstoInMeasure_of_tendsto_ae hmeas (ae_tendsto_limUnder_condExp_of_antitone hℱ hle hg))
 
 /-- The a.e. limit of the reversed martingale `n ↦ μ[g | ℱ n]` is `μ[g | ⨅ n, ℱ n]`: it is
@@ -305,7 +304,7 @@ theorem limUnder_condExp_ae_eq_condExp_iInf (hℱ : Antitone ℱ) (hle : ∀ n, 
       (Eventually.of_forall fun n => integrable_condExp.integrableOn) ?_
     refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hL1 (fun _ => zero_le)
       fun n => ?_
-    rw [eLpNorm_one_eq_lintegral_enorm]
+    rw [eLpNorm_one_eq_lintegral_enorm (integrable_condExp.sub hLint).aestronglyMeasurable]
     exact lintegral_mono' Measure.restrict_le_self le_rfl
   have h2 : Tendsto (fun n => ∫ x in s, (μ[g | ℱ n]) x ∂μ) atTop (𝓝 (∫ x in s, g x ∂μ)) :=
     tendsto_const_nhds.congr fun n => (setIntegral_condExp (hle n) hg (hs' n)).symm

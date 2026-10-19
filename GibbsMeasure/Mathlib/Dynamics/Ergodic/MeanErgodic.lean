@@ -606,7 +606,7 @@ theorem tendsto_integral_norm_inv_card_smul_sum_sub_condExp (hne : ∀ᶠ k in l
   have := (ENNReal.tendsto_toReal ENNReal.zero_ne_top).comp h
   rw [ENNReal.toReal_zero] at this
   refine this.congr fun k ↦ ?_
-  simp only [Function.comp, eLpNorm_one_eq_lintegral_enorm]
+  simp only [Function.comp, eLpNorm_one_eq_lintegral_enorm (hmeas k)]
   exact (integral_norm_eq_lintegral_enorm (hmeas k)).symm
 
 end MeanErgodic

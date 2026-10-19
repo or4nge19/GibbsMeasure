@@ -712,7 +712,8 @@ theorem tendsto_eLpNorm_integral_periodicEmpiricalField_sub_one
       have h := eLpNorm_le_of_ae_bound (μ := μ) (p := 1)
         (f := fun ω ↦ (∫ η, f η ∂(periodicEmpiricalField E (π n) (Λ n) ω))
           - (#(Λ n) : ℝ)⁻¹ * ∑ i ∈ Λ n, f ((shift E (-i)).toFun ω))
-        (C := 2 * c * #(T n) / #(Λ n)) (.of_forall fun ω ↦ by
+        (C := 2 * c * #(T n) / #(Λ n)) ((hXm n).sub (hYm n)).aestronglyMeasurable
+        (.of_forall fun ω ↦ by
           rw [Real.norm_eq_abs]
           exact abs_integral_periodicEmpiricalField_sub_le (hπ n) hf hfm hc (hTsub n) (hgood n) ω)
       simpa using h
@@ -720,8 +721,7 @@ theorem tendsto_eLpNorm_integral_periodicEmpiricalField_sub_one
       (f := fun ω ↦ (∫ η, f η ∂(periodicEmpiricalField E (π n) (Λ n) ω))
         - (#(Λ n) : ℝ)⁻¹ * ∑ i ∈ Λ n, f ((shift E (-i)).toFun ω))
       (g := fun ω ↦ (#(Λ n) : ℝ)⁻¹ * ∑ i ∈ Λ n, f ((shift E (-i)).toFun ω) - ∫ η, f η ∂μ)
-      ((hXm n).sub (hYm n)).aestronglyMeasurable
-      ((hYm n).sub measurable_const).aestronglyMeasurable le_rfl
+      le_rfl
     have hd : ((fun ω ↦ (∫ η, f η ∂(periodicEmpiricalField E (π n) (Λ n) ω))
           - (#(Λ n) : ℝ)⁻¹ * ∑ i ∈ Λ n, f ((shift E (-i)).toFun ω))
         + fun ω ↦ (#(Λ n) : ℝ)⁻¹ * ∑ i ∈ Λ n, f ((shift E (-i)).toFun ω) - ∫ η, f η ∂μ)
@@ -801,7 +801,7 @@ theorem tendsto_measure_setOf_abs_integral_periodicEmpiricalField_sub_lt
       simpa using ENNReal.Tendsto.div_const hL1 (Or.inr (ENNReal.ofReal_pos.2 hε).ne')
     refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds hdiv
       (.of_forall fun _ ↦ bot_le) (.of_forall fun n ↦ ?_)
-    rw [eLpNorm_one_eq_lintegral_enorm]
+    rw [eLpNorm_one_eq_lintegral_enorm ((hmeas n j).sub_const _).aestronglyMeasurable]
     refine le_trans (measure_mono ?_) (meas_ge_le_lintegral_div
       (((hmeas n j).sub measurable_const).enorm.aemeasurable)
       (ENNReal.ofReal_pos.2 hε).ne' ENNReal.ofReal_ne_top)

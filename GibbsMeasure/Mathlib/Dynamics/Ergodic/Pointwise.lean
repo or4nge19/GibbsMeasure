@@ -298,9 +298,9 @@ theorem measure_frequently_le_abs_inv_card_smul_sum_vadd_sub_condExp_le
       (Finset.measurable_sum _ fun i _ ↦ hgm.comp (measurable_const_vadd i))).sub
         (hcgm.mono h𝓘le le_rfl)
   have hu₁L : ∫⁻ ω, ‖u₁ ω‖ₑ ∂μ ≤ ENNReal.ofReal η := by
-    rw [← eLpNorm_one_eq_lintegral_enorm]; exact hgf.le
+    rw [← eLpNorm_one_eq_lintegral_enorm hu₁m.aestronglyMeasurable]; exact hgf.le
   have hu₂L : ∫⁻ ω, ‖u₂ ω‖ₑ ∂μ ≤ ENNReal.ofReal η := by
-    rw [← eLpNorm_one_eq_lintegral_enorm]; exact hN.le
+    rw [← eLpNorm_one_eq_lintegral_enorm hu₂m.aestronglyMeasurable]; exact hN.le
   -- The three exceptional sets.
   set A₁ := {ω | ∃ n, ε < |(∑ j ∈ F n, u₁ (j +ᵥ ω)) / (F n).card|} with hA₁
   set A₂ := {ω | ∃ n, ε < |(∑ j ∈ F n, u₂ (j +ᵥ ω)) / (F n).card|} with hA₂
@@ -326,7 +326,8 @@ theorem measure_frequently_le_abs_inv_card_smul_sum_vadd_sub_condExp_le
             (ENNReal.ofReal_pos.2 hε).ne' ENNReal.ofReal_ne_top
       _ ≤ ENNReal.ofReal (ε ^ 2) / ENNReal.ofReal ε := by
           gcongr
-          rw [← eLpNorm_one_eq_lintegral_enorm]
+          rw [← eLpNorm_one_eq_lintegral_enorm
+            (stronglyMeasurable_condExp.mono h𝓘le).aestronglyMeasurable]
           exact (eLpNorm_condExp_le_eLpNorm _ le_rfl).trans
             (hgf.le.trans (ENNReal.ofReal_le_ofReal hηε))
       _ = ENNReal.ofReal ε := hεε

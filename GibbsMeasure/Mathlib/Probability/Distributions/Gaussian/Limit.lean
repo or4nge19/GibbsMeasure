@@ -46,7 +46,8 @@ theorem tendsto_charFun_map_of_tendsto_eLpNorm_one [IsFiniteMeasure P] {X : ℕ 
     rw [charFun_apply_real, charFun_apply_real, integral_map (hX n) (by fun_prop),
       integral_map hY (by fun_prop), ← integral_sub]
     · refine (enorm_integral_le_lintegral_enorm _).trans ?_
-      rw [eLpNorm_one_eq_lintegral_enorm, ← lintegral_const_mul' _ _ enorm_ne_top]
+      rw [eLpNorm_one_eq_lintegral_enorm ((hX n).sub hY).aestronglyMeasurable,
+        ← lintegral_const_mul' _ _ enorm_ne_top]
       refine lintegral_mono fun ω ↦ ?_
       have hfac : exp (t * X n ω * I) - exp (t * Y ω * I) =
           exp (t * Y ω * I) * (exp (I * ((t * (X n ω - Y ω) : ℝ) : ℂ)) - 1) := by
@@ -96,13 +97,14 @@ theorem HasGaussianLaw.of_tendsto_eLpNorm_one {X : ℕ → Ω → ℝ} {Y : Ω �
     obtain ⟨n, hn⟩ : ∃ n, eLpNorm (X n - Y) 1 P < ⊤ :=
       (h.eventually (gt_mem_nhds ENNReal.zero_lt_top)).exists
     have hXY : Integrable (X n - Y) P :=
-      memLp_one_iff_integrable.1 ⟨((hX n).aemeasurable.sub hY).aestronglyMeasurable, hn⟩
+      memLp_one_iff_integrable.1 hn
     simpa using (hX n).integrable.sub hXY
   have hm : Tendsto m atTop (𝓝 P[Y]) := by
     rw [tendsto_iff_enorm_sub_tendsto_zero]
     refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds h (fun n ↦ bot_le)
       fun n ↦ ?_
-    rw [hm_def, ← integral_sub (hX n).integrable hYint, eLpNorm_one_eq_lintegral_enorm]
+    rw [hm_def, ← integral_sub (hX n).integrable hYint,
+      eLpNorm_one_eq_lintegral_enorm ((hX n).integrable.sub hYint).aestronglyMeasurable]
     exact enorm_integral_le_lintegral_enorm _
   -- The modulus of the limit characteristic function is positive at some `s ≠ 0`.
   have hnorm : ∀ n s, ‖charFun (P.map (X n)) s‖ = Real.exp (-(v n * s ^ 2 / 2)) := by
@@ -156,9 +158,16 @@ theorem HasGaussianLaw.of_tendsto_eLpNorm_one {X : ℕ → Ω → ℝ} {Y : Ω �
 theorem _root_.MeasureTheory.eLpNorm_one_clm_comp_le {E F : Type*} [NormedAddCommGroup E]
     [NormedAddCommGroup F] [NormedSpace ℝ E] [NormedSpace ℝ F] (M : E →L[ℝ] F) (g : Ω → E) :
     eLpNorm (fun ω ↦ M (g ω)) 1 P ≤ ‖M‖ₑ * eLpNorm g 1 P := by
-  rw [eLpNorm_one_eq_lintegral_enorm, eLpNorm_one_eq_lintegral_enorm,
-    ← lintegral_const_mul' _ _ enorm_ne_top]
-  exact lintegral_mono fun ω ↦ M.le_opENorm (g ω)
+  by_cases hg : AEStronglyMeasurable g P
+  · exact eLpNorm_le_mul_eLpNorm_of_ae_le_mul'' 1 (M.continuous.comp_aestronglyMeasurable hg)
+      (.of_forall fun ω ↦ M.le_opENorm (g ω))
+  rcases eq_or_ne M 0 with rfl | hM
+  · simp
+  have hM' : ‖M‖ₑ ≠ 0 := by
+    rw [← ofReal_norm, ne_eq, ENNReal.ofReal_eq_zero, not_le, norm_pos_iff]
+    exact hM
+  rw [eLpNorm_of_not_aestronglyMeasurable hg, ENNReal.mul_top hM']
+  exact le_top
 
 /-- **A pointwise `L¹`-limit of Gaussian processes is a Gaussian process.** If `X n` is a Gaussian
 process for every `n` and `X n t → Y t` in `L¹(P)` for every `t`, then `Y` is a Gaussian
@@ -190,10 +199,8 @@ theorem IsGaussianProcess.of_tendsto_eLpNorm_one {T : Type*} {X : ℕ → T → 
         ∑ k : I, ‖L.comp (.single ℝ _ k)‖ₑ * eLpNorm (X n k - Y k) 1 P := by
       intro n
       rw [hdecomp n]
-      refine (eLpNorm_sum_le (fun k _ ↦ ?_) le_rfl).trans (Finset.sum_le_sum fun k _ ↦ ?_)
-      · exact ((L.comp (.single ℝ _ k)).continuous.measurable.comp_aemeasurable
-          (((hX n).aemeasurable k).sub (hY k))).aestronglyMeasurable
-      · exact MeasureTheory.eLpNorm_one_clm_comp_le _ _
+      refine (eLpNorm_sum_le le_rfl).trans (Finset.sum_le_sum fun k _ ↦ ?_)
+      exact MeasureTheory.eLpNorm_one_clm_comp_le _ _
     refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun n ↦ bot_le) hbound
     have := tendsto_finsetSum (Finset.univ : Finset I) fun k _ ↦
       ENNReal.Tendsto.const_mul (a := ‖L.comp (.single ℝ (fun _ : I ↦ ℝ) k)‖ₑ) (h k)

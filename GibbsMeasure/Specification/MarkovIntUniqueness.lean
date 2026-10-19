@@ -1054,7 +1054,8 @@ theorem exists_ae_eq_pair_of_isIrreducibleInt
     refine (tendsto_eLpNorm_condExp_of_antitone (μ := v) g
       (antitone_cylinderEvents_compl_erase (j - 1) j)
       (fun _ ↦ cylinderEvents_le_pi)).congr fun m ↦ ?_
-    rw [eLpNorm_one_eq_lintegral_enorm]
+    rw [eLpNorm_one_eq_lintegral_enorm
+      (integrable_condExp.sub integrable_condExp).aestronglyMeasurable]
     refine lintegral_congr_ae ?_
     filter_upwards [hFcond m] with σ hσ
     simp only [Pi.sub_apply, Real.enorm_eq_ofReal_abs, hσ, hFinf_def, hℱ_def]
@@ -1551,7 +1552,8 @@ theorem tendsto_lintegral_ofReal_abs_densityPow_sub
   have hL1 : Filter.Tendsto (fun m ↦ ∫⁻ σ, ENNReal.ofReal |F m σ - Finf σ| ∂v)
       Filter.atTop (nhds 0) := by
     refine (tendsto_eLpNorm_condExp_of_antitone (μ := v) g hanti hle).congr fun m ↦ ?_
-    rw [eLpNorm_one_eq_lintegral_enorm]
+    rw [eLpNorm_one_eq_lintegral_enorm
+      (integrable_condExp.sub integrable_condExp).aestronglyMeasurable]
     refine lintegral_congr_ae ?_
     filter_upwards [hFcond m] with σ hσ
     simp only [Pi.sub_apply, Real.enorm_eq_ofReal_abs, hσ, hFinf_def]

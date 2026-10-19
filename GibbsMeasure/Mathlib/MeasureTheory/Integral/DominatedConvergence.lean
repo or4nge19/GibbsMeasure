@@ -136,7 +136,7 @@ theorem tendsto_eLpNorm_one_sub_zero_of_tendsto_integral_norm [l.IsCountablyGene
     (h_lim : ∀ᵐ a ∂μ, Tendsto (fun i ↦ F i a) l (𝓝 (f a))) :
     Tendsto (fun i ↦ eLpNorm (F i - f) 1 μ) l (𝓝 0) := by
   have h : ∀ i, eLpNorm (F i - f) 1 μ = ENNReal.ofReal (∫ a, ‖F i a - f a‖ ∂μ) := fun i ↦ by
-    rw [eLpNorm_one_eq_lintegral_enorm,
+    rw [eLpNorm_one_eq_lintegral_enorm ((hF_int i).sub hf).aestronglyMeasurable,
       ← ofReal_integral_norm_eq_lintegral_enorm ((hF_int i).sub hf)]
     rfl
   simp only [h]
