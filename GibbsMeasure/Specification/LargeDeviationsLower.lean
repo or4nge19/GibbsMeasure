@@ -634,7 +634,7 @@ theorem eventually_exists_measurableSet_subset_setOf_periodicEmpiricalField_mem
   have hγprob : IsProbabilityMeasure ((ν : Measure ((Fin d → ℤ) → E)).map
       (Fintype.piFinset fun _ : Fin d ↦ Finset.Icc (-(i : ℤ)) i :
         Finset (Fin d → ℤ)).restrict) :=
-    Measure.isProbabilityMeasure_map (Finset.measurable_restrict _).aemeasurable
+    inferInstance
   set γb := (ν : Measure ((Fin d → ℤ) → E)).map
     (Fintype.piFinset fun _ : Fin d ↦ Finset.Icc (-(i : ℤ)) i : Finset (Fin d → ℤ)).restrict
     with hγbdef

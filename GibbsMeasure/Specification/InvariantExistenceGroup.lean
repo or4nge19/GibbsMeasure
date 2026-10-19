@@ -119,7 +119,8 @@ lemma mem_GP_finset_sum_smul {γ : Specification S E} {m : ι → ProbabilityMea
       have : γ.IsGibbsMeasure (m i : Measure (S → E)) := hm i
       exact (Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ)).1 this Λ
     rw [hμ, Measure.bind_finset_sum _ _ _ (γ.measurable_kernel_toMeasure Λ)]
-    exact Finset.sum_congr rfl fun i _ ↦ by rw [Measure.bind_smul, hmi i]
+    exact Finset.sum_congr rfl fun i _ ↦ by
+      rw [Measure.bind_smul _ _ (γ.measurable_kernel_toMeasure Λ).aemeasurable, hmi i]
   have : γ.IsGibbsMeasure (μ : Measure (S → E)) :=
     (Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob (γ := γ)).2 hfix
   exact this
@@ -137,7 +138,8 @@ lemma mem_GP_uniformAverage {γ : Specification S E} {m : ι → ProbabilityMeas
 lemma map_uniformAverage {β : Type*} [MeasurableSpace β] (m : ι → Measure Ω) (F : Finset ι)
     {f : Ω → β} (hf : Measurable f) :
     (uniformAverage m F).map f = uniformAverage (fun i ↦ (m i).map f) F := by
-  rw [uniformAverage, uniformAverage, Measure.map_smul, Measure.map_finset_sum hf.aemeasurable]
+  rw [uniformAverage, uniformAverage, Measure.map_smul _ hf.aemeasurable,
+    Measure.map_finset_sum hf.aemeasurable]
 
 end MeasureTheory
 
@@ -158,7 +160,7 @@ lemma isProbabilityMeasure_transAverage (Φ : A → Transformation S E) (ν : Me
     [IsProbabilityMeasure ν] {F : Finset A} (hF : F.Nonempty) :
     IsProbabilityMeasure (transAverage Φ ν F) :=
   isProbabilityMeasure_uniformAverage _
-    (fun a ↦ Measure.isProbabilityMeasure_map (Φ a).measurable_toFun.aemeasurable) hF
+    (fun a ↦ inferInstance) hF
 
 /-- In Georgii's proof of Theorem (5.15)(ii), translating the index set by `b` is the same as
 pushing the average forward by `Φ b`.
@@ -174,7 +176,8 @@ lemma map_transAverage_of_transportLaw [AddCommGroup A] [DecidableEq A]
     (transAverage Φ ν F).map (Φ b).toFun = transAverage Φ ν (b +ᵥ F) := by
   have hterm : ∀ a : A, (ν.map (Φ a).toFun).map (Φ b).toFun = ν.map (Φ (b + a)).toFun :=
     fun a ↦ hΦν b a
-  rw [transAverage, transAverage, uniformAverage, uniformAverage, Measure.map_smul,
+  rw [transAverage, transAverage, uniformAverage, uniformAverage,
+    Measure.map_smul _ (Φ b).measurable_toFun.aemeasurable,
     Measure.map_finset_sum (Φ b).measurable_toFun.aemeasurable, Finset.card_vadd_finset]
   congr 1
   rw [show b +ᵥ F = F.image (b + ·) from rfl,
@@ -342,7 +345,7 @@ theorem exists_mem_GP_and_forall_measurePreserving_of_isCompact_of_transportLaw
     exact ⟨F, h1, h2⟩
   choose Fs hFsne hFsbd using hchoice
   have hprobm : ∀ a : A, IsProbabilityMeasure ((ν : Measure (S → E)).map (Φ a).toFun) :=
-    fun a ↦ Measure.isProbabilityMeasure_map (Φ a).measurable_toFun.aemeasurable
+    fun a ↦ inferInstance
   have hprob : ∀ p, IsProbabilityMeasure (transAverage Φ (ν : Measure (S → E)) (Fs p)) :=
     fun p ↦ isProbabilityMeasure_transAverage Φ _ (hFsne p)
   set μs : Finset A × ℕ → ProbabilityMeasure (S → E) :=
@@ -350,11 +353,11 @@ theorem exists_mem_GP_and_forall_measurePreserving_of_isCompact_of_transportLaw
   have hμsc : ∀ p, (μs p : Measure (S → E)) = transAverage Φ (ν : Measure (S → E)) (Fs p) :=
     fun _ ↦ rfl
   -- each average is a Gibbs measure, by (5.10) and convexity
-  have hmapGP : ∀ a : A, ν.map (Φ a).measurable_toFun.aemeasurable ∈ GP (S := S) (E := E) γ :=
+  have hmapGP : ∀ a : A, ν.map (Φ a).toFun ∈ GP (S := S) (E := E) γ :=
     fun a ↦ (hγ a).map_mem_GP hν
   have hμsGP : ∀ p, μs p ∈ GP (S := S) (E := E) γ := by
     intro p
-    refine mem_GP_uniformAverage (m := fun a ↦ ν.map (Φ a).measurable_toFun.aemeasurable)
+    refine mem_GP_uniformAverage (m := fun a ↦ ν.map (Φ a).toFun)
       hmapGP (F := Fs p) ?_
     rw [hμsc p, transAverage]
     simp [ProbabilityMeasure.toMeasure_map]
@@ -890,7 +893,7 @@ theorem isGibbsMeasure_groupAverage [IsProbabilityMeasure ν] [IsProbabilityMeas
   have hstep : ∀ g : H, (ν.map (Φ g).toFun).bind (γ Λ) = ν.map (Φ g).toFun := by
     intro g
     have hgp : IsProbabilityMeasure (ν.map (Φ g).toFun) :=
-      Measure.isProbabilityMeasure_map (Φ g).measurable_toFun.aemeasurable
+      inferInstance
     exact (Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob.1
       ((hγ g).map_isGibbsMeasure hν)) Λ
   rw [groupAverage, Measure.bind_bind hmeas.aemeasurable

@@ -373,7 +373,8 @@ theorem isProbabilityMeasure_periodicGibbsField [IsProbabilityMeasure ν] (hφ :
     IsProbabilityMeasure (periodicGibbsField E φ ν n ω) := by
   have := isProbabilityMeasure_periodicGibbsDist (N := n + 1) (d := d) (ν := ν)
     (IsProbabilityMeasure.ne_zero ν) hφ hM
-  exact Measure.isProbabilityMeasure_map (measurable_periodicJuxt n ω).aemeasurable
+  unfold periodicGibbsField
+  infer_instance
 
 variable (E) in
 /-- The fully periodic field: the law on `Ω` of the `2N`-periodic continuation of the torus
@@ -388,8 +389,8 @@ theorem isProbabilityMeasure_periodicGibbsPeriodicField [IsProbabilityMeasure ν
     IsProbabilityMeasure (periodicGibbsPeriodicField E φ ν n) := by
   have := isProbabilityMeasure_periodicGibbsDist (N := n + 1) (d := d) (ν := ν)
     (IsProbabilityMeasure.ne_zero ν) hφ hM
-  exact Measure.isProbabilityMeasure_map
-    (measurable_periodicPullback (E := E) (d := d) (n := n)).aemeasurable
+  unfold periodicGibbsPeriodicField
+  infer_instance
 
 /-- **The boundary condition is invisible inside the cube.**  On an event of the cube `Λ(N)`,
 Georgii's `°γ_{Λ(N)}^Φ × δ_ω` does not depend on `ω`: it is the law of the periodic
@@ -515,7 +516,7 @@ theorem measurePreserving_shift_of_mem_GZero [IsProbabilityMeasure ν] (hφ : Me
   obtain ⟨μs, hμs, hcp⟩ := hμ
   refine ⟨(shift E a).measurable_toFun, ?_⟩
   have hprob : IsProbabilityMeasure ((μ : Measure ((Fin d → ℤ) → E)).map (shift E a).toFun) :=
-    Measure.isProbabilityMeasure_map (shift E a).measurable_toFun.aemeasurable
+    inferInstance
   refine separatesOn_localEvents hprob inferInstance fun A hA ↦ ?_
   have hAm : MeasurableSet A := .of_mem_measurableCylinders hA
   rw [Measure.map_apply (shift E a).measurable_toFun hAm]
@@ -1340,7 +1341,8 @@ theorem wrappedCubeGibbsSpec_periodicCube_eq_periodicGibbsField (hφ : Measurabl
       = (periodicGibbs E φ ν (N := n + 1) Set.univ)⁻¹ •
         ((Specification.isssd (S := Fin d → ℤ) (E := E) ν (periodicCube d n) ω).withDensity
           ((wrappedCubePotential E φ n).boltzmannFactor 1 (periodicCube d n))) := by
-    rw [periodicGibbsField, periodicGibbsDist, Measure.map_smul, hmap]
+    rw [periodicGibbsField, periodicGibbsDist,
+      Measure.map_smul _ (measurable_periodicJuxt n ω).aemeasurable, hmap]
   have hZ : Specification.sigmaFiniteLambdaZ (S := Fin d → ℤ) (E := E) ν
       ((wrappedCubePotential E φ n).boltzmannFactor 1) (periodicCube d n) ω
       = periodicGibbs E φ ν (N := n + 1) Set.univ := by

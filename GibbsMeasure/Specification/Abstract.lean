@@ -231,7 +231,7 @@ theorem cond_mem_invariant [Nonempty ι] {μ : Measure Ω} (hμ : μ ∈ γ.inva
   calc
     (cond μ A).bind (γ.ker i) = ((μ A)⁻¹ • μ.restrict A).bind (γ.ker i) := rfl
     _ = (μ A)⁻¹ • ((μ.restrict A).bind (γ.ker i)) :=
-        Measure.bind_smul ((μ A)⁻¹) (μ.restrict A) (γ.ker i)
+        Measure.bind_smul ((μ A)⁻¹) (μ.restrict A) (γ.aemeasurable_ker i _)
     _ = (μ A)⁻¹ • ((μ.bind (γ.ker i)).restrict A) := by rw [bind_restrict i hAi μ]
     _ = cond μ A := by rw [hμ.2 i]; rfl
 

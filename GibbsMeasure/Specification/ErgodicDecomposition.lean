@@ -238,10 +238,8 @@ lemma join_tailKernelLaw :
 
 lemma isProbabilityMeasure_tailKernelLaw :
     IsProbabilityMeasure (tailKernelLaw (S := S) (E := E) μ) := by
-  have hmeas : Measurable (tailKernel (S := S) (E := E) μ) :=
-    measurable_tailKernel_pi (S := S) (E := E) (μ := μ)
-  simpa [tailKernelLaw] using (MeasureTheory.Measure.isProbabilityMeasure_map (μ := μ)
-      hmeas.aemeasurable)
+  unfold tailKernelLaw
+  infer_instance
 
 /-! ### A `ProbabilityMeasure` version of `tailKernelLaw` -/
 

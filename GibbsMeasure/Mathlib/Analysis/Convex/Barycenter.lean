@@ -355,7 +355,7 @@ theorem exists_isBarycenter_of_mem_closedConvexHull (hK : IsCompact K) (hKconv :
   -- hence `B` contains the closed convex hull of `C`
   obtain ⟨p, hp, hpx⟩ := closedConvexHull_min hCB hBconv hBcomp.isClosed hx
   refine ⟨(p.1 : Measure C).map Subtype.val,
-    Measure.isProbabilityMeasure_map measurable_subtype_coe.aemeasurable, ?_, ?_⟩
+    inferInstance, ?_, ?_⟩
   · rw [Measure.map_apply measurable_subtype_coe hC.measurableSet.compl]
     simp [preimage_compl]
   · refine isBarycenter_map measurable_subtype_coe.aemeasurable fun ℓ => ?_

@@ -289,7 +289,7 @@ omit [MeasurableSpace E] in
 instance isProbabilityMeasure_freeMeasure (lam : Measure E) [IsProbabilityMeasure lam]
     (Λ : Finset S) (ω : Config S E) : IsProbabilityMeasure (freeMeasure lam Λ ω) := by
   rw [freeMeasure]
-  exact Measure.isProbabilityMeasure_map (measurable_extend Λ ω).aemeasurable
+  exact inferInstance
 
 theorem partitionFunction_zero (lam : Measure E) [IsProbabilityMeasure lam] (β : ℝ)
     (Λ : Finset S) (ω : Config S E) :

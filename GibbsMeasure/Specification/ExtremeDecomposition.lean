@@ -240,8 +240,10 @@ lemma add_smul_mem_G {μ ν : Measure Ω} (hμ : μ ∈ G γ) (hν : ν ∈ G γ
   refine ⟨hprob, ?_⟩
   rw [Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob]
   intro Λ
-  rw [Measure.bind_add _ _ _ (γ.measurable_kernel_toMeasure Λ), Measure.bind_smul,
-    Measure.bind_smul, (Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob.1 hμ.2) Λ,
+  rw [Measure.bind_add _ _ _ (γ.measurable_kernel_toMeasure Λ),
+    Measure.bind_smul _ _ (γ.measurable_kernel_toMeasure Λ).aemeasurable,
+    Measure.bind_smul _ _ (γ.measurable_kernel_toMeasure Λ).aemeasurable,
+    (Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob.1 hμ.2) Λ,
     (Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob.1 hν.2) Λ]
 
 end MeasureTheory.GibbsMeasure

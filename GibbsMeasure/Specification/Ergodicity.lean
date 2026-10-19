@@ -125,7 +125,8 @@ lemma smul_add_smul_mem_invariantFields {μ₁ μ₂ : Measure (S → E)}
   · rw [Measure.add_apply, Measure.smul_apply, Measure.smul_apply, measure_univ, measure_univ,
       ENNReal.smul_def, ENNReal.smul_def, smul_eq_mul, smul_eq_mul, mul_one, mul_one,
       ← ENNReal.coe_add, hst, ENNReal.coe_one]
-  · rw [Measure.map_add _ _ τ.measurable_toFun, Measure.map_smul, Measure.map_smul,
+  · rw [Measure.map_add _ _ τ.measurable_toFun, Measure.map_smul _ τ.measurable_toFun.aemeasurable,
+      Measure.map_smul _ τ.measurable_toFun.aemeasurable,
       ((h₁' τ hτ).map_eq), ((h₂' τ hτ).map_eq)]
 
 /-- **Georgii (14.2)**, membership: `A ∈ 𝓘` iff `A` is measurable and fixed under the preimage

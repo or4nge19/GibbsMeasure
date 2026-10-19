@@ -102,7 +102,7 @@ theorem isGibbsMeasure_conv (γ : Specification S E) {μ ν : Measure (S → E)}
   refine lintegral_congr_ae ?_
   filter_upwards [hmem] with m hm
   have : IsProbabilityMeasure (μ.map fun x ↦ x + m) :=
-    Measure.isProbabilityMeasure_map (measurable_add_const m).aemeasurable
+    inferInstance
   rw [Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob.1 hm Λ]
 
 /-- The version of `MeasureTheory.GibbsMeasure.isGibbsMeasure_conv` with Georgii's hypothesis
@@ -261,7 +261,7 @@ theorem G_eq_conv_gaussianField [DecidableEq S] {C : S → S → ℝ}
       funext i
       exact meanOf_eq_integral
         (fun i ↦ ((hgp.hasGaussianLaw_eval i).memLp_two.integrable (by norm_num))) i
-    refine ⟨w.map meanOf, Measure.isProbabilityMeasure_map measurable_meanOf.aemeasurable, ?_, ?_⟩
+    refine ⟨w.map meanOf, inferInstance, ?_, ?_⟩
     · -- `ν(M_{J,h}) = 1`
       rw [Measure.map_apply measurable_meanOf hM]
       refine (prob_compl_eq_zero_iff (measurable_meanOf hM)).1 (measure_mono_null ?_ hwex)

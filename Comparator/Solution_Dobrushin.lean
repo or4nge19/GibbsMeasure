@@ -115,7 +115,8 @@ theorem proj_eq (hγ : IsSpecification γ) (i : S) (ζ : Config S E) :
 theorem isProbabilityMeasure_proj (hγ : IsSpecification γ) (i : S) (ζ : Config S E) :
     IsProbabilityMeasure (proj γ i ζ) := by
   have := hγ.isProbabilityMeasure ({i} : Finset S) ζ
-  exact Measure.isProbabilityMeasure_map (measurable_pi_apply i).aemeasurable
+  unfold proj
+  infer_instance
 
 theorem interdep_eq (hγ : IsSpecification γ) (i j : S) :
     interdep γ i j = GibbsMeasure.Dobrushin.interdep (spec γ hγ) i j := by

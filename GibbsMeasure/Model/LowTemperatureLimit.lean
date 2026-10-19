@@ -110,12 +110,12 @@ lemma plusPhase_real_ne_le {b : ℝ} (hb : 8 * Real.log 2 ≤ b) (a : Site) :
 
 /-- **Georgii (6.9)**, `μ_-^β = τ(μ_+^β)`: the spin-flip image of the plus phase. -/
 def minusPhase (b : ℝ) : ProbabilityMeasure (Site → Bool) :=
-  (plusPhase b).map spinFlip.measurable_toFun.aemeasurable
+  (plusPhase b).map spinFlip.toFun
 
 lemma minusPhase_toMeasure (b : ℝ) :
     (minusPhase b : Measure (Site → Bool))
       = Measure.map spinFlip.toFun (plusPhase b : Measure (Site → Bool)) :=
-  ProbabilityMeasure.toMeasure_map _ _
+  ProbabilityMeasure.toMeasure_map _
 
 lemma minusPhase_mem_GP (b : ℝ) :
     minusPhase b ∈ GP (isingSpecification (latticeGraph 2) 1 0 b) :=

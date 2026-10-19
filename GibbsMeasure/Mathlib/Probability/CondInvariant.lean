@@ -33,7 +33,8 @@ theorem MeasurePreserving.map_cond_of_preimage_eq (hf : MeasurePreserving f μ �
     (hs : MeasurableSet s) (hfs : f ⁻¹' s = t) (hst : μ t = μ s) : (μ[|t]).map f = μ[|s] := by
   have hres : (μ.restrict t).map f = μ.restrict s := by
     rw [← hfs, ← Measure.restrict_map hf.measurable hs, hf.map_eq]
-  rw [ProbabilityTheory.cond, ProbabilityTheory.cond, Measure.map_smul, hres, hst]
+  rw [ProbabilityTheory.cond, ProbabilityTheory.cond,
+    Measure.map_smul _ hf.measurable.aemeasurable, hres, hst]
 
 end MeasureTheory
 

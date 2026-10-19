@@ -169,7 +169,7 @@ theorem isClosed_setOf_measurePreserving (hpi : IsPiSystem 𝒞)
     · intro hall
       refine ⟨hf, ?_⟩
       have : IsProbabilityMeasure ((μ.toMeasure : Measure Ω).map f) :=
-        Measure.isProbabilityMeasure_map hf.aemeasurable
+        inferInstance
       refine ext_of_generate_finite 𝒞 hgen.symm hpi (fun A hA ↦ ?_) (by simp)
       rw [Measure.map_apply hf (hgen ▸ measurableSet_generateFrom hA)]
       exact hall A hA

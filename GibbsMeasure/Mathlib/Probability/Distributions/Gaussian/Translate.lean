@@ -41,7 +41,7 @@ variable {ι : Type*} {μ : Measure (ι → ℝ)}
 theorem isGaussianProcess_map_add_const
     (hμ : IsGaussianProcess (fun i (ω : ι → ℝ) ↦ ω i) μ) (c : ι → ℝ) :
     IsGaussianProcess (fun i (ω : ι → ℝ) ↦ ω i) (μ.map fun x ↦ x + c) := by
-  refine ⟨fun I ↦ ⟨?_⟩⟩
+  refine ⟨fun I ↦ ⟨(Finset.measurable_restrict I).aemeasurable, ?_⟩⟩
   rw [Measure.map_map (by fun_prop) (by fun_prop)]
   exact ((hμ.hasGaussianLaw I).add_const (I.restrict c)).isGaussian_map
 
@@ -77,7 +77,7 @@ theorem eq_map_add_gaussianField [DecidableEq ι] [IsProbabilityMeasure μ] {C :
     {m : ι → ℝ} (hm : ∀ i, ∫ ω, ω i ∂μ = m i) :
     μ = (gaussianField C hC).map fun x ↦ x + m := by
   have hprob : IsProbabilityMeasure (μ.map fun x ↦ x + (-m)) :=
-    Measure.isProbabilityMeasure_map (measurable_add_const _).aemeasurable
+    inferInstance
   have hν : μ.map (fun x ↦ x + (-m)) = gaussianField C hC := by
     refine eq_gaussianField hC (isGaussianProcess_map_add_const hμ (-m)) (fun i ↦ ?_)
       (fun i j ↦ ?_)

@@ -467,8 +467,10 @@ theorem measurePreserving_shift_altMidpoint (j : ℤ) :
     MeasurePreserving (shift Bool j).toFun altMidpoint altMidpoint := by
   refine ⟨(shift Bool j).measurable_toFun, ?_⟩
   unfold altMidpoint
-  rw [Measure.map_add _ _ (shift Bool j).measurable_toFun, Measure.map_smul,
-    Measure.map_smul, Measure.map_dirac' (shift Bool j).measurable_toFun,
+  rw [Measure.map_add _ _ (shift Bool j).measurable_toFun,
+    Measure.map_smul _ (shift Bool j).measurable_toFun.aemeasurable,
+    Measure.map_smul _ (shift Bool j).measurable_toFun.aemeasurable,
+    Measure.map_dirac' (shift Bool j).measurable_toFun,
     Measure.map_dirac' (shift Bool j).measurable_toFun, shift_toFun_altPM,
     shift_toFun_altMP]
   by_cases hj : Even j

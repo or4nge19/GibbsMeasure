@@ -1091,7 +1091,7 @@ theorem nonempty_G_homogeneousCoupling_of_lintegral_inv_ne_top {h : ℝ}
       (symm_homogeneousCoupling hEven) (finite_setOf_homogeneousCoupling_ne_zero hFin) hPD 1
       one_pos)).Nonempty := by
   obtain ⟨m, hm⟩ := hM
-  exact ⟨_, Measure.isProbabilityMeasure_map (measurable_add_const m).aemeasurable,
+  exact ⟨_, inferInstance,
     isGibbsMeasure_map_add_gaussianField_spectralCovariance hJ' hint hEven hFin hPD hpos hm⟩
 
 end Existence

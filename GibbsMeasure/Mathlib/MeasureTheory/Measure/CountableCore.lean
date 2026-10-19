@@ -148,7 +148,7 @@ theorem comap {φ : Ω → Ω'} (hφ : Function.Surjective φ) (hcomap : Measura
   · intro μ hμ hlim
     have := hμ
     have hprob : ∀ n, IsProbabilityMeasure ((μ n).map φ) := fun n ↦
-      Measure.isProbabilityMeasure_map hφm.aemeasurable
+      inferInstance
     have hval : ∀ (n : ℕ) (A : Set Ω'), MeasurableSet A → ((μ n).map φ) A = μ n (φ ⁻¹' A) :=
       fun n A hA ↦ Measure.map_apply hφm hA
     obtain ⟨ν, hν, htendsto⟩ :=
@@ -156,7 +156,7 @@ theorem comap {φ : Ω → Ω'} (hφ : Function.Surjective φ) (hcomap : Measura
         obtain ⟨c, hc⟩ := hlim _ ⟨A, hA, rfl⟩
         exact ⟨c, by simpa only [hval _ A (h.measurableSet hA)] using hc⟩
     have := hν
-    refine ⟨ν.map (Function.surjInv hφ), Measure.isProbabilityMeasure_map hs.aemeasurable, ?_⟩
+    refine ⟨ν.map (Function.surjInv hφ), inferInstance, ?_⟩
     rintro _ ⟨A, hA, rfl⟩
     have hAm : MeasurableSet A := h.measurableSet hA
     have hpre : (ν.map (Function.surjInv hφ)) (φ ⁻¹' A) = ν A := by
@@ -200,7 +200,7 @@ theorem isCountableCore_preimage_image_of_isClopen {X : Type*} [TopologicalSpace
     have := hμ
     -- the image measures on the compact model
     set P : ℕ → ProbabilityMeasure X := fun n ↦
-      ⟨(μ n).map f, Measure.isProbabilityMeasure_map hf.measurable.aemeasurable⟩ with hP
+      ⟨(μ n).map f, inferInstance⟩ with hP
     obtain ⟨ν, hν⟩ := exists_clusterPt_of_compactSpace (Filter.map P atTop)
     set L : Filter (ProbabilityMeasure X) := 𝓝 ν ⊓ Filter.map P atTop with hLdef
     have : L.NeBot := hν

@@ -965,7 +965,7 @@ theorem exists_ne_mem_G (hJ : ∀ n, 0 < J n)
   obtain ⟨μ, ⟨hprob, hμG⟩, hpos⟩ := exists_mem_G_integral_spin_pos hJ h61
   have := hprob
   refine ⟨μ, ⟨hprob, hμG⟩, μ.map chainFlip.toFun,
-    ⟨Measure.isProbabilityMeasure_map chainFlip.measurable_toFun.aemeasurable,
+    ⟨inferInstance,
       (isInvariant_chainFlip (J := J)).map_isGibbsMeasure hμG⟩, ?_,
     fun n ↦ ⟨hpos n, ?_⟩⟩
   · intro hcon
@@ -1201,7 +1201,7 @@ theorem exists_G_isingChainSpecification_eq (hJ : ∀ n, 0 < J n)
   have hprobP : IsProbabilityMeasure μplus := μp.2
   set μminus : Measure (ℕ → Bool) := μplus.map chainFlip.toFun with hμminus
   have hprobM : IsProbabilityMeasure μminus :=
-    Measure.isProbabilityMeasure_map chainFlip.measurable_toFun.aemeasurable
+    inferInstance
   have hplusG : μplus ∈ G (isingChainSpecification J) := ⟨hprobP, hμpGP⟩
   have hminusG : μminus ∈ G (isingChainSpecification J) :=
     ⟨hprobM, (isInvariant_chainFlip (J := J)).map_isGibbsMeasure hμpGP⟩
@@ -1457,12 +1457,12 @@ theorem integral_spin_plusPhase (hJ : ∀ n, 0 < J n)
 variable (J) in
 /-- **Georgii's minus phase `μ₋ = τ(μ₊)`**, the spin-flip image of the plus phase. -/
 def minusPhase : ProbabilityMeasure (ℕ → Bool) :=
-  (plusPhase J).map chainFlip.measurable_toFun.aemeasurable
+  (plusPhase J).map chainFlip.toFun
 
 lemma minusPhase_toMeasure :
     (minusPhase J : Measure (ℕ → Bool))
       = (plusPhase J : Measure (ℕ → Bool)).map chainFlip.toFun :=
-  ProbabilityMeasure.toMeasure_map _ _
+  ProbabilityMeasure.toMeasure_map _
 
 lemma minusPhase_mem_GP : minusPhase J ∈ GP (isingChainSpecification J) :=
   (isInvariant_chainFlip (J := J)).map_mem_GP plusPhase_mem_GP

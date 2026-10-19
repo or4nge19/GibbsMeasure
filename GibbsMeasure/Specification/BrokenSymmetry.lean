@@ -28,7 +28,7 @@ variable {S E : Type*} [MeasurableSpace E] {γ : Specification S E} {τ : Transf
 does not preserve `γ` there is nothing to break, and Georgii's remark that a broken symmetry
 forces `|𝒢(γ)| > 1` needs `τ(μ) ∈ 𝒢(γ)`, which is exactly invariance. -/
 def IsBrokenSymmetry (γ : Specification S E) (τ : Transformation S E) : Prop :=
-  IsInvariant τ γ ∧ ∃ μ ∈ GP γ, μ.map τ.measurable_toFun.aemeasurable ≠ μ
+  IsInvariant τ γ ∧ ∃ μ ∈ GP γ, μ.map τ.toFun ≠ μ
 
 /-- **Georgii, the remark following (5.21)**: a broken symmetry is a phase transition. -/
 theorem nontrivial_GP_of_isBrokenSymmetry (h : γ.IsBrokenSymmetry τ) :

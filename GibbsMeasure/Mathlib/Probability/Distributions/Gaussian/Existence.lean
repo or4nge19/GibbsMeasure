@@ -218,7 +218,7 @@ instance isProbabilityMeasure_gaussianField : IsProbabilityMeasure (gaussianFiel
 theorem isGaussianProcess_gaussianField :
     IsGaussianProcess (fun i (ω : ι → ℝ) ↦ ω i) (gaussianField C hC) where
   hasGaussianLaw I := by
-    constructor
+    refine ⟨(Finset.measurable_restrict I).aemeasurable, ?_⟩
     rw [show (fun ω : ι → ℝ ↦ I.restrict fun i ↦ ω i) = I.restrict from rfl,
       isProjectiveLimit_gaussianField hC I]
     infer_instance

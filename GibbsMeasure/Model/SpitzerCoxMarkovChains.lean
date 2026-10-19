@@ -690,7 +690,7 @@ theorem indepFun_tilted_of_prod (hp0 : 0 < p) (hp1 : p < 1) {μ : Measure (ℤ �
   have hprob : IsProbabilityMeasure (μ.tilted (negProd ∘ limPair p)) :=
     isProbabilityMeasure_tilted (integrable_exp_negProd_comp μ)
   have hρprob : IsProbabilityMeasure ((μ.tilted (negProd ∘ limPair p)).map (limPair p)) :=
-    Measure.isProbabilityMeasure_map (measurable_limPair p).aemeasurable
+    inferInstance
   set Z : ℝ := ∫ t, Real.exp (negProd t) ∂(limitLaw p μ) with hZ
   have hmeas : Measurable fun t : ℝ≥0 × ℝ≥0 ↦ ENNReal.ofReal (Real.exp (negProd t) / Z) :=
     ((Real.measurable_exp.comp measurable_negProd).div_const _).ennreal_ofReal
@@ -834,7 +834,9 @@ theorem chainFamily_isMarkovChain (hp0 : 0 < p) (hp1 : p < 1) (t : ℝ≥0 × �
     refine ⟨ENNReal.ofReal (Real.exp (-((t.1 : ℝ) * (t.2 : ℝ)))) • Measure.dirac t.1,
       Measure.dirac t.2, inferInstance, inferInstance, ?_⟩
     rw [Measure.prod_smul_left, withDensity_smul_measure, Measure.dirac_prod_dirac,
-      MeasureTheory.dirac_withDensity' measurable_expWeight, Measure.bind_smul, Measure.bind_smul,
+      MeasureTheory.dirac_withDensity' measurable_expWeight,
+      Measure.bind_smul _ _ (measurable_chainFamily hp0 hp1).aemeasurable,
+      Measure.bind_smul _ _ (measurable_chainFamily hp0 hp1).aemeasurable,
       Measure.dirac_bind (measurable_chainFamily hp0 hp1), smul_smul, expWeight,
       ← ENNReal.ofReal_mul (Real.exp_nonneg _), ← Real.exp_add]
     simp
@@ -851,8 +853,12 @@ lemma bind_chainFamily_two_point (hp0 : 0 < p) (hp1 : p < 1) (a b : ℝ≥0∞) 
     Measure.dirac_prod_dirac, withDensity_add_measure, withDensity_smul_measure,
     withDensity_smul_measure, MeasureTheory.dirac_withDensity' measurable_expWeight,
     MeasureTheory.dirac_withDensity' measurable_expWeight, Measure.bind_add _ _ _
-      (measurable_chainFamily hp0 hp1), Measure.bind_smul, Measure.bind_smul, Measure.bind_smul,
-    Measure.bind_smul, Measure.dirac_bind (measurable_chainFamily hp0 hp1),
+      (measurable_chainFamily hp0 hp1),
+    Measure.bind_smul _ _ (measurable_chainFamily hp0 hp1).aemeasurable,
+    Measure.bind_smul _ _ (measurable_chainFamily hp0 hp1).aemeasurable,
+    Measure.bind_smul _ _ (measurable_chainFamily hp0 hp1).aemeasurable,
+    Measure.bind_smul _ _ (measurable_chainFamily hp0 hp1).aemeasurable,
+    Measure.dirac_bind (measurable_chainFamily hp0 hp1),
     Measure.dirac_bind (measurable_chainFamily hp0 hp1)]
   simp
 

@@ -408,7 +408,7 @@ theorem isGaussianProcess [IsProbabilityMeasure Q] (h : TendstoFddCharFun X P Q)
   rw [Measure.map_map (by fun_prop) hmeas]
   have hf : Measurable fun ω ↦ L (A.restrict (X · ω)) := L.continuous.measurable.comp hmeas
   have hQprob : IsProbabilityMeasure (Q.map fun ω ↦ L (A.restrict (X · ω))) :=
-    Measure.isProbabilityMeasure_map hf.aemeasurable
+    inferInstance
   have hcomp : ((fun x ↦ L x) ∘ fun ω ↦ A.restrict (X · ω))
       = fun ω ↦ L (A.restrict (X · ω)) := rfl
   rw [hcomp]

@@ -567,7 +567,7 @@ lemma measurePreserving_of_mapClusterPt {l : Filter ι} {f : (S → E) → (S �
     MeasurePreserving f (m.toMeasure : Measure (S → E)) m.toMeasure := by
   refine ⟨hf, ?_⟩
   have hmap : IsProbabilityMeasure ((m.toMeasure : Measure (S → E)).map f) :=
-    Measure.isProbabilityMeasure_map hf.aemeasurable
+    inferInstance
   refine separatesOn_localEvents hmap inferInstance fun A hA ↦ ?_
   rw [Measure.map_apply hf (.of_mem_measurableCylinders hA)]
   refine eq_of_mapClusterPt_of_eventually_eq hm (hfloc A hA) hA ?_

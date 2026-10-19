@@ -359,8 +359,9 @@ def indepSpec (Λ : Finset S) (ω : Config S E) : Measure (Config S E) :=
   Measure.map (fun σ => glue Λ σ ω) (Measure.infinitePi fun _ : S => ν)
 
 instance instIsProbabilityMeasureIndepSpec (Λ : Finset S) (ω : Config S E) :
-    IsProbabilityMeasure (indepSpec ν Λ ω) :=
-  Measure.isProbabilityMeasure_map (measurable_glue_left Λ ω).aemeasurable
+    IsProbabilityMeasure (indepSpec ν Λ ω) := by
+  unfold indepSpec
+  infer_instance
 
 omit [IsProbabilityMeasure ν] in
 theorem indepSpec_apply (Λ : Finset S) (ω : Config S E) {A : Set (Config S E)}

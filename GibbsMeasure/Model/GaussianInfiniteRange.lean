@@ -475,8 +475,7 @@ theorem isProbabilityMeasure_gaussianInfiniteRangeMeasure (J : S → S → ℝ) 
         (multivariateGaussianPi (β • gaussianCouplingMatrix J Λ) (gaussianTsumMean J h Λ ω)) :=
       isProbabilityMeasure_multivariateGaussianPi ((hPD Λ).smul hβ) _
     rw [gaussianInfiniteRangeMeasure_of_mem J h β Λ hω]
-    exact Measure.isProbabilityMeasure_map
-      (Measurable.juxt (Λ := (Λ : Set S)) (η := ω)).aemeasurable
+    exact inferInstance
   · rw [gaussianInfiniteRangeMeasure_of_notMem J h β Λ hω]
     infer_instance
 

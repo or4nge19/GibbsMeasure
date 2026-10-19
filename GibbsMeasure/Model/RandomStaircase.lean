@@ -2182,7 +2182,7 @@ theorem map_staircasePhase_of_map_staircaseAverage (hβ : 0 < β) (hr : r' (β /
       = (staircasePhase hβ hr w : Measure (Site → ℤ)) := by
   have hmap : IsProbabilityMeasure
       (Measure.map τ.toFun (staircasePhase hβ hr z : Measure (Site → ℤ))) :=
-    Measure.isProbabilityMeasure_map τ.measurable_toFun.aemeasurable
+    inferInstance
   refine separatesOn_localEvents hmap inferInstance fun A hA ↦ ?_
   have hAm : MeasurableSet A := .of_mem_measurableCylinders hA
   have h1 := tendsto_staircaseAverage_apply hβ hr z (τ.preimage_mem_localEvents hA)
@@ -2479,7 +2479,7 @@ theorem map_spinTranslation_staircasePhase_ne (z : ℤ) :
       ≠ (staircasePhase hβ hr z : Measure (Site → ℤ)) := by
   have : IsProbabilityMeasure (Measure.map (staircaseShift Site ℤ).toFun
       (staircasePhase hβ hr z : Measure (Site → ℤ))) :=
-    Measure.isProbabilityMeasure_map (staircaseShift Site ℤ).measurable_toFun.aemeasurable
+    inferInstance
   refine ne_of_half_lt (a := (0 : Site)) (c := -1) (d := 0) (by omega) ?_ ?_
   · rw [map_toFun_spin_eq]
     have hset : {ω : Site → ℤ | (staircaseShift Site ℤ).toFun ω (0 : Site) = -1}
@@ -2499,7 +2499,7 @@ theorem map_spinReflection_staircasePhase_ne {z : ℤ} (hz : z ≠ 0) :
       ≠ (staircasePhase hβ hr z : Measure (Site → ℤ)) := by
   have : IsProbabilityMeasure (Measure.map (spinReflection Site ℤ).toFun
       (staircasePhase hβ hr z : Measure (Site → ℤ))) :=
-    Measure.isProbabilityMeasure_map (spinReflection Site ℤ).measurable_toFun.aemeasurable
+    inferInstance
   refine ne_of_half_lt (a := e0) (c := -z) (d := z) (by omega) ?_ ?_
   · rw [map_toFun_spin_eq]
     have hset : {ω : Site → ℤ | (spinReflection Site ℤ).toFun ω e0 = -z}
@@ -2518,7 +2518,7 @@ theorem map_shift_staircasePhase_ne {z : ℤ} {j : Site} (hzj : z * j 0 ≠ 0) :
       ≠ (staircasePhase hβ hr z : Measure (Site → ℤ)) := by
   have : IsProbabilityMeasure (Measure.map (shift ℤ j).toFun
       (staircasePhase hβ hr z : Measure (Site → ℤ))) :=
-    Measure.isProbabilityMeasure_map (shift ℤ j).measurable_toFun.aemeasurable
+    inferInstance
   refine ne_of_half_lt (a := j) (c := 0) (d := z * j 0) (Ne.symm hzj) ?_ ?_
   · rw [map_toFun_spin_eq]
     have hset : {ω : Site → ℤ | (shift ℤ j).toFun ω j = 0}
@@ -2536,7 +2536,7 @@ theorem map_latticeRot_staircasePhase_ne {z : ℤ} (hz : z ≠ 0) :
       ≠ (staircasePhase hβ hr z : Measure (Site → ℤ)) := by
   have : IsProbabilityMeasure (Measure.map latticeRot.toFun
       (staircasePhase hβ hr z : Measure (Site → ℤ))) :=
-    Measure.isProbabilityMeasure_map latticeRot.measurable_toFun.aemeasurable
+    inferInstance
   refine ne_of_half_lt (a := e1) (c := z) (d := 0) hz ?_ ?_
   · rw [map_toFun_spin_eq]
     have hset : {ω : Site → ℤ | latticeRot.toFun ω e1 = z}
@@ -2554,7 +2554,7 @@ theorem map_latticeReflFst_staircasePhase_ne {z : ℤ} (hz : z ≠ 0) :
       ≠ (staircasePhase hβ hr z : Measure (Site → ℤ)) := by
   have : IsProbabilityMeasure (Measure.map latticeReflFst.toFun
       (staircasePhase hβ hr z : Measure (Site → ℤ))) :=
-    Measure.isProbabilityMeasure_map latticeReflFst.measurable_toFun.aemeasurable
+    inferInstance
   refine ne_of_half_lt (a := e0) (c := -z) (d := z) (by omega) ?_ ?_
   · rw [map_toFun_spin_eq]
     have hset : {ω : Site → ℤ | latticeReflFst.toFun ω e0 = -z}

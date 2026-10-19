@@ -44,7 +44,7 @@ lemma preimage_mem_localEvents (τ : Transformation S E) {A : Set (S → E)}
 (Georgii, after (5.12)). -/
 lemma continuous_map_withLocalConvergence (τ : Transformation S E) :
     Continuous fun μ : WithLocalConvergence S E ↦
-      (WithSetwiseTopology.ofMeasure (μ.toMeasure.map τ.measurable_toFun.aemeasurable) :
+      (WithSetwiseTopology.ofMeasure (μ.toMeasure.map τ.toFun) :
         WithLocalConvergence S E) := by
   refine continuous_iff_continuousAt.2 fun μ ↦ ?_
   rw [ContinuousAt, tendsto_withLocalConvergence_iff]

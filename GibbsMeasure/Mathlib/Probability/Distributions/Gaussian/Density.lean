@@ -960,8 +960,6 @@ theorem isGaussian_pi_gaussianReal (σ : ι → ℝ≥0) :
     IsGaussian (Measure.pi fun i ↦ gaussianReal 0 (σ i)) := by
   have hsf : ∀ i : ι,
       SigmaFinite ((gaussianReal 0 1).map (fun y : ℝ ↦ Real.sqrt (σ i) * y)) := fun i ↦ by
-    have := Measure.isProbabilityMeasure_map (μ := gaussianReal (0 : ℝ) 1)
-      (f := fun y : ℝ ↦ Real.sqrt (σ i) * y) (by fun_prop)
     infer_instance
   have hmap : Measure.pi (fun i ↦ gaussianReal 0 (σ i))
       = (Measure.pi (fun _ : ι ↦ gaussianReal 0 1)).map

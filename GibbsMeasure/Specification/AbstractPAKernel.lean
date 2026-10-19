@@ -299,7 +299,7 @@ lemma ae_tailRealKernel_eq_map [Nonempty ι] (hf : Monotone f) (hcof : ∀ i, �
     ∀ᵐ ω ∂μ, γ.tailRealKernel f hf hcof ω = (tailCondKernel γ μ ω).map (embeddingReal Ω) := by
   filter_upwards [ae_forall_tailRatCDF_eq μ hf hcof hμ] with ω hω
   have : IsProbabilityMeasure ((tailCondKernel γ μ ω).map (embeddingReal Ω)) :=
-    Measure.isProbabilityMeasure_map (measurable_embeddingReal _).aemeasurable
+    inferInstance
   exact kernelOfMeasurableRat_eq γ.tail (γ.measurable_tailRatCDF f hf hcof) _ hω
 
 end Identification

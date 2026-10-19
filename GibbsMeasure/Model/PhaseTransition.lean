@@ -755,7 +755,7 @@ theorem exists_two_shiftInvariant_gibbs_of_cube {ρ : ℝ → ℝ≥0∞} {b : �
       2⁻¹ < (mp : Measure (Site → Bool)) {z : Site → Bool | z 0 = true} := by
   obtain ⟨mp, hGP, hshift, hbound⟩ := exists_plus_phase_of_cube hcube
   set mm : ProbabilityMeasure (Site → Bool) :=
-    mp.map spinFlip.measurable_toFun.aemeasurable with hmmdef
+    mp.map spinFlip.toFun with hmmdef
   have hmmshift : ∀ j : Site,
       MeasurePreserving (shift Bool j).toFun (mm : Measure (Site → Bool)) mm := by
     intro j
@@ -809,7 +809,7 @@ theorem exists_two_shiftInvariant_gibbs_of_cube {ρ : ℝ → ℝ≥0∞} {b : �
     rw [hcon] at hlt
     exact absurd hlt (not_lt.2 (le_of_lt hgt'))
   exact ⟨mp, mm, hne, hGP, (isInvariant_spinFlip b).map_mem_GP hGP, hshift, hmmshift,
-    hmmdef ▸ ProbabilityMeasure.toMeasure_map _ _, hlt, hgt', hgt⟩
+    hmmdef ▸ ProbabilityMeasure.toMeasure_map _, hlt, hgt', hgt⟩
 
 /-- **Georgii Theorem (6.9), the "in particular" part.** For all sufficiently large `β` the
 two-dimensional Ising ferromagnet with coupling `1` and no external field has two distinct

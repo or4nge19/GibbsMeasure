@@ -100,7 +100,7 @@ def gibbsKernel (Φ : Finset S → Config S E → ℝ) (ν : Measure E) (β : �
 instance isProbabilityMeasure_freeMeasure (ν : Measure E) [IsProbabilityMeasure ν] (Λ : Finset S)
     (ω : Config S E) : IsProbabilityMeasure (freeMeasure ν Λ ω) := by
   rw [freeMeasure]
-  exact Measure.isProbabilityMeasure_map (measurable_extend Λ ω).aemeasurable
+  exact inferInstance
 
 /-! ## The `λ(E)^{|Λ|}` factors and their cancellation -/
 
@@ -139,7 +139,7 @@ theorem freeMeasure_smul (c : ℝ≥0∞) (hc : c ≠ ⊤) (ν : Measure E) [IsF
     simp only [Measure.smul_apply, smul_eq_mul]
     rw [Finset.prod_mul_distrib, Finset.prod_const, Finset.card_univ, Fintype.card_coe]
   simp only [freeMeasure]
-  rw [hpi, Measure.map_smul]
+  rw [hpi, Measure.map_smul _ (measurable_extend Λ ω).aemeasurable]
 
 /-- **Georgii's Remark (1.28)(3)**: the Gibbs distribution is homogeneous of degree zero in the a
 priori measure, which is why (4.23) needs `λ` finite but not normalized — and why (2.9), which

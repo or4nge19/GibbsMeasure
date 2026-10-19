@@ -786,7 +786,7 @@ theorem IsMarkovChain.exists_isBoundaryLaw_eq_boundaryLawMeasure :
     ENNReal.div_mul_cancel (hr0 i x) (hrt i x)
   have hm1 : ∀ i, ∑' x, m i x = 1 := fun i ↦ by
     have : IsProbabilityMeasure (μ.map fun τ : ℤ → E ↦ τ i) :=
-      Measure.isProbabilityMeasure_map (measurable_pi_apply i).aemeasurable
+      inferInstance
     simp only [hm]
     simp_rw [← Measure.map_apply (measurable_pi_apply i) (measurableSet_singleton _)]
     rw [← measure_univ_eq_tsum_singleton, measure_univ]
@@ -875,7 +875,7 @@ theorem IsBoundaryLaw.boundaryLawMeasure_map_shift (j : ℤ) :
     (boundaryLawMeasure hbl).map (GibbsMeasure.shift E j).toFun = boundaryLawMeasure (hbl.shift
         j) := by
   have : IsProbabilityMeasure ((boundaryLawMeasure hbl).map (GibbsMeasure.shift E j).toFun) :=
-    Measure.isProbabilityMeasure_map (GibbsMeasure.shift E j).measurable_toFun.aemeasurable
+    inferInstance
   refine (hbl.shift j).eq_boundaryLawMeasure_of_forall_intervalCylinder fun a b hab σ ↦ ?_
   rw [Measure.map_apply (GibbsMeasure.shift E j).measurable_toFun (measurableSet_intervalCylinder
       a b σ),
@@ -2274,7 +2274,7 @@ theorem exists_transferMatrix_equiv_and_isPositiveRecurrent_of_invariantG_nonemp
   have hirrP := Kernel.isIrreducible_count_ofMatrix_of_forall_pos hPpos
   -- the invariant marginal `α(x) = μ(σ_0 = x)`
   have hαprob : IsProbabilityMeasure (μ.map (fun ω : ℤ → E ↦ ω 0)) :=
-    Measure.isProbabilityMeasure_map (measurable_pi_apply 0).aemeasurable
+    inferInstance
   have hmarg := map_eval_eq_of_measurePreserving_shift hshift
   have hinvP : (Kernel.ofMatrix P).Invariant (μ.map (fun ω : ℤ → E ↦ ω 0)) := by
     change (μ.map (fun ω : ℤ → E ↦ ω 0)).bind (Kernel.ofMatrix P) = μ.map (fun ω : ℤ → E ↦ ω 0)
@@ -2299,7 +2299,7 @@ theorem exists_transferMatrix_equiv_and_isPositiveRecurrent_of_invariantG_nonemp
     exact measure_univ
   refine ⟨P, c, r 0, hc0, hct, fun x ↦ hbl.right_pos 0 x, fun x ↦ hbl.right_ne_top 0 x, hPQ,
     hPstoch, Kernel.isRecurrent_of_invariant hinvP, μ.map (fun ω : ℤ → E ↦ ω 0),
-    Measure.isProbabilityMeasure_map (measurable_pi_apply 0).aemeasurable, hinvP⟩
+    inferInstance, hinvP⟩
 
 end OnlyIf
 
@@ -2580,7 +2580,8 @@ theorem map_shift_eq_self_of_map_shift_eq_of_mem_G {μ : Measure (ℤ → E)} [I
     have hνprob : IsProbabilityMeasure ν := ((G.mem_iff ν).1 hνG).1
     have hνGibbs : (transferSpecification Q hQ).IsGibbsMeasure ν := ((G.mem_iff ν).1 hνG).2
     have hνshift1 : ν.map (shift E (1 : ℤ)).toFun = ν := by
-      rw [hνdef, Measure.map_smul, map_shift_finset_sum]
+      rw [hνdef, Measure.map_smul _ (shift E (1 : ℤ)).measurable_toFun.aemeasurable,
+        map_shift_finset_sum]
       congr 1
       have hstep : ∀ k : ℕ, (f k).map (shift E (1 : ℤ)).toFun
           = μ.map (shift E (((k + 1 : ℕ) : ℤ))).toFun := by

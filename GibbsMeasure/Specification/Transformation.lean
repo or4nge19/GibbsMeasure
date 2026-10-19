@@ -158,7 +158,7 @@ lemma isInvariant_iff {τ : Transformation S E} {γ : Specification S E} :
 /-- **Georgii (5.10).** If `μ ∈ 𝒢(γ)` then `τ(μ) ∈ 𝒢(τ(γ))`. -/
 theorem map_mem_GP {γ : Specification S E} (τ : Transformation S E)
     {μ : ProbabilityMeasure (S → E)} (hμ : μ ∈ GP γ) :
-    μ.map τ.measurable_toFun.aemeasurable ∈ GP (γ.map τ) := by
+    μ.map τ.toFun ∈ GP (γ.map τ) := by
   rw [mem_GP_iff_forall_bindPM_eq] at hμ ⊢
   intro Λ
   refine ProbabilityMeasure.toMeasure_injective ?_
@@ -176,7 +176,7 @@ theorem map_mem_GP {γ : Specification S E} (τ : Transformation S E)
 /-- **Georgii (5.10).** `𝒢(γ)` is invariant under every symmetry of `γ`. -/
 theorem IsInvariant.map_mem_GP {τ : Transformation S E} {γ : Specification S E}
     (hγ : IsInvariant τ γ) {μ : ProbabilityMeasure (S → E)} (hμ : μ ∈ GP γ) :
-    μ.map τ.measurable_toFun.aemeasurable ∈ GP γ := by
+    μ.map τ.toFun ∈ GP γ := by
   have h := Specification.map_mem_GP τ hμ
   rwa [show γ.map τ = γ from hγ] at h
 
@@ -187,9 +187,9 @@ theorem IsInvariant.map_isGibbsMeasure {τ : Transformation S E} {γ : Specifica
     (hμ : γ.IsGibbsMeasure μ) : γ.IsGibbsMeasure (μ.map τ.toFun) := by
   set P : ProbabilityMeasure (S → E) := ⟨μ, inferInstance⟩ with hP
   have h := hγ.map_mem_GP (μ := P) hμ
-  have hcoe : ((ProbabilityMeasure.map P τ.measurable_toFun.aemeasurable :
+  have hcoe : ((ProbabilityMeasure.map P τ.toFun :
       ProbabilityMeasure (S → E)) : Measure (S → E)) = μ.map τ.toFun :=
-    ProbabilityMeasure.toMeasure_map _ _
+    ProbabilityMeasure.toMeasure_map _
   exact hcoe ▸ h
 
 /-- **Georgii (5.11).** If `𝒢(γ) = {μ}` then `μ` is preserved by every symmetry of `γ`. -/
@@ -302,13 +302,12 @@ theorem map_mem_G_map {γ : Specification S E} (τ : Transformation S E) {μ : M
     (show (⟨μ, hprob⟩ : ProbabilityMeasure (S → E)) ∈ GP γ from hgibbs)
   have h3 : Specification.IsGibbsMeasure (γ.map τ)
       ((ProbabilityMeasure.map (⟨μ, hprob⟩ : ProbabilityMeasure (S → E))
-        τ.measurable_toFun.aemeasurable : ProbabilityMeasure (S → E)) : Measure (S → E)) := h2
+        τ.toFun : ProbabilityMeasure (S → E)) : Measure (S → E)) := h2
   have hmeq : ((ProbabilityMeasure.map (⟨μ, hprob⟩ : ProbabilityMeasure (S → E))
-      τ.measurable_toFun.aemeasurable : ProbabilityMeasure (S → E)) : Measure (S → E)) =
+      τ.toFun : ProbabilityMeasure (S → E)) : Measure (S → E)) =
       μ.map τ.toFun :=
     ProbabilityMeasure.toMeasure_map (⟨μ, hprob⟩ : ProbabilityMeasure (S → E))
-      τ.measurable_toFun.aemeasurable
-  exact ⟨Measure.isProbabilityMeasure_map τ.measurable_toFun.aemeasurable, hmeq ▸ h3⟩
+  exact ⟨inferInstance, hmeq ▸ h3⟩
 
 end Specification
 

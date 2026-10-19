@@ -2075,7 +2075,7 @@ theorem entropyIn_uniformOn_eq_neg_integral_log_measureReal (Λ : Finset S) :
           fun v : Λ → E ↦ log (μ.real (Λ.restrict ⁻¹' {v} : Set (S → E))) :=
         measurable_of_countable _
       have hprob : IsProbabilityMeasure (μ.map fun ω : S → E ↦ Λ.restrict ω) :=
-        Measure.isProbabilityMeasure_map (Finset.measurable_restrict Λ).aemeasurable
+        inferInstance
       have hmapint : ∫ v, log (μ.real (Λ.restrict ⁻¹' {v} : Set (S → E)))
             ∂(μ.map fun ω : S → E ↦ Λ.restrict ω)
           = ∫ ω, log (μ.real (Λ.restrict ⁻¹' {Λ.restrict ω} : Set (S → E))) ∂μ :=

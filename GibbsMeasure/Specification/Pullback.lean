@@ -258,7 +258,7 @@ theorem isGibbsMeasure_map_symm_prod_comap_fst [Countable S] (ν₁ : Measure E�
   have hb₁ := (isGibbsMeasure_iff_forall_bind_eq (γ := γ₁) (μ := μ₁)).1 hμ₁
   have hb₂ := (isGibbsMeasure_iff_forall_bind_eq (γ := isssd (S := S) ν₂) (μ := μ₂)).1 hμ₂
   have : IsProbabilityMeasure ((μ₁.prod μ₂).map e.symm) :=
-    Measure.isProbabilityMeasure_map (MeasurableEquiv.measurable _).aemeasurable
+    inferInstance
   rw [isGibbsMeasure_iff_forall_bind_eq]
   intro Λ
   set κ₁ : Kernel (S → E₁) (S → E₁) :=
@@ -370,7 +370,7 @@ theorem mem_G_map_symm_prod_comap_fst [Countable S] (ν₁ : Measure E₁) (ν�
           (Φ := Φ.comap (Prod.fst : E₁ × E₂ → E₁)) (ν₁.prod ν₂) β) := by
   have h₁ := hμ₁.1
   have h₂ := hμ₂.1
-  exact ⟨Measure.isProbabilityMeasure_map (MeasurableEquiv.measurable _).aemeasurable,
+  exact ⟨inferInstance,
     isGibbsMeasure_map_symm_prod_comap_fst Φ ν₁ ν₂ β hμ₁.2 hμ₂.2⟩
 
 /-- **Lifting a Gibbs measure along the layering, with the free second layer `ν₂^S`.** Georgii's

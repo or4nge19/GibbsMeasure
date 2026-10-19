@@ -55,7 +55,7 @@ theorem map_add_const_mem_invariantFields [MeasurableSpace S]
   obtain ⟨hprob, hshift⟩ := mem_invariantFields_shiftGroup.1 hμ
   have hT : Measurable (fun x : S → ℝ ↦ x + fun _ ↦ c) := by fun_prop
   refine mem_invariantFields_shiftGroup.2
-    ⟨Measure.isProbabilityMeasure_map hT.aemeasurable, fun k ↦ ?_⟩
+    ⟨inferInstance, fun k ↦ ?_⟩
   refine ⟨Transformation.measurable_toFun _, ?_⟩
   rw [Measure.map_map (Transformation.measurable_toFun _) hT, comp_add_const_eq c k,
     ← Measure.map_map hT (Transformation.measurable_toFun _), (hshift k).map_eq]

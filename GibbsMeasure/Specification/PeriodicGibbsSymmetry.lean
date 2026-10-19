@@ -786,7 +786,7 @@ theorem measurePreserving_of_mem_GZero (hφ : Measurable φ) (hM : ∃ M : ℝ, 
   obtain ⟨μs, hμs, hcp⟩ := hμ
   refine ⟨τ.measurable_toFun, ?_⟩
   have hprob : IsProbabilityMeasure ((μ : Measure ((Fin d → ℤ) → E)).map τ.toFun) :=
-    Measure.isProbabilityMeasure_map τ.measurable_toFun.aemeasurable
+    inferInstance
   refine separatesOn_localEvents hprob inferInstance fun A hA ↦ ?_
   have hAm : MeasurableSet A := .of_mem_measurableCylinders hA
   rw [Measure.map_apply τ.measurable_toFun hAm]

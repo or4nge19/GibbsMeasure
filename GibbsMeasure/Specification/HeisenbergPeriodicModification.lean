@@ -890,7 +890,8 @@ theorem heisenbergPeriodicGibbsSpec_latticeBox [SigmaFinite ν] [NeZero ν] (hsu
         ((Specification.sigmaFiniteLambdaFun (S := Fin d → ℤ) (E := Fin n → ℝ) ν
             (Potential.latticeBox d L) ω).withDensity
           ((heisenbergPeriodicPotential n J L).boltzmannFactor 1 (Potential.latticeBox d L))) := by
-    rw [heisenbergPeriodicGibbsDist, Measure.map_smul, hmap]
+    rw [heisenbergPeriodicGibbsDist,
+      Measure.map_smul _ (measurable_periodicJuxt L ω).aemeasurable, hmap]
   have hZ : Specification.sigmaFiniteLambdaZ (S := Fin d → ℤ) (E := Fin n → ℝ) ν
       ((heisenbergPeriodicPotential n J L).boltzmannFactor 1) (Potential.latticeBox d L) ω
       = heisenbergPeriodicGibbs (L + 1) n J ν Set.univ := by

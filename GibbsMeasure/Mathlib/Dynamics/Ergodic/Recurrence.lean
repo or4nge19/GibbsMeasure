@@ -75,7 +75,8 @@ measure. -/
 theorem MeasurePreserving.cond_of_preimage_eq (hf : MeasurePreserving f μ μ)
     (hs : MeasurableSet s) (hfs : f ⁻¹' s = s) : MeasurePreserving f (μ[|s]) (μ[|s]) := by
   refine ⟨hf.measurable, ?_⟩
-  rw [ProbabilityTheory.cond, Measure.map_smul, (hf.restrict_of_preimage_eq hs hfs).map_eq]
+  rw [ProbabilityTheory.cond, Measure.map_smul _ hf.measurable.aemeasurable,
+    (hf.restrict_of_preimage_eq hs hfs).map_eq]
 
 /-- **Poincaré recurrence, sharp form.**  Conditionally on the complement of the set of points
 whose orbit visits `s` infinitely often, the set `s` is null.  Consequently a measure-preserving

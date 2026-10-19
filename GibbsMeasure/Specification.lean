@@ -973,12 +973,8 @@ lemma lintegral_isssdFun_apply_squareCylinder_eq_union
 /-- Each `isssdFun` value is a probability measure. -/
 lemma isProbabilityMeasure_isssdFun_apply (Λ : Finset S) (η : S → E) :
     IsProbabilityMeasure (isssdFun (S := S) (E := E) ν Λ η) := by
-  have : IsProbabilityMeasure (Measure.pi (fun _ : Λ ↦ ν)) := by infer_instance
-  simpa [isssdFun_apply] using
-    Measure.isProbabilityMeasure_map
-      (μ := Measure.pi (fun _ : Λ ↦ ν))
-      (f := juxt (Λ := (Λ : Set S)) (η := η))
-      (hf := (Measurable.juxt (Λ := (Λ : Set S)) (η := η) (𝓔 := mE)).aemeasurable)
+  rw [isssdFun_apply]
+  infer_instance
 
 /-- Every independent finite-volume kernel has total mass one. -/
 lemma isssdFun_apply_univ (Λ : Finset S) (η : S → E) :
@@ -1633,7 +1629,8 @@ theorem isGibbsMeasure_isssd_iff_of_isFiniteMeasure (ν : Measure E) [IsProbabil
   · intro h
     refine (isGibbsMeasure_iff_forall_bind_eq (γ := isssd ν) (μ := μ)).2 fun Λ ↦ ?_
     conv_lhs => rw [h]
-    rw [Measure.bind_smul, infinitePi_bind_isssd (S := S) (E := E) ν Λ, ← h]
+    rw [Measure.bind_smul _ _ (aemeasurable_isssd ν Λ _),
+      infinitePi_bind_isssd (S := S) (E := E) ν Λ, ← h]
 
 /-- **Georgii, Remark (1.25).** `G(λ_·) = {λ^S}`. -/
 theorem isGibbsMeasure_isssd_iff (ν : Measure E) [IsProbabilityMeasure ν]

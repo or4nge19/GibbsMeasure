@@ -201,8 +201,9 @@ noncomputable def proj (γ : Specification S E) (i : S) (ω : S → E) : Measure
   (γ {i} ω).map (fun σ ↦ σ i)
 
 instance instIsProbabilityMeasureProj (γ : Specification S E) (i : S) (ω : S → E) :
-    IsProbabilityMeasure (proj γ i ω) :=
-  Measure.isProbabilityMeasure_map (measurable_pi_apply i).aemeasurable
+    IsProbabilityMeasure (proj γ i ω) := by
+  unfold proj
+  infer_instance
 
 lemma interdep_eq (γ : Specification S E) (i j : S) :
     interdep γ i j =
@@ -237,7 +238,7 @@ lemma map_updateAt_eq (γ : Specification S E) (i : S) (ω : S → E) :
   classical
   have hT : Measurable (fun σ : S → E ↦ Function.update ω i (σ i)) := measurable_updateAt i ω
   have : IsProbabilityMeasure ((γ {i} ω).map (fun σ ↦ Function.update ω i (σ i))) :=
-    Measure.isProbabilityMeasure_map hT.aemeasurable
+    inferInstance
   have hprop : Specification.IsProper γ := γ.isProper
   refine ext_of_generate_finite (squareCylindersMeas S E)
       (generateFrom_squareCylindersMeas S E) (isPiSystem_squareCylindersMeas S E) ?_ ?_
@@ -1326,7 +1327,7 @@ theorem map_condCfg_eq_self (γ : Specification S E) (hWΔ : Disjoint W Δ) (ξ 
   classical
   have hT : Measurable (condCfg W ξ) := measurable_condCfg W ξ
   have : IsProbabilityMeasure ((γ Δ ξ).map (condCfg W ξ)) :=
-    Measure.isProbabilityMeasure_map hT.aemeasurable
+    inferInstance
   have hprop : Specification.IsProper γ := γ.isProper
   have hWΔ' : ∀ k, k ∈ W → k ∉ Δ := fun k hk hk' ↦
     (Finset.disjoint_left.1 hWΔ hk) hk'

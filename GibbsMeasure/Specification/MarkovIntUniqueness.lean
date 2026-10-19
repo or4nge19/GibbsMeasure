@@ -533,7 +533,7 @@ theorem exists_lt_of_isIrreducibleInt (hρ : ∀ Λ, Measurable (ρ Λ))
   classical
   set α : Measure E := μ.map (fun ω ↦ ω (0 : ℤ)) with hα_def
   have hαprob : IsProbabilityMeasure α :=
-    Measure.isProbabilityMeasure_map (measurable_pi_apply (0 : ℤ)).aemeasurable
+    inferInstance
   have hlt : (1 : ℝ≥0∞) - ε / 4 < 1 :=
     ENNReal.sub_lt_self ENNReal.one_ne_top one_ne_zero
       (ENNReal.div_pos hε.ne' (by norm_num)).ne'
@@ -1213,7 +1213,7 @@ theorem map_eval_eq_withDensity_stationaryDensity {Q : Kernel E E} [IsMarkovKern
       = ν.withDensity (stationaryDensity (μ.map fun ω : ℤ → E ↦ ω (0 : ℤ)) p) := by
   have hprob := h.isProbabilityMeasure
   have : IsProbabilityMeasure (μ.map fun ω : ℤ → E ↦ ω (0 : ℤ)) :=
-    Measure.isProbabilityMeasure_map (measurable_pi_apply (0 : ℤ)).aemeasurable
+    inferInstance
   calc (μ.map fun ω : ℤ → E ↦ ω (0 : ℤ))
       = (μ.map fun ω : ℤ → E ↦ ω (0 : ℤ)).bind Q := (h.bind_map_eval_eq hmarg).symm
     _ = ν.withDensity (stationaryDensity (μ.map fun ω : ℤ → E ↦ ω (0 : ℤ)) p) :=
@@ -1429,7 +1429,7 @@ theorem toReal_stationaryDensity_ae_eq_condExp [IsProbabilityMeasure μ]
         cylinderEvents (X := fun _ : ℤ ↦ E) ({0} : Set ℤ)] := by
   classical
   have hαprob : IsProbabilityMeasure (μ.map fun ω : ℤ → E ↦ ω (0 : ℤ)) :=
-    Measure.isProbabilityMeasure_map (measurable_pi_apply (0 : ℤ)).aemeasurable
+    inferInstance
   set α : Measure E := μ.map fun ω : ℤ → E ↦ ω (0 : ℤ) with hα_def
   have hrmeas : Measurable (stationaryDensity α p) := measurable_stationaryDensity hp
   have hαr : α = ν.withDensity (stationaryDensity α p) :=
@@ -1623,7 +1623,7 @@ theorem mul_le_stationaryDensity_of_irreducibility [IsProbabilityMeasure μ]
   classical
   set α : Measure E := μ.map fun ω : ℤ → E ↦ ω (0 : ℤ) with hα_def
   have : IsProbabilityMeasure α :=
-    Measure.isProbabilityMeasure_map (measurable_pi_apply (0 : ℤ)).aemeasurable
+    inferInstance
   set Λ : Finset ℤ := Finset.Ioo (-(n : ℤ)) (n : ℤ) with hΛ_def
   set B : Set (ℤ → E) := {σ : ℤ → E | σ (-(n : ℤ)) ∈ C} ∩ {σ : ℤ → E | σ (n : ℤ) ∈ C} with hB_def
   have hnZ : (1 : ℤ) ≤ (n : ℤ) := by exact_mod_cast hn
@@ -2059,7 +2059,7 @@ theorem tendsto_lintegral_tvDensity [StandardBorelSpace E] [IsProbabilityMeasure
   classical
   set α : Measure E := μ.map fun ω : ℤ → E ↦ ω (0 : ℤ) with hα_def
   have hαprob : IsProbabilityMeasure α :=
-    Measure.isProbabilityMeasure_map (measurable_pi_apply (0 : ℤ)).aemeasurable
+    inferInstance
   set r : E → ℝ≥0∞ := stationaryDensity α p with hr_def
   have hrmeas : Measurable r := measurable_stationaryDensity hp
   have hαr : α = ν.withDensity r := map_eval_eq_withDensity_stationaryDensity hchain hmarg hp hQ
@@ -2118,7 +2118,7 @@ theorem measure_inter_pair_le [IsProbabilityMeasure μ] [IsMarkovKernel Q]
   classical
   set α : Measure E := μ.map fun ω : ℤ → E ↦ ω (0 : ℤ) with hα_def
   have hαprob : IsProbabilityMeasure α :=
-    Measure.isProbabilityMeasure_map (measurable_pi_apply (0 : ℤ)).aemeasurable
+    inferInstance
   set r : E → ℝ≥0∞ := stationaryDensity α p with hr_def
   have hrmeas : Measurable r := measurable_stationaryDensity hp
   have hαr : α = ν.withDensity r := map_eval_eq_withDensity_stationaryDensity hchain hmarg hp hQ
@@ -2520,7 +2520,7 @@ lemma mixBound_ne_top [IsProbabilityMeasure μ] [IsMarkovKernel Q]
     (hp : Measurable (Function.uncurry p)) (hQ : ∀ x, Q x = ν.withDensity (p x))
     {M N : ℕ} (hM : 1 ≤ M) (hN : 1 ≤ N) : mixBound ν p μ M N ≠ ⊤ := by
   have hαprob : IsProbabilityMeasure (μ.map fun ω : ℤ → E ↦ ω (0 : ℤ)) :=
-    Measure.isProbabilityMeasure_map (measurable_pi_apply (0 : ℤ)).aemeasurable
+    inferInstance
   have hrmeas : Measurable (stationaryDensity (μ.map fun ω : ℤ → E ↦ ω (0 : ℤ)) p) :=
     measurable_stationaryDensity hp
   have hαr : (μ.map fun ω : ℤ → E ↦ ω (0 : ℤ))
@@ -2814,12 +2814,14 @@ theorem eq_of_isGibbsMeasure_of_measurePreserving_shift [StandardBorelSpace E]
     have h1 : μ₁.bind (γ Λ) = μ₁ := (Specification.isGibbsMeasure_iff_forall_bind_eq).1 hμ₁ Λ
     have h2 : μ₂.bind (γ Λ) = μ₂ := (Specification.isGibbsMeasure_iff_forall_bind_eq).1 hμ₂ Λ
     rw [hm_def, Measure.bind_add (s • μ₁) (s • μ₂) (γ Λ) (γ.measurable_kernel_toMeasure Λ),
-      Measure.bind_smul, Measure.bind_smul, h1, h2]
+      Measure.bind_smul _ _ (γ.measurable_kernel_toMeasure Λ).aemeasurable,
+      Measure.bind_smul _ _ (γ.measurable_kernel_toMeasure Λ).aemeasurable, h1, h2]
   have hmshift : ∀ a : ℤ, MeasurePreserving (shift E a).toFun m m := by
     intro a
     have hmeasa : Measurable (shift E a).toFun := (shift E a).measurable_toFun
     refine ⟨hmeasa, ?_⟩
-    rw [hm_def, Measure.map_add _ _ hmeasa, Measure.map_smul, Measure.map_smul,
+    rw [hm_def, Measure.map_add _ _ hmeasa, Measure.map_smul _ hmeasa.aemeasurable,
+      Measure.map_smul _ hmeasa.aemeasurable,
       (hshift₁ a).2, (hshift₂ a).2]
   have hmext := mem_extremePoints_G_of_measurePreserving_shift hγ hρ hMk hhom hirr hmGibbs hmshift
   have hseg : m ∈ openSegment ℝ≥0∞ μ₁ μ₂ := ⟨s, s, hspos, hspos, hs2, hm_def⟩

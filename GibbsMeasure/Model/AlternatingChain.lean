@@ -175,7 +175,8 @@ the two atoms or exchanges them, and they carry equal mass. -/
 lemma map_shift_altField (m : ι → ℤ) :
     (altField k₀).map (shift Bool m).toFun = altField k₀ := by
   have hmeas : Measurable (shift Bool m).toFun := (shift Bool m).measurable_toFun
-  rw [altField, Measure.map_add _ _ hmeas, Measure.map_smul, Measure.map_smul,
+  rw [altField, Measure.map_add _ _ hmeas, Measure.map_smul _ hmeas.aemeasurable,
+    Measure.map_smul _ hmeas.aemeasurable,
     Measure.map_dirac' hmeas, Measure.map_dirac' hmeas, shift_altCfg, shift_altCfg]
   by_cases hm : Even (m k₀)
   · rw [ite_eq_left hm, ite_eq_left hm]

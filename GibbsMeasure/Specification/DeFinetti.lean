@@ -550,7 +550,7 @@ theorem eq_infinitePi_of_mem_extremePoints
     (hμ : μ ∈ (exchangeableSpec E).invariant.extremePoints ℝ≥0∞) :
     μ = Measure.infinitePi fun _ : ℕ ↦ μ.map fun ω ↦ ω 0 := by
   have : IsProbabilityMeasure (μ.map fun ω : ℕ → E ↦ ω 0) :=
-    Measure.isProbabilityMeasure_map (measurable_pi_apply 0).aemeasurable
+    inferInstance
   refine Measure.eq_infinitePi _ fun s t ht ↦ ?_
   classical
   set k : ℕ := s.sup id + 1 with hk
@@ -589,7 +589,7 @@ theorem mem_extremePoints_exchangeable_iff {μ : Measure (ℕ → E)} :
   · intro hμ
     have : IsProbabilityMeasure μ := hμ.1.1
     exact ⟨μ.map fun ω ↦ ω 0,
-      Measure.isProbabilityMeasure_map (measurable_pi_apply 0).aemeasurable,
+      inferInstance,
       eq_infinitePi_of_mem_extremePoints hμ⟩
   · rintro ⟨lam, hlam, rfl⟩
     exact infinitePi_mem_extremePoints
@@ -662,12 +662,12 @@ theorem existsUnique_mixing_of_isExchangeable (hμ : IsExchangeable μ) :
   set marg : Measure (ℕ → E) → Measure E := fun ν ↦ ν.map fun ω ↦ ω 0 with hmarg
   -- the mixing measure: push the representing weight to the marginals
   refine ⟨w.map marg, ⟨?_, ?_, ?_⟩, ?_⟩
-  · exact Measure.isProbabilityMeasure_map measurable_marg.aemeasurable
+  · exact inferInstance
   · rw [Measure.map_apply measurable_marg measurableSet_probSet.compl]
     refine measure_mono_null (fun ν hν ↦ ?_) hwcompl
     intro hmem
     have : IsProbabilityMeasure ν := (hP ν hmem.1)
-    exact hν (Measure.isProbabilityMeasure_map (measurable_pi_apply 0).aemeasurable)
+    exact hν (show IsProbabilityMeasure (ν.map fun ω ↦ ω 0) from inferInstance)
   · -- `(w.map marg).bind iid = w.join = μ`
     refine Measure.ext fun B hB ↦ ?_
     have hiidB : Measurable fun lam ↦ iid lam B :=
@@ -692,7 +692,7 @@ theorem existsUnique_mixing_of_isExchangeable (hμ : IsExchangeable μ) :
         iid lam ∈ γ.invariant ∩ trivialOn γ.tail := fun lam hlam ↦ iid_mem_inter lam hlam
     have hw' : w = m.map iid := by
       refine (hwuniq (m.map iid) ⟨?_, ?_, ?_⟩).symm
-      · exact Measure.isProbabilityMeasure_map measurable_iid.aemeasurable
+      · exact inferInstance
       · -- the carried set is measurable: within `𝒫_I` triviality on `𝓘` is the countable set
         -- of equalities `ν = iid (marg ν)` on the generating π-system
         set D : Set (Measure (ℕ → E)) := {ν | ∀ t : Finset ℕ,
@@ -717,7 +717,7 @@ theorem existsUnique_mixing_of_isExchangeable (hμ : IsExchangeable μ) :
           · intro hd
             have : IsProbabilityMeasure ν := hν.1
             have : IsProbabilityMeasure (marg ν) :=
-              Measure.isProbabilityMeasure_map (measurable_pi_apply 0).aemeasurable
+              inferInstance
             have hext : ν = iid (marg ν) := by
               refine ext_of_generate_finite (piNatGenSet (ℕ → E))
                 generateFrom_piNatGenSet.symm isPiSystem_piNatGenSet ?_ (by simp)

@@ -51,9 +51,9 @@ theorem ext_of_forall_measure_preimage_embeddingReal_Iic {X : Type*} [Measurable
   have he := measurableEmbedding_embeddingReal X
   have hmap : μ.map (embeddingReal X) = ν.map (embeddingReal X) := by
     have : IsProbabilityMeasure (μ.map (embeddingReal X)) :=
-      isProbabilityMeasure_map he.measurable.aemeasurable
+      inferInstance
     have : IsProbabilityMeasure (ν.map (embeddingReal X)) :=
-      isProbabilityMeasure_map he.measurable.aemeasurable
+      inferInstance
     refine ext_of_forall_measure_Iic_rat fun q ↦ ?_
     rw [map_apply he.measurable measurableSet_Iic, map_apply he.measurable measurableSet_Iic]
     exact h q

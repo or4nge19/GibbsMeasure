@@ -159,13 +159,12 @@ lemma map_mem_G {τ : Transformation S E} (hτ : Specification.IsInvariant τ γ
   have h2 := hτ.map_mem_GP (show (⟨μ, hprob⟩ : ProbabilityMeasure Ω) ∈ GP γ from hgibbs)
   have h3 : Specification.IsGibbsMeasure γ
       ((ProbabilityMeasure.map (⟨μ, hprob⟩ : ProbabilityMeasure Ω)
-        τ.measurable_toFun.aemeasurable : ProbabilityMeasure Ω) : Measure Ω) := h2
+        τ.toFun : ProbabilityMeasure Ω) : Measure Ω) := h2
   have hmeq : ((ProbabilityMeasure.map (⟨μ, hprob⟩ : ProbabilityMeasure Ω)
-      τ.measurable_toFun.aemeasurable : ProbabilityMeasure Ω) : Measure Ω) =
+      τ.toFun : ProbabilityMeasure Ω) : Measure Ω) =
       μ.map τ.toFun :=
     ProbabilityMeasure.toMeasure_map (⟨μ, hprob⟩ : ProbabilityMeasure Ω)
-      τ.measurable_toFun.aemeasurable
-  exact ⟨Measure.isProbabilityMeasure_map τ.measurable_toFun.aemeasurable, hmeq ▸ h3⟩
+  exact ⟨inferInstance, hmeq ▸ h3⟩
 
 omit [Countable S] [StandardBorelSpace E] in
 /-- A symmetry of `γ` maps extreme Gibbs measures to extreme Gibbs measures. -/
@@ -181,7 +180,8 @@ lemma map_mem_extremePoints_G {τ : Transformation S E} (hτ : Specification.IsI
   have hμeq : (μ.map τ.toFun).map τ.inv.toFun = μ := by
     rw [Measure.map_map τ.inv.measurable_toFun τ.measurable_toFun, hcompinv, Measure.map_id]
   have hseg : a • x.map τ.inv.toFun + b • y.map τ.inv.toFun = μ := by
-    rw [← Measure.map_smul, ← Measure.map_smul,
+    rw [← Measure.map_smul _ τ.inv.measurable_toFun.aemeasurable,
+      ← Measure.map_smul _ τ.inv.measurable_toFun.aemeasurable,
       ← Measure.map_add _ _ τ.inv.measurable_toFun, heq, hμeq]
   obtain ⟨hxeq, hyeq⟩ := hext _ (map_mem_G hτ.inv hx) _ (map_mem_G hτ.inv hy)
     ⟨a, b, ha, hb, hab, hseg⟩

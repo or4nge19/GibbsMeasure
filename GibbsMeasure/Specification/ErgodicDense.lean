@@ -371,11 +371,11 @@ end TileUnion
 
 instance isProbabilityMeasure_map_finsetRestrict (μ : Measure (S → E)) [IsProbabilityMeasure μ]
     (Λ : Finset S) : IsProbabilityMeasure (μ.map Λ.restrict) :=
-  Measure.isProbabilityMeasure_map (Finset.measurable_restrict Λ).aemeasurable
+  inferInstance
 
 instance isProbabilityMeasure_map_shift (μ : Measure (S → E)) [IsProbabilityMeasure μ] (j : S) :
     IsProbabilityMeasure (μ.map (shift E j).toFun) :=
-  Measure.isProbabilityMeasure_map (shift E j).measurable_toFun.aemeasurable
+  inferInstance
 
 variable (γ : Measure (C → E))
 
@@ -389,8 +389,9 @@ def tileProduct : Measure (S → E) :=
 
 variable [IsProbabilityMeasure γ]
 
-instance isProbabilityMeasure_tileProduct : IsProbabilityMeasure (tileProduct hCH γ) :=
-  Measure.isProbabilityMeasure_map (tilingEquiv hCH).measurable.aemeasurable
+instance isProbabilityMeasure_tileProduct : IsProbabilityMeasure (tileProduct hCH γ) := by
+  unfold tileProduct
+  infer_instance
 
 /-- The restriction of `tilingEquiv` to the tile `C` reads off the block indexed by `0 ∈ H`. -/
 lemma finsetRestrict_comp_tilingEquiv :
@@ -491,7 +492,8 @@ representative of `j' + j`, and `j ↦ c` is a bijection of `C`. -/
 theorem map_shift_tileAverage (j' : S) :
     (tileAverage hCH γ).map (shift E j').toFun = tileAverage hCH γ := by
   unfold tileAverage uniformAverage
-  rw [Measure.map_smul, Measure.map_finset_sum (shift E j').measurable_toFun.aemeasurable]
+  rw [Measure.map_smul _ (shift E j').measurable_toFun.aemeasurable,
+    Measure.map_finset_sum (shift E j').measurable_toFun.aemeasurable]
   congr 1
   calc ∑ j ∈ C, ((tileProduct hCH γ).map (shift E j).toFun).map (shift E j').toFun
       = ∑ j ∈ C, (tileProduct hCH γ).map (shift E (tileRep hCH (j' + j) : S)).toFun :=

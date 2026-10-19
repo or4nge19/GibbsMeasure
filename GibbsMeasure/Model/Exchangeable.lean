@@ -554,7 +554,7 @@ generate `𝓕`. -/
 theorem eq_bind_map_xi {μ : Measure (ℕ → Bool)} [IsProbabilityMeasure μ]
     (hμ : gammaEx.IsGibbsMeasure μ) : μ = (μ.map xi).bind bernoulliField := by
   have hw : IsProbabilityMeasure (μ.map xi) :=
-    Measure.isProbabilityMeasure_map measurable_xi.aemeasurable
+    inferInstance
   have hbind : ∀ Λ : Finset ℕ, μ.bind (gammaEx Λ) = μ :=
     Specification.isGibbsMeasure_iff_forall_bind_eq_of_prob.1 hμ
   refine MeasureTheory.ext_of_generate_finite _ generateFrom_measurableCylinders.symm
@@ -582,7 +582,7 @@ theorem G_gammaEx_eq :
   ext μ
   constructor
   · rintro ⟨hprob, hgibbs⟩
-    exact ⟨μ.map xi, Measure.isProbabilityMeasure_map measurable_xi.aemeasurable,
+    exact ⟨μ.map xi, inferInstance,
       map_xi_apply_Icc μ, eq_bind_map_xi hgibbs⟩
   · rintro ⟨w, hw, -, rfl⟩
     exact ⟨inferInstance, isGibbsMeasure_bind_bernoulliField w⟩

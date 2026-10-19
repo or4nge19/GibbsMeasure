@@ -81,7 +81,7 @@ theorem HasGaussianLaw.of_tendsto_eLpNorm_one {X : ℕ → Ω → ℝ} {Y : Ω �
     (hX : ∀ n, HasGaussianLaw (X n) P) (hY : AEMeasurable Y P)
     (h : Tendsto (fun n ↦ eLpNorm (X n - Y) 1 P) atTop (𝓝 0)) : HasGaussianLaw Y P := by
   have hP : IsProbabilityMeasure P := (hX 0).isProbabilityMeasure
-  have hPY : IsProbabilityMeasure (P.map Y) := Measure.isProbabilityMeasure_map hY
+  have hPY : IsProbabilityMeasure (P.map Y) := inferInstance
   set m : ℕ → ℝ := fun n ↦ P[X n] with hm_def
   set v : ℕ → ℝ := fun n ↦ Var[X n; P] with hv_def
   have hv0 : ∀ n, 0 ≤ v n := fun n ↦ variance_nonneg _ _
@@ -150,7 +150,7 @@ theorem HasGaussianLaw.of_tendsto_eLpNorm_one {X : ℕ → Ω → ℝ} {Y : Ω �
   have hmap : P.map Y = gaussianReal m₀ v₀.toNNReal := by
     refine Measure.ext_of_charFun (funext fun t ↦ ?_)
     rw [hchar, charFun_gaussianReal, Real.coe_toNNReal _ hv₀]
-  exact ⟨by rw [hmap]; infer_instance⟩
+  exact ⟨hY, by rw [hmap]; infer_instance⟩
 
 /-- Composing with a continuous linear map contracts the `L¹` seminorm by the operator norm. -/
 theorem _root_.MeasureTheory.eLpNorm_one_clm_comp_le {E F : Type*} [NormedAddCommGroup E]

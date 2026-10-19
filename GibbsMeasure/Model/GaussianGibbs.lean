@@ -755,7 +755,7 @@ theorem nonempty_G_gaussianSpecification_of_centered_of_isInverse [LinearOrder S
       (Potential.gaussianSpecification J h hSymm hFin hPD 1 one_pos)).Nonempty := by
   have hP := hμ.isProbabilityMeasure
   refine ⟨μ.map fun x ↦ x + m, ?_, ?_⟩
-  · exact Measure.isProbabilityMeasure_map (measurable_add_const m).aemeasurable
+  · exact inferInstance
   · exact isGibbsMeasure_map_add_of_centered_of_isInverse hFin hμ hC hSymm hPD hcentred hm
 
 end Theorem13_22

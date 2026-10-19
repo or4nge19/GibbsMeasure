@@ -2600,7 +2600,7 @@ abbrev limitLaw (p : ℝ) (μ : Measure (ℤ → ℕ)) : Measure (ℝ≥0 × ℝ
 
 instance isProbabilityMeasure_limitLaw (p : ℝ) (μ : Measure (ℤ → ℕ)) [IsProbabilityMeasure μ] :
     IsProbabilityMeasure (limitLaw p μ) :=
-  Measure.isProbabilityMeasure_map (measurable_limPair p).aemeasurable
+  inferInstance
 
 @[simp] lemma limitLaw_chainFamily (hp0 : 0 < p) (hp1 : p < 1) (t : ℝ≥0 × ℝ≥0) :
     limitLaw p (chainFamily hp0 hp1 t) = Measure.dirac t :=
@@ -2621,7 +2621,9 @@ lemma chainFamily_injective (hp0 : 0 < p) (hp1 : p < 1) :
 /-- The law of `(U, V)` is affine in `μ`: `m` for a mixture is the mixture of the `m`s. -/
 lemma limitLaw_add_smul (p : ℝ) (a b : ℝ≥0∞) (μ ν : Measure (ℤ → ℕ)) :
     limitLaw p (a • μ + b • ν) = a • limitLaw p μ + b • limitLaw p ν := by
-  rw [limitLaw, Measure.map_add _ _ (measurable_limPair p), Measure.map_smul, Measure.map_smul]
+  rw [limitLaw, Measure.map_add _ _ (measurable_limPair p),
+    Measure.map_smul _ (measurable_limPair p).aemeasurable,
+    Measure.map_smul _ (measurable_limPair p).aemeasurable]
 
 /-- **Georgii Theorem (11.31), Step 4**: `m = φ(w_μ)`, the image under Georgii's `φ` of the weight
 of the extreme decomposition (7.26). Almost every `ν` in that decomposition is extreme, hence some

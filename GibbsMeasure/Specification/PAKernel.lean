@@ -375,8 +375,9 @@ lemma weight_apply (h𝒜 : 𝒜 ≤ m) (μ : Measure Ω) {M : Set (Measure Ω)}
 
 omit [IsMarkovKernel π] in
 lemma isProbabilityMeasure_weight (h𝒜 : 𝒜 ≤ m) (μ : Measure Ω) [IsProbabilityMeasure μ] :
-    IsProbabilityMeasure (weight π μ) :=
-  Measure.isProbabilityMeasure_map (measurable_kernel_of_le h𝒜).aemeasurable
+    IsProbabilityMeasure (weight π μ) := by
+  unfold weight
+  infer_instance
 
 namespace IsPAKernel
 
@@ -750,7 +751,7 @@ omit hπ hP [MeasurableSpace.CountablyGenerated Ω] [IsMarkovKernel π] in
 theorem weight_add_smul (μ ν : Measure Ω) (a b : ℝ≥0∞) :
     weight π (a • μ + b • ν) = a • weight π μ + b • weight π ν := by
   simp only [weight, Measure.map_add _ _ (measurable_kernel_of_le h𝒜),
-    Measure.map_smul]
+    Measure.map_smul _ (measurable_kernel_of_le h𝒜).aemeasurable]
 
 /-- **Georgii (7.26), bijection**: `μ ↦ w_μ` maps `P` bijectively onto the probability weights
 carried by `ex P`, provided the barycentre of such a weight lies in `P`. -/

@@ -758,7 +758,8 @@ lemma IsBoundaryLaw.exists_volumeLaw_insert_map_restrict (hℓ : IsBoundaryLaw G
     map_restrict_withDensity_union (hG.disjoint_union_outerBoundary_erase hΛ hi) _
       (measurable_boundaryLawWeight G Q hs ℓ _)]
   simp_rw [hc]
-  rw [← Measure.map_smul, ← withDensity_smul _ (measurable_boundaryLawWeight G Q hs ℓ Λ)]
+  rw [← Measure.map_smul _ (Finset.measurable_restrict _).aemeasurable,
+    ← withDensity_smul _ (measurable_boundaryLawWeight G Q hs ℓ Λ)]
   rfl
 
 lemma IsBoundaryLaw.exists_volumeLaw_insert_univ (hℓ : IsBoundaryLaw G Q ℓ) (hG : G.IsAcyclic)
@@ -781,7 +782,9 @@ lemma IsBoundaryLaw.normalizedVolumeLaw_insert_map_restrict (hℓ : IsBoundaryLa
       = (normalizedVolumeLaw G Q hs ℓ Λ).map (Λ ∪ G.outerBoundary Λ).restrict := by
   obtain ⟨c, hc0, hct, hmass, hmap⟩ := hℓ.exists_volumeLaw_insert_univ hs hG hΛ hi
   have h0 := volumeLaw_univ_ne_zero G Q hs ℓ hQ hℓ.pos Λ
-  rw [normalizedVolumeLaw, normalizedVolumeLaw, Measure.map_smul, Measure.map_smul, hmap, hmass,
+  rw [normalizedVolumeLaw, normalizedVolumeLaw,
+    Measure.map_smul _ (Finset.measurable_restrict _).aemeasurable,
+    Measure.map_smul _ (Finset.measurable_restrict _).aemeasurable, hmap, hmass,
     smul_smul, ENNReal.mul_inv (Or.inl (ENNReal.inv_ne_zero.2 hct)) (Or.inl (ENNReal.inv_ne_top.2
         hc0)),
     inv_inv, mul_right_comm, ENNReal.mul_inv_cancel hc0 hct, one_mul]

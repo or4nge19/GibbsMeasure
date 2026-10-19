@@ -1933,7 +1933,7 @@ theorem IsMarkovChain.markov_isMarkovChain_map_comp (hμ : IsMarkovChain G μ) (
       (μ.map fun ω : S → E ↦ ω ∘ f) := by
   have hprob := hμ.isProbabilityMeasure
   have hΦ : Measurable fun ω : S → E ↦ ω ∘ f := measurable_comp_sites (E := E) f
-  refine ⟨Measure.isProbabilityMeasure_map hΦ.aemeasurable, fun n A hA ↦ ?_⟩
+  refine ⟨inferInstance, fun n A hA ↦ ?_⟩
   set P : Kernel E E := Kernel.ofMatrix (transitionProb μ (f (n - 1)) (f n)) with hP
   have hadj : G.Adj (f (n - 1)) (f n) :=
     f.map_adj_iff.2 ((SimpleGraph.hasse_int_adj _ _).2 (Or.inl (by omega)))
@@ -2171,7 +2171,7 @@ theorem IsMarkovChain.map_siteEquiv (hμ : IsMarkovChain G μ) (φ : G ≃g G) :
   have := hμ.isProbabilityMeasure
   set τ := siteEquiv E φ.toEquiv with hτ
   have hτm : Measurable τ.toFun := τ.measurable_toFun
-  have : IsProbabilityMeasure (μ.map τ.toFun) := Measure.isProbabilityMeasure_map hτm.aemeasurable
+  have : IsProbabilityMeasure (μ.map τ.toFun) := inferInstance
   refine isMarkovChain_iff_forall_measure_preimage_inter.2 fun i j hij y t ht ↦ ?_
   have hij' : G.Adj (φ.toEquiv.symm i) (φ.toEquiv.symm j) := φ.symm.map_adj_iff.2 hij
   have htm : MeasurableSet t := cylinderEvents_le_pi _ ht

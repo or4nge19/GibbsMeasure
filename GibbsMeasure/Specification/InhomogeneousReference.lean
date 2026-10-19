@@ -240,8 +240,7 @@ lemma lintegral_isssdFamilyFun_apply_squareCylinder_eq_union [DecidableEq S] (Λ
 lemma isProbabilityMeasure_isssdFamilyFun_apply (Λ : Finset S) (η : S → E) :
     IsProbabilityMeasure (isssdFamilyFun ν Λ η) := by
   rw [isssdFamilyFun_apply]
-  exact Measure.isProbabilityMeasure_map
-    (Measurable.juxt (Λ := (Λ : Set S)) (η := η) (𝓔 := mE)).aemeasurable
+  exact inferInstance
 
 lemma isssdFamilyFun_apply_univ (Λ : Finset S) (η : S → E) :
     isssdFamilyFun ν Λ η Set.univ = 1 := by
@@ -385,7 +384,8 @@ theorem isGibbsMeasure_isssdFamily_iff_of_isFiniteMeasure (ν : S → Measure E)
     (isGibbsMeasure_isssdFamily_iff ν _).2 rfl
   refine (isGibbsMeasure_iff_forall_bind_eq (γ := isssdFamily ν) (μ := μ)).2 fun Λ ↦ ?_
   conv_lhs => rw [h]
-  rw [Measure.bind_smul,
+  rw [Measure.bind_smul _ _
+      (((isssdFamily ν) Λ).measurable.mono cylinderEvents_le_pi le_rfl).aemeasurable,
     (isGibbsMeasure_iff_forall_bind_eq (γ := isssdFamily (S := S) (E := E) ν)
       (μ := Measure.infinitePi ν)).1 hprod Λ, ← h]
 

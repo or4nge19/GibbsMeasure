@@ -94,9 +94,9 @@ lemma convexCombo_mem_GP (γ : Specification S E)
     rw [Measure.bind_add (μ := unitInterval.toNNReal p • (μ : Measure (S → E)))
       (ν := unitInterval.toNNReal (unitInterval.symm p) • (ν : Measure (S → E)))
       (f := γ Λ) hmeas]
-    rw [Measure.bind_smul (unitInterval.toNNReal p) (μ : Measure (S → E)) (γ Λ)]
+    rw [Measure.bind_smul (unitInterval.toNNReal p) (μ : Measure (S → E)) hmeas.aemeasurable]
     rw [Measure.bind_smul (unitInterval.toNNReal (unitInterval.symm p))
-      (ν : Measure (S → E)) (γ Λ)]
+      (ν : Measure (S → E)) hmeas.aemeasurable]
     simp [hμ' Λ, hν' Λ]
   have : γ.IsGibbsMeasure
       ((ProbabilityMeasure.convexCombo (Ω := (S → E)) (p := p) μ ν :

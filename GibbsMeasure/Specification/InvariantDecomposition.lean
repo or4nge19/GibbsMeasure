@@ -182,7 +182,7 @@ lemma isVAddInvariantCore_iff {ν : Measure Ω} :
     refine ⟨hprob, ⟨fun g s hs ↦ ?_⟩⟩
     have hmap : ν.map (g +ᵥ ·) = ν := by
       have : IsProbabilityMeasure (ν.map (g +ᵥ · : Ω → Ω)) :=
-        Measure.isProbabilityMeasure_map (measurable_const_vadd g).aemeasurable
+        inferInstance
       refine Measure.ext_of_generate_finite_of_isProbabilityMeasure (C := piNatGenSet Ω)
         generateFrom_piNatGenSet.symm isPiSystem_piNatGenSet ?_
       rintro s ⟨t, rfl⟩
@@ -508,9 +508,9 @@ lemma ae_ergodicRealKernel_eq_map (hφ : Measurable φ) (hF : Monotone F) (hne :
       ((condExpKernel μ 𝓘 ω).map φ).map (embeddingReal X) := by
   filter_upwards [ae_forall_ergodicRatCDF_eq (μ := μ) hFol hφ hF hne hC hC'] with ω hω
   have h1 : IsProbabilityMeasure ((condExpKernel μ 𝓘 ω).map φ) :=
-    Measure.isProbabilityMeasure_map hφ.aemeasurable
+    inferInstance
   have : IsProbabilityMeasure (((condExpKernel μ 𝓘 ω).map φ).map (embeddingReal X)) :=
-    Measure.isProbabilityMeasure_map (measurable_embeddingReal _).aemeasurable
+    inferInstance
   exact kernelOfMeasurableRat_eq m hm _ hω
 
 include hFol in
@@ -523,7 +523,7 @@ lemma ae_ergodicKernelAux_eq_map [IsProbabilityMeasure ν₀] (hφ : Measurable 
   classical
   filter_upwards [ae_ergodicRealKernel_eq_map (μ := μ) hm hFol hφ hF hne hC hC'] with ω h1
   have : IsProbabilityMeasure ((condExpKernel μ 𝓘 ω).map φ) :=
-    Measure.isProbabilityMeasure_map hφ.aemeasurable
+    inferInstance
   have hrange : ω ∈ ergodicRangeSet F φ hm := by
     change ergodicRealKernel F φ hm ω (range (embeddingReal X)) = 1
     rw [h1, Measure.map_apply (measurable_embeddingReal _)
@@ -1019,7 +1019,7 @@ noncomputable def marginalErgodicKernel (J : Finset S) :
 instance isMarkovKernel_marginalErgodicKernel [IsProbabilityMeasure ν₀] (J : Finset S) :
     IsMarkovKernel (marginalErgodicKernel F hFol hcard ν₀ J) := by
   have : IsProbabilityMeasure (ν₀.map (J.restrict (π := fun _ : S ↦ E))) :=
-    Measure.isProbabilityMeasure_map J.measurable_restrict.aemeasurable
+    inferInstance
   unfold marginalErgodicKernel
   infer_instance
 
@@ -1060,7 +1060,7 @@ lemma ergodicProjectiveSet_eq_iInter :
           (Finset.restrict₂ (π := fun _ : S ↦ E) hJI)
     have : IsProbabilityMeasure ((marginalErgodicKernel F hFol hcard ν₀ I ω).map
         (Finset.restrict₂ (π := fun _ : S ↦ E) hJI)) :=
-      Measure.isProbabilityMeasure_map (Finset.measurable_restrict₂ hJI).aemeasurable
+      inferInstance
     refine Measure.ext_of_forall_measure_preimage_embeddingReal_Iic fun q ↦ ?_
     rw [Measure.map_apply (Finset.measurable_restrict₂ (X := fun _ : S ↦ E) hJI) (hIic J q)]
     exact h I J hJI q
@@ -1222,7 +1222,7 @@ lemma ae_marginalErgodicKernel_eq_map (hF : Monotone F) (hne : (F 0).Nonempty)
         (J.restrict (π := fun _ : S ↦ E)) := by
   refine ae_all_iff.2 fun J ↦ ?_
   have : IsProbabilityMeasure (ν₀.map (J.restrict (π := fun _ : S ↦ E))) :=
-    Measure.isProbabilityMeasure_map J.measurable_restrict.aemeasurable
+    inferInstance
   exact ae_ergodicKernelAux_eq_map (μ := μ)
     (measurable_inf_ergodicRatCDF_restrict F hFol hcard J) hFol J.measurable_restrict hF hne hC hC'
 
@@ -1343,7 +1343,7 @@ lemma measurableSet_setOf_isProbabilityMeasure_and_smulInvariantMeasure {M : Typ
       refine ⟨hprob, ⟨fun g s hs ↦ ?_⟩⟩
       have hmap : ν.map (g • ·) = ν := by
         have : IsProbabilityMeasure (ν.map (g • · : Ω → Ω)) :=
-          Measure.isProbabilityMeasure_map (measurable_const_smul g).aemeasurable
+          inferInstance
         refine Measure.ext_of_generate_finite_of_isProbabilityMeasure (C := piNatGenSet Ω)
           generateFrom_piNatGenSet.symm isPiSystem_piNatGenSet ?_
         rintro s ⟨t, rfl⟩
@@ -1462,7 +1462,7 @@ lemma map_mem_invariantFields_of_mem_normalizer
     (hμ : μ ∈ invariantFields Θ) : μ.map τ.toFun ∈ invariantFields Θ := by
   rw [mem_invariantFields_iff] at hμ ⊢
   obtain ⟨hprob, hinv⟩ := hμ
-  refine ⟨Measure.isProbabilityMeasure_map τ.measurable_toFun.aemeasurable, fun θ hθ ↦ ?_⟩
+  refine ⟨inferInstance, fun θ hθ ↦ ?_⟩
   have hθ' : τ⁻¹ * θ * τ ∈ Θ := by
     have := (Subgroup.mem_normalizer_iff.1 ((Subgroup.normalizer _).inv_mem hτ) θ).1 hθ
     rwa [inv_inv] at this

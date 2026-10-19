@@ -68,7 +68,7 @@ theorem HasGaussianLaw.add_const {E : Type*} [NormedAddCommGroup E] [NormedSpace
   have hmap : P.map (fun ω ↦ X ω + c) = (P.map X).map (fun x ↦ x + c) := by
     rw [AEMeasurable.map_map_of_aemeasurable (by fun_prop) hX.aemeasurable]
     rfl
-  refine ⟨?_⟩
+  refine ⟨hX.aemeasurable.add_const c, ?_⟩
   rw [hmap]
   have := hX.isGaussian_map
   infer_instance
@@ -296,7 +296,7 @@ theorem condExp_indicator_ae_eq_map_of_indep {m m0 : MeasurableSpace Ω} {μ : M
     μ[A.indicator 1 | m] =ᵐ[μ] fun ω ↦ ((μ.map W) {w | G (ω, w) ∈ A}).toReal := by
   classical
   set ν : Measure ℝ := μ.map W with hν_def
-  have hν : IsProbabilityMeasure ν := Measure.isProbabilityMeasure_map hW.aemeasurable
+  have hν : IsProbabilityMeasure ν := inferInstance
   have hGA : MeasurableSet[m.prod inferInstance] (G ⁻¹' A) := hG hA
   have hsec : Measurable[m] fun ω ↦ ν {w | G (ω, w) ∈ A} :=
     @measurable_measure_prodMk_left Ω ℝ m _ ν _ _ hGA

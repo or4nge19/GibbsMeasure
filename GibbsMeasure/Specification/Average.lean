@@ -89,7 +89,8 @@ lemma map_average {τ : Transformation S E} (hγ : IsInvariant τ γ)
       funext fun ω ↦ isInvariant_iff.1 hγ Λ ω
     rw [h, ← Measure.bind_map τ.measurable_toFun (γ.measurable_kernel_toMeasure _), hν.map_eq]
   unfold average MeasureTheory.uniformAverage
-  rw [Measure.map_smul, Measure.map_finset_sum τ.measurable_toFun.aemeasurable, Finset.card_map,
+  rw [Measure.map_smul _ τ.measurable_toFun.aemeasurable,
+    Measure.map_finset_sum τ.measurable_toFun.aemeasurable, Finset.card_map,
     Finset.sum_map]
   congr 1
   refine Finset.sum_congr rfl fun Λ _ ↦ ?_
@@ -136,7 +137,8 @@ fixed by `γ_Λ`, i.e. `μ_α γ_Λ = μ_α` when `Λ ⊆ ⋂ R`, by consistency
 lemma bind_average_of_subset {Λ : Finset S} {R : Finset (Finset S)} (h : ∀ Λ' ∈ R, Λ ⊆ Λ') :
     (γ.average ν R).bind (γ Λ) = γ.average ν R := by
   unfold average MeasureTheory.uniformAverage
-  rw [Measure.bind_smul, Measure.bind_finset_sum _ _ _ (γ.measurable_kernel_toMeasure Λ)]
+  rw [Measure.bind_smul _ _ (γ.measurable_kernel_toMeasure Λ).aemeasurable,
+    Measure.bind_finset_sum _ _ _ (γ.measurable_kernel_toMeasure Λ)]
   congr 1
   exact Finset.sum_congr rfl fun Λ' hΛ' ↦ γ.bind_bind_of_subset (h Λ' hΛ') ν
 
@@ -212,7 +214,7 @@ theorem measurePreserving_of_mapClusterPt_average_of_eventually_preimage_eq {ι 
   obtain ⟨U, hUle, hU⟩ := mapClusterPt_iff_ultrafilter.1 hμ
   refine ⟨τ.measurable_toFun, ?_⟩
   have hmap : IsProbabilityMeasure ((μ : Measure (S → E)).map τ.toFun) :=
-    Measure.isProbabilityMeasure_map τ.measurable_toFun.aemeasurable
+    inferInstance
   refine separatesOn_localEvents hmap inferInstance fun A hA ↦ ?_
   have hAm : MeasurableSet A := .of_mem_measurableCylinders hA
   rw [Measure.map_apply τ.measurable_toFun hAm]

@@ -913,7 +913,7 @@ theorem isGaussianProcess_gaussianSpecification (hSymm : ∀ i j, J i j = J j i)
     ProbabilityTheory.IsGaussianProcess (fun i (σ : S → ℝ) ↦ σ i)
       (gaussianSpecification J h hSymm hFin hPD β hβ Λ ω) := by
   classical
-  refine ⟨fun I ↦ ⟨?_⟩⟩
+  refine ⟨fun I ↦ ⟨(Finset.measurable_restrict I).aemeasurable, ?_⟩⟩
   set L : (Λ → ℝ) →L[ℝ] (I → ℝ) :=
     ContinuousLinearMap.pi fun i : I ↦
       if hi : (i : S) ∈ Λ then ContinuousLinearMap.proj (R := ℝ) ⟨(i : S), hi⟩ else 0 with hL

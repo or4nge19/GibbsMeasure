@@ -766,7 +766,7 @@ lemma MeasurePreserving.probNormalize {α : Type*} [MeasurableSpace α] {T : α 
     {ν : Measure α} (h : MeasurePreserving T ν ν) :
     MeasurePreserving T ν.probNormalize ν.probNormalize := by
   refine ⟨h.measurable, ?_⟩
-  rw [Measure.probNormalize_def, Measure.map_smul, h.map_eq]
+  rw [Measure.probNormalize_def, Measure.map_smul _ h.measurable.aemeasurable, h.map_eq]
 
 /-! ### A finite state space: the essential infimum (18.1) is a minimum
 

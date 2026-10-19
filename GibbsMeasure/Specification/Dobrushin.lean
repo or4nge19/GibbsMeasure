@@ -626,7 +626,7 @@ lemma interdep_le {c : ℝ≥0∞}
 lemma interdep_le_one (γ : Specification S E) (i j : S) : interdep γ i j ≤ 1 := by
   refine interdep_le fun ζ _ _ ↦ ?_
   have : IsProbabilityMeasure ((γ {i} ζ).map (fun ω ↦ ω i)) :=
-    Measure.isProbabilityMeasure_map (measurable_pi_apply i).aemeasurable
+    inferInstance
   exact unifDist_le_one
 
 lemma interdep_ne_top (γ : Specification S E) (i j : S) : interdep γ i j ≠ ⊤ :=

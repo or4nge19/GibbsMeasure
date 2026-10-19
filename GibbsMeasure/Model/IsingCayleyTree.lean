@@ -616,7 +616,7 @@ theorem integral_spin_isingChain (hG : G.IsCayleyTree d)
       = sinh (2 * t) / (exp (-(2 * J)) + cosh (2 * t)) := by
   have hmeas : Measurable (fun σ : S → Bool ↦ σ i) := measurable_pi_apply i
   have hprob : IsProbabilityMeasure ((isingChain hG hsol).map (fun σ : S → Bool ↦ σ i)) :=
-    Measure.isProbabilityMeasure_map hmeas.aemeasurable
+    inferInstance
   have hint : Integrable spin ((isingChain hG hsol).map (fun σ : S → Bool ↦ σ i)) :=
     Integrable.of_finite
   have hval : ∀ x : Bool,

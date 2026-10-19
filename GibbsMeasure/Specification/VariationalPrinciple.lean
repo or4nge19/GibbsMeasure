@@ -1458,7 +1458,7 @@ theorem mem_invariantG_of_G_eq_singleton (hΦ : Φ.IsShiftInvariant)
   refine ⟨hρG, mem_invariantFields_shiftGroup.2
     ⟨hρG.1, fun j ↦ ⟨(shift E j).measurable_toFun, ?_⟩⟩⟩
   have hmap : ρ.map (shift E j).toFun ∈ G (gibbsSpecificationOfAbsolutelySummable (Φ := Φ) ν 1) :=
-    ⟨Measure.isProbabilityMeasure_map (shift E j).measurable_toFun.aemeasurable,
+    ⟨inferInstance,
       (isInvariant_shift_gibbsSpecification hΦ ν 1 j).map_isGibbsMeasure hρG.2⟩
   rw [hρ] at hmap
   exact hmap

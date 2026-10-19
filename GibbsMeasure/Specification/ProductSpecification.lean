@@ -396,7 +396,7 @@ theorem isGibbsMeasure_prod_map {μ₁ : Measure (S₁ → E)} {μ₂ : Measure 
       (Measure.map (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E).symm (μ₁.prod μ₂)) := by
   have hprob : IsProbabilityMeasure
       (Measure.map (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E).symm (μ₁.prod μ₂)) :=
-    Measure.isProbabilityMeasure_map (MeasurableEquiv.measurable _).aemeasurable
+    inferInstance
   refine (isGibbsMeasure_iff_forall_bind_eq (γ := γ₁.prod γ₂)).2 fun Λ ↦ ?_
   rw [prod_apply']
   rw [bind_prodKernel_map_prod,
@@ -528,7 +528,7 @@ theorem mem_extremePoints_G_prod_map [Countable S₁] [Countable S₂]
   have hp₂ : IsProbabilityMeasure μ₂ := h₂.1.1
   have hG : Measure.map (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E).symm (μ₁.prod μ₂)
       ∈ G (γ := γ₁.prod γ₂) :=
-    ⟨Measure.isProbabilityMeasure_map (MeasurableEquiv.measurable _).aemeasurable,
+    ⟨inferInstance,
       Specification.isGibbsMeasure_prod_map γ₁ γ₂ h₁.1.2 h₂.1.2⟩
   exact mem_extremePoints_G_of_isTailTrivial hG fun A hA ↦
     isTailTrivial_map_symm_prod (tailTrivial_of_mem_extremePoints_G h₁)
@@ -592,7 +592,7 @@ theorem exists_eq_map_prod_of_mem_extremePoints_G_prod [Countable S₁] [Countab
   have hprob : IsProbabilityMeasure μ := hμ.1.1
   have hρprob : IsProbabilityMeasure
       (Measure.map (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E) μ) :=
-    Measure.isProbabilityMeasure_map (MeasurableEquiv.measurable _).aemeasurable
+    inferInstance
   set ρ := Measure.map (MeasurableEquiv.sumArrowEquivProdArrow S₁ S₂ E) μ with hρ
   -- Independence of the two blocks identifies `ρ` with the product of its marginals.
   have hsplit : ρ = ρ.fst.prod ρ.snd := by

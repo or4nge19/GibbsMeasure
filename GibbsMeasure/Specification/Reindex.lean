@@ -524,8 +524,8 @@ lemma map_mem_extremePoints_G_reindex_iff {μ : Measure (S → E)} :
 
 /-- `μ ∈ 𝒢(γ)` iff `μ ∘ (· ∘ e.symm)⁻¹ ∈ 𝒢(γ.reindex e)`, for probability measures. -/
 lemma map_mem_GP_reindex_iff {μ : ProbabilityMeasure (S → E)} :
-    μ.map (MeasurableEquiv.measurable (MeasurableEquiv.arrowCongr' e
-      (MeasurableEquiv.refl E))).aemeasurable ∈ GP (γ.reindex e) ↔ μ ∈ GP γ := by
+    μ.map (MeasurableEquiv.arrowCongr' e (MeasurableEquiv.refl E)) ∈ GP (γ.reindex e) ↔
+      μ ∈ GP γ := by
   change (γ.reindex e).IsGibbsMeasure _ ↔ γ.IsGibbsMeasure _
   rw [ProbabilityMeasure.toMeasure_map]
   exact Specification.isGibbsMeasure_reindex_iff e
@@ -533,16 +533,15 @@ lemma map_mem_GP_reindex_iff {μ : ProbabilityMeasure (S → E)} :
 /-- **`μ ↦ μ ∘ (· ∘ e.symm)⁻¹` maps `𝒢(γ)` bijectively onto `𝒢(γ.reindex e)`**, for probability
 measures. -/
 theorem image_GP_reindex :
-    (fun μ : ProbabilityMeasure (S → E) ↦ μ.map (MeasurableEquiv.measurable
-      (MeasurableEquiv.arrowCongr' e (MeasurableEquiv.refl E))).aemeasurable) '' GP γ =
+    (fun μ : ProbabilityMeasure (S → E) ↦
+      μ.map (MeasurableEquiv.arrowCongr' e (MeasurableEquiv.refl E))) '' GP γ =
       GP (γ.reindex e) := by
   ext μ
   constructor
   · rintro ⟨μ, hμ, rfl⟩
     exact (map_mem_GP_reindex_iff e).2 hμ
   · intro hμ
-    refine ⟨μ.map (MeasurableEquiv.measurable (MeasurableEquiv.arrowCongr' e
-      (MeasurableEquiv.refl E)).symm).aemeasurable, ?_, ?_⟩
+    refine ⟨μ.map (MeasurableEquiv.arrowCongr' e (MeasurableEquiv.refl E)).symm, ?_, ?_⟩
     · rw [← map_mem_GP_reindex_iff e]
       convert hμ using 1
       refine ProbabilityMeasure.toMeasure_injective ?_

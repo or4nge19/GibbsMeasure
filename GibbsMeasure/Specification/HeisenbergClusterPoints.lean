@@ -190,7 +190,8 @@ theorem isProbabilityMeasure_heisenbergPeriodicField [IsFiniteMeasure ν] (hν :
     IsProbabilityMeasure (heisenbergPeriodicField J ν L ω) := by
   have := isProbabilityMeasure_heisenbergPeriodicGibbsDist (N := L + 1) (d := d) (ν := ν) hν
     (integrable_exp_heisenbergExponent hexp hsum)
-  exact Measure.isProbabilityMeasure_map (measurable_periodicJuxt L ω).aemeasurable
+  unfold heisenbergPeriodicField
+  infer_instance
 
 /-- Georgii's `μ_n^Φ` has all its spins outside the cube equal to zero. -/
 theorem heisenbergPeriodicField_zero_apply_of_notMem (L : ℕ) {i : Fin d → ℤ}
@@ -453,7 +454,7 @@ theorem measurePreserving_shift_of_mem_heisenbergGZero [IsFiniteMeasure ν]
   refine ⟨(shift (Fin n → ℝ) a).measurable_toFun, ?_⟩
   have hprob : IsProbabilityMeasure
       ((μ : Measure ((Fin d → ℤ) → (Fin n → ℝ))).map (shift (Fin n → ℝ) a).toFun) :=
-    Measure.isProbabilityMeasure_map (shift (Fin n → ℝ) a).measurable_toFun.aemeasurable
+    inferInstance
   refine separatesOn_localEvents hprob inferInstance fun A hA ↦ ?_
   have hAm : MeasurableSet A := .of_mem_measurableCylinders hA
   rw [Measure.map_apply (shift (Fin n → ℝ) a).measurable_toFun hAm]
