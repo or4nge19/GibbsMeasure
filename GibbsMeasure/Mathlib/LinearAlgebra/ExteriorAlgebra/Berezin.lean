@@ -6,6 +6,7 @@ Authors: Matteo Cipollina
 module
 
 public import Mathlib.Algebra.Order.Star.Basic
+public import Mathlib.LinearAlgebra.CliffordAlgebra.Contraction
 public import Mathlib.LinearAlgebra.ExteriorAlgebra.Basis
 public import Mathlib.LinearAlgebra.Determinant
 public import Mathlib.LinearAlgebra.Matrix.Block
@@ -29,6 +30,11 @@ extraction; the order on `ι` fixes the sign of the top monomial.
   `⋀ⁿ M = 0` above the rank.
 * `berezin_ιMulti_comp`: the ordered product `v (e 0) ∧ ⋯ ∧ v (e (n-1))` integrates to the
   determinant `b.det v`.
+* `ι_mul_basis`, `contractLeft_basis`: the sign rules `ψⱼ b_s = ± b_{s ∪ {j}}` and
+  `∂ⱼ b_s = ± b_{s \ {j}}`, sign `(-1) ^ #{i ∈ s | i < j}`, for the left Grassmann derivative
+  `∂ⱼ = contractLeft (b.coord j)`.
+* `berezin_ι_mul`: `∫ ψⱼ x = (-1) ^ #{i | i < j} · x_{univ \ {j}}`; `berezin_contractLeft`:
+  `∫ ∂_d x = 0` for every dual vector `d` (integration by parts).
 * `berezin_map`: a linear substitution `f` of the generators multiplies `∫` by `det_{b'} (f ∘ b)`;
   `berezin_eq_det_mul` is the change of basis.
 * `berezin_map_mul_map`: Berezin–Fubini, `∫ (x y) = ∫ x · ∫ y` for `x`, `y` in the subalgebras of
@@ -71,6 +77,7 @@ product) and #43719 (exterior algebra of the ring itself).
 @[expose] public section
 
 open Module Set.powersetCard
+open scoped Finset
 
 /-! ### Square-zero elements of a commutative ring -/
 
@@ -197,36 +204,118 @@ theorem ι_mul_ι_mul_self (x y : M) : ι R x * ι R y * (ι R x * ι R y) = 0 :
 
 section Basis
 
-variable {ι : Type*} [LinearOrder ι] (b : Basis ι R M)
+variable {I : Type*} [LinearOrder I] (b : Basis I R M)
 
 /-- A homogeneous element of degree `n` has no coordinate on the basis monomials of other
 degrees. -/
 theorem basis_repr_eq_zero_of_mem_exteriorPower {n : ℕ} {x : ExteriorAlgebra R M}
-    (hx : x ∈ ⋀[R]^n M) {s : Finset ι} (hs : s.card ≠ n) : b.ExteriorAlgebra.repr x s = 0 := by
+    (hx : x ∈ ⋀[R]^n M) {s : Finset I} (hs : s.card ≠ n) : b.ExteriorAlgebra.repr x s = 0 := by
   rw [Basis.ExteriorAlgebra, Basis.repr_reindex_apply, prodEquiv_symm_apply]
   exact (DirectSum.Decomposition.isInternal _).collectedBasis_repr_of_mem_ne _ hs.symm hx
 
 /-- The image of the basis monomial `b_s` under `map f` has degree `#s`. -/
 lemma map_basis_mem_exteriorPower {N : Type*} [AddCommGroup N] [Module R N] (f : M →ₗ[R] N)
-    (s : Finset ι) : map f (b.ExteriorAlgebra s) ∈ ⋀[R]^s.card N := by
+    (s : Finset I) : map f (b.ExteriorAlgebra s) ∈ ⋀[R]^s.card N := by
   rw [basis_apply_ofCard b rfl, ιMulti_family, map_apply_ιMulti]
   exact ιMulti_range R _ ⟨_, rfl⟩
 
-variable [Fintype ι]
+theorem basis_empty : b.ExteriorAlgebra ∅ = 1 := by
+  rw [basis_apply_ofCard b Finset.card_empty, ιMulti_family, ιMulti_zero_apply]
+
+/-- Prepending a generator below all indices of a basis monomial gives a basis monomial. -/
+theorem ι_mul_basis_of_forall_lt {j : I} {s : Finset I} (h : ∀ i ∈ s, j < i) :
+    ι R (b j) * b.ExteriorAlgebra s = b.ExteriorAlgebra (insert j s) := by
+  have hj : j ∉ s := fun hj ↦ lt_irrefl _ (h j hj)
+  have hcard : (insert j s).card = s.card + 1 := Finset.card_insert_of_notMem hj
+  have hemb : ((insert j s).orderEmbOfFin hcard : Fin (s.card + 1) → I) =
+      Fin.cons j (s.orderEmbOfFin rfl) := by
+    symm
+    refine Finset.orderEmbOfFin_unique hcard (fun x ↦ ?_)
+      (Fin.strictMono_cons.2 ⟨fun k ↦ h _ (Finset.orderEmbOfFin_mem _ _ _),
+        (s.orderEmbOfFin rfl).strictMono⟩)
+    induction x using Fin.cases with
+    | zero => simp
+    | succ k => simp [Finset.orderEmbOfFin_mem]
+  rw [basis_apply_ofCard b hcard, basis_apply_ofCard b rfl, ιMulti_family, ιMulti_family,
+    ιMulti_succ_apply]
+  simp only [ofFinEmbEquiv_symm_apply, ofCard, hemb]
+  rfl
+
+/-- **Sign rule for a generator times a basis monomial.**
+`ψ_j b_s = (-1) ^ #{i ∈ s | i < j} b_{s ∪ {j}}` for `j ∉ s`, and `0` for `j ∈ s`. -/
+theorem ι_mul_basis (j : I) (s : Finset I) :
+    ι R (b j) * b.ExteriorAlgebra s =
+      if j ∈ s then 0 else (-1 : R) ^ #{i ∈ s | i < j} • b.ExteriorAlgebra (insert j s) := by
+  induction s using Finset.induction_on_min with
+  | empty => simp [ι_mul_basis_of_forall_lt b (s := ∅) (by simp)]
+  | insert a s ha ih =>
+    have has : a ∉ s := fun h ↦ lt_irrefl _ (ha a h)
+    rw [← ι_mul_basis_of_forall_lt b ha]
+    rcases lt_trichotomy j a with hja | rfl | haj
+    · have hlt : ∀ i ∈ insert a s, j < i := by
+        simpa using ⟨hja, fun i hi ↦ hja.trans (ha i hi)⟩
+      have hfilter : ({i ∈ insert a s | i < j} : Finset I) = ∅ :=
+        Finset.filter_eq_empty_iff.2 fun i hi ↦ (hlt i hi).not_gt
+      rw [ι_mul_basis_of_forall_lt b ha, ι_mul_basis_of_forall_lt b hlt, ite_eq_right
+        (fun h ↦ lt_irrefl _ (hlt j h)), hfilter, Finset.card_empty, pow_zero, one_smul]
+    · rw [← mul_assoc, ι_sq_zero, zero_mul, ite_eq_left (Finset.mem_insert_self _ _)]
+    · have hjs : j ∈ insert a s ↔ j ∈ s := by simp [haj.ne']
+      rw [← mul_assoc, eq_neg_of_add_eq_zero_left (ι_add_mul_swap (b j) (b a)), neg_mul,
+        mul_assoc, ih]
+      by_cases hj : j ∈ s
+      · rw [ite_eq_left hj, ite_eq_left (hjs.2 hj), mul_zero, neg_zero]
+      · have hlt : ∀ i ∈ insert j s, a < i := by simpa using ⟨haj, ha⟩
+        rw [ite_eq_right hj, ite_eq_right (fun h ↦ hj (hjs.1 h)), mul_smul_comm,
+          ι_mul_basis_of_forall_lt b hlt, Finset.filter_insert, ite_eq_left haj,
+          Finset.card_insert_of_notMem (by simp [has]), pow_succ, mul_neg_one, neg_smul,
+          Finset.insert_comm]
+
+/-- **Sign rule for the left derivative of a basis monomial.**
+`∂_j b_s = (-1) ^ #{i ∈ s | i < j} b_{s \ {j}}` for `j ∈ s`, and `0` for `j ∉ s`, where
+`∂_j = contractLeft (b.coord j)` is the left Grassmann derivative. -/
+theorem contractLeft_basis (j : I) (s : Finset I) :
+    CliffordAlgebra.contractLeft (b.coord j) (b.ExteriorAlgebra s) =
+      if j ∈ s then (-1 : R) ^ #{i ∈ s | i < j} • b.ExteriorAlgebra (s.erase j) else 0 := by
+  induction s using Finset.induction_on_min with
+  | empty => simp [basis_empty]
+  | insert a s ha ih =>
+    have has : a ∉ s := fun h ↦ lt_irrefl _ (ha a h)
+    rw [← ι_mul_basis_of_forall_lt b ha, CliffordAlgebra.contractLeft_ι_mul, ih,
+      Basis.coord_apply, Basis.repr_self, Finsupp.single_apply]
+    by_cases haj : a = j
+    · subst haj
+      have hfilter : ({i ∈ insert a s | i < a} : Finset I) = ∅ :=
+        Finset.filter_eq_empty_iff.2 fun i hi ↦ by
+          rcases Finset.mem_insert.1 hi with rfl | hi
+          · exact lt_irrefl _
+          · exact (ha i hi).not_gt
+      rw [ite_eq_left rfl, ite_eq_right has, mul_zero, sub_zero, one_smul,
+        ite_eq_left (Finset.mem_insert_self _ _), hfilter, Finset.card_empty, pow_zero, one_smul,
+        Finset.erase_insert has]
+    · have hjs : j ∈ insert a s ↔ j ∈ s := by simp [Ne.symm haj]
+      rw [ite_eq_right haj, zero_smul, zero_sub]
+      by_cases hj : j ∈ s
+      · have hlt : ∀ i ∈ s.erase j, a < i := fun i hi ↦ ha i (Finset.mem_of_mem_erase hi)
+        rw [ite_eq_left hj, ite_eq_left (hjs.2 hj), mul_smul_comm, ι_mul_basis_of_forall_lt b hlt,
+          Finset.filter_insert, ite_eq_left (ha j hj), Finset.card_insert_of_notMem (by simp [has]),
+          pow_succ, mul_neg_one, neg_smul, Finset.erase_insert_of_ne haj]
+      · rw [ite_eq_right hj, ite_eq_right (fun h ↦ hj (hjs.1 h)), mul_zero, neg_zero]
+
+variable [Fintype I]
 
 include b in
 /-- The exterior powers of a free module of finite rank vanish above the rank. -/
 theorem eq_zero_of_mem_exteriorPower {n : ℕ} {x : ExteriorAlgebra R M} (hx : x ∈ ⋀[R]^n M)
-    (hn : Fintype.card ι < n) : x = 0 :=
+    (hn : Fintype.card I < n) : x = 0 :=
   (Basis.ExteriorAlgebra b).ext_elem fun s ↦ by
     rw [map_zero, Finsupp.zero_apply]
     exact basis_repr_eq_zero_of_mem_exteriorPower b hx (s.card_le_univ.trans_lt hn).ne
 
 /-- The top monomial of `b` is the ordered product `b (e 0) ∧ ⋯ ∧ b (e (n - 1))` for the
 increasing enumeration `e` of the index type. -/
-theorem basis_univ_eq_ιMulti {n : ℕ} (e : Fin n ≃o ι) :
+theorem basis_univ_eq_ιMulti {n : ℕ} (e : Fin n ≃o I) :
     b.ExteriorAlgebra Finset.univ = ιMulti R n (b ∘ e) := by
-  have hcard : (Finset.univ : Finset ι).card = n := by
+  have hcard : (Finset.univ : Finset I).card = n := by
     simpa using (Fintype.card_congr e.toEquiv).symm
   rw [basis_apply_ofCard b hcard, ιMulti_family]
   congr 2
@@ -239,7 +328,7 @@ end Basis
 
 section Integral
 
-variable {ι : Type*} [Fintype ι] [LinearOrder ι] (b : Basis ι R M)
+variable {I : Type*} [Fintype I] [LinearOrder I] (b : Basis I R M)
 
 /-- The **Berezin integral** on the exterior (Grassmann) algebra of a free module with an ordered
 finite basis `b`: the coefficient of the top monomial `b i₁ ∧ ⋯ ∧ b iₙ`, `i₁ < ⋯ < iₙ`, in the
@@ -255,29 +344,72 @@ lemma berezin_apply (x : ExteriorAlgebra R M) :
 lemma berezin_basis_univ : berezin b (b.ExteriorAlgebra Finset.univ) = 1 := by
   simp [berezin_apply]
 
-lemma berezin_basis_of_ne {s : Finset ι} (hs : s ≠ Finset.univ) :
+lemma berezin_basis_of_ne {s : Finset I} (hs : s ≠ Finset.univ) :
     berezin b (b.ExteriorAlgebra s) = 0 := by
   simp [berezin_apply, hs]
 
 /-- The Berezin integral vanishes on every homogeneous component other than the top one. -/
 theorem berezin_eq_zero_of_mem_exteriorPower {n : ℕ} {x : ExteriorAlgebra R M}
-    (hx : x ∈ ⋀[R]^n M) (hn : n ≠ Fintype.card ι) : berezin b x = 0 :=
+    (hx : x ∈ ⋀[R]^n M) (hn : n ≠ Fintype.card I) : berezin b x = 0 :=
   basis_repr_eq_zero_of_mem_exteriorPower b hx (by simpa using hn.symm)
 
 /-- **Berezin integral of an ordered product of generators.** Integrating the ordered product
-`v (e 0) ∧ ⋯ ∧ v (e (n - 1))` of a family `v : ι → M` against the basis `b` gives the determinant
+`v (e 0) ∧ ⋯ ∧ v (e (n - 1))` of a family `v : I → M` against the basis `b` gives the determinant
 of `v` in the basis `b`. -/
-theorem berezin_ιMulti_comp {n : ℕ} (e : Fin n ≃o ι) (v : ι → M) :
+theorem berezin_ιMulti_comp {n : ℕ} (e : Fin n ≃o I) (v : I → M) :
     berezin b (ιMulti R n (v ∘ e)) = b.det v := by
-  let F : M [⋀^ι]→ₗ[R] R :=
+  let F : M [⋀^I]→ₗ[R] R :=
     (berezin b).compAlternatingMap ((ιMulti R n).domDomCongr e.toEquiv)
   have hF : ∀ w, F w = berezin b (ιMulti R n (w ∘ e)) := fun _ ↦ rfl
   rw [← hF, AlternatingMap.eq_smul_basis_det b F, AlternatingMap.smul_apply, hF,
     ← basis_univ_eq_ιMulti, berezin_basis_univ, one_smul]
 
+/-- **Integration against a generator.** `∫ ψ_j x = (-1) ^ #{i | i < j} · x_{univ \ {j}}`: the
+integral of `ψ_j x` reads the coefficient of `x` on the monomial missing `j`. -/
+theorem berezin_ι_mul (j : I) (x : ExteriorAlgebra R M) :
+    berezin b (ι R (b j) * x) =
+      (-1) ^ #{i | i < j} * b.ExteriorAlgebra.repr x (Finset.univ.erase j) := by
+  have key : berezin b ∘ₗ LinearMap.mulLeft R (ι R (b j)) =
+      ((-1 : R) ^ #{i | i < j}) • b.ExteriorAlgebra.coord (Finset.univ.erase j) := by
+    refine b.ExteriorAlgebra.ext fun s ↦ ?_
+    rw [LinearMap.comp_apply, LinearMap.mulLeft_apply, LinearMap.smul_apply, smul_eq_mul,
+      Basis.coord_apply, Basis.repr_self, Finsupp.single_apply, ι_mul_basis]
+    by_cases hj : j ∈ s
+    · rw [ite_eq_left hj, map_zero, ite_eq_right (fun h ↦ by simp [h] at hj), mul_zero]
+    · rw [ite_eq_right hj, map_smul, smul_eq_mul]
+      by_cases hs : s = Finset.univ.erase j
+      · subst hs
+        rw [Finset.insert_erase (Finset.mem_univ j), berezin_basis_univ, mul_one,
+          ite_eq_left rfl, mul_one]
+        congr 2
+        ext i
+        simp only [Finset.mem_filter, Finset.mem_erase, Finset.mem_univ, and_true, true_and]
+        exact ⟨And.right, fun h ↦ ⟨h.ne, h⟩⟩
+      · have hne : insert j s ≠ Finset.univ := fun h ↦ hs <| by
+          rw [← h, Finset.erase_insert hj]
+        rw [berezin_basis_of_ne b hne, mul_zero, ite_eq_right hs, mul_zero]
+  exact congrArg (· x) key
+
+/-- **The integral of a left derivative vanishes.** For every dual vector `d`,
+`∫ (d ⌋ x) = 0`, where `d ⌋ = CliffordAlgebra.contractLeft d` is the left Grassmann derivative
+in the direction `d`. -/
+theorem berezin_contractLeft (d : Module.Dual R M) (x : ExteriorAlgebra R M) :
+    berezin b (CliffordAlgebra.contractLeft d x) = 0 := by
+  have key : ∀ j, berezin b ∘ₗ CliffordAlgebra.contractLeft (b.coord j) = 0 := fun j ↦
+    b.ExteriorAlgebra.ext fun s ↦ by
+      rw [LinearMap.comp_apply, LinearMap.zero_apply, contractLeft_basis]
+      split_ifs with hj
+      · rw [map_smul, berezin_basis_of_ne b (fun h ↦ by simpa using congrArg (j ∈ ·) h),
+          smul_zero]
+      · exact map_zero _
+  rw [← b.sum_dual_apply_smul_coord d, map_sum, LinearMap.sum_apply, map_sum]
+  refine Finset.sum_eq_zero fun j _ ↦ ?_
+  rw [map_smul, LinearMap.smul_apply, map_smul, ← LinearMap.comp_apply, key, LinearMap.zero_apply,
+    smul_zero]
+
 /-- **Linear change of generators.** For a linear map `f : M → N` and ordered bases `b`, `b'` of
 `M`, `N` indexed by the same ordered type, `∫_{b'} (map f x) = det_{b'} (f ∘ b) · ∫_b x`. -/
-theorem berezin_map {N : Type*} [AddCommGroup N] [Module R N] (b' : Basis ι R N)
+theorem berezin_map {N : Type*} [AddCommGroup N] [Module R N] (b' : Basis I R N)
     (f : M →ₗ[R] N) (x : ExteriorAlgebra R M) :
     berezin b' (map f x) = b'.det (f ∘ b) * berezin b x := by
   have key : berezin b' ∘ₗ (map f).toLinearMap = b'.det (f ∘ b) • berezin b := by
@@ -285,16 +417,16 @@ theorem berezin_map {N : Type*} [AddCommGroup N] [Module R N] (b' : Basis ι R N
     rw [LinearMap.comp_apply, AlgHom.toLinearMap_apply, LinearMap.smul_apply, smul_eq_mul]
     by_cases hs : s = Finset.univ
     · subst hs
-      rw [berezin_basis_univ, mul_one, basis_univ_eq_ιMulti b (monoEquivOfFin ι rfl),
+      rw [berezin_basis_univ, mul_one, basis_univ_eq_ιMulti b (monoEquivOfFin I rfl),
         map_apply_ιMulti, ← Function.comp_assoc, berezin_ιMulti_comp]
-    · have hcard : s.card ≠ Fintype.card ι := fun h ↦ hs (Finset.eq_univ_of_card s h)
+    · have hcard : s.card ≠ Fintype.card I := fun h ↦ hs (Finset.eq_univ_of_card s h)
       rw [berezin_eq_zero_of_mem_exteriorPower b' (map_basis_mem_exteriorPower b f s) hcard,
         berezin_basis_of_ne b hs, mul_zero]
   exact congrArg (· x) key
 
 /-- **Change of basis.** Berezin integrals against two ordered bases differ by the determinant of
 the first basis in the second one. -/
-theorem berezin_eq_det_mul (b' : Basis ι R M) (x : ExteriorAlgebra R M) :
+theorem berezin_eq_det_mul (b' : Basis I R M) (x : ExteriorAlgebra R M) :
     berezin b' x = b'.det b * berezin b x := by
   simpa using berezin_map b b' LinearMap.id x
 
