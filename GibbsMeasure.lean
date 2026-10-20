@@ -6,6 +6,7 @@ public import GibbsMeasure.Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
 public import GibbsMeasure.Mathlib.Analysis.PSeries
 public import GibbsMeasure.Mathlib.Algebra.Order.BigOperators.Ring.Finset
 public import GibbsMeasure.Mathlib.Algebra.QuadraticDiscriminant
+public import GibbsMeasure.Mathlib.Algebra.MvPolynomial.Moments
 public import GibbsMeasure.Mathlib.Algebra.BigOperators.Group.Finset.Sigma
 public import GibbsMeasure.Mathlib.Analysis.Calculus.TiltedIntegral
 public import GibbsMeasure.Mathlib.Analysis.Convex.Barycenter
@@ -60,6 +61,7 @@ public import GibbsMeasure.Mathlib.Dynamics.FixedPoints.MonotoneReal
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Tanh.InfiniteProd
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Log.Summable
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Complex.LogBounds
+public import GibbsMeasure.Mathlib.Analysis.Complex.MultivariateLaurentRoot
 public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
 public import GibbsMeasure.Mathlib.Analysis.Normed.Lp.Precomp
 public import GibbsMeasure.Mathlib.Analysis.Normed.Lp.lpSpace
@@ -104,6 +106,7 @@ public import GibbsMeasure.Mathlib.MeasureTheory.Integral.Bochner.Basic
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.DominatedConvergence
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.IntegrableOn
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.Pi
+public import GibbsMeasure.Mathlib.MeasureTheory.Integral.BallInvNormPow
 public import GibbsMeasure.Mathlib.MeasureTheory.Integral.PiReflectionComplex
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Density
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Existence
@@ -112,6 +115,7 @@ public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Translate
 public import GibbsMeasure.Mathlib.Probability.Distributions.Poisson.Convergence
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.CondExp
 public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Limit
+public import GibbsMeasure.Mathlib.Probability.Distributions.Gaussian.Reindex
 public import GibbsMeasure.Mathlib.Probability.Moments.Covariance
 public import GibbsMeasure.Mathlib.Probability.Independence.Integration
 public import GibbsMeasure.Mathlib.Probability.LargeDeviations.Legendre
@@ -277,6 +281,10 @@ public import GibbsMeasure.Model.GaussianGibbs
 public import GibbsMeasure.Model.GaussianHomogeneous
 public import GibbsMeasure.Model.GaussianExtreme
 public import GibbsMeasure.Model.GaussianHomogeneousExtreme
+public import GibbsMeasure.Model.GaussianConvolution
+public import GibbsMeasure.Model.GaussianShiftInvariance
+public import GibbsMeasure.Model.GaussianHomogeneousMeanSet
+public import GibbsMeasure.Model.GaussianHarmonicCrystalLowDim
 public import GibbsMeasure.Model.KalikowClassification
 public import GibbsMeasure.Model.AlternatingChain
 public import GibbsMeasure.Model.LowEnergyOceans
@@ -291,6 +299,8 @@ public import GibbsMeasure.Model.PottsOceans
 public import GibbsMeasure.Model.AnisotropicHeisenbergOceans
 public import GibbsMeasure.Model.AnisotropicAntiferroOceans
 public import GibbsMeasure.Model.ShlosmanRotorOceans
+public import GibbsMeasure.Model.TransverseFieldRotorOceans
+public import GibbsMeasure.Model.EntropyEnergyConflict
 public import GibbsMeasure.Model.DoubleWellOceans
 public import GibbsMeasure.Model.SlawnyModel
 public import GibbsMeasure.Model.GroundStateRefinement
@@ -417,6 +427,7 @@ public import GibbsMeasure.Specification.CubePotentialConvergence
 public import GibbsMeasure.Specification.CubePotentialSingleSite
 public import GibbsMeasure.Specification.QuasiGibbsian
 public import GibbsMeasure.Specification.ShannonMcMillan
+public import GibbsMeasure.Specification.EquivalenceOfEnsembles
 public import GibbsMeasure.Specification.Structure
 public import GibbsMeasure.Topology.ConfigurationSpace
 public import GibbsMeasure.Topology.ClusterPoints
