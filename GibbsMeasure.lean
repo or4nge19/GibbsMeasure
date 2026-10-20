@@ -446,3 +446,9 @@ public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Gaussian.GaussianIn
 public import GibbsMeasure.Model.AbelianGauge.Configuration
 public import GibbsMeasure.Model.AbelianGauge.Measure
 public import GibbsMeasure.Model.AbelianGauge.FluxSector
+public import GibbsMeasure.Mathlib.GroupTheory.SemidirectProduct
+public import GibbsMeasure.Mathlib.Algebra.BigOperators.Fin
+public import GibbsMeasure.Mathlib.Analysis.CStarAlgebra.Matrix
+public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.Hopping
+public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.Pauli
+public import GibbsMeasure.Model.ChamberDirac
