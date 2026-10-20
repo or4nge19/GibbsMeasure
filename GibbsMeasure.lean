@@ -441,3 +441,8 @@ public import GibbsMeasure.Model.ChamberGraph
 public import GibbsMeasure.Mathlib.AlgebraicTopology.CubicalCochain.Cohomology
 public import GibbsMeasure.Mathlib.AlgebraicTopology.CubicalCochain.Poincare
 public import GibbsMeasure.Mathlib.AlgebraicTopology.CubicalCochain.Torus
+public import GibbsMeasure.Mathlib.Analysis.SumIntegralComparisons
+public import GibbsMeasure.Mathlib.Analysis.SpecialFunctions.Gaussian.GaussianIntegral
+public import GibbsMeasure.Model.AbelianGauge.Configuration
+public import GibbsMeasure.Model.AbelianGauge.Measure
+public import GibbsMeasure.Model.AbelianGauge.FluxSector
