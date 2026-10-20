@@ -42,17 +42,21 @@ jobs:
         with:
           repository: leanprover/comparator
           # Pinned: an unpinned judge is a mutable link in the trust chain. Bump deliberately.
-          ref: 2312244ac716564a61cc0bf4e107d9abf1757a61
+          # Tag v4.34.0 (includes the primitive-set of 2312244). Built below at this
+          # repository's `lean-toolchain`, not at comparator's own pin.
+          ref: d03acab154d269c06e60e4de7e4cc85deebff94b
           path: comparator
 
-      # `lean4export` must match the toolchain in `lean-toolchain`; the tag below is exactly
-      # `leanprover/lean4:v4.34.0-rc2`, the toolchain this repository pins.
+      # `lean4export` must match the oleans of `Build GibbsMeasure`. Tag v4.34.0 is the
+      # last upstream release on this line; the next step copies this repository's
+      # `lean-toolchain` so the exporter is v4.34.1 rather than v4.34.0-rc2 (mc3 run
+      # 39308986332: every entry died with `incompatible header`).
       - name: Checkout lean4export
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           repository: leanprover/lean4export
-          # Tag v4.34.0-rc2, resolved to its commit: a tag can be moved, a SHA cannot.
-          ref: cacf989bd75f608700820f6afc595f32e7a99a4d
+          # Tag v4.34.0, resolved to its commit: a tag can be moved, a SHA cannot.
+          ref: 076e8e57707e813375e8f9da8bf989799ace9680
           path: lean4export
 
       - name: Checkout landrun
@@ -121,6 +125,11 @@ jobs:
             fi
           done
           echo "no sorry outside Comparator/Challenge*.lean"
+
+      - name: Match lean4export and comparator to this pin
+        run: |
+          cp GibbsMeasure/lean-toolchain lean4export/lean-toolchain
+          cp GibbsMeasure/lean-toolchain comparator/lean-toolchain
 
       - name: Build lean4export
         working-directory: lean4export
