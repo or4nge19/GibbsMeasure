@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Mathlib.Analysis.CStarAlgebra.Matrix
 public import Mathlib.Data.Matrix.Block
 public import Mathlib.LinearAlgebra.Matrix.Determinant.Basic
 
@@ -25,6 +26,8 @@ one for each type (the chamber Dirac matrix, `Model/ChamberDirac`).
   in the splitting `S × (s ⊕ t) ≃ S × s ⊕ S × t`.
 * `diagonal_mul_hoppingMatrix_mul_diagonal`: conjugation by site-diagonal matrices (gauge
   transformations) rescales the blocks by the values at the two ends.
+* `l2_opNorm_hoppingMatrix_le`: along a bijection, the `L²` operator norm of a hopping matrix is
+  at most the largest norm of its blocks.
 * `hoppingMatrix_mul_hoppingMatrix`, `hoppingMatrix_id_one`, `hoppingMatrix_add`,
   `sum_hoppingMatrix`, `smul_hoppingMatrix`: the algebra of hopping matrices (hopping twice is
   hopping along the composite).
@@ -131,5 +134,47 @@ theorem diagonal_mul_hoppingMatrix_mul_diagonal [Fintype S] [DecidableEq S] [Fin
   · rw [smul_apply, smul_eq_mul, ← h]
     ring
   · rw [mul_zero, zero_mul]
+
+/-! ### The `L²` operator norm -/
+
+section L2OpNorm
+
+open scoped Matrix.Norms.L2Operator
+
+variable {𝕜 : Type*} [RCLike 𝕜]
+
+/-- **A hopping matrix along a bijection has `L²` operator norm at most the largest norm of its
+blocks**: each site receives from exactly one site. -/
+theorem l2_opNorm_hoppingMatrix_le [Fintype S] [DecidableEq S] [Fintype s] [DecidableEq s]
+    {N : S → S} (hN : Function.Bijective N) (B : S → Matrix s s 𝕜) {C : ℝ} (hC0 : 0 ≤ C)
+    (hC : ∀ x, ‖B x‖ ≤ C) : ‖hoppingMatrix N B‖ ≤ C := by
+  rw [← l2_opNorm_toEuclideanCLM]
+  refine ContinuousLinearMap.opNorm_le_bound _ hC0 fun v ↦ ?_
+  refine (sq_le_sq₀ (norm_nonneg _) (by positivity)).mp ?_
+  set w : S → EuclideanSpace 𝕜 s := fun y ↦ WithLp.toLp 2 fun β ↦ v.ofLp (y, β)
+  have hblock : ∀ y, ∑ α, ‖(hoppingMatrix N B *ᵥ v.ofLp) (y, α)‖ ^ 2 ≤
+      C ^ 2 * ‖w (N y)‖ ^ 2 := by
+    intro y
+    have h1 : ∀ α, (hoppingMatrix N B *ᵥ v.ofLp) (y, α) = (B y *ᵥ (w (N y)).ofLp) α := by
+      intro α
+      simp [mulVec, dotProduct, hoppingMatrix_apply, Fintype.sum_prod_type, w]
+    have h3 : ‖(EuclideanSpace.equiv s 𝕜).symm (B y *ᵥ (w (N y)).ofLp)‖ ^ 2 =
+        ∑ α, ‖(hoppingMatrix N B *ᵥ v.ofLp) (y, α)‖ ^ 2 := by
+      rw [EuclideanSpace.norm_sq_eq]
+      simp [h1]
+    rw [← h3]
+    calc _ ≤ (‖B y‖ * ‖w (N y)‖) ^ 2 := by gcongr; exact l2_opNorm_mulVec (B y) (w (N y))
+      _ ≤ (C * ‖w (N y)‖) ^ 2 := by gcongr; exact hC y
+      _ = C ^ 2 * ‖w (N y)‖ ^ 2 := by ring
+  rw [EuclideanSpace.norm_sq_eq, mul_pow, EuclideanSpace.norm_sq_eq, ofLp_toEuclideanCLM,
+    Fintype.sum_prod_type, Fintype.sum_prod_type]
+  calc _ ≤ ∑ y, C ^ 2 * ‖w (N y)‖ ^ 2 := Finset.sum_le_sum fun y _ ↦ hblock y
+    _ = C ^ 2 * ∑ y, ‖w y‖ ^ 2 := by
+      rw [← Finset.mul_sum, Fintype.sum_bijective N hN _ (fun y ↦ ‖w y‖ ^ 2) fun _ ↦ rfl]
+    _ = _ := by
+      congr 1
+      simp [w, EuclideanSpace.norm_sq_eq]
+
+end L2OpNorm
 
 end Matrix

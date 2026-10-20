@@ -79,8 +79,20 @@ The link field is a `U(1)` field `u : CubicalCell X (Fin d) 1 → Circle` on the
   `bondDirection_mul_wallReflection_right`).
 * `reindex_chamberDirac_fromBlocks_neg` ((2.18)): `𝒟 = diag(𝒟̄, 𝒟̄ᴴ)`.
 * `det_chamberDirac_fromBlocks_neg`, `det_chamberDirac_fromBlocks_neg_eq_normSq`,
-  `det_chamberDirac_fromBlocks_neg_nonneg` ([Q] Prop 2.2, [M] Lemma 2.10):
-  `det 𝒟 = (det 𝒟̄)⋆ det 𝒟̄ = |det 𝒟̄|² ≥ 0`, for every link field, weights, `ρ` and `M`.
+  `det_chamberDirac_fromBlocks_neg_nonneg`, `det_chamberDirac_pauli_nonneg` ([Q] Prop 2.2,
+  [M] Lemma 2.10): `det 𝒟 = (det 𝒟̄)⋆ det 𝒟̄ = |det 𝒟̄|² ≥ 0`, for every link field, real weights,
+  `ρ` and `M`.
+* `chamberDirac_add_conjTranspose_eq` ([Q] Prop 2.2): `𝒟 + 𝒟ᴴ = 2m + ρ ∇ᴴ∇`, with the bond
+  transports `Tᵢ` self-adjoint unitaries; `posSemidef_chamberDirac_add_conjTranspose_sub`,
+  `mul_re_dotProduct_le_re_dotProduct_chamberDirac_mulVec` ([M] Lemma 2.10):
+  `Re ⟨v, 𝒟 v⟩ ≥ m ‖v‖²` for `ρ, wᵢ ≥ 0`.
+* `l2_opNorm_chamberDirac_le`, `l2_opNorm_chamberDirac_pauli_le` ([Q] Prop 2.2):
+  `‖𝒟‖ ≤ |M| + ((1 + |ρ|)/2) ∑ᵢ |wᵢ|` for a Hermitian Clifford family; `norm_det_chamberDirac_le`,
+  `norm_det_chamberDirac_pauli_le`: `|det 𝒟| ≤ (|M| + ((1 + |ρ|)/2) ∑ᵢ |wᵢ|)^{192 V}`, the
+  determinant factor of the upper bound in (2.22).
+* `sum_wallNormal`, `sum_smul_bondDirection` ((2.11)): `∑ᵢ nᵢ = 0`, so the standard weights
+  balance the bond directions; `chamberDirac_eq_smul_one_add_sum` ((2.15)): then
+  `(𝒟 ψ)(x) = m ψ(x) + ∑ᵢ w(x, x^{(i)}) (ψ(x) - U(x, x^{(i)}) ψ(x^{(i)}))`, `m` the lattice mass.
 * `det_chamberDirac_exp_add_coboundary`, `det_chamberDirac_of_bondPhase_eq`: gauge invariance,
   `det 𝒟_{A + dχ} = det 𝒟_A`; `det_chamberDirac_translate`: translation invariance.
 
@@ -89,9 +101,11 @@ The link field is a `U(1)` field `u : CubicalCell X (Fin d) 1 → Circle` on the
 * The boundary character `χ` of [Q]'s torus `(Γ, χ)`: after a choice of representatives it is a
   `±1` factor on the link field, so it is covered by the statements for every `u`; that
   identification of the matrices is not proved here.
-* The norm bound of Prop 2.2 and the upper bound of (2.22); the extreme Laurent coefficient
-  (2.19)–(2.21) and the lower bound of (2.22); the covariance under the signed permutations
-  (spin intertwiners `γ_n γ_5`, (2.12)); charge conjugation `C 𝒟_Aᵀ C⁻¹ = 𝒟_{-A}`.
+* The extreme Laurent coefficient (2.19)–(2.21) (`C_*^V`, independent of `M`), hence the lower
+  bound of (2.22) and `Z_𝕋[1] > 0`; the integrals of (2.22) themselves (the finite-volume law,
+  C8).
+* Covariance under the signed permutations (spin intertwiners `γ_n γ_5`, (2.12)) and charge
+  conjugation `C 𝒟_Aᵀ C⁻¹ = 𝒟_{-A}` ([Q] §2.4).
 
 ## References
 
@@ -725,5 +739,113 @@ theorem mul_re_dotProduct_le_re_dotProduct_chamberDirac_mulVec [Fintype X] [Fint
   linarith
 
 end RealPart
+
+/-! ### The norm bound -/
+
+section Norm
+
+open scoped Matrix.Norms.L2Operator
+
+variable {n : ℕ} {X : Type*} [AddCommGroup X] [DecidableEq X] {s : Type*} [DecidableEq s]
+  [Fintype s] {γ : Fin (n + 1) → Matrix s s ℂ}
+
+/-- **The norm of a hopping block** for a Hermitian Clifford family `γ`:
+`‖(wᵢ/2)(ρ - γ_d)‖ ≤ (|wᵢ|/2)(|ρ| + 1)`, since `γ_d` is a self-adjoint involution for the unit
+vector `d`. -/
+theorem l2_opNorm_bondHopping_le (hγ : ∀ μ, (γ μ).IsHermitian)
+    (hγγ : ∀ μ ν, γ μ * γ ν + γ ν * γ μ = if μ = ν then 2 else 0) (w : Fin (n + 2) → ℝ)
+    (ρ : ℝ) (r : SignedPerm (Fin (n + 1))) (i : Fin (n + 2)) :
+    ‖bondHopping γ w ρ r i‖ ≤ |w i| / 2 * (|ρ| + 1) := by
+  have hγ' : ∀ μ, (γ μ)ᴴ = γ μ := fun μ ↦ (hγ μ).eq
+  have hGH : (∑ μ, (bondDirection r i μ : ℂ) • γ μ)ᴴ = ∑ μ, (bondDirection r i μ : ℂ) • γ μ := by
+    simp only [conjTranspose_sum, conjTranspose_smul, hγ', Complex.star_def, Complex.conj_ofReal]
+  have hGG : (∑ μ, (bondDirection r i μ : ℂ) • γ μ) * (∑ μ, (bondDirection r i μ : ℂ) • γ μ) =
+      1 := by
+    rw [sum_smul_mul_sum_smul_of_anticomm hγγ]
+    have h := bondDirection_dotProduct_self r i
+    have h' : ∑ μ, (bondDirection r i μ : ℂ) * (bondDirection r i μ : ℂ) = 1 := by
+      exact_mod_cast h
+    rw [h', one_smul]
+  have hGn : ‖∑ μ, (bondDirection r i μ : ℂ) • γ μ‖ ≤ 1 := by
+    have h := l2_opNorm_conjTranspose_mul_self (∑ μ, (bondDirection r i μ : ℂ) • γ μ)
+    rw [hGH, hGG] at h
+    nlinarith [norm_nonneg (∑ μ, (bondDirection r i μ : ℂ) • γ μ), l2_opNorm_one_le (n := s)
+      (𝕜 := ℂ)]
+  rw [bondHopping, norm_smul, Complex.norm_real, Real.norm_eq_abs, abs_div, abs_two]
+  gcongr
+  calc _ ≤ ‖(ρ : ℂ) • (1 : Matrix s s ℂ)‖ + ‖∑ μ, (bondDirection r i μ : ℂ) • γ μ‖ :=
+        norm_sub_le _ _
+    _ ≤ |ρ| * 1 + 1 := by
+        rw [norm_smul, Complex.norm_real, Real.norm_eq_abs]
+        gcongr
+        exact l2_opNorm_one_le
+    _ = |ρ| + 1 := by rw [mul_one]
+
+variable [Fintype X] (p : (Fin (n + 1) → ℤ) →+ X) (w : Fin (n + 2) → ℝ) (ρ M : ℝ)
+  (u : CubicalCell X (Fin (n + 1)) 1 → Circle)
+
+/-- **The norm bound of [Q] Proposition 2.2**: for a Hermitian Clifford family `γ`,
+`‖𝒟‖ ≤ |M| + ((1 + |ρ|)/2) ∑ᵢ |wᵢ|` in the `L²` operator norm: each bond type contributes a
+unitary relabelling with phases times a block of norm at most `(|wᵢ|/2)(1 + |ρ|)`. -/
+theorem l2_opNorm_chamberDirac_le (hγ : ∀ μ, (γ μ).IsHermitian)
+    (hγγ : ∀ μ ν, γ μ * γ ν + γ ν * γ μ = if μ = ν then 2 else 0) :
+    ‖chamberDirac p γ w ρ M u‖ ≤ |M| + (1 + |ρ|) / 2 * ∑ i, |w i| := by
+  rw [chamberDirac]
+  refine (norm_sub_le _ _).trans ?_
+  gcongr ?_ + ?_
+  · rw [norm_smul, Complex.norm_real, Real.norm_eq_abs]
+    exact mul_le_of_le_one_right (abs_nonneg M) l2_opNorm_one_le
+  · refine (norm_sum_le _ _).trans ?_
+    rw [Finset.mul_sum]
+    refine Finset.sum_le_sum fun i _ ↦ ?_
+    refine l2_opNorm_hoppingMatrix_le (chamberNeighbor_involutive p i).bijective _
+      (by positivity) fun x ↦ ?_
+    rw [norm_smul, Circle.norm_coe, one_mul]
+    refine (l2_opNorm_bondHopping_le hγ hγγ w ρ x.2 i).trans (le_of_eq ?_)
+    ring
+
+/-- **The determinant bound of [Q] (2.22)**:
+`‖det 𝒟‖ ≤ ‖𝒟‖ ^ N ≤ (|M| + ((1 + |ρ|)/2) ∑ᵢ |wᵢ|) ^ N`, `N` the number of spinor components. -/
+theorem norm_det_chamberDirac_le (hγ : ∀ μ, (γ μ).IsHermitian)
+    (hγγ : ∀ μ ν, γ μ * γ ν + γ ν * γ μ = if μ = ν then 2 else 0) :
+    ‖det (chamberDirac p γ w ρ M u)‖ ≤ (|M| + (1 + |ρ|) / 2 * ∑ i, |w i|) ^
+      Fintype.card ((X × SignedPerm (Fin (n + 1))) × s) :=
+  (norm_det_le_l2_opNorm_pow _).trans
+    (pow_le_pow_left₀ (norm_nonneg _) (l2_opNorm_chamberDirac_le p w ρ M u hγ hγγ) _)
+
+end Norm
+
+open scoped Matrix.Norms.L2Operator in
+/-- **[Q] Proposition 2.2, the norm bound in three dimensions**: with the Pauli matrices and
+`γ_μ = diag(σ_μ, -σ_μ)`, `‖𝒟‖ ≤ |M| + ((1 + |ρ|)/2) ∑ᵢ |wᵢ|` (for `wᵢ > 0`, `0 < ρ < 1` this
+is [Q]'s `|M| + ((1 + ρ)/2) ∑ᵢ wᵢ`). -/
+theorem l2_opNorm_chamberDirac_pauli_le {X : Type*} [AddCommGroup X] [DecidableEq X]
+    [Fintype X] (p : (Fin 3 → ℤ) →+ X) (w : Fin 4 → ℝ) (ρ M : ℝ)
+    (u : CubicalCell X (Fin 3) 1 → Circle) :
+    ‖chamberDirac p (fun μ ↦ fromBlocks (pauli μ) 0 0 (-pauli μ)) w ρ M u‖ ≤
+      |M| + (1 + |ρ|) / 2 * ∑ i, |w i| :=
+  l2_opNorm_chamberDirac_le p w ρ M u
+    (fun μ ↦ (isHermitian_pauli μ).fromBlocks (by simp) (isHermitian_pauli μ).neg)
+    (fromBlocks_neg_anticomm pauli_mul_add_pauli_mul)
+
+/-- **[Q] (2.22), the determinant factor in three dimensions**: with the Pauli matrices,
+`|det 𝒟| ≤ (|M| + ((1 + |ρ|)/2) ∑ᵢ |wᵢ|) ^ (192 V)`, `V = |X|` the number of photon sites
+(`48` chambers per photon site, `4` spinor components). -/
+theorem norm_det_chamberDirac_pauli_le {X : Type*} [AddCommGroup X] [DecidableEq X]
+    [Fintype X] (p : (Fin 3 → ℤ) →+ X) (w : Fin 4 → ℝ) (ρ M : ℝ)
+    (u : CubicalCell X (Fin 3) 1 → Circle) :
+    ‖det (chamberDirac p (fun μ ↦ fromBlocks (pauli μ) 0 0 (-pauli μ)) w ρ M u)‖ ≤
+      (|M| + (1 + |ρ|) / 2 * ∑ i, |w i|) ^ (192 * Fintype.card X) := by
+  have hcard : Fintype.card ((X × SignedPerm (Fin 3)) × (Fin 2 ⊕ Fin 2)) =
+      192 * Fintype.card X := by
+    have h48 := SignedPerm.card (ι := Fin 3)
+    rw [Nat.card_eq_fintype_card, Nat.card_eq_fintype_card, Fintype.card_fin] at h48
+    rw [Fintype.card_prod, Fintype.card_prod, Fintype.card_sum, Fintype.card_fin, h48]
+    norm_num
+    ring
+  rw [← hcard]
+  exact norm_det_chamberDirac_le p w ρ M u
+    (fun μ ↦ (isHermitian_pauli μ).fromBlocks (by simp) (isHermitian_pauli μ).neg)
+    (fromBlocks_neg_anticomm pauli_mul_add_pauli_mul)
 
 end AffineSignedPerm
