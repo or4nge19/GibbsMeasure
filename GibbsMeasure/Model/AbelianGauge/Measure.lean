@@ -36,8 +36,8 @@ below is [Q] (2.6) with the constant of (2.5).
   (`ENNReal.tsum_ofReal_exp_neg_mul_add_mul_intCast_sq_le`) the weight is integrable
   (`integrable_exp_neg_sum_sq_fieldStrength`) with positive integral.
 
-In `d = 3` with `k = 1` there are `3V` links and `3V` plaquettes on a torus of `V` sites, and the
-bound is `(r C)^{3V}`.
+In `d = 3` with `k = 1` a torus of `V` sites has `3V` links and `3V` plaquettes
+(`CubicalCell.card_eq_mul_choose`), and the bound is `(r C)^{3V}`.
 
 ## Searches
 

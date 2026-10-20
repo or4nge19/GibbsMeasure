@@ -44,8 +44,8 @@ This file is the group-theoretic part, (2.2), (2.3) and the representative of (2
 * `AbelianGauge.Configuration e r k`: the quotient of `C^k(ℝ) × Z^{k+1}(ℤ)` by the integer
   shifts.
 * `AbelianGauge.fieldStrength e r k`: `F = d A + r z`.
-* `AbelianGauge.phase e r k`: `A mod r ∈ AddCircle r` on each cell (the link phases
-  `u_b = exp (2πi A(b) / r)` are `AddCircle.toCircle` of it).
+* `AbelianGauge.phase e r k`: `A mod r ∈ AddCircle r` on each cell; `AddCircle.toCircle` of it
+  is the link phase `u_b = exp (2πi A(b) / r)`.
 
 ## Main results
 
@@ -151,7 +151,8 @@ theorem fieldStrength_add_mk_coboundary (c : Configuration e r (k + 1))
 
 variable (e r k) in
 /-- **The phases** `A mod r` on the cells: well defined because `r n ∈ r ℤ`. For `k = 1` they
-are the link phases, `AddCircle.toCircle (phase c b) = exp (2πi A(b) / r)`. -/
+are the link phases: `AddCircle.toCircle` sends `A(b) mod r` to `exp (2πi A(b) / r)`
+(`AddCircle.toCircle_apply_mk`), which is `exp (i q A(b))` for `r = 2π/q`. -/
 def phase : Configuration e r k →+ CubicalCell X ι k → AddCircle r :=
   QuotientAddGroup.lift _
     ((AddMonoidHom.pi fun b ↦ (QuotientAddGroup.mk' _).comp (Pi.evalAddMonoidHom _ b)).comp
