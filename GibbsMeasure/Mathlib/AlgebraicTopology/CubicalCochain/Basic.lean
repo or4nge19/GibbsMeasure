@@ -268,6 +268,13 @@ instance [Fintype X] [Fintype ι] : Fintype (CubicalCell X ι k) :=
 instance [Finite X] [Finite ι] : Finite (CubicalCell X ι k) :=
   .of_equiv _ equivProd.symm
 
+/-- `V` sites and `d` directions give `V * (d choose k)` cells of dimension `k`; e.g. `3V` links
+and `3V` plaquettes in three dimensions. -/
+theorem card_eq_mul_choose [Fintype X] [Fintype ι] :
+    Fintype.card (CubicalCell X ι k) = Fintype.card X * (Fintype.card ι).choose k := by
+  rw [Fintype.card_eq_nat_card, Nat.card_congr equivProd, Nat.card_prod, Set.powersetCard.card,
+    Nat.card_eq_fintype_card, Nat.card_eq_fintype_card]
+
 instance [Countable X] [Countable ι] : Countable (CubicalCell X ι k) :=
   have : Countable (Set.powersetCard ι k) := Subtype.countable
   .of_equiv _ equivProd.symm
