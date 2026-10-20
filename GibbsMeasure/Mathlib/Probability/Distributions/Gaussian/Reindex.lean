@@ -67,14 +67,12 @@ theorem map_comp_gaussianField (e : κ → ι) (hC : ∀ I : Finset ι, (covMatr
   have hgp : IsGaussianProcess (fun a (ω : ι → ℝ) ↦ ω (e a)) (gaussianField C hC) :=
     (isGaussianProcess_gaussianField hC).comp_right e
   refine eq_gaussianField _ ⟨fun J ↦ ?_⟩ (fun a ↦ ?_) (fun a b ↦ ?_)
-  · constructor
-    have hcomp : ((gaussianField C hC).map fun ω : ι → ℝ ↦ ω ∘ e).map
-          (fun ω' : κ → ℝ ↦ J.restrict fun a ↦ ω' a)
-        = (gaussianField C hC).map fun ω : ι → ℝ ↦ J.restrict fun a ↦ ω (e a) := by
+  · have hcomp : ((gaussianField C hC).map fun ω : ι → ℝ ↦ ω ∘ e).map
+        (fun ω' : κ → ℝ ↦ J.restrict fun a ↦ ω' a)
+      = (gaussianField C hC).map fun ω : ι → ℝ ↦ J.restrict fun a ↦ ω (e a) := by
       rw [Measure.map_map (Finset.measurable_restrict _) hmeas]
       rfl
-    rw [hcomp]
-    exact (hgp.hasGaussianLaw J).isGaussian_map
+    exact ⟨by fun_prop, hcomp ▸ (hgp.hasGaussianLaw J).isGaussian_map⟩
   · rw [integral_map hmeas.aemeasurable
       (Measurable.aestronglyMeasurable (by fun_prop))]
     exact integral_eval_gaussianField hC (e a)
