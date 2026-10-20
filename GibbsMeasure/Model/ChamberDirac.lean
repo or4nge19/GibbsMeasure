@@ -5,6 +5,7 @@ Authors: Matteo Cipollina
 -/
 module
 
+public import GibbsMeasure.Mathlib.Algebra.BigOperators.Fin
 public import GibbsMeasure.Mathlib.AlgebraicTopology.CubicalCochain.Basic
 public import GibbsMeasure.Mathlib.GroupTheory.SemidirectProduct
 public import GibbsMeasure.Mathlib.LinearAlgebra.Matrix.Hopping
@@ -322,6 +323,37 @@ theorem mul_wallReflection_smul_sub_smul_eq (g : AffineSignedPerm (Fin (n + 1)))
   rw [mul_wallReflection_smul_sub_smul, bondDirection, smul_neg, smul_smul, mul_assoc,
     mul_inv_cancel₀ hs, mul_one, neg_smul]
 
+/-- **The inward wall normals sum to zero**: `e_n + ∑_c (e_{n-1-c} - e_{n-c}) - e₀ = 0`. -/
+theorem sum_wallNormal : ∑ i : Fin (n + 2), wallNormal i = 0 := by
+  have h := Fin.sum_univ_castSucc_sub_succ fun k : Fin (n + 1) ↦ (Pi.single k 1 : Fin (n + 1) → ℤ)
+  have h2 : ∑ c : Fin n, (Pi.single c.rev.castSucc 1 + Pi.single c.rev.succ (-1) :
+      Fin (n + 1) → ℤ) = Pi.single 0 1 - Pi.single (Fin.last n) 1 := by
+    rw [← h]
+    exact Fintype.sum_equiv Fin.revPerm _ _ fun c ↦ by simp [sub_eq_add_neg, Pi.single_neg]
+  rw [Fin.sum_univ_succ, Fin.sum_univ_castSucc, Fin.succ_last, wallNormal_zero, wallNormal_last]
+  simp only [wallNormal_succ_castSucc]
+  rw [h2, Pi.single_neg]
+  abel
+
+/-- **[Q] (2.11)**: weights proportional to the lengths of the wall normals, `wᵢ = c |nᵢ|`,
+balance the bond directions at every site, `∑ᵢ wᵢ dᵢ = -r (∑ᵢ wᵢ n̂ᵢ) = 0`. In three dimensions
+`|nᵢ| = (1, √2, √2, 1)` (`wallNormal_dotProduct_self`), and `c = 6` gives [Q]'s standard weights
+`(6, 6√2, 6√2, 6)`. -/
+theorem sum_smul_bondDirection (c : ℝ) (r : SignedPerm (Fin (n + 1))) :
+    ∑ i, (c * √((wallNormal i ⬝ᵥ wallNormal i : ℤ) : ℝ)) • bondDirection r i = 0 := by
+  have h : ∀ i : Fin (n + 2), (c * √((wallNormal i ⬝ᵥ wallNormal i : ℤ) : ℝ)) •
+      bondDirection r i = -(c • (r • fun μ ↦ (wallNormal i μ : ℝ))) := fun i ↦ by
+    have hs := (Real.sqrt_pos.2 (intCast_wallNormal_dotProduct_self_pos i)).ne'
+    rw [bondDirection, smul_neg, smul_smul, mul_assoc, mul_inv_cancel₀ hs, mul_one]
+  have h0 : ∑ i : Fin (n + 2), (fun μ ↦ (wallNormal i μ : ℝ)) = 0 := by
+    ext μ
+    have := congrFun (sum_wallNormal (n := n)) μ
+    rw [Finset.sum_apply] at this
+    simp only [Finset.sum_apply, Pi.zero_apply]
+    exact_mod_cast this
+  rw [Finset.sum_congr rfl fun i _ ↦ h i, Finset.sum_neg_distrib, ← Finset.smul_sum,
+    ← Finset.smul_sum, h0, smul_zero, smul_zero, neg_zero]
+
 variable {s : Type*} [DecidableEq s]
 
 /-- The **hopping block** (2.13) of the bond of type `i` at a site with linear part `r`, for spin
@@ -330,6 +362,26 @@ matrices `γ`: `w(x, x^{(i)}) = (w_i / 2) (ρ - γ_d)`, `γ_d = ∑ μ, d μ •
 noncomputable def bondHopping (γ : Fin (n + 1) → Matrix s s ℂ) (w : Fin (n + 2) → ℝ) (ρ : ℝ)
     (r : SignedPerm (Fin (n + 1))) (i : Fin (n + 2)) : Matrix s s ℂ :=
   ((w i / 2 : ℝ) : ℂ) • ((ρ : ℂ) • 1 - ∑ μ, (bondDirection r i μ : ℂ) • γ μ)
+
+/-- **Balanced weights cancel the Clifford parts at each site**: if `∑ᵢ wᵢ dᵢ = 0` at every
+linear part (e.g. the standard weights, `sum_smul_bondDirection`), then
+`∑ᵢ w(x, x^{(i)}) = (ρ/2) ∑ᵢ wᵢ`. -/
+theorem sum_bondHopping (γ : Fin (n + 1) → Matrix s s ℂ) {w : Fin (n + 2) → ℝ}
+    (hw : ∀ r, ∑ i, w i • bondDirection r i = 0) (ρ : ℝ) (r : SignedPerm (Fin (n + 1))) :
+    ∑ i, bondHopping γ w ρ r i = ((ρ / 2 * ∑ i, w i : ℝ) : ℂ) • 1 := by
+  have h0 : ∀ μ, ∑ i, ((w i / 2 : ℝ) : ℂ) * (bondDirection r i μ : ℂ) = 0 := fun μ ↦ by
+    have := congrFun (hw r) μ
+    simp only [Finset.sum_apply, Pi.smul_apply, smul_eq_mul, Pi.zero_apply] at this
+    have h' : ∑ i, w i / 2 * bondDirection r i μ = 0 := by
+      simp only [div_mul_eq_mul_div, ← Finset.sum_div, this, zero_div]
+    exact_mod_cast h'
+  simp only [bondHopping, smul_sub, smul_smul, Finset.smul_sum, Finset.sum_sub_distrib]
+  rw [Finset.sum_comm]
+  simp only [← Finset.sum_smul, h0, zero_smul, Finset.sum_const_zero, sub_zero]
+  congr 1
+  push_cast
+  rw [Finset.mul_sum]
+  exact Finset.sum_congr rfl fun i _ ↦ by ring
 
 /-- **The reversed hopping block is the adjoint with the opposite spin matrices**: for Hermitian
 `γ`, `w(x', x)ᴴ` is the block of `x → x'` for `-γ`. -/
@@ -393,6 +445,23 @@ theorem reindex_chamberDirac_fromBlocks {t : Type*} [DecidableEq t]
       fromBlocks (chamberDirac p σ w ρ M u) 0 0 (chamberDirac p τ w ρ M u) := by
   ext (⟨x, α⟩ | ⟨x, α⟩) (⟨y, β⟩ | ⟨y, β⟩) <;>
     simp [chamberDirac_apply, bondHopping_fromBlocks]
+
+/-- **[Q] (2.15), the lattice mass**: for balanced weights (`∑ᵢ wᵢ dᵢ = 0` at every linear part,
+e.g. the standard weights) the chamber Dirac matrix is the lattice mass `m = M - (ρ/2) ∑ᵢ wᵢ`
+plus the chamber differences:
+`(𝒟 ψ)(x) = m ψ(x) + ∑ᵢ w(x, x^{(i)}) (ψ(x) - U(x, x^{(i)}) ψ(x^{(i)}))`. -/
+theorem chamberDirac_eq_smul_one_add_sum {w : Fin (n + 2) → ℝ}
+    (hw : ∀ r, ∑ i, w i • bondDirection r i = 0) :
+    chamberDirac p γ w ρ M u = ((M - ρ / 2 * ∑ i, w i : ℝ) : ℂ) • 1 +
+      ∑ i, (hoppingMatrix id (fun x ↦ bondHopping γ w ρ x.2 i) -
+        hoppingMatrix (chamberNeighbor p · i) fun x ↦
+          (bondPhase p u x i : ℂ) • bondHopping γ w ρ x.2 i) := by
+  rw [Finset.sum_sub_distrib, sum_hoppingMatrix]
+  simp only [sum_bondHopping γ hw ρ]
+  rw [← smul_hoppingMatrix, hoppingMatrix_id_one, chamberDirac, ← add_sub_assoc, ← add_smul]
+  congr 2
+  push_cast
+  ring
 
 variable {σ : Fin (n + 1) → Matrix s s ℂ}
 

@@ -26,8 +26,8 @@ one for each type (the chamber Dirac matrix, `Model/ChamberDirac`).
 * `diagonal_mul_hoppingMatrix_mul_diagonal`: conjugation by site-diagonal matrices (gauge
   transformations) rescales the blocks by the values at the two ends.
 * `hoppingMatrix_mul_hoppingMatrix`, `hoppingMatrix_id_one`, `hoppingMatrix_add`,
-  `smul_hoppingMatrix`: the algebra of hopping matrices (hopping twice is hopping along the
-  composite).
+  `sum_hoppingMatrix`, `smul_hoppingMatrix`: the algebra of hopping matrices (hopping twice is
+  hopping along the composite).
 
 Searched (pin `d13f23b7`): `Mathlib/Data/Matrix/Composition.lean` (`Matrix.comp`, block matrices
 `Matrix I J (Matrix K L R)`; no `conjTranspose` lemma), `SimpleGraph.adjMatrix` (scalar
@@ -80,6 +80,12 @@ theorem hoppingMatrix_add [DecidableEq S] [AddZeroClass R] (N : S → S)
   ext a b
   simp only [add_apply, hoppingMatrix_apply]
   split_ifs <;> simp
+
+theorem sum_hoppingMatrix [DecidableEq S] [AddCommMonoid R] {ι : Type*} (t : Finset ι)
+    (N : S → S) (B : ι → S → Matrix s s R) :
+    ∑ i ∈ t, hoppingMatrix N (B i) = hoppingMatrix N fun x ↦ ∑ i ∈ t, B i x := by
+  ext a b
+  by_cases h : N a.1 = b.1 <;> simp [hoppingMatrix_apply, Matrix.sum_apply, h]
 
 theorem smul_hoppingMatrix [DecidableEq S] {α : Type*} [Zero R] [SMulZeroClass α R] (c : α)
     (N : S → S) (B : S → Matrix s s R) :
