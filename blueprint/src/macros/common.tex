@@ -4,9 +4,17 @@
 
 \setcounter{chapter}{-1}
 
-\newcommand{\R}{\mathbb R}
-\newcommand{\MCB}{\mathcal B}
-\newcommand{\MCX}{\mathcal X}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\MCB}{\mathcal{B}}
+\newcommand{\MCX}{\mathcal{X}}
+
+% House-style analysis notation used by the chapters (and by PFR/Carleson).
+% Keep these as ordinary \newcommand, not \DeclarePairedDelimiter: common.tex is
+% also read by plasTeX, which does not implement mathtools delimiters.
+\newcommand{\1}{\mathbf{1}}
+\newcommand{\abs}[1]{\lvert #1\rvert}
+\newcommand{\norm}[1]{\lVert #1\rVert}
+\newcommand{\dd}{\mathrm{d}}
 
 \DeclareMathOperator{\Finset}{Finset}
 \DeclareMathOperator{\ISSSD}{ISSSD}

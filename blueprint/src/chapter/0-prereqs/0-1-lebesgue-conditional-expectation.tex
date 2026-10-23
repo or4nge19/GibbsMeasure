@@ -1,7 +1,7 @@
 \section{Lebesgue conditional expectation}
 
 Let $(X, \MCX)$ be a measurable space, $\MCB \leq \MCX$ a sub-$\sigma$-algebra, and $\mu$ a measure
-on $(X, \MCX)$ whose restriction $\mu|_\MCB$ to $\MCB$ is $\sigma$-finite.
+on $(X, \MCX)$ whose restriction $\mu|_{\MCB}$ to $\MCB$ is $\sigma$-finite.
 
 \begin{definition}[Lebesgue conditional expectation]
   \label{def:lebesgue-cond-exp}
@@ -11,7 +11,7 @@ on $(X, \MCX)$ whose restriction $\mu|_\MCB$ to $\MCB$ is $\sigma$-finite.
 
   The {\bf conditional expectation} of a $\MCX$-measurable $f : X \to [0, \infty]$ is the
   Radon--Nikodym derivative
-  \[\mu[f | \MCB] = \frac{\partial (f\mu)|_\MCB}{\partial \mu|_\MCB},\]
+  \[\mu[f | \MCB] = \frac{\partial (f\mu)|_{\MCB}}{\partial \mu|_{\MCB}},\]
   where $f\mu$ is the measure with density $f$ relative to $\mu$.
 \end{definition}
 
@@ -29,8 +29,8 @@ on $(X, \MCX)$ whose restriction $\mu|_\MCB$ to $\MCB$ is $\sigma$-finite.
   % \uses{}
   % \leanok
 
-  Uniqueness of the Radon--Nikodym derivative of $(f\mu)|_\MCB$ with respect to the
-  $\sigma$-finite measure $\mu|_\MCB$.
+  Uniqueness of the Radon--Nikodym derivative of $(f\mu)|_{\MCB}$ with respect to the
+  $\sigma$-finite measure $\mu|_{\MCB}$.
 \end{proof}
 
 \section{Sub-\texorpdfstring{$\sigma$}{sigma}-algebras modulo null sets}
