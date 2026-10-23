@@ -35,5 +35,9 @@ name = "GibbsMeasure"
 # error there.
 [[lean_lib]]
 name = "Comparator"
+# No `Comparator.lean` root: the modules are `Comparator.*`. An empty `roots`
+# keeps `lake build Comparator` (via `globs`) and stops `lake exe checkdecls`
+# from `import`ing a module that does not exist.
+roots = []
 globs = ["Comparator.+"]
 leanOptions = { warn.sorry = false }
