@@ -257,7 +257,7 @@ Definition \ref{def:trans-spec-map}.
 
 \begin{theorem}[Georgii (5.15)(ii) with $I_0 = \set{\mathrm{id}}$]
     \label{thm:sym-5-15-abelian}
-    \uses{thm:sym-5-15, lem:sym-convex-combination, lem:sym-map-trans-average, thm:sym-foelner, rmk:sym-transport-gibbs, lem:sym-uniform-average-estimate}
+    \uses{lem:sym-convex-combination, lem:sym-map-trans-average, thm:sym-foelner, rmk:sym-transport-gibbs, lem:sym-uniform-average-estimate}
     \lean{MeasureTheory.GibbsMeasure.exists_mem_GP_and_forall_measurePreserving_of_isCompact}
     \leanok
 
@@ -337,7 +337,7 @@ Definition \ref{def:trans-spec-map}.
 
 \begin{theorem}[Georgii (5.15)(i), at the hypothesis its proof uses]
     \label{thm:sym-5-15-weight}
-    \uses{thm:sym-5-15, lem:sym-group-average-invariant}
+    \uses{lem:sym-group-average-invariant}
     \lean{MeasureTheory.GibbsMeasure.exists_isGibbsMeasure_and_forall_map_eq_of_invariantWeight,
           MeasureTheory.GibbsMeasure.exists_mem_GP_and_forall_measurePreserving_of_invariantWeight}
     \leanok
